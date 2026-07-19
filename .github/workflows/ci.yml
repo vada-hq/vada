@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: api
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - name: Sync dependencies (lockfile 검증 포함)
+        run: uv sync --frozen
+      - name: Lint (ruff)
+        run: uv run ruff check . && uv run ruff format --check .
+      - name: Typecheck (pyright strict)
+        run: uv run pyright
+      - name: Test (pytest)
+        run: uv run pytest
+
+  web:
+    name: web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install (lockfile 검증 포함)
+        run: pnpm install --frozen-lockfile
+      - name: Lint (eslint)
+        run: pnpm --filter web lint
+      - name: Typecheck (tsc)
+        run: pnpm --filter web typecheck
+      - name: Test (vitest)
+        run: pnpm --filter web test
+      - name: Build
+        run: pnpm --filter web build

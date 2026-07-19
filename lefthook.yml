@@ -1,0 +1,5 @@
+# 얇은 로컬 훅 — 권위는 CI에 있다 (ADR: 로컬 git 훅)
+commit-msg:
+  commands:
+    commitlint:
+      run: pnpm exec commitlint --edit {1}

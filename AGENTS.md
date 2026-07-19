@@ -1,0 +1,43 @@
+# VADA — AGENTS.md
+
+대학 학생회·동아리 조직관리 SaaS. 데스크탑 우선 웹(React SPA) + FastAPI(AWS 서버리스) 모노레포.
+이 파일이 에이전트 지침의 **단일 원본**이다. `CLAUDE.md`는 이 파일을 import만 한다.
+
+## 명령어 (전부 리포 루트에서 실행)
+
+| 명령 | 용도 |
+| --- | --- |
+| `just setup` | 최초 1회: 전체 의존성 설치 |
+| `just dev-api` | API 개발 서버 (http://localhost:8000) |
+| `just dev-web` | 웹 개발 서버 |
+| `just test` / `just test-api` / `just test-web` | 테스트 |
+| `just lint` | 린트 + 포맷 검사 |
+| `just typecheck` | Pyright strict + tsc |
+| `just check` | ⭐ lint + typecheck + test 전부 |
+
+**작업 완료의 정의 = `just check` 통과.** 통과 전에 작업을 끝내지 마라. "됐다"는 주장이 아니라 명령 출력이 증거다.
+
+## 구조
+
+- `apps/api` — FastAPI 모듈형 모놀리스. Python 3.13(uv), SQLAlchemy 2.x **동기** 엔진 + psycopg3, Alembic. 도메인 모듈 간 직접 import 금지(import-linter 계약 예정).
+- `apps/web` — Vite 8 React SPA. TS 6.0(7 전환 대기), TanStack Router/Query/Form/Table, Zustand, Zod 4, Tailwind 4 + shadcn/ui(**Base UI 기반**), TipTap v3.
+- `packages/` — 웹·모바일 공유용 **순수 TS만** (Zod 스키마, 생성 API 클라이언트, queryOptions). TanStack Router 코드·UI 컴포넌트 넣기 금지.
+- `infra/` — Terraform. 리전은 서울(ap-northeast-2), 상태는 S3 + use_lockfile.
+- `docs/` — 리포 문서. **기술 결정(ADR 74건)의 원본은 노션**: https://app.notion.com/p/3a068a85148e80ca89e0f726a38d49f3
+
+## 불변 규칙 (위반 = CI 실패 또는 리뷰 반려)
+
+- 커밋 메시지는 **Conventional Commits**(`feat:`, `fix:`, `chore:` …). 스쿼시 머지를 쓰므로 PR 제목도 동일 규약.
+- **main 직접 push 금지.** 브랜치 → PR → CI green → 스쿼시 머지. 에이전트도 예외 없다.
+- 모든 API 라우트에 권한 의존성 명시(`require_permission("리소스.행동")` 패턴). 역할명 직접 비교 금지.
+- **모든 쿼리는 org 스코프 필수** — 멀티테넌트 격리가 이 프로젝트 최대 보안 리스크다. 도메인마다 크로스 테넌트 접근 테스트를 짝으로 작성.
+- DB 마이그레이션은 expand → migrate → contract 분리. rename/drop을 코드 변경과 같은 릴리스에 넣지 마라. 기동 시 자동 마이그레이션 금지.
+- API는 additive-only(파괴적 변경 금지). 에러 응답은 RFC 9457 problem+json 통일.
+- 의존성 추가는 `uv add` / `pnpm add`만. lockfile 커밋 필수. pip/npm 직접 설치 금지.
+- 시간은 **UTC로 저장**, 표시만 KST.
+- 폼 submit 핸들러에는 `event.isComposing` 가드(한국어 IME의 Enter 이중 입력 방지).
+- 비밀값을 코드·로그에 넣지 마라. 설정은 환경변수(배포 시 SSM Parameter Store).
+
+## 기술 결정에 대한 태도
+
+스택은 확정이다. 임의로 바꾸지 마라. 재검토는 노션 ADR의 "재평가 트리거"가 충족됐을 때만 하며, 대안 제안 시 해당 ADR을 근거로 첨부하라.

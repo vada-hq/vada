@@ -1,0 +1,6 @@
+# 저장소는 항상 LF — Windows 로컬과 Linux CI 간 개행 불일치 방지
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.woff2 binary
