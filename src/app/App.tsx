@@ -1148,7 +1148,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "사이드바 운영 → 캘린더",
     functions: [
       { num: "01", element: "월간 그리드", description: "요일별 날짜와 행사·회의·마감 일정을 표시하고 오늘을 강조한다. 행사·상시 업무의 미완료 마감일과 생성 회의의 실제 예정 일시도 자동으로 반영하며, 이전·다음 달로 이동할 수 있다. 홈에서 선택한 일정은 해당 날짜와 안내 배너로 강조한다." },
-      { num: "02", element: "유형 필터", description: "전체·행사·회의·마감으로 표시 항목을 거른다." },
+      { num: "02", element: "유형 필터·색상 범례", description: "전체·행사·회의·마감으로 표시 항목을 거르고, 행사=남색·회의=보라·마감=주황의 고정 색상과 범례로 일정 유형을 구분한다." },
       { num: "03", element: "이번 주 일정 패널", description: "이번 주 일정을 목록으로 표시하고 일정 유형에 맞는 원본 업무·회의·행사로 이동한다. 업무 마감은 원래 행사 업무 상세 또는 상시 업무 상세 패널로, 생성 회의는 해당 회의의 상세 또는 완료 회의록으로 이동한다." },
       { num: "04", element: "일정 생성 없음", description: "캘린더는 열람 전용이다.", constraint: "회의는 운영>회의, 행사 일정은 각 행사의 일정 탭에서 생성" },
     ],
@@ -9760,7 +9760,7 @@ function FINREQ01() {
 
   const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.estimatedUnitPrice), 0);
 
-  const addItem = () => setItems([...items, { id: Date.now(), name: "", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" }]);
+  const addItem = () => setItems([{ id: Date.now(), name: "", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" }, ...items]);
   const removeItem = (id: number) => setItems(items.filter(i => i.id !== id));
   
   const updateItem = (id: number, field: string, value: any) => {
@@ -9777,8 +9777,8 @@ function FINREQ01() {
   };
 
   const handleTypeChange = (id: number, type: any) => {
-    updateItem(id, "purchaseType", type);
-    updateItem(id, "details", {}); // Reset details when type changes
+    // 유형과 상세 정보를 한 번에 갱신한다. updateItem을 두 번 부르면 두 번째 호출이 이전 items를 덮어쓴다.
+    setItems(items.map(item => item.id === id ? { ...item, purchaseType: type, details: {} } : item));
   };
 
   const validate = (submittedNeededDate = neededDate) => {
@@ -11406,10 +11406,23 @@ const CAL_EVENTS: CalendarEvent[] = [
   { year: 2026, month: 6, day: 31, type: "행사", label: "행사장 사전 답사" },
 ];
 
-const CAL_TYPE_STYLE: Record<string, string> = {
-  행사: "bg-blue-50 text-blue-700 border-blue-100",
-  회의: "bg-green-50 text-green-700 border-green-100",
-  마감: "bg-orange-50 text-orange-700 border-orange-100",
+const CAL_TYPE_STYLE: Record<CalendarEvent["type"], string> = {
+  행사: "bg-indigo-50 text-indigo-800 border-indigo-200 border-l-[3px] border-l-indigo-500",
+  회의: "bg-violet-50 text-violet-800 border-violet-200 border-l-[3px] border-l-violet-500",
+  마감: "bg-orange-50 text-orange-800 border-orange-200 border-l-[3px] border-l-orange-500",
+};
+
+const CAL_TYPE_DOT: Record<CalendarEvent["type"], string> = {
+  행사: "bg-indigo-500",
+  회의: "bg-violet-500",
+  마감: "bg-orange-500",
+};
+
+const CAL_FILTER_STYLE: Record<"전체" | CalendarEvent["type"], { active: string; idle: string }> = {
+  전체: { active: "bg-gray-700 text-white border-gray-700", idle: "bg-white text-gray-600 border-gray-300 hover:bg-gray-50" },
+  행사: { active: "bg-indigo-600 text-white border-indigo-600", idle: "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100" },
+  회의: { active: "bg-violet-600 text-white border-violet-600", idle: "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100" },
+  마감: { active: "bg-orange-600 text-white border-orange-600", idle: "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100" },
 };
 
 function OPSCAL01() {
@@ -11480,17 +11493,28 @@ function OPSCAL01() {
             <span className="text-sm font-bold text-gray-900">{month.getFullYear()}년 {month.getMonth() + 1}월</span>
             <button type="button" aria-label="다음 달" onClick={() => changeMonth(1)} className="w-7 h-7 border border-gray-200 rounded flex items-center justify-center text-gray-400 hover:bg-gray-50"><ArrowRight className="w-3.5 h-3.5" /></button>
           </div>
-          <div className="ml-auto flex items-center gap-1.5">
-            {["전체", "행사", "회의", "마감"].map(t => (
+          <div className="ml-auto flex items-center gap-1.5" aria-label="일정 유형 필터">
+            {(["전체", "행사", "회의", "마감"] as const).map(t => (
               <button
                 key={t}
                 onClick={() => setTypeFilter(t)}
-                className={`px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors ${typeFilter === t ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"}`}
+                className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-colors ${typeFilter === t ? CAL_FILTER_STYLE[t].active : CAL_FILTER_STYLE[t].idle}`}
               >
                 {t}
               </button>
             ))}
           </div>
+        </div>
+
+        <div className="flex items-center gap-4 px-1 text-[10px] text-gray-500" aria-label="일정 유형 색상 범례">
+          <span className="font-semibold text-gray-600">유형별 표시</span>
+          {(["행사", "회의", "마감"] as const).map(type => (
+            <span key={type} className="inline-flex items-center gap-1.5">
+              <span className={`w-2 h-2 rounded-full ${CAL_TYPE_DOT[type]}`} aria-hidden="true" />
+              {type}
+            </span>
+          ))}
+          <span className="text-gray-400">마감은 완료되지 않은 업무 기준</span>
         </div>
 
         <div className="grid grid-cols-[minmax(0,1fr)_280px] gap-5 items-start">
@@ -11509,7 +11533,7 @@ function OPSCAL01() {
                       <p className={`text-[10px] font-semibold mb-1 w-5 h-5 flex items-center justify-center rounded-full ${day === focusedDay ? "bg-indigo-600 text-white ring-2 ring-indigo-200" : day === today ? "bg-blue-600 text-white" : i % 7 === 0 ? "text-red-400" : i % 7 === 6 ? "text-blue-400" : "text-gray-500"}`}>{day}</p>
                       <div className="flex flex-col gap-1">
                         {visibleEvents.filter(e => e.day === day).map(e => (
-                          <button type="button" onClick={() => openEvent(e)} key={`${e.sourceTaskId ?? e.sourceMeetingId ?? e.label}-${e.day}`} className={`w-full text-left text-[9px] font-medium border rounded px-1 py-0.5 leading-tight truncate hover:brightness-95 ${CAL_TYPE_STYLE[e.type]}`}>{e.label}</button>
+                          <button type="button" onClick={() => openEvent(e)} key={`${e.sourceTaskId ?? e.sourceMeetingId ?? e.label}-${e.day}`} className={`w-full text-left text-[9px] font-semibold border rounded px-1 py-0.5 leading-tight truncate hover:brightness-95 focus:outline-none focus:ring-2 focus:ring-blue-300 ${CAL_TYPE_STYLE[e.type]}`}>{e.label}</button>
                         ))}
                         {day === focusedDay && !isReferenceMonth && calendarFocus && <p className="text-[9px] font-medium border rounded px-1 py-0.5 leading-tight truncate bg-indigo-50 text-indigo-700 border-indigo-100">{calendarFocus.label}</p>}
                       </div>
