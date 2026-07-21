@@ -74,6 +74,7 @@ const SCREENS: Screen[] = [
   { id: "MY-REQ-01", label: "내 구매 요청 — 행사 재정", group: "운영 — 행사" },
   { id: "OPS-CAL-01", label: "캘린더 — 월간 일정", group: "운영 — 캘린더" },
   { id: "FIN-00", label: "전체 재정 현황", group: "재정" },
+  { id: "FIN-00B", label: "전체 재정 현황 — 재정부·회장단", group: "재정" },
   { id: "FIN-WORK-01", label: "구매 요청 목록", group: "재정" },
   { id: "FIN-REQ-01", label: "구매 요청 작성·수정", group: "재정" },
   { id: "FIN-REQ-02", label: "구매 요청 상세·진행 상태", group: "재정" },
@@ -313,6 +314,20 @@ type CreatedMeeting = {
   completedAt?: string;
   cancelledAt?: string;
 };
+
+function getCreatedMeetingScreen(
+  meeting: CreatedMeeting,
+  currentUser: { name: string }
+) {
+  const isOwner = meeting.owner === currentUser.name;
+  const canFacilitate = isOwner || meeting.facilitatorNames.includes(currentUser.name);
+
+  if (meeting.status === "예정") return isOwner ? "OPS-MEET-03B" : canFacilitate ? "OPS-MEET-03C" : "OPS-MEET-03A";
+  if (meeting.status === "진행 중") return canFacilitate ? "OPS-MEET-05B" : "OPS-MEET-05A";
+  if (meeting.status === "정리 중") return canFacilitate ? "OPS-MEET-06B" : "OPS-MEET-06A";
+  if (meeting.status === "완료") return meeting.attendance[currentUser.name]?.joinedAt ? "OPS-MEET-07" : "OPS-MEET-08";
+  return "OPS-MEET-09";
+}
 
 type CreatedMeetingAgendaRecord = {
   title: string;
@@ -724,7 +739,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "OPS-MEET-01B": {
     id: "OPS-MEET-01B", name: "전체 회의 — 진행 권한자", stateChip: "기본",
     purpose: "진행 권한이 있는 회의를 구분해 확인하고, 해당 회의의 시작·진행·정리 화면으로 이동한다.",
-    users: "회의별 진행 권한자 (기본 직급과 무관)",
+    users: "진행 권한자",
     entryPath: "사이드바 운영 → 회의",
     functions: [
       { num: "01", element: "목록·필터", description: "01A와 동일한 목록 구조." },
@@ -738,7 +753,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "OPS-MEET-01C": {
     id: "OPS-MEET-01C", name: "전체 회의 — 회의 생성 가능", stateChip: "기본",
     purpose: "회의 생성 권한이 있는 사용자가 전체 회의를 확인하고 새 회의를 만든다.",
-    users: "회장단·부서장",
+    users: "회장단 · 부서장",
     entryPath: "사이드바 운영 → 회의",
     functions: [
       { num: "01", element: "목록·필터", description: "01A와 동일한 목록 구조." },
@@ -752,7 +767,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "OPS-MEET-02": {
     id: "OPS-MEET-02", name: "회의 생성·수정", stateChip: "작성",
     purpose: "새 회의를 만들거나 예정 회의의 정보를 수정한다.",
-    users: "회장단·부서장 (권한 매트릭스 확정), 수정은 회의 생성자",
+    users: "회장단 · 부서장",
     entryPath: "회의 목록(01C) → 새 회의 만들기 / 예정 회의 관리(03B) → 수정",
     functions: [
       { num: "01", element: "기본 정보", description: "회의 이름, 일시, 장소를 입력한다." },
@@ -760,13 +775,13 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "03", element: "안건 구성", description: "안건 제목, 예상 시간, 관련 자료를 추가·정렬한다." },
       { num: "04", element: "회의 만들기", description: "필수값(회의명·일시·장소)을 확인해 예정 회의를 생성하고 권한자용 회의 목록에 즉시 추가한다.", constraint: "생성자는 자동으로 진행 권한자가 된다. 생성 결과는 로컬 상태 데모로 목록에만 반영된다" },
     ],
-    exceptions: ["회의명·일시·장소 등 필수값이 없으면 회의를 생성하지 않는다", "임시 저장 초안은 회의 목록과 참가자에게 노출하지 않는다"],
+    exceptions: ["회의명·일시·장소 등 필수값이 없으면 회의를 생성하지 않는다", "임시 저장 초안은 회의 목록과 참가자에게 노출하지 않는다", "회의 생성은 회장단·부서장만 하고, 이미 만든 회의의 수정은 그 회의의 생성자만 한다"],
     nextScreens: ["OPS-MEET-01C 회의 생성 가능 목록", "OPS-MEET-03B 예정 회의 관리"],
   },
   "OPS-MEET-03A": {
     id: "OPS-MEET-03A", name: "예정 회의 상세 — 일반 참가자", stateChip: "예정",
     purpose: "예정 회의의 정보, 안건, 참가 현황을 확인한다.",
-    users: "초대된 전 구성원",
+    users: "회의 참가자",
     entryPath: "회의 목록 → 회의 상세 보기",
     functions: [
       { num: "01", element: "요약 카드", description: "일시, 장소, 참가 예정 인원을 표시한다. 회의 생성 직후 목록에서 연 경우 생성 시 입력한 값과 안건·참가자 목록을 표시한다." },
@@ -809,7 +824,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["OPS-MEET-D01 시작 확인", "OPS-MEET-04A 진행 권한 현황"],
   },
   "OPS-MEET-04A": {
-    id: "OPS-MEET-04A", name: "진행 권한 현황 — 읽기 전용", stateChip: "읽기 전용",
+    id: "OPS-MEET-04A", name: "진행 권한 현황 — 진행 권한자", stateChip: "읽기 전용",
     purpose: "이 회의의 진행 권한 보유자를 확인한다.",
     users: "진행 권한자",
     entryPath: "OPS-MEET-03C → 진행 권한 확인",
@@ -823,7 +838,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "OPS-MEET-04B": {
     id: "OPS-MEET-04B", name: "진행 권한 관리 — 회의 생성자", stateChip: "기본",
     purpose: "회의 생성자가 참가자에게 진행 권한을 부여하거나 해제한다.",
-    users: "회의 생성자 (유일한 권한 관리자)",
+    users: "회의 생성자",
     entryPath: "OPS-MEET-03B → 진행 권한 관리",
     functions: [
       { num: "01", element: "권한 부여", description: "참가자를 선택해 OPS-MEET-D03 확인을 거쳐 부여한다." },
@@ -836,7 +851,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "OPS-MEET-05A": {
     id: "OPS-MEET-05A", name: "진행 중 회의 — 일반 참가자", stateChip: "진행 중",
     purpose: "진행 중 회의에서 안건별 기록을 함께 작성하고 결정 의견을 남긴다.",
-    users: "참가 처리된 구성원",
+    users: "회의 참가자",
     entryPath: "회의 목록 → 회의 참가 / 회의로 돌아가기",
     functions: [
       { num: "01", element: "2열 구조", description: "왼쪽은 선택한 안건의 회의록 문서, 오른쪽은 전체 안건과 참가 현황." },
@@ -865,7 +880,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "OPS-MEET-06A": {
     id: "OPS-MEET-06A", name: "정리 중 회의 — 일반 참가자", stateChip: "정리 중",
     purpose: "회의 종료 후 정리 중 상태를 안내하고 최종 회의록 제공을 기다린다.",
-    users: "참가했던 구성원",
+    users: "회의 참가자",
     entryPath: "회의 종료 시 자동 전환 / 회의 목록",
     functions: [
       { num: "01", element: "정리 중 안내", description: "정리 완료 후 회의록 제공 예정임을 안내한다." },
@@ -919,7 +934,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "OPS-MEET-09": {
     id: "OPS-MEET-09", name: "취소된 회의 상세", stateChip: "취소됨",
     purpose: "취소된 회의의 정보와 취소 기록을 열람한다.",
-    users: "초대되었던 구성원",
+    users: "회의 참가자",
     entryPath: "회의 목록(취소됨)",
     functions: [
       { num: "01", element: "취소 안내", description: "취소 처리자와 시각, 사유를 표시한다." },
@@ -1033,15 +1048,15 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "04", element: "메시지 입력", description: "입력 후 `보내기` 또는 Enter로 전송한다. 보낸 메시지는 즉시 목록과 방 목록의 마지막 메시지에 반영된다.", constraint: "본문과 첨부가 모두 비어 있으면 보낼 수 없다" },
       { num: "04B", element: "파일 첨부", description: "클립 버튼으로 파일을 여러 개 고른다. 고른 파일은 입력창 위에 칩으로 쌓이고 X로 뺄 수 있다. 본문 없이 첨부만 보낼 수도 있으며, 방 목록 미리보기에는 `파일 N개`로 요약한다.", constraint: "메시지 첨부는 대화 공유용이며 정산 증빙이 아니다. 증빙 등록은 재정 화면에서만 한다. 백엔드가 없으므로 파일명과 용량만 기록하고 실제 업로드·보관은 하지 않는다" },
       { num: "04C", element: "이미지 미리보기", description: "이미지 파일은 대기 칩과 말풍선 모두에서 썸네일로 보여주고, 이미지가 아닌 파일은 문서 아이콘과 파일명·용량 카드로 보여준다.", constraint: "미리보기는 브라우저 로컬에서만 만들며 서버에 올리지 않는다" },
+      { num: "05", element: "읽음 처리", description: "방을 열면 그 방의 안 읽은 수를 0으로 지우고, 방 목록과 홈 끼룩이 브리핑의 메시지 알림에 즉시 반영한다." },
       { num: "06", element: "인원 추가", description: "헤더의 `인원 추가`를 누르면 아직 참여하지 않은 구성원만 소속·역할과 함께 목록으로 보여준다. 선택해 추가하면 참여자에 반영하고 초대 안내를 대화에 남긴다.", constraint: "이미 참여 중인 구성원은 목록에 넣지 않으며, 추가할 사람이 없으면 그 사실을 문구로 알린다" },
       { num: "07", element: "방 나가기", description: "확인 후 참여자에서 본인을 제외하고 방 목록으로 돌아간다. 부서 단위로 참여 중이었다면 그 부서를 개별 인원으로 펼친 뒤 본인만 제외한다. 남은 참여자에게는 나갔다는 안내를 대화에 남긴다.", constraint: "남은 참여자가 없으면 방과 대화 기록이 함께 삭제되며, 확인 문구에서 이 사실을 미리 알린다" },
-      { num: "05", element: "읽음 처리", description: "방을 열면 그 방의 안 읽은 수를 0으로 지우고, 방 목록과 홈 끼룩이 브리핑의 메시지 알림에 즉시 반영한다." },
     ],
     exceptions: ["방이 하나도 없으면 대화 대신 방 만들기 안내를 표시한다", "이 화면은 백엔드 없는 로컬 상태 데모이며 실제 실시간 수신은 구현하지 않는다", "방을 만들면 데모 확인용으로 안내 문구와 상대방의 첫 메시지가 들어가고 안 읽음 1건으로 시작한다"],
     nextScreens: ["MSG-01 메시지 방 목록"],
   },
   "MSG-02": {
-    id: "MSG-02", name: "새 메시지 방 만들기", stateChip: "모달",
+    id: "MSG-02", name: "새 메시지 방 만들기", stateChip: "모달 열림",
     purpose: "학생회 조직도를 그대로 사용해 부서 단위와 개인 단위를 함께 골라 메시지 방을 만든다.",
     users: "전 구성원",
     entryPath: "메시지 > 새 메시지 방 만들기",
@@ -1092,7 +1107,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "FIN-REQ-02": {
     id: "FIN-REQ-02", name: "구매 요청 상세·진행 상태", stateChip: "기본",
     purpose: "제출한 구매 요청의 품목별 상태와 처리 이력을 단계로 확인한다.",
-    users: "요청자 본인, 재정부·회장단",
+    users: "요청자 본인 · 재정부 · 회장단",
     entryPath: "내 구매 요청 → 상태 확인",
     functions: [
       { num: "01", element: "진행 단계", description: "요청 제출 → 재정부 검토 → 구매·발주 → 결제·증빙 → 처리 완료 단계를 표시한다." },
@@ -1118,7 +1133,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "FIN-PROC-01": {
     id: "FIN-PROC-01", name: "구매·발주 처리", stateChip: "구매 필요",
     purpose: "승인된 요청의 품목을 구매처별로 발주하고 주문·배송 상태를 관리한다.",
-    users: "재정부·회장단 (확정)",
+    users: "재정부 · 회장단",
     entryPath: "재정 > 구매 요청 목록 → 구매 필요 건",
     functions: [
       { num: "01", element: "구매처 그룹", description: "품목을 구매처 단위로 묶어 표시한다." },
@@ -1131,7 +1146,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "FIN-EVID-01": {
     id: "FIN-EVID-01", name: "결제·증빙 정리", stateChip: "증빙 필요",
     purpose: "결제 수단과 증빙 서류를 등록해 지출 건을 정산 완료로 만든다.",
-    users: "재정부·회장단 (확정)",
+    users: "재정부 · 회장단",
     entryPath: "재정 > 구매 요청 목록 → 증빙 필요 건 / 구매 요청 화면의 증빙 관리 버튼",
     functions: [
       { num: "01", element: "결제 정보", description: "법인카드, 계좌이체 등 결제 수단과 결제자를 기록한다." },
@@ -1144,7 +1159,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-TASK-01": {
     id: "EVT-TASK-01", name: "행사 업무 — 칸반 보드", stateChip: "기본",
     purpose: "행사 참가자 전원이 행사 업무를 칸반으로 함께 관리한다.",
-    users: "행사 참가자 전원 (핸드오프 확정 — 협업 공간)",
+    users: "행사 참가자 전원",
     entryPath: "행사 > 업무 탭",
     functions: [
       { num: "01", element: "행사 배너", description: "행사명, D-DAY, 전체 진행 현황을 표시한다." },
@@ -1178,7 +1193,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-FIN-01": {
     id: "EVT-FIN-01", name: "행사 재정 — 개요", stateChip: "기본",
     purpose: "이 행사 맥락의 예산 현황과 구매 요청 처리 상태를 확인한다.",
-    users: "전 구성원 열람. 처리 진입은 재정부·회장단",
+    users: "전 구성원 (열람). 처리 진입은 재정부 · 회장단",
     entryPath: "행사 > 재정 탭",
     functions: [
       { num: "01", element: "예산 요약", description: "배정 예산, 승인·집행 예정액, 실제 지출액, 사용 가능액을 표시한다." },
@@ -1232,7 +1247,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   },
   // ─── 신규 화면 정의서 (2026-07-19) ──────────────────────────────────────────
   "OPS-00": {
-    id: "OPS-00", name: "운영 홈", stateChip: "기본",
+    id: "OPS-00", name: "운영 홈 — 업무·회의·행사·캘린더", stateChip: "기본",
     purpose: "학생회 운영의 네 하위 공간 중 필요한 업무 영역을 선택하는 진입 허브.",
     users: "전 구성원",
     entryPath: "사이드바 운영",
@@ -1279,7 +1294,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "FIN-LEDGER-01": {
     id: "FIN-LEDGER-01", name: "사용 내역", stateChip: "기본",
     purpose: "학생회 예산이 언제, 어디에 사용되었는지 시간순으로 열람한다.",
-    users: "전 구성원 (열람 전용 — 재정 열람은 전원 가능 확정)",
+    users: "전 구성원 (열람 전용)",
     entryPath: "사이드바 재정 → 사용 내역",
     functions: [
       { num: "01", element: "요약 카드", description: "총 지출, 월 지출, 증빙 완료, 증빙 누락을 표시한다." },
@@ -1331,7 +1346,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-00A2": {
     id: "EVT-00A2", name: "행사 목록 — 운영진", stateChip: "기본",
     purpose: "운영진 관점의 행사 목록. 새 행사 생성으로 진입한다.",
-    users: "회장단·부서장",
+    users: "회장단 · 부서장",
     entryPath: "사이드바 운영 → 행사 (운영진)",
     functions: [
       { num: "01", element: "목록·검색·필터", description: "EVT-00A와 동일한 목록 구조." },
@@ -1342,18 +1357,19 @@ const SPEC_DATA: Record<string, SpecDef> = {
   },
   "ONB-01": {
     id: "ONB-01", name: "본인 소속 입력", stateChip: "기본",
-    purpose: "내부 사용자의 개인 학적 소속을 등록한다.",
-    users: "Vada에 처음 가입한 학생회 구성원",
+    purpose: "내 프로필에 표시될 학적 정보를 등록한다.",
+    users: "가입한 모든 사용자",
     entryPath: "회원가입 완료 → 본인 소속 입력",
     preconditions: "로그인 또는 회원가입 완료",
     functions: [
-      { num: "01", element: "진행 단계", description: "현재 온보딩 단계 1/2를 표시한다." },
-      { num: "02", element: "학교 선택", description: "학교를 검색·선택한다. 캠퍼스는 학교명에 포함한다 (예: 한양대학교 ERICA)." },
-      { num: "03", element: "단과대학 선택", description: "선택한 학교에 속한 단과대학만 표시한다." },
-      { num: "04", element: "학부·학과 선택", description: "선택한 단과대학에 속한 학부·학과만 표시한다." },
-      { num: "05", element: "직접 입력", description: "목록에 소속이 없을 때 사용자가 직접 입력한다.", constraint: "직접 입력 시 자유 텍스트 허용" },
-      { num: "06", element: "학년·이름·학번", description: "학년과 이름은 필수. 학번은 선택 입력이다." },
-      { num: "07", element: "다음", description: "필수값 검증 후 ONB-02로 이동한다.", constraint: "누락 시 해당 입력창에 오류 표시" },
+      { num: "01", element: "진행 단계", description: "`기본 설정 1 / 2`를 표시하고, 다음 단계가 시작 방식 선택임을 버튼과 안내 문구로 알린다." },
+      { num: "02", element: "학교 검색", description: "학교명을 검색해 선택한다. 캠퍼스는 학교명에 포함한다 (예: 한양대학교 ERICA)." },
+      { num: "03", element: "단과대학 검색", description: "학교 선택 후 활성화한다. 선택한 학교에 속한 단과대학만 검색 결과로 표시한다." },
+      { num: "04", element: "학부·학과 검색", description: "단과대학 선택 후 활성화한다. 선택한 단과대학에 속한 학부·학과만 검색 결과로 표시한다." },
+      { num: "05", element: "검색 결과 없음·직접 입력", description: "학교·단과대학·학부·학과 검색 결과가 없을 때만 직접 입력으로 사용할 수 있다.", constraint: "기본 화면에 직접 입력 링크를 반복 노출하지 않는다" },
+      { num: "06", element: "기본 프로필", description: "이름과 학번을 먼저 묶어 입력한다. 학번은 학생 식별 기준이므로 필수 입력이다." },
+      { num: "07", element: "현재 학년", description: "학적 정보 묶음의 마지막에 현재 학년을 선택한다." },
+      { num: "08", element: "다음: 시작 방식 선택", description: "필수값 검증 후 ONB-02로 이동한다.", constraint: "누락 시 오류를 표시하고 이동하지 않는다" },
     ],
     exceptions: ["개인 소속과 학생회 대표 범위는 별도 데이터", "목록에 없는 소속은 직접 입력 가능"],
     nextScreens: ["ONB-02 시작 방식 선택"],
@@ -1361,7 +1377,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "INV-00": {
     id: "INV-00", name: "초대 코드 입력", stateChip: "기본",
     purpose: "초대 코드를 입력해 참여할 학생회를 확인한다.",
-    users: "초대 코드를 전달받은 신규 구성원",
+    users: "가입한 모든 사용자",
     entryPath: "ONB-02 → 초대받은 학생회 참여하기",
     preconditions: "로그인 및 개인 소속 입력 완료",
     functions: [
@@ -1376,28 +1392,29 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "ONB-02": {
     id: "ONB-02", name: "시작 방식 선택", stateChip: "기본",
     purpose: "새 학생회를 만들지, 기존 학생회에 초대 코드로 참여할지 선택한다.",
-    users: "본인 소속 입력을 완료한 사용자",
+    users: "가입한 모든 사용자",
     entryPath: "ONB-01 → 시작 방식 선택",
     functions: [
       { num: "01", element: "새 학생회 만들기", description: "ORG-01 새 학생회 생성으로 이동한다." },
       { num: "02", element: "초대받은 학생회 참여하기", description: "초대 링크 또는 참여 정보 확인 흐름으로 이동한다." },
       { num: "03", element: "진행 단계", description: "온보딩 2/2를 표시한다." },
     ],
-    exceptions: ["초대 코드 또는 링크로 직접 접속한 경우 ONB-03을 건너뛰고 INV-01로 이동", "다른 학생회에 이미 참여 중인 경우 참여 제한 안내"],
-    nextScreens: ["ORG-01 새 학생회 생성", "ONB-03 초대 코드 입력"],
+    exceptions: ["초대 링크로 직접 접속한 경우 ONB-02를 건너뛰고 INV-01로 이동", "다른 학생회에 이미 참여 중인 경우 참여 제한 안내"],
+    nextScreens: ["ORG-01 새 학생회 생성", "INV-00 초대 코드 입력"],
   },
   "ORG-01": {
     id: "ORG-01", name: "새 학생회 생성", stateChip: "기본",
     purpose: "새 학생회의 기본 정보와 관리 범위를 설정한다.",
-    users: "학생회 생성자, 학생회장",
+    users: "가입한 모든 사용자",
     entryPath: "ONB-02 → 새 학생회 만들기",
     functions: [
-      { num: "01", element: "학생회 유형", description: "총학생회, 단과대 학생회, 학부 학생회, 학과 학생회, 기타 중 하나를 선택한다." },
-      { num: "02", element: "대표 범위", description: "유형에 따라 학교 → 단과대학 → 학부·학과를 단계적으로 선택한다.", constraint: "이후 학생 명단 관리 범위를 결정" },
-      { num: "03", element: "학생회명", description: "공식 학생회 이름을 입력한다. (예: 제12대 소프트웨어융합대학 학생회)" },
-      { num: "04", element: "운영 연도", description: "연도 단위 selector로 제공한다. 기본값은 현재 연도.", constraint: "기수·임기명, 시작일·종료일 입력 없음" },
-      { num: "05", element: "추천값 안내", description: "개인 소속을 추천값으로만 표시하고 대표 범위로 강제하지 않는다." },
-      { num: "06", element: "다음", description: "입력값을 저장하고 ORG-02 조직 구조 설정으로 이동한다." },
+      { num: "01", element: "진행 단계", description: "`기본 정보 1 / 2`를 표시하고 다음 단계가 조직 구조 설정임을 안내한다." },
+      { num: "02", element: "학생회 유형", description: "총학생회, 단과대 학생회, 학부·학과 학생회, 기타 중 하나를 선택한다." },
+      { num: "03", element: "유형별 대표 범위", description: "총학생회는 학교만, 단과대 학생회는 학교·단과대학, 학부·학과 학생회는 학교·단과대학·학부·학과를 검색해 선택한다. 기타는 대표 범위를 자유 입력한다.", constraint: "유형 변경 시 기존 대표 범위 입력을 초기화하며, 이후 학생 명단 관리 범위를 결정" },
+      { num: "04", element: "학생회명", description: "공식 학생회 이름을 입력한다. (예: 제12대 소프트웨어융합대학 학생회)" },
+      { num: "05", element: "운영 연도", description: "연도 단위 selector로 제공한다. 기본값은 현재 연도.", constraint: "기수·임기명, 시작일·종료일 입력 없음" },
+      { num: "06", element: "추천값 안내", description: "개인 소속을 추천값으로만 표시하고 대표 범위로 강제하지 않는다." },
+      { num: "07", element: "다음: 조직 구조 설정", description: "입력값을 저장하고 ORG-02로 이동한다. 버튼 아래에 다음 단계에서 기본 조직 또는 빈 조직을 선택하고 부서를 구성함을 안내한다." },
     ],
     exceptions: ["필수 학생회 정보가 없거나 중복된 학생회명인 경우 생성하지 않는다", "생성 취소 시 부분 입력 조직을 남기지 않는다"],
     nextScreens: ["ORG-02 조직 구조 설정"],
@@ -1405,37 +1422,39 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "ORG-02": {
     id: "ORG-02", name: "조직 구조 설정", stateChip: "기본",
     purpose: "학생회 생성 직후 회장단과 부서의 기본 구조를 만든다.",
-    users: "학생회 생성자, 학생회장",
+    users: "가입한 모든 사용자",
     entryPath: "ORG-01 → 조직 구조 설정",
     functions: [
-      { num: "01", element: "시작 방식", description: "기본 구조, 템플릿, 빈 조직 중 하나를 선택한다." },
-      { num: "02", element: "회장단 조직 카드", description: "조직도 최상단에 위치한 큰 조직 카드. 회장·부학생회장 등 복수 구성원 카드를 담는다.", constraint: "회장단 카드는 일반 부서와 동일한 카드 형태로 표현" },
-      { num: "03", element: "부서 카드", description: "기획부, 홍보부, 디자인부 등 부서 구조를 표시한다. 구성원 배정은 다음 단계에서 진행." },
-      { num: "04", element: "부서 추가", description: "＋ 부서 추가 버튼으로 새 부서를 만든다." },
-      { num: "05", element: "부서 카드 … 메뉴", description: "각 부서 카드 우측 상단 … 버튼을 클릭하면 '부서명 수정', '부서 삭제' 메뉴가 나타난다.", constraint: "부서명 수정은 인라인 편집. Enter 저장, Esc 취소. 공백·중복 오류. 삭제는 확인 dialog 필요" },
-      { num: "06", element: "조직 만들기", description: "설정한 구조를 저장하고 ORG-03 조직 관리 메인으로 이동한다." },
+      { num: "01", element: "진행 단계", description: "`조직 구조 설정 2 / 2`를 표시한다." },
+      { num: "02", element: "시작 방식", description: "`기본 조직`과 `빈 조직` 두 가지를 설명과 함께 카드로 제시하고 하나를 선택한다. 기본 조직은 `일반적인 학생회 조직을 생성합니다`, 빈 조직은 `회장단만 생성하고 필요한 부서를 직접 추가합니다`로 안내한다.", constraint: "템플릿 선택지는 제공하지 않는다" },
+      { num: "02B", element: "빈 조직 상태", description: "빈 조직을 선택하면 부서 카드를 두지 않고 부서 추가 카드만 남긴다. 안내 문구도 부서를 직접 만들도록 바꾼다.", constraint: "회장단 카드 자체는 두 방식 모두에서 항상 표시한다. 두 방식의 차이는 기본 부서의 유무뿐이다" },
+      { num: "03", element: "회장단 조직 카드", description: "조직도 최상단에 위치한 조직 카드. 이 단계에서는 구성원 없이 카드만 만들고 `구성원은 다음 단계에서 배정합니다`를 표시한다.", constraint: "이 화면은 조직 구조만 만드는 단계이므로 아직 초대되지 않은 구성원을 배치하지 않는다. 구성원 추가 버튼도 노출하지 않으며, 배정은 구성원 초대 이후 조직 관리에서 한다" },
+      { num: "04", element: "부서 카드", description: "기획부, 홍보부, 디자인부 등 부서 구조를 표시한다. 구성원 배정은 다음 단계에서 진행." },
+      { num: "05", element: "부서 추가", description: "＋ 부서 추가 버튼으로 새 부서를 만든다." },
+      { num: "06", element: "부서 카드 … 메뉴", description: "각 부서 카드 우측 상단 … 버튼을 클릭하면 '부서명 수정', '부서 삭제' 메뉴가 나타난다.", constraint: "부서명 수정은 인라인 편집. Enter 저장, Esc 취소. 공백·중복 오류. 삭제는 확인 dialog 필요" },
+      { num: "07", element: "조직 만들기", description: "설정한 구조를 저장하고 ORG-03 조직 관리 메인으로 이동한다." },
     ],
     exceptions: ["최소 하나의 운영 조직과 회장단 책임자를 지정하기 전에는 설정을 완료할 수 없다", "같은 구성원을 중복 책임자로 등록하지 않는다"],
     nextScreens: ["ORG-03A 조직 관리 메인"],
   },
   "INV-01": {
     id: "INV-01", name: "초대받은 학생회 확인", stateChip: "기본",
-    purpose: "초대받은 학생회 정보를 확인하고 참여를 확정한다.",
-    users: "초대 링크로 가입한 구성원",
-    entryPath: "초대 링크 → 로그인·가입 → 본인 소속 입력 → 초대 확인",
+    purpose: "초대받은 학생회 정보를 확인하고, 초대 링크로 처음 접속한 사용자의 소속 입력 후 참여를 확정한다.",
+    users: "가입한 모든 사용자",
+    entryPath: "초대 코드 확인 또는 초대 링크 → 로그인·가입",
     functions: [
-      { num: "01", element: "학생회 정보", description: "학생회명, 유형, 대표 범위, 임기를 표시한다." },
-      { num: "02", element: "개인 소속", description: "사용자의 현재 개인 소속 정보를 표시한다." },
-      { num: "03", element: "개인 소속 수정", description: "잘못된 개인 소속 정보를 수정할 수 있다." },
-      { num: "04", element: "학생회 참여하기", description: "미배정 구성원으로 추가하고 학생회 홈으로 이동한다." },
+      { num: "01", element: "학생회 정보", description: "학생회명, 유형, 대표 범위, 운영 연도를 표시한다." },
+      { num: "02", element: "본인 소속 입력", description: "초대 링크로 처음 접속한 사용자는 학교·단과대학·학부·학과·학년·학번을 입력한다. 기존 프로필이 있으면 저장된 소속을 표시한다." },
+      { num: "03", element: "학생회 참여하기", description: "필수 소속 정보를 확인한 뒤 미배정 구성원으로 추가하고 학생회 홈으로 이동한다." },
+      { num: "04", element: "참여하지 않기", description: "참여 처리 없이 거절 안내를 표시하고 처음 화면으로 돌아갈 수 있다." },
     ],
-    exceptions: ["만료·사용 완료·잘못된 초대는 참여할 수 없다", "소속 부서가 미배정이면 임의 부서에 자동 배치하지 않는다"],
-    nextScreens: ["ORG-03A 조직 관리 메인 (미배정 상태)"],
+    exceptions: ["만료·사용 완료·잘못된 초대는 참여할 수 없다", "필수 소속 정보가 없으면 참여·홈 이동을 허용하지 않는다", "소속 부서가 미배정이면 임의 부서에 자동 배치하지 않는다"],
+    nextScreens: ["HOME-01 학생회 홈"],
   },
   "ORG-03A": {
-    id: "ORG-03A", name: "조직 관리 메인 — 보기 모드", stateChip: "기본",
+    id: "ORG-03A", name: "조직 관리 — 보기", stateChip: "기본",
     purpose: "학생회 전체 조직과 구성원의 현재 배치 상태를 확인한다.",
-    users: "학생회장, 조직 관리자, 권한이 있는 구성원",
+    users: "전 구성원 (열람)",
     entryPath: "사이드바 조직 관리 → 부서 및 구성원",
     functions: [
       { num: "01", element: "회장단 카드", description: "조직도 최상단에 위치. 회장·부학생회장 등 여러 구성원 카드를 포함. 클릭 시 상세 팝오버." },
@@ -1449,9 +1468,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["ORG-03B 수정 모드", "ORG-03C 초대 패널"],
   },
   "ORG-03B": {
-    id: "ORG-03B", name: "조직 관리 메인 — 수정 모드", stateChip: "수정 모드",
+    id: "ORG-03B", name: "조직 관리 — 수정", stateChip: "수정 모드",
     purpose: "구성원과 부서 구조를 같은 화면에서 수정한다.",
-    users: "학생회장, 조직 관리자",
+    users: "회장단",
     entryPath: "ORG-03A → 수정 버튼",
     functions: [
       { num: "01", element: "완료 버튼", description: "수정 내용을 저장하고 보기 모드(ORG-03A)로 복귀." },
@@ -1467,7 +1486,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "ORG-03C": {
     id: "ORG-03C", name: "구성원 초대 패널", stateChip: "패널 열림",
     purpose: "학생회 공용 초대 링크를 관리한다.",
-    users: "학생회장, 조직 관리자",
+    users: "회장단 · 부서장",
     entryPath: "ORG-03A → 구성원 초대 버튼",
     functions: [
       { num: "01", element: "초대 링크", description: "현재 학생회의 공용 초대 링크를 표시한다." },
@@ -1483,7 +1502,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "ORG-07A": {
     id: "ORG-07A", name: "학생 명단 관리", stateChip: "기본",
     purpose: "업로드한 전체 학생 명단을 관리하고 행사 신청자 대조의 기준 데이터로 사용한다.",
-    users: "학생회장, 관리자",
+    users: "전 구성원 (열람)",
     entryPath: "사이드바 조직 관리 → 학생 명단",
     functions: [
       { num: "01", element: "관리 범위 안내", description: "대표 범위를 고정 정보로 표시. 이 화면에서 범위 변경 불가.", constraint: "범위 변경은 조직 설정에서만 가능" },
@@ -1500,7 +1519,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "ORG-07B": {
     id: "ORG-07B", name: "학생 명단 업로드·갱신 모달", stateChip: "모달 열림",
     purpose: "전체 학생 명단 파일을 업로드해 기준 명단 데이터를 갱신한다.",
-    users: "학생회장, 관리자",
+    users: "회장단",
     entryPath: "ORG-07A → 학생 명단 업로드·갱신",
     functions: [
       { num: "01", element: "양식 다운로드", description: "현재 관리 범위에 맞는 명단 양식을 내려받는다. (이름·학번·단과대학·학부·학과·학년·학생회비 납부 여부 포함)" },
@@ -1514,7 +1533,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-00A": {
     id: "EVT-00A", name: "행사 목록 — 일반 구성원", stateChip: "기본",
     purpose: "현재 기획 중이거나 운영 및 후속 정리가 진행 중인 행사를 한곳에서 확인한다. 완료된 행사는 기록 > 완료된 행사에서 확인한다.",
-    users: "학생회장, 행사 책임자, 행사 운영진",
+    users: "전 구성원 (열람)",
     entryPath: "사이드바 운영 → 행사",
     preconditions: "로그인 및 학생회 참여 완료",
     functions: [
@@ -1533,7 +1552,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-00B": {
     id: "EVT-00B", name: "새 행사 만들기 모달", stateChip: "모달 열림",
     purpose: "행사명만 입력해 행사 공간을 즉시 생성한다. 생성 직후 상태는 기획 중이며 나머지 정보는 이후 채운다.",
-    users: "학생회장, 행사 기획자",
+    users: "회장단 · 부서장",
     entryPath: "EVT-00A 행사 목록 → 새 행사 만들기",
     preconditions: "행사 생성 권한",
     functions: [
@@ -1547,7 +1566,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-01": {
     id: "EVT-01", name: "행사 운영 조직 설정", stateChip: "기본",
     purpose: "행사별로 실제 운영에 참여하는 책임자·팀·구성원을 설정한다. 행사 생성 필수 단계가 아닌 선택적 설정 화면이다.",
-    users: "행사 책임자, 학생회장",
+    users: "행사 운영 조직 관리자 · 회장단",
     entryPath: "행사 > 인원 관리 > 운영 조직 빈 상태(EVT-03C) → 운영 조직 구성하기 (2026-07-19 흐름 확정 — 행사 생성 직후 필수 단계가 아님)",
     functions: [
       { num: "01", element: "시작 방식", description: "기본 조직 불러오기, 참여 부서만 선택, 빈 조직 중 하나를 선택한다." },
@@ -1562,7 +1581,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-03C": {
     id: "EVT-03C", name: "운영 조직 — 빈 상태", stateChip: "빈 상태",
     purpose: "운영 조직이 아직 없는 행사에서 조직 구성의 시작점을 제공한다.",
-    users: "행사 운영 조직 관리자·회장단 (구성 진입), 열람은 행사 참가자",
+    users: "행사 참가자 전원 (열람). 구성 진입은 행사 운영 조직 관리자 · 회장단",
     entryPath: "행사 > 인원 관리 > 운영 조직 (조직 미구성 상태)",
     functions: [
       { num: "01", element: "빈 상태 안내", description: "아직 운영 조직이 구성되지 않았음을 안내한다.", constraint: "행사 조직은 기본 조직과 별개 데이터" },
@@ -1575,7 +1594,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-04C": {
     id: "EVT-04C", name: "행사 참가자 — 빈 상태", stateChip: "빈 상태",
     purpose: "참가 신청자가 없는 행사에서 모집 시작점을 제공한다.",
-    users: "행사 운영 조직 (설문 생성 진입), 열람은 행사 참가자",
+    users: "행사 참가자 전원 (열람). 설문 생성 진입은 행사 운영 조직 관리자",
     entryPath: "행사 > 인원 관리 > 행사 참가자 (신청자 없음 · 설문 미생성 상태)",
     functions: [
       { num: "01", element: "빈 상태 안내", description: "아직 참가 신청자가 없음을 안내한다.", constraint: "참가자는 직접 추가하는 것이 아니라 참여 설문 신청으로 유입된다" },
@@ -1586,9 +1605,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["EVT-05 참여 설문 생성·관리"],
   },
   "EVT-02": {
-    id: "EVT-02", name: "행사 개요 대시보드 — 기획 중", stateChip: "기획 중",
+    id: "EVT-02", name: "행사 개요 — 기획 중", stateChip: "기획 중",
     purpose: "행사 데이터를 해석하고 현재 상황과 다음 행동을 보여주는 운영 판단 화면이다. 행사 상태와 권한에 따라 관리 행동을 분리한다.",
-    users: "행사 참가자 전원 열람. 행사 운영 조직 관리자·회장단은 관리 행동 가능",
+    users: "행사 참가자 전원 (열람). 관리 행동은 행사 운영 조직 관리자 · 회장단",
     entryPath: "사이드바 → 운영 → 행사 → 행사 선택 / EVT-00B 행사 만들기 완료",
     functions: [
       { num: "01", element: "행사 공통 헤더", description: "상태, 행사 업무의 지연·미배정·검토 필요 수로 계산한 건강도와 근거, 담당 부서·책임자, 행사일, 다음 미완료 업무를 행사 전 탭에서 공통 표시한다.", constraint: "건강도는 지연·담당자 없음 등 구체적 근거를 함께 표시" },
@@ -1605,7 +1624,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-02C": {
     id: "EVT-02C", name: "행사 종료 확인 모달", stateChip: "모달 열림",
     purpose: "진행 중 상태에서 행사 종료를 선택하면 후속 정리 중으로 상태가 변경됨을 명확히 안내하고 확인을 받는다.",
-    users: "행사 책임자, 학생회장",
+    users: "행사 운영 조직 관리자 · 회장단",
     entryPath: "EVT-02 개요 대시보드 (진행 중) → 행사 종료 버튼",
     functions: [
       { num: "01", element: "안내 문구", description: "행사 운영은 종료되지만 미완료 업무와 문서를 계속 정리할 수 있음을 안내한다. 상태가 후속 정리 중으로 변경됨을 명시한다." },
@@ -1616,9 +1635,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["취소 → EVT-02 행사 개요 (진행 중)", "행사 종료 → EVT-02D 후속 정리 중 대시보드"],
   },
   "EVT-02D": {
-    id: "EVT-02D", name: "행사 개요 대시보드 — 후속 정리 중", stateChip: "후속 정리 중",
+    id: "EVT-02D", name: "행사 개요 — 후속 정리 중", stateChip: "후속 정리 중",
     purpose: "행사 운영이 종료된 후 후속 정리가 필요한 항목을 구체적으로 보여주고 완료 처리를 유도한다.",
-    users: "행사 책임자, 운영진",
+    users: "행사 운영 조직 관리자 · 회장단",
     entryPath: "EVT-02C 행사 종료 확인 → 행사 종료 / EVT-00A 행사 목록에서 후속 정리 중 행사 선택",
     functions: [
       { num: "01", element: "상태 배지", description: "후속 정리 중 배지를 행사명 근처에 표시한다. 주황색 계열." },
@@ -1634,7 +1653,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-02E": {
     id: "EVT-02E", name: "행사 완료 처리 확인 모달", stateChip: "모달 열림",
     purpose: "후속 정리가 완료되었는지 확인하고 행사를 완료 상태로 변경하여 기록으로 이동시킨다. 남은 항목이 있어도 완료 처리를 강제 차단하지 않는다.",
-    users: "행사 책임자, 학생회장",
+    users: "행사 운영 조직 관리자 · 회장단",
     entryPath: "EVT-02D 후속 정리 중 대시보드 → 행사 완료 처리 버튼",
     functions: [
       { num: "01", element: "잔여 항목 확인", description: "남은 업무·문서·회의록 등 미완료 항목을 목록으로 표시한다. 항목이 없으면 깔끔한 완료 확인 문구를 표시한다." },
@@ -1648,7 +1667,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "REC-01": {
     id: "REC-01", name: "완료된 행사 목록", stateChip: "기본",
     purpose: "완료 처리된 행사를 열람하고 기록을 확인한다. 완료된 행사는 운영 > 행사에서 제외되고 이 화면에서 관리된다.",
-    users: "학생회장, 행사 책임자, 운영진",
+    users: "전 구성원",
     entryPath: "사이드바 기록 → 완료된 행사 / EVT-02E 완료 처리 완료 후",
     functions: [
       { num: "01", element: "행사 카드", description: "완료 배지, 행사명, 행사 일시, 담당 부서·책임자, 완료 처리일을 표시한다." },
@@ -1704,9 +1723,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["REC-02 행사 아카이브 상세"],
   },
   "EVT-02B": {
-    id: "EVT-02B", name: "행사 기본정보 입력·수정", stateChip: "패널 열림",
+    id: "EVT-02B", name: "행사 정보 편집 패널", stateChip: "패널 열림",
     purpose: "행사의 공통 사실 정보를 입력·수정한다. 저장된 정보는 일정·참여 설문·공지 등에 단일 원본으로 자동 반영된다. 설문 전용 설정(신청 기간, 승인제 등)은 이 화면에서 관리하지 않는다.",
-    users: "행사 책임자, 편집 권한이 있는 운영진",
+    users: "행사 운영 조직 관리자 · 회장단",
     entryPath: "EVT-02 개요 대시보드 → 정보 입력·수정",
     functions: [
       { num: "01", element: "행사 정보 영역", description: "행사명, 행사 소개, 행사 목적·주요 내용을 입력한다. 행사명은 행사 생성 시 입력한 값으로 미리 채운다.", constraint: "행사 기본정보에서 관리" },
@@ -1721,9 +1740,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["EVT-02 행사 개요 대시보드", "EVT-05 참여 설문 (변경 내용 자동 반영)"],
   },
   "EVT-03A": {
-    id: "EVT-03A", name: "인원 관리 — 운영 조직 보기", stateChip: "기본",
+    id: "EVT-03A", name: "운영 조직 — 보기", stateChip: "기본",
     purpose: "행사 운영 조직의 현재 구성을 확인한다.",
-    users: "행사 운영진",
+    users: "행사 참가자 전원 (열람)",
     entryPath: "행사 워크스페이스 → 인원 관리 → 운영 조직 탭",
     functions: [
       { num: "01", element: "내부 탭", description: "운영 조직과 행사 참가자를 구분하는 탭." },
@@ -1736,9 +1755,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["EVT-03B 수정 모드"],
   },
   "EVT-03B": {
-    id: "EVT-03B", name: "인원 관리 — 운영 조직 수정", stateChip: "수정 모드",
+    id: "EVT-03B", name: "운영 조직 — 수정", stateChip: "수정 모드",
     purpose: "행사 운영 조직만 수정한다. 기본 학생회 조직에 영향 없음.",
-    users: "행사 책임자, 학생회장",
+    users: "행사 운영 조직 관리자 · 회장단",
     entryPath: "EVT-03A → 수정 버튼",
     functions: [
       { num: "01", element: "추가 가능한 구성원", description: "행사 조직에 없는 학생회 구성원을 표시. 같은 구성원 카드 형식 사용." },
@@ -1752,9 +1771,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["EVT-03A 보기 모드"],
   },
   "EVT-04": {
-    id: "EVT-04", name: "인원 관리 — 행사 참가자", stateChip: "기본",
+    id: "EVT-04", name: "행사 참가자 명단", stateChip: "기본",
     purpose: "행사 신청자들의 신청·입금·참석 상태를 표에서 관리한다.",
-    users: "행사 운영진, 행사 책임자",
+    users: "행사 운영 조직",
     entryPath: "행사 워크스페이스 → 인원 관리 → 행사 참가자 탭",
     functions: [
       { num: "01", element: "참가자 표", description: "이름, 학번, 소속, 신청 상태, 입금 상태, 참석 상태를 열로 표시한다. 학생 명단과 대조된 결과를 반영한다." },
@@ -1777,9 +1796,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["EVT-04B QR 모달", "EVT-05 참여 설문"],
   },
   "EVT-04B": {
-    id: "EVT-04B", name: "참석 확인 QR 모달", stateChip: "모달 열림",
+    id: "EVT-04B", name: "QR 참석 확인 모달", stateChip: "모달 열림",
     purpose: "행사 현장에서 사용할 공용 참석 확인 QR을 관리한다.",
-    users: "행사 운영진",
+    users: "행사 운영 조직",
     entryPath: "EVT-04 → 참석 확인 QR 생성",
     functions: [
       { num: "01", element: "QR 코드", description: "참가자가 휴대폰 기본 카메라로 촬영한다. 로그인·앱 설치 불필요." },
@@ -1794,7 +1813,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-05": {
     id: "EVT-05", name: "참여 설문 생성·관리", stateChip: "기본",
     purpose: "설문 문항을 작성하고 설문 전용 모집 설정을 구성한다. 설문 링크 활성화 조건이 충족되면 공개 링크와 QR을 활성화한다. 행사 공통 정보는 EVT-02B 기본정보에서 단일 원본으로 관리하며 이 화면에서 중복 입력하지 않는다.",
-    users: "행사 운영진",
+    users: "행사 운영 조직 관리자",
     entryPath: "행사 워크스페이스 → 인원 관리 탭 → 참여 설문",
     functions: [
       { num: "01", element: "행사 기본정보 요약 영역", description: "행사명, 일시, 장소, 참가 대상, 참가비, 행사 정원, 담당자·문의처를 읽기 전용으로 표시한다. 미입력 값은 미정으로 표시. '행사 기본정보에서 수정' 버튼으로 EVT-02B로 이동하며, 돌아왔을 때 설문 작성 내용은 유지.", constraint: "행사 기본정보에서 자동 반영. 이 화면에서 중복 수정 안 함" },
@@ -1820,7 +1839,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "EVT-05B": {
     id: "EVT-05B", name: "기존 설문 교체 모달", stateChip: "모달 열림",
     purpose: "응답이 존재하는 기존 설문을 종료하고 새로운 설문으로 교체한다.",
-    users: "행사 책임자, 설문 관리 권한자",
+    users: "행사 운영 조직 관리자",
     entryPath: "EVT-05 → 새 설문으로 교체",
     functions: [
       { num: "01", element: "영향 안내", description: "현재 설문 응답자 수, 기존 설문 종료 안내, 기존 응답 보관 안내, 기존 응답자 재응답 필요 안내를 표시한다." },
@@ -1834,7 +1853,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "FIN-WORK-01": {
     id: "FIN-WORK-01", name: "구매 요청 목록", stateChip: "기본",
     purpose: "학생회 전체와 각 행사의 구매 요청을 한 곳에서 확인하고 검토를 시작한다. 메뉴 구조 v5의 재정 > 구매 요청에 대응한다.",
-    users: "재정부·회장단",
+    users: "재정부 · 회장단",
     entryPath: "사이드바 재정 → 구매 요청",
     functions: [
       { num: "01", element: "요약 카드", description: "검토 대기, 보완 후 재검토, 구매 기한 임박, 이번 달 정산 완료를 표시한다." },
@@ -1844,28 +1863,43 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "05", element: "증빙 관리 이동", description: "증빙·정산 처리는 FIN-EVID-01 증빙 관리가 담당한다." },
     ],
     exceptions: ["요청이 없으면 첫 사용 빈 상태를 표시한다", "필터 결과가 없으면 다른 단계의 요청을 대신 표시하지 않고 초기화 경로를 제공한다"],
-    nextScreens: ["FIN-REV-01 구매 요청 상세·검토", "FIN-EVID-01 결제·증빙 정리"],
+    nextScreens: ["FIN-REV-01 구매 요청 검토", "FIN-PROC-01 구매·발주 처리", "FIN-EVID-01 결제·증빙 정리"],
   },
   "FIN-00": {
     id: "FIN-00", name: "전체 재정 현황", stateChip: "기본",
     purpose: "학생회 전체 예산과 지출 현황을 확인한다.",
-    users: "모든 학생회 구성원",
+    users: "전 구성원 (열람). 예산 편성은 재정부 · 회장단",
     entryPath: "사이드바 → 재정",
     functions: [
       { num: "01", element: "회계 기준 정보", description: "회계 기간(2026년 1학기)과 기준일(2026.07.18)을 표시한다." },
-      { num: "02", element: "재정 요약 카드", description: "총예산, 실제 지출, 지출 예정, 사용 가능 금액을 요약 표시한다." },
-      { num: "03", element: "예산 집행률", description: "실제 지출과 지출 예정 포함 집행률을 진행 막대로 시각화한다." },
-      { num: "04", element: "행사별·부서별 탭", description: "재정 현황을 행사별 또는 부서별로 구분하여 조회한다." },
-      { num: "05", element: "재정 데이터 목록", description: "구분, 배정 예산, 실제 지출, 지출 예정, 사용 가능, 집행률을 표로 표시한다." },
+      { num: "02", element: "총예산 편성", description: "총예산 카드를 누르면 편성 모달이 열린다. 총예산은 하나의 금액이 아니라 재원의 합이며, 학생회비·지원비처럼 재원 이름과 금액을 행 단위로 입력한다. 재원은 추가·삭제할 수 있고 하단에 합계를 실시간으로 보여준다. 저장하면 재정 요약과 집행률에 즉시 반영된다.", constraint: "재정부와 회장단만 편성할 수 있다. 그 외 사용자에게는 `편성` 표시와 카드 눌림을 노출하지 않는다. 재원이 하나도 없거나 이름이 빈 재원이 있으면 저장하지 않고, 합계가 0원 이하이면 저장하지 않는다" },
+      { num: "03", element: "재정 요약 카드", description: "총예산, 실제 지출, 지출 예정, 사용 가능 금액을 요약 표시한다. 총예산은 재원 구성을 `학생회비 외 1건`으로, 실제 지출과 지출 예정은 건수를 함께 보여준다.", constraint: "총예산은 편성 권한이 있을 때만 눌린다. 사용 가능은 세 값에서 계산한 결과이므로 열 내역이 없어 누르지 않는다" },
+      { num: "03B", element: "지출 내역 열람", description: "`실제 지출`과 `지출 예정` 카드를 누르면 해당 지출의 전체 내역을 표로 연다. 날짜·지출 내용·행사 또는 사용처·부서·금액을 표시하고, 실제 지출에는 증빙 상태를 함께 보여준다. 하단에 건수와 합계를 표시하며 `사용 내역에서 보기`로 FIN-LEDGER-01로 이동한다.", constraint: "전 구성원이 열람할 수 있다. 이 화면에서 지출을 수정하거나 증빙을 처리하지 않는다" },
+      { num: "03C", element: "행사 재정 연결", description: "내역의 각 행을 누르면 그 지출이 연결된 행사의 재정 화면으로 이동한다.", constraint: "행사에 속하지 않는 상시 지출은 연결할 행사가 없으므로 `상시 지출`로 표시하고 이동시키지 않는다" },
+      { num: "03D", element: "사용 내역 이동", description: "`최근 지출 내역` 머리글의 `사용 내역 전체 보기`로 FIN-LEDGER-01로 이동한다. 지출 내역 모달 하단에서도 같은 화면으로 이동한다.", constraint: "재정의 현황 두 화면을 오가는 경로이므로 전 구성원에게 노출한다" },
+      { num: "04", element: "예산 집행률", description: "저장한 총예산을 기준으로 실제 지출과 지출 예정 포함 집행률을 진행 막대로 시각화한다." },
+      { num: "05", element: "행사별·부서별 탭", description: "재정 현황을 행사별 또는 부서별로 구분하여 조회한다." },
+      { num: "06", element: "재정 데이터 목록", description: "구분, 배정 예산, 실제 지출, 지출 예정, 사용 가능, 집행률을 표로 표시한다." },
     ],
-    exceptions: ["재정 데이터가 없으면 금액과 집행률을 0으로 표시하고 임의 예산을 생성하지 않는다", "기준일이 오래된 경우 최신 데이터로 오해하지 않도록 기준일을 유지한다"],
-    nextScreens: [],
+    exceptions: ["재정 데이터가 없으면 금액과 집행률을 0으로 표시하고 임의 예산을 생성하지 않는다", "기준일이 오래된 경우 최신 데이터로 오해하지 않도록 기준일을 유지한다", "열람은 모든 구성원이 하고 예산 편성은 재정부·회장단만 한다. 권한이 없으면 편성 진입점을 노출하지 않는다"],
+    nextScreens: ["FIN-LEDGER-01 사용 내역", "EVT-FIN-01 행사 재정", "FIN-WORK-01 구매 요청 목록"],
+  },
+  "FIN-00B": {
+    id: "FIN-00B", name: "전체 재정 현황 — 재정부·회장단", stateChip: "권한 보유",
+    purpose: "FIN-00과 같은 화면을 재정부 사용자 관점에서 확인해, 예산 편성 진입점이 보이는 상태를 검토한다.",
+    users: "재정부 · 회장단",
+    entryPath: "사이드바 재정 (재정부·회장단)",
+    functions: [
+      { num: "01", element: "총예산 편성 진입", description: "총예산 카드에 `편성` 표시가 나타나고 카드를 눌러 재원별 편성 모달을 연다. 그 외 구성과 데이터는 FIN-00과 동일하다.", constraint: "이 화면은 권한 축만 다른 역할 변형이며 별도 기능을 추가하지 않는다" },
+    ],
+    exceptions: ["FIN-00과 동일한 화면이며 검토용으로 재정부 사용자를 주입한다", "재정 요약·집행률·목록의 데이터와 동작은 FIN-00과 같다"],
+    nextScreens: ["FIN-00 전체 재정 현황"],
   },
   "FIN-REQ-01": {
     id: "FIN-REQ-01", name: "구매 요청 작성·수정", stateChip: "수정 모드",
     purpose: "행사에 필요한 물품의 구매를 요청한다.",
-    users: "운영진, 재정부원",
-    entryPath: "FIN-01 → 새 구매 요청",
+    users: "전 구성원",
+    entryPath: "FIN-WORK-01 또는 EVT-FIN-01 → 새 구매 요청",
     functions: [
       { num: "01", element: "요청 정보", description: "제목, 목적, 필요일 등 기본 정보를 입력한다." },
       { num: "02", element: "품목 추가", description: "여러 품목을 한 요청에 담을 수 있다. 새 품목은 목록 맨 위에 추가된다." },
@@ -1877,10 +1911,10 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["MY-REQ-01 내 구매 요청", "EVT-FIN-01 행사 재정"],
   },
   "FIN-REV-01": {
-    id: "FIN-REV-01", name: "구매 요청 상세·검토", stateChip: "기본",
+    id: "FIN-REV-01", name: "구매 요청 검토", stateChip: "기본",
     purpose: "제출된 구매 요청을 품목별로 검토하고 승인 여부를 결정한다.",
-    users: "재정부원",
-    entryPath: "MY-FIN-01 또는 FIN-01 → 요청 선택",
+    users: "재정부 · 회장단",
+    entryPath: "FIN-WORK-01 또는 EVT-FIN-01 → 요청 선택",
     functions: [
       { num: "01", element: "품목 검토 표", description: "품목별 요청액, 승인액, 상태를 확인하고 결정한다." },
       { num: "02", element: "상태 변경", description: "승인, 보완 요청, 반려 중 선택 가능하다." },
@@ -1888,10 +1922,10 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "04", element: "처리 기록", description: "상태 변화 이력을 시간순으로 표시한다." },
     ],
     exceptions: ["재정부·회장단 외 사용자는 검토 결정을 변경할 수 없다", "이미 처리된 요청에 승인·반려를 중복 적용하지 않는다"],
-    nextScreens: ["보완 요청 모달", "FIN-01 행사 업무"],
+    nextScreens: ["FIN-PROC-01 구매·발주 처리", "FIN-SUP-01 보완 요청 확인·재제출", "FIN-WORK-01 구매 요청 목록"],
   },
   "EXT-02A": {
-    id: "EXT-02A", name: "외부 참여 희망 조사", stateChip: "기본",
+    id: "EXT-02A", name: "외부 참여 설문", stateChip: "기본",
     purpose: "일반 학생이 별도 계정 없이 행사 참여를 신청한다.",
     users: "일반 학생 (행사 참가 희망자)",
     entryPath: "공유된 행사 참여 링크",
@@ -1933,7 +1967,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     exceptions: ["교체됨 상태: '이 참여 조사는 종료되었습니다' 메시지와 새 설문 이동 버튼 표시"],
   },
   "EXT-01A": {
-    id: "EXT-01A", name: "외부 웹 참석 확인", stateChip: "기본",
+    id: "EXT-01A", name: "QR 참석 확인", stateChip: "기본",
     purpose: "일반 참가자가 행사장 QR을 촬영해 참석을 확인한다.",
     users: "행사 참가자",
     entryPath: "행사장 공용 QR 촬영",
@@ -2498,31 +2532,152 @@ function DesktopShell({
 
 // ─── FIN-00 전체 재정 현황 ─────────────────────────────────────────────────────
 
+// 총예산은 하나의 숫자가 아니라 재원(학생회비·지원비 등)의 합이다.
+type BudgetSource = { id: number; name: string; amount: string };
+
+const DEFAULT_BUDGET_SOURCES: BudgetSource[] = [
+  { id: 1, name: "학생회비", amount: "20000000" },
+  { id: 2, name: "단과대학 지원비", amount: "10000000" },
+];
+
+// 재정 요약 카드의 수치는 모두 이 목록에서 계산한다. 카드와 내역이 어긋나지 않게 하기 위한 단일 원본이다.
+// event가 null이면 행사에 속하지 않는 상시 지출이며, 연결할 행사 재정이 없다.
+type ExpenseRecord = {
+  id: string;
+  date: string;
+  title: string;
+  event: string | null;
+  dept: string;
+  amount: number;
+  status: "완료" | "예정";
+  proof?: "증빙 완료" | "보완 필요" | "미등록";
+};
+
+const EXPENSE_RECORDS: ExpenseRecord[] = [
+  { id: "E-01", date: "2026-07-17", title: "현수막 제작", event: "체육대회", dept: "홍보부", amount: 180000, status: "완료", proof: "증빙 완료" },
+  { id: "E-02", date: "2026-07-16", title: "생수 구매", event: "체육대회", dept: "운영부", amount: 120000, status: "완료", proof: "보완 필요" },
+  { id: "E-03", date: "2026-07-10", title: "체육대회 운영 물품", event: "체육대회", dept: "학술체육부", amount: 1800000, status: "완료", proof: "증빙 완료" },
+  { id: "E-04", date: "2026-07-15", title: "명찰 인쇄", event: "신입생 환영 행사", dept: "홍보부", amount: 75000, status: "완료", proof: "미등록" },
+  { id: "E-05", date: "2026-03-20", title: "환영 행사 다과", event: "신입생 환영 행사", dept: "기획부", amount: 1725000, status: "완료", proof: "증빙 완료" },
+  { id: "E-06", date: "2026-04-01", title: "학생회실 비품 구입", event: null, dept: "운영부", amount: 1200000, status: "완료", proof: "증빙 완료" },
+  { id: "E-07", date: "2026-05-10", title: "정기 간담회 운영비", event: null, dept: "기획부", amount: 800000, status: "완료", proof: "증빙 완료" },
+  { id: "E-08", date: "2026-06-30", title: "상반기 홍보물 제작", event: null, dept: "홍보부", amount: 2500000, status: "완료", proof: "증빙 완료" },
+  { id: "E-09", date: "2026-07-05", title: "학생 복지 물품", event: null, dept: "운영부", amount: 4000000, status: "완료", proof: "미등록" },
+  { id: "E-10", date: "2026-08-05", title: "경기 장비 대여", event: "체육대회", dept: "학술체육부", amount: 600000, status: "예정" },
+  { id: "E-11", date: "2026-08-20", title: "신입생 기념품 제작", event: "신입생 환영 행사", dept: "홍보부", amount: 200000, status: "예정" },
+  { id: "E-12", date: "2026-08-10", title: "하반기 홍보물 제작", event: null, dept: "홍보부", amount: 2300000, status: "예정" },
+];
+
+const PROOF_STYLE: Record<string, string> = {
+  "증빙 완료": "text-green-600 bg-green-50",
+  "보완 필요": "text-yellow-700 bg-yellow-50",
+  "미등록": "text-red-600 bg-red-50",
+};
+
 function FIN00() {
+  const { currentUser, navigateTo } = React.useContext(AppContext);
+  // HANDOFF: 예산 수정은 재정부와 회장단만 가능하다. 열람은 모든 구성원이 할 수 있다.
+  const canEditBudget = currentUser.dept === "재정부" || currentUser.role === "회장단";
+  const [budgetSources, setBudgetSources] = useState<BudgetSource[]>(DEFAULT_BUDGET_SOURCES);
+  const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  const [detailModal, setDetailModal] = useState<"actual" | "planned" | null>(null);
+  const [draftSources, setDraftSources] = useState<BudgetSource[]>(DEFAULT_BUDGET_SOURCES);
+  const [budgetError, setBudgetError] = useState<string | null>(null);
+
+  const sumSources = (sources: BudgetSource[]) => sources.reduce((total, source) => total + (Number(source.amount) || 0), 0);
+  const totalBudget = sumSources(budgetSources);
+  const draftTotal = sumSources(draftSources);
+
+  const actualRecords = EXPENSE_RECORDS.filter(record => record.status === "완료");
+  const plannedRecords = EXPENSE_RECORDS.filter(record => record.status === "예정");
+  const sumRecords = (records: ExpenseRecord[]) => records.reduce((total, record) => total + record.amount, 0);
+  const actualExpense = sumRecords(actualRecords);
+  const plannedExpense = sumRecords(plannedRecords);
+  const availableBudget = totalBudget - actualExpense - plannedExpense;
+  const actualRate = totalBudget > 0 ? Math.min((actualExpense / totalBudget) * 100, 100) : 0;
+  const plannedRate = totalBudget > 0 ? Math.min((plannedExpense / totalBudget) * 100, Math.max(100 - actualRate, 0)) : 0;
+
+  const openBudgetModal = () => {
+    setDraftSources(budgetSources.length > 0 ? budgetSources : [{ id: 1, name: "", amount: "" }]);
+    setBudgetError(null);
+    setBudgetModalOpen(true);
+  };
+
+  const saveBudgetSources = () => {
+    const cleaned = draftSources.filter(source => source.name.trim() !== "" || (Number(source.amount) || 0) > 0);
+    if (cleaned.length === 0) {
+      setBudgetError("재원을 한 개 이상 입력해 주세요.");
+      return;
+    }
+    if (cleaned.some(source => source.name.trim() === "")) {
+      setBudgetError("재원 이름을 모두 입력해 주세요.");
+      return;
+    }
+    if (sumSources(cleaned) <= 0) {
+      setBudgetError("총예산이 0원보다 커야 합니다.");
+      return;
+    }
+    setBudgetSources(cleaned);
+    setBudgetError(null);
+    setBudgetModalOpen(false);
+  };
+
+  const budgetDesc = budgetSources.length === 0
+    ? "재원을 입력해 주세요"
+    : budgetSources.length === 1
+      ? budgetSources[0].name
+      : `${budgetSources[0].name} 외 ${budgetSources.length - 1}건`;
+
   const summary = [
-    { title: "총예산", value: "30,000,000원", desc: "이번 학기 편성 예산", icon: BarChart2, color: "text-blue-600", bg: "bg-blue-50" },
-    { title: "실제 지출", value: "12,400,000원", desc: "결제가 완료된 금액", icon: Check, color: "text-green-600", bg: "bg-green-50" },
-    { title: "지출 예정", value: "3,100,000원", desc: "승인 후 결제 예정 금액", icon: Clock, color: "text-orange-600", bg: "bg-orange-50" },
-    { title: "사용 가능", value: "14,500,000원", desc: "새로 사용할 수 있는 금액", icon: Info, color: "text-indigo-600", bg: "bg-indigo-50" },
+    { title: "총예산", value: `${totalBudget.toLocaleString()}원`, desc: budgetDesc, icon: BarChart2, color: "text-blue-600", bg: "bg-blue-50", action: canEditBudget ? "budget" as const : null, actionLabel: "편성" },
+    { title: "실제 지출", value: `${actualExpense.toLocaleString()}원`, desc: `결제가 완료된 ${actualRecords.length}건`, icon: Check, color: "text-green-600", bg: "bg-green-50", action: "actual" as const, actionLabel: "내역" },
+    { title: "지출 예정", value: `${plannedExpense.toLocaleString()}원`, desc: `결제 예정 ${plannedRecords.length}건`, icon: Clock, color: "text-orange-600", bg: "bg-orange-50", action: "planned" as const, actionLabel: "내역" },
+    { title: "사용 가능", value: `${availableBudget.toLocaleString()}원`, desc: "새로 사용할 수 있는 금액", icon: Info, color: availableBudget < 0 ? "text-red-600" : "text-indigo-600", bg: availableBudget < 0 ? "bg-red-50" : "bg-indigo-50", action: null, actionLabel: "" },
   ];
 
-  const eventData = [
-    { name: "체육대회", budget: 5000000, actual: 2100000, pending: 600000, available: 2300000, rate: 42 },
-    { name: "신입생 환영 행사", budget: 3000000, actual: 1800000, pending: 200000, available: 1000000, rate: 60 },
-    { name: "가을 축제", budget: 8000000, actual: 0, pending: 0, available: 8000000, rate: 0 },
+  // 행사별 집계도 같은 원본에서 계산한다. 배정 예산만 편성값이다.
+  const eventBudgets = [
+    { name: "체육대회", budget: 5000000 },
+    { name: "신입생 환영 행사", budget: 3000000 },
+    { name: "가을 축제", budget: 8000000 },
   ];
+  const eventData = eventBudgets.map(row => {
+    const actual = sumRecords(actualRecords.filter(record => record.event === row.name));
+    const pending = sumRecords(plannedRecords.filter(record => record.event === row.name));
+    return {
+      ...row,
+      actual,
+      pending,
+      available: row.budget - actual - pending,
+      rate: row.budget > 0 ? Math.round(((actual + pending) / row.budget) * 100) : 0,
+    };
+  });
 
-  const recentExpenses = [
-    { date: "07.17", title: "현수막 제작", target: "체육대회", amount: "180,000원", status: "증빙 완료", statusColor: "text-green-600 bg-green-50" },
-    { date: "07.16", title: "생수 구매", target: "체육대회", amount: "120,000원", status: "보완 필요", statusColor: "text-yellow-700 bg-yellow-50" },
-    { date: "07.15", title: "명찰 인쇄", target: "신입생 환영 행사", amount: "75,000원", status: "미등록", statusColor: "text-red-600 bg-red-50" },
-  ];
+  const formatShortDate = (date: string) => date.slice(5).replace("-", ".");
+  const recentExpenses = [...actualRecords]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 3)
+    .map(record => ({
+      date: formatShortDate(record.date),
+      title: record.title,
+      target: record.event ?? "상시 지출",
+      amount: `${record.amount.toLocaleString()}원`,
+      status: record.proof ?? "미등록",
+      statusColor: PROOF_STYLE[record.proof ?? "미등록"],
+    }));
 
-  const proofStatus = [
-    { label: "증빙 완료", count: "23건", color: "text-green-600" },
-    { label: "보완 필요", count: "1건", color: "text-yellow-700" },
-    { label: "미등록", count: "2건", color: "text-red-600" },
-  ];
+  const proofStatus = (["증빙 완료", "보완 필요", "미등록"] as const).map(label => ({
+    label,
+    count: `${actualRecords.filter(record => (record.proof ?? "미등록") === label).length}건`,
+    color: label === "증빙 완료" ? "text-green-600" : label === "보완 필요" ? "text-yellow-700" : "text-red-600",
+  }));
+
+  const detailRecords = detailModal === "actual" ? actualRecords : detailModal === "planned" ? plannedRecords : [];
+  const openEventFinance = (record: ExpenseRecord) => {
+    if (!record.event) return;
+    setDetailModal(null);
+    navigateTo("EVT-FIN-01");
+  };
 
   return (
     <DesktopShell
@@ -2549,20 +2704,38 @@ function FIN00() {
           <p className="text-sm text-gray-500">학생회 전체 예산과 지출 현황을 확인합니다.</p>
         </div>
 
-        {/* 요약 카드 */}
+        {/* 요약 카드 — 총예산 카드는 눌러서 재원별로 편성한다 */}
         <div className="grid grid-cols-4 gap-4">
-          {summary.map((s) => (
-            <div key={s.title} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-              <div className="flex items-start justify-between mb-3">
-                <div className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center`}>
-                  <s.icon className={`w-4.5 h-4.5 ${s.color}`} />
+          {summary.map((s) => {
+            const inner = (
+              <>
+                <div className="flex items-start justify-between mb-3">
+                  <div className={`w-9 h-9 rounded-lg ${s.bg} flex items-center justify-center`}>
+                    <s.icon className={`w-4.5 h-4.5 ${s.color}`} />
+                  </div>
+                  {s.action && <span className="text-[10px] text-gray-400 group-hover:text-blue-600">{s.actionLabel}</span>}
                 </div>
+                <p className="text-[10px] text-gray-400 font-medium mb-1">{s.title}</p>
+                <p className={`text-xl font-bold ${s.color} mb-1.5`}>{s.value}</p>
+                <p className="text-[10px] text-gray-400 truncate">{s.desc}</p>
+              </>
+            );
+            return s.action ? (
+              <button
+                key={s.title}
+                type="button"
+                onClick={() => s.action === "budget" ? openBudgetModal() : setDetailModal(s.action)}
+                title={s.action === "budget" ? "총예산 편성하기" : `${s.title} 내역 보기`}
+                className="group bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-left hover:border-blue-300 hover:shadow-md transition-all"
+              >
+                {inner}
+              </button>
+            ) : (
+              <div key={s.title} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                {inner}
               </div>
-              <p className="text-[10px] text-gray-400 font-medium mb-1">{s.title}</p>
-              <p className={`text-xl font-bold ${s.color} mb-1.5`}>{s.value}</p>
-              <p className="text-[10px] text-gray-400">{s.desc}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* 예산 집행률 */}
@@ -2570,18 +2743,16 @@ function FIN00() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-900">전체 예산 집행률 41%</span>
+                <span className="text-sm font-semibold text-gray-900">전체 예산 집행률 {actualRate.toFixed(1)}%</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-500">지출 예정 포함 52%</span>
+                <span className="text-sm font-medium text-gray-500">지출 예정 포함 {(actualRate + plannedRate).toFixed(1)}%</span>
               </div>
             </div>
           </div>
           <div className="relative w-full h-4 bg-gray-100 rounded-full overflow-hidden">
-            {/* 실제 지출 41.3% (12.4M / 30M) */}
-            <div className="absolute left-0 top-0 h-full bg-blue-600 rounded-l-full" style={{ width: "41.3%" }} />
-            {/* 지출 예정 10.3% (3.1M / 30M) */}
-            <div className="absolute left-[41.3%] top-0 h-full bg-blue-300" style={{ width: "10.3%" }} />
+            <div className="absolute left-0 top-0 h-full bg-blue-600 rounded-l-full" style={{ width: `${actualRate}%` }} />
+            <div className="absolute top-0 h-full bg-blue-300" style={{ left: `${actualRate}%`, width: `${plannedRate}%` }} />
           </div>
           <div className="flex items-center gap-4 mt-3">
             <div className="flex items-center gap-1.5">
@@ -2639,8 +2810,15 @@ function FIN00() {
         <div className="grid grid-cols-3 gap-6">
           {/* 최근 지출 내역 */}
           <div className="col-span-2 bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
+            <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
               <p className="text-xs font-semibold text-gray-700">최근 지출 내역</p>
+              <button
+                type="button"
+                onClick={() => navigateTo("FIN-LEDGER-01")}
+                className="text-[10px] text-gray-400 hover:text-blue-600 flex items-center gap-0.5"
+              >
+                사용 내역 전체 보기 <ExternalLink className="w-2.5 h-2.5" />
+              </button>
             </div>
             <table className="w-full text-left border-collapse">
               <thead>
@@ -2690,6 +2868,144 @@ function FIN00() {
           </div>
         </div>
       </div>
+
+      {detailModal && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-[720px] max-h-[86vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-sm font-bold text-gray-900">{detailModal === "actual" ? "실제 지출 내역" : "지출 예정 내역"}</h2>
+                <p className="text-[10px] text-gray-400 mt-0.5">
+                  {detailModal === "actual" ? "결제가 완료된 지출입니다." : "승인 후 결제가 예정된 지출입니다."} 행사 지출은 눌러서 해당 행사 재정으로 이동합니다.
+                </p>
+              </div>
+              <button type="button" onClick={() => setDetailModal(null)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+            </div>
+
+            <div className="overflow-y-auto">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 bg-gray-50">
+                  <tr className="border-b border-gray-200">
+                    <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500">날짜</th>
+                    <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500">지출 내용</th>
+                    <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500">행사 또는 사용처</th>
+                    <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500">부서</th>
+                    <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500 text-right">금액</th>
+                    {detailModal === "actual" && <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500 text-center">증빙</th>}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {detailRecords.map(record => (
+                    <tr
+                      key={record.id}
+                      onClick={() => openEventFinance(record)}
+                      className={record.event ? "cursor-pointer hover:bg-blue-50/50" : ""}
+                      title={record.event ? `${record.event} 재정으로 이동` : "행사에 속하지 않는 상시 지출입니다"}
+                    >
+                      <td className="px-5 py-3 text-xs text-gray-500 font-mono">{formatShortDate(record.date)}</td>
+                      <td className="px-5 py-3 text-xs font-medium text-gray-800">{record.title}</td>
+                      <td className="px-5 py-3 text-xs">
+                        {record.event
+                          ? <span className="text-blue-600 inline-flex items-center gap-1">{record.event}<ExternalLink className="w-2.5 h-2.5" /></span>
+                          : <span className="text-gray-400">상시 지출</span>}
+                      </td>
+                      <td className="px-5 py-3 text-xs text-gray-500">{record.dept}</td>
+                      <td className="px-5 py-3 text-xs font-semibold text-gray-900 text-right font-mono">{record.amount.toLocaleString()}원</td>
+                      {detailModal === "actual" && (
+                        <td className="px-5 py-3 text-center">
+                          <span className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${PROOF_STYLE[record.proof ?? "미등록"]}`}>{record.proof ?? "미등록"}</span>
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                  {detailRecords.length === 0 && (
+                    <tr><td colSpan={6} className="px-5 py-10 text-center text-xs text-gray-400">해당하는 지출이 없습니다.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between shrink-0">
+              <p className="text-xs text-gray-600">
+                {detailRecords.length}건
+                <span className="font-semibold text-gray-900"> · 합계 {sumRecords(detailRecords).toLocaleString()}원</span>
+              </p>
+              <Btn variant="secondary" size="sm" onClick={() => { setDetailModal(null); navigateTo("FIN-LEDGER-01"); }}>사용 내역에서 보기</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {budgetModalOpen && canEditBudget && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-[520px] max-h-[86vh] flex flex-col overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-sm font-bold text-gray-900">총예산 편성</h2>
+                <p className="text-[10px] text-gray-400 mt-0.5">2026년 1학기 · 재원별로 나누어 입력하면 합계가 총예산이 됩니다.</p>
+              </div>
+              <button type="button" onClick={() => setBudgetModalOpen(false)} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+            </div>
+
+            <div className="px-6 py-5 overflow-y-auto flex flex-col gap-2">
+              <div className="flex items-center gap-2 px-1">
+                <p className="text-[10px] text-gray-400 flex-1">재원</p>
+                <p className="text-[10px] text-gray-400 w-[168px]">금액</p>
+                <span className="w-6" />
+              </div>
+              {draftSources.map((source, index) => (
+                <div key={source.id} className="flex items-center gap-2">
+                  <input
+                    value={source.name}
+                    onChange={event => { setDraftSources(previous => previous.map((item, itemIndex) => itemIndex === index ? { ...item, name: event.target.value } : item)); setBudgetError(null); }}
+                    placeholder="예: 학생회비, 총학생회 지원비"
+                    className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400"
+                  />
+                  <div className="relative w-[168px]">
+                    <input
+                      value={source.amount ? Number(source.amount).toLocaleString() : ""}
+                      onChange={event => { const digits = event.target.value.replace(/[^0-9]/g, ""); setDraftSources(previous => previous.map((item, itemIndex) => itemIndex === index ? { ...item, amount: digits } : item)); setBudgetError(null); }}
+                      inputMode="numeric"
+                      placeholder="0"
+                      className="w-full border border-gray-200 rounded-lg pl-3 pr-7 py-2 text-sm text-right font-mono text-gray-800"
+                    />
+                    <span className="absolute right-2.5 top-2.5 text-xs text-gray-400">원</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDraftSources(previous => previous.filter((_, itemIndex) => itemIndex !== index))}
+                    className="w-6 h-6 rounded flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 shrink-0"
+                    title="재원 삭제"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+
+              <button
+                type="button"
+                onClick={() => setDraftSources(previous => [...previous, { id: Math.max(0, ...previous.map(item => item.id)) + 1, name: "", amount: "" }])}
+                className="mt-1 border border-dashed border-gray-300 rounded-lg py-2 text-xs text-gray-500 hover:border-blue-300 hover:text-blue-600 flex items-center justify-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" /> 재원 추가
+              </button>
+
+              {budgetError && <p className="text-[11px] text-red-600 mt-1">{budgetError}</p>}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-between shrink-0">
+              <div>
+                <p className="text-[10px] text-gray-400">총예산</p>
+                <p className="text-base font-bold text-gray-900">{draftTotal.toLocaleString()}원</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <Btn variant="text" size="sm" onClick={() => setBudgetModalOpen(false)}>취소</Btn>
+                <Btn variant="primary" size="sm" onClick={saveBudgetSources}>저장</Btn>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DesktopShell>
   );
 }
@@ -2843,18 +3159,21 @@ function KkirukBriefing(props: {
 // ─── HOME-01 홈 ───────────────────────────────────────────────────────────────
 
 function HOME01({ briefing = false }: { briefing?: boolean }) {
-  const { navigateTo, setEventWorkspaceFilter, setCalendarFocus, eventTasks, recurringTasks, createdMeetings, currentUser, eventLifecycle, messageRooms } = React.useContext(AppContext);
-  const eventDelayedCount = eventTasks.filter(task => task.delayed).length;
-  const eventUnassignedCount = eventTasks.filter(task => task.assignee === "미지정").length;
+  const { navigateTo, setEventWorkspaceFilter, setCalendarFocus, eventTasks, recurringTasks, createdMeetings, currentUser, eventLifecycle, messageRooms, demoDataMode } = React.useContext(AppContext);
+  const isFirstUse = demoDataMode === "first-use";
+  const homeEventTasks = isFirstUse ? [] : eventTasks;
+  const homeRecurringTasks = isFirstUse ? [] : recurringTasks;
+  const eventDelayedCount = homeEventTasks.filter(task => task.delayed).length;
+  const eventUnassignedCount = homeEventTasks.filter(task => task.assignee === "미지정").length;
   const needsAttentionCount = eventDelayedCount + eventUnassignedCount;
-  const myActiveTaskCount = [...eventTasks, ...recurringTasks].filter(task => task.assignee === currentUser.name && task.status !== "완료").length;
+  const myActiveTaskCount = [...homeEventTasks, ...homeRecurringTasks].filter(task => task.assignee === currentUser.name && task.status !== "완료").length;
   const today = new Date("2026-07-19T00:00:00");
-  const fixedSchedule = [
+  const fixedSchedule = isFirstUse ? [] : [
     { dateValue: new Date("2026-07-20T00:00:00"), name: "체육대회 참가 신청 마감", dept: "기획부", type: "마감", focus: { month: 6, day: 20, label: "체육대회 참가 신청 마감" } },
     { dateValue: new Date("2026-07-22T00:00:00"), name: "정기 운영회의", dept: "전체", type: "회의", focus: { month: 6, day: 22, label: "정기 운영회의" } },
     { dateValue: new Date("2026-08-20T00:00:00"), name: "소프트웨어융합대학 체육대회", dept: "학술체육부", type: "행사", focus: { month: 7, day: 20, label: "소프트웨어융합대학 체육대회" } },
   ];
-  const taskSchedule = [...eventTasks, ...recurringTasks]
+  const taskSchedule = [...homeEventTasks, ...homeRecurringTasks]
     .filter(task => task.status !== "완료" && task.due !== "상시")
     .map(task => {
       const dateValue = new Date(`${task.due}T00:00:00`);
@@ -2872,13 +3191,13 @@ function HOME01({ briefing = false }: { briefing?: boolean }) {
     .map(item => ({ ...item, date: `${String(item.dateValue.getMonth() + 1).padStart(2, "0")}.${String(item.dateValue.getDate()).padStart(2, "0")}` }));
   const thisWeekScheduleCount = [...fixedSchedule, ...taskSchedule, ...meetingSchedule].filter(item => item.dateValue >= today && item.dateValue <= new Date("2026-07-25T23:59:59")).length;
   const summaryCards = [
-    { label: "진행 중 행사", value: "1개", icon: Star, color: "text-blue-600", bg: "bg-blue-50", screen: "EVT-00A" },
-    { label: "예정 행사", value: "2개", icon: Calendar, color: "text-indigo-600", bg: "bg-indigo-50", screen: "EVT-00A" },
+    { label: "진행 중 행사", value: isFirstUse ? "0개" : "1개", icon: Star, color: "text-blue-600", bg: "bg-blue-50", screen: "EVT-00A" },
+    { label: "예정 행사", value: isFirstUse ? "0개" : "2개", icon: Calendar, color: "text-indigo-600", bg: "bg-indigo-50", screen: "EVT-00A" },
     { label: "이번 주 주요 일정", value: `${thisWeekScheduleCount}개`, icon: Clock, color: "text-orange-600", bg: "bg-orange-50", screen: "OPS-CAL-01" },
     { label: "확인 필요", value: `${needsAttentionCount}건`, icon: AlertCircle, color: "text-red-500", bg: "bg-red-50", screen: "EVT-TASK-01" },
   ];
 
-  const events = [
+  const events = isFirstUse ? [] : [
     {
       name: MAIN_EVENT_NAME, status: eventLifecycle, statusVariant: LIFECYCLE_CHIP_VARIANT[eventLifecycle],
       date: "2026-08-20", place: "ERICA 체육관", dept: "학술체육부", progress: 62,
@@ -2891,14 +3210,14 @@ function HOME01({ briefing = false }: { briefing?: boolean }) {
     },
   ];
 
-  const alerts = [
+  const alerts = isFirstUse ? [] : [
     { icon: AlertCircle, color: "text-red-500 bg-red-50", label: "체육대회 지연 업무", value: `${eventDelayedCount}건`, screen: "EVT-TASK-01" },
     { icon: User, color: "text-orange-500 bg-orange-50", label: "담당자 미지정 업무", value: `${eventUnassignedCount}건`, screen: "EVT-TASK-01", filter: "unassignedTasks" as const },
     { icon: FileText, color: "text-yellow-600 bg-yellow-50", label: "증빙 서류 누락", value: "5건", screen: "EVT-FIN-01" },
     { icon: Users, color: "text-blue-500 bg-blue-50", label: "참가자 명단 확인 필요", value: "6명", screen: "EVT-04" },
   ];
 
-  const activity = [
+  const activity = isFirstUse ? [] : [
     { when: "오늘 10:30", desc: "체육대회 신규 신청자 5명 추가", tag: "참가자" },
     { when: "어제 16:20", desc: "체육대회 QR 참석 확인 설정 완료", tag: "참가 확인" },
     { when: "07.16", desc: "정기 운영회의 결정사항 등록", tag: "회의" },
@@ -2929,7 +3248,7 @@ function HOME01({ briefing = false }: { briefing?: boolean }) {
     nextScheduleName: nextSchedule ? nextSchedule.name : null,
     daysUntilNext: nextSchedule ? Math.round((nextSchedule.dateValue.getTime() - today.getTime()) / 86400000) : null,
     thisWeekCount: thisWeekScheduleCount,
-    hasData: eventTasks.length > 0 || recurringTasks.length > 0,
+    hasData: homeEventTasks.length > 0 || homeRecurringTasks.length > 0,
     canManage: currentUser.role !== "부원",
   });
   const runKkirukAction = (action: KkirukAction) => {
@@ -3245,10 +3564,85 @@ function OPS00() {
 
 // ─── Onboarding Screens ───────────────────────────────────────────────────────
 
+const PROFILE_SCHOOLS = ["한양대학교 ERICA", "서울과학기술대학교", "연세대학교", "고려대학교", "성균관대학교"];
+const PROFILE_COLLEGES: Record<string, string[]> = {
+  "한양대학교 ERICA": ["소프트웨어융합대학", "경상대학", "디자인대학"],
+  "서울과학기술대학교": ["공과대학", "인문사회대학"],
+  "연세대학교": ["공과대학", "상경대학"],
+};
+const PROFILE_MAJORS: Record<string, string[]> = {
+  "소프트웨어융합대학": ["컴퓨터학부", "ICT융합학부", "인공지능학과"],
+  "경상대학": ["경영학부", "경제학부"],
+  "디자인대학": ["주얼리·패션디자인학과", "커뮤니케이션디자인학과"],
+  "공과대학": ["컴퓨터공학과", "기계공학과", "건축학부"],
+  "인문사회대학": ["행정학과", "문예창작학과"],
+  "상경대학": ["경제학부", "경영학부"],
+};
+const PROFILE_GRADES = ["1학년", "2학년", "3학년", "4학년", "5학년 이상", "대학원"];
+
+function ProfileSearchSelect({
+  label, value, options, placeholder, disabled = false, onChange,
+}: {
+  label: string;
+  value: string;
+  options: string[];
+  placeholder: string;
+  disabled?: boolean;
+  onChange: (value: string) => void;
+}) {
+  const [query, setQuery] = useState(value);
+  const [isOpen, setIsOpen] = useState(false);
+  const fieldRef = React.useRef<HTMLDivElement>(null);
+  const filteredOptions = options.filter(option => option.toLowerCase().includes(query.trim().toLowerCase()));
+  const hasNoResults = Boolean(query.trim()) && filteredOptions.length === 0;
+
+  React.useEffect(() => setQuery(value), [value]);
+  React.useEffect(() => {
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (fieldRef.current && !fieldRef.current.contains(event.target as Node)) setIsOpen(false);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, []);
+  const selectValue = (nextValue: string) => { onChange(nextValue); setQuery(nextValue); setIsOpen(false); };
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <label className={`text-xs font-medium ${disabled ? "text-gray-400" : "text-gray-700"}`}>{label}<span className="text-red-500">*</span></label>
+      <div ref={fieldRef} className="relative">
+        <Search className={`absolute left-3 top-2.5 w-4 h-4 ${disabled ? "text-gray-300" : "text-gray-400"} pointer-events-none`} />
+        <input value={query} disabled={disabled} onChange={event => { setQuery(event.target.value); setIsOpen(true); }} onFocus={() => setIsOpen(true)} placeholder={placeholder} className={`w-full border rounded-lg py-2 pl-9 pr-8 text-sm outline-none transition-colors ${disabled ? "bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed" : "bg-white border-gray-300 text-gray-800 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"}`} />
+        <ChevronDown className={`absolute right-2.5 top-2.5 w-4 h-4 pointer-events-none ${disabled ? "text-gray-300" : "text-gray-400"}`} />
+        {!disabled && isOpen && (
+          <div className="absolute z-20 top-[calc(100%+4px)] left-0 right-0 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+            {filteredOptions.length > 0 ? <div className="max-h-40 overflow-y-auto py-1">{filteredOptions.map(option => <button key={option} type="button" onMouseDown={event => event.preventDefault()} onClick={() => selectValue(option)} className="w-full px-3 py-2 text-left text-xs text-gray-700 hover:bg-blue-50 hover:text-blue-700">{option}</button>)}</div> : hasNoResults ? <div className="p-3"><p className="text-xs text-gray-500">검색 결과가 없습니다.</p><button type="button" onMouseDown={event => event.preventDefault()} onClick={() => selectValue(query.trim())} className="mt-2 text-xs font-medium text-blue-600 hover:text-blue-700">“{query.trim()}” 직접 입력으로 사용</button></div> : null}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function ONB01() {
+  const { navigateTo } = React.useContext(AppContext);
+  const [school, setSchool] = useState("");
+  const [college, setCollege] = useState("");
+  const [major, setMajor] = useState("");
+  const [name, setName] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [grade, setGrade] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const submitProfile = () => {
+    if (!school || !college || !major || !name.trim() || !studentId.trim() || !grade) {
+      setFormError("필수 학적 정보와 이름·학번을 모두 입력해 주세요.");
+      return;
+    }
+    setFormError(null);
+    navigateTo("ONB-02");
+  };
   return (
     <div className="min-h-full bg-gray-50 flex items-center justify-center py-12">
-      <div className="bg-white border border-gray-200 rounded-xl p-10 w-[480px] shadow-sm">
+      <div className="bg-white border border-gray-200 rounded-xl p-10 w-[520px] shadow-sm">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center">
@@ -3259,68 +3653,35 @@ function ONB01() {
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-1.5 rounded-full bg-blue-600" />
             <div className="w-5 h-1.5 rounded-full bg-gray-200" />
-            <span className="text-xs text-gray-400 ml-1">1 / 2</span>
+            <span className="text-xs text-gray-400 ml-1">기본 설정 1 / 2</span>
           </div>
         </div>
-        <h2 className="text-lg font-semibold text-gray-900 mb-1">본인 소속을 입력해 주세요</h2>
-        <p className="text-sm text-gray-500 mb-6">학생회 활동에 사용되는 정보입니다.</p>
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">내 프로필에 표시될 학적 정보를 입력해 주세요</h2>
+        <p className="text-sm text-gray-500 mb-6">학생회 활동에 사용할 내 프로필 정보입니다.</p>
 
-        <div className="flex flex-col gap-4">
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-700">학교<span className="text-red-500">*</span></label>
-            <div className="relative">
-              <select className="w-full border border-blue-400 rounded px-3 py-2 text-sm bg-white appearance-none pr-8 ring-1 ring-blue-200">
-                <option>한양대학교 ERICA</option>
-                <option>서울과학기술대학교</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
+        <div className="flex flex-col gap-5">
+          <section className="flex flex-col gap-3">
+            <p className="text-[11px] font-semibold text-gray-500">기본 프로필</p>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-medium text-gray-700">이름<span className="text-red-500">*</span></label><input value={name} onChange={event => setName(event.target.value)} placeholder="김바다" className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" /></div>
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-medium text-gray-700">학번<span className="text-red-500">*</span></label><input value={studentId} onChange={event => setStudentId(event.target.value)} inputMode="numeric" placeholder="예: 2022123456" className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" /></div>
             </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-700">단과대학<span className="text-red-500">*</span></label>
-            <div className="relative">
-              <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white appearance-none pr-8">
-                <option>소프트웨어융합대학</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-700">학부·학과<span className="text-red-500">*</span></label>
-            <div className="relative">
-              <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white appearance-none pr-8">
-                <option>컴퓨터학부</option>
-              </select>
-              <ChevronDown className="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-            </div>
-            <p className="text-xs text-blue-500 cursor-pointer">목록에 없으신가요? 직접 입력</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1">
-              <label className="text-xs font-medium text-gray-700">학년<span className="text-red-500">*</span></label>
-              <div className="relative">
-                <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white appearance-none pr-8">
-                  <option>3학년</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
-            </div>
-            <Input label="이름" placeholder="김바다" required />
-          </div>
-
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-700">학번 <span className="text-gray-400 font-normal">(선택)</span></label>
-            <input placeholder="예: 2022123456" className="border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 placeholder-gray-400" />
-          </div>
+          </section>
+          <section className="flex flex-col gap-3">
+            <p className="text-[11px] font-semibold text-gray-500">학적 정보</p>
+            <ProfileSearchSelect label="학교" value={school} options={PROFILE_SCHOOLS} placeholder="학교명을 검색하세요" onChange={nextSchool => { setSchool(nextSchool); setCollege(""); setMajor(""); }} />
+            <ProfileSearchSelect label="단과대학" value={college} options={school ? (PROFILE_COLLEGES[school] ?? []) : []} placeholder={school ? "단과대학을 검색하세요" : "학교를 먼저 선택하세요"} disabled={!school} onChange={nextCollege => { setCollege(nextCollege); setMajor(""); }} />
+            <ProfileSearchSelect label="학부·학과" value={major} options={college ? (PROFILE_MAJORS[college] ?? []) : []} placeholder={college ? "학부·학과를 검색하세요" : "단과대학을 먼저 선택하세요"} disabled={!college} onChange={setMajor} />
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-medium text-gray-700">현재 학년<span className="text-red-500">*</span></label><select value={grade} onChange={event => setGrade(event.target.value)} className={`border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none ${grade ? "text-gray-800" : "text-gray-400"}`}><option value="" disabled className="text-gray-400">학년을 선택하세요</option>{PROFILE_GRADES.map(option => <option key={option} className="text-gray-800">{option}</option>)}</select></div>
+          </section>
+          {formError && <p className="text-xs text-red-600">{formError}</p>}
         </div>
 
         <div className="mt-8">
-          <Btn variant="primary" size="md" className="w-full justify-center">
-            다음 <ArrowRight className="w-4 h-4" />
+          <Btn variant="primary" size="md" className="w-full justify-center" onClick={submitProfile}>
+            다음: 시작 방식 선택 <ArrowRight className="w-4 h-4" />
           </Btn>
+          <p className="mt-2 text-center text-[11px] text-gray-400">다음 단계에서 학생회 시작 방식을 선택합니다.</p>
         </div>
       </div>
     </div>
@@ -3328,6 +3689,7 @@ function ONB01() {
 }
 
 function ONB02() {
+  const { navigateTo } = React.useContext(AppContext);
   return (
     <div className="min-h-full bg-gray-50 flex items-center justify-center py-12">
       <div className="bg-white border border-gray-200 rounded-xl p-10 w-[520px] shadow-sm">
@@ -3341,7 +3703,7 @@ function ONB02() {
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-1.5 rounded-full bg-blue-600" />
             <div className="w-5 h-1.5 rounded-full bg-blue-600" />
-            <span className="text-xs text-gray-400 ml-1">2 / 2</span>
+            <span className="text-xs text-gray-400 ml-1">시작 방식 선택 2 / 2</span>
           </div>
         </div>
         <h2 className="text-lg font-semibold text-gray-900 mb-1">어떻게 시작하시겠어요?</h2>
@@ -3354,15 +3716,17 @@ function ONB02() {
               desc: "새로운 학생회를 생성하고 조직을 구성합니다.",
               icon: Plus,
               badge: null,
+              screen: "ORG-01",
             },
             {
               title: "초대받은 학생회 참여하기",
               desc: "관리자에게 전달받은 초대 코드 또는 초대 링크로 참여합니다.",
               icon: ExternalLink,
               badge: "초대 코드 입력",
+              screen: "INV-00",
             },
-          ].map(({ title, desc, icon: Icon, badge }) => (
-            <div key={title} className="border border-gray-200 rounded-lg p-5 flex items-center gap-4 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group">
+          ].map(({ title, desc, icon: Icon, badge, screen }) => (
+            <button type="button" key={title} onClick={() => navigateTo(screen)} className="w-full border border-gray-200 rounded-lg p-5 flex items-center gap-4 cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors group text-left">
               <div className="w-10 h-10 rounded-lg bg-gray-100 group-hover:bg-blue-100 flex items-center justify-center shrink-0">
                 <Icon className="w-5 h-5 text-gray-500 group-hover:text-blue-600" />
               </div>
@@ -3374,14 +3738,14 @@ function ONB02() {
                 <p className="text-xs text-gray-500 mt-0.5">{desc}</p>
               </div>
               <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
-            </div>
+            </button>
           ))}
         </div>
 
         <p className="mt-4 text-xs text-gray-400 text-center">초대 링크로 직접 접속한 경우 이 화면을 건너뜁니다.</p>
 
         <div className="mt-4">
-          <Btn variant="text" size="sm">
+          <Btn variant="text" size="sm" onClick={() => navigateTo("ONB-01")}>
             <ArrowLeft className="w-3.5 h-3.5" /> 이전으로
           </Btn>
         </div>
@@ -3391,6 +3755,7 @@ function ONB02() {
 }
 
 function ONB03() {
+  const { navigateTo } = React.useContext(AppContext);
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   return (
@@ -3406,7 +3771,7 @@ function ONB03() {
           <div className="flex items-center gap-1.5">
             <div className="w-5 h-1.5 rounded-full bg-blue-600" />
             <div className="w-5 h-1.5 rounded-full bg-blue-600" />
-            <span className="text-xs text-gray-400 ml-1">2 / 2</span>
+            <span className="text-xs text-gray-400 ml-1">시작 방식 선택 2 / 2</span>
           </div>
         </div>
 
@@ -3435,6 +3800,7 @@ function ONB03() {
               { label: "존재하지 않는 코드", example: "XXXXXXXX" },
               { label: "만료된 코드", example: "OLD12345" },
               { label: "다른 학생회 참여 중", example: null },
+              { label: "네트워크 오류", example: null },
             ].map(({ label, example }) => (
               <button
                 key={label}
@@ -3448,12 +3814,16 @@ function ONB03() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2">
-          <Btn variant="primary" size="md" className="w-full justify-center" onClick={() => { if (!code || code.length < 6) setError("올바른 초대 코드를 입력해 주세요."); }}>
+          <Btn variant="primary" size="md" className="w-full justify-center" onClick={() => {
+            if (!code || code.length < 6) { setError("올바른 초대 코드를 입력해 주세요."); return; }
+            if (code === "XXXXXXXX" || code === "OLD12345") { setError("사용할 수 없는 초대 코드입니다."); return; }
+            navigateTo("INV-01");
+          }}>
             학생회 확인
           </Btn>
         </div>
         <div className="mt-3">
-          <Btn variant="text" size="sm">
+          <Btn variant="text" size="sm" onClick={() => navigateTo("ONB-02")}>
             <ArrowLeft className="w-3.5 h-3.5" /> 이전으로
           </Btn>
         </div>
@@ -3465,20 +3835,36 @@ function ONB03() {
 // ─── Org Creation ─────────────────────────────────────────────────────────────
 
 function ORG01() {
+  const { navigateTo } = React.useContext(AppContext);
+  const [organizationType, setOrganizationType] = useState<"총학생회" | "단과대 학생회" | "학부·학과 학생회" | "기타">("단과대 학생회");
+  const [school, setSchool] = useState("");
+  const [college, setCollege] = useState("");
+  const [major, setMajor] = useState("");
+  const [customScope, setCustomScope] = useState("");
+  const needsCollege = organizationType === "단과대 학생회" || organizationType === "학부·학과 학생회";
+  const needsMajor = organizationType === "학부·학과 학생회";
+  const scopeHint = organizationType === "총학생회" ? "대표 학교를 선택해 주세요." : organizationType === "단과대 학생회" ? "대표 학교와 단과대학을 선택해 주세요." : needsMajor ? "대표 학교, 단과대학, 학부·학과를 선택해 주세요." : "대표 범위를 직접 입력해 주세요.";
+  const selectOrganizationType = (nextType: typeof organizationType) => {
+    setOrganizationType(nextType);
+    setSchool("");
+    setCollege("");
+    setMajor("");
+    setCustomScope("");
+  };
   return (
     <div className="min-h-full bg-gray-50 flex items-center justify-center py-12">
       <div className="bg-white border border-gray-200 rounded-xl p-10 w-[520px] shadow-sm">
-        <div className="mb-6">
-          <p className="text-xs text-gray-400 mb-1">새 학생회 만들기</p>
-          <h2 className="text-lg font-semibold text-gray-900">학생회 기본 정보</h2>
+        <div className="flex items-start justify-between mb-6">
+          <div><p className="text-xs text-gray-400 mb-1">새 학생회 만들기</p><h2 className="text-lg font-semibold text-gray-900">학생회 기본 정보</h2></div>
+          <div className="flex items-center gap-1.5 pt-1"><div className="w-5 h-1.5 rounded-full bg-blue-600" /><div className="w-5 h-1.5 rounded-full bg-gray-200" /><span className="text-xs text-gray-400 ml-1">기본 정보 1 / 2</span></div>
         </div>
 
         <div className="flex flex-col gap-5">
           <div className="flex flex-col gap-1">
             <label className="text-xs font-medium text-gray-700">학생회 유형<span className="text-red-500">*</span></label>
             <div className="grid grid-cols-3 gap-2">
-              {["총학생회", "단과대 학생회", "학부 학생회", "학과 학생회", "기타"].map((t) => (
-                <button key={t} className={`px-3 py-2 rounded border text-xs font-medium ${t === "단과대 학생회" ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+              {["총학생회", "단과대 학생회", "학부·학과 학생회", "기타"].map((t) => (
+                <button type="button" key={t} onClick={() => selectOrganizationType(t as typeof organizationType)} className={`px-3 py-2 rounded border text-xs font-medium ${t === organizationType ? "border-blue-500 bg-blue-50 text-blue-700" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
                   {t}
                 </button>
               ))}
@@ -3486,24 +3872,14 @@ function ORG01() {
           </div>
 
           <div className="flex flex-col gap-3 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs font-medium text-gray-600">대표 범위</p>
-            <div className="flex flex-col gap-2">
-              <div className="relative">
-                <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white appearance-none pr-8">
-                  <option>한양대학교 ERICA</option>
-                </select>
-                <ChevronDown className="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-px h-4 bg-gray-300 ml-3" />
-                <div className="relative flex-1">
-                  <select className="w-full border border-blue-400 rounded px-3 py-2 text-sm bg-white appearance-none pr-8 ring-1 ring-blue-200">
-                    <option>소프트웨어융합대학</option>
-                  </select>
-                  <ChevronDown className="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
-                </div>
-              </div>
-            </div>
+            <div><p className="text-xs font-medium text-gray-600">대표 범위</p><p className="mt-1 text-[11px] text-gray-400">{scopeHint}</p></div>
+            {organizationType === "기타" ? (
+              <div className="flex flex-col gap-1.5"><label className="text-xs font-medium text-gray-700">대표 범위<span className="text-red-500">*</span></label><input value={customScope} onChange={event => setCustomScope(event.target.value)} placeholder="예: 대학원 총학생회, 연합 동아리" className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" /></div>
+            ) : <>
+              <ProfileSearchSelect label="학교" value={school} options={PROFILE_SCHOOLS} placeholder="대표 학교를 검색하세요" onChange={nextSchool => { setSchool(nextSchool); setCollege(""); setMajor(""); }} />
+              {needsCollege && <ProfileSearchSelect label="단과대학" value={college} options={school ? (PROFILE_COLLEGES[school] ?? []) : []} placeholder={school ? "대표 단과대학을 검색하세요" : "학교를 먼저 선택하세요"} disabled={!school} onChange={nextCollege => { setCollege(nextCollege); setMajor(""); }} />}
+              {needsMajor && <ProfileSearchSelect label="학부·학과" value={major} options={college ? (PROFILE_MAJORS[college] ?? []) : []} placeholder={college ? "대표 학부·학과를 검색하세요" : "단과대학을 먼저 선택하세요"} disabled={!college} onChange={setMajor} />}
+            </>}
           </div>
 
           <Input label="학생회명" placeholder="예: 제12대 소프트웨어융합대학 학생회" required />
@@ -3527,8 +3903,8 @@ function ORG01() {
         </div>
 
         <div className="flex items-center justify-between mt-8">
-          <Btn variant="secondary" size="md"><ArrowLeft className="w-4 h-4" /> 이전</Btn>
-          <Btn variant="primary" size="md">다음 <ArrowRight className="w-4 h-4" /></Btn>
+          <Btn variant="secondary" size="md" onClick={() => navigateTo("ONB-02")}><ArrowLeft className="w-4 h-4" /> 이전</Btn>
+          <div className="text-right"><Btn variant="primary" size="md" onClick={() => navigateTo("ORG-02")}>다음: 조직 구조 설정 <ArrowRight className="w-4 h-4" /></Btn><p className="mt-2 text-[11px] text-gray-400">다음 단계에서 기본 조직 또는 빈 조직을 선택하고 부서를 구성합니다.</p></div>
         </div>
       </div>
     </div>
@@ -3536,28 +3912,51 @@ function ORG01() {
 }
 
 function ORG02() {
-  const depts = ["기획부", "홍보부", "디자인부"];
+  const { navigateTo } = React.useContext(AppContext);
+  // 템플릿 선택지는 제거했다. 기본 조직과 빈 조직 두 가지만 제공한다.
+  const [structureMode, setStructureMode] = useState<"기본 조직" | "빈 조직">("기본 조직");
+  const isEmptyStructure = structureMode === "빈 조직";
+  const depts = isEmptyStructure ? [] : ["기획부", "홍보부", "디자인부"];
+  const structureOptions = [
+    { key: "기본 조직" as const, desc: "일반적인 학생회 조직을 생성합니다" },
+    { key: "빈 조직" as const, desc: "회장단만 생성하고 필요한 부서를 직접 추가합니다" },
+  ];
   return (
     <div className="min-h-full bg-gray-50 flex items-center justify-center py-12">
       <div className="bg-white border border-gray-200 rounded-xl p-10 w-[860px] shadow-sm">
-        <div className="mb-6">
-          <p className="text-xs text-gray-400 mb-1">새 학생회 만들기</p>
-          <h2 className="text-lg font-semibold text-gray-900">조직 구조 설정</h2>
-          <p className="text-sm text-gray-500 mt-1">부서 구조를 설정하세요. 구성원 배정은 다음 단계에서 진행합니다.</p>
+        <div className="flex items-start justify-between mb-6">
+          <div><p className="text-xs text-gray-400 mb-1">새 학생회 만들기</p><h2 className="text-lg font-semibold text-gray-900">조직 구조 설정</h2><p className="text-sm text-gray-500 mt-1">부서 구조를 설정하세요. 구성원 배정은 학생회를 만든 뒤 진행합니다.</p></div>
+          <div className="flex items-center gap-1.5 pt-1"><div className="w-5 h-1.5 rounded-full bg-blue-600" /><div className="w-5 h-1.5 rounded-full bg-blue-600" /><span className="text-xs text-gray-400 ml-1">조직 구조 설정 2 / 2</span></div>
         </div>
 
-        {/* Segmented control */}
-        <div className="flex bg-gray-100 rounded-lg p-1 w-fit mb-8 gap-1">
-          {["기본 구조", "템플릿", "빈 조직"].map((opt) => (
-            <button key={opt} className={`px-4 py-1.5 rounded text-sm font-medium ${opt === "기본 구조" ? "bg-white text-gray-900 shadow-sm" : "text-gray-500"}`}>
-              {opt}
-            </button>
-          ))}
+        {/* 시작 방식 — 설명이 함께 보이도록 카드 선택으로 제공한다 */}
+        <div className="grid grid-cols-2 gap-3 mb-8">
+          {structureOptions.map((opt) => {
+            const selected = structureMode === opt.key;
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setStructureMode(opt.key)}
+                className={`text-left border rounded-xl px-4 py-3.5 transition-all ${
+                  selected ? "border-blue-400 bg-blue-50/60 ring-2 ring-blue-100" : "border-gray-200 bg-white hover:border-gray-300"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <span className={`w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 ${selected ? "border-blue-600" : "border-gray-300"}`}>
+                    {selected && <span className="w-2 h-2 rounded-full bg-blue-600" />}
+                  </span>
+                  <span className={`text-sm font-semibold ${selected ? "text-blue-800" : "text-gray-800"}`}>{opt.key}</span>
+                </div>
+                <p className="text-xs text-gray-500 mt-1.5 ml-6 leading-5">{opt.desc}</p>
+              </button>
+            );
+          })}
         </div>
 
         {/* Org chart */}
         <div className="flex flex-col items-center gap-0 mb-8">
-          <HQCard />
+          <HQCard empty />
           <OrgStem height="h-8" />
 
           <OrgBranch>
@@ -3571,11 +3970,15 @@ function ORG02() {
           </OrgBranch>
         </div>
 
-        <p className="text-xs text-gray-400 text-center mb-8">각 부서 카드 우측의 … 버튼으로 부서명 수정 및 삭제를 할 수 있습니다.</p>
+        <p className="text-xs text-gray-400 text-center mb-8">
+          {isEmptyStructure
+            ? "부서 추가를 눌러 필요한 부서를 만드세요. 구성원은 학생회를 만든 뒤 초대해 배정합니다."
+            : "각 부서 카드 우측의 … 버튼으로 부서명 수정 및 삭제를 할 수 있습니다. 구성원은 학생회를 만든 뒤 초대해 배정합니다."}
+        </p>
 
         <div className="flex items-center justify-between">
-          <Btn variant="secondary" size="md"><ArrowLeft className="w-4 h-4" /> 이전</Btn>
-          <Btn variant="primary" size="md">조직 만들기</Btn>
+          <Btn variant="secondary" size="md" onClick={() => navigateTo("ORG-01")}><ArrowLeft className="w-4 h-4" /> 이전</Btn>
+          <Btn variant="primary" size="md" onClick={() => navigateTo("HOME-01")}>조직 만들기</Btn>
         </div>
       </div>
     </div>
@@ -3585,9 +3988,25 @@ function ORG02() {
 // ─── Invite Screen ────────────────────────────────────────────────────────────
 
 function INV01() {
+  const { navigateTo } = React.useContext(AppContext);
+  const [school, setSchool] = useState("");
+  const [college, setCollege] = useState("");
+  const [major, setMajor] = useState("");
+  const [grade, setGrade] = useState("");
+  const [studentId, setStudentId] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
+  const [hasDeclinedInvitation, setHasDeclinedInvitation] = useState(false);
+  const joinOrganization = () => {
+    if (!school || !college || !major || !grade || !studentId.trim()) {
+      setFormError("학생회 참여 전에 본인 소속과 학번을 모두 입력해 주세요.");
+      return;
+    }
+    setFormError(null);
+    navigateTo("HOME-01");
+  };
   return (
-    <div className="min-h-full bg-gray-50 flex items-center justify-center py-12">
-      <div className="bg-white border border-gray-200 rounded-xl p-10 w-[480px] shadow-sm">
+    <div className="min-h-full bg-gray-50 flex items-center justify-center py-8">
+      <div className="bg-white border border-gray-200 rounded-xl p-8 w-[520px] shadow-sm">
         <div className="flex items-center gap-2 mb-6">
           <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center">
             <span className="text-white text-xs font-bold">V</span>
@@ -3595,6 +4014,14 @@ function INV01() {
           <span className="font-semibold text-gray-900">Vada</span>
         </div>
 
+        {hasDeclinedInvitation ? (
+          <div className="py-12 text-center">
+            <div className="w-10 h-10 mx-auto rounded-full bg-gray-100 flex items-center justify-center"><X className="w-5 h-5 text-gray-500" /></div>
+            <h2 className="mt-4 text-base font-semibold text-gray-900">학생회에 참여하지 않았습니다</h2>
+            <p className="mt-2 text-xs leading-5 text-gray-500">다른 학생회의 초대 링크로 다시 접속하거나, 처음부터 새 학생회를 만들 수 있습니다.</p>
+            <Btn variant="secondary" size="md" className="mt-6" onClick={() => navigateTo("ONB-01")}>처음으로 돌아가기</Btn>
+          </div>
+        ) : <>
         <div className="border border-gray-200 rounded-xl p-6 mb-6">
           <p className="text-xs text-gray-400 mb-1">초대받은 학생회</p>
           <h2 className="text-base font-semibold text-gray-900 mb-4">제12대 소프트웨어융합대학 학생회</h2>
@@ -3602,7 +4029,7 @@ function INV01() {
             {[
               ["유형", "단과대 학생회"],
               ["대표 범위", "한양대학교 ERICA · 소프트웨어융합대학"],
-              ["임기", "2026. 01. 01 ~ 2026. 12. 31"],
+              ["운영 연도", "2026년"],
             ].map(([k, v]) => (
               <div key={k} className="flex items-center gap-3">
                 <span className="text-xs text-gray-400 w-20 shrink-0">{k}</span>
@@ -3612,27 +4039,25 @@ function INV01() {
           </div>
         </div>
 
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-          <p className="text-xs font-medium text-gray-600 mb-2">내 소속 정보</p>
-          <div className="flex flex-col gap-1">
-            {[
-              ["학교", "한양대학교 ERICA"],
-              ["소속", "소프트웨어융합대학 · 컴퓨터학부"],
-              ["학년", "3학년"],
-              ["이름", "김바다"],
-            ].map(([k, v]) => (
-              <div key={k} className="flex items-center gap-3">
-                <span className="text-xs text-gray-400 w-16 shrink-0">{k}</span>
-                <span className="text-xs text-gray-700">{v}</span>
-              </div>
-            ))}
+        <section className="border border-gray-200 rounded-lg p-4 mb-5 flex flex-col gap-3">
+          <div><p className="text-xs font-semibold text-gray-700">본인 소속 입력</p><p className="text-[11px] text-gray-400 mt-1">초대 링크로 처음 참여하는 경우에만 입력합니다.</p></div>
+          <ProfileSearchSelect label="학교" value={school} options={PROFILE_SCHOOLS} placeholder="학교명을 검색하세요" onChange={nextSchool => { setSchool(nextSchool); setCollege(""); setMajor(""); }} />
+          <ProfileSearchSelect label="단과대학" value={college} options={school ? (PROFILE_COLLEGES[school] ?? []) : []} placeholder={school ? "단과대학을 검색하세요" : "학교를 먼저 선택하세요"} disabled={!school} onChange={nextCollege => { setCollege(nextCollege); setMajor(""); }} />
+          <ProfileSearchSelect label="학부·학과" value={major} options={college ? (PROFILE_MAJORS[college] ?? []) : []} placeholder={college ? "학부·학과를 검색하세요" : "단과대학을 먼저 선택하세요"} disabled={!college} onChange={setMajor} />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-medium text-gray-700">현재 학년<span className="text-red-500">*</span></label><select value={grade} onChange={event => setGrade(event.target.value)} className={`border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none ${grade ? "text-gray-800" : "text-gray-400"}`}><option value="" disabled className="text-gray-400">학년을 선택하세요</option>{PROFILE_GRADES.map(option => <option key={option} className="text-gray-800">{option}</option>)}</select></div>
+            <div className="flex flex-col gap-1.5"><label className="text-xs font-medium text-gray-700">학번<span className="text-red-500">*</span></label><input value={studentId} onChange={event => setStudentId(event.target.value)} inputMode="numeric" placeholder="예: 2022123456" className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none" /></div>
           </div>
-          <button className="text-xs text-blue-500 mt-2">개인 소속 수정</button>
-        </div>
+        </section>
 
+        {formError && <p className="text-xs text-red-600 mb-4">{formError}</p>}
         <p className="text-xs text-gray-400 mb-4">참여하면 미배정 구성원으로 등록됩니다. 부서 배정은 학생회 관리자가 진행합니다.</p>
 
-        <Btn variant="primary" size="md" className="w-full justify-center">학생회 참여하기</Btn>
+        <div className="flex flex-col gap-2">
+          <Btn variant="primary" size="md" className="w-full justify-center" onClick={joinOrganization}>소속 입력 후 학생회 참여하기</Btn>
+          <Btn variant="text" size="sm" className="w-full justify-center text-gray-500" onClick={() => setHasDeclinedInvitation(true)}>참여하지 않기</Btn>
+        </div>
+        </>}
       </div>
     </div>
   );
@@ -3654,8 +4079,9 @@ const HQ_MEMBERS = [
   { name: "이윤슬", dept: "ICT융합학부", grade: "4학년", role: "부회장" },
 ];
 
-function HQCard({ editMode = false }: { editMode?: boolean }) {
+function HQCard({ editMode = false, empty = false }: { editMode?: boolean; empty?: boolean }) {
   const [popover, setPopover] = useState<string | null>(null);
+  const members = empty ? [] : HQ_MEMBERS;
   return (
     <div className="border-2 border-gray-300 rounded-lg bg-white min-w-[240px] relative">
       {/* 카드 헤더 */}
@@ -3669,8 +4095,12 @@ function HQCard({ editMode = false }: { editMode?: boolean }) {
 
       {/* 구성원 목록 */}
       <div className="p-3 flex flex-col gap-2">
+        {/* 조직 구조 설정 단계에서는 아직 초대된 구성원이 없다. 구조만 만들고 배정은 이후 단계에서 한다. */}
+        {empty && (
+          <p className="text-[10px] text-gray-400 italic">구성원은 다음 단계에서 배정합니다</p>
+        )}
         <div className="flex gap-2 flex-wrap">
-          {HQ_MEMBERS.map((m) => (
+          {members.map((m) => (
             <div key={m.name} className="relative">
               {editMode && (
                 <button className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-gray-500 rounded-full flex items-center justify-center z-10">
@@ -3733,10 +4163,12 @@ function HQCard({ editMode = false }: { editMode?: boolean }) {
           ))}
         </div>
 
-        {/* 구성원 추가 버튼 */}
-        <button className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700 mt-1">
-          <Plus className="w-3 h-3" /> 구성원 추가
-        </button>
+        {/* 구성원 추가 버튼 — 초대된 구성원이 있는 조직 관리 화면에서만 제공한다 */}
+        {!empty && (
+          <button className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-700 mt-1">
+            <Plus className="w-3 h-3" /> 구성원 추가
+          </button>
+        )}
       </div>
     </div>
   );
@@ -5635,7 +6067,7 @@ function EventWorkspaceShell({
 }
 
 function EVTMEET01() {
-  const { navigateTo, eventInfo, createdMeetings, setSelectedCreatedMeetingId } = React.useContext(AppContext);
+  const { navigateTo, eventInfo, createdMeetings, setSelectedCreatedMeetingId, currentUser } = React.useContext(AppContext);
   const baseMeetings = [
     { title: "체육대회 운영 점검 회의", date: "2026. 07. 18 (토) 10:00", place: "제1회의실", status: "진행 중", attendees: "참가 8명", screen: "OPS-MEET-05A", variant: "blue" as const },
     { title: "안전 관리 최종 회의", date: "2026. 07. 25 (토) 15:00", place: "학생회실", status: "예정", attendees: "참가 예정 4명", screen: "OPS-MEET-03A", variant: "yellow" as const },
@@ -5650,7 +6082,7 @@ function EVTMEET01() {
       place: meeting.place,
       status: meeting.status,
       attendees: `초대 ${meeting.participants}명`,
-      screen: "OPS-MEET-03A",
+      screen: getCreatedMeetingScreen(meeting, currentUser),
       variant: meeting.status === "완료" || meeting.status === "진행 중" ? "green" as const : meeting.status === "정리 중" ? "yellow" as const : "blue" as const,
     }));
   const meetings = [...baseMeetings, ...createdEventMeetings];
@@ -5671,7 +6103,7 @@ function EVTMEET01() {
         </div>
         <div className="flex flex-col gap-3">
           {meetings.map(meeting => (
-            <button key={"id" in meeting ? meeting.id : meeting.title} onClick={() => { if ("id" in meeting) { setSelectedCreatedMeetingId(meeting.id); navigateTo("OPS-MEET-03A"); return; } navigateTo(meeting.screen); }} className="w-full text-left bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-sm transition-all">
+            <button key={"id" in meeting ? meeting.id : meeting.title} onClick={() => { if ("id" in meeting) { setSelectedCreatedMeetingId(meeting.id); navigateTo(getCreatedMeetingScreen(meeting, currentUser)); return; } navigateTo(meeting.screen); }} className="w-full text-left bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-sm transition-all">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2"><Chip label={meeting.status} variant={meeting.variant} /><span className="text-[10px] text-gray-400">행사 연결 회의</span>{"id" in meeting && <Chip label="새로 생성" variant="gray" />}</div>
@@ -5689,7 +6121,7 @@ function EVTMEET01() {
 }
 
 function EVTSCHED01() {
-  const { eventInfo, eventTasks, createdMeetings, setSelectedEventTaskId, setSelectedCreatedMeetingId, navigateTo } = React.useContext(AppContext);
+  const { eventInfo, eventTasks, createdMeetings, setSelectedEventTaskId, setSelectedCreatedMeetingId, navigateTo, currentUser } = React.useContext(AppContext);
   const [filter, setFilter] = useState<"전체" | "이번 주" | "마감" | "회의" | "행사 당일">("전체");
   const eventPeriod = eventInfo.startAt
     ? `${eventInfo.startAt.slice(0, 10).replaceAll("-", ".")} ${eventInfo.startAt.slice(11, 16)}${eventInfo.noEndTime || !eventInfo.endAt ? "부터" : ` ~ ${eventInfo.endAt.slice(11, 16)}`}`
@@ -5743,7 +6175,8 @@ function EVTSCHED01() {
     }
     if ("createdMeetingId" in schedule && schedule.createdMeetingId) {
       setSelectedCreatedMeetingId(schedule.createdMeetingId);
-      navigateTo("OPS-MEET-03A");
+      const meeting = createdMeetings.find(item => item.id === schedule.createdMeetingId);
+      navigateTo(meeting ? getCreatedMeetingScreen(meeting, currentUser) : "OPS-MEET-01A");
       return;
     }
     if ("screen" in schedule && schedule.screen) navigateTo(schedule.screen);
@@ -6752,15 +7185,14 @@ function MeetingScheduledDetail({ role }: { role: "participant" | "owner" | "fac
   const [memberToAdd, setMemberToAdd] = useState("정하늘");
   const [agendaToAdd, setAgendaToAdd] = useState("");
   const createdMeeting = createdMeetings.find((meeting) => meeting.id === selectedCreatedMeetingId);
-  const createdMeetingOwnerDept = createdMeeting ? MEMBER_DEPARTMENTS[createdMeeting.owner] ?? "학생회" : "운영부";
+  const isCreatedMeetingOwner = createdMeeting?.owner === currentUser.name;
+  const canFacilitateCreatedMeeting = Boolean(isCreatedMeetingOwner || createdMeeting?.facilitatorNames.includes(currentUser.name));
   const meetingName = createdMeeting?.name ?? "체육대회 안전 관리 최종 회의";
   const meetingGroup = createdMeeting?.group ?? "2026 소프트웨어융합대학 체육대회";
   const isRegularMeeting = createdMeeting?.group === "정기·상시 회의";
   const owner = role === "owner";
   const facilitator = role === "facilitator";
-  const createdMeetingActor = createdMeeting && owner
-    ? { name: createdMeeting.owner, dept: createdMeetingOwnerDept, role: "회의 생성자" }
-    : currentUser;
+  const createdMeetingActor = currentUser;
   const startCreatedMeeting = () => {
     if (!createdMeeting) return;
     const startedAt = new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
@@ -6794,12 +7226,12 @@ function MeetingScheduledDetail({ role }: { role: "participant" | "owner" | "fac
       actions={
         createdMeeting ? (
           createdMeeting.status === "예정"
-            ? <><Btn variant="secondary" size="sm" onClick={() => setManageOpen(!manageOpen)}><Settings className="w-3.5 h-3.5" /> 회의 관리</Btn><Btn variant="primary" size="sm" onClick={() => setStartConfirmOpen(true)}><ArrowRight className="w-3.5 h-3.5" /> 회의 시작</Btn></>
+            ? <>{isCreatedMeetingOwner && <Btn variant="secondary" size="sm" onClick={() => setManageOpen(!manageOpen)}><Settings className="w-3.5 h-3.5" /> 회의 관리</Btn>}{canFacilitateCreatedMeeting && <Btn variant="primary" size="sm" onClick={() => setStartConfirmOpen(true)}><ArrowRight className="w-3.5 h-3.5" /> 회의 시작</Btn>}</>
             : createdMeeting.status === "진행 중"
-              ? <>{createdMeeting.participantNames.includes(currentUser.name) && !createdMeeting.attendance[currentUser.name]?.joinedAt && <Btn variant="secondary" size="sm" onClick={joinCreatedMeeting}><Check className="w-3.5 h-3.5" /> 회의 참가</Btn>}<Btn variant="destructive" size="sm" onClick={() => setEndConfirmOpen(true)}><X className="w-3.5 h-3.5" /> 회의 종료</Btn></>
+              ? <>{createdMeeting.participantNames.includes(currentUser.name) && !createdMeeting.attendance[currentUser.name]?.joinedAt && <Btn variant="secondary" size="sm" onClick={joinCreatedMeeting}><Check className="w-3.5 h-3.5" /> 회의 참가</Btn>}{canFacilitateCreatedMeeting && <Btn variant="destructive" size="sm" onClick={() => setEndConfirmOpen(true)}><X className="w-3.5 h-3.5" /> 회의 종료</Btn>}</>
               : createdMeeting.status === "취소"
                 ? <Btn variant="secondary" size="sm" onClick={() => navigateTo("OPS-MEET-01C")}><ArrowLeft className="w-3.5 h-3.5" /> 회의 목록으로</Btn>
-              : <Btn variant="primary" size="sm" onClick={() => setCleanupOpen(true)}><FileText className="w-3.5 h-3.5" /> 회의록 정리</Btn>
+              : canFacilitateCreatedMeeting && <Btn variant="primary" size="sm" onClick={() => setCleanupOpen(true)}><FileText className="w-3.5 h-3.5" /> 회의록 정리</Btn>
         ) : role === "participant" ? (
           <Btn variant="secondary" size="sm"><Eye className="w-3.5 h-3.5" /> 예정 회의</Btn>
         ) : (
@@ -6835,7 +7267,7 @@ function MeetingScheduledDetail({ role }: { role: "participant" | "owner" | "fac
 
           <MeetingSummaryCards createdMeeting={createdMeeting} />
 
-          {createdMeeting && manageOpen && createdMeeting.status === "예정" && (
+          {createdMeeting && isCreatedMeetingOwner && manageOpen && createdMeeting.status === "예정" && (
             <section className="bg-white border border-blue-200 rounded-xl p-5 flex flex-col gap-5"><div className="flex items-center justify-between"><div><h2 className="text-sm font-bold text-gray-900">회의 관리</h2><p className="text-[11px] text-gray-500 mt-1">예정 상태에서만 참가자, 진행 권한, 안건을 변경할 수 있습니다.</p></div><Btn variant="text" size="sm" className="text-red-600" onClick={cancelCreatedMeeting}>회의 취소</Btn></div><div className="grid grid-cols-2 gap-5"><div><div className="flex items-center justify-between mb-2"><p className="text-xs font-semibold text-gray-800">참가자·진행 권한</p><select value={memberToAdd} onChange={(event) => setMemberToAdd(event.target.value)} className="text-[11px] border border-gray-200 rounded px-2 py-1"><option>정하늘</option><option>이수현</option><option>김민준</option><option>이윤슬</option></select></div><div className="flex flex-col gap-2">{createdMeeting.participantNames.map((name) => <div key={name} className="flex items-center gap-2 border border-gray-100 rounded-lg px-3 py-2"><span className="text-xs text-gray-700 flex-1">{name}</span>{createdMeeting.facilitatorNames.includes(name) && <Chip label="진행 권한" variant="blue" />}{name !== createdMeeting.owner && <><button type="button" onClick={() => updateCreatedMeeting((meeting) => ({ ...meeting, facilitatorNames: meeting.facilitatorNames.includes(name) ? meeting.facilitatorNames.filter((item) => item !== name) : [...meeting.facilitatorNames, name] }))} className="text-[10px] text-blue-600">{createdMeeting.facilitatorNames.includes(name) ? "권한 해제" : "권한 부여"}</button><button type="button" onClick={() => updateCreatedMeeting((meeting) => ({ ...meeting, participantNames: meeting.participantNames.filter((item) => item !== name), facilitatorNames: meeting.facilitatorNames.filter((item) => item !== name), participants: meeting.participants - 1 }))} className="text-[10px] text-red-500">제거</button></>}</div>)}<Btn variant="secondary" size="sm" onClick={() => { if (!createdMeeting.participantNames.includes(memberToAdd)) updateCreatedMeeting((meeting) => ({ ...meeting, participantNames: [...meeting.participantNames, memberToAdd], participants: meeting.participants + 1 })); }}>참가자 추가</Btn></div></div><div><p className="text-xs font-semibold text-gray-800 mb-2">안건</p><div className="flex flex-col gap-2">{createdMeeting.agendaRecords.map((agenda, index) => <div key={`${agenda.title}-${index}`} className="flex items-center gap-2"><input value={agenda.title} onChange={(event) => updateCreatedMeeting((meeting) => ({ ...meeting, agendaTitles: meeting.agendaTitles.map((title, i) => i === index ? event.target.value : title), agendaRecords: meeting.agendaRecords.map((item, i) => i === index ? { ...item, title: event.target.value } : item) }))} className="flex-1 border border-gray-200 rounded px-2 py-1.5 text-xs"/><button type="button" onClick={() => updateCreatedMeeting((meeting) => ({ ...meeting, agendaTitles: meeting.agendaTitles.filter((_, i) => i !== index), agendaRecords: meeting.agendaRecords.filter((_, i) => i !== index), agendas: meeting.agendas - 1 }))} className="text-[10px] text-red-500">삭제</button></div>)}<div className="flex gap-2"><input value={agendaToAdd} onChange={(event) => setAgendaToAdd(event.target.value)} placeholder="새 안건명" className="flex-1 border border-gray-200 rounded px-2 py-1.5 text-xs"/><Btn variant="secondary" size="sm" onClick={() => { const title = agendaToAdd.trim(); if (!title) return; updateCreatedMeeting((meeting) => ({ ...meeting, agendas: meeting.agendas + 1, agendaTitles: [...meeting.agendaTitles, title], agendaRecords: [...meeting.agendaRecords, { title, discussion: "", decision: "", decisionNone: false, taskName: "", taskAssignee: meeting.owner, taskDue: "", taskNone: false }] })); setAgendaToAdd(""); }}>추가</Btn></div></div></div></div></section>
           )}
 
@@ -6885,7 +7317,7 @@ function MeetingScheduledDetail({ role }: { role: "participant" | "owner" | "fac
             </section>
           )}
 
-          {createdMeeting?.status === "정리 중" && (
+          {createdMeeting?.status === "정리 중" && canFacilitateCreatedMeeting && (
             <section className="bg-white border border-yellow-200 rounded-xl px-5 py-4 flex items-center justify-between gap-5">
               <div>
                 <p className="text-xs font-bold text-gray-900">회의록 정리를 이어가세요</p>
@@ -11748,7 +12180,7 @@ const CAL_FILTER_STYLE: Record<"전체" | CalendarEvent["type"], { active: strin
 };
 
 function OPSCAL01() {
-  const { navigateTo, calendarFocus, eventTasks, recurringTasks, createdMeetings, setSelectedEventTaskId, setSelectedRecurringTaskId, setSelectedCreatedMeetingId } = React.useContext(AppContext);
+  const { navigateTo, calendarFocus, eventTasks, recurringTasks, createdMeetings, setSelectedEventTaskId, setSelectedRecurringTaskId, setSelectedCreatedMeetingId, currentUser } = React.useContext(AppContext);
   const [typeFilter, setTypeFilter] = useState("전체");
   const [month, setMonth] = useState(() => new Date(2026, calendarFocus?.month ?? 6, 1));
   const taskDeadlineEvents: CalendarEvent[] = [
@@ -11788,7 +12220,8 @@ function OPSCAL01() {
     }
     if (event.source === "createdMeeting" && event.sourceMeetingId) {
       setSelectedCreatedMeetingId(event.sourceMeetingId);
-      navigateTo("OPS-MEET-03A");
+      const meeting = createdMeetings.find(item => item.id === event.sourceMeetingId);
+      navigateTo(meeting ? getCreatedMeetingScreen(meeting, currentUser) : "OPS-MEET-01A");
       return;
     }
     navigateTo(event.type === "회의" ? "OPS-MEET-01A" : event.type === "행사" ? "EVT-00A" : "EVT-TASK-01");
@@ -12660,6 +13093,20 @@ function ORG03CWithDialog() {
   return <ORG03C />;
 }
 
+// ─── FIN-00B 전체 재정 현황 — 재정부·회장단 ───────────────────────────────────
+// 같은 화면을 재정부 사용자로 보여 준다. 예산 편성 권한이 보이는 상태를 검토하기 위한 역할 변형이다.
+
+function FIN00B() {
+  return (
+    <AppContext.Provider value={{
+      ...React.useContext(AppContext),
+      currentUser: { name: "김민준", dept: "재정부", role: "부서장" }
+    }}>
+      <FIN00 />
+    </AppContext.Provider>
+  );
+}
+
 // ─── MSG 메시지 ───────────────────────────────────────────────────────────────
 // 조직도를 그대로 쓴다. 부서 단위 선택과 개별 구성원 선택을 한 화면에서 함께 한다.
 
@@ -13412,6 +13859,7 @@ function MSG03() {
 const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "HOME-01": HOME01,
   "HOME-01K": HOME01K,
+  "FIN-00B": FIN00B,
   "MSG-01": MSG01,
   "MSG-02": MSG02,
   "MSG-03": MSG03,
