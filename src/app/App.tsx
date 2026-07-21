@@ -4,7 +4,7 @@ import {
   Copy, RefreshCw, QrCode, Check, AlertCircle, Clock, User, Users,
   Calendar, MapPin, ArrowLeft, ArrowRight, FileText, Settings, Home,
   BarChart2, Clipboard, Menu, ExternalLink, MoreHorizontal, Upload, Eye,
-  Minus, Star, Info, Sparkles
+  Minus, Star, Info, Sparkles, MessageSquare, Paperclip
 } from "lucide-react";
 
 // ─── Shared Types ───────────────────────────────────────────────────────────
@@ -24,6 +24,7 @@ const SCREENS: Screen[] = [
   { id: "INV-00", label: "초대 코드 입력", group: "학생회 참여" },
   { id: "INV-01", label: "초대받은 학생회 확인", group: "학생회 참여" },
   { id: "HOME-01", label: "홈 — 학생회 운영 현황", group: "홈" },
+  { id: "HOME-01K", label: "홈 — 끼룩이 브리핑", group: "홈" },
   { id: "MY-01", label: "내 업무", group: "내 업무" },
   { id: "OPS-00", label: "운영 홈 — 업무·회의·행사·캘린더", group: "운영" },
   { id: "OPS-TASK-01", label: "상시 업무 — 칸반 보드", group: "운영 — 상시 업무" },
@@ -92,6 +93,9 @@ const SCREENS: Screen[] = [
   { id: "ORG-07B", label: "학생 명단 업로드·갱신 모달", group: "조직 관리" },
   { id: "ORG-04", label: "역할 및 권한", group: "조직 관리" },
   { id: "ORG-04B", label: "역할 및 권한 관리 — 회장단", group: "조직 관리" },
+  { id: "MSG-01", label: "메시지 — 방 목록·시작 전", group: "메시지" },
+  { id: "MSG-02", label: "새 메시지 방 만들기", group: "메시지" },
+  { id: "MSG-03", label: "대화 화면", group: "메시지" },
   { id: "EXT-02A", label: "외부 참여 설문", group: "외부 참여", mobile: true },
   { id: "EXT-02B", label: "참여 신청 완료", group: "외부 참여", mobile: true },
   { id: "EXT-02C", label: "설문 예외·종료 상태", group: "외부 참여", mobile: true },
@@ -338,6 +342,36 @@ type OrganizationMemberRole = {
 
 type DemoDataMode = "default" | "first-use";
 
+// 메시지 방: 조직도(부서)와 개별 구성원을 함께 선택해 만든다.
+// scope는 `일반` 또는 행사명이며, 방 목록을 묶는 분류로만 쓴다.
+// 백엔드가 없으므로 첨부는 파일명과 용량만 기록한다. 실제 업로드·보관은 하지 않는다.
+// 이미지에 한해 브라우저 로컬 미리보기 URL을 만들어 썸네일을 보여준다.
+type ChatAttachment = {
+  name: string;
+  size: string;
+  previewUrl?: string;
+};
+
+type ChatMessage = {
+  id: string;
+  sender: string;      // "system"이면 안내 문구로 표시한다
+  text: string;
+  at: string;
+  attachments?: ChatAttachment[];
+};
+
+type MessageRoom = {
+  id: string;
+  name: string;
+  scope: string;
+  depts: string[];
+  members: string[];
+  createdBy: string;
+  createdAt: string;
+  messages: ChatMessage[];
+  unreadCount: number;
+};
+
 const DEFAULT_ORGANIZATION_MEMBER_ROLES: OrganizationMemberRole[] = [
   { name: "김바다", dept: "학술체육부", role: "회장단" },
   { name: "이수현", dept: "기획부", role: "부서장" },
@@ -360,6 +394,19 @@ function loadDraft<T>(key: string): T | null {
   } catch {
     return null;
   }
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes}B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)}KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
+}
+
+function formatClockTime(date: Date) {
+  const hours = date.getHours();
+  const period = hours < 12 ? "오전" : "오후";
+  const displayHour = hours % 12 === 0 ? 12 : hours % 12;
+  return `${period} ${displayHour}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
 function formatDateInput(date: Date) {
@@ -483,6 +530,10 @@ type AppContextType = {
   setPurchaseSupplementDraft: React.Dispatch<React.SetStateAction<PurchaseSupplementDraft | null>>;
   organizationMemberRoles: OrganizationMemberRole[];
   setOrganizationMemberRoles: React.Dispatch<React.SetStateAction<OrganizationMemberRole[]>>;
+  messageRooms: MessageRoom[];
+  setMessageRooms: React.Dispatch<React.SetStateAction<MessageRoom[]>>;
+  selectedMessageRoomId: string | null;
+  setSelectedMessageRoomId: React.Dispatch<React.SetStateAction<string | null>>;
   demoDataMode: DemoDataMode;
   setDemoDataMode: React.Dispatch<React.SetStateAction<DemoDataMode>>;
   navigateTo: (screenId: string) => void;
@@ -621,6 +672,10 @@ const AppContext = React.createContext<AppContextType>({
   setPurchaseSupplementDraft: () => {},
   organizationMemberRoles: DEFAULT_ORGANIZATION_MEMBER_ROLES,
   setOrganizationMemberRoles: () => {},
+  messageRooms: [],
+  setMessageRooms: () => {},
+  selectedMessageRoomId: null,
+  setSelectedMessageRoomId: () => {},
   demoDataMode: "default",
   setDemoDataMode: () => {},
   navigateTo: () => {},
@@ -934,6 +989,73 @@ const SPEC_DATA: Record<string, SpecDef> = {
     ],
     exceptions: ["연결 데이터가 없으면 임의 수치를 만들지 않고 0건·빈 상태로 표시한다", "권한이 없는 사용자의 관리 전용 바로가기를 노출하지 않는다"],
     nextScreens: ["FIN-00 전체 재정 현황", "MY-01 내 업무"],
+  },
+  "HOME-01K": {
+    id: "HOME-01K", name: "홈 — 끼룩이 브리핑", stateChip: "검토안",
+    purpose: "HOME-01의 운영 요약 위에 마스코트 끼룩이의 브리핑 배너를 얹어, 지금 확인해야 할 항목을 문장으로 먼저 알려준다.",
+    users: "전 구성원",
+    entryPath: "사이드바 홈 (HOME-01 대체 검토안)",
+    functions: [
+      { num: "01", element: "끼룩이 브리핑 배너", description: "요약 카드 위에 배치한다. 캐릭터와 말풍선, 화자 표시 `끼룩이가 알려드려요`로 구성하며, 홈이 이미 계산한 지연·미지정·임박 일정·이번 주 일정 수치를 문장으로 엮어 최대 2줄만 말한다.", constraint: "새로운 수치나 판단을 만들지 않는다. 표시하는 모든 값은 기존 홈 데이터와 동일해야 한다" },
+      { num: "02", element: "우선순위 규칙", description: "지연 업무 → 담당자 미지정 → 읽지 않은 메시지 → 3일 이내 임박 일정 → 이번 주 일정 순으로 최대 2건만 고른다. 해당 없으면 평온 문안을 표시한다." },
+      { num: "02B", element: "메시지 알림", description: "읽지 않은 메시지가 있으면 담백한 톤으로 건수를 알리고 메시지로 이동한다. 방이 여러 개면 `N개 방에 M건`으로, 하나면 건수만 표시한다.", constraint: "안 읽은 메시지 수는 실제 메시지 방 데이터에서 계산한다" },
+      { num: "03", element: "톤 3단계", description: "지연·미지정은 사무적 톤에 `확인 중` 표정, 일반 알림과 평온·빈 상태는 친근한 톤에 `안녕` 표정을 쓴다. `생각 중` 표정은 AI 처리 중 상태에만 쓴다.", constraint: "재정·지연 항목에 마스코트 말투를 쓰지 않는다. 경고 톤에서는 화자 표시의 느낌표를 뺀다" },
+      { num: "04", element: "바로가기", description: "브리핑이 지목한 항목의 처리 화면으로 이동한다. 담당자 미지정은 행사 업무의 미지정 필터를 적용한다.", constraint: "부원에게는 담당자 배정 표현 대신 목록 보기로 표시한다" },
+      { num: "05", element: "빈 상태", description: "행사·업무 데이터가 없으면 수치 대신 첫 행사 생성 안내를 표시한다." },
+      { num: "06", element: "가벼운 본문", description: "브리핑에 무게를 싣기 위해 HOME-01보다 본문을 줄인다. 최근 활동은 표시하지 않고, 다가오는 주요 일정은 3건까지만 부서명 없이 압축한다.", constraint: "끼룩이가 이미 말한 항목은 중복 표시하지 않는다. 요약 카드에서 `확인 필요`를, 조직 주요 알림에서 지연·담당자 미지정 행을 제외한다" },
+    ],
+    exceptions: ["연결 데이터가 없으면 임의 수치를 만들지 않고 0건·빈 상태로 표시한다", "홈은 내 업무의 상위 공간이 아니므로 브리핑에서 개인 업무 건수를 말하지 않는다", "권한이 없는 사용자의 관리 전용 바로가기를 노출하지 않는다"],
+    nextScreens: ["EVT-TASK-01 행사 업무", "OPS-CAL-01 통합 캘린더", "HOME-01 홈"],
+  },
+  "MSG-01": {
+    id: "MSG-01", name: "메시지 — 방 목록·시작 전", stateChip: "기본",
+    purpose: "학생회 구성원 간 소통 방을 모아 보고, 아직 방이 없으면 첫 방 생성을 안내한다.",
+    users: "전 구성원",
+    entryPath: "사이드바 메시지",
+    functions: [
+      { num: "01", element: "빈 상태", description: "방이 하나도 없으면 목록 대신 안내와 `새 메시지 방 만들기`만 표시한다.", constraint: "임의의 예시 방을 만들어 두지 않는다" },
+      { num: "02", element: "방 목록", description: "방이 있으면 분류(일반·행사별)로 묶어 표시한다. 방마다 이름, 참여 대상 칩, 참여 인원 수, 만든 사람과 만든 날짜를 보여준다." },
+      { num: "03", element: "참여 대상 표시", description: "부서 단위 선택은 `○○부 전체` 칩으로, 개별 선택은 이름 칩으로 구분해 표시한다." },
+      { num: "04", element: "새 메시지 방", description: "MSG-02 방 만들기 모달을 연다.", constraint: "전 구성원이 만들 수 있다" },
+    ],
+    exceptions: ["연결 데이터가 없으면 임의 목록을 만들지 않고 빈 상태로 표시한다", "방을 누르면 MSG-03 대화 화면을 연다"],
+    nextScreens: ["MSG-02 새 메시지 방 만들기", "MSG-03 대화 화면"],
+  },
+  "MSG-03": {
+    id: "MSG-03", name: "대화 화면", stateChip: "기본",
+    purpose: "선택한 메시지 방의 대화를 확인하고 메시지를 보낸다.",
+    users: "방 참여자",
+    entryPath: "메시지 > 방 선택",
+    functions: [
+      { num: "01", element: "방 목록", description: "왼쪽에 참여 중인 방을 분류·마지막 메시지·안 읽은 수와 함께 표시하고, 선택한 방을 강조한다. `전체 보기`로 MSG-01로 돌아간다." },
+      { num: "02", element: "대화 헤더", description: "방 이름, 분류 칩, 참여 인원 수와 참여자 이름을 표시한다." },
+      { num: "03", element: "메시지 목록", description: "내가 보낸 메시지는 오른쪽 파란 말풍선으로, 다른 사람의 메시지는 왼쪽에 아바타·이름과 함께 표시한다. 방 생성 같은 안내는 가운데 정렬한 회색 문구로 구분한다." },
+      { num: "04", element: "메시지 입력", description: "입력 후 `보내기` 또는 Enter로 전송한다. 보낸 메시지는 즉시 목록과 방 목록의 마지막 메시지에 반영된다.", constraint: "본문과 첨부가 모두 비어 있으면 보낼 수 없다" },
+      { num: "04B", element: "파일 첨부", description: "클립 버튼으로 파일을 여러 개 고른다. 고른 파일은 입력창 위에 칩으로 쌓이고 X로 뺄 수 있다. 본문 없이 첨부만 보낼 수도 있으며, 방 목록 미리보기에는 `파일 N개`로 요약한다.", constraint: "메시지 첨부는 대화 공유용이며 정산 증빙이 아니다. 증빙 등록은 재정 화면에서만 한다. 백엔드가 없으므로 파일명과 용량만 기록하고 실제 업로드·보관은 하지 않는다" },
+      { num: "04C", element: "이미지 미리보기", description: "이미지 파일은 대기 칩과 말풍선 모두에서 썸네일로 보여주고, 이미지가 아닌 파일은 문서 아이콘과 파일명·용량 카드로 보여준다.", constraint: "미리보기는 브라우저 로컬에서만 만들며 서버에 올리지 않는다" },
+      { num: "06", element: "인원 추가", description: "헤더의 `인원 추가`를 누르면 아직 참여하지 않은 구성원만 소속·역할과 함께 목록으로 보여준다. 선택해 추가하면 참여자에 반영하고 초대 안내를 대화에 남긴다.", constraint: "이미 참여 중인 구성원은 목록에 넣지 않으며, 추가할 사람이 없으면 그 사실을 문구로 알린다" },
+      { num: "07", element: "방 나가기", description: "확인 후 참여자에서 본인을 제외하고 방 목록으로 돌아간다. 부서 단위로 참여 중이었다면 그 부서를 개별 인원으로 펼친 뒤 본인만 제외한다. 남은 참여자에게는 나갔다는 안내를 대화에 남긴다.", constraint: "남은 참여자가 없으면 방과 대화 기록이 함께 삭제되며, 확인 문구에서 이 사실을 미리 알린다" },
+      { num: "05", element: "읽음 처리", description: "방을 열면 그 방의 안 읽은 수를 0으로 지우고, 방 목록과 홈 끼룩이 브리핑의 메시지 알림에 즉시 반영한다." },
+    ],
+    exceptions: ["방이 하나도 없으면 대화 대신 방 만들기 안내를 표시한다", "이 화면은 백엔드 없는 로컬 상태 데모이며 실제 실시간 수신은 구현하지 않는다", "방을 만들면 데모 확인용으로 안내 문구와 상대방의 첫 메시지가 들어가고 안 읽음 1건으로 시작한다"],
+    nextScreens: ["MSG-01 메시지 방 목록"],
+  },
+  "MSG-02": {
+    id: "MSG-02", name: "새 메시지 방 만들기", stateChip: "모달",
+    purpose: "학생회 조직도를 그대로 사용해 부서 단위와 개인 단위를 함께 골라 메시지 방을 만든다.",
+    users: "전 구성원",
+    entryPath: "메시지 > 새 메시지 방 만들기",
+    functions: [
+      { num: "01", element: "분류 선택", description: "`일반` 또는 행사 중 하나를 고른다. 일반은 행사와 무관한 학생회 내부 소통이며, 선택한 분류는 방 목록의 묶음 기준이 된다.", constraint: "행사 워크스페이스의 탭 구성은 바꾸지 않는다" },
+      { num: "02", element: "방 이름", description: "선택 입력이다. 입력하면 그 값을 그대로 쓰고, 비워 두면 만들 때 선택한 대상에서 자동으로 생성한다. 자동 생성 규칙은 대표 대상 하나(부서를 먼저, 없으면 개인)를 앞에 두고 나머지 인원 수를 붙이는 `○○ 외 N명` 형식이며, 나머지가 없으면 대표 대상만 쓴다. 예를 들어 기획부 1명과 홍보부 1명을 고르면 `기획부 외 1명`, 2명인 운영부만 고르면 `운영부`가 된다. 입력란이 비어 있는 동안에는 자동 생성될 이름을 미리 보여준다.", constraint: "구성원을 추가해도 입력란을 자동으로 채우지 않는다. 선택 결과는 `구성원`에서만 확인한다" },
+      { num: "02B", element: "구성원", description: "방 이름 아래에서 현재 선택한 대상을 보여준다. 부서 단위는 사람 아이콘이 붙은 파란 칩 `○○부 전체`로, 개인은 아바타가 붙은 흰 칩으로 형태를 구분한다. 칩의 X로 바로 뺄 수 있고, 비어 있으면 선택 안내를 표시한다." },
+      { num: "03", element: "부서 선택", description: "조직도의 부서를 체크하면 그 부서 전원이 대상이 된다. 부서명 옆에 소속 인원 수를 표시한다." },
+      { num: "04", element: "구성원 펼치기", description: "부서 오른쪽 돋보기를 누르면 아래로 부서원 목록이 펼쳐지고, 이름 옆 체크박스로 개인을 고른다. 한 명이면 개인 대화, 여러 명이면 그룹 대화가 된다.", constraint: "부서 전체가 선택된 경우 그 부서의 개별 체크박스는 선택된 상태로 잠근다" },
+      { num: "05", element: "이름 검색", description: "이름을 입력하면 일치하는 구성원이 있는 부서만 남기고 자동으로 펼쳐 해당 구성원만 보여준다. 결과가 없으면 안내 문구를 표시한다." },
+      { num: "06", element: "선택 요약·생성", description: "하단에 부서 수, 개인 수, 중복을 제외한 총 인원 수를 표시한다.", constraint: "대상이 한 명도 없을 때만 `방 만들기`를 비활성화한다. 방 이름이 비어 있는 것은 생성을 막지 않는다" },
+    ],
+    exceptions: ["부서 전체 선택과 같은 부서의 개별 선택은 중복되지 않도록 정리한다", "부서와 개인을 함께 선택할 수 있다", "총 인원 수는 중복을 제외하고 계산한다", "방 이름을 비운 채 만들면 `○○ 외 N명` 규칙으로 자동 생성한 이름을 저장한다"],
+    nextScreens: ["MSG-01 메시지 방 목록"],
   },
   "MY-01": {
     id: "MY-01", name: "내 업무", stateChip: "기본",
@@ -1746,9 +1868,10 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "FIN-01 → 새 구매 요청",
     functions: [
       { num: "01", element: "요청 정보", description: "제목, 목적, 필요일 등 기본 정보를 입력한다." },
-      { num: "02", element: "품목 추가", description: "여러 품목을 한 요청에 담을 수 있다." },
-      { num: "03", element: "구매 유형 선택", description: "일반 구매, 제작·인쇄, 대여·용역에 따라 입력 필드가 전환된다." },
-      { num: "04", element: "제출 버튼", description: "유효성 검사를 통과하면 요청자·부서·품목·금액·이력을 포함한 검토 대기 요청을 생성하고, 내 구매 요청과 행사 재정의 검토 필요 영역에 즉시 반영한다." },
+      { num: "02", element: "품목 추가", description: "여러 품목을 한 요청에 담을 수 있다. 새 품목은 목록 맨 위에 추가된다." },
+      { num: "03", element: "구매 유형 선택", description: "일반 구매, 제작·인쇄, 대여·용역에 따라 입력 필드가 전환된다. 유형을 바꾸면 이전 유형의 상세 입력값은 초기화된다." },
+      { num: "04", element: "사전 증빙 첨부", description: "제작·인쇄 유형은 디자인 파일, 인쇄 파일, 참고 이미지를 첨부한다. 견적서 확보 상태를 수령 완료로 두면 모든 유형에서 견적 업체·금액과 견적서 파일을 등록한다. 첨부는 필수가 아니며 재제출 화면과 동일한 항목을 사용한다." },
+      { num: "05", element: "제출 버튼", description: "유효성 검사를 통과하면 요청자·부서·품목·금액·이력을 포함한 검토 대기 요청을 생성하고, 내 구매 요청과 행사 재정의 검토 필요 영역에 즉시 반영한다." },
     ],
     exceptions: ["오늘 이전 필요일은 선택하거나 제출할 수 없다", "필수 요청 정보나 유효한 품목이 없으면 제출하지 않고 항목별 오류를 표시한다"],
     nextScreens: ["MY-REQ-01 내 구매 요청", "EVT-FIN-01 행사 재정"],
@@ -2278,6 +2401,7 @@ function DesktopShell({
     { icon: BarChart2, label: "재정", screen: "FIN-00" },
     { icon: FileText, label: "기록", screen: "REC-01" },
     { icon: Users, label: "조직 관리", screen: "ORG-00" },
+    { icon: MessageSquare, label: "메시지", screen: "MSG-01" },
   ];
   const { navigateTo, currentUser, activeSidebar: ctxSidebar } = React.useContext(AppContext);
 
@@ -2572,8 +2696,154 @@ function FIN00() {
 
 // ─── Home Screen ─────────────────────────────────────────────────────────────
 
-function HOME01() {
-  const { navigateTo, setEventWorkspaceFilter, setCalendarFocus, eventTasks, recurringTasks, createdMeetings, currentUser, eventLifecycle } = React.useContext(AppContext);
+// ─── 끼룩이 (마스코트) ─────────────────────────────────────────────────────────
+// 끼룩이는 정보를 만들지 않는다. 홈이 이미 계산한 값을 문장으로 엮어 전달만 한다.
+// 톤 3단계: 지연·미지정은 사무적, 일반 알림은 담백, 평온·빈 상태만 친근하게.
+
+type KkirukTone = "alert" | "neutral" | "calm";
+type KkirukAction = { kind: "delayed" | "unassigned" | "messages" | "calendar"; label: string };
+
+// 끼룩이 브랜드 팔레트 (캐릭터 시트 기준)
+const KKIRUK_NAVY = "#0A1F44";
+const KKIRUK_BLUE = "#1758FF";
+const KKIRUK_CYAN = "#00D6E7";
+const KKIRUK_MIST = "#E6F6FF";
+
+// 캐릭터 시트 02 EXPRESSIONS & POSES에서 추출한 표정 3종.
+// hello: 인사·도움 제안 / check: 경청·처리 중 / think: 질문 이해·고민 중(요약 생성 등)
+type KkirukExpression = "hello" | "check" | "think";
+
+const KKIRUK_IMAGES: Record<KkirukExpression, string> = {
+  hello: "/kkiruk-hello.png",
+  check: "/kkiruk-check.png",
+  think: "/kkiruk-think.png",
+};
+
+const KKIRUK_ALT: Record<KkirukExpression, string> = {
+  hello: "인사하는 끼룩이",
+  check: "확인 중인 끼룩이",
+  think: "생각 중인 끼룩이",
+};
+
+function KkirukMark({ expression = "hello", className = "" }: { expression?: KkirukExpression; className?: string }) {
+  return <img src={KKIRUK_IMAGES[expression]} alt={KKIRUK_ALT[expression]} className={`${className} object-contain`} />;
+}
+
+function buildKkirukBriefing(input: {
+  userName: string;
+  delayedCount: number;
+  unassignedCount: number;
+  unreadMessageCount: number;
+  unreadRoomCount: number;
+  nextScheduleName: string | null;
+  daysUntilNext: number | null;
+  thisWeekCount: number;
+  hasData: boolean;
+  canManage: boolean;
+}): { tone: KkirukTone; greeting: string; lines: string[]; action: KkirukAction | null } {
+  const { userName, delayedCount, unassignedCount, unreadMessageCount, unreadRoomCount, nextScheduleName, daysUntilNext, thisWeekCount, hasData, canManage } = input;
+
+  if (!hasData) {
+    return {
+      tone: "calm",
+      greeting: `${userName}님, 안녕하세요`,
+      lines: ["아직 등록된 행사가 없어요.", "첫 행사를 만들면 업무·예산·회의가 한 번에 연결돼요."],
+      action: null,
+    };
+  }
+
+  const dayLabel = daysUntilNext === 0 ? "오늘" : daysUntilNext === 1 ? "내일" : daysUntilNext === 2 ? "모레" : `${daysUntilNext}일 뒤`;
+
+  // 우선순위대로 모으고 최대 2건만 말한다. 다 나열하면 브리핑이 아니라 목록이 된다.
+  const candidates: { tone: KkirukTone; text: string; action: KkirukAction | null }[] = [];
+  if (delayedCount > 0) {
+    candidates.push({ tone: "alert", text: `지연된 업무가 ${delayedCount}건 있습니다.`, action: { kind: "delayed", label: "지연 업무 보기" } });
+  }
+  if (unassignedCount > 0) {
+    candidates.push({
+      tone: "alert",
+      text: `담당자가 없는 업무가 ${unassignedCount}건 있습니다.`,
+      action: { kind: "unassigned", label: canManage ? "담당자 배정하기" : "미지정 업무 보기" },
+    });
+  }
+  if (unreadMessageCount > 0) {
+    candidates.push({
+      tone: "neutral",
+      text: unreadRoomCount > 1
+        ? `읽지 않은 메시지가 ${unreadRoomCount}개 방에 ${unreadMessageCount}건 있어요.`
+        : `읽지 않은 메시지가 ${unreadMessageCount}건 있어요.`,
+      action: { kind: "messages", label: "메시지 보기" },
+    });
+  }
+  if (nextScheduleName && daysUntilNext !== null && daysUntilNext <= 3) {
+    candidates.push({ tone: "neutral", text: `${dayLabel}, ${nextScheduleName} 일정이 있어요.`, action: { kind: "calendar", label: "캘린더 보기" } });
+  }
+  if (thisWeekCount > 0) {
+    candidates.push({ tone: "neutral", text: `이번 주 일정은 모두 ${thisWeekCount}건이에요.`, action: { kind: "calendar", label: "캘린더 보기" } });
+  }
+
+  if (candidates.length === 0) {
+    return {
+      tone: "calm",
+      greeting: `${userName}님, 안녕하세요`,
+      lines: ["지금 급하게 처리할 일은 없어요.", "끼룩이가 계속 지켜보고 있을게요."],
+      action: null,
+    };
+  }
+
+  const picked = candidates.slice(0, 2);
+  const tone: KkirukTone = picked.some(c => c.tone === "alert") ? "alert" : "neutral";
+  return {
+    tone,
+    greeting: tone === "alert" ? `${userName}님, 확인이 필요해요` : `${userName}님, 안녕하세요`,
+    lines: picked.map(c => c.text),
+    action: picked[0].action,
+  };
+}
+
+function KkirukBriefing(props: {
+  tone: KkirukTone;
+  greeting: string;
+  lines: string[];
+  action: KkirukAction | null;
+  onAction: (action: KkirukAction) => void;
+}) {
+  const { tone, greeting, lines, action, onAction } = props;
+  // 경고 톤에서는 느낌표를 빼서 마스코트 말투가 알림을 가볍게 만들지 않도록 한다.
+  const speaker = tone === "alert" ? "끼룩이가 알려드려요" : "끼룩이가 알려드려요!";
+  // 경고만 의미색(빨강)을 쓰고, 나머지는 브랜드 색을 쓴다. 캐릭터 자체는 톤과 무관하게 같은 모습이다.
+  const isAlert = tone === "alert";
+
+  return (
+    <div
+      className={`border rounded-2xl px-7 py-6 flex items-center gap-5 ${isAlert ? "bg-red-50/50 border-red-100" : "border-transparent"}`}
+      style={isAlert ? undefined : { backgroundColor: KKIRUK_MIST }}
+    >
+      <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center shrink-0 overflow-hidden shadow-sm">
+        <KkirukMark expression={isAlert ? "check" : "hello"} className="w-full h-full" />
+      </div>
+      <div className="relative flex-1 min-w-0 bg-white border border-gray-200 rounded-2xl px-6 py-4">
+        {/* 말풍선 꼬리 */}
+        <span className="absolute -left-[7px] top-8 w-3 h-3 bg-white border-l border-b border-gray-200 rotate-45" aria-hidden="true" />
+        <p className="text-[10px] font-bold" style={{ color: isAlert ? "#EF4444" : KKIRUK_BLUE }}>{speaker}</p>
+        <p className="text-base font-bold mt-1" style={{ color: KKIRUK_NAVY }}>{greeting}</p>
+        <div className="mt-1.5 flex flex-col gap-1">
+          {lines.map((line, i) => (
+            <p key={i} className="text-sm text-gray-600 leading-6">{line}</p>
+          ))}
+        </div>
+      </div>
+      {action && (
+        <Btn variant="secondary" onClick={() => onAction(action)}>{action.label}</Btn>
+      )}
+    </div>
+  );
+}
+
+// ─── HOME-01 홈 ───────────────────────────────────────────────────────────────
+
+function HOME01({ briefing = false }: { briefing?: boolean }) {
+  const { navigateTo, setEventWorkspaceFilter, setCalendarFocus, eventTasks, recurringTasks, createdMeetings, currentUser, eventLifecycle, messageRooms } = React.useContext(AppContext);
   const eventDelayedCount = eventTasks.filter(task => task.delayed).length;
   const eventUnassignedCount = eventTasks.filter(task => task.assignee === "미지정").length;
   const needsAttentionCount = eventDelayedCount + eventUnassignedCount;
@@ -2638,6 +2908,38 @@ function HOME01() {
   const typeColor = (t: string) =>
     t === "마감" ? "bg-red-50 text-red-600" : t === "회의" ? "bg-purple-50 text-purple-600" : "bg-blue-50 text-blue-600";
 
+  // 브리핑 화면은 홈을 가볍게 유지한다. 일정은 3건까지만 보이고 최근 활동은 접는다.
+  const visibleSchedule = briefing ? schedule.slice(0, 3) : schedule;
+  // 끼룩이가 이미 말한 지연·미지정은 카드에서 중복 표시하지 않는다.
+  const visibleSummaryCards = briefing ? summaryCards.filter(c => c.label !== "확인 필요") : summaryCards;
+  const visibleAlerts = briefing
+    ? alerts.filter(a => a.label !== "체육대회 지연 업무" && a.label !== "담당자 미지정 업무")
+    : alerts;
+
+  // 끼룩이 브리핑: 위에서 이미 계산한 값만 사용한다. 새 수치를 만들지 않는다.
+  const nextSchedule = schedule[0] ?? null;
+  const unreadMessageCount = messageRooms.reduce((total, room) => total + room.unreadCount, 0);
+  const unreadRoomCount = messageRooms.filter(room => room.unreadCount > 0).length;
+  const kkiruk = buildKkirukBriefing({
+    userName: currentUser.name,
+    delayedCount: eventDelayedCount,
+    unassignedCount: eventUnassignedCount,
+    unreadMessageCount,
+    unreadRoomCount,
+    nextScheduleName: nextSchedule ? nextSchedule.name : null,
+    daysUntilNext: nextSchedule ? Math.round((nextSchedule.dateValue.getTime() - today.getTime()) / 86400000) : null,
+    thisWeekCount: thisWeekScheduleCount,
+    hasData: eventTasks.length > 0 || recurringTasks.length > 0,
+    canManage: currentUser.role !== "부원",
+  });
+  const runKkirukAction = (action: KkirukAction) => {
+    if (action.kind === "delayed") { setEventWorkspaceFilter(null); navigateTo("EVT-TASK-01"); return; }
+    if (action.kind === "unassigned") { setEventWorkspaceFilter("unassignedTasks"); navigateTo("EVT-TASK-01"); return; }
+    if (action.kind === "messages") { navigateTo("MSG-01"); return; }
+    setCalendarFocus(nextSchedule ? nextSchedule.focus : null);
+    navigateTo("OPS-CAL-01");
+  };
+
   return (
     <DesktopShell
       activeSidebar="홈"
@@ -2651,9 +2953,14 @@ function HOME01() {
     >
       <div className="p-6 flex flex-col gap-6 max-w-6xl mx-auto pb-10">
 
+        {/* 0. 끼룩이 브리핑 (HOME-01K 전용) */}
+        {briefing && (
+          <KkirukBriefing tone={kkiruk.tone} greeting={kkiruk.greeting} lines={kkiruk.lines} action={kkiruk.action} onAction={runKkirukAction} />
+        )}
+
         {/* 1. 운영 요약 */}
-        <div className="grid grid-cols-4 gap-4">
-          {summaryCards.map(c => (
+        <div className={`grid gap-4 ${briefing ? "grid-cols-3" : "grid-cols-4"}`}>
+          {visibleSummaryCards.map(c => (
             <button key={c.label} type="button" onClick={() => navigateTo(c.screen)} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex items-center gap-3 text-left hover:border-blue-300 hover:shadow-md transition-all">
               <div className={`w-9 h-9 rounded-lg ${c.bg} flex items-center justify-center shrink-0`}>
                 <c.icon className={`w-4.5 h-4.5 ${c.color}`} />
@@ -2709,12 +3016,12 @@ function HOME01() {
                 <button type="button" onClick={() => { setCalendarFocus(null); navigateTo("OPS-CAL-01"); }} className="text-[10px] text-gray-400 hover:text-blue-600 flex items-center gap-0.5">캘린더 보기 <ExternalLink className="w-2.5 h-2.5" /></button>
               </div>
               <div className="divide-y divide-gray-100">
-                {schedule.map((s, i) => (
-                  <button key={i} type="button" onClick={() => { setCalendarFocus(s.focus); navigateTo("OPS-CAL-01"); }} className="w-full text-left px-5 py-3 flex items-center gap-4 hover:bg-gray-50">
+                {visibleSchedule.map((s, i) => (
+                  <button key={i} type="button" onClick={() => { setCalendarFocus(s.focus); navigateTo("OPS-CAL-01"); }} className={`w-full text-left px-5 flex items-center gap-4 hover:bg-gray-50 ${briefing ? "py-2" : "py-3"}`}>
                     <span className="text-xs font-mono font-semibold text-gray-500 w-10 shrink-0">{s.date}</span>
                     <span className="text-xs font-medium text-gray-800 flex-1">{s.name}</span>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] text-gray-400">{s.dept}</span>
+                      {!briefing && <span className="text-[10px] text-gray-400">{s.dept}</span>}
                       <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${typeColor(s.type)}`}>{s.type}</span>
                     </div>
                   </button>
@@ -2722,8 +3029,8 @@ function HOME01() {
               </div>
             </div>
 
-            {/* 6. 최근 활동 */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            {/* 6. 최근 활동 (브리핑 화면에서는 숨김) */}
+            {!briefing && <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
                 <p className="text-xs font-semibold text-gray-700">최근 활동</p>
               </div>
@@ -2736,7 +3043,7 @@ function HOME01() {
                   </div>
                 ))}
               </div>
-            </div>
+            </div>}
           </div>
 
           {/* 오른쪽 1/3 */}
@@ -2748,7 +3055,7 @@ function HOME01() {
                 <p className="text-xs font-semibold text-gray-700">조직 주요 알림</p>
               </div>
               <div className="px-5 py-3 flex flex-col gap-2.5">
-                {alerts.map((a, i) => (
+                {visibleAlerts.map((a, i) => (
                   <button key={i} type="button" onClick={() => { setEventWorkspaceFilter(a.filter ?? null); navigateTo(a.screen); }} className="w-full text-left flex items-center justify-between py-1.5 rounded hover:bg-gray-50">
                     <div className="flex items-center gap-2.5">
                       <div className={`w-6 h-6 rounded flex items-center justify-center ${a.color.split(" ")[1]}`}>
@@ -2806,6 +3113,13 @@ function HOME01() {
       </div>
     </DesktopShell>
   );
+}
+
+// ─── HOME-01K 홈 — 끼룩이 브리핑 (HOME-01 검토안) ──────────────────────────────
+// HOME-01 본문을 그대로 쓰고 상단 브리핑만 추가한다. HOME-01은 변경하지 않는다.
+
+function HOME01K() {
+  return <HOME01 briefing />;
 }
 
 // ─── OPS-00 운영 홈 ─────────────────────────────────────────────────────────────
@@ -10032,9 +10346,13 @@ function FINREQ01() {
                               </div>
                             </div>
                             {item.quoteStatus === "수령 완료" && (
-                              <div className="grid grid-cols-2 gap-3 flex-[2]">
+                              <div className="grid grid-cols-3 gap-3 flex-[2]">
                                 <Input label="견적 업체" placeholder="업체명" />
                                 <Input label="견적 금액" type="number" placeholder="0" />
+                                <div className="flex flex-col gap-1">
+                                  <label className="text-[11px] font-medium text-gray-700">견적서 파일</label>
+                                  <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -12342,10 +12660,761 @@ function ORG03CWithDialog() {
   return <ORG03C />;
 }
 
+// ─── MSG 메시지 ───────────────────────────────────────────────────────────────
+// 조직도를 그대로 쓴다. 부서 단위 선택과 개별 구성원 선택을 한 화면에서 함께 한다.
+
+const MESSAGE_SCOPE_GENERAL = "일반";
+
+// 첨부만 보낸 메시지도 목록에서 내용을 알 수 있게 한다.
+function messagePreviewText(message: ChatMessage) {
+  if (message.text) return message.text;
+  const attachmentCount = message.attachments?.length ?? 0;
+  return attachmentCount > 0 ? `파일 ${attachmentCount}개` : "";
+}
+
+// 방 이름을 비운 채 만들면 선택한 대상에서 이름을 짓는다.
+// 대표 한 명(또는 한 부서)을 앞에 두고 나머지 인원 수를 붙인다. 없는 정보를 지어내지 않는다.
+function buildAutoRoomName(input: { depts: string[]; members: string[]; totalCount: number; deptSize: (dept: string) => number }) {
+  const { depts, members, totalCount, deptSize } = input;
+  const head = depts[0] ?? members[0];
+  if (!head) return "";
+  const headCount = depts[0] ? deptSize(depts[0]) : 1;
+  const rest = totalCount - headCount;
+  return rest > 0 ? `${head} 외 ${rest}명` : head;
+}
+
+function MessageRoomCreateModal(props: { onClose: () => void; onCreate: (room: Omit<MessageRoom, "id" | "createdBy" | "createdAt">) => void }) {
+  const { onClose, onCreate } = props;
+  const { organizationMemberRoles } = React.useContext(AppContext);
+
+  const departments = [...new Set(organizationMemberRoles.map(member => member.dept))];
+  const scopes = [MESSAGE_SCOPE_GENERAL, MAIN_EVENT_NAME, "2026 신입생 환영 행사"];
+
+  const [scope, setScope] = useState(MESSAGE_SCOPE_GENERAL);
+  const [selectedDepts, setSelectedDepts] = useState<string[]>([]);
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [expandedDepts, setExpandedDepts] = useState<string[]>([]);
+  const [query, setQuery] = useState("");
+  const [name, setName] = useState("");
+
+  const trimmedQuery = query.trim();
+  const membersOfDept = (dept: string) =>
+    organizationMemberRoles.filter(member => member.dept === dept && (!trimmedQuery || member.name.includes(trimmedQuery)));
+  // 검색 중에는 결과가 있는 부서만 남기고 자동으로 펼친다.
+  const visibleDepts = trimmedQuery ? departments.filter(dept => membersOfDept(dept).length > 0) : departments;
+  const isExpanded = (dept: string) => Boolean(trimmedQuery) || expandedDepts.includes(dept);
+
+  const participants = new Set<string>();
+  organizationMemberRoles.forEach(member => { if (selectedDepts.includes(member.dept)) participants.add(member.name); });
+  selectedMembers.forEach(memberName => participants.add(memberName));
+
+  const toggleDept = (dept: string) => {
+    const willSelect = !selectedDepts.includes(dept);
+    setSelectedDepts(previous => willSelect ? [...previous, dept] : previous.filter(item => item !== dept));
+    // 부서 전체를 선택하면 같은 부서의 개별 선택은 정리한다.
+    if (willSelect) {
+      const deptMemberNames = organizationMemberRoles.filter(member => member.dept === dept).map(member => member.name);
+      setSelectedMembers(previous => previous.filter(memberName => !deptMemberNames.includes(memberName)));
+    }
+  };
+
+  const toggleMember = (memberName: string) => {
+    setSelectedMembers(previous => previous.includes(memberName) ? previous.filter(item => item !== memberName) : [...previous, memberName]);
+  };
+
+  const toggleExpand = (dept: string) => {
+    setExpandedDepts(previous => previous.includes(dept) ? previous.filter(item => item !== dept) : [...previous, dept]);
+  };
+
+  const autoRoomName = buildAutoRoomName({
+    depts: selectedDepts,
+    members: selectedMembers,
+    totalCount: participants.size,
+    deptSize: dept => organizationMemberRoles.filter(member => member.dept === dept).length,
+  });
+  const finalName = name.trim() || autoRoomName;
+  const canCreate = participants.size > 0;
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl w-[620px] max-h-[86vh] flex flex-col overflow-hidden">
+      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between shrink-0">
+        <div>
+          <h2 className="text-sm font-bold text-gray-900">새 메시지 방 만들기</h2>
+          <p className="text-[10px] text-gray-400 mt-0.5">부서를 통째로 고르거나, 부서를 펼쳐 필요한 사람만 고를 수 있습니다.</p>
+        </div>
+        <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+      </div>
+
+      <div className="px-6 py-5 flex flex-col gap-5 overflow-y-auto">
+        {/* 분류 */}
+        <div>
+          <p className="text-xs font-semibold text-gray-700 mb-2">분류</p>
+          <div className="flex flex-wrap gap-2">
+            {scopes.map(item => (
+              <button
+                key={item}
+                type="button"
+                onClick={() => setScope(item)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                  scope === item ? "bg-blue-50 border-blue-300 text-blue-700" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                }`}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-gray-400 mt-1.5">
+            {scope === MESSAGE_SCOPE_GENERAL ? "행사와 무관한 학생회 내부 소통입니다." : "이 행사와 관련된 소통으로 분류됩니다."}
+          </p>
+        </div>
+
+        {/* 방 이름 — 선택한 대상을 자동으로 넣지 않는다. 대상은 아래 `구성원`에서 확인한다. */}
+        <div>
+          <div className="flex items-center gap-2 mb-2">
+            <p className="text-xs font-semibold text-gray-700">방 이름</p>
+            <span className="text-[10px] text-gray-400">선택</span>
+          </div>
+          <input
+            value={name}
+            onChange={event => setName(event.target.value)}
+            placeholder="예: 체육대회 운영 논의"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400"
+          />
+          {!name.trim() && (
+            <p className="text-[10px] text-gray-400 mt-1.5">
+              {autoRoomName
+                ? <>비워두면 <span className="font-semibold text-gray-600">{autoRoomName}</span>(으)로 자동 생성됩니다.</>
+                : "비워두면 선택한 구성원으로 자동 생성됩니다."}
+            </p>
+          )}
+        </div>
+
+        {/* 구성원 — 부서 단위와 개인을 형태로 구분해 보여주고, 여기서 바로 뺄 수 있다. */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-700">구성원</p>
+            {participants.size > 0 && <span className="text-[10px] text-gray-400">총 {participants.size}명</span>}
+          </div>
+          {participants.size === 0 ? (
+            <div className="border border-dashed border-gray-300 rounded-lg px-4 py-5 text-center">
+              <p className="text-xs text-gray-400">아래에서 부서 또는 구성원을 선택해 주세요.</p>
+            </div>
+          ) : (
+            <div className="border border-gray-200 rounded-lg px-3 py-3 flex flex-wrap gap-2">
+              {selectedDepts.map(dept => (
+                <span key={dept} className="inline-flex items-center gap-1.5 bg-blue-600 text-white rounded-lg pl-2 pr-1.5 py-1 text-[11px] font-semibold">
+                  <Users className="w-3 h-3" />
+                  {dept} 전체
+                  <button type="button" onClick={() => toggleDept(dept)} className="hover:bg-white/25 rounded p-0.5" title={`${dept} 빼기`}>
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              {selectedMembers.map(memberName => (
+                <span key={memberName} className="inline-flex items-center gap-1.5 bg-white border border-gray-300 text-gray-700 rounded-lg pl-1 pr-1.5 py-1 text-[11px] font-medium">
+                  <span className="w-5 h-5 rounded-full bg-gray-100 text-gray-600 text-[9px] font-bold flex items-center justify-center">{memberName.slice(0, 1)}</span>
+                  {memberName}
+                  <button type="button" onClick={() => toggleMember(memberName)} className="hover:bg-gray-100 rounded p-0.5 text-gray-400" title={`${memberName} 빼기`}>
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 대상 선택 */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <p className="text-xs font-semibold text-gray-700">대상 선택</p>
+            <div className="relative w-52">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400" />
+              <input
+                value={query}
+                onChange={event => setQuery(event.target.value)}
+                placeholder="이름 검색"
+                className="w-full border border-gray-200 rounded-lg pl-8 pr-3 py-1.5 text-xs placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 overflow-hidden">
+            {visibleDepts.map(dept => {
+              const deptMembers = membersOfDept(dept);
+              const deptSelected = selectedDepts.includes(dept);
+              const totalCount = organizationMemberRoles.filter(member => member.dept === dept).length;
+              const pickedCount = organizationMemberRoles.filter(member => member.dept === dept && selectedMembers.includes(member.name)).length;
+              return (
+                <div key={dept}>
+                  {/* 부서 행: 아이콘 + 굵은 이름 + `전체 선택` 토글 버튼 (개인 체크박스와 형태를 다르게 둔다) */}
+                  <div className={`flex items-center gap-3 px-4 py-3 ${deptSelected ? "bg-blue-50/70" : "hover:bg-gray-50"}`}>
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${deptSelected ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500"}`}>
+                      <Users className="w-3.5 h-3.5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-[13px] font-bold truncate ${deptSelected ? "text-blue-800" : "text-gray-900"}`}>{dept}</p>
+                      <p className="text-[10px] text-gray-400">
+                        구성원 {totalCount}명
+                        {!deptSelected && pickedCount > 0 && <span className="text-blue-600 font-medium"> · {pickedCount}명 개별 선택</span>}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => toggleDept(dept)}
+                      className={`px-2.5 py-1 rounded-md text-[11px] font-semibold border transition-colors shrink-0 ${
+                        deptSelected ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-300 text-gray-600 hover:border-blue-300 hover:text-blue-600"
+                      }`}
+                    >
+                      {deptSelected ? <span className="flex items-center gap-1"><Check className="w-3 h-3" /> 부서 전체</span> : "부서 전체"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleExpand(dept)}
+                      title={isExpanded(dept) ? "구성원 접기" : "구성원 보기"}
+                      className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors shrink-0 ${
+                        isExpanded(dept) ? "bg-blue-100 text-blue-600" : "text-gray-400 hover:bg-gray-100"
+                      }`}
+                    >
+                      <Search className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  {/* 개인 행: 들여쓰기 + 세로 연결선 + 아바타 + 오른쪽 체크박스 */}
+                  {isExpanded(dept) && (
+                    <div className="bg-gray-50/70 pl-8 pr-4 py-1.5">
+                      <div className="border-l-2 border-gray-200 pl-4 flex flex-col">
+                        {deptMembers.map(member => (
+                          <label
+                            key={member.name}
+                            className={`flex items-center gap-2.5 py-1.5 ${deptSelected ? "" : "cursor-pointer"}`}
+                          >
+                            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                              deptSelected || selectedMembers.includes(member.name) ? "bg-blue-100 text-blue-700" : "bg-white border border-gray-200 text-gray-500"
+                            }`}>
+                              {member.name.slice(0, 1)}
+                            </span>
+                            <span className="text-xs text-gray-800 flex-1 truncate">{member.name}</span>
+                            <span className="text-[10px] text-gray-400 shrink-0">{member.role}</span>
+                            {deptSelected ? (
+                              <span className="text-[10px] text-blue-600 font-medium shrink-0 w-11 text-right">포함됨</span>
+                            ) : (
+                              <span className="w-11 flex justify-end shrink-0">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedMembers.includes(member.name)}
+                                  onChange={() => toggleMember(member.name)}
+                                  className="w-3.5 h-3.5 accent-blue-600"
+                                />
+                              </span>
+                            )}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+            {visibleDepts.length === 0 && (
+              <p className="px-4 py-6 text-center text-xs text-gray-400">검색 결과가 없습니다.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between shrink-0 bg-gray-50">
+        <div className="min-w-0">
+          {participants.size > 0 ? (
+            <p className="text-xs text-gray-600">
+              부서 {selectedDepts.length}개 · 개인 {selectedMembers.length}명
+              <span className="font-semibold text-gray-900"> · 총 {participants.size}명</span>
+            </p>
+          ) : (
+            <p className="text-xs text-gray-400">부서 또는 구성원을 한 명 이상 선택해 주세요.</p>
+          )}
+        </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <Btn variant="text" size="sm" onClick={onClose}>취소</Btn>
+          <Btn
+            variant="primary"
+            size="sm"
+            disabled={!canCreate}
+            onClick={() => canCreate && onCreate({ name: finalName, scope, depts: selectedDepts, members: selectedMembers })}
+          >
+            방 만들기
+          </Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MessageRoomsScreen({ initialModalOpen = false }: { initialModalOpen?: boolean }) {
+  const { messageRooms, setMessageRooms, organizationMemberRoles, currentUser, navigateTo, setSelectedMessageRoomId } = React.useContext(AppContext);
+  const [modalOpen, setModalOpen] = useState(initialModalOpen);
+
+  const participantCount = (room: MessageRoom) => {
+    const names = new Set<string>();
+    organizationMemberRoles.forEach(member => { if (room.depts.includes(member.dept)) names.add(member.name); });
+    room.members.forEach(memberName => names.add(memberName));
+    return names.size;
+  };
+
+  const scopes = [MESSAGE_SCOPE_GENERAL, ...new Set(messageRooms.map(room => room.scope).filter(scope => scope !== MESSAGE_SCOPE_GENERAL))];
+
+  const createRoom = (draft: Omit<MessageRoom, "id" | "createdBy" | "createdAt" | "messages" | "unreadCount">) => {
+    // 와이어프레임 데모: 방을 만들면 안내 문구와 상대방의 첫 메시지를 넣어 대화·안 읽음 흐름을 확인할 수 있게 한다.
+    const roomMemberNames = new Set<string>();
+    organizationMemberRoles.forEach(member => { if (draft.depts.includes(member.dept)) roomMemberNames.add(member.name); });
+    draft.members.forEach(memberName => roomMemberNames.add(memberName));
+    const counterpart = [...roomMemberNames].find(memberName => memberName !== currentUser.name);
+
+    const messages: ChatMessage[] = [
+      { id: "m-0", sender: "system", text: `${currentUser.name}님이 이 방을 만들었습니다.`, at: formatClockTime(new Date()) },
+    ];
+    if (counterpart) {
+      messages.push({ id: "m-1", sender: counterpart, text: "네, 확인했어요. 여기서 이야기 나눠요.", at: formatClockTime(new Date()) });
+    }
+
+    setMessageRooms(previous => [
+      ...previous,
+      {
+        ...draft,
+        id: `MSG-R-${previous.length + 1}`,
+        createdBy: currentUser.name,
+        createdAt: formatDateInput(new Date()),
+        messages,
+        unreadCount: counterpart ? 1 : 0,
+      },
+    ]);
+    setModalOpen(false);
+  };
+
+  return (
+    <div className="relative h-full">
+      <DesktopShell
+        activeSidebar="메시지"
+        title="메시지"
+        actions={
+          messageRooms.length > 0
+            ? <Btn variant="primary" size="sm" onClick={() => setModalOpen(true)}><Plus className="w-3.5 h-3.5" /> 새 메시지 방</Btn>
+            : undefined
+        }
+      >
+        <div className="p-6 max-w-4xl mx-auto">
+          {messageRooms.length === 0 ? (
+            <div className="bg-white border border-gray-200 rounded-xl px-6 py-16 flex flex-col items-center text-center">
+              <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mb-5">
+                <MessageSquare className="w-6 h-6 text-blue-500" />
+              </div>
+              <p className="text-sm font-bold text-gray-900">아직 만들어진 메시지 방이 없습니다</p>
+              <p className="text-xs text-gray-500 mt-2 leading-6 max-w-sm">
+                학생회 조직도를 그대로 사용해 방을 만들 수 있습니다.
+                <br />부서를 통째로 고르거나, 부서를 펼쳐 필요한 사람만 고르세요.
+              </p>
+              <div className="mt-6">
+                <Btn variant="primary" onClick={() => setModalOpen(true)}><Plus className="w-3.5 h-3.5" /> 새 메시지 방 만들기</Btn>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-6">
+              {scopes.map(scope => {
+                const rooms = messageRooms.filter(room => room.scope === scope);
+                if (rooms.length === 0) return null;
+                return (
+                  <div key={scope} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+                    <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                      <p className="text-xs font-semibold text-gray-700">{scope}</p>
+                      <span className="text-[10px] text-gray-400">{rooms.length}개 방</span>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {rooms.map(room => {
+                        const lastMessage = room.messages[room.messages.length - 1];
+                        return (
+                          <button
+                            key={room.id}
+                            type="button"
+                            onClick={() => { setSelectedMessageRoomId(room.id); navigateTo("MSG-03"); }}
+                            className="w-full text-left px-5 py-4 flex items-start justify-between gap-4 hover:bg-gray-50"
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <p className="text-xs font-bold text-gray-900 truncate">{room.name}</p>
+                                {room.unreadCount > 0 && (
+                                  <span className="text-[10px] font-bold bg-red-500 text-white rounded-full px-1.5 py-0.5 shrink-0">{room.unreadCount}</span>
+                                )}
+                              </div>
+                              {lastMessage && (
+                                <p className="text-[11px] text-gray-500 truncate mt-1">
+                                  {lastMessage.sender === "system" ? lastMessage.text : `${lastMessage.sender}: ${messagePreviewText(lastMessage)}`}
+                                </p>
+                              )}
+                              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                                {room.depts.map(dept => <Chip key={dept} label={`${dept} 전체`} variant="blue" />)}
+                                {room.members.map(memberName => <Chip key={memberName} label={memberName} variant="gray" />)}
+                              </div>
+                              <p className="text-[10px] text-gray-400 mt-2">
+                                참여 {participantCount(room)}명 · {room.createdBy} 만듦 · {room.createdAt}
+                              </p>
+                            </div>
+                            <ChevronRight className="w-4 h-4 text-gray-300 shrink-0 mt-0.5" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </DesktopShell>
+
+      {modalOpen && (
+        <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-30">
+          <MessageRoomCreateModal onClose={() => setModalOpen(false)} onCreate={createRoom} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function MSG01() { return <MessageRoomsScreen />; }
+function MSG02() { return <MessageRoomsScreen initialModalOpen />; }
+
+// ─── MSG-03 대화 화면 ─────────────────────────────────────────────────────────
+
+function MSG03() {
+  const { messageRooms, setMessageRooms, organizationMemberRoles, currentUser, navigateTo, selectedMessageRoomId, setSelectedMessageRoomId } = React.useContext(AppContext);
+  const [draft, setDraft] = useState("");
+  const [pendingFiles, setPendingFiles] = useState<ChatAttachment[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [invitePanelOpen, setInvitePanelOpen] = useState(false);
+  const [inviteTargets, setInviteTargets] = useState<string[]>([]);
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false);
+
+  const activeRoomId = selectedMessageRoomId ?? messageRooms[0]?.id ?? null;
+  const activeRoom = messageRooms.find(room => room.id === activeRoomId) ?? null;
+
+  // 방을 열면 안 읽음 표시를 지운다.
+  useEffect(() => {
+    if (!activeRoomId) return;
+    setMessageRooms(previous => previous.map(room => room.id === activeRoomId && room.unreadCount > 0 ? { ...room, unreadCount: 0 } : room));
+  }, [activeRoomId, setMessageRooms]);
+
+  const participantNames = (room: MessageRoom) => {
+    const names = new Set<string>();
+    organizationMemberRoles.forEach(member => { if (room.depts.includes(member.dept)) names.add(member.name); });
+    room.members.forEach(memberName => names.add(memberName));
+    return [...names];
+  };
+
+  const pickFiles = (fileList: FileList | null) => {
+    if (!fileList) return;
+    const picked = Array.from(fileList).map(file => ({
+      name: file.name,
+      size: formatFileSize(file.size),
+      previewUrl: file.type.startsWith("image/") ? URL.createObjectURL(file) : undefined,
+    }));
+    setPendingFiles(previous => [...previous, ...picked]);
+  };
+
+  const send = () => {
+    const text = draft.trim();
+    if ((!text && pendingFiles.length === 0) || !activeRoom) return;
+    setMessageRooms(previous => previous.map(room => room.id === activeRoom.id ? {
+      ...room,
+      messages: [...room.messages, {
+        id: `m-${room.messages.length}`,
+        sender: currentUser.name,
+        text,
+        at: formatClockTime(new Date()),
+        attachments: pendingFiles.length > 0 ? pendingFiles : undefined,
+      }],
+    } : room));
+    setDraft("");
+    setPendingFiles([]);
+  };
+
+  const appendSystemMessage = (room: MessageRoom, text: string): MessageRoom => ({
+    ...room,
+    messages: [...room.messages, { id: `m-${room.messages.length}`, sender: "system", text, at: formatClockTime(new Date()) }],
+  });
+
+  const inviteMembers = () => {
+    if (!activeRoom || inviteTargets.length === 0) return;
+    setMessageRooms(previous => previous.map(room => room.id === activeRoom.id
+      ? appendSystemMessage({ ...room, members: [...room.members, ...inviteTargets] }, `${inviteTargets.join(", ")}님이 초대되었습니다.`)
+      : room));
+    setInviteTargets([]);
+    setInvitePanelOpen(false);
+  };
+
+  // 나가기: 부서 단위로 들어와 있던 경우에도 나갈 수 있도록 부서를 개별 인원으로 펼친 뒤 본인만 제외한다.
+  const leaveRoom = () => {
+    if (!activeRoom) return;
+    const remaining = participantNames(activeRoom).filter(memberName => memberName !== currentUser.name);
+    if (remaining.length === 0) {
+      setMessageRooms(previous => previous.filter(room => room.id !== activeRoom.id));
+    } else {
+      setMessageRooms(previous => previous.map(room => room.id === activeRoom.id
+        ? appendSystemMessage({ ...room, depts: [], members: remaining }, `${currentUser.name}님이 방을 나갔습니다.`)
+        : room));
+    }
+    setSelectedMessageRoomId(null);
+    setLeaveConfirmOpen(false);
+    navigateTo("MSG-01");
+  };
+
+  if (messageRooms.length === 0) {
+    return (
+      <DesktopShell activeSidebar="메시지" breadcrumb={["메시지"]} title="대화">
+        <div className="p-6 max-w-3xl mx-auto">
+          <div className="bg-white border border-gray-200 rounded-xl px-6 py-16 flex flex-col items-center text-center">
+            <div className="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-5">
+              <MessageSquare className="w-6 h-6 text-gray-400" />
+            </div>
+            <p className="text-sm font-bold text-gray-900">아직 대화할 방이 없습니다</p>
+            <p className="text-xs text-gray-500 mt-2">메시지에서 먼저 방을 만들어 주세요.</p>
+            <div className="mt-6"><Btn variant="primary" onClick={() => navigateTo("MSG-01")}>메시지로 이동</Btn></div>
+          </div>
+        </div>
+      </DesktopShell>
+    );
+  }
+
+  return (
+    <DesktopShell activeSidebar="메시지" breadcrumb={["메시지"]} title="대화">
+      <div className="h-full flex min-h-0">
+        {/* 방 목록 */}
+        <div className="w-64 border-r border-gray-200 bg-white flex flex-col shrink-0 min-h-0">
+          <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between shrink-0">
+            <p className="text-xs font-semibold text-gray-700">메시지 방</p>
+            <button type="button" onClick={() => navigateTo("MSG-01")} className="text-[10px] text-gray-400 hover:text-blue-600">전체 보기</button>
+          </div>
+          <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
+            {messageRooms.map(room => {
+              const lastMessage = room.messages[room.messages.length - 1];
+              const active = room.id === activeRoomId;
+              return (
+                <button
+                  key={room.id}
+                  type="button"
+                  onClick={() => setSelectedMessageRoomId(room.id)}
+                  className={`w-full text-left px-4 py-3 ${active ? "bg-blue-50" : "hover:bg-gray-50"}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <p className={`text-xs font-bold truncate flex-1 ${active ? "text-blue-800" : "text-gray-900"}`}>{room.name}</p>
+                    {room.unreadCount > 0 && (
+                      <span className="text-[10px] font-bold bg-red-500 text-white rounded-full px-1.5 py-0.5 shrink-0">{room.unreadCount}</span>
+                    )}
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-0.5">{room.scope}</p>
+                  {lastMessage && (
+                    <p className="text-[10px] text-gray-500 truncate mt-1">
+                      {lastMessage.sender === "system" ? lastMessage.text : `${lastMessage.sender}: ${messagePreviewText(lastMessage)}`}
+                    </p>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* 대화 */}
+        {activeRoom && (
+          <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-gray-50">
+            <div className="px-5 py-3 border-b border-gray-200 bg-white shrink-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-bold text-gray-900 truncate">{activeRoom.name}</p>
+                    <Chip label={activeRoom.scope} variant={activeRoom.scope === MESSAGE_SCOPE_GENERAL ? "gray" : "blue"} />
+                  </div>
+                  <p className="text-[10px] text-gray-400 mt-1 truncate">
+                    참여 {participantNames(activeRoom).length}명 · {participantNames(activeRoom).join(", ")}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <Btn variant="secondary" size="sm" onClick={() => setInvitePanelOpen(true)}><Plus className="w-3 h-3" /> 인원 추가</Btn>
+                  <Btn variant="text" size="sm" onClick={() => setLeaveConfirmOpen(true)}>방 나가기</Btn>
+                </div>
+              </div>
+
+              {/* 인원 추가: 아직 참여하지 않은 구성원만 보여준다 */}
+              {invitePanelOpen && (() => {
+                const candidates = organizationMemberRoles.filter(member => !participantNames(activeRoom).includes(member.name));
+                return (
+                  <div className="mt-3 border border-gray-200 rounded-xl p-4 bg-gray-50">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <p className="text-xs font-semibold text-gray-700">인원 추가</p>
+                      <button type="button" onClick={() => { setInvitePanelOpen(false); setInviteTargets([]); }} className="text-gray-400 hover:text-gray-600"><X className="w-3.5 h-3.5" /></button>
+                    </div>
+                    {candidates.length === 0 ? (
+                      <p className="text-xs text-gray-400 py-2">추가할 수 있는 구성원이 없습니다. 이미 모두 참여 중입니다.</p>
+                    ) : (
+                      <>
+                        <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
+                          {candidates.map(member => (
+                            <label key={member.name} className="flex items-center gap-2.5 py-1 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={inviteTargets.includes(member.name)}
+                                onChange={() => setInviteTargets(previous => previous.includes(member.name) ? previous.filter(item => item !== member.name) : [...previous, member.name])}
+                                className="w-3.5 h-3.5 accent-blue-600"
+                              />
+                              <span className="w-6 h-6 rounded-full bg-white border border-gray-200 text-gray-500 text-[10px] font-bold flex items-center justify-center">{member.name.slice(0, 1)}</span>
+                              <span className="text-xs text-gray-800 flex-1">{member.name}</span>
+                              <span className="text-[10px] text-gray-400">{member.dept} · {member.role}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="flex items-center justify-end gap-2 mt-3">
+                          <Btn variant="text" size="sm" onClick={() => { setInvitePanelOpen(false); setInviteTargets([]); }}>취소</Btn>
+                          <Btn variant="primary" size="sm" disabled={inviteTargets.length === 0} onClick={inviteMembers}>
+                            {inviteTargets.length > 0 ? `${inviteTargets.length}명 추가` : "추가"}
+                          </Btn>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3 min-h-0">
+              {activeRoom.messages.map(message => {
+                if (message.sender === "system") {
+                  return (
+                    <p key={message.id} className="text-[10px] text-gray-400 text-center py-1">{message.text}</p>
+                  );
+                }
+                const mine = message.sender === currentUser.name;
+                return (
+                  <div key={message.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                    {!mine && (
+                      <span className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-500 text-[10px] font-bold flex items-center justify-center shrink-0">
+                        {message.sender.slice(0, 1)}
+                      </span>
+                    )}
+                    <div className={`max-w-[60%] ${mine ? "items-end" : "items-start"} flex flex-col gap-1`}>
+                      {!mine && <p className="text-[10px] text-gray-500">{message.sender}</p>}
+                      {message.text && (
+                        <div className={`rounded-2xl px-3.5 py-2 text-xs leading-5 ${mine ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
+                          {message.text}
+                        </div>
+                      )}
+                      {message.attachments?.map(file => file.previewUrl ? (
+                        <div key={file.name} className="bg-white border border-gray-200 rounded-xl overflow-hidden max-w-[240px]">
+                          <img src={file.previewUrl} alt={file.name} className="w-full max-h-48 object-cover" />
+                          <div className="px-3 py-2">
+                            <p className="text-[11px] font-medium text-gray-800 truncate">{file.name}</p>
+                            <p className="text-[10px] text-gray-400">{file.size}</p>
+                          </div>
+                        </div>
+                      ) : (
+                        <div key={file.name} className="bg-white border border-gray-200 rounded-xl px-3 py-2 flex items-center gap-2.5 max-w-[240px]">
+                          <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                            <FileText className="w-3.5 h-3.5 text-blue-500" />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-[11px] font-medium text-gray-800 truncate">{file.name}</p>
+                            <p className="text-[10px] text-gray-400">{file.size}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <span className="text-[10px] text-gray-400 shrink-0">{message.at}</span>
+                  </div>
+                );
+              })}
+              {activeRoom.messages.length === 0 && (
+                <p className="text-xs text-gray-400 text-center py-10">아직 주고받은 메시지가 없습니다.</p>
+              )}
+            </div>
+
+            <div className="px-5 py-3 border-t border-gray-200 bg-white shrink-0 flex flex-col gap-2">
+              {/* 보내기 전 첨부 목록 */}
+              {pendingFiles.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {pendingFiles.map((file, index) => (
+                    <span key={`${file.name}-${index}`} className="inline-flex items-center gap-2 bg-gray-50 border border-gray-200 rounded-lg pl-1.5 pr-1.5 py-1.5">
+                      {file.previewUrl
+                        ? <img src={file.previewUrl} alt={file.name} className="w-6 h-6 rounded object-cover shrink-0" />
+                        : <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />}
+                      <span className="text-[11px] text-gray-700 max-w-[160px] truncate">{file.name}</span>
+                      <span className="text-[10px] text-gray-400">{file.size}</span>
+                      <button
+                        type="button"
+                        onClick={() => setPendingFiles(previous => previous.filter((_, itemIndex) => itemIndex !== index))}
+                        className="text-gray-400 hover:text-gray-600 rounded p-0.5"
+                        title="첨부 빼기"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={event => { pickFiles(event.target.files); event.target.value = ""; }}
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  title="파일 첨부"
+                  className="w-9 h-9 rounded-lg border border-gray-200 text-gray-500 hover:text-blue-600 hover:border-blue-300 flex items-center justify-center shrink-0"
+                >
+                  <Paperclip className="w-4 h-4" />
+                </button>
+                <input
+                  value={draft}
+                  onChange={event => setDraft(event.target.value)}
+                  onKeyDown={event => { if (event.key === "Enter") send(); }}
+                  placeholder="메시지를 입력하세요"
+                  className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400"
+                />
+                <Btn variant="primary" disabled={!draft.trim() && pendingFiles.length === 0} onClick={send}>보내기</Btn>
+              </div>
+              <p className="text-[10px] text-gray-400">첨부는 대화 공유용입니다. 정산 증빙은 재정 화면에 등록해 주세요.</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {leaveConfirmOpen && activeRoom && (
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl shadow-xl w-[380px] p-6">
+            <p className="text-sm font-bold text-gray-900">방을 나가시겠습니까?</p>
+            <p className="text-xs text-gray-500 mt-2 leading-6">
+              {participantNames(activeRoom).filter(name => name !== currentUser.name).length === 0
+                ? <>남은 참여자가 없어 <span className="font-semibold text-gray-700">{activeRoom.name}</span> 방이 삭제됩니다. 주고받은 메시지도 함께 사라집니다.</>
+                : <><span className="font-semibold text-gray-700">{activeRoom.name}</span> 방에서 나가면 이후 대화를 볼 수 없습니다. 남은 참여자에게는 나갔다는 안내가 표시됩니다.</>}
+            </p>
+            <div className="flex items-center justify-end gap-2 mt-5">
+              <Btn variant="text" size="sm" onClick={() => setLeaveConfirmOpen(false)}>취소</Btn>
+              <Btn variant="destructive" size="sm" onClick={leaveRoom}>나가기</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </DesktopShell>
+  );
+}
+
 // ─── Screen Registry ──────────────────────────────────────────────────────────
 
 const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "HOME-01": HOME01,
+  "HOME-01K": HOME01K,
+  "MSG-01": MSG01,
+  "MSG-02": MSG02,
+  "MSG-03": MSG03,
   "OPS-00": OPS00,
   "ORG-00": ORG00,
   "ONB-01": ONB01,
@@ -12461,6 +13530,8 @@ export default function App() {
   const [purchaseSupplementDraft, setPurchaseSupplementDraft] = useState<PurchaseSupplementDraft | null>(() => loadDraft<PurchaseSupplementDraft>(DRAFT_STORAGE_KEYS.purchaseSupplement));
   const [organizationMemberRoles, setOrganizationMemberRoles] = useState<OrganizationMemberRole[]>(DEFAULT_ORGANIZATION_MEMBER_ROLES);
   const [demoDataMode, setDemoDataMode] = useState<DemoDataMode>("default");
+  const [messageRooms, setMessageRooms] = useState<MessageRoom[]>([]);
+  const [selectedMessageRoomId, setSelectedMessageRoomId] = useState<string | null>(null);
 
   useEffect(() => {
     if (meetingDraft) window.localStorage.setItem(DRAFT_STORAGE_KEYS.meeting, JSON.stringify(meetingDraft));
@@ -12503,6 +13574,8 @@ export default function App() {
       purchaseRequestDraft, setPurchaseRequestDraft,
       purchaseSupplementDraft, setPurchaseSupplementDraft,
       organizationMemberRoles, setOrganizationMemberRoles,
+      messageRooms, setMessageRooms,
+      selectedMessageRoomId, setSelectedMessageRoomId,
       demoDataMode, setDemoDataMode,
       navigateTo: setActiveScreen,
       currentUser: { name: "박해랑", dept: "운영부", role: organizationMemberRoles.find(member => member.name === "박해랑")?.role ?? "부원" },
