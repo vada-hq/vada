@@ -1148,7 +1148,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "사이드바 운영 → 캘린더",
     functions: [
       { num: "01", element: "월간 그리드", description: "요일별 날짜와 행사·회의·마감 일정을 표시하고 오늘을 강조한다. 행사·상시 업무의 미완료 마감일과 생성 회의의 실제 예정 일시도 자동으로 반영하며, 이전·다음 달로 이동할 수 있다. 홈에서 선택한 일정은 해당 날짜와 안내 배너로 강조한다." },
-      { num: "02", element: "유형 필터·색상 범례", description: "전체·행사·회의·마감으로 표시 항목을 거르고, 행사=남색·회의=보라·마감=주황의 고정 색상과 범례로 일정 유형을 구분한다." },
+      { num: "02", element: "유형 필터·색상 범례", description: "전체·행사·회의·마감으로 표시 항목을 거르고, 행사=초록·회의=보라·마감=주황의 고정 색상과 범례로 일정 유형을 구분한다." },
       { num: "03", element: "이번 주 일정 패널", description: "이번 주 일정을 목록으로 표시하고 일정 유형에 맞는 원본 업무·회의·행사로 이동한다. 업무 마감은 원래 행사 업무 상세 또는 상시 업무 상세 패널로, 생성 회의는 해당 회의의 상세 또는 완료 회의록으로 이동한다." },
       { num: "04", element: "일정 생성 없음", description: "캘린더는 열람 전용이다.", constraint: "회의는 운영>회의, 행사 일정은 각 행사의 일정 탭에서 생성" },
     ],
@@ -9976,9 +9976,13 @@ function FINREQ01() {
                                 </div>
                               </div>
                             </div>
-                            <div className="grid grid-cols-3 gap-4">
+                            <div className="grid grid-cols-4 gap-4">
                               <div className="flex flex-col gap-1">
                                 <label className="text-[11px] font-medium text-gray-700">디자인 파일</label>
+                                <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
+                              </div>
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[11px] font-medium text-gray-700">인쇄 파일</label>
                                 <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
                               </div>
                               <div className="flex flex-col gap-1">
@@ -11407,20 +11411,20 @@ const CAL_EVENTS: CalendarEvent[] = [
 ];
 
 const CAL_TYPE_STYLE: Record<CalendarEvent["type"], string> = {
-  행사: "bg-indigo-50 text-indigo-800 border-indigo-200 border-l-[3px] border-l-indigo-500",
+  행사: "bg-green-50 text-green-800 border-green-200 border-l-[3px] border-l-green-500",
   회의: "bg-violet-50 text-violet-800 border-violet-200 border-l-[3px] border-l-violet-500",
   마감: "bg-orange-50 text-orange-800 border-orange-200 border-l-[3px] border-l-orange-500",
 };
 
 const CAL_TYPE_DOT: Record<CalendarEvent["type"], string> = {
-  행사: "bg-indigo-500",
+  행사: "bg-green-500",
   회의: "bg-violet-500",
   마감: "bg-orange-500",
 };
 
 const CAL_FILTER_STYLE: Record<"전체" | CalendarEvent["type"], { active: string; idle: string }> = {
   전체: { active: "bg-gray-700 text-white border-gray-700", idle: "bg-white text-gray-600 border-gray-300 hover:bg-gray-50" },
-  행사: { active: "bg-indigo-600 text-white border-indigo-600", idle: "bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100" },
+  행사: { active: "bg-green-600 text-white border-green-600", idle: "bg-green-50 text-green-700 border-green-200 hover:bg-green-100" },
   회의: { active: "bg-violet-600 text-white border-violet-600", idle: "bg-violet-50 text-violet-700 border-violet-200 hover:bg-violet-100" },
   마감: { active: "bg-orange-600 text-white border-orange-600", idle: "bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100" },
 };
