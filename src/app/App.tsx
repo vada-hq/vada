@@ -92,6 +92,7 @@ const SCREENS: Screen[] = [
   { id: "ORG-03C", label: "구성원 초대 패널", group: "조직 관리" },
   { id: "ORG-07A", label: "학생 명단 관리", group: "조직 관리" },
   { id: "ORG-07B", label: "학생 명단 업로드·갱신 모달", group: "조직 관리" },
+  { id: "ORG-07C", label: "학생회비 납부 명단 업로드 모달", group: "조직 관리" },
   { id: "ORG-04", label: "역할 및 권한", group: "조직 관리" },
   { id: "ORG-04B", label: "역할 및 권한 관리 — 회장단", group: "조직 관리" },
   { id: "MSG-01", label: "메시지 — 방 목록·시작 전", group: "메시지" },
@@ -1324,8 +1325,8 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "조직 관리 홈 → 역할 및 권한",
     functions: [
       { num: "01", element: "기본 역할 카드", description: "회장단, 부서장, 부원의 역할과 인원을 표시한다." },
-      { num: "02", element: "기능 영역별 권한 표", description: "가능·조건부(재정부만 등)·불가(—)를 표시한다.", constraint: "2026-07-19 확정된 권한 매트릭스가 기준" },
-      { num: "03", element: "맥락 역할 안내", description: "회의 진행 권한자·생성자, 행사 운영 조직 역할의 부여 규칙을 설명한다." },
+      { num: "02", element: "기능 영역별 권한 표", description: "재정·회의·행사·조직·학생 명단 영역의 권한을 회장단·부서장·부원 열로 표시한다. 가능·조건부(재정부만 등)·불가(—)로 구분한다.", constraint: "2026-07-19 확정된 권한 매트릭스가 단일 기준이다. 화면에 새 권한 규칙이 생기면 이 표에도 같은 작업에서 행을 추가한다" },
+      { num: "03", element: "맥락 역할 안내", description: "회의 진행 권한자·생성자, 행사 운영 조직 역할의 부여 규칙을 설명하고, 권한 표에 쓰인 `행사 조직만`과 `행사 조직 관리자만`의 뜻을 함께 정의한다." },
     ],
     exceptions: ["일반 구성원은 권한 구성을 열람만 할 수 있다", "기본 역할과 회의·행사별 맥락 권한을 혼합해 표시하지 않는다"],
     nextScreens: ["ORG-04B"],
@@ -1341,7 +1342,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "03", element: "권한 변경 확인", description: "변경 전·후 역할을 확인한 뒤 반영한다. 반영 결과는 역할 카드와 구성원 목록에 즉시 표시된다." },
       { num: "04", element: "마지막 회장단 보호", description: "유일한 회장단을 다른 역할로 변경할 수 없다.", constraint: "먼저 다른 구성원에게 회장단 역할을 부여해야 함" },
     ],
-    exceptions: ["회장단이 아닌 사용자는 권한 변경 화면에 진입할 수 없다", "마지막 회장단을 다른 역할로 변경하거나 같은 역할 변경을 중복 적용할 수 없다"],
+    exceptions: ["회장단이 아닌 사용자는 권한 변경 화면에 진입할 수 없다", "마지막 회장단을 다른 역할로 변경하거나 같은 역할 변경을 중복 적용할 수 없다", "회장단만 진입할 수 있는 역할 변경 화면이다. 검토용으로 회장단 사용자를 주입한다"],
   },
   "EVT-00A2": {
     id: "EVT-00A2", name: "행사 목록 — 운영진", stateChip: "기본",
@@ -1460,11 +1461,10 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "회장단 카드", description: "조직도 최상단에 위치. 회장·부학생회장 등 여러 구성원 카드를 포함. 클릭 시 상세 팝오버." },
       { num: "02", element: "부서 카드", description: "부서장, 부원 수, 구성원 카드를 표시. 부서장 없으면 ＋ 부서장 지정 표시." },
       { num: "03", element: "구성원 카드", description: "이름, 학부·학과, 학년 표시. 클릭 시 상세 팝오버 열림.", constraint: "팝오버에서 부서 이동 가능" },
-      { num: "04", element: "미배정 구성원 패널", description: "부서 없는 구성원을 검색·확인. 같은 구성원 카드 형식 사용." },
-      { num: "05", element: "수정 버튼", description: "같은 화면을 수정 모드(ORG-03B)로 전환한다." },
-      { num: "06", element: "구성원 초대 버튼", description: "오른쪽 패널을 초대 링크 UI(ORG-03C)로 전환. 별도 페이지 이동 없음." },
+      { num: "04", element: "수정 버튼", description: "수정 모드(ORG-03B)로 전환한다.", constraint: "회장단만 노출한다. 부서장·부원에게는 버튼을 비활성화가 아니라 표시하지 않는다" },
+      { num: "05", element: "구성원 초대 버튼", description: "초대 링크 UI(ORG-03C)로 전환한다.", constraint: "회장단·부서장만 노출한다. 부서장은 자기 부서만 초대할 수 있다" },
     ],
-    exceptions: ["조직 정보가 없으면 빈 상태와 설정 진입을 제공한다", "편집 권한이 없는 구성원에게 수정·초대 행동을 노출하지 않는다"],
+    exceptions: ["조직 정보가 없으면 빈 상태와 설정 진입을 제공한다", "보기 모드에서는 미배정 구성원을 표시하지 않는다", "편집 권한이 없는 구성원에게 수정·초대 행동을 노출하지 않는다"],
     nextScreens: ["ORG-03B 수정 모드", "ORG-03C 초대 패널"],
   },
   "ORG-03B": {
@@ -1474,60 +1474,76 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "ORG-03A → 수정 버튼",
     functions: [
       { num: "01", element: "완료 버튼", description: "수정 내용을 저장하고 보기 모드(ORG-03A)로 복귀." },
-      { num: "02", element: "구성원 드래그", description: "미배정 구성원 ↔ 부서 사이 드래그로 구성원을 이동한다.", constraint: "드래그 중에도 카드 크기·형태 유지" },
-      { num: "03", element: "구성원 제거 (－)", description: "카드의 － 클릭 시 확인 dialog. 제거 시 미배정으로 이동하며 실행 취소 toast 제공." },
-      { num: "04", element: "부서 추가·수정·삭제", description: "별도 페이지 없이 현재 조직도에서 처리한다." },
-      { num: "05", element: "부서장 지정", description: "구성원을 부서장으로 임명 전 확인 dialog 표시." },
-      { num: "06", element: "회장단 수정", description: "회장단 카드 내부에서도 구성원 추가·이동·제거 가능. 회장·부학생회장 역할 구분 유지." },
+      { num: "02", element: "미배정 구성원 패널", description: "수정 모드에 진입하면 오른쪽에 항상 표시한다. 미배정 구성원을 검색하고 부서로 드래그한다.", constraint: "드래그 중에도 카드 크기·형태 유지" },
+      { num: "03", element: "구성원 제거 (－)", description: "부서 카드의 － 클릭 시 확인 dialog. 제거 시 미배정으로 이동하며 실행 취소 toast 제공." },
+      { num: "04", element: "미배정 구성원 삭제", description: "미배정 패널의 삭제를 누르면 확인 dialog 후 학생회 구성원에서 제거한다.", constraint: "부서 배정 해제와 달리 조직도와 구성원 목록에서 제거한다" },
+      { num: "05", element: "부서 추가·수정·삭제", description: "별도 페이지 없이 현재 조직도에서 처리한다." },
+      { num: "06", element: "부서장 지정", description: "구성원을 부서장으로 임명 전 확인 dialog 표시." },
+      { num: "07", element: "회장단 수정", description: "회장단 카드 내부에서도 구성원 추가·이동·제거 가능. 제거를 누르면 회장단 제외·미배정 이동 영향을 설명하는 확인 modal을 표시한다.", constraint: "마지막 회장단은 제거할 수 없으며 먼저 다른 구성원을 회장단으로 지정하도록 안내한다" },
+      { num: "08", element: "구성원 초대 버튼", description: "헤더의 구성원 초대를 누르면 ORG-03C 초대 패널로 이동한다." },
     ],
-    exceptions: ["마지막 회장단 또는 필수 조직 단위를 삭제할 수 없다", "저장하지 않고 나가면 변경 내용을 조직도에 반영하지 않는다"],
+    exceptions: ["마지막 회장단 또는 필수 조직 단위를 삭제할 수 없다", "저장하지 않고 나가면 변경 내용을 조직도에 반영하지 않는다", "회장단만 진입할 수 있는 수정 모드다. 검토용으로 회장단 사용자를 주입한다"],
     nextScreens: ["ORG-03A 보기 모드 (완료)"],
   },
   "ORG-03C": {
     id: "ORG-03C", name: "구성원 초대 패널", stateChip: "패널 열림",
     purpose: "학생회 공용 초대 링크를 관리한다.",
     users: "회장단 · 부서장",
-    entryPath: "ORG-03A → 구성원 초대 버튼",
+    entryPath: "ORG-03A 또는 ORG-03B → 구성원 초대 버튼",
     functions: [
-      { num: "01", element: "초대 링크", description: "현재 학생회의 공용 초대 링크를 표시한다." },
-      { num: "02", element: "짧은 초대 코드", description: "링크와 동일한 초대 권한을 짧은 코드 형식으로 제공한다. (예: AB12CD34)" },
-      { num: "03", element: "링크 복사", description: "초대 링크를 클립보드에 복사하고 완료 toast 표시." },
-      { num: "04", element: "코드 복사", description: "초대 코드를 클립보드에 복사하고 완료 toast 표시." },
-      { num: "05", element: "초대 정보 재생성", description: "기존 링크·코드 즉시 무효화 확인 dialog 후 새 링크·코드를 동시 생성.", constraint: "링크와 코드는 동일한 초대 권한. 재생성 시 둘 다 무효화" },
-      { num: "06", element: "뒤로가기", description: "미배정 구성원 패널로 복귀한다." },
+      { num: "01", element: "초대 정보 상태", description: "초대 정보의 활성 상태, 현재 사용 가능 여부, 마지막 재생성 시각을 표시한다." },
+      { num: "02", element: "초대 링크", description: "현재 학생회의 공용 초대 링크를 표시하고 복사·개별 재생성을 제공한다." },
+      { num: "03", element: "짧은 초대 코드", description: "링크와 동일한 초대 권한을 짧은 코드 형식으로 제공하고 복사·개별 재생성을 제공한다. (예: AB12CD34)" },
+      { num: "04", element: "개별 재생성", description: "링크 또는 코드만 새로 만든다. 확인 modal에서 해당 정보만 즉시 무효화된다고 안내한다.", constraint: "다른 초대 정보와 기존 초대로 참여한 구성원에게 영향을 주지 않는다" },
+      { num: "05", element: "초대 정보 모두 재생성", description: "새 링크와 코드를 함께 만들고 기존 링크·코드를 즉시 무효화한다. 확인 modal에 기존 참여 구성원에게 영향이 없음을 안내한다." },
+      { num: "06", element: "뒤로가기", description: "조직 관리 보기(ORG-03A)로 복귀한다." },
     ],
-    exceptions: ["초대받아 가입한 구성원은 미배정으로 자동 추가", "링크·코드는 별도 초대 권한이 아닌 동일한 권한의 두 가지 형식"],
+    exceptions: ["초대받아 가입한 구성원은 미배정으로 자동 추가", "링크·코드는 별도 초대 권한이 아닌 동일한 권한의 두 가지 형식", "회장단·부서장만 진입할 수 있는 초대 패널이다. 검토용으로 회장단 사용자를 주입하며, 부서장은 자기 부서만 초대할 수 있다"],
     nextScreens: ["ORG-03A 보기 모드"],
   },
   "ORG-07A": {
-    id: "ORG-07A", name: "학생 명단 관리", stateChip: "기본",
-    purpose: "업로드한 전체 학생 명단을 관리하고 행사 신청자 대조의 기준 데이터로 사용한다.",
-    users: "전 구성원 (열람)",
+    id: "ORG-07A", name: "학생 명단 관리", stateChip: "회장단 관리",
+    purpose: "업로드한 학생 기본 명단과 학기별 학생회비 납부 상태를 함께 조회하고 행사 신청자 대조의 기준 데이터로 사용한다.",
+    users: "전 구성원 (열람) · 회장단 (관리)",
     entryPath: "사이드바 조직 관리 → 학생 명단",
     functions: [
-      { num: "01", element: "관리 범위 안내", description: "대표 범위를 고정 정보로 표시. 이 화면에서 범위 변경 불가.", constraint: "범위 변경은 조직 설정에서만 가능" },
-      { num: "02", element: "학생 명단 업로드·갱신", description: "중앙 modal에서 양식 다운로드 → 파일 업로드 → 검증 → 반영을 처리한다." },
-      { num: "03", element: "명단 내보내기", description: "현재 필터와 관리 범위에 맞는 명단을 파일로 내보낸다." },
-      { num: "04", element: "검색·필터", description: "이름·학번 검색, 단과대학, 학부·학과, 학년, 학생회비 납부 여부 필터를 제공한다." },
-      { num: "05", element: "학생 명단 표", description: "이름, 학번, 단과대학, 학부·학과, 학년, 학생회비 상태를 열로 표시한다." },
-      { num: "06", element: "학생회비 상태 chip", description: "납부 / 미납 두 가지 기본 상태. 정상 판단 불가 시에만 확인 필요 사용." },
-      { num: "07", element: "행사 설문 연결", description: "참여 설문의 학번을 이 명단과 대조해 참가비를 자동 결정한다. 이 명단이 기준 데이터다." },
+      { num: "01", element: "관리 범위·갱신 안내", description: "대표 범위와 학생 기본 명단·학생회비 납부 명단의 마지막 갱신 시각·작성자를 각각 표시한다. 이 화면에서 범위 변경 불가.", constraint: "범위 변경은 조직 설정에서만 가능. 두 데이터의 갱신 이력은 서로 덮어쓰지 않는다" },
+      { num: "02", element: "학생 명단 업로드·갱신", description: "ORG-07B에서 기존 파일을 바로 업로드하고 검증 결과를 확인한 뒤 학생 기본 명단에 반영한다.", constraint: "회장단만 노출한다. 학생회비 상태는 변경하지 않는다" },
+      { num: "03", element: "학생회비 납부 명단 업로드", description: "ORG-07C에서 기준 학기의 전체 납부자 명단을 업로드하고 학생 명단과 대조한 뒤 납부 상태를 반영한다.", constraint: "재정부·회장단만 노출한다. 학생 기본정보를 생성·수정하지 않는다" },
+      { num: "04", element: "명단 내보내기", description: "내보낼 인원 수·포함 정보·개인정보 취급 주의를 확인 dialog로 안내한 뒤, 현재 검색·학년·학생회비 필터 결과를 UTF-8 CSV 파일로 내보낸다.", constraint: "회장단만 노출한다. 이름·학번·단과대학·학부·학과·학년·학생회비 열을 포함하며, 필터 결과가 없으면 비활성화한다" },
+      { num: "05", element: "검색·필터", description: "이름·학번 검색, 단과대학, 학부·학과, 학년, 학생회비 납부 여부 필터를 제공한다." },
+      { num: "06", element: "학생 명단 표", description: "이름, 학번, 단과대학, 학부·학과, 학년, 학생회비 상태를 열로 표시한다.", constraint: "단과대학과 학부·학과는 관리 범위와 무관하게 항상 표시한다. 범위가 학부 단위여서 값이 같더라도 생략하지 않는다" },
+      { num: "07", element: "학생회비 상태 chip", description: "납부 / 미납 / 미확인 세 가지 기본 상태를 사용한다. 학번·이름 불일치 등 정상 판단이 불가능할 때만 확인 필요를 사용한다." },
+      { num: "08", element: "행사 설문 연결", description: "참여 설문의 학번을 학생 기본 명단과 학기별 학생회비 상태에 대조해 참가비를 자동 결정한다. 미확인·확인 필요 상태는 미납으로 추정하지 않는다." },
     ],
-    exceptions: ["학번 일치·이름 불일치 → 확인 필요", "대표 범위 밖 학생은 업로드 파일 검증 오류로 처리"],
-    nextScreens: ["ORG-07B 학생 명단 업로드·갱신 모달"],
+    exceptions: ["학번 일치·이름 불일치 → 확인 필요", "대표 범위 밖 학생은 업로드 파일 검증 오류로 처리하며 명단에 존재하지 않는다", "학생회비 명단이 아직 없거나 기준 학기가 다르면 미확인으로 표시", "갱신 이력이 없으면 시각을 지어내지 않고 갱신 전 상태로 표시한다", "검색·필터 결과가 없으면 빈 명단을 내보내지 않는다", "검토 화면은 두 업로드 진입점과 내보내기를 확인할 수 있도록 회장단 사용자를 주입한다"],
+    nextScreens: ["ORG-07B 학생 명단 업로드·갱신 모달", "ORG-07C 학생회비 납부 명단 업로드 모달"],
   },
   "ORG-07B": {
     id: "ORG-07B", name: "학생 명단 업로드·갱신 모달", stateChip: "모달 열림",
-    purpose: "전체 학생 명단 파일을 업로드해 기준 명단 데이터를 갱신한다.",
+    purpose: "기존 학생 명단 파일을 업로드해 이름·학번·소속·학년으로 구성된 학생 기본 명단을 갱신한다.",
     users: "회장단",
     entryPath: "ORG-07A → 학생 명단 업로드·갱신",
     functions: [
-      { num: "01", element: "양식 다운로드", description: "현재 관리 범위에 맞는 명단 양식을 내려받는다. (이름·학번·단과대학·학부·학과·학년·학생회비 납부 여부 포함)" },
-      { num: "02", element: "파일 업로드", description: "드래그 앤 드롭 또는 파일 선택으로 .xlsx 파일을 업로드한다." },
-      { num: "03", element: "파일 검증", description: "필수 열 누락·이름·학번 누락·학번 형식 오류·중복 학번·대표 범위 밖 학생·상태값 오류를 확인한다.", constraint: "오류 있으면 오류 항목과 수정 방법만 표시. 명단 비교 화면 없음" },
-      { num: "04", element: "명단 반영", description: "오류가 없으면 바로 반영. 재업로드 시 학번 기준으로 최신 상태를 갱신.", constraint: "행사 참가자와 과거 행사 기록은 삭제하지 않음" },
+      { num: "01", element: "파일 업로드", description: "드래그 앤 드롭 또는 파일 선택으로 기존 .xlsx·.csv 파일을 업로드한다. 필수 열은 이름·학번·단과대학·학부·학과·학년이다.", constraint: "별도 양식을 다운로드하거나 학생회비 상태를 함께 입력하지 않는다" },
+      { num: "02", element: "검증 결과", description: "필수 열 누락·이름·학번 누락·학번 형식 오류·중복 학번·대표 범위 밖 학생을 확인하고 반영 가능한 수를 보여준다.", constraint: "치명적 오류가 있으면 전체 반영을 막고 파일 다시 선택 경로를 제공한다" },
+      { num: "03", element: "명단 반영", description: "검증을 통과하면 학번 기준으로 학생을 등록·갱신하고 현재 명단에서 제외되는 수를 요약한다.", constraint: "학생회비 상태, 행사 참가자, 과거 행사 기록은 변경하거나 삭제하지 않는다" },
     ],
-    exceptions: ["기존 명단과의 추가·변경·제외 비교 화면 없음", "학생회비 파일 별도 업로드 흐름 없음"],
+    exceptions: ["지원하지 않는 파일·필수 열 누락·중복 학번·대표 범위 밖 학생은 반영하지 않는다", "학생회비 상태 열이 포함되어 있어도 학생 기본 명단 업로드에서는 무시한다", "회장단만 진입할 수 있는 업로드 모달이다. 검토용으로 회장단 사용자를 주입한다"],
+    nextScreens: ["ORG-07A 학생 명단 관리"],
+  },
+  "ORG-07C": {
+    id: "ORG-07C", name: "학생회비 납부 명단 업로드 모달", stateChip: "모달 열림",
+    purpose: "기준 학기의 전체 학생회비 납부자 명단을 학생 기본 명단과 대조해 학기별 납부 상태를 갱신한다.",
+    users: "재정부 · 회장단",
+    entryPath: "ORG-07A → 학생회비 납부 명단 업로드",
+    functions: [
+      { num: "01", element: "기준 학기", description: "납부 상태를 적용할 연도·학기를 선택한다.", constraint: "학기별 기록을 보존하며 다른 학기의 상태를 덮어쓰지 않는다" },
+      { num: "02", element: "파일 업로드", description: "해당 학기의 전체 납부자 명단 .xlsx·.csv 파일을 업로드한다. 학번은 필수이며 이름은 일치 여부 확인에 사용한다." },
+      { num: "03", element: "검증 결과", description: "학생 기본 명단과 일치·미일치·중복 건수를 표시한다. 기준 명단에 없는 학번은 학생을 새로 만들지 않고 확인 항목으로 분류한다." },
+      { num: "04", element: "납부 상태 반영", description: "일치한 학생은 납부, 같은 학기의 기준 명단에 있으나 파일에 없는 학생은 미납으로 반영한다.", constraint: "학생 기본정보와 과거 학기 납부 상태는 변경하지 않는다" },
+    ],
+    exceptions: ["학생 기본 명단이 없으면 먼저 학생 명단 업로드를 안내한다", "학번 일치·이름 불일치는 확인 필요로 분류한다", "미일치·중복 항목이 있으면 수정 방법과 파일 다시 선택 경로를 제공한다", "재정부·회장단만 진입할 수 있다. 검토용으로 재정부 사용자를 주입한다"],
     nextScreens: ["ORG-07A 학생 명단 관리"],
   },
   "EVT-00A": {
@@ -1575,7 +1591,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "04", element: "기본 조직 공유 안내", description: "행사 조직 변경은 기본 학생회 조직에 영향을 주지 않는다.", constraint: "행사 조직과 기본 조직은 별도 데이터" },
       { num: "05", element: "저장·이전", description: "저장하면 EVT-03A 운영 조직 보기로, 이전을 누르면 EVT-03C 빈 상태로 돌아간다." },
     ],
-    exceptions: ["참여 부서가 하나도 없으면 빈 상태를 유지하고 임의 조직을 만들지 않는다", "같은 부서·구성원을 중복 추가하지 않는다"],
+    exceptions: ["참여 부서가 하나도 없으면 빈 상태를 유지하고 임의 조직을 만들지 않는다", "같은 부서·구성원을 중복 추가하지 않는다", "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["EVT-03A 운영 조직 보기", "EVT-03C 운영 조직 빈 상태"],
   },
   "EVT-03C": {
@@ -1631,7 +1647,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "02", element: "취소 버튼", description: "모달을 닫고 EVT-02로 복귀한다." },
       { num: "03", element: "행사 종료 버튼", description: "행사 상태를 후속 정리 중으로 변경하고 EVT-02D로 이동한다." },
     ],
-    exceptions: ["행사 종료 권한이 없거나 이미 종료된 행사에는 확인 동작을 실행하지 않는다", "미완료 업무가 있어도 종료를 막지 않고 후속 정리 중으로 전환한다"],
+    exceptions: ["행사 종료 권한이 없거나 이미 종료된 행사에는 확인 동작을 실행하지 않는다", "미완료 업무가 있어도 종료를 막지 않고 후속 정리 중으로 전환한다", "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["취소 → EVT-02 행사 개요 (진행 중)", "행사 종료 → EVT-02D 후속 정리 중 대시보드"],
   },
   "EVT-02D": {
@@ -1647,7 +1663,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "05", element: "기본 정보 카드", description: "행사 기본 정보를 계속 표시한다." },
       { num: "06", element: "최근 변경 사항", description: "후속 정리 진행 중 변경 활동을 표시한다." },
     ],
-    exceptions: ["임의 진행률 퍼센트 표시 금지. 구체적 남은 항목 수를 표시", "후속 정리 항목이 0이어도 완료 버튼은 항상 표시"],
+    exceptions: ["임의 진행률 퍼센트 표시 금지. 구체적 남은 항목 수를 표시", "후속 정리 항목이 0이어도 완료 버튼은 항상 표시", "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["EVT-02E 행사 완료 처리 확인 모달"],
   },
   "EVT-02E": {
@@ -1661,7 +1677,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "03", element: "계속 정리하기 버튼", description: "모달을 닫고 EVT-02D로 복귀한다. 항목이 있을 때만 표시." },
       { num: "04", element: "취소 버튼", description: "모달을 닫고 EVT-02D로 복귀한다." },
     ],
-    exceptions: ["남은 항목 있어도 완료 처리 차단 안 함. 경고 표시 후 선택권 제공", "완료 처리 후 REC-01로 이동"],
+    exceptions: ["남은 항목 있어도 완료 처리 차단 안 함. 경고 표시 후 선택권 제공", "완료 처리 후 REC-01로 이동", "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["계속 정리하기 / 취소 → EVT-02D 후속 정리 중 대시보드", "완료 처리 → REC-01 완료된 행사 목록"],
   },
   "REC-01": {
@@ -1736,7 +1752,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "06", element: "자동 반영 힌트", description: "각 입력 항목 근처에 해당 정보가 어디에 자동 반영되는지 보조 문구로 표시한다. 예: '일정 및 참여 설문에 자동 반영'", constraint: "행사 기본정보에서 자동 반영" },
       { num: "07", element: "저장 확인 모달", description: "설문 링크가 활성화된 상태에서 행사 일시·장소·참가비 등 행사 사실이 변경된 경우, 저장 전에 변경 항목·자동 반영 화면·기존 신청자 공지 필요 여부를 확인 모달로 보여준다. 변경 자체는 차단하지 않는다.", constraint: "변경 공지 만들기 기능 제안. 링크 강제 비활성화 안 함" },
     ],
-    exceptions: ["모든 항목은 비워둔 채 저장 가능. 조회 화면에서 미정으로 표시", "신청 기간·승인제·선착순·대기자 운영은 이 화면에서 관리하지 않음 → 참여 설문 설정에서 관리", "설문 문항·응답 구조 변경이 필요한 경우에는 새 설문으로 다시 만들기 흐름 제공"],
+    exceptions: ["모든 항목은 비워둔 채 저장 가능. 조회 화면에서 미정으로 표시", "신청 기간·승인제·선착순·대기자 운영은 이 화면에서 관리하지 않음 → 참여 설문 설정에서 관리", "설문 문항·응답 구조 변경이 필요한 경우에는 새 설문으로 다시 만들기 흐름 제공", "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["EVT-02 행사 개요 대시보드", "EVT-05 참여 설문 (변경 내용 자동 반영)"],
   },
   "EVT-03A": {
@@ -1749,9 +1765,9 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "02", element: "행사 책임자 카드", description: "조직도 최상단에 책임자를 카드 형태로 표시한다." },
       { num: "03", element: "팀·부서 카드", description: "팀장과 일반 구성원을 구분해 표시한다." },
       { num: "04", element: "구성원 팝업", description: "이름, 학과, 학년, 기본 조직 소속, 행사 역할을 팝오버로 표시한다." },
-      { num: "05", element: "수정 버튼", description: "같은 화면을 수정 모드(EVT-03B)로 전환한다." },
+      { num: "05", element: "수정 버튼", description: "같은 화면을 수정 모드(EVT-03B)로 전환한다.", constraint: "행사 운영 조직 관리자·회장단에게만 노출한다. 그 외 참가자에게는 표시하지 않는다" },
     ],
-    exceptions: ["운영 조직이 비어 있으면 EVT-03C 빈 상태를 표시한다", "열람 권한만 있는 사용자는 구성원·역할을 변경할 수 없다"],
+    exceptions: ["운영 조직이 비어 있으면 EVT-03C 빈 상태를 표시한다", "열람 권한만 있는 사용자는 구성원·역할을 변경할 수 없다", "권한 판정은 isEventManager 헬퍼를 사용하며 EVT-02 행사 개요와 같은 방식이다"],
     nextScreens: ["EVT-03B 수정 모드"],
   },
   "EVT-03B": {
@@ -1767,7 +1783,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "05", element: "행사 책임자 변경 경고", description: "현재 책임자를 바로 제거 불가. 새 책임자를 먼저 지정해야 한다.", constraint: "경고 메시지 표시" },
       { num: "06", element: "완료 버튼", description: "변경사항을 저장하고 보기 모드로 복귀한다." },
     ],
-    exceptions: ["필수 책임자를 제거하거나 같은 역할에 구성원을 중복 배정할 수 없다", "취소 시 편집 내용을 저장하지 않는다"],
+    exceptions: ["필수 책임자를 제거하거나 같은 역할에 구성원을 중복 배정할 수 없다", "취소 시 편집 내용을 저장하지 않는다", "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["EVT-03A 보기 모드"],
   },
   "EVT-04": {
@@ -1792,7 +1808,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       "학번 일치 + 학생회비 납부 → 납부자 참가비 규칙 적용",
       "학번 일치 + 이름 불일치 → 확인 필요",
       "설문 교체 후 이전 응답자는 재응답 필요 상태",
-    ],
+    , "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["EVT-04B QR 모달", "EVT-05 참여 설문"],
   },
   "EVT-04B": {
@@ -1807,7 +1823,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "04", element: "QR 다운로드", description: "행사장에 표시할 QR 이미지를 내려받는다." },
       { num: "05", element: "비활성화·재생성", description: "위험 작업이므로 확인 dialog를 거친다.", constraint: "재생성 시 기존 QR 즉시 무효화" },
     ],
-    exceptions: ["명단 불일치·중복 참석·시간 외·비활성 QR 결과를 성공 처리하지 않는다", "모달을 닫아도 기존 참석 기록을 변경하지 않는다"],
+    exceptions: ["명단 불일치·중복 참석·시간 외·비활성 QR 결과를 성공 처리하지 않는다", "모달을 닫아도 기존 참석 기록을 변경하지 않는다", "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["EVT-04 행사 참가자 (닫기)"],
   },
   "EVT-05": {
@@ -1833,7 +1849,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       "설문 링크 활성화 이후 행사 기본정보(일시·장소·참가비) 변경 시: 설문 안내에 자동 반영. 기존 신청 응답 유지. 변경 공지 만들기 제안. 링크 강제 비활성화 안 함",
       "설문 문항·응답 구조 변경이 필요한 경우: 새 설문으로 교체 흐름(EVT-05B) 안내. 기존 응답 보관",
       "참여 여부 질문은 만들지 않음 (제출 자체가 신청)",
-    ],
+    , "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["EVT-04 행사 참가자 명단 (링크 활성화 시)", "EXT-02A 외부 참여 설문 (링크 활성화 후)", "EVT-05B 기존 설문 교체 모달", "EVT-02B 행사 기본정보 수정 (기본정보에서 수정 버튼)"],
   },
   "EVT-05B": {
@@ -1847,7 +1863,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "03", element: "질문 복사 옵션", description: "기존 질문을 복사한 새 설문 초안으로 시작할 수 있다.", constraint: "질문만 복사. 응답 데이터는 절대 복사 안 함" },
       { num: "04", element: "교체 확인 버튼", description: "기존 설문을 교체됨 상태로 변경하고 새 설문 초안을 생성한다." },
     ],
-    exceptions: ["기존 설문과 응답을 실제로 삭제하지 않음", "기존 응답자는 재응답 필요 상태로 표시됨", "새 응답은 학번으로 기존 응답자와 연결"],
+    exceptions: ["기존 설문과 응답을 실제로 삭제하지 않음", "기존 응답자는 재응답 필요 상태로 표시됨", "새 응답은 학번으로 기존 응답자와 연결", "검토용으로 행사 운영 조직에 속한 사용자를 주입한다"],
     nextScreens: ["EVT-05 새 설문 초안"],
   },
   "FIN-WORK-01": {
@@ -2530,6 +2546,32 @@ function DesktopShell({
   );
 }
 
+// ─── 권한 판정 ────────────────────────────────────────────────────────────────
+// 권한 판정은 docs/VADA_PERMISSION_MATRIX.md를 단일 기준으로 한다.
+// 화면에서 조건을 직접 쓰지 말고 이 헬퍼를 재사용한다.
+
+// 행사 기본정보 수정·상태 전환·운영 조직 구성: 행사 운영 조직 관리자 + 회장단
+const isEventManager = (user: { name: string; role: string }) =>
+  user.role === "회장단" || user.role === "행사 운영 관리자";
+
+// 예산 편성·구매 승인·구매 발주·증빙 처리: 재정부 · 회장단
+const canManageFinance = (user: { dept: string; role: string }) =>
+  user.dept === "재정부" || user.role === "회장단";
+
+// 조직 구조 수정: 회장단
+const canEditOrganization = (user: { role: string }) => user.role === "회장단";
+
+// 구성원 초대: 회장단 · 부서장(자기 부서만)
+const canInviteOrganizationMember = (user: { role: string }) =>
+  user.role === "회장단" || user.role === "부서장";
+
+// 학생 기본 명단 업로드·갱신·내보내기: 회장단 (열람은 전 구성원)
+const canManageStudentRoster = (user: { role: string }) => user.role === "회장단";
+
+// 학생회비 납부 명단 업로드: 재정부 · 회장단
+const canManageStudentFeeRoster = (user: { dept: string; role: string }) =>
+  user.dept === "재정부" || user.role === "회장단";
+
 // ─── FIN-00 전체 재정 현황 ─────────────────────────────────────────────────────
 
 // 총예산은 하나의 숫자가 아니라 재원(학생회비·지원비 등)의 합이다.
@@ -2577,7 +2619,7 @@ const PROOF_STYLE: Record<string, string> = {
 function FIN00() {
   const { currentUser, navigateTo } = React.useContext(AppContext);
   // HANDOFF: 예산 수정은 재정부와 회장단만 가능하다. 열람은 모든 구성원이 할 수 있다.
-  const canEditBudget = currentUser.dept === "재정부" || currentUser.role === "회장단";
+  const canEditBudget = canManageFinance(currentUser);
   const [budgetSources, setBudgetSources] = useState<BudgetSource[]>(DEFAULT_BUDGET_SOURCES);
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
   const [detailModal, setDetailModal] = useState<"actual" | "planned" | null>(null);
@@ -4072,16 +4114,44 @@ const members = [
   { name: "정하늘", dept: "컴퓨터학부", grade: "3학년" },
 ];
 
+type UnassignedOrganizationMember = {
+  name: string;
+  dept: string;
+  grade: string;
+};
+
+const DEFAULT_UNASSIGNED_ORGANIZATION_MEMBERS: UnassignedOrganizationMember[] = [
+  { name: "정하늘", dept: "컴퓨터학부", grade: "3학년" },
+  { name: "박해랑", dept: "컴퓨터학부", grade: "2학년" },
+];
+
 // ─── HQCard — 회장단 부서 카드 ───────────────────────────────────────────────
 
-const HQ_MEMBERS = [
+type HQMember = {
+  name: string;
+  dept: string;
+  grade: string;
+  role: string;
+};
+
+const HQ_MEMBERS: HQMember[] = [
   { name: "김바다", dept: "컴퓨터학부", grade: "3학년", role: "회장" },
   { name: "이윤슬", dept: "ICT융합학부", grade: "4학년", role: "부회장" },
 ];
 
-function HQCard({ editMode = false, empty = false }: { editMode?: boolean; empty?: boolean }) {
+function HQCard({
+  editMode = false,
+  empty = false,
+  members: assignedMembers,
+  onRemoveMember,
+}: {
+  editMode?: boolean;
+  empty?: boolean;
+  members?: HQMember[];
+  onRemoveMember?: (member: HQMember) => void;
+}) {
   const [popover, setPopover] = useState<string | null>(null);
-  const members = empty ? [] : HQ_MEMBERS;
+  const members = empty ? [] : (assignedMembers ?? HQ_MEMBERS);
   return (
     <div className="border-2 border-gray-300 rounded-lg bg-white min-w-[240px] relative">
       {/* 카드 헤더 */}
@@ -4103,7 +4173,7 @@ function HQCard({ editMode = false, empty = false }: { editMode?: boolean; empty
           {members.map((m) => (
             <div key={m.name} className="relative">
               {editMode && (
-                <button className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-gray-500 rounded-full flex items-center justify-center z-10">
+                <button type="button" onClick={() => onRemoveMember?.(m)} aria-label={`${m.name} 회장단에서 제거`} className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-gray-500 rounded-full flex items-center justify-center z-10 hover:bg-red-500">
                   <Minus className="w-2.5 h-2.5 text-white" />
                 </button>
               )}
@@ -4232,15 +4302,145 @@ function MemberPopover() {
   );
 }
 
+function UnassignedMemberPanel({
+  members,
+  query,
+  onQueryChange,
+  onClose,
+  onDelete,
+  canDelete,
+  editable = false,
+}: {
+  members: UnassignedOrganizationMember[];
+  query: string;
+  onQueryChange: (query: string) => void;
+  onClose?: () => void;
+  onDelete: (member: UnassignedOrganizationMember) => void;
+  canDelete: boolean;
+  editable?: boolean;
+}) {
+  const filteredMembers = members.filter(member => member.name.includes(query.trim()));
+  return (
+    <aside className="w-72 border-l border-gray-200 bg-white flex flex-col shrink-0">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-gray-800">미배정 구성원</p>
+          <p className="text-xs text-gray-400 mt-0.5">{members.length}명{editable ? " · 드래그해서 부서로 이동" : ""}</p>
+        </div>
+        {onClose && <button type="button" onClick={onClose} aria-label="미배정 구성원 패널 닫기" className="p-1 text-gray-400 hover:text-gray-700">
+          <X className="w-4 h-4" />
+        </button>}
+      </div>
+      <div className="px-3 py-2 border-b border-gray-100">
+        <div className="flex items-center gap-2 border border-gray-200 rounded px-2 py-1.5 bg-gray-50 focus-within:ring-1 focus-within:ring-blue-400">
+          <Search className="w-3.5 h-3.5 text-gray-400" />
+          <input value={query} onChange={event => onQueryChange(event.target.value)} placeholder="이름 검색" className="text-xs bg-transparent outline-none placeholder-gray-400 flex-1" />
+        </div>
+      </div>
+      <div className="flex-1 overflow-auto p-3">
+        {filteredMembers.length > 0 ? (
+          <div className="flex flex-wrap gap-2 content-start">
+            {filteredMembers.map(member => (
+              <div key={member.name} className="relative">
+                <MemberCard name={member.name} dept={member.dept} grade={member.grade} draggable={editable} />
+                {canDelete && (
+                  <button
+                    type="button"
+                    onClick={() => onDelete(member)}
+                    className="mt-1 w-full inline-flex items-center justify-center gap-1 rounded border border-red-200 px-2 py-1 text-[10px] font-medium text-red-600 hover:bg-red-50"
+                  >
+                    <X className="w-3 h-3" /> 구성원 삭제
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="h-full min-h-36 flex flex-col items-center justify-center text-center px-4">
+            <Users className="w-5 h-5 text-gray-300 mb-2" />
+            <p className="text-xs font-medium text-gray-600">{query.trim() ? "검색 결과가 없습니다" : "미배정 구성원이 없습니다"}</p>
+            <p className="text-[10px] text-gray-400 mt-1">{query.trim() ? "다른 이름으로 검색해 보세요." : "모든 구성원이 부서에 배정되었습니다."}</p>
+          </div>
+        )}
+      </div>
+    </aside>
+  );
+}
+
+function UnassignedMemberDeleteDialog({
+  member,
+  onCancel,
+  onConfirm,
+}: {
+  member: UnassignedOrganizationMember;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div className="absolute inset-0 z-20 bg-black/20 flex items-center justify-center p-6">
+      <div className="w-full max-w-sm bg-white border border-gray-200 shadow-xl rounded-xl p-6">
+        <h3 className="text-sm font-bold text-gray-900">구성원을 삭제할까요?</h3>
+        <p className="mt-2 text-xs leading-5 text-gray-600"><span className="font-semibold text-gray-800">{member.name}</span>님을 학생회 구성원에서 삭제합니다. 삭제한 구성원은 조직도와 구성원 목록에서 사라집니다.</p>
+        <p className="mt-3 text-[11px] leading-5 text-red-600">이 작업은 현재 와이어프레임에서 되돌릴 수 없습니다.</p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Btn variant="secondary" size="sm" onClick={onCancel}>취소</Btn>
+          <Btn variant="destructive" size="sm" onClick={onConfirm}>삭제</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HQMemberRemoveDialog({
+  member,
+  remainingCount,
+  onCancel,
+  onConfirm,
+}: {
+  member: HQMember;
+  remainingCount: number;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const isLastMember = remainingCount <= 1;
+  return (
+    <div className="absolute inset-0 z-20 bg-black/20 flex items-center justify-center p-6">
+      <div className="w-full max-w-sm bg-white border border-gray-200 shadow-xl rounded-xl p-6">
+        <div className="flex items-start gap-3">
+          <div className="w-8 h-8 rounded-full bg-orange-50 flex items-center justify-center shrink-0"><AlertCircle className="w-4 h-4 text-orange-600" /></div>
+          <div>
+            <h3 className="text-sm font-bold text-gray-900">{isLastMember ? "마지막 회장단은 제거할 수 없어요" : "회장단에서 제외할까요?"}</h3>
+            <p className="mt-2 text-xs leading-5 text-gray-600">
+              {isLastMember
+                ? <>학생회 운영 책임을 유지하려면 회장단이 최소 1명 필요합니다. 먼저 다른 구성원을 회장단으로 지정한 뒤 <span className="font-semibold text-gray-800">{member.name}</span>님을 제외해 주세요.</>
+                : <><span className="font-semibold text-gray-800">{member.name}</span>님은 회장단에서 제외되어 미배정 구성원으로 이동합니다. 학생회 구성원 기록은 삭제되지 않으며, 이후 다른 부서에 배정할 수 있습니다.</>}
+            </p>
+          </div>
+        </div>
+        <div className="mt-5 flex justify-end gap-2">
+          <Btn variant="secondary" size="sm" onClick={onCancel}>{isLastMember ? "확인" : "취소"}</Btn>
+          {!isLastMember && <Btn variant="destructive" size="sm" onClick={onConfirm}>회장단에서 제외</Btn>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ORG03A() {
+  const { currentUser, navigateTo, organizationMemberRoles } = React.useContext(AppContext);
+  // 권한 매트릭스 ①: 조직 구조 수정은 회장단, 구성원 초대는 회장단·부서장(자기 부서만).
+  // 열람은 전 구성원이므로 조직도 자체는 누구에게나 보인다.
+  const canEditStructure = canEditOrganization(currentUser);
+  const canInviteMember = canInviteOrganizationMember(currentUser);
+  const visibleMembers = members.filter(member => organizationMemberRoles.some(organizationMember => organizationMember.name === member.name));
   return (
     <DesktopShell
       activeSidebar="조직 관리"
       breadcrumb={["조직 관리", "기본 조직"]}
       title="제12대 소프트웨어융합대학 학생회"
       actions={<>
-        <Btn variant="secondary" size="sm"><Users className="w-3.5 h-3.5" /> 구성원 초대</Btn>
-        <Btn variant="secondary" size="sm">수정</Btn>
+        {canInviteMember && <Btn variant="secondary" size="sm" onClick={() => navigateTo("ORG-03C")}><Users className="w-3.5 h-3.5" /> 구성원 초대</Btn>}
+        {canEditStructure && <Btn variant="secondary" size="sm" onClick={() => navigateTo("ORG-03B")}>수정</Btn>}
       </>}
     >
       <div className="flex h-full">
@@ -4256,61 +4456,65 @@ function ORG03A() {
                   <DeptCard
                     name={dept}
                     leader={di === 0 ? "박해랑" : undefined}
-                    members={members.slice(di + 1, di + 3)}
+                    members={visibleMembers.slice(di + 1, di + 3)}
                   />
                 </div>
               ))}
             </OrgBranch>
           </div>
         </div>
-
-        {/* Unassigned panel */}
-        <aside className="w-64 border-l border-gray-200 bg-white flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-800">미배정 구성원</p>
-            <p className="text-xs text-gray-400">2명</p>
-          </div>
-          <div className="px-3 py-2 border-b border-gray-100">
-            <div className="flex items-center gap-2 border border-gray-200 rounded px-2 py-1.5 bg-gray-50">
-              <Search className="w-3.5 h-3.5 text-gray-400" />
-              <input placeholder="이름 검색" className="text-xs bg-transparent outline-none placeholder-gray-400 flex-1" />
-            </div>
-          </div>
-          <div className="flex-1 overflow-auto p-3 flex flex-wrap gap-2 content-start">
-            <MemberCard name="정하늘" dept="컴퓨터학부" grade="3학년" />
-            <MemberCard name="박해랑" dept="컴퓨터학부" grade="2학년" />
-          </div>
-        </aside>
       </div>
     </DesktopShell>
   );
 }
 
 function ORG03B() {
+  const { organizationMemberRoles, setOrganizationMemberRoles, navigateTo } = React.useContext(AppContext);
+  const [unassignedQuery, setUnassignedQuery] = useState("");
+  const [unassignedMembers, setUnassignedMembers] = useState(DEFAULT_UNASSIGNED_ORGANIZATION_MEMBERS);
+  const [memberToDelete, setMemberToDelete] = useState<UnassignedOrganizationMember | null>(null);
+  const [hqMembers, setHqMembers] = useState(HQ_MEMBERS);
+  const [hqMemberToRemove, setHqMemberToRemove] = useState<HQMember | null>(null);
+  const visibleMembers = members.filter(member => organizationMemberRoles.some(organizationMember => organizationMember.name === member.name));
+  const deleteUnassignedMember = () => {
+    if (!memberToDelete) return;
+    setUnassignedMembers(current => current.filter(member => member.name !== memberToDelete.name));
+    setOrganizationMemberRoles(current => current.filter(member => member.name !== memberToDelete.name));
+    setMemberToDelete(null);
+  };
+  const removeHQMember = () => {
+    if (!hqMemberToRemove || hqMembers.length <= 1) return;
+    setHqMembers(current => current.filter(member => member.name !== hqMemberToRemove.name));
+    setUnassignedMembers(current => current.some(member => member.name === hqMemberToRemove.name)
+      ? current
+      : [...current, { name: hqMemberToRemove.name, dept: hqMemberToRemove.dept, grade: hqMemberToRemove.grade }]);
+    setOrganizationMemberRoles(current => current.map(member => member.name === hqMemberToRemove.name ? { ...member, role: "부원" } : member));
+    setHqMemberToRemove(null);
+  };
   return (
     <DesktopShell
       activeSidebar="조직 관리"
       breadcrumb={["조직 관리", "기본 조직"]}
       title="제12대 소프트웨어융합대학 학생회"
-      actions={<><Btn variant="primary" size="sm">완료</Btn></>}
+      actions={<><Btn variant="secondary" size="sm" onClick={() => navigateTo("ORG-03C")}><Users className="w-3.5 h-3.5" /> 구성원 초대</Btn><Btn variant="primary" size="sm">완료</Btn></>}
     >
       <div className="flex h-full">
         <div className="flex-1 p-6 overflow-auto">
           <div className="flex flex-col items-center gap-0">
-            <HQCard editMode />
+            <HQCard editMode members={hqMembers} onRemoveMember={setHqMemberToRemove} />
             <OrgStem />
 
             <OrgBranch>
               {["기획부", "홍보부", "디자인부"].map((dept, di) => (
                 di === 1 ? (
                   <div key={dept} className="relative">
-                    <DeptCard name={dept} leader={undefined} members={members.slice(1, 3)} editMode />
+                    <DeptCard name={dept} leader={undefined} members={visibleMembers.slice(1, 3)} editMode />
                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 shadow-xl opacity-90 rotate-3 pointer-events-none">
                       <MemberCard name="박해랑" dept="컴퓨터학부" grade="2학년" draggable />
                     </div>
                   </div>
                 ) : (
-                  <DeptCard key={dept} name={dept} leader={di === 0 ? "이윤슬" : undefined} members={members.slice(di, di + 2)} editMode />
+                  <DeptCard key={dept} name={dept} leader={di === 0 ? "이윤슬" : undefined} members={visibleMembers.slice(di, di + 2)} editMode />
                 )
               ))}
               <DeptCard name="" members={[]} addDept />
@@ -4318,35 +4522,44 @@ function ORG03B() {
           </div>
         </div>
 
-        <aside className="w-64 border-l border-gray-200 bg-white flex flex-col">
-          <div className="px-4 py-3 border-b border-gray-100">
-            <p className="text-sm font-semibold text-gray-800">미배정 구성원</p>
-            <p className="text-xs text-gray-400">2명 · 드래그해서 부서로 이동</p>
-          </div>
-          <div className="px-3 py-2 border-b border-gray-100">
-            <div className="flex items-center gap-2 border border-gray-200 rounded px-2 py-1.5 bg-gray-50">
-              <Search className="w-3.5 h-3.5 text-gray-400" />
-              <input placeholder="이름 검색" className="text-xs bg-transparent outline-none placeholder-gray-400 flex-1" />
-            </div>
-          </div>
-          <div className="flex-1 overflow-auto p-3 flex flex-wrap gap-2 content-start">
-            <MemberCard name="정하늘" dept="컴퓨터학부" grade="3학년" draggable />
-            <MemberCard name="박해랑" dept="컴퓨터학부" grade="2학년" draggable />
-          </div>
-        </aside>
+        <UnassignedMemberPanel members={unassignedMembers} query={unassignedQuery} onQueryChange={setUnassignedQuery} onDelete={setMemberToDelete} canDelete editable />
       </div>
+      {memberToDelete && <UnassignedMemberDeleteDialog member={memberToDelete} onCancel={() => setMemberToDelete(null)} onConfirm={deleteUnassignedMember} />}
+      {hqMemberToRemove && <HQMemberRemoveDialog member={hqMemberToRemove} remainingCount={hqMembers.length} onCancel={() => setHqMemberToRemove(null)} onConfirm={removeHQMember} />}
     </DesktopShell>
   );
 }
 
 function ORG03C() {
-  const [showDialog, setShowDialog] = useState(false);
+  const { navigateTo } = React.useContext(AppContext);
+  const [regenerationTarget, setRegenerationTarget] = useState<"all" | "link" | "code" | null>(null);
+  const [linkSuffix, setLinkSuffix] = useState("abc123xyz");
+  const [inviteCode, setInviteCode] = useState("AB12CD34");
+  const [lastRegeneratedAt, setLastRegeneratedAt] = useState("2026.07.22 18:30");
+  const inviteLink = `https://vada.app/join/swcollege12/${linkSuffix}`;
+  const formatRegeneratedAt = () => {
+    const now = new Date();
+    return `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, "0")}.${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+  };
+  const regenerateInvitation = () => {
+    if (!regenerationTarget) return;
+    const nonce = Date.now().toString(36);
+    if (regenerationTarget === "all" || regenerationTarget === "link") setLinkSuffix(nonce.slice(-9));
+    if (regenerationTarget === "all" || regenerationTarget === "code") setInviteCode(nonce.slice(-8).toUpperCase().padStart(8, "0"));
+    setLastRegeneratedAt(formatRegeneratedAt());
+    setRegenerationTarget(null);
+  };
+  const dialogCopy = regenerationTarget === "link"
+    ? { title: "초대 링크를 재생성할까요?", summary: "새로운 초대 링크가 만들어집니다. 기존 링크는 즉시 사용할 수 없게 됩니다.", detail: "초대 코드는 그대로 사용할 수 있으며, 기존 초대로 참여한 구성원에게는 영향을 주지 않습니다." }
+    : regenerationTarget === "code"
+      ? { title: "초대 코드를 재생성할까요?", summary: "새로운 초대 코드가 만들어집니다. 기존 코드는 즉시 사용할 수 없게 됩니다.", detail: "초대 링크는 그대로 사용할 수 있으며, 기존 초대로 참여한 구성원에게는 영향을 주지 않습니다." }
+      : { title: "초대 정보를 재생성할까요?", summary: "새로운 초대 링크와 코드가 만들어집니다. 기존 링크와 코드는 즉시 사용할 수 없게 됩니다.", detail: "이미 기존 초대로 참여한 구성원에게는 영향을 주지 않습니다." };
   return (
     <DesktopShell
       activeSidebar="조직 관리"
       breadcrumb={["조직 관리", "기본 조직"]}
       title="제12대 소프트웨어융합대학 학생회"
-      actions={<><Btn variant="secondary" size="sm">수정</Btn></>}
+      actions={<><Btn variant="secondary" size="sm" onClick={() => navigateTo("ORG-03A")}><ArrowLeft className="w-3.5 h-3.5" /> 조직 관리로</Btn></>}
     >
       <div className="flex h-full">
         {/* Left org chart placeholder */}
@@ -4367,7 +4580,7 @@ function ORG03C() {
         {/* Invite panel */}
         <aside className="w-72 border-l border-gray-200 bg-white flex flex-col">
           <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2">
-            <button className="text-gray-400 hover:text-gray-600"><ArrowLeft className="w-4 h-4" /></button>
+            <button type="button" onClick={() => navigateTo("ORG-03A")} aria-label="조직 관리로 돌아가기" className="text-gray-400 hover:text-gray-600"><ArrowLeft className="w-4 h-4" /></button>
             <p className="text-sm font-semibold text-gray-800">구성원 초대</p>
           </div>
           <div className="flex-1 p-5 flex flex-col gap-5 overflow-auto">
@@ -4376,28 +4589,37 @@ function ORG03C() {
               <p className="text-xs text-gray-500">초대 링크 또는 초대 코드를 공유하면 구성원이 학생회에 참여할 수 있습니다.</p>
             </div>
 
+            <section className="rounded-lg border border-green-200 bg-green-50 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold text-green-900">초대 정보</p>
+                <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">활성</span>
+              </div>
+              <p className="mt-1 text-[11px] leading-5 text-green-800">현재 사용할 수 있는 초대 정보입니다.</p>
+              <p className="mt-1.5 text-[10px] text-green-700">마지막 재생성: {lastRegeneratedAt}</p>
+            </section>
+
             {/* Link section */}
             <div>
               <p className="text-xs font-medium text-gray-600 mb-1.5">공용 초대 링크</p>
               <div className="border border-gray-200 rounded p-2.5 bg-gray-50 mb-2">
-                <p className="text-xs text-gray-500 break-all font-mono">https://vada.app/join/swcollege12/abc123xyz</p>
+                <p className="text-xs text-gray-500 break-all font-mono">{inviteLink}</p>
               </div>
-              <Btn variant="secondary" size="sm"><Copy className="w-3.5 h-3.5" /> 링크 복사</Btn>
+              <div className="flex gap-2"><Btn variant="secondary" size="sm"><Copy className="w-3.5 h-3.5" /> 링크 복사</Btn><Btn variant="secondary" size="sm" onClick={() => setRegenerationTarget("link")}><RefreshCw className="w-3.5 h-3.5" /> 링크 재생성</Btn></div>
             </div>
 
             {/* Code section */}
             <div>
               <p className="text-xs font-medium text-gray-600 mb-1.5">짧은 초대 코드</p>
               <div className="border border-gray-200 rounded p-2.5 bg-gray-50 mb-2 flex items-center justify-between">
-                <span className="text-xl font-mono font-bold text-gray-800 tracking-widest">AB12CD34</span>
+                <span className="text-xl font-mono font-bold text-gray-800 tracking-widest">{inviteCode}</span>
               </div>
-              <Btn variant="secondary" size="sm"><Copy className="w-3.5 h-3.5" /> 코드 복사</Btn>
+              <div className="flex gap-2"><Btn variant="secondary" size="sm"><Copy className="w-3.5 h-3.5" /> 코드 복사</Btn><Btn variant="secondary" size="sm" onClick={() => setRegenerationTarget("code")}><RefreshCw className="w-3.5 h-3.5" /> 코드 재생성</Btn></div>
             </div>
 
             <div className="border-t border-gray-100 pt-3">
               <p className="text-xs text-gray-500 mb-2">링크와 코드는 <strong>동일한 초대 권한</strong>입니다. 어느 방식으로든 참여한 구성원은 미배정으로 등록됩니다.</p>
-              <Btn variant="text" size="sm" className="text-red-500" onClick={() => setShowDialog(true)}>
-                <RefreshCw className="w-3 h-3" /> 초대 정보 재생성
+              <Btn variant="text" size="sm" className="text-red-500" onClick={() => setRegenerationTarget("all")}>
+                <RefreshCw className="w-3 h-3" /> 초대 정보 모두 재생성
               </Btn>
             </div>
           </div>
@@ -4405,14 +4627,15 @@ function ORG03C() {
       </div>
 
       {/* Confirm dialog */}
-      {showDialog && (
+      {regenerationTarget && (
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center z-20">
-          <div className="bg-white rounded-xl border border-gray-200 shadow-xl p-6 w-80">
-            <h3 className="text-sm font-semibold text-gray-900 mb-2">초대 정보를 재생성하시겠어요?</h3>
-            <p className="text-xs text-gray-500 mb-5">기존 링크와 코드가 즉시 무효화됩니다. 이전 링크와 코드로는 더 이상 참여할 수 없습니다.</p>
+          <div className="bg-white rounded-xl border border-gray-200 shadow-xl p-6 w-[360px]">
+            <h3 className="text-sm font-semibold text-gray-900 mb-2">{dialogCopy.title}</h3>
+            <p className="text-xs leading-5 text-gray-600">{dialogCopy.summary}</p>
+            <p className="mt-3 text-xs leading-5 text-gray-500">{dialogCopy.detail}</p>
             <div className="flex justify-end gap-2">
-              <Btn variant="secondary" size="sm" onClick={() => setShowDialog(false)}>취소</Btn>
-              <Btn variant="destructive" size="sm" onClick={() => setShowDialog(false)}>재생성</Btn>
+              <Btn variant="secondary" size="sm" onClick={() => setRegenerationTarget(null)}>취소</Btn>
+              <Btn variant="destructive" size="sm" onClick={regenerateInvitation}>재생성</Btn>
             </div>
           </div>
         </div>
@@ -4423,16 +4646,36 @@ function ORG03C() {
 
 // ─── Student Roster ───────────────────────────────────────────────────────────
 
-const studentRows = [
-  { name: "김바다", id: "2022123456", dept: "컴퓨터학부", grade: "3학년", status: "납부", statusV: "green" as const },
-  { name: "박해랑", id: "2023234567", dept: "컴퓨터학부", grade: "2학년", status: "납부", statusV: "green" as const },
-  { name: "이윤슬", id: "2020345678", dept: "컴퓨터학부", grade: "4학년", status: "미납", statusV: "red" as const },
-  { name: "정하늘", id: "2022456789", dept: "ICT융합학부", grade: "3학년", status: "미납", statusV: "red" as const },
-  { name: "최바람", id: "2021567890", dept: "컴퓨터학부", grade: "3학년", status: "확인 필요", statusV: "yellow" as const },
-  { name: "강별", id: "2024678901", dept: "ICT융합학부", grade: "1학년", status: "납부", statusV: "green" as const },
-  { name: "오하늘", id: "2023789012", dept: "컴퓨터학부", grade: "2학년", status: "납부", statusV: "green" as const },
-  { name: "윤서진", id: "2022890123", dept: "ICT융합학부", grade: "3학년", status: "미납", statusV: "red" as const },
+// 관리 범위가 컴퓨터학부이므로 명단에는 컴퓨터학부 학생만 들어간다.
+// 범위 밖 학생은 ORG-07B 검증에서 반영 제외되므로 이 목록에 존재할 수 없다.
+// 단과대학은 관리 범위와 무관하게 모든 행에 표기한다.
+type StudentFeeStatus = "납부" | "미납" | "미확인" | "확인 필요";
+type StudentRosterRow = {
+  name: string;
+  id: string;
+  college: string;
+  dept: string;
+  grade: string;
+  status: StudentFeeStatus;
+  statusV: "green" | "red" | "gray" | "yellow";
+};
+
+const INITIAL_STUDENT_ROWS: StudentRosterRow[] = [
+  { name: "김바다", id: "2022123456", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "3학년", status: "납부", statusV: "green" as const },
+  { name: "박해랑", id: "2023234567", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "2학년", status: "납부", statusV: "green" as const },
+  { name: "이윤슬", id: "2020345678", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "4학년", status: "미납", statusV: "red" as const },
+  { name: "정하늘", id: "2022456789", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "3학년", status: "미납", statusV: "red" as const },
+  { name: "최바람", id: "2021567890", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "3학년", status: "확인 필요", statusV: "yellow" as const },
+  { name: "강별", id: "2024678901", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "1학년", status: "납부", statusV: "green" as const },
+  { name: "오하늘", id: "2023789012", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "2학년", status: "납부", statusV: "green" as const },
+  { name: "윤서진", id: "2022890123", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "3학년", status: "미납", statusV: "red" as const },
 ];
+
+// 학생 기본 명단과 학생회비 납부 명단은 서로 다른 주기로 갱신되므로 이력을 분리한다.
+type RosterUpdate = { at: string; kind: "학생 명단 업로드" | "개별 수정"; by: string };
+type FeeRosterUpdate = { at: string; term: string; by: string };
+const INITIAL_ROSTER_UPDATE: RosterUpdate = { at: "2026-07-20 14:32", kind: "학생 명단 업로드", by: "이지원" };
+const INITIAL_FEE_ROSTER_UPDATE: FeeRosterUpdate = { at: "2026-07-18 10:15", term: "2026년 1학기", by: "김민준" };
 
 // ─── ORG-00 조직 관리 홈 ──────────────────────────────────────────────────────
 
@@ -4507,10 +4750,13 @@ const PERMISSION_ROWS: { area: string; values: [string, string, string]; confirm
   { area: "회의 생성", values: ["가능", "가능", "—"], confirmed: true },
   { area: "행사 만들기", values: ["가능", "가능", "—"], confirmed: true },
   { area: "행사 정보 수정·종료 처리", values: ["가능", "행사 조직만", "행사 조직만"], confirmed: true },
+  { area: "행사 운영 조직 구성·수정", values: ["가능", "행사 조직 관리자만", "행사 조직 관리자만"], confirmed: true },
   { area: "조직 구조 수정", values: ["가능", "—", "—"], confirmed: true },
   { area: "구성원 초대", values: ["가능", "자기 부서만", "—"], confirmed: true },
   { area: "학생 명단 열람", values: ["가능", "가능", "가능"], confirmed: true },
   { area: "학생 명단 업로드·갱신", values: ["가능", "—", "—"], confirmed: true },
+  { area: "학생회비 납부 명단 업로드", values: ["가능", "재정부만", "재정부만"], confirmed: true },
+  { area: "학생 명단 내보내기", values: ["가능", "—", "—"], confirmed: true },
 ];
 
 function PermissionCell({ value }: { value: string }) {
@@ -4596,7 +4842,7 @@ function ORG04() {
             </div>
             <div className="flex items-start gap-2">
               <span className="w-1.5 h-1.5 rounded-full bg-blue-400 mt-1.5 shrink-0" />
-              <p className="text-[11px] text-gray-600 leading-5"><span className="font-semibold text-gray-800">행사 운영 조직 역할</span> — 행사별로 구성되며 기본 학생회 조직과 별개의 데이터입니다. 행사 조직을 수정해도 기본 조직은 변경되지 않습니다.</p>
+              <p className="text-[11px] text-gray-600 leading-5"><span className="font-semibold text-gray-800">행사 운영 조직 역할</span> — 행사별로 구성되며 기본 학생회 조직과 별개의 데이터입니다. 행사 조직을 수정해도 기본 조직은 변경되지 않습니다. 표의 <span className="font-semibold text-gray-800">행사 조직만</span>은 그 행사의 운영 조직에 속한 경우, <span className="font-semibold text-gray-800">행사 조직 관리자만</span>은 그 조직의 관리자인 경우를 뜻합니다.</p>
             </div>
           </div>
         </div>
@@ -4729,25 +4975,92 @@ function ORG04B() {
   );
 }
 
-function ORG07A({ onOpenB }: { onOpenB?: () => void }) {
+function ORG07A({
+  onOpenRoster,
+  onOpenFeeRoster,
+  rows = INITIAL_STUDENT_ROWS,
+  lastRosterUpdate = INITIAL_ROSTER_UPDATE,
+  lastFeeRosterUpdate = INITIAL_FEE_ROSTER_UPDATE,
+}: {
+  onOpenRoster?: () => void;
+  onOpenFeeRoster?: () => void;
+  rows?: StudentRosterRow[];
+  lastRosterUpdate?: RosterUpdate;
+  lastFeeRosterUpdate?: FeeRosterUpdate;
+}) {
+  const { currentUser } = React.useContext(AppContext);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [gradeFilter, setGradeFilter] = useState("모든 학년");
+  const [feeFilter, setFeeFilter] = useState<"학생회비 전체" | StudentFeeStatus>("학생회비 전체");
+  const [showExportConfirm, setShowExportConfirm] = useState(false);
+  // 학생 기본 명단과 학생회비 명단은 데이터 책임과 권한을 분리한다.
+  const canUploadRoster = canManageStudentRoster(currentUser);
+  const canUploadFeeRoster = canManageStudentFeeRoster(currentUser);
+  const canExportRoster = canManageStudentRoster(currentUser);
+  const normalizedQuery = searchQuery.trim().toLocaleLowerCase("ko-KR");
+  const filteredRows = rows.filter(row => {
+    const matchesSearch = normalizedQuery.length === 0
+      || row.name.toLocaleLowerCase("ko-KR").includes(normalizedQuery)
+      || row.id.includes(normalizedQuery);
+    const matchesGrade = gradeFilter === "모든 학년" || row.grade === gradeFilter;
+    const matchesFee = feeFilter === "학생회비 전체" || row.status === feeFilter;
+    return matchesSearch && matchesGrade && matchesFee;
+  });
+  const downloadRoster = () => {
+    if (filteredRows.length === 0) return;
+    const escapeCsvCell = (value: string) => {
+      const singleLineValue = value.replace(/\r?\n/g, " ");
+      const formulaSafeValue = /^[=+\-@]/.test(singleLineValue) ? `'${singleLineValue}` : singleLineValue;
+      return `"${formulaSafeValue.replace(/"/g, '""')}"`;
+    };
+    const headers = ["이름", "학번", "단과대학", "학부·학과", "학년", "학생회비"];
+    const csvRows = filteredRows.map(row => [row.name, row.id, row.college, row.dept, row.grade, row.status]);
+    const csv = `\uFEFF${[headers, ...csvRows].map(row => row.map(escapeCsvCell).join(",")).join("\r\n")}`;
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const today = new Date();
+    const date = [today.getFullYear(), String(today.getMonth() + 1).padStart(2, "0"), String(today.getDate()).padStart(2, "0")].join("-");
+    link.href = url;
+    link.download = `컴퓨터학부_학생명단_${date}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    setShowExportConfirm(false);
+  };
   return (
-    <DesktopShell
-      activeSidebar="조직 관리"
-      breadcrumb={["조직 관리", "학생 명단"]}
-      title="학생 명단 관리"
-      actions={<>
-        <Btn variant="secondary" size="sm" onClick={onOpenB}><Upload className="w-3.5 h-3.5" /> 학생 명단 업로드·갱신</Btn>
-        <Btn variant="secondary" size="sm"><Download className="w-3.5 h-3.5" /> 명단 내보내기</Btn>
-      </>}
-    >
-      <div className="p-6 flex flex-col gap-4">
-        {/* Scope banner */}
+    <>
+      <DesktopShell
+        activeSidebar="조직 관리"
+        breadcrumb={["조직 관리", "학생 명단"]}
+        title="학생 명단 관리"
+        actions={<>
+          {canUploadRoster && <Btn variant="secondary" size="sm" onClick={onOpenRoster}><Upload className="w-3.5 h-3.5" /> 학생 명단 업로드·갱신</Btn>}
+          {canUploadFeeRoster && <Btn variant="secondary" size="sm" onClick={onOpenFeeRoster}><Upload className="w-3.5 h-3.5" /> 학생회비 납부 명단 업로드</Btn>}
+          {canExportRoster && <Btn variant="secondary" size="sm" disabled={filteredRows.length === 0} onClick={() => setShowExportConfirm(true)}><Download className="w-3.5 h-3.5" /> 명단 내보내기</Btn>}
+        </>}
+      >
+        <div className="p-6 flex flex-col gap-4">
+        {/* Scope banner — 관리 범위와 기준 시점을 한 묶음으로 읽게 한다 */}
         <div className="bg-blue-50 border border-blue-200 rounded-lg px-5 py-3 flex items-start gap-3">
           <Info className="w-4 h-4 text-blue-500 shrink-0 mt-0.5" />
-          <div>
+          <div className="flex-1">
             <p className="text-xs font-semibold text-blue-700 mb-0.5">관리 범위</p>
             <p className="text-xs text-blue-600">한양대학교 ERICA › 소프트웨어융합대학 › 컴퓨터학부</p>
             <p className="text-xs text-blue-500 mt-0.5">컴퓨터학부 학생만 이 명단에 등록할 수 있습니다. 범위 변경은 조직 설정에서 가능합니다.</p>
+          </div>
+          <div className="shrink-0 border-l border-blue-200 pl-5 grid grid-cols-2 gap-5">
+            <div className="text-right">
+              <p className="text-xs font-semibold text-blue-700 mb-0.5">학생 명단 갱신</p>
+              <p className="text-xs text-blue-600 font-mono">{lastRosterUpdate.at}</p>
+              <p className="text-xs text-blue-500 mt-0.5">{lastRosterUpdate.kind} · {lastRosterUpdate.by}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-xs font-semibold text-blue-700 mb-0.5">학생회비 명단 갱신</p>
+              <p className="text-xs text-blue-600 font-mono">{lastFeeRosterUpdate.at}</p>
+              <p className="text-xs text-blue-500 mt-0.5">{lastFeeRosterUpdate.term} · {lastFeeRosterUpdate.by}</p>
+            </div>
           </div>
         </div>
 
@@ -4755,19 +5068,35 @@ function ORG07A({ onOpenB }: { onOpenB?: () => void }) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2 border border-gray-200 rounded px-3 py-1.5 bg-white w-60">
             <Search className="w-3.5 h-3.5 text-gray-400" />
-            <input placeholder="이름, 학번 검색" className="text-xs outline-none placeholder-gray-400 flex-1" />
+            <input
+              value={searchQuery}
+              onChange={event => setSearchQuery(event.target.value)}
+              placeholder="이름, 학번 검색"
+              aria-label="학생 이름 또는 학번 검색"
+              className="text-xs outline-none placeholder-gray-400 flex-1"
+            />
           </div>
           <div className="relative">
-            <select className="border border-gray-200 rounded px-3 py-1.5 text-xs bg-white appearance-none pr-7">
+            <select
+              value={gradeFilter}
+              onChange={event => setGradeFilter(event.target.value)}
+              aria-label="학년 필터"
+              className="border border-gray-200 rounded px-3 py-1.5 text-xs bg-white appearance-none pr-7"
+            >
               <option>모든 학년</option>
               <option>1학년</option><option>2학년</option><option>3학년</option><option>4학년</option>
             </select>
             <ChevronDown className="absolute right-2 top-2 w-3 h-3 text-gray-400 pointer-events-none" />
           </div>
           <div className="relative">
-            <select className="border border-gray-200 rounded px-3 py-1.5 text-xs bg-white appearance-none pr-7">
-              <option>학생회비 전체</option>
-              <option>납부 확인</option><option>미납</option><option>미확인</option><option>확인 필요</option>
+            <select
+              value={feeFilter}
+              onChange={event => setFeeFilter(event.target.value as "학생회비 전체" | StudentFeeStatus)}
+              aria-label="학생회비 납부 상태 필터"
+              className="border border-gray-200 rounded px-3 py-1.5 text-xs bg-white appearance-none pr-7"
+            >
+              <option value="학생회비 전체">학생회비 전체</option>
+              <option value="납부">납부 확인</option><option value="미납">미납</option><option value="미확인">미확인</option><option value="확인 필요">확인 필요</option>
             </select>
             <ChevronDown className="absolute right-2 top-2 w-3 h-3 text-gray-400 pointer-events-none" />
           </div>
@@ -4780,14 +5109,15 @@ function ORG07A({ onOpenB }: { onOpenB?: () => void }) {
               <tr className="bg-gray-50 border-b border-gray-200">
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500">이름</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500">학번</th>
+                <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500">단과대학</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500">학부·학과</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500">학년</th>
                 <th className="text-left px-4 py-2.5 text-xs font-medium text-gray-500">학생회비</th>
               </tr>
             </thead>
             <tbody>
-              {studentRows.map((r, i) => (
-                <tr key={i} className={`border-b border-gray-100 hover:bg-gray-50 ${r.status === "확인 필요" ? "bg-yellow-50" : ""}`}>
+              {filteredRows.map(r => (
+                <tr key={r.id} className={`border-b border-gray-100 hover:bg-gray-50 ${r.status === "확인 필요" ? "bg-yellow-50" : ""}`}>
                   <td className="px-4 py-2.5 text-xs font-medium text-gray-900">
                     <div className="flex items-center gap-1.5">
                       {r.name}
@@ -4795,39 +5125,81 @@ function ORG07A({ onOpenB }: { onOpenB?: () => void }) {
                     </div>
                   </td>
                   <td className="px-4 py-2.5 text-xs text-gray-600 font-mono">{r.id}</td>
+                  <td className="px-4 py-2.5 text-xs text-gray-600">{r.college}</td>
                   <td className="px-4 py-2.5 text-xs text-gray-600">{r.dept}</td>
                   <td className="px-4 py-2.5 text-xs text-gray-600">{r.grade}</td>
                   <td className="px-4 py-2.5"><Chip label={r.status} variant={r.statusV} /></td>
                 </tr>
               ))}
+              {filteredRows.length === 0 && (
+                <tr>
+                  <td colSpan={6} className="px-4 py-12 text-center text-xs text-gray-500">검색·필터 조건에 맞는 학생이 없습니다.</td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
         <div className="flex items-center justify-between text-xs text-gray-500">
-          <span>총 8명</span>
+          <span>{filteredRows.length === rows.length ? `총 ${rows.length}명` : `검색 결과 ${filteredRows.length}명 · 전체 ${rows.length}명`}</span>
           <div className="flex items-center gap-1">
             <button className="px-2 py-1 border border-gray-200 rounded text-gray-400">이전</button>
             <button className="px-2 py-1 border border-blue-500 rounded bg-blue-50 text-blue-700">1</button>
             <button className="px-2 py-1 border border-gray-200 rounded text-gray-600">다음</button>
           </div>
         </div>
-      </div>
-    </DesktopShell>
+        </div>
+      </DesktopShell>
+
+      {showExportConfirm && (
+        <div className="absolute inset-0 z-30 bg-black/30 flex items-center justify-center p-6" role="dialog" aria-modal="true" aria-labelledby="roster-export-title">
+          <div className="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-2xl">
+            <div className="px-6 py-5 border-b border-gray-100 flex items-start gap-3">
+              <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
+                <Download className="w-4 h-4 text-blue-600" />
+              </div>
+              <div className="flex-1">
+                <h3 id="roster-export-title" className="text-sm font-semibold text-gray-900">학생 명단을 내보낼까요?</h3>
+                <p className="mt-1 text-xs leading-5 text-gray-500">현재 화면에 표시된 <span className="font-semibold text-gray-700">{filteredRows.length}명</span>의 명단을 CSV 파일로 저장합니다.</p>
+              </div>
+              <button type="button" onClick={() => setShowExportConfirm(false)} aria-label="내보내기 안내 닫기" className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="px-6 py-5 flex flex-col gap-4">
+              <div className="rounded-lg border border-gray-200 bg-gray-50 px-4 py-3">
+                <p className="text-[11px] font-semibold text-gray-700">파일에 포함되는 정보</p>
+                <p className="mt-1 text-xs leading-5 text-gray-600">이름 · 학번 · 단과대학 · 학부·학과 · 학년 · 학생회비</p>
+                <p className="mt-2 text-[11px] text-gray-500">현재 적용된 검색·학년·학생회비 필터 결과만 포함됩니다.</p>
+              </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <p className="text-xs leading-5 text-amber-800">학번과 학생회비 납부 여부가 포함된 개인정보 파일입니다. 필요한 구성원에게만 공유하고, 사용이 끝나면 안전하게 삭제해 주세요.</p>
+              </div>
+            </div>
+            <div className="px-6 py-4 border-t border-gray-100 flex justify-end gap-2">
+              <Btn variant="secondary" size="sm" onClick={() => setShowExportConfirm(false)}>취소</Btn>
+              <Btn variant="primary" size="sm" onClick={downloadRoster}><Download className="w-3.5 h-3.5" /> CSV 다운로드</Btn>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
-function ORG07B({ onClose }: { onClose?: () => void }) {
+function ORG07B({ onClose, onApply }: { onClose?: () => void; onApply?: () => void }) {
   const [step, setStep] = useState(0);
-  const steps = ["양식 다운로드", "파일 업로드", "검증 결과"];
+  const [fileReady, setFileReady] = useState(false);
+  const steps = ["파일 업로드", "검증 결과"];
   return (
     <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-20">
       <div className="bg-white rounded-xl border border-gray-200 shadow-2xl w-[600px] max-h-[85vh] flex flex-col">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-gray-900">학생 명단 업로드·갱신</h3>
-            <p className="text-xs text-gray-400 mt-0.5">컴퓨터학부 · 한양대학교 ERICA</p>
+            <p className="text-xs text-gray-400 mt-0.5">한양대학교 ERICA · 소프트웨어융합대학 · 컴퓨터학부</p>
           </div>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
         </div>
@@ -4849,46 +5221,55 @@ function ORG07B({ onClose }: { onClose?: () => void }) {
 
         <div className="flex-1 overflow-auto p-6">
           {step === 0 && (
-            <div className="flex flex-col gap-5">
-              <p className="text-sm text-gray-700">현재 관리 범위에 맞는 양식을 다운로드한 뒤 전체 학생 명단을 작성하세요.</p>
-              <div className="border border-gray-200 rounded-lg p-4 flex items-center gap-4">
-                <FileText className="w-8 h-8 text-gray-400" />
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-800">학생 명단 양식.xlsx</p>
-                  <p className="text-xs text-gray-400">이름·학번·단과대학·학부·학년·학생회비 납부 여부 포함</p>
-                </div>
-                <Btn variant="secondary" size="sm"><Download className="w-3.5 h-3.5" /> 다운로드</Btn>
+            <div className="flex flex-col gap-4">
+              <div>
+                <p className="text-sm font-semibold text-gray-800">보유한 학생 명단 파일을 바로 업로드하세요.</p>
+                <p className="text-xs text-gray-500 mt-1 leading-5">필수 열: 이름 · 학번 · 단과대학 · 학부·학과 · 학년</p>
               </div>
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-9 flex flex-col items-center gap-3 text-center">
+                <Upload className="w-8 h-8 text-gray-300" />
+                <p className="text-sm text-gray-600 font-medium">파일을 드래그하거나 클릭하여 업로드</p>
+                <p className="text-xs text-gray-400">.xlsx · .csv 형식 지원</p>
+                <Btn variant="secondary" size="sm" onClick={() => setFileReady(true)}>파일 선택</Btn>
+              </div>
+              {fileReady && (
+                <div className="border border-green-200 bg-green-50 rounded-lg px-4 py-3 flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-green-600" />
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-green-800">2026-1학기_컴퓨터학부_재학생.xlsx</p>
+                    <p className="text-[11px] text-green-600 mt-0.5">파일 선택 완료 · 검증할 수 있습니다.</p>
+                  </div>
+                  <button type="button" onClick={() => setFileReady(false)} className="text-[11px] text-green-700 hover:underline">삭제</button>
+                </div>
+              )}
               <div className="bg-blue-50 border border-blue-100 rounded p-3">
-                <p className="text-xs text-blue-700">업로드한 파일 자체가 행사 신청자 대조에 사용되는 기준 명단이 됩니다.</p>
+                <p className="text-xs text-blue-700">학생회비 열이 포함되어 있어도 이 업로드에서는 반영하지 않습니다. 학생회비 상태는 별도 납부 명단에서 갱신합니다.</p>
               </div>
             </div>
           )}
           {step === 1 && (
-            <div className="border-2 border-dashed border-gray-300 rounded-xl p-10 flex flex-col items-center gap-3 text-center">
-              <Upload className="w-8 h-8 text-gray-300" />
-              <p className="text-sm text-gray-600 font-medium">파일을 드래그하거나 클릭하여 업로드</p>
-              <p className="text-xs text-gray-400">.xlsx 형식 지원</p>
-              <Btn variant="secondary" size="sm">파일 선택</Btn>
-            </div>
-          )}
-          {step === 2 && (
             <div className="flex flex-col gap-4">
               <div className="bg-green-50 border border-green-200 rounded p-3 flex items-center gap-2">
                 <Check className="w-4 h-4 text-green-600" />
-                <p className="text-xs text-green-700 font-medium">파일 형식 검증 완료. 155명의 명단을 반영할 수 있습니다.</p>
+                <p className="text-xs text-green-700 font-medium">검증 완료. 치명적 오류 없이 8명을 반영할 수 있습니다.</p>
               </div>
-              <div>
-                <p className="text-xs font-semibold text-gray-700 mb-2">오류 항목 <span className="text-red-500">(반영에서 제외됩니다)</span></p>
-                <table className="w-full border border-gray-200 rounded text-xs">
-                  <thead><tr className="bg-gray-50"><th className="text-left px-3 py-2 font-medium text-gray-500">이름</th><th className="text-left px-3 py-2 font-medium text-gray-500">학번</th><th className="text-left px-3 py-2 font-medium text-gray-500">오류</th></tr></thead>
-                  <tbody>
-                    <tr className="border-t border-gray-100 bg-red-50"><td className="px-3 py-2 text-red-800">홍길동</td><td className="px-3 py-2 font-mono text-red-700">2024999999</td><td className="px-3 py-2"><Chip label="대표 범위 밖 학생" variant="red" /></td></tr>
-                    <tr className="border-t border-gray-100 bg-yellow-50"><td className="px-3 py-2 text-yellow-800">김중복</td><td className="px-3 py-2 font-mono text-yellow-700">2022123456</td><td className="px-3 py-2"><Chip label="중복 학번" variant="yellow" /></td></tr>
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-3 gap-3">
+                {[{ label: "신규 등록", value: "0명" }, { label: "정보 갱신", value: "8명" }, { label: "현재 명단 제외", value: "0명" }].map(item => (
+                  <div key={item.label} className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-[11px] text-gray-500">{item.label}</p>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{item.value}</p>
+                  </div>
+                ))}
               </div>
-              <p className="text-xs text-gray-400">재업로드 시 학번 기준으로 최신 상태를 갱신합니다. 행사 참가자 기록은 유지됩니다.</p>
+              <div className="border border-gray-200 rounded-lg divide-y divide-gray-100">
+                {["필수 열과 데이터 형식", "학번 중복", "대표 범위 밖 학생"].map(label => (
+                  <div key={label} className="px-4 py-3 flex items-center justify-between">
+                    <span className="text-xs text-gray-600">{label}</span>
+                    <Chip label="문제 없음" variant="green" />
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 leading-5">학번 기준으로 현재 학생 명단을 갱신합니다. 명단에서 제외되는 학생도 과거 행사·참가 기록은 유지되며 학생회비 상태는 바뀌지 않습니다.</p>
             </div>
           )}
         </div>
@@ -4896,10 +5277,116 @@ function ORG07B({ onClose }: { onClose?: () => void }) {
         <div className="px-6 py-4 border-t border-gray-100 flex justify-between">
           <Btn variant="secondary" size="sm" onClick={onClose}>취소</Btn>
           <div className="flex gap-2">
-            {step > 0 && <Btn variant="secondary" size="sm" onClick={() => setStep(s => s - 1)}>이전</Btn>}
-            {step < 2
-              ? <Btn variant="primary" size="sm" onClick={() => setStep(s => s + 1)}>다음</Btn>
-              : <Btn variant="primary" size="sm" onClick={onClose}>명단 반영</Btn>
+            {step === 1 && <Btn variant="secondary" size="sm" onClick={() => { setStep(0); setFileReady(false); }}>파일 다시 선택</Btn>}
+            {step === 0
+              ? <Btn variant="primary" size="sm" disabled={!fileReady} onClick={() => setStep(1)}>검증하기</Btn>
+              : <Btn variant="primary" size="sm" onClick={() => { onApply?.(); onClose?.(); }}>명단 반영</Btn>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ORG07C({ onClose, onApply }: { onClose?: () => void; onApply?: (term: string) => void }) {
+  const [step, setStep] = useState(0);
+  const [term, setTerm] = useState("2026년 1학기");
+  const [fileReady, setFileReady] = useState(false);
+  const steps = ["파일 업로드", "검증 결과"];
+  return (
+    <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-20">
+      <div className="bg-white rounded-xl border border-gray-200 shadow-2xl w-[600px] max-h-[85vh] flex flex-col">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900">학생회비 납부 명단 업로드</h3>
+            <p className="text-xs text-gray-400 mt-0.5">학생 기본 명단과 대조해 학기별 납부 상태를 갱신합니다.</p>
+          </div>
+          <button onClick={onClose} aria-label="학생회비 납부 명단 업로드 닫기" className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
+        </div>
+
+        <div className="px-6 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-0">
+            {steps.map((label, index) => (
+              <div key={label} className="flex items-center gap-0">
+                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${index === step ? "bg-blue-600 text-white" : index < step ? "text-green-600" : "text-gray-400"}`}>
+                  {index < step ? <Check className="w-3 h-3" /> : <span>{index + 1}</span>}
+                  {label}
+                </div>
+                {index < steps.length - 1 && <div className="w-6 h-px bg-gray-200" />}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-auto p-6">
+          {step === 0 && (
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-gray-700">기준 학기</label>
+                <select value={term} onChange={event => setTerm(event.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-800 bg-white">
+                  <option>2026년 1학기</option>
+                  <option>2026년 2학기</option>
+                  <option>2025년 2학기</option>
+                </select>
+                <p className="text-[11px] text-gray-400">선택한 학기의 전체 납부자 명단을 업로드하세요. 다른 학기 기록은 유지됩니다.</p>
+              </div>
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-9 flex flex-col items-center gap-3 text-center">
+                <Upload className="w-8 h-8 text-gray-300" />
+                <p className="text-sm text-gray-600 font-medium">학생회비 납부자 명단 업로드</p>
+                <p className="text-xs text-gray-400">필수 열: 학번 · 이름 권장 · .xlsx · .csv</p>
+                <Btn variant="secondary" size="sm" onClick={() => setFileReady(true)}>파일 선택</Btn>
+              </div>
+              {fileReady && (
+                <div className="border border-green-200 bg-green-50 rounded-lg px-4 py-3 flex items-center gap-3">
+                  <FileText className="w-5 h-5 text-green-600" />
+                  <div className="flex-1">
+                    <p className="text-xs font-semibold text-green-800">2026-1학기_학생회비_납부자.xlsx</p>
+                    <p className="text-[11px] text-green-600 mt-0.5">파일 선택 완료 · 학생 명단과 대조할 수 있습니다.</p>
+                  </div>
+                  <button type="button" onClick={() => setFileReady(false)} className="text-[11px] text-green-700 hover:underline">삭제</button>
+                </div>
+              )}
+              <div className="bg-blue-50 border border-blue-100 rounded p-3">
+                <p className="text-xs text-blue-700 leading-5">파일에 포함된 학생은 납부, 같은 학기의 학생 명단에 있지만 포함되지 않은 학생은 미납으로 반영합니다. 기준 명단에 없는 학번으로 학생을 새로 만들지 않습니다.</p>
+              </div>
+            </div>
+          )}
+
+          {step === 1 && (
+            <div className="flex flex-col gap-4">
+              <div className="bg-green-50 border border-green-200 rounded p-3 flex items-center gap-2">
+                <Check className="w-4 h-4 text-green-600" />
+                <p className="text-xs text-green-700 font-medium">{term} 납부자 명단을 학생 기본 명단과 대조했습니다.</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {[{ label: "명단 일치", value: "5명" }, { label: "기준 명단 없음", value: "0명" }, { label: "중복 학번", value: "0명" }].map(item => (
+                  <div key={item.label} className="border border-gray-200 rounded-lg p-4">
+                    <p className="text-[11px] text-gray-500">{item.label}</p>
+                    <p className="text-lg font-bold text-gray-900 mt-1">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="border border-gray-200 rounded-lg px-4 py-4">
+                <p className="text-xs font-semibold text-gray-800">반영 후 상태</p>
+                <div className="flex gap-5 mt-3 text-xs text-gray-600">
+                  <span>납부 <strong className="text-green-700">5명</strong></span>
+                  <span>미납 <strong className="text-red-700">3명</strong></span>
+                  <span>확인 필요 <strong className="text-gray-700">0명</strong></span>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 leading-5">학생 기본정보와 과거 학기 납부 상태는 변경하지 않습니다. 이 결과는 행사 설문의 학생회비 조건부 참가비 판정에 사용됩니다.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="px-6 py-4 border-t border-gray-100 flex justify-between">
+          <Btn variant="secondary" size="sm" onClick={onClose}>취소</Btn>
+          <div className="flex gap-2">
+            {step === 1 && <Btn variant="secondary" size="sm" onClick={() => { setStep(0); setFileReady(false); }}>파일 다시 선택</Btn>}
+            {step === 0
+              ? <Btn variant="primary" size="sm" disabled={!fileReady} onClick={() => setStep(1)}>검증하기</Btn>
+              : <Btn variant="primary" size="sm" onClick={() => { onApply?.(term); onClose?.(); }}>납부 상태 반영</Btn>
             }
           </div>
         </div>
@@ -5345,15 +5832,6 @@ const EVENT_TAB_SCREENS: Record<string, string> = {
   "인원 관리": "EVT-03A",
   "문서": "EVT-DOC-01",
 };
-
-// 권한 판정은 docs/VADA_PERMISSION_MATRIX.md를 단일 기준으로 한다.
-// 행사 공통 헤더의 기본정보 수정·상태 전환: 행사 운영 조직 관리자 + 회장단
-const isEventManager = (user: { name: string; role: string }) =>
-  user.role === "회장단" || user.role === "행사 운영 관리자";
-
-// 예산 수정·구매 승인·구매 발주·증빙 처리: 재정부 · 회장단
-const canManageFinance = (user: { dept: string; role: string }) =>
-  user.dept === "재정부" || user.role === "회장단";
 
 function EventWorkspaceHeader() {
   const { eventInfo, eventLifecycle, currentUser, eventTasks, navigateTo, setEventLifecycle } = React.useContext(AppContext);
@@ -9476,12 +9954,15 @@ function EVT04C() {
 }
 
 function EVT03A() {
+  const { navigateTo, currentUser } = React.useContext(AppContext);
+  // 운영 조직 수정: 행사 운영 조직 관리자 · 회장단
+  const canManage = isEventManager(currentUser);
   return (
     <DesktopShell
       activeSidebar="운영"
       breadcrumb={["운영", "체육대회", "인원 관리"]}
       title="2026 소프트웨어융합대학 체육대회"
-      actions={<><Btn variant="secondary" size="sm">수정</Btn></>}
+      actions={canManage ? <><Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-03B")}>수정</Btn></> : undefined}
       tabs={EVENT_TABS}
       activeTab="인원 관리"
     >
@@ -13069,12 +13550,43 @@ function EVTTASK02() {
 
 // ─── Wrapper screens with modals ─────────────────────────────────────────────
 
-function ORG07WithModal({ which }: { which: "B" | null }) {
-  const [modal, setModal] = useState<"B" | null>(which);
+function ORG07WithModal({ which }: { which: "B" | "C" | null }) {
+  const [modal, setModal] = useState<"B" | "C" | null>(which);
+  const [rows, setRows] = useState<StudentRosterRow[]>(INITIAL_STUDENT_ROWS);
+  const [lastRosterUpdate, setLastRosterUpdate] = useState<RosterUpdate>(INITIAL_ROSTER_UPDATE);
+  const [lastFeeRosterUpdate, setLastFeeRosterUpdate] = useState<FeeRosterUpdate>(INITIAL_FEE_ROSTER_UPDATE);
+  const { currentUser } = React.useContext(AppContext);
+  const currentTimestamp = () => {
+    const now = new Date();
+    const pad = (n: number) => String(n).padStart(2, "0");
+    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  };
+  const applyRoster = () => {
+    setLastRosterUpdate({
+      at: currentTimestamp(),
+      kind: "학생 명단 업로드",
+      by: currentUser.name,
+    });
+  };
+  const applyFeeRoster = (term: string) => {
+    const paidStudentIds = new Set(["2022123456", "2023234567", "2020345678", "2024678901", "2023789012"]);
+    setRows(current => current.map(row => paidStudentIds.has(row.id)
+      ? { ...row, status: "납부", statusV: "green" }
+      : { ...row, status: "미납", statusV: "red" }
+    ));
+    setLastFeeRosterUpdate({ at: currentTimestamp(), term, by: currentUser.name });
+  };
   return (
     <div className="relative h-full">
-      <ORG07A onOpenB={() => setModal("B")} />
-      {modal === "B" && <ORG07B onClose={() => setModal(null)} />}
+      <ORG07A
+        onOpenRoster={() => setModal("B")}
+        onOpenFeeRoster={() => setModal("C")}
+        rows={rows}
+        lastRosterUpdate={lastRosterUpdate}
+        lastFeeRosterUpdate={lastFeeRosterUpdate}
+      />
+      {modal === "B" && <ORG07B onClose={() => setModal(null)} onApply={applyRoster} />}
+      {modal === "C" && <ORG07C onClose={() => setModal(null)} onApply={applyFeeRoster} />}
     </div>
   );
 }
@@ -13089,8 +13601,45 @@ function EVT04WithQR() {
   );
 }
 
+// 회장단 전용 화면들은 검토 시 회장단 사용자를 주입한다.
+// 그렇지 않으면 부원이 회장단 전용 행동을 하고 있는 화면이 되어 권한 규칙과 어긋난다.
+function AsPresident({ children }: { children: React.ReactNode }) {
+  return (
+    <AppContext.Provider value={{
+      ...React.useContext(AppContext),
+      currentUser: { name: "김바다", dept: "학술체육부", role: "회장단" }
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+function AsFinanceManager({ children }: { children: React.ReactNode }) {
+  return (
+    <AppContext.Provider value={{
+      ...React.useContext(AppContext),
+      currentUser: { name: "김민준", dept: "재정부", role: "부서장" }
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+// 행사 운영 조직 관리자 전용 화면. 이 권한은 기본 직급이 아니라 행사별 맥락 역할이므로
+// 검토 시 운영 조직에 속한 사용자를 주입한다.
+function AsEventManager({ children }: { children: React.ReactNode }) {
+  return (
+    <AppContext.Provider value={{
+      ...React.useContext(AppContext),
+      currentUser: { name: "이수현", dept: "기획부", role: "부서장" }
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
 function ORG03CWithDialog() {
-  return <ORG03C />;
+  return <AsPresident><ORG03C /></AsPresident>;
 }
 
 // ─── FIN-00B 전체 재정 현황 — 재정부·회장단 ───────────────────────────────────
@@ -13872,37 +14421,40 @@ const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "ORG-02": ORG02,
   "INV-01": INV01,
   "ORG-03A": ORG03A,
-  "ORG-03B": ORG03B,
+  "ORG-03B": () => <AsPresident><ORG03B /></AsPresident>,
   "ORG-03C": ORG03CWithDialog,
-  "ORG-07A": () => <ORG07WithModal which={null} />,
-  "ORG-07B": () => <ORG07WithModal which="B" />,
+  "ORG-07A": () => <AsPresident><ORG07WithModal which={null} /></AsPresident>,
+  "ORG-07B": () => <AsPresident><ORG07WithModal which="B" /></AsPresident>,
+  "ORG-07C": () => <AsFinanceManager><ORG07WithModal which="C" /></AsFinanceManager>,
   "ORG-04": ORG04,
-  "ORG-04B": ORG04B,
+  "ORG-04B": () => <AsPresident><ORG04B /></AsPresident>,
   "EVT-00A": EVT00A,
   "EVT-00A2": EVT00A2,
   "EVT-00B": EVT00B,
-  "EVT-01": EVT01,
+  "EVT-01": () => <AsEventManager><EVT01 /></AsEventManager>,
   "EVT-02": EVT02,
-  "EVT-02B": EVT02B,
-  "EVT-02C": EVT02C,
-  "EVT-02D": EVT02D,
-  "EVT-02E": EVT02E,
+  "EVT-02B": () => <AsEventManager><EVT02B /></AsEventManager>,
+  "EVT-02C": () => <AsEventManager><EVT02C /></AsEventManager>,
+  "EVT-02D": () => <AsEventManager><EVT02D /></AsEventManager>,
+  "EVT-02E": () => <AsEventManager><EVT02E /></AsEventManager>,
   "EVT-03C": EVT03C,
   "EVT-04C": EVT04C,
   "EVT-03A": EVT03A,
-  "EVT-03B": EVT03B,
-  "EVT-04": EVT04WithQR,
+  "EVT-03B": () => <AsEventManager><EVT03B /></AsEventManager>,
+  "EVT-04": () => <AsEventManager><EVT04WithQR /></AsEventManager>,
   "EVT-04B": () => {
     const [open, setOpen] = useState(true);
     return (
-      <div className="relative h-full">
-        <EVT04 onOpenQR={() => setOpen(true)} />
-        {open && <EVT04B onClose={() => setOpen(false)} />}
-      </div>
+      <AsEventManager>
+        <div className="relative h-full">
+          <EVT04 onOpenQR={() => setOpen(true)} />
+          {open && <EVT04B onClose={() => setOpen(false)} />}
+        </div>
+      </AsEventManager>
     );
   },
-  "EVT-05": EVT05,
-  "EVT-05B": EVT05B,
+  "EVT-05": () => <AsEventManager><EVT05 /></AsEventManager>,
+  "EVT-05B": () => <AsEventManager><EVT05B /></AsEventManager>,
   "EVT-MEET-01": EVTMEET01,
   "EVT-SCHED-01": EVTSCHED01,
   "EVT-DOC-01": EVTDOC01,
