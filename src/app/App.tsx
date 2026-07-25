@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   GripVertical, Plus, X, ChevronRight, ChevronDown, Search, Download,
   Copy, RefreshCw, QrCode, Check, AlertCircle, Clock, User, Users,
@@ -1117,10 +1118,10 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "전 구성원",
     entryPath: "사이드바 홈",
     functions: [
-      { num: "01", element: "요약 카드", description: "진행 중 행사, 예정 행사, 이번 주 주요 일정, 행사 업무의 지연·담당자 미지정 건수를 계산해 표시하고 대상 화면으로 이동한다." },
+      { num: "01", element: "요약 카드", description: "진행 중 행사, 예정 행사, 이번 주 주요 일정, 모든 행사 업무의 지연·담당자 미지정 건수를 계산해 표시하고 대상 화면으로 이동한다." },
       { num: "02", element: "진행 중·예정 행사", description: "행사별 준비율과 행사 업무의 지연·담당자 없는 업무 경고를 표시하며 행사 업무로 이동한다." },
       { num: "03", element: "다가오는 주요 일정", description: "행사·상시 업무의 미완료 마감, 행사 일정, 취소되지 않은 생성 회의를 날짜순으로 표시한다. 이번 주 주요 일정 수치도 같은 데이터에서 계산하며, 일정 행을 누르면 통합 캘린더가 해당 월·날짜와 선택한 일정을 강조해 연다." },
-      { num: "04", element: "조직 주요 알림", description: "행사 업무의 지연·담당자 미지정 건수와 증빙 누락, 명단 확인 필요 건수를 표시하고 해당 필터·처리 화면으로 이동한다." },
+      { num: "04", element: "조직 주요 알림", description: "행사 업무의 지연·담당자 미지정 건수, 증빙 서류 누락, 참가자 명단 확인 필요 건수를 표시한다. 세 항목을 누르면 각각의 작은 선택 박스를 열고, 선택한 항목의 처리 화면으로 이동한다. 선택 박스는 닫기 또는 화면의 다른 부분을 누르면 닫힌다." },
       { num: "05", element: "전체 재정 요약", description: "예산 사용률과 승인·집행 예정, 증빙 누락을 요약한다.", constraint: "홈은 내 업무의 상위 공간이 아니다" },
       { num: "06", element: "내 담당 업무 요약", description: "행사·상시 업무에서 현재 사용자에게 배정된 미완료 업무 수를 표시하고 내 업무로 이동한다." },
     ],
@@ -3316,15 +3317,149 @@ function KkirukBriefing(props: {
   );
 }
 
+type HomeAlertPickerKind = "unassigned" | "evidence" | "participants";
+type HomeAlertPickerItem = { id: string; title: string; detail: string; badge: string; badgeClass: string };
+
+function HomeAlertPicker({
+  title, items, onSelect, onClose, anchorEl, panelRef,
+}: {
+  title: string;
+  items: HomeAlertPickerItem[];
+  onSelect: (id: string) => void;
+  onClose: () => void;
+  anchorEl: HTMLElement | null;
+  panelRef: React.RefObject<HTMLDivElement>;
+}) {
+  const WIDTH = 320;
+  const GAP = 12;
+  const MARGIN = 8;
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  React.useLayoutEffect(() => {
+    if (!anchorEl) return;
+    const compute = () => {
+      const rect = anchorEl.getBoundingClientRect();
+      const height = panelRef.current?.offsetHeight ?? 0;
+      // 기본은 알림 행 왼쪽. 왼쪽 공간이 부족하면 오른쪽으로 전환한다.
+      let left = rect.left - GAP - WIDTH;
+      if (left < MARGIN) left = rect.right + GAP;
+      // 오른쪽 전환 후에도 화면을 벗어나면 뷰포트 안으로 당긴다.
+      if (left + WIDTH > window.innerWidth - MARGIN) left = window.innerWidth - MARGIN - WIDTH;
+      if (left < MARGIN) left = MARGIN;
+      let top = rect.top;
+      if (height && top + height > window.innerHeight - MARGIN) top = window.innerHeight - MARGIN - height;
+      if (top < MARGIN) top = MARGIN;
+      setPos({ top, left });
+    };
+    compute();
+    window.addEventListener("resize", compute);
+    window.addEventListener("scroll", compute, true);
+    return () => {
+      window.removeEventListener("resize", compute);
+      window.removeEventListener("scroll", compute, true);
+    };
+  }, [anchorEl, items, panelRef]);
+
+  return createPortal(
+    <div
+      ref={panelRef}
+      style={{ position: "fixed", top: pos?.top ?? 0, left: pos?.left ?? 0, width: WIDTH, visibility: pos ? "visible" : "hidden" }}
+      className="z-50 bg-white border border-gray-200 rounded-xl shadow-xl p-2"
+    >
+      <div className="px-2.5 py-2 flex items-center justify-between">
+        <p className="text-[11px] font-bold text-gray-800">{title}</p>
+        <button type="button" onClick={onClose} className="text-[10px] text-gray-400 hover:text-gray-600">닫기</button>
+      </div>
+      <div className="flex flex-col gap-1">
+        {items.map(item => (
+          <button key={item.id} type="button" onClick={() => onSelect(item.id)} className="w-full text-left rounded-lg px-3 py-2.5 hover:bg-blue-50">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs font-semibold text-gray-800 truncate">{item.title}</span>
+              <span className={`text-[10px] font-bold shrink-0 ${item.badgeClass}`}>{item.badge}</span>
+            </div>
+            <p className="text-[10px] text-gray-400 mt-1 truncate">{item.detail}</p>
+          </button>
+        ))}
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 // ─── HOME-01 홈 ───────────────────────────────────────────────────────────────
 
 function HOME01({ briefing = false }: { briefing?: boolean }) {
-  const { navigateTo, setEventWorkspaceFilter, setCalendarFocus, eventTasks, recurringTasks, createdMeetings, currentUser, eventLifecycle, messageRooms, demoDataMode } = React.useContext(AppContext);
+  const { navigateTo, setEventWorkspaceFilter, setCalendarFocus, eventRecords, setSelectedEventId, recurringTasks, createdMeetings, currentUser, eventLifecycle, messageRooms, demoDataMode } = React.useContext(AppContext);
+  const [activeAlertPicker, setActiveAlertPicker] = useState<HomeAlertPickerKind | null>(null);
+  const [alertAnchorEl, setAlertAnchorEl] = useState<HTMLElement | null>(null);
+  const alertPanelRef = React.useRef<HTMLDivElement>(null);
+  const alertPickerRef = React.useRef<HTMLDivElement>(null);
   const isFirstUse = demoDataMode === "first-use";
-  const homeEventTasks = isFirstUse ? [] : eventTasks;
+  const homeEventRecords = isFirstUse ? [] : eventRecords;
+  const homeEventTasks = homeEventRecords.flatMap(event => event.tasks);
   const homeRecurringTasks = isFirstUse ? [] : recurringTasks;
   const eventDelayedCount = homeEventTasks.filter(task => task.delayed).length;
   const eventUnassignedCount = homeEventTasks.filter(task => task.assignee === "미지정").length;
+  const unassignedEventGroups = homeEventRecords
+    .map(event => {
+      const tasks = event.tasks.filter(task => task.assignee === "미지정");
+      const nextTask = tasks
+        .filter(task => /^\d{4}-\d{2}-\d{2}$/.test(task.due))
+        .sort((a, b) => a.due.localeCompare(b.due))[0];
+      return { id: event.id, name: event.info.name, count: tasks.length, nextTask };
+    })
+    .filter(event => event.count > 0);
+  const evidenceAlertItems = EXPENSE_RECORDS
+    .filter(record => record.proof === "보완 필요" || record.proof === "미등록")
+    .map(record => ({
+      id: record.id,
+      title: record.title,
+      detail: `${record.event ?? "상시 지출"} · ${record.proof}`,
+      badge: "증빙 누락",
+      badgeClass: "text-yellow-700",
+    }));
+  const participantReviewItems = homeEventRecords
+    .map(event => event.id === SPORTS_EVENT_ID ? {
+      id: event.id,
+      title: event.info.name,
+      detail: "학번·이름 또는 납부 확인이 필요합니다",
+      badge: "확인 대상 6명",
+      badgeClass: "text-blue-600",
+    } : null)
+    .filter((event): event is HomeAlertPickerItem => event !== null);
+  const openUnassignedEventTasks = (eventId: string) => {
+    setSelectedEventId(eventId);
+    setEventWorkspaceFilter("unassignedTasks");
+    setActiveAlertPicker(null);
+    navigateTo("EVT-TASK-01");
+  };
+  const handleAlertPickerSelect = (id: string) => {
+    if (activeAlertPicker === "unassigned") { openUnassignedEventTasks(id); return; }
+    if (activeAlertPicker === "evidence") { setActiveAlertPicker(null); navigateTo("FIN-EVID-01"); return; }
+    if (activeAlertPicker === "participants") {
+      setSelectedEventId(id);
+      setEventWorkspaceFilter("participantReview");
+      setActiveAlertPicker(null);
+      navigateTo("EVT-04");
+    }
+  };
+  const alertPicker = activeAlertPicker === "unassigned"
+    ? { title: "행사를 선택하세요", items: unassignedEventGroups.map(event => ({ id: event.id, title: event.name, detail: event.nextTask ? `${event.nextTask.name} · ${event.nextTask.due.slice(5).replace("-", ".")} 마감` : "마감일이 정해진 업무가 없습니다", badge: `미지정 ${event.count}건`, badgeClass: "text-orange-600" })) }
+    : activeAlertPicker === "evidence"
+      ? { title: "누락된 증빙을 선택하세요", items: evidenceAlertItems }
+      : activeAlertPicker === "participants"
+        ? { title: "확인할 행사 명단을 선택하세요", items: participantReviewItems }
+        : null;
+  useEffect(() => {
+    if (!activeAlertPicker) return;
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+      // 포털로 렌더된 팝오버는 알림 패널 바깥이므로 별도로 확인한다.
+      if (alertPanelRef.current?.contains(target) || alertPickerRef.current?.contains(target)) return;
+      setActiveAlertPicker(null);
+    };
+    document.addEventListener("mousedown", closeOnOutsideClick);
+    return () => document.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [activeAlertPicker]);
   const needsAttentionCount = eventDelayedCount + eventUnassignedCount;
   const myActiveTaskCount = [...homeEventTasks, ...homeRecurringTasks].filter(task => task.assignee === currentUser.name && task.status !== "완료").length;
   const today = new Date("2026-07-19T00:00:00");
@@ -3371,10 +3506,10 @@ function HOME01({ briefing = false }: { briefing?: boolean }) {
   ];
 
   const alerts = isFirstUse ? [] : [
-    { icon: AlertCircle, color: "text-red-500 bg-red-50", label: "체육대회 지연 업무", value: `${eventDelayedCount}건`, screen: "EVT-TASK-01" },
-    { icon: User, color: "text-orange-500 bg-orange-50", label: "담당자 미지정 업무", value: `${eventUnassignedCount}건`, screen: "EVT-TASK-01", filter: "unassignedTasks" as const },
-    { icon: FileText, color: "text-yellow-600 bg-yellow-50", label: "증빙 서류 누락", value: "5건", screen: "EVT-FIN-01" },
-    { icon: Users, color: "text-blue-500 bg-blue-50", label: "참가자 명단 확인 필요", value: "6명", screen: "EVT-04" },
+    { kind: "default" as const, icon: AlertCircle, color: "text-red-500 bg-red-50", label: "체육대회 지연 업무", value: `${eventDelayedCount}건`, screen: "EVT-TASK-01" },
+    { kind: "unassigned" as const, icon: User, color: "text-orange-500 bg-orange-50", label: "담당자 미지정 업무", value: `${eventUnassignedCount}건` },
+    { kind: "evidence" as const, icon: FileText, color: "text-yellow-600 bg-yellow-50", label: "증빙 서류 누락", value: `${evidenceAlertItems.length}건` },
+    { kind: "participants" as const, icon: Users, color: "text-blue-500 bg-blue-50", label: "참가자 명단 확인 필요", value: `${participantReviewItems.length}건` },
   ];
 
   const activity = isFirstUse ? [] : [
@@ -3413,7 +3548,7 @@ function HOME01({ briefing = false }: { briefing?: boolean }) {
   });
   const runKkirukAction = (action: KkirukAction) => {
     if (action.kind === "delayed") { setEventWorkspaceFilter(null); navigateTo("EVT-TASK-01"); return; }
-    if (action.kind === "unassigned") { setEventWorkspaceFilter("unassignedTasks"); navigateTo("EVT-TASK-01"); return; }
+    if (action.kind === "unassigned") { setActiveAlertPicker("unassigned"); return; }
     if (action.kind === "messages") { navigateTo("MSG-01"); return; }
     setCalendarFocus(nextSchedule ? nextSchedule.focus : null);
     navigateTo("OPS-CAL-01");
@@ -3529,13 +3664,14 @@ function HOME01({ briefing = false }: { briefing?: boolean }) {
           <div className="flex flex-col gap-6">
 
             {/* 4. 조직 주요 알림 */}
-            <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div ref={alertPanelRef} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
               <div className="px-5 py-3 border-b border-gray-100 bg-gray-50">
                 <p className="text-xs font-semibold text-gray-700">조직 주요 알림</p>
               </div>
               <div className="px-5 py-3 flex flex-col gap-2.5">
                 {visibleAlerts.map((a, i) => (
-                  <button key={i} type="button" onClick={() => { setEventWorkspaceFilter(a.filter ?? null); navigateTo(a.screen); }} className="w-full text-left flex items-center justify-between py-1.5 rounded hover:bg-gray-50">
+                  <div key={a.label} className="relative">
+                    <button type="button" onClick={(e) => a.kind === "default" ? navigateTo(a.screen) : (setAlertAnchorEl(e.currentTarget), setActiveAlertPicker(a.kind))} className="w-full text-left flex items-center justify-between py-1.5 rounded hover:bg-gray-50">
                     <div className="flex items-center gap-2.5">
                       <div className={`w-6 h-6 rounded flex items-center justify-center ${a.color.split(" ")[1]}`}>
                         <a.icon className={`w-3.5 h-3.5 ${a.color.split(" ")[0]}`} />
@@ -3544,6 +3680,10 @@ function HOME01({ briefing = false }: { briefing?: boolean }) {
                     </div>
                     <span className="text-xs font-bold text-gray-900">{a.value}</span>
                   </button>
+                    {a.kind !== "default" && activeAlertPicker === a.kind && alertPicker && (
+                      <HomeAlertPicker title={alertPicker.title} items={alertPicker.items} onSelect={handleAlertPickerSelect} onClose={() => setActiveAlertPicker(null)} anchorEl={alertAnchorEl} panelRef={alertPickerRef} />
+                    )}
+                  </div>
                 ))}
               </div>
             </div>
@@ -8088,6 +8228,7 @@ function MeetingScheduledDetail({ role }: { role: "participant" | "owner" | "fac
   const createdMeeting = createdMeetings.find((meeting) => meeting.id === selectedCreatedMeetingId);
   const isCreatedMeetingOwner = createdMeeting?.owner === currentUser.name;
   const canFacilitateCreatedMeeting = Boolean(isCreatedMeetingOwner || createdMeeting?.facilitatorNames.includes(currentUser.name));
+  const createdMeetingOwnerDept = createdMeeting?.owner === currentUser.name ? currentUser.dept : "운영부";
   const meetingName = createdMeeting?.name ?? "체육대회 안전 관리 최종 회의";
   const meetingGroup = createdMeeting?.group ?? "2026 소프트웨어융합대학 체육대회";
   const isRegularMeeting = createdMeeting?.group === "정기·상시 회의";
