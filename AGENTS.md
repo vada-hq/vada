@@ -19,7 +19,7 @@
 | `just test` / `just test-api` / `just test-web` | 테스트 |
 | `just lint` | 린트 + 포맷 검사 |
 | `just typecheck` | Pyright strict + tsc |
-| `just validate-contracts` | 계약·슬라이스·Notion 매핑 검증 |
+| `just validate-contracts` | 계약 구조 테스트 + 슬라이스·Notion 매핑 검증 |
 | `just build` | 제품 웹 + 와이어프레임 프로토타입 빌드 |
 | `just check` | ⭐ 계약 + lint + typecheck + test + build 전부 |
 
@@ -51,6 +51,7 @@
 ## 에이전트 작업 수명주기
 
 - 작업 전: Git 루트와 브랜치를 확인하고, 관련 `contracts/slices/*.json`의 계약 기준선과 `review` 계약을 읽는다. 구현을 바꿀 미결정 사안은 작업 전에 책임자에게 보고한다.
+- 슬라이스 작성·변경: `docs/governance/slice-operating-model.md`를 따르고 저장소 `specRevision`과 Notion `명세 리비전`을 확인한다. 담당자·일정·추정은 태스크 DB에서만 관리한다.
 - 작업 중: 계약 의미가 바뀌면 활성 리비전을 덮어쓰지 말고 새 리비전으로 추적한다. 서브에이전트가 코드를 맡더라도 총괄 에이전트가 계약·문서 영향과 최종 diff를 검토한다.
 - 작업 후: 코드·테스트·계약·문서를 같은 변경 집합에서 갱신하고 `just check`를 실행한다. 보고에는 변경, 검증 결과, 미결정 사항과 잔여 위험을 포함한다.
 

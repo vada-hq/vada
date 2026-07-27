@@ -18,6 +18,7 @@ dev-web:
 
 # 실행 계약
 validate-contracts:
+    pnpm test:contracts
     pnpm validate:contracts
 
 # 테스트

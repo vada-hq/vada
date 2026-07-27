@@ -1,8 +1,16 @@
 {
+  "$schema": "../schemas/slice.schema.json",
   "schemaVersion": 1,
+  "specRevision": 1,
   "id": "SL-EVT-001",
   "title": "행사 생성·기본정보 입력",
+  "subsystem": "event",
+  "releaseScope": "pilot",
   "status": "planned",
+  "outcome": "행사 생성 권한 보유자가 최소 입력으로 행사 공간을 만들고, 기본정보 편집 권한 보유자가 하나의 행사 원본을 완성합니다.",
+  "screenRefs": ["EVT-00A2", "EVT-00A", "EVT-00B", "EVT-02", "EVT-02B"],
+  "dependsOn": [],
+  "changes": [],
   "contractBaseline": [
     "AUTH:event.read@R1",
     "AUTH:event.create@R1",
@@ -43,13 +51,25 @@
       "id": "SL-EVT-001/AC-05",
       "name": "편집 권한과 생성 후 연속성",
       "contractRefs": ["AUTH:event.basic_info.update@R1", "POLICY:event.creation_handoff@R1"],
-      "observableOutcome": "편집 권한 보유자는 기존 값을 편집할 수 있고 취소 시 변경이 남지 않으며, 생성 권한과 편집 권한이 다른 생성자도 확정된 인계 정책에 따른 다음 행동을 잃지 않는다."
+      "observableOutcome": "편집 권한 보유자는 기존 값을 편집할 수 있고 취소 시 변경이 남지 않으며, 생성 권한과 편집 권한이 다른 생성자도 확정된 인계 정책에 따른 다음 행동을 잃지 않는다. 미보유자의 수정 요청은 UI와 서버에서 차단된다."
     },
     {
       "id": "SL-EVT-001/AC-06",
       "name": "단일 원본 저장과 영속",
       "contractRefs": ["DATA:event.basic_info@R1"],
       "observableOutcome": "저장한 기본정보는 같은 행사의 단일 원본에 반영되고 새로고침 후에도 유지된다."
+    }
+  ],
+  "outOfScope": [
+    {
+      "item": "기본정보 필드의 해당 없음 상태와 저장 표현",
+      "trackedBy": "POLICY:event.field_not_applicable@R1"
+    },
+    {
+      "item": "참가자 명단·QR·설문과 하위 소비 화면 구현"
+    },
+    {
+      "item": "설문 링크가 활성화된 경우의 저장 확인 흐름"
     }
   ]
 }

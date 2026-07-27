@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.dev/schemas/slice.schema.json",
+  "title": "VADA vertical slice execution specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "specRevision",
+    "id",
+    "title",
+    "subsystem",
+    "releaseScope",
+    "status",
+    "outcome",
+    "screenRefs",
+    "dependsOn",
+    "changes",
+    "contractBaseline",
+    "acceptanceCriteria",
+    "outOfScope"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../schemas/slice.schema.json"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "specRevision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "id": {
+      "$ref": "#/$defs/sliceId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "subsystem": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
+    "releaseScope": {
+      "enum": ["pilot", "later", "cut"]
+    },
+    "status": {
+      "enum": ["planned", "ready", "in_progress", "done"]
+    },
+    "outcome": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^[^\\r\\n]+$"
+    },
+    "screenRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z]{2,8}(?:-[A-Z]{2,8})*-[0-9]{2,3}[A-Z0-9]*$"
+      }
+    },
+    "dependsOn": {
+      "$ref": "#/$defs/sliceReferences"
+    },
+    "changes": {
+      "$ref": "#/$defs/sliceReferences"
+    },
+    "contractBaseline": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/contractRevisionId"
+      }
+    },
+    "acceptanceCriteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "contractRefs", "observableOutcome"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^SL-[A-Z]{2,8}-[0-9]{3}/AC-[0-9]{2}$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "contractRefs": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "$ref": "#/$defs/contractRevisionId"
+            }
+          },
+          "observableOutcome": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 600
+          }
+        }
+      }
+    },
+    "outOfScope": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["item"],
+        "properties": {
+          "item": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "trackedBy": {
+            "anyOf": [
+              {
+                "$ref": "#/$defs/contractRevisionId"
+              },
+              {
+                "$ref": "#/$defs/sliceId"
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "sliceId": {
+      "type": "string",
+      "pattern": "^SL-[A-Z]{2,8}-[0-9]{3}$"
+    },
+    "sliceReferences": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/sliceId"
+      }
+    },
+    "contractRevisionId": {
+      "type": "string",
+      "pattern": "^[A-Z]+:[A-Za-z0-9._-]+@R[1-9][0-9]*$"
+    }
+  }
+}

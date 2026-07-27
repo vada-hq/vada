@@ -5,6 +5,7 @@
 - 코드 결합 계약과 슬라이스 기준선: `contracts/`
 - 저장소 운영 규칙: 루트 `AGENTS.md`
 - 저장소 경계: `docs/governance/repository-root.md`
+- 슬라이스 구조·생명주기·변경 규칙: `docs/governance/slice-operating-model.md`
 - 결정 이유·검토 대안·승인·재평가 트리거: Notion
 
 기술 스택·아키텍처 ADR: https://app.notion.com/p/3a068a85148e80ca89e0f726a38d49f3
