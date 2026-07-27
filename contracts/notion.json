@@ -18,6 +18,7 @@
     "POLICY:event.field_not_applicable@R1": "https://app.notion.com/p/3a968a85148e812c8d1bee7b1d139797",
     "PROCESS:documentation@R1": "https://app.notion.com/p/3a968a85148e81f9879dc8d4866a1f51",
     "PROCESS:documentation@R2": "https://app.notion.com/p/3aa68a85148e81c7a0b4c3dd86b5da85",
+    "PROCESS:documentation@R3": "https://app.notion.com/p/3aa68a85148e81a0a617fe3db6e7a011",
     "PROCESS:DoR@R1": "https://app.notion.com/p/3a968a85148e817fab43d578d99436d7",
     "PROCESS:DoR@R2": "https://app.notion.com/p/3aa68a85148e81a090fcf6615fd21564",
     "QUALITY:DoD@R1": "https://app.notion.com/p/3a968a85148e81b688cee76235776e72"
@@ -31,5 +32,22 @@
       "url": "https://app.notion.com/p/3a968a85148e81e3b6acdc36d21a2507",
       "specRevision": 1
     }
+  },
+  "planningDatabases": {
+    "milestones": {
+      "dataSourceId": "84208008-8781-46af-a4d2-ec7263b7fd48",
+      "url": "https://app.notion.com/p/667fc69e749049bd88c59f1289ae33e3"
+    },
+    "slices": {
+      "dataSourceId": "c59febf9-82f8-4c59-8b02-e0a4a6e0735f",
+      "url": "https://app.notion.com/p/470185ac69b0449499b65d83bd8d5b26"
+    },
+    "tasks": {
+      "dataSourceId": "e7353a31-f7fb-46cc-9ec8-a7f6fa2a29c7",
+      "url": "https://app.notion.com/p/ea944c9b586341849b80456afcf9bd0f"
+    }
+  },
+  "milestonePages": {
+    "MS-MVP-01": "https://app.notion.com/p/3aa68a85148e81d5ac98e91b42dec0e9"
   }
 }
