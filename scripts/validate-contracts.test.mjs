@@ -111,6 +111,13 @@ async function updateContractFile(root, fileName, update) {
   await writeFile(path, `${JSON.stringify(document, null, 2)}\n`);
 }
 
+async function updateJsonFile(root, relativePath, update) {
+  const path = join(root, relativePath);
+  const document = JSON.parse(await readFile(path, "utf8"));
+  update(document);
+  await writeFile(path, `${JSON.stringify(document, null, 2)}\n`);
+}
+
 test("선행 슬라이스 순환을 거부한다", async () => {
   const result = await withRepositoryCopy(async (root) => {
     await updateSlice(root, "SL-EVT-001", (slice) => {
@@ -126,6 +133,13 @@ test("검토 중 계약을 가진 슬라이스의 준비됨 전환을 거부한�
     await updateSlice(root, "SL-EVT-001", (slice) => {
       slice.status = "ready";
     });
+    await updateContractFile(root, "events.json", (document) => {
+      const policy = document.revisions.find(
+        (revision) => revision.id === "POLICY:event.creation_handoff@R1",
+      );
+      policy.status = "review";
+      delete policy.effectiveOn;
+    });
   });
 
   assert.match(result.errors.join("\n"), /POLICY:event\.creation_handoff@R1.*review/);
@@ -135,16 +149,47 @@ test("완료 슬라이스가 고정한 대체 전 계약 리비전을 역사로 
   const result = await withRepositoryCopy(async (root) => {
     await updateSlice(root, "SL-EVT-001", (slice) => {
       slice.status = "done";
-      slice.contractBaseline = slice.contractBaseline.filter(
-        (reference) => reference !== "POLICY:event.creation_handoff@R1",
-      );
-      const editCriterion = slice.acceptanceCriteria.find(
-        (criterion) => criterion.id === "SL-EVT-001/AC-05",
-      );
-      editCriterion.contractRefs = editCriterion.contractRefs.filter(
-        (reference) => reference !== "POLICY:event.creation_handoff@R1",
-      );
     });
+    await updateContractFile(root, "permissions.json", (document) => {
+      const previous = document.revisions.find(
+        (revision) => revision.id === "AUTH:event.read@R1",
+      );
+      previous.status = "superseded";
+      previous.supersededBy = "AUTH:event.read@R2";
+      document.revisions.push({
+        ...previous,
+        id: "AUTH:event.read@R2",
+        revision: 2,
+        status: "active",
+        changeClass: "breaking",
+        effectiveOn: "2026-07-27",
+      });
+      delete document.revisions.at(-1).supersededBy;
+    });
+    await updateContractFile(root, "notion.json", (document) => {
+      document.revisionPages["AUTH:event.read@R2"] =
+        "https://app.notion.com/p/test-auth-event-read-r2";
+    });
+    await updateJsonFile(root, "contracts/openapi.json", (document) => {
+      for (const pathItem of Object.values(document.paths)) {
+        for (const operation of Object.values(pathItem)) {
+          if (!Array.isArray(operation["x-vada-contracts"])) continue;
+          operation["x-vada-contracts"] = operation["x-vada-contracts"].map(
+            (reference) =>
+              reference === "AUTH:event.read@R1"
+                ? "AUTH:event.read@R2"
+                : reference,
+          );
+        }
+      }
+    });
+  });
+
+  assert.deepEqual(result.errors, []);
+});
+
+test("현재 OpenAPI가 대체된 계약 리비전을 참조하면 거부한다", async () => {
+  const result = await withRepositoryCopy(async (root) => {
     await updateContractFile(root, "permissions.json", (document) => {
       const previous = document.revisions.find(
         (revision) => revision.id === "AUTH:event.read@R1",
@@ -167,7 +212,30 @@ test("완료 슬라이스가 고정한 대체 전 계약 리비전을 역사로 
     });
   });
 
-  assert.deepEqual(result.errors, []);
+  assert.match(
+    result.errors.join("\n"),
+    /GET \/events.*AUTH:event\.read@R1.*현재 API 계약으로 사용할 수 없습니다/,
+  );
+});
+
+test("데이터 계약의 API 스키마 필드가 어긋나면 거부한다", async () => {
+  const result = await withRepositoryCopy(async (root) => {
+    await updateContractFile(root, "events.json", (document) => {
+      const contract = document.revisions.find(
+        (revision) => revision.id === "DATA:event.basic_info@R1",
+      );
+      contract.contract.schemaRef =
+        "#/components/schemas/EventBasicInfo";
+    });
+    await updateJsonFile(root, "contracts/openapi.json", (document) => {
+      delete document.components.schemas.EventBasicInfo.properties.venueName;
+    });
+  });
+
+  assert.match(
+    result.errors.join("\n"),
+    /DATA:event\.basic_info@R1.*EventBasicInfo.*venueName/,
+  );
 });
 
 test("대체 리비전은 같은 안정 계약의 더 높은 리비전을 가리켜야 한다", async () => {
@@ -196,7 +264,7 @@ test("존재하지 않는 후속 변경 대상을 거부한다", async () => {
 test("Notion 투영과 실행 명세의 리비전 불일치를 거부한다", async () => {
   const result = await withRepositoryCopy(async (root) => {
     await updateSlice(root, "SL-EVT-001", (slice) => {
-      slice.specRevision = 2;
+      slice.specRevision += 1;
     });
   });
 

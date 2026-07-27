@@ -26,10 +26,11 @@
       "kind": "DATA",
       "key": "event.basic_info",
       "revision": 1,
-      "status": "active",
+      "status": "superseded",
       "changeClass": "initial",
       "owners": ["제품", "백엔드"],
       "effectiveOn": "2026-07-26",
+      "supersededBy": "DATA:event.basic_info@R2",
       "contract": {
         "fields": [
           "name",
@@ -54,6 +55,54 @@
         ],
         "sourceOfTruth": "행사 ID에 연결된 기본정보 레코드 하나",
         "consumerRule": "개요·일정·설문·공지 화면은 이 값을 읽고 중복 원본을 만들지 않는다."
+      }
+    },
+    {
+      "id": "DATA:event.basic_info@R2",
+      "kind": "DATA",
+      "key": "event.basic_info",
+      "revision": 2,
+      "status": "active",
+      "changeClass": "breaking",
+      "owners": ["제품", "백엔드"],
+      "effectiveOn": "2026-07-27",
+      "contract": {
+        "fields": [
+          "name",
+          "purpose",
+          "startsAt",
+          "endsAt",
+          "venueName",
+          "venueAddress",
+          "venueDetail"
+        ],
+        "schemaRef": "#/components/schemas/EventBasicInfo",
+        "nullableFields": [
+          "purpose",
+          "startsAt",
+          "endsAt",
+          "venueName",
+          "venueAddress",
+          "venueDetail"
+        ],
+        "constraints": {
+          "name": "trim 후 한 글자 이상",
+          "optionalText": "trim 후 빈 문자열은 null로 정규화하고, null이 아닌 문자열은 공백 외 문자를 한 글자 이상 포함",
+          "dateTime": "UTC 오프셋을 포함한 RFC 3339 date-time",
+          "dateOrder": "startsAt과 endsAt이 모두 있으면 endsAt은 startsAt보다 빠를 수 없다",
+          "undecided": "선택 값의 null로 저장하고 같은 의미의 불리언이나 enum을 중복 저장하지 않는다"
+        },
+        "sourceOfTruth": "행사 ID에 연결된 기본정보 레코드 하나",
+        "consumerRule": "개요·일정 화면은 이 값을 읽고 중복 원본을 만들지 않는다.",
+        "deferredFields": [
+          "summary",
+          "audience",
+          "fee",
+          "capacity",
+          "owner",
+          "contact",
+          "participantNotes"
+        ]
       }
     },
     {
@@ -120,15 +169,29 @@
       "kind": "POLICY",
       "key": "event.creation_handoff",
       "revision": 1,
-      "status": "review",
+      "status": "active",
       "changeClass": "initial",
       "owners": ["제품 정책"],
-      "decisionNeeded": "event.create 보유자가 event.basic_info.update를 보유하지 않을 때 생성 직후의 편집 연속성을 어떤 규칙으로 보장할지 확정한다.",
-      "allowedResolutionTypes": [
-        "생성자를 행사 운영 조직 관리자로 지정",
-        "생성자에게 제한된 초기 설정 권한 부여",
-        "생성과 동시에 별도 운영 관리자를 지정"
-      ]
+      "effectiveOn": "2026-07-27",
+      "decision": "행사 생성이 성공하면 서버는 인증된 생성자를 같은 행사의 event_operations_admin으로 함께 지정한다.",
+      "contract": {
+        "subject": "클라이언트 입력이 아닌 현재 인증 멤버십의 구성원",
+        "scope": "현재 organizationId와 새 eventId에 한정",
+        "atomicity": "행사와 관리자 지정은 같은 트랜잭션에서 저장하며 둘 중 하나라도 실패하면 아무 데이터도 남기지 않는다.",
+        "effectiveAt": "행사 생성 트랜잭션 커밋 시점",
+        "lifetime": "명시적 회수 또는 조직 멤버십 종료 전까지 유지",
+        "revocation": "별도 활성 권한 계약이 허용한 서버 명령만 명시적으로 회수할 수 있으며 M1에는 회수 UI·API를 포함하지 않는다.",
+        "membershipTermination": "조직 멤버십이 종료되면 권한 판정에서 즉시 제외하되 과거 지정 기록은 보존한다.",
+        "audit": [
+          "organizationId",
+          "eventId",
+          "memberId",
+          "grantedSubject",
+          "reason",
+          "actorId",
+          "occurredAt"
+        ]
+      }
     },
     {
       "id": "POLICY:event.field_not_applicable@R1",

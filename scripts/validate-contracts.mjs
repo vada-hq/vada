@@ -353,7 +353,14 @@ export async function validateRepository(root = defaultRoot) {
         `${location}: 활성 권한 계약 ${permissionKey}가 없습니다.`,
       );
       for (const reference of references) {
-        requireValue(contractsById.has(reference), `${location}: 존재하지 않는 계약 ${reference}를 참조합니다.`);
+        const contract = contractsById.get(reference);
+        requireValue(Boolean(contract), `${location}: 존재하지 않는 계약 ${reference}를 참조합니다.`);
+        if (contract) {
+          requireValue(
+            !["superseded", "deprecated"].includes(contract.status),
+            `${location}: ${reference}는 ${contract.status} 상태라 현재 API 계약으로 사용할 수 없습니다.`,
+          );
+        }
       }
       for (const acId of operationAcIds) {
         requireValue(acIds.has(acId), `${location}: 존재하지 않는 AC ${acId}를 참조합니다.`);
@@ -363,11 +370,16 @@ export async function validateRepository(root = defaultRoot) {
 
   function resolveLocalReference(reference) {
     if (!reference.startsWith("#/")) return true;
+    return resolveLocalReferenceValue(reference) !== undefined;
+  }
+
+  function resolveLocalReferenceValue(reference) {
+    if (!reference.startsWith("#/")) return undefined;
     return reference
       .slice(2)
       .split("/")
       .map((segment) => segment.replaceAll("~1", "/").replaceAll("~0", "~"))
-      .reduce((value, segment) => value?.[segment], loaded.api) !== undefined;
+      .reduce((value, segment) => value?.[segment], loaded.api);
   }
 
   function inspectReferences(value, location = "contracts/openapi.json") {
@@ -384,6 +396,32 @@ export async function validateRepository(root = defaultRoot) {
     }
   }
   inspectReferences(loaded.api);
+
+  for (const contract of contracts) {
+    const schemaReference = contract.contract?.schemaRef;
+    if (!schemaReference) continue;
+    const schema = resolveLocalReferenceValue(schemaReference);
+    requireValue(
+      Boolean(schema),
+      `${contract.id}: API 스키마 ${schemaReference}를 찾을 수 없습니다.`,
+    );
+    if (!schema) continue;
+
+    const contractFields = new Set(contract.contract.fields ?? []);
+    const schemaFields = new Set(Object.keys(schema.properties ?? {}));
+    for (const field of contractFields) {
+      requireValue(
+        schemaFields.has(field),
+        `${contract.id}: API 스키마 ${schemaReference}에 계약 필드 ${field}가 없습니다.`,
+      );
+    }
+    for (const field of schemaFields) {
+      requireValue(
+        contractFields.has(field),
+        `${contract.id}: API 스키마 ${schemaReference}의 필드 ${field}가 계약에 없습니다.`,
+      );
+    }
+  }
 
   return { errors, warnings };
 }

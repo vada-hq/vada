@@ -11,7 +11,7 @@
         "x-vada-permission": "event.read",
         "x-vada-contracts": [
           "AUTH:event.read@R1",
-          "DATA:event.basic_info@R1",
+          "DATA:event.basic_info@R2",
           "DOMAIN:event.lifecycle@R1"
         ],
         "x-vada-acceptance-criteria": [
@@ -49,8 +49,7 @@
         "x-vada-acceptance-criteria": [
           "SL-EVT-001/AC-01",
           "SL-EVT-001/AC-02",
-          "SL-EVT-001/AC-03",
-          "SL-EVT-001/AC-05"
+          "SL-EVT-001/AC-03"
         ],
         "requestBody": {
           "required": true,
@@ -88,7 +87,7 @@
         "x-vada-permission": "event.read",
         "x-vada-contracts": [
           "AUTH:event.read@R1",
-          "DATA:event.basic_info@R1",
+          "DATA:event.basic_info@R2",
           "DOMAIN:event.field_state@R1"
         ],
         "x-vada-acceptance-criteria": [
@@ -134,7 +133,7 @@
         "x-vada-permission": "event.basic_info.update",
         "x-vada-contracts": [
           "AUTH:event.basic_info.update@R1",
-          "DATA:event.basic_info@R1"
+          "DATA:event.basic_info@R2"
         ],
         "x-vada-acceptance-criteria": [
           "SL-EVT-001/AC-05",
@@ -255,38 +254,37 @@
         "properties": {
           "name": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "pattern": "\\S"
           }
         }
       },
       "EventBasicInfo": {
         "type": "object",
         "properties": {
-          "name": { "type": "string", "minLength": 1 },
-          "summary": { "type": ["string", "null"] },
-          "purpose": { "type": ["string", "null"] },
+          "name": { "type": "string", "minLength": 1, "pattern": "\\S" },
+          "purpose": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "pattern": "\\S"
+          },
           "startsAt": { "type": ["string", "null"], "format": "date-time" },
           "endsAt": { "type": ["string", "null"], "format": "date-time" },
-          "endTimeUndecided": { "type": "boolean" },
-          "venueName": { "type": ["string", "null"] },
-          "venueAddress": { "type": ["string", "null"] },
-          "venueDetail": { "type": ["string", "null"] },
-          "audience": { "type": ["string", "null"] },
-          "feeType": {
+          "venueName": {
             "type": ["string", "null"],
-            "enum": ["free", "paid", "undecided", null]
+            "minLength": 1,
+            "pattern": "\\S"
           },
-          "feeAmount": { "type": ["integer", "null"], "minimum": 0 },
-          "paymentInstructions": { "type": ["string", "null"] },
-          "capacityType": {
+          "venueAddress": {
             "type": ["string", "null"],
-            "enum": ["limited", "unlimited", "undecided", null]
+            "minLength": 1,
+            "pattern": "\\S"
           },
-          "capacity": { "type": ["integer", "null"], "minimum": 1 },
-          "ownerDepartment": { "type": ["string", "null"] },
-          "ownerMember": { "type": ["string", "null"] },
-          "contact": { "type": ["string", "null"] },
-          "participantNotes": { "type": ["string", "null"] }
+          "venueDetail": {
+            "type": ["string", "null"],
+            "minLength": 1,
+            "pattern": "\\S"
+          }
         }
       },
       "UpdateEventBasicInfoRequest": {
@@ -295,6 +293,7 @@
             "$ref": "#/components/schemas/EventBasicInfo"
           }
         ],
+        "minProperties": 1,
         "unevaluatedProperties": false
       },
       "TransitionEventLifecycleRequest": {
