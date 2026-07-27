@@ -49,6 +49,16 @@
     }
   },
   "milestonePages": {
-    "MS-MVP-01": "https://app.notion.com/p/3aa68a85148e81d5ac98e91b42dec0e9"
+    "MS-MVP-01": "https://app.notion.com/p/3aa68a85148e81d5ac98e91b42dec0e9",
+    "MS-MVP-02": "https://app.notion.com/p/3aa68a85148e815e9217c02822fd5e4f",
+    "MS-MVP-03": "https://app.notion.com/p/3aa68a85148e816883ffebafe98d6a21",
+    "MS-MVP-04": "https://app.notion.com/p/3aa68a85148e813aacacfd9ca19554db",
+    "MS-MVP-05": "https://app.notion.com/p/3aa68a85148e81a486a4e6eb812c805c",
+    "MS-MVP-06": "https://app.notion.com/p/3aa68a85148e81058244f18a2b16f385",
+    "MS-MVP-07": "https://app.notion.com/p/3aa68a85148e8115bbe0e831d8c86d19",
+    "MS-MVP-08": "https://app.notion.com/p/3aa68a85148e8187a321ce58dc7c4c74"
+  },
+  "planningPages": {
+    "milestoneReviewAgenda": "https://app.notion.com/p/3aa68a85148e81a5be0de95cf90312ad"
   }
 }
