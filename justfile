@@ -1,5 +1,5 @@
 # VADA 모노레포 명령 표면 — AGENTS.md의 명령 표와 1:1 유지
-set windows-shell := ["bash", "-cu"]
+set windows-shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
 
 default:
     @just --list
@@ -15,6 +15,10 @@ dev-api:
 
 dev-web:
     pnpm --filter web dev
+
+# 실행 계약
+validate-contracts:
+    pnpm validate:contracts
 
 # 테스트
 test: test-api test-web
@@ -43,5 +47,14 @@ typecheck-api:
 typecheck-web:
     pnpm --filter web typecheck
 
+# 빌드
+build: build-web build-wireframe
+
+build-web:
+    pnpm --filter web build
+
+build-wireframe:
+    pnpm --filter @vada/wireframe build
+
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: lint typecheck test
+check: validate-contracts lint typecheck test build

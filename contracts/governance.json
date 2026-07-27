@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "kind": "governance-contracts",
+  "revisions": [
+    {
+      "id": "PROCESS:documentation@R1",
+      "kind": "PROCESS",
+      "key": "documentation",
+      "revision": 1,
+      "status": "active",
+      "changeClass": "initial",
+      "owners": ["제품 운영"],
+      "effectiveOn": "2026-07-26",
+      "rules": [
+        "변경 가능한 계약은 안정 키와 불변 리비전 ID를 함께 가진다.",
+        "활성 리비전의 의미를 덮어쓰지 않고 새 리비전으로 대체한다.",
+        "슬라이스는 구현 시점의 정확한 계약 리비전 기준선을 관계로 고정한다.",
+        "완료 슬라이스의 사용자 행동이 바뀌면 기존 슬라이스를 수정하지 않고 후속 슬라이스로 추적한다.",
+        "코드와 직접 결합되는 계약은 저장소의 기계 판독 파일을 실행 원본으로 사용한다."
+      ]
+    },
+    {
+      "id": "PROCESS:DoR@R1",
+      "kind": "PROCESS",
+      "key": "DoR",
+      "revision": 1,
+      "status": "active",
+      "changeClass": "initial",
+      "owners": ["제품 운영"],
+      "effectiveOn": "2026-07-26",
+      "rules": [
+        "슬라이스 ID와 안정 AC ID가 있다.",
+        "계약 기준선의 모든 리비전이 활성 상태다.",
+        "미결정 정책이 사용자 흐름 또는 데이터 모델을 바꿀 수 있으면 착수하지 않는다.",
+        "관련 화면과 태스크가 관계로 연결돼 있다.",
+        "계약 검증 명령이 통과한다."
+      ]
+    },
+    {
+      "id": "QUALITY:DoD@R1",
+      "kind": "QUALITY",
+      "key": "DoD",
+      "revision": 1,
+      "status": "active",
+      "changeClass": "initial",
+      "owners": ["엔지니어링"],
+      "effectiveOn": "2026-07-26",
+      "rules": [
+        "각 AC ID가 하나 이상의 자동 테스트에서 추적된다.",
+        "단위·통합·E2E·조직 격리 회귀 검증이 CI에서 통과한다.",
+        "계약과 구현의 변경이 같은 변경 집합에서 검토된다.",
+        "슬라이스·화면·계약 리비전 상태가 실제 릴리스와 일치한다."
+      ]
+    }
+  ]
+}

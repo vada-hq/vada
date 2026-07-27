@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "SL-EVT-002",
+  "title": "행사 상태 전환·완료",
+  "status": "planned",
+  "dependsOn": ["SL-EVT-001"],
+  "contractBaseline": [
+    "AUTH:event.read@R1",
+    "AUTH:event.lifecycle.transition@R1",
+    "DATA:event.lifecycle_transition@R1",
+    "DOMAIN:event.lifecycle@R1",
+    "QUALITY:DoD@R1"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "SL-EVT-002/AC-01",
+      "name": "상태 전환 권한",
+      "contractRefs": ["AUTH:event.lifecycle.transition@R1", "DATA:event.lifecycle_transition@R1"],
+      "observableOutcome": "권한 보유자에게 현재 상태의 다음 전환만 보이고, 미보유자의 직접 요청은 서버에서 거부돼 상태가 바뀌지 않는다."
+    },
+    {
+      "id": "SL-EVT-002/AC-02",
+      "name": "행사 시작",
+      "contractRefs": ["DATA:event.lifecycle_transition@R1", "DOMAIN:event.lifecycle@R1"],
+      "observableOutcome": "기획 중 행사를 시작하면 같은 행사가 진행 중으로 바뀌고 개요와 활성 목록에 반영된다."
+    },
+    {
+      "id": "SL-EVT-002/AC-03",
+      "name": "행사 종료",
+      "contractRefs": ["DATA:event.lifecycle_transition@R1", "DOMAIN:event.lifecycle@R1"],
+      "observableOutcome": "종료 확인을 취소하면 상태가 유지되고 확인하면 후속 정리 중이 되며, 남은 업무나 문서는 전환을 막지 않는다."
+    },
+    {
+      "id": "SL-EVT-002/AC-04",
+      "name": "남은 정리 항목",
+      "contractRefs": ["DATA:event.lifecycle_transition@R1", "DOMAIN:event.lifecycle@R1"],
+      "observableOutcome": "후속 정리 중 개요는 임의 진행률 대신 남은 항목의 종류와 개수를 보여준다."
+    },
+    {
+      "id": "SL-EVT-002/AC-05",
+      "name": "완료 선택",
+      "contractRefs": ["DATA:event.lifecycle_transition@R1", "DOMAIN:event.lifecycle@R1"],
+      "observableOutcome": "남은 항목이 있으면 경고하되 계속 정리와 완료 처리를 모두 제공하고, 아카이브 미발행은 완료를 막지 않는다."
+    },
+    {
+      "id": "SL-EVT-002/AC-06",
+      "name": "완료 영속과 분류",
+      "contractRefs": ["AUTH:event.read@R1", "DATA:event.lifecycle_transition@R1", "DOMAIN:event.lifecycle@R1"],
+      "observableOutcome": "완료 행사는 활성 목록에서 빠지고 완료 목록에 나타나며, 새로고침과 중복 요청 뒤에도 상태와 분류가 일관된다."
+    }
+  ]
+}

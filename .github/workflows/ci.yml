@@ -10,6 +10,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  contracts:
+    name: contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Validate executable contracts
+        run: node scripts/validate-contracts.mjs
+
   api:
     name: api
     runs-on: ubuntu-latest
@@ -48,3 +59,5 @@ jobs:
         run: pnpm --filter web test
       - name: Build
         run: pnpm --filter web build
+      - name: Build wireframe prototype
+        run: pnpm --filter @vada/wireframe build

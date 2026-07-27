@@ -1,0 +1,346 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "VADA Event API",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/events": {
+      "get": {
+        "operationId": "listEvents",
+        "x-vada-permission": "event.read",
+        "x-vada-contracts": [
+          "AUTH:event.read@R1",
+          "DATA:event.basic_info@R1",
+          "DOMAIN:event.lifecycle@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "SL-EVT-001/AC-03",
+          "SL-EVT-002/AC-06"
+        ],
+        "responses": {
+          "200": {
+            "description": "Events in the current organization",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or organization boundary denied"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createEvent",
+        "x-vada-permission": "event.create",
+        "x-vada-contracts": [
+          "AUTH:event.create@R1",
+          "DATA:event.create@R1",
+          "DOMAIN:event.lifecycle@R1",
+          "POLICY:event.creation_handoff@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "SL-EVT-001/AC-01",
+          "SL-EVT-001/AC-02",
+          "SL-EVT-001/AC-03",
+          "SL-EVT-001/AC-05"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid event name"
+          },
+          "403": {
+            "description": "Permission or organization boundary denied"
+          }
+        }
+      }
+    },
+    "/events/{eventId}": {
+      "get": {
+        "operationId": "getEvent",
+        "x-vada-permission": "event.read",
+        "x-vada-contracts": [
+          "AUTH:event.read@R1",
+          "DATA:event.basic_info@R1",
+          "DOMAIN:event.field_state@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "SL-EVT-001/AC-03",
+          "SL-EVT-001/AC-04",
+          "SL-EVT-001/AC-06",
+          "SL-EVT-002/AC-04",
+          "SL-EVT-002/AC-06"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Event detail",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission or organization boundary denied"
+          },
+          "404": {
+            "description": "Event not found"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/basic-info": {
+      "patch": {
+        "operationId": "updateEventBasicInfo",
+        "x-vada-permission": "event.basic_info.update",
+        "x-vada-contracts": [
+          "AUTH:event.basic_info.update@R1",
+          "DATA:event.basic_info@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "SL-EVT-001/AC-05",
+          "SL-EVT-001/AC-06"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateEventBasicInfoRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated event",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid basic information"
+          },
+          "403": {
+            "description": "Permission or organization boundary denied"
+          },
+          "404": {
+            "description": "Event not found"
+          }
+        }
+      }
+    },
+    "/events/{eventId}/lifecycle": {
+      "patch": {
+        "operationId": "transitionEventLifecycle",
+        "x-vada-permission": "event.lifecycle.transition",
+        "x-vada-contracts": [
+          "AUTH:event.lifecycle.transition@R1",
+          "DATA:event.lifecycle_transition@R1",
+          "DOMAIN:event.lifecycle@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "SL-EVT-002/AC-01",
+          "SL-EVT-002/AC-02",
+          "SL-EVT-002/AC-03",
+          "SL-EVT-002/AC-05",
+          "SL-EVT-002/AC-06"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransitionEventLifecycleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Transitioned event",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Transition is not allowed"
+          },
+          "403": {
+            "description": "Permission or organization boundary denied"
+          },
+          "404": {
+            "description": "Event not found"
+          },
+          "409": {
+            "description": "Expected lifecycle no longer matches"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateEventRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "EventBasicInfo": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "summary": { "type": ["string", "null"] },
+          "purpose": { "type": ["string", "null"] },
+          "startsAt": { "type": ["string", "null"], "format": "date-time" },
+          "endsAt": { "type": ["string", "null"], "format": "date-time" },
+          "endTimeUndecided": { "type": "boolean" },
+          "venueName": { "type": ["string", "null"] },
+          "venueAddress": { "type": ["string", "null"] },
+          "venueDetail": { "type": ["string", "null"] },
+          "audience": { "type": ["string", "null"] },
+          "feeType": {
+            "type": ["string", "null"],
+            "enum": ["free", "paid", "undecided", null]
+          },
+          "feeAmount": { "type": ["integer", "null"], "minimum": 0 },
+          "paymentInstructions": { "type": ["string", "null"] },
+          "capacityType": {
+            "type": ["string", "null"],
+            "enum": ["limited", "unlimited", "undecided", null]
+          },
+          "capacity": { "type": ["integer", "null"], "minimum": 1 },
+          "ownerDepartment": { "type": ["string", "null"] },
+          "ownerMember": { "type": ["string", "null"] },
+          "contact": { "type": ["string", "null"] },
+          "participantNotes": { "type": ["string", "null"] }
+        }
+      },
+      "UpdateEventBasicInfoRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventBasicInfo"
+          }
+        ],
+        "unevaluatedProperties": false
+      },
+      "TransitionEventLifecycleRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["expectedLifecycle", "nextLifecycle"],
+        "properties": {
+          "expectedLifecycle": {
+            "type": "string",
+            "enum": ["planning", "active", "wrap_up"]
+          },
+          "nextLifecycle": {
+            "type": "string",
+            "enum": ["active", "wrap_up", "completed"]
+          }
+        }
+      },
+      "Event": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/EventBasicInfo"
+          },
+          {
+            "type": "object",
+            "required": [
+              "id",
+              "organizationId",
+              "name",
+              "lifecycle",
+              "createdAt",
+              "updatedAt"
+            ],
+            "properties": {
+              "id": { "type": "string" },
+              "organizationId": { "type": "string" },
+              "lifecycle": {
+                "type": "string",
+                "enum": ["planning", "active", "wrap_up", "completed", "cancelled"]
+              },
+              "createdAt": { "type": "string", "format": "date-time" },
+              "updatedAt": { "type": "string", "format": "date-time" }
+            }
+          }
+        ],
+        "unevaluatedProperties": false
+      }
+    }
+  }
+}

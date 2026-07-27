@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "id": "SL-EVT-001",
+  "title": "행사 생성·기본정보 입력",
+  "status": "planned",
+  "contractBaseline": [
+    "AUTH:event.read@R1",
+    "AUTH:event.create@R1",
+    "AUTH:event.basic_info.update@R1",
+    "DATA:event.create@R1",
+    "DATA:event.basic_info@R1",
+    "DOMAIN:event.lifecycle@R1",
+    "DOMAIN:event.field_state@R1",
+    "POLICY:event.creation_handoff@R1",
+    "QUALITY:DoD@R1"
+  ],
+  "acceptanceCriteria": [
+    {
+      "id": "SL-EVT-001/AC-01",
+      "name": "행사 생성 권한",
+      "contractRefs": ["AUTH:event.create@R1"],
+      "observableOutcome": "권한 보유자는 생성 액션과 요청을 사용할 수 있고, 미보유자는 UI에서 액션을 볼 수 없으며 직접 요청도 서버에서 거부돼 데이터가 남지 않는다."
+    },
+    {
+      "id": "SL-EVT-001/AC-02",
+      "name": "최소 정보 생성",
+      "contractRefs": ["DATA:event.create@R1", "DOMAIN:event.lifecycle@R1"],
+      "observableOutcome": "행사명만 입력하면 시작 상태의 행사가 생성되고, 빈 값이나 공백뿐인 행사명은 생성되지 않는다."
+    },
+    {
+      "id": "SL-EVT-001/AC-03",
+      "name": "생성 직후 이동과 재조회",
+      "contractRefs": ["AUTH:event.read@R1", "DATA:event.create@R1"],
+      "observableOutcome": "생성 직후 새 행사 개요로 이동하며 새로고침하거나 목록으로 돌아온 뒤에도 같은 행사를 다시 열 수 있다."
+    },
+    {
+      "id": "SL-EVT-001/AC-04",
+      "name": "미정 정보 표시",
+      "contractRefs": ["DOMAIN:event.field_state@R1", "DATA:event.basic_info@R1"],
+      "observableOutcome": "아직 값이 없는 기본정보는 빈칸이 아니라 미정으로 보인다."
+    },
+    {
+      "id": "SL-EVT-001/AC-05",
+      "name": "편집 권한과 생성 후 연속성",
+      "contractRefs": ["AUTH:event.basic_info.update@R1", "POLICY:event.creation_handoff@R1"],
+      "observableOutcome": "편집 권한 보유자는 기존 값을 편집할 수 있고 취소 시 변경이 남지 않으며, 생성 권한과 편집 권한이 다른 생성자도 확정된 인계 정책에 따른 다음 행동을 잃지 않는다."
+    },
+    {
+      "id": "SL-EVT-001/AC-06",
+      "name": "단일 원본 저장과 영속",
+      "contractRefs": ["DATA:event.basic_info@R1"],
+      "observableOutcome": "저장한 기본정보는 같은 행사의 단일 원본에 반영되고 새로고침 후에도 유지된다."
+    }
+  ]
+}

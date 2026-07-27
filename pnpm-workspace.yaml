@@ -1,10 +1,15 @@
 packages:
   - apps/web
   - packages/*
+  - prototypes/*
 
 # pnpm 11 공급망 가드: 빌드 스크립트 실행을 명시 허용한 패키지만
 allowBuilds:
+  '@tailwindcss/oxide': true
+  esbuild: true
   lefthook: true
+  sharp: true
+  workerd: true
 
 # 웹·(미래)모바일 공용 의존성 버전 단일화 — 참조는 "catalog:" 프로토콜
 catalog:

@@ -1,7 +1,14 @@
-# docs/
+# VADA 문서 지도
 
-기술 결정(ADR 74건)의 원본은 노션에 있습니다 — 근거·검토한 대안·출처·재평가 트리거 포함:
+## 정본
 
-- 기술 스택 & 아키텍처: https://app.notion.com/p/3a068a85148e80ca89e0f726a38d49f3
+- 코드 결합 계약과 슬라이스 기준선: `contracts/`
+- 저장소 운영 규칙: 루트 `AGENTS.md`
+- 저장소 경계: `docs/governance/repository-root.md`
+- 결정 이유·검토 대안·승인·재평가 트리거: Notion
 
-추후 마크다운 ADR로 리포에 이식 예정. 개발 규약은 리포 루트의 `AGENTS.md` 참조.
+기술 스택·아키텍처 ADR: https://app.notion.com/p/3a068a85148e80ca89e0f726a38d49f3
+
+## 참고 자료
+
+`docs/reference/wireframe/`에는 과거 와이어프레임의 화면 정의·권한표·QA 자료를 보존한다. 참고 자료와 활성 계약이 충돌하면 `contracts/`와 연결된 Notion 계약 리비전이 우선한다.
