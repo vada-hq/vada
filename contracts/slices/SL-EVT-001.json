@@ -1,13 +1,13 @@
 {
   "$schema": "../schemas/slice.schema.json",
   "schemaVersion": 1,
-  "specRevision": 1,
+  "specRevision": 2,
   "id": "SL-EVT-001",
   "title": "행사 생성·기본정보 입력",
   "subsystem": "event",
   "releaseScope": "pilot",
-  "status": "planned",
-  "outcome": "행사 생성 권한 보유자가 최소 입력으로 행사 공간을 만들고, 기본정보 편집 권한 보유자가 하나의 행사 원본을 완성합니다.",
+  "status": "ready",
+  "outcome": "행사 생성 권한 보유자가 행사명으로 행사 공간을 만들고, 생성 직후 목적·일시·장소를 저장해 다시 열 수 있습니다.",
   "screenRefs": ["EVT-00A2", "EVT-00A", "EVT-00B", "EVT-02", "EVT-02B"],
   "dependsOn": [],
   "changes": [],
@@ -16,7 +16,7 @@
     "AUTH:event.create@R1",
     "AUTH:event.basic_info.update@R1",
     "DATA:event.create@R1",
-    "DATA:event.basic_info@R1",
+    "DATA:event.basic_info@R2",
     "DOMAIN:event.lifecycle@R1",
     "DOMAIN:event.field_state@R1",
     "POLICY:event.creation_handoff@R1",
@@ -37,33 +37,41 @@
     },
     {
       "id": "SL-EVT-001/AC-03",
-      "name": "생성 직후 이동과 재조회",
-      "contractRefs": ["AUTH:event.read@R1", "DATA:event.create@R1"],
-      "observableOutcome": "생성 직후 새 행사 개요로 이동하며 새로고침하거나 목록으로 돌아온 뒤에도 같은 행사를 다시 열 수 있다."
+      "name": "생성자 편집 연속성과 재조회",
+      "contractRefs": [
+        "AUTH:event.read@R1",
+        "AUTH:event.basic_info.update@R1",
+        "DATA:event.create@R1",
+        "POLICY:event.creation_handoff@R1"
+      ],
+      "observableOutcome": "생성 성공과 같은 트랜잭션에서 생성자가 해당 행사의 운영 관리자로 지정되고 새 행사 개요로 이동한다. 새로고침하거나 목록으로 돌아온 뒤에도 같은 행사를 다시 열고 편집을 시작할 수 있으며, 관리자 지정이 실패하면 행사도 남지 않는다."
     },
     {
       "id": "SL-EVT-001/AC-04",
       "name": "미정 정보 표시",
-      "contractRefs": ["DOMAIN:event.field_state@R1", "DATA:event.basic_info@R1"],
-      "observableOutcome": "아직 값이 없는 기본정보는 빈칸이 아니라 미정으로 보인다."
+      "contractRefs": ["DOMAIN:event.field_state@R1", "DATA:event.basic_info@R2"],
+      "observableOutcome": "아직 값이 없는 목적·일시·장소는 null로 저장되고, 로딩이나 오류 상태와 구분되는 미정으로 보인다."
     },
     {
       "id": "SL-EVT-001/AC-05",
-      "name": "편집 권한과 생성 후 연속성",
-      "contractRefs": ["AUTH:event.basic_info.update@R1", "POLICY:event.creation_handoff@R1"],
-      "observableOutcome": "편집 권한 보유자는 기존 값을 편집할 수 있고 취소 시 변경이 남지 않으며, 생성 권한과 편집 권한이 다른 생성자도 확정된 인계 정책에 따른 다음 행동을 잃지 않는다. 미보유자의 수정 요청은 UI와 서버에서 차단된다."
+      "name": "편집 권한과 취소",
+      "contractRefs": ["AUTH:event.basic_info.update@R1", "DATA:event.basic_info@R2"],
+      "observableOutcome": "편집 권한 보유자는 행사명·목적·일시·장소의 기존 값을 편집할 수 있고 취소하면 변경이 남지 않는다. 미보유자는 편집 액션을 볼 수 없으며 직접 수정 요청도 서버에서 거부된다."
     },
     {
       "id": "SL-EVT-001/AC-06",
-      "name": "단일 원본 저장과 영속",
-      "contractRefs": ["DATA:event.basic_info@R1"],
-      "observableOutcome": "저장한 기본정보는 같은 행사의 단일 원본에 반영되고 새로고침 후에도 유지된다."
+      "name": "핵심 기본정보 저장과 영속",
+      "contractRefs": ["DATA:event.basic_info@R2"],
+      "observableOutcome": "행사명·목적·시작 및 선택적 종료 일시·장소명·주소·상세 위치를 저장하면 같은 행사의 단일 원본에 반영되고 새로고침 후에도 유지된다. 시작과 종료가 모두 있으면 종료가 시작보다 빠른 값은 저장되지 않는다."
     }
   ],
   "outOfScope": [
     {
       "item": "기본정보 필드의 해당 없음 상태와 저장 표현",
       "trackedBy": "POLICY:event.field_not_applicable@R1"
+    },
+    {
+      "item": "참가 대상·참가비·정원·담당 부서·담당자·문의처·참가자 유의사항 입력 — 후속 후보 SL-EVT-012"
     },
     {
       "item": "참가자 명단·QR·설문과 하위 소비 화면 구현"
