@@ -6,6 +6,8 @@
     "node": ">=22.13"
   },
   "scripts": {
+    "validate:contracts": "node scripts/validate-contracts.mjs",
+    "build:wireframe": "pnpm --filter @vada/wireframe build",
     "prepare": "lefthook install"
   },
   "devDependencies": {

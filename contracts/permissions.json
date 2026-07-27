@@ -1,0 +1,71 @@
+{
+  "schemaVersion": 1,
+  "kind": "permission-contracts",
+  "revisions": [
+    {
+      "id": "AUTH:event.read@R1",
+      "kind": "AUTH",
+      "key": "event.read",
+      "revision": 1,
+      "status": "active",
+      "changeClass": "initial",
+      "owners": ["제품 정책", "백엔드"],
+      "effectiveOn": "2026-07-19",
+      "grants": ["organization_member"],
+      "decision": "학생회 구성원은 행사 목록과 행사 개요를 열람할 수 있다.",
+      "invariants": [
+        "조직 경계를 넘는 조회는 항상 거부한다.",
+        "UI 노출 여부와 무관하게 서버가 권한을 판정한다."
+      ]
+    },
+    {
+      "id": "AUTH:event.create@R1",
+      "kind": "AUTH",
+      "key": "event.create",
+      "revision": 1,
+      "status": "active",
+      "changeClass": "initial",
+      "owners": ["제품 정책", "백엔드"],
+      "effectiveOn": "2026-07-19",
+      "grants": ["executive", "department_head"],
+      "decision": "회장단과 부서장은 새 행사를 만들 수 있다.",
+      "invariants": [
+        "미보유자에게 생성 액션을 노출하지 않는다.",
+        "미보유자의 직접 생성 요청을 서버에서 거부하고 데이터를 남기지 않는다.",
+        "현재 멤버십의 조직 외 다른 조직으로 행사를 만들 수 없다."
+      ]
+    },
+    {
+      "id": "AUTH:event.basic_info.update@R1",
+      "kind": "AUTH",
+      "key": "event.basic_info.update",
+      "revision": 1,
+      "status": "active",
+      "changeClass": "initial",
+      "owners": ["제품 정책", "백엔드"],
+      "effectiveOn": "2026-07-19",
+      "grants": ["executive", "event_operations_admin"],
+      "decision": "회장단과 해당 행사의 운영 조직 관리자는 행사 기본정보를 편집할 수 있다.",
+      "invariants": [
+        "권한은 행사별 맥락에서 판정한다.",
+        "미보유자의 직접 수정 요청을 서버에서 거부한다."
+      ]
+    },
+    {
+      "id": "AUTH:event.lifecycle.transition@R1",
+      "kind": "AUTH",
+      "key": "event.lifecycle.transition",
+      "revision": 1,
+      "status": "active",
+      "changeClass": "initial",
+      "owners": ["제품 정책", "백엔드"],
+      "effectiveOn": "2026-07-19",
+      "grants": ["executive", "event_operations_admin"],
+      "decision": "회장단과 해당 행사의 운영 조직 관리자는 행사 상태를 전환할 수 있다.",
+      "invariants": [
+        "권한과 허용 상태 전이를 서버에서 함께 검증한다.",
+        "중복 또는 역순 전이 요청은 데이터를 바꾸지 않는다."
+      ]
+    }
+  ]
+}

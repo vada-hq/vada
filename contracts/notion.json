@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "contractDatabase": {
+    "dataSourceId": "90c5bc01-86b8-4d3f-bef9-a07b70699017",
+    "url": "https://app.notion.com/p/1000b233af9747089c9ce3a4aea2aedf"
+  },
+  "revisionPages": {
+    "AUTH:event.read@R1": "https://app.notion.com/p/3a968a85148e81819a26cf7f1c0b699c",
+    "AUTH:event.create@R1": "https://app.notion.com/p/3a968a85148e81babe81d9e3d46a9398",
+    "AUTH:event.basic_info.update@R1": "https://app.notion.com/p/3a968a85148e81baba6ee9190c39d4a6",
+    "AUTH:event.lifecycle.transition@R1": "https://app.notion.com/p/3a968a85148e81a1af9cc064040301a3",
+    "DATA:event.create@R1": "https://app.notion.com/p/3a968a85148e818a9469d660c943aa0b",
+    "DATA:event.basic_info@R1": "https://app.notion.com/p/3a968a85148e8118b67ad84f9d9815a7",
+    "DOMAIN:event.lifecycle@R1": "https://app.notion.com/p/3a968a85148e814aa5edc348eb0af88a",
+    "DOMAIN:event.field_state@R1": "https://app.notion.com/p/3a968a85148e819d9542f1af17fa4769",
+    "DATA:event.lifecycle_transition@R1": "https://app.notion.com/p/3a968a85148e81c087c7c01e2ae9a30c",
+    "POLICY:event.creation_handoff@R1": "https://app.notion.com/p/3a968a85148e819fb221d50936c34386",
+    "POLICY:event.field_not_applicable@R1": "https://app.notion.com/p/3a968a85148e812c8d1bee7b1d139797",
+    "PROCESS:documentation@R1": "https://app.notion.com/p/3a968a85148e81f9879dc8d4866a1f51",
+    "PROCESS:DoR@R1": "https://app.notion.com/p/3a968a85148e817fab43d578d99436d7",
+    "QUALITY:DoD@R1": "https://app.notion.com/p/3a968a85148e81b688cee76235776e72"
+  },
+  "slicePages": {
+    "SL-EVT-001": "https://app.notion.com/p/3a568a85148e81edb9add21e024e94a9",
+    "SL-EVT-002": "https://app.notion.com/p/3a968a85148e81e3b6acdc36d21a2507"
+  }
+}

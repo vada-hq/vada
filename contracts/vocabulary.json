@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "authorizationSubjects": [
+    {
+      "id": "organization_member",
+      "label": "전 구성원",
+      "kind": "group",
+      "members": ["executive", "department_head", "member"]
+    },
+    {
+      "id": "executive",
+      "label": "회장단",
+      "kind": "base_role"
+    },
+    {
+      "id": "department_head",
+      "label": "부서장",
+      "kind": "base_role"
+    },
+    {
+      "id": "member",
+      "label": "부원",
+      "kind": "base_role"
+    },
+    {
+      "id": "event_operations_admin",
+      "label": "행사 운영 조직 관리자",
+      "kind": "context_role"
+    }
+  ]
+}

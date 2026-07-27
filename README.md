@@ -4,6 +4,8 @@
 
 데스크탑 우선 웹 앱이며, 모바일은 반응형 웹으로 지원합니다.
 
+이 저장소가 VADA 코드·실행 계약·검증·저장소 문서의 정식 Git 루트입니다. 저장소 경계와 이관 기준은 `docs/governance/repository-root.md`를 따릅니다.
+
 ## 스택 요약
 
 | 영역 | 선정 |
@@ -23,8 +25,11 @@
 just setup   # 의존성 설치
 just dev-api # http://localhost:8000/health
 just dev-web # 웹 개발 서버
-just check   # 린트 + 타입체크 + 테스트 (완료 기준)
+just validate-contracts # 계약·슬라이스·Notion 연결 검증
+just check   # 계약 + 린트 + 타입체크 + 테스트 + 빌드 (완료 기준)
 ```
+
+Figma 기반 화면 참고 앱은 `prototypes/wireframe/`, 과거 화면 명세와 QA 자료는 `docs/reference/wireframe/`에 격리되어 있습니다. 제품 구현은 `apps/`, 코드 결합 계약은 `contracts/`가 원본입니다.
 
 ## 기여
 
