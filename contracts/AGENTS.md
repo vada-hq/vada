@@ -3,5 +3,7 @@
 - 활성 리비전의 의미를 덮어쓰지 않는다. 변경 시 같은 안정 키의 새 `@R<n>` 리비전을 만들고 이전 리비전을 `superseded`로 전환한다.
 - 선택 필드 추가처럼 기존 소비자를 깨지 않는 변경은 `additive`, 필수 입력·의미·권한 축 변경은 `breaking`으로 분류한다.
 - 슬라이스는 정확한 계약 리비전을 `contractBaseline`에 고정한다. 완료된 슬라이스의 행동 변경은 후속 슬라이스로 추적한다.
+- 슬라이스 의미를 바꾸면 `specRevision`을 올리고 Notion `명세 리비전`과 같은 값으로 맞춘다.
+- 담당자·일정·추정은 태스크 DB에서만 바꾸고 슬라이스 실행 명세에 넣지 않는다.
 - API 작업은 권한 키, 계약 리비전, AC ID를 OpenAPI의 `x-vada-*` 확장으로 연결한다.
-- 계약 파일을 추가하거나 변경한 뒤 `pnpm validate:contracts`를 실행한다.
+- 계약 파일을 추가하거나 변경한 뒤 `pnpm test:contracts`와 `pnpm validate:contracts`를 실행한다.

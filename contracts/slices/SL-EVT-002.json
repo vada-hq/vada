@@ -1,9 +1,16 @@
 {
+  "$schema": "../schemas/slice.schema.json",
   "schemaVersion": 1,
+  "specRevision": 1,
   "id": "SL-EVT-002",
   "title": "행사 상태 전환·완료",
+  "subsystem": "event",
+  "releaseScope": "pilot",
   "status": "planned",
+  "outcome": "행사 상태 전환 권한 보유자가 행사를 기획 중에서 완료까지 순서대로 전환하고 완료 기록을 다시 찾습니다.",
+  "screenRefs": ["EVT-00A2", "EVT-00A", "EVT-02", "EVT-02C", "EVT-02D", "EVT-02E", "REC-01"],
   "dependsOn": ["SL-EVT-001"],
+  "changes": [],
   "contractBaseline": [
     "AUTH:event.read@R1",
     "AUTH:event.lifecycle.transition@R1",
@@ -47,6 +54,17 @@
       "name": "완료 영속과 분류",
       "contractRefs": ["AUTH:event.read@R1", "DATA:event.lifecycle_transition@R1", "DOMAIN:event.lifecycle@R1"],
       "observableOutcome": "완료 행사는 활성 목록에서 빠지고 완료 목록에 나타나며, 새로고침과 중복 요청 뒤에도 상태와 분류가 일관된다."
+    }
+  ],
+  "outOfScope": [
+    {
+      "item": "행사 취소와 복구"
+    },
+    {
+      "item": "아카이브 작성·검토·발행"
+    },
+    {
+      "item": "남은 업무·문서·정산 자체의 처리"
     }
   ]
 }

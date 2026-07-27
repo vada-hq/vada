@@ -17,11 +17,19 @@
     "POLICY:event.creation_handoff@R1": "https://app.notion.com/p/3a968a85148e819fb221d50936c34386",
     "POLICY:event.field_not_applicable@R1": "https://app.notion.com/p/3a968a85148e812c8d1bee7b1d139797",
     "PROCESS:documentation@R1": "https://app.notion.com/p/3a968a85148e81f9879dc8d4866a1f51",
+    "PROCESS:documentation@R2": "https://app.notion.com/p/3aa68a85148e81c7a0b4c3dd86b5da85",
     "PROCESS:DoR@R1": "https://app.notion.com/p/3a968a85148e817fab43d578d99436d7",
+    "PROCESS:DoR@R2": "https://app.notion.com/p/3aa68a85148e81a090fcf6615fd21564",
     "QUALITY:DoD@R1": "https://app.notion.com/p/3a968a85148e81b688cee76235776e72"
   },
   "slicePages": {
-    "SL-EVT-001": "https://app.notion.com/p/3a568a85148e81edb9add21e024e94a9",
-    "SL-EVT-002": "https://app.notion.com/p/3a968a85148e81e3b6acdc36d21a2507"
+    "SL-EVT-001": {
+      "url": "https://app.notion.com/p/3a568a85148e81edb9add21e024e94a9",
+      "specRevision": 1
+    },
+    "SL-EVT-002": {
+      "url": "https://app.notion.com/p/3a968a85148e81e3b6acdc36d21a2507",
+      "specRevision": 1
+    }
   }
 }
