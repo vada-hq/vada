@@ -888,7 +888,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "04", element: "새 회의 만들기", description: "이 화면에는 노출하지 않는다.", constraint: "진행 권한만으로 회의를 생성할 수 없음" },
     ],
     exceptions: ["진행 권한자는 다른 사람의 권한을 변경하거나 회의 정보를 수정·취소할 수 없다"],
-    nextScreens: ["OPS-MEET-03C 예정 상세", "OPS-MEET-05B 진행 중", "OPS-MEET-06B 회의록 정리"],
+    nextScreens: ["OPS-MEET-03C 예정 상세", "OPS-MEET-05B 진행 중", "OPS-MEET-06B 회의록 정리", "OPS-MEET-07 완료 회의록", "OPS-MEET-08 회의 요약 확인"],
   },
   "OPS-MEET-01C": {
     id: "OPS-MEET-01C", name: "전체 회의 — 회의 생성 가능", stateChip: "기본",
@@ -962,9 +962,10 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "회의 정보 수정", description: "OPS-MEET-02로 이동해 정보를 수정한다." },
       { num: "02", element: "진행 권한 관리", description: "OPS-MEET-04B로 이동한다.", constraint: "생성자만 진입 가능" },
       { num: "03", element: "회의 취소", description: "OPS-MEET-D04 취소 확인을 거쳐 취소한다.", constraint: "예정 회의만 취소 가능" },
+      { num: "04", element: "회의 시작", description: "OPS-MEET-D01 시작 확인을 거쳐 회의를 진행 중으로 전환한다.", constraint: "생성자는 기본 진행 권한자로서 시작할 수 있다" },
     ],
     exceptions: ["회의 생성자가 아니면 참가자·안건·진행 권한 관리 기능을 노출하지 않는다", "회의 시작 이후에는 예정 정보와 권한 구성을 수정할 수 없다"],
-    nextScreens: ["OPS-MEET-02 수정", "OPS-MEET-04B 진행 권한 관리", "OPS-MEET-D04 취소 확인"],
+    nextScreens: ["OPS-MEET-02 수정", "OPS-MEET-04B 진행 권한 관리", "OPS-MEET-D04 취소 확인", "OPS-MEET-D01 시작 확인"],
   },
   "OPS-MEET-03C": {
     id: "OPS-MEET-03C", name: "예정 회의 상세 — 진행 권한자", stateChip: "예정",
@@ -1090,7 +1091,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     id: "OPS-MEET-D01", name: "회의 시작 확인", stateChip: "확인 대화상자",
     purpose: "회의 시작을 확인받고 진행 중 상태로 전환한다.",
     users: "진행 권한자",
-    entryPath: "OPS-MEET-03C → 회의 시작",
+    entryPath: "OPS-MEET-03B·03C → 회의 시작",
     functions: [
       { num: "01", element: "시작 확인", description: "확인 시 회의가 진행 중이 되고 참가자에게 참가가 열린다.", constraint: "시작한 사용자는 자동 참석 처리" },
       { num: "02", element: "취소", description: "예정 상태를 유지한다." },
@@ -1147,7 +1148,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "06", element: "내 담당 업무 요약", description: "행사·상시 업무에서 현재 사용자에게 배정된 미완료 업무 수를 표시하고 내 업무로 이동한다." },
     ],
     exceptions: ["연결 데이터가 없으면 임의 수치를 만들지 않고 0건·빈 상태로 표시한다", "권한이 없는 사용자의 관리 전용 바로가기를 노출하지 않는다"],
-    nextScreens: ["FIN-00 전체 재정 현황", "MY-01 내 업무"],
+    nextScreens: ["FIN-00 전체 재정 현황", "MY-01 내 업무", "EVT-TASK-01 행사 업무", "OPS-CAL-01 통합 캘린더"],
   },
   "HOME-01K": {
     id: "HOME-01K", name: "홈 — 끼룩이 브리핑", stateChip: "검토안",
@@ -1265,7 +1266,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     id: "FIN-SUP-01", name: "보완 요청 확인·재제출", stateChip: "보완 요청",
     purpose: "재정부가 요청한 보완 사항을 확인하고 수정해 재제출한다.",
     users: "요청자 본인",
-    entryPath: "내 업무·내 구매 요청 → 보완하기",
+    entryPath: "내 구매 요청 → 보완하기",
     functions: [
       { num: "01", element: "보완 요청 안내", description: "재정부의 보완 요청 사유를 표시한다." },
       { num: "02", element: "보완 품목 수정", description: "수량, 규격, 옵션, 첨부 파일(디자인·인쇄·견적서)을 수정한다." },
@@ -1703,8 +1704,8 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "04", element: "상태 필터", description: "전체 / 기획 중 / 진행 중 / 후속 정리 중 필터를 제공한다.", constraint: "완료 필터 없음. 상태는 관리자가 수동으로 변경하며 자동 계산하지 않음" },
       { num: "05", element: "행사 카드", description: "행사명, 상태 배지, 일시, 장소, 담당 부서/담당자, 마지막 수정 시각, 후속 정리 중이면 남은 항목 요약을 표시한다. 미정 정보는 미정으로 표시한다. 전체 진행률 퍼센트는 표시하지 않는다." },
       { num: "06", element: "행사 진입", description: "행사 카드를 클릭하면 해당 행사의 EVT-02 행사 개요로 이동한다." },
-      { num: "07", element: "행사 더보기", description: "카드 우측 상단 … 버튼으로 행사 정보 수정, 보관, 삭제 action을 제공한다. 삭제는 확인 dialog를 거친다." },
-      { num: "08", element: "빈 상태", description: "행사가 없으면 행사명만으로 공간을 생성할 수 있음을 안내하고 첫 행사 만들기 버튼을 제공한다." },
+      { num: "07", element: "행사 더보기", description: "카드 우측 상단 … 버튼으로 행사 정보 수정, 보관, 삭제 action을 제공한다. 삭제는 확인 dialog를 거친다.", constraint: "회장단·부서장 화면(EVT-00A2)에서만 노출한다. 일반 구성원(EVT-00A)에는 더보기 버튼을 표시하지 않는다." },
+      { num: "08", element: "빈 상태", description: "행사가 없으면 빈 상태를 안내한다. 회장단·부서장에게는 행사명만으로 공간을 생성할 수 있음을 안내하고 첫 행사 만들기 버튼을 제공한다.", constraint: "첫 행사 만들기 버튼은 회장단·부서장(EVT-00A2)에게만 노출하고, 일반 구성원에게는 안내 문구만 표시한다." },
     ],
     exceptions: ["등록된 행사 없음 — 빈 상태", "검색 결과 없음 — 검색 빈 상태와 필터 초기화", "행사 삭제 확인 dialog", "일시·장소 미정 — 미정 텍스트 표시"],
     nextScreens: ["EVT-00B 새 행사 만들기 모달", "EVT-02 행사 개요 대시보드", "REC-01 완료된 행사 목록"],
@@ -1871,7 +1872,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "자동 채움 영역", description: "개요·성과·타임라인·근거 자료는 현재 선택된 행사 기록에서 자동으로 채우며 편집하지 않는다.", constraint: "다른 행사의 값을 섞지 않는다. 참석·예산 등 연결 데이터가 없으면 임의 수치 대신 `집계 전`·`연결 데이터 없음`으로 표시한다" },
       { num: "02", element: "현장 운영 작성", description: "실제 진행 순서, 인력 배치, 돌발 상황과 대응을 입력한다." },
       { num: "03", element: "회고 작성", description: "잘된 점, 미흡했던 점과 원인, 다음 행사 개선안을 각각 입력한다.", constraint: "개선안은 다음 담당 부서를 함께 지정한다" },
-      { num: "04", element: "인수인계 작성", description: "AI가 행사 기록을 바탕으로 재사용 자산, 협력처·담당자, 주의사항, 다음 담당자 초안을 생성하고, 작성자가 검토·수정해 확정한다.", constraint: "기록에 없는 내용을 임의로 만들지 않으며 사람 검토·확인 없이는 발행하지 않는다" },
+      { num: "04", element: "인수인계 작성", description: "AI가 행사 기록을 바탕으로 재사용 자산, 협력처·담당자, 부서별 체크리스트, 주의사항, 다음 담당자 초안을 생성하고, 작성자가 검토·수정해 확정한다.", constraint: "기록에 없는 내용을 임의로 만들지 않으며 사람 검토·확인 없이는 발행하지 않는다" },
       { num: "05", element: "발행 조건", description: "현장 운영·회고·인수인계·다음 담당자 충족 여부를 체크리스트로 표시한다.", constraint: "조건 미충족 시 발행할 수 없다" },
       { num: "06", element: "검토 요청", description: "검토자를 지정해 검토 중 상태로 전환한다." },
       { num: "07", element: "검토 의견", description: "검토자가 의견을 남긴다." },
@@ -2864,7 +2865,8 @@ function FIN00() {
   return (
     <DesktopShell
       activeSidebar="재정"
-      title="재정"
+      breadcrumb={["재정", "전체 재정 현황"]}
+      title="전체 재정 현황"
       actions={
         <div className="flex items-center gap-4 text-xs">
           <div className="flex flex-col items-end">
@@ -4727,7 +4729,7 @@ function ORG03A() {
   return (
     <DesktopShell
       activeSidebar="조직 관리"
-      breadcrumb={["조직 관리", "기본 조직"]}
+      breadcrumb={["조직 관리", "부서 및 구성원"]}
       title="제12대 소프트웨어융합대학 학생회"
       actions={<>
         {canInviteMember && <Btn variant="secondary" size="sm" onClick={() => navigateTo("ORG-03C")}><Users className="w-3.5 h-3.5" /> 구성원 초대</Btn>}
@@ -4785,7 +4787,7 @@ function ORG03B() {
   return (
     <DesktopShell
       activeSidebar="조직 관리"
-      breadcrumb={["조직 관리", "기본 조직"]}
+      breadcrumb={["조직 관리", "부서 및 구성원"]}
       title="제12대 소프트웨어융합대학 학생회"
       actions={<><Btn variant="secondary" size="sm" onClick={() => navigateTo("ORG-03C")}><Users className="w-3.5 h-3.5" /> 구성원 초대</Btn><Btn variant="primary" size="sm">완료</Btn></>}
     >
@@ -4848,7 +4850,7 @@ function ORG03C() {
   return (
     <DesktopShell
       activeSidebar="조직 관리"
-      breadcrumb={["조직 관리", "기본 조직"]}
+      breadcrumb={["조직 관리", "부서 및 구성원"]}
       title="제12대 소프트웨어융합대학 학생회"
       actions={<><Btn variant="secondary" size="sm" onClick={() => navigateTo("ORG-03A")}><ArrowLeft className="w-3.5 h-3.5" /> 조직 관리로</Btn></>}
     >
@@ -4999,7 +5001,7 @@ function ORG00() {
     <DesktopShell
       activeSidebar="조직 관리"
       breadcrumb={["조직 관리"]}
-      title="조직 관리"
+      title="조직 관리 홈"
     >
       <div className="p-8 max-w-4xl mx-auto flex flex-col gap-5">
         <p className="text-sm text-gray-500">관리할 영역을 선택하세요.</p>
@@ -5857,7 +5859,7 @@ function EventListScreen({ manager = false }: { manager?: boolean }) {
         title="행사"
         actions={
           <>
-            <button className="text-xs text-blue-600 hover:underline mr-2">완료된 행사 보기 →</button>
+            <button onClick={() => navigateTo("REC-01")} className="text-xs text-blue-600 hover:underline mr-2">완료된 행사 보기 →</button>
             {manager && (
               <Btn variant="primary" size="sm" onClick={() => setModalOpen(true)}>
                 <Plus className="w-3.5 h-3.5" /> 새 행사 만들기
@@ -5906,12 +5908,14 @@ function EventListScreen({ manager = false }: { manager?: boolean }) {
                 <Calendar className="w-6 h-6 text-gray-400" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-gray-700 mb-1">아직 만든 행사가 없습니다</p>
-                <p className="text-xs text-gray-400">행사명만 입력하면 행사 공간을 만들고 회의와 업무부터 시작할 수 있습니다.</p>
+                <p className="text-sm font-semibold text-gray-700 mb-1">아직 등록된 행사가 없습니다</p>
+                <p className="text-xs text-gray-400">{manager ? "행사명만 입력하면 행사 공간을 만들고 회의와 업무부터 시작할 수 있습니다." : "행사가 등록되면 이곳에서 확인할 수 있습니다. 행사 생성은 회장단·부서장이 담당합니다."}</p>
               </div>
-              <Btn variant="primary" size="sm" onClick={() => setModalOpen(true)}>
-                <Plus className="w-3.5 h-3.5" /> 첫 행사 만들기
-              </Btn>
+              {manager && (
+                <Btn variant="primary" size="sm" onClick={() => setModalOpen(true)}>
+                  <Plus className="w-3.5 h-3.5" /> 첫 행사 만들기
+                </Btn>
+              )}
             </div>
           )}
 
@@ -5938,19 +5942,23 @@ function EventListScreen({ manager = false }: { manager?: boolean }) {
                     className="bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-300 hover:shadow-sm transition-all cursor-pointer relative group"
                     onClick={() => openEvent(evt.id)}
                   >
-                    {/* 더보기 버튼 */}
-                    <button
-                      className="absolute top-4 right-4 p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === evt.id ? null : evt.id); }}
-                    >
-                      <MoreHorizontal className="w-4 h-4" />
-                    </button>
-                    {menuOpen === evt.id && (
-                      <div className="absolute top-10 right-4 z-20 bg-white border border-gray-200 shadow-lg rounded-lg py-1 w-36" onClick={e => e.stopPropagation()}>
-                        <button className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50">행사 정보 수정</button>
-                        <button className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50">행사 보관</button>
-                        <button className="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-red-50">행사 삭제</button>
-                      </div>
+                    {/* 더보기 버튼 — 행사 정보 수정·보관·삭제는 운영진(회장단·부서장)에게만 노출 */}
+                    {manager && (
+                      <>
+                        <button
+                          className="absolute top-4 right-4 p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={e => { e.stopPropagation(); setMenuOpen(menuOpen === evt.id ? null : evt.id); }}
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                        {menuOpen === evt.id && (
+                          <div className="absolute top-10 right-4 z-20 bg-white border border-gray-200 shadow-lg rounded-lg py-1 w-36" onClick={e => e.stopPropagation()}>
+                            <button className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50">행사 정보 수정</button>
+                            <button className="w-full text-left px-4 py-2 text-xs text-gray-700 hover:bg-gray-50">행사 보관</button>
+                            <button className="w-full text-left px-4 py-2 text-xs text-red-500 hover:bg-red-50">행사 삭제</button>
+                          </div>
+                        )}
+                      </>
                     )}
 
                     <div className="pr-6">
@@ -6748,7 +6756,7 @@ function EVT02C() {
         activeSidebar="운영"
         breadcrumb={["운영", "행사", eventInfo.name]}
         title={eventInfo.name}
-        actions={<Btn variant="secondary" size="sm"><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn>}
+        actions={isEventManager(currentUser) ? <Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-02B")}><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn> : undefined}
         tabs={EVENT_TABS}
         activeTab="개요"
       >
@@ -6808,7 +6816,7 @@ function EVT02D() {
       activeSidebar="운영"
       breadcrumb={["운영", "행사", eventInfo.name]}
       title={eventInfo.name}
-      actions={<Btn variant="secondary" size="sm"><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn>}
+      actions={isEventManager(currentUser) ? <Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-02B")}><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn> : undefined}
       tabs={EVENT_TABS}
       activeTab="개요"
     >
@@ -6970,7 +6978,7 @@ function EVT02E({ hasRemaining = true }: { hasRemaining?: boolean }) {
         activeSidebar="운영"
         breadcrumb={["운영", "행사", eventInfo.name]}
         title={eventInfo.name}
-        actions={<Btn variant="secondary" size="sm"><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn>}
+        actions={isEventManager(currentUser) ? <Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-02B")}><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn> : undefined}
         tabs={EVENT_TABS}
         activeTab="개요"
       >
@@ -10193,6 +10201,7 @@ function REC02AContent() {
   const { navigateTo, currentUser, archives, setArchives, selectedArchiveId } = React.useContext(AppContext);
   const [activeSection, setActiveSection] = useState("operation");
   const [saved, setSaved] = useState(false);
+  const [handoverAi, setHandoverAi] = useState<"none" | "generating" | "drafted">("none");
   const archive = archives.find(item => item.id === selectedArchiveId) ?? archives.find(item => item.archiveStatus !== "발행") ?? archives[0];
   const canWriteArchive = isEventManager(currentUser);
 
@@ -10228,6 +10237,20 @@ function REC02AContent() {
     { id: "timeline", title: "타임라인", value: `행사 ${archive.date} → 완료 처리 ${archive.completedAt} · ${archive.summary}` },
     { id: "source", title: "근거 자료", value: `${perf.tasks} · 회의·문서·구매 연결 데이터 없음` },
   ];
+
+  // 04 인수인계 AI 초안 — 이 행사 기록만 재구성해 뼈대를 채운다. 기록에 없는 자산·연락처·담당자는 만들지 않고 확인 필요로 남긴다.
+  const generateHandoverDraft = () => {
+    setHandoverAi("generating");
+    window.setTimeout(() => {
+      setHandover([
+        `[재사용 자산] ${perf.tasks} 관련 산출물 — 원본 문서에서 확인해 목록화하세요`,
+        `[협력처·담당자] 연결 데이터 없음 — 실제 협력처와 연락처를 직접 입력하세요`,
+        `[부서별 확인 항목] ${archive.manager} 인수인계 항목을 검토해 채우세요`,
+        `[주의사항] 발행 전 원본 기록과 대조가 필요합니다`,
+      ].join("\n"));
+      setHandoverAi("drafted");
+    }, 900);
+  };
 
   const conditions: [string, boolean][] = [
     ["현장 운영 기록", operation.trim().length > 0],
@@ -10403,9 +10426,25 @@ function REC02AContent() {
                 <p className="text-[10px] text-gray-400 mt-0.5">재사용 자산, 협력처·담당자, 부서별 체크리스트, 주의사항</p>
               </div>
               <div className="px-6 py-5 flex flex-col gap-4">
+                {handoverAi === "generating" ? (
+                  <div className="border border-blue-200 bg-blue-50 rounded-lg p-4 flex items-center justify-center gap-2.5">
+                    <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
+                    <p className="text-xs font-medium text-blue-700">행사 기록을 바탕으로 인수인계 초안을 작성하는 중…</p>
+                  </div>
+                ) : (
+                  <div className="flex items-start justify-between gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                    <p className="text-[10px] text-gray-500 leading-5 flex-1">
+                      AI 초안은 이 행사의 업무·회의·문서·정산 기록만 재구성하며, 기록에 없는 자산·연락처·담당자를 새로 만들지 않습니다. 생성 후 반드시 검토·수정해 확정하세요.
+                    </p>
+                    <Btn variant="secondary" size="sm" onClick={generateHandoverDraft}><Sparkles className="w-3.5 h-3.5" /> {handover.trim() ? "AI 초안 다시 생성" : "AI 초안 생성"}</Btn>
+                  </div>
+                )}
+                {handoverAi === "drafted" && (
+                  <span className="flex items-center gap-1.5 text-[10px] text-yellow-700"><AlertCircle className="w-3 h-3" /> AI 초안입니다. 기록에 없는 내용이 없는지 검토하고 수정한 뒤 확정하세요.</span>
+                )}
                 <textarea
                   value={handover}
-                  onChange={e => setHandover(e.target.value)}
+                  onChange={e => { setHandover(e.target.value); if (handoverAi === "drafted") setHandoverAi("none"); }}
                   placeholder="예) 안내 포스터 원본 파일 재사용 가능 / 다과 납품: 새봄상사 031-111-1111 / 강당 사용은 2주 전 승인 필요"
                   className="w-full h-24 border border-gray-300 rounded-lg p-3 text-xs leading-5 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400"
                 />
@@ -11259,6 +11298,8 @@ function EVT05() {
           )}
         </div>
       </>}
+      tabs={EVENT_TABS}
+      activeTab="인원 관리"
     >
       <div className="flex h-full">
         <div className="flex-1 overflow-auto">
@@ -11637,7 +11678,7 @@ function FINLEDGER01() {
           </div>
           <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
             <p className="text-[10px] text-gray-400">2026년 7월 · 총 42건 중 최근 10건 표시</p>
-            <p className="text-[10px] text-gray-400">증빙 처리와 정산은 재정부·회장단이 증빙 관리에서 진행합니다.</p>
+            <p className="text-[10px] text-gray-400">증빙 처리와 정산은 재정부·회장단이 각 행사 재정의 ‘증빙 필요’ 단계(결제·증빙 정리)에서 진행합니다.</p>
           </div>
         </div>
       </div>
@@ -11893,7 +11934,7 @@ function FINREQ01() {
   };
 
   return (
-    <DesktopShell activeSidebar="운영" title="구매 요청 작성·수정" breadcrumb={["운영", "행사", "2026 체육대회", "재정", "구매 요청 작성"]}>
+    <DesktopShell activeSidebar="운영" title="구매 요청 작성·수정" breadcrumb={["운영", "행사", eventInfo.name, "재정", "구매 요청 작성"]}>
       <div className="flex h-full bg-gray-50 overflow-hidden">
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-20">
@@ -12157,7 +12198,7 @@ function FINREQ01() {
 }
 
 function FINREV01() {
-  const { navigateTo, purchaseRequests, setPurchaseRequests } = React.useContext(AppContext);
+  const { navigateTo, purchaseRequests, setPurchaseRequests, eventInfo } = React.useContext(AppContext);
   const sourceReq = purchaseRequests.find(r => r.id === "REQ-001") || purchaseRequests[0];
 
   const [currentTab, setCurrentTab] = useState("품목 검토");
@@ -12273,7 +12314,7 @@ function FINREV01() {
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
       activeSidebar: "운영"
     }}>
-      <DesktopShell title="구매 요청 검토" breadcrumb={["운영", "행사", "2026 체육대회", "재정", "구매 요청 검토"]}>
+      <DesktopShell title="구매 요청 검토" breadcrumb={["운영", "행사", eventInfo.name, "재정", "구매 요청 검토"]}>
         <div className="flex h-full bg-gray-50 overflow-hidden">
           <div className="flex-1 overflow-auto p-8">
             <div className="max-w-5xl mx-auto flex flex-col gap-6 pb-20">
@@ -13056,7 +13097,7 @@ function FINREQ02() {
   ];
 
   return (
-    <DesktopShell activeSidebar="운영" title="구매 요청 상세" breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청", "REQ-001"]}>
+    <DesktopShell activeSidebar="운영" title="구매 요청 상세·진행 상태" breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청", "REQ-001"]}>
       <div className="p-8 flex flex-col gap-6 max-w-5xl mx-auto pb-20">
         {/* 진행 단계 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
@@ -13253,6 +13294,7 @@ function FINSUP01() {
 }
 
 function FINPROC01() {
+  const { eventInfo } = React.useContext(AppContext);
   const orders = [
     {
       vendor: "다이소 온라인몰", items: [
@@ -13281,7 +13323,7 @@ function FINPROC01() {
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
       activeSidebar: "운영"
     }}>
-      <DesktopShell title="구매·발주 처리" breadcrumb={["운영", "행사", "2026 체육대회", "재정", "구매·발주 처리"]}>
+      <DesktopShell title="구매·발주 처리" breadcrumb={["운영", "행사", eventInfo.name, "재정", "구매·발주 처리"]}>
         <div className="p-8 flex flex-col gap-6 max-w-5xl mx-auto pb-20">
           {/* 요약 */}
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -13348,6 +13390,7 @@ function FINPROC01() {
 }
 
 function FINEVID01() {
+  const { eventInfo } = React.useContext(AppContext);
   const payments = [
     {
       id: "PAY-001", vendor: "다이소 온라인몰", paidDate: "2026-03-08", paidBy: "김바다", method: "법인카드",
@@ -13385,7 +13428,7 @@ function FINEVID01() {
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
       activeSidebar: "운영"
     }}>
-      <DesktopShell title="결제·증빙 정리" breadcrumb={["운영", "행사", "2026 체육대회", "재정", "결제·증빙 정리"]}>
+      <DesktopShell title="결제·증빙 정리" breadcrumb={["운영", "행사", eventInfo.name, "재정", "결제·증빙 정리"]}>
         <div className="p-8 flex flex-col gap-6 max-w-5xl mx-auto pb-20">
           {/* 요약 */}
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex items-start justify-between">
