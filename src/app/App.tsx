@@ -32,11 +32,11 @@ const SCREENS: Screen[] = [
   { id: "OPS-MEET-01A", label: "전체 회의 — 일반 참가자", group: "운영 — 회의" },
   { id: "OPS-MEET-01B", label: "전체 회의 — 진행 권한자", group: "운영 — 회의" },
   { id: "OPS-MEET-01C", label: "전체 회의 — 회의 생성 가능", group: "운영 — 회의" },
+  { id: "OPS-MEET-01D", label: "전체 회의 — 미참가자", group: "운영 — 회의" },
   { id: "OPS-MEET-02", label: "회의 생성·수정", group: "운영 — 회의" },
   { id: "OPS-MEET-03A", label: "예정 회의 상세 — 일반 참가자", group: "운영 — 회의" },
   { id: "OPS-MEET-03B", label: "예정 회의 관리 — 생성자", group: "운영 — 회의" },
   { id: "OPS-MEET-03C", label: "예정 회의 상세 — 진행 권한자", group: "운영 — 회의" },
-  { id: "OPS-MEET-04A", label: "진행 권한 현황 — 진행 권한자", group: "운영 — 회의" },
   { id: "OPS-MEET-04B", label: "진행 권한 관리 — 회의 생성자", group: "운영 — 회의" },
   { id: "OPS-MEET-05A", label: "진행 중 회의 — 일반 참가자", group: "운영 — 회의" },
   { id: "OPS-MEET-05B", label: "진행 중 회의 — 진행 권한자", group: "운영 — 회의" },
@@ -68,21 +68,21 @@ const SCREENS: Screen[] = [
   { id: "EVT-05B", label: "기존 설문 교체 모달", group: "운영 — 행사" },
   { id: "EVT-TASK-01", label: "행사 업무 — 칸반 보드", group: "운영 — 행사" },
   { id: "EVT-TASK-02", label: "업무 상세 — 관련 문서·결과물", group: "운영 — 행사" },
-  { id: "EVT-FIN-01", label: "행사 재정 — 개요", group: "운영 — 행사" },
   { id: "EVT-MEET-01", label: "행사 관련 회의", group: "운영 — 행사" },
   { id: "EVT-SCHED-01", label: "행사 일정", group: "운영 — 행사" },
   { id: "EVT-DOC-01", label: "행사 문서", group: "운영 — 행사" },
-  { id: "MY-REQ-01", label: "내 구매 요청 — 행사 재정", group: "운영 — 행사" },
+  { id: "EVT-FIN-01", label: "행사 재정 — 개요", group: "운영 — 행사 · 재정" },
+  { id: "MY-REQ-01", label: "내 구매 요청 — 행사 재정", group: "운영 — 행사 · 재정" },
+  { id: "FIN-REQ-01", label: "구매 요청 작성·수정", group: "운영 — 행사 · 재정" },
+  { id: "FIN-REQ-02", label: "구매 요청 상세·진행 상태", group: "운영 — 행사 · 재정" },
+  { id: "FIN-SUP-01", label: "보완 요청 확인·재제출", group: "운영 — 행사 · 재정" },
+  { id: "FIN-REV-01", label: "구매 요청 검토", group: "운영 — 행사 · 재정" },
+  { id: "FIN-PROC-01", label: "구매·발주 처리", group: "운영 — 행사 · 재정" },
+  { id: "FIN-EVID-01", label: "결제·증빙 정리", group: "운영 — 행사 · 재정" },
   { id: "OPS-CAL-01", label: "캘린더 — 월간 일정", group: "운영 — 캘린더" },
   { id: "FIN-00", label: "전체 재정 현황", group: "재정" },
   { id: "FIN-00B", label: "전체 재정 현황 — 재정부·회장단", group: "재정" },
-  { id: "FIN-REQ-01", label: "구매 요청 작성·수정", group: "재정" },
-  { id: "FIN-REQ-02", label: "구매 요청 상세·진행 상태", group: "재정" },
-  { id: "FIN-REV-01", label: "구매 요청 검토", group: "재정" },
-  { id: "FIN-SUP-01", label: "보완 요청 확인·재제출", group: "재정" },
-  { id: "FIN-PROC-01", label: "구매·발주 처리", group: "재정" },
   { id: "FIN-LEDGER-01", label: "사용 내역", group: "재정" },
-  { id: "FIN-EVID-01", label: "결제·증빙 정리", group: "재정" },
   { id: "REC-01", label: "완료된 행사 목록", group: "기록" },
   { id: "REC-02", label: "행사 아카이브 상세", group: "기록" },
   { id: "REC-02A", label: "아카이브 작성·검토", group: "기록" },
@@ -331,6 +331,11 @@ type CreatedMeeting = {
   participants: number;
   agendas: number;
   docStatus: "작성 전" | "작성 중" | "정리 필요" | "정리 완료" | "취소됨";
+  // 비공개 회의는 선정된 참가자(participantNames)와 생성자에게만 목록에 노출한다.
+  visibility: "public" | "private";
+  // 진행 방식. 혼합은 현장 참석과 온라인 접속을 함께 제공한다.
+  mode: MeetingMode;
+  onlineLink?: string;
   relation: "회의 생성자";
   agendaTitles: string[];
   participantNames: string[];
@@ -369,10 +374,15 @@ type CreatedMeetingAgendaRecord = {
   taskCreatedId?: string;
 };
 
+type MeetingMode = "오프라인" | "온라인" | "혼합";
+
 type MeetingDraft = {
   meetingType: "regular" | "event";
   form: { event: string; name: string; date: string; time: string; place: string };
   purpose: string;
+  isPrivate?: boolean;
+  mode?: MeetingMode;
+  onlineLink?: string;
   savedAt: string;
 };
 
@@ -424,6 +434,7 @@ const DEFAULT_ORGANIZATION_MEMBER_ROLES: OrganizationMemberRole[] = [
   { name: "김민준", dept: "재정부", role: "부서장" },
   { name: "박해랑", dept: "운영부", role: "부원" },
   { name: "정하늘", dept: "운영부", role: "부원" },
+  { name: "박민수", dept: "기획부", role: "부원" },
 ];
 
 const DRAFT_STORAGE_KEYS = {
@@ -600,6 +611,9 @@ type AppContextType = {
   setSelectedEventId: React.Dispatch<React.SetStateAction<string>>;
   selectedCreatedMeetingId: string | null;
   setSelectedCreatedMeetingId: React.Dispatch<React.SetStateAction<string | null>>;
+  // 진행 중 회의를 미참가자 자격으로 열람 참여했는지 여부. 참여 화면의 미참가자 표시에 쓴다.
+  meetingJoinAsNonParticipant: boolean;
+  setMeetingJoinAsNonParticipant: React.Dispatch<React.SetStateAction<boolean>>;
   selectedRecurringTaskId: string | null;
   setSelectedRecurringTaskId: React.Dispatch<React.SetStateAction<string | null>>;
   selectedArchiveId: string | null;
@@ -792,6 +806,8 @@ const AppContext = React.createContext<AppContextType>({
   setCreatedMeetings: () => {},
   selectedCreatedMeetingId: null,
   setSelectedCreatedMeetingId: () => {},
+  meetingJoinAsNonParticipant: false,
+  setMeetingJoinAsNonParticipant: () => {},
   selectedRecurringTaskId: null,
   setSelectedRecurringTaskId: () => {},
   selectedArchiveId: null,
@@ -852,11 +868,12 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "사이드바 운영 → 회의",
     functions: [
       { num: "01", element: "상태 필터·검색", description: "키워드와 전체·예정·진행 중·정리 중·완료·취소 상태로 회의를 좁히고, 일시순 또는 이름순으로 정렬한다. 결과가 없으면 초기화할 수 있다." },
-      { num: "02", element: "회의 카드", description: "이름, 일시·장소, 참가 현황, 안건 수, 나와의 관계(참가자·미참가)를 표시한다. 생성된 예정 회의도 같은 그룹에 즉시 추가되며, 카드에서 해당 회의 정보를 연다." },
-      { num: "03", element: "상태별 버튼", description: "예정=회의 상세 보기, 진행 중·미참가=회의 참가, 진행 중·참가=회의로 돌아가기, 완료·참석=회의록 보기, 완료·불참=회의 요약 확인.", constraint: "핸드오프 버튼 규칙 고정" },
-      { num: "04", element: "새 회의 만들기", description: "이 화면에는 노출하지 않는다.", constraint: "회의 생성은 회장단·부서장만 (권한 매트릭스)" },
+      { num: "02", element: "회의 카드", description: "이름, 일시·장소, 참가 현황, 안건 수, 나와의 관계(참가자·미참가)를 표시한다. 생성된 예정 회의도 같은 그룹에 즉시 추가되며, 카드에서 해당 회의 정보를 연다.", constraint: "비공개 회의는 `비공개` 칩을 함께 표시한다" },
+      { num: "03", element: "상태별 버튼", description: "예정=회의 상세 보기, 진행 중·미참가=회의 참가, 진행 중·참가=회의로 돌아가기, 완료·참석=회의록 보기, 완료·불참=회의 요약 확인.", constraint: "핸드오프 버튼 규칙 고정. 진행 중·미참가에서 회의 참가를 누르면 `참가자가 아닙니다. 그래도 참여하시겠습니까?` 확인을 거친다" },
+      { num: "04", element: "비공개 회의 노출", description: "비공개 회의는 선정된 참가자와 생성자에게만 목록에 표시하고, 그 외 구성원의 전체 회의 목록에서는 제외한다." },
+      { num: "05", element: "새 회의 만들기", description: "이 화면에는 노출하지 않는다.", constraint: "회의 생성은 회장단·부서장만 (권한 매트릭스)" },
     ],
-    exceptions: ["회의 시작·종료·권한 관리 버튼은 일반 참가자에게 노출하지 않는다"],
+    exceptions: ["회의 시작·종료·권한 관리 버튼은 일반 참가자에게 노출하지 않는다", "비공개 회의는 참가자로 선정되지 않은 구성원에게 목록·상세를 노출하지 않는다"],
     nextScreens: ["OPS-MEET-03A 예정 상세", "OPS-MEET-05A 진행 중", "OPS-MEET-07 회의록", "OPS-MEET-08 요약 확인"],
   },
   "OPS-MEET-01B": {
@@ -887,6 +904,20 @@ const SPEC_DATA: Record<string, SpecDef> = {
     exceptions: ["회의 생성 가능 직급이어도 다른 사람이 만든 회의의 정보나 권한을 임의로 변경할 수 없다"],
     nextScreens: ["OPS-MEET-02 회의 생성", "OPS-MEET-03A 참가자 상세", "OPS-MEET-03B 생성자 관리", "OPS-MEET-03C 진행 권한자 상세"],
   },
+  "OPS-MEET-01D": {
+    id: "OPS-MEET-01D", name: "전체 회의 — 미참가자", stateChip: "기본",
+    purpose: "참가자로 초대되지 않은 구성원(박민수, 기획부 부원) 관점에서 전체 회의를 확인하고, 진행 중 회의에 확인을 거쳐 열람 참여한다.",
+    users: "미참가자 (박민수 · 기획부 부원)",
+    entryPath: "사이드바 운영 → 회의",
+    functions: [
+      { num: "01", element: "목록·필터", description: "01A와 동일한 목록 구조. 초대되지 않은 회의는 관계가 미참가·불참으로 표시된다." },
+      { num: "02", element: "미참가 참가 확인", description: "진행 중·미참가 회의에서 회의 참가를 누르면 `참가자가 아닙니다. 그래도 참여하시겠습니까?` 확인을 거쳐 진행 중 회의로 이동한다." },
+      { num: "03", element: "비공개 회의 제외", description: "박민수가 참가자로 선정되지 않은 비공개 회의는 목록에 표시하지 않는다." },
+      { num: "04", element: "열람 참여 표시", description: "확인 후 진행 중 회의에 들어가면 참석 처리 대신 `미참가자` 표시와 참가 현황의 미참가자 항목으로 구분된다." },
+    ],
+    exceptions: ["회의 시작·종료·권한 관리 버튼을 노출하지 않는다", "열람 참여는 참석 처리가 아니다"],
+    nextScreens: ["OPS-MEET-05A 진행 중 회의(열람 참여)", "OPS-MEET-03A 예정 상세", "OPS-MEET-08 완료 요약"],
+  },
   "OPS-MEET-02": {
     id: "OPS-MEET-02", name: "회의 생성·수정", stateChip: "작성",
     purpose: "새 회의를 만들거나 예정 회의의 정보를 수정한다.",
@@ -894,11 +925,13 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "회의 목록(01C) → 새 회의 만들기 / 예정 회의 관리(03B) → 수정",
     functions: [
       { num: "01", element: "기본 정보", description: "회의 이름, 일시, 장소를 입력한다." },
-      { num: "02", element: "참가자 초대", description: "구성원을 검색해 초대 목록을 구성한다." },
-      { num: "03", element: "안건 구성", description: "안건 제목, 예상 시간, 관련 자료를 추가·정렬한다." },
-      { num: "04", element: "회의 만들기", description: "필수값(회의명·일시·장소)을 확인해 예정 회의를 생성하고 권한자용 회의 목록에 즉시 추가한다.", constraint: "생성자는 자동으로 진행 권한자가 된다. 생성 결과는 로컬 상태 데모로 목록에만 반영된다" },
+      { num: "02", element: "진행 방식", description: "오프라인·온라인·혼합 중에서 고른다. 온라인·혼합은 온라인 링크를 입력하며, 혼합은 현장 장소와 온라인 접속을 함께 제공한다. 목록 카드에 온라인·혼합 방식을 칩으로 표시한다." },
+      { num: "03", element: "참가자 초대", description: "구성원을 검색해 초대 목록을 구성한다." },
+      { num: "04", element: "비공개 회의 설정", description: "비공개 토글을 켜면 선정한 참가자와 생성자에게만 회의 목록에 노출된다. 기본값은 공개이며 상태를 문구로 안내한다." },
+      { num: "05", element: "안건 구성", description: "안건 제목, 예상 시간, 관련 자료를 추가·정렬한다." },
+      { num: "06", element: "회의 만들기", description: "필수값(회의명·일시·장소)을 확인해 예정 회의를 생성하고 권한자용 회의 목록에 즉시 추가한다.", constraint: "생성자는 자동으로 진행 권한자가 된다. 생성 결과는 로컬 상태 데모로 목록에만 반영된다" },
     ],
-    exceptions: ["회의명·일시·장소 등 필수값이 없으면 회의를 생성하지 않는다", "임시 저장 초안은 회의 목록과 참가자에게 노출하지 않는다", "회의 생성은 회장단·부서장만 하고, 이미 만든 회의의 수정은 그 회의의 생성자만 한다"],
+    exceptions: ["회의명·일시·장소 등 필수값이 없으면 회의를 생성하지 않는다", "임시 저장 초안은 회의 목록과 참가자에게 노출하지 않는다", "비공개 회의는 선정된 참가자와 생성자에게만 노출한다", "회의 생성은 회장단·부서장만 하고, 이미 만든 회의의 수정은 그 회의의 생성자만 한다"],
     nextScreens: ["OPS-MEET-01C 회의 생성 가능 목록", "OPS-MEET-03B 예정 회의 관리"],
   },
   "OPS-MEET-03A": {
@@ -940,23 +973,11 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "회의 목록 → 예정 회의(진행 권한 보유)",
     functions: [
       { num: "01", element: "회의 시작", description: "OPS-MEET-D01 시작 확인을 거쳐 회의를 진행 중으로 전환한다." },
-      { num: "02", element: "진행 권한 확인", description: "OPS-MEET-04A 읽기 전용 현황으로 이동한다.", constraint: "다른 사람의 권한은 변경할 수 없다" },
+      { num: "02", element: "진행 권한 현황(읽기 전용)", description: "`참가자와 진행 권한` 카드에 진행 권한 보유자를 인라인으로 표시하고, 권한 부여·해제는 회의 생성자만 가능함을 안내한다. 별도 화면으로 이동하지 않는다.", constraint: "진행 권한자는 다른 사람의 권한을 변경할 수 없다. 부여·해제 버튼을 노출하지 않는다" },
       { num: "03", element: "안건·참가 확인", description: "03A와 동일한 정보 열람." },
     ],
     exceptions: ["진행 권한이 회수되었거나 회의가 취소된 경우 시작할 수 없다", "진행 권한만으로 다른 참가자의 권한을 변경할 수 없다"],
-    nextScreens: ["OPS-MEET-D01 시작 확인", "OPS-MEET-04A 진행 권한 현황"],
-  },
-  "OPS-MEET-04A": {
-    id: "OPS-MEET-04A", name: "진행 권한 현황 — 진행 권한자", stateChip: "읽기 전용",
-    purpose: "이 회의의 진행 권한 보유자를 확인한다.",
-    users: "진행 권한자",
-    entryPath: "OPS-MEET-03C → 진행 권한 확인",
-    functions: [
-      { num: "01", element: "권한자 목록", description: "진행 권한을 가진 참가자를 표시한다." },
-      { num: "02", element: "변경 불가 안내", description: "권한 부여·해제는 회의 생성자만 가능함을 안내한다.", constraint: "부여·해제 버튼 노출 금지" },
-    ],
-    exceptions: ["진행 권한 현황은 읽기 전용이며 권한 부여·해제 버튼을 표시하지 않는다"],
-    nextScreens: ["OPS-MEET-03C 예정 상세"],
+    nextScreens: ["OPS-MEET-D01 시작 확인"],
   },
   "OPS-MEET-04B": {
     id: "OPS-MEET-04B", name: "진행 권한 관리 — 회의 생성자", stateChip: "기본",
@@ -981,7 +1002,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "02", element: "안건 전환", description: "안건 선택 시 논의 내용·결정사항·후속 업무가 함께 전환된다.", constraint: "네 영역은 안건에 귀속된 하나의 데이터 단위" },
       { num: "03", element: "논의 내용 공동 작성", description: "참가자 전원이 안건별 기록을 작성한다." },
       { num: "04", element: "결정 의견 추가", description: "의견만 제안한다. 확정·수정은 진행 권한자." },
-      { num: "05", element: "참석 표시", description: "첫 참가 시각을 기록하고 참석 처리됨을 표시한다." },
+      { num: "05", element: "참석 표시", description: "첫 참가 시각을 기록하고 참석 처리됨을 표시한다.", constraint: "미참가자가 확인을 거쳐 열람 참여한 경우 참석 처리됨 대신 `미참가자 · 열람 참여 중`과 상단 `미참가자` 칩을 표시한다" },
     ],
     exceptions: ["회의 종료·안건 진행 버튼을 노출하지 않는다"],
     nextScreens: ["OPS-MEET-06A 정리 중 (회의 종료 시)"],
@@ -1035,7 +1056,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     functions: [
       { num: "01", element: "안건별 회의록", description: "논의 내용과 결정사항, 회의록 정리에서 생성된 실제 후속 업무 카드를 최종본으로 표시한다." },
       { num: "02", element: "후속 업무 열기", description: "안건에 연결된 후속 업무를 선택해 상시 업무 보드의 원래 카드와 상세 패널을 연다." },
-      { num: "03", element: "참석 결과", description: "참석·불참 기록을 표시한다." },
+      { num: "03", element: "참석 결과", description: "참석·불참 기록을 표시한다.", constraint: "미참가자가 열람 참여한 경우 참석·불참 집계와 분리해 `미참가자 · 열람` 항목으로 표시한다" },
       { num: "04", element: "후속 업무 진행 현황", description: "회의에서 생성된 후속 업무의 완료 수와 지연·검토 필요·미배정 업무를 실제 업무 카드 상태로 요약하고, 확인이 필요한 카드를 바로 연다." },
     ],
     exceptions: ["회의록 열람은 참석 처리와 무관하다"],
@@ -1834,7 +1855,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "06", element: "현장 운영", description: "실제 진행 순서, 인력 배치, 돌발 상황과 대응, 운영 변경 사항을 표시한다." },
       { num: "07", element: "근거 자료", description: "업무·회의·문서·정산 요약을 표시하고 각 항목에서 원본으로 이동한다.", constraint: "수치는 발행 시점 스냅샷이며 원본 변경이 이 문서를 바꾸지 않는다" },
       { num: "08", element: "회고", description: "잘된 점, 미흡했던 점과 원인, 다음 행사 개선안을 표시한다.", constraint: "개선안은 다음 담당 부서를 함께 표시" },
-      { num: "09", element: "인수인계 체크리스트", description: "우측 고정 패널에 부서별 확인 항목을 표시한다. 본문에는 재사용 자산, 협력처·담당자, 주의사항, 다음 담당자를 표시한다." },
+      { num: "09", element: "인수인계 체크리스트", description: "우측 고정 패널에 부서별 확인 항목을 표시한다. 본문에는 재사용 자산, 협력처·담당자, 주의사항, 다음 담당자를 표시한다.", constraint: "AI 초안을 REC-02A에서 검토·발행한 결과이며 이 화면에서는 열람만 한다" },
       { num: "10", element: "아카이브 수정", description: "행사 운영 조직 관리자·회장단에게만 REC-02A로 가는 버튼을 노출한다." },
     ],
     exceptions: ["검토 중 상태에서는 확정 전 내용임을 상단에 표시한다", "발행 이력이 있는 문서는 삭제하지 않는다"],
@@ -1850,7 +1871,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "자동 채움 영역", description: "개요·성과·타임라인·근거 자료는 현재 선택된 행사 기록에서 자동으로 채우며 편집하지 않는다.", constraint: "다른 행사의 값을 섞지 않는다. 참석·예산 등 연결 데이터가 없으면 임의 수치 대신 `집계 전`·`연결 데이터 없음`으로 표시한다" },
       { num: "02", element: "현장 운영 작성", description: "실제 진행 순서, 인력 배치, 돌발 상황과 대응을 입력한다." },
       { num: "03", element: "회고 작성", description: "잘된 점, 미흡했던 점과 원인, 다음 행사 개선안을 각각 입력한다.", constraint: "개선안은 다음 담당 부서를 함께 지정한다" },
-      { num: "04", element: "인수인계 작성", description: "재사용 자산, 협력처·담당자, 주의사항과 다음 담당자를 입력한다." },
+      { num: "04", element: "인수인계 작성", description: "AI가 행사 기록을 바탕으로 재사용 자산, 협력처·담당자, 주의사항, 다음 담당자 초안을 생성하고, 작성자가 검토·수정해 확정한다.", constraint: "기록에 없는 내용을 임의로 만들지 않으며 사람 검토·확인 없이는 발행하지 않는다" },
       { num: "05", element: "발행 조건", description: "현장 운영·회고·인수인계·다음 담당자 충족 여부를 체크리스트로 표시한다.", constraint: "조건 미충족 시 발행할 수 없다" },
       { num: "06", element: "검토 요청", description: "검토자를 지정해 검토 중 상태로 전환한다." },
       { num: "07", element: "검토 의견", description: "검토자가 의견을 남긴다." },
@@ -7026,7 +7047,7 @@ function EventWorkspaceShell({
 }
 
 function EVTMEET01() {
-  const { navigateTo, createdMeetings, setSelectedCreatedMeetingId, currentUser, selectedEventId } = React.useContext(AppContext);
+  const { navigateTo, createdMeetings, setSelectedCreatedMeetingId, currentUser, selectedEventId, setMeetingJoinAsNonParticipant } = React.useContext(AppContext);
   // 체육대회 샘플 회의는 SPORTS_EVENT_ID에만 연결한다. 다른 행사는 연결 회의가 없으면 빈 상태를 보여준다.
   const baseMeetings = selectedEventId === SPORTS_EVENT_ID ? [
     { title: "체육대회 운영 점검 회의", date: "2026. 07. 18 (토) 10:00", place: "제1회의실", status: "진행 중", attendees: "참가 8명", screen: "OPS-MEET-05A", variant: "blue" as const },
@@ -7066,7 +7087,7 @@ function EVTMEET01() {
             <div className="bg-white border border-dashed border-gray-200 rounded-xl px-6 py-12 text-center text-xs text-gray-400">아직 이 행사와 연결된 회의가 없습니다.</div>
           )}
           {meetings.map(meeting => (
-            <button key={"id" in meeting ? meeting.id : meeting.title} onClick={() => { if ("id" in meeting) { setSelectedCreatedMeetingId(meeting.id); navigateTo(getCreatedMeetingScreen(meeting, currentUser)); return; } navigateTo(meeting.screen); }} className="w-full text-left bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-sm transition-all">
+            <button key={"id" in meeting ? meeting.id : meeting.title} onClick={() => { setMeetingJoinAsNonParticipant(false); if ("id" in meeting) { setSelectedCreatedMeetingId(meeting.id); navigateTo(getCreatedMeetingScreen(meeting, currentUser)); return; } navigateTo(meeting.screen); }} className="w-full text-left bg-white border border-gray-200 rounded-xl p-4 hover:border-blue-300 hover:shadow-sm transition-all">
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2"><Chip label={meeting.status} variant={meeting.variant} /><span className="text-[10px] text-gray-400">행사 연결 회의</span>{"id" in meeting && <Chip label="새로 생성" variant="gray" />}</div>
@@ -7273,15 +7294,19 @@ function EVTDOC01() {
 
 // ─── OPS-MEET-01A/B 운영 — 전체 회의 ───────────────────────────────────────────
 
-type MeetingListView = "participant" | "facilitator" | "creatorEligible";
+type MeetingListView = "participant" | "facilitator" | "creatorEligible" | "nonParticipant";
 
 function MeetingListScreen({ view = "participant" }: { view?: MeetingListView }) {
-  const { navigateTo, createdMeetings, setSelectedCreatedMeetingId, demoDataMode } = React.useContext(AppContext);
+  const { navigateTo, createdMeetings, setSelectedCreatedMeetingId, demoDataMode, currentUser, setMeetingJoinAsNonParticipant } = React.useContext(AppContext);
   const facilitatorView = view === "facilitator";
   const canCreateMeeting = view === "creatorEligible";
+  const nonParticipantView = view === "nonParticipant";
+  // 미참가자 화면은 박민수(기획부 부원) 관점이다. 비공개 노출 판정도 이 관점을 따른다.
+  const perspectiveName = nonParticipantView ? "박민수" : currentUser.name;
   const [keyword, setKeyword] = useState("");
   const [statusFilter, setStatusFilter] = useState("전체");
   const [sortOrder, setSortOrder] = useState("가까운 순");
+  const [joinConfirmScreen, setJoinConfirmScreen] = useState<string | null>(null);
   const populatedMeetingGroups = [
     {
       name: "정기·상시 회의",
@@ -7289,6 +7314,7 @@ function MeetingListScreen({ view = "participant" }: { view?: MeetingListView })
       nearest: "07.22 (수) 18:00",
       meetings: [
         { name: "학생회 정기 운영회의", status: "예정", time: "2026.07.22 18:00", place: "학생회실 (A204)", owner: "이수현", participants: 12, agendas: 4, docStatus: "작성 전", relation: "참가자" },
+        { name: "회장단 비공개 안건 조율", status: "예정", time: "2026.07.24 17:00", place: "회장실", owner: "김바다", participants: 4, agendas: 3, docStatus: "작성 전", relation: "참가자", visibility: "private", participantNames: ["김바다", "박해랑", "이수현", "김민준"] },
         { name: "7월 예산 검토회의", status: "완료", time: "2026.07.10 14:00", place: "온라인 (Zoom)", owner: "김민준", participants: 5, agendas: 2, docStatus: "정리 완료", relation: "참석" },
       ]
     },
@@ -7297,7 +7323,7 @@ function MeetingListScreen({ view = "participant" }: { view?: MeetingListView })
       count: 2,
       nearest: "07.18 (토) 10:00",
       meetings: [
-        { name: "체육대회 운영 점검 회의", status: "진행 중", time: "2026.07.18 10:00", place: "제1회의실", owner: "박해랑", participants: 8, agendas: 6, docStatus: "작성 중", relation: facilitatorView ? "진행 권한" : canCreateMeeting ? "참석" : "미참가" },
+        { name: "체육대회 운영 점검 회의", status: "진행 중", time: "2026.07.18 10:00", place: "제1회의실", owner: "박해랑", participants: 8, agendas: 6, docStatus: "작성 중", relation: facilitatorView ? "진행 권한" : "참석" },
         { name: "안전 관리 최종 회의", status: "예정", time: "2026.07.25 15:00", place: "학생회실", owner: canCreateMeeting ? "이수현" : "박해랑", participants: 4, agendas: 3, docStatus: "작성 전", relation: facilitatorView ? "진행 권한" : canCreateMeeting ? "회의 생성자" : "참가자" },
       ]
     },
@@ -7318,14 +7344,23 @@ function MeetingListScreen({ view = "participant" }: { view?: MeetingListView })
       ]
     }
   ];
-  const baseMeetingGroups = demoDataMode === "first-use" ? [] : populatedMeetingGroups;
+  const rawMeetingGroups = demoDataMode === "first-use" ? [] : populatedMeetingGroups;
+  // 미참가자(박민수) 화면에서는 샘플 회의의 관계를 미참가·불참으로 바꾼다. 상태에 맞춰 완료·정리 중은 불참, 나머지는 미참가.
+  const baseMeetingGroups = nonParticipantView
+    ? rawMeetingGroups.map((group) => ({ ...group, meetings: group.meetings.map((meeting) => ({ ...meeting, relation: meeting.status === "완료" || meeting.status === "정리 중" ? "불참" : "미참가" })) }))
+    : rawMeetingGroups;
   const meetingGroups = baseMeetingGroups.map((group) => {
     const additions = createdMeetings.filter((meeting) => meeting.group === group.name);
     return additions.length === 0 ? group : { ...group, count: group.count + additions.length, meetings: [...group.meetings, ...additions] };
   });
 
+  // 비공개 회의는 선정된 참가자와 생성자에게만 목록에 노출한다.
+  const isMeetingVisibleToUser = (meeting: { visibility?: string; participantNames?: string[]; owner?: string }) => {
+    if (meeting.visibility !== "private") return true;
+    return (meeting.participantNames ?? []).includes(perspectiveName) || meeting.owner === perspectiveName;
+  };
   const visibleMeetingGroups = meetingGroups.map((group) => {
-    const meetings = group.meetings.filter((meeting) => (statusFilter === "전체" || meeting.status === statusFilter) && meeting.name.includes(keyword.trim())).sort((a, b) => sortOrder === "가까운 순" ? a.time.localeCompare(b.time) : b.time.localeCompare(a.time));
+    const meetings = group.meetings.filter((meeting) => isMeetingVisibleToUser(meeting) && (statusFilter === "전체" || meeting.status === statusFilter) && meeting.name.includes(keyword.trim())).sort((a, b) => sortOrder === "가까운 순" ? a.time.localeCompare(b.time) : b.time.localeCompare(a.time));
     return { ...group, count: meetings.length, meetings };
   }).filter((group) => group.meetings.length > 0);
   const statusVariant = (s: string) => 
@@ -7370,15 +7405,25 @@ function MeetingListScreen({ view = "participant" }: { view?: MeetingListView })
           iconColor: "text-blue-600",
           icon: Plus,
         }
-      : {
-          title: "일반 참가자 화면",
-          description: "초대된 회의의 일정과 참가 상태를 확인합니다.",
-          count: demoDataMode === "first-use" ? "0건" : "확인 필요한 회의 2건",
-          box: "bg-white border-gray-200",
-          iconBox: "bg-gray-100",
-          iconColor: "text-gray-500",
-          icon: User,
-        };
+      : view === "nonParticipant"
+        ? {
+            title: "미참가자 화면 · 박민수 (기획부 부원)",
+            description: "참가자로 초대되지 않은 회의도 목록에서 볼 수 있습니다. 진행 중 회의는 참가 확인을 거쳐 열람 참여할 수 있습니다.",
+            count: demoDataMode === "first-use" ? "0건" : "미참가",
+            box: "bg-amber-50 border-amber-100",
+            iconBox: "bg-amber-100",
+            iconColor: "text-amber-600",
+            icon: Info,
+          }
+        : {
+            title: "일반 참가자 화면",
+            description: "초대된 회의의 일정과 참가 상태를 확인합니다.",
+            count: demoDataMode === "first-use" ? "0건" : "확인 필요한 회의 2건",
+            box: "bg-white border-gray-200",
+            iconBox: "bg-gray-100",
+            iconColor: "text-gray-500",
+            icon: User,
+          };
   const ViewIcon = viewContent.icon;
 
   return (
@@ -7450,6 +7495,9 @@ function MeetingListScreen({ view = "participant" }: { view?: MeetingListView })
                           <Chip label={m.status} variant={statusVariant(m.status)} />
                           <h3 className="text-sm font-bold text-gray-900 truncate">{m.name}</h3>
                           {(m.relation === "회의 생성자" || m.relation === "진행 권한") && <Chip label={m.relation} variant="blue" />}
+                          {(m as { visibility?: string }).visibility === "private" && <Chip label="비공개" variant="gray" />}
+                          {(m as { mode?: string }).mode === "혼합" && <Chip label="혼합" variant="green" />}
+                          {(m as { mode?: string }).mode === "온라인" && <Chip label="온라인" variant="blue" />}
                         </div>
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           <div className="flex items-center gap-1.5">
@@ -7497,6 +7545,13 @@ function MeetingListScreen({ view = "participant" }: { view?: MeetingListView })
                                   navigateTo(m.relation === "회의 생성자" ? "OPS-MEET-03B" : m.relation === "진행 권한" ? "OPS-MEET-03C" : "OPS-MEET-03A");
                                   return;
                                 }
+                                // 진행 중 회의에 미참가자가 참가하려는 경우 확인을 받는다.
+                                if (m.status === "진행 중" && m.relation === "미참가") {
+                                  setJoinConfirmScreen(action.screen);
+                                  return;
+                                }
+                                // 미참가자(박민수) 화면에서 연 회의는 완료 회의록·요약 확인까지 미참가자로 이어진다.
+                                setMeetingJoinAsNonParticipant(nonParticipantView);
                                 navigateTo(action.screen);
                               }}
                             >
@@ -7530,6 +7585,19 @@ function MeetingListScreen({ view = "participant" }: { view?: MeetingListView })
           )}
         </div>
       </div>
+
+      {joinConfirmScreen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setJoinConfirmScreen(null)}>
+          <div className="bg-white rounded-2xl shadow-xl w-[420px] p-6" onClick={(event) => event.stopPropagation()}>
+            <h2 className="text-sm font-bold text-gray-900">회의 참가 확인</h2>
+            <p className="text-xs text-gray-600 mt-2 leading-relaxed">회의 참가자가 아닙니다. 그래도 참여하시겠습니까?</p>
+            <div className="mt-5 flex justify-end gap-2">
+              <Btn variant="secondary" size="sm" onClick={() => setJoinConfirmScreen(null)}>취소</Btn>
+              <Btn variant="primary" size="sm" onClick={() => { const target = joinConfirmScreen; setJoinConfirmScreen(null); setMeetingJoinAsNonParticipant(true); navigateTo(target); }}>그래도 참여</Btn>
+            </div>
+          </div>
+        </div>
+      )}
     </DesktopShell>
   );
 }
@@ -7544,6 +7612,10 @@ function OPSMEET01B() {
 
 function OPSMEET01C() {
   return <MeetingListScreen view="creatorEligible" />;
+}
+
+function OPSMEET01D() {
+  return <MeetingListScreen view="nonParticipant" />;
 }
 
 // ─── OPS-MEET-02 회의 생성·수정 ────────────────────────────────────────────────
@@ -7564,6 +7636,10 @@ function OPSMEET02() {
     place: "학생회실 (A204)",
   });
   const [purpose, setPurpose] = useState(meetingDraft?.purpose ?? "행사 전 안전 점검 항목과 담당자를 최종 확정합니다.");
+  const [isPrivate, setIsPrivate] = useState(meetingDraft?.isPrivate ?? false);
+  const [meetingMode, setMeetingMode] = useState<MeetingMode>(meetingDraft?.mode ?? "오프라인");
+  const [onlineLink, setOnlineLink] = useState(meetingDraft?.onlineLink ?? "");
+  const onlineEnabled = meetingMode === "온라인" || meetingMode === "혼합";
   const [draftSaved, setDraftSaved] = useState(false);
 
   const participants = [
@@ -7605,10 +7681,16 @@ function OPSMEET02() {
       </div>
     </div>
   );
+  // 진행 방식별 필수값: 오프라인·혼합은 장소, 온라인은 온라인 링크가 필요하다.
+  const isMeetingFormValid = Boolean(
+    meetingForm.name.trim() && meetingForm.date && meetingForm.time &&
+    (meetingMode === "온라인" || meetingForm.place.trim()) &&
+    (meetingMode !== "온라인" || onlineLink.trim())
+  );
   const createMeeting = () => {
     const name = meetingForm.name.trim();
-    const place = meetingForm.place.trim();
-    if (!name || !meetingForm.date || !meetingForm.time || !place) return;
+    const place = meetingForm.place.trim() || (meetingMode === "온라인" ? "온라인" : "");
+    if (!isMeetingFormValid) return;
     const linkedEventId = meetingType === "event"
       ? activeEventOptions.find(record => record.info.name === meetingForm.event)?.id
       : undefined;
@@ -7625,6 +7707,9 @@ function OPSMEET02() {
         participants: participants.length,
         agendas: agendas.length,
         docStatus: "작성 전",
+        visibility: isPrivate ? "private" : "public",
+        mode: meetingMode,
+        onlineLink: onlineEnabled ? onlineLink.trim() || undefined : undefined,
         relation: "회의 생성자",
         agendaTitles: agendas.map((agenda) => agenda.title),
         participantNames: participants.map((participant) => participant.name),
@@ -7648,7 +7733,7 @@ function OPSMEET02() {
     navigateTo("OPS-MEET-01C");
   };
   const saveDraft = () => {
-    setMeetingDraft({ meetingType, form: meetingForm, purpose, savedAt: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) });
+    setMeetingDraft({ meetingType, form: meetingForm, purpose, isPrivate, mode: meetingMode, onlineLink, savedAt: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) });
     setDraftSaved(true);
   };
 
@@ -7748,11 +7833,17 @@ function OPSMEET02() {
               <Input label="회의 날짜" type="date" required value={meetingForm.date} onChange={(event) => setMeetingForm((form) => ({ ...form, date: event.target.value }))} />
               <Input label="시작 예정 시각" type="time" required value={meetingForm.time} onChange={(event) => setMeetingForm((form) => ({ ...form, time: event.target.value }))} />
               <Input label="종료 예정 시각" type="time" required defaultValue="16:30" />
-              <Input label="진행 방식" select required value="오프라인" selectOptions={["오프라인", "온라인"]} />
+              <Input label="진행 방식" select required value={meetingMode} selectOptions={["오프라인", "온라인", "혼합"]} onChange={(event) => setMeetingMode(event.target.value as MeetingMode)} />
             </div>
+            {meetingMode === "혼합" && (
+              <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex items-start gap-2">
+                <Info className="w-4 h-4 text-blue-500 mt-0.5 shrink-0" />
+                <p className="text-[11px] text-blue-700 leading-relaxed">혼합 회의는 현장 장소에서 진행하면서 온라인 링크로도 접속할 수 있습니다. 장소와 온라인 링크를 모두 입력하세요.</p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-6">
-              <Input label="장소" required value={meetingForm.place} onChange={(event) => setMeetingForm((form) => ({ ...form, place: event.target.value }))} />
-              <Input label="온라인 링크" placeholder="온라인 회의일 때 입력" disabled hint="오프라인 회의에서는 입력하지 않습니다." />
+              <Input label={meetingMode === "온라인" ? "장소 (온라인)" : "장소"} required={meetingMode !== "온라인"} value={meetingForm.place} onChange={(event) => setMeetingForm((form) => ({ ...form, place: event.target.value }))} hint={meetingMode === "온라인" ? "온라인 회의는 장소 대신 온라인 링크를 사용합니다." : undefined} />
+              <Input label="온라인 링크" required={meetingMode === "온라인"} placeholder="온라인 접속 링크를 입력" disabled={!onlineEnabled} value={onlineLink} onChange={(event) => setOnlineLink(event.target.value)} hint={onlineEnabled ? (meetingMode === "혼합" ? "현장 참석자와 함께 온라인 참가자에게 공유할 링크입니다." : "온라인 참가자에게 공유할 링크입니다.") : "오프라인 회의에서는 입력하지 않습니다."} />
             </div>
           </section>
 
@@ -7760,6 +7851,22 @@ function OPSMEET02() {
             <div className="flex items-center justify-between">
               {sectionTitle(4, "참가자와 진행 권한", "참가자를 초대하고 회의를 시작·종료할 진행 권한자를 지정합니다.")}
               <span className="text-xs font-medium text-gray-500">선택됨 {participants.length}명</span>
+            </div>
+
+            <div className={`flex items-center justify-between rounded-lg border px-4 py-3 ${isPrivate ? "border-blue-200 bg-blue-50" : "border-gray-200 bg-gray-50"}`}>
+              <div>
+                <p className="text-xs font-semibold text-gray-800">비공개 회의</p>
+                <p className="text-[11px] text-gray-500 mt-0.5">{isPrivate ? "선정한 참가자와 생성자에게만 회의 목록에 표시됩니다." : "모든 구성원의 전체 회의 목록에 표시됩니다."}</p>
+              </div>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isPrivate}
+                onClick={() => setIsPrivate((previous) => !previous)}
+                className={`relative w-11 h-6 rounded-full transition-colors shrink-0 ${isPrivate ? "bg-blue-600" : "bg-gray-300"}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${isPrivate ? "translate-x-5" : "translate-x-0"}`} />
+              </button>
             </div>
 
             <div className="flex items-center gap-3">
@@ -7866,7 +7973,7 @@ function OPSMEET02() {
             <div className="flex items-center gap-2">
               <Btn variant="text" size="md" className="text-gray-500 px-3" onClick={() => navigateTo("OPS-MEET-01C")}>취소</Btn>
               <Btn variant="secondary" size="md" onClick={saveDraft}>임시 저장</Btn>
-              <Btn variant="primary" size="md" onClick={createMeeting} disabled={!meetingForm.name.trim() || !meetingForm.date || !meetingForm.time || !meetingForm.place.trim()}><Check className="w-4 h-4" /> 회의 만들기</Btn>
+              <Btn variant="primary" size="md" onClick={createMeeting} disabled={!isMeetingFormValid}><Check className="w-4 h-4" /> 회의 만들기</Btn>
             </div>
           </div>
         </div>
@@ -7994,15 +8101,13 @@ function MeetingPeopleCard({ permissionAccess, createdMeeting }: { permissionAcc
           <h2 className="text-sm font-bold text-gray-900">참가자와 진행 권한</h2>
           <p className="text-[11px] text-gray-400 mt-0.5">초대 {createdMeeting ? createdMeeting.participants : 4}명 · 진행 권한 {createdMeeting ? 1 : 2}명</p>
         </div>
-        {permissionAccess && (
-          <Btn
-            variant="secondary"
-            size="sm"
-            onClick={() => navigateTo(permissionAccess === "manage" ? "OPS-MEET-04B" : "OPS-MEET-04A")}
-          >
-            {permissionAccess === "manage" ? <Settings className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-            {permissionAccess === "manage" ? "진행 권한 관리" : "진행 권한 확인"}
+        {permissionAccess === "manage" && (
+          <Btn variant="secondary" size="sm" onClick={() => navigateTo("OPS-MEET-04B")}>
+            <Settings className="w-3.5 h-3.5" /> 진행 권한 관리
           </Btn>
+        )}
+        {permissionAccess === "view" && (
+          <span className="inline-flex items-center gap-1 text-[10px] text-gray-400 whitespace-nowrap"><Eye className="w-3 h-3" /> 읽기 전용</span>
         )}
       </div>
       <div className="divide-y divide-gray-100">
@@ -8023,6 +8128,12 @@ function MeetingPeopleCard({ permissionAccess, createdMeeting }: { permissionAcc
           </div>
         ))}
       </div>
+      {permissionAccess === "view" && (
+        <div className="px-5 py-3 border-t border-gray-100 bg-gray-50 flex items-start gap-2">
+          <Info className="w-3.5 h-3.5 text-gray-400 mt-0.5 shrink-0" />
+          <p className="text-[11px] text-gray-500 leading-relaxed">진행 권한 현황은 읽기 전용입니다. 권한 부여·해제는 회의 생성자만 할 수 있습니다.</p>
+        </div>
+      )}
     </section>
   );
 }
@@ -8393,7 +8504,8 @@ function OPSMEET03A() { return <MeetingScheduledDetail role="participant" />; }
 function OPSMEET03B() { return <MeetingScheduledDetail role="owner" />; }
 function OPSMEET03C() { return <MeetingScheduledDetail role="facilitator" />; }
 
-// ─── OPS-MEET-04A/B 회의 진행 권한 현황·관리 ──────────────────────────────────
+// ─── OPS-MEET-04B 회의 진행 권한 관리(회의 생성자) ───────────────────────────
+// 진행 권한자용 읽기 전용 현황(구 04A)은 OPS-MEET-03C의 참가자 카드에 인라인으로 통합되었다.
 
 function MeetingPermissionScreen({ readOnly = false }: { readOnly?: boolean }) {
   const [department, setDepartment] = useState("전체 부서");
@@ -8529,14 +8641,15 @@ function MeetingPermissionScreen({ readOnly = false }: { readOnly?: boolean }) {
   );
 }
 
-function OPSMEET04A() { return <MeetingPermissionScreen readOnly />; }
 function OPSMEET04B() { return <MeetingPermissionScreen />; }
 
 // ─── OPS-MEET-05A/B 진행 중 회의 ──────────────────────────────────────────────
 
 function MeetingLiveScreen({ facilitator = false }: { facilitator?: boolean }) {
   const [selectedAgenda, setSelectedAgenda] = useState(1);
-  const { navigateTo } = React.useContext(AppContext);
+  const { navigateTo, meetingJoinAsNonParticipant } = React.useContext(AppContext);
+  // 진행 권한자가 아니고 미참가자 자격으로 열람 참여한 경우를 구분한다.
+  const isNonParticipant = !facilitator && meetingJoinAsNonParticipant;
   const currentAgenda = MEETING_DETAIL_AGENDAS[selectedAgenda];
   const currentRecord = MEETING_AGENDA_RECORDS[selectedAgenda];
 
@@ -8548,6 +8661,10 @@ function MeetingLiveScreen({ facilitator = false }: { facilitator?: boolean }) {
       actions={
         facilitator ? (
           <Btn variant="destructive" size="sm" onClick={() => navigateTo("OPS-MEET-D02")}><Check className="w-3.5 h-3.5" /> 회의 종료</Btn>
+        ) : isNonParticipant ? (
+          <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <Info className="w-3.5 h-3.5" /> 미참가자 · 열람 참여 중
+          </div>
         ) : (
           <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
             <Check className="w-3.5 h-3.5" /> 참석 처리됨 · 15:07 참가
@@ -8559,6 +8676,7 @@ function MeetingLiveScreen({ facilitator = false }: { facilitator?: boolean }) {
         <div className="bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
             <Chip label="진행 중" variant="green" />
+            {isNonParticipant && <Chip label="미참가자" variant="orange" />}
             <span className="text-xs font-semibold text-gray-700">15:00 시작</span>
             <span className="text-xs text-gray-400">·</span>
             <span className="text-xs text-gray-500">진행 27분</span>
@@ -8569,6 +8687,7 @@ function MeetingLiveScreen({ facilitator = false }: { facilitator?: boolean }) {
             <Users className="w-3.5 h-3.5 text-gray-400" />
             <span className="text-xs font-semibold text-gray-700">3명 참가 중</span>
             <span className="text-[10px] text-gray-400">/ 초대 4명</span>
+            {isNonParticipant && <span className="text-[10px] font-semibold text-amber-600">· 미참가 열람 1명</span>}
           </div>
         </div>
 
@@ -8712,9 +8831,16 @@ function MeetingLiveScreen({ facilitator = false }: { facilitator?: boolean }) {
                   <div key={person.name} className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${person.joined ? "bg-green-500" : "bg-gray-300"}`} />
                     <span className="text-[11px] text-gray-700 flex-1">{person.name}</span>
-                    <span className="text-[10px] text-gray-400">{person.joined ? `${person.joined} 참가` : "미참가"}</span>
+                    <span className="text-[10px] text-gray-400">{person.joined ? `${person.joined} 참가` : "미참석"}</span>
                   </div>
                 ))}
+                {isNonParticipant && (
+                  <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                    <div className="w-2 h-2 rounded-full bg-amber-400" />
+                    <span className="text-[11px] text-gray-700 flex-1">박민수</span>
+                    <Chip label="미참가자" variant="orange" />
+                  </div>
+                )}
               </div>
             </section>
           </aside>
@@ -9273,7 +9399,7 @@ function OPSMEET06B() {
 // ─── OPS-MEET-07/08 완료 회의록과 불참자 요약 확인 ─────────────────────────────
 
 function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
-  const { recurringTasks, currentUser, setSelectedRecurringTaskId, navigateTo } = React.useContext(AppContext);
+  const { recurringTasks, currentUser, setSelectedRecurringTaskId, navigateTo, meetingJoinAsNonParticipant } = React.useContext(AppContext);
   const [summaryConfirmedAt, setSummaryConfirmedAt] = useState<string | null>(null);
   const meetingSource = "운영 > 회의 · 체육대회 안전 관리 최종 회의";
   const meetingTasks = recurringTasks.filter((task) => task.related.includes(meetingSource));
@@ -9287,6 +9413,19 @@ function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
     setSelectedRecurringTaskId(taskId);
     navigateTo("OPS-TASK-01");
   };
+  // 미참가자(박민수)가 열람 참여로 이 화면에 온 경우 불참자 프레이밍 대신 미참가자로 표시한다.
+  const nonParticipant = meetingJoinAsNonParticipant;
+  const viewerName = nonParticipant ? "박민수" : currentUser.name;
+  const absentTitle = summaryConfirmedAt
+    ? "회의 요약 확인을 완료했습니다"
+    : nonParticipant ? "미참가자로 회의를 열람했습니다" : "회의 요약 확인이 필요합니다";
+  const absentDesc = summaryConfirmedAt
+    ? (nonParticipant
+        ? `${viewerName} 님이 ${summaryConfirmedAt}에 회의 요약을 확인했습니다. 미참가자 열람 기록만 남으며 참석 기록으로 처리되지 않습니다.`
+        : `${viewerName}이 ${summaryConfirmedAt}에 회의 요약을 확인했습니다. 확인 기록은 남지만 참석 기록은 불참으로 유지됩니다.`)
+    : (nonParticipant
+        ? "이 회의의 참가자가 아닙니다. 핵심 결정과 공개된 후속 업무를 열람할 수 있으며, 확인해도 참석 기록으로 처리되지 않습니다."
+        : "회의에 참가하지 않았습니다. 핵심 결정과 나에게 배정된 후속 업무를 확인해 주세요. 확인해도 참석 기록으로 변경되지는 않습니다.");
 
   return (
     <DesktopShell
@@ -9306,11 +9445,11 @@ function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
               {summaryConfirmedAt ? <Check className="w-4 h-4 text-green-600 mt-0.5 shrink-0" /> : <AlertCircle className="w-4 h-4 text-orange-600 mt-0.5 shrink-0" />}
               <div>
                 <div className="flex items-center gap-2">
-                  <p className={`text-xs font-bold ${summaryConfirmedAt ? "text-green-900" : "text-orange-900"}`}>{summaryConfirmedAt ? "회의 요약 확인을 완료했습니다" : "회의 요약 확인이 필요합니다"}</p>
-                  <Chip label="불참" variant="gray" />
+                  <p className={`text-xs font-bold ${summaryConfirmedAt ? "text-green-900" : "text-orange-900"}`}>{absentTitle}</p>
+                  <Chip label={nonParticipant ? "미참가자" : "불참"} variant={nonParticipant ? "orange" : "gray"} />
                   {summaryConfirmedAt && <Chip label="확인 완료" variant="green" />}
                 </div>
-                <p className={`text-[11px] mt-1 ${summaryConfirmedAt ? "text-green-800" : "text-orange-800"}`}>{summaryConfirmedAt ? `${currentUser.name}이 ${summaryConfirmedAt}에 회의 요약을 확인했습니다. 확인 기록은 남지만 참석 기록은 불참으로 유지됩니다.` : "회의에 참가하지 않았습니다. 핵심 결정과 나에게 배정된 후속 업무를 확인해 주세요. 확인해도 참석 기록으로 변경되지는 않습니다."}</p>
+                <p className={`text-[11px] mt-1 ${summaryConfirmedAt ? "text-green-800" : "text-orange-800"}`}>{absentDesc}</p>
               </div>
             </div>
           ) : (
@@ -9337,6 +9476,7 @@ function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
               <div className="flex gap-6 text-right">
                 <div><p className="text-[10px] text-gray-400">참석</p><p className="text-sm font-bold text-gray-800 mt-1">3명</p></div>
                 <div><p className="text-[10px] text-gray-400">불참</p><p className="text-sm font-bold text-gray-800 mt-1">1명</p></div>
+                {nonParticipant && <div><p className="text-[10px] text-amber-600">미참가 열람</p><p className="text-sm font-bold text-amber-700 mt-1">1명</p></div>}
                 <div><p className="text-[10px] text-gray-400">결정</p><p className="text-sm font-bold text-gray-800 mt-1">2건</p></div>
                 <div><p className="text-[10px] text-gray-400">후속 업무</p><p className="text-sm font-bold text-gray-800 mt-1">{meetingTasks.length === 0 ? "없음" : `${completedMeetingTasks.length}/${meetingTasks.length}`}</p></div>
               </div>
@@ -9451,6 +9591,12 @@ function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
                       <Chip label={person.joined ? `${person.joined} 참석` : "불참"} variant={person.joined ? "green" : "gray"} />
                     </div>
                   ))}
+                  {meetingJoinAsNonParticipant && (
+                    <div className="flex items-center gap-2 pt-3 border-t border-gray-100">
+                      <span className="text-[11px] text-gray-700 flex-1">박민수</span>
+                      <Chip label="미참가자 · 열람" variant="orange" />
+                    </div>
+                  )}
                 </div>
               </section>
 
@@ -12125,9 +12271,9 @@ function FINREV01() {
     <AppContext.Provider value={{
       ...React.useContext(AppContext),
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
-      activeSidebar: "재정"
+      activeSidebar: "운영"
     }}>
-      <DesktopShell title="구매 요청 검토" breadcrumb={["재정", "구매 요청", "구매 요청 검토"]}>
+      <DesktopShell title="구매 요청 검토" breadcrumb={["운영", "행사", "2026 체육대회", "재정", "구매 요청 검토"]}>
         <div className="flex h-full bg-gray-50 overflow-hidden">
           <div className="flex-1 overflow-auto p-8">
             <div className="max-w-5xl mx-auto flex flex-col gap-6 pb-20">
@@ -13133,9 +13279,9 @@ function FINPROC01() {
     <AppContext.Provider value={{
       ...React.useContext(AppContext),
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
-      activeSidebar: "재정"
+      activeSidebar: "운영"
     }}>
-      <DesktopShell title="구매·발주 처리" breadcrumb={["재정", "구매 요청", "구매·발주 처리"]}>
+      <DesktopShell title="구매·발주 처리" breadcrumb={["운영", "행사", "2026 체육대회", "재정", "구매·발주 처리"]}>
         <div className="p-8 flex flex-col gap-6 max-w-5xl mx-auto pb-20">
           {/* 요약 */}
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -13237,9 +13383,9 @@ function FINEVID01() {
     <AppContext.Provider value={{
       ...React.useContext(AppContext),
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
-      activeSidebar: "재정"
+      activeSidebar: "운영"
     }}>
-      <DesktopShell title="결제·증빙 정리" breadcrumb={["재정", "증빙 관리", "결제·증빙 정리"]}>
+      <DesktopShell title="결제·증빙 정리" breadcrumb={["운영", "행사", "2026 체육대회", "재정", "결제·증빙 정리"]}>
         <div className="p-8 flex flex-col gap-6 max-w-5xl mx-auto pb-20">
           {/* 요약 */}
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex items-start justify-between">
@@ -15217,11 +15363,11 @@ const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "OPS-MEET-01A": OPSMEET01A,
   "OPS-MEET-01B": OPSMEET01B,
   "OPS-MEET-01C": OPSMEET01C,
+  "OPS-MEET-01D": OPSMEET01D,
   "OPS-MEET-02": OPSMEET02,
   "OPS-MEET-03A": OPSMEET03A,
   "OPS-MEET-03B": OPSMEET03B,
   "OPS-MEET-03C": OPSMEET03C,
-  "OPS-MEET-04A": OPSMEET04A,
   "OPS-MEET-04B": OPSMEET04B,
   "OPS-MEET-05A": OPSMEET05A,
   "OPS-MEET-05B": OPSMEET05B,
@@ -15275,6 +15421,7 @@ export default function App() {
   const [recurringTasks, setRecurringTasks] = useState<RecurringTask[]>(DEFAULT_RECURRING_TASKS);
   const [createdMeetings, setCreatedMeetings] = useState<CreatedMeeting[]>([]);
   const [selectedCreatedMeetingId, setSelectedCreatedMeetingId] = useState<string | null>(null);
+  const [meetingJoinAsNonParticipant, setMeetingJoinAsNonParticipant] = useState(false);
   const [selectedRecurringTaskId, setSelectedRecurringTaskId] = useState<string | null>(null);
   const [selectedArchiveId, setSelectedArchiveId] = useState<string | null>(null);
   const [archives, setArchives] = useState<ArchiveRecord[]>(DEFAULT_ARCHIVES);
@@ -15322,6 +15469,7 @@ export default function App() {
       eventRecords, setEventRecords,
       selectedEventId, setSelectedEventId,
       selectedCreatedMeetingId, setSelectedCreatedMeetingId,
+      meetingJoinAsNonParticipant, setMeetingJoinAsNonParticipant,
       selectedRecurringTaskId, setSelectedRecurringTaskId,
       selectedArchiveId, setSelectedArchiveId,
       archives, setArchives,
