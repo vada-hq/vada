@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import json
-import os
-import shutil
-from collections.abc import Generator, Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import date
 from decimal import Decimal
@@ -15,12 +13,10 @@ import psycopg
 import pytest
 from alembic import command
 from alembic.config import Config
-from docker.errors import DockerException
 from pglast import parse_sql
 from pglast.parser import parse_plpgsql_json
-from sqlalchemy import Connection, Engine, create_engine, inspect, text
+from sqlalchemy import Connection, Engine, inspect, text
 from sqlalchemy.exc import IntegrityError
-from testcontainers.community.postgres import PostgresContainer
 
 API_ROOT = Path(__file__).parents[2]
 
@@ -50,6 +46,8 @@ def test_expand_migration_renders_purchase_request_postgresql_schema() -> None:
         "CREATE TABLE purchase_request_drafts",
         "CREATE TABLE purchase_requests",
         "CREATE TABLE purchase_request_items",
+        "CREATE TABLE purchase_request_submission_idempotency",
+        "CREATE TABLE purchase_request_submission_events",
         "ck_purchase_request_drafts_content_v1",
         "uq_purchase_request_drafts_scope",
         "ck_purchase_requests_review_pending",
@@ -57,6 +55,9 @@ def test_expand_migration_renders_purchase_request_postgresql_schema() -> None:
         "fk_purchase_request_items_request_scope",
         "uq_purchase_request_items_position",
         "ck_purchase_request_items_contract_v1",
+        "fk_purchase_request_submission_idempotency_request_scope",
+        "fk_purchase_request_submission_events_request_scope",
+        "DEFERRABLE INITIALLY DEFERRED",
         "TIMESTAMP WITH TIME ZONE",
     ]
     for fragment in expected_fragments:
@@ -81,42 +82,6 @@ def test_expand_migration_prohibits_purchase_item_reparenting() -> None:
     ]
     for fragment in expected_fragments:
         assert fragment in ddl
-
-
-@pytest.fixture(scope="module")
-def postgres_url() -> Iterator[str]:
-    explicit_url = os.getenv("VADA_TEST_DATABASE_URL")
-    if explicit_url:
-        yield explicit_url
-        return
-
-    if shutil.which("docker") is None:
-        pytest.skip(
-            "PostgreSQL integration blocked: set VADA_TEST_DATABASE_URL to a "
-            "disposable empty database or install Docker with a running daemon."
-        )
-
-    try:
-        with PostgresContainer("postgres:17-alpine", driver="psycopg") as postgres:
-            yield postgres.get_connection_url()
-    except DockerException as error:
-        pytest.skip(f"PostgreSQL integration blocked by Docker: {error}")
-
-
-@pytest.fixture(scope="module")
-def migrated_engine(postgres_url: str) -> Iterator[Engine]:
-    engine = create_engine(postgres_url)
-    existing_tables = set(inspect(engine).get_table_names())
-    assert not existing_tables, (
-        "VADA_TEST_DATABASE_URL must point to a disposable empty PostgreSQL database; "
-        f"found {sorted(existing_tables)}"
-    )
-
-    command.upgrade(_alembic_config(postgres_url), "head")
-    try:
-        yield engine
-    finally:
-        engine.dispose()
 
 
 @contextmanager
