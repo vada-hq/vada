@@ -75,7 +75,7 @@ function checkSourceRef(ref, sourceIds, location, errors) {
   if (!sourceIds.has(ref)) errors.push(`${location}: 존재하지 않는 실행 근거 ${ref}`);
 }
 
-function validateTransitionLog(run, index, sourceIds, executors, globalIds, errors) {
+function validateTransitionLog(run, index, sourceIds, sourceById, executors, globalIds, errors) {
   const location = `/work_runs/${index}`;
   const transitions = run.transition_log ?? [];
   let previousStatus = null;
@@ -100,6 +100,10 @@ function validateTransitionLog(run, index, sourceIds, executors, globalIds, erro
     if (transition.to === "in_progress" && firstStartedAt === null) firstStartedAt = transition.occurred_at;
     if (!executors.has(transition.actor_ref)) errors.push(`${transitionLocation}: 존재하지 않는 실행 주체 ${transition.actor_ref}`);
     checkSourceRef(transition.source_ref, sourceIds, transitionLocation, errors);
+    const sourceCapturedAt = parseTime(sourceById.get(transition.source_ref)?.captured_at);
+    if (!Number.isNaN(occurredAt) && !Number.isNaN(sourceCapturedAt) && occurredAt < sourceCapturedAt) {
+      errors.push(`${transitionLocation}: 상태 전이 시각은 참조 근거 캡처 시각보다 빠를 수 없습니다.`);
+    }
     if (transition.to === "done" && !(executors.get(transition.actor_ref)?.execution_roles ?? []).includes("verifier")) {
       errors.push(`${transitionLocation}: 완료 전이는 독립 검증자가 기록해야 합니다.`);
     }
@@ -113,13 +117,24 @@ function validateTransitionLog(run, index, sourceIds, executors, globalIds, erro
   if (run.completed_at !== expectedCompletedAt) errors.push(`${location}: 완료 시각은 마지막 done 전이와 같아야 합니다.`);
 }
 
-function validateEvidence(run, work, index, executors, globalProofIds, errors) {
+function validateEvidence(run, work, index, executors, globalProofIds, runtimeUpdatedAt, errors) {
   const location = `/work_runs/${index}`;
   const requirements = new Map((work?.completion_evidence ?? []).map((item) => [item.id, item]));
   const verified = new Set();
   for (const [evidenceIndex, evidence] of (run.evidence_instances ?? []).entries()) {
     const evidenceLocation = `${location}/evidence_instances/${evidenceIndex}`;
     globalProofIds.push(evidence.id);
+    const capturedAt = parseTime(evidence.captured_at);
+    const verifiedAt = parseTime(evidence.verified_at);
+    if (!Number.isNaN(capturedAt) && capturedAt > runtimeUpdatedAt) {
+      errors.push(`${evidenceLocation}: 증거 캡처 시각은 런타임 갱신 시각보다 늦을 수 없습니다.`);
+    }
+    if (!Number.isNaN(capturedAt) && !Number.isNaN(verifiedAt) && verifiedAt < capturedAt) {
+      errors.push(`${evidenceLocation}: 검증 시각은 증거 캡처 시각보다 빠를 수 없습니다.`);
+    }
+    if (!Number.isNaN(verifiedAt) && verifiedAt > runtimeUpdatedAt) {
+      errors.push(`${evidenceLocation}: 증거 검증 시각은 런타임 갱신 시각보다 늦을 수 없습니다.`);
+    }
     const requirement = requirements.get(evidence.requirement_ref);
     if (!requirement) errors.push(`${evidenceLocation}: 존재하지 않는 완료 증거 요구 ${evidence.requirement_ref}`);
     else if (requirement.kind !== evidence.kind) errors.push(`${evidenceLocation}: 완료 증거 종류가 요구와 다릅니다.`);
@@ -170,7 +185,14 @@ export async function validateExecutionRuntime(runtime, { executionPlan, workPla
   const sources = runtime.sources ?? [];
   const sourceIds = new Set(sources.map((item) => item.id));
   const sourceById = new Map(sources.map((item) => [item.id, item]));
+  const runtimeUpdatedAt = parseTime(runtime.updated_at);
   for (const id of duplicates(sources.map((item) => item.id))) errors.push(`실행 근거 ID가 중복됐습니다: ${id}`);
+  for (const [sourceIndex, source] of sources.entries()) {
+    const capturedAt = parseTime(source.captured_at);
+    if (!Number.isNaN(capturedAt) && !Number.isNaN(runtimeUpdatedAt) && capturedAt > runtimeUpdatedAt) {
+      errors.push(`/sources/${sourceIndex}: 근거 캡처 시각은 런타임 갱신 시각보다 늦을 수 없습니다.`);
+    }
+  }
   const executors = new Map((executionPlan?.executors ?? []).map((item) => [item.id, item]));
   const committed = new Map(
     (executionPlan?.work_allocations ?? [])
@@ -200,8 +222,8 @@ export async function validateExecutionRuntime(runtime, { executionPlan, workPla
     const allocation = committed.get(run.work_item_ref);
     if (run.executor_ref !== allocation?.primary_executor_ref) errors.push(`${location}: 실행자가 승인 배정과 다릅니다.`);
     if (!executors.has(run.executor_ref)) errors.push(`${location}: 존재하지 않는 실행자 ${run.executor_ref}`);
-    validateTransitionLog(run, index, sourceIds, executors, transitionIds, errors);
-    validateEvidence(run, workById.get(run.work_item_ref), index, executors, proofIds, errors);
+    validateTransitionLog(run, index, sourceIds, sourceById, executors, transitionIds, errors);
+    validateEvidence(run, workById.get(run.work_item_ref), index, executors, proofIds, runtimeUpdatedAt, errors);
 
     if (executors.get(run.executor_ref)?.kind === "human") {
       for (const transition of run.transition_log ?? []) {
@@ -219,6 +241,21 @@ export async function validateExecutionRuntime(runtime, { executionPlan, workPla
       const blockerLocation = `${location}/blockers/${blockerIndex}`;
       blockerIds.push(blocker.id);
       checkSourceRef(blocker.source_ref, sourceIds, blockerLocation, errors);
+      const openedAt = parseTime(blocker.opened_at);
+      const resolvedAt = parseTime(blocker.resolved_at);
+      const blockerSourceAt = parseTime(sourceById.get(blocker.source_ref)?.captured_at);
+      if (!Number.isNaN(openedAt) && !Number.isNaN(blockerSourceAt) && openedAt < blockerSourceAt) {
+        errors.push(`${blockerLocation}: 차단 시작 시각은 참조 근거 캡처 시각보다 빠를 수 없습니다.`);
+      }
+      if (!Number.isNaN(openedAt) && !Number.isNaN(resolvedAt) && resolvedAt < openedAt) {
+        errors.push(`${blockerLocation}: 차단 해결 시각은 시작 시각보다 빠를 수 없습니다.`);
+      }
+      if (!Number.isNaN(openedAt) && !Number.isNaN(runtimeUpdatedAt) && openedAt > runtimeUpdatedAt) {
+        errors.push(`${blockerLocation}: 차단 시작 시각은 런타임 갱신 시각보다 늦을 수 없습니다.`);
+      }
+      if (!Number.isNaN(resolvedAt) && !Number.isNaN(runtimeUpdatedAt) && resolvedAt > runtimeUpdatedAt) {
+        errors.push(`${blockerLocation}: 차단 해결 시각은 런타임 갱신 시각보다 늦을 수 없습니다.`);
+      }
       if (blocker.status === "open" && blocker.resolved_at !== null) errors.push(`${blockerLocation}: 열린 차단 사유에는 해결 시각을 둘 수 없습니다.`);
       if (blocker.status === "resolved" && blocker.resolved_at === null) errors.push(`${blockerLocation}: 해결된 차단 사유에는 해결 시각이 필요합니다.`);
     }
