@@ -191,6 +191,64 @@ def test_permission_matrix_defaults_every_unlisted_combination_to_deny(
     } == allowed
 
 
+def test_only_draft_owner_match_grants_draft_actions_not_own_list() -> None:
+    actor = actor_facts(department_head_of=frozenset({"department-a"}))
+    scope = authorization_scope(
+        draft_owner_user_id="user-a",
+        result_requester_user_id="user-b",
+    )
+
+    assert is_purchase_request_action_allowed(
+        PurchaseRequestPermission.DRAFT_READ,
+        actor=actor,
+        scope=scope,
+    )
+    assert is_purchase_request_action_allowed(
+        PurchaseRequestPermission.DRAFT_WRITE,
+        actor=actor,
+        scope=scope,
+    )
+    assert is_purchase_request_action_allowed(
+        PurchaseRequestPermission.DRAFT_DELETE,
+        actor=actor,
+        scope=scope,
+    )
+    assert not is_purchase_request_action_allowed(
+        PurchaseRequestPermission.LIST_OWN,
+        actor=actor,
+        scope=scope,
+    )
+
+
+def test_only_result_requester_match_grants_own_list_not_draft_actions() -> None:
+    actor = actor_facts(department_head_of=frozenset({"department-a"}))
+    scope = authorization_scope(
+        draft_owner_user_id="user-b",
+        result_requester_user_id="user-a",
+    )
+
+    assert not is_purchase_request_action_allowed(
+        PurchaseRequestPermission.DRAFT_READ,
+        actor=actor,
+        scope=scope,
+    )
+    assert not is_purchase_request_action_allowed(
+        PurchaseRequestPermission.DRAFT_WRITE,
+        actor=actor,
+        scope=scope,
+    )
+    assert not is_purchase_request_action_allowed(
+        PurchaseRequestPermission.DRAFT_DELETE,
+        actor=actor,
+        scope=scope,
+    )
+    assert is_purchase_request_action_allowed(
+        PurchaseRequestPermission.LIST_OWN,
+        actor=actor,
+        scope=scope,
+    )
+
+
 @pytest.mark.parametrize(
     "permission",
     [
