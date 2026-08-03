@@ -3,12 +3,15 @@ from __future__ import annotations
 import json
 import os
 import shutil
-from collections.abc import Iterator
+from collections.abc import Generator, Iterator
+from contextlib import contextmanager
 from datetime import date
 from decimal import Decimal
+from functools import cache
 from io import StringIO
 from pathlib import Path
 
+import psycopg
 import pytest
 from alembic import command
 from alembic.config import Config
@@ -29,6 +32,7 @@ def _alembic_config(database_url: str | None = None) -> Config:
     return config
 
 
+@cache
 def _render_upgrade_ddl() -> str:
     output = StringIO()
     config = _alembic_config()
@@ -62,6 +66,21 @@ def test_expand_migration_renders_purchase_request_postgresql_schema() -> None:
     assert "DROP TABLE" not in upgrade_sql
     assert "DROP COLUMN" not in upgrade_sql
     assert "RENAME COLUMN" not in upgrade_sql
+
+
+def test_expand_migration_prohibits_purchase_item_reparenting() -> None:
+    ddl = _render_upgrade_ddl()
+
+    expected_fragments = [
+        "CREATE FUNCTION vada_purchase_request_item_r1_prevent_reparenting()",
+        "OLD.organization_id IS DISTINCT FROM NEW.organization_id",
+        "OLD.event_id IS DISTINCT FROM NEW.event_id",
+        "OLD.request_id IS DISTINCT FROM NEW.request_id",
+        "CONSTRAINT = 'ck_purchase_request_items_parent_immutable'",
+        "CREATE TRIGGER purchase_request_items_prevent_reparenting",
+    ]
+    for fragment in expected_fragments:
+        assert fragment in ddl
 
 
 @pytest.fixture(scope="module")
@@ -100,7 +119,22 @@ def migrated_engine(postgres_url: str) -> Iterator[Engine]:
         engine.dispose()
 
 
-def _insert_request(connection: Connection, suffix: str) -> None:
+@contextmanager
+def _raises_constraint(constraint_name: str) -> Generator[None]:
+    with pytest.raises(IntegrityError) as caught:
+        yield
+
+    original_error = caught.value.orig
+    assert isinstance(original_error, psycopg.Error)
+    assert original_error.diag.constraint_name == constraint_name
+
+
+def _insert_request(
+    connection: Connection,
+    suffix: str,
+    *,
+    estimated_total: int = 20000,
+) -> None:
     connection.execute(
         text(
             """
@@ -129,12 +163,16 @@ def _insert_request(connection: Connection, suffix: str) -> None:
                 '행사 운영',
                 'normal',
                 'review_pending',
-                20000,
+                :estimated_total,
                 false
             )
             """
         ),
-        {"request_id": f"request-{suffix}", "needed_date": date(2026, 8, 10)},
+        {
+            "request_id": f"request-{suffix}",
+            "needed_date": date(2026, 8, 10),
+            "estimated_total": estimated_total,
+        },
     )
 
 
@@ -142,14 +180,18 @@ def _insert_item(
     connection: Connection,
     suffix: str,
     *,
+    request_suffix: str | None = None,
     organization_id: str = "org-a",
     item_position: int = 0,
     price_evidence: list[dict[str, str]] | None = None,
     details: dict[str, str] | None = None,
 ) -> None:
-    evidence = price_evidence or [
-        {"type": "product_url", "url": "https://example.test/product"}
-    ]
+    evidence = (
+        [{"type": "product_url", "url": "https://example.test/product"}]
+        if price_evidence is None
+        else price_evidence
+    )
+    details_value = {"vendor": "공급처"} if details is None else details
     connection.execute(
         text(
             """
@@ -190,10 +232,10 @@ def _insert_item(
         {
             "item_id": f"item-{suffix}",
             "organization_id": organization_id,
-            "request_id": f"request-{suffix.split('-')[0]}",
+            "request_id": f"request-{request_suffix or suffix}",
             "item_position": item_position,
             "price_evidence": json.dumps(evidence),
-            "details": json.dumps(details or {"vendor": "공급처"}),
+            "details": json.dumps(details_value),
         },
     )
 
@@ -382,25 +424,75 @@ def test_empty_postgresql_migration_enforces_purchase_request_contract(
         _insert_item(
             connection,
             "valid-cross-org",
+            request_suffix="valid",
             organization_id="org-b",
             item_position=1,
         )
 
     with pytest.raises(IntegrityError), migrated_engine.begin() as connection:
-        _insert_item(connection, "valid-duplicate-position")
-
-    with pytest.raises(IntegrityError), migrated_engine.begin() as connection:
         _insert_item(
             connection,
-            "valid-invalid-evidence",
-            item_position=1,
+            "valid-duplicate-position",
+            request_suffix="valid",
+        )
+
+    with (
+        _raises_constraint("ck_purchase_request_items_contract_v1"),
+        migrated_engine.begin() as connection,
+    ):
+        _insert_request(connection, "invalid-evidence")
+        _insert_item(
+            connection,
+            "invalid-evidence",
             price_evidence=[{"type": "vendor_quote", "note": "견적"}],
         )
 
-    with pytest.raises(IntegrityError), migrated_engine.begin() as connection:
+    with (
+        _raises_constraint("ck_purchase_request_items_contract_v1"),
+        migrated_engine.begin() as connection,
+    ):
+        _insert_request(connection, "invalid-details")
         _insert_item(
             connection,
-            "valid-invalid-details",
-            item_position=1,
+            "invalid-details",
             details={"unknown": "not-approved"},
+        )
+
+
+@pytest.mark.postgres
+def test_purchase_request_item_cannot_be_reparented_without_old_scope_validation(
+    migrated_engine: Engine,
+) -> None:
+    with migrated_engine.begin() as connection:
+        _insert_request(connection, "parent-a")
+        _insert_item(connection, "parent-a")
+        _insert_request(connection, "parent-b")
+        _insert_item(connection, "parent-b")
+
+    with (
+        _raises_constraint("ck_purchase_request_items_parent_immutable"),
+        migrated_engine.begin() as connection,
+    ):
+        connection.execute(
+            text(
+                """
+                UPDATE purchase_requests
+                SET estimated_total = 40000
+                WHERE organization_id = 'org-a'
+                  AND event_id = 'event-a'
+                  AND request_id = 'request-parent-b'
+                """
+            )
+        )
+        connection.execute(
+            text(
+                """
+                UPDATE purchase_request_items
+                SET request_id = 'request-parent-b', item_position = 1
+                WHERE organization_id = 'org-a'
+                  AND event_id = 'event-a'
+                  AND request_id = 'request-parent-a'
+                  AND item_id = 'item-parent-a'
+                """
+            )
         )

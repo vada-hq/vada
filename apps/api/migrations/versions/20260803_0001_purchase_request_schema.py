@@ -546,6 +546,28 @@ $$
 """
 
 
+_CREATE_ITEM_REPARENT_GUARD = """
+CREATE FUNCTION vada_purchase_request_item_r1_prevent_reparenting()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    IF OLD.organization_id IS DISTINCT FROM NEW.organization_id
+       OR OLD.event_id IS DISTINCT FROM NEW.event_id
+       OR OLD.request_id IS DISTINCT FROM NEW.request_id THEN
+        RAISE EXCEPTION
+            USING
+                ERRCODE = '23514',
+                CONSTRAINT = 'ck_purchase_request_items_parent_immutable',
+                MESSAGE = 'purchase request item parent scope is immutable';
+    END IF;
+
+    RETURN NEW;
+END
+$$
+"""
+
+
 def upgrade() -> None:
     op.execute(_CREATE_JSONB_KEYS_FUNCTION)
     op.execute(_CREATE_DRAFT_VALIDATOR)
@@ -793,6 +815,16 @@ def upgrade() -> None:
     )
 
     op.execute(_CREATE_AGGREGATE_GUARD)
+    op.execute(_CREATE_ITEM_REPARENT_GUARD)
+    op.execute(
+        """
+        CREATE TRIGGER purchase_request_items_prevent_reparenting
+        BEFORE UPDATE OF organization_id, event_id, request_id
+        ON purchase_request_items
+        FOR EACH ROW
+        EXECUTE FUNCTION vada_purchase_request_item_r1_prevent_reparenting()
+        """
+    )
     op.execute(
         """
         CREATE CONSTRAINT TRIGGER purchase_requests_require_matching_items
@@ -814,6 +846,11 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
+    op.execute(
+        "DROP TRIGGER purchase_request_items_prevent_reparenting "
+        "ON purchase_request_items"
+    )
+    op.execute("DROP FUNCTION vada_purchase_request_item_r1_prevent_reparenting()")
     op.execute(
         "DROP TRIGGER purchase_request_items_preserve_request_aggregate "
         "ON purchase_request_items"
