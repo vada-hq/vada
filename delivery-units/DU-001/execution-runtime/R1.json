@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R1",
-  "runtime_revision": 7,
+  "runtime_revision": 8,
   "runtime_status": "active",
-  "updated_at": "2026-08-03T23:49:38+09:00",
+  "updated_at": "2026-08-04T00:04:07+09:00",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R1.json",
@@ -95,6 +95,13 @@
       "captured_at": "2026-08-03T23:49:38+09:00",
       "locator": "conversation:2026-08-03:ci-postgresql-verification-policy",
       "content_ko": "제품 책임자는 로컬 저장공간 제약 때문에 Docker를 설치하지 않고 실제 PostgreSQL 통합 검증을 GitHub CI의 일회용 PostgreSQL 서비스에서 수행하는 방식을 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-013",
+      "type": "command_output",
+      "captured_at": "2026-08-04T00:04:07+09:00",
+      "locator": "https://github.com/vada-hq/vada/actions/runs/30825584946/job/91726245670",
+      "content_ko": "GitHub CI의 실제 PostgreSQL 17 서비스에서 마이그레이션은 적용됐고 통합 테스트 2개 중 1개가 통과했습니다. 나머지 1개는 컬럼 조회 결과를 dict로 변환하는 테스트 코드의 TypeError로 실패해 증거를 반려하고 수정 작업을 재개합니다."
     }
   ],
   "work_runs": [
@@ -239,7 +246,7 @@
     {
       "work_item_ref": "WORK:purchase-request-data-schema@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "in_progress",
       "started_at": "2026-08-03T22:11:14+09:00",
       "completed_at": null,
       "transition_log": [
@@ -305,6 +312,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-012",
           "note_ko": "GitHub CI의 일회용 PostgreSQL을 승인된 검증 위치로 지정해 로컬 환경 차단을 해소했고, 실제 CI 결과 검증을 기다립니다."
+        },
+        {
+          "id": "TR-017",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T00:04:07+09:00",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-013",
+          "note_ko": "실제 PostgreSQL CI에서 테스트 코드 결함이 확인돼 제출 증거를 반려하고 최소 수정 후 재검증하도록 작업을 되돌렸습니다."
         }
       ],
       "blockers": [
@@ -335,10 +351,10 @@
           "kind": "automated_test",
           "locator": "git:839b9ff85631b647e4bfcc1272181c24a68be648#apps/api/tests/persistence/test_purchase_request_migration.py",
           "captured_at": "2026-08-03T22:59:50+09:00",
-          "verification_status": "submitted",
-          "verified_by": null,
-          "verified_at": null,
-          "verification_note_ko": null
+          "verification_status": "rejected",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T00:04:07+09:00",
+          "verification_note_ko": "실제 PostgreSQL에서 마이그레이션 적용과 일부 검증은 성공했지만 컬럼 조회 결과 변환 테스트가 TypeError로 실패해 완료 증거로 승인할 수 없습니다."
         }
       ]
     }

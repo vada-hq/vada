@@ -253,8 +253,9 @@ def test_empty_postgresql_migration_enforces_purchase_request_contract(
     } <= set(inspector.get_table_names())
 
     with migrated_engine.connect() as connection:
-        timestamp_columns = dict(
-            connection.execute(
+        timestamp_columns = {
+            row["column_name"]: row["data_type"]
+            for row in connection.execute(
                 text(
                     """
                     SELECT column_name, data_type
@@ -267,8 +268,8 @@ def test_empty_postgresql_migration_enforces_purchase_request_contract(
                       AND column_name IN ('saved_at', 'created_at')
                     """
                 )
-            ).tuples()
-        )
+            ).mappings()
+        }
     assert timestamp_columns == {
         "saved_at": "TIMESTAMP WITH TIME ZONE",
         "created_at": "TIMESTAMP WITH TIME ZONE",
