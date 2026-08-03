@@ -1,0 +1,105 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R2",
+  "runtime_revision": 1,
+  "runtime_status": "active",
+  "updated_at": "2026-08-04T00:32:00+09:00",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R2.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 2,
+    "canonical_sha256": "9af4408f1a1328f2143abae5d89d227c2713e289474f13cb66396fe48975d205"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-04T00:32:00+09:00",
+      "locator": "delivery-units/DU-001/execution-plan/R2.json#EP-DU-001@R2",
+      "content_ko": "제품 책임자가 승인한 DU-001 실행 계획 R2이며 현재 실행 범위의 커밋 작업 네 개와 담당 실행자를 고정합니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:purchase-request-screen-spec@R1",
+      "executor_ref": "EXEC:design-owner",
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-04T00:32:00+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인 계획의 화면 명세 작업을 런타임 추적 대상으로 초기화했습니다. 담당자의 인수 확인 전에는 착수하지 않습니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-authorization-rules@R1",
+      "executor_ref": "EXEC:ai-security-platform",
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-002",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-04T00:32:00+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인 계획의 구매 요청 권한 규칙 작업을 런타임 추적 대상으로 초기화했습니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-submission-transaction@R1",
+      "executor_ref": "EXEC:ai-backend",
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-003",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-04T00:32:00+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인 계획의 원자적 제출 저장 작업을 런타임 추적 대상으로 초기화했습니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-openapi-client-baseline@R1",
+      "executor_ref": "EXEC:ai-technical-design",
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-004",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-04T00:32:00+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인 계획의 OpenAPI·타입 클라이언트 기준선 작업을 런타임 추적 대상으로 초기화했습니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    }
+  ]
+}
