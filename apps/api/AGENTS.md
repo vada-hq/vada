@@ -8,7 +8,8 @@
 - 린트·포맷 검사: `uv run ruff check . && uv run ruff format --check .`
 - 타입 검사: `uv run pyright`
 - 작업자·검증자용 API 범위 검사: 리포 루트에서 `just check-api`
-- 실제 PostgreSQL 테스트가 필요한 작업은 할당 전에 리포 루트에서 `just preflight-postgresql`
+- 실제 PostgreSQL 테스트: 리포 루트에서 `just test-api-postgresql`
+- 로컬 PostgreSQL 검증을 선택한 경우에만 할당 전에 `just preflight-postgresql`을 실행한다. 로컬 실행 수단이 없으면 GitHub CI의 `api / PostgreSQL integration tests` 성공을 필수 완료 증거로 사용한다.
 
 저장소 전체 `just check`는 승인 변경을 통합한 총괄이 한 번 실행한다.
 

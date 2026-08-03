@@ -14,10 +14,10 @@
 | 명령 | 용도 |
 | --- | --- |
 | `just setup` | 최초 1회: 전체 의존성 설치 |
-| `just preflight` / `just preflight-postgresql` | 작업 할당 전 공통 도구 / 실제 PostgreSQL 환경 점검 |
+| `just preflight` / `just preflight-postgresql` | 작업 할당 전 공통 도구 / 선택적 로컬 PostgreSQL 환경 점검 |
 | `just dev-api` | API 개발 서버 (http://localhost:8000) |
 | `just dev-web` | 웹 개발 서버 |
-| `just test` / `just test-api` / `just test-web` | 테스트 |
+| `just test` / `just test-api` / `just test-api-postgresql` / `just test-web` | 전체 / API / 실제 PostgreSQL / 웹 테스트 |
 | `just lint` | 린트 + 포맷 검사 |
 | `just typecheck` | Pyright strict + tsc |
 | `just validate-contracts` | 계약 구조 테스트 + 슬라이스·Notion 매핑 검증 |
@@ -56,7 +56,7 @@
 ## 개발 실행 기준
 
 - 코드 작업 전 [엔지니어링 운영 지도](docs/engineering/README.md)와 작업 경로에서 가장 가까운 `AGENTS.md`를 읽는다.
-- 총괄은 할당 전에 `just preflight`와 작업 패킷의 추가 프로필을 실행한다. 실제 PostgreSQL 증거가 필요한 작업은 `just preflight-postgresql`이 통과하지 않으면 시작하지 않는다.
+- 총괄은 할당 전에 `just preflight`를 실행하고 작업 패킷에 통합 검증 위치(`local` 또는 `ci`)를 명시한다. 실제 PostgreSQL을 로컬에서 검증할 때만 `just preflight-postgresql`을 요구한다. CI 검증을 선택하면 로컬 Docker 없이 착수할 수 있지만 연결된 PostgreSQL CI 작업이 통과하기 전에는 완료할 수 없다.
 - 사용자 동작 변경은 [테스트와 완료 증거](docs/engineering/testing-and-evidence.md)의 RED → GREEN → REFACTOR → CHECK 순서를 따른다. PR에 RED·GREEN·`just check` 증거를 남긴다.
 - 한 작업에는 한 쓰기 주체와 격리된 브랜치·worktree를 사용한다. 선행관계와 공유 변경 경로가 없는 작업만 병렬화한다.
 - 구현 작성자와 완료 검증자를 분리한다. 총괄 에이전트는 최종 diff·계약·문서 영향을 다시 검토하고, 운영 배포·비밀 접근·파괴적 변경은 사람 승인을 받는다.

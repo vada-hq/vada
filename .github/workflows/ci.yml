@@ -58,8 +58,10 @@ jobs:
         run: uv run ruff check . && uv run ruff format --check .
       - name: Typecheck (pyright strict)
         run: uv run pyright
-      - name: Test (pytest)
-        run: uv run pytest
+      - name: Test API except PostgreSQL integration
+        run: uv run pytest -m "not postgres"
+      - name: PostgreSQL integration tests
+        run: uv run pytest -m postgres
 
   web:
     name: web

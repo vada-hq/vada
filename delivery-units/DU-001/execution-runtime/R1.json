@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R1",
-  "runtime_revision": 6,
+  "runtime_revision": 7,
   "runtime_status": "active",
-  "updated_at": "2026-08-03T23:02:35+09:00",
+  "updated_at": "2026-08-03T23:49:38+09:00",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R1.json",
@@ -88,6 +88,13 @@
       "captured_at": "2026-08-03T23:02:35+09:00",
       "locator": "agent-review:du001-contract-fixtures:git-839b9ff",
       "content_ko": "독립 재검토에서 이전 코드 결함과 테스트 결함이 해결됐음을 확인했지만 실제 PostgreSQL 통합 검사는 환경 부재로 실행하지 못해 완료 승인을 보류했습니다."
+    },
+    {
+      "id": "SRC-RUN-012",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T23:49:38+09:00",
+      "locator": "conversation:2026-08-03:ci-postgresql-verification-policy",
+      "content_ko": "제품 책임자는 로컬 저장공간 제약 때문에 Docker를 설치하지 않고 실제 PostgreSQL 통합 검증을 GitHub CI의 일회용 PostgreSQL 서비스에서 수행하는 방식을 승인했습니다."
     }
   ],
   "work_runs": [
@@ -232,7 +239,7 @@
     {
       "work_item_ref": "WORK:purchase-request-data-schema@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "paused",
+      "status": "review",
       "started_at": "2026-08-03T22:11:14+09:00",
       "completed_at": null,
       "transition_log": [
@@ -289,15 +296,24 @@
           "actor_ref": "EXEC:ai-verifier",
           "source_ref": "SRC-RUN-011",
           "note_ko": "코드 재검토는 통과했지만 실제 PostgreSQL 완료 증거가 없어 환경 검증이 가능해질 때까지 보류했습니다."
+        },
+        {
+          "id": "TR-016",
+          "from": "paused",
+          "to": "review",
+          "occurred_at": "2026-08-03T23:49:38+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-012",
+          "note_ko": "GitHub CI의 일회용 PostgreSQL을 승인된 검증 위치로 지정해 로컬 환경 차단을 해소했고, 실제 CI 결과 검증을 기다립니다."
         }
       ],
       "blockers": [
         {
           "id": "BLK-001",
-          "status": "open",
+          "status": "resolved",
           "description_ko": "실제 빈 PostgreSQL에서 마이그레이션과 제약조건을 실행할 수 있는 로컬 실행 수단이 없어 EVID-004 통합 검증이 대기 중입니다.",
           "opened_at": "2026-08-03T23:02:35+09:00",
-          "resolved_at": null,
+          "resolved_at": "2026-08-03T23:49:38+09:00",
           "source_ref": "SRC-RUN-009"
         }
       ],

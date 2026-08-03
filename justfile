@@ -13,7 +13,7 @@ setup:
 preflight:
     pnpm preflight
 
-# 실제 PostgreSQL 검증이 필요한 작업의 실행 환경 검사
+# 실제 PostgreSQL을 로컬에서 검증할 때만 사용하는 실행 환경 검사
 preflight-postgresql:
     pnpm preflight:postgresql
 
@@ -60,6 +60,14 @@ test: test-api test-web
 
 test-api:
     cd apps/api && uv run pytest
+
+# 일회용 실제 PostgreSQL이 준비된 환경(로컬 또는 CI)에서만 실행
+test-api-postgresql: preflight-postgresql
+    cd apps/api && uv run pytest -m postgres
+
+# 실제 PostgreSQL 통합 검사를 제외한 빠른 API 검사
+test-api-fast:
+    cd apps/api && uv run pytest -m "not postgres"
 
 test-web:
     pnpm --filter web test
