@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R2",
-  "runtime_revision": 2,
+  "runtime_revision": 3,
   "runtime_status": "active",
-  "updated_at": "2026-08-04T00:41:02+09:00",
+  "updated_at": "2026-08-04T01:44:59+09:00",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R2.json",
@@ -25,6 +25,90 @@
       "captured_at": "2026-08-04T00:41:02+09:00",
       "locator": "conversation:2026-08-04:du-001-wave-2-runtime-start",
       "content_ko": "제품 책임자가 승인된 DU-001 실행 계획 R2에 따라 착수 가능한 AI 작업의 실행을 명시적으로 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T01:05:00+09:00",
+      "locator": "git:12b0fb735b559655dedae048987bcaac48c34155",
+      "content_ko": "구매 요청 권한 규칙의 최초 구현과 역할·관계 조합 자동 테스트가 독립 검토 대상으로 제출됐습니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "review_record",
+      "captured_at": "2026-08-04T01:10:00+09:00",
+      "locator": "agent-review:du001-authorization:git-12b0fb7",
+      "content_ko": "독립 검토에서 초안 소유자와 요청 소유자를 같은 값으로 고정한 테스트 때문에 두 관계 필드를 맞바꾸는 결함을 잡지 못하는 증거 공백이 발견돼 재작업을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-005",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T01:15:00+09:00",
+      "locator": "git:0d9a7876816bf441a5ca316272b2ee15afba05ad",
+      "content_ko": "초안 소유자와 요청 소유자를 독립된 값으로 검증하고 관계 필드 교환 mutation이 실패하도록 권한 테스트를 보완했습니다."
+    },
+    {
+      "id": "SRC-RUN-006",
+      "type": "review_record",
+      "captured_at": "2026-08-04T01:20:00+09:00",
+      "locator": "agent-review:du001-authorization:git-0d9a787",
+      "content_ko": "독립 재검토에서 관계 필드 교환 mutation 거부, 대상 권한 테스트 34개와 API 검사 통과를 확인했습니다."
+    },
+    {
+      "id": "SRC-RUN-007",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T01:05:00+09:00",
+      "locator": "git:38e98823ca864b4d96d00d22c56cc154686cffd8",
+      "content_ko": "구매 요청과 전 품목의 원자적 저장, 성공 후 초안 제거, 단일 제출 이벤트와 재시도 처리를 구현해 독립 검토 대상으로 제출했습니다."
+    },
+    {
+      "id": "SRC-RUN-008",
+      "type": "review_record",
+      "captured_at": "2026-08-04T01:12:00+09:00",
+      "locator": "agent-review:du001-submission:git-38e9882",
+      "content_ko": "독립 검토에서 동시성 테스트의 장벽이 실제 데이터베이스 INSERT 전에 위치해 두 제출의 실질적 중첩을 증명하지 못하는 공백이 발견돼 재작업을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-009",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T01:18:00+09:00",
+      "locator": "git:bfde99495122c62864a63fc28fda6eb4e0c0decd",
+      "content_ko": "SQLAlchemy의 실제 제출 원장 INSERT 지점에서 두 스레드를 동기화해 같은 키의 동시 제출이 데이터베이스 실행 단계에서 겹침을 증명하도록 테스트를 보완했습니다."
+    },
+    {
+      "id": "SRC-RUN-010",
+      "type": "review_record",
+      "captured_at": "2026-08-04T01:24:00+09:00",
+      "locator": "agent-review:du001-submission:git-bfde994",
+      "content_ko": "독립 재검토에서 실제 INSERT 지점의 두 스레드 진입과 로컬 API 검사를 확인하고 실제 PostgreSQL CI만 남긴 조건부 통과로 판정했습니다."
+    },
+    {
+      "id": "SRC-RUN-011",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T01:05:00+09:00",
+      "locator": "git:deee4439568fb524e33ba4a2360c34297c93faf8",
+      "content_ko": "승인된 여섯 HTTP 계약의 OpenAPI 3.1.1 입력, 결정적 타입 클라이언트 생성과 드리프트 검증을 구현해 독립 검토 대상으로 제출했습니다."
+    },
+    {
+      "id": "SRC-RUN-012",
+      "type": "review_record",
+      "captured_at": "2026-08-04T01:25:00+09:00",
+      "locator": "agent-review:du001-openapi-client:git-deee443",
+      "content_ko": "독립 검증자가 추적 필드·동작·Problem Details·생성물 드리프트 mutation을 모두 탐지하고 두 번의 새 생성 결과가 커밋 산출물과 바이트 단위로 동일함을 확인했습니다."
+    },
+    {
+      "id": "SRC-RUN-013",
+      "type": "command_output",
+      "captured_at": "2026-08-04T01:42:22+09:00",
+      "locator": "https://github.com/vada-hq/vada/actions/runs/30833314963",
+      "content_ko": "통합 PR의 계약·API·웹 CI가 모두 성공했고 API 작업의 실제 PostgreSQL 17 통합 테스트 단계도 성공했습니다."
+    },
+    {
+      "id": "SRC-RUN-014",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T01:44:59+09:00",
+      "locator": "git:f0f65f4977e93d887bac2954fdb8e8fd03a44f33",
+      "content_ko": "세 구현과 재작업 결과가 하나의 통합 PR로 결합돼 전체 검사 통과 후 main에 squash 병합됐습니다."
     }
   ],
   "work_runs": [
@@ -51,9 +135,9 @@
     {
       "work_item_ref": "WORK:purchase-request-authorization-rules@R1",
       "executor_ref": "EXEC:ai-security-platform",
-      "status": "in_progress",
+      "status": "done",
       "started_at": "2026-08-04T00:41:02+09:00",
-      "completed_at": null,
+      "completed_at": "2026-08-04T01:44:59+09:00",
       "transition_log": [
         {
           "id": "TR-002",
@@ -72,17 +156,65 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-002",
           "note_ko": "격리된 작업 경로에서 보안·플랫폼 AI가 구매 요청 권한 규칙 구현을 시작하도록 위임합니다."
+        },
+        {
+          "id": "TR-008",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T01:05:00+09:00",
+          "actor_ref": "EXEC:ai-security-platform",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "권한 규칙 구현과 역할·관계 조합 테스트를 독립 검토 대상으로 제출했습니다."
+        },
+        {
+          "id": "TR-009",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T01:10:00+09:00",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-004",
+          "note_ko": "초안 소유자와 요청 소유자의 관계를 바꾸는 결함을 잡지 못하는 테스트 공백을 발견해 재작업으로 되돌렸습니다."
+        },
+        {
+          "id": "TR-010",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T01:15:00+09:00",
+          "actor_ref": "EXEC:ai-security-platform",
+          "source_ref": "SRC-RUN-005",
+          "note_ko": "관계 필드 교환 mutation을 실패시키는 RED-GREEN 보완을 마치고 재검토를 요청했습니다."
+        },
+        {
+          "id": "TR-011",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T01:44:59+09:00",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-014",
+          "note_ko": "독립 재검토와 통합 CI가 모두 통과한 구현이 main에 병합돼 EVID-013을 승인했습니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-013",
+          "kind": "security_check",
+          "locator": "git:f0f65f4977e93d887bac2954fdb8e8fd03a44f33#apps/api/tests/finance/test_authorization.py",
+          "captured_at": "2026-08-04T01:44:59+09:00",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T01:44:59+09:00",
+          "verification_note_ko": "부서장·재정부·일반 구성원·소유자·다른 조직 조합을 독립 재검토했고 관계 필드 교환 mutation 거부, 대상 34개 테스트와 통합 CI 성공을 확인했습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-submission-transaction@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "in_progress",
+      "status": "done",
       "started_at": "2026-08-04T00:41:02+09:00",
-      "completed_at": null,
+      "completed_at": "2026-08-04T01:44:59+09:00",
       "transition_log": [
         {
           "id": "TR-003",
@@ -101,17 +233,65 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-002",
           "note_ko": "격리된 작업 경로에서 백엔드 AI가 구매 요청의 원자적 제출 저장 구현을 시작하도록 위임합니다."
+        },
+        {
+          "id": "TR-012",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T01:05:00+09:00",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-007",
+          "note_ko": "원자적 제출 저장 구현과 실제 PostgreSQL 통합 테스트를 독립 검토 대상으로 제출했습니다."
+        },
+        {
+          "id": "TR-013",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T01:12:00+09:00",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-008",
+          "note_ko": "동시 제출 테스트가 실제 데이터베이스 INSERT의 중첩을 증명하지 못해 재작업으로 되돌렸습니다."
+        },
+        {
+          "id": "TR-014",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T01:18:00+09:00",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-009",
+          "note_ko": "실제 원장 INSERT 지점에서 두 제출의 중첩을 증명하도록 테스트를 보완하고 재검토를 요청했습니다."
+        },
+        {
+          "id": "TR-015",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T01:44:59+09:00",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-014",
+          "note_ko": "독립 재검토와 실제 PostgreSQL CI가 모두 통과한 구현이 main에 병합돼 EVID-014를 승인했습니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-002",
+          "requirement_ref": "EVID-014",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30833314963/job/91752313419",
+          "captured_at": "2026-08-04T01:42:22+09:00",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T01:44:59+09:00",
+          "verification_note_ko": "실제 PostgreSQL 17에서 원자적 저장·서버 계산·동시 재시도·성공 후 초안 제거·단일 이벤트·실패 롤백을 포함한 통합 테스트 단계가 성공했습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-openapi-client-baseline@R1",
       "executor_ref": "EXEC:ai-technical-design",
-      "status": "in_progress",
+      "status": "done",
       "started_at": "2026-08-04T00:41:02+09:00",
-      "completed_at": null,
+      "completed_at": "2026-08-04T01:44:59+09:00",
       "transition_log": [
         {
           "id": "TR-004",
@@ -130,10 +310,40 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-002",
           "note_ko": "격리된 작업 경로에서 기술 설계 AI가 OpenAPI·타입 클라이언트 기준선 구현을 시작하도록 위임합니다."
+        },
+        {
+          "id": "TR-016",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T01:05:00+09:00",
+          "actor_ref": "EXEC:ai-technical-design",
+          "source_ref": "SRC-RUN-011",
+          "note_ko": "OpenAPI 입력과 결정적 타입 클라이언트 생성·드리프트 검증을 독립 검토 대상으로 제출했습니다."
+        },
+        {
+          "id": "TR-017",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T01:44:59+09:00",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-014",
+          "note_ko": "독립 mutation 검증과 통합 CI가 모두 통과한 생성 기준선이 main에 병합돼 EVID-012를 승인했습니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-003",
+          "requirement_ref": "EVID-012",
+          "kind": "automated_test",
+          "locator": "git:f0f65f4977e93d887bac2954fdb8e8fd03a44f33#scripts/validate-purchase-request-openapi-client.test.mjs",
+          "captured_at": "2026-08-04T01:44:59+09:00",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T01:44:59+09:00",
+          "verification_note_ko": "여섯 동작의 추적 확장과 Problem Details 누락, 입력·설정·생성물 드리프트 mutation을 모두 탐지했고 두 번의 새 생성 결과와 통합 CI 성공을 확인했습니다."
+        }
+      ]
     }
   ]
 }
