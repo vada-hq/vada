@@ -75,10 +75,12 @@ jobs:
           cache: pnpm
       - name: Install (lockfile 검증 포함)
         run: pnpm install --frozen-lockfile
+      - name: Verify deterministic OpenAPI client generation
+        run: pnpm test:openapi-client && pnpm validate:openapi-client
       - name: Lint (eslint)
         run: pnpm --filter web lint
       - name: Typecheck (tsc)
-        run: pnpm --filter web typecheck
+        run: pnpm --filter @vada/api-client typecheck && pnpm --filter web typecheck
       - name: Test (vitest)
         run: pnpm --filter web test
       - name: Build

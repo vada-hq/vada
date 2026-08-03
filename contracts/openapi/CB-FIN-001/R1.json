@@ -1,0 +1,2114 @@
+{
+  "openapi": "3.1.1",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "VADA Purchase Request API",
+    "version": "CB-FIN-001-R1",
+    "description": "승인된 행사 구매 요청 HTTP 계약의 생성 클라이언트 입력입니다."
+  },
+  "x-vada-contract-bundle": {
+    "id": "CB-FIN-001",
+    "revision": 1,
+    "canonicalSha256": "cb4ac51a822e69b8a12584116da12e8437b4e61ce87802c88e107259e00863fb"
+  },
+  "x-vada-delivery-work": "WORK:purchase-request-openapi-client-baseline@R1",
+  "x-vada-completion-evidence": "EVID-012",
+  "paths": {
+    "/events/{eventId}/purchase-request-editor": {
+      "get": {
+        "summary": "작성 맥락과 현재 사용자의 선택적 초안을 조회합니다.",
+        "operationId": "getPurchaseRequestEditorState",
+        "tags": [
+          "Purchase Requests"
+        ],
+        "x-vada-permission": "purchase_request.draft_read",
+        "x-vada-contracts": [
+          "API:purchase_request.get_editor_state@R1",
+          "AUTH:purchase_request.draft_read@R1",
+          "DATA:http.empty_body@R1",
+          "DATA:purchase_request.editor_state@R1",
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1",
+          "DATA:http.problem_details@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "FLOW-FIN-001@R2/AC-04",
+          "FLOW-FIN-001@R2/AC-05"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "event-001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseRequestEditorState"
+                },
+                "example": {
+                  "organizationId": "org-001",
+                  "eventId": "event-001",
+                  "eventName": "2026 가을 축제",
+                  "requesterUserId": "user-001",
+                  "requesterName": "김바다",
+                  "requestDepartmentId": "department-001",
+                  "requestDepartmentName": "기획부",
+                  "draft": {
+                    "draftId": "draft-001",
+                    "version": 1,
+                    "savedAt": "2026-08-03T10:00:00Z",
+                    "content": {
+                      "title": "",
+                      "neededDate": "",
+                      "purpose": "",
+                      "priority": null,
+                      "items": []
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 정보가 없거나 유효하지 않은 요청을 표현합니다.",
+            "x-vada-contract": "ERROR:http.unauthenticated@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/unauthenticated",
+                  "title": "로그인이 필요합니다.",
+                  "status": 401,
+                  "detail": "인증 정보를 확인할 수 없습니다.",
+                  "instance": "urn:vada:request:unauthenticated-001",
+                  "code": "UNAUTHENTICATED",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.action_forbidden@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-action-forbidden",
+                  "title": "이 구매 요청 동작을 수행할 권한이 없습니다.",
+                  "status": 403,
+                  "detail": "현재 조직에서 이 동작을 수행할 수 없습니다.",
+                  "instance": "urn:vada:request:forbidden-001",
+                  "code": "PURCHASE_REQUEST_ACTION_FORBIDDEN",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.",
+            "x-vada-contract": "ERROR:http.resource_not_found@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/resource-not-found",
+                  "title": "요청한 정보를 찾을 수 없습니다.",
+                  "status": 404,
+                  "detail": "현재 범위에서 요청한 정보를 찾을 수 없습니다.",
+                  "instance": "urn:vada:request:not-found-001",
+                  "code": "RESOURCE_NOT_FOUND",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.persistence_unavailable@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-persistence-unavailable",
+                  "title": "지금은 구매 요청을 저장할 수 없습니다.",
+                  "status": 503,
+                  "detail": "요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                  "instance": "urn:vada:request:persistence-001",
+                  "code": "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+                  "retryable": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}/purchase-request-draft": {
+      "put": {
+        "summary": "현재 사용자의 행사별 초안을 서버에 생성하거나 갱신합니다.",
+        "operationId": "savePurchaseRequestDraft",
+        "tags": [
+          "Purchase Requests"
+        ],
+        "x-vada-permission": "purchase_request.draft_write",
+        "x-vada-contracts": [
+          "API:purchase_request.save_draft@R1",
+          "AUTH:purchase_request.draft_write@R1",
+          "DATA:purchase_request.draft_save_command@R1",
+          "DATA:purchase_request.draft@R1",
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.validation_failed@R1",
+          "ERROR:purchase_request.state_conflict@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1",
+          "DATA:http.problem_details@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "FLOW-FIN-001@R2/AC-05",
+          "FLOW-FIN-001@R2/AC-08"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "event-001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseRequestDraftSaveCommand"
+              },
+              "example": {
+                "expectedVersion": null,
+                "content": {
+                  "title": "",
+                  "neededDate": "",
+                  "purpose": "",
+                  "priority": null,
+                  "items": []
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseRequestDraft"
+                },
+                "example": {
+                  "draftId": "draft-001",
+                  "version": 1,
+                  "savedAt": "2026-08-03T10:00:00Z",
+                  "content": {
+                    "title": "",
+                    "neededDate": "",
+                    "purpose": "",
+                    "priority": null,
+                    "items": []
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 정보가 없거나 유효하지 않은 요청을 표현합니다.",
+            "x-vada-contract": "ERROR:http.unauthenticated@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/unauthenticated",
+                  "title": "로그인이 필요합니다.",
+                  "status": 401,
+                  "detail": "인증 정보를 확인할 수 없습니다.",
+                  "instance": "urn:vada:request:unauthenticated-001",
+                  "code": "UNAUTHENTICATED",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.action_forbidden@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-action-forbidden",
+                  "title": "이 구매 요청 동작을 수행할 권한이 없습니다.",
+                  "status": 403,
+                  "detail": "현재 조직에서 이 동작을 수행할 수 없습니다.",
+                  "instance": "urn:vada:request:forbidden-001",
+                  "code": "PURCHASE_REQUEST_ACTION_FORBIDDEN",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.",
+            "x-vada-contract": "ERROR:http.resource_not_found@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/resource-not-found",
+                  "title": "요청한 정보를 찾을 수 없습니다.",
+                  "status": 404,
+                  "detail": "현재 범위에서 요청한 정보를 찾을 수 없습니다.",
+                  "instance": "urn:vada:request:not-found-001",
+                  "code": "RESOURCE_NOT_FOUND",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "초안 리비전 또는 멱등성 재시도 내용이 충돌함을 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.state_conflict@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-state-conflict",
+                  "title": "구매 요청 상태가 변경되어 다시 확인해야 합니다.",
+                  "status": 409,
+                  "detail": "초안이 다른 버전으로 변경되었습니다. 최신 초안을 다시 조회해 주세요.",
+                  "instance": "urn:vada:request:conflict-001",
+                  "code": "PURCHASE_REQUEST_STATE_CONFLICT",
+                  "retryable": true
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "구매 요청이나 품목 입력이 계약을 만족하지 못함을 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.validation_failed@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-validation-failed",
+                  "title": "구매 요청 입력을 확인해 주세요.",
+                  "status": 422,
+                  "detail": "한 개 이상의 입력을 확인해 주세요.",
+                  "instance": "urn:vada:request:validation-001",
+                  "code": "PURCHASE_REQUEST_VALIDATION_FAILED",
+                  "retryable": false,
+                  "fieldViolations": [
+                    {
+                      "path": "/content/items/0/priceEvidence",
+                      "code": "PRICE_EVIDENCE_REQUIRED",
+                      "message": "가격 근거를 한 개 이상 입력해 주세요."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.persistence_unavailable@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-persistence-unavailable",
+                  "title": "지금은 구매 요청을 저장할 수 없습니다.",
+                  "status": 503,
+                  "detail": "요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                  "instance": "urn:vada:request:persistence-001",
+                  "code": "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+                  "retryable": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "현재 사용자가 자신의 행사별 초안을 명시적으로 삭제합니다.",
+        "operationId": "deletePurchaseRequestDraft",
+        "tags": [
+          "Purchase Requests"
+        ],
+        "x-vada-permission": "purchase_request.draft_delete",
+        "x-vada-contracts": [
+          "API:purchase_request.delete_draft@R1",
+          "AUTH:purchase_request.draft_delete@R1",
+          "DATA:http.empty_body@R1",
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1",
+          "DATA:http.problem_details@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "FLOW-FIN-001@R2/AC-05"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "event-001"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "성공"
+          },
+          "401": {
+            "description": "인증 정보가 없거나 유효하지 않은 요청을 표현합니다.",
+            "x-vada-contract": "ERROR:http.unauthenticated@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/unauthenticated",
+                  "title": "로그인이 필요합니다.",
+                  "status": 401,
+                  "detail": "인증 정보를 확인할 수 없습니다.",
+                  "instance": "urn:vada:request:unauthenticated-001",
+                  "code": "UNAUTHENTICATED",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.",
+            "x-vada-contract": "ERROR:http.resource_not_found@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/resource-not-found",
+                  "title": "요청한 정보를 찾을 수 없습니다.",
+                  "status": 404,
+                  "detail": "현재 범위에서 요청한 정보를 찾을 수 없습니다.",
+                  "instance": "urn:vada:request:not-found-001",
+                  "code": "RESOURCE_NOT_FOUND",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.persistence_unavailable@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-persistence-unavailable",
+                  "title": "지금은 구매 요청을 저장할 수 없습니다.",
+                  "status": 503,
+                  "detail": "요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                  "instance": "urn:vada:request:persistence-001",
+                  "code": "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+                  "retryable": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}/purchase-requests": {
+      "post": {
+        "summary": "전체 입력을 재검증하고 구매 요청을 검토 대기로 한 번 확정합니다.",
+        "operationId": "submitPurchaseRequest",
+        "tags": [
+          "Purchase Requests"
+        ],
+        "x-vada-permission": "purchase_request.submit",
+        "x-vada-contracts": [
+          "API:purchase_request.submit@R1",
+          "AUTH:purchase_request.submit@R1",
+          "DATA:purchase_request.submit_command@R1",
+          "DATA:purchase_request.record@R1",
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.validation_failed@R1",
+          "ERROR:purchase_request.state_conflict@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1",
+          "DATA:http.problem_details@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "FLOW-FIN-001@R2/AC-01",
+          "FLOW-FIN-001@R2/AC-02",
+          "FLOW-FIN-001@R2/AC-03",
+          "FLOW-FIN-001@R2/AC-04",
+          "FLOW-FIN-001@R2/AC-06"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "event-001"
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "idem-purchase-request-001"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PurchaseRequestSubmitCommand"
+              },
+              "example": {
+                "content": {
+                  "title": "가을 축제 운영 물품",
+                  "neededDate": "2026-09-15",
+                  "purpose": "가을 축제 부스 운영",
+                  "priority": "urgent",
+                  "items": [
+                    {
+                      "name": "명찰 케이스",
+                      "category": "행사용품",
+                      "budgetItem": "행사운영비",
+                      "purchaseType": "general",
+                      "quantity": 2,
+                      "unit": "세트",
+                      "estimatedUnitPrice": 15000,
+                      "priceEvidence": [
+                        {
+                          "type": "product_url",
+                          "url": "https://vendor.example/products/name-badge"
+                        }
+                      ],
+                      "details": {
+                        "vendor": "예시문구",
+                        "productUrl": "https://vendor.example/products/name-badge",
+                        "options": "투명 세로형"
+                      }
+                    },
+                    {
+                      "name": "행사 음향 운영",
+                      "category": "용역",
+                      "budgetItem": "행사운영비",
+                      "purchaseType": "service",
+                      "quantity": 1,
+                      "unit": "건",
+                      "estimatedUnitPrice": 360000,
+                      "priceEvidence": [
+                        {
+                          "type": "vendor_quote",
+                          "note": "2026년 가을 축제 음향 운영 견적"
+                        }
+                      ],
+                      "details": {
+                        "provider": "예시사운드",
+                        "location": "학생회관 앞 광장",
+                        "startDate": "2026-09-20",
+                        "endDate": "2026-09-20",
+                        "scope": "음향 장비 설치 및 운영"
+                      }
+                    }
+                  ]
+                },
+                "draftRef": {
+                  "draftId": "draft-001",
+                  "version": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseRequestRecord"
+                },
+                "example": {
+                  "requestId": "request-001",
+                  "organizationId": "org-001",
+                  "eventId": "event-001",
+                  "requesterUserId": "user-001",
+                  "requestDepartmentId": "department-001",
+                  "status": "review_pending",
+                  "content": {
+                    "title": "가을 축제 운영 물품",
+                    "neededDate": "2026-09-15",
+                    "purpose": "가을 축제 부스 운영",
+                    "priority": "urgent",
+                    "items": [
+                      {
+                        "name": "명찰 케이스",
+                        "category": "행사용품",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "general",
+                        "quantity": 2,
+                        "unit": "세트",
+                        "estimatedUnitPrice": 15000,
+                        "priceEvidence": [
+                          {
+                            "type": "product_url",
+                            "url": "https://vendor.example/products/name-badge"
+                          }
+                        ],
+                        "details": {
+                          "vendor": "예시문구",
+                          "productUrl": "https://vendor.example/products/name-badge",
+                          "options": "투명 세로형"
+                        }
+                      },
+                      {
+                        "name": "행사 음향 운영",
+                        "category": "용역",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "service",
+                        "quantity": 1,
+                        "unit": "건",
+                        "estimatedUnitPrice": 360000,
+                        "priceEvidence": [
+                          {
+                            "type": "vendor_quote",
+                            "note": "2026년 가을 축제 음향 운영 견적"
+                          }
+                        ],
+                        "details": {
+                          "provider": "예시사운드",
+                          "location": "학생회관 앞 광장",
+                          "startDate": "2026-09-20",
+                          "endDate": "2026-09-20",
+                          "scope": "음향 장비 설치 및 운영"
+                        }
+                      }
+                    ]
+                  },
+                  "itemResults": [
+                    {
+                      "itemId": "item-001",
+                      "itemPosition": 0,
+                      "estimatedAmount": 30000
+                    },
+                    {
+                      "itemId": "item-002",
+                      "itemPosition": 1,
+                      "estimatedAmount": 360000
+                    }
+                  ],
+                  "estimatedTotal": 390000,
+                  "overBudget": false,
+                  "createdAt": "2026-08-03T10:05:00Z"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 정보가 없거나 유효하지 않은 요청을 표현합니다.",
+            "x-vada-contract": "ERROR:http.unauthenticated@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/unauthenticated",
+                  "title": "로그인이 필요합니다.",
+                  "status": 401,
+                  "detail": "인증 정보를 확인할 수 없습니다.",
+                  "instance": "urn:vada:request:unauthenticated-001",
+                  "code": "UNAUTHENTICATED",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.action_forbidden@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-action-forbidden",
+                  "title": "이 구매 요청 동작을 수행할 권한이 없습니다.",
+                  "status": 403,
+                  "detail": "현재 조직에서 이 동작을 수행할 수 없습니다.",
+                  "instance": "urn:vada:request:forbidden-001",
+                  "code": "PURCHASE_REQUEST_ACTION_FORBIDDEN",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.",
+            "x-vada-contract": "ERROR:http.resource_not_found@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/resource-not-found",
+                  "title": "요청한 정보를 찾을 수 없습니다.",
+                  "status": 404,
+                  "detail": "현재 범위에서 요청한 정보를 찾을 수 없습니다.",
+                  "instance": "urn:vada:request:not-found-001",
+                  "code": "RESOURCE_NOT_FOUND",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "초안 리비전 또는 멱등성 재시도 내용이 충돌함을 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.state_conflict@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-state-conflict",
+                  "title": "구매 요청 상태가 변경되어 다시 확인해야 합니다.",
+                  "status": 409,
+                  "detail": "초안이 다른 버전으로 변경되었습니다. 최신 초안을 다시 조회해 주세요.",
+                  "instance": "urn:vada:request:conflict-001",
+                  "code": "PURCHASE_REQUEST_STATE_CONFLICT",
+                  "retryable": true
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "구매 요청이나 품목 입력이 계약을 만족하지 못함을 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.validation_failed@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-validation-failed",
+                  "title": "구매 요청 입력을 확인해 주세요.",
+                  "status": 422,
+                  "detail": "한 개 이상의 입력을 확인해 주세요.",
+                  "instance": "urn:vada:request:validation-001",
+                  "code": "PURCHASE_REQUEST_VALIDATION_FAILED",
+                  "retryable": false,
+                  "fieldViolations": [
+                    {
+                      "path": "/content/items/0/priceEvidence",
+                      "code": "PRICE_EVIDENCE_REQUIRED",
+                      "message": "가격 근거를 한 개 이상 입력해 주세요."
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.persistence_unavailable@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-persistence-unavailable",
+                  "title": "지금은 구매 요청을 저장할 수 없습니다.",
+                  "status": 503,
+                  "detail": "요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                  "instance": "urn:vada:request:persistence-001",
+                  "code": "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+                  "retryable": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}/purchase-requests/mine": {
+      "get": {
+        "summary": "현재 행사에서 인증 사용자가 제출한 요청을 최신순으로 조회합니다.",
+        "operationId": "listOwnPurchaseRequests",
+        "tags": [
+          "Purchase Requests"
+        ],
+        "x-vada-permission": "purchase_request.list_own",
+        "x-vada-contracts": [
+          "API:purchase_request.list_own@R1",
+          "AUTH:purchase_request.list_own@R1",
+          "DATA:http.empty_body@R1",
+          "DATA:purchase_request.own_list@R1",
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1",
+          "DATA:http.problem_details@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "FLOW-FIN-001@R2/AC-01",
+          "FLOW-FIN-001@R2/AC-02",
+          "FLOW-FIN-001@R2/AC-07"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "event-001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseRequestOwnList"
+                },
+                "example": {
+                  "items": [
+                    {
+                      "requestId": "request-001",
+                      "title": "가을 축제 운영 물품",
+                      "status": "review_pending",
+                      "estimatedTotal": 390000,
+                      "overBudget": false,
+                      "createdAt": "2026-08-03T10:05:00Z"
+                    },
+                    {
+                      "requestId": "request-000",
+                      "title": "여름 행사 준비 물품",
+                      "status": "review_pending",
+                      "estimatedTotal": 100000,
+                      "overBudget": true,
+                      "createdAt": "2026-08-02T09:00:00Z"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 정보가 없거나 유효하지 않은 요청을 표현합니다.",
+            "x-vada-contract": "ERROR:http.unauthenticated@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/unauthenticated",
+                  "title": "로그인이 필요합니다.",
+                  "status": 401,
+                  "detail": "인증 정보를 확인할 수 없습니다.",
+                  "instance": "urn:vada:request:unauthenticated-001",
+                  "code": "UNAUTHENTICATED",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.action_forbidden@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-action-forbidden",
+                  "title": "이 구매 요청 동작을 수행할 권한이 없습니다.",
+                  "status": 403,
+                  "detail": "현재 조직에서 이 동작을 수행할 수 없습니다.",
+                  "instance": "urn:vada:request:forbidden-001",
+                  "code": "PURCHASE_REQUEST_ACTION_FORBIDDEN",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.",
+            "x-vada-contract": "ERROR:http.resource_not_found@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/resource-not-found",
+                  "title": "요청한 정보를 찾을 수 없습니다.",
+                  "status": 404,
+                  "detail": "현재 범위에서 요청한 정보를 찾을 수 없습니다.",
+                  "instance": "urn:vada:request:not-found-001",
+                  "code": "RESOURCE_NOT_FOUND",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.persistence_unavailable@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-persistence-unavailable",
+                  "title": "지금은 구매 요청을 저장할 수 없습니다.",
+                  "status": 503,
+                  "detail": "요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                  "instance": "urn:vada:request:persistence-001",
+                  "code": "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+                  "retryable": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/events/{eventId}/purchase-requests/{requestId}": {
+      "get": {
+        "summary": "현재 조직 구성원이 같은 조직 행사의 구매 요청 상세를 조회합니다.",
+        "operationId": "getPurchaseRequestDetail",
+        "tags": [
+          "Purchase Requests"
+        ],
+        "x-vada-permission": "purchase_request.read_detail",
+        "x-vada-contracts": [
+          "API:purchase_request.get_detail@R1",
+          "AUTH:purchase_request.read_detail@R1",
+          "DATA:http.empty_body@R1",
+          "DATA:purchase_request.record@R1",
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1",
+          "DATA:http.problem_details@R1"
+        ],
+        "x-vada-acceptance-criteria": [
+          "FLOW-FIN-001@R2/AC-07"
+        ],
+        "parameters": [
+          {
+            "name": "eventId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "event-001"
+          },
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            },
+            "example": "request-001"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PurchaseRequestRecord"
+                },
+                "example": {
+                  "requestId": "request-001",
+                  "organizationId": "org-001",
+                  "eventId": "event-001",
+                  "requesterUserId": "user-001",
+                  "requestDepartmentId": "department-001",
+                  "status": "review_pending",
+                  "content": {
+                    "title": "가을 축제 운영 물품",
+                    "neededDate": "2026-09-15",
+                    "purpose": "가을 축제 부스 운영",
+                    "priority": "urgent",
+                    "items": [
+                      {
+                        "name": "명찰 케이스",
+                        "category": "행사용품",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "general",
+                        "quantity": 2,
+                        "unit": "세트",
+                        "estimatedUnitPrice": 15000,
+                        "priceEvidence": [
+                          {
+                            "type": "product_url",
+                            "url": "https://vendor.example/products/name-badge"
+                          }
+                        ],
+                        "details": {
+                          "vendor": "예시문구",
+                          "productUrl": "https://vendor.example/products/name-badge",
+                          "options": "투명 세로형"
+                        }
+                      },
+                      {
+                        "name": "행사 음향 운영",
+                        "category": "용역",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "service",
+                        "quantity": 1,
+                        "unit": "건",
+                        "estimatedUnitPrice": 360000,
+                        "priceEvidence": [
+                          {
+                            "type": "vendor_quote",
+                            "note": "2026년 가을 축제 음향 운영 견적"
+                          }
+                        ],
+                        "details": {
+                          "provider": "예시사운드",
+                          "location": "학생회관 앞 광장",
+                          "startDate": "2026-09-20",
+                          "endDate": "2026-09-20",
+                          "scope": "음향 장비 설치 및 운영"
+                        }
+                      }
+                    ]
+                  },
+                  "itemResults": [
+                    {
+                      "itemId": "item-001",
+                      "itemPosition": 0,
+                      "estimatedAmount": 30000
+                    },
+                    {
+                      "itemId": "item-002",
+                      "itemPosition": 1,
+                      "estimatedAmount": 360000
+                    }
+                  ],
+                  "estimatedTotal": 390000,
+                  "overBudget": false,
+                  "createdAt": "2026-08-03T10:05:00Z"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "인증 정보가 없거나 유효하지 않은 요청을 표현합니다.",
+            "x-vada-contract": "ERROR:http.unauthenticated@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/unauthenticated",
+                  "title": "로그인이 필요합니다.",
+                  "status": 401,
+                  "detail": "인증 정보를 확인할 수 없습니다.",
+                  "instance": "urn:vada:request:unauthenticated-001",
+                  "code": "UNAUTHENTICATED",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.",
+            "x-vada-contract": "ERROR:http.resource_not_found@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/resource-not-found",
+                  "title": "요청한 정보를 찾을 수 없습니다.",
+                  "status": 404,
+                  "detail": "현재 범위에서 요청한 정보를 찾을 수 없습니다.",
+                  "instance": "urn:vada:request:not-found-001",
+                  "code": "RESOURCE_NOT_FOUND",
+                  "retryable": false
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
+            "x-vada-contract": "ERROR:purchase_request.persistence_unavailable@R1",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                },
+                "example": {
+                  "type": "https://vada.example/problems/purchase-request-persistence-unavailable",
+                  "title": "지금은 구매 요청을 저장할 수 없습니다.",
+                  "status": 503,
+                  "detail": "요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+                  "instance": "urn:vada:request:persistence-001",
+                  "code": "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+                  "retryable": true
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "PurchaseRequestInput": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "neededDate",
+          "purpose",
+          "priority",
+          "items"
+        ],
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "neededDate": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1
+          },
+          "priority": {
+            "enum": [
+              "normal",
+              "urgent"
+            ]
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/PurchaseRequestInput/$defs/item"
+            }
+          }
+        },
+        "$defs": {
+          "priceEvidence": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "type",
+                  "url"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "product_url"
+                  },
+                  "url": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "type",
+                  "vendorName"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "vendor"
+                  },
+                  "vendorName": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "type",
+                  "fileRef"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "price_screenshot"
+                  },
+                  "fileRef": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "vendor_quote"
+                  },
+                  "fileRef": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "anyOf": [
+                  {
+                    "required": [
+                      "fileRef"
+                    ],
+                    "properties": {
+                      "fileRef": true
+                    }
+                  },
+                  {
+                    "required": [
+                      "note"
+                    ],
+                    "properties": {
+                      "note": true
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "commonItem": {
+            "type": "object",
+            "required": [
+              "name",
+              "category",
+              "budgetItem",
+              "purchaseType",
+              "quantity",
+              "unit",
+              "estimatedUnitPrice",
+              "priceEvidence",
+              "details"
+            ],
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "category": {
+                "type": "string",
+                "minLength": 1
+              },
+              "budgetItem": {
+                "type": "string",
+                "minLength": 1
+              },
+              "purchaseType": {
+                "enum": [
+                  "general",
+                  "manufacturing_printing",
+                  "rental",
+                  "service"
+                ]
+              },
+              "quantity": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "unit": {
+                "type": "string",
+                "minLength": 1
+              },
+              "estimatedUnitPrice": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              "priceEvidence": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/components/schemas/PurchaseRequestInput/$defs/priceEvidence"
+                }
+              },
+              "details": {
+                "type": "object"
+              }
+            }
+          },
+          "generalDetails": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "vendor": {
+                "type": "string",
+                "minLength": 1
+              },
+              "productUrl": {
+                "type": "string",
+                "minLength": 1
+              },
+              "options": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deliveryRequest": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "manufacturingPrintingDetails": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "itemKind": {
+                "type": "string",
+                "minLength": 1
+              },
+              "specification": {
+                "type": "string",
+                "minLength": 1
+              },
+              "color": {
+                "type": "string",
+                "minLength": 1
+              },
+              "optionQuantities": {
+                "type": "object",
+                "minProperties": 1,
+                "additionalProperties": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              },
+              "printMethod": {
+                "type": "string",
+                "minLength": 1
+              },
+              "deliveryDate": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "fileRefs": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "requestNote": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "rentalDetails": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "vendor": {
+                "type": "string",
+                "minLength": 1
+              },
+              "pickupLocation": {
+                "type": "string",
+                "minLength": 1
+              },
+              "startDate": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "endDate": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "contact": {
+                "type": "string",
+                "minLength": 1
+              },
+              "depositAmount": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "conditions": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "serviceDetails": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "provider": {
+                "type": "string",
+                "minLength": 1
+              },
+              "location": {
+                "type": "string",
+                "minLength": 1
+              },
+              "startDate": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "endDate": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "contact": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1
+              },
+              "requestNote": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "item": {
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/PurchaseRequestInput/$defs/commonItem"
+              },
+              {
+                "oneOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "purchaseType": {
+                        "const": "general"
+                      },
+                      "priceEvidence": {
+                        "type": "array",
+                        "contains": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "enum": [
+                                "product_url",
+                                "vendor",
+                                "price_screenshot"
+                              ]
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        }
+                      },
+                      "details": {
+                        "$ref": "#/components/schemas/PurchaseRequestInput/$defs/generalDetails"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "purchaseType": {
+                        "const": "manufacturing_printing"
+                      },
+                      "priceEvidence": {
+                        "type": "array",
+                        "contains": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "const": "vendor_quote"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        }
+                      },
+                      "details": {
+                        "$ref": "#/components/schemas/PurchaseRequestInput/$defs/manufacturingPrintingDetails"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "purchaseType": {
+                        "const": "rental"
+                      },
+                      "priceEvidence": {
+                        "type": "array",
+                        "contains": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "const": "vendor_quote"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        }
+                      },
+                      "details": {
+                        "$ref": "#/components/schemas/PurchaseRequestInput/$defs/rentalDetails"
+                      }
+                    }
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "purchaseType": {
+                        "const": "service"
+                      },
+                      "priceEvidence": {
+                        "type": "array",
+                        "contains": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "const": "vendor_quote"
+                            }
+                          },
+                          "required": [
+                            "type"
+                          ]
+                        }
+                      },
+                      "details": {
+                        "$ref": "#/components/schemas/PurchaseRequestInput/$defs/serviceDetails"
+                      }
+                    }
+                  }
+                ]
+              }
+            ],
+            "unevaluatedProperties": false
+          }
+        }
+      },
+      "PurchaseRequestDraftContent": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "neededDate": {
+            "type": "string"
+          },
+          "purpose": {
+            "type": "string"
+          },
+          "priority": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "enum": [
+                  "normal",
+                  "urgent"
+                ]
+              }
+            ]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "category": {
+                  "type": "string"
+                },
+                "budgetItem": {
+                  "type": "string"
+                },
+                "purchaseType": {
+                  "oneOf": [
+                    {
+                      "type": "null"
+                    },
+                    {
+                      "enum": [
+                        "general",
+                        "manufacturing_printing",
+                        "rental",
+                        "service"
+                      ]
+                    }
+                  ]
+                },
+                "quantity": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "type": "string"
+                },
+                "estimatedUnitPrice": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "priceEvidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "type": {
+                        "enum": [
+                          "product_url",
+                          "vendor",
+                          "price_screenshot",
+                          "vendor_quote"
+                        ]
+                      },
+                      "url": {
+                        "type": "string"
+                      },
+                      "vendorName": {
+                        "type": "string"
+                      },
+                      "fileRef": {
+                        "type": "string"
+                      },
+                      "note": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "details": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "vendor": {
+                      "type": "string"
+                    },
+                    "productUrl": {
+                      "type": "string"
+                    },
+                    "options": {
+                      "type": "string"
+                    },
+                    "deliveryRequest": {
+                      "type": "string"
+                    },
+                    "itemKind": {
+                      "type": "string"
+                    },
+                    "specification": {
+                      "type": "string"
+                    },
+                    "color": {
+                      "type": "string"
+                    },
+                    "optionQuantities": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "printMethod": {
+                      "type": "string"
+                    },
+                    "deliveryDate": {
+                      "type": "string"
+                    },
+                    "fileRefs": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "requestNote": {
+                      "type": "string"
+                    },
+                    "pickupLocation": {
+                      "type": "string"
+                    },
+                    "startDate": {
+                      "type": "string"
+                    },
+                    "endDate": {
+                      "type": "string"
+                    },
+                    "contact": {
+                      "type": "string"
+                    },
+                    "depositAmount": {
+                      "type": [
+                        "integer",
+                        "null"
+                      ]
+                    },
+                    "conditions": {
+                      "type": "string"
+                    },
+                    "provider": {
+                      "type": "string"
+                    },
+                    "location": {
+                      "type": "string"
+                    },
+                    "scope": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "PurchaseRequestDraftSaveCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "expectedVersion",
+          "content"
+        ],
+        "properties": {
+          "expectedVersion": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "type": "integer",
+                "minimum": 1
+              }
+            ]
+          },
+          "content": {
+            "$ref": "#/components/schemas/PurchaseRequestDraftContent"
+          }
+        }
+      },
+      "PurchaseRequestDraft": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "draftId",
+          "version",
+          "savedAt",
+          "content"
+        ],
+        "properties": {
+          "draftId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "savedAt": {
+            "type": "string",
+            "minLength": 1
+          },
+          "content": {
+            "$ref": "#/components/schemas/PurchaseRequestDraftContent"
+          }
+        }
+      },
+      "PurchaseRequestEditorState": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "organizationId",
+          "eventId",
+          "eventName",
+          "requesterUserId",
+          "requesterName",
+          "requestDepartmentId",
+          "requestDepartmentName",
+          "draft"
+        ],
+        "properties": {
+          "organizationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "eventId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "eventName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requesterUserId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requesterName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestDepartmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestDepartmentName": {
+            "type": "string",
+            "minLength": 1
+          },
+          "draft": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PurchaseRequestDraft"
+              }
+            ]
+          }
+        }
+      },
+      "PurchaseRequestSubmitCommand": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "$ref": "#/components/schemas/PurchaseRequestInput"
+          },
+          "draftRef": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "draftId",
+              "version"
+            ],
+            "properties": {
+              "draftId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        }
+      },
+      "PurchaseRequestRecord": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requestId",
+          "organizationId",
+          "eventId",
+          "requesterUserId",
+          "requestDepartmentId",
+          "status",
+          "content",
+          "itemResults",
+          "estimatedTotal",
+          "overBudget",
+          "createdAt"
+        ],
+        "properties": {
+          "requestId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "organizationId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "eventId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requesterUserId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "requestDepartmentId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "const": "review_pending"
+          },
+          "content": {
+            "$ref": "#/components/schemas/PurchaseRequestInput"
+          },
+          "itemResults": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "itemId",
+                "itemPosition",
+                "estimatedAmount"
+              ],
+              "properties": {
+                "itemId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "itemPosition": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "estimatedAmount": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                }
+              }
+            }
+          },
+          "estimatedTotal": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "overBudget": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "PurchaseRequestOwnList": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "requestId",
+                "title",
+                "status",
+                "estimatedTotal",
+                "overBudget",
+                "createdAt"
+              ],
+              "properties": {
+                "requestId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "estimatedTotal": {
+                  "type": "number",
+                  "exclusiveMinimum": 0
+                },
+                "overBudget": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      },
+      "EmptyBody": {
+        "type": "null"
+      },
+      "ProblemDetails": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          },
+          "instance": {
+            "type": "string",
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "fieldViolations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "path",
+                "code",
+                "message"
+              ],
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "code": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "message": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
