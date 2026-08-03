@@ -1,0 +1,351 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.dev/schemas/product/v2/solution.schema.json",
+  "title": "VADA target solution specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "kind",
+    "id",
+    "title",
+    "revision",
+    "status",
+    "supersedes",
+    "changeSummary",
+    "approval",
+    "sourceEvidence",
+    "domainRef",
+    "flowRef",
+    "implementationContext",
+    "designAreas",
+    "designElements",
+    "relationships",
+    "review"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/v2/solution.schema.json"
+    },
+    "schemaVersion": {
+      "const": 2
+    },
+    "kind": {
+      "const": "solution"
+    },
+    "id": {
+      "$ref": "#/$defs/solutionId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "enum": ["draft", "review", "approved"]
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "#/$defs/solutionArtifactRef"
+        }
+      ]
+    },
+    "changeSummary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "approval": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "common.schema.json#/$defs/approval"
+        }
+      ]
+    },
+    "sourceEvidence": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/sourceEvidence"
+      }
+    },
+    "domainRef": {
+      "$ref": "common.schema.json#/$defs/domainArtifactRef"
+    },
+    "flowRef": {
+      "$ref": "common.schema.json#/$defs/flowArtifactRef"
+    },
+    "implementationContext": {
+      "$ref": "#/$defs/implementationContext"
+    },
+    "designAreas": {
+      "type": "array",
+      "minItems": 10,
+      "maxItems": 10,
+      "items": {
+        "$ref": "#/$defs/designArea"
+      }
+    },
+    "designElements": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/designElement"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "review": {
+      "$ref": "common.schema.json#/$defs/review"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "approved"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "approval": {
+            "$ref": "common.schema.json#/$defs/approval"
+          },
+          "review": {
+            "type": "object",
+            "properties": {
+              "openQuestions": {
+                "type": "array",
+                "not": {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "blocking": {
+                        "const": true
+                      }
+                    },
+                    "required": ["blocking"]
+                  }
+                }
+              },
+              "candidateChanges": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "revision": {
+            "const": 0
+          },
+          "approval": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "solutionId": {
+      "type": "string",
+      "pattern": "^SOLUTION-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{3}$",
+      "maxLength": 56
+    },
+    "solutionArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/solutionId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    },
+    "implementationContext": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "rationale", "sourceRefs"],
+      "properties": {
+        "mode": {
+          "enum": ["greenfield", "reuse_existing", "partial_access", "undetermined"]
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "sourceRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/sourceId"
+          }
+        }
+      }
+    },
+    "designAreaName": {
+      "enum": [
+        "interaction",
+        "domain",
+        "data",
+        "authorization",
+        "interface",
+        "validation",
+        "security_privacy",
+        "accessibility",
+        "operations",
+        "verification"
+      ]
+    },
+    "designArea": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["area", "status", "elementRefs", "rationale"],
+      "properties": {
+        "area": {
+          "$ref": "#/$defs/designAreaName"
+        },
+        "status": {
+          "enum": ["covered", "unresolved", "not_applicable"]
+        },
+        "elementRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/designElementId"
+          }
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    },
+    "designElementId": {
+      "type": "string",
+      "pattern": "^DESIGN-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{3}$"
+    },
+    "designElement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "description",
+        "domainItemRefs",
+        "flowItemRefs",
+        "sourceRefs"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/designElementId"
+        },
+        "kind": {
+          "enum": [
+            "interaction_step",
+            "user_visible_state",
+            "domain_concept",
+            "state_transition",
+            "system_responsibility",
+            "interface_boundary",
+            "data_semantics",
+            "quality_control",
+            "verification_intent"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        },
+        "domainItemRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "flowItemRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "sourceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/sourceId"
+          }
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "fromDesignRef", "toDesignRef", "rationale"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^REL-[0-9]{3}$"
+        },
+        "kind": {
+          "enum": ["precedes", "depends_on", "realizes", "reads", "writes", "exposes", "verifies"]
+        },
+        "fromDesignRef": {
+          "$ref": "#/$defs/designElementId"
+        },
+        "toDesignRef": {
+          "$ref": "#/$defs/designElementId"
+        },
+        "rationale": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      }
+    }
+  }
+}

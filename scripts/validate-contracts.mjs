@@ -279,7 +279,7 @@ export async function validateRepository(root = defaultRoot) {
       }
     }
 
-    for (const exclusion of slice.outOfScope) {
+    for (const exclusion of slice.outOfScope ?? []) {
       if (!exclusion.trackedBy) continue;
       if (exclusion.trackedBy.startsWith("SL-")) {
         requireValue(
@@ -307,6 +307,28 @@ export async function validateRepository(root = defaultRoot) {
   for (const mappedId of Object.keys(loaded.notion.revisionPages)) {
     requireValue(contractsById.has(mappedId), `${mappedId}: 로컬에 없는 계약이 Notion 매핑에 남아 있습니다.`);
   }
+
+  const planItemsDatabase = loaded.notion.planningDatabases?.planItems;
+  const workItemsDatabase = loaded.notion.planningDatabases?.workItems;
+  requireValue(
+    Boolean(planItemsDatabase) && Boolean(workItemsDatabase),
+    "contracts/notion.json: V2 계획 항목 및 V2 작업 항목 데이터베이스 매핑이 모두 필요합니다.",
+  );
+  for (const [name, database] of [
+    ["V2 계획 항목", planItemsDatabase],
+    ["V2 작업 항목", workItemsDatabase],
+  ]) {
+    if (!database) continue;
+    requireValue(
+      typeof database.dataSourceId === "string" && database.dataSourceId.length > 0,
+      `contracts/notion.json: ${name} 데이터 소스 ID가 없습니다.`,
+    );
+    requireValue(
+      typeof database.url === "string" && database.url.length > 0,
+      `contracts/notion.json: ${name} 데이터베이스 URL이 없습니다.`,
+    );
+  }
+
   for (const slice of validSlices) {
     const notionProjection = loaded.notion.slicePages[slice.id];
     requireValue(
@@ -328,7 +350,7 @@ export async function validateRepository(root = defaultRoot) {
     requireValue(slicesById.has(mappedId), `${mappedId}: 로컬에 없는 슬라이스가 Notion 매핑에 남아 있습니다.`);
   }
 
-  requireValue(loaded.api.openapi === "3.1.0", "contracts/openapi.json: OpenAPI 3.1.0을 사용해야 합니다.");
+  requireValue(loaded.api.openapi === "3.1.1", "contracts/openapi.json: OpenAPI 3.1.1을 사용해야 합니다.");
 
   const operationIds = new Set();
   const paths = loaded.api.paths ?? {};

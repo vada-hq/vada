@@ -1,32 +1,17 @@
-# React + TypeScript + Vite
+# VADA Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+VADA 운영 제품의 React SPA다. Figma 기반 `prototypes/wireframe/`은 화면 참고 자료이며 이 앱의 코드 원본이 아니다.
 
-Currently, two official plugins are available:
+## 개발
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+리포 루트에서 실행한다.
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+just dev-web
+just lint-web
+just typecheck-web
+just test-web
+just build-web
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+구현 전 루트 `AGENTS.md`, `docs/engineering/README.md`, 이 디렉터리의 `AGENTS.md`, 대상 전달 작업의 승인 기준선을 읽는다.

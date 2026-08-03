@@ -1,0 +1,1744 @@
+{
+  "$schema": "../../schemas/delivery-contract-bundle.schema.json",
+  "schema_version": "0.1.0",
+  "bundle_id": "CB-FIN-001",
+  "bundle_revision": 1,
+  "bundle_status": "approved",
+  "approval_source_ref": "SRC-008",
+  "updated_at": "2026-08-03T17:31:03+09:00",
+  "solution_ref": {
+    "path": "product-specs/solutions/SOLUTION-FIN-001/R1.json",
+    "solution_id": "SOLUTION-FIN-001",
+    "solution_revision": 1,
+    "canonical_sha256": "aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f"
+  },
+  "delivery_unit_ref": "FLOW-FIN-001@R2",
+  "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
+  "standards_profile": {
+    "openapi_version": "3.1.1",
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "http_problem_details": "RFC9457"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "document",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "product-specs/solutions/SOLUTION-FIN-001/R1.json#aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f",
+      "content_ko": "제품 책임자가 승인한 행사 구매 요청 제출 목표 설계 R1입니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "document",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "product-specs/flows/FLOW-FIN-001/R2.json#d1f9db2df71ae7c92a9f83b4100a3ed7cf0dd021100860f022a13a8c53810baa",
+      "content_ko": "제품 책임자가 승인한 행사 구매 요청 제출 흐름 R2입니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "document",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "product-specs/domains/DOMAIN-FIN/R1.json#c8d4e5dbb45f5fc87f4003ac3dda250062d0732c9ff6d6c4b65f62c3c2fc16fc",
+      "content_ko": "재정 도메인의 승인된 행위자·권한·불변 규칙 R1입니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "standard",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "https://www.rfc-editor.org/rfc/rfc9457",
+      "content_ko": "HTTP API 오류 본문은 RFC 9457 Problem Details 의미를 따릅니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "standard",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "https://json-schema.org/draft/2020-12/schema",
+      "content_ko": "데이터 계약은 JSON Schema Draft 2020-12로 검증합니다."
+    },
+    {
+      "id": "SRC-006",
+      "type": "standard",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "https://spec.openapis.org/oas/v3.1.1",
+      "content_ko": "HTTP 동작 의미는 OpenAPI 3.1.1로 렌더링할 수 있게 정의합니다."
+    },
+    {
+      "id": "SRC-007",
+      "type": "standard",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "https://www.w3.org/TR/WCAG22/",
+      "content_ko": "입력 오류와 상태 메시지는 WCAG 2.2의 접근 가능한 피드백 원칙을 따릅니다."
+    },
+    {
+      "id": "SRC-008",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:31:03+09:00",
+      "locator": "current-thread/cb-fin-001-approval-2026-08-03",
+      "content_ko": "제품 책임자가 행사 구매 요청 제출 실행 계약 묶음 전체를 명시적으로 승인했습니다."
+    }
+  ],
+  "imports": [],
+  "contracts": [
+    {
+      "id": "DOMAIN:purchase_request.submission@R1",
+      "kind": "DOMAIN",
+      "key": "purchase_request.submission",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "구매 요청 초안과 검토 대기 요청의 경계와 불변식을 정의합니다.",
+      "specification": {
+        "invariants": [
+          "구매 요청은 정확히 하나의 조직·행사·요청자·요청 부서에 속하고 하나 이상의 품목을 포함합니다.",
+          "조직·행사·요청자·요청 부서는 인증 관계와 서버 조회 결과에서 파생하며 클라이언트 입력을 신뢰하지 않습니다.",
+          "품목 예상 금액은 수량과 예상 단가의 곱이고 요청 총액은 모든 품목 예상 금액의 합으로 서버가 다시 계산합니다.",
+          "개인 초안은 소유 사용자만 볼 수 있고 다른 구성원 목록이나 재정부 검토 목록에는 나타나지 않습니다.",
+          "제출 검증과 요청·전체 품목 저장이 모두 성공할 때만 검토 대기 요청 하나를 확정하고 해당 초안을 제거합니다.",
+          "같은 멱등성 키와 같은 제출 내용의 재시도는 요청을 중복 생성하지 않습니다.",
+          "사용 가능 예산 초과는 제출을 막지 않지만 결과에 예산 초과 여부를 보존합니다."
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-002", "SRC-003"]
+    },
+    {
+      "id": "DATA:purchase_request.input@R1",
+      "kind": "DATA",
+      "key": "purchase_request.input",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "요청자가 입력하는 구매 요청과 품목 정보를 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-input:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["title", "neededDate", "purpose", "priority", "items"],
+          "properties": {
+            "title": { "type": "string", "minLength": 1 },
+            "neededDate": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+            "purpose": { "type": "string", "minLength": 1 },
+            "priority": { "enum": ["normal", "urgent"] },
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": { "$ref": "#/$defs/item" }
+            }
+          },
+          "$defs": {
+            "priceEvidence": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["type", "url"],
+                  "properties": {
+                    "type": { "const": "product_url" },
+                    "url": { "type": "string", "minLength": 1 }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["type", "vendorName"],
+                  "properties": {
+                    "type": { "const": "vendor" },
+                    "vendorName": { "type": "string", "minLength": 1 }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["type", "fileRef"],
+                  "properties": {
+                    "type": { "const": "price_screenshot" },
+                    "fileRef": { "type": "string", "minLength": 1 }
+                  }
+                },
+                {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["type"],
+                  "properties": {
+                    "type": { "const": "vendor_quote" },
+                    "fileRef": { "type": "string", "minLength": 1 },
+                    "note": { "type": "string", "minLength": 1 }
+                  },
+                  "anyOf": [
+                    { "required": ["fileRef"], "properties": { "fileRef": true } },
+                    { "required": ["note"], "properties": { "note": true } }
+                  ]
+                }
+              ]
+            },
+            "commonItem": {
+              "type": "object",
+              "required": [
+                "name",
+                "category",
+                "budgetItem",
+                "purchaseType",
+                "quantity",
+                "unit",
+                "estimatedUnitPrice",
+                "priceEvidence",
+                "details"
+              ],
+              "properties": {
+                "name": { "type": "string", "minLength": 1 },
+                "category": { "type": "string", "minLength": 1 },
+                "budgetItem": { "type": "string", "minLength": 1 },
+                "purchaseType": {
+                  "enum": ["general", "manufacturing_printing", "rental", "service"]
+                },
+                "quantity": { "type": "number", "exclusiveMinimum": 0 },
+                "unit": { "type": "string", "minLength": 1 },
+                "estimatedUnitPrice": { "type": "integer", "exclusiveMinimum": 0 },
+                "priceEvidence": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "$ref": "#/$defs/priceEvidence" }
+                },
+                "details": { "type": "object" }
+              }
+            },
+            "generalDetails": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "vendor": { "type": "string", "minLength": 1 },
+                "productUrl": { "type": "string", "minLength": 1 },
+                "options": { "type": "string", "minLength": 1 },
+                "deliveryRequest": { "type": "string", "minLength": 1 }
+              }
+            },
+            "manufacturingPrintingDetails": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "itemKind": { "type": "string", "minLength": 1 },
+                "specification": { "type": "string", "minLength": 1 },
+                "color": { "type": "string", "minLength": 1 },
+                "optionQuantities": {
+                  "type": "object",
+                  "minProperties": 1,
+                  "additionalProperties": { "type": "number", "exclusiveMinimum": 0 }
+                },
+                "printMethod": { "type": "string", "minLength": 1 },
+                "deliveryDate": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+                "fileRefs": {
+                  "type": "array",
+                  "items": { "type": "string", "minLength": 1 }
+                },
+                "requestNote": { "type": "string", "minLength": 1 }
+              }
+            },
+            "rentalDetails": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "vendor": { "type": "string", "minLength": 1 },
+                "pickupLocation": { "type": "string", "minLength": 1 },
+                "startDate": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+                "endDate": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+                "contact": { "type": "string", "minLength": 1 },
+                "depositAmount": { "type": "integer", "minimum": 0 },
+                "conditions": { "type": "string", "minLength": 1 }
+              }
+            },
+            "serviceDetails": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "provider": { "type": "string", "minLength": 1 },
+                "location": { "type": "string", "minLength": 1 },
+                "startDate": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+                "endDate": { "type": "string", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" },
+                "contact": { "type": "string", "minLength": 1 },
+                "scope": { "type": "string", "minLength": 1 },
+                "requestNote": { "type": "string", "minLength": 1 }
+              }
+            },
+            "item": {
+              "type": "object",
+              "allOf": [
+                { "$ref": "#/$defs/commonItem" },
+                {
+                  "oneOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "purchaseType": { "const": "general" },
+                        "priceEvidence": {
+                          "type": "array",
+                          "contains": {
+                            "type": "object",
+                            "properties": {
+                              "type": { "enum": ["product_url", "vendor", "price_screenshot"] }
+                            },
+                            "required": ["type"]
+                          }
+                        },
+                        "details": { "$ref": "#/$defs/generalDetails" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "purchaseType": { "const": "manufacturing_printing" },
+                        "priceEvidence": {
+                          "type": "array",
+                          "contains": {
+                            "type": "object",
+                            "properties": { "type": { "const": "vendor_quote" } },
+                            "required": ["type"]
+                          }
+                        },
+                        "details": { "$ref": "#/$defs/manufacturingPrintingDetails" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "purchaseType": { "const": "rental" },
+                        "priceEvidence": {
+                          "type": "array",
+                          "contains": {
+                            "type": "object",
+                            "properties": { "type": { "const": "vendor_quote" } },
+                            "required": ["type"]
+                          }
+                        },
+                        "details": { "$ref": "#/$defs/rentalDetails" }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "purchaseType": { "const": "service" },
+                        "priceEvidence": {
+                          "type": "array",
+                          "contains": {
+                            "type": "object",
+                            "properties": { "type": { "const": "vendor_quote" } },
+                            "required": ["type"]
+                          }
+                        },
+                        "details": { "$ref": "#/$defs/serviceDetails" }
+                      }
+                    }
+                  ]
+                }
+              ],
+              "unevaluatedProperties": false
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "organizationId, eventId, requesterUserId, requestDepartmentId와 계산 금액은 사용자 입력에 포함하지 않습니다.",
+          "일반 구매는 상품 URL·판매처·가격 화면 중 하나가 필요하고 그 밖의 구매 유형은 업체 견적 근거가 필요합니다.",
+          "구매 유형별 상세 필드는 현재 리비전에서 선택 입력이며 제공된 값은 그대로 보존합니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": ["SRC-001", "SRC-002", "SRC-005"]
+    },
+    {
+      "id": "DATA:purchase_request.draft_content@R1",
+      "kind": "DATA",
+      "key": "purchase_request.draft_content",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "제출 요건을 아직 충족하지 않은 작성 중 입력도 손실 없이 보관하는 초안 데이터를 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-draft-content:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "title": { "type": "string" },
+            "neededDate": { "type": "string" },
+            "purpose": { "type": "string" },
+            "priority": {
+              "oneOf": [{ "type": "null" }, { "enum": ["normal", "urgent"] }]
+            },
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "name": { "type": "string" },
+                  "category": { "type": "string" },
+                  "budgetItem": { "type": "string" },
+                  "purchaseType": {
+                    "oneOf": [
+                      { "type": "null" },
+                      { "enum": ["general", "manufacturing_printing", "rental", "service"] }
+                    ]
+                  },
+                  "quantity": { "type": ["number", "null"] },
+                  "unit": { "type": "string" },
+                  "estimatedUnitPrice": { "type": ["integer", "null"] },
+                  "priceEvidence": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "type": {
+                          "enum": ["product_url", "vendor", "price_screenshot", "vendor_quote"]
+                        },
+                        "url": { "type": "string" },
+                        "vendorName": { "type": "string" },
+                        "fileRef": { "type": "string" },
+                        "note": { "type": "string" }
+                      }
+                    }
+                  },
+                  "details": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "vendor": { "type": "string" },
+                      "productUrl": { "type": "string" },
+                      "options": { "type": "string" },
+                      "deliveryRequest": { "type": "string" },
+                      "itemKind": { "type": "string" },
+                      "specification": { "type": "string" },
+                      "color": { "type": "string" },
+                      "optionQuantities": {
+                        "type": "object",
+                        "additionalProperties": { "type": ["number", "null"] }
+                      },
+                      "printMethod": { "type": "string" },
+                      "deliveryDate": { "type": "string" },
+                      "fileRefs": { "type": "array", "items": { "type": "string" } },
+                      "requestNote": { "type": "string" },
+                      "pickupLocation": { "type": "string" },
+                      "startDate": { "type": "string" },
+                      "endDate": { "type": "string" },
+                      "contact": { "type": "string" },
+                      "depositAmount": { "type": ["integer", "null"] },
+                      "conditions": { "type": "string" },
+                      "provider": { "type": "string" },
+                      "location": { "type": "string" },
+                      "scope": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "모든 필드는 선택이며 빈 문자열·빈 품목 목록·검증 전 수치도 작성 중 상태로 보관할 수 있습니다.",
+          "초안 저장 성공은 제출 가능함을 뜻하지 않으며 제출 시 DATA:purchase_request.input@R1로 전체를 다시 검증합니다.",
+          "알려진 작성 필드 외의 임의 데이터를 보관하지 않습니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": ["SRC-001", "SRC-002"]
+    },
+    {
+      "id": "DATA:purchase_request.draft_save_command@R1",
+      "kind": "DATA",
+      "key": "purchase_request.draft_save_command",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "초안을 새로 저장하거나 기존 리비전을 갱신하는 명령을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-draft-save-command:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["expectedVersion", "content"],
+          "properties": {
+            "expectedVersion": {
+              "oneOf": [{ "type": "null" }, { "type": "integer", "minimum": 1 }]
+            },
+            "content": { "$ref": "urn:vada:schema:purchase-request-draft-content:r1" }
+          }
+        },
+        "semantic_notes_ko": [
+          "초안이 없을 때 expectedVersion은 null이고 기존 초안을 갱신할 때는 마지막으로 읽은 version입니다.",
+          "버전이 다르면 기존 초안을 덮어쓰지 않고 충돌을 반환합니다."
+        ],
+        "schema_contract_refs": ["DATA:purchase_request.draft_content@R1"]
+      },
+      "source_refs": ["SRC-001"]
+    },
+    {
+      "id": "DATA:purchase_request.draft@R1",
+      "kind": "DATA",
+      "key": "purchase_request.draft",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "서버에 보관된 개인 구매 요청 초안을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-draft:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["draftId", "version", "savedAt", "content"],
+          "properties": {
+            "draftId": { "type": "string", "minLength": 1 },
+            "version": { "type": "integer", "minimum": 1 },
+            "savedAt": { "type": "string", "minLength": 1 },
+            "content": { "$ref": "urn:vada:schema:purchase-request-draft-content:r1" }
+          }
+        },
+        "semantic_notes_ko": [
+          "초안 소유자·조직·행사 키는 서버 내부 권한 판정에 사용하고 응답에 불필요하게 노출하지 않습니다.",
+          "savedAt은 UTC 기준 시각을 직렬화합니다."
+        ],
+        "schema_contract_refs": ["DATA:purchase_request.draft_content@R1"]
+      },
+      "source_refs": ["SRC-001", "SRC-002"]
+    },
+    {
+      "id": "DATA:purchase_request.editor_state@R1",
+      "kind": "DATA",
+      "key": "purchase_request.editor_state",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "구매 요청 작성 화면의 서버 파생 맥락과 선택적 초안을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-editor-state:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "organizationId",
+            "eventId",
+            "eventName",
+            "requesterUserId",
+            "requesterName",
+            "requestDepartmentId",
+            "requestDepartmentName",
+            "draft"
+          ],
+          "properties": {
+            "organizationId": { "type": "string", "minLength": 1 },
+            "eventId": { "type": "string", "minLength": 1 },
+            "eventName": { "type": "string", "minLength": 1 },
+            "requesterUserId": { "type": "string", "minLength": 1 },
+            "requesterName": { "type": "string", "minLength": 1 },
+            "requestDepartmentId": { "type": "string", "minLength": 1 },
+            "requestDepartmentName": { "type": "string", "minLength": 1 },
+            "draft": {
+              "oneOf": [
+                { "type": "null" },
+                { "$ref": "urn:vada:schema:purchase-request-draft:r1" }
+              ]
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "모든 맥락 식별자는 인증된 사용자와 선택 행사 관계에서 서버가 결정합니다.",
+          "현재 사용자·행사의 초안이 없으면 draft는 null입니다."
+        ],
+        "schema_contract_refs": ["DATA:purchase_request.draft@R1"]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "DATA:purchase_request.submit_command@R1",
+      "kind": "DATA",
+      "key": "purchase_request.submit_command",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 입력을 제출하고 선택적으로 연결된 초안을 제거하는 명령을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-submit-command:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["content"],
+          "properties": {
+            "content": { "$ref": "urn:vada:schema:purchase-request-input:r1" },
+            "draftRef": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["draftId", "version"],
+              "properties": {
+                "draftId": { "type": "string", "minLength": 1 },
+                "version": { "type": "integer", "minimum": 1 }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "임시 저장을 하지 않은 사용자도 현재 전체 입력을 직접 제출할 수 있습니다.",
+          "draftRef가 있으면 요청 확정 성공과 같은 원자적 경계에서 해당 버전의 소유 초안만 제거합니다."
+        ],
+        "schema_contract_refs": ["DATA:purchase_request.input@R1"]
+      },
+      "source_refs": ["SRC-001", "SRC-002"]
+    },
+    {
+      "id": "DATA:purchase_request.record@R1",
+      "kind": "DATA",
+      "key": "purchase_request.record",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "검토 대기로 확정된 구매 요청과 서버 계산 결과를 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-record:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "requestId",
+            "organizationId",
+            "eventId",
+            "requesterUserId",
+            "requestDepartmentId",
+            "status",
+            "content",
+            "itemResults",
+            "estimatedTotal",
+            "overBudget",
+            "createdAt"
+          ],
+          "properties": {
+            "requestId": { "type": "string", "minLength": 1 },
+            "organizationId": { "type": "string", "minLength": 1 },
+            "eventId": { "type": "string", "minLength": 1 },
+            "requesterUserId": { "type": "string", "minLength": 1 },
+            "requestDepartmentId": { "type": "string", "minLength": 1 },
+            "status": { "const": "review_pending" },
+            "content": { "$ref": "urn:vada:schema:purchase-request-input:r1" },
+            "itemResults": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["itemId", "itemPosition", "estimatedAmount"],
+                "properties": {
+                  "itemId": { "type": "string", "minLength": 1 },
+                  "itemPosition": { "type": "integer", "minimum": 0 },
+                  "estimatedAmount": { "type": "number", "exclusiveMinimum": 0 }
+                }
+              }
+            },
+            "estimatedTotal": { "type": "number", "exclusiveMinimum": 0 },
+            "overBudget": { "type": "boolean" },
+            "createdAt": { "type": "string", "minLength": 1 }
+          }
+        },
+        "semantic_notes_ko": [
+          "itemResults는 content.items와 itemPosition으로 대응하며 itemId는 후속 품목별 검토의 안정 식별자입니다.",
+          "금액과 overBudget은 서버가 제출 시점의 신뢰 가능한 정보로 계산합니다.",
+          "createdAt은 UTC 기준 시각을 직렬화합니다."
+        ],
+        "schema_contract_refs": ["DATA:purchase_request.input@R1"]
+      },
+      "source_refs": ["SRC-001", "SRC-002", "SRC-003"]
+    },
+    {
+      "id": "DATA:purchase_request.own_list@R1",
+      "kind": "DATA",
+      "key": "purchase_request.own_list",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 행사에서 본인이 제출한 구매 요청 목록을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-own-list:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["items"],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "title",
+                  "status",
+                  "estimatedTotal",
+                  "overBudget",
+                  "createdAt"
+                ],
+                "properties": {
+                  "requestId": { "type": "string", "minLength": 1 },
+                  "title": { "type": "string", "minLength": 1 },
+                  "status": { "type": "string", "minLength": 1 },
+                  "estimatedTotal": { "type": "number", "exclusiveMinimum": 0 },
+                  "overBudget": { "type": "boolean" },
+                  "createdAt": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "items는 createdAt 내림차순으로 정렬합니다.",
+          "현재 행사와 인증 사용자 본인의 요청만 포함합니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": ["SRC-001", "SRC-002", "SRC-003"]
+    },
+    {
+      "id": "DATA:http.empty_body@R1",
+      "kind": "DATA",
+      "key": "http.empty_body",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "본문이 없는 HTTP 요청과 204 응답을 표현합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:http-empty-body:r1",
+          "type": "null"
+        },
+        "semantic_notes_ko": ["실제 HTTP 메시지에는 본문을 보내지 않습니다."],
+        "schema_contract_refs": []
+      },
+      "source_refs": ["SRC-006"]
+    },
+    {
+      "id": "DATA:http.problem_details@R1",
+      "kind": "DATA",
+      "key": "http.problem_details",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "안정 오류 코드와 선택적 필드 오류를 포함한 Problem Details를 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:http-problem-details:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "title", "status", "code"],
+          "properties": {
+            "type": { "type": "string", "minLength": 1 },
+            "title": { "type": "string", "minLength": 1 },
+            "status": { "type": "integer", "minimum": 400, "maximum": 599 },
+            "detail": { "type": "string", "minLength": 1 },
+            "instance": { "type": "string", "minLength": 1 },
+            "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+            "retryable": { "type": "boolean" },
+            "fieldViolations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["path", "code", "message"],
+                "properties": {
+                  "path": { "type": "string", "minLength": 1 },
+                  "code": { "type": "string", "minLength": 1 },
+                  "message": { "type": "string", "minLength": 1 }
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "Content-Type은 application/problem+json입니다.",
+          "detail과 fieldViolations에는 사용자에게 공개해도 되는 정보만 포함하고 내부 예외나 다른 조직의 존재 여부를 노출하지 않습니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": ["SRC-004", "SRC-005"]
+    },
+    {
+      "id": "DATA:purchase_request.submitted_event@R1",
+      "kind": "DATA",
+      "key": "purchase_request.submitted_event",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "구매 요청 제출 확정 사실을 전달하는 최소 이벤트 데이터를 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-submitted-event:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "requestId",
+            "organizationId",
+            "eventId",
+            "requesterUserId",
+            "requestDepartmentId",
+            "estimatedTotal",
+            "overBudget",
+            "submittedAt"
+          ],
+          "properties": {
+            "requestId": { "type": "string", "minLength": 1 },
+            "organizationId": { "type": "string", "minLength": 1 },
+            "eventId": { "type": "string", "minLength": 1 },
+            "requesterUserId": { "type": "string", "minLength": 1 },
+            "requestDepartmentId": { "type": "string", "minLength": 1 },
+            "estimatedTotal": { "type": "number", "exclusiveMinimum": 0 },
+            "overBudget": { "type": "boolean" },
+            "submittedAt": { "type": "string", "minLength": 1 }
+          }
+        },
+        "semantic_notes_ko": [
+          "구매 목적·품목 상세·가격 근거 원문은 이벤트에 포함하지 않습니다.",
+          "submittedAt은 UTC 기준 시각을 직렬화합니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": ["SRC-001"]
+    },
+    {
+      "id": "AUTH:purchase_request.draft_read@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.draft_read",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "부서장 또는 재정부 구성원이 자신의 행사별 초안만 읽을 수 있게 합니다.",
+      "specification": {
+        "action": "purchase_request.draft.read",
+        "resource_ko": "현재 조직·행사·사용자 키의 구매 요청 초안",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "actor.department_head_of", "operator": "contains", "right": { "fact": "context.request_department_id" } },
+              { "left_fact": "draft_scope.owner_user_id", "operator": "equals", "right": { "fact": "actor.user_id" } }
+            ]
+          },
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "actor.finance_member_of", "operator": "contains", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "draft_scope.owner_user_id", "operator": "equals", "right": { "fact": "actor.user_id" } }
+            ]
+          }
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "AUTH:purchase_request.draft_write@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.draft_write",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "부서장 또는 재정부 구성원이 자신의 행사별 초안만 저장할 수 있게 합니다.",
+      "specification": {
+        "action": "purchase_request.draft.write",
+        "resource_ko": "현재 조직·행사·사용자 키의 구매 요청 초안",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "actor.department_head_of", "operator": "contains", "right": { "fact": "context.request_department_id" } },
+              { "left_fact": "draft_scope.owner_user_id", "operator": "equals", "right": { "fact": "actor.user_id" } }
+            ]
+          },
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "actor.finance_member_of", "operator": "contains", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "draft_scope.owner_user_id", "operator": "equals", "right": { "fact": "actor.user_id" } }
+            ]
+          }
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "AUTH:purchase_request.draft_delete@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.draft_delete",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "초안 소유자만 자신의 행사별 초안을 삭제할 수 있게 합니다.",
+      "specification": {
+        "action": "purchase_request.draft.delete",
+        "resource_ko": "현재 조직·행사·사용자 키의 구매 요청 초안",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "draft.owner_user_id", "operator": "equals", "right": { "fact": "actor.user_id" } }
+            ]
+          }
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "AUTH:purchase_request.submit@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.submit",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 조직의 부서장과 재정부 구성원에게 행사 구매 요청 제출을 허용합니다.",
+      "specification": {
+        "action": "purchase_request.submit",
+        "resource_ko": "현재 조직의 선택 행사에 생성할 구매 요청",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "actor.department_head_of", "operator": "contains", "right": { "fact": "context.request_department_id" } }
+            ]
+          },
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "actor.finance_member_of", "operator": "contains", "right": { "fact": "context.organization_id" } }
+            ]
+          }
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "AUTH:purchase_request.list_own@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.list_own",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "제출 권한 보유자가 현재 행사에서 자신이 제출한 요청만 목록으로 읽게 합니다.",
+      "specification": {
+        "action": "purchase_request.list_own",
+        "resource_ko": "현재 행사에서 인증 사용자가 제출한 구매 요청 집합",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "actor.department_head_of", "operator": "contains", "right": { "fact": "context.request_department_id" } },
+              { "left_fact": "result_scope.requester_user_id", "operator": "equals", "right": { "fact": "actor.user_id" } }
+            ]
+          },
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "event.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "actor.finance_member_of", "operator": "contains", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "result_scope.requester_user_id", "operator": "equals", "right": { "fact": "actor.user_id" } }
+            ]
+          }
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "AUTH:purchase_request.read_detail@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.read_detail",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 조직의 활성 구성원이 같은 조직 행사 요청 상세를 읽게 합니다.",
+      "specification": {
+        "action": "purchase_request.read_detail",
+        "resource_ko": "현재 조직 행사에 속한 확정 구매 요청",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              { "left_fact": "actor.has_active_organization_membership", "operator": "is_true", "right": { "literal": true } },
+              { "left_fact": "request.organization_id", "operator": "equals", "right": { "fact": "context.organization_id" } },
+              { "left_fact": "request.event_id", "operator": "equals", "right": { "fact": "route.event_id" } }
+            ]
+          }
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "ERROR:http.unauthenticated@R1",
+      "kind": "ERROR",
+      "key": "http.unauthenticated",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "인증 정보가 없거나 유효하지 않은 요청을 표현합니다.",
+      "specification": {
+        "code": "UNAUTHENTICATED",
+        "http_status": 401,
+        "problem_type_uri": "https://vada.example/problems/unauthenticated",
+        "title_ko": "로그인이 필요합니다.",
+        "when_ko": "신뢰할 수 있는 인증 주체를 확인할 수 없을 때",
+        "disclosure_ko": "인증 실패의 내부 원인이나 계정 존재 여부는 공개하지 않습니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-004"]
+    },
+    {
+      "id": "ERROR:purchase_request.action_forbidden@R1",
+      "kind": "ERROR",
+      "key": "purchase_request.action_forbidden",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.",
+      "specification": {
+        "code": "PURCHASE_REQUEST_ACTION_FORBIDDEN",
+        "http_status": 403,
+        "problem_type_uri": "https://vada.example/problems/purchase-request-action-forbidden",
+        "title_ko": "이 구매 요청 동작을 수행할 권한이 없습니다.",
+        "when_ko": "인증 사용자가 현재 조직에는 접근할 수 있지만 부서장 또는 재정부 관계 등 동작별 허용 관계가 없을 때",
+        "disclosure_ko": "허용되는 역할 목록이나 다른 사용자의 관계 정보는 반환하지 않습니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-003", "SRC-004"]
+    },
+    {
+      "id": "ERROR:http.resource_not_found@R1",
+      "kind": "ERROR",
+      "key": "http.resource_not_found",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.",
+      "specification": {
+        "code": "RESOURCE_NOT_FOUND",
+        "http_status": 404,
+        "problem_type_uri": "https://vada.example/problems/resource-not-found",
+        "title_ko": "요청한 정보를 찾을 수 없습니다.",
+        "when_ko": "행사·초안·구매 요청이 없거나 현재 조직 범위에서 볼 수 없을 때",
+        "disclosure_ko": "다른 조직 리소스의 존재 여부를 구분해 공개하지 않습니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-001", "SRC-004"]
+    },
+    {
+      "id": "ERROR:purchase_request.validation_failed@R1",
+      "kind": "ERROR",
+      "key": "purchase_request.validation_failed",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "구매 요청이나 품목 입력이 계약을 만족하지 못함을 표현합니다.",
+      "specification": {
+        "code": "PURCHASE_REQUEST_VALIDATION_FAILED",
+        "http_status": 422,
+        "problem_type_uri": "https://vada.example/problems/purchase-request-validation-failed",
+        "title_ko": "구매 요청 입력을 확인해 주세요.",
+        "when_ko": "필수 요청 정보·품목·가격 근거·양수 수량·양수 단가 검증이 실패할 때",
+        "disclosure_ko": "사용자가 수정할 수 있는 필드 경로·안정 코드·설명만 공개합니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-001", "SRC-002", "SRC-004"]
+    },
+    {
+      "id": "ERROR:purchase_request.state_conflict@R1",
+      "kind": "ERROR",
+      "key": "purchase_request.state_conflict",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "초안 리비전 또는 멱등성 재시도 내용이 충돌함을 표현합니다.",
+      "specification": {
+        "code": "PURCHASE_REQUEST_STATE_CONFLICT",
+        "http_status": 409,
+        "problem_type_uri": "https://vada.example/problems/purchase-request-state-conflict",
+        "title_ko": "구매 요청 상태가 변경되어 다시 확인해야 합니다.",
+        "when_ko": "초안 expectedVersion이 현재 버전과 다르거나 같은 멱등성 키를 다른 제출 내용에 재사용할 때",
+        "disclosure_ko": "현재 버전과 안전한 재시도 방법만 공개하고 다른 사용자의 입력은 공개하지 않습니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-001", "SRC-004"]
+    },
+    {
+      "id": "ERROR:purchase_request.persistence_unavailable@R1",
+      "kind": "ERROR",
+      "key": "purchase_request.persistence_unavailable",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
+      "specification": {
+        "code": "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+        "http_status": 503,
+        "problem_type_uri": "https://vada.example/problems/purchase-request-persistence-unavailable",
+        "title_ko": "지금은 구매 요청을 저장할 수 없습니다.",
+        "when_ko": "서버가 초안이나 확정 요청의 원자적 저장을 완료하지 못할 때",
+        "disclosure_ko": "내부 예외와 저장소 정보를 숨기고 재시도 가능 여부와 상관 식별자만 공개합니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-001", "SRC-004"]
+    },
+    {
+      "id": "API:purchase_request.get_editor_state@R1",
+      "kind": "API",
+      "key": "purchase_request.get_editor_state",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "작성 맥락과 현재 사용자의 선택적 초안을 조회합니다.",
+      "specification": {
+        "operation_id": "getPurchaseRequestEditorState",
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-request-editor",
+        "authorization_ref": "AUTH:purchase_request.draft_read@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            { "name": "eventId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } }
+          ]
+        },
+        "success": { "http_status": 200, "body_contract_ref": "DATA:purchase_request.editor_state@R1" },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-006"]
+    },
+    {
+      "id": "API:purchase_request.save_draft@R1",
+      "kind": "API",
+      "key": "purchase_request.save_draft",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 사용자의 행사별 초안을 서버에 생성하거나 갱신합니다.",
+      "specification": {
+        "operation_id": "savePurchaseRequestDraft",
+        "method": "PUT",
+        "path": "/events/{eventId}/purchase-request-draft",
+        "authorization_ref": "AUTH:purchase_request.draft_write@R1",
+        "request": {
+          "body_contract_ref": "DATA:purchase_request.draft_save_command@R1",
+          "parameters": [
+            { "name": "eventId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } }
+          ]
+        },
+        "success": { "http_status": 200, "body_contract_ref": "DATA:purchase_request.draft@R1" },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.validation_failed@R1",
+          "ERROR:purchase_request.state_conflict@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-006"]
+    },
+    {
+      "id": "API:purchase_request.delete_draft@R1",
+      "kind": "API",
+      "key": "purchase_request.delete_draft",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 사용자가 자신의 행사별 초안을 명시적으로 삭제합니다.",
+      "specification": {
+        "operation_id": "deletePurchaseRequestDraft",
+        "method": "DELETE",
+        "path": "/events/{eventId}/purchase-request-draft",
+        "authorization_ref": "AUTH:purchase_request.draft_delete@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            { "name": "eventId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } }
+          ]
+        },
+        "success": { "http_status": 204, "body_contract_ref": "DATA:http.empty_body@R1" },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-006"]
+    },
+    {
+      "id": "API:purchase_request.submit@R1",
+      "kind": "API",
+      "key": "purchase_request.submit",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "전체 입력을 재검증하고 구매 요청을 검토 대기로 한 번 확정합니다.",
+      "specification": {
+        "operation_id": "submitPurchaseRequest",
+        "method": "POST",
+        "path": "/events/{eventId}/purchase-requests",
+        "authorization_ref": "AUTH:purchase_request.submit@R1",
+        "request": {
+          "body_contract_ref": "DATA:purchase_request.submit_command@R1",
+          "parameters": [
+            { "name": "eventId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } },
+            { "name": "Idempotency-Key", "in": "header", "required": true, "schema": { "type": "string", "minLength": 1 } }
+          ]
+        },
+        "success": { "http_status": 201, "body_contract_ref": "DATA:purchase_request.record@R1" },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.validation_failed@R1",
+          "ERROR:purchase_request.state_conflict@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-002", "SRC-006"]
+    },
+    {
+      "id": "API:purchase_request.list_own@R1",
+      "kind": "API",
+      "key": "purchase_request.list_own",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 행사에서 인증 사용자가 제출한 요청을 최신순으로 조회합니다.",
+      "specification": {
+        "operation_id": "listOwnPurchaseRequests",
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests/mine",
+        "authorization_ref": "AUTH:purchase_request.list_own@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            { "name": "eventId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } }
+          ]
+        },
+        "success": { "http_status": 200, "body_contract_ref": "DATA:purchase_request.own_list@R1" },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-002", "SRC-006"]
+    },
+    {
+      "id": "API:purchase_request.get_detail@R1",
+      "kind": "API",
+      "key": "purchase_request.get_detail",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 조직 구성원이 같은 조직 행사의 구매 요청 상세를 조회합니다.",
+      "specification": {
+        "operation_id": "getPurchaseRequestDetail",
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests/{requestId}",
+        "authorization_ref": "AUTH:purchase_request.read_detail@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            { "name": "eventId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } },
+            { "name": "requestId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } }
+          ]
+        },
+        "success": { "http_status": 200, "body_contract_ref": "DATA:purchase_request.record@R1" },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-002", "SRC-003", "SRC-006"]
+    },
+    {
+      "id": "EVENT:purchase_request.submitted@R1",
+      "kind": "EVENT",
+      "key": "purchase_request.submitted",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "구매 요청이 검토 대기로 확정됐다는 내부 사실을 정의합니다.",
+      "specification": {
+        "event_name": "purchase_request.submitted",
+        "payload_schema_ref": "DATA:purchase_request.submitted_event@R1",
+        "emission_condition_ko": "요청과 모든 품목이 검토 대기로 한 번 확정된 뒤에만 기록하며 실패한 제출에서는 발생시키지 않습니다.",
+        "sensitivity": "confidential"
+      },
+      "source_refs": ["SRC-001", "SRC-002"]
+    },
+    {
+      "id": "QUALITY:purchase_request.tenant_isolation@R1",
+      "kind": "QUALITY",
+      "key": "purchase_request.tenant_isolation",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "모든 구매 요청 동작에서 조직 격리와 기본 거부를 증명합니다.",
+      "specification": {
+        "category": "security",
+        "obligation_ko": "모든 읽기·쓰기는 인증 조직·행사·사용자 관계를 서버에서 확인하고 다른 조직의 리소스 존재 여부를 누설하지 않습니다.",
+        "verification_ko": "동일 ID 형태의 다른 조직 행사·초안·요청에 대한 직접 HTTP 접근이 데이터 변경 없이 동일한 비노출 오류로 거부되는 자동 통합 테스트를 실행합니다."
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "QUALITY:purchase_request.atomic_idempotent_submission@R1",
+      "kind": "QUALITY",
+      "key": "purchase_request.atomic_idempotent_submission",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "제출의 원자성과 중복 방지를 증명합니다.",
+      "specification": {
+        "category": "reliability",
+        "obligation_ko": "요청·전체 품목·초안 제거는 한 성공 경계로 처리하고 같은 멱등성 키의 같은 재시도는 하나의 결과만 만듭니다.",
+        "verification_ko": "각 저장 단계의 실패 주입과 동일 제출 동시 재시도 테스트에서 부분 요청·부분 품목·초안 조기 삭제·중복 요청이 없음을 확인합니다."
+      },
+      "source_refs": ["SRC-001", "SRC-002"]
+    },
+    {
+      "id": "QUALITY:purchase_request.sensitive_data_handling@R1",
+      "kind": "QUALITY",
+      "key": "purchase_request.sensitive_data_handling",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "재정 입력과 가격 근거의 저장·로그 노출을 최소화합니다.",
+      "specification": {
+        "category": "privacy",
+        "obligation_ko": "구매 목적·품목·가격 근거의 전체 원문은 브라우저 영속 저장소, 운영 로그, 오류 응답, 제출 이벤트에 복제하지 않습니다.",
+        "verification_ko": "브라우저 저장소·서버 로그·Problem Details·이벤트 페이로드를 검사해 민감 원문이 없고 필요한 식별자와 결과만 남는지 자동 검증합니다."
+      },
+      "source_refs": ["SRC-001"]
+    },
+    {
+      "id": "QUALITY:purchase_request.accessible_feedback@R1",
+      "kind": "QUALITY",
+      "key": "purchase_request.accessible_feedback",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "입력 오류와 저장·제출 상태를 키보드와 보조기술로 이해할 수 있게 합니다.",
+      "specification": {
+        "category": "accessibility",
+        "obligation_ko": "입력 이름과 오류 설명을 프로그램적으로 연결하고 오류 요약에서 해당 입력으로 이동할 수 있게 하며 저장·제출 결과를 상태 메시지로 전달합니다.",
+        "verification_ko": "키보드 전용 E2E, 접근성 트리 검사, 오류 발생 시 포커스 이동과 상태 메시지 발표 테스트를 실행합니다."
+      },
+      "source_refs": ["SRC-001", "SRC-007"]
+    },
+    {
+      "id": "QUALITY:purchase_request.draft_recovery@R1",
+      "kind": "QUALITY",
+      "key": "purchase_request.draft_recovery",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "서버 초안의 복원과 저장 실패 시 입력 보존을 증명합니다.",
+      "specification": {
+        "category": "reliability",
+        "obligation_ko": "같은 계정·조직·행사에서는 다른 브라우저 세션에서도 마지막 성공 초안을 복원하고 저장 실패 시 거짓 성공 없이 현재 화면 입력을 유지합니다.",
+        "verification_ko": "브라우저 로컬 데이터 제거 후 재로그인 복원, 다른 사용자 비노출, 저장 장애 후 입력 유지와 재시도 성공을 E2E로 검증합니다."
+      },
+      "source_refs": ["SRC-001", "SRC-002"]
+    },
+    {
+      "id": "QUALITY:purchase_request.acceptance_evidence@R1",
+      "kind": "QUALITY",
+      "key": "purchase_request.acceptance_evidence",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "승인된 흐름 AC-01부터 AC-08까지 자동 증거로 연결합니다.",
+      "specification": {
+        "category": "verification",
+        "obligation_ko": "부서장·재정부 성공, 일반 구성원 차단, 입력 실패 비생성, 초안 복원·실패 복구, 예산 초과 허용, 제출 결과 영속성을 사용자와 서버 경계에서 증명합니다.",
+        "verification_ko": "FLOW-FIN-001@R2의 AC-01부터 AC-08을 각각 추적하는 E2E·API 통합·계약 테스트가 CI에서 모두 통과합니다."
+      },
+      "source_refs": ["SRC-001", "SRC-002"]
+    }
+  ],
+  "design_coverage": [
+    {
+      "design_ref": "DESIGN-INTERACTION-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.get_editor_state@R1",
+        "AUTH:purchase_request.draft_read@R1",
+        "DATA:purchase_request.editor_state@R1"
+      ],
+      "rationale_ko": "작성 시작 시 서버가 권한과 행사 맥락을 파생해 제공하는 동작으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-002",
+      "disposition": "contracted",
+      "contract_refs": ["DATA:purchase_request.input@R1"],
+      "rationale_ko": "요청 공통 입력의 필수·선택·타입을 데이터 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-003",
+      "disposition": "contracted",
+      "contract_refs": ["DATA:purchase_request.input@R1", "DOMAIN:purchase_request.submission@R1"],
+      "rationale_ko": "다품목 구성과 유형별 가격 근거를 데이터와 도메인 불변식으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-004",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.get_editor_state@R1",
+        "API:purchase_request.save_draft@R1",
+        "API:purchase_request.delete_draft@R1",
+        "DATA:purchase_request.draft_content@R1",
+        "DATA:purchase_request.draft_save_command@R1",
+        "DATA:purchase_request.draft@R1",
+        "AUTH:purchase_request.draft_write@R1",
+        "AUTH:purchase_request.draft_delete@R1"
+      ],
+      "rationale_ko": "초안 조회·저장·삭제와 소유자 경계를 독립 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-005",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.submit@R1",
+        "DATA:purchase_request.submit_command@R1",
+        "DATA:purchase_request.submitted_event@R1",
+        "AUTH:purchase_request.submit@R1",
+        "EVENT:purchase_request.submitted@R1"
+      ],
+      "rationale_ko": "제출 명령·권한·성공 이벤트를 하나의 확정 경계로 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-006",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.list_own@R1",
+        "API:purchase_request.get_detail@R1",
+        "DATA:purchase_request.own_list@R1",
+        "AUTH:purchase_request.list_own@R1",
+        "AUTH:purchase_request.read_detail@R1"
+      ],
+      "rationale_ko": "제출 결과를 본인 목록과 허용된 상세에서 다시 읽는 경계를 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.save_draft@R1",
+        "ERROR:purchase_request.persistence_unavailable@R1",
+        "QUALITY:purchase_request.draft_recovery@R1"
+      ],
+      "rationale_ko": "저장 성공·실패와 재시도 가능한 작성 상태를 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "ERROR:purchase_request.validation_failed@R1",
+        "DATA:http.problem_details@R1",
+        "QUALITY:purchase_request.accessible_feedback@R1"
+      ],
+      "rationale_ko": "수정 가능한 입력 오류와 접근 가능한 표시를 안정 오류 계약으로 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-003",
+      "disposition": "contracted",
+      "contract_refs": [
+        "ERROR:purchase_request.action_forbidden@R1",
+        "ERROR:http.resource_not_found@R1",
+        "QUALITY:purchase_request.tenant_isolation@R1"
+      ],
+      "rationale_ko": "권한 없음과 조직 범위 비노출을 구분된 실패 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-004",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.submit@R1",
+        "DATA:purchase_request.record@R1",
+        "EVENT:purchase_request.submitted@R1"
+      ],
+      "rationale_ko": "성공 후 검토 대기 요청과 확정 이벤트가 일치하도록 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-005",
+      "disposition": "contracted",
+      "contract_refs": ["DOMAIN:purchase_request.submission@R1", "DATA:purchase_request.record@R1"],
+      "rationale_ko": "예산 초과가 제출 실패가 아니라 결과 속성임을 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-DOMAIN-001",
+      "disposition": "contracted",
+      "contract_refs": ["DOMAIN:purchase_request.submission@R1", "DATA:purchase_request.record@R1"],
+      "rationale_ko": "요청과 다품목 묶음의 구조를 도메인·데이터 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-DOMAIN-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DOMAIN:purchase_request.submission@R1",
+        "QUALITY:purchase_request.atomic_idempotent_submission@R1"
+      ],
+      "rationale_ko": "초안에서 검토 대기로의 단일 전환을 불변식과 원자성 의무로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-DATA-001",
+      "disposition": "contracted",
+      "contract_refs": ["DATA:purchase_request.input@R1", "DATA:purchase_request.record@R1"],
+      "rationale_ko": "사용자 입력과 서버 계산·파생값을 분리합니다."
+    },
+    {
+      "design_ref": "DESIGN-DATA-002",
+      "disposition": "contracted",
+      "contract_refs": ["DATA:purchase_request.input@R1"],
+      "rationale_ko": "품목 공통·유형별 정보와 가격 근거를 단일 스키마로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-DATA-003",
+      "disposition": "contracted",
+      "contract_refs": ["DOMAIN:purchase_request.submission@R1", "AUTH:purchase_request.submit@R1"],
+      "rationale_ko": "조직·행사·요청자·부서를 클라이언트 값이 아닌 서버 관계 사실로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-SYSTEM-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "AUTH:purchase_request.draft_read@R1",
+        "AUTH:purchase_request.draft_write@R1",
+        "AUTH:purchase_request.submit@R1"
+      ],
+      "rationale_ko": "작성 진입과 명령 권한을 관계 기반 기본 거부식으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-SYSTEM-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.save_draft@R1",
+        "DATA:purchase_request.draft@R1",
+        "QUALITY:purchase_request.draft_recovery@R1"
+      ],
+      "rationale_ko": "개인 초안 서버 정본과 복구 책임을 API·데이터·품질 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-SYSTEM-003",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.submit@R1",
+        "DOMAIN:purchase_request.submission@R1",
+        "QUALITY:purchase_request.atomic_idempotent_submission@R1"
+      ],
+      "rationale_ko": "서버 재검증·원자적 확정·중복 방지를 하나의 책임으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-SYSTEM-004",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.list_own@R1",
+        "API:purchase_request.get_detail@R1",
+        "AUTH:purchase_request.list_own@R1",
+        "AUTH:purchase_request.read_detail@R1"
+      ],
+      "rationale_ko": "목록과 상세의 서로 다른 가시성 규칙을 각각 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERFACE-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.get_editor_state@R1",
+        "API:purchase_request.save_draft@R1",
+        "API:purchase_request.delete_draft@R1",
+        "API:purchase_request.submit@R1",
+        "API:purchase_request.list_own@R1",
+        "API:purchase_request.get_detail@R1",
+        "DATA:http.empty_body@R1",
+        "ERROR:http.unauthenticated@R1",
+        "ERROR:purchase_request.state_conflict@R1"
+      ],
+      "rationale_ko": "클라이언트와 서버 사이의 여섯 동작과 공통 실패 경계를 완전하게 열거합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-001",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.tenant_isolation@R1"],
+      "rationale_ko": "관계 기반 기본 거부를 보안 품질 게이트로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-002",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.sensitive_data_handling@R1"],
+      "rationale_ko": "조직 격리와 재정 정보 최소 노출을 검증 가능한 의무로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-003",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.accessible_feedback@R1"],
+      "rationale_ko": "입력·상태 접근성을 자동 검증 가능한 의무로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-004",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.atomic_idempotent_submission@R1"],
+      "rationale_ko": "중복 방지와 장애 추적의 핵심을 원자성 품질 게이트로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-005",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.draft_recovery@R1",
+        "QUALITY:purchase_request.sensitive_data_handling@R1"
+      ],
+      "rationale_ko": "서버 초안 정본과 브라우저 영속 저장 최소화를 함께 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-001",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.acceptance_evidence@R1"],
+      "rationale_ko": "부서장 다품목 제출을 AC-01 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-002",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.acceptance_evidence@R1"],
+      "rationale_ko": "재정부 제출 권한을 AC-02 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-003",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.acceptance_evidence@R1"],
+      "rationale_ko": "입력 실패 비생성을 AC-03 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-004",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.acceptance_evidence@R1"],
+      "rationale_ko": "일반 구성원 작성 차단을 AC-04 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-005",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.acceptance_evidence@R1"],
+      "rationale_ko": "초안 저장·복원을 AC-05 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-006",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.acceptance_evidence@R1"],
+      "rationale_ko": "예산 초과 제출 허용을 AC-06 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-007",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.acceptance_evidence@R1"],
+      "rationale_ko": "제출 결과 영속성을 AC-07 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-008",
+      "disposition": "contracted",
+      "contract_refs": ["QUALITY:purchase_request.acceptance_evidence@R1"],
+      "rationale_ko": "초안 저장 실패 복구를 AC-08 자동 증거에 연결합니다."
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "구현 기준선으로 확정할지 여부만 승인 또는 반려로 구분합니다.",
+        "source_refs": ["SRC-001", "SRC-002", "SRC-003"]
+      },
+      "question_ko": "행사 구매 요청 제출 실행 계약 묶음 CB-FIN-001을 승인합니까?",
+      "reason_ko": "승인하면 계약 리비전 R1로 고정하고 구현 아키텍처 설계의 입력으로 사용합니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        { "id": "YES", "label_ko": "승인" },
+        { "id": "NO", "label_ko": "반려" }
+      ],
+      "evidence": {
+        "solution_design_refs": [],
+        "source_refs": ["SRC-001", "SRC-002", "SRC-003"]
+      },
+      "answer_source_ref": "SRC-008",
+      "normalized_answer": {
+        "selected_option_ids": ["YES"],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}

@@ -6,8 +6,18 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "test:contracts": "node --test scripts/validate-contracts.test.mjs",
-    "validate:contracts": "node scripts/validate-contracts.mjs",
+    "test:contracts": "node --test scripts/validate-contracts.test.mjs scripts/validate-contract-bundles.test.mjs",
+    "validate:contracts": "node scripts/validate-contracts.mjs && node scripts/validate-contract-bundles.mjs",
+    "test:product-specs": "node --test scripts/validate-product-specs.test.mjs",
+    "validate:product-specs": "node scripts/validate-product-specs.mjs",
+    "test:architecture": "node --test scripts/validate-implementation-architecture.test.mjs",
+    "validate:architecture": "node scripts/validate-implementation-architecture.mjs",
+    "test:delivery-work": "node --test scripts/validate-delivery-work-plan.test.mjs",
+    "validate:delivery-work": "node scripts/validate-delivery-work-plan.mjs",
+    "test:execution-plan": "node --test scripts/validate-execution-plan.test.mjs",
+    "validate:execution-plan": "node scripts/validate-execution-plan.mjs",
+    "test:execution-runtime": "node --test scripts/validate-execution-runtime.test.mjs",
+    "validate:execution-runtime": "node scripts/validate-execution-runtime.mjs",
     "build:wireframe": "pnpm --filter @vada/wireframe build",
     "prepare": "lefthook install"
   },

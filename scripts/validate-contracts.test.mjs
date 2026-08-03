@@ -46,6 +46,13 @@ test("완전한 슬라이스 실행 명세를 허용한다", () => {
   assert.deepEqual(validateSliceDocument(validSlice()), []);
 });
 
+test("오해할 인접 범위가 없으면 범위 밖 목록을 생략할 수 있다", () => {
+  const slice = validSlice();
+  delete slice.outOfScope;
+
+  assert.deepEqual(validateSliceDocument(slice), []);
+});
+
 test("화면 인벤토리의 복합 화면 ID를 허용한다", () => {
   const slice = validSlice({
     screenRefs: ["EVT-DOC-01", "OPS-MEET-06A"],
@@ -269,4 +276,25 @@ test("Notion 투영과 실행 명세의 리비전 불일치를 거부한다", as
   });
 
   assert.match(result.errors.join("\n"), /Notion.*명세 리비전/);
+});
+
+test("V2 계획 항목과 작업 항목 데이터베이스 매핑이 없으면 거부한다", async () => {
+  const result = await withRepositoryCopy(async (root) => {
+    await updateJsonFile(root, "contracts/notion.json", (document) => {
+      delete document.planningDatabases.planItems;
+      delete document.planningDatabases.workItems;
+    });
+  });
+
+  assert.match(result.errors.join("\n"), /V2 계획 항목.*V2 작업 항목/);
+});
+
+test("OpenAPI 3.1.1보다 오래된 계약 문서를 거부한다", async () => {
+  const result = await withRepositoryCopy(async (root) => {
+    await updateJsonFile(root, "contracts/openapi.json", (document) => {
+      document.openapi = "3.1.0";
+    });
+  });
+
+  assert.match(result.errors.join("\n"), /OpenAPI 3\.1\.1/);
 });

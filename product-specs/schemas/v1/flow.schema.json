@@ -1,0 +1,481 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.dev/schemas/product/v1/flow.schema.json",
+  "title": "VADA product user flow specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "kind",
+    "id",
+    "title",
+    "revision",
+    "status",
+    "supersedes",
+    "changeSummary",
+    "approval",
+    "sourceEvidence",
+    "domainRef",
+    "spec",
+    "review"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/v1/flow.schema.json"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "flow"
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/flowId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "enum": ["draft", "review", "approved"]
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "common.schema.json#/$defs/flowArtifactRef"
+        }
+      ]
+    },
+    "changeSummary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "approval": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "common.schema.json#/$defs/approval"
+        }
+      ]
+    },
+    "sourceEvidence": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/sourceEvidence"
+      }
+    },
+    "domainRef": {
+      "$ref": "common.schema.json#/$defs/domainArtifactRef"
+    },
+    "spec": {
+      "$ref": "#/$defs/flowSpec"
+    },
+    "review": {
+      "$ref": "common.schema.json#/$defs/review"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "approved"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "approval": {
+            "$ref": "common.schema.json#/$defs/approval"
+          },
+          "sourceEvidence": {
+            "type": "array",
+            "minItems": 1
+          },
+          "review": {
+            "type": "object",
+            "properties": {
+              "openQuestions": {
+                "type": "array",
+                "not": {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "blocking": {
+                        "const": true
+                      }
+                    },
+                    "required": ["blocking"]
+                  }
+                }
+              },
+              "candidateChanges": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "revision": {
+            "const": 0
+          },
+          "approval": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "precondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "domainRuleRefs", "flowRuleRefs", "origin"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^PRECONDITION-[0-9]{3}$"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "domainRuleRefs": {
+          "$ref": "#/$defs/domainRuleRefs"
+        },
+        "flowRuleRefs": {
+          "$ref": "#/$defs/flowRuleRefs"
+        },
+        "origin": {
+          "$ref": "common.schema.json#/$defs/origin"
+        }
+      }
+    },
+    "domainRuleRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^DOMAIN-RULE-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+      }
+    },
+    "flowRuleRefs": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^FLOW-RULE-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "actorRefs",
+        "action",
+        "systemResponse",
+        "domainRuleRefs",
+        "flowRuleRefs",
+        "designSourceRefs",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^STEP-[0-9]{2,3}$"
+        },
+        "actorRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^(?:SYSTEM|ACTOR-[A-Z0-9]+(?:-[A-Z0-9]+)*)$"
+          }
+        },
+        "action": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "systemResponse": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "domainRuleRefs": {
+          "$ref": "#/$defs/domainRuleRefs"
+        },
+        "flowRuleRefs": {
+          "$ref": "#/$defs/flowRuleRefs"
+        },
+        "designSourceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/sourceId"
+          }
+        },
+        "origin": {
+          "$ref": "common.schema.json#/$defs/origin"
+        }
+      }
+    },
+    "branch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "condition",
+        "behavior",
+        "userVisibleResult",
+        "domainRuleRefs",
+        "flowRuleRefs",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^BRANCH-[0-9]{2,3}$"
+        },
+        "condition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "behavior": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "userVisibleResult": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "domainRuleRefs": {
+          "$ref": "#/$defs/domainRuleRefs"
+        },
+        "flowRuleRefs": {
+          "$ref": "#/$defs/flowRuleRefs"
+        },
+        "origin": {
+          "$ref": "common.schema.json#/$defs/origin"
+        }
+      }
+    },
+    "completionScenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "given", "when", "then", "coversRefs", "origin"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^AC-[0-9]{2,3}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "given": {
+          "$ref": "#/$defs/scenarioSentences"
+        },
+        "when": {
+          "$ref": "#/$defs/scenarioSentences"
+        },
+        "then": {
+          "$ref": "#/$defs/scenarioSentences"
+        },
+        "coversRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "common.schema.json#/$defs/itemId"
+          }
+        },
+        "origin": {
+          "$ref": "common.schema.json#/$defs/origin"
+        }
+      }
+    },
+    "scenarioSentences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      }
+    },
+    "flowSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "outcome",
+        "preconditions",
+        "rules",
+        "steps",
+        "branches",
+        "completionScenarios",
+        "boundaries"
+      ],
+      "properties": {
+        "outcome": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "actorRefs", "trigger", "result", "origin"],
+          "properties": {
+            "id": {
+              "const": "OUTCOME-001"
+            },
+            "actorRefs": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^ACTOR-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+              }
+            },
+            "trigger": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1000
+            },
+            "result": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1500
+            },
+            "origin": {
+              "$ref": "common.schema.json#/$defs/origin"
+            }
+          }
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/precondition"
+          }
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "allOf": [
+              {
+                "$ref": "common.schema.json#/$defs/rule"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^FLOW-RULE-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/step"
+          }
+        },
+        "branches": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/branch"
+          }
+        },
+        "completionScenarios": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/completionScenario"
+          }
+        },
+        "boundaries": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["inScope", "outOfScope", "relatedFlowRefs"],
+          "properties": {
+            "inScope": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "allOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/statement"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^BOUNDARY-IN-[0-9]{3}$"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "outOfScope": {
+              "type": "array",
+              "items": {
+                "allOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/statement"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^BOUNDARY-OUT-[0-9]{3}$"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "relatedFlowRefs": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "$ref": "common.schema.json#/$defs/flowArtifactRef"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

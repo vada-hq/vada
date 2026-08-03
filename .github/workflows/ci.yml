@@ -22,10 +22,10 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Test contract validator
-        run: node --test scripts/validate-contracts.test.mjs
-      - name: Validate executable contracts
-        run: node scripts/validate-contracts.mjs
+      - name: Test specification and contract validators
+        run: pnpm test:contracts && pnpm test:product-specs && pnpm test:architecture && pnpm test:delivery-work && pnpm test:execution-plan && pnpm test:execution-runtime
+      - name: Validate specifications, contracts, architecture, work graph, execution plan, and runtime
+        run: pnpm validate:contracts && pnpm validate:product-specs && pnpm validate:architecture && pnpm validate:delivery-work && pnpm validate:execution-plan && pnpm validate:execution-runtime
 
   api:
     name: api

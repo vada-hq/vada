@@ -21,6 +21,31 @@ validate-contracts:
     pnpm test:contracts
     pnpm validate:contracts
 
+# AI용 제품 명세
+validate-product-specs:
+    pnpm test:product-specs
+    pnpm validate:product-specs
+
+# 전달 단위 구현 아키텍처
+validate-architecture:
+    pnpm test:architecture
+    pnpm validate:architecture
+
+# 승인 기준선에서 도출한 전달 작업 그래프
+validate-delivery-work:
+    pnpm test:delivery-work
+    pnpm validate:delivery-work
+
+# 승인 작업 그래프의 실행 범위·실행자·추정·일정 기준선
+validate-execution-plan:
+    pnpm test:execution-plan
+    pnpm validate:execution-plan
+
+# 승인 실행 계획에 대한 실제 상태·전이·증거 기록
+validate-execution-runtime:
+    pnpm test:execution-runtime
+    pnpm validate:execution-runtime
+
 # 테스트
 test: test-api test-web
 
@@ -58,4 +83,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-contracts lint typecheck test build
+check: validate-contracts validate-product-specs validate-architecture validate-delivery-work validate-execution-plan validate-execution-runtime lint typecheck test build

@@ -1,0 +1,453 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.dev/schemas/product/v1/common.schema.json",
+  "title": "VADA product specification common definitions",
+  "$defs": {
+    "domainId": {
+      "type": "string",
+      "pattern": "^DOMAIN-[A-Z0-9]+(?:-[A-Z0-9]+)*$",
+      "maxLength": 40
+    },
+    "flowId": {
+      "type": "string",
+      "pattern": "^FLOW-[A-Z0-9]+(?:-[A-Z0-9]+)*-[0-9]{3}$",
+      "maxLength": 48
+    },
+    "rfc3339DateTime": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\\.[0-9]+)?(?:Z|[+-][0-9]{2}:[0-9]{2})$"
+    },
+    "domainArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/domainId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "flowArtifactRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "revision"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/flowId"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "artifactRef": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/domainArtifactRef"
+        },
+        {
+          "$ref": "#/$defs/flowArtifactRef"
+        }
+      ]
+    },
+    "approval": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["approvedBy", "approvedAt"],
+      "properties": {
+        "approvedBy": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "approvedAt": {
+          "$ref": "#/$defs/rfc3339DateTime"
+        }
+      }
+    },
+    "sourceId": {
+      "type": "string",
+      "pattern": "^SRC-[0-9]{3}$"
+    },
+    "sourceLocator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": {
+          "enum": ["uri", "repository_path", "conversation_ref"]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2000
+        }
+      }
+    },
+    "sourceVersion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "value"],
+      "properties": {
+        "kind": {
+          "enum": [
+            "last_edited_at",
+            "version_id",
+            "git_commit",
+            "content_digest",
+            "document_revision",
+            "message_ref"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500
+        }
+      }
+    },
+    "sourceEvidence": {
+      "type": "object",
+      "description": "명세 판단에 사용한 외부 입력의 관찰 시점 스냅샷입니다. 근거이지 제품 규칙의 정본은 아닙니다.",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "kind",
+        "locator",
+        "observedAt",
+        "sourceVersion",
+        "note"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "kind": {
+          "enum": [
+            "notion_page",
+            "figma_frame",
+            "conversation",
+            "repository_file",
+            "external_document"
+          ]
+        },
+        "locator": {
+          "$ref": "#/$defs/sourceLocator"
+        },
+        "observedAt": {
+          "$ref": "#/$defs/rfc3339DateTime"
+        },
+        "sourceVersion": {
+          "anyOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/sourceVersion"
+            }
+          ]
+        },
+        "note": {
+          "type": "string",
+          "maxLength": 500
+        }
+      }
+    },
+    "itemId": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*$",
+      "maxLength": 120
+    },
+    "origin": {
+      "type": "object",
+      "description": "항목이 외부 근거에서 추출됐는지, 제품 책임자가 직접 진술했는지, 같은 명세의 다른 항목에서 투영됐는지를 구분합니다. AI 추정은 허용하지 않습니다.",
+      "additionalProperties": false,
+      "required": ["kind", "sourceRefs", "itemRefs"],
+      "properties": {
+        "kind": {
+          "enum": ["source_extracted", "owner_stated", "spec_projection"]
+        },
+        "sourceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/sourceId"
+          }
+        },
+        "itemRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/itemId"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "source_extracted"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "sourceRefs": {
+                "type": "array",
+                "minItems": 1
+              },
+              "itemRefs": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "spec_projection"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "sourceRefs": {
+                "type": "array",
+                "maxItems": 0
+              },
+              "itemRefs": {
+                "type": "array",
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "owner_stated"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "sourceRefs": {
+                "type": "array",
+                "minItems": 1
+              },
+              "itemRefs": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      ]
+    },
+    "statement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "text", "origin"],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/itemId"
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "category", "text", "origin"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(?:DOMAIN|FLOW)-RULE-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+        },
+        "category": {
+          "enum": [
+            "invariant",
+            "authorization",
+            "visibility",
+            "lifecycle",
+            "calculation",
+            "audit",
+            "validation",
+            "other"
+          ]
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        }
+      }
+    },
+    "openQuestion": {
+      "type": "object",
+      "description": "승인 전에 답해야 하거나, 영향 범위를 금지한 채 의도적으로 미룬 미확정 사항입니다.",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "question",
+        "classification",
+        "blocking",
+        "ownerRole",
+        "affectedItemRefs",
+        "implementationPolicy",
+        "evidenceRefs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^QUESTION-[0-9]{3}$"
+        },
+        "question": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "classification": {
+          "enum": ["decision_pending", "intentionally_deferred", "external_dependency"]
+        },
+        "blocking": {
+          "type": "boolean"
+        },
+        "ownerRole": {
+          "enum": ["product_owner", "planner", "designer", "external_owner"]
+        },
+        "affectedItemRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/itemId"
+          }
+        },
+        "implementationPolicy": {
+          "enum": ["block_approval", "prohibit_affected_behavior", "allow_unaffected_scope"]
+        },
+        "evidenceRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/sourceId"
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "blocking": {
+                "const": true
+              }
+            },
+            "required": ["blocking"]
+          },
+          "then": {
+            "properties": {
+              "implementationPolicy": {
+                "const": "block_approval"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "blocking": {
+                "const": false
+              }
+            },
+            "required": ["blocking"]
+          },
+          "then": {
+            "properties": {
+              "implementationPolicy": {
+                "enum": ["prohibit_affected_behavior", "allow_unaffected_scope"]
+              }
+            }
+          }
+        }
+      ]
+    },
+    "candidateChange": {
+      "type": "object",
+      "description": "하나의 미확정 질문에 대한 검토 후보입니다. 승인된 규칙으로 해석하면 안 됩니다.",
+      "additionalProperties": false,
+      "required": ["id", "questionRef", "proposal", "affectedItemRefs", "origin"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^CANDIDATE-[0-9]{3}$"
+        },
+        "questionRef": {
+          "type": "string",
+          "pattern": "^QUESTION-[0-9]{3}$"
+        },
+        "proposal": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 3000
+        },
+        "affectedItemRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/itemId"
+          }
+        },
+        "origin": {
+          "$ref": "#/$defs/origin"
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["openQuestions", "candidateChanges"],
+      "properties": {
+        "openQuestions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/openQuestion"
+          }
+        },
+        "candidateChanges": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/candidateChange"
+          }
+        }
+      }
+    }
+  }
+}
