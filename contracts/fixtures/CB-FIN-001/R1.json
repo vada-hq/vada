@@ -1,0 +1,803 @@
+{
+  "schema_version": "0.1.0",
+  "fixture_set_id": "CF-FIN-001",
+  "fixture_set_revision": 1,
+  "status": "active",
+  "title_ko": "행사 구매 요청 제출 계약 픽스처",
+  "delivery_work_ref": {
+    "path": "delivery-units/DU-001/delivery-work/R1.json",
+    "work_item_id": "WORK:purchase-request-contract-fixtures@R1"
+  },
+  "contract_bundle_ref": {
+    "path": "contracts/bundles/CB-FIN-001/R1.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 1,
+    "canonical_sha256": "cb4ac51a822e69b8a12584116da12e8437b4e61ce87802c88e107259e00863fb"
+  },
+  "contract_refs": [
+    "DATA:purchase_request.input@R1",
+    "DATA:purchase_request.draft_content@R1",
+    "DATA:purchase_request.draft_save_command@R1",
+    "DATA:purchase_request.draft@R1",
+    "DATA:purchase_request.editor_state@R1",
+    "DATA:purchase_request.submit_command@R1",
+    "DATA:purchase_request.record@R1",
+    "DATA:purchase_request.own_list@R1",
+    "DATA:http.empty_body@R1",
+    "DATA:http.problem_details@R1",
+    "DATA:purchase_request.submitted_event@R1",
+    "ERROR:http.unauthenticated@R1",
+    "ERROR:purchase_request.action_forbidden@R1",
+    "ERROR:http.resource_not_found@R1",
+    "ERROR:purchase_request.validation_failed@R1",
+    "ERROR:purchase_request.state_conflict@R1",
+    "ERROR:purchase_request.persistence_unavailable@R1",
+    "API:purchase_request.get_editor_state@R1",
+    "API:purchase_request.save_draft@R1",
+    "API:purchase_request.delete_draft@R1",
+    "API:purchase_request.submit@R1",
+    "API:purchase_request.list_own@R1",
+    "API:purchase_request.get_detail@R1"
+  ],
+  "data_examples": [
+    {
+      "id": "normal-multi-item-request",
+      "description_ko": "일반 구매와 용역 품목을 함께 제출하는 정상 입력입니다.",
+      "value": {
+        "title": "가을 축제 운영 물품",
+        "neededDate": "2026-09-15",
+        "purpose": "가을 축제 부스 운영",
+        "priority": "urgent",
+        "items": [
+          {
+            "name": "명찰 케이스",
+            "category": "행사용품",
+            "budgetItem": "행사운영비",
+            "purchaseType": "general",
+            "quantity": 2,
+            "unit": "세트",
+            "estimatedUnitPrice": 15000,
+            "priceEvidence": [
+              {
+                "type": "product_url",
+                "url": "https://vendor.example/products/name-badge"
+              }
+            ],
+            "details": {
+              "vendor": "예시문구",
+              "productUrl": "https://vendor.example/products/name-badge",
+              "options": "투명 세로형"
+            }
+          },
+          {
+            "name": "행사 음향 운영",
+            "category": "용역",
+            "budgetItem": "행사운영비",
+            "purchaseType": "service",
+            "quantity": 1,
+            "unit": "건",
+            "estimatedUnitPrice": 360000,
+            "priceEvidence": [
+              {
+                "type": "vendor_quote",
+                "note": "2026년 가을 축제 음향 운영 견적"
+              }
+            ],
+            "details": {
+              "provider": "예시사운드",
+              "location": "학생회관 앞 광장",
+              "startDate": "2026-09-20",
+              "endDate": "2026-09-20",
+              "scope": "음향 장비 설치 및 운영"
+            }
+          }
+        ]
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.input@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "incomplete-draft",
+      "description_ko": "필수 제출 정보를 아직 채우지 않은 작성 중 초안입니다.",
+      "value": {
+        "title": "",
+        "neededDate": "",
+        "purpose": "",
+        "priority": null,
+        "items": [
+          {
+            "name": "",
+            "category": "",
+            "budgetItem": "",
+            "purchaseType": null,
+            "quantity": null,
+            "unit": "",
+            "estimatedUnitPrice": null,
+            "priceEvidence": [],
+            "details": {}
+          }
+        ]
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.draft_content@R1",
+          "expected_valid": true
+        },
+        {
+          "contract_ref": "DATA:purchase_request.input@R1",
+          "expected_valid": false,
+          "expected_error_keywords": ["minLength"]
+        }
+      ]
+    },
+    {
+      "id": "missing-price-evidence",
+      "description_ko": "일반 구매 품목의 가격 근거가 빠져 제출 검증에 실패하는 명령입니다.",
+      "value": {
+        "content": {
+          "title": "축제 안내 물품",
+          "neededDate": "2026-09-15",
+          "purpose": "축제 안내 부스 운영",
+          "priority": "normal",
+          "items": [
+            {
+              "name": "안내판",
+              "category": "행사용품",
+              "budgetItem": "행사운영비",
+              "purchaseType": "general",
+              "quantity": 1,
+              "unit": "개",
+              "estimatedUnitPrice": 50000,
+              "priceEvidence": [],
+              "details": {}
+            }
+          ]
+        }
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.submit_command@R1",
+          "expected_valid": false,
+          "expected_error_keywords": ["minItems"]
+        }
+      ]
+    },
+    {
+      "id": "new-draft-save-command",
+      "description_ko": "초안이 없는 행사에 불완전 입력을 처음 저장하는 명령입니다.",
+      "value": {
+        "expectedVersion": null,
+        "content": {
+          "title": "",
+          "neededDate": "",
+          "purpose": "",
+          "priority": null,
+          "items": []
+        }
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.draft_save_command@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "stale-draft-save-command",
+      "description_ko": "마지막으로 읽은 버전 1을 기준으로 기존 초안을 갱신하려는 유효한 명령입니다.",
+      "value": {
+        "expectedVersion": 1,
+        "content": {
+          "title": "축제 운영 물품",
+          "neededDate": "",
+          "purpose": "",
+          "priority": "urgent",
+          "items": []
+        }
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.draft_save_command@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "saved-incomplete-draft",
+      "description_ko": "서버가 버전 1로 저장한 불완전 초안입니다.",
+      "value": {
+        "draftId": "draft-001",
+        "version": 1,
+        "savedAt": "2026-08-03T10:00:00Z",
+        "content": {
+          "title": "",
+          "neededDate": "",
+          "purpose": "",
+          "priority": null,
+          "items": []
+        }
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.draft@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "editor-state-with-draft",
+      "description_ko": "인증 관계에서 파생한 작성 맥락과 저장된 초안을 함께 반환합니다.",
+      "value": {
+        "organizationId": "org-001",
+        "eventId": "event-001",
+        "eventName": "2026 가을 축제",
+        "requesterUserId": "user-001",
+        "requesterName": "김바다",
+        "requestDepartmentId": "department-001",
+        "requestDepartmentName": "기획부",
+        "draft": {
+          "draftId": "draft-001",
+          "version": 1,
+          "savedAt": "2026-08-03T10:00:00Z",
+          "content": {
+            "title": "",
+            "neededDate": "",
+            "purpose": "",
+            "priority": null,
+            "items": []
+          }
+        }
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.editor_state@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "submit-multi-item-command",
+      "description_ko": "저장된 초안 버전과 정상 다품목 입력을 함께 제출하는 명령입니다.",
+      "value": {
+        "content": {
+          "title": "가을 축제 운영 물품",
+          "neededDate": "2026-09-15",
+          "purpose": "가을 축제 부스 운영",
+          "priority": "urgent",
+          "items": [
+            {
+              "name": "명찰 케이스",
+              "category": "행사용품",
+              "budgetItem": "행사운영비",
+              "purchaseType": "general",
+              "quantity": 2,
+              "unit": "세트",
+              "estimatedUnitPrice": 15000,
+              "priceEvidence": [
+                {
+                  "type": "product_url",
+                  "url": "https://vendor.example/products/name-badge"
+                }
+              ],
+              "details": {
+                "vendor": "예시문구",
+                "productUrl": "https://vendor.example/products/name-badge",
+                "options": "투명 세로형"
+              }
+            },
+            {
+              "name": "행사 음향 운영",
+              "category": "용역",
+              "budgetItem": "행사운영비",
+              "purchaseType": "service",
+              "quantity": 1,
+              "unit": "건",
+              "estimatedUnitPrice": 360000,
+              "priceEvidence": [
+                {
+                  "type": "vendor_quote",
+                  "note": "2026년 가을 축제 음향 운영 견적"
+                }
+              ],
+              "details": {
+                "provider": "예시사운드",
+                "location": "학생회관 앞 광장",
+                "startDate": "2026-09-20",
+                "endDate": "2026-09-20",
+                "scope": "음향 장비 설치 및 운영"
+              }
+            }
+          ]
+        },
+        "draftRef": {
+          "draftId": "draft-001",
+          "version": 1
+        }
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.submit_command@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "submitted-multi-item-record",
+      "description_ko": "서버가 두 품목의 금액과 총액을 계산해 검토 대기로 확정한 요청입니다.",
+      "value": {
+        "requestId": "request-001",
+        "organizationId": "org-001",
+        "eventId": "event-001",
+        "requesterUserId": "user-001",
+        "requestDepartmentId": "department-001",
+        "status": "review_pending",
+        "content": {
+          "title": "가을 축제 운영 물품",
+          "neededDate": "2026-09-15",
+          "purpose": "가을 축제 부스 운영",
+          "priority": "urgent",
+          "items": [
+            {
+              "name": "명찰 케이스",
+              "category": "행사용품",
+              "budgetItem": "행사운영비",
+              "purchaseType": "general",
+              "quantity": 2,
+              "unit": "세트",
+              "estimatedUnitPrice": 15000,
+              "priceEvidence": [
+                {
+                  "type": "product_url",
+                  "url": "https://vendor.example/products/name-badge"
+                }
+              ],
+              "details": {
+                "vendor": "예시문구",
+                "productUrl": "https://vendor.example/products/name-badge",
+                "options": "투명 세로형"
+              }
+            },
+            {
+              "name": "행사 음향 운영",
+              "category": "용역",
+              "budgetItem": "행사운영비",
+              "purchaseType": "service",
+              "quantity": 1,
+              "unit": "건",
+              "estimatedUnitPrice": 360000,
+              "priceEvidence": [
+                {
+                  "type": "vendor_quote",
+                  "note": "2026년 가을 축제 음향 운영 견적"
+                }
+              ],
+              "details": {
+                "provider": "예시사운드",
+                "location": "학생회관 앞 광장",
+                "startDate": "2026-09-20",
+                "endDate": "2026-09-20",
+                "scope": "음향 장비 설치 및 운영"
+              }
+            }
+          ]
+        },
+        "itemResults": [
+          {
+            "itemId": "item-001",
+            "itemPosition": 0,
+            "estimatedAmount": 30000
+          },
+          {
+            "itemId": "item-002",
+            "itemPosition": 1,
+            "estimatedAmount": 360000
+          }
+        ],
+        "estimatedTotal": 390000,
+        "overBudget": false,
+        "createdAt": "2026-08-03T10:05:00Z"
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.record@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "own-request-list",
+      "description_ko": "현재 사용자의 요청을 생성 시각 내림차순으로 반환하는 목록입니다.",
+      "value": {
+        "items": [
+          {
+            "requestId": "request-001",
+            "title": "가을 축제 운영 물품",
+            "status": "review_pending",
+            "estimatedTotal": 390000,
+            "overBudget": false,
+            "createdAt": "2026-08-03T10:05:00Z"
+          },
+          {
+            "requestId": "request-000",
+            "title": "여름 행사 준비 물품",
+            "status": "review_pending",
+            "estimatedTotal": 100000,
+            "overBudget": true,
+            "createdAt": "2026-08-02T09:00:00Z"
+          }
+        ]
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.own_list@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "empty-http-body",
+      "description_ko": "본문 없는 요청과 204 응답을 JSON 픽스처에서 null로 표현합니다.",
+      "value": null,
+      "expectations": [
+        {
+          "contract_ref": "DATA:http.empty_body@R1",
+          "expected_valid": true
+        }
+      ]
+    },
+    {
+      "id": "submitted-event",
+      "description_ko": "민감한 품목 원문 없이 제출 확정 사실만 담은 이벤트입니다.",
+      "value": {
+        "requestId": "request-001",
+        "organizationId": "org-001",
+        "eventId": "event-001",
+        "requesterUserId": "user-001",
+        "requestDepartmentId": "department-001",
+        "estimatedTotal": 390000,
+        "overBudget": false,
+        "submittedAt": "2026-08-03T10:05:00Z"
+      },
+      "expectations": [
+        {
+          "contract_ref": "DATA:purchase_request.submitted_event@R1",
+          "expected_valid": true
+        }
+      ]
+    }
+  ],
+  "error_examples": [
+    {
+      "id": "unauthenticated",
+      "contract_ref": "ERROR:http.unauthenticated@R1",
+      "body": {
+        "type": "https://vada.example/problems/unauthenticated",
+        "title": "로그인이 필요합니다.",
+        "status": 401,
+        "detail": "인증 정보를 확인할 수 없습니다.",
+        "instance": "urn:vada:request:unauthenticated-001",
+        "code": "UNAUTHENTICATED",
+        "retryable": false
+      }
+    },
+    {
+      "id": "action-forbidden",
+      "contract_ref": "ERROR:purchase_request.action_forbidden@R1",
+      "body": {
+        "type": "https://vada.example/problems/purchase-request-action-forbidden",
+        "title": "이 구매 요청 동작을 수행할 권한이 없습니다.",
+        "status": 403,
+        "detail": "현재 조직에서 이 동작을 수행할 수 없습니다.",
+        "instance": "urn:vada:request:forbidden-001",
+        "code": "PURCHASE_REQUEST_ACTION_FORBIDDEN",
+        "retryable": false
+      }
+    },
+    {
+      "id": "resource-not-found",
+      "contract_ref": "ERROR:http.resource_not_found@R1",
+      "body": {
+        "type": "https://vada.example/problems/resource-not-found",
+        "title": "요청한 정보를 찾을 수 없습니다.",
+        "status": 404,
+        "detail": "현재 범위에서 요청한 정보를 찾을 수 없습니다.",
+        "instance": "urn:vada:request:not-found-001",
+        "code": "RESOURCE_NOT_FOUND",
+        "retryable": false
+      }
+    },
+    {
+      "id": "validation-failed-missing-price-evidence",
+      "contract_ref": "ERROR:purchase_request.validation_failed@R1",
+      "body": {
+        "type": "https://vada.example/problems/purchase-request-validation-failed",
+        "title": "구매 요청 입력을 확인해 주세요.",
+        "status": 422,
+        "detail": "한 개 이상의 입력을 확인해 주세요.",
+        "instance": "urn:vada:request:validation-001",
+        "code": "PURCHASE_REQUEST_VALIDATION_FAILED",
+        "retryable": false,
+        "fieldViolations": [
+          {
+            "path": "/content/items/0/priceEvidence",
+            "code": "PRICE_EVIDENCE_REQUIRED",
+            "message": "가격 근거를 한 개 이상 입력해 주세요."
+          }
+        ]
+      }
+    },
+    {
+      "id": "draft-version-conflict",
+      "contract_ref": "ERROR:purchase_request.state_conflict@R1",
+      "body": {
+        "type": "https://vada.example/problems/purchase-request-state-conflict",
+        "title": "구매 요청 상태가 변경되어 다시 확인해야 합니다.",
+        "status": 409,
+        "detail": "초안이 다른 버전으로 변경되었습니다. 최신 초안을 다시 조회해 주세요.",
+        "instance": "urn:vada:request:conflict-001",
+        "code": "PURCHASE_REQUEST_STATE_CONFLICT",
+        "retryable": true
+      }
+    },
+    {
+      "id": "persistence-unavailable",
+      "contract_ref": "ERROR:purchase_request.persistence_unavailable@R1",
+      "body": {
+        "type": "https://vada.example/problems/purchase-request-persistence-unavailable",
+        "title": "지금은 구매 요청을 저장할 수 없습니다.",
+        "status": 503,
+        "detail": "요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        "instance": "urn:vada:request:persistence-001",
+        "code": "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+        "retryable": true
+      }
+    }
+  ],
+  "api_mocks": [
+    {
+      "id": "get-editor-state-success",
+      "contract_ref": "API:purchase_request.get_editor_state@R1",
+      "scenario": "success",
+      "request_body_valid": true,
+      "request": {
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-request-editor",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "empty-http-body"
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "body_example_ref": "editor-state-with-draft"
+      }
+    },
+    {
+      "id": "save-draft-success",
+      "contract_ref": "API:purchase_request.save_draft@R1",
+      "scenario": "success",
+      "request_body_valid": true,
+      "request": {
+        "method": "PUT",
+        "path": "/events/{eventId}/purchase-request-draft",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "new-draft-save-command"
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "body_example_ref": "saved-incomplete-draft"
+      }
+    },
+    {
+      "id": "delete-draft-success",
+      "contract_ref": "API:purchase_request.delete_draft@R1",
+      "scenario": "success",
+      "request_body_valid": true,
+      "request": {
+        "method": "DELETE",
+        "path": "/events/{eventId}/purchase-request-draft",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "empty-http-body"
+      },
+      "response": {
+        "status": 204,
+        "content_type": null,
+        "body_example_ref": "empty-http-body"
+      }
+    },
+    {
+      "id": "submit-purchase-request-success",
+      "contract_ref": "API:purchase_request.submit@R1",
+      "scenario": "success",
+      "request_body_valid": true,
+      "request": {
+        "method": "POST",
+        "path": "/events/{eventId}/purchase-requests",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": { "Idempotency-Key": "idem-purchase-request-001" },
+        "body_example_ref": "submit-multi-item-command"
+      },
+      "response": {
+        "status": 201,
+        "content_type": "application/json",
+        "body_example_ref": "submitted-multi-item-record"
+      }
+    },
+    {
+      "id": "list-own-purchase-requests-success",
+      "contract_ref": "API:purchase_request.list_own@R1",
+      "scenario": "success",
+      "request_body_valid": true,
+      "request": {
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests/mine",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "empty-http-body"
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "body_example_ref": "own-request-list"
+      }
+    },
+    {
+      "id": "get-purchase-request-detail-success",
+      "contract_ref": "API:purchase_request.get_detail@R1",
+      "scenario": "success",
+      "request_body_valid": true,
+      "request": {
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests/{requestId}",
+        "path_parameters": {
+          "eventId": "event-001",
+          "requestId": "request-001"
+        },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "empty-http-body"
+      },
+      "response": {
+        "status": 200,
+        "content_type": "application/json",
+        "body_example_ref": "submitted-multi-item-record"
+      }
+    },
+    {
+      "id": "get-editor-state-unauthenticated",
+      "contract_ref": "API:purchase_request.get_editor_state@R1",
+      "scenario": "error",
+      "error_contract_ref": "ERROR:http.unauthenticated@R1",
+      "request_body_valid": true,
+      "request": {
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-request-editor",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "empty-http-body"
+      },
+      "response": {
+        "status": 401,
+        "content_type": "application/problem+json",
+        "body_example_ref": "unauthenticated"
+      }
+    },
+    {
+      "id": "get-editor-state-forbidden",
+      "contract_ref": "API:purchase_request.get_editor_state@R1",
+      "scenario": "error",
+      "error_contract_ref": "ERROR:purchase_request.action_forbidden@R1",
+      "request_body_valid": true,
+      "request": {
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-request-editor",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "empty-http-body"
+      },
+      "response": {
+        "status": 403,
+        "content_type": "application/problem+json",
+        "body_example_ref": "action-forbidden"
+      }
+    },
+    {
+      "id": "get-detail-not-found",
+      "contract_ref": "API:purchase_request.get_detail@R1",
+      "scenario": "error",
+      "error_contract_ref": "ERROR:http.resource_not_found@R1",
+      "request_body_valid": true,
+      "request": {
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests/{requestId}",
+        "path_parameters": {
+          "eventId": "event-001",
+          "requestId": "request-missing"
+        },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "empty-http-body"
+      },
+      "response": {
+        "status": 404,
+        "content_type": "application/problem+json",
+        "body_example_ref": "resource-not-found"
+      }
+    },
+    {
+      "id": "submit-missing-price-evidence",
+      "contract_ref": "API:purchase_request.submit@R1",
+      "scenario": "error",
+      "error_contract_ref": "ERROR:purchase_request.validation_failed@R1",
+      "request_body_valid": false,
+      "expected_request_error_keywords": ["minItems"],
+      "request": {
+        "method": "POST",
+        "path": "/events/{eventId}/purchase-requests",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": { "Idempotency-Key": "idem-validation-001" },
+        "body_example_ref": "missing-price-evidence"
+      },
+      "response": {
+        "status": 422,
+        "content_type": "application/problem+json",
+        "body_example_ref": "validation-failed-missing-price-evidence"
+      }
+    },
+    {
+      "id": "save-draft-version-conflict",
+      "contract_ref": "API:purchase_request.save_draft@R1",
+      "scenario": "error",
+      "error_contract_ref": "ERROR:purchase_request.state_conflict@R1",
+      "request_body_valid": true,
+      "request": {
+        "method": "PUT",
+        "path": "/events/{eventId}/purchase-request-draft",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": {},
+        "body_example_ref": "stale-draft-save-command"
+      },
+      "response": {
+        "status": 409,
+        "content_type": "application/problem+json",
+        "body_example_ref": "draft-version-conflict"
+      }
+    },
+    {
+      "id": "submit-persistence-unavailable",
+      "contract_ref": "API:purchase_request.submit@R1",
+      "scenario": "error",
+      "error_contract_ref": "ERROR:purchase_request.persistence_unavailable@R1",
+      "request_body_valid": true,
+      "request": {
+        "method": "POST",
+        "path": "/events/{eventId}/purchase-requests",
+        "path_parameters": { "eventId": "event-001" },
+        "query_parameters": {},
+        "headers": { "Idempotency-Key": "idem-persistence-001" },
+        "body_example_ref": "submit-multi-item-command"
+      },
+      "response": {
+        "status": 503,
+        "content_type": "application/problem+json",
+        "body_example_ref": "persistence-unavailable"
+      }
+    }
+  ]
+}

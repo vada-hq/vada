@@ -12,6 +12,7 @@
 - `schemas/delivery-contract-bundle.schema.json`: 승인 설계를 실행 계약으로 바꾸는 묶음 구조 규격
 - `bundles/<CB-ID>/draft.json`: 검토 중인 계약 묶음. 승인 전 계약은 `proposed`이며 구현 기준선이 아니다.
 - `bundles/<CB-ID>/R<n>.json`: 승인된 불변 계약 묶음. 권한·데이터·도메인·API·오류·이벤트·품질 계약과 설계 귀속을 함께 고정한다.
+- `fixtures/<CB-ID>/R<n>.json`: 승인 묶음 해시에 고정된 정상·실패 데이터와 API 모의 요청·응답. `body_example_ref`로 같은 JSON 값을 프론트엔드와 백엔드가 재사용한다.
 - `schemas/slice.schema.json`: 슬라이스 실행 명세의 구조 규격
 - `slices/*.json`: 슬라이스별 사용자 결과·계약 기준선·AC·범위·관계
 - `notion.json`: 저장소 계약과 Notion 페이지의 연결, 슬라이스 명세 리비전, 현재 V2 계획·작업 DB와 레거시 DB 경계를 관리하는 동기화 원장

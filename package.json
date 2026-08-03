@@ -6,8 +6,8 @@
     "node": ">=22.13"
   },
   "scripts": {
-    "test:contracts": "node --test scripts/validate-contracts.test.mjs scripts/validate-contract-bundles.test.mjs",
-    "validate:contracts": "node scripts/validate-contracts.mjs && node scripts/validate-contract-bundles.mjs",
+    "test:contracts": "node --test scripts/validate-contracts.test.mjs scripts/validate-contract-bundles.test.mjs scripts/validate-contract-fixtures.test.mjs",
+    "validate:contracts": "node scripts/validate-contracts.mjs && node scripts/validate-contract-bundles.mjs && node scripts/validate-contract-fixtures.mjs",
     "test:product-specs": "node --test scripts/validate-product-specs.test.mjs",
     "validate:product-specs": "node scripts/validate-product-specs.mjs",
     "test:architecture": "node --test scripts/validate-implementation-architecture.test.mjs",
