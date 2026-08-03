@@ -20,8 +20,16 @@
     "PROCESS:documentation@R1": "https://app.notion.com/p/3a968a85148e81f9879dc8d4866a1f51",
     "PROCESS:documentation@R2": "https://app.notion.com/p/3aa68a85148e81c7a0b4c3dd86b5da85",
     "PROCESS:documentation@R3": "https://app.notion.com/p/3aa68a85148e81a0a617fe3db6e7a011",
+    "PROCESS:documentation@R4": "https://app.notion.com/p/3aa68a85148e81b6933de2828c7f28d1",
+    "PROCESS:documentation@R5": "https://app.notion.com/p/3ac68a85148e8134ba87ca8ab2742631",
+    "PROCESS:documentation@R6": "https://app.notion.com/p/3ac68a85148e81d48a7ad12ec9b87bc4",
+    "PROCESS:documentation@R7": "https://app.notion.com/p/3ac68a85148e81d7b281ddc09bee2a83",
+    "PROCESS:documentation@R8": "https://app.notion.com/p/3ac68a85148e815ab4acf8a335b0c5b4",
     "PROCESS:DoR@R1": "https://app.notion.com/p/3a968a85148e817fab43d578d99436d7",
     "PROCESS:DoR@R2": "https://app.notion.com/p/3aa68a85148e81a090fcf6615fd21564",
+    "PROCESS:DoR@R3": "https://app.notion.com/p/3ac68a85148e81a09e89f2416dcd9f1a",
+    "PROCESS:DoR@R4": "https://app.notion.com/p/3ac68a85148e81588a10c9fd0a58f338",
+    "PROCESS:work_item_flow@R1": "https://app.notion.com/p/3ac68a85148e812f9f0be3e5dd23c22d",
     "QUALITY:DoD@R1": "https://app.notion.com/p/3a968a85148e81b688cee76235776e72"
   },
   "slicePages": {
@@ -35,6 +43,19 @@
     }
   },
   "planningDatabases": {
+    "planItems": {
+      "dataSourceId": "adb59e7d-bed9-4a8e-86b4-ecf31f712f22",
+      "url": "https://app.notion.com/p/a5ddf35b79dc424a9c541acef933700a"
+    },
+    "workItems": {
+      "dataSourceId": "620ffd9c-8211-432a-af24-a7e88d862e43",
+      "url": "https://app.notion.com/p/36414bbfdf0c4f57806751834a09a809",
+      "views": {
+        "readiness": "https://www.notion.so/36414bbfdf0c4f57806751834a09a809?v=3ac68a85148e81b88478000c8e6589c5"
+      }
+    }
+  },
+  "legacyPlanningDatabases": {
     "milestones": {
       "dataSourceId": "84208008-8781-46af-a4d2-ec7263b7fd48",
       "url": "https://app.notion.com/p/667fc69e749049bd88c59f1289ae33e3"
@@ -48,7 +69,25 @@
       "url": "https://app.notion.com/p/ea944c9b586341849b80456afcf9bd0f"
     }
   },
-  "milestonePages": {
+  "planItemPages": {
+    "MS-FIN-01": "https://app.notion.com/p/3ab68a85148e81f4b390ffc16002ccb5",
+    "SL-FIN-007": "https://app.notion.com/p/3ac68a85148e81e2ae8ce16a8333c98a",
+    "SL-FIN-008": "https://app.notion.com/p/3ac68a85148e81d8962efd8b25d921cf",
+    "SL-FIN-009": "https://app.notion.com/p/3ac68a85148e8177807fecfdf4786e38"
+  },
+  "workItemPages": {
+    "TSK-1": "https://app.notion.com/p/3ab68a85148e81fab11de0a36bf2a0e7",
+    "TSK-2": "https://app.notion.com/p/3ab68a85148e8185b22ef91af73e5d5b",
+    "TSK-3": "https://app.notion.com/p/3ab68a85148e81579894ea724f2c438f",
+    "TSK-4": "https://app.notion.com/p/3ac68a85148e815dba09cc9ed0979311",
+    "TSK-5": "https://app.notion.com/p/3ac68a85148e81e3aafee541ad576402",
+    "TSK-6": "https://app.notion.com/p/3ac68a85148e81dca7a2ed2743021c91",
+    "TSK-7": "https://app.notion.com/p/3ac68a85148e817eb66bda14db498215",
+    "TSK-8": "https://app.notion.com/p/3ac68a85148e811caba3dbf77a0976f5",
+    "TSK-9": "https://app.notion.com/p/3ac68a85148e81af9a02d5c6d943c685",
+    "TSK-10": "https://app.notion.com/p/3ac68a85148e81c5922ad4de833ab95f"
+  },
+  "legacyMilestonePages": {
     "MS-MVP-01": "https://app.notion.com/p/3aa68a85148e81d5ac98e91b42dec0e9",
     "MS-MVP-02": "https://app.notion.com/p/3aa68a85148e815e9217c02822fd5e4f",
     "MS-MVP-03": "https://app.notion.com/p/3aa68a85148e816883ffebafe98d6a21",
@@ -58,7 +97,7 @@
     "MS-MVP-07": "https://app.notion.com/p/3aa68a85148e8115bbe0e831d8c86d19",
     "MS-MVP-08": "https://app.notion.com/p/3aa68a85148e8187a321ce58dc7c4c74"
   },
-  "planningPages": {
+  "legacyPlanningPages": {
     "milestoneReviewAgenda": "https://app.notion.com/p/3aa68a85148e81a5be0de95cf90312ad"
   }
 }

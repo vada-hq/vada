@@ -1,0 +1,918 @@
+{
+  "$schema": "../../schemas/v2/solution.schema.json",
+  "schemaVersion": 2,
+  "kind": "solution",
+  "id": "SOLUTION-FIN-001",
+  "title": "행사 구매 요청 제출 목표 동작 설계",
+  "revision": 1,
+  "status": "approved",
+  "supersedes": null,
+  "changeSummary": "FLOW-FIN-001@R2의 구매 요청 제출 흐름을 실현하는 시스템 책임, 서버 개인 초안, 검증·격리·복구 방향을 승인한 최초 목표 설계",
+  "approval": {
+    "approvedBy": "제품 책임자",
+    "approvedAt": "2026-08-03T16:49:37+09:00"
+  },
+  "sourceEvidence": [
+    {
+      "id": "SRC-001",
+      "title": "현재 API 애플리케이션 진입점",
+      "kind": "repository_file",
+      "authority": "other_reference",
+      "approvalState": "current",
+      "conflictsWith": [],
+      "locator": {
+        "kind": "repository_path",
+        "value": "apps/api/src/vada_api/main.py"
+      },
+      "observedAt": "2026-08-03T16:20:56+09:00",
+      "sourceVersion": {
+        "kind": "content_digest",
+        "value": "sha256:A1B4791AADBA2D6CD7894DA3685882FD2CC8F513DBFE3716A3F414249E85A34D"
+      },
+      "note": "헬스체크 외 재정 도메인 구현이 없어 신규 목표 동작 설계가 필요합니다."
+    },
+    {
+      "id": "SRC-002",
+      "title": "현재 제품 웹 진입 화면",
+      "kind": "repository_file",
+      "authority": "other_reference",
+      "approvalState": "current",
+      "conflictsWith": [],
+      "locator": {
+        "kind": "repository_path",
+        "value": "apps/web/src/App.tsx"
+      },
+      "observedAt": "2026-08-03T16:20:56+09:00",
+      "sourceVersion": {
+        "kind": "content_digest",
+        "value": "sha256:62338C59CC9EF09796AB18A5568242661A74C75930B7BF53EAA653F4EC0A6157"
+      },
+      "note": "제품 웹은 시작용 화면이며 구매 요청 사용자 흐름이 구현되어 있지 않습니다."
+    },
+    {
+      "id": "SRC-003",
+      "title": "VADA 저장소 실행·보안 지침",
+      "kind": "repository_file",
+      "authority": "other_reference",
+      "approvalState": "current",
+      "conflictsWith": [],
+      "locator": {
+        "kind": "repository_path",
+        "value": "AGENTS.md"
+      },
+      "observedAt": "2026-08-03T16:20:56+09:00",
+      "sourceVersion": {
+        "kind": "content_digest",
+        "value": "sha256:AFDE6F2AFC81BD7A68C3FBC8F6764A46CB5F6E3190CB36AA795E988214608C6A"
+      },
+      "note": "서버 권한 판정, 조직 격리, UTC 저장, 한국어 IME와 검증 의무를 설계 제약으로 사용합니다."
+    },
+    {
+      "id": "SRC-004",
+      "title": "Web Content Accessibility Guidelines 2.2",
+      "kind": "external_document",
+      "authority": "other_reference",
+      "approvalState": "current",
+      "conflictsWith": [],
+      "locator": {
+        "kind": "uri",
+        "value": "https://www.w3.org/TR/WCAG22/"
+      },
+      "observedAt": "2026-08-03T16:20:56+09:00",
+      "sourceVersion": {
+        "kind": "document_revision",
+        "value": "W3C Recommendation 12 December 2024"
+      },
+      "note": "입력 오류 식별·수정 기회와 상태 메시지의 프로그램적 전달을 목표 상호작용에 적용합니다."
+    },
+    {
+      "id": "SRC-005",
+      "title": "OWASP HTML5 Security Cheat Sheet",
+      "kind": "external_document",
+      "authority": "other_reference",
+      "approvalState": "current",
+      "conflictsWith": [],
+      "locator": {
+        "kind": "uri",
+        "value": "https://cheatsheetseries.owasp.org/cheatsheets/HTML5_Security_Cheat_Sheet.html"
+      },
+      "observedAt": "2026-08-03T16:38:57+09:00",
+      "sourceVersion": null,
+      "note": "인증·권한을 전제로 하는 민감 정보를 localStorage에 보관하지 말고 브라우저 저장값을 신뢰하지 말라는 보안 근거로 사용합니다."
+    },
+    {
+      "id": "SRC-006",
+      "title": "MDN Storage quotas and eviction criteria",
+      "kind": "external_document",
+      "authority": "other_reference",
+      "approvalState": "current",
+      "conflictsWith": [],
+      "locator": {
+        "kind": "uri",
+        "value": "https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria"
+      },
+      "observedAt": "2026-08-03T16:38:57+09:00",
+      "sourceVersion": null,
+      "note": "브라우저 저장은 기본적으로 최선형 보존이며 사용자 삭제·저장 공간 상황에 따라 제거될 수 있다는 신뢰성 근거로 사용합니다."
+    },
+    {
+      "id": "SRC-007",
+      "title": "구매 요청 제출 목표 설계에 대한 제품 책임자 전체 승인",
+      "kind": "conversation",
+      "authority": "direct_decision",
+      "approvalState": "approved",
+      "conflictsWith": [],
+      "locator": {
+        "kind": "conversation_ref",
+        "value": "current-thread/vada-finance-solution-five-points-approval-2026-08-03"
+      },
+      "observedAt": "2026-08-03T16:49:37+09:00",
+      "sourceVersion": null,
+      "note": "서버 권한 판정, 계정별 서버 초안, 제출 시 전체 재검증과 원자적 확정, 실패 시 입력 보존, 조직 격리·중복 방지·민감 정보 저장 최소화의 다섯 방향을 모두 승인했습니다."
+    }
+  ],
+  "domainRef": {
+    "id": "DOMAIN-FIN",
+    "revision": 1
+  },
+  "flowRef": {
+    "id": "FLOW-FIN-001",
+    "revision": 2
+  },
+  "implementationContext": {
+    "mode": "greenfield",
+    "rationale": "현재 제품 코드에는 재정 기능이 없고 기존 와이어프레임은 제품 의미의 입력 근거일 뿐 구현 구조의 재사용 기준선이 아닙니다. 승인된 도메인 R1과 플로우 R2에서 새 목표 동작을 설계합니다.",
+    "sourceRefs": [
+      "SRC-001",
+      "SRC-002",
+      "SRC-003"
+    ]
+  },
+  "designAreas": [
+    {
+      "area": "interaction",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-INTERACTION-001",
+        "DESIGN-INTERACTION-002",
+        "DESIGN-INTERACTION-003",
+        "DESIGN-INTERACTION-004",
+        "DESIGN-INTERACTION-005",
+        "DESIGN-INTERACTION-006",
+        "DESIGN-STATE-001",
+        "DESIGN-STATE-002",
+        "DESIGN-STATE-003",
+        "DESIGN-STATE-004",
+        "DESIGN-STATE-005"
+      ],
+      "rationale": "작성 진입부터 제출 결과의 재조회까지 정상·권한·입력·예산 분기를 사용자 관점으로 연결합니다."
+    },
+    {
+      "area": "domain",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-DOMAIN-001",
+        "DESIGN-DOMAIN-002"
+      ],
+      "rationale": "구매 요청 묶음과 품목 단위, 초안에서 검토 대기로의 의미 전환을 구분합니다."
+    },
+    {
+      "area": "data",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-DATA-001",
+        "DESIGN-DATA-002",
+        "DESIGN-DATA-003",
+        "DESIGN-SYSTEM-002",
+        "DESIGN-SYSTEM-004"
+      ],
+      "rationale": "사용자 입력, 서버 파생 정보, 계산값과 영속 결과의 의미를 분리합니다."
+    },
+    {
+      "area": "authorization",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-SYSTEM-001",
+        "DESIGN-QUALITY-001"
+      ],
+      "rationale": "UI 노출과 별개로 현재 조직·행사·멤버십 관계를 서버가 판정하도록 설계합니다."
+    },
+    {
+      "area": "interface",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-INTERFACE-001",
+        "DESIGN-SYSTEM-002",
+        "DESIGN-SYSTEM-004"
+      ],
+      "rationale": "클라이언트와 서버가 교환할 동작 경계를 프로토콜·프레임워크 선택 전에 고정합니다."
+    },
+    {
+      "area": "validation",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-STATE-002",
+        "DESIGN-STATE-005",
+        "DESIGN-SYSTEM-003"
+      ],
+      "rationale": "입력 실패와 예산 초과를 다른 결과로 처리하고 실패 시 요청이 생성되지 않게 합니다."
+    },
+    {
+      "area": "security_privacy",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-QUALITY-001",
+        "DESIGN-QUALITY-002",
+        "DESIGN-QUALITY-005"
+      ],
+      "rationale": "조직 격리와 신뢰 경계를 서버에 두고 재정 입력의 불필요한 로그·브라우저 영속 저장을 막습니다."
+    },
+    {
+      "area": "accessibility",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-QUALITY-003"
+      ],
+      "rationale": "입력 오류와 저장·제출 상태를 키보드 및 보조기술 사용자도 식별하도록 합니다."
+    },
+    {
+      "area": "operations",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-SYSTEM-003",
+        "DESIGN-QUALITY-004"
+      ],
+      "rationale": "중복 제출 방지, 감사 가능한 상태 전환과 장애 추적 정보를 정의합니다."
+    },
+    {
+      "area": "verification",
+      "status": "covered",
+      "elementRefs": [
+        "DESIGN-VERIFY-001",
+        "DESIGN-VERIFY-002",
+        "DESIGN-VERIFY-003",
+        "DESIGN-VERIFY-004",
+        "DESIGN-VERIFY-005",
+        "DESIGN-VERIFY-006",
+        "DESIGN-VERIFY-007",
+        "DESIGN-VERIFY-008"
+      ],
+      "rationale": "승인된 여덟 완료 시나리오를 각각 독립적으로 증명할 검증 의도를 둡니다."
+    }
+  ],
+  "designElements": [
+    {
+      "id": "DESIGN-INTERACTION-001",
+      "kind": "interaction_step",
+      "title": "구매 요청 작성 시작",
+      "description": "권한 보유자가 선택된 행사의 재정 맥락에서 새 구매 요청 작성을 시작하며, 시스템은 인증된 요청자·소속 부서·행사를 현재 맥락으로 보여줍니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-PURCHASE-REQUEST-CREATE",
+        "DOMAIN-RULE-REQUEST-COMPOSITION"
+      ],
+      "flowItemRefs": [
+        "OUTCOME-001",
+        "PRECONDITION-001",
+        "PRECONDITION-002",
+        "STEP-01"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-INTERACTION-002",
+      "kind": "interaction_step",
+      "title": "요청 공통 정보 입력",
+      "description": "요청자가 제목·필요일·구매 목적·우선순위를 입력하고 현재 입력값을 유지한 채 품목 작성으로 이어갑니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "FLOW-RULE-REQUEST-COMMON-INPUT",
+        "STEP-02"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-INTERACTION-003",
+      "kind": "interaction_step",
+      "title": "구매 품목 구성",
+      "description": "요청자가 하나 이상의 품목을 추가·수정·삭제하고 구매 유형별 정보와 가격 근거를 입력하며 품목별 금액과 총액을 즉시 확인합니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-REQUEST-COMPOSITION",
+        "DOMAIN-RULE-ITEM-INDEPENDENCE"
+      ],
+      "flowItemRefs": [
+        "FLOW-RULE-ITEM-COMMON-INPUT",
+        "FLOW-RULE-TYPE-SPECIFIC-INPUT",
+        "FLOW-RULE-TOTAL-CALCULATION",
+        "STEP-03"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-INTERACTION-004",
+      "kind": "interaction_step",
+      "title": "작성 초안 보관과 재개",
+      "description": "요청자는 제출 전 입력을 자신의 계정에 임시 저장하고 같은 계정의 같은 행사 작성 화면에서 복원하거나 명시적으로 삭제합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "FLOW-RULE-DRAFT-RESUME",
+        "FLOW-RULE-DRAFT-SAVE-RESULT",
+        "STEP-04"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-INTERACTION-005",
+      "kind": "interaction_step",
+      "title": "구매 요청 제출",
+      "description": "요청자가 제출을 실행하면 시스템이 전체 요청과 품목을 검증하고 성공한 경우에만 하나의 검토 대기 요청으로 확정합니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-OVER-BUDGET-SUBMISSION"
+      ],
+      "flowItemRefs": [
+        "FLOW-RULE-SUBMISSION-VALIDATION",
+        "FLOW-RULE-SUBMISSION-RESULT",
+        "STEP-05"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-INTERACTION-006",
+      "kind": "interaction_step",
+      "title": "제출 결과 재확인",
+      "description": "성공 안내 뒤 요청자의 목록으로 이동해 새 요청을 확인하고 상세를 열거나 새로고침해도 같은 정보를 확인합니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-PURCHASE-REQUEST-OWN-LIST",
+        "DOMAIN-RULE-PURCHASE-REQUEST-DETAIL-VIEW"
+      ],
+      "flowItemRefs": [
+        "OUTCOME-001",
+        "FLOW-RULE-CONFIRMATION-AND-PERSISTENCE",
+        "STEP-06"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-STATE-001",
+      "kind": "user_visible_state",
+      "title": "작성 중·초안 저장 상태",
+      "description": "초기 로딩, 저장 중, 저장 완료 시각, 저장 실패와 복원 여부를 구분해 사용자가 현재 입력의 보관 상태를 알 수 있게 합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "FLOW-RULE-DRAFT-RESUME",
+        "FLOW-RULE-DRAFT-SAVE-RESULT",
+        "STEP-04",
+        "BRANCH-04"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-STATE-002",
+      "kind": "user_visible_state",
+      "title": "입력 검증 실패 상태",
+      "description": "제출 실패 시 요청을 생성하지 않고 오류 요약과 각 입력 근처의 구체적인 원인·수정 방법을 함께 보여줍니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "FLOW-RULE-SUBMISSION-VALIDATION",
+        "BRANCH-02"
+      ],
+      "sourceRefs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "id": "DESIGN-STATE-003",
+      "kind": "user_visible_state",
+      "title": "작성 권한 없음 상태",
+      "description": "권한이 없는 구성원에게 작성·제출 동작을 제공하지 않고 직접 경로 접근 시 권한 안내와 안전한 복귀 동작을 제공합니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-PURCHASE-REQUEST-CREATE"
+      ],
+      "flowItemRefs": [
+        "PRECONDITION-002",
+        "BRANCH-01"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-STATE-004",
+      "kind": "user_visible_state",
+      "title": "제출 성공과 검토 대기 상태",
+      "description": "중복 제출을 막는 동안 처리 중임을 알리고, 성공 후에는 새 요청의 검토 대기 상태와 목록·상세 이동 결과를 명확히 보여줍니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "FLOW-RULE-SUBMISSION-RESULT",
+        "FLOW-RULE-CONFIRMATION-AND-PERSISTENCE",
+        "STEP-06"
+      ],
+      "sourceRefs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "id": "DESIGN-STATE-005",
+      "kind": "user_visible_state",
+      "title": "예산 초과 제출 상태",
+      "description": "예산 초과 사실을 숨기지 않되 제출 실패로 표시하지 않고, 요청이 검토 대기로 생성됐으며 승인 전 해결이 필요함을 구분해 안내합니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-OVER-BUDGET-SUBMISSION"
+      ],
+      "flowItemRefs": [
+        "BRANCH-03"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-DOMAIN-001",
+      "kind": "domain_concept",
+      "title": "행사 구매 요청 묶음",
+      "description": "구매 요청은 한 행사·한 요청자·한 요청 부서에 속하고 하나 이상의 구매 품목을 포함하며, 품목은 이후 서로 다른 검토 결과를 가질 수 있는 독립 단위입니다.",
+      "domainItemRefs": [
+        "CONCEPT-PURCHASE-REQUEST",
+        "CONCEPT-PURCHASE-ITEM",
+        "DOMAIN-RULE-REQUEST-COMPOSITION",
+        "DOMAIN-RULE-ITEM-INDEPENDENCE"
+      ],
+      "flowItemRefs": [
+        "OUTCOME-001",
+        "STEP-03"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-DOMAIN-002",
+      "kind": "state_transition",
+      "title": "초안에서 검토 대기로 확정",
+      "description": "초안은 요청자 개인의 미완성 입력이며 제출 검증과 저장이 모두 성공할 때만 검토 대기 요청으로 한 번 전환됩니다. 실패하면 확정 요청 상태를 만들지 않습니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-IMMUTABLE-DECISION-HISTORY"
+      ],
+      "flowItemRefs": [
+        "FLOW-RULE-DRAFT-RESUME",
+        "FLOW-RULE-SUBMISSION-RESULT",
+        "BRANCH-02"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-DATA-001",
+      "kind": "data_semantics",
+      "title": "요청 정보와 계산값",
+      "description": "제목·필요일·목적·우선순위는 사용자 입력, 요청자·부서·행사는 인증 맥락에서 파생하며 총액은 저장된 품목 수량과 예상 단가에서 계산합니다.",
+      "domainItemRefs": [
+        "CONCEPT-PURCHASE-REQUEST"
+      ],
+      "flowItemRefs": [
+        "FLOW-RULE-REQUEST-COMMON-INPUT",
+        "FLOW-RULE-TOTAL-CALCULATION",
+        "STEP-02",
+        "STEP-03"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-DATA-002",
+      "kind": "data_semantics",
+      "title": "품목 공통·유형별 정보",
+      "description": "각 품목은 공통 구매 정보와 가격 근거를 소유하고, 구매 유형에 맞는 상세 묶음만 보존합니다. 계산 금액은 클라이언트 입력을 신뢰하지 않고 수량과 단가로 다시 산출합니다.",
+      "domainItemRefs": [
+        "CONCEPT-PURCHASE-ITEM"
+      ],
+      "flowItemRefs": [
+        "FLOW-RULE-ITEM-COMMON-INPUT",
+        "FLOW-RULE-TYPE-SPECIFIC-INPUT",
+        "FLOW-RULE-TOTAL-CALCULATION"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-DATA-003",
+      "kind": "data_semantics",
+      "title": "조직·행사·요청자 관계 정보",
+      "description": "조직, 행사, 요청자와 요청 부서 식별자는 클라이언트가 임의로 지정하는 제품 입력이 아니라 인증된 멤버십과 경로의 행사 관계에서 서버가 결정합니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-PURCHASE-REQUEST-CREATE",
+        "DOMAIN-RULE-REQUEST-COMPOSITION"
+      ],
+      "flowItemRefs": [
+        "PRECONDITION-001",
+        "PRECONDITION-002",
+        "FLOW-RULE-REQUEST-COMMON-INPUT",
+        "STEP-01"
+      ],
+      "sourceRefs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DESIGN-SYSTEM-001",
+      "kind": "system_responsibility",
+      "title": "작성 맥락과 권한 판정",
+      "description": "시스템은 현재 조직의 활성 멤버십, 선택 행사와 소속 부서 관계를 신뢰 가능한 서버 정보로 확인한 뒤 작성 화면과 명령 사용 가능 여부를 결정합니다.",
+      "domainItemRefs": [
+        "CAPABILITY-PURCHASE-REQUEST-CREATE",
+        "DOMAIN-RULE-PURCHASE-REQUEST-CREATE"
+      ],
+      "flowItemRefs": [
+        "PRECONDITION-001",
+        "PRECONDITION-002",
+        "STEP-01",
+        "BRANCH-01"
+      ],
+      "sourceRefs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DESIGN-SYSTEM-002",
+      "kind": "system_responsibility",
+      "title": "개인 초안의 서버 보관",
+      "description": "시스템은 조직·행사·인증 사용자별 작성 초안을 서버 정본으로 보관해 같은 계정에서 복원하고 명시적 삭제를 지원합니다. 서버 보관이 성공한 뒤에만 저장 완료를 반환하며 실패 시 현재 입력을 유지해 재시도하게 합니다. 초안은 다른 구성원의 목록과 상세에 노출하지 않습니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "FLOW-RULE-DRAFT-RESUME",
+        "FLOW-RULE-DRAFT-SAVE-RESULT",
+        "STEP-04",
+        "BRANCH-04"
+      ],
+      "sourceRefs": [
+        "SRC-003",
+        "SRC-005",
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "DESIGN-SYSTEM-003",
+      "kind": "system_responsibility",
+      "title": "제출 검증과 원자적 확정",
+      "description": "시스템은 권한·관계·필수 입력·유형별 가격 근거·수량·단가를 서버에서 다시 검증하고, 요청과 모든 품목을 한 번에 검토 대기로 저장한 뒤에만 초안을 제거합니다. 같은 제출의 재시도는 중복 요청을 만들지 않습니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-REQUEST-COMPOSITION",
+        "DOMAIN-RULE-OVER-BUDGET-SUBMISSION"
+      ],
+      "flowItemRefs": [
+        "FLOW-RULE-TOTAL-CALCULATION",
+        "FLOW-RULE-SUBMISSION-VALIDATION",
+        "FLOW-RULE-SUBMISSION-RESULT",
+        "STEP-05",
+        "BRANCH-02",
+        "BRANCH-03"
+      ],
+      "sourceRefs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DESIGN-SYSTEM-004",
+      "kind": "system_responsibility",
+      "title": "본인 목록·상세의 영속 조회",
+      "description": "시스템은 제출자 본인의 행사별 요청 목록을 최신 요청 우선으로 제공하고, 허용된 구성원이 요청 상세를 다시 열거나 새로고침해도 동일한 저장 정보를 반환합니다.",
+      "domainItemRefs": [
+        "CAPABILITY-PURCHASE-REQUEST-OWN-LIST",
+        "CAPABILITY-PURCHASE-REQUEST-DETAIL-VIEW",
+        "DOMAIN-RULE-PURCHASE-REQUEST-OWN-LIST",
+        "DOMAIN-RULE-PURCHASE-REQUEST-DETAIL-VIEW"
+      ],
+      "flowItemRefs": [
+        "FLOW-RULE-CONFIRMATION-AND-PERSISTENCE",
+        "STEP-06"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-INTERFACE-001",
+      "kind": "interface_boundary",
+      "title": "구매 요청 클라이언트·서버 경계",
+      "description": "클라이언트는 초안 조회·저장·삭제, 요청 제출, 본인 목록 조회와 상세 조회를 각각 독립된 시스템 동작으로 요청합니다. 서버는 인증 관계를 파생하고 성공 데이터 또는 안정적인 권한·검증·충돌·장애 결과를 반환합니다.",
+      "domainItemRefs": [
+        "CAPABILITY-PURCHASE-REQUEST-CREATE",
+        "CAPABILITY-PURCHASE-REQUEST-OWN-LIST",
+        "CAPABILITY-PURCHASE-REQUEST-DETAIL-VIEW"
+      ],
+      "flowItemRefs": [
+        "STEP-01",
+        "STEP-04",
+        "STEP-05",
+        "STEP-06",
+        "BRANCH-01",
+        "BRANCH-02",
+        "BRANCH-04"
+      ],
+      "sourceRefs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DESIGN-QUALITY-001",
+      "kind": "quality_control",
+      "title": "관계 기반 기본 거부 권한",
+      "description": "모든 쓰기와 읽기는 서버에서 기본 거부하며 현재 조직 멤버십, 행사 소속, 부서장 또는 재정부 관계와 요청 소유 관계를 동작별로 확인합니다. UI 숨김은 권한 통제가 아닙니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-PURCHASE-REQUEST-CREATE",
+        "DOMAIN-RULE-PURCHASE-REQUEST-OWN-LIST",
+        "DOMAIN-RULE-PURCHASE-REQUEST-DETAIL-VIEW"
+      ],
+      "flowItemRefs": [
+        "PRECONDITION-002",
+        "BRANCH-01"
+      ],
+      "sourceRefs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DESIGN-QUALITY-002",
+      "kind": "quality_control",
+      "title": "조직 격리와 재정 정보 최소 노출",
+      "description": "모든 조회·변경은 현재 조직과 행사 범위를 강제하고 다른 조직의 리소스 존재 여부를 누설하지 않습니다. 로그에는 구매 목적·상세·가격 근거 원문을 남기지 않고 식별자와 처리 결과만 기록합니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-PURCHASE-REQUEST-CREATE",
+        "DOMAIN-RULE-PURCHASE-REQUEST-DETAIL-VIEW"
+      ],
+      "flowItemRefs": [
+        "BRANCH-01",
+        "STEP-05",
+        "STEP-06"
+      ],
+      "sourceRefs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DESIGN-QUALITY-003",
+      "kind": "quality_control",
+      "title": "입력·상태 접근성",
+      "description": "모든 입력에는 프로그램적으로 연결된 이름과 오류 설명을 제공하고, 제출 실패 시 오류 요약에서 해당 입력으로 이동할 수 있게 합니다. 저장·제출 성공과 실패 상태는 포커스를 강제로 빼앗지 않으면서 보조기술에 전달하고 모든 동작은 키보드로 수행할 수 있어야 합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "STEP-02",
+        "STEP-03",
+        "STEP-04",
+        "STEP-05",
+        "BRANCH-02"
+      ],
+      "sourceRefs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "id": "DESIGN-QUALITY-004",
+      "kind": "quality_control",
+      "title": "중복 방지·감사·장애 추적",
+      "description": "제출 시도는 재시도 상관 식별자로 추적하고 요청 확정·실패·초안 삭제의 행위자·조직·행사·시각·결과를 감사 가능하게 남깁니다. 민감한 입력 원문과 내부 예외는 사용자 응답이나 운영 로그에 노출하지 않습니다.",
+      "domainItemRefs": [
+        "DOMAIN-RULE-IMMUTABLE-DECISION-HISTORY"
+      ],
+      "flowItemRefs": [
+        "FLOW-RULE-SUBMISSION-RESULT",
+        "STEP-05"
+      ],
+      "sourceRefs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DESIGN-QUALITY-005",
+      "kind": "quality_control",
+      "title": "서버 초안 정본과 브라우저 저장 최소화",
+      "description": "구매 목적·품목·가격 근거의 전체 초안은 localStorage 같은 브라우저 영속 저장소를 정본이나 복구 수단으로 사용하지 않습니다. 작성 중 값은 현재 화면 상태로만 유지하고 명시적 저장 결과는 인증된 서버 초안의 성공 여부로 판단합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "FLOW-RULE-DRAFT-RESUME",
+        "FLOW-RULE-DRAFT-SAVE-RESULT",
+        "BRANCH-04"
+      ],
+      "sourceRefs": [
+        "SRC-005",
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "DESIGN-VERIFY-001",
+      "kind": "verification_intent",
+      "title": "부서장 다품목 제출 검증",
+      "description": "부서장이 두 품목 이상을 제출했을 때 요청·품목이 한 번만 검토 대기로 저장되고 목록 최상단에서 확인되는지 사용자 경계와 서버 저장 경계에서 검증합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "AC-01"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-VERIFY-002",
+      "kind": "verification_intent",
+      "title": "재정부 제출 권한 검증",
+      "description": "재정부 구성원이 같은 제출 흐름을 권한 오류 없이 완주하고 자신의 목록에서 결과를 확인하는지 검증합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "AC-02"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-VERIFY-003",
+      "kind": "verification_intent",
+      "title": "입력 실패 비생성 검증",
+      "description": "필수 정보 또는 가격 근거가 없을 때 요청·품목이 생성되지 않고 사용자가 오류 위치와 이유를 확인하는지 검증합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "AC-03"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-VERIFY-004",
+      "kind": "verification_intent",
+      "title": "일반 구성원 작성 차단 검증",
+      "description": "일반 구성원에게 작성 동작이 노출되지 않고 직접 서버 요청도 조직 범위 내 데이터 생성 없이 거부되는지 검증합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "AC-04"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-VERIFY-005",
+      "kind": "verification_intent",
+      "title": "초안 저장·복원 검증",
+      "description": "부분 작성 초안을 저장한 뒤 브라우저 로컬 데이터를 제거하거나 다른 브라우저 세션에서 같은 계정으로 접속해도 정확히 복원되고, 다른 구성원과 재정부 검토 목록에는 노출되지 않는지 검증합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "AC-05"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-VERIFY-006",
+      "kind": "verification_intent",
+      "title": "예산 초과 제출 허용 검증",
+      "description": "현재 사용 가능 예산을 초과한 유효한 요청도 검토 대기로 생성되며 예산 초과가 일반 검증 오류로 처리되지 않는지 검증합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "AC-06"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-VERIFY-007",
+      "kind": "verification_intent",
+      "title": "제출 결과 영속성 검증",
+      "description": "제출 후 목록·상세·새로고침에서 요청자·행사·요청·품목·총액·검토 대기 상태가 동일한지 검증합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "AC-07"
+      ],
+      "sourceRefs": []
+    },
+    {
+      "id": "DESIGN-VERIFY-008",
+      "kind": "verification_intent",
+      "title": "초안 저장 실패 복구 검증",
+      "description": "서버가 초안을 보관하지 못했을 때 저장 완료로 오인시키지 않고 현재 입력, 실패 안내와 재시도 동작을 제공하는지 검증합니다.",
+      "domainItemRefs": [],
+      "flowItemRefs": [
+        "AC-08"
+      ],
+      "sourceRefs": []
+    }
+  ],
+  "relationships": [
+    {
+      "id": "REL-001",
+      "kind": "precedes",
+      "fromDesignRef": "DESIGN-INTERACTION-001",
+      "toDesignRef": "DESIGN-INTERACTION-002",
+      "rationale": "작성 맥락이 확인된 뒤 요청 정보를 입력합니다."
+    },
+    {
+      "id": "REL-002",
+      "kind": "precedes",
+      "fromDesignRef": "DESIGN-INTERACTION-002",
+      "toDesignRef": "DESIGN-INTERACTION-003",
+      "rationale": "요청 공통 정보와 품목 정보가 하나의 작성 흐름을 이룹니다."
+    },
+    {
+      "id": "REL-003",
+      "kind": "precedes",
+      "fromDesignRef": "DESIGN-INTERACTION-003",
+      "toDesignRef": "DESIGN-INTERACTION-005",
+      "rationale": "유효한 품목을 구성한 뒤 요청을 제출합니다."
+    },
+    {
+      "id": "REL-004",
+      "kind": "precedes",
+      "fromDesignRef": "DESIGN-INTERACTION-005",
+      "toDesignRef": "DESIGN-INTERACTION-006",
+      "rationale": "제출 성공 이후 저장된 결과를 재확인합니다."
+    },
+    {
+      "id": "REL-005",
+      "kind": "realizes",
+      "fromDesignRef": "DESIGN-SYSTEM-001",
+      "toDesignRef": "DESIGN-INTERACTION-001",
+      "rationale": "서버의 관계 기반 권한 판정이 작성 진입 행동을 실현합니다."
+    },
+    {
+      "id": "REL-006",
+      "kind": "writes",
+      "fromDesignRef": "DESIGN-SYSTEM-002",
+      "toDesignRef": "DESIGN-DATA-001",
+      "rationale": "초안 보관 책임이 요청 입력 의미를 임시 상태로 기록합니다."
+    },
+    {
+      "id": "REL-007",
+      "kind": "writes",
+      "fromDesignRef": "DESIGN-SYSTEM-003",
+      "toDesignRef": "DESIGN-DOMAIN-002",
+      "rationale": "제출 검증 성공이 초안을 검토 대기 요청으로 확정합니다."
+    },
+    {
+      "id": "REL-008",
+      "kind": "reads",
+      "fromDesignRef": "DESIGN-SYSTEM-004",
+      "toDesignRef": "DESIGN-DOMAIN-001",
+      "rationale": "목록과 상세 조회는 확정된 요청·품목 묶음을 읽습니다."
+    },
+    {
+      "id": "REL-009",
+      "kind": "exposes",
+      "fromDesignRef": "DESIGN-INTERFACE-001",
+      "toDesignRef": "DESIGN-SYSTEM-003",
+      "rationale": "클라이언트·서버 경계가 제출 검증과 확정 동작을 노출합니다."
+    },
+    {
+      "id": "REL-010",
+      "kind": "depends_on",
+      "fromDesignRef": "DESIGN-SYSTEM-003",
+      "toDesignRef": "DESIGN-QUALITY-001",
+      "rationale": "제출 확정은 관계 기반 권한 판정이 성립해야 수행됩니다."
+    },
+    {
+      "id": "REL-011",
+      "kind": "verifies",
+      "fromDesignRef": "DESIGN-VERIFY-001",
+      "toDesignRef": "DESIGN-SYSTEM-003",
+      "rationale": "정상 다품목 제출 시나리오가 원자적 확정을 검증합니다."
+    },
+    {
+      "id": "REL-012",
+      "kind": "verifies",
+      "fromDesignRef": "DESIGN-VERIFY-002",
+      "toDesignRef": "DESIGN-SYSTEM-001",
+      "rationale": "재정부 제출 시나리오가 허용 관계 판정을 검증합니다."
+    },
+    {
+      "id": "REL-013",
+      "kind": "verifies",
+      "fromDesignRef": "DESIGN-VERIFY-003",
+      "toDesignRef": "DESIGN-STATE-002",
+      "rationale": "입력 실패 시나리오가 비생성과 오류 피드백을 검증합니다."
+    },
+    {
+      "id": "REL-014",
+      "kind": "verifies",
+      "fromDesignRef": "DESIGN-VERIFY-004",
+      "toDesignRef": "DESIGN-STATE-003",
+      "rationale": "권한 실패 시나리오가 작성 차단을 검증합니다."
+    },
+    {
+      "id": "REL-015",
+      "kind": "verifies",
+      "fromDesignRef": "DESIGN-VERIFY-005",
+      "toDesignRef": "DESIGN-SYSTEM-002",
+      "rationale": "초안 시나리오가 개인 보관과 복원을 검증합니다."
+    },
+    {
+      "id": "REL-016",
+      "kind": "verifies",
+      "fromDesignRef": "DESIGN-VERIFY-006",
+      "toDesignRef": "DESIGN-STATE-005",
+      "rationale": "예산 초과 시나리오가 제출 허용 상태를 검증합니다."
+    },
+    {
+      "id": "REL-017",
+      "kind": "verifies",
+      "fromDesignRef": "DESIGN-VERIFY-007",
+      "toDesignRef": "DESIGN-SYSTEM-004",
+      "rationale": "영속성 시나리오가 목록·상세 재조회를 검증합니다."
+    },
+    {
+      "id": "REL-018",
+      "kind": "verifies",
+      "fromDesignRef": "DESIGN-VERIFY-008",
+      "toDesignRef": "DESIGN-STATE-001",
+      "rationale": "초안 저장 실패 시나리오가 거짓 성공 방지와 재시도 가능 상태를 검증합니다."
+    },
+    {
+      "id": "REL-019",
+      "kind": "depends_on",
+      "fromDesignRef": "DESIGN-SYSTEM-002",
+      "toDesignRef": "DESIGN-QUALITY-005",
+      "rationale": "서버 초안 보관은 브라우저 영속 저장을 정본으로 사용하지 않는 보안·신뢰성 경계를 따릅니다."
+    }
+  ],
+  "review": {
+    "openQuestions": [],
+    "candidateChanges": [],
+    "resolvedConflicts": []
+  }
+}

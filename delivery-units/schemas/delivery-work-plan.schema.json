@@ -1,0 +1,389 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.local/schemas/delivery-work-plan-0.2.0.json",
+  "title": "VADA Delivery Unit Work Graph",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "plan_id",
+    "plan_revision",
+    "plan_status",
+    "approval_source_ref",
+    "updated_at",
+    "solution_ref",
+    "contract_bundle_ref",
+    "implementation_architecture_ref",
+    "delivery_unit_ref",
+    "objective_ko",
+    "sources",
+    "imports",
+    "baseline",
+    "gaps",
+    "work_items",
+    "questions"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.2.0" },
+    "plan_id": { "type": "string", "pattern": "^WP-[A-Z0-9][A-Z0-9-]{2,}$" },
+    "plan_revision": {
+      "oneOf": [{ "type": "null" }, { "type": "integer", "minimum": 1 }]
+    },
+    "plan_status": { "enum": ["drafting", "review_ready", "approved"] },
+    "approval_source_ref": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+      ]
+    },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "solution_ref": { "$ref": "#/$defs/solutionRef" },
+    "contract_bundle_ref": { "$ref": "#/$defs/bundleRef" },
+    "implementation_architecture_ref": { "$ref": "#/$defs/architectureRef" },
+    "delivery_unit_ref": {
+      "type": "string",
+      "pattern": "^FLOW-[A-Z0-9][A-Z0-9-]*@R[1-9][0-9]*$"
+    },
+    "objective_ko": { "type": "string", "minLength": 1 },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "imports": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/importPlan" }
+    },
+    "baseline": { "$ref": "#/$defs/baseline" },
+    "gaps": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/gap" }
+    },
+    "work_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/workItem" }
+    },
+    "questions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "plan_status": { "const": "approved" } },
+        "required": ["plan_status"]
+      },
+      "then": {
+        "properties": {
+          "plan_revision": { "type": "integer", "minimum": 1 },
+          "approval_source_ref": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+        }
+      },
+      "else": {
+        "properties": {
+          "plan_revision": { "type": "null" },
+          "approval_source_ref": { "type": "null" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "solutionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "solution_id", "solution_revision", "canonical_sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "solution_id": { "type": "string", "minLength": 1 },
+        "solution_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "bundleRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bundle_id", "bundle_revision", "canonical_sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "bundle_id": { "type": "string", "minLength": 1 },
+        "bundle_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "architectureRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "architecture_id", "architecture_revision", "canonical_sha256"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 },
+        "architecture_id": { "type": "string", "minLength": 1 },
+        "architecture_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "captured_at", "locator", "content_ko"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" },
+        "type": {
+          "enum": ["user_statement", "approved_artifact", "repository_evidence", "command_output", "standard"]
+        },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "locator": { "type": "string", "minLength": 1 },
+        "content_ko": { "type": "string", "minLength": 1 }
+      }
+    },
+    "importPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["plan_path", "plan_id", "plan_revision", "canonical_sha256", "work_item_ids"],
+      "properties": {
+        "plan_path": { "type": "string", "minLength": 1 },
+        "plan_id": { "type": "string", "minLength": 1 },
+        "plan_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "work_item_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/workId" }
+        }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "rationale_ko", "source_refs", "observations"],
+      "properties": {
+        "mode": { "enum": ["greenfield", "reuse_existing", "partial_access", "undetermined"] },
+        "rationale_ko": { "type": "string", "minLength": 1 },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceId" }
+        },
+        "observations": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/observation" }
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "locator", "finding_ko", "source_refs"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^OBS-[0-9]{3,}$" },
+        "kind": { "enum": ["approved_artifact", "repository_file", "command_output", "external_system", "user_statement"] },
+        "locator": { "type": "string", "minLength": 1 },
+        "finding_ko": { "type": "string", "minLength": 1 },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/sourceId" }
+        }
+      }
+    },
+    "gap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title_ko", "state", "needed_outcome_ko", "design_refs", "contract_refs", "evidence_refs"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^GAP-[0-9]{3,}$" },
+        "title_ko": { "type": "string", "minLength": 1 },
+        "state": { "enum": ["missing", "partial", "unknown"] },
+        "needed_outcome_ko": { "type": "string", "minLength": 1 },
+        "design_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/designRef" } },
+        "contract_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/contractRef" } },
+        "evidence_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^OBS-[0-9]{3,}$" }
+        }
+      },
+      "anyOf": [
+        { "properties": { "design_refs": { "type": "array", "minItems": 1 } } },
+        { "properties": { "contract_refs": { "type": "array", "minItems": 1 } } }
+      ]
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "kind", "description_ko", "design_refs", "contract_refs"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^EVID-[0-9]{3,}$" },
+        "kind": {
+          "enum": ["automated_test", "reviewed_artifact", "demonstration", "runtime_observation", "security_check", "accessibility_check", "manual_check"]
+        },
+        "description_ko": { "type": "string", "minLength": 1 },
+        "design_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/designRef" } },
+        "contract_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/contractRef" } }
+      },
+      "anyOf": [
+        { "properties": { "design_refs": { "type": "array", "minItems": 1 } } },
+        { "properties": { "contract_refs": { "type": "array", "minItems": 1 } } }
+      ]
+    },
+    "workItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "key", "revision", "status", "change_class", "supersedes", "title_ko", "work_type",
+        "primary_capability", "collaborating_capabilities", "outcome_ko", "gap_refs", "design_refs",
+        "contract_refs", "blocked_by", "completion_evidence"
+      ],
+      "properties": {
+        "id": { "$ref": "#/$defs/workId" },
+        "key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9.-]*$" },
+        "revision": { "type": "integer", "minimum": 1 },
+        "status": { "enum": ["proposed", "ratified"] },
+        "change_class": { "enum": ["initial", "editorial", "additive", "breaking"] },
+        "supersedes": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/workId" }] },
+        "title_ko": { "type": "string", "minLength": 1 },
+        "work_type": { "enum": ["decision", "design", "build", "verify", "enable", "document"] },
+        "primary_capability": { "$ref": "#/$defs/capability" },
+        "collaborating_capabilities": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/capability" }
+        },
+        "outcome_ko": { "type": "string", "minLength": 1 },
+        "gap_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^GAP-[0-9]{3,}$" }
+        },
+        "design_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/designRef" } },
+        "contract_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/contractRef" } },
+        "blocked_by": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/workId" } },
+        "completion_evidence": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/evidence" }
+        }
+      },
+      "anyOf": [
+        { "properties": { "design_refs": { "type": "array", "minItems": 1 } } },
+        { "properties": { "contract_refs": { "type": "array", "minItems": 1 } } }
+      ]
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id", "status", "decision_area", "origin", "depends_on_question_refs", "activation_conditions",
+        "kind", "response_design", "question_ko", "reason_ko", "target_path", "blocks_next_step",
+        "options", "evidence", "answer_source_ref", "normalized_answer", "dismissal_reason_ko"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^Q-[0-9]{3,}$" },
+        "status": { "enum": ["pending", "answered", "deferred", "dismissed"] },
+        "decision_area": { "enum": ["baseline", "decomposition", "dependency", "completion", "approval", "other"] },
+        "origin": { "enum": ["initial_plan", "answer_follow_up", "late_discovery", "approval"] },
+        "depends_on_question_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^Q-[0-9]{3,}$" }
+        },
+        "activation_conditions": { "type": "array", "items": { "$ref": "#/$defs/activationCondition" } },
+        "kind": { "enum": ["yes_no", "single_choice", "multiple_choice", "short_text", "open_text"] },
+        "response_design": { "$ref": "#/$defs/responseDesign" },
+        "question_ko": { "type": "string", "minLength": 1 },
+        "reason_ko": { "type": "string", "minLength": 1 },
+        "target_path": { "type": "string", "pattern": "^/.+" },
+        "blocks_next_step": { "type": "boolean" },
+        "options": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": { "$ref": "#/$defs/questionOption" }
+            }
+          ]
+        },
+        "evidence": { "$ref": "#/$defs/questionEvidence" },
+        "answer_source_ref": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/sourceId" }] },
+        "normalized_answer": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/normalizedAnswer" }] },
+        "dismissal_reason_ko": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] }
+      }
+    },
+    "questionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["work_item_refs", "source_refs"],
+      "properties": {
+        "work_item_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/workId" } },
+        "source_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/sourceId" } }
+      },
+      "anyOf": [
+        { "properties": { "work_item_refs": { "type": "array", "minItems": 1 } } },
+        { "properties": { "source_refs": { "type": "array", "minItems": 1 } } }
+      ]
+    },
+    "responseDesign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["basis", "rationale_ko", "source_refs"],
+      "properties": {
+        "basis": { "enum": ["logical_partition", "source_backed_options", "observed_answers", "external_standard", "typed_value", "unbounded_answer_space"] },
+        "rationale_ko": { "type": "string", "minLength": 1 },
+        "source_refs": { "type": "array", "uniqueItems": true, "items": { "$ref": "#/$defs/sourceId" } }
+      }
+    },
+    "activationCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["question_ref", "operator", "option_ids"],
+      "properties": {
+        "question_ref": { "type": "string", "pattern": "^Q-[0-9]{3,}$" },
+        "operator": { "const": "selected_option_any_of" },
+        "option_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$" }
+        }
+      }
+    },
+    "questionOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label_ko"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$" },
+        "label_ko": { "type": "string", "minLength": 1 }
+      }
+    },
+    "normalizedAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["selected_option_ids", "free_text"],
+      "properties": {
+        "selected_option_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$" }
+        },
+        "free_text": { "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }] }
+      }
+    },
+    "sourceId": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" },
+    "workId": { "type": "string", "pattern": "^WORK:[a-z0-9][a-z0-9.-]*@R[1-9][0-9]*$" },
+    "designRef": { "type": "string", "pattern": "^DESIGN-[A-Z0-9][A-Z0-9-]*$" },
+    "contractRef": { "type": "string", "pattern": "^[A-Z]+:[a-z0-9][a-z0-9._-]*@R[1-9][0-9]*$" },
+    "capability": {
+      "enum": ["product_definition", "experience_design", "technical_design", "frontend", "backend", "quality", "platform", "security", "documentation"]
+    }
+  }
+}

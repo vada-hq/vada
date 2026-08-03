@@ -1,0 +1,1099 @@
+{
+  "schema_version": "0.1.0",
+  "architecture_id": "IAB-VADA-DU-001",
+  "architecture_revision": 1,
+  "architecture_status": "approved",
+  "approval_source_ref": "SRC-016",
+  "updated_at": "2026-08-03T18:03:47+09:00",
+  "delivery_unit_ref": "FLOW-FIN-001@R2",
+  "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
+  "contract_bundle_ref": {
+    "path": "contracts/bundles/CB-FIN-001/R1.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 1,
+    "canonical_sha256": "cb4ac51a822e69b8a12584116da12e8437b4e61ce87802c88e107259e00863fb"
+  },
+  "decision_scope": {
+    "mode": "production",
+    "binding": "binding",
+    "applies_to_ko": [
+      "FLOW-FIN-001@R2 행사 구매 요청 제출의 제품 코드·테스트·배포 산출물",
+      "VADA 운영 제품의 기존 승인 기술 기준"
+    ],
+    "excludes_ko": [
+      "후속 구매 요청 검토·보완·구매·증빙·감사보고서 흐름",
+      "모바일 네이티브 앱",
+      "파일 업로드·멀웨어 검사 파이프라인 자체",
+      "캐시·검색·AI 기능"
+    ],
+    "production_stack_status": "approved"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "contracts/bundles/CB-FIN-001/R1.json#cb4ac51a822e69b8a12584116da12e8437b4e61ce87802c88e107259e00863fb",
+      "content_ko": "제품 책임자가 승인한 행사 구매 요청 제출 실행 계약 묶음 R1입니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "product-specs/solutions/SOLUTION-FIN-001/R1.json#aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f",
+      "content_ko": "제품 책임자가 승인한 행사 구매 요청 제출 목표 동작 설계 R1입니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "AGENTS.md",
+      "content_ko": "VADA 저장소는 React SPA, FastAPI 모듈형 모놀리스, AWS 서버리스 스택과 재평가 트리거 전 임의 변경 금지를 명시합니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e80ca89e0f726a38d49f3",
+      "content_ko": "기술 스택 & 아키텍처 페이지가 상태 확정으로 React·FastAPI·PostgreSQL·Cognito·AWS·품질 게이트의 제품 기준선을 승인해 기록합니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e81f2addce3b7ae41eb2b",
+      "content_ko": "React 19.2와 React Compiler를 채택하고 Vue·Svelte·Solid·Angular 대안을 비교한 프론트엔드 ADR입니다."
+    },
+    {
+      "id": "SRC-006",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e8169b883f5992328624d",
+      "content_ko": "FastAPI와 Pydantic v2를 확정하고 Litestar 대안을 비교한 백엔드 ADR입니다."
+    },
+    {
+      "id": "SRC-007",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e81769e2df889c46213d6",
+      "content_ko": "단일 배포 단위의 모듈형 모놀리스를 확정하고 마이크로서비스와 무구조 단일 앱을 비교한 ADR입니다."
+    },
+    {
+      "id": "SRC-008",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e81a28214d858b010e850",
+      "content_ko": "RDS PostgreSQL 단일 인스턴스를 채택하고 Aurora Serverless v2·Aurora DSQL·EC2 자체 운영을 비교한 ADR입니다."
+    },
+    {
+      "id": "SRC-009",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e81f892a0f6ed1a7f2cf6",
+      "content_ko": "Cognito Essentials와 Managed Login을 확정하고 외부 인증 SaaS와 자체 구현을 비교한 ADR입니다."
+    },
+    {
+      "id": "SRC-010",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a268a85148e8184941dda800d61eb57",
+      "content_ko": "행동 권한 카탈로그와 조직 역할 테이블 기반 자체 RBAC를 채택하고 OpenFGA·pycasbin·Cerbos를 비교한 ADR입니다."
+    },
+    {
+      "id": "SRC-011",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e81208b12f260b27c08ca",
+      "content_ko": "Lambda 컨테이너 이미지와 Lambda Web Adapter를 채택하고 Mangum·ZIP·Fargate를 비교한 ADR입니다."
+    },
+    {
+      "id": "SRC-012",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a268a85148e8195aed0eade6ab59b9a",
+      "content_ko": "Powertools·CloudWatch·X-Ray·장애 알람을 확정하고 외부 APM을 비교한 관측성 ADR입니다."
+    },
+    {
+      "id": "SRC-013",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e818397fbd15acf2b053d",
+      "content_ko": "pytest·Testcontainers·Schemathesis 기반 실제 PostgreSQL 통합 검증을 채택한 백엔드 테스트 ADR입니다."
+    },
+    {
+      "id": "SRC-014",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a068a85148e81088732d7d57c22e82f",
+      "content_ko": "Vitest·Playwright·MSW 기반 웹 테스트와 ESLint 품질 게이트를 채택한 프론트엔드 ADR입니다."
+    },
+    {
+      "id": "SRC-015",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-03T08:52:16.906Z",
+      "locator": "https://app.notion.com/p/3a268a85148e810b949dce9d7569a7d7",
+      "content_ko": "Playwright 시각 회귀와 axe 접근성 게이트를 채택하고 관리형 SaaS 대안을 비교한 QA ADR입니다."
+    },
+    {
+      "id": "SRC-016",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T18:03:47+09:00",
+      "locator": "current-thread/iab-vada-du-001-approval-2026-08-03",
+      "content_ko": "제품 책임자가 행사 구매 요청 제출 구현 아키텍처 기준선 전체를 명시적으로 승인했습니다."
+    }
+  ],
+  "decisions": [
+    {
+      "id": "ADR-001",
+      "revision": 1,
+      "status": "accepted",
+      "supersedes": null,
+      "title_ko": "구매 요청 웹 클라이언트 기준선",
+      "category": "frontend",
+      "scope": "production",
+      "context_ko": "다품목 폼, 서버 초안 상태, 접근 가능한 오류와 제출 후 목록 이동을 데스크탑 우선 웹에서 일관되게 구현해야 합니다.",
+      "options": [
+        {
+          "id": "VADA_REACT_SPA",
+          "label_ko": "VADA 승인 React SPA 스택",
+          "selection": {
+            "framework": "React 19.2 + React Compiler",
+            "language": "TypeScript 6.0",
+            "build": "Vite 8 SPA",
+            "routing_data_form": "TanStack Router·Query·Form + Zod 4",
+            "ui": "Tailwind CSS 4 + shadcn/ui(Base UI)"
+          },
+          "tradeoffs_ko": [
+            "기존 제품 기준·AI 생태계·인수인계 가능성이 높지만 SSR·SEO가 필요해지면 별도 재평가가 필요합니다.",
+            "React Compiler 규칙을 따르므로 임의의 수동 메모이제이션을 금지합니다."
+          ],
+          "source_refs": [
+            "SRC-004",
+            "SRC-005"
+          ]
+        },
+        {
+          "id": "VUE_VITE_SPA",
+          "label_ko": "Vue 3 + Vite SPA",
+          "selection": {
+            "framework": "Vue 3",
+            "language": "TypeScript",
+            "build": "Vite SPA"
+          },
+          "tradeoffs_ko": [
+            "러닝커브와 단일 파일 컴포넌트 생산성은 좋지만 VADA의 승인 생태계·React Native 확장·에이전트 학습 코퍼스와 어긋납니다."
+          ],
+          "source_refs": [
+            "SRC-005"
+          ]
+        }
+      ],
+      "selected_option_id": "VADA_REACT_SPA",
+      "decision_ko": "제품 전체에 승인된 React SPA 스택을 이 흐름에도 적용합니다.",
+      "consequences_ko": [
+        "폼 입력과 서버 초안은 TanStack Form·Query 경계로 분리하고 브라우저 영속 저장을 정본으로 사용하지 않습니다.",
+        "오류 요약·입력 포커스·상태 메시지는 Playwright와 접근성 테스트가 관찰할 수 있게 구현합니다."
+      ],
+      "reversibility": "moderate",
+      "blast_radius": "product",
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-004",
+        "SRC-005"
+      ],
+      "approval_source_ref": "SRC-004"
+    },
+    {
+      "id": "ADR-002",
+      "revision": 1,
+      "status": "accepted",
+      "supersedes": null,
+      "title_ko": "구매 요청 API와 서버 구조 기준선",
+      "category": "backend",
+      "scope": "production",
+      "context_ko": "권한 판정, 전체 입력 재검증, 원자적 제출과 여섯 HTTP 동작을 한 팀이 장기 유지보수할 수 있는 서버 구조가 필요합니다.",
+      "options": [
+        {
+          "id": "FASTAPI_MODULAR_MONOLITH",
+          "label_ko": "FastAPI 모듈형 모놀리스",
+          "selection": {
+            "runtime": "Python 3.13",
+            "framework": "FastAPI + Pydantic v2",
+            "architecture": "단일 배포 단위의 finance 도메인 모듈",
+            "api": "REST + OpenAPI 3.1.1"
+          },
+          "tradeoffs_ko": [
+            "배포와 디버깅이 단순하고 도메인 경계를 CI로 강제할 수 있지만 독립 배포는 제공하지 않습니다."
+          ],
+          "source_refs": [
+            "SRC-004",
+            "SRC-006",
+            "SRC-007"
+          ]
+        },
+        {
+          "id": "LITESTAR_MODULAR_MONOLITH",
+          "label_ko": "Litestar 모듈형 모놀리스",
+          "selection": {
+            "runtime": "Python 3.13",
+            "framework": "Litestar",
+            "architecture": "단일 배포 단위의 도메인 모듈"
+          },
+          "tradeoffs_ko": [
+            "일부 내장 기능은 앞서지만 생태계·AI 학습 코퍼스·팀 학습 비용이 FastAPI보다 불리합니다."
+          ],
+          "source_refs": [
+            "SRC-006",
+            "SRC-007"
+          ]
+        }
+      ],
+      "selected_option_id": "FASTAPI_MODULAR_MONOLITH",
+      "decision_ko": "FastAPI 단일 앱의 finance 모듈로 구현하고 OpenAPI를 클라이언트 생성 기준으로 사용합니다.",
+      "consequences_ko": [
+        "권한 의존성은 모든 라우트 선언부에 보이고 역할명 직접 비교는 금지합니다.",
+        "finance 모듈 경계를 import-linter로 강제하며 다른 도메인과의 직접 결합을 만들지 않습니다."
+      ],
+      "reversibility": "moderate",
+      "blast_radius": "product",
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-004",
+        "SRC-006",
+        "SRC-007"
+      ],
+      "approval_source_ref": "SRC-004"
+    },
+    {
+      "id": "ADR-003",
+      "revision": 1,
+      "status": "accepted",
+      "supersedes": null,
+      "title_ko": "구매 요청 영속성과 트랜잭션 기준선",
+      "category": "persistence",
+      "scope": "production",
+      "context_ko": "요청·품목·초안 제거의 원자성, 멱등성, 조직 격리와 재조회 영속성을 관계형 제약과 트랜잭션으로 보장해야 합니다.",
+      "options": [
+        {
+          "id": "RDS_POSTGRES_SYNC",
+          "label_ko": "RDS PostgreSQL + 동기 SQLAlchemy",
+          "selection": {
+            "database": "Amazon RDS PostgreSQL 단일 인스턴스",
+            "orm": "SQLAlchemy 2.x",
+            "driver": "psycopg3 동기 엔진",
+            "migration": "Alembic",
+            "lambda_connection": "직접 연결 + NullPool + 동시성 상한"
+          },
+          "tradeoffs_ko": [
+            "완전한 PostgreSQL 트랜잭션과 제약을 사용할 수 있지만 상시 기본 비용과 연결 수 관리 책임이 있습니다.",
+            "고가용성 요구 전에는 단일 인스턴스 장애 복구 시간이 존재합니다."
+          ],
+          "source_refs": [
+            "SRC-004",
+            "SRC-008"
+          ]
+        },
+        {
+          "id": "AURORA_POSTGRES_SERVERLESS",
+          "label_ko": "Aurora PostgreSQL Serverless v2",
+          "selection": {
+            "database": "Aurora PostgreSQL Serverless v2",
+            "scaling": "auto-pause 포함 서버리스 용량"
+          },
+          "tradeoffs_ko": [
+            "자동 확장과 유휴 비용 절감이 가능하지만 재개 지연이 첫 요청 UX를 해치고 RDS Proxy와 auto-pause를 함께 쓰기 어렵습니다."
+          ],
+          "source_refs": [
+            "SRC-008"
+          ]
+        }
+      ],
+      "selected_option_id": "RDS_POSTGRES_SYNC",
+      "decision_ko": "승인된 RDS PostgreSQL·동기 SQLAlchemy 기준으로 요청과 품목을 한 트랜잭션에서 확정합니다.",
+      "consequences_ko": [
+        "조직·행사·요청자·부서 키와 멱등성 키에 DB 제약을 두고 모든 쿼리에 조직 범위를 강제합니다.",
+        "마이그레이션은 expand→migrate→contract로 분리하고 연결 수가 재평가 트리거에 도달하면 Proxy 또는 Aurora를 검토합니다."
+      ],
+      "reversibility": "hard",
+      "blast_radius": "product",
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-004",
+        "SRC-008"
+      ],
+      "approval_source_ref": "SRC-004"
+    },
+    {
+      "id": "ADR-004",
+      "revision": 1,
+      "status": "accepted",
+      "supersedes": null,
+      "title_ko": "사용자 인증 기준선",
+      "category": "identity",
+      "scope": "production",
+      "context_ko": "초안 소유자와 제출자를 안정적으로 식별하고 웹 로그인 구현과 토큰 검증을 직접 보안 구현하지 않아야 합니다.",
+      "options": [
+        {
+          "id": "COGNITO_MANAGED_LOGIN",
+          "label_ko": "Cognito Essentials + Managed Login",
+          "selection": {
+            "identity_provider": "Amazon Cognito User Pool Essentials",
+            "login": "Managed Login",
+            "web_client": "react-oidc-context",
+            "api_verification": "API Gateway JWT Authorizer"
+          },
+          "tradeoffs_ko": [
+            "학생 조직 규모에서 비용이 낮고 패스키·OTP를 관리형으로 제공하지만 비밀번호 해시 반출이 불가능해 이탈 비용이 큽니다."
+          ],
+          "source_refs": [
+            "SRC-004",
+            "SRC-009"
+          ]
+        },
+        {
+          "id": "EXTERNAL_IDENTITY_SAAS",
+          "label_ko": "Auth0·Clerk 계열 인증 SaaS",
+          "selection": {
+            "identity_provider": "외부 관리형 인증 SaaS",
+            "login": "공급자 호스팅 로그인"
+          },
+          "tradeoffs_ko": [
+            "개발자 경험은 우수하지만 MAU 비용과 별도 외부 의존이 추가됩니다."
+          ],
+          "source_refs": [
+            "SRC-009"
+          ]
+        }
+      ],
+      "selected_option_id": "COGNITO_MANAGED_LOGIN",
+      "decision_ko": "Cognito 토큰의 최소 클레임만 인증 모듈에서 해석하고 내부 사용자·조직 관계는 PostgreSQL에서 관리합니다.",
+      "consequences_ko": [
+        "Cognito 직접 호출과 토큰 해석을 한 인증 어댑터에 격리해 교체 범위를 제한합니다.",
+        "브라우저와 API는 인증만 Cognito에 위임하고 구매 요청 권한은 서버 도메인 규칙으로 다시 판정합니다."
+      ],
+      "reversibility": "hard",
+      "blast_radius": "product",
+      "source_refs": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-004",
+        "SRC-009"
+      ],
+      "approval_source_ref": "SRC-004"
+    },
+    {
+      "id": "ADR-005",
+      "revision": 1,
+      "status": "accepted",
+      "supersedes": null,
+      "title_ko": "구매 요청 인가 기준선",
+      "category": "security",
+      "scope": "production",
+      "context_ko": "부서장·재정부·일반 구성원과 초안 소유 관계를 동작별로 판정하고 다른 조직의 존재를 누설하지 않아야 합니다.",
+      "options": [
+        {
+          "id": "APPLICATION_RBAC_RELATIONSHIPS",
+          "label_ko": "자체 RBAC + 명시적 관계 검사",
+          "selection": {
+            "permission_catalog": "리소스.행동 카탈로그",
+            "role_mapping": "PostgreSQL 조직 역할→권한",
+            "route_enforcement": "FastAPI require_permission 의존성",
+            "resource_rules": "서비스 계층의 소유·행사 관계 검사"
+          },
+          "tradeoffs_ko": [
+            "현재 규모에서 운영 구성요소가 적고 판정이 명시적이지만 관계 규칙이 늘면 서비스 코드 복잡도가 증가합니다."
+          ],
+          "source_refs": [
+            "SRC-004",
+            "SRC-010"
+          ]
+        },
+        {
+          "id": "OPENFGA_REBAC",
+          "label_ko": "OpenFGA 관계 기반 인가",
+          "selection": {
+            "authorization_engine": "OpenFGA",
+            "model": "Zanzibar식 관계 튜플"
+          },
+          "tradeoffs_ko": [
+            "복잡한 관계 표현과 중앙 정책 관리에 강하지만 별도 서버·모델·운영 부담이 현재 팀 규모에 과합니다."
+          ],
+          "source_refs": [
+            "SRC-010"
+          ]
+        }
+      ],
+      "selected_option_id": "APPLICATION_RBAC_RELATIONSHIPS",
+      "decision_ko": "계약의 AUTH 관계식을 자체 RBAC와 서버 관계 검사로 구현하고 기본 결정은 항상 거부로 둡니다.",
+      "consequences_ko": [
+        "UI 권한 정보는 편의 기능일 뿐이며 모든 조회·저장은 서버가 조직·행사·사용자 관계를 재검증합니다.",
+        "조직별 커스텀 역할 요구 또는 관계 규칙 누적이라는 ADR 트리거가 충족되면 OpenFGA를 재검토합니다."
+      ],
+      "reversibility": "moderate",
+      "blast_radius": "product",
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-004",
+        "SRC-010"
+      ],
+      "approval_source_ref": "SRC-004"
+    },
+    {
+      "id": "ADR-006",
+      "revision": 1,
+      "status": "accepted",
+      "supersedes": null,
+      "title_ko": "웹·API 배포 기준선",
+      "category": "deployment",
+      "scope": "production",
+      "context_ko": "낮고 스파이키한 학생회 트래픽에서 유휴 비용을 줄이면서 같은 산출물을 로컬과 운영에서 검증하고 서울 리전에 배포해야 합니다.",
+      "options": [
+        {
+          "id": "AWS_SERVERLESS_OCI",
+          "label_ko": "S3·CloudFront + Lambda OCI",
+          "selection": {
+            "web": "private S3 + CloudFront OAC",
+            "api_entry": "API Gateway HTTP API",
+            "compute": "Lambda 컨테이너 + Lambda Web Adapter",
+            "region": "ap-northeast-2",
+            "iac": "Terraform"
+          },
+          "tradeoffs_ko": [
+            "저트래픽 비용이 낮고 OCI 이미지의 이식성이 있지만 콜드스타트와 베이스 이미지 패치 책임이 있습니다.",
+            "컨테이너 선택으로 Lambda SnapStart를 사용할 수 없습니다."
+          ],
+          "source_refs": [
+            "SRC-003",
+            "SRC-004",
+            "SRC-011"
+          ]
+        },
+        {
+          "id": "ECS_FARGATE_SERVICE",
+          "label_ko": "CloudFront + ECS Fargate 상시 서비스",
+          "selection": {
+            "web": "private S3 + CloudFront OAC",
+            "api_entry": "Application Load Balancer",
+            "compute": "ECS Fargate 상시 컨테이너",
+            "region": "ap-northeast-2",
+            "iac": "Terraform"
+          },
+          "tradeoffs_ko": [
+            "콜드스타트 없이 지속 연결을 다루기 쉽지만 현재 트래픽에는 상시 비용과 운영 표면이 과합니다."
+          ],
+          "source_refs": [
+            "SRC-011"
+          ]
+        }
+      ],
+      "selected_option_id": "AWS_SERVERLESS_OCI",
+      "decision_ko": "승인된 AWS 서버리스 배포 기준을 적용하되 이번 전달 단위는 로컬·CI 구현과 배포 가능한 산출물까지만 요구합니다.",
+      "consequences_ko": [
+        "FastAPI 코드에는 Lambda 전용 결합을 넣지 않고 OCI 이미지와 uvicorn 실행 경로를 동일하게 유지합니다.",
+        "첫 운영 배포 전 Terraform·Cognito·RDS·CloudFront가 준비돼야 하며 p99 콜드스타트가 문제로 관찰될 때만 재평가합니다."
+      ],
+      "reversibility": "hard",
+      "blast_radius": "product",
+      "source_refs": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-004",
+        "SRC-011"
+      ],
+      "approval_source_ref": "SRC-004"
+    },
+    {
+      "id": "ADR-007",
+      "revision": 1,
+      "status": "accepted",
+      "supersedes": null,
+      "title_ko": "관측성과 민감정보 로깅 기준선",
+      "category": "observability",
+      "scope": "production",
+      "context_ko": "초안 저장·제출 장애와 중복 시도를 상관 식별자로 추적하되 구매 목적·품목·가격 근거 원문을 로그에 남기지 않아야 합니다.",
+      "options": [
+        {
+          "id": "AWS_NATIVE_OBSERVABILITY",
+          "label_ko": "Powertools + CloudWatch + X-Ray",
+          "selection": {
+            "application": "AWS Lambda Powertools Logger·Tracer·Metrics",
+            "logs_metrics": "CloudWatch",
+            "tracing": "X-Ray",
+            "alerts": "CloudWatch Alarm → SNS 이메일",
+            "frontend_errors": "Sentry"
+          },
+          "tradeoffs_ko": [
+            "현재 규모에서 비용이 낮고 AWS 런타임과 통합이 쉽지만 여러 콘솔로 관찰 경험이 분산됩니다."
+          ],
+          "source_refs": [
+            "SRC-004",
+            "SRC-012"
+          ]
+        },
+        {
+          "id": "MANAGED_APM",
+          "label_ko": "Datadog 계열 통합 APM",
+          "selection": {
+            "application": "관리형 로그·메트릭·트레이스 APM",
+            "alerts": "통합 알림"
+          },
+          "tradeoffs_ko": [
+            "통합 UX와 탐색 능력은 우수하지만 고정비와 외부 데이터 전송 의존이 현재 규모에 과합니다."
+          ],
+          "source_refs": [
+            "SRC-012"
+          ]
+        }
+      ],
+      "selected_option_id": "AWS_NATIVE_OBSERVABILITY",
+      "decision_ko": "승인된 AWS 네이티브 관측성 스택에서 식별자·결과·지연만 구조화하고 민감 입력은 마스킹합니다.",
+      "consequences_ko": [
+        "제출·초안 저장의 상관 ID와 결과 메트릭을 남기고 내부 예외는 RFC 9457 응답에 노출하지 않습니다.",
+        "로그 보존은 dev 30일·prod 90일 기준으로 시작하고 장애 알람을 사용자 신고보다 앞선 감지 경로로 둡니다."
+      ],
+      "reversibility": "moderate",
+      "blast_radius": "product",
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-004",
+        "SRC-012"
+      ],
+      "approval_source_ref": "SRC-004"
+    },
+    {
+      "id": "ADR-008",
+      "revision": 1,
+      "status": "accepted",
+      "supersedes": null,
+      "title_ko": "계약·통합·E2E 검증 기준선",
+      "category": "testing",
+      "scope": "production",
+      "context_ko": "조직 격리, PostgreSQL 트랜잭션, 멱등 제출, 접근 가능한 피드백과 여덟 완료 기준을 자동 증거로 남겨야 합니다.",
+      "options": [
+        {
+          "id": "OPEN_SOURCE_LAYERED_TESTS",
+          "label_ko": "로컬·CI 재현 가능한 계층형 테스트",
+          "selection": {
+            "backend": "pytest + Testcontainers PostgreSQL + Schemathesis",
+            "frontend": "Vitest + Testing Library + MSW",
+            "e2e": "Playwright",
+            "accessibility": "axe + 키보드 E2E",
+            "visual": "Playwright screenshot"
+          },
+          "tradeoffs_ko": [
+            "실제 경계에 가까운 증거와 로컬 재현성을 얻지만 CI 시간이 길고 컨테이너·브라우저 환경 관리가 필요합니다."
+          ],
+          "source_refs": [
+            "SRC-004",
+            "SRC-013",
+            "SRC-014",
+            "SRC-015"
+          ]
+        },
+        {
+          "id": "MANAGED_TEST_PLATFORM",
+          "label_ko": "관리형 브라우저·시각 회귀 플랫폼 중심",
+          "selection": {
+            "backend": "관리형 임시 DB와 API 테스트",
+            "e2e_visual": "Chromatic·Percy 계열 SaaS",
+            "accessibility": "관리형 스캔"
+          },
+          "tradeoffs_ko": [
+            "리뷰 UX와 병렬 실행은 편리하지만 무료 한도 이후 고정비와 공급자 의존이 생기고 로컬 재현성이 낮아집니다."
+          ],
+          "source_refs": [
+            "SRC-013",
+            "SRC-015"
+          ]
+        }
+      ],
+      "selected_option_id": "OPEN_SOURCE_LAYERED_TESTS",
+      "decision_ko": "승인된 오픈소스 계층형 테스트로 계약·실DB·브라우저 경계를 각각 검증하고 CI 병합 게이트로 사용합니다.",
+      "consequences_ko": [
+        "모든 조직 범위 동작은 크로스 테넌트 실패 테스트를 짝으로 두고 원자성은 실패 주입과 동시 재시도로 증명합니다.",
+        "AC-01~AC-08은 개별 추적 가능한 E2E·API 통합·계약 테스트로 연결하고 접근성·시각 회귀도 핵심 화면에 적용합니다."
+      ],
+      "reversibility": "moderate",
+      "blast_radius": "product",
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-004",
+        "SRC-013",
+        "SRC-014",
+        "SRC-015"
+      ],
+      "approval_source_ref": "SRC-004"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "technology",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "기존 확정 기술 ADR의 선택과 비교 대안을 그대로 투영합니다.",
+        "source_refs": [
+          "SRC-004",
+          "SRC-005"
+        ]
+      },
+      "question_ko": "구매 요청 웹 클라이언트 기준선에는 어떤 대안을 적용합니까?",
+      "reason_ko": "이미 확정된 제품 기술 기준을 이번 전달 단위에 정확히 연결하기 위해 기록합니다.",
+      "target_path": "/decisions/0/selected_option_id",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "VADA_REACT_SPA",
+          "label_ko": "VADA 승인 React SPA 스택"
+        },
+        {
+          "id": "VUE_VITE_SPA",
+          "label_ko": "Vue 3 + Vite SPA"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-001"
+        ],
+        "source_refs": [
+          "SRC-004",
+          "SRC-005"
+        ]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "VADA_REACT_SPA"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-002",
+      "status": "answered",
+      "decision_area": "technology",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "기존 확정 기술 ADR의 선택과 비교 대안을 그대로 투영합니다.",
+        "source_refs": [
+          "SRC-004",
+          "SRC-006",
+          "SRC-007"
+        ]
+      },
+      "question_ko": "구매 요청 API와 서버 구조 기준선에는 어떤 대안을 적용합니까?",
+      "reason_ko": "이미 확정된 제품 기술 기준을 이번 전달 단위에 정확히 연결하기 위해 기록합니다.",
+      "target_path": "/decisions/1/selected_option_id",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "FASTAPI_MODULAR_MONOLITH",
+          "label_ko": "FastAPI 모듈형 모놀리스"
+        },
+        {
+          "id": "LITESTAR_MODULAR_MONOLITH",
+          "label_ko": "Litestar 모듈형 모놀리스"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-002"
+        ],
+        "source_refs": [
+          "SRC-004",
+          "SRC-006",
+          "SRC-007"
+        ]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "FASTAPI_MODULAR_MONOLITH"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-003",
+      "status": "answered",
+      "decision_area": "technology",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "기존 확정 기술 ADR의 선택과 비교 대안을 그대로 투영합니다.",
+        "source_refs": [
+          "SRC-004",
+          "SRC-008"
+        ]
+      },
+      "question_ko": "구매 요청 영속성과 트랜잭션 기준선에는 어떤 대안을 적용합니까?",
+      "reason_ko": "이미 확정된 제품 기술 기준을 이번 전달 단위에 정확히 연결하기 위해 기록합니다.",
+      "target_path": "/decisions/2/selected_option_id",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "RDS_POSTGRES_SYNC",
+          "label_ko": "RDS PostgreSQL + 동기 SQLAlchemy"
+        },
+        {
+          "id": "AURORA_POSTGRES_SERVERLESS",
+          "label_ko": "Aurora PostgreSQL Serverless v2"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-003"
+        ],
+        "source_refs": [
+          "SRC-004",
+          "SRC-008"
+        ]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "RDS_POSTGRES_SYNC"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-004",
+      "status": "answered",
+      "decision_area": "technology",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "기존 확정 기술 ADR의 선택과 비교 대안을 그대로 투영합니다.",
+        "source_refs": [
+          "SRC-004",
+          "SRC-009"
+        ]
+      },
+      "question_ko": "사용자 인증 기준선에는 어떤 대안을 적용합니까?",
+      "reason_ko": "이미 확정된 제품 기술 기준을 이번 전달 단위에 정확히 연결하기 위해 기록합니다.",
+      "target_path": "/decisions/3/selected_option_id",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "COGNITO_MANAGED_LOGIN",
+          "label_ko": "Cognito Essentials + Managed Login"
+        },
+        {
+          "id": "EXTERNAL_IDENTITY_SAAS",
+          "label_ko": "Auth0·Clerk 계열 인증 SaaS"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-004"
+        ],
+        "source_refs": [
+          "SRC-004",
+          "SRC-009"
+        ]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "COGNITO_MANAGED_LOGIN"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-005",
+      "status": "answered",
+      "decision_area": "technology",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "기존 확정 기술 ADR의 선택과 비교 대안을 그대로 투영합니다.",
+        "source_refs": [
+          "SRC-004",
+          "SRC-010"
+        ]
+      },
+      "question_ko": "구매 요청 인가 기준선에는 어떤 대안을 적용합니까?",
+      "reason_ko": "이미 확정된 제품 기술 기준을 이번 전달 단위에 정확히 연결하기 위해 기록합니다.",
+      "target_path": "/decisions/4/selected_option_id",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "APPLICATION_RBAC_RELATIONSHIPS",
+          "label_ko": "자체 RBAC + 명시적 관계 검사"
+        },
+        {
+          "id": "OPENFGA_REBAC",
+          "label_ko": "OpenFGA 관계 기반 인가"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-005"
+        ],
+        "source_refs": [
+          "SRC-004",
+          "SRC-010"
+        ]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "APPLICATION_RBAC_RELATIONSHIPS"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-006",
+      "status": "answered",
+      "decision_area": "technology",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "기존 확정 기술 ADR의 선택과 비교 대안을 그대로 투영합니다.",
+        "source_refs": [
+          "SRC-004",
+          "SRC-011"
+        ]
+      },
+      "question_ko": "웹·API 배포 기준선에는 어떤 대안을 적용합니까?",
+      "reason_ko": "이미 확정된 제품 기술 기준을 이번 전달 단위에 정확히 연결하기 위해 기록합니다.",
+      "target_path": "/decisions/5/selected_option_id",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "AWS_SERVERLESS_OCI",
+          "label_ko": "S3·CloudFront + Lambda OCI"
+        },
+        {
+          "id": "ECS_FARGATE_SERVICE",
+          "label_ko": "CloudFront + ECS Fargate 상시 서비스"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-006"
+        ],
+        "source_refs": [
+          "SRC-004",
+          "SRC-011"
+        ]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "AWS_SERVERLESS_OCI"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-007",
+      "status": "answered",
+      "decision_area": "technology",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "기존 확정 기술 ADR의 선택과 비교 대안을 그대로 투영합니다.",
+        "source_refs": [
+          "SRC-004",
+          "SRC-012"
+        ]
+      },
+      "question_ko": "관측성과 민감정보 로깅 기준선에는 어떤 대안을 적용합니까?",
+      "reason_ko": "이미 확정된 제품 기술 기준을 이번 전달 단위에 정확히 연결하기 위해 기록합니다.",
+      "target_path": "/decisions/6/selected_option_id",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "AWS_NATIVE_OBSERVABILITY",
+          "label_ko": "Powertools + CloudWatch + X-Ray"
+        },
+        {
+          "id": "MANAGED_APM",
+          "label_ko": "Datadog 계열 통합 APM"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-007"
+        ],
+        "source_refs": [
+          "SRC-004",
+          "SRC-012"
+        ]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "AWS_NATIVE_OBSERVABILITY"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-008",
+      "status": "answered",
+      "decision_area": "technology",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "기존 확정 기술 ADR의 선택과 비교 대안을 그대로 투영합니다.",
+        "source_refs": [
+          "SRC-004",
+          "SRC-013",
+          "SRC-014",
+          "SRC-015"
+        ]
+      },
+      "question_ko": "계약·통합·E2E 검증 기준선에는 어떤 대안을 적용합니까?",
+      "reason_ko": "이미 확정된 제품 기술 기준을 이번 전달 단위에 정확히 연결하기 위해 기록합니다.",
+      "target_path": "/decisions/7/selected_option_id",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "OPEN_SOURCE_LAYERED_TESTS",
+          "label_ko": "로컬·CI 재현 가능한 계층형 테스트"
+        },
+        {
+          "id": "MANAGED_TEST_PLATFORM",
+          "label_ko": "관리형 브라우저·시각 회귀 플랫폼 중심"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-008"
+        ],
+        "source_refs": [
+          "SRC-004",
+          "SRC-013",
+          "SRC-014",
+          "SRC-015"
+        ]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "OPEN_SOURCE_LAYERED_TESTS"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-009",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [
+        "Q-001",
+        "Q-002",
+        "Q-003",
+        "Q-004",
+        "Q-005",
+        "Q-006",
+        "Q-007",
+        "Q-008"
+      ],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "기존 승인 스택을 이 흐름의 구현 기준선으로 적용할지 승인 또는 수정 요청으로 구분합니다.",
+        "source_refs": [
+          "SRC-001",
+          "SRC-002",
+          "SRC-003",
+          "SRC-004"
+        ]
+      },
+      "question_ko": "행사 구매 요청 제출 구현 아키텍처 기준선을 승인합니까?",
+      "reason_ko": "승인하면 기술 선택·영향·제외 범위를 R1로 고정하고 구현 작업과 선행관계를 도출합니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "승인"
+        },
+        {
+          "id": "NO",
+          "label_ko": "수정 필요"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-001",
+          "ADR-002",
+          "ADR-003",
+          "ADR-004",
+          "ADR-005",
+          "ADR-006",
+          "ADR-007",
+          "ADR-008"
+        ],
+        "source_refs": [
+          "SRC-001",
+          "SRC-002",
+          "SRC-003",
+          "SRC-004"
+        ]
+      },
+      "answer_source_ref": "SRC-016",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}

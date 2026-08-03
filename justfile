@@ -9,6 +9,14 @@ setup:
     pnpm install
     cd apps/api && uv sync
 
+# 작업 할당 전 공통 실행 환경 검사
+preflight:
+    pnpm preflight
+
+# 실제 PostgreSQL을 로컬에서 검증할 때만 사용하는 실행 환경 검사
+preflight-postgresql:
+    pnpm preflight:postgresql
+
 # 개발 서버
 dev-api:
     cd apps/api && uv run uvicorn vada_api.main:app --reload --port 8000
@@ -21,14 +29,53 @@ validate-contracts:
     pnpm test:contracts
     pnpm validate:contracts
 
+# AI용 제품 명세
+validate-product-specs:
+    pnpm test:product-specs
+    pnpm validate:product-specs
+
+# 전달 단위 구현 아키텍처
+validate-architecture:
+    pnpm test:architecture
+    pnpm validate:architecture
+
+# 승인 기준선에서 도출한 전달 작업 그래프
+validate-delivery-work:
+    pnpm test:delivery-work
+    pnpm validate:delivery-work
+
+# 승인 작업 그래프의 실행 범위·실행자·추정·일정 기준선
+validate-execution-plan:
+    pnpm test:execution-plan
+    pnpm validate:execution-plan
+
+# 승인 실행 계획에 대한 실제 상태·전이·증거 기록
+validate-execution-runtime:
+    pnpm test:execution-preflight
+    pnpm test:execution-runtime
+    pnpm validate:execution-runtime
+
 # 테스트
 test: test-api test-web
 
 test-api:
     cd apps/api && uv run pytest
 
+# 일회용 실제 PostgreSQL이 준비된 환경(로컬 또는 CI)에서만 실행
+test-api-postgresql: preflight-postgresql
+    cd apps/api && uv run pytest -m postgres
+
+# 실제 PostgreSQL 통합 검사를 제외한 빠른 API 검사
+test-api-fast:
+    cd apps/api && uv run pytest -m "not postgres"
+
 test-web:
     pnpm --filter web test
+
+# 작업자용 경로별 검사 — 전체 통합 검사는 총괄이 just check로 한 번 실행
+check-api: lint-api typecheck-api test-api
+
+check-web: lint-web typecheck-web test-web build-web
 
 # 린트 + 포맷 검사
 lint: lint-api lint-web
@@ -58,4 +105,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-contracts lint typecheck test build
+check: validate-contracts validate-product-specs validate-architecture validate-delivery-work validate-execution-plan validate-execution-runtime lint typecheck test build

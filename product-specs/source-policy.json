@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "authorityPriority": [
+    "direct_decision",
+    "current_wireframe_screen",
+    "wireframe_internal_document",
+    "notion_document",
+    "other_reference"
+  ],
+  "normativeApprovalStates": ["approved", "current"],
+  "nonNormativeApprovalStates": ["pending", "historical", "unknown"]
+}

@@ -25,15 +25,15 @@
 just setup   # 의존성 설치
 just dev-api # http://localhost:8000/health
 just dev-web # 웹 개발 서버
-just validate-contracts # 계약·슬라이스·Notion 연결 검증
-just check   # 계약 + 린트 + 타입체크 + 테스트 + 빌드 (완료 기준)
+just validate-contracts # 실행 계약 검증
+just check   # 제품 명세 + 계약 + 아키텍처 + 작업 그래프 + 코드 전체 검증
 ```
 
 Figma 기반 화면 참고 앱은 `prototypes/wireframe/`, 과거 화면 명세와 QA 자료는 `docs/reference/wireframe/`에 격리되어 있습니다. 제품 구현은 `apps/`, 코드 결합 계약은 `contracts/`가 원본입니다.
 
 ## 기여
 
-`AGENTS.md`(개발 규약)를 먼저 읽어주세요. main 직접 push는 막혀 있으며, 브랜치 → PR → CI 통과 → 스쿼시 머지 흐름을 따릅니다. 커밋·PR 제목은 Conventional Commits.
+`AGENTS.md`와 `docs/engineering/README.md`를 먼저 읽어주세요. main 직접 push는 막혀 있으며, 브랜치 → PR → CI 통과 → 스쿼시 머지 흐름을 따릅니다. 커밋·PR 제목은 Conventional Commits.
 
 ## 라이선스
 

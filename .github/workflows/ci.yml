@@ -22,14 +22,30 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Test contract validator
-        run: node --test scripts/validate-contracts.test.mjs
-      - name: Validate executable contracts
-        run: node scripts/validate-contracts.mjs
+      - name: Test specification, contract, and execution validators
+        run: pnpm test:contracts && pnpm test:product-specs && pnpm test:architecture && pnpm test:delivery-work && pnpm test:execution-plan && pnpm test:execution-preflight && pnpm test:execution-runtime
+      - name: Validate specifications, contracts, architecture, work graph, execution plan, and runtime
+        run: pnpm validate:contracts && pnpm validate:product-specs && pnpm validate:architecture && pnpm validate:delivery-work && pnpm validate:execution-plan && pnpm validate:execution-runtime
 
   api:
     name: api
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: vada_test
+          POSTGRES_PASSWORD: vada_test
+          POSTGRES_DB: vada_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vada_test -d vada_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      VADA_TEST_DATABASE_URL: postgresql+psycopg://vada_test:vada_test@127.0.0.1:5432/vada_test
     defaults:
       run:
         working-directory: apps/api
@@ -42,8 +58,10 @@ jobs:
         run: uv run ruff check . && uv run ruff format --check .
       - name: Typecheck (pyright strict)
         run: uv run pyright
-      - name: Test (pytest)
-        run: uv run pytest
+      - name: Test API except PostgreSQL integration
+        run: uv run pytest -m "not postgres"
+      - name: PostgreSQL integration tests
+        run: uv run pytest -m postgres
 
   web:
     name: web

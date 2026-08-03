@@ -1,0 +1,762 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.local/schemas/implementation-architecture-0.1.0.json",
+  "title": "Delivery Unit Implementation Architecture Baseline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "architecture_id",
+    "architecture_revision",
+    "architecture_status",
+    "approval_source_ref",
+    "updated_at",
+    "delivery_unit_ref",
+    "objective_ko",
+    "contract_bundle_ref",
+    "decision_scope",
+    "sources",
+    "decisions",
+    "questions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "architecture_id": {
+      "type": "string",
+      "pattern": "^IAB-[A-Z0-9][A-Z0-9-]{2,}$"
+    },
+    "architecture_revision": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
+      ]
+    },
+    "architecture_status": {
+      "enum": [
+        "defining",
+        "review_ready",
+        "approved"
+      ]
+    },
+    "approval_source_ref": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^SRC-[0-9]{3,}$"
+        }
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivery_unit_ref": {
+      "type": "string",
+      "pattern": "^FLOW-[A-Z0-9][A-Z0-9-]*@R[1-9][0-9]*$"
+    },
+    "objective_ko": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_bundle_ref": {
+      "$ref": "#/$defs/contractBundleRef"
+    },
+    "decision_scope": {
+      "$ref": "#/$defs/decisionScope"
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/decision"
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/question"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "architecture_status": {
+            "const": "approved"
+          }
+        },
+        "required": [
+          "architecture_status"
+        ]
+      },
+      "then": {
+        "properties": {
+          "architecture_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "approval_source_ref": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "architecture_revision": {
+            "type": "null"
+          },
+          "approval_source_ref": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "contractBundleRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "bundle_id",
+        "bundle_revision",
+        "canonical_sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bundle_id": {
+          "type": "string",
+          "pattern": "^CB-[A-Z0-9][A-Z0-9-]{2,}$"
+        },
+        "bundle_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "canonical_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "decisionScope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "binding",
+        "applies_to_ko",
+        "excludes_ko",
+        "production_stack_status"
+      ],
+      "properties": {
+        "mode": {
+          "enum": [
+            "rehearsal",
+            "production_candidate",
+            "production"
+          ]
+        },
+        "binding": {
+          "enum": [
+            "non_binding",
+            "candidate",
+            "binding"
+          ]
+        },
+        "applies_to_ko": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "excludes_ko": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "production_stack_status": {
+          "enum": [
+            "undecided",
+            "approved"
+          ]
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "captured_at",
+        "locator",
+        "content_ko"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^SRC-[0-9]{3,}$"
+        },
+        "type": {
+          "enum": [
+            "user_statement",
+            "approved_artifact",
+            "standard",
+            "repository_evidence",
+            "observation",
+            "system"
+          ]
+        },
+        "captured_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "locator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "content_ko": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "decisionOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label_ko",
+        "selection",
+        "tradeoffs_ko",
+        "source_refs"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "label_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "selection": {
+          "type": "object",
+          "minProperties": 1
+        },
+        "tradeoffs_ko": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "revision",
+        "status",
+        "supersedes",
+        "title_ko",
+        "category",
+        "scope",
+        "context_ko",
+        "options",
+        "selected_option_id",
+        "decision_ko",
+        "consequences_ko",
+        "reversibility",
+        "blast_radius",
+        "source_refs",
+        "approval_source_ref"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ADR-[0-9]{3,}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "proposed",
+            "accepted",
+            "rejected",
+            "superseded"
+          ]
+        },
+        "supersedes": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^ADR-[0-9]{3,}$"
+            }
+          ]
+        },
+        "title_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "enum": [
+            "technology_stack",
+            "runtime",
+            "language",
+            "repository",
+            "frontend",
+            "backend",
+            "persistence",
+            "identity",
+            "deployment",
+            "observability",
+            "testing",
+            "security",
+            "other"
+          ]
+        },
+        "scope": {
+          "enum": [
+            "rehearsal",
+            "production_candidate",
+            "production"
+          ]
+        },
+        "context_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/decisionOption"
+          }
+        },
+        "selected_option_id": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^[A-Z][A-Z0-9_-]*$"
+            }
+          ]
+        },
+        "decision_ko": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        },
+        "consequences_ko": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "reversibility": {
+          "enum": [
+            "easy",
+            "moderate",
+            "hard",
+            "unknown"
+          ]
+        },
+        "blast_radius": {
+          "enum": [
+            "local",
+            "delivery_unit",
+            "product",
+            "organization"
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
+        },
+        "approval_source_ref": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^SRC-[0-9]{3,}$"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "accepted"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "selected_option_id": {
+                "type": "string"
+              },
+              "decision_ko": {
+                "type": "string",
+                "minLength": 1
+              },
+              "consequences_ko": {
+                "type": "array",
+                "minItems": 1
+              },
+              "approval_source_ref": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "normalizedAnswer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "selected_option_ids",
+        "free_text"
+      ],
+      "properties": {
+        "selected_option_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_-]*$"
+          }
+        },
+        "free_text": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    },
+    "questionOption": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label_ko"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "label_ko": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "responseDesign": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "basis",
+        "rationale_ko",
+        "source_refs"
+      ],
+      "properties": {
+        "basis": {
+          "enum": [
+            "logical_partition",
+            "source_backed_options",
+            "observed_answers",
+            "external_standard",
+            "typed_value",
+            "unbounded_answer_space"
+          ]
+        },
+        "rationale_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "source_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
+        }
+      }
+    },
+    "questionEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "decision_refs",
+        "source_refs"
+      ],
+      "properties": {
+        "decision_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ADR-[0-9]{3,}$"
+          }
+        },
+        "source_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
+        }
+      }
+    },
+    "activationCondition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "question_ref",
+        "operator",
+        "option_ids"
+      ],
+      "properties": {
+        "question_ref": {
+          "type": "string",
+          "pattern": "^Q-[0-9]{3,}$"
+        },
+        "operator": {
+          "const": "selected_option_any_of"
+        },
+        "option_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_-]*$"
+          }
+        }
+      }
+    },
+    "question": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "decision_area",
+        "origin",
+        "depends_on_question_refs",
+        "activation_conditions",
+        "kind",
+        "response_design",
+        "question_ko",
+        "reason_ko",
+        "target_path",
+        "blocks_next_step",
+        "options",
+        "evidence",
+        "answer_source_ref",
+        "normalized_answer",
+        "dismissal_reason_ko"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^Q-[0-9]{3,}$"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "answered",
+            "deferred",
+            "dismissed"
+          ]
+        },
+        "decision_area": {
+          "enum": [
+            "scope",
+            "technology",
+            "security",
+            "operations",
+            "approval",
+            "other"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "initial_plan",
+            "answer_follow_up",
+            "late_discovery",
+            "approval"
+          ]
+        },
+        "depends_on_question_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^Q-[0-9]{3,}$"
+          }
+        },
+        "activation_conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/activationCondition"
+          }
+        },
+        "kind": {
+          "enum": [
+            "yes_no",
+            "single_choice",
+            "multiple_choice",
+            "short_text",
+            "open_text"
+          ]
+        },
+        "response_design": {
+          "$ref": "#/$defs/responseDesign"
+        },
+        "question_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_path": {
+          "type": "string",
+          "pattern": "^/.+"
+        },
+        "blocks_next_step": {
+          "type": "boolean"
+        },
+        "options": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/questionOption"
+              }
+            }
+          ]
+        },
+        "evidence": {
+          "$ref": "#/$defs/questionEvidence"
+        },
+        "answer_source_ref": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^SRC-[0-9]{3,}$"
+            }
+          ]
+        },
+        "normalized_answer": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/normalizedAnswer"
+            }
+          ]
+        },
+        "dismissal_reason_ko": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
+        }
+      }
+    }
+  }
+}

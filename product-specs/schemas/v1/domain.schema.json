@@ -1,0 +1,370 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.dev/schemas/product/v1/domain.schema.json",
+  "title": "VADA product domain specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "schemaVersion",
+    "kind",
+    "id",
+    "title",
+    "revision",
+    "status",
+    "supersedes",
+    "changeSummary",
+    "approval",
+    "sourceEvidence",
+    "spec",
+    "review"
+  ],
+  "properties": {
+    "$schema": {
+      "const": "../../schemas/v1/domain.schema.json"
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "kind": {
+      "const": "domain"
+    },
+    "id": {
+      "$ref": "common.schema.json#/$defs/domainId"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "enum": ["draft", "review", "approved"]
+    },
+    "supersedes": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "common.schema.json#/$defs/domainArtifactRef"
+        }
+      ]
+    },
+    "changeSummary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "approval": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "$ref": "common.schema.json#/$defs/approval"
+        }
+      ]
+    },
+    "sourceEvidence": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "common.schema.json#/$defs/sourceEvidence"
+      }
+    },
+    "spec": {
+      "$ref": "#/$defs/domainSpec"
+    },
+    "review": {
+      "$ref": "common.schema.json#/$defs/review"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "status": {
+            "const": "approved"
+          }
+        },
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "approval": {
+            "$ref": "common.schema.json#/$defs/approval"
+          },
+          "sourceEvidence": {
+            "type": "array",
+            "minItems": 1
+          },
+          "review": {
+            "type": "object",
+            "properties": {
+              "openQuestions": {
+                "type": "array",
+                "not": {
+                  "contains": {
+                    "type": "object",
+                    "properties": {
+                      "blocking": {
+                        "const": true
+                      }
+                    },
+                    "required": ["blocking"]
+                  }
+                }
+              },
+              "candidateChanges": {
+                "type": "array",
+                "maxItems": 0
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "revision": {
+            "const": 0
+          },
+          "approval": {
+            "type": "null"
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "description", "origin"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^ACTOR-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "origin": {
+          "$ref": "common.schema.json#/$defs/origin"
+        }
+      }
+    },
+    "concept": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "name", "definition", "origin"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^CONCEPT-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "definition": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1500
+        },
+        "origin": {
+          "$ref": "common.schema.json#/$defs/origin"
+        }
+      }
+    },
+    "capability": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "description",
+        "grantedActorRefs",
+        "ruleRefs",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^CAPABILITY-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "grantedActorRefs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^ACTOR-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+          }
+        },
+        "ruleRefs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^DOMAIN-RULE-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+          }
+        },
+        "origin": {
+          "$ref": "common.schema.json#/$defs/origin"
+        }
+      }
+    },
+    "domainSpec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "purpose",
+        "boundaries",
+        "actors",
+        "concepts",
+        "authorization",
+        "rules"
+      ],
+      "properties": {
+        "purpose": {
+          "allOf": [
+            {
+              "$ref": "common.schema.json#/$defs/statement"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^PURPOSE-[0-9]{3}$"
+                }
+              }
+            }
+          ]
+        },
+        "boundaries": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["inScope", "outOfScope"],
+          "properties": {
+            "inScope": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "allOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/statement"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^BOUNDARY-IN-[0-9]{3}$"
+                      }
+                    }
+                  }
+                ]
+              }
+            },
+            "outOfScope": {
+              "type": "array",
+              "items": {
+                "allOf": [
+                  {
+                    "$ref": "common.schema.json#/$defs/statement"
+                  },
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^BOUNDARY-OUT-[0-9]{3}$"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        "actors": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/actor"
+          }
+        },
+        "concepts": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/concept"
+          }
+        },
+        "authorization": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["defaultPolicy", "capabilities"],
+          "properties": {
+            "defaultPolicy": {
+              "const": "deny_unlisted"
+            },
+            "capabilities": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/capability"
+              }
+            }
+          }
+        },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "allOf": [
+              {
+                "$ref": "common.schema.json#/$defs/rule"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "pattern": "^DOMAIN-RULE-[A-Z0-9]+(?:-[A-Z0-9]+)*$"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
