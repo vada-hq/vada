@@ -27,7 +27,7 @@ const SCREENS: Screen[] = [
   { id: "HOME-01", label: "홈 — 학생회 운영 현황", group: "홈" },
   { id: "HOME-01K", label: "홈 — 끼룩이 브리핑", group: "홈" },
   { id: "MY-01", label: "내 업무", group: "내 업무" },
-  { id: "OPS-00", label: "운영 홈 — 업무·회의·행사·캘린더", group: "운영" },
+  { id: "OPS-00", label: "운영 홈 — 업무·회의·행사·캘린더", group: "운영 홈" },
   { id: "OPS-TASK-01", label: "상시 업무 — 칸반 보드", group: "운영 — 상시 업무" },
   { id: "OPS-MEET-01A", label: "전체 회의 — 일반 참가자", group: "운영 — 회의" },
   { id: "OPS-MEET-01B", label: "전체 회의 — 진행 권한자", group: "운영 — 회의" },
@@ -45,44 +45,46 @@ const SCREENS: Screen[] = [
   { id: "OPS-MEET-07", label: "완료 회의록 — 참석자", group: "운영 — 회의" },
   { id: "OPS-MEET-08", label: "회의 요약 확인 — 불참자", group: "운영 — 회의" },
   { id: "OPS-MEET-09", label: "취소된 회의 상세", group: "운영 — 회의" },
-  { id: "OPS-MEET-D01", label: "회의 시작 확인", group: "운영 — 회의 · 확인 상태" },
-  { id: "OPS-MEET-D02", label: "회의 종료 확인", group: "운영 — 회의 · 확인 상태" },
-  { id: "OPS-MEET-D03", label: "진행 권한 부여 확인", group: "운영 — 회의 · 확인 상태" },
-  { id: "OPS-MEET-D04", label: "회의 취소 확인", group: "운영 — 회의 · 확인 상태" },
-  { id: "EVT-00A", label: "행사 목록 — 일반 구성원", group: "운영 — 행사" },
-  { id: "EVT-00A2", label: "행사 목록 — 운영진", group: "운영 — 행사" },
-  { id: "EVT-00B", label: "새 행사 만들기 모달", group: "운영 — 행사" },
-  { id: "EVT-02", label: "행사 개요 — 기획 중", group: "운영 — 행사" },
-  { id: "EVT-02B", label: "행사 정보 편집 패널", group: "운영 — 행사" },
-  { id: "EVT-02C", label: "행사 종료 확인 모달", group: "운영 — 행사" },
-  { id: "EVT-02D", label: "행사 개요 — 후속 정리 중", group: "운영 — 행사" },
-  { id: "EVT-02E", label: "행사 완료 처리 확인 모달", group: "운영 — 행사" },
-  { id: "EVT-03C", label: "운영 조직 — 빈 상태", group: "운영 — 행사" },
-  { id: "EVT-01", label: "행사 운영 조직 설정", group: "운영 — 행사" },
-  { id: "EVT-03A", label: "운영 조직 — 보기", group: "운영 — 행사" },
-  { id: "EVT-03B", label: "운영 조직 — 수정", group: "운영 — 행사" },
-  { id: "EVT-04C", label: "행사 참가자 — 빈 상태", group: "운영 — 행사" },
-  { id: "EVT-04", label: "행사 참가자 명단", group: "운영 — 행사" },
-  { id: "EVT-04B", label: "QR 참석 확인 모달", group: "운영 — 행사" },
-  { id: "EVT-05", label: "참여 설문 생성·관리", group: "운영 — 행사" },
-  { id: "EVT-05B", label: "기존 설문 교체 모달", group: "운영 — 행사" },
-  { id: "EVT-TASK-01", label: "행사 업무 — 칸반 보드", group: "운영 — 행사" },
-  { id: "EVT-TASK-02", label: "업무 상세 — 관련 문서·결과물", group: "운영 — 행사" },
-  { id: "EVT-MEET-01", label: "행사 관련 회의", group: "운영 — 행사" },
-  { id: "EVT-SCHED-01", label: "행사 일정", group: "운영 — 행사" },
-  { id: "EVT-DOC-01", label: "행사 문서", group: "운영 — 행사" },
-  { id: "EVT-FIN-01", label: "행사 재정 — 개요", group: "운영 — 행사 · 재정" },
+  { id: "OPS-MEET-D01", label: "회의 시작 확인", group: "운영 — 회의 · 확인 모달" },
+  { id: "OPS-MEET-D02", label: "회의 종료 확인", group: "운영 — 회의 · 확인 모달" },
+  { id: "OPS-MEET-D03", label: "진행 권한 부여 확인", group: "운영 — 회의 · 확인 모달" },
+  { id: "OPS-MEET-D04", label: "회의 취소 확인", group: "운영 — 회의 · 확인 모달" },
+  { id: "EVT-00A", label: "행사 목록 — 일반 구성원", group: "운영 — 행사 · 목록·개요" },
+  { id: "EVT-00A2", label: "행사 목록 — 운영진", group: "운영 — 행사 · 목록·개요" },
+  { id: "EVT-00B", label: "새 행사 만들기 모달", group: "운영 — 행사 · 목록·개요" },
+  { id: "EVT-02", label: "행사 개요 — 기획 중", group: "운영 — 행사 · 목록·개요" },
+  { id: "EVT-02B", label: "행사 정보 편집 패널", group: "운영 — 행사 · 목록·개요" },
+  { id: "EVT-02C", label: "행사 종료 확인 모달", group: "운영 — 행사 · 목록·개요" },
+  { id: "EVT-02D", label: "행사 개요 — 후속 정리 중", group: "운영 — 행사 · 목록·개요" },
+  { id: "EVT-02E", label: "행사 완료 처리 확인 모달", group: "운영 — 행사 · 목록·개요" },
+  { id: "EVT-TASK-01", label: "행사 업무 — 칸반 보드", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
+  { id: "EVT-TASK-02", label: "업무 상세 — 관련 문서·결과물", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
+  { id: "EVT-DOC-01", label: "행사 문서", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
+  { id: "EVT-MEET-01", label: "행사 관련 회의", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
+  { id: "EVT-SCHED-01", label: "행사 일정", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
+  { id: "EVT-03C", label: "운영 조직 — 빈 상태", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-01", label: "행사 운영 조직 설정", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-03A", label: "운영 조직 — 보기", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-03B", label: "운영 조직 — 수정", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-04C", label: "행사 참가자 — 빈 상태", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-04", label: "행사 참가자 명단", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-04B", label: "QR 참석 확인 모달", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-05", label: "참여 설문 생성·관리", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-05B", label: "기존 설문 교체 모달", group: "운영 — 행사 · 인원·설문" },
+  { id: "EVT-FIN-01", label: "행사 재정 — 개요 · 일반 구성원", group: "운영 — 행사 · 재정" },
+  { id: "EVT-FIN-01B", label: "행사 재정 — 개요 · 재정부", group: "운영 — 행사 · 재정" },
   { id: "MY-REQ-01", label: "내 구매 요청 — 행사 재정", group: "운영 — 행사 · 재정" },
-  { id: "FIN-REQ-01", label: "구매 요청 작성·수정", group: "운영 — 행사 · 재정" },
+  { id: "FIN-REQ-01B", label: "구매 요청 작성·수정 — 홍보부 부서장", group: "운영 — 행사 · 재정" },
   { id: "FIN-REQ-02", label: "구매 요청 상세·진행 상태", group: "운영 — 행사 · 재정" },
-  { id: "FIN-SUP-01", label: "보완 요청 확인·재제출", group: "운영 — 행사 · 재정" },
+  { id: "FIN-SUP-01B", label: "보완 요청 확인·재제출 — 홍보부 부서장", group: "운영 — 행사 · 재정" },
   { id: "FIN-REV-01", label: "구매 요청 검토", group: "운영 — 행사 · 재정" },
+  { id: "FIN-REV-01B", label: "구매 요청 재검토 — 보완 재제출", group: "운영 — 행사 · 재정" },
   { id: "FIN-PROC-01", label: "구매·발주 처리", group: "운영 — 행사 · 재정" },
   { id: "FIN-EVID-01", label: "결제·증빙 정리", group: "운영 — 행사 · 재정" },
   { id: "OPS-CAL-01", label: "캘린더 — 월간 일정", group: "운영 — 캘린더" },
-  { id: "FIN-00", label: "전체 재정 현황", group: "재정" },
-  { id: "FIN-00B", label: "전체 재정 현황 — 재정부·회장단", group: "재정" },
-  { id: "FIN-LEDGER-01", label: "사용 내역", group: "재정" },
+  { id: "FIN-00", label: "전체 재정 현황", group: "재정 (전체)" },
+  { id: "FIN-00B", label: "전체 재정 현황 — 재정부", group: "재정 (전체)" },
+  { id: "FIN-LEDGER-01", label: "사용 내역", group: "재정 (전체)" },
   { id: "REC-01", label: "완료된 행사 목록", group: "기록" },
   { id: "REC-02", label: "행사 아카이브 상세", group: "기록" },
   { id: "REC-02A", label: "아카이브 작성·검토", group: "기록" },
@@ -112,20 +114,125 @@ type CapacityType = "제한없음" | "인원제한" | "미정";
 type SurveyStatus = "미생성" | "초안" | "활성" | "종료" | "교체됨";
 type RecruitMethod = "선착순" | "관리자승인";
 
-type FinanceStatus = "검토 대기" | "승인" | "보완 요청" | "반려" | "구매 필요" | "증빙 필요" | "정산 완료";
+type FinanceStatus = "검토 대기" | "재검토 대기" | "승인" | "보완 요청" | "반려" | "구매 필요" | "증빙 필요" | "정산 완료" | "요청 취소";
+type PurchaseOrderStatus = "해당 없음" | "주문 대기" | "주문 완료" | "구매 불가" | "주문 취소";
+type PurchaseFulfillmentStatus = "해당 없음" | "배송 대기" | "배송 중" | "수령 확인 필요" | "수령 완료" | "이행 대기" | "이행 중" | "반납 확인 필요" | "이행 완료";
+type PurchaseEvidenceStatus = "해당 없음" | "증빙 필요" | "증빙 정리 중" | "증빙 완료";
+
+// ─── 구매 실행분 모델 (공식문서 2.1~2.3, 실행분 전면 도입) ──────────────────
+// 실행분: 주문·수령/이행·증빙·환불의 원본 단위. 품목:실행분 = 1:1로 시작한다.
+// 실행분이 2개 이상이 되는 경우: (1) 주문 취소 후 재주문, (2) 주문 단계의 부분 주문(일부 수량만 주문 완료 + 남은 수량 새 주문 대기)으로 분할. 부분 수령·부분 반환에 따른 분할은 보류(8.2·15장).
+type ExecutionOrderStatus = "주문 대기" | "주문 완료" | "구매 불가" | "주문 취소";
+type ExecutionReceiptStatus = "해당 없음" | "배송 대기" | "배송 중" | "수령 확인 필요" | "수령 완료";
+// 대여·용역 이행: 대여는 이행 중(대여·사용) 후 반납 확인 필요를 거쳐 이행 완료(반납·회수 완료), 용역은 반납이 없어 이 단계를 건너뛴다.
+type ExecutionServiceStatus = "해당 없음" | "이행 대기" | "이행 중" | "반납 확인 필요" | "이행 완료";
+type ExecutionEvidenceStatus = "해당 없음" | "증빙 필요" | "증빙 정리 중" | "증빙 완료";
+type RefundResult = "미확정" | "전액 환불" | "일부 환불" | "환불 없음";
+
+// 구매 승인 묶음: 한 요청에서 같은 시점에 구매 진행이 허용된 승인 품목의 묶음 (생성 후 구성 불변)
+type ApprovalBundle = {
+  id: string;
+  requestId: string;
+  itemIds: number[];
+  createdAt: string;
+  withdrawn?: boolean; // 주문 전 전체 철회 (철회됨)
+};
+
+// 증빙 묶음: 구매처·결제·영수증 기준으로 실행분을 재구성해 정리한 단위. 완료 후 다시 열람할 수 있는 레코드로 저장한다.
+// (요청·승인 묶음과 무관하게 실제 거래가 같으면 함께 묶이므로, 증빙 아카이브는 요청 단위가 아닌 별도 레코드로 보관한다.)
+type EvidenceBundle = {
+  id: string;
+  eventId: string;
+  vendor: string;
+  method: string;
+  receiptNo?: string;
+  actualAmount: number;
+  completedAt: string;
+  completedBy: string;
+  executions: { execId: string; requestId: string; itemName: string; amount: number }[];
+};
+
+// 증빙 묶음 임시 저장(초안): 완료 전 작성 중인 증빙 묶음. 담긴 실행분은 `증빙 정리 중`으로 표시된다. 행사당 하나로 관리한다.
+type EvidenceDraft = {
+  id: string;
+  eventId: string;
+  execIds: string[];
+  vendor: string;
+  method: string;
+  receiptNo: string;
+  actualAmount: string;
+  checks: Record<string, boolean>;
+  savedAt: string;
+};
+
+type PurchaseExecution = {
+  id: string;
+  itemId: number;
+  quantity?: number;              // 이 실행분이 담당하는 수량. 없으면 품목 전체 수량(부분 주문 분할 시에만 명시)
+  approvalBundleId?: string;
+  orderStatus: ExecutionOrderStatus;
+  receiptStatus: ExecutionReceiptStatus;   // 물품·제작물
+  serviceStatus: ExecutionServiceStatus;   // 대여·용역
+  evidenceStatus: ExecutionEvidenceStatus;
+  paid?: boolean;                 // 결제 여부 (주문 취소 후속 계산용)
+  refundResult?: RefundResult;    // 환불 결과 (환불 대기/확인은 이 값에서 계산)
+  cancelNetSpend?: number;        // 취소 순지출액
+  reorderOfExecutionId?: string;  // 이 실행분이 재주문한 원래 취소 실행분
+  reorderDeclined?: boolean;      // 취소 실행분을 재주문하지 않기로 종결(재주문 판단 종료)
+  receiptIssue?: boolean;         // 수령 문제 있음 (보조 표시)
+  returned?: boolean;             // 수령 완료 후 물품 반환 기록 (환불 추적)
+  cancelRequested?: boolean;      // 요청자의 주문 취소 요청(재정부 확정 대기)
+  cancelReason?: string;          // 주문 취소 요청 사유
+};
 
 type PurchaseItem = {
   id: number;
   name: string;
   category: string;
   budgetLine: string;
-  purchaseType: "일반 구매" | "제작·인쇄" | "대여·용역";
+  purchaseType: "일반 구매" | "제작·인쇄" | "대여" | "용역";
   quantity: number;
   unit: string;
   estimatedUnitPrice: number;
   estimatedTotalPrice: number;
-  status: "검토 대기" | "승인" | "보완 요청" | "반려";
+  status: "검토 대기" | "승인" | "보완 요청" | "반려" | "요청 취소";
+  orderStatus?: PurchaseOrderStatus;
+  fulfillmentStatus?: PurchaseFulfillmentStatus;
+  evidenceStatus?: PurchaseEvidenceStatus;
+  // 실행분 전면 도입 마이그레이션용. 있으면 실행분 기반으로 계산하고, 없으면 위 필드에서 실행분 1개를 파생한다.
+  executions?: PurchaseExecution[];
+  agreedForPurchase?: boolean; // 승인 후 구매 진행 동의(선진행 동의) 완료 여부. false면 동의 대기, 미설정/true면 진행.
+  expectedDate?: string;
+  financeOwner?: string;
+  priceEvidence?: string;
+  supplementReason?: string;
+  rejectionReason?: string;
+  requestCancelReason?: string; // 요청자가 품목을 주문 전 취소한 사유
   details: any;
+};
+
+type PurchaseSupplementFieldChange = {
+  label: string;
+  before: string;
+  after: string;
+};
+
+type PurchaseSupplementItemSubmission = {
+  itemId: number;
+  itemName: string;
+  reason: string;
+  fields: PurchaseSupplementFieldChange[];
+  beforeAttachments: string[];
+  afterAttachments: string[];
+};
+
+type PurchaseSupplementSubmission = {
+  id: string;
+  requestedAt: string;
+  requestedBy: string;
+  submittedAt: string;
+  submittedBy: string;
+  items: PurchaseSupplementItemSubmission[];
 };
 
 type PurchaseRequest = {
@@ -143,7 +250,220 @@ type PurchaseRequest = {
   items: PurchaseItem[];
   status: FinanceStatus | "부분 승인";
   history: { date: string; action: string; user: string }[];
+  supplementSubmissions?: PurchaseSupplementSubmission[];
+  approvalBundles?: ApprovalBundle[];
+  orderCompletedBy?: string;
+  actualAmount?: number;
 };
+
+type GeneralPurchaseProgress = "검토 중" | "보완 필요" | "보완 중" | "구매 진행 동의 대기" | "구매 준비" | "주문 완료" | "배송 중" | "이행 중" | "수령 완료" | "이행 완료" | "정산 중" | "처리 완료" | "반려" | "구매 불가" | "주문 취소" | "요청 취소";
+type FinancePurchaseProgress = "검토 대기" | "보완 응답 대기" | "재검토 대기" | "선진행 동의 대기" | "주문 대기" | "재주문 보류" | "재주문 판단" | "주문 완료" | "배송 대기" | "배송 중" | "이행 대기" | "이행 중" | "반납 확인 필요" | "주문 취소 요청 확인" | "수령 확인 필요" | "환불 대기" | "환불 확인" | "증빙 필요" | "증빙 정리 중" | "정산 완료" | "구매 불가 처리 필요" | "주문 취소" | "반려" | "요청 취소";
+
+function getGeneralPurchaseProgress(request: PurchaseRequest, item: PurchaseItem, currentUserName: string): GeneralPurchaseProgress {
+  if (request.status === "요청 취소" || item.status === "요청 취소") return "요청 취소";
+  if (item.orderStatus === "구매 불가") return "구매 불가";
+  if (item.orderStatus === "주문 취소") return "주문 취소";
+  if (item.status === "반려" || request.status === "반려") return "반려";
+  if (item.status === "보완 요청") return request.requester === currentUserName ? "보완 필요" : "보완 중"; // 품목 단위. 요청에 보완 품목이 섞여도 승인 품목은 각자 진행
+  if (item.status !== "승인") return "검토 중";
+  if (item.agreedForPurchase === false) return "구매 진행 동의 대기";
+  if (item.evidenceStatus === "증빙 완료" || request.status === "정산 완료") return "처리 완료";
+  if (item.evidenceStatus === "증빙 필요" || item.evidenceStatus === "증빙 정리 중" || request.status === "증빙 필요") return "정산 중";
+  if (item.fulfillmentStatus === "수령 완료") return "수령 완료";
+  if (item.fulfillmentStatus === "이행 완료") return "이행 완료";
+  if (["배송 중", "수령 확인 필요"].includes(item.fulfillmentStatus ?? "")) return "배송 중";
+  if (["이행 중", "반납 확인 필요"].includes(item.fulfillmentStatus ?? "")) return "이행 중";
+  if (item.orderStatus === "주문 완료") return "주문 완료";
+  return "구매 준비";
+}
+
+function getFinancePurchaseProgress(request: PurchaseRequest, item: PurchaseItem): FinancePurchaseProgress {
+  if (request.status === "요청 취소" || item.status === "요청 취소") return "요청 취소";
+  if (item.orderStatus === "구매 불가") return "구매 불가 처리 필요";
+  if (item.orderStatus === "주문 취소") return "주문 취소";
+  if (item.status === "반려" || request.status === "반려") return "반려";
+  if (item.status === "보완 요청") return "보완 응답 대기"; // 품목 단위. 보완 품목만 여기로, 같은 요청의 승인 품목은 아래에서 선진행 동의 대기로 계산
+  if (request.status === "재검토 대기" && item.status !== "승인") return "재검토 대기";
+  if (item.status !== "승인") return "검토 대기"; // 검토는 대기 → 결정(승인/보완/반려) 단발. 별도 '검토 중' 단계는 두지 않음(financeOwner는 담당 표시용)
+  if (item.agreedForPurchase === false) return "선진행 동의 대기";
+  if (item.evidenceStatus === "증빙 완료" || request.status === "정산 완료") return "정산 완료";
+  if (item.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
+  if (item.evidenceStatus === "증빙 필요" || request.status === "증빙 필요" || item.fulfillmentStatus === "수령 완료" || item.fulfillmentStatus === "이행 완료") return "증빙 필요";
+  if (item.fulfillmentStatus === "수령 확인 필요") return "수령 확인 필요";
+  if (item.fulfillmentStatus === "배송 중") return "배송 중";
+  if (item.fulfillmentStatus === "반납 확인 필요") return "반납 확인 필요";
+  if (item.fulfillmentStatus === "이행 중") return "이행 중";
+  if (item.fulfillmentStatus === "이행 대기") return "이행 대기";
+  if (item.fulfillmentStatus === "배송 대기") return "배송 대기";
+  if (item.orderStatus === "주문 완료") return "주문 완료";
+  return "주문 대기";
+}
+
+// 실행분 파생 (마이그레이션): item.executions가 있으면 그대로 사용하고,
+// 없으면 승인된 품목의 현재 원본 필드에서 초기 실행분 1개를 만든다. (품목:실행분 = 1:1)
+function getExecutions(item: PurchaseItem): PurchaseExecution[] {
+  if (item.executions && item.executions.length > 0) return item.executions;
+  if (item.status !== "승인") return [];
+  if (item.agreedForPurchase === false) return []; // 구매 진행 동의(선진행 동의) 전에는 실행분이 없다
+  const f = item.fulfillmentStatus ?? "해당 없음";
+  const receiptStatus: ExecutionReceiptStatus = ["배송 대기", "배송 중", "수령 확인 필요", "수령 완료"].includes(f) ? (f as ExecutionReceiptStatus) : "해당 없음";
+  const serviceStatus: ExecutionServiceStatus = ["이행 대기", "이행 중", "반납 확인 필요", "이행 완료"].includes(f) ? (f as ExecutionServiceStatus) : "해당 없음";
+  const orderStatus: ExecutionOrderStatus = item.orderStatus && item.orderStatus !== "해당 없음" ? (item.orderStatus as ExecutionOrderStatus) : "주문 대기";
+  return [{
+    id: `${item.id}-EX1`,
+    itemId: item.id,
+    orderStatus,
+    receiptStatus,
+    serviceStatus,
+    evidenceStatus: (item.evidenceStatus ?? "해당 없음") as ExecutionEvidenceStatus,
+  }];
+}
+
+// 실행분 단위 대표 진행 상태(일반 사용자) — 품목이 승인되어 실행분이 생긴 뒤의 계산
+function getGeneralProgressForExecution(ex: PurchaseExecution): GeneralPurchaseProgress {
+  if (ex.orderStatus === "구매 불가") return "구매 불가";
+  if (ex.orderStatus === "주문 취소") return "주문 취소";
+  if (ex.evidenceStatus === "증빙 완료") return "처리 완료";
+  if (ex.evidenceStatus === "증빙 필요" || ex.evidenceStatus === "증빙 정리 중") return "정산 중";
+  if (ex.receiptStatus === "수령 완료") return "수령 완료";
+  if (ex.serviceStatus === "이행 완료") return "이행 완료";
+  if (ex.receiptStatus === "배송 중" || ex.receiptStatus === "수령 확인 필요") return "배송 중";
+  if (ex.serviceStatus === "이행 중" || ex.serviceStatus === "반납 확인 필요") return "이행 중";
+  if (ex.orderStatus === "주문 완료") return "주문 완료";
+  return "구매 준비";
+}
+
+// 실행분 단위 재정부 처리 단계 — 다음 미완료 업무를 계산 (환불·재주문 포함)
+function getFinanceStageForExecution(ex: PurchaseExecution, siblings: PurchaseExecution[]): FinancePurchaseProgress {
+  // 물품 반환: 반환의 환불 결과가 미확정이면 환불 대기(주문 취소와 같은 환불 계산을 재사용, 8.11)
+  if (ex.returned && (ex.refundResult ?? "미확정") === "미확정") return "환불 대기";
+  // 주문 취소 실행분: 환불·취소 비용 증빙·재주문 후속 업무를 계산 (원본 주문 취소는 처리 단계명으로 쓰지 않음)
+  if (ex.orderStatus === "주문 취소") {
+    if (ex.paid && (ex.refundResult ?? "미확정") === "미확정") return "환불 대기";
+    if (ex.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
+    if (ex.evidenceStatus === "증빙 필요") return "증빙 필요";
+    // 환불·증빙 정리 완료 후, 재주문했거나(재주문 실행분 존재) 재주문 안 함으로 종결하면 활성 처리에서 제외한다.
+    if (siblings.some(e => e.reorderOfExecutionId === ex.id) || ex.reorderDeclined) return "정산 완료";
+    return "재주문 판단";
+  }
+  // 재주문 실행분: 원래 취소 실행분의 환불·증빙 차단 조건이 남아 있으면 재주문 보류
+  if (ex.reorderOfExecutionId && ex.orderStatus === "주문 대기") {
+    const origin = siblings.find(e => e.id === ex.reorderOfExecutionId);
+    const blocked = !!origin && ((origin.paid && (origin.refundResult ?? "미확정") === "미확정") || origin.evidenceStatus === "증빙 필요" || origin.evidenceStatus === "증빙 정리 중");
+    if (blocked) return "재주문 보류";
+  }
+  if (ex.orderStatus === "구매 불가") return "구매 불가 처리 필요";
+  if (ex.evidenceStatus === "증빙 완료") return "정산 완료";
+  if (ex.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
+  if (ex.evidenceStatus === "증빙 필요" || ex.receiptStatus === "수령 완료" || ex.serviceStatus === "이행 완료") return "증빙 필요";
+  if (ex.receiptStatus === "수령 확인 필요") return "수령 확인 필요";
+  // 요청자의 유효한 주문 취소 요청은 기존 배송 대기·배송 중·이행 대기·이행 중보다 우선한다(기준 문서 11.3). 외부 취소가 성립하면 orderStatus가 "주문 취소"로 바뀌어 위에서 처리된다.
+  if (ex.cancelRequested) return "주문 취소 요청 확인";
+  if (ex.receiptStatus === "배송 중") return "배송 중";
+  if (ex.serviceStatus === "반납 확인 필요") return "반납 확인 필요";
+  if (ex.serviceStatus === "이행 중") return "이행 중";
+  if (ex.serviceStatus === "이행 대기") return "이행 대기";
+  if (ex.receiptStatus === "배송 대기") return "배송 대기";
+  if (ex.orderStatus === "주문 완료") return "주문 완료";
+  return "주문 대기";
+}
+
+// ── 실행분 상태 전환 공용 헬퍼 ──
+// EVT-FIN 처리 단계 보드의 '빠른 처리 팝오버'에서 쓴다. 전환 규칙은 FIN-PROC-01의 동명 핸들러와 동일하게 유지한다(수정 시 함께 반영).
+type SetPurchaseRequests = React.Dispatch<React.SetStateAction<PurchaseRequest[]>>;
+function mutateExecution(setPR: SetPurchaseRequests, requestId: string, itemId: number, execId: string, action: string, fn: (ex: PurchaseExecution) => PurchaseExecution) {
+  setPR(previous => previous.map(r => r.id !== requestId ? r : {
+    ...r,
+    items: r.items.map(it => it.id !== itemId ? it : { ...it, executions: getExecutions({ ...it, status: "승인" }).map(ex => ex.id === execId ? fn(ex) : ex) }),
+    history: [...r.history, { date: "2026-08-01 10:10", action, user: "김민준" }],
+  }));
+}
+function execOrder(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string) {
+  const isService = item.purchaseType === "대여" || item.purchaseType === "용역";
+  mutateExecution(setPR, requestId, item.id, execId, "주문 완료", ex => ({ ...ex, orderStatus: "주문 완료", receiptStatus: (isService ? "해당 없음" : "배송 대기") as ExecutionReceiptStatus, serviceStatus: (isService ? "이행 대기" : "해당 없음") as ExecutionServiceStatus }));
+}
+// 실행분이 여러 개(부분 주문 분할·재주문)인 품목에서 실행분 순번(1-based). 1개뿐이면 null(넘버링 없음).
+function execSeq(item: PurchaseItem, ex: PurchaseExecution): number | null {
+  const execs = getExecutions(item);
+  if (execs.length <= 1) return null;
+  const i = execs.findIndex(e => e.id === ex.id);
+  return i >= 0 ? i + 1 : null;
+}
+// 실행분이 담당하는 수량과 금액(수량 미지정이면 품목 전체 수량 기준)
+function execQuantityOf(item: PurchaseItem, ex: PurchaseExecution): number { return ex.quantity ?? item.quantity; }
+function execAmountOf(item: PurchaseItem, ex: PurchaseExecution): number { return execQuantityOf(item, ex) * item.estimatedUnitPrice; }
+// 부분 주문: 주문 대기 실행분을 지정 수량만 주문 완료로 전환하고, 남은 수량은 새 주문 대기 실행분으로 분할한다.
+function execOrderQty(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string, orderQty: number) {
+  const isService = item.purchaseType === "대여" || item.purchaseType === "용역";
+  const execs0 = getExecutions({ ...item, status: "승인" });
+  const targetQty = execs0.find(e => e.id === execId)?.quantity ?? item.quantity;
+  const q = Math.min(Math.max(1, Math.round(orderQty || 0)), targetQty);
+  setPR(previous => previous.map(r => {
+    if (r.id !== requestId) return r;
+    return {
+      ...r,
+      items: r.items.map(it => {
+        if (it.id !== item.id) return it;
+        const execs = getExecutions({ ...it, status: "승인" });
+        const ordered = execs.map(ex => ex.id === execId ? { ...ex, quantity: q, orderStatus: "주문 완료" as ExecutionOrderStatus, receiptStatus: (isService ? "해당 없음" : "배송 대기") as ExecutionReceiptStatus, serviceStatus: (isService ? "이행 대기" : "해당 없음") as ExecutionServiceStatus } : ex);
+        if (q >= targetQty) return { ...it, executions: ordered };
+        const newExec: PurchaseExecution = { id: `${it.id}-P${execs.length + 1}`, itemId: it.id, quantity: targetQty - q, orderStatus: "주문 대기", receiptStatus: "해당 없음", serviceStatus: "해당 없음", evidenceStatus: "해당 없음" };
+        return { ...it, executions: [...ordered, newExec] };
+      }),
+      history: [...r.history, { date: "2026-08-01 10:00", action: q >= targetQty ? `주문 완료 · ${item.name} ${q}${item.unit}` : `부분 주문 · ${item.name} ${q}/${targetQty}${item.unit} (남은 ${targetQty - q}${item.unit} 주문 대기)`, user: "김민준" }],
+    };
+  }));
+}
+function execMarkOutOfStock(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string) {
+  mutateExecution(setPR, requestId, item.id, execId, "구매 불가(품절) 처리", ex => ({ ...ex, orderStatus: "구매 불가" }));
+}
+function execAdvanceFulfillment(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string) {
+  const isRental = item.purchaseType === "대여"; // 용역은 반납 단계를 건너뛴다
+  mutateExecution(setPR, requestId, item.id, execId, "배송·수령·이행 단계 진행", ex => {
+    if (ex.serviceStatus !== "해당 없음") {
+      const next = (ex.serviceStatus === "이행 대기" ? "이행 중" : ex.serviceStatus === "이행 중" ? (isRental ? "반납 확인 필요" : "이행 완료") : "이행 완료") as ExecutionServiceStatus;
+      return { ...ex, serviceStatus: next, evidenceStatus: next === "이행 완료" ? "증빙 필요" as ExecutionEvidenceStatus : ex.evidenceStatus };
+    }
+    const next = (ex.receiptStatus === "배송 대기" ? "배송 중" : ex.receiptStatus === "배송 중" ? "수령 확인 필요" : "수령 완료") as ExecutionReceiptStatus;
+    return { ...ex, receiptStatus: next, receiptIssue: next === "수령 완료" ? false : ex.receiptIssue, evidenceStatus: next === "수령 완료" ? "증빙 필요" as ExecutionEvidenceStatus : ex.evidenceStatus };
+  });
+}
+function execConfirmCancel(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string) {
+  mutateExecution(setPR, requestId, item.id, execId, "주문 취소 처리", ex => ({ ...ex, orderStatus: "주문 취소", paid: true, refundResult: "미확정", cancelRequested: false }));
+}
+function execConfirmRefund(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string, result: RefundResult) {
+  mutateExecution(setPR, requestId, item.id, execId, `환불 확인 · ${result}`, ex => ({ ...ex, refundResult: result, evidenceStatus: (result !== "전액 환불" || ex.returned) ? "증빙 필요" as ExecutionEvidenceStatus : ex.evidenceStatus }));
+}
+// 재주문 실행분 생성: 취소 실행분을 원본으로 하는 새 주문 대기 실행분을 만든다.
+function execReorder(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string) {
+  setPR(previous => previous.map(r => r.id !== requestId ? r : {
+    ...r,
+    items: r.items.map(it => {
+      if (it.id !== item.id) return it;
+      const execs = getExecutions({ ...it, status: "승인" });
+      const newEx: PurchaseExecution = { id: `${it.id}-RE${execs.length + 1}`, itemId: it.id, orderStatus: "주문 대기", receiptStatus: "해당 없음", serviceStatus: "해당 없음", evidenceStatus: "해당 없음", reorderOfExecutionId: execId };
+      return { ...it, executions: [...execs, newEx] };
+    }),
+    history: [...r.history, { date: "2026-08-01 10:00", action: `재주문 실행분 생성 · ${item.name}`, user: "김민준" }],
+  }));
+}
+// 재주문 안 함: 취소 실행분의 재주문 판단을 종결해 활성 처리에서 제외한다.
+function execDeclineReorder(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string) {
+  mutateExecution(setPR, requestId, item.id, execId, `재주문 안 함 · ${item.name}`, ex => ({ ...ex, reorderDeclined: true }));
+}
+// 선진행 동의(구매 진행 동의): 승인 품목을 구매 승인 묶음에 넣어 주문 대기로 진행시킨다. 부분 승인에서 남은 보완 품목과 함께 대기하던 승인 품목을 진행할 때 쓴다.
+function execAgree(setPR: SetPurchaseRequests, requestId: string, itemId: number) {
+  setPR(previous => previous.map(r => r.id !== requestId ? r : {
+    ...r,
+    items: r.items.map(it => it.id === itemId && it.status === "승인" ? { ...it, agreedForPurchase: true } : it),
+    history: [...r.history, { date: "2026-08-01 09:50", action: "구매 진행 동의 처리 · 구매 승인 묶음 생성", user: "김민준" }],
+  }));
+}
+// 대여·용역 다음 단계 라벨(대여는 반납 확인 필요를 거침).
+function nextFulfillLabel(ex: PurchaseExecution, isRental: boolean) {
+  if (ex.serviceStatus !== "해당 없음") return ex.serviceStatus === "이행 대기" ? "이행 시작" : ex.serviceStatus === "이행 중" ? (isRental ? "반납 확인 요청" : "이행 완료 확인") : "반납 확인·이행 완료";
+  return ex.receiptStatus === "배송 대기" ? "배송 시작" : ex.receiptStatus === "배송 중" ? "물품 도착" : "수령 확인";
+}
 
 type PurchaseDraftItem = Omit<PurchaseItem, "status"> & { quoteStatus: string };
 
@@ -430,9 +750,10 @@ type MessageRoom = {
 const DEFAULT_ORGANIZATION_MEMBER_ROLES: OrganizationMemberRole[] = [
   { name: "김바다", dept: "학술체육부", role: "회장단" },
   { name: "이수현", dept: "기획부", role: "부서장" },
-  { name: "이윤슬", dept: "홍보부", role: "부서장" },
+  { name: "이윤슬", dept: "홍보부", role: "부원" },
+  { name: "김민석", dept: "홍보부", role: "부서장" },
   { name: "김민준", dept: "재정부", role: "부서장" },
-  { name: "박해랑", dept: "운영부", role: "부원" },
+  { name: "박해랑", dept: "운영부", role: "부서장" },
   { name: "정하늘", dept: "운영부", role: "부원" },
   { name: "박민수", dept: "기획부", role: "부원" },
 ];
@@ -483,6 +804,7 @@ const MEMBER_DEPARTMENTS: Record<string, string> = {
   "정하늘": "운영부",
   "이수현": "기획부",
   "이윤슬": "홍보부",
+  "김민석": "홍보부",
   "김민준": "재정부",
   "김바다": "학술체육부",
 };
@@ -620,10 +942,16 @@ type AppContextType = {
   setSelectedArchiveId: React.Dispatch<React.SetStateAction<string | null>>;
   archives: ArchiveRecord[];
   setArchives: React.Dispatch<React.SetStateAction<ArchiveRecord[]>>;
+  evidenceBundles: EvidenceBundle[];
+  setEvidenceBundles: React.Dispatch<React.SetStateAction<EvidenceBundle[]>>;
+  evidenceDrafts: EvidenceDraft[];
+  setEvidenceDrafts: React.Dispatch<React.SetStateAction<EvidenceDraft[]>>;
   selectedEventTaskId: string | null;
   setSelectedEventTaskId: React.Dispatch<React.SetStateAction<string | null>>;
   purchaseRequests: PurchaseRequest[];
   setPurchaseRequests: React.Dispatch<React.SetStateAction<PurchaseRequest[]>>;
+  selectedPurchaseRequestId: string | null;
+  setSelectedPurchaseRequestId: React.Dispatch<React.SetStateAction<string | null>>;
   meetingDraft: MeetingDraft | null;
   setMeetingDraft: React.Dispatch<React.SetStateAction<MeetingDraft | null>>;
   purchaseRequestDraft: PurchaseRequestDraft | null;
@@ -647,6 +975,13 @@ type AppContextType = {
 // 기존 체육대회 샘플 데이터(구매 요청·회의·문서·조직·참가자)의 소유 행사 식별자다.
 const SPORTS_EVENT_ID = "EVT-SPORTS";
 
+// 행사 예산 기본값(체육대회). FIN-REV의 예산 초과 판정과 EVT-FIN 예산 현황이 같은 기준을 쓴다.
+const DEFAULT_BUDGET_LINES = [
+  { name: "행사 운영비", allocated: 1500000, actual: 520000 },
+  { name: "홍보비", allocated: 800000, actual: 260000 },
+  { name: "식비", allocated: 700000, actual: 170000 },
+];
+
 const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
   {
     id: "REQ-001",
@@ -661,10 +996,10 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     totalEstimatedAmount: 135000,
     status: "검토 대기",
     items: [
-      { id: 1, name: "박스테이프", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 5, unit: "개", estimatedUnitPrice: 2000, estimatedTotalPrice: 10000, status: "승인", details: {} },
-      { id: 2, name: "생수 500ml", category: "식음료", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, status: "승인", details: {} },
-      { id: 3, name: "이름표 용지", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, status: "보완 요청", details: {} },
-      { id: 4, name: "유성 마커", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 10, unit: "개", estimatedUnitPrice: 1500, estimatedTotalPrice: 15000, status: "승인", details: {} },
+      { id: 1, name: "박스테이프", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 5, unit: "개", estimatedUnitPrice: 2000, estimatedTotalPrice: 10000, status: "검토 대기", priceEvidence: "다이소 온라인몰 상품 링크", details: {} },
+      { id: 2, name: "생수 500ml", category: "식음료", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, status: "검토 대기", priceEvidence: "마켓컬리 B2B 상품 정보", details: {} },
+      { id: 3, name: "이름표 용지", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "제작·인쇄", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, status: "검토 대기", priceEvidence: "인쇄업체 A 견적서.pdf", details: {} },
+      { id: 4, name: "유성 마커", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 10, unit: "개", estimatedUnitPrice: 1500, estimatedTotalPrice: 15000, status: "검토 대기", priceEvidence: "다이소 온라인몰 상품 링크", details: {} },
     ],
     history: [
       { date: "2026-03-01 10:00", action: "요청 생성", user: "박해랑" },
@@ -677,18 +1012,118 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     title: "현수막 A형 제작",
     event: "2026 소프트웨어융합대학 체육대회",
     dept: "홍보부",
-    requester: "이윤슬",
+    requester: "김민석",
     purpose: "행사장 메인 무대 설치",
     neededDate: "2026-03-14",
     priority: "긴급",
     totalEstimatedAmount: 180000,
     status: "보완 요청",
     items: [
-      { id: 5, name: "메인 현수막", category: "제작·굿즈", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 1, unit: "개", estimatedUnitPrice: 180000, estimatedTotalPrice: 180000, status: "보완 요청", details: { 규격: "500*90", 소재: "부직포" } },
+      { id: 5, name: "메인 현수막", category: "제작·굿즈", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 1, unit: "개", estimatedUnitPrice: 180000, estimatedTotalPrice: 180000, status: "보완 요청", priceEvidence: "현수막 견적서.pdf", supplementReason: "규격과 인쇄 사양을 보완하고 업체 견적서를 다시 확인해 주세요.", details: { 규격: "500*90", 소재: "부직포" } },
     ],
     history: [
-      { date: "2026-03-02 14:00", action: "요청 생성", user: "이윤슬" },
+      { date: "2026-03-02 14:00", action: "요청 생성", user: "김민석" },
       { date: "2026-03-03 09:00", action: "보완 요청", user: "김바다" },
+    ]
+  },
+  {
+    // 실행분 모델 예시: 승인 후 주문 취소 → 재주문 실행분 생성으로 한 품목이 실행분 2개로 나뉜다.
+    id: "REQ-003",
+    eventId: SPORTS_EVENT_ID,
+    title: "운영진 단체 티셔츠",
+    event: "2026 소프트웨어융합대학 체육대회",
+    dept: "홍보부",
+    requester: "김민석",
+    purpose: "운영진 식별용 단체 티셔츠 제작",
+    neededDate: "2026-03-13",
+    priority: "보통",
+    totalEstimatedAmount: 120000,
+    status: "구매 필요",
+    items: [
+      {
+        id: 6, name: "운영 티셔츠", category: "제작·굿즈", budgetLine: "홍보비", purchaseType: "제작·인쇄",
+        quantity: 30, unit: "장", estimatedUnitPrice: 4000, estimatedTotalPrice: 120000,
+        status: "승인", financeOwner: "김민준", priceEvidence: "티셔츠 견적서.pdf", details: {},
+        executions: [
+          { id: "6-EX1", itemId: 6, orderStatus: "주문 취소", receiptStatus: "해당 없음", serviceStatus: "해당 없음", evidenceStatus: "해당 없음", paid: true, refundResult: "미확정" },
+          { id: "6-EX2", itemId: 6, orderStatus: "주문 대기", receiptStatus: "해당 없음", serviceStatus: "해당 없음", evidenceStatus: "해당 없음", reorderOfExecutionId: "6-EX1" },
+        ],
+      },
+    ],
+    history: [
+      { date: "2026-03-04 11:00", action: "요청 생성", user: "김민석" },
+      { date: "2026-03-05 09:00", action: "승인", user: "김민준" },
+      { date: "2026-03-08 14:00", action: "주문 취소·재주문 준비", user: "김민준" },
+    ]
+  },
+  {
+    // 증빙 묶음 예시: 수령 완료 후 증빙 필요 실행분 (FIN-EVID-01에서 구매처·영수증 기준으로 묶는다)
+    id: "REQ-004",
+    eventId: SPORTS_EVENT_ID,
+    title: "배너 거치대",
+    event: "2026 소프트웨어융합대학 체육대회",
+    dept: "운영부",
+    requester: "박해랑",
+    purpose: "행사장 배너 설치용 거치대",
+    neededDate: "2026-03-12",
+    priority: "보통",
+    totalEstimatedAmount: 80000,
+    status: "증빙 필요",
+    items: [
+      { id: 7, name: "배너 거치대", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 4, unit: "개", estimatedUnitPrice: 20000, estimatedTotalPrice: 80000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "수령 완료", evidenceStatus: "증빙 필요", priceEvidence: "거치대 견적.pdf", details: {} },
+    ],
+    history: [
+      { date: "2026-03-05 10:00", action: "요청 생성", user: "박해랑" },
+      { date: "2026-03-06 09:00", action: "승인", user: "김민준" },
+      { date: "2026-03-11 14:00", action: "수령 완료 확인", user: "김민준" },
+    ]
+  },
+  {
+    // 배송 중 예시: 요청자(박해랑)가 주문 취소 요청 가능, 배송 중→수령 확인 필요→수령 완료 단계 시연
+    id: "REQ-005",
+    eventId: SPORTS_EVENT_ID,
+    title: "행사 진행요원 조끼",
+    event: "2026 소프트웨어융합대학 체육대회",
+    dept: "운영부",
+    requester: "박해랑",
+    purpose: "진행요원 식별용 조끼",
+    neededDate: "2026-03-14",
+    priority: "보통",
+    totalEstimatedAmount: 90000,
+    status: "구매 필요",
+    items: [
+      { id: 8, name: "진행요원 조끼", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 15, unit: "개", estimatedUnitPrice: 6000, estimatedTotalPrice: 90000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "배송 중", evidenceStatus: "해당 없음", priceEvidence: "조끼 견적.pdf", details: {} },
+    ],
+    history: [
+      { date: "2026-03-05 11:00", action: "요청 생성", user: "박해랑" },
+      { date: "2026-03-06 10:00", action: "승인", user: "김민준" },
+      { date: "2026-03-10 09:00", action: "주문 완료", user: "김민준" },
+    ]
+  },
+  {
+    // 대여·용역 예시: 대여(반납 흐름)와 용역(반납 없음)을 함께 시연
+    id: "REQ-006",
+    eventId: SPORTS_EVENT_ID,
+    title: "행사 장비 대여·용역",
+    event: "2026 소프트웨어융합대학 체육대회",
+    dept: "운영부",
+    requester: "박해랑",
+    purpose: "행사 당일 음향·그늘막·무전 장비 대여와 무대 설치 용역",
+    neededDate: "2026-03-14",
+    priority: "보통",
+    totalEstimatedAmount: 578000,
+    status: "구매 필요",
+    items: [
+      { id: 9, name: "앰프·스피커 세트 대여", category: "장비 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 1, unit: "세트", estimatedUnitPrice: 150000, estimatedTotalPrice: 150000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 대기", evidenceStatus: "해당 없음", priceEvidence: "음향 대여 견적.pdf", details: {} },
+      { id: 10, name: "그늘막 천막(3x3m) 대여", category: "장비 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 2, unit: "동", estimatedUnitPrice: 40000, estimatedTotalPrice: 80000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 중", evidenceStatus: "해당 없음", priceEvidence: "천막 대여 견적.pdf", details: {} },
+      { id: 11, name: "무전기 세트 대여", category: "장비 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 6, unit: "대", estimatedUnitPrice: 8000, estimatedTotalPrice: 48000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "반납 확인 필요", evidenceStatus: "해당 없음", priceEvidence: "무전기 대여 견적.pdf", details: {} },
+      { id: 12, name: "무대 설치·철거 용역", category: "용역", budgetLine: "행사 운영비", purchaseType: "용역", quantity: 1, unit: "건", estimatedUnitPrice: 300000, estimatedTotalPrice: 300000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 중", evidenceStatus: "해당 없음", priceEvidence: "무대 설치 견적.pdf", details: {} },
+    ],
+    history: [
+      { date: "2026-03-05 13:00", action: "요청 생성", user: "박해랑" },
+      { date: "2026-03-06 11:00", action: "승인", user: "김민준" },
+      { date: "2026-03-10 10:00", action: "주문 완료", user: "김민준" },
+      { date: "2026-03-12 09:00", action: "천막 대여 이행 시작·무대 용역 착수", user: "김민준" },
     ]
   }
 ];
@@ -754,7 +1189,7 @@ const DEFAULT_EVENT_RECORDS: EventRecord[] = [
     organization: {
       leader: "김바다", leaderDept: "컴퓨터학부", leaderGrade: "3학년", mode: "import",
       teams: [
-        { name: "운영팀", leader: "이윤슬", members: [{ name: "김바다", dept: "컴퓨터학부", grade: "3학년" }, { name: "박해랑", dept: "컴퓨터학부", grade: "2학년" }] },
+        { name: "운영팀", leader: "이윤슬", members: [{ name: "김바다", dept: "컴퓨터학부", grade: "3학년" }, { name: "박해수", dept: "컴퓨터학부", grade: "2학년" }] },
         { name: "홍보팀", members: [{ name: "이윤슬", dept: "ICT융합학부", grade: "4학년" }] },
         { name: "현장팀", leader: "정하늘", members: [{ name: "정하늘", dept: "컴퓨터학부", grade: "3학년" }] },
       ],
@@ -814,10 +1249,16 @@ const AppContext = React.createContext<AppContextType>({
   setSelectedArchiveId: () => {},
   archives: [],
   setArchives: () => {},
+  evidenceBundles: [],
+  setEvidenceBundles: () => {},
+  evidenceDrafts: [],
+  setEvidenceDrafts: () => {},
   selectedEventTaskId: null,
   setSelectedEventTaskId: () => {},
   purchaseRequests: DEFAULT_PURCHASE_REQUESTS,
   setPurchaseRequests: () => {},
+  selectedPurchaseRequestId: null,
+  setSelectedPurchaseRequestId: () => {},
   meetingDraft: null,
   setMeetingDraft: () => {},
   purchaseRequestDraft: null,
@@ -1243,63 +1684,66 @@ const SPEC_DATA: Record<string, SpecDef> = {
     functions: [
       { num: "01", element: "상태 요약 카드", description: "현재 사용자가 제출한 요청을 기준으로 검토 대기, 보완 필요, 승인 완료, 구매 진행, 처리 완료 건수를 표시한다." },
       { num: "02", element: "요청 목록", description: "요청 번호, 제목, 요청액, 품목 수, 필요한 날짜, 상태를 표시한다. 새로 제출한 요청도 즉시 목록에 반영한다." },
-      { num: "03", element: "보완하기", description: "보완 필요 요청은 FIN-SUP-01 재제출로 이동한다." },
-      { num: "04", element: "새 구매 요청", description: "FIN-REQ-01 작성으로 이동한다.", constraint: "구매 요청 작성은 전 구성원 가능" },
+      { num: "03", element: "보완하기", description: "보완 필요 요청은 FIN-SUP-01B 재제출로 이동한다." },
+      { num: "04", element: "새 구매 요청", description: "FIN-REQ-01B 작성으로 이동한다.", constraint: "재정부·부서장에게만 노출" },
     ],
     exceptions: ["내가 요청한 항목이 없으면 빈 상태로 표시한다", "다른 요청자의 구매 요청과 보완 내용을 노출하지 않는다"],
-    nextScreens: ["FIN-SUP-01 보완 재제출", "FIN-REQ-01 구매 요청 작성", "EVT-FIN-01 행사 재정"],
+    nextScreens: ["FIN-SUP-01B 보완 재제출", "FIN-REQ-01B 구매 요청 작성", "EVT-FIN-01 행사 재정"],
   },
   "FIN-REQ-02": {
     id: "FIN-REQ-02", name: "구매 요청 상세·진행 상태", stateChip: "기본",
     purpose: "제출한 구매 요청의 품목별 상태와 처리 이력을 단계로 확인한다.",
-    users: "요청자 본인 · 재정부 · 회장단",
+    users: "전 구성원 (조회)",
     entryPath: "내 구매 요청 → 상태 확인",
     functions: [
       { num: "01", element: "진행 단계", description: "요청 제출 → 재정부 검토 → 구매·발주 → 결제·증빙 → 처리 완료 단계를 표시한다." },
       { num: "02", element: "품목별 상태", description: "품목 단위로 승인·보완 필요를 구분해 표시한다.", constraint: "부분 승인 존재" },
       { num: "03", element: "처리 이력", description: "제출, 검토 시작, 보완 요청 발송 등 이력을 시간순으로 표시한다." },
+      { num: "04", element: "주문 취소 요청", description: "요청자 본인이 주문 완료된 개별 실행분의 취소를 사유 모달과 함께 요청한다. 요청하면 `취소 요청됨 · 재정부 확인 대기`로 표시되고, 재정부가 확정하면 주문 취소·환불 흐름으로 이어진다.", constraint: "요청자 본인에게만 노출하며 수령·이행 완료 전 실행분만 대상" },
+      { num: "05", element: "요청 취소(품목 단위)", description: "요청자가 주문 완료 전 개별 품목(검토 대기·보완 요청·미주문 승인)을 사유 모달과 함께 취소한다. 취소한 품목은 상태가 `요청 취소`가 되어 요청 아카이브(전체 요청)엔 취소 기록으로 남고, 승인 묶음 생성 시 자동 제외되며 승인·예산 예약이 있으면 해제된다.", constraint: "요청자 본인(재정부·부서장)에게만 노출. 이미 주문된 실행분이 있는 품목은 요청 취소 대신 개별 주문 취소 요청을 사용한다" },
     ],
     exceptions: ["요청자와 재정부 외 사용자는 민감한 구매 세부정보를 수정할 수 없다", "보완 요청 상태가 아니면 재제출 행동을 노출하지 않는다"],
-    nextScreens: ["FIN-SUP-01 보완 재제출"],
+    nextScreens: ["FIN-SUP-01B 보완 재제출"],
   },
-  "FIN-SUP-01": {
-    id: "FIN-SUP-01", name: "보완 요청 확인·재제출", stateChip: "보완 요청",
-    purpose: "재정부가 요청한 보완 사항을 확인하고 수정해 재제출한다.",
-    users: "요청자 본인",
-    entryPath: "내 구매 요청 → 보완하기",
+  "FIN-SUP-01B": {
+    id: "FIN-SUP-01B", name: "보완 요청 확인·재제출 — 홍보부 부서장", stateChip: "권한 보유",
+    purpose: "보완 요청을 받은 홍보부 부서장 김민석이 요청 사항을 수정해 재제출한다.",
+    users: "요청자 본인 · 부서장 (김민석)",
+    entryPath: "내 구매 요청 → 보완하기 (홍보부 부서장)",
     functions: [
-      { num: "01", element: "보완 요청 안내", description: "재정부의 보완 요청 사유를 표시한다." },
-      { num: "02", element: "보완 품목 수정", description: "수량, 규격, 옵션, 첨부 파일(디자인·인쇄·견적서)을 수정한다." },
-      { num: "03", element: "재제출", description: "수정본을 제출하면 재검토 대기 상태가 된다." },
+      { num: "01", element: "보완 요청 안내", description: "재정부가 남긴 보완 사유를 표시한다." },
+      { num: "02", element: "보완 품목 수정", description: "규격, 색상, 인쇄 위치, 옵션별 수량과 첨부 파일을 수정한다." },
+      { num: "03", element: "재제출", description: "필수 보완 항목을 모두 입력하면 재검토 대기 상태로 바꾸고 새 처리 이력을 추가한다." },
     ],
-    exceptions: ["필수 보완 항목이 비어 있으면 재제출할 수 없다", "재제출 후에는 기존 검토 이력을 덮어쓰지 않고 새 이력을 추가한다"],
+    exceptions: ["부서장이더라도 해당 구매 요청의 요청자 본인이 아니면 재제출할 수 없다", "재제출 후 기존 검토 이력을 덮어쓰지 않는다"],
     nextScreens: ["FIN-REQ-02 진행 상태"],
   },
   "FIN-PROC-01": {
     id: "FIN-PROC-01", name: "구매·발주 처리", stateChip: "구매 필요",
     purpose: "승인된 요청의 품목을 구매처별로 발주하고 주문·배송 상태를 관리한다.",
-    users: "재정부 · 회장단",
+    users: "재정부",
     entryPath: "행사 > 재정 → 구매 필요 건",
     functions: [
-      { num: "01", element: "구매처 그룹", description: "품목을 구매처 단위로 묶어 표시한다." },
-      { num: "02", element: "주문·배송 상태", description: "주문 완료, 배송 중, 배송 예정, 품절·변경 필요 상태를 관리한다." },
-      { num: "03", element: "품절·변경 처리", description: "품절 품목은 대체·변경 흐름으로 표시한다." },
+      { num: "01", element: "구매 실행분 목록", description: "이 요청의 품목을 구매 실행분 단위로 표로 표시하고, 실행분별 주문·수령/이행·증빙 상태를 함께 보여준다. 재주문 실행분은 재주문 배지로 구분한다.", constraint: "주문/수령/이행/증빙은 실행분의 원본 상태에서 표시한다" },
+      { num: "02", element: "주문·수령·이행 상태", description: "주문 대기·주문 완료·구매 불가·주문 취소의 주문 상태와, 물품의 배송 대기·배송 중·수령 확인 필요·수령 완료, 대여·용역의 이행 대기·이행 중·반납 확인 필요·이행 완료 상태를 실행분 단위로 관리한다. 대여는 이행 중에서 반납 확인 요청으로 반납 확인 필요로 넘기고, 반납이 없는 용역은 반납 없이 이행 완료로 바로 처리한다.", constraint: "주문 시 수량을 나눠 부분 주문하면 주문 완료 실행분과 남은 주문 대기 실행분으로 분할된다(실행분 quantity)" },
+      { num: "02B", element: "부분 주문 수량 분할", description: "주문 대기 실행분의 ‘주문’ 버튼에서 주문 수량을 입력한다. 전체보다 적게 주문하면 지정 수량만 주문 완료로 전환되고 남은 수량은 새 주문 대기 실행분으로 자동 분할된다. 실행분별 수량과 승인액(수량×단가)을 함께 표시한다.", constraint: "부분 수령·부분 반환에 따른 분할은 현재 범위에서 제외(15장)" },
+      { num: "03", element: "품절·취소·환불·재주문 처리", description: "품절 품목은 구매 불가로 표시하고 품절 사유 반려·예약 해제로 처리한다. 주문 취소는 요청자의 취소 요청을 재정부가 확정하거나(취소 요청 확정), 판매자 취소 등 외부 취소를 재정부가 직접 기록한다(외부 취소 기록). 취소 후 실행분별 환불 확인·재주문 액션으로 후속 업무를 처리한다(환불 대기 → 환불 확인 → 재주문 판단). 재주문 판단에서 재주문(새 실행분 생성) 또는 재주문 안 함을 선택하면 취소 실행분은 종결되어 활성 처리에서 제외된다.", constraint: "재주문 판단은 결정(재주문/재주문 안 함) 후 종결되며 활성 칸반에 남지 않는다" },
     ],
-    exceptions: ["승인되지 않은 품목은 구매·발주 처리할 수 없다", "재정부·회장단 외 사용자에게 구매 처리 기능을 노출하지 않는다"],
+    exceptions: ["승인되지 않은 품목은 구매·발주 처리할 수 없다", "재정부 외 사용자에게 구매 처리 기능을 노출하지 않는다"],
     nextScreens: ["FIN-EVID-01 결제·증빙 정리"],
   },
   "FIN-EVID-01": {
     id: "FIN-EVID-01", name: "결제·증빙 정리", stateChip: "증빙 필요",
     purpose: "결제 수단과 증빙 서류를 등록해 지출 건을 정산 완료로 만든다.",
-    users: "재정부 · 회장단",
+    users: "재정부",
     entryPath: "행사 > 재정 → 증빙 필요 건",
     functions: [
       { num: "01", element: "결제 정보", description: "법인카드, 계좌이체 등 결제 수단과 결제자를 기록한다." },
-      { num: "02", element: "증빙 등록", description: "영수증, 거래명세서, 세금계산서 등록 상태(등록 완료·누락)를 관리한다." },
-      { num: "03", element: "정산 완료", description: "증빙이 갖춰지면 정산 완료 처리한다.", constraint: "감사보고서류 기능은 어떤 형태로도 추가 금지" },
+      { num: "02", element: "증빙 묶음", description: "같은 구매처·결제·영수증에 속하는 구매 실행분을 다시 선택해 하나의 증빙 묶음으로 묶는다. 서로 다른 구매 요청·승인 묶음의 실행분도 실제 거래가 같으면 함께 묶을 수 있으며, 영수증·물품 사진·사용 사진·거래 내역·통장 사본·카드 사진·구매 사유를 등록한다.", constraint: "증빙 묶음은 요청 단위가 아니라 실행분 재구성 단위다" },
+      { num: "03", element: "증빙 완료", description: "필수 증빙과 실제 구매 금액이 갖춰지면 실제 지출로 반영하고, 완료된 증빙 묶음을 레코드로 저장해 행사 재정 개요의 기록 > 증빙 묶음에서 다시 열람할 수 있게 한다.", constraint: "감사보고서류 기능은 어떤 형태로도 추가 금지" },
     ],
-    exceptions: ["결제 정보나 필수 증빙이 누락되면 정산 완료할 수 없다", "재정부·회장단 외 사용자는 증빙 상태를 변경할 수 없다"],
-    nextScreens: ["FIN-LEDGER-01 사용 내역"],
+    exceptions: ["결제 정보나 필수 증빙이 누락되면 증빙 완료할 수 없다", "재정부 외 사용자는 증빙 상태를 변경할 수 없다"],
+    nextScreens: ["FIN-LEDGER-01 사용 내역", "EVT-FIN-01B 기록 > 증빙 묶음"],
   },
   "EVT-TASK-01": {
     id: "EVT-TASK-01", name: "행사 업무 — 칸반 보드", stateChip: "기본",
@@ -1337,18 +1781,39 @@ const SPEC_DATA: Record<string, SpecDef> = {
   },
   "EVT-FIN-01": {
     id: "EVT-FIN-01", name: "행사 재정 — 개요", stateChip: "기본",
-    purpose: "이 행사 맥락의 예산 현황과 구매 요청 처리 상태를 확인한다.",
-    users: "전 구성원 (열람). 처리 진입은 재정부 · 회장단",
+    purpose: "이 행사 맥락의 예산 현황과 품목별 구매 진행을 확인하고, 재정부는 별도의 처리 업무를 수행한다.",
+    users: "전 구성원 (예산·품목 진행 열람). 처리 단계와 처리 진입은 재정부",
     entryPath: "행사 > 재정 탭",
     functions: [
-      { num: "01", element: "예산 요약", description: "배정 예산, 승인·집행 예정액, 실제 지출액, 사용 가능액을 표시한다." },
-      { num: "02", element: "처리 단계 보드", description: "기본으로 표시하며 검토 필요 → 구매 필요 → 증빙 필요 → 정산 완료 단계로 요청을 표시한다. 검토 대기는 파랑, 보완 요청은 주황으로 구분한다." },
-      { num: "03", element: "전체 목록", description: "이 행사의 구매 요청을 표로 표시한다." },
-      { num: "04", element: "내 구매 요청", description: "MY-REQ-01로 이동한다 (2026-07-19 위치 확정)." },
-      { num: "05", element: "새 구매 요청", description: "FIN-REQ-01 작성으로 이동한다." },
+      { num: "01", element: "예산 요약·조정", description: "배정 예산, 승인 예약액, 실제 지출액, 사용 가능액을 표시하고 재정부는 항목 간 조정 이력을 남긴다." },
+      { num: "02", element: "하위 메뉴 그룹(작업 보드·기록)", description: "재정부에게만 탭을 두 묶음으로 나눈다. [작업 보드]는 진행 중 업무 칸반(품목 현황·처리 단계), [기록]은 요청·묶음 단위 아카이브(구매 요청·승인 묶음·증빙 묶음)다. 일반 구성원·부서장에게는 처리 단계와 기록 그룹을 노출하지 않고 품목 현황만 보이며, 본인 요청 열람은 내 구매 요청(MY-REQ-01)으로 한다.", constraint: "기록·처리 단계는 재정부 전용. ‘아카이브’ 명칭은 행사 아카이브와 겹치지 않도록 ‘기록’으로 묶고, 묶음(📦)과 개별(▪)의 경계를 시각적으로 구분한다" },
+      { num: "03", element: "품목 현황 칸반보드", description: "일반 구성원과 부서장에게 기본으로 표시한다. 품목 카드를 확인 필요, 검토 중, 구매 준비, 주문 완료, 진행 중, 수령·이행 완료, 정산 중, 처리 완료 열로 나누어 보여준다. 카드의 대표 상태는 구매 유형에 따라 물품은 배송 중·수령 완료, 대여·용역은 이행 중·이행 완료로 표시한다. ‘전체 요청 / 내 요청’ 필터로 내가 요청한 구매 품목만 볼 수 있다. 한 열에서 같은 구매 요청(REQ)의 카드가 2개 이상이면 반쯤 겹친 스택(📦 N)으로 묶고, 마우스를 올리면 개별 카드로 펼쳐지고 묶음 밖으로 커서가 나가면(또는 바깥 클릭 시) 다시 접힌다.", constraint: "대표 진행 상태는 검토·주문·수령·이행·증빙 상태의 단일 원본에서 계산하며 별도로 저장하지 않는다. 내 요청 필터는 요청자 기준으로만 거른다. 같은 요청 카드 스택은 표시 방식일 뿐 상태·집계를 바꾸지 않는다" },
+      { num: "04", element: "재정부 처리 단계", description: "재정부에만 기본으로 표시한다. 요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·증빙의 7개 업무 영역으로 나누고, 각 영역 안에서 다음 처리해야 할 실행분을 처리 단계 열별로 보여준다. 정산 완료·반려는 활성 처리에서 제외한다.", constraint: "일반 구성원에게는 재정부 내부 처리 대기열을 노출하지 않는다. 처리 단계는 실행분 원본 상태에서 계산하며 별도 저장하지 않는다" },
+      { num: "05", element: "기록 · 구매 요청 (재정부 전용)", description: "이 행사의 구매 요청을 요청 단위(▪)로 표시한다. 취소된 품목도 요청 기록에 남는다. 행을 누르면 품목별 상세로 이동한다.", constraint: "재정부 전용. 일반 구성원·부서장은 내 구매 요청(MY-REQ-01)에서 본인 요청만 열람한다" },
+      { num: "06", element: "기록 · 승인 묶음 (재정부 전용)", description: "선진행 동의된 승인 품목을 요청별 묶음(📦)으로 보여준다. 각 묶음 안에 개별 품목(▪)과 진행 상태가 들어간다. 요청 취소·미동의 품목은 묶음에서 자동 제외된다. 파생 표시이며 별도 저장하지 않는다.", constraint: "재정부 전용" },
+      { num: "07", element: "기록 · 증빙 묶음 (재정부 전용)", description: "완료되어 저장된 증빙 묶음(📦)을 행사 기준으로 열람한다. 구매처·결제·영수증·실제 지출과 담긴 개별 실행분(▪)을 보여준다. 서로 다른 요청·승인 묶음의 실행분도 같은 거래면 한 묶음에 담긴다.", constraint: "재정부 전용(기준 문서: 증빙 아카이브 원본은 재정부 열람). 증빙 묶음은 완료 시 레코드로 저장되어 다시 열람할 수 있다" },
+      { num: "08", element: "내 구매 요청", description: "MY-REQ-01로 이동한다 (2026-07-19 위치 확정)." },
+      { num: "09", element: "새 구매 요청", description: "재정부·부서장에게만 FIN-REQ-01B 작성 진입점을 표시한다." },
     ],
-    exceptions: ["구매 요청이 없으면 단계별 0건과 빈 상태를 표시한다", "일반 구성원은 검토 화면 대신 자신의 요청 상태 확인 화면으로 이동한다"],
-    nextScreens: ["MY-REQ-01 내 구매 요청", "FIN-REQ-01 작성", "FIN-REV-01 검토"],
+    exceptions: ["구매 요청이 없으면 품목·요청 목록과 단계별 건수에 빈 상태를 표시한다", "보완 상태는 요청자에게 ‘보완 필요’, 다른 구성원에게 ‘보완 중’으로 표시한다", "주문 완료를 수령 완료로 간주하지 않으며 배송 완료 후에도 재정부의 수령 확인이 필요하다"],
+    nextScreens: ["MY-REQ-01 내 구매 요청", "FIN-REQ-01B 작성", "FIN-REV-01 검토"],
+  },
+  "EVT-FIN-01B": {
+    id: "EVT-FIN-01B", name: "행사 재정 — 개요 · 재정부", stateChip: "재정부",
+    purpose: "재정부가 이 행사의 다음 재정 처리 업무와 품목별 진행 상태를 함께 확인한다.",
+    users: "재정부",
+    entryPath: "행사 > 재정 탭 (재정부)",
+    functions: [
+      { num: "01", element: "하위 메뉴 그룹(작업 보드·기록)", description: "탭을 [작업 보드](품목 현황·처리 단계)와 [기록](구매 요청·승인 묶음·증빙 묶음) 두 묶음으로 나눈다. 기본 진입은 작업 보드의 처리 단계다.", constraint: "기록 탭은 요청·묶음 단위 아카이브로, 묶음(📦)과 개별(▪)의 경계를 시각적으로 구분한다" },
+      { num: "02", element: "처리 단계 7개 업무 영역", description: "요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·증빙의 7개 업무 영역을 하위 메뉴(영역 탭)로 전환하며, 선택한 영역의 처리 단계 칸반만 표시한다. 구매 준비는 선진행 동의 대기·주문 대기·재주문 보류·구매 불가 처리 필요, 환불은 환불 대기·환불 확인·재주문 판단으로 구성한다(취소 실행분의 환불 확인 직후 재주문 판단이 이어지므로 환불 영역에 둔다). 물품 배송·수령은 배송 대기→배송 중→수령 확인 필요, 대여 이행은 이행 대기→이행 중→반납 확인 필요→이행 완료, 용역 이행은 이행 대기→이행 중→이행 완료(반납 없음)로 구성하며, 주문 취소 요청 확인은 해당 실행분의 구매 유형(물품/대여/용역) 영역에 표시한다. 각 영역 안에서 정상 진행 흐름 열(순차, → 연결)과 예외·후속 열(보완 응답 대기·재검토 대기·재주문 보류·구매 불가 처리 필요·주문 취소 요청 확인·재주문 판단)을 구분해, 예외·후속 열은 구분선 뒤에 호박색 테두리와 ‘예외’ 태그로 시각 분리한다. 한 열에서 같은 구매 요청(REQ)의 카드가 2개 이상이면 반쯤 겹친 스택(📦 N)으로 묶고, 마우스를 올리면 개별 카드로 펼쳐지고 묶음 밖으로 커서가 나가면(또는 바깥 클릭 시) 접힌다.", constraint: "영역별 카운트 배지로 각 영역의 미완료 업무 수를 함께 표시한다. 배송·수령·이행을 구매 유형에 따라 물품·대여·용역 세 영역으로 나눈다. 대여의 반납은 반납 확인 필요 단계로 처리하고 보증금은 증빙·실제 지출 흐름으로 흡수한다. 정상 흐름과 예외·후속 열을 시각적으로 구분한다. 같은 요청 카드 스택은 표시 방식일 뿐 상태·집계를 바꾸지 않는다" },
+      { num: "03", element: "카드 빠른 처리 팝오버", description: "처리 단계 보드의 실행분 카드를 누르면 옆에 작은 팝오버가 열려 그 단계의 유효한 다음 액션만 바로 처리한다(구매 진행 동의, 주문 완료·구매 불가, 배송·수령·이행 단계 진행, 취소 요청 확정, 환불 확인 전액·일부·없음). 증빙 필요·정리 중은 ‘증빙 처리하기’로 결제·증빙 정리(FIN-EVID-01)에 직행하고, 검토·재주문 등은 상세보기로 해당 화면에서 처리한다.", constraint: "상태 전이 규칙을 지키기 위해 임의 상태 선택이 아닌 다음 액션만 노출한다. 처리 시 담당자·시각을 기록한다" },
+      { num: "04", element: "품목 현황 칸반보드 전환", description: "품목의 대표 진행 단계별 칸반보드로 전환한다. 재정부가 보는 카드에는 일반 구성원용 상태와 재정부 세부 처리 상태를 함께 표시한다. ‘전체 요청 / 내 요청’ 필터로 내가 요청한 품목만 볼 수 있다." },
+      { num: "05", element: "기록(구매 요청·승인 묶음·증빙 묶음)", description: "요청 단위(구매 요청), 요청 내 승인 품목 묶음(승인 묶음, 파생), 구매처·영수증 기준 실행분 재구성(증빙 묶음, 저장 레코드)을 각각의 하위 탭에서 열람한다.", constraint: "승인 묶음은 파생 표시, 증빙 묶음은 완료 시 저장되어 재열람된다" },
+      { num: "06", element: "예산 조정", description: "사용 가능 예산만 항목 사이에서 이동하고 처리자·시각·사유를 남긴다." },
+      { num: "07", element: "처리 화면 진입", description: "요청 상태에 따라 이동한다. 검토 대기는 구매 요청 검토(FIN-REV-01), 보완 요청(보완 응답 대기)·재검토 대기는 보완 재검토(FIN-REV-01B), 승인·구매 필요는 구매·발주(FIN-PROC-01), 증빙 필요는 결제·증빙 정리(FIN-EVID-01)로 연결한다. 상단 액션 바의 ‘증빙 정리’ 버튼(재정부 전용)으로 FIN-EVID-01에 상시 직행할 수 있다." },
+    ],
+    exceptions: ["재정부 소속이 아니면 이 변형의 처리 단계와 예산 조정 행동을 사용할 수 없다", "처리 단계와 품목 현황은 같은 원본 상태에서 계산한다"],
+    nextScreens: ["FIN-REV-01 검토", "FIN-PROC-01 구매·발주", "FIN-EVID-01 증빙"],
   },
   "EVT-MEET-01": {
     id: "EVT-MEET-01", name: "행사 관련 회의", stateChip: "기본",
@@ -1393,7 +1858,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   "OPS-00": {
     id: "OPS-00", name: "운영 홈 — 업무·회의·행사·캘린더", stateChip: "기본",
     purpose: "학생회 운영의 네 하위 공간 중 필요한 업무 영역을 선택하는 진입 허브.",
-    users: "전 구성원",
+    users: "재정부 · 부서장",
     entryPath: "사이드바 운영",
     functions: [
       { num: "01", element: "상시 업무", description: "행사에 속하지 않는 반복·조직 운영 업무 칸반(OPS-TASK-01)으로 이동한다." },
@@ -2027,48 +2492,64 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "05", element: "행사별·부서별 탭", description: "재정 현황을 행사별 또는 부서별로 구분하여 조회한다." },
       { num: "06", element: "재정 데이터 목록", description: "구분, 배정 예산, 실제 지출, 지출 예정, 사용 가능, 집행률을 표로 표시한다." },
     ],
-    exceptions: ["재정 데이터가 없으면 금액과 집행률을 0으로 표시하고 임의 예산을 생성하지 않는다", "기준일이 오래된 경우 최신 데이터로 오해하지 않도록 기준일을 유지한다", "열람은 모든 구성원이 하고 예산 편성은 재정부·회장단만 한다. 권한이 없으면 편성 진입점을 노출하지 않는다"],
+    exceptions: ["재정 데이터가 없으면 금액과 집행률을 0으로 표시하고 임의 예산을 생성하지 않는다", "기준일이 오래된 경우 최신 데이터로 오해하지 않도록 기준일을 유지한다", "열람은 모든 구성원이 하고 예산 편성은 재정부만 한다. 권한이 없으면 편성 진입점을 노출하지 않는다"],
     nextScreens: ["FIN-LEDGER-01 사용 내역", "EVT-FIN-01 행사 재정"],
   },
   "FIN-00B": {
-    id: "FIN-00B", name: "전체 재정 현황 — 재정부·회장단", stateChip: "권한 보유",
+    id: "FIN-00B", name: "전체 재정 현황 — 재정부", stateChip: "권한 보유",
     purpose: "FIN-00과 같은 화면을 재정부 사용자 관점에서 확인해, 예산 편성 진입점이 보이는 상태를 검토한다.",
     users: "재정부 · 회장단",
-    entryPath: "사이드바 재정 (재정부·회장단)",
+    entryPath: "사이드바 재정 (재정부)",
     functions: [
       { num: "01", element: "총예산 편성 진입", description: "총예산 카드에 `편성` 표시가 나타나고 카드를 눌러 재원별 편성 모달을 연다. 그 외 구성과 데이터는 FIN-00과 동일하다.", constraint: "이 화면은 권한 축만 다른 역할 변형이며 별도 기능을 추가하지 않는다" },
     ],
     exceptions: ["FIN-00과 동일한 화면이며 검토용으로 재정부 사용자를 주입한다", "재정 요약·집행률·목록의 데이터와 동작은 FIN-00과 같다"],
     nextScreens: ["FIN-00 전체 재정 현황"],
   },
-  "FIN-REQ-01": {
-    id: "FIN-REQ-01", name: "구매 요청 작성·수정", stateChip: "수정 모드",
-    purpose: "행사에 필요한 물품의 구매를 요청한다.",
-    users: "전 구성원",
-    entryPath: "EVT-FIN-01 → 새 구매 요청",
+  "FIN-REQ-01B": {
+    id: "FIN-REQ-01B", name: "구매 요청 작성·수정 — 홍보부 부서장", stateChip: "권한 보유",
+    purpose: "홍보부 부서장 김민석이 행사에 필요한 물품의 구매를 요청한다.",
+    users: "부서장 (김민석)",
+    entryPath: "EVT-FIN-01 → 새 구매 요청 (홍보부 부서장)",
     functions: [
-      { num: "01", element: "요청 정보", description: "제목, 목적, 필요일 등 기본 정보를 입력한다." },
-      { num: "02", element: "품목 추가", description: "여러 품목을 한 요청에 담을 수 있다. 새 품목은 목록 맨 위에 추가된다." },
-      { num: "03", element: "구매 유형 선택", description: "일반 구매, 제작·인쇄, 대여·용역에 따라 입력 필드가 전환된다. 유형을 바꾸면 이전 유형의 상세 입력값은 초기화된다." },
-      { num: "04", element: "사전 증빙 첨부", description: "제작·인쇄 유형은 디자인 파일, 인쇄 파일, 참고 이미지를 첨부한다. 견적서 확보 상태를 수령 완료로 두면 모든 유형에서 견적 업체·금액과 견적서 파일을 등록한다. 첨부는 필수가 아니며 재제출 화면과 동일한 항목을 사용한다." },
-      { num: "05", element: "제출 버튼", description: "유효성 검사를 통과하면 요청자·부서·품목·금액·이력을 포함한 검토 대기 요청을 생성하고, 내 구매 요청과 행사 재정의 검토 필요 영역에 즉시 반영한다." },
+      { num: "01", element: "요청 정보", description: "제목, 구매 목적, 필요일, 우선순위를 입력하고 요청 부서는 홍보부로 고정한다." },
+      { num: "02", element: "품목 추가", description: "여러 품목을 한 요청에 담을 수 있으며 새 품목은 목록 맨 위에 추가된다." },
+      { num: "03", element: "구매 유형 선택", description: "일반 구매, 제작·인쇄, 대여, 용역에 따라 입력 필드를 전환한다. 대여는 대여처·수령·반납 일시·보증금, 용역은 제공자·수행 장소·수행 일시 필드를 보여준다." },
+      { num: "04", element: "가격 근거", description: "일반 구매는 상품 링크·판매처·가격 화면 중 1건, 제작·인쇄·대여·용역은 업체 견적서를 필수로 등록한다." },
+      { num: "05", element: "제출 버튼", description: "유효성 검사를 통과하면 김민석·홍보부를 요청자 정보로 기록한 검토 대기 요청을 생성한다." },
     ],
     exceptions: ["오늘 이전 필요일은 선택하거나 제출할 수 없다", "필수 요청 정보나 유효한 품목이 없으면 제출하지 않고 항목별 오류를 표시한다"],
     nextScreens: ["MY-REQ-01 내 구매 요청", "EVT-FIN-01 행사 재정"],
   },
   "FIN-REV-01": {
     id: "FIN-REV-01", name: "구매 요청 검토", stateChip: "기본",
-    purpose: "제출된 구매 요청을 품목별로 검토하고 승인 여부를 결정한다.",
-    users: "재정부 · 회장단",
+    purpose: "처음 제출된 구매 요청을 품목별로 검토하고 승인 여부를 결정한다.",
+    users: "재정부",
     entryPath: "EVT-FIN-01 → 요청 선택",
     functions: [
-      { num: "01", element: "품목 검토 표", description: "품목별 요청액, 승인액, 상태를 확인하고 결정한다." },
+      { num: "01", element: "품목 검토 표", description: "품목별 요청액·가격 근거·상태를 확인하고 결정한다. 승인액을 직접 입력하지 않는다." },
       { num: "02", element: "상태 변경", description: "승인, 보완 요청, 반려 중 선택 가능하다." },
       { num: "03", element: "보완 요청 모달", description: "보완 사유와 재제출 기한을 입력한다." },
       { num: "04", element: "처리 기록", description: "상태 변화 이력을 시간순으로 표시한다." },
+      { num: "05", element: "확정 후 진행", description: "보완·검토 대기 품목 없이 전량 확정되면 승인 품목은 별도 선진행 동의 대기 없이 바로 주문 대기(구매 준비)로 넘어간다. 보완 품목이 함께 남아 있을 때만 승인 품목을 선진행 동의 대기에 두고 구매 진행 동의로 진행한다.", constraint: "선진행 동의 대기는 부분 승인(보완 품목 공존) 상황에서만 발생한다" },
     ],
-    exceptions: ["재정부·회장단 외 사용자는 검토 결정을 변경할 수 없다", "이미 처리된 요청에 승인·반려를 중복 적용하지 않는다"],
-    nextScreens: ["FIN-PROC-01 구매·발주 처리", "FIN-SUP-01 보완 요청 확인·재제출", "EVT-FIN-01 행사 재정"],
+    exceptions: ["재정부 외 사용자는 검토 결정을 변경할 수 없다", "반려 사유가 없거나 미검토 품목이 있으면 최종 처리할 수 없다", "전량 승인 시 선진행 동의 대기를 거치지 않고 구매 준비로 진행한다"],
+    nextScreens: ["FIN-PROC-01 구매·발주 처리", "FIN-SUP-01B 보완 요청 확인·재제출", "EVT-FIN-01 행사 재정"],
+  },
+  "FIN-REV-01B": {
+    id: "FIN-REV-01B", name: "구매 요청 재검토 — 보완 재제출", stateChip: "재검토 대기",
+    purpose: "요청자가 보완해 재제출한 내용의 변경점과 첨부자료를 확인하고 승인, 추가 보완 요청, 반려 중 하나로 처리한다.",
+    users: "재정부",
+    entryPath: "EVT-FIN-01B → 처리단계 → 재검토 대기 → 요청 선택",
+    functions: [
+      { num: "01", element: "보완 전·후 비교", description: "품목별 보완 사유와 수정 전·후 값을 나란히 표시하고 변경된 값을 강조한다." },
+      { num: "02", element: "첨부파일 비교", description: "보완 요청 당시 첨부와 재제출된 첨부를 구분해 표시한다." },
+      { num: "03", element: "품목 재검토", description: "각 품목을 승인, 추가 보완 요청, 반려 중 하나로 결정한다. 승인액은 별도로 입력하지 않는다." },
+      { num: "04", element: "추가 보완 요청", description: "재검토 결과가 보완 요청이면 품목별 사유를 새로 기록하고 요청자에게 돌려보낸다." },
+      { num: "05", element: "처리 기록", description: "최초 제출, 보완 요청, 재제출, 재검토 결과와 처리자를 시간순으로 남긴다." },
+    ],
+    exceptions: ["재정부 외 사용자는 재검토 결정을 변경할 수 없다", "미검토 품목이나 반려 사유 누락이 있으면 최종 처리할 수 없다", "재제출 전 내용과 첨부자료를 덮어쓰지 않고 제출본 이력으로 보존한다"],
+    nextScreens: ["FIN-PROC-01 구매·발주 처리", "FIN-SUP-01B 보완 요청 확인·재제출", "EVT-FIN-01B 행사 재정"],
   },
   "EXT-02A": {
     id: "EXT-02A", name: "외부 참여 설문", stateChip: "기본",
@@ -2695,9 +3176,12 @@ const canEndEvent = (user: { role: string; eventRole?: EventContextRole }) =>
 // 행사 맥락 역할(eventRole)은 판단 근거로 쓰지 않는다. 행사 종료와 서로 다른 기준이다.
 const canCompleteEvent = (user: { role: string }) => user.role === "회장단";
 
-// 예산 편성·구매 승인·구매 발주·증빙 처리: 재정부 · 회장단
-const canManageFinance = (user: { dept: string; role: string }) =>
-  user.dept === "재정부" || user.role === "회장단";
+// 예산 편성·구매 승인·구매 발주·증빙 처리: 재정부만
+const canManageFinance = (user: { dept: string; role: string }) => user.dept === "재정부";
+
+// 구매 요청 작성·보완 재제출: 부서장과 재정부. 일반 부원은 현황과 본인 요청을 조회만 한다.
+const canSubmitPurchaseRequest = (user: { dept: string; role: string }) =>
+  user.dept === "재정부" || user.role === "부서장";
 
 // 조직 구조 수정: 회장단
 const canEditOrganization = (user: { role: string }) => user.role === "회장단";
@@ -2882,6 +3366,9 @@ function FIN00() {
       }
     >
       <div className="p-6 flex flex-col gap-6 max-w-6xl mx-auto pb-12">
+        <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-3">
+          <span className="text-[11px] text-blue-800">이 화면은 <b>전체 현황 열람</b>용입니다. 구매 요청 검토·발주·증빙 등 <b>처리는 각 행사의 재정 탭</b>(운영 → 행사 → 재정)에서 시작합니다.</span>
+        </div>
         {/* 설명 영역 */}
         <div className="flex flex-col gap-1">
           <h2 className="text-lg font-semibold text-gray-900">전체 재정 현황</h2>
@@ -4390,7 +4877,7 @@ function INV01() {
 
 const members = [
   { name: "김바다", dept: "컴퓨터학부", grade: "3학년" },
-  { name: "박해랑", dept: "컴퓨터학부", grade: "2학년" },
+  { name: "박해수", dept: "컴퓨터학부", grade: "2학년" },
   { name: "이윤슬", dept: "ICT융합학부", grade: "4학년" },
   { name: "정하늘", dept: "컴퓨터학부", grade: "3학년" },
 ];
@@ -4415,7 +4902,7 @@ type UnassignedOrganizationMember = {
 
 const DEFAULT_UNASSIGNED_ORGANIZATION_MEMBERS: UnassignedOrganizationMember[] = [
   { name: "정하늘", dept: "컴퓨터학부", grade: "3학년" },
-  { name: "박해랑", dept: "컴퓨터학부", grade: "2학년" },
+  { name: "박해수", dept: "컴퓨터학부", grade: "2학년" },
 ];
 
 // ─── HQCard — 회장단 부서 카드 ───────────────────────────────────────────────
@@ -4748,7 +5235,7 @@ function ORG03A() {
                 <div key={dept} className="relative">
                   <DeptCard
                     name={dept}
-                    leader={di === 0 ? "박해랑" : undefined}
+                    leader={di === 0 ? "박해수" : undefined}
                     members={visibleMembers.slice(di + 1, di + 3)}
                   />
                 </div>
@@ -4803,7 +5290,7 @@ function ORG03B() {
                   <div key={dept} className="relative">
                     <DeptCard name={dept} leader={undefined} members={visibleMembers.slice(1, 3)} editMode />
                     <div className="absolute -top-8 left-1/2 -translate-x-1/2 shadow-xl opacity-90 rotate-3 pointer-events-none">
-                      <MemberCard name="박해랑" dept="컴퓨터학부" grade="2학년" draggable />
+                      <MemberCard name="박해수" dept="컴퓨터학부" grade="2학년" draggable />
                     </div>
                   </div>
                 ) : (
@@ -4955,7 +5442,7 @@ type StudentRosterRow = {
 
 const INITIAL_STUDENT_ROWS: StudentRosterRow[] = [
   { name: "김바다", id: "2022123456", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "3학년", status: "납부", statusV: "green" as const },
-  { name: "박해랑", id: "2023234567", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "2학년", status: "납부", statusV: "green" as const },
+  { name: "박해수", id: "2023234567", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "2학년", status: "납부", statusV: "green" as const },
   { name: "이윤슬", id: "2020345678", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "4학년", status: "미납", statusV: "red" as const },
   { name: "정하늘", id: "2022456789", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "3학년", status: "미납", statusV: "red" as const },
   { name: "최바람", id: "2021567890", college: "소프트웨어융합대학", dept: "컴퓨터학부", grade: "3학년", status: "확인 필요", statusV: "yellow" as const },
@@ -9783,6 +10270,24 @@ const ARCHIVE_STATUS_STYLE: Record<ArchiveStatus, { variant: "gray" | "yellow" |
   "발행": { variant: "green", label: "발행" },
 };
 
+// 증빙 아카이브 시드: 이미 정리 완료된 증빙 묶음 1건(체육대회). FIN-EVID-01에서 완료하면 여기에 레코드가 쌓인다.
+const DEFAULT_EVIDENCE_BUNDLES: EvidenceBundle[] = [
+  {
+    id: "EVB-001",
+    eventId: SPORTS_EVENT_ID,
+    vendor: "오피스디포",
+    method: "법인카드",
+    receiptNo: "R-20260320-114",
+    actualAmount: 68000,
+    completedAt: "2026-03-20 15:30",
+    completedBy: "김민준",
+    executions: [
+      { execId: "1-EX1", requestId: "REQ-001", itemName: "박스테이프", amount: 9000 },
+      { execId: "4-EX1", requestId: "REQ-001", itemName: "유성 마커", amount: 14000 },
+    ],
+  },
+];
+
 const DEFAULT_ARCHIVES: ArchiveRecord[] = [
   {
     id: "archive-spring-booth",
@@ -11678,7 +12183,7 @@ function FINLEDGER01() {
           </div>
           <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
             <p className="text-[10px] text-gray-400">2026년 7월 · 총 42건 중 최근 10건 표시</p>
-            <p className="text-[10px] text-gray-400">증빙 처리와 정산은 재정부·회장단이 각 행사 재정의 ‘증빙 필요’ 단계(결제·증빙 정리)에서 진행합니다.</p>
+            <p className="text-[10px] text-gray-400">증빙 처리와 정산은 재정부가 각 행사 재정의 ‘증빙 필요’ 단계에서 진행합니다.</p>
           </div>
         </div>
       </div>
@@ -11687,24 +12192,71 @@ function FINLEDGER01() {
 }
 
 function EVTFIN01() {
-  const { navigateTo, purchaseRequests, currentUser, eventInfo, selectedEventId } = React.useContext(AppContext);
-  const [view, setView] = useState<"step" | "list">("step");
+  const { navigateTo, purchaseRequests, setPurchaseRequests, currentUser, eventInfo, selectedEventId, setSelectedPurchaseRequestId, evidenceBundles } = React.useContext(AppContext);
+  const canReviewPurchase = canManageFinance(currentUser);
+  const [quickCard, setQuickCard] = useState<string | null>(null); // 처리 단계 보드에서 빠른 처리 팝오버가 열린 카드(rowKey)
+  const [itemsMineOnly, setItemsMineOnly] = useState(false); // 품목 현황: 내가 요청한 구매만 보기
+  const [expandedStack, setExpandedStack] = useState<string | null>(null); // 같은 요청 카드 스택 중 펼쳐진 것(호버로 펼치고 바깥 클릭 시 접힘)
+  React.useEffect(() => {
+    if (!expandedStack) return;
+    const handler = (e: MouseEvent) => {
+      const el = (e.target as HTMLElement).closest("[data-stack]");
+      if (!el || el.getAttribute("data-stack") !== expandedStack) setExpandedStack(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [expandedStack]);
+  const canCreateRequest = canSubmitPurchaseRequest(currentUser);
+  const [view, setView] = useState<"items" | "step" | "list" | "bundles" | "evidence">(() => canReviewPurchase ? "step" : "items");
+  React.useEffect(() => setView(canReviewPurchase ? "step" : "items"), [canReviewPurchase]);
+  const [financeAreaTab, setFinanceAreaTab] = useState(0); // 재정부 처리 단계의 업무 영역 하위 메뉴
+  const [budgetLines, setBudgetLines] = useState(() => DEFAULT_BUDGET_LINES.map(line => ({ ...line })));
+  const [adjustOpen, setAdjustOpen] = useState(false);
+  const [adjustFrom, setAdjustFrom] = useState("홍보비");
+  const [adjustTo, setAdjustTo] = useState("행사 운영비");
+  const [adjustAmount, setAdjustAmount] = useState("100000");
+  const [adjustReason, setAdjustReason] = useState("구매 요청 반영");
+  const [adjustNote, setAdjustNote] = useState("");
+  const [adjustments, setAdjustments] = useState<{ text: string; date: string }[]>([]);
   const requestStatusVariant = (status: string) => {
     if (status === "보완 요청") return "orange" as const;
     if (status === "재검토 대기") return "yellow" as const;
     if (["승인", "부분 승인", "승인 완료", "정산 완료"].includes(status)) return "green" as const;
-    if (status === "반려") return "red" as const;
+    if (status === "반려" || status === "요청 취소") return "red" as const;
     return "blue" as const;
   };
   // 재정 데이터는 선택 행사 id로 필터링한다. 행사명 문자열로 연결하지 않는다.
   const eventPurchaseRequests = purchaseRequests.filter(request => request.eventId === selectedEventId);
   // 체육대회 샘플 예산은 SPORTS_EVENT_ID에만 표시하고, 연결 데이터가 없는 행사는 임의 금액 대신 안내를 보여준다.
   const hasBudget = selectedEventId === SPORTS_EVENT_ID;
+  // 실행분이 모두 증빙 완료된 품목은 예약(집행 예정)에서 실제 지출로 전환한다.
+  const itemFullySettled = (item: PurchaseItem) => {
+    const execs = getExecutions(item);
+    return execs.length > 0 && execs.every(ex => ex.evidenceStatus === "증빙 완료");
+  };
+  const reservedByLine = (lineName: string) => eventPurchaseRequests
+    .filter(request => ["승인", "부분 승인", "구매 필요", "증빙 필요"].includes(request.status))
+    .flatMap(request => request.items.filter(item => item.budgetLine === lineName && item.status === "승인" && !itemFullySettled(item)))
+    .reduce((total, item) => total + item.estimatedTotalPrice, 0);
+  const spentByLine = (lineName: string) => eventPurchaseRequests
+    .flatMap(request => request.items.filter(item => item.budgetLine === lineName && item.status === "승인" && itemFullySettled(item)))
+    .reduce((total, item) => total + item.estimatedTotalPrice, 0);
+  const actualByLine = (lineName: string) => {
+    const line = budgetLines.find(item => item.name === lineName);
+    return (line ? line.actual : 0) + spentByLine(lineName);
+  };
+  const availableByLine = (lineName: string) => {
+    const line = budgetLines.find(item => item.name === lineName);
+    return line ? line.allocated - actualByLine(lineName) - reservedByLine(lineName) : 0;
+  };
+  const totalAllocated = budgetLines.reduce((total, line) => total + line.allocated, 0);
+  const totalActual = budgetLines.reduce((total, line) => total + actualByLine(line.name), 0);
+  const totalReserved = budgetLines.reduce((total, line) => total + reservedByLine(line.name), 0);
   const summary = hasBudget ? [
-    { label: "배정 예산", value: "3,000,000", sub: "원" },
-    { label: "승인·집행 예정액", value: "1,100,000", sub: "원" },
-    { label: "실제 지출액", value: "950,000", sub: "원" },
-    { label: "사용 가능액", value: "950,000", sub: "원", color: "blue" },
+    { label: "배정 예산", value: totalAllocated.toLocaleString(), sub: "원" },
+    { label: "승인·집행 예정액", value: totalReserved.toLocaleString(), sub: "원" },
+    { label: "실제 지출액", value: totalActual.toLocaleString(), sub: "원" },
+    { label: "사용 가능액", value: (totalAllocated - totalActual - totalReserved).toLocaleString(), sub: "원", color: "blue" },
   ] : [
     { label: "배정 예산", value: "연결 데이터 없음", sub: "" },
     { label: "승인·집행 예정액", value: "집계 전", sub: "" },
@@ -11712,10 +12264,152 @@ function EVTFIN01() {
     { label: "사용 가능액", value: "집계 전", sub: "", color: "blue" },
   ];
 
-  const steps = ["검토 필요", "구매 필요", "증빙 필요", "정산 완료"];
-  const pendingCount = eventPurchaseRequests.filter(r => r.status === "검토 대기").length;
-  const canReviewPurchase = canManageFinance(currentUser);
-  const openPurchaseRequest = () => navigateTo(canReviewPurchase ? "FIN-REV-01" : "FIN-REQ-02");
+  // 재정부 처리 단계 — 업무 영역. 정산 완료·반려는 활성 처리에서 제외한다.
+  // 배송·수령·이행은 구매 유형에 따라 물품 배송·수령 / 대여 이행 / 용역 이행 세 영역으로 나눈다(track으로 구매 유형 구분). 용역은 반납이 없다.
+  const financeAreas: { area: string; stages: FinancePurchaseProgress[]; track?: "goods" | "rental" | "service" }[] = [
+    { area: "요청 검토", stages: ["검토 대기", "보완 응답 대기", "재검토 대기"] },
+    { area: "구매 준비", stages: ["선진행 동의 대기", "주문 대기", "재주문 보류", "구매 불가 처리 필요"] },
+    { area: "물품 배송·수령", stages: ["배송 대기", "배송 중", "수령 확인 필요", "주문 취소 요청 확인"], track: "goods" },
+    { area: "대여 이행", stages: ["이행 대기", "이행 중", "반납 확인 필요", "주문 취소 요청 확인"], track: "rental" },
+    { area: "용역 이행", stages: ["이행 대기", "이행 중", "주문 취소 요청 확인"], track: "service" },
+    { area: "환불", stages: ["환불 대기", "환불 확인", "재주문 판단"] },
+    { area: "증빙", stages: ["증빙 필요", "증빙 정리 중"] },
+  ];
+  // 구매 유형 트랙 판정 — 물품(일반 구매·제작·인쇄) / 대여 / 용역. 영역 분리와, 주문 취소 요청 확인이 어느 영역에 속할지 결정에 쓴다.
+  const rowTrack = (row: { item?: PurchaseItem }): "goods" | "rental" | "service" => {
+    const pt = row.item?.purchaseType;
+    if (pt === "대여") return "rental";
+    if (pt === "용역") return "service";
+    return "goods";
+  };
+  const areaMatches = (area: { stages: FinancePurchaseProgress[]; track?: "goods" | "rental" | "service" }, row: { financeProgress: FinancePurchaseProgress; item?: PurchaseItem }) =>
+    area.stages.includes(row.financeProgress) && (!area.track || rowTrack(row) === area.track);
+  // 실행분 기반 카드 행: 승인 전 품목은 품목 카드 1개, 승인 후에는 실행분마다 카드 1개(재주문 시 다수)
+  const itemRows = eventPurchaseRequests.flatMap(request => request.items.flatMap(item => {
+    const lastChanged = request.history[request.history.length - 1]?.date ?? "—";
+    const execs = getExecutions(item);
+    if (item.status !== "승인" || execs.length === 0) {
+      return [{
+        request, item,
+        execution: undefined as PurchaseExecution | undefined,
+        generalProgress: getGeneralPurchaseProgress(request, item, currentUser.name),
+        financeProgress: getFinancePurchaseProgress(request, item),
+        lastChanged,
+        rowKey: `${request.id}-${item.id}`,
+      }];
+    }
+    return execs.map(ex => ({
+      request, item,
+      execution: ex as PurchaseExecution | undefined,
+      generalProgress: getGeneralProgressForExecution(ex),
+      financeProgress: getFinanceStageForExecution(ex, execs),
+      lastChanged,
+      rowKey: `${request.id}-${item.id}-${ex.id}`,
+    }));
+  }));
+  // 처리 단계 하위 메뉴: 현재 영역이 비면 항목이 있는 첫 영역으로 이동(방금 처리한 건이 안 보이는 문제 완화)
+  React.useEffect(() => {
+    setFinanceAreaTab(prev => {
+      const cur = financeAreas[prev];
+      if (cur && itemRows.some(row => areaMatches(cur, row))) return prev;
+      const firstNonEmpty = financeAreas.findIndex(a => itemRows.some(row => areaMatches(a, row)));
+      return firstNonEmpty >= 0 ? firstNonEmpty : prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [itemRows.length]);
+  const itemProgressColumns: { label: string; description: string; statuses: GeneralPurchaseProgress[] }[] = [
+    { label: "확인 필요", description: "보완·반려·취소·구매 불가", statuses: ["보완 필요", "보완 중", "반려", "주문 취소", "요청 취소", "구매 불가"] },
+    { label: "검토 중", description: "재정부 검토", statuses: ["검토 중"] },
+    { label: "구매 준비", description: "승인 후 주문 준비", statuses: ["구매 준비"] },
+    { label: "주문 완료", description: "주문·발주 완료", statuses: ["주문 완료"] },
+    { label: "진행 중", description: "물품 배송·수령 또는 대여·용역 이행 진행", statuses: ["배송 중", "이행 중"] },
+    { label: "수령·이행 완료", description: "실제 완료 확인", statuses: ["수령 완료", "이행 완료"] },
+    { label: "정산 중", description: "증빙·실제 금액 확인", statuses: ["정산 중"] },
+    { label: "처리 완료", description: "실제 지출 반영", statuses: ["처리 완료"] },
+  ];
+  // 기록(아카이브) 파생 데이터 ─────────────────────────────
+  // 승인 묶음: 선진행 동의된 승인 품목을 요청 단위로 묶어 읽기용으로 보여준다(데이터는 저장하지 않고 파생).
+  const approvalBundles = eventPurchaseRequests
+    .map(req => ({ req, bundleItems: req.items.filter(it => it.status === "승인" && it.agreedForPurchase !== false) }))
+    .filter(b => b.bundleItems.length > 0);
+  // 증빙 묶음: 완료되어 저장된 레코드를 행사 기준으로 열람한다.
+  const eventEvidenceBundles = evidenceBundles.filter(b => b.eventId === selectedEventId);
+  const progressVariant = (status: GeneralPurchaseProgress | FinancePurchaseProgress) => {
+    if (["처리 완료", "정산 완료", "수령 완료", "이행 완료"].includes(status)) return "green" as const;
+    if (["보완 필요", "보완 중", "보완 응답 대기", "재검토 대기", "주문 취소 요청 확인"].includes(status)) return "orange" as const;
+    if (["반려", "구매 불가", "구매 불가 처리 필요", "주문 취소", "요청 취소"].includes(status)) return "red" as const;
+    if (["구매 준비", "주문 완료", "정산 중", "주문 대기", "배송 대기", "배송 중", "이행 대기", "이행 중", "반납 확인 필요", "수령 확인 필요", "증빙 필요", "증빙 정리 중"].includes(status)) return "blue" as const;
+    return "gray" as const;
+  };
+  const openPurchaseRequest = (request: PurchaseRequest) => {
+    setSelectedPurchaseRequestId(request.id);
+    if (!canReviewPurchase) {
+      navigateTo(request.status === "보완 요청" && request.requester === currentUser.name && canCreateRequest ? "FIN-SUP-01B" : "FIN-REQ-02");
+      return;
+    }
+    navigateTo(
+      request.status === "증빙 필요" ? "FIN-EVID-01"
+        : ["승인", "부분 승인", "구매 필요"].includes(request.status) ? "FIN-PROC-01"
+          // 보완 요청(보완 응답 대기)·재검토 대기는 보완 재검토 화면으로 연결한다(재정부가 보낸 보완 요청과 재제출 내용을 확인).
+          : (request.status === "재검토 대기" || request.status === "보완 요청") ? "FIN-REV-01B"
+            : "FIN-REV-01"
+    );
+  };
+  // 같은 구매 요청(REQ) 단위로 카드를 묶는다. 반환: 요청별 카드 배열 목록(원래 순서 유지).
+  const groupRowsByRequest = (rows: any[]): any[][] => {
+    const order: string[] = [];
+    const map: Record<string, any[]> = {};
+    rows.forEach(row => {
+      const id = row.request.id;
+      if (!map[id]) { map[id] = []; order.push(id); }
+      map[id].push(row);
+    });
+    return order.map(id => map[id]);
+  };
+  // 같은 요청 카드가 2개 이상이면 반쯤 겹친 스택으로, 호버하면 촤라락 펼쳐 개별 카드로 보여준다(바깥 클릭 시 접힘).
+  const renderStack = (rows: any[], keyBase: string, renderCard: (row: any, opts?: any) => React.ReactNode): React.ReactNode => {
+    if (rows.length <= 1) return <React.Fragment key={rows[0].rowKey}>{renderCard(rows[0], {})}</React.Fragment>;
+    const stackId = `${keyBase}:${rows[0].request.id}`;
+    const req = rows[0].request as PurchaseRequest;
+    if (expandedStack === stackId) {
+      // 같은 요청·같은 상태면 상태 칩과 상세보기를 헤더에 한 번만 두고, 개별 카드에선 뺀다.
+      const allSame = rows.every(r => r.generalProgress === rows[0].generalProgress);
+      return (
+        <div key={stackId} data-stack={stackId} onMouseLeave={() => setExpandedStack(null)} className="flex flex-col gap-2 rounded-xl border border-indigo-200 bg-indigo-50/40 p-1.5">
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="text-[9px] font-bold text-indigo-700 shrink-0">📦 {req.id}</span>
+              <span className="text-[9px] text-indigo-500 shrink-0">{rows.length}건</span>
+              {allSame && <Chip label={rows[0].generalProgress} variant={progressVariant(rows[0].generalProgress)} />}
+            </div>
+            <button type="button" onClick={() => openPurchaseRequest(req)} className="shrink-0 text-[10px] font-semibold text-blue-600 border border-blue-100 rounded px-2 py-0.5 hover:bg-blue-50">상세보기 ›</button>
+          </div>
+          {rows.map((row, i) => <div key={row.rowKey} className={`fan-in ${quickCard === row.rowKey ? "relative z-40" : ""}`} style={{ animationDelay: `${i * 45}ms` }}>{renderCard(row, { inStack: true, hideStatus: allSame })}</div>)}
+        </div>
+      );
+    }
+    // 접힘: 하단 카드는 실제 카드를 살짝 아래로 밀어 중첩·은닉하고(상세보기 숨김), 맨 위 카드만 온전히 보인다.
+    const buried = rows.slice(1, 3);
+    return (
+      <div key={stackId} data-stack={stackId} onMouseEnter={() => setExpandedStack(stackId)} className="relative isolate cursor-pointer" style={{ paddingBottom: `${buried.length * 6}px` }}>
+        {buried.map((row, i) => (
+          <div key={row.rowKey} aria-hidden className="absolute inset-x-0 top-0 pointer-events-none overflow-hidden rounded-lg" style={{ transform: `translateY(${(i + 1) * 6}px) scale(${1 - (i + 1) * 0.02})`, zIndex: buried.length - i, opacity: 0.92 }}>
+            {renderCard(row, { buried: true })}
+          </div>
+        ))}
+        <div className="relative z-10">{renderCard(rows[0], {})}</div>
+        <span className="absolute -top-1.5 -right-1.5 z-20 text-[9px] font-bold text-white bg-indigo-500 rounded-full px-1.5 py-0.5 shadow">📦 {rows.length}</span>
+      </div>
+    );
+  };
+  const submitAdjustment = () => {
+    const amount = Number(adjustAmount);
+    if (!amount || amount <= 0 || adjustFrom === adjustTo || amount > availableByLine(adjustFrom) || !adjustNote.trim()) return;
+    setBudgetLines(lines => lines.map(line => line.name === adjustFrom ? { ...line, allocated: line.allocated - amount } : line.name === adjustTo ? { ...line, allocated: line.allocated + amount } : line));
+    setAdjustments(history => [{ date: "2026-07-29 16:00 · 김민준(재정부)", text: `${adjustFrom} ${amount.toLocaleString()}원 → ${adjustTo} · ${adjustReason}: ${adjustNote}` }, ...history]);
+    setAdjustOpen(false);
+    setAdjustNote("");
+  };
 
   return (
     <DesktopShell
@@ -11727,13 +12421,14 @@ function EVTFIN01() {
       actions={
         <>
           <Btn variant="secondary" size="sm" onClick={() => navigateTo("MY-REQ-01")}><User className="w-3.5 h-3.5" /> 내 구매 요청</Btn>
-          <Btn variant="primary" size="sm" onClick={() => navigateTo("FIN-REQ-01")}><Plus className="w-3.5 h-3.5" /> 새 구매 요청</Btn>
+          {canReviewPurchase && <Btn variant="secondary" size="sm" onClick={() => navigateTo("FIN-EVID-01")}><Clipboard className="w-3.5 h-3.5" /> 증빙 정리</Btn>}
+          {canCreateRequest && <Btn variant="primary" size="sm" onClick={() => navigateTo("FIN-REQ-01B")}><Plus className="w-3.5 h-3.5" /> 새 구매 요청</Btn>}
         </>
       }
     >
       <div className="p-6 flex flex-col gap-6">
-        <div className="flex items-center justify-between">
-           <div className="grid grid-cols-4 gap-4 flex-1">
+        <div className="flex items-center justify-between gap-4">
+          <div className="grid grid-cols-4 gap-4 flex-1">
             {summary.map(s => (
               <div key={s.label} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                 <p className="text-[10px] font-medium text-gray-500 mb-1">{s.label}</p>
@@ -11744,94 +12439,383 @@ function EVTFIN01() {
               </div>
             ))}
           </div>
+          {canReviewPurchase && hasBudget && <Btn variant="secondary" size="sm" onClick={() => setAdjustOpen(true)}>예산 조정</Btn>}
         </div>
 
-        <div className="flex items-center justify-between border-b border-gray-200 shrink-0">
-          <div className="flex gap-4">
-            <button onClick={() => setView("step")} className={`px-2 py-3 text-sm font-medium border-b-2 transition-colors ${view === "step" ? "border-blue-600 text-blue-700" : "border-transparent text-gray-500"}`}>처리 단계</button>
-            <button onClick={() => setView("list")} className={`px-2 py-3 text-sm font-medium border-b-2 transition-colors ${view === "list" ? "border-blue-600 text-blue-700" : "border-transparent text-gray-500"}`}>전체 목록</button>
-          </div>
-          <div className="flex items-center gap-2 mb-[-1px]">
-            <span className="text-xs text-gray-500">검토 대기</span>
-            <span className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{pendingCount}</span>
-          </div>
-        </div>
+        {hasBudget && <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden"><div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between"><p className="text-xs font-bold text-gray-700">예산 항목별 현황</p><p className="text-[10px] text-gray-400">배정 예산 − 실제 지출 − 승인 예약</p></div><div className="grid grid-cols-3 divide-x divide-gray-100">{budgetLines.map(line => <div key={line.name} className="p-4"><p className="text-[11px] font-semibold text-gray-700">{line.name}</p><p className="text-[10px] text-gray-400 mt-1">배정 {line.allocated.toLocaleString()}원 · 실지출 {actualByLine(line.name).toLocaleString()}원 · 예약 {reservedByLine(line.name).toLocaleString()}원</p><p className="text-sm font-bold text-blue-700 mt-2">사용 가능 {availableByLine(line.name).toLocaleString()}원</p></div>)}</div>{adjustments.length > 0 && <div className="border-t border-gray-100 p-4"><p className="text-[10px] font-bold text-gray-400 mb-2">최근 예산 조정 이력</p>{adjustments.map(item => <p key={item.text} className="text-[11px] text-gray-600">{item.date} · {item.text}</p>)}</div>}</div>}
 
-        {view === "step" && (
-          <div className="flex gap-4 items-start overflow-x-auto pb-4 custom-scrollbar">
-            {steps.map(step => (
-              <div key={step} className="flex flex-col gap-3 min-w-[280px]">
-                <p className="text-xs font-semibold text-gray-600 px-1">{step}</p>
-                <div className="flex flex-col gap-3 min-h-[400px] bg-gray-100/50 rounded-xl p-2 border border-dashed border-gray-200">
-                  {eventPurchaseRequests.filter(req => {
-                    if (step === "검토 필요") return req.status === "검토 대기" || req.status === "보완 요청" || req.status === "재검토 대기";
-                    if (step === "구매 필요") return req.status === "승인" || req.status === "부분 승인" || req.status === "승인 완료";
-                    if (step === "증빙 필요") return req.status === "증빙 필요";
-                    if (step === "정산 완료") return req.status === "정산 완료";
-                    return false;
-                  }).map(req => (
-                    <button type="button" key={req.id} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:border-blue-400 transition-all cursor-pointer text-left" onClick={openPurchaseRequest}>
-                      <div className="flex items-center justify-between mb-2.5">
-                        <Chip label={req.dept} variant="gray" />
-                        <span className="text-[10px] text-gray-400">{req.neededDate}</span>
+        {(() => {
+          const tabCls = (active: boolean) => `flex items-center gap-1.5 px-2.5 py-2.5 text-sm font-medium border-b-2 transition-colors ${active ? "border-blue-600 text-blue-700" : "border-transparent text-gray-500 hover:text-gray-700"}`;
+          const countBadge = (n: number, active: boolean) => <span className={`text-[10px] font-bold rounded-full px-1.5 ${active ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-400"}`}>{n}</span>;
+          // 일반 사용자: 품목 현황만. 요청 열람은 '내 구매 요청'(MY-REQ-01)에서 한다.
+          // 기록 그룹(구매 요청·승인 묶음·증빙 묶음)과 처리 단계는 재정부 전용.
+          if (!canReviewPurchase) {
+            return (
+              <div className="flex items-end border-b border-gray-200 shrink-0">
+                <button onClick={() => setView("items")} className={tabCls(view === "items")}>품목 현황</button>
+              </div>
+            );
+          }
+          return (
+            <div className="flex items-end justify-between border-b border-gray-200 shrink-0">
+              <div className="flex items-end gap-5">
+                {/* 작업 보드 그룹 — 진행 중 업무를 처리하는 칸반 */}
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-gray-300 uppercase tracking-wider px-2.5 pb-0.5">작업 보드</span>
+                  <div className="flex gap-1">
+                    <button onClick={() => setView("items")} className={tabCls(view === "items")}>품목 현황</button>
+                    <button onClick={() => setView("step")} className={tabCls(view === "step")}>처리 단계</button>
+                  </div>
+                </div>
+                <div className="w-px self-stretch bg-gray-200 mb-2" />
+                {/* 기록 그룹 — 요청·묶음 단위 아카이브 (재정부 전용) */}
+                <div className="flex flex-col">
+                  <span className="text-[9px] font-bold text-gray-300 uppercase tracking-wider px-2.5 pb-0.5">기록</span>
+                  <div className="flex gap-1">
+                    <button onClick={() => setView("list")} className={tabCls(view === "list")}>구매 요청 {countBadge(eventPurchaseRequests.length, view === "list")}</button>
+                    <button onClick={() => setView("bundles")} className={tabCls(view === "bundles")}>승인 묶음 {countBadge(approvalBundles.length, view === "bundles")}</button>
+                    <button onClick={() => setView("evidence")} className={tabCls(view === "evidence")}>증빙 묶음 {countBadge(eventEvidenceBundles.length, view === "evidence")}</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {view === "items" && (() => {
+          const itemsRows = itemsMineOnly ? itemRows.filter(row => row.request.requester === currentUser.name) : itemRows;
+          return (
+          <div className="flex flex-col gap-4">
+            <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4">
+              <div className="flex items-start justify-between gap-6">
+                <div>
+                  <p className="text-xs font-bold text-blue-900">{canReviewPurchase ? "구성원에게 보이는 품목별 진행 상태" : "승인 이후의 구매 진행을 품목별로 확인합니다"}</p>
+                  <p className="text-[11px] text-blue-700 mt-1 leading-5">{canReviewPurchase ? "재정부 내부 업무는 ‘처리 단계’에서, 실제 품목의 주문·배송·수령·정산 상태는 이곳에서 확인합니다." : "재정부의 내부 검토 업무가 아니라 내가 알아야 할 진행 결과를 간단한 상태로 표시합니다."}</p>
+                </div>
+                <span className="text-[10px] font-semibold text-blue-700 bg-white border border-blue-100 rounded-full px-2.5 py-1 shrink-0">품목 {itemsRows.length}건</span>
+              </div>
+              <p className="text-[10px] text-blue-600 mt-2">각 품목은 현재 진행 단계의 열에 표시되며, 카드를 누르면 연결된 구매 요청으로 이동합니다.</p>
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <div className="bg-gray-100 rounded-lg p-0.5 flex">
+                {[["all", "전체 요청"], ["mine", "내 요청"]].map(([mode, label]) => (
+                  <button key={mode} type="button" onClick={() => setItemsMineOnly(mode === "mine")} className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${(mode === "mine") === itemsMineOnly ? "bg-white text-blue-700 shadow-sm" : "text-gray-500 hover:text-gray-700"}`}>{label}</button>
+                ))}
+              </div>
+              {itemsMineOnly && <span className="text-[10px] text-gray-400">{currentUser.name} 님이 요청한 품목만 표시</span>}
+            </div>
+
+            <div className="flex gap-4 items-start overflow-x-auto pb-4 custom-scrollbar">
+              {itemProgressColumns.map(column => {
+                const columnItems = itemsRows.filter(row => column.statuses.includes(row.generalProgress));
+                return (
+                  <div key={column.label} className="flex flex-col gap-3 min-w-[260px]">
+                    <div className="px-1 flex items-start justify-between gap-2">
+                      <div>
+                        <p className={`text-xs font-semibold ${column.label === "확인 필요" ? "text-red-700" : "text-gray-700"}`}>{column.label}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5">{column.description}</p>
                       </div>
-                      <p className="text-xs font-bold text-gray-800 mb-1 leading-tight">{req.title}</p>
-                      <p className="text-[10px] text-gray-500 line-clamp-1 mb-3">품목 {req.items.length}개 · {req.items.map(i => i.name).join(", ")}</p>
-                      <div className="flex items-center justify-between pt-2.5 border-t border-gray-50">
-                        <span className="text-xs font-bold text-gray-900">{req.totalEstimatedAmount.toLocaleString()}원</span>
-                        <Chip label={req.status} variant={requestStatusVariant(req.status)} />
+                      <span className={`text-[10px] font-bold rounded-full px-1.5 py-0.5 ${column.label === "확인 필요" && columnItems.length > 0 ? "bg-red-100 text-red-700" : "bg-gray-100 text-gray-500"}`}>{columnItems.length}</span>
+                    </div>
+                    <div className={`flex flex-col gap-3 min-h-[410px] rounded-xl p-2 border border-dashed ${column.label === "확인 필요" ? "bg-red-50/40 border-red-200" : "bg-gray-100/50 border-gray-200"}`}>
+                      {groupRowsByRequest(columnItems).map(group => renderStack(group, `items:${column.label}`, ({ request, item, execution, generalProgress, financeProgress, lastChanged, rowKey }: any, opts: any = {}) => (
+                        <button type="button" key={rowKey} onClick={() => openPurchaseRequest(request)} className="w-full bg-white border border-gray-200 rounded-lg p-4 shadow-sm hover:border-blue-400 hover:shadow transition-all text-left">
+                          {!opts.inStack && <div className="flex items-center justify-between gap-2 mb-2.5">
+                            <Chip label={request.dept} variant="gray" />
+                            <span className="text-[10px] text-gray-400">{item.expectedDate ?? request.neededDate}</span>
+                          </div>}
+                          <p className="text-xs font-bold text-gray-800 leading-tight">{item.name}{execution && execSeq(item, execution) && <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-200 text-slate-600 text-[9px] font-bold align-middle">{execSeq(item, execution)}</span>}{execution?.reorderOfExecutionId && <span className="ml-1.5 text-[9px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1 py-0.5 align-middle">재주문</span>}</p>
+                          {!opts.inStack && <p className="text-[10px] text-gray-400 mt-1 line-clamp-1"><span className="text-indigo-500 font-semibold">📦 {request.id}</span> · {request.title}</p>}
+                          <div className="grid grid-cols-2 gap-2 mt-3 py-2.5 border-y border-gray-50">
+                            <div><p className="text-[9px] text-gray-400">수량</p><p className="text-[11px] font-semibold text-gray-700 mt-0.5">{execution ? execQuantityOf(item, execution) : item.quantity}{item.unit}{execution?.quantity != null && execution.quantity !== item.quantity && <span className="ml-1 text-[9px] text-blue-500">/{item.quantity}{item.unit}</span>}</p></div>
+                            <div><p className="text-[9px] text-gray-400">예상 금액</p><p className="text-[11px] font-semibold text-gray-700 mt-0.5">{(execution ? execAmountOf(item, execution) : item.estimatedTotalPrice).toLocaleString()}원</p></div>
+                          </div>
+                          {!opts.hideStatus && <div className="mt-3 flex items-center justify-between gap-2">
+                            <Chip label={generalProgress} variant={progressVariant(generalProgress)} />
+                            <span className="text-[9px] text-gray-400">{lastChanged.slice(0, 10)}</span>
+                          </div>}
+                          {!opts.inStack && canReviewPurchase && <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-between gap-2"><span className="text-[9px] text-gray-400">재정부 상태</span><Chip label={financeProgress} variant={progressVariant(financeProgress)} /></div>}
+                          {!opts.inStack && canReviewPurchase && item.financeOwner && <p className="text-[9px] text-gray-400 mt-1 text-right">담당 {item.financeOwner}</p>}
+                        </button>
+                      )))}
+                      {columnItems.length === 0 && <p className="text-[10px] text-gray-400 text-center py-12">품목 없음</p>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          );
+        })()}
+
+        {view === "step" && canReviewPurchase && (() => {
+          const activeArea = financeAreas[financeAreaTab] ?? financeAreas[0];
+          const areaRows = itemRows.filter(row => areaMatches(activeArea, row));
+          // 처리 단계 칸반 열 1개 렌더
+          // 빠른 처리 팝오버의 액션 버튼
+          const qbtn = (label: string, run: () => void, tone: "green" | "red" | "gray" = "green") => (
+            <button type="button" key={label} onClick={() => { setQuickCard(null); run(); }} className={`text-[11px] text-left px-2 py-1.5 rounded font-semibold border ${tone === "red" ? "border-red-200 text-red-600 hover:bg-red-50" : tone === "gray" ? "border-gray-200 text-gray-600 hover:bg-gray-50" : "border-green-200 text-green-700 hover:bg-green-50"}`}>{label}</button>
+          );
+          const quickActions = (request: PurchaseRequest, item: PurchaseItem, execution: PurchaseExecution | undefined, fp: FinancePurchaseProgress): React.ReactNode[] => {
+            // 선진행 동의 대기는 아직 실행분이 없으므로(동의 전) 실행분 가드보다 먼저 처리한다.
+            if (fp === "선진행 동의 대기") return [qbtn("구매 진행 동의", () => execAgree(setPurchaseRequests, request.id, item.id))];
+            if (!execution) return [];
+            const isRental = item.purchaseType === "대여";
+            const fulfillStages: FinancePurchaseProgress[] = ["배송 대기", "배송 중", "수령 확인 필요", "이행 대기", "이행 중", "반납 확인 필요"];
+            if (fp === "주문 대기") return [qbtn("주문 완료", () => execOrder(setPurchaseRequests, request.id, item, execution.id)), qbtn("구매 불가", () => execMarkOutOfStock(setPurchaseRequests, request.id, item, execution.id), "gray")];
+            if (fulfillStages.includes(fp)) return [qbtn(nextFulfillLabel(execution, isRental), () => execAdvanceFulfillment(setPurchaseRequests, request.id, item, execution.id))];
+            if (fp === "주문 취소 요청 확인") return [qbtn("취소 요청 확정", () => execConfirmCancel(setPurchaseRequests, request.id, item, execution.id), "red")];
+            if (fp === "환불 대기") return (["전액 환불", "일부 환불", "환불 없음"] as RefundResult[]).map(res => qbtn(`환불 확인 · ${res}`, () => execConfirmRefund(setPurchaseRequests, request.id, item, execution.id, res), "gray"));
+            if (fp === "증빙 필요" || fp === "증빙 정리 중") return [qbtn("증빙 처리하기", () => { setSelectedPurchaseRequestId(request.id); navigateTo("FIN-EVID-01"); })];
+            if (fp === "재주문 판단") return [qbtn("재주문", () => execReorder(setPurchaseRequests, request.id, item, execution.id)), qbtn("재주문 안 함", () => execDeclineReorder(setPurchaseRequests, request.id, item, execution.id), "gray")];
+            return [];
+          };
+          const renderStepCard = ({ request, item, execution, generalProgress, financeProgress, rowKey }: any, opts: any = {}) => {
+            const { buried = false, inStack = false, hideStatus = false } = opts;
+            const open = quickCard === rowKey && !buried;
+            const actions = quickActions(request, item, execution, financeProgress);
+            // 스택 안(inStack)에서는 상세보기·담당을 헤더로 올리고, 같은 상태면(hideStatus) 상태 칩도 숨긴다.
+            const showStatus = !hideStatus;
+            const showDetail = !buried && !inStack;
+            const showOwner = !inStack && Boolean(item.financeOwner);
+            const showBottom = showStatus || showDetail || showOwner;
+            return (
+              <div key={rowKey} className={`relative ${open ? "z-30" : ""}`}>
+                {/* 카드 본문 클릭 → 상태 변경 팝오버. 상세보기는 카드 안 별도 버튼. 열린 카드는 z-30으로 올려 다음 카드 뒤에 가려지지 않게 한다. */}
+                <div onClick={() => setQuickCard(open ? null : rowKey)} className={`cursor-pointer bg-white border rounded-lg p-3 shadow-sm transition-all ${open ? "border-blue-400 ring-1 ring-blue-200" : "border-gray-200 hover:border-blue-400"}`}>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <Chip label={request.dept} variant="gray" />
+                    <span className="text-[10px] text-gray-400">{request.neededDate}</span>
+                  </div>
+                  <p className="text-xs font-bold text-gray-800 leading-tight">{item.name}{execution && execSeq(item, execution) && <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-200 text-slate-600 text-[9px] font-bold align-middle">{execSeq(item, execution)}</span>}{execution?.quantity != null && execution.quantity !== item.quantity && <span className="ml-1 text-[10px] font-semibold text-blue-600">{execution.quantity}{item.unit}</span>}{execution?.reorderOfExecutionId && <span className="ml-1.5 text-[9px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1 py-0.5 align-middle">재주문</span>}</p>
+                  {!inStack && <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1"><span className="text-indigo-500 font-semibold">📦 {request.id}</span> · {request.title}</p>}
+                  {showBottom && (
+                    <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-between gap-2">
+                      {showStatus ? <Chip label={generalProgress} variant={progressVariant(generalProgress)} /> : <span />}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {showOwner && <span className="text-[9px] text-gray-400">담당 {item.financeOwner}</span>}
+                        {showDetail && <button type="button" onClick={e => { e.stopPropagation(); setQuickCard(null); openPurchaseRequest(request); }} className="text-[10px] font-semibold text-blue-600 border border-blue-100 rounded px-2 py-0.5 hover:bg-blue-50">상세보기 ›</button>}
                       </div>
-                    </button>
-                  ))}
-                  {eventPurchaseRequests.filter(req => {
-                    if (step === "검토 필요") return req.status === "검토 대기" || req.status === "보완 요청" || req.status === "재검토 대기";
-                    if (step === "구매 필요") return req.status === "승인" || req.status === "부분 승인" || req.status === "승인 완료";
-                    if (step === "증빙 필요") return req.status === "증빙 필요";
-                    if (step === "정산 완료") return req.status === "정산 완료";
-                    return false;
-                  }).length === 0 && (
-                    <p className="text-[10px] text-gray-400 text-center py-12">항목 없음</p>
+                    </div>
                   )}
+                </div>
+                {open && (
+                  <>
+                    <div className="fixed inset-0 z-20" onClick={() => setQuickCard(null)} />
+                    <div className="absolute left-0 right-0 top-full mt-1 z-30 bg-white border border-gray-200 rounded-lg shadow-xl p-2 flex flex-col gap-1.5">
+                      <p className="text-[9px] font-bold text-gray-400 px-1 uppercase tracking-wider">상태 변경 · {financeProgress}</p>
+                      {actions.length > 0 ? actions : <p className="px-1 py-0.5 text-[10px] text-gray-400">이 단계에서 바꿀 수 있는 상태가 없습니다. 상세보기에서 처리하세요.</p>}
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          };
+          const renderColumn = (stage: FinancePurchaseProgress, minH: string, tone: "flow" | "exception" = "flow") => {
+            const stageRows = areaRows.filter(row => row.financeProgress === stage);
+            const isExc = tone === "exception";
+            return (
+              <div key={stage} className="flex flex-col gap-2 min-w-[240px]">
+                <p className={`text-[11px] font-semibold px-1 flex items-center gap-1.5 ${isExc ? "text-amber-700" : "text-gray-600"}`}>{isExc && <span className="text-[8px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1 py-0.5">예외</span>}{stage} <span className={isExc ? "text-amber-400" : "text-gray-400"}>{stageRows.length}</span></p>
+                <div className={`flex flex-col gap-2 ${minH} rounded-xl p-2 border border-dashed ${isExc ? "bg-amber-50/40 border-amber-200" : "bg-gray-100/50 border-gray-200"}`}>
+                  {groupRowsByRequest(stageRows).map(group => renderStack(group, `step:${stage}`, renderStepCard))}
+                  {stageRows.length === 0 && <p className="text-[10px] text-gray-300 text-center py-6">없음</p>}
+                </div>
+              </div>
+            );
+          };
+          return (
+          <div className="flex flex-col gap-4">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 flex items-center justify-between">
+              <div><p className="text-xs font-bold text-gray-700">재정부 처리 업무 · 7개 업무 영역</p><p className="text-[10px] text-gray-500 mt-0.5">업무 영역을 선택하면 그 영역의 처리 단계 칸반만 표시됩니다. 배송·수령·이행은 구매 유형에 따라 물품·대여·용역으로 나뉩니다. 정산 완료·반려는 활성 처리에서 제외됩니다.</p></div>
+              <span className="text-[10px] text-gray-500">처리자가 버튼을 누르면 담당자·처리 시각이 기록됩니다.</span>
+            </div>
+            <div className="flex gap-1.5 flex-wrap">
+              {financeAreas.map((area, i) => {
+                const count = itemRows.filter(row => areaMatches(area, row)).length;
+                return (
+                  <button type="button" key={area.area} onClick={() => setFinanceAreaTab(i)} className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold border transition-colors ${i === financeAreaTab ? "bg-blue-600 text-white border-blue-600" : "bg-white text-gray-600 border-gray-200 hover:border-blue-300"}`}>
+                    {area.area}
+                    <span className={`text-[10px] font-bold rounded-full px-1.5 ${i === financeAreaTab ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {areaRows.length === 0 ? (
+              <div className="bg-gray-50 border border-dashed border-gray-200 rounded-xl py-12 text-center text-[11px] text-gray-300">이 영역에 처리할 실행분이 없습니다.</div>
+            ) : (() => {
+              // 정상 진행 흐름 열과 예외·후속 열을 구분해 표시한다.
+              const EXCEPTION_STAGES = ["보완 응답 대기", "재검토 대기", "재주문 보류", "구매 불가 처리 필요", "주문 취소 요청 확인", "재주문 판단"];
+              const flowStages = activeArea.stages.filter(s => !EXCEPTION_STAGES.includes(s));
+              const excStages = activeArea.stages.filter(s => EXCEPTION_STAGES.includes(s));
+              return (
+                <div className="flex gap-2 items-start overflow-x-auto pb-4 custom-scrollbar">
+                  {flowStages.map((stage, i) => (
+                    <React.Fragment key={stage}>
+                      {i > 0 && <div className="flex items-center justify-center text-gray-300 text-lg font-bold w-5 shrink-0 pt-9">→</div>}
+                      {renderColumn(stage, "min-h-[400px]", "flow")}
+                    </React.Fragment>
+                  ))}
+                  {excStages.length > 0 && (
+                    <>
+                      <div className="flex flex-col items-center shrink-0 self-stretch px-1.5">
+                        <span className="text-[9px] font-bold text-amber-600 whitespace-nowrap mt-9">예외·후속</span>
+                        <div className="w-px flex-1 bg-amber-200 border-l border-dashed border-amber-300 mt-1" />
+                      </div>
+                      {excStages.map(stage => renderColumn(stage, "min-h-[400px]", "exception"))}
+                    </>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+          );
+        })()}
+
+        {view === "list" && canReviewPurchase && (
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">▪ 요청 단위</span>
+              <p className="text-[11px] text-gray-500">한 부서가 한 번에 올린 <b>구매 요청</b>을 시간순으로 봅니다. 취소된 품목도 요청 기록에 남습니다. 행을 누르면 품목별 상세로 이동합니다.</p>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+              <table className="w-full text-xs text-left">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-200 text-gray-500">
+                    <th className="px-4 py-3 font-medium">요청일</th>
+                    <th className="px-4 py-3 font-medium">구매 요청명</th>
+                    <th className="px-4 py-3 font-medium">요청 부서</th>
+                    <th className="px-4 py-3 font-medium text-right">전체 요청액</th>
+                    <th className="px-4 py-3 font-medium text-center">현재 상태</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {eventPurchaseRequests.length === 0 && (
+                    <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">아직 이 행사에 연결된 구매 요청이 없습니다.</td></tr>
+                  )}
+                  {eventPurchaseRequests.map(req => (
+                    <tr key={req.id} className="hover:bg-gray-50 cursor-pointer" onClick={() => openPurchaseRequest(req)}>
+                      <td className="px-4 py-3 text-gray-500 font-mono">2026-03-01</td>
+                      <td className="px-4 py-3 font-medium text-gray-800">
+                         <div className="flex items-center gap-2">
+                          {req.title}
+                          {req.priority === "긴급" && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 px-1 rounded">긴급</span>}
+                         </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">{req.dept}</td>
+                      <td className="px-4 py-3 font-bold text-gray-900 text-right">{req.totalEstimatedAmount.toLocaleString()}원</td>
+                      <td className="px-4 py-3 text-center"><Chip label={req.status} variant={requestStatusVariant(req.status)} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {view === "bundles" && canReviewPurchase && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">📦 묶음 단위</span>
+              <p className="text-[11px] text-gray-500"><b>승인 묶음</b> = 한 요청에서 선진행 동의된 승인 품목의 묶음. 각 묶음(📦) 안에 개별 품목(▪)이 담겨 있습니다. 요청 취소·미동의 품목은 묶음에서 빠집니다.</p>
+            </div>
+            {approvalBundles.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-xl p-12 text-center text-gray-400 text-xs shadow-sm">아직 생성된 승인 묶음이 없습니다. 요청 검토·선진행 동의가 끝나면 이곳에 묶음이 쌓입니다.</div>
+            )}
+            {approvalBundles.map(({ req, bundleItems }) => {
+              const total = bundleItems.reduce((s, it) => s + it.estimatedTotalPrice, 0);
+              return (
+                <div key={req.id} className="bg-white border border-gray-200 border-l-4 border-l-emerald-500 rounded-xl shadow-sm overflow-hidden">
+                  <div className="px-5 py-4 bg-emerald-50/40 border-b border-gray-100 flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full shrink-0">📦 승인 묶음</span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-gray-800 truncate">{req.title}</p>
+                        <p className="text-[10px] text-gray-400 mt-0.5"><span className="font-mono">{req.id}</span> · {req.dept} · 개별 품목 {bundleItems.length}건 · 승인액 {total.toLocaleString()}원</p>
+                      </div>
+                    </div>
+                    <button onClick={() => openPurchaseRequest(req)} className="shrink-0 text-[11px] border border-gray-200 text-gray-600 px-3 py-1.5 rounded font-semibold hover:bg-gray-50">요청 열기</button>
+                  </div>
+                  <div className="px-2 py-1">
+                    <table className="w-full text-xs text-left [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap">
+                      <thead><tr className="text-gray-400 font-medium">
+                        <th className="px-4 py-2">개별 품목</th>
+                        <th className="px-4 py-2">수량</th>
+                        <th className="px-4 py-2 text-right">승인액</th>
+                        <th className="px-4 py-2">진행 상태</th>
+                      </tr></thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {bundleItems.map(it => {
+                          const prog = getGeneralPurchaseProgress(req, it, currentUser.name);
+                          return (
+                            <tr key={it.id}>
+                              <td className="px-4 py-2.5 font-semibold text-gray-800"><span className="text-slate-300 mr-1">▪</span>{it.name}</td>
+                              <td className="px-4 py-2.5 text-gray-500">{it.quantity}{it.unit}</td>
+                              <td className="px-4 py-2.5 text-right font-mono text-gray-600">{it.estimatedTotalPrice.toLocaleString()}원</td>
+                              <td className="px-4 py-2.5"><Chip label={prog} variant={progressVariant(prog)} /></td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {view === "evidence" && canReviewPurchase && (
+          <div className="flex flex-col gap-4">
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">📦 묶음 단위</span>
+              <p className="text-[11px] text-gray-500"><b>증빙 묶음</b> = 구매처·결제·영수증 기준으로 실행분을 다시 묶은 정리 단위. 서로 다른 요청·승인 묶음의 개별 실행분(▪)도 같은 거래면 한 묶음에 담깁니다.</p>
+            </div>
+            {eventEvidenceBundles.length === 0 && (
+              <div className="bg-white border border-gray-200 rounded-xl p-12 text-center text-gray-400 text-xs shadow-sm">아직 완료된 증빙 묶음이 없습니다. ‘결제·증빙 정리’에서 증빙 묶음을 완료하면 이곳에 쌓입니다.</div>
+            )}
+            {eventEvidenceBundles.map(b => (
+              <div key={b.id} className="bg-white border border-gray-200 border-l-4 border-l-indigo-500 rounded-xl shadow-sm overflow-hidden">
+                <div className="px-5 py-4 bg-indigo-50/40 border-b border-gray-100 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full shrink-0">📦 증빙 묶음</span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-gray-800 truncate">{b.vendor} · {b.method}{b.receiptNo ? ` · 영수증 ${b.receiptNo}` : ""}</p>
+                      <p className="text-[10px] text-gray-400 mt-0.5"><span className="font-mono">{b.id}</span> · 개별 실행분 {b.executions.length}건 · 정리 {b.completedAt} · {b.completedBy}</p>
+                    </div>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-[10px] text-gray-400 font-semibold">실제 지출</p>
+                    <p className="text-base font-bold text-gray-900">{b.actualAmount.toLocaleString()}원</p>
+                  </div>
+                </div>
+                <div className="px-2 py-1">
+                  <table className="w-full text-xs text-left [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap">
+                    <thead><tr className="text-gray-400 font-medium">
+                      <th className="px-4 py-2">개별 실행분</th>
+                      <th className="px-4 py-2">품목</th>
+                      <th className="px-4 py-2">출처 요청</th>
+                      <th className="px-4 py-2 text-right">승인액</th>
+                    </tr></thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {b.executions.map(ex => (
+                        <tr key={ex.execId}>
+                          <td className="px-4 py-2.5"><span className="text-slate-300 mr-1">▪</span><span className="font-mono text-[10px] text-gray-500">{ex.execId}</span></td>
+                          <td className="px-4 py-2.5 font-semibold text-gray-800">{ex.itemName}</td>
+                          <td className="px-4 py-2.5 font-mono text-[10px] text-gray-500">{ex.requestId}</td>
+                          <td className="px-4 py-2.5 text-right font-mono text-gray-600">{ex.amount.toLocaleString()}원</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {view === "list" && (
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-            <table className="w-full text-xs text-left">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200 text-gray-500">
-                  <th className="px-4 py-3 font-medium">요청일</th>
-                  <th className="px-4 py-3 font-medium">구매 요청명</th>
-                  <th className="px-4 py-3 font-medium">요청 부서</th>
-                  <th className="px-4 py-3 font-medium text-right">전체 요청액</th>
-                  <th className="px-4 py-3 font-medium text-center">현재 상태</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {eventPurchaseRequests.length === 0 && (
-                  <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">아직 이 행사에 연결된 구매 요청이 없습니다.</td></tr>
-                )}
-                {eventPurchaseRequests.map(req => (
-                  <tr key={req.id} className="hover:bg-gray-50 cursor-pointer" onClick={openPurchaseRequest}>
-                    <td className="px-4 py-3 text-gray-500 font-mono">2026-03-01</td>
-                    <td className="px-4 py-3 font-medium text-gray-800">
-                       <div className="flex items-center gap-2">
-                        {req.title}
-                        {req.priority === "긴급" && <span className="text-[9px] bg-red-50 text-red-600 border border-red-100 px-1 rounded">긴급</span>}
-                       </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600">{req.dept}</td>
-                    <td className="px-4 py-3 font-bold text-gray-900 text-right">{req.totalEstimatedAmount.toLocaleString()}원</td>
-                    <td className="px-4 py-3 text-center"><Chip label={req.status} variant={requestStatusVariant(req.status)} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+        {adjustOpen && <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-6"><div className="w-[560px] bg-white rounded-2xl shadow-xl overflow-hidden"><div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between"><div><h3 className="text-sm font-bold text-gray-900">행사 예산 조정</h3><p className="text-[11px] text-gray-500 mt-1">사용 가능 예산만 다른 항목으로 이동할 수 있습니다.</p></div><button onClick={() => setAdjustOpen(false)} className="text-gray-400"><X className="w-4 h-4" /></button></div><div className="p-6 grid grid-cols-2 gap-4"><Input label="출발 항목" select selectOptions={budgetLines.map(line => line.name)} value={adjustFrom} onChange={event => setAdjustFrom(event.target.value)} /><Input label="도착 항목" select selectOptions={budgetLines.map(line => line.name)} value={adjustTo} onChange={event => setAdjustTo(event.target.value)} /><Input label="조정 금액" type="number" value={adjustAmount} onChange={event => setAdjustAmount(event.target.value)} hint={`출발 항목 사용 가능액 ${availableByLine(adjustFrom).toLocaleString()}원`} /><Input label="조정 사유" select selectOptions={["구매 요청 반영", "운영 계획 변경", "행사 규모 변경", "집행 차이", "기타"]} value={adjustReason} onChange={event => setAdjustReason(event.target.value)} /><div className="col-span-2"><Input label="구체적 설명" value={adjustNote} onChange={event => setAdjustNote(event.target.value)} required placeholder="조정 사유와 연결된 구매 요청을 기록하세요." /></div></div><div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2"><Btn variant="secondary" onClick={() => setAdjustOpen(false)}>취소</Btn><Btn variant="primary" disabled={!adjustNote.trim() || !Number(adjustAmount) || Number(adjustAmount) > availableByLine(adjustFrom) || adjustFrom === adjustTo} onClick={submitAdjustment}>조정 기록 남기기</Btn></div></div></div>}
       </div>
     </DesktopShell>
   );
@@ -11890,6 +12874,7 @@ function FINREQ01() {
       if (!item.quantity || item.quantity <= 0) newErrors[`item_${item.id}_qty`] = "수량을 입력해 주세요.";
       if (!item.unit) newErrors[`item_${item.id}_unit`] = "단위를 입력해 주세요.";
       if (!item.estimatedUnitPrice || item.estimatedUnitPrice <= 0) newErrors[`item_${item.id}_price`] = "단가를 입력해 주세요.";
+      if (!item.priceEvidence?.trim()) newErrors[`item_${item.id}_evidence`] = item.purchaseType === "일반 구매" ? "상품 링크·판매처·가격 화면 중 하나를 입력해 주세요." : "업체 견적서를 등록해 주세요.";
     });
 
     setErrors(newErrors);
@@ -11933,6 +12918,10 @@ function FINREQ01() {
     setDraftSaved(true);
   };
 
+  if (!canSubmitPurchaseRequest(currentUser)) {
+    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["운영", "행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">구매 요청 작성 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청 작성과 보완 재제출은 부서장 또는 재정부만 할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01")}>행사 재정으로 돌아가기</Btn></div></div></DesktopShell>;
+  }
+
   return (
     <DesktopShell activeSidebar="운영" title="구매 요청 작성·수정" breadcrumb={["운영", "행사", eventInfo.name, "재정", "구매 요청 작성"]}>
       <div className="flex h-full bg-gray-50 overflow-hidden">
@@ -11962,7 +12951,7 @@ function FINREQ01() {
                   <Input label="요청 제목" value={title} onChange={e => setTitle(e.target.value)} required error={errors.title} />
                   {errors.title && <p className="text-[10px] text-red-500 mt-1">{errors.title}</p>}
                 </div>
-                <Input label="요청 부서" value="운영부" disabled hint="작성자의 소속 부서로 고정됩니다." />
+                <Input label="요청 부서" value={currentUser.dept} disabled hint="작성자의 소속 부서로 고정됩니다." />
                 <div id="neededDate" className="flex flex-col gap-1">
                   <label className="text-xs font-medium text-gray-700">필요한 날짜<span className="text-red-500 ml-0.5">*</span></label>
                   <input
@@ -12028,7 +13017,7 @@ function FINREQ01() {
                       </div>
 
                       <div className="grid grid-cols-4 gap-5 items-end">
-                        <Input label="구매 유형" select selectOptions={["일반 구매", "제작·인쇄", "대여·용역"]} value={item.purchaseType} onChange={e => handleTypeChange(item.id, e.target.value)} required />
+                        <Input label="구매 유형" select selectOptions={["일반 구매", "제작·인쇄", "대여", "용역"]} value={item.purchaseType} onChange={e => handleTypeChange(item.id, e.target.value)} required />
                         <div className="grid grid-cols-2 gap-2">
                            <Input label="수량" type="number" value={String(item.quantity)} onChange={e => updateItem(item.id, "quantity", Number(e.target.value))} required />
                            <Input label="단위" placeholder="개" value={item.unit} onChange={e => updateItem(item.id, "unit", e.target.value)} required />
@@ -12038,6 +13027,19 @@ function FINREQ01() {
                           <p className="text-[9px] text-blue-500 leading-none mb-1 font-semibold uppercase tracking-wider">품목 총액</p>
                           <p className="text-sm font-bold text-blue-700 leading-none">{(item.quantity * item.estimatedUnitPrice).toLocaleString()}원</p>
                         </div>
+                      </div>
+
+                      <div id={`item_${item.id}_evidence`} className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                        <Input
+                          label={item.purchaseType === "일반 구매" ? "가격 근거" : "업체 견적서"}
+                          value={item.priceEvidence ?? ""}
+                          onChange={e => updateItem(item.id, "priceEvidence", e.target.value)}
+                          placeholder={item.purchaseType === "일반 구매" ? "상품 링크, 판매처 정보 또는 가격 화면" : "견적서 파일명 또는 등록 정보"}
+                          required
+                          error={errors[`item_${item.id}_evidence`]}
+                          hint={item.purchaseType === "일반 구매" ? "금액과 무관하게 가격 근거 1건이 필요합니다." : "제작·인쇄·대여·용역은 업체 견적서가 필요합니다."}
+                        />
+                        {errors[`item_${item.id}_evidence`] && <p className="text-[10px] text-red-500 mt-1">{errors[`item_${item.id}_evidence`]}</p>}
                       </div>
 
                       {/* Conditional Detail Inputs */}
@@ -12091,23 +13093,45 @@ function FINREQ01() {
                           </div>
                         )}
 
-                        {item.purchaseType === "대여·용역" && (
+                        {item.purchaseType === "대여" && (
                           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
-                             <Input label="업체 또는 제공자" placeholder="예: 바다렌탈" />
-                             <Input label="수행 장소" placeholder="예: 학교 정문 앞" />
+                             <Input label="대여처" placeholder="예: 바다렌탈" />
+                             <Input label="수령 장소" placeholder="예: 학교 정문 앞" />
                              <div className="grid grid-cols-2 gap-3">
                                <div className="flex flex-col gap-1">
-                                 <label className="text-[11px] font-medium text-gray-700">수령/시작 일시</label>
+                                 <label className="text-[11px] font-medium text-gray-700">대여 시작(수령) 일시</label>
                                  <input type="datetime-local" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" />
                                </div>
                                <div className="flex flex-col gap-1">
-                                 <label className="text-[11px] font-medium text-gray-700">반납/종료 일시</label>
+                                 <label className="text-[11px] font-medium text-gray-700">반납 예정 일시</label>
+                                 <input type="datetime-local" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" />
+                               </div>
+                             </div>
+                             <Input label="담당자 연락처" placeholder="예: 010-1234-5678" />
+                             <Input label="보증금(있으면)" placeholder="예: 50,000원 · 반납 시 환입" />
+                             <div className="col-span-2">
+                               <Input label="대여 조건·요청사항" placeholder="파손·분실 배상 조건, 회수 방법 등 기재" />
+                             </div>
+                          </div>
+                        )}
+
+                        {item.purchaseType === "용역" && (
+                          <div className="grid grid-cols-2 gap-x-6 gap-y-4">
+                             <Input label="용역 제공자" placeholder="예: 무대설치 전문업체" />
+                             <Input label="수행 장소" placeholder="예: 학교 대운동장" />
+                             <div className="grid grid-cols-2 gap-3">
+                               <div className="flex flex-col gap-1">
+                                 <label className="text-[11px] font-medium text-gray-700">수행 시작 일시</label>
+                                 <input type="datetime-local" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" />
+                               </div>
+                               <div className="flex flex-col gap-1">
+                                 <label className="text-[11px] font-medium text-gray-700">수행 종료 일시</label>
                                  <input type="datetime-local" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" />
                                </div>
                              </div>
                              <Input label="담당자 연락처" placeholder="예: 010-1234-5678" />
                              <div className="col-span-2">
-                               <Input label="용역 포함 항목 및 요청사항" placeholder="설치, 철거 포함 여부 등 기재" />
+                               <Input label="용역 포함 항목 및 요청사항" placeholder="설치·철거 포함 여부, 산출물 등 기재" />
                              </div>
                           </div>
                         )}
@@ -12198,15 +13222,20 @@ function FINREQ01() {
 }
 
 function FINREV01() {
-  const { navigateTo, purchaseRequests, setPurchaseRequests, eventInfo } = React.useContext(AppContext);
-  const sourceReq = purchaseRequests.find(r => r.id === "REQ-001") || purchaseRequests[0];
+  const { navigateTo, purchaseRequests, setPurchaseRequests, eventInfo, selectedPurchaseRequestId } = React.useContext(AppContext);
+  const sourceReq = purchaseRequests.find(r => r.id === selectedPurchaseRequestId) || purchaseRequests[0];
+  const latestSupplementSubmission = sourceReq.supplementSubmissions?.[sourceReq.supplementSubmissions.length - 1];
+  const isRecheck = sourceReq.status === "재검토 대기" || Boolean(latestSupplementSubmission);
+  const reviewTabLabel = isRecheck ? "품목 재검토" : "품목 검토";
+  const tabs = isRecheck
+    ? ["보완 내용 비교", "품목 재검토", "요청 정보", "첨부파일", "처리 기록"]
+    : ["요청 정보", "품목 검토", "첨부파일", "처리 기록"];
 
-  const [currentTab, setCurrentTab] = useState("품목 검토");
+  const [currentTab, setCurrentTab] = useState(isRecheck ? "보완 내용 비교" : "품목 검토");
   const [showModal, setShowModal] = useState(false);
 
   type ItemReview = {
     status: "검토 대기" | "승인" | "보완 요청" | "반려";
-    approvedAmount: number;
     rejectionReason: string;
   };
 
@@ -12215,8 +13244,7 @@ function FINREV01() {
     sourceReq.items.forEach(item => {
       map[item.id] = {
         status: item.status as ItemReview["status"],
-        approvedAmount: item.estimatedTotalPrice,
-        rejectionReason: "",
+        rejectionReason: item.rejectionReason ?? "",
       };
     });
     return map;
@@ -12226,9 +13254,6 @@ function FINREV01() {
 
   const setItemStatus = (id: number, status: ItemReview["status"]) =>
     setReviews(prev => ({ ...prev, [id]: { ...prev[id], status } }));
-
-  const setItemApprovedAmount = (id: number, amount: number) =>
-    setReviews(prev => ({ ...prev, [id]: { ...prev[id], approvedAmount: amount } }));
 
   const setItemRejectionReason = (id: number, reason: string) =>
     setReviews(prev => ({ ...prev, [id]: { ...prev[id], rejectionReason: reason } }));
@@ -12246,7 +13271,16 @@ function FINREV01() {
   const overallStatus = getOverallStatus();
   const unreviewedCount = sourceReq.items.filter(item => (reviews[item.id]?.status ?? "검토 대기") === "검토 대기").length;
   const supplementItems = sourceReq.items.filter(item => reviews[item.id]?.status === "보완 요청");
+  const rejectedItems = sourceReq.items.filter(item => reviews[item.id]?.status === "반려");
   const totalAmount = sourceReq.items.reduce((sum, item) => sum + item.estimatedTotalPrice, 0);
+  // 실제 배정 예산에서 이 행사의 다른 승인 요청 예약액과 기존 실지출을 뺀 사용 가능액으로 판정한다.
+  const otherReserved = purchaseRequests
+    .filter(r => r.eventId === sourceReq.eventId && r.id !== sourceReq.id && ["승인", "부분 승인", "구매 필요", "증빙 필요"].includes(r.status))
+    .flatMap(r => r.items.filter(i => i.status === "승인"))
+    .reduce((sum, i) => sum + i.estimatedTotalPrice, 0);
+  const availableBudget = DEFAULT_BUDGET_LINES.reduce((sum, l) => sum + l.allocated - l.actual, 0) - otherReserved;
+  const budgetExceeded = totalAmount > availableBudget;
+  const allRejectionReasonsProvided = rejectedItems.every(item => reviews[item.id]?.rejectionReason.trim());
 
   const getSubmitBtnLabel = () => {
     if (overallStatus === "최종 처리 불가") return "최종 처리";
@@ -12264,19 +13298,35 @@ function FINREV01() {
   };
 
   const commitFinalStatus = (status: FinanceStatus | "부분 승인") => {
-    setPurchaseRequests(prev => prev.map(r =>
-      r.id === sourceReq.id
-        ? {
-            ...r,
-            status,
-            items: r.items.map(item => ({
-              ...item,
-              status: reviews[item.id]?.status ?? item.status,
-            })),
-          }
-        : r
-    ));
-    navigateTo("EVT-FIN-01");
+    const action =
+      isRecheck && status === "승인" ? "재검토 승인 처리"
+        : isRecheck && status === "보완 요청" ? "재검토 후 추가 보완 요청"
+          : isRecheck && status === "반려" ? "재검토 후 반려 처리"
+            : status === "보완 요청" ? "보완 요청 발송"
+              : `${status} 처리`;
+    setPurchaseRequests(prev => prev.map(r => {
+      if (r.id !== sourceReq.id) return r;
+      const reviewed = r.items.map(item => ({
+        ...item,
+        status: reviews[item.id]?.status ?? item.status,
+        rejectionReason: reviews[item.id]?.status === "반려" ? reviews[item.id]?.rejectionReason.trim() : undefined,
+        supplementReason: reviews[item.id]?.status === "보완 요청" ? supplementReasons[item.id]?.trim() : undefined,
+      }));
+      // 선진행 동의 대기는 승인 품목과 함께 아직 보완·검토 대기 품목이 남아 있을 때만 필요하다(기준 문서 7.1).
+      // 전량 확정(보완·검토 대기 없음)이면 승인 품목은 바로 구매 진행(주문 대기)으로 넘긴다.
+      const hasPending = reviewed.some(it => it.status === "보완 요청" || it.status === "검토 대기");
+      const items = reviewed.map(item => ({
+        ...item,
+        agreedForPurchase: item.status !== "승인" ? item.agreedForPurchase
+          : item.agreedForPurchase === true ? true
+          : hasPending ? false
+          : true,
+      }));
+      // 전량 확정(보완·검토 대기 없이 승인)이면 요청도 '구매 필요'(승인·진행 중)로 넘겨 시드 관례와 맞춘다.
+      const finalReqStatus = (!hasPending && status === "승인" && items.some(it => it.status === "승인")) ? "구매 필요" : status;
+      return { ...r, status: finalReqStatus, items, history: [...r.history, { date: "2026-07-29 15:20", action, user: "김민준" }] };
+    }));
+    navigateTo("EVT-FIN-01B");
   };
 
   const handleFinalAction = () => {
@@ -12306,7 +13356,7 @@ function FINREV01() {
     supplementItems.every(item => supplementReasons[item.id]?.trim());
 
   const chipVariant = (s: string) =>
-    s === "보완 요청" ? "yellow" : s === "승인 완료" ? "green" : s === "반려" ? "red" : s === "부분 승인" ? "blue" : "gray";
+    s === "보완 요청" ? "yellow" : s === "승인 완료" ? "green" : s === "반려" ? "red" : s === "부분 승인" || s === "재검토 대기" ? "blue" : "gray";
 
   return (
     <AppContext.Provider value={{
@@ -12314,7 +13364,7 @@ function FINREV01() {
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
       activeSidebar: "운영"
     }}>
-      <DesktopShell title="구매 요청 검토" breadcrumb={["운영", "행사", eventInfo.name, "재정", "구매 요청 검토"]}>
+      <DesktopShell title={isRecheck ? "구매 요청 재검토" : "구매 요청 검토"} breadcrumb={["운영", "행사", eventInfo.name, "재정", isRecheck ? "구매 요청 재검토" : "구매 요청 검토"]}>
         <div className="flex h-full bg-gray-50 overflow-hidden">
           <div className="flex-1 overflow-auto p-8">
             <div className="max-w-5xl mx-auto flex flex-col gap-6 pb-20">
@@ -12324,10 +13374,10 @@ function FINREV01() {
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] text-gray-400 font-mono tracking-wider">{sourceReq.id}</span>
-                      <Chip label={overallStatus} variant={chipVariant(overallStatus)} />
+                      <Chip label={isRecheck && overallStatus === "최종 처리 불가" ? "재검토 대기" : overallStatus} variant={chipVariant(isRecheck && overallStatus === "최종 처리 불가" ? "재검토 대기" : overallStatus)} />
                       {sourceReq.priority === "긴급" && <Chip label="긴급" variant="red" />}
                     </div>
-                    <h2 className="text-xl font-bold text-gray-900">구매 요청 검토</h2>
+                    <h2 className="text-xl font-bold text-gray-900">{isRecheck ? "보완 재제출 내용 재검토" : "구매 요청 검토"}</h2>
                   </div>
                   <div className="flex items-center gap-8">
                     <div className="text-right border-r border-gray-100 pr-8">
@@ -12336,7 +13386,7 @@ function FINREV01() {
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">예산 사용 가능액</p>
-                      <p className="text-xl font-bold text-blue-600">950,000원</p>
+                      <p className="text-xl font-bold text-blue-600">{availableBudget.toLocaleString()}원</p>
                     </div>
                   </div>
                 </div>
@@ -12358,10 +13408,27 @@ function FINREV01() {
                 </div>
               </div>
 
+              {isRecheck && latestSupplementSubmission && (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 flex items-start gap-3">
+                  <RefreshCw className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-blue-900">보완 내용이 재제출되어 재검토가 필요합니다</p>
+                    <p className="text-[11px] text-blue-700 mt-1">
+                      {latestSupplementSubmission.requestedBy} 보완 요청 · {latestSupplementSubmission.requestedAt}
+                      <span className="mx-2">→</span>
+                      {latestSupplementSubmission.submittedBy} 재제출 · {latestSupplementSubmission.submittedAt}
+                    </p>
+                  </div>
+                  <Chip label={`${latestSupplementSubmission.items.length}개 품목`} variant="blue" />
+                </div>
+              )}
+
+              {budgetExceeded && <div className="bg-red-50 border border-red-200 rounded-xl px-5 py-3 flex items-center justify-between gap-4"><p className="text-xs text-red-700">승인하려는 요청액이 해당 행사 예산의 사용 가능액을 초과합니다. 예산 조정 후 다시 처리해 주세요.</p><Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-FIN-01B")}>예산 조정으로 이동</Btn></div>}
+
               {/* Main Content Area */}
               <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden min-h-[500px] flex flex-col">
                 <div className="px-6 border-b border-gray-100 flex items-center gap-8 shrink-0">
-                  {["요청 정보", "품목 검토", "첨부파일", "처리 기록"].map((t) => (
+                  {tabs.map((t) => (
                     <button
                       key={t}
                       onClick={() => setCurrentTab(t)}
@@ -12373,20 +13440,61 @@ function FINREV01() {
                 </div>
 
                 <div className="flex-1">
-                  {currentTab === "품목 검토" && (
+                  {currentTab === "보완 내용 비교" && latestSupplementSubmission && (
+                    <div className="p-6 flex flex-col gap-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="text-sm font-bold text-gray-900">보완 전·후 변경 내용</h3>
+                          <p className="text-[11px] text-gray-500 mt-1">보완 요청 당시 내용과 재제출된 내용을 비교한 뒤 품목 재검토에서 처리 결과를 선택합니다.</p>
+                        </div>
+                        <Btn variant="secondary" size="sm" onClick={() => setCurrentTab(reviewTabLabel)}>품목 재검토</Btn>
+                      </div>
+                      {latestSupplementSubmission.items.map(submissionItem => (
+                        <div key={submissionItem.itemId} className="border border-gray-200 rounded-xl overflow-hidden">
+                          <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 flex items-start justify-between gap-4">
+                            <div>
+                              <p className="text-xs font-bold text-gray-900">{submissionItem.itemName}</p>
+                              <p className="text-[10px] text-gray-500 mt-1">보완 사유 · {submissionItem.reason}</p>
+                            </div>
+                            <Chip label={`${submissionItem.fields.filter(field => field.before !== field.after).length}개 변경`} variant="blue" />
+                          </div>
+                          <div className="grid grid-cols-[140px_1fr_32px_1fr] bg-gray-50/50 border-b border-gray-100 text-[10px] font-bold text-gray-400">
+                            <div className="px-4 py-2">항목</div>
+                            <div className="px-4 py-2">보완 전</div>
+                            <div />
+                            <div className="px-4 py-2">보완 후</div>
+                          </div>
+                          <div className="divide-y divide-gray-100">
+                            {submissionItem.fields.map(field => {
+                              const changed = field.before !== field.after;
+                              return (
+                                <div key={field.label} className="grid grid-cols-[140px_1fr_32px_1fr] items-center text-xs">
+                                  <div className="px-4 py-3 font-semibold text-gray-600">{field.label}</div>
+                                  <div className="px-4 py-3 text-gray-500">{field.before}</div>
+                                  <ArrowRight className="w-3.5 h-3.5 text-gray-300 mx-auto" />
+                                  <div className={`px-4 py-3 font-semibold ${changed ? "bg-blue-50 text-blue-800" : "text-gray-600"}`}>{field.after}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {currentTab === reviewTabLabel && (
                     <table className="w-full text-xs text-left border-collapse">
                       <thead>
                         <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-medium">
                           <th className="px-6 py-3">품목 정보</th>
                           <th className="px-6 py-3">수량</th>
                           <th className="px-6 py-3 text-right">요청액</th>
-                          <th className="px-6 py-3 text-center">승인액</th>
                           <th className="px-6 py-3 text-right">검토 결과</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-50">
                         {sourceReq.items.map(item => {
-                          const review = reviews[item.id] ?? { status: "검토 대기" as const, approvedAmount: item.estimatedTotalPrice, rejectionReason: "" };
+                          const review = reviews[item.id] ?? { status: "검토 대기" as const, rejectionReason: "" };
                           return (
                             <tr key={item.id} className="hover:bg-gray-50/30 transition-colors">
                               <td className="px-6 py-4">
@@ -12396,16 +13504,6 @@ function FINREV01() {
                               </td>
                               <td className="px-6 py-4 text-gray-600 font-medium">{item.quantity}{item.unit}</td>
                               <td className="px-6 py-4 text-right text-gray-600 font-mono">{item.estimatedTotalPrice.toLocaleString()}원</td>
-                              <td className="px-6 py-4">
-                                <div className="flex justify-center">
-                                  <input
-                                    type="number"
-                                    value={review.approvedAmount}
-                                    onChange={e => setItemApprovedAmount(item.id, Number(e.target.value))}
-                                    className="border border-gray-200 rounded px-2 py-1.5 w-28 text-right font-mono focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                  />
-                                </div>
-                              </td>
                               <td className="px-6 py-4">
                                 <div className="flex flex-col items-end gap-1.5">
                                   <div className="flex gap-1">
@@ -12436,6 +13534,9 @@ function FINREV01() {
                                       className="border border-red-200 rounded px-2 py-1 w-48 text-[10px] placeholder-red-300 focus:outline-none focus:ring-1 focus:ring-red-400"
                                     />
                                   )}
+                                  {review.status === "보완 요청" && (
+                                    <p className="max-w-[190px] text-[10px] text-yellow-700 text-right">최종 발송 전 품목별 보완 사유를 입력합니다.</p>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -12446,10 +13547,86 @@ function FINREV01() {
                   )}
 
                   {currentTab === "요청 정보" && (
-                    <div className="p-8 text-gray-400 text-center py-20 italic">요청 상세 입력 필드가 여기에 표시됩니다.</div>
+                    <div className="p-6 flex flex-col gap-5">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">구매 요청 상세</h3>
+                        <p className="text-[11px] text-gray-500 mt-1">요청자가 제출한 기본 정보와 품목별 구매 조건입니다.</p>
+                      </div>
+                      <div className="grid grid-cols-3 gap-3">
+                        {[
+                          ["요청 제목", sourceReq.title],
+                          ["요청 부서", sourceReq.dept],
+                          ["요청자", sourceReq.requester],
+                          ["필요한 날짜", sourceReq.neededDate],
+                          ["우선순위", sourceReq.priority],
+                          ["총 요청액", `${totalAmount.toLocaleString()}원`],
+                        ].map(([label, value]) => (
+                          <div key={label} className="border border-gray-100 bg-gray-50 rounded-lg p-3">
+                            <p className="text-[10px] text-gray-400">{label}</p>
+                            <p className="text-xs font-semibold text-gray-800 mt-1">{value}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border border-gray-100 rounded-lg p-4">
+                        <p className="text-[10px] text-gray-400">구매 목적</p>
+                        <p className="text-xs text-gray-700 mt-1 leading-5">{sourceReq.purpose}</p>
+                      </div>
+                      <div className="flex flex-col gap-3">
+                        {sourceReq.items.map(item => (
+                          <div key={item.id} className="border border-gray-200 rounded-xl p-4 flex items-start justify-between gap-5">
+                            <div>
+                              <p className="text-xs font-bold text-gray-900">{item.name}</p>
+                              <p className="text-[10px] text-gray-500 mt-1">{item.category} · {item.purchaseType} · {item.budgetLine}</p>
+                              {Object.keys(item.details ?? {}).length > 0 && (
+                                <p className="text-[10px] text-gray-500 mt-2">
+                                  {Object.entries(item.details).map(([key, value]) => `${key}: ${String(value)}`).join(" · ")}
+                                </p>
+                              )}
+                            </div>
+                            <div className="text-right shrink-0">
+                              <p className="text-xs font-bold text-gray-900">{item.estimatedTotalPrice.toLocaleString()}원</p>
+                              <p className="text-[10px] text-gray-400 mt-1">{item.quantity}{item.unit} × {item.estimatedUnitPrice.toLocaleString()}원</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                   {currentTab === "첨부파일" && (
-                    <div className="p-8 text-gray-400 text-center py-20 italic">첨부된 견적서 및 증빙 서류가 여기에 표시됩니다.</div>
+                    <div className="p-6 flex flex-col gap-5">
+                      <div>
+                        <h3 className="text-sm font-bold text-gray-900">가격 근거·첨부파일</h3>
+                        <p className="text-[11px] text-gray-500 mt-1">{isRecheck ? "보완 전 파일과 재제출 파일을 함께 확인합니다." : "품목별 가격 근거를 확인합니다."}</p>
+                      </div>
+                      {(latestSupplementSubmission?.items ?? sourceReq.items.map(item => ({
+                        itemId: item.id,
+                        itemName: item.name,
+                        beforeAttachments: [] as string[],
+                        afterAttachments: item.priceEvidence ? [item.priceEvidence] : [],
+                      }))).map(item => (
+                        <div key={item.itemId} className="border border-gray-200 rounded-xl overflow-hidden">
+                          <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+                            <p className="text-xs font-bold text-gray-800">{item.itemName}</p>
+                          </div>
+                          <div className={`grid ${isRecheck ? "grid-cols-2" : "grid-cols-1"} divide-x divide-gray-100`}>
+                            {isRecheck && (
+                              <div className="p-4">
+                                <p className="text-[10px] font-bold text-gray-400 mb-2">보완 전 첨부</p>
+                                {item.beforeAttachments.length > 0 ? item.beforeAttachments.map(file => (
+                                  <div key={file} className="flex items-center gap-2 text-xs text-gray-600"><FileText className="w-4 h-4 text-gray-400" />{file}</div>
+                                )) : <p className="text-xs text-gray-400">첨부 없음</p>}
+                              </div>
+                            )}
+                            <div className={`p-4 ${isRecheck ? "bg-blue-50/40" : ""}`}>
+                              <p className={`text-[10px] font-bold mb-2 ${isRecheck ? "text-blue-600" : "text-gray-400"}`}>{isRecheck ? "보완 후 첨부" : "제출된 가격 근거"}</p>
+                              {item.afterAttachments.length > 0 ? item.afterAttachments.map(file => (
+                                <div key={file} className="flex items-center gap-2 text-xs font-medium text-gray-700"><FileText className="w-4 h-4 text-blue-500" />{file}</div>
+                              )) : <p className="text-xs text-gray-400">첨부 없음</p>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   )}
                   {currentTab === "처리 기록" && (
                     <div className="p-8 flex flex-col gap-6">
@@ -12468,7 +13645,7 @@ function FINREV01() {
               </div>
 
               <div className="flex justify-between items-center bg-white p-4 rounded-xl border border-gray-200 shadow-sm">
-                <Btn variant="secondary" size="md" onClick={() => navigateTo("EVT-FIN-01")}><ArrowLeft className="w-4 h-4" /> 행사 재정으로</Btn>
+                <Btn variant="secondary" size="md" onClick={() => navigateTo("EVT-FIN-01B")}><ArrowLeft className="w-4 h-4" /> 행사 재정으로</Btn>
                 <div className="flex items-center gap-4">
                   {unreviewedCount > 0 && (
                     <span className="text-xs text-orange-600 font-medium">미검토 품목이 {unreviewedCount}개 있습니다.</span>
@@ -12476,7 +13653,7 @@ function FINREV01() {
                   <Btn
                     variant="primary"
                     size="md"
-                    disabled={unreviewedCount > 0}
+                    disabled={unreviewedCount > 0 || !allRejectionReasonsProvided || budgetExceeded}
                     onClick={handleFinalAction}
                     className={`px-8 ${getSubmitBtnColor()}`}
                   >
@@ -12492,7 +13669,7 @@ function FINREV01() {
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-2xl shadow-2xl w-[560px] max-h-[80vh] overflow-hidden flex flex-col">
               <div className="bg-yellow-50 px-8 py-4 border-b border-yellow-100 flex items-center justify-between shrink-0">
-                <h3 className="text-sm font-bold text-yellow-800">보완 요청 발송</h3>
+                <h3 className="text-sm font-bold text-yellow-800">{isRecheck ? "추가 보완 요청 발송" : "보완 요청 발송"}</h3>
                 <button onClick={() => setShowModal(false)} className="text-yellow-600 hover:text-yellow-800"><X className="w-4 h-4" /></button>
               </div>
               <div className="p-8 flex flex-col gap-5 overflow-auto">
@@ -12524,7 +13701,7 @@ function FINREV01() {
                   className="bg-yellow-600 hover:bg-yellow-700 border-yellow-600 px-8"
                   onClick={handleSupplementSend}
                 >
-                  보완 요청 발송
+                  {isRecheck ? "추가 보완 요청 발송" : "보완 요청 발송"}
                 </Btn>
               </div>
             </div>
@@ -12992,7 +14169,7 @@ function MY01() {
 }
 
 function MYREQ01() {
-  const { navigateTo, purchaseRequests, currentUser, eventInfo, selectedEventId } = React.useContext(AppContext);
+  const { navigateTo, purchaseRequests, currentUser, eventInfo, selectedEventId, setSelectedPurchaseRequestId } = React.useContext(AppContext);
   // 내 구매 요청도 선택 행사 기준으로만 보여준다.
   const myRequests = purchaseRequests.filter(request => request.requester === currentUser.name && request.eventId === selectedEventId);
   const statCards = [
@@ -13003,11 +14180,12 @@ function MYREQ01() {
     { label: "처리 완료", count: myRequests.filter(r => r.status === "정산 완료").length, color: "text-gray-600 bg-gray-100" },
   ];
   const displayStatus = (status: PurchaseRequest["status"]) => status === "보완 요청" ? "보완 필요" : status === "승인" ? "승인 완료" : status === "구매 필요" ? "구매 진행" : status;
-  const statusVariant = (status: PurchaseRequest["status"]) => status === "보완 요청" ? "yellow" as const : status === "승인" || status === "정산 완료" ? "green" as const : status === "반려" ? "red" as const : status === "구매 필요" || status === "증빙 필요" ? "blue" as const : "blue" as const;
+  const statusVariant = (status: PurchaseRequest["status"]) => status === "보완 요청" ? "yellow" as const : status === "승인" || status === "정산 완료" ? "green" as const : status === "반려" || status === "요청 취소" ? "red" as const : status === "구매 필요" || status === "증빙 필요" ? "blue" as const : "blue" as const;
   const btnLabel = (status: PurchaseRequest["status"]) => status === "보완 요청" ? "보완하기" : "상태 확인";
   const btnStyle = (status: PurchaseRequest["status"]) => status === "보완 요청"
     ? "bg-yellow-500 text-white px-3 py-1.5 rounded text-[10px] font-bold"
     : "border border-gray-200 text-gray-600 px-3 py-1.5 rounded text-[10px] font-medium";
+  const canCreateRequest = canSubmitPurchaseRequest(currentUser);
 
   return (
     <DesktopShell
@@ -13026,9 +14204,9 @@ function MYREQ01() {
             </div>
             <p className="text-xs text-gray-500 mt-0.5">이 행사에서 내가 제출한 구매 요청 · {currentUser.name} · {currentUser.dept} · {currentUser.role}</p>
           </div>
-          <button onClick={() => navigateTo("FIN-REQ-01")} className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+          {canCreateRequest && <button onClick={() => navigateTo("FIN-REQ-01B")} className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
             <Plus className="w-4 h-4" /> 새 구매 요청
-          </button>
+          </button>}
         </div>
 
         <div className="grid grid-cols-5 gap-3">
@@ -13067,7 +14245,7 @@ function MYREQ01() {
                   <td className="px-5 py-3 text-gray-500">{r.neededDate}</td>
                   <td className="px-5 py-3"><Chip label={displayStatus(r.status)} variant={statusVariant(r.status)} /></td>
                   <td className="px-5 py-3">
-                    <button type="button" onClick={() => navigateTo(r.status === "보완 요청" ? "FIN-SUP-01" : "FIN-REQ-02")} className={btnStyle(r.status)}>{btnLabel(r.status)}</button>
+                    <button type="button" onClick={() => { setSelectedPurchaseRequestId(r.id); navigateTo(r.status === "보완 요청" && canCreateRequest ? "FIN-SUP-01B" : "FIN-REQ-02"); }} className={btnStyle(r.status)}>{r.status === "보완 요청" && !canCreateRequest ? "상태 확인" : btnLabel(r.status)}</button>
                   </td>
                 </tr>
               ))}
@@ -13081,24 +14259,50 @@ function MYREQ01() {
 }
 
 function FINREQ02() {
-  const { eventInfo } = React.useContext(AppContext);
+  const { eventInfo, purchaseRequests, setPurchaseRequests, selectedPurchaseRequestId, navigateTo, currentUser } = React.useContext(AppContext);
+  const request = purchaseRequests.find(item => item.id === selectedPurchaseRequestId) || purchaseRequests[0];
+  // 주문 취소 요청: 원래 요청자 본인이면서 재정부·부서장일 때만 (권한 매트릭스 canRequestOrderCancellation)
+  const isRequester = request.requester === currentUser.name && canSubmitPurchaseRequest(currentUser);
+  const cancelableExecs = request.items.flatMap(it => getExecutions(it).filter(ex => ex.orderStatus === "주문 완료" && ex.receiptStatus !== "수령 완료" && ex.serviceStatus !== "이행 완료" && !ex.cancelRequested).map(ex => ({ it, ex })));
+  const cancelRows = request.items.flatMap(it => getExecutions(it).filter(ex => ex.orderStatus === "주문 완료" || ex.orderStatus === "주문 취소" || ex.cancelRequested).map(ex => ({ it, ex })));
+  const [cancelTarget, setCancelTarget] = useState<{ itemId: number; execId: string; name: string } | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const submitCancelRequest = () => {
+    if (!cancelTarget || !cancelReason.trim()) return;
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.id !== cancelTarget.itemId ? it : {
+        ...it,
+        executions: getExecutions({ ...it, status: "승인" }).map(ex => ex.id === cancelTarget.execId ? { ...ex, cancelRequested: true, cancelReason: cancelReason.trim() } : ex),
+      }),
+      history: [...r.history, { date: "2026-08-01 11:10", action: `주문 취소 요청 · ${cancelReason.trim()}`, user: currentUser.name }],
+    }));
+    setCancelTarget(null);
+    setCancelReason("");
+  };
+  // 품목 단위 요청 취소: 요청자가 주문 완료 전(검토 대기·보완 요청·미주문 승인) 개별 품목을 사유와 함께 취소.
+  // 취소한 품목은 요청 아카이브(전체 요청)엔 취소 기록으로 남고, 승인 묶음 생성 시 status가 "승인"이 아니므로 자동 제외된다. (기준 문서 7.2)
+  const canCancelItem = (item: PurchaseItem) => isRequester && ["검토 대기", "보완 요청", "승인"].includes(item.status) && getExecutions(item).every(ex => ex.orderStatus === "주문 대기");
+  const [itemCancelTarget, setItemCancelTarget] = useState<{ itemId: number; name: string } | null>(null);
+  const [itemCancelReason, setItemCancelReason] = useState("");
+  const submitItemCancel = () => {
+    if (!itemCancelTarget || !itemCancelReason.trim()) return;
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.id !== itemCancelTarget.itemId ? it : { ...it, status: "요청 취소", requestCancelReason: itemCancelReason.trim() }),
+      history: [...r.history, { date: "2026-08-01 11:40", action: `요청 취소 · ${itemCancelTarget.name} · ${itemCancelReason.trim()}`, user: currentUser.name }],
+    }));
+    setItemCancelTarget(null);
+    setItemCancelReason("");
+  };
   const steps = ["요청 제출", "재정부 검토", "구매·발주", "결제·증빙", "처리 완료"];
-  const currentStep = 1;
-  const items = [
-    { name: "박스테이프", qty: "5개", reqAmt: 10000, status: "승인", statusVariant: "green" as const },
-    { name: "생수 500ml", qty: "10박스", reqAmt: 50000, status: "승인", statusVariant: "green" as const },
-    { name: "이름표 용지", qty: "200장", reqAmt: 60000, status: "보완 필요", statusVariant: "yellow" as const },
-    { name: "유성 마커", qty: "10개", reqAmt: 15000, status: "승인", statusVariant: "green" as const },
-  ];
-  const history = [
-    { date: "2026-03-01 10:05", action: "제출", user: "박해랑" },
-    { date: "2026-03-02 09:30", action: "재정부 검토 시작", user: "김바다" },
-    { date: "2026-03-03 14:00", action: "보완 요청 발송", user: "김바다" },
-  ];
+  const currentStep = request.status === "정산 완료" ? 4 : request.status === "증빙 필요" ? 3 : request.status === "승인" || request.status === "부분 승인" ? 2 : 1;
+  const history = request.history;
+  const canResubmit = request.status === "보완 요청" && request.requester === currentUser.name && canSubmitPurchaseRequest(currentUser);
 
   return (
-    <DesktopShell activeSidebar="운영" title="구매 요청 상세·진행 상태" breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청", "REQ-001"]}>
-      <div className="p-8 flex flex-col gap-6 max-w-5xl mx-auto pb-20">
+    <DesktopShell activeSidebar="운영" title="구매 요청 상세·진행 상태" breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청", request.id]}>
+      <div className="p-8 flex flex-col gap-6 max-w-6xl mx-auto pb-20">
         {/* 진행 단계 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <div className="flex items-center gap-0">
@@ -13122,18 +14326,18 @@ function FINREQ02() {
           <div className="flex items-start justify-between mb-6">
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-gray-400 font-mono">REQ-001</span>
-                <Chip label="보완 요청" variant="yellow" />
+                <span className="text-[10px] text-gray-400 font-mono">{request.id}</span>
+                <Chip label={request.status} variant={request.status === "반려" || request.status === "요청 취소" ? "red" : request.status === "보완 요청" ? "yellow" : request.status === "재검토 대기" ? "blue" : "green"} />
               </div>
-              <h2 className="text-lg font-bold text-gray-900">체육대회 운영 물품 4종</h2>
+              <h2 className="text-lg font-bold text-gray-900">{request.title}</h2>
             </div>
             <div className="text-right">
               <p className="text-[10px] text-gray-400 font-semibold mb-0.5">전체 요청액</p>
-              <p className="text-xl font-bold text-gray-900">135,000원</p>
+              <p className="text-xl font-bold text-gray-900">{request.totalEstimatedAmount.toLocaleString()}원</p>
             </div>
           </div>
           <div className="grid grid-cols-4 gap-x-8 gap-y-4 border-t border-gray-100 pt-5 text-xs">
-            {[["행사명", "2026 소프트웨어융합대학 체육대회"], ["요청 부서", "운영부"], ["요청자", "박해랑"], ["필요한 날짜", "2026-03-15"]].map(([k, v]) => (
+            {[["행사명", request.event], ["요청 부서", request.dept], ["요청자", request.requester], ["필요한 날짜", request.neededDate]].map(([k, v]) => (
               <div key={k}><p className="text-[10px] text-gray-400 font-semibold mb-0.5">{k}</p><p className="text-gray-700">{v}</p></div>
             ))}
           </div>
@@ -13143,29 +14347,73 @@ function FINREQ02() {
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="text-sm font-bold text-gray-800">품목별 처리 결과</h3>
-            <button className="text-[11px] bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded font-semibold">보완 내용 확인</button>
+            {canResubmit && <button onClick={() => navigateTo("FIN-SUP-01B")} className="text-[11px] bg-yellow-100 text-yellow-700 px-3 py-1.5 rounded font-semibold">보완 내용 확인</button>}
           </div>
-          <table className="w-full text-xs text-left">
+          <table className="w-full text-xs text-left [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap">
             <thead><tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-medium">
               <th className="px-6 py-3">품목</th>
               <th className="px-6 py-3">수량</th>
               <th className="px-6 py-3 text-right">요청액</th>
               <th className="px-6 py-3">처리 결과</th>
-              <th className="px-6 py-3">재정부 전달사항</th>
+              <th className="px-6 py-3 whitespace-normal">재정부 전달사항</th>
+              {isRequester && <th className="px-6 py-3 text-right">요청 취소</th>}
             </tr></thead>
             <tbody className="divide-y divide-gray-50">
-              {items.map(item => (
-                <tr key={item.name} className="hover:bg-gray-50/30">
-                  <td className="px-6 py-3 font-semibold text-gray-800">{item.name}</td>
-                  <td className="px-6 py-3 text-gray-500">{item.qty}</td>
-                  <td className="px-6 py-3 text-right font-mono text-gray-600">{item.reqAmt.toLocaleString()}원</td>
-                  <td className="px-6 py-3"><Chip label={item.status} variant={item.statusVariant} /></td>
-                  <td className="px-6 py-3 text-gray-500">{item.status === "보완 필요" ? "규격·수량 확인 후 견적서 재첨부 요망" : "—"}</td>
-                </tr>
-              ))}
+              {request.items.map(item => {
+                const label = item.status === "보완 요청" ? "보완 필요" : item.status;
+                const variant = item.status === "승인" ? "green" as const : item.status === "반려" || item.status === "요청 취소" ? "red" as const : item.status === "보완 요청" ? "yellow" as const : "blue" as const;
+                const message = item.requestCancelReason ?? item.supplementReason ?? item.rejectionReason ?? "—";
+                return (
+                  <tr key={item.id} className={`hover:bg-gray-50/30 ${item.status === "요청 취소" ? "opacity-60" : ""}`}>
+                    <td className="px-6 py-3 font-semibold text-gray-800">{item.name}</td>
+                    <td className="px-6 py-3 text-gray-500">{item.quantity}{item.unit}</td>
+                    <td className="px-6 py-3 text-right font-mono text-gray-600">{item.estimatedTotalPrice.toLocaleString()}원</td>
+                    <td className="px-6 py-3"><Chip label={label} variant={variant} /></td>
+                    <td className="px-6 py-3 text-gray-500 whitespace-normal">{message}</td>
+                    {isRequester && (
+                      <td className="px-6 py-3 text-right">
+                        {canCancelItem(item)
+                          ? <button onClick={() => setItemCancelTarget({ itemId: item.id, name: item.name })} className="text-[11px] border border-red-200 text-red-600 px-3 py-1.5 rounded font-semibold hover:bg-red-50">요청 취소</button>
+                          : item.status === "요청 취소"
+                            ? <span className="text-[10px] text-red-500 font-semibold">취소됨</span>
+                            : <span className="text-gray-300">—</span>}
+                      </td>
+                    )}
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          {isRequester && (
+            <p className="px-6 py-3 text-[11px] text-gray-400 border-t border-gray-50">주문 완료 전 품목만 요청 취소할 수 있습니다. 취소한 품목은 요청 기록에 남고 승인 묶음에서는 자동 제외됩니다.</p>
+          )}
         </div>
+
+        {/* 주문 취소 요청 (요청자) */}
+        {isRequester && cancelRows.length > 0 && (
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="text-sm font-bold text-gray-800">주문 취소 요청</h3>
+              <p className="text-[11px] text-gray-500 mt-0.5">주문 완료된 개별 실행분의 취소를 사유와 함께 요청하면 재정부가 확인해 주문 취소·환불을 처리합니다.</p>
+            </div>
+            <div className="divide-y divide-gray-50">
+              {cancelRows.map(({ it, ex }) => (
+                <div key={ex.id} className="px-6 py-3 flex items-center justify-between gap-4">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-mono text-gray-400">{ex.id}</span>
+                    <span className="text-xs font-semibold text-gray-800">{it.name}</span>
+                    {ex.orderStatus === "주문 취소" && <span className="text-[10px] text-red-600 font-semibold bg-red-50 border border-red-100 rounded px-1.5 py-0.5">취소됨</span>}
+                    {ex.cancelRequested && <span className="text-[10px] text-amber-600 font-semibold bg-amber-50 border border-amber-100 rounded px-1.5 py-0.5">취소 요청됨 · 재정부 확인 대기</span>}
+                    {ex.cancelReason && <span className="text-[10px] text-gray-400">사유: {ex.cancelReason}</span>}
+                  </div>
+                  {ex.orderStatus === "주문 완료" && ex.receiptStatus !== "수령 완료" && ex.serviceStatus !== "이행 완료" && !ex.cancelRequested && (
+                    <button onClick={() => setCancelTarget({ itemId: it.id, execId: ex.id, name: it.name })} className="text-[11px] border border-red-200 text-red-600 px-3 py-1.5 rounded font-semibold hover:bg-red-50 whitespace-nowrap">주문 취소 요청</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* 처리 기록 */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -13180,12 +14428,53 @@ function FINREQ02() {
           </div>
         </div>
       </div>
+      {cancelTarget && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-6">
+          <div className="w-[460px] bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900">주문 취소 요청 · {cancelTarget.name}</h3>
+              <button onClick={() => { setCancelTarget(null); setCancelReason(""); }} className="text-gray-400"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="p-6 flex flex-col gap-3">
+              <p className="text-[11px] text-gray-500">취소 사유를 입력하면 재정부가 확인해 주문 취소·환불을 처리합니다.</p>
+              <textarea value={cancelReason} onChange={e => setCancelReason(e.target.value)} rows={3} placeholder="예: 행사 계획 변경으로 해당 물품이 더 이상 필요하지 않음" className="border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 resize-none" />
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+              <button onClick={() => { setCancelTarget(null); setCancelReason(""); }} className="border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium">취소</button>
+              <button disabled={!cancelReason.trim()} onClick={submitCancelRequest} className="bg-red-600 disabled:bg-gray-300 text-white px-5 py-2 rounded-lg text-sm font-bold">취소 요청 보내기</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {itemCancelTarget && (
+        <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-6">
+          <div className="w-[460px] bg-white rounded-2xl shadow-xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h3 className="text-sm font-bold text-gray-900">요청 취소 · {itemCancelTarget.name}</h3>
+              <button onClick={() => { setItemCancelTarget(null); setItemCancelReason(""); }} className="text-gray-400"><X className="w-4 h-4" /></button>
+            </div>
+            <div className="p-6 flex flex-col gap-3">
+              <p className="text-[11px] text-gray-500">주문 완료 전 품목입니다. 취소하면 이 품목은 요청 기록에 취소로 남고 승인 묶음에서는 자동 제외됩니다. 승인·예산 예약이 있으면 함께 해제됩니다.</p>
+              <textarea value={itemCancelReason} onChange={e => setItemCancelReason(e.target.value)} rows={3} placeholder="예: 요청을 잘못 보냄 · 수량 착오로 다시 요청 예정" className="border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 resize-none" />
+            </div>
+            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+              <button onClick={() => { setItemCancelTarget(null); setItemCancelReason(""); }} className="border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium">돌아가기</button>
+              <button disabled={!itemCancelReason.trim()} onClick={submitItemCancel} className="bg-red-600 disabled:bg-gray-300 text-white px-5 py-2 rounded-lg text-sm font-bold">요청 취소</button>
+            </div>
+          </div>
+        </div>
+      )}
     </DesktopShell>
   );
 }
 
 function FINSUP01() {
-  const { purchaseSupplementDraft, setPurchaseSupplementDraft, eventInfo } = React.useContext(AppContext);
+  const { purchaseSupplementDraft, setPurchaseSupplementDraft, eventInfo, purchaseRequests, setPurchaseRequests, selectedPurchaseRequestId, currentUser, navigateTo } = React.useContext(AppContext);
+  const request = purchaseRequests.find(item => item.id === selectedPurchaseRequestId) || purchaseRequests.find(item => item.status === "보완 요청") || purchaseRequests[0];
+  const supplementItems = request.items.filter(item => item.status === "보완 요청");
+  const primarySupplementItem = supplementItems[0] ?? request.items[0];
+  const supplementHistory = [...request.history].reverse().find(item => item.action.includes("보완 요청"));
+  const canResubmit = request.requester === currentUser.name && canSubmitPurchaseRequest(currentUser);
   const [supplement, setSupplement] = useState(() => ({
     size: purchaseSupplementDraft?.size ?? "",
     color: purchaseSupplementDraft?.color ?? "",
@@ -13198,8 +14487,60 @@ function FINSUP01() {
     setPurchaseSupplementDraft({ ...supplement, savedAt: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) });
     setDraftSaved(true);
   };
+  const resubmit = () => {
+    if (!canResubmit || !Object.values(supplement).every(value => value.trim())) return;
+    setPurchaseRequests(previous => previous.map(item => {
+      if (item.id !== request.id) return item;
+      const supplementRequestHistory = [...item.history].reverse().find(historyItem => historyItem.action.includes("보완 요청"));
+      const submission: PurchaseSupplementSubmission = {
+        id: `${item.id}-SUP-${(item.supplementSubmissions?.length ?? 0) + 1}`,
+        requestedAt: supplementRequestHistory?.date ?? "—",
+        requestedBy: supplementRequestHistory?.user ?? "재정부",
+        submittedAt: "2026-07-29 15:00",
+        submittedBy: currentUser.name,
+        items: item.items
+          .filter(purchaseItem => purchaseItem.status === "보완 요청")
+          .map(purchaseItem => {
+            const beforeSize = purchaseItem.details?.size ?? purchaseItem.details?.규격 ?? "미입력";
+            const beforeColor = purchaseItem.details?.color ?? purchaseItem.details?.색상 ?? "미입력";
+            const beforePrintPosition = purchaseItem.details?.printPosition ?? purchaseItem.details?.["인쇄 위치"] ?? "미입력";
+            const beforeQuantityOption = purchaseItem.details?.quantityOption ?? `${purchaseItem.quantity}${purchaseItem.unit}`;
+            const attachment = purchaseItem.priceEvidence ? [purchaseItem.priceEvidence] : [];
+            return {
+              itemId: purchaseItem.id,
+              itemName: purchaseItem.name,
+              reason: purchaseItem.supplementReason ?? "보완 요청 내용을 확인해 주세요.",
+              fields: [
+                { label: "사이즈·규격", before: String(beforeSize), after: supplement.size.trim() },
+                { label: "색상", before: String(beforeColor), after: supplement.color.trim() },
+                { label: "인쇄 위치", before: String(beforePrintPosition), after: supplement.printPosition.trim() },
+                { label: "옵션별 수량", before: String(beforeQuantityOption), after: supplement.quantityOption.trim() },
+              ],
+              beforeAttachments: attachment,
+              afterAttachments: attachment,
+            };
+          }),
+      };
+      return {
+        ...item,
+        status: "재검토 대기",
+        items: item.items.map(purchaseItem => purchaseItem.status === "보완 요청" ? {
+          ...purchaseItem,
+          status: "검토 대기",
+          details: { ...purchaseItem.details, ...supplement },
+        } : purchaseItem),
+        supplementSubmissions: [...(item.supplementSubmissions ?? []), submission],
+        history: [...item.history, { date: submission.submittedAt, action: "보완 내용 재제출", user: currentUser.name }],
+      };
+    }));
+    setPurchaseSupplementDraft(null);
+    navigateTo("FIN-REQ-02");
+  };
+  if (!canResubmit) {
+    return <DesktopShell activeSidebar="운영" title="보완 요청 확인" breadcrumb={["운영", "행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">보완 재제출 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">요청자 본인이면서 부서장 또는 재정부인 경우에만 보완 내용을 수정·재제출할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("FIN-REQ-02")}>요청 상태 확인</Btn></div></div></DesktopShell>;
+  }
   return (
-    <DesktopShell activeSidebar="운영" title="보완 요청 확인·재제출" breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청", "REQ-001", "보완 재제출"]}>
+    <DesktopShell activeSidebar="운영" title="보완 요청 확인·재제출" breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청", request.id, "보완 재제출"]}>
       <div className="p-8 flex flex-col gap-6 max-w-4xl mx-auto pb-20">
         {/* 보완 요청 배너 */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 flex items-start gap-4">
@@ -13208,8 +14549,8 @@ function FINSUP01() {
             <p className="text-sm font-bold text-yellow-800 mb-0.5">보완 요청</p>
             <p className="text-xs text-yellow-700">재정부에서 아래 품목에 대한 보완을 요청했습니다. 내용을 확인하고 수정 후 재제출하세요.</p>
             <div className="flex gap-6 mt-3 text-[11px] text-yellow-700">
-              <span><span className="font-semibold">요청 담당자</span> 김바다</span>
-              <span><span className="font-semibold">보완 요청일</span> 2026-03-03</span>
+              <span><span className="font-semibold">요청 담당자</span> {supplementHistory?.user ?? "재정부"}</span>
+              <span><span className="font-semibold">보완 요청일</span> {supplementHistory?.date.slice(0, 10) ?? "—"}</span>
               <span><span className="font-semibold">재제출 권장 기한</span> 2026-03-07</span>
             </div>
           </div>
@@ -13225,22 +14566,28 @@ function FINSUP01() {
         {/* 보완 품목 */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-100">
-            <h3 className="text-sm font-bold text-gray-800">보완 품목 — 이름표 용지</h3>
-            <p className="text-xs text-gray-500 mt-0.5">제작·인쇄 · 홍보비</p>
+            <h3 className="text-sm font-bold text-gray-800">보완 품목 — {supplementItems.map(item => item.name).join(", ") || "보완 대상 없음"}</h3>
+            <p className="text-xs text-gray-500 mt-0.5">{request.id} · 보완 대상 품목만 수정할 수 있습니다.</p>
           </div>
 
           <div className="p-6 flex flex-col gap-6">
             {/* 보완 사유 */}
             <div className="bg-yellow-50 border border-yellow-100 rounded-lg p-4">
               <p className="text-[10px] font-bold text-yellow-700 uppercase tracking-wider mb-1.5">보완 사유</p>
-              <p className="text-xs text-yellow-800 leading-relaxed">규격과 인쇄 사양이 누락되었습니다. 정확한 사이즈, 색상, 인쇄 위치를 명시하고 업체 견적서를 첨부해 주세요. 200장 기준 최소 2개 이상 업체 견적서 필요합니다.</p>
+              <p className="text-xs text-yellow-800 leading-relaxed">{supplementItems.map(item => item.supplementReason).filter(Boolean).join(" ") || "재정부가 요청한 보완 내용을 확인하고 수정해 주세요."}</p>
             </div>
 
             {/* 기존 입력 내용 */}
             <div>
               <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">기존 입력 내용</p>
               <div className="grid grid-cols-3 gap-4 text-xs">
-                {[["품목명", "이름표 용지"], ["수량", "200장"], ["단가(추정)", "300원"], ["합계(추정)", "60,000원"], ["예산 항목", "행사 운영비"]].map(([k, v]) => (
+                {[
+                  ["품목명", primarySupplementItem?.name ?? "—"],
+                  ["수량", primarySupplementItem ? `${primarySupplementItem.quantity}${primarySupplementItem.unit}` : "—"],
+                  ["단가(추정)", primarySupplementItem ? `${primarySupplementItem.estimatedUnitPrice.toLocaleString()}원` : "—"],
+                  ["합계(추정)", primarySupplementItem ? `${primarySupplementItem.estimatedTotalPrice.toLocaleString()}원` : "—"],
+                  ["예산 항목", primarySupplementItem?.budgetLine ?? "—"],
+                ].map(([k, v]) => (
                   <div key={k} className="bg-gray-50 rounded-lg p-3">
                     <p className="text-[10px] text-gray-400 mb-0.5">{k}</p>
                     <p className="font-semibold text-gray-700">{v}</p>
@@ -13286,7 +14633,7 @@ function FINSUP01() {
         <div className="flex justify-end gap-3">
           {draftSaved && <span className="self-center text-[11px] text-green-600 font-medium">임시 저장되었습니다</span>}
           <button className="border border-gray-200 text-gray-600 px-5 py-2.5 rounded-lg text-sm font-medium" onClick={saveDraft}>임시 저장</button>
-          <button className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold">수정 내용 재제출</button>
+          <button disabled={!canResubmit || !Object.values(supplement).every(value => value.trim())} onClick={resubmit} className="bg-blue-600 disabled:bg-gray-300 text-white px-6 py-2.5 rounded-lg text-sm font-bold">수정 내용 재제출</button>
         </div>
       </div>
     </DesktopShell>
@@ -13294,28 +14641,146 @@ function FINSUP01() {
 }
 
 function FINPROC01() {
-  const { eventInfo } = React.useContext(AppContext);
-  const orders = [
-    {
-      vendor: "다이소 온라인몰", items: [
-        { name: "박스테이프", qty: "5개", approvedAmt: 10000, orderStatus: "주문 완료", deliveryDate: "2026-03-12", deliveryStatus: "배송 중" },
-        { name: "유성 마커", qty: "10개", approvedAmt: 15000, orderStatus: "주문 완료", deliveryDate: "2026-03-12", deliveryStatus: "배송 중" },
-      ], orderAmt: 25000, orderedBy: "김바다", orderDate: "2026-03-08",
-    },
-    {
-      vendor: "마켓컬리 B2B", items: [
-        { name: "생수 500ml", qty: "10박스", approvedAmt: 50000, orderStatus: "주문 완료", deliveryDate: "2026-03-15", deliveryStatus: "배송 예정" },
-      ], orderAmt: 50000, orderedBy: "김바다", orderDate: "2026-03-10",
-    },
-    {
-      vendor: "인쇄업체 A (제작 발주)", items: [
-        { name: "이름표 용지 (제작)", qty: "200장", approvedAmt: 60000, orderStatus: "품절·변경 필요", deliveryDate: "—", deliveryStatus: "—" },
-      ], orderAmt: 60000, orderedBy: "—", orderDate: "—",
-    },
-  ];
-
-  const statusStyle = (s: string) => s === "주문 완료" ? "text-green-700 bg-green-50" : s === "품절·변경 필요" ? "text-red-700 bg-red-50" : "text-gray-500 bg-gray-100";
-  const deliveryStyle = (s: string) => s === "배송 중" ? "text-blue-700" : s === "배송 예정" ? "text-gray-500" : "text-red-500";
+  const { eventInfo, purchaseRequests, setPurchaseRequests, selectedPurchaseRequestId, navigateTo } = React.useContext(AppContext);
+  const request = purchaseRequests.find(item => item.id === selectedPurchaseRequestId) || purchaseRequests[0];
+  const pendingAgreement = request.items.filter(it => it.status === "승인" && it.agreedForPurchase === false);
+  // 부분 주문 모달: 주문 대기 실행분을 지정 수량만 주문 완료로 넘기고 남은 수량은 분할한다.
+  const [orderTarget, setOrderTarget] = useState<{ itemId: number; execId: string; name: string; maxQty: number; unit: string } | null>(null);
+  const [orderQtyInput, setOrderQtyInput] = useState("");
+  const submitOrder = () => {
+    if (!orderTarget) return;
+    const it = request.items.find(i => i.id === orderTarget.itemId);
+    if (!it) return;
+    execOrderQty(setPurchaseRequests, request.id, it, orderTarget.execId, Number(orderQtyInput) || orderTarget.maxQty);
+    setOrderTarget(null);
+    setOrderQtyInput("");
+  };
+  const agreeAll = () => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.status === "승인" && it.agreedForPurchase === false ? { ...it, agreedForPurchase: true } : it),
+      history: [...r.history, { date: "2026-08-01 09:50", action: "구매 진행 동의 처리 · 구매 승인 묶음 생성", user: "김민준" }],
+    }));
+  };
+  const orderExecution = (itemId: number, execId: string) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => {
+        if (it.id !== itemId) return it;
+        const isService = it.purchaseType === "대여" || it.purchaseType === "용역";
+        return { ...it, executions: getExecutions({ ...it, status: "승인" }).map(ex => ex.id === execId ? { ...ex, orderStatus: "주문 완료" as ExecutionOrderStatus, receiptStatus: (isService ? "해당 없음" : "배송 대기") as ExecutionReceiptStatus, serviceStatus: (isService ? "이행 대기" : "해당 없음") as ExecutionServiceStatus } : ex) };
+      }),
+      history: [...r.history, { date: "2026-08-01 10:00", action: "주문 완료", user: "김민준" }],
+    }));
+  };
+  // 배송/이행 단계별 전이: 물품 배송 대기→배송 중→수령 확인 필요→수령 완료, 용역 이행 대기→이행 중→이행 완료
+  // 대여·용역 다음 단계 라벨. 대여는 이행 중 → 반납 확인 필요 → 이행 완료, 용역은 반납 없이 이행 중 → 이행 완료.
+  const fulfillNextLabel = (ex: PurchaseExecution, isRental: boolean) => {
+    if (ex.serviceStatus !== "해당 없음") return ex.serviceStatus === "이행 대기" ? "이행 시작" : ex.serviceStatus === "이행 중" ? (isRental ? "반납 확인 요청" : "이행 완료 확인") : "반납 확인·이행 완료";
+    return ex.receiptStatus === "배송 대기" ? "배송 시작" : ex.receiptStatus === "배송 중" ? "물품 도착" : "수령 확인";
+  };
+  const advanceFulfillment = (itemId: number, execId: string) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => {
+        if (it.id !== itemId) return it;
+        const isRental = it.purchaseType === "대여"; // 용역은 반납 단계를 건너뛴다
+        return {
+          ...it,
+          executions: getExecutions({ ...it, status: "승인" }).map(ex => {
+            if (ex.id !== execId) return ex;
+            if (ex.serviceStatus !== "해당 없음") {
+              // 이행 대기→이행 중, 이행 중→(대여: 반납 확인 필요 / 용역: 이행 완료), 반납 확인 필요→이행 완료
+              const next = (ex.serviceStatus === "이행 대기" ? "이행 중" : ex.serviceStatus === "이행 중" ? (isRental ? "반납 확인 필요" : "이행 완료") : "이행 완료") as ExecutionServiceStatus;
+              return { ...ex, serviceStatus: next, evidenceStatus: next === "이행 완료" ? "증빙 필요" as ExecutionEvidenceStatus : ex.evidenceStatus };
+            }
+            const next = (ex.receiptStatus === "배송 대기" ? "배송 중" : ex.receiptStatus === "배송 중" ? "수령 확인 필요" : "수령 완료") as ExecutionReceiptStatus;
+            return { ...ex, receiptStatus: next, receiptIssue: next === "수령 완료" ? false : ex.receiptIssue, evidenceStatus: next === "수령 완료" ? "증빙 필요" as ExecutionEvidenceStatus : ex.evidenceStatus };
+          }),
+        };
+      }),
+      history: [...r.history, { date: "2026-08-01 10:10", action: "배송·수령·이행 단계 진행", user: "김민준" }],
+    }));
+  };
+  const markOutOfStock = (itemId: number, execId: string) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.id !== itemId ? it : {
+        ...it,
+        executions: getExecutions({ ...it, status: "승인" }).map(ex => ex.id === execId ? { ...ex, orderStatus: "구매 불가" as ExecutionOrderStatus } : ex),
+      }),
+      history: [...r.history, { date: "2026-08-01 10:05", action: "구매 불가(품절) 처리", user: "김민준" }],
+    }));
+  };
+  // 구매 실행분별 렌더 — 이 요청의 품목을 실행분 단위로 표시한다(승인된 품목은 발주 대상).
+  const procRows = request.items.flatMap(it => getExecutions({ ...it, status: "승인" }).map(ex => ({ it, ex })));
+  const cancelExecution = (itemId: number, execId: string) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.id !== itemId ? it : {
+        ...it,
+        executions: getExecutions({ ...it, status: "승인" }).map(ex => ex.id === execId
+          ? { ...ex, orderStatus: "주문 취소" as ExecutionOrderStatus, paid: true, refundResult: "미확정" as RefundResult, cancelRequested: false }
+          : ex),
+      }),
+      history: [...r.history, { date: "2026-08-01 11:20", action: "주문 취소 처리", user: "김민준" }],
+    }));
+  };
+  // 환불 확인 — 전액/일부/환불 없음 결과 선택. 전액이 아니면 취소 비용(취소 순지출) 증빙이 필요하고, 반환은 항상 증빙 정정본이 필요하다.
+  const confirmRefund = (itemId: number, execId: string, result: RefundResult) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.id !== itemId ? it : {
+        ...it,
+        executions: getExecutions({ ...it, status: "승인" }).map(ex => ex.id === execId ? { ...ex, refundResult: result, evidenceStatus: (result !== "전액 환불" || ex.returned) ? "증빙 필요" as ExecutionEvidenceStatus : ex.evidenceStatus } : ex),
+      }),
+      history: [...r.history, { date: "2026-08-01 10:15", action: `환불 확인 · ${result}`, user: "김민준" }],
+    }));
+  };
+  const reorder = (itemId: number, execId: string) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => {
+        if (it.id !== itemId) return it;
+        const execs = getExecutions({ ...it, status: "승인" });
+        const newEx: PurchaseExecution = { id: `${it.id}-RE${execs.length + 1}`, itemId: it.id, orderStatus: "주문 대기", receiptStatus: "해당 없음", serviceStatus: "해당 없음", evidenceStatus: "해당 없음", reorderOfExecutionId: execId };
+        return { ...it, executions: [...execs, newEx] };
+      }),
+      history: [...r.history, { date: "2026-07-31 15:15", action: "재주문 실행분 생성", user: "김민준" }],
+    }));
+  };
+  // 품절 반려 — 성공 구매 실행분이 없을 때 품목을 반려하고 예산 예약을 해제한다(8.4)
+  const rejectItemOutOfStock = (itemId: number) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.id !== itemId ? it : { ...it, status: "반려", rejectionReason: "품절로 구매할 수 없음" }),
+      history: [...r.history, { date: "2026-08-01 10:20", action: "품절 반려 · 예약 해제", user: "김민준" }],
+    }));
+  };
+  // 수령 문제(파손·오배송) — 정상 인수 전까지 수령 확인 필요 유지 + 수령 문제 있음 표시(8.2)
+  const flagReceiptIssue = (itemId: number, execId: string) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.id !== itemId ? it : {
+        ...it,
+        executions: getExecutions({ ...it, status: "승인" }).map(ex => ex.id === execId ? { ...ex, receiptStatus: "수령 확인 필요" as ExecutionReceiptStatus, receiptIssue: true } : ex),
+      }),
+      history: [...r.history, { date: "2026-08-01 10:25", action: "수령 문제 있음 표시", user: "김민준" }],
+    }));
+  };
+  // 물품 반환 — 수령 완료 후 반환 기록, 환불 추적 시작(8.11)
+  const returnItem = (itemId: number, execId: string) => {
+    setPurchaseRequests(previous => previous.map(r => r.id !== request.id ? r : {
+      ...r,
+      items: r.items.map(it => it.id !== itemId ? it : {
+        ...it,
+        executions: getExecutions({ ...it, status: "승인" }).map(ex => ex.id === execId ? { ...ex, returned: true, refundResult: "미확정" as RefundResult } : ex),
+      }),
+      history: [...r.history, { date: "2026-08-01 10:30", action: "물품 반환 기록 · 환불 추적", user: "김민준" }],
+    }));
+  };
+  const orderStyle = (s: ExecutionOrderStatus) => s === "주문 완료" ? "text-green-700 bg-green-50" : s === "구매 불가" ? "text-red-700 bg-red-50" : s === "주문 취소" ? "text-red-600 bg-red-50" : "text-gray-500 bg-gray-100";
+  const fulfillOf = (ex: PurchaseExecution) => ex.serviceStatus !== "해당 없음" ? ex.serviceStatus : ex.receiptStatus;
 
   return (
     <AppContext.Provider value={{
@@ -13324,103 +14789,222 @@ function FINPROC01() {
       activeSidebar: "운영"
     }}>
       <DesktopShell title="구매·발주 처리" breadcrumb={["운영", "행사", eventInfo.name, "재정", "구매·발주 처리"]}>
-        <div className="p-8 flex flex-col gap-6 max-w-5xl mx-auto pb-20">
+        <div className="p-8 flex flex-col gap-6 max-w-6xl mx-auto pb-20">
           {/* 요약 */}
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[10px] font-mono text-gray-400">REQ-001</span>
+                  <span className="text-[10px] font-mono text-gray-400">{request.id}</span>
                   <Chip label="구매 진행 중" variant="blue" />
                 </div>
-                <h2 className="text-lg font-bold text-gray-900">체육대회 운영 물품 4종</h2>
-                <p className="text-xs text-gray-500 mt-1">운영부 · 박해랑 · 필요한 날짜 2026-03-15</p>
+                <h2 className="text-lg font-bold text-gray-900">{request.title}</h2>
+                <p className="text-xs text-gray-500 mt-1">{request.dept} · {request.requester} · 필요한 날짜 {request.neededDate}</p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] text-gray-400 font-semibold mb-0.5">승인된 전체 금액</p>
-                <p className="text-xl font-bold text-gray-900">135,000원</p>
+                <p className="text-xl font-bold text-gray-900">{request.totalEstimatedAmount.toLocaleString()}원</p>
               </div>
             </div>
           </div>
 
-          {/* 업체별 주문 묶음 */}
-          {orders.map((order, oi) => (
-            <div key={oi} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between bg-gray-50">
-                <div>
-                  <p className="text-xs font-bold text-gray-700">{order.vendor}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">주문일 {order.orderDate} · 담당 {order.orderedBy}</p>
-                </div>
-                <p className="text-sm font-bold text-gray-900">{order.orderAmt.toLocaleString()}원</p>
+          {pendingAgreement.length > 0 && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl px-5 py-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold text-amber-900">구매 진행 동의 대기 · {pendingAgreement.length}건</p>
+                <p className="text-[11px] text-amber-700 mt-1">승인된 품목의 선진행 동의가 필요합니다. 동의하면 구매 승인 묶음이 생성되고 실행분이 주문 대기로 전환됩니다.</p>
               </div>
-              <table className="w-full text-xs text-left">
-                <thead><tr className="border-b border-gray-100 text-gray-400 font-medium">
-                  <th className="px-6 py-2.5">품목</th>
-                  <th className="px-6 py-2.5">수량</th>
-                  <th className="px-6 py-2.5 text-right">승인액</th>
-                  <th className="px-6 py-2.5">주문 상태</th>
-                  <th className="px-6 py-2.5">예상 배송일</th>
-                  <th className="px-6 py-2.5">배송 상태</th>
-                </tr></thead>
-                <tbody className="divide-y divide-gray-50">
-                  {order.items.map(item => (
-                    <tr key={item.name} className="hover:bg-gray-50/30 transition-colors">
-                      <td className="px-6 py-3 font-semibold text-gray-800">{item.name}</td>
-                      <td className="px-6 py-3 text-gray-500">{item.qty}</td>
-                      <td className="px-6 py-3 text-right font-mono text-gray-600">{item.approvedAmt.toLocaleString()}원</td>
-                      <td className="px-6 py-3">
-                        <span className={`px-2 py-1 rounded text-[10px] font-bold ${statusStyle(item.orderStatus)}`}>{item.orderStatus}</span>
-                      </td>
-                      <td className="px-6 py-3 text-gray-500">{item.deliveryDate}</td>
-                      <td className={`px-6 py-3 font-semibold text-[11px] ${deliveryStyle(item.deliveryStatus)}`}>{item.deliveryStatus}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <button onClick={agreeAll} className="bg-amber-600 text-white px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap">구매 진행 동의 처리</button>
             </div>
-          ))}
+          )}
 
-          <div className="flex justify-end">
-            <button className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold">결제·증빙 단계로 이동</button>
+          {/* 📦 구매 승인 묶음(컨테이너) → 개별 구매 실행분 */}
+          <div className="bg-white border border-gray-200 border-l-4 border-l-indigo-500 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 bg-indigo-50/40 flex items-center justify-between gap-3">
+              <div className="flex items-start gap-2">
+                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full shrink-0 mt-0.5">📦 묶음</span>
+                <div>
+                  <p className="text-xs font-bold text-gray-800">구매 승인 묶음 · {request.title}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">이 묶음에 속한 <b>개별 구매 실행분</b>을 각각 주문·수령/이행·증빙 단위로 처리합니다.</p>
+                </div>
+              </div>
+              <span className="text-[10px] font-bold text-indigo-700 whitespace-nowrap">실행분 {procRows.length}개</span>
+            </div>
+            <table className="w-full text-xs text-left [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap [&_th]:px-4 [&_td]:px-4">
+              <thead><tr className="border-b border-gray-100 text-gray-400 font-medium">
+                <th className="px-6 py-2.5">실행분(개별)</th>
+                <th className="px-6 py-2.5">품목</th>
+                <th className="px-6 py-2.5">수량</th>
+                <th className="px-6 py-2.5 text-right">승인액</th>
+                <th className="px-6 py-2.5">주문 상태</th>
+                <th className="px-6 py-2.5">수령·이행</th>
+                <th className="px-6 py-2.5">증빙</th>
+                <th className="px-6 py-2.5 text-right">처리</th>
+              </tr></thead>
+              <tbody className="divide-y divide-gray-50">
+                {procRows.length === 0 && <tr><td colSpan={8} className="px-6 py-10 text-center text-gray-400">발주할 승인 품목이 없습니다.</td></tr>}
+                {procRows.map(({ it, ex }) => {
+                  const canCancel = ex.orderStatus === "주문 완료" && ex.receiptStatus !== "수령 완료" && ex.serviceStatus !== "이행 완료";
+                  return (
+                    <tr key={ex.id} className="hover:bg-gray-50/30 transition-colors">
+                      <td className="px-6 py-3"><div className="flex items-center gap-1.5"><span className="text-[10px] font-mono text-gray-400">{ex.id}</span><span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${ex.reorderOfExecutionId ? "bg-blue-100 text-blue-700" : ex.orderStatus === "주문 취소" ? "bg-red-100 text-red-700" : ex.returned ? "bg-purple-100 text-purple-700" : "bg-slate-100 text-slate-600"}`}>{ex.reorderOfExecutionId ? "재주문·개별" : ex.orderStatus === "주문 취소" ? "취소·개별" : ex.returned ? "반환·개별" : "개별"}</span></div></td>
+                      <td className="px-6 py-3 font-semibold text-gray-800">{it.name}{execSeq(it, ex) && <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-200 text-slate-600 text-[9px] font-bold align-middle">{execSeq(it, ex)}</span>}</td>
+                      <td className="px-6 py-3 text-gray-500">{execQuantityOf(it, ex)}{it.unit}{ex.quantity != null && ex.quantity !== it.quantity && <span className="ml-1 text-[9px] text-blue-500">/{it.quantity}{it.unit}</span>}</td>
+                      <td className="px-6 py-3 text-right font-mono text-gray-600">{execAmountOf(it, ex).toLocaleString()}원</td>
+                      <td className="px-6 py-3"><span className={`px-2 py-1 rounded text-[10px] font-bold ${orderStyle(ex.orderStatus)}`}>{ex.orderStatus}</span></td>
+                      <td className="px-6 py-3 text-gray-600 text-[11px]">{fulfillOf(ex)}</td>
+                      <td className="px-6 py-3 text-gray-500 text-[11px]">{ex.evidenceStatus}</td>
+                      <td className="px-6 py-3 text-right">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
+                          {ex.orderStatus === "주문 대기" && <button onClick={() => { setOrderTarget({ itemId: it.id, execId: ex.id, name: it.name, maxQty: execQuantityOf(it, ex), unit: it.unit }); setOrderQtyInput(String(execQuantityOf(it, ex))); }} className="text-[10px] border border-blue-200 text-blue-600 px-2 py-1 rounded font-semibold hover:bg-blue-50">주문</button>}
+                          {ex.orderStatus === "주문 대기" && <button onClick={() => markOutOfStock(it.id, ex.id)} className="text-[10px] border border-gray-200 text-gray-500 px-2 py-1 rounded font-semibold hover:bg-gray-50">구매 불가</button>}
+                          {ex.orderStatus === "구매 불가" && !getExecutions(it).some(e => e.orderStatus === "주문 완료" || e.receiptStatus === "수령 완료" || e.serviceStatus === "이행 완료") && <button onClick={() => rejectItemOutOfStock(it.id)} className="text-[10px] border border-red-200 text-red-600 px-2 py-1 rounded font-semibold hover:bg-red-50">품목 반려</button>}
+                          {ex.receiptStatus === "수령 확인 필요" && !ex.receiptIssue && <button onClick={() => flagReceiptIssue(it.id, ex.id)} className="text-[10px] border border-amber-200 text-amber-600 px-2 py-1 rounded font-semibold hover:bg-amber-50">수령 문제</button>}
+                          {ex.orderStatus === "주문 완료" && ex.evidenceStatus === "해당 없음" && ex.receiptStatus !== "수령 완료" && ex.serviceStatus !== "이행 완료" && <button onClick={() => advanceFulfillment(it.id, ex.id)} className="text-[10px] border border-green-200 text-green-700 px-2 py-1 rounded font-semibold hover:bg-green-50">{fulfillNextLabel(ex, it.purchaseType === "대여")}</button>}
+                          {ex.receiptStatus === "수령 완료" && !ex.returned && <button onClick={() => returnItem(it.id, ex.id)} className="text-[10px] border border-purple-200 text-purple-600 px-2 py-1 rounded font-semibold hover:bg-purple-50">물품 반환</button>}
+                          {ex.cancelRequested && ex.orderStatus !== "주문 취소" && <button onClick={() => cancelExecution(it.id, ex.id)} title={ex.cancelReason ? `요청 사유: ${ex.cancelReason}` : undefined} className="text-[10px] border border-red-300 bg-red-50 text-red-700 px-2 py-1 rounded font-semibold hover:bg-red-100">취소 요청 확정</button>}
+                          {canCancel && !ex.cancelRequested && <button onClick={() => cancelExecution(it.id, ex.id)} className="text-[10px] border border-red-200 text-red-600 px-2 py-1 rounded font-semibold hover:bg-red-50">외부 취소 기록</button>}
+                          {(ex.orderStatus === "주문 취소" || ex.returned) && (ex.refundResult ?? "미확정") === "미확정" && <>
+                            <button onClick={() => confirmRefund(it.id, ex.id, "전액 환불")} className="text-[10px] border border-orange-200 text-orange-600 px-2 py-1 rounded font-semibold hover:bg-orange-50">전액 환불</button>
+                            <button onClick={() => confirmRefund(it.id, ex.id, "일부 환불")} className="text-[10px] border border-orange-200 text-orange-600 px-2 py-1 rounded font-semibold hover:bg-orange-50">일부 환불</button>
+                            <button onClick={() => confirmRefund(it.id, ex.id, "환불 없음")} className="text-[10px] border border-orange-200 text-orange-600 px-2 py-1 rounded font-semibold hover:bg-orange-50">환불 없음</button>
+                          </>}
+                          {ex.orderStatus === "주문 취소" && (ex.refundResult ?? "미확정") !== "미확정" && !getExecutions(it).some(e => e.reorderOfExecutionId === ex.id) && !ex.reorderDeclined && <>
+                            <button onClick={() => reorder(it.id, ex.id)} className="text-[10px] border border-blue-200 text-blue-600 px-2 py-1 rounded font-semibold hover:bg-blue-50">재주문</button>
+                            <button onClick={() => execDeclineReorder(setPurchaseRequests, request.id, it, ex.id)} className="text-[10px] border border-gray-200 text-gray-500 px-2 py-1 rounded font-semibold hover:bg-gray-50">재주문 안 함</button>
+                          </>}
+                          {ex.orderStatus === "주문 취소" && getExecutions(it).some(e => e.reorderOfExecutionId === ex.id) && <span className="text-[10px] text-blue-500 font-semibold">재주문됨</span>}
+                          {ex.orderStatus === "주문 취소" && ex.reorderDeclined && <span className="text-[10px] text-gray-500 font-semibold">재주문 안 함</span>}
+                          {ex.receiptIssue && <span className="text-[10px] text-amber-600 font-semibold">수령 문제</span>}
+                          {ex.returned && <span className="text-[10px] text-purple-600 font-semibold">반환</span>}
+                          {ex.evidenceStatus === "증빙 필요" && <span className="text-[10px] text-green-600 font-semibold">증빙 필요</span>}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="flex justify-between items-center gap-3">
+            <p className="text-[11px] text-gray-400">각 실행분에서 주문 완료 → 수령·이행 완료 후, 증빙 정리로 이동해 증빙 묶음을 완료합니다.</p>
+            <div className="flex gap-3">
+              <button onClick={() => navigateTo("EVT-FIN-01B")} className="border border-gray-200 text-gray-600 px-5 py-2.5 rounded-lg text-sm font-medium">행사 재정으로</button>
+              <button onClick={() => navigateTo("FIN-EVID-01")} className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold">증빙 정리로 이동</button>
+            </div>
           </div>
         </div>
+
+        {orderTarget && (
+          <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-6">
+            <div className="w-[420px] bg-white rounded-2xl shadow-xl overflow-hidden">
+              <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-900">주문 처리 · {orderTarget.name}</h3>
+                <button onClick={() => { setOrderTarget(null); setOrderQtyInput(""); }} className="text-gray-400"><X className="w-4 h-4" /></button>
+              </div>
+              <div className="p-6 flex flex-col gap-3">
+                <p className="text-[11px] text-gray-500">주문할 수량을 입력하세요. 전체보다 적게 주문하면 남은 수량은 <b>새 주문 대기 실행분</b>으로 자동 분할됩니다.</p>
+                <div className="flex items-center gap-2">
+                  <input type="number" min={1} max={orderTarget.maxQty} value={orderQtyInput} onChange={e => setOrderQtyInput(e.target.value)} className="w-28 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800" />
+                  <span className="text-sm text-gray-500">/ {orderTarget.maxQty}{orderTarget.unit}</span>
+                </div>
+                {Number(orderQtyInput) > 0 && Number(orderQtyInput) < orderTarget.maxQty && (
+                  <p className="text-[11px] text-blue-600">주문 완료 {Number(orderQtyInput)}{orderTarget.unit} · 남은 {orderTarget.maxQty - Number(orderQtyInput)}{orderTarget.unit}은 주문 대기로 분할됩니다.</p>
+                )}
+              </div>
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+                <button onClick={() => { setOrderTarget(null); setOrderQtyInput(""); }} className="border border-gray-200 text-gray-600 px-4 py-2 rounded-lg text-sm font-medium">취소</button>
+                <button disabled={!(Number(orderQtyInput) >= 1)} onClick={submitOrder} className="bg-blue-600 disabled:bg-gray-300 text-white px-5 py-2 rounded-lg text-sm font-bold">주문 완료</button>
+              </div>
+            </div>
+          </div>
+        )}
       </DesktopShell>
     </AppContext.Provider>
   );
 }
 
 function FINEVID01() {
-  const { eventInfo } = React.useContext(AppContext);
-  const payments = [
-    {
-      id: "PAY-001", vendor: "다이소 온라인몰", paidDate: "2026-03-08", paidBy: "김바다", method: "법인카드",
-      approvedAmt: 25000, actualAmt: 24500, diffNote: "실결제액이 승인액보다 500원 적음",
-      items: ["박스테이프", "유성 마커"],
-      docs: [
-        { label: "영수증", status: "등록 완료", statusVariant: "green" as const },
-        { label: "거래명세서", status: "등록 완료", statusVariant: "green" as const },
-      ],
-    },
-    {
-      id: "PAY-002", vendor: "마켓컬리 B2B", paidDate: "2026-03-10", paidBy: "김바다", method: "계좌이체",
-      approvedAmt: 50000, actualAmt: 50000, diffNote: "",
-      items: ["생수 500ml"],
-      docs: [
-        { label: "영수증", status: "누락", statusVariant: "red" as const },
-        { label: "거래명세서", status: "등록 완료", statusVariant: "green" as const },
-      ],
-    },
-    {
-      id: "PAY-003", vendor: "인쇄업체 A", paidDate: "2026-03-13", paidBy: "김바다", method: "계좌이체",
-      approvedAmt: 60000, actualAmt: 63000, diffNote: "견적서 대비 최종 납품가 3,000원 초과",
-      items: ["이름표 용지 (제작)"],
-      docs: [
-        { label: "견적서", status: "등록 완료", statusVariant: "green" as const },
-        { label: "거래명세서", status: "등록 완료", statusVariant: "green" as const },
-        { label: "세금계산서", status: "누락", statusVariant: "red" as const },
-      ],
-    },
-  ];
+  const { eventInfo, purchaseRequests, setPurchaseRequests, selectedPurchaseRequestId, navigateTo, setEvidenceBundles, evidenceDrafts, setEvidenceDrafts } = React.useContext(AppContext);
+  const request = purchaseRequests.find(item => item.id === selectedPurchaseRequestId) || purchaseRequests[0];
+  // 임시 저장된 초안(행사당 하나). 있으면 폼과 선택을 복원한다.
+  const draft = evidenceDrafts.find(d => d.eventId === request.eventId);
+  // 증빙 묶음 재구성: 증빙이 필요하거나 정리 중(초안)인 실행분을 모아, 구매처·영수증 기준으로 하나의 증빙 묶음으로 묶는다.
+  const candidates = purchaseRequests
+    .filter(r => r.eventId === request.eventId)
+    .flatMap(r => r.items.flatMap(it => getExecutions(it).map(ex => ({ r, it, ex }))))
+    .filter(({ ex }) => ex.evidenceStatus === "증빙 필요" || ex.evidenceStatus === "증빙 정리 중");
+  const [selected, setSelected] = useState<string[]>(draft?.execIds ?? []);
+  const [vendor, setVendor] = useState(draft?.vendor ?? "");
+  const [method, setMethod] = useState(draft?.method ?? "법인카드");
+  const [receiptNo, setReceiptNo] = useState(draft?.receiptNo ?? "");
+  const [actualAmount, setActualAmount] = useState(draft?.actualAmount ?? "");
+  const evidenceRequirements = ["영수증", "거래명세서", "결제 증빙(카드전표·이체내역)", "구매 사유"];
+  const [evidenceChecked, setEvidenceChecked] = useState<Record<string, boolean>>(draft?.checks ?? {});
+  const [draftSaved, setDraftSaved] = useState(false);
+  const toggle = (id: string) => setSelected(cur => cur.includes(id) ? cur.filter(x => x !== id) : [...cur, id]);
+  const selectedRows = candidates.filter(({ ex }) => selected.includes(ex.id));
+  const bundleReady = selected.length > 0 && vendor.trim() !== "" && Number(actualAmount) > 0 && evidenceRequirements.every(l => evidenceChecked[l]);
+  // 임시 저장: 선택 실행분을 증빙 정리 중으로 표시(처리 단계 > 증빙 정리 중 칸반에 뜬다) + 폼 초안 보관.
+  const saveDraft = () => {
+    if (selected.length === 0) return;
+    setPurchaseRequests(previous => previous.map(r => {
+      if (r.eventId !== request.eventId) return r;
+      let touched = false;
+      const items = r.items.map(it => {
+        const execs = getExecutions(it);
+        if (!execs.some(ex => selected.includes(ex.id))) return it;
+        touched = true;
+        return { ...it, executions: execs.map(ex => selected.includes(ex.id) && ex.evidenceStatus !== "증빙 완료" ? { ...ex, evidenceStatus: "증빙 정리 중" as ExecutionEvidenceStatus } : ex) };
+      });
+      if (!touched) return r;
+      return { ...r, items, history: [...r.history, { date: "2026-08-01 11:00", action: `증빙 묶음 임시 저장 · ${selected.length}건 정리 중`, user: "김민준" }] };
+    }));
+    setEvidenceDrafts(prev => [
+      ...prev.filter(d => d.eventId !== request.eventId),
+      { id: `EVD-${request.eventId}`, eventId: request.eventId, execIds: [...selected], vendor, method, receiptNo, actualAmount, checks: { ...evidenceChecked }, savedAt: "2026-08-01 11:00" },
+    ]);
+    setDraftSaved(true);
+  };
+  const completeBundle = () => {
+    if (!bundleReady) return;
+    setEvidenceDrafts(prev => prev.filter(d => d.eventId !== request.eventId)); // 완료되면 초안 제거
+    // 증빙 아카이브에 레코드 저장: 담긴 개별 실행분과 구매처·결제·영수증·실제 지출을 보관해 완료 후 다시 열람할 수 있게 한다.
+    setEvidenceBundles(prev => [
+      {
+        id: `EVB-${String(prev.length + 1).padStart(3, "0")}`,
+        eventId: request.eventId,
+        vendor: vendor.trim(),
+        method,
+        receiptNo: receiptNo.trim() || undefined,
+        actualAmount: Number(actualAmount),
+        completedAt: "2026-08-01 11:00",
+        completedBy: "김민준",
+        executions: selectedRows.map(({ r, it, ex }) => ({ execId: ex.id, requestId: r.id, itemName: it.name, amount: execAmountOf(it, ex) })),
+      },
+      ...prev,
+    ]);
+    setPurchaseRequests(previous => previous.map(r => {
+      if (r.eventId !== request.eventId) return r;
+      let touched = false;
+      const items = r.items.map(it => {
+        const execs = getExecutions(it);
+        if (!execs.some(ex => selected.includes(ex.id))) return it;
+        touched = true;
+        return { ...it, executions: execs.map(ex => selected.includes(ex.id) ? { ...ex, evidenceStatus: "증빙 완료" as ExecutionEvidenceStatus } : ex) };
+      });
+      if (!touched) return r;
+      // 요청의 승인 품목이 모두 증빙 완료면 요청 단위로도 정산 완료 처리(실행분 집계 종결)
+      const approved = items.filter(it => it.status === "승인");
+      const allSettled = approved.length > 0 && approved.every(it => {
+        const ex = getExecutions(it);
+        return ex.length > 0 && ex.every(e => e.evidenceStatus === "증빙 완료");
+      });
+      return { ...r, status: allSettled ? "정산 완료" : r.status, items, history: [...r.history, { date: "2026-08-01 11:00", action: `증빙 묶음 완료 · ${vendor} · 실제 지출 ${Number(actualAmount).toLocaleString()}원`, user: "김민준" }] };
+    }));
+    navigateTo("EVT-FIN-01B");
+  };
 
   return (
     <AppContext.Provider value={{
@@ -13429,64 +15013,82 @@ function FINEVID01() {
       activeSidebar: "운영"
     }}>
       <DesktopShell title="결제·증빙 정리" breadcrumb={["운영", "행사", eventInfo.name, "재정", "결제·증빙 정리"]}>
-        <div className="p-8 flex flex-col gap-6 max-w-5xl mx-auto pb-20">
-          {/* 요약 */}
-          <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm flex items-start justify-between">
-            <div>
-              <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[10px] font-mono text-gray-400">REQ-001</span>
-                <Chip label="증빙 정리 중" variant="yellow" />
-              </div>
-              <h2 className="text-lg font-bold text-gray-900">체육대회 운영 물품 4종</h2>
-              <p className="text-xs text-gray-500 mt-1">운영부 · 박해랑</p>
-            </div>
-            <div className="flex gap-8 text-right">
-              <div><p className="text-[10px] text-gray-400 font-semibold mb-0.5">승인 금액</p><p className="text-base font-bold text-gray-800">135,000원</p></div>
-              <div><p className="text-[10px] text-gray-400 font-semibold mb-0.5">실결제 합계</p><p className="text-base font-bold text-blue-700">137,500원</p></div>
-            </div>
+        <div className="p-8 flex flex-col gap-6 max-w-6xl mx-auto pb-20">
+          <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4">
+            <p className="text-xs font-bold text-blue-900">증빙 묶음은 구매처·결제·영수증 기준으로 실행분을 다시 묶는 단위입니다</p>
+            <p className="text-[11px] text-blue-700 mt-1">서로 다른 구매 요청·승인 묶음의 실행분도 실제 거래가 같으면 하나의 증빙 묶음으로 함께 정리할 수 있습니다.</p>
           </div>
 
-          {/* 결제 내역별 카드 */}
-          {payments.map(p => (
-            <div key={p.id} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-bold text-gray-700">{p.vendor}</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">결제일 {p.paidDate} · 결제자 {p.paidBy} · {p.method}</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] text-gray-400">승인 {p.approvedAmt.toLocaleString()}원 → 실결제 <span className={p.actualAmt !== p.approvedAmt ? "text-red-600 font-bold" : "text-green-700 font-bold"}>{p.actualAmt.toLocaleString()}원</span></p>
-                  {p.diffNote && <p className="text-[10px] text-red-500 mt-0.5">{p.diffNote}</p>}
-                </div>
+          {/* 증빙 필요 실행분 선택 */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="px-6 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">▪ 개별</span>
+                <p className="text-xs font-bold text-gray-700">증빙 필요·정리 중 개별 실행분 · {candidates.length}건</p>
               </div>
-              <div className="p-6 grid grid-cols-2 gap-6">
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">연결된 품목</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {p.items.map(item => <span key={item} className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-[10px] font-medium">{item}</span>)}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">증빙 서류</p>
-                  <div className="flex flex-col gap-2">
-                    {p.docs.map(doc => (
-                      <div key={doc.label} className="flex items-center justify-between">
-                        <span className="text-xs text-gray-600">{doc.label}</span>
-                        <Chip label={doc.status} variant={doc.statusVariant} />
-                      </div>
-                    ))}
-                    <button className="mt-1 border border-dashed border-gray-200 rounded px-3 py-1.5 text-[10px] text-gray-400 text-left flex items-center gap-1.5">
-                      <Upload className="w-3 h-3" /> 파일 추가
-                    </button>
-                  </div>
-                </div>
+              <span className="text-[10px] text-gray-400">선택한 개별 실행분을 아래에서 하나의 증빙 묶음으로 묶습니다 · 임시 저장하면 ‘정리 중’으로 남습니다</span>
+            </div>
+            <table className="w-full text-xs text-left [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap [&_th]:px-4 [&_td]:px-4">
+              <thead><tr className="border-b border-gray-100 text-gray-400 font-medium">
+                <th className="px-6 py-2.5 w-10"></th>
+                <th className="px-6 py-2.5">실행분</th>
+                <th className="px-6 py-2.5">품목</th>
+                <th className="px-6 py-2.5">요청(출처 묶음)</th>
+                <th className="px-6 py-2.5">수령·이행</th>
+                <th className="px-6 py-2.5 text-right">승인액</th>
+              </tr></thead>
+              <tbody className="divide-y divide-gray-50">
+                {candidates.length === 0 && <tr><td colSpan={6} className="px-6 py-10 text-center text-gray-400">증빙이 필요한 실행분이 없습니다.</td></tr>}
+                {candidates.map(({ r, it, ex }) => (
+                  <tr key={ex.id} className={`cursor-pointer ${selected.includes(ex.id) ? "bg-blue-50/50" : "hover:bg-gray-50/30"}`} onClick={() => toggle(ex.id)}>
+                    <td className="px-6 py-3"><input type="checkbox" checked={selected.includes(ex.id)} onChange={() => toggle(ex.id)} onClick={e => e.stopPropagation()} /></td>
+                    <td className="px-6 py-3"><span className="text-[10px] font-mono text-gray-400">{ex.id}</span></td>
+                    <td className="px-6 py-3 font-semibold text-gray-800">{it.name}{execSeq(it, ex) && <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-200 text-slate-600 text-[9px] font-bold align-middle">{execSeq(it, ex)}</span>}{ex.reorderOfExecutionId && <span className="ml-1.5 text-[9px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1 py-0.5">재주문</span>}{ex.evidenceStatus === "증빙 정리 중" && <span className="ml-1.5 text-[9px] font-semibold text-amber-700 bg-amber-50 border border-amber-100 rounded px-1 py-0.5">정리 중</span>}</td>
+                    <td className="px-6 py-3 text-gray-500 font-mono text-[10px]">{r.id}</td>
+                    <td className="px-6 py-3 text-gray-600 text-[11px]">{ex.serviceStatus !== "해당 없음" ? ex.serviceStatus : ex.receiptStatus}</td>
+                    <td className="px-6 py-3 text-right font-mono text-gray-600">{execAmountOf(it, ex).toLocaleString()}원{ex.quantity != null && ex.quantity !== it.quantity && <span className="ml-1 text-[9px] text-blue-500">({ex.quantity}{it.unit})</span>}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* 📦 증빙 묶음(컨테이너) */}
+          <div className="bg-white border border-gray-200 border-l-4 border-l-indigo-500 rounded-xl p-6 shadow-sm flex flex-col gap-5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-indigo-700 bg-indigo-100 px-2 py-0.5 rounded-full">📦 묶음</span>
+                <h3 className="text-sm font-bold text-gray-800">증빙 묶음 구성</h3>
+              </div>
+              <span className="text-[11px] text-gray-500">담긴 개별 실행분 {selected.length}건</span>
+            </div>
+            <div className="border border-dashed border-indigo-200 bg-indigo-50/30 rounded-lg p-3 flex flex-wrap gap-1.5 min-h-[46px] items-center">
+              {selectedRows.length === 0 && <span className="text-[11px] text-gray-400">위에서 개별 실행분을 선택하면 이 묶음에 담깁니다.</span>}
+              {selectedRows.map(({ it, ex }) => <span key={ex.id} className="bg-white border border-indigo-200 text-gray-700 px-2 py-1 rounded text-[10px] font-medium flex items-center gap-1"><span className="text-slate-400 font-mono">{ex.id}</span> {it.name}</span>)}
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <Input label="구매처" value={vendor} onChange={event => setVendor(event.target.value)} required />
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-bold text-gray-600">결제 수단</label>
+                <select className="border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 bg-white" value={method} onChange={event => setMethod(event.target.value)}>
+                  <option>법인카드</option><option>계좌이체</option><option>현금</option>
+                </select>
+              </div>
+              <Input label="영수증 번호" value={receiptNo} onChange={event => setReceiptNo(event.target.value)} />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2">필수 증빙</p>
+              <div className="grid grid-cols-2 gap-2">
+                {evidenceRequirements.map(label => <label key={label} className={`flex items-center gap-2 border rounded-lg px-3 py-2.5 text-xs cursor-pointer ${evidenceChecked[label] ? "border-green-300 bg-green-50 text-green-800" : "border-gray-200 text-gray-600"}`}><input type="checkbox" checked={Boolean(evidenceChecked[label])} onChange={event => setEvidenceChecked(current => ({ ...current, [label]: event.target.checked }))} />{label}</label>)}
               </div>
             </div>
-          ))}
+            <div className="w-56"><Input label="실제 지출 금액" type="number" value={actualAmount} onChange={event => setActualAmount(event.target.value)} required /></div>
+          </div>
 
-          <div className="flex justify-end gap-3">
-            <button className="border border-gray-200 text-gray-600 px-5 py-2.5 rounded-lg text-sm font-medium">저장</button>
-            <button className="bg-blue-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold">처리 완료</button>
+          <div className="flex justify-end items-center gap-3">
+            {draftSaved && <span className="text-xs text-green-700 mr-1">임시 저장됨 · 처리 단계 &gt; 증빙 정리 중에 표시됩니다</span>}
+            <button disabled={selected.length === 0} onClick={saveDraft} className="border border-gray-200 disabled:border-gray-100 disabled:text-gray-300 text-gray-600 px-5 py-2.5 rounded-lg text-sm font-medium">임시 저장</button>
+            <button disabled={!bundleReady} onClick={completeBundle} className="bg-blue-600 disabled:bg-gray-300 text-white px-6 py-2.5 rounded-lg text-sm font-bold">증빙 묶음 완료·실제 지출 반영</button>
           </div>
         </div>
       </DesktopShell>
@@ -14552,6 +16154,83 @@ function AsFinanceManager({ children }: { children: React.ReactNode }) {
   );
 }
 
+// 구매 요청 작성·본인 보완 재제출 권한을 검토하기 위한 홍보부 부서장 사용자.
+function AsPromotionDepartmentHead({ children }: { children: React.ReactNode }) {
+  return (
+    <AppContext.Provider value={{
+      ...React.useContext(AppContext),
+      currentUser: { name: "김민석", dept: "홍보부", role: "부서장" },
+      selectedPurchaseRequestId: "REQ-002"
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
+// 보완 재제출 후 재정부가 확인할 화면을 위한 샘플 상태.
+function AsFinanceRecheck({ children }: { children: React.ReactNode }) {
+  const context = React.useContext(AppContext);
+  const [recheckRequests, setRecheckRequests] = useState<PurchaseRequest[]>(() => context.purchaseRequests.map(request => {
+    if (request.id !== "REQ-002") return request;
+    const submission: PurchaseSupplementSubmission = {
+      id: "REQ-002-SUP-1",
+      requestedAt: "2026-03-03 09:00",
+      requestedBy: "김바다",
+      submittedAt: "2026-07-29 15:00",
+      submittedBy: "김민석",
+      items: [{
+        itemId: 5,
+        itemName: "메인 현수막",
+        reason: "규격과 인쇄 사양을 보완하고 업체 견적서를 다시 확인해 주세요.",
+        fields: [
+          { label: "사이즈·규격", before: "500*90", after: "500×90cm" },
+          { label: "색상", before: "미입력", after: "학생회 메인 블루" },
+          { label: "인쇄 위치", before: "미입력", after: "전면 단면 인쇄" },
+          { label: "옵션별 수량", before: "1개", after: "기본형 1개" },
+        ],
+        beforeAttachments: ["현수막 견적서.pdf"],
+        afterAttachments: ["현수막 수정 견적서.pdf"],
+      }],
+    };
+    return {
+      ...request,
+      status: "재검토 대기",
+      items: request.items.map(item => item.id === 5 ? {
+        ...item,
+        status: "검토 대기",
+        priceEvidence: "현수막 수정 견적서.pdf",
+        details: {
+          ...item.details,
+          size: "500×90cm",
+          color: "학생회 메인 블루",
+          printPosition: "전면 단면 인쇄",
+          quantityOption: "기본형 1개",
+        },
+      } : item),
+      supplementSubmissions: [submission],
+      history: request.history.some(historyItem => historyItem.action === "보완 내용 재제출")
+        ? request.history
+        : [...request.history, { date: submission.submittedAt, action: "보완 내용 재제출", user: submission.submittedBy }],
+    };
+  }));
+  const setSynchronizedRecheckRequests: React.Dispatch<React.SetStateAction<PurchaseRequest[]>> = action => {
+    const nextRequests = typeof action === "function" ? action(recheckRequests) : action;
+    setRecheckRequests(nextRequests);
+    context.setPurchaseRequests(nextRequests);
+  };
+  return (
+    <AppContext.Provider value={{
+      ...context,
+      currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
+      selectedPurchaseRequestId: "REQ-002",
+      purchaseRequests: recheckRequests,
+      setPurchaseRequests: setSynchronizedRecheckRequests,
+    }}>
+      {children}
+    </AppContext.Provider>
+  );
+}
+
 // 행사 운영 조직 관리자 전용 화면. 이 권한은 기본 직급이 아니라 행사별 맥락 역할이므로
 // 검토 시 운영 조직에 속한 사용자를 주입한다. 기본 역할은 부서장이지만 eventRole로 관리자 권한을 준다.
 function AsEventManager({ children }: { children: React.ReactNode }) {
@@ -14569,7 +16248,7 @@ function ORG03CWithDialog() {
   return <AsPresident><ORG03C /></AsPresident>;
 }
 
-// ─── FIN-00B 전체 재정 현황 — 재정부·회장단 ───────────────────────────────────
+// ─── FIN-00B 전체 재정 현황 — 재정부 ─────────────────────────────────────────
 // 같은 화면을 재정부 사용자로 보여 준다. 예산 편성 권한이 보이는 상태를 검토하기 위한 역할 변형이다.
 
 function FIN00B() {
@@ -15332,7 +17011,7 @@ function MSG03() {
 
 // ─── Screen Registry ──────────────────────────────────────────────────────────
 
-const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
+export const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "HOME-01": HOME01,
   "HOME-01K": HOME01K,
   "FIN-00B": FIN00B,
@@ -15392,10 +17071,12 @@ const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "MY-01": MY01,
   "MY-REQ-01": MYREQ01,
   "EVT-FIN-01": EVTFIN01,
-  "FIN-REQ-01": FINREQ01,
+  "EVT-FIN-01B": () => <AsFinanceManager><EVTFIN01 /></AsFinanceManager>,
+  "FIN-REQ-01B": () => <AsPromotionDepartmentHead><FINREQ01 /></AsPromotionDepartmentHead>,
   "FIN-REQ-02": FINREQ02,
-  "FIN-SUP-01": FINSUP01,
+  "FIN-SUP-01B": () => <AsPromotionDepartmentHead><FINSUP01 /></AsPromotionDepartmentHead>,
   "FIN-REV-01": FINREV01,
+  "FIN-REV-01B": () => <AsFinanceRecheck><FINREV01 /></AsFinanceRecheck>,
   "FIN-PROC-01": FINPROC01,
   "FIN-EVID-01": FINEVID01,
   "FIN-LEDGER-01": FINLEDGER01,
@@ -15468,8 +17149,11 @@ export default function App() {
   const [selectedRecurringTaskId, setSelectedRecurringTaskId] = useState<string | null>(null);
   const [selectedArchiveId, setSelectedArchiveId] = useState<string | null>(null);
   const [archives, setArchives] = useState<ArchiveRecord[]>(DEFAULT_ARCHIVES);
+  const [evidenceBundles, setEvidenceBundles] = useState<EvidenceBundle[]>(DEFAULT_EVIDENCE_BUNDLES);
+  const [evidenceDrafts, setEvidenceDrafts] = useState<EvidenceDraft[]>([]);
   const [selectedEventTaskId, setSelectedEventTaskId] = useState<string | null>(null);
   const [purchaseRequests, setPurchaseRequests] = useState<PurchaseRequest[]>(DEFAULT_PURCHASE_REQUESTS);
+  const [selectedPurchaseRequestId, setSelectedPurchaseRequestId] = useState<string | null>("REQ-001");
   const [meetingDraft, setMeetingDraft] = useState<MeetingDraft | null>(() => loadDraft<MeetingDraft>(DRAFT_STORAGE_KEYS.meeting));
   const [purchaseRequestDraft, setPurchaseRequestDraft] = useState<PurchaseRequestDraft | null>(() => loadDraft<PurchaseRequestDraft>(DRAFT_STORAGE_KEYS.purchaseRequest));
   const [purchaseSupplementDraft, setPurchaseSupplementDraft] = useState<PurchaseSupplementDraft | null>(() => loadDraft<PurchaseSupplementDraft>(DRAFT_STORAGE_KEYS.purchaseSupplement));
@@ -15516,8 +17200,11 @@ export default function App() {
       selectedRecurringTaskId, setSelectedRecurringTaskId,
       selectedArchiveId, setSelectedArchiveId,
       archives, setArchives,
+      evidenceBundles, setEvidenceBundles,
+      evidenceDrafts, setEvidenceDrafts,
       selectedEventTaskId, setSelectedEventTaskId,
       purchaseRequests, setPurchaseRequests,
+      selectedPurchaseRequestId, setSelectedPurchaseRequestId,
       meetingDraft, setMeetingDraft,
       purchaseRequestDraft, setPurchaseRequestDraft,
       purchaseSupplementDraft, setPurchaseSupplementDraft,
