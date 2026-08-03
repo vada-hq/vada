@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R1",
-  "runtime_revision": 11,
+  "runtime_revision": 12,
   "runtime_status": "active",
-  "updated_at": "2026-08-04T00:13:41+09:00",
+  "updated_at": "2026-08-04T00:18:28+09:00",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R1.json",
@@ -123,6 +123,13 @@
       "captured_at": "2026-08-04T00:13:41+09:00",
       "locator": "git:24a086aa0f04a0b27d7886c700a0696f99150bd4",
       "content_ko": "PostgreSQL information_schema의 실제 소문자 타입명에 맞춰 테스트 기대값을 교정하고 API 린트·타입검사·로컬 테스트를 통과해 실제 PostgreSQL CI 재검토를 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-017",
+      "type": "command_output",
+      "captured_at": "2026-08-04T00:18:28+09:00",
+      "locator": "https://github.com/vada-hq/vada/actions/runs/30826638906/job/91729844565",
+      "content_ko": "GitHub CI의 실제 PostgreSQL 17 서비스에서 구매 요청 마이그레이션·제약조건 통합 테스트 2개가 모두 통과했고 API 린트·타입검사·비 PostgreSQL 테스트도 함께 성공했습니다."
     }
   ],
   "work_runs": [
@@ -267,9 +274,9 @@
     {
       "work_item_ref": "WORK:purchase-request-data-schema@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-03T22:11:14+09:00",
-      "completed_at": null,
+      "completed_at": "2026-08-04T00:18:28+09:00",
       "transition_log": [
         {
           "id": "TR-004",
@@ -369,6 +376,15 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-016",
           "note_ko": "실제 PostgreSQL 메타데이터 표현에 맞춰 테스트 기대값을 교정하고 로컬 범위 검사를 통과해 재검토를 요청했습니다."
+        },
+        {
+          "id": "TR-021",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T00:18:28+09:00",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-017",
+          "note_ko": "실제 PostgreSQL 17에서 요구된 마이그레이션·제약조건 통합 검증이 모두 통과해 EVID-004를 독립 검증하고 작업을 완료했습니다."
         }
       ],
       "blockers": [
@@ -421,10 +437,10 @@
           "kind": "automated_test",
           "locator": "git:24a086aa0f04a0b27d7886c700a0696f99150bd4#apps/api/tests/persistence/test_purchase_request_migration.py",
           "captured_at": "2026-08-04T00:13:41+09:00",
-          "verification_status": "submitted",
-          "verified_by": null,
-          "verified_at": null,
-          "verification_note_ko": null
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T00:18:28+09:00",
+          "verification_note_ko": "GitHub CI의 실제 PostgreSQL 17 서비스에서 마이그레이션·제약조건 통합 테스트 2개가 모두 통과했습니다: https://github.com/vada-hq/vada/actions/runs/30826638906/job/91729844565"
         }
       ]
     }
