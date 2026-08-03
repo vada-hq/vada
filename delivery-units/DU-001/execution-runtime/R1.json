@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R1",
-  "runtime_revision": 1,
+  "runtime_revision": 2,
   "runtime_status": "active",
-  "updated_at": "2026-08-03T22:05:52+09:00",
+  "updated_at": "2026-08-03T22:11:14+09:00",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R1.json",
@@ -51,8 +51,8 @@
     {
       "work_item_ref": "WORK:purchase-request-contract-fixtures@R1",
       "executor_ref": "EXEC:ai-technical-design",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-03T22:11:14+09:00",
       "completed_at": null,
       "transition_log": [
         {
@@ -63,6 +63,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 계약 예제·검증 기준선 작업을 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-005",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T22:11:14+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "격리된 contract-fixtures worktree에서 기술 설계 AI 작업을 시작하도록 위임했습니다."
         }
       ],
       "blockers": [],
@@ -71,8 +80,8 @@
     {
       "work_item_ref": "WORK:identity-organization-context@R1",
       "executor_ref": "EXEC:ai-security-platform",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-03T22:11:14+09:00",
       "completed_at": null,
       "transition_log": [
         {
@@ -83,6 +92,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 인증·조직 컨텍스트 작업을 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-006",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T22:11:14+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "격리된 identity-context worktree에서 보안·플랫폼 AI 작업을 시작하도록 위임했습니다."
         }
       ],
       "blockers": [],
@@ -91,8 +109,8 @@
     {
       "work_item_ref": "WORK:purchase-request-data-schema@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-03T22:11:14+09:00",
       "completed_at": null,
       "transition_log": [
         {
@@ -103,6 +121,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 구매 요청 데이터 구조·마이그레이션 작업을 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-007",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T22:11:14+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "격리된 data-schema worktree에서 백엔드 AI 작업을 시작하도록 위임했습니다."
         }
       ],
       "blockers": [],
