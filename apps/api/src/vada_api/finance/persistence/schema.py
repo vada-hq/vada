@@ -184,3 +184,82 @@ sa.Index(
     purchase_request_items.c.event_id,
     purchase_request_items.c.request_id,
 )
+
+
+purchase_request_submission_idempotency = sa.Table(
+    "purchase_request_submission_idempotency",
+    metadata,
+    sa.Column("organization_id", sa.Text(), primary_key=True),
+    sa.Column("event_id", sa.Text(), primary_key=True),
+    sa.Column("requester_user_id", sa.Text(), primary_key=True),
+    sa.Column("idempotency_key_hash", sa.Text(), primary_key=True),
+    sa.Column("payload_hash", sa.Text(), nullable=False),
+    sa.Column("request_id", sa.Text(), nullable=False),
+    sa.Column(
+        "created_at",
+        sa.DateTime(timezone=True),
+        nullable=False,
+        server_default=sa.text("CURRENT_TIMESTAMP"),
+    ),
+    _non_empty("organization_id"),
+    _non_empty("event_id"),
+    _non_empty("requester_user_id"),
+    sa.CheckConstraint(
+        "idempotency_key_hash ~ '^[0-9a-f]{64}$'",
+        name="idempotency_key_hash_sha256",
+    ),
+    sa.CheckConstraint(
+        "payload_hash ~ '^[0-9a-f]{64}$'",
+        name="payload_hash_sha256",
+    ),
+    _non_empty("request_id"),
+    sa.ForeignKeyConstraint(
+        ["organization_id", "event_id", "request_id"],
+        [
+            "purchase_requests.organization_id",
+            "purchase_requests.event_id",
+            "purchase_requests.request_id",
+        ],
+        name="fk_purchase_request_submission_idempotency_request_scope",
+        deferrable=True,
+        initially="DEFERRED",
+    ),
+    sa.UniqueConstraint(
+        "request_id",
+        name="uq_purchase_request_submission_idempotency_request_id",
+    ),
+)
+
+
+purchase_request_submission_events = sa.Table(
+    "purchase_request_submission_events",
+    metadata,
+    sa.Column("request_id", sa.Text(), primary_key=True),
+    sa.Column("organization_id", sa.Text(), nullable=False),
+    sa.Column("event_id", sa.Text(), nullable=False),
+    sa.Column("requester_user_id", sa.Text(), nullable=False),
+    sa.Column("request_department_id", sa.Text(), nullable=False),
+    sa.Column("estimated_total", sa.Numeric(), nullable=False),
+    sa.Column("over_budget", sa.Boolean(), nullable=False),
+    sa.Column(
+        "submitted_at",
+        sa.DateTime(timezone=True),
+        nullable=False,
+        server_default=sa.text("CURRENT_TIMESTAMP"),
+    ),
+    _non_empty("request_id"),
+    _non_empty("organization_id"),
+    _non_empty("event_id"),
+    _non_empty("requester_user_id"),
+    _non_empty("request_department_id"),
+    sa.CheckConstraint("estimated_total > 0", name="estimated_total_positive"),
+    sa.ForeignKeyConstraint(
+        ["organization_id", "event_id", "request_id"],
+        [
+            "purchase_requests.organization_id",
+            "purchase_requests.event_id",
+            "purchase_requests.request_id",
+        ],
+        name="fk_purchase_request_submission_events_request_scope",
+    ),
+)

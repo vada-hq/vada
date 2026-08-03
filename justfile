@@ -29,6 +29,14 @@ validate-contracts:
     pnpm test:contracts
     pnpm validate:contracts
 
+# 승인 구매 요청 OpenAPI 입력과 결정적 생성 클라이언트
+generate-openapi-client:
+    pnpm generate:openapi-client
+
+validate-openapi-client:
+    pnpm test:openapi-client
+    pnpm validate:openapi-client
+
 # AI용 제품 명세
 validate-product-specs:
     pnpm test:product-specs
@@ -75,7 +83,7 @@ test-web:
 # 작업자용 경로별 검사 — 전체 통합 검사는 총괄이 just check로 한 번 실행
 check-api: lint-api typecheck-api test-api
 
-check-web: lint-web typecheck-web test-web build-web
+check-web: validate-openapi-client lint-web typecheck-web test-web build-web
 
 # 린트 + 포맷 검사
 lint: lint-api lint-web
@@ -93,6 +101,7 @@ typecheck-api:
     cd apps/api && uv run pyright
 
 typecheck-web:
+    pnpm --filter @vada/api-client typecheck
     pnpm --filter web typecheck
 
 # 빌드

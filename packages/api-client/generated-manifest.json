@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0.0",
+  "generator": {
+    "package": "@hey-api/openapi-ts",
+    "version": "0.95.0"
+  },
+  "input": {
+    "path": "contracts/openapi/CB-FIN-001/R1.json",
+    "sha256": "00bbfa5bc2dc952d91cea27867789089502c2a9011481932c1f917a9f3f40e85"
+  },
+  "config": {
+    "path": "packages/api-client/openapi-ts.config.ts",
+    "sha256": "c2205602346297ebd2fd959dc09d97e931bb8a94b80b1487a243533cf699f402"
+  },
+  "files": [
+    {
+      "path": "client/client.gen.ts",
+      "sha256": "28d98b68e0cfe7d36b12ff397b3d4156996d2a4dbbd15e423d5b39c623e8e29a"
+    },
+    {
+      "path": "client/index.ts",
+      "sha256": "5dd429582164b102371a94e746d95b5bf9624ba9a123f5595c1a66036730823c"
+    },
+    {
+      "path": "client/types.gen.ts",
+      "sha256": "5e4ad324a6e8a1826f54164969191e5ec9cf23b85bc788aae53a372da16152a9"
+    },
+    {
+      "path": "client/utils.gen.ts",
+      "sha256": "23ae2cbdb365602e791c68b9be34d759ad778a8b410d737bc7152ea065b5ab8a"
+    },
+    {
+      "path": "client.gen.ts",
+      "sha256": "edd640d3395dfac9774fa6c20e7493dc771b30f0ceb150099565e5c0ec8b9300"
+    },
+    {
+      "path": "core/auth.gen.ts",
+      "sha256": "dd54b258145c9a9b2fb58dce516e13e20075ee726e7fd4a19e04610f96f5d338"
+    },
+    {
+      "path": "core/bodySerializer.gen.ts",
+      "sha256": "a74163de6731f06f185948895cc4b5f8900e7d30ce76b9588717bad99ab165a7"
+    },
+    {
+      "path": "core/params.gen.ts",
+      "sha256": "7a8f912a0d33133e21b5914a7e1905b07df8fe4dde6429a00485de026fee72ca"
+    },
+    {
+      "path": "core/pathSerializer.gen.ts",
+      "sha256": "41449b1807cd47b280b2c16e9684ec297b867e11f9f90dd1cb053408b58ed387"
+    },
+    {
+      "path": "core/queryKeySerializer.gen.ts",
+      "sha256": "293a195d9a833f829ab172b024d68186d6a19e6b3636f14ae9b9d10858e7bfd0"
+    },
+    {
+      "path": "core/serverSentEvents.gen.ts",
+      "sha256": "b75654ca8345aa573f1c10289a542cc52d54faa4e5eb59052eeab953adecb2cc"
+    },
+    {
+      "path": "core/types.gen.ts",
+      "sha256": "2bfa0ff7c4a4c9694e36c55c1c11ffd839d7f1f5b04490733a5343b9245361a8"
+    },
+    {
+      "path": "core/utils.gen.ts",
+      "sha256": "55d7b2b7271f508556793d7e03aa62562af8c3ac14d197346a2154d9025b98b3"
+    },
+    {
+      "path": "index.ts",
+      "sha256": "1a56889bac228e103cd52b1213fc3b756eade34c8b5fb7ce5f65d36829a6a936"
+    },
+    {
+      "path": "sdk.gen.ts",
+      "sha256": "52554524dd352445e839c435ae6df72bf6c9fa6d44c3bb3466a72c7270fd7468"
+    },
+    {
+      "path": "types.gen.ts",
+      "sha256": "5c0b46421700b2824dca4110679689bbe0ae72f0417183fe8604fdccb4bf066b"
+    }
+  ]
+}

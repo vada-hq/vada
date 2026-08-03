@@ -9,6 +9,7 @@
 - `permissions.json`, `events.json`, `governance.json`: 안정 키와 불변 리비전
 - `vocabulary.json`: 역할·권한 주체의 공유 어휘
 - `openapi.json`: API 계약과 권한·리비전·AC 연결
+- `openapi/<CB-ID>/R<n>.json`: 승인 계약 묶음에서 결정적으로 렌더링한 생성 클라이언트 입력
 - `schemas/delivery-contract-bundle.schema.json`: 승인 설계를 실행 계약으로 바꾸는 묶음 구조 규격
 - `bundles/<CB-ID>/draft.json`: 검토 중인 계약 묶음. 승인 전 계약은 `proposed`이며 구현 기준선이 아니다.
 - `bundles/<CB-ID>/R<n>.json`: 승인된 불변 계약 묶음. 권한·데이터·도메인·API·오류·이벤트·품질 계약과 설계 귀속을 함께 고정한다.
