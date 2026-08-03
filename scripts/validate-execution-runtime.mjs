@@ -169,6 +169,7 @@ export async function validateExecutionRuntime(runtime, { executionPlan, workPla
 
   const sources = runtime.sources ?? [];
   const sourceIds = new Set(sources.map((item) => item.id));
+  const sourceById = new Map(sources.map((item) => [item.id, item]));
   for (const id of duplicates(sources.map((item) => item.id))) errors.push(`실행 근거 ID가 중복됐습니다: ${id}`);
   const executors = new Map((executionPlan?.executors ?? []).map((item) => [item.id, item]));
   const committed = new Map(
@@ -201,6 +202,14 @@ export async function validateExecutionRuntime(runtime, { executionPlan, workPla
     if (!executors.has(run.executor_ref)) errors.push(`${location}: 존재하지 않는 실행자 ${run.executor_ref}`);
     validateTransitionLog(run, index, sourceIds, executors, transitionIds, errors);
     validateEvidence(run, workById.get(run.work_item_ref), index, executors, proofIds, errors);
+
+    if (executors.get(run.executor_ref)?.kind === "human") {
+      for (const transition of run.transition_log ?? []) {
+        if (transition.to === "in_progress" && sourceById.get(transition.source_ref)?.type !== "handoff_acknowledgement") {
+          errors.push(`${location}: 사람 실행자의 착수에는 실제 인계 확인 근거가 필요합니다.`);
+        }
+      }
+    }
 
     for (const transition of run.transition_log ?? []) {
       const value = parseTime(transition.occurred_at);

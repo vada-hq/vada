@@ -14,6 +14,7 @@
 | 명령 | 용도 |
 | --- | --- |
 | `just setup` | 최초 1회: 전체 의존성 설치 |
+| `just preflight` / `just preflight-postgresql` | 작업 할당 전 공통 도구 / 실제 PostgreSQL 환경 점검 |
 | `just dev-api` | API 개발 서버 (http://localhost:8000) |
 | `just dev-web` | 웹 개발 서버 |
 | `just test` / `just test-api` / `just test-web` | 테스트 |
@@ -25,10 +26,11 @@
 | `just validate-delivery-work` | 승인 기준선에서 도출한 작업·증거·선행관계·전체 커버리지 검증 |
 | `just validate-execution-plan` | 승인 작업 그래프의 실행 범위·실행자·추정·일정과 기준선 고정 검증 |
 | `just validate-execution-runtime` | 승인 실행 계획의 실제 상태 전이·차단 사유·완료 증거 검증 |
+| `just check-api` / `just check-web` | 작업자·검증자용 경로별 검사 |
 | `just build` | 제품 웹 + 와이어프레임 프로토타입 빌드 |
 | `just check` | ⭐ 제품 명세 + 계약 + lint + typecheck + test + build 전부 |
 
-**작업 완료의 정의 = `just check` 통과.** 통과 전에 작업을 끝내지 마라. "됐다"는 주장이 아니라 명령 출력이 증거다.
+**통합 완료의 정의 = 총괄 실행선에서 `just check` 통과.** 작업자와 검증자는 할당 범위의 대상 검사와 `just check-api`·`just check-web` 또는 관련 명세 검증만 실행하고, 총괄이 승인 결과를 통합한 뒤 전체 검사를 한 번 실행한다. "됐다"는 주장이 아니라 명령 출력이 증거다.
 
 ## 구조
 
@@ -54,9 +56,11 @@
 ## 개발 실행 기준
 
 - 코드 작업 전 [엔지니어링 운영 지도](docs/engineering/README.md)와 작업 경로에서 가장 가까운 `AGENTS.md`를 읽는다.
+- 총괄은 할당 전에 `just preflight`와 작업 패킷의 추가 프로필을 실행한다. 실제 PostgreSQL 증거가 필요한 작업은 `just preflight-postgresql`이 통과하지 않으면 시작하지 않는다.
 - 사용자 동작 변경은 [테스트와 완료 증거](docs/engineering/testing-and-evidence.md)의 RED → GREEN → REFACTOR → CHECK 순서를 따른다. PR에 RED·GREEN·`just check` 증거를 남긴다.
 - 한 작업에는 한 쓰기 주체와 격리된 브랜치·worktree를 사용한다. 선행관계와 공유 변경 경로가 없는 작업만 병렬화한다.
 - 구현 작성자와 완료 검증자를 분리한다. 총괄 에이전트는 최종 diff·계약·문서 영향을 다시 검토하고, 운영 배포·비밀 접근·파괴적 변경은 사람 승인을 받는다.
+- 사람 작업은 담당자의 실제 인계 확인 전에는 `in_progress`로 전환하지 않는다. 확인 근거는 실행 런타임에 `handoff_acknowledgement`로 남긴다.
 
 ## 불변 규칙 (위반 = CI 실패 또는 리뷰 반려)
 
@@ -79,7 +83,7 @@
 - 작업 전: Git 루트와 브랜치를 확인하고, 관련 제품 도메인·플로우·목표 동작 설계의 최신 승인 리비전, 해당 전달 단위가 고정한 `contracts/bundles/*/R<n>.json` 또는 기존 `contracts/slices/*.json`, 승인된 `delivery-units/*/implementation-architecture/R<n>.json`, `delivery-work/R<n>.json`과 `execution-plan/R<n>.json`을 읽는다. `draft.json`·`review_ready`는 구현 기준선으로 사용하지 않는다. 제품 명세·계약·구현 아키텍처·전달 작업 그래프·실행 계획이 없거나 구현을 바꿀 미결정 사안이 있으면 추정하지 말고 책임자에게 보고한다.
 - 슬라이스 작성·변경: `docs/governance/slice-operating-model.md`를 따르고 저장소 `specRevision`과 Notion `명세 리비전`을 확인한다. 담당자·일정·추정은 태스크 DB에서만 관리한다.
 - 작업 중: 계약 의미가 바뀌면 활성 리비전을 덮어쓰지 말고 새 리비전으로 추적한다. 실제 착수·검토·완료·재작업과 증거는 승인 계획을 수정하지 말고 `delivery-units/*/execution-runtime/R<n>.json`에 누적한다. 에이전트 실행·인계·재작업은 `docs/engineering/agent-execution.md`를 따르며 총괄 에이전트가 계약·문서 영향과 최종 diff를 검토한다.
-- 작업 후: 코드·테스트·계약·문서를 같은 변경 집합에서 갱신하고 `just check`를 실행한다. 보고에는 변경, 검증 결과, 미결정 사항과 잔여 위험을 포함한다.
+- 작업 후: 작업자는 코드·테스트·계약·문서를 같은 변경 집합에서 갱신하고 범위별 검사를 인계한다. 검증자는 이를 독립 재실행하며, 총괄은 승인 변경을 통합한 뒤 `just check`를 한 번 실행한다. 보고에는 변경, 검증 결과, 미결정 사항과 잔여 위험을 포함한다.
 
 ## 기술 결정에 대한 태도
 

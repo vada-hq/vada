@@ -218,6 +218,7 @@ test("완료되지 않은 선행 작업에 막힌 작업은 시작할 수 없다
   };
   const runtime = validRuntime(work, execution);
   runtime.execution_plan_ref.canonical_sha256 = canonicalSha256(execution);
+  runtime.updated_at = "2026-08-03T22:01:00+09:00";
   runtime.work_runs.push(workRun("WORK:test-child@R1", "TR-101"));
   const child = runtime.work_runs[1];
   child.status = "in_progress";
@@ -233,6 +234,41 @@ test("완료되지 않은 선행 작업에 막힌 작업은 시작할 수 없다
   });
   const result = await validateExecutionRuntime(runtime, { executionPlan: execution, workPlan: work });
   assert.match(result.errors.join("\n"), /선행 작업/);
+});
+
+test("사람 실행자의 작업은 실제 인계 확인 근거 없이는 착수할 수 없다", async () => {
+  const work = workPlan();
+  const execution = executionPlan(work);
+  execution.executors.push({
+    id: "EXEC:human-worker",
+    kind: "human",
+    execution_roles: ["worker"],
+  });
+  execution.work_allocations[0].primary_executor_ref = "EXEC:human-worker";
+
+  const runtime = validRuntime(work, execution);
+  runtime.execution_plan_ref.canonical_sha256 = canonicalSha256(execution);
+  runtime.updated_at = "2026-08-03T22:01:00+09:00";
+  const run = runtime.work_runs[0];
+  run.executor_ref = "EXEC:human-worker";
+  run.status = "in_progress";
+  run.started_at = "2026-08-03T22:01:00+09:00";
+  run.transition_log.push({
+    id: "TR-002",
+    from: "not_started",
+    to: "in_progress",
+    occurred_at: "2026-08-03T22:01:00+09:00",
+    actor_ref: "EXEC:coordinator",
+    source_ref: "SRC-RUN-001",
+    note_ko: "담당자의 응답 없이 사람 작업을 시작 처리했습니다.",
+  });
+
+  const rejected = await validateExecutionRuntime(runtime, { executionPlan: execution, workPlan: work });
+  assert.match(rejected.errors.join("\n"), /사람 실행자.*인계 확인/);
+
+  runtime.sources[0].type = "handoff_acknowledgement";
+  const accepted = await validateExecutionRuntime(runtime, { executionPlan: execution, workPlan: work });
+  assert.doesNotMatch(accepted.errors.join("\n"), /사람 실행자.*인계 확인/);
 });
 
 test("저장소의 실제 실행 런타임이 모두 유효하다", async () => {

@@ -16,8 +16,11 @@
     "validate:delivery-work": "node scripts/validate-delivery-work-plan.mjs",
     "test:execution-plan": "node --test scripts/validate-execution-plan.test.mjs",
     "validate:execution-plan": "node scripts/validate-execution-plan.mjs",
+    "test:execution-preflight": "node --test scripts/check-execution-preflight.test.mjs",
     "test:execution-runtime": "node --test scripts/validate-execution-runtime.test.mjs",
     "validate:execution-runtime": "node scripts/validate-execution-runtime.mjs",
+    "preflight": "node scripts/check-execution-preflight.mjs base",
+    "preflight:postgresql": "node scripts/check-execution-preflight.mjs postgresql",
     "build:wireframe": "pnpm --filter @vada/wireframe build",
     "prepare": "lefthook install"
   },

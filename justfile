@@ -9,6 +9,14 @@ setup:
     pnpm install
     cd apps/api && uv sync
 
+# 작업 할당 전 공통 실행 환경 검사
+preflight:
+    pnpm preflight
+
+# 실제 PostgreSQL 검증이 필요한 작업의 실행 환경 검사
+preflight-postgresql:
+    pnpm preflight:postgresql
+
 # 개발 서버
 dev-api:
     cd apps/api && uv run uvicorn vada_api.main:app --reload --port 8000
@@ -43,6 +51,7 @@ validate-execution-plan:
 
 # 승인 실행 계획에 대한 실제 상태·전이·증거 기록
 validate-execution-runtime:
+    pnpm test:execution-preflight
     pnpm test:execution-runtime
     pnpm validate:execution-runtime
 
@@ -54,6 +63,11 @@ test-api:
 
 test-web:
     pnpm --filter web test
+
+# 작업자용 경로별 검사 — 전체 통합 검사는 총괄이 just check로 한 번 실행
+check-api: lint-api typecheck-api test-api
+
+check-web: lint-web typecheck-web test-web build-web
 
 # 린트 + 포맷 검사
 lint: lint-api lint-web

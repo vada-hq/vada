@@ -57,7 +57,7 @@
       "properties": {
         "id": { "$ref": "#/$defs/sourceId" },
         "type": {
-          "enum": ["approved_artifact", "user_statement", "command_output", "code_evidence", "review_record"]
+          "enum": ["approved_artifact", "user_statement", "handoff_acknowledgement", "command_output", "code_evidence", "review_record"]
         },
         "captured_at": { "type": "string", "format": "date-time" },
         "locator": { "type": "string", "minLength": 1 },

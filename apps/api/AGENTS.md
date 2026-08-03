@@ -7,7 +7,10 @@
 - 대상 테스트: `uv run pytest <test-path>`
 - 린트·포맷 검사: `uv run ruff check . && uv run ruff format --check .`
 - 타입 검사: `uv run pyright`
-- API 전체 검사: 리포 루트에서 `just lint-api && just typecheck-api && just test-api`
+- 작업자·검증자용 API 범위 검사: 리포 루트에서 `just check-api`
+- 실제 PostgreSQL 테스트가 필요한 작업은 할당 전에 리포 루트에서 `just preflight-postgresql`
+
+저장소 전체 `just check`는 승인 변경을 통합한 총괄이 한 번 실행한다.
 
 ## 구현 경계
 
@@ -18,4 +21,3 @@
 - 마이그레이션은 expand → migrate → contract로 나누고 기동 시 자동 실행하지 않는다.
 
 동작 변경은 실패하는 pytest로 먼저 재현한다. 구체적인 도메인 모듈 구조는 승인 구현 아키텍처와 첫 실제 기능의 책임을 기준으로 확정하며, 현재 최소 뼈대를 근거로 범용 계층을 미리 만들지 않는다.
-
