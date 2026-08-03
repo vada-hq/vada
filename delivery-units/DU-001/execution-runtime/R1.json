@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R1",
-  "runtime_revision": 9,
+  "runtime_revision": 10,
   "runtime_status": "active",
-  "updated_at": "2026-08-04T00:07:03+09:00",
+  "updated_at": "2026-08-04T00:10:57+09:00",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R1.json",
@@ -109,6 +109,13 @@
       "captured_at": "2026-08-04T00:07:03+09:00",
       "locator": "git:5bc749dd1dea493d10242b608160e1ec541344ae",
       "content_ko": "PostgreSQL 컬럼 조회 결과를 SQLAlchemy mapping으로 명시 변환하도록 수정하고 API 린트·타입검사·로컬 테스트와 실행 런타임 검증을 통과해 실제 PostgreSQL CI 재검토를 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-015",
+      "type": "command_output",
+      "captured_at": "2026-08-04T00:10:57+09:00",
+      "locator": "https://github.com/vada-hq/vada/actions/runs/30826105048/job/91728020734",
+      "content_ko": "두 번째 실제 PostgreSQL CI에서 결과 변환 오류는 해결됐고 통합 테스트 2개 중 1개가 통과했습니다. 나머지 1개는 information_schema가 반환한 소문자 타입명과 테스트의 대문자 기대값이 달라 실패해 증거를 다시 반려합니다."
     }
   ],
   "work_runs": [
@@ -253,7 +260,7 @@
     {
       "work_item_ref": "WORK:purchase-request-data-schema@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "in_progress",
       "started_at": "2026-08-03T22:11:14+09:00",
       "completed_at": null,
       "transition_log": [
@@ -337,6 +344,15 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-014",
           "note_ko": "실패한 결과 변환 테스트를 수정하고 로컬 범위 검사를 통과해 실제 PostgreSQL CI 재검토를 요청했습니다."
+        },
+        {
+          "id": "TR-019",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T00:10:57+09:00",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-015",
+          "note_ko": "실제 PostgreSQL의 정보 스키마 표현과 테스트 기대값이 달라 증거를 반려하고 기대값 교정을 요청했습니다."
         }
       ],
       "blockers": [
@@ -378,10 +394,10 @@
           "kind": "automated_test",
           "locator": "git:5bc749dd1dea493d10242b608160e1ec541344ae#apps/api/tests/persistence/test_purchase_request_migration.py",
           "captured_at": "2026-08-04T00:07:03+09:00",
-          "verification_status": "submitted",
-          "verified_by": null,
-          "verified_at": null,
-          "verification_note_ko": null
+          "verification_status": "rejected",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T00:10:57+09:00",
+          "verification_note_ko": "결과 변환 결함은 해결됐지만 PostgreSQL information_schema의 소문자 타입명과 테스트 기대값이 불일치해 통합 테스트가 아직 전부 통과하지 않았습니다."
         }
       ]
     }

@@ -271,8 +271,8 @@ def test_empty_postgresql_migration_enforces_purchase_request_contract(
             ).mappings()
         }
     assert timestamp_columns == {
-        "saved_at": "TIMESTAMP WITH TIME ZONE",
-        "created_at": "TIMESTAMP WITH TIME ZONE",
+        "saved_at": "timestamp with time zone",
+        "created_at": "timestamp with time zone",
     }
 
     with migrated_engine.begin() as connection:
