@@ -7,12 +7,12 @@ from contextlib import contextmanager
 from dataclasses import replace
 from datetime import date
 from decimal import Decimal
-from threading import Barrier
+from threading import Barrier, Lock, get_ident
 from typing import Literal
 
 import pytest
 import sqlalchemy as sa
-from sqlalchemy import Engine, inspect, text
+from sqlalchemy import Engine, event, inspect, text
 
 from vada_api.finance.persistence.schema import (
     purchase_request_drafts,
@@ -274,16 +274,48 @@ def test_same_key_concurrent_retries_return_one_request_and_one_event(
     migrated_engine: Engine,
 ) -> None:
     command = _submission(with_draft=False)
-    barrier = Barrier(2)
+    idempotency_insert_barrier = Barrier(2)
+    synchronized_threads: list[int] = []
+    synchronization_lock = Lock()
+
+    def synchronize_idempotency_insert(
+        _connection: object,
+        _cursor: object,
+        statement: str,
+        _parameters: object,
+        _context: object,
+        _executemany: bool,
+    ) -> None:
+        normalized_statement = " ".join(statement.split()).casefold()
+        if not normalized_statement.startswith(
+            "insert into purchase_request_submission_idempotency"
+        ):
+            return
+        with synchronization_lock:
+            synchronized_threads.append(get_ident())
+        idempotency_insert_barrier.wait(timeout=10)
 
     def submit_once() -> PurchaseRequestRecord:
-        barrier.wait()
         return PostgreSQLPurchaseRequestSubmissionStore(migrated_engine).submit(command)
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        futures = (executor.submit(submit_once), executor.submit(submit_once))
-        records = [future.result() for future in futures]
+    event.listen(
+        migrated_engine,
+        "before_cursor_execute",
+        synchronize_idempotency_insert,
+    )
+    try:
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            futures = (executor.submit(submit_once), executor.submit(submit_once))
+            records = [future.result() for future in futures]
+    finally:
+        event.remove(
+            migrated_engine,
+            "before_cursor_execute",
+            synchronize_idempotency_insert,
+        )
 
+    assert len(synchronized_threads) == 2
+    assert len(set(synchronized_threads)) == 2
     assert records[0] == records[1]
     assert _table_count(migrated_engine, "purchase_requests") == 1
     assert _table_count(migrated_engine, "purchase_request_items") == 2
