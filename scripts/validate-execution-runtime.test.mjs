@@ -271,6 +271,52 @@ test("사람 실행자의 작업은 실제 인계 확인 근거 없이는 착수
   assert.doesNotMatch(accepted.errors.join("\n"), /사람 실행자.*인계 확인/);
 });
 
+test("런타임 갱신 시각보다 나중에 캡처한 근거를 거부한다", async () => {
+  const work = workPlan();
+  const execution = executionPlan(work);
+  const runtime = validRuntime(work, execution);
+  runtime.sources[0].captured_at = "2026-08-03T22:01:00+09:00";
+
+  const result = await validateExecutionRuntime(runtime, { executionPlan: execution, workPlan: work });
+
+  assert.match(result.errors.join("\n"), /근거 캡처 시각.*런타임 갱신 시각/);
+});
+
+test("상태 전이가 참조 근거를 캡처하기 전에 발생한 기록을 거부한다", async () => {
+  const work = workPlan();
+  const execution = executionPlan(work);
+  const runtime = validRuntime(work, execution);
+  runtime.sources[0].captured_at = "2026-08-03T22:01:00+09:00";
+  runtime.updated_at = "2026-08-03T22:01:00+09:00";
+
+  const result = await validateExecutionRuntime(runtime, { executionPlan: execution, workPlan: work });
+
+  assert.match(result.errors.join("\n"), /상태 전이 시각.*참조 근거 캡처 시각/);
+});
+
+test("증거 검증 시각이 증거 캡처보다 빠른 기록을 거부한다", async () => {
+  const work = workPlan();
+  const execution = executionPlan(work);
+  const runtime = validRuntime(work, execution);
+  const run = runtime.work_runs[0];
+  run.evidence_instances.push({
+    id: "PROOF-001",
+    requirement_ref: "EVID-001",
+    kind: "automated_test",
+    locator: "test/proof",
+    captured_at: "2026-08-03T22:02:00+09:00",
+    verification_status: "verified",
+    verified_by: "EXEC:verifier",
+    verified_at: "2026-08-03T22:01:00+09:00",
+    verification_note_ko: "검증 시각 역전을 재현합니다.",
+  });
+  runtime.updated_at = "2026-08-03T22:02:00+09:00";
+
+  const result = await validateExecutionRuntime(runtime, { executionPlan: execution, workPlan: work });
+
+  assert.match(result.errors.join("\n"), /검증 시각.*증거 캡처 시각/);
+});
+
 test("저장소의 실제 실행 런타임이 모두 유효하다", async () => {
   const result = await validateExecutionRuntimeRepository(repositoryRoot);
   assert.deepEqual(result.errors, []);
