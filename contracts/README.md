@@ -10,7 +10,8 @@
 - `vocabulary.json`: 역할·권한 주체의 공유 어휘
 - `openapi.json`: API 계약과 권한·리비전·AC 연결
 - `openapi/<CB-ID>/R<n>.json`: 승인 계약 묶음에서 결정적으로 렌더링한 생성 클라이언트 입력
-- `schemas/delivery-contract-bundle.schema.json`: 승인 설계를 실행 계약으로 바꾸는 묶음 구조 규격
+- `schemas/delivery-contract-bundle.schema.json`: 최초 계약 묶음과 개별 계약 가져오기를 지원하는 0.1 구조 규격
+- `schemas/delivery-contract-bundle-0.2.0.schema.json`: 승인 기준 묶음을 한 번 참조하고 변경 계약만 기록하는 0.2 구조 규격
 - `bundles/<CB-ID>/draft.json`: 검토 중인 계약 묶음. 승인 전 계약은 `proposed`이며 구현 기준선이 아니다.
 - `bundles/<CB-ID>/R<n>.json`: 승인된 불변 계약 묶음. 권한·데이터·도메인·API·오류·이벤트·품질 계약과 설계 귀속을 함께 고정한다.
 - `fixtures/<CB-ID>/R<n>.json`: 승인 묶음 해시에 고정된 정상·실패 데이터와 API 모의 요청·응답. `body_example_ref`로 같은 JSON 값을 프론트엔드와 백엔드가 재사용한다.
@@ -35,6 +36,8 @@
 3. 계약 검증 후 사람의 승인만 남으면 `review_ready`로 둔다. 이 상태는 구현 승인이 아니다.
 4. 명시적 승인 후 `R1.json`을 만들고 계약 상태를 `ratified`로 고정한다. 이후 의미 변경은 새 리비전으로만 한다.
 5. OpenAPI 문서는 승인된 API 계약 묶음에서 렌더링하고 `x-vada-*` 추적 정보를 유지한다.
+
+후속 묶음이 기준 묶음 대부분을 재사용하면 계약별 `imports`를 반복하지 않는다. 0.2의 `base_bundle_ref`에 승인 기준 묶음의 경로·ID·리비전·해시를 고정하고 로컬 `contracts`에는 새 리비전만 둔다. 검증기는 상속된 확정 계약과 변경분을 합쳐 필수 계약 종류, `supersedes`, 설계 귀속을 검사한다.
 
 기존 최상위 리비전 파일과 `slices/`는 행사 초기 기준선을 보존한다. 신규 전달 단위는 계약 묶음을 정본으로 사용하고, 기존 형식에 같은 의미를 중복 기록하지 않는다.
 

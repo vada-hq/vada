@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.local/schemas/workflow-policy-0.1.0.json",
+  "title": "VADA Workflow Policy",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "policy_id",
+    "policy_revision",
+    "status",
+    "updated_at",
+    "approval_basis",
+    "people",
+    "responsibility_defaults",
+    "assurance_profiles",
+    "risk_routes"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schema_version": { "const": "0.1.0" },
+    "policy_id": { "const": "WORKFLOW-POLICY-VADA" },
+    "policy_revision": { "type": "integer", "minimum": 1 },
+    "status": { "const": "approved" },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "approval_basis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "captured_at", "content_ko"],
+      "properties": {
+        "type": { "const": "user_statement" },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "content_ko": { "type": "string", "minLength": 1 }
+      }
+    },
+    "people": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/person" }
+    },
+    "responsibility_defaults": { "$ref": "#/$defs/responsibilityDefaults" },
+    "assurance_profiles": { "$ref": "#/$defs/assuranceProfiles" },
+    "risk_routes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/riskRoute" }
+    }
+  },
+  "$defs": {
+    "personId": {
+      "type": "string",
+      "pattern": "^HUMAN:[a-z0-9][a-z0-9-]*$"
+    },
+    "person": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "display_name_ko", "capabilities"],
+      "properties": {
+        "id": { "$ref": "#/$defs/personId" },
+        "display_name_ko": { "type": "string", "minLength": 1 },
+        "capabilities": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "product_planning",
+              "experience_design",
+              "development",
+              "accountability"
+            ]
+          }
+        }
+      }
+    },
+    "responsibilityDefaults": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "product_planning",
+        "experience_design",
+        "development",
+        "accountable_owner",
+        "default_assignee"
+      ],
+      "properties": {
+        "product_planning": { "$ref": "#/$defs/personId" },
+        "experience_design": { "$ref": "#/$defs/personId" },
+        "development": { "$ref": "#/$defs/personId" },
+        "accountable_owner": { "$ref": "#/$defs/personId" },
+        "default_assignee": { "$ref": "#/$defs/personId" }
+      }
+    },
+    "assuranceProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "separate_verifier_required",
+        "human_approval_required",
+        "coordinator_review_required",
+        "required_checks"
+      ],
+      "properties": {
+        "separate_verifier_required": { "type": "boolean" },
+        "human_approval_required": { "type": "boolean" },
+        "coordinator_review_required": { "type": "boolean" },
+        "required_checks": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["scoped", "full_integration"] }
+        }
+      }
+    },
+    "assuranceProfiles": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mechanical", "standard", "high_assurance"],
+      "properties": {
+        "mechanical": { "$ref": "#/$defs/assuranceProfile" },
+        "standard": { "$ref": "#/$defs/assuranceProfile" },
+        "high_assurance": { "$ref": "#/$defs/assuranceProfile" }
+      }
+    },
+    "riskRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["trigger", "assurance_profile"],
+      "properties": {
+        "trigger": {
+          "enum": [
+            "product_policy",
+            "authorization",
+            "tenant_isolation",
+            "financial_atomicity",
+            "database_migration",
+            "breaking_contract",
+            "workflow_governance",
+            "external_deployment",
+            "destructive_operation"
+          ]
+        },
+        "assurance_profile": {
+          "enum": ["mechanical", "standard", "high_assurance"]
+        }
+      }
+    }
+  }
+}

@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { dirname, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import test from "node:test";
 
 import Ajv2020 from "ajv/dist/2020.js";
 
 import {
   canonicalSha256,
+  validateBaseBundleReference,
   validateContractBundleDocument,
   validateContractBundleRepository,
 } from "./validate-contract-bundles.mjs";
@@ -196,6 +198,46 @@ function reviewReadyBundle(solution = approvedSolution()) {
   };
 }
 
+function approvedBaseBundle(solution = approvedSolution()) {
+  const bundle = reviewReadyBundle(solution);
+  bundle.bundle_id = "CB-TEST-BASE";
+  bundle.bundle_revision = 1;
+  bundle.bundle_status = "approved";
+  bundle.sources.push(source("SRC-002", "user_statement"));
+  bundle.approval_source_ref = "SRC-002";
+  bundle.contracts.forEach((item) => {
+    item.status = "ratified";
+  });
+  const approval = bundle.questions[0];
+  approval.status = "answered";
+  approval.answer_source_ref = "SRC-002";
+  approval.normalized_answer = { selected_option_ids: ["YES"], free_text: null };
+  return bundle;
+}
+
+function reviewReadyDeltaBundle(solution = approvedSolution()) {
+  const base = approvedBaseBundle(solution);
+  const bundle = reviewReadyBundle(solution);
+  const quality = bundle.contracts.find((item) => item.kind === "QUALITY");
+  quality.id = "QUALITY:test.verification@R2";
+  quality.revision = 2;
+  quality.change_class = "additive";
+  quality.supersedes = "QUALITY:test.verification@R1";
+  quality.summary_ko = "검증 계약을 확장합니다.";
+  bundle.schema_version = "0.2.0";
+  bundle.bundle_id = "CB-TEST-DELTA";
+  bundle.base_bundle_ref = {
+    bundle_path: "contracts/bundles/CB-TEST-BASE/R1.json",
+    bundle_id: base.bundle_id,
+    bundle_revision: base.bundle_revision,
+    canonical_sha256: canonicalSha256(base),
+  };
+  delete bundle.imports;
+  bundle.contracts = [quality];
+  bundle.design_coverage[0].contract_refs = [quality.id];
+  return { base, bundle };
+}
+
 test("승인 설계를 완전히 덮는 검토 준비 계약 묶음을 허용한다", () => {
   const solution = approvedSolution();
   assert.deepEqual(validateContractBundleDocument(reviewReadyBundle(solution), solution), []);
@@ -284,6 +326,71 @@ test("승인된 다른 묶음의 DATA 스키마를 정확한 리비전으로 재
     }),
     [],
   );
+});
+
+test("0.2 계약 묶음은 승인된 기준 묶음 전체를 한 번 참조하고 변경분만 기록한다", () => {
+  const solution = approvedSolution();
+  const { base, bundle } = reviewReadyDeltaBundle(solution);
+  const baseContracts = new Map(base.contracts.map((item) => [item.id, item]));
+
+  assert.deepEqual(
+    validateContractBundleDocument(bundle, solution, { importedContracts: baseContracts }),
+    [],
+  );
+  assert.equal(bundle.contracts.length, 1);
+  assert.equal("imports" in bundle, false);
+});
+
+test("0.2 계약 묶음의 기준 묶음 해시가 다르면 거부한다", () => {
+  const { base, bundle } = reviewReadyDeltaBundle();
+  bundle.base_bundle_ref.canonical_sha256 = "0".repeat(64);
+
+  assert.match(
+    validateBaseBundleReference(bundle.base_bundle_ref, base).join("\n"),
+    /기준 묶음 해시/,
+  );
+});
+
+test("저장소 검증은 0.2 기준 묶음을 한 번 읽어 상속 계약 전체를 해석한다", async () => {
+  const root = await mkdtemp(join(tmpdir(), "vada-contract-v2-"));
+  try {
+    const solution = approvedSolution();
+    const { base, bundle } = reviewReadyDeltaBundle(solution);
+    const paths = [
+      "contracts/bundles/CB-TEST-BASE",
+      "contracts/bundles/CB-TEST-DELTA",
+      "product-specs/solutions/SOLUTION-TEST-001",
+      "product-specs/flows/FLOW-TEST-001",
+    ];
+    await Promise.all(paths.map((path) => mkdir(resolve(root, path), { recursive: true })));
+    await Promise.all([
+      writeFile(
+        resolve(root, "contracts/bundles/CB-TEST-BASE/R1.json"),
+        JSON.stringify(base),
+      ),
+      writeFile(
+        resolve(root, "contracts/bundles/CB-TEST-DELTA/draft.json"),
+        JSON.stringify(bundle),
+      ),
+      writeFile(
+        resolve(root, "product-specs/solutions/SOLUTION-TEST-001/R1.json"),
+        JSON.stringify(solution),
+      ),
+      writeFile(
+        resolve(root, "product-specs/flows/FLOW-TEST-001/R1.json"),
+        JSON.stringify({
+          id: "FLOW-TEST-001",
+          revision: 1,
+          status: "approved",
+          spec: { outcome: { result: bundle.objective_ko } },
+        }),
+      ),
+    ]);
+
+    assert.deepEqual((await validateContractBundleRepository(root)).errors, []);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test("저장소의 실제 실행 계약 묶음이 모두 유효하다", async () => {
