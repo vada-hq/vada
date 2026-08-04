@@ -1,10 +1,10 @@
 {
   "schema_version": "0.2.0",
   "architecture_id": "IAB-VADA-DU-001",
-  "architecture_revision": null,
-  "architecture_status": "review_ready",
-  "approval_source_ref": null,
-  "updated_at": "2026-08-04T23:36:05.0818843+09:00",
+  "architecture_revision": 2,
+  "architecture_status": "approved",
+  "approval_source_ref": "SRC-003",
+  "updated_at": "2026-08-04T23:46:25.8462280+09:00",
   "delivery_unit_ref": "FLOW-FIN-001@R2",
   "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
   "contract_bundle_ref": {
@@ -48,13 +48,20 @@
       "captured_at": "2026-08-04T23:36:05.0818843+09:00",
       "locator": "delivery-units/DU-001/implementation-architecture/R1.json#c824e8380c7010bd75fbeb24103ba7ee74b4e83861d040fb1d2c48362b5c0f09",
       "content_ko": "제품 책임자가 승인한 DU-001 구현 아키텍처 R1입니다. 프론트엔드·백엔드·영속성·인증·인가·배포·관측성·테스트 결정을 포함합니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "user_statement",
+      "captured_at": "2026-08-04T23:46:25.8462280+09:00",
+      "locator": "current-thread/iab-vada-du-001-r2-approval-2026-08-04",
+      "content_ko": "제품 책임자가 기존 아키텍처 R1의 기술 결정 8개를 변경 없이 유지하고 승인 계약 R2를 DU-001 구현 기준선으로 적용하는 아키텍처 R2 전체를 명시적으로 승인했습니다."
     }
   ],
   "decisions": [],
   "questions": [
     {
       "id": "Q-001",
-      "status": "pending",
+      "status": "answered",
       "decision_area": "approval",
       "origin": "approval",
       "depends_on_question_refs": [],
@@ -98,8 +105,13 @@
           "SRC-002"
         ]
       },
-      "answer_source_ref": null,
-      "normalized_answer": null,
+      "answer_source_ref": "SRC-003",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": null
+      },
       "dismissal_reason_ko": null
     }
   ]
