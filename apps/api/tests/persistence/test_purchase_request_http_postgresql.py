@@ -620,11 +620,6 @@ def test_ac04_ac08_failures_are_stable_and_writes_create_no_state(
             "PUT",
         ),
         (
-            forbidden_client.delete("/events/event-a/purchase-request-draft"),
-            "/events/{eventId}/purchase-request-draft",
-            "DELETE",
-        ),
-        (
             forbidden_client.post(
                 "/events/event-a/purchase-requests",
                 headers={"Idempotency-Key": "forbidden-submit-001"},
@@ -638,6 +633,15 @@ def test_ac04_ac08_failures_are_stable_and_writes_create_no_state(
         _assert_openapi_response(forbidden, path=path, method=method)
         assert forbidden.status_code == 403
         assert forbidden.json()["code"] == "PURCHASE_REQUEST_ACTION_FORBIDDEN"
+
+    missing_draft = forbidden_client.delete("/events/event-a/purchase-request-draft")
+    _assert_openapi_response(
+        missing_draft,
+        path="/events/{eventId}/purchase-request-draft",
+        method="DELETE",
+    )
+    assert missing_draft.status_code == 404
+    assert missing_draft.json()["code"] == "RESOURCE_NOT_FOUND"
 
     with migrated_engine.connect() as connection:
         for table in (purchase_request_drafts, purchase_requests):
