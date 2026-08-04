@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R3",
-  "runtime_revision": 25,
+  "runtime_revision": 27,
   "runtime_status": "active",
-  "updated_at": "2026-08-04T05:51:36.890Z",
+  "updated_at": "2026-08-04T06:11:04.413Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R3.json",
@@ -193,6 +193,20 @@
       "captured_at": "2026-08-04T05:51:36.890Z",
       "locator": "review:PR-12:c142410",
       "content_ko": "독립 검증에서 제출 정수 필드의 문자열 강제 변환과 지연된 동일 요청 재시도 실패를 확인했습니다."
+    },
+    {
+      "id": "SRC-RUN-027",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T06:10:51.297Z",
+      "locator": "git:81675fb45529957ee4f2f6d1cb17394e7c297a5e",
+      "content_ko": "초안 저장 API의 정수 입력과 OpenAPI 계약을 엄격화했고 로컬 검사와 GitHub Actions PostgreSQL 검증을 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-028",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T06:11:04.413Z",
+      "locator": "git:81675fb45529957ee4f2f6d1cb17394e7c297a5e",
+      "content_ko": "제출 API의 정수 입력, 지연된 동일 요청 재시도, 구매 유형별 OpenAPI 계약을 보완했고 로컬 검사와 GitHub Actions PostgreSQL 검증을 통과했습니다."
     }
   ],
   "work_runs": [
@@ -219,7 +233,7 @@
     {
       "work_item_ref": "WORK:purchase-request-draft-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "in_progress",
+      "status": "review",
       "started_at": "2026-08-03T17:32:45.777Z",
       "completed_at": null,
       "transition_log": [
@@ -294,6 +308,15 @@
           "actor_ref": "EXEC:ai-verifier",
           "source_ref": "SRC-RUN-025",
           "note_ko": "초안 정수 필드의 문자열 강제 변환을 차단하기 위해 재작업합니다."
+        },
+        {
+          "id": "TR-030",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T06:10:51.297Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-027",
+          "note_ko": "독립 검증 지적을 보완하고 재검토를 요청합니다."
         }
       ],
       "blockers": [],
@@ -302,7 +325,7 @@
     {
       "work_item_ref": "WORK:purchase-request-submission-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "in_progress",
+      "status": "review",
       "started_at": "2026-08-03T17:32:49.481Z",
       "completed_at": null,
       "transition_log": [
@@ -377,6 +400,15 @@
           "actor_ref": "EXEC:ai-verifier",
           "source_ref": "SRC-RUN-026",
           "note_ko": "제출 정수 입력을 엄격히 검증하고 동일 키·동일 본문 재시도의 기존 성공 응답을 보존하기 위해 재작업합니다."
+        },
+        {
+          "id": "TR-031",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T06:11:04.413Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-028",
+          "note_ko": "독립 검증 지적을 보완하고 재검토를 요청합니다."
         }
       ],
       "blockers": [],
