@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R3",
-  "runtime_revision": 27,
+  "runtime_revision": 31,
   "runtime_status": "active",
-  "updated_at": "2026-08-04T06:11:04.413Z",
+  "updated_at": "2026-08-04T06:18:32.190Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R3.json",
@@ -207,6 +207,34 @@
       "captured_at": "2026-08-04T06:11:04.413Z",
       "locator": "git:81675fb45529957ee4f2f6d1cb17394e7c297a5e",
       "content_ko": "제출 API의 정수 입력, 지연된 동일 요청 재시도, 구매 유형별 OpenAPI 계약을 보완했고 로컬 검사와 GitHub Actions PostgreSQL 검증을 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-029",
+      "type": "review_record",
+      "captured_at": "2026-08-04T06:17:47.818Z",
+      "locator": "review:PR-12:83f6834",
+      "content_ko": "독립 검증자가 초안 저장 API의 경계·권한·조직 격리와 실제 PostgreSQL 증거를 재검증해 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-030",
+      "type": "review_record",
+      "captured_at": "2026-08-04T06:18:03.196Z",
+      "locator": "review:PR-12:83f6834",
+      "content_ko": "독립 검증자가 제출 API의 검증·멱등 재시도·권한·조직 격리와 실제 PostgreSQL 증거를 재검증해 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-031",
+      "type": "review_record",
+      "captured_at": "2026-08-04T06:18:16.706Z",
+      "locator": "review:PR-12:83f6834",
+      "content_ko": "독립 검증자가 본인 구매 요청 목록 API의 응답·정렬·권한·조직 격리와 실제 PostgreSQL 증거를 재검증해 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-032",
+      "type": "review_record",
+      "captured_at": "2026-08-04T06:18:32.190Z",
+      "locator": "review:PR-12:83f6834",
+      "content_ko": "독립 검증자가 구매 요청 상세 API의 반복 조회·권한·조직 격리와 실제 PostgreSQL 증거를 재검증해 승인했습니다."
     }
   ],
   "work_runs": [
@@ -233,9 +261,9 @@
     {
       "work_item_ref": "WORK:purchase-request-draft-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-03T17:32:45.777Z",
-      "completed_at": null,
+      "completed_at": "2026-08-04T06:17:47.818Z",
       "transition_log": [
         {
           "id": "TR-002",
@@ -317,17 +345,38 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-027",
           "note_ko": "독립 검증 지적을 보완하고 재검토를 요청합니다."
+        },
+        {
+          "id": "TR-032",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T06:17:47.818Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-029",
+          "note_ko": "EVID-005를 승인하고 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-005",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30883152476/job/91908626630",
+          "captured_at": "2026-08-04T06:17:47.818Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T06:17:47.818Z",
+          "verification_note_ko": "초안 생명주기, 버전 충돌, 엄격한 숫자 타입, 권한·조직 격리와 저장 장애 응답을 독립 재검증했습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-submission-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-03T17:32:49.481Z",
-      "completed_at": null,
+      "completed_at": "2026-08-04T06:18:03.196Z",
       "transition_log": [
         {
           "id": "TR-003",
@@ -409,17 +458,38 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-028",
           "note_ko": "독립 검증 지적을 보완하고 재검토를 요청합니다."
+        },
+        {
+          "id": "TR-033",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T06:18:03.196Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-030",
+          "note_ko": "EVID-006을 승인하고 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-002",
+          "requirement_ref": "EVID-006",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30883152476/job/91908626630",
+          "captured_at": "2026-08-04T06:18:03.196Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T06:18:03.196Z",
+          "verification_note_ko": "다품목·예산 초과, 잘못된 입력 비생성, 날짜 경과 후 동일 키 재시도, 권한·충돌과 저장 장애 응답을 독립 재검증했습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-own-list-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-03T17:32:53.227Z",
-      "completed_at": null,
+      "completed_at": "2026-08-04T06:18:16.706Z",
       "transition_log": [
         {
           "id": "TR-004",
@@ -465,17 +535,38 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-017",
           "note_ko": "본인 목록 OpenAPI·조직 격리·요약 응답 증거 보완과 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-034",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T06:18:16.706Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-031",
+          "note_ko": "EVID-015를 승인하고 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-003",
+          "requirement_ref": "EVID-015",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30883152476/job/91908626630",
+          "captured_at": "2026-08-04T06:18:16.706Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T06:18:16.706Z",
+          "verification_note_ko": "빈 목록, 본인 요청 최신순, 요약 필드 안정성과 다른 사용자·조직 비노출을 독립 재검증했습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-detail-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-03T17:32:57.202Z",
-      "completed_at": null,
+      "completed_at": "2026-08-04T06:18:32.190Z",
       "transition_log": [
         {
           "id": "TR-005",
@@ -539,10 +630,31 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-024",
           "note_ko": "과거 필요일이 된 저장 요청도 안정적으로 조회하도록 응답 검증을 분리하고 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-035",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T06:18:32.190Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-032",
+          "note_ko": "EVID-016을 승인하고 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-004",
+          "requirement_ref": "EVID-016",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30883152476/job/91908626630",
+          "captured_at": "2026-08-04T06:18:32.190Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T06:18:32.190Z",
+          "verification_note_ko": "허용된 사용자의 전체 상세·반복 조회와 다른 조직 요청의 동일한 404 비노출 응답을 독립 재검증했습니다."
+        }
+      ]
     }
   ]
 }
