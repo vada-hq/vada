@@ -2,10 +2,10 @@
   "$schema": "../../schemas/delivery-contract-bundle-0.2.0.schema.json",
   "schema_version": "0.2.0",
   "bundle_id": "CB-FIN-001",
-  "bundle_revision": null,
-  "bundle_status": "review_ready",
-  "approval_source_ref": null,
-  "updated_at": "2026-08-04T14:02:45.674Z",
+  "bundle_revision": 2,
+  "bundle_status": "approved",
+  "approval_source_ref": "SRC-010",
+  "updated_at": "2026-08-04T14:09:31.722Z",
   "solution_ref": {
     "path": "product-specs/solutions/SOLUTION-FIN-001/R1.json",
     "solution_id": "SOLUTION-FIN-001",
@@ -82,6 +82,13 @@
       "captured_at": "2026-08-04T12:04:03.244Z",
       "locator": "delivery-units/DU-001/screen-spec/draft.json#CONTRACT-GAP-001",
       "content_ko": "AC-07은 상세 새로고침 후 요청자·행사 표시명을 요구하지만 R1 상세 응답은 두 값을 식별자로만 제공합니다."
+    },
+    {
+      "id": "SRC-010",
+      "type": "user_statement",
+      "captured_at": "2026-08-04T14:09:31.722Z",
+      "locator": "current-thread/cb-fin-001-detail-display-approval-2026-08-04",
+      "content_ko": "제품 책임자가 상세 조회에서 저장 레코드와 서버가 해석한 행사명·요청자명을 함께 반환하는 R2 계약 수정안을 승인하고 계속 진행하도록 지시했습니다."
     }
   ],
   "base_bundle_ref": {
@@ -96,7 +103,7 @@
       "kind": "DATA",
       "key": "purchase_request.detail_view",
       "revision": 1,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "initial",
       "supersedes": null,
       "summary_ko": "저장된 구매 요청과 신뢰 가능한 화면 표시 맥락을 함께 정의합니다.",
@@ -155,7 +162,7 @@
       "kind": "API",
       "key": "purchase_request.get_detail",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "breaking",
       "supersedes": "API:purchase_request.get_detail@R1",
       "summary_ko": "현재 조직 구성원이 요청 상세와 서버가 해석한 행사·요청자 표시명을 함께 조회합니다.",
@@ -537,7 +544,7 @@
   "questions": [
     {
       "id": "Q-001",
-      "status": "pending",
+      "status": "answered",
       "decision_area": "approval",
       "origin": "approval",
       "depends_on_question_refs": [],
@@ -575,8 +582,13 @@
           "SRC-009"
         ]
       },
-      "answer_source_ref": null,
-      "normalized_answer": null,
+      "answer_source_ref": "SRC-010",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": null
+      },
       "dismissal_reason_ko": null
     }
   ]
