@@ -302,7 +302,7 @@ test("스키마와 상태 전이를 통과하지 않은 과거 런타임은 완�
   }
 });
 
-test("실제 DU-001의 21개 가져오기와 8개 R2 개정 그래프를 승격해도 과거 런타임이 유효하다", async () => {
+test("실제 DU-001의 승인된 21개 가져오기와 8개 R2 개정 그래프에서도 과거 런타임이 유효하다", async () => {
   const root = await mkdtemp(join(tmpdir(), "vada-du001-promotion-"));
   try {
     await mkdir(resolve(root, ".vada"), { recursive: true });
@@ -312,14 +312,13 @@ test("실제 DU-001의 21개 가져오기와 8개 R2 개정 그래프를 승격�
       resolve(root, "delivery-units/DU-001"),
       { recursive: true },
     );
-    const draftPath = resolve(root, "delivery-units/DU-001/delivery-work/draft.json");
     const promotedPath = resolve(root, "delivery-units/DU-001/delivery-work/R2.json");
-    const promoted = JSON.parse(await readFile(draftPath, "utf8"));
-    promoted.plan_revision = 2;
-    promoted.plan_status = "approved";
-    promoted.approval_source_ref = promoted.sources[0].id;
-    for (const item of promoted.work_items) item.status = "ratified";
-    await writeFile(promotedPath, JSON.stringify(promoted));
+    const promoted = JSON.parse(await readFile(promotedPath, "utf8"));
+
+    assert.equal(promoted.plan_revision, 2);
+    assert.equal(promoted.plan_status, "approved");
+    assert.ok(promoted.approval_source_ref);
+    assert.ok(promoted.work_items.every((item) => item.status === "ratified"));
 
     const result = await deriveDeliveryStatusRepository("DU-001", root);
     const ready = result.items
