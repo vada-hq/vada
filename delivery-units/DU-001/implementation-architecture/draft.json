@@ -1,0 +1,106 @@
+{
+  "schema_version": "0.2.0",
+  "architecture_id": "IAB-VADA-DU-001",
+  "architecture_revision": null,
+  "architecture_status": "review_ready",
+  "approval_source_ref": null,
+  "updated_at": "2026-08-04T23:36:05.0818843+09:00",
+  "delivery_unit_ref": "FLOW-FIN-001@R2",
+  "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
+  "contract_bundle_ref": {
+    "path": "contracts/bundles/CB-FIN-001/R2.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 2,
+    "canonical_sha256": "134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad"
+  },
+  "base_architecture_ref": {
+    "path": "delivery-units/DU-001/implementation-architecture/R1.json",
+    "architecture_id": "IAB-VADA-DU-001",
+    "architecture_revision": 1,
+    "canonical_sha256": "c824e8380c7010bd75fbeb24103ba7ee74b4e83861d040fb1d2c48362b5c0f09"
+  },
+  "decision_scope": {
+    "mode": "production",
+    "binding": "binding",
+    "applies_to_ko": [
+      "FLOW-FIN-001@R2 행사 구매 요청 제출의 제품 코드·테스트·배포 산출물",
+      "VADA 운영 제품의 기존 승인 기술 기준"
+    ],
+    "excludes_ko": [
+      "후속 구매 요청 검토·보완·구매·증빙·감사보고서 흐름",
+      "모바일 네이티브 앱",
+      "파일 업로드·멀웨어 검사 파이프라인 자체",
+      "캐시·검색·AI 기능"
+    ],
+    "production_stack_status": "approved"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-04T23:36:05.0818843+09:00",
+      "locator": "contracts/bundles/CB-FIN-001/R2.json#134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad",
+      "content_ko": "제품 책임자가 승인한 행사 구매 요청 제출 실행 계약 묶음 R2입니다. 상세 조회 응답은 저장 레코드와 서버 표시 맥락을 분리합니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-04T23:36:05.0818843+09:00",
+      "locator": "delivery-units/DU-001/implementation-architecture/R1.json#c824e8380c7010bd75fbeb24103ba7ee74b4e83861d040fb1d2c48362b5c0f09",
+      "content_ko": "제품 책임자가 승인한 DU-001 구현 아키텍처 R1입니다. 프론트엔드·백엔드·영속성·인증·인가·배포·관측성·테스트 결정을 포함합니다."
+    }
+  ],
+  "decisions": [],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "pending",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "기존 승인 아키텍처를 새 계약에 그대로 적용할지 승인 또는 수정 요청으로 구분합니다.",
+        "source_refs": [
+          "SRC-001",
+          "SRC-002"
+        ]
+      },
+      "question_ko": "기존 아키텍처 R1의 기술 결정 8개를 변경 없이 유지하고, 승인된 계약 R2를 DU-001 구현 기준선으로 적용합니까?",
+      "reason_ko": "계약 R2는 상세 응답 구조만 바꾸며 프레임워크·데이터베이스·인증·인가·배포·관측성·테스트 기술 선택을 바꿀 근거는 발생시키지 않습니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "승인"
+        },
+        {
+          "id": "NO",
+          "label_ko": "수정 필요"
+        }
+      ],
+      "evidence": {
+        "decision_refs": [
+          "ADR-001",
+          "ADR-002",
+          "ADR-003",
+          "ADR-004",
+          "ADR-005",
+          "ADR-006",
+          "ADR-007",
+          "ADR-008"
+        ],
+        "source_refs": [
+          "SRC-001",
+          "SRC-002"
+        ]
+      },
+      "answer_source_ref": null,
+      "normalized_answer": null,
+      "dismissal_reason_ko": null
+    }
+  ]
+}

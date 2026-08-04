@@ -6,17 +6,26 @@ import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020.js";
 
 const defaultRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const schemaPath = resolve(
+const schemaV1Path = resolve(
   defaultRoot,
   "delivery-units/schemas/implementation-architecture.schema.json",
 );
-const schema = JSON.parse(await readFile(schemaPath, "utf8"));
+const schemaV2Path = resolve(
+  defaultRoot,
+  "delivery-units/schemas/implementation-architecture-0.2.0.schema.json",
+);
+const schemaV1 = JSON.parse(await readFile(schemaV1Path, "utf8"));
+const schemaV2 = JSON.parse(await readFile(schemaV2Path, "utf8"));
 const ajv = new Ajv2020({ allErrors: true, strict: true, allowUnionTypes: true });
 ajv.addFormat("date-time", {
   type: "string",
   validate: (value) => !Number.isNaN(Date.parse(value)),
 });
-const validateSchema = ajv.compile(schema);
+ajv.addSchema(schemaV1);
+const schemaValidators = new Map([
+  ["0.1.0", ajv.getSchema(schemaV1.$id)],
+  ["0.2.0", ajv.compile(schemaV2)],
+]);
 
 function canonicalJson(value) {
   if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
@@ -86,20 +95,43 @@ async function findProjectRoot(artifactPath) {
   }
 }
 
-async function loadPinnedContract(reference, artifactPath) {
-  const rawPath = reference?.path;
+async function loadPinnedValue(rawPath, artifactPath, label) {
   if (typeof rawPath !== "string" || !rawPath || isAbsolute(rawPath)) {
-    throw new Error("계약 묶음 경로는 프로젝트 상대 경로여야 합니다.");
+    throw new Error(`${label} 경로는 프로젝트 상대 경로여야 합니다.`);
   }
   const segments = rawPath.split(/[\\/]+/);
-  if (segments.includes("..")) throw new Error("계약 묶음 경로에 상위 이동을 사용할 수 없습니다.");
+  if (segments.includes("..")) throw new Error(`${label} 경로에 상위 이동을 사용할 수 없습니다.`);
   const projectRoot = await findProjectRoot(artifactPath);
-  const contractPath = resolve(projectRoot, rawPath);
-  const rel = relative(projectRoot, contractPath);
+  const targetPath = resolve(projectRoot, rawPath);
+  const rel = relative(projectRoot, targetPath);
   if (rel.startsWith(`..${sep}`) || rel === "..") {
-    throw new Error("계약 묶음 경로가 프로젝트 밖을 가리킵니다.");
+    throw new Error(`${label} 경로가 프로젝트 밖을 가리킵니다.`);
   }
-  return JSON.parse(await readFile(contractPath, "utf8"));
+  return {
+    path: targetPath,
+    value: JSON.parse(await readFile(targetPath, "utf8")),
+  };
+}
+
+async function loadPinnedContract(reference, artifactPath) {
+  return (await loadPinnedValue(reference?.path, artifactPath, "계약 묶음")).value;
+}
+
+async function loadPinnedArchitecture(reference, artifactPath) {
+  return loadPinnedValue(reference?.path, artifactPath, "기준 아키텍처");
+}
+
+async function resolveEffectiveDecisions(architecture, artifactPath, visitedPaths = new Set()) {
+  const decisions = new Map();
+  if (architecture?.schema_version === "0.2.0" && architecture.base_architecture_ref) {
+    const loaded = await loadPinnedArchitecture(architecture.base_architecture_ref, artifactPath);
+    if (visitedPaths.has(loaded.path)) throw new Error("기준 아키텍처 참조에 순환이 있습니다.");
+    const nextVisited = new Set(visitedPaths).add(loaded.path);
+    const inherited = await resolveEffectiveDecisions(loaded.value, loaded.path, nextVisited);
+    for (const [id, decision] of inherited) decisions.set(id, decision);
+  }
+  for (const decision of architecture?.decisions ?? []) decisions.set(decision.id, decision);
+  return decisions;
 }
 
 function validateQuestions(architecture, sourceById, decisionById, errors) {
@@ -144,7 +176,10 @@ function validateQuestions(architecture, sourceById, decisionById, errors) {
 
 export async function validateArchitecture(architecture, { artifactPath = null } = {}) {
   const errors = [];
-  if (!validateSchema(architecture)) {
+  const validateSchema = schemaValidators.get(architecture?.schema_version);
+  if (!validateSchema) {
+    errors.push(`/schema_version: 지원하지 않는 구현 아키텍처 스키마 ${architecture?.schema_version ?? "없음"}`);
+  } else if (!validateSchema(architecture)) {
     errors.push(...(validateSchema.errors ?? []).map(formatSchemaError));
   }
 
@@ -180,6 +215,49 @@ export async function validateArchitecture(architecture, { artifactPath = null }
     }
   }
 
+  let inheritedDecisionById = new Map();
+  if (artifactPath && architecture.schema_version === "0.2.0" && architecture.base_architecture_ref) {
+    try {
+      const reference = architecture.base_architecture_ref;
+      const loaded = await loadPinnedArchitecture(reference, artifactPath);
+      const base = loaded.value;
+      if (base.architecture_status !== "approved") errors.push("기준 아키텍처가 승인 상태가 아닙니다.");
+      if (!Number.isInteger(base.architecture_revision) || base.architecture_revision < 1) {
+        errors.push("기준 아키텍처에 양의 승인 리비전이 없습니다.");
+      }
+      if (reference.architecture_id !== base.architecture_id) {
+        errors.push("기준 아키텍처 ID가 고정 참조와 다릅니다.");
+      }
+      if (reference.architecture_revision !== base.architecture_revision) {
+        errors.push("기준 아키텍처 리비전이 고정 참조와 다릅니다.");
+      }
+      if (reference.canonical_sha256 !== canonicalSha256(base)) {
+        errors.push("기준 아키텍처 해시가 고정 참조와 다릅니다.");
+      }
+      if (architecture.architecture_id !== base.architecture_id) {
+        errors.push("증분 아키텍처 ID가 기준 아키텍처와 다릅니다.");
+      }
+      if (architecture.delivery_unit_ref !== base.delivery_unit_ref) {
+        errors.push("증분 아키텍처의 전달 단위가 기준 아키텍처와 다릅니다.");
+      }
+      if (architecture.objective_ko !== base.objective_ko) {
+        errors.push("증분 아키텍처의 목적이 기준 아키텍처와 다릅니다.");
+      }
+      if (canonicalJson(architecture.decision_scope) !== canonicalJson(base.decision_scope)) {
+        errors.push("증분 아키텍처의 적용 범위가 기준 아키텍처와 다릅니다.");
+      }
+      if (
+        architecture.architecture_status === "approved" &&
+        architecture.architecture_revision !== base.architecture_revision + 1
+      ) {
+        errors.push("승인 증분 아키텍처 리비전은 기준 리비전보다 정확히 1 커야 합니다.");
+      }
+      inheritedDecisionById = await resolveEffectiveDecisions(base, loaded.path, new Set([loaded.path]));
+    } catch (error) {
+      errors.push(`/base_architecture_ref: ${error.message}`);
+    }
+  }
+
   const scope = architecture.decision_scope ?? {};
   const expectedScope = {
     rehearsal: ["non_binding", "undecided"],
@@ -191,9 +269,24 @@ export async function validateArchitecture(architecture, { artifactPath = null }
   }
 
   const decisions = architecture.decisions ?? [];
-  const decisionById = new Map(decisions.map((decision) => [decision.id, decision]));
+  const decisionById = new Map(inheritedDecisionById);
+  for (const decision of decisions) decisionById.set(decision.id, decision);
   for (const duplicate of duplicateValues(decisions.map((decision) => decision.id))) {
     errors.push(`결정 ID가 중복됐습니다: ${duplicate}`);
+  }
+  if (architecture.schema_version === "0.2.0") {
+    decisions.forEach((decision, index) => {
+      const inherited = inheritedDecisionById.get(decision.id);
+      if (inherited) {
+        if (decision.revision !== inherited.revision + 1 || decision.supersedes !== decision.id) {
+          errors.push(
+            `/decisions/${index}: 기존 결정 변경은 리비전을 1 높이고 같은 결정 ID를 supersedes로 가리켜야 합니다.`,
+          );
+        }
+      } else if (decision.revision !== 1 || decision.supersedes !== null) {
+        errors.push(`/decisions/${index}: 새 결정은 리비전 1과 supersedes null로 시작해야 합니다.`);
+      }
+    });
   }
   const questions = architecture.questions ?? [];
   decisions.forEach((decision, index) => {

@@ -4,6 +4,7 @@
 
 - `implementation-architecture/draft.json`은 검토 중인 초안이며 구현 입력이 아니다.
 - 전체 승인 뒤 `R<n>.json`으로 고정한 리비전만 작업 도출과 구현에 사용한다.
+- 구현 기술 결정이 바뀌지 않은 후속 계약은 아키텍처 스키마 v0.2의 `base_architecture_ref`로 직전 승인 기준선을 한 번 고정하고, `decisions`에는 추가·변경된 ADR만 기록한다.
 - `delivery-work/draft.json`은 승인 설계·계약·아키텍처에서 도출한 검토용 작업 그래프다. 담당자·일정·실행 상태는 넣지 않는다.
 - 작업 그래프 전체 승인 뒤 `delivery-work/R<n>.json`으로 고정하고, 그 리비전만 실행 계획과 구현의 입력으로 사용한다.
 - `execution-plan/draft.json`은 승인된 작업 그래프에 실행 범위·실행자·추정·목표 기간을 배치하는 검토용 계획이다. 작업 정의나 선행관계를 다시 쓰지 않는다.
