@@ -29,7 +29,11 @@ function hasVerifiedCompletionEvidence(work, run) {
   return required.size > 0 && [...required].every((id) => verified.has(id));
 }
 
-export function deriveDeliveryStatus(workPlan, runtimes = []) {
+export function deriveDeliveryStatus(
+  workPlan,
+  runtimes = [],
+  { satisfiedPrerequisiteRefs = [] } = {},
+) {
   const errors = [];
   if (workPlan?.plan_status !== "approved") {
     errors.push("승인된 전달 작업 그래프가 필요합니다.");
@@ -37,15 +41,25 @@ export function deriveDeliveryStatus(workPlan, runtimes = []) {
 
   const workItems = workPlan?.work_items ?? [];
   const workById = new Map();
+  const importedWorkIds = new Set(
+    (workPlan?.imports ?? []).flatMap((item) => item.work_item_ids ?? []),
+  );
   for (const work of workItems) {
     if (workById.has(work.id)) errors.push(`작업 ID가 중복됐습니다: ${work.id}`);
     workById.set(work.id, work);
   }
   for (const work of workItems) {
     for (const dependency of work.blocked_by ?? []) {
-      if (!workById.has(dependency)) {
+      if (!workById.has(dependency) && !importedWorkIds.has(dependency)) {
         errors.push(`${work.id}: 존재하지 않는 선행 작업 ${dependency}을 참조합니다.`);
       }
+    }
+  }
+
+  const completed = new Set(satisfiedPrerequisiteRefs);
+  for (const reference of completed) {
+    if (!workById.has(reference) && !importedWorkIds.has(reference)) {
+      errors.push(`존재하지 않는 충족 선행 작업을 참조합니다: ${reference}`);
     }
   }
 
@@ -78,7 +92,6 @@ export function deriveDeliveryStatus(workPlan, runtimes = []) {
     }
   }
 
-  const completed = new Set();
   for (const work of workItems) {
     const latest = latestByWork.get(work.id)?.run;
     if (latest?.status !== "done") continue;
@@ -163,7 +176,30 @@ export async function deriveDeliveryStatusRepository(
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
-  return deriveDeliveryStatus(approvedPlans[0], runtimes);
+  let executionPlans = [];
+  try {
+    executionPlans = await readJsonFiles(resolve(directory, "execution-plan"));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  const selectedWorkPlan = approvedPlans[0];
+  const satisfiedPrerequisiteRefs = [
+    ...new Set(
+      executionPlans
+        .filter(
+          (plan) =>
+            plan.execution_plan_status === "approved" &&
+            plan.work_plan_ref?.plan_id === selectedWorkPlan.plan_id &&
+            plan.work_plan_ref?.plan_revision === selectedWorkPlan.plan_revision,
+        )
+        .flatMap((plan) =>
+          (plan.satisfied_prerequisites ?? []).map((item) => item.work_item_ref),
+        ),
+    ),
+  ];
+  return deriveDeliveryStatus(selectedWorkPlan, runtimes, {
+    satisfiedPrerequisiteRefs,
+  });
 }
 
 export async function deriveAllDeliveryStatuses(root = repositoryRoot) {

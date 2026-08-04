@@ -391,7 +391,13 @@ export async function validateExecutionPlan(plan, { workPlan, artifactPath = nul
 
   if (["review_ready", "approved"].includes(plan.execution_plan_status)) {
     const importedBlockers = new Set(
-      [...workById.values()].flatMap((work) => (work.blocked_by ?? []).filter((dependency) => imported.has(dependency))),
+      allocations
+        .filter((allocation) => allocation.disposition === "committed")
+        .flatMap((allocation) =>
+          (workById.get(allocation.work_item_ref)?.blocked_by ?? []).filter(
+            (dependency) => imported.has(dependency),
+          ),
+        ),
     );
     const unresolved = [...importedBlockers].filter((id) => !satisfied.has(id));
     if (unresolved.length) errors.push(`증거가 없는 외부 선행 작업: ${unresolved.join(", ")}`);

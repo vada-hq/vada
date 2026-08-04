@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 import Ajv2020 from "ajv/dist/2020.js";
 
+import { resolveEffectiveContracts } from "./validate-contract-bundles.mjs";
+
 const defaultRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const schemaPath = resolve(defaultRoot, "delivery-units/schemas/delivery-work-plan.schema.json");
 const schema = JSON.parse(await readFile(schemaPath, "utf8"));
@@ -102,10 +104,10 @@ function validatePinnedReference(reference, target, fields, label, errors) {
   }
 }
 
-function activeContractIds(bundle) {
-  const contracts = (bundle.contracts ?? []).filter((item) => item?.status === "ratified");
-  const superseded = new Set(contracts.map((item) => item.supersedes).filter(Boolean));
-  return new Set(contracts.map((item) => item.id).filter((id) => !superseded.has(id)));
+function activeContractIds(contracts) {
+  const ratified = [...contracts.values()].filter((item) => item?.status === "ratified");
+  const superseded = new Set(ratified.map((item) => item.supersedes).filter(Boolean));
+  return new Set(ratified.map((item) => item.id).filter((id) => !superseded.has(id)));
 }
 
 async function importedWork(plan, artifactPath, errors) {
@@ -211,7 +213,13 @@ function validateQuestions(plan, sourceIds, workIds, errors) {
 
 export async function validateDeliveryWorkPlan(
   plan,
-  { solution, bundle, architecture, artifactPath = null } = {},
+  {
+    solution,
+    bundle,
+    architecture,
+    artifactPath = null,
+    effectiveContracts: suppliedEffectiveContracts = null,
+  } = {},
 ) {
   const errors = [];
   if (!validateSchema(plan)) errors.push(...(validateSchema.errors ?? []).map(formatSchemaError));
@@ -293,7 +301,21 @@ export async function validateDeliveryWorkPlan(
   }
 
   const designIds = new Set((solution?.designElements ?? []).map((item) => item.id));
-  const contractIds = activeContractIds(bundle ?? {});
+  let effectiveContracts = suppliedEffectiveContracts ?? new Map(
+    (bundle?.contracts ?? []).map((contract) => [contract.id, contract]),
+  );
+  if (!suppliedEffectiveContracts && artifactPath && bundle?.schema_version === "0.2.0") {
+    try {
+      const root = await findProjectRoot(artifactPath);
+      const bundlePath = resolve(root, plan.contract_bundle_ref.path);
+      const resolved = await resolveEffectiveContracts(root, bundle, { bundlePath });
+      errors.push(...resolved.errors.map((error) => `실행 계약 계보: ${error}`));
+      effectiveContracts = resolved.contracts;
+    } catch (error) {
+      errors.push(`실행 계약 계보를 확인할 수 없습니다: ${error.message}`);
+    }
+  }
+  const contractIds = activeContractIds(effectiveContracts);
   const gaps = plan.gaps ?? [];
   const gapById = new Map(gaps.map((gap) => [gap.id, gap]));
   for (const duplicate of duplicates(gaps.map((gap) => gap.id))) errors.push(`격차 ID가 중복됐습니다: ${duplicate}`);
@@ -321,6 +343,17 @@ export async function validateDeliveryWorkPlan(
   const coveredDesign = new Set();
   const coveredContracts = new Set();
   const coveredGaps = new Set();
+  for (const work of imports.values()) {
+    for (const ref of work.design_refs ?? []) {
+      if (designIds.has(ref)) coveredDesign.add(ref);
+    }
+    for (const ref of work.contract_refs ?? []) {
+      if (contractIds.has(ref)) coveredContracts.add(ref);
+    }
+    for (const ref of work.gap_refs ?? []) {
+      if (gapById.has(ref)) coveredGaps.add(ref);
+    }
+  }
   const expectedStatus = plan.plan_status === "approved" ? "ratified" : "proposed";
   for (const [index, work] of localWork.entries()) {
     const location = `/work_items/${index}`;
@@ -328,6 +361,19 @@ export async function validateDeliveryWorkPlan(
     if (work.id !== expectedId) errors.push(`${location}: 작업 ID는 ${expectedId}여야 합니다.`);
     if (work.revision === 1 && (work.supersedes !== null || work.change_class !== "initial")) {
       errors.push(`${location}: 최초 작업 리비전은 다른 리비전을 대체할 수 없습니다.`);
+    }
+    if (work.revision > 1) {
+      const previous = allWork.get(work.supersedes);
+      if (
+        !previous ||
+        previous.key !== work.key ||
+        previous.revision !== work.revision - 1
+      ) {
+        errors.push(`${location}: 바로 이전 작업 리비전을 대체해야 합니다.`);
+      }
+      if (work.change_class === "initial") {
+        errors.push(`${location}: 후속 작업 리비전은 initial일 수 없습니다.`);
+      }
     }
     if (work.status !== expectedStatus) errors.push(`${location}: ${plan.plan_status} 계획의 작업 상태는 ${expectedStatus}여야 합니다.`);
     if ((work.collaborating_capabilities ?? []).includes(work.primary_capability)) {

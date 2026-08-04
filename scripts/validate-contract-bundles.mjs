@@ -637,6 +637,24 @@ async function loadInheritedContracts(root, bundle, seenPaths = new Set()) {
   return { errors, contracts };
 }
 
+export async function resolveEffectiveContracts(
+  root,
+  bundle,
+  { bundlePath = null } = {},
+) {
+  const seenPaths = new Set(bundlePath ? [resolve(bundlePath)] : []);
+  const inherited = await loadInheritedContracts(root, bundle, seenPaths);
+  const contracts = new Map(inherited.contracts);
+  const errors = [...inherited.errors];
+  mergeContracts(
+    contracts,
+    new Map((bundle.contracts ?? []).map((contract) => [contract.id, contract])),
+    bundlePath ?? bundle.bundle_id ?? "현재 계약 묶음",
+    errors,
+  );
+  return { errors, contracts };
+}
+
 export async function validateContractBundleRepository(root = repositoryRoot) {
   const errors = [];
   const warnings = [];

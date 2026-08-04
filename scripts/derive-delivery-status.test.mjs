@@ -140,6 +140,29 @@ test("존재하지 않는 선행 작업을 조용히 차단 상태로 취급하�
   );
 });
 
+test("가져온 선행 작업은 증거 전에는 차단하고 충족 증거 뒤에는 준비 상태로 계산한다", () => {
+  const plan = {
+    ...structuredClone(workPlan),
+    imports: [
+      {
+        work_item_ids: ["WORK:external@R1"],
+      },
+    ],
+    work_items: [work("WORK:test-b@R1", ["WORK:external@R1"])],
+  };
+
+  const blocked = deriveDeliveryStatus(plan, []);
+  assert.deepEqual(blocked.errors, []);
+  assert.equal(blocked.items[0].derived_status, "blocked");
+  assert.deepEqual(blocked.items[0].missing_dependency_refs, ["WORK:external@R1"]);
+
+  const ready = deriveDeliveryStatus(plan, [], {
+    satisfiedPrerequisiteRefs: ["WORK:external@R1"],
+  });
+  assert.deepEqual(ready.errors, []);
+  assert.equal(ready.items[0].derived_status, "ready");
+});
+
 test("저장소의 모든 전달 단위를 자동 발견해 상태를 검증한다", async () => {
   const root = await mkdtemp(join(tmpdir(), "vada-delivery-status-"));
   try {

@@ -257,6 +257,23 @@ test("rolling-wave에서 현재 시작점이 아닌 작업을 커밋하면 거�
   assert.ok(errors.some((error) => error.includes("현재 의존성 시작점")));
 });
 
+test("미래 작업의 외부 선행조건은 현재 rolling-wave 시작점을 막지 않는다", async () => {
+  const workPlan = approvedWorkPlan();
+  workPlan.imports = [
+    {
+      plan_path: "delivery-units/DU-001/delivery-work/R1.json",
+      plan_id: "WP-TEST-BASE",
+      plan_revision: 1,
+      canonical_sha256: "0".repeat(64),
+      work_item_ids: ["WORK:external-api@R1"],
+    },
+  ];
+  workPlan.work_items[1].blocked_by = ["WORK:external-api@R1"];
+  const plan = validExecutionPlan(workPlan);
+
+  assert.deepEqual(await validateExecutionPlan(plan, { workPlan }), []);
+});
+
 test("주 실행자의 역량이 작업 주 역량과 다르면 거부한다", async () => {
   const workPlan = approvedWorkPlan();
   const plan = validExecutionPlan(workPlan);
