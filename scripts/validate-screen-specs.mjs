@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 import Ajv2020 from "ajv/dist/2020.js";
 
+import { resolveEffectiveContracts } from "./validate-contract-bundles.mjs";
+
 const defaultRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const schemaPath = resolve(
   defaultRoot,
@@ -101,8 +103,8 @@ function validatePinnedReference(reference, target, fields, label, errors) {
   }
 }
 
-function activeContractIds(bundle) {
-  const ratified = (bundle.contracts ?? []).filter(
+function activeContractIds(contracts) {
+  const ratified = contracts.filter(
     (contract) => contract?.status === "ratified",
   );
   const superseded = new Set(
@@ -142,11 +144,10 @@ function validateUniqueIds(spec, errors) {
   }
 }
 
-function validateReferences(spec, solution, bundle, errors) {
+function validateReferences(spec, solution, contractIds, errors) {
   const designIds = new Set(
     (solution.designElements ?? []).map((element) => element.id),
   );
-  const contractIds = activeContractIds(bundle);
   const surfaceIds = new Set((spec.surfaces ?? []).map((surface) => surface.id));
 
   const included = spec.scope?.included_surface_refs ?? [];
@@ -433,8 +434,20 @@ export async function validateScreenSpec(
       errors.push("전달 단위가 고정한 상위 산출물과 다릅니다.");
     }
 
+    const effectiveContracts = await resolveEffectiveContracts(
+      root,
+      bundle.value,
+      { bundlePath: bundle.path },
+    );
+    errors.push(
+      ...effectiveContracts.errors.map((error) => `실행 계약 묶음 상속: ${error}`),
+    );
+    const contractIds = activeContractIds([
+      ...effectiveContracts.contracts.values(),
+    ]);
+
     validateUniqueIds(spec, errors);
-    validateReferences(spec, solution.value, bundle.value, errors);
+    validateReferences(spec, solution.value, contractIds, errors);
     validateWorkEvidence(spec, workPlan.value, errors);
     validateReview(spec, errors);
     validateDu001StateCoverage(spec, errors);

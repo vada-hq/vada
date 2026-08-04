@@ -1,11 +1,11 @@
 {
   "schema_version": "0.1.0",
   "spec_id": "SCREEN-SPEC-DU-001-PURCHASE-REQUEST",
-  "spec_revision": 1,
-  "spec_status": "defining",
-  "updated_at": "2026-08-04T11:20:35.5665920Z",
-  "work_item_ref": "WORK:purchase-request-screen-spec@R1",
-  "completion_evidence_ref": "EVID-001",
+  "spec_revision": 2,
+  "spec_status": "review_ready",
+  "updated_at": "2026-08-05T02:16:49.8853600+09:00",
+  "work_item_ref": "WORK:purchase-request-screen-spec@R2",
+  "completion_evidence_ref": "EVID-024",
   "delivery_unit_ref": "FLOW-FIN-001@R2",
   "objective_ko": "권한 보유자가 선택한 행사에서 구매 요청을 작성하고 서버 개인 초안을 저장·복원하며, 제출 성공 후 본인 목록과 상세에서 저장된 검토 대기 요청을 다시 확인할 수 있는 구현용 화면 기준을 고정합니다.",
   "baseline": {
@@ -16,22 +16,22 @@
       "canonical_sha256": "aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f"
     },
     "contract_bundle_ref": {
-      "path": "contracts/bundles/CB-FIN-001/R1.json",
+      "path": "contracts/bundles/CB-FIN-001/R2.json",
       "bundle_id": "CB-FIN-001",
-      "bundle_revision": 1,
-      "canonical_sha256": "cb4ac51a822e69b8a12584116da12e8437b4e61ce87802c88e107259e00863fb"
+      "bundle_revision": 2,
+      "canonical_sha256": "134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad"
     },
     "implementation_architecture_ref": {
-      "path": "delivery-units/DU-001/implementation-architecture/R1.json",
+      "path": "delivery-units/DU-001/implementation-architecture/R2.json",
       "architecture_id": "IAB-VADA-DU-001",
-      "architecture_revision": 1,
-      "canonical_sha256": "c824e8380c7010bd75fbeb24103ba7ee74b4e83861d040fb1d2c48362b5c0f09"
+      "architecture_revision": 2,
+      "canonical_sha256": "cd91fdf39f44ce65696f01bc36813028812c9ba02c9b5f0ea8fbbb5b8e581d81"
     },
     "delivery_work_ref": {
-      "path": "delivery-units/DU-001/delivery-work/R1.json",
+      "path": "delivery-units/DU-001/delivery-work/R2.json",
       "plan_id": "WP-FIN-001",
-      "plan_revision": 1,
-      "canonical_sha256": "78320c347b4a56cf9e3c85a941b347f8e27d87dff09fed6996f426e1ca42f086"
+      "plan_revision": 2,
+      "canonical_sha256": "5b9d0762ed886245e82b26062916446d18c74e1eb635e0578d1f24b3dae40472"
     },
     "wireframe_ref": {
       "path": "prototypes/wireframe/src/app/App.tsx",
@@ -128,12 +128,13 @@
       "design_ref": "DESIGN-INTERACTION-006",
       "surface_ref": "SURFACE-PURCHASE-REQUEST-OWN-LIST",
       "action_ko": "제출 성공 안내 뒤 본인 요청 목록에서 새 요청을 선택합니다.",
-      "result_ko": "목록을 서버에서 최신순으로 다시 조회하고 상세 화면을 새로 열거나 새로고침해도 저장된 검토 대기 요청과 모든 품목을 다시 표시합니다.",
+      "result_ko": "목록을 서버에서 최신순으로 다시 조회하고 상세 화면을 새로 열거나 새로고침해도 저장된 검토 대기 요청, 모든 품목, 서버가 제공한 행사명과 실제 요청자명을 다시 표시합니다.",
       "contract_refs": [
         "API:purchase_request.list_own@R1",
-        "API:purchase_request.get_detail@R1",
+        "API:purchase_request.get_detail@R2",
         "DATA:purchase_request.own_list@R1",
-        "DATA:purchase_request.record@R1"
+        "DATA:purchase_request.record@R1",
+        "DATA:purchase_request.detail_view@R1"
       ]
     }
   ],
@@ -245,7 +246,7 @@
         {
           "id": "DETAIL-SUMMARY",
           "title_ko": "확정 요청 요약",
-          "content_ko": "요청 식별자, 요청자·행사 표시명, 검토 대기 상태, 제목, 서버 계산 총액, 예산 초과 여부, 생성 시각을 표시해야 합니다. 현재 상세 계약은 요청자·행사를 ID로만 제공하므로 표시명은 CONTRACT-GAP-001이 해결되기 전까지 하드코딩하거나 클라이언트에서 추정하지 않습니다."
+          "content_ko": "요청 식별자, 검토 대기 상태, 제목, 서버 계산 총액, 예산 초과 여부, 생성 시각과 함께 상세 R2 응답의 display.eventName과 display.requesterName을 표시합니다. record의 식별자는 관계·권한·연결에만 사용하고 표시명을 클라이언트에서 추정하지 않습니다."
         },
         {
           "id": "DETAIL-CONTENT",
@@ -492,8 +493,12 @@
         "DESIGN-STATE-004",
         "DESIGN-INTERACTION-006"
       ],
+      "contract_refs": [
+        "API:purchase_request.get_detail@R2",
+        "DATA:purchase_request.detail_view@R1"
+      ],
       "trigger_ko": "목록에서 상세를 열거나 상세 경로를 새로고침할 때",
-      "visible_result_ko": "로딩 후 서버가 반환한 검토 대기 요청, 총액, 예산 초과 여부, 모든 품목을 표시합니다.",
+      "visible_result_ko": "로딩 후 서버가 반환한 검토 대기 요청, 총액, 예산 초과 여부, 모든 품목, 행사명과 실제 요청자명을 표시합니다.",
       "interaction_ko": "브라우저 새로고침과 직접 경로 진입마다 상세 GET을 다시 실행하며 뒤로 가기로 목록에 복귀할 수 있습니다.",
       "accessibility_ko": "상세 제목, 상태, 품목 구조와 금액을 읽기 순서대로 제공하고 로딩 완료를 status로 전달합니다."
     },
@@ -617,10 +622,10 @@
       "observed_ko": "상세 화면은 고정된 보완 요청과 후속 처리 단계를 샘플로 표시합니다.",
       "approved_refs": [
         "DESIGN-INTERACTION-006",
-        "API:purchase_request.get_detail@R1",
-        "DATA:purchase_request.record@R1"
+        "API:purchase_request.get_detail@R2",
+        "DATA:purchase_request.detail_view@R1"
       ],
-      "gap_ko": "DU-001의 확정 결과는 검토 대기 요청이며 직접 경로·새로고침 재조회, 모든 품목, 404·503 상태가 필요합니다.",
+      "gap_ko": "DU-001의 확정 결과는 검토 대기 요청이며 직접 경로·새로고침 재조회, 모든 품목, 서버가 제공한 행사명·실제 요청자명, 404·503 상태가 필요합니다.",
       "disposition": "replace_for_du001",
       "implementation_ko": "후속 검토·구매·증빙 단계는 범위 밖으로 남기고 서버 반환 검토 대기 요청 상세를 구현합니다."
     },
@@ -640,16 +645,16 @@
   "contract_gaps": [
     {
       "id": "CONTRACT-GAP-001",
-      "status": "open",
+      "status": "resolved",
       "requirement_ref": "FLOW-FIN-001@R2/AC-07",
       "affected_surface_ref": "SURFACE-PURCHASE-REQUEST-DETAIL",
       "current_contract_refs": [
-        "API:purchase_request.get_detail@R1",
-        "DATA:purchase_request.record@R1"
+        "API:purchase_request.get_detail@R2",
+        "DATA:purchase_request.detail_view@R1"
       ],
-      "finding_ko": "AC-07은 새로고침한 상세에서 요청자·행사 표시명을 요구하지만 현재 상세 응답은 requesterUserId와 eventId만 제공합니다. 작성 맥락 응답의 requesterName은 현재 조회 사용자 이름이므로 다른 구성원이 상세를 볼 때 제출자 표시명으로 재사용할 수 없습니다.",
-      "needed_outcome_ko": "상세 재조회만으로 요청자·행사 표시명을 신뢰 가능한 서버 응답에서 얻을 수 있는 추가 계약이 필요합니다.",
-      "blocks_promotion": true
+      "finding_ko": "승인 계약 R2가 저장 record와 화면 표시 전용 display를 분리하고, 상세 재조회 시 신뢰 가능한 eventName과 requesterName을 서버에서 반환하도록 공백을 해소했습니다.",
+      "needed_outcome_ko": "상세 화면은 DATA:purchase_request.detail_view@R1의 display 값을 그대로 표시하고 record 식별자에서 이름을 추정하지 않습니다.",
+      "blocks_promotion": false
     }
   ],
   "implementation_handoff": {
@@ -683,20 +688,14 @@
   },
   "coverage": {
     "design_refs": [
-      "DESIGN-INTERACTION-001",
-      "DESIGN-INTERACTION-002",
-      "DESIGN-INTERACTION-003",
-      "DESIGN-INTERACTION-004",
-      "DESIGN-INTERACTION-005",
       "DESIGN-INTERACTION-006",
-      "DESIGN-STATE-001",
-      "DESIGN-STATE-002",
-      "DESIGN-STATE-003",
       "DESIGN-STATE-004",
       "DESIGN-STATE-005",
       "DESIGN-QUALITY-003"
     ],
     "contract_refs": [
+      "DATA:purchase_request.detail_view@R1",
+      "API:purchase_request.get_detail@R2",
       "QUALITY:purchase_request.accessible_feedback@R1"
     ],
     "comparison_entry_refs": [
@@ -711,7 +710,7 @@
     ]
   },
   "review": {
-    "review_status": "blocked_by_contract_gap",
+    "review_status": "pending_independent_review",
     "required_reviews": [
       {
         "capability": "product_definition",
@@ -725,22 +724,11 @@
       },
       {
         "capability": "quality",
-        "check_ko": "EVID-001의 모든 설계·계약 참조와 와이어프레임 차이가 빠짐없이 추적되는지 독립 검증합니다.",
+        "check_ko": "EVID-024의 모든 설계·계약 참조와 와이어프레임 차이가 빠짐없이 추적되는지 독립 검증합니다.",
         "status": "pending"
       }
     ],
-    "open_questions": [
-      {
-        "id": "QUESTION-001",
-        "status": "open",
-        "kind": "contract_gap",
-        "gap_ref": "CONTRACT-GAP-001",
-        "owner_capability": "technical_design",
-        "question_ko": "AC-07의 요청자·행사 표시명을 상세 재조회에서 어떤 서버 계약으로 제공할 것인가요?",
-        "reason_ko": "현재 요청 상세 응답은 두 값을 ID로만 제공하므로 새로고침 뒤 표시명을 신뢰 가능하게 복원할 수 없습니다.",
-        "blocks_promotion": true
-      }
-    ],
-    "promotion_rule_ko": "세 검토가 통과하고 차단 제품 질문과 계약 갭이 모두 해결됐을 때 코디네이터가 이 후보를 승인 리비전 R1로 승격하고 EVID-001 실행 증거를 별도 런타임에 기록합니다."
+    "open_questions": [],
+    "promotion_rule_ko": "제품 정의·프론트엔드·품질 검토가 모두 통과하고 사람 디자인 담당자가 최종 확인한 뒤 코디네이터가 이 후보를 승인 리비전 R2로 승격하고 EVID-024 실행 증거를 별도 런타임에 기록합니다."
   }
 }
