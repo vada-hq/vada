@@ -26,6 +26,7 @@ from vada_api.finance.submission import (
     PurchaseRequestContent,
     PurchaseRequestNeededDateInPastError,
     PurchaseRequestRecord,
+    PurchaseRequestSubmissionOutcome,
     ValidatedPurchaseRequestSubmission,
 )
 from vada_api.identity.errors import ResourceNotFoundError
@@ -96,7 +97,7 @@ class PurchaseRequestSubmissionStore(Protocol):
 
     def submit(
         self, submission: ValidatedPurchaseRequestSubmission
-    ) -> PurchaseRequestRecord: ...
+    ) -> PurchaseRequestSubmissionOutcome: ...
 
 
 class PurchaseRequestService:
@@ -231,7 +232,11 @@ class PurchaseRequestService:
             return ObservedResult(existing, result="retried")
         if submission.content.needed_date < self._today_provider():
             raise PurchaseRequestNeededDateInPastError
-        return ObservedResult(self._submission_store.submit(submission))
+        outcome = self._submission_store.submit(submission)
+        return ObservedResult(
+            outcome.record,
+            result="retried" if outcome.replayed else "succeeded",
+        )
 
     def list_own(
         self, context: FinanceRequestContext

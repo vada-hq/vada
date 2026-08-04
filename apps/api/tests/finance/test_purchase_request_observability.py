@@ -3,9 +3,16 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from decimal import Decimal
 from pathlib import Path
+from typing import cast
 
+import httpx
 import pytest
+from fastapi.testclient import TestClient
 
+from vada_api.finance.api import (
+    get_purchase_request_context,
+    get_purchase_request_service,
+)
 from vada_api.finance.application import (
     FinanceRequestContext,
     PurchaseRequestDraft,
@@ -24,6 +31,7 @@ from vada_api.finance.submission import (
     PurchaseRequestItemInput,
     PurchaseRequestPersistenceError,
     PurchaseRequestRecord,
+    PurchaseRequestSubmissionOutcome,
     ValidatedPurchaseRequestSubmission,
 )
 from vada_api.identity.authentication import CognitoPrincipal
@@ -31,6 +39,7 @@ from vada_api.identity.context import (
     DepartmentRelationshipFact,
     TrustedOrganizationContext,
 )
+from vada_api.main import create_app
 
 
 class RecordingObserver:
@@ -105,6 +114,7 @@ class SubmissionStore:
         self.record = record
         self.existing: PurchaseRequestRecord | None = None
         self.fail_submit = False
+        self.replay_during_submit = False
 
     def get_idempotent_result(
         self, submission: ValidatedPurchaseRequestSubmission
@@ -114,11 +124,16 @@ class SubmissionStore:
 
     def submit(
         self, submission: ValidatedPurchaseRequestSubmission
-    ) -> PurchaseRequestRecord:
+    ) -> PurchaseRequestSubmissionOutcome:
         del submission
         if self.fail_submit:
             raise PurchaseRequestPersistenceError
-        return self.record
+        if self.replay_during_submit:
+            self.existing = self.record
+        return PurchaseRequestSubmissionOutcome(
+            record=self.record,
+            replayed=self.replay_during_submit,
+        )
 
 
 def _context() -> FinanceRequestContext:
@@ -269,6 +284,58 @@ def test_submission_correlation_is_stable_without_exposing_idempotency_key() -> 
     assert first == second
     assert first.startswith("submission-")
     assert "opaque-client-key" not in first
+
+
+def test_race_losing_same_submission_is_recorded_as_retry() -> None:
+    content = _content()
+    observer = RecordingObserver()
+    submission_store = SubmissionStore(_record(content))
+    submission_store.replay_during_submit = True
+    service = PurchaseRequestService(
+        DraftRepository(), submission_store, observer=observer
+    )
+
+    result = service.submit(
+        _context(),
+        idempotency_key="concurrent-client-key",
+        content=content,
+        draft_ref=None,
+    )
+
+    assert result is submission_store.record
+    assert observer.records[-1].result == "retried"
+
+
+def test_persistence_problem_instance_matches_safe_observability_correlation() -> None:
+    sensitive_purpose = "공개되면 안 되는 구매 목적"
+    observer = RecordingObserver()
+    repository = DraftRepository()
+    repository.fail_save = True
+    service = PurchaseRequestService(
+        repository,
+        SubmissionStore(_record(_content())),
+        observer=observer,
+    )
+    app = create_app()
+    app.dependency_overrides[get_purchase_request_context] = _context
+    app.dependency_overrides[get_purchase_request_service] = lambda: service
+
+    response = cast(
+        httpx.Response,
+        TestClient(app).put(  # pyright: ignore[reportUnknownMemberType]
+            "/events/event-001/purchase-request-draft",
+            json={
+                "expectedVersion": None,
+                "content": {"purpose": sensitive_purpose},
+            },
+        ),
+    )
+
+    assert response.status_code == 503
+    correlation_id = observer.records[-1].correlation_id
+    assert response.json()["instance"] == f"urn:vada:problem:{correlation_id}"
+    assert sensitive_purpose not in response.text
+    assert sensitive_purpose not in repr(observer.records)
 
 
 class FakeLogger:

@@ -164,6 +164,8 @@ def observe_purchase_request_operation[T](
     try:
         outcome = action()
     except Exception as error:
+        if isinstance(error, PurchaseRequestPersistenceError):
+            error.attach_correlation_id(correlation_id)
         _emit_without_changing_business_result(
             observer,
             PurchaseRequestOperationRecord(

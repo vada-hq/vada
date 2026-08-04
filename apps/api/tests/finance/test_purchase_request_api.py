@@ -25,6 +25,7 @@ from vada_api.finance.submission import (
     PurchaseRequestItemResult,
     PurchaseRequestPersistenceError,
     PurchaseRequestRecord,
+    PurchaseRequestSubmissionOutcome,
     ValidatedPurchaseRequestSubmission,
 )
 from vada_api.identity.authentication import CognitoPrincipal
@@ -103,9 +104,9 @@ class FakeSubmissionStore:
 
     def submit(
         self, submission: ValidatedPurchaseRequestSubmission
-    ) -> PurchaseRequestRecord:
+    ) -> PurchaseRequestSubmissionOutcome:
         self.last_idempotency_key = submission.idempotency_key
-        return self.record
+        return PurchaseRequestSubmissionOutcome(record=self.record, replayed=False)
 
 
 def _context(
