@@ -1,0 +1,410 @@
+# pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
+from __future__ import annotations
+
+from datetime import UTC, date, datetime
+from decimal import Decimal
+
+from fastapi.testclient import TestClient
+
+from vada_api.finance.api import (
+    get_purchase_request_context,
+    get_purchase_request_service,
+)
+from vada_api.finance.application import (
+    FinanceRequestContext,
+    PurchaseRequestDraft,
+    PurchaseRequestService,
+    PurchaseRequestSummary,
+)
+from vada_api.finance.authorization import PurchaseRequestActorFacts
+from vada_api.finance.submission import (
+    PurchaseRequestContent,
+    PurchaseRequestItemInput,
+    PurchaseRequestItemResult,
+    PurchaseRequestPersistenceError,
+    PurchaseRequestRecord,
+    ValidatedPurchaseRequestSubmission,
+)
+from vada_api.identity.authentication import CognitoPrincipal
+from vada_api.identity.context import (
+    DepartmentRelationshipFact,
+    TrustedOrganizationContext,
+)
+from vada_api.main import create_app
+
+
+class FakePurchaseRequestRepository:
+    def __init__(self) -> None:
+        self.draft: PurchaseRequestDraft | None = None
+        self.summaries: tuple[PurchaseRequestSummary, ...] = ()
+        self.detail: PurchaseRequestRecord | None = None
+        self.last_scope: tuple[str, ...] | None = None
+
+    def get_draft(
+        self, *, organization_id: str, event_id: str, owner_user_id: str
+    ) -> PurchaseRequestDraft | None:
+        self.last_scope = (organization_id, event_id, owner_user_id)
+        return self.draft
+
+    def save_draft(
+        self,
+        *,
+        organization_id: str,
+        event_id: str,
+        owner_user_id: str,
+        expected_version: int | None,
+        content: dict[str, object],
+    ) -> PurchaseRequestDraft:
+        self.last_scope = (organization_id, event_id, owner_user_id)
+        version = 1 if self.draft is None else self.draft.version + 1
+        self.draft = PurchaseRequestDraft(
+            draft_id="draft-001",
+            version=version,
+            saved_at=datetime(2026, 8, 4, 1, 2, tzinfo=UTC),
+            content=content,
+        )
+        return self.draft
+
+    def delete_draft(
+        self, *, organization_id: str, event_id: str, owner_user_id: str
+    ) -> bool:
+        self.last_scope = (organization_id, event_id, owner_user_id)
+        existed = self.draft is not None
+        self.draft = None
+        return existed
+
+    def list_own(
+        self, *, organization_id: str, event_id: str, requester_user_id: str
+    ) -> tuple[PurchaseRequestSummary, ...]:
+        self.last_scope = (organization_id, event_id, requester_user_id)
+        return self.summaries
+
+    def get_detail(
+        self, *, organization_id: str, event_id: str, request_id: str
+    ) -> PurchaseRequestRecord | None:
+        self.last_scope = (organization_id, event_id, request_id)
+        return self.detail
+
+
+class FakeSubmissionStore:
+    def __init__(self, record: PurchaseRequestRecord) -> None:
+        self.record = record
+        self.last_idempotency_key: str | None = None
+
+    def submit(
+        self, submission: ValidatedPurchaseRequestSubmission
+    ) -> PurchaseRequestRecord:
+        self.last_idempotency_key = submission.idempotency_key
+        return self.record
+
+
+def _context(
+    *,
+    organization_id: str = "organization-a",
+    user_id: str = "user-a",
+    department_head: bool = True,
+) -> FinanceRequestContext:
+    identity = TrustedOrganizationContext(
+        principal=CognitoPrincipal(
+            issuer="https://cognito.example/pool-a", subject="subject-a"
+        ),
+        user_id=user_id,
+        organization_id=organization_id,
+        membership_id="membership-a",
+        event_id="event-a",
+        department_relationships=(
+            DepartmentRelationshipFact(
+                relationship_id="relationship-a", department_id="department-a"
+            ),
+        ),
+    )
+    return FinanceRequestContext(
+        actor=PurchaseRequestActorFacts(
+            identity=identity,
+            department_head_of=(
+                frozenset({"department-a"}) if department_head else frozenset()
+            ),
+        ),
+        event_name="개강 행사",
+        requester_name="요청자",
+        request_department_id="department-a",
+        request_department_name="기획부",
+        available_budget=Decimal(100_000),
+    )
+
+
+def _content() -> PurchaseRequestContent:
+    return PurchaseRequestContent(
+        title="행사 운영 물품",
+        needed_date=date(2026, 8, 20),
+        purpose="행사 운영",
+        priority="urgent",
+        items=(
+            PurchaseRequestItemInput(
+                name="현수막",
+                category="홍보물",
+                budget_item="행사운영비",
+                purchase_type="general",
+                quantity=Decimal(2),
+                unit="개",
+                estimated_unit_price=Decimal(10_000),
+                price_evidence=(
+                    {"type": "product_url", "url": "https://example.test/banner"},
+                ),
+                details={"vendor": "공급처 A"},
+            ),
+        ),
+    )
+
+
+def _record() -> PurchaseRequestRecord:
+    return PurchaseRequestRecord(
+        request_id="request-001",
+        organization_id="organization-a",
+        event_id="event-a",
+        requester_user_id="user-a",
+        request_department_id="department-a",
+        status="review_pending",
+        content=_content(),
+        item_results=(
+            PurchaseRequestItemResult(
+                item_id="item-001",
+                item_position=0,
+                estimated_amount=Decimal(20_000),
+            ),
+        ),
+        estimated_total=Decimal(20_000),
+        over_budget=False,
+        created_at=datetime(2026, 8, 4, 1, 3, tzinfo=UTC),
+    )
+
+
+def _client(
+    repository: FakePurchaseRequestRepository,
+    *,
+    context: FinanceRequestContext | None = None,
+) -> tuple[TestClient, FakeSubmissionStore]:
+    submission_store = FakeSubmissionStore(_record())
+    service = PurchaseRequestService(repository, submission_store)
+    app = create_app()
+    app.dependency_overrides[get_purchase_request_context] = lambda: (
+        context or _context()
+    )
+    app.dependency_overrides[get_purchase_request_service] = lambda: service
+    return TestClient(app), submission_store
+
+
+def test_editor_state_and_draft_lifecycle_use_server_derived_scope() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, _ = _client(repository)
+
+    empty = client.get("/events/event-a/purchase-request-editor")
+    assert empty.status_code == 200
+    assert empty.json() == {
+        "organizationId": "organization-a",
+        "eventId": "event-a",
+        "eventName": "개강 행사",
+        "requesterUserId": "user-a",
+        "requesterName": "요청자",
+        "requestDepartmentId": "department-a",
+        "requestDepartmentName": "기획부",
+        "draft": None,
+    }
+
+    saved = client.put(
+        "/events/event-a/purchase-request-draft",
+        json={
+            "expectedVersion": None,
+            "content": {"title": "작성 중", "items": []},
+        },
+    )
+    assert saved.status_code == 200
+    assert saved.json()["version"] == 1
+    assert repository.last_scope == ("organization-a", "event-a", "user-a")
+
+    restored = client.get("/events/event-a/purchase-request-editor")
+    assert restored.json()["draft"]["content"] == {
+        "title": "작성 중",
+        "items": [],
+    }
+
+    deleted = client.delete("/events/event-a/purchase-request-draft")
+    assert deleted.status_code == 204
+    assert deleted.content == b""
+
+
+def test_draft_preserves_incomplete_values_until_submission_validation() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, _ = _client(repository)
+
+    response = client.put(
+        "/events/event-a/purchase-request-draft",
+        json={
+            "expectedVersion": None,
+            "content": {
+                "items": [{"details": {"depositAmount": -1}}],
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["content"]["items"][0]["details"]["depositAmount"] == -1
+
+
+def test_invalid_submission_returns_problem_details_without_calling_store() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "request-key-001"},
+        json={"content": {"title": "", "items": []}},
+    )
+
+    assert response.status_code == 422
+    assert response.headers["content-type"].startswith("application/problem+json")
+    problem = response.json()
+    assert problem["code"] == "PURCHASE_REQUEST_VALIDATION_FAILED"
+    assert {violation["path"] for violation in problem["fieldViolations"]} >= {
+        "/content/title",
+        "/content/items",
+    }
+    assert submission_store.last_idempotency_key is None
+
+
+def test_submit_and_own_list_keep_identity_and_amounts_server_owned() -> None:
+    repository = FakePurchaseRequestRepository()
+    repository.summaries = (
+        PurchaseRequestSummary(
+            request_id="request-001",
+            title="행사 운영 물품",
+            status="review_pending",
+            estimated_total=Decimal(20_000),
+            over_budget=False,
+            created_at=datetime(2026, 8, 4, 1, 3, tzinfo=UTC),
+        ),
+    )
+    client, submission_store = _client(repository)
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "request-key-001"},
+        json={
+            "content": {
+                "title": "행사 운영 물품",
+                "neededDate": "2026-08-20",
+                "purpose": "행사 운영",
+                "priority": "urgent",
+                "items": [
+                    {
+                        "name": "현수막",
+                        "category": "홍보물",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "general",
+                        "quantity": 2,
+                        "unit": "개",
+                        "estimatedUnitPrice": 10000,
+                        "priceEvidence": [
+                            {
+                                "type": "product_url",
+                                "url": "https://example.test/banner",
+                            }
+                        ],
+                        "details": {"vendor": "공급처 A"},
+                    }
+                ],
+            }
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["requesterUserId"] == "user-a"
+    assert response.json()["estimatedTotal"] == 20000
+    assert submission_store.last_idempotency_key == "request-key-001"
+
+    listed = client.get("/events/event-a/purchase-requests/mine")
+    assert listed.status_code == 200
+    assert [item["requestId"] for item in listed.json()["items"]] == ["request-001"]
+    assert repository.last_scope == ("organization-a", "event-a", "user-a")
+
+
+def test_detail_is_scoped_and_missing_or_cross_organization_is_same_404() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, _ = _client(repository)
+
+    missing = client.get("/events/event-a/purchase-requests/request-unknown")
+    assert missing.status_code == 404
+    assert missing.json()["code"] == "RESOURCE_NOT_FOUND"
+    assert repository.last_scope == (
+        "organization-a",
+        "event-a",
+        "request-unknown",
+    )
+
+    other_org_client, _ = _client(repository, context=_context(organization_id="other"))
+    hidden = other_org_client.get("/events/event-a/purchase-requests/request-001")
+    assert hidden.status_code == 404
+    assert {
+        key: value for key, value in hidden.json().items() if key != "instance"
+    } == {key: value for key, value in missing.json().items() if key != "instance"}
+
+
+def test_permission_and_persistence_failures_are_stable_problem_details() -> None:
+    repository = FakePurchaseRequestRepository()
+    forbidden_client, _ = _client(repository, context=_context(department_head=False))
+
+    forbidden = forbidden_client.get("/events/event-a/purchase-request-editor")
+    assert forbidden.status_code == 403
+    assert forbidden.json()["code"] == "PURCHASE_REQUEST_ACTION_FORBIDDEN"
+
+    def fail_get_draft(**_scope: str) -> None:
+        raise PurchaseRequestPersistenceError
+
+    repository.get_draft = fail_get_draft  # type: ignore[method-assign]
+    unavailable_client, _ = _client(repository)
+    unavailable = unavailable_client.get("/events/event-a/purchase-request-editor")
+    assert unavailable.status_code == 503
+    assert unavailable.headers["content-type"].startswith("application/problem+json")
+    assert unavailable.json()["code"] == "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE"
+
+    unauthenticated = TestClient(create_app()).get(
+        "/events/event-a/purchase-request-editor"
+    )
+    assert unauthenticated.status_code == 401
+    assert unauthenticated.json()["code"] == "UNAUTHENTICATED"
+
+
+def test_routes_expose_contract_traceability_metadata() -> None:
+    openapi = create_app().openapi()
+
+    expected = {
+        ("/events/{eventId}/purchase-request-editor", "get"): (
+            "purchase_request.draft_read",
+            "API:purchase_request.get_editor_state@R1",
+        ),
+        ("/events/{eventId}/purchase-request-draft", "put"): (
+            "purchase_request.draft_write",
+            "API:purchase_request.save_draft@R1",
+        ),
+        ("/events/{eventId}/purchase-request-draft", "delete"): (
+            "purchase_request.draft_delete",
+            "API:purchase_request.delete_draft@R1",
+        ),
+        ("/events/{eventId}/purchase-requests", "post"): (
+            "purchase_request.submit",
+            "API:purchase_request.submit@R1",
+        ),
+        ("/events/{eventId}/purchase-requests/mine", "get"): (
+            "purchase_request.list_own",
+            "API:purchase_request.list_own@R1",
+        ),
+        ("/events/{eventId}/purchase-requests/{requestId}", "get"): (
+            "purchase_request.read_detail",
+            "API:purchase_request.get_detail@R1",
+        ),
+    }
+    for (path, method), (permission, contract) in expected.items():
+        operation = openapi["paths"][path][method]
+        assert operation["x-vada-permission"] == permission
+        assert contract in operation["x-vada-contracts"]
+        assert operation["x-vada-acceptance-criteria"]

@@ -163,7 +163,7 @@ class PostgreSQLPurchaseRequestSubmissionStore:
                         submitted_at=created_at,
                     )
                 )
-                return _load_record(
+                return load_purchase_request_record(
                     connection,
                     organization_id=submission.organization_id,
                     event_id=submission.event_id,
@@ -200,7 +200,7 @@ def _return_existing_submission(
     if not hmac.compare_digest(existing_payload_hash, payload_hash):
         raise SubmissionStateConflictError
 
-    return _load_record(
+    return load_purchase_request_record(
         connection,
         organization_id=submission.organization_id,
         event_id=submission.event_id,
@@ -208,7 +208,7 @@ def _return_existing_submission(
     )
 
 
-def _load_record(
+def load_purchase_request_record(
     connection: Connection,
     *,
     organization_id: str,

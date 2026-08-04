@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R3",
-  "runtime_revision": 1,
+  "runtime_revision": 5,
   "runtime_status": "active",
-  "updated_at": "2026-08-03T17:30:06.125Z",
+  "updated_at": "2026-08-03T17:32:57.202Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R3.json",
@@ -25,6 +25,34 @@
       "captured_at": "2026-08-03T17:30:06.125Z",
       "locator": "delivery-units/DU-001/execution-runtime/R2.json#WORK:purchase-request-screen-spec@R1",
       "content_ko": "이전 R2 런타임에서 화면 명세 작업이 사람 담당자의 인계 확인 없이 미착수 상태로 남아 있음을 보존합니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:32:45.777Z",
+      "locator": "conversation:2026-08-04:du-001-autonomous-wave-3-approval",
+      "content_ko": "제품 책임자의 자율 실행 승인에 따라 WORK:purchase-request-draft-api@R1 작업을 착수합니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:32:49.481Z",
+      "locator": "conversation:2026-08-04:du-001-autonomous-wave-3-approval",
+      "content_ko": "제품 책임자의 자율 실행 승인에 따라 WORK:purchase-request-submission-api@R1 작업을 착수합니다."
+    },
+    {
+      "id": "SRC-RUN-005",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:32:53.227Z",
+      "locator": "conversation:2026-08-04:du-001-autonomous-wave-3-approval",
+      "content_ko": "제품 책임자의 자율 실행 승인에 따라 WORK:purchase-request-own-list-api@R1 작업을 착수합니다."
+    },
+    {
+      "id": "SRC-RUN-006",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:32:57.202Z",
+      "locator": "conversation:2026-08-04:du-001-autonomous-wave-3-approval",
+      "content_ko": "제품 책임자의 자율 실행 승인에 따라 WORK:purchase-request-detail-api@R1 작업을 착수합니다."
     }
   ],
   "work_runs": [
@@ -51,8 +79,8 @@
     {
       "work_item_ref": "WORK:purchase-request-draft-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-03T17:32:45.777Z",
       "completed_at": null,
       "transition_log": [
         {
@@ -63,6 +91,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 현재 백엔드 전선을 R3 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-006",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T17:32:45.777Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "작성 정보와 개인 초안 API 구현을 시작합니다."
         }
       ],
       "blockers": [],
@@ -71,8 +108,8 @@
     {
       "work_item_ref": "WORK:purchase-request-submission-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-03T17:32:49.481Z",
       "completed_at": null,
       "transition_log": [
         {
@@ -83,6 +120,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 현재 백엔드 전선을 R3 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-007",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T17:32:49.481Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-004",
+          "note_ko": "구매 요청 제출 API 구현을 시작합니다."
         }
       ],
       "blockers": [],
@@ -91,8 +137,8 @@
     {
       "work_item_ref": "WORK:purchase-request-own-list-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-03T17:32:53.227Z",
       "completed_at": null,
       "transition_log": [
         {
@@ -103,6 +149,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 현재 백엔드 전선을 R3 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-008",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T17:32:53.227Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-005",
+          "note_ko": "본인 구매 요청 목록 API 구현을 시작합니다."
         }
       ],
       "blockers": [],
@@ -111,8 +166,8 @@
     {
       "work_item_ref": "WORK:purchase-request-detail-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-03T17:32:57.202Z",
       "completed_at": null,
       "transition_log": [
         {
@@ -123,6 +178,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 현재 백엔드 전선을 R3 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-009",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T17:32:57.202Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-006",
+          "note_ko": "구매 요청 상세 API 구현을 시작합니다."
         }
       ],
       "blockers": [],

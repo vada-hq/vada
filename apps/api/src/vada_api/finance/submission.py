@@ -70,15 +70,23 @@ class PurchaseRequestRecord:
     created_at: datetime
 
 
-class SubmissionStateConflictError(Exception):
-    """같은 멱등 키의 다른 내용 또는 소유 초안 버전 충돌."""
+class PurchaseRequestStateConflictError(Exception):
+    """공개 HTTP 경계에서 같은 의미로 다루는 구매 요청 상태 충돌."""
 
     def __init__(self) -> None:
         super().__init__("구매 요청 상태가 변경되어 다시 확인해야 합니다.")
 
 
-class SubmissionPersistenceError(Exception):
-    """제출 트랜잭션을 확정하지 못한 비노출 영속 오류."""
+class SubmissionStateConflictError(PurchaseRequestStateConflictError):
+    """같은 멱등 키의 다른 내용 또는 소유 초안 버전 충돌."""
+
+
+class PurchaseRequestPersistenceError(Exception):
+    """구매 요청 저장소 동작을 완료하지 못한 비노출 영속 오류."""
 
     def __init__(self) -> None:
         super().__init__("구매 요청을 저장하지 못했습니다.")
+
+
+class SubmissionPersistenceError(PurchaseRequestPersistenceError):
+    """제출 트랜잭션을 확정하지 못한 비노출 영속 오류."""
