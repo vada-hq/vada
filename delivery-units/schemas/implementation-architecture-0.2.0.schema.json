@@ -1,0 +1,140 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.local/schemas/implementation-architecture-0.2.0.json",
+  "title": "Incremental Delivery Unit Implementation Architecture Baseline",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "architecture_id",
+    "architecture_revision",
+    "architecture_status",
+    "approval_source_ref",
+    "updated_at",
+    "delivery_unit_ref",
+    "objective_ko",
+    "contract_bundle_ref",
+    "base_architecture_ref",
+    "decision_scope",
+    "sources",
+    "decisions",
+    "questions"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "0.2.0"
+    },
+    "architecture_id": {
+      "type": "string",
+      "pattern": "^IAB-[A-Z0-9][A-Z0-9-]{2,}$"
+    },
+    "architecture_revision": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "integer", "minimum": 1 }
+      ]
+    },
+    "architecture_status": {
+      "enum": ["defining", "review_ready", "approved"]
+    },
+    "approval_source_ref": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "delivery_unit_ref": {
+      "type": "string",
+      "pattern": "^FLOW-[A-Z0-9][A-Z0-9-]*@R[1-9][0-9]*$"
+    },
+    "objective_ko": {
+      "type": "string",
+      "minLength": 1
+    },
+    "contract_bundle_ref": {
+      "$ref": "https://vada.local/schemas/implementation-architecture-0.1.0.json#/$defs/contractBundleRef"
+    },
+    "base_architecture_ref": {
+      "$ref": "#/$defs/baseArchitectureRef"
+    },
+    "decision_scope": {
+      "$ref": "https://vada.local/schemas/implementation-architecture-0.1.0.json#/$defs/decisionScope"
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "https://vada.local/schemas/implementation-architecture-0.1.0.json#/$defs/source"
+      }
+    },
+    "decisions": {
+      "description": "기준 아키텍처에서 추가되거나 변경된 결정만 기록합니다.",
+      "type": "array",
+      "items": {
+        "$ref": "https://vada.local/schemas/implementation-architecture-0.1.0.json#/$defs/decision"
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "$ref": "https://vada.local/schemas/implementation-architecture-0.1.0.json#/$defs/question"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "architecture_status": { "const": "approved" }
+        },
+        "required": ["architecture_status"]
+      },
+      "then": {
+        "properties": {
+          "architecture_revision": { "type": "integer", "minimum": 1 },
+          "approval_source_ref": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+        }
+      },
+      "else": {
+        "properties": {
+          "architecture_revision": { "type": "null" },
+          "approval_source_ref": { "type": "null" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "baseArchitectureRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "architecture_id",
+        "architecture_revision",
+        "canonical_sha256"
+      ],
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "architecture_id": {
+          "type": "string",
+          "pattern": "^IAB-[A-Z0-9][A-Z0-9-]{2,}$"
+        },
+        "architecture_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "canonical_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}
