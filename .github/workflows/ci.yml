@@ -41,9 +41,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
       - name: Test specification, contract, and execution validators
-        run: pnpm test:contracts && pnpm test:product-specs && pnpm test:architecture && pnpm test:delivery-work && pnpm test:screen-specs && pnpm test:execution-plan && pnpm test:execution-preflight && pnpm test:execution-runtime
+        run: pnpm test:workflow-policy && pnpm test:contracts && pnpm test:product-specs && pnpm test:architecture && pnpm test:delivery-work && pnpm test:screen-specs && pnpm test:execution-plan && pnpm test:execution-preflight && pnpm test:execution-runtime && pnpm test:delivery-status
       - name: Validate specifications, contracts, architecture, work graph, execution plan, and runtime
-        run: pnpm validate:contracts && pnpm validate:product-specs && pnpm validate:architecture && pnpm validate:delivery-work && pnpm validate:screen-specs && pnpm validate:execution-plan && pnpm validate:execution-runtime
+        run: pnpm validate:workflow-policy && pnpm validate:contracts && pnpm validate:product-specs && pnpm validate:architecture && pnpm validate:delivery-work && pnpm validate:screen-specs && pnpm validate:execution-plan && pnpm validate:execution-runtime && pnpm validate:delivery-status
 
   api:
     name: api

@@ -11,12 +11,19 @@ const schemaPath = resolve(
   "contracts/schemas/delivery-contract-bundle.schema.json",
 );
 const bundleSchema = JSON.parse(await readFile(schemaPath, "utf8"));
+const deltaBundleSchema = JSON.parse(
+  await readFile(
+    resolve(repositoryRoot, "contracts/schemas/delivery-contract-bundle-0.2.0.schema.json"),
+    "utf8",
+  ),
+);
 const structureAjv = new Ajv2020({
   allErrors: true,
   strict: true,
   allowUnionTypes: true,
 });
 const validateBundleSchema = structureAjv.compile(bundleSchema);
+const validateDeltaBundleSchema = structureAjv.compile(deltaBundleSchema);
 const coreKinds = new Set(["DOMAIN", "DATA", "AUTH", "API", "ERROR", "EVENT", "QUALITY"]);
 
 function canonicalJson(value) {
@@ -43,6 +50,19 @@ function formatSchemaError(error) {
     return `${location}: 필수 필드 ${error.params.missingProperty}가 없습니다.`;
   }
   return `${location}: ${error.message}`;
+}
+
+function validateBundleStructure(bundle) {
+  const validator =
+    bundle?.schema_version === "0.1.0"
+      ? validateBundleSchema
+      : bundle?.schema_version === "0.2.0"
+        ? validateDeltaBundleSchema
+        : null;
+  if (!validator) {
+    return [`/schema_version: 지원하지 않는 계약 묶음 스키마 ${bundle?.schema_version ?? "없음"}입니다.`];
+  }
+  return validator(bundle) ? [] : (validator.errors ?? []).map(formatSchemaError);
 }
 
 function uniqueErrors(items, key, label) {
@@ -346,9 +366,8 @@ function questionFrontier(questions) {
 
 export function validateContractBundleDocument(bundle, solution, options = {}) {
   const errors = [];
-  if (!validateBundleSchema(bundle)) {
-    return (validateBundleSchema.errors ?? []).map(formatSchemaError);
-  }
+  const structureErrors = validateBundleStructure(bundle);
+  if (structureErrors.length > 0) return structureErrors;
   if (solution?.status !== "approved" || !Number.isInteger(solution?.revision) || solution.revision < 1) {
     errors.push("참조한 목표 설계는 승인된 양의 리비전이어야 합니다.");
   }
@@ -378,6 +397,9 @@ export function validateContractBundleDocument(bundle, solution, options = {}) {
   const sourceIds = new Set(sources.map((item) => item.id));
   const importedContracts = options.importedContracts ?? new Map();
   const localContracts = new Map(contracts.map((item) => [item.id, item]));
+  for (const id of localContracts.keys()) {
+    if (importedContracts.has(id)) errors.push(`기준 계약과 로컬 계약 ID가 중복됐습니다: ${id}`);
+  }
   const allContracts = new Map([...importedContracts, ...localContracts]);
 
   contracts.forEach((contract, index) => {
@@ -550,6 +572,71 @@ async function loadImportedContracts(root, bundle) {
   return { errors, contracts };
 }
 
+export function validateBaseBundleReference(reference, baseBundle) {
+  const errors = [];
+  if (baseBundle?.bundle_status !== "approved") {
+    errors.push("승인되지 않은 기준 묶음은 상속할 수 없습니다.");
+  }
+  if (
+    baseBundle?.bundle_id !== reference?.bundle_id ||
+    baseBundle?.bundle_revision !== reference?.bundle_revision
+  ) {
+    errors.push("기준 묶음 ID 또는 리비전이 고정 참조와 다릅니다.");
+  }
+  if (baseBundle && canonicalSha256(baseBundle) !== reference?.canonical_sha256) {
+    errors.push("기준 묶음 해시가 고정 참조와 다릅니다.");
+  }
+  const nonRatified = (baseBundle?.contracts ?? []).filter(
+    (contract) => contract.status !== "ratified",
+  );
+  if (nonRatified.length > 0) {
+    errors.push(`기준 묶음에 미확정 계약이 있습니다: ${nonRatified.map((item) => item.id).join(", ")}`);
+  }
+  return errors;
+}
+
+function mergeContracts(target, source, label, errors) {
+  for (const [id, contract] of source) {
+    if (target.has(id)) errors.push(`${label}: 계약 ID가 중복됐습니다: ${id}`);
+    else target.set(id, contract);
+  }
+}
+
+async function loadInheritedContracts(root, bundle, seenPaths = new Set()) {
+  if (bundle.schema_version === "0.1.0") return loadImportedContracts(root, bundle);
+  const errors = [];
+  const contracts = new Map();
+  const reference = bundle.base_bundle_ref;
+  if (!reference) return { errors: ["0.2.0 묶음에 base_bundle_ref가 없습니다."], contracts };
+
+  try {
+    const path = assertProjectRelative(root, reference.bundle_path);
+    if (seenPaths.has(path)) {
+      return { errors: [`기준 묶음 참조에 순환이 있습니다: ${reference.bundle_path}`], contracts };
+    }
+    const nextSeenPaths = new Set(seenPaths);
+    nextSeenPaths.add(path);
+    const baseBundle = JSON.parse(await readFile(path, "utf8"));
+    errors.push(
+      ...validateBundleStructure(baseBundle).map((error) => `기준 묶음 구조: ${error}`),
+    );
+    errors.push(...validateBaseBundleReference(reference, baseBundle));
+
+    const inherited = await loadInheritedContracts(root, baseBundle, nextSeenPaths);
+    errors.push(...inherited.errors);
+    mergeContracts(contracts, inherited.contracts, reference.bundle_path, errors);
+    mergeContracts(
+      contracts,
+      new Map((baseBundle.contracts ?? []).map((contract) => [contract.id, contract])),
+      reference.bundle_path,
+      errors,
+    );
+  } catch (error) {
+    errors.push(`${reference.bundle_path}: ${error.message}`);
+  }
+  return { errors, contracts };
+}
+
 export async function validateContractBundleRepository(root = repositoryRoot) {
   const errors = [];
   const warnings = [];
@@ -566,7 +653,7 @@ export async function validateContractBundleRepository(root = repositoryRoot) {
         `product-specs/flows/${solution.flowRef.id}/R${solution.flowRef.revision}.json`,
       );
       const flow = JSON.parse(await readFile(flowPath, "utf8"));
-      const imported = await loadImportedContracts(root, bundle);
+      const imported = await loadInheritedContracts(root, bundle, new Set([path]));
       errors.push(...imported.errors.map((error) => `${label}: ${error}`));
       const documentErrors = validateContractBundleDocument(bundle, solution, {
         flow,

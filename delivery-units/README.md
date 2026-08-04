@@ -15,3 +15,4 @@
 - 작업·증거·선행관계와 설계·계약 전체 커버리지는 `just validate-delivery-work`로 검증한다.
 - 실행 계획의 작업 전수 배치, 기준선 해시, 실행자 역량, 범위·추정·일정 정책은 `just validate-execution-plan`으로 검증한다.
 - 실제 상태 전이, committed 작업 전수 추적, 선행관계 기반 착수 가능성, 독립 검증 증거는 `just validate-execution-runtime`으로 검증한다.
+- 현재 완료·진행·착수 가능·차단 상태는 작업 그래프와 모든 실행 런타임에서 자동 파생한다. `pnpm derive:delivery-status -- --du <DU-ID>`로 조회하고 `just validate-delivery-status`로 저장소 전체를 검증하며, 이 값을 별도 문서에 수동 복사하지 않는다.
