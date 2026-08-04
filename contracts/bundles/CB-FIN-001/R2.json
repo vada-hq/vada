@@ -1,0 +1,595 @@
+{
+  "$schema": "../../schemas/delivery-contract-bundle-0.2.0.schema.json",
+  "schema_version": "0.2.0",
+  "bundle_id": "CB-FIN-001",
+  "bundle_revision": 2,
+  "bundle_status": "approved",
+  "approval_source_ref": "SRC-010",
+  "updated_at": "2026-08-04T14:09:31.722Z",
+  "solution_ref": {
+    "path": "product-specs/solutions/SOLUTION-FIN-001/R1.json",
+    "solution_id": "SOLUTION-FIN-001",
+    "solution_revision": 1,
+    "canonical_sha256": "aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f"
+  },
+  "delivery_unit_ref": "FLOW-FIN-001@R2",
+  "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
+  "standards_profile": {
+    "openapi_version": "3.1.1",
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "http_problem_details": "RFC9457"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "document",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "product-specs/solutions/SOLUTION-FIN-001/R1.json#aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f",
+      "content_ko": "제품 책임자가 승인한 행사 구매 요청 제출 목표 설계 R1입니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "document",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "product-specs/flows/FLOW-FIN-001/R2.json#d1f9db2df71ae7c92a9f83b4100a3ed7cf0dd021100860f022a13a8c53810baa",
+      "content_ko": "제품 책임자가 승인한 행사 구매 요청 제출 흐름 R2입니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "document",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "product-specs/domains/DOMAIN-FIN/R1.json#c8d4e5dbb45f5fc87f4003ac3dda250062d0732c9ff6d6c4b65f62c3c2fc16fc",
+      "content_ko": "재정 도메인의 승인된 행위자·권한·불변 규칙 R1입니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "standard",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "https://www.rfc-editor.org/rfc/rfc9457",
+      "content_ko": "HTTP API 오류 본문은 RFC 9457 Problem Details 의미를 따릅니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "standard",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "https://json-schema.org/draft/2020-12/schema",
+      "content_ko": "데이터 계약은 JSON Schema Draft 2020-12로 검증합니다."
+    },
+    {
+      "id": "SRC-006",
+      "type": "standard",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "https://spec.openapis.org/oas/v3.1.1",
+      "content_ko": "HTTP 동작 의미는 OpenAPI 3.1.1로 렌더링할 수 있게 정의합니다."
+    },
+    {
+      "id": "SRC-007",
+      "type": "standard",
+      "captured_at": "2026-08-03T17:04:08+09:00",
+      "locator": "https://www.w3.org/TR/WCAG22/",
+      "content_ko": "입력 오류와 상태 메시지는 WCAG 2.2의 접근 가능한 피드백 원칙을 따릅니다."
+    },
+    {
+      "id": "SRC-008",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:31:03+09:00",
+      "locator": "current-thread/cb-fin-001-approval-2026-08-03",
+      "content_ko": "제품 책임자가 행사 구매 요청 제출 실행 계약 묶음 전체를 명시적으로 승인했습니다."
+    },
+    {
+      "id": "SRC-009",
+      "type": "observation",
+      "captured_at": "2026-08-04T12:04:03.244Z",
+      "locator": "delivery-units/DU-001/screen-spec/draft.json#CONTRACT-GAP-001",
+      "content_ko": "AC-07은 상세 새로고침 후 요청자·행사 표시명을 요구하지만 R1 상세 응답은 두 값을 식별자로만 제공합니다."
+    },
+    {
+      "id": "SRC-010",
+      "type": "user_statement",
+      "captured_at": "2026-08-04T14:09:31.722Z",
+      "locator": "current-thread/cb-fin-001-detail-display-approval-2026-08-04",
+      "content_ko": "제품 책임자가 상세 조회에서 저장 레코드와 서버가 해석한 행사명·요청자명을 함께 반환하는 R2 계약 수정안을 승인하고 계속 진행하도록 지시했습니다."
+    }
+  ],
+  "base_bundle_ref": {
+    "bundle_path": "contracts/bundles/CB-FIN-001/R1.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 1,
+    "canonical_sha256": "cb4ac51a822e69b8a12584116da12e8437b4e61ce87802c88e107259e00863fb"
+  },
+  "contracts": [
+    {
+      "id": "DATA:purchase_request.detail_view@R1",
+      "kind": "DATA",
+      "key": "purchase_request.detail_view",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "저장된 구매 요청과 신뢰 가능한 화면 표시 맥락을 함께 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-detail-view:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "record",
+            "display"
+          ],
+          "properties": {
+            "record": {
+              "$ref": "urn:vada:schema:purchase-request-record:r1"
+            },
+            "display": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "eventName",
+                "requesterName"
+              ],
+              "properties": {
+                "eventName": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "requesterName": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "record의 eventId와 requesterUserId가 관계·권한·연결의 정본이며 display 값은 화면 표시 전용입니다.",
+          "서버는 저장된 식별자에 대응하는 신뢰 가능한 행사명과 요청자명을 조회 시점에 반환하며 클라이언트가 이름을 추정하지 않습니다.",
+          "display 값은 권한 판정이나 다른 리소스 조회의 식별자로 사용할 수 없습니다."
+        ],
+        "schema_contract_refs": [
+          "DATA:purchase_request.record@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-009"
+      ]
+    },
+    {
+      "id": "API:purchase_request.get_detail@R2",
+      "kind": "API",
+      "key": "purchase_request.get_detail",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "breaking",
+      "supersedes": "API:purchase_request.get_detail@R1",
+      "summary_ko": "현재 조직 구성원이 요청 상세와 서버가 해석한 행사·요청자 표시명을 함께 조회합니다.",
+      "specification": {
+        "operation_id": "getPurchaseRequestDetail",
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests/{requestId}",
+        "authorization_ref": "AUTH:purchase_request.read_detail@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            {
+              "name": "eventId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            {
+              "name": "requestId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:purchase_request.detail_view@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-006",
+        "SRC-009"
+      ]
+    }
+  ],
+  "design_coverage": [
+    {
+      "design_ref": "DESIGN-INTERACTION-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.get_editor_state@R1",
+        "AUTH:purchase_request.draft_read@R1",
+        "DATA:purchase_request.editor_state@R1"
+      ],
+      "rationale_ko": "작성 시작 시 서버가 권한과 행사 맥락을 파생해 제공하는 동작으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DATA:purchase_request.input@R1"
+      ],
+      "rationale_ko": "요청 공통 입력의 필수·선택·타입을 데이터 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-003",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DATA:purchase_request.input@R1",
+        "DOMAIN:purchase_request.submission@R1"
+      ],
+      "rationale_ko": "다품목 구성과 유형별 가격 근거를 데이터와 도메인 불변식으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-004",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.get_editor_state@R1",
+        "API:purchase_request.save_draft@R1",
+        "API:purchase_request.delete_draft@R1",
+        "DATA:purchase_request.draft_content@R1",
+        "DATA:purchase_request.draft_save_command@R1",
+        "DATA:purchase_request.draft@R1",
+        "AUTH:purchase_request.draft_write@R1",
+        "AUTH:purchase_request.draft_delete@R1"
+      ],
+      "rationale_ko": "초안 조회·저장·삭제와 소유자 경계를 독립 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-005",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.submit@R1",
+        "DATA:purchase_request.submit_command@R1",
+        "DATA:purchase_request.submitted_event@R1",
+        "AUTH:purchase_request.submit@R1",
+        "EVENT:purchase_request.submitted@R1"
+      ],
+      "rationale_ko": "제출 명령·권한·성공 이벤트를 하나의 확정 경계로 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERACTION-006",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.list_own@R1",
+        "API:purchase_request.get_detail@R2",
+        "DATA:purchase_request.own_list@R1",
+        "AUTH:purchase_request.list_own@R1",
+        "AUTH:purchase_request.read_detail@R1",
+        "DATA:purchase_request.detail_view@R1"
+      ],
+      "rationale_ko": "제출 결과를 본인 목록과 허용된 상세에서 다시 읽는 경계를 고정합니다. 상세 재조회는 저장 레코드와 서버 표시 맥락을 분리해 제공합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.save_draft@R1",
+        "ERROR:purchase_request.persistence_unavailable@R1",
+        "QUALITY:purchase_request.draft_recovery@R1"
+      ],
+      "rationale_ko": "저장 성공·실패와 재시도 가능한 작성 상태를 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "ERROR:purchase_request.validation_failed@R1",
+        "DATA:http.problem_details@R1",
+        "QUALITY:purchase_request.accessible_feedback@R1"
+      ],
+      "rationale_ko": "수정 가능한 입력 오류와 접근 가능한 표시를 안정 오류 계약으로 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-003",
+      "disposition": "contracted",
+      "contract_refs": [
+        "ERROR:purchase_request.action_forbidden@R1",
+        "ERROR:http.resource_not_found@R1",
+        "QUALITY:purchase_request.tenant_isolation@R1"
+      ],
+      "rationale_ko": "권한 없음과 조직 범위 비노출을 구분된 실패 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-004",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.submit@R1",
+        "DATA:purchase_request.record@R1",
+        "EVENT:purchase_request.submitted@R1"
+      ],
+      "rationale_ko": "성공 후 검토 대기 요청과 확정 이벤트가 일치하도록 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-STATE-005",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DOMAIN:purchase_request.submission@R1",
+        "DATA:purchase_request.record@R1"
+      ],
+      "rationale_ko": "예산 초과가 제출 실패가 아니라 결과 속성임을 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-DOMAIN-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DOMAIN:purchase_request.submission@R1",
+        "DATA:purchase_request.record@R1"
+      ],
+      "rationale_ko": "요청과 다품목 묶음의 구조를 도메인·데이터 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-DOMAIN-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DOMAIN:purchase_request.submission@R1",
+        "QUALITY:purchase_request.atomic_idempotent_submission@R1"
+      ],
+      "rationale_ko": "초안에서 검토 대기로의 단일 전환을 불변식과 원자성 의무로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-DATA-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DATA:purchase_request.input@R1",
+        "DATA:purchase_request.record@R1"
+      ],
+      "rationale_ko": "사용자 입력과 서버 계산·파생값을 분리합니다."
+    },
+    {
+      "design_ref": "DESIGN-DATA-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DATA:purchase_request.input@R1"
+      ],
+      "rationale_ko": "품목 공통·유형별 정보와 가격 근거를 단일 스키마로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-DATA-003",
+      "disposition": "contracted",
+      "contract_refs": [
+        "DOMAIN:purchase_request.submission@R1",
+        "AUTH:purchase_request.submit@R1"
+      ],
+      "rationale_ko": "조직·행사·요청자·부서를 클라이언트 값이 아닌 서버 관계 사실로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-SYSTEM-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "AUTH:purchase_request.draft_read@R1",
+        "AUTH:purchase_request.draft_write@R1",
+        "AUTH:purchase_request.submit@R1"
+      ],
+      "rationale_ko": "작성 진입과 명령 권한을 관계 기반 기본 거부식으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-SYSTEM-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.save_draft@R1",
+        "DATA:purchase_request.draft@R1",
+        "QUALITY:purchase_request.draft_recovery@R1"
+      ],
+      "rationale_ko": "개인 초안 서버 정본과 복구 책임을 API·데이터·품질 계약으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-SYSTEM-003",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.submit@R1",
+        "DOMAIN:purchase_request.submission@R1",
+        "QUALITY:purchase_request.atomic_idempotent_submission@R1"
+      ],
+      "rationale_ko": "서버 재검증·원자적 확정·중복 방지를 하나의 책임으로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-SYSTEM-004",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.list_own@R1",
+        "API:purchase_request.get_detail@R2",
+        "AUTH:purchase_request.list_own@R1",
+        "AUTH:purchase_request.read_detail@R1",
+        "DATA:purchase_request.detail_view@R1"
+      ],
+      "rationale_ko": "목록과 상세의 서로 다른 가시성 규칙을 각각 고정합니다. 상세 재조회는 저장 레코드와 서버 표시 맥락을 분리해 제공합니다."
+    },
+    {
+      "design_ref": "DESIGN-INTERFACE-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "API:purchase_request.get_editor_state@R1",
+        "API:purchase_request.save_draft@R1",
+        "API:purchase_request.delete_draft@R1",
+        "API:purchase_request.submit@R1",
+        "API:purchase_request.list_own@R1",
+        "API:purchase_request.get_detail@R2",
+        "DATA:http.empty_body@R1",
+        "ERROR:http.unauthenticated@R1",
+        "ERROR:purchase_request.state_conflict@R1",
+        "DATA:purchase_request.detail_view@R1"
+      ],
+      "rationale_ko": "클라이언트와 서버 사이의 여섯 동작과 공통 실패 경계를 완전하게 열거합니다. 상세 재조회는 저장 레코드와 서버 표시 맥락을 분리해 제공합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.tenant_isolation@R1"
+      ],
+      "rationale_ko": "관계 기반 기본 거부를 보안 품질 게이트로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.sensitive_data_handling@R1"
+      ],
+      "rationale_ko": "조직 격리와 재정 정보 최소 노출을 검증 가능한 의무로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-003",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.accessible_feedback@R1"
+      ],
+      "rationale_ko": "입력·상태 접근성을 자동 검증 가능한 의무로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-004",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.atomic_idempotent_submission@R1"
+      ],
+      "rationale_ko": "중복 방지와 장애 추적의 핵심을 원자성 품질 게이트로 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-QUALITY-005",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.draft_recovery@R1",
+        "QUALITY:purchase_request.sensitive_data_handling@R1"
+      ],
+      "rationale_ko": "서버 초안 정본과 브라우저 영속 저장 최소화를 함께 고정합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-001",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "rationale_ko": "부서장 다품목 제출을 AC-01 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-002",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "rationale_ko": "재정부 제출 권한을 AC-02 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-003",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "rationale_ko": "입력 실패 비생성을 AC-03 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-004",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "rationale_ko": "일반 구성원 작성 차단을 AC-04 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-005",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "rationale_ko": "초안 저장·복원을 AC-05 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-006",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "rationale_ko": "예산 초과 제출 허용을 AC-06 자동 증거에 연결합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-007",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.acceptance_evidence@R1",
+        "DATA:purchase_request.detail_view@R1",
+        "API:purchase_request.get_detail@R2"
+      ],
+      "rationale_ko": "제출 결과 영속성을 AC-07 자동 증거에 연결합니다. 상세 재조회는 저장 레코드와 서버 표시 맥락을 분리해 제공합니다."
+    },
+    {
+      "design_ref": "DESIGN-VERIFY-008",
+      "disposition": "contracted",
+      "contract_refs": [
+        "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "rationale_ko": "초안 저장 실패 복구를 AC-08 자동 증거에 연결합니다."
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "상세 표시 맥락 계약 수정안을 승인 또는 반려로 구분합니다.",
+        "source_refs": [
+          "SRC-009"
+        ]
+      },
+      "question_ko": "구매 요청 상세 표시 맥락 계약 수정안을 승인합니까?",
+      "reason_ko": "승인하면 상세 조회가 저장 레코드와 서버가 해석한 행사명·요청자명을 함께 반환하는 R2 계약 기준선이 됩니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "승인"
+        },
+        {
+          "id": "NO",
+          "label_ko": "반려"
+        }
+      ],
+      "evidence": {
+        "solution_design_refs": [
+          "DESIGN-INTERACTION-006",
+          "DESIGN-SYSTEM-004",
+          "DESIGN-INTERFACE-001",
+          "DESIGN-VERIFY-007"
+        ],
+        "source_refs": [
+          "SRC-009"
+        ]
+      },
+      "answer_source_ref": "SRC-010",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}
