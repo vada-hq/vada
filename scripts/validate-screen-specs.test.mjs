@@ -86,8 +86,69 @@ test("화면 상태에는 설계 또는 계약 근거 중 하나가 반드시 �
   assert.ok(errors.some((error) => error.includes("/state_matrix/0")));
 });
 
+test("DU-001 화면 명세 후보가 승인된 상세 계약 R2를 추적한다", async () => {
+  const spec = await actualSpec();
+  const detailStep = spec.interaction_flow.find(
+    (step) => step.design_ref === "DESIGN-INTERACTION-006",
+  );
+
+  assert.equal(spec.spec_revision, 2);
+  assert.equal(spec.work_item_ref, "WORK:purchase-request-screen-spec@R2");
+  assert.equal(spec.completion_evidence_ref, "EVID-024");
+  assert.equal(spec.baseline.contract_bundle_ref.bundle_revision, 2);
+  assert.equal(
+    spec.baseline.implementation_architecture_ref.architecture_revision,
+    2,
+  );
+  assert.equal(spec.baseline.delivery_work_ref.plan_revision, 2);
+  assert.ok(
+    detailStep.contract_refs.includes("DATA:purchase_request.detail_view@R1"),
+  );
+  assert.ok(
+    detailStep.contract_refs.includes("API:purchase_request.get_detail@R2"),
+  );
+  assert.deepEqual(
+    spec.contract_gaps.filter(
+      (gap) => gap.status === "open" && gap.blocks_promotion,
+    ),
+    [],
+  );
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+  assert.deepEqual(errors, []);
+});
+
+test("증분 묶음의 상속 계약은 허용하고 대체된 상세 R1 계약은 거부한다", async () => {
+  const spec = await actualSpec();
+  const detailStep = spec.interaction_flow.find(
+    (step) => step.design_ref === "DESIGN-INTERACTION-006",
+  );
+
+  detailStep.contract_refs = detailStep.contract_refs.map((ref) =>
+    ref === "API:purchase_request.get_detail@R2"
+      ? "API:purchase_request.get_detail@R1"
+      : ref,
+  );
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+
+  assert.ok(
+    errors.some((error) =>
+      error.includes("활성 계약에 없는 참조 API:purchase_request.get_detail@R1"),
+    ),
+  );
+  assert.ok(
+    errors.every(
+      (error) =>
+        !error.includes("활성 계약에 없는 참조 API:purchase_request.list_own@R1"),
+    ),
+  );
+});
+
 test("승격을 막는 계약 공백에는 대응하는 열린 질문이 필요하다", async () => {
   const spec = await actualSpec();
+  spec.contract_gaps[0].status = "open";
+  spec.contract_gaps[0].blocks_promotion = true;
   spec.review.open_questions = [];
 
   const errors = await validateScreenSpec(spec, { artifactPath });
