@@ -143,6 +143,29 @@ test("R2 상세 성공 예제에서 행사명이나 요청자명이 빠지면 �
   }
 });
 
+test("API 모의가 픽스처 계약 범위 밖의 superseded API 리비전을 참조하면 거부한다", async () => {
+  const [fixture, bundle] = await Promise.all([
+    readJson(r2FixturePath),
+    readJson(r2BundlePath),
+  ]);
+  const effective = await resolveEffectiveContracts(repositoryRoot, bundle, {
+    bundlePath: r2BundlePath,
+  });
+  const detailNotFound = fixture.api_mocks.find(
+    (example) => example.id === "get-detail-not-found",
+  );
+  detailNotFound.contract_ref = "API:purchase_request.get_detail@R1";
+
+  const errors = validateContractFixtureDocument(fixture, bundle, {
+    effectiveContracts: effective.contracts,
+  }).join("\n");
+
+  assert.match(
+    errors,
+    /contract_refs.*API:purchase_request\.get_detail@R1/,
+  );
+});
+
 test("계약 묶음 해시가 바뀐 픽스처를 거부한다", async () => {
   const [fixture, bundle] = await Promise.all([readJson(fixturePath), readJson(bundlePath)]);
   fixture.contract_bundle_ref.canonical_sha256 = "0".repeat(64);
