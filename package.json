@@ -17,6 +17,8 @@
     "validate:architecture": "node scripts/validate-implementation-architecture.mjs",
     "test:delivery-work": "node --test scripts/validate-delivery-work-plan.test.mjs",
     "validate:delivery-work": "node scripts/validate-delivery-work-plan.mjs",
+    "test:screen-specs": "node --test scripts/validate-screen-specs.test.mjs",
+    "validate:screen-specs": "node scripts/validate-screen-specs.mjs",
     "test:execution-plan": "node --test scripts/validate-execution-plan.test.mjs",
     "validate:execution-plan": "node scripts/validate-execution-plan.mjs",
     "test:execution-preflight": "node --test scripts/check-execution-preflight.test.mjs",
