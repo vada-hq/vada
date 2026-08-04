@@ -91,7 +91,15 @@ class FakePurchaseRequestRepository:
 class FakeSubmissionStore:
     def __init__(self, record: PurchaseRequestRecord) -> None:
         self.record = record
+        self.idempotent_record: PurchaseRequestRecord | None = None
         self.last_idempotency_key: str | None = None
+        self.last_idempotency_lookup_key: str | None = None
+
+    def get_idempotent_result(
+        self, submission: ValidatedPurchaseRequestSubmission
+    ) -> PurchaseRequestRecord | None:
+        self.last_idempotency_lookup_key = submission.idempotency_key
+        return self.idempotent_record
 
     def submit(
         self, submission: ValidatedPurchaseRequestSubmission
@@ -339,6 +347,139 @@ def test_purchase_request_numbers_reject_json_strings() -> None:
 
     assert draft.status_code == 422
     assert submitted.status_code == 422
+    assert submission_store.last_idempotency_key is None
+
+
+def test_draft_integer_fields_reject_json_strings_without_overwriting() -> None:
+    payloads: tuple[dict[str, object], ...] = (
+        {
+            "expectedVersion": "1",
+            "content": {"title": "버전 문자열"},
+        },
+        {
+            "expectedVersion": 1,
+            "content": {"items": [{"estimatedUnitPrice": "10000"}]},
+        },
+        {
+            "expectedVersion": 1,
+            "content": {"items": [{"details": {"depositAmount": "1000"}}]},
+        },
+    )
+
+    for payload in payloads:
+        repository = FakePurchaseRequestRepository()
+        client, _ = _client(repository)
+        initial = client.put(
+            "/events/event-a/purchase-request-draft",
+            json={"expectedVersion": None, "content": {"title": "기존 초안"}},
+        )
+        assert initial.status_code == 200
+
+        rejected = client.put(
+            "/events/event-a/purchase-request-draft",
+            json=payload,
+        )
+
+        assert rejected.status_code == 422, payload
+        assert repository.draft is not None
+        assert repository.draft.version == 1
+        assert repository.draft.content == {"title": "기존 초안"}
+
+
+def test_submission_integer_fields_reject_json_strings_without_creating() -> None:
+    valid_item: dict[str, object] = {
+        "name": "현수막",
+        "category": "홍보물",
+        "budgetItem": "행사운영비",
+        "purchaseType": "general",
+        "quantity": 1,
+        "unit": "개",
+        "estimatedUnitPrice": 10000,
+        "priceEvidence": [
+            {
+                "type": "product_url",
+                "url": "https://example.test/banner",
+            }
+        ],
+        "details": {},
+    }
+    payloads: tuple[tuple[dict[str, object], dict[str, object] | None], ...] = (
+        ({**valid_item, "estimatedUnitPrice": "10000"}, None),
+        (
+            {
+                **valid_item,
+                "purchaseType": "rental",
+                "priceEvidence": [{"type": "vendor_quote", "note": "전화 견적"}],
+                "details": {"depositAmount": "1000"},
+            },
+            None,
+        ),
+        (valid_item, {"draftId": "draft-001", "version": "1"}),
+    )
+
+    for index, (item, draft_ref) in enumerate(payloads, start=1):
+        repository = FakePurchaseRequestRepository()
+        client, submission_store = _client(repository)
+        rejected = client.post(
+            "/events/event-a/purchase-requests",
+            headers={"Idempotency-Key": f"integer-string-{index}"},
+            json={
+                "content": {
+                    "title": "행사 운영 물품",
+                    "neededDate": "2999-08-20",
+                    "purpose": "행사 운영",
+                    "priority": "normal",
+                    "items": [item],
+                },
+                "draftRef": draft_ref,
+            },
+        )
+
+        assert rejected.status_code == 422, item
+        assert submission_store.last_idempotency_key is None
+
+
+def test_delayed_same_submission_retry_returns_the_original_result() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+    original = _record(content=_content(needed_date=date(2000, 1, 1)))
+    submission_store.idempotent_record = original
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "delayed-retry-001"},
+        json={
+            "content": {
+                "title": "행사 운영 물품",
+                "neededDate": "2000-01-01",
+                "purpose": "행사 운영",
+                "priority": "urgent",
+                "items": [
+                    {
+                        "name": "현수막",
+                        "category": "홍보물",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "general",
+                        "quantity": 2,
+                        "unit": "개",
+                        "estimatedUnitPrice": 10000,
+                        "priceEvidence": [
+                            {
+                                "type": "product_url",
+                                "url": "https://example.test/banner",
+                            }
+                        ],
+                        "details": {"vendor": "공급처 A"},
+                    }
+                ],
+            }
+        },
+    )
+
+    assert response.status_code == 201
+    assert response.json()["requestId"] == original.request_id
+    assert response.json()["content"]["neededDate"] == "2000-01-01"
+    assert submission_store.last_idempotency_lookup_key == "delayed-retry-001"
     assert submission_store.last_idempotency_key is None
 
 
@@ -594,4 +735,37 @@ def test_routes_expose_contract_traceability_metadata() -> None:
 
     schemas = openapi["components"]["schemas"]
     assert schemas["JsonNumberDecimal"] == {"type": "number"}
-    assert len(schemas["PurchaseRequestDetailsModel"]["anyOf"]) == 4
+    assert schemas["PositiveJsonNumberDecimal"] == {
+        "type": "number",
+        "exclusiveMinimum": 0,
+    }
+    assert schemas["PositiveJsonInteger"] == {
+        "type": "integer",
+        "exclusiveMinimum": 0,
+    }
+    assert schemas["NonNegativeJsonInteger"] == {
+        "type": "integer",
+        "minimum": 0,
+    }
+    item_schema = schemas["PurchaseRequestItemModel"]
+    assert len(item_schema["oneOf"]) == 4
+    assert item_schema["discriminator"]["propertyName"] == "purchaseType"
+    general_contains = schemas["GeneralPurchaseRequestItemModel"]["properties"][
+        "priceEvidence"
+    ]["contains"]
+    assert set(general_contains["properties"]["type"]["enum"]) == {
+        "product_url",
+        "vendor",
+        "price_screenshot",
+    }
+    for model_name in (
+        "ManufacturingPrintingPurchaseRequestItemModel",
+        "RentalPurchaseRequestItemModel",
+        "ServicePurchaseRequestItemModel",
+    ):
+        assert (
+            schemas[model_name]["properties"]["priceEvidence"]["contains"][
+                "properties"
+            ]["type"]["const"]
+            == "vendor_quote"
+        )

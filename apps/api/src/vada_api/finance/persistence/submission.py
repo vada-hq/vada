@@ -49,6 +49,23 @@ class PostgreSQLPurchaseRequestSubmissionStore:
         self._identifier_factory = identifier_factory or _new_identifier
         self._clock = clock or _utc_now
 
+    def get_idempotent_result(
+        self,
+        submission: ValidatedPurchaseRequestSubmission,
+    ) -> PurchaseRequestRecord | None:
+        try:
+            with self._engine.connect() as connection:
+                return _load_existing_submission(
+                    connection,
+                    submission=submission,
+                    idempotency_key_hash=_sha256_text(submission.idempotency_key),
+                    payload_hash=_submission_payload_hash(submission),
+                )
+        except SubmissionStateConflictError:
+            raise
+        except SQLAlchemyError as error:
+            raise SubmissionPersistenceError from error
+
     def submit(
         self,
         submission: ValidatedPurchaseRequestSubmission,
@@ -182,6 +199,24 @@ def _return_existing_submission(
     idempotency_key_hash: str,
     payload_hash: str,
 ) -> PurchaseRequestRecord:
+    record = _load_existing_submission(
+        connection,
+        submission=submission,
+        idempotency_key_hash=idempotency_key_hash,
+        payload_hash=payload_hash,
+    )
+    if record is None:
+        raise SubmissionPersistenceError
+    return record
+
+
+def _load_existing_submission(
+    connection: Connection,
+    *,
+    submission: ValidatedPurchaseRequestSubmission,
+    idempotency_key_hash: str,
+    payload_hash: str,
+) -> PurchaseRequestRecord | None:
     existing = connection.execute(
         sa.select(
             purchase_request_submission_idempotency.c.payload_hash,
@@ -195,7 +230,9 @@ def _return_existing_submission(
             purchase_request_submission_idempotency.c.idempotency_key_hash
             == idempotency_key_hash,
         )
-    ).one()
+    ).one_or_none()
+    if existing is None:
+        return None
     existing_payload_hash = cast(str, existing.payload_hash)
     if not hmac.compare_digest(existing_payload_hash, payload_hash):
         raise SubmissionStateConflictError

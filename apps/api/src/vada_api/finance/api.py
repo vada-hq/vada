@@ -4,7 +4,6 @@ from collections.abc import Callable, Mapping
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Annotated, Any, Literal, Protocol, cast
-from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, FastAPI, Header, Path, Request, Response
 from fastapi.exception_handlers import request_validation_exception_handler
@@ -17,11 +16,10 @@ from pydantic import (
     ConfigDict,
     Field,
     PlainSerializer,
-    TypeAdapter,
     WithJsonSchema,
-    field_validator,
     model_validator,
 )
+from pydantic.config import JsonDict
 
 from vada_api.finance.application import (
     FinanceRequestContext,
@@ -37,6 +35,7 @@ from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
     PurchaseRequestItemInput,
+    PurchaseRequestNeededDateInPastError,
     PurchaseRequestPersistenceError,
     PurchaseRequestRecord,
     PurchaseRequestStateConflictError,
@@ -69,6 +68,40 @@ type JsonNumberDecimal = Annotated[
     BeforeValidator(_reject_non_json_number),
     WithJsonSchema({"type": "number"}, mode="validation"),
     PlainSerializer(float, return_type=float, when_used="json"),
+]
+
+type PositiveJsonNumberDecimal = Annotated[
+    Decimal,
+    BeforeValidator(_reject_non_json_number),
+    Field(gt=0),
+    WithJsonSchema({"type": "number", "exclusiveMinimum": 0}, mode="validation"),
+    WithJsonSchema({"type": "number", "exclusiveMinimum": 0}, mode="serialization"),
+    PlainSerializer(float, return_type=float, when_used="json"),
+]
+
+
+def _reject_non_json_integer(value: object) -> object:
+    if isinstance(value, (str, bool)):
+        raise ValueError("JSON 정수만 사용할 수 있습니다.")
+    return value
+
+
+type JsonInteger = Annotated[int, BeforeValidator(_reject_non_json_integer)]
+
+type PositiveJsonInteger = Annotated[
+    int,
+    BeforeValidator(_reject_non_json_integer),
+    Field(gt=0),
+    WithJsonSchema({"type": "integer", "exclusiveMinimum": 0}, mode="validation"),
+    WithJsonSchema({"type": "integer", "exclusiveMinimum": 0}, mode="serialization"),
+]
+
+type NonNegativeJsonInteger = Annotated[
+    int,
+    BeforeValidator(_reject_non_json_integer),
+    Field(ge=0),
+    WithJsonSchema({"type": "integer", "minimum": 0}, mode="validation"),
+    WithJsonSchema({"type": "integer", "minimum": 0}, mode="serialization"),
 ]
 
 
@@ -108,7 +141,7 @@ class DraftDetailsModel(ContractModel):
     start_date: str = Field(default="", alias="startDate")
     end_date: str = Field(default="", alias="endDate")
     contact: str = ""
-    deposit_amount: int | None = Field(default=None, alias="depositAmount")
+    deposit_amount: JsonInteger | None = Field(default=None, alias="depositAmount")
     conditions: str = ""
     provider: str = ""
     location: str = ""
@@ -124,7 +157,9 @@ class DraftItemModel(ContractModel):
     ) = Field(default=None, alias="purchaseType")
     quantity: JsonNumberDecimal | None = None
     unit: str = ""
-    estimated_unit_price: int | None = Field(default=None, alias="estimatedUnitPrice")
+    estimated_unit_price: JsonInteger | None = Field(
+        default=None, alias="estimatedUnitPrice"
+    )
     price_evidence: list[DraftEvidenceModel] = Field(
         default_factory=lambda: list[DraftEvidenceModel](), alias="priceEvidence"
     )
@@ -140,7 +175,7 @@ class DraftContentModel(ContractModel):
 
 
 class DraftSaveCommandModel(ContractModel):
-    expected_version: int | None = Field(alias="expectedVersion", ge=1)
+    expected_version: PositiveJsonInteger | None = Field(alias="expectedVersion")
     content: DraftContentModel
 
 
@@ -193,8 +228,8 @@ class ManufacturingPrintingDetailsModel(ContractModel):
     item_kind: str | None = Field(default=None, alias="itemKind", min_length=1)
     specification: str | None = Field(default=None, min_length=1)
     color: str | None = Field(default=None, min_length=1)
-    option_quantities: dict[str, Annotated[JsonNumberDecimal, Field(gt=0)]] | None = (
-        Field(default=None, alias="optionQuantities", min_length=1)
+    option_quantities: dict[str, PositiveJsonNumberDecimal] | None = Field(
+        default=None, alias="optionQuantities", min_length=1
     )
     print_method: str | None = Field(default=None, alias="printMethod", min_length=1)
     delivery_date: date | None = Field(default=None, alias="deliveryDate")
@@ -212,7 +247,9 @@ class RentalDetailsModel(ContractModel):
     start_date: date | None = Field(default=None, alias="startDate")
     end_date: date | None = Field(default=None, alias="endDate")
     contact: str | None = Field(default=None, min_length=1)
-    deposit_amount: int | None = Field(default=None, alias="depositAmount", ge=0)
+    deposit_amount: NonNegativeJsonInteger | None = Field(
+        default=None, alias="depositAmount"
+    )
     conditions: str | None = Field(default=None, min_length=1)
 
 
@@ -226,52 +263,113 @@ class ServiceDetailsModel(ContractModel):
     request_note: str | None = Field(default=None, alias="requestNote", min_length=1)
 
 
-_DETAIL_ADAPTERS: Mapping[str, TypeAdapter[BaseModel]] = {
-    "general": TypeAdapter(GeneralDetailsModel),
-    "manufacturing_printing": TypeAdapter(ManufacturingPrintingDetailsModel),
-    "rental": TypeAdapter(RentalDetailsModel),
-    "service": TypeAdapter(ServiceDetailsModel),
-}
-
-type PurchaseRequestDetailsModel = (
-    GeneralDetailsModel
-    | ManufacturingPrintingDetailsModel
-    | RentalDetailsModel
-    | ServiceDetailsModel
-)
-
-
-class PurchaseRequestItemModel(ContractModel):
+class PurchaseRequestItemBaseModel(ContractModel):
     name: str = Field(min_length=1)
     category: str = Field(min_length=1)
     budget_item: str = Field(alias="budgetItem", min_length=1)
-    purchase_type: Literal["general", "manufacturing_printing", "rental", "service"] = (
-        Field(alias="purchaseType")
-    )
-    quantity: JsonNumberDecimal = Field(gt=0)
+    quantity: PositiveJsonNumberDecimal
     unit: str = Field(min_length=1)
-    estimated_unit_price: int = Field(alias="estimatedUnitPrice", gt=0)
-    price_evidence: list[PriceEvidenceModel] = Field(
-        alias="priceEvidence", min_length=1
+    estimated_unit_price: PositiveJsonInteger = Field(alias="estimatedUnitPrice")
+
+
+def _require_price_evidence(
+    purchase_type: str, price_evidence: list[PriceEvidenceModel]
+) -> None:
+    evidence_types = {evidence.type for evidence in price_evidence}
+    required = (
+        {"product_url", "vendor", "price_screenshot"}
+        if purchase_type == "general"
+        else {"vendor_quote"}
     )
-    details: PurchaseRequestDetailsModel
+    if not evidence_types.intersection(required):
+        raise ValueError("구매 유형에 맞는 가격 근거가 필요합니다.")
+
+
+_GENERAL_EVIDENCE_SCHEMA_EXTRA: JsonDict = {
+    "contains": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {"type": {"enum": ["product_url", "vendor", "price_screenshot"]}},
+    }
+}
+_VENDOR_QUOTE_EVIDENCE_SCHEMA_EXTRA: JsonDict = {
+    "contains": {
+        "type": "object",
+        "required": ["type"],
+        "properties": {"type": {"const": "vendor_quote"}},
+    }
+}
+
+
+class GeneralPurchaseRequestItemModel(PurchaseRequestItemBaseModel):
+    purchase_type: Literal["general"] = Field(alias="purchaseType")
+    price_evidence: list[PriceEvidenceModel] = Field(
+        alias="priceEvidence",
+        min_length=1,
+        json_schema_extra=_GENERAL_EVIDENCE_SCHEMA_EXTRA,
+    )
+    details: GeneralDetailsModel
 
     @model_validator(mode="after")
-    def validate_type_specific_contract(self) -> PurchaseRequestItemModel:
-        evidence_types = {evidence.type for evidence in self.price_evidence}
-        required = (
-            {"product_url", "vendor", "price_screenshot"}
-            if self.purchase_type == "general"
-            else {"vendor_quote"}
-        )
-        if not evidence_types.intersection(required):
-            raise ValueError("구매 유형에 맞는 가격 근거가 필요합니다.")
-        adapter = _DETAIL_ADAPTERS[self.purchase_type]
-        validated = adapter.validate_python(
-            self.details.model_dump(by_alias=True, exclude_none=True, mode="json")
-        )
-        self.details = cast(PurchaseRequestDetailsModel, validated)
+    def validate_price_evidence(self) -> GeneralPurchaseRequestItemModel:
+        _require_price_evidence(self.purchase_type, self.price_evidence)
         return self
+
+
+class ManufacturingPrintingPurchaseRequestItemModel(PurchaseRequestItemBaseModel):
+    purchase_type: Literal["manufacturing_printing"] = Field(alias="purchaseType")
+    price_evidence: list[PriceEvidenceModel] = Field(
+        alias="priceEvidence",
+        min_length=1,
+        json_schema_extra=_VENDOR_QUOTE_EVIDENCE_SCHEMA_EXTRA,
+    )
+    details: ManufacturingPrintingDetailsModel
+
+    @model_validator(mode="after")
+    def validate_price_evidence(
+        self,
+    ) -> ManufacturingPrintingPurchaseRequestItemModel:
+        _require_price_evidence(self.purchase_type, self.price_evidence)
+        return self
+
+
+class RentalPurchaseRequestItemModel(PurchaseRequestItemBaseModel):
+    purchase_type: Literal["rental"] = Field(alias="purchaseType")
+    price_evidence: list[PriceEvidenceModel] = Field(
+        alias="priceEvidence",
+        min_length=1,
+        json_schema_extra=_VENDOR_QUOTE_EVIDENCE_SCHEMA_EXTRA,
+    )
+    details: RentalDetailsModel
+
+    @model_validator(mode="after")
+    def validate_price_evidence(self) -> RentalPurchaseRequestItemModel:
+        _require_price_evidence(self.purchase_type, self.price_evidence)
+        return self
+
+
+class ServicePurchaseRequestItemModel(PurchaseRequestItemBaseModel):
+    purchase_type: Literal["service"] = Field(alias="purchaseType")
+    price_evidence: list[PriceEvidenceModel] = Field(
+        alias="priceEvidence",
+        min_length=1,
+        json_schema_extra=_VENDOR_QUOTE_EVIDENCE_SCHEMA_EXTRA,
+    )
+    details: ServiceDetailsModel
+
+    @model_validator(mode="after")
+    def validate_price_evidence(self) -> ServicePurchaseRequestItemModel:
+        _require_price_evidence(self.purchase_type, self.price_evidence)
+        return self
+
+
+type PurchaseRequestItemModel = Annotated[
+    GeneralPurchaseRequestItemModel
+    | ManufacturingPrintingPurchaseRequestItemModel
+    | RentalPurchaseRequestItemModel
+    | ServicePurchaseRequestItemModel,
+    Field(discriminator="purchase_type"),
+]
 
 
 class PurchaseRequestInputModel(ContractModel):
@@ -282,22 +380,13 @@ class PurchaseRequestInputModel(ContractModel):
     items: list[PurchaseRequestItemModel] = Field(min_length=1)
 
 
-class PurchaseRequestSubmissionInputModel(PurchaseRequestInputModel):
-    @field_validator("needed_date")
-    @classmethod
-    def reject_past_needed_date(cls, value: date) -> date:
-        if value < datetime.now(ZoneInfo("Asia/Seoul")).date():
-            raise ValueError("필요일은 오늘 이전일 수 없습니다.")
-        return value
-
-
 class DraftReferenceModel(ContractModel):
     draft_id: str = Field(alias="draftId", min_length=1)
-    version: int = Field(ge=1)
+    version: PositiveJsonInteger
 
 
 class PurchaseRequestSubmitCommandModel(ContractModel):
-    content: PurchaseRequestSubmissionInputModel
+    content: PurchaseRequestInputModel
     draft_ref: DraftReferenceModel | None = Field(default=None, alias="draftRef")
 
 
@@ -767,6 +856,10 @@ def get_purchase_request_detail(
 
 def register_purchase_request_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(RequestValidationError, _request_validation_error)
+    app.add_exception_handler(
+        PurchaseRequestNeededDateInPastError,
+        _needed_date_in_past_handler,
+    )
     for exception_type in (UnauthenticatedError,):
         app.add_exception_handler(
             exception_type,
@@ -877,6 +970,27 @@ async def _request_validation_error(request: Request, error: Exception) -> Respo
         code="PURCHASE_REQUEST_VALIDATION_FAILED",
         retryable=False,
         field_violations=violations,
+    )
+
+
+def _needed_date_in_past_handler(request: Request, _error: Exception) -> JSONResponse:
+    return _problem_response(
+        request,
+        status=422,
+        problem_type=(
+            "https://vada.example/problems/purchase-request-validation-failed"
+        ),
+        title="구매 요청 입력을 확인해 주세요.",
+        detail="한 개 이상의 입력을 확인해 주세요.",
+        code="PURCHASE_REQUEST_VALIDATION_FAILED",
+        retryable=False,
+        field_violations=[
+            {
+                "path": "/content/neededDate",
+                "code": "INVALID_VALUE",
+                "message": "필요일은 오늘 이전일 수 없습니다.",
+            }
+        ],
     )
 
 

@@ -117,10 +117,16 @@ class StaticPurchaseRequestContextProvider:
         return self._context
 
 
-def _client(engine: Engine, context: FinanceRequestContext) -> TestClient:
+def _client(
+    engine: Engine,
+    context: FinanceRequestContext,
+    *,
+    today: date | None = None,
+) -> TestClient:
     service = PurchaseRequestService(
         PostgreSQLPurchaseRequestRepository(engine),
         PostgreSQLPurchaseRequestSubmissionStore(engine),
+        today_provider=(lambda: today) if today is not None else None,
     )
     app = create_app()
     app.state.purchase_request_context_provider = StaticPurchaseRequestContextProvider(
@@ -367,6 +373,32 @@ def test_submit_list_and_detail_api_preserve_scope_and_idempotency(
     assert {
         key: value for key, value in hidden.json().items() if key != "instance"
     } == {key: value for key, value in missing.json().items() if key != "instance"}
+
+
+@pytest.mark.postgres
+def test_same_submission_retry_remains_idempotent_after_needed_date_passes(
+    migrated_engine: Engine,
+) -> None:
+    context = _context()
+    body = _submit_body()
+    content = body["content"]
+    assert isinstance(content, dict)
+    content["neededDate"] = "2026-08-04"
+
+    first = _client(migrated_engine, context, today=date(2026, 8, 4)).post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "delayed-submit-001"},
+        json=body,
+    )
+    retry = _client(migrated_engine, context, today=date(2026, 8, 5)).post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "delayed-submit-001"},
+        json=body,
+    )
+
+    assert first.status_code == 201
+    assert retry.status_code == 201
+    assert retry.json() == first.json()
 
 
 @pytest.mark.postgres

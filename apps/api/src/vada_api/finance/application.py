@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from typing import Protocol
+from zoneinfo import ZoneInfo
 
 from vada_api.finance.authorization import (
     PurchaseRequestActorFacts,
@@ -15,6 +16,7 @@ from vada_api.finance.authorization import (
 from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
+    PurchaseRequestNeededDateInPastError,
     PurchaseRequestRecord,
     ValidatedPurchaseRequestSubmission,
 )
@@ -80,6 +82,10 @@ class PurchaseRequestRepository(Protocol):
 
 
 class PurchaseRequestSubmissionStore(Protocol):
+    def get_idempotent_result(
+        self, submission: ValidatedPurchaseRequestSubmission
+    ) -> PurchaseRequestRecord | None: ...
+
     def submit(
         self, submission: ValidatedPurchaseRequestSubmission
     ) -> PurchaseRequestRecord: ...
@@ -92,9 +98,12 @@ class PurchaseRequestService:
         self,
         repository: PurchaseRequestRepository,
         submission_store: PurchaseRequestSubmissionStore,
+        *,
+        today_provider: Callable[[], date] | None = None,
     ) -> None:
         self._repository = repository
         self._submission_store = submission_store
+        self._today_provider = today_provider or _kst_today
 
     def require_permission(
         self,
@@ -161,18 +170,22 @@ class PurchaseRequestService:
         draft_ref: DraftReference | None,
     ) -> PurchaseRequestRecord:
         identity = context.actor.identity
-        return self._submission_store.submit(
-            ValidatedPurchaseRequestSubmission(
-                organization_id=identity.organization_id,
-                event_id=identity.event_id,
-                requester_user_id=identity.user_id,
-                request_department_id=context.request_department_id,
-                idempotency_key=idempotency_key,
-                available_budget=context.available_budget,
-                content=content,
-                draft_ref=draft_ref,
-            )
+        submission = ValidatedPurchaseRequestSubmission(
+            organization_id=identity.organization_id,
+            event_id=identity.event_id,
+            requester_user_id=identity.user_id,
+            request_department_id=context.request_department_id,
+            idempotency_key=idempotency_key,
+            available_budget=context.available_budget,
+            content=content,
+            draft_ref=draft_ref,
         )
+        if content.needed_date < self._today_provider():
+            existing = self._submission_store.get_idempotent_result(submission)
+            if existing is not None:
+                return existing
+            raise PurchaseRequestNeededDateInPastError
+        return self._submission_store.submit(submission)
 
     def list_own(
         self, context: FinanceRequestContext
@@ -207,3 +220,7 @@ class PurchaseRequestService:
             ),
         )
         return record
+
+
+def _kst_today() -> date:
+    return datetime.now(ZoneInfo("Asia/Seoul")).date()
