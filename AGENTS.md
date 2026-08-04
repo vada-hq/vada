@@ -24,6 +24,7 @@
 | `just validate-product-specs` | AI용 제품 명세 구조·출처·리비전·참조 검증 |
 | `just validate-architecture` | 전달 단위 구현 아키텍처 구조·출처·승인·계약 고정 검증 |
 | `just validate-delivery-work` | 승인 기준선에서 도출한 작업·증거·선행관계·전체 커버리지 검증 |
+| `just validate-screen-specs` | 구현용 화면 상태·와이어프레임 대조·완료 증거 추적 검증 |
 | `just validate-execution-plan` | 승인 작업 그래프의 실행 범위·실행자·추정·일정과 기준선 고정 검증 |
 | `just validate-execution-runtime` | 승인 실행 계획의 실제 상태 전이·차단 사유·완료 증거 검증 |
 | `just check-api` / `just check-web` | 작업자·검증자용 경로별 검사 |
