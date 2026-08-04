@@ -1,0 +1,675 @@
+{
+  "schema_version": "0.1.0",
+  "spec_id": "SCREEN-SPEC-DU-001-PURCHASE-REQUEST",
+  "spec_revision": 1,
+  "spec_status": "review_ready",
+  "updated_at": "2026-08-04T10:14:12.1874811Z",
+  "work_item_ref": "WORK:purchase-request-screen-spec@R1",
+  "completion_evidence_ref": "EVID-001",
+  "delivery_unit_ref": "FLOW-FIN-001@R2",
+  "objective_ko": "권한 보유자가 선택한 행사에서 구매 요청을 작성하고 서버 개인 초안을 저장·복원하며, 제출 성공 후 본인 목록과 상세에서 저장된 검토 대기 요청을 다시 확인할 수 있는 구현용 화면 기준을 고정합니다.",
+  "baseline": {
+    "solution_ref": {
+      "path": "product-specs/solutions/SOLUTION-FIN-001/R1.json",
+      "solution_id": "SOLUTION-FIN-001",
+      "solution_revision": 1,
+      "canonical_sha256": "aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f"
+    },
+    "contract_bundle_ref": {
+      "path": "contracts/bundles/CB-FIN-001/R1.json",
+      "bundle_id": "CB-FIN-001",
+      "bundle_revision": 1,
+      "canonical_sha256": "cb4ac51a822e69b8a12584116da12e8437b4e61ce87802c88e107259e00863fb"
+    },
+    "implementation_architecture_ref": {
+      "path": "delivery-units/DU-001/implementation-architecture/R1.json",
+      "architecture_id": "IAB-VADA-DU-001",
+      "architecture_revision": 1,
+      "canonical_sha256": "c824e8380c7010bd75fbeb24103ba7ee74b4e83861d040fb1d2c48362b5c0f09"
+    },
+    "wireframe_ref": {
+      "path": "prototypes/wireframe/src/app/App.tsx",
+      "observed_commit": "78c211d461a739c12b39e94951b8f107a3721861",
+      "authority": "visual_reference_only"
+    }
+  },
+  "scope": {
+    "included_surface_refs": [
+      "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "SURFACE-PURCHASE-REQUEST-OWN-LIST",
+      "SURFACE-PURCHASE-REQUEST-DETAIL"
+    ],
+    "included_ko": [
+      "작성 화면 진입과 서버 파생 행사·요청자·소속 부서 맥락 표시",
+      "요청 공통 정보와 다품목·구매 유형별 정보·가격 근거 입력",
+      "계정별 서버 초안 조회·저장·삭제와 충돌·장애 처리",
+      "제출 검증·중복 제출 방지·성공·예산 초과·실패 피드백",
+      "본인 요청 최신순 목록과 저장된 요청 상세 재조회",
+      "키보드 조작, 오류 요약·필드 포커스, 보조기술 상태 전달"
+    ],
+    "excluded_ko": [
+      "재정부의 승인·보완 요청·반려와 품목별 검토",
+      "구매·발주, 배송, 결제·증빙, 정산 단계",
+      "현재 계약에 없는 목록 필드나 후속 상태를 추가하는 API 변경",
+      "프로토타입의 시각 표현을 제품 정책 또는 제품 코드로 승격하는 일"
+    ]
+  },
+  "interaction_flow": [
+    {
+      "order": 1,
+      "design_ref": "DESIGN-INTERACTION-001",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "action_ko": "권한 보유자가 선택한 행사의 재정 맥락에서 새 구매 요청 작성을 시작합니다.",
+      "result_ko": "작성 화면은 서버가 반환한 행사명·요청자명·소속 부서를 읽기 전용으로 보여주고 선택적 개인 초안을 함께 불러옵니다.",
+      "contract_refs": [
+        "API:purchase_request.get_editor_state@R1",
+        "DATA:purchase_request.editor_state@R1",
+        "AUTH:purchase_request.draft_read@R1"
+      ]
+    },
+    {
+      "order": 2,
+      "design_ref": "DESIGN-INTERACTION-002",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "action_ko": "요청자가 제목·필요일·구매 목적·우선순위를 입력합니다.",
+      "result_ko": "입력은 다음 단계와 실패 후에도 메모리에 유지되며 서버 파생 식별자는 편집할 수 없습니다.",
+      "contract_refs": [
+        "DATA:purchase_request.input@R1",
+        "DATA:purchase_request.draft_content@R1"
+      ]
+    },
+    {
+      "order": 3,
+      "design_ref": "DESIGN-INTERACTION-003",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "action_ko": "요청자가 하나 이상의 품목을 추가·수정·삭제하고 유형별 상세와 가격 근거를 입력합니다.",
+      "result_ko": "화면은 품목별 예상 금액과 요청 총액을 즉시 미리 보여주되 제출 결과의 서버 계산값을 최종값으로 사용합니다.",
+      "contract_refs": [
+        "DATA:purchase_request.input@R1",
+        "DOMAIN:purchase_request.submission@R1"
+      ]
+    },
+    {
+      "order": 4,
+      "design_ref": "DESIGN-INTERACTION-004",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "action_ko": "요청자가 제출 요건을 아직 충족하지 않은 입력도 개인 초안으로 저장하거나 기존 초안을 삭제합니다.",
+      "result_ko": "저장 성공 시 서버의 버전과 UTC 저장 시각을 KST로 표시하고, 충돌이나 장애 시 입력을 유지하며 거짓 성공을 표시하지 않습니다.",
+      "contract_refs": [
+        "API:purchase_request.save_draft@R1",
+        "API:purchase_request.delete_draft@R1",
+        "DATA:purchase_request.draft_save_command@R1",
+        "ERROR:purchase_request.state_conflict@R1",
+        "ERROR:purchase_request.persistence_unavailable@R1"
+      ]
+    },
+    {
+      "order": 5,
+      "design_ref": "DESIGN-INTERACTION-005",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "action_ko": "요청자가 구매 요청 제출을 실행합니다.",
+      "result_ko": "처리 중에는 중복 제출을 막고, 서버 전체 검증과 원자적 저장이 성공한 경우에만 검토 대기 요청 하나를 확정합니다.",
+      "contract_refs": [
+        "API:purchase_request.submit@R1",
+        "DATA:purchase_request.submit_command@R1",
+        "ERROR:purchase_request.validation_failed@R1",
+        "QUALITY:purchase_request.atomic_idempotent_submission@R1"
+      ]
+    },
+    {
+      "order": 6,
+      "design_ref": "DESIGN-INTERACTION-006",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-OWN-LIST",
+      "action_ko": "제출 성공 안내 뒤 본인 요청 목록에서 새 요청을 선택합니다.",
+      "result_ko": "목록을 서버에서 최신순으로 다시 조회하고 상세 화면을 새로 열거나 새로고침해도 저장된 검토 대기 요청과 모든 품목을 다시 표시합니다.",
+      "contract_refs": [
+        "API:purchase_request.list_own@R1",
+        "API:purchase_request.get_detail@R1",
+        "DATA:purchase_request.own_list@R1",
+        "DATA:purchase_request.record@R1"
+      ]
+    }
+  ],
+  "surfaces": [
+    {
+      "id": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "title_ko": "구매 요청 작성",
+      "existing_wireframe_screen_ids": [
+        "FIN-REQ-01"
+      ],
+      "entry_ko": "행사 재정에서 새 구매 요청을 선택합니다. 작성 동작은 서버가 허용한 부서장 또는 재정부 구성원에게만 노출합니다.",
+      "regions": [
+        {
+          "id": "EDITOR-CONTEXT",
+          "title_ko": "작성 맥락",
+          "content_ko": "선택 행사명, 요청자명, 요청 부서명을 서버 응답 그대로 읽기 전용으로 표시합니다. 클라이언트가 조직·행사·요청자·부서 식별자를 입력하거나 변경하지 않습니다."
+        },
+        {
+          "id": "EDITOR-COMMON-INPUT",
+          "title_ko": "기본 요청 정보",
+          "content_ko": "제목, 필요한 날짜, 구매 목적, 우선순위를 입력합니다. 제출 시 모두 필수이며 우선순위는 보통 또는 긴급입니다."
+        },
+        {
+          "id": "EDITOR-ITEMS",
+          "title_ko": "구매 품목",
+          "content_ko": "최소 한 개의 품목을 구성합니다. 각 품목에 품목명, 카테고리, 예산 항목, 구매 유형, 수량, 단위, 예상 단가, 가격 근거가 필요합니다. 구매 유형은 일반 구매, 제작·인쇄, 대여, 용역의 네 값으로 구분합니다."
+        },
+        {
+          "id": "EDITOR-SUMMARY-ACTIONS",
+          "title_ko": "요청 요약과 행동",
+          "content_ko": "품목별 금액과 총액 미리보기, 임시 저장, 초안 삭제, 제출, 안전한 취소 행동을 제공합니다. 저장·삭제·제출 중에는 해당 중복 행동만 비활성화하고 진행 상태를 텍스트로 표시합니다."
+        },
+        {
+          "id": "EDITOR-FEEDBACK",
+          "title_ko": "오류 요약과 상태 알림",
+          "content_ko": "입력 오류 요약, 필드별 오류, 저장·삭제·제출 결과를 한 곳에서 확인할 수 있게 하며 오류 요약의 각 항목은 실제 입력으로 포커스를 이동합니다."
+        }
+      ],
+      "input_contract": {
+        "request_fields": [
+          "title",
+          "neededDate",
+          "purpose",
+          "priority"
+        ],
+        "request_field_rules_ko": [
+          "제목, 필요한 날짜, 구매 목적은 제출 시 필수입니다.",
+          "필요한 날짜는 오늘 또는 이후 날짜여야 합니다.",
+          "우선순위는 보통 또는 긴급 중 하나입니다."
+        ],
+        "item_common_fields": [
+          "name",
+          "category",
+          "budgetItem",
+          "purchaseType",
+          "quantity",
+          "unit",
+          "estimatedUnitPrice",
+          "priceEvidence"
+        ],
+        "purchase_type_values": [
+          "general",
+          "manufacturing_printing",
+          "rental",
+          "service"
+        ],
+        "price_evidence_rules_ko": [
+          "일반 구매는 상품 URL·판매처·가격 화면 중 하나 이상의 근거를 입력합니다.",
+          "제작·인쇄, 대여, 용역은 업체 견적 파일 또는 견적 메모 중 하나 이상의 근거를 입력합니다."
+        ],
+        "optional_details_ko": "구매 유형별 상세 필드는 선택 입력이며 사용자가 제공한 값만 보존합니다.",
+        "draft_rule_ko": "초안은 모든 필드가 선택인 작성 중 데이터로 저장할 수 있으며, 초안 저장 성공을 제출 가능으로 해석하지 않습니다."
+      }
+    },
+    {
+      "id": "SURFACE-PURCHASE-REQUEST-OWN-LIST",
+      "title_ko": "내 구매 요청",
+      "existing_wireframe_screen_ids": [
+        "MY-REQ-01"
+      ],
+      "entry_ko": "행사 재정의 내 구매 요청 또는 제출 성공 후 이동합니다.",
+      "regions": [
+        {
+          "id": "OWN-LIST-HEADING",
+          "title_ko": "현재 행사와 본인 범위",
+          "content_ko": "현재 행사에서 인증 사용자가 제출한 요청만 표시한다는 범위를 제목과 설명으로 알립니다."
+        },
+        {
+          "id": "OWN-LIST-CONTENT",
+          "title_ko": "최신순 요청 목록",
+          "content_ko": "각 항목에 요청 식별자, 제목, 검토 대기 상태, 서버 계산 총액, 예산 초과 여부, 생성 시각을 표시합니다. 현재 목록 계약에 없는 품목 수나 필요한 날짜를 별도 조회 없이 표시하지 않습니다."
+        },
+        {
+          "id": "OWN-LIST-FEEDBACK",
+          "title_ko": "목록 상태",
+          "content_ko": "로딩, 빈 목록, 접근 불가, 행사를 찾을 수 없음, 일시 조회 실패와 재시도를 구분합니다."
+        }
+      ]
+    },
+    {
+      "id": "SURFACE-PURCHASE-REQUEST-DETAIL",
+      "title_ko": "구매 요청 상세",
+      "existing_wireframe_screen_ids": [
+        "FIN-REQ-02"
+      ],
+      "entry_ko": "본인 요청 목록의 항목을 선택하거나 같은 조직 행사 구성원이 허용된 상세 경로로 진입합니다.",
+      "regions": [
+        {
+          "id": "DETAIL-SUMMARY",
+          "title_ko": "확정 요청 요약",
+          "content_ko": "요청 식별자, 검토 대기 상태, 제목, 서버 계산 총액, 예산 초과 여부, 생성 시각을 표시합니다."
+        },
+        {
+          "id": "DETAIL-CONTENT",
+          "title_ko": "요청 내용과 모든 품목",
+          "content_ko": "공통 요청 정보, 각 품목의 입력 내용, 안정 품목 식별자와 서버 계산 품목 금액을 위치 순서대로 표시합니다."
+        },
+        {
+          "id": "DETAIL-FEEDBACK",
+          "title_ko": "상세 조회 상태",
+          "content_ko": "로딩, 찾을 수 없음, 일시 조회 실패와 재시도를 구분합니다. 다른 조직 데이터 존재 여부는 노출하지 않습니다."
+        }
+      ],
+      "scope_note_ko": "현재 DU에서는 검토 대기 요청 확인까지만 다룹니다. 기존 와이어프레임의 보완 요청·구매·증빙 진행 단계는 후속 플로우이며 이 명세의 성공 상세로 사용하지 않습니다."
+    }
+  ],
+  "state_matrix": [
+    {
+      "id": "STATE-EDITOR-LOADING",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "작성 화면 진입 후 서버 작성 맥락과 초안을 조회하는 동안",
+      "visible_result_ko": "제목과 화면 골격을 유지하고 작성 맥락·폼 영역을 로딩 상태로 표시합니다. 서버 응답 전 샘플 값을 실제 입력처럼 채우지 않습니다.",
+      "interaction_ko": "편집·저장·제출 행동을 비활성화하고 안전한 복귀는 유지합니다.",
+      "accessibility_ko": "주요 영역에 aria-busy를 표시하고 로딩 상태를 status로 한 번 전달합니다."
+    },
+    {
+      "id": "STATE-EDITOR-READY-EMPTY",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "작성 맥락 조회가 성공하고 draft가 null일 때",
+      "visible_result_ko": "서버 파생 작성 맥락과 빈 요청 입력, 최소 한 개의 빈 품목 입력을 표시합니다.",
+      "interaction_ko": "키보드로 모든 입력과 품목 추가·삭제, 저장, 제출에 접근할 수 있습니다.",
+      "accessibility_ko": "화면 제목으로 초기 포커스 흐름이 시작되고 모든 입력 이름이 실제 컨트롤과 연결됩니다."
+    },
+    {
+      "id": "STATE-EDITOR-READY-RESTORED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "작성 맥락 조회가 draft 객체를 반환할 때",
+      "visible_result_ko": "서버 초안 내용을 복원하고 저장 시각과 복원 사실, 초안 삭제 행동을 표시합니다.",
+      "interaction_ko": "마지막으로 읽은 draftId와 version을 후속 저장·제출에 사용하되 화면에 내부 식별자를 강조하지 않습니다.",
+      "accessibility_ko": "복원 사실은 status로 전달하며 입력 포커스를 강제로 빼앗지 않습니다."
+    },
+    {
+      "id": "STATE-EDITOR-FORBIDDEN",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-003"
+      ],
+      "trigger_ko": "작성 맥락 조회 또는 작성 동작이 PURCHASE_REQUEST_ACTION_FORBIDDEN을 반환할 때",
+      "visible_result_ko": "권한이 없다는 계약 제목과 안전한 행사 재정 복귀 행동을 표시하고 역할 목록이나 다른 사용자의 관계는 공개하지 않습니다.",
+      "interaction_ko": "작성·저장·제출 폼을 제공하지 않습니다.",
+      "accessibility_ko": "오류 제목에 포커스를 두고 복귀 행동을 키보드로 사용할 수 있게 합니다."
+    },
+    {
+      "id": "STATE-EDITOR-LOAD-FAILED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001",
+        "DESIGN-STATE-003"
+      ],
+      "trigger_ko": "작성 맥락 조회가 RESOURCE_NOT_FOUND 또는 PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE을 반환할 때",
+      "visible_result_ko": "찾을 수 없음과 일시 장애를 구분하고, 일시 장애에만 재시도 행동을 표시합니다.",
+      "interaction_ko": "서버 맥락을 확인하지 못한 상태에서는 폼을 편집 가능 상태로 열지 않습니다.",
+      "accessibility_ko": "오류 제목과 재시도 결과를 각각 alert 또는 status로 전달합니다."
+    },
+    {
+      "id": "STATE-DRAFT-SAVING",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "임시 저장을 실행한 뒤 응답을 기다리는 동안",
+      "visible_result_ko": "저장 중 텍스트를 표시하고 저장 행동의 중복 실행을 막습니다.",
+      "interaction_ko": "폼 입력은 유지하고 제출과 충돌하지 않도록 저장 명령의 완료 전 중복 변경 명령을 막습니다.",
+      "accessibility_ko": "저장 중 상태를 status로 전달하고 버튼의 accessible name에도 진행 상태가 드러나게 합니다."
+    },
+    {
+      "id": "STATE-DRAFT-SAVED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "서버 초안 저장이 성공할 때",
+      "visible_result_ko": "저장 완료와 서버 저장 시각을 표시하고 제출 전에는 검토 목록에 나타나지 않음을 안내합니다.",
+      "interaction_ko": "반환된 최신 version을 다음 저장에 사용합니다.",
+      "accessibility_ko": "성공 상태를 polite status로 전달하고 현재 입력 포커스를 유지합니다."
+    },
+    {
+      "id": "STATE-DRAFT-SAVE-FAILED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "저장이 버전 충돌, 입력 계약 오류 또는 일시 장애로 실패할 때",
+      "visible_result_ko": "저장되지 않았음을 명확히 표시하고 서버가 공개한 수정·재시도 정보와 재시도 행동을 제공합니다.",
+      "interaction_ko": "현재 입력을 유지하고 버전 충돌 시 자동 덮어쓰지 않으며 최신 작성 상태를 다시 확인한 뒤에만 재저장합니다.",
+      "accessibility_ko": "실패를 alert로 전달하되 사용자가 입력 중인 필드 포커스를 임의로 이동시키지 않습니다."
+    },
+    {
+      "id": "STATE-DRAFT-DELETING",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "복원된 서버 초안의 삭제를 실행하고 응답을 기다리는 동안",
+      "visible_result_ko": "초안 삭제 중임을 표시하고 삭제 행동의 중복 실행을 막습니다.",
+      "interaction_ko": "삭제가 확정되기 전까지 현재 화면 입력을 유지합니다.",
+      "accessibility_ko": "삭제 중 상태를 status로 전달하고 버튼의 accessible name에도 진행 상태가 드러나게 합니다."
+    },
+    {
+      "id": "STATE-DRAFT-DELETED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "서버가 초안 삭제를 204로 확정할 때",
+      "visible_result_ko": "서버 초안이 삭제됐음을 알리고 복원 배너와 서버 초안 식별 정보를 제거합니다.",
+      "interaction_ko": "현재 화면 입력을 자동으로 지우지 않으며 이후 저장은 새 초안 생성으로 처리합니다.",
+      "accessibility_ko": "삭제 완료를 polite status로 전달하고 현재 입력 포커스를 유지합니다."
+    },
+    {
+      "id": "STATE-DRAFT-DELETE-FAILED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-001"
+      ],
+      "trigger_ko": "초안 삭제가 찾을 수 없음 또는 일시 장애로 실패할 때",
+      "visible_result_ko": "삭제되지 않았거나 이미 존재하지 않음을 계약 오류에 맞춰 표시하고 일시 장애에만 재시도를 제공합니다.",
+      "interaction_ko": "현재 화면 입력을 유지하고 성공하지 않은 삭제를 완료로 표시하지 않습니다.",
+      "accessibility_ko": "삭제 실패를 alert로 전달하고 재시도 행동을 키보드로 사용할 수 있게 합니다."
+    },
+    {
+      "id": "STATE-SUBMIT-VALIDATION-FAILED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-002",
+        "DESIGN-QUALITY-003"
+      ],
+      "trigger_ko": "클라이언트 사전 검증 또는 서버의 PURCHASE_REQUEST_VALIDATION_FAILED 응답이 있을 때",
+      "visible_result_ko": "요청을 생성하지 않고 오류 요약과 각 입력 근처에 원인과 수정 방법을 함께 표시합니다.",
+      "interaction_ko": "오류 요약의 첫 항목으로 포커스를 이동하고 각 요약 링크가 실제 오류 입력으로 포커스를 이동합니다. 사용자가 수정하면 관련 오류만 갱신합니다.",
+      "accessibility_ko": "입력은 aria-invalid와 aria-describedby로 오류 설명에 연결하고 오류 요약은 alert와 포커스 가능한 제목을 가집니다."
+    },
+    {
+      "id": "STATE-SUBMITTING",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-004"
+      ],
+      "trigger_ko": "유효한 제출 명령을 전송하고 응답을 기다리는 동안",
+      "visible_result_ko": "제출 처리 중임을 표시합니다.",
+      "interaction_ko": "동일 멱등성 키의 단일 요청만 진행하고 제출 버튼과 Enter 재실행을 막습니다. 한국어 IME 조합 중 Enter는 제출로 처리하지 않습니다.",
+      "accessibility_ko": "제출 중 상태와 비활성화 이유를 status와 버튼 이름으로 전달합니다."
+    },
+    {
+      "id": "STATE-SUBMIT-FAILED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-002",
+        "DESIGN-STATE-003"
+      ],
+      "trigger_ko": "제출이 403, 404, 409 또는 503으로 실패할 때",
+      "visible_result_ko": "권한 없음, 찾을 수 없음, 상태 충돌, 일시 장애를 안정 오류 코드 기준으로 구분하고 거짓 성공을 표시하지 않습니다.",
+      "interaction_ko": "현재 입력을 유지하고 retryable 응답에만 안전한 재시도를 제공합니다. 권한·범위 실패에는 작성 행동을 종료하고 안전한 복귀를 제공합니다.",
+      "accessibility_ko": "오류 제목을 alert로 전달하며 재시도·복귀 행동은 키보드로 사용할 수 있습니다."
+    },
+    {
+      "id": "STATE-SUBMIT-SUCCEEDED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-004"
+      ],
+      "trigger_ko": "서버가 검토 대기 요청을 201로 반환할 때",
+      "visible_result_ko": "제출 완료와 검토 대기 상태를 알리고 본인 요청 목록으로 이동합니다.",
+      "interaction_ko": "목록을 서버에서 다시 조회해 반환된 requestId의 요청을 확인할 수 있게 합니다.",
+      "accessibility_ko": "이동 전 성공 상태를 status로 전달하고 이동 후 목록 제목 또는 새 요청 확인 영역으로 논리적 포커스를 옮깁니다."
+    },
+    {
+      "id": "STATE-SUBMIT-SUCCEEDED-OVER-BUDGET",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-EDITOR",
+      "design_refs": [
+        "DESIGN-STATE-005"
+      ],
+      "trigger_ko": "제출 성공 응답의 overBudget이 true일 때",
+      "visible_result_ko": "제출 실패가 아니라 검토 대기 요청 생성 성공으로 표시하면서 예산 초과와 승인 전 해결 필요를 별도 경고로 보여줍니다.",
+      "interaction_ko": "정상 성공과 동일하게 본인 목록·상세에서 요청을 확인할 수 있습니다.",
+      "accessibility_ko": "성공과 경고를 색상만으로 구분하지 않고 각각 텍스트와 상태 의미로 전달합니다."
+    },
+    {
+      "id": "STATE-OWN-LIST-LOADING-EMPTY-READY",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-OWN-LIST",
+      "design_refs": [
+        "DESIGN-STATE-004"
+      ],
+      "trigger_ko": "본인 요청 목록을 조회할 때",
+      "visible_result_ko": "로딩 중에는 이전 샘플 데이터를 실제 결과처럼 표시하지 않고, 빈 결과에는 제출한 요청이 없다는 설명과 허용된 경우 새 요청 행동을 표시하며, 결과가 있으면 생성 시각 내림차순으로 표시합니다.",
+      "interaction_ko": "목록 항목 전체 또는 명확한 상세 보기 링크를 키보드로 선택할 수 있습니다.",
+      "accessibility_ko": "로딩과 빈 결과를 status로 전달하고 목록 헤더와 항목 관계를 프로그램적으로 제공합니다."
+    },
+    {
+      "id": "STATE-OWN-LIST-FAILED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-OWN-LIST",
+      "design_refs": [
+        "DESIGN-STATE-003"
+      ],
+      "trigger_ko": "목록 조회가 권한 없음, 찾을 수 없음 또는 일시 장애로 실패할 때",
+      "visible_result_ko": "오류를 구분하고 일시 장애에만 재시도 행동을 제공합니다.",
+      "interaction_ko": "오류 상태에서 과거 샘플 목록을 대신 표시하지 않습니다.",
+      "accessibility_ko": "오류 제목과 재시도 결과를 alert 또는 status로 전달합니다."
+    },
+    {
+      "id": "STATE-DETAIL-LOADING-READY",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-DETAIL",
+      "design_refs": [
+        "DESIGN-STATE-004",
+        "DESIGN-INTERACTION-006"
+      ],
+      "trigger_ko": "목록에서 상세를 열거나 상세 경로를 새로고침할 때",
+      "visible_result_ko": "로딩 후 서버가 반환한 검토 대기 요청, 총액, 예산 초과 여부, 모든 품목을 표시합니다.",
+      "interaction_ko": "브라우저 새로고침과 직접 경로 진입마다 상세 GET을 다시 실행하며 뒤로 가기로 목록에 복귀할 수 있습니다.",
+      "accessibility_ko": "상세 제목, 상태, 품목 구조와 금액을 읽기 순서대로 제공하고 로딩 완료를 status로 전달합니다."
+    },
+    {
+      "id": "STATE-DETAIL-FAILED",
+      "surface_ref": "SURFACE-PURCHASE-REQUEST-DETAIL",
+      "design_refs": [
+        "DESIGN-INTERACTION-006"
+      ],
+      "trigger_ko": "상세 조회가 찾을 수 없음 또는 일시 장애로 실패할 때",
+      "visible_result_ko": "다른 조직 데이터의 존재를 노출하지 않는 찾을 수 없음 안내 또는 재시도 가능한 일시 장애 안내를 표시합니다.",
+      "interaction_ko": "목록 복귀와 허용된 경우 재시도를 제공합니다.",
+      "accessibility_ko": "오류 제목에 논리적 포커스를 두고 모든 행동을 키보드로 제공합니다."
+    }
+  ],
+  "accessibility_contract": {
+    "contract_ref": "QUALITY:purchase_request.accessible_feedback@R1",
+    "requirements_ko": [
+      "모든 label은 고유 id의 실제 input, select, textarea와 htmlFor로 연결합니다.",
+      "필수·힌트·오류 문구는 aria-describedby로 입력과 연결하고 오류 입력에는 aria-invalid를 설정합니다.",
+      "제출 오류 요약은 포커스 가능한 제목과 필드별 링크를 제공하며 링크 선택 시 해당 실제 입력에 포커스를 둡니다.",
+      "저장·삭제·제출의 진행·성공은 polite status, 즉시 조치가 필요한 실패는 alert로 전달합니다.",
+      "품목 추가·삭제, 유형 선택, 초안 행동, 제출, 목록·상세 이동과 재시도를 키보드만으로 수행할 수 있습니다.",
+      "성공·실패·예산 초과·비활성 상태는 색상 외에 텍스트와 프로그램적 상태로도 구분합니다.",
+      "상태 메시지가 나타날 때 사용자의 현재 입력 포커스를 불필요하게 빼앗지 않습니다."
+    ]
+  },
+  "wireframe_comparison": [
+    {
+      "id": "COMPARE-001",
+      "wireframe_locator": "prototypes/wireframe/src/app/App.tsx:1742",
+      "observed_ko": "FIN-REQ-01 메타데이터는 작성 사용자를 운영진·재정부원으로 표현합니다.",
+      "approved_refs": [
+        "AUTH:purchase_request.submit@R1",
+        "DESIGN-STATE-003"
+      ],
+      "gap_ko": "승인 기준은 현재 조직·행사 관계를 만족하는 부서장 또는 재정부 구성원이며 역할명만으로 화면에서 판정할 수 없습니다.",
+      "disposition": "replace_in_implementation_spec",
+      "implementation_ko": "선택 행사에서 기존 작성 맥락 조회를 사전 실행해 성공할 때만 새 요청 동작을 노출합니다. 403이면 동작을 숨기고 직접 경로에서는 권한 안내를 표시하며, 클라이언트가 역할명을 비교하거나 새 권한 API를 추정하지 않습니다."
+    },
+    {
+      "id": "COMPARE-002",
+      "wireframe_locator": "prototypes/wireframe/src/app/App.tsx:9744",
+      "observed_ko": "작성 화면은 공통 정보와 다품목·유형별 입력, 금액 미리보기의 정상 경로를 제공합니다.",
+      "approved_refs": [
+        "DESIGN-INTERACTION-002",
+        "DESIGN-INTERACTION-003",
+        "DATA:purchase_request.input@R1"
+      ],
+      "gap_ko": "대여와 용역이 하나의 유형으로 합쳐져 있고 필수 가격 근거 구조가 견적 상태로 대체되어 계약의 네 유형과 일치하지 않습니다.",
+      "disposition": "preserve_layout_replace_field_contract",
+      "implementation_ko": "공통 정보·품목 카드·요약 배치는 참고하되 네 구매 유형과 가격 근거 계약을 그대로 사용합니다."
+    },
+    {
+      "id": "COMPARE-003",
+      "wireframe_locator": "prototypes/wireframe/src/app/App.tsx:350,12432",
+      "observed_ko": "구매 요청 초안을 localStorage에서 읽고 씁니다.",
+      "approved_refs": [
+        "DESIGN-INTERACTION-004",
+        "API:purchase_request.get_editor_state@R1",
+        "API:purchase_request.save_draft@R1",
+        "QUALITY:purchase_request.draft_recovery@R1"
+      ],
+      "gap_ko": "승인 기준은 계정별 서버 초안이며 민감한 재정 원문을 브라우저 영속 저장소에 저장하지 않습니다.",
+      "disposition": "replace",
+      "implementation_ko": "초안 조회·저장·삭제 API와 version 충돌 처리를 사용하고 입력은 화면 생명주기 동안 메모리에만 유지합니다."
+    },
+    {
+      "id": "COMPARE-004",
+      "wireframe_locator": "prototypes/wireframe/src/app/App.tsx:9784",
+      "observed_ko": "제출은 일부 클라이언트 검증 뒤 메모리 배열에 요청을 추가하고 바로 목록으로 이동합니다.",
+      "approved_refs": [
+        "DESIGN-INTERACTION-005",
+        "DESIGN-STATE-002",
+        "DESIGN-STATE-004",
+        "API:purchase_request.submit@R1"
+      ],
+      "gap_ko": "서버 재검증·멱등성·처리 중·403·404·409·422·503·입력 보존·성공 상태 안내가 없습니다.",
+      "disposition": "replace",
+      "implementation_ko": "제출 API의 안정 오류 코드와 201 응답을 상태 매트릭스대로 처리합니다."
+    },
+    {
+      "id": "COMPARE-005",
+      "wireframe_locator": "prototypes/wireframe/src/app/App.tsx:2068,9827,9864",
+      "observed_ko": "Input의 label과 컨트롤이 프로그램적으로 연결되지 않고 오류 문구도 입력과 연결되지 않습니다. 제출 실패 시 오류 요약 없이 스크롤만 시도하며 이전 errors 상태를 읽어 첫 오류 포커스가 보장되지 않습니다.",
+      "approved_refs": [
+        "DESIGN-QUALITY-003",
+        "QUALITY:purchase_request.accessible_feedback@R1"
+      ],
+      "gap_ko": "키보드 전용 오류 복구, 오류 요약 링크, 실제 입력 포커스, 상태 메시지 발표 계약을 충족하지 않습니다.",
+      "disposition": "replace_in_product_ui",
+      "implementation_ko": "고유 id·htmlFor·aria-describedby·aria-invalid, 포커스 가능한 오류 요약, status·alert 영역을 구현합니다."
+    },
+    {
+      "id": "COMPARE-006",
+      "wireframe_locator": "prototypes/wireframe/src/app/App.tsx:10889",
+      "observed_ko": "본인 요청 목록은 메모리 데이터를 필터링해 정상 목록과 빈 상태를 표시합니다.",
+      "approved_refs": [
+        "DESIGN-INTERACTION-006",
+        "API:purchase_request.list_own@R1",
+        "DATA:purchase_request.own_list@R1"
+      ],
+      "gap_ko": "서버 최신순 재조회, 로딩·403·404·503·재시도·예산 초과 상태가 없고 목록 계약에 없는 품목 수와 필요한 날짜를 전제로 합니다.",
+      "disposition": "preserve_information_hierarchy_replace_data_states",
+      "implementation_ko": "목록 계약의 필드만 표시하고 모든 조회 상태를 상태 매트릭스대로 구현합니다."
+    },
+    {
+      "id": "COMPARE-007",
+      "wireframe_locator": "prototypes/wireframe/src/app/App.tsx:10977",
+      "observed_ko": "상세 화면은 고정된 보완 요청과 후속 처리 단계를 샘플로 표시합니다.",
+      "approved_refs": [
+        "DESIGN-INTERACTION-006",
+        "API:purchase_request.get_detail@R1",
+        "DATA:purchase_request.record@R1"
+      ],
+      "gap_ko": "DU-001의 확정 결과는 검토 대기 요청이며 직접 경로·새로고침 재조회, 모든 품목, 404·503 상태가 필요합니다.",
+      "disposition": "replace_for_du001",
+      "implementation_ko": "후속 검토·구매·증빙 단계는 범위 밖으로 남기고 서버 반환 검토 대기 요청 상세를 구현합니다."
+    },
+    {
+      "id": "COMPARE-008",
+      "wireframe_locator": "prototypes/wireframe/src/app/App.tsx:10047,10889,10977",
+      "observed_ko": "작성 요약·목록·상세에 서버 계산 overBudget 결과를 표시하는 상태가 없습니다.",
+      "approved_refs": [
+        "DESIGN-STATE-005",
+        "DATA:purchase_request.record@R1"
+      ],
+      "gap_ko": "예산 초과 제출 성공을 실패와 구분하고 승인 전 해결 필요를 표시해야 합니다.",
+      "disposition": "add",
+      "implementation_ko": "201 응답, 목록, 상세에 예산 초과 텍스트 배지·안내를 추가하되 제출 성공과 검토 대기 상태를 유지합니다."
+    }
+  ],
+  "implementation_handoff": {
+    "frontend_rules_ko": [
+      "프로토타입 코드를 복사하거나 import하지 않고 이 명세와 승인 계약 예제로 제품 UI를 구현합니다.",
+      "실제 API 연결 전에는 계약 묶음의 예제와 공통 픽스처를 사용하고 생성 클라이언트가 준비되면 타입을 다시 선언하지 않습니다.",
+      "권한에 따른 노출은 UX이며 서버 인가를 대체하지 않습니다. 403·404 응답을 각각 계약 의미대로 처리합니다.",
+      "재정 입력을 localStorage, sessionStorage 또는 URL에 영속 저장하지 않습니다.",
+      "폼 submit과 Enter 경로에 event.isComposing 가드를 둡니다."
+    ],
+    "verification_scenarios_ko": [
+      "부서장과 재정부 구성원이 각각 작성 화면을 열고 다품목 요청을 제출할 수 있습니다.",
+      "권한 없는 구성원에게 작성 동작이 보이지 않고 직접 경로 접근은 안전한 403 화면으로 끝납니다.",
+      "초안 없음·서버 초안 복원·저장·삭제·버전 충돌·503 재시도 상태가 입력 손실 없이 동작합니다.",
+      "필수 정보·품목·가격 근거 오류의 요약과 필드 오류가 연결되고 키보드로 해당 입력에 이동합니다.",
+      "제출 중 중복 실행이 차단되고 403·404·409·422·503에서 거짓 성공 없이 입력이 유지됩니다.",
+      "예산 초과 요청도 검토 대기로 생성되고 성공과 경고를 함께 표시합니다.",
+      "제출 후 본인 목록을 재조회해 새 요청을 확인하고 상세 직접 진입·새로고침에서도 같은 저장 기록을 표시합니다.",
+      "목록과 상세의 로딩·빈 상태·찾을 수 없음·일시 실패·재시도를 키보드와 보조기술로 이해할 수 있습니다."
+    ],
+    "prohibited_ko": [
+      "샘플·하드코딩 데이터를 서버 응답 실패의 대체 결과로 표시하지 않습니다.",
+      "목록 계약에 없는 필드를 임의 계산하거나 별도 계약 없이 추가 조회하지 않습니다.",
+      "버전 충돌 시 서버 초안을 자동 덮어쓰지 않습니다.",
+      "후속 검토·구매·증빙 상태를 DU-001 제출 완료 상태로 가장하지 않습니다."
+    ]
+  },
+  "coverage": {
+    "design_refs": [
+      "DESIGN-INTERACTION-001",
+      "DESIGN-INTERACTION-002",
+      "DESIGN-INTERACTION-003",
+      "DESIGN-INTERACTION-004",
+      "DESIGN-INTERACTION-005",
+      "DESIGN-INTERACTION-006",
+      "DESIGN-STATE-001",
+      "DESIGN-STATE-002",
+      "DESIGN-STATE-003",
+      "DESIGN-STATE-004",
+      "DESIGN-STATE-005",
+      "DESIGN-QUALITY-003"
+    ],
+    "contract_refs": [
+      "QUALITY:purchase_request.accessible_feedback@R1"
+    ],
+    "comparison_entry_refs": [
+      "COMPARE-001",
+      "COMPARE-002",
+      "COMPARE-003",
+      "COMPARE-004",
+      "COMPARE-005",
+      "COMPARE-006",
+      "COMPARE-007",
+      "COMPARE-008"
+    ]
+  },
+  "review": {
+    "review_status": "pending_independent_review",
+    "required_reviews": [
+      {
+        "capability": "product_definition",
+        "check_ko": "승인된 제품 의미를 추가·삭제·변경하지 않았는지와 범위 밖 분리가 맞는지 확인합니다.",
+        "status": "pending"
+      },
+      {
+        "capability": "frontend",
+        "check_ko": "각 상태와 접근성 규칙이 모호하지 않고 구현·자동 테스트 가능한지 확인합니다.",
+        "status": "pending"
+      },
+      {
+        "capability": "quality",
+        "check_ko": "EVID-001의 모든 설계·계약 참조와 와이어프레임 차이가 빠짐없이 추적되는지 독립 검증합니다.",
+        "status": "pending"
+      }
+    ],
+    "open_questions": [],
+    "promotion_rule_ko": "세 검토가 통과하고 제품 정책 질문이 없을 때 코디네이터가 이 후보를 승인 리비전 R1로 승격하고 EVID-001 실행 증거를 별도 런타임에 기록합니다."
+  }
+}
