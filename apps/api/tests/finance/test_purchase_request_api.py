@@ -4,9 +4,14 @@ from __future__ import annotations
 import json
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from functools import cache
 from pathlib import Path
+from typing import Any, cast
 
+import pytest
+import schemathesis
 from fastapi.testclient import TestClient
+from jsonschema import Draft202012Validator
 
 from vada_api.finance.api import (
     get_purchase_request_context,
@@ -187,6 +192,132 @@ def _record(*, content: PurchaseRequestContent | None = None) -> PurchaseRequest
         over_budget=False,
         created_at=datetime(2026, 8, 4, 1, 3, tzinfo=UTC),
     )
+
+
+def _submission_body(purchase_type: str) -> dict[str, Any]:
+    details_by_type: dict[str, dict[str, object]] = {
+        "general": {
+            "vendor": "공급처 A",
+            "productUrl": "https://example.test/banner",
+            "options": "대형",
+            "deliveryRequest": "행사 전날 배송",
+        },
+        "manufacturing_printing": {
+            "itemKind": "현수막",
+            "specification": "2m x 1m",
+            "color": "컬러",
+            "optionQuantities": {"대형": 1},
+            "printMethod": "실사 출력",
+            "deliveryDate": "2999-08-19",
+            "fileRefs": ["file-001"],
+            "requestNote": "재단 포함",
+        },
+        "rental": {
+            "vendor": "대여처 A",
+            "pickupLocation": "학생회관",
+            "startDate": "2999-08-19",
+            "endDate": "2999-08-20",
+            "contact": "02-0000-0000",
+            "depositAmount": 10000,
+            "conditions": "직접 반납",
+        },
+        "service": {
+            "provider": "용역사 A",
+            "location": "학생회관",
+            "startDate": "2999-08-19",
+            "endDate": "2999-08-20",
+            "contact": "02-0000-0000",
+            "scope": "행사 운영",
+            "requestNote": "현장 지원 포함",
+        },
+    }
+    evidence = (
+        [{"type": "product_url", "url": "https://example.test/banner"}]
+        if purchase_type == "general"
+        else [
+            {
+                "type": "vendor_quote",
+                "fileRef": "quote-001",
+                "note": "전화 견적 확인",
+            }
+        ]
+    )
+    return {
+        "content": {
+            "title": "행사 운영 물품",
+            "neededDate": "2999-08-20",
+            "purpose": "행사 운영",
+            "priority": "normal",
+            "items": [
+                {
+                    "name": "구매 대상",
+                    "category": "행사용품",
+                    "budgetItem": "행사운영비",
+                    "purchaseType": purchase_type,
+                    "quantity": 1,
+                    "unit": "개",
+                    "estimatedUnitPrice": 10000,
+                    "priceEvidence": evidence,
+                    "details": details_by_type[purchase_type],
+                }
+            ],
+        }
+    }
+
+
+def _first_submission_item(body: dict[str, Any]) -> dict[str, Any]:
+    content = body["content"]
+    assert isinstance(content, dict)
+    items = content["items"]
+    assert isinstance(items, list)
+    item = items[0]
+    assert isinstance(item, dict)
+    return item
+
+
+@cache
+def _approved_submit_body_validator() -> Draft202012Validator:
+    schema = schemathesis.openapi.from_path(
+        Path(__file__).resolve().parents[4] / "contracts/openapi/CB-FIN-001/R1.json"
+    )
+    operation = schema["/events/{eventId}/purchase-requests"]["POST"]
+    json_bodies: list[Any] = [
+        component
+        for component in cast(list[Any], operation.body)
+        if component.media_type == "application/json"
+    ]
+    assert len(json_bodies) == 1
+    return Draft202012Validator(json_bodies[0].validation_schema)
+
+
+_OPTIONAL_NON_NULL_DETAIL_FIELDS = (
+    ("general", "vendor"),
+    ("general", "productUrl"),
+    ("general", "options"),
+    ("general", "deliveryRequest"),
+    ("manufacturing_printing", "itemKind"),
+    ("manufacturing_printing", "specification"),
+    ("manufacturing_printing", "color"),
+    ("manufacturing_printing", "optionQuantities"),
+    ("manufacturing_printing", "printMethod"),
+    ("manufacturing_printing", "deliveryDate"),
+    ("manufacturing_printing", "fileRefs"),
+    ("manufacturing_printing", "requestNote"),
+    ("rental", "vendor"),
+    ("rental", "pickupLocation"),
+    ("rental", "startDate"),
+    ("rental", "endDate"),
+    ("rental", "contact"),
+    ("rental", "depositAmount"),
+    ("rental", "conditions"),
+    ("service", "provider"),
+    ("service", "location"),
+    ("service", "startDate"),
+    ("service", "endDate"),
+    ("service", "contact"),
+    ("service", "scope"),
+    ("service", "requestNote"),
+)
 
 
 def _client(
@@ -502,6 +633,120 @@ def test_invalid_submission_returns_problem_details_without_calling_store() -> N
         "/content/items",
     }
     assert submission_store.last_idempotency_key is None
+
+
+@pytest.mark.parametrize(
+    ("purchase_type", "field_name"),
+    _OPTIONAL_NON_NULL_DETAIL_FIELDS,
+)
+def test_submission_rejects_explicit_null_optional_detail_fields(
+    purchase_type: str,
+    field_name: str,
+) -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+    body = _submission_body(purchase_type)
+    details = _first_submission_item(body)["details"]
+    assert isinstance(details, dict)
+    details[field_name] = None
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": f"null-{purchase_type}-{field_name}"},
+        json=body,
+    )
+
+    assert not _approved_submit_body_validator().is_valid(body)
+    assert response.status_code == 422
+    assert submission_store.last_idempotency_key is None
+
+
+@pytest.mark.parametrize("field_name", ("fileRef", "note"))
+def test_submission_rejects_explicit_null_optional_quote_fields(
+    field_name: str,
+) -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+    body = _submission_body("service")
+    evidence = _first_submission_item(body)["priceEvidence"]
+    assert isinstance(evidence, list)
+    quote = evidence[0]
+    assert isinstance(quote, dict)
+    quote[field_name] = None
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": f"null-quote-{field_name}"},
+        json=body,
+    )
+
+    assert not _approved_submit_body_validator().is_valid(body)
+    assert response.status_code == 422
+    assert submission_store.last_idempotency_key is None
+
+
+@pytest.mark.parametrize("omitted_field", ("fileRef", "note"))
+def test_submission_allows_one_omitted_optional_quote_field(
+    omitted_field: str,
+) -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+    body = _submission_body("service")
+    evidence = _first_submission_item(body)["priceEvidence"]
+    assert isinstance(evidence, list)
+    quote = evidence[0]
+    assert isinstance(quote, dict)
+    quote.pop(omitted_field)
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": f"omitted-quote-{omitted_field}"},
+        json=body,
+    )
+
+    assert _approved_submit_body_validator().is_valid(body)
+    assert response.status_code == 201
+    assert submission_store.last_idempotency_key == f"omitted-quote-{omitted_field}"
+
+
+def test_submission_rejects_explicit_null_optional_draft_reference() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+    body = _submission_body("general")
+    body["draftRef"] = None
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "null-draft-ref"},
+        json=body,
+    )
+
+    assert not _approved_submit_body_validator().is_valid(body)
+    assert response.status_code == 422
+    assert submission_store.last_idempotency_key is None
+
+
+@pytest.mark.parametrize(
+    "purchase_type",
+    ("general", "manufacturing_printing", "rental", "service"),
+)
+def test_submission_allows_omitted_optional_detail_fields(
+    purchase_type: str,
+) -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+    body = _submission_body(purchase_type)
+    _first_submission_item(body)["details"] = {}
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": f"omitted-{purchase_type}"},
+        json=body,
+    )
+
+    assert _approved_submit_body_validator().is_valid(body)
+    assert response.status_code == 201
+    assert submission_store.last_idempotency_key == f"omitted-{purchase_type}"
 
 
 def test_submission_rejects_a_past_needed_date_without_calling_store() -> None:

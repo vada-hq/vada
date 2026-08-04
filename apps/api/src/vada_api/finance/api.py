@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Annotated, Any, Literal, Protocol, cast
+from typing import Annotated, Any, ClassVar, Literal, Protocol, cast
 
 from fastapi import APIRouter, Depends, FastAPI, Header, Path, Request, Response
 from fastapi.exception_handlers import request_validation_exception_handler
@@ -57,6 +57,30 @@ class ContractModel(BaseModel):
     )
 
 
+class OmittableNonNullContractModel(ContractModel):
+    """Allow omission while rejecting explicit JSON null for contract fields."""
+
+    omittable_non_null_aliases: ClassVar[frozenset[str]] = frozenset()
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_explicit_null_fields(cls, value: object) -> object:
+        if not isinstance(value, Mapping):
+            return value
+
+        null_fields = sorted(
+            alias
+            for alias in cls.omittable_non_null_aliases
+            if alias in value and value[alias] is None
+        )
+        if null_fields:
+            raise ValueError(
+                "생략 가능한 필드도 명시적으로 null일 수 없습니다: "
+                + ", ".join(null_fields)
+            )
+        return cast(object, value)
+
+
 def _reject_non_json_number(value: object) -> object:
     if isinstance(value, (str, bool)):
         raise ValueError("JSON 숫자만 사용할 수 있습니다.")
@@ -105,7 +129,9 @@ type NonNegativeJsonInteger = Annotated[
 ]
 
 
-class DraftEvidenceModel(ContractModel):
+class DraftEvidenceModel(OmittableNonNullContractModel):
+    omittable_non_null_aliases = frozenset({"type"})
+
     type: (
         Literal["product_url", "vendor", "price_screenshot", "vendor_quote"] | None
     ) = None
@@ -113,13 +139,6 @@ class DraftEvidenceModel(ContractModel):
     vendor_name: str = Field(default="", alias="vendorName")
     file_ref: str = Field(default="", alias="fileRef")
     note: str = ""
-
-    @model_validator(mode="before")
-    @classmethod
-    def reject_explicit_null_type(cls, value: object) -> object:
-        if isinstance(value, Mapping) and "type" in value and value["type"] is None:
-            raise ValueError("가격 근거 유형은 null일 수 없습니다.")
-        return cast(object, value)
 
 
 class DraftDetailsModel(ContractModel):
@@ -194,7 +213,9 @@ class PriceScreenshotEvidenceModel(ContractModel):
     file_ref: str = Field(alias="fileRef", min_length=1)
 
 
-class VendorQuoteEvidenceModel(ContractModel):
+class VendorQuoteEvidenceModel(OmittableNonNullContractModel):
+    omittable_non_null_aliases = frozenset({"fileRef", "note"})
+
     type: Literal["vendor_quote"]
     file_ref: str | None = Field(default=None, alias="fileRef", min_length=1)
     note: str | None = Field(default=None, min_length=1)
@@ -215,7 +236,11 @@ type PriceEvidenceModel = Annotated[
 ]
 
 
-class GeneralDetailsModel(ContractModel):
+class GeneralDetailsModel(OmittableNonNullContractModel):
+    omittable_non_null_aliases = frozenset(
+        {"vendor", "productUrl", "options", "deliveryRequest"}
+    )
+
     vendor: str | None = Field(default=None, min_length=1)
     product_url: str | None = Field(default=None, alias="productUrl", min_length=1)
     options: str | None = Field(default=None, min_length=1)
@@ -224,7 +249,20 @@ class GeneralDetailsModel(ContractModel):
     )
 
 
-class ManufacturingPrintingDetailsModel(ContractModel):
+class ManufacturingPrintingDetailsModel(OmittableNonNullContractModel):
+    omittable_non_null_aliases = frozenset(
+        {
+            "itemKind",
+            "specification",
+            "color",
+            "optionQuantities",
+            "printMethod",
+            "deliveryDate",
+            "fileRefs",
+            "requestNote",
+        }
+    )
+
     item_kind: str | None = Field(default=None, alias="itemKind", min_length=1)
     specification: str | None = Field(default=None, min_length=1)
     color: str | None = Field(default=None, min_length=1)
@@ -239,7 +277,19 @@ class ManufacturingPrintingDetailsModel(ContractModel):
     request_note: str | None = Field(default=None, alias="requestNote", min_length=1)
 
 
-class RentalDetailsModel(ContractModel):
+class RentalDetailsModel(OmittableNonNullContractModel):
+    omittable_non_null_aliases = frozenset(
+        {
+            "vendor",
+            "pickupLocation",
+            "startDate",
+            "endDate",
+            "contact",
+            "depositAmount",
+            "conditions",
+        }
+    )
+
     vendor: str | None = Field(default=None, min_length=1)
     pickup_location: str | None = Field(
         default=None, alias="pickupLocation", min_length=1
@@ -253,7 +303,19 @@ class RentalDetailsModel(ContractModel):
     conditions: str | None = Field(default=None, min_length=1)
 
 
-class ServiceDetailsModel(ContractModel):
+class ServiceDetailsModel(OmittableNonNullContractModel):
+    omittable_non_null_aliases = frozenset(
+        {
+            "provider",
+            "location",
+            "startDate",
+            "endDate",
+            "contact",
+            "scope",
+            "requestNote",
+        }
+    )
+
     provider: str | None = Field(default=None, min_length=1)
     location: str | None = Field(default=None, min_length=1)
     start_date: date | None = Field(default=None, alias="startDate")
@@ -385,7 +447,9 @@ class DraftReferenceModel(ContractModel):
     version: PositiveJsonInteger
 
 
-class PurchaseRequestSubmitCommandModel(ContractModel):
+class PurchaseRequestSubmitCommandModel(OmittableNonNullContractModel):
+    omittable_non_null_aliases = frozenset({"draftRef"})
+
     content: PurchaseRequestInputModel
     draft_ref: DraftReferenceModel | None = Field(default=None, alias="draftRef")
 
@@ -787,6 +851,7 @@ def delete_draft(
     status_code=201,
     operation_id="submitPurchaseRequest",
     response_model=PurchaseRequestRecordResponse,
+    response_model_exclude_none=True,
     responses=_problem_responses(401, 403, 404, 409, 422, 503),
     openapi_extra=_operation_metadata("submit"),
 )
@@ -839,6 +904,7 @@ def list_own_purchase_requests(
     "/events/{eventId}/purchase-requests/{requestId}",
     operation_id="getPurchaseRequestDetail",
     response_model=PurchaseRequestRecordResponse,
+    response_model_exclude_none=True,
     responses=_problem_responses(401, 404, 503),
     openapi_extra=_operation_metadata("detail"),
 )
