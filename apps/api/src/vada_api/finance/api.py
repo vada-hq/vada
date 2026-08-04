@@ -787,6 +787,7 @@ def delete_draft(
     status_code=201,
     operation_id="submitPurchaseRequest",
     response_model=PurchaseRequestRecordResponse,
+    response_model_exclude_none=True,
     responses=_problem_responses(401, 403, 404, 409, 422, 503),
     openapi_extra=_operation_metadata("submit"),
 )
@@ -839,6 +840,7 @@ def list_own_purchase_requests(
     "/events/{eventId}/purchase-requests/{requestId}",
     operation_id="getPurchaseRequestDetail",
     response_model=PurchaseRequestRecordResponse,
+    response_model_exclude_none=True,
     responses=_problem_responses(401, 404, 503),
     openapi_extra=_operation_metadata("detail"),
 )
