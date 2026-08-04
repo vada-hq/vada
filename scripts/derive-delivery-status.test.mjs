@@ -307,11 +307,27 @@ test("실제 DU-001의 승인된 21개 가져오기와 8개 R2 개정 그래프�
   try {
     await mkdir(resolve(root, ".vada"), { recursive: true });
     await writeFile(resolve(root, ".vada/project.json"), JSON.stringify({ id: "test" }));
-    await cp(
-      resolve(repositoryRoot, "delivery-units/DU-001"),
-      resolve(root, "delivery-units/DU-001"),
-      { recursive: true },
-    );
+    const sourceUnit = resolve(repositoryRoot, "delivery-units/DU-001");
+    const copiedUnit = resolve(root, "delivery-units/DU-001");
+    await Promise.all([
+      mkdir(resolve(copiedUnit, "delivery-work"), { recursive: true }),
+      mkdir(resolve(copiedUnit, "execution-plan"), { recursive: true }),
+      mkdir(resolve(copiedUnit, "execution-runtime"), { recursive: true }),
+    ]);
+    await Promise.all([
+      cp(resolve(sourceUnit, "delivery-work/R1.json"), resolve(copiedUnit, "delivery-work/R1.json")),
+      cp(resolve(sourceUnit, "delivery-work/R2.json"), resolve(copiedUnit, "delivery-work/R2.json")),
+      ...[1, 2, 3, 4].flatMap((revision) => [
+        cp(
+          resolve(sourceUnit, `execution-plan/R${revision}.json`),
+          resolve(copiedUnit, `execution-plan/R${revision}.json`),
+        ),
+        cp(
+          resolve(sourceUnit, `execution-runtime/R${revision}.json`),
+          resolve(copiedUnit, `execution-runtime/R${revision}.json`),
+        ),
+      ]),
+    ]);
     const promotedPath = resolve(root, "delivery-units/DU-001/delivery-work/R2.json");
     const promoted = JSON.parse(await readFile(promotedPath, "utf8"));
 
