@@ -827,7 +827,7 @@
     },
     {
       "id": "get-detail-not-found",
-      "contract_ref": "API:purchase_request.get_detail@R1",
+      "contract_ref": "API:purchase_request.get_detail@R2",
       "scenario": "error",
       "error_contract_ref": "ERROR:http.resource_not_found@R1",
       "request_body_valid": true,

@@ -231,6 +231,7 @@ export function validateContractFixtureDocument(
     effectiveContracts ??
     new Map((bundle.contracts ?? []).map((contract) => [contract.id, contract]));
   const contractRefs = Array.isArray(fixture.contract_refs) ? fixture.contract_refs : [];
+  const contractRefSet = new Set(contractRefs);
   if (!Array.isArray(fixture.contract_refs) || fixture.contract_refs.length === 0) {
     errors.push("검증할 contract_refs가 필요합니다.");
   }
@@ -327,6 +328,11 @@ export function validateContractFixtureDocument(
 
   apiMocks.forEach((example, exampleIndex) => {
     const location = `/api_mocks/${exampleIndex}`;
+    if (!contractRefSet.has(example.contract_ref)) {
+      errors.push(
+        `${location}/contract_ref: fixture.contract_refs에 포함되지 않은 API 계약 ${example.contract_ref}입니다.`,
+      );
+    }
     const apiContract = contracts.get(example.contract_ref);
     if (apiContract?.kind !== "API") {
       errors.push(`${location}: API 계약 ${example.contract_ref}를 찾을 수 없습니다.`);
