@@ -220,7 +220,6 @@
       "required": [
         "id",
         "surface_ref",
-        "design_refs",
         "trigger_ko",
         "visible_result_ko",
         "interaction_ko",
@@ -231,13 +230,11 @@
         "surface_ref": { "$ref": "#/$defs/nonEmptyString" },
         "design_refs": {
           "type": "array",
-          "minItems": 1,
           "uniqueItems": true,
           "items": { "$ref": "#/$defs/designRef" }
         },
         "contract_refs": {
           "type": "array",
-          "minItems": 1,
           "uniqueItems": true,
           "items": { "$ref": "#/$defs/contractRef" }
         },
@@ -245,7 +242,17 @@
         "visible_result_ko": { "$ref": "#/$defs/nonEmptyString" },
         "interaction_ko": { "$ref": "#/$defs/nonEmptyString" },
         "accessibility_ko": { "$ref": "#/$defs/nonEmptyString" }
-      }
+      },
+      "anyOf": [
+        {
+          "required": ["design_refs"],
+          "properties": { "design_refs": { "type": "array", "minItems": 1 } }
+        },
+        {
+          "required": ["contract_refs"],
+          "properties": { "contract_refs": { "type": "array", "minItems": 1 } }
+        }
+      ]
     },
     "accessibilityContract": {
       "type": "object",

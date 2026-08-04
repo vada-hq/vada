@@ -63,6 +63,29 @@ test("인증이 필요한 DU-001 화면에서 401 상태가 빠지면 거부한�
   assert.ok(errors.some((error) => error.includes("STATE-DETAIL-UNAUTHENTICATED")));
 });
 
+test("공통 인증 상태는 설계 의미를 빌리지 않고 계약 참조만으로 정의할 수 있다", async () => {
+  const spec = await actualSpec();
+  for (const state of spec.state_matrix.filter((item) =>
+    item.id.endsWith("-UNAUTHENTICATED"),
+  )) {
+    delete state.design_refs;
+  }
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+
+  assert.deepEqual(errors, []);
+});
+
+test("화면 상태에는 설계 또는 계약 근거 중 하나가 반드시 필요하다", async () => {
+  const spec = await actualSpec();
+  spec.state_matrix[0].design_refs = [];
+  delete spec.state_matrix[0].contract_refs;
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+
+  assert.ok(errors.some((error) => error.includes("/state_matrix/0")));
+});
+
 test("승격을 막는 계약 공백에는 대응하는 열린 질문이 필요하다", async () => {
   const spec = await actualSpec();
   spec.review.open_questions = [];
