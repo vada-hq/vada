@@ -31,6 +31,7 @@ from vada_api.finance.authorization import (
     PurchaseRequestActionForbiddenError,
     PurchaseRequestPermission,
 )
+from vada_api.finance.observability import new_operation_correlation_id
 from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
@@ -975,16 +976,7 @@ def register_purchase_request_error_handlers(app: FastAPI) -> None:
     )
     app.add_exception_handler(
         PurchaseRequestPersistenceError,
-        _fixed_problem_handler(
-            status=503,
-            problem_type=(
-                "https://vada.example/problems/purchase-request-persistence-unavailable"
-            ),
-            title="지금은 구매 요청을 저장할 수 없습니다.",
-            detail="요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-            code="PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
-            retryable=True,
-        ),
+        _persistence_problem_handler,
     )
 
 
@@ -1060,6 +1052,24 @@ def _needed_date_in_past_handler(request: Request, _error: Exception) -> JSONRes
     )
 
 
+def _persistence_problem_handler(request: Request, error: Exception) -> JSONResponse:
+    if not isinstance(error, PurchaseRequestPersistenceError):
+        raise error
+    correlation_id = error.correlation_id or new_operation_correlation_id()
+    return _problem_response(
+        request,
+        status=503,
+        problem_type=(
+            "https://vada.example/problems/purchase-request-persistence-unavailable"
+        ),
+        title="지금은 구매 요청을 저장할 수 없습니다.",
+        detail="요청을 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+        code="PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE",
+        retryable=True,
+        instance=f"urn:vada:problem:{correlation_id}",
+    )
+
+
 def _problem_response(
     request: Request,
     *,
@@ -1070,13 +1080,14 @@ def _problem_response(
     code: str,
     retryable: bool,
     field_violations: list[dict[str, str]] | None = None,
+    instance: str | None = None,
 ) -> JSONResponse:
     content: dict[str, object] = {
         "type": problem_type,
         "title": title,
         "status": status,
         "detail": detail,
-        "instance": request.url.path,
+        "instance": instance or request.url.path,
         "code": code,
         "retryable": retryable,
     }

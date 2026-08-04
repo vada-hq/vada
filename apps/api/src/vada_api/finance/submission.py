@@ -70,6 +70,14 @@ class PurchaseRequestRecord:
     created_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class PurchaseRequestSubmissionOutcome:
+    """저장 경계가 새 제출과 멱등 재사용을 구분해 반환하는 결과."""
+
+    record: PurchaseRequestRecord
+    replayed: bool
+
+
 class PurchaseRequestStateConflictError(Exception):
     """공개 HTTP 경계에서 같은 의미로 다루는 구매 요청 상태 충돌."""
 
@@ -93,6 +101,13 @@ class PurchaseRequestPersistenceError(Exception):
 
     def __init__(self) -> None:
         super().__init__("구매 요청을 저장하지 못했습니다.")
+        self.correlation_id: str | None = None
+
+    def attach_correlation_id(self, correlation_id: str) -> None:
+        """최초의 안전한 작업 추적 ID를 HTTP 오류 경계까지 보존한다."""
+
+        if self.correlation_id is None:
+            self.correlation_id = correlation_id
 
 
 class SubmissionPersistenceError(PurchaseRequestPersistenceError):

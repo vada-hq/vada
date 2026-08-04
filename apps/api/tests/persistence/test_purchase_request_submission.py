@@ -28,7 +28,7 @@ from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
     PurchaseRequestItemInput,
-    PurchaseRequestRecord,
+    PurchaseRequestSubmissionOutcome,
     SubmissionPersistenceError,
     SubmissionStateConflictError,
     ValidatedPurchaseRequestSubmission,
@@ -182,10 +182,12 @@ def test_submission_is_atomic_and_records_server_results(
 ) -> None:
     _seed_draft(migrated_engine)
 
-    record = PostgreSQLPurchaseRequestSubmissionStore(migrated_engine).submit(
+    outcome = PostgreSQLPurchaseRequestSubmissionStore(migrated_engine).submit(
         _submission()
     )
+    record = outcome.record
 
+    assert outcome.replayed is False
     assert record.status == "review_pending"
     assert record.estimated_total == Decimal(27500)
     assert record.over_budget is True
@@ -295,7 +297,7 @@ def test_same_key_concurrent_retries_return_one_request_and_one_event(
             synchronized_threads.append(get_ident())
         idempotency_insert_barrier.wait(timeout=10)
 
-    def submit_once() -> PurchaseRequestRecord:
+    def submit_once() -> PurchaseRequestSubmissionOutcome:
         return PostgreSQLPurchaseRequestSubmissionStore(migrated_engine).submit(command)
 
     event.listen(
@@ -306,7 +308,7 @@ def test_same_key_concurrent_retries_return_one_request_and_one_event(
     try:
         with ThreadPoolExecutor(max_workers=2) as executor:
             futures = (executor.submit(submit_once), executor.submit(submit_once))
-            records = [future.result() for future in futures]
+            outcomes = [future.result() for future in futures]
     finally:
         event.remove(
             migrated_engine,
@@ -316,7 +318,8 @@ def test_same_key_concurrent_retries_return_one_request_and_one_event(
 
     assert len(synchronized_threads) == 2
     assert len(set(synchronized_threads)) == 2
-    assert records[0] == records[1]
+    assert outcomes[0].record == outcomes[1].record
+    assert sorted(outcome.replayed for outcome in outcomes) == [False, True]
     assert _table_count(migrated_engine, "purchase_requests") == 1
     assert _table_count(migrated_engine, "purchase_request_items") == 2
     assert _table_count(migrated_engine, "purchase_request_submission_idempotency") == 1
@@ -370,7 +373,9 @@ def test_same_raw_key_is_independent_across_organization_event_and_requester_sco
         replace(first, requester_user_id="user-b"),
     )
 
-    records = tuple(store.submit(submission) for submission in scoped_submissions)
+    records = tuple(
+        store.submit(submission).record for submission in scoped_submissions
+    )
 
     assert len({record.request_id for record in records}) == 4
     assert _table_count(migrated_engine, "purchase_requests") == 4

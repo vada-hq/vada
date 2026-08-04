@@ -5,6 +5,7 @@ description = "VADA API — FastAPI 모듈형 모놀리스"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "alembic>=1.15",
+    "aws-lambda-powertools[tracer]>=3.31.1",
     "fastapi>=0.139",
     "psycopg[binary]>=3.2",
     "sqlalchemy>=2.0",

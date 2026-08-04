@@ -13,11 +13,20 @@ from vada_api.finance.authorization import (
     PurchaseRequestPermission,
     require_purchase_request_permission,
 )
+from vada_api.finance.observability import (
+    ObservedResult,
+    PurchaseRequestObserver,
+    new_operation_correlation_id,
+    observe_purchase_request_operation,
+    observer_from_environment,
+    submission_correlation_id,
+)
 from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
     PurchaseRequestNeededDateInPastError,
     PurchaseRequestRecord,
+    PurchaseRequestSubmissionOutcome,
     ValidatedPurchaseRequestSubmission,
 )
 from vada_api.identity.errors import ResourceNotFoundError
@@ -88,7 +97,7 @@ class PurchaseRequestSubmissionStore(Protocol):
 
     def submit(
         self, submission: ValidatedPurchaseRequestSubmission
-    ) -> PurchaseRequestRecord: ...
+    ) -> PurchaseRequestSubmissionOutcome: ...
 
 
 class PurchaseRequestService:
@@ -100,10 +109,12 @@ class PurchaseRequestService:
         submission_store: PurchaseRequestSubmissionStore,
         *,
         today_provider: Callable[[], date] | None = None,
+        observer: PurchaseRequestObserver | None = None,
     ) -> None:
         self._repository = repository
         self._submission_store = submission_store
         self._today_provider = today_provider or _kst_today
+        self._observer = observer or observer_from_environment()
 
     def require_permission(
         self,
@@ -143,15 +154,37 @@ class PurchaseRequestService:
         content: dict[str, object],
     ) -> PurchaseRequestDraft:
         identity = context.actor.identity
-        return self._repository.save_draft(
+        return observe_purchase_request_operation(
+            observer=self._observer,
+            operation="draft_save",
             organization_id=identity.organization_id,
             event_id=identity.event_id,
-            owner_user_id=identity.user_id,
-            expected_version=expected_version,
-            content=content,
+            actor_user_id=identity.user_id,
+            correlation_id=new_operation_correlation_id(),
+            action=lambda: ObservedResult(
+                self._repository.save_draft(
+                    organization_id=identity.organization_id,
+                    event_id=identity.event_id,
+                    owner_user_id=identity.user_id,
+                    expected_version=expected_version,
+                    content=content,
+                )
+            ),
         )
 
     def delete_draft(self, context: FinanceRequestContext) -> None:
+        identity = context.actor.identity
+        observe_purchase_request_operation(
+            observer=self._observer,
+            operation="draft_delete",
+            organization_id=identity.organization_id,
+            event_id=identity.event_id,
+            actor_user_id=identity.user_id,
+            correlation_id=new_operation_correlation_id(),
+            action=lambda: self._delete_draft(context),
+        )
+
+    def _delete_draft(self, context: FinanceRequestContext) -> ObservedResult[None]:
         identity = context.actor.identity
         deleted = self._repository.delete_draft(
             organization_id=identity.organization_id,
@@ -160,6 +193,7 @@ class PurchaseRequestService:
         )
         if not deleted:
             raise ResourceNotFoundError
+        return ObservedResult(None)
 
     def submit(
         self,
@@ -180,12 +214,29 @@ class PurchaseRequestService:
             content=content,
             draft_ref=draft_ref,
         )
-        if content.needed_date < self._today_provider():
-            existing = self._submission_store.get_idempotent_result(submission)
-            if existing is not None:
-                return existing
+        return observe_purchase_request_operation(
+            observer=self._observer,
+            operation="submission",
+            organization_id=identity.organization_id,
+            event_id=identity.event_id,
+            actor_user_id=identity.user_id,
+            correlation_id=submission_correlation_id(idempotency_key),
+            action=lambda: self._submit(submission),
+        )
+
+    def _submit(
+        self, submission: ValidatedPurchaseRequestSubmission
+    ) -> ObservedResult[PurchaseRequestRecord]:
+        existing = self._submission_store.get_idempotent_result(submission)
+        if existing is not None:
+            return ObservedResult(existing, result="retried")
+        if submission.content.needed_date < self._today_provider():
             raise PurchaseRequestNeededDateInPastError
-        return self._submission_store.submit(submission)
+        outcome = self._submission_store.submit(submission)
+        return ObservedResult(
+            outcome.record,
+            result="retried" if outcome.replayed else "succeeded",
+        )
 
     def list_own(
         self, context: FinanceRequestContext

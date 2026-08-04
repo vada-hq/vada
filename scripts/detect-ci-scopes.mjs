@@ -20,7 +20,9 @@ function startsWithAny(path, prefixes) {
 
 export function detectCiScopes(paths) {
   const changed = paths.map(normalized).filter(Boolean);
-  if (changed.some((path) => forceAllPaths.has(path))) return { api: true, web: true };
+  if (changed.some((path) => forceAllPaths.has(path))) {
+    return { api: true, web: true, infra: true };
+  }
   const api = changed.some((path) => startsWithAny(path, ["apps/api/"]));
   const web = changed.some(
     (path) =>
@@ -29,7 +31,8 @@ export function detectCiScopes(paths) {
       path === "pnpm-lock.yaml" ||
       path.startsWith("scripts/validate-purchase-request-openapi-client"),
   );
-  return { api, web };
+  const infra = changed.some((path) => startsWithAny(path, ["infra/"]));
+  return { api, web, infra };
 }
 
 function changedPaths(base, head) {
@@ -47,8 +50,9 @@ function main() {
     },
   });
   const paths = changedPaths(values.base, values.head);
-  const scopes = paths === null ? { api: true, web: true } : detectCiScopes(paths);
-  process.stdout.write(`api=${scopes.api}\nweb=${scopes.web}\n`);
+  const scopes =
+    paths === null ? { api: true, web: true, infra: true } : detectCiScopes(paths);
+  process.stdout.write(`api=${scopes.api}\nweb=${scopes.web}\ninfra=${scopes.infra}\n`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

@@ -26,6 +26,7 @@ from vada_api.finance.submission import (
     PurchaseRequestItemInput,
     PurchaseRequestItemResult,
     PurchaseRequestRecord,
+    PurchaseRequestSubmissionOutcome,
     SubmissionPersistenceError,
     SubmissionStateConflictError,
     ValidatedPurchaseRequestSubmission,
@@ -69,7 +70,7 @@ class PostgreSQLPurchaseRequestSubmissionStore:
     def submit(
         self,
         submission: ValidatedPurchaseRequestSubmission,
-    ) -> PurchaseRequestRecord:
+    ) -> PurchaseRequestSubmissionOutcome:
         estimated_amounts = tuple(
             item.quantity * item.estimated_unit_price
             for item in submission.content.items
@@ -105,11 +106,14 @@ class PostgreSQLPurchaseRequestSubmissionStore:
                     .returning(purchase_request_submission_idempotency.c.request_id)
                 )
                 if claimed_request_id is None:
-                    return _return_existing_submission(
-                        connection,
-                        submission=submission,
-                        idempotency_key_hash=idempotency_key_hash,
-                        payload_hash=payload_hash,
+                    return PurchaseRequestSubmissionOutcome(
+                        record=_return_existing_submission(
+                            connection,
+                            submission=submission,
+                            idempotency_key_hash=idempotency_key_hash,
+                            payload_hash=payload_hash,
+                        ),
+                        replayed=True,
                     )
 
                 connection.execute(
@@ -180,11 +184,14 @@ class PostgreSQLPurchaseRequestSubmissionStore:
                         submitted_at=created_at,
                     )
                 )
-                return load_purchase_request_record(
-                    connection,
-                    organization_id=submission.organization_id,
-                    event_id=submission.event_id,
-                    request_id=request_id,
+                return PurchaseRequestSubmissionOutcome(
+                    record=load_purchase_request_record(
+                        connection,
+                        organization_id=submission.organization_id,
+                        event_id=submission.event_id,
+                        request_id=request_id,
+                    ),
+                    replayed=False,
                 )
         except SubmissionStateConflictError:
             raise

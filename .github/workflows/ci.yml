@@ -16,6 +16,7 @@ jobs:
     outputs:
       api: ${{ steps.scopes.outputs.api }}
       web: ${{ steps.scopes.outputs.web }}
+      infra: ${{ steps.scopes.outputs.infra }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -81,6 +82,30 @@ jobs:
         run: uv run pytest -m "not postgres"
       - name: PostgreSQL integration tests
         run: uv run pytest -m postgres
+
+  terraform:
+    name: terraform
+    needs: changes
+    if: needs.changes.outputs.infra == 'true'
+    runs-on: ubuntu-latest
+    env:
+      TF_IN_AUTOMATION: 'true'
+    defaults:
+      run:
+        working-directory: infra/modules/purchase_request_observability
+    steps:
+      # Immutable release SHAs prevent a moved tag from changing trusted CI code.
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: hashicorp/setup-terraform@dfe3c3f87815947d99a8997f908cb6525fc44e9e # v4.0.1
+        with:
+          terraform_version: 1.14.6
+          terraform_wrapper: false
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive
+      - name: Initialize providers without a backend
+        run: terraform init -backend=false -input=false
+      - name: Validate Terraform configuration
+        run: terraform validate -no-color
 
   web:
     name: web
