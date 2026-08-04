@@ -1,0 +1,133 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R4",
+  "runtime_revision": 4,
+  "runtime_status": "active",
+  "updated_at": "2026-08-04T08:01:46.424Z",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R4.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 4,
+    "canonical_sha256": "f2ee89e66d8d7ef23651cf41068037ae69cbab9e21033ab59af23d0a0bf91b1f"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-04T07:58:24.685Z",
+      "locator": "delivery-units/DU-001/execution-plan/R4.json#EP-DU-001@R4",
+      "content_ko": "제품 책임자가 승인한 DU-001 실행 계획 R4이며, 화면 명세 보완·관측 감사 구현·서버 종합 검증 세 작업을 현재 실행 범위로 고정합니다."
+    },
+    {
+      "id": "SRC-RUN-002",
+      "type": "user_statement",
+      "captured_at": "2026-08-04T08:00:49.187Z",
+      "locator": "conversation:2026-08-04:du-001-r4-approval",
+      "content_ko": "제품 책임자가 승인한 R4에 따라 AI 화면 명세 보완 작업의 착수를 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "user_statement",
+      "captured_at": "2026-08-04T08:01:28.327Z",
+      "locator": "conversation:2026-08-04:du-001-r4-approval",
+      "content_ko": "제품 책임자가 승인한 R4에 따라 관측·감사·알림 구현 작업의 착수를 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "user_statement",
+      "captured_at": "2026-08-04T08:01:46.424Z",
+      "locator": "conversation:2026-08-04:du-001-r4-approval",
+      "content_ko": "제품 책임자가 승인한 R4에 따라 서버 계약·보안·원자성 종합 검증 작업의 착수를 승인했습니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:purchase-request-screen-spec@R1",
+      "executor_ref": "EXEC:ai-experience-design",
+      "status": "in_progress",
+      "started_at": "2026-08-04T08:00:49.187Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-04T07:58:24.685Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R4에서 화면 명세 보완 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-004",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T08:00:49.187Z",
+          "actor_ref": "EXEC:ai-experience-design",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "승인된 기획·계약과 기존 와이어프레임을 대조해 화면 명세 보완을 시작합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-observability-audit@R1",
+      "executor_ref": "EXEC:ai-security-platform",
+      "status": "in_progress",
+      "started_at": "2026-08-04T08:01:28.327Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-002",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-04T07:58:24.685Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R4에서 관측·감사·알림 구현 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-005",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T08:01:28.327Z",
+          "actor_ref": "EXEC:ai-security-platform",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "민감정보 최소화와 외부 AWS 자원 생성 금지를 지키며 관측·감사·알림 구현을 시작합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-server-verification@R1",
+      "executor_ref": "EXEC:ai-quality",
+      "status": "in_progress",
+      "started_at": "2026-08-04T08:01:46.424Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-003",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-04T07:58:24.685Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R4에서 서버 계약·보안·원자성 종합 검증 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-006",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T08:01:46.424Z",
+          "actor_ref": "EXEC:ai-quality",
+          "source_ref": "SRC-RUN-004",
+          "note_ko": "기존 검증 범위를 조사하고 실제 PostgreSQL 기반 서버 종합 검증의 부족분 보완을 시작합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    }
+  ]
+}
