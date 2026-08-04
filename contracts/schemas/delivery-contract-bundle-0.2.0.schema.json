@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.local/schemas/delivery-contract-bundle-0.2.0.json",
+  "title": "VADA Delivery Contract Delta Bundle",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "bundle_id",
+    "bundle_revision",
+    "bundle_status",
+    "approval_source_ref",
+    "updated_at",
+    "solution_ref",
+    "delivery_unit_ref",
+    "objective_ko",
+    "standards_profile",
+    "sources",
+    "base_bundle_ref",
+    "contracts",
+    "design_coverage",
+    "questions"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "minLength": 1 },
+    "schema_version": { "const": "0.2.0" },
+    "bundle_id": { "type": "string", "pattern": "^CB-[A-Z0-9][A-Z0-9-]{2,}$" },
+    "bundle_revision": {
+      "oneOf": [{ "type": "null" }, { "type": "integer", "minimum": 1 }]
+    },
+    "bundle_status": { "enum": ["defining", "review_ready", "approved"] },
+    "approval_source_ref": {
+      "oneOf": [
+        { "type": "null" },
+        { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+      ]
+    },
+    "updated_at": { "type": "string", "minLength": 1 },
+    "solution_ref": {
+      "$ref": "https://vada.local/schemas/delivery-contract-bundle-0.1.0.json#/$defs/solutionRef"
+    },
+    "delivery_unit_ref": {
+      "type": "string",
+      "pattern": "^FLOW-[A-Z0-9][A-Z0-9-]*@R[1-9][0-9]*$"
+    },
+    "objective_ko": { "type": "string", "minLength": 1 },
+    "standards_profile": {
+      "$ref": "https://vada.local/schemas/delivery-contract-bundle-0.1.0.json#/$defs/standardsProfile"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "https://vada.local/schemas/delivery-contract-bundle-0.1.0.json#/$defs/source"
+      }
+    },
+    "base_bundle_ref": { "$ref": "#/$defs/baseBundleRef" },
+    "contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "https://vada.local/schemas/delivery-contract-bundle-0.1.0.json#/$defs/contract"
+      }
+    },
+    "design_coverage": {
+      "type": "array",
+      "items": {
+        "$ref": "https://vada.local/schemas/delivery-contract-bundle-0.1.0.json#/$defs/designCoverage"
+      }
+    },
+    "questions": {
+      "type": "array",
+      "items": {
+        "$ref": "https://vada.local/schemas/delivery-contract-bundle-0.1.0.json#/$defs/question"
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": { "bundle_status": { "const": "approved" } },
+        "required": ["bundle_status"]
+      },
+      "then": {
+        "properties": {
+          "bundle_revision": { "type": "integer", "minimum": 1 },
+          "approval_source_ref": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "bundle_revision": { "type": "null" },
+          "approval_source_ref": { "type": "null" }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "baseBundleRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bundle_path",
+        "bundle_id",
+        "bundle_revision",
+        "canonical_sha256"
+      ],
+      "properties": {
+        "bundle_path": { "type": "string", "minLength": 1 },
+        "bundle_id": {
+          "type": "string",
+          "pattern": "^CB-[A-Z0-9][A-Z0-9-]{2,}$"
+        },
+        "bundle_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    }
+  }
+}

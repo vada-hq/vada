@@ -1,0 +1,63 @@
+{
+  "$schema": "./workflow-policy.schema.json",
+  "schema_version": "0.1.0",
+  "policy_id": "WORKFLOW-POLICY-VADA",
+  "policy_revision": 1,
+  "status": "approved",
+  "updated_at": "2026-08-04T13:29:52.052Z",
+  "approval_basis": {
+    "type": "user_statement",
+    "captured_at": "2026-08-04T13:29:52.052Z",
+    "content_ko": "기획·와이어프레임·디자인은 윤종운, 개발과 최종 책임 및 기본 담당은 황성욱으로 운영합니다."
+  },
+  "people": [
+    {
+      "id": "HUMAN:yun-jongun",
+      "display_name_ko": "윤종운",
+      "capabilities": ["product_planning", "experience_design"]
+    },
+    {
+      "id": "HUMAN:hwang-seonguk",
+      "display_name_ko": "황성욱",
+      "capabilities": ["development", "accountability"]
+    }
+  ],
+  "responsibility_defaults": {
+    "product_planning": "HUMAN:yun-jongun",
+    "experience_design": "HUMAN:yun-jongun",
+    "development": "HUMAN:hwang-seonguk",
+    "accountable_owner": "HUMAN:hwang-seonguk",
+    "default_assignee": "HUMAN:hwang-seonguk"
+  },
+  "assurance_profiles": {
+    "mechanical": {
+      "separate_verifier_required": false,
+      "human_approval_required": false,
+      "coordinator_review_required": true,
+      "required_checks": ["scoped"]
+    },
+    "standard": {
+      "separate_verifier_required": true,
+      "human_approval_required": false,
+      "coordinator_review_required": true,
+      "required_checks": ["scoped"]
+    },
+    "high_assurance": {
+      "separate_verifier_required": true,
+      "human_approval_required": true,
+      "coordinator_review_required": true,
+      "required_checks": ["scoped", "full_integration"]
+    }
+  },
+  "risk_routes": [
+    { "trigger": "product_policy", "assurance_profile": "high_assurance" },
+    { "trigger": "authorization", "assurance_profile": "high_assurance" },
+    { "trigger": "tenant_isolation", "assurance_profile": "high_assurance" },
+    { "trigger": "financial_atomicity", "assurance_profile": "high_assurance" },
+    { "trigger": "database_migration", "assurance_profile": "high_assurance" },
+    { "trigger": "breaking_contract", "assurance_profile": "high_assurance" },
+    { "trigger": "workflow_governance", "assurance_profile": "high_assurance" },
+    { "trigger": "external_deployment", "assurance_profile": "high_assurance" },
+    { "trigger": "destructive_operation", "assurance_profile": "high_assurance" }
+  ]
+}

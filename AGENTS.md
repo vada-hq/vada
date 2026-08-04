@@ -15,6 +15,7 @@
 | --- | --- |
 | `just setup` | 최초 1회: 전체 의존성 설치 |
 | `just preflight` / `just preflight-postgresql` | 작업 할당 전 공통 도구 / 선택적 로컬 PostgreSQL 환경 점검 |
+| `just validate-workflow-policy` | 사람 책임 기본값·보증 등급·고위험 경로 검증 |
 | `just dev-api` | API 개발 서버 (http://localhost:8000) |
 | `just dev-web` | 웹 개발 서버 |
 | `just test` / `just test-api` / `just test-api-postgresql` / `just test-web` | 전체 / API / 실제 PostgreSQL / 웹 테스트 |
@@ -27,6 +28,7 @@
 | `just validate-screen-specs` | 구현용 화면 상태·와이어프레임 대조·완료 증거 추적 검증 |
 | `just validate-execution-plan` | 승인 작업 그래프의 실행 범위·실행자·추정·일정과 기준선 고정 검증 |
 | `just validate-execution-runtime` | 승인 실행 계획의 실제 상태 전이·차단 사유·완료 증거 검증 |
+| `just validate-delivery-status` | 작업 그래프와 런타임에서 현재 상태·착수 가능성 자동 파생 검증 |
 | `just check-api` / `just check-web` | 작업자·검증자용 경로별 검사 |
 | `just build` | 제품 웹 + 와이어프레임 프로토타입 빌드 |
 | `just check` | ⭐ 제품 명세 + 계약 + lint + typecheck + test + build 전부 |
@@ -44,6 +46,7 @@
 - `prototypes/wireframe/` — Figma 기반 화면 참고 앱. 제품 계약이나 실제 프론트엔드의 원본이 아니다.
 - `infra/` — Terraform. 리전은 서울(ap-northeast-2), 상태는 S3 + use_lockfile.
 - `docs/engineering/` — AI 주도 개발의 실행·테스트·아키텍처·보안·운영 기준.
+- `.vada/workflow-policy.json` — 사람 책임 기본값과 변경 위험별 보증 등급의 단일 기계 판독 정본.
 - `docs/` — 그 밖의 리포 문서. **기술 결정(ADR 74건)의 원본은 노션**: https://app.notion.com/p/3a068a85148e80ca89e0f726a38d49f3
 
 ## 제품 기획 정본
@@ -60,7 +63,7 @@
 - 총괄은 할당 전에 `just preflight`를 실행하고 작업 패킷에 통합 검증 위치(`local` 또는 `ci`)를 명시한다. 실제 PostgreSQL을 로컬에서 검증할 때만 `just preflight-postgresql`을 요구한다. CI 검증을 선택하면 로컬 Docker 없이 착수할 수 있지만 연결된 PostgreSQL CI 작업이 통과하기 전에는 완료할 수 없다.
 - 사용자 동작 변경은 [테스트와 완료 증거](docs/engineering/testing-and-evidence.md)의 RED → GREEN → REFACTOR → CHECK 순서를 따른다. PR에 RED·GREEN·`just check` 증거를 남긴다.
 - 한 작업에는 한 쓰기 주체와 격리된 브랜치·worktree를 사용한다. 선행관계와 공유 변경 경로가 없는 작업만 병렬화한다.
-- 구현 작성자와 완료 검증자를 분리한다. 총괄 에이전트는 최종 diff·계약·문서 영향을 다시 검토하고, 운영 배포·비밀 접근·파괴적 변경은 사람 승인을 받는다.
+- 작업 보증 등급은 `.vada/workflow-policy.json`에서 선택한다. `standard`·`high_assurance`와 기존 실행 계획 v0.1은 구현 작성자와 완료 검증자를 분리한다. `mechanical`은 정책이 허용한 범위에서만 분리 검증자를 생략할 수 있으며 총괄 검토와 범위 검사는 생략할 수 없다.
 - 사람 작업은 담당자의 실제 인계 확인 전에는 `in_progress`로 전환하지 않는다. 확인 근거는 실행 런타임에 `handoff_acknowledgement`로 남긴다.
 - 실행 런타임의 ID와 시각을 수동으로 만들지 않는다. `pnpm record:execution-runtime -- --runtime <경로>`에 갱신 JSON을 표준 입력으로 전달하고 먼저 `--dry-run`으로 검증한다. 과거 기록 정정은 Git·PR·CI의 영구 메타데이터와 새 정정 근거를 함께 남긴다.
 
@@ -82,7 +85,7 @@
 - 기획 태스크 작성·변경 전: Notion의 [기획 태스크 작성 전 기준](https://app.notion.com/p/3ab68a85148e81f4beade06c94ebcd84)을 작업 체크리스트로 읽는다. 기존 `결정 필요` 목록을 완전하다고 가정하지 말고, 흐름의 모든 행동·판단을 주체·입력·기준·단위·결과·기록·상태·노출로 분해한다. 각 항목을 승인된 제품 명세 참조·기획 질문·명시적 범위 밖 중 하나로 분류한다. Notion 답변은 근거이며 `product-specs/` 승인 리비전에 반영되기 전에는 구현 규칙이 아니다.
 - 계획·작업 항목 변경 전: `contracts/notion.json`의 `planningDatabases`가 가리키는 V2 데이터베이스만 현재 정본으로 사용한다. 여러 슬라이스가 공유하는 기획 결정은 가장 가까운 상위 마일스톤에서 관리하되, 서로 다른 슬라이스나 후속 작업의 착수 시점을 바꾸는 결정 묶음은 별도 작업으로 분리한다. `선행 작업`은 착수 자체를 막는 관계에만 사용하고 병렬 착수 후 완료 전에 반영할 입력은 `참조 작업`으로 연결한다. 작업 상태와 WIP는 `PROCESS:work_item_flow@R1`을 따른다. `legacyPlanningDatabases`에는 새 항목을 만들거나 현재 상태를 기록하지 않는다.
 - 슬라이스 신규 생성 전: 사용자 완주 결과, 별도 순서·시연 가치, 고유 AC와 디자인·개발 작업 묶음이 모두 있는지 확인한다. 마일스톤 자체가 단일 전달 단위면 슬라이스를 생략하고 작업 항목을 마일스톤에 직접 연결한다.
-- 작업 전: Git 루트와 브랜치를 확인하고, 관련 제품 도메인·플로우·목표 동작 설계의 최신 승인 리비전, 해당 전달 단위가 고정한 `contracts/bundles/*/R<n>.json` 또는 기존 `contracts/slices/*.json`, 승인된 `delivery-units/*/implementation-architecture/R<n>.json`, `delivery-work/R<n>.json`과 `execution-plan/R<n>.json`을 읽는다. `draft.json`·`review_ready`는 구현 기준선으로 사용하지 않는다. 제품 명세·계약·구현 아키텍처·전달 작업 그래프·실행 계획이 없거나 구현을 바꿀 미결정 사안이 있으면 추정하지 말고 책임자에게 보고한다.
+- 작업 전: Git 루트와 브랜치를 확인하고 `.vada/workflow-policy.json`에서 책임·보증 등급을 판정한다. 관련 제품 도메인·플로우·목표 동작 설계의 최신 승인 리비전, 해당 전달 단위가 고정한 `contracts/bundles/*/R<n>.json` 또는 기존 `contracts/slices/*.json`, 승인된 `delivery-units/*/implementation-architecture/R<n>.json`, `delivery-work/R<n>.json`과 `execution-plan/R<n>.json`을 읽는다. `draft.json`·`review_ready`는 구현 기준선으로 사용하지 않는다. 제품 명세·계약·구현 아키텍처·전달 작업 그래프·실행 계획이 없거나 구현을 바꿀 미결정 사안이 있으면 추정하지 말고 책임자에게 보고한다.
 - 슬라이스 작성·변경: `docs/governance/slice-operating-model.md`를 따르고 저장소 `specRevision`과 Notion `명세 리비전`을 확인한다. 담당자·일정·추정은 태스크 DB에서만 관리한다.
 - 작업 중: 계약 의미가 바뀌면 활성 리비전을 덮어쓰지 말고 새 리비전으로 추적한다. 실제 착수·검토·완료·재작업과 증거는 승인 계획을 수정하지 말고 `delivery-units/*/execution-runtime/R<n>.json`에 누적한다. 에이전트 실행·인계·재작업은 `docs/engineering/agent-execution.md`를 따르며 총괄 에이전트가 계약·문서 영향과 최종 diff를 검토한다.
 - 작업 후: 작업자는 코드·테스트·계약·문서를 같은 변경 집합에서 갱신하고 범위별 검사를 인계한다. 검증자는 이를 독립 재실행하며, 총괄은 승인 변경을 통합한 뒤 `just check`를 한 번 실행한다. 보고에는 변경, 검증 결과, 미결정 사항과 잔여 위험을 포함한다.

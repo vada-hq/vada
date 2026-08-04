@@ -25,6 +25,10 @@ dev-web:
     pnpm --filter web dev
 
 # 실행 계약
+validate-workflow-policy:
+    pnpm test:workflow-policy
+    pnpm validate:workflow-policy
+
 validate-contracts:
     pnpm test:contracts
     pnpm validate:contracts
@@ -67,6 +71,11 @@ validate-execution-runtime:
     pnpm test:execution-preflight
     pnpm test:execution-runtime
     pnpm validate:execution-runtime
+
+# 작업 그래프와 실행 런타임에서 현재 상태·착수 가능성을 자동 계산
+validate-delivery-status:
+    pnpm test:delivery-status
+    pnpm validate:delivery-status
 
 # 테스트
 test: test-api test-web
@@ -119,4 +128,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-contracts validate-product-specs validate-architecture validate-delivery-work validate-screen-specs validate-execution-plan validate-execution-runtime lint typecheck test build
+check: validate-workflow-policy validate-contracts validate-product-specs validate-architecture validate-delivery-work validate-screen-specs validate-execution-plan validate-execution-runtime validate-delivery-status lint typecheck test build

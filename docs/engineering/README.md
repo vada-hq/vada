@@ -16,6 +16,7 @@
 
 ## 문서별 책임
 
+- [워크플로 유지보수](workflow-maintenance.md) — 책임 기본값, 위험별 보증 등급, 계약 변경분과 상태 파생
 - [에이전트 실행](agent-execution.md) — 책임 분리, 착수 판정, 작업 격리, 병렬화, 검토·재작업
 - [테스트와 완료 증거](testing-and-evidence.md) — RED→GREEN→REFACTOR, 테스트 계층, PR 증거
 - [아키텍처 경계](architecture-boundaries.md) — 디렉터리 책임, 의존 방향, 변경 동기화
@@ -37,4 +38,3 @@
 - [Anthropic: Effective harnesses for long-running agents](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents) — 세션 간 구조화된 진행 기록, 작은 증명 가능한 작업, 깨끗한 인계
 - [Google Research: Scaling agent systems](https://research.google/blog/towards-a-science-of-scaling-agent-systems-when-and-why-agent-systems-work/) — 독립 작업만 병렬화하고 순차 의존 작업에 에이전트를 과도하게 늘리지 않는 기준
 - [GitHub Agentic Workflows](https://docs.github.com/en/copilot/concepts/agents/about-github-agentic-workflows)와 [OWASP State of Agentic AI Security 2026](https://genai.owasp.org/download/50592/?tmstv=1754459367) — 최소 권한, 안전한 출력 경로, 감사 가능성, 고위험 변경의 사람 승인
-
