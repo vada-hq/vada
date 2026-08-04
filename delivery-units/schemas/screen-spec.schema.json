@@ -1,0 +1,414 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://vada.local/schemas/screen-spec-0.1.0.json",
+  "title": "VADA Delivery Unit Screen Specification",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "spec_id",
+    "spec_revision",
+    "spec_status",
+    "updated_at",
+    "work_item_ref",
+    "completion_evidence_ref",
+    "delivery_unit_ref",
+    "objective_ko",
+    "baseline",
+    "scope",
+    "interaction_flow",
+    "surfaces",
+    "state_matrix",
+    "accessibility_contract",
+    "wireframe_comparison",
+    "contract_gaps",
+    "implementation_handoff",
+    "coverage",
+    "review"
+  ],
+  "properties": {
+    "schema_version": { "const": "0.1.0" },
+    "spec_id": { "type": "string", "pattern": "^SCREEN-SPEC-[A-Z0-9][A-Z0-9-]+$" },
+    "spec_revision": { "type": "integer", "minimum": 1 },
+    "spec_status": { "enum": ["defining", "review_ready", "approved"] },
+    "updated_at": { "type": "string", "format": "date-time" },
+    "work_item_ref": { "$ref": "#/$defs/workRef" },
+    "completion_evidence_ref": { "$ref": "#/$defs/evidenceRef" },
+    "delivery_unit_ref": { "type": "string", "pattern": "^FLOW-[A-Z0-9][A-Z0-9-]*@R[1-9][0-9]*$" },
+    "objective_ko": { "$ref": "#/$defs/nonEmptyString" },
+    "baseline": { "$ref": "#/$defs/baseline" },
+    "scope": { "$ref": "#/$defs/scope" },
+    "interaction_flow": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/interactionStep" }
+    },
+    "surfaces": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/surface" }
+    },
+    "state_matrix": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/state" }
+    },
+    "accessibility_contract": { "$ref": "#/$defs/accessibilityContract" },
+    "wireframe_comparison": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/comparison" }
+    },
+    "contract_gaps": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/contractGap" }
+    },
+    "implementation_handoff": { "$ref": "#/$defs/implementationHandoff" },
+    "coverage": { "$ref": "#/$defs/coverage" },
+    "review": { "$ref": "#/$defs/review" }
+  },
+  "$defs": {
+    "nonEmptyString": { "type": "string", "minLength": 1 },
+    "stringList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/nonEmptyString" }
+    },
+    "designRef": { "type": "string", "pattern": "^DESIGN-[A-Z0-9][A-Z0-9-]+$" },
+    "contractRef": { "type": "string", "pattern": "^[A-Z]+:[a-z0-9_.-]+@R[1-9][0-9]*$" },
+    "workRef": { "type": "string", "pattern": "^WORK:[a-z0-9-]+@R[1-9][0-9]*$" },
+    "evidenceRef": { "type": "string", "pattern": "^EVID-[0-9]{3,}$" },
+    "solutionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "solution_id", "solution_revision", "canonical_sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmptyString" },
+        "solution_id": { "$ref": "#/$defs/nonEmptyString" },
+        "solution_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "bundleRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "bundle_id", "bundle_revision", "canonical_sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmptyString" },
+        "bundle_id": { "$ref": "#/$defs/nonEmptyString" },
+        "bundle_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "architectureRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "architecture_id", "architecture_revision", "canonical_sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmptyString" },
+        "architecture_id": { "$ref": "#/$defs/nonEmptyString" },
+        "architecture_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "deliveryWorkRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "plan_id", "plan_revision", "canonical_sha256"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmptyString" },
+        "plan_id": { "$ref": "#/$defs/nonEmptyString" },
+        "plan_revision": { "type": "integer", "minimum": 1 },
+        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+      }
+    },
+    "wireframeRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "observed_commit", "authority"],
+      "properties": {
+        "path": { "$ref": "#/$defs/nonEmptyString" },
+        "observed_commit": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "authority": { "const": "visual_reference_only" }
+      }
+    },
+    "baseline": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "solution_ref",
+        "contract_bundle_ref",
+        "implementation_architecture_ref",
+        "delivery_work_ref",
+        "wireframe_ref"
+      ],
+      "properties": {
+        "solution_ref": { "$ref": "#/$defs/solutionRef" },
+        "contract_bundle_ref": { "$ref": "#/$defs/bundleRef" },
+        "implementation_architecture_ref": { "$ref": "#/$defs/architectureRef" },
+        "delivery_work_ref": { "$ref": "#/$defs/deliveryWorkRef" },
+        "wireframe_ref": { "$ref": "#/$defs/wireframeRef" }
+      }
+    },
+    "scope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["included_surface_refs", "included_ko", "excluded_ko"],
+      "properties": {
+        "included_surface_refs": { "$ref": "#/$defs/stringList" },
+        "included_ko": { "$ref": "#/$defs/stringList" },
+        "excluded_ko": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "interactionStep": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["order", "design_ref", "surface_ref", "action_ko", "result_ko", "contract_refs"],
+      "properties": {
+        "order": { "type": "integer", "minimum": 1 },
+        "design_ref": { "$ref": "#/$defs/designRef" },
+        "surface_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "action_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "result_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "contract_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/contractRef" }
+        }
+      }
+    },
+    "region": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title_ko", "content_ko"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "title_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "content_ko": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "inputContract": {
+      "type": "object",
+      "minProperties": 1,
+      "$comment": "입력 계약의 도메인별 구조는 고정된 실행 계약이 소유합니다. 화면 명세 스키마는 존재 여부만 검증합니다."
+    },
+    "surface": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title_ko", "existing_wireframe_screen_ids", "entry_ko", "regions"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^SURFACE-[A-Z0-9][A-Z0-9-]+$" },
+        "title_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "existing_wireframe_screen_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/nonEmptyString" }
+        },
+        "entry_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "regions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/region" }
+        },
+        "input_contract": { "$ref": "#/$defs/inputContract" },
+        "scope_note_ko": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "surface_ref",
+        "trigger_ko",
+        "visible_result_ko",
+        "interaction_ko",
+        "accessibility_ko"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^STATE-[A-Z0-9][A-Z0-9-]+$" },
+        "surface_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "design_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/designRef" }
+        },
+        "contract_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/contractRef" }
+        },
+        "trigger_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "visible_result_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "interaction_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "accessibility_ko": { "$ref": "#/$defs/nonEmptyString" }
+      },
+      "anyOf": [
+        {
+          "required": ["design_refs"],
+          "properties": { "design_refs": { "type": "array", "minItems": 1 } }
+        },
+        {
+          "required": ["contract_refs"],
+          "properties": { "contract_refs": { "type": "array", "minItems": 1 } }
+        }
+      ]
+    },
+    "accessibilityContract": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["contract_ref", "requirements_ko"],
+      "properties": {
+        "contract_ref": { "$ref": "#/$defs/contractRef" },
+        "requirements_ko": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "comparison": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "wireframe_locator", "observed_ko", "approved_refs", "gap_ko", "disposition", "implementation_ko"],
+      "properties": {
+        "id": { "type": "string", "pattern": "^COMPARE-[0-9]{3,}$" },
+        "wireframe_locator": { "$ref": "#/$defs/nonEmptyString" },
+        "observed_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "approved_refs": { "$ref": "#/$defs/stringList" },
+        "gap_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "disposition": { "$ref": "#/$defs/nonEmptyString" },
+        "implementation_ko": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    },
+    "contractGap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "requirement_ref",
+        "affected_surface_ref",
+        "current_contract_refs",
+        "finding_ko",
+        "needed_outcome_ko",
+        "blocks_promotion"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^CONTRACT-GAP-[0-9]{3,}$" },
+        "status": { "enum": ["open", "resolved", "dismissed"] },
+        "requirement_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "affected_surface_ref": { "$ref": "#/$defs/nonEmptyString" },
+        "current_contract_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/contractRef" }
+        },
+        "finding_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "needed_outcome_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "blocks_promotion": { "type": "boolean" }
+      }
+    },
+    "implementationHandoff": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frontend_rules_ko", "verification_scenarios_ko", "prohibited_ko"],
+      "properties": {
+        "frontend_rules_ko": { "$ref": "#/$defs/stringList" },
+        "verification_scenarios_ko": { "$ref": "#/$defs/stringList" },
+        "prohibited_ko": { "$ref": "#/$defs/stringList" }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["design_refs", "contract_refs", "comparison_entry_refs"],
+      "properties": {
+        "design_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/designRef" }
+        },
+        "contract_refs": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/contractRef" }
+        },
+        "comparison_entry_refs": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^COMPARE-[0-9]{3,}$" }
+        }
+      }
+    },
+    "requiredReview": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["capability", "check_ko", "status"],
+      "properties": {
+        "capability": { "$ref": "#/$defs/nonEmptyString" },
+        "check_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "status": { "enum": ["pending", "passed", "changes_required"] }
+      }
+    },
+    "openQuestion": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "status",
+        "kind",
+        "owner_capability",
+        "question_ko",
+        "reason_ko",
+        "blocks_promotion"
+      ],
+      "properties": {
+        "id": { "type": "string", "pattern": "^QUESTION-[0-9]{3,}$" },
+        "status": { "enum": ["open", "resolved", "dismissed"] },
+        "kind": { "enum": ["contract_gap", "product_policy", "technical_design"] },
+        "gap_ref": {
+          "oneOf": [
+            { "type": "null" },
+            { "type": "string", "pattern": "^CONTRACT-GAP-[0-9]{3,}$" }
+          ]
+        },
+        "owner_capability": { "$ref": "#/$defs/nonEmptyString" },
+        "question_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "reason_ko": { "$ref": "#/$defs/nonEmptyString" },
+        "blocks_promotion": { "type": "boolean" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "kind": { "const": "contract_gap" } },
+            "required": ["kind"]
+          },
+          "then": {
+            "required": ["gap_ref"],
+            "properties": {
+              "gap_ref": { "type": "string", "pattern": "^CONTRACT-GAP-[0-9]{3,}$" }
+            }
+          }
+        }
+      ]
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["review_status", "required_reviews", "open_questions", "promotion_rule_ko"],
+      "properties": {
+        "review_status": { "enum": ["pending_independent_review", "blocked_by_contract_gap", "approved"] },
+        "required_reviews": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/requiredReview" }
+        },
+        "open_questions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/openQuestion" }
+        },
+        "promotion_rule_ko": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}
