@@ -6,6 +6,8 @@
     "node": ">=22.13"
   },
   "scripts": {
+    "test:governance": "node --test \"scripts/*.test.mjs\"",
+    "validate:governance": "node scripts/run-governance-validations.mjs",
     "test:workflow-policy": "node --test scripts/validate-workflow-policy.test.mjs",
     "validate:workflow-policy": "node scripts/validate-workflow-policy.mjs",
     "test:contracts": "node --test scripts/validate-contracts.test.mjs scripts/validate-contract-bundles.test.mjs scripts/validate-contract-fixtures.test.mjs scripts/validate-purchase-request-openapi-client.test.mjs",

@@ -25,6 +25,10 @@ dev-web:
     pnpm --filter web dev
 
 # 실행 계약
+validate-governance:
+    node --test "scripts/*.test.mjs"
+    node scripts/run-governance-validations.mjs
+
 validate-workflow-policy:
     pnpm test:workflow-policy
     pnpm validate:workflow-policy
@@ -128,4 +132,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-workflow-policy validate-contracts validate-product-specs validate-architecture validate-delivery-work validate-screen-specs validate-execution-plan validate-execution-runtime validate-delivery-status lint typecheck test build
+check: validate-governance lint typecheck test build
