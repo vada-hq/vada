@@ -1,10 +1,10 @@
 {
   "schema_version": "0.2.0",
   "plan_id": "WP-FIN-001",
-  "plan_revision": null,
-  "plan_status": "review_ready",
-  "approval_source_ref": null,
-  "updated_at": "2026-08-05T00:07:07+09:00",
+  "plan_revision": 2,
+  "plan_status": "approved",
+  "approval_source_ref": "SRC-010",
+  "updated_at": "2026-08-05T01:57:01.160+09:00",
   "solution_ref": {
     "path": "product-specs/solutions/SOLUTION-FIN-001/R1.json",
     "solution_id": "SOLUTION-FIN-001",
@@ -88,6 +88,13 @@
       "captured_at": "2026-08-05T00:07:07+09:00",
       "locator": "pnpm validate:product-specs;pnpm validate:contracts;pnpm validate:architecture",
       "content_ko": "제품 명세·계약·아키텍처 검증이 오류 0으로 통과해 작업 도출의 상위 기준선이 유효함을 확인했습니다."
+    },
+    {
+      "id": "SRC-010",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T01:57:01.160+09:00",
+      "locator": "current-thread/du001-work-r2-conditional-approval-2026-08-05",
+      "content_ko": "제품 책임자가 기존 R1 작업 21개 보존과 상세 계약 R2 영향 작업 8개 개정 범위가 유지되고, 정확성 복구의 독립 검증과 CI가 통과한 경우 작업 그래프 R2 전체를 승인한다고 명시했습니다. 해당 조건이 모두 충족됐음을 확인했습니다."
     }
   ],
   "imports": [
@@ -213,7 +220,7 @@
       "id": "WORK:purchase-request-screen-spec@R2",
       "key": "purchase-request-screen-spec",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "additive",
       "supersedes": "WORK:purchase-request-screen-spec@R1",
       "title_ko": "구매 요청 화면 명세 R2 확정",
@@ -239,7 +246,7 @@
       "id": "WORK:purchase-request-contract-fixtures@R2",
       "key": "purchase-request-contract-fixtures",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "breaking",
       "supersedes": "WORK:purchase-request-contract-fixtures@R1",
       "title_ko": "구매 요청 계약 예제·검증 기준선 R2 구현",
@@ -283,7 +290,7 @@
       "id": "WORK:purchase-request-detail-api@R2",
       "key": "purchase-request-detail-api",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "breaking",
       "supersedes": "WORK:purchase-request-detail-api@R1",
       "title_ko": "구매 요청 상세 API R2 구현",
@@ -322,7 +329,7 @@
       "id": "WORK:purchase-request-openapi-client-baseline@R2",
       "key": "purchase-request-openapi-client-baseline",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "breaking",
       "supersedes": "WORK:purchase-request-openapi-client-baseline@R1",
       "title_ko": "OpenAPI 클라이언트 생성 기준선 R2 구현",
@@ -356,7 +363,7 @@
       "id": "WORK:purchase-request-detail-ui@R2",
       "key": "purchase-request-detail-ui",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "additive",
       "supersedes": "WORK:purchase-request-detail-ui@R1",
       "title_ko": "구매 요청 상세 UI R2 구현",
@@ -388,7 +395,7 @@
       "id": "WORK:purchase-request-detail-api-integration@R2",
       "key": "purchase-request-detail-api-integration",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "breaking",
       "supersedes": "WORK:purchase-request-detail-api-integration@R1",
       "title_ko": "구매 요청 상세 실제 API R2 연결",
@@ -424,7 +431,7 @@
       "id": "WORK:purchase-request-server-verification@R2",
       "key": "purchase-request-server-verification",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "additive",
       "supersedes": "WORK:purchase-request-server-verification@R1",
       "title_ko": "서버 계약·보안·원자성 증거 R2 완성",
@@ -461,7 +468,7 @@
       "id": "WORK:purchase-request-browser-verification@R2",
       "key": "purchase-request-browser-verification",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "additive",
       "supersedes": "WORK:purchase-request-browser-verification@R1",
       "title_ko": "브라우저 완주·접근성·시각 회귀 증거 R2 완성",
@@ -509,7 +516,7 @@
   "questions": [
     {
       "id": "Q-001",
-      "status": "pending",
+      "status": "answered",
       "decision_area": "approval",
       "origin": "approval",
       "depends_on_question_refs": [],
@@ -541,8 +548,11 @@
         ],
         "source_refs": ["SRC-001", "SRC-002", "SRC-003", "SRC-004", "SRC-005", "SRC-006", "SRC-007", "SRC-008", "SRC-009"]
       },
-      "answer_source_ref": null,
-      "normalized_answer": null,
+      "answer_source_ref": "SRC-010",
+      "normalized_answer": {
+        "selected_option_ids": ["YES"],
+        "free_text": null
+      },
       "dismissal_reason_ko": null
     }
   ]
