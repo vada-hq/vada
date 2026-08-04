@@ -10,10 +10,10 @@
 
 기존 승인 리비전은 보존하고, 새 작성 경로에만 다음 네 가지 버전 경계를 추가하는 방식을 권장한다.
 
-1. 실행 계획 v0.2는 **현재 웨이브의 커밋 작업만** 기록한다. 미래 작업은 승인 작업 그래프에서, 완료·진행 중 작업은 정확한 과거 계획·런타임 계보로 만든 원장에서 파생한다.
-2. 워크플로 정책 R1의 기존 단일 파일은 그대로 보존하고, R2부터 불변 리비전 경로를 사용한다. 실행 계획·런타임·CI가 같은 정책 해시를 참조해 보증 등급과 유한 재시도를 기계적으로 강제한다.
+1. 실행 계획 v0.2는 **현재 웨이브의 커밋 작업만** 기록한다. 미래 작업은 승인 작업 그래프에서, 완료·진행 중 작업은 정확한 과거 계획과 불변 런타임 checkpoint 계보로 만든 원장에서 파생한다.
+2. 워크플로 정책 R1의 기존 단일 파일은 그대로 보존하고, R2부터 정책과 registry 모두 불변 checkpoint chain으로 추가한다. 실행 계획·런타임·CI가 같은 정책 해시를 참조해 보증 등급과 유한 재시도를 기계적으로 강제한다.
 3. 전달 작업 v0.3은 작업 범위를 한 번만 기록하고 완료 증거는 `all_work_scope` 또는 명시적 부분집합으로 그 범위를 재사용한다.
-4. 새 전달 단위 manifest를 승인 제품 흐름·목표 솔루션과 실행 계층 사이의 안정 ID 정본으로 두고, Notion과 기존 `SL-*`는 단방향 투영 또는 레거시 별칭으로 전환한다.
+4. 새 전달 단위 manifest를 승인 제품 흐름·목표 솔루션과 실행 계층 사이의 안정 ID 정본으로 두되, 동일 제품 기준선을 여러 DU가 나누면 별도로 승인된 delivery partition을 고정한다. Notion과 기존 `SL-*`는 단방향 투영 또는 레거시 별칭으로 전환한다.
 
 이 제안은 외부 표준을 새 규칙의 권위로 사용하지 않는다. 아래 판단은 현재 저장소의 승인 이력, 스키마, 검증기와 CI가 실제로 수행하는 행동을 근거로 한다.
 
@@ -25,13 +25,14 @@
 - Notion은 사람용 운영 화면과 입력 근거일 수 있지만 승인 제품·계약·작업 의미의 동시 정본이 되지 않는다.
 - 상태·착수 가능성·보증 의무처럼 계산 가능한 값은 직접 다시 쓰지 않고 정본에서 파생한다.
 - 새 형식 전환은 새 작성, 이중 검증, 기본 전환, 구형 제거의 순서를 지키며 각 단계에서 구형 리더로 돌아갈 수 있어야 한다.
+- 한 전달 단위에서 첫 v0.2 실행 계획이 승인된 뒤에는 새 계획의 스키마와 계보 규칙을 v0.1로 낮출 수 없다. 롤백은 새 작성을 멈추거나 더 보수적인 v0.2 경로로만 수행한다.
 
 ## 확인된 현재 동작
 
 - [실행 계획 스키마 v0.1](../../delivery-units/schemas/execution-plan.schema.json)은 `work_allocations`에 승인 작업 전수를 요구하고, [실행 계획 검증기](../../scripts/validate-execution-plan.mjs)는 누락 작업을 오류로 처리한다. DU-001 R1~R4는 매번 21개를 모두 기록했으며 `forecast`가 17→14→10→8, `satisfied`가 0→3→6→10으로 바뀌었다.
 - [워크플로 정책](../../.vada/workflow-policy.json)에는 세 보증 등급과 위험 경로가 있지만, 실행 계획 스키마에는 `assurance_profile`이나 정책 해시 참조가 없다. [CI](../../.github/workflows/ci.yml)는 정책과 실행 계획 검증을 같은 job에서 차례로 실행할 뿐 두 문서를 교차 검증하지 않는다.
 - [DU-001 전달 작업 R1](../../delivery-units/DU-001/delivery-work/R1.json)의 완료 증거 23개 중 20개가 상위 작업의 `design_refs`와 `contract_refs`를 그대로 반복한다. [전달 작업 검증기](../../scripts/validate-delivery-work-plan.mjs)는 이 복사를 전제로 합집합 커버리지를 검사한다.
-- [실행 런타임 스키마 v0.1](../../delivery-units/schemas/execution-runtime.schema.json)에는 시도 번호·실패 분류·같은 원인 식별자·최대 횟수가 없다. [런타임 검증기](../../scripts/validate-execution-runtime.mjs)는 `review -> in_progress`와 `done -> in_progress`를 횟수 제한 없이 허용하고, [기록기](../../scripts/record-execution-runtime.mjs)는 재시도 메타데이터를 입력받지 않는다.
+- [실행 런타임 스키마 v0.1](../../delivery-units/schemas/execution-runtime.schema.json)에는 시도 번호·실패 분류·같은 원인 식별자·최대 횟수가 없다. [런타임 검증기](../../scripts/validate-execution-runtime.mjs)는 `review -> in_progress`와 `done -> in_progress`를 횟수 제한 없이 허용한다. [기록기](../../scripts/record-execution-runtime.mjs)는 같은 `execution-runtime/R<n>.json`을 임시 파일로 쓴 뒤 rename하여 덮어쓰고 내부 `runtime_revision`을 증가시키므로, 현재 파일은 append-only 불변 리비전이 아니라 mutable current state다.
 - [DU-001 전달 작업 R1](../../delivery-units/DU-001/delivery-work/R1.json)은 `FLOW-FIN-001@R2`를 전달 단위로 쓰지만 실행 계획과 디렉터리는 `DU-001`을 사용한다. [Notion 원장](../../contracts/notion.json)은 `SL-*`, `MS-*`, `TSK-*`를 별도로 매핑하며 `DU-001`과 `WORK:*`의 직접 투영 관계는 없다.
 - [SL-EVT-002](../../contracts/slices/SL-EVT-002.json)는 `planned` 상태에서 `DATA:event.lifecycle_transition@R1`의 `review` 리비전을 기준선에 포함한다. [계약 검증기](../../scripts/validate-contracts.mjs)는 이 조합을 매번 경고하고 성공 코드로 끝내므로 [CI](../../.github/workflows/ci.yml)는 항상 같은 경고를 허용한다.
 
@@ -56,7 +57,7 @@
 기존 SL-* ── 레거시 별칭/투영 ──► 전달 단위 manifest
 ```
 
-이 구조에서 manifest는 새 제품 의미를 복사하지 않는다. `active` manifest는 정확한 승인 흐름과 목표 솔루션의 경로·리비전·해시를 함께 고정하고 둘의 내부 참조가 일치하는지만 검증한다. 이후 계층은 manifest의 안정 ID를 사용한다. 승인 흐름이나 솔루션이 아직 없는 계획 후보는 구현 입력이 아닌 `definition_blocked` 인벤토리로만 표현한다.
+이 구조에서 manifest는 새 제품 의미를 복사하지 않는다. `status: active` manifest는 정확한 승인 흐름·목표 솔루션·delivery partition의 경로·리비전·해시를 함께 고정하고 내부 참조가 일치하는지만 검증한다. 이후 계층은 manifest의 안정 ID를 사용한다. 승인 흐름·솔루션·필요한 분할 결정 중 하나라도 없는 계획 후보는 구현 입력이 아닌 `status: definition_blocked` 인벤토리로만 표현한다.
 
 ## 1. `forecast` 전량 재작성 제거
 
@@ -93,11 +94,17 @@
 {
   "schema_version": "0.2.0",
   "workflow_policy_ref": { "path": "...", "policy_id": "...", "policy_revision": 2, "canonical_sha256": "..." },
+  "policy_registry_checkpoint_ref": { "path": "...", "registry_id": "...", "registry_revision": 2, "canonical_sha256": "..." },
   "work_plan_ref": { "path": "...", "plan_id": "...", "plan_revision": 2, "canonical_sha256": "..." },
   "selection_snapshot": {
     "previous_execution_plan_ref": { "path": "...", "plan_id": "...", "plan_revision": 4, "canonical_sha256": "..." },
-    "runtime_input_refs": [
-      { "path": "...", "runtime_id": "...", "runtime_revision": 4, "canonical_sha256": "..." }
+    "runtime_checkpoint_refs": [
+      {
+        "path": "delivery-units/DU-001/execution-runtime/checkpoints/RUN-DU-001-EP-R4/R5.json",
+        "runtime_id": "RUN-DU-001-EP-R4",
+        "runtime_revision": 5,
+        "canonical_sha256": "..."
+      }
     ],
     "completion_ledger_sha256": "<sha256>",
     "attempt_ledger_sha256": "<sha256>",
@@ -117,28 +124,37 @@
 }
 ```
 
-`source_commit`은 사용하지 않는다. 계획이 자신을 포함한 Git commit을 참조하면 자기 참조가 생기고, 이전 commit을 참조하면 shallow checkout과 Git 객체 보존 여부에 검증이 종속되기 때문이다. 대신 snapshot은 승인 작업 그래프, 바로 전 승인 실행 계획, 상태 계산에 실제로 사용한 불변 런타임의 경로·ID·리비전·정규 해시를 모두 고정한다. 검증기는 각 런타임에서 그 런타임이 고정한 계획과 작업 그래프까지 계보를 따라가고, `verified` 완료 증거만 모아 결정적 완료 원장을 만든다.
+`source_commit`은 사용하지 않는다. 계획이 자신을 포함한 Git commit을 참조하면 자기 참조가 생기고, 이전 commit을 참조하면 shallow checkout과 Git 객체 보존 여부에 검증이 종속되기 때문이다. 대신 snapshot은 승인 작업 그래프, 바로 전 승인 실행 계획, 상태 계산에 실제로 사용한 **불변 런타임 checkpoint**의 경로·ID·리비전·정규 해시를 모두 고정한다. 현재 v0.1 `execution-runtime/R<n>.json`은 같은 파일을 갱신하는 mutable state이므로 이 필드가 직접 참조해서는 안 된다. 검증기는 각 checkpoint가 고정한 계획과 작업 그래프까지 계보를 따라가고, `verified` 완료 증거만 모아 결정적 완료 원장을 만든다.
 
 `ready_work_refs`는 계획 작성 직전의 미커밋 착수 가능 전선만 봉인하며 미래·완료 작업 전수를 포함하지 않는다. 일반적인 새 commitment와 `deferred_ready`의 합집합은 이 전선과 정확히 같아야 한다. `active_work_refs`는 앞선 계획에서 커밋됐지만 검증 완료나 명시적 종결이 없는 작업이다. 새 commitment는 정확한 작업 리비전뿐 아니라 같은 안정 작업 ID의 대체 리비전과도 겹칠 수 없다. 단, 미착수 예약을 재배정할 때만 현재 `active_work_refs`에 있는 작업을 이전 plan ref와 사람 승인 근거를 가진 `released_commitments`로 해제하고 같은 계획에서 새 executor에게 다시 commitment할 수 있다. 따라서 전체 식은 `(ready_work_refs ∪ released_commitments.work_item_ref) = (commitments.work_item_ref ∪ deferred_ready.work_item_ref)`이며 각 집합은 중복이 없어야 한다. 이미 착수한 작업은 release로 우회할 수 없고 이전 실행의 종결·교체·인계 근거가 필요하다.
 
 과거 계획은 자신보다 낮은 계획 리비전의 연속 체인과 snapshot에 고정한 런타임만으로 검증한다. 이후 생긴 계획이나 런타임을 다시 섞지 않으므로 과거 snapshot은 재해석되지 않는다. 반대로 현재 계획을 만들 때는 같은 전달 단위의 더 낮은 승인 계획 리비전이 체인에서 빠지거나, 앞선 커밋 작업이 완료 원장과 활성 원장 어느 쪽에도 없으면 실패한다. 이렇게 해야 snapshot 작성자가 진행 중 작업을 누락해 중복 배정하는 것을 막을 수 있다.
 
+런타임 v0.2의 정본은 `execution-runtime/checkpoints/<runtime_id>/R<n>.json`에 한 번만 생성되는 전체 상태 checkpoint다. 각 파일은 `runtime_id`, 단조 증가하는 `runtime_revision`, 정확한 `previous_checkpoint_ref`, `execution_plan_ref`, 상태·전이·증거와 정규 해시 계산 규칙을 가진다. `execution-runtime/heads/<runtime_id>.json`은 최신 checkpoint ref만 보여주는 재생성 가능한 mutable projection이며 계획·완료 원장·attempt 원장의 입력으로 사용할 수 없다.
+
+기록기는 예상 head의 리비전·해시를 조건으로 단일 writer lock을 얻고, 한 operation을 적용한 다음 전체 다음 checkpoint를 먼저 검증한다. 검증된 내용을 같은 파일시스템의 임시 파일에 쓴 뒤 아직 존재하지 않는 최종 `R<n>.json`으로 원자적 rename하며 기존 checkpoint 경로가 있으면 실패한다. 그 뒤 head projection을 compare-and-swap 방식으로 교체한다. canonical commit 지점은 유효한 단일 chain successor인 immutable checkpoint의 생성이고 head는 파생 cache다. 따라서 checkpoint 생성 뒤 head 교체 전에 중단되면 resolver가 유일한 유효 successor를 찾아 head를 재생성한 뒤에만 다음 operation을 받는다. 현재 tip을 선행으로 삼지 않은 파일이나 같은 tip에서 갈라진 둘 이상의 successor는 orphan·fork로 격리하고 계획 입력에 포함하지 않는다. 동시 writer가 같은 선행 checkpoint에서 두 후속 파일을 만들면 CI도 chain fork로 거부한다. 저장소에 이미 승인·병합된 checkpoint의 수정·삭제는 보호된 base와의 byte diff gate가 거부하며 새 경로 추가만 허용한다.
+
+기존 v0.1 runtime은 전환 순간 writer를 먼저 정지하고 현재 바이트의 경로·ID·내부 리비전·정규 해시를 고정한 bridge checkpoint를 새 경로에 만든다. bridge의 상태·전이·증거가 frozen legacy 파일과 의미상 같은지 검증해 head projection을 만든 뒤, 최초 plan v0.2가 승인될 때만 v0.2 operation writer를 활성화한다. 이후 legacy 파일은 역사 입력으로만 읽고 다시 덮어쓰지 않는다. plan v0.2는 bridge 또는 그 후속 checkpoint만 고정하며 mutable head와 legacy current path를 직접 고정하면 실패한다.
+
 ### 새 스키마 리비전과 단계적 마이그레이션
 
-1. `execution-plan-0.2.0.schema.json`과 v0.1·v0.2 이중 리더를 추가한다.
-2. 실행 계획 계보와 검증된 완료 증거 원장을 해석하는 공용 resolver를 추가한다. `derive-delivery-status`와 계획 검증기는 이 resolver의 동일한 정규 출력으로 snapshot digest를 계산한다.
-3. 다음 웨이브 한 건을 v0.2로 작성하되 기존 R1~R4는 그대로 검증한다. 최초 v0.2 계획은 바로 전 v0.1 계획과 해당 런타임을 정확한 해시로 고정하는 호환 경계를 가진다.
-4. 두 웨이브 동안 v0.2 계획과 런타임 생성·상태 파생을 관찰한 뒤 새 작성 기본값만 v0.2로 바꾼다.
-5. 모든 활성 도구가 v0.2를 읽는 것이 확인된 뒤 v0.1 작성기만 제거한다. v0.1 리더는 역사 조회를 위해 유지한다.
+1. `execution-runtime-checkpoint-0.2.0.schema.json`, `execution-runtime-head-0.1.0.schema.json`, `execution-plan-0.2.0.schema.json`과 구·신형 이중 리더를 추가한다.
+2. 기존 runtime writer를 멈춘 상태에서 v0.1 파일별 bridge checkpoint를 만들고 의미 동등성·해시를 검증한다. 이 단계에서는 새 writer를 보고 전용으로 두고 기존 파일을 동결한다.
+3. 실행 계획 계보와 검증된 완료 증거 원장을 checkpoint chain으로 해석하는 공용 resolver를 추가한다. `derive-delivery-status`와 계획 검증기는 이 resolver의 동일한 정규 출력으로 snapshot digest를 계산한다.
+4. 다음 웨이브 한 건을 v0.2로 작성하되 기존 계획 R1~R4와 frozen runtime은 그대로 검증한다. 최초 v0.2 계획은 바로 전 v0.1 계획과 해당 bridge checkpoint를 정확한 해시로 고정하는 호환 경계를 가진다.
+5. 첫 v0.2 계획 승인과 동시에 해당 DU의 최소 작성 버전을 v0.2로 올리고 checkpoint writer를 활성화한다. 이후 더 높은 계획 리비전에 v0.1 schema가 나타나면 검증 실패한다.
+6. 두 웨이브 동안 checkpoint 생성·head projection·상태 파생을 관찰한 뒤 새 작성 기본값만 v0.2로 바꾼다. 모든 활성 도구가 v0.2를 읽는 것이 확인된 뒤 v0.1 writer만 제거하고 v0.1 reader는 역사 조회를 위해 유지한다.
 
 ### 롤백과 검증 기준
 
-- 롤백은 v0.2 작성 기본값을 끄고 새 웨이브를 v0.1로 작성하는 방식으로 한다. 이미 승인된 v0.2 파일은 삭제하거나 v0.1로 재작성하지 않는다.
+- 첫 v0.2 계획이 승인되기 전에는 새 writer를 끄고 v0.1 경로로 돌아갈 수 있다. 승인된 뒤에는 v0.2 writer를 보고 전용 또는 정지 상태로 돌릴 수만 있고 새 v0.1 계획을 만들 수 없다. 긴급 계획이 필요하면 같은 lineage·정책·retry 필드를 유지한 보수적 v0.2 계획을 사람 승인으로 작성한다.
 - v0.2 계획에 `forecast`·`satisfied`·작업 전수 allocation이 들어가면 검증 실패해야 한다.
 - snapshot의 `ready` 전선과 `commitments + deferred_ready`가 다르거나, 커밋 작업의 선행 증거가 snapshot에 없으면 실패해야 한다.
 - 앞선 계획에서 완료되지 않은 작업, 같은 안정 ID의 대체 리비전, 런타임이 아직 만들어지지 않은 예약 작업을 다시 커밋하면 실패해야 한다.
 - 미착수 release에 이전 계획 ref나 사람 승인 근거가 없거나, 이미 착수한 run을 release하려 하면 실패해야 한다. 유효 release와 새 commitment는 같은 계획에서 원자적으로 검증돼야 한다.
-- 이전 계획·런타임 입력 ref 하나를 빼거나 해시를 바꾸면 실패하고, 동일한 작업 그래프·계획 계보·런타임 입력에서는 snapshot digest가 두 번 모두 같아야 한다.
+- 이전 계획·checkpoint 입력 ref 하나를 빼거나 해시를 바꾸면 실패하고, 동일한 작업 그래프·계획 계보·checkpoint 입력에서는 snapshot digest가 두 번 모두 같아야 한다.
+- mutable head나 legacy current runtime을 계획이 직접 참조하거나, checkpoint를 덮어쓰거나, previous ref·revision이 끊기거나, checkpoint fork·고아를 정상 원장에 포함하면 실패해야 한다. 보호된 base의 기존 checkpoint를 수정·삭제해도 실패하고, bridge 전환 전후의 상태·증거 원장 결과는 같아야 한다.
+- 첫 v0.2 승인 뒤 더 높은 계획 리비전을 v0.1로 작성하거나 v0.2 필수 lineage·policy·retry 필드를 생략하면 schema downgrade로 실패해야 한다.
 - 검증은 현재 checkout에 존재하는 불변 리비전 파일만 사용해야 하며 Git history나 네트워크 fetch 없이 통과해야 한다.
 
 ## 2. `assurance_profile` 실행 계획·검증기·CI 배선
@@ -172,7 +188,8 @@
 
 대안 C를 권장한다.
 
-- 기존 `.vada/workflow-policy.json`은 R1의 불변 레거시 경로로 유지한다. R2부터 `.vada/workflow-policies/R<n>.json`에 새 파일로 추가하며, `.vada/workflow-policy-registry.json`은 `(policy_id, revision) → path + canonical_sha256`와 새 계획 작성에 사용할 기본 ref만 관리한다. registry의 기존 리비전 항목은 append-only이며 path·hash를 바꿀 수 없다. 실행 계획은 registry나 “최신”을 참조하지 않고 항상 정확한 정책 파일을 고정한다.
+- 기존 `.vada/workflow-policy.json`은 R1의 불변 레거시 경로로 유지하고, R2부터 `.vada/workflow-policies/R<n>.json`에 새 파일로 추가한다. registry 정본도 단일 mutable 파일이 아니라 `.vada/workflow-policy-registry/R<n>.json`의 불변 checkpoint chain으로 둔다. 각 checkpoint는 `registry_id`, 단조 증가하는 `registry_revision`, 정확한 `previous_registry_ref`와 정규 해시, 이번에 추가하는 `(policy_id, policy_revision) → policy path + canonical_sha256`, 승인 source ref를 가진다. `.vada/workflow-policy-registry-head.json`은 최신 ref를 보여주는 재생성 가능한 projection일 뿐 검증 권위가 아니다.
+- 실행 계획은 “최신” registry나 head를 참조하지 않고 정확한 `workflow_policy_ref`와 그 정책을 처음 등록한 `policy_registry_checkpoint_ref`를 함께 고정한다. resolver는 checkpoint chain을 따라 같은 정책 키의 중복·재지정·삭제가 없는지 확인한다.
 - 워크플로 정책 v0.2는 등급의 순서와 요구 검사, 위험 trigger→등급 route, CI 경로별 최소 trigger, 기본 retry 정책을 소유한다. registry와 정책 자체의 변경도 `workflow_governance`로 분류한다.
 - 계획 보증 trigger는 승인 작업 그래프의 계약 ref·역량·새 `risk_declarations`에서 resolver가 계산한 의미 trigger와 계획 작성자가 보수적으로 추가한 trigger의 합집합이다. 현재 전달 작업 스키마에는 `risk_declarations`가 없으므로 새 delivery-work 스키마에 근거 종류와 source ref를 함께 추가하기 전에는 이를 존재한다고 가정하지 않는다.
 - 실행 계획 v0.2는 `workflow_policy_ref`를 한 번 고정하고 각 commitment에 계획 보증 `risk_triggers`와 `assurance_profile`을 봉인한다. 계획 작성자는 trigger를 추가할 수만 있고 제거할 수 없다. 아직 발생하지 않은 PR의 변경 경로는 계획에 예측해 쓰지 않는다.
@@ -182,22 +199,25 @@
 
 `.vada/`, 워크플로 스키마, 실행 기록기·상태 파생기·검증기처럼 거버넌스 자체를 바꾸는 경로는 실행 계획이 없어도 경로 기반 최소 trigger가 `workflow_governance`를 부여한다. 계획이 없다는 이유로 등급을 낮추지 않으며, 이 경우에도 사람 review와 전체 통합 검사를 요구한다. 반대로 제품·계약 의미를 바꾸는 변경인데 대응 승인 작업을 찾을 수 없으면 낮은 기본값으로 진행하지 않고 “승인 작업 입력 없음”으로 실패한다.
 
+checkpoint chain의 자기 일관성만으로 append-only를 증명할 수는 없다. 공격자가 기존 정책과 모든 registry checkpoint의 해시를 함께 다시 쓰면 현재 checkout만 보는 검증기는 위조된 새 체인을 정상으로 오인할 수 있기 때문이다. 따라서 registry·정책 승인 CI는 보호된 base branch의 Git 객체를 외부 권위로 사용해 기존 승인 파일의 바이트 불변성을 비교한다. PR base SHA를 신뢰할 수 없거나 해당 base 객체를 가져오지 못한 환경에서는 역사 읽기 검증만 허용하고 새 정책·registry checkpoint 승인을 실패시킨다. 실행 계획과 런타임은 여전히 checkout 안의 정확한 checkpoint ref·hash로 재현되며, 보호된 base 비교는 새 승인 이력의 append-only 여부에만 사용한다.
+
 사람 승인은 GitHub job 성공으로 대체하지 않는다. 승인 실행 계획의 `user_statement`와 보호 브랜치의 사람 review 중 프로젝트가 정한 하나 이상의 근거가 별도로 필요하다.
 
 ### 새 스키마 리비전과 단계적 마이그레이션
 
-1. registry에 기존 `.vada/workflow-policy.json`을 R1 경로와 현재 정규 해시로 등록한다. 파일을 이동·복사·수정하지 않는다. 같은 `(policy_id, revision)`의 중복 경로와 registry 해시 불일치를 거부한다.
-2. `workflow-policy-0.2.0.schema.json`에 정책 우선순위, CI check mapping, 경로 기반 최소 trigger, retry profile을 추가하고 `.vada/workflow-policies/R2.json`을 별도 사람 승인 대상으로 만든다.
-3. 새 delivery-work 스키마에 source-backed `risk_declarations`를 추가하고 계약 유형·작업 역량 resolver와 CI 변경 경로 resolver의 결정표를 각각 테스트 fixture로 고정한다. 자유 문자열 trigger는 허용하지 않는다.
-4. 실행 계획 v0.2에 정확한 정책 ref·trigger·파생 등급을 추가하고 교차 검증기를 만든다.
-5. CI에는 처음 두 주기 동안 보고 전용 `assurance-gate`를 추가해 현행 PR이 어떤 등급으로 분류되는지 비교한다. 실행 계획이 없는 거버넌스 fixture도 반드시 `high_assurance`로 계산돼야 한다.
-6. 오분류가 없으면 새 v0.2 계획에 한해 계획 기반 gate를 필수화한다. 경로 기반 최소 gate는 계획 버전과 무관하게 적용하고, v0.1 계획은 기존 분리 검증 규칙을 유지한다.
-7. 런타임 v0.2 증거 검증까지 연결된 뒤 `mechanical`의 검증자 생략을 실제로 허용한다.
+1. 첫 registry checkpoint가 기존 `.vada/workflow-policy.json`의 R1 경로·정규 해시·사람 승인 source를 고정하게 한다. 이 bootstrap PR은 보호된 base의 R1 파일이 바뀌지 않았음을 별도 high-assurance review로 확인하며 파일을 이동·복사·수정하지 않는다.
+2. registry checkpoint·head 스키마와 chain resolver를 추가한다. 같은 `(policy_id, revision)`의 중복 경로·재지정, previous ref 단절, checkpoint 해시 불일치와 기존 checkpoint 수정·삭제를 거부한다.
+3. `workflow-policy-0.2.0.schema.json`에 정책 우선순위, CI check mapping, 경로 기반 최소 trigger, retry profile을 추가하고 `.vada/workflow-policies/R2.json`과 이를 추가하는 다음 registry checkpoint를 별도 사람 승인 대상으로 만든다.
+4. 새 delivery-work 스키마에 source-backed `risk_declarations`를 추가하고 계약 유형·작업 역량 resolver와 CI 변경 경로 resolver의 결정표를 각각 테스트 fixture로 고정한다. 자유 문자열 trigger는 허용하지 않는다.
+5. 실행 계획 v0.2에 정확한 정책 ref·registry checkpoint ref·trigger·파생 등급을 추가하고 교차 검증기를 만든다.
+6. CI에는 처음 두 주기 동안 보고 전용 `assurance-gate`를 추가해 현행 PR이 어떤 등급으로 분류되는지 비교한다. 실행 계획이 없는 거버넌스 fixture도 반드시 `high_assurance`로 계산돼야 한다.
+7. 오분류가 없으면 새 v0.2 계획에 한해 계획 기반 gate를 필수화한다. 경로 기반 최소 gate는 계획 버전과 무관하게 적용하고, v0.1 계획은 기존 분리 검증 규칙을 유지한다. 런타임 v0.2 증거 검증까지 연결된 뒤에만 `mechanical`의 검증자 생략을 실제로 허용한다.
 
 ### 롤백과 검증 기준
 
-- 정책·계획 교차 검증에 문제가 생기면 `mechanical` 최적화만 비활성화하고 모든 작업을 기존처럼 분리 검증하는 안전한 기본값으로 돌아간다. 이미 승인된 R2 정책과 계획은 삭제하지 않는다.
-- R1 파일 변경, registry 기존 항목 삭제·변경, registry 해시 불일치, 정책 해시 불일치, 알려지지 않은 trigger, route보다 낮은 등급, 필수 CI job 누락은 실패해야 한다.
+- 정책·계획 교차 검증에 문제가 생기면 `mechanical` 최적화만 비활성화하고 모든 작업을 기존처럼 분리 검증하는 안전한 기본값으로 돌아간다. 새 정책·registry writer는 정지할 수 있지만 이미 승인된 checkpoint, R2 정책과 계획은 삭제하거나 구형 형식으로 되돌리지 않는다.
+- R1 파일 변경, registry 기존 checkpoint 삭제·변경·재정렬, previous ref 단절, registry·정책 해시 불일치, 알려지지 않은 trigger, route보다 낮은 등급, 필수 CI job 누락은 실패해야 한다.
+- 기존 정책 파일을 위조하고 기존 registry checkpoint의 항목·해시·이전 chain을 함께 맞춰 바꾼 fixture는 로컬 자기 일관성과 무관하게 protected-base diff gate에서 실패해야 한다. 새 정책·checkpoint 승인 PR에서 신뢰 가능한 base를 읽지 못해도 실패해야 한다.
 - 권한 또는 재정 원자성 fixture를 `standard`로 바꾼 음성 테스트가 반드시 실패해야 한다.
 - `mechanical`은 제품·계약·보안 경계를 참조하지 않는 허용 fixture에서만 검증자 생략이 가능해야 한다.
 - 실행 계획 없이 워크플로 검증기만 바꾼 fixture와 계획에서 trigger를 누락한 fixture가 모두 `high_assurance` 아래에서만 통과해야 한다.
@@ -301,8 +321,8 @@
 
 - 워크플로 정책 v0.2에 `retry_profiles`를 둔다. 예: `max_attempts`, `same_cause_limit`, `retryable_failure_classes`, `stop_failure_classes`, `escalation_role`.
 - 실행 계획 v0.2의 각 commitment는 `retry_policy_ref`만 기록하며 숫자를 복사하지 않는다. 더 엄격한 하향 override만 허용하고 완화는 새 정책 승인으로만 한다.
-- 공용 attempt ledger resolver는 같은 전달 단위의 모든 계획·런타임에서 정확한 `WORK:<id>@R<n>`의 시도를 모은다. 실행 계획 snapshot은 사용한 런타임 ref와 `attempt_ledger_sha256`을 고정하고, 기록기는 다음 번호를 이 전체 원장에서 계산한다. 새 실행 계획이나 새 런타임은 카운터를 1로 되돌리지 못한다.
-- 실행 런타임 v0.2에 `attempt_log`를 추가한다. 기록기는 시도 ID·번호·시각을 자동 생성하고 실패 종료 시 `failure_class`, `cause_fingerprint`, `source_ref`, `outcome`을 요구한다.
+- 공용 attempt ledger resolver는 같은 전달 단위의 모든 계획과 immutable runtime checkpoint chain에서 정확한 `WORK:<id>@R<n>`의 시도를 모은다. 실행 계획 snapshot은 사용한 checkpoint ref와 `attempt_ledger_sha256`을 고정하고, 기록기는 다음 번호를 이 전체 원장에서 계산한다. 새 실행 계획·runtime ID·checkpoint chain은 카운터를 1로 되돌리지 못한다.
+- 실행 runtime checkpoint v0.2에 `attempt_log`를 추가한다. 기록기는 시도 ID·번호·시각을 자동 생성하고 실패 종료 시 `failure_class`, `cause_fingerprint`, `source_ref`, `outcome`을 요구한 뒤 해당 operation을 포함하는 다음 immutable checkpoint를 생성한다.
 - `stopped`를 terminal 상태로 추가한다. 한도 소진, 같은 원인 반복, 즉시 중단 분류 발생 시 기록기가 다음 `in_progress`를 거부하고 `stopped`와 에스컬레이션 근거만 허용한다.
 - `done`은 같은 런타임에서 다시 열지 않는다. 완료 후 발견된 결함은 새 corrective work 또는 새 작업 리비전으로 추적한다.
 
@@ -313,9 +333,9 @@
 ### 새 스키마 리비전과 단계적 마이그레이션
 
 1. 정책 v0.2에 retry profile을 추가하되 초기 한도는 현재 실행 이력의 시도·동일 원인 반복을 보고 전용으로 측정한 뒤 제품 책임자에게 별도 승인받는다. 이 제안은 근거 없는 기본 숫자를 확정하지 않는다.
-2. 정확한 작업 리비전별로 모든 기존 계획·런타임을 순회하는 attempt ledger resolver와 누락·중복 검증을 먼저 보고 전용으로 추가한다.
-3. `execution-runtime-0.2.0.schema.json`과 기록기 operation `attempt_start`, `attempt_finish`, `stop`을 추가한다.
-4. 기존 v0.1의 각 `in_progress` 진입은 순서가 있는 `legacy_attempt`로 읽되 실패 원인을 추정하지 않는다. 기존 R1~R4 런타임 파일은 변환하거나 소급 차단하지 않는다.
+2. 정확한 작업 리비전별로 모든 기존 계획·frozen runtime·새 checkpoint chain을 순회하는 attempt ledger resolver와 누락·중복 검증을 먼저 보고 전용으로 추가한다.
+3. 1번의 `execution-runtime-checkpoint-0.2.0.schema.json`에 `attempt_log`를 포함하고 기록기 operation `attempt_start`, `attempt_finish`, `stop`을 추가한다. mutable runtime v0.2 형식을 별도로 만들지 않는다.
+4. 기존 v0.1의 각 `in_progress` 진입은 bridge checkpoint에서 순서가 있는 `legacy_attempt`로 읽되 실패 원인을 추정하지 않는다. 기존 R1~R4 런타임 파일은 변환하거나 소급 차단하지 않는다.
 5. 보고 전용 모드에서 기존 이력을 재생해 어디에서 중단됐을지 확인한다.
 6. 신규 v0.2 실행 계획부터 전체 attempt ledger 기반 기록기 차단을 강제하고 상태 파생에 `stopped`·`intervention_required`·`needs_replan`을 연결한다.
 
@@ -323,7 +343,7 @@
 
 - 자동 중단 오탐이 발생하면 강제 차단을 보고 전용으로 돌리되 attempt 기록 자체는 유지한다. 최대 횟수를 무제한으로 바꾸지 않는다.
 - 같은 원인 한도 또는 전체 시도 한도를 넘는 `in_progress` operation이 거부돼야 한다.
-- 같은 작업 리비전을 새 실행 계획·런타임에 다시 배정해도 누적 attempt 번호와 한도가 유지돼야 한다.
+- 같은 작업 리비전을 새 실행 계획·runtime ID·checkpoint chain에 다시 배정해도 누적 attempt 번호와 한도가 유지돼야 한다.
 - 즉시 중단 분류 fixture는 첫 시도에서도 `stopped`가 되어야 한다.
 - 서로 다른 일시 실패는 전체 한도 내에서 재시도할 수 있고, 사람의 새 승인·새 계획 없이 `stopped`에서 재개할 수 없어야 한다.
 - 기록기 자동 ID·시각·번호를 입력 JSON으로 위조하면 거부해야 한다.
@@ -344,7 +364,7 @@
 - 외부 Notion 장애가 저장소 계약·CI 검증을 무력화하지 않아야 한다.
 - 기존 `SL-*`와 Notion URL은 감사·링크 호환을 위해 별칭 이력으로 보존한다.
 - 양방향 동기화는 필드별 단일 writer가 정해진 경우에만 허용한다.
-- 하나의 승인 flow를 여러 전달 단위가 단계적으로 구현할 가능성을 근거 없이 금지하지 않는다. 유일성은 안정 DU ID와 레거시 별칭에 적용하고 flow:DU 카디널리티는 별도 제품 전달 결정으로 남긴다.
+- 하나의 승인 flow·solution을 여러 전달 단위가 단계적으로 구현할 가능성을 근거 없이 금지하지 않는다. 동시에 여러 DU가 같은 전체 제품 기준선을 중복 소유한다고 주장할 수도 없어야 한다. 카디널리티·분할 범위·중첩 허용 여부는 별도 사람 승인 delivery-partition 정본으로만 결정한다.
 
 ### 대안
 
@@ -358,7 +378,7 @@
 
 #### 대안 C — 전달 단위 manifest를 안정 ID 정본으로 추가
 
-제품 의미는 승인 흐름과 목표 솔루션에 남기고 manifest가 `DU-*` ID와 정확한 흐름·솔루션 ref만 소유한다. Notion과 기존 `SL-*`는 manifest에 대한 투영·별칭으로 명시한다.
+제품 의미는 승인 흐름과 목표 솔루션에 남기고 manifest가 `DU-*` ID, 정확한 흐름·솔루션 ref와 승인 delivery-partition의 한 member만 소유한다. Notion과 기존 `SL-*`는 manifest에 대한 투영·별칭으로 명시한다.
 
 ### 권장안
 
@@ -384,17 +404,31 @@
       "canonical_sha256": "..."
     }
   },
+  "delivery_scope": {
+    "partition_ref": {
+      "path": "<approved-delivery-partition-path>",
+      "partition_id": "<approved-partition-id>",
+      "partition_revision": 1,
+      "canonical_sha256": "..."
+    },
+    "partition_member_id": "<approved-member-id>",
+    "cardinality_policy": "<exclusive_baseline | partitioned_baseline>",
+    "overlap_policy": "<disjoint | approved_overlap>",
+    "approval_source_ref": "<approved-source-ref>"
+  },
   "legacy_aliases": ["SL-FIN-007"]
 }
 ```
 
-- 제품 결과·AC·계약 기준선은 해당 계층이 계속 소유하고 manifest에는 복사하지 않는다.
-- validator는 solution이 내부에서 참조한 flow와 manifest의 `flow_ref`가 정확히 같은 리비전·해시인지 확인한다. 하위 계약·아키텍처·작업·실행 파일은 `DU-001@R1`을 참조하고 manifest를 통해 두 승인 제품 입력을 해석한다.
-- 하나의 flow에 여러 활성 DU가 존재하는 것을 자동 오류로 만들지 않는다. 같은 flow나 solution을 나누는 경우 각 DU의 전달 범위가 어디에서 승인됐는지는 별도 source ref로 요구하되, 이 문서가 1:1 또는 1:N 정책을 임의 확정하지 않는다.
-- `contracts/notion.json`의 여러 책임은 장기적으로 `.vada/projections/notion.json`으로 이동한다. 각 투영은 `canonical_ref`, data source/page ID, `projected_revision`, `projected_sha256`, `sync_direction`, `field_ownership`을 가진다.
-- 기존 `contracts/slices/*.json`은 곧바로 삭제하지 않는다. 승인 flow와 solution이 있는 항목은 DU 별칭 projection으로 고정하고, 제품 기준선이 없는 항목은 `definition_blocked` 후보 인벤토리로 분류한다.
+위 `delivery_scope` 값은 구조 예시를 위한 placeholder이며 DU-001의 실제 분할 정책을 결정하지 않는다. `delivery-partition-0.1.0` 승인 객체는 정확한 flow·solution 기준선 ref, `cardinality_policy`, `overlap_policy`, 안정 `member_id` 목록, 각 member의 기계 비교 가능한 `scope_atom_refs`, 승인 source를 소유한다. scope atom은 승인 flow·solution의 안정 결과·요구 ID 또는 별도로 승인된 제품 범위 ID만 허용하고 자유 서술문을 범위 판정에 사용하지 않는다. `approved_overlap`이면 중복 atom 쌍과 그 승인 source를 명시하고, `disjoint`이면 member 사이 atom 교집합이 없어야 한다.
 
-`definition_blocked` 후보는 `product_baseline: null`, `candidate_source_refs`, `readiness_blockers`, `legacy_aliases`만 가질 수 있다. 승인 flow·solution을 가장하지 않으며 계약·아키텍처·작업·실행 파일의 입력으로 참조할 수 없다. 두 제품 기준선이 승인되면 사람이 새 `active` manifest 리비전을 승인하고 그때부터 하위 실행 계층을 만들 수 있다.
+- 제품 결과·AC·계약 기준선은 해당 계층이 계속 소유하고 manifest에는 복사하지 않는다.
+- validator는 solution이 내부에서 참조한 flow와 manifest의 `flow_ref`가 정확히 같은 리비전·해시인지 확인한다. 하위 계약·아키텍처·작업·실행 파일은 `DU-001@R1`을 참조하고 manifest를 통해 두 승인 제품 입력과 정확한 partition member를 해석한다.
+- 같은 flow·solution 기준선을 가리키는 모든 active manifest는 같은 승인 partition 리비전·해시를 고정해야 하고 각기 다른 member를 정확히 하나씩 소유해야 한다. `exclusive_baseline` partition은 전체 기준선을 나타내는 member 하나만 허용하고, `partitioned_baseline`만 여러 member·DU를 허용한다. 같은 member 중복, partition 없이 두 번째 전체 기준선 주장, 정책값과 partition 정본 불일치는 실패한다. 이 규칙은 여러 DU 자체를 금지하지 않고, 1:1·1:N 및 overlap 의미를 validator가 추정하지도 않는다.
+- `contracts/notion.json`의 여러 책임은 장기적으로 `.vada/projections/notion.json`으로 이동한다. 각 투영은 `canonical_ref`, data source/page ID, `projected_revision`, `projected_sha256`, `sync_direction`, `field_ownership`을 가진다.
+- 기존 `contracts/slices/*.json`은 곧바로 삭제하지 않는다. 승인 flow·solution·partition이 있는 항목은 DU 별칭 projection으로 고정하고, 필요한 승인 기준선이 없는 항목은 `status: definition_blocked` 후보 인벤토리로 분류한다.
+
+manifest의 유일한 상태 discriminator는 `status`다. `status: active`는 `product_baseline`과 `delivery_scope`를 모두 요구한다. `status: definition_blocked` 후보는 `product_baseline: null`, `delivery_scope: null`, `candidate_source_refs`, `readiness_blockers`, `legacy_aliases`만 가질 수 있다. 승인 flow·solution·partition을 가장하지 않으며 계약·아키텍처·작업·실행 파일의 입력으로 참조할 수 없다. 필요한 제품 기준선과 분할 결정이 승인되면 사람이 새 `status: active` manifest 리비전을 승인하고 그때부터 하위 실행 계층을 만들 수 있다.
 
 필드 소유권은 “현재 운영 입력”과 “승인 당시 실행 결정”을 구분한다.
 
@@ -404,20 +438,22 @@
 
 ### 새 스키마 리비전과 단계적 마이그레이션
 
-1. `delivery-unit-0.1.0.schema.json`과 `planning-projection-ledger-0.1.0.schema.json`을 추가한다. 기존 파일에 영향 없는 인벤토리 모드로 시작한다.
-2. `DU-001 ↔ FLOW-FIN-001@R2 ↔ SOLUTION-FIN-001@R1 ↔ Notion 계획 항목 ↔ WORK:*` crosswalk를 생성하고 사람이 충돌을 검토한다.
-3. Notion의 새 뷰에 안정 `DU-*`·`WORK:*` ID를 추가하되 기존 `SL-FIN-*`·`TSK-*`를 별칭으로 계속 표시한다.
-4. 신규 전달 단위부터 manifest를 의무화하고 새 `contracts/slices` 작성을 금지한다.
-5. 기존 이벤트 슬라이스는 대응 제품 흐름과 솔루션이 모두 승인된 것부터 `active` manifest로 옮긴다. 둘 중 하나가 없으면 `definition_blocked` 후보로만 기록하며 자동 변환으로 제품 의미를 승인하지 않는다.
-6. 커밋 전 희망 담당자와 승인 plan executor, 현재 runtime actor를 서로 다른 projection 필드로 먼저 표시해 재배정 drift 규칙을 검증한다.
-7. 미매핑 활성 항목이 0이고 두 동기화 주기 동안 drift가 없을 때 기존 Notion 필드와 slice writer를 읽기 전용으로 전환한다.
+1. `delivery-unit-0.1.0.schema.json`, `delivery-partition-0.1.0.schema.json`, `planning-projection-ledger-0.1.0.schema.json`을 추가한다. 기존 파일에 영향 없는 인벤토리 모드로 시작한다.
+2. flow·solution 기준선별로 현재 DU·slice 후보를 묶은 충돌 보고서를 만든다. 같은 전체 기준선을 둘 이상이 주장하면 자동 분할하지 않고 `status: definition_blocked`로 남긴 뒤, 사람이 `exclusive_baseline` 또는 `partitioned_baseline`, scope atom, overlap 정책과 승인 source를 가진 partition 객체를 승인하게 한다.
+3. `DU-001 ↔ FLOW-FIN-001@R2 ↔ SOLUTION-FIN-001@R1 ↔ 승인 partition member ↔ Notion 계획 항목 ↔ WORK:*` crosswalk를 생성하고 사람이 범위 누락·중복을 검토한다.
+4. Notion의 새 뷰에 안정 `DU-*`·`WORK:*` ID를 추가하되 기존 `SL-FIN-*`·`TSK-*`를 별칭으로 계속 표시한다.
+5. 신규 전달 단위부터 manifest와 승인 partition ref를 의무화하고 새 `contracts/slices` 작성을 금지한다.
+6. 기존 이벤트 슬라이스는 대응 제품 흐름·솔루션·partition이 모두 승인된 것부터 `status: active` manifest로 옮긴다. 하나라도 없으면 `status: definition_blocked` 후보로만 기록하며 자동 변환으로 제품 의미나 분할 의미를 승인하지 않는다.
+7. 커밋 전 희망 담당자와 승인 plan executor, 현재 runtime actor를 서로 다른 projection 필드로 먼저 표시해 재배정 drift 규칙을 검증한다.
+8. 미매핑 활성 항목이 0이고 두 동기화 주기 동안 drift가 없을 때 기존 Notion 필드와 slice writer를 읽기 전용으로 전환한다.
 
 ### 롤백과 검증 기준
 
 - Notion 투영 문제가 생기면 projection writer만 중단하고 기존 Notion 뷰로 돌아간다. 승인 manifest와 저장소 정본은 삭제하지 않는다.
-- 하나의 DU manifest가 서로 다른 제품 기준선을 동시에 가리키거나 하나의 Notion page가 서로 다른 canonical ref를 가지면 실패해야 한다. 동일 flow의 여러 DU는 보고하되 별도 승인 규칙 없이 오류로 만들지 않는다.
+- 하나의 DU manifest가 서로 다른 제품 기준선을 동시에 가리키거나 하나의 Notion page가 서로 다른 canonical ref를 가지면 실패해야 한다.
+- 같은 flow·solution의 active manifest가 서로 다른 partition을 가리키거나, 같은 member를 중복 소유하거나, `exclusive_baseline`에 둘 이상의 DU가 연결되거나, `disjoint` member의 scope atom이 겹치면 실패해야 한다. `approved_overlap`의 모든 겹침에는 partition 안의 정확한 승인 source가 있어야 한다.
 - 저장소 소유 필드의 projected hash가 다르면 drift로 보고하되 Notion 값을 자동으로 저장소에 역수입하지 않는다.
-- 모든 하위 DU 파일의 ID와 manifest ID가 같고, flow·solution ref의 리비전·해시와 두 문서의 내부 연결이 승인본과 일치해야 한다. `definition_blocked` 후보를 하위 실행 파일이 참조하면 실패해야 한다.
+- 모든 하위 DU 파일의 ID와 manifest ID가 같고, flow·solution·partition ref의 리비전·해시와 내부 연결이 승인본과 일치해야 한다. `status: definition_blocked` 후보를 하위 실행 파일이 참조하면 실패해야 한다.
 - 레거시 별칭은 전역에서 유일해야 하며 삭제 대신 `retired` 이력을 남겨야 한다.
 - 승인 plan executor와 Notion 희망 담당자가 다를 때는 조용히 덮어쓰지 않고 `pending_reassignment`가 파생돼야 하며, 승인된 재계획·인계 뒤에만 해소돼야 한다.
 
@@ -452,7 +488,7 @@ CI 출력은 깨끗해지지만 부채가 기계적으로 추적되지 않고 �
 
 대안 C를 권장한다. 5번의 전달 단위 manifest와 함께 해결하되, 기존 슬라이스 파일을 수정하지 않고 활성 진단에서 제외할 수 있는 명시적 retirement/supersession 원장이 필요하다.
 
-- 신규 DU candidate에는 `lifecycle_state: definition_blocked`, `readiness_blockers`, `candidate_contract_refs`를 둔다. `DATA:event.lifecycle_transition@R1`은 승인 baseline이 아니라 blocker가 가리키는 후보 계약으로만 표현한다.
+- 신규 DU candidate에는 유일한 discriminator인 `status: definition_blocked`, `readiness_blockers`, `candidate_contract_refs`를 둔다. `lifecycle_state` 같은 두 번째 상태 필드는 만들지 않는다. `DATA:event.lifecycle_transition@R1`은 승인 baseline이 아니라 blocker가 가리키는 후보 계약으로만 표현한다.
 - `.vada/projections/legacy-slices.json`은 각 기존 slice의 경로·ID·리비전·정규 해시, `disposition: active | superseded | retired`, 정확한 후속 manifest/candidate ref, 전환 승인 source ref를 기록한다. 단순 ID allowlist나 경고 문자열 억제는 허용하지 않는다.
 - 레거시 reader는 모든 기존 slice를 계속 스키마·참조 무결성 관점에서 역사 검증한다. 활성 진단 reader만 원장을 따라 `active` 항목의 준비 상태를 계산하고, `superseded`·`retired` 항목은 유효한 후속 ref와 승인 근거가 있을 때만 활성 경고에서 제외한다.
 - 미선언 review 계약을 활성 baseline에 넣으면 오류로 처리한다. 선언된 후보 계약은 후속 candidate의 blocker로 동일하게 관찰되고 `derive-delivery-status`가 `definition_blocked`로 출력한다.
@@ -462,7 +498,7 @@ CI 출력은 깨끗해지지만 부채가 기계적으로 추적되지 않고 �
 
 1. 단기에는 경고를 숨기지 말고 `SL-EVT-002`를 현재 유일한 알려진 경고로 측정한다.
 2. `delivery-unit-0.1.0`의 candidate 형태와 `legacy-slices` 원장 스키마를 추가한다. 원장에 없는 기존 slice는 안전한 기본값인 `active`로 해석한다.
-3. `SL-EVT-002` 의미와 파일을 변경하지 않고 대응 DU 후보를 `definition_blocked`로 작성한다. 제품 책임자는 제품 정책이 아니라 “기존 slice를 이 후보가 대체해 추적한다”는 crosswalk만 승인한다.
+3. `SL-EVT-002` 의미와 파일을 변경하지 않고 대응 DU 후보를 `status: definition_blocked`로 작성한다. 제품 책임자는 제품 정책이 아니라 “기존 slice를 이 후보가 대체해 추적한다”는 crosswalk만 승인한다.
 4. 원장에 `SL-EVT-002`의 정확한 기존 해시, 후속 candidate ref와 승인 근거를 추가한다. 해시나 후속 ref가 다르면 전환은 무효다.
 5. 새 validator를 보고 전용으로 실행해 기존 경고 1건과 새 blocker 1건이 같은 미결정 계약을 가리키는지 비교한다. 역사 검증과 활성 진단의 결과 채널을 분리한다.
 6. 두 주기 동안 동등성이 확인되면 `validate-contracts` 기본 진입점을 새 이중 reader로 바꾼다. 기존 reader는 `--legacy-diagnostics`로 유지하고, 활성 진단에서 분류되지 않은 warning을 오류화한다.
@@ -470,7 +506,7 @@ CI 출력은 깨끗해지지만 부채가 기계적으로 추적되지 않고 �
 ### 롤백과 검증 기준
 
 - blocker 파생이 잘못되면 기본 진입점만 레거시 validator 출력으로 돌리고 원장·candidate·승인 이력은 보존한다. warning allowlist는 추가하지 않는다.
-- review 계약이 활성 baseline에 들어간 fixture는 실패하고, 같은 계약이 candidate+blocker에 있으면 `definition_blocked`로 성공해야 한다.
+- review 계약이 활성 baseline에 들어간 fixture는 실패하고, 같은 계약이 candidate+blocker에 있으며 `status: definition_blocked`이면 성공해야 한다. `status`와 `lifecycle_state`를 함께 쓰거나 알 수 없는 상태값을 쓰면 실패해야 한다.
 - 기존 slice의 바이트나 원장에 고정한 해시가 달라지거나, 후속 candidate가 없거나, 승인 source ref가 없으면 `superseded` 전환이 실패해야 한다.
 - 원장 항목을 삭제하면 해당 slice가 다시 `active`로 해석돼 기존 경고가 재현돼야 하며, 역사 무결성 검사는 disposition과 무관하게 항상 실행돼야 한다.
 - blocker를 제거하려면 해당 계약의 ratified 후속 리비전과 명시적 baseline 갱신이 모두 필요해야 한다.
@@ -481,22 +517,22 @@ CI 출력은 깨끗해지지만 부채가 기계적으로 추적되지 않고 �
 ### 단계 A — 공용 resolver와 이중 리더
 
 - 완료 증거 coverage resolver를 먼저 추가해 중복 제거 전후 의미가 같은지 증명한다.
-- 실행 계획 계보·완료 원장·활성 commitment·attempt 원장을 같은 불변 입력 ref에서 계산하는 공용 resolver를 추가한다.
-- 정책 registry와 실행 계획·정책·런타임의 새 스키마는 기존 reader를 유지한 채 추가한다.
-- 전달 단위 manifest, Notion projection ledger, legacy slice retirement 원장은 보고 전용 인벤토리로 시작한다.
+- 실행 계획 계보·완료 원장·활성 commitment·attempt 원장을 같은 immutable runtime checkpoint ref에서 계산하는 공용 resolver를 추가한다.
+- runtime checkpoint/head, 정책 registry checkpoint/head와 실행 계획·정책의 새 스키마는 기존 reader를 유지한 채 추가한다.
+- 전달 단위 manifest, delivery partition, Notion projection ledger, legacy slice retirement 원장은 보고 전용 인벤토리로 시작한다.
 
 ### 단계 B — 새 웨이브 한 건으로 검증
 
 - 실행 계획 v0.2에 현재 커밋만 기록한다.
-- 정확한 작업·이전 계획·런타임 입력 ref와 완료·활성·attempt 원장 digest를 고정한다.
-- 정책 ref, 경로+작업 기반 risk trigger, assurance profile, retry policy ref를 함께 고정한다.
-- 실행 런타임 v0.2가 attempt와 증거를 기록하고 기존 상태 파생과 같은 완료 결과를 내는지 비교한다.
+- 정확한 작업·이전 계획·immutable runtime checkpoint ref와 완료·활성·attempt 원장 digest를 고정한다.
+- 정책 ref와 registry checkpoint ref, 경로+작업 기반 risk trigger, assurance profile, retry policy ref를 함께 고정한다.
+- runtime checkpoint v0.2가 attempt와 증거를 기록하고 bridge 전후에 기존 상태 파생과 같은 완료 결과를 내는지 비교한다. 최초 승인 후 v0.1 계획 downgrade 음성 테스트도 함께 통과시킨다.
 
 ### 단계 C — projection 전환
 
-- DU-001, 승인 flow·solution과 Notion의 실제 항목을 안정 ID로 연결한다.
+- DU-001, 승인 flow·solution·delivery partition member와 Notion의 실제 항목을 안정 ID로 연결한다.
 - 신규 전달 단위는 manifest만 정본으로 만들고 `SL-*` 신규 작성을 중단한다.
-- 레거시 이벤트 슬라이스는 승인 제품 흐름·솔루션이 준비된 순서로 옮기고, 준비되지 않은 항목은 구현 불가 candidate와 구조화 blocker로만 투영한다.
+- 레거시 이벤트 슬라이스는 승인 제품 흐름·솔루션·partition이 준비된 순서로 옮기고, 준비되지 않은 항목은 `status: definition_blocked` candidate와 구조화 blocker로만 투영한다.
 
 ### 단계 D — 강제 게이트 전환
 
@@ -508,10 +544,12 @@ CI 출력은 깨끗해지지만 부채가 기계적으로 추적되지 않고 �
 
 - 기존 정책 R1, 승인 계획 R1~R4, 전달 작업 R1, 런타임 R1~R4와 레거시 slice가 바이트 변경 없이 계속 검증된다.
 - 신규 실행 계획에는 미래 `forecast`와 과거 `satisfied` 전량 사본이 없다.
-- 신규 실행 계획이 불변 작업·계획·런타임 입력만으로 재현되고, 앞선 활성 작업을 다른 계획에서 중복 배정할 수 없다.
+- 신규 실행 계획이 불변 작업·계획·runtime checkpoint 입력만으로 재현되고, 앞선 활성 작업을 다른 계획에서 중복 배정할 수 없다. mutable runtime/head를 계획 입력으로 사용할 수 없고 checkpoint chain fork·덮어쓰기·누락이 거부된다.
+- 한 DU에서 첫 v0.2 계획 승인 후에는 새 v0.1 계획으로 lineage·policy·retry 게이트를 우회할 수 없다.
 - 정책 route보다 낮은 보증 등급, 무계획 거버넌스 우회와 작업 리비전 전체의 재시도 한도 초과가 검증기·기록기에서 거부된다.
+- 정책과 registry 기존 checkpoint를 함께 위조해 현재 checkout의 해시만 맞추는 변경도 보호된 base 비교에서 거부된다.
 - 작업 범위와 증거 범위가 한 정본에서 해석되며 기존 23개 증거의 유효 범위가 동일하다.
-- `DU-*`, 승인 flow·solution, Notion page, 레거시 별칭의 관계가 추적되고, 동일 flow의 여러 DU를 임의 금지하지 않으면서 안정 ID·별칭 충돌과 담당자 재배정 drift가 탐지된다.
+- `DU-*`, 승인 flow·solution·delivery partition member, Notion page, 레거시 별칭의 관계가 추적된다. 승인 partition이 여러 DU를 허용할 수는 있지만 같은 전체 기준선·member 중복 주장, 미승인 overlap, 안정 ID·별칭 충돌과 담당자 재배정 drift는 탐지된다.
 - `SL-EVT-002`의 미확정 계약은 사라지거나 숨겨지는 대신 구조화 blocker로 보이며 상시 warning은 0이 된다.
 - rollback 연습에서 새 writer를 끈 뒤에도 기존 reader로 승인 역사와 현재 상태를 읽을 수 있다.
 
