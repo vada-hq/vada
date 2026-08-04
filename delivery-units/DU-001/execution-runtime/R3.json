@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R3",
-  "runtime_revision": 1,
+  "runtime_revision": 31,
   "runtime_status": "active",
-  "updated_at": "2026-08-03T17:30:06.125Z",
+  "updated_at": "2026-08-04T06:18:32.190Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R3.json",
@@ -25,6 +25,216 @@
       "captured_at": "2026-08-03T17:30:06.125Z",
       "locator": "delivery-units/DU-001/execution-runtime/R2.json#WORK:purchase-request-screen-spec@R1",
       "content_ko": "이전 R2 런타임에서 화면 명세 작업이 사람 담당자의 인계 확인 없이 미착수 상태로 남아 있음을 보존합니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:32:45.777Z",
+      "locator": "conversation:2026-08-04:du-001-autonomous-wave-3-approval",
+      "content_ko": "제품 책임자의 자율 실행 승인에 따라 WORK:purchase-request-draft-api@R1 작업을 착수합니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:32:49.481Z",
+      "locator": "conversation:2026-08-04:du-001-autonomous-wave-3-approval",
+      "content_ko": "제품 책임자의 자율 실행 승인에 따라 WORK:purchase-request-submission-api@R1 작업을 착수합니다."
+    },
+    {
+      "id": "SRC-RUN-005",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:32:53.227Z",
+      "locator": "conversation:2026-08-04:du-001-autonomous-wave-3-approval",
+      "content_ko": "제품 책임자의 자율 실행 승인에 따라 WORK:purchase-request-own-list-api@R1 작업을 착수합니다."
+    },
+    {
+      "id": "SRC-RUN-006",
+      "type": "user_statement",
+      "captured_at": "2026-08-03T17:32:57.202Z",
+      "locator": "conversation:2026-08-04:du-001-autonomous-wave-3-approval",
+      "content_ko": "제품 책임자의 자율 실행 승인에 따라 WORK:purchase-request-detail-api@R1 작업을 착수합니다."
+    },
+    {
+      "id": "SRC-RUN-007",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T04:51:54.576Z",
+      "locator": "git:165916bd9e03441a414abbd8031e39a69205dab5",
+      "content_ko": "DU-001 구매 요청 API 구현 커밋과 작업자 범위 검사가 준비됐습니다."
+    },
+    {
+      "id": "SRC-RUN-008",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T04:51:58.102Z",
+      "locator": "git:165916bd9e03441a414abbd8031e39a69205dab5",
+      "content_ko": "DU-001 구매 요청 API 구현 커밋과 작업자 범위 검사가 준비됐습니다."
+    },
+    {
+      "id": "SRC-RUN-009",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T04:52:01.918Z",
+      "locator": "git:165916bd9e03441a414abbd8031e39a69205dab5",
+      "content_ko": "DU-001 구매 요청 API 구현 커밋과 작업자 범위 검사가 준비됐습니다."
+    },
+    {
+      "id": "SRC-RUN-010",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T04:52:05.928Z",
+      "locator": "git:165916bd9e03441a414abbd8031e39a69205dab5",
+      "content_ko": "DU-001 구매 요청 API 구현 커밋과 작업자 범위 검사가 준비됐습니다."
+    },
+    {
+      "id": "SRC-RUN-011",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:13:32.506Z",
+      "locator": "review:PR-12:165916b",
+      "content_ko": "독립 검증자가 DU-001 API 완료 증거의 보완을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-012",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:13:34.884Z",
+      "locator": "review:PR-12:165916b",
+      "content_ko": "독립 검증자가 DU-001 API 완료 증거의 보완을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-013",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:13:37.282Z",
+      "locator": "review:PR-12:165916b",
+      "content_ko": "독립 검증자가 DU-001 API 완료 증거의 보완을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-014",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:13:39.904Z",
+      "locator": "review:PR-12:165916b",
+      "content_ko": "독립 검증자가 DU-001 API 완료 증거의 보완을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-015",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T05:17:55.219Z",
+      "locator": "git:eebe3855baf85f22f7318f1db7b1932407fd22a7",
+      "content_ko": "독립 검증 지적을 보완한 DU-001 API 커밋이 just check-api를 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-016",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T05:17:57.941Z",
+      "locator": "git:eebe3855baf85f22f7318f1db7b1932407fd22a7",
+      "content_ko": "독립 검증 지적을 보완한 DU-001 API 커밋이 just check-api를 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-017",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T05:18:01.052Z",
+      "locator": "git:eebe3855baf85f22f7318f1db7b1932407fd22a7",
+      "content_ko": "독립 검증 지적을 보완한 DU-001 API 커밋이 just check-api를 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-018",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T05:18:04.387Z",
+      "locator": "git:eebe3855baf85f22f7318f1db7b1932407fd22a7",
+      "content_ko": "독립 검증 지적을 보완한 DU-001 API 커밋이 just check-api를 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-019",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:31:24.549Z",
+      "locator": "review:PR-12:6567b87",
+      "content_ko": "독립 검증자가 저장 응답과 초안 검증 경계의 차단 결함을 재현해 변경을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-020",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:31:26.709Z",
+      "locator": "review:PR-12:6567b87",
+      "content_ko": "독립 검증자가 저장 응답과 초안 검증 경계의 차단 결함을 재현해 변경을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-021",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:31:28.851Z",
+      "locator": "review:PR-12:6567b87",
+      "content_ko": "독립 검증자가 저장 응답과 초안 검증 경계의 차단 결함을 재현해 변경을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-022",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T05:40:55.658Z",
+      "locator": "git:8fead385da09390ccd9374026510a34af78e0789",
+      "content_ko": "독립 재검증 결함을 보완한 DU-001 API 커밋이 just check-api를 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-023",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T05:41:00.384Z",
+      "locator": "git:8fead385da09390ccd9374026510a34af78e0789",
+      "content_ko": "독립 재검증 결함을 보완한 DU-001 API 커밋이 just check-api를 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-024",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T05:41:03.995Z",
+      "locator": "git:8fead385da09390ccd9374026510a34af78e0789",
+      "content_ko": "독립 재검증 결함을 보완한 DU-001 API 커밋이 just check-api를 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-025",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:51:17.100Z",
+      "locator": "review:PR-12:c142410",
+      "content_ko": "독립 검증에서 초안 정수 필드가 JSON 숫자 문자열을 허용해 canonical 입력 계약을 위반함을 확인했습니다."
+    },
+    {
+      "id": "SRC-RUN-026",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:51:36.890Z",
+      "locator": "review:PR-12:c142410",
+      "content_ko": "독립 검증에서 제출 정수 필드의 문자열 강제 변환과 지연된 동일 요청 재시도 실패를 확인했습니다."
+    },
+    {
+      "id": "SRC-RUN-027",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T06:10:51.297Z",
+      "locator": "git:81675fb45529957ee4f2f6d1cb17394e7c297a5e",
+      "content_ko": "초안 저장 API의 정수 입력과 OpenAPI 계약을 엄격화했고 로컬 검사와 GitHub Actions PostgreSQL 검증을 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-028",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T06:11:04.413Z",
+      "locator": "git:81675fb45529957ee4f2f6d1cb17394e7c297a5e",
+      "content_ko": "제출 API의 정수 입력, 지연된 동일 요청 재시도, 구매 유형별 OpenAPI 계약을 보완했고 로컬 검사와 GitHub Actions PostgreSQL 검증을 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-029",
+      "type": "review_record",
+      "captured_at": "2026-08-04T06:17:47.818Z",
+      "locator": "review:PR-12:83f6834",
+      "content_ko": "독립 검증자가 초안 저장 API의 경계·권한·조직 격리와 실제 PostgreSQL 증거를 재검증해 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-030",
+      "type": "review_record",
+      "captured_at": "2026-08-04T06:18:03.196Z",
+      "locator": "review:PR-12:83f6834",
+      "content_ko": "독립 검증자가 제출 API의 검증·멱등 재시도·권한·조직 격리와 실제 PostgreSQL 증거를 재검증해 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-031",
+      "type": "review_record",
+      "captured_at": "2026-08-04T06:18:16.706Z",
+      "locator": "review:PR-12:83f6834",
+      "content_ko": "독립 검증자가 본인 구매 요청 목록 API의 응답·정렬·권한·조직 격리와 실제 PostgreSQL 증거를 재검증해 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-032",
+      "type": "review_record",
+      "captured_at": "2026-08-04T06:18:32.190Z",
+      "locator": "review:PR-12:83f6834",
+      "content_ko": "독립 검증자가 구매 요청 상세 API의 반복 조회·권한·조직 격리와 실제 PostgreSQL 증거를 재검증해 승인했습니다."
     }
   ],
   "work_runs": [
@@ -51,9 +261,9 @@
     {
       "work_item_ref": "WORK:purchase-request-draft-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
-      "completed_at": null,
+      "status": "done",
+      "started_at": "2026-08-03T17:32:45.777Z",
+      "completed_at": "2026-08-04T06:17:47.818Z",
       "transition_log": [
         {
           "id": "TR-002",
@@ -63,17 +273,110 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 현재 백엔드 전선을 R3 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-006",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T17:32:45.777Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "작성 정보와 개인 초안 API 구현을 시작합니다."
+        },
+        {
+          "id": "TR-010",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T04:51:54.576Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-007",
+          "note_ko": "작성 정보·개인 초안 API 구현과 작업자 범위 검사를 마쳐 독립 검증으로 넘깁니다."
+        },
+        {
+          "id": "TR-014",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:13:32.506Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-011",
+          "note_ko": "독립 검증에서 실제 PostgreSQL 경계와 계약 증거가 부족해 작성 정보·개인 초안 API를 재작업합니다."
+        },
+        {
+          "id": "TR-018",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T05:17:55.219Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-015",
+          "note_ko": "작성 정보·개인 초안 API의 실제 경계·OpenAPI 보완과 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-022",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:31:24.549Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-019",
+          "note_ko": "독립 재검증에서 초안 수량 직렬화·가격 근거 null 검증·PUT 저장 장애 증거 결함이 확인되어 재작업합니다."
+        },
+        {
+          "id": "TR-025",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T05:40:55.658Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-022",
+          "note_ko": "초안 숫자·가격 근거 검증과 PUT 저장 장애 증거를 보완하고 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-028",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:51:17.100Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-025",
+          "note_ko": "초안 정수 필드의 문자열 강제 변환을 차단하기 위해 재작업합니다."
+        },
+        {
+          "id": "TR-030",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T06:10:51.297Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-027",
+          "note_ko": "독립 검증 지적을 보완하고 재검토를 요청합니다."
+        },
+        {
+          "id": "TR-032",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T06:17:47.818Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-029",
+          "note_ko": "EVID-005를 승인하고 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-005",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30883152476/job/91908626630",
+          "captured_at": "2026-08-04T06:17:47.818Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T06:17:47.818Z",
+          "verification_note_ko": "초안 생명주기, 버전 충돌, 엄격한 숫자 타입, 권한·조직 격리와 저장 장애 응답을 독립 재검증했습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-submission-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
-      "completed_at": null,
+      "status": "done",
+      "started_at": "2026-08-03T17:32:49.481Z",
+      "completed_at": "2026-08-04T06:18:03.196Z",
       "transition_log": [
         {
           "id": "TR-003",
@@ -83,17 +386,110 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 현재 백엔드 전선을 R3 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-007",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T17:32:49.481Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-004",
+          "note_ko": "구매 요청 제출 API 구현을 시작합니다."
+        },
+        {
+          "id": "TR-011",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T04:51:58.102Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-008",
+          "note_ko": "구매 요청 제출 API 구현과 작업자 범위 검사를 마쳐 독립 검증으로 넘깁니다."
+        },
+        {
+          "id": "TR-015",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:13:34.884Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-012",
+          "note_ko": "독립 검증에서 필요일 규칙·OpenAPI·실제 PostgreSQL 실패 경계 증거가 부족해 제출 API를 재작업합니다."
+        },
+        {
+          "id": "TR-019",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T05:17:57.941Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-016",
+          "note_ko": "제출 필요일·OpenAPI·실제 저장 장애 경계 보완과 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-023",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:31:26.709Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-020",
+          "note_ko": "독립 재검증에서 저장 당시 유효한 과거 필요일 재응답과 수량 직렬화 결함이 확인되어 재작업합니다."
+        },
+        {
+          "id": "TR-026",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T05:41:00.384Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-023",
+          "note_ko": "입력 전용 날짜 규칙과 성공 응답 숫자 계약을 분리·보완하고 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-029",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:51:36.890Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-026",
+          "note_ko": "제출 정수 입력을 엄격히 검증하고 동일 키·동일 본문 재시도의 기존 성공 응답을 보존하기 위해 재작업합니다."
+        },
+        {
+          "id": "TR-031",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T06:11:04.413Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-028",
+          "note_ko": "독립 검증 지적을 보완하고 재검토를 요청합니다."
+        },
+        {
+          "id": "TR-033",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T06:18:03.196Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-030",
+          "note_ko": "EVID-006을 승인하고 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-002",
+          "requirement_ref": "EVID-006",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30883152476/job/91908626630",
+          "captured_at": "2026-08-04T06:18:03.196Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T06:18:03.196Z",
+          "verification_note_ko": "다품목·예산 초과, 잘못된 입력 비생성, 날짜 경과 후 동일 키 재시도, 권한·충돌과 저장 장애 응답을 독립 재검증했습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-own-list-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
-      "completed_at": null,
+      "status": "done",
+      "started_at": "2026-08-03T17:32:53.227Z",
+      "completed_at": "2026-08-04T06:18:16.706Z",
       "transition_log": [
         {
           "id": "TR-004",
@@ -103,17 +499,74 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 현재 백엔드 전선을 R3 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-008",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T17:32:53.227Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-005",
+          "note_ko": "본인 구매 요청 목록 API 구현을 시작합니다."
+        },
+        {
+          "id": "TR-012",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T04:52:01.918Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-009",
+          "note_ko": "본인 구매 요청 목록 API 구현과 작업자 범위 검사를 마쳐 독립 검증으로 넘깁니다."
+        },
+        {
+          "id": "TR-016",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:13:37.282Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-013",
+          "note_ko": "독립 검증에서 OpenAPI와 다른 조직 목록 격리 증거가 부족해 본인 목록 API를 재작업합니다."
+        },
+        {
+          "id": "TR-020",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T05:18:01.052Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-017",
+          "note_ko": "본인 목록 OpenAPI·조직 격리·요약 응답 증거 보완과 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-034",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T06:18:16.706Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-031",
+          "note_ko": "EVID-015를 승인하고 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-003",
+          "requirement_ref": "EVID-015",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30883152476/job/91908626630",
+          "captured_at": "2026-08-04T06:18:16.706Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T06:18:16.706Z",
+          "verification_note_ko": "빈 목록, 본인 요청 최신순, 요약 필드 안정성과 다른 사용자·조직 비노출을 독립 재검증했습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-detail-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "not_started",
-      "started_at": null,
-      "completed_at": null,
+      "status": "done",
+      "started_at": "2026-08-03T17:32:57.202Z",
+      "completed_at": "2026-08-04T06:18:32.190Z",
       "transition_log": [
         {
           "id": "TR-005",
@@ -123,10 +576,85 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인 계획의 현재 백엔드 전선을 R3 런타임 추적 대상으로 초기화했습니다."
+        },
+        {
+          "id": "TR-009",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-03T17:32:57.202Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-006",
+          "note_ko": "구매 요청 상세 API 구현을 시작합니다."
+        },
+        {
+          "id": "TR-013",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T04:52:05.928Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-010",
+          "note_ko": "구매 요청 상세 API 구현과 작업자 범위 검사를 마쳐 독립 검증으로 넘깁니다."
+        },
+        {
+          "id": "TR-017",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:13:39.904Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-014",
+          "note_ko": "독립 검증에서 OpenAPI와 상세 응답·비노출 증거가 부족해 상세 API를 재작업합니다."
+        },
+        {
+          "id": "TR-021",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T05:18:04.387Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-018",
+          "note_ko": "상세 OpenAPI·전체 응답·조직 비노출 증거 보완과 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-024",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:31:28.851Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-021",
+          "note_ko": "독립 재검증에서 과거 필요일을 포함한 저장 상세 조회가 500이 되는 결함이 확인되어 재작업합니다."
+        },
+        {
+          "id": "TR-027",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T05:41:03.995Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-024",
+          "note_ko": "과거 필요일이 된 저장 요청도 안정적으로 조회하도록 응답 검증을 분리하고 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-035",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T06:18:32.190Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-032",
+          "note_ko": "EVID-016을 승인하고 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-004",
+          "requirement_ref": "EVID-016",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30883152476/job/91908626630",
+          "captured_at": "2026-08-04T06:18:32.190Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T06:18:32.190Z",
+          "verification_note_ko": "허용된 사용자의 전체 상세·반복 조회와 다른 조직 요청의 동일한 404 비노출 응답을 독립 재검증했습니다."
+        }
+      ]
     }
   ]
 }
