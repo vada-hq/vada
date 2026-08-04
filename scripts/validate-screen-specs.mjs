@@ -311,6 +311,78 @@ function validateDu001StateCoverage(spec, errors) {
   }
 }
 
+function validateDu001R2DetailCoverage(spec, errors) {
+  if (spec.work_item_ref !== "WORK:purchase-request-screen-spec@R2") return;
+
+  const detailSurface = (spec.surfaces ?? []).find(
+    (surface) => surface.id === "SURFACE-PURCHASE-REQUEST-DETAIL",
+  );
+  const summary = (detailSurface?.regions ?? []).find(
+    (region) => region.id === "DETAIL-SUMMARY",
+  );
+  if (
+    !summary?.content_ko?.includes("display.eventName") ||
+    !summary?.content_ko?.includes("display.requesterName")
+  ) {
+    errors.push(
+      "R2 상세 요약에는 display.eventName과 display.requesterName 표시가 필요합니다.",
+    );
+  }
+
+  const detailStates = new Map(
+    (spec.state_matrix ?? [])
+      .filter(
+        (state) =>
+          state.surface_ref === "SURFACE-PURCHASE-REQUEST-DETAIL",
+      )
+      .map((state) => [state.id, state]),
+  );
+  const loading = detailStates.get("STATE-DETAIL-LOADING-READY");
+  if (!loading || !loading.visible_result_ko.includes("로딩")) {
+    errors.push("R2 상세 로딩 상태가 필요합니다.");
+  } else {
+    const reloadDescription = `${loading.trigger_ko} ${loading.interaction_ko}`;
+    if (!reloadDescription.includes("새로고침")) {
+      errors.push("R2 상세 새로고침 재조회 요구가 필요합니다.");
+    }
+  }
+
+  const unauthenticated = detailStates.get("STATE-DETAIL-UNAUTHENTICATED");
+  if (
+    !unauthenticated?.contract_refs?.includes(
+      "ERROR:http.unauthenticated@R1",
+    )
+  ) {
+    errors.push(
+      "R2 상세 401 상태에 계약 참조가 필요합니다: ERROR:http.unauthenticated@R1",
+    );
+  }
+
+  const failed = detailStates.get("STATE-DETAIL-FAILED");
+  for (const ref of [
+    "ERROR:http.resource_not_found@R1",
+    "ERROR:purchase_request.persistence_unavailable@R1",
+  ]) {
+    if (!failed?.contract_refs?.includes(ref)) {
+      errors.push(`R2 상세 오류 상태에 계약 참조가 필요합니다: ${ref}`);
+    }
+  }
+
+  const hasKeyboardDetailRecovery =
+    spec.accessibility_contract?.requirements_ko?.some(
+      (requirement) =>
+        requirement.includes("목록·상세 이동과 재시도") &&
+        requirement.includes("키보드"),
+    );
+  const hasAccessibleLoadingFeedback =
+    loading?.accessibility_ko?.includes("status");
+  if (!hasKeyboardDetailRecovery || !hasAccessibleLoadingFeedback) {
+    errors.push(
+      "R2 상세 키보드·접근성 요구에는 키보드 재시도와 status 로딩 피드백이 필요합니다.",
+    );
+  }
+}
+
 async function validateWireframeLocators(spec, root, errors) {
   const expectedPath = spec.baseline?.wireframe_ref?.path;
   if (!expectedPath) return;
@@ -451,6 +523,7 @@ export async function validateScreenSpec(
     validateWorkEvidence(spec, workPlan.value, errors);
     validateReview(spec, errors);
     validateDu001StateCoverage(spec, errors);
+    validateDu001R2DetailCoverage(spec, errors);
     await validateWireframeLocators(spec, root, errors);
   } catch (error) {
     errors.push(error.message);
