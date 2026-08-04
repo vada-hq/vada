@@ -504,6 +504,45 @@ def test_invalid_submission_returns_problem_details_without_calling_store() -> N
     assert submission_store.last_idempotency_key is None
 
 
+def test_submission_rejects_explicit_null_vendor_without_calling_store() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "null-detail-001"},
+        json={
+            "content": {
+                "title": "행사 운영 물품",
+                "neededDate": "2999-08-20",
+                "purpose": "행사 운영",
+                "priority": "normal",
+                "items": [
+                    {
+                        "name": "현수막",
+                        "category": "홍보물",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "general",
+                        "quantity": 1,
+                        "unit": "개",
+                        "estimatedUnitPrice": 10000,
+                        "priceEvidence": [
+                            {
+                                "type": "product_url",
+                                "url": "https://example.test/banner",
+                            }
+                        ],
+                        "details": {"vendor": None},
+                    }
+                ],
+            }
+        },
+    )
+
+    assert response.status_code == 422
+    assert submission_store.last_idempotency_key is None
+
+
 def test_submission_rejects_a_past_needed_date_without_calling_store() -> None:
     repository = FakePurchaseRequestRepository()
     client, submission_store = _client(repository)

@@ -17,6 +17,7 @@ from pydantic import (
     Field,
     PlainSerializer,
     WithJsonSchema,
+    field_validator,
     model_validator,
 )
 from pydantic.config import JsonDict
@@ -222,6 +223,13 @@ class GeneralDetailsModel(ContractModel):
     delivery_request: str | None = Field(
         default=None, alias="deliveryRequest", min_length=1
     )
+
+    @field_validator("vendor", mode="before")
+    @classmethod
+    def reject_explicit_null_vendor(cls, value: object) -> object:
+        if value is None:
+            raise ValueError("vendor는 생략할 수 있지만 null일 수 없습니다.")
+        return value
 
 
 class ManufacturingPrintingDetailsModel(ContractModel):

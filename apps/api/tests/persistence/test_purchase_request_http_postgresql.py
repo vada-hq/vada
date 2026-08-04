@@ -6,6 +6,7 @@ from datetime import UTC, date, datetime
 from decimal import Decimal
 from functools import cache
 from pathlib import Path
+from typing import Protocol, cast
 
 import pytest
 import schemathesis
@@ -13,6 +14,8 @@ import sqlalchemy as sa
 from fastapi import Request
 from fastapi.testclient import TestClient
 from httpx import Response
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import ValidationError
 from sqlalchemy import Engine, text
 
 from vada_api.finance.application import FinanceRequestContext, PurchaseRequestService
@@ -35,6 +38,13 @@ from vada_api.identity.context import (
 from vada_api.identity.errors import ResourceNotFoundError
 from vada_api.main import create_app
 
+_NO_REQUEST_BODY = object()
+
+
+class _SchemaParameterSet(Protocol):
+    @property
+    def validation_schema(self) -> dict[str, object]: ...
+
 
 @cache
 def _approved_openapi_schema():
@@ -50,6 +60,38 @@ def _assert_openapi_response(
     method: str,
 ) -> None:
     _approved_openapi_schema()[path][method].validate_response(response)
+
+
+def _assert_openapi_request(
+    *,
+    path: str,
+    method: str,
+    path_parameters: dict[str, str],
+    headers: dict[str, str] | None = None,
+    body: object = _NO_REQUEST_BODY,
+) -> None:
+    operation = _approved_openapi_schema()[path][method]
+    components = (
+        (operation.path_parameters, path_parameters),
+        (operation.headers, headers or {}),
+        (operation.query, {}),
+        (operation.cookies, {}),
+    )
+    for component, value in components:
+        parameter_set = cast(_SchemaParameterSet, component)
+        Draft202012Validator(parameter_set.validation_schema).validate(value)
+
+    if body is _NO_REQUEST_BODY:
+        assert len(operation.body) == 0
+        return
+
+    json_bodies = [
+        component
+        for component in operation.body
+        if component.media_type == "application/json"
+    ]
+    assert len(json_bodies) == 1
+    Draft202012Validator(json_bodies[0].validation_schema).validate(body)
 
 
 @pytest.fixture(autouse=True)
@@ -205,6 +247,11 @@ def test_ac05_draft_api_lifecycle_is_versioned_and_isolated(
 ) -> None:
     owner = _client(migrated_engine, _context())
 
+    _assert_openapi_request(
+        path="/events/{eventId}/purchase-request-editor",
+        method="GET",
+        path_parameters={"eventId": "event-a"},
+    )
     editor = owner.get("/events/event-a/purchase-request-editor")
     _assert_openapi_response(
         editor,
@@ -223,12 +270,19 @@ def test_ac05_draft_api_lifecycle_is_versioned_and_isolated(
         "draft": None,
     }
     assert owner.get("/events/event-b/purchase-request-editor").status_code == 404
+    draft_body = {
+        "expectedVersion": None,
+        "content": {"title": "첫 초안", "items": []},
+    }
+    _assert_openapi_request(
+        path="/events/{eventId}/purchase-request-draft",
+        method="PUT",
+        path_parameters={"eventId": "event-a"},
+        body=draft_body,
+    )
     created = owner.put(
         "/events/event-a/purchase-request-draft",
-        json={
-            "expectedVersion": None,
-            "content": {"title": "첫 초안", "items": []},
-        },
+        json=draft_body,
     )
     _assert_openapi_response(
         created,
@@ -275,6 +329,11 @@ def test_ac05_draft_api_lifecycle_is_versioned_and_isolated(
         other_org.get("/events/event-a/purchase-request-editor").json()["draft"] is None
     )
 
+    _assert_openapi_request(
+        path="/events/{eventId}/purchase-request-draft",
+        method="DELETE",
+        path_parameters={"eventId": "event-a"},
+    )
     deleted = owner.delete("/events/event-a/purchase-request-draft")
     _assert_openapi_response(
         deleted,
@@ -294,6 +353,13 @@ def test_ac01_ac02_ac06_ac07_submit_list_and_detail_preserve_scope_and_idempoten
         _context(available_budget=Decimal(1_000)),
     )
     body = _submit_body()
+    _assert_openapi_request(
+        path="/events/{eventId}/purchase-requests",
+        method="POST",
+        path_parameters={"eventId": "event-a"},
+        headers={"Idempotency-Key": "submit-001"},
+        body=body,
+    )
     first = owner.post(
         "/events/event-a/purchase-requests",
         headers={"Idempotency-Key": "submit-001"},
@@ -344,6 +410,11 @@ def test_ac01_ac02_ac06_ac07_submit_list_and_detail_preserve_scope_and_idempoten
             .values(created_at=datetime(2026, 8, 4, 2, 0, tzinfo=UTC))
         )
 
+    _assert_openapi_request(
+        path="/events/{eventId}/purchase-requests/mine",
+        method="GET",
+        path_parameters={"eventId": "event-a"},
+    )
     own_list = owner.get("/events/event-a/purchase-requests/mine")
     _assert_openapi_response(
         own_list,
@@ -378,6 +449,11 @@ def test_ac01_ac02_ac06_ac07_submit_list_and_detail_preserve_scope_and_idempoten
         json=body,
     )
     assert finance_submission.status_code == 201
+    finance_list = finance_member.get("/events/event-a/purchase-requests/mine")
+    assert finance_list.status_code == 200
+    assert [item["requestId"] for item in finance_list.json()["items"]] == [
+        finance_submission.json()["requestId"]
+    ]
 
     other_org = _client(
         migrated_engine, _context(organization_id="organization-b", user_id="user-b")
@@ -393,11 +469,19 @@ def test_ac01_ac02_ac06_ac07_submit_list_and_detail_preserve_scope_and_idempoten
         for item in owner.get("/events/event-a/purchase-requests/mine").json()["items"]
     ] == [second_request_id, request_id]
 
-    same_org_member = _client(migrated_engine, _context(user_id="user-c"))
-    assert same_org_member.get("/events/event-a/purchase-requests/mine").json() == {
-        "items": []
-    }
+    same_org_member = _client(
+        migrated_engine,
+        _context(user_id="user-c", department_head=False, finance_member=False),
+    )
+    member_list = same_org_member.get("/events/event-a/purchase-requests/mine")
+    assert member_list.status_code == 403
+    assert member_list.json()["code"] == "PURCHASE_REQUEST_ACTION_FORBIDDEN"
     detail_path = f"/events/event-a/purchase-requests/{request_id}"
+    _assert_openapi_request(
+        path="/events/{eventId}/purchase-requests/{requestId}",
+        method="GET",
+        path_parameters={"eventId": "event-a", "requestId": request_id},
+    )
     owner_detail = owner.get(detail_path)
     _assert_openapi_response(
         owner_detail,
@@ -416,8 +500,9 @@ def test_ac01_ac02_ac06_ac07_submit_list_and_detail_preserve_scope_and_idempoten
     assert len(expected_detail["itemResults"]) == 2
     assert expected_detail["estimatedTotal"] == 25000
     assert expected_detail["overBudget"] is True
-    assert same_org_member.get(detail_path).json() == expected_detail
-    assert same_org_member.get(detail_path).json() == expected_detail
+    member_detail = same_org_member.get(detail_path)
+    assert member_detail.status_code == 200
+    assert member_detail.json() == expected_detail
 
     hidden = other_org.get(detail_path)
     assert hidden.status_code == 404
@@ -473,6 +558,32 @@ def test_ac03_invalid_submission_does_not_create_a_request(
     )
 
     assert invalid.status_code == 422
+
+    null_detail_body = _submit_body()
+    content = null_detail_body["content"]
+    assert isinstance(content, dict)
+    items = content["items"]
+    assert isinstance(items, list)
+    first_item = items[0]
+    assert isinstance(first_item, dict)
+    details = first_item["details"]
+    assert isinstance(details, dict)
+    details["vendor"] = None
+    with pytest.raises(ValidationError):
+        _assert_openapi_request(
+            path="/events/{eventId}/purchase-requests",
+            method="POST",
+            path_parameters={"eventId": "event-a"},
+            headers={"Idempotency-Key": "invalid-null-detail-001"},
+            body=null_detail_body,
+        )
+    null_detail = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "invalid-null-detail-001"},
+        json=null_detail_body,
+    )
+    assert null_detail.status_code == 422
+
     with migrated_engine.connect() as connection:
         assert (
             connection.scalar(sa.select(sa.func.count()).select_from(purchase_requests))
