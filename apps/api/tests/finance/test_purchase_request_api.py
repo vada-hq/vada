@@ -135,10 +135,10 @@ def _context(
     )
 
 
-def _content() -> PurchaseRequestContent:
+def _content(*, needed_date: date = date(2999, 8, 20)) -> PurchaseRequestContent:
     return PurchaseRequestContent(
         title="행사 운영 물품",
-        needed_date=date(2026, 8, 20),
+        needed_date=needed_date,
         purpose="행사 운영",
         priority="urgent",
         items=(
@@ -159,7 +159,7 @@ def _content() -> PurchaseRequestContent:
     )
 
 
-def _record() -> PurchaseRequestRecord:
+def _record(*, content: PurchaseRequestContent | None = None) -> PurchaseRequestRecord:
     return PurchaseRequestRecord(
         request_id="request-001",
         organization_id="organization-a",
@@ -167,7 +167,7 @@ def _record() -> PurchaseRequestRecord:
         requester_user_id="user-a",
         request_department_id="department-a",
         status="review_pending",
-        content=_content(),
+        content=content or _content(),
         item_results=(
             PurchaseRequestItemResult(
                 item_id="item-001",
@@ -253,6 +253,95 @@ def test_draft_preserves_incomplete_values_until_submission_validation() -> None
     assert response.json()["content"]["items"][0]["details"]["depositAmount"] == -1
 
 
+def test_draft_numbers_remain_json_numbers() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, _ = _client(repository)
+
+    saved = client.put(
+        "/events/event-a/purchase-request-draft",
+        json={
+            "expectedVersion": None,
+            "content": {"items": [{"quantity": 1.5}]},
+        },
+    )
+
+    assert saved.status_code == 200
+    quantity = saved.json()["content"]["items"][0]["quantity"]
+    assert isinstance(quantity, (int, float)) and not isinstance(quantity, bool)
+    assert quantity == 1.5
+
+
+def test_draft_rejects_an_explicit_null_evidence_type_without_overwriting() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, _ = _client(repository)
+    initial = client.put(
+        "/events/event-a/purchase-request-draft",
+        json={"expectedVersion": None, "content": {"title": "작성 중"}},
+    )
+    assert initial.status_code == 200
+
+    rejected = client.put(
+        "/events/event-a/purchase-request-draft",
+        json={
+            "expectedVersion": 1,
+            "content": {
+                "items": [{"priceEvidence": [{"type": None}]}],
+            },
+        },
+    )
+
+    assert rejected.status_code == 422
+    assert repository.draft is not None
+    assert repository.draft.version == 1
+
+
+def test_purchase_request_numbers_reject_json_strings() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+
+    draft = client.put(
+        "/events/event-a/purchase-request-draft",
+        json={
+            "expectedVersion": None,
+            "content": {"items": [{"quantity": "1.5"}]},
+        },
+    )
+    submitted = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "string-number-001"},
+        json={
+            "content": {
+                "title": "행사 운영 물품",
+                "neededDate": "2999-08-20",
+                "purpose": "행사 운영",
+                "priority": "normal",
+                "items": [
+                    {
+                        "name": "현수막",
+                        "category": "홍보물",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "general",
+                        "quantity": "2",
+                        "unit": "개",
+                        "estimatedUnitPrice": 10000,
+                        "priceEvidence": [
+                            {
+                                "type": "product_url",
+                                "url": "https://example.test/banner",
+                            }
+                        ],
+                        "details": {},
+                    }
+                ],
+            }
+        },
+    )
+
+    assert draft.status_code == 422
+    assert submitted.status_code == 422
+    assert submission_store.last_idempotency_key is None
+
+
 def test_invalid_submission_returns_problem_details_without_calling_store() -> None:
     repository = FakePurchaseRequestRepository()
     client, submission_store = _client(repository)
@@ -336,7 +425,7 @@ def test_submit_and_own_list_keep_identity_and_amounts_server_owned() -> None:
         json={
             "content": {
                 "title": "행사 운영 물품",
-                "neededDate": "2026-08-20",
+                "neededDate": "2999-08-20",
                 "purpose": "행사 운영",
                 "priority": "urgent",
                 "items": [
@@ -364,6 +453,9 @@ def test_submit_and_own_list_keep_identity_and_amounts_server_owned() -> None:
     assert response.status_code == 201
     assert response.json()["requesterUserId"] == "user-a"
     assert response.json()["estimatedTotal"] == 20000
+    quantity = response.json()["content"]["items"][0]["quantity"]
+    assert isinstance(quantity, (int, float)) and not isinstance(quantity, bool)
+    assert quantity == 2
     assert submission_store.last_idempotency_key == "request-key-001"
 
     listed = client.get("/events/event-a/purchase-requests/mine")
@@ -391,6 +483,17 @@ def test_detail_is_scoped_and_missing_or_cross_organization_is_same_404() -> Non
     assert {
         key: value for key, value in hidden.json().items() if key != "instance"
     } == {key: value for key, value in missing.json().items() if key != "instance"}
+
+
+def test_stored_request_remains_readable_after_its_needed_date_passes() -> None:
+    repository = FakePurchaseRequestRepository()
+    repository.detail = _record(content=_content(needed_date=date(2000, 1, 1)))
+    client, _ = _client(repository)
+
+    response = client.get("/events/event-a/purchase-requests/request-001")
+
+    assert response.status_code == 200
+    assert response.json()["content"]["neededDate"] == "2000-01-01"
 
 
 def test_permission_and_persistence_failures_are_stable_problem_details() -> None:
@@ -482,6 +585,13 @@ def test_routes_expose_contract_traceability_metadata() -> None:
             assert operation[key] == canonical_operation[key]
         assert set(operation["responses"]) == set(canonical_operation["responses"])
         for status, response in canonical_operation["responses"].items():
+            assert operation["responses"][status].get(
+                "x-vada-contract"
+            ) == response.get("x-vada-contract")
             assert set(operation["responses"][status].get("content", {})) == set(
                 response.get("content", {})
             )
+
+    schemas = openapi["components"]["schemas"]
+    assert schemas["JsonNumberDecimal"] == {"type": "number"}
+    assert len(schemas["PurchaseRequestDetailsModel"]["anyOf"]) == 4

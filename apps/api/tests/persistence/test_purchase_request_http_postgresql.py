@@ -134,7 +134,7 @@ def _submit_body(*, title: str = "행사 운영 물품") -> dict[str, object]:
     return {
         "content": {
             "title": title,
-            "neededDate": date(2026, 8, 20).isoformat(),
+            "neededDate": date(2999, 8, 20).isoformat(),
             "purpose": "행사 운영",
             "priority": "urgent",
             "items": [
@@ -420,6 +420,18 @@ def test_api_failures_are_stable_at_the_real_postgresql_boundary(
         assert draft_failure.status_code == 503
         assert (
             draft_failure.json()["code"] == "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE"
+        )
+        draft_save_failure = client.put(
+            "/events/event-a/purchase-request-draft",
+            json={
+                "expectedVersion": None,
+                "content": {"title": "저장 실패 확인"},
+            },
+        )
+        assert draft_save_failure.status_code == 503
+        assert (
+            draft_save_failure.json()["code"]
+            == "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE"
         )
     finally:
         with migrated_engine.begin() as connection:

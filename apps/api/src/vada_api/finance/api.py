@@ -13,9 +13,12 @@ from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from pydantic import (
     BaseModel,
+    BeforeValidator,
     ConfigDict,
     Field,
+    PlainSerializer,
     TypeAdapter,
+    WithJsonSchema,
     field_validator,
     model_validator,
 )
@@ -55,6 +58,20 @@ class ContractModel(BaseModel):
     )
 
 
+def _reject_non_json_number(value: object) -> object:
+    if isinstance(value, (str, bool)):
+        raise ValueError("JSON 숫자만 사용할 수 있습니다.")
+    return value
+
+
+type JsonNumberDecimal = Annotated[
+    Decimal,
+    BeforeValidator(_reject_non_json_number),
+    WithJsonSchema({"type": "number"}, mode="validation"),
+    PlainSerializer(float, return_type=float, when_used="json"),
+]
+
+
 class DraftEvidenceModel(ContractModel):
     type: (
         Literal["product_url", "vendor", "price_screenshot", "vendor_quote"] | None
@@ -63,6 +80,13 @@ class DraftEvidenceModel(ContractModel):
     vendor_name: str = Field(default="", alias="vendorName")
     file_ref: str = Field(default="", alias="fileRef")
     note: str = ""
+
+    @model_validator(mode="before")
+    @classmethod
+    def reject_explicit_null_type(cls, value: object) -> object:
+        if isinstance(value, Mapping) and "type" in value and value["type"] is None:
+            raise ValueError("가격 근거 유형은 null일 수 없습니다.")
+        return cast(object, value)
 
 
 class DraftDetailsModel(ContractModel):
@@ -73,7 +97,7 @@ class DraftDetailsModel(ContractModel):
     item_kind: str = Field(default="", alias="itemKind")
     specification: str = ""
     color: str = ""
-    option_quantities: dict[str, Decimal | None] = Field(
+    option_quantities: dict[str, JsonNumberDecimal | None] = Field(
         default_factory=dict, alias="optionQuantities"
     )
     print_method: str = Field(default="", alias="printMethod")
@@ -98,7 +122,7 @@ class DraftItemModel(ContractModel):
     purchase_type: (
         Literal["general", "manufacturing_printing", "rental", "service"] | None
     ) = Field(default=None, alias="purchaseType")
-    quantity: Decimal | None = None
+    quantity: JsonNumberDecimal | None = None
     unit: str = ""
     estimated_unit_price: int | None = Field(default=None, alias="estimatedUnitPrice")
     price_evidence: list[DraftEvidenceModel] = Field(
@@ -169,8 +193,8 @@ class ManufacturingPrintingDetailsModel(ContractModel):
     item_kind: str | None = Field(default=None, alias="itemKind", min_length=1)
     specification: str | None = Field(default=None, min_length=1)
     color: str | None = Field(default=None, min_length=1)
-    option_quantities: dict[str, Annotated[Decimal, Field(gt=0)]] | None = Field(
-        default=None, alias="optionQuantities", min_length=1
+    option_quantities: dict[str, Annotated[JsonNumberDecimal, Field(gt=0)]] | None = (
+        Field(default=None, alias="optionQuantities", min_length=1)
     )
     print_method: str | None = Field(default=None, alias="printMethod", min_length=1)
     delivery_date: date | None = Field(default=None, alias="deliveryDate")
@@ -209,6 +233,13 @@ _DETAIL_ADAPTERS: Mapping[str, TypeAdapter[BaseModel]] = {
     "service": TypeAdapter(ServiceDetailsModel),
 }
 
+type PurchaseRequestDetailsModel = (
+    GeneralDetailsModel
+    | ManufacturingPrintingDetailsModel
+    | RentalDetailsModel
+    | ServiceDetailsModel
+)
+
 
 class PurchaseRequestItemModel(ContractModel):
     name: str = Field(min_length=1)
@@ -217,13 +248,13 @@ class PurchaseRequestItemModel(ContractModel):
     purchase_type: Literal["general", "manufacturing_printing", "rental", "service"] = (
         Field(alias="purchaseType")
     )
-    quantity: Decimal = Field(gt=0)
+    quantity: JsonNumberDecimal = Field(gt=0)
     unit: str = Field(min_length=1)
     estimated_unit_price: int = Field(alias="estimatedUnitPrice", gt=0)
     price_evidence: list[PriceEvidenceModel] = Field(
         alias="priceEvidence", min_length=1
     )
-    details: dict[str, object]
+    details: PurchaseRequestDetailsModel
 
     @model_validator(mode="after")
     def validate_type_specific_contract(self) -> PurchaseRequestItemModel:
@@ -236,10 +267,10 @@ class PurchaseRequestItemModel(ContractModel):
         if not evidence_types.intersection(required):
             raise ValueError("구매 유형에 맞는 가격 근거가 필요합니다.")
         adapter = _DETAIL_ADAPTERS[self.purchase_type]
-        validated = adapter.validate_python(self.details)
-        self.details = validated.model_dump(
-            by_alias=True, exclude_none=True, mode="json"
+        validated = adapter.validate_python(
+            self.details.model_dump(by_alias=True, exclude_none=True, mode="json")
         )
+        self.details = cast(PurchaseRequestDetailsModel, validated)
         return self
 
 
@@ -250,6 +281,8 @@ class PurchaseRequestInputModel(ContractModel):
     priority: Literal["normal", "urgent"]
     items: list[PurchaseRequestItemModel] = Field(min_length=1)
 
+
+class PurchaseRequestSubmissionInputModel(PurchaseRequestInputModel):
     @field_validator("needed_date")
     @classmethod
     def reject_past_needed_date(cls, value: date) -> date:
@@ -264,7 +297,7 @@ class DraftReferenceModel(ContractModel):
 
 
 class PurchaseRequestSubmitCommandModel(ContractModel):
-    content: PurchaseRequestInputModel
+    content: PurchaseRequestSubmissionInputModel
     draft_ref: DraftReferenceModel | None = Field(default=None, alias="draftRef")
 
 
@@ -507,6 +540,15 @@ _PROBLEM_DESCRIPTIONS = {
     503: "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
 }
 
+_ERROR_CONTRACTS = {
+    401: "ERROR:http.unauthenticated@R1",
+    403: "ERROR:purchase_request.action_forbidden@R1",
+    404: "ERROR:http.resource_not_found@R1",
+    409: "ERROR:purchase_request.state_conflict@R1",
+    422: "ERROR:purchase_request.validation_failed@R1",
+    503: "ERROR:purchase_request.persistence_unavailable@R1",
+}
+
 _CANONICAL_RESPONSE_STATUSES = {
     "getPurchaseRequestEditorState": {"200", "401", "403", "404", "503"},
     "savePurchaseRequestDraft": {
@@ -544,6 +586,7 @@ def _problem_responses(
     return {
         status: {
             "description": _PROBLEM_DESCRIPTIONS[status],
+            "x-vada-contract": _ERROR_CONTRACTS[status],
             "content": {"application/problem+json": {"schema": schema}},
         }
         for status in statuses
@@ -910,7 +953,9 @@ def _submission_content(model: PurchaseRequestInputModel) -> PurchaseRequestCont
                     evidence.model_dump(by_alias=True, exclude_none=True, mode="json")
                     for evidence in item.price_evidence
                 ),
-                details=item.details,
+                details=item.details.model_dump(
+                    by_alias=True, exclude_none=True, mode="json"
+                ),
             )
             for item in model.items
         ),

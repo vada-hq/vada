@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R3",
-  "runtime_revision": 17,
+  "runtime_revision": 20,
   "runtime_status": "active",
-  "updated_at": "2026-08-04T05:18:04.387Z",
+  "updated_at": "2026-08-04T05:31:28.851Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R3.json",
@@ -137,6 +137,27 @@
       "captured_at": "2026-08-04T05:18:04.387Z",
       "locator": "git:eebe3855baf85f22f7318f1db7b1932407fd22a7",
       "content_ko": "독립 검증 지적을 보완한 DU-001 API 커밋이 just check-api를 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-019",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:31:24.549Z",
+      "locator": "review:PR-12:6567b87",
+      "content_ko": "독립 검증자가 저장 응답과 초안 검증 경계의 차단 결함을 재현해 변경을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-020",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:31:26.709Z",
+      "locator": "review:PR-12:6567b87",
+      "content_ko": "독립 검증자가 저장 응답과 초안 검증 경계의 차단 결함을 재현해 변경을 요청했습니다."
+    },
+    {
+      "id": "SRC-RUN-021",
+      "type": "review_record",
+      "captured_at": "2026-08-04T05:31:28.851Z",
+      "locator": "review:PR-12:6567b87",
+      "content_ko": "독립 검증자가 저장 응답과 초안 검증 경계의 차단 결함을 재현해 변경을 요청했습니다."
     }
   ],
   "work_runs": [
@@ -163,7 +184,7 @@
     {
       "work_item_ref": "WORK:purchase-request-draft-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "in_progress",
       "started_at": "2026-08-03T17:32:45.777Z",
       "completed_at": null,
       "transition_log": [
@@ -211,6 +232,15 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-015",
           "note_ko": "작성 정보·개인 초안 API의 실제 경계·OpenAPI 보완과 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-022",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:31:24.549Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-019",
+          "note_ko": "독립 재검증에서 초안 수량 직렬화·가격 근거 null 검증·PUT 저장 장애 증거 결함이 확인되어 재작업합니다."
         }
       ],
       "blockers": [],
@@ -219,7 +249,7 @@
     {
       "work_item_ref": "WORK:purchase-request-submission-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "in_progress",
       "started_at": "2026-08-03T17:32:49.481Z",
       "completed_at": null,
       "transition_log": [
@@ -267,6 +297,15 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-016",
           "note_ko": "제출 필요일·OpenAPI·실제 저장 장애 경계 보완과 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-023",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:31:26.709Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-020",
+          "note_ko": "독립 재검증에서 저장 당시 유효한 과거 필요일 재응답과 수량 직렬화 결함이 확인되어 재작업합니다."
         }
       ],
       "blockers": [],
@@ -331,7 +370,7 @@
     {
       "work_item_ref": "WORK:purchase-request-detail-api@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "in_progress",
       "started_at": "2026-08-03T17:32:57.202Z",
       "completed_at": null,
       "transition_log": [
@@ -379,6 +418,15 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-018",
           "note_ko": "상세 OpenAPI·전체 응답·조직 비노출 증거 보완과 API 범위 검사를 마쳐 재검토로 넘깁니다."
+        },
+        {
+          "id": "TR-024",
+          "from": "review",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T05:31:28.851Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-021",
+          "note_ko": "독립 재검증에서 과거 필요일을 포함한 저장 상세 조회가 500이 되는 결함이 확인되어 재작업합니다."
         }
       ],
       "blockers": [],
