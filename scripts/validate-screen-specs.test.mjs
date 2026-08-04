@@ -5,12 +5,17 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
+  canonicalSha256,
   validateScreenSpec,
   validateScreenSpecRepository,
 } from "./validate-screen-specs.mjs";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const artifactPath = resolve(
+  repositoryRoot,
+  "delivery-units/DU-001/screen-spec/review-ready-R2.json",
+);
+const historicalDraftPath = resolve(
   repositoryRoot,
   "delivery-units/DU-001/screen-spec/draft.json",
 );
@@ -22,7 +27,34 @@ async function actualSpec() {
 test("저장소의 실제 화면 명세가 유효하다", async () => {
   const result = await validateScreenSpecRepository(repositoryRoot);
   assert.deepEqual(result.errors, []);
-  assert.equal(result.files.length, 1);
+  assert.equal(result.files.length, 2);
+});
+
+test("과거 R1 거부 증거의 QUESTION-001 앵커를 보존한다", async () => {
+  const spec = JSON.parse(await readFile(historicalDraftPath, "utf8"));
+
+  assert.equal(spec.spec_revision, 1);
+  assert.equal(spec.spec_status, "defining");
+  assert.equal(spec.work_item_ref, "WORK:purchase-request-screen-spec@R1");
+  assert.equal(
+    canonicalSha256(spec),
+    "4d64dbd0abf34ec246f731c35475dc75c8f99babc873e993e47c84e1c7a1ace2",
+  );
+  assert.deepEqual(
+    spec.review.open_questions.find((question) => question.id === "QUESTION-001"),
+    {
+      id: "QUESTION-001",
+      status: "open",
+      kind: "contract_gap",
+      gap_ref: "CONTRACT-GAP-001",
+      owner_capability: "technical_design",
+      question_ko:
+        "AC-07의 요청자·행사 표시명을 상세 재조회에서 어떤 서버 계약으로 제공할 것인가요?",
+      reason_ko:
+        "현재 요청 상세 응답은 두 값을 ID로만 제공하므로 새로고침 뒤 표시명을 신뢰 가능하게 복원할 수 없습니다.",
+      blocks_promotion: true,
+    },
+  );
 });
 
 test("고정한 전달 작업 그래프의 해시가 바뀌면 거부한다", async () => {
@@ -61,6 +93,92 @@ test("인증이 필요한 DU-001 화면에서 401 상태가 빠지면 거부한�
   const errors = await validateScreenSpec(spec, { artifactPath });
 
   assert.ok(errors.some((error) => error.includes("STATE-DETAIL-UNAUTHENTICATED")));
+});
+
+test("R2 상세의 401 계약 참조가 바뀌면 거부한다", async () => {
+  const spec = await actualSpec();
+  const unauthenticated = spec.state_matrix.find(
+    (state) => state.id === "STATE-DETAIL-UNAUTHENTICATED",
+  );
+  unauthenticated.contract_refs = ["ERROR:http.resource_not_found@R1"];
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+
+  assert.ok(errors.some((error) => error.includes("ERROR:http.unauthenticated@R1")));
+});
+
+test("R2 상세의 display.eventName과 display.requesterName 표시가 빠지면 거부한다", async () => {
+  const spec = await actualSpec();
+  const summary = spec.surfaces
+    .find((surface) => surface.id === "SURFACE-PURCHASE-REQUEST-DETAIL")
+    .regions.find((region) => region.id === "DETAIL-SUMMARY");
+  summary.content_ko = "저장된 구매 요청 요약을 표시합니다.";
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+
+  assert.ok(
+    errors.some((error) =>
+      error.includes("display.eventName과 display.requesterName"),
+    ),
+  );
+});
+
+test("R2 상세의 로딩 상태가 빠지면 거부한다", async () => {
+  const spec = await actualSpec();
+  spec.state_matrix = spec.state_matrix.filter(
+    (state) => state.id !== "STATE-DETAIL-LOADING-READY",
+  );
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+
+  assert.ok(errors.some((error) => error.includes("상세 로딩 상태")));
+});
+
+test("R2 상세의 404와 503 계약 상태가 각각 빠지면 거부한다", async () => {
+  for (const omittedRef of [
+    "ERROR:http.resource_not_found@R1",
+    "ERROR:purchase_request.persistence_unavailable@R1",
+  ]) {
+    const spec = await actualSpec();
+    const failed = spec.state_matrix.find(
+      (state) => state.id === "STATE-DETAIL-FAILED",
+    );
+    failed.contract_refs = [
+      "ERROR:http.resource_not_found@R1",
+      "ERROR:purchase_request.persistence_unavailable@R1",
+    ].filter((ref) => ref !== omittedRef);
+
+    const errors = await validateScreenSpec(spec, { artifactPath });
+
+    assert.ok(errors.some((error) => error.includes(omittedRef)));
+  }
+});
+
+test("R2 상세의 새로고침 재조회 요구가 빠지면 거부한다", async () => {
+  const spec = await actualSpec();
+  const loading = spec.state_matrix.find(
+    (state) => state.id === "STATE-DETAIL-LOADING-READY",
+  );
+  loading.trigger_ko = "목록에서 상세를 열 때";
+  loading.interaction_ko = "상세 GET을 실행하며 목록에 복귀할 수 있습니다.";
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+
+  assert.ok(errors.some((error) => error.includes("새로고침 재조회")));
+});
+
+test("R2 상세의 키보드와 접근 가능한 상태 피드백 요구가 빠지면 거부한다", async () => {
+  const spec = await actualSpec();
+  spec.accessibility_contract.requirements_ko =
+    spec.accessibility_contract.requirements_ko.filter(
+      (requirement) =>
+        !requirement.includes("목록·상세 이동과 재시도") &&
+        !requirement.includes("저장·삭제·제출의 진행·성공"),
+    );
+
+  const errors = await validateScreenSpec(spec, { artifactPath });
+
+  assert.ok(errors.some((error) => error.includes("키보드·접근성")));
 });
 
 test("공통 인증 상태는 설계 의미를 빌리지 않고 계약 참조만으로 정의할 수 있다", async () => {
