@@ -3,10 +3,10 @@ output "lambda_observability" {
   value = {
     tracing_mode = "Active"
     environment_variables = {
-      VADA_ENVIRONMENT                = var.environment
-      POWERTOOLS_SERVICE_NAME         = "vada-purchase-requests"
-      POWERTOOLS_METRICS_NAMESPACE    = "VADA/PurchaseRequests"
-      POWERTOOLS_LOG_LEVEL            = "INFO"
+      VADA_ENVIRONMENT             = var.environment
+      POWERTOOLS_SERVICE_NAME      = "vada-purchase-requests"
+      POWERTOOLS_METRICS_NAMESPACE = "VADA/PurchaseRequests"
+      POWERTOOLS_LOG_LEVEL         = "INFO"
     }
     required_iam_actions = [
       "xray:PutTraceSegments",
