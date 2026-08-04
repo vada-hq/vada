@@ -1,0 +1,97 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R5",
+  "runtime_revision": 3,
+  "runtime_status": "active",
+  "updated_at": "2026-08-04T17:11:19.468Z",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R5.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 5,
+    "canonical_sha256": "80ab9cb9422866a08e681ff87b66a188eaa4bf4aa86a2f029df9df67b42d1094"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T02:10:03.310+09:00",
+      "locator": "delivery-units/DU-001/execution-plan/R5.json#EP-DU-001@R5",
+      "content_ko": "제품 책임자가 승인한 DU-001 실행 계획 R5이며, 화면 명세 R2와 계약 픽스처 R2 두 작업만 첫 rolling-wave 실행 범위로 고정합니다."
+    },
+    {
+      "id": "SRC-RUN-002",
+      "type": "user_statement",
+      "captured_at": "2026-08-04T17:11:04.810Z",
+      "locator": "current-thread:overnight-execution-approval",
+      "content_ko": "제품 책임자가 승인된 R5의 화면 명세 R2 작업을 격리된 작업 환경에서 시작하도록 지시했습니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "user_statement",
+      "captured_at": "2026-08-04T17:11:19.468Z",
+      "locator": "current-thread:overnight-execution-approval",
+      "content_ko": "제품 책임자가 승인된 R5의 계약 픽스처 R2 작업을 격리된 작업 환경에서 시작하도록 지시했습니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:purchase-request-screen-spec@R2",
+      "executor_ref": "EXEC:ai-experience-design",
+      "status": "in_progress",
+      "started_at": "2026-08-04T17:11:04.810Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T02:10:03.310+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R5에서 화면 명세 R2 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-003",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T17:11:04.810Z",
+          "actor_ref": "EXEC:ai-experience-design",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "승인 계약과 기존 화면 근거를 대조해 화면 명세 R2 작업을 시작합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-contract-fixtures@R2",
+      "executor_ref": "EXEC:ai-technical-design",
+      "status": "in_progress",
+      "started_at": "2026-08-04T17:11:19.468Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-002",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T02:10:03.310+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R5에서 계약 픽스처 R2 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-004",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-04T17:11:19.468Z",
+          "actor_ref": "EXEC:ai-technical-design",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "승인 계약 R2의 사례와 검증 기준선 부족분을 테스트 우선으로 보완하기 시작합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    }
+  ]
+}
