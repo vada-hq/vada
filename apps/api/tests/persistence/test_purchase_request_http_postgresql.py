@@ -7,13 +7,10 @@ from decimal import Decimal
 
 import pytest
 import sqlalchemy as sa
+from fastapi import Request
 from fastapi.testclient import TestClient
 from sqlalchemy import Engine, text
 
-from vada_api.finance.api import (
-    get_purchase_request_context,
-    get_purchase_request_service,
-)
 from vada_api.finance.application import FinanceRequestContext, PurchaseRequestService
 from vada_api.finance.authorization import PurchaseRequestActorFacts
 from vada_api.finance.persistence.purchase_requests import (
@@ -28,6 +25,7 @@ from vada_api.identity.context import (
     DepartmentRelationshipFact,
     TrustedOrganizationContext,
 )
+from vada_api.identity.errors import ResourceNotFoundError
 from vada_api.main import create_app
 
 
@@ -107,14 +105,28 @@ def _context(
     )
 
 
+class StaticPurchaseRequestContextProvider:
+    """Test adapter that still enforces the requested event trust boundary."""
+
+    def __init__(self, context: FinanceRequestContext) -> None:
+        self._context = context
+
+    def resolve(self, _request: Request, *, event_id: str) -> FinanceRequestContext:
+        if event_id != self._context.actor.identity.event_id:
+            raise ResourceNotFoundError
+        return self._context
+
+
 def _client(engine: Engine, context: FinanceRequestContext) -> TestClient:
     service = PurchaseRequestService(
         PostgreSQLPurchaseRequestRepository(engine),
         PostgreSQLPurchaseRequestSubmissionStore(engine),
     )
     app = create_app()
-    app.dependency_overrides[get_purchase_request_context] = lambda: context
-    app.dependency_overrides[get_purchase_request_service] = lambda: service
+    app.state.purchase_request_context_provider = StaticPurchaseRequestContextProvider(
+        context
+    )
+    app.state.purchase_request_service = service
     return TestClient(app)
 
 
@@ -164,7 +176,19 @@ def test_draft_api_lifecycle_is_versioned_and_isolated(
 ) -> None:
     owner = _client(migrated_engine, _context())
 
-    assert owner.get("/events/event-a/purchase-request-editor").json()["draft"] is None
+    editor = owner.get("/events/event-a/purchase-request-editor")
+    assert editor.status_code == 200
+    assert editor.json() == {
+        "organizationId": "organization-a",
+        "eventId": "event-a",
+        "eventName": "개강 행사",
+        "requesterUserId": "user-a",
+        "requesterName": "요청자 user-a",
+        "requestDepartmentId": "department-a",
+        "requestDepartmentName": "기획부",
+        "draft": None,
+    }
+    assert owner.get("/events/event-b/purchase-request-editor").status_code == 404
     created = owner.put(
         "/events/event-a/purchase-request-draft",
         json={
@@ -276,6 +300,14 @@ def test_submit_list_and_detail_api_preserve_scope_and_idempotency(
         second_request_id,
         request_id,
     ]
+    assert own_list.json()["items"][0] == {
+        "requestId": second_request_id,
+        "title": "두 번째 요청",
+        "status": "review_pending",
+        "estimatedTotal": 25000,
+        "overBudget": True,
+        "createdAt": "2026-08-04T02:00:00Z",
+    }
 
     finance_member = _client(
         migrated_engine,
@@ -292,6 +324,20 @@ def test_submit_list_and_detail_api_preserve_scope_and_idempotency(
     )
     assert finance_submission.status_code == 201
 
+    other_org = _client(
+        migrated_engine, _context(organization_id="organization-b", user_id="user-b")
+    )
+    other_org_submission = other_org.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "other-org-submit-001"},
+        json=body,
+    )
+    assert other_org_submission.status_code == 201
+    assert [
+        item["requestId"]
+        for item in owner.get("/events/event-a/purchase-requests/mine").json()["items"]
+    ] == [second_request_id, request_id]
+
     same_org_member = _client(migrated_engine, _context(user_id="user-c"))
     assert same_org_member.get("/events/event-a/purchase-requests/mine").json() == {
         "items": []
@@ -300,15 +346,27 @@ def test_submit_list_and_detail_api_preserve_scope_and_idempotency(
     owner_detail = owner.get(detail_path)
     assert owner_detail.status_code == 200
     expected_detail = owner_detail.json()
+    assert expected_detail["requestId"] == request_id
+    assert expected_detail["organizationId"] == "organization-a"
+    assert expected_detail["eventId"] == "event-a"
+    assert expected_detail["requesterUserId"] == "user-a"
+    assert expected_detail["requestDepartmentId"] == "department-a"
+    assert expected_detail["status"] == "review_pending"
+    assert expected_detail["content"] == first.json()["content"]
+    assert len(expected_detail["itemResults"]) == 2
+    assert expected_detail["estimatedTotal"] == 25000
+    assert expected_detail["overBudget"] is True
     assert same_org_member.get(detail_path).json() == expected_detail
     assert same_org_member.get(detail_path).json() == expected_detail
 
-    other_org = _client(
-        migrated_engine, _context(organization_id="organization-b", user_id="user-b")
-    )
     hidden = other_org.get(detail_path)
     assert hidden.status_code == 404
     assert hidden.json()["code"] == "RESOURCE_NOT_FOUND"
+    missing = owner.get("/events/event-a/purchase-requests/request-unknown")
+    assert missing.status_code == 404
+    assert {
+        key: value for key, value in hidden.json().items() if key != "instance"
+    } == {key: value for key, value in missing.json().items() if key != "instance"}
 
 
 @pytest.mark.postgres
@@ -324,6 +382,72 @@ def test_invalid_submission_does_not_create_a_request(
     )
 
     assert invalid.status_code == 422
+    with migrated_engine.connect() as connection:
+        assert (
+            connection.scalar(sa.select(sa.func.count()).select_from(purchase_requests))
+            == 0
+        )
+
+
+@pytest.mark.postgres
+def test_api_failures_are_stable_at_the_real_postgresql_boundary(
+    migrated_engine: Engine,
+) -> None:
+    unauthenticated = TestClient(create_app()).get(
+        "/events/event-a/purchase-request-editor"
+    )
+    assert unauthenticated.status_code == 401
+    assert unauthenticated.json()["code"] == "UNAUTHENTICATED"
+
+    forbidden = _client(
+        migrated_engine,
+        _context(department_head=False, finance_member=False),
+    ).get("/events/event-a/purchase-request-editor")
+    assert forbidden.status_code == 403
+    assert forbidden.json()["code"] == "PURCHASE_REQUEST_ACTION_FORBIDDEN"
+
+    client = _client(migrated_engine, _context())
+    missing_event = client.get("/events/event-b/purchase-request-editor")
+    assert missing_event.status_code == 404
+    assert missing_event.json()["code"] == "RESOURCE_NOT_FOUND"
+
+    with migrated_engine.begin() as connection:
+        connection.execute(
+            text("ALTER TABLE purchase_request_drafts RENAME TO unavailable_drafts")
+        )
+    try:
+        draft_failure = client.get("/events/event-a/purchase-request-editor")
+        assert draft_failure.status_code == 503
+        assert (
+            draft_failure.json()["code"] == "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE"
+        )
+    finally:
+        with migrated_engine.begin() as connection:
+            connection.execute(
+                text("ALTER TABLE unavailable_drafts RENAME TO purchase_request_drafts")
+            )
+
+    with migrated_engine.begin() as connection:
+        connection.execute(
+            text("ALTER TABLE purchase_requests RENAME TO unavailable_requests")
+        )
+    try:
+        submission_failure = client.post(
+            "/events/event-a/purchase-requests",
+            headers={"Idempotency-Key": "unavailable-submit-001"},
+            json=_submit_body(),
+        )
+        assert submission_failure.status_code == 503
+        assert (
+            submission_failure.json()["code"]
+            == "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE"
+        )
+    finally:
+        with migrated_engine.begin() as connection:
+            connection.execute(
+                text("ALTER TABLE unavailable_requests RENAME TO purchase_requests")
+            )
+
     with migrated_engine.connect() as connection:
         assert (
             connection.scalar(sa.select(sa.func.count()).select_from(purchase_requests))

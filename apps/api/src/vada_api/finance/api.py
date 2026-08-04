@@ -3,12 +3,22 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Annotated, Literal, Protocol
+from typing import Annotated, Any, Literal, Protocol, cast
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, FastAPI, Header, Path, Request, Response
+from fastapi.exception_handlers import request_validation_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, model_validator
+from fastapi.routing import APIRoute
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    TypeAdapter,
+    field_validator,
+    model_validator,
+)
 
 from vada_api.finance.application import (
     FinanceRequestContext,
@@ -240,6 +250,13 @@ class PurchaseRequestInputModel(ContractModel):
     priority: Literal["normal", "urgent"]
     items: list[PurchaseRequestItemModel] = Field(min_length=1)
 
+    @field_validator("needed_date")
+    @classmethod
+    def reject_past_needed_date(cls, value: date) -> date:
+        if value < datetime.now(ZoneInfo("Asia/Seoul")).date():
+            raise ValueError("필요일은 오늘 이전일 수 없습니다.")
+        return value
+
 
 class DraftReferenceModel(ContractModel):
     draft_id: str = Field(alias="draftId", min_length=1)
@@ -249,6 +266,78 @@ class DraftReferenceModel(ContractModel):
 class PurchaseRequestSubmitCommandModel(ContractModel):
     content: PurchaseRequestInputModel
     draft_ref: DraftReferenceModel | None = Field(default=None, alias="draftRef")
+
+
+class PurchaseRequestDraftResponse(ContractModel):
+    draft_id: str = Field(alias="draftId", min_length=1)
+    version: int = Field(ge=1)
+    saved_at: str = Field(alias="savedAt", min_length=1)
+    content: DraftContentModel
+
+
+class PurchaseRequestEditorStateResponse(ContractModel):
+    organization_id: str = Field(alias="organizationId", min_length=1)
+    event_id: str = Field(alias="eventId", min_length=1)
+    event_name: str = Field(alias="eventName", min_length=1)
+    requester_user_id: str = Field(alias="requesterUserId", min_length=1)
+    requester_name: str = Field(alias="requesterName", min_length=1)
+    request_department_id: str = Field(alias="requestDepartmentId", min_length=1)
+    request_department_name: str = Field(alias="requestDepartmentName", min_length=1)
+    draft: PurchaseRequestDraftResponse | None
+
+
+class PurchaseRequestItemResultResponse(ContractModel):
+    item_id: str = Field(alias="itemId", min_length=1)
+    item_position: int = Field(alias="itemPosition", ge=0)
+    estimated_amount: float = Field(alias="estimatedAmount", gt=0)
+
+
+class PurchaseRequestRecordResponse(ContractModel):
+    request_id: str = Field(alias="requestId", min_length=1)
+    organization_id: str = Field(alias="organizationId", min_length=1)
+    event_id: str = Field(alias="eventId", min_length=1)
+    requester_user_id: str = Field(alias="requesterUserId", min_length=1)
+    request_department_id: str = Field(alias="requestDepartmentId", min_length=1)
+    status: Literal["review_pending"]
+    content: PurchaseRequestInputModel
+    item_results: list[PurchaseRequestItemResultResponse] = Field(
+        alias="itemResults", min_length=1
+    )
+    estimated_total: float = Field(alias="estimatedTotal", gt=0)
+    over_budget: bool = Field(alias="overBudget")
+    created_at: str = Field(alias="createdAt", min_length=1)
+
+
+class PurchaseRequestSummaryResponse(ContractModel):
+    request_id: str = Field(alias="requestId", min_length=1)
+    title: str = Field(min_length=1)
+    status: str = Field(min_length=1)
+    estimated_total: float = Field(alias="estimatedTotal", gt=0)
+    over_budget: bool = Field(alias="overBudget")
+    created_at: str = Field(alias="createdAt", min_length=1)
+
+
+class PurchaseRequestOwnListResponse(ContractModel):
+    items: list[PurchaseRequestSummaryResponse]
+
+
+class FieldViolationResponse(ContractModel):
+    path: str = Field(min_length=1)
+    code: str = Field(min_length=1)
+    message: str = Field(min_length=1)
+
+
+class ProblemDetailsResponse(ContractModel):
+    type: str = Field(min_length=1)
+    title: str = Field(min_length=1)
+    status: int = Field(ge=400, le=599)
+    detail: str | None = Field(default=None, min_length=1)
+    instance: str | None = Field(default=None, min_length=1)
+    code: str = Field(pattern=r"^[A-Z][A-Z0-9_]*$")
+    retryable: bool | None = None
+    field_violations: list[FieldViolationResponse] | None = Field(
+        default=None, alias="fieldViolations"
+    )
 
 
 class AuthorizedPurchaseRequest:
@@ -299,28 +388,205 @@ def require_permission(
     return dependency
 
 
-def _operation_metadata(
-    *, permission_key: str, contracts: list[str], criteria: list[str]
-) -> dict[str, object]:
+_OPERATION_METADATA: dict[str, dict[str, object]] = {
+    "editor": {
+        "x-vada-permission": "purchase_request.draft_read",
+        "x-vada-contracts": [
+            "API:purchase_request.get_editor_state@R1",
+            "AUTH:purchase_request.draft_read@R1",
+            "DATA:http.empty_body@R1",
+            "DATA:purchase_request.editor_state@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+        "x-vada-acceptance-criteria": [
+            "FLOW-FIN-001@R2/AC-04",
+            "FLOW-FIN-001@R2/AC-05",
+        ],
+    },
+    "save_draft": {
+        "x-vada-permission": "purchase_request.draft_write",
+        "x-vada-contracts": [
+            "API:purchase_request.save_draft@R1",
+            "AUTH:purchase_request.draft_write@R1",
+            "DATA:purchase_request.draft_save_command@R1",
+            "DATA:purchase_request.draft@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.validation_failed@R1",
+            "ERROR:purchase_request.state_conflict@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+        "x-vada-acceptance-criteria": [
+            "FLOW-FIN-001@R2/AC-05",
+            "FLOW-FIN-001@R2/AC-08",
+        ],
+    },
+    "delete_draft": {
+        "x-vada-permission": "purchase_request.draft_delete",
+        "x-vada-contracts": [
+            "API:purchase_request.delete_draft@R1",
+            "AUTH:purchase_request.draft_delete@R1",
+            "DATA:http.empty_body@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+        "x-vada-acceptance-criteria": ["FLOW-FIN-001@R2/AC-05"],
+    },
+    "submit": {
+        "x-vada-permission": "purchase_request.submit",
+        "x-vada-contracts": [
+            "API:purchase_request.submit@R1",
+            "AUTH:purchase_request.submit@R1",
+            "DATA:purchase_request.submit_command@R1",
+            "DATA:purchase_request.record@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.validation_failed@R1",
+            "ERROR:purchase_request.state_conflict@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+        "x-vada-acceptance-criteria": [
+            "FLOW-FIN-001@R2/AC-01",
+            "FLOW-FIN-001@R2/AC-02",
+            "FLOW-FIN-001@R2/AC-03",
+            "FLOW-FIN-001@R2/AC-04",
+            "FLOW-FIN-001@R2/AC-06",
+        ],
+    },
+    "own_list": {
+        "x-vada-permission": "purchase_request.list_own",
+        "x-vada-contracts": [
+            "API:purchase_request.list_own@R1",
+            "AUTH:purchase_request.list_own@R1",
+            "DATA:http.empty_body@R1",
+            "DATA:purchase_request.own_list@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+        "x-vada-acceptance-criteria": [
+            "FLOW-FIN-001@R2/AC-01",
+            "FLOW-FIN-001@R2/AC-02",
+            "FLOW-FIN-001@R2/AC-07",
+        ],
+    },
+    "detail": {
+        "x-vada-permission": "purchase_request.read_detail",
+        "x-vada-contracts": [
+            "API:purchase_request.get_detail@R1",
+            "AUTH:purchase_request.read_detail@R1",
+            "DATA:http.empty_body@R1",
+            "DATA:purchase_request.record@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+        "x-vada-acceptance-criteria": ["FLOW-FIN-001@R2/AC-07"],
+    },
+}
+
+_PROBLEM_DESCRIPTIONS = {
+    401: "인증 정보가 없거나 유효하지 않은 요청을 표현합니다.",
+    403: "현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.",
+    404: "리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.",
+    409: "초안 리비전 또는 멱등성 재시도 내용이 충돌함을 표현합니다.",
+    422: "구매 요청이나 품목 입력이 계약을 만족하지 못함을 표현합니다.",
+    503: "초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.",
+}
+
+_CANONICAL_RESPONSE_STATUSES = {
+    "getPurchaseRequestEditorState": {"200", "401", "403", "404", "503"},
+    "savePurchaseRequestDraft": {
+        "200",
+        "401",
+        "403",
+        "404",
+        "409",
+        "422",
+        "503",
+    },
+    "deletePurchaseRequestDraft": {"204", "401", "404", "503"},
+    "submitPurchaseRequest": {
+        "201",
+        "401",
+        "403",
+        "404",
+        "409",
+        "422",
+        "503",
+    },
+    "listOwnPurchaseRequests": {"200", "401", "403", "404", "503"},
+    "getPurchaseRequestDetail": {"200", "401", "404", "503"},
+}
+
+
+def _operation_metadata(key: str) -> dict[str, object]:
+    return _OPERATION_METADATA[key]
+
+
+def _problem_responses(
+    *statuses: int,
+) -> dict[int | str, dict[str, Any]]:
+    schema = ProblemDetailsResponse.model_json_schema(by_alias=True)
     return {
-        "x-vada-permission": permission_key,
-        "x-vada-contracts": contracts,
-        "x-vada-acceptance-criteria": criteria,
+        status: {
+            "description": _PROBLEM_DESCRIPTIONS[status],
+            "content": {"application/problem+json": {"schema": schema}},
+        }
+        for status in statuses
     }
+
+
+def normalize_purchase_request_openapi(
+    schema: dict[str, object],
+) -> dict[str, object]:
+    """Remove FastAPI's unreachable implicit 422 entries from contracted routes."""
+
+    raw_paths = schema.get("paths")
+    if not isinstance(raw_paths, dict):
+        return schema
+    paths = cast(dict[str, object], raw_paths)
+    for raw_path_item in paths.values():
+        if not isinstance(raw_path_item, dict):
+            continue
+        path_item = cast(dict[str, object], raw_path_item)
+        for raw_operation in path_item.values():
+            if not isinstance(raw_operation, dict):
+                continue
+            operation = cast(dict[str, object], raw_operation)
+            operation_id = operation.get("operationId")
+            if not isinstance(operation_id, str):
+                continue
+            allowed = _CANONICAL_RESPONSE_STATUSES.get(operation_id)
+            raw_responses = operation.get("responses")
+            if allowed is None or not isinstance(raw_responses, dict):
+                continue
+            responses = cast(dict[str, object], raw_responses)
+            for status in set(responses) - allowed:
+                del responses[status]
+    return schema
 
 
 @router.get(
     "/events/{eventId}/purchase-request-editor",
     operation_id="getPurchaseRequestEditorState",
-    openapi_extra=_operation_metadata(
-        permission_key="purchase_request.draft_read",
-        contracts=[
-            "API:purchase_request.get_editor_state@R1",
-            "AUTH:purchase_request.draft_read@R1",
-            "DATA:purchase_request.editor_state@R1",
-        ],
-        criteria=["FLOW-FIN-001@R2/AC-01", "FLOW-FIN-001@R2/AC-02"],
-    ),
+    response_model=PurchaseRequestEditorStateResponse,
+    response_model_exclude_unset=True,
+    responses=_problem_responses(401, 403, 404, 503),
+    openapi_extra=_operation_metadata("editor"),
 )
 def get_editor_state(
     authorized: Annotated[
@@ -345,16 +611,10 @@ def get_editor_state(
 @router.put(
     "/events/{eventId}/purchase-request-draft",
     operation_id="savePurchaseRequestDraft",
-    openapi_extra=_operation_metadata(
-        permission_key="purchase_request.draft_write",
-        contracts=[
-            "API:purchase_request.save_draft@R1",
-            "AUTH:purchase_request.draft_write@R1",
-            "DATA:purchase_request.draft_save_command@R1",
-            "DATA:purchase_request.draft@R1",
-        ],
-        criteria=["FLOW-FIN-001@R2/AC-02"],
-    ),
+    response_model=PurchaseRequestDraftResponse,
+    response_model_exclude_unset=True,
+    responses=_problem_responses(401, 403, 404, 409, 422, 503),
+    openapi_extra=_operation_metadata("save_draft"),
 )
 def save_draft(
     command: DraftSaveCommandModel,
@@ -377,15 +637,8 @@ def save_draft(
     "/events/{eventId}/purchase-request-draft",
     status_code=204,
     operation_id="deletePurchaseRequestDraft",
-    openapi_extra=_operation_metadata(
-        permission_key="purchase_request.draft_delete",
-        contracts=[
-            "API:purchase_request.delete_draft@R1",
-            "AUTH:purchase_request.draft_delete@R1",
-            "DATA:http.empty_body@R1",
-        ],
-        criteria=["FLOW-FIN-001@R2/AC-02"],
-    ),
+    responses=_problem_responses(401, 404, 503),
+    openapi_extra=_operation_metadata("delete_draft"),
 )
 def delete_draft(
     authorized: Annotated[
@@ -401,16 +654,9 @@ def delete_draft(
     "/events/{eventId}/purchase-requests",
     status_code=201,
     operation_id="submitPurchaseRequest",
-    openapi_extra=_operation_metadata(
-        permission_key="purchase_request.submit",
-        contracts=[
-            "API:purchase_request.submit@R1",
-            "AUTH:purchase_request.submit@R1",
-            "DATA:purchase_request.submit_command@R1",
-            "DATA:purchase_request.record@R1",
-        ],
-        criteria=["FLOW-FIN-001@R2/AC-03", "FLOW-FIN-001@R2/AC-04"],
-    ),
+    response_model=PurchaseRequestRecordResponse,
+    responses=_problem_responses(401, 403, 404, 409, 422, 503),
+    openapi_extra=_operation_metadata("submit"),
 )
 def submit_purchase_request(
     command: PurchaseRequestSubmitCommandModel,
@@ -439,15 +685,9 @@ def submit_purchase_request(
 @router.get(
     "/events/{eventId}/purchase-requests/mine",
     operation_id="listOwnPurchaseRequests",
-    openapi_extra=_operation_metadata(
-        permission_key="purchase_request.list_own",
-        contracts=[
-            "API:purchase_request.list_own@R1",
-            "AUTH:purchase_request.list_own@R1",
-            "DATA:purchase_request.own_list@R1",
-        ],
-        criteria=["FLOW-FIN-001@R2/AC-06"],
-    ),
+    response_model=PurchaseRequestOwnListResponse,
+    responses=_problem_responses(401, 403, 404, 503),
+    openapi_extra=_operation_metadata("own_list"),
 )
 def list_own_purchase_requests(
     authorized: Annotated[
@@ -466,15 +706,9 @@ def list_own_purchase_requests(
 @router.get(
     "/events/{eventId}/purchase-requests/{requestId}",
     operation_id="getPurchaseRequestDetail",
-    openapi_extra=_operation_metadata(
-        permission_key="purchase_request.read_detail",
-        contracts=[
-            "API:purchase_request.get_detail@R1",
-            "AUTH:purchase_request.read_detail@R1",
-            "DATA:purchase_request.record@R1",
-        ],
-        criteria=["FLOW-FIN-001@R2/AC-07"],
-    ),
+    response_model=PurchaseRequestRecordResponse,
+    responses=_problem_responses(401, 404, 503),
+    openapi_extra=_operation_metadata("detail"),
 )
 def get_purchase_request_detail(
     request_id: Annotated[str, Path(alias="requestId", min_length=1)],
@@ -575,9 +809,12 @@ def _fixed_problem_handler(
     return handler
 
 
-def _request_validation_error(request: Request, error: Exception) -> JSONResponse:
+async def _request_validation_error(request: Request, error: Exception) -> Response:
     if not isinstance(error, RequestValidationError):
         raise error
+    route = request.scope.get("route")
+    if not isinstance(route, APIRoute) or "Purchase Requests" not in route.tags:
+        return await request_validation_exception_handler(request, error)
     violations = [
         {
             "path": _json_pointer(item["loc"]),

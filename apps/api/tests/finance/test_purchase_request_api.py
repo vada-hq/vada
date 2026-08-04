@@ -1,8 +1,10 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
+import json
 from datetime import UTC, date, datetime
 from decimal import Decimal
+from pathlib import Path
 
 from fastapi.testclient import TestClient
 
@@ -272,6 +274,48 @@ def test_invalid_submission_returns_problem_details_without_calling_store() -> N
     assert submission_store.last_idempotency_key is None
 
 
+def test_submission_rejects_a_past_needed_date_without_calling_store() -> None:
+    repository = FakePurchaseRequestRepository()
+    client, submission_store = _client(repository)
+
+    response = client.post(
+        "/events/event-a/purchase-requests",
+        headers={"Idempotency-Key": "past-date-001"},
+        json={
+            "content": {
+                "title": "행사 운영 물품",
+                "neededDate": "2000-01-01",
+                "purpose": "행사 운영",
+                "priority": "normal",
+                "items": [
+                    {
+                        "name": "현수막",
+                        "category": "홍보물",
+                        "budgetItem": "행사운영비",
+                        "purchaseType": "general",
+                        "quantity": 1,
+                        "unit": "개",
+                        "estimatedUnitPrice": 10000,
+                        "priceEvidence": [
+                            {
+                                "type": "product_url",
+                                "url": "https://example.test/banner",
+                            }
+                        ],
+                        "details": {},
+                    }
+                ],
+            }
+        },
+    )
+
+    assert response.status_code == 422
+    assert {violation["path"] for violation in response.json()["fieldViolations"]} >= {
+        "/content/neededDate"
+    }
+    assert submission_store.last_idempotency_key is None
+
+
 def test_submit_and_own_list_keep_identity_and_amounts_server_owned() -> None:
     repository = FakePurchaseRequestRepository()
     repository.summaries = (
@@ -374,8 +418,28 @@ def test_permission_and_persistence_failures_are_stable_problem_details() -> Non
     assert unauthenticated.json()["code"] == "UNAUTHENTICATED"
 
 
+def test_purchase_request_validation_handler_does_not_relabel_other_domains() -> None:
+    app = create_app()
+
+    def example(value: int) -> dict[str, int]:
+        return {"value": value}
+
+    app.add_api_route("/example/{value}", example, methods=["GET"])
+    response = TestClient(app).get("/example/not-an-integer")
+
+    assert response.status_code == 422
+    assert response.headers["content-type"].startswith("application/json")
+    assert "code" not in response.json()
+    assert response.json()["detail"]
+
+
 def test_routes_expose_contract_traceability_metadata() -> None:
     openapi = create_app().openapi()
+    canonical = json.loads(
+        (
+            Path(__file__).resolve().parents[4] / "contracts/openapi/CB-FIN-001/R1.json"
+        ).read_text(encoding="utf-8")
+    )
 
     expected = {
         ("/events/{eventId}/purchase-request-editor", "get"): (
@@ -405,6 +469,19 @@ def test_routes_expose_contract_traceability_metadata() -> None:
     }
     for (path, method), (permission, contract) in expected.items():
         operation = openapi["paths"][path][method]
+        canonical_operation = canonical["paths"][path][method]
         assert operation["x-vada-permission"] == permission
         assert contract in operation["x-vada-contracts"]
         assert operation["x-vada-acceptance-criteria"]
+        for key in (
+            "operationId",
+            "x-vada-permission",
+            "x-vada-contracts",
+            "x-vada-acceptance-criteria",
+        ):
+            assert operation[key] == canonical_operation[key]
+        assert set(operation["responses"]) == set(canonical_operation["responses"])
+        for status, response in canonical_operation["responses"].items():
+            assert set(operation["responses"][status].get("content", {})) == set(
+                response.get("content", {})
+            )

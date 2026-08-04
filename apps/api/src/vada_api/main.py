@@ -1,6 +1,10 @@
 from fastapi import FastAPI
 
-from vada_api.finance.api import register_purchase_request_error_handlers, router
+from vada_api.finance.api import (
+    normalize_purchase_request_openapi,
+    register_purchase_request_error_handlers,
+    router,
+)
 
 
 def create_app() -> FastAPI:
@@ -8,6 +12,9 @@ def create_app() -> FastAPI:
     register_purchase_request_error_handlers(application)
     application.include_router(router)
     application.add_api_route("/health", _health, methods=["GET"])
+    application.openapi_schema = normalize_purchase_request_openapi(
+        application.openapi()
+    )
     return application
 
 
