@@ -52,6 +52,11 @@ validate-delivery-work:
     pnpm test:delivery-work
     pnpm validate:delivery-work
 
+# 전달 작업의 구현용 화면 상태·와이어프레임 대조·완료 증거 추적
+validate-screen-specs:
+    pnpm test:screen-specs
+    pnpm validate:screen-specs
+
 # 승인 작업 그래프의 실행 범위·실행자·추정·일정 기준선
 validate-execution-plan:
     pnpm test:execution-plan
@@ -114,4 +119,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-contracts validate-product-specs validate-architecture validate-delivery-work validate-execution-plan validate-execution-runtime lint typecheck test build
+check: validate-contracts validate-product-specs validate-architecture validate-delivery-work validate-screen-specs validate-execution-plan validate-execution-runtime lint typecheck test build
