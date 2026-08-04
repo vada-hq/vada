@@ -5,6 +5,8 @@ import { fileURLToPath } from "node:url";
 
 import Ajv2020 from "ajv/dist/2020.js";
 
+import { validateSatisfiedPrerequisiteEvidence } from "./execution-evidence.mjs";
+
 const defaultRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const schemaPath = resolve(defaultRoot, "delivery-units/schemas/execution-plan.schema.json");
 const schema = JSON.parse(await readFile(schemaPath, "utf8"));
@@ -196,6 +198,32 @@ function importedWorkIds(workPlan) {
   return new Set((workPlan?.imports ?? []).flatMap((item) => item.work_item_ids ?? []));
 }
 
+function expectedEvidenceWorkPlan(plan, workPlan, workById, workItemRef, errors) {
+  if (workById.has(workItemRef)) {
+    return {
+      path: plan.work_plan_ref?.path,
+      plan_id: plan.work_plan_ref?.plan_id,
+      plan_revision: plan.work_plan_ref?.plan_revision,
+      canonical_sha256: plan.work_plan_ref?.canonical_sha256,
+    };
+  }
+  const owners = (workPlan?.imports ?? []).filter((item) =>
+    (item.work_item_ids ?? []).includes(workItemRef),
+  );
+  if (owners.length !== 1) {
+    errors.push(
+      `${workItemRef}: 충족 선행 작업의 고정 작업 그래프 원본을 하나로 결정할 수 없습니다.`,
+    );
+    return null;
+  }
+  return {
+    path: owners[0].plan_path,
+    plan_id: owners[0].plan_id,
+    plan_revision: owners[0].plan_revision,
+    canonical_sha256: owners[0].canonical_sha256,
+  };
+}
+
 function validatePolicy(plan, allocations, executors, workById, satisfied, errors) {
   const policy = plan.planning_policy ?? {};
   const finalized = ["review_ready", "approved"].includes(plan.execution_plan_status);
@@ -292,7 +320,10 @@ function validatePolicy(plan, allocations, executors, workById, satisfied, error
   }
 }
 
-export async function validateExecutionPlan(plan, { workPlan, artifactPath = null } = {}) {
+export async function validateExecutionPlan(
+  plan,
+  { workPlan, artifactPath = null, evidenceLedger = null } = {},
+) {
   const errors = [];
   if (!validateSchema(plan)) errors.push(...(validateSchema.errors ?? []).map(formatSchemaError));
 
@@ -370,6 +401,27 @@ export async function validateExecutionPlan(plan, { workPlan, artifactPath = nul
   for (const id of satisfied) {
     if (!allKnownWork.has(id)) errors.push(`존재하지 않는 충족 선행 작업 ${id}`);
   }
+  if ((plan.satisfied_prerequisites ?? []).length > 0 && !evidenceLedger) {
+    errors.push("충족 선행 작업에는 검증된 완료 증거 원장이 필요합니다.");
+  }
+  if (evidenceLedger) {
+    for (const [index, item] of (plan.satisfied_prerequisites ?? []).entries()) {
+      const expectedWorkPlan = expectedEvidenceWorkPlan(
+        plan,
+        workPlan,
+        workById,
+        item.work_item_ref,
+        errors,
+      );
+      for (const error of validateSatisfiedPrerequisiteEvidence(
+        item,
+        evidenceLedger,
+        expectedWorkPlan,
+      )) {
+        errors.push(`/satisfied_prerequisites/${index}: ${error}`);
+      }
+    }
+  }
 
   const allocations = plan.work_allocations ?? [];
   const allocatedIds = allocations.map((item) => item.work_item_ref);
@@ -436,11 +488,20 @@ async function collectExecutionPlanFiles(root) {
 export async function validateExecutionPlanRepository(root = defaultRoot) {
   const errors = [];
   const files = await collectExecutionPlanFiles(root);
+  const { buildExecutionEvidenceLedger } = await import(
+    "./execution-evidence-ledger.mjs"
+  );
+  const evidence = await buildExecutionEvidenceLedger(root);
+  errors.push(...evidence.errors.map((error) => `완료 증거 원장: ${error}`));
   for (const path of files) {
     try {
       const plan = JSON.parse(await readFile(path, "utf8"));
       const workPlan = (await loadProjectJson(root, plan.work_plan_ref?.path, "전달 작업 그래프")).value;
-      for (const error of await validateExecutionPlan(plan, { workPlan, artifactPath: path })) {
+      for (const error of await validateExecutionPlan(plan, {
+        workPlan,
+        artifactPath: path,
+        evidenceLedger: evidence.byLocator,
+      })) {
         errors.push(`${relative(root, path)}: ${error}`);
       }
     } catch (error) {
@@ -451,9 +512,15 @@ export async function validateExecutionPlanRepository(root = defaultRoot) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const result = await validateExecutionPlanRepository(defaultRoot);
-  for (const warning of result.warnings) console.warn(`WARN ${warning}`);
-  for (const error of result.errors) console.error(`ERROR ${error}`);
-  if (result.errors.length) process.exitCode = 1;
-  else console.log(`실행 계획 검증 통과: ${result.files.length}개, 오류 0, 경고 0`);
+  validateExecutionPlanRepository(defaultRoot)
+    .then((result) => {
+      for (const warning of result.warnings) console.warn(`WARN ${warning}`);
+      for (const error of result.errors) console.error(`ERROR ${error}`);
+      if (result.errors.length) process.exitCode = 1;
+      else console.log(`실행 계획 검증 통과: ${result.files.length}개, 오류 0, 경고 0`);
+    })
+    .catch((error) => {
+      console.error(`ERROR ${error.message}`);
+      process.exitCode = 1;
+    });
 }

@@ -2,6 +2,8 @@ import { readFile, readdir } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { buildExecutionEvidenceLedger } from "./execution-evidence-ledger.mjs";
+
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
 function runtimeOrder(runtime) {
@@ -170,36 +172,26 @@ export async function deriveDeliveryStatusRepository(
     error.code = "NO_APPROVED_WORK_PLAN";
     throw error;
   }
-  let runtimes = [];
-  try {
-    runtimes = await readJsonFiles(resolve(directory, "execution-runtime"));
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
-  }
-  let executionPlans = [];
-  try {
-    executionPlans = await readJsonFiles(resolve(directory, "execution-plan"));
-  } catch (error) {
-    if (error.code !== "ENOENT") throw error;
-  }
   const selectedWorkPlan = approvedPlans[0];
-  const satisfiedPrerequisiteRefs = [
-    ...new Set(
-      executionPlans
-        .filter(
-          (plan) =>
-            plan.execution_plan_status === "approved" &&
-            plan.work_plan_ref?.plan_id === selectedWorkPlan.plan_id &&
-            plan.work_plan_ref?.plan_revision === selectedWorkPlan.plan_revision,
-        )
-        .flatMap((plan) =>
-          (plan.satisfied_prerequisites ?? []).map((item) => item.work_item_ref),
-        ),
-    ),
-  ];
-  return deriveDeliveryStatus(selectedWorkPlan, runtimes, {
+  const evidence = await buildExecutionEvidenceLedger(root, { deliveryUnitId });
+  const runtimes = evidence.runtimeContexts
+    .filter(
+      (context) =>
+        context.workPlan.plan_id === selectedWorkPlan.plan_id &&
+        context.workPlan.plan_revision === selectedWorkPlan.plan_revision,
+    )
+    .map((context) => context.runtime);
+  const imported = new Set(
+    (selectedWorkPlan.imports ?? []).flatMap((item) => item.work_item_ids ?? []),
+  );
+  const satisfiedPrerequisiteRefs = [...evidence.completedWorkRefs].filter((workId) =>
+    imported.has(workId),
+  );
+  const result = deriveDeliveryStatus(selectedWorkPlan, runtimes, {
     satisfiedPrerequisiteRefs,
   });
+  result.errors = [...new Set([...evidence.errors, ...result.errors])];
+  return result;
 }
 
 export async function deriveAllDeliveryStatuses(root = repositoryRoot) {
