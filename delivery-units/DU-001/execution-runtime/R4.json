@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R4",
-  "runtime_revision": 4,
+  "runtime_revision": 8,
   "runtime_status": "active",
-  "updated_at": "2026-08-04T08:01:46.424Z",
+  "updated_at": "2026-08-04T11:53:01.555Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R4.json",
@@ -39,13 +39,41 @@
       "captured_at": "2026-08-04T08:01:46.424Z",
       "locator": "conversation:2026-08-04:du-001-r4-approval",
       "content_ko": "제품 책임자가 승인한 R4에 따라 서버 계약·보안·원자성 종합 검증 작업의 착수를 승인했습니다."
+    },
+    {
+      "id": "SRC-RUN-005",
+      "type": "review_record",
+      "captured_at": "2026-08-04T11:52:01.110Z",
+      "locator": "review:PR-16:6e64e8f5d4a88b16c3c76807baf6961d2456e44c",
+      "content_ko": "독립 검증자가 화면 명세 초안의 구조와 상태·접근성 범위를 확인했으나 요청자·행사 표시 이름 계약이 없어 R1 승격은 보류해야 한다고 판정했습니다."
+    },
+    {
+      "id": "SRC-RUN-006",
+      "type": "review_record",
+      "captured_at": "2026-08-04T11:52:27.257Z",
+      "locator": "https://github.com/vada-hq/vada/actions/runs/30906366943",
+      "content_ko": "관측성 코드·비밀정보 최소화 테스트와 Terraform 정적 검증은 통과했지만 실제 AWS 배포에서 CloudWatch·X-Ray 상관 연결과 SNS 시험 전달을 확인하지 않았습니다."
+    },
+    {
+      "id": "SRC-RUN-007",
+      "type": "code_evidence",
+      "captured_at": "2026-08-04T11:52:43.008Z",
+      "locator": "https://github.com/vada-hq/vada/pull/14",
+      "content_ko": "여섯 구매 요청 API의 스키마·권한·조직 격리·원자성·멱등성을 실제 PostgreSQL과 HTTP 경계에서 검증하는 변경이 병합됐습니다."
+    },
+    {
+      "id": "SRC-RUN-008",
+      "type": "review_record",
+      "captured_at": "2026-08-04T11:53:01.555Z",
+      "locator": "review:PR-14:cf9cc34a976760f6332171493451adc8d7b92a27",
+      "content_ko": "독립 검증자가 선택 필드 null 경계까지 체계적으로 재검토했고 보완 후 실제 PostgreSQL·계약·권한 검증 결과를 승인했습니다."
     }
   ],
   "work_runs": [
     {
       "work_item_ref": "WORK:purchase-request-screen-spec@R1",
       "executor_ref": "EXEC:ai-experience-design",
-      "status": "in_progress",
+      "status": "paused",
       "started_at": "2026-08-04T08:00:49.187Z",
       "completed_at": null,
       "transition_log": [
@@ -66,15 +94,36 @@
           "actor_ref": "EXEC:ai-experience-design",
           "source_ref": "SRC-RUN-002",
           "note_ko": "승인된 기획·계약과 기존 와이어프레임을 대조해 화면 명세 보완을 시작합니다."
+        },
+        {
+          "id": "TR-007",
+          "from": "in_progress",
+          "to": "paused",
+          "occurred_at": "2026-08-04T11:52:01.110Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-005",
+          "note_ko": "표시 이름 계약이 확정될 때까지 화면 명세 R1 승격을 일시 중지합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-001",
+          "kind": "reviewed_artifact",
+          "locator": "delivery-units/DU-001/screen-spec/draft.json#QUESTION-001",
+          "captured_at": "2026-08-04T11:52:01.110Z",
+          "verification_status": "rejected",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T11:52:01.110Z",
+          "verification_note_ko": "초안은 구현 대조 자료로 병합 가능하지만 표시 이름 계약 공백 때문에 승인 화면 명세로 확정할 수 없습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-observability-audit@R1",
       "executor_ref": "EXEC:ai-security-platform",
-      "status": "in_progress",
+      "status": "paused",
       "started_at": "2026-08-04T08:01:28.327Z",
       "completed_at": null,
       "transition_log": [
@@ -95,17 +144,38 @@
           "actor_ref": "EXEC:ai-security-platform",
           "source_ref": "SRC-RUN-003",
           "note_ko": "민감정보 최소화와 외부 AWS 자원 생성 금지를 지키며 관측·감사·알림 구현을 시작합니다."
+        },
+        {
+          "id": "TR-008",
+          "from": "in_progress",
+          "to": "paused",
+          "occurred_at": "2026-08-04T11:52:27.257Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-006",
+          "note_ko": "AWS 자원 배포와 시험 알림 승인이 있을 때까지 운영 증거 확정을 일시 중지합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-002",
+          "requirement_ref": "EVID-009",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30906366943",
+          "captured_at": "2026-08-04T11:52:27.257Z",
+          "verification_status": "rejected",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T11:52:27.257Z",
+          "verification_note_ko": "CI의 코드·Terraform 검사는 통과했으나 EVID-009가 요구하는 실제 CloudWatch·X-Ray 관측과 SNS 시험 전달 증거가 없습니다."
+        }
+      ]
     },
     {
       "work_item_ref": "WORK:purchase-request-server-verification@R1",
       "executor_ref": "EXEC:ai-quality",
-      "status": "in_progress",
+      "status": "done",
       "started_at": "2026-08-04T08:01:46.424Z",
-      "completed_at": null,
+      "completed_at": "2026-08-04T11:53:01.555Z",
       "transition_log": [
         {
           "id": "TR-003",
@@ -124,10 +194,40 @@
           "actor_ref": "EXEC:ai-quality",
           "source_ref": "SRC-RUN-004",
           "note_ko": "기존 검증 범위를 조사하고 실제 PostgreSQL 기반 서버 종합 검증의 부족분 보완을 시작합니다."
+        },
+        {
+          "id": "TR-009",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-04T11:52:43.008Z",
+          "actor_ref": "EXEC:ai-quality",
+          "source_ref": "SRC-RUN-007",
+          "note_ko": "실제 PostgreSQL 기반 종합 검증 결과를 독립 검증자에게 제출합니다."
+        },
+        {
+          "id": "TR-010",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-04T11:53:01.555Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-008",
+          "note_ko": "EVID-010의 자동 검증과 독립 검토를 확인해 서버 종합 검증 작업을 완료합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-003",
+          "requirement_ref": "EVID-010",
+          "kind": "automated_test",
+          "locator": "https://github.com/vada-hq/vada/actions/runs/30906366943/job/91982297580",
+          "captured_at": "2026-08-04T11:53:01.555Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-04T11:53:01.555Z",
+          "verification_note_ko": "통합 브랜치에서 API 단위·계약·실제 PostgreSQL 검사가 모두 통과했고 독립 검토에서 스키마·권한·조직 격리·원자성·멱등성 범위를 승인했습니다."
+        }
+      ]
     }
   ]
 }
