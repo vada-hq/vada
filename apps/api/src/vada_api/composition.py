@@ -44,4 +44,5 @@ def configure_postgresql_dependencies(application: FastAPI, engine: Engine) -> N
     application.state.purchase_request_service = PurchaseRequestService(
         request_repository,
         submission_store,
+        relationship_reader=relationship_reader,
     )

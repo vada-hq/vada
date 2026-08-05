@@ -29,6 +29,11 @@ from vada_api.main import create_app
 @pytest.fixture(autouse=True)
 def clean_identity_relationships(migrated_engine: Engine) -> Generator[None]:
     tables = """
+        purchase_request_submission_events,
+        purchase_request_submission_idempotency,
+        purchase_request_items,
+        purchase_requests,
+        purchase_request_drafts,
         event_finance_contexts,
         organization_finance_memberships,
         department_memberships,
@@ -52,12 +57,16 @@ def _seed_relationships(engine: Engine) -> None:
             text(
                 """
                 INSERT INTO vada_users (user_id, display_name)
-                VALUES ('user-a', '김민석'), ('user-b', '박서연');
+                VALUES
+                    ('user-a', '김민석'),
+                    ('user-b', '박서연'),
+                    ('user-c', '현재 조회자');
 
                 INSERT INTO cognito_identities (issuer, subject, user_id)
                 VALUES
                     ('https://cognito.example/pool-a', 'subject-a', 'user-a'),
-                    ('https://cognito.example/pool-a', 'subject-b', 'user-b');
+                    ('https://cognito.example/pool-a', 'subject-b', 'user-b'),
+                    ('https://cognito.example/pool-a', 'subject-c', 'user-c');
 
                 INSERT INTO organizations (organization_id, name)
                 VALUES ('organization-a', '학생회 A'), ('organization-b', '학생회 B');
@@ -67,7 +76,8 @@ def _seed_relationships(engine: Engine) -> None:
                 )
                 VALUES
                     ('membership-a', 'organization-a', 'user-a', true),
-                    ('membership-b', 'organization-b', 'user-b', true);
+                    ('membership-b', 'organization-b', 'user-b', true),
+                    ('membership-c', 'organization-a', 'user-c', true);
 
                 INSERT INTO organization_events (organization_id, event_id, name)
                 VALUES
@@ -108,6 +118,15 @@ def _seed_relationships(engine: Engine) -> None:
                         'department-b',
                         true,
                         false
+                    ),
+                    (
+                        'department-membership-c',
+                        'organization-a',
+                        'membership-c',
+                        'user-c',
+                        'department-a',
+                        true,
+                        false
                     );
 
                 INSERT INTO organization_finance_memberships (
@@ -131,6 +150,79 @@ def _seed_relationships(engine: Engine) -> None:
                 VALUES
                     ('organization-a', 'event-a', 100000),
                     ('organization-b', 'event-b', 200000);
+                """
+            )
+        )
+
+
+def _seed_purchase_request(engine: Engine) -> None:
+    with engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                INSERT INTO purchase_requests (
+                    request_id,
+                    organization_id,
+                    event_id,
+                    requester_user_id,
+                    request_department_id,
+                    title,
+                    needed_date,
+                    purpose,
+                    priority,
+                    status,
+                    estimated_total,
+                    over_budget,
+                    created_at
+                )
+                VALUES (
+                    'request-001',
+                    'organization-a',
+                    'event-a',
+                    'user-a',
+                    'department-a',
+                    '행사 운영 물품',
+                    DATE '2026-08-20',
+                    '행사 운영',
+                    'normal',
+                    'review_pending',
+                    10000,
+                    false,
+                    TIMESTAMPTZ '2026-08-05 00:00:00+00'
+                );
+
+                INSERT INTO purchase_request_items (
+                    item_id,
+                    organization_id,
+                    event_id,
+                    request_id,
+                    item_position,
+                    name,
+                    category,
+                    budget_item,
+                    purchase_type,
+                    quantity,
+                    unit,
+                    estimated_unit_price,
+                    price_evidence,
+                    details
+                )
+                VALUES (
+                    'item-001',
+                    'organization-a',
+                    'event-a',
+                    'request-001',
+                    0,
+                    '현수막',
+                    '홍보물',
+                    '행사운영비',
+                    'general',
+                    1,
+                    '개',
+                    10000,
+                    '[{"type":"product_url","url":"https://example.test/banner"}]'::jsonb,
+                    '{"vendor":"공급처 A"}'::jsonb
+                );
                 """
             )
         )
@@ -276,6 +368,60 @@ def test_production_app_composition_uses_postgresql_relationships_and_fails_clos
     )
     assert names is not None
     assert (names.event_name, names.requester_name) == ("개강 행사", "김민석")
+
+
+@pytest.mark.postgres
+def test_production_detail_uses_stored_relationships_and_preserves_tenant_boundary(
+    migrated_engine: Engine,
+) -> None:
+    _seed_relationships(migrated_engine)
+    _seed_purchase_request(migrated_engine)
+    application = create_app(engine=migrated_engine)
+    owner = TestClient(_ApiGatewayContextApp(application, subject="subject-a"))
+    same_org_member = TestClient(
+        _ApiGatewayContextApp(application, subject="subject-c")
+    )
+    other_org_member = TestClient(
+        _ApiGatewayContextApp(application, subject="subject-b")
+    )
+    path = "/events/event-a/purchase-requests/request-001"
+
+    with owner, same_org_member, other_org_member:
+        owner_detail = _get(owner, path)
+        member_detail = _get(same_org_member, path)
+        hidden = _get(other_org_member, path)
+
+    assert owner_detail.status_code == 200
+    assert member_detail.status_code == 200
+    assert member_detail.json() == owner_detail.json()
+    assert owner_detail.json()["record"]["requestId"] == "request-001"
+    assert owner_detail.json()["display"] == {
+        "eventName": "개강 행사",
+        "requesterName": "김민석",
+    }
+    assert owner_detail.json()["display"]["requesterName"] != "현재 조회자"
+    assert hidden.status_code == 404
+    assert hidden.json()["code"] == "RESOURCE_NOT_FOUND"
+
+    with migrated_engine.begin() as connection:
+        connection.execute(
+            text(
+                """
+                DELETE FROM department_memberships
+                WHERE organization_id = 'organization-a'
+                  AND user_id = 'user-a';
+
+                DELETE FROM organization_memberships
+                WHERE organization_id = 'organization-a'
+                  AND user_id = 'user-a'
+                """
+            )
+        )
+
+    with same_org_member:
+        unavailable = _get(same_org_member, path)
+    assert unavailable.status_code == 503
+    assert unavailable.json()["code"] == "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE"
 
 
 @pytest.mark.postgres

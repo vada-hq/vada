@@ -495,6 +495,16 @@ class PurchaseRequestRecordResponse(ContractModel):
     created_at: str = Field(alias="createdAt", min_length=1)
 
 
+class PurchaseRequestDisplayResponse(ContractModel):
+    event_name: str = Field(alias="eventName", min_length=1)
+    requester_name: str = Field(alias="requesterName", min_length=1)
+
+
+class PurchaseRequestDetailViewResponse(ContractModel):
+    record: PurchaseRequestRecordResponse
+    display: PurchaseRequestDisplayResponse
+
+
 class PurchaseRequestSummaryResponse(ContractModel):
     request_id: str = Field(alias="requestId", min_length=1)
     title: str = Field(min_length=1)
@@ -672,10 +682,11 @@ _OPERATION_METADATA: dict[str, dict[str, object]] = {
     "detail": {
         "x-vada-permission": "purchase_request.read_detail",
         "x-vada-contracts": [
-            "API:purchase_request.get_detail@R1",
+            "API:purchase_request.get_detail@R2",
             "AUTH:purchase_request.read_detail@R1",
             "DATA:http.empty_body@R1",
             "DATA:purchase_request.record@R1",
+            "DATA:purchase_request.detail_view@R1",
             "ERROR:http.unauthenticated@R1",
             "ERROR:http.resource_not_found@R1",
             "ERROR:purchase_request.persistence_unavailable@R1",
@@ -904,7 +915,7 @@ def list_own_purchase_requests(
 @router.get(
     "/events/{eventId}/purchase-requests/{requestId}",
     operation_id="getPurchaseRequestDetail",
-    response_model=PurchaseRequestRecordResponse,
+    response_model=PurchaseRequestDetailViewResponse,
     response_model_exclude_none=True,
     responses=_problem_responses(401, 404, 503),
     openapi_extra=_operation_metadata("detail"),
@@ -916,9 +927,14 @@ def get_purchase_request_detail(
         Depends(require_permission(PurchaseRequestPermission.READ_DETAIL)),
     ],
 ) -> dict[str, object]:
-    return _record_json(
-        authorized.service.get_detail(authorized.context, request_id=request_id)
-    )
+    detail = authorized.service.get_detail(authorized.context, request_id=request_id)
+    return {
+        "record": _record_json(detail.record),
+        "display": {
+            "eventName": detail.display.event_name,
+            "requesterName": detail.display.requester_name,
+        },
+    }
 
 
 def register_purchase_request_error_handlers(app: FastAPI) -> None:
