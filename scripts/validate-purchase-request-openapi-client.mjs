@@ -9,7 +9,7 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 
@@ -33,6 +33,7 @@ const GENERATED_DIRECTORY = "packages/api-client/src/generated";
 const GENERATED_MANIFEST_PATH = "packages/api-client/generated-manifest.json";
 const CLIENT_ENTRYPOINT_PATH = "packages/api-client/src/index.ts";
 const CLIENT_ENTRYPOINT = 'export * from "./generated/index";\n';
+const CLIENT_PUBLIC_EXPORT = ".";
 const WORK_ITEM_ID = "WORK:purchase-request-openapi-client-baseline@R2";
 const EVIDENCE_ID = "EVID-027";
 const GENERATOR_PACKAGE = "@hey-api/openapi-ts";
@@ -641,15 +642,125 @@ async function expectedGeneratedManifest(root) {
   };
 }
 
+function isWithinDirectory(directory, path) {
+  const relativePath = relative(directory, path);
+  return (
+    relativePath === "" ||
+    (relativePath !== ".." &&
+      !relativePath.startsWith(`..${sep}`) &&
+      !isAbsolute(relativePath))
+  );
+}
+
+function collectPackageExportTargets(value, location, errors, targets) {
+  if (typeof value === "string") {
+    targets.push({ location, target: value });
+    return;
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      errors.push(`${location}: 빈 exports fallback 배열은 허용하지 않습니다.`);
+    }
+    value.forEach((entry, index) =>
+      collectPackageExportTargets(
+        entry,
+        `${location}[${index}]`,
+        errors,
+        targets,
+      ),
+    );
+    return;
+  }
+  if (isObject(value)) {
+    const conditions = Object.entries(value);
+    if (conditions.length === 0) {
+      errors.push(`${location}: 빈 exports 조건 객체는 허용하지 않습니다.`);
+    }
+    for (const [condition, target] of conditions) {
+      if (condition.startsWith(".")) {
+        errors.push(
+          `${location}: 공개 subpath는 exports 최상위에서만 선언해야 합니다.`,
+        );
+      }
+      collectPackageExportTargets(
+        target,
+        `${location}.${condition}`,
+        errors,
+        targets,
+      );
+    }
+    return;
+  }
+  errors.push(`${location}: exports target은 경로 또는 조건 객체여야 합니다.`);
+}
+
+function validateClientPackagePublicSurface(root, packageDocument) {
+  const errors = [];
+  const packageExports = packageDocument.exports;
+  if (!isObject(packageExports)) {
+    return [`${CLIENT_PACKAGE_PATH}: exports는 공개 subpath 객체여야 합니다.`];
+  }
+
+  const publicSubpaths = Object.keys(packageExports);
+  if (
+    publicSubpaths.length !== 1 ||
+    publicSubpaths[0] !== CLIENT_PUBLIC_EXPORT
+  ) {
+    errors.push(
+      `${CLIENT_PACKAGE_PATH}: exports에는 승인된 공개 진입점 "${CLIENT_PUBLIC_EXPORT}" 하나만 허용합니다.`,
+    );
+  }
+
+  const targets = [];
+  for (const [subpath, target] of Object.entries(packageExports)) {
+    collectPackageExportTargets(
+      target,
+      `${CLIENT_PACKAGE_PATH}#exports[${JSON.stringify(subpath)}]`,
+      errors,
+      targets,
+    );
+  }
+
+  const packageDirectory = resolve(root, dirname(CLIENT_PACKAGE_PATH));
+  const sourceDirectory = resolve(root, dirname(CLIENT_ENTRYPOINT_PATH));
+  const approvedEntrypoint = resolve(root, CLIENT_ENTRYPOINT_PATH);
+  for (const { location, target } of targets) {
+    if (!target.startsWith("./")) {
+      errors.push(`${location}: package-relative 경로여야 합니다.`);
+      continue;
+    }
+    const resolvedTarget = resolve(packageDirectory, target);
+    if (!isWithinDirectory(packageDirectory, resolvedTarget)) {
+      errors.push(`${location}: package 경계 밖을 공개할 수 없습니다.`);
+      continue;
+    }
+    if (!isWithinDirectory(sourceDirectory, resolvedTarget)) {
+      errors.push(`${location}: src 경계 밖을 공개할 수 없습니다.`);
+      continue;
+    }
+    if (resolvedTarget !== approvedEntrypoint) {
+      errors.push(
+        `${location}: 승인된 생성 진입점 ${CLIENT_ENTRYPOINT_PATH}만 공개할 수 있습니다.`,
+      );
+    }
+  }
+
+  return errors;
+}
+
 export async function validateGeneratedClientRepository(root = repositoryRoot) {
   const errors = [];
   const warnings = [];
   try {
-    const [manifest, expected, entrypoint] = await Promise.all([
-      readJson(root, GENERATED_MANIFEST_PATH),
-      expectedGeneratedManifest(root),
-      readFile(resolve(root, CLIENT_ENTRYPOINT_PATH), "utf8"),
-    ]);
+    const [manifest, expected, entrypoint, packageDocument] = await Promise.all(
+      [
+        readJson(root, GENERATED_MANIFEST_PATH),
+        expectedGeneratedManifest(root),
+        readFile(resolve(root, CLIENT_ENTRYPOINT_PATH), "utf8"),
+        readJson(root, CLIENT_PACKAGE_PATH),
+      ],
+    );
+    errors.push(...validateClientPackagePublicSurface(root, packageDocument));
     if (expected.generator.version !== GENERATOR_VERSION) {
       errors.push(
         `${GENERATOR_PACKAGE}는 정확히 ${GENERATOR_VERSION}으로 고정해야 합니다.`,

@@ -228,6 +228,52 @@ test("생성 진입점에 수동 응답 타입을 추가하면 거부한다", as
   }
 });
 
+test("추가 package export로 수동 응답 타입을 공개하면 거부한다", async () => {
+  const temporaryRoot = await mkdtemp(
+    resolve(tmpdir(), "vada-openapi-client-public-export-"),
+  );
+  try {
+    const repositoryManifest = await readJson(
+      resolve(repositoryRoot, "packages/api-client/generated-manifest.json"),
+    );
+    for (const path of [
+      repositoryManifest.input.path,
+      "packages/api-client/package.json",
+      "packages/api-client/openapi-ts.config.ts",
+      "packages/api-client/generated-manifest.json",
+      "packages/api-client/src/generated",
+      "packages/api-client/src/index.ts",
+    ]) {
+      await cp(resolve(repositoryRoot, path), resolve(temporaryRoot, path), {
+        recursive: true,
+      });
+    }
+    const packagePath = resolve(
+      temporaryRoot,
+      "packages/api-client/package.json",
+    );
+    const packageDocument = await readJson(packagePath);
+    packageDocument.exports["./manual-detail"] = "./src/manual-detail.ts";
+    await writeFile(
+      packagePath,
+      `${JSON.stringify(packageDocument, null, 2)}\n`,
+    );
+    await writeFile(
+      resolve(temporaryRoot, "packages/api-client/src/manual-detail.ts"),
+      "export type PurchaseRequestDetailView = { record: unknown; display: unknown };\n",
+    );
+
+    assert.match(
+      (await validateGeneratedClientRepository(temporaryRoot)).errors.join(
+        "\n",
+      ),
+      /exports|공개 진입점/,
+    );
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
 test("같은 OpenAPI 입력의 두 생성 결과와 커밋 산출물이 바이트 단위로 같다", async () => {
   const [first, second, manifest] = await Promise.all([
     generateClientSnapshot(repositoryRoot),
