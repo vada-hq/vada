@@ -1,10 +1,10 @@
 {
   "schema_version": "0.2.0",
   "plan_id": "WP-FIN-001",
-  "plan_revision": null,
-  "plan_status": "review_ready",
-  "approval_source_ref": null,
-  "updated_at": "2026-08-05T05:10:55.557Z",
+  "plan_revision": 3,
+  "plan_status": "approved",
+  "approval_source_ref": "SRC-014",
+  "updated_at": "2026-08-05T05:20:42.654Z",
   "solution_ref": {
     "path": "product-specs/solutions/SOLUTION-FIN-001/R1.json",
     "solution_id": "SOLUTION-FIN-001",
@@ -116,6 +116,13 @@
       "captured_at": "2026-08-05T05:10:55.557Z",
       "locator": "https://csrc.nist.gov/pubs/sp/800/218/final",
       "content_ko": "NIST SSDF 1.1은 보안과 검증 활동을 별도 사후 단계가 아니라 SDLC에 통합하도록 권고합니다."
+    },
+    {
+      "id": "SRC-014",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T05:20:42.654Z",
+      "locator": "current-thread/evidence-based-technical-decision-delegation-2026-08-05",
+      "content_ko": "제품 책임자는 승인된 기준과 근거에서 단일 권장안이 도출되는 기술 구조는 의식적 승인을 다시 묻지 말고 총괄 에이전트가 확정·검증·진행하며, 결과를 실질적으로 바꾸는 선택만 질문하라고 명시했습니다."
     }
   ],
   "imports": [
@@ -225,7 +232,7 @@
       "id": "WORK:web-application-foundation@R1",
       "key": "web-application-foundation",
       "revision": 1,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "initial",
       "supersedes": null,
       "title_ko": "공통 웹 애플리케이션 기반 구축",
@@ -262,7 +269,7 @@
       "id": "WORK:purchase-request-editor-ui@R2",
       "key": "purchase-request-editor-ui",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "additive",
       "supersedes": "WORK:purchase-request-editor-ui@R1",
       "title_ko": "구매 요청 작성·초안·제출 UI 구현 R2",
@@ -350,7 +357,7 @@
       "id": "WORK:purchase-request-own-list-ui@R2",
       "key": "purchase-request-own-list-ui",
       "revision": 2,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "additive",
       "supersedes": "WORK:purchase-request-own-list-ui@R1",
       "title_ko": "본인 구매 요청 목록 UI 구현 R2",
@@ -406,7 +413,7 @@
       "id": "WORK:purchase-request-detail-ui@R3",
       "key": "purchase-request-detail-ui",
       "revision": 3,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "additive",
       "supersedes": "WORK:purchase-request-detail-ui@R2",
       "title_ko": "구매 요청 상세 UI 구현 R3",
@@ -460,7 +467,7 @@
   "questions": [
     {
       "id": "Q-001",
-      "status": "pending",
+      "status": "answered",
       "decision_area": "approval",
       "origin": "approval",
       "depends_on_question_refs": [],
@@ -482,7 +489,8 @@
           "SRC-010",
           "SRC-011",
           "SRC-012",
-          "SRC-013"
+          "SRC-013",
+          "SRC-014"
         ]
       },
       "question_ko": "기존 R1·R2 작업 의미를 보존하고 공통 웹 기반 작업 1개를 추가하며 작성·목록·상세 UI 3개의 선행관계만 개정한 작업 그래프를 승인합니까?",
@@ -515,11 +523,15 @@
           "SRC-006",
           "SRC-007",
           "SRC-008",
-          "SRC-009"
+          "SRC-009",
+          "SRC-014"
         ]
       },
-      "answer_source_ref": null,
-      "normalized_answer": null,
+      "answer_source_ref": "SRC-014",
+      "normalized_answer": {
+        "selected_option_ids": ["YES"],
+        "free_text": "근거 기반 단일 권장 기술 구조에 대한 제품 책임자의 상시 결정 위임을 적용했습니다."
+      },
       "dismissal_reason_ko": null
     }
   ]
