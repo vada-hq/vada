@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R10",
-  "runtime_revision": 2,
+  "runtime_revision": 3,
   "runtime_status": "active",
-  "updated_at": "2026-08-05T11:01:35.324Z",
+  "updated_at": "2026-08-05T11:02:51.766Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R10.json",
@@ -25,13 +25,20 @@
       "captured_at": "2026-08-05T11:01:35.324Z",
       "locator": "current-thread/continue-2026-08-05",
       "content_ko": "제품 책임자가 계산된 다음 기술 검증 작업을 이어서 진행하도록 지시했습니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "code_evidence",
+      "captured_at": "2026-08-05T11:02:51.766Z",
+      "locator": "github:vada-hq/vada/actions/runs/30997576472;git:034679a;delivery-units/DU-001/delivery-work/R4.json#EVID-045",
+      "content_ko": "CI의 계약 검증과 PostgreSQL 17 통합 검사 21개에서 AC-01~AC-08, 초안 격리, 제출 원자성·멱등성, 운영 관계 조립, 상세 표시명, 관계 누락 503과 교차 조직 404의 자동 증거를 확인해 독립 검토를 요청합니다."
     }
   ],
   "work_runs": [
     {
       "work_item_ref": "WORK:purchase-request-server-verification@R3",
       "executor_ref": "EXEC:ai-quality",
-      "status": "in_progress",
+      "status": "review",
       "started_at": "2026-08-05T11:01:35.324Z",
       "completed_at": null,
       "transition_log": [
@@ -52,10 +59,31 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-002",
           "note_ko": "기존 계약·HTTP·PostgreSQL 검사와 CI 증거를 EVID-045의 각 요구에 대응시켜 누락 여부를 점검합니다."
+        },
+        {
+          "id": "TR-003",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-05T11:02:51.766Z",
+          "actor_ref": "EXEC:ai-quality",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "EVID-045의 각 요구를 실제 PostgreSQL·HTTP·계약 검사에 대응시켜 증거를 제출합니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-045",
+          "kind": "automated_test",
+          "locator": "github:vada-hq/vada/actions/runs/30997576472;git:034679a#apps/api/tests/persistence/test_purchase_request_http_postgresql.py;git:034679a#apps/api/tests/persistence/test_purchase_request_submission.py;git:034679a#apps/api/tests/persistence/test_identity_organization_postgresql.py;git:034679a#apps/api/tests/finance/test_purchase_request_api.py;.github/workflows/ci.yml",
+          "captured_at": "2026-08-05T11:02:51.766Z",
+          "verification_status": "submitted",
+          "verified_by": null,
+          "verified_at": null,
+          "verification_note_ko": null
+        }
+      ]
     }
   ]
 }
