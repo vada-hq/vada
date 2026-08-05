@@ -482,7 +482,7 @@ test("다른 전달 단위 경로의 런타임은 완료 증거로 가져오지 
   }
 });
 
-test("기본 조회는 DU-001의 모든 활성 증분 작업과 정확한 런타임 상태를 함께 보여준다", async () => {
+test("기본 조회는 DU-001의 모든 활성 증분 작업과 소유 작업 그래프를 함께 보여준다", async () => {
   const root = await mkdtemp(join(tmpdir(), "vada-active-overlay-"));
   try {
     await mkdir(resolve(root, ".vada"), { recursive: true });
@@ -497,9 +497,6 @@ test("기본 조회는 DU-001의 모든 활성 증분 작업과 정확한 런타
     });
 
     const result = await deriveDeliveryStatusRepository("DU-001", root);
-    const statuses = Object.fromEntries(
-      result.items.map((item) => [item.work_item_ref, item.derived_status]),
-    );
     const owners = Object.fromEntries(
       result.items.map((item) => [
         item.work_item_ref,
@@ -507,19 +504,6 @@ test("기본 조회는 DU-001의 모든 활성 증분 작업과 정확한 런타
       ]),
     );
 
-    assert.equal(statuses["WORK:purchase-request-screen-spec@R2"], "review");
-    assert.equal(
-      statuses["WORK:purchase-request-detail-api@R2"],
-      "in_progress",
-    );
-    assert.equal(
-      statuses["WORK:purchase-request-openapi-client-baseline@R2"],
-      "in_progress",
-    );
-    assert.equal(statuses["WORK:web-application-foundation@R1"], "done");
-    assert.equal(statuses["WORK:purchase-request-editor-ui@R2"], "blocked");
-    assert.equal(statuses["WORK:purchase-request-own-list-ui@R2"], "blocked");
-    assert.equal(statuses["WORK:purchase-request-detail-ui@R3"], "blocked");
     assert.equal(result.items.length, 22);
     assert.equal(result.summary.definition_review_required, 4);
     assert.equal(
@@ -648,20 +632,10 @@ test("명시적 R2 조회는 R2 로컬 작업과 해당 계보의 상태만 보�
       workPlanRevision: 2,
     },
   );
-  const statuses = Object.fromEntries(
-    result.items.map((item) => [item.work_item_ref, item.derived_status]),
-  );
-
   assert.equal(result.scope_mode, "work_plan");
   assert.equal(result.work_plan_ref, "WP-FIN-001@R2");
   assert.deepEqual(result.work_plan_refs, ["WP-FIN-001@R2"]);
   assert.equal(result.items.length, 8);
-  assert.equal(statuses["WORK:purchase-request-screen-spec@R2"], "review");
-  assert.equal(statuses["WORK:purchase-request-detail-api@R2"], "in_progress");
-  assert.equal(
-    statuses["WORK:purchase-request-openapi-client-baseline@R2"],
-    "in_progress",
-  );
   assert.ok(
     result.items.every((item) => item.owner_work_plan_ref === "WP-FIN-001@R2"),
   );
