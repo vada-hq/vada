@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R6",
-  "runtime_revision": 2,
+  "runtime_revision": 3,
   "runtime_status": "active",
-  "updated_at": "2026-08-05T05:39:04.716Z",
+  "updated_at": "2026-08-05T06:07:42.034Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R6.json",
@@ -25,13 +25,20 @@
       "captured_at": "2026-08-05T05:39:04.716Z",
       "locator": "current-thread/evidence-based-technical-decision-delegation-2026-08-05",
       "content_ko": "제품 책임자의 상시 기술 결정 위임에 따라 승인된 R6의 공통 웹 애플리케이션 기반 작업을 시작합니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "code_evidence",
+      "captured_at": "2026-08-05T06:07:42.034Z",
+      "locator": "commit:647e499;command:just check-web",
+      "content_ko": "공통 웹 기반 구현이 RED 이후 테스트 6개, OpenAPI 기준선, 린트, 타입 검사와 프로덕션 빌드를 포함한 just check-web을 통과했고 총괄 범위 검토를 마쳤습니다."
     }
   ],
   "work_runs": [
     {
       "work_item_ref": "WORK:web-application-foundation@R1",
       "executor_ref": "EXEC:ai-frontend",
-      "status": "in_progress",
+      "status": "review",
       "started_at": "2026-08-05T05:39:04.716Z",
       "completed_at": null,
       "transition_log": [
@@ -52,10 +59,42 @@
           "actor_ref": "EXEC:ai-frontend",
           "source_ref": "SRC-RUN-002",
           "note_ko": "승인 아키텍처의 공통 웹 경계를 테스트 우선으로 구현하기 시작합니다."
+        },
+        {
+          "id": "TR-003",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-05T06:07:42.034Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "구현과 범위 검사를 마쳤으며 별도 검증자의 독립 재실행을 기다립니다."
         }
       ],
       "blockers": [],
-      "evidence_instances": []
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-033",
+          "kind": "automated_test",
+          "locator": "commit:647e499;apps/web/src/foundation.test.tsx;command:just check-web",
+          "captured_at": "2026-08-05T06:07:42.034Z",
+          "verification_status": "submitted",
+          "verified_by": null,
+          "verified_at": null,
+          "verification_note_ko": null
+        },
+        {
+          "id": "PROOF-002",
+          "requirement_ref": "EVID-034",
+          "kind": "reviewed_artifact",
+          "locator": "commit:647e499;apps/web/src/styles/tokens.css;apps/web/src/components/ui;apps/web/src/app",
+          "captured_at": "2026-08-05T06:07:42.034Z",
+          "verification_status": "submitted",
+          "verified_by": null,
+          "verified_at": null,
+          "verification_note_ko": null
+        }
+      ]
     }
   ]
 }
