@@ -169,8 +169,12 @@ describe("공통 폼과 UI 기본 요소", () => {
     expect(onPress).toHaveBeenCalledOnce();
 
     const select = screen.getByRole("combobox", { name: "우선순위" });
-    select.focus();
-    await user.keyboard("{ArrowDown}{Enter}");
+    await user.tab();
+    expect(select).toHaveFocus();
+
+    await user.keyboard("{Enter}");
+    await screen.findByRole("listbox");
+    await user.keyboard("{Enter}");
     expect(onValueChange).toHaveBeenCalledWith("normal");
   });
 
