@@ -1,10 +1,32 @@
 import assert from "node:assert/strict";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
 import test from "node:test";
 
 import {
   applyRuntimeOperation,
   initializeExecutionRuntime,
+  publishNewFileAtomically,
 } from "./record-execution-runtime.mjs";
+
+test("초기 런타임 게시 중 목적 파일이 생기면 기존 파일을 덮어쓰지 않는다", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "vada-runtime-publish-"));
+  const destination = resolve(directory, "R7.json");
+  try {
+    const results = await Promise.allSettled([
+      publishNewFileAtomically(destination, "first\n"),
+      publishNewFileAtomically(destination, "second\n"),
+    ]);
+
+    assert.equal(results.filter((result) => result.status === "fulfilled").length, 1);
+    const rejected = results.find((result) => result.status === "rejected");
+    assert.match(rejected?.reason?.message ?? "", /이미 존재합니다/);
+    assert.match(await readFile(destination, "utf8"), /^(first|second)\n$/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
 
 test("승인 실행 계획의 커밋 작업만 자동 ID와 한 시각으로 초기화한다", () => {
   const plan = {

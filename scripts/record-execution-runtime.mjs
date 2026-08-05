@@ -1,4 +1,5 @@
-import { readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { link, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -43,6 +44,25 @@ function allProofIds(runtime) {
 
 function operationWorkRef(operation) {
   return operation.transition?.work_item_ref ?? operation.work_item_ref ?? null;
+}
+
+export async function publishNewFileAtomically(destinationPath, contents) {
+  const temporaryPath = `${destinationPath}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
+    try {
+      await link(temporaryPath, destinationPath);
+    } catch (error) {
+      if (error?.code === "EEXIST") {
+        throw new Error("초기화할 실행 런타임이 이미 존재합니다.", { cause: error });
+      }
+      throw error;
+    }
+  } finally {
+    await unlink(temporaryPath).catch((error) => {
+      if (error?.code !== "ENOENT") throw error;
+    });
+  }
 }
 
 export function initializeExecutionRuntime(
@@ -303,15 +323,7 @@ async function main() {
       process.stdout.write(rendered);
       return;
     }
-    const temporaryPath = `${runtimePath}.${process.pid}.tmp`;
-    try {
-      await writeFile(temporaryPath, rendered, { encoding: "utf8", flag: "wx" });
-      await rename(temporaryPath, runtimePath);
-    } finally {
-      await unlink(temporaryPath).catch((error) => {
-        if (error?.code !== "ENOENT") throw error;
-      });
-    }
+    await publishNewFileAtomically(runtimePath, rendered);
     console.log("실행 런타임 초기화 완료: revision 1");
     return;
   }
