@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R6",
+  "runtime_revision": 2,
+  "runtime_status": "active",
+  "updated_at": "2026-08-05T05:39:04.716Z",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R6.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 6,
+    "canonical_sha256": "25b046f9a84bd8f0c14830068ba7ebb4a8d8fdd90e1d0d1130d17b25de0e8d84"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T14:30:04.136+09:00",
+      "locator": "delivery-units/DU-001/execution-plan/R6.json#EP-DU-001@R6",
+      "content_ko": "승인된 DU-001 실행 계획 R6이며 공통 웹 애플리케이션 기반 작업 한 건만 현재 rolling-wave 실행 범위로 고정합니다."
+    },
+    {
+      "id": "SRC-RUN-002",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T05:39:04.716Z",
+      "locator": "current-thread/evidence-based-technical-decision-delegation-2026-08-05",
+      "content_ko": "제품 책임자의 상시 기술 결정 위임에 따라 승인된 R6의 공통 웹 애플리케이션 기반 작업을 시작합니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:web-application-foundation@R1",
+      "executor_ref": "EXEC:ai-frontend",
+      "status": "in_progress",
+      "started_at": "2026-08-05T05:39:04.716Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T14:30:04.136+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R6에서 공통 웹 애플리케이션 기반 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-002",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-05T05:39:04.716Z",
+          "actor_ref": "EXEC:ai-frontend",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "승인 아키텍처의 공통 웹 경계를 테스트 우선으로 구현하기 시작합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    }
+  ]
+}
