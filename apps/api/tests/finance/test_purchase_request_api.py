@@ -988,7 +988,7 @@ def test_routes_expose_contract_traceability_metadata() -> None:
     openapi = create_app().openapi()
     canonical = json.loads(
         (
-            Path(__file__).resolve().parents[4] / "contracts/openapi/CB-FIN-001/R1.json"
+            Path(__file__).resolve().parents[4] / "contracts/openapi/CB-FIN-001/R2.json"
         ).read_text(encoding="utf-8")
     )
 
@@ -1018,16 +1018,6 @@ def test_routes_expose_contract_traceability_metadata() -> None:
             "API:purchase_request.get_detail@R2",
         ),
     }
-    expected_detail_contracts = [
-        "API:purchase_request.get_detail@R2",
-        "AUTH:purchase_request.read_detail@R1",
-        "DATA:http.empty_body@R1",
-        "DATA:purchase_request.detail_view@R1",
-        "ERROR:http.unauthenticated@R1",
-        "ERROR:http.resource_not_found@R1",
-        "ERROR:purchase_request.persistence_unavailable@R1",
-        "DATA:http.problem_details@R1",
-    ]
     for (path, method), (permission, contract) in expected.items():
         operation = openapi["paths"][path][method]
         canonical_operation = canonical["paths"][path][method]
@@ -1040,9 +1030,6 @@ def test_routes_expose_contract_traceability_metadata() -> None:
             "x-vada-contracts",
             "x-vada-acceptance-criteria",
         ):
-            if key == "x-vada-contracts" and contract.endswith("get_detail@R2"):
-                assert operation[key] == expected_detail_contracts
-                continue
             assert operation[key] == canonical_operation[key]
         assert set(operation["responses"]) == set(canonical_operation["responses"])
         for status, response in canonical_operation["responses"].items():
