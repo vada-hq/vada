@@ -58,6 +58,6 @@ export const submitPurchaseRequest = <ThrowOnError extends boolean = false>(opti
 export const listOwnPurchaseRequests = <ThrowOnError extends boolean = false>(options: Options<ListOwnPurchaseRequestsData, ThrowOnError>) => (options.client ?? client).get<ListOwnPurchaseRequestsResponses, ListOwnPurchaseRequestsErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-requests/mine', ...options });
 
 /**
- * 현재 조직 구성원이 같은 조직 행사의 구매 요청 상세를 조회합니다.
+ * 현재 조직 구성원이 요청 상세와 서버가 해석한 행사·요청자 표시명을 함께 조회합니다.
  */
 export const getPurchaseRequestDetail = <ThrowOnError extends boolean = false>(options: Options<GetPurchaseRequestDetailData, ThrowOnError>) => (options.client ?? client).get<GetPurchaseRequestDetailResponses, GetPurchaseRequestDetailErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-requests/{requestId}', ...options });

@@ -29,6 +29,89 @@ test("승인된 여섯 구매 요청 동작의 OpenAPI와 생성 클라이언트
   assert.deepEqual(generatedResult.errors, []);
 });
 
+test("R2 상세 성공 응답과 계약 추적을 생성 기준선에 고정한다", async () => {
+  const [baseline, generatedTypes] = await Promise.all([
+    loadPurchaseRequestOpenApiBaseline(repositoryRoot),
+    readFile(
+      resolve(repositoryRoot, "packages/api-client/src/generated/types.gen.ts"),
+      "utf8",
+    ),
+  ]);
+  const openApi = baseline.openApi;
+  const operation =
+    openApi.paths["/events/{eventId}/purchase-requests/{requestId}"].get;
+
+  assert.equal(openApi.info.version, "CB-FIN-001-R2");
+  assert.equal(
+    openApi["x-vada-delivery-work"],
+    "WORK:purchase-request-openapi-client-baseline@R2",
+  );
+  assert.equal(openApi["x-vada-completion-evidence"], "EVID-027");
+  assert.deepEqual(
+    openApi.components.schemas.PurchaseRequestDetailView.required,
+    ["record", "display"],
+  );
+  assert.deepEqual(
+    operation.responses["200"].content["application/json"].schema,
+    { $ref: "#/components/schemas/PurchaseRequestDetailView" },
+  );
+  assert.equal(
+    operation["x-vada-contracts"].includes(
+      "API:purchase_request.get_detail@R2",
+    ),
+    true,
+  );
+  assert.equal(
+    operation["x-vada-contracts"].includes(
+      "DATA:purchase_request.detail_view@R1",
+    ),
+    true,
+  );
+  assert.equal(
+    operation["x-vada-contracts"].includes(
+      "API:purchase_request.get_detail@R1",
+    ),
+    false,
+  );
+  assert.match(
+    generatedTypes,
+    /export type PurchaseRequestDetailView = \{[\s\S]*record: PurchaseRequestRecord;[\s\S]*display: \{[\s\S]*eventName: string;[\s\S]*requesterName: string;/,
+  );
+  assert.match(
+    generatedTypes,
+    /export type GetPurchaseRequestDetailResponses = \{[\s\S]*200: PurchaseRequestDetailView;/,
+  );
+});
+
+test("R2 상세 operation에 superseded R1 추적이나 응답 타입이 남으면 거부한다", async () => {
+  const baseline = await loadPurchaseRequestOpenApiBaseline(repositoryRoot);
+  const r1Trace = structuredClone(baseline.openApi);
+  const r1TraceOperation =
+    r1Trace.paths["/events/{eventId}/purchase-requests/{requestId}"].get;
+  r1TraceOperation["x-vada-contracts"] = r1TraceOperation[
+    "x-vada-contracts"
+  ].map((contractRef) =>
+    contractRef === "API:purchase_request.get_detail@R2"
+      ? "API:purchase_request.get_detail@R1"
+      : contractRef,
+  );
+  const r1Response = structuredClone(baseline.openApi);
+  r1Response.paths[
+    "/events/{eventId}/purchase-requests/{requestId}"
+  ].get.responses["200"].content["application/json"].schema = {
+    $ref: "#/components/schemas/PurchaseRequestRecord",
+  };
+
+  for (const invalidOpenApi of [r1Trace, r1Response]) {
+    assert.match(
+      validatePurchaseRequestOpenApiDocument(invalidOpenApi, baseline).join(
+        "\n",
+      ),
+      /x-vada-contracts|드리프트/,
+    );
+  }
+});
+
 test("필수 x-vada 계약·권한·AC 추적 정보가 빠지면 거부한다", async () => {
   const baseline = await loadPurchaseRequestOpenApiBaseline(repositoryRoot);
   const openApi = structuredClone(baseline.openApi);
@@ -66,12 +149,16 @@ test("커밋된 생성 클라이언트가 달라지면 드리프트로 거부한
     resolve(tmpdir(), "vada-openapi-client-drift-"),
   );
   try {
+    const repositoryManifest = await readJson(
+      resolve(repositoryRoot, "packages/api-client/generated-manifest.json"),
+    );
     for (const path of [
-      "contracts/openapi/CB-FIN-001/R1.json",
+      repositoryManifest.input.path,
       "packages/api-client/package.json",
       "packages/api-client/openapi-ts.config.ts",
       "packages/api-client/generated-manifest.json",
       "packages/api-client/src/generated",
+      "packages/api-client/src/index.ts",
     ]) {
       await cp(resolve(repositoryRoot, path), resolve(temporaryRoot, path), {
         recursive: true,
@@ -95,6 +182,46 @@ test("커밋된 생성 클라이언트가 달라지면 드리프트로 거부한
         "\n",
       ),
       /드리프트/,
+    );
+  } finally {
+    await rm(temporaryRoot, { recursive: true, force: true });
+  }
+});
+
+test("생성 진입점에 수동 응답 타입을 추가하면 거부한다", async () => {
+  const temporaryRoot = await mkdtemp(
+    resolve(tmpdir(), "vada-openapi-client-manual-type-"),
+  );
+  try {
+    const repositoryManifest = await readJson(
+      resolve(repositoryRoot, "packages/api-client/generated-manifest.json"),
+    );
+    for (const path of [
+      repositoryManifest.input.path,
+      "packages/api-client/package.json",
+      "packages/api-client/openapi-ts.config.ts",
+      "packages/api-client/generated-manifest.json",
+      "packages/api-client/src/generated",
+      "packages/api-client/src/index.ts",
+    ]) {
+      await cp(resolve(repositoryRoot, path), resolve(temporaryRoot, path), {
+        recursive: true,
+      });
+    }
+    const entrypointPath = resolve(
+      temporaryRoot,
+      "packages/api-client/src/index.ts",
+    );
+    await writeFile(
+      entrypointPath,
+      `${await readFile(entrypointPath, "utf8")}\nexport type PurchaseRequestDetailView = { record: unknown; display: unknown };\n`,
+    );
+
+    assert.match(
+      (await validateGeneratedClientRepository(temporaryRoot)).errors.join(
+        "\n",
+      ),
+      /수동 타입|진입점/,
     );
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });
