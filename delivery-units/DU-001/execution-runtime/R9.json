@@ -1,0 +1,61 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R9",
+  "runtime_revision": 2,
+  "runtime_status": "active",
+  "updated_at": "2026-08-05T09:59:26.628Z",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R9.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 9,
+    "canonical_sha256": "8c0a59a5329805cde3718d03160ec14153659404184f39ded03bf3fa6b9c7d2e"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T09:58:29.808Z",
+      "locator": "delivery-units/DU-001/execution-plan/R9.json#EP-DU-001@R9",
+      "content_ko": "승인된 실행 계획 R9의 커밋 작업을 실행 추적 대상으로 등록했습니다."
+    },
+    {
+      "id": "SRC-RUN-002",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T09:59:26.628Z",
+      "locator": "current-thread/continue-2026-08-05",
+      "content_ko": "제품 책임자가 계산된 다음 작업을 이어서 진행하도록 지시했습니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:purchase-request-detail-api@R3",
+      "executor_ref": "EXEC:ai-backend",
+      "status": "in_progress",
+      "started_at": "2026-08-05T09:59:26.628Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T09:58:29.808Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R9에서 WORK:purchase-request-detail-api@R3 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-002",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-05T09:59:26.628Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "실제 PostgreSQL 관계와 운영 앱 조립을 사용하는 구매 요청 상세 운영 API R3를 테스트 우선으로 구현합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    }
+  ]
+}

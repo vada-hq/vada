@@ -1,0 +1,582 @@
+{
+  "schema_version": "0.1.0",
+  "execution_plan_id": "EP-DU-001",
+  "execution_plan_revision": 9,
+  "execution_plan_status": "approved",
+  "approval_source_ref": "SRC-012",
+  "updated_at": "2026-08-05T09:57:40.145Z",
+  "delivery_unit_id": "DU-001",
+  "work_plan_ref": {
+    "path": "delivery-units/DU-001/delivery-work/R4.json",
+    "plan_id": "WP-FIN-001",
+    "plan_revision": 4,
+    "canonical_sha256": "ed0bc7687485163f3cbc4ae2b2fde5fdfe5b9bf10652822ea90dc45e20264e2c"
+  },
+  "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T17:48:55.5653246+09:00",
+      "locator": "delivery-units/DU-001/delivery-work/R4.json#ed0bc7687485163f3cbc4ae2b2fde5fdfe5b9bf10652822ea90dc45e20264e2c",
+      "content_ko": "승인된 DU-001 작업 그래프 R4이며 운영 사용자·조직 PostgreSQL 연결 1개와 활성 후속 작업 개정 7개를 고정합니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T17:48:55.5653246+09:00",
+      "locator": "delivery-units/DU-001/execution-plan/R7.json",
+      "content_ko": "직전 rolling-wave 실행 계획의 추정 없음, 일정 없음, 작업자 격리와 독립 검증 정책을 계승합니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T17:48:55.5653246+09:00",
+      "locator": "delivery-units/DU-001/execution-runtime/R1.json#PROOF-001",
+      "content_ko": "인증·조직 컨텍스트 도메인 리졸버 작업의 검증된 완료 증거이며 운영 PostgreSQL 어댑터 작업의 직접 선행조건을 충족합니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "command_output",
+      "captured_at": "2026-08-05T17:48:55.5653246+09:00",
+      "locator": "pnpm derive:delivery-status -- --du DU-001;pnpm validate:delivery-status",
+      "content_ko": "활성 R1~R4 오버레이에서 사용자·조직 PostgreSQL 연결만 ready이고 definition_review_required 오류가 0임을 계산했습니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T17:48:55.5653246+09:00",
+      "locator": "delivery-units/DU-001/execution-runtime/R7.json#EVID-026",
+      "content_ko": "상세 API R2 증거는 정적 관계 공급자를 사용해 실제 PostgreSQL 관계·운영 조립을 증명하지 못했으므로 독립 검증에서 거부됐습니다."
+    },
+    {
+      "id": "SRC-006",
+      "type": "standard",
+      "captured_at": "2026-08-05T17:48:55.5653246+09:00",
+      "locator": ".vada/workflow-policy.json;AGENTS.md;docs/engineering/agent-execution.md;docs/engineering/testing-and-evidence.md",
+      "content_ko": "저장소 기준은 데이터 마이그레이션·조직 격리 작업을 high_assurance로 처리하고 격리된 작업자와 독립 검증을 요구합니다."
+    },
+    {
+      "id": "SRC-007",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T17:48:55.5653246+09:00",
+      "locator": "delivery-units/DU-001/execution-runtime/R1.json;delivery-units/DU-001/execution-runtime/R2.json;delivery-units/DU-001/execution-runtime/R3.json;delivery-units/DU-001/execution-runtime/R5.json",
+      "content_ko": "R4의 가져온 완료 선행 작업에 대한 검증된 런타임 증거입니다."
+    },
+    {
+      "id": "SRC-008",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T17:48:55.5653246+09:00",
+      "locator": "current-thread/proceed-with-evidence-based-standard-route-2026-08-05",
+      "content_ko": "제품 책임자는 승인 근거에서 단일 정석 경로가 계산되면 반복 승인 질문 없이 진행하고 결과를 실질적으로 바꾸는 선택만 질문하도록 지시했습니다."
+    },
+    {
+      "id": "SRC-009",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T09:57:40.145Z",
+      "locator": "delivery-units/DU-001/execution-plan/R8.json",
+      "content_ko": "직전 rolling-wave 실행 계획 R8의 작업자 격리, 추정 없음, 일정 없음 정책을 계승합니다."
+    },
+    {
+      "id": "SRC-010",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T09:57:40.145Z",
+      "locator": "delivery-units/DU-001/execution-runtime/R8.json#PROOF-003;delivery-units/DU-001/execution-runtime/R8.json#PROOF-004",
+      "content_ko": "운영 사용자·조직 PostgreSQL 연결 작업의 기능 및 조직 격리 완료를 독립 검증한 증거입니다."
+    },
+    {
+      "id": "SRC-011",
+      "type": "command_output",
+      "captured_at": "2026-08-05T09:57:40.145Z",
+      "locator": "just check;pnpm derive:delivery-status -- --du DU-001;pnpm validate:delivery-status",
+      "content_ko": "통합 브랜치 전체 검사와 상태 계산이 통과했고 상세 운영 API R3만 새로 착수 가능함을 확인했습니다."
+    },
+    {
+      "id": "SRC-012",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T09:57:40.145Z",
+      "locator": "current-thread/continue-2026-08-05",
+      "content_ko": "제품 책임자는 계산된 다음 작업을 기존 승인 원칙에 따라 이어서 진행하도록 지시했습니다."
+    }
+  ],
+  "satisfied_prerequisites": [
+    {
+      "work_item_ref": "WORK:identity-organization-context@R1",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R1.json#PROOF-001",
+      "source_refs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-data-schema@R1",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R1.json#PROOF-006",
+      "source_refs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-authorization-rules@R1",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R2.json#PROOF-001",
+      "source_refs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-draft-api@R1",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R3.json#PROOF-001",
+      "source_refs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-submission-api@R1",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R3.json#PROOF-002",
+      "source_refs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-own-list-api@R1",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R3.json#PROOF-003",
+      "source_refs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-contract-fixtures@R2",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R5.json#PROOF-001",
+      "source_refs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:identity-organization-postgresql-adapter@R1",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R8.json#PROOF-003",
+      "source_refs": [
+        "SRC-010"
+      ]
+    }
+  ],
+  "planning_policy": {
+    "scope_mode": "rolling_wave",
+    "estimate_mode": "none",
+    "estimate_unit": "not_applicable",
+    "schedule_mode": "none",
+    "target_window": null,
+    "rationale_ko": "검증된 운영 사용자·조직 PostgreSQL 연결로 모든 선행조건이 충족되어 상세 운영 API R3만 새로 커밋합니다. 나머지는 정확한 선행 증거가 생길 때 별도 파동으로 배정하며 근거 없는 추정과 목표 날짜는 두지 않습니다.",
+    "source_refs": [
+      "SRC-001",
+      "SRC-009",
+      "SRC-010",
+      "SRC-011",
+      "SRC-012"
+    ]
+  },
+  "orchestration": {
+    "human_approver_ref": "EXEC:product-owner",
+    "coordinator_executor_ref": "EXEC:ai-coordinator",
+    "verifier_executor_refs": [
+      "EXEC:ai-verifier"
+    ],
+    "worker_isolation": "git_worktree",
+    "parallelism_mode": "dependency_frontier",
+    "max_parallel_workers": null,
+    "independent_verification_required": true,
+    "rationale_ko": "PostgreSQL 스키마·조직 관계 어댑터·운영 앱 조립을 한 격리 작업 공간에서 구현하고, 별도 AI 검증자가 마이그레이션·교차 조직 접근·실제 HTTP 증거를 독립 확인합니다.",
+    "source_refs": [
+      "SRC-002",
+      "SRC-004",
+      "SRC-005",
+      "SRC-006",
+      "SRC-008"
+    ]
+  },
+  "executors": [
+    {
+      "id": "EXEC:product-owner",
+      "kind": "human",
+      "display_name": "제품·개발 책임자 황성욱",
+      "execution_roles": [
+        "accountable_owner"
+      ],
+      "capabilities": [],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:design-owner",
+      "kind": "human",
+      "display_name": "기획·와이어프레임·디자인 담당 윤종운",
+      "execution_roles": [
+        "worker"
+      ],
+      "capabilities": [
+        "experience_design"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:ai-experience-design",
+      "kind": "ai_agent",
+      "display_name": "AI 화면 명세 작업자",
+      "execution_roles": [
+        "worker"
+      ],
+      "capabilities": [
+        "experience_design"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:ai-backend",
+      "kind": "ai_agent",
+      "display_name": "AI 백엔드 작업자",
+      "execution_roles": [
+        "worker"
+      ],
+      "capabilities": [
+        "backend"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:ai-technical-design",
+      "kind": "ai_agent",
+      "display_name": "AI 계약·클라이언트 작업자",
+      "execution_roles": [
+        "worker"
+      ],
+      "capabilities": [
+        "technical_design"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:ai-coordinator",
+      "kind": "ai_agent",
+      "display_name": "AI 실행 총괄",
+      "execution_roles": [
+        "coordinator"
+      ],
+      "capabilities": [
+        "technical_design",
+        "backend",
+        "quality",
+        "security",
+        "documentation"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:ai-verifier",
+      "kind": "ai_agent",
+      "display_name": "AI 독립 검증자",
+      "execution_roles": [
+        "verifier"
+      ],
+      "capabilities": [
+        "technical_design",
+        "frontend",
+        "backend",
+        "quality",
+        "security",
+        "platform"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-006"
+      ]
+    }
+  ],
+  "work_allocations": [
+    {
+      "work_item_ref": "WORK:identity-organization-postgresql-adapter@R1",
+      "disposition": "satisfied",
+      "primary_executor_ref": null,
+      "collaborator_refs": [],
+      "estimate": {
+        "status": "not_applicable",
+        "low": null,
+        "high": null,
+        "unit": "not_applicable",
+        "basis_ko": null,
+        "source_refs": [
+          "SRC-010"
+        ]
+      },
+      "target_window": null,
+      "rationale_ko": "R8 런타임의 독립 검증 증거로 완료됐으며 상세 운영 API R3의 선행조건을 충족합니다.",
+      "source_refs": [
+        "SRC-009",
+        "SRC-010",
+        "SRC-011"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-detail-api@R3",
+      "disposition": "committed",
+      "primary_executor_ref": "EXEC:ai-backend",
+      "collaborator_refs": [
+        "EXEC:ai-verifier"
+      ],
+      "estimate": {
+        "status": "not_applicable",
+        "low": null,
+        "high": null,
+        "unit": "not_applicable",
+        "basis_ko": null,
+        "source_refs": [
+          "SRC-012"
+        ]
+      },
+      "target_window": null,
+      "rationale_ko": "활성 작업 그래프 R4에서 모든 선행조건이 검증 완료된 유일한 신규 시작점입니다. 실제 PostgreSQL 관계와 운영 앱 조립을 통해 저장된 요청자·행사 표시 정보를 제공하고 독립 검증 전 완료로 기록하지 않습니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-010",
+        "SRC-011",
+        "SRC-012"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-editor-api-integration@R2",
+      "disposition": "forecast",
+      "primary_executor_ref": null,
+      "collaborator_refs": [],
+      "estimate": {
+        "status": "unknown",
+        "low": null,
+        "high": null,
+        "unit": "undetermined",
+        "basis_ko": null,
+        "source_refs": []
+      },
+      "target_window": null,
+      "rationale_ko": "OpenAPI 클라이언트 R2와 작성 UI R2가 검증 완료된 뒤 후속 파동에서 배정합니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-own-list-api-integration@R2",
+      "disposition": "forecast",
+      "primary_executor_ref": null,
+      "collaborator_refs": [],
+      "estimate": {
+        "status": "unknown",
+        "low": null,
+        "high": null,
+        "unit": "undetermined",
+        "basis_ko": null,
+        "source_refs": []
+      },
+      "target_window": null,
+      "rationale_ko": "OpenAPI 클라이언트 R2와 목록 UI R2가 검증 완료된 뒤 후속 파동에서 배정합니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-detail-api-integration@R3",
+      "disposition": "forecast",
+      "primary_executor_ref": null,
+      "collaborator_refs": [],
+      "estimate": {
+        "status": "unknown",
+        "low": null,
+        "high": null,
+        "unit": "undetermined",
+        "basis_ko": null,
+        "source_refs": []
+      },
+      "target_window": null,
+      "rationale_ko": "상세 운영 API R3, 상세 UI R3와 OpenAPI 클라이언트 R2가 모두 검증 완료된 뒤 배정합니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-sensitive-boundary-controls@R2",
+      "disposition": "forecast",
+      "primary_executor_ref": null,
+      "collaborator_refs": [],
+      "estimate": {
+        "status": "unknown",
+        "low": null,
+        "high": null,
+        "unit": "undetermined",
+        "basis_ko": null,
+        "source_refs": []
+      },
+      "target_window": null,
+      "rationale_ko": "작성 UI R2와 기존 초안·제출 API가 함께 준비된 뒤 재정 원문 비노출 검증 파동에서 배정합니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-004",
+        "SRC-006"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-server-verification@R3",
+      "disposition": "forecast",
+      "primary_executor_ref": null,
+      "collaborator_refs": [],
+      "estimate": {
+        "status": "unknown",
+        "low": null,
+        "high": null,
+        "unit": "undetermined",
+        "basis_ko": null,
+        "source_refs": []
+      },
+      "target_window": null,
+      "rationale_ko": "상세 운영 API R3 완료 뒤 실제 PostgreSQL·HTTP 서버 전체 증거 파동에서 배정합니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-browser-verification@R3",
+      "disposition": "forecast",
+      "primary_executor_ref": null,
+      "collaborator_refs": [],
+      "estimate": {
+        "status": "unknown",
+        "low": null,
+        "high": null,
+        "unit": "undetermined",
+        "basis_ko": null,
+        "source_refs": []
+      },
+      "target_window": null,
+      "rationale_ko": "작성·목록·상세 실제 API 연결이 모두 완료된 뒤 최종 브라우저·접근성 증거 파동에서 배정합니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-004"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "검증된 상태 계산이 도출한 유일한 신규 시작점만 커밋한 실행안을 승인 또는 수정 필요로 구분합니다.",
+        "source_refs": [
+          "SRC-001",
+          "SRC-010",
+          "SRC-011",
+          "SRC-012"
+        ]
+      },
+      "question_ko": "구매 요청 상세 운영 API R3를 현재 파동으로 실행하는 계획 R9를 적용합니까?",
+      "reason_ko": "승인하면 제품 의미를 새로 결정하지 않고 승인된 관계·표시 정보 계약을 실제 PostgreSQL과 운영 앱 조립에 연결합니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "계속 진행"
+        },
+        {
+          "id": "NO",
+          "label_ko": "수정 필요"
+        }
+      ],
+      "evidence": {
+        "work_item_refs": [
+          "WORK:purchase-request-detail-api@R3"
+        ],
+        "executor_refs": [
+          "EXEC:product-owner",
+          "EXEC:ai-backend",
+          "EXEC:ai-coordinator",
+          "EXEC:ai-verifier"
+        ],
+        "source_refs": [
+          "SRC-001",
+          "SRC-010",
+          "SRC-011",
+          "SRC-012"
+        ]
+      },
+      "answer_source_ref": "SRC-012",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": "검증된 선행 증거에서 계산된 단일 기술 실행안이므로 제품 책임자의 계속 진행 지시를 적용합니다."
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}
