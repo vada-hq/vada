@@ -6,6 +6,7 @@
   "scripts": {
     "build": "vite build",
     "dev": "vite",
+    "test:reviews": "node --test src/app/reviews/*.test.mjs",
     "validate:contracts": "pnpm --workspace-root validate:contracts",
     "check": "pnpm validate:contracts && pnpm build"
   },
