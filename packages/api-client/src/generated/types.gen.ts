@@ -186,6 +186,14 @@ export type PurchaseRequestRecord = {
     createdAt: string;
 };
 
+export type PurchaseRequestDetailView = {
+    record: PurchaseRequestRecord;
+    display: {
+        eventName: string;
+        requesterName: string;
+    };
+};
+
 export type PurchaseRequestOwnList = {
     items: Array<{
         requestId: string;
@@ -455,7 +463,7 @@ export type GetPurchaseRequestDetailResponses = {
     /**
      * 성공
      */
-    200: PurchaseRequestRecord;
+    200: PurchaseRequestDetailView;
 };
 
 export type GetPurchaseRequestDetailResponse = GetPurchaseRequestDetailResponses[keyof GetPurchaseRequestDetailResponses];

@@ -9,27 +9,33 @@ import {
   writeFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, relative, resolve, sep } from "node:path";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
 
-import { canonicalSha256 } from "./validate-contract-bundles.mjs";
+import {
+  canonicalSha256,
+  resolveEffectiveContracts,
+} from "./validate-contract-bundles.mjs";
 
 const execFileAsync = promisify(execFile);
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-const OPENAPI_PATH = "contracts/openapi/CB-FIN-001/R1.json";
-const BUNDLE_PATH = "contracts/bundles/CB-FIN-001/R1.json";
-const FIXTURE_PATH = "contracts/fixtures/CB-FIN-001/R1.json";
+const OPENAPI_PATH = "contracts/openapi/CB-FIN-001/R2.json";
+const BUNDLE_PATH = "contracts/bundles/CB-FIN-001/R2.json";
+const FIXTURE_PATH = "contracts/fixtures/CB-FIN-001/R2.json";
 const SOLUTION_PATH = "product-specs/solutions/SOLUTION-FIN-001/R1.json";
 const FLOW_PATH = "product-specs/flows/FLOW-FIN-001/R2.json";
-const DELIVERY_WORK_PATH = "delivery-units/DU-001/delivery-work/R1.json";
+const DELIVERY_WORK_PATH = "delivery-units/DU-001/delivery-work/R2.json";
 const CLIENT_PACKAGE_PATH = "packages/api-client/package.json";
 const CLIENT_CONFIG_PATH = "packages/api-client/openapi-ts.config.ts";
 const GENERATED_DIRECTORY = "packages/api-client/src/generated";
 const GENERATED_MANIFEST_PATH = "packages/api-client/generated-manifest.json";
-const WORK_ITEM_ID = "WORK:purchase-request-openapi-client-baseline@R1";
-const EVIDENCE_ID = "EVID-012";
+const CLIENT_ENTRYPOINT_PATH = "packages/api-client/src/index.ts";
+const CLIENT_ENTRYPOINT = 'export * from "./generated/index";\n';
+const CLIENT_PUBLIC_EXPORT = ".";
+const WORK_ITEM_ID = "WORK:purchase-request-openapi-client-baseline@R2";
+const EVIDENCE_ID = "EVID-027";
 const GENERATOR_PACKAGE = "@hey-api/openapi-ts";
 const GENERATOR_VERSION = "0.95.0";
 
@@ -44,6 +50,7 @@ const DATA_COMPONENTS = new Map([
   ["DATA:purchase_request.editor_state@R1", "PurchaseRequestEditorState"],
   ["DATA:purchase_request.submit_command@R1", "PurchaseRequestSubmitCommand"],
   ["DATA:purchase_request.record@R1", "PurchaseRequestRecord"],
+  ["DATA:purchase_request.detail_view@R1", "PurchaseRequestDetailView"],
   ["DATA:purchase_request.own_list@R1", "PurchaseRequestOwnList"],
   ["DATA:http.empty_body@R1", "EmptyBody"],
   ["DATA:http.problem_details@R1", "ProblemDetails"],
@@ -60,11 +67,15 @@ const OPERATION_AC_IDS = new Map([
     ["AC-01", "AC-02", "AC-03", "AC-04", "AC-06"],
   ],
   ["API:purchase_request.list_own@R1", ["AC-01", "AC-02", "AC-07"]],
-  ["API:purchase_request.get_detail@R1", ["AC-07"]],
+  ["API:purchase_request.get_detail@R2", ["AC-07"]],
 ]);
 
 const API_CONTRACT_IDS = [...OPERATION_AC_IDS.keys()];
-const WORK_CONTRACT_IDS = ["DATA:http.problem_details@R1", ...API_CONTRACT_IDS];
+const WORK_CONTRACT_IDS = [
+  "DATA:http.problem_details@R1",
+  "DATA:purchase_request.detail_view@R1",
+  ...API_CONTRACT_IDS,
+];
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -123,12 +134,6 @@ async function readJsonIfPresent(root, path) {
   }
 }
 
-function contractMap(bundle) {
-  return new Map(
-    (bundle.contracts ?? []).map((contract) => [contract.id, contract]),
-  );
-}
-
 function qualifyAcId(flow, acId) {
   return `${flow.id}@R${flow.revision}/${acId}`;
 }
@@ -159,8 +164,7 @@ function rewriteSchema(value, componentName, schemaIdToComponent) {
   return result;
 }
 
-function buildSchemas(bundle) {
-  const contracts = contractMap(bundle);
+function buildSchemas(contracts) {
   const schemaIdToComponent = new Map();
   for (const [contractId, componentName] of DATA_COMPONENTS) {
     const schemaId = contracts.get(contractId)?.specification?.json_schema?.$id;
@@ -240,8 +244,7 @@ function assertGenerationBaseline(baseline) {
 }
 
 function buildOperation(apiContract, baseline) {
-  const { bundle, fixture, flow } = baseline;
-  const contracts = contractMap(bundle);
+  const { contracts, fixture, flow } = baseline;
   const specification = apiContract.specification;
   const authorization = contracts.get(specification.authorization_ref);
   if (!authorization) {
@@ -360,9 +363,8 @@ function buildOperation(apiContract, baseline) {
 }
 
 export function buildPurchaseRequestOpenApi(baseline) {
-  const { bundle, fixture, flow, workItem } = baseline;
+  const { bundle, contracts, workItem } = baseline;
   assertGenerationBaseline(baseline);
-  const contracts = contractMap(bundle);
   const paths = {};
 
   for (const apiContractId of API_CONTRACT_IDS) {
@@ -393,7 +395,7 @@ export function buildPurchaseRequestOpenApi(baseline) {
     "x-vada-completion-evidence": EVIDENCE_ID,
     paths,
     components: {
-      schemas: buildSchemas(bundle),
+      schemas: buildSchemas(contracts),
     },
   };
 }
@@ -410,18 +412,34 @@ export async function loadPurchaseRequestOpenApiBaseline(
       readJson(root, FLOW_PATH),
       readJson(root, DELIVERY_WORK_PATH),
     ]);
+  const effective = await resolveEffectiveContracts(root, bundle, {
+    bundlePath: resolve(root, BUNDLE_PATH),
+  });
+  if (effective.errors.length > 0) {
+    throw new Error(
+      `승인 계약 묶음의 유효 계약을 해석할 수 없습니다: ${effective.errors.join("; ")}`,
+    );
+  }
   const workItem = deliveryWork.work_items?.find(
     (item) => item.id === WORK_ITEM_ID,
   );
   if (!workItem)
     throw new Error(`${WORK_ITEM_ID}: 승인 작업을 찾을 수 없습니다.`);
-  return { openApi, bundle, fixture, solution, flow, deliveryWork, workItem };
+  return {
+    openApi,
+    bundle,
+    contracts: effective.contracts,
+    fixture,
+    solution,
+    flow,
+    deliveryWork,
+    workItem,
+  };
 }
 
 export function validatePurchaseRequestOpenApiDocument(openApi, baseline) {
   const errors = [];
-  const { bundle, flow, solution, workItem } = baseline;
-  const contracts = contractMap(bundle);
+  const { bundle, contracts, flow, solution, workItem } = baseline;
   const expected = buildPurchaseRequestOpenApi(baseline);
   const flowAcIds = new Set(
     flow.spec?.completionScenarios?.map((criterion) => criterion.id),
@@ -440,7 +458,9 @@ export function validatePurchaseRequestOpenApiDocument(openApi, baseline) {
   if (workItem.status !== "ratified")
     errors.push(`${WORK_ITEM_ID}: ratified 작업이어야 합니다.`);
   if (!equalSets(workItem.contract_refs ?? [], WORK_CONTRACT_IDS)) {
-    errors.push(`${WORK_ITEM_ID}: contract_refs가 EVID-012 범위와 다릅니다.`);
+    errors.push(
+      `${WORK_ITEM_ID}: contract_refs가 ${EVIDENCE_ID} 범위와 다릅니다.`,
+    );
   }
 
   const bundleTrace = openApi["x-vada-contract-bundle"];
@@ -622,14 +642,125 @@ async function expectedGeneratedManifest(root) {
   };
 }
 
+function isWithinDirectory(directory, path) {
+  const relativePath = relative(directory, path);
+  return (
+    relativePath === "" ||
+    (relativePath !== ".." &&
+      !relativePath.startsWith(`..${sep}`) &&
+      !isAbsolute(relativePath))
+  );
+}
+
+function collectPackageExportTargets(value, location, errors, targets) {
+  if (typeof value === "string") {
+    targets.push({ location, target: value });
+    return;
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      errors.push(`${location}: 빈 exports fallback 배열은 허용하지 않습니다.`);
+    }
+    value.forEach((entry, index) =>
+      collectPackageExportTargets(
+        entry,
+        `${location}[${index}]`,
+        errors,
+        targets,
+      ),
+    );
+    return;
+  }
+  if (isObject(value)) {
+    const conditions = Object.entries(value);
+    if (conditions.length === 0) {
+      errors.push(`${location}: 빈 exports 조건 객체는 허용하지 않습니다.`);
+    }
+    for (const [condition, target] of conditions) {
+      if (condition.startsWith(".")) {
+        errors.push(
+          `${location}: 공개 subpath는 exports 최상위에서만 선언해야 합니다.`,
+        );
+      }
+      collectPackageExportTargets(
+        target,
+        `${location}.${condition}`,
+        errors,
+        targets,
+      );
+    }
+    return;
+  }
+  errors.push(`${location}: exports target은 경로 또는 조건 객체여야 합니다.`);
+}
+
+function validateClientPackagePublicSurface(root, packageDocument) {
+  const errors = [];
+  const packageExports = packageDocument.exports;
+  if (!isObject(packageExports)) {
+    return [`${CLIENT_PACKAGE_PATH}: exports는 공개 subpath 객체여야 합니다.`];
+  }
+
+  const publicSubpaths = Object.keys(packageExports);
+  if (
+    publicSubpaths.length !== 1 ||
+    publicSubpaths[0] !== CLIENT_PUBLIC_EXPORT
+  ) {
+    errors.push(
+      `${CLIENT_PACKAGE_PATH}: exports에는 승인된 공개 진입점 "${CLIENT_PUBLIC_EXPORT}" 하나만 허용합니다.`,
+    );
+  }
+
+  const targets = [];
+  for (const [subpath, target] of Object.entries(packageExports)) {
+    collectPackageExportTargets(
+      target,
+      `${CLIENT_PACKAGE_PATH}#exports[${JSON.stringify(subpath)}]`,
+      errors,
+      targets,
+    );
+  }
+
+  const packageDirectory = resolve(root, dirname(CLIENT_PACKAGE_PATH));
+  const sourceDirectory = resolve(root, dirname(CLIENT_ENTRYPOINT_PATH));
+  const approvedEntrypoint = resolve(root, CLIENT_ENTRYPOINT_PATH);
+  for (const { location, target } of targets) {
+    if (!target.startsWith("./")) {
+      errors.push(`${location}: package-relative 경로여야 합니다.`);
+      continue;
+    }
+    const resolvedTarget = resolve(packageDirectory, target);
+    if (!isWithinDirectory(packageDirectory, resolvedTarget)) {
+      errors.push(`${location}: package 경계 밖을 공개할 수 없습니다.`);
+      continue;
+    }
+    if (!isWithinDirectory(sourceDirectory, resolvedTarget)) {
+      errors.push(`${location}: src 경계 밖을 공개할 수 없습니다.`);
+      continue;
+    }
+    if (resolvedTarget !== approvedEntrypoint) {
+      errors.push(
+        `${location}: 승인된 생성 진입점 ${CLIENT_ENTRYPOINT_PATH}만 공개할 수 있습니다.`,
+      );
+    }
+  }
+
+  return errors;
+}
+
 export async function validateGeneratedClientRepository(root = repositoryRoot) {
   const errors = [];
   const warnings = [];
   try {
-    const [manifest, expected] = await Promise.all([
-      readJson(root, GENERATED_MANIFEST_PATH),
-      expectedGeneratedManifest(root),
-    ]);
+    const [manifest, expected, entrypoint, packageDocument] = await Promise.all(
+      [
+        readJson(root, GENERATED_MANIFEST_PATH),
+        expectedGeneratedManifest(root),
+        readFile(resolve(root, CLIENT_ENTRYPOINT_PATH), "utf8"),
+        readJson(root, CLIENT_PACKAGE_PATH),
+      ],
+    );
+    errors.push(...validateClientPackagePublicSurface(root, packageDocument));
     if (expected.generator.version !== GENERATOR_VERSION) {
       errors.push(
         `${GENERATOR_PACKAGE}는 정확히 ${GENERATOR_VERSION}으로 고정해야 합니다.`,
@@ -646,6 +777,11 @@ export async function validateGeneratedClientRepository(root = repositoryRoot) {
     }
     if (!equalJson(manifest, expected)) {
       errors.push("생성 manifest가 현재 입력·설정·파일과 다릅니다.");
+    }
+    if (entrypoint !== CLIENT_ENTRYPOINT) {
+      errors.push(
+        `${CLIENT_ENTRYPOINT_PATH}: 생성 진입점에 수동 타입이나 내보내기를 둘 수 없습니다.`,
+      );
     }
   } catch (error) {
     errors.push(`${GENERATED_MANIFEST_PATH}: ${error.message}`);
