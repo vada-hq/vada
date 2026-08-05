@@ -69,6 +69,33 @@ def test_expand_migration_renders_purchase_request_postgresql_schema() -> None:
     assert "RENAME COLUMN" not in upgrade_sql
 
 
+def test_expand_migration_renders_identity_organization_relationship_schema() -> None:
+    ddl = _render_upgrade_ddl()
+
+    expected_fragments = [
+        "CREATE TABLE vada_users",
+        "CREATE TABLE cognito_identities",
+        "CREATE TABLE organizations",
+        "CREATE TABLE organization_memberships",
+        "CREATE TABLE organization_events",
+        "CREATE TABLE organization_departments",
+        "CREATE TABLE department_memberships",
+        "CREATE TABLE organization_finance_memberships",
+        "CREATE TABLE event_finance_contexts",
+        "uq_organization_memberships_user_scope",
+        "fk_department_memberships_membership_scope",
+        "fk_organization_finance_memberships_membership_scope",
+        "fk_event_finance_contexts_event_scope",
+    ]
+    for fragment in expected_fragments:
+        assert fragment in ddl
+
+    upgrade_sql = ddl.upper()
+    assert "DROP TABLE" not in upgrade_sql
+    assert "DROP COLUMN" not in upgrade_sql
+    assert "RENAME COLUMN" not in upgrade_sql
+
+
 def test_expand_migration_prohibits_purchase_item_reparenting() -> None:
     ddl = _render_upgrade_ddl()
 

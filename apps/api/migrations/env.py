@@ -5,14 +5,18 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from vada_api.finance.persistence.schema import metadata
+from vada_api.finance.persistence.schema import metadata as finance_metadata
+from vada_api.identity.persistence.schema import metadata as identity_metadata
 
 config = context.config
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = metadata
+if finance_metadata is not identity_metadata:
+    raise RuntimeError("Persistence modules must share one SQLAlchemy metadata object.")
+
+target_metadata = finance_metadata
 
 
 def run_migrations_offline() -> None:
