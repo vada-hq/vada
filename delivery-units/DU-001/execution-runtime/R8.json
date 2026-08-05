@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R8",
-  "runtime_revision": 3,
-  "runtime_status": "active",
-  "updated_at": "2026-08-05T09:28:17.145Z",
+  "runtime_revision": 4,
+  "runtime_status": "completed",
+  "updated_at": "2026-08-05T09:46:49.722Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R8.json",
@@ -32,15 +32,22 @@
       "captured_at": "2026-08-05T09:28:17.145Z",
       "locator": "github:vada-hq/vada/pull/28@234568a;github:vada-hq/vada/actions/runs/30993188304",
       "content_ko": "운영 PostgreSQL 사용자·조직 관계 어댑터와 앱 조립 후보를 구현했고, GitHub Actions의 PostgreSQL 17 환경에서 일반 API 115개와 실제 PostgreSQL 통합 검사 20개가 통과했습니다. 고위험 변경의 사람 코드 검토는 남아 있습니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "review_record",
+      "captured_at": "2026-08-05T09:46:49.722Z",
+      "locator": "current-thread/continue-2026-08-05;agent-review:verify_identity_postgresql_r1:git-234568a;github:vada-hq/vada/actions/runs/30993188304",
+      "content_ko": "제품 책임자가 검토 요약 뒤 계속 진행을 지시했고, 독립 검증자가 커밋 234568a의 마이그레이션·운영 조립·조직 격리와 로컬 API 검사 및 실제 PostgreSQL CI를 재검증해 EVID-038·039를 모두 충족한 것으로 판정했습니다."
     }
   ],
   "work_runs": [
     {
       "work_item_ref": "WORK:identity-organization-postgresql-adapter@R1",
       "executor_ref": "EXEC:ai-backend",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-05T08:53:49.017Z",
-      "completed_at": null,
+      "completed_at": "2026-08-05T09:46:49.722Z",
       "transition_log": [
         {
           "id": "TR-001",
@@ -68,6 +75,15 @@
           "actor_ref": "EXEC:ai-backend",
           "source_ref": "SRC-RUN-003",
           "note_ko": "구현과 실제 PostgreSQL CI 검증을 마치고, 데이터 마이그레이션·조직 격리 변경의 사람 코드 검토를 요청합니다."
+        },
+        {
+          "id": "TR-004",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-05T09:46:49.722Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-004",
+          "note_ko": "모든 완료 증거와 독립 검증이 충족되어 운영 사용자·조직 PostgreSQL 연결 작업을 완료합니다."
         }
       ],
       "blockers": [],
@@ -93,6 +109,28 @@
           "verified_by": null,
           "verified_at": null,
           "verification_note_ko": null
+        },
+        {
+          "id": "PROOF-003",
+          "requirement_ref": "EVID-038",
+          "kind": "automated_test",
+          "locator": "github:vada-hq/vada/actions/runs/30993188304;git:234568a#apps/api/tests/persistence/test_identity_organization_postgresql.py;git:234568a#apps/api/tests/test_app_composition.py",
+          "captured_at": "2026-08-05T09:46:49.722Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-05T09:46:49.722Z",
+          "verification_note_ko": "독립 just check-api에서 일반 검사 115개와 정적 분석을 재실행했고, CI의 PostgreSQL 17 통합 검사 20개와 운영 create_app 조립·표시 관계 조회를 확인했습니다."
+        },
+        {
+          "id": "PROOF-004",
+          "requirement_ref": "EVID-039",
+          "kind": "security_check",
+          "locator": "github:vada-hq/vada/actions/runs/30993188304;git:234568a#apps/api/tests/persistence/test_identity_organization_postgresql.py;git:234568a#apps/api/tests/finance/test_postgresql_context_provider.py",
+          "captured_at": "2026-08-05T09:46:49.722Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-05T09:46:49.722Z",
+          "verification_note_ko": "다른 조직 404, 미연결 Cognito 401, 비활성·누락·교차 관계 기본 거부와 조직 밖 표시명 비노출을 독립 검토했습니다."
         }
       ]
     }
