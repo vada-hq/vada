@@ -1,0 +1,526 @@
+{
+  "schema_version": "0.2.0",
+  "plan_id": "WP-FIN-001",
+  "plan_revision": null,
+  "plan_status": "review_ready",
+  "approval_source_ref": null,
+  "updated_at": "2026-08-05T05:10:55.557Z",
+  "solution_ref": {
+    "path": "product-specs/solutions/SOLUTION-FIN-001/R1.json",
+    "solution_id": "SOLUTION-FIN-001",
+    "solution_revision": 1,
+    "canonical_sha256": "aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f"
+  },
+  "contract_bundle_ref": {
+    "path": "contracts/bundles/CB-FIN-001/R2.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 2,
+    "canonical_sha256": "134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad"
+  },
+  "implementation_architecture_ref": {
+    "path": "delivery-units/DU-001/implementation-architecture/R2.json",
+    "architecture_id": "IAB-VADA-DU-001",
+    "architecture_revision": 2,
+    "canonical_sha256": "cd91fdf39f44ce65696f01bc36813028812c9ba02c9b5f0ea8fbbb5b8e581d81"
+  },
+  "delivery_unit_ref": "FLOW-FIN-001@R2",
+  "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "product-specs/solutions/SOLUTION-FIN-001/R1.json#aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f",
+      "content_ko": "제품 책임자가 승인한 DU-001 목표 동작 설계 R1이며 제품 의미와 34개 설계 요소를 고정합니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "contracts/bundles/CB-FIN-001/R2.json#134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad",
+      "content_ko": "제품 책임자가 승인한 DU-001 실행 계약 R2이며 R1 계약 전체와 상세 표시 문맥 개정을 고정합니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "delivery-units/DU-001/implementation-architecture/R2.json#cd91fdf39f44ce65696f01bc36813028812c9ba02c9b5f0ea8fbbb5b8e581d81",
+      "content_ko": "제품 책임자가 승인한 구현 아키텍처 R2이며 R1의 React·TypeScript·Vite, TanStack, Zod, Tailwind·shadcn/ui(Base UI), MSW 결정을 변경 없이 상속합니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "delivery-units/DU-001/delivery-work/R1.json#78320c347b4a56cf9e3c85a941b347f8e27d87dff09fed6996f426e1ca42f086",
+      "content_ko": "승인 작업 그래프 R1의 작업 21개와 원래 선행관계를 역사로 보존합니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "delivery-units/DU-001/delivery-work/R2.json#5b9d0762ed886245e82b26062916446d18c74e1eb635e0578d1f24b3dae40472",
+      "content_ko": "승인 작업 그래프 R2의 상세 계약 영향 작업 8개를 역사로 보존하고 공통 웹 기반에 직접 영향받는 UI 정의만 후속 개정합니다."
+    },
+    {
+      "id": "SRC-006",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "apps/web/package.json;apps/web/src/App.tsx;apps/web/src/App.css;apps/web/src/index.css;apps/web/src/App.test.tsx",
+      "content_ko": "현재 제품 웹은 Vite 시작 화면과 전역 예시 스타일만 있으며 승인 아키텍처의 TanStack·Zod·Tailwind·shadcn/ui·MSW 구성과 공유 UI 프리미티브가 없습니다."
+    },
+    {
+      "id": "SRC-007",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "delivery-units/DU-001/delivery-work/R1.json#work_items;delivery-units/DU-001/delivery-work/R2.json#work_items",
+      "content_ko": "기존 작성·목록·상세 UI 작업은 화면 명세와 계약 픽스처만 선행 작업으로 두며 세 화면이 재사용할 공통 웹 기반 작업이 없습니다."
+    },
+    {
+      "id": "SRC-008",
+      "type": "command_output",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "pnpm validate:product-specs;pnpm validate:contracts;pnpm validate:architecture;pnpm validate:delivery-work",
+      "content_ko": "상위 제품 명세·계약·아키텍처와 기존 작업 그래프가 오류 0으로 검증됐고 계약 검증의 기존 SL-EVT-002 경고 1개만 남았습니다."
+    },
+    {
+      "id": "SRC-009",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "current-thread/du001-web-foundation-draft-request-2026-08-05",
+      "content_ko": "제품 책임자가 유지보수성을 우선해 공통 프론트 기반 누락을 새 작업 그래프 초안으로 반영하는 다음 단계를 진행하라고 지시했습니다."
+    },
+    {
+      "id": "SRC-010",
+      "type": "standard",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "https://scrumguides.org/docs/scrumguide/v2020/2020-Scrum-Guide-US.pdf",
+      "content_ko": "Scrum Guide 2020은 제품 백로그 정제를 더 작고 정밀한 항목으로 분해하고 정의하는 지속 활동으로 설명합니다."
+    },
+    {
+      "id": "SRC-011",
+      "type": "standard",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "https://www.nasa.gov/wp-content/uploads/2023/08/nasa-work-breakdown-structure-handbook.pdf",
+      "content_ko": "NASA WBS Handbook은 제품 중심 작업과 이를 가능하게 하는 공통 지원 작업을 승인 범위에 함께 포함하도록 안내합니다."
+    },
+    {
+      "id": "SRC-012",
+      "type": "standard",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/creating-issue-dependencies",
+      "content_ko": "GitHub 공식 문서는 실제로 다른 작업의 완료가 필요한 경우를 blocked by 의존관계로 표현합니다."
+    },
+    {
+      "id": "SRC-013",
+      "type": "standard",
+      "captured_at": "2026-08-05T05:10:55.557Z",
+      "locator": "https://csrc.nist.gov/pubs/sp/800/218/final",
+      "content_ko": "NIST SSDF 1.1은 보안과 검증 활동을 별도 사후 단계가 아니라 SDLC에 통합하도록 권고합니다."
+    }
+  ],
+  "imports": [
+    {
+      "plan_path": "delivery-units/DU-001/delivery-work/R1.json",
+      "plan_id": "WP-FIN-001",
+      "plan_revision": 1,
+      "canonical_sha256": "78320c347b4a56cf9e3c85a941b347f8e27d87dff09fed6996f426e1ca42f086",
+      "work_item_ids": [
+        "WORK:purchase-request-screen-spec@R1",
+        "WORK:purchase-request-contract-fixtures@R1",
+        "WORK:identity-organization-context@R1",
+        "WORK:purchase-request-authorization-rules@R1",
+        "WORK:purchase-request-data-schema@R1",
+        "WORK:purchase-request-submission-transaction@R1",
+        "WORK:purchase-request-draft-api@R1",
+        "WORK:purchase-request-submission-api@R1",
+        "WORK:purchase-request-own-list-api@R1",
+        "WORK:purchase-request-detail-api@R1",
+        "WORK:purchase-request-editor-ui@R1",
+        "WORK:purchase-request-own-list-ui@R1",
+        "WORK:purchase-request-detail-ui@R1",
+        "WORK:purchase-request-openapi-client-baseline@R1",
+        "WORK:purchase-request-editor-api-integration@R1",
+        "WORK:purchase-request-own-list-api-integration@R1",
+        "WORK:purchase-request-detail-api-integration@R1",
+        "WORK:purchase-request-observability-audit@R1",
+        "WORK:purchase-request-sensitive-boundary-controls@R1",
+        "WORK:purchase-request-server-verification@R1",
+        "WORK:purchase-request-browser-verification@R1"
+      ]
+    },
+    {
+      "plan_path": "delivery-units/DU-001/delivery-work/R2.json",
+      "plan_id": "WP-FIN-001",
+      "plan_revision": 2,
+      "canonical_sha256": "5b9d0762ed886245e82b26062916446d18c74e1eb635e0578d1f24b3dae40472",
+      "work_item_ids": [
+        "WORK:purchase-request-screen-spec@R2",
+        "WORK:purchase-request-contract-fixtures@R2",
+        "WORK:purchase-request-detail-api@R2",
+        "WORK:purchase-request-openapi-client-baseline@R2",
+        "WORK:purchase-request-detail-ui@R2",
+        "WORK:purchase-request-detail-api-integration@R2",
+        "WORK:purchase-request-server-verification@R2",
+        "WORK:purchase-request-browser-verification@R2"
+      ]
+    }
+  ],
+  "baseline": {
+    "mode": "greenfield",
+    "rationale_ko": "승인 목표 설계의 greenfield 모드를 유지합니다. 현재 시작용 웹 코드는 제품 기능의 재사용 기준선이 아니며 승인 아키텍처를 실제 화면들이 공동으로 사용할 최소 기반이 없는 상태를 구현 격차로 기록합니다.",
+    "source_refs": [
+      "SRC-001",
+      "SRC-002",
+      "SRC-003",
+      "SRC-004",
+      "SRC-005",
+      "SRC-006",
+      "SRC-007",
+      "SRC-008"
+    ],
+    "observations": [
+      {
+        "id": "OBS-001",
+        "kind": "approved_artifact",
+        "locator": "IAB-VADA-DU-001@R2/base_architecture_ref/ADR-001;ADR-008",
+        "finding_ko": "승인 아키텍처는 React·TypeScript·Vite와 TanStack Router·Query·Form, Zod, Tailwind·shadcn/ui(Base UI), Vitest·Testing Library·MSW의 운영 기준을 고정합니다.",
+        "source_refs": ["SRC-003"]
+      },
+      {
+        "id": "OBS-002",
+        "kind": "repository_file",
+        "locator": "apps/web/package.json;apps/web/src",
+        "finding_ko": "현재 제품 웹에는 React와 Vite 시작 코드만 있고 승인된 라우팅·데이터·폼·검증·스타일·계약 테스트 기반과 공유 UI 프리미티브가 없습니다.",
+        "source_refs": ["SRC-006"]
+      },
+      {
+        "id": "OBS-003",
+        "kind": "approved_artifact",
+        "locator": "WP-FIN-001@R1/work_items;WP-FIN-001@R2/work_items",
+        "finding_ko": "세 UI 작업은 각각 구현을 요구하지만 공통 기반을 먼저 만들고 재사용하도록 강제하는 작업과 선행관계가 없습니다.",
+        "source_refs": ["SRC-004", "SRC-005", "SRC-007"]
+      },
+      {
+        "id": "OBS-004",
+        "kind": "command_output",
+        "locator": "pnpm validate:product-specs;pnpm validate:contracts;pnpm validate:architecture;pnpm validate:delivery-work",
+        "finding_ko": "상위 기준선과 기존 작업 그래프가 유효하므로 제품 의미나 기술 선택을 새로 정하지 않고 누락된 구현 기반과 의존관계만 개정할 수 있습니다.",
+        "source_refs": ["SRC-008"]
+      }
+    ]
+  },
+  "gaps": [
+    {
+      "id": "GAP-025",
+      "title_ko": "공통 웹 애플리케이션 기반 부재",
+      "state": "missing",
+      "needed_outcome_ko": "작성·목록·상세 화면이 승인된 프론트 기술 경계, 의미 토큰, 접근 가능한 최소 프리미티브와 계약 테스트 기반을 한 번 구현해 재사용하고 화면별로 같은 책임을 중복 정의하지 않아야 합니다.",
+      "design_refs": ["DESIGN-INTERFACE-001", "DESIGN-QUALITY-003"],
+      "contract_refs": ["QUALITY:purchase_request.accessible_feedback@R1"],
+      "evidence_refs": ["OBS-001", "OBS-002", "OBS-003"]
+    }
+  ],
+  "work_items": [
+    {
+      "id": "WORK:web-application-foundation@R1",
+      "key": "web-application-foundation",
+      "revision": 1,
+      "status": "proposed",
+      "change_class": "initial",
+      "supersedes": null,
+      "title_ko": "공통 웹 애플리케이션 기반 구축",
+      "work_type": "enable",
+      "primary_capability": "frontend",
+      "collaborating_capabilities": [
+        "technical_design",
+        "experience_design",
+        "quality"
+      ],
+      "outcome_ko": "apps/web에 승인 아키텍처의 React·TypeScript·Vite와 TanStack Router·Query·Form, Zod, Tailwind·shadcn/ui(Base UI), MSW 경계를 구성하고 DU-001에 필요한 최소 의미 토큰과 접근 가능한 공통 프리미티브를 제공해 화면별 코드가 같은 책임을 중복 구현하지 않게 합니다. 구체적인 브랜드 값은 토큰 뒤에서 교체 가능하며 이 작업이 새 제품 의미를 결정하지 않습니다.",
+      "gap_refs": ["GAP-025"],
+      "design_refs": ["DESIGN-INTERFACE-001", "DESIGN-QUALITY-003"],
+      "contract_refs": ["QUALITY:purchase_request.accessible_feedback@R1"],
+      "blocked_by": [],
+      "completion_evidence": [
+        {
+          "id": "EVID-033",
+          "kind": "automated_test",
+          "description_ko": "웹 범위 테스트와 타입·빌드 검사가 Router·Query·Form·Zod·MSW 제공자 경계와 Button·Input·Select·FormField·Alert·Card·상태 메시지 프리미티브의 레이블·설명·오류 연결·키보드 동작을 증명합니다.",
+          "design_refs": ["DESIGN-INTERFACE-001", "DESIGN-QUALITY-003"],
+          "contract_refs": ["QUALITY:purchase_request.accessible_feedback@R1"]
+        },
+        {
+          "id": "EVID-034",
+          "kind": "reviewed_artifact",
+          "description_ko": "프론트엔드 검토가 색상·간격·타이포그래피·상태를 의미 토큰으로 중앙화하고 DU-001에 필요하지 않은 범용 컴포넌트를 선제 구현하지 않으며 화면 코드가 와이어프레임 구현을 복사하지 않는지 확인합니다.",
+          "design_refs": ["DESIGN-INTERFACE-001", "DESIGN-QUALITY-003"],
+          "contract_refs": ["QUALITY:purchase_request.accessible_feedback@R1"]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-editor-ui@R2",
+      "key": "purchase-request-editor-ui",
+      "revision": 2,
+      "status": "proposed",
+      "change_class": "additive",
+      "supersedes": "WORK:purchase-request-editor-ui@R1",
+      "title_ko": "구매 요청 작성·초안·제출 UI 구현 R2",
+      "work_type": "build",
+      "primary_capability": "frontend",
+      "collaborating_capabilities": ["experience_design", "quality"],
+      "outcome_ko": "사용자가 요청 공통 정보와 여러 품목을 작성하고 금액을 확인하며, 계약 예제 기반의 초안 조회·저장·삭제와 제출 응답에 따라 성공·실패 상태를 처리하고 실패 후 입력을 유지하는 접근 가능한 웹 UI가 완성됩니다. 화면별 구현은 승인된 공통 웹 기반의 의미 토큰·접근 가능한 프리미티브·라우팅·데이터·폼·계약 테스트 경계를 재사용하며 같은 책임을 다시 정의하지 않습니다.",
+      "gap_refs": ["GAP-025"],
+      "design_refs": [
+        "DESIGN-INTERACTION-001",
+        "DESIGN-INTERACTION-002",
+        "DESIGN-INTERACTION-003",
+        "DESIGN-INTERACTION-004",
+        "DESIGN-INTERACTION-005",
+        "DESIGN-STATE-001",
+        "DESIGN-STATE-002",
+        "DESIGN-STATE-003",
+        "DESIGN-QUALITY-003",
+        "DESIGN-QUALITY-005"
+      ],
+      "contract_refs": [
+        "DATA:purchase_request.input@R1",
+        "DATA:purchase_request.draft_content@R1",
+        "DATA:purchase_request.draft_save_command@R1",
+        "DATA:purchase_request.draft@R1",
+        "DATA:purchase_request.editor_state@R1",
+        "DATA:purchase_request.submit_command@R1",
+        "DATA:http.problem_details@R1",
+        "API:purchase_request.get_editor_state@R1",
+        "API:purchase_request.save_draft@R1",
+        "API:purchase_request.delete_draft@R1",
+        "API:purchase_request.submit@R1",
+        "ERROR:purchase_request.action_forbidden@R1",
+        "ERROR:http.resource_not_found@R1",
+        "ERROR:purchase_request.validation_failed@R1",
+        "ERROR:purchase_request.state_conflict@R1",
+        "ERROR:purchase_request.persistence_unavailable@R1",
+        "QUALITY:purchase_request.accessible_feedback@R1"
+      ],
+      "blocked_by": [
+        "WORK:purchase-request-screen-spec@R2",
+        "WORK:purchase-request-contract-fixtures@R2",
+        "WORK:web-application-foundation@R1"
+      ],
+      "completion_evidence": [
+        {
+          "id": "EVID-035",
+          "kind": "automated_test",
+          "description_ko": "MSW 기반 컴포넌트·상호작용 테스트가 다품목 추가·수정·삭제와 유형별 입력·금액 계산, IME Enter 단일 제출, 초안 없음·복원·저장·삭제와 버전 충돌, 422 오류 요약·필드 포커스, 403·404 안전 복귀, 503 실패 후 입력 보존·재시도, 브라우저 영속 저장 미사용, 키보드 동작과 저장·제출 상태 메시지의 접근성 트리 노출을 증명합니다. 또한 화면이 공통 의미 토큰과 접근 가능한 프리미티브를 재사용하고 화면 내부에 동일한 디자인·상태 책임을 중복 정의하지 않음을 범위 검사로 확인합니다.",
+          "design_refs": [
+            "DESIGN-INTERACTION-001",
+            "DESIGN-INTERACTION-002",
+            "DESIGN-INTERACTION-003",
+            "DESIGN-INTERACTION-004",
+            "DESIGN-INTERACTION-005",
+            "DESIGN-STATE-001",
+            "DESIGN-STATE-002",
+            "DESIGN-STATE-003",
+            "DESIGN-QUALITY-003",
+            "DESIGN-QUALITY-005"
+          ],
+          "contract_refs": [
+            "DATA:purchase_request.input@R1",
+            "DATA:purchase_request.draft_content@R1",
+            "DATA:purchase_request.draft_save_command@R1",
+            "DATA:purchase_request.draft@R1",
+            "DATA:purchase_request.editor_state@R1",
+            "DATA:purchase_request.submit_command@R1",
+            "DATA:http.problem_details@R1",
+            "API:purchase_request.get_editor_state@R1",
+            "API:purchase_request.save_draft@R1",
+            "API:purchase_request.delete_draft@R1",
+            "API:purchase_request.submit@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.validation_failed@R1",
+            "ERROR:purchase_request.state_conflict@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "QUALITY:purchase_request.accessible_feedback@R1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-own-list-ui@R2",
+      "key": "purchase-request-own-list-ui",
+      "revision": 2,
+      "status": "proposed",
+      "change_class": "additive",
+      "supersedes": "WORK:purchase-request-own-list-ui@R1",
+      "title_ko": "본인 구매 요청 목록 UI 구현 R2",
+      "work_type": "build",
+      "primary_capability": "frontend",
+      "collaborating_capabilities": ["experience_design", "quality"],
+      "outcome_ko": "계약 예제를 기준으로 현재 행사의 본인 구매 요청을 최신순으로 보여주고 상태·총액·예산 초과 여부·생성 시각을 표시하며 로딩·빈 목록·접근 거부·조회 실패를 접근 가능하게 처리하고 선택한 요청을 상세 경로로 연결합니다. 화면별 구현은 승인된 공통 웹 기반의 의미 토큰·접근 가능한 프리미티브·라우팅·데이터·폼·계약 테스트 경계를 재사용하며 같은 책임을 다시 정의하지 않습니다.",
+      "gap_refs": ["GAP-025"],
+      "design_refs": [
+        "DESIGN-INTERACTION-006",
+        "DESIGN-STATE-004",
+        "DESIGN-STATE-005",
+        "DESIGN-QUALITY-003"
+      ],
+      "contract_refs": [
+        "DATA:purchase_request.own_list@R1",
+        "DATA:http.problem_details@R1",
+        "API:purchase_request.list_own@R1",
+        "ERROR:purchase_request.action_forbidden@R1",
+        "ERROR:http.resource_not_found@R1",
+        "ERROR:purchase_request.persistence_unavailable@R1",
+        "QUALITY:purchase_request.accessible_feedback@R1"
+      ],
+      "blocked_by": [
+        "WORK:purchase-request-screen-spec@R2",
+        "WORK:purchase-request-contract-fixtures@R2",
+        "WORK:web-application-foundation@R1"
+      ],
+      "completion_evidence": [
+        {
+          "id": "EVID-036",
+          "kind": "automated_test",
+          "description_ko": "MSW 기반 라우트·화면 테스트가 로딩·빈 목록·최신순 목록, 상태·총액·예산 초과 여부·생성 시각 표시, 상세 경로 연결, 403·404 안전 복귀, 503 재시도와 키보드 탐색·상태 메시지의 접근성을 증명합니다. 또한 화면이 공통 의미 토큰과 접근 가능한 프리미티브를 재사용하고 화면 내부에 동일한 디자인·상태 책임을 중복 정의하지 않음을 범위 검사로 확인합니다.",
+          "design_refs": [
+            "DESIGN-INTERACTION-006",
+            "DESIGN-STATE-004",
+            "DESIGN-STATE-005",
+            "DESIGN-QUALITY-003"
+          ],
+          "contract_refs": [
+            "DATA:purchase_request.own_list@R1",
+            "DATA:http.problem_details@R1",
+            "API:purchase_request.list_own@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "QUALITY:purchase_request.accessible_feedback@R1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-detail-ui@R3",
+      "key": "purchase-request-detail-ui",
+      "revision": 3,
+      "status": "proposed",
+      "change_class": "additive",
+      "supersedes": "WORK:purchase-request-detail-ui@R2",
+      "title_ko": "구매 요청 상세 UI 구현 R3",
+      "work_type": "build",
+      "primary_capability": "frontend",
+      "collaborating_capabilities": ["experience_design", "quality"],
+      "outcome_ko": "R2 계약 예제를 기준으로 상세 경로에서 display의 행사명·실제 요청자명과 record의 상태·총액·예산 초과 여부·모든 품목을 구분해 표시하고 로딩·404·503·재조회 상태를 접근 가능하게 처리합니다. 화면별 구현은 승인된 공통 웹 기반의 의미 토큰·접근 가능한 프리미티브·라우팅·데이터·폼·계약 테스트 경계를 재사용하며 같은 책임을 다시 정의하지 않습니다.",
+      "gap_refs": ["GAP-025"],
+      "design_refs": [
+        "DESIGN-INTERACTION-006",
+        "DESIGN-STATE-004",
+        "DESIGN-STATE-005",
+        "DESIGN-QUALITY-003"
+      ],
+      "contract_refs": [
+        "DATA:purchase_request.detail_view@R1",
+        "DATA:http.problem_details@R1",
+        "API:purchase_request.get_detail@R2",
+        "ERROR:http.resource_not_found@R1",
+        "ERROR:purchase_request.persistence_unavailable@R1",
+        "QUALITY:purchase_request.accessible_feedback@R1"
+      ],
+      "blocked_by": [
+        "WORK:purchase-request-screen-spec@R2",
+        "WORK:purchase-request-contract-fixtures@R2",
+        "WORK:web-application-foundation@R1"
+      ],
+      "completion_evidence": [
+        {
+          "id": "EVID-037",
+          "kind": "automated_test",
+          "description_ko": "MSW 기반 화면 테스트가 실제 제출자와 다른 조회자 예제로 행사명·요청자명·기록을 표시하고 직접 진입·새로고침·404·503·키보드·상태 메시지를 검증합니다. 또한 화면이 공통 의미 토큰과 접근 가능한 프리미티브를 재사용하고 화면 내부에 동일한 디자인·상태 책임을 중복 정의하지 않음을 범위 검사로 확인합니다.",
+          "design_refs": [
+            "DESIGN-INTERACTION-006",
+            "DESIGN-STATE-004",
+            "DESIGN-STATE-005",
+            "DESIGN-QUALITY-003"
+          ],
+          "contract_refs": [
+            "DATA:purchase_request.detail_view@R1",
+            "DATA:http.problem_details@R1",
+            "API:purchase_request.get_detail@R2",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "QUALITY:purchase_request.accessible_feedback@R1"
+          ]
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "pending",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "source_backed_options",
+        "rationale_ko": "승인된 제품·계약·아키텍처와 현재 웹 기준선 차이에서 도출한 최소 변경안을 전체 승인 또는 수정 요청으로 구분합니다.",
+        "source_refs": [
+          "SRC-001",
+          "SRC-002",
+          "SRC-003",
+          "SRC-004",
+          "SRC-005",
+          "SRC-006",
+          "SRC-007",
+          "SRC-008",
+          "SRC-009",
+          "SRC-010",
+          "SRC-011",
+          "SRC-012",
+          "SRC-013"
+        ]
+      },
+      "question_ko": "기존 R1·R2 작업 의미를 보존하고 공통 웹 기반 작업 1개를 추가하며 작성·목록·상세 UI 3개의 선행관계만 개정한 작업 그래프를 승인합니까?",
+      "reason_ko": "승인하면 활성 작업은 기존 21개에서 22개가 되며 공통 기반은 화면 명세·계약 픽스처와 병렬로 착수하고 세 UI 구현만 그 완료를 기다립니다. 제품 정책·권한·데이터·API 의미는 바뀌지 않습니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "승인"
+        },
+        {
+          "id": "NO",
+          "label_ko": "수정 필요"
+        }
+      ],
+      "evidence": {
+        "work_item_refs": [
+          "WORK:web-application-foundation@R1",
+          "WORK:purchase-request-editor-ui@R2",
+          "WORK:purchase-request-own-list-ui@R2",
+          "WORK:purchase-request-detail-ui@R3"
+        ],
+        "source_refs": [
+          "SRC-001",
+          "SRC-002",
+          "SRC-003",
+          "SRC-004",
+          "SRC-005",
+          "SRC-006",
+          "SRC-007",
+          "SRC-008",
+          "SRC-009"
+        ]
+      },
+      "answer_source_ref": null,
+      "normalized_answer": null,
+      "dismissal_reason_ko": null
+    }
+  ]
+}
