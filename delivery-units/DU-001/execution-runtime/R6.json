@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R6",
-  "runtime_revision": 3,
+  "runtime_revision": 4,
   "runtime_status": "active",
-  "updated_at": "2026-08-05T06:07:42.034Z",
+  "updated_at": "2026-08-05T06:21:45.562Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R6.json",
@@ -32,6 +32,13 @@
       "captured_at": "2026-08-05T06:07:42.034Z",
       "locator": "commit:647e499;command:just check-web",
       "content_ko": "공통 웹 기반 구현이 RED 이후 테스트 6개, OpenAPI 기준선, 린트, 타입 검사와 프로덕션 빌드를 포함한 just check-web을 통과했고 총괄 범위 검토를 마쳤습니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "code_evidence",
+      "captured_at": "2026-08-05T06:21:45.562Z",
+      "locator": "https://github.com/vada-hq/vada/actions/runs/30980946280;commit:39da5e0",
+      "content_ko": "선택 컴포넌트 키보드 테스트를 실제 사용자 순서로 안정화한 뒤 반복 5회와 GitHub Actions의 contracts·web 검사가 모두 통과했습니다."
     }
   ],
   "work_runs": [
