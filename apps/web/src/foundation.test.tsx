@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
-import { useState, type FormEvent } from "react";
-import { render, screen } from "@testing-library/react";
+import { useState } from "react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useQuery } from "@tanstack/react-query";
 import { describe, expect, test, vi } from "vitest";
@@ -16,7 +16,6 @@ import { Select } from "./components/ui/select";
 import { StatusBadge } from "./components/ui/status-badge";
 import {
   AppForm,
-  createFormSubmitHandler,
   useAppForm,
 } from "./forms/app-form";
 import { server } from "./mocks/server";
@@ -80,6 +79,15 @@ function FormProbe() {
   );
 }
 
+function ImeFormProbe({ onSubmit }: { onSubmit: () => void }) {
+  return (
+    <AppForm aria-label="요청 입력" onSubmit={onSubmit}>
+      <Input aria-label="요청 제목" />
+      <Button type="submit">저장</Button>
+    </AppForm>
+  );
+}
+
 describe("공통 애플리케이션 경계", () => {
   test("라우터가 애플리케이션 시작 화면을 렌더링한다", async () => {
     render(<App />);
@@ -128,18 +136,22 @@ describe("공통 폼과 UI 기본 요소", () => {
     );
   });
 
-  test("한국어 조합 중 제출 이벤트를 실행하지 않는다", () => {
+  test("한국어 조합 중 Enter는 막고 조합 종료 후 Enter는 제출한다", async () => {
+    const user = userEvent.setup();
     const handleSubmit = vi.fn();
-    const preventDefault = vi.fn();
-    const onSubmit = createFormSubmitHandler(handleSubmit);
+    render(<ImeFormProbe onSubmit={handleSubmit} />);
 
-    onSubmit({
-      nativeEvent: { isComposing: true },
-      preventDefault,
-    } as unknown as FormEvent<HTMLFormElement>);
+    const form = screen.getByRole("form", { name: "요청 입력" });
+    const input = within(form).getByRole("textbox", { name: "요청 제목" });
+    await user.click(input);
 
-    expect(preventDefault).toHaveBeenCalledOnce();
+    fireEvent.compositionStart(input);
+    await user.keyboard("{Enter}");
     expect(handleSubmit).not.toHaveBeenCalled();
+
+    fireEvent.compositionEnd(input);
+    await user.keyboard("{Enter}");
+    expect(handleSubmit).toHaveBeenCalledOnce();
   });
 
   test("버튼과 선택 입력을 키보드로 조작할 수 있다", async () => {
