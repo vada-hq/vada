@@ -1,6 +1,7 @@
 # pyright: reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false
 from __future__ import annotations
 
+import json
 from collections.abc import Generator
 from datetime import UTC, date, datetime
 from decimal import Decimal
@@ -16,9 +17,15 @@ from fastapi.testclient import TestClient
 from httpx import Response
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import ValidationError
+from referencing import Registry, Resource
 from sqlalchemy import Engine, text
 
-from vada_api.finance.application import FinanceRequestContext, PurchaseRequestService
+from vada_api.finance.application import (
+    FinanceRequestContext,
+    PurchaseRequestDisplayNames,
+    PurchaseRequestRelationshipReader,
+    PurchaseRequestService,
+)
 from vada_api.finance.authorization import PurchaseRequestActorFacts
 from vada_api.finance.persistence.purchase_requests import (
     PostgreSQLPurchaseRequestRepository,
@@ -92,6 +99,34 @@ def _assert_openapi_request(
     ]
     assert len(json_bodies) == 1
     Draft202012Validator(json_bodies[0].validation_schema).validate(body)
+
+
+@cache
+def _approved_detail_view_validator() -> Draft202012Validator:
+    repository_root = Path(__file__).resolve().parents[4]
+    bundles = [
+        json.loads(
+            (
+                repository_root / f"contracts/bundles/CB-FIN-001/{revision}.json"
+            ).read_text(encoding="utf-8")
+        )
+        for revision in ("R1", "R2")
+    ]
+    schemas = [
+        contract["specification"]["json_schema"]
+        for bundle in bundles
+        for contract in bundle["contracts"]
+        if contract["kind"] == "DATA"
+    ]
+    registry = Registry().with_resources(
+        (schema["$id"], Resource.from_contents(schema)) for schema in schemas
+    )
+    detail_schema = next(
+        contract["specification"]["json_schema"]
+        for contract in bundles[1]["contracts"]
+        if contract["id"] == "DATA:purchase_request.detail_view@R1"
+    )
+    return Draft202012Validator(detail_schema, registry=registry)
 
 
 @pytest.fixture(autouse=True)
@@ -182,15 +217,59 @@ class StaticPurchaseRequestContextProvider:
         return self._context
 
 
+class StaticPurchaseRequestRelationshipReader:
+    """Server-owned test facts kept separate from purchase request rows."""
+
+    def __init__(
+        self,
+        *,
+        event_names: dict[tuple[str, str], str],
+        requester_names: dict[tuple[str, str], str],
+    ) -> None:
+        self._event_names = event_names
+        self._requester_names = requester_names
+
+    def get_detail_display_names(
+        self, *, organization_id: str, event_id: str, requester_user_id: str
+    ) -> PurchaseRequestDisplayNames | None:
+        event_name = self._event_names.get((organization_id, event_id))
+        requester_name = self._requester_names.get((organization_id, requester_user_id))
+        if event_name is None or requester_name is None:
+            return None
+        return PurchaseRequestDisplayNames(
+            event_name=event_name,
+            requester_name=requester_name,
+        )
+
+
 def _client(
     engine: Engine,
     context: FinanceRequestContext,
     *,
     today: date | None = None,
+    relationship_reader: PurchaseRequestRelationshipReader | None = None,
 ) -> TestClient:
+    relationship_reader = (
+        relationship_reader
+        or StaticPurchaseRequestRelationshipReader(
+            event_names={
+                (
+                    context.actor.identity.organization_id,
+                    context.actor.identity.event_id,
+                ): context.event_name
+            },
+            requester_names={
+                (
+                    context.actor.identity.organization_id,
+                    context.actor.identity.user_id,
+                ): context.requester_name
+            },
+        )
+    )
     service = PurchaseRequestService(
         PostgreSQLPurchaseRequestRepository(engine),
         PostgreSQLPurchaseRequestSubmissionStore(engine),
+        relationship_reader=relationship_reader,
         today_provider=(lambda: today) if today is not None else None,
     )
     app = create_app()
@@ -348,9 +427,17 @@ def test_ac05_draft_api_lifecycle_is_versioned_and_isolated(
 def test_ac01_ac02_ac06_ac07_submit_list_and_detail_preserve_scope_and_idempotency(
     migrated_engine: Engine,
 ) -> None:
+    relationship_reader = StaticPurchaseRequestRelationshipReader(
+        event_names={("organization-a", "event-a"): "개강 행사"},
+        requester_names={
+            ("organization-a", "user-a"): "실제 제출자",
+            ("organization-a", "user-c"): "현재 조회자",
+        },
+    )
     owner = _client(
         migrated_engine,
         _context(available_budget=Decimal(1_000)),
+        relationship_reader=relationship_reader,
     )
     body = _submit_body()
     _assert_openapi_request(
@@ -472,6 +559,7 @@ def test_ac01_ac02_ac06_ac07_submit_list_and_detail_preserve_scope_and_idempoten
     same_org_member = _client(
         migrated_engine,
         _context(user_id="user-c", department_head=False, finance_member=False),
+        relationship_reader=relationship_reader,
     )
     member_list = same_org_member.get("/events/event-a/purchase-requests/mine")
     assert member_list.status_code == 403
@@ -483,23 +571,24 @@ def test_ac01_ac02_ac06_ac07_submit_list_and_detail_preserve_scope_and_idempoten
         path_parameters={"eventId": "event-a", "requestId": request_id},
     )
     owner_detail = owner.get(detail_path)
-    _assert_openapi_response(
-        owner_detail,
-        path="/events/{eventId}/purchase-requests/{requestId}",
-        method="GET",
-    )
     assert owner_detail.status_code == 200
     expected_detail = owner_detail.json()
-    assert expected_detail["requestId"] == request_id
-    assert expected_detail["organizationId"] == "organization-a"
-    assert expected_detail["eventId"] == "event-a"
-    assert expected_detail["requesterUserId"] == "user-a"
-    assert expected_detail["requestDepartmentId"] == "department-a"
-    assert expected_detail["status"] == "review_pending"
-    assert expected_detail["content"] == first.json()["content"]
-    assert len(expected_detail["itemResults"]) == 2
-    assert expected_detail["estimatedTotal"] == 25000
-    assert expected_detail["overBudget"] is True
+    _approved_detail_view_validator().validate(expected_detail)
+    record = expected_detail["record"]
+    assert record["requestId"] == request_id
+    assert record["organizationId"] == "organization-a"
+    assert record["eventId"] == "event-a"
+    assert record["requesterUserId"] == "user-a"
+    assert record["requestDepartmentId"] == "department-a"
+    assert record["status"] == "review_pending"
+    assert record["content"] == first.json()["content"]
+    assert len(record["itemResults"]) == 2
+    assert record["estimatedTotal"] == 25000
+    assert record["overBudget"] is True
+    assert expected_detail["display"] == {
+        "eventName": "개강 행사",
+        "requesterName": "실제 제출자",
+    }
     member_detail = same_org_member.get(detail_path)
     assert member_detail.status_code == 200
     assert member_detail.json() == expected_detail

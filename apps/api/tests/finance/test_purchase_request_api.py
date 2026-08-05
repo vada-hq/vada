@@ -19,6 +19,7 @@ from vada_api.finance.api import (
 )
 from vada_api.finance.application import (
     FinanceRequestContext,
+    PurchaseRequestDisplayNames,
     PurchaseRequestDraft,
     PurchaseRequestService,
     PurchaseRequestSummary,
@@ -46,7 +47,11 @@ class FakePurchaseRequestRepository:
         self.draft: PurchaseRequestDraft | None = None
         self.summaries: tuple[PurchaseRequestSummary, ...] = ()
         self.detail: PurchaseRequestRecord | None = None
+        self.detail_display_names: dict[tuple[str, str, str], tuple[str, str]] = {
+            ("organization-a", "event-a", "user-a"): ("개강 행사", "요청자")
+        }
         self.last_scope: tuple[str, ...] | None = None
+        self.last_display_scope: tuple[str, str, str] | None = None
 
     def get_draft(
         self, *, organization_id: str, event_id: str, owner_user_id: str
@@ -92,6 +97,15 @@ class FakePurchaseRequestRepository:
     ) -> PurchaseRequestRecord | None:
         self.last_scope = (organization_id, event_id, request_id)
         return self.detail
+
+    def get_detail_display_names(
+        self, *, organization_id: str, event_id: str, requester_user_id: str
+    ) -> PurchaseRequestDisplayNames | None:
+        self.last_display_scope = (organization_id, event_id, requester_user_id)
+        names = self.detail_display_names.get(self.last_display_scope)
+        if names is None:
+            return None
+        return PurchaseRequestDisplayNames(event_name=names[0], requester_name=names[1])
 
 
 class FakeSubmissionStore:
@@ -327,7 +341,11 @@ def _client(
     context: FinanceRequestContext | None = None,
 ) -> tuple[TestClient, FakeSubmissionStore]:
     submission_store = FakeSubmissionStore(_record())
-    service = PurchaseRequestService(repository, submission_store)
+    service = PurchaseRequestService(
+        repository,
+        submission_store,
+        relationship_reader=repository,
+    )
     app = create_app()
     app.dependency_overrides[get_purchase_request_context] = lambda: (
         context or _context()
@@ -872,6 +890,49 @@ def test_detail_is_scoped_and_missing_or_cross_organization_is_same_404() -> Non
     } == {key: value for key, value in missing.json().items() if key != "instance"}
 
 
+def test_detail_resolves_display_names_from_the_stored_relationship_ids() -> None:
+    repository = FakePurchaseRequestRepository()
+    repository.detail = _record()
+    repository.detail_display_names[("organization-a", "event-a", "user-a")] = (
+        "저장된 행사의 이름",
+        "실제 제출자",
+    )
+    client, _ = _client(repository, context=_context(user_id="user-b"))
+
+    response = client.get("/events/event-a/purchase-requests/request-001")
+
+    assert response.status_code == 200
+    detail = cast(dict[str, Any], response.json())
+    assert set(detail) == {"record", "display"}
+    record = cast(dict[str, object], detail["record"])
+    assert record["requestId"] == "request-001"
+    assert record["eventId"] == "event-a"
+    assert record["requesterUserId"] == "user-a"
+    assert "eventName" not in record
+    assert "requesterName" not in record
+    assert cast(dict[str, object], detail["display"]) == {
+        "eventName": "저장된 행사의 이름",
+        "requesterName": "실제 제출자",
+    }
+    assert repository.last_display_scope == (
+        "organization-a",
+        "event-a",
+        "user-a",
+    )
+
+
+def test_detail_returns_503_when_stored_relationship_names_are_missing() -> None:
+    repository = FakePurchaseRequestRepository()
+    repository.detail = _record()
+    repository.detail_display_names.clear()
+    client, _ = _client(repository)
+
+    response = client.get("/events/event-a/purchase-requests/request-001")
+
+    assert response.status_code == 503
+    assert response.json()["code"] == "PURCHASE_REQUEST_PERSISTENCE_UNAVAILABLE"
+
+
 def test_stored_request_remains_readable_after_its_needed_date_passes() -> None:
     repository = FakePurchaseRequestRepository()
     repository.detail = _record(content=_content(needed_date=date(2000, 1, 1)))
@@ -880,7 +941,7 @@ def test_stored_request_remains_readable_after_its_needed_date_passes() -> None:
     response = client.get("/events/event-a/purchase-requests/request-001")
 
     assert response.status_code == 200
-    assert response.json()["content"]["neededDate"] == "2000-01-01"
+    assert response.json()["record"]["content"]["neededDate"] == "2000-01-01"
 
 
 def test_permission_and_persistence_failures_are_stable_problem_details() -> None:
@@ -954,9 +1015,19 @@ def test_routes_expose_contract_traceability_metadata() -> None:
         ),
         ("/events/{eventId}/purchase-requests/{requestId}", "get"): (
             "purchase_request.read_detail",
-            "API:purchase_request.get_detail@R1",
+            "API:purchase_request.get_detail@R2",
         ),
     }
+    expected_detail_contracts = [
+        "API:purchase_request.get_detail@R2",
+        "AUTH:purchase_request.read_detail@R1",
+        "DATA:http.empty_body@R1",
+        "DATA:purchase_request.detail_view@R1",
+        "ERROR:http.unauthenticated@R1",
+        "ERROR:http.resource_not_found@R1",
+        "ERROR:purchase_request.persistence_unavailable@R1",
+        "DATA:http.problem_details@R1",
+    ]
     for (path, method), (permission, contract) in expected.items():
         operation = openapi["paths"][path][method]
         canonical_operation = canonical["paths"][path][method]
@@ -969,6 +1040,9 @@ def test_routes_expose_contract_traceability_metadata() -> None:
             "x-vada-contracts",
             "x-vada-acceptance-criteria",
         ):
+            if key == "x-vada-contracts" and contract.endswith("get_detail@R2"):
+                assert operation[key] == expected_detail_contracts
+                continue
             assert operation[key] == canonical_operation[key]
         assert set(operation["responses"]) == set(canonical_operation["responses"])
         for status, response in canonical_operation["responses"].items():
@@ -980,6 +1054,18 @@ def test_routes_expose_contract_traceability_metadata() -> None:
             )
 
     schemas = openapi["components"]["schemas"]
+    detail_operation = openapi["paths"][
+        "/events/{eventId}/purchase-requests/{requestId}"
+    ]["get"]
+    assert (
+        "DATA:purchase_request.detail_view@R1" in detail_operation["x-vada-contracts"]
+    )
+    detail_schema = schemas["PurchaseRequestDetailViewResponse"]
+    assert set(detail_schema["required"]) == {"record", "display"}
+    assert set(schemas["PurchaseRequestDisplayResponse"]["required"]) == {
+        "eventName",
+        "requesterName",
+    }
     assert schemas["JsonNumberDecimal"] == {"type": "number"}
     assert schemas["PositiveJsonNumberDecimal"] == {
         "type": "number",
