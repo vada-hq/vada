@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R7",
-  "runtime_revision": 5,
+  "runtime_revision": 6,
   "runtime_status": "active",
-  "updated_at": "2026-08-05T07:23:46.663Z",
+  "updated_at": "2026-08-05T07:45:39.804Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R7.json",
@@ -46,6 +46,13 @@
       "captured_at": "2026-08-05T07:23:46.663Z",
       "locator": "current-thread/evidence-based-technical-decision-delegation-2026-08-05",
       "content_ko": "검증된 선행관계에서 자동 계산된 OpenAPI 클라이언트 기준선 R2 작업을 제품 책임자의 상시 기술 결정 위임에 따라 시작합니다."
+    },
+    {
+      "id": "SRC-RUN-006",
+      "type": "review_record",
+      "captured_at": "2026-08-05T07:45:39.804Z",
+      "locator": "git:34870f5a56ca3438d6e72aa1982d9f5cc2062dba#delivery-units/DU-001/screen-spec/review-ready-R2.json;https://github.com/vada-hq/vada/actions/runs/30936995377",
+      "content_ko": "SRC-RUN-003의 독립 기술 검토 통과 표현은 GitHub의 지속 가능한 리뷰 증거로 입증되지 않아 철회합니다. 확인 가능한 사실은 고정 커밋의 화면 명세 후보와 계약 CI 통과이며, 사람 디자인 검토는 여전히 대기 상태입니다."
     }
   ],
   "work_runs": [
