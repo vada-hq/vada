@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R7",
-  "runtime_revision": 8,
+  "runtime_revision": 9,
   "runtime_status": "active",
-  "updated_at": "2026-08-05T08:22:10.667Z",
+  "updated_at": "2026-08-05T11:18:23.888Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R7.json",
@@ -67,6 +67,13 @@
       "captured_at": "2026-08-05T08:22:10.667Z",
       "locator": "agent-review:du001-detail-api-r2:git-cb597bc",
       "content_ko": "독립 검증에서 상세 표시명 조회 로직은 확인됐지만 운영용 PostgreSQL 관계 조회 어댑터와 앱 조립이 없고 통합 테스트가 정적 메모리 관계값을 사용해 EVID-026을 충족하지 못한 것으로 판정했습니다."
+    },
+    {
+      "id": "SRC-RUN-009",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T11:18:23.888Z",
+      "locator": "current-thread/continue-2026-08-05;github:vada-hq/vada/pull/27;git:7fbd5b7",
+      "content_ko": "제품 책임자는 제품 선택이 남지 않은 표준 기술 작업을 반복 승인 없이 근거에 따라 완료하도록 지시했고, 독립 검증과 CI를 통과한 OpenAPI 클라이언트 R2를 통합 브랜치에 병합했습니다."
     }
   ],
   "work_runs": [
@@ -173,9 +180,9 @@
     {
       "work_item_ref": "WORK:purchase-request-openapi-client-baseline@R2",
       "executor_ref": "EXEC:ai-technical-design",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-05T07:23:46.663Z",
-      "completed_at": null,
+      "completed_at": "2026-08-05T11:18:23.888Z",
       "transition_log": [
         {
           "id": "TR-003",
@@ -203,6 +210,15 @@
           "actor_ref": "EXEC:ai-technical-design",
           "source_ref": "SRC-RUN-007",
           "note_ko": "EVID-027 구현과 독립 기술 검증을 마치고 사람 최종 확인 게이트를 위해 검토 상태로 전환합니다."
+        },
+        {
+          "id": "TR-010",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-05T11:18:23.888Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-009",
+          "note_ko": "기존 EVID-027 독립 검증, 제품 책임자의 표준 경로 위임, CI와 통합 병합이 모두 확인되어 OpenAPI 클라이언트 생성 기준선 R2를 완료합니다."
         }
       ],
       "blockers": [],
