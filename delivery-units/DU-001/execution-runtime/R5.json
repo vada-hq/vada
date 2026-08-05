@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R5",
-  "runtime_revision": 5,
+  "runtime_revision": 6,
   "runtime_status": "active",
-  "updated_at": "2026-08-04T17:59:41.709Z",
+  "updated_at": "2026-08-05T04:13:14.562Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R5.json",
@@ -46,6 +46,13 @@
       "captured_at": "2026-08-04T17:59:41.709Z",
       "locator": "https://github.com/vada-hq/vada/pull/24",
       "content_ko": "화면 명세 R2 후보가 RED-GREEN 범위 검사, 독립 기술 검증, GitHub CI를 통과했고 사람 디자인 담당자의 의미·상태·접근성 검토를 위해 draft PR #24로 제출됐습니다."
+    },
+    {
+      "id": "SRC-RUN-006",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T04:13:14.562Z",
+      "locator": "current-thread:du001-contract-fixtures-r2-approval-2026-08-05",
+      "content_ko": "제품 책임자가 승인된 상세 표시 계약을 구현 기준으로 그대로 사용하고, 독립 검증된 PR #23 계약 픽스처 R2 결과를 완료 처리하도록 승인했습니다."
     }
   ],
   "work_runs": [
@@ -102,9 +109,9 @@
     {
       "work_item_ref": "WORK:purchase-request-contract-fixtures@R2",
       "executor_ref": "EXEC:ai-technical-design",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-04T17:11:19.468Z",
-      "completed_at": null,
+      "completed_at": "2026-08-05T04:13:14.562Z",
       "transition_log": [
         {
           "id": "TR-002",
@@ -132,6 +139,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-004",
           "note_ko": "EVID-025 구현과 독립 검증을 마치고 사람 최종 확인 대기로 전환합니다."
+        },
+        {
+          "id": "TR-007",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-05T04:13:14.562Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-006",
+          "note_ko": "제품 책임자 승인과 검증 완료된 EVID-025를 근거로 계약 픽스처 R2 작업을 완료합니다."
         }
       ],
       "blockers": [],
