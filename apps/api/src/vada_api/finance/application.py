@@ -62,6 +62,12 @@ class PurchaseRequestSummary:
     created_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class PurchaseRequestDisplayNames:
+    event_name: str
+    requester_name: str
+
+
 class PurchaseRequestRepository(Protocol):
     def get_draft(
         self, *, organization_id: str, event_id: str, owner_user_id: str
@@ -88,6 +94,14 @@ class PurchaseRequestRepository(Protocol):
     def get_detail(
         self, *, organization_id: str, event_id: str, request_id: str
     ) -> PurchaseRequestRecord | None: ...
+
+
+class PurchaseRequestRelationshipReader(Protocol):
+    """Resolve display-only names from server-owned relationship facts."""
+
+    def get_detail_display_names(
+        self, *, organization_id: str, event_id: str, requester_user_id: str
+    ) -> PurchaseRequestDisplayNames | None: ...
 
 
 class PurchaseRequestSubmissionStore(Protocol):
