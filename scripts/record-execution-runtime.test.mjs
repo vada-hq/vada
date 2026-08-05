@@ -1,7 +1,71 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { applyRuntimeOperation } from "./record-execution-runtime.mjs";
+import {
+  applyRuntimeOperation,
+  initializeExecutionRuntime,
+} from "./record-execution-runtime.mjs";
+
+test("승인 실행 계획의 커밋 작업만 자동 ID와 한 시각으로 초기화한다", () => {
+  const plan = {
+    execution_plan_id: "EP-DU-001",
+    execution_plan_revision: 7,
+    execution_plan_status: "approved",
+    delivery_unit_id: "DU-001",
+    orchestration: { coordinator_executor_ref: "EXEC:coordinator" },
+    work_allocations: [
+      {
+        work_item_ref: "WORK:first@R1",
+        disposition: "committed",
+        primary_executor_ref: "EXEC:first-worker",
+      },
+      {
+        work_item_ref: "WORK:second@R1",
+        disposition: "committed",
+        primary_executor_ref: "EXEC:second-worker",
+      },
+      {
+        work_item_ref: "WORK:later@R1",
+        disposition: "forecast",
+        primary_executor_ref: null,
+      },
+    ],
+  };
+
+  const initialized = initializeExecutionRuntime(plan, {
+    planPath: "delivery-units/DU-001/execution-plan/R7.json",
+    now: "2026-08-05T07:00:00Z",
+  });
+
+  assert.equal(initialized.runtime_id, "RUN-DU-001-EP-R7");
+  assert.equal(initialized.runtime_revision, 1);
+  assert.equal(initialized.updated_at, "2026-08-05T07:00:00Z");
+  assert.equal(initialized.sources[0].id, "SRC-RUN-001");
+  assert.deepEqual(
+    initialized.work_runs.map(({ work_item_ref, executor_ref, status }) => ({
+      work_item_ref,
+      executor_ref,
+      status,
+    })),
+    [
+      {
+        work_item_ref: "WORK:first@R1",
+        executor_ref: "EXEC:first-worker",
+        status: "not_started",
+      },
+      {
+        work_item_ref: "WORK:second@R1",
+        executor_ref: "EXEC:second-worker",
+        status: "not_started",
+      },
+    ],
+  );
+  assert.deepEqual(
+    initialized.work_runs.map((run) => run.transition_log[0].id),
+    ["TR-001", "TR-002"],
+  );
+  assert.ok(initialized.work_runs.every((run) => run.transition_log[0].occurred_at === "2026-08-05T07:00:00Z"));
+});
 
 function runtime() {
   return {
