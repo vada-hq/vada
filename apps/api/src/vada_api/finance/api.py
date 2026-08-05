@@ -685,7 +685,6 @@ _OPERATION_METADATA: dict[str, dict[str, object]] = {
             "API:purchase_request.get_detail@R2",
             "AUTH:purchase_request.read_detail@R1",
             "DATA:http.empty_body@R1",
-            "DATA:purchase_request.record@R1",
             "DATA:purchase_request.detail_view@R1",
             "ERROR:http.unauthenticated@R1",
             "ERROR:http.resource_not_found@R1",
