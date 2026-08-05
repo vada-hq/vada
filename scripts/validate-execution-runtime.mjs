@@ -303,6 +303,11 @@ async function collectRuntimeFiles(root) {
 export async function validateExecutionRuntimeRepository(root = defaultRoot) {
   const errors = [];
   const files = await collectRuntimeFiles(root);
+  const { buildExecutionEvidenceLedger } = await import(
+    "./execution-evidence-ledger.mjs"
+  );
+  const evidence = await buildExecutionEvidenceLedger(root);
+  errors.push(...evidence.errors.map((error) => `완료 증거 원장: ${error}`));
   for (const path of files) {
     try {
       const runtime = JSON.parse(await readFile(path, "utf8"));
@@ -311,6 +316,7 @@ export async function validateExecutionRuntimeRepository(root = defaultRoot) {
       const planResult = await validateExecutionPlan(executionArtifact.value, {
         workPlan: workArtifact.value,
         artifactPath: executionArtifact.path,
+        evidenceLedger: evidence.byLocator,
       });
       for (const error of planResult) errors.push(`${relative(root, executionArtifact.path)}: ${error}`);
       const result = await validateExecutionRuntime(runtime, {
@@ -327,9 +333,15 @@ export async function validateExecutionRuntimeRepository(root = defaultRoot) {
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
-  const result = await validateExecutionRuntimeRepository(defaultRoot);
-  for (const warning of result.warnings) console.warn(`WARN ${warning}`);
-  for (const error of result.errors) console.error(`ERROR ${error}`);
-  if (result.errors.length) process.exitCode = 1;
-  else console.log(`실행 런타임 검증 통과: ${result.files.length}개, 오류 0, 경고 0`);
+  validateExecutionRuntimeRepository(defaultRoot)
+    .then((result) => {
+      for (const warning of result.warnings) console.warn(`WARN ${warning}`);
+      for (const error of result.errors) console.error(`ERROR ${error}`);
+      if (result.errors.length) process.exitCode = 1;
+      else console.log(`실행 런타임 검증 통과: ${result.files.length}개, 오류 0, 경고 0`);
+    })
+    .catch((error) => {
+      console.error(`ERROR ${error.message}`);
+      process.exitCode = 1;
+    });
 }

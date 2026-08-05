@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -207,6 +209,150 @@ test("작업 선행관계 순환을 거부한다", async () => {
   const errors = await validateDeliveryWorkPlan(plan, values);
   assert.ok(errors.some((error) => error.includes("자기 자신")));
   assert.ok(errors.some((error) => error.includes("순환")));
+});
+
+test("승인된 이전 작업을 가져오고 증분 계약 작업만 추가할 수 있다", async (t) => {
+  const values = upstream();
+  const root = await mkdtemp(resolve(tmpdir(), "vada-delivery-work-incremental-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const baseBundlePath = resolve(root, "contracts/bundles/CB-TEST-001/R1.json");
+  const basePlanPath = resolve(root, "delivery-units/DU-001/delivery-work/R1.json");
+  const draftPath = resolve(root, "delivery-units/DU-001/delivery-work/draft.json");
+  await mkdir(resolve(root, ".vada"), { recursive: true });
+  await mkdir(dirname(baseBundlePath), { recursive: true });
+  await mkdir(dirname(basePlanPath), { recursive: true });
+  await writeFile(resolve(root, ".vada/project.json"), "{}\n", "utf8");
+  await writeFile(baseBundlePath, `${JSON.stringify(values.bundle, null, 2)}\n`, "utf8");
+
+  const basePlan = validPlan(values);
+  basePlan.plan_revision = 1;
+  basePlan.plan_status = "approved";
+  basePlan.approval_source_ref = "SRC-002";
+  basePlan.sources.push({
+    id: "SRC-002",
+    type: "user_statement",
+    captured_at: "2026-08-03T20:01:00+09:00",
+    locator: "test/base-approval",
+    content_ko: "기준 작업을 승인했습니다.",
+  });
+  basePlan.work_items[0].status = "ratified";
+  basePlan.questions[0].status = "answered";
+  basePlan.questions[0].answer_source_ref = "SRC-002";
+  basePlan.questions[0].normalized_answer = {
+    selected_option_ids: ["YES"],
+    free_text: null,
+  };
+  await writeFile(basePlanPath, `${JSON.stringify(basePlan, null, 2)}\n`, "utf8");
+
+  const deltaContract = {
+    id: "DATA:test.view@R1",
+    status: "ratified",
+    revision: 1,
+    supersedes: null,
+  };
+  const bundle = {
+    ...values.bundle,
+    schema_version: "0.2.0",
+    bundle_revision: 2,
+    base_bundle_ref: {
+      bundle_path: "contracts/bundles/CB-TEST-001/R1.json",
+      bundle_id: values.bundle.bundle_id,
+      bundle_revision: values.bundle.bundle_revision,
+      canonical_sha256: canonicalSha256(values.bundle),
+    },
+    contracts: [deltaContract],
+  };
+  const architecture = {
+    ...values.architecture,
+    architecture_revision: 2,
+    contract_bundle_ref: {
+      path: "contracts/bundles/CB-TEST-001/R2.json",
+      bundle_id: bundle.bundle_id,
+      bundle_revision: bundle.bundle_revision,
+      canonical_sha256: canonicalSha256(bundle),
+    },
+  };
+  const plan = validPlan({ ...values, bundle, architecture });
+  plan.contract_bundle_ref.path = "contracts/bundles/CB-TEST-001/R2.json";
+  plan.implementation_architecture_ref.path =
+    "delivery-units/DU-001/implementation-architecture/R2.json";
+  plan.imports = [
+    {
+      plan_path: "delivery-units/DU-001/delivery-work/R1.json",
+      plan_id: basePlan.plan_id,
+      plan_revision: basePlan.plan_revision,
+      canonical_sha256: canonicalSha256(basePlan),
+      work_item_ids: [basePlan.work_items[0].id],
+    },
+  ];
+  plan.gaps = [
+    {
+      id: "GAP-002",
+      title_ko: "추가 표시 계약 구현 누락",
+      state: "missing",
+      needed_outcome_ko: "추가 표시 계약을 구현합니다.",
+      design_refs: [],
+      contract_refs: [deltaContract.id],
+      evidence_refs: ["OBS-001"],
+    },
+  ];
+  plan.work_items = [
+    {
+      id: "WORK:test-view@R1",
+      key: "test-view",
+      revision: 1,
+      status: "proposed",
+      change_class: "initial",
+      supersedes: null,
+      title_ko: "표시 계약 구현",
+      work_type: "build",
+      primary_capability: "backend",
+      collaborating_capabilities: ["quality"],
+      outcome_ko: "추가 표시 계약이 동작합니다.",
+      gap_refs: ["GAP-002"],
+      design_refs: [],
+      contract_refs: [deltaContract.id],
+      blocked_by: [basePlan.work_items[0].id],
+      completion_evidence: [
+        {
+          id: "EVID-002",
+          kind: "automated_test",
+          description_ko: "추가 표시 계약을 자동 검증합니다.",
+          design_refs: [],
+          contract_refs: [deltaContract.id],
+        },
+      ],
+    },
+  ];
+  plan.questions[0].evidence.work_item_refs = [
+    basePlan.work_items[0].id,
+    plan.work_items[0].id,
+  ];
+
+  const errors = await validateDeliveryWorkPlan(plan, {
+    solution: values.solution,
+    bundle,
+    architecture,
+    artifactPath: draftPath,
+    effectiveContracts: new Map([
+      ...values.bundle.contracts.map((contract) => [contract.id, contract]),
+      [deltaContract.id, deltaContract],
+    ]),
+  });
+  assert.deepEqual(errors, []);
+});
+
+test("후속 작업 리비전이 바로 이전 작업을 가리키지 않으면 거부한다", async () => {
+  const values = upstream();
+  const plan = validPlan(values);
+  plan.work_items[0].id = "WORK:test-capability@R2";
+  plan.work_items[0].revision = 2;
+  plan.work_items[0].change_class = "additive";
+  plan.work_items[0].supersedes = "WORK:test-capability@R1";
+  plan.questions[0].evidence.work_item_refs = [plan.work_items[0].id];
+
+  const errors = await validateDeliveryWorkPlan(plan, values);
+  assert.ok(errors.some((error) => error.includes("바로 이전 작업 리비전")));
 });
 
 test("저장소의 실제 전달 작업 그래프가 모두 유효하다", async () => {

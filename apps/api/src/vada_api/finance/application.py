@@ -25,6 +25,7 @@ from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
     PurchaseRequestNeededDateInPastError,
+    PurchaseRequestPersistenceError,
     PurchaseRequestRecord,
     PurchaseRequestSubmissionOutcome,
     ValidatedPurchaseRequestSubmission,
@@ -62,6 +63,18 @@ class PurchaseRequestSummary:
     created_at: datetime
 
 
+@dataclass(frozen=True, slots=True)
+class PurchaseRequestDisplayNames:
+    event_name: str
+    requester_name: str
+
+
+@dataclass(frozen=True, slots=True)
+class PurchaseRequestDetailView:
+    record: PurchaseRequestRecord
+    display: PurchaseRequestDisplayNames
+
+
 class PurchaseRequestRepository(Protocol):
     def get_draft(
         self, *, organization_id: str, event_id: str, owner_user_id: str
@@ -90,6 +103,14 @@ class PurchaseRequestRepository(Protocol):
     ) -> PurchaseRequestRecord | None: ...
 
 
+class PurchaseRequestRelationshipReader(Protocol):
+    """Resolve display-only names from server-owned relationship facts."""
+
+    def get_detail_display_names(
+        self, *, organization_id: str, event_id: str, requester_user_id: str
+    ) -> PurchaseRequestDisplayNames | None: ...
+
+
 class PurchaseRequestSubmissionStore(Protocol):
     def get_idempotent_result(
         self, submission: ValidatedPurchaseRequestSubmission
@@ -108,11 +129,13 @@ class PurchaseRequestService:
         repository: PurchaseRequestRepository,
         submission_store: PurchaseRequestSubmissionStore,
         *,
+        relationship_reader: PurchaseRequestRelationshipReader | None = None,
         today_provider: Callable[[], date] | None = None,
         observer: PurchaseRequestObserver | None = None,
     ) -> None:
         self._repository = repository
         self._submission_store = submission_store
+        self._relationship_reader = relationship_reader
         self._today_provider = today_provider or _kst_today
         self._observer = observer or observer_from_environment()
 
@@ -250,7 +273,7 @@ class PurchaseRequestService:
 
     def get_detail(
         self, context: FinanceRequestContext, *, request_id: str
-    ) -> PurchaseRequestRecord:
+    ) -> PurchaseRequestDetailView:
         identity = context.actor.identity
         record = self._repository.get_detail(
             organization_id=identity.organization_id,
@@ -270,8 +293,25 @@ class PurchaseRequestService:
                 request_event_id=record.event_id,
             ),
         )
-        return record
+        if self._relationship_reader is None:
+            raise PurchaseRequestPersistenceError
+        display = self._relationship_reader.get_detail_display_names(
+            organization_id=record.organization_id,
+            event_id=record.event_id,
+            requester_user_id=record.requester_user_id,
+        )
+        if (
+            display is None
+            or not _is_non_blank(display.event_name)
+            or not _is_non_blank(display.requester_name)
+        ):
+            raise PurchaseRequestPersistenceError
+        return PurchaseRequestDetailView(record=record, display=display)
 
 
 def _kst_today() -> date:
     return datetime.now(ZoneInfo("Asia/Seoul")).date()
+
+
+def _is_non_blank(value: str) -> bool:
+    return bool(value) and value == value.strip()

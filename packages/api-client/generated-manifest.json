@@ -5,12 +5,12 @@
     "version": "0.95.0"
   },
   "input": {
-    "path": "contracts/openapi/CB-FIN-001/R1.json",
-    "sha256": "00bbfa5bc2dc952d91cea27867789089502c2a9011481932c1f917a9f3f40e85"
+    "path": "contracts/openapi/CB-FIN-001/R2.json",
+    "sha256": "4e9b4108fa1a00279c5a01154298dbbe95ffe00a03ec9531a75245fda8088fc2"
   },
   "config": {
     "path": "packages/api-client/openapi-ts.config.ts",
-    "sha256": "c2205602346297ebd2fd959dc09d97e931bb8a94b80b1487a243533cf699f402"
+    "sha256": "d05acd6aa56fc554451743c4237481627fce1bf2ee6d908ea45e6d296459a832"
   },
   "files": [
     {
@@ -67,15 +67,15 @@
     },
     {
       "path": "index.ts",
-      "sha256": "1a56889bac228e103cd52b1213fc3b756eade34c8b5fb7ce5f65d36829a6a936"
+      "sha256": "fb343d4eadcee1a409317156706f48fabe6232b33bf9795a0b8b353c9a265ba0"
     },
     {
       "path": "sdk.gen.ts",
-      "sha256": "52554524dd352445e839c435ae6df72bf6c9fa6d44c3bb3466a72c7270fd7468"
+      "sha256": "39e1c15eeefdad6ff39f6ef0e7f9e00242e334bbc6c87eb2964220ddb2fa7452"
     },
     {
       "path": "types.gen.ts",
-      "sha256": "5c0b46421700b2824dca4110679689bbe0ae72f0417183fe8604fdccb4bf066b"
+      "sha256": "5f322bbce6486ba701f21c5207ad38f9fa6322e3913d4e369c9ef8aa31a3d76a"
     }
   ]
 }

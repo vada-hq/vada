@@ -1,0 +1,116 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R10",
+  "runtime_revision": 4,
+  "runtime_status": "completed",
+  "updated_at": "2026-08-05T11:09:19.392Z",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R10.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 10,
+    "canonical_sha256": "bd2a795833518d70b272164582ca9c0a8a62814d5b873142caf8b0e770854c7e"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T11:01:34.444Z",
+      "locator": "delivery-units/DU-001/execution-plan/R10.json#EP-DU-001@R10",
+      "content_ko": "승인된 실행 계획 R10의 커밋 작업을 실행 추적 대상으로 등록했습니다."
+    },
+    {
+      "id": "SRC-RUN-002",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T11:01:35.324Z",
+      "locator": "current-thread/continue-2026-08-05",
+      "content_ko": "제품 책임자가 계산된 다음 기술 검증 작업을 이어서 진행하도록 지시했습니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "code_evidence",
+      "captured_at": "2026-08-05T11:02:51.766Z",
+      "locator": "github:vada-hq/vada/actions/runs/30997576472;git:034679a;delivery-units/DU-001/delivery-work/R4.json#EVID-045",
+      "content_ko": "CI의 계약 검증과 PostgreSQL 17 통합 검사 21개에서 AC-01~AC-08, 초안 격리, 제출 원자성·멱등성, 운영 관계 조립, 상세 표시명, 관계 누락 503과 교차 조직 404의 자동 증거를 확인해 독립 검토를 요청합니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "review_record",
+      "captured_at": "2026-08-05T11:09:19.392Z",
+      "locator": "agent-review:verify_identity_postgresql_r1:db6fd77;github:vada-hq/vada/actions/runs/30997576472;current-thread/continue-2026-08-05",
+      "content_ko": "독립 검증자가 AC-01~AC-08, 6개 API 계약, 실제 PostgreSQL 초안 격리·원자성·멱등성, 운영 관계 조립, 상세 표시명과 503·404 경계를 모두 실제 테스트와 CI에 매핑해 차단 누락 없음으로 판정했습니다. CI는 Testcontainers 라이브러리 경로가 아니라 일회용 PostgreSQL 17 서비스 컨테이너를 사용합니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:purchase-request-server-verification@R3",
+      "executor_ref": "EXEC:ai-quality",
+      "status": "done",
+      "started_at": "2026-08-05T11:01:35.324Z",
+      "completed_at": "2026-08-05T11:09:19.392Z",
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T11:01:34.444Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R10에서 WORK:purchase-request-server-verification@R3 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-002",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-05T11:01:35.324Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "기존 계약·HTTP·PostgreSQL 검사와 CI 증거를 EVID-045의 각 요구에 대응시켜 누락 여부를 점검합니다."
+        },
+        {
+          "id": "TR-003",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-05T11:02:51.766Z",
+          "actor_ref": "EXEC:ai-quality",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "EVID-045의 각 요구를 실제 PostgreSQL·HTTP·계약 검사에 대응시켜 증거를 제출합니다."
+        },
+        {
+          "id": "TR-004",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-05T11:09:19.392Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-004",
+          "note_ko": "실제 PostgreSQL 서비스 컨테이너와 HTTP·계약 검증이 EVID-045의 결과 요구를 모두 충족해 서버 검증 R3를 완료합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-045",
+          "kind": "automated_test",
+          "locator": "github:vada-hq/vada/actions/runs/30997576472;git:034679a#apps/api/tests/persistence/test_purchase_request_http_postgresql.py;git:034679a#apps/api/tests/persistence/test_purchase_request_submission.py;git:034679a#apps/api/tests/persistence/test_identity_organization_postgresql.py;git:034679a#apps/api/tests/finance/test_purchase_request_api.py;.github/workflows/ci.yml",
+          "captured_at": "2026-08-05T11:02:51.766Z",
+          "verification_status": "submitted",
+          "verified_by": null,
+          "verified_at": null,
+          "verification_note_ko": null
+        },
+        {
+          "id": "PROOF-002",
+          "requirement_ref": "EVID-045",
+          "kind": "automated_test",
+          "locator": "github:vada-hq/vada/actions/runs/30997576472;git:034679a#apps/api/tests/persistence/test_purchase_request_http_postgresql.py;git:034679a#apps/api/tests/persistence/test_purchase_request_submission.py;git:034679a#apps/api/tests/persistence/test_identity_organization_postgresql.py;git:a54c321#apps/api/tests/finance/test_purchase_request_api.py;.github/workflows/ci.yml",
+          "captured_at": "2026-08-05T11:09:19.392Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-05T11:09:19.392Z",
+          "verification_note_ko": "AC-01~AC-08와 6개 API 계약, 실제 PostgreSQL 초안 격리·원자성·동시 멱등성, 운영 관계 조립, 동일 조직 타 조회자의 상세 표시명, 관계 누락 503과 교차 조직 404를 독립 재검증했습니다. CI는 로컬 fallback인 Testcontainers 경로 대신 동일 테스트를 일회용 PostgreSQL 17 service container에서 실행해 결과 요구를 충족합니다."
+        }
+      ]
+    }
+  ]
+}

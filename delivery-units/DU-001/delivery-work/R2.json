@@ -1,0 +1,559 @@
+{
+  "schema_version": "0.2.0",
+  "plan_id": "WP-FIN-001",
+  "plan_revision": 2,
+  "plan_status": "approved",
+  "approval_source_ref": "SRC-010",
+  "updated_at": "2026-08-05T01:57:01.160+09:00",
+  "solution_ref": {
+    "path": "product-specs/solutions/SOLUTION-FIN-001/R1.json",
+    "solution_id": "SOLUTION-FIN-001",
+    "solution_revision": 1,
+    "canonical_sha256": "aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f"
+  },
+  "contract_bundle_ref": {
+    "path": "contracts/bundles/CB-FIN-001/R2.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 2,
+    "canonical_sha256": "134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad"
+  },
+  "implementation_architecture_ref": {
+    "path": "delivery-units/DU-001/implementation-architecture/R2.json",
+    "architecture_id": "IAB-VADA-DU-001",
+    "architecture_revision": 2,
+    "canonical_sha256": "cd91fdf39f44ce65696f01bc36813028812c9ba02c9b5f0ea8fbbb5b8e581d81"
+  },
+  "delivery_unit_ref": "FLOW-FIN-001@R2",
+  "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "product-specs/solutions/SOLUTION-FIN-001/R1.json#aad98632c5760e3b0f5cf7529a88308fd5d53812868e84257b80bb71acb76a6f",
+      "content_ko": "제품 책임자가 승인한 DU-001 목표 동작 설계 R1입니다. 구현 모드는 greenfield이고 설계 요소 34개를 고정합니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "contracts/bundles/CB-FIN-001/R2.json#134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad",
+      "content_ko": "승인 계약 R2는 R1 전체를 상속하고 상세 응답에 DATA:purchase_request.detail_view@R1을 추가하며 API:purchase_request.get_detail을 R2로 대체합니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "delivery-units/DU-001/implementation-architecture/R2.json#cd91fdf39f44ce65696f01bc36813028812c9ba02c9b5f0ea8fbbb5b8e581d81",
+      "content_ko": "승인 아키텍처 R2는 R1 결정을 모두 상속하며 상세 표시 문맥 계약을 수용하기 위한 새 기술 결정을 요구하지 않습니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "delivery-units/DU-001/delivery-work/R1.json#78320c347b4a56cf9e3c85a941b347f8e27d87dff09fed6996f426e1ca42f086",
+      "content_ko": "승인 작업 그래프 R1의 작업 21개와 선행관계를 변경 없이 가져오고, R2 계약에 직접 영향받는 작업만 후속 리비전으로 제안합니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "apps/api/src/vada_api/finance/api.py:905-923;apps/api/tests/finance/test_purchase_request_api.py:858-886;apps/api/tests/persistence/test_purchase_request_http_postgresql.py:479-504",
+      "content_ko": "현재 상세 API는 PurchaseRequestRecord만 반환하고 같은 조직의 다른 조회자에게도 행사명과 실제 제출자명을 반환하지 않습니다."
+    },
+    {
+      "id": "SRC-006",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "contracts/fixtures/CB-FIN-001/R1.json;contracts/openapi/CB-FIN-001/R1.json;packages/api-client/src/generated/types.gen.ts:427-461",
+      "content_ko": "계약 예제·OpenAPI·생성 클라이언트는 상세 성공 응답을 PurchaseRequestRecord로 표현하는 R1 기준선에 머물러 있습니다."
+    },
+    {
+      "id": "SRC-007",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "delivery-units/DU-001/screen-spec/draft.json:620-650",
+      "content_ko": "현재 화면 명세 초안은 상세 응답에서 행사명과 요청자명을 얻지 못하는 계약 공백을 기록하고 R1 상세 계약을 참조합니다."
+    },
+    {
+      "id": "SRC-008",
+      "type": "repository_evidence",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "apps/web/src/App.tsx;apps/web/src/App.test.tsx",
+      "content_ko": "현재 웹 기준선에는 구매 요청 작성·목록·상세 화면이 없으므로 승인 R1의 프론트엔드 작업 정의는 계속 필요합니다."
+    },
+    {
+      "id": "SRC-009",
+      "type": "command_output",
+      "captured_at": "2026-08-05T00:07:07+09:00",
+      "locator": "pnpm validate:product-specs;pnpm validate:contracts;pnpm validate:architecture",
+      "content_ko": "제품 명세·계약·아키텍처 검증이 오류 0으로 통과해 작업 도출의 상위 기준선이 유효함을 확인했습니다."
+    },
+    {
+      "id": "SRC-010",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T01:57:01.160+09:00",
+      "locator": "current-thread/du001-work-r2-conditional-approval-2026-08-05",
+      "content_ko": "제품 책임자가 기존 R1 작업 21개 보존과 상세 계약 R2 영향 작업 8개 개정 범위가 유지되고, 정확성 복구의 독립 검증과 CI가 통과한 경우 작업 그래프 R2 전체를 승인한다고 명시했습니다. 해당 조건이 모두 충족됐음을 확인했습니다."
+    }
+  ],
+  "imports": [
+    {
+      "plan_path": "delivery-units/DU-001/delivery-work/R1.json",
+      "plan_id": "WP-FIN-001",
+      "plan_revision": 1,
+      "canonical_sha256": "78320c347b4a56cf9e3c85a941b347f8e27d87dff09fed6996f426e1ca42f086",
+      "work_item_ids": [
+        "WORK:purchase-request-screen-spec@R1",
+        "WORK:purchase-request-contract-fixtures@R1",
+        "WORK:identity-organization-context@R1",
+        "WORK:purchase-request-authorization-rules@R1",
+        "WORK:purchase-request-data-schema@R1",
+        "WORK:purchase-request-submission-transaction@R1",
+        "WORK:purchase-request-draft-api@R1",
+        "WORK:purchase-request-submission-api@R1",
+        "WORK:purchase-request-own-list-api@R1",
+        "WORK:purchase-request-detail-api@R1",
+        "WORK:purchase-request-editor-ui@R1",
+        "WORK:purchase-request-own-list-ui@R1",
+        "WORK:purchase-request-detail-ui@R1",
+        "WORK:purchase-request-openapi-client-baseline@R1",
+        "WORK:purchase-request-editor-api-integration@R1",
+        "WORK:purchase-request-own-list-api-integration@R1",
+        "WORK:purchase-request-detail-api-integration@R1",
+        "WORK:purchase-request-observability-audit@R1",
+        "WORK:purchase-request-sensitive-boundary-controls@R1",
+        "WORK:purchase-request-server-verification@R1",
+        "WORK:purchase-request-browser-verification@R1"
+      ]
+    }
+  ],
+  "baseline": {
+    "mode": "greenfield",
+    "rationale_ko": "승인 설계의 greenfield 모드를 그대로 유지합니다. 현재 저장소 관찰은 제품 의미를 재정의하지 않고 계약 R2로 인해 기존 승인 작업에서 바뀌어야 할 부분만 판별하는 근거로 사용합니다.",
+    "source_refs": ["SRC-001", "SRC-002", "SRC-003", "SRC-004", "SRC-009"],
+    "observations": [
+      {
+        "id": "OBS-001",
+        "kind": "approved_artifact",
+        "locator": "CB-FIN-001@R2/base_bundle_ref;contracts",
+        "finding_ko": "R2는 R1 계약 전체를 상속하고 상세 표시 문맥 데이터 1개와 상세 API 후속 리비전 1개만 추가합니다.",
+        "source_refs": ["SRC-002"]
+      },
+      {
+        "id": "OBS-002",
+        "kind": "approved_artifact",
+        "locator": "IAB-VADA-DU-001@R2/base_architecture_ref;decisions",
+        "finding_ko": "기존 구현 아키텍처 결정은 모두 유효하며 변경된 ADR이 없습니다.",
+        "source_refs": ["SRC-003", "SRC-009"]
+      },
+      {
+        "id": "OBS-003",
+        "kind": "repository_file",
+        "locator": "apps/api/src/vada_api/finance/api.py:905-923",
+        "finding_ko": "서버 상세 성공 응답은 아직 저장 기록만 반환하므로 신뢰 가능한 행사명과 실제 제출자명을 포함하는 R2 응답이 구현되지 않았습니다.",
+        "source_refs": ["SRC-005"]
+      },
+      {
+        "id": "OBS-004",
+        "kind": "repository_file",
+        "locator": "contracts/fixtures/CB-FIN-001/R1.json;contracts/openapi/CB-FIN-001/R1.json;packages/api-client/src/generated/types.gen.ts:427-461",
+        "finding_ko": "계약 실행 예제와 타입 안전 클라이언트가 R1 상세 응답 형태를 사용합니다.",
+        "source_refs": ["SRC-006"]
+      },
+      {
+        "id": "OBS-005",
+        "kind": "repository_file",
+        "locator": "delivery-units/DU-001/screen-spec/draft.json:620-650",
+        "finding_ko": "화면 명세 초안의 상세 표시 문맥 계약 공백은 R2 승인으로 해소할 수 있지만 아직 명세에 반영되지 않았습니다.",
+        "source_refs": ["SRC-007"]
+      },
+      {
+        "id": "OBS-006",
+        "kind": "repository_file",
+        "locator": "apps/web/src/App.tsx;apps/web/src/App.test.tsx",
+        "finding_ko": "구매 요청 웹 화면이 아직 없으므로 R1 프론트엔드 작업은 폐기하지 않고 상세 관련 정의만 R2 계약에 맞춰 개정해야 합니다.",
+        "source_refs": ["SRC-008", "SRC-004"]
+      }
+    ]
+  },
+  "gaps": [
+    {
+      "id": "GAP-021",
+      "title_ko": "상세 R2 계약 실행 예제·생성 입력 미반영",
+      "state": "partial",
+      "needed_outcome_ko": "기존 계약 예제·OpenAPI 생성 기준선을 보존하면서 상세 성공 응답만 record와 신뢰 가능한 display를 함께 반환하는 R2 형태로 갱신해야 합니다.",
+      "design_refs": ["DESIGN-DATA-003", "DESIGN-INTERFACE-001"],
+      "contract_refs": ["DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2"],
+      "evidence_refs": ["OBS-001", "OBS-004"]
+    },
+    {
+      "id": "GAP-022",
+      "title_ko": "신뢰 가능한 상세 표시 문맥 서버 동작 부재",
+      "state": "partial",
+      "needed_outcome_ko": "서버가 저장된 eventId와 requesterUserId에 대응하는 행사명과 실제 제출자명을 신뢰 가능한 관계 정보에서 조회해 상세 기록과 함께 반환해야 합니다.",
+      "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-DATA-003", "DESIGN-SYSTEM-004", "DESIGN-INTERFACE-001", "DESIGN-QUALITY-002"],
+      "contract_refs": ["DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2"],
+      "evidence_refs": ["OBS-001", "OBS-003"]
+    },
+    {
+      "id": "GAP-023",
+      "title_ko": "상세 화면 명세·UI의 표시 문맥 미반영",
+      "state": "partial",
+      "needed_outcome_ko": "화면 명세와 상세 UI가 식별자로 이름을 추정하지 않고 R2 display의 행사명·요청자명을 요청 기록과 함께 접근 가능하게 표시해야 합니다.",
+      "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-STATE-004", "DESIGN-STATE-005", "DESIGN-QUALITY-003"],
+      "contract_refs": ["DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2"],
+      "evidence_refs": ["OBS-001", "OBS-005", "OBS-006"]
+    },
+    {
+      "id": "GAP-024",
+      "title_ko": "상세 R2 통합·완주 증거 부재",
+      "state": "missing",
+      "needed_outcome_ko": "생성 클라이언트·실제 서버·브라우저 경계에서 다른 허용 사용자가 조회해도 현재 조회자가 아닌 실제 제출자명과 행사명이 새로고침 뒤까지 유지됨을 자동 증명해야 합니다.",
+      "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-VERIFY-007", "DESIGN-QUALITY-001", "DESIGN-QUALITY-002", "DESIGN-QUALITY-003"],
+      "contract_refs": ["DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2"],
+      "evidence_refs": ["OBS-003", "OBS-004", "OBS-005", "OBS-006"]
+    }
+  ],
+  "work_items": [
+    {
+      "id": "WORK:purchase-request-screen-spec@R2",
+      "key": "purchase-request-screen-spec",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "additive",
+      "supersedes": "WORK:purchase-request-screen-spec@R1",
+      "title_ko": "구매 요청 화면 명세 R2 확정",
+      "work_type": "design",
+      "primary_capability": "experience_design",
+      "collaborating_capabilities": ["product_definition", "frontend", "quality"],
+      "outcome_ko": "기존 작성·목록·상세 상태 명세를 보존하면서 상세 화면이 R2 display의 행사명과 실제 요청자명을 기록과 함께 표시하고 식별자로 이름을 추정하지 않도록 계약 공백과 추적 참조를 해소해 구현 기준으로 확정합니다.",
+      "gap_refs": ["GAP-023"],
+      "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-STATE-004", "DESIGN-STATE-005", "DESIGN-QUALITY-003"],
+      "contract_refs": ["DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2", "QUALITY:purchase_request.accessible_feedback@R1"],
+      "blocked_by": [],
+      "completion_evidence": [
+        {
+          "id": "EVID-024",
+          "kind": "reviewed_artifact",
+          "description_ko": "화면 명세 검증과 기획·개발 검토가 상세 계약 공백 제거, R2 참조, 행사명·실제 요청자명·기록 표시, 로딩·404·503·새로고침·키보드 상태를 확인합니다.",
+          "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-STATE-004", "DESIGN-STATE-005", "DESIGN-QUALITY-003"],
+          "contract_refs": ["DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2", "QUALITY:purchase_request.accessible_feedback@R1"]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-contract-fixtures@R2",
+      "key": "purchase-request-contract-fixtures",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "breaking",
+      "supersedes": "WORK:purchase-request-contract-fixtures@R1",
+      "title_ko": "구매 요청 계약 예제·검증 기준선 R2 구현",
+      "work_type": "build",
+      "primary_capability": "technical_design",
+      "collaborating_capabilities": ["frontend", "backend", "quality"],
+      "outcome_ko": "기존 정상·실패 계약 예제를 모두 보존하고 상세 성공 예제와 OpenAPI 기준 입력을 record와 display를 함께 반환하는 R2 형태로 갱신해 프론트엔드와 백엔드가 같은 사례를 재사용하게 합니다.",
+      "gap_refs": ["GAP-021"],
+      "design_refs": ["DESIGN-DOMAIN-001", "DESIGN-DOMAIN-002", "DESIGN-DATA-001", "DESIGN-DATA-002", "DESIGN-DATA-003", "DESIGN-INTERFACE-001"],
+      "contract_refs": [
+        "DATA:purchase_request.input@R1", "DATA:purchase_request.draft_content@R1", "DATA:purchase_request.draft_save_command@R1",
+        "DATA:purchase_request.draft@R1", "DATA:purchase_request.editor_state@R1", "DATA:purchase_request.submit_command@R1",
+        "DATA:purchase_request.record@R1", "DATA:purchase_request.own_list@R1", "DATA:purchase_request.detail_view@R1",
+        "DATA:http.empty_body@R1", "DATA:http.problem_details@R1", "DATA:purchase_request.submitted_event@R1",
+        "ERROR:http.unauthenticated@R1", "ERROR:purchase_request.action_forbidden@R1", "ERROR:http.resource_not_found@R1",
+        "ERROR:purchase_request.validation_failed@R1", "ERROR:purchase_request.state_conflict@R1", "ERROR:purchase_request.persistence_unavailable@R1",
+        "API:purchase_request.get_editor_state@R1", "API:purchase_request.save_draft@R1", "API:purchase_request.delete_draft@R1",
+        "API:purchase_request.submit@R1", "API:purchase_request.list_own@R1", "API:purchase_request.get_detail@R2"
+      ],
+      "blocked_by": [],
+      "completion_evidence": [
+        {
+          "id": "EVID-025",
+          "kind": "automated_test",
+          "description_ko": "계약 픽스처·JSON Schema·OpenAPI 검증이 기존 6개 동작의 사례를 유지하고 상세 성공 본문의 record·display 구조, 행사명·요청자명 필수값과 R2 추적 참조를 증명합니다.",
+          "design_refs": ["DESIGN-DOMAIN-001", "DESIGN-DOMAIN-002", "DESIGN-DATA-001", "DESIGN-DATA-002", "DESIGN-DATA-003", "DESIGN-INTERFACE-001"],
+          "contract_refs": [
+            "DATA:purchase_request.input@R1", "DATA:purchase_request.draft_content@R1", "DATA:purchase_request.draft_save_command@R1",
+            "DATA:purchase_request.draft@R1", "DATA:purchase_request.editor_state@R1", "DATA:purchase_request.submit_command@R1",
+            "DATA:purchase_request.record@R1", "DATA:purchase_request.own_list@R1", "DATA:purchase_request.detail_view@R1",
+            "DATA:http.empty_body@R1", "DATA:http.problem_details@R1", "DATA:purchase_request.submitted_event@R1",
+            "ERROR:http.unauthenticated@R1", "ERROR:purchase_request.action_forbidden@R1", "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.validation_failed@R1", "ERROR:purchase_request.state_conflict@R1", "ERROR:purchase_request.persistence_unavailable@R1",
+            "API:purchase_request.get_editor_state@R1", "API:purchase_request.save_draft@R1", "API:purchase_request.delete_draft@R1",
+            "API:purchase_request.submit@R1", "API:purchase_request.list_own@R1", "API:purchase_request.get_detail@R2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-detail-api@R2",
+      "key": "purchase-request-detail-api",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "breaking",
+      "supersedes": "WORK:purchase-request-detail-api@R1",
+      "title_ko": "구매 요청 상세 API R2 구현",
+      "work_type": "build",
+      "primary_capability": "backend",
+      "collaborating_capabilities": ["security", "quality"],
+      "outcome_ko": "기존 조직 격리와 상세 기록 조회를 보존하면서 저장된 eventId와 requesterUserId에 대응하는 신뢰 가능한 행사명과 실제 제출자명을 서버 관계 정보에서 조회해 record와 display로 반환합니다. 현재 조회자의 이름을 제출자명으로 재사용하거나 이름을 별도 정본으로 중복 저장하지 않습니다.",
+      "gap_refs": ["GAP-022"],
+      "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-DATA-003", "DESIGN-SYSTEM-004", "DESIGN-INTERFACE-001", "DESIGN-QUALITY-002"],
+      "contract_refs": [
+        "DATA:purchase_request.record@R1", "DATA:purchase_request.detail_view@R1", "DATA:http.empty_body@R1", "DATA:http.problem_details@R1",
+        "AUTH:purchase_request.read_detail@R1", "ERROR:http.unauthenticated@R1", "ERROR:http.resource_not_found@R1",
+        "ERROR:purchase_request.persistence_unavailable@R1", "API:purchase_request.get_detail@R2", "QUALITY:purchase_request.tenant_isolation@R1"
+      ],
+      "blocked_by": [
+        "WORK:purchase-request-contract-fixtures@R2",
+        "WORK:identity-organization-context@R1",
+        "WORK:purchase-request-authorization-rules@R1",
+        "WORK:purchase-request-data-schema@R1"
+      ],
+      "completion_evidence": [
+        {
+          "id": "EVID-026",
+          "kind": "automated_test",
+          "description_ko": "실제 PostgreSQL·HTTP 통합 테스트가 요청 소유자와 다른 같은 조직 구성원의 조회에서도 저장된 식별자에 대응하는 행사명·실제 제출자명과 동일한 기록을 반환하고 교차 조직 요청은 동일한 404로 숨김을 증명합니다.",
+          "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-DATA-003", "DESIGN-SYSTEM-004", "DESIGN-INTERFACE-001", "DESIGN-QUALITY-002"],
+          "contract_refs": [
+            "DATA:purchase_request.record@R1", "DATA:purchase_request.detail_view@R1", "DATA:http.empty_body@R1", "DATA:http.problem_details@R1",
+            "AUTH:purchase_request.read_detail@R1", "ERROR:http.unauthenticated@R1", "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1", "API:purchase_request.get_detail@R2", "QUALITY:purchase_request.tenant_isolation@R1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-openapi-client-baseline@R2",
+      "key": "purchase-request-openapi-client-baseline",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "breaking",
+      "supersedes": "WORK:purchase-request-openapi-client-baseline@R1",
+      "title_ko": "OpenAPI 클라이언트 생성 기준선 R2 구현",
+      "work_type": "enable",
+      "primary_capability": "technical_design",
+      "collaborating_capabilities": ["frontend", "backend", "quality"],
+      "outcome_ko": "기존 6개 HTTP 동작의 결정적 생성·드리프트 탐지를 유지하면서 상세 성공 타입을 PurchaseRequestDetailView로 갱신하고 get_detail R2 추적 정보를 보존한 타입 안전 클라이언트를 생성합니다.",
+      "gap_refs": ["GAP-021"],
+      "design_refs": ["DESIGN-INTERFACE-001"],
+      "contract_refs": [
+        "DATA:http.problem_details@R1", "DATA:purchase_request.detail_view@R1",
+        "API:purchase_request.get_editor_state@R1", "API:purchase_request.save_draft@R1", "API:purchase_request.delete_draft@R1",
+        "API:purchase_request.submit@R1", "API:purchase_request.list_own@R1", "API:purchase_request.get_detail@R2"
+      ],
+      "blocked_by": ["WORK:purchase-request-contract-fixtures@R2"],
+      "completion_evidence": [
+        {
+          "id": "EVID-027",
+          "kind": "automated_test",
+          "description_ko": "R2 OpenAPI 입력에서 클라이언트를 두 번 생성해 동일 결과가 나오고 상세 응답 타입이 record·display를 필수로 가지며 R1 상세 계약이나 수동 타입이 남으면 CI가 실패함을 증명합니다.",
+          "design_refs": ["DESIGN-INTERFACE-001"],
+          "contract_refs": [
+            "DATA:http.problem_details@R1", "DATA:purchase_request.detail_view@R1",
+            "API:purchase_request.get_editor_state@R1", "API:purchase_request.save_draft@R1", "API:purchase_request.delete_draft@R1",
+            "API:purchase_request.submit@R1", "API:purchase_request.list_own@R1", "API:purchase_request.get_detail@R2"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-detail-ui@R2",
+      "key": "purchase-request-detail-ui",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "additive",
+      "supersedes": "WORK:purchase-request-detail-ui@R1",
+      "title_ko": "구매 요청 상세 UI R2 구현",
+      "work_type": "build",
+      "primary_capability": "frontend",
+      "collaborating_capabilities": ["experience_design", "quality"],
+      "outcome_ko": "R2 계약 예제를 기준으로 상세 경로에서 display의 행사명·실제 요청자명과 record의 상태·총액·예산 초과 여부·모든 품목을 구분해 표시하고 로딩·404·503·재조회 상태를 접근 가능하게 처리합니다.",
+      "gap_refs": ["GAP-023"],
+      "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-STATE-004", "DESIGN-STATE-005", "DESIGN-QUALITY-003"],
+      "contract_refs": [
+        "DATA:purchase_request.detail_view@R1", "DATA:http.problem_details@R1", "API:purchase_request.get_detail@R2",
+        "ERROR:http.resource_not_found@R1", "ERROR:purchase_request.persistence_unavailable@R1", "QUALITY:purchase_request.accessible_feedback@R1"
+      ],
+      "blocked_by": ["WORK:purchase-request-screen-spec@R2", "WORK:purchase-request-contract-fixtures@R2"],
+      "completion_evidence": [
+        {
+          "id": "EVID-028",
+          "kind": "automated_test",
+          "description_ko": "MSW 기반 화면 테스트가 실제 제출자와 다른 조회자 예제로 행사명·요청자명·기록을 표시하고 직접 진입·새로고침·404·503·키보드·상태 메시지를 검증합니다.",
+          "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-STATE-004", "DESIGN-STATE-005", "DESIGN-QUALITY-003"],
+          "contract_refs": [
+            "DATA:purchase_request.detail_view@R1", "DATA:http.problem_details@R1", "API:purchase_request.get_detail@R2",
+            "ERROR:http.resource_not_found@R1", "ERROR:purchase_request.persistence_unavailable@R1", "QUALITY:purchase_request.accessible_feedback@R1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-detail-api-integration@R2",
+      "key": "purchase-request-detail-api-integration",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "breaking",
+      "supersedes": "WORK:purchase-request-detail-api-integration@R1",
+      "title_ko": "구매 요청 상세 실제 API R2 연결",
+      "work_type": "build",
+      "primary_capability": "frontend",
+      "collaborating_capabilities": ["backend", "quality"],
+      "outcome_ko": "상세 UI의 모의 통신을 R2 생성 클라이언트의 실제 상세 호출로 교체해 record와 display를 표시하고 직접 진입·재조회·404 비노출·503 실패를 기존 화면 동작으로 처리합니다.",
+      "gap_refs": ["GAP-024"],
+      "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-INTERFACE-001"],
+      "contract_refs": [
+        "DATA:purchase_request.detail_view@R1", "DATA:http.problem_details@R1", "API:purchase_request.get_detail@R2",
+        "ERROR:http.resource_not_found@R1", "ERROR:purchase_request.persistence_unavailable@R1"
+      ],
+      "blocked_by": [
+        "WORK:purchase-request-openapi-client-baseline@R2",
+        "WORK:purchase-request-detail-api@R2",
+        "WORK:purchase-request-detail-ui@R2"
+      ],
+      "completion_evidence": [
+        {
+          "id": "EVID-029",
+          "kind": "automated_test",
+          "description_ko": "생성 클라이언트와 FastAPI 테스트 서버를 함께 실행하는 웹 통합 테스트가 실제 상세 응답의 행사명·실제 제출자명·저장 기록과 404·503을 확인하고 런타임 상세 경로에 MSW 호출이 남지 않음을 증명합니다.",
+          "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-INTERFACE-001"],
+          "contract_refs": [
+            "DATA:purchase_request.detail_view@R1", "DATA:http.problem_details@R1", "API:purchase_request.get_detail@R2",
+            "ERROR:http.resource_not_found@R1", "ERROR:purchase_request.persistence_unavailable@R1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-server-verification@R2",
+      "key": "purchase-request-server-verification",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "additive",
+      "supersedes": "WORK:purchase-request-server-verification@R1",
+      "title_ko": "서버 계약·보안·원자성 증거 R2 완성",
+      "work_type": "verify",
+      "primary_capability": "quality",
+      "collaborating_capabilities": ["backend", "security", "platform"],
+      "outcome_ko": "기존 6개 API의 계약·권한·조직 격리·초안·원자성·멱등성 증거를 유지하고, 상세 R2가 저장 식별자에 대응하는 행사명과 실제 제출자명을 다른 허용 조회자에게도 정확히 반환함을 실제 PostgreSQL과 HTTP 경계에서 추가 증명합니다.",
+      "gap_refs": ["GAP-024"],
+      "design_refs": ["DESIGN-VERIFY-001", "DESIGN-VERIFY-002", "DESIGN-VERIFY-003", "DESIGN-VERIFY-004", "DESIGN-VERIFY-005", "DESIGN-VERIFY-006", "DESIGN-VERIFY-007", "DESIGN-VERIFY-008", "DESIGN-QUALITY-001", "DESIGN-QUALITY-002"],
+      "contract_refs": [
+        "DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2",
+        "QUALITY:purchase_request.tenant_isolation@R1", "QUALITY:purchase_request.atomic_idempotent_submission@R1", "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "blocked_by": [
+        "WORK:purchase-request-draft-api@R1",
+        "WORK:purchase-request-submission-api@R1",
+        "WORK:purchase-request-own-list-api@R1",
+        "WORK:purchase-request-detail-api@R2"
+      ],
+      "completion_evidence": [
+        {
+          "id": "EVID-030",
+          "kind": "automated_test",
+          "description_ko": "Testcontainers PostgreSQL·pytest·계약 검증이 기존 AC-01~AC-08 서버 관찰점을 유지하고 상세 R2 구조, 제출자와 다른 같은 조직 조회자, 행사명·실제 제출자명, 교차 조직 404를 CI에서 증명합니다.",
+          "design_refs": ["DESIGN-VERIFY-001", "DESIGN-VERIFY-002", "DESIGN-VERIFY-003", "DESIGN-VERIFY-004", "DESIGN-VERIFY-005", "DESIGN-VERIFY-006", "DESIGN-VERIFY-007", "DESIGN-VERIFY-008", "DESIGN-QUALITY-001", "DESIGN-QUALITY-002"],
+          "contract_refs": [
+            "DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2",
+            "QUALITY:purchase_request.tenant_isolation@R1", "QUALITY:purchase_request.atomic_idempotent_submission@R1", "QUALITY:purchase_request.acceptance_evidence@R1"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "WORK:purchase-request-browser-verification@R2",
+      "key": "purchase-request-browser-verification",
+      "revision": 2,
+      "status": "ratified",
+      "change_class": "additive",
+      "supersedes": "WORK:purchase-request-browser-verification@R1",
+      "title_ko": "브라우저 완주·접근성·시각 회귀 증거 R2 완성",
+      "work_type": "verify",
+      "primary_capability": "quality",
+      "collaborating_capabilities": ["frontend", "backend", "experience_design"],
+      "outcome_ko": "기존 작성·초안·제출·목록·상세 완주와 접근성·시각 회귀 범위를 유지하고, 상세에서 행사명과 실제 요청자명이 직접 진입과 새로고침 뒤에도 동일하게 표시되며 현재 조회자명으로 바뀌지 않음을 실제 브라우저에서 추가 증명합니다.",
+      "gap_refs": ["GAP-024"],
+      "design_refs": [
+        "DESIGN-INTERACTION-001", "DESIGN-INTERACTION-002", "DESIGN-INTERACTION-003", "DESIGN-INTERACTION-004", "DESIGN-INTERACTION-005", "DESIGN-INTERACTION-006",
+        "DESIGN-STATE-001", "DESIGN-STATE-002", "DESIGN-STATE-003", "DESIGN-STATE-004", "DESIGN-STATE-005", "DESIGN-QUALITY-003",
+        "DESIGN-VERIFY-001", "DESIGN-VERIFY-002", "DESIGN-VERIFY-003", "DESIGN-VERIFY-004", "DESIGN-VERIFY-005", "DESIGN-VERIFY-006", "DESIGN-VERIFY-007", "DESIGN-VERIFY-008"
+      ],
+      "contract_refs": [
+        "DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2",
+        "QUALITY:purchase_request.accessible_feedback@R1", "QUALITY:purchase_request.draft_recovery@R1", "QUALITY:purchase_request.acceptance_evidence@R1"
+      ],
+      "blocked_by": [
+        "WORK:purchase-request-editor-api-integration@R1",
+        "WORK:purchase-request-own-list-api-integration@R1",
+        "WORK:purchase-request-detail-api-integration@R2"
+      ],
+      "completion_evidence": [
+        {
+          "id": "EVID-031",
+          "kind": "automated_test",
+          "description_ko": "실제 웹·API를 실행하는 Playwright 시나리오가 기존 AC-01~AC-08과 함께 다른 허용 조회자의 상세 직접 진입·새로고침에서 행사명·실제 요청자명·저장 기록이 동일함을 CI에서 증명합니다.",
+          "design_refs": [
+            "DESIGN-INTERACTION-001", "DESIGN-INTERACTION-002", "DESIGN-INTERACTION-003", "DESIGN-INTERACTION-004", "DESIGN-INTERACTION-005", "DESIGN-INTERACTION-006",
+            "DESIGN-STATE-001", "DESIGN-STATE-002", "DESIGN-STATE-003", "DESIGN-STATE-004", "DESIGN-STATE-005",
+            "DESIGN-VERIFY-001", "DESIGN-VERIFY-002", "DESIGN-VERIFY-003", "DESIGN-VERIFY-004", "DESIGN-VERIFY-005", "DESIGN-VERIFY-006", "DESIGN-VERIFY-007", "DESIGN-VERIFY-008"
+          ],
+          "contract_refs": ["DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2", "QUALITY:purchase_request.draft_recovery@R1", "QUALITY:purchase_request.acceptance_evidence@R1"]
+        },
+        {
+          "id": "EVID-032",
+          "kind": "accessibility_check",
+          "description_ko": "axe·키보드 전용 검사가 기존 입력·오류·상태 피드백과 상세의 행사·요청자·요청 내용 구조 및 로딩·오류 안내를 보조기술로 식별할 수 있음을 증명합니다.",
+          "design_refs": ["DESIGN-INTERACTION-006", "DESIGN-STATE-004", "DESIGN-STATE-005", "DESIGN-QUALITY-003"],
+          "contract_refs": ["DATA:purchase_request.detail_view@R1", "API:purchase_request.get_detail@R2", "QUALITY:purchase_request.accessible_feedback@R1"]
+        }
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "기존 승인 작업 21개는 그대로 가져오고 상세 R2에 직접 영향받는 8개 작업의 개정 범위와 실제 차단 관계만 승인 여부로 구분합니다.",
+        "source_refs": ["SRC-001", "SRC-002", "SRC-003", "SRC-004", "SRC-005", "SRC-006", "SRC-007", "SRC-008", "SRC-009"]
+      },
+      "question_ko": "DU-001 작업 R1을 보존하고 상세 계약 R2에 영향받는 작업 8개를 R2로 개정한 작업 그래프를 승인합니까?",
+      "reason_ko": "승인하면 작업 그래프 R2로 고정하고 기존 실행 증거를 재사용해 새로 착수할 R2 작업만 실행 계획에 배정합니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        { "id": "YES", "label_ko": "승인" },
+        { "id": "NO", "label_ko": "수정 필요" }
+      ],
+      "evidence": {
+        "work_item_refs": [
+          "WORK:purchase-request-screen-spec@R2",
+          "WORK:purchase-request-contract-fixtures@R2",
+          "WORK:purchase-request-detail-api@R2",
+          "WORK:purchase-request-openapi-client-baseline@R2",
+          "WORK:purchase-request-detail-ui@R2",
+          "WORK:purchase-request-detail-api-integration@R2",
+          "WORK:purchase-request-server-verification@R2",
+          "WORK:purchase-request-browser-verification@R2"
+        ],
+        "source_refs": ["SRC-001", "SRC-002", "SRC-003", "SRC-004", "SRC-005", "SRC-006", "SRC-007", "SRC-008", "SRC-009"]
+      },
+      "answer_source_ref": "SRC-010",
+      "normalized_answer": {
+        "selected_option_ids": ["YES"],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}

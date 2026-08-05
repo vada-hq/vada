@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { readFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
@@ -8,6 +10,7 @@ import {
   validateExecutionPlan,
   validateExecutionPlanRepository,
 } from "./validate-execution-plan.mjs";
+import { buildExecutionEvidenceLedger } from "./execution-evidence-ledger.mjs";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -25,12 +28,14 @@ function approvedWorkPlan() {
         status: "ratified",
         primary_capability: "technical_design",
         blocked_by: [],
+        completion_evidence: [{ id: "EVID-CONTRACT", kind: "automated_test" }],
       },
       {
         id: "WORK:test-ui@R1",
         status: "ratified",
         primary_capability: "frontend",
         blocked_by: ["WORK:test-contract@R1"],
+        completion_evidence: [{ id: "EVID-UI", kind: "automated_test" }],
       },
     ],
   };
@@ -257,6 +262,23 @@ test("rolling-wave에서 현재 시작점이 아닌 작업을 커밋하면 거�
   assert.ok(errors.some((error) => error.includes("현재 의존성 시작점")));
 });
 
+test("미래 작업의 외부 선행조건은 현재 rolling-wave 시작점을 막지 않는다", async () => {
+  const workPlan = approvedWorkPlan();
+  workPlan.imports = [
+    {
+      plan_path: "delivery-units/DU-001/delivery-work/R1.json",
+      plan_id: "WP-TEST-BASE",
+      plan_revision: 1,
+      canonical_sha256: "0".repeat(64),
+      work_item_ids: ["WORK:external-api@R1"],
+    },
+  ];
+  workPlan.work_items[1].blocked_by = ["WORK:external-api@R1"];
+  const plan = validExecutionPlan(workPlan);
+
+  assert.deepEqual(await validateExecutionPlan(plan, { workPlan }), []);
+});
+
 test("주 실행자의 역량이 작업 주 역량과 다르면 거부한다", async () => {
   const workPlan = approvedWorkPlan();
   const plan = validExecutionPlan(workPlan);
@@ -273,7 +295,176 @@ test("실행 계획에 런타임 진행 상태를 섞으면 거부한다", async
   assert.ok(errors.some((error) => error.includes("허용되지 않는 필드")));
 });
 
+function planWithSatisfiedImportedWork() {
+  const workPlan = approvedWorkPlan();
+  workPlan.imports = [
+    {
+      plan_path: "delivery-units/DU-001/delivery-work/R0.json",
+      plan_id: "WP-TEST-BASE",
+      plan_revision: 1,
+      canonical_sha256: "0".repeat(64),
+      work_item_ids: ["WORK:external@R1"],
+    },
+  ];
+  workPlan.work_items[0].blocked_by = ["WORK:external@R1"];
+  const plan = validExecutionPlan(workPlan);
+  plan.satisfied_prerequisites = [
+    {
+      work_item_ref: "WORK:external@R1",
+      evidence_locator: "delivery-units/DU-001/execution-runtime/R0.json#PROOF-001",
+      source_refs: ["SRC-001"],
+    },
+  ];
+  return { workPlan, plan };
+}
+
+test("존재하지 않는 완료 증거 locator를 충족 주장으로 받아들이지 않는다", async () => {
+  const { workPlan, plan } = planWithSatisfiedImportedWork();
+  const withoutLedger = await validateExecutionPlan(plan, { workPlan });
+  assert.match(withoutLedger.join("\n"), /검증된 완료 증거 원장/);
+
+  const errors = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map(),
+  });
+
+  assert.match(errors.join("\n"), /완료 증거.*찾을 수 없습니다/);
+
+  plan.satisfied_prerequisites[0].evidence_locator = "../outside.json#PROOF-001";
+  const traversal = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map(),
+  });
+  assert.match(traversal.join("\n"), /상위 이동/);
+});
+
+test("충족 locator의 작업·요구사항·검증 상태가 모두 정확해야 한다", async () => {
+  const { workPlan, plan } = planWithSatisfiedImportedWork();
+  const locator = plan.satisfied_prerequisites[0].evidence_locator;
+  const baseRecord = {
+    work_item_ref: "WORK:external@R1",
+    requirement_ref: "EVID-EXTERNAL",
+    required_requirement_refs: ["EVID-EXTERNAL"],
+    verification_status: "verified",
+    run_status: "done",
+    all_requirements_verified: true,
+    evidence_kind_matches: true,
+    verifier_valid: true,
+    verification_time_present: true,
+    work_plan_path: "delivery-units/DU-001/delivery-work/R0.json",
+    work_plan_id: "WP-TEST-BASE",
+    work_plan_revision: 1,
+    work_plan_sha256: "0".repeat(64),
+  };
+
+  const accepted = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map([[locator, baseRecord]]),
+  });
+  assert.deepEqual(accepted, []);
+
+  const wrongWork = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map([[locator, { ...baseRecord, work_item_ref: "WORK:other@R1" }]]),
+  });
+  assert.match(wrongWork.join("\n"), /작업 ID.*일치하지 않습니다/);
+
+  const wrongRequirement = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map([
+      [locator, { ...baseRecord, requirement_ref: "EVID-OTHER" }],
+    ]),
+  });
+  assert.match(wrongRequirement.join("\n"), /완료 요구사항.*일치하지 않습니다/);
+
+  const unverified = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map([
+      [locator, { ...baseRecord, verification_status: "submitted" }],
+    ]),
+  });
+  assert.match(unverified.join("\n"), /검증 상태.*verified/);
+
+  const unfinished = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map([[locator, { ...baseRecord, run_status: "review" }]]),
+  });
+  assert.match(unfinished.join("\n"), /실행 상태.*done/);
+
+  const incomplete = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map([
+      [locator, { ...baseRecord, all_requirements_verified: false }],
+    ]),
+  });
+  assert.match(incomplete.join("\n"), /모든 완료 요구사항/);
+
+  const wrongLineage = await validateExecutionPlan(plan, {
+    workPlan,
+    evidenceLedger: new Map([
+      [locator, { ...baseRecord, work_plan_id: "WP-OTHER" }],
+    ]),
+  });
+  assert.match(wrongLineage.join("\n"), /작업 그래프 계보/);
+});
+
 test("저장소의 실제 실행 계획이 모두 유효하다", async () => {
   const result = await validateExecutionPlanRepository(repositoryRoot);
   assert.deepEqual(result.errors, []);
+});
+
+test("저장된 R2~R4의 충족 선행 19건은 실제 검증 증거로 모두 해석된다", async () => {
+  const plans = await Promise.all(
+    [2, 3, 4].map(async (revision) =>
+      JSON.parse(
+        await readFile(
+          resolve(repositoryRoot, `delivery-units/DU-001/execution-plan/R${revision}.json`),
+          "utf8",
+        ),
+      ),
+    ),
+  );
+  assert.equal(
+    plans.reduce((count, plan) => count + plan.satisfied_prerequisites.length, 0),
+    19,
+  );
+
+  const evidence = await buildExecutionEvidenceLedger(repositoryRoot, {
+    deliveryUnitId: "DU-001",
+  });
+  assert.deepEqual(evidence.errors, []);
+  let validatedLocatorCount = 0;
+  for (const plan of plans) {
+    for (const prerequisite of plan.satisfied_prerequisites) {
+      const record = evidence.byLocator.get(prerequisite.evidence_locator);
+      assert.ok(record, prerequisite.evidence_locator);
+      assert.equal(record.work_item_ref, prerequisite.work_item_ref);
+      assert.ok(record.required_requirement_refs.includes(record.requirement_ref));
+      assert.equal(record.verification_status, "verified");
+      assert.equal(record.run_status, "done");
+      assert.equal(record.all_requirements_verified, true);
+      validatedLocatorCount += 1;
+    }
+  }
+  assert.equal(validatedLocatorCount, 19);
+
+  const result = await validateExecutionPlanRepository(repositoryRoot);
+  assert.deepEqual(result.errors, []);
+});
+
+test("실행 계획과 런타임 개별 검증 CLI가 순환 대기 없이 종료된다", () => {
+  for (const script of [
+    "scripts/validate-execution-plan.mjs",
+    "scripts/validate-execution-runtime.mjs",
+  ]) {
+    const result = spawnSync(process.execPath, [resolve(repositoryRoot, script)], {
+      cwd: repositoryRoot,
+      encoding: "utf8",
+    });
+    assert.equal(
+      result.status,
+      0,
+      `${script}\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`,
+    );
+  }
 });

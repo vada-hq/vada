@@ -1,7 +1,93 @@
 import assert from "node:assert/strict";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { resolve } from "node:path";
 import test from "node:test";
 
-import { applyRuntimeOperation } from "./record-execution-runtime.mjs";
+import {
+  applyRuntimeOperation,
+  initializeExecutionRuntime,
+  publishNewFileAtomically,
+} from "./record-execution-runtime.mjs";
+
+test("초기 런타임 게시 중 목적 파일이 생기면 기존 파일을 덮어쓰지 않는다", async () => {
+  const directory = await mkdtemp(resolve(tmpdir(), "vada-runtime-publish-"));
+  const destination = resolve(directory, "R7.json");
+  try {
+    const results = await Promise.allSettled([
+      publishNewFileAtomically(destination, "first\n"),
+      publishNewFileAtomically(destination, "second\n"),
+    ]);
+
+    assert.equal(results.filter((result) => result.status === "fulfilled").length, 1);
+    const rejected = results.find((result) => result.status === "rejected");
+    assert.match(rejected?.reason?.message ?? "", /이미 존재합니다/);
+    assert.match(await readFile(destination, "utf8"), /^(first|second)\n$/);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("승인 실행 계획의 커밋 작업만 자동 ID와 한 시각으로 초기화한다", () => {
+  const plan = {
+    execution_plan_id: "EP-DU-001",
+    execution_plan_revision: 7,
+    execution_plan_status: "approved",
+    delivery_unit_id: "DU-001",
+    orchestration: { coordinator_executor_ref: "EXEC:coordinator" },
+    work_allocations: [
+      {
+        work_item_ref: "WORK:first@R1",
+        disposition: "committed",
+        primary_executor_ref: "EXEC:first-worker",
+      },
+      {
+        work_item_ref: "WORK:second@R1",
+        disposition: "committed",
+        primary_executor_ref: "EXEC:second-worker",
+      },
+      {
+        work_item_ref: "WORK:later@R1",
+        disposition: "forecast",
+        primary_executor_ref: null,
+      },
+    ],
+  };
+
+  const initialized = initializeExecutionRuntime(plan, {
+    planPath: "delivery-units/DU-001/execution-plan/R7.json",
+    now: "2026-08-05T07:00:00Z",
+  });
+
+  assert.equal(initialized.runtime_id, "RUN-DU-001-EP-R7");
+  assert.equal(initialized.runtime_revision, 1);
+  assert.equal(initialized.updated_at, "2026-08-05T07:00:00Z");
+  assert.equal(initialized.sources[0].id, "SRC-RUN-001");
+  assert.deepEqual(
+    initialized.work_runs.map(({ work_item_ref, executor_ref, status }) => ({
+      work_item_ref,
+      executor_ref,
+      status,
+    })),
+    [
+      {
+        work_item_ref: "WORK:first@R1",
+        executor_ref: "EXEC:first-worker",
+        status: "not_started",
+      },
+      {
+        work_item_ref: "WORK:second@R1",
+        executor_ref: "EXEC:second-worker",
+        status: "not_started",
+      },
+    ],
+  );
+  assert.deepEqual(
+    initialized.work_runs.map((run) => run.transition_log[0].id),
+    ["TR-001", "TR-002"],
+  );
+  assert.ok(initialized.work_runs.every((run) => run.transition_log[0].occurred_at === "2026-08-05T07:00:00Z"));
+});
 
 function runtime() {
   return {

@@ -8,6 +8,8 @@ allowBuilds:
   '@tailwindcss/oxide': true
   esbuild: true
   lefthook: true
+  # Inspected postinstall: it only refreshes the explicitly configured browser worker.
+  msw: true
   sharp: true
   workerd: true
 

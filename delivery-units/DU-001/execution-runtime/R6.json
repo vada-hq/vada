@@ -1,0 +1,145 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R6",
+  "runtime_revision": 5,
+  "runtime_status": "completed",
+  "updated_at": "2026-08-05T06:46:49.347Z",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R6.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 6,
+    "canonical_sha256": "25b046f9a84bd8f0c14830068ba7ebb4a8d8fdd90e1d0d1130d17b25de0e8d84"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T14:30:04.136+09:00",
+      "locator": "delivery-units/DU-001/execution-plan/R6.json#EP-DU-001@R6",
+      "content_ko": "승인된 DU-001 실행 계획 R6이며 공통 웹 애플리케이션 기반 작업 한 건만 현재 rolling-wave 실행 범위로 고정합니다."
+    },
+    {
+      "id": "SRC-RUN-002",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T05:39:04.716Z",
+      "locator": "current-thread/evidence-based-technical-decision-delegation-2026-08-05",
+      "content_ko": "제품 책임자의 상시 기술 결정 위임에 따라 승인된 R6의 공통 웹 애플리케이션 기반 작업을 시작합니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "code_evidence",
+      "captured_at": "2026-08-05T06:07:42.034Z",
+      "locator": "commit:647e499;command:just check-web",
+      "content_ko": "공통 웹 기반 구현이 RED 이후 테스트 6개, OpenAPI 기준선, 린트, 타입 검사와 프로덕션 빌드를 포함한 just check-web을 통과했고 총괄 범위 검토를 마쳤습니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "code_evidence",
+      "captured_at": "2026-08-05T06:21:45.562Z",
+      "locator": "https://github.com/vada-hq/vada/actions/runs/30980946280;commit:39da5e0",
+      "content_ko": "선택 컴포넌트 키보드 테스트를 실제 사용자 순서로 안정화한 뒤 반복 5회와 GitHub Actions의 contracts·web 검사가 모두 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-005",
+      "type": "review_record",
+      "captured_at": "2026-08-05T06:46:49.347Z",
+      "locator": "PR:26;commit:a87f171;https://github.com/vada-hq/vada/actions/runs/30982199926",
+      "content_ko": "독립 AI 검증자가 공통 웹 기반을 재검토해 최초 IME 차단 결함을 발견했고, 수정 후 production AppForm 통합 테스트 5회, 별도 이벤트 프로브, just check-web과 GitHub Actions contracts·web 통과를 확인했습니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:web-application-foundation@R1",
+      "executor_ref": "EXEC:ai-frontend",
+      "status": "done",
+      "started_at": "2026-08-05T05:39:04.716Z",
+      "completed_at": "2026-08-05T06:46:49.347Z",
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T14:30:04.136+09:00",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R6에서 공통 웹 애플리케이션 기반 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-002",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-05T05:39:04.716Z",
+          "actor_ref": "EXEC:ai-frontend",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "승인 아키텍처의 공통 웹 경계를 테스트 우선으로 구현하기 시작합니다."
+        },
+        {
+          "id": "TR-003",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-05T06:07:42.034Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "구현과 범위 검사를 마쳤으며 별도 검증자의 독립 재실행을 기다립니다."
+        },
+        {
+          "id": "TR-004",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-05T06:46:49.347Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-005",
+          "note_ko": "모든 완료 증거와 독립 검증 및 CI가 통과해 공통 웹 애플리케이션 기반 작업을 완료합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-033",
+          "kind": "automated_test",
+          "locator": "commit:647e499;apps/web/src/foundation.test.tsx;command:just check-web",
+          "captured_at": "2026-08-05T06:07:42.034Z",
+          "verification_status": "submitted",
+          "verified_by": null,
+          "verified_at": null,
+          "verification_note_ko": null
+        },
+        {
+          "id": "PROOF-002",
+          "requirement_ref": "EVID-034",
+          "kind": "reviewed_artifact",
+          "locator": "commit:647e499;apps/web/src/styles/tokens.css;apps/web/src/components/ui;apps/web/src/app",
+          "captured_at": "2026-08-05T06:07:42.034Z",
+          "verification_status": "submitted",
+          "verified_by": null,
+          "verified_at": null,
+          "verification_note_ko": null
+        },
+        {
+          "id": "PROOF-003",
+          "requirement_ref": "EVID-033",
+          "kind": "automated_test",
+          "locator": "commit:a87f171;apps/web/src/foundation.test.tsx;command:just check-web;ci:30982199926",
+          "captured_at": "2026-08-05T06:46:49.347Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-05T06:46:49.347Z",
+          "verification_note_ko": "Router·Query·Form·Zod·MSW 및 UI 접근성·키보드·실제 IME 경계 테스트를 독립 재실행했고 모두 통과했습니다."
+        },
+        {
+          "id": "PROOF-004",
+          "requirement_ref": "EVID-034",
+          "kind": "reviewed_artifact",
+          "locator": "commit:a87f171;apps/web/src/styles/tokens.css;apps/web/src/components/ui;apps/web/src/app;apps/web/src/forms/app-form.tsx",
+          "captured_at": "2026-08-05T06:46:49.347Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-05T06:46:49.347Z",
+          "verification_note_ko": "의미 토큰 중앙화, 공통 경계 책임 분리, 와이어프레임 복사 금지와 브라우저 영구 저장 금지를 독립 검토했습니다."
+        }
+      ]
+    }
+  ]
+}

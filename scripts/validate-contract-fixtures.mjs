@@ -4,7 +4,10 @@ import { fileURLToPath } from "node:url";
 
 import Ajv2020 from "ajv/dist/2020.js";
 
-import { canonicalSha256 } from "./validate-contract-bundles.mjs";
+import {
+  canonicalSha256,
+  resolveEffectiveContracts,
+} from "./validate-contract-bundles.mjs";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -32,10 +35,10 @@ function formatSchemaErrors(schemaErrors) {
     .join(", ");
 }
 
-function buildDataValidators(bundle, errors) {
+function buildDataValidators(contracts, errors) {
   const ajv = new Ajv2020({ strict: true, allErrors: true, allowUnionTypes: true });
   const validators = new Map();
-  const dataContracts = bundle.contracts.filter((contract) => contract.kind === "DATA");
+  const dataContracts = [...contracts.values()].filter((contract) => contract.kind === "DATA");
 
   for (const contract of dataContracts) {
     const schema = contract.specification?.json_schema;
@@ -190,13 +193,21 @@ function validateDataValue(contractRef, value, expectedValid, expectedKeywords, 
   }
 }
 
-export function validateContractFixtureDocument(fixture, bundle, { workItem } = {}) {
+export function validateContractFixtureDocument(
+  fixture,
+  bundle,
+  { workItem, effectiveContracts } = {},
+) {
   const errors = [];
   if (!isObject(fixture)) return ["계약 픽스처는 JSON 객체여야 합니다."];
   if (!isObject(bundle)) return ["승인 계약 묶음은 JSON 객체여야 합니다."];
 
   if (fixture.schema_version !== "0.1.0") errors.push("지원하는 픽스처 schema_version은 0.1.0입니다.");
-  if (fixture.fixture_set_id !== "CF-FIN-001" || fixture.fixture_set_revision !== 1) {
+  if (
+    fixture.fixture_set_id !== "CF-FIN-001" ||
+    !Number.isInteger(fixture.fixture_set_revision) ||
+    fixture.fixture_set_revision < 1
+  ) {
     errors.push("구매 요청 픽스처 안정 ID와 리비전이 올바르지 않습니다.");
   }
   if (bundle.bundle_status !== "approved") errors.push("승인되지 않은 계약 묶음은 픽스처 기준선이 될 수 없습니다.");
@@ -208,13 +219,19 @@ export function validateContractFixtureDocument(fixture, bundle, { workItem } = 
     if (bundleRef.bundle_id !== bundle.bundle_id || bundleRef.bundle_revision !== bundle.bundle_revision) {
       errors.push("계약 묶음 ID 또는 리비전이 다릅니다.");
     }
+    if (fixture.fixture_set_revision !== bundleRef.bundle_revision) {
+      errors.push("픽스처 리비전은 고정한 계약 묶음 리비전과 같아야 합니다.");
+    }
     if (bundleRef.canonical_sha256 !== canonicalSha256(bundle)) {
       errors.push("계약 묶음 해시가 승인 기준선과 다릅니다.");
     }
   }
 
-  const contracts = new Map((bundle.contracts ?? []).map((contract) => [contract.id, contract]));
+  const contracts =
+    effectiveContracts ??
+    new Map((bundle.contracts ?? []).map((contract) => [contract.id, contract]));
   const contractRefs = Array.isArray(fixture.contract_refs) ? fixture.contract_refs : [];
+  const contractRefSet = new Set(contractRefs);
   if (!Array.isArray(fixture.contract_refs) || fixture.contract_refs.length === 0) {
     errors.push("검증할 contract_refs가 필요합니다.");
   }
@@ -230,7 +247,7 @@ export function validateContractFixtureDocument(fixture, bundle, { workItem } = 
   }
 
   const validatorErrors = [];
-  const { ajv, validators } = buildDataValidators(bundle, validatorErrors);
+  const { ajv, validators } = buildDataValidators(contracts, validatorErrors);
   errors.push(...validatorErrors);
 
   const dataExamples = Array.isArray(fixture.data_examples) ? fixture.data_examples : [];
@@ -311,6 +328,11 @@ export function validateContractFixtureDocument(fixture, bundle, { workItem } = 
 
   apiMocks.forEach((example, exampleIndex) => {
     const location = `/api_mocks/${exampleIndex}`;
+    if (!contractRefSet.has(example.contract_ref)) {
+      errors.push(
+        `${location}/contract_ref: fixture.contract_refs에 포함되지 않은 API 계약 ${example.contract_ref}입니다.`,
+      );
+    }
     const apiContract = contracts.get(example.contract_ref);
     if (apiContract?.kind !== "API") {
       errors.push(`${location}: API 계약 ${example.contract_ref}를 찾을 수 없습니다.`);
@@ -453,6 +475,10 @@ export async function validateContractFixtureRepository(root = repositoryRoot) {
         readFile(bundlePath, "utf8").then(JSON.parse),
         readFile(deliveryWorkPath, "utf8").then(JSON.parse),
       ]);
+      const effective = await resolveEffectiveContracts(root, bundle, {
+        bundlePath,
+      });
+      errors.push(...effective.errors.map((error) => `${label}: ${error}`));
       const workItem = deliveryWork.work_items?.find(
         (candidate) => candidate.id === fixture.delivery_work_ref?.work_item_id,
       );
@@ -460,7 +486,10 @@ export async function validateContractFixtureRepository(root = repositoryRoot) {
         errors.push(`${label}: 승인 작업 ${fixture.delivery_work_ref?.work_item_id}을 찾을 수 없습니다.`);
         continue;
       }
-      const documentErrors = validateContractFixtureDocument(fixture, bundle, { workItem });
+      const documentErrors = validateContractFixtureDocument(fixture, bundle, {
+        workItem,
+        effectiveContracts: effective.contracts,
+      });
       errors.push(...documentErrors.map((error) => `${label}: ${error}`));
     } catch (error) {
       errors.push(`${label}: ${error.message}`);

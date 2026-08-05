@@ -1,0 +1,240 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R7",
+  "runtime_revision": 9,
+  "runtime_status": "active",
+  "updated_at": "2026-08-05T11:18:23.888Z",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R7.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 7,
+    "canonical_sha256": "0ef7c8093f823ddc2b2b54ea278b13f76a724b516dec0eb6fd5b14b00c9c5157"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-05T07:23:09.795Z",
+      "locator": "delivery-units/DU-001/execution-plan/R7.json#EP-DU-001@R7",
+      "content_ko": "승인된 실행 계획 R7의 커밋 작업을 실행 추적 대상으로 등록했습니다."
+    },
+    {
+      "id": "SRC-RUN-002",
+      "type": "review_record",
+      "captured_at": "2026-08-05T07:23:38.455Z",
+      "locator": "https://github.com/vada-hq/vada/pull/24",
+      "content_ko": "R5에서 제출된 화면 명세 R2 후보의 기술 검토 결과를 R7에서도 이어서 추적합니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "review_record",
+      "captured_at": "2026-08-05T07:23:41.217Z",
+      "locator": "delivery-units/DU-001/screen-spec/review-ready-R2.json;https://github.com/vada-hq/vada/pull/24",
+      "content_ko": "화면 명세 R2 후보는 자동 검증과 독립 기술 검토를 통과했고 사람 디자인 담당자의 최종 확인만 남았습니다."
+    },
+    {
+      "id": "SRC-RUN-004",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T07:23:43.992Z",
+      "locator": "current-thread/evidence-based-technical-decision-delegation-2026-08-05",
+      "content_ko": "검증된 선행관계에서 자동 계산된 상세 API R2 작업을 제품 책임자의 상시 기술 결정 위임에 따라 시작합니다."
+    },
+    {
+      "id": "SRC-RUN-005",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T07:23:46.663Z",
+      "locator": "current-thread/evidence-based-technical-decision-delegation-2026-08-05",
+      "content_ko": "검증된 선행관계에서 자동 계산된 OpenAPI 클라이언트 기준선 R2 작업을 제품 책임자의 상시 기술 결정 위임에 따라 시작합니다."
+    },
+    {
+      "id": "SRC-RUN-006",
+      "type": "review_record",
+      "captured_at": "2026-08-05T07:45:39.804Z",
+      "locator": "git:34870f5a56ca3438d6e72aa1982d9f5cc2062dba#delivery-units/DU-001/screen-spec/review-ready-R2.json;https://github.com/vada-hq/vada/actions/runs/30936995377",
+      "content_ko": "SRC-RUN-003의 독립 기술 검토 통과 표현은 GitHub의 지속 가능한 리뷰 증거로 입증되지 않아 철회합니다. 확인 가능한 사실은 고정 커밋의 화면 명세 후보와 계약 CI 통과이며, 사람 디자인 검토는 여전히 대기 상태입니다."
+    },
+    {
+      "id": "SRC-RUN-007",
+      "type": "code_evidence",
+      "captured_at": "2026-08-05T08:21:34.343Z",
+      "locator": "github:vada-hq/vada/pull/27@cf8bd8962e926306b2297044262e81156cc37892",
+      "content_ko": "OpenAPI R2와 생성 클라이언트 구현을 독립 재실행했고 공개 export 우회 회귀 테스트, 결정적 재생성, 타입 검사와 PR #27 CI가 모두 통과했습니다."
+    },
+    {
+      "id": "SRC-RUN-008",
+      "type": "review_record",
+      "captured_at": "2026-08-05T08:22:10.667Z",
+      "locator": "agent-review:du001-detail-api-r2:git-cb597bc",
+      "content_ko": "독립 검증에서 상세 표시명 조회 로직은 확인됐지만 운영용 PostgreSQL 관계 조회 어댑터와 앱 조립이 없고 통합 테스트가 정적 메모리 관계값을 사용해 EVID-026을 충족하지 못한 것으로 판정했습니다."
+    },
+    {
+      "id": "SRC-RUN-009",
+      "type": "user_statement",
+      "captured_at": "2026-08-05T11:18:23.888Z",
+      "locator": "current-thread/continue-2026-08-05;github:vada-hq/vada/pull/27;git:7fbd5b7",
+      "content_ko": "제품 책임자는 제품 선택이 남지 않은 표준 기술 작업을 반복 승인 없이 근거에 따라 완료하도록 지시했고, 독립 검증과 CI를 통과한 OpenAPI 클라이언트 R2를 통합 브랜치에 병합했습니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:purchase-request-screen-spec@R2",
+      "executor_ref": "EXEC:ai-experience-design",
+      "status": "review",
+      "started_at": "2026-08-05T07:23:38.455Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T07:23:09.795Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R7에서 WORK:purchase-request-screen-spec@R2 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-004",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-05T07:23:38.455Z",
+          "actor_ref": "EXEC:ai-experience-design",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "기존 화면 명세 후보와 기술 검토 결과를 이어받아 사람 디자인 검토 게이트를 계속 진행합니다."
+        },
+        {
+          "id": "TR-005",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-05T07:23:41.217Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "기술 검증을 마친 후보를 사람 디자인 담당자의 최종 의미·상태 검토 대기로 전환합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": [
+        {
+          "id": "PROOF-001",
+          "requirement_ref": "EVID-024",
+          "kind": "reviewed_artifact",
+          "locator": "delivery-units/DU-001/screen-spec/review-ready-R2.json;https://github.com/vada-hq/vada/pull/24",
+          "captured_at": "2026-08-05T07:23:41.217Z",
+          "verification_status": "submitted",
+          "verified_by": null,
+          "verified_at": null,
+          "verification_note_ko": null
+        }
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-detail-api@R2",
+      "executor_ref": "EXEC:ai-backend",
+      "status": "review",
+      "started_at": "2026-08-05T07:23:43.992Z",
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-002",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T07:23:09.795Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R7에서 WORK:purchase-request-detail-api@R2 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-006",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-05T07:23:43.992Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-004",
+          "note_ko": "상세 표시 문맥과 조직 격리 계약을 테스트 우선으로 구현하기 시작합니다."
+        },
+        {
+          "id": "TR-009",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-05T08:22:10.667Z",
+          "actor_ref": "EXEC:ai-backend",
+          "source_ref": "SRC-RUN-008",
+          "note_ko": "부분 구현을 독립 검토에 제출했으나 실제 PostgreSQL 관계 정보와 운영 조립 증거가 부족해 재작업 범위를 확인합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": [
+        {
+          "id": "PROOF-003",
+          "requirement_ref": "EVID-026",
+          "kind": "automated_test",
+          "locator": "git:cb597bc#apps/api/tests/persistence/test_purchase_request_http_postgresql.py",
+          "captured_at": "2026-08-05T08:22:10.667Z",
+          "verification_status": "rejected",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-05T08:22:10.667Z",
+          "verification_note_ko": "현재 테스트는 구매 요청 레코드만 PostgreSQL에서 읽고 행사명·실제 제출자명은 정적 메모리 reader에서 가져옵니다. 운영용 관계 reader와 create_app 조립도 없어 실제 PostgreSQL·HTTP 완료 증거가 아닙니다."
+        }
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-openapi-client-baseline@R2",
+      "executor_ref": "EXEC:ai-technical-design",
+      "status": "done",
+      "started_at": "2026-08-05T07:23:46.663Z",
+      "completed_at": "2026-08-05T11:18:23.888Z",
+      "transition_log": [
+        {
+          "id": "TR-003",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-05T07:23:09.795Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R7에서 WORK:purchase-request-openapi-client-baseline@R2 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-007",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-05T07:23:46.663Z",
+          "actor_ref": "EXEC:ai-technical-design",
+          "source_ref": "SRC-RUN-005",
+          "note_ko": "상세 R2 계약의 결정적 OpenAPI 생성과 타입 드리프트 검증을 테스트 우선으로 구현하기 시작합니다."
+        },
+        {
+          "id": "TR-008",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-05T08:21:34.343Z",
+          "actor_ref": "EXEC:ai-technical-design",
+          "source_ref": "SRC-RUN-007",
+          "note_ko": "EVID-027 구현과 독립 기술 검증을 마치고 사람 최종 확인 게이트를 위해 검토 상태로 전환합니다."
+        },
+        {
+          "id": "TR-010",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-05T11:18:23.888Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-009",
+          "note_ko": "기존 EVID-027 독립 검증, 제품 책임자의 표준 경로 위임, CI와 통합 병합이 모두 확인되어 OpenAPI 클라이언트 생성 기준선 R2를 완료합니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": [
+        {
+          "id": "PROOF-002",
+          "requirement_ref": "EVID-027",
+          "kind": "automated_test",
+          "locator": "github:vada-hq/vada/actions/runs/30988229473",
+          "captured_at": "2026-08-05T08:21:34.343Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-05T08:21:34.343Z",
+          "verification_note_ko": "전용 테스트 9개, OpenAPI·생성물 검증, TypeScript 타입 검사, diff 검사를 독립 재실행했고 커밋 cf8bd896의 PR #27 CI contracts·web 작업이 통과했습니다."
+        }
+      ]
+    }
+  ]
+}

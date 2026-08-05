@@ -1,9 +1,13 @@
-import { readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { link, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 import { fileURLToPath } from "node:url";
 
-import { validateExecutionRuntime } from "./validate-execution-runtime.mjs";
+import {
+  canonicalSha256,
+  validateExecutionRuntime,
+} from "./validate-execution-runtime.mjs";
 
 const repositoryRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -40,6 +44,97 @@ function allProofIds(runtime) {
 
 function operationWorkRef(operation) {
   return operation.transition?.work_item_ref ?? operation.work_item_ref ?? null;
+}
+
+export async function publishNewFileAtomically(destinationPath, contents) {
+  const temporaryPath = `${destinationPath}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temporaryPath, contents, { encoding: "utf8", flag: "wx" });
+    try {
+      await link(temporaryPath, destinationPath);
+    } catch (error) {
+      if (error?.code === "EEXIST") {
+        throw new Error("초기화할 실행 런타임이 이미 존재합니다.", { cause: error });
+      }
+      throw error;
+    }
+  } finally {
+    await unlink(temporaryPath).catch((error) => {
+      if (error?.code !== "ENOENT") throw error;
+    });
+  }
+}
+
+export function initializeExecutionRuntime(
+  executionPlan,
+  { planPath, now = new Date().toISOString() } = {},
+) {
+  assertObject(executionPlan, "실행 계획");
+  requireText(planPath, "실행 계획 경로");
+  if (executionPlan.execution_plan_status !== "approved") {
+    throw new Error("승인된 실행 계획만 런타임으로 초기화할 수 있습니다.");
+  }
+  if (!Number.isInteger(executionPlan.execution_plan_revision)) {
+    throw new Error("실행 계획 리비전이 올바르지 않습니다.");
+  }
+  if (Number.isNaN(Date.parse(now))) throw new Error("자동 기록 시각이 올바르지 않습니다.");
+
+  const committed = (executionPlan.work_allocations ?? []).filter(
+    (allocation) => allocation.disposition === "committed",
+  );
+  if (committed.length === 0) throw new Error("초기화할 커밋 작업이 없습니다.");
+  for (const allocation of committed) {
+    requireText(allocation.work_item_ref, "커밋 작업");
+    requireText(allocation.primary_executor_ref, `${allocation.work_item_ref} 주 실행자`);
+  }
+  const coordinatorRef = executionPlan.orchestration?.coordinator_executor_ref;
+  requireText(coordinatorRef, "실행 총괄");
+
+  const sourceId = "SRC-RUN-001";
+  const planRevision = executionPlan.execution_plan_revision;
+  return {
+    schema_version: "0.1.0",
+    runtime_id: `RUN-${executionPlan.delivery_unit_id}-EP-R${planRevision}`,
+    runtime_revision: 1,
+    runtime_status: "active",
+    updated_at: now,
+    delivery_unit_id: executionPlan.delivery_unit_id,
+    execution_plan_ref: {
+      path: planPath.replaceAll("\\", "/"),
+      execution_plan_id: executionPlan.execution_plan_id,
+      execution_plan_revision: planRevision,
+      canonical_sha256: canonicalSha256(executionPlan),
+    },
+    sources: [
+      {
+        id: sourceId,
+        type: "approved_artifact",
+        captured_at: now,
+        locator: `${planPath.replaceAll("\\", "/")}#${executionPlan.execution_plan_id}@R${planRevision}`,
+        content_ko: `승인된 실행 계획 R${planRevision}의 커밋 작업을 실행 추적 대상으로 등록했습니다.`,
+      },
+    ],
+    work_runs: committed.map((allocation, index) => ({
+      work_item_ref: allocation.work_item_ref,
+      executor_ref: allocation.primary_executor_ref,
+      status: "not_started",
+      started_at: null,
+      completed_at: null,
+      transition_log: [
+        {
+          id: `TR-${String(index + 1).padStart(3, "0")}`,
+          from: null,
+          to: "not_started",
+          occurred_at: now,
+          actor_ref: coordinatorRef,
+          source_ref: sourceId,
+          note_ko: `승인된 R${planRevision}에서 ${allocation.work_item_ref} 작업을 실행 추적 대상으로 등록했습니다.`,
+        },
+      ],
+      blockers: [],
+      evidence_instances: [],
+    })),
+  };
 }
 
 export function applyRuntimeOperation(runtime, operation, { now = new Date().toISOString() } = {}) {
@@ -191,12 +286,48 @@ async function main() {
   const { values } = parseArgs({
     options: {
       runtime: { type: "string" },
+      plan: { type: "string" },
+      initialize: { type: "boolean", default: false },
       operation: { type: "string", default: "-" },
       "dry-run": { type: "boolean", default: false },
     },
   });
   if (!values.runtime) throw new Error("--runtime 경로가 필요합니다.");
   const runtimePath = projectPath(values.runtime, "실행 런타임");
+
+  if (values.initialize) {
+    if (!values.plan) throw new Error("초기화에는 --plan 경로가 필요합니다.");
+    const planPath = projectPath(values.plan, "실행 계획");
+    const executionPlan = JSON.parse(await readFile(planPath, "utf8"));
+    const workPath = projectPath(executionPlan.work_plan_ref.path, "전달 작업 그래프");
+    const workPlan = JSON.parse(await readFile(workPath, "utf8"));
+    try {
+      await readFile(runtimePath, "utf8");
+      throw new Error("초기화할 실행 런타임이 이미 존재합니다.");
+    } catch (error) {
+      if (error?.code !== "ENOENT") throw error;
+    }
+    const initialized = initializeExecutionRuntime(executionPlan, {
+      planPath: values.plan,
+    });
+    const validation = await validateExecutionRuntime(initialized, {
+      executionPlan,
+      workPlan,
+      artifactPath: runtimePath,
+    });
+    if (validation.errors.length) {
+      throw new Error(`초기 실행 런타임이 유효하지 않습니다:\n${validation.errors.join("\n")}`);
+    }
+    const rendered = `${JSON.stringify(initialized, null, 2)}\n`;
+    if (values["dry-run"]) {
+      process.stdout.write(rendered);
+      return;
+    }
+    await publishNewFileAtomically(runtimePath, rendered);
+    console.log("실행 런타임 초기화 완료: revision 1");
+    return;
+  }
+
   const runtime = JSON.parse(await readFile(runtimePath, "utf8"));
   const before = await validateWithBaselines(runtime, runtimePath);
   if (before.errors.length) throw new Error(`기존 실행 런타임이 유효하지 않습니다:\n${before.errors.join("\n")}`);

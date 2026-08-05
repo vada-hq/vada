@@ -38,6 +38,12 @@
 
 실행 계획 승인 이후의 상태·증거는 JSON을 직접 편집하지 않고 `pnpm record:execution-runtime`으로 원자적으로 추가한다. 갱신 입력에는 근거 내용과 상태 전이 또는 완료 증거만 제공하며, 근거·전이·증거 ID와 모든 기록 시각은 도구가 같은 현재 시각으로 생성한다. 호출자가 과거 시각이나 ID를 주입하는 입력은 거부한다.
 
+새 실행 파동은 승인 계획에서 커밋 작업·실행자·계획 해시를 읽어 런타임을 자동 초기화한다. 먼저 `--dry-run`으로 확인하고 같은 명령에서 옵션만 제거한다.
+
+```powershell
+pnpm record:execution-runtime -- --runtime delivery-units/DU-001/execution-runtime/R7.json --plan delivery-units/DU-001/execution-plan/R7.json --initialize --dry-run
+```
+
 ```powershell
 $runtimeUpdate = @'
 {
