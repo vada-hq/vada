@@ -1,12 +1,20 @@
 import { http, HttpResponse, type RequestHandler } from "msw";
 
-import { detailViewExample, ownListExample } from "./purchase-request-fixtures";
+import {
+  detailViewExample,
+  editorStateExample,
+  ownListExample,
+} from "./purchase-request-fixtures";
 
 /**
  * 개발 서버에서만 쓰는 계약 예제 응답이다.
  * 실제 API 연결은 별도 전달 작업이며 여기에서 계약 밖 필드를 만들지 않는다.
  */
 export const handlers: RequestHandler[] = [
+  http.get("*/events/:eventId/purchase-request-editor", () =>
+    HttpResponse.json(editorStateExample),
+  ),
+
   http.get("*/events/:eventId/purchase-requests/mine", () =>
     HttpResponse.json(ownListExample),
   ),
