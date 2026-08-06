@@ -1,11 +1,11 @@
 import type { PurchaseRequestDraftContent } from "@vada/api-client";
 
-import { Button } from "../../components/ui/button";
-import { Card } from "../../components/ui/card";
-import { FormField } from "../../components/ui/form-field";
-import { Input } from "../../components/ui/input";
-import { Select } from "../../components/ui/select";
-import { formatAmount } from "./display";
+import { Button } from "../../../components/ui/button";
+import { Card } from "../../../components/ui/card";
+import { FormField } from "../../../components/ui/form-field";
+import { Input } from "../../../components/ui/input";
+import { Select } from "../../../components/ui/select";
+import { formatAmount } from "../shared/display";
 
 export type DraftItem = NonNullable<PurchaseRequestDraftContent["items"]>[number];
 export type PurchaseType = NonNullable<DraftItem["purchaseType"]>;
@@ -72,13 +72,13 @@ export function ItemCard({
 
   return (
     <li>
-      <Card className="flex flex-col gap-5">
-        <div className="flex items-center justify-between gap-4">
-          <span className="flex items-center gap-3">
-            <span className="flex size-5 items-center justify-center rounded-full bg-muted text-xs">
+      <Card className="flex flex-col gap-loose">
+        <div className="flex items-center justify-between gap-base">
+          <span className="flex items-center gap-snug">
+            <span className="flex size-5 items-center justify-center rounded-full bg-muted text-body">
               {index + 1}
             </span>
-            <span className="text-sm font-medium">{item.name || "새 품목"}</span>
+            <span className="text-body-lg font-medium">{item.name || "새 품목"}</span>
           </span>
           <Button
             aria-label={`품목 ${index + 1} 삭제`}
@@ -91,7 +91,7 @@ export function ItemCard({
           </Button>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-3">
+        <div className="grid gap-loose sm:grid-cols-3">
           <FormField id={`${prefix}-name`} label="품목명" required>
             <Input
               onChange={(event) => onChange({ name: event.target.value })}
@@ -115,7 +115,7 @@ export function ItemCard({
           </FormField>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-4">
+        <div className="grid gap-loose sm:grid-cols-4">
           <FormField id={`${prefix}-type`} label="구매 유형" required>
             <Select
               onValueChange={(value) =>
@@ -130,7 +130,7 @@ export function ItemCard({
               value={type}
             />
           </FormField>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-snug">
             <FormField id={`${prefix}-quantity`} label="수량" required>
               <Input
                 min={1}
@@ -160,15 +160,15 @@ export function ItemCard({
             />
           </FormField>
           <div className="flex flex-col justify-end">
-            <p className="text-xs text-muted-foreground">품목 총액</p>
-            <p className="text-sm font-semibold tabular-nums">
+            <p className="text-body text-muted-foreground">품목 총액</p>
+            <p className="text-body-lg font-semibold tabular-nums">
               {formatAmount(itemPreviewAmount(item))}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col gap-5 rounded-md border border-border bg-muted/40 p-4">
-          <p className="text-xs font-medium text-muted-foreground">
+        <div className="flex flex-col gap-loose rounded-md border border-border bg-muted/40 p-base">
+          <p className="text-body font-medium text-muted-foreground">
             유형별 상세 정보
           </p>
           <TypeDetails
@@ -210,7 +210,7 @@ function TypeDetails({
 
   if (type === "manufacturing_printing") {
     return (
-      <div className="grid gap-5 sm:grid-cols-3">
+      <div className="grid gap-loose sm:grid-cols-3">
         <FormField id={`${prefix}-kind`} label="제작물 종류">
           <Input
             onChange={(event) => onChange({ itemKind: event.target.value })}
@@ -237,7 +237,7 @@ function TypeDetails({
 
   if (type === "rental" || type === "service") {
     return (
-      <div className="grid gap-5 sm:grid-cols-2">
+      <div className="grid gap-loose sm:grid-cols-2">
         <FormField id={`${prefix}-provider`} label="업체 또는 제공자">
           <Input
             onChange={(event) => onChange({ provider: event.target.value })}
@@ -269,7 +269,7 @@ function TypeDetails({
   }
 
   return (
-    <div className="grid gap-5 sm:grid-cols-2">
+    <div className="grid gap-loose sm:grid-cols-2">
       <FormField id={`${prefix}-vendor`} label="판매처 또는 쇼핑몰">
         <Input
           onChange={(event) => onChange({ vendor: event.target.value })}

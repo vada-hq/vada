@@ -7,9 +7,9 @@ import {
 import type { QueryClient } from "@tanstack/react-query";
 import type { RouterHistory } from "@tanstack/react-router";
 
-import { PurchaseRequestDetailScreen } from "../features/purchase-requests/detail-screen";
-import { PurchaseRequestEditorScreen } from "../features/purchase-requests/editor-screen";
-import { PurchaseRequestOwnListScreen } from "../features/purchase-requests/own-list-screen";
+import { PurchaseRequestDetailScreen } from "../features/purchase-request/detail/screen";
+import { PurchaseRequestEditorScreen } from "../features/purchase-request/editor/screen";
+import { PurchaseRequestOwnListScreen } from "../features/purchase-request/own-list/screen";
 
 export interface AppRouterContext {
   queryClient: QueryClient;

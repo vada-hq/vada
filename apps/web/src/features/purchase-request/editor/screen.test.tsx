@@ -2,12 +2,12 @@ import { http, HttpResponse } from "msw";
 import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { AppProviders, createAppRuntime } from "../../app/runtime";
+import { AppProviders, createAppRuntime } from "../../../app/runtime";
 import {
   editorStateExample,
   sampleEventId,
-} from "../../mocks/purchase-request-fixtures";
-import { server } from "../../mocks/server";
+} from "../../../mocks/purchase-request-fixtures";
+import { server } from "../../../mocks/server";
 
 const eventId = sampleEventId;
 const editorPath = `/events/${eventId}/purchase-requests/new`;
