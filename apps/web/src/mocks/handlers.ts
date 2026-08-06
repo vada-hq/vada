@@ -1,6 +1,10 @@
 import { http, HttpResponse, type RequestHandler } from "msw";
 
 import {
+  budgetSummaryExample,
+  eventListExample,
+} from "./event-finance-fixtures";
+import {
   detailViewExample,
   editorStateExample,
   ownListExample,
@@ -15,6 +19,10 @@ let draftVersion = 0;
 let draftContent: unknown = null;
 
 export const handlers: RequestHandler[] = [
+  http.get("*/events/:eventId/budget-summary", () =>
+    HttpResponse.json(budgetSummaryExample),
+  ),
+
   http.get("*/events/:eventId/purchase-request-editor", () =>
     HttpResponse.json({
       ...editorStateExample,
@@ -90,6 +98,10 @@ export const handlers: RequestHandler[] = [
 
   http.get("*/events/:eventId/purchase-requests/mine", () =>
     HttpResponse.json(ownListExample),
+  ),
+
+  http.get("*/events/:eventId/purchase-requests", () =>
+    HttpResponse.json(eventListExample),
   ),
 
   http.get("*/events/:eventId/purchase-requests/:requestId", ({ params }) => {

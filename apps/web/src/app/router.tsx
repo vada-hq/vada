@@ -9,6 +9,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import type * as React from "react";
 import type { RouterHistory } from "@tanstack/react-router";
 
+import { EventFinanceOverviewScreen } from "../features/event-finance/overview/screen";
 import { AppShell } from "../shared/ui/app-shell";
 import { PurchaseRequestDetailScreen } from "../features/purchase-request/detail/screen";
 import { PurchaseRequestEditorScreen } from "../features/purchase-request/editor/screen";
@@ -31,6 +32,12 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/",
   component: HomePage,
+});
+
+const financeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/events/$eventId/finance",
+  component: FinancePage,
 });
 
 const ownListRoute = createRoute({
@@ -60,6 +67,7 @@ const detailRoute = createRoute({
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  financeRoute,
   ownListRoute,
   editorRoute,
   detailRoute,
@@ -90,6 +98,16 @@ function PurchaseRequestShell({
     >
       {children}
     </AppShell>
+  );
+}
+
+function FinancePage() {
+  const { eventId } = financeRoute.useParams();
+
+  return (
+    <PurchaseRequestShell current="행사 재정">
+      <EventFinanceOverviewScreen eventId={eventId} />
+    </PurchaseRequestShell>
   );
 }
 
@@ -131,6 +149,12 @@ function HomePage() {
   // 공통 셸이 생기기 전까지 구현된 화면으로 들어가는 임시 진입점이다.
   const eventId = "event-001";
   const entries = [
+    {
+      description: "이 행사의 예산 현황과 구매 요청 처리 상태를 봅니다.",
+      params: { eventId },
+      title: "행사 재정",
+      to: "/events/$eventId/finance" as const,
+    },
     {
       description: "새 구매 요청을 작성하고 임시 저장하거나 제출합니다.",
       params: { eventId },
