@@ -7,7 +7,7 @@ import { Link } from "@tanstack/react-router";
 export function EventFinanceLink({ eventId }: { eventId: string }) {
   return (
     <a
-      className="mt-2 inline-block text-sm underline"
+      className="mt-tight inline-block text-body underline"
       href={`/events/${encodeURIComponent(eventId)}/finance`}
     >
       행사 재정으로 돌아가기
@@ -18,7 +18,7 @@ export function EventFinanceLink({ eventId }: { eventId: string }) {
 export function OwnListLink({ eventId }: { eventId: string }) {
   return (
     <Link
-      className="mt-2 inline-block text-sm underline"
+      className="mt-tight inline-block text-body underline"
       params={{ eventId }}
       to="/events/$eventId/purchase-requests/mine"
     >

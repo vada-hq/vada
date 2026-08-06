@@ -1,11 +1,6 @@
 import type { PurchaseRequestDraftContent } from "@vada/api-client";
 
-export interface FieldError {
-  /** 오류 요약 링크가 포커스를 옮길 입력의 id다. */
-  controlId: string;
-  label: string;
-  message: string;
-}
+import type { FieldError } from "../../../shared/screen/states";
 
 /**
  * 서버가 최종 판정한다. 이 검증은 빈 요청을 서버로 보내지 않기 위한 사전 확인이며

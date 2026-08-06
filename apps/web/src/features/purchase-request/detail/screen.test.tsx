@@ -3,12 +3,12 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 
-import { AppProviders, createAppRuntime } from "../../app/runtime";
+import { AppProviders, createAppRuntime } from "../../../app/runtime";
 import {
   detailViewExample as detailExample,
   sampleEventId,
-} from "../../mocks/purchase-request-fixtures";
-import { server } from "../../mocks/server";
+} from "../../../mocks/purchase-request-fixtures";
+import { server } from "../../../mocks/server";
 
 const eventId = sampleEventId;
 const requestId = "request-001";
