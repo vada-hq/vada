@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R7",
-  "runtime_revision": 11,
+  "runtime_revision": 14,
   "runtime_status": "active",
-  "updated_at": "2026-08-06T04:19:05.974Z",
+  "updated_at": "2026-08-06T07:38:59.330Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R7.json",
@@ -88,6 +88,27 @@
       "captured_at": "2026-08-06T04:19:05.974Z",
       "locator": "agent-review:work/du001-screen-spec-promotion;delivery-units/DU-001/screen-spec/R2.json",
       "content_ko": "프론트엔드와 품질 검토를 독립 수행했습니다. 품질 검토에서 EVID-024가 요구한 설계 참조 4건과 계약 참조 3건이 상태 매트릭스와 와이어프레임 대조에서 실제로 사용되고 비교 항목 8건이 커버리지에 누락 없이 등록된 것을 확인했습니다. 프론트엔드 검토에서 상태 23개를 전수 확인해 모호한 서술 3건을 지적했습니다. STATE-DETAIL-FAILED의 허용된 경우 재시도, STATE-OWN-LIST-FAILED의 오류 구분 방법 미정의, STATE-OWN-LIST-LOADING-EMPTY-READY의 허용된 경우 새 요청 노출 조건입니다. 세 건 모두 제품 의미를 바꾸지 않는 범위에서 재시도는 일시 장애에만 제공, 권한 없음과 찾을 수 없음은 다른 조직 데이터 존재를 노출하지 않는 안내로 표시, 새 요청 노출은 COMPARE-001 규칙을 따름으로 명시화했습니다."
+    },
+    {
+      "id": "SRC-RUN-012",
+      "type": "user_statement",
+      "captured_at": "2026-08-06T07:35:12.939Z",
+      "locator": "current-thread/2026-08-06-wireframe-authority",
+      "content_ko": "제품 책임자가 UI 측면에서 와이어프레임이 최우선이며 계약·문서·JSON이 와이어프레임과 다르면 와이어프레임을 기준으로 문서를 수정하라고 지시했습니다. 데이터 저장 위치와 접근성, 서버 계약 필드는 계약이 우선한다는 예외에 동의했습니다. 승인 화면 명세 R2를 다시 대조한 결과 상세 화면 비교 항목 COMPARE-007의 처분이 UI 정보 위계 보존을 지시하지 않고 구현 인계 규칙이 와이어프레임 위계 준수를 명시하지 않아 구현이 임의 재설계로 흐를 수 있음을 확인했습니다."
+    },
+    {
+      "id": "SRC-RUN-013",
+      "type": "review_record",
+      "captured_at": "2026-08-06T07:38:45.721Z",
+      "locator": "agent-review:work/du001-screen-spec-r3;delivery-units/DU-001/screen-spec/R3.json",
+      "content_ko": "와이어프레임 UI 우선 방침으로 승인 화면 명세 R2의 비교 항목 여덟 건을 다시 판정했습니다. 초안 저장 위치와 접근성 계약, 구매 유형 계약 필드, 제출 오류 처리 네 건은 제품 책임자가 동의한 예외에 따라 계약 우선을 유지했습니다. 목록 비교 항목은 이미 정보 위계 보존을 지시하고 있어 명세 변경이 필요 없었고 위반은 구현 쪽에 있음을 확인했습니다. 상세 비교 항목의 처분이 UI 위계 보존을 지시하지 않아 요약 카드와 품목 표 구조를 보존하고 범위 밖 내용만 제거하도록 바로잡았으며, 구현 인계 규칙 첫머리에 와이어프레임의 정보 위계와 시각 구조를 구현 기준으로 삼는다는 규칙과 와이어프레임·계약 충돌 시 판정 기준을 추가했습니다. 목록과 상세 영역 정의에도 표 형태와 강조 위치를 명시했습니다."
+    },
+    {
+      "id": "SRC-RUN-014",
+      "type": "command_output",
+      "captured_at": "2026-08-06T07:38:59.330Z",
+      "locator": "pnpm test:screen-specs;pnpm validate:screen-specs",
+      "content_ko": "화면 명세 검증 테스트 17건과 저장소 명세 3개 검증이 오류 없이 통과했습니다."
     }
   ],
   "work_runs": [
@@ -96,7 +117,7 @@
       "executor_ref": "EXEC:ai-experience-design",
       "status": "done",
       "started_at": "2026-08-05T07:23:38.455Z",
-      "completed_at": "2026-08-06T04:19:05.974Z",
+      "completed_at": "2026-08-06T07:38:59.330Z",
       "transition_log": [
         {
           "id": "TR-001",
@@ -133,6 +154,33 @@
           "actor_ref": "EXEC:ai-verifier",
           "source_ref": "SRC-RUN-011",
           "note_ko": "제품 책임자의 제품 정의 확정과 프론트엔드·품질 독립 검토 통과, 지적 3건 반영을 확인하고 화면 명세를 승인 리비전 R2로 승격해 완료합니다."
+        },
+        {
+          "id": "TR-012",
+          "from": "done",
+          "to": "in_progress",
+          "occurred_at": "2026-08-06T07:35:12.939Z",
+          "actor_ref": "EXEC:ai-experience-design",
+          "source_ref": "SRC-RUN-012",
+          "note_ko": "와이어프레임 UI 우선 방침에 맞춰 상세 비교 처분과 구현 인계 규칙을 바로잡기 위해 승인 명세를 재작업합니다."
+        },
+        {
+          "id": "TR-013",
+          "from": "in_progress",
+          "to": "review",
+          "occurred_at": "2026-08-06T07:38:45.721Z",
+          "actor_ref": "EXEC:ai-experience-design",
+          "source_ref": "SRC-RUN-013",
+          "note_ko": "와이어프레임 UI 우선 방침을 반영한 화면 명세 R3를 제출합니다."
+        },
+        {
+          "id": "TR-014",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-06T07:38:59.330Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-014",
+          "note_ko": "와이어프레임 UI 우선 판정과 예외 네 건, 상세 위계 보존 수정을 독립 확인하고 화면 명세 R3로 재작업을 완료합니다."
         }
       ],
       "blockers": [],
@@ -158,6 +206,17 @@
           "verified_by": "EXEC:ai-verifier",
           "verified_at": "2026-08-06T04:19:05.974Z",
           "verification_note_ko": "승인 리비전 R2로 승격한 명세를 독립 재검증했습니다. 상세 계약 공백 CONTRACT-GAP-001 해소, API 상세 R2와 DATA detail_view R1 참조, 서버 반환 행사명과 실제 요청자명 표시, 로딩·찾을 수 없음·일시 장애·새로고침 재조회·키보드 상태가 모두 존재합니다. just validate-screen-specs 테스트 17건과 저장소 화면 명세 2개 검증이 통과했습니다."
+        },
+        {
+          "id": "PROOF-005",
+          "requirement_ref": "EVID-024",
+          "kind": "reviewed_artifact",
+          "locator": "delivery-units/DU-001/screen-spec/R3.json",
+          "captured_at": "2026-08-06T07:38:45.721Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-06T07:38:45.721Z",
+          "verification_note_ko": "리비전 3이 작업 참조와 완료 증거 참조, 계약 묶음 R2와 구현 아키텍처 R2, 전달 작업 그래프 R2 기준선을 그대로 유지하고 상세 계약 R2 추적과 상태 커버리지를 보존하는 것을 확인했습니다. just validate-screen-specs 테스트 17건과 저장소 화면 명세 3개 검증이 통과했습니다."
         }
       ]
     },

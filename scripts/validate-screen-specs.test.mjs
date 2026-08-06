@@ -13,7 +13,7 @@ import {
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const artifactPath = resolve(
   repositoryRoot,
-  "delivery-units/DU-001/screen-spec/R2.json",
+  "delivery-units/DU-001/screen-spec/R3.json",
 );
 const historicalDraftPath = resolve(
   repositoryRoot,
@@ -27,7 +27,8 @@ async function actualSpec() {
 test("저장소의 실제 화면 명세가 유효하다", async () => {
   const result = await validateScreenSpecRepository(repositoryRoot);
   assert.deepEqual(result.errors, []);
-  assert.equal(result.files.length, 2);
+  // R1 거부 이력 초안과 승인 리비전 R2·R3를 모두 발견해야 한다.
+  assert.equal(result.files.length, 3);
 });
 
 test("과거 R1 거부 증거의 QUESTION-001 앵커를 보존한다", async () => {
@@ -210,7 +211,7 @@ test("DU-001 화면 명세 후보가 승인된 상세 계약 R2를 추적한다"
     (step) => step.design_ref === "DESIGN-INTERACTION-006",
   );
 
-  assert.equal(spec.spec_revision, 2);
+  assert.equal(spec.spec_revision, 3);
   assert.equal(spec.work_item_ref, "WORK:purchase-request-screen-spec@R2");
   assert.equal(spec.completion_evidence_ref, "EVID-024");
   assert.equal(spec.baseline.contract_bundle_ref.bundle_revision, 2);
