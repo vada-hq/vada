@@ -28,7 +28,7 @@ dev-web:
 dev-web-mock:
     pnpm --filter web dev:mock
 
-# 와이어프레임 정본을 브라우저에서 확인하는 개발 서버 (화면 87개)
+# 와이어프레임 정본을 브라우저에서 확인하는 개발 서버 — http://localhost:5180/ (화면 87개)
 dev-wireframe:
     pnpm --filter @vada/wireframe dev
 

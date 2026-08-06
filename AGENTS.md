@@ -31,7 +31,7 @@
 | `just dev-api` | API 개발 서버 (http://localhost:8000) |
 | `just dev-web` | 웹 개발 서버 |
 | `just dev-web-mock` | 계약 예제로 화면을 브라우저에서 확인 |
-| `just dev-wireframe` | 와이어프레임 정본을 브라우저에서 확인 |
+| `just dev-wireframe` | 와이어프레임 정본을 브라우저에서 확인 (http://localhost:5180/) |
 | `just validate-contracts` | 서버 계약 검증 |
 | `just validate-screens` | 화면 정본의 와이어프레임·계약 참조 검증 |
 | `just validate-tooling` | CI 스코프 판별과 착수 전 도구 점검 |
