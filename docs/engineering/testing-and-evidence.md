@@ -34,36 +34,11 @@
 
 비밀값, 전체 운영 데이터, 민감한 요청 본문은 증거에 복사하지 않는다. 긴 로그는 허용된 CI 산출물에 보존하고 PR에는 명령·결과·안전한 위치만 기록한다.
 
-### 실행 런타임 기록
+### 진행 상태 기록
 
-실행 계획 승인 이후의 상태·증거는 JSON을 직접 편집하지 않고 `pnpm record:execution-runtime`으로 원자적으로 추가한다. 갱신 입력에는 근거 내용과 상태 전이 또는 완료 증거만 제공하며, 근거·전이·증거 ID와 모든 기록 시각은 도구가 같은 현재 시각으로 생성한다. 호출자가 과거 시각이나 ID를 주입하는 입력은 거부한다.
+착수·검토·완료는 GitHub Issue와 PR이 소유한다. 저장소 파일에 상태를 복사하지 않는다. 파일에 적으면 브랜치마다 다른 답이 나오고, 실제로 그런 일이 있었다.
 
-새 실행 파동은 승인 계획에서 커밋 작업·실행자·계획 해시를 읽어 런타임을 자동 초기화한다. 먼저 `--dry-run`으로 확인하고 같은 명령에서 옵션만 제거한다.
-
-```powershell
-pnpm record:execution-runtime -- --runtime delivery-units/DU-001/execution-runtime/R7.json --plan delivery-units/DU-001/execution-plan/R7.json --initialize --dry-run
-```
-
-```powershell
-$runtimeUpdate = @'
-{
-  "source": {
-    "type": "user_statement",
-    "locator": "conversation:approval",
-    "content_ko": "제품 책임자가 착수를 승인했습니다."
-  },
-  "transition": {
-    "work_item_ref": "WORK:example@R1",
-    "to": "in_progress",
-    "actor_ref": "EXEC:ai-coordinator",
-    "note_ko": "승인된 작업을 시작합니다."
-  }
-}
-'@
-$runtimeUpdate | pnpm record:execution-runtime -- --runtime delivery-units/DU-001/execution-runtime/R2.json --dry-run
-```
-
-`--dry-run` 결과와 검증을 확인한 뒤 같은 입력에서 옵션만 제거해 기록한다. 과거 기록을 정정할 때는 값을 조용히 덮어쓰지 않고 Git·PR·CI의 영구 메타데이터를 사용하며, 정정 이유와 근거를 새 실행 근거로 추가한다. 정확한 시각이 보존되지 않았다면 추정하지 말고 처음 확인 가능한 영구 기록 시각을 사용한다.
+PR 본문에 RED·GREEN 증거와 실행한 명령의 출력, 브라우저에서 확인한 경로를 남긴다. 화면 파일의 `status`는 `todo`·`doing`·`done` 셋뿐이며 PR이 머지될 때 함께 바꾼다.
 
 ## 완료 판정
 
