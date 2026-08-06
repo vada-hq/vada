@@ -2507,11 +2507,12 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["FIN-00 전체 재정 현황"],
   },
   "FIN-REQ-01B": {
-    id: "FIN-REQ-01B", name: "구매 요청 작성·수정 — 홍보부 부서장", stateChip: "권한 보유",
+    id: "FIN-REQ-01B", name: "구매 요청 작성·수정 — 홍보부 부서장", stateChip: "작성 팝업",
     purpose: "홍보부 부서장 김민석이 행사에 필요한 물품의 구매를 요청한다.",
     users: "부서장 (김민석)",
-    entryPath: "EVT-FIN-01 → 새 구매 요청 (홍보부 부서장)",
+    entryPath: "EVT-FIN-01 또는 MY-REQ-01 → 새 구매 요청 (홍보부 부서장)",
     functions: [
+      { num: "00", element: "작성 팝업", description: "독립 화면으로 이동하지 않고 여는 화면 위에 팝업으로 뜬다. 오른쪽 위 닫기 또는 취소로 닫으면 원래 화면이 그대로 남는다.", constraint: "권한이 없으면 여는 버튼 자체를 노출하지 않는다" },
       { num: "01", element: "요청 정보", description: "제목, 구매 목적, 필요일, 우선순위를 입력하고 요청 부서는 홍보부로 고정한다." },
       { num: "02", element: "품목 추가", description: "여러 품목을 한 요청에 담을 수 있으며 새 품목은 목록 맨 위에 추가된다." },
       { num: "03", element: "구매 유형 선택", description: "일반 구매, 제작·인쇄, 대여, 용역에 따라 입력 필드를 전환한다. 대여는 대여처·수령·반납 일시·보증금, 용역은 제공자·수행 장소·수행 일시 필드를 보여준다." },
@@ -12191,9 +12192,10 @@ function FINLEDGER01() {
   );
 }
 
-function EVTFIN01() {
+function EVTFIN01({ openRequestForm = false }: { openRequestForm?: boolean }) {
   const { navigateTo, purchaseRequests, setPurchaseRequests, currentUser, eventInfo, selectedEventId, setSelectedPurchaseRequestId, evidenceBundles } = React.useContext(AppContext);
   const canReviewPurchase = canManageFinance(currentUser);
+  const [requestFormOpen, setRequestFormOpen] = useState(openRequestForm); // `새 구매 요청`이 여는 작성 팝업(FIN-REQ-01B)
   const [quickCard, setQuickCard] = useState<string | null>(null); // 처리 단계 보드에서 빠른 처리 팝오버가 열린 카드(rowKey)
   const [itemsMineOnly, setItemsMineOnly] = useState(false); // 품목 현황: 내가 요청한 구매만 보기
   const [expandedStack, setExpandedStack] = useState<string | null>(null); // 같은 요청 카드 스택 중 펼쳐진 것(호버로 펼치고 바깥 클릭 시 접힘)
@@ -12422,7 +12424,7 @@ function EVTFIN01() {
         <>
           <Btn variant="secondary" size="sm" onClick={() => navigateTo("MY-REQ-01")}><User className="w-3.5 h-3.5" /> 내 구매 요청</Btn>
           {canReviewPurchase && <Btn variant="secondary" size="sm" onClick={() => navigateTo("FIN-EVID-01")}><Clipboard className="w-3.5 h-3.5" /> 증빙 정리</Btn>}
-          {canCreateRequest && <Btn variant="primary" size="sm" onClick={() => navigateTo("FIN-REQ-01B")}><Plus className="w-3.5 h-3.5" /> 새 구매 요청</Btn>}
+          {canCreateRequest && <Btn variant="primary" size="sm" onClick={() => setRequestFormOpen(true)}><Plus className="w-3.5 h-3.5" /> 새 구매 요청</Btn>}
         </>
       }
     >
@@ -12817,12 +12819,17 @@ function EVTFIN01() {
 
         {adjustOpen && <div className="fixed inset-0 z-50 bg-black/30 flex items-center justify-center p-6"><div className="w-[560px] bg-white rounded-2xl shadow-xl overflow-hidden"><div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between"><div><h3 className="text-sm font-bold text-gray-900">행사 예산 조정</h3><p className="text-[11px] text-gray-500 mt-1">사용 가능 예산만 다른 항목으로 이동할 수 있습니다.</p></div><button onClick={() => setAdjustOpen(false)} className="text-gray-400"><X className="w-4 h-4" /></button></div><div className="p-6 grid grid-cols-2 gap-4"><Input label="출발 항목" select selectOptions={budgetLines.map(line => line.name)} value={adjustFrom} onChange={event => setAdjustFrom(event.target.value)} /><Input label="도착 항목" select selectOptions={budgetLines.map(line => line.name)} value={adjustTo} onChange={event => setAdjustTo(event.target.value)} /><Input label="조정 금액" type="number" value={adjustAmount} onChange={event => setAdjustAmount(event.target.value)} hint={`출발 항목 사용 가능액 ${availableByLine(adjustFrom).toLocaleString()}원`} /><Input label="조정 사유" select selectOptions={["구매 요청 반영", "운영 계획 변경", "행사 규모 변경", "집행 차이", "기타"]} value={adjustReason} onChange={event => setAdjustReason(event.target.value)} /><div className="col-span-2"><Input label="구체적 설명" value={adjustNote} onChange={event => setAdjustNote(event.target.value)} required placeholder="조정 사유와 연결된 구매 요청을 기록하세요." /></div></div><div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end gap-2"><Btn variant="secondary" onClick={() => setAdjustOpen(false)}>취소</Btn><Btn variant="primary" disabled={!adjustNote.trim() || !Number(adjustAmount) || Number(adjustAmount) > availableByLine(adjustFrom) || adjustFrom === adjustTo} onClick={submitAdjustment}>조정 기록 남기기</Btn></div></div></div>}
       </div>
+
+      {requestFormOpen && <FINREQ01 onClose={() => setRequestFormOpen(false)} />}
     </DesktopShell>
   );
 }
 
-function FINREQ01() {
+// 구매 요청서 작성은 독립 화면이 아니라 행사 재정·내 구매 요청의 `새 구매 요청` 버튼이 여는 팝업이다.
+// 여는 화면이 onClose를 넘기며, 화면 목록에서 단독으로 열 때는 행사 재정 위에 얹어 보여 준다.
+function FINREQ01({ onClose }: { onClose?: () => void }) {
   const { navigateTo, purchaseRequests, setPurchaseRequests, currentUser, purchaseRequestDraft, setPurchaseRequestDraft, setDemoDataMode, eventInfo, selectedEventId } = React.useContext(AppContext);
+  const close = () => { if (onClose) onClose(); else navigateTo("EVT-FIN-01"); };
   const [title, setTitle] = useState(purchaseRequestDraft?.title ?? "체육대회 운영 물품");
   const today = formatDateInput(new Date());
   const [neededDate, setNeededDate] = useState(() => purchaseRequestDraft?.neededDate ?? getDefaultNeededDate());
@@ -12905,6 +12912,7 @@ function FINREQ01() {
       }, ...prev]);
       setPurchaseRequestDraft(null);
       setDemoDataMode("default");
+      onClose?.();
       navigateTo("MY-REQ-01");
     } else {
       // Scroll to first error
@@ -12919,20 +12927,24 @@ function FINREQ01() {
   };
 
   if (!canSubmitPurchaseRequest(currentUser)) {
-    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["운영", "행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">구매 요청 작성 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청 작성과 보완 재제출은 부서장 또는 재정부만 할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01")}>행사 재정으로 돌아가기</Btn></div></div></DesktopShell>;
+    return <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4"><div className="w-full max-w-md bg-white border border-gray-200 rounded-2xl p-8 text-center shadow-2xl"><p className="text-sm font-bold text-gray-800">구매 요청 작성 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청 작성과 보완 재제출은 부서장 또는 재정부만 할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={close}>닫기</Btn></div></div>;
   }
 
   return (
-    <DesktopShell activeSidebar="운영" title="구매 요청 작성·수정" breadcrumb={["운영", "행사", eventInfo.name, "재정", "구매 요청 작성"]}>
-      <div className="flex h-full bg-gray-50 overflow-hidden">
-        <div className="flex-1 overflow-auto p-8">
-          <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-20">
-            {/* Header / Correction Info */}
-            <div className="flex flex-col gap-2">
-               <h1 className="text-xl font-bold text-gray-900">구매 요청서 작성</h1>
-               <p className="text-xs text-gray-500">행사 운영에 필요한 물품 또는 용역의 구매를 요청합니다.</p>
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4">
+      <div className="w-full max-w-6xl h-[calc(100vh-2rem)] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden">
+        {/* Modal Header */}
+        <div className="shrink-0 flex items-start justify-between gap-4 px-8 py-5 border-b border-gray-200">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-xl font-bold text-gray-900">구매 요청서 작성</h2>
+            <p className="text-xs text-gray-500">행사 운영에 필요한 물품 또는 용역의 구매를 요청합니다.</p>
+          </div>
+          <button type="button" onClick={close} aria-label="구매 요청서 작성 닫기" className="p-1 text-gray-400 hover:text-gray-700"><X className="w-5 h-5" /></button>
+        </div>
 
+      <div className="flex flex-1 min-h-0 bg-gray-50 overflow-hidden">
+        <div className="flex-1 overflow-auto p-8">
+          <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-8">
             {purchaseRequestDraft && (
               <div className="bg-blue-50 border border-blue-200 rounded-xl px-5 py-4 flex items-center justify-between gap-4">
                 <div><p className="text-xs font-bold text-blue-900">임시 저장한 구매 요청을 이어서 작성하고 있습니다</p><p className="text-[11px] text-blue-700 mt-1">{purchaseRequestDraft.savedAt}에 저장됨 · 제출 전에는 재정부 검토 목록에 표시되지 않습니다.</p></div>
@@ -13205,7 +13217,7 @@ function FINREQ01() {
              <div className="mt-auto flex flex-col gap-2">
                 <Btn variant="primary" size="md" className="w-full justify-center py-3" onClick={handleSubmit}>구매 요청 제출</Btn>
                 <Btn variant="secondary" size="md" className="w-full justify-center" onClick={saveDraft}>임시 저장</Btn>
-                <Btn variant="text" size="sm" className="w-full justify-center text-gray-400" onClick={() => navigateTo("MY-REQ-01")}>취소</Btn>
+                <Btn variant="text" size="sm" className="w-full justify-center text-gray-400" onClick={close}>취소</Btn>
              </div>
 
              <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
@@ -13217,7 +13229,8 @@ function FINREQ01() {
           </div>
         </aside>
       </div>
-    </DesktopShell>
+      </div>
+    </div>
   );
 }
 
@@ -14170,6 +14183,7 @@ function MY01() {
 
 function MYREQ01() {
   const { navigateTo, purchaseRequests, currentUser, eventInfo, selectedEventId, setSelectedPurchaseRequestId } = React.useContext(AppContext);
+  const [requestFormOpen, setRequestFormOpen] = useState(false); // `새 구매 요청`이 여는 작성 팝업(FIN-REQ-01B)
   // 내 구매 요청도 선택 행사 기준으로만 보여준다.
   const myRequests = purchaseRequests.filter(request => request.requester === currentUser.name && request.eventId === selectedEventId);
   const statCards = [
@@ -14204,7 +14218,7 @@ function MYREQ01() {
             </div>
             <p className="text-xs text-gray-500 mt-0.5">이 행사에서 내가 제출한 구매 요청 · {currentUser.name} · {currentUser.dept} · {currentUser.role}</p>
           </div>
-          {canCreateRequest && <button onClick={() => navigateTo("FIN-REQ-01B")} className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+          {canCreateRequest && <button onClick={() => setRequestFormOpen(true)} className="flex items-center gap-1.5 bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
             <Plus className="w-4 h-4" /> 새 구매 요청
           </button>}
         </div>
@@ -14254,6 +14268,8 @@ function MYREQ01() {
           </table>
         </div>
       </div>
+
+      {requestFormOpen && <FINREQ01 onClose={() => setRequestFormOpen(false)} />}
     </DesktopShell>
   );
 }
@@ -17072,7 +17088,8 @@ export const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "MY-REQ-01": MYREQ01,
   "EVT-FIN-01": EVTFIN01,
   "EVT-FIN-01B": () => <AsFinanceManager><EVTFIN01 /></AsFinanceManager>,
-  "FIN-REQ-01B": () => <AsPromotionDepartmentHead><FINREQ01 /></AsPromotionDepartmentHead>,
+  // 작성 팝업은 단독 화면이 아니므로 여는 화면인 행사 재정 위에 얹어 검토한다.
+  "FIN-REQ-01B": () => <AsPromotionDepartmentHead><EVTFIN01 openRequestForm /></AsPromotionDepartmentHead>,
   "FIN-REQ-02": FINREQ02,
   "FIN-SUP-01B": () => <AsPromotionDepartmentHead><FINSUP01 /></AsPromotionDepartmentHead>,
   "FIN-REV-01": FINREV01,

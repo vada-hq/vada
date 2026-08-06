@@ -22,6 +22,41 @@ describe("재정 화면 렌더 스모크", () => {
   }
 });
 
+describe("구매 요청서 작성 팝업", () => {
+  it("행사 재정에서 `새 구매 요청`을 누르면 화면 이동 없이 팝업으로 뜬다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"]; // 작성 권한이 있는 재정부
+    render(<Comp />);
+
+    // 열기 전에는 작성 폼이 없다.
+    expect(screen.queryByText("구매 요청서 작성")).toBeNull();
+
+    fireEvent.click(screen.getByText("새 구매 요청"));
+
+    // 팝업이 뜨고, 여는 화면(행사 재정)은 뒤에 그대로 남는다.
+    expect(screen.queryByText("구매 요청서 작성"), "작성 팝업이 떠야 함").not.toBeNull();
+    expect(screen.queryByText("행사 재정 — 개요"), "뒤 화면이 남아 있어야 함").not.toBeNull();
+  });
+
+  it("닫기를 누르면 팝업만 사라지고 여는 화면으로 돌아온다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"];
+    render(<Comp />);
+
+    fireEvent.click(screen.getByText("새 구매 요청"));
+    fireEvent.click(screen.getByLabelText("구매 요청서 작성 닫기"));
+
+    expect(screen.queryByText("구매 요청서 작성"), "팝업이 닫혀야 함").toBeNull();
+    expect(screen.queryByText("행사 재정 — 개요"), "여는 화면이 남아야 함").not.toBeNull();
+  });
+
+  it("화면 목록의 FIN-REQ-01B는 행사 재정 위에 팝업이 열린 상태로 보여 준다", () => {
+    const Comp = SCREEN_COMPONENTS["FIN-REQ-01B"];
+    render(<Comp />);
+
+    expect(screen.queryByText("구매 요청서 작성")).not.toBeNull();
+    expect(screen.queryByText("행사 재정 — 개요")).not.toBeNull();
+  });
+});
+
 describe("처리 단계 카드 스택 팝오버 노출", () => {
   it("스택을 펼쳐 아래 카드를 클릭하면 상태 변경 팝오버가 뜨고, 열린 카드가 z-40으로 올라온다", () => {
     const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"]; // 재정부 처리 단계 보드
