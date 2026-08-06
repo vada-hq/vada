@@ -1,0 +1,377 @@
+{
+  "schema_version": "0.1.0",
+  "execution_plan_id": "EP-DU-001",
+  "execution_plan_revision": 11,
+  "execution_plan_status": "approved",
+  "approval_source_ref": "SRC-006",
+  "updated_at": "2026-08-06T15:34:52+09:00",
+  "delivery_unit_id": "DU-001",
+  "work_plan_ref": {
+    "path": "delivery-units/DU-001/delivery-work/R3.json",
+    "plan_id": "WP-FIN-001",
+    "plan_revision": 3,
+    "canonical_sha256": "d5320f913f788aac2a2add43a5978817092ef471b920f58648166f99018aee7e"
+  },
+  "objective_ko": "권한 보유자가 하나 이상의 품목을 제출하고, 성공 여부와 저장된 요청을 자신의 요청 목록에서 다시 확인합니다.",
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-06T15:34:52+09:00",
+      "locator": "delivery-units/DU-001/delivery-work/R3.json#d5320f913f788aac2a2add43a5978817092ef471b920f58648166f99018aee7e",
+      "content_ko": "승인된 DU-001 작업 그래프 R3입니다. 공통 웹 애플리케이션 기반과 작성·목록·상세 UI 네 작업을 소유하며 세 UI는 화면 명세 R2, 계약 픽스처 R2, 공통 웹 기반을 선행으로 요구합니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-06T15:34:52+09:00",
+      "locator": "delivery-units/DU-001/execution-plan/R6.json",
+      "content_ko": "같은 작업 그래프를 고정한 직전 실행 계획입니다. 세 UI를 forecast로 두고 화면 명세 R2와 계약 픽스처 R2, 공통 웹 기반이 모두 검증 완료된 뒤 다음 rolling-wave에서 배정한다고 명시했으며 rolling-wave, 추정 없음, 일정 없음, 작업자 격리, 독립 검증 정책을 계승합니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-06T15:34:52+09:00",
+      "locator": "delivery-units/DU-001/screen-spec/R2.json",
+      "content_ko": "승인 화면 명세 R2입니다. 제품 정의·프론트엔드·품질 검토가 모두 통과했고 화면 세 개의 상태 23종, 접근성 계약, 와이어프레임 대조 8건, 구현 인계 규칙을 확정해 세 UI 작업의 마지막 선행 조건을 해소했습니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "command_output",
+      "captured_at": "2026-08-06T15:34:52+09:00",
+      "locator": "pnpm derive:delivery-status -- --du DU-001",
+      "content_ko": "상태 파생이 작성·목록·상세 UI 세 건을 선행 미충족 없는 현재 착수 가능 작업으로 계산했습니다. 세 작업 모두 실행 계획 배정이 없어 착수할 수 없는 상태입니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "standard",
+      "captured_at": "2026-08-06T15:34:52+09:00",
+      "locator": ".vada/workflow-policy.json;AGENTS.md;docs/engineering/agent-execution.md;docs/engineering/testing-and-evidence.md",
+      "content_ko": "저장소 기준은 현재 의존성 시작점만 격리된 작업 공간에서 착수하고 작성자와 검증자를 분리하며, 선행관계와 공유 변경 경로가 없는 작업만 병렬화하고 전체 검사는 총괄 통합선에서 한 번 실행하도록 요구합니다."
+    },
+    {
+      "id": "SRC-006",
+      "type": "user_statement",
+      "captured_at": "2026-08-06T15:34:52+09:00",
+      "locator": "current-thread/evidence-based-technical-decision-delegation-2026-08-05;current-thread/2026-08-06-ui-wave",
+      "content_ko": "제품 책임자는 승인된 기준과 근거에서 단일 권장안이 도출되는 기술 구조는 별도 확인 질문 없이 총괄 에이전트가 확정·검증·진행하고, 결과를 실질적으로 바꾸는 선택만 질문하도록 위임했습니다. 직전 계획이 명시한 배정 조건이 충족돼 계산된 이번 파동에도 같은 위임을 적용합니다."
+    }
+  ],
+  "satisfied_prerequisites": [
+    {
+      "work_item_ref": "WORK:purchase-request-screen-spec@R2",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R7.json#PROOF-004",
+      "source_refs": [
+        "SRC-003",
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-contract-fixtures@R2",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R5.json#PROOF-001",
+      "source_refs": [
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:web-application-foundation@R1",
+      "evidence_locator": "delivery-units/DU-001/execution-runtime/R6.json#PROOF-003",
+      "source_refs": [
+        "SRC-002",
+        "SRC-004"
+      ]
+    }
+  ],
+  "planning_policy": {
+    "scope_mode": "rolling_wave",
+    "estimate_mode": "none",
+    "estimate_unit": "not_applicable",
+    "schedule_mode": "none",
+    "target_window": null,
+    "rationale_ko": "직전 계획이 배정 조건으로 명시한 화면 명세 R2, 계약 픽스처 R2, 공통 웹 기반이 모두 검증 완료돼 세 UI가 동시에 현재 시작점이 됐습니다. 세 건을 함께 커밋하되 모두 apps/web을 공유 변경 경로로 쓰므로 병렬 착수하지 않고 의존성 시작점 순서로 하나씩 실행하며, 근거 없는 추정과 목표 날짜는 두지 않습니다.",
+    "source_refs": [
+      "SRC-001",
+      "SRC-002",
+      "SRC-003",
+      "SRC-004",
+      "SRC-005"
+    ]
+  },
+  "orchestration": {
+    "human_approver_ref": "EXEC:product-owner",
+    "coordinator_executor_ref": "EXEC:ai-coordinator",
+    "verifier_executor_refs": [
+      "EXEC:ai-verifier"
+    ],
+    "worker_isolation": "git_worktree",
+    "parallelism_mode": "dependency_frontier",
+    "max_parallel_workers": 1,
+    "independent_verification_required": true,
+    "rationale_ko": "세 UI가 apps/web의 라우팅·공유 컴포넌트·MSW 핸들러를 함께 변경하므로 동시 쓰기 주체를 하나로 제한합니다. 프론트엔드 작업자가 격리된 작업 공간에서 승인 화면 명세와 계약 픽스처만 근거로 구현하고, 별도 AI 검증자가 상태 커버리지와 접근성 계약, 조직 경계 노출을 독립 확인합니다.",
+    "source_refs": [
+      "SRC-003",
+      "SRC-005"
+    ]
+  },
+  "executors": [
+    {
+      "id": "EXEC:product-owner",
+      "kind": "human",
+      "display_name": "제품 책임자 황성욱",
+      "execution_roles": [
+        "accountable_owner"
+      ],
+      "capabilities": [],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-005",
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:ai-frontend",
+      "kind": "ai_agent",
+      "display_name": "AI 프론트엔드 작업자",
+      "execution_roles": [
+        "worker"
+      ],
+      "capabilities": [
+        "frontend"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-003",
+        "SRC-005",
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:ai-coordinator",
+      "kind": "ai_agent",
+      "display_name": "AI 실행 총괄",
+      "execution_roles": [
+        "coordinator"
+      ],
+      "capabilities": [
+        "technical_design",
+        "quality",
+        "security",
+        "documentation"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-005",
+        "SRC-006"
+      ]
+    },
+    {
+      "id": "EXEC:ai-verifier",
+      "kind": "ai_agent",
+      "display_name": "AI 독립 검증자",
+      "execution_roles": [
+        "verifier"
+      ],
+      "capabilities": [
+        "experience_design",
+        "technical_design",
+        "frontend",
+        "quality",
+        "security"
+      ],
+      "availability": {
+        "status": "unknown",
+        "capacity_value": null,
+        "capacity_unit": null,
+        "available_from": null,
+        "available_until": null
+      },
+      "source_refs": [
+        "SRC-005",
+        "SRC-006"
+      ]
+    }
+  ],
+  "work_allocations": [
+    {
+      "work_item_ref": "WORK:web-application-foundation@R1",
+      "disposition": "satisfied",
+      "primary_executor_ref": null,
+      "collaborator_refs": [],
+      "estimate": {
+        "status": "not_applicable",
+        "low": null,
+        "high": null,
+        "unit": "not_applicable",
+        "basis_ko": null,
+        "source_refs": [
+          "SRC-002"
+        ]
+      },
+      "target_window": null,
+      "rationale_ko": "실행 계획 R6에서 커밋해 EVID-033과 EVID-034의 독립 검증을 마쳤습니다.",
+      "source_refs": [
+        "SRC-002",
+        "SRC-004"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-own-list-ui@R2",
+      "disposition": "committed",
+      "primary_executor_ref": "EXEC:ai-frontend",
+      "collaborator_refs": [
+        "EXEC:ai-verifier"
+      ],
+      "estimate": {
+        "status": "not_applicable",
+        "low": null,
+        "high": null,
+        "unit": "not_applicable",
+        "basis_ko": null,
+        "source_refs": [
+          "SRC-006"
+        ]
+      },
+      "target_window": null,
+      "rationale_ko": "세 UI 중 상태 수가 가장 적고 다른 두 화면의 진입 경로가 되는 목록부터 구현해 라우팅과 MSW 핸들러 경계를 먼저 고정합니다. 승인 화면 명세의 목록 상태 세 종과 계약 픽스처만 근거로 사용하고 목록 계약에 없는 필드를 만들지 않습니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-004",
+        "SRC-005"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-detail-ui@R3",
+      "disposition": "committed",
+      "primary_executor_ref": "EXEC:ai-frontend",
+      "collaborator_refs": [
+        "EXEC:ai-verifier"
+      ],
+      "estimate": {
+        "status": "not_applicable",
+        "low": null,
+        "high": null,
+        "unit": "not_applicable",
+        "basis_ko": null,
+        "source_refs": [
+          "SRC-006"
+        ]
+      },
+      "target_window": null,
+      "rationale_ko": "목록에서 이어지는 화면이며 승인 상세 계약 R2의 display 값을 그대로 표시하는 범위입니다. 목록 구현이 고정한 라우팅 경계를 재사용하고 서버가 반환한 행사명과 실제 요청자명을 식별자에서 추정하지 않습니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-004",
+        "SRC-005"
+      ]
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-editor-ui@R2",
+      "disposition": "committed",
+      "primary_executor_ref": "EXEC:ai-frontend",
+      "collaborator_refs": [
+        "EXEC:ai-verifier"
+      ],
+      "estimate": {
+        "status": "not_applicable",
+        "low": null,
+        "high": null,
+        "unit": "not_applicable",
+        "basis_ko": null,
+        "source_refs": [
+          "SRC-006"
+        ]
+      },
+      "target_window": null,
+      "rationale_ko": "상태 17종으로 세 화면 중 가장 크고 초안 충돌과 멱등성, IME 가드를 포함하므로 목록과 상세가 공유 경계를 고정한 뒤 마지막에 구현합니다. 재정 입력을 브라우저 영속 저장소에 두지 않고 계정별 서버 초안 계약만 사용합니다.",
+      "source_refs": [
+        "SRC-001",
+        "SRC-003",
+        "SRC-004",
+        "SRC-005"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "직전 승인 계획이 배정 조건을 명시했고 그 조건이 저장소 증거로 충족돼 이번 파동의 커밋 대상이 계산으로 결정됩니다. 제품 의미나 비가역 선택이 아니므로 제품 책임자의 상시 위임을 적용합니다.",
+        "source_refs": [
+          "SRC-002",
+          "SRC-003",
+          "SRC-004",
+          "SRC-006"
+        ]
+      },
+      "question_ko": "직전 계획이 명시한 배정 조건이 충족돼 계산된 세 UI 커밋을 별도 확인 질문 없이 총괄 에이전트가 확정·검증·진행한다는 위임을 실행 계획 R11에 적용합니까?",
+      "reason_ko": "이 기록은 새 선택을 요청하는 질문이 아니라 제품 책임자의 상시 위임을 실행 계획 승인 게이트에 연결합니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "상시 위임 적용"
+        },
+        {
+          "id": "NO",
+          "label_ko": "별도 검토 필요"
+        }
+      ],
+      "evidence": {
+        "work_item_refs": [
+          "WORK:purchase-request-own-list-ui@R2",
+          "WORK:purchase-request-detail-ui@R3",
+          "WORK:purchase-request-editor-ui@R2"
+        ],
+        "executor_refs": [
+          "EXEC:product-owner",
+          "EXEC:ai-frontend",
+          "EXEC:ai-coordinator",
+          "EXEC:ai-verifier"
+        ],
+        "source_refs": [
+          "SRC-002",
+          "SRC-003",
+          "SRC-004",
+          "SRC-005",
+          "SRC-006"
+        ]
+      },
+      "answer_source_ref": "SRC-006",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": "사람에게 다시 묻지 않고 승인된 기준과 저장소 증거에서 계산된 단일 기술 실행안을 적용합니다."
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}
