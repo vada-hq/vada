@@ -1,7 +1,7 @@
 ---
 id: FINREQ01
 title: 구매 요청 작성
-wireframe: prototypes/wireframe/src/app/App.tsx:9744
+wireframe: prototypes/wireframe/src/app/App.tsx:12824
 route: /events/$eventId/purchase-requests/new
 contracts:
   - API:purchase_request.get_editor_state@R1

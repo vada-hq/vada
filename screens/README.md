@@ -29,7 +29,7 @@
 ---
 id: MYREQ01                                   # 와이어프레임 컴포넌트 이름
 title: 내 구매 요청
-wireframe: prototypes/wireframe/src/app/App.tsx:10889
+wireframe: prototypes/wireframe/src/app/App.tsx:14171
 route: /events/$eventId/purchase-requests/mine
 contracts:                                    # contracts/ 안에 존재해야 한다
   - API:purchase_request.list_own@R1

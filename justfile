@@ -51,7 +51,7 @@ validate-tooling:
     pnpm test:tooling
 
 # 테스트
-test: test-api test-web
+test: test-api test-web test-wireframe
 
 test-api:
     cd apps/api && uv run pytest
@@ -66,6 +66,10 @@ test-api-fast:
 
 test-web:
     pnpm --filter web test
+
+# 와이어프레임 정본의 재정 규칙 회귀 검사
+test-wireframe:
+    pnpm --filter @vada/wireframe test
 
 # 작업자·검증자용 경로별 검사
 check-api: lint-api typecheck-api test-api

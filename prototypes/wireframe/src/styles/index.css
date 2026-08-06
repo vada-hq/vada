@@ -1,3 +1,10 @@
 @import './fonts.css';
 @import './tailwind.css';
 @import './theme.css';
+
+/* 카드 스택 펼침(촤라락) 애니메이션 */
+@keyframes fanIn {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.fan-in { animation: fanIn 0.18s ease both; }

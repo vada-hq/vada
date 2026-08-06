@@ -1,7 +1,7 @@
 ---
 id: FINREQ02
 title: 구매 요청 상세
-wireframe: prototypes/wireframe/src/app/App.tsx:10977
+wireframe: prototypes/wireframe/src/app/App.tsx:14261
 route: /events/$eventId/purchase-requests/$requestId
 contracts:
   - API:purchase_request.get_detail@R2
