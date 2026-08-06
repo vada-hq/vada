@@ -15,6 +15,11 @@ export interface AppRouterContext {
   queryClient: QueryClient;
 }
 
+interface OwnListSearch {
+  submitted?: string;
+  overBudget?: "1";
+}
+
 const rootRoute = createRootRouteWithContext<AppRouterContext>()({
   component: Outlet,
 });
@@ -29,6 +34,13 @@ const ownListRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/events/$eventId/purchase-requests/mine",
   component: OwnListPage,
+  // 제출 성공 결과를 목록의 확인 영역으로 전달한다. 값이 없으면 키를 남기지 않는다.
+  validateSearch: (search: Record<string, unknown>): OwnListSearch => ({
+    ...(typeof search.submitted === "string"
+      ? { submitted: search.submitted }
+      : {}),
+    ...(search.overBudget === "1" ? { overBudget: "1" as const } : {}),
+  }),
 });
 
 const editorRoute = createRoute({
@@ -58,8 +70,14 @@ function EditorPage() {
 
 function OwnListPage() {
   const { eventId } = ownListRoute.useParams();
+  const { overBudget, submitted } = ownListRoute.useSearch();
 
-  return <PurchaseRequestOwnListScreen eventId={eventId} />;
+  return (
+    <PurchaseRequestOwnListScreen
+      eventId={eventId}
+      submitted={submitted ? { overBudget: overBudget === "1" } : undefined}
+    />
+  );
 }
 
 function DetailPage() {
