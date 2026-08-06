@@ -1,0 +1,64 @@
+---
+id: FINREQ01
+title: 구매 요청 작성
+wireframe: prototypes/wireframe/src/app/App.tsx:9761
+route: /events/$eventId/purchase-requests/new
+contracts:
+  - API:purchase_request.get_editor_state@R1
+  - API:purchase_request.save_draft@R1
+  - API:purchase_request.delete_draft@R1
+  - API:purchase_request.submit@R1
+  - DATA:purchase_request.input@R1
+  - DATA:purchase_request.record@R1
+  - AUTH:purchase_request.submit@R1
+  - QUALITY:purchase_request.draft_recovery@R1
+  - QUALITY:purchase_request.accessible_feedback@R1
+  - ERROR:http.unauthenticated@R1
+  - ERROR:purchase_request.action_forbidden@R1
+  - ERROR:http.resource_not_found@R1
+  - ERROR:purchase_request.persistence_unavailable@R1
+status: todo
+---
+
+## 화면 구조
+
+와이어프레임의 배치를 따른다.
+
+- **작성 맥락** — 서버가 준 행사·요청자·소속 부서를 표시한다. 사용자가 고르지 않는다.
+- **공통 정보** — 제목, 필요한 날짜, 목적, 우선순위.
+- **품목 카드** — 품목을 하나 이상 추가·수정·삭제한다. 각 품목에 품목명, 카테고리, 예산 항목, 구매 유형, 수량, 단위, 예상 단가, 가격 근거.
+- **요약과 행동** — 금액 합계, 임시 저장, 제출.
+- **피드백** — 오류 요약과 상태 메시지.
+
+## 상태
+
+작성 화면은 상태가 많다. 구현할 때 이 목록을 그대로 테스트 이름으로 쓴다.
+
+**진입** — 로딩 / 초안 없음 / 서버 초안 복원 / 권한 없음(403) / 인증 필요(401) / 조회 실패(404·503)
+
+**초안** — 저장 중 / 저장 완료 / 저장 실패(404 리소스 부재, 409 버전 충돌, 422 입력 오류, 503 일시 장애) / 삭제 중 / 삭제 완료 / 삭제 실패
+
+**제출** — 검증 실패 / 제출 중 / 성공 / 예산 초과 성공 / 실패(403·404·409·503)
+
+각 실패는 입력을 유지하고 거짓 성공을 표시하지 않는다. 409 버전 충돌에서 서버 초안을 자동으로 덮어쓰지 않는다. 503 재시도는 변경하지 않은 요청에 같은 멱등성 키를 재사용하고, 사용자가 입력을 바꾸면 새 제출로 보고 새 키를 만든다.
+
+## 접근성
+
+- 모든 레이블을 실제 입력과 연결하고 오류를 `aria-describedby`·`aria-invalid`로 잇는다.
+- 제출 오류 요약에 포커스 가능한 제목과 필드별 링크를 제공한다. 링크를 고르면 해당 입력으로 포커스가 간다. 오류 발생만으로 포커스를 자동 이동하지 않는다.
+- 진행·성공은 `status`, 즉시 조치가 필요한 실패는 `alert`로 전달한다.
+- 폼 제출과 Enter 경로에 한국어 IME 조합 가드를 둔다.
+
+## 와이어프레임과 다르게 하는 것
+
+**초안을 localStorage에 저장하지 않는다** — 와이어프레임은 브라우저에 저장한다. 재정 원문을 브라우저 영속 저장소에 두지 않는다. 계정별 서버 초안 API를 쓰고 입력은 화면이 살아 있는 동안 메모리에만 둔다.
+
+**구매 유형을 네 가지로 유지한다** — 와이어프레임은 대여와 용역을 하나로 합쳤다. 계약 `DATA:purchase_request.input@R1`은 일반 구매·제작 인쇄·대여·용역 넷을 구분한다. 서버가 받는 값이 기준이다.
+
+**제출을 서버에서 재검증한다** — 와이어프레임은 클라이언트 검증만 하고 메모리 배열에 넣는다. 제출 API의 안정 오류 코드와 201 응답을 상태대로 처리한다.
+
+**접근성을 계약대로 구현한다** — 와이어프레임은 레이블과 입력이 연결되어 있지 않고 오류 요약이 없다. 프로토타입의 접근성 결함은 가져오지 않는다.
+
+**파일 업로드는 범위 밖이다** — 업로드 파이프라인과 악성 파일 검사, 보관·삭제 계약이 아직 없다. 그동안 가격 근거는 상품 URL·판매처·견적 메모 같은 비파일 대안을 쓴다. 사용자에게 내부 파일 식별자를 직접 입력시키지 않는다.
+
+**사이드바·브레드크럼** — 공통 셸이며 별도 화면 작업으로 다룬다.

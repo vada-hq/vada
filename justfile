@@ -24,11 +24,11 @@ dev-api:
 dev-web:
     pnpm --filter web dev
 
-# 실행 계약
-validate-workflow-policy:
-    pnpm test:workflow-policy
-    pnpm validate:workflow-policy
+# 승인 계약 예제로 화면을 브라우저에서 확인하는 개발 서버
+dev-web-mock:
+    pnpm --filter web dev:mock
 
+# 서버 API·권한·데이터·오류 계약
 validate-contracts:
     pnpm test:contracts
     pnpm validate:contracts
@@ -41,41 +41,14 @@ validate-openapi-client:
     pnpm test:openapi-client
     pnpm validate:openapi-client
 
-# AI용 제품 명세
-validate-product-specs:
-    pnpm test:product-specs
-    pnpm validate:product-specs
+# 화면 정본의 와이어프레임·계약 참조
+validate-screens:
+    pnpm test:screens
+    pnpm validate:screens
 
-# 전달 단위 구현 아키텍처
-validate-architecture:
-    pnpm test:architecture
-    pnpm validate:architecture
-
-# 승인 기준선에서 도출한 전달 작업 그래프
-validate-delivery-work:
-    pnpm test:delivery-work
-    pnpm validate:delivery-work
-
-# 전달 작업의 구현용 화면 상태·와이어프레임 대조·완료 증거 추적
-validate-screen-specs:
-    pnpm test:screen-specs
-    pnpm validate:screen-specs
-
-# 승인 작업 그래프의 실행 범위·실행자·추정·일정 기준선
-validate-execution-plan:
-    pnpm test:execution-plan
-    pnpm validate:execution-plan
-
-# 승인 실행 계획에 대한 실제 상태·전이·증거 기록
-validate-execution-runtime:
-    pnpm test:execution-preflight
-    pnpm test:execution-runtime
-    pnpm validate:execution-runtime
-
-# 작업 그래프와 실행 런타임에서 현재 상태·착수 가능성을 자동 계산
-validate-delivery-status:
-    pnpm test:delivery-status
-    pnpm validate:delivery-status
+# CI 스코프 판별과 착수 전 도구 점검
+validate-tooling:
+    pnpm test:tooling
 
 # 테스트
 test: test-api test-web
@@ -94,7 +67,7 @@ test-api-fast:
 test-web:
     pnpm --filter web test
 
-# 작업자용 경로별 검사 — 전체 통합 검사는 총괄이 just check로 한 번 실행
+# 작업자·검증자용 경로별 검사
 check-api: lint-api typecheck-api test-api
 
 check-web: validate-openapi-client lint-web typecheck-web test-web build-web
@@ -128,4 +101,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-workflow-policy validate-contracts validate-product-specs validate-architecture validate-delivery-work validate-screen-specs validate-execution-plan validate-execution-runtime validate-delivery-status lint typecheck test build
+check: validate-contracts validate-screens validate-tooling lint typecheck test build

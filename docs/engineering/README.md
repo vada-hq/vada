@@ -6,9 +6,9 @@
 
 구현 전에 현재 작업에 필요한 범위만 아래 순서로 읽는다.
 
-1. `product-specs/`의 승인 도메인·플로우·목표 동작 설계 — 사용자가 무엇을 할 수 있어야 하는가
-2. `contracts/`의 승인 계약 묶음 — 권한·데이터·API·오류·품질 경계가 무엇인가
-3. `delivery-units/<DU>/implementation-architecture/`와 `delivery-work/`의 승인 리비전 — 어떤 기술 기준으로 무엇을 만들어야 하는가
+1. `screens/<ID>.md` — 이 화면이 무엇이고 어떤 상태를 가지는가
+2. 그 파일의 `wireframe`이 가리키는 위치 — 화면 구조를 어디서 가져오는가
+3. `contracts/`의 승인 계약 — 권한·데이터·API·오류 경계가 무엇인가
 4. 이 디렉터리의 엔지니어링 기준 — 작업을 어떻게 실행하고 증명하는가
 5. 루트와 작업 경로에서 가장 가까운 `AGENTS.md` — 해당 경로에서 실행할 명령과 추가 제약
 
@@ -16,7 +16,6 @@
 
 ## 문서별 책임
 
-- [워크플로 유지보수](workflow-maintenance.md) — 책임 기본값, 위험별 보증 등급, 계약 변경분과 상태 파생
 - [에이전트 실행](agent-execution.md) — 책임 분리, 착수 판정, 작업 격리, 병렬화, 검토·재작업
 - [테스트와 완료 증거](testing-and-evidence.md) — RED→GREEN→REFACTOR, 테스트 계층, PR 증거
 - [아키텍처 경계](architecture-boundaries.md) — 디렉터리 책임, 의존 방향, 변경 동기화
