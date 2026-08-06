@@ -1,4 +1,5 @@
 import {
+  Link,
   Outlet,
   createRootRouteWithContext,
   createRoute,
@@ -89,12 +90,50 @@ function DetailPage() {
 }
 
 function HomePage() {
+  // 공통 셸이 생기기 전까지 구현된 화면으로 들어가는 임시 진입점이다.
+  const eventId = "event-001";
+  const entries = [
+    {
+      description: "새 구매 요청을 작성하고 임시 저장하거나 제출합니다.",
+      params: { eventId },
+      title: "구매 요청 작성",
+      to: "/events/$eventId/purchase-requests/new" as const,
+    },
+    {
+      description: "이 행사에서 내가 제출한 구매 요청을 봅니다.",
+      params: { eventId },
+      title: "내 구매 요청",
+      to: "/events/$eventId/purchase-requests/mine" as const,
+    },
+  ];
+
   return (
-    <main className="mx-auto flex min-h-screen max-w-5xl flex-col justify-center px-6 py-12">
-      <p className="text-sm font-medium text-muted-foreground">
-        학생회 통합 운영 플랫폼
-      </p>
-      <h1 className="mt-2 text-4xl font-semibold tracking-tight">VADA</h1>
+    <main className="mx-auto flex min-h-screen max-w-3xl flex-col justify-center gap-8 px-6 py-12">
+      <div>
+        <p className="text-sm font-medium text-muted-foreground">
+          학생회 통합 운영 플랫폼
+        </p>
+        <h1 className="mt-2 text-4xl font-semibold tracking-tight">VADA</h1>
+      </div>
+
+      <nav aria-label="구현된 화면">
+        <ul className="flex flex-col gap-3">
+          {entries.map((entry) => (
+            <li key={entry.to}>
+              <Link
+                className="block rounded-md border border-border px-5 py-4 hover:bg-muted"
+                params={entry.params}
+                to={entry.to}
+              >
+                <span className="font-medium">{entry.title}</span>
+                <span className="mt-1 block text-sm text-muted-foreground">
+                  {entry.description}
+                </span>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
     </main>
   );
 }
