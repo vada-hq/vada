@@ -8,6 +8,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import type { RouterHistory } from "@tanstack/react-router";
 
 import { PurchaseRequestDetailScreen } from "../features/purchase-requests/detail-screen";
+import { PurchaseRequestEditorScreen } from "../features/purchase-requests/editor-screen";
 import { PurchaseRequestOwnListScreen } from "../features/purchase-requests/own-list-screen";
 
 export interface AppRouterContext {
@@ -30,6 +31,12 @@ const ownListRoute = createRoute({
   component: OwnListPage,
 });
 
+const editorRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/events/$eventId/purchase-requests/new",
+  component: EditorPage,
+});
+
 const detailRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/events/$eventId/purchase-requests/$requestId",
@@ -39,8 +46,15 @@ const detailRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   indexRoute,
   ownListRoute,
+  editorRoute,
   detailRoute,
 ]);
+
+function EditorPage() {
+  const { eventId } = editorRoute.useParams();
+
+  return <PurchaseRequestEditorScreen eventId={eventId} />;
+}
 
 function OwnListPage() {
   const { eventId } = ownListRoute.useParams();

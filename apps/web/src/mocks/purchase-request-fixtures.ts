@@ -1,5 +1,6 @@
 import type {
   PurchaseRequestDetailView,
+  PurchaseRequestEditorState,
   PurchaseRequestOwnList,
 } from "@vada/api-client";
 
@@ -11,6 +12,17 @@ import type {
  * - contracts/fixtures/CB-FIN-001/R1.json#own-request-list
  * - contracts/fixtures/CB-FIN-001/R2.json#purchase-request-detail-view
  */
+
+export const editorStateExample: PurchaseRequestEditorState = {
+  organizationId: "org-001",
+  eventId: "event-001",
+  eventName: "2026 가을 축제",
+  requesterUserId: "user-001",
+  requesterName: "김바다",
+  requestDepartmentId: "department-001",
+  requestDepartmentName: "운영부",
+  draft: null,
+};
 
 export const sampleEventId = "event-001";
 
