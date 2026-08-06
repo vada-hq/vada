@@ -48,6 +48,9 @@ describe("구매 요청 상세 화면", () => {
 
     expect(screen.getByText("검토 대기")).toBeInTheDocument();
     expect(screen.getByText("390,000원")).toBeInTheDocument();
+    // 명세 R3의 DETAIL-SUMMARY는 요청 식별자와 강조된 전체 요청액을 요구한다.
+    expect(screen.getByText("request-001")).toBeInTheDocument();
+    expect(screen.getByText("전체 요청액")).toBeInTheDocument();
   });
 
   test("모든 품목과 품목별 금액을 표시한다", async () => {
@@ -55,13 +58,35 @@ describe("구매 요청 상세 화면", () => {
 
     renderDetail();
 
-    const list = await screen.findByRole("list", { name: "품목" });
-    const items = within(list).getAllByRole("listitem");
-    expect(items).toHaveLength(2);
-    expect(within(items[0]).getByText("명찰 케이스")).toBeInTheDocument();
-    expect(within(items[0]).getByText("30,000원")).toBeInTheDocument();
-    expect(within(items[1]).getByText("행사 음향 운영")).toBeInTheDocument();
-    expect(within(items[1]).getByText("360,000원")).toBeInTheDocument();
+    const table = await screen.findByRole("table", { name: "품목" });
+    const headers = within(table).getAllByRole("columnheader");
+    expect(headers.map((header) => header.textContent)).toEqual([
+      "품목",
+      "수량",
+      "금액",
+    ]);
+
+    const rows = within(table).getAllByRole("row").slice(1);
+    expect(rows).toHaveLength(2);
+    expect(within(rows[0]).getByText("명찰 케이스")).toBeInTheDocument();
+    expect(within(rows[0]).getByText("30,000원")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("행사 음향 운영")).toBeInTheDocument();
+    expect(within(rows[1]).getByText("360,000원")).toBeInTheDocument();
+
+    // 후속 검토 단계 열은 범위 밖이다.
+    expect(within(table).queryByText("처리 결과")).not.toBeInTheDocument();
+    expect(within(table).queryByText("재정부 전달사항")).not.toBeInTheDocument();
+  });
+
+  test("후속 진행 단계를 표시하지 않는다", async () => {
+    server.use(http.get(detailUrl, () => HttpResponse.json(detailExample)));
+
+    renderDetail();
+
+    await screen.findByRole("heading", { name: "가을 축제 운영 물품" });
+    for (const step of ["재정부 검토", "구매·발주", "결제·증빙", "처리 완료"]) {
+      expect(screen.queryByText(step)).not.toBeInTheDocument();
+    }
   });
 
   test("예산 초과 기록은 초과 표시를 함께 보여준다", async () => {
@@ -101,6 +126,9 @@ describe("구매 요청 상세 화면", () => {
     expect(
       await screen.findByRole("heading", { name: "가을 축제 운영 물품" }),
     ).toBeInTheDocument();
+    // 명세 R3는 로딩 완료를 status로 전달하도록 요구한다.
+    const loaded = await screen.findByText("요청 상세를 불러왔습니다.");
+    expect(loaded).toHaveAttribute("role", "status");
   });
 
   test("새로고침으로 다시 진입하면 상세를 서버에서 다시 조회한다", async () => {
@@ -138,6 +166,8 @@ describe("구매 요청 상세 화면", () => {
       screen.getByRole("link", { name: "내 구매 요청 목록으로" }),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "다시 시도" })).not.toBeInTheDocument();
+    // 명세 R3는 오류 제목에 논리적 포커스를 두도록 요구한다.
+    expect(within(alert).getByRole("heading")).toHaveFocus();
   });
 
   test("일시 장애는 재시도를 제공하고 재시도가 성공하면 상세를 표시한다", async () => {
@@ -183,6 +213,9 @@ describe("구매 요청 상세 화면", () => {
 
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveAccessibleName("다시 인증해야 합니다.");
+    expect(
+      within(alert).getByRole("link", { name: "내 구매 요청 목록으로" }),
+    ).toBeInTheDocument();
     expect(screen.queryByText("가을 축제 운영 물품")).not.toBeInTheDocument();
     expect(screen.queryByText("김바다")).not.toBeInTheDocument();
   });

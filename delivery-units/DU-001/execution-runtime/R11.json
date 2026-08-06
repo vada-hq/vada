@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R11",
-  "runtime_revision": 1,
+  "runtime_revision": 3,
   "runtime_status": "active",
-  "updated_at": "2026-08-06T06:37:17.101Z",
+  "updated_at": "2026-08-06T07:58:03.110Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R11.json",
@@ -18,14 +18,28 @@
       "captured_at": "2026-08-06T06:37:17.101Z",
       "locator": "delivery-units/DU-001/execution-plan/R11.json#EP-DU-001@R11",
       "content_ko": "승인된 실행 계획 R11의 커밋 작업을 실행 추적 대상으로 등록했습니다."
+    },
+    {
+      "id": "SRC-RUN-002",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-06T07:58:02.793Z",
+      "locator": "delivery-units/DU-001/screen-spec/R3.json;github:vada-hq/vada/pull/36",
+      "content_ko": "와이어프레임 UI 우선 방침을 반영한 화면 명세 R3가 승인돼 목록과 상세의 정보 위계, 요청 식별자 표시, 표 형태와 강조 위치, 접근성 상태 전달 요구가 확정됐습니다. 이 기준으로 구현을 착수합니다."
+    },
+    {
+      "id": "SRC-RUN-003",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-06T07:58:03.110Z",
+      "locator": "delivery-units/DU-001/screen-spec/R3.json;github:vada-hq/vada/pull/36",
+      "content_ko": "와이어프레임 UI 우선 방침을 반영한 화면 명세 R3가 승인돼 목록과 상세의 정보 위계, 요청 식별자 표시, 표 형태와 강조 위치, 접근성 상태 전달 요구가 확정됐습니다. 이 기준으로 구현을 착수합니다."
     }
   ],
   "work_runs": [
     {
       "work_item_ref": "WORK:purchase-request-own-list-ui@R2",
       "executor_ref": "EXEC:ai-frontend",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-06T07:58:02.793Z",
       "completed_at": null,
       "transition_log": [
         {
@@ -36,6 +50,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인된 R11에서 WORK:purchase-request-own-list-ui@R2 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-004",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-06T07:58:02.793Z",
+          "actor_ref": "EXEC:ai-frontend",
+          "source_ref": "SRC-RUN-002",
+          "note_ko": "승인 화면 명세 R3의 정보 위계와 접근성 요구를 기준으로 화면을 구현합니다."
         }
       ],
       "blockers": [],
@@ -44,8 +67,8 @@
     {
       "work_item_ref": "WORK:purchase-request-detail-ui@R3",
       "executor_ref": "EXEC:ai-frontend",
-      "status": "not_started",
-      "started_at": null,
+      "status": "in_progress",
+      "started_at": "2026-08-06T07:58:03.110Z",
       "completed_at": null,
       "transition_log": [
         {
@@ -56,6 +79,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-001",
           "note_ko": "승인된 R11에서 WORK:purchase-request-detail-ui@R3 작업을 실행 추적 대상으로 등록했습니다."
+        },
+        {
+          "id": "TR-005",
+          "from": "not_started",
+          "to": "in_progress",
+          "occurred_at": "2026-08-06T07:58:03.110Z",
+          "actor_ref": "EXEC:ai-frontend",
+          "source_ref": "SRC-RUN-003",
+          "note_ko": "승인 화면 명세 R3의 정보 위계와 접근성 요구를 기준으로 화면을 구현합니다."
         }
       ],
       "blockers": [],
