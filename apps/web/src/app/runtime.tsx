@@ -1,13 +1,21 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { RouterProvider } from "@tanstack/react-router";
+import { RouterProvider, createMemoryHistory } from "@tanstack/react-router";
 import type { PropsWithChildren } from "react";
 
 import { createAppQueryClient } from "./query-client";
 import { createAppRouter } from "./router";
 
-export function createAppRuntime() {
+export interface CreateAppRuntimeOptions {
+  /** 브라우저 주소 대신 시작 경로를 고정한다. 테스트에서만 사용한다. */
+  initialPath?: string;
+}
+
+export function createAppRuntime(options: CreateAppRuntimeOptions = {}) {
   const queryClient = createAppQueryClient();
-  const router = createAppRouter(queryClient);
+  const history = options.initialPath
+    ? createMemoryHistory({ initialEntries: [options.initialPath] })
+    : undefined;
+  const router = createAppRouter(queryClient, history);
 
   return { queryClient, router };
 }
