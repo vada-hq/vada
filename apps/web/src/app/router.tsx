@@ -7,6 +7,7 @@ import {
 import type { QueryClient } from "@tanstack/react-query";
 import type { RouterHistory } from "@tanstack/react-router";
 
+import { PurchaseRequestDetailScreen } from "../features/purchase-requests/detail-screen";
 import { PurchaseRequestOwnListScreen } from "../features/purchase-requests/own-list-screen";
 
 export interface AppRouterContext {
@@ -47,18 +48,11 @@ function OwnListPage() {
   return <PurchaseRequestOwnListScreen eventId={eventId} />;
 }
 
-/**
- * 상세 화면은 WORK:purchase-request-detail-ui@R3에서 구현한다.
- * 목록의 상세 연결을 검증할 수 있도록 경로만 먼저 등록하며 서버 데이터를 표시하지 않는다.
- */
 function DetailPage() {
-  const { requestId } = detailRoute.useParams();
+  const { eventId, requestId } = detailRoute.useParams();
 
   return (
-    <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-6 py-10">
-      <h1 className="text-2xl font-semibold tracking-tight">구매 요청 상세</h1>
-      <p>{requestId}</p>
-    </main>
+    <PurchaseRequestDetailScreen eventId={eventId} requestId={requestId} />
   );
 }
 

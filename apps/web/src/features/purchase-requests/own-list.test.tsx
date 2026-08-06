@@ -106,7 +106,33 @@ describe("본인 구매 요청 목록 화면", () => {
 
   test("각 요청을 키보드로 선택해 상세 경로로 이동한다", async () => {
     const user = userEvent.setup();
-    server.use(http.get(ownListUrl, () => HttpResponse.json(ownListExample)));
+    server.use(
+      http.get(ownListUrl, () => HttpResponse.json(ownListExample)),
+      http.get(`*/events/${eventId}/purchase-requests/request-001`, () =>
+        HttpResponse.json({
+          record: {
+            requestId: "request-001",
+            organizationId: "org-001",
+            eventId,
+            requesterUserId: "user-001",
+            requestDepartmentId: "department-001",
+            status: "review_pending",
+            content: {
+              title: "가을 축제 운영 물품",
+              neededDate: "2026-09-15",
+              purpose: "가을 축제 부스 운영",
+              priority: "urgent",
+              items: [],
+            },
+            itemResults: [],
+            estimatedTotal: 390000,
+            overBudget: false,
+            createdAt: "2026-08-03T10:05:00Z",
+          },
+          display: { eventName: "2026 가을 축제", requesterName: "김바다" },
+        }),
+      ),
+    );
 
     renderOwnList();
 
@@ -124,9 +150,9 @@ describe("본인 구매 요청 목록 화면", () => {
     await user.keyboard("{Enter}");
 
     expect(
-      await screen.findByRole("heading", { name: "구매 요청 상세" }),
+      await screen.findByRole("heading", { name: "가을 축제 운영 물품" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("request-001")).toBeInTheDocument();
+    expect(screen.getByText("2026 가을 축제")).toBeInTheDocument();
   });
 
   test("권한 없음은 다른 조직 데이터 존재를 노출하지 않고 안전한 복귀를 제공한다", async () => {

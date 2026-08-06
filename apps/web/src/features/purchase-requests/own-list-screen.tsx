@@ -6,35 +6,10 @@ import { Alert } from "../../components/ui/alert";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { StatusBadge } from "../../components/ui/status-badge";
+import { formatAmount, formatCreatedDate, formatStatus } from "./display";
 import { OwnListError, ownListQueryOptions } from "./own-list-query";
 
 type OwnListItem = PurchaseRequestOwnList["items"][number];
-
-const statusLabels: Record<string, string> = {
-  review_pending: "검토 대기",
-};
-
-const amountFormat = new Intl.NumberFormat("ko-KR");
-
-function formatAmount(value: number) {
-  return `${amountFormat.format(value)}원`;
-}
-
-/** 저장은 UTC, 표시는 KST 날짜만 사용한다. */
-function formatCreatedDate(value: string) {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return value;
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    timeZone: "Asia/Seoul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  })
-    .format(parsed)
-    .replaceAll(". ", "-")
-    .replace(".", "");
-}
 
 function OwnListRow({ eventId, item }: { eventId: string; item: OwnListItem }) {
   return (
@@ -46,9 +21,7 @@ function OwnListRow({ eventId, item }: { eventId: string; item: OwnListItem }) {
       >
         <span className="font-medium">{item.title}</span>
         <span className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-          <StatusBadge tone="info">
-            {statusLabels[item.status] ?? item.status}
-          </StatusBadge>
+          <StatusBadge tone="info">{formatStatus(item.status)}</StatusBadge>
           {item.overBudget ? (
             <StatusBadge tone="warning">예산 초과</StatusBadge>
           ) : null}
