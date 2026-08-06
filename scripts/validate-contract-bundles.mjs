@@ -368,22 +368,40 @@ export function validateContractBundleDocument(bundle, solution, options = {}) {
   const errors = [];
   const structureErrors = validateBundleStructure(bundle);
   if (structureErrors.length > 0) return structureErrors;
-  if (solution?.status !== "approved" || !Number.isInteger(solution?.revision) || solution.revision < 1) {
-    errors.push("참조한 목표 설계는 승인된 양의 리비전이어야 합니다.");
-  }
-  if (bundle.solution_ref.solution_id !== solution?.id) errors.push("목표 설계 ID가 고정 참조와 다릅니다.");
-  if (bundle.solution_ref.solution_revision !== solution?.revision) errors.push("목표 설계 리비전이 고정 참조와 다릅니다.");
-  if (bundle.solution_ref.canonical_sha256 !== canonicalSha256(solution)) {
-    errors.push("목표 설계 해시가 고정 참조와 다릅니다.");
-  }
-  const expectedFlow = `${solution?.flowRef?.id}@R${solution?.flowRef?.revision}`;
-  if (bundle.delivery_unit_ref !== expectedFlow) {
-    errors.push(`전달 단위는 승인 설계의 ${expectedFlow}여야 합니다.`);
-  }
-  if (options.flow) {
-    if (options.flow.status !== "approved") errors.push("참조한 사용자 흐름은 승인 상태여야 합니다.");
-    if (bundle.objective_ko !== options.flow.spec?.outcome?.result) {
-      errors.push("계약 목표는 승인된 사용자 흐름의 결과와 정확히 같아야 합니다.");
+
+  /*
+   * 계약의 정당성 근거는 두 가지다.
+   * - product-specs 기반: 승인 목표 설계에 모든 계약을 귀속한다 (기존 묶음)
+   * - 화면 정본 기반: solution_ref를 두지 않고, 새 API 계약을 쓰는 화면이 있어야 한다
+   */
+  const designBased = Boolean(bundle.solution_ref);
+
+  if (designBased) {
+    if (solution?.status !== "approved" || !Number.isInteger(solution?.revision) || solution.revision < 1) {
+      errors.push("참조한 목표 설계는 승인된 양의 리비전이어야 합니다.");
+    }
+    if (bundle.solution_ref.solution_id !== solution?.id) errors.push("목표 설계 ID가 고정 참조와 다릅니다.");
+    if (bundle.solution_ref.solution_revision !== solution?.revision) errors.push("목표 설계 리비전이 고정 참조와 다릅니다.");
+    if (bundle.solution_ref.canonical_sha256 !== canonicalSha256(solution)) {
+      errors.push("목표 설계 해시가 고정 참조와 다릅니다.");
+    }
+    const expectedFlow = `${solution?.flowRef?.id}@R${solution?.flowRef?.revision}`;
+    if (bundle.delivery_unit_ref !== expectedFlow) {
+      errors.push(`전달 단위는 승인 설계의 ${expectedFlow}여야 합니다.`);
+    }
+    if (options.flow) {
+      if (options.flow.status !== "approved") errors.push("참조한 사용자 흐름은 승인 상태여야 합니다.");
+      if (bundle.objective_ko !== options.flow.spec?.outcome?.result) {
+        errors.push("계약 목표는 승인된 사용자 흐름의 결과와 정확히 같아야 합니다.");
+      }
+    }
+  } else if (options.screenContractRefs) {
+    // 새 API 계약은 그것을 쓰는 화면이 있어야 한다.
+    for (const contract of bundle.contracts ?? []) {
+      if (!contract.id?.startsWith("API:")) continue;
+      if (!options.screenContractRefs.has(contract.id)) {
+        errors.push(`이 계약을 참조하는 화면 정본이 없습니다: ${contract.id}`);
+      }
     }
   }
 
@@ -429,6 +447,8 @@ export function validateContractBundleDocument(bundle, solution, options = {}) {
   validateContractSpecifications(contracts, allContracts, errors);
 
   const designIds = new Set((solution?.designElements ?? []).map((item) => item.id));
+
+  if (designBased) {
   const coverageCounts = new Map();
   const mappedContracts = new Set();
   coverage.forEach((item, index) => {
@@ -452,6 +472,7 @@ export function validateContractBundleDocument(bundle, solution, options = {}) {
   if (duplicateDesign.length > 0) errors.push(`중복 설계 귀속: ${duplicateDesign.join(", ")}`);
   const unmappedLocal = [...localContracts.keys()].filter((id) => !mappedContracts.has(id));
   if (unmappedLocal.length > 0) errors.push(`설계에 연결되지 않은 로컬 계약: ${unmappedLocal.join(", ")}`);
+  }
 
   const questionById = new Map(questions.map((item) => [item.id, item]));
   const questionEdges = new Map();
@@ -655,27 +676,55 @@ export async function resolveEffectiveContracts(
   return { errors, contracts };
 }
 
+/** 화면 정본이 참조하는 계약 ID를 모은다. 새 계약의 정당성 근거다. */
+async function loadScreenContractRefs(root) {
+  const refs = new Set();
+  const directory = resolve(root, "screens");
+  let names = [];
+  try {
+    names = await readdir(directory);
+  } catch {
+    return refs;
+  }
+
+  for (const name of names) {
+    if (!name.endsWith(".md") || name === "README.md") continue;
+    const text = await readFile(resolve(directory, name), "utf8");
+    for (const match of text.matchAll(/^\s+-\s+([A-Z]+:[^\s#]+)\s*$/gm)) {
+      refs.add(match[1]);
+    }
+  }
+
+  return refs;
+}
+
 export async function validateContractBundleRepository(root = repositoryRoot) {
   const errors = [];
   const warnings = [];
   const paths = await listJsonFiles(resolve(root, "contracts/bundles"));
   if (paths.length === 0) return { errors, warnings };
+  const screenContractRefs = await loadScreenContractRefs(root);
   for (const path of paths) {
     const label = relative(root, path).replaceAll("\\", "/");
     try {
       const bundle = JSON.parse(await readFile(path, "utf8"));
-      const solutionPath = assertProjectRelative(root, bundle.solution_ref?.path);
-      const solution = JSON.parse(await readFile(solutionPath, "utf8"));
-      const flowPath = assertProjectRelative(
-        root,
-        `product-specs/flows/${solution.flowRef.id}/R${solution.flowRef.revision}.json`,
-      );
-      const flow = JSON.parse(await readFile(flowPath, "utf8"));
+      let solution = null;
+      let flow = null;
+      if (bundle.solution_ref) {
+        const solutionPath = assertProjectRelative(root, bundle.solution_ref.path);
+        solution = JSON.parse(await readFile(solutionPath, "utf8"));
+        const flowPath = assertProjectRelative(
+          root,
+          `product-specs/flows/${solution.flowRef.id}/R${solution.flowRef.revision}.json`,
+        );
+        flow = JSON.parse(await readFile(flowPath, "utf8"));
+      }
       const imported = await loadInheritedContracts(root, bundle, new Set([path]));
       errors.push(...imported.errors.map((error) => `${label}: ${error}`));
       const documentErrors = validateContractBundleDocument(bundle, solution, {
         flow,
         importedContracts: imported.contracts,
+        screenContractRefs,
       });
       errors.push(...documentErrors.map((error) => `${label}: ${error}`));
     } catch (error) {

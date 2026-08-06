@@ -1,0 +1,437 @@
+{
+  "$schema": "../../schemas/delivery-contract-bundle-0.2.0.schema.json",
+  "schema_version": "0.2.0",
+  "bundle_id": "CB-FIN-002",
+  "bundle_revision": 1,
+  "bundle_status": "approved",
+  "approval_source_ref": "SRC-003",
+  "updated_at": "2026-08-06T21:40:00+09:00",
+  "delivery_unit_ref": "SCREEN:EVT-FIN-01",
+  "objective_ko": "행사 구성원이 이 행사의 예산 현황과 구매 요청 처리 상태를 한 화면에서 확인합니다.",
+  "standards_profile": {
+    "openapi_version": "3.1.1",
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "http_problem_details": "RFC9457"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "document",
+      "captured_at": "2026-08-06T21:40:00+09:00",
+      "locator": "prototypes/wireframe/src/app/App.tsx#EVT-FIN-01",
+      "content_ko": "승인 와이어프레임의 행사 재정 개요 화면과 내장 화면정의서입니다. 목적은 이 행사 맥락의 예산 현황과 구매 요청 처리 상태 확인이며 전 구성원이 열람하고 처리 진입은 재정부와 회장단입니다. 예산 요약은 배정 예산과 집행 예정액, 사용 가능액을 표시하고 전체 목록은 이 행사의 구매 요청을 표로 표시합니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "document",
+      "captured_at": "2026-08-06T21:40:00+09:00",
+      "locator": "contracts/bundles/CB-FIN-001/R2.json",
+      "content_ko": "승인된 구매 요청 계약 묶음입니다. 품목의 예산 항목 어휘와 조직 범위 판정, 오류 계약을 그대로 승계합니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "user_statement",
+      "captured_at": "2026-08-06T21:40:00+09:00",
+      "locator": "current-thread/2026-08-06-event-finance-contracts",
+      "content_ko": "제품 책임자가 예산을 예산 항목별로 배정하고 상태 흐름은 검토 단계까지만 계약으로 만들며 예산 요약은 배정과 집행 예정액 중심으로 두기로 확정했습니다. 구매 실행과 증빙, 실제 지출은 승인 제품 명세가 후속 흐름으로 미뤄둔 영역이므로 이번 계약에 넣지 않습니다."
+    }
+  ],
+  "base_bundle_ref": {
+    "bundle_path": "contracts/bundles/CB-FIN-001/R2.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 2,
+    "canonical_sha256": "134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad"
+  },
+  "contracts": [
+    {
+      "id": "DATA:event_budget.summary@R1",
+      "kind": "DATA",
+      "key": "event_budget.summary",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "행사 예산의 항목별 배정액과 집행 예정액, 사용 가능액을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:event-budget-summary:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "eventId",
+            "allocations",
+            "allocatedTotal",
+            "committedTotal",
+            "availableTotal"
+          ],
+          "properties": {
+            "eventId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "allocations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "budgetItem",
+                  "allocatedAmount",
+                  "committedAmount",
+                  "availableAmount"
+                ],
+                "properties": {
+                  "budgetItem": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "allocatedAmount": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "committedAmount": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "availableAmount": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            "allocatedTotal": {
+              "type": "number",
+              "minimum": 0
+            },
+            "committedTotal": {
+              "type": "number",
+              "minimum": 0
+            },
+            "availableTotal": {
+              "type": "number"
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "budgetItem은 구매 요청 품목의 예산 항목과 같은 어휘를 씁니다.",
+          "committedAmount는 승인 또는 부분 승인된 요청의 해당 항목 금액 합계이며 실제 지출이 아닙니다.",
+          "availableAmount는 allocatedAmount에서 committedAmount를 뺀 값이며 음수가 될 수 있습니다.",
+          "구매 실행과 증빙에 따른 실제 지출액은 후속 흐름에서 정의하므로 이 계약에 넣지 않습니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DATA:purchase_request.event_list@R1",
+      "kind": "DATA",
+      "key": "purchase_request.event_list",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "행사의 모든 구매 요청을 처리 상태와 요청 부서와 함께 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-event-list:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "items"
+          ],
+          "properties": {
+            "items": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "requestId",
+                  "title",
+                  "status",
+                  "estimatedTotal",
+                  "overBudget",
+                  "createdAt",
+                  "requestDepartmentName",
+                  "priority"
+                ],
+                "properties": {
+                  "requestId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "title": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "status": {
+                    "enum": [
+                      "review_pending",
+                      "approved",
+                      "partially_approved",
+                      "revision_requested",
+                      "rejected"
+                    ]
+                  },
+                  "estimatedTotal": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "overBudget": {
+                    "type": "boolean"
+                  },
+                  "createdAt": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "requestDepartmentName": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "priority": {
+                    "enum": [
+                      "normal",
+                      "urgent"
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "items는 createdAt 내림차순으로 정렬합니다.",
+          "현재 행사의 모든 요청을 포함하며 요청자 본인 여부로 거르지 않습니다.",
+          "status는 검토 단계까지만 정의합니다. 구매와 증빙, 정산 상태는 후속 흐름에서 추가합니다.",
+          "requestDepartmentName은 서버가 해석한 표시명이며 클라이언트가 식별자에서 추정하지 않습니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "AUTH:event_budget.read@R1",
+      "kind": "AUTH",
+      "key": "event_budget.read",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "행사 구성원이 이 행사의 예산 현황을 읽게 합니다.",
+      "specification": {
+        "action": "event_budget.read",
+        "resource_ko": "현재 행사의 예산 배정과 집행 예정 현황",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              {
+                "left_fact": "actor.has_active_organization_membership",
+                "operator": "is_true",
+                "right": {
+                  "literal": true
+                }
+              },
+              {
+                "left_fact": "event.organization_id",
+                "operator": "equals",
+                "right": {
+                  "fact": "context.organization_id"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002"
+      ]
+    },
+    {
+      "id": "AUTH:purchase_request.list_event@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.list_event",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "행사 구성원이 이 행사의 모든 구매 요청 목록을 읽게 합니다.",
+      "specification": {
+        "action": "purchase_request.list_event",
+        "resource_ko": "현재 행사에 제출된 구매 요청 집합",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              {
+                "left_fact": "actor.has_active_organization_membership",
+                "operator": "is_true",
+                "right": {
+                  "literal": true
+                }
+              },
+              {
+                "left_fact": "event.organization_id",
+                "operator": "equals",
+                "right": {
+                  "fact": "context.organization_id"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002"
+      ]
+    },
+    {
+      "id": "API:event_budget.get_summary@R1",
+      "kind": "API",
+      "key": "event_budget.get_summary",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "행사 예산의 항목별 배정과 집행 예정 현황을 조회합니다.",
+      "specification": {
+        "operation_id": "getEventBudgetSummary",
+        "method": "GET",
+        "path": "/events/{eventId}/budget-summary",
+        "authorization_ref": "AUTH:event_budget.read@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            {
+              "name": "eventId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:event_budget.summary@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "API:purchase_request.list_event@R1",
+      "kind": "API",
+      "key": "purchase_request.list_event",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "행사에 제출된 모든 구매 요청을 최신순으로 조회합니다.",
+      "specification": {
+        "operation_id": "listEventPurchaseRequests",
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests",
+        "authorization_ref": "AUTH:purchase_request.list_event@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            {
+              "name": "eventId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:purchase_request.event_list@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-003"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "행사 재정 개요 계약 묶음을 승인 또는 반려로 구분합니다.",
+        "source_refs": [
+          "SRC-003"
+        ]
+      },
+      "question_ko": "행사 재정 개요 계약 묶음을 승인합니까?",
+      "reason_ko": "승인하면 예산 항목별 배정과 행사 전체 구매 요청 조회가 EVT-FIN-01 화면의 계약 기준선이 됩니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "승인"
+        },
+        {
+          "id": "NO",
+          "label_ko": "반려"
+        }
+      ],
+      "evidence": {
+        "solution_design_refs": [],
+        "source_refs": [
+          "SRC-001",
+          "SRC-002",
+          "SRC-003"
+        ]
+      },
+      "answer_source_ref": "SRC-003",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": "예산은 예산 항목별로 배정하고 상태는 검토 단계까지, 예산 요약은 배정과 집행 예정 중심으로 확정했습니다."
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}
