@@ -13,6 +13,12 @@ import { FormField } from "../../components/ui/form-field";
 import { Input } from "../../components/ui/input";
 import { Select } from "../../components/ui/select";
 import { formatAmount, formatCreatedDate } from "./display";
+import {
+  createEmptyItem,
+  ItemCard,
+  totalPreviewAmount,
+  type DraftItem,
+} from "./editor-items";
 import { EditorError, editorStateQueryOptions } from "./editor-query";
 import { OwnListLink } from "./navigation";
 
@@ -84,14 +90,26 @@ function EditorForm({
   const [common, setCommon] = useState<CommonInput>(() =>
     restoreCommonInput(state.draft?.content),
   );
+  const [items, setItems] = useState<DraftItem[]>(() => {
+    const restored = state.draft?.content?.items;
+    return restored?.length ? restored : [createEmptyItem()];
+  });
   const [draftDismissed, setDraftDismissed] = useState(false);
 
-  // 품목 입력과 금액 계산은 2단계에서 구현한다.
-  const items: Array<{ estimatedAmount: number }> = [];
-  const total = items.reduce((sum, item) => sum + item.estimatedAmount, 0);
+  const total = totalPreviewAmount(items);
 
   const update = (patch: Partial<CommonInput>) =>
     setCommon((current) => ({ ...current, ...patch }));
+
+  const updateItem = (index: number, patch: Partial<DraftItem>) =>
+    setItems((current) =>
+      current.map((item, position) =>
+        position === index ? { ...item, ...patch } : item,
+      ),
+    );
+
+  const removeItem = (index: number) =>
+    setItems((current) => current.filter((_, position) => position !== index));
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:flex-row">
@@ -159,13 +177,34 @@ function EditorForm({
         </Card>
 
         <section className="flex flex-col gap-4">
-          <h2 className="text-sm font-semibold">품목 리스트</h2>
-          {/* 품목 추가·수정·삭제와 유형별 상세는 2단계에서 구현한다. */}
-          <Card>
-            <p className="text-sm text-muted-foreground">
-              품목 입력은 다음 단계에서 제공합니다.
-            </p>
-          </Card>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="flex items-baseline gap-2">
+              <h2 className="text-sm font-semibold">품목 리스트</h2>
+              <span className="text-xs text-muted-foreground">
+                총 {items.length}개 품목
+              </span>
+            </span>
+            <Button
+              onClick={() => setItems((current) => [...current, createEmptyItem()])}
+              type="button"
+              variant="secondary"
+            >
+              품목 추가
+            </Button>
+          </div>
+
+          <ul aria-label="품목 리스트" className="flex flex-col gap-4">
+            {items.map((item, index) => (
+              <ItemCard
+                index={index}
+                item={item}
+                key={index}
+                onChange={(patch) => updateItem(index, patch)}
+                onRemove={() => removeItem(index)}
+                removable={items.length > 1}
+              />
+            ))}
+          </ul>
         </section>
       </main>
 
