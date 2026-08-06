@@ -50,6 +50,11 @@ validate-screens:
     pnpm test:screens
     pnpm validate:screens
 
+# 저장소 와이어프레임이 공유본 기준선과 같은지. VADA_WIREFRAME_SHARE로 공유본 경로를 준다
+validate-wireframe-sync:
+    pnpm test:wireframe-sync
+    pnpm validate:wireframe-sync
+
 # CI 스코프 판별과 착수 전 도구 점검
 validate-tooling:
     pnpm test:tooling
@@ -109,4 +114,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-contracts validate-screens validate-tooling lint typecheck test build
+check: validate-contracts validate-screens validate-wireframe-sync validate-tooling lint typecheck test build

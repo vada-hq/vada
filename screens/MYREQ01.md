@@ -1,7 +1,8 @@
 ---
 id: MYREQ01
 title: 내 구매 요청
-wireframe: prototypes/wireframe/src/app/App.tsx:14171
+wireframe: prototypes/wireframe/src/app/App.tsx
+wireframe_screen: MY-REQ-01
 route: /events/$eventId/purchase-requests/mine
 contracts:
   - API:purchase_request.list_own@R1

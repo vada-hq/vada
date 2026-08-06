@@ -1,11 +1,30 @@
-import { readFile, readdir, stat } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repositoryRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
-const REQUIRED_KEYS = ["id", "title", "wireframe", "route", "contracts", "status"];
+const REQUIRED_KEYS = [
+  "id",
+  "title",
+  "wireframe",
+  "wireframe_screen",
+  "route",
+  "contracts",
+  "status",
+];
 const STATUSES = new Set(["todo", "doing", "done"]);
+
+/**
+ * 화면은 줄 번호가 아니라 화면 ID로 가리킨다. 와이어프레임 공유본을 반입하면
+ * 줄 번호는 전부 어긋나는데 검증은 그대로 통과했다. ID는 움직이지 않는다.
+ * 위치가 필요하면 App.tsx에서 그 ID를 찾는다. 여기서 줄을 계산해 두지 않는다.
+ */
+export function wireframeScreens(source) {
+  return new Set(
+    [...source.matchAll(/\{ id: "([A-Z][A-Z0-9-]*)", label:/g)].map((match) => match[1]),
+  );
+}
 
 /**
  * 화면 정본의 프런트매터만 검사한다.
@@ -76,6 +95,7 @@ function collectIds(value, ids) {
 
 export async function validateScreens(root = repositoryRoot) {
   const errors = [];
+  const resolved = [];
   const directory = resolve(root, "screens");
   const known = await contractIds(root);
   const files = (await readdir(directory)).filter(
@@ -105,11 +125,29 @@ export async function validateScreens(root = repositoryRoot) {
     }
 
     if (typeof front.wireframe === "string") {
-      const [path] = front.wireframe.split(":");
+      if (/:\d+$/.test(front.wireframe)) {
+        errors.push(
+          `${where}: wireframe에 줄 번호를 쓰지 않습니다. ` +
+            `공유본을 반입하면 어긋납니다. wireframe_screen의 화면 ID로 가리키세요.`,
+        );
+      }
+
+      const path = front.wireframe.replace(/:\d+$/, "");
+      let source = null;
       try {
-        await stat(resolve(root, path));
+        source = await readFile(resolve(root, path), "utf8");
       } catch {
         errors.push(`${where}: 와이어프레임 경로가 없습니다: ${path}`);
+      }
+
+      if (source && typeof front.wireframe_screen === "string") {
+        if (!wireframeScreens(source).has(front.wireframe_screen)) {
+          errors.push(
+            `${where}: 와이어프레임에 그런 화면이 없습니다: ${front.wireframe_screen}`,
+          );
+        } else {
+          resolved.push(`${front.id} → ${front.wireframe_screen}`);
+        }
       }
     }
 
@@ -120,14 +158,15 @@ export async function validateScreens(root = repositoryRoot) {
     }
   }
 
-  return { errors, files };
+  return { errors, files, resolved };
 }
 
 const invokedDirectly =
   process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 
 if (invokedDirectly) {
-  const { errors, files } = await validateScreens();
+  const { errors, files, resolved } = await validateScreens();
+  for (const line of resolved) console.log(line);
   for (const error of errors) console.error(`ERROR ${error}`);
   if (errors.length) process.exit(1);
   console.log(`화면 정본 ${files.length}개 검증 완료`);

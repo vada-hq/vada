@@ -29,13 +29,20 @@
 ---
 id: MYREQ01                                   # 와이어프레임 컴포넌트 이름
 title: 내 구매 요청
-wireframe: prototypes/wireframe/src/app/App.tsx:14171
+wireframe: prototypes/wireframe/src/app/App.tsx   # 줄 번호를 쓰지 않는다
+wireframe_screen: MY-REQ-01                   # 와이어프레임 SCREENS의 화면 ID
 route: /events/$eventId/purchase-requests/mine
 contracts:                                    # contracts/ 안에 존재해야 한다
   - API:purchase_request.list_own@R1
   - DATA:purchase_request.own_list@R1
 status: done                                  # todo | doing | done
 ---
+```
+
+**줄 번호로 가리키지 않는다.** 예전에는 `App.tsx:14171`처럼 줄을 적었다. 와이어프레임 공유본을 한 번 반입하자 세 파일의 줄 번호가 동시에 전부 틀렸는데, 검증기는 "경로가 있다"만 보고 통과시켰다. 화면 ID는 움직이지 않는다. 위치가 필요하면 App.tsx에서 그 ID를 찾는다.
+
+```bash
+grep -n '"MY-REQ-01"' prototypes/wireframe/src/app/App.tsx
 ```
 
 본문에는 이 셋만 쓴다.
@@ -46,7 +53,9 @@ status: done                                  # todo | doing | done
 
 ## 검증
 
-`just validate-screens`는 프런트매터의 필수 항목, 와이어프레임 경로 존재, 계약 참조가 `contracts/`에 실재하는지만 확인한다. 문장의 내용은 검사하지 않는다. 그건 사람이 브라우저에서 본다.
+`just validate-screens`는 프런트매터의 필수 항목, 와이어프레임 경로와 화면 ID의 실재, 계약 참조가 `contracts/`에 실재하는지만 확인한다. 문장의 내용은 검사하지 않는다. 그건 사람이 브라우저에서 본다.
+
+`just validate-wireframe-sync`는 저장소 와이어프레임이 공유본 기준선과 같은지 본다. `VADA_WIREFRAME_SHARE`에 공유본 폴더를 주면 반입하지 않은 새 공유본이 있는지 확인하고, 없으면 "확인하지 못했다"고 알린다. 조용히 통과시키지 않는다.
 
 ## 과거 기록
 
