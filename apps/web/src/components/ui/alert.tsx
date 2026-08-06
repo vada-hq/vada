@@ -20,7 +20,7 @@ export function Alert({
     <div
       aria-labelledby={titleId}
       className={cn(
-        "rounded-md border px-4 py-3 text-sm",
+        "rounded-sm border px-base py-snug text-body",
         tone === "danger"
           ? "border-danger/30 bg-danger/10 text-danger"
           : "border-border bg-muted text-foreground",

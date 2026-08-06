@@ -4,7 +4,7 @@ import type { ComponentProps } from "react";
 import { cn } from "../../lib/cn";
 
 const statusBadgeVariants = cva(
-  "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium",
+  "inline-flex items-center rounded-sm px-snug py-0.5 text-label font-medium",
   {
     variants: {
       tone: {

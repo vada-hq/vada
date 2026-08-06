@@ -17,6 +17,7 @@ export function EditorSummaryPanel({
   neededDate,
   onSaveDraft,
   onSubmit,
+  notice,
   priority,
   total,
 }: {
@@ -26,6 +27,7 @@ export function EditorSummaryPanel({
   neededDate: string;
   onSaveDraft: () => void;
   onSubmit: () => void;
+  notice: string | null;
   priority: string;
   total: number;
 }) {
@@ -79,6 +81,16 @@ export function EditorSummaryPanel({
           </Link>
         </div>
       </Card>
+
+      {/* 와이어프레임 하단 안내 영역. 저장 결과도 여기 한 곳에서만 알린다. */}
+      <div className="rounded-sm border border-primary-soft bg-primary-soft px-base py-snug">
+        <p
+          className="text-label leading-relaxed text-primary-soft-foreground"
+          role="status"
+        >
+          {notice ?? "제출된 요청은 재정부의 검토 후 구매가 진행됩니다."}
+        </p>
+      </div>
     </aside>
   );
 }

@@ -51,7 +51,7 @@ export function Select({
         aria-describedby={field?.describedBy}
         aria-invalid={field?.invalid}
         className={cn(
-          "flex min-h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-left text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-danger aria-invalid:ring-danger/20",
+          "flex w-full items-center justify-between rounded-sm border border-input bg-card px-snug py-tight text-left text-body-lg text-foreground outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground aria-invalid:border-danger aria-invalid:ring-danger/20",
           className,
         )}
         id={field?.controlId}
@@ -66,7 +66,7 @@ export function Select({
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
         <BaseSelect.Positioner alignItemWithTrigger={false} sideOffset={4}>
-          <BaseSelect.Popup className="z-50 min-w-[var(--anchor-width)] rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md outline-none">
+          <BaseSelect.Popup className="z-50 min-w-[var(--anchor-width)] rounded-sm border border-border bg-popover p-1 text-body-lg text-popover-foreground shadow-md outline-none">
             <BaseSelect.List>
               {options.map((option) => (
                 <BaseSelect.Item
