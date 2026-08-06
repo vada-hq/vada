@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import type {
   PurchaseRequestDraftContent,
   PurchaseRequestEditorState,
 } from "@vada/api-client";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { Alert } from "../../components/ui/alert";
 import { Button } from "../../components/ui/button";
@@ -20,6 +20,14 @@ import {
   type DraftItem,
 } from "./editor-items";
 import { EditorError, editorStateQueryOptions } from "./editor-query";
+import {
+  CommandError,
+  createIdempotencyKey,
+  deleteDraft,
+  saveDraft,
+  submitRequest,
+} from "./editor-commands";
+import { validateEditorInput, type FieldError } from "./editor-validation";
 import { OwnListLink } from "./navigation";
 
 const priorities = [
@@ -95,8 +103,118 @@ function EditorForm({
     return restored?.length ? restored : [createEmptyItem()];
   });
   const [draftDismissed, setDraftDismissed] = useState(false);
+  const [draftVersion, setDraftVersion] = useState<number | null>(
+    state.draft?.version ?? null,
+  );
+  const [notice, setNotice] = useState<string | null>(null);
+  const [failure, setFailure] = useState<{
+    message: string;
+    retryable: boolean;
+  } | null>(null);
+  const [errors, setErrors] = useState<FieldError[]>([]);
+  const [busy, setBusy] = useState<"idle" | "saving" | "submitting">("idle");
+  // 같은 입력의 재시도는 같은 키를 쓰고, 입력이 바뀌면 새 키를 만든다.
+  const submitKey = useRef<{ key: string; snapshot: string } | null>(null);
+  const navigate = useNavigate();
 
   const total = totalPreviewAmount(items);
+
+  const buildContent = () => ({
+    title: common.title,
+    neededDate: common.neededDate,
+    purpose: common.purpose,
+    priority: common.priority as "normal" | "urgent",
+    items,
+  });
+
+  const describeFailure = (error: unknown, action: "save" | "submit") => {
+    const kind = error instanceof CommandError ? error.failure : "not_found";
+
+    if (kind === "conflict" && action === "save") {
+      return {
+        message:
+          "다른 곳에서 초안이 바뀌었습니다. 저장되지 않았으니 최신 내용을 확인한 뒤 다시 저장해 주세요.",
+        retryable: false,
+      };
+    }
+    if (kind === "unavailable_temporarily") {
+      return {
+        message:
+          action === "save"
+            ? "저장되지 않았습니다. 잠시 후 다시 시도해 주세요."
+            : "제출되지 않았습니다. 잠시 후 다시 시도해 주세요.",
+        retryable: true,
+      };
+    }
+    if (kind === "unauthenticated") {
+      return { message: "다시 인증해야 합니다.", retryable: false };
+    }
+    if (action === "save") {
+      return { message: "저장되지 않았습니다.", retryable: false };
+    }
+    return { message: "제출할 수 없습니다.", retryable: false };
+  };
+
+  const handleSaveDraft = async () => {
+    setBusy("saving");
+    setFailure(null);
+    setNotice(null);
+    try {
+      const draft = await saveDraft(eventId, {
+        expectedVersion: draftVersion,
+        content: buildContent(),
+      });
+      setDraftVersion(draft.version);
+      setNotice("임시 저장되었습니다. 제출 전에는 재정부 검토 목록에 표시되지 않습니다.");
+    } catch (error) {
+      setFailure(describeFailure(error, "save"));
+    } finally {
+      setBusy("idle");
+    }
+  };
+
+  const handleDeleteDraft = async () => {
+    setFailure(null);
+    try {
+      await deleteDraft(eventId);
+      setDraftDismissed(true);
+      setDraftVersion(null);
+      // 현재 화면 입력은 자동으로 지우지 않는다.
+      setNotice("서버 초안이 삭제됐습니다. 이후 저장은 새 초안으로 처리합니다.");
+    } catch (error) {
+      setFailure(describeFailure(error, "save"));
+    }
+  };
+
+  const handleSubmit = async () => {
+    const content = buildContent();
+    const found = validateEditorInput(content);
+    setErrors(found);
+    if (found.length) return;
+
+    const snapshot = JSON.stringify(content);
+    if (!submitKey.current || submitKey.current.snapshot !== snapshot) {
+      submitKey.current = { key: createIdempotencyKey(), snapshot };
+    }
+
+    setBusy("submitting");
+    setFailure(null);
+    try {
+      const result = await submitRequest(eventId, content, submitKey.current.key);
+      await navigate({
+        params: { eventId },
+        search: {
+          submitted: result.requestId,
+          overBudget: result.overBudget ? "1" : undefined,
+        },
+        to: "/events/$eventId/purchase-requests/mine",
+      });
+    } catch (error) {
+      setFailure(describeFailure(error, "submit"));
+    } finally {
+      setBusy("idle");
+    }
+  };
 
   const update = (patch: Partial<CommonInput>) =>
     setCommon((current) => ({ ...current, ...patch }));
@@ -111,8 +229,21 @@ function EditorForm({
   const removeItem = (index: number) =>
     setItems((current) => current.filter((_, position) => position !== index));
 
+  const guardSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    // 한국어 IME 조합 중 Enter는 제출로 처리하지 않는다.
+    if ((event.nativeEvent as unknown as { isComposing?: boolean }).isComposing) {
+      return;
+    }
+    void handleSubmit();
+  };
+
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:flex-row">
+    <form
+      className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10 lg:flex-row"
+      noValidate
+      onSubmit={guardSubmit}
+    >
       <main className="flex min-w-0 flex-1 flex-col gap-8">
         <header className="flex flex-col gap-1">
           <h1 className="text-2xl font-semibold tracking-tight">
@@ -125,10 +256,33 @@ function EditorForm({
 
         {state.draft && !draftDismissed ? (
           <DraftBanner
-            onDismiss={() => setDraftDismissed(true)}
+            onDismiss={() => void handleDeleteDraft()}
             savedAt={state.draft.savedAt}
           />
         ) : null}
+
+        {notice ? (
+          <p className="text-sm text-success" role="status">
+            {notice}
+          </p>
+        ) : null}
+
+        {failure ? (
+          <Alert tone="danger" title="처리하지 못했습니다.">
+            <p>{failure.message}</p>
+            {failure.retryable ? (
+              <Button
+                className="mt-2"
+                onClick={() => void handleSubmit()}
+                type="button"
+              >
+                다시 시도
+              </Button>
+            ) : null}
+          </Alert>
+        ) : null}
+
+        {errors.length ? <ErrorSummary errors={errors} /> : null}
 
         <Card className="flex flex-col gap-5">
           <h2 className="text-sm font-semibold">기본 요청 정보</h2>
@@ -243,22 +397,56 @@ function EditorForm({
           </dl>
 
           <div className="flex flex-col gap-2 border-t border-border pt-4">
-            {/* 제출과 임시 저장 동작은 3단계에서 구현한다. */}
-            <Button type="button">구매 요청 제출</Button>
-            <Button type="button" variant="secondary">
-              임시 저장
+            <Button
+              disabled={busy !== "idle"}
+              onClick={() => void handleSubmit()}
+              type="button"
+            >
+              {busy === "submitting" ? "제출 중" : "구매 요청 제출"}
+            </Button>
+            <Button
+              disabled={busy !== "idle"}
+              onClick={() => void handleSaveDraft()}
+              type="button"
+              variant="secondary"
+            >
+              {busy === "saving" ? "저장 중" : "임시 저장"}
             </Button>
             <Link
               className="text-center text-sm text-muted-foreground underline"
               params={{ eventId }}
-              to="/events/$eventId/purchase-requests/mine"
+                      to="/events/$eventId/purchase-requests/mine"
             >
               취소
             </Link>
           </div>
         </Card>
       </aside>
-    </div>
+    </form>
+  );
+}
+
+function ErrorSummary({ errors }: { errors: FieldError[] }) {
+  return (
+    <Alert aria-label="입력을 확인해 주세요" tone="danger" title="입력을 확인해 주세요">
+      <ul className="mt-1 flex flex-col gap-1">
+        {errors.map((error) => (
+          <li key={error.controlId}>
+            <a
+              className="underline"
+              href={`#${error.controlId}`}
+              onClick={(event) => {
+                event.preventDefault();
+                document.getElementById(error.controlId)?.focus();
+              }}
+            >
+              {error.label}
+            </a>
+            <span className="ml-2 text-current/80">{error.message}</span>
+          </li>
+        ))}
+      </ul>
+    </Alert>
   );
 }
 

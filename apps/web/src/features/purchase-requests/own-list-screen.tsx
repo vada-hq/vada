@@ -48,7 +48,13 @@ function OwnListRow({ eventId, item }: { eventId: string; item: OwnListItem }) {
   );
 }
 
-export function PurchaseRequestOwnListScreen({ eventId }: { eventId: string }) {
+export function PurchaseRequestOwnListScreen({
+  eventId,
+  submitted,
+}: {
+  eventId: string;
+  submitted?: { overBudget: boolean };
+}) {
   const query = useQuery(ownListQueryOptions(eventId));
   // 재시도 성공을 알리려면 사용자가 재시도했다는 사실을 직접 기억해야 한다.
   // TanStack Query의 failureCount는 성공 시 초기화된다.
@@ -71,6 +77,18 @@ export function PurchaseRequestOwnListScreen({ eventId }: { eventId: string }) {
           구현하므로 지금은 어떤 사용자에게도 노출하지 않는다.
         */}
       </header>
+
+      {submitted ? (
+        <Alert
+          tone={submitted.overBudget ? "danger" : "info"}
+          title="요청이 제출되었습니다."
+        >
+          <p>재정부 검토 대기 상태로 저장됐습니다.</p>
+          {submitted.overBudget ? (
+            <p>예산 초과 — 승인 전 해결이 필요합니다.</p>
+          ) : null}
+        </Alert>
+      ) : null}
 
       {query.isPending ? (
         <p role="status">요청 목록을 불러오는 중입니다.</p>
