@@ -28,6 +28,10 @@ dev-web:
 dev-web-mock:
     pnpm --filter web dev:mock
 
+# 와이어프레임 정본을 브라우저에서 확인하는 개발 서버 (화면 87개)
+dev-wireframe:
+    pnpm --filter @vada/wireframe dev
+
 # 서버 API·권한·데이터·오류 계약
 validate-contracts:
     pnpm test:contracts
