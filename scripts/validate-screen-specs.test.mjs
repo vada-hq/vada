@@ -13,7 +13,7 @@ import {
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const artifactPath = resolve(
   repositoryRoot,
-  "delivery-units/DU-001/screen-spec/review-ready-R2.json",
+  "delivery-units/DU-001/screen-spec/R2.json",
 );
 const historicalDraftPath = resolve(
   repositoryRoot,
