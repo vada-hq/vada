@@ -5,6 +5,10 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
+import type { RouterHistory } from "@tanstack/react-router";
+
+import { PurchaseRequestDetailScreen } from "../features/purchase-requests/detail-screen";
+import { PurchaseRequestOwnListScreen } from "../features/purchase-requests/own-list-screen";
 
 export interface AppRouterContext {
   queryClient: QueryClient;
@@ -20,7 +24,37 @@ const indexRoute = createRoute({
   component: HomePage,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute]);
+const ownListRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/events/$eventId/purchase-requests/mine",
+  component: OwnListPage,
+});
+
+const detailRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/events/$eventId/purchase-requests/$requestId",
+  component: DetailPage,
+});
+
+const routeTree = rootRoute.addChildren([
+  indexRoute,
+  ownListRoute,
+  detailRoute,
+]);
+
+function OwnListPage() {
+  const { eventId } = ownListRoute.useParams();
+
+  return <PurchaseRequestOwnListScreen eventId={eventId} />;
+}
+
+function DetailPage() {
+  const { eventId, requestId } = detailRoute.useParams();
+
+  return (
+    <PurchaseRequestDetailScreen eventId={eventId} requestId={requestId} />
+  );
+}
 
 function HomePage() {
   return (
@@ -33,11 +67,15 @@ function HomePage() {
   );
 }
 
-export function createAppRouter(queryClient: QueryClient) {
+export function createAppRouter(
+  queryClient: QueryClient,
+  history?: RouterHistory,
+) {
   return createRouter({
     routeTree,
     context: { queryClient },
     defaultPreload: "intent",
+    ...(history ? { history } : {}),
   });
 }
 
