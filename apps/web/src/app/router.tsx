@@ -6,8 +6,10 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 import type { QueryClient } from "@tanstack/react-query";
+import type * as React from "react";
 import type { RouterHistory } from "@tanstack/react-router";
 
+import { AppShell } from "../shared/ui/app-shell";
 import { PurchaseRequestDetailScreen } from "../features/purchase-request/detail/screen";
 import { PurchaseRequestEditorScreen } from "../features/purchase-request/editor/screen";
 import { PurchaseRequestOwnListScreen } from "../features/purchase-request/own-list/screen";
@@ -63,10 +65,42 @@ const routeTree = rootRoute.addChildren([
   detailRoute,
 ]);
 
+/**
+ * 구매 요청 화면들이 공유하는 셸이다. 행사 이름은 아직 화면별 계약에서만
+ * 오므로 브레드크럼의 마지막 조각만 화면이 정한다.
+ */
+function PurchaseRequestShell({
+  children,
+  current,
+}: {
+  children: React.ReactNode;
+  current: string;
+}) {
+  return (
+    <AppShell
+      activeNav="운영"
+      breadcrumb={["운영", "행사", "재정", current]}
+      tabs={[
+        { label: "개요" },
+        { label: "업무" },
+        { label: "재정", active: true },
+        { label: "기록" },
+      ]}
+      title={current}
+    >
+      {children}
+    </AppShell>
+  );
+}
+
 function EditorPage() {
   const { eventId } = editorRoute.useParams();
 
-  return <PurchaseRequestEditorScreen eventId={eventId} />;
+  return (
+    <PurchaseRequestShell current="구매 요청 작성">
+      <PurchaseRequestEditorScreen eventId={eventId} />
+    </PurchaseRequestShell>
+  );
 }
 
 function OwnListPage() {
@@ -74,10 +108,12 @@ function OwnListPage() {
   const { overBudget, submitted } = ownListRoute.useSearch();
 
   return (
-    <PurchaseRequestOwnListScreen
-      eventId={eventId}
-      submitted={submitted ? { overBudget: overBudget === "1" } : undefined}
-    />
+    <PurchaseRequestShell current="내 구매 요청">
+      <PurchaseRequestOwnListScreen
+        eventId={eventId}
+        submitted={submitted ? { overBudget: overBudget === "1" } : undefined}
+      />
+    </PurchaseRequestShell>
   );
 }
 
@@ -85,7 +121,9 @@ function DetailPage() {
   const { eventId, requestId } = detailRoute.useParams();
 
   return (
-    <PurchaseRequestDetailScreen eventId={eventId} requestId={requestId} />
+    <PurchaseRequestShell current="구매 요청 상세">
+      <PurchaseRequestDetailScreen eventId={eventId} requestId={requestId} />
+    </PurchaseRequestShell>
   );
 }
 

@@ -61,7 +61,9 @@ export function SectionHeading({
 }) {
   return (
     <div className="flex flex-wrap items-center justify-between gap-snug">
-      <span className="flex items-baseline gap-snug">
+      <span className="flex items-center gap-snug">
+        {/* 와이어프레임의 파란 세로 막대 */}
+        <span aria-hidden="true" className="h-4 w-1 rounded-full bg-primary" />
         <h2 className="text-body-lg font-semibold">{children}</h2>
         {meta ? (
           <span className="text-label text-muted-foreground">{meta}</span>

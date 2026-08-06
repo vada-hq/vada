@@ -48,8 +48,8 @@ export function FormField({
         required,
       }}
     >
-      <div className={cn("grid gap-2", className)}>
-        <label className="text-sm font-medium" htmlFor={id}>
+      <div className={cn("grid gap-tight", className)}>
+        <label className="text-body font-medium" htmlFor={id}>
           {label}
           {required ? (
             <span aria-hidden="true" className="ml-1 text-danger">

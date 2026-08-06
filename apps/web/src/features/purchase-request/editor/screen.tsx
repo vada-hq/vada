@@ -118,12 +118,6 @@ function EditorForm({
           />
         ) : null}
 
-        {form.notice ? (
-          <p className="text-body text-success" role="status">
-            {form.notice}
-          </p>
-        ) : null}
-
         {form.failure ? (
           <Alert tone="danger" title="처리하지 못했습니다.">
             <p>{form.failure.message}</p>
@@ -142,7 +136,10 @@ function EditorForm({
         <ErrorSummary errors={form.errors} />
 
         <Card className="flex flex-col gap-loose">
-          <h2 className="text-body-lg font-semibold">기본 요청 정보</h2>
+          <span className="flex items-center gap-snug">
+            <span aria-hidden="true" className="h-4 w-1 rounded-full bg-primary" />
+            <h2 className="text-body-lg font-semibold">기본 요청 정보</h2>
+          </span>
 
           <div className="grid gap-loose sm:grid-cols-2">
             <FormField id="request-title" label="요청 제목" required>
@@ -244,6 +241,7 @@ function EditorForm({
         onSaveDraft={() => void form.handleSaveDraft()}
         onSubmit={() => void form.handleSubmit()}
         priority={form.common.priority}
+        notice={form.notice}
         total={total}
       />
     </form>
