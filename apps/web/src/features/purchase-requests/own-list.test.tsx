@@ -4,33 +4,16 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { AppProviders, createAppRuntime } from "../../app/runtime";
+import {
+  detailViewExample,
+  ownListExample,
+  sampleEventId,
+} from "../../mocks/purchase-request-fixtures";
 import { server } from "../../mocks/server";
 
-const eventId = "event-001";
+const eventId = sampleEventId;
 const ownListPath = `/events/${eventId}/purchase-requests/mine`;
 const ownListUrl = `*${ownListPath}`;
-
-// 승인 계약 픽스처 contracts/fixtures/CB-FIN-001/R1.json#own-request-list 의 값과 같습니다.
-const ownListExample = {
-  items: [
-    {
-      requestId: "request-001",
-      title: "가을 축제 운영 물품",
-      status: "review_pending",
-      estimatedTotal: 390000,
-      overBudget: false,
-      createdAt: "2026-08-03T10:05:00Z",
-    },
-    {
-      requestId: "request-000",
-      title: "여름 행사 준비 물품",
-      status: "review_pending",
-      estimatedTotal: 100000,
-      overBudget: true,
-      createdAt: "2026-08-02T09:00:00Z",
-    },
-  ],
-};
 
 function problem(status: number, code: string, title: string) {
   return HttpResponse.json(
@@ -109,28 +92,7 @@ describe("본인 구매 요청 목록 화면", () => {
     server.use(
       http.get(ownListUrl, () => HttpResponse.json(ownListExample)),
       http.get(`*/events/${eventId}/purchase-requests/request-001`, () =>
-        HttpResponse.json({
-          record: {
-            requestId: "request-001",
-            organizationId: "org-001",
-            eventId,
-            requesterUserId: "user-001",
-            requestDepartmentId: "department-001",
-            status: "review_pending",
-            content: {
-              title: "가을 축제 운영 물품",
-              neededDate: "2026-09-15",
-              purpose: "가을 축제 부스 운영",
-              priority: "urgent",
-              items: [],
-            },
-            itemResults: [],
-            estimatedTotal: 390000,
-            overBudget: false,
-            createdAt: "2026-08-03T10:05:00Z",
-          },
-          display: { eventName: "2026 가을 축제", requesterName: "김바다" },
-        }),
+        HttpResponse.json(detailViewExample),
       ),
     );
 

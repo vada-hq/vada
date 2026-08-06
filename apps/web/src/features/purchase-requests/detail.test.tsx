@@ -4,70 +4,16 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { AppProviders, createAppRuntime } from "../../app/runtime";
+import {
+  detailViewExample as detailExample,
+  sampleEventId,
+} from "../../mocks/purchase-request-fixtures";
 import { server } from "../../mocks/server";
 
-const eventId = "event-001";
+const eventId = sampleEventId;
 const requestId = "request-001";
 const detailPath = `/events/${eventId}/purchase-requests/${requestId}`;
 const detailUrl = `*${detailPath}`;
-
-/**
- * 승인 계약 픽스처 contracts/fixtures/CB-FIN-001/R2.json#purchase-request-detail-view 의 값이다.
- * requesterUserId(user-001)는 조회자와 다른 실제 제출자이며, 화면은 display가 준 이름만 표시한다.
- */
-const detailExample = {
-  record: {
-    requestId,
-    organizationId: "org-001",
-    eventId,
-    requesterUserId: "user-001",
-    requestDepartmentId: "department-001",
-    status: "review_pending",
-    content: {
-      title: "가을 축제 운영 물품",
-      neededDate: "2026-09-15",
-      purpose: "가을 축제 부스 운영",
-      priority: "urgent",
-      items: [
-        {
-          name: "명찰 케이스",
-          category: "행사용품",
-          budgetItem: "행사운영비",
-          purchaseType: "general",
-          quantity: 2,
-          unit: "세트",
-          estimatedUnitPrice: 15000,
-          priceEvidence: [
-            {
-              type: "product_url",
-              url: "https://vendor.example/products/name-badge",
-            },
-          ],
-        },
-        {
-          name: "행사 음향 운영",
-          category: "용역",
-          budgetItem: "행사운영비",
-          purchaseType: "service",
-          quantity: 1,
-          unit: "건",
-          estimatedUnitPrice: 360000,
-          priceEvidence: [
-            { type: "vendor_quote", note: "2026년 가을 축제 음향 운영 견적" },
-          ],
-        },
-      ],
-    },
-    itemResults: [
-      { itemId: "item-001", itemPosition: 0, estimatedAmount: 30000 },
-      { itemId: "item-002", itemPosition: 1, estimatedAmount: 360000 },
-    ],
-    estimatedTotal: 390000,
-    overBudget: false,
-    createdAt: "2026-08-03T10:05:00Z",
-  },
-  display: { eventName: "2026 가을 축제", requesterName: "김바다" },
-};
 
 function problem(status: number, code: string, title: string) {
   return HttpResponse.json(
