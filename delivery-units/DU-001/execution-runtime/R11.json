@@ -1,0 +1,85 @@
+{
+  "schema_version": "0.1.0",
+  "runtime_id": "RUN-DU-001-EP-R11",
+  "runtime_revision": 1,
+  "runtime_status": "active",
+  "updated_at": "2026-08-06T06:37:17.101Z",
+  "delivery_unit_id": "DU-001",
+  "execution_plan_ref": {
+    "path": "delivery-units/DU-001/execution-plan/R11.json",
+    "execution_plan_id": "EP-DU-001",
+    "execution_plan_revision": 11,
+    "canonical_sha256": "9b2a98ef2c41294a9505d76698ce462a1baa9568fba58b33d769d51752fe4cc3"
+  },
+  "sources": [
+    {
+      "id": "SRC-RUN-001",
+      "type": "approved_artifact",
+      "captured_at": "2026-08-06T06:37:17.101Z",
+      "locator": "delivery-units/DU-001/execution-plan/R11.json#EP-DU-001@R11",
+      "content_ko": "승인된 실행 계획 R11의 커밋 작업을 실행 추적 대상으로 등록했습니다."
+    }
+  ],
+  "work_runs": [
+    {
+      "work_item_ref": "WORK:purchase-request-own-list-ui@R2",
+      "executor_ref": "EXEC:ai-frontend",
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-001",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-06T06:37:17.101Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R11에서 WORK:purchase-request-own-list-ui@R2 작업을 실행 추적 대상으로 등록했습니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-detail-ui@R3",
+      "executor_ref": "EXEC:ai-frontend",
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-002",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-06T06:37:17.101Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R11에서 WORK:purchase-request-detail-ui@R3 작업을 실행 추적 대상으로 등록했습니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    },
+    {
+      "work_item_ref": "WORK:purchase-request-editor-ui@R2",
+      "executor_ref": "EXEC:ai-frontend",
+      "status": "not_started",
+      "started_at": null,
+      "completed_at": null,
+      "transition_log": [
+        {
+          "id": "TR-003",
+          "from": null,
+          "to": "not_started",
+          "occurred_at": "2026-08-06T06:37:17.101Z",
+          "actor_ref": "EXEC:ai-coordinator",
+          "source_ref": "SRC-RUN-001",
+          "note_ko": "승인된 R11에서 WORK:purchase-request-editor-ui@R2 작업을 실행 추적 대상으로 등록했습니다."
+        }
+      ],
+      "blockers": [],
+      "evidence_instances": []
+    }
+  ]
+}
