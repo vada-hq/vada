@@ -1,9 +1,9 @@
 {
   "schema_version": "0.1.0",
   "runtime_id": "RUN-DU-001-EP-R7",
-  "runtime_revision": 9,
+  "runtime_revision": 11,
   "runtime_status": "active",
-  "updated_at": "2026-08-05T11:18:23.888Z",
+  "updated_at": "2026-08-06T04:19:05.974Z",
   "delivery_unit_id": "DU-001",
   "execution_plan_ref": {
     "path": "delivery-units/DU-001/execution-plan/R7.json",
@@ -74,15 +74,29 @@
       "captured_at": "2026-08-05T11:18:23.888Z",
       "locator": "current-thread/continue-2026-08-05;github:vada-hq/vada/pull/27;git:7fbd5b7",
       "content_ko": "제품 책임자는 제품 선택이 남지 않은 표준 기술 작업을 반복 승인 없이 근거에 따라 완료하도록 지시했고, 독립 검증과 CI를 통과한 OpenAPI 클라이언트 R2를 통합 브랜치에 병합했습니다."
+    },
+    {
+      "id": "SRC-RUN-010",
+      "type": "user_statement",
+      "captured_at": "2026-08-06T04:18:25.187Z",
+      "locator": "current-thread/2026-08-06-screen-spec-review;github:vada-hq/vada/pull/32;git:59963d2",
+      "content_ko": "제품 책임자 황성욱이 화면 명세 R2의 제품 정의 검토를 직접 확정했습니다. 확정 내용은 권한 없는 구성원에게 새 구매 요청 동작을 노출하지 않음, 예산 초과 요청도 201 제출 성공과 검토 대기 생성으로 처리하고 경고를 함께 표시함, 파일 업로드 파이프라인은 범위 밖으로 두고 URL·판매처·견적 메모 등 비파일 대안을 사용함, 상세 화면은 검토 대기까지만 표시하고 후속 검토·구매·증빙 단계를 노출하지 않음의 네 가지이며 명세 내용 변경은 없습니다. 워크플로 정책의 product_planning과 experience_design 기본 담당은 윤종운이지만 이번 확정은 accountable_owner 권한으로 황성욱이 수행했고 본인이 그렇게 기록하도록 지시했습니다."
+    },
+    {
+      "id": "SRC-RUN-011",
+      "type": "review_record",
+      "captured_at": "2026-08-06T04:19:05.974Z",
+      "locator": "agent-review:work/du001-screen-spec-promotion;delivery-units/DU-001/screen-spec/R2.json",
+      "content_ko": "프론트엔드와 품질 검토를 독립 수행했습니다. 품질 검토에서 EVID-024가 요구한 설계 참조 4건과 계약 참조 3건이 상태 매트릭스와 와이어프레임 대조에서 실제로 사용되고 비교 항목 8건이 커버리지에 누락 없이 등록된 것을 확인했습니다. 프론트엔드 검토에서 상태 23개를 전수 확인해 모호한 서술 3건을 지적했습니다. STATE-DETAIL-FAILED의 허용된 경우 재시도, STATE-OWN-LIST-FAILED의 오류 구분 방법 미정의, STATE-OWN-LIST-LOADING-EMPTY-READY의 허용된 경우 새 요청 노출 조건입니다. 세 건 모두 제품 의미를 바꾸지 않는 범위에서 재시도는 일시 장애에만 제공, 권한 없음과 찾을 수 없음은 다른 조직 데이터 존재를 노출하지 않는 안내로 표시, 새 요청 노출은 COMPARE-001 규칙을 따름으로 명시화했습니다."
     }
   ],
   "work_runs": [
     {
       "work_item_ref": "WORK:purchase-request-screen-spec@R2",
       "executor_ref": "EXEC:ai-experience-design",
-      "status": "review",
+      "status": "done",
       "started_at": "2026-08-05T07:23:38.455Z",
-      "completed_at": null,
+      "completed_at": "2026-08-06T04:19:05.974Z",
       "transition_log": [
         {
           "id": "TR-001",
@@ -110,6 +124,15 @@
           "actor_ref": "EXEC:ai-coordinator",
           "source_ref": "SRC-RUN-003",
           "note_ko": "기술 검증을 마친 후보를 사람 디자인 담당자의 최종 의미·상태 검토 대기로 전환합니다."
+        },
+        {
+          "id": "TR-011",
+          "from": "review",
+          "to": "done",
+          "occurred_at": "2026-08-06T04:19:05.974Z",
+          "actor_ref": "EXEC:ai-verifier",
+          "source_ref": "SRC-RUN-011",
+          "note_ko": "제품 책임자의 제품 정의 확정과 프론트엔드·품질 독립 검토 통과, 지적 3건 반영을 확인하고 화면 명세를 승인 리비전 R2로 승격해 완료합니다."
         }
       ],
       "blockers": [],
@@ -124,6 +147,17 @@
           "verified_by": null,
           "verified_at": null,
           "verification_note_ko": null
+        },
+        {
+          "id": "PROOF-004",
+          "requirement_ref": "EVID-024",
+          "kind": "reviewed_artifact",
+          "locator": "delivery-units/DU-001/screen-spec/R2.json",
+          "captured_at": "2026-08-06T04:19:05.974Z",
+          "verification_status": "verified",
+          "verified_by": "EXEC:ai-verifier",
+          "verified_at": "2026-08-06T04:19:05.974Z",
+          "verification_note_ko": "승인 리비전 R2로 승격한 명세를 독립 재검증했습니다. 상세 계약 공백 CONTRACT-GAP-001 해소, API 상세 R2와 DATA detail_view R1 참조, 서버 반환 행사명과 실제 요청자명 표시, 로딩·찾을 수 없음·일시 장애·새로고침 재조회·키보드 상태가 모두 존재합니다. just validate-screen-specs 테스트 17건과 저장소 화면 명세 2개 검증이 통과했습니다."
         }
       ]
     },
