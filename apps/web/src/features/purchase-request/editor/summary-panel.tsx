@@ -34,7 +34,7 @@ export function EditorSummaryPanel({
   return (
     <aside
       aria-label="요청 요약"
-      className="flex h-fit w-full flex-col gap-section lg:w-80"
+      className="flex w-full shrink-0 flex-col gap-section overflow-auto border-border p-loose lg:w-80 lg:border-l"
     >
       <Card className="flex flex-col gap-base">
         <div className="flex flex-col gap-tight">

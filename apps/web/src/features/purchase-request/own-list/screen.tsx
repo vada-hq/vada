@@ -105,6 +105,15 @@ export function PurchaseRequestOwnListScreen({
   return (
     <Page>
       <PageHeader
+        actions={
+          <Link
+            className="rounded-sm bg-primary px-snug py-tight text-body text-primary-foreground"
+            params={{ eventId }}
+            to="/events/$eventId/purchase-requests/new"
+          >
+            새 구매 요청
+          </Link>
+        }
         description="이 행사에서 내가 제출한 구매 요청"
         title="내 구매 요청"
       />

@@ -20,7 +20,7 @@ function renderEditor() {
 
 async function itemCards() {
   // 작성 폼이 열린 뒤에야 품목 목록이 있다.
-  await screen.findByRole("heading", { name: "구매 요청서 작성" });
+  await screen.findByRole("textbox", { name: /요청 제목/ });
   const list = await screen.findByRole("list", { name: "품목 리스트" });
   return within(list).getAllByRole("listitem");
 }
