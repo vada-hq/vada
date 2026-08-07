@@ -112,3 +112,24 @@ export const detailViewExample: PurchaseRequestDetailView = {
   },
   display: { eventName: "2026 가을 축제", requesterName: "김바다" },
 };
+
+/**
+ * 검토 화면 예제. 계약 CB-FIN-003@R1의 review_view다.
+ *
+ * detailViewExample의 품목 두 개에 상태가 정확히 하나씩 붙는다. 계약이
+ * "detail의 품목마다 정확히 하나씩"을 요구하므로 개수를 맞춘다.
+ */
+export const reviewViewExample = {
+  detail: detailViewExample,
+  itemReviewStates: [
+    { itemId: "item-001", reviewStatus: "review_pending" as const },
+    { itemId: "item-002", reviewStatus: "review_pending" as const },
+  ],
+  history: [
+    {
+      recordedAt: "2026-08-03T10:05:00Z",
+      actorName: "김바다",
+      summary: "구매 요청을 제출했습니다.",
+    },
+  ],
+};

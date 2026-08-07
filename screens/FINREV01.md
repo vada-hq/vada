@@ -15,7 +15,7 @@ contracts:
   - ERROR:purchase_request.action_forbidden@R1
   - ERROR:http.resource_not_found@R1
   - ERROR:purchase_request.persistence_unavailable@R1
-status: todo
+status: done
 ---
 
 ## 이 화면이 MVP에서 갖는 범위
@@ -61,7 +61,7 @@ status: todo
 
 - **머리말** — 요청 제목, 요청자·부서, 제출 시각, 전체 요청액.
 - **품목 검토 표** — 품목마다 한 행. 품목명·수량·요청액·가격 근거·현재 상태, 그리고 결정 행동.
-- **보완 요청 모달** — 보완 사유(필수)와 재제출 기한(필수)을 받는다.
+- **결정 팝업** — 보완 요청은 사유와 재제출 기한을, 반려는 사유를 받는다. 승인은 받을 값이 없어 곧바로 보낸다.
 - **처리 기록** — 상태 변화를 시간순으로. 누가 언제 무엇을 했는지.
 
 ## 상태
