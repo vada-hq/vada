@@ -5,9 +5,12 @@ wireframe: prototypes/wireframe/src/app/App.tsx
 wireframe_screen: EVT-FIN-01
 route: /events/$eventId/finance
 contracts:
-  - API:purchase_request.list_own@R1
-  - DATA:purchase_request.own_list@R1
-  - AUTH:purchase_request.list_own@R1
+  - API:event_budget.get_summary@R1
+  - DATA:event_budget.summary@R1
+  - AUTH:event_budget.read@R1
+  - API:purchase_request.list_event_items@R1
+  - DATA:purchase_request.event_item_board@R1
+  - AUTH:purchase_request.list_event_items@R1
   - ERROR:http.unauthenticated@R1
   - ERROR:purchase_request.action_forbidden@R1
   - ERROR:http.resource_not_found@R1

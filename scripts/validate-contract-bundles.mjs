@@ -368,22 +368,40 @@ export function validateContractBundleDocument(bundle, solution, options = {}) {
   const errors = [];
   const structureErrors = validateBundleStructure(bundle);
   if (structureErrors.length > 0) return structureErrors;
-  if (solution?.status !== "approved" || !Number.isInteger(solution?.revision) || solution.revision < 1) {
-    errors.push("참조한 목표 설계는 승인된 양의 리비전이어야 합니다.");
-  }
-  if (bundle.solution_ref.solution_id !== solution?.id) errors.push("목표 설계 ID가 고정 참조와 다릅니다.");
-  if (bundle.solution_ref.solution_revision !== solution?.revision) errors.push("목표 설계 리비전이 고정 참조와 다릅니다.");
-  if (bundle.solution_ref.canonical_sha256 !== canonicalSha256(solution)) {
-    errors.push("목표 설계 해시가 고정 참조와 다릅니다.");
-  }
-  const expectedFlow = `${solution?.flowRef?.id}@R${solution?.flowRef?.revision}`;
-  if (bundle.delivery_unit_ref !== expectedFlow) {
-    errors.push(`전달 단위는 승인 설계의 ${expectedFlow}여야 합니다.`);
-  }
-  if (options.flow) {
-    if (options.flow.status !== "approved") errors.push("참조한 사용자 흐름은 승인 상태여야 합니다.");
-    if (bundle.objective_ko !== options.flow.spec?.outcome?.result) {
-      errors.push("계약 목표는 승인된 사용자 흐름의 결과와 정확히 같아야 합니다.");
+  // 묶음은 둘 중 하나에 매인다. 동결된 product-specs의 목표 설계(예전 방식),
+  // 또는 screens/의 화면 정본(지금 방식). 화면 기반 묶음에는 solution_ref가 없다.
+  const designBased = Boolean(bundle.solution_ref);
+  if (designBased) {
+    if (
+      solution?.status !== "approved" ||
+      !Number.isInteger(solution?.revision) ||
+      solution.revision < 1
+    ) {
+      errors.push("참조한 목표 설계는 승인된 양의 리비전이어야 합니다.");
+    }
+    if (bundle.solution_ref.solution_id !== solution?.id) errors.push("목표 설계 ID가 고정 참조와 다릅니다.");
+    if (bundle.solution_ref.solution_revision !== solution?.revision) errors.push("목표 설계 리비전이 고정 참조와 다릅니다.");
+    if (bundle.solution_ref.canonical_sha256 !== canonicalSha256(solution)) {
+      errors.push("목표 설계 해시가 고정 참조와 다릅니다.");
+    }
+    const expectedFlow = `${solution?.flowRef?.id}@R${solution?.flowRef?.revision}`;
+    if (bundle.delivery_unit_ref !== expectedFlow) {
+      errors.push(`전달 단위는 승인 설계의 ${expectedFlow}여야 합니다.`);
+    }
+    if (options.flow) {
+      if (options.flow.status !== "approved") errors.push("참조한 사용자 흐름은 승인 상태여야 합니다.");
+      if (bundle.objective_ko !== options.flow.spec?.outcome?.result) {
+        errors.push("계약 목표는 승인된 사용자 흐름의 결과와 정확히 같아야 합니다.");
+      }
+    }
+  } else if (options.screenContractRefs) {
+    // 화면 정본이 참조하지 않는 API 계약은 아무도 쓰지 않는다는 뜻이다.
+    // 목표 설계가 하던 "이 계약이 왜 있는가"의 근거를 화면 정본이 대신한다.
+    for (const contract of bundle.contracts ?? []) {
+      if (!contract.id?.startsWith("API:")) continue;
+      if (!options.screenContractRefs.has(contract.id)) {
+        errors.push(`이 계약을 참조하는 화면 정본이 없습니다: ${contract.id}`);
+      }
     }
   }
 
@@ -450,8 +468,11 @@ export function validateContractBundleDocument(bundle, solution, options = {}) {
   if (missingDesign.length > 0) errors.push(`계약 귀속에서 누락된 설계: ${missingDesign.join(", ")}`);
   const duplicateDesign = [...coverageCounts].filter(([, count]) => count > 1).map(([id]) => id);
   if (duplicateDesign.length > 0) errors.push(`중복 설계 귀속: ${duplicateDesign.join(", ")}`);
-  const unmappedLocal = [...localContracts.keys()].filter((id) => !mappedContracts.has(id));
-  if (unmappedLocal.length > 0) errors.push(`설계에 연결되지 않은 로컬 계약: ${unmappedLocal.join(", ")}`);
+  // 화면 기반 묶음은 설계 귀속 대신 화면 정본 참조로 근거를 댄다.
+  if (designBased) {
+    const unmappedLocal = [...localContracts.keys()].filter((id) => !mappedContracts.has(id));
+    if (unmappedLocal.length > 0) errors.push(`설계에 연결되지 않은 로컬 계약: ${unmappedLocal.join(", ")}`);
+  }
 
   const questionById = new Map(questions.map((item) => [item.id, item]));
   const questionEdges = new Map();
@@ -660,22 +681,28 @@ export async function validateContractBundleRepository(root = repositoryRoot) {
   const warnings = [];
   const paths = await listJsonFiles(resolve(root, "contracts/bundles"));
   if (paths.length === 0) return { errors, warnings };
+  const screenContractRefs = await loadScreenContractRefs(root);
   for (const path of paths) {
     const label = relative(root, path).replaceAll("\\", "/");
     try {
       const bundle = JSON.parse(await readFile(path, "utf8"));
-      const solutionPath = assertProjectRelative(root, bundle.solution_ref?.path);
-      const solution = JSON.parse(await readFile(solutionPath, "utf8"));
-      const flowPath = assertProjectRelative(
-        root,
-        `product-specs/flows/${solution.flowRef.id}/R${solution.flowRef.revision}.json`,
-      );
-      const flow = JSON.parse(await readFile(flowPath, "utf8"));
+      let solution = null;
+      let flow = null;
+      if (bundle.solution_ref) {
+        const solutionPath = assertProjectRelative(root, bundle.solution_ref.path);
+        solution = JSON.parse(await readFile(solutionPath, "utf8"));
+        const flowPath = assertProjectRelative(
+          root,
+          `product-specs/flows/${solution.flowRef.id}/R${solution.flowRef.revision}.json`,
+        );
+        flow = JSON.parse(await readFile(flowPath, "utf8"));
+      }
       const imported = await loadInheritedContracts(root, bundle, new Set([path]));
       errors.push(...imported.errors.map((error) => `${label}: ${error}`));
       const documentErrors = validateContractBundleDocument(bundle, solution, {
         flow,
         importedContracts: imported.contracts,
+        screenContractRefs,
       });
       errors.push(...documentErrors.map((error) => `${label}: ${error}`));
     } catch (error) {
@@ -695,4 +722,30 @@ if (isMain) {
   } else {
     console.log(`실행 계약 묶음 검증 통과: 오류 0, 경고 ${warnings.length}`);
   }
+}
+
+/**
+ * 화면 정본이 참조하는 계약 ID를 모은다. 동결된 product-specs의 목표 설계가
+ * 하던 "이 계약이 왜 있는가"의 근거를 화면 정본이 대신한다.
+ */
+async function loadScreenContractRefs(root) {
+  const refs = new Set();
+  const directory = resolve(root, "screens");
+  let names;
+  try {
+    names = await readdir(directory);
+  } catch {
+    return refs;
+  }
+  for (const name of names) {
+    if (!name.endsWith(".md") || name === "README.md") continue;
+    const text = await readFile(resolve(directory, name), "utf8");
+    const end = text.indexOf("\n---\n", 4);
+    if (!text.startsWith("---\n") || end === -1) continue;
+    for (const line of text.slice(4, end).split("\n")) {
+      const item = /^\s+-\s+([A-Z]+:[^\s]+)$/.exec(line);
+      if (item) refs.add(item[1]);
+    }
+  }
+  return refs;
 }
