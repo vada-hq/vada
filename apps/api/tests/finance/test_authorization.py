@@ -91,7 +91,7 @@ ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
         pytest.param(
             actor_facts(department_head_of=frozenset({"department-a"})),
             authorization_scope(),
-            ALL_PERMISSIONS,
+            ALL_PERMISSIONS - {PurchaseRequestPermission.REVIEW},
             id="department-head-owner",
         ),
         pytest.param(
@@ -124,6 +124,7 @@ ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
                 {
                     PurchaseRequestPermission.SUBMIT,
                     PurchaseRequestPermission.READ_DETAIL,
+                    PurchaseRequestPermission.REVIEW,
                 }
             ),
             id="finance-member-non-owner",
@@ -363,7 +364,7 @@ def test_missing_trusted_actor_or_required_resource_facts_are_denied(
     )
 
 
-def test_permission_catalog_uses_the_six_approved_action_keys() -> None:
+def test_permission_catalog_uses_the_approved_action_keys() -> None:
     assert {permission.value for permission in PurchaseRequestPermission} == {
         "purchase_request.draft.read",
         "purchase_request.draft.write",
@@ -371,6 +372,7 @@ def test_permission_catalog_uses_the_six_approved_action_keys() -> None:
         "purchase_request.submit",
         "purchase_request.list_own",
         "purchase_request.read_detail",
+        "purchase_request.review",
     }
 
 
@@ -401,3 +403,23 @@ def test_require_permission_raises_the_approved_non_disclosing_error() -> None:
     assert str(error.value) == "이 구매 요청 동작을 수행할 권한이 없습니다."
     assert "department" not in str(error.value).lower()
     assert "finance" not in str(error.value).lower()
+
+
+def test_only_finance_members_may_review_not_department_heads() -> None:
+    # 부서장은 자기 부서 요청을 만들 수 있지만 검토 결정은 할 수 없다.
+    # VADA_PERMISSION_MATRIX.md가 검토·승인을 canManageFinance로 묶는다.
+    department_head = actor_facts(department_head_of=frozenset({"department-a"}))
+    finance = actor_facts(finance_member_of=frozenset({"organization-a"}))
+    scope = authorization_scope(request_department_id="department-a")
+
+    assert not is_purchase_request_action_allowed(
+        PurchaseRequestPermission.REVIEW, actor=department_head, scope=scope
+    )
+    assert is_purchase_request_action_allowed(
+        PurchaseRequestPermission.REVIEW, actor=finance, scope=scope
+    )
+
+    # 요청을 만드는 권한은 부서장에게 그대로 있다. 검토만 막힌다.
+    assert is_purchase_request_action_allowed(
+        PurchaseRequestPermission.SUBMIT, actor=department_head, scope=scope
+    )
