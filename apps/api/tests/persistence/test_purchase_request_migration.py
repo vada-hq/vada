@@ -489,3 +489,27 @@ def test_purchase_request_item_cannot_be_reparented_without_old_scope_validation
                 """
             )
         )
+
+
+def test_expand_migration_renders_item_review_event_schema() -> None:
+    ddl = _render_upgrade_ddl()
+    parse_sql(ddl)
+
+    expected_fragments = [
+        "CREATE TABLE purchase_request_item_review_events",
+        # 검토 결정이 다른 조직의 품목을 가리키지 못하게 복합 키로 참조한다.
+        "uq_purchase_request_items_scope_item",
+        "fk_pr_item_review_item",
+        # 계약이 정의한 상태만 저장한다.
+        "ck_pr_item_review_review_status_allowed",
+        # 결정마다 필요한 값이 다르다는 것을 DB도 안다.
+        "ck_pr_item_review_revision_fields_match_status",
+        "ck_pr_item_review_rejection_reason_matches_status",
+        "ix_pr_item_review_item_decided_at",
+        "ix_pr_item_review_request_decided_at",
+    ]
+    for fragment in expected_fragments:
+        assert fragment in ddl, fragment
+
+    # 품목 원본에는 상태 열을 붙이지 않는다. 결정은 별개의 추가 전용 사실이다.
+    assert "ADD COLUMN review_status" not in ddl.upper()
