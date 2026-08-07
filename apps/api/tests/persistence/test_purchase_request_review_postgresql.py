@@ -12,11 +12,13 @@ from vada_api.finance.persistence.reviews import PostgreSQLPurchaseRequestReview
 from vada_api.finance.persistence.schema import (
     purchase_request_item_review_events,
     purchase_request_items,
+    purchase_requests,
 )
 from vada_api.finance.review import ItemReviewState, ItemReviewStatus
 
 REVIEWS = purchase_request_item_review_events
 ITEMS = purchase_request_items
+REQUESTS = purchase_requests
 
 ORGANIZATION = "organization-a"
 EVENT = "event-a"
@@ -28,12 +30,42 @@ def clean_reviews(migrated_engine: Engine) -> None:
     with migrated_engine.begin() as connection:
         connection.execute(sa.delete(REVIEWS))
         connection.execute(sa.delete(ITEMS))
+        connection.execute(sa.delete(REQUESTS))
+
+
+ITEM_AMOUNT = 10_000  # 수량 5에 단가 2000. 지연 제약이 요청 합계와 일치를 요구한다.
 
 
 def _seed_items(engine: Engine, *item_ids: str) -> None:
-    """검토 대상 품목을 넣는다. 요청 표는 검토 저장소가 보지 않으므로 생략한다."""
+    """검토 대상 품목과 그 부모 요청을 넣는다.
+
+    검토 저장소는 요청 표를 보지 않지만 DB는 본다. 지연 제약 트리거
+    vada_purchase_request_r1_assert_item_aggregate가 요청의 estimated_total과
+    품목 금액 합계가 같기를 요구하므로 부모 없이 품목만 넣을 수 없다.
+    """
 
     with engine.begin() as connection:
+        connection.execute(
+            sa.text(
+                """
+                INSERT INTO purchase_requests (
+                    request_id, organization_id, event_id, requester_user_id,
+                    request_department_id, title, needed_date, purpose, priority,
+                    status, estimated_total, over_budget
+                ) VALUES (
+                    :request_id, :organization_id, :event_id, 'user-requester',
+                    'department-a', '체육대회 운영 물품', DATE '2026-08-21',
+                    '행사 운영', 'normal', 'review_pending', :estimated_total, false
+                )
+                """
+            ),
+            {
+                "request_id": REQUEST,
+                "organization_id": ORGANIZATION,
+                "event_id": EVENT,
+                "estimated_total": ITEM_AMOUNT * len(item_ids),
+            },
+        )
         for position, item_id in enumerate(item_ids, start=1):
             connection.execute(
                 sa.text(
