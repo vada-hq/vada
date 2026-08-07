@@ -1,0 +1,265 @@
+{
+  "$schema": "../../schemas/delivery-contract-bundle-0.2.0.schema.json",
+  "schema_version": "0.2.0",
+  "bundle_id": "CB-IDENTITY-001",
+  "bundle_revision": 1,
+  "bundle_status": "approved",
+  "approval_source_ref": "SRC-003",
+  "updated_at": "2026-08-07T16:10:00+09:00",
+  "delivery_unit_ref": "SCREEN:APP-SHELL",
+  "objective_ko": "로그인한 사용자가 자신이 누구이고 무엇을 할 수 있는지 화면에서 확인합니다.",
+  "standards_profile": {
+    "openapi_version": "3.1.1",
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "http_problem_details": "RFC9457"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "document",
+      "captured_at": "2026-08-07T16:10:00+09:00",
+      "locator": "prototypes/wireframe/docs/VADA_PERMISSION_MATRIX.md#구현-규칙",
+      "content_ko": "권한 매트릭스의 구현 규칙입니다. 권한 판정은 헬퍼를 재사용하고 화면에서 역할 조건을 직접 쓰지 않습니다. 권한이 없으면 버튼을 비활성화하지 않고 노출하지 않습니다. 기본 역할과 행사 맥락 역할은 서로 다른 필드로 판단하며 기본 역할 문자열에 행사 역할을 섞지 않습니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "document",
+      "captured_at": "2026-08-07T16:10:00+09:00",
+      "locator": "docs/engineering/architecture-boundaries.md#화면이-권한을-아는-방법",
+      "content_ko": "VADA 권한은 전역과 행사별, 레코드별의 세 계층이며 계층마다 나오는 곳이 다릅니다. 권한 목록 하나를 세션에서 받아 전부 판단하려 하지 않습니다. 서버는 역할이 아니라 판정 결과를 보냅니다. 화면 판단은 표시용이며 서버 판정을 대체하지 않습니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "user_statement",
+      "captured_at": "2026-08-07T16:10:00+09:00",
+      "locator": "current-thread/2026-08-07-session-contract",
+      "content_ko": "제품 책임자가 세션 계약을 첫 계층인 전역 판정으로 한정하기로 확정했습니다. 행사별과 레코드별 판정은 각 리소스 응답이 들고 옵니다. 이 계약은 특정 화면이 아니라 앱 전체가 쓰는 교차 관심사입니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "document",
+      "captured_at": "2026-08-07T16:10:00+09:00",
+      "locator": "contracts/bundles/CB-FIN-001/R2.json",
+      "content_ko": "승인된 구매 요청 계약 묶음입니다. 인증 실패와 자원 부재, 일시 장애의 오류 계약을 그대로 승계합니다. 이 오류들은 구매 요청 전용 의미가 아니라 HTTP 경계의 공통 의미입니다."
+    }
+  ],
+  "base_bundle_ref": {
+    "bundle_path": "contracts/bundles/CB-FIN-001/R2.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 2,
+    "canonical_sha256": "134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad"
+  },
+  "contracts": [
+    {
+      "id": "DATA:session.viewer@R1",
+      "kind": "DATA",
+      "key": "session.viewer",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "로그인한 사용자의 신원과 조직 범위에서 전역으로 정해지는 판정 결과를 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:session-viewer:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "userId",
+            "displayName",
+            "organizationId",
+            "capabilities"
+          ],
+          "properties": {
+            "userId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "displayName": {
+              "type": "string",
+              "minLength": 1,
+              "description": "사이드바 등에 보여줄 이름. 표시 전용이다"
+            },
+            "organizationId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "organizationName": {
+              "type": "string",
+              "minLength": 1
+            },
+            "capabilities": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "canManageFinance",
+                "canSubmitPurchaseRequest",
+                "canCompleteEvent",
+                "canEditOrganization",
+                "canInviteOrganizationMember",
+                "canManageStudentRoster",
+                "canManageStudentFeeRoster"
+              ],
+              "properties": {
+                "canManageFinance": {
+                  "type": "boolean"
+                },
+                "canSubmitPurchaseRequest": {
+                  "type": "boolean"
+                },
+                "canCompleteEvent": {
+                  "type": "boolean"
+                },
+                "canEditOrganization": {
+                  "type": "boolean"
+                },
+                "canInviteOrganizationMember": {
+                  "type": "boolean"
+                },
+                "canManageStudentRoster": {
+                  "type": "boolean"
+                },
+                "canManageStudentFeeRoster": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "capabilities는 서버가 이미 내린 판정 결과입니다. 역할 이름을 내려보내지 않습니다. 화면이 역할을 다시 비교하면 같은 규칙이 파이썬과 타입스크립트 양쪽에 생겨 언젠가 갈라집니다.",
+          "여기 담는 것은 VADA_PERMISSION_MATRIX.md의 헬퍼 중 기본 역할과 부서만 보고 정해지는 전역 판정뿐입니다.",
+          "행사별 판정은 담지 않습니다. isEventManager와 canEndEvent는 그 행사에서의 맥락 역할에 달렸으므로 행사 조회 응답이 들고 옵니다. canCompleteEvent는 기본 역할 회장단만 보고 맥락 역할을 보지 않으므로 여기 담습니다.",
+          "레코드별 판정도 담지 않습니다. canCancelPurchaseItemRequest는 원래 요청자 본인인지에 달렸으므로 그 레코드 응답이 들고 옵니다.",
+          "이 값은 표시용입니다. 서버는 실제 행동마다 다시 판정하며 화면의 판단을 신뢰하지 않습니다. 화면이 틀려도 안전해야 합니다.",
+          "신원과 권한은 수명이 다릅니다. 이름은 거의 안 바뀌고 권한은 자주 바뀝니다. 화면이 이 값을 오래 캐시하면 회수된 권한이 남을 수 있으므로 이것을 신뢰의 근거로 쓰지 않습니다.",
+          "displayName과 organizationName은 표시 전용이며 권한 판정이나 다른 조회의 식별자로 쓸 수 없습니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "AUTH:session.read_self@R1",
+      "kind": "AUTH",
+      "key": "session.read_self",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "인증된 사용자가 자신의 신원과 전역 판정 결과만 읽을 수 있게 합니다.",
+      "specification": {
+        "action": "session.read_self",
+        "resource_ko": "요청한 본인의 신원과 조직 범위 전역 판정 결과",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              {
+                "left_fact": "actor.has_active_organization_membership",
+                "operator": "is_true",
+                "right": {
+                  "literal": true
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "API:session.get_viewer@R1",
+      "kind": "API",
+      "key": "session.get_viewer",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "현재 사용자의 신원과 전역 판정 결과를 조회합니다.",
+      "cross_cutting_reason_ko": "인증된 사용자가 누구이고 무엇을 할 수 있는지는 특정 화면의 관심사가 아니라 앱 전체가 쓰는 교차 관심사입니다. 사이드바의 사용자 표시, 화면마다 다른 행동 노출, 앞으로 만들 회의·행사·조직 화면이 모두 같은 값을 씁니다. 화면 하나에 매려면 소비자를 지어내야 합니다.",
+      "specification": {
+        "operation_id": "getSessionViewer",
+        "method": "GET",
+        "path": "/session/viewer",
+        "authorization_ref": "AUTH:session.read_self@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": []
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:session.viewer@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003",
+        "SRC-004"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "세션 계약 묶음을 승인 또는 반려로 구분합니다.",
+        "source_refs": [
+          "SRC-003"
+        ]
+      },
+      "question_ko": "세션 계약 묶음을 승인합니까?",
+      "reason_ko": "승인하면 사용자 신원과 전역 판정 결과 조회가 앱 전체의 계약 기준선이 됩니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "승인"
+        },
+        {
+          "id": "NO",
+          "label_ko": "반려"
+        }
+      ],
+      "evidence": {
+        "solution_design_refs": [],
+        "source_refs": [
+          "SRC-001",
+          "SRC-002",
+          "SRC-003"
+        ]
+      },
+      "answer_source_ref": "SRC-003",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": "전역 판정만 담고 행사별과 레코드별은 각 리소스 응답이 들고 오기로 확정했습니다."
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}
