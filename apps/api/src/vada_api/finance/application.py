@@ -21,6 +21,12 @@ from vada_api.finance.observability import (
     observer_from_environment,
     submission_correlation_id,
 )
+from vada_api.finance.review import (
+    ItemDecision,
+    ItemReviewState,
+    ItemReviewStatus,
+    decide,
+)
 from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
@@ -73,6 +79,30 @@ class PurchaseRequestDisplayNames:
 class PurchaseRequestDetailView:
     record: PurchaseRequestRecord
     display: PurchaseRequestDisplayNames
+
+
+@dataclass(frozen=True, slots=True)
+class PurchaseRequestReviewView:
+    detail: PurchaseRequestDetailView
+    item_review_states: tuple[ItemReviewState, ...]
+
+
+class PurchaseRequestReviewStore(Protocol):
+    """품목 검토 결정을 추가 전용으로 쌓고 최신 사건으로 현재 상태를 읽는다."""
+
+    def current_states(
+        self, *, organization_id: str, event_id: str, request_id: str
+    ) -> tuple[ItemReviewState, ...]: ...
+
+    def record(
+        self,
+        state: ItemReviewState,
+        *,
+        organization_id: str,
+        event_id: str,
+        request_id: str,
+        decided_by_user_id: str,
+    ) -> None: ...
 
 
 class PurchaseRequestRepository(Protocol):
@@ -130,12 +160,14 @@ class PurchaseRequestService:
         submission_store: PurchaseRequestSubmissionStore,
         *,
         relationship_reader: PurchaseRequestRelationshipReader | None = None,
+        review_store: PurchaseRequestReviewStore | None = None,
         today_provider: Callable[[], date] | None = None,
         observer: PurchaseRequestObserver | None = None,
     ) -> None:
         self._repository = repository
         self._submission_store = submission_store
         self._relationship_reader = relationship_reader
+        self._review_store = review_store
         self._today_provider = today_provider or _kst_today
         self._observer = observer or observer_from_environment()
 
@@ -307,6 +339,89 @@ class PurchaseRequestService:
         ):
             raise PurchaseRequestPersistenceError
         return PurchaseRequestDetailView(record=record, display=display)
+
+    def get_review(
+        self, context: FinanceRequestContext, *, request_id: str
+    ) -> PurchaseRequestReviewView:
+        """검토 화면이 읽는 것. 요청 내용과 품목마다 하나씩의 현재 상태다."""
+
+        detail = self._authorized_review_detail(context, request_id=request_id)
+        return PurchaseRequestReviewView(
+            detail=detail,
+            item_review_states=self._states(detail.record),
+        )
+
+    def decide_item(
+        self,
+        context: FinanceRequestContext,
+        *,
+        request_id: str,
+        item_id: str,
+        decision: ItemDecision,
+    ) -> PurchaseRequestReviewView:
+        """품목 하나의 결정을 기록하고 갱신된 검토 화면을 돌려준다."""
+
+        detail = self._authorized_review_detail(context, request_id=request_id)
+        record = detail.record
+        current = {state.item_id: state for state in self._states(record)}
+        if item_id not in current:
+            # 이 요청에 없는 품목이다. 다른 조직 데이터의 존재를 알리지 않는다.
+            raise ResourceNotFoundError
+
+        # 규칙 위반과 충돌은 decide가 판정한다. 라우트가 상태 코드로 옮긴다.
+        decided = decide(current[item_id], decision)
+
+        store = self._require_review_store()
+        store.record(
+            decided,
+            organization_id=record.organization_id,
+            event_id=record.event_id,
+            request_id=record.request_id,
+            decided_by_user_id=context.actor.identity.user_id,
+        )
+        return PurchaseRequestReviewView(
+            detail=detail, item_review_states=self._states(record)
+        )
+
+    def _authorized_review_detail(
+        self, context: FinanceRequestContext, *, request_id: str
+    ) -> PurchaseRequestDetailView:
+        detail = self.get_detail(context, request_id=request_id)
+        # 읽기와 검토는 다른 권한이다. 상세를 볼 수 있다고 검토할 수 있는 것이 아니다.
+        record = detail.record
+        require_purchase_request_permission(
+            PurchaseRequestPermission.REVIEW,
+            actor=context.actor,
+            scope=PurchaseRequestAuthorizationScope(
+                event_id=context.actor.identity.event_id,
+                event_organization_id=context.actor.identity.organization_id,
+                request_organization_id=record.organization_id,
+                request_event_id=record.event_id,
+            ),
+        )
+        return detail
+
+    def _states(self, record: PurchaseRequestRecord) -> tuple[ItemReviewState, ...]:
+        stored = {
+            state.item_id: state
+            for state in self._require_review_store().current_states(
+                organization_id=record.organization_id,
+                event_id=record.event_id,
+                request_id=record.request_id,
+            )
+        }
+        # 계약은 요청의 품목마다 상태가 정확히 하나씩 있기를 요구한다. 저장소가
+        # 품목을 못 찾는 경우에도 검토 대기로 채워 빠뜨리지 않는다.
+        return tuple(
+            stored.get(item.item_id)
+            or ItemReviewState(item.item_id, ItemReviewStatus.REVIEW_PENDING)
+            for item in record.item_results
+        )
+
+    def _require_review_store(self) -> PurchaseRequestReviewStore:
+        if self._review_store is None:
+            raise PurchaseRequestPersistenceError
+        return self._review_store
 
 
 def _kst_today() -> date:

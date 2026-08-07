@@ -24,6 +24,7 @@ from pydantic.config import JsonDict
 from vada_api.finance.application import (
     FinanceRequestContext,
     PurchaseRequestDraft,
+    PurchaseRequestReviewView,
     PurchaseRequestService,
     PurchaseRequestSummary,
 )
@@ -32,6 +33,13 @@ from vada_api.finance.authorization import (
     PurchaseRequestPermission,
 )
 from vada_api.finance.observability import new_operation_correlation_id
+from vada_api.finance.review import (
+    ItemDecision,
+    ItemReviewStatus,
+    ReviewConflictError,
+    ReviewDecision,
+    ReviewDecisionInvalidError,
+)
 from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
@@ -514,6 +522,37 @@ class PurchaseRequestSummaryResponse(ContractModel):
     created_at: str = Field(alias="createdAt", min_length=1)
 
 
+class ItemReviewStateResponse(ContractModel):
+    item_id: str = Field(alias="itemId", min_length=1)
+    review_status: Literal[
+        "review_pending", "approved", "revision_requested", "rejected"
+    ] = Field(alias="reviewStatus")
+    revision_reason: str | None = Field(default=None, alias="revisionReason")
+    revision_due_date: date | None = Field(default=None, alias="revisionDueDate")
+    rejection_reason: str | None = Field(default=None, alias="rejectionReason")
+
+
+class PurchaseRequestReviewViewResponse(ContractModel):
+    detail: PurchaseRequestDetailViewResponse
+    item_review_states: list[ItemReviewStateResponse] = Field(alias="itemReviewStates")
+
+
+class ItemDecisionCommandModel(ContractModel):
+    """CB-FIN-003의 결정 입력. 결정마다 필요한 값이 다르다."""
+
+    decision: Literal["approve", "request_revision", "reject"]
+    expected_review_status: Literal[
+        "review_pending", "approved", "revision_requested", "rejected"
+    ] = Field(alias="expectedReviewStatus")
+    revision_reason: str | None = Field(
+        default=None, alias="revisionReason", min_length=1
+    )
+    revision_due_date: date | None = Field(default=None, alias="revisionDueDate")
+    rejection_reason: str | None = Field(
+        default=None, alias="rejectionReason", min_length=1
+    )
+
+
 class PurchaseRequestOwnListResponse(ContractModel):
     items: list[PurchaseRequestSummaryResponse]
 
@@ -692,6 +731,36 @@ _OPERATION_METADATA: dict[str, dict[str, object]] = {
             "DATA:http.problem_details@R1",
         ],
         "x-vada-acceptance-criteria": ["FLOW-FIN-001@R2/AC-07"],
+    },
+    "review": {
+        "x-vada-permission": "purchase_request.review",
+        "x-vada-contracts": [
+            "API:purchase_request.get_review@R1",
+            "AUTH:purchase_request.review@R1",
+            "DATA:http.empty_body@R1",
+            "DATA:purchase_request.review_view@R1",
+            "DATA:purchase_request.item_review_state@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+    },
+    "decide_item": {
+        "x-vada-permission": "purchase_request.review",
+        "x-vada-contracts": [
+            "API:purchase_request.decide_item@R1",
+            "AUTH:purchase_request.review@R1",
+            "DATA:purchase_request.item_decision@R1",
+            "DATA:purchase_request.review_view@R1",
+            "DATA:purchase_request.item_review_state@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
     },
 }
 
@@ -936,6 +1005,93 @@ def get_purchase_request_detail(
     }
 
 
+def _review_json(view: PurchaseRequestReviewView) -> dict[str, object]:
+    return {
+        "detail": {
+            "record": _record_json(view.detail.record),
+            "display": {
+                "eventName": view.detail.display.event_name,
+                "requesterName": view.detail.display.requester_name,
+            },
+        },
+        "itemReviewStates": [
+            {
+                "itemId": state.item_id,
+                "reviewStatus": str(state.review_status),
+                **(
+                    {"revisionReason": state.revision_reason}
+                    if state.revision_reason is not None
+                    else {}
+                ),
+                **(
+                    {"revisionDueDate": state.revision_due_date.isoformat()}
+                    if state.revision_due_date is not None
+                    else {}
+                ),
+                **(
+                    {"rejectionReason": state.rejection_reason}
+                    if state.rejection_reason is not None
+                    else {}
+                ),
+            }
+            for state in view.item_review_states
+        ],
+    }
+
+
+@router.get(
+    "/events/{eventId}/purchase-requests/{requestId}/review",
+    operation_id="getPurchaseRequestReview",
+    response_model=PurchaseRequestReviewViewResponse,
+    response_model_exclude_none=True,
+    responses=_problem_responses(401, 403, 404, 503),
+    openapi_extra=_operation_metadata("review"),
+)
+def get_purchase_request_review(
+    request_id: Annotated[str, Path(alias="requestId", min_length=1)],
+    authorized: Annotated[
+        AuthorizedPurchaseRequest,
+        Depends(require_permission(PurchaseRequestPermission.REVIEW)),
+    ],
+) -> dict[str, object]:
+    return _review_json(
+        authorized.service.get_review(authorized.context, request_id=request_id)
+    )
+
+
+@router.put(
+    "/events/{eventId}/purchase-requests/{requestId}/items/{itemId}/review",
+    operation_id="decidePurchaseRequestItem",
+    response_model=PurchaseRequestReviewViewResponse,
+    response_model_exclude_none=True,
+    responses=_problem_responses(401, 403, 404, 409, 422, 503),
+    openapi_extra=_operation_metadata("decide_item"),
+)
+def decide_purchase_request_item(
+    command: ItemDecisionCommandModel,
+    request_id: Annotated[str, Path(alias="requestId", min_length=1)],
+    item_id: Annotated[str, Path(alias="itemId", min_length=1)],
+    authorized: Annotated[
+        AuthorizedPurchaseRequest,
+        Depends(require_permission(PurchaseRequestPermission.REVIEW)),
+    ],
+) -> dict[str, object]:
+    return _review_json(
+        authorized.service.decide_item(
+            authorized.context,
+            request_id=request_id,
+            item_id=item_id,
+            decision=ItemDecision(
+                decision=ReviewDecision(command.decision),
+                expected_review_status=ItemReviewStatus(command.expected_review_status),
+                revision_reason=command.revision_reason,
+                revision_due_date=command.revision_due_date,
+                rejection_reason=command.rejection_reason,
+            ),
+        )
+    )
+
+
 def register_purchase_request_error_handlers(app: FastAPI) -> None:
     app.add_exception_handler(RequestValidationError, _request_validation_error)
     app.add_exception_handler(
@@ -987,6 +1143,32 @@ def register_purchase_request_error_handlers(app: FastAPI) -> None:
             detail="최신 상태를 다시 조회한 뒤 시도해 주세요.",
             code="PURCHASE_REQUEST_STATE_CONFLICT",
             retryable=True,
+        ),
+    )
+    app.add_exception_handler(
+        ReviewConflictError,
+        _fixed_problem_handler(
+            status=409,
+            problem_type=(
+                "https://vada.example/problems/purchase-request-state-conflict"
+            ),
+            title="구매 요청 상태가 변경되어 다시 확인해야 합니다.",
+            detail="최신 상태를 다시 조회한 뒤 시도해 주세요.",
+            code="PURCHASE_REQUEST_STATE_CONFLICT",
+            retryable=True,
+        ),
+    )
+    app.add_exception_handler(
+        ReviewDecisionInvalidError,
+        _fixed_problem_handler(
+            status=422,
+            problem_type=(
+                "https://vada.example/problems/purchase-request-validation-failed"
+            ),
+            title="검토 결정 입력이 계약을 만족하지 못합니다.",
+            detail="결정 종류에 필요한 값을 확인해 주세요.",
+            code="PURCHASE_REQUEST_VALIDATION_FAILED",
+            retryable=False,
         ),
     )
     app.add_exception_handler(
