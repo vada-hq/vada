@@ -59,6 +59,10 @@ validate-wireframe-sync:
 validate-tooling:
     pnpm test:tooling
 
+# MVP 화면 몇 개 중 몇 개가 어디까지 왔는지. 저장소 사실에서 계산한다
+status:
+    pnpm status
+
 # 테스트
 test: test-api test-web test-wireframe
 
