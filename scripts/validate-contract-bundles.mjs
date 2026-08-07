@@ -395,12 +395,23 @@ export function validateContractBundleDocument(bundle, solution, options = {}) {
       }
     }
   } else if (options.screenContractRefs) {
-    // 화면 정본이 참조하지 않는 API 계약은 아무도 쓰지 않는다는 뜻이다.
-    // 목표 설계가 하던 "이 계약이 왜 있는가"의 근거를 화면 정본이 대신한다.
+    // 아무도 쓰지 않는 API가 조용히 쌓이는 것을 막는다. 목표 설계가 하던
+    // "이 계약이 왜 있는가"를 소비자가 대신 증명한다.
+    //
+    // 소비자가 늘 화면인 것은 아니다. 인증·세션·알림처럼 앱 전체가 쓰는 것은
+    // 교차 관심사이며 미들웨어 계층이 소비한다. 그런 계약을 억지로 화면 하나에
+    // 매면 소비자를 지어내게 되므로, 왜 교차 관심사인지 적으면 면제한다.
+    // 면제하되 근거는 남긴다. 빈 예외를 만들지 않는다.
     for (const contract of bundle.contracts ?? []) {
       if (!contract.id?.startsWith("API:")) continue;
-      if (!options.screenContractRefs.has(contract.id)) {
-        errors.push(`이 계약을 참조하는 화면 정본이 없습니다: ${contract.id}`);
+      if (options.screenContractRefs.has(contract.id)) continue;
+      const reason = contract.cross_cutting_reason_ko;
+      if (typeof reason !== "string" || reason.trim().length < 20) {
+        errors.push(
+          `이 계약을 쓰는 곳을 알 수 없습니다: ${contract.id}. ` +
+            `화면 정본이 참조하거나, 앱 전체가 쓰는 것이라면 ` +
+            `cross_cutting_reason_ko에 왜 교차 관심사인지 적으세요.`,
+        );
       }
     }
   }

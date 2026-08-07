@@ -22,52 +22,127 @@
     "questions"
   ],
   "properties": {
-    "$schema": { "type": "string", "minLength": 1 },
-    "schema_version": { "const": "0.1.0" },
-    "bundle_id": { "type": "string", "pattern": "^CB-[A-Z0-9][A-Z0-9-]{2,}$" },
-    "bundle_revision": {
-      "oneOf": [{ "type": "null" }, { "type": "integer", "minimum": 1 }]
+    "$schema": {
+      "type": "string",
+      "minLength": 1
     },
-    "bundle_status": { "enum": ["defining", "review_ready", "approved"] },
-    "approval_source_ref": {
+    "schema_version": {
+      "const": "0.1.0"
+    },
+    "bundle_id": {
+      "type": "string",
+      "pattern": "^CB-[A-Z0-9][A-Z0-9-]{2,}$"
+    },
+    "bundle_revision": {
       "oneOf": [
-        { "type": "null" },
-        { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "minimum": 1
+        }
       ]
     },
-    "updated_at": { "type": "string", "minLength": 1 },
-    "solution_ref": { "$ref": "#/$defs/solutionRef" },
+    "bundle_status": {
+      "enum": [
+        "defining",
+        "review_ready",
+        "approved"
+      ]
+    },
+    "approval_source_ref": {
+      "oneOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string",
+          "pattern": "^SRC-[0-9]{3,}$"
+        }
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "minLength": 1
+    },
+    "solution_ref": {
+      "$ref": "#/$defs/solutionRef"
+    },
     "delivery_unit_ref": {
       "type": "string",
       "pattern": "^FLOW-[A-Z0-9][A-Z0-9-]*@R[1-9][0-9]*$"
     },
-    "objective_ko": { "type": "string", "minLength": 1 },
-    "standards_profile": { "$ref": "#/$defs/standardsProfile" },
-    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
-    "imports": { "type": "array", "items": { "$ref": "#/$defs/contractImport" } },
-    "contracts": { "type": "array", "items": { "$ref": "#/$defs/contract" } },
+    "objective_ko": {
+      "type": "string",
+      "minLength": 1
+    },
+    "standards_profile": {
+      "$ref": "#/$defs/standardsProfile"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "imports": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contractImport"
+      }
+    },
+    "contracts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contract"
+      }
+    },
     "design_coverage": {
       "type": "array",
-      "items": { "$ref": "#/$defs/designCoverage" }
+      "items": {
+        "$ref": "#/$defs/designCoverage"
+      }
     },
-    "questions": { "type": "array", "items": { "$ref": "#/$defs/question" } }
+    "questions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/question"
+      }
+    }
   },
   "allOf": [
     {
       "if": {
-        "properties": { "bundle_status": { "const": "approved" } },
-        "required": ["bundle_status"]
+        "properties": {
+          "bundle_status": {
+            "const": "approved"
+          }
+        },
+        "required": [
+          "bundle_status"
+        ]
       },
       "then": {
         "properties": {
-          "bundle_revision": { "type": "integer", "minimum": 1 },
-          "approval_source_ref": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+          "bundle_revision": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "approval_source_ref": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
         }
       },
       "else": {
         "properties": {
-          "bundle_revision": { "type": "null" },
-          "approval_source_ref": { "type": "null" }
+          "bundle_revision": {
+            "type": "null"
+          },
+          "approval_source_ref": {
+            "type": "null"
+          }
         }
       }
     }
@@ -80,35 +155,66 @@
     "solutionRef": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["path", "solution_id", "solution_revision", "canonical_sha256"],
+      "required": [
+        "path",
+        "solution_id",
+        "solution_revision",
+        "canonical_sha256"
+      ],
       "properties": {
-        "path": { "type": "string", "minLength": 1 },
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
         "solution_id": {
           "type": "string",
           "pattern": "^SOLUTION-[A-Z0-9][A-Z0-9-]{2,}$"
         },
-        "solution_revision": { "type": "integer", "minimum": 1 },
-        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "solution_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "canonical_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
       }
     },
     "standardsProfile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["openapi_version", "json_schema_dialect", "http_problem_details"],
+      "required": [
+        "openapi_version",
+        "json_schema_dialect",
+        "http_problem_details"
+      ],
       "properties": {
-        "openapi_version": { "const": "3.1.1" },
+        "openapi_version": {
+          "const": "3.1.1"
+        },
         "json_schema_dialect": {
           "const": "https://json-schema.org/draft/2020-12/schema"
         },
-        "http_problem_details": { "const": "RFC9457" }
+        "http_problem_details": {
+          "const": "RFC9457"
+        }
       }
     },
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "type", "captured_at", "locator", "content_ko"],
+      "required": [
+        "id",
+        "type",
+        "captured_at",
+        "locator",
+        "content_ko"
+      ],
       "properties": {
-        "id": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" },
+        "id": {
+          "type": "string",
+          "pattern": "^SRC-[0-9]{3,}$"
+        },
         "type": {
           "enum": [
             "user_statement",
@@ -119,9 +225,20 @@
             "system"
           ]
         },
-        "captured_at": { "type": "string", "minLength": 1 },
-        "locator": { "type": ["string", "null"] },
-        "content_ko": { "type": "string", "minLength": 1 }
+        "captured_at": {
+          "type": "string",
+          "minLength": 1
+        },
+        "locator": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "content_ko": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "contractImport": {
@@ -135,11 +252,25 @@
         "canonical_sha256"
       ],
       "properties": {
-        "contract_id": { "$ref": "#/$defs/contractId" },
-        "bundle_path": { "type": "string", "minLength": 1 },
-        "bundle_id": { "type": "string", "pattern": "^CB-[A-Z0-9][A-Z0-9-]{2,}$" },
-        "bundle_revision": { "type": "integer", "minimum": 1 },
-        "canonical_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+        "contract_id": {
+          "$ref": "#/$defs/contractId"
+        },
+        "bundle_path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bundle_id": {
+          "type": "string",
+          "pattern": "^CB-[A-Z0-9][A-Z0-9-]{2,}$"
+        },
+        "bundle_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "canonical_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
       }
     },
     "contract": {
@@ -158,73 +289,163 @@
         "source_refs"
       ],
       "properties": {
-        "id": { "$ref": "#/$defs/contractId" },
-        "kind": { "enum": ["DOMAIN", "DATA", "AUTH", "API", "ERROR", "EVENT", "QUALITY"] },
+        "id": {
+          "$ref": "#/$defs/contractId"
+        },
+        "kind": {
+          "enum": [
+            "DOMAIN",
+            "DATA",
+            "AUTH",
+            "API",
+            "ERROR",
+            "EVENT",
+            "QUALITY"
+          ]
+        },
         "key": {
           "type": "string",
           "pattern": "^[a-z][a-z0-9_]*(\\.[a-z][a-z0-9_]*)*$"
         },
-        "revision": { "type": "integer", "minimum": 1 },
-        "status": { "enum": ["proposed", "ratified"] },
-        "change_class": { "enum": ["initial", "editorial", "additive", "breaking"] },
-        "supersedes": {
-          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/contractId" }]
+        "revision": {
+          "type": "integer",
+          "minimum": 1
         },
-        "summary_ko": { "type": "string", "minLength": 1 },
-        "specification": { "type": "object", "minProperties": 1 },
+        "status": {
+          "enum": [
+            "proposed",
+            "ratified"
+          ]
+        },
+        "change_class": {
+          "enum": [
+            "initial",
+            "editorial",
+            "additive",
+            "breaking"
+          ]
+        },
+        "supersedes": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/contractId"
+            }
+          ]
+        },
+        "summary_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "specification": {
+          "type": "object",
+          "minProperties": 1
+        },
         "source_refs": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+          "items": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
+        },
+        "cross_cutting_reason_ko": {
+          "type": "string",
+          "minLength": 20,
+          "description": "이 계약을 쓰는 곳이 특정 화면이 아니라 앱 전체일 때, 왜 교차 관심사인지 적는다. 인증·세션·알림처럼 미들웨어 계층이 소비하는 것이 해당한다. 적으면 화면 정본 참조 요구가 면제되지만 근거는 남는다."
         }
       }
     },
     "designCoverage": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["design_ref", "disposition", "contract_refs", "rationale_ko"],
+      "required": [
+        "design_ref",
+        "disposition",
+        "contract_refs",
+        "rationale_ko"
+      ],
       "properties": {
         "design_ref": {
           "type": "string",
           "pattern": "^DESIGN-[A-Z0-9][A-Z0-9-]*$"
         },
-        "disposition": { "enum": ["contracted", "direct_task_input"] },
+        "disposition": {
+          "enum": [
+            "contracted",
+            "direct_task_input"
+          ]
+        },
         "contract_refs": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "$ref": "#/$defs/contractId" }
+          "items": {
+            "$ref": "#/$defs/contractId"
+          }
         },
-        "rationale_ko": { "type": "string", "minLength": 1 }
+        "rationale_ko": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "normalizedAnswer": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["selected_option_ids", "free_text"],
+      "required": [
+        "selected_option_ids",
+        "free_text"
+      ],
       "properties": {
         "selected_option_ids": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$" }
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_-]*$"
+          }
         },
         "free_text": {
-          "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }]
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
         }
       }
     },
     "questionOption": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "label_ko"],
+      "required": [
+        "id",
+        "label_ko"
+      ],
       "properties": {
-        "id": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$" },
-        "label_ko": { "type": "string", "minLength": 1 }
+        "id": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_-]*$"
+        },
+        "label_ko": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     },
     "responseDesign": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["basis", "rationale_ko", "source_refs"],
+      "required": [
+        "basis",
+        "rationale_ko",
+        "source_refs"
+      ],
       "properties": {
         "basis": {
           "enum": [
@@ -236,47 +457,88 @@
             "unbounded_answer_space"
           ]
         },
-        "rationale_ko": { "type": "string", "minLength": 1 },
+        "rationale_ko": {
+          "type": "string",
+          "minLength": 1
+        },
         "source_refs": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+          "items": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
         }
       }
     },
     "questionEvidence": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["solution_design_refs", "source_refs"],
+      "required": [
+        "solution_design_refs",
+        "source_refs"
+      ],
       "properties": {
         "solution_design_refs": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^DESIGN-[A-Z0-9][A-Z0-9-]*$" }
+          "items": {
+            "type": "string",
+            "pattern": "^DESIGN-[A-Z0-9][A-Z0-9-]*$"
+          }
         },
         "source_refs": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+          "items": {
+            "type": "string",
+            "pattern": "^SRC-[0-9]{3,}$"
+          }
         }
       },
       "anyOf": [
-        { "properties": { "solution_design_refs": { "type": "array", "minItems": 1 } } },
-        { "properties": { "source_refs": { "type": "array", "minItems": 1 } } }
+        {
+          "properties": {
+            "solution_design_refs": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        },
+        {
+          "properties": {
+            "source_refs": {
+              "type": "array",
+              "minItems": 1
+            }
+          }
+        }
       ]
     },
     "activationCondition": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["question_ref", "operator", "option_ids"],
+      "required": [
+        "question_ref",
+        "operator",
+        "option_ids"
+      ],
       "properties": {
-        "question_ref": { "type": "string", "pattern": "^Q-[0-9]{3,}$" },
-        "operator": { "const": "selected_option_any_of" },
+        "question_ref": {
+          "type": "string",
+          "pattern": "^Q-[0-9]{3,}$"
+        },
+        "operator": {
+          "const": "selected_option_any_of"
+        },
         "option_ids": {
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^[A-Z][A-Z0-9_-]*$" }
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_-]*$"
+          }
         }
       }
     },
@@ -303,85 +565,224 @@
         "dismissal_reason_ko"
       ],
       "properties": {
-        "id": { "type": "string", "pattern": "^Q-[0-9]{3,}$" },
-        "status": { "enum": ["pending", "answered", "deferred", "dismissed"] },
-        "decision_area": {
-          "enum": ["domain", "data", "authorization", "api", "error", "event", "quality", "approval", "other"]
+        "id": {
+          "type": "string",
+          "pattern": "^Q-[0-9]{3,}$"
         },
-        "origin": { "enum": ["initial_plan", "answer_follow_up", "late_discovery", "approval"] },
+        "status": {
+          "enum": [
+            "pending",
+            "answered",
+            "deferred",
+            "dismissed"
+          ]
+        },
+        "decision_area": {
+          "enum": [
+            "domain",
+            "data",
+            "authorization",
+            "api",
+            "error",
+            "event",
+            "quality",
+            "approval",
+            "other"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "initial_plan",
+            "answer_follow_up",
+            "late_discovery",
+            "approval"
+          ]
+        },
         "depends_on_question_refs": {
           "type": "array",
           "uniqueItems": true,
-          "items": { "type": "string", "pattern": "^Q-[0-9]{3,}$" }
+          "items": {
+            "type": "string",
+            "pattern": "^Q-[0-9]{3,}$"
+          }
         },
         "activation_conditions": {
           "type": "array",
-          "items": { "$ref": "#/$defs/activationCondition" }
+          "items": {
+            "$ref": "#/$defs/activationCondition"
+          }
         },
-        "kind": { "enum": ["yes_no", "single_choice", "multiple_choice", "short_text", "open_text"] },
-        "response_design": { "$ref": "#/$defs/responseDesign" },
-        "question_ko": { "type": "string", "minLength": 1 },
-        "reason_ko": { "type": "string", "minLength": 1 },
-        "target_path": { "type": "string", "pattern": "^/.+" },
-        "blocks_next_step": { "type": "boolean" },
-        "options": {
-          "oneOf": [
-            { "type": "null" },
-            { "type": "array", "minItems": 2, "items": { "$ref": "#/$defs/questionOption" } }
+        "kind": {
+          "enum": [
+            "yes_no",
+            "single_choice",
+            "multiple_choice",
+            "short_text",
+            "open_text"
           ]
         },
-        "evidence": { "$ref": "#/$defs/questionEvidence" },
+        "response_design": {
+          "$ref": "#/$defs/responseDesign"
+        },
+        "question_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason_ko": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target_path": {
+          "type": "string",
+          "pattern": "^/.+"
+        },
+        "blocks_next_step": {
+          "type": "boolean"
+        },
+        "options": {
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "$ref": "#/$defs/questionOption"
+              }
+            }
+          ]
+        },
+        "evidence": {
+          "$ref": "#/$defs/questionEvidence"
+        },
         "answer_source_ref": {
           "oneOf": [
-            { "type": "null" },
-            { "type": "string", "pattern": "^SRC-[0-9]{3,}$" }
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "pattern": "^SRC-[0-9]{3,}$"
+            }
           ]
         },
         "normalized_answer": {
-          "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/normalizedAnswer" }]
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "$ref": "#/$defs/normalizedAnswer"
+            }
+          ]
         },
         "dismissal_reason_ko": {
-          "oneOf": [{ "type": "null" }, { "type": "string", "minLength": 1 }]
+          "oneOf": [
+            {
+              "type": "null"
+            },
+            {
+              "type": "string",
+              "minLength": 1
+            }
+          ]
         }
       },
       "allOf": [
         {
           "if": {
-            "properties": { "kind": { "enum": ["yes_no", "single_choice", "multiple_choice"] } },
-            "required": ["kind"]
-          },
-          "then": { "properties": { "options": { "type": "array", "minItems": 2 } } },
-          "else": { "properties": { "options": { "type": "null" } } }
-        },
-        {
-          "if": {
-            "properties": { "status": { "const": "pending" } },
-            "required": ["status"]
+            "properties": {
+              "kind": {
+                "enum": [
+                  "yes_no",
+                  "single_choice",
+                  "multiple_choice"
+                ]
+              }
+            },
+            "required": [
+              "kind"
+            ]
           },
           "then": {
             "properties": {
-              "answer_source_ref": { "type": "null" },
-              "normalized_answer": { "type": "null" },
-              "dismissal_reason_ko": { "type": "null" }
+              "options": {
+                "type": "array",
+                "minItems": 2
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "options": {
+                "type": "null"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "pending"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "answer_source_ref": {
+                "type": "null"
+              },
+              "normalized_answer": {
+                "type": "null"
+              },
+              "dismissal_reason_ko": {
+                "type": "null"
+              }
             }
           },
           "else": {
             "if": {
-              "properties": { "status": { "const": "dismissed" } },
-              "required": ["status"]
+              "properties": {
+                "status": {
+                  "const": "dismissed"
+                }
+              },
+              "required": [
+                "status"
+              ]
             },
             "then": {
               "properties": {
-                "answer_source_ref": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" },
-                "normalized_answer": { "type": "null" },
-                "dismissal_reason_ko": { "type": "string", "minLength": 1 }
+                "answer_source_ref": {
+                  "type": "string",
+                  "pattern": "^SRC-[0-9]{3,}$"
+                },
+                "normalized_answer": {
+                  "type": "null"
+                },
+                "dismissal_reason_ko": {
+                  "type": "string",
+                  "minLength": 1
+                }
               }
             },
             "else": {
               "properties": {
-                "answer_source_ref": { "type": "string", "pattern": "^SRC-[0-9]{3,}$" },
-                "normalized_answer": { "$ref": "#/$defs/normalizedAnswer" },
-                "dismissal_reason_ko": { "type": "null" }
+                "answer_source_ref": {
+                  "type": "string",
+                  "pattern": "^SRC-[0-9]{3,}$"
+                },
+                "normalized_answer": {
+                  "$ref": "#/$defs/normalizedAnswer"
+                },
+                "dismissal_reason_ko": {
+                  "type": "null"
+                }
               }
             }
           }

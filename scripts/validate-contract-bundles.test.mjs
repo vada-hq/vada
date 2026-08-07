@@ -418,3 +418,74 @@ test("작성 중 초안은 불완전한 입력을 보존하지만 같은 입력�
   assert.equal(validateDraft(incompleteInput), true);
   assert.equal(validateSubmission(incompleteInput), false);
 });
+
+// 실제 화면 기반 묶음을 바탕으로 만든다. 구조 검사를 먼저 통과해야 소비자
+// 검사까지 도달한다.
+const realScreenBundle = JSON.parse(
+  await readFile(
+    resolve(repositoryRoot, "contracts/bundles/CB-FIN-003/R1.json"),
+    "utf8",
+  ),
+);
+
+function screenBundle(apiContract) {
+  const kept = realScreenBundle.contracts.filter((item) => item.kind !== "API");
+  return { ...realScreenBundle, contracts: [...kept, apiContract] };
+}
+
+function apiContract(extra = {}) {
+  const template = realScreenBundle.contracts.find((item) => item.kind === "API");
+  return {
+    ...template,
+    id: "API:session.get_me@R1",
+    key: "session.get_me",
+    ...extra,
+  };
+}
+
+function consumerErrors(contract, screenRefs = new Set()) {
+  return validateContractBundleDocument(screenBundle(contract), null, {
+    screenContractRefs: screenRefs,
+  }).filter((error) => error.includes("쓰는 곳을 알 수 없습니다"));
+}
+
+test("소비자가 없는 API 계약을 거부한다", () => {
+  assert.equal(consumerErrors(apiContract()).length, 1);
+});
+
+test("화면 정본이 참조하면 통과한다", () => {
+  const refs = new Set(["API:session.get_me@R1"]);
+  assert.deepEqual(consumerErrors(apiContract(), refs), []);
+});
+
+test("교차 관심사 근거를 적으면 화면 참조 없이 통과한다", () => {
+  // 인증·세션은 앱 전체가 쓴다. 화면 하나에 매면 소비자를 지어내게 된다.
+  const contract = apiContract({
+    cross_cutting_reason_ko:
+      "인증된 사용자의 신원과 권한은 특정 화면이 아니라 앱 전체가 씁니다.",
+  });
+  assert.deepEqual(consumerErrors(contract), []);
+});
+
+test("빈 예외를 만들지 않는다", () => {
+  // 근거 없이 필드만 두거나 성의 없이 채우면 묶음이 거부된다. 짧은 문자열은
+  // 스키마의 minLength가 먼저 잡고, 공백뿐인 긴 문자열은 검증기가 잡는다.
+  // 어느 쪽이 잡든 통과하지 않는다는 것이 요점이다.
+  for (const reason of ["", "   ", "공통이라서", " ".repeat(30)]) {
+    const errors = validateContractBundleDocument(
+      screenBundle(apiContract({ cross_cutting_reason_ko: reason })),
+      null,
+      { screenContractRefs: new Set() },
+    );
+    assert.ok(errors.length > 0, `근거 "${reason}"는 면제 사유가 아니다`);
+  }
+});
+
+test("길이만 채운 근거는 막지 못한다", () => {
+  // 스키마는 길이를 재고 뜻은 못 잰다. 사람이 리뷰에서 본다.
+  // 이 한계를 검사로 적어 둬서 나중에 착각하지 않게 한다.
+  const contract = apiContract({
+    cross_cutting_reason_ko: "가나다라마바사아자차카타파하가나다라마바사",
+  });
+  assert.deepEqual(consumerErrors(contract), []);
+});
