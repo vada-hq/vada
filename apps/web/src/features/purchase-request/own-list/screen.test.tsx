@@ -141,7 +141,7 @@ describe("본인 구매 요청 목록 화면", () => {
     const user = userEvent.setup();
     server.use(
       http.get(ownListUrl, () => HttpResponse.json(ownListExample)),
-      http.get(`*/events/${eventId}/purchase-requests/request-001`, () =>
+      http.get(`*/api/v1/events/${eventId}/purchase-requests/request-001`, () =>
         HttpResponse.json(detailViewExample),
       ),
     );

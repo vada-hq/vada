@@ -13,6 +13,10 @@ from vada_api.finance.api import (
     register_purchase_request_error_handlers,
     router,
 )
+from vada_api.local_development import (
+    LocalPrincipalMiddleware,
+    local_principal_from_environment,
+)
 
 
 def create_app(*, engine: Engine | None = None) -> FastAPI:
@@ -38,6 +42,16 @@ def create_app(*, engine: Engine | None = None) -> FastAPI:
     application.openapi_schema = normalize_purchase_request_openapi(
         application.openapi()
     )
+
+    # 로컬에는 API Gateway가 없어 인증 주체가 비어 있다. 두 환경변수가 모두
+    # 채워졌을 때만 그 자리를 채운다. 게이트웨이가 이미 준 주체는 덮지 않는다.
+    local_principal = local_principal_from_environment()
+    if local_principal is not None:
+        issuer, subject = local_principal
+        application.add_middleware(
+            LocalPrincipalMiddleware, issuer=issuer, subject=subject
+        )
+
     return application
 
 

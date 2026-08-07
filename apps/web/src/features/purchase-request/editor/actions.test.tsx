@@ -12,9 +12,9 @@ import { server } from "../../../mocks/server";
 
 const eventId = sampleEventId;
 const editorPath = `/events/${eventId}/purchase-requests/new`;
-const editorUrl = `*/events/${eventId}/purchase-request-editor`;
-const draftUrl = `*/events/${eventId}/purchase-request-draft`;
-const submitUrl = `*/events/${eventId}/purchase-requests`;
+const editorUrl = `*/api/v1/events/${eventId}/purchase-request-editor`;
+const draftUrl = `*/api/v1/events/${eventId}/purchase-request-draft`;
+const submitUrl = `*/api/v1/events/${eventId}/purchase-requests`;
 
 function problem(status: number, code: string, title: string) {
   return HttpResponse.json(
@@ -242,7 +242,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
           { status: 201 },
         ),
       ),
-      http.get(`*/events/${eventId}/purchase-requests/mine`, () =>
+      http.get(`*/api/v1/events/${eventId}/purchase-requests/mine`, () =>
         HttpResponse.json({ items: [] }),
       ),
     );
@@ -266,7 +266,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
           { status: 201 },
         ),
       ),
-      http.get(`*/events/${eventId}/purchase-requests/mine`, () =>
+      http.get(`*/api/v1/events/${eventId}/purchase-requests/mine`, () =>
         HttpResponse.json({ items: [] }),
       ),
     );
@@ -296,7 +296,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
           { status: 201 },
         );
       }),
-      http.get(`*/events/${eventId}/purchase-requests/mine`, () =>
+      http.get(`*/api/v1/events/${eventId}/purchase-requests/mine`, () =>
         HttpResponse.json({ items: [] }),
       ),
     );
@@ -333,7 +333,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
               { status: 201 },
             );
       }),
-      http.get(`*/events/${eventId}/purchase-requests/mine`, () =>
+      http.get(`*/api/v1/events/${eventId}/purchase-requests/mine`, () =>
         HttpResponse.json({ items: [] }),
       ),
     );
@@ -370,7 +370,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
               { status: 201 },
             );
       }),
-      http.get(`*/events/${eventId}/purchase-requests/mine`, () =>
+      http.get(`*/api/v1/events/${eventId}/purchase-requests/mine`, () =>
         HttpResponse.json({ items: [] }),
       ),
     );
