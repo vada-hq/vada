@@ -5,8 +5,12 @@ wireframe: prototypes/wireframe/src/app/App.tsx
 wireframe_screen: FIN-REV-01
 route: /events/$eventId/purchase-requests/$requestId/review
 contracts:
-  - API:purchase_request.get_detail@R2
-  - DATA:purchase_request.detail_view@R1
+  - API:purchase_request.get_review@R1
+  - API:purchase_request.decide_item@R1
+  - DATA:purchase_request.review_view@R1
+  - DATA:purchase_request.item_review_state@R1
+  - DATA:purchase_request.item_decision@R1
+  - AUTH:purchase_request.review@R1
   - ERROR:http.unauthenticated@R1
   - ERROR:purchase_request.action_forbidden@R1
   - ERROR:http.resource_not_found@R1
