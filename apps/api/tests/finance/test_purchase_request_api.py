@@ -107,6 +107,12 @@ class FakePurchaseRequestRepository:
             return None
         return PurchaseRequestDisplayNames(event_name=names[0], requester_name=names[1])
 
+    def get_member_display_names(
+        self, *, organization_id: str, user_ids: frozenset[str]
+    ) -> dict[str, str]:
+        del organization_id
+        return dict.fromkeys(user_ids, "재정부원")
+
 
 class FakeSubmissionStore:
     def __init__(self, record: PurchaseRequestRecord) -> None:

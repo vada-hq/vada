@@ -1,4 +1,5 @@
 # pyright: reportUnknownMemberType=false, reportUnknownVariableType=false
+# pyright: reportUnknownArgumentType=false
 # ↑ test_health.py와 같은 한계다. starlette TestClient의 httpx 조건부 import로
 #   반환 타입이 Unknown이 된다. 이 파일에만 적용한다.
 from __future__ import annotations
@@ -20,6 +21,7 @@ from vada_api.finance.api import (
 )
 from vada_api.finance.application import (
     FinanceRequestContext,
+    ItemReviewEvent,
     PurchaseRequestService,
 )
 from vada_api.finance.authorization import PurchaseRequestActorFacts
@@ -123,6 +125,7 @@ class FakeReviewStore:
     def __init__(self) -> None:
         self.states: dict[str, ItemReviewState] = {}
         self.recorded: list[tuple[str, str]] = []
+        self.events_log: list[ItemReviewEvent] = []
 
     def current_states(
         self, *, organization_id: str, event_id: str, request_id: str
@@ -142,6 +145,22 @@ class FakeReviewStore:
         del organization_id, event_id, request_id
         self.states[state.item_id] = state
         self.recorded.append((state.item_id, decided_by_user_id))
+        self.events_log.append(
+            ItemReviewEvent(
+                item_id=state.item_id,
+                review_status=state.review_status,
+                decided_by_user_id=decided_by_user_id,
+                decided_at=datetime(2026, 8, 7, 12, len(self.events_log), tzinfo=UTC),
+                revision_reason=state.revision_reason,
+                rejection_reason=state.rejection_reason,
+            )
+        )
+
+    def events(
+        self, *, organization_id: str, event_id: str, request_id: str
+    ) -> tuple[ItemReviewEvent, ...]:
+        del organization_id, event_id, request_id
+        return tuple(self.events_log)
 
 
 def _client(*, finance: bool = True) -> tuple[TestClient, FakeReviewStore]:
@@ -304,3 +323,74 @@ def test_the_decision_date_survives_the_round_trip() -> None:
     )
 
     assert store.states["item-001"].revision_due_date == date(2026, 8, 20)
+
+
+def test_history_starts_with_the_submission_and_follows_each_decision() -> None:
+    client, _ = _client()
+
+    client.put(
+        DECIDE_PATH,
+        json={
+            "decision": "request_revision",
+            "expectedReviewStatus": "review_pending",
+            "revisionReason": "가격 근거가 없습니다.",
+            "revisionDueDate": "2026-08-20",
+        },
+    )
+    response: httpx.Response = client.get(REVIEW_PATH)
+
+    history = response.json()["history"]
+    assert [entry["summary"] for entry in history] == [
+        "구매 요청을 제출했습니다.",
+        "검토 대기에서 보완 요청(으)로 바꿨습니다. 사유: 가격 근거가 없습니다.",
+    ]
+    # 제출은 요청 전체의 사건이라 품목을 가리키지 않는다.
+    assert "itemId" not in history[0]
+    assert history[1]["itemId"] == "item-001"
+    assert history[0]["actorName"] == "요청자"
+
+
+def test_history_keeps_the_previous_status_of_each_step() -> None:
+    # §13은 품목별 이전 상태와 변경 상태를 함께 요구한다. 이전 상태는 저장하지
+    # 않고 앞선 사건에서 따라간다.
+    client, store = _client()
+    client.put(
+        DECIDE_PATH,
+        json={
+            "decision": "request_revision",
+            "expectedReviewStatus": "review_pending",
+            "revisionReason": "보완 필요",
+            "revisionDueDate": "2026-08-20",
+        },
+    )
+    # 재제출로 검토 대기에 돌아온 상황을 흉내낸다.
+    store.states["item-001"] = ItemReviewState(
+        "item-001", ItemReviewStatus.REVIEW_PENDING
+    )
+    client.put(
+        DECIDE_PATH,
+        json={"decision": "approve", "expectedReviewStatus": "review_pending"},
+    )
+
+    response: httpx.Response = client.get(REVIEW_PATH)
+    summaries = [entry["summary"] for entry in response.json()["history"]]
+
+    assert summaries[1].startswith("검토 대기에서 보완 요청")
+    assert summaries[2].startswith("보완 요청에서 승인"), (
+        "두 번째 결정의 이전 상태는 검토 대기가 아니라 보완 요청이다"
+    )
+
+
+def test_history_is_ordered_oldest_first() -> None:
+    client, _ = _client()
+    client.put(
+        DECIDE_PATH,
+        json={"decision": "approve", "expectedReviewStatus": "review_pending"},
+    )
+
+    response: httpx.Response = client.get(REVIEW_PATH)
+    stamps: list[str] = [
+        str(entry["recordedAt"]) for entry in response.json()["history"]
+    ]
+
+    assert stamps == sorted(stamps)

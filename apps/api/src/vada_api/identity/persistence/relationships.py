@@ -294,3 +294,36 @@ class PostgreSQLIdentityOrganizationRepository:
             event_name=cast(str, row["event_name"]),
             requester_name=cast(str, row["requester_name"]),
         )
+
+    def find_member_display_names(
+        self, *, organization_id: str, user_ids: frozenset[str]
+    ) -> dict[str, str]:
+        """조직 구성원의 표시 이름을 한 번에 읽는다.
+
+        처리 기록이 사건마다 처리자 이름을 보여야 하는데, 사건 수만큼 조회하면
+        같은 사람을 여러 번 읽는다. 조직 범위 안에서 한 번에 가져온다.
+        """
+
+        if not user_ids:
+            return {}
+        statement = (
+            sa.select(
+                organization_memberships.c.user_id,
+                vada_users.c.display_name,
+            )
+            .select_from(
+                organization_memberships.join(
+                    vada_users,
+                    vada_users.c.user_id == organization_memberships.c.user_id,
+                )
+            )
+            .where(
+                organization_memberships.c.organization_id == organization_id,
+                organization_memberships.c.user_id.in_(sorted(user_ids)),
+            )
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(statement).mappings().all()
+        return {
+            cast(str, row["user_id"]): cast(str, row["display_name"]) for row in rows
+        }
