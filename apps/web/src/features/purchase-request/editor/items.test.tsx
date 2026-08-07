@@ -12,7 +12,7 @@ import { server } from "../../../mocks/server";
 
 const eventId = sampleEventId;
 const editorPath = `/events/${eventId}/purchase-requests/new`;
-const editorUrl = `*/events/${eventId}/purchase-request-editor`;
+const editorUrl = `*/api/v1/events/${eventId}/purchase-request-editor`;
 
 function renderEditor() {
   render(<AppProviders runtime={createAppRuntime({ initialPath: editorPath })} />);

@@ -4,6 +4,8 @@
  *
  * 출처: contracts/bundles/CB-FIN-001 의 ERROR 계약
  */
+import { apiPath } from "./base";
+
 export type ApiFailure =
   | "unauthenticated"
   | "forbidden"
@@ -40,12 +42,17 @@ export function failureOf(error: unknown, fallback: ApiFailure = "not_found") {
   return error instanceof ApiError ? error.failure : fallback;
 }
 
-/** 계약 응답을 읽고 실패는 ApiError로 올린다. */
+/**
+ * 계약 응답을 읽고 실패는 ApiError로 올린다.
+ *
+ * 호출부는 계약이 정의한 경로 그대로 넘긴다. 화면 주소와 겹치지 않게 붙이는
+ * 기본 경로는 여기서 한 번만 얹는다.
+ */
 export async function requestJson<T>(
   path: string,
   init: RequestInit = {},
 ): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(apiPath(path), {
     ...init,
     headers: { accept: "application/json", ...init.headers },
   });
@@ -58,7 +65,7 @@ export async function requestEmpty(
   path: string,
   init: RequestInit = {},
 ): Promise<void> {
-  const response = await fetch(path, {
+  const response = await fetch(apiPath(path), {
     ...init,
     headers: { accept: "application/json", ...init.headers },
   });

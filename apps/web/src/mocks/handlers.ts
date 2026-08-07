@@ -15,7 +15,7 @@ let draftVersion = 0;
 let draftContent: unknown = null;
 
 export const handlers: RequestHandler[] = [
-  http.get("*/events/:eventId/purchase-request-editor", () =>
+  http.get("*/api/v1/events/:eventId/purchase-request-editor", () =>
     HttpResponse.json({
       ...editorStateExample,
       draft: draftContent
@@ -29,7 +29,7 @@ export const handlers: RequestHandler[] = [
     }),
   ),
 
-  http.put("*/events/:eventId/purchase-request-draft", async ({ request }) => {
+  http.put("*/api/v1/events/:eventId/purchase-request-draft", async ({ request }) => {
     const body = (await request.json()) as {
       expectedVersion: number | null;
       content: unknown;
@@ -59,13 +59,13 @@ export const handlers: RequestHandler[] = [
     });
   }),
 
-  http.delete("*/events/:eventId/purchase-request-draft", () => {
+  http.delete("*/api/v1/events/:eventId/purchase-request-draft", () => {
     draftVersion = 0;
     draftContent = null;
     return new HttpResponse(null, { status: 204 });
   }),
 
-  http.post("*/events/:eventId/purchase-requests", async ({ request }) => {
+  http.post("*/api/v1/events/:eventId/purchase-requests", async ({ request }) => {
     const body = (await request.json()) as {
       content?: { items?: Array<{ quantity?: number; estimatedUnitPrice?: number }> };
     };
@@ -88,11 +88,11 @@ export const handlers: RequestHandler[] = [
     );
   }),
 
-  http.get("*/events/:eventId/purchase-requests/mine", () =>
+  http.get("*/api/v1/events/:eventId/purchase-requests/mine", () =>
     HttpResponse.json(ownListExample),
   ),
 
-  http.get("*/events/:eventId/purchase-requests/:requestId", ({ params }) => {
+  http.get("*/api/v1/events/:eventId/purchase-requests/:requestId", ({ params }) => {
     const { requestId } = params;
 
     const item = ownListExample.items.find(
