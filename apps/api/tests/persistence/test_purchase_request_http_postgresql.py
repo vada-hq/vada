@@ -241,6 +241,12 @@ class StaticPurchaseRequestRelationshipReader:
             requester_name=requester_name,
         )
 
+    def get_member_display_names(
+        self, *, organization_id: str, user_ids: frozenset[str]
+    ) -> dict[str, str]:
+        del organization_id
+        return dict.fromkeys(user_ids, "재정부원")
+
 
 def _client(
     engine: Engine,

@@ -9,6 +9,7 @@ import sqlalchemy as sa
 from sqlalchemy import Engine
 from sqlalchemy.exc import SQLAlchemyError
 
+from vada_api.finance.application import ItemReviewEvent
 from vada_api.finance.persistence.schema import (
     purchase_request_item_review_events,
     purchase_request_items,
@@ -106,6 +107,36 @@ class PostgreSQLPurchaseRequestReviewStore:
 
         return tuple(_state_from_row(cast(Mapping[str, object], row)) for row in rows)
 
+    def events(
+        self, *, organization_id: str, event_id: str, request_id: str
+    ) -> tuple[ItemReviewEvent, ...]:
+        """이 요청의 검토 사건을 오래된 것부터 돌려준다. 처리 기록의 재료다."""
+
+        statement = (
+            sa.select(
+                REVIEWS.c.item_id,
+                REVIEWS.c.review_status,
+                REVIEWS.c.revision_reason,
+                REVIEWS.c.rejection_reason,
+                REVIEWS.c.decided_by_user_id,
+                REVIEWS.c.decided_at,
+            )
+            .where(
+                REVIEWS.c.organization_id == organization_id,
+                REVIEWS.c.event_id == event_id,
+                REVIEWS.c.request_id == request_id,
+            )
+            .order_by(REVIEWS.c.decided_at, REVIEWS.c.review_event_id)
+        )
+
+        try:
+            with self._engine.connect() as connection:
+                rows = connection.execute(statement).mappings().all()
+        except SQLAlchemyError as error:
+            raise PurchaseRequestPersistenceError from error
+
+        return tuple(_event_from_row(cast(Mapping[str, object], row)) for row in rows)
+
     def record(
         self,
         state: ItemReviewState,
@@ -166,3 +197,14 @@ def _new_identifier() -> str:
 
 def _utc_now() -> datetime:
     return datetime.now(UTC)
+
+
+def _event_from_row(row: Mapping[str, object]) -> ItemReviewEvent:
+    return ItemReviewEvent(
+        item_id=cast(str, row["item_id"]),
+        review_status=ItemReviewStatus(cast(str, row["review_status"])),
+        decided_by_user_id=cast(str, row["decided_by_user_id"]),
+        decided_at=cast(datetime, row["decided_at"]),
+        revision_reason=_optional_text(row["revision_reason"]),
+        rejection_reason=_optional_text(row["rejection_reason"]),
+    )

@@ -82,9 +82,32 @@ class PurchaseRequestDetailView:
 
 
 @dataclass(frozen=True, slots=True)
+class PurchaseRequestHistoryEntry:
+    """처리 기록 한 줄. VADA_FINANCE_SPEC.md §13이 누적을 요구하는 사실이다."""
+
+    recorded_at: datetime
+    actor_name: str
+    summary: str
+    item_id: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class ItemReviewEvent:
+    """저장된 검토 결정 하나. 처리 기록을 만드는 재료다."""
+
+    item_id: str
+    review_status: ItemReviewStatus
+    decided_by_user_id: str
+    decided_at: datetime
+    revision_reason: str | None = None
+    rejection_reason: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
 class PurchaseRequestReviewView:
     detail: PurchaseRequestDetailView
     item_review_states: tuple[ItemReviewState, ...]
+    history: tuple[PurchaseRequestHistoryEntry, ...] = ()
 
 
 class PurchaseRequestReviewStore(Protocol):
@@ -103,6 +126,10 @@ class PurchaseRequestReviewStore(Protocol):
         request_id: str,
         decided_by_user_id: str,
     ) -> None: ...
+
+    def events(
+        self, *, organization_id: str, event_id: str, request_id: str
+    ) -> tuple[ItemReviewEvent, ...]: ...
 
 
 class PurchaseRequestRepository(Protocol):
@@ -139,6 +166,10 @@ class PurchaseRequestRelationshipReader(Protocol):
     def get_detail_display_names(
         self, *, organization_id: str, event_id: str, requester_user_id: str
     ) -> PurchaseRequestDisplayNames | None: ...
+
+    def get_member_display_names(
+        self, *, organization_id: str, user_ids: frozenset[str]
+    ) -> dict[str, str]: ...
 
 
 class PurchaseRequestSubmissionStore(Protocol):
@@ -346,10 +377,7 @@ class PurchaseRequestService:
         """검토 화면이 읽는 것. 요청 내용과 품목마다 하나씩의 현재 상태다."""
 
         detail = self._authorized_review_detail(context, request_id=request_id)
-        return PurchaseRequestReviewView(
-            detail=detail,
-            item_review_states=self._states(detail.record),
-        )
+        return self._review_view(detail)
 
     def decide_item(
         self,
@@ -379,9 +407,7 @@ class PurchaseRequestService:
             request_id=record.request_id,
             decided_by_user_id=context.actor.identity.user_id,
         )
-        return PurchaseRequestReviewView(
-            detail=detail, item_review_states=self._states(record)
-        )
+        return self._review_view(detail)
 
     def _authorized_review_detail(
         self, context: FinanceRequestContext, *, request_id: str
@@ -418,10 +444,89 @@ class PurchaseRequestService:
             for item in record.item_results
         )
 
+    def _review_view(
+        self, detail: PurchaseRequestDetailView
+    ) -> PurchaseRequestReviewView:
+        return PurchaseRequestReviewView(
+            detail=detail,
+            item_review_states=self._states(detail.record),
+            history=self._history(detail),
+        )
+
+    def _history(
+        self, detail: PurchaseRequestDetailView
+    ) -> tuple[PurchaseRequestHistoryEntry, ...]:
+        """§13이 누적을 요구하는 사실을 시간순으로 만든다.
+
+        요청 제출 사건은 별도 표를 읽지 않는다. 요청 기록 자체가 생성 시각과
+        요청자를 들고 있으므로 그것으로 만든다.
+        """
+
+        record = detail.record
+        events = self._require_review_store().events(
+            organization_id=record.organization_id,
+            event_id=record.event_id,
+            request_id=record.request_id,
+        )
+        names = self._actor_names(record.organization_id, events)
+
+        entries = [
+            PurchaseRequestHistoryEntry(
+                recorded_at=record.created_at,
+                actor_name=detail.display.requester_name,
+                summary="구매 요청을 제출했습니다.",
+            )
+        ]
+        # 품목마다 이전 상태를 따라간다. §13이 "이전 상태와 변경 상태"를 요구한다.
+        previous: dict[str, ItemReviewStatus] = {}
+        for event in sorted(events, key=lambda item: item.decided_at):
+            before = previous.get(event.item_id, ItemReviewStatus.REVIEW_PENDING)
+            entries.append(
+                PurchaseRequestHistoryEntry(
+                    recorded_at=event.decided_at,
+                    actor_name=names.get(event.decided_by_user_id, "알 수 없음"),
+                    summary=_decision_summary(before, event),
+                    item_id=event.item_id,
+                )
+            )
+            previous[event.item_id] = event.review_status
+        return tuple(entries)
+
+    def _actor_names(
+        self, organization_id: str, events: tuple[ItemReviewEvent, ...]
+    ) -> dict[str, str]:
+        if not events or self._relationship_reader is None:
+            return {}
+        return self._relationship_reader.get_member_display_names(
+            organization_id=organization_id,
+            user_ids=frozenset(event.decided_by_user_id for event in events),
+        )
+
     def _require_review_store(self) -> PurchaseRequestReviewStore:
         if self._review_store is None:
             raise PurchaseRequestPersistenceError
         return self._review_store
+
+
+_STATUS_LABELS: dict[ItemReviewStatus, str] = {
+    ItemReviewStatus.REVIEW_PENDING: "검토 대기",
+    ItemReviewStatus.APPROVED: "승인",
+    ItemReviewStatus.REVISION_REQUESTED: "보완 요청",
+    ItemReviewStatus.REJECTED: "반려",
+}
+
+
+def _decision_summary(before: ItemReviewStatus, event: ItemReviewEvent) -> str:
+    """계약이 summary를 문자열로 정의하므로 서버가 문장을 만든다.
+
+    사건 종류와 값만 주고 화면이 문장을 만드는 방법도 있지만, 그러려면 계약을
+    새 리비전으로 바꿔야 한다. 지금은 계약 R1이 정한 형태를 그대로 지킨다.
+    """
+
+    after = _STATUS_LABELS[event.review_status]
+    moved = f"{_STATUS_LABELS[before]}에서 {after}(으)로 바꿨습니다."
+    reason = event.revision_reason or event.rejection_reason
+    return f"{moved} 사유: {reason}" if reason else moved
 
 
 def _kst_today() -> date:

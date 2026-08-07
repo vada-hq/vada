@@ -532,9 +532,17 @@ class ItemReviewStateResponse(ContractModel):
     rejection_reason: str | None = Field(default=None, alias="rejectionReason")
 
 
+class ReviewHistoryEntryResponse(ContractModel):
+    recorded_at: datetime = Field(alias="recordedAt")
+    actor_name: str = Field(alias="actorName", min_length=1)
+    summary: str = Field(min_length=1)
+    item_id: str | None = Field(default=None, alias="itemId", min_length=1)
+
+
 class PurchaseRequestReviewViewResponse(ContractModel):
     detail: PurchaseRequestDetailViewResponse
     item_review_states: list[ItemReviewStateResponse] = Field(alias="itemReviewStates")
+    history: list[ReviewHistoryEntryResponse]
 
 
 class ItemDecisionCommandModel(ContractModel):
@@ -1035,6 +1043,15 @@ def _review_json(view: PurchaseRequestReviewView) -> dict[str, object]:
                 ),
             }
             for state in view.item_review_states
+        ],
+        "history": [
+            {
+                "recordedAt": entry.recorded_at.isoformat().replace("+00:00", "Z"),
+                "actorName": entry.actor_name,
+                "summary": entry.summary,
+                **({"itemId": entry.item_id} if entry.item_id is not None else {}),
+            }
+            for entry in view.history
         ],
     }
 
