@@ -77,7 +77,9 @@ def _seed_items(engine: Engine, *item_ids: str) -> None:
                     ) VALUES (
                         :item_id, :organization_id, :event_id, :request_id,
                         :position, '박스테이프', '운영 물품', '행사 운영비',
-                        '일반 구매', 5, '개', 2000, '[]'::jsonb, '{}'::jsonb
+                        'general', 5, '개', 2000,
+                        '[{"type": "product_url", "url": "https://example.test/tape"}]'::jsonb,
+                        '{}'::jsonb
                     )
                     """
                 ),
