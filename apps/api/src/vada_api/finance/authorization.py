@@ -14,6 +14,7 @@ class PurchaseRequestPermission(StrEnum):
     SUBMIT = "purchase_request.submit"
     LIST_OWN = "purchase_request.list_own"
     READ_DETAIL = "purchase_request.read_detail"
+    REVIEW = "purchase_request.review"
 
 
 def _empty_relationships() -> frozenset[str]:
@@ -88,6 +89,14 @@ def is_purchase_request_action_allowed(
         return _can_prepare_request(actor, scope) and _is_actor(
             scope.result_requester_user_id,
             actor,
+        )
+    if resolved_permission is PurchaseRequestPermission.REVIEW:
+        # 검토는 재정부만 한다. 부서장은 자기 부서 요청을 만들 수 있지만
+        # 검토 결정은 할 수 없다(VADA_PERMISSION_MATRIX.md canManageFinance).
+        return (
+            scope.request_organization_id == actor.identity.organization_id
+            and scope.request_event_id == scope.event_id
+            and actor.identity.organization_id in actor.finance_member_of
         )
     if resolved_permission is PurchaseRequestPermission.READ_DETAIL:
         return (
