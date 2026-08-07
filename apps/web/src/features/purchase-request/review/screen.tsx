@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import type { PurchaseRequestDetailView } from "@vada/api-client";
 
+import { Alert } from "../../../components/ui/alert";
 import { Card } from "../../../components/ui/card";
 import { StatusBadge } from "../../../components/ui/status-badge";
 import { failureOf, type ApiFailure } from "../../../shared/api/failure";
@@ -9,6 +10,7 @@ import { DataTable } from "../../../shared/ui/data-table";
 import { Page, PageHeader, SectionHeading } from "../../../shared/ui/page";
 import { formatAmount, formatCreatedDate } from "../shared/display";
 import { OwnListLink } from "../shared/navigation";
+import { DecisionActions, useDecisions } from "./decisions";
 import {
   reviewQueryOptions,
   type ItemReviewState,
@@ -89,11 +91,20 @@ export function PurchaseRequestReviewScreen({
     );
   }
 
-  return <ReviewBody view={query.data} />;
+  return <ReviewBody eventId={eventId} requestId={requestId} view={query.data} />;
 }
 
-function ReviewBody({ view }: { view: PurchaseRequestReviewView }) {
+function ReviewBody({
+  eventId,
+  requestId,
+  view,
+}: {
+  eventId: string;
+  requestId: string;
+  view: PurchaseRequestReviewView;
+}) {
   const { record, display } = view.detail;
+  const decisions = useDecisions(eventId, requestId);
   const states = new Map(
     view.itemReviewStates.map((state) => [state.itemId, state]),
   );
@@ -116,6 +127,12 @@ function ReviewBody({ view }: { view: PurchaseRequestReviewView }) {
         <Figure label="품목 수" value={`${record.content.items.length}개`} />
         <Figure label="필요한 날짜" value={record.content.neededDate} />
       </Card>
+
+      {decisions.failure ? (
+        <Alert tone="danger" title="처리하지 못했습니다.">
+          <p>{decisions.failure}</p>
+        </Alert>
+      ) : null}
 
       <section className="flex flex-col gap-base">
         <SectionHeading>품목 검토</SectionHeading>
@@ -156,6 +173,28 @@ function ReviewBody({ view }: { view: PurchaseRequestReviewView }) {
                 <ItemStatus state={states.get(item.itemId)} />
               ),
             },
+            {
+              key: "decision",
+              header: "결정",
+              cell: (item: ReviewRow) => {
+                const state = states.get(item.itemId);
+                // 확정된 품목에는 결정 행동을 그리지 않는다. 이미 처리된 것을
+                // 덮어쓰지 않는다는 규칙이 화면에도 그대로 보인다.
+                if (state?.reviewStatus !== "review_pending") {
+                  return <span className="text-muted-foreground">—</span>;
+                }
+                return (
+                  <DecisionActions
+                    busy={decisions.busy}
+                    onDecide={decisions.decide(
+                      item.itemId,
+                      item.name,
+                      state.reviewStatus,
+                    )}
+                  />
+                );
+              },
+            },
           ]}
           label="품목 검토"
           rowKey={(item) => item.itemId}
@@ -180,6 +219,8 @@ function ReviewBody({ view }: { view: PurchaseRequestReviewView }) {
           ))}
         </ol>
       </section>
+
+      {decisions.dialog}
     </Page>
   );
 }

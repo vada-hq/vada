@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { AppProviders, createAppRuntime } from "../../../app/runtime";
@@ -60,7 +61,7 @@ describe("구매 요청 검토 화면", () => {
       within(table)
         .getAllByRole("columnheader")
         .map((header) => header.textContent),
-    ).toEqual(["품목명", "수량", "요청액", "가격 근거", "현재 상태"]);
+    ).toEqual(["품목명", "수량", "요청액", "가격 근거", "현재 상태", "결정"]);
 
     const rows = within(table).getAllByRole("row").slice(1);
     expect(rows).toHaveLength(reviewViewExample.detail.record.content.items.length);
@@ -171,5 +172,129 @@ describe("구매 요청 검토 화면", () => {
     const alert = await screen.findByRole("alert");
     expect(alert).toHaveAccessibleName("다시 인증해야 합니다.");
     expect(screen.queryByText("명찰 케이스")).not.toBeInTheDocument();
+  });
+});
+
+describe("검토 결정", () => {
+  beforeEach(() => {
+    server.resetHandlers();
+  });
+
+  const decideUrl = `*/api/v1/events/${eventId}/purchase-requests/${requestId}/items/:itemId/review`;
+
+  function approvedView() {
+    return {
+      ...reviewViewExample,
+      itemReviewStates: [
+        { itemId: "item-001", reviewStatus: "approved" },
+        { itemId: "item-002", reviewStatus: "review_pending" },
+      ],
+    };
+  }
+
+  test("승인은 사유 없이 곧바로 보내고 결과를 반영한다", async () => {
+    const user = userEvent.setup();
+    const sent: unknown[] = [];
+    server.use(
+      http.get(reviewUrl, () => HttpResponse.json(reviewViewExample)),
+      http.put(decideUrl, async ({ request }) => {
+        sent.push(await request.json());
+        return HttpResponse.json(approvedView());
+      }),
+    );
+    renderReview();
+
+    const table = await screen.findByRole("table", { name: "품목 검토" });
+    const rows = within(table).getAllByRole("row").slice(1);
+    await user.click(within(rows[0]).getByRole("button", { name: "승인" }));
+
+    expect(sent).toEqual([
+      { decision: "approve", expectedReviewStatus: "review_pending" },
+    ]);
+    const updated = within(
+      await screen.findByRole("table", { name: "품목 검토" }),
+    ).getAllByRole("row")[1];
+    expect(within(updated).getByText("승인")).toBeInTheDocument();
+  });
+
+  test("확정된 품목에는 결정 행동을 그리지 않는다", async () => {
+    server.use(http.get(reviewUrl, () => HttpResponse.json(approvedView())));
+    renderReview();
+
+    const table = await screen.findByRole("table", { name: "품목 검토" });
+    const rows = within(table).getAllByRole("row").slice(1);
+    expect(within(rows[0]).queryByRole("button", { name: "승인" })).toBeNull();
+    expect(within(rows[1]).getByRole("button", { name: "승인" })).toBeInTheDocument();
+  });
+
+  test("보완 요청은 사유와 기한을 받아 함께 보낸다", async () => {
+    const user = userEvent.setup();
+    const sent: unknown[] = [];
+    server.use(
+      http.get(reviewUrl, () => HttpResponse.json(reviewViewExample)),
+      http.put(decideUrl, async ({ request }) => {
+        sent.push(await request.json());
+        return HttpResponse.json(reviewViewExample);
+      }),
+    );
+    renderReview();
+
+    const table = await screen.findByRole("table", { name: "품목 검토" });
+    const rows = within(table).getAllByRole("row").slice(1);
+    await user.click(within(rows[0]).getByRole("button", { name: "보완 요청" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "보완 요청" });
+    await user.type(within(dialog).getByLabelText(/사유/), "가격 근거가 없습니다.");
+    await user.type(within(dialog).getByLabelText(/재제출 기한/), "2026-08-20");
+    await user.click(within(dialog).getByRole("button", { name: "보완 요청" }));
+
+    expect(sent).toEqual([
+      {
+        decision: "request_revision",
+        expectedReviewStatus: "review_pending",
+        revisionReason: "가격 근거가 없습니다.",
+        revisionDueDate: "2026-08-20",
+      },
+    ]);
+  });
+
+  test("반려는 사유만 받고 기한을 묻지 않는다", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(reviewUrl, () => HttpResponse.json(reviewViewExample)),
+      http.put(decideUrl, () => HttpResponse.json(reviewViewExample)),
+    );
+    renderReview();
+
+    const table = await screen.findByRole("table", { name: "품목 검토" });
+    const rows = within(table).getAllByRole("row").slice(1);
+    await user.click(within(rows[0]).getByRole("button", { name: "반려" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "반려" });
+    expect(within(dialog).getByLabelText(/사유/)).toBeInTheDocument();
+    expect(within(dialog).queryByLabelText(/재제출 기한/)).toBeNull();
+  });
+
+  test("다른 사람이 먼저 처리했으면 덮어쓰지 않고 알린다", async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(reviewUrl, () => HttpResponse.json(reviewViewExample)),
+      http.put(decideUrl, () =>
+        problem(
+          409,
+          "purchase_request_state_conflict",
+          "구매 요청 상태가 변경되었습니다.",
+        ),
+      ),
+    );
+    renderReview();
+
+    const table = await screen.findByRole("table", { name: "품목 검토" });
+    const rows = within(table).getAllByRole("row").slice(1);
+    await user.click(within(rows[0]).getByRole("button", { name: "승인" }));
+
+    expect(
+      await screen.findByText(/다른 사람이 먼저 처리했습니다/),
+    ).toBeInTheDocument();
   });
 });
