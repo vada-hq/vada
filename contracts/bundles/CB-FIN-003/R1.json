@@ -1,0 +1,575 @@
+{
+  "$schema": "../../schemas/delivery-contract-bundle-0.2.0.schema.json",
+  "schema_version": "0.2.0",
+  "bundle_id": "CB-FIN-003",
+  "bundle_revision": 1,
+  "bundle_status": "approved",
+  "approval_source_ref": "SRC-003",
+  "updated_at": "2026-08-07T14:20:00+09:00",
+  "delivery_unit_ref": "SCREEN:FIN-REV-01",
+  "objective_ko": "재정부가 제출된 구매 요청을 품목별로 검토해 승인과 보완 요청, 반려 중 하나로 결정합니다.",
+  "standards_profile": {
+    "openapi_version": "3.1.1",
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "http_problem_details": "RFC9457"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "document",
+      "captured_at": "2026-08-07T14:20:00+09:00",
+      "locator": "prototypes/wireframe/src/app/App.tsx#FIN-REV-01",
+      "content_ko": "승인 와이어프레임의 구매 요청 검토 화면과 내장 화면정의서입니다. 재정부가 품목별 요청액과 가격 근거를 확인해 승인, 보완 요청, 반려 중 하나를 정하며 승인액을 직접 입력하지 않습니다. 보완 요청은 사유와 재제출 기한을 받고 처리 기록은 상태 변화를 시간순으로 표시합니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "document",
+      "captured_at": "2026-08-07T14:20:00+09:00",
+      "locator": "prototypes/wireframe/docs/VADA_FINANCE_SPEC.md#6",
+      "content_ko": "재정 기준 문서의 품목별 검토 절입니다. 검토 대기에서 승인과 보완 요청, 반려로 바로 전환하며 별도 검토 중 단계가 없습니다. 승인은 별도 승인액을 입력하지 않고 품목 요청 금액을 예산 예약합니다. 시스템은 반려 사유 목록과 자동 판정, 추천을 제공하지 않습니다. 한 요청 안에서 품목마다 결과가 달라도 되며 구매 요청 수준의 부분 승인 같은 통합 진행 상태는 만들지 않습니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "user_statement",
+      "captured_at": "2026-08-07T14:20:00+09:00",
+      "locator": "current-thread/2026-08-07-purchase-request-review",
+      "content_ko": "제품 책임자가 구매 요청 검토를 재정 슬라이스의 첫 화면으로 확정했습니다. 확정 후 진행인 선진행 동의와 구매 승인 묶음은 구매 발주 화면의 단위이므로 이번 범위에 넣지 않습니다. 결정은 품목별로 개별 저장하며 미검토 품목이 남아도 막지 않습니다."
+    }
+  ],
+  "base_bundle_ref": {
+    "bundle_path": "contracts/bundles/CB-FIN-001/R2.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 2,
+    "canonical_sha256": "134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad"
+  },
+  "contracts": [
+    {
+      "id": "DATA:purchase_request.item_review_state@R1",
+      "kind": "DATA",
+      "key": "purchase_request.item_review_state",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "구매 품목 하나의 검토 상태와 그 결정에 딸린 값을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-item-review-state:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "itemId",
+            "reviewStatus"
+          ],
+          "properties": {
+            "itemId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "reviewStatus": {
+              "type": "string",
+              "enum": [
+                "review_pending",
+                "approved",
+                "revision_requested",
+                "rejected"
+              ],
+              "description": "품목의 검토 상태. 저장되는 원본이다"
+            },
+            "revisionReason": {
+              "type": "string",
+              "minLength": 1,
+              "description": "보완 요청 사유. reviewStatus가 revision_requested일 때만 존재한다"
+            },
+            "revisionDueDate": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+              "description": "보완 재제출 기한. reviewStatus가 revision_requested일 때만 존재한다"
+            },
+            "rejectionReason": {
+              "type": "string",
+              "minLength": 1,
+              "description": "반려 사유. reviewStatus가 rejected일 때만 존재한다"
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "검토 대기에서 승인과 보완 요청, 반려로 바로 전환합니다. 별도 검토 중 단계를 두지 않습니다.",
+          "승인에는 금액 입력이 없습니다. 품목의 요청 금액을 그대로 예산 예약하므로 승인액 필드를 두지 않습니다. 금액이 문제라면 보완 요청입니다.",
+          "반려 사유는 자유 입력입니다. 시스템이 사유 목록이나 추천을 제공하지 않습니다.",
+          "보완 요청에는 사유와 재제출 기한이 모두 필요합니다. 기한이 지난 뒤의 처리는 이 리비전이 정하지 않으며 기록하고 표시만 합니다.",
+          "결정은 품목 단위입니다. 한 구매 요청 안에서 품목마다 다른 상태가 되는 것이 정상입니다.",
+          "구매 요청 수준의 통합 진행 상태를 만들지 않습니다. 요청의 상태는 소속 품목의 개별 상태로만 표현합니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002"
+      ]
+    },
+    {
+      "id": "DATA:purchase_request.review_view@R1",
+      "kind": "DATA",
+      "key": "purchase_request.review_view",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "검토 화면이 한 번에 읽는 요청 내용과 품목별 검토 상태, 처리 기록을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-review-view:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "detail",
+            "itemReviewStates",
+            "history"
+          ],
+          "properties": {
+            "detail": {
+              "$ref": "urn:vada:schema:purchase-request-detail-view:r1"
+            },
+            "itemReviewStates": {
+              "type": "array",
+              "items": {
+                "$ref": "urn:vada:schema:purchase-request-item-review-state:r1"
+              }
+            },
+            "history": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "recordedAt",
+                  "actorName",
+                  "summary"
+                ],
+                "properties": {
+                  "recordedAt": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}([.][0-9]+)?Z$",
+                    "description": "UTC ISO 8601. 저장은 UTC, 표시만 KST로 바꾼다"
+                  },
+                  "actorName": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "summary": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "itemId": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "itemReviewStates는 detail의 품목마다 정확히 하나씩 있습니다. 아직 결정하지 않은 품목도 review_pending으로 존재합니다.",
+          "history는 오래된 것부터 시간순입니다. 요청자와 재정부가 같은 이력을 봅니다.",
+          "history의 itemId는 품목 단위 사건일 때만 존재합니다. 요청 제출처럼 요청 전체의 사건에는 없습니다.",
+          "recordedAt은 UTC로 저장하고 표시만 KST로 바꿉니다.",
+          "actorName은 표시 전용입니다. 권한 판정이나 다른 조회의 식별자로 쓸 수 없습니다."
+        ],
+        "schema_contract_refs": [
+          "DATA:purchase_request.detail_view@R1",
+          "DATA:purchase_request.item_review_state@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002"
+      ]
+    },
+    {
+      "id": "DATA:purchase_request.item_decision@R1",
+      "kind": "DATA",
+      "key": "purchase_request.item_decision",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "재정부가 품목 하나에 내리는 검토 결정 입력을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-item-decision:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "decision",
+            "expectedReviewStatus"
+          ],
+          "properties": {
+            "decision": {
+              "type": "string",
+              "enum": [
+                "approve",
+                "request_revision",
+                "reject"
+              ]
+            },
+            "expectedReviewStatus": {
+              "type": "string",
+              "enum": [
+                "review_pending",
+                "approved",
+                "revision_requested",
+                "rejected"
+              ],
+              "description": "요청자가 화면에서 본 현재 상태. 서버 상태와 다르면 거부한다"
+            },
+            "revisionReason": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revisionDueDate": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+            },
+            "rejectionReason": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "decision": {
+                    "const": "request_revision"
+                  }
+                },
+                "required": [
+                  "decision"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "revisionReason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "revisionDueDate": {
+                    "type": "string",
+                    "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                  }
+                },
+                "required": [
+                  "revisionReason",
+                  "revisionDueDate"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "decision": {
+                    "const": "reject"
+                  }
+                },
+                "required": [
+                  "decision"
+                ]
+              },
+              "then": {
+                "properties": {
+                  "rejectionReason": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "rejectionReason"
+                ]
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "decision": {
+                    "const": "approve"
+                  }
+                },
+                "required": [
+                  "decision"
+                ]
+              },
+              "then": {
+                "not": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "revisionReason": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "revisionReason"
+                      ]
+                    },
+                    {
+                      "properties": {
+                        "revisionDueDate": {
+                          "type": "string",
+                          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+                        }
+                      },
+                      "required": [
+                        "revisionDueDate"
+                      ]
+                    },
+                    {
+                      "properties": {
+                        "rejectionReason": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "rejectionReason"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "semantic_notes_ko": [
+          "승인에는 금액 입력이 없습니다. 요청 금액을 그대로 예약하므로 승인액을 받지 않습니다.",
+          "보완 요청은 사유와 재제출 기한이 모두 필요합니다. 하나만 보내면 거부합니다.",
+          "반려는 사유가 필요합니다. 시스템이 사유 목록을 주지 않으므로 자유 입력을 받습니다.",
+          "expectedReviewStatus는 낙관적 잠금입니다. 다른 사람이 먼저 처리했으면 서버가 409로 거부하고 덮어쓰지 않습니다.",
+          "결정은 품목 단위로 개별 저장합니다. 미검토 품목이 남아 있어도 막지 않습니다.",
+          "재제출 기한이 지난 뒤의 처리는 이 리비전이 정하지 않습니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "AUTH:purchase_request.review@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.review",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "행사가 속한 조직의 재정부 구성원만 구매 품목의 검토 결정을 읽고 바꿀 수 있게 합니다.",
+      "specification": {
+        "action": "purchase_request.review",
+        "resource_ko": "현재 조직 범위에 속한 행사의 구매 요청과 그 품목의 검토 상태",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              {
+                "left_fact": "actor.has_active_organization_membership",
+                "operator": "is_true",
+                "right": {
+                  "literal": true
+                }
+              },
+              {
+                "left_fact": "request.organization_id",
+                "operator": "equals",
+                "right": {
+                  "fact": "context.organization_id"
+                }
+              },
+              {
+                "left_fact": "actor.finance_member_of",
+                "operator": "contains",
+                "right": {
+                  "fact": "context.organization_id"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002"
+      ]
+    },
+    {
+      "id": "API:purchase_request.get_review@R1",
+      "kind": "API",
+      "key": "purchase_request.get_review",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "검토 화면이 요청 내용과 품목별 검토 상태, 처리 기록을 한 번에 읽습니다.",
+      "specification": {
+        "operation_id": "getPurchaseRequestReview",
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests/{requestId}/review",
+        "authorization_ref": "AUTH:purchase_request.review@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            {
+              "name": "eventId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            {
+              "name": "requestId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:purchase_request.review_view@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001"
+      ]
+    },
+    {
+      "id": "API:purchase_request.decide_item@R1",
+      "kind": "API",
+      "key": "purchase_request.decide_item",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "재정부가 품목 하나의 검토 결정을 기록합니다.",
+      "specification": {
+        "operation_id": "decidePurchaseRequestItem",
+        "method": "PUT",
+        "path": "/events/{eventId}/purchase-requests/{requestId}/items/{itemId}/review",
+        "authorization_ref": "AUTH:purchase_request.review@R1",
+        "request": {
+          "body_contract_ref": "DATA:purchase_request.item_decision@R1",
+          "parameters": [
+            {
+              "name": "eventId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            {
+              "name": "requestId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            {
+              "name": "itemId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:purchase_request.review_view@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "구매 요청 검토 계약 묶음을 승인 또는 반려로 구분합니다.",
+        "source_refs": [
+          "SRC-003"
+        ]
+      },
+      "question_ko": "구매 요청 검토 계약 묶음을 승인합니까?",
+      "reason_ko": "승인하면 품목별 검토 결정과 처리 기록 조회가 FIN-REV-01 화면의 계약 기준선이 됩니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "승인"
+        },
+        {
+          "id": "NO",
+          "label_ko": "반려"
+        }
+      ],
+      "evidence": {
+        "solution_design_refs": [],
+        "source_refs": [
+          "SRC-001",
+          "SRC-002",
+          "SRC-003"
+        ]
+      },
+      "answer_source_ref": "SRC-003",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": "결정은 품목별로 개별 저장하고 확정 후 진행은 이번 범위에 넣지 않기로 확정했습니다."
+      },
+      "dismissal_reason_ko": null
+    }
+  ]
+}
