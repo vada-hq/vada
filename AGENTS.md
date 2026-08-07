@@ -36,6 +36,7 @@
 | `just validate-screens` | 화면 정본의 와이어프레임·계약 참조 검증 |
 | `just validate-wireframe-sync` | 와이어프레임이 공유본 기준선과 같은지 검증 |
 | `just validate-tooling` | CI 스코프 판별과 착수 전 도구 점검 |
+| `just status` | ⭐ MVP 화면 몇 개 중 몇 개가 어디까지 왔는지 |
 | `just generate-openapi-client` / `just validate-openapi-client` | 생성 API 클라이언트 |
 | `just test` / `just test-api` / `just test-api-postgresql` / `just test-web` | 전체 / API / 실제 PostgreSQL / 웹 테스트 |
 | `just lint` | 린트 + 포맷 검사 |
@@ -60,11 +61,22 @@
 
 `product-specs/`와 `delivery-units/`는 2026-08-06까지의 기획·실행 기록을 역사로 보존한다. 새로 만들지 않는다.
 
+## 무엇을 얼마나 만드는가
+
+**와이어프레임 87개가 목표가 아니다.** `prototypes/wireframe/docs/VADA_MVP_SPEC.md`가 정한다.
+
+- **§6 MVP 화면 묶음** — 만들 화면 목록. 이게 분모다.
+- **§11 개발 순서** — 1단계 행사 뼈대 → 2단계 회의·참가자 → 3단계 재정·기록.
+
+`just status`가 이 둘을 읽어 지금 위치를 계산해 찍는다. 진행 상태를 파일에 적어 두지 않는 이유는 [정본은 셋뿐이다](#정본은-셋뿐이다)와 같다. 적어 두면 틀어진다.
+
+**§6과 §11을 안 읽고 착수하지 마라.** 실제로 그렇게 해서 §6에 없는 화면(`MY-REQ-01`)을 만들었고, 1·2단계를 건너뛴 채 3단계 재정만 만들다가 1단계가 만들었어야 할 조직 역할 데이터가 없어서 세션 계약(#52)이 막혔다. 순서를 벗어나 착수하려면 그 판단을 사람에게 먼저 알린다.
+
 ## 화면 작업 방법
 
 **화면 하나 = PR 하나.** 셸·입력·동작으로 쪼개 여러 PR로 올리지 않는다. 그렇게 했더니 PR 15건에 화면 3개가 나왔고, 사람이 화면을 처음 보는 시점이 PR 네 건 뒤로 밀려 그 사이의 오해가 전부 누적됐다. 화면이 너무 커서 한 PR에 안 들어간다면 그건 화면 정본을 쪼갤 신호지 PR을 쪼갤 신호가 아니다.
 
-0. `just validate-wireframe-sync`로 와이어프레임이 최신인지 먼저 본다. 낡은 사본으로 만들면 전부 다시 해야 한다.
+0. `just status`로 지금 어디인지 본다. 그 다음 `just validate-wireframe-sync`로 와이어프레임이 최신인지 본다. 낡은 사본으로 만들면 전부 다시 해야 한다.
 1. `screens/<ID>.md`를 읽는다. 없으면 만든다.
 2. `wireframe_screen` ID를 `App.tsx`에서 찾아 **반드시 열어본다.** 화면 구조는 거기서 가져온다.
 3. 그 화면을 다루는 `prototypes/wireframe/docs/`의 명세를 읽는다. 재정은 `VADA_FINANCE_SPEC.md`, 권한은 `VADA_PERMISSION_MATRIX.md`, 화면별 검증 항목은 `VADA_SCREEN_QA.md`가 기준이다. **"계약에 없다"는 판단은 이 명세들을 읽은 뒤에만 내린다.**
