@@ -18,7 +18,11 @@ async function fixtureRoot(screens) {
     { recursive: true },
   );
   await mkdir(resolve(root, "prototypes/wireframe/src/app"), { recursive: true });
-  await writeFile(resolve(root, "prototypes/wireframe/src/app/App.tsx"), "", "utf8");
+  await writeFile(
+    resolve(root, "prototypes/wireframe/src/app/App.tsx"),
+    `const SCREENS = [\n  { id: "MY-REQ-01", label: "내 구매 요청", group: "재정" },\n];\n`,
+    "utf8",
+  );
 
   for (const [name, body] of Object.entries(screens)) {
     await writeFile(resolve(root, "screens", name), body, "utf8");
@@ -30,7 +34,8 @@ async function fixtureRoot(screens) {
 const validScreen = `---
 id: MYREQ01
 title: 내 구매 요청
-wireframe: prototypes/wireframe/src/app/App.tsx:10889
+wireframe: prototypes/wireframe/src/app/App.tsx
+wireframe_screen: MY-REQ-01
 route: /events/$eventId/purchase-requests/mine
 contracts:
   - API:purchase_request.list_own@R1
@@ -40,6 +45,39 @@ status: done
 ## 화면 구조
 표로 표시한다.
 `;
+
+// 나머지 검사가 전부 errors.some()이라 새 규칙이 늘어도 조용히 통과했다.
+// 정상 픽스처에 오류가 하나도 없어야 한다는 것을 여기서 못 박는다.
+test("유효한 화면 정본에는 오류가 하나도 없다", async () => {
+  const root = await fixtureRoot({ "MYREQ01.md": validScreen });
+
+  const { errors } = await validateScreens(root);
+
+  assert.deepEqual(errors, []);
+});
+
+test("wireframe에 줄 번호를 쓰면 거부한다", async () => {
+  const root = await fixtureRoot({
+    "MYREQ01.md": validScreen.replace(
+      "wireframe: prototypes/wireframe/src/app/App.tsx\n",
+      "wireframe: prototypes/wireframe/src/app/App.tsx:10889\n",
+    ),
+  });
+
+  const { errors } = await validateScreens(root);
+
+  assert.ok(errors.some((error) => error.includes("줄 번호를 쓰지 않습니다")));
+});
+
+test("와이어프레임에 없는 화면 ID를 거부한다", async () => {
+  const root = await fixtureRoot({
+    "MYREQ01.md": validScreen.replace("MY-REQ-01", "MY-REQ-99"),
+  });
+
+  const { errors } = await validateScreens(root);
+
+  assert.ok(errors.some((error) => error.includes("그런 화면이 없습니다")));
+});
 
 test("프런트매터의 목록과 주석을 읽는다", () => {
   const front = parseFrontMatter(validScreen);
@@ -72,8 +110,8 @@ test("계약에 없는 참조를 거부한다", async () => {
 test("없는 와이어프레임 경로를 거부한다", async () => {
   const root = await fixtureRoot({
     "MYREQ01.md": validScreen.replace(
-      "prototypes/wireframe/src/app/App.tsx:10889",
-      "prototypes/wireframe/src/app/Missing.tsx:1",
+      "prototypes/wireframe/src/app/App.tsx",
+      "prototypes/wireframe/src/app/Missing.tsx",
     ),
   });
 

@@ -13,6 +13,8 @@
     "validate:openapi-client": "node scripts/validate-purchase-request-openapi-client.mjs",
     "test:screens": "node --test scripts/validate-screens.test.mjs",
     "validate:screens": "node scripts/validate-screens.mjs",
+    "test:wireframe-sync": "node --test scripts/check-wireframe-sync.test.mjs",
+    "validate:wireframe-sync": "node scripts/check-wireframe-sync.mjs",
     "test:tooling": "node --test scripts/detect-ci-scopes.test.mjs scripts/check-execution-preflight.test.mjs",
     "preflight": "node scripts/check-execution-preflight.mjs base",
     "preflight:postgresql": "node scripts/check-execution-preflight.mjs postgresql",

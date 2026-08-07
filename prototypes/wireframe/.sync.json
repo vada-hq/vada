@@ -1,0 +1,14 @@
+{
+  "$comment": "이 저장소가 어느 와이어프레임 공유본에서 반입됐는지 기록한다. 반입 절차는 AGENTS.md 참고. 검사는 `just validate-wireframe-sync`.",
+  "imported_at": "2026-08-06",
+  "source": "VADA 와이어프레임 공유본 (저장소 밖에서 편집 후 압축 전달)",
+  "app_tsx_sha256": "7e541f87c7f4d92505a80ab3e43e534775ced204c1db64e6da44647e1ef7ce96",
+  "screen_count": 87,
+  "local_changes": [
+    {
+      "commit": "5d04e28",
+      "summary": "구매 요청 작성(FIN-REQ-01B)을 DesktopShell 페이지에서 팝업으로 바꿈",
+      "reason": "제품 소유자 판정 2026-08-06. 오른쪽 위 `새 구매 요청`이 여는 팝업이어야 한다."
+    }
+  ]
+}

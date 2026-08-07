@@ -7,7 +7,8 @@
 
 - 프로젝트 ID는 `.vada/project.json`의 `vada`, 정식 원격은 `https://github.com/vada-hq/vada.git`이다.
 - VADA 작업은 이 Git 루트 또는 그 하위에서만 수행한다. 기계별 절대 경로를 문서나 코드에 정본으로 넣지 않는다.
-- 외부 `VADA-wireframe` 폴더는 백업이다. 와이어프레임 정본은 `prototypes/wireframe/`, 화면 정본은 `screens/`, 서버 계약은 `contracts/`, 제품 코드는 `apps/`다.
+- 와이어프레임 정본은 `prototypes/wireframe/`, 화면 정본은 `screens/`, 서버 계약은 `contracts/`, 제품 코드는 `apps/`다.
+- 와이어프레임은 저장소 밖에서 편집된 뒤 **공유본으로 반입**된다. 외부 `VADA-wireframe` 폴더는 백업이 아니라 그 공유본의 압축 해제본이며, 저장소보다 최신일 수 있다. 와이어프레임을 근거로 삼기 전에 `prototypes/wireframe/AGENTS.md`의 반입 절차로 최신 여부를 먼저 확인한다.
 
 ## 정본은 셋뿐이다
 
@@ -30,8 +31,10 @@
 | `just dev-api` | API 개발 서버 (http://localhost:8000) |
 | `just dev-web` | 웹 개발 서버 |
 | `just dev-web-mock` | 계약 예제로 화면을 브라우저에서 확인 |
+| `just dev-wireframe` | 와이어프레임 정본을 브라우저에서 확인 (http://localhost:5180/) |
 | `just validate-contracts` | 서버 계약 검증 |
 | `just validate-screens` | 화면 정본의 와이어프레임·계약 참조 검증 |
+| `just validate-wireframe-sync` | 와이어프레임이 공유본 기준선과 같은지 검증 |
 | `just validate-tooling` | CI 스코프 판별과 착수 전 도구 점검 |
 | `just generate-openapi-client` / `just validate-openapi-client` | 생성 API 클라이언트 |
 | `just test` / `just test-api` / `just test-api-postgresql` / `just test-web` | 전체 / API / 실제 PostgreSQL / 웹 테스트 |
@@ -50,7 +53,7 @@
 - `apps/api` — FastAPI 모듈형 모놀리스. Python 3.13(uv), SQLAlchemy 2.x **동기** 엔진 + psycopg3, Alembic.
 - `apps/web` — Vite 8 React SPA. TS 6.0, TanStack Router/Query/Form/Table, Zustand, Zod 4, Tailwind 4 + shadcn/ui(**Base UI 기반**), TipTap v3.
 - `packages/` — 웹·모바일 공유용 **순수 TS만** (Zod 스키마, 생성 API 클라이언트, queryOptions).
-- `prototypes/wireframe/` — 와이어프레임 정본. 화면 75개. 코드를 제품으로 복사하지 않는다.
+- `prototypes/wireframe/` — 와이어프레임 정본. 화면 87개. 제품 명세는 `prototypes/wireframe/docs/`, 도메인 용어집은 `prototypes/wireframe/CONTEXT.md`. 코드를 제품으로 복사하지 않는다.
 - `infra/` — Terraform. 리전은 서울(ap-northeast-2), 상태는 S3 + use_lockfile.
 - `docs/engineering/` — 실행·테스트·아키텍처·보안 기준.
 - `docs/` — 그 밖의 리포 문서. **기술 결정(ADR 74건)의 원본은 노션**: https://app.notion.com/p/3a068a85148e80ca89e0f726a38d49f3
@@ -59,14 +62,19 @@
 
 ## 화면 작업 방법
 
+**화면 하나 = PR 하나.** 셸·입력·동작으로 쪼개 여러 PR로 올리지 않는다. 그렇게 했더니 PR 15건에 화면 3개가 나왔고, 사람이 화면을 처음 보는 시점이 PR 네 건 뒤로 밀려 그 사이의 오해가 전부 누적됐다. 화면이 너무 커서 한 PR에 안 들어간다면 그건 화면 정본을 쪼갤 신호지 PR을 쪼갤 신호가 아니다.
+
+0. `just validate-wireframe-sync`로 와이어프레임이 최신인지 먼저 본다. 낡은 사본으로 만들면 전부 다시 해야 한다.
 1. `screens/<ID>.md`를 읽는다. 없으면 만든다.
-2. `wireframe` 항목이 가리키는 위치를 **반드시 열어본다.** 화면 구조는 거기서 가져온다.
-3. `contracts` 항목의 계약을 읽는다. 필드·상태·오류 코드는 계약이 기준이다.
-4. 와이어프레임과 계약이 다르면 판정하고 그 결정을 화면 파일에 남긴다.
-5. RED → GREEN으로 구현한다. 상태 목록이 곧 테스트 목록이다.
-6. `just check-web` 또는 `just check-api`를 돌린다.
-7. `just dev-web-mock`으로 브라우저에서 직접 확인한다.
-8. PR을 올린다. 사람이 브라우저에서 보고 판정한다.
+2. `wireframe_screen` ID를 `App.tsx`에서 찾아 **반드시 열어본다.** 화면 구조는 거기서 가져온다.
+3. 그 화면을 다루는 `prototypes/wireframe/docs/`의 명세를 읽는다. 재정은 `VADA_FINANCE_SPEC.md`, 권한은 `VADA_PERMISSION_MATRIX.md`, 화면별 검증 항목은 `VADA_SCREEN_QA.md`가 기준이다. **"계약에 없다"는 판단은 이 명세들을 읽은 뒤에만 내린다.**
+4. `contracts` 항목의 계약을 읽는다. 필드·상태·오류 코드는 계약이 기준이다.
+5. 와이어프레임과 계약이 다르면 판정하고 그 결정을 화면 파일에 남긴다.
+6. RED → GREEN으로 구현한다. 상태 목록이 곧 테스트 목록이다.
+7. **화면 골격이 서면 그 자리에서 사람에게 보여준다.** 완성까지 기다리지 않는다. 위계가 틀렸으면 여기서 잡아야 싸다.
+8. `just check-web` 또는 `just check-api`를 돌린다.
+9. `just dev-web-mock`으로 브라우저에서 직접 확인한다.
+10. PR을 올린다. 사람이 브라우저에서 보고 판정한다.
 
 새 계약이 필요하면 `contracts/`에 추가한다. 계약 의미가 바뀌면 활성 리비전을 덮어쓰지 말고 새 리비전을 만든다.
 

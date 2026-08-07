@@ -28,6 +28,10 @@ dev-web:
 dev-web-mock:
     pnpm --filter web dev:mock
 
+# 와이어프레임 정본을 브라우저에서 확인하는 개발 서버 — http://localhost:5180/ (화면 87개)
+dev-wireframe:
+    pnpm --filter @vada/wireframe dev
+
 # 서버 API·권한·데이터·오류 계약
 validate-contracts:
     pnpm test:contracts
@@ -46,12 +50,17 @@ validate-screens:
     pnpm test:screens
     pnpm validate:screens
 
+# 저장소 와이어프레임이 공유본 기준선과 같은지. VADA_WIREFRAME_SHARE로 공유본 경로를 준다
+validate-wireframe-sync:
+    pnpm test:wireframe-sync
+    pnpm validate:wireframe-sync
+
 # CI 스코프 판별과 착수 전 도구 점검
 validate-tooling:
     pnpm test:tooling
 
 # 테스트
-test: test-api test-web
+test: test-api test-web test-wireframe
 
 test-api:
     cd apps/api && uv run pytest
@@ -66,6 +75,10 @@ test-api-fast:
 
 test-web:
     pnpm --filter web test
+
+# 와이어프레임 정본의 재정 규칙 회귀 검사
+test-wireframe:
+    pnpm --filter @vada/wireframe test
 
 # 작업자·검증자용 경로별 검사
 check-api: lint-api typecheck-api test-api
@@ -101,4 +114,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-contracts validate-screens validate-tooling lint typecheck test build
+check: validate-contracts validate-screens validate-wireframe-sync validate-tooling lint typecheck test build
