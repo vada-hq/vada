@@ -255,3 +255,22 @@ purchase_request_submission_events = sa.Table(
         name="fk_purchase_request_submission_events_request_scope",
     ),
 )
+
+
+# 검토 결정은 추가 전용이다. 품목의 현재 상태는 가장 최근 사건이며 따로 저장하지
+# 않는다. 마이그레이션 20260807_0004와 짝이다.
+purchase_request_item_review_events = sa.Table(
+    "purchase_request_item_review_events",
+    metadata,
+    sa.Column("review_event_id", sa.Text(), primary_key=True),
+    sa.Column("organization_id", sa.Text(), nullable=False),
+    sa.Column("event_id", sa.Text(), nullable=False),
+    sa.Column("request_id", sa.Text(), nullable=False),
+    sa.Column("item_id", sa.Text(), nullable=False),
+    sa.Column("review_status", sa.Text(), nullable=False),
+    sa.Column("revision_reason", sa.Text(), nullable=True),
+    sa.Column("revision_due_date", sa.Date(), nullable=True),
+    sa.Column("rejection_reason", sa.Text(), nullable=True),
+    sa.Column("decided_by_user_id", sa.Text(), nullable=False),
+    sa.Column("decided_at", sa.DateTime(timezone=True), nullable=False),
+)
