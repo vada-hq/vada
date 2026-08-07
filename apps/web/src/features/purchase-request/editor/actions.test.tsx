@@ -68,7 +68,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await user.type(screen.getByRole("textbox", { name: /요청 제목/ }), "간식 구매");
     await user.click(screen.getByRole("button", { name: "임시 저장" }));
 
@@ -99,7 +99,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
 
     await user.click(screen.getByRole("button", { name: "임시 저장" }));
     await screen.findByText(/임시 저장되었습니다/);
@@ -124,7 +124,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await user.type(screen.getByRole("textbox", { name: /요청 제목/ }), "간식 구매");
     await user.click(screen.getByRole("button", { name: "임시 저장" }));
 
@@ -148,7 +148,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await user.type(screen.getByRole("textbox", { name: /요청 제목/ }), "간식 구매");
     await user.click(screen.getByRole("button", { name: "임시 저장" }));
 
@@ -208,7 +208,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await user.click(screen.getByRole("button", { name: "구매 요청 제출" }));
 
     const summary = await screen.findByRole("alert", { name: "입력을 확인해 주세요" });
@@ -224,7 +224,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   test("오류 요약의 링크를 고르면 해당 입력으로 포커스가 간다", async () => {
     const user = userEvent.setup();
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await user.click(screen.getByRole("button", { name: "구매 요청 제출" }));
 
     const summary = await screen.findByRole("alert", { name: "입력을 확인해 주세요" });
@@ -248,7 +248,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: "구매 요청 제출" }));
 
@@ -272,7 +272,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: "구매 요청 제출" }));
 
@@ -302,7 +302,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await fillRequired(user);
 
     const submit = screen.getByRole("button", { name: "구매 요청 제출" });
@@ -339,7 +339,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: "구매 요청 제출" }));
 
@@ -376,7 +376,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: "구매 요청 제출" }));
     await screen.findByRole("button", { name: "다시 시도" });
@@ -398,7 +398,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     await fillRequired(user);
     await user.click(screen.getByRole("button", { name: "구매 요청 제출" }));
 
@@ -421,7 +421,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
     );
 
     renderEditor();
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
 
     const title = screen.getByRole("textbox", { name: /요청 제목/ });
     await user.click(title);

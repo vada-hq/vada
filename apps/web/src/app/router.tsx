@@ -9,6 +9,7 @@ import type { QueryClient } from "@tanstack/react-query";
 import type * as React from "react";
 import type { RouterHistory } from "@tanstack/react-router";
 
+import { Dialog } from "../components/ui/dialog";
 import { AppShell } from "../shared/ui/app-shell";
 import { PurchaseRequestDetailScreen } from "../features/purchase-request/detail/screen";
 import { PurchaseRequestEditorScreen } from "../features/purchase-request/editor/screen";
@@ -93,12 +94,31 @@ function PurchaseRequestShell({
   );
 }
 
+/**
+ * 구매 요청 작성은 독립 화면이 아니라 팝업이다(와이어프레임 FIN-REQ-01B).
+ * 경로는 남겨 두어 새로고침·뒤로가기·링크 공유가 되게 하되, 그 경로가 그리는
+ * 것은 여는 화면인 내 구매 요청이고 그 위에 작성 팝업을 얹는다.
+ */
 function EditorPage() {
   const { eventId } = editorRoute.useParams();
+  const navigate = editorRoute.useNavigate();
 
   return (
-    <PurchaseRequestShell current="구매 요청 작성">
-      <PurchaseRequestEditorScreen eventId={eventId} />
+    <PurchaseRequestShell current="내 구매 요청">
+      <PurchaseRequestOwnListScreen eventId={eventId} />
+      <Dialog
+        description="행사 운영에 필요한 물품 또는 용역의 구매를 요청합니다."
+        onClose={() => {
+          void navigate({
+            params: { eventId },
+            to: "/events/$eventId/purchase-requests/mine",
+          });
+        }}
+        open
+        title="구매 요청서 작성"
+      >
+        <PurchaseRequestEditorScreen eventId={eventId} />
+      </Dialog>
     </PurchaseRequestShell>
   );
 }

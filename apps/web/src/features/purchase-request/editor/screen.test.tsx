@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { AppProviders, createAppRuntime } from "../../../app/runtime";
@@ -23,6 +24,44 @@ function problem(status: number, code: string, title: string) {
 function renderEditor() {
   render(<AppProviders runtime={createAppRuntime({ initialPath: editorPath })} />);
 }
+
+describe("구매 요청 작성 팝업", () => {
+  beforeEach(() => {
+    server.resetHandlers();
+  });
+
+  test("독립 화면이 아니라 내 구매 요청 위에 팝업으로 뜬다", async () => {
+    server.use(http.get(editorUrl, () => HttpResponse.json(editorStateExample)));
+
+    renderEditor();
+
+    // 폼은 팝업 안에 있다.
+    const dialog = await screen.findByRole("dialog", { name: "구매 요청서 작성" });
+    expect(
+      await within(dialog).findByRole("textbox", { name: /요청 제목/ }),
+    ).toBeInTheDocument();
+
+    // 여는 화면인 내 구매 요청이 뒤에 남는다. 다만 팝업이 열린 동안에는
+    // 보조기기에 노출하지 않는다. 그래서 hidden으로만 찾힌다.
+    expect(
+      screen.getByRole("heading", { hidden: true, name: "내 구매 요청" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "내 구매 요청" })).toBeNull();
+  });
+
+  test("닫으면 팝업만 사라지고 내 구매 요청이 남는다", async () => {
+    const user = userEvent.setup();
+    server.use(http.get(editorUrl, () => HttpResponse.json(editorStateExample)));
+
+    renderEditor();
+
+    await screen.findByRole("textbox", { name: /요청 제목/ });
+    await user.click(screen.getByRole("button", { name: "구매 요청서 작성 닫기" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "내 구매 요청" })).toBeInTheDocument();
+  });
+});
 
 describe("구매 요청 작성 화면 · 진입과 골격", () => {
   beforeEach(() => {
@@ -49,7 +88,7 @@ describe("구매 요청 작성 화면 · 진입과 골격", () => {
 
     release?.();
     expect(
-      await screen.findByRole("heading", { name: "구매 요청서 작성" }),
+      await screen.findByRole("textbox", { name: /요청 제목/ }),
     ).toBeInTheDocument();
   });
 
@@ -58,7 +97,7 @@ describe("구매 요청 작성 화면 · 진입과 골격", () => {
 
     renderEditor();
 
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
 
     // 요청 부서는 서버 값으로 고정한다.
     const department = screen.getByRole("textbox", { name: /요청 부서/ });
@@ -75,7 +114,7 @@ describe("구매 요청 작성 화면 · 진입과 골격", () => {
 
     renderEditor();
 
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
 
     expect(screen.getByRole("textbox", { name: /요청 제목/ })).toBeRequired();
     expect(screen.getByLabelText(/필요한 날짜/)).toBeRequired();
@@ -143,7 +182,7 @@ describe("구매 요청 작성 화면 · 진입과 골격", () => {
 
     renderEditor();
 
-    await screen.findByRole("heading", { name: "구매 요청서 작성" });
+    await screen.findByRole("textbox", { name: /요청 제목/ });
     expect(screen.queryByRole("status", { name: "초안 복원" })).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: /요청 제목/ })).toHaveValue("");
   });
@@ -209,7 +248,7 @@ describe("구매 요청 작성 화면 · 진입과 골격", () => {
     retry.click();
 
     expect(
-      await screen.findByRole("heading", { name: "구매 요청서 작성" }),
+      await screen.findByRole("textbox", { name: /요청 제목/ }),
     ).toBeInTheDocument();
   });
 

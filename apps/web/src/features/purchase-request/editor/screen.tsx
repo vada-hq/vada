@@ -14,7 +14,7 @@ import {
   FailureState,
   LoadingState,
 } from "../../../shared/screen/states";
-import { Page, PageHeader, SectionHeading } from "../../../shared/ui/page";
+import { Page, SectionHeading } from "../../../shared/ui/page";
 import { formatCreatedDate } from "../shared/display";
 import { OwnListLink } from "../shared/navigation";
 import { createEmptyItem, ItemCard, totalPreviewAmount } from "./items";
@@ -101,16 +101,11 @@ function EditorForm({
 
   return (
     <form
-      className="mx-auto flex w-full max-w-6xl flex-col gap-section px-base py-section lg:flex-row"
+      className="flex min-h-0 flex-1 flex-col lg:flex-row"
       noValidate
       onSubmit={guardSubmit}
     >
-      <div className="flex min-w-0 flex-1 flex-col gap-section">
-        <PageHeader
-          description="행사 운영에 필요한 물품 또는 용역의 구매를 요청합니다."
-          title="구매 요청서 작성"
-        />
-
+      <div className="flex min-w-0 flex-1 flex-col gap-section overflow-auto p-loose">
         {state.draft && !form.draftDismissed ? (
           <DraftBanner
             onDismiss={() => void form.handleDeleteDraft()}
