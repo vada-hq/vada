@@ -2,6 +2,7 @@ import { http, HttpResponse, type RequestHandler } from "msw";
 
 import {
   detailViewExample,
+  reviewViewExample,
   editorStateExample,
   ownListExample,
 } from "./purchase-request-fixtures";
@@ -90,6 +91,12 @@ export const handlers: RequestHandler[] = [
 
   http.get("*/api/v1/events/:eventId/purchase-requests/mine", () =>
     HttpResponse.json(ownListExample),
+  ),
+
+  // 검토 조회는 상세보다 먼저 둔다. :requestId 패턴이 "review"까지 삼킨다.
+  http.get(
+    "*/api/v1/events/:eventId/purchase-requests/:requestId/review",
+    () => HttpResponse.json(reviewViewExample),
   ),
 
   http.get("*/api/v1/events/:eventId/purchase-requests/:requestId", ({ params }) => {

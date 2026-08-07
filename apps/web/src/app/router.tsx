@@ -14,6 +14,7 @@ import { AppShell } from "../shared/ui/app-shell";
 import { PurchaseRequestDetailScreen } from "../features/purchase-request/detail/screen";
 import { PurchaseRequestEditorScreen } from "../features/purchase-request/editor/screen";
 import { PurchaseRequestOwnListScreen } from "../features/purchase-request/own-list/screen";
+import { PurchaseRequestReviewScreen } from "../features/purchase-request/review/screen";
 
 export interface AppRouterContext {
   queryClient: QueryClient;
@@ -59,11 +60,29 @@ const detailRoute = createRoute({
   component: DetailPage,
 });
 
+// 재정부가 요청을 검토하는 화면. 상세와 달리 결정 권한이 필요하다.
+const reviewRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/events/$eventId/purchase-requests/$requestId/review",
+  component: ReviewPage,
+});
+
+function ReviewPage() {
+  const { eventId, requestId } = reviewRoute.useParams();
+
+  return (
+    <PurchaseRequestShell current="구매 요청 검토">
+      <PurchaseRequestReviewScreen eventId={eventId} requestId={requestId} />
+    </PurchaseRequestShell>
+  );
+}
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   ownListRoute,
   editorRoute,
   detailRoute,
+  reviewRoute,
 ]);
 
 /**

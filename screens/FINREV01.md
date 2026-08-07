@@ -15,7 +15,7 @@ contracts:
   - ERROR:purchase_request.action_forbidden@R1
   - ERROR:http.resource_not_found@R1
   - ERROR:purchase_request.persistence_unavailable@R1
-status: todo
+status: doing
 ---
 
 ## 이 화면이 MVP에서 갖는 범위
@@ -81,6 +81,8 @@ status: todo
 **일시 장애(503)** — 재시도를 제공한다. 같은 결정의 재시도는 같은 멱등성 키를 재사용한다.
 
 **인증 필요(401)** — 재인증 안내만 표시한다.
+
+**결정 행동은 아직 없다** — 조회·품목 상태·처리 기록까지 만들었고 승인·보완 요청·반려 버튼과 보완 요청 모달은 뒤따른다. 서버는 이미 받을 준비가 돼 있다(`PUT .../items/{itemId}/review`).
 
 ## 와이어프레임과 다르게 하는 것
 
