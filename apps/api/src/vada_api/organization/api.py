@@ -25,6 +25,35 @@ from vada_api.organization.roles import (
 
 router = APIRouter(tags=["Organization"])
 
+# 계약과 구현을 잇는 다리다. `just api`가 이 ID로 구현 여부를 판정한다.
+# 경로 모양을 맞춰 보지 않는 이유는 그것이 우연히 겹치기 때문이다.
+_OPERATION_METADATA: dict[str, dict[str, object]] = {
+    "list_member_roles": {
+        "x-vada-permission": "organization.manage_member_roles",
+        "x-vada-contracts": [
+            "API:organization.list_member_roles@R1",
+            "AUTH:organization.manage_member_roles@R1",
+            "DATA:organization.member_roles@R1",
+            "ERROR:organization.action_forbidden@R1",
+            "ERROR:organization.persistence_unavailable@R1",
+        ],
+    },
+    "change_member_role": {
+        "x-vada-permission": "organization.manage_member_roles",
+        "x-vada-contracts": [
+            "API:organization.change_member_role@R1",
+            "AUTH:organization.manage_member_roles@R1",
+            "DATA:organization.role_change_command@R1",
+            "DATA:organization.member_roles@R1",
+            "ERROR:organization.action_forbidden@R1",
+            "ERROR:organization.role_unchanged@R1",
+            "ERROR:organization.last_president_protected@R1",
+            "ERROR:organization.state_conflict@R1",
+            "ERROR:organization.persistence_unavailable@R1",
+        ],
+    },
+}
+
 
 class OrganizationContextProvider(Protocol):
     """Cognito와 조직 관계를 서버에서 해석하는 배포 어댑터 포트."""
@@ -87,6 +116,7 @@ def _members_json(members: tuple[MemberRoleView, ...]) -> dict[str, object]:
     "/organization/member-roles",
     operation_id="listOrganizationMemberRoles",
     response_model=MemberRolesResponse,
+    openapi_extra=_OPERATION_METADATA["list_member_roles"],
 )
 def list_member_roles(
     context: Annotated[
@@ -101,6 +131,7 @@ def list_member_roles(
     "/organization/memberships/{membershipId}/role",
     operation_id="changeOrganizationMemberRole",
     response_model=MemberRolesResponse,
+    openapi_extra=_OPERATION_METADATA["change_member_role"],
 )
 def change_member_role(
     command: RoleChangeCommandModel,
