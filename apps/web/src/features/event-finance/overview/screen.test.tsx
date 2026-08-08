@@ -1,5 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 
 import { AppProviders, createAppRuntime } from "../../../app/runtime";
@@ -207,5 +208,107 @@ describe("행사 재정 개요 화면", () => {
       await screen.findAllByText("행사 재정을 일시적으로 불러오지 못했습니다."),
     ).not.toHaveLength(0);
     expect(screen.queryByRole("region", { name: "품목 현황" })).not.toBeInTheDocument();
+  });
+});
+
+describe("행사 재정 개요 화면 · 재정부", () => {
+  beforeEach(() => {
+    server.resetHandlers();
+  });
+
+  function financeItem(overrides: Partial<EventBoardItem> = {}) {
+    return item({ financeStage: "review_pending", ...overrides });
+  }
+
+  test("재정부에게는 두 묶음이 보이고 기본 탭은 처리 단계다", async () => {
+    serve({ items: [financeItem()] });
+    renderScreen();
+
+    const stage = await screen.findByRole("tab", { name: "처리 단계" });
+    expect(stage).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tablist", { name: "작업 보드" })).toBeInTheDocument();
+    expect(screen.getByRole("tablist", { name: "기록" })).toBeInTheDocument();
+    expect(await screen.findByRole("region", { name: "처리 단계" })).toBeInTheDocument();
+  });
+
+  test("일반 구성원에게는 하위 메뉴 없이 품목 현황만 보인다", async () => {
+    // financeStage가 없다는 것이 권한 판정 결과다. 화면이 역할을 다시 비교하지
+    // 않는다.
+    serve({ items: [item()] });
+    renderScreen();
+
+    expect(await screen.findByRole("region", { name: "품목 현황" })).toBeInTheDocument();
+    expect(screen.queryByRole("tablist", { name: "기록" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "처리 단계" })).not.toBeInTheDocument();
+  });
+
+  test("처리 단계에는 재정부가 처리할 품목만 나온다", async () => {
+    // 보완 요청된 품목은 요청자를 기다린다. 재정부의 할 일이 아니다.
+    serve({
+      items: [
+        financeItem({ itemId: "pending", itemName: "검토 대기 품목" }),
+        item({
+          itemId: "waiting",
+          itemName: "보완 대기 품목",
+          progressState: "needs_attention",
+        }),
+      ],
+    });
+    renderScreen();
+
+    const stage = await screen.findByRole("region", { name: "처리 단계" });
+    expect(within(stage).getByText("검토 대기 품목")).toBeInTheDocument();
+    expect(within(stage).queryByText("보완 대기 품목")).not.toBeInTheDocument();
+  });
+
+  test("기록은 품목을 요청 단위로 묶어 보여준다", async () => {
+    serve({
+      items: [
+        financeItem({ itemId: "a", requestId: "request-001", estimatedTotalPrice: 100 }),
+        financeItem({ itemId: "b", requestId: "request-001", estimatedTotalPrice: 200 }),
+        financeItem({ itemId: "c", requestId: "request-002", estimatedTotalPrice: 300 }),
+      ],
+    });
+    renderScreen();
+
+    await userEvent.click(await screen.findByRole("tab", { name: "구매 요청" }));
+
+    const table = await screen.findByRole("table", { name: "구매 요청 기록" });
+    const rows = within(table).getAllByRole("row").slice(1);
+    expect(rows).toHaveLength(2);
+    expect(within(rows[0]).getByText("2건")).toBeInTheDocument();
+    expect(within(rows[0]).getByText("300원")).toBeInTheDocument();
+  });
+
+  test("내 요청 필터가 남의 요청을 감춘다", async () => {
+    serve({
+      items: [
+        financeItem({ itemId: "mine", itemName: "내 품목", requestedByViewer: true }),
+        financeItem({ itemId: "theirs", itemName: "남의 품목" }),
+      ],
+    });
+    renderScreen();
+
+    await userEvent.click(await screen.findByRole("tab", { name: "품목 현황" }));
+    expect(await screen.findByText("남의 품목")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("radio", { name: "내 요청" }));
+    expect(screen.getByText("내 품목")).toBeInTheDocument();
+    expect(screen.queryByText("남의 품목")).not.toBeInTheDocument();
+  });
+
+  test("같은 요청 품목이 한 열에 둘이면 스택으로 묶는다", async () => {
+    serve({
+      items: [
+        item({ itemId: "a", requestId: "request-001", itemName: "현수막" }),
+        item({ itemId: "b", requestId: "request-001", itemName: "포스터" }),
+      ],
+    });
+    renderScreen();
+
+    const column = await screen.findByRole("region", { name: "검토 중 열" });
+    expect(within(column).getByText(/request-001 · 품목 2건/)).toBeInTheDocument();
+    expect(within(column).getByText("현수막")).toBeInTheDocument();
+    expect(within(column).getByText("포스터")).toBeInTheDocument();
   });
 });
