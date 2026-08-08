@@ -68,7 +68,65 @@ const revisionViewExample = {
   ],
 };
 
+/** 회장단 하나와 부원 둘. 미배정 구성원도 하나 둔다. */
+let memberRoles = [
+  {
+    membershipId: "membership-president",
+    displayName: "박해랑",
+    departments: ["기획부"],
+    role: "president",
+  },
+  {
+    membershipId: "membership-a",
+    displayName: "김도윤",
+    departments: ["운영부", "홍보부"],
+    role: "member",
+  },
+  {
+    membershipId: "membership-b",
+    displayName: "이서준",
+    departments: [],
+    role: "member",
+  },
+];
+
 export const handlers: RequestHandler[] = [
+  http.get("*/api/v1/organization/member-roles", () =>
+    HttpResponse.json({ members: memberRoles }),
+  ),
+
+  http.put(
+    "*/api/v1/organization/memberships/:membershipId/role",
+    async ({ params, request }) => {
+      const body = (await request.json()) as {
+        role: string;
+        expectedCurrentRole: string;
+      };
+      const target = memberRoles.find((m) => m.membershipId === params.membershipId);
+      if (!target) return new HttpResponse(null, { status: 404 });
+
+      // 낙관적 잠금과 마지막 회장단 보호를 목업에서도 재현한다.
+      if (target.role !== body.expectedCurrentRole) {
+        return HttpResponse.json(
+          { type: "urn:vada:error", title: "그 사이 바뀌었습니다.", status: 409 },
+          { status: 409, headers: { "content-type": "application/problem+json" } },
+        );
+      }
+      const presidents = memberRoles.filter((m) => m.role === "president").length;
+      if (target.role === "president" && body.role !== "president" && presidents <= 1) {
+        return HttpResponse.json(
+          { type: "urn:vada:error", title: "마지막 회장단입니다.", status: 409 },
+          { status: 409, headers: { "content-type": "application/problem+json" } },
+        );
+      }
+
+      memberRoles = memberRoles.map((m) =>
+        m.membershipId === params.membershipId ? { ...m, role: body.role } : m,
+      );
+      return HttpResponse.json({ members: memberRoles });
+    },
+  ),
+
   http.get("*/api/v1/events/:eventId/purchase-requests/:requestId/revision", () =>
     HttpResponse.json(revisionViewExample),
   ),
