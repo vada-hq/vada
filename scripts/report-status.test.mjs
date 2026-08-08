@@ -72,12 +72,16 @@ test("라우터에서 화면 경로를 뽑는다", () => {
   ]);
 });
 
+/** 다섯 칸 중 어느 것도 켜지지 않은 기본값. 화면별 사실만 갈아 끼운다. */
+const EMPTY = { served: new Set(), routes: [], browserTested: new Set() };
+
 test("정본이 없는 화면은 어느 칸도 채우지 않는다", () => {
-  assert.deepEqual(stagesOf(undefined, { served: new Set(), routes: [] }), {
+  assert.deepEqual(stagesOf(undefined, EMPTY), {
     canon: false,
     contract: false,
     api: false,
     web: false,
+    browser: false,
   });
 });
 
@@ -86,8 +90,14 @@ test("ERROR 계약만 붙은 정본은 계약도 서버도 없는 것으로 센�
     route: "/events/$eventId/purchase-requests/$requestId/revision",
     contracts: ["ERROR:http.unauthenticated@R1"],
   };
-  const stages = stagesOf(canon, { served: new Set(), routes: [] });
-  assert.deepEqual(stages, { canon: true, contract: false, api: false, web: false });
+  const stages = stagesOf(canon, EMPTY);
+  assert.deepEqual(stages, {
+    canon: true,
+    contract: false,
+    api: false,
+    web: false,
+    browser: false,
+  });
 });
 
 test("계약은 있고 서버가 아직 없으면 서버를 채우지 않는다", () => {
@@ -95,7 +105,7 @@ test("계약은 있고 서버가 아직 없으면 서버를 채우지 않는다"
     route: "/events/$eventId/finance",
     contracts: ["API:event_budget.get_summary@R1"],
   };
-  const stages = stagesOf(canon, { served: new Set(), routes: [] });
+  const stages = stagesOf(canon, EMPTY);
   assert.equal(stages.contract, true);
   assert.equal(stages.api, false);
 });
@@ -105,7 +115,7 @@ test("API 계약 하나라도 구현되지 않았으면 서버를 채우지 않�
     route: "/events/$eventId/finance",
     contracts: ["API:a.one@R1", "API:a.two@R1"],
   };
-  const stages = stagesOf(canon, { served: new Set(["API:a.one@R1"]), routes: [] });
+  const stages = stagesOf(canon, { ...EMPTY, served: new Set(["API:a.one@R1"]) });
   assert.equal(stages.api, false);
 });
 
@@ -114,11 +124,18 @@ test("계약과 서버와 화면이 모두 있으면 모두 채운다", () => {
     route: "/events/$eventId/purchase-requests/mine",
     contracts: ["ERROR:http.unauthenticated@R1", "API:purchase_request.list_own@R1"],
   };
-  const stages = stagesOf(canon, {
+  const stages = stagesOf({ ...canon, id: "MYREQ01" }, {
     served: new Set(["API:purchase_request.list_own@R1"]),
     routes: ["/events/$eventId/purchase-requests/mine"],
+    browserTested: new Set(["MYREQ01"]),
   });
-  assert.deepEqual(stages, { canon: true, contract: true, api: true, web: true });
+  assert.deepEqual(stages, {
+    canon: true,
+    contract: true,
+    api: true,
+    web: true,
+    browser: true,
+  });
 });
 
 test("계약 없이 서버만 있는 화면은 나올 수 없다", async () => {
@@ -137,7 +154,7 @@ test("저장소 전체에서 진행 현황을 계산한다", async () => {
   const report = await collectStatus();
 
   assert.ok(report.total >= 30, `MVP 화면이 ${report.total}개로 너무 적습니다.`);
-  assert.ok(report.done <= report.total);
+  assert.ok(report.built <= report.total);
 
   const ids = [...report.stages.values()].flat().map((row) => row.id);
   assert.equal(new Set(ids).size, ids.length, "같은 화면이 두 단계에 들어갔습니다.");
@@ -146,12 +163,14 @@ test("저장소 전체에서 진행 현황을 계산한다", async () => {
 
   // 착수한 화면은 반드시 정본이 있다. 반대는 성립하지 않는다.
   for (const row of [...report.stages.values()].flat()) {
-    if (row.done) assert.ok(row.canon, `${row.id}: 정본 없이 완료로 셌습니다.`);
+    if (row.built) assert.ok(row.canon, `${row.id}: 정본 없이 만들어졌다고 셌습니다.`);
   }
 });
 
 test("보고서는 분모의 출처를 함께 적는다", async () => {
   const text = formatStatus(await collectStatus());
   assert.match(text, /VADA_MVP_SPEC\.md §6/);
-  assert.match(text, /MVP 화면 \d+개 중 \d+개 완료/);
+  assert.match(text, /MVP 화면 \d+개 중 \d+개 만들어짐/);
+  // "완료"라는 자기 신고를 다시 만들지 않는다. 다섯 칸이 찼다는 사실만 적는다.
+  assert.doesNotMatch(text, /개 완료/);
 });

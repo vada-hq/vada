@@ -35,7 +35,6 @@ route: /events/$eventId/purchase-requests/mine
 contracts:                                    # contracts/ 안에 존재해야 한다
   - API:purchase_request.list_own@R1
   - DATA:purchase_request.own_list@R1
-status: done                                  # todo | doing | done
 ---
 ```
 
