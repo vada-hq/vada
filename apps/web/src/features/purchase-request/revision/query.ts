@@ -1,6 +1,7 @@
 import { queryOptions } from "@tanstack/react-query";
 
 import { requestJson } from "../../../shared/api/failure";
+import type { ItemDetails, PurchaseType } from "../shared/item-details";
 
 /**
  * 계약 CB-FIN-004@R1의 두 동작이다.
@@ -10,7 +11,9 @@ export interface RevisionItemContent {
   name?: string;
   quantity?: number;
   estimatedUnitPrice?: number;
-  requestNote?: string;
+  /** 구매 유형과 유형별 상세. 작성 화면과 같은 폼을 쓴다(§7). */
+  purchaseType?: PurchaseType;
+  details?: ItemDetails;
 }
 
 export interface RevisionItem {

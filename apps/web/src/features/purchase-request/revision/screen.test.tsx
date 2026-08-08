@@ -167,6 +167,38 @@ describe("보완 요청 확인·재제출 화면", () => {
     ).not.toHaveLength(0);
   });
 
+  test("구매 유형별 상세를 작성 화면과 같은 폼으로 고친다", async () => {
+    // §7은 보완 품목의 모든 입력값을 고칠 수 있다고 정한다. 유형별 상세가
+    // 없으면 대여처나 반납 일시를 고칠 수 없어 그 요구를 못 지킨다.
+    const user = userEvent.setup();
+    serve(
+      view({
+        revisionItems: [
+          {
+            ...view().revisionItems[0],
+            content: {
+              ...view().revisionItems[0].content,
+              purchaseType: "rental",
+              details: { provider: "예시사운드" },
+            },
+          },
+        ],
+      }),
+    );
+    renderScreen();
+
+    const card = await screen.findByRole("region", { name: /음향 장비 대여 보완/ });
+    expect(within(card).getByRole("combobox", { name: /구매 유형/ })).toBeInTheDocument();
+    expect(within(card).getByRole("textbox", { name: /업체 또는 제공자/ })).toHaveValue(
+      "예시사운드",
+    );
+
+    // 유형을 바꾸면 이전 유형의 상세를 남기지 않는다. 작성 화면과 같은 판정이다.
+    await user.click(within(card).getByRole("combobox", { name: /구매 유형/ }));
+    await user.click(await screen.findByRole("option", { name: "일반 구매" }));
+    expect(within(card).queryByRole("textbox", { name: /업체 또는 제공자/ })).not.toBeInTheDocument();
+  });
+
   test("권한 없음은 다른 조직 데이터의 존재를 드러내지 않는다", async () => {
     server.use(
       http.get(viewUrl, () =>
