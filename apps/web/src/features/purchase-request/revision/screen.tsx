@@ -11,7 +11,14 @@ import { StatusBadge } from "../../../components/ui/status-badge";
 import { failureOf, type ApiFailure } from "../../../shared/api/failure";
 import { EmptyState, FailureState, LoadingState } from "../../../shared/screen/states";
 import { Page, PageHeader } from "../../../shared/ui/page";
+import { Select } from "../../../components/ui/select";
 import { formatAmount } from "../shared/display";
+import {
+  PriceEvidence,
+  TypeDetails,
+  purchaseTypes,
+  type PurchaseType,
+} from "../shared/item-details";
 import {
   revisionQueryKey,
   revisionQueryOptions,
@@ -110,16 +117,32 @@ function RevisionItemForm({
         </FormField>
       </div>
 
-      <FormField
-        description="파일 첨부는 아직 제공하지 않습니다. 업체와 금액을 글로 남겨 주세요."
-        id={`${item.itemId}-note`}
-        label="가격 근거"
-      >
-        <Input
-          onChange={(event) => onChange({ requestNote: event.target.value })}
-          value={content.requestNote ?? ""}
-        />
-      </FormField>
+      <div className="mt-snug grid gap-loose sm:grid-cols-3">
+        <FormField id={`${item.itemId}-type`} label="구매 유형" required>
+          <Select
+            onValueChange={(value) =>
+              // 유형을 바꾸면 이전 유형의 상세를 남기지 않는다. 작성 화면과 같다.
+              onChange({ purchaseType: value as PurchaseType, details: {} })
+            }
+            options={purchaseTypes}
+            value={content.purchaseType ?? "general"}
+          />
+        </FormField>
+      </div>
+
+      <TypeDetails
+        details={content.details ?? {}}
+        onChange={(patch) => onChange({ details: { ...content.details, ...patch } })}
+        prefix={item.itemId}
+        type={content.purchaseType ?? "general"}
+      />
+
+      <PriceEvidence
+        details={content.details ?? {}}
+        onChange={(patch) => onChange({ details: { ...content.details, ...patch } })}
+        prefix={item.itemId}
+        type={content.purchaseType ?? "general"}
+      />
     </Card>
   );
 }
