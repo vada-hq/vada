@@ -15,6 +15,7 @@ class PurchaseRequestPermission(StrEnum):
     LIST_OWN = "purchase_request.list_own"
     READ_DETAIL = "purchase_request.read_detail"
     REVIEW = "purchase_request.review"
+    RESUBMIT_REVISION = "purchase_request.resubmit_revision"
     EVENT_BUDGET_READ = "event_budget.read"
     LIST_EVENT_ITEMS = "purchase_request.list_event_items"
 
@@ -105,6 +106,14 @@ def is_purchase_request_action_allowed(
     if resolved_permission is PurchaseRequestPermission.SUBMIT:
         return _can_prepare_request(actor, scope)
     if resolved_permission is PurchaseRequestPermission.LIST_OWN:
+        return _can_prepare_request(actor, scope) and _is_actor(
+            scope.result_requester_user_id,
+            actor,
+        )
+    if resolved_permission is PurchaseRequestPermission.RESUBMIT_REVISION:
+        # 요청자 본인이면서 지금도 요청을 낼 수 있는 사람이어야 한다. 둘 중
+        # 하나만으로는 안 된다(VADA_PERMISSION_MATRIX.md canSubmitPurchaseRequest).
+        # 임기가 바뀌어 부서장에서 내려오면 자기가 낸 요청도 다시 낼 수 없다.
         return _can_prepare_request(actor, scope) and _is_actor(
             scope.result_requester_user_id,
             actor,

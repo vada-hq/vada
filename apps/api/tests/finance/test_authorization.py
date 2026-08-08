@@ -400,6 +400,7 @@ def test_permission_catalog_uses_the_approved_action_keys() -> None:
         "purchase_request.list_own",
         "purchase_request.read_detail",
         "purchase_request.review",
+        "purchase_request.resubmit_revision",
         "event_budget.read",
         "purchase_request.list_event_items",
     }
