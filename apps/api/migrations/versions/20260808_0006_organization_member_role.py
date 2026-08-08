@@ -1,7 +1,7 @@
 """조직 구성원의 기본 역할을 저장할 자리를 만든다.
 
-Revision ID: 20260807_0005
-Revises: 20260807_0004
+Revision ID: 20260808_0006
+Revises: 20260808_0005
 Create Date: 2026-08-07
 """
 
@@ -10,8 +10,8 @@ from collections.abc import Sequence
 import sqlalchemy as sa
 from alembic import op
 
-revision: str = "20260807_0005"
-down_revision: str | None = "20260807_0004"
+revision: str = "20260808_0006"
+down_revision: str | None = "20260808_0005"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
