@@ -327,3 +327,25 @@ class PostgreSQLIdentityOrganizationRepository:
         return {
             cast(str, row["user_id"]): cast(str, row["display_name"]) for row in rows
         }
+
+    def find_department_names(
+        self, *, organization_id: str, department_ids: frozenset[str]
+    ) -> dict[str, str]:
+        """조직 부서의 표시 이름을 한 번에 읽는다.
+
+        행사 재정의 품목 목록이 요청 부서 이름을 보여야 하는데, 품목 수만큼
+        조회하면 같은 부서를 여러 번 읽는다. 조직 범위 안에서 한 번에 가져온다.
+        """
+
+        if not department_ids:
+            return {}
+        statement = sa.select(
+            organization_departments.c.department_id,
+            organization_departments.c.name,
+        ).where(
+            organization_departments.c.organization_id == organization_id,
+            organization_departments.c.department_id.in_(sorted(department_ids)),
+        )
+        with self._engine.connect() as connection:
+            rows = connection.execute(statement).mappings().all()
+        return {cast(str, row["department_id"]): cast(str, row["name"]) for row in rows}
