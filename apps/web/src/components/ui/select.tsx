@@ -70,7 +70,7 @@ export function Select({
             <BaseSelect.List>
               {options.map((option) => (
                 <BaseSelect.Item
-                  className="grid min-h-9 cursor-default grid-cols-[1rem_1fr] items-center gap-2 rounded-sm px-2 text-sm outline-none data-highlighted:bg-muted data-highlighted:text-foreground"
+                  className="grid w-full min-h-9 cursor-default grid-cols-[1rem_minmax(0,1fr)] items-center gap-2 whitespace-nowrap rounded-sm px-2 text-sm outline-none data-highlighted:bg-muted data-highlighted:text-foreground"
                   key={option.value}
                   value={option.value}
                 >

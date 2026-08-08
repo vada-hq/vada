@@ -122,10 +122,16 @@ const organizationRolesRoute = createRoute({
 });
 
 function OrganizationRolesPage() {
+  // 조직 화면은 행사 안에 있지 않다. 재정 셸을 쓰면 브레드크럼이
+  // `운영 > 행사 > 재정`으로 나와 사용자가 자기 위치를 잘못 읽는다.
   return (
-    <PurchaseRequestShell current="역할 및 권한 관리">
+    <AppShell
+      activeNav="조직 관리"
+      breadcrumb={["조직 관리", "역할 및 권한 관리"]}
+      title="역할 및 권한 관리"
+    >
       <OrganizationRolesScreen />
-    </PurchaseRequestShell>
+    </AppShell>
   );
 }
 
