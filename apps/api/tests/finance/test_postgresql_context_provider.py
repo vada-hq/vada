@@ -12,6 +12,7 @@ from vada_api.identity.authentication import CognitoPrincipal
 from vada_api.identity.context import (
     DepartmentRelationshipCandidate,
     OrganizationContextCandidate,
+    OrganizationOnlyContextCandidate,
 )
 from vada_api.identity.errors import ResourceNotFoundError, UnauthenticatedError
 from vada_api.identity.persistence.relationships import (
@@ -115,6 +116,13 @@ class FakeRelationshipRepository:
             department_head_of=frozenset({"department-a"}),
             is_finance_member=False,
         )
+
+    def find_organization_only_context(
+        self, *, user_id: str, organization_id: str
+    ) -> OrganizationOnlyContextCandidate | None:
+        # 이 테스트는 행사 있는 경로만 본다. 조직 전용 경로에는 자기 테스트가 있다.
+        del user_id, organization_id
+        raise AssertionError("이 테스트에서 쓰지 않는다.")
 
 
 class FailingRelationshipRepository(FakeRelationshipRepository):

@@ -12,6 +12,7 @@ from vada_api.identity.authentication import CognitoPrincipal
 from vada_api.identity.context import (
     DepartmentRelationshipCandidate,
     OrganizationContextCandidate,
+    OrganizationOnlyContextCandidate,
 )
 from vada_api.identity.persistence.schema import (
     cognito_identities,
@@ -80,6 +81,31 @@ class PostgreSQLIdentityOrganizationRepository:
         with self._engine.connect() as connection:
             organization_ids = tuple(connection.scalars(statement))
         return organization_ids[0] if len(organization_ids) == 1 else None
+
+    def find_organization_only_context(
+        self, *, user_id: str, organization_id: str
+    ) -> OrganizationOnlyContextCandidate | None:
+        """행사 없이 조직 소속만 읽는다. 조직 화면은 행사 안에 있지 않다."""
+
+        statement = sa.select(
+            organization_memberships.c.user_id,
+            organization_memberships.c.organization_id,
+            organization_memberships.c.membership_id,
+            organization_memberships.c.is_active.label("membership_is_active"),
+        ).where(
+            organization_memberships.c.user_id == user_id,
+            organization_memberships.c.organization_id == organization_id,
+        )
+        with self._engine.connect() as connection:
+            row = connection.execute(statement).mappings().first()
+        if row is None:
+            return None
+        return OrganizationOnlyContextCandidate(
+            user_id=cast(str, row["user_id"]),
+            organization_id=cast(str, row["organization_id"]),
+            membership_id=cast(str, row["membership_id"]),
+            membership_is_active=cast(bool, row["membership_is_active"]),
+        )
 
     def find_organization_context(
         self,
