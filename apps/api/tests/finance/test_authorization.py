@@ -84,6 +84,14 @@ def authorization_scope(
 
 ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
 
+# 조직의 활성 구성원이면 되는 두 읽기. 계약 CB-FIN-002@R1이 그렇게 정한다.
+# 아래 행렬의 모든 배우가 자기 조직·행사 안에 있으므로 전부 이 둘을 갖는다.
+EVENT_FINANCE_READS = (
+    PurchaseRequestPermission.EVENT_BUDGET_READ,
+    PurchaseRequestPermission.LIST_EVENT_ITEMS,
+)
+EVENT_FINANCE_READ_SET = frozenset(EVENT_FINANCE_READS)
+
 
 @pytest.mark.parametrize(
     ("actor", "scope", "allowed"),
@@ -105,7 +113,8 @@ ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
                     PurchaseRequestPermission.SUBMIT,
                     PurchaseRequestPermission.READ_DETAIL,
                 }
-            ),
+            )
+            | EVENT_FINANCE_READ_SET,
             id="department-head-non-owner",
         ),
         pytest.param(
@@ -126,7 +135,8 @@ ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
                     PurchaseRequestPermission.READ_DETAIL,
                     PurchaseRequestPermission.REVIEW,
                 }
-            ),
+            )
+            | EVENT_FINANCE_READ_SET,
             id="finance-member-non-owner",
         ),
         pytest.param(
@@ -137,7 +147,8 @@ ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
                     PurchaseRequestPermission.DRAFT_DELETE,
                     PurchaseRequestPermission.READ_DETAIL,
                 }
-            ),
+            )
+            | EVENT_FINANCE_READ_SET,
             id="general-member-owner",
         ),
         pytest.param(
@@ -146,7 +157,7 @@ ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
                 draft_owner_user_id="user-b",
                 result_requester_user_id="user-b",
             ),
-            frozenset({PurchaseRequestPermission.READ_DETAIL}),
+            frozenset({PurchaseRequestPermission.READ_DETAIL}) | EVENT_FINANCE_READ_SET,
             id="general-member-non-owner",
         ),
         pytest.param(
@@ -157,7 +168,8 @@ ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
                     PurchaseRequestPermission.DRAFT_DELETE,
                     PurchaseRequestPermission.READ_DETAIL,
                 }
-            ),
+            )
+            | EVENT_FINANCE_READ_SET,
             id="other-department-head-owner",
         ),
         pytest.param(
@@ -168,7 +180,8 @@ ALL_PERMISSIONS = frozenset(PurchaseRequestPermission)
                     PurchaseRequestPermission.DRAFT_DELETE,
                     PurchaseRequestPermission.READ_DETAIL,
                 }
-            ),
+            )
+            | EVENT_FINANCE_READ_SET,
             id="other-organization-finance-owner",
         ),
     ],
@@ -343,10 +356,29 @@ def test_detail_read_denies_cross_organization_and_route_event_resources() -> No
 
 
 @pytest.mark.parametrize("permission", list(PurchaseRequestPermission))
-def test_missing_trusted_actor_or_required_resource_facts_are_denied(
+def test_missing_trusted_actor_is_denied(
     permission: PurchaseRequestPermission,
 ) -> None:
-    actor = actor_facts()
+    assert not is_purchase_request_action_allowed(
+        permission,
+        actor=None,
+        scope=authorization_scope(),
+    )
+
+
+@pytest.mark.parametrize(
+    "permission",
+    [
+        permission
+        for permission in PurchaseRequestPermission
+        if permission not in EVENT_FINANCE_READ_SET
+    ],
+)
+def test_missing_required_resource_facts_are_denied(
+    permission: PurchaseRequestPermission,
+) -> None:
+    # 행사 재정 읽기 둘은 여기서 뺀다. 그 둘이 요구하는 자원 사실은 행사가 속한
+    # 조직뿐이라 이 스코프가 이미 완전하다. 요청 단위 동작만 요청 사실을 더 본다.
     incomplete_scope = PurchaseRequestAuthorizationScope(
         event_id="event-a",
         event_organization_id="organization-a",
@@ -354,12 +386,7 @@ def test_missing_trusted_actor_or_required_resource_facts_are_denied(
 
     assert not is_purchase_request_action_allowed(
         permission,
-        actor=None,
-        scope=authorization_scope(),
-    )
-    assert not is_purchase_request_action_allowed(
-        permission,
-        actor=actor,
+        actor=actor_facts(),
         scope=incomplete_scope,
     )
 
@@ -373,6 +400,8 @@ def test_permission_catalog_uses_the_approved_action_keys() -> None:
         "purchase_request.list_own",
         "purchase_request.read_detail",
         "purchase_request.review",
+        "event_budget.read",
+        "purchase_request.list_event_items",
     }
 
 
@@ -422,4 +451,59 @@ def test_only_finance_members_may_review_not_department_heads() -> None:
     # 요청을 만드는 권한은 부서장에게 그대로 있다. 검토만 막힌다.
     assert is_purchase_request_action_allowed(
         PurchaseRequestPermission.SUBMIT, actor=department_head, scope=scope
+    )
+
+
+@pytest.mark.parametrize("permission", EVENT_FINANCE_READS)
+def test_event_finance_reads_allow_any_active_member(
+    permission: PurchaseRequestPermission,
+) -> None:
+    # 계약 AUTH:event_budget.read@R1과 list_event_items@R1은 조직의 활성 구성원이면
+    # 된다고 적는다. 재정부도 부서장도 아닌 부원이 행사 재정 화면을 열 수 있어야 한다.
+    member = actor_facts()
+    scope = authorization_scope(request_department_id=None)
+
+    assert is_purchase_request_action_allowed(permission, actor=member, scope=scope)
+
+
+@pytest.mark.parametrize("permission", EVENT_FINANCE_READS)
+def test_event_finance_reads_do_not_require_a_department_fact(
+    permission: PurchaseRequestPermission,
+) -> None:
+    # 부서에 배정되지 않은 구성원도 활성 구성원이다. 계약이 요구하지 않는 조건을
+    # 더 붙이면 그 사람은 행사 재정을 못 본다.
+    unassigned = PurchaseRequestActorFacts(
+        identity=TrustedOrganizationContext(
+            principal=CognitoPrincipal(
+                issuer="https://cognito-idp.ap-northeast-2.amazonaws.com/pool-a",
+                subject="subject-user-a",
+            ),
+            user_id="user-a",
+            organization_id="organization-a",
+            membership_id="membership-user-a",
+            event_id="event-a",
+            department_relationships=(),
+        )
+    )
+
+    assert is_purchase_request_action_allowed(
+        permission, actor=unassigned, scope=authorization_scope()
+    )
+
+
+@pytest.mark.parametrize("permission", EVENT_FINANCE_READS)
+def test_event_finance_reads_deny_other_organizations_and_events(
+    permission: PurchaseRequestPermission,
+) -> None:
+    outsider = actor_facts(organization_id="organization-b")
+    other_event = actor_facts(event_id="event-b")
+
+    assert not is_purchase_request_action_allowed(
+        permission, actor=outsider, scope=authorization_scope()
+    )
+    assert not is_purchase_request_action_allowed(
+        permission, actor=other_event, scope=authorization_scope()
+    )
+    assert not is_purchase_request_action_allowed(
+        permission, actor=None, scope=authorization_scope()
     )
