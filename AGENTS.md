@@ -35,6 +35,7 @@
 | `just validate-contracts` | 서버 계약 검증 |
 | `just validate-screens` | 화면 정본의 와이어프레임·계약 참조 검증 |
 | `just validate-wireframe-sync` | 와이어프레임이 공유본 기준선과 같은지 검증 |
+| `just validate-canon-boundaries` | 살아 있는 근거와 역사의 경계 검사 |
 | `just validate-tooling` | CI 스코프 판별과 착수 전 도구 점검 |
 | `just status` | ⭐ MVP 화면 몇 개 중 몇 개가 어디까지 왔는지 |
 | `just api` / `just api --html` | API 하나하나가 계획인지 구현인지. `--html`은 브라우저로 볼 파일을 굽는다 |
@@ -45,7 +46,7 @@
 | `just typecheck` | Pyright strict + tsc |
 | `just check-api` / `just check-web` | 작업 중 쓰는 경로별 검사 |
 | `just build` | 제품 웹 + 와이어프레임 프로토타입 빌드 |
-| `just check` | ⭐ 계약 + 화면 + 도구 + lint + typecheck + test + build 전부 |
+| `just check` | ⭐ 계약 + 화면 + 경계 + 도구 + lint + typecheck + test + build 전부 |
 
 **완료의 정의 = `just check` 통과 + 사람이 브라우저에서 확인.** "됐다"는 주장이 아니라 명령 출력과 실제 화면이 증거다.
 
@@ -63,7 +64,15 @@
 - `docs/engineering/` — 실행·테스트·아키텍처·보안 기준.
 - `docs/` — 그 밖의 리포 문서. **기술 결정(ADR 74건)의 원본은 노션**: https://app.notion.com/p/3a068a85148e80ca89e0f726a38d49f3
 
-`product-specs/`와 `delivery-units/`는 2026-08-06까지의 기획·실행 기록을 역사로 보존한다. 새로 만들지 않는다.
+`product-specs/`는 통째로 역사가 아니다. 세 갈래는 **살아 있는 근거**다 — 비준된 계약이 내용 해시로 고정해 참조하고 검증기가 실행 중에 읽는다.
+
+| 살아 있음 | 역사 |
+| --- | --- |
+| `product-specs/{solutions,flows,domains}/` | `product-specs/{reviews,migrations,evidence}/`, `delivery-units/` 전부 |
+
+특히 `product-specs/flows/`가 흐름의 단계·분기·완료 시나리오(Given-When-Then)를 갖는다. **화면 하나로는 표현할 수 없는 검증이 여기 있다.** `just flow <흐름ID>`가 그것을 읽어 절차로 찍는다.
+
+이 경계는 `just validate-canon-boundaries`가 검사한다. 위 표를 손으로 지키려다 실제로 틀렸다 — "product-specs는 역사"라고 뭉뚱그려 적어 두는 바람에 승인된 흐름 정본이 있는 줄 모르고 지나쳤다. 역사에 든 것을 살아 있는 계약이 참조하면 CI가 실패한다.
 
 ## 무엇을 얼마나 만드는가
 

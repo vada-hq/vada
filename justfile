@@ -55,6 +55,10 @@ validate-wireframe-sync:
     pnpm test:wireframe-sync
     pnpm validate:wireframe-sync
 
+# 살아 있는 근거와 역사의 경계. 역사에 든 것을 계약이 참조하면 실패한다
+validate-canon-boundaries:
+    pnpm validate:canon-boundaries
+
 # CI 스코프 판별과 착수 전 도구 점검
 validate-tooling:
     pnpm test:tooling
@@ -126,4 +130,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-contracts validate-screens validate-wireframe-sync validate-tooling lint typecheck test build
+check: validate-contracts validate-screens validate-canon-boundaries validate-wireframe-sync validate-tooling lint typecheck test build
