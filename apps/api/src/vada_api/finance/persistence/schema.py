@@ -274,3 +274,21 @@ purchase_request_item_review_events = sa.Table(
     sa.Column("decided_by_user_id", sa.Text(), nullable=False),
     sa.Column("decided_at", sa.DateTime(timezone=True), nullable=False),
 )
+
+
+# 보완 재제출본도 추가 전용이다. 제출된 품목은 불변 기록이라 고쳐 쓰지 않고
+# 새 제출본을 쌓는다. 가장 최근 것이 지금 값이다. 마이그레이션 20260808_0005와 짝이다.
+purchase_request_item_revisions = sa.Table(
+    "purchase_request_item_revisions",
+    metadata,
+    sa.Column("revision_id", sa.Text(), primary_key=True),
+    sa.Column("organization_id", sa.Text(), nullable=False),
+    sa.Column("event_id", sa.Text(), nullable=False),
+    sa.Column("request_id", sa.Text(), nullable=False),
+    sa.Column("item_id", sa.Text(), nullable=False),
+    sa.Column("submission_number", sa.Integer(), nullable=False),
+    sa.Column("content", postgresql.JSONB(), nullable=False),
+    sa.Column("submitted_by_user_id", sa.Text(), nullable=False),
+    sa.Column("submitted_at", sa.DateTime(timezone=True), nullable=False),
+    sa.Column("idempotency_key", sa.Text(), nullable=False),
+)
