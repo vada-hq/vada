@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc -b",
     "test": "vitest run",
+    "test:browser": "playwright test",
     "format": "prettier --write .",
     "preview": "vite preview"
   },
@@ -29,6 +30,7 @@
   "devDependencies": {
     "@babel/core": "^8.0.1",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.62.1",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tailwindcss/vite": "4.1.12",
     "@testing-library/jest-dom": "^6.9.1",

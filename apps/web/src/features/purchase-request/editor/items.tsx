@@ -62,6 +62,23 @@ function toNumber(value: string) {
   return Number.isNaN(parsed) ? null : parsed;
 }
 
+/**
+ * 브라우저의 `type=number`를 쓰지 않는 이유.
+ *
+ * Chrome은 `e`·`E`·`+`·`-` 타이핑을 허용해 놓고 `value`로는 빈 문자열을 준다.
+ * 그러면 사람 눈에는 글자가 남아 있는데 화면은 "입력해 주세요"라고 말한다.
+ * 무엇을 고쳐야 하는지 알 수 없는 상태가 된다. 직접 거른다.
+ */
+function keepDigits(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+/** 수량은 소수를 허용한다. 단위가 kg일 수 있다. 소수점은 하나만 남긴다. */
+function keepDecimal(value: string) {
+  const [whole = "", ...rest] = value.replace(/[^\d.]/g, "").split(".");
+  return rest.length > 0 ? `${whole}.${rest.join("")}` : whole;
+}
+
 export function ItemCard({
   index,
   item,
@@ -138,11 +155,10 @@ export function ItemCard({
           <div className="grid grid-cols-2 gap-snug">
             <FormField id={`${prefix}-quantity`} label="수량" required>
               <Input
-                min={1}
+                inputMode="decimal"
                 onChange={(event) =>
-                  onChange({ quantity: toNumber(event.target.value) })
+                  onChange({ quantity: toNumber(keepDecimal(event.target.value)) })
                 }
-                type="number"
                 value={item.quantity ?? ""}
               />
             </FormField>
@@ -156,11 +172,12 @@ export function ItemCard({
           </div>
           <FormField id={`${prefix}-price`} label="예상 단가" required>
             <Input
-              min={0}
+              inputMode="numeric"
               onChange={(event) =>
-                onChange({ estimatedUnitPrice: toNumber(event.target.value) })
+                onChange({
+                  estimatedUnitPrice: toNumber(keepDigits(event.target.value)),
+                })
               }
-              type="number"
               value={item.estimatedUnitPrice ?? ""}
             />
           </FormField>

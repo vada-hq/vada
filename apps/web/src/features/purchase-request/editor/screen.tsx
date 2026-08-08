@@ -21,6 +21,7 @@ import { createEmptyItem, ItemCard, totalPreviewAmount } from "./items";
 import { editorStateQueryOptions } from "./query";
 import { EditorSummaryPanel } from "./summary-panel";
 import { useEditorForm } from "./use-editor-form";
+import { todayInSeoul } from "./validation";
 
 const priorities = [
   { value: "normal", label: "보통" },
@@ -157,6 +158,9 @@ function EditorForm({
 
             <FormField id="request-needed-date" label="필요한 날짜" required>
               <Input
+                // 제출까지 가서야 알려주면 다 채운 뒤에 되돌아온다.
+                // 달력이 먼저 막는다. 판정은 그래도 서버가 한다.
+                min={todayInSeoul()}
                 onChange={(event) =>
                   form.updateCommon({ neededDate: event.target.value })
                 }

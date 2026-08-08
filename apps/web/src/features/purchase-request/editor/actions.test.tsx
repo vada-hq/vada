@@ -38,11 +38,26 @@ async function fillRequired(user: ReturnType<typeof userEvent.setup>) {
   const list = await screen.findByRole("list", { name: "품목 리스트" });
   const [first] = within(list).getAllByRole("listitem");
   await user.type(within(first).getByRole("textbox", { name: /품목명/ }), "생수");
-  await user.type(within(first).getByRole("spinbutton", { name: /수량/ }), "10");
+  await pick(user, first, /품목 카테고리/, "식음료");
+  await pick(user, first, /예산 항목/, "식비");
+  await user.type(within(first).getByRole("textbox", { name: /수량/ }), "10");
   await user.type(within(first).getByRole("textbox", { name: /단위/ }), "박스");
   await user.type(
-    within(first).getByRole("spinbutton", { name: /예상 단가/ }),
+    within(first).getByRole("textbox", { name: /예상 단가/ }),
     "5000",
+  );
+}
+
+/** 화면이 별표로 필수라고 말한 자리는 검증도 필수로 본다. */
+async function pick(
+  user: ReturnType<typeof userEvent.setup>,
+  scope: HTMLElement,
+  name: RegExp,
+  option: string,
+) {
+  await user.click(within(scope).getByRole("combobox", { name }));
+  await user.click(
+    within(await screen.findByRole("listbox")).getByRole("option", { name: option }),
   );
 }
 

@@ -129,6 +129,12 @@ jobs:
         run: pnpm --filter @vada/api-client typecheck && pnpm --filter web typecheck
       - name: Test (vitest)
         run: pnpm --filter web test
+      # jsdom에는 레이아웃 엔진이 없다. 가려진 요소도 클릭이 되고, 나란한 두
+      # 입력칸의 높이가 어긋나도 통과한다. 이 단계만 그것을 본다.
+      - name: Install browser for end-to-end tests
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Test in a real browser (playwright)
+        run: pnpm --filter web test:browser
       - name: Build
         run: pnpm --filter web build
       - name: Build wireframe prototype

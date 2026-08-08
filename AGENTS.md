@@ -44,6 +44,7 @@
 | `just flow <흐름ID>` | ⭐ 화면을 가로지르는 흐름을 어떻게 따라가는지. 흐름 정본에서 뽑는다 |
 | `just generate-openapi-client` / `just validate-openapi-client` | 생성 API 클라이언트 |
 | `just test` / `just test-api` / `just test-api-postgresql` / `just test-web` | 전체 / API / 실제 PostgreSQL / 웹 테스트 |
+| `just test-web-browser` | ⭐ 진짜 브라우저(Playwright). jsdom이 못 보는 것만 본다 |
 | `just lint` | 린트 + 포맷 검사 |
 | `just typecheck` | Pyright strict + tsc |
 | `just check-api` / `just check-web` | 작업 중 쓰는 경로별 검사 |
@@ -57,6 +58,8 @@
 `just qa`는 **화면 하나**만 본다. 제출 → 검토 → 보완 → 재제출처럼 화면을 가로지르는 것은 어느 화면 정본도 소유하지 않는다. 그건 `just flow <흐름ID>`가 흐름 정본에서 뽑는다. 슬라이스를 닫을 때 한 번 돌린다.
 
 두 목록 모두 **이미 예상한 것만 확인한다**(checking). 예상 못 한 것은 목록으로 못 찾는다. 그래서 `just flow`가 끝에 대본 없는 30분을 붙인다. 거기서 찾은 것을 정본에 적으면 다음 사람은 그것을 목록으로 받는다.
+
+**jsdom은 픽셀을 그리지 않는다.** 레이아웃 엔진이 없어 CSS Grid를 계산하지 않고, z-index도 히트 테스트도 없다. 그래서 `user.click()`은 **가려진 요소에도 항상 성공**하고, 나란한 두 입력칸의 높이가 어긋나도 통과한다. 실제로 화면 테스트 110건이 초록인 채로 사람이 브라우저를 열었더니 드롭다운이 안 열렸다 — 열리기는 하는데 대화상자가 클릭을 가로채고 있었다. 레이아웃·클릭·브라우저 입력 규칙은 `just test-web-browser`가 본다. 그 셋 중 하나라도 걸리는 것을 만들었으면 거기에 검사를 남긴다.
 
 ## 구조
 

@@ -48,7 +48,12 @@ export function FormField({
         required,
       }}
     >
-      <div className={cn("grid gap-tight", className)}>
+      {/*
+        content-start가 없으면 남는 높이를 행들이 나눠 먹는다. 나란한 두 필드
+        중 한쪽에만 설명문이 있으면 반대쪽 입력칸이 그만큼 늘어나 높이가
+        어긋난다. 옆 칸에 글을 붙였더니 이쪽 입력칸이 커지는 셈이다.
+      */}
+      <div className={cn("grid content-start gap-tight", className)}>
         <label className="text-body font-medium" htmlFor={id}>
           {label}
           {required ? (
