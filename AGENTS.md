@@ -37,6 +37,7 @@
 | `just validate-wireframe-sync` | 와이어프레임이 공유본 기준선과 같은지 검증 |
 | `just validate-tooling` | CI 스코프 판별과 착수 전 도구 점검 |
 | `just status` | ⭐ MVP 화면 몇 개 중 몇 개가 어디까지 왔는지 |
+| `just api` / `just api --html` | API 하나하나가 계획인지 구현인지. `--html`은 브라우저로 볼 파일을 굽는다 |
 | `just generate-openapi-client` / `just validate-openapi-client` | 생성 API 클라이언트 |
 | `just test` / `just test-api` / `just test-api-postgresql` / `just test-web` | 전체 / API / 실제 PostgreSQL / 웹 테스트 |
 | `just lint` | 린트 + 포맷 검사 |
@@ -69,6 +70,8 @@
 - **§11 개발 순서** — 1단계 행사 뼈대 → 2단계 회의·참가자 → 3단계 재정·기록.
 
 `just status`가 이 둘을 읽어 지금 위치를 계산해 찍는다. 진행 상태를 파일에 적어 두지 않는 이유는 [정본은 셋뿐이다](#정본은-셋뿐이다)와 같다. 적어 두면 틀어진다.
+
+화면보다 잘게 보려면 `just api`다. API 하나하나가 계획인지 구현인지를 계약 JSON과 서버 소스에서 계산한다. **계약이 두 세대로 갈려 있어 둘 다 읽는다** — 옛 세대(DU-001)는 `contracts/openapi.json`에 오퍼레이션으로, 지금 세대는 `contracts/bundles/`에 API 계약으로 적는다. 아직 만들지 않은 API를 현황판에 세우려면 계약을 `proposed`로 먼저 쓴다. `bundle_status`가 `approved`가 아닌 묶음의 계약은 전부 `proposed`여야 한다는 규칙이 이미 그 자리를 만들어 두었다.
 
 **§6과 §11을 안 읽고 착수하지 마라.** 실제로 그렇게 해서 §6에 없는 화면(`MY-REQ-01`)을 만들었고, 1·2단계를 건너뛴 채 3단계 재정만 만들다가 1단계가 만들었어야 할 조직 역할 데이터가 없어서 세션 계약(#52)이 막혔다. 순서를 벗어나 착수하려면 그 판단을 사람에게 먼저 알린다.
 
