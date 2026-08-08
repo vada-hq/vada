@@ -21,7 +21,7 @@ from vada_api.organization.roles import (
 ORGANIZATION = "organization-a"
 
 
-def _context(
+def organization_context(
     membership_id: str = "membership-president",
 ) -> TrustedOrganizationOnlyContext:
     return TrustedOrganizationOnlyContext(
@@ -35,7 +35,7 @@ def _context(
     )
 
 
-def _member(
+def member_view(
     membership_id: str, role: MemberRole, name: str = "구성원"
 ) -> MemberRoleView:
     return MemberRoleView(
@@ -55,7 +55,7 @@ class FakeStore:
     def __init__(self, *members: MemberRoleView, writes_succeed: bool = True) -> None:
         self.rows: dict[str, tuple[MemberRoleView, ...]] = {
             ORGANIZATION: members,
-            "organization-b": (_member("membership-other", MemberRole.PRESIDENT),),
+            "organization-b": (member_view("membership-other", MemberRole.PRESIDENT),),
         }
         self.writes_succeed = writes_succeed
         self.asked: list[str] = []
@@ -76,7 +76,7 @@ class FakeStore:
         if not self.writes_succeed:
             return False
         self.rows[organization_id] = tuple(
-            _member(member.membership_id, state.role, member.display_name)
+            member_view(member.membership_id, state.role, member.display_name)
             if member.membership_id == state.membership_id
             else member
             for member in self.rows[organization_id]
@@ -100,11 +100,11 @@ def _promote(membership_id: str = "membership-a") -> RoleChangeCommand:
 
 def test_the_president_sees_the_member_roles() -> None:
     service = _service(
-        _member("membership-president", MemberRole.PRESIDENT),
-        _member("membership-a", MemberRole.MEMBER),
+        member_view("membership-president", MemberRole.PRESIDENT),
+        member_view("membership-a", MemberRole.MEMBER),
     )
 
-    members = service.list_member_roles(_context())
+    members = service.list_member_roles(organization_context())
 
     assert [member.membership_id for member in members] == [
         "membership-president",
@@ -113,37 +113,37 @@ def test_the_president_sees_the_member_roles() -> None:
 
 
 def test_a_department_head_cannot_see_the_member_roles() -> None:
-    service = _service(_member("membership-head", MemberRole.DEPARTMENT_HEAD))
+    service = _service(member_view("membership-head", MemberRole.DEPARTMENT_HEAD))
 
     with pytest.raises(OrganizationActionForbiddenError):
-        service.list_member_roles(_context("membership-head"))
+        service.list_member_roles(organization_context("membership-head"))
 
 
 def test_someone_outside_the_organization_is_refused() -> None:
     # 맥락의 membership_id가 이 조직 목록에 없으면 직급을 알 수 없다.
-    service = _service(_member("membership-president", MemberRole.PRESIDENT))
+    service = _service(member_view("membership-president", MemberRole.PRESIDENT))
 
     with pytest.raises(OrganizationActionForbiddenError):
-        service.list_member_roles(_context("membership-elsewhere"))
+        service.list_member_roles(organization_context("membership-elsewhere"))
 
 
 def test_reads_never_leave_the_caller_organization() -> None:
-    store = FakeStore(_member("membership-president", MemberRole.PRESIDENT))
+    store = FakeStore(member_view("membership-president", MemberRole.PRESIDENT))
     service = MemberRoleService(store)
 
-    service.list_member_roles(_context())
+    service.list_member_roles(organization_context())
 
     assert set(store.asked) == {ORGANIZATION}
 
 
-def test_the_president_promotes_a_member() -> None:
+def test_the_president_promotes_amember_view() -> None:
     service = _service(
-        _member("membership-president", MemberRole.PRESIDENT),
-        _member("membership-a", MemberRole.MEMBER),
+        member_view("membership-president", MemberRole.PRESIDENT),
+        member_view("membership-a", MemberRole.MEMBER),
     )
 
     members = service.change_member_role(
-        _context(), membership_id="membership-a", command=_promote()
+        organization_context(), membership_id="membership-a", command=_promote()
     )
 
     changed = next(m for m in members if m.membership_id == "membership-a")
@@ -151,11 +151,11 @@ def test_the_president_promotes_a_member() -> None:
 
 
 def test_an_unknown_membership_is_not_found_rather_than_created() -> None:
-    service = _service(_member("membership-president", MemberRole.PRESIDENT))
+    service = _service(member_view("membership-president", MemberRole.PRESIDENT))
 
     with pytest.raises(ResourceNotFoundError):
         service.change_member_role(
-            _context(),
+            organization_context(),
             membership_id="membership-elsewhere",
             command=_promote("membership-elsewhere"),
         )
@@ -164,13 +164,13 @@ def test_an_unknown_membership_is_not_found_rather_than_created() -> None:
 def test_the_last_president_is_protected_across_the_whole_organization() -> None:
     # 조직 전체를 넘겨야 남은 회장단 수를 셀 수 있다.
     service = _service(
-        _member("membership-president", MemberRole.PRESIDENT),
-        _member("membership-a", MemberRole.MEMBER),
+        member_view("membership-president", MemberRole.PRESIDENT),
+        member_view("membership-a", MemberRole.MEMBER),
     )
 
     with pytest.raises(LastPresidentProtectedError):
         service.change_member_role(
-            _context(),
+            organization_context(),
             membership_id="membership-president",
             command=RoleChangeCommand(
                 membership_id="membership-president",
@@ -183,26 +183,26 @@ def test_the_last_president_is_protected_across_the_whole_organization() -> None
 def test_a_lost_race_does_not_overwrite() -> None:
     # 읽은 뒤 값이 바뀌면 저장소가 거절한다. 덮어쓰지 않는다.
     service = _service(
-        _member("membership-president", MemberRole.PRESIDENT),
-        _member("membership-a", MemberRole.MEMBER),
+        member_view("membership-president", MemberRole.PRESIDENT),
+        member_view("membership-a", MemberRole.MEMBER),
         writes_succeed=False,
     )
 
     with pytest.raises(RoleChangeRaceError):
         service.change_member_role(
-            _context(), membership_id="membership-a", command=_promote()
+            organization_context(), membership_id="membership-a", command=_promote()
         )
 
 
 def test_the_write_carries_the_expected_current_role() -> None:
     # 낙관적 잠금이다. 저장소가 기대한 값을 다시 확인하고 쓴다.
     store = FakeStore(
-        _member("membership-president", MemberRole.PRESIDENT),
-        _member("membership-a", MemberRole.MEMBER),
+        member_view("membership-president", MemberRole.PRESIDENT),
+        member_view("membership-a", MemberRole.MEMBER),
     )
 
     MemberRoleService(store).change_member_role(
-        _context(), membership_id="membership-a", command=_promote()
+        organization_context(), membership_id="membership-a", command=_promote()
     )
 
     assert store.written == [

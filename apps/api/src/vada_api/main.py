@@ -17,6 +17,10 @@ from vada_api.local_development import (
     LocalPrincipalMiddleware,
     local_principal_from_environment,
 )
+from vada_api.organization.api import (
+    register_organization_error_handlers,
+)
+from vada_api.organization.api import router as organization_router
 
 
 def create_app(*, engine: Engine | None = None) -> FastAPI:
@@ -35,7 +39,9 @@ def create_app(*, engine: Engine | None = None) -> FastAPI:
 
     application = FastAPI(title="VADA API", lifespan=lifespan)
     register_purchase_request_error_handlers(application)
+    register_organization_error_handlers(application)
     application.include_router(router)
+    application.include_router(organization_router)
     application.add_api_route("/health", _health, methods=["GET"])
     if configured_engine is not None:
         configure_postgresql_dependencies(application, configured_engine)
