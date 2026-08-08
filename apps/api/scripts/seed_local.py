@@ -14,7 +14,6 @@
 
 from __future__ import annotations
 
-import os
 import sys
 from datetime import UTC, date, datetime
 from decimal import Decimal
@@ -22,6 +21,10 @@ from decimal import Decimal
 import sqlalchemy as sa
 from sqlalchemy import Engine, create_engine
 
+from vada_api.database import (
+    DATABASE_URL_ENVIRONMENT_VARIABLE,
+    resolve_database_url,
+)
 from vada_api.finance.persistence.schema import (
     purchase_request_item_review_events,
     purchase_request_item_revisions,
@@ -39,8 +42,6 @@ from vada_api.identity.persistence.schema import (
     organizations,
     vada_users,
 )
-
-DATABASE_URL_ENVIRONMENT_VARIABLE = "VADA_DATABASE_URL"
 
 # 목업 픽스처와 같은 식별자를 쓴다. 목에서 실제 서버로 바꿔 끼울 때 주소가
 # 그대로여야 무엇이 달라졌는지 볼 수 있다.
@@ -398,8 +399,8 @@ def _request(request_id: str, title: str, total: Decimal) -> dict[str, object]:
 
 
 def main() -> None:
-    url = (os.getenv(DATABASE_URL_ENVIRONMENT_VARIABLE) or "").strip()
-    if not url:
+    url = resolve_database_url()
+    if url is None:
         raise SystemExit(
             f"{DATABASE_URL_ENVIRONMENT_VARIABLE}이 없습니다."
             " 개발용 데이터베이스 주소를 넣고 다시 실행하세요."

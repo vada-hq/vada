@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import os
-
 from fastapi import FastAPI
 from sqlalchemy import Engine, create_engine
 
+from vada_api.database import resolve_database_url
 from vada_api.finance.application import PurchaseRequestService
 from vada_api.finance.persistence.context import (
     PostgreSQLPurchaseRequestContextProvider,
@@ -27,12 +26,10 @@ from vada_api.identity.persistence.relationships import (
     PostgreSQLIdentityOrganizationRepository,
 )
 
-DATABASE_URL_ENVIRONMENT_VARIABLE = "VADA_DATABASE_URL"
-
 
 def database_engine_from_environment() -> Engine | None:
-    database_url = os.getenv(DATABASE_URL_ENVIRONMENT_VARIABLE)
-    if database_url is None or not database_url.strip():
+    database_url = resolve_database_url()
+    if database_url is None:
         return None
     return create_engine(database_url, pool_pre_ping=True)
 
