@@ -31,7 +31,50 @@ function viewerIsFinance() {
   return new URLSearchParams(window.location.search).get("as") !== "member";
 }
 
+/** 재제출 화면이 볼 보완 요청. 보완 품목 하나와 승인·반려 품목이 함께 있다. */
+const revisionViewExample = {
+  requestId: "REQ-002",
+  requestTitle: "체육대회 운영 물품",
+  revisionItems: [
+    {
+      itemId: "item-101",
+      itemName: "음향 장비 대여",
+      revisionReason: "견적 근거가 없습니다. 업체와 금액을 남겨 주세요.",
+      revisionDueDate: "2999-09-01",
+      content: {
+        name: "음향 장비 대여",
+        quantity: 1,
+        estimatedUnitPrice: 360_000,
+        requestNote: "",
+      },
+    },
+  ],
+  otherItems: [
+    {
+      itemId: "item-102",
+      itemName: "행사 현수막 (5m)",
+      reviewStatus: "approved",
+      estimatedTotalPrice: 180_000,
+    },
+    {
+      itemId: "item-103",
+      itemName: "기념품 텀블러 100개",
+      reviewStatus: "rejected",
+      estimatedTotalPrice: 850_000,
+    },
+  ],
+};
+
 export const handlers: RequestHandler[] = [
+  http.get("*/api/v1/events/:eventId/purchase-requests/:requestId/revision", () =>
+    HttpResponse.json(revisionViewExample),
+  ),
+
+  http.post("*/api/v1/events/:eventId/purchase-requests/:requestId/revisions", () =>
+    // 재제출 뒤에는 보완할 것이 남지 않는다. 그 품목은 검토 대기로 돌아간다.
+    HttpResponse.json({ ...revisionViewExample, revisionItems: [] }),
+  ),
+
   http.get("*/api/v1/events/:eventId/budget-summary", () =>
     HttpResponse.json(eventBudgetSummaryExample),
   ),
