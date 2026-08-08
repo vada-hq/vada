@@ -33,7 +33,9 @@ function viewerIsFinance() {
 
 /** 재제출 화면이 볼 보완 요청. 보완 품목 하나와 승인·반려 품목이 함께 있다. */
 const revisionViewExample = {
-  requestId: "REQ-002",
+    // 목록·상세에 있는 요청과 같은 것이어야 한다. 재제출 뒤 상세로 돌아가는
+  // 흐름이 목업에서도 이어져야 사람이 끝까지 눌러 볼 수 있다.
+  requestId: "request-001",
   requestTitle: "체육대회 운영 물품",
   revisionItems: [
     {
