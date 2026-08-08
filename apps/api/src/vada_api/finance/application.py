@@ -13,6 +13,12 @@ from vada_api.finance.authorization import (
     PurchaseRequestPermission,
     require_purchase_request_permission,
 )
+from vada_api.finance.event_finance import (
+    EventBudgetSummary,
+    EventItemBoardEntry,
+    EventItemFact,
+    build_item_board,
+)
 from vada_api.finance.observability import (
     ObservedResult,
     PurchaseRequestObserver,
@@ -132,6 +138,18 @@ class PurchaseRequestReviewStore(Protocol):
     ) -> tuple[ItemReviewEvent, ...]: ...
 
 
+class EventFinanceReader(Protocol):
+    """행사 하나의 예산 요약과 활성 품목을 조직 범위로 읽는다."""
+
+    def budget_summary(
+        self, *, organization_id: str, event_id: str
+    ) -> EventBudgetSummary: ...
+
+    def active_items(
+        self, *, organization_id: str, event_id: str
+    ) -> tuple[EventItemFact, ...]: ...
+
+
 class PurchaseRequestRepository(Protocol):
     def get_draft(
         self, *, organization_id: str, event_id: str, owner_user_id: str
@@ -192,6 +210,7 @@ class PurchaseRequestService:
         *,
         relationship_reader: PurchaseRequestRelationshipReader | None = None,
         review_store: PurchaseRequestReviewStore | None = None,
+        event_finance_reader: EventFinanceReader | None = None,
         today_provider: Callable[[], date] | None = None,
         observer: PurchaseRequestObserver | None = None,
     ) -> None:
@@ -199,6 +218,7 @@ class PurchaseRequestService:
         self._submission_store = submission_store
         self._relationship_reader = relationship_reader
         self._review_store = review_store
+        self._event_finance_reader = event_finance_reader
         self._today_provider = today_provider or _kst_today
         self._observer = observer or observer_from_environment()
 
@@ -332,6 +352,33 @@ class PurchaseRequestService:
             organization_id=identity.organization_id,
             event_id=identity.event_id,
             requester_user_id=identity.user_id,
+        )
+
+    def get_event_budget_summary(
+        self, context: FinanceRequestContext
+    ) -> EventBudgetSummary:
+        identity = context.actor.identity
+        return self._require_event_finance_reader().budget_summary(
+            organization_id=identity.organization_id,
+            event_id=identity.event_id,
+        )
+
+    def list_event_items(
+        self, context: FinanceRequestContext
+    ) -> tuple[EventItemBoardEntry, ...]:
+        identity = context.actor.identity
+        facts = self._require_event_finance_reader().active_items(
+            organization_id=identity.organization_id,
+            event_id=identity.event_id,
+        )
+        return build_item_board(
+            facts,
+            viewer_user_id=identity.user_id,
+            # 처리 단계는 재정부에게만 존재한다. 응답을 나누지 않고 서버가 관계를
+            # 보고 필드를 넣거나 뺀다. 화면이 역할을 다시 비교하지 않는다.
+            include_finance_stage=(
+                identity.organization_id in context.actor.finance_member_of
+            ),
         )
 
     def get_detail(
@@ -506,6 +553,11 @@ class PurchaseRequestService:
         if self._review_store is None:
             raise PurchaseRequestPersistenceError
         return self._review_store
+
+    def _require_event_finance_reader(self) -> EventFinanceReader:
+        if self._event_finance_reader is None:
+            raise PurchaseRequestPersistenceError
+        return self._event_finance_reader
 
 
 _STATUS_LABELS: dict[ItemReviewStatus, str] = {

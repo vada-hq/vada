@@ -55,6 +55,10 @@ validate-wireframe-sync:
     pnpm test:wireframe-sync
     pnpm validate:wireframe-sync
 
+# 살아 있는 근거와 역사의 경계. 역사에 든 것을 계약이 참조하면 실패한다
+validate-canon-boundaries:
+    pnpm validate:canon-boundaries
+
 # CI 스코프 판별과 착수 전 도구 점검
 validate-tooling:
     pnpm test:tooling
@@ -66,6 +70,14 @@ status:
 # API 하나하나가 계획인지 구현인지. `just api --html`이면 브라우저로 볼 파일을 굽는다
 api *ARGS:
     pnpm api {{ARGS}}
+
+# 브라우저에서 무엇을 봐야 하는지. 화면 정본에서 뽑는다. 예: just qa EVT-FIN-01
+qa SCREEN:
+    pnpm qa {{SCREEN}}
+
+# 화면을 가로지르는 흐름을 어떻게 따라가는지. 예: just flow FLOW-FIN-001
+flow *FLOW:
+    pnpm flow {{FLOW}}
 
 # 테스트
 test: test-api test-web test-wireframe
@@ -122,4 +134,4 @@ build-wireframe:
     pnpm --filter @vada/wireframe build
 
 # ⭐ 완료 기준: 전부 통과해야 작업 완료
-check: validate-contracts validate-screens validate-wireframe-sync validate-tooling lint typecheck test build
+check: validate-contracts validate-screens validate-canon-boundaries validate-wireframe-sync validate-tooling lint typecheck test build

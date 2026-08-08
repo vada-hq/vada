@@ -1,6 +1,11 @@
 import { http, HttpResponse, type RequestHandler } from "msw";
 
 import {
+  eventBudgetSummaryExample,
+  eventItemBoardFinanceExample,
+  eventItemBoardMemberExample,
+} from "./event-finance-fixtures";
+import {
   detailViewExample,
   reviewViewExample,
   editorStateExample,
@@ -15,7 +20,28 @@ import {
 let draftVersion = 0;
 let draftContent: unknown = null;
 
+/**
+ * 행사 재정은 보는 사람의 역할에 따라 응답이 달라진다. 개발 서버에는 로그인이
+ * 없으므로 `?as=member`로 일반 구성원 응답을 본다. 기본은 재정부다.
+ * 이것은 개발용 전환일 뿐이고 서버는 언제나 신뢰 맥락으로 판정한다.
+ */
+function viewerIsFinance(url: string) {
+  return new URL(url).searchParams.get("as") !== "member";
+}
+
 export const handlers: RequestHandler[] = [
+  http.get("*/api/v1/events/:eventId/budget-summary", () =>
+    HttpResponse.json(eventBudgetSummaryExample),
+  ),
+
+  http.get("*/api/v1/events/:eventId/purchase-request-items", ({ request }) =>
+    HttpResponse.json(
+      viewerIsFinance(request.url)
+        ? eventItemBoardFinanceExample
+        : eventItemBoardMemberExample,
+    ),
+  ),
+
   http.get("*/api/v1/events/:eventId/purchase-request-editor", () =>
     HttpResponse.json({
       ...editorStateExample,

@@ -6,7 +6,7 @@ from vada_api.identity.context import TrustedOrganizationContext
 
 
 class PurchaseRequestPermission(StrEnum):
-    """Stable purchase-request action keys from CB-FIN-001@R1."""
+    """Stable purchase-request action keys from CB-FIN-001@R1 and CB-FIN-002@R1."""
 
     DRAFT_READ = "purchase_request.draft.read"
     DRAFT_WRITE = "purchase_request.draft.write"
@@ -15,6 +15,16 @@ class PurchaseRequestPermission(StrEnum):
     LIST_OWN = "purchase_request.list_own"
     READ_DETAIL = "purchase_request.read_detail"
     REVIEW = "purchase_request.review"
+    EVENT_BUDGET_READ = "event_budget.read"
+    LIST_EVENT_ITEMS = "purchase_request.list_event_items"
+
+
+_EVENT_FINANCE_READS = frozenset(
+    {
+        PurchaseRequestPermission.EVENT_BUDGET_READ,
+        PurchaseRequestPermission.LIST_EVENT_ITEMS,
+    }
+)
 
 
 def _empty_relationships() -> frozenset[str]:
@@ -71,6 +81,15 @@ def is_purchase_request_action_allowed(
         or actor is None
         or not _is_current_event_scope(actor, scope)
     ):
+        return False
+
+    if resolved_permission in _EVENT_FINANCE_READS:
+        # 계약 AUTH:event_budget.read@R1과 list_event_items@R1이 요구하는 것은
+        # 활성 구성원과 조직 일치뿐이다. 부서 배정을 더 묻지 않는다. 물으면 아직
+        # 부서가 없는 구성원이 자기 학생회의 행사 재정을 못 본다.
+        return True
+
+    if not _has_trusted_department_facts(actor):
         return False
 
     if resolved_permission in {
@@ -137,6 +156,8 @@ def _is_current_event_scope(
     actor: PurchaseRequestActorFacts,
     scope: PurchaseRequestAuthorizationScope,
 ) -> bool:
+    """조직·행사 범위가 맞는 활성 구성원인가. 모든 동작의 최소 조건이다."""
+
     identity = actor.identity
     return (
         identity.has_active_organization_membership
@@ -144,14 +165,19 @@ def _is_current_event_scope(
         and _is_non_blank(identity.organization_id)
         and _is_non_blank(identity.membership_id)
         and _is_non_blank(identity.event_id)
-        and bool(identity.department_relationships)
-        and all(
-            _is_non_blank(relationship.relationship_id)
-            and _is_non_blank(relationship.department_id)
-            for relationship in identity.department_relationships
-        )
         and identity.organization_id == scope.event_organization_id
         and identity.event_id == scope.event_id
+    )
+
+
+def _has_trusted_department_facts(actor: PurchaseRequestActorFacts) -> bool:
+    """부서 관계가 있고 전부 온전한가. 요청을 만들고 검토하는 동작만 요구한다."""
+
+    relationships = actor.identity.department_relationships
+    return bool(relationships) and all(
+        _is_non_blank(relationship.relationship_id)
+        and _is_non_blank(relationship.department_id)
+        for relationship in relationships
     )
 
 

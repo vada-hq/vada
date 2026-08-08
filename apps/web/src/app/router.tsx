@@ -11,6 +11,7 @@ import type { RouterHistory } from "@tanstack/react-router";
 
 import { Dialog } from "../components/ui/dialog";
 import { AppShell } from "../shared/ui/app-shell";
+import { EventFinanceOverviewScreen } from "../features/event-finance/overview/screen";
 import { PurchaseRequestDetailScreen } from "../features/purchase-request/detail/screen";
 import { PurchaseRequestEditorScreen } from "../features/purchase-request/editor/screen";
 import { PurchaseRequestOwnListScreen } from "../features/purchase-request/own-list/screen";
@@ -77,8 +78,26 @@ function ReviewPage() {
   );
 }
 
+// 행사 재정 개요. 구매 요청 화면들이 돌아오는 자리다.
+const eventFinanceRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/events/$eventId/finance",
+  component: EventFinancePage,
+});
+
+function EventFinancePage() {
+  const { eventId } = eventFinanceRoute.useParams();
+
+  return (
+    <PurchaseRequestShell current="행사 재정">
+      <EventFinanceOverviewScreen eventId={eventId} />
+    </PurchaseRequestShell>
+  );
+}
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  eventFinanceRoute,
   ownListRoute,
   editorRoute,
   detailRoute,
