@@ -112,8 +112,8 @@ describe("역할 및 권한 관리 화면", () => {
     expect(sent).toEqual([{ role: "department_head", expectedCurrentRole: "member" }]);
   });
 
-  test("바꾸는 동안 그 줄이 진행 중임을 알린다", async () => {
-    // 누른 순간부터 서버가 답할 때까지 화면이 아무 말도 안 하면 사람은 또 누른다.
+  test("오래 걸리면 그 줄이 진행 중임을 알린다", async () => {
+    // 오래 기다리는데 화면이 아무 말도 안 하면 사람은 안 눌린 줄 알고 또 누른다.
     const user = userEvent.setup();
     serve([row({ membershipId: "membership-a", displayName: "김도윤", role: "member" })]);
     server.use(http.put(changeUrl, () => new Promise(() => {})));
@@ -124,11 +124,36 @@ describe("역할 및 권한 관리 화면", () => {
     await user.click(within(list).getByRole("option", { name: "부서장" }));
 
     const [only] = await tableRows();
-    expect(await within(only).findByText("적용 중")).toHaveAttribute("role", "status");
+    expect(
+      await within(only).findByText("적용 중", {}, { timeout: 3000 }),
+    ).toHaveAttribute("role", "status");
     // 아직 서버가 답하지 않았다. 바뀐 것처럼 보이면 그것이 거짓 성공이다.
     expect(within(only).getByRole("combobox", { name: /김도윤 기본 역할/ })).toHaveTextContent(
       "부원",
     );
+  });
+
+  test("빨리 끝나면 진행 표시를 띄우지 않는다", async () => {
+    // 1초 아래의 대기에는 표시가 필요 없다(Nielsen). 띄우면 기다림을 의식하게 만든다.
+    const user = userEvent.setup();
+    serve([row({ membershipId: "membership-a", displayName: "김도윤", role: "member" })]);
+    server.use(
+      http.put(changeUrl, () =>
+        HttpResponse.json({
+          members: [
+            row({ membershipId: "membership-a", displayName: "김도윤", role: "department_head" }),
+          ],
+        } satisfies MemberRoles),
+      ),
+    );
+    renderScreen();
+
+    await user.click(await screen.findByRole("combobox", { name: /김도윤 기본 역할/ }));
+    const list = await screen.findByRole("listbox");
+    await user.click(within(list).getByRole("option", { name: "부서장" }));
+
+    await screen.findByText(/바꿨습니다/);
+    expect(screen.queryByText("적용 중")).not.toBeInTheDocument();
   });
 
   test("바뀐 역할은 응답에서 읽는다. 명단을 다시 읽지 않는다", async () => {

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useRef, useState } from "react";
 
 import { Alert } from "../../../components/ui/alert";
 import { Select } from "../../../components/ui/select";
@@ -22,6 +22,16 @@ interface AppliedChange {
   from: MemberRole;
   to: MemberRole;
 }
+
+/**
+ * 진행 표시를 띄우기까지 기다리는 시간.
+ *
+ * 1초는 사람이 대기를 의식하기 시작하는 경계다(Nielsen, 응답 시간 3구간).
+ * 그 아래에서는 표시가 필요 없고, 띄우면 오히려 기다림을 의식하게 만든다.
+ * 역할 변경은 서버가 0.6초쯤에 답하므로 보통은 아무것도 뜨지 않는다.
+ * 콜드 스타트나 느린 회선처럼 정말 오래 걸릴 때만 나타난다.
+ */
+const PROGRESS_NOTICE_DELAY_MS = 1000;
 
 function describeFailure(failure: ApiFailure) {
   if (failure === "unauthenticated") {
@@ -60,12 +70,26 @@ export function OrganizationRolesScreen() {
   const query = useQuery(memberRolesQueryOptions());
   const queryClient = useQueryClient();
   const [applied, setApplied] = useState<AppliedChange | null>(null);
+  // 표시의 수명은 요청의 수명이다. 이펙트가 아니라 뮤테이션에 붙여 둔다.
+  const [mentionProgress, setMentionProgress] = useState(false);
+  const progressTimer = useRef<number | undefined>(undefined);
 
   const mutation = useMutation({
     mutationFn: ({ row, role }: { row: MemberRoleRow; role: MemberRole }) =>
       // 화면이 본 값을 함께 보낸다. 서버가 그것으로 낙관적 잠금을 건다.
       changeMemberRole(row.membershipId, role, row.role),
-    onMutate: () => setApplied(null),
+    onMutate: () => {
+      setApplied(null);
+      setMentionProgress(false);
+      progressTimer.current = window.setTimeout(
+        () => setMentionProgress(true),
+        PROGRESS_NOTICE_DELAY_MS,
+      );
+    },
+    onSettled: () => {
+      window.clearTimeout(progressTimer.current);
+      setMentionProgress(false);
+    },
     onSuccess: (members, { row, role }) => {
       // 응답이 이미 바뀐 명단이다. 다시 읽으면 같은 왕복을 한 번 더 한다.
       queryClient.setQueryData(memberRolesQueryKey(), members);
@@ -113,7 +137,7 @@ export function OrganizationRolesScreen() {
             options={roleOptions}
             value={row.role}
           />
-          {changing === row.membershipId ? (
+          {mentionProgress && changing === row.membershipId ? (
             <span className="text-caption text-muted-foreground" role="status">
               적용 중
             </span>
