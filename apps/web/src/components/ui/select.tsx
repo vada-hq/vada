@@ -70,8 +70,18 @@ export function Select({
         </BaseSelect.Icon>
       </BaseSelect.Trigger>
       <BaseSelect.Portal>
-        <BaseSelect.Positioner alignItemWithTrigger={false} sideOffset={4}>
-          <BaseSelect.Popup className="z-50 min-w-[var(--anchor-width)] rounded-sm border border-border bg-popover p-1 text-body-lg text-popover-foreground shadow-md outline-none">
+        {/*
+          z-index는 위치가 잡힌 요소에만 먹는다. 팝업 자체는 static이라 여기에
+          붙여야 한다. 안쪽에 붙였더니 무시됐고, 그 결과 팝업 대화상자(z-50)
+          안에서 목록이 대화상자 뒤로 깔렸다 — 열리기는 하는데 클릭이 안 됐다.
+          대화상자보다 위여야 하므로 한 단 높인다.
+        */}
+        <BaseSelect.Positioner
+          alignItemWithTrigger={false}
+          className="z-60"
+          sideOffset={4}
+        >
+          <BaseSelect.Popup className="min-w-[var(--anchor-width)] rounded-sm border border-border bg-popover p-1 text-body-lg text-popover-foreground shadow-md outline-none">
             <BaseSelect.List>
               {options.map((option) => (
                 <BaseSelect.Item

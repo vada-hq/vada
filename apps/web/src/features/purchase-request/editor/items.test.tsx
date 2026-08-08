@@ -83,9 +83,9 @@ describe("구매 요청 작성 화면 · 품목", () => {
     renderEditor();
 
     const [first] = await itemCards();
-    await user.type(within(first).getByRole("spinbutton", { name: /수량/ }), "2");
+    await user.type(within(first).getByRole("textbox", { name: /수량/ }), "2");
     await user.type(
-      within(first).getByRole("spinbutton", { name: /예상 단가/ }),
+      within(first).getByRole("textbox", { name: /예상 단가/ }),
       "15000",
     );
 
@@ -96,9 +96,9 @@ describe("구매 요청 작성 화면 · 품목", () => {
 
     await user.click(screen.getByRole("button", { name: "품목 추가" }));
     const second = (await itemCards())[1];
-    await user.type(within(second).getByRole("spinbutton", { name: /수량/ }), "1");
+    await user.type(within(second).getByRole("textbox", { name: /수량/ }), "1");
     await user.type(
-      within(second).getByRole("spinbutton", { name: /예상 단가/ }),
+      within(second).getByRole("textbox", { name: /예상 단가/ }),
       "360000",
     );
 

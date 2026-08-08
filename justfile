@@ -92,7 +92,7 @@ flow *FLOW:
     pnpm flow {{FLOW}}
 
 # 테스트
-test: test-api test-web test-wireframe
+test: test-api test-web test-web-browser test-wireframe
 
 test-api:
     cd apps/api && uv run pytest
@@ -108,6 +108,12 @@ test-api-fast:
 test-web:
     pnpm --filter web test
 
+# 진짜 브라우저에서 보는 검사. jsdom에는 레이아웃 엔진이 없어 가려진 요소도
+# 클릭이 되고 나란한 입력칸의 높이가 어긋나도 통과한다. 이것만 그것을 본다.
+# 처음 붙였을 때 화면 테스트 110건이 초록인 채로 결함 넷이 걸렸다.
+test-web-browser:
+    pnpm --filter web test:browser
+
 # 와이어프레임 정본의 재정 규칙 회귀 검사
 test-wireframe:
     pnpm --filter @vada/wireframe test
@@ -115,7 +121,7 @@ test-wireframe:
 # 작업자·검증자용 경로별 검사
 check-api: lint-api typecheck-api test-api
 
-check-web: validate-openapi-client lint-web typecheck-web test-web build-web
+check-web: validate-openapi-client lint-web typecheck-web test-web test-web-browser build-web
 
 # 린트 + 포맷 검사
 lint: lint-api lint-web

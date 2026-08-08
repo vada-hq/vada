@@ -27,5 +27,7 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test-setup.ts"],
+    // e2e/는 진짜 브라우저에서 돈다. jsdom이 주워 가면 수집 단계에서 깨진다.
+    exclude: ["node_modules/**", "dist/**", "e2e/**"],
   },
 });
