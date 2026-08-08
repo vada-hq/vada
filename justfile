@@ -75,6 +75,10 @@ api *ARGS:
 qa SCREEN:
     pnpm qa {{SCREEN}}
 
+# 화면을 가로지르는 흐름을 어떻게 따라가는지. 예: just flow FLOW-FIN-001
+flow *FLOW:
+    pnpm flow {{FLOW}}
+
 # 테스트
 test: test-api test-web test-wireframe
 
