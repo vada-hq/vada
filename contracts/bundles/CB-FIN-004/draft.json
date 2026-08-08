@@ -48,6 +48,13 @@
       "captured_at": "2026-08-08T17:40:00+09:00",
       "locator": "current-thread/2026-08-08-revision-history-scope",
       "content_ko": "제품 책임자가 계약을 처음에는 간단하게 하고 나중에 추가하기로 정했습니다. 재제출 화면은 가장 최근 제출본만 보여줍니다."
+    },
+    {
+      "id": "SRC-006",
+      "type": "document",
+      "captured_at": "2026-08-08T17:55:00+09:00",
+      "locator": "prototypes/wireframe/docs/VADA_PERMISSION_MATRIX.md#113",
+      "content_ko": "권한 매트릭스는 보완 요청 확인·재제출을 요청자 본인이면서 재정부 또는 부서장인 경우로 정합니다. canSubmitPurchaseRequest 헬퍼가 구매 요청 작성과 보완 재제출을 같은 권한으로 묶습니다. 요청자 본인 조건만으로는 부족합니다."
     }
   ],
   "base_bundle_ref": {
@@ -245,7 +252,7 @@
       "status": "proposed",
       "change_class": "initial",
       "supersedes": null,
-      "summary_ko": "그 구매 요청의 요청자 본인만 보완 재제출할 수 있게 합니다.",
+      "summary_ko": "그 구매 요청의 요청자 본인이면서 지금도 재정부이거나 그 요청 부서의 부서장인 사람만 보완 재제출할 수 있게 합니다.",
       "specification": {
         "action": "purchase_request.resubmit_revision",
         "resource_ko": "현재 조직 범위에 속한 구매 요청의 보완 대상 품목",
@@ -274,13 +281,53 @@
                 "right": {
                   "fact": "context.user_id"
                 }
+              },
+              {
+                "left_fact": "actor.is_finance_member",
+                "operator": "is_true",
+                "right": {
+                  "literal": true
+                }
+              }
+            ]
+          },
+          {
+            "all_of": [
+              {
+                "left_fact": "actor.has_active_organization_membership",
+                "operator": "is_true",
+                "right": {
+                  "literal": true
+                }
+              },
+              {
+                "left_fact": "request.organization_id",
+                "operator": "equals",
+                "right": {
+                  "fact": "context.organization_id"
+                }
+              },
+              {
+                "left_fact": "request.requester_user_id",
+                "operator": "equals",
+                "right": {
+                  "fact": "context.user_id"
+                }
+              },
+              {
+                "left_fact": "actor.is_head_of_request_department",
+                "operator": "is_true",
+                "right": {
+                  "literal": true
+                }
               }
             ]
           }
         ]
       },
       "source_refs": [
-        "SRC-003"
+        "SRC-003",
+        "SRC-006"
       ]
     },
     {
