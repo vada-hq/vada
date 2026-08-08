@@ -58,6 +58,26 @@ class PostgreSQLIdentityOrganizationRepository:
                 )
             )
 
+    def find_active_organization_id(self, *, user_id: str) -> str | None:
+        """행사 없이 사용자의 조직을 정한다.
+
+        계약이 조직 화면의 경로에 조직 식별자를 두지 않았으므로 서버가 유도한다.
+        활성 소속이 정확히 하나일 때만 답한다. 둘 이상이면 어느 학생회를 말하는지
+        서버가 알 수 없고, 그때 아무거나 고르면 다른 조직의 명단을 보여준다.
+        """
+        statement = (
+            sa.select(organization_memberships.c.organization_id)
+            .where(
+                organization_memberships.c.user_id == user_id,
+                organization_memberships.c.is_active.is_(True),
+            )
+            .distinct()
+            .limit(2)
+        )
+        with self._engine.connect() as connection:
+            organization_ids = tuple(connection.scalars(statement))
+        return organization_ids[0] if len(organization_ids) == 1 else None
+
     def find_active_organization_id_for_event(
         self, *, user_id: str, event_id: str
     ) -> str | None:
