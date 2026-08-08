@@ -1,0 +1,444 @@
+{
+  "$schema": "../../schemas/delivery-contract-bundle-0.2.0.schema.json",
+  "schema_version": "0.2.0",
+  "bundle_id": "CB-FIN-004",
+  "bundle_revision": null,
+  "bundle_status": "defining",
+  "approval_source_ref": null,
+  "updated_at": "2026-08-08T17:20:00+09:00",
+  "delivery_unit_ref": "SCREEN:FIN-SUP-01",
+  "objective_ko": "재정부가 보완을 요청한 품목의 요청자가 그 품목만 고쳐 다시 제출하고, 재정부가 재검토할 수 있게 합니다.",
+  "standards_profile": {
+    "openapi_version": "3.1.1",
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "http_problem_details": "RFC9457"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "document",
+      "captured_at": "2026-08-08T17:20:00+09:00",
+      "locator": "prototypes/wireframe/src/app/App.tsx#FIN-SUP-01B",
+      "content_ko": "승인 와이어프레임의 보완 요청 확인·재제출 화면입니다. 보완 요청된 품목마다 재정부가 남긴 사유와 재제출 기한을 품목 옆에 붙이고, 보완 대상 품목만 편집 가능하게 하며 나머지 품목은 읽기 전용으로 함께 보여 요청 전체의 맥락을 유지합니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "document",
+      "captured_at": "2026-08-08T17:20:00+09:00",
+      "locator": "prototypes/wireframe/docs/VADA_FINANCE_SPEC.md#7",
+      "content_ko": "재정 도메인 기준 문서의 보완과 재검토 규칙입니다. 보완 재제출은 같은 구매 요청과 구매 품목 식별자를 유지한 채 새 보완 제출본을 생성하며 원래 요청과 품목을 새 요청으로 복제하지 않습니다. 보완 전·후 내용과 첨부자료를 모두 보존합니다. 요청자는 보완 대상 품목의 모든 입력값을 수정할 수 있고 보완 대상이 아닌 품목은 수정할 수 없습니다. 재제출 직후 해당 품목의 원본 검토 상태는 검토 대기, 재정부 처리 단계는 재검토 대기로 계산합니다. 보완 기한이 지나도 자동 반려하지 않습니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "document",
+      "captured_at": "2026-08-08T17:20:00+09:00",
+      "locator": "screens/FINSUP01.md",
+      "content_ko": "화면 정본입니다. 요청자 본인만 재제출할 수 있고 부서장이라도 그 요청의 요청자가 아니면 재제출할 수 없습니다. 재정부가 그 사이 재검토를 끝냈으면 덮어쓰지 않고 현재 상태를 다시 읽습니다. 같은 재제출의 재시도는 같은 멱등성 키를 재사용합니다. 파일 업로드는 이번 범위 밖이라 가격 근거는 비파일 대안을 씁니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "document",
+      "captured_at": "2026-08-08T17:20:00+09:00",
+      "locator": "prototypes/wireframe/docs/VADA_MVP_SPEC.md#3",
+      "content_ko": "MVP 성공 기준 5번의 흐름 4입니다. 요청자는 보완 내용을 확인하고 재제출할 수 있어야 하며, 그때 요청자와 재정부가 같은 상태와 검토 의견을 봅니다."
+    }
+  ],
+  "base_bundle_ref": {
+    "bundle_path": "contracts/bundles/CB-FIN-001/R2.json",
+    "bundle_id": "CB-FIN-001",
+    "bundle_revision": 2,
+    "canonical_sha256": "134aae2f5ce817f583fecf7afc044bb2b0b03934811c03ea7f6d6d1c2b9d5fad"
+  },
+  "contracts": [
+    {
+      "id": "DATA:purchase_request.revision_view@R1",
+      "kind": "DATA",
+      "key": "purchase_request.revision_view",
+      "revision": 1,
+      "status": "proposed",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "보완 요청된 품목과 그 사유·기한, 그리고 고칠 수 없는 나머지 품목을 함께 돌려줍니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-revision-view:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "requestId",
+            "requestTitle",
+            "revisionItems",
+            "otherItems"
+          ],
+          "properties": {
+            "requestId": {
+              "type": "string",
+              "minLength": 1
+            },
+            "requestTitle": {
+              "type": "string",
+              "minLength": 1
+            },
+            "revisionItems": {
+              "type": "array",
+              "description": "보완 요청된 품목. 이것만 고칠 수 있다",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "itemId",
+                  "itemName",
+                  "revisionReason",
+                  "content"
+                ],
+                "properties": {
+                  "itemId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "itemName": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "revisionReason": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "revisionDueDate": {
+                    "type": "string",
+                    "description": "재제출 기한. 지나도 재제출을 막지 않는다",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  "content": {
+                    "$comment": "가장 최근 제출본의 입력값. 작성 화면과 같은 모양이다",
+                    "type": "object"
+                  }
+                }
+              }
+            },
+            "otherItems": {
+              "type": "array",
+              "description": "같은 요청의 나머지 품목. 읽기 전용이다",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "itemId",
+                  "itemName",
+                  "reviewStatus",
+                  "estimatedTotalPrice"
+                ],
+                "properties": {
+                  "itemId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "itemName": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "reviewStatus": {
+                    "type": "string",
+                    "enum": [
+                      "review_pending",
+                      "approved",
+                      "rejected"
+                    ]
+                  },
+                  "estimatedTotalPrice": {
+                    "type": "integer",
+                    "minimum": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "revisionItems가 비어 있으면 이 요청에 재제출할 것이 없습니다. 화면은 그 사실을 알리고 상세로 돌려보냅니다.",
+          "otherItems는 요청 전체의 맥락을 위해 함께 내려보내며 편집 대상이 아닙니다. 보완 대상이 아닌 품목은 수정할 수 없다는 규칙을 서버가 응답 구조로 표현합니다.",
+          "content는 가장 최근 제출본의 입력값입니다. 이전 제출본은 보존되지만 이 리비전은 목록으로 내려보내지 않습니다.",
+          "revisionDueDate는 재정부가 남긴 안내입니다. 기한이 지나도 자동 반려하지 않으므로 서버는 기한을 이유로 재제출을 거부하지 않습니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-002",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "DATA:purchase_request.revision_submission@R1",
+      "kind": "DATA",
+      "key": "purchase_request.revision_submission",
+      "revision": 1,
+      "status": "proposed",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "보완 품목의 새 입력값입니다. 같은 요청과 품목 식별자를 유지한 채 새 제출본을 만듭니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:purchase-request-revision-submission:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "items"
+          ],
+          "properties": {
+            "items": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "itemId",
+                  "expectedReviewStatus",
+                  "content"
+                ],
+                "properties": {
+                  "itemId": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "expectedReviewStatus": {
+                    "type": "string",
+                    "const": "revision_requested",
+                    "description": "화면이 본 상태. 재정부가 그 사이 재검토를 끝냈으면 덮어쓰지 않는다"
+                  },
+                  "content": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "보완 대상이 아닌 품목의 itemId를 담으면 거부합니다. 변경 범위를 서버가 다시 확인합니다.",
+          "새 구매 요청이나 새 구매 품목을 만들지 않습니다. 변경된 필드의 수나 크기와 무관합니다.",
+          "제출본은 추가 전용입니다. 이전 제출본을 덮어쓰지 않고 새 제출본을 쌓습니다.",
+          "재시도는 같은 멱등성 키를 재사용해 제출본이 두 벌 쌓이지 않게 합니다."
+        ],
+        "schema_contract_refs": []
+      },
+      "source_refs": [
+        "SRC-002",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "AUTH:purchase_request.resubmit_revision@R1",
+      "kind": "AUTH",
+      "key": "purchase_request.resubmit_revision",
+      "revision": 1,
+      "status": "proposed",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "그 구매 요청의 요청자 본인만 보완 재제출할 수 있게 합니다.",
+      "specification": {
+        "action": "purchase_request.resubmit_revision",
+        "resource_ko": "현재 조직 범위에 속한 구매 요청의 보완 대상 품목",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              {
+                "left_fact": "actor.has_active_organization_membership",
+                "operator": "is_true",
+                "right": {
+                  "literal": true
+                }
+              },
+              {
+                "left_fact": "request.organization_id",
+                "operator": "equals",
+                "right": {
+                  "fact": "context.organization_id"
+                }
+              },
+              {
+                "left_fact": "request.requester_user_id",
+                "operator": "equals",
+                "right": {
+                  "fact": "context.user_id"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "source_refs": [
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "API:purchase_request.get_revision@R1",
+      "kind": "API",
+      "key": "purchase_request.get_revision",
+      "revision": 1,
+      "status": "proposed",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "보완 요청된 품목과 나머지 품목을 재제출 화면이 필요한 만큼 조회합니다.",
+      "specification": {
+        "operation_id": "getPurchaseRequestRevision",
+        "method": "GET",
+        "path": "/events/{eventId}/purchase-requests/{requestId}/revision",
+        "authorization_ref": "AUTH:purchase_request.resubmit_revision@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": [
+            {
+              "name": "eventId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            {
+              "name": "requestId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:purchase_request.revision_view@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-001",
+        "SRC-003"
+      ]
+    },
+    {
+      "id": "API:purchase_request.submit_revision@R1",
+      "kind": "API",
+      "key": "purchase_request.submit_revision",
+      "revision": 1,
+      "status": "proposed",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "보완 품목의 새 제출본을 만들고 그 품목을 재검토 대기로 되돌립니다.",
+      "specification": {
+        "operation_id": "submitPurchaseRequestRevision",
+        "method": "POST",
+        "path": "/events/{eventId}/purchase-requests/{requestId}/revisions",
+        "authorization_ref": "AUTH:purchase_request.resubmit_revision@R1",
+        "request": {
+          "body_contract_ref": "DATA:purchase_request.revision_submission@R1",
+          "parameters": [
+            {
+              "name": "eventId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            {
+              "name": "requestId",
+              "in": "path",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            {
+              "name": "Idempotency-Key",
+              "in": "header",
+              "required": true,
+              "schema": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          ]
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:purchase_request.revision_view@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:purchase_request.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:purchase_request.validation_failed@R1",
+          "ERROR:purchase_request.state_conflict@R1",
+          "ERROR:purchase_request.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": [
+        "SRC-002",
+        "SRC-003",
+        "SRC-004"
+      ]
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "pending",
+      "decision_area": "data",
+      "origin": "initial_plan",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "single_choice",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "이전 제출본을 화면에 보여줄지 말지는 서로 배타적인 두 갈래이고, 보여준다면 어디까지 보여줄지가 세 번째 갈래입니다.",
+        "source_refs": [
+          "SRC-002"
+        ]
+      },
+      "question_ko": "재제출 화면에서 이전 보완 제출본을 요청자에게 보여줍니까?",
+      "reason_ko": "재정 명세 §7은 보완 전·후 내용을 모두 보존하라고 정하지만 화면에 무엇을 보여줄지는 정하지 않았습니다. 보여준다면 조회 계약이 제출본 목록을 담아야 하고, 보여주지 않는다면 가장 최근 제출본만 담습니다. 계약의 모양이 달라집니다.",
+      "target_path": "/contracts/DATA:purchase_request.revision_view@R1",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "LATEST_ONLY",
+          "label_ko": "가장 최근 제출본만 보여준다"
+        },
+        {
+          "id": "WITH_HISTORY",
+          "label_ko": "이전 제출본도 이력으로 함께 보여준다"
+        },
+        {
+          "id": "HISTORY_IN_REVIEW_ONLY",
+          "label_ko": "요청자에게는 최근 것만, 재정부 검토 화면에만 이력을 둔다"
+        }
+      ],
+      "evidence": {
+        "solution_design_refs": [],
+        "source_refs": [
+          "SRC-002",
+          "SRC-003"
+        ]
+      },
+      "answer_source_ref": null,
+      "normalized_answer": null,
+      "dismissal_reason_ko": null
+    }
+  ]
+}

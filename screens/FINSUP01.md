@@ -5,6 +5,11 @@ wireframe: prototypes/wireframe/src/app/App.tsx
 wireframe_screen: FIN-SUP-01B
 route: /events/$eventId/purchase-requests/$requestId/revision
 contracts:
+  - API:purchase_request.get_revision@R1
+  - API:purchase_request.submit_revision@R1
+  - DATA:purchase_request.revision_view@R1
+  - DATA:purchase_request.revision_submission@R1
+  - AUTH:purchase_request.resubmit_revision@R1
   - ERROR:http.unauthenticated@R1
   - ERROR:purchase_request.action_forbidden@R1
   - ERROR:http.resource_not_found@R1
