@@ -2,6 +2,8 @@ from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import cast
 
+from fastapi import Request
+
 from vada_api.identity.errors import UnauthenticatedError
 
 
@@ -32,6 +34,23 @@ def principal_from_api_gateway_request_context(
     issuer = _identity_claim(claims, "iss")
     subject = _identity_claim(claims, "sub")
     return CognitoPrincipal(issuer=issuer, subject=subject)
+
+
+def api_gateway_request_context(request: Request) -> Mapping[str, object]:
+    """API Gateway가 실어 보낸 요청 맥락만 꺼낸다.
+
+    없으면 빈 것을 준다. 여기서 비었다고 통과시키지 않는다 —
+    `principal_from_api_gateway_request_context`가 청구항이 없다고 거절한다.
+    """
+
+    raw_event = request.scope.get("aws.event")
+    if not isinstance(raw_event, Mapping):
+        return {}
+    event = cast(Mapping[str, object], raw_event)
+    raw_context = event.get("requestContext")
+    if not isinstance(raw_context, Mapping):
+        return {}
+    return cast(Mapping[str, object], raw_context)
 
 
 def _identity_claim(claims: Mapping[str, object], key: str) -> str:

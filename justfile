@@ -1,5 +1,9 @@
 # VADA 모노레포 명령 표면 — AGENTS.md의 명령 표와 1:1 유지
 set windows-shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
+# 개발용 비밀값은 .env에서 읽는다. 그 파일은 커밋되지 않으며 셸에 남지도 않는다.
+# 없어도 그만이다 — 목업으로 도는 명령은 이 값이 필요 없다.
+set dotenv-load := true
+set dotenv-required := false
 
 default:
     @just --list
@@ -54,6 +58,14 @@ validate-screens:
 validate-wireframe-sync:
     pnpm test:wireframe-sync
     pnpm validate:wireframe-sync
+
+# 개발용 데이터베이스에 화면을 돌려 볼 데이터를 넣는다. VADA_DATABASE_URL 필요
+seed *ARGS:
+    cd apps/api && uv run python scripts/seed_local.py {{ARGS}}
+
+# 마이그레이션을 개발용 데이터베이스에 적용한다. 기동 시 자동 실행은 하지 않는다
+migrate:
+    cd apps/api && uv run alembic upgrade head
 
 # 살아 있는 근거와 역사의 경계. 역사에 든 것을 계약이 참조하면 실패한다
 validate-canon-boundaries:

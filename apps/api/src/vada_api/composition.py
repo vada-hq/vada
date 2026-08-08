@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-import os
-
 from fastapi import FastAPI
 from sqlalchemy import Engine, create_engine
 
+from vada_api.database import resolve_database_url
 from vada_api.finance.application import PurchaseRequestService
 from vada_api.finance.persistence.context import (
     PostgreSQLPurchaseRequestContextProvider,
@@ -26,13 +25,16 @@ from vada_api.finance.persistence.submission import (
 from vada_api.identity.persistence.relationships import (
     PostgreSQLIdentityOrganizationRepository,
 )
-
-DATABASE_URL_ENVIRONMENT_VARIABLE = "VADA_DATABASE_URL"
+from vada_api.organization.application import MemberRoleService
+from vada_api.organization.persistence.context import (
+    PostgreSQLOrganizationContextProvider,
+)
+from vada_api.organization.persistence.member_roles import PostgreSQLMemberRoleStore
 
 
 def database_engine_from_environment() -> Engine | None:
-    database_url = os.getenv(DATABASE_URL_ENVIRONMENT_VARIABLE)
-    if database_url is None or not database_url.strip():
+    database_url = resolve_database_url()
+    if database_url is None:
         return None
     return create_engine(database_url, pool_pre_ping=True)
 
@@ -47,6 +49,12 @@ def configure_postgresql_dependencies(application: FastAPI, engine: Engine) -> N
     revision_store = PostgreSQLPurchaseRequestRevisionStore(engine)
     event_finance_reader = PostgreSQLEventFinanceReader(engine, names=relationships)
 
+    application.state.organization_context_provider = (
+        PostgreSQLOrganizationContextProvider(relationships)
+    )
+    application.state.member_role_service = MemberRoleService(
+        PostgreSQLMemberRoleStore(engine)
+    )
     application.state.purchase_request_context_provider = context_provider
     application.state.purchase_request_relationship_reader = relationship_reader
     application.state.purchase_request_service = PurchaseRequestService(
