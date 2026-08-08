@@ -1,5 +1,9 @@
 # VADA 모노레포 명령 표면 — AGENTS.md의 명령 표와 1:1 유지
 set windows-shell := ["pwsh", "-NoLogo", "-NoProfile", "-Command"]
+# 개발용 비밀값은 .env에서 읽는다. 그 파일은 커밋되지 않으며 셸에 남지도 않는다.
+# 없어도 그만이다 — 목업으로 도는 명령은 이 값이 필요 없다.
+set dotenv-load := true
+set dotenv-required := false
 
 default:
     @just --list
