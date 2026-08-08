@@ -12,6 +12,7 @@ import type { RouterHistory } from "@tanstack/react-router";
 import { Dialog } from "../components/ui/dialog";
 import { AppShell } from "../shared/ui/app-shell";
 import { EventFinanceOverviewScreen } from "../features/event-finance/overview/screen";
+import { OrganizationRolesScreen } from "../features/organization/roles/screen";
 import { PurchaseRequestDetailScreen } from "../features/purchase-request/detail/screen";
 import { PurchaseRequestEditorScreen } from "../features/purchase-request/editor/screen";
 import { PurchaseRequestOwnListScreen } from "../features/purchase-request/own-list/screen";
@@ -113,6 +114,27 @@ function RevisionPage() {
   );
 }
 
+// 회장단이 구성원의 기본 직급을 바꾸는 화면. 행사 밖의 조직 화면이다.
+const organizationRolesRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/organization/roles",
+  component: OrganizationRolesPage,
+});
+
+function OrganizationRolesPage() {
+  // 조직 화면은 행사 안에 있지 않다. 재정 셸을 쓰면 브레드크럼이
+  // `운영 > 행사 > 재정`으로 나와 사용자가 자기 위치를 잘못 읽는다.
+  return (
+    <AppShell
+      activeNav="조직 관리"
+      breadcrumb={["조직 관리", "역할 및 권한 관리"]}
+      title="역할 및 권한 관리"
+    >
+      <OrganizationRolesScreen />
+    </AppShell>
+  );
+}
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   eventFinanceRoute,
@@ -121,6 +143,7 @@ const routeTree = rootRoute.addChildren([
   detailRoute,
   reviewRoute,
   revisionRoute,
+  organizationRolesRoute,
 ]);
 
 /**

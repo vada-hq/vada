@@ -1,0 +1,390 @@
+{
+  "$schema": "../../schemas/delivery-contract-bundle-0.2.0.schema.json",
+  "schema_version": "0.2.0",
+  "bundle_id": "CB-ORG-001",
+  "bundle_revision": 1,
+  "bundle_status": "approved",
+  "approval_source_ref": "SRC-004",
+  "updated_at": "2026-08-07T21:00:00+09:00",
+  "delivery_unit_ref": "SCREEN:ORG04B",
+  "objective_ko": "회장단이 학생회 구성원의 기본 역할을 확인하고 바꿉니다.",
+  "standards_profile": {
+    "openapi_version": "3.1.1",
+    "json_schema_dialect": "https://json-schema.org/draft/2020-12/schema",
+    "http_problem_details": "RFC9457"
+  },
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "document",
+      "captured_at": "2026-08-07T21:00:00+09:00",
+      "locator": "prototypes/wireframe/docs/VADA_PERMISSION_MATRIX.md#역할-축",
+      "content_ko": "기본 직급은 회장단·부서장·부원 셋이며 전 구성원은 이 셋 전부를 뜻합니다. 재정부는 직급이 아니라 부서 조건이며 직급과 무관하게 재정부 소속이면 성립합니다. 맥락 역할은 회의 생성자·회의 진행 권한자·회의 참가자·행사 운영 조직처럼 사안별로 부여됩니다. 기본 역할 변경(ORG-04B)은 회장단만 할 수 있으며 회의·행사별 맥락 역할은 변경하지 않습니다."
+    },
+    {
+      "id": "SRC-002",
+      "type": "document",
+      "captured_at": "2026-08-07T21:00:00+09:00",
+      "locator": "prototypes/wireframe/docs/VADA_SCREEN_QA.md#org-04b--역할-및-권한-관리--회장단",
+      "content_ko": "구성원 기본 역할 목록, 기본 역할 선택, 권한 변경 확인, 마지막 회장단 보호를 각각 확인합니다. 기본 역할 선택은 회의 진행 권한과 회의 생성자, 행사 운영 조직 역할을 변경하지 않습니다. 마지막 회장단 보호는 먼저 다른 구성원에게 회장단 역할을 부여해야 함을 알립니다."
+    },
+    {
+      "id": "SRC-003",
+      "type": "document",
+      "captured_at": "2026-08-07T21:00:00+09:00",
+      "locator": "prototypes/wireframe/src/app/App.tsx#ORG-04B",
+      "content_ko": "화면정의서 ORG-04B는 회장단 전용입니다. 예외로 회장단이 아닌 사용자는 권한 변경 화면에 진입할 수 없고, 마지막 회장단을 다른 역할로 변경하거나 같은 역할 변경을 중복 적용할 수 없습니다. 변경 결과는 역할 카드와 구성원 목록에 즉시 표시됩니다."
+    },
+    {
+      "id": "SRC-004",
+      "type": "user_statement",
+      "captured_at": "2026-08-07T21:00:00+09:00",
+      "locator": "current-thread/2026-08-07-stage-one-organization",
+      "content_ko": "제품 책임자가 MVP 개발 순서 1단계인 조직·역할·세션을 다음 작업으로 확정했습니다. 기본 역할을 저장할 자리가 없어 세션 계약의 전역 판정 일곱 가지 중 넷을 계산할 수 없던 것이 이 묶음으로 풀립니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "document",
+      "captured_at": "2026-08-07T21:00:00+09:00",
+      "locator": "contracts/bundles/CB-IDENTITY-001/R1.json",
+      "content_ko": "승인된 세션 계약 묶음입니다. 인증 실패와 자원 부재, 빈 본문과 문제 상세의 공통 계약을 그대로 승계합니다. 이 계약들은 조직 전용 의미가 아니라 HTTP 경계의 공통 의미입니다."
+    }
+  ],
+  "base_bundle_ref": {
+    "bundle_path": "contracts/bundles/CB-IDENTITY-001/R1.json",
+    "bundle_id": "CB-IDENTITY-001",
+    "bundle_revision": 1,
+    "canonical_sha256": "d64541f7798abe221a08be5940cf308bf15fd38f21533582a2ecb3a35272ccb5"
+  },
+  "questions": [
+    {
+      "id": "Q-001",
+      "status": "answered",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "기본 역할 관리 계약 묶음을 승인 또는 반려로 구분합니다.",
+        "source_refs": ["SRC-004"]
+      },
+      "question_ko": "기본 역할 관리 계약 묶음을 승인합니까?",
+      "reason_ko": "승인하면 조직 구성원의 기본 역할이 저장되고 회장단만 그것을 바꿀 수 있게 됩니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        { "id": "YES", "label_ko": "승인" },
+        { "id": "NO", "label_ko": "반려" }
+      ],
+      "evidence": {
+        "solution_design_refs": [],
+        "source_refs": ["SRC-001", "SRC-002", "SRC-003", "SRC-004"]
+      },
+      "answer_source_ref": "SRC-004",
+      "normalized_answer": {
+        "selected_option_ids": ["YES"],
+        "free_text": "기본 직급 셋만 다루고 재정부 소속과 맥락 역할은 건드리지 않는 것으로 확정했습니다."
+      },
+      "dismissal_reason_ko": null
+    }
+  ],
+  "contracts": [
+    {
+      "id": "DATA:organization.member_roles@R1",
+      "kind": "DATA",
+      "key": "organization.member_roles",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "학생회 구성원의 기본 역할과 소속 부서 목록을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:organization-member-roles:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["members"],
+          "properties": {
+            "members": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["membershipId", "displayName", "departments", "role"],
+                "properties": {
+                  "membershipId": { "type": "string", "minLength": 1 },
+                  "displayName": {
+                    "type": "string",
+                    "minLength": 1,
+                    "description": "구성원 이름. 표시 전용이며 이것으로 구성원을 가리키지 않는다"
+                  },
+                  "departments": {
+                    "type": "array",
+                    "items": { "type": "string", "minLength": 1 },
+                    "description": "소속 부서 이름. 한 구성원이 여러 부서에 속할 수 있어 목록이다"
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": ["president", "department_head", "member"]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "role은 저장값입니다. 회장단·부서장·부원이라는 표시 이름은 화면이 붙입니다. 저장값과 표시값을 같은 자리에 섞지 않습니다.",
+          "재정부는 여기 담기지 않습니다. 재정부는 직급이 아니라 부서 조건이므로 departments에 나타납니다.",
+          "구성원은 membershipId로 가리킵니다. 동명이인이 있으면 이름으로 가리키는 방식은 두 사람을 함께 바꿉니다.",
+          "이 응답은 세션이 정한 조직의 구성원만 담습니다. 다른 조직의 구성원은 어떤 경우에도 섞이지 않습니다.",
+          "departments가 빈 배열이면 아직 어느 부서에도 배정되지 않은 구성원입니다. 기본 역할은 부서 배정과 무관하게 존재합니다."
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "DATA:organization.role_change_command@R1",
+      "kind": "DATA",
+      "key": "organization.role_change_command",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "한 구성원의 기본 역할을 바꾸는 명령을 정의합니다.",
+      "specification": {
+        "json_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "$id": "urn:vada:schema:organization-role-change-command:r1",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["role", "expectedCurrentRole"],
+          "properties": {
+            "role": {
+              "type": "string",
+              "enum": ["president", "department_head", "member"],
+              "description": "바꾸려는 기본 역할"
+            },
+            "expectedCurrentRole": {
+              "type": "string",
+              "enum": ["president", "department_head", "member"],
+              "description": "화면이 본 현재 기본 역할. 서버 값과 다르면 거부한다"
+            }
+          }
+        },
+        "semantic_notes_ko": [
+          "expectedCurrentRole은 낙관적 잠금입니다. 두 회장단이 같은 구성원을 동시에 바꾸면 나중 요청이 앞선 변경을 덮어쓰지 않고 충돌로 거부됩니다.",
+          "role과 expectedCurrentRole이 같으면 바꿀 것이 없으므로 거부합니다. 조용히 성공으로 처리하면 화면이 바뀌지 않은 것을 바뀐 것으로 보여줍니다.",
+          "이 명령은 기본 역할 하나만 바꿉니다. 부서 배정과 회의·행사별 맥락 역할은 이 명령의 결과로 바뀌지 않습니다."
+        ]
+      },
+      "source_refs": ["SRC-002", "SRC-003"]
+    },
+    {
+      "id": "AUTH:organization.manage_member_roles@R1",
+      "kind": "AUTH",
+      "key": "organization.manage_member_roles",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "회장단만 구성원의 기본 역할을 읽고 바꿀 수 있게 합니다.",
+      "specification": {
+        "action": "organization.manage_member_roles",
+        "resource_ko": "세션이 정한 조직의 구성원 기본 역할",
+        "default_decision": "deny",
+        "enforcement": "trusted_server",
+        "allow_any": [
+          {
+            "all_of": [
+              {
+                "left_fact": "actor.has_active_organization_membership",
+                "operator": "is_true",
+                "right": { "literal": true }
+              },
+              {
+                "left_fact": "actor.organization_role",
+                "operator": "equals",
+                "right": { "literal": "president" }
+              }
+            ]
+          }
+        ]
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "API:organization.list_member_roles@R1",
+      "kind": "API",
+      "key": "organization.list_member_roles",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "회장단이 자기 조직 구성원의 기본 역할과 소속 부서를 읽습니다.",
+      "specification": {
+        "operation_id": "listOrganizationMemberRoles",
+        "method": "GET",
+        "path": "/organization/member-roles",
+        "authorization_ref": "AUTH:organization.manage_member_roles@R1",
+        "request": {
+          "body_contract_ref": "DATA:http.empty_body@R1",
+          "parameters": []
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:organization.member_roles@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:organization.action_forbidden@R1",
+          "ERROR:organization.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": ["SRC-003"]
+    },
+    {
+      "id": "API:organization.change_member_role@R1",
+      "kind": "API",
+      "key": "organization.change_member_role",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "회장단이 한 구성원의 기본 역할을 바꾸고 갱신된 목록을 받습니다.",
+      "specification": {
+        "operation_id": "changeOrganizationMemberRole",
+        "method": "PUT",
+        "path": "/organization/memberships/{membershipId}/role",
+        "authorization_ref": "AUTH:organization.manage_member_roles@R1",
+        "request": {
+          "body_contract_ref": "DATA:organization.role_change_command@R1",
+          "parameters": [
+            {
+              "name": "membershipId",
+              "in": "path",
+              "required": true,
+              "schema": { "type": "string", "minLength": 1 }
+            }
+          ]
+        },
+        "success": {
+          "http_status": 200,
+          "body_contract_ref": "DATA:organization.member_roles@R1"
+        },
+        "error_refs": [
+          "ERROR:http.unauthenticated@R1",
+          "ERROR:organization.action_forbidden@R1",
+          "ERROR:http.resource_not_found@R1",
+          "ERROR:organization.role_unchanged@R1",
+          "ERROR:organization.last_president_protected@R1",
+          "ERROR:organization.state_conflict@R1",
+          "ERROR:organization.persistence_unavailable@R1"
+        ]
+      },
+      "source_refs": ["SRC-002", "SRC-003"]
+    },
+    {
+      "id": "ERROR:organization.action_forbidden@R1",
+      "kind": "ERROR",
+      "key": "organization.action_forbidden",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "조직 관리 행동을 할 권한이 없음을 표현합니다.",
+      "specification": {
+        "code": "ORGANIZATION_ACTION_FORBIDDEN",
+        "http_status": 403,
+        "problem_type_uri": "https://vada.example/problems/organization-action-forbidden",
+        "title_ko": "이 작업을 할 권한이 없습니다.",
+        "when_ko": "회장단이 아닌 사용자가 구성원 기본 역할을 읽거나 바꾸려 할 때",
+        "disclosure_ko": "권한이 없다는 사실만 알리고 다른 조직이나 다른 구성원의 존재는 공개하지 않습니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-001", "SRC-003"]
+    },
+    {
+      "id": "ERROR:organization.role_unchanged@R1",
+      "kind": "ERROR",
+      "key": "organization.role_unchanged",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "바꾸려는 역할이 현재 역할과 같아 바꿀 것이 없음을 표현합니다.",
+      "specification": {
+        "code": "ORGANIZATION_ROLE_UNCHANGED",
+        "http_status": 422,
+        "problem_type_uri": "https://vada.example/problems/organization-role-unchanged",
+        "title_ko": "이미 같은 역할입니다.",
+        "when_ko": "role과 expectedCurrentRole이 같은 값으로 들어올 때",
+        "disclosure_ko": "현재 역할이 무엇인지만 알리고 다른 구성원의 상태는 공개하지 않습니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-002", "SRC-003"]
+    },
+    {
+      "id": "ERROR:organization.last_president_protected@R1",
+      "kind": "ERROR",
+      "key": "organization.last_president_protected",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "마지막 남은 회장단을 다른 역할로 바꿀 수 없음을 표현합니다.",
+      "specification": {
+        "code": "ORGANIZATION_LAST_PRESIDENT_PROTECTED",
+        "http_status": 409,
+        "problem_type_uri": "https://vada.example/problems/organization-last-president-protected",
+        "title_ko": "마지막 회장단은 다른 역할로 바꿀 수 없습니다.",
+        "when_ko": "조직에 회장단이 한 명뿐인데 그 구성원을 회장단이 아닌 역할로 바꾸려 할 때",
+        "disclosure_ko": "먼저 다른 구성원에게 회장단을 부여해야 한다는 것만 알립니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-002", "SRC-003"]
+    },
+    {
+      "id": "ERROR:organization.state_conflict@R1",
+      "kind": "ERROR",
+      "key": "organization.state_conflict",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "화면이 본 현재 역할이 서버 값과 달라졌음을 표현합니다.",
+      "specification": {
+        "code": "ORGANIZATION_STATE_CONFLICT",
+        "http_status": 409,
+        "problem_type_uri": "https://vada.example/problems/organization-state-conflict",
+        "title_ko": "구성원의 역할이 변경되어 다시 확인해야 합니다.",
+        "when_ko": "expectedCurrentRole이 저장된 현재 역할과 다를 때",
+        "disclosure_ko": "다시 읽어야 한다는 것만 알리고 누가 바꿨는지는 공개하지 않습니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-003"]
+    },
+    {
+      "id": "ERROR:organization.persistence_unavailable@R1",
+      "kind": "ERROR",
+      "key": "organization.persistence_unavailable",
+      "revision": 1,
+      "status": "ratified",
+      "change_class": "initial",
+      "supersedes": null,
+      "summary_ko": "저장소를 일시적으로 쓸 수 없음을 표현합니다.",
+      "specification": {
+        "code": "ORGANIZATION_PERSISTENCE_UNAVAILABLE",
+        "http_status": 503,
+        "problem_type_uri": "https://vada.example/problems/organization-persistence-unavailable",
+        "title_ko": "일시적으로 처리할 수 없습니다.",
+        "when_ko": "조직 저장소 연결이나 트랜잭션이 일시적으로 실패할 때",
+        "disclosure_ko": "재시도 가능 여부만 알리고 내부 오류 내용은 공개하지 않습니다.",
+        "details_schema_ref": "DATA:http.problem_details@R1"
+      },
+      "source_refs": ["SRC-005"]
+    }
+  ]
+}

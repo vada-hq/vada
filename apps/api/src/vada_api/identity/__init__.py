@@ -5,8 +5,10 @@ from vada_api.identity.context import (
     IdentityContextRepository,
     IdentityContextResolver,
     OrganizationContextCandidate,
+    OrganizationOnlyContextCandidate,
     RequestedOrganizationScope,
     TrustedOrganizationContext,
+    TrustedOrganizationOnlyContext,
 )
 from vada_api.identity.errors import ResourceNotFoundError, UnauthenticatedError
 
@@ -17,8 +19,10 @@ __all__ = [
     "IdentityContextRepository",
     "IdentityContextResolver",
     "OrganizationContextCandidate",
+    "OrganizationOnlyContextCandidate",
     "RequestedOrganizationScope",
     "ResourceNotFoundError",
     "TrustedOrganizationContext",
+    "TrustedOrganizationOnlyContext",
     "UnauthenticatedError",
 ]
