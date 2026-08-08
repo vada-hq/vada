@@ -32,6 +32,7 @@ from vada_api.finance.authorization import (
     PurchaseRequestActionForbiddenError,
     PurchaseRequestPermission,
 )
+from vada_api.finance.event_finance import EventItemBoardEntry
 from vada_api.finance.observability import new_operation_correlation_id
 from vada_api.finance.review import (
     ItemDecision,
@@ -565,6 +566,34 @@ class PurchaseRequestOwnListResponse(ContractModel):
     items: list[PurchaseRequestSummaryResponse]
 
 
+class EventBudgetSummaryResponse(ContractModel):
+    allocated_total: int = Field(alias="allocatedTotal", ge=0)
+    committed_total: int = Field(alias="committedTotal", ge=0)
+    # 배정이 없으면 음수가 된다. 초과가 아니라 미배정이라는 뜻이다.
+    available_total: int = Field(alias="availableTotal")
+
+
+class EventItemBoardEntryResponse(OmittableNonNullContractModel):
+    item_id: str = Field(alias="itemId", min_length=1)
+    request_id: str = Field(alias="requestId", min_length=1)
+    item_name: str = Field(alias="itemName", min_length=1)
+    requester_name: str = Field(alias="requesterName", min_length=1)
+    request_department_name: str = Field(alias="requestDepartmentName", min_length=1)
+    estimated_total_price: int = Field(alias="estimatedTotalPrice", ge=0)
+    progress_state: Literal["needs_attention", "under_review", "rejected"] = Field(
+        alias="progressState"
+    )
+    requested_by_viewer: bool = Field(alias="requestedByViewer")
+    # 재정부가 아닌 사용자에게는 이 키 자체가 없다. 필드의 존재가 판정 결과다.
+    finance_stage: Literal["review_pending", "revision_review_pending"] | None = Field(
+        default=None, alias="financeStage"
+    )
+
+
+class EventItemBoardResponse(ContractModel):
+    items: list[EventItemBoardEntryResponse]
+
+
 class FieldViolationResponse(ContractModel):
     path: str = Field(min_length=1)
     code: str = Field(min_length=1)
@@ -739,6 +768,34 @@ _OPERATION_METADATA: dict[str, dict[str, object]] = {
             "DATA:http.problem_details@R1",
         ],
         "x-vada-acceptance-criteria": ["FLOW-FIN-001@R2/AC-07"],
+    },
+    "event_budget_summary": {
+        "x-vada-permission": "event_budget.read",
+        "x-vada-contracts": [
+            "API:event_budget.get_summary@R1",
+            "AUTH:event_budget.read@R1",
+            "DATA:http.empty_body@R1",
+            "DATA:event_budget.summary@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+    },
+    "event_items": {
+        "x-vada-permission": "purchase_request.list_event_items",
+        "x-vada-contracts": [
+            "API:purchase_request.list_event_items@R1",
+            "AUTH:purchase_request.list_event_items@R1",
+            "DATA:http.empty_body@R1",
+            "DATA:purchase_request.event_item_board@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
     },
     "review": {
         "x-vada-permission": "purchase_request.review",
@@ -1054,6 +1111,65 @@ def _review_json(view: PurchaseRequestReviewView) -> dict[str, object]:
             for entry in view.history
         ],
     }
+
+
+@router.get(
+    "/events/{eventId}/budget-summary",
+    operation_id="getEventBudgetSummary",
+    response_model=EventBudgetSummaryResponse,
+    responses=_problem_responses(401, 403, 404, 503),
+    openapi_extra=_operation_metadata("event_budget_summary"),
+)
+def get_event_budget_summary(
+    authorized: Annotated[
+        AuthorizedPurchaseRequest,
+        Depends(require_permission(PurchaseRequestPermission.EVENT_BUDGET_READ)),
+    ],
+) -> dict[str, object]:
+    summary = authorized.service.get_event_budget_summary(authorized.context)
+    return {
+        "allocatedTotal": summary.allocated_total,
+        "committedTotal": summary.committed_total,
+        "availableTotal": summary.available_total,
+    }
+
+
+@router.get(
+    "/events/{eventId}/purchase-request-items",
+    operation_id="listEventPurchaseRequestItems",
+    response_model=EventItemBoardResponse,
+    response_model_exclude_none=True,
+    responses=_problem_responses(401, 403, 404, 503),
+    openapi_extra=_operation_metadata("event_items"),
+)
+def list_event_purchase_request_items(
+    authorized: Annotated[
+        AuthorizedPurchaseRequest,
+        Depends(require_permission(PurchaseRequestPermission.LIST_EVENT_ITEMS)),
+    ],
+) -> dict[str, object]:
+    return {
+        "items": [
+            _event_item_json(entry)
+            for entry in authorized.service.list_event_items(authorized.context)
+        ]
+    }
+
+
+def _event_item_json(entry: EventItemBoardEntry) -> dict[str, object]:
+    item: dict[str, object] = {
+        "itemId": entry.item_id,
+        "requestId": entry.request_id,
+        "itemName": entry.item_name,
+        "requesterName": entry.requester_name,
+        "requestDepartmentName": entry.request_department_name,
+        "estimatedTotalPrice": entry.estimated_total_price,
+        "progressState": entry.progress_state.value,
+        "requestedByViewer": entry.requested_by_viewer,
+    }
+    if entry.finance_stage is not None:
+        item["financeStage"] = entry.finance_stage.value
+    return item
 
 
 @router.get(

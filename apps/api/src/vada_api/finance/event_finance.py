@@ -86,7 +86,7 @@ def build_item_board(
     역할을 보지 않는다. 필드의 존재 자체가 판정 결과이므로 화면이 역할을 다시
     비교하지 않는다(계약 의미 주석).
     """
-    entries = []
+    entries: list[EventItemBoardEntry] = []
     for fact in facts:
         state = _progress_state(fact, viewer_user_id=viewer_user_id)
         if state is None:
