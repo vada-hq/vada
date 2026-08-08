@@ -2,9 +2,9 @@
   "$schema": "../../schemas/delivery-contract-bundle-0.2.0.schema.json",
   "schema_version": "0.2.0",
   "bundle_id": "CB-FIN-004",
-  "bundle_revision": null,
-  "bundle_status": "review_ready",
-  "approval_source_ref": null,
+  "bundle_revision": 1,
+  "bundle_status": "approved",
+  "approval_source_ref": "SRC-007",
   "updated_at": "2026-08-08T17:20:00+09:00",
   "delivery_unit_ref": "SCREEN:FIN-SUP-01",
   "objective_ko": "재정부가 보완을 요청한 품목의 요청자가 그 품목만 고쳐 다시 제출하고, 재정부가 재검토할 수 있게 합니다.",
@@ -55,6 +55,13 @@
       "captured_at": "2026-08-08T17:55:00+09:00",
       "locator": "prototypes/wireframe/docs/VADA_PERMISSION_MATRIX.md#113",
       "content_ko": "권한 매트릭스는 보완 요청 확인·재제출을 요청자 본인이면서 재정부 또는 부서장인 경우로 정합니다. canSubmitPurchaseRequest 헬퍼가 구매 요청 작성과 보완 재제출을 같은 권한으로 묶습니다. 요청자 본인 조건만으로는 부족합니다."
+    },
+    {
+      "id": "SRC-007",
+      "type": "user_statement",
+      "captured_at": "2026-08-08T18:05:00+09:00",
+      "locator": "current-thread/2026-08-08-cb-fin-004-approval",
+      "content_ko": "제품 책임자가 임기 교체로 부서장에서 내려온 요청자는 자기 요청도 보완 재제출할 수 없다는 권한 매트릭스 규칙을 그대로 두기로 하고 보완 재제출 계약 묶음을 승인했습니다."
     }
   ],
   "base_bundle_ref": {
@@ -69,7 +76,7 @@
       "kind": "DATA",
       "key": "purchase_request.revision_view",
       "revision": 1,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "initial",
       "supersedes": null,
       "summary_ko": "보완 요청된 품목과 그 사유·기한, 그리고 고칠 수 없는 나머지 품목을 함께 돌려줍니다.",
@@ -188,7 +195,7 @@
       "kind": "DATA",
       "key": "purchase_request.revision_submission",
       "revision": 1,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "initial",
       "supersedes": null,
       "summary_ko": "보완 품목의 새 입력값입니다. 같은 요청과 품목 식별자를 유지한 채 새 제출본을 만듭니다.",
@@ -249,7 +256,7 @@
       "kind": "AUTH",
       "key": "purchase_request.resubmit_revision",
       "revision": 1,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "initial",
       "supersedes": null,
       "summary_ko": "그 구매 요청의 요청자 본인이면서 지금도 재정부이거나 그 요청 부서의 부서장인 사람만 보완 재제출할 수 있게 합니다.",
@@ -335,7 +342,7 @@
       "kind": "API",
       "key": "purchase_request.get_revision",
       "revision": 1,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "initial",
       "supersedes": null,
       "summary_ko": "보완 요청된 품목과 나머지 품목을 재제출 화면이 필요한 만큼 조회합니다.",
@@ -388,7 +395,7 @@
       "kind": "API",
       "key": "purchase_request.submit_revision",
       "revision": 1,
-      "status": "proposed",
+      "status": "ratified",
       "change_class": "initial",
       "supersedes": null,
       "summary_ko": "보완 품목의 새 제출본을 만들고 그 품목을 재검토 대기로 되돌립니다.",
@@ -501,7 +508,7 @@
     },
     {
       "id": "Q-002",
-      "status": "pending",
+      "status": "answered",
       "decision_area": "approval",
       "origin": "approval",
       "depends_on_question_refs": [
@@ -537,8 +544,13 @@
           "SRC-005"
         ]
       },
-      "answer_source_ref": null,
-      "normalized_answer": null,
+      "answer_source_ref": "SRC-007",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "YES"
+        ],
+        "free_text": null
+      },
       "dismissal_reason_ko": null
     }
   ]
