@@ -3,7 +3,7 @@
   "schema_version": "0.2.0",
   "bundle_id": "CB-FIN-004",
   "bundle_revision": null,
-  "bundle_status": "defining",
+  "bundle_status": "review_ready",
   "approval_source_ref": null,
   "updated_at": "2026-08-08T17:20:00+09:00",
   "delivery_unit_ref": "SCREEN:FIN-SUP-01",
@@ -41,6 +41,13 @@
       "captured_at": "2026-08-08T17:20:00+09:00",
       "locator": "prototypes/wireframe/docs/VADA_MVP_SPEC.md#3",
       "content_ko": "MVP 성공 기준 5번의 흐름 4입니다. 요청자는 보완 내용을 확인하고 재제출할 수 있어야 하며, 그때 요청자와 재정부가 같은 상태와 검토 의견을 봅니다."
+    },
+    {
+      "id": "SRC-005",
+      "type": "user_statement",
+      "captured_at": "2026-08-08T17:40:00+09:00",
+      "locator": "current-thread/2026-08-08-revision-history-scope",
+      "content_ko": "제품 책임자가 계약을 처음에는 간단하게 하고 나중에 추가하기로 정했습니다. 재제출 화면은 가장 최근 제출본만 보여줍니다."
     }
   ],
   "base_bundle_ref": {
@@ -398,7 +405,7 @@
   "questions": [
     {
       "id": "Q-001",
-      "status": "pending",
+      "status": "answered",
       "decision_area": "data",
       "origin": "initial_plan",
       "depends_on_question_refs": [],
@@ -434,6 +441,53 @@
         "source_refs": [
           "SRC-002",
           "SRC-003"
+        ]
+      },
+      "answer_source_ref": "SRC-005",
+      "normalized_answer": {
+        "selected_option_ids": [
+          "LATEST_ONLY"
+        ],
+        "free_text": null
+      },
+      "dismissal_reason_ko": null
+    },
+    {
+      "id": "Q-002",
+      "status": "pending",
+      "decision_area": "approval",
+      "origin": "approval",
+      "depends_on_question_refs": [
+        "Q-001"
+      ],
+      "activation_conditions": [],
+      "kind": "yes_no",
+      "response_design": {
+        "basis": "logical_partition",
+        "rationale_ko": "보완 재제출 계약 묶음을 승인 또는 반려로 구분합니다.",
+        "source_refs": [
+          "SRC-005"
+        ]
+      },
+      "question_ko": "보완 재제출 계약 묶음을 승인합니까?",
+      "reason_ko": "승인하면 조회·재제출 API와 요청자 본인 권한이 FIN-SUP-01 화면의 계약 기준선이 됩니다. 저장은 추가 전용으로 전부 쌓고 응답은 가장 최근 제출본만 내려보냅니다.",
+      "target_path": "/approval",
+      "blocks_next_step": true,
+      "options": [
+        {
+          "id": "YES",
+          "label_ko": "승인"
+        },
+        {
+          "id": "NO",
+          "label_ko": "반려"
+        }
+      ],
+      "evidence": {
+        "solution_design_refs": [],
+        "source_refs": [
+          "SRC-002",
+          "SRC-005"
         ]
       },
       "answer_source_ref": null,
