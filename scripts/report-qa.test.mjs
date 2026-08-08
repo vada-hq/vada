@@ -117,3 +117,14 @@ test("띄우는 명령과 경로를 함께 찍는다", async () => {
   assert.match(text, /just dev-web-mock/);
   assert.match(text, /\/events\/\$eventId\/finance/);
 });
+
+test("정본이 적어 둔 한계를 목록에 함께 찍는다", async () => {
+  // 한계를 안 찍으면 사람이 그것을 버그로 다시 보고한다. 실제로 EVT-FIN-01의
+  // `보완 중` 표시가 그럴 뻔했다 — 계약이 두 상태를 합쳐 화면이 구분할 수 없다.
+  const report = await collectQa("EVT-FIN-01");
+  const limits = report.groups.find((group) => group.title.startsWith("아직 못 하는 것"));
+
+  assert.ok(limits, "열린 질문을 읽지 못했습니다.");
+  assert.ok(limits.items.length > 0);
+  assert.match(limits.hint, /버그가 아니라/);
+});
