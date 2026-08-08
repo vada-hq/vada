@@ -355,10 +355,14 @@ function ViewTabs({
   const groups = ["작업 보드", "기록"] as const;
 
   return (
-    <nav aria-label="재정 하위 메뉴" className="flex flex-wrap items-center gap-base">
+    // 묶음 이름은 누를 수 없는 글자다. 탭과 한 줄에 같은 크기로 두었더니 무엇을
+    // 눌러야 하는지 구분되지 않았다. 이름을 위로 올려 위계를 눈에 보이게 한다.
+    <nav aria-label="재정 하위 메뉴" className="flex flex-wrap items-start gap-loose">
       {groups.map((group) => (
-        <div className="flex items-center gap-tight" key={group}>
-          <span className="text-label text-muted-foreground">{group}</span>
+        <div className="grid gap-tight" key={group}>
+          <span className="text-label uppercase tracking-wide text-muted-foreground">
+            {group}
+          </span>
           <div className="flex gap-tight" role="tablist" aria-label={group}>
             {financeViews
               .filter((view) => view.group === group)

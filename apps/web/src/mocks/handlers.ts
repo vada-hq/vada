@@ -25,8 +25,10 @@ let draftContent: unknown = null;
  * 없으므로 `?as=member`로 일반 구성원 응답을 본다. 기본은 재정부다.
  * 이것은 개발용 전환일 뿐이고 서버는 언제나 신뢰 맥락으로 판정한다.
  */
-function viewerIsFinance(url: string) {
-  return new URL(url).searchParams.get("as") !== "member";
+function viewerIsFinance() {
+  // 브라우저 주소를 읽는다. API 요청 주소가 아니다 — 화면이 서버에 보내는
+  // 요청에는 이 파라미터가 없고, 제품 코드에 개발용 값을 흘리지 않는다.
+  return new URLSearchParams(window.location.search).get("as") !== "member";
 }
 
 export const handlers: RequestHandler[] = [
@@ -34,11 +36,9 @@ export const handlers: RequestHandler[] = [
     HttpResponse.json(eventBudgetSummaryExample),
   ),
 
-  http.get("*/api/v1/events/:eventId/purchase-request-items", ({ request }) =>
+  http.get("*/api/v1/events/:eventId/purchase-request-items", () =>
     HttpResponse.json(
-      viewerIsFinance(request.url)
-        ? eventItemBoardFinanceExample
-        : eventItemBoardMemberExample,
+      viewerIsFinance() ? eventItemBoardFinanceExample : eventItemBoardMemberExample,
     ),
   ),
 
