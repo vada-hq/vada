@@ -2,7 +2,10 @@ import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { parseFrontMatter } from "./validate-screens.mjs";
+import {
+  parseFrontMatter,
+  screensCoveredByBrowserTests,
+} from "./validate-screens.mjs";
 
 const repositoryRoot = resolve(fileURLToPath(new URL("..", import.meta.url)));
 
@@ -107,11 +110,19 @@ export function webRoutes(source) {
 }
 
 /**
- * 화면 하나는 정본 → 계약 → 서버 → 화면 순으로 자란다.
+ * 화면 하나는 정본 → 계약 → 서버 → 화면 → 브라우저 순으로 자란다.
  * 어느 칸에서 멈춰 있는지가 "얼마나 남았나"의 답이다.
+ *
+ * 다섯 칸 모두 저장소 사실에서 계산한다. 전에는 정본 파일에 손으로 적은
+ * `status: done`을 그대로 읽었고, 그 자기 신고가 "3단계 5/6 완료"를 만들었다.
+ * 그중 브라우저로 본 것은 0개였다.
  */
-export function stagesOf(canon, { served, routes }) {
-  if (!canon) return { canon: false, contract: false, api: false, web: false };
+export const AXES = ["canon", "contract", "api", "web", "browser"];
+
+export function stagesOf(canon, { served, routes, browserTested }) {
+  if (!canon) {
+    return { canon: false, contract: false, api: false, web: false, browser: false };
+  }
 
   // ERROR 계약은 어느 화면에나 붙는다. 그 화면의 계약이 생겼는지만 본다.
   const own = canon.contracts.filter((ref) => !ref.startsWith("ERROR:"));
@@ -123,7 +134,13 @@ export function stagesOf(canon, { served, routes }) {
     // 계약이 하나도 없으면 구현할 것도 없다. 빈 목록을 통과로 세지 않는다.
     api: api.length > 0 && api.every((ref) => served.has(ref)),
     web: Boolean(canon.route) && routes.includes(canon.route),
+    browser: browserTested.has(canon.id),
   };
+}
+
+/** 다섯 칸이 다 차야 만들어진 것이다. 이것도 "사람이 봤다"는 뜻은 아니다. */
+export function isBuilt(stages) {
+  return AXES.every((axis) => stages[axis]);
 }
 
 async function readCanons(root) {
@@ -141,7 +158,6 @@ async function readCanons(root) {
       id: front.id,
       title: front.title,
       route: front.route,
-      status: front.status,
       wireframeScreen: front.wireframe_screen,
       contracts: front.contracts ?? [],
     });
@@ -172,6 +188,7 @@ export async function collectStatus(root = repositoryRoot) {
     await readFile(resolve(root, "apps/web/src/app/router.tsx"), "utf8"),
   );
   const served = apiContractRefs(await readApiSources(root));
+  const browserTested = await screensCoveredByBrowserTests(root);
 
   const claimed = new Set();
   const stages = new Map([...STAGE_TITLES.keys()].map((n) => [n, []]));
@@ -187,24 +204,17 @@ export async function collectStatus(root = repositoryRoot) {
       if (stage === undefined) {
         throw new Error(`영역 "${area}"의 개발 단계를 모릅니다. §11과 대조하세요.`);
       }
-      stages.get(stage).push({
-        id,
-        area,
-        canon,
-        stages: stagesOf(canon, { served, routes }),
-        done: canon?.status === "done",
-      });
+      const reached = stagesOf(canon, { served, routes, browserTested });
+      stages.get(stage).push({ id, area, canon, stages: reached, built: isBuilt(reached) });
     }
   }
 
   const total = [...stages.values()].reduce((sum, rows) => sum + rows.length, 0);
-  const done = [...stages.values()]
-    .flat()
-    .filter((row) => row.done).length;
+  const built = [...stages.values()].flat().filter((row) => row.built).length;
 
   return {
     total,
-    done,
+    built,
     stages,
     // MVP 목록에 없는데 정본을 쓴 화면. 범위를 벗어난 작업이 여기 드러난다.
     outsideMvp: canons.filter((canon) => !claimed.has(canon.file)),
@@ -218,24 +228,25 @@ function mark(value) {
 }
 
 export function formatStatus(report) {
-  const percent = report.total ? Math.round((report.done / report.total) * 100) : 0;
+  const percent = report.total ? Math.round((report.built / report.total) * 100) : 0;
   const lines = [
-    `VADA 진행 현황 — MVP 화면 ${report.total}개 중 ${report.done}개 완료 (${percent}%)`,
+    `VADA 진행 현황 — MVP 화면 ${report.total}개 중 ${report.built}개 만들어짐 (${percent}%)`,
     `분모는 ${MVP_SPEC} §6, 순서는 §11이 정한다.`,
+    `"만들어짐"은 다섯 칸이 다 찼다는 뜻이지 사람이 봤다는 뜻이 아니다.`,
   ];
 
   for (const [stage, rows] of report.stages) {
-    const finished = rows.filter((row) => row.done).length;
+    const finished = rows.filter((row) => row.built).length;
     lines.push("", `${STAGE_TITLES.get(stage)}  —  ${finished} / ${rows.length}`);
 
     const started = rows.filter((row) => row.canon);
     if (started.length) {
-      lines.push("  화면              정본 계약 서버 화면  상태   정본 파일");
+      lines.push("  화면              정본 계약 서버 화면 브라우저  정본 파일");
       for (const row of started) {
         const s = row.stages;
         lines.push(
           `  ${row.id.padEnd(16)}  ${mark(s.canon)}    ${mark(s.contract)}    ` +
-            `${mark(s.api)}    ${mark(s.web)}   ${(row.canon.status ?? "?").padEnd(5)}  ${row.canon.file}`,
+            `${mark(s.api)}    ${mark(s.web)}     ${mark(s.browser)}     ${row.canon.file}`,
         );
       }
     }
@@ -249,13 +260,14 @@ export function formatStatus(report) {
   if (report.outsideMvp.length) {
     lines.push("", `MVP 화면 묶음에 없는데 정본이 있는 화면 ${report.outsideMvp.length}개`);
     for (const canon of report.outsideMvp) {
-      lines.push(`  ${(canon.wireframeScreen ?? canon.id).padEnd(16)}  ${canon.status}  ${canon.file}`);
+      lines.push(`  ${(canon.wireframeScreen ?? canon.id).padEnd(16)}  ${canon.file}`);
     }
   }
 
   lines.push(
     "",
-    "정본=screens/<ID>.md · 계약=ERROR 아닌 계약 · 서버=그 API 계약이 서버에 구현됨 · 화면=웹 라우터 등록",
+    "정본=screens/<ID>.md · 계약=ERROR 아닌 계약 · 서버=그 API 계약이 서버에 구현됨",
+    "화면=웹 라우터 등록 · 브라우저=apps/web/e2e/에 그 화면을 다루는 검사가 있음",
     "지금 진행 중인 것은 GitHub Issue와 PR이 소유한다: gh pr list && gh issue list",
   );
   return lines.join("\n");

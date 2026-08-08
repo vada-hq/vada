@@ -117,17 +117,19 @@ export async function collectQa(screenId, root = repositoryRoot) {
     if (items.length) groups.push({ ...section, items });
   }
 
+  const flows = await flowsThroughScreen(root, canon.front.contracts ?? []);
+
   return {
     id: canon.front.id,
     title: canon.front.title,
     route: canon.front.route,
-    status: canon.front.status,
     file: canon.file,
     wireframeScreen: canon.front.wireframe_screen,
     errors: errorContracts(canon.front.contracts ?? []),
     groups,
     commonCriteria: common,
-    flows: await flowsThroughScreen(root, canon.front.contracts ?? []),
+    flows,
+    flowRequirements: await flowRequirements(root, flows),
   };
 }
 
@@ -157,6 +159,49 @@ async function flowsThroughScreen(root, contracts) {
   return [...flows].sort();
 }
 
+/**
+ * 흐름 정본이 요구하는데 화면 정본이 다시 적지 않은 것들.
+ *
+ * 규칙이 계약에만 있는 것이 아니다. "오늘 이전 필요일을 허용하지 않는다"가
+ * `FLOW-FIN-001` STEP-02에만 있었고, 계약과 화면 정본만 읽은 구현은 그것을
+ * 빠뜨렸다. "각 품목은 카테고리·예산 항목을 가진다"도 흐름 규칙에만 있었고
+ * 역시 빠졌다. 둘 다 사람이 브라우저에서 찾았다.
+ *
+ * 흐름 전체 절차는 `just flow`가 갖는다. 여기서는 **이 화면이 답해야 하는
+ * 문장만** 끌어와 확인 목록에 붙인다.
+ */
+export async function flowRequirements(root, flowIds) {
+  const groups = [];
+
+  for (const flowId of flowIds) {
+    const directory = resolve(root, "product-specs/flows", flowId);
+    let files = [];
+    try {
+      files = (await readdir(directory)).filter((name) => name.endsWith(".json")).sort();
+    } catch {
+      continue;
+    }
+    if (!files.length) continue;
+
+    // 리비전이 여럿이면 가장 나중 것이 살아 있는 정본이다.
+    const flow = JSON.parse(
+      await readFile(resolve(directory, files[files.length - 1]), "utf8"),
+    );
+    const spec = flow.spec ?? {};
+
+    groups.push({
+      id: `${flow.id}@R${flow.revision}`,
+      title: flow.title,
+      rules: (spec.rules ?? []).map((rule) => rule.text).filter(Boolean),
+      responses: (spec.steps ?? [])
+        .map((step) => step.systemResponse)
+        .filter(Boolean),
+    });
+  }
+
+  return groups;
+}
+
 export function formatQa(report) {
   const lines = [
     `${report.wireframeScreen ?? report.id} · ${report.title} — 브라우저 확인 항목`,
@@ -165,6 +210,18 @@ export function formatQa(report) {
     `  경로   ${report.route ?? "(정본에 경로가 없습니다)"}`,
     `  띄우기 just dev-web-mock`,
   ];
+
+  for (const flow of report.flowRequirements ?? []) {
+    const items = [...flow.rules, ...flow.responses];
+    if (!items.length) continue;
+    lines.push(
+      "",
+      `흐름 정본이 요구하는 것 (${items.length}) — ${flow.id}`,
+      "  화면 정본이 다시 적지 않는다. 여기 있는 것이 빠져도 화면 정본만 보면 모른다",
+      "",
+    );
+    for (const item of items) lines.push(`  [ ] ${item}`);
+  }
 
   for (const group of report.groups) {
     lines.push("", `${group.title} (${group.items.length})`, `  ${group.hint}`, "");

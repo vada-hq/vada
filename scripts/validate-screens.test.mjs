@@ -9,9 +9,16 @@ import { parseFrontMatter, validateScreens } from "./validate-screens.mjs";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-async function fixtureRoot(screens) {
+async function fixtureRoot(screens, { browserTested = ["MYREQ01"] } = {}) {
   const root = await mkdtemp(resolve(tmpdir(), "vada-screens-"));
   await mkdir(resolve(root, "screens"), { recursive: true });
+  // 화면에 route가 있으면 브라우저 검사를 요구한다. 픽스처도 그 규칙을 지킨다.
+  await mkdir(resolve(root, "apps/web/e2e"), { recursive: true });
+  await writeFile(
+    resolve(root, "apps/web/e2e/fixture.spec.ts"),
+    browserTested.map((id) => `test.describe("${id}", () => {});`).join("\n"),
+    "utf8",
+  );
   await cp(
     resolve(repositoryRoot, "contracts/bundles"),
     resolve(root, "contracts/bundles"),
@@ -39,7 +46,6 @@ wireframe_screen: MY-REQ-01
 route: /events/$eventId/purchase-requests/mine
 contracts:
   - API:purchase_request.list_own@R1
-status: done
 ---
 
 ## 화면 구조
@@ -83,7 +89,6 @@ test("프런트매터의 목록과 주석을 읽는다", () => {
   const front = parseFrontMatter(validScreen);
 
   assert.equal(front.id, "MYREQ01");
-  assert.equal(front.status, "done");
   assert.deepEqual(front.contracts, ["API:purchase_request.list_own@R1"]);
 });
 
@@ -130,14 +135,26 @@ test("파일 이름과 다른 id를 거부한다", async () => {
   assert.ok(errors.some((error) => error.includes("파일 이름이 id와 다릅니다")));
 });
 
-test("정의되지 않은 상태 값을 거부한다", async () => {
+test("진행 상태를 정본에 적으면 거부한다", async () => {
+  // 손으로 적은 done을 현황판이 그대로 읽어 "5/6 완료"를 만들었다.
+  // 그중 사람이 브라우저에서 본 것은 0개였다. 상태는 Issue와 PR이 소유한다.
   const root = await fixtureRoot({
-    "MYREQ01.md": validScreen.replace("status: done", "status: 완료"),
+    "MYREQ01.md": validScreen.replace("---\n\n## 화면 구조", "status: done\n---\n\n## 화면 구조"),
   });
 
   const { errors } = await validateScreens(root);
 
-  assert.ok(errors.some((error) => error.includes("status는")));
+  assert.ok(errors.some((error) => error.includes("진행 상태를 정본에 적지 않습니다")));
+});
+
+test("브라우저 검사가 없는 화면을 거부한다", async () => {
+  // jsdom은 레이아웃도 클릭 가로챔도 보지 못한다. route가 있으면 브라우저에서
+  // 한 번은 열어 봐야 한다. 이 규칙이 없던 동안 화면 넷이 그렇게 통과했다.
+  const root = await fixtureRoot({ "MYREQ01.md": validScreen }, { browserTested: [] });
+
+  const { errors } = await validateScreens(root);
+
+  assert.ok(errors.some((error) => error.includes("브라우저 검사가 없습니다")));
 });
 
 test("필수 항목이 빠지면 거부한다", async () => {

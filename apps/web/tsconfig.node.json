@@ -2,7 +2,9 @@
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.node.tsbuildinfo",
     "target": "es2023",
-    "lib": ["ES2023"],
+    // DOM이 필요한 이유는 e2e다. `page.evaluate()` 안의 코드는 Node가 아니라
+    // 브라우저에서 돈다 — 레이아웃을 재려면 거기서 document를 봐야 한다.
+    "lib": ["ES2023", "DOM"],
     "types": ["node"],
     "skipLibCheck": true,
 

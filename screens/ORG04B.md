@@ -17,7 +17,6 @@ contracts:
   - ERROR:organization.persistence_unavailable@R1
   - ERROR:http.unauthenticated@R1
   - ERROR:http.resource_not_found@R1
-status: done
 ---
 
 ## 이 화면이 푸는 것

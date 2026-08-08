@@ -15,7 +15,6 @@ contracts:
   - ERROR:purchase_request.action_forbidden@R1
   - ERROR:http.resource_not_found@R1
   - ERROR:purchase_request.persistence_unavailable@R1
-status: done
 ---
 
 ## 이 화면이 MVP에서 갖는 범위
