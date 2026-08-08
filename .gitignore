@@ -28,6 +28,9 @@ infra/**/.terraform/
 playwright-report/
 test-results/
 
+# 계산되는 현황판. 커밋하면 손으로 고칠 수 있게 되고, 그 순간 정본이 넷이 된다
+.artifacts/
+
 # 에디터·OS
 .idea/
 .vscode/

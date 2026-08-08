@@ -63,6 +63,10 @@ validate-tooling:
 status:
     pnpm status
 
+# API 하나하나가 계획인지 구현인지. `just api --html`이면 브라우저로 볼 파일을 굽는다
+api *ARGS:
+    pnpm api {{ARGS}}
+
 # 테스트
 test: test-api test-web test-wireframe
 
