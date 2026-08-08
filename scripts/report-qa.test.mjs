@@ -128,3 +128,20 @@ test("정본이 적어 둔 한계를 목록에 함께 찍는다", async () => {
   assert.ok(limits.items.length > 0);
   assert.match(limits.hint, /버그가 아니라/);
 });
+
+test("이 화면이 놓인 흐름을 알려준다", async () => {
+  // 알려주지 않으면 사람이 목록을 끝까지 보고도 흐름 검증이 있는 줄 모른다.
+  // 실제로 그랬다. 화면 목록만 보고 "플로우 테스트는 없는 거냐"고 물었다.
+  const text = formatQa(await collectQa("EVT-FIN-01"));
+
+  assert.match(text, /이 화면 하나만 본다/);
+  assert.match(text, /just flow FLOW-FIN-001/);
+});
+
+test("흐름 정본이 없는 화면에는 없다고 말한다", async () => {
+  // 빈 칸을 두면 흐름이 있는데 못 찾은 것인지 원래 없는 것인지 모른다.
+  const report = await collectQa("ORG-04B");
+  if (!report) return;
+
+  assert.match(formatQa(report), /흐름 정본이 아직 없다|just flow /);
+});
