@@ -6,7 +6,7 @@
 
 - 대상 테스트: `pnpm --filter web test -- <test-path-or-pattern>`
 - 린트: `pnpm --filter web lint`
-- 타입 검사: `pnpm --filter web typecheck`
+- 타입 검사: `pnpm --filter web typecheck` (`tsc -b`). **`tsc --noEmit`을 쓰지 마라** — 이 저장소는 composite 프로젝트라 그 명령은 루트 설정만 보고 아무것도 검사하지 않는다. 실제로 계약에 없는 prop을 넘긴 코드가 `--noEmit`을 통과했고 `tsc -b`가 잡았다.
 - 작업자·검증자용 웹 범위 검사: 리포 루트에서 `just check-web`
 
 저장소 전체 `just check`는 승인 변경을 통합한 총괄이 한 번 실행한다.
