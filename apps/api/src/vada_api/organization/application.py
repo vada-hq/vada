@@ -45,13 +45,21 @@ class MemberRoleStore(Protocol):
 
     def list_members(self, *, organization_id: str) -> tuple[MemberRoleView, ...]: ...
 
-    def change_role(
+    def change_role_and_list(
         self,
         state: MemberRoleState,
         *,
         organization_id: str,
         expected_current_role: MemberRole,
-    ) -> bool: ...
+    ) -> tuple[MemberRoleView, ...] | None:
+        """바꾸고, 바뀐 명단을 같은 트랜잭션에서 읽어 함께 준다.
+
+        기대한 값이 아니면 아무것도 쓰지 않고 `None`을 준다.
+
+        따로 하면 왕복이 둘이고, 그 사이에 다른 회장단이 쓰면 응답이 내가 쓴
+        결과가 아니게 된다.
+        """
+        ...
 
 
 class MemberRoleService:
@@ -92,14 +100,15 @@ class MemberRoleService:
         )
 
         # 읽은 뒤 바뀌었을 수 있다. 저장소가 기대한 값을 다시 확인하고 쓴다.
-        if not self._store.change_role(
+        changed = self._store.change_role_and_list(
             decided,
             organization_id=context.organization_id,
             expected_current_role=command.expected_current_role,
-        ):
+        )
+        if changed is None:
             raise RoleChangeRaceError
 
-        return self._store.list_members(organization_id=context.organization_id)
+        return changed
 
     def _require_president(
         self,

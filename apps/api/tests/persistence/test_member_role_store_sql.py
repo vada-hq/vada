@@ -22,8 +22,9 @@ ORGANIZATION = "organization-a"
 class CapturingConnection:
     """실행 대신 문장을 붙잡는다. 데이터베이스가 없어도 SQL을 볼 수 있다."""
 
-    def __init__(self, captured: list[sa.ClauseElement]) -> None:
+    def __init__(self, captured: list[sa.ClauseElement], rowcount: int) -> None:
         self._captured = captured
+        self._rowcount = rowcount
 
     def __enter__(self) -> CapturingConnection:
         return self
@@ -33,11 +34,12 @@ class CapturingConnection:
 
     def execute(self, statement: sa.ClauseElement) -> Any:
         self._captured.append(statement)
-        return _EmptyResult()
+        return _EmptyResult(self._rowcount)
 
 
 class _EmptyResult:
-    rowcount = 0
+    def __init__(self, rowcount: int) -> None:
+        self.rowcount = rowcount
 
     def mappings(self) -> _EmptyResult:
         return self
@@ -47,14 +49,20 @@ class _EmptyResult:
 
 
 class CapturingEngine:
+    """연결을 몇 번 잡았는지도 센다. 왕복 수가 화면이 열리는 시간을 정한다."""
+
     def __init__(self) -> None:
         self.captured: list[sa.ClauseElement] = []
+        self.connections = 0
+        self.rowcount = 0
 
     def connect(self) -> CapturingConnection:
-        return CapturingConnection(self.captured)
+        self.connections += 1
+        return CapturingConnection(self.captured, self.rowcount)
 
     def begin(self) -> CapturingConnection:
-        return CapturingConnection(self.captured)
+        self.connections += 1
+        return CapturingConnection(self.captured, self.rowcount)
 
 
 def _compile(statement: sa.ClauseElement) -> str:
@@ -90,7 +98,7 @@ def test_the_role_update_carries_the_expected_current_role(
 ) -> None:
     store = PostgreSQLMemberRoleStore(cast(Any, engine))
 
-    store.change_role(
+    store.change_role_and_list(
         MemberRoleState(membership_id="membership-a", role=MemberRole.DEPARTMENT_HEAD),
         organization_id=ORGANIZATION,
         expected_current_role=MemberRole.MEMBER,
@@ -109,10 +117,33 @@ def test_a_lost_race_reports_no_write(engine: CapturingEngine) -> None:
     # rowcount가 0이면 기대한 값이 아니었다는 뜻이다. 덮어쓰지 않았다.
     store = PostgreSQLMemberRoleStore(cast(Any, engine))
 
-    changed = store.change_role(
+    changed = store.change_role_and_list(
         MemberRoleState(membership_id="membership-a", role=MemberRole.MEMBER),
         organization_id=ORGANIZATION,
         expected_current_role=MemberRole.PRESIDENT,
     )
 
-    assert changed is False
+    assert changed is None
+    # 쓰지 못했으면 명단도 읽지 않는다. 왕복을 하나 덜 쓴다.
+    assert len(engine.captured) == 1
+
+
+def test_a_successful_write_reads_the_new_list_in_the_same_transaction(
+    engine: CapturingEngine,
+) -> None:
+    """쓰고 나서 따로 읽으면 왕복이 하나 더 들고, 그 사이에 다른 회장단이 쓰면
+    돌려주는 명단이 내가 쓴 결과가 아니게 된다."""
+    engine.rowcount = 1
+    store = PostgreSQLMemberRoleStore(cast(Any, engine))
+
+    store.change_role_and_list(
+        MemberRoleState(membership_id="membership-a", role=MemberRole.MEMBER),
+        organization_id=ORGANIZATION,
+        expected_current_role=MemberRole.PRESIDENT,
+    )
+
+    assert len(engine.captured) == 2
+    assert _compile(engine.captured[0]).startswith("UPDATE organization_memberships")
+    assert "SELECT" in _compile(engine.captured[1])
+    # 한 연결에서 둘 다 했다. 트랜잭션이 하나여야 응답이 내가 쓴 결과다.
+    assert engine.connections == 1

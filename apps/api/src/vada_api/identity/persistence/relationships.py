@@ -12,7 +12,7 @@ from vada_api.identity.authentication import CognitoPrincipal
 from vada_api.identity.context import (
     DepartmentRelationshipCandidate,
     OrganizationContextCandidate,
-    OrganizationOnlyContextCandidate,
+    SoleOrganizationCandidate,
 )
 from vada_api.identity.persistence.schema import (
     cognito_identities,
@@ -58,25 +58,60 @@ class PostgreSQLIdentityOrganizationRepository:
                 )
             )
 
-    def find_active_organization_id(self, *, user_id: str) -> str | None:
-        """행사 없이 사용자의 조직을 정한다.
+    def find_sole_organization_context(
+        self, principal: CognitoPrincipal
+    ) -> SoleOrganizationCandidate | None:
+        """검증된 주체에서 조직 소속을 한 번에 읽는다.
 
         계약이 조직 화면의 경로에 조직 식별자를 두지 않았으므로 서버가 유도한다.
         활성 소속이 정확히 하나일 때만 답한다. 둘 이상이면 어느 학생회를 말하는지
         서버가 알 수 없고, 그때 아무거나 고르면 다른 조직의 명단을 보여준다.
+
+        바깥 조인을 쓴다. 신원은 있는데 소속이 없는 경우와 신원 자체가 없는 경우를
+        한 번의 왕복으로 가르기 위해서다. 안쪽 조인이면 둘 다 빈 결과라 401과 404를
+        구분할 수 없고, 구분하려면 조회가 하나 더 는다.
         """
         statement = (
-            sa.select(organization_memberships.c.organization_id)
-            .where(
-                organization_memberships.c.user_id == user_id,
-                organization_memberships.c.is_active.is_(True),
+            sa.select(
+                cognito_identities.c.user_id,
+                organization_memberships.c.organization_id,
+                organization_memberships.c.membership_id,
             )
-            .distinct()
+            .select_from(
+                cognito_identities.outerjoin(
+                    organization_memberships,
+                    sa.and_(
+                        organization_memberships.c.user_id
+                        == cognito_identities.c.user_id,
+                        organization_memberships.c.is_active.is_(True),
+                    ),
+                )
+            )
+            .where(
+                cognito_identities.c.issuer == principal.issuer,
+                cognito_identities.c.subject == principal.subject,
+            )
             .limit(2)
         )
         with self._engine.connect() as connection:
-            organization_ids = tuple(connection.scalars(statement))
-        return organization_ids[0] if len(organization_ids) == 1 else None
+            rows = connection.execute(statement).mappings().all()
+
+        if not rows:
+            return None
+        if len(rows) > 1:
+            # 활성 소속이 둘 이상이다. 어느 학생회인지 서버가 정할 수 없다.
+            return SoleOrganizationCandidate(
+                user_id=cast(str, rows[0]["user_id"]),
+                organization_id=None,
+                membership_id=None,
+            )
+
+        row = rows[0]
+        return SoleOrganizationCandidate(
+            user_id=cast(str, row["user_id"]),
+            organization_id=cast("str | None", row["organization_id"]),
+            membership_id=cast("str | None", row["membership_id"]),
+        )
 
     def find_active_organization_id_for_event(
         self, *, user_id: str, event_id: str
@@ -101,31 +136,6 @@ class PostgreSQLIdentityOrganizationRepository:
         with self._engine.connect() as connection:
             organization_ids = tuple(connection.scalars(statement))
         return organization_ids[0] if len(organization_ids) == 1 else None
-
-    def find_organization_only_context(
-        self, *, user_id: str, organization_id: str
-    ) -> OrganizationOnlyContextCandidate | None:
-        """행사 없이 조직 소속만 읽는다. 조직 화면은 행사 안에 있지 않다."""
-
-        statement = sa.select(
-            organization_memberships.c.user_id,
-            organization_memberships.c.organization_id,
-            organization_memberships.c.membership_id,
-            organization_memberships.c.is_active.label("membership_is_active"),
-        ).where(
-            organization_memberships.c.user_id == user_id,
-            organization_memberships.c.organization_id == organization_id,
-        )
-        with self._engine.connect() as connection:
-            row = connection.execute(statement).mappings().first()
-        if row is None:
-            return None
-        return OrganizationOnlyContextCandidate(
-            user_id=cast(str, row["user_id"]),
-            organization_id=cast(str, row["organization_id"]),
-            membership_id=cast(str, row["membership_id"]),
-            membership_is_active=cast(bool, row["membership_is_active"]),
-        )
 
     def find_organization_context(
         self,

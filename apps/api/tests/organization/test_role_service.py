@@ -65,23 +65,23 @@ class FakeStore:
         self.asked.append(organization_id)
         return self.rows.get(organization_id, ())
 
-    def change_role(
+    def change_role_and_list(
         self,
         state: MemberRoleState,
         *,
         organization_id: str,
         expected_current_role: MemberRole,
-    ) -> bool:
+    ) -> tuple[MemberRoleView, ...] | None:
         self.written.append((state.membership_id, expected_current_role, state.role))
         if not self.writes_succeed:
-            return False
+            return None
         self.rows[organization_id] = tuple(
             member_view(member.membership_id, state.role, member.display_name)
             if member.membership_id == state.membership_id
             else member
             for member in self.rows[organization_id]
         )
-        return True
+        return self.rows[organization_id]
 
 
 def _service(
@@ -192,6 +192,24 @@ def test_a_lost_race_does_not_overwrite() -> None:
         service.change_member_role(
             organization_context(), membership_id="membership-a", command=_promote()
         )
+
+
+def test_a_change_reads_the_member_list_once() -> None:
+    """명단은 권한을 판정하려고 한 번 읽는다. 바뀐 명단은 쓰기가 함께 돌려준다.
+
+    쓰고 나서 다시 읽으면 왕복이 하나 더 들고, 그 사이 다른 회장단이 쓰면
+    돌려주는 명단이 내가 쓴 결과가 아니게 된다.
+    """
+    store = FakeStore(
+        member_view("membership-president", MemberRole.PRESIDENT),
+        member_view("membership-a", MemberRole.MEMBER),
+    )
+
+    MemberRoleService(store).change_member_role(
+        organization_context(), membership_id="membership-a", command=_promote()
+    )
+
+    assert store.asked == [ORGANIZATION]
 
 
 def test_the_write_carries_the_expected_current_role() -> None:

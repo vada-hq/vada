@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import cast
 
 import sqlalchemy as sa
-from sqlalchemy import Engine
+from sqlalchemy import Connection, Engine
 from sqlalchemy.exc import SQLAlchemyError
 
 from vada_api.identity.persistence.schema import (
@@ -40,6 +40,15 @@ class PostgreSQLMemberRoleStore:
         한 구성원이 여러 부서에 속할 수 있어 부서를 배열로 모은다. 부서가 없는
         구성원도 나온다 — 미배정도 조직의 구성원이다.
         """
+        try:
+            with self._engine.connect() as connection:
+                return self._read_members(connection, organization_id=organization_id)
+        except SQLAlchemyError as error:
+            raise OrganizationPersistenceError from error
+
+    def _read_members(
+        self, connection: Connection, *, organization_id: str
+    ) -> tuple[MemberRoleView, ...]:
         departments = sa.func.array_remove(
             sa.func.array_agg(sa.func.distinct(DEPARTMENTS.c.name)),
             None,
@@ -85,11 +94,7 @@ class PostgreSQLMemberRoleStore:
             )
             .order_by(USERS.c.display_name, MEMBERSHIPS.c.membership_id)
         )
-        try:
-            with self._engine.connect() as connection:
-                rows = connection.execute(statement).mappings().all()
-        except SQLAlchemyError as error:
-            raise OrganizationPersistenceError from error
+        rows = connection.execute(statement).mappings().all()
 
         return tuple(
             MemberRoleView(
@@ -101,17 +106,20 @@ class PostgreSQLMemberRoleStore:
             for row in rows
         )
 
-    def change_role(
+    def change_role_and_list(
         self,
         state: MemberRoleState,
         *,
         organization_id: str,
         expected_current_role: MemberRole,
-    ) -> bool:
-        """기대한 현재 역할일 때만 바꾼다. 아니면 아무것도 쓰지 않는다.
+    ) -> tuple[MemberRoleView, ...] | None:
+        """기대한 현재 역할일 때만 바꾸고, 바뀐 명단을 같은 트랜잭션에서 읽는다.
 
         낙관적 잠금이다. 화면이 본 값을 조건에 담아 한 문장으로 확인하고 쓴다.
         읽고 나서 쓰면 그 사이에 다른 회장단이 같은 사람을 바꿀 수 있다.
+
+        쓰고 나서 명단을 따로 읽으면 왕복이 하나 더 들고, 그 사이에 다른
+        회장단이 쓰면 돌려주는 명단이 내가 쓴 결과가 아니게 된다.
         """
         statement = (
             sa.update(MEMBERSHIPS)
@@ -125,7 +133,9 @@ class PostgreSQLMemberRoleStore:
         )
         try:
             with self._engine.begin() as connection:
-                return connection.execute(statement).rowcount == 1
+                if connection.execute(statement).rowcount != 1:
+                    return None
+                return self._read_members(connection, organization_id=organization_id)
         except SQLAlchemyError as error:
             raise OrganizationPersistenceError from error
 

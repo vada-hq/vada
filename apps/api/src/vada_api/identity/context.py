@@ -43,13 +43,17 @@ class OrganizationContextCandidate:
 
 
 @dataclass(frozen=True, slots=True)
-class OrganizationOnlyContextCandidate:
-    """Organization membership row for screens that sit outside any event."""
+class SoleOrganizationCandidate:
+    """행사 밖 화면이 쓰는, 아직 믿지 않은 소속 한 줄.
+
+    신원은 확인됐고 소속은 아닐 수 있다. 소속이 없거나 둘 이상이면
+    `organization_id`가 비어 있다 — 그 둘을 신원 없음과 섞으면 401과 404가
+    한 답으로 뭉개진다.
+    """
 
     user_id: str
-    organization_id: str
-    membership_id: str
-    membership_is_active: bool
+    organization_id: str | None
+    membership_id: str | None
 
 
 class IdentityContextRepository(Protocol):
@@ -65,12 +69,17 @@ class IdentityContextRepository(Protocol):
         event_id: str,
     ) -> OrganizationContextCandidate | None: ...
 
-    def find_organization_only_context(
-        self,
-        *,
-        user_id: str,
-        organization_id: str,
-    ) -> OrganizationOnlyContextCandidate | None: ...
+
+class SoleOrganizationRepository(Protocol):
+    """조직 화면의 맥락을 한 번의 조회로 답하는 포트.
+
+    신원과 소속을 따로 읽으면 왕복이 그만큼 늘어난다. 요청 하나가 왕복 하나로
+    끝나야 하는 자리다.
+    """
+
+    def find_sole_organization_context(
+        self, principal: CognitoPrincipal
+    ) -> SoleOrganizationCandidate | None: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -120,49 +129,52 @@ class TrustedOrganizationOnlyContext:
         return True
 
 
-class IdentityContextResolver:
-    def __init__(self, repository: IdentityContextRepository) -> None:
+class SoleOrganizationContextResolver:
+    """조직 식별자를 경로에서 받지 않는 화면의 신뢰 맥락을 세운다.
+
+    조회는 한 번이다. 신원·소속·조직 판별을 따로 읽으면 왕복이 네 번이고,
+    개발용 데이터베이스에서 그 넷이 1.2초였다.
+    """
+
+    def __init__(self, repository: SoleOrganizationRepository) -> None:
         self._repository = repository
 
-    def resolve_organization(
-        self,
-        request_context: Mapping[str, object],
-        *,
-        organization_id: str,
+    def resolve(
+        self, request_context: Mapping[str, object]
     ) -> TrustedOrganizationOnlyContext:
         """행사 없이 조직만으로 신뢰 맥락을 세운다.
 
-        거부는 전부 같은 답으로 돌려보낸다. 없는 조직과 소속되지 않은 조직을
-        구분해 알리면 어떤 조직이 있는지 떠보는 통로가 된다.
+        소속이 없는 것과 둘 이상인 것을 같은 답으로 돌려보낸다. 구분해 알리면
+        어떤 조직이 있는지 떠보는 통로가 된다. 신원이 없는 것만 따로 답한다 —
+        외부에서 유효하지만 VADA에 등록되지 않은 신원은 다른 인증 실패와
+        구분되지 않아야 한다.
         """
         principal = principal_from_api_gateway_request_context(request_context)
-        user_id = self._repository.find_internal_user_id(principal)
-        if user_id is None or not _is_non_blank(user_id):
+        candidate = self._repository.find_sole_organization_context(principal)
+        if candidate is None or not _is_non_blank(candidate.user_id):
             raise UnauthenticatedError
 
-        if not _is_non_blank(organization_id):
-            raise ResourceNotFoundError
-
-        candidate = self._repository.find_organization_only_context(
-            user_id=user_id,
-            organization_id=organization_id,
-        )
+        organization_id = candidate.organization_id
+        membership_id = candidate.membership_id
         if (
-            candidate is None
-            or not candidate.membership_is_active
-            or candidate.user_id != user_id
-            # 저장소가 다른 조직 행을 돌려주더라도 요청한 조직과 다르면 믿지 않는다.
-            or candidate.organization_id != organization_id
-            or not _is_non_blank(candidate.membership_id)
+            organization_id is None
+            or membership_id is None
+            or not _is_non_blank(organization_id)
+            or not _is_non_blank(membership_id)
         ):
             raise ResourceNotFoundError
 
         return TrustedOrganizationOnlyContext(
             principal=principal,
-            user_id=user_id,
+            user_id=candidate.user_id,
             organization_id=organization_id,
-            membership_id=candidate.membership_id,
+            membership_id=membership_id,
         )
+
+
+class IdentityContextResolver:
+    def __init__(self, repository: IdentityContextRepository) -> None:
+        self._repository = repository
 
     def resolve(
         self,
