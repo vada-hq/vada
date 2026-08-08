@@ -61,6 +61,9 @@ organization_memberships = sa.Table(
     sa.Column("organization_id", sa.Text(), nullable=False),
     sa.Column("user_id", sa.Text(), nullable=False),
     sa.Column("is_active", sa.Boolean(), nullable=False, server_default=sa.true()),
+    # 기본 직급. 마이그레이션 20260808_0006과 짝이다. 재정부는 여기 없다 —
+    # 직급이 아니라 부서 조건이므로 부서 소속이 답한다.
+    sa.Column("role", sa.Text(), nullable=False, server_default=sa.text("'member'")),
     _non_empty("membership_id"),
     _non_empty("organization_id"),
     _non_empty("user_id"),
