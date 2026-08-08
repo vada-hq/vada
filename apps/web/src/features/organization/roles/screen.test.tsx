@@ -1,5 +1,5 @@
 import { http, HttpResponse } from "msw";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, test } from "vitest";
 
@@ -31,6 +31,19 @@ function row(overrides: Partial<MemberRoleRow> = {}): MemberRoleRow {
 function serve(members: MemberRoleRow[]) {
   const body: MemberRoles = { members };
   server.use(http.get(listUrl, () => HttpResponse.json(body)));
+}
+
+/** 명단을 몇 번 읽었는지 센다. 한 번이면 충분한 자리가 있다. */
+function serveCounted(members: MemberRoleRow[]) {
+  const body: MemberRoles = { members };
+  const counter = { reads: 0 };
+  server.use(
+    http.get(listUrl, () => {
+      counter.reads += 1;
+      return HttpResponse.json(body);
+    }),
+  );
+  return counter;
 }
 
 function renderScreen() {
@@ -99,6 +112,78 @@ describe("역할 및 권한 관리 화면", () => {
     expect(sent).toEqual([{ role: "department_head", expectedCurrentRole: "member" }]);
   });
 
+  test("바꾸는 동안 그 줄이 진행 중임을 알린다", async () => {
+    // 누른 순간부터 서버가 답할 때까지 화면이 아무 말도 안 하면 사람은 또 누른다.
+    const user = userEvent.setup();
+    serve([row({ membershipId: "membership-a", displayName: "김도윤", role: "member" })]);
+    server.use(http.put(changeUrl, () => new Promise(() => {})));
+    renderScreen();
+
+    await user.click(await screen.findByRole("combobox", { name: /김도윤 기본 역할/ }));
+    const list = await screen.findByRole("listbox");
+    await user.click(within(list).getByRole("option", { name: "부서장" }));
+
+    const [only] = await tableRows();
+    expect(await within(only).findByText("적용 중")).toHaveAttribute("role", "status");
+    // 아직 서버가 답하지 않았다. 바뀐 것처럼 보이면 그것이 거짓 성공이다.
+    expect(within(only).getByRole("combobox", { name: /김도윤 기본 역할/ })).toHaveTextContent(
+      "부원",
+    );
+  });
+
+  test("바뀐 역할은 응답에서 읽는다. 명단을 다시 읽지 않는다", async () => {
+    // 서버가 바뀐 명단을 통째로 돌려준다. 다시 읽으면 같은 왕복을 두 번 하는 것이다.
+    const user = userEvent.setup();
+    const list = serveCounted([
+      row({ membershipId: "membership-a", displayName: "김도윤", role: "member" }),
+    ]);
+    server.use(
+      http.put(changeUrl, () =>
+        HttpResponse.json({
+          members: [
+            row({ membershipId: "membership-a", displayName: "김도윤", role: "department_head" }),
+          ],
+        } satisfies MemberRoles),
+      ),
+    );
+    renderScreen();
+
+    await user.click(await screen.findByRole("combobox", { name: /김도윤 기본 역할/ }));
+    const options = await screen.findByRole("listbox");
+    await user.click(within(options).getByRole("option", { name: "부서장" }));
+
+    await waitFor(() =>
+      expect(screen.getByRole("combobox", { name: /김도윤 기본 역할/ })).toHaveTextContent(
+        "부서장",
+      ),
+    );
+    expect(list.reads).toBe(1);
+  });
+
+  test("무엇이 어떻게 바뀌었는지 알린다", async () => {
+    // 정본: 변경 성공 — 목록이 즉시 새 역할을 보여주고 무엇이 바뀌었는지 알린다.
+    const user = userEvent.setup();
+    serve([row({ membershipId: "membership-a", displayName: "김도윤", role: "member" })]);
+    server.use(
+      http.put(changeUrl, () =>
+        HttpResponse.json({
+          members: [
+            row({ membershipId: "membership-a", displayName: "김도윤", role: "department_head" }),
+          ],
+        } satisfies MemberRoles),
+      ),
+    );
+    renderScreen();
+
+    await user.click(await screen.findByRole("combobox", { name: /김도윤 기본 역할/ }));
+    const options = await screen.findByRole("listbox");
+    await user.click(within(options).getByRole("option", { name: "부서장" }));
+
+    expect(
+      await screen.findByText("김도윤의 기본 역할을 부원에서 부서장으로 바꿨습니다."),
+    ).toBeInTheDocument();
+  });
+
   test("마지막 회장단 보호와 경합을 같은 안내로 알린다", async () => {
     // 요청자가 할 일은 둘 다 다시 읽는 것으로 같다.
     const user = userEvent.setup();
@@ -115,6 +200,9 @@ describe("역할 및 권한 관리 화면", () => {
     await user.click(within(list).getByRole("option", { name: "부원" }));
 
     expect(await screen.findAllByText("그 사이 역할이 바뀌었습니다.")).not.toHaveLength(0);
+    // 거절당했다. 고른 값이 남아 있으면 바뀐 것으로 읽힌다.
+    expect(screen.getByRole("combobox", { name: /박해랑 기본 역할/ })).toHaveTextContent("회장단");
+    expect(screen.queryByText(/바꿨습니다/)).not.toBeInTheDocument();
   });
 
   test("권한이 없으면 다른 조직 데이터의 존재를 드러내지 않는다", async () => {

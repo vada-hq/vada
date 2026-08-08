@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { Alert } from "../../../components/ui/alert";
 import { Select } from "../../../components/ui/select";
 import { StatusBadge } from "../../../components/ui/status-badge";
 import { failureOf, type ApiFailure } from "../../../shared/api/failure";
@@ -15,6 +16,12 @@ import {
   type MemberRole,
   type MemberRoleRow,
 } from "./query";
+
+interface AppliedChange {
+  displayName: string;
+  from: MemberRole;
+  to: MemberRole;
+}
 
 function describeFailure(failure: ApiFailure) {
   if (failure === "unauthenticated") {
@@ -52,19 +59,25 @@ const roleOptions: Array<{ value: MemberRole; label: string }> = [
 export function OrganizationRolesScreen() {
   const query = useQuery(memberRolesQueryOptions());
   const queryClient = useQueryClient();
-  const [changing, setChanging] = useState<string | null>(null);
+  const [applied, setApplied] = useState<AppliedChange | null>(null);
 
   const mutation = useMutation({
     mutationFn: ({ row, role }: { row: MemberRoleRow; role: MemberRole }) =>
       // 화면이 본 값을 함께 보낸다. 서버가 그것으로 낙관적 잠금을 건다.
       changeMemberRole(row.membershipId, role, row.role),
-    onSettled: async () => {
-      setChanging(null);
-      await queryClient.invalidateQueries({ queryKey: memberRolesQueryKey() });
+    onMutate: () => setApplied(null),
+    onSuccess: (members, { row, role }) => {
+      // 응답이 이미 바뀐 명단이다. 다시 읽으면 같은 왕복을 한 번 더 한다.
+      queryClient.setQueryData(memberRolesQueryKey(), members);
+      setApplied({ displayName: row.displayName, from: row.role, to: role });
     },
+    // 거절당했으면 화면이 본 것이 낡았다는 뜻이다. 정본이 다시 읽으라고 한다.
+    onError: () => queryClient.invalidateQueries({ queryKey: memberRolesQueryKey() }),
   });
 
   const failure = query.error ?? mutation.error;
+  // 서버가 답할 때까지 이 줄만 잠근다. 값은 바꾸지 않는다 — 아직 사실이 아니다.
+  const changing = mutation.isPending ? mutation.variables.row.membershipId : null;
 
   const columns = [
     {
@@ -93,14 +106,18 @@ export function OrganizationRolesScreen() {
           </StatusBadge>
           <Select
             aria-label={`${row.displayName} 기본 역할`}
-            disabled={mutation.isPending && changing === row.membershipId}
+            disabled={changing === row.membershipId}
             onValueChange={(value) => {
-              setChanging(row.membershipId);
               mutation.mutate({ row, role: value as MemberRole });
             }}
             options={roleOptions}
             value={row.role}
           />
+          {changing === row.membershipId ? (
+            <span className="text-caption text-muted-foreground" role="status">
+              적용 중
+            </span>
+          ) : null}
         </span>
       ),
     },
@@ -123,6 +140,14 @@ export function OrganizationRolesScreen() {
           failure={failureOf(failure)}
           onRetry={() => void query.refetch()}
         />
+      ) : null}
+
+      {applied ? (
+        <Alert
+          title={`${applied.displayName}의 기본 역할을 ${roleLabels[applied.from]}에서 ${roleLabels[applied.to]}으로 바꿨습니다.`}
+        >
+          맥락 역할은 바뀌지 않았습니다.
+        </Alert>
       ) : null}
 
       {query.isSuccess && query.data.members.length === 0 ? (
