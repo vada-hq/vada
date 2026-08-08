@@ -67,6 +67,10 @@ status:
 api *ARGS:
     pnpm api {{ARGS}}
 
+# 브라우저에서 무엇을 봐야 하는지. 화면 정본에서 뽑는다. 예: just qa EVT-FIN-01
+qa SCREEN:
+    pnpm qa {{SCREEN}}
+
 # 테스트
 test: test-api test-web test-wireframe
 

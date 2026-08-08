@@ -38,6 +38,7 @@
 | `just validate-tooling` | CI 스코프 판별과 착수 전 도구 점검 |
 | `just status` | ⭐ MVP 화면 몇 개 중 몇 개가 어디까지 왔는지 |
 | `just api` / `just api --html` | API 하나하나가 계획인지 구현인지. `--html`은 브라우저로 볼 파일을 굽는다 |
+| `just qa <화면ID>` | ⭐ 브라우저에서 무엇을 봐야 하는지. 화면 정본에서 뽑는다 |
 | `just generate-openapi-client` / `just validate-openapi-client` | 생성 API 클라이언트 |
 | `just test` / `just test-api` / `just test-api-postgresql` / `just test-web` | 전체 / API / 실제 PostgreSQL / 웹 테스트 |
 | `just lint` | 린트 + 포맷 검사 |
@@ -47,6 +48,8 @@
 | `just check` | ⭐ 계약 + 화면 + 도구 + lint + typecheck + test + build 전부 |
 
 **완료의 정의 = `just check` 통과 + 사람이 브라우저에서 확인.** "됐다"는 주장이 아니라 명령 출력과 실제 화면이 증거다.
+
+뒤쪽 절반을 눈대중으로 하지 마라. `just qa <화면ID>`가 그 화면의 정본에서 확인 항목을 뽑아 준다. **자동 테스트는 만든 것만 검사한다.** 실제로 화면이 정본의 절반만 구현됐는데 웹 테스트 85건이 전부 통과했다. 안 만든 것은 목록이 있어야 보인다.
 
 ## 구조
 
@@ -88,7 +91,7 @@
 6. RED → GREEN으로 구현한다. 상태 목록이 곧 테스트 목록이다.
 7. **화면 골격이 서면 그 자리에서 사람에게 보여준다.** 완성까지 기다리지 않는다. 위계가 틀렸으면 여기서 잡아야 싸다.
 8. `just check-web` 또는 `just check-api`를 돌린다.
-9. `just dev-web-mock`으로 브라우저에서 직접 확인한다.
+9. `just qa <화면ID>`로 확인 항목을 뽑고 `just dev-web-mock`으로 하나씩 본다. **`없어야 하는 것`도 본다** — 범위에서 뺀 것이 안 보이는지 확인해야 한다.
 10. PR을 올린다. 사람이 브라우저에서 보고 판정한다.
 
 새 계약이 필요하면 `contracts/`에 추가한다. 계약 의미가 바뀌면 활성 리비전을 덮어쓰지 말고 새 리비전을 만든다.
