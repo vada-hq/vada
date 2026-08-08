@@ -83,6 +83,11 @@ def items() -> list[dict[str, object]]:
 
     재정 화면 다섯이 그 세 갈래를 모두 그린다. 하나만 있으면 나머지 두 열이
     비어 있는지 잘못 그리는지 구분되지 않는다.
+
+    가격 근거와 유형별 상세는 PostgreSQL 안의 계약 함수가 판정한다. 근거는
+    비어 있을 수 없고, 일반 구매는 상품 URL·업체·가격 화면 중 하나를, 나머지
+    유형은 업체 견적을 요구한다. 상세의 키도 유형마다 정해져 있다 — 아무 이름이나
+    넣으면 데이터베이스가 거부한다.
     """
     return [
         {
@@ -96,7 +101,17 @@ def items() -> list[dict[str, object]]:
             "quantity": Decimal(1),
             "unit": "식",
             "estimated_unit_price": Decimal(360_000),
-            "details": {"provider": "", "location": "대운동장"},
+            # 파일 없이 메모만 있는 견적. 보완 요청을 받을 만한 상태다.
+            "price_evidence": [{"type": "vendor_quote", "note": "업체 유선 견적"}],
+            "details": {
+                "vendor": "한빛음향",
+                "pickupLocation": "대운동장",
+                "startDate": "2026-09-25",
+                "endDate": "2026-09-26",
+                "contact": "02-000-0000",
+                "depositAmount": 100_000,
+                "conditions": "우천 시 전일 취소 가능",
+            },
         },
         {
             "item_id": "item-102",
@@ -109,7 +124,15 @@ def items() -> list[dict[str, object]]:
             "quantity": Decimal(1),
             "unit": "장",
             "estimated_unit_price": Decimal(180_000),
-            "details": {"itemKind": "현수막", "specification": "5m x 1m"},
+            "price_evidence": [
+                {"type": "vendor_quote", "fileRef": "quote-102.pdf"},
+            ],
+            "details": {
+                "itemKind": "현수막",
+                "specification": "5m x 1m",
+                "printMethod": "실사 출력",
+                "deliveryDate": "2026-09-20",
+            },
         },
         {
             "item_id": "item-103",
@@ -122,6 +145,9 @@ def items() -> list[dict[str, object]]:
             "quantity": Decimal(100),
             "unit": "개",
             "estimated_unit_price": Decimal(8_500),
+            "price_evidence": [
+                {"type": "product_url", "url": "https://example.invalid/tumbler"},
+            ],
             "details": {
                 "vendor": "쿠팡",
                 "productUrl": "https://example.invalid/tumbler",
@@ -140,6 +166,9 @@ def items() -> list[dict[str, object]]:
             "quantity": Decimal(2),
             "unit": "개",
             "estimated_unit_price": Decimal(120_000),
+            "price_evidence": [
+                {"type": "vendor_quote", "fileRef": "quote-201.pdf"},
+            ],
             "details": {"itemKind": "배경 보드", "specification": "2m x 2m"},
         },
         {
@@ -153,6 +182,9 @@ def items() -> list[dict[str, object]]:
             "quantity": Decimal(6),
             "unit": "개",
             "estimated_unit_price": Decimal(15_000),
+            "price_evidence": [
+                {"type": "vendor_quote", "fileRef": "quote-202.pdf"},
+            ],
             "details": {"itemKind": "표지판", "specification": "A1"},
         },
     ]
@@ -164,7 +196,7 @@ def reviews() -> list[dict[str, object]]:
             "review_event_id": "review-101",
             "item_id": "item-101",
             "review_status": "revision_requested",
-            "revision_reason": "견적 근거가 없습니다. 업체와 금액을 남겨 주세요.",
+            "revision_reason": "유선 견적만 있습니다. 견적서 파일을 첨부해 주세요.",
             "revision_due_date": date(2026, 9, 1),
             "rejection_reason": None,
         },
@@ -335,7 +367,6 @@ def seed(engine: Engine, *, reset: bool) -> None:
                 {
                     "organization_id": ORGANIZATION,
                     "event_id": EVENT,
-                    "price_evidence": [],
                     **item,
                 }
                 for item in items()

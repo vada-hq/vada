@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Mapping
-from typing import Protocol, cast
+from typing import Protocol
 
 from fastapi import Request
 from sqlalchemy.exc import SQLAlchemyError
@@ -9,7 +8,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from vada_api.finance.application import FinanceRequestContext
 from vada_api.finance.authorization import PurchaseRequestActorFacts
 from vada_api.finance.submission import PurchaseRequestPersistenceError
-from vada_api.identity.authentication import principal_from_api_gateway_request_context
+from vada_api.identity.authentication import (
+    api_gateway_request_context,
+    principal_from_api_gateway_request_context,
+)
 from vada_api.identity.context import (
     IdentityContextRepository,
     IdentityContextResolver,
@@ -44,7 +46,7 @@ class PostgreSQLPurchaseRequestContextProvider:
         self._identity_resolver = IdentityContextResolver(repository)
 
     def resolve(self, request: Request, *, event_id: str) -> FinanceRequestContext:
-        request_context = _api_gateway_request_context(request)
+        request_context = api_gateway_request_context(request)
         principal = principal_from_api_gateway_request_context(request_context)
         try:
             user_id = self._repository.find_internal_user_id(principal)
@@ -95,17 +97,6 @@ class PostgreSQLPurchaseRequestContextProvider:
             request_department_name=relationship.request_department_name,
             available_budget=relationship.available_budget,
         )
-
-
-def _api_gateway_request_context(request: Request) -> Mapping[str, object]:
-    raw_event = request.scope.get("aws.event")
-    if not isinstance(raw_event, Mapping):
-        return {}
-    event = cast(Mapping[str, object], raw_event)
-    raw_context = event.get("requestContext")
-    if not isinstance(raw_context, Mapping):
-        return {}
-    return cast(Mapping[str, object], raw_context)
 
 
 def _is_valid_relationship(

@@ -25,6 +25,11 @@ from vada_api.finance.persistence.submission import (
 from vada_api.identity.persistence.relationships import (
     PostgreSQLIdentityOrganizationRepository,
 )
+from vada_api.organization.application import MemberRoleService
+from vada_api.organization.persistence.context import (
+    PostgreSQLOrganizationContextProvider,
+)
+from vada_api.organization.persistence.member_roles import PostgreSQLMemberRoleStore
 
 
 def database_engine_from_environment() -> Engine | None:
@@ -44,6 +49,12 @@ def configure_postgresql_dependencies(application: FastAPI, engine: Engine) -> N
     revision_store = PostgreSQLPurchaseRequestRevisionStore(engine)
     event_finance_reader = PostgreSQLEventFinanceReader(engine, names=relationships)
 
+    application.state.organization_context_provider = (
+        PostgreSQLOrganizationContextProvider(relationships)
+    )
+    application.state.member_role_service = MemberRoleService(
+        PostgreSQLMemberRoleStore(engine)
+    )
     application.state.purchase_request_context_provider = context_provider
     application.state.purchase_request_relationship_reader = relationship_reader
     application.state.purchase_request_service = PurchaseRequestService(
