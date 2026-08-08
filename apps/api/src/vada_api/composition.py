@@ -17,6 +17,9 @@ from vada_api.finance.persistence.relationships import (
     PostgreSQLPurchaseRequestRelationshipReader,
 )
 from vada_api.finance.persistence.reviews import PostgreSQLPurchaseRequestReviewStore
+from vada_api.finance.persistence.revisions import (
+    PostgreSQLPurchaseRequestRevisionStore,
+)
 from vada_api.finance.persistence.submission import (
     PostgreSQLPurchaseRequestSubmissionStore,
 )
@@ -41,6 +44,7 @@ def configure_postgresql_dependencies(application: FastAPI, engine: Engine) -> N
     request_repository = PostgreSQLPurchaseRequestRepository(engine)
     submission_store = PostgreSQLPurchaseRequestSubmissionStore(engine)
     review_store = PostgreSQLPurchaseRequestReviewStore(engine)
+    revision_store = PostgreSQLPurchaseRequestRevisionStore(engine)
     event_finance_reader = PostgreSQLEventFinanceReader(engine, names=relationships)
 
     application.state.purchase_request_context_provider = context_provider
@@ -50,5 +54,6 @@ def configure_postgresql_dependencies(application: FastAPI, engine: Engine) -> N
         submission_store,
         relationship_reader=relationship_reader,
         review_store=review_store,
+        revision_store=revision_store,
         event_finance_reader=event_finance_reader,
     )

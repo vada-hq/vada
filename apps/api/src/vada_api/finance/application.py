@@ -33,6 +33,12 @@ from vada_api.finance.review import (
     ItemReviewStatus,
     decide,
 )
+from vada_api.finance.revision import (
+    RevisionItemState,
+    RevisionSubmission,
+    RevisionSubmissionCommand,
+    decide_revision,
+)
 from vada_api.finance.submission import (
     DraftReference,
     PurchaseRequestContent,
@@ -138,6 +144,58 @@ class PurchaseRequestReviewStore(Protocol):
     ) -> tuple[ItemReviewEvent, ...]: ...
 
 
+@dataclass(frozen=True, slots=True)
+class RevisionItemView:
+    """보완을 요청받은 품목 하나. 이것만 고칠 수 있다."""
+
+    item_id: str
+    item_name: str
+    revision_reason: str
+    revision_due_date: date | None
+    content: Mapping[str, object]
+
+
+@dataclass(frozen=True, slots=True)
+class OtherItemView:
+    """같은 요청의 나머지 품목. 맥락을 위해 함께 보이지만 고칠 수 없다."""
+
+    item_id: str
+    item_name: str
+    review_status: ItemReviewStatus
+    estimated_total_price: int
+
+
+@dataclass(frozen=True, slots=True)
+class PurchaseRequestRevisionView:
+    request_id: str
+    request_title: str
+    revision_items: tuple[RevisionItemView, ...]
+    other_items: tuple[OtherItemView, ...]
+
+
+class PurchaseRequestRevisionStore(Protocol):
+    """보완 제출본을 추가 전용으로 쌓고 재제출 화면이 볼 것을 읽는다."""
+
+    def revision_view(
+        self, *, organization_id: str, event_id: str, request_id: str
+    ) -> PurchaseRequestRevisionView | None: ...
+
+    def item_states(
+        self, *, organization_id: str, event_id: str, request_id: str
+    ) -> tuple[RevisionItemState, ...]: ...
+
+    def append(
+        self,
+        submissions: tuple[RevisionSubmission, ...],
+        *,
+        organization_id: str,
+        event_id: str,
+        request_id: str,
+        submitted_by_user_id: str,
+        idempotency_key: str,
+    ) -> None: ...
+
+
 class EventFinanceReader(Protocol):
     """행사 하나의 예산 요약과 활성 품목을 조직 범위로 읽는다."""
 
@@ -210,6 +268,7 @@ class PurchaseRequestService:
         *,
         relationship_reader: PurchaseRequestRelationshipReader | None = None,
         review_store: PurchaseRequestReviewStore | None = None,
+        revision_store: PurchaseRequestRevisionStore | None = None,
         event_finance_reader: EventFinanceReader | None = None,
         today_provider: Callable[[], date] | None = None,
         observer: PurchaseRequestObserver | None = None,
@@ -218,6 +277,7 @@ class PurchaseRequestService:
         self._submission_store = submission_store
         self._relationship_reader = relationship_reader
         self._review_store = review_store
+        self._revision_store = revision_store
         self._event_finance_reader = event_finance_reader
         self._today_provider = today_provider or _kst_today
         self._observer = observer or observer_from_environment()
@@ -353,6 +413,56 @@ class PurchaseRequestService:
             event_id=identity.event_id,
             requester_user_id=identity.user_id,
         )
+
+    def get_revision(
+        self, context: FinanceRequestContext, *, request_id: str
+    ) -> PurchaseRequestRevisionView:
+        identity = context.actor.identity
+        view = self._require_revision_store().revision_view(
+            organization_id=identity.organization_id,
+            event_id=identity.event_id,
+            request_id=request_id,
+        )
+        if view is None:
+            # 다른 조직의 요청도 여기로 온다. 없는 것과 못 보는 것을 같은 답으로
+            # 돌려보내야 다른 조직에 그 요청이 있는지 떠볼 수 없다.
+            raise ResourceNotFoundError
+        return view
+
+    def submit_revision(
+        self,
+        context: FinanceRequestContext,
+        *,
+        request_id: str,
+        command: RevisionSubmissionCommand,
+        idempotency_key: str,
+    ) -> PurchaseRequestRevisionView:
+        identity = context.actor.identity
+        store = self._require_revision_store()
+        scope = {
+            "organization_id": identity.organization_id,
+            "event_id": identity.event_id,
+            "request_id": request_id,
+        }
+
+        states = store.item_states(**scope)
+        if not states:
+            raise ResourceNotFoundError
+
+        decided = decide_revision(states, command)
+        store.append(
+            decided,
+            **scope,
+            submitted_by_user_id=identity.user_id,
+            idempotency_key=idempotency_key,
+        )
+
+        # 쌓은 뒤 다시 읽어 돌려준다. 화면이 방금 낸 것을 서버가 아는 대로
+        # 봐야 한다. 보낸 값을 되돌려주면 저장되지 않은 것도 저장된 것처럼 보인다.
+        view = store.revision_view(**scope)
+        if view is None:
+            raise PurchaseRequestPersistenceError
+        return view
 
     def get_event_budget_summary(
         self, context: FinanceRequestContext
@@ -553,6 +663,11 @@ class PurchaseRequestService:
         if self._review_store is None:
             raise PurchaseRequestPersistenceError
         return self._review_store
+
+    def _require_revision_store(self) -> PurchaseRequestRevisionStore:
+        if self._revision_store is None:
+            raise PurchaseRequestPersistenceError
+        return self._revision_store
 
     def _require_event_finance_reader(self) -> EventFinanceReader:
         if self._event_finance_reader is None:

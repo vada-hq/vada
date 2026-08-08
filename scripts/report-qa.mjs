@@ -32,6 +32,11 @@ const SECTIONS = [
     hint: "와이어프레임에는 있지만 이번 범위에서 뺀 것. 안 보이는 게 맞다",
   },
   { heading: "구현하며 정한 것", title: "구현하며 정한 것", hint: "이 판정대로 보이는지 확인한다" },
+  {
+    heading: "열린 질문",
+    title: "아직 못 하는 것 (알고 있는 한계)",
+    hint: "확인하면 틀린 것으로 보인다. 버그가 아니라 아직 답이 없는 것이다",
+  },
 ];
 
 /** `## 이름` 부터 다음 `## ` 직전까지. 제목에 덧말이 붙어도 앞부분으로 찾는다. */
@@ -122,7 +127,34 @@ export async function collectQa(screenId, root = repositoryRoot) {
     errors: errorContracts(canon.front.contracts ?? []),
     groups,
     commonCriteria: common,
+    flows: await flowsThroughScreen(root, canon.front.contracts ?? []),
   };
+}
+
+/**
+ * 이 화면이 어느 흐름 위에 있는가. 계약 묶음의 전달 단위가 그 답을 안다.
+ *
+ * 이 목록은 화면 하나만 본다. 눌러서 다음 화면으로 넘어가는 것은 여기 없다.
+ * 그 절차는 `just flow`가 갖고 있는데, 그것을 여기서 알려주지 않으면 사람이
+ * 목록을 끝까지 보고도 흐름 검증이 있는 줄 모른다. 실제로 그랬다.
+ */
+async function flowsThroughScreen(root, contracts) {
+  const references = new Set(contracts);
+  const directory = resolve(root, "contracts/bundles");
+  const flows = new Set();
+
+  for (const name of await readdir(directory)) {
+    for (const file of await readdir(resolve(directory, name))) {
+      if (!file.endsWith(".json")) continue;
+      const bundle = JSON.parse(await readFile(resolve(directory, name, file), "utf8"));
+      const unit = bundle.delivery_unit_ref ?? "";
+      if (!unit.startsWith("FLOW-")) continue;
+      if ((bundle.contracts ?? []).some((contract) => references.has(contract.id))) {
+        flows.add(unit.split("@")[0]);
+      }
+    }
+  }
+  return [...flows].sort();
 }
 
 export function formatQa(report) {
@@ -150,6 +182,17 @@ export function formatQa(report) {
       "",
     );
     for (const error of report.errors) lines.push(`  [ ] ${error}`);
+  }
+
+  lines.push(
+    "",
+    "여기까지는 이 화면 하나만 본다. 눌러서 다음 화면으로 넘어가는 절차는 없다.",
+  );
+  if (report.flows.length) {
+    lines.push("이 화면이 놓인 흐름을 끝까지 따라가려면:");
+    for (const flow of report.flows) lines.push(`  just flow ${flow}`);
+  } else {
+    lines.push("이 화면을 지나는 흐름 정본이 아직 없다: product-specs/flows/");
   }
 
   lines.push(

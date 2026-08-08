@@ -16,6 +16,7 @@ import { PurchaseRequestDetailScreen } from "../features/purchase-request/detail
 import { PurchaseRequestEditorScreen } from "../features/purchase-request/editor/screen";
 import { PurchaseRequestOwnListScreen } from "../features/purchase-request/own-list/screen";
 import { PurchaseRequestReviewScreen } from "../features/purchase-request/review/screen";
+import { PurchaseRequestRevisionScreen } from "../features/purchase-request/revision/screen";
 
 export interface AppRouterContext {
   queryClient: QueryClient;
@@ -95,6 +96,23 @@ function EventFinancePage() {
   );
 }
 
+// 요청자가 보완 요청을 확인하고 다시 내는 화면. 검토 화면과 짝이다.
+const revisionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/events/$eventId/purchase-requests/$requestId/revision",
+  component: RevisionPage,
+});
+
+function RevisionPage() {
+  const { eventId, requestId } = revisionRoute.useParams();
+
+  return (
+    <PurchaseRequestShell current="보완 요청 확인·재제출">
+      <PurchaseRequestRevisionScreen eventId={eventId} requestId={requestId} />
+    </PurchaseRequestShell>
+  );
+}
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   eventFinanceRoute,
@@ -102,6 +120,7 @@ const routeTree = rootRoute.addChildren([
   editorRoute,
   detailRoute,
   reviewRoute,
+  revisionRoute,
 ]);
 
 /**

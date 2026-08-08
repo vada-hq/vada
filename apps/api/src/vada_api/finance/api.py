@@ -25,6 +25,7 @@ from vada_api.finance.application import (
     FinanceRequestContext,
     PurchaseRequestDraft,
     PurchaseRequestReviewView,
+    PurchaseRequestRevisionView,
     PurchaseRequestService,
     PurchaseRequestSummary,
 )
@@ -40,6 +41,12 @@ from vada_api.finance.review import (
     ReviewConflictError,
     ReviewDecision,
     ReviewDecisionInvalidError,
+)
+from vada_api.finance.revision import (
+    ItemNotUnderRevisionError,
+    RevisionConflictError,
+    RevisionEmptyError,
+    RevisionSubmissionCommand,
 )
 from vada_api.finance.submission import (
     DraftReference,
@@ -566,6 +573,46 @@ class PurchaseRequestOwnListResponse(ContractModel):
     items: list[PurchaseRequestSummaryResponse]
 
 
+class RevisionItemResponse(OmittableNonNullContractModel):
+    omittable_non_null_aliases = frozenset({"revisionDueDate"})
+
+    item_id: str = Field(alias="itemId", min_length=1)
+    item_name: str = Field(alias="itemName", min_length=1)
+    revision_reason: str = Field(alias="revisionReason", min_length=1)
+    revision_due_date: str | None = Field(default=None, alias="revisionDueDate")
+    content: dict[str, object]
+
+
+class RevisionOtherItemResponse(ContractModel):
+    item_id: str = Field(alias="itemId", min_length=1)
+    item_name: str = Field(alias="itemName", min_length=1)
+    review_status: Literal["review_pending", "approved", "rejected"] = Field(
+        alias="reviewStatus"
+    )
+    estimated_total_price: int = Field(alias="estimatedTotalPrice", ge=0)
+
+
+class PurchaseRequestRevisionViewResponse(ContractModel):
+    request_id: str = Field(alias="requestId", min_length=1)
+    request_title: str = Field(alias="requestTitle", min_length=1)
+    revision_items: list[RevisionItemResponse] = Field(alias="revisionItems")
+    other_items: list[RevisionOtherItemResponse] = Field(alias="otherItems")
+
+
+class RevisionSubmissionItemModel(ContractModel):
+    item_id: str = Field(alias="itemId", min_length=1)
+    # 계약이 이 값을 revision_requested로 고정한다. 다른 값을 보낸다는 것은
+    # 화면이 계약을 벗어났다는 뜻이라 판정 전에 막는다.
+    expected_review_status: Literal["revision_requested"] = Field(
+        alias="expectedReviewStatus"
+    )
+    content: dict[str, object]
+
+
+class RevisionSubmissionCommandModel(ContractModel):
+    items: list[RevisionSubmissionItemModel] = Field(min_length=1)
+
+
 class EventBudgetSummaryResponse(ContractModel):
     allocated_total: int = Field(alias="allocatedTotal", ge=0)
     committed_total: int = Field(alias="committedTotal", ge=0)
@@ -768,6 +815,36 @@ _OPERATION_METADATA: dict[str, dict[str, object]] = {
             "DATA:http.problem_details@R1",
         ],
         "x-vada-acceptance-criteria": ["FLOW-FIN-001@R2/AC-07"],
+    },
+    "revision_view": {
+        "x-vada-permission": "purchase_request.resubmit_revision",
+        "x-vada-contracts": [
+            "API:purchase_request.get_revision@R1",
+            "AUTH:purchase_request.resubmit_revision@R1",
+            "DATA:http.empty_body@R1",
+            "DATA:purchase_request.revision_view@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
+    },
+    "submit_revision": {
+        "x-vada-permission": "purchase_request.resubmit_revision",
+        "x-vada-contracts": [
+            "API:purchase_request.submit_revision@R1",
+            "AUTH:purchase_request.resubmit_revision@R1",
+            "DATA:purchase_request.revision_submission@R1",
+            "DATA:purchase_request.revision_view@R1",
+            "ERROR:http.unauthenticated@R1",
+            "ERROR:purchase_request.action_forbidden@R1",
+            "ERROR:http.resource_not_found@R1",
+            "ERROR:purchase_request.validation_failed@R1",
+            "ERROR:purchase_request.state_conflict@R1",
+            "ERROR:purchase_request.persistence_unavailable@R1",
+            "DATA:http.problem_details@R1",
+        ],
     },
     "event_budget_summary": {
         "x-vada-permission": "event_budget.read",
@@ -1113,6 +1190,92 @@ def _review_json(view: PurchaseRequestReviewView) -> dict[str, object]:
     }
 
 
+def _revision_json(view: PurchaseRequestRevisionView) -> dict[str, object]:
+    return {
+        "requestId": view.request_id,
+        "requestTitle": view.request_title,
+        "revisionItems": [
+            {
+                "itemId": item.item_id,
+                "itemName": item.item_name,
+                "revisionReason": item.revision_reason,
+                **(
+                    {"revisionDueDate": item.revision_due_date.isoformat()}
+                    if item.revision_due_date is not None
+                    else {}
+                ),
+                "content": dict(item.content),
+            }
+            for item in view.revision_items
+        ],
+        "otherItems": [
+            {
+                "itemId": item.item_id,
+                "itemName": item.item_name,
+                "reviewStatus": item.review_status.value,
+                "estimatedTotalPrice": item.estimated_total_price,
+            }
+            for item in view.other_items
+        ],
+    }
+
+
+@router.get(
+    "/events/{eventId}/purchase-requests/{requestId}/revision",
+    operation_id="getPurchaseRequestRevision",
+    response_model=PurchaseRequestRevisionViewResponse,
+    response_model_exclude_none=True,
+    responses=_problem_responses(401, 403, 404, 503),
+    openapi_extra=_operation_metadata("revision_view"),
+)
+def get_purchase_request_revision(
+    request_id: Annotated[str, Path(alias="requestId", min_length=1)],
+    authorized: Annotated[
+        AuthorizedPurchaseRequest,
+        Depends(require_permission(PurchaseRequestPermission.RESUBMIT_REVISION)),
+    ],
+) -> dict[str, object]:
+    return _revision_json(
+        authorized.service.get_revision(authorized.context, request_id=request_id)
+    )
+
+
+@router.post(
+    "/events/{eventId}/purchase-requests/{requestId}/revisions",
+    operation_id="submitPurchaseRequestRevision",
+    response_model=PurchaseRequestRevisionViewResponse,
+    response_model_exclude_none=True,
+    responses=_problem_responses(401, 403, 404, 409, 422, 503),
+    openapi_extra=_operation_metadata("submit_revision"),
+)
+def submit_purchase_request_revision(
+    command: RevisionSubmissionCommandModel,
+    request_id: Annotated[str, Path(alias="requestId", min_length=1)],
+    idempotency_key: Annotated[str, Header(alias="Idempotency-Key", min_length=1)],
+    authorized: Annotated[
+        AuthorizedPurchaseRequest,
+        Depends(require_permission(PurchaseRequestPermission.RESUBMIT_REVISION)),
+    ],
+) -> dict[str, object]:
+    return _revision_json(
+        authorized.service.submit_revision(
+            authorized.context,
+            request_id=request_id,
+            command=RevisionSubmissionCommand(
+                items=tuple(
+                    (
+                        item.item_id,
+                        ItemReviewStatus(item.expected_review_status),
+                        item.content,
+                    )
+                    for item in command.items
+                )
+            ),
+            idempotency_key=idempotency_key,
+        )
+    )
+
+
 @router.get(
     "/events/{eventId}/budget-summary",
     operation_id="getEventBudgetSummary",
@@ -1300,6 +1463,45 @@ def register_purchase_request_error_handlers(app: FastAPI) -> None:
             ),
             title="검토 결정 입력이 계약을 만족하지 못합니다.",
             detail="결정 종류에 필요한 값을 확인해 주세요.",
+            code="PURCHASE_REQUEST_VALIDATION_FAILED",
+            retryable=False,
+        ),
+    )
+    app.add_exception_handler(
+        RevisionConflictError,
+        _fixed_problem_handler(
+            status=409,
+            problem_type=(
+                "https://vada.example/problems/purchase-request-state-conflict"
+            ),
+            title="구매 요청 상태가 변경되어 다시 확인해야 합니다.",
+            detail="최신 상태를 다시 조회한 뒤 시도해 주세요.",
+            code="PURCHASE_REQUEST_STATE_CONFLICT",
+            retryable=True,
+        ),
+    )
+    # 없는 품목과 고칠 수 없는 품목을 같은 답으로 돌려보낸다. 구분해 알리면
+    # 다른 요청에 어떤 품목이 있는지 떠보는 통로가 된다.
+    app.add_exception_handler(
+        ItemNotUnderRevisionError,
+        _fixed_problem_handler(
+            status=404,
+            problem_type="https://vada.example/problems/resource-not-found",
+            title="요청한 자원을 찾을 수 없습니다.",
+            detail="보완을 요청받은 품목만 다시 낼 수 있습니다.",
+            code="RESOURCE_NOT_FOUND",
+            retryable=False,
+        ),
+    )
+    app.add_exception_handler(
+        RevisionEmptyError,
+        _fixed_problem_handler(
+            status=422,
+            problem_type=(
+                "https://vada.example/problems/purchase-request-validation-failed"
+            ),
+            title="재제출 입력이 계약을 만족하지 못합니다.",
+            detail="다시 낼 품목을 하나 이상 담아 주세요.",
             code="PURCHASE_REQUEST_VALIDATION_FAILED",
             retryable=False,
         ),
