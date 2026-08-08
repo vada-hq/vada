@@ -9,6 +9,7 @@ export interface SelectOption {
 }
 
 export interface SelectProps {
+  "aria-label"?: string;
   className?: string;
   defaultValue?: string;
   disabled?: boolean;
@@ -21,6 +22,7 @@ export interface SelectProps {
 }
 
 export function Select({
+  "aria-label": ariaLabel,
   className,
   defaultValue,
   disabled,
@@ -48,6 +50,9 @@ export function Select({
       value={value}
     >
       <BaseSelect.Trigger
+        // 폼 필드 밖에서 쓰면 이름 붙일 자리가 없다. 표 안의 선택처럼
+        // 레이블 없이 서는 자리가 있어 받아 넘긴다.
+        aria-label={ariaLabel}
         aria-describedby={field?.describedBy}
         aria-invalid={field?.invalid}
         className={cn(
