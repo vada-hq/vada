@@ -214,3 +214,16 @@ test("HTML은 외부 자원을 하나도 부르지 않는다", async () => {
   assert.doesNotMatch(html, /https?:\/\//);
   assert.doesNotMatch(html, /<script/);
 });
+
+test("구운 현황판이 저장소에 추적되면 안 된다", async () => {
+  // 계산되는 파생물이다. 커밋되면 손으로 고칠 수 있게 되고, 그 순간 정본이
+  // 넷이 된다. 실제로 그런 적이 있다 — .gitignore에 넣었지만 이미 추적 중인
+  // 파일은 빠지지 않아 그대로 커밋됐다.
+  const { execFileSync } = await import("node:child_process");
+  const tracked = execFileSync("git", ["ls-files", ".artifacts"], {
+    cwd: new URL("..", import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1"),
+    encoding: "utf8",
+  });
+
+  assert.equal(tracked.trim(), "", `생성물이 추적되고 있습니다:\n${tracked}`);
+});
