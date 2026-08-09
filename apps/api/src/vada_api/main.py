@@ -2,6 +2,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from mangum import Mangum
 from sqlalchemy import Engine
 
 from vada_api.composition import (
@@ -67,3 +68,11 @@ def _health() -> dict[str, str]:
 
 
 app = create_app()
+
+# Lambda가 부르는 자리. Mangum이 게이트웨이 이벤트를 ASGI로 옮기고, 그 원본
+# 이벤트를 `scope["aws.event"]`에 넣는다. 인증 경계가 읽는 자리가 정확히 거기다
+# (`vada_api.identity.authentication.api_gateway_request_context`).
+#
+# 로컬에는 게이트웨이가 없어 `LocalPrincipalMiddleware`가 그 자리를 흉내낸다.
+# 배포에서는 이 경로로 진짜 청구항이 들어온다.
+handler = Mangum(app)
