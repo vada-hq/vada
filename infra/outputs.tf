@@ -25,6 +25,16 @@ output "user_pool_client_id" {
   value       = aws_cognito_user_pool_client.web.id
 }
 
+output "login_base_url" {
+  description = "사람이 로그인하는 화면의 주소. 브라우저가 이리로 갔다가 돌아온다."
+  value       = local.login_base_url
+}
+
+output "login_callback_url" {
+  description = "로그인 뒤 돌아올 자리. 여기 적힌 주소로만 되돌려 보낸다."
+  value       = local.login_callback_url
+}
+
 output "verification_email" {
   description = "배포 후 검사가 로그인할 계정. 사람이 아니다."
   value       = var.verification_email
