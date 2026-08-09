@@ -32,7 +32,10 @@ export function detectCiScopes(paths) {
       startsWithAny(path, ["apps/web/", "packages/", "prototypes/wireframe/", "contracts/"]) ||
       path === "package.json" ||
       path === "pnpm-lock.yaml" ||
-      path.startsWith("scripts/validate-purchase-request-openapi-client"),
+      path.startsWith("scripts/validate-purchase-request-openapi-client") ||
+      // 그 검증기에서 나눠 나온 것들. 이름이 달라졌다고 빠지면 계약 → OpenAPI
+      // 변환을 고쳐도 웹 검사가 안 돈다.
+      path.startsWith("scripts/contract-openapi/"),
   );
   const infra = changed.some((path) => startsWithAny(path, ["infra/"]));
   return { api, web, infra };

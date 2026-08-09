@@ -42,6 +42,16 @@ test("CI와 통합 명령 변경은 모든 제품 검사를 활성화한다", ()
   });
 });
 
+// 생성 클라이언트 검증기를 나눠 둔 자리다. 이름이 바뀌었다고 검사에서 빠지면
+// 계약 → OpenAPI 변환을 고쳐도 아무도 안 본다.
+test("계약 OpenAPI 도구 변경은 웹 검사를 활성화한다", () => {
+  assert.deepEqual(detectCiScopes(["scripts/contract-openapi/render.mjs"]), {
+    api: false,
+    web: true,
+    infra: false,
+  });
+});
+
 // 배포 워크플로는 API를 꾸리고 Terraform을 돌린다. 그런데 그 파일만 고치면
 // 두 검사가 전부 건너뛰어졌다 — 머지 전에 아무도 안 보고, 틀린 것은 배포가
 // 실패해야 드러났다.
