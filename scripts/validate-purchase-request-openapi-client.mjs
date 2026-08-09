@@ -131,7 +131,8 @@ function assertGenerationBaseline(baseline) {
 const PURCHASE_REQUEST_PROFILE = {
   apiContractIds: API_CONTRACT_IDS,
   dataComponents: DATA_COMPONENTS,
-  tags: ["Purchase Requests"],
+  tagsFor: () => ["Purchase Requests"],
+  fixtureFor: (_apiContract, baseline) => baseline.fixture,
   assertBaseline: assertGenerationBaseline,
   info: ({ bundle }) => ({
     title: "VADA Purchase Request API",

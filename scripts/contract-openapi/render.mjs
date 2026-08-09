@@ -76,8 +76,8 @@ function requireExample(examples, exampleId, location) {
 }
 
 export function buildOperation(apiContract, baseline, profile) {
-  const { contracts, fixture } = baseline;
-  const { dataComponents, tags, operationExtensions } = profile;
+  const { contracts } = baseline;
+  const { dataComponents, operationExtensions } = profile;
   const specification = apiContract.specification;
   const authorization = contracts.get(specification.authorization_ref);
   if (!authorization) {
@@ -86,16 +86,23 @@ export function buildOperation(apiContract, baseline, profile) {
     );
   }
 
-  const successMock = fixture.api_mocks.find(
-    (mock) =>
-      mock.contract_ref === apiContract.id && mock.scenario === "success",
-  );
-  if (!successMock) throw new Error(`${apiContract.id}: 성공 예제가 없습니다.`);
+  // 승인 픽스처가 있는 묶음만 예제를 싣는다. 예제는 문서를 읽는 사람을 위한
+  // 것이고 타입 생성에는 쓰이지 않는다 — 없다고 계약을 못 옮기는 것은 아니다.
+  // 지금 픽스처 묶음이 있는 것은 CB-FIN-001 하나뿐이다.
+  const fixture = profile.fixtureFor(apiContract, baseline);
+  const successMock = fixture
+    ? fixture.api_mocks.find(
+        (mock) =>
+          mock.contract_ref === apiContract.id && mock.scenario === "success",
+      )
+    : null;
+  if (fixture && !successMock)
+    throw new Error(`${apiContract.id}: 성공 예제가 없습니다.`);
   const dataExamples = new Map(
-    fixture.data_examples.map((example) => [example.id, example.value]),
+    (fixture?.data_examples ?? []).map((example) => [example.id, example.value]),
   );
   const errorExamples = new Map(
-    fixture.error_examples.map((example) => [
+    (fixture?.error_examples ?? []).map((example) => [
       example.contract_ref,
       example.body,
     ]),
@@ -113,7 +120,7 @@ export function buildOperation(apiContract, baseline, profile) {
   const operation = {
     summary: apiContract.summary_ko,
     operationId: specification.operation_id,
-    tags,
+    tags: profile.tagsFor(apiContract),
     "x-vada-permission": authorization.key,
     "x-vada-contracts": traceContracts,
     ...operationExtensions(apiContract, baseline),
@@ -124,12 +131,12 @@ export function buildOperation(apiContract, baseline, profile) {
       const rendered = clone(parameter);
       if (parameter.in === "path") {
         rendered.example =
-          successMock.request.path_parameters?.[parameter.name];
+          successMock?.request.path_parameters?.[parameter.name];
       } else if (parameter.in === "query") {
         rendered.example =
-          successMock.request.query_parameters?.[parameter.name];
+          successMock?.request.query_parameters?.[parameter.name];
       } else if (parameter.in === "header") {
-        const header = Object.entries(successMock.request.headers ?? {}).find(
+        const header = Object.entries(successMock?.request.headers ?? {}).find(
           ([name]) => name.toLowerCase() === parameter.name.toLowerCase(),
         );
         rendered.example = header?.[1];
@@ -147,11 +154,15 @@ export function buildOperation(apiContract, baseline, profile) {
             specification.request.body_contract_ref,
             dataComponents,
           ),
-          example: requireExample(
-            dataExamples,
-            successMock.request.body_example_ref,
-            `${apiContract.id} request`,
-          ),
+          ...(successMock
+            ? {
+                example: requireExample(
+                  dataExamples,
+                  successMock.request.body_example_ref,
+                  `${apiContract.id} request`,
+                ),
+              }
+            : {}),
         },
       },
     };
@@ -166,11 +177,15 @@ export function buildOperation(apiContract, baseline, profile) {
           specification.success.body_contract_ref,
           dataComponents,
         ),
-        example: requireExample(
-          dataExamples,
-          successMock.response.body_example_ref,
-          `${apiContract.id} response`,
-        ),
+        ...(successMock
+          ? {
+              example: requireExample(
+                dataExamples,
+                successMock.response.body_example_ref,
+                `${apiContract.id} response`,
+              ),
+            }
+          : {}),
       },
     };
   }
@@ -186,11 +201,15 @@ export function buildOperation(apiContract, baseline, profile) {
       content: {
         "application/problem+json": {
           schema: schemaReference(PROBLEM_DETAILS, dataComponents),
-          example: requireExample(
-            errorExamples,
-            errorRef,
-            `${apiContract.id} error response`,
-          ),
+          ...(fixture
+            ? {
+                example: requireExample(
+                  errorExamples,
+                  errorRef,
+                  `${apiContract.id} error response`,
+                ),
+              }
+            : {}),
         },
       },
     };
