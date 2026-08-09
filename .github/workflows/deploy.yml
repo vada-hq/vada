@@ -1,0 +1,90 @@
+# main에 들어온 것을 사람 손 없이 배포한다.
+#
+# 걷는 뼈대의 완료 기준 첫째와 둘째가 이 파일이다 — "머지하면 배포된다"와
+# "배포된 것에 대고 검사가 돈다". 한 번 배포하는 것은 뼈대가 아니다.
+#
+# 장기 액세스 키를 두지 않는다. GitHub이 발급한 신원 증명으로 AWS 역할을 맡는다.
+# 그 증명은 이 저장소의 main에서 도는 워크플로에만 나온다.
+name: deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 배포가 겹치면 나중 것이 먼저 끝나 옛 코드가 남을 수 있다. 한 번에 하나만 돈다.
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+permissions:
+  id-token: write # OIDC 증명을 받으려면 필요하다
+  contents: read
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # Lambda는 Amazon Linux에서 돈다. 개발 기계가 Windows든 macOS든
+      # 상관없이 그 플랫폼용 휠을 받아야 한다. 소스 빌드를 막아 두면
+      # 휠이 없는 의존성을 배포 시점이 아니라 여기서 안다.
+      - name: Build the Lambda package
+        run: |
+          rm -rf ../../.artifacts/package
+          uv pip install . \
+            --target ../../.artifacts/package \
+            --python-platform x86_64-manylinux2014 \
+            --python-version 3.13 \
+            --only-binary=:all:
+          cd ../../.artifacts/package
+          zip -qr ../api.zip .
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.14.6
+          terraform_wrapper: false
+
+      - name: Terraform
+        working-directory: infra
+        run: |
+          terraform init -input=false \
+            -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          terraform apply -input=false -auto-approve
+
+      - name: Read the deployed address
+        id: address
+        working-directory: infra
+        run: echo "url=$(terraform output -raw api_base_url)" >> "$GITHUB_OUTPUT"
+
+      # 배포되었다는 것과 도는 것은 다른 사실이다. 배포된 주소에 대고 확인한다.
+      # 로컬에서 통과한 검사는 이 질문에 답하지 못한다.
+      - name: Check the deployed address answers
+        run: |
+          url="${{ steps.address.outputs.url }}"
+          echo "확인 대상: ${url}/health"
+          for attempt in 1 2 3 4 5; do
+            body="$(curl -fsS --max-time 20 "${url}/health" || true)"
+            if [ "${body}" = '{"status":"ok"}' ]; then
+              echo "응답: ${body}"
+              exit 0
+            fi
+            echo "아직 아닙니다 (${attempt}/5): ${body:-무응답}"
+            sleep 5
+          done
+          echo "배포된 주소가 답하지 않습니다."
+          exit 1

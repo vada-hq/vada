@@ -92,7 +92,7 @@ jobs:
       TF_IN_AUTOMATION: 'true'
     defaults:
       run:
-        working-directory: infra/modules/purchase_request_observability
+        working-directory: infra
     steps:
       # Immutable release SHAs prevent a moved tag from changing trusted CI code.
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -102,10 +102,17 @@ jobs:
           terraform_wrapper: false
       - name: Check Terraform formatting
         run: terraform fmt -check -recursive
-      - name: Initialize providers without a backend
-        run: terraform init -backend=false -input=false
-      - name: Validate Terraform configuration
-        run: terraform validate -no-color
+      # 배포 워크플로는 main에서만 돈다. 여기서 안 보면 문법 오류를 배포가
+      # 처음 발견하고, 그때는 이미 main에 들어간 뒤다.
+      - name: Validate the deployed configuration
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate -no-color
+      - name: Validate the observability module
+        working-directory: infra/modules/purchase_request_observability
+        run: |
+          terraform init -backend=false -input=false
+          terraform validate -no-color
 
   web:
     name: web

@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 
 import { AppProviders, createAppRuntime } from "../../../app/runtime";
 import {
@@ -9,6 +9,19 @@ import {
   sampleEventId,
 } from "../../../mocks/purchase-request-fixtures";
 import { server } from "../../../mocks/server";
+
+/**
+ * 이 파일의 검사 하나가 2초쯤 걸린다. 제출 하나를 보려면 큰 폼을 통째로 그리고
+ * 필수 입력 여섯 자리를 다 채워야 하기 때문이다 — 그중 둘은 팝업을 여는 선택이다.
+ *
+ * 기본 한계 5초는 여유가 1초도 안 남아서, 기계가 바쁘면 넘어간다. 실제로 다른
+ * 검사와 함께 돌렸을 때 넷이 시간 초과로 실패했고 따로 돌리면 통과했다.
+ * **간헐적으로 실패하는 검사는 실패한 검사보다 나쁘다** — 아무도 안 믿게 된다.
+ *
+ * 느린 것 자체는 정직한 비용이다. 한계를 올려 두되, 진짜로 멈춘 검사도 15초면
+ * 드러난다.
+ */
+vi.setConfig({ testTimeout: 15_000 });
 
 const eventId = sampleEventId;
 const editorPath = `/events/${eventId}/purchase-requests/new`;
@@ -68,7 +81,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
   });
 
   test("임시 저장은 계약 명령으로 보내고 저장 시각을 알린다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     let received: unknown;
     server.use(
       http.put(draftUrl, async ({ request }) => {
@@ -96,7 +109,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
   });
 
   test("두 번째 저장은 서버가 준 최신 버전을 사용한다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const versions: Array<number | null> = [];
     let version = 0;
     server.use(
@@ -125,7 +138,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
   });
 
   test("버전 충돌은 자동으로 덮어쓰지 않고 사용자에게 알린다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     let calls = 0;
     server.use(
       http.put(draftUrl, () => {
@@ -151,7 +164,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
   });
 
   test("일시 장애 저장 실패는 저장되지 않았음을 알리고 입력을 유지한다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     server.use(
       http.put(draftUrl, () =>
         problem(
@@ -172,7 +185,7 @@ describe("구매 요청 작성 화면 · 초안", () => {
   });
 
   test("초안 삭제는 서버에 알리고 입력을 자동으로 지우지 않는다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     let deleted = false;
     server.resetHandlers();
     server.use(
@@ -213,7 +226,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("입력이 비면 요청을 만들지 않고 오류 요약을 표시한다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     let submitted = false;
     server.use(
       http.post(submitUrl, () => {
@@ -237,7 +250,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("오류 요약의 링크를 고르면 해당 입력으로 포커스가 간다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     renderEditor();
     await screen.findByRole("textbox", { name: /요청 제목/ });
     await user.click(screen.getByRole("button", { name: "구매 요청 제출" }));
@@ -249,7 +262,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("성공하면 검토 대기 안내와 함께 목록으로 이동한다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     server.use(
       http.post(submitUrl, () =>
         HttpResponse.json(
@@ -273,7 +286,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("예산 초과 성공은 실패가 아니라 경고와 함께 성공으로 표시한다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     server.use(
       http.post(submitUrl, () =>
         HttpResponse.json(
@@ -296,7 +309,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("제출 중에는 중복 실행을 막는다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     let calls = 0;
     let release: (() => void) | undefined;
     const pending = new Promise<void>((resolve) => {
@@ -330,7 +343,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("일시 장애 재시도는 같은 멱등성 키를 재사용한다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const keys: string[] = [];
     let attempt = 0;
     server.use(
@@ -367,7 +380,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("입력을 바꾸면 새 멱등성 키로 제출한다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     const keys: string[] = [];
     let attempt = 0;
     server.use(
@@ -405,7 +418,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("권한 없음과 상태 충돌은 거짓 성공 없이 입력을 유지한다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     server.use(
       http.post(submitUrl, () =>
         problem(403, "purchase_request_action_forbidden", "권한이 없습니다."),
@@ -423,7 +436,7 @@ describe("구매 요청 작성 화면 · 제출", () => {
   });
 
   test("한국어 조합 중 Enter는 제출하지 않는다", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     let calls = 0;
     server.use(
       http.post(submitUrl, () => {
