@@ -23,6 +23,15 @@ GITHUB_REPOSITORY="vada-hq/vada"
 ROLE_NAME="vada-github-actions"
 OIDC_URL="token.actions.githubusercontent.com"
 
+# 없는 도구는 스크립트 중간이 아니라 여기서 걸린다. 중간에서 걸리면 절반만
+# 만들어진 상태로 끝나고, 그게 무슨 상태인지 다음 사람이 알 수 없다.
+for tool in aws jq openssl curl; do
+  command -v "${tool}" >/dev/null 2>&1 || {
+    echo "${tool}가 없습니다. AWS CloudShell에서 실행하세요." >&2
+    exit 1
+  }
+done
+
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 # 버킷 이름은 전 세계에서 유일해야 한다. 계정 번호를 붙여 충돌을 피한다.
 STATE_BUCKET="vada-tfstate-${ACCOUNT_ID}"
@@ -104,6 +113,31 @@ fi
 # ---------------------------------------------------------------------------
 # 이 저장소의 main 브랜치에서 도는 워크플로만 맡을 수 있다. 다른 저장소도,
 # 포크의 풀 리퀘스트도 맡을 수 없다 — 그것이 없으면 누구나 이 계정을 쓴다.
+#
+# 주체(sub)에 **번호**가 들어간다. GitHub이 보내는 실제 값이 그렇다:
+#
+#   repo:vada-hq@306677743/vada@1305432774:ref:refs/heads/main
+#
+# 이름이 아니라 조직·저장소의 불변 번호다. 저장소 이름을 바꾸거나 조직을
+# 옮겨도 신뢰가 조용히 다른 곳으로 따라가지 않는다. 이름으로 적으면
+# `repo:vada-hq/vada`가 되는데, 그 형식은 이 저장소에서 쓰이지 않는다 —
+# 실제로 그렇게 적어 뒀다가 "Not authorized"로 막혔다.
+#
+# 번호를 손으로 베끼지 않는다. 손으로 베낀 번호는 저장소를 옮겼을 때 아무도
+# 안 고친다. 공개 API에서 읽는다 — 인증이 필요 없다.
+read -r OWNER_ID REPO_ID <<<"$(
+  curl -fsS "https://api.github.com/repos/${GITHUB_REPOSITORY}" \
+    | jq -r '"\(.owner.id) \(.id)"'
+)"
+
+if [ -z "${OWNER_ID}" ] || [ -z "${REPO_ID}" ]; then
+  echo "GitHub에서 조직·저장소 번호를 읽지 못했습니다." >&2
+  exit 1
+fi
+
+SUBJECT="repo:${GITHUB_REPOSITORY%%/*}@${OWNER_ID}/${GITHUB_REPOSITORY##*/}@${REPO_ID}:ref:refs/heads/main"
+echo "믿을 주체: ${SUBJECT}"
+
 TRUST_POLICY=$(cat <<JSON
 {
   "Version": "2012-10-17",
@@ -115,7 +149,7 @@ TRUST_POLICY=$(cat <<JSON
       "Condition": {
         "StringEquals": {
           "${OIDC_URL}:aud": "sts.amazonaws.com",
-          "${OIDC_URL}:sub": "repo:${GITHUB_REPOSITORY}:ref:refs/heads/main"
+          "${OIDC_URL}:sub": "${SUBJECT}"
         }
       }
     }
