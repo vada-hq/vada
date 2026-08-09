@@ -98,16 +98,22 @@ jobs:
             -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
           terraform apply -input=false -auto-approve
 
-      - name: Read the deployed address
-        id: address
+      - name: Read what was deployed
+        id: deployed
         working-directory: infra
-        run: echo "url=$(terraform output -raw api_base_url)" >> "$GITHUB_OUTPUT"
+        run: |
+          {
+            echo "url=$(terraform output -raw api_base_url)"
+            echo "client_id=$(terraform output -raw user_pool_client_id)"
+            echo "email=$(terraform output -raw verification_email)"
+            echo "password_parameter=$(terraform output -raw verification_password_parameter)"
+          } >> "$GITHUB_OUTPUT"
 
       # 배포되었다는 것과 도는 것은 다른 사실이다. 배포된 주소에 대고 확인한다.
       # 로컬에서 통과한 검사는 이 질문에 답하지 못한다.
       - name: Check the deployed address answers
         run: |
-          url="${{ steps.address.outputs.url }}"
+          url="${{ steps.deployed.outputs.url }}"
           echo "확인 대상: ${url}/health"
           for attempt in 1 2 3 4 5; do
             body="$(curl -fsS --max-time 20 "${url}/health" || true)"
@@ -120,3 +126,36 @@ jobs:
           done
           echo "배포된 주소가 답하지 않습니다."
           exit 1
+
+      # 인증은 **양쪽을 다 확인해야** 한다. 통과하는 것만 보면 "권한 부여자가
+      # 붙어는 있는데 아무나 통과"를 못 잡는다. 그 실패는 조용하다.
+      - name: Check the auth boundary refuses and admits
+        env:
+          URL: ${{ steps.deployed.outputs.url }}
+          CLIENT_ID: ${{ steps.deployed.outputs.client_id }}
+          EMAIL: ${{ steps.deployed.outputs.email }}
+          PASSWORD_PARAMETER: ${{ steps.deployed.outputs.password_parameter }}
+        run: |
+          refused="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "${URL}/whoami")"
+          if [ "${refused}" != "401" ]; then
+            echo "토큰 없이 부른 요청이 ${refused}로 통과했습니다. 401이어야 합니다."
+            exit 1
+          fi
+          echo "토큰 없음 → ${refused}"
+
+          password="$(aws ssm get-parameter --name "${PASSWORD_PARAMETER}" \
+            --with-decryption --query 'Parameter.Value' --output text)"
+          token="$(aws cognito-idp initiate-auth \
+            --auth-flow USER_PASSWORD_AUTH \
+            --client-id "${CLIENT_ID}" \
+            --auth-parameters "USERNAME=${EMAIL},PASSWORD=${password}" \
+            --query 'AuthenticationResult.AccessToken' --output text)"
+
+          # 토큰은 찍지 않는다. 응답만 본다.
+          body="$(curl -fsS --max-time 20 -H "Authorization: Bearer ${token}" "${URL}/whoami")"
+          echo "토큰 있음 → ${body}"
+
+          echo "${body}" | grep -q '"subject"' || {
+            echo "청구항이 코드까지 오지 않았습니다."
+            exit 1
+          }

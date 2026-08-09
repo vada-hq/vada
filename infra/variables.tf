@@ -16,6 +16,12 @@ variable "api_package" {
   default     = "../.artifacts/api.zip"
 }
 
+variable "verification_email" {
+  description = "Login for the post-deploy check. Not a person; .invalid never resolves."
+  type        = string
+  default     = "deployment-check@vada.invalid"
+}
+
 variable "log_retention_days" {
   description = "Logs cost money and nobody reads month-old skeleton logs."
   type        = number

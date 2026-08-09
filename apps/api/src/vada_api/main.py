@@ -1,7 +1,7 @@
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from mangum import Mangum
 from sqlalchemy import Engine
 
@@ -13,6 +13,10 @@ from vada_api.finance.api import (
     normalize_purchase_request_openapi,
     register_purchase_request_error_handlers,
     router,
+)
+from vada_api.identity.authentication import (
+    api_gateway_request_context,
+    principal_from_api_gateway_request_context,
 )
 from vada_api.local_development import (
     LocalPrincipalMiddleware,
@@ -44,6 +48,7 @@ def create_app(*, engine: Engine | None = None) -> FastAPI:
     application.include_router(router)
     application.include_router(organization_router)
     application.add_api_route("/health", _health, methods=["GET"])
+    application.add_api_route("/whoami", _whoami, methods=["GET"])
     if configured_engine is not None:
         configure_postgresql_dependencies(application, configured_engine)
     application.openapi_schema = normalize_purchase_request_openapi(
@@ -65,6 +70,21 @@ def create_app(*, engine: Engine | None = None) -> FastAPI:
 def _health() -> dict[str, str]:
     # 인증 없는 유일한 엔드포인트 — 배포·모니터링용
     return {"status": "ok"}
+
+
+def _whoami(request: Request) -> dict[str, str]:
+    """게이트웨이가 검증한 청구항이 여기까지 오는지 본다.
+
+    저장소의 모든 권한 판정이 이 청구항을 전제한다. 그런데 그 경계가 실물로
+    돌아본 적이 없었다 — 개발에서는 `LocalPrincipalMiddleware`가 흉내낼 뿐이다.
+    이 자리가 그 전제를 확인하는 곳이다.
+
+    자기 자신의 신원만 돌려준다. 데이터베이스는 보지 않는다 — 3차의 몫이다.
+    """
+    principal = principal_from_api_gateway_request_context(
+        api_gateway_request_context(request)
+    )
+    return {"issuer": principal.issuer, "subject": principal.subject}
 
 
 app = create_app()

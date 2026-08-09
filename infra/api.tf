@@ -78,10 +78,25 @@ resource "aws_apigatewayv2_integration" "api" {
 
 # 경로를 게이트웨이에 다시 적지 않는다. FastAPI가 이미 라우터를 갖고 있고,
 # 두 곳에 적으면 반드시 어긋난다.
+#
+# **기본은 인증이다.** 새 화면을 만들 때 게이트웨이에 무언가를 더 적어야만
+# 보호되는 구조라면, 언젠가 잊는다. 잊은 자리는 공개된다.
 resource "aws_apigatewayv2_route" "api" {
-  api_id    = aws_apigatewayv2_api.api.id
-  route_key = "$default"
-  target    = "integrations/${aws_apigatewayv2_integration.api.id}"
+  api_id             = aws_apigatewayv2_api.api.id
+  route_key          = "$default"
+  target             = "integrations/${aws_apigatewayv2_integration.api.id}"
+  authorization_type = "JWT"
+  authorizer_id      = aws_apigatewayv2_authorizer.people.id
+}
+
+# 열려 있는 자리는 여기 하나뿐이고, 그래서 눈에 띈다. 배포 후 검사가 토큰
+# 없이 부를 수 있어야 하고, 이 응답은 누구에게도 아무것도 알려주지 않는다.
+# 더 구체적인 경로가 `$default`를 이긴다.
+resource "aws_apigatewayv2_route" "health" {
+  api_id             = aws_apigatewayv2_api.api.id
+  route_key          = "GET /health"
+  target             = "integrations/${aws_apigatewayv2_integration.api.id}"
+  authorization_type = "NONE"
 }
 
 resource "aws_apigatewayv2_stage" "api" {
