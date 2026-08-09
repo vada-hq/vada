@@ -65,6 +65,21 @@ jobs:
           zip -qr ../api.zip .
           echo "꾸러미 $(du -sh ../api.zip | cut -f1)"
 
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      # 화면도 같이 꾸린다. AWS에 손대기 **전에** 꾸린다 — 빌드가 깨졌다면
+      # 아무것도 바꾸지 않은 채로 실패하는 것이 낫다.
+      - name: Build the screen
+        working-directory: .
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm --filter web build
+          echo "화면 $(du -sh apps/web/dist | cut -f1)"
+
       # AWS가 역할을 거절하면 이유를 말해 주지 않는다. "Not authorized"뿐이다.
       # 그래서 GitHub이 무엇을 주장하는지 먼저 찍는다. 신뢰 정책과 한 글자만
       # 달라도 거절되는데, 그 한 글자를 눈으로 봐야 고칠 수 있다.
@@ -104,6 +119,9 @@ jobs:
         run: |
           {
             echo "url=$(terraform output -raw api_base_url)"
+            echo "web_url=$(terraform output -raw web_base_url)"
+            echo "web_bucket=$(terraform output -raw web_bucket)"
+            echo "web_distribution=$(terraform output -raw web_distribution_id)"
             echo "client_id=$(terraform output -raw user_pool_client_id)"
             echo "email=$(terraform output -raw verification_email)"
             echo "password_parameter=$(terraform output -raw verification_password_parameter)"
@@ -112,6 +130,33 @@ jobs:
             echo "subject=$(terraform output -raw verification_subject)"
             echo "issuer=$(terraform output -raw user_pool_issuer)"
           } >> "$GITHUB_OUTPUT"
+
+      - name: Publish the built screen
+        id: published
+        working-directory: apps/web
+        env:
+          BUCKET: ${{ steps.deployed.outputs.web_bucket }}
+          DISTRIBUTION: ${{ steps.deployed.outputs.web_distribution }}
+        run: |
+          # 이름에 내용 해시가 든 파일부터 올린다. 순서를 뒤집으면 새 index.html이
+          # 아직 올라오지 않은 조각을 가리키는 순간이 생긴다.
+          #
+          # 옛 조각을 지우지 않는다(`--delete` 없음). 페이지를 열어 둔 사람이
+          # 아직 안 받은 조각을 그때 요청할 수 있고, 지우면 그 사람만 깨진다.
+          # 이름이 내용마다 달라 남아 있어도 섞이지 않는다.
+          aws s3 sync dist/assets "s3://${BUCKET}/assets" \
+            --cache-control 'public,max-age=31536000,immutable'
+
+          # index.html은 이름이 고정이다. 캐시하면 새 배포가 아무에게도 안 보인다.
+          aws s3 sync dist "s3://${BUCKET}" --delete --exclude 'assets/*' \
+            --cache-control 'no-cache'
+
+          # 비우기를 걸어만 두고 기다리지 않는다. 아래 검사들이 도는 동안 끝난다.
+          id="$(aws cloudfront create-invalidation \
+            --distribution-id "${DISTRIBUTION}" --paths '/*' \
+            --query 'Invalidation.Id' --output text)"
+          echo "invalidation=${id}" >> "$GITHUB_OUTPUT"
+          echo "올렸습니다. 캐시를 비우는 중: ${id}"
 
       # 검사용 계정은 Cognito에만 있다. VADA에는 없다. 이름을 돌려받으려면
       # 그 신원이 데이터베이스에도 있어야 한다.
@@ -216,3 +261,51 @@ jobs:
             echo "이름이 돌아오지 않았습니다. 배포된 함수가 데이터베이스를 못 읽습니다."
             exit 1
           }
+
+      # 여기까지는 전부 API Gateway 주소에 대고 물었다. 사람이 여는 주소는
+      # 그것이 아니다. 사람이 여는 곳에서 다시 묻는다.
+      - name: Check the deployed screen answers
+        env:
+          URL: ${{ steps.deployed.outputs.web_url }}
+          DISTRIBUTION: ${{ steps.deployed.outputs.web_distribution }}
+          INVALIDATION: ${{ steps.published.outputs.invalidation }}
+        run: |
+          # 다 비워지기 전에 물으면 **지난 배포**를 확인하고 초록불을 준다.
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "${DISTRIBUTION}" --id "${INVALIDATION}"
+
+          echo "확인 대상: ${URL}"
+          html="$(curl -fsS --max-time 20 "${URL}/")"
+
+          # 주소가 200으로 답했다는 것과 **우리 화면**이 답했다는 것은 다른
+          # 사실이다. 전에 포트가 응답하는 것만 보고 다른 앱을 우리 것이라
+          # 보고했다. 그래서 제목을 본다.
+          echo "${html}" | grep -q '<title>VADA</title>' || {
+            echo "배포 주소가 VADA 화면을 주지 않습니다."
+            exit 1
+          }
+          echo "${html}" | grep -q '/assets/' || {
+            echo "빌드된 꾸러미를 가리키지 않습니다. 올라간 것이 빌드 결과가 아닙니다."
+            exit 1
+          }
+          echo "첫 화면 → VADA"
+
+          # 주소를 직접 치거나 새로고침한 경우다. S3에는 이런 키가 없으므로
+          # 되돌림이 없으면 403이 온다 — 앱은 멀쩡한데 새로고침만 깨진다.
+          deep="$(curl -fsS --max-time 20 "${URL}/organization/roles")"
+          echo "${deep}" | grep -q '<title>VADA</title>' || {
+            echo "깊은 주소가 앱에 닿지 않습니다. 새로고침하면 깨집니다."
+            exit 1
+          }
+          echo "깊은 주소 → VADA"
+
+          # **상태 코드가 아니라 본문을 맞춰 본다.** `/api/v1/*` 규칙이 안 걸리면
+          # 화면 되돌림이 index.html을 200으로 돌려준다. 상태 코드만 보면
+          # 통과하는데, 화면에서는 모든 요청이 HTML을 받아 아무것도 안 나온다.
+          same_origin="$(curl -fsS --max-time 20 "${URL}/api/v1/health")"
+          if [ "${same_origin}" != '{"status":"ok"}' ]; then
+            echo "같은 출처의 API가 답하지 않습니다: ${same_origin:0:120}"
+            echo "CloudFront의 /api/v1/* 규칙이나 접두사 제거를 보십시오."
+            exit 1
+          fi
+          echo "같은 출처 API → ${same_origin}"

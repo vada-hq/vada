@@ -5,6 +5,21 @@ output "api_base_url" {
   value = trimsuffix(aws_apigatewayv2_stage.api.invoke_url, "/")
 }
 
+output "web_base_url" {
+  description = "사람이 여는 주소. 화면도 API도 여기 하나에서 온다."
+  value       = "https://${aws_cloudfront_distribution.web.domain_name}"
+}
+
+output "web_bucket" {
+  description = "빌드 결과를 올릴 곳. 배포 워크플로만 쓴다."
+  value       = aws_s3_bucket.web.bucket
+}
+
+output "web_distribution_id" {
+  description = "올린 뒤 캐시를 비울 대상."
+  value       = aws_cloudfront_distribution.web.id
+}
+
 output "user_pool_client_id" {
   description = "배포 후 검사가 토큰을 받을 때 쓴다. 비밀이 아니다 — 브라우저에도 실린다."
   value       = aws_cognito_user_pool_client.web.id
