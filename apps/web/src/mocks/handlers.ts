@@ -5,6 +5,7 @@ import {
   eventItemBoardFinanceExample,
   eventItemBoardMemberExample,
 } from "./event-finance-fixtures";
+import { sessionViewerExample } from "./session-fixtures";
 import {
   detailViewExample,
   reviewViewExample,
@@ -91,6 +92,10 @@ let memberRoles = [
 ];
 
 export const handlers: RequestHandler[] = [
+  // 셸이 모든 화면에서 부른다. 계약 CB-IDENTITY-001@R1.
+  http.get("*/api/v1/session/viewer", () =>
+    HttpResponse.json(sessionViewerExample),
+  ),
   http.get("*/api/v1/organization/member-roles", () =>
     HttpResponse.json({ members: memberRoles }),
   ),

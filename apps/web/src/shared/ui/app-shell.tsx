@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { cn } from "../../lib/cn";
+import { OrganizationName, ViewerBadge } from "../session/viewer";
 
 export interface BreadcrumbEntry {
   label: string;
@@ -15,8 +16,8 @@ export interface ShellTab {
  * 승인 와이어프레임 DesktopShell의 구조다.
  * 사이드바 · 브레드크럼과 제목 · 행사 탭 · 본문 순서를 화면마다 다시 만들지 않는다.
  *
- * 메뉴 이동과 사용자 정보는 아직 계약이 없다. 지금은 구조만 두고
- * 실제 이동과 서버 값 연결은 각 화면 작업에서 계약이 생길 때 붙인다.
+ * 사용자 정보는 계약 CB-IDENTITY-001@R1이 소유한다. 메뉴 이동은 아직 계약이
+ * 없어 구조만 두고, 실제 이동은 각 화면 작업에서 계약이 생길 때 붙인다.
  */
 const navItems = [
   "홈",
@@ -52,11 +53,9 @@ export function AppShell({
             >
               V
             </span>
-            <span className="flex flex-col">
+            <span className="flex min-w-0 flex-col">
               <span className="text-body-lg font-semibold">Vada</span>
-              <span className="text-caption text-muted-foreground">
-                소프트웨어융합대학
-              </span>
+              <OrganizationName />
             </span>
           </span>
         </div>
@@ -81,6 +80,8 @@ export function AppShell({
             ))}
           </ul>
         </nav>
+
+        <ViewerBadge />
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
