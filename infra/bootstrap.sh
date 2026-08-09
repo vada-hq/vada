@@ -109,9 +109,11 @@ if aws iam get-role --role-name "${ROLE_NAME}" >/dev/null 2>&1; then
     --policy-document "${TRUST_POLICY}"
 else
   echo "[생성] 역할 ${ROLE_NAME}"
+  # 설명은 ASCII만 받는다. IAM이 [ -~¡-ÿ]로 제한하므로
+  # 한글을 넣으면 ValidationError로 거절한다. AWS에 보내는 값은 영문으로 쓴다.
   aws iam create-role \
     --role-name "${ROLE_NAME}" \
-    --description "GitHub Actions가 vada-hq/vada main에서 맡는 배포 역할" \
+    --description "Deploy role assumed by GitHub Actions on vada-hq/vada main" \
     --assume-role-policy-document "${TRUST_POLICY}" >/dev/null
 fi
 
