@@ -107,7 +107,35 @@ jobs:
             echo "client_id=$(terraform output -raw user_pool_client_id)"
             echo "email=$(terraform output -raw verification_email)"
             echo "password_parameter=$(terraform output -raw verification_password_parameter)"
+            echo "database_parameter=$(terraform output -raw database_url_parameter)"
+            echo "subject=$(terraform output -raw verification_subject)"
+            echo "issuer=$(terraform output -raw user_pool_issuer)"
           } >> "$GITHUB_OUTPUT"
+
+      # 검사용 계정은 Cognito에만 있다. VADA에는 없다. 이름을 돌려받으려면
+      # 그 신원이 데이터베이스에도 있어야 한다.
+      #
+      # 사람을 등록하는 흐름(ONB-01·ORG-01)은 아직 없다. 그것이 생기면 이
+      # 단계는 사라진다 — 그때는 사람이 가입하는 길로 들어온다.
+      - name: Give the check user a name in the database
+        env:
+          DATABASE_PARAMETER: ${{ steps.deployed.outputs.database_parameter }}
+          SUBJECT: ${{ steps.deployed.outputs.subject }}
+          ISSUER: ${{ steps.deployed.outputs.issuer }}
+        run: |
+          url="$(aws ssm get-parameter --name "${DATABASE_PARAMETER}" \
+            --with-decryption --query 'Parameter.Value' --output text)"
+          # SQLAlchemy의 방언 접미사는 psql이 모른다.
+          psql "${url/postgresql+psycopg:/postgresql:}" -v ON_ERROR_STOP=1 -q <<SQL
+          INSERT INTO vada_users (user_id, display_name)
+          VALUES ('${SUBJECT}', '배포 확인용 계정')
+          ON CONFLICT (user_id) DO UPDATE SET display_name = EXCLUDED.display_name;
+
+          INSERT INTO cognito_identities (issuer, subject, user_id)
+          VALUES ('${ISSUER}', '${SUBJECT}', '${SUBJECT}')
+          ON CONFLICT (issuer, subject) DO UPDATE SET user_id = EXCLUDED.user_id;
+          SQL
+          echo "검사용 신원을 넣었습니다."
 
       # 배포되었다는 것과 도는 것은 다른 사실이다. 배포된 주소에 대고 확인한다.
       # 로컬에서 통과한 검사는 이 질문에 답하지 못한다.
@@ -157,5 +185,12 @@ jobs:
 
           echo "${body}" | grep -q '"subject"' || {
             echo "청구항이 코드까지 오지 않았습니다."
+            exit 1
+          }
+
+          # **이름이 돌아왔다는 것이 데이터베이스를 읽었다는 증거다.**
+          # 이름은 Cognito 토큰에 없다. PostgreSQL에만 있다.
+          echo "${body}" | grep -q '"name":"배포 확인용 계정"' || {
+            echo "이름이 돌아오지 않았습니다. 배포된 함수가 데이터베이스를 못 읽습니다."
             exit 1
           }

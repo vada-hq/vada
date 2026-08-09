@@ -25,12 +25,27 @@ resource "aws_iam_role" "api" {
   assume_role_policy = data.aws_iam_policy_document.api_assume.json
 }
 
-# 로그를 쓸 권한만 준다. 데이터베이스도 비밀도 아직 없다 —
-# 필요해질 때 그때 붙인다.
 resource "aws_iam_role_policy_attachment" "api_logs" {
   role       = aws_iam_role.api.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
 }
+
+# 데이터베이스 주소가 든 **그 자리 하나만** 읽는다. `/vada/*`로 넓히면
+# 나중에 다른 비밀이 그 아래 생겼을 때 아무도 이 정책을 다시 안 본다.
+data "aws_iam_policy_document" "api_secrets" {
+  statement {
+    actions   = ["ssm:GetParameter"]
+    resources = ["arn:aws:ssm:${var.region}:${data.aws_caller_identity.current.account_id}:parameter${var.database_url_parameter}"]
+  }
+}
+
+resource "aws_iam_role_policy" "api_secrets" {
+  name   = "${local.name}-read-database-url"
+  role   = aws_iam_role.api.id
+  policy = data.aws_iam_policy_document.api_secrets.json
+}
+
+data "aws_caller_identity" "current" {}
 
 # 로그 그룹을 Terraform이 소유한다. Lambda가 스스로 만들게 두면 보존 기간이
 # 무한이 되고, 아무도 안 읽는 로그에 계속 돈이 든다.
@@ -52,6 +67,14 @@ resource "aws_lambda_function" "api" {
   # 콜드 스타트에 FastAPI와 OpenAPI 정규화가 함께 돈다. 128MB로는 모자란다.
   memory_size = 512
   timeout     = 15
+
+  environment {
+    variables = {
+      # 주소가 아니라 **주소가 있는 자리**를 준다. 값을 여기 넣으면 Terraform
+      # 상태 파일과 함수 설정 양쪽에 평문으로 남는다.
+      VADA_DATABASE_URL_PARAMETER = var.database_url_parameter
+    }
+  }
 
   depends_on = [
     aws_iam_role_policy_attachment.api_logs,

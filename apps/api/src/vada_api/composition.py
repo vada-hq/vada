@@ -49,6 +49,9 @@ def configure_postgresql_dependencies(application: FastAPI, engine: Engine) -> N
     revision_store = PostgreSQLPurchaseRequestRevisionStore(engine)
     event_finance_reader = PostgreSQLEventFinanceReader(engine, names=relationships)
 
+    # 부르는 사람 자신의 이름. 조직 데이터가 아니라 신원 데이터라 조직
+    # 스코프가 없고, 그래서 다른 저장소들과 달리 그대로 노출한다.
+    application.state.identity_names = relationships
     application.state.organization_context_provider = (
         PostgreSQLOrganizationContextProvider(relationships)
     )

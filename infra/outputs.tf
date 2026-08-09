@@ -15,6 +15,21 @@ output "verification_email" {
   value       = var.verification_email
 }
 
+output "user_pool_issuer" {
+  description = "토큰의 iss 청구항. 데이터베이스의 신원도 같은 값으로 저장한다."
+  value       = "https://${aws_cognito_user_pool.people.endpoint}"
+}
+
+output "verification_subject" {
+  description = "검사용 계정의 Cognito subject. 배포 후 검사가 이 신원을 데이터베이스에 넣는다."
+  value       = aws_cognito_user.verification.sub
+}
+
+output "database_url_parameter" {
+  description = "배포된 데이터베이스 주소가 든 SSM 자리. 값이 아니라 자리만 내보낸다."
+  value       = var.database_url_parameter
+}
+
 output "verification_password_parameter" {
   description = "그 계정의 비밀번호가 든 SSM 자리. 값이 아니라 자리만 내보낸다."
   value       = aws_ssm_parameter.verification_password.name

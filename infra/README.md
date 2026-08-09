@@ -20,6 +20,35 @@ bash infra/bootstrap.sh
 
 몇 번을 돌려도 같은 상태가 된다. 이미 있는 것은 건드리지 않는다.
 
+## 처음 한 번 — 데이터베이스 주소
+
+**Terraform은 이 값을 읽지 않는다. 자리 이름만 안다.** 읽게 하면 상태 파일에 평문으로
+남고, S3 상태를 볼 수 있는 사람이면 다 본다. Lambda 환경변수에 넣어도 마찬가지다 —
+함수 설정을 볼 수 있는 사람이면 다 본다. 그래서 자리 이름만 환경변수로 주고
+(`VADA_DATABASE_URL_PARAMETER`), 함수가 **실행할 때** SSM에서 직접 읽는다. 읽을 수
+있는 권한도 그 자리 하나로 좁혀 놨다(`infra/api.tf`의 `api_secrets`).
+
+배포용과 개발용은 **다른 데이터베이스**다. Neon 브랜치로 가른다.
+
+| 브랜치 | 쓰는 곳 | 주소가 있는 곳 |
+| --- | --- | --- |
+| `production` (기본) | 배포된 Lambda | SSM `/vada/skeleton/database-url` |
+| `development` | 로컬 개발 | 리포 루트 `.env`의 `VADA_DATABASE_URL` |
+
+가르지 않으면 로컬에서 `just seed`를 잘못 돌린 것이 배포된 데이터를 지운다.
+
+값을 넣는 것은 CloudShell에서 한 번이다. 연결 문자열은 SQLAlchemy 방언을 붙여
+`postgresql+psycopg://`로 시작해야 하고, **Neon 커넥션 풀러(`-pooler` 호스트)는 쓰지
+않는다** — psycopg3이 같은 질의를 반복하면 서버 측 prepared statement로 올리는데,
+PgBouncer의 트랜잭션 모드가 그것을 깬다.
+
+```
+aws ssm put-parameter --name /vada/skeleton/database-url \
+  --type SecureString --overwrite --value '<연결 문자열>'
+```
+
+마이그레이션은 아직 사람이 돌린다. 자동화는 걷는 뼈대의 **하지 않은 것** 목록에 있다.
+
 ## 이 README가 전에 전제하던 것과 다른 셋
 
 판정과 근거는 이슈 #78에 있다.
