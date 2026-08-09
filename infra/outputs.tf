@@ -40,6 +40,11 @@ output "verification_email" {
   value       = var.verification_email
 }
 
+output "user_pool_id" {
+  description = "사람을 찾을 때 쓴다. 비밀이 아니다 — 이것만으로는 아무것도 못 한다."
+  value       = aws_cognito_user_pool.people.id
+}
+
 output "user_pool_issuer" {
   description = "토큰의 iss 청구항. 데이터베이스의 신원도 같은 값으로 저장한다."
   value       = "https://${aws_cognito_user_pool.people.endpoint}"
