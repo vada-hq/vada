@@ -1,9 +1,36 @@
 # infra/
 
-Terraform 코드 (첫 AWS 배포 시점에 작성).
+Terraform 코드.
 
 - 리전: **서울(ap-northeast-2)** — CloudFront용 ACM 인증서만 us-east-1
 - 상태: S3 백엔드 + `use_lockfile = true` (Terraform 1.11+ 네이티브 잠금, DynamoDB 불필요)
-- 계정: dev / prod 분리 (AWS Organizations)
-- 비용 가드레일: AWS Budgets 단계 알람을 코드에 포함
-- 첫 배포 전 체크: SES 프로덕션 액세스 신청, 도메인·Route 53 존
+- 비용 가드레일: 콘솔의 zero spend budget (1센트를 넘으면 알림)
+
+## 처음 한 번 — `bootstrap.sh`
+
+Terraform이 스스로 만들 수 없는 것이 둘 있다. 상태를 둘 S3 버킷과, CI가 맡을 역할이다.
+그 둘만 `bootstrap.sh`가 만들고 나머지는 전부 Terraform이 만든다.
+
+**AWS CloudShell에서 돌린다.** 콘솔 세션의 자격 증명을 그대로 쓰므로 장기 액세스 키를
+만들지 않는다. 액세스 키는 한 번 새면 되돌릴 수 없고, 새지 않았는지 확인할 방법도 없다.
+
+```
+bash infra/bootstrap.sh
+```
+
+몇 번을 돌려도 같은 상태가 된다. 이미 있는 것은 건드리지 않는다.
+
+## 이 README가 전에 전제하던 것과 다른 셋
+
+판정과 근거는 이슈 #78에 있다.
+
+**계정을 dev / prod로 나누지 않는다.** 계정 하나로 시작한다. 독립 계정은 나중에
+AWS Organizations에 **멤버로 초대해 넣을 수 있다** — 되돌릴 수 있다. 반대로 지금
+조직을 만들면 이 계정이 **관리 계정**이 되는데, AWS는 관리 계정에 리소스를 두지 말라고
+권장한다. SCP가 관리 계정의 사용자·역할을 제한하지 못하기 때문이다.
+
+**Budgets를 코드에 넣지 않았다.** 부트스트랩 순서상 코드보다 먼저 필요해 콘솔에서
+만들었다. Terraform으로 옮길지는 나중에 정한다.
+
+**SES 프로덕션 액세스와 도메인·Route 53 존은 첫 배포에 넣지 않는다.** 걷는 뼈대에서
+일부러 뺐다. 기본 주소로 충분하고, 나중에 붙여도 구조가 바뀌지 않는다.
