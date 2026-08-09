@@ -4,6 +4,7 @@
  *
  * 출처: contracts/bundles/CB-FIN-001 의 ERROR 계약
  */
+import { accessTokenForRequests } from "../../auth/session";
 import { apiPath } from "./base";
 
 export type ApiFailure =
@@ -43,6 +44,25 @@ export function failureOf(error: unknown, fallback: ApiFailure = "not_found") {
 }
 
 /**
+ * 서버가 요청자를 알아보는 유일한 통로다.
+ *
+ * 화면마다 붙이지 않는다. 화면 하나가 잊으면 그 화면만 401을 받고, 그것은
+ * 데이터가 없는 것과 구별되지 않아 한참 뒤에 발견된다.
+ *
+ * 로컬 개발에는 Cognito가 없어 토큰이 없다. 그때는 헤더를 붙이지 않고,
+ * 서버 쪽 로컬 미들웨어가 신원을 흉내낸다.
+ */
+function headersFor(init: RequestInit): HeadersInit {
+  const token = accessTokenForRequests();
+
+  return {
+    accept: "application/json",
+    ...(token ? { authorization: `Bearer ${token}` } : {}),
+    ...init.headers,
+  };
+}
+
+/**
  * 계약 응답을 읽고 실패는 ApiError로 올린다.
  *
  * 호출부는 계약이 정의한 경로 그대로 넘긴다. 화면 주소와 겹치지 않게 붙이는
@@ -54,7 +74,7 @@ export async function requestJson<T>(
 ): Promise<T> {
   const response = await fetch(apiPath(path), {
     ...init,
-    headers: { accept: "application/json", ...init.headers },
+    headers: headersFor(init),
   });
 
   if (!response.ok) throw new ApiError(classifyStatus(response.status));
@@ -67,7 +87,7 @@ export async function requestEmpty(
 ): Promise<void> {
   const response = await fetch(apiPath(path), {
     ...init,
-    headers: { accept: "application/json", ...init.headers },
+    headers: headersFor(init),
   });
 
   if (!response.ok) throw new ApiError(classifyStatus(response.status));

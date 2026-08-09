@@ -123,6 +123,8 @@ jobs:
             echo "web_bucket=$(terraform output -raw web_bucket)"
             echo "web_distribution=$(terraform output -raw web_distribution_id)"
             echo "client_id=$(terraform output -raw user_pool_client_id)"
+            echo "login_url=$(terraform output -raw login_base_url)"
+            echo "login_callback=$(terraform output -raw login_callback_url)"
             echo "email=$(terraform output -raw verification_email)"
             echo "password_parameter=$(terraform output -raw verification_password_parameter)"
             echo "database_parameter=$(terraform output -raw database_url_parameter)"
@@ -137,7 +139,17 @@ jobs:
         env:
           BUCKET: ${{ steps.deployed.outputs.web_bucket }}
           DISTRIBUTION: ${{ steps.deployed.outputs.web_distribution }}
+          LOGIN_URL: ${{ steps.deployed.outputs.login_url }}
+          CLIENT_ID: ${{ steps.deployed.outputs.client_id }}
         run: |
+          # 로그인 상대가 누구인지는 배포 사실이지 빌드 사실이 아니다. 빌드에
+          # 구우면 빌드 결과가 환경에 묶이고, 그러면 언젠가 다른 환경에서 구운
+          # 것이 올라간다 — 그 사실은 사람이 로그인해 봐야 드러난다.
+          #
+          # 비밀이 아니다. 앱 클라이언트 ID는 어차피 브라우저에 실린다.
+          jq -n --arg loginDomain "${LOGIN_URL}" --arg clientId "${CLIENT_ID}" \
+            '{loginDomain: $loginDomain, clientId: $clientId}' > dist/config.json
+
           # 이름에 내용 해시가 든 파일부터 올린다. 순서를 뒤집으면 새 index.html이
           # 아직 올라오지 않은 조각을 가리키는 순간이 생긴다.
           #
@@ -269,6 +281,9 @@ jobs:
           URL: ${{ steps.deployed.outputs.web_url }}
           DISTRIBUTION: ${{ steps.deployed.outputs.web_distribution }}
           INVALIDATION: ${{ steps.published.outputs.invalidation }}
+          LOGIN_URL: ${{ steps.deployed.outputs.login_url }}
+          LOGIN_CALLBACK: ${{ steps.deployed.outputs.login_callback }}
+          CLIENT_ID: ${{ steps.deployed.outputs.client_id }}
         run: |
           # 다 비워지기 전에 물으면 **지난 배포**를 확인하고 초록불을 준다.
           aws cloudfront wait invalidation-completed \
@@ -309,3 +324,48 @@ jobs:
             exit 1
           fi
           echo "같은 출처 API → ${same_origin}"
+
+          # 화면이 로그인 상대를 아는가. 이 파일이 없으면 배포에서 앱은 아예
+          # 뜨지 않는다 — 그때 화면은 "로그인하지 못했습니다"를 그린다.
+          config="$(curl -fsS --max-time 20 "${URL}/config.json")"
+          echo "${config}" | jq -e \
+            --arg domain "${LOGIN_URL}" --arg client "${CLIENT_ID}" \
+            '.loginDomain == $domain and .clientId == $client' >/dev/null || {
+            echo "배포 설정이 실제로 만들어진 것과 다릅니다: ${config}"
+            exit 1
+          }
+          echo "배포 설정 → ${LOGIN_URL}"
+
+          # **로그인은 양쪽을 다 봐야 한다.** 되돌아올 주소가 등록되지 않았다는
+          # 것은 사람이 로그인 버튼을 눌러야만 드러나고, 그때 Cognito는
+          # `redirect_mismatch`라고만 답한다.
+          authorize="${LOGIN_URL}/oauth2/authorize?response_type=code&scope=openid+email&client_id=${CLIENT_ID}"
+          encoded="$(jq -rn --arg value "${LOGIN_CALLBACK}" '$value|@uri')"
+
+          admitted="$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
+            "${authorize}&redirect_uri=${encoded}")"
+          case "${admitted}" in
+            200 | 302) echo "등록된 주소로 되돌리기 → ${admitted}" ;;
+            *)
+              echo "로그인 화면이 우리 주소를 모릅니다 (${admitted})."
+              echo "콜백 주소: ${LOGIN_CALLBACK}"
+              exit 1
+              ;;
+          esac
+
+          # 상태 코드가 아니라 **어디로 보내려 하는지**를 본다. Cognito가 거절을
+          # 400으로 그리든 오류 페이지로 넘기든, 걸러야 할 것은 하나다 —
+          # 등록되지 않은 주소로 사람을 보내는 것.
+          stranger="$(curl -s -o /dev/null -D - --max-time 20 \
+            "${authorize}&redirect_uri=https%3A%2F%2Fexample.invalid%2Fauth%2Fcallback" \
+            | grep -i '^location:' || true)"
+
+          if echo "${stranger}" | grep -qi 'example\.invalid'; then
+            echo "등록되지 않은 주소로 되돌려 보냅니다. 로그인한 사람을 아무 데나 보낼 수 있습니다."
+            exit 1
+          fi
+          if echo "${stranger}" | grep -qi '/login'; then
+            echo "등록되지 않은 주소를 받고도 로그인 화면을 띄웁니다."
+            exit 1
+          fi
+          echo "낯선 주소로 되돌리기 → 거절"
