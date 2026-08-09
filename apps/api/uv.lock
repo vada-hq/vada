@@ -966,7 +966,6 @@ dependencies = [
     { name = "mangum" },
     { name = "psycopg", extra = ["binary"] },
     { name = "sqlalchemy" },
-    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [package.dev-dependencies]
@@ -979,6 +978,7 @@ dev = [
     { name = "ruff" },
     { name = "schemathesis" },
     { name = "testcontainers" },
+    { name = "uvicorn", extra = ["standard"] },
 ]
 
 [package.metadata]
@@ -989,7 +989,6 @@ requires-dist = [
     { name = "mangum", specifier = ">=0.21.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "sqlalchemy", specifier = ">=2.0" },
-    { name = "uvicorn", extras = ["standard"], specifier = ">=0.34" },
 ]
 
 [package.metadata.requires-dev]
@@ -1002,6 +1001,7 @@ dev = [
     { name = "ruff", specifier = ">=0.15" },
     { name = "schemathesis", specifier = ">=4.24.3" },
     { name = "testcontainers", extras = ["postgres"], specifier = ">=4.10" },
+    { name = "uvicorn", extras = ["standard"], specifier = ">=0.34" },
 ]
 
 [[package]]
