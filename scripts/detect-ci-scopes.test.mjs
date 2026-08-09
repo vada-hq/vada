@@ -41,3 +41,14 @@ test("CI와 통합 명령 변경은 모든 제품 검사를 활성화한다", ()
     infra: true,
   });
 });
+
+// 배포 워크플로는 API를 꾸리고 Terraform을 돌린다. 그런데 그 파일만 고치면
+// 두 검사가 전부 건너뛰어졌다 — 머지 전에 아무도 안 보고, 틀린 것은 배포가
+// 실패해야 드러났다.
+test("배포 워크플로 변경은 모든 제품 검사를 활성화한다", () => {
+  assert.deepEqual(detectCiScopes([".github/workflows/deploy.yml"]), {
+    api: true,
+    web: true,
+    infra: true,
+  });
+});

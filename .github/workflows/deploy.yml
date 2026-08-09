@@ -108,6 +108,7 @@ jobs:
             echo "email=$(terraform output -raw verification_email)"
             echo "password_parameter=$(terraform output -raw verification_password_parameter)"
             echo "database_parameter=$(terraform output -raw database_url_parameter)"
+            echo "database_branch=$(terraform output -raw database_branch)"
             echo "subject=$(terraform output -raw verification_subject)"
             echo "issuer=$(terraform output -raw user_pool_issuer)"
           } >> "$GITHUB_OUTPUT"
@@ -120,6 +121,7 @@ jobs:
       - name: Give the check user a name in the database
         env:
           DATABASE_PARAMETER: ${{ steps.deployed.outputs.database_parameter }}
+          EXPECTED_BRANCH: ${{ steps.deployed.outputs.database_branch }}
           SUBJECT: ${{ steps.deployed.outputs.subject }}
           ISSUER: ${{ steps.deployed.outputs.issuer }}
         run: |
@@ -128,13 +130,23 @@ jobs:
           # SQLAlchemy의 방언 접미사는 psql이 모른다.
           plain="${url/postgresql+psycopg:/postgresql:}"
 
-          # **어디에 쓰는지 찍는다.** 주소는 비밀이라 로그에 못 남기는데, 그러면
-          # 잘못된 데이터베이스에 써도 로그가 똑같아 보인다. 실제로 개발용과
-          # 배포용에 같은 문자열이 들어갔고, 배포는 초록불이었다. 브랜치 ID는
-          # 비밀이 아니고 자격 증명도 아니다 — 어느 데이터베이스인지만 말한다.
+          # **어디에 쓰는지 확인하고 쓴다.** 주소는 비밀이라 로그에 못 남기는데,
+          # 그러면 잘못된 데이터베이스에 써도 로그가 똑같아 보인다. 실제로
+          # 개발용과 배포용에 같은 문자열이 들어갔고, 배포는 초록불이었다.
+          # `{"name":"배포 확인용 계정"}`까지 정확히 기대한 대로 돌아왔다 —
+          # 개발용 데이터베이스에 쓰고 그것을 도로 읽었기 때문이다.
+          #
+          # 브랜치 ID는 비밀이 아니고 자격 증명도 아니다. 어느 데이터베이스인지만
+          # 말한다. 그래서 정본(`infra/variables.tf`)에 적어 두고 맞춰 볼 수 있다.
           branch="$(psql "${plain}" -tAqc \
             "select current_setting('neon.branch_id', true)")"
           echo "배포용 데이터베이스 브랜치: ${branch}"
+          if [ "${branch}" != "${EXPECTED_BRANCH}" ]; then
+            echo "정본이 기대하는 것은 ${EXPECTED_BRANCH}입니다."
+            echo "SSM의 연결 문자열이 다른 데이터베이스를 가리킵니다."
+            echo "개발용 문자열이 들어갔을 가능성이 큽니다 — infra/README.md를 보십시오."
+            exit 1
+          fi
 
           psql "${plain}" -v ON_ERROR_STOP=1 -q <<SQL
           INSERT INTO vada_users (user_id, display_name)
