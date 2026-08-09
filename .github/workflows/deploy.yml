@@ -126,7 +126,17 @@ jobs:
           url="$(aws ssm get-parameter --name "${DATABASE_PARAMETER}" \
             --with-decryption --query 'Parameter.Value' --output text)"
           # SQLAlchemy의 방언 접미사는 psql이 모른다.
-          psql "${url/postgresql+psycopg:/postgresql:}" -v ON_ERROR_STOP=1 -q <<SQL
+          plain="${url/postgresql+psycopg:/postgresql:}"
+
+          # **어디에 쓰는지 찍는다.** 주소는 비밀이라 로그에 못 남기는데, 그러면
+          # 잘못된 데이터베이스에 써도 로그가 똑같아 보인다. 실제로 개발용과
+          # 배포용에 같은 문자열이 들어갔고, 배포는 초록불이었다. 브랜치 ID는
+          # 비밀이 아니고 자격 증명도 아니다 — 어느 데이터베이스인지만 말한다.
+          branch="$(psql "${plain}" -tAqc \
+            "select current_setting('neon.branch_id', true)")"
+          echo "배포용 데이터베이스 브랜치: ${branch}"
+
+          psql "${plain}" -v ON_ERROR_STOP=1 -q <<SQL
           INSERT INTO vada_users (user_id, display_name)
           VALUES ('${SUBJECT}', '배포 확인용 계정')
           ON CONFLICT (user_id) DO UPDATE SET display_name = EXCLUDED.display_name;
