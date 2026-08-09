@@ -36,3 +36,7 @@ test-results/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Terraform 작업 디렉터리 (provider 바이너리가 들어간다)
+.terraform/
+*.tfplan

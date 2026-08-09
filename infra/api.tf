@@ -93,7 +93,7 @@ resource "aws_apigatewayv2_stage" "api" {
   # 왜 실패했는지 알 방법이 없다.
   access_log_settings {
     destination_arn = aws_cloudwatch_log_group.api_access.arn
-    format          = jsonencode({
+    format = jsonencode({
       requestId      = "$context.requestId"
       httpMethod     = "$context.httpMethod"
       path           = "$context.path"
