@@ -23,6 +23,15 @@ GITHUB_REPOSITORY="vada-hq/vada"
 ROLE_NAME="vada-github-actions"
 OIDC_URL="token.actions.githubusercontent.com"
 
+# 없는 도구는 스크립트 중간이 아니라 여기서 걸린다. 중간에서 걸리면 절반만
+# 만들어진 상태로 끝나고, 그게 무슨 상태인지 다음 사람이 알 수 없다.
+for tool in aws jq openssl curl; do
+  command -v "${tool}" >/dev/null 2>&1 || {
+    echo "${tool}가 없습니다. AWS CloudShell에서 실행하세요." >&2
+    exit 1
+  }
+done
+
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 # 버킷 이름은 전 세계에서 유일해야 한다. 계정 번호를 붙여 충돌을 피한다.
 STATE_BUCKET="vada-tfstate-${ACCOUNT_ID}"
@@ -33,7 +42,7 @@ echo
 # ---------------------------------------------------------------------------
 # 1. Terraform 상태 버킷
 # ---------------------------------------------------------------------------
-if aws s3api head-bucket --bucket "${STATE_BUCKET}" 2>/dev/null; then
+if aws s3api head-bucket --bucket "${STATE_BUCKET}" >/dev/null 2>&1; then
   echo "[건너뜀] 상태 버킷이 이미 있습니다: ${STATE_BUCKET}"
 else
   echo "[생성] 상태 버킷 ${STATE_BUCKET}"
@@ -64,17 +73,39 @@ fi
 # ---------------------------------------------------------------------------
 OIDC_ARN="arn:aws:iam::${ACCOUNT_ID}:oidc-provider/${OIDC_URL}"
 
+# 지문은 대개 쓰이지 않는다. AWS가 자체 루트 인증 기관 목록으로 인증서를
+# 검증하기 때문이다. 하지만 문서가 조건을 달아 둔다 — **인증서를 가져오지
+# 못하거나 TLS 1.3이 요구되면 지문 검증으로 되돌아간다.** 그때 자리만 채운
+# 값이면 실패한다. 실제 값을 계산해 둔다.
+#
+# AWS가 보는 것은 체인의 마지막(최상위 중간 CA) 인증서의 SHA-1 지문이다.
+oidc_thumbprint() {
+  local work
+  work="$(mktemp -d)"
+  echo \
+    | openssl s_client -servername "${OIDC_URL}" -showcerts \
+      -connect "${OIDC_URL}:443" 2>/dev/null \
+    | awk -v dir="${work}" '
+        /-----BEGIN CERTIFICATE-----/ { n++ }
+        n { print > (dir "/cert-" n ".pem") }
+      '
+  local last
+  last="$(find "${work}" -name 'cert-*.pem' | sort -V | tail -1)"
+  openssl x509 -in "${last}" -fingerprint -sha1 -noout \
+    | cut -d= -f2 | tr -d ':' | tr '[:upper:]' '[:lower:]'
+}
+
 if aws iam get-open-id-connect-provider --open-id-connect-provider-arn "${OIDC_ARN}" >/dev/null 2>&1; then
-  echo "[건너뜀] OIDC 공급자가 이미 있습니다"
+  echo "[갱신] OIDC 공급자의 지문"
+  aws iam update-open-id-connect-provider-thumbprint \
+    --open-id-connect-provider-arn "${OIDC_ARN}" \
+    --thumbprint-list "$(oidc_thumbprint)"
 else
   echo "[생성] GitHub OIDC 공급자"
-  # 지문(thumbprint)은 2024년 12월부터 실제로 쓰이지 않는다. AWS가 자체 루트
-  # 인증 기관 목록으로 인증서 체인을 검증한다. 다만 API가 값을 요구하므로
-  # 자리를 채운다.
   aws iam create-open-id-connect-provider \
     --url "https://${OIDC_URL}" \
     --client-id-list "sts.amazonaws.com" \
-    --thumbprint-list "ffffffffffffffffffffffffffffffffffffffff" >/dev/null
+    --thumbprint-list "$(oidc_thumbprint)" >/dev/null
 fi
 
 # ---------------------------------------------------------------------------
@@ -82,6 +113,31 @@ fi
 # ---------------------------------------------------------------------------
 # 이 저장소의 main 브랜치에서 도는 워크플로만 맡을 수 있다. 다른 저장소도,
 # 포크의 풀 리퀘스트도 맡을 수 없다 — 그것이 없으면 누구나 이 계정을 쓴다.
+#
+# 주체(sub)에 **번호**가 들어간다. GitHub이 보내는 실제 값이 그렇다:
+#
+#   repo:vada-hq@306677743/vada@1305432774:ref:refs/heads/main
+#
+# 이름이 아니라 조직·저장소의 불변 번호다. 저장소 이름을 바꾸거나 조직을
+# 옮겨도 신뢰가 조용히 다른 곳으로 따라가지 않는다. 이름으로 적으면
+# `repo:vada-hq/vada`가 되는데, 그 형식은 이 저장소에서 쓰이지 않는다 —
+# 실제로 그렇게 적어 뒀다가 "Not authorized"로 막혔다.
+#
+# 번호를 손으로 베끼지 않는다. 손으로 베낀 번호는 저장소를 옮겼을 때 아무도
+# 안 고친다. 공개 API에서 읽는다 — 인증이 필요 없다.
+read -r OWNER_ID REPO_ID <<<"$(
+  curl -fsS "https://api.github.com/repos/${GITHUB_REPOSITORY}" \
+    | jq -r '"\(.owner.id) \(.id)"'
+)"
+
+if [ -z "${OWNER_ID}" ] || [ -z "${REPO_ID}" ]; then
+  echo "GitHub에서 조직·저장소 번호를 읽지 못했습니다." >&2
+  exit 1
+fi
+
+SUBJECT="repo:${GITHUB_REPOSITORY%%/*}@${OWNER_ID}/${GITHUB_REPOSITORY##*/}@${REPO_ID}:ref:refs/heads/main"
+echo "믿을 주체: ${SUBJECT}"
+
 TRUST_POLICY=$(cat <<JSON
 {
   "Version": "2012-10-17",
@@ -93,7 +149,7 @@ TRUST_POLICY=$(cat <<JSON
       "Condition": {
         "StringEquals": {
           "${OIDC_URL}:aud": "sts.amazonaws.com",
-          "${OIDC_URL}:sub": "repo:${GITHUB_REPOSITORY}:ref:refs/heads/main"
+          "${OIDC_URL}:sub": "${SUBJECT}"
         }
       }
     }

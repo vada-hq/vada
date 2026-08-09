@@ -65,6 +65,22 @@ jobs:
           zip -qr ../api.zip .
           echo "꾸러미 $(du -sh ../api.zip | cut -f1)"
 
+      # AWS가 역할을 거절하면 이유를 말해 주지 않는다. "Not authorized"뿐이다.
+      # 그래서 GitHub이 무엇을 주장하는지 먼저 찍는다. 신뢰 정책과 한 글자만
+      # 달라도 거절되는데, 그 한 글자를 눈으로 봐야 고칠 수 있다.
+      #
+      # 토큰 자체는 찍지 않는다. 청구항만 본다.
+      - name: Show what GitHub asserts about this run
+        run: |
+          token="$(curl -sS \
+            -H "Authorization: bearer ${ACTIONS_ID_TOKEN_REQUEST_TOKEN}" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=sts.amazonaws.com" \
+            | jq -r '.value')"
+          payload="$(echo "${token}" | cut -d. -f2 | tr '_-' '/+')"
+          while [ $(( ${#payload} % 4 )) -ne 0 ]; do payload="${payload}="; done
+          echo "${payload}" | base64 -d \
+            | jq '{iss, aud, sub, repository, repository_id, repository_owner_id, ref}'
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
