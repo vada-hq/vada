@@ -10,11 +10,14 @@ dependencies = [
     "mangum>=0.21.0",
     "psycopg[binary]>=3.2",
     "sqlalchemy>=2.0",
-    "uvicorn[standard]>=0.34",
 ]
 
 [dependency-groups]
+# uvicorn은 개발 서버다. 코드가 임포트하지 않고 `just dev-api`가 명령줄로 쓴다.
+# 배포에서는 Lambda가 Mangum을 통해 앱을 부르므로 필요 없다. 실행 의존성에
+# 두면 uvloop·watchfiles·websockets까지 배포 꾸러미에 실려 18MB가 붙는다.
 dev = [
+    "uvicorn[standard]>=0.34",
     "pytest>=9",
     "httpx>=0.28",
     "ruff>=0.15",

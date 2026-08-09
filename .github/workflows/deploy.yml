@@ -35,19 +35,35 @@ jobs:
         with:
           enable-cache: true
 
-      # Lambda는 Amazon Linux에서 돈다. 개발 기계가 Windows든 macOS든
-      # 상관없이 그 플랫폼용 휠을 받아야 한다. 소스 빌드를 막아 두면
-      # 휠이 없는 의존성을 배포 시점이 아니라 여기서 안다.
+      # Lambda는 Amazon Linux에서 돈다. 빌드하는 기계가 Windows든 Linux든
+      # 상관없이 그 플랫폼용 휠을 받아야 한다.
+      #
+      # 소스 빌드를 막는다(`--only-binary`). 막지 않으면 대상 플랫폼 휠이 없는
+      # 의존성을 빌드 기계용으로 조용히 빌드해 두고, 그 사실은 배포된 뒤 첫
+      # 요청에서야 드러난다.
+      #
+      # manylinux2014가 아니라 manylinux_2_28을 겨냥한다. Python 3.13 런타임은
+      # Amazon Linux 2023(glibc 2.34) 위에서 돌고, greenlet 같은 것은 더 이상
+      # manylinux2014 휠을 내지 않는다.
+      #
+      # 의존성과 우리 코드를 나눠 넣는다. `--only-binary`는 우리 프로젝트까지
+      # 소스 빌드 금지 대상으로 잡아 버린다. 우리 코드는 순수 파이썬이라
+      # 빌드할 것이 없고 그대로 복사하면 된다.
       - name: Build the Lambda package
         run: |
-          rm -rf ../../.artifacts/package
-          uv pip install . \
+          rm -rf ../../.artifacts
+          uv export --frozen --no-dev --no-emit-project \
+            --format requirements-txt -o /tmp/lambda-requirements.txt
+          uv pip install \
             --target ../../.artifacts/package \
-            --python-platform x86_64-manylinux2014 \
+            -r /tmp/lambda-requirements.txt \
+            --python-platform x86_64-manylinux_2_28 \
             --python-version 3.13 \
             --only-binary=:all:
+          cp -r src/vada_api ../../.artifacts/package/
           cd ../../.artifacts/package
           zip -qr ../api.zip .
+          echo "꾸러미 $(du -sh ../api.zip | cut -f1)"
 
       - uses: aws-actions/configure-aws-credentials@v4
         with:
