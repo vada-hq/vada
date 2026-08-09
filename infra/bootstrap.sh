@@ -42,7 +42,7 @@ echo
 # ---------------------------------------------------------------------------
 # 1. Terraform 상태 버킷
 # ---------------------------------------------------------------------------
-if aws s3api head-bucket --bucket "${STATE_BUCKET}" 2>/dev/null; then
+if aws s3api head-bucket --bucket "${STATE_BUCKET}" >/dev/null 2>&1; then
   echo "[건너뜀] 상태 버킷이 이미 있습니다: ${STATE_BUCKET}"
 else
   echo "[생성] 상태 버킷 ${STATE_BUCKET}"
