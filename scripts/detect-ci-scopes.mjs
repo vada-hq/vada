@@ -5,6 +5,9 @@ import { fileURLToPath } from "node:url";
 
 const forceAllPaths = new Set([
   ".github/workflows/ci.yml",
+  // 배포 워크플로는 API를 꾸리고 Terraform을 돌린다. 그 파일만 고쳐도 둘 다
+  // 영향을 받는데, 전에는 두 검사가 다 건너뛰어졌다.
+  ".github/workflows/deploy.yml",
   "justfile",
   "scripts/detect-ci-scopes.mjs",
   "scripts/detect-ci-scopes.test.mjs",

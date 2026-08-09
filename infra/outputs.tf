@@ -30,6 +30,11 @@ output "database_url_parameter" {
   value       = var.database_url_parameter
 }
 
+output "database_branch" {
+  description = "배포된 데이터베이스의 Neon 브랜치 ID. 배포 후 검사가 실제로 붙은 곳과 맞춰 본다."
+  value       = var.database_branch
+}
+
 output "verification_password_parameter" {
   description = "그 계정의 비밀번호가 든 SSM 자리. 값이 아니라 자리만 내보낸다."
   value       = aws_ssm_parameter.verification_password.name

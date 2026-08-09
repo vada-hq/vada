@@ -26,6 +26,17 @@ variable "database_url_parameter" {
   default     = "/vada/skeleton/database-url"
 }
 
+variable "database_branch" {
+  description = <<-TEXT
+    Neon branch id of the deployed database. Not a secret and not a credential —
+    it only says which database, and grants nothing. The post-deploy check asserts
+    the SSM url points here, so a development connection string pasted into the
+    wrong place fails loudly instead of quietly writing to the wrong database.
+  TEXT
+  type        = string
+  default     = "br-lingering-wave-azb2r6x2"
+}
+
 variable "verification_email" {
   description = "Login for the post-deploy check. Not a person; .invalid never resolves."
   type        = string
