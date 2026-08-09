@@ -64,17 +64,39 @@ fi
 # ---------------------------------------------------------------------------
 OIDC_ARN="arn:aws:iam::${ACCOUNT_ID}:oidc-provider/${OIDC_URL}"
 
+# 지문은 대개 쓰이지 않는다. AWS가 자체 루트 인증 기관 목록으로 인증서를
+# 검증하기 때문이다. 하지만 문서가 조건을 달아 둔다 — **인증서를 가져오지
+# 못하거나 TLS 1.3이 요구되면 지문 검증으로 되돌아간다.** 그때 자리만 채운
+# 값이면 실패한다. 실제 값을 계산해 둔다.
+#
+# AWS가 보는 것은 체인의 마지막(최상위 중간 CA) 인증서의 SHA-1 지문이다.
+oidc_thumbprint() {
+  local work
+  work="$(mktemp -d)"
+  echo \
+    | openssl s_client -servername "${OIDC_URL}" -showcerts \
+      -connect "${OIDC_URL}:443" 2>/dev/null \
+    | awk -v dir="${work}" '
+        /-----BEGIN CERTIFICATE-----/ { n++ }
+        n { print > (dir "/cert-" n ".pem") }
+      '
+  local last
+  last="$(find "${work}" -name 'cert-*.pem' | sort -V | tail -1)"
+  openssl x509 -in "${last}" -fingerprint -sha1 -noout \
+    | cut -d= -f2 | tr -d ':' | tr '[:upper:]' '[:lower:]'
+}
+
 if aws iam get-open-id-connect-provider --open-id-connect-provider-arn "${OIDC_ARN}" >/dev/null 2>&1; then
-  echo "[건너뜀] OIDC 공급자가 이미 있습니다"
+  echo "[갱신] OIDC 공급자의 지문"
+  aws iam update-open-id-connect-provider-thumbprint \
+    --open-id-connect-provider-arn "${OIDC_ARN}" \
+    --thumbprint-list "$(oidc_thumbprint)"
 else
   echo "[생성] GitHub OIDC 공급자"
-  # 지문(thumbprint)은 2024년 12월부터 실제로 쓰이지 않는다. AWS가 자체 루트
-  # 인증 기관 목록으로 인증서 체인을 검증한다. 다만 API가 값을 요구하므로
-  # 자리를 채운다.
   aws iam create-open-id-connect-provider \
     --url "https://${OIDC_URL}" \
     --client-id-list "sts.amazonaws.com" \
-    --thumbprint-list "ffffffffffffffffffffffffffffffffffffffff" >/dev/null
+    --thumbprint-list "$(oidc_thumbprint)" >/dev/null
 fi
 
 # ---------------------------------------------------------------------------
