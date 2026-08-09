@@ -18,6 +18,9 @@ from vada_api.identity.authentication import (
     api_gateway_request_context,
     principal_from_api_gateway_request_context,
 )
+from vada_api.identity.persistence.relationships import (
+    PostgreSQLIdentityOrganizationRepository,
+)
 from vada_api.local_development import (
     LocalPrincipalMiddleware,
     local_principal_from_environment,
@@ -72,19 +75,36 @@ def _health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-def _whoami(request: Request) -> dict[str, str]:
-    """게이트웨이가 검증한 청구항이 여기까지 오는지 본다.
+def _whoami(request: Request) -> dict[str, str | None]:
+    """게이트웨이가 검증한 청구항으로 데이터베이스에서 자기 이름을 찾는다.
 
-    저장소의 모든 권한 판정이 이 청구항을 전제한다. 그런데 그 경계가 실물로
-    돌아본 적이 없었다 — 개발에서는 `LocalPrincipalMiddleware`가 흉내낼 뿐이다.
-    이 자리가 그 전제를 확인하는 곳이다.
+    걷는 뼈대가 확인하는 사슬 전체가 이 한 줄에 있다 — Cognito가 발급하고,
+    게이트웨이가 검증하고, Mangum이 옮기고, 우리 코드가 읽고, 그 신원으로
+    실제 PostgreSQL을 조회한다.
 
-    자기 자신의 신원만 돌려준다. 데이터베이스는 보지 않는다 — 3차의 몫이다.
+    `name`이 `null`이면 Cognito에는 있는데 VADA에 등록되지 않은 사람이다.
+    오류가 아니다. 데이터베이스에 못 붙으면 그건 오류이고, 조회가 던진다.
     """
     principal = principal_from_api_gateway_request_context(
         api_gateway_request_context(request)
     )
-    return {"issuer": principal.issuer, "subject": principal.subject}
+    identity = {"issuer": principal.issuer, "subject": principal.subject}
+
+    # 데이터베이스가 붙지 않은 환경에서도 신원까지는 답한다. 배포에서는 항상
+    # 붙어 있고, 안 붙어 있으면 배포 후 검사가 그것을 잡는다.
+    #
+    # `getattr`로 읽지 않는다. 조립 불변식 검사가 소스에서 `app.state.<이름>`을
+    # 찾아 조립이 그것을 붙이는지 맞춰 보는데, 이름을 문자열로 감추면 그 그물을
+    # 빠져나간다. 실제로 이 줄이 한 번 빠져나갔다.
+    if not hasattr(request.app.state, "identity_names"):
+        return {**identity, "name": None, "database": "absent"}
+
+    names: PostgreSQLIdentityOrganizationRepository = request.app.state.identity_names
+    return {
+        **identity,
+        "name": names.find_own_display_name(principal),
+        "database": "connected",
+    }
 
 
 app = create_app()

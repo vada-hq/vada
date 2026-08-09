@@ -58,6 +58,31 @@ class PostgreSQLIdentityOrganizationRepository:
                 )
             )
 
+    def find_own_display_name(self, principal: CognitoPrincipal) -> str | None:
+        """검증된 주체 자신의 표시 이름. 없으면 `None`.
+
+        조직 범위가 없는 이유는 조직 데이터가 아니기 때문이다. 부르는 사람이
+        자기 이름을 묻는 것이고, 그 사람이 누구인지는 게이트웨이가 이미 검증했다.
+
+        `None`은 "VADA에 아직 등록되지 않은 신원"이라는 뜻이다. 오류가 아니다 —
+        Cognito에는 있는데 이 조직의 사람으로 초대된 적이 없는 상태다.
+        """
+        statement = (
+            sa.select(vada_users.c.display_name)
+            .select_from(
+                cognito_identities.join(
+                    vada_users,
+                    vada_users.c.user_id == cognito_identities.c.user_id,
+                )
+            )
+            .where(
+                cognito_identities.c.issuer == principal.issuer,
+                cognito_identities.c.subject == principal.subject,
+            )
+        )
+        with self._engine.connect() as connection:
+            return connection.scalar(statement)
+
     def find_sole_organization_context(
         self, principal: CognitoPrincipal
     ) -> SoleOrganizationCandidate | None:
