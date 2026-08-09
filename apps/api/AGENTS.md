@@ -11,6 +11,18 @@
 - 실제 PostgreSQL 테스트: 리포 루트에서 `just test-api-postgresql`
 - 로컬 PostgreSQL 검증을 선택한 경우에만 할당 전에 `just preflight-postgresql`을 실행한다. 로컬 실행 수단이 없으면 GitHub CI의 `api / PostgreSQL integration tests` 성공을 필수 완료 증거로 사용한다.
 
+### 로컬에서 실제 PostgreSQL로 돌리는 법
+
+Docker가 없어도 된다. **빈 데이터베이스 하나**를 `.env`에 적어 주면 `conftest`가 그것을 쓴다.
+
+```
+VADA_TEST_DATABASE_URL=postgresql+psycopg://...   # 접두사를 바꾸고, -pooler 호스트는 쓰지 않는다
+```
+
+Neon이면 브랜치가 아니라 **데이터베이스**를 새로 만든다(브랜치는 부모의 표를 복사해 와서 비어 있지 않다). 검사가 표를 만들고 끝나면 지우므로 몇 번이든 다시 돌릴 수 있다. 개발용·배포용 데이터베이스를 여기 적으면 안 된다.
+
+이것이 없을 때 실제로 무슨 일이 있었는지: `postgres` 표시 검사가 로컬에서 전부 건너뛰어졌고, 그래서 서버 검사를 **눈감고 밀어 넣고 CI에서 확인**하는 방식으로 썼다. 이슈 #51이 막혀 있던 것도 같은 벽이다.
+
 저장소 전체 `just check`는 승인 변경을 통합한 총괄이 한 번 실행한다.
 
 ## 구현 경계
