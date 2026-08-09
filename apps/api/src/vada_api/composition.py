@@ -30,6 +30,8 @@ from vada_api.organization.persistence.context import (
     PostgreSQLOrganizationContextProvider,
 )
 from vada_api.organization.persistence.member_roles import PostgreSQLMemberRoleStore
+from vada_api.session.application import SessionViewerService
+from vada_api.session.persistence import PostgreSQLViewerStore
 
 
 def database_engine_from_environment() -> Engine | None:
@@ -57,6 +59,9 @@ def configure_postgresql_dependencies(application: FastAPI, engine: Engine) -> N
     )
     application.state.member_role_service = MemberRoleService(
         PostgreSQLMemberRoleStore(engine)
+    )
+    application.state.session_viewer_service = SessionViewerService(
+        PostgreSQLViewerStore(engine)
     )
     application.state.purchase_request_context_provider = context_provider
     application.state.purchase_request_relationship_reader = relationship_reader
