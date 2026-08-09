@@ -205,6 +205,28 @@ jobs:
             exit 1
           fi
 
+          # **코드가 기대하는 스키마와 배포된 스키마가 같은가.**
+          #
+          # 마이그레이션은 아직 사람이 돌린다(걷는 뼈대의 하지 않은 것). 안 돌린
+          # 채로 배포하면 배포된 함수가 없는 컬럼을 읽고, 그 실패는 사람이 화면을
+          # 열어야 드러난다. 브랜치 ID 가드와 같은 이유로 여기서 막는다 —
+          # 배포됐다는 것과 배포된 것이 돈다는 것은 다른 사실이다.
+          expected="$(uv run alembic heads | awk '{print $1}')"
+          actual="$(psql "${plain}" -tAqc \
+            "select version_num from alembic_version" 2>/dev/null || true)"
+
+          echo "스키마 리비전: 코드 ${expected} · 데이터베이스 ${actual:-없음}"
+          if [ -z "${actual}" ]; then
+            echo "배포용 데이터베이스에 마이그레이션이 한 번도 적용되지 않았습니다."
+            echo "'just migrate'를 배포용 연결 문자열로 한 번 돌려야 합니다."
+            exit 1
+          fi
+          if [ "${expected}" != "${actual}" ]; then
+            echo "코드가 기대하는 스키마가 데이터베이스에 없습니다."
+            echo "'just migrate'를 배포용 연결 문자열로 돌린 뒤 다시 배포하십시오."
+            exit 1
+          fi
+
           psql "${plain}" -v ON_ERROR_STOP=1 -q <<SQL
           INSERT INTO vada_users (user_id, display_name)
           VALUES ('${SUBJECT}', '배포 확인용 계정')
