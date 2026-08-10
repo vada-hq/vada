@@ -28,6 +28,19 @@ jobs:
           HEAD_SHA: ${{ github.sha }}
         run: node scripts/detect-ci-scopes.mjs --base "$BASE_SHA" --head "$HEAD_SHA" >> "$GITHUB_OUTPUT"
 
+  # 진행 상태는 파일이 아니라 이슈와 PR이 소유한다. 그 규칙을 글로만 적었더니
+  # 규칙을 만든 PR 다음부터 다섯 건이 연속으로 어겼다.
+  ownership:
+    name: ownership
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Say who owns this work
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+        run: printf '%s' "$BODY" | node scripts/check-pull-request-ownership.mjs
+
   contracts:
     name: contracts
     runs-on: ubuntu-latest

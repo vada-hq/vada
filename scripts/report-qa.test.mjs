@@ -145,3 +145,15 @@ test("흐름 정본이 없는 화면에는 없다고 말한다", async () => {
 
   assert.match(formatQa(report), /흐름 정본이 아직 없다|just flow /);
 });
+
+// 공통 HTTP 오류는 거의 모든 화면이 재사용한다. 그것을 소속의 근거로 삼으면
+// 조직 화면의 확인 목록에 구매 요청 작성 규칙 열다섯 줄이 붙는다. 실제로 붙었다.
+//
+// 사람이 목록을 한 번 안 믿기 시작하면 이 도구는 죽는다. `just qa`가 있는 이유가
+// "안 만든 것은 목록이 있어야 보인다"이기 때문이다.
+test("공통 오류 계약만 겹치는 흐름은 화면 QA에 붙지 않는다", async () => {
+  const organization = await collectQa("ORG-04B");
+
+  assert.deepEqual(organization.flows, []);
+  assert.deepEqual(organization.flowRequirements, []);
+});
