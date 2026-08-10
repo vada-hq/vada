@@ -5,12 +5,12 @@
     "version": "0.95.0"
   },
   "input": {
-    "path": "contracts/openapi/CB-FIN-001/R2.json",
-    "sha256": "4e9b4108fa1a00279c5a01154298dbbe95ffe00a03ec9531a75245fda8088fc2"
+    "path": "contracts/openapi/vada.json",
+    "sha256": "94e491fec2eedb54e6729aa400b383ec3abf2e19369694897a7688cf59a55142"
   },
   "config": {
     "path": "packages/api-client/openapi-ts.config.ts",
-    "sha256": "d05acd6aa56fc554451743c4237481627fce1bf2ee6d908ea45e6d296459a832"
+    "sha256": "180efc5474801fb093babe1b54b0ac15e62c77660d49f50b4c842998b7f31ca6"
   },
   "files": [
     {
@@ -67,15 +67,15 @@
     },
     {
       "path": "index.ts",
-      "sha256": "fb343d4eadcee1a409317156706f48fabe6232b33bf9795a0b8b353c9a265ba0"
+      "sha256": "f1099c92004dd91215db29569ef7a0270e05f01e7add0020336cc8ce987ebf5e"
     },
     {
       "path": "sdk.gen.ts",
-      "sha256": "39e1c15eeefdad6ff39f6ef0e7f9e00242e334bbc6c87eb2964220ddb2fa7452"
+      "sha256": "c19df2048151343c3a59510134ec693157bfe0c4af5bee318921700ce7e50824"
     },
     {
       "path": "types.gen.ts",
-      "sha256": "5f322bbce6486ba701f21c5207ad38f9fa6322e3913d4e369c9ef8aa31a3d76a"
+      "sha256": "e0443ac42a5b8de9015c8866eb409f4880f7f46278f197d6576de4ed93cbf76d"
     }
   ]
 }

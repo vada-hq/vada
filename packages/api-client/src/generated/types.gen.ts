@@ -4,6 +4,166 @@ export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
 
+export type EmptyBody = null;
+
+export type EventBudgetSummary = {
+    /**
+     * 이 행사에 배정된 예산 총액(원)
+     */
+    allocatedTotal: number;
+    /**
+     * 승인된 구매 품목의 요청 금액 합계(원). 예산 예약액이다
+     */
+    committedTotal: number;
+    /**
+     * allocatedTotal에서 committedTotal을 뺀 금액(원). 음수일 수 있다
+     */
+    availableTotal: number;
+};
+
+export type OrganizationMemberRoles = {
+    members: Array<{
+        membershipId: string;
+        /**
+         * 구성원 이름. 표시 전용이며 이것으로 구성원을 가리키지 않는다
+         */
+        displayName: string;
+        /**
+         * 소속 부서 이름. 한 구성원이 여러 부서에 속할 수 있어 목록이다
+         */
+        departments: Array<string>;
+        role: 'president' | 'department_head' | 'member';
+    }>;
+};
+
+export type OrganizationRoleChangeCommand = {
+    /**
+     * 바꾸려는 기본 역할
+     */
+    role: 'president' | 'department_head' | 'member';
+    /**
+     * 화면이 본 현재 기본 역할. 서버 값과 다르면 거부한다
+     */
+    expectedCurrentRole: 'president' | 'department_head' | 'member';
+};
+
+export type ProblemDetails = {
+    type: string;
+    title: string;
+    status: number;
+    detail?: string;
+    instance?: string;
+    code: string;
+    retryable?: boolean;
+    fieldViolations?: Array<{
+        path: string;
+        code: string;
+        message: string;
+    }>;
+};
+
+export type PurchaseRequestDetailView = {
+    record: PurchaseRequestRecord;
+    display: {
+        eventName: string;
+        requesterName: string;
+    };
+};
+
+export type PurchaseRequestDraft = {
+    draftId: string;
+    version: number;
+    savedAt: string;
+    content: PurchaseRequestDraftContent;
+};
+
+export type PurchaseRequestDraftContent = {
+    title?: string;
+    neededDate?: string;
+    purpose?: string;
+    priority?: null | 'normal' | 'urgent';
+    items?: Array<{
+        name?: string;
+        category?: string;
+        budgetItem?: string;
+        purchaseType?: null | 'general' | 'manufacturing_printing' | 'rental' | 'service';
+        quantity?: number | null;
+        unit?: string;
+        estimatedUnitPrice?: number | null;
+        priceEvidence?: Array<{
+            type?: 'product_url' | 'vendor' | 'price_screenshot' | 'vendor_quote';
+            url?: string;
+            vendorName?: string;
+            fileRef?: string;
+            note?: string;
+        }>;
+        details?: {
+            vendor?: string;
+            productUrl?: string;
+            options?: string;
+            deliveryRequest?: string;
+            itemKind?: string;
+            specification?: string;
+            color?: string;
+            optionQuantities?: {
+                [key: string]: number | null;
+            };
+            printMethod?: string;
+            deliveryDate?: string;
+            fileRefs?: Array<string>;
+            requestNote?: string;
+            pickupLocation?: string;
+            startDate?: string;
+            endDate?: string;
+            contact?: string;
+            depositAmount?: number | null;
+            conditions?: string;
+            provider?: string;
+            location?: string;
+            scope?: string;
+        };
+    }>;
+};
+
+export type PurchaseRequestDraftSaveCommand = {
+    expectedVersion: null | number;
+    content: PurchaseRequestDraftContent;
+};
+
+export type PurchaseRequestEditorState = {
+    organizationId: string;
+    eventId: string;
+    eventName: string;
+    requesterUserId: string;
+    requesterName: string;
+    requestDepartmentId: string;
+    requestDepartmentName: string;
+    draft: null | PurchaseRequestDraft;
+};
+
+export type PurchaseRequestEventItemBoard = {
+    items: Array<{
+        itemId: string;
+        requestId: string;
+        itemName: string;
+        requesterName: string;
+        requestDepartmentName: string;
+        estimatedTotalPrice: number;
+        /**
+         * 요청자 기준으로 계산한 대표 진행 상태
+         */
+        progressState: 'needs_attention' | 'under_review' | 'rejected';
+        /**
+         * 이 품목을 현재 사용자가 요청했는지
+         */
+        requestedByViewer: boolean;
+        /**
+         * 재정부 처리 단계. 재정부가 아닌 사용자에게는 이 필드를 내려보내지 않는다
+         */
+        financeStage?: 'review_pending' | 'revision_review_pending';
+    }>;
+};
+
 export type PurchaseRequestInput = {
     title: string;
     neededDate: string;
@@ -89,83 +249,46 @@ export type PurchaseRequestInput = {
     })>;
 };
 
-export type PurchaseRequestDraftContent = {
-    title?: string;
-    neededDate?: string;
-    purpose?: string;
-    priority?: null | 'normal' | 'urgent';
-    items?: Array<{
-        name?: string;
-        category?: string;
-        budgetItem?: string;
-        purchaseType?: null | 'general' | 'manufacturing_printing' | 'rental' | 'service';
-        quantity?: number | null;
-        unit?: string;
-        estimatedUnitPrice?: number | null;
-        priceEvidence?: Array<{
-            type?: 'product_url' | 'vendor' | 'price_screenshot' | 'vendor_quote';
-            url?: string;
-            vendorName?: string;
-            fileRef?: string;
-            note?: string;
-        }>;
-        details?: {
-            vendor?: string;
-            productUrl?: string;
-            options?: string;
-            deliveryRequest?: string;
-            itemKind?: string;
-            specification?: string;
-            color?: string;
-            optionQuantities?: {
-                [key: string]: number | null;
-            };
-            printMethod?: string;
-            deliveryDate?: string;
-            fileRefs?: Array<string>;
-            requestNote?: string;
-            pickupLocation?: string;
-            startDate?: string;
-            endDate?: string;
-            contact?: string;
-            depositAmount?: number | null;
-            conditions?: string;
-            provider?: string;
-            location?: string;
-            scope?: string;
-        };
+export type PurchaseRequestItemDecision = unknown & {
+    decision: 'approve' | 'request_revision' | 'reject';
+    /**
+     * 요청자가 화면에서 본 현재 상태. 서버 상태와 다르면 거부한다
+     */
+    expectedReviewStatus: 'review_pending' | 'approved' | 'revision_requested' | 'rejected';
+    revisionReason?: string;
+    revisionDueDate?: string;
+    rejectionReason?: string;
+};
+
+export type PurchaseRequestItemReviewState = {
+    itemId: string;
+    /**
+     * 품목의 검토 상태. 저장되는 원본이다
+     */
+    reviewStatus: 'review_pending' | 'approved' | 'revision_requested' | 'rejected';
+    /**
+     * 보완 요청 사유. reviewStatus가 revision_requested일 때만 존재한다
+     */
+    revisionReason?: string;
+    /**
+     * 보완 재제출 기한. reviewStatus가 revision_requested일 때만 존재한다
+     */
+    revisionDueDate?: string;
+    /**
+     * 반려 사유. reviewStatus가 rejected일 때만 존재한다
+     */
+    rejectionReason?: string;
+};
+
+export type PurchaseRequestOwnList = {
+    items: Array<{
+        requestId: string;
+        title: string;
+        status: string;
+        estimatedTotal: number;
+        overBudget: boolean;
+        createdAt: string;
     }>;
-};
-
-export type PurchaseRequestDraftSaveCommand = {
-    expectedVersion: null | number;
-    content: PurchaseRequestDraftContent;
-};
-
-export type PurchaseRequestDraft = {
-    draftId: string;
-    version: number;
-    savedAt: string;
-    content: PurchaseRequestDraftContent;
-};
-
-export type PurchaseRequestEditorState = {
-    organizationId: string;
-    eventId: string;
-    eventName: string;
-    requesterUserId: string;
-    requesterName: string;
-    requestDepartmentId: string;
-    requestDepartmentName: string;
-    draft: null | PurchaseRequestDraft;
-};
-
-export type PurchaseRequestSubmitCommand = {
-    content: PurchaseRequestInput;
-    draftRef?: {
-        draftId: string;
-        version: number;
-    };
 };
 
 export type PurchaseRequestRecord = {
@@ -186,52 +309,99 @@ export type PurchaseRequestRecord = {
     createdAt: string;
 };
 
-export type PurchaseRequestDetailView = {
-    record: PurchaseRequestRecord;
-    display: {
-        eventName: string;
-        requesterName: string;
+export type PurchaseRequestReviewView = {
+    detail: PurchaseRequestDetailView;
+    itemReviewStates: Array<PurchaseRequestItemReviewState>;
+    history: Array<{
+        /**
+         * UTC ISO 8601. 저장은 UTC, 표시만 KST로 바꾼다
+         */
+        recordedAt: string;
+        actorName: string;
+        summary: string;
+        itemId?: string;
+    }>;
+};
+
+export type PurchaseRequestRevisionSubmission = {
+    items: Array<{
+        itemId: string;
+        /**
+         * 화면이 본 상태. 재정부가 그 사이 재검토를 끝냈으면 덮어쓰지 않는다
+         */
+        expectedReviewStatus: 'revision_requested';
+        content: {
+            [key: string]: unknown;
+        };
+    }>;
+};
+
+export type PurchaseRequestRevisionView = {
+    requestId: string;
+    requestTitle: string;
+    /**
+     * 보완 요청된 품목. 이것만 고칠 수 있다
+     */
+    revisionItems: Array<{
+        itemId: string;
+        itemName: string;
+        revisionReason: string;
+        /**
+         * 재제출 기한. 지나도 재제출을 막지 않는다
+         */
+        revisionDueDate?: string;
+        content: {
+            [key: string]: unknown;
+        };
+    }>;
+    /**
+     * 같은 요청의 나머지 품목. 읽기 전용이다
+     */
+    otherItems: Array<{
+        itemId: string;
+        itemName: string;
+        reviewStatus: 'review_pending' | 'approved' | 'rejected';
+        estimatedTotalPrice: number;
+    }>;
+};
+
+export type PurchaseRequestSubmitCommand = {
+    content: PurchaseRequestInput;
+    draftRef?: {
+        draftId: string;
+        version: number;
     };
 };
 
-export type PurchaseRequestOwnList = {
-    items: Array<{
-        requestId: string;
-        title: string;
-        status: string;
-        estimatedTotal: number;
-        overBudget: boolean;
-        createdAt: string;
-    }>;
+export type SessionViewer = {
+    userId: string;
+    /**
+     * 사이드바 등에 보여줄 이름. 표시 전용이다
+     */
+    displayName: string;
+    organizationId: string;
+    organizationName?: string;
+    capabilities: {
+        canManageFinance: boolean;
+        canSubmitPurchaseRequest: boolean;
+        canCompleteEvent: boolean;
+        canEditOrganization: boolean;
+        canInviteOrganizationMember: boolean;
+        canManageStudentRoster: boolean;
+        canManageStudentFeeRoster: boolean;
+    };
 };
 
-export type EmptyBody = null;
-
-export type ProblemDetails = {
-    type: string;
-    title: string;
-    status: number;
-    detail?: string;
-    instance?: string;
-    code: string;
-    retryable?: boolean;
-    fieldViolations?: Array<{
-        path: string;
-        code: string;
-        message: string;
-    }>;
-};
-
-export type GetPurchaseRequestEditorStateData = {
+export type GetEventBudgetSummaryData = {
     body?: never;
     path: {
         eventId: string;
     };
     query?: never;
-    url: '/events/{eventId}/purchase-request-editor';
+    url: '/events/{eventId}/budget-summary';
 };
 
-export type GetPurchaseRequestEditorStateErrors = {
+export type GetEventBudgetSummaryErrors = {
     /**
      * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
      */
@@ -250,16 +420,137 @@ export type GetPurchaseRequestEditorStateErrors = {
     503: ProblemDetails;
 };
 
-export type GetPurchaseRequestEditorStateError = GetPurchaseRequestEditorStateErrors[keyof GetPurchaseRequestEditorStateErrors];
+export type GetEventBudgetSummaryError = GetEventBudgetSummaryErrors[keyof GetEventBudgetSummaryErrors];
 
-export type GetPurchaseRequestEditorStateResponses = {
+export type GetEventBudgetSummaryResponses = {
     /**
      * 성공
      */
-    200: PurchaseRequestEditorState;
+    200: EventBudgetSummary;
 };
 
-export type GetPurchaseRequestEditorStateResponse = GetPurchaseRequestEditorStateResponses[keyof GetPurchaseRequestEditorStateResponses];
+export type GetEventBudgetSummaryResponse = GetEventBudgetSummaryResponses[keyof GetEventBudgetSummaryResponses];
+
+export type ChangeOrganizationMemberRoleData = {
+    body: OrganizationRoleChangeCommand;
+    path: {
+        membershipId: string;
+    };
+    query?: never;
+    url: '/organization/memberships/{membershipId}/role';
+};
+
+export type ChangeOrganizationMemberRoleErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 조직 관리 행동을 할 권한이 없음을 표현합니다.
+     */
+    403: ProblemDetails;
+    /**
+     * 리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.
+     */
+    404: ProblemDetails;
+    /**
+     * 화면이 본 현재 역할이 서버 값과 달라졌음을 표현합니다.
+     */
+    409: ProblemDetails;
+    /**
+     * 바꾸려는 역할이 현재 역할과 같아 바꿀 것이 없음을 표현합니다.
+     */
+    422: ProblemDetails;
+    /**
+     * 저장소를 일시적으로 쓸 수 없음을 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type ChangeOrganizationMemberRoleError = ChangeOrganizationMemberRoleErrors[keyof ChangeOrganizationMemberRoleErrors];
+
+export type ChangeOrganizationMemberRoleResponses = {
+    /**
+     * 성공
+     */
+    200: OrganizationMemberRoles;
+};
+
+export type ChangeOrganizationMemberRoleResponse = ChangeOrganizationMemberRoleResponses[keyof ChangeOrganizationMemberRoleResponses];
+
+export type ListOrganizationMemberRolesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/organization/member-roles';
+};
+
+export type ListOrganizationMemberRolesErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 조직 관리 행동을 할 권한이 없음을 표현합니다.
+     */
+    403: ProblemDetails;
+    /**
+     * 저장소를 일시적으로 쓸 수 없음을 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type ListOrganizationMemberRolesError = ListOrganizationMemberRolesErrors[keyof ListOrganizationMemberRolesErrors];
+
+export type ListOrganizationMemberRolesResponses = {
+    /**
+     * 성공
+     */
+    200: OrganizationMemberRoles;
+};
+
+export type ListOrganizationMemberRolesResponse = ListOrganizationMemberRolesResponses[keyof ListOrganizationMemberRolesResponses];
+
+export type DecidePurchaseRequestItemData = {
+    body: PurchaseRequestItemDecision;
+    path: {
+        eventId: string;
+        requestId: string;
+        itemId: string;
+    };
+    query?: never;
+    url: '/events/{eventId}/purchase-requests/{requestId}/items/{itemId}/review';
+};
+
+export type DecidePurchaseRequestItemErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.
+     */
+    403: ProblemDetails;
+    /**
+     * 리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.
+     */
+    404: ProblemDetails;
+    /**
+     * 초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type DecidePurchaseRequestItemError = DecidePurchaseRequestItemErrors[keyof DecidePurchaseRequestItemErrors];
+
+export type DecidePurchaseRequestItemResponses = {
+    /**
+     * 성공
+     */
+    200: PurchaseRequestReviewView;
+};
+
+export type DecidePurchaseRequestItemResponse = DecidePurchaseRequestItemResponses[keyof DecidePurchaseRequestItemResponses];
 
 export type DeletePurchaseRequestDraftData = {
     body?: never;
@@ -343,6 +634,239 @@ export type SavePurchaseRequestDraftResponses = {
 
 export type SavePurchaseRequestDraftResponse = SavePurchaseRequestDraftResponses[keyof SavePurchaseRequestDraftResponses];
 
+export type GetPurchaseRequestDetailData = {
+    body?: never;
+    path: {
+        eventId: string;
+        requestId: string;
+    };
+    query?: never;
+    url: '/events/{eventId}/purchase-requests/{requestId}';
+};
+
+export type GetPurchaseRequestDetailErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.
+     */
+    404: ProblemDetails;
+    /**
+     * 초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type GetPurchaseRequestDetailError = GetPurchaseRequestDetailErrors[keyof GetPurchaseRequestDetailErrors];
+
+export type GetPurchaseRequestDetailResponses = {
+    /**
+     * 성공
+     */
+    200: PurchaseRequestDetailView;
+};
+
+export type GetPurchaseRequestDetailResponse = GetPurchaseRequestDetailResponses[keyof GetPurchaseRequestDetailResponses];
+
+export type GetPurchaseRequestEditorStateData = {
+    body?: never;
+    path: {
+        eventId: string;
+    };
+    query?: never;
+    url: '/events/{eventId}/purchase-request-editor';
+};
+
+export type GetPurchaseRequestEditorStateErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.
+     */
+    403: ProblemDetails;
+    /**
+     * 리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.
+     */
+    404: ProblemDetails;
+    /**
+     * 초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type GetPurchaseRequestEditorStateError = GetPurchaseRequestEditorStateErrors[keyof GetPurchaseRequestEditorStateErrors];
+
+export type GetPurchaseRequestEditorStateResponses = {
+    /**
+     * 성공
+     */
+    200: PurchaseRequestEditorState;
+};
+
+export type GetPurchaseRequestEditorStateResponse = GetPurchaseRequestEditorStateResponses[keyof GetPurchaseRequestEditorStateResponses];
+
+export type GetPurchaseRequestReviewData = {
+    body?: never;
+    path: {
+        eventId: string;
+        requestId: string;
+    };
+    query?: never;
+    url: '/events/{eventId}/purchase-requests/{requestId}/review';
+};
+
+export type GetPurchaseRequestReviewErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.
+     */
+    403: ProblemDetails;
+    /**
+     * 리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.
+     */
+    404: ProblemDetails;
+    /**
+     * 초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type GetPurchaseRequestReviewError = GetPurchaseRequestReviewErrors[keyof GetPurchaseRequestReviewErrors];
+
+export type GetPurchaseRequestReviewResponses = {
+    /**
+     * 성공
+     */
+    200: PurchaseRequestReviewView;
+};
+
+export type GetPurchaseRequestReviewResponse = GetPurchaseRequestReviewResponses[keyof GetPurchaseRequestReviewResponses];
+
+export type GetPurchaseRequestRevisionData = {
+    body?: never;
+    path: {
+        eventId: string;
+        requestId: string;
+    };
+    query?: never;
+    url: '/events/{eventId}/purchase-requests/{requestId}/revision';
+};
+
+export type GetPurchaseRequestRevisionErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.
+     */
+    403: ProblemDetails;
+    /**
+     * 리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.
+     */
+    404: ProblemDetails;
+    /**
+     * 초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type GetPurchaseRequestRevisionError = GetPurchaseRequestRevisionErrors[keyof GetPurchaseRequestRevisionErrors];
+
+export type GetPurchaseRequestRevisionResponses = {
+    /**
+     * 성공
+     */
+    200: PurchaseRequestRevisionView;
+};
+
+export type GetPurchaseRequestRevisionResponse = GetPurchaseRequestRevisionResponses[keyof GetPurchaseRequestRevisionResponses];
+
+export type ListEventPurchaseRequestItemsData = {
+    body?: never;
+    path: {
+        eventId: string;
+    };
+    query?: never;
+    url: '/events/{eventId}/purchase-request-items';
+};
+
+export type ListEventPurchaseRequestItemsErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.
+     */
+    403: ProblemDetails;
+    /**
+     * 리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.
+     */
+    404: ProblemDetails;
+    /**
+     * 초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type ListEventPurchaseRequestItemsError = ListEventPurchaseRequestItemsErrors[keyof ListEventPurchaseRequestItemsErrors];
+
+export type ListEventPurchaseRequestItemsResponses = {
+    /**
+     * 성공
+     */
+    200: PurchaseRequestEventItemBoard;
+};
+
+export type ListEventPurchaseRequestItemsResponse = ListEventPurchaseRequestItemsResponses[keyof ListEventPurchaseRequestItemsResponses];
+
+export type ListOwnPurchaseRequestsData = {
+    body?: never;
+    path: {
+        eventId: string;
+    };
+    query?: never;
+    url: '/events/{eventId}/purchase-requests/mine';
+};
+
+export type ListOwnPurchaseRequestsErrors = {
+    /**
+     * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
+     */
+    401: ProblemDetails;
+    /**
+     * 현재 조직에서 알려진 작성 동작을 수행할 관계가 없음을 표현합니다.
+     */
+    403: ProblemDetails;
+    /**
+     * 리소스 부재와 조직 범위 밖 접근을 구분하지 않고 표현합니다.
+     */
+    404: ProblemDetails;
+    /**
+     * 초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.
+     */
+    503: ProblemDetails;
+};
+
+export type ListOwnPurchaseRequestsError = ListOwnPurchaseRequestsErrors[keyof ListOwnPurchaseRequestsErrors];
+
+export type ListOwnPurchaseRequestsResponses = {
+    /**
+     * 성공
+     */
+    200: PurchaseRequestOwnList;
+};
+
+export type ListOwnPurchaseRequestsResponse = ListOwnPurchaseRequestsResponses[keyof ListOwnPurchaseRequestsResponses];
+
 export type SubmitPurchaseRequestData = {
     body: PurchaseRequestSubmitCommand;
     headers: {
@@ -393,16 +917,20 @@ export type SubmitPurchaseRequestResponses = {
 
 export type SubmitPurchaseRequestResponse = SubmitPurchaseRequestResponses[keyof SubmitPurchaseRequestResponses];
 
-export type ListOwnPurchaseRequestsData = {
-    body?: never;
+export type SubmitPurchaseRequestRevisionData = {
+    body: PurchaseRequestRevisionSubmission;
+    headers: {
+        'Idempotency-Key': string;
+    };
     path: {
         eventId: string;
+        requestId: string;
     };
     query?: never;
-    url: '/events/{eventId}/purchase-requests/mine';
+    url: '/events/{eventId}/purchase-requests/{requestId}/revisions';
 };
 
-export type ListOwnPurchaseRequestsErrors = {
+export type SubmitPurchaseRequestRevisionErrors = {
     /**
      * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
      */
@@ -416,33 +944,38 @@ export type ListOwnPurchaseRequestsErrors = {
      */
     404: ProblemDetails;
     /**
+     * 초안 리비전 또는 멱등성 재시도 내용이 충돌함을 표현합니다.
+     */
+    409: ProblemDetails;
+    /**
+     * 구매 요청이나 품목 입력이 계약을 만족하지 못함을 표현합니다.
+     */
+    422: ProblemDetails;
+    /**
      * 초안 또는 요청을 안전하게 저장할 수 없는 일시 장애를 표현합니다.
      */
     503: ProblemDetails;
 };
 
-export type ListOwnPurchaseRequestsError = ListOwnPurchaseRequestsErrors[keyof ListOwnPurchaseRequestsErrors];
+export type SubmitPurchaseRequestRevisionError = SubmitPurchaseRequestRevisionErrors[keyof SubmitPurchaseRequestRevisionErrors];
 
-export type ListOwnPurchaseRequestsResponses = {
+export type SubmitPurchaseRequestRevisionResponses = {
     /**
      * 성공
      */
-    200: PurchaseRequestOwnList;
+    200: PurchaseRequestRevisionView;
 };
 
-export type ListOwnPurchaseRequestsResponse = ListOwnPurchaseRequestsResponses[keyof ListOwnPurchaseRequestsResponses];
+export type SubmitPurchaseRequestRevisionResponse = SubmitPurchaseRequestRevisionResponses[keyof SubmitPurchaseRequestRevisionResponses];
 
-export type GetPurchaseRequestDetailData = {
+export type GetSessionViewerData = {
     body?: never;
-    path: {
-        eventId: string;
-        requestId: string;
-    };
+    path?: never;
     query?: never;
-    url: '/events/{eventId}/purchase-requests/{requestId}';
+    url: '/session/viewer';
 };
 
-export type GetPurchaseRequestDetailErrors = {
+export type GetSessionViewerErrors = {
     /**
      * 인증 정보가 없거나 유효하지 않은 요청을 표현합니다.
      */
@@ -457,13 +990,13 @@ export type GetPurchaseRequestDetailErrors = {
     503: ProblemDetails;
 };
 
-export type GetPurchaseRequestDetailError = GetPurchaseRequestDetailErrors[keyof GetPurchaseRequestDetailErrors];
+export type GetSessionViewerError = GetSessionViewerErrors[keyof GetSessionViewerErrors];
 
-export type GetPurchaseRequestDetailResponses = {
+export type GetSessionViewerResponses = {
     /**
      * 성공
      */
-    200: PurchaseRequestDetailView;
+    200: SessionViewer;
 };
 
-export type GetPurchaseRequestDetailResponse = GetPurchaseRequestDetailResponses[keyof GetPurchaseRequestDetailResponses];
+export type GetSessionViewerResponse = GetSessionViewerResponses[keyof GetSessionViewerResponses];

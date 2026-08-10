@@ -15,12 +15,6 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
-  snapshotFreshGeneration,
-  validateGeneratedClient,
-  writeGeneratedManifest as writeManifest,
-  GENERATED_MANIFEST_PATH,
-} from "./contract-openapi/generated-client.mjs";
-import {
   equalJson,
   equalSets,
   isObject,
@@ -361,14 +355,6 @@ export async function validatePurchaseRequestOpenApiRepository(
   }
 }
 
-export async function validateGeneratedClientRepository(root = repositoryRoot) {
-  return validateGeneratedClient(root, OPENAPI_PATH);
-}
-
-export async function generateClientSnapshot(root = repositoryRoot) {
-  return snapshotFreshGeneration(root);
-}
-
 async function writeOpenApi(root) {
   const baseline = await loadPurchaseRequestOpenApiBaseline(root);
   const openApi = buildPurchaseRequestOpenApi(baseline);
@@ -384,20 +370,15 @@ if (isMain) {
   if (process.argv.includes("--write-openapi")) {
     await writeOpenApi(repositoryRoot);
     console.log(`${OPENAPI_PATH} 생성 완료`);
-  } else if (process.argv.includes("--write-manifest")) {
-    await writeManifest(repositoryRoot, OPENAPI_PATH);
-    console.log(`${GENERATED_MANIFEST_PATH} 생성 완료`);
   } else {
-    const [openApiResult, generatedResult] = await Promise.all([
-      validatePurchaseRequestOpenApiRepository(repositoryRoot),
-      validateGeneratedClientRepository(repositoryRoot),
-    ]);
-    const errors = [...openApiResult.errors, ...generatedResult.errors];
+    const { errors } = await validatePurchaseRequestOpenApiRepository(
+      repositoryRoot,
+    );
     if (errors.length > 0) {
       for (const error of errors) console.error(`ERROR ${error}`);
       process.exitCode = 1;
     } else {
-      console.log("구매 요청 OpenAPI·생성 클라이언트 검증 통과: 오류 0");
+      console.log("구매 요청 OpenAPI 검증 통과: 오류 0");
     }
   }
 }
