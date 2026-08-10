@@ -50,6 +50,11 @@ test("계약 OpenAPI 도구 변경은 웹 검사를 활성화한다", () => {
     web: true,
     infra: false,
   });
+  assert.deepEqual(detectCiScopes(["scripts/validate-vada-openapi.mjs"]), {
+    api: false,
+    web: true,
+    infra: false,
+  });
 });
 
 // 배포 워크플로는 API를 꾸리고 Terraform을 돌린다. 그런데 그 파일만 고치면
