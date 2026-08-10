@@ -141,7 +141,16 @@ export async function collectQa(screenId, root = repositoryRoot) {
  * 목록을 끝까지 보고도 흐름 검증이 있는 줄 모른다. 실제로 그랬다.
  */
 async function flowsThroughScreen(root, contracts) {
-  const references = new Set(contracts);
+  // 공통 HTTP 오류는 소속의 근거가 되지 못한다. 거의 모든 화면이 재사용하므로
+  // 그것으로 이으면 아무 화면이나 모든 흐름에 속하게 된다. 실제로 조직 화면의
+  // 확인 목록에 구매 요청 작성 규칙 열다섯 줄이 붙어 있었다.
+  //
+  // 이것은 임시 처방이다. 옳은 답은 흐름 정본이 단계마다 어느 화면인지 아는
+  // 것인데, 지금 `designSourceRefs`가 전부 비어 있어 기계가 읽을 수 없다.
+  // 그 설계는 이슈로 남겼다.
+  const references = new Set(
+    contracts.filter((id) => !id.startsWith("ERROR:http.")),
+  );
   const directory = resolve(root, "contracts/bundles");
   const flows = new Set();
 
