@@ -1,32 +1,21 @@
 import { queryOptions } from "@tanstack/react-query";
 
+import type {
+  EventBudgetSummary,
+  PurchaseRequestEventItemBoard,
+} from "@vada/api-client";
+
 import { requestJson } from "../../../shared/api/failure";
 
 /**
- * 계약 CB-FIN-002@R1의 두 조회다.
- * 생성 클라이언트가 이 계약을 포함하면 여기 타입을 그것으로 교체한다.
+ * 계약 CB-FIN-002@R1의 두 조회다. 모양은 **계약에서 생성된다.**
+ *
+ * `availableTotal`은 배정에서 예약을 뺀 값이라 배정이 없으면 음수다.
+ * `financeStage`는 재정부에게만 내려온다 — 키가 없다는 것이 권한 판정 결과다.
  */
-export interface EventBudgetSummary {
-  allocatedTotal: number;
-  committedTotal: number;
-  /** 배정에서 예약을 뺀 값. 배정이 없으면 음수다. */
-  availableTotal: number;
-}
-
-export type ItemProgressState = "needs_attention" | "under_review" | "rejected";
-
-export interface EventBoardItem {
-  itemId: string;
-  requestId: string;
-  itemName: string;
-  requesterName: string;
-  requestDepartmentName: string;
-  estimatedTotalPrice: number;
-  progressState: ItemProgressState;
-  requestedByViewer: boolean;
-  /** 재정부에게만 내려온다. 키가 없다는 것이 권한 판정 결과다. */
-  financeStage?: "review_pending" | "revision_review_pending";
-}
+export type { EventBudgetSummary };
+export type EventBoardItem = PurchaseRequestEventItemBoard["items"][number];
+export type ItemProgressState = EventBoardItem["progressState"];
 
 export function eventBudgetSummaryQueryOptions(eventId: string) {
   return queryOptions({

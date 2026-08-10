@@ -1,38 +1,19 @@
 import { queryOptions } from "@tanstack/react-query";
-import type { PurchaseRequestDetailView } from "@vada/api-client";
+import type {
+  PurchaseRequestItemDecision,
+  PurchaseRequestItemReviewState,
+  PurchaseRequestReviewView,
+} from "@vada/api-client";
 
 import { requestJson } from "../../../shared/api/failure";
 
 /**
- * 계약 CB-FIN-003@R1의 검토 화면 읽기다.
- * 생성 클라이언트가 이 계약을 포함하면 여기 타입을 그것으로 교체한다.
+ * 계약 CB-FIN-003@R1의 검토 화면 읽기다. 모양은 **계약에서 생성된다.**
  */
-export type ItemReviewStatus =
-  | "review_pending"
-  | "approved"
-  | "revision_requested"
-  | "rejected";
-
-export interface ItemReviewState {
-  itemId: string;
-  reviewStatus: ItemReviewStatus;
-  revisionReason?: string;
-  revisionDueDate?: string;
-  rejectionReason?: string;
-}
-
-export interface ReviewHistoryEntry {
-  recordedAt: string;
-  actorName: string;
-  summary: string;
-  itemId?: string;
-}
-
-export interface PurchaseRequestReviewView {
-  detail: PurchaseRequestDetailView;
-  itemReviewStates: ItemReviewState[];
-  history: ReviewHistoryEntry[];
-}
+export type { PurchaseRequestReviewView };
+export type ItemReviewState = PurchaseRequestItemReviewState;
+export type ItemReviewStatus = ItemReviewState["reviewStatus"];
+export type ReviewHistoryEntry = PurchaseRequestReviewView["history"][number];
 
 function requestPath(eventId: string, requestId: string) {
   return `/events/${encodeURIComponent(eventId)}/purchase-requests/${encodeURIComponent(requestId)}`;
@@ -56,16 +37,9 @@ export function reviewQueryOptions(eventId: string, requestId: string) {
   });
 }
 
-export type ReviewDecision = "approve" | "request_revision" | "reject";
-
-export interface ItemDecisionCommand {
-  decision: ReviewDecision;
-  /** 화면이 본 현재 상태. 서버 상태와 다르면 409로 거부된다. */
-  expectedReviewStatus: ItemReviewStatus;
-  revisionReason?: string;
-  revisionDueDate?: string;
-  rejectionReason?: string;
-}
+/** `expectedReviewStatus`는 화면이 본 현재 상태다. 서버와 다르면 409로 거부된다. */
+export type ItemDecisionCommand = PurchaseRequestItemDecision;
+export type ReviewDecision = ItemDecisionCommand["decision"];
 
 export function decideItem(
   eventId: string,

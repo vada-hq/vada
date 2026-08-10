@@ -22,7 +22,7 @@ export function OrganizationName() {
 
   return (
     <span className="block truncate text-caption text-muted-foreground">
-      {viewer.data ? viewer.data.organizationName : " "}
+      {viewer.data?.organizationName ?? " "}
     </span>
   );
 }

@@ -6,12 +6,16 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 
 import {
-  generateClientSnapshot,
   loadPurchaseRequestOpenApiBaseline,
-  validateGeneratedClientRepository,
   validatePurchaseRequestOpenApiDocument,
   validatePurchaseRequestOpenApiRepository,
 } from "./validate-purchase-request-openapi-client.mjs";
+// 생성 클라이언트는 승인된 묶음 전부에서 만든 문서에서 나온다. 그래서 그
+// 검증도 그쪽에 있다.
+import {
+  generateClientSnapshot,
+  validateGeneratedClientRepository,
+} from "./validate-vada-openapi.mjs";
 
 const repositoryRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 

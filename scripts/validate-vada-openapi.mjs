@@ -12,6 +12,12 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import {
+  snapshotFreshGeneration,
+  validateGeneratedClient,
+  writeGeneratedManifest as writeManifest,
+  GENERATED_MANIFEST_PATH,
+} from "./contract-openapi/generated-client.mjs";
 import { serializeJson } from "./contract-openapi/json.mjs";
 import {
   VADA_OPENAPI_PATH,
@@ -59,6 +65,23 @@ export async function writeVadaOpenApi(root = repositoryRoot) {
   await writeFile(outputPath, serializeJson(document));
 }
 
+/**
+ * 생성 클라이언트는 이제 이 문서에서 나온다. 그래서 그 결정성 검증도 여기 있다 —
+ * 승인 산출물(CB-FIN-001 문서)을 검증하는 쪽에 두면 그 파일이 다시 두 가지 일을
+ * 하게 된다.
+ */
+export async function validateGeneratedClientRepository(root = repositoryRoot) {
+  return validateGeneratedClient(root, VADA_OPENAPI_PATH);
+}
+
+export async function generateClientSnapshot(root = repositoryRoot) {
+  return snapshotFreshGeneration(root);
+}
+
+export async function writeGeneratedManifest(root = repositoryRoot) {
+  return writeManifest(root, VADA_OPENAPI_PATH);
+}
+
 const isMain =
   process.argv[1] &&
   resolve(process.argv[1]) === fileURLToPath(import.meta.url);
@@ -66,8 +89,15 @@ if (isMain) {
   if (process.argv.includes("--write")) {
     await writeVadaOpenApi(repositoryRoot);
     console.log(`${VADA_OPENAPI_PATH} 생성 완료`);
+  } else if (process.argv.includes("--write-manifest")) {
+    await writeGeneratedManifest(repositoryRoot);
+    console.log(`${GENERATED_MANIFEST_PATH} 생성 완료`);
   } else {
-    const { errors } = await validateVadaOpenApi(repositoryRoot);
+    const [document, client] = await Promise.all([
+      validateVadaOpenApi(repositoryRoot),
+      validateGeneratedClientRepository(repositoryRoot),
+    ]);
+    const errors = [...document.errors, ...client.errors];
     if (errors.length > 0) {
       for (const error of errors) console.error(`ERROR ${error}`);
       process.exitCode = 1;

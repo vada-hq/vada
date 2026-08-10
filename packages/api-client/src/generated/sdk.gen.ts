@@ -2,7 +2,7 @@
 
 import type { Client, Options as Options2, TDataShape } from './client';
 import { client } from './client.gen';
-import type { DeletePurchaseRequestDraftData, DeletePurchaseRequestDraftErrors, DeletePurchaseRequestDraftResponses, GetPurchaseRequestDetailData, GetPurchaseRequestDetailErrors, GetPurchaseRequestDetailResponses, GetPurchaseRequestEditorStateData, GetPurchaseRequestEditorStateErrors, GetPurchaseRequestEditorStateResponses, ListOwnPurchaseRequestsData, ListOwnPurchaseRequestsErrors, ListOwnPurchaseRequestsResponses, SavePurchaseRequestDraftData, SavePurchaseRequestDraftErrors, SavePurchaseRequestDraftResponses, SubmitPurchaseRequestData, SubmitPurchaseRequestErrors, SubmitPurchaseRequestResponses } from './types.gen';
+import type { ChangeOrganizationMemberRoleData, ChangeOrganizationMemberRoleErrors, ChangeOrganizationMemberRoleResponses, DecidePurchaseRequestItemData, DecidePurchaseRequestItemErrors, DecidePurchaseRequestItemResponses, DeletePurchaseRequestDraftData, DeletePurchaseRequestDraftErrors, DeletePurchaseRequestDraftResponses, GetEventBudgetSummaryData, GetEventBudgetSummaryErrors, GetEventBudgetSummaryResponses, GetPurchaseRequestDetailData, GetPurchaseRequestDetailErrors, GetPurchaseRequestDetailResponses, GetPurchaseRequestEditorStateData, GetPurchaseRequestEditorStateErrors, GetPurchaseRequestEditorStateResponses, GetPurchaseRequestReviewData, GetPurchaseRequestReviewErrors, GetPurchaseRequestReviewResponses, GetPurchaseRequestRevisionData, GetPurchaseRequestRevisionErrors, GetPurchaseRequestRevisionResponses, GetSessionViewerData, GetSessionViewerErrors, GetSessionViewerResponses, ListEventPurchaseRequestItemsData, ListEventPurchaseRequestItemsErrors, ListEventPurchaseRequestItemsResponses, ListOrganizationMemberRolesData, ListOrganizationMemberRolesErrors, ListOrganizationMemberRolesResponses, ListOwnPurchaseRequestsData, ListOwnPurchaseRequestsErrors, ListOwnPurchaseRequestsResponses, SavePurchaseRequestDraftData, SavePurchaseRequestDraftErrors, SavePurchaseRequestDraftResponses, SubmitPurchaseRequestData, SubmitPurchaseRequestErrors, SubmitPurchaseRequestResponses, SubmitPurchaseRequestRevisionData, SubmitPurchaseRequestRevisionErrors, SubmitPurchaseRequestRevisionResponses } from './types.gen';
 
 export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends boolean = boolean, TResponse = unknown> = Options2<TData, ThrowOnError, TResponse> & {
     /**
@@ -19,9 +19,38 @@ export type Options<TData extends TDataShape = TDataShape, ThrowOnError extends 
 };
 
 /**
- * 작성 맥락과 현재 사용자의 선택적 초안을 조회합니다.
+ * 한 행사의 예산 요약을 조회합니다.
  */
-export const getPurchaseRequestEditorState = <ThrowOnError extends boolean = false>(options: Options<GetPurchaseRequestEditorStateData, ThrowOnError>) => (options.client ?? client).get<GetPurchaseRequestEditorStateResponses, GetPurchaseRequestEditorStateErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-request-editor', ...options });
+export const getEventBudgetSummary = <ThrowOnError extends boolean = false>(options: Options<GetEventBudgetSummaryData, ThrowOnError>) => (options.client ?? client).get<GetEventBudgetSummaryResponses, GetEventBudgetSummaryErrors, ThrowOnError>({ url: '/events/{eventId}/budget-summary', ...options });
+
+/**
+ * 회장단이 한 구성원의 기본 역할을 바꾸고 갱신된 목록을 받습니다.
+ */
+export const changeOrganizationMemberRole = <ThrowOnError extends boolean = false>(options: Options<ChangeOrganizationMemberRoleData, ThrowOnError>) => (options.client ?? client).put<ChangeOrganizationMemberRoleResponses, ChangeOrganizationMemberRoleErrors, ThrowOnError>({
+    url: '/organization/memberships/{membershipId}/role',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
+
+/**
+ * 회장단이 자기 조직 구성원의 기본 역할과 소속 부서를 읽습니다.
+ */
+export const listOrganizationMemberRoles = <ThrowOnError extends boolean = false>(options?: Options<ListOrganizationMemberRolesData, ThrowOnError>) => (options?.client ?? client).get<ListOrganizationMemberRolesResponses, ListOrganizationMemberRolesErrors, ThrowOnError>({ url: '/organization/member-roles', ...options });
+
+/**
+ * 재정부가 품목 하나의 검토 결정을 기록합니다.
+ */
+export const decidePurchaseRequestItem = <ThrowOnError extends boolean = false>(options: Options<DecidePurchaseRequestItemData, ThrowOnError>) => (options.client ?? client).put<DecidePurchaseRequestItemResponses, DecidePurchaseRequestItemErrors, ThrowOnError>({
+    url: '/events/{eventId}/purchase-requests/{requestId}/items/{itemId}/review',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
  * 현재 사용자가 자신의 행사별 초안을 명시적으로 삭제합니다.
@@ -41,6 +70,36 @@ export const savePurchaseRequestDraft = <ThrowOnError extends boolean = false>(o
 });
 
 /**
+ * 현재 조직 구성원이 요청 상세와 서버가 해석한 행사·요청자 표시명을 함께 조회합니다.
+ */
+export const getPurchaseRequestDetail = <ThrowOnError extends boolean = false>(options: Options<GetPurchaseRequestDetailData, ThrowOnError>) => (options.client ?? client).get<GetPurchaseRequestDetailResponses, GetPurchaseRequestDetailErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-requests/{requestId}', ...options });
+
+/**
+ * 작성 맥락과 현재 사용자의 선택적 초안을 조회합니다.
+ */
+export const getPurchaseRequestEditorState = <ThrowOnError extends boolean = false>(options: Options<GetPurchaseRequestEditorStateData, ThrowOnError>) => (options.client ?? client).get<GetPurchaseRequestEditorStateResponses, GetPurchaseRequestEditorStateErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-request-editor', ...options });
+
+/**
+ * 검토 화면이 요청 내용과 품목별 검토 상태, 처리 기록을 한 번에 읽습니다.
+ */
+export const getPurchaseRequestReview = <ThrowOnError extends boolean = false>(options: Options<GetPurchaseRequestReviewData, ThrowOnError>) => (options.client ?? client).get<GetPurchaseRequestReviewResponses, GetPurchaseRequestReviewErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-requests/{requestId}/review', ...options });
+
+/**
+ * 보완 요청된 품목과 나머지 품목을 재제출 화면이 필요한 만큼 조회합니다.
+ */
+export const getPurchaseRequestRevision = <ThrowOnError extends boolean = false>(options: Options<GetPurchaseRequestRevisionData, ThrowOnError>) => (options.client ?? client).get<GetPurchaseRequestRevisionResponses, GetPurchaseRequestRevisionErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-requests/{requestId}/revision', ...options });
+
+/**
+ * 한 행사의 구매 품목을 요청자 기준 진행 상태와 함께 조회합니다.
+ */
+export const listEventPurchaseRequestItems = <ThrowOnError extends boolean = false>(options: Options<ListEventPurchaseRequestItemsData, ThrowOnError>) => (options.client ?? client).get<ListEventPurchaseRequestItemsResponses, ListEventPurchaseRequestItemsErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-request-items', ...options });
+
+/**
+ * 현재 행사에서 인증 사용자가 제출한 요청을 최신순으로 조회합니다.
+ */
+export const listOwnPurchaseRequests = <ThrowOnError extends boolean = false>(options: Options<ListOwnPurchaseRequestsData, ThrowOnError>) => (options.client ?? client).get<ListOwnPurchaseRequestsResponses, ListOwnPurchaseRequestsErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-requests/mine', ...options });
+
+/**
  * 전체 입력을 재검증하고 구매 요청을 검토 대기로 한 번 확정합니다.
  */
 export const submitPurchaseRequest = <ThrowOnError extends boolean = false>(options: Options<SubmitPurchaseRequestData, ThrowOnError>) => (options.client ?? client).post<SubmitPurchaseRequestResponses, SubmitPurchaseRequestErrors, ThrowOnError>({
@@ -53,11 +112,18 @@ export const submitPurchaseRequest = <ThrowOnError extends boolean = false>(opti
 });
 
 /**
- * 현재 행사에서 인증 사용자가 제출한 요청을 최신순으로 조회합니다.
+ * 보완 품목의 새 제출본을 만들고 그 품목을 재검토 대기로 되돌립니다.
  */
-export const listOwnPurchaseRequests = <ThrowOnError extends boolean = false>(options: Options<ListOwnPurchaseRequestsData, ThrowOnError>) => (options.client ?? client).get<ListOwnPurchaseRequestsResponses, ListOwnPurchaseRequestsErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-requests/mine', ...options });
+export const submitPurchaseRequestRevision = <ThrowOnError extends boolean = false>(options: Options<SubmitPurchaseRequestRevisionData, ThrowOnError>) => (options.client ?? client).post<SubmitPurchaseRequestRevisionResponses, SubmitPurchaseRequestRevisionErrors, ThrowOnError>({
+    url: '/events/{eventId}/purchase-requests/{requestId}/revisions',
+    ...options,
+    headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+    }
+});
 
 /**
- * 현재 조직 구성원이 요청 상세와 서버가 해석한 행사·요청자 표시명을 함께 조회합니다.
+ * 현재 사용자의 신원과 전역 판정 결과를 조회합니다.
  */
-export const getPurchaseRequestDetail = <ThrowOnError extends boolean = false>(options: Options<GetPurchaseRequestDetailData, ThrowOnError>) => (options.client ?? client).get<GetPurchaseRequestDetailResponses, GetPurchaseRequestDetailErrors, ThrowOnError>({ url: '/events/{eventId}/purchase-requests/{requestId}', ...options });
+export const getSessionViewer = <ThrowOnError extends boolean = false>(options?: Options<GetSessionViewerData, ThrowOnError>) => (options?.client ?? client).get<GetSessionViewerResponses, GetSessionViewerErrors, ThrowOnError>({ url: '/session/viewer', ...options });

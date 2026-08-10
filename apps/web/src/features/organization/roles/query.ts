@@ -1,24 +1,17 @@
 import { queryOptions } from "@tanstack/react-query";
+import type { OrganizationMemberRoles } from "@vada/api-client";
 
 import { requestJson } from "../../../shared/api/failure";
 
 /**
- * 계약 CB-ORG-001@R1의 두 동작이다.
- * 생성 클라이언트가 이 계약을 포함하면 여기 타입을 그것으로 교체한다.
+ * 계약 CB-ORG-001@R1의 두 동작이다. 모양은 **계약에서 생성된다** —
+ * 손으로 적으면 계약이 바뀌어도 안 따라간다.
+ *
+ * `displayName`은 표시 전용이다. 이것으로 구성원을 가리키지 않는다.
  */
-export type MemberRole = "president" | "department_head" | "member";
-
-export interface MemberRoleRow {
-  membershipId: string;
-  /** 표시 전용. 이것으로 구성원을 가리키지 않는다. */
-  displayName: string;
-  departments: string[];
-  role: MemberRole;
-}
-
-export interface MemberRoles {
-  members: MemberRoleRow[];
-}
+export type MemberRoles = OrganizationMemberRoles;
+export type MemberRoleRow = OrganizationMemberRoles["members"][number];
+export type MemberRole = MemberRoleRow["role"];
 
 export const roleLabels: Record<MemberRole, string> = {
   president: "회장단",

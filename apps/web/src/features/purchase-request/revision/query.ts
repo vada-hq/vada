@@ -1,11 +1,16 @@
 import { queryOptions } from "@tanstack/react-query";
 
+import type { PurchaseRequestRevisionView } from "@vada/api-client";
+
 import { requestJson } from "../../../shared/api/failure";
 import type { ItemDetails, PurchaseType } from "../shared/item-details";
 
 /**
- * 계약 CB-FIN-004@R1의 두 동작이다.
- * 생성 클라이언트가 이 계약을 포함하면 여기 타입을 그것으로 교체한다.
+ * 계약 CB-FIN-004@R1의 두 동작이다. 서버가 주는 모양은 **계약에서 생성된다.**
+ *
+ * 다만 `content`는 계약이 `object`로만 정한다 — 품목 입력의 모양은 작성 화면이
+ * 소유하기 때문이다. 그래서 아래 `RevisionItemContent`는 계약의 사본이 아니라
+ * **화면 쪽 좁힘**이다. 계약에서 생성할 수 있는 것이 아니다.
  */
 export interface RevisionItemContent {
   name?: string;
@@ -16,28 +21,19 @@ export interface RevisionItemContent {
   details?: ItemDetails;
 }
 
-export interface RevisionItem {
-  itemId: string;
-  itemName: string;
-  revisionReason: string;
-  /** 재정부가 남긴 안내다. 지나도 재제출을 막지 않는다. */
-  revisionDueDate?: string;
-  content: RevisionItemContent;
-}
+/** 계약이 열어 둔 `content` 자리만 화면 쪽 모양으로 좁힌다. 나머지는 계약 그대로다. */
+export type RevisionItem = Omit<
+  PurchaseRequestRevisionView["revisionItems"][number],
+  "content"
+> & { content: RevisionItemContent };
 
-export interface RevisionOtherItem {
-  itemId: string;
-  itemName: string;
-  reviewStatus: "review_pending" | "approved" | "rejected";
-  estimatedTotalPrice: number;
-}
+export type RevisionOtherItem =
+  PurchaseRequestRevisionView["otherItems"][number];
 
-export interface RevisionView {
-  requestId: string;
-  requestTitle: string;
-  revisionItems: RevisionItem[];
-  otherItems: RevisionOtherItem[];
-}
+export type RevisionView = Omit<
+  PurchaseRequestRevisionView,
+  "revisionItems"
+> & { revisionItems: RevisionItem[] };
 
 function revisionPath(eventId: string, requestId: string) {
   return `/events/${encodeURIComponent(eventId)}/purchase-requests/${encodeURIComponent(requestId)}`;
