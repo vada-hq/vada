@@ -7,7 +7,7 @@ afterEach(cleanup);
 
 // 재정 도메인 화면들 — 렌더 시 런타임 오류(흰 화면 등)가 없는지 자동 확인
 const FINANCE_SCREENS = [
-  "EVT-FIN-01", "EVT-FIN-01B", "MY-REQ-01", "FIN-REQ-01B", "FIN-REQ-02",
+  "EVT-FIN-01", "EVT-FIN-01B", "EVT-FIN-01C", "EVT-FIN-01C-B", "MY-REQ-01", "FIN-REQ-01B", "FIN-REQ-01C", "FIN-REQ-02",
   "FIN-SUP-01B", "FIN-REV-01", "FIN-REV-01B", "FIN-PROC-01", "FIN-EVID-01",
   "FIN-00", "FIN-00B", "FIN-LEDGER-01",
 ];
@@ -43,5 +43,67 @@ describe("처리 단계 카드 스택 팝오버 노출", () => {
     const fanWrapper = screen.getByText("생수 500ml").closest(".fan-in") as HTMLElement;
     expect(fanWrapper, "열린 카드의 스택 래퍼가 있어야 함").toBeTruthy();
     expect(fanWrapper.className).toContain("z-40");
+  });
+});
+
+describe("행사별 배정 예산 편성", () => {
+  it("예산 미편성 행사(재정부)에서 예산 편성을 누르면 편성 모달이 뜬다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01C-B"]; // 재정부 · 빈 행사(예산 미편성)
+    render(<Comp />);
+    // 상단 예산 편성 진입점이 보인다.
+    fireEvent.click(screen.getByText("예산 편성"));
+    // 편성 모달이 실제로 렌더된다.
+    expect(screen.queryByText("행사 예산 편성"), "예산 편성 모달이 떠야 함").not.toBeNull();
+    expect(screen.queryByText("항목 추가"), "항목 추가 버튼이 있어야 함").not.toBeNull();
+  });
+});
+
+describe("요약 카드 항목별 팝오버", () => {
+  it("편성된 행사에서 배정 예산 카드를 누르면 항목별 목록이 뜬다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01"]; // 체육대회(예산 편성됨)
+    render(<Comp />);
+    expect(screen.queryByText("예산 항목별 · 배정 예산"), "처음엔 팝오버가 닫혀 있어야 함").toBeNull();
+    fireEvent.click(screen.getByText("배정 예산"));
+    expect(screen.queryByText("예산 항목별 · 배정 예산"), "배정 예산 목록 팝오버가 떠야 함").not.toBeNull();
+  });
+  it("편성된 행사에서 실제 지출액 카드를 누르면 항목별 목록이 뜬다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01"];
+    render(<Comp />);
+    fireEvent.click(screen.getByText("실제 지출액"));
+    expect(screen.queryByText("예산 항목별 · 실제 지출액"), "실제 지출액 목록 팝오버가 떠야 함").not.toBeNull();
+  });
+  it("미편성 행사에서 배정 예산 카드를 누르면 미편성 안내가 뜬다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01C-B"]; // 빈 행사(예산 미편성)
+    render(<Comp />);
+    fireEvent.click(screen.getByText("배정 예산"));
+    expect(screen.queryByText(/아직 편성된 예산이 없습니다/), "미편성 안내가 떠야 함").not.toBeNull();
+  });
+});
+
+describe("구매 요청 작성/수정 2모드 분리", () => {
+  it("작성 화면(FIN-REQ-01B)은 '구매 요청 제출' 버튼을 보인다", () => {
+    const Comp = SCREEN_COMPONENTS["FIN-REQ-01B"];
+    render(<Comp />);
+    expect(screen.queryByText("구매 요청 제출"), "작성 제출 버튼이 있어야 함").not.toBeNull();
+    expect(screen.queryByText("구매 요청 재제출"), "작성 화면엔 재제출 버튼이 없어야 함").toBeNull();
+  });
+  it("수정 화면(FIN-REQ-01C)은 기존 요청을 불러오고 '구매 요청 재제출' 버튼을 보인다", () => {
+    const Comp = SCREEN_COMPONENTS["FIN-REQ-01C"]; // 시연: REQ-001 편집
+    render(<Comp />);
+    expect(screen.queryByText("구매 요청 재제출"), "수정 재제출 버튼이 있어야 함").not.toBeNull();
+    expect(screen.queryByText("구매 요청 제출"), "수정 화면엔 최초 제출 버튼이 없어야 함").toBeNull();
+    // 기존 요청(REQ-001) 제목이 입력 필드에 미리 채워져 있어야 함
+    expect(screen.queryByDisplayValue("체육대회 운영 물품 4종"), "기존 제목이 프리필돼야 함").not.toBeNull();
+  });
+});
+
+describe("구매 요청 상세 — 제출 정보 다시 보기", () => {
+  it("품목을 펼치면 요청자가 제출한 요청 정보가 보인다", () => {
+    const Comp = SCREEN_COMPONENTS["FIN-REQ-02"];
+    render(<Comp />);
+    expect(screen.queryByText(/제출한 요청 정보/), "처음엔 상세가 접혀 있어야 함").toBeNull();
+    fireEvent.click(screen.getByText("박스테이프")); // REQ-001 첫 품목
+    expect(screen.queryByText(/제출한 요청 정보/), "펼치면 제출 정보가 보여야 함").not.toBeNull();
+    expect(screen.queryByText("유형별 상세 정보"), "유형별 상세 정보 섹션이 있어야 함").not.toBeNull();
   });
 });
