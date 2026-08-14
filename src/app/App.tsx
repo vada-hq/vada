@@ -195,7 +195,6 @@ type PurchaseExecution = {
 type PurchaseItem = {
   id: number;
   name: string;
-  category: string;
   budgetLine: string;
   purchaseType: "일반 구매" | "제작·인쇄" | "대여" | "용역";
   quantity: number;
@@ -1054,17 +1053,22 @@ const PURCHASE_TYPE_FIELDS: Record<string, { key: string; label: string }[]> = {
   "제작·인쇄": [
     { key: "제작물종류", label: "제작물 종류" },
     { key: "규격", label: "사이즈 또는 규격" },
+    { key: "재질제작조건", label: "재질·제작 조건" },
     { key: "색상", label: "색상" },
     { key: "옵션수량", label: "옵션별 수량" },
-    { key: "인쇄방식", label: "인쇄 방식" },
+    { key: "인쇄방식", label: "인쇄·후가공 조건" },
     { key: "납품희망일", label: "납품 희망일" },
+    { key: "디자인상태", label: "디자인 파일 상태" },
+    { key: "디자인미확정사유", label: "디자인 미확정 사유" },
     { key: "제작요청", label: "제작 요청사항" },
   ],
   "대여": [
     { key: "대여처", label: "대여처" },
-    { key: "수령장소", label: "수령 장소" },
+    { key: "수령장소", label: "수령·설치 장소" },
     { key: "대여시작", label: "대여 시작(수령) 일시" },
     { key: "반납예정", label: "반납 예정 일시" },
+    { key: "반납장소방법", label: "반납 장소·방법" },
+    { key: "설치철거", label: "설치·철거 포함 여부" },
     { key: "담당자연락처", label: "담당자 연락처" },
     { key: "보증금", label: "보증금" },
     { key: "대여조건", label: "대여 조건·요청사항" },
@@ -1075,7 +1079,38 @@ const PURCHASE_TYPE_FIELDS: Record<string, { key: string; label: string }[]> = {
     { key: "수행시작", label: "수행 시작 일시" },
     { key: "수행종료", label: "수행 종료 일시" },
     { key: "담당자연락처", label: "담당자 연락처" },
-    { key: "용역포함", label: "용역 포함 항목 및 요청사항" },
+    { key: "계약제안", label: "계약서·제안서" },
+    { key: "용역포함", label: "이행 범위·포함 항목" },
+    { key: "완료기준", label: "결과물·완료 기준" },
+  ],
+};
+
+// 구매 유형별 필수 상세 필드(재정 스펙 5.1 표). 금액과 무관하게 적용하며(스펙 729행)
+// 작성 폼 제출 전 시스템이 누락을 확인한다(스펙 752행). 조건부 필수는 when으로 조건을 건다.
+const PURCHASE_TYPE_REQUIRED_FIELDS: Record<string, { key: string; label: string; when?: (details: Record<string, any>) => boolean }[]> = {
+  "일반 구매": [
+    { key: "옵션규격", label: "상품 옵션 또는 규격" },
+  ],
+  "제작·인쇄": [
+    { key: "제작물종류", label: "제작물 종류" },
+    { key: "규격", label: "사이즈 또는 규격" },
+    { key: "재질제작조건", label: "재질·제작 조건" },
+    { key: "납품희망일", label: "납품 희망일" },
+    { key: "디자인상태", label: "디자인 파일 상태" },
+    { key: "디자인미확정사유", label: "디자인 미확정 사유", when: d => d?.["디자인상태"] === "미확정" },
+  ],
+  "대여": [
+    { key: "수령장소", label: "수령·설치 장소" },
+    { key: "대여시작", label: "대여 시작(수령) 일시" },
+    { key: "반납예정", label: "반납 예정 일시" },
+    { key: "반납장소방법", label: "반납 장소·방법" },
+    { key: "설치철거", label: "설치·철거 포함 여부" },
+  ],
+  "용역": [
+    { key: "수행시작", label: "수행 시작 일시" },
+    { key: "수행종료", label: "수행 종료 일시" },
+    { key: "용역포함", label: "이행 범위·포함 항목" },
+    { key: "완료기준", label: "결과물·완료 기준" },
   ],
 };
 
@@ -1093,10 +1128,10 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     totalEstimatedAmount: 135000,
     status: "검토 대기",
     items: [
-      { id: 1, name: "박스테이프", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 5, unit: "개", estimatedUnitPrice: 2000, estimatedTotalPrice: 10000, status: "검토 대기", priceEvidence: "다이소 온라인몰 상품 링크", details: {} },
-      { id: 2, name: "생수 500ml", category: "식음료", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, status: "검토 대기", priceEvidence: "마켓컬리 B2B 상품 정보", details: {} },
-      { id: 3, name: "이름표 용지", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "제작·인쇄", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, status: "검토 대기", priceEvidence: "인쇄업체 A 견적서.pdf", details: {} },
-      { id: 4, name: "유성 마커", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 10, unit: "개", estimatedUnitPrice: 1500, estimatedTotalPrice: 15000, status: "검토 대기", priceEvidence: "다이소 온라인몰 상품 링크", details: {} },
+      { id: 1, name: "박스테이프", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 5, unit: "개", estimatedUnitPrice: 2000, estimatedTotalPrice: 10000, status: "검토 대기", priceEvidence: "다이소 온라인몰 상품 링크", details: {} },
+      { id: 2, name: "생수 500ml", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, status: "검토 대기", priceEvidence: "마켓컬리 B2B 상품 정보", details: {} },
+      { id: 3, name: "이름표 용지", budgetLine: "행사 운영비", purchaseType: "제작·인쇄", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, status: "검토 대기", priceEvidence: "인쇄업체 A 견적서.pdf", details: {} },
+      { id: 4, name: "유성 마커", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 10, unit: "개", estimatedUnitPrice: 1500, estimatedTotalPrice: 15000, status: "검토 대기", priceEvidence: "다이소 온라인몰 상품 링크", details: {} },
     ],
     history: [
       { date: "2026-03-01 10:00", action: "요청 생성", user: "박해랑" },
@@ -1116,7 +1151,7 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     totalEstimatedAmount: 180000,
     status: "보완 요청",
     items: [
-      { id: 5, name: "메인 현수막", category: "제작·굿즈", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 1, unit: "개", estimatedUnitPrice: 180000, estimatedTotalPrice: 180000, status: "보완 요청", priceEvidence: "현수막 견적서.pdf", supplementReason: "규격과 인쇄 사양을 보완하고 업체 견적서를 다시 확인해 주세요.", details: { 규격: "500*90", 소재: "부직포" } },
+      { id: 5, name: "메인 현수막", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 1, unit: "개", estimatedUnitPrice: 180000, estimatedTotalPrice: 180000, status: "보완 요청", priceEvidence: "현수막 견적서.pdf", supplementReason: "규격과 인쇄 사양을 보완하고 업체 견적서를 다시 확인해 주세요.", details: { 규격: "500*90", 소재: "부직포" } },
     ],
     history: [
       { date: "2026-03-02 14:00", action: "요청 생성", user: "김민석" },
@@ -1138,7 +1173,7 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     status: "구매 필요",
     items: [
       {
-        id: 6, name: "운영 티셔츠", category: "제작·굿즈", budgetLine: "홍보비", purchaseType: "제작·인쇄",
+        id: 6, name: "운영 티셔츠", budgetLine: "홍보비", purchaseType: "제작·인쇄",
         quantity: 30, unit: "장", estimatedUnitPrice: 4000, estimatedTotalPrice: 120000,
         status: "승인", financeOwner: "김민준", priceEvidence: "티셔츠 견적서.pdf", details: {},
         executions: [
@@ -1167,7 +1202,7 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     totalEstimatedAmount: 80000,
     status: "증빙 필요",
     items: [
-      { id: 7, name: "배너 거치대", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 4, unit: "개", estimatedUnitPrice: 20000, estimatedTotalPrice: 80000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "수령 완료", evidenceStatus: "증빙 필요", priceEvidence: "거치대 견적.pdf", details: {} },
+      { id: 7, name: "배너 거치대", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 4, unit: "개", estimatedUnitPrice: 20000, estimatedTotalPrice: 80000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "수령 완료", evidenceStatus: "증빙 필요", priceEvidence: "거치대 견적.pdf", details: {} },
     ],
     history: [
       { date: "2026-03-05 10:00", action: "요청 생성", user: "박해랑" },
@@ -1189,7 +1224,7 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     totalEstimatedAmount: 90000,
     status: "구매 필요",
     items: [
-      { id: 8, name: "진행요원 조끼", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 15, unit: "개", estimatedUnitPrice: 6000, estimatedTotalPrice: 90000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "배송 중", evidenceStatus: "해당 없음", priceEvidence: "조끼 견적.pdf", details: {} },
+      { id: 8, name: "진행요원 조끼", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 15, unit: "개", estimatedUnitPrice: 6000, estimatedTotalPrice: 90000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "배송 중", evidenceStatus: "해당 없음", priceEvidence: "조끼 견적.pdf", details: {} },
     ],
     history: [
       { date: "2026-03-05 11:00", action: "요청 생성", user: "박해랑" },
@@ -1211,10 +1246,10 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     totalEstimatedAmount: 578000,
     status: "구매 필요",
     items: [
-      { id: 9, name: "앰프·스피커 세트 대여", category: "장비 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 1, unit: "세트", estimatedUnitPrice: 150000, estimatedTotalPrice: 150000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 대기", evidenceStatus: "해당 없음", priceEvidence: "음향 대여 견적.pdf", details: {} },
-      { id: 10, name: "그늘막 천막(3x3m) 대여", category: "장비 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 2, unit: "동", estimatedUnitPrice: 40000, estimatedTotalPrice: 80000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 중", evidenceStatus: "해당 없음", priceEvidence: "천막 대여 견적.pdf", details: {} },
-      { id: 11, name: "무전기 세트 대여", category: "장비 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 6, unit: "대", estimatedUnitPrice: 8000, estimatedTotalPrice: 48000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "반납 확인 필요", evidenceStatus: "해당 없음", priceEvidence: "무전기 대여 견적.pdf", details: {} },
-      { id: 12, name: "무대 설치·철거 용역", category: "용역", budgetLine: "행사 운영비", purchaseType: "용역", quantity: 1, unit: "건", estimatedUnitPrice: 300000, estimatedTotalPrice: 300000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 중", evidenceStatus: "해당 없음", priceEvidence: "무대 설치 견적.pdf", details: {} },
+      { id: 9, name: "앰프·스피커 세트 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 1, unit: "세트", estimatedUnitPrice: 150000, estimatedTotalPrice: 150000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 대기", evidenceStatus: "해당 없음", priceEvidence: "음향 대여 견적.pdf", details: {} },
+      { id: 10, name: "그늘막 천막(3x3m) 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 2, unit: "동", estimatedUnitPrice: 40000, estimatedTotalPrice: 80000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 중", evidenceStatus: "해당 없음", priceEvidence: "천막 대여 견적.pdf", details: {} },
+      { id: 11, name: "무전기 세트 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 6, unit: "대", estimatedUnitPrice: 8000, estimatedTotalPrice: 48000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "반납 확인 필요", evidenceStatus: "해당 없음", priceEvidence: "무전기 대여 견적.pdf", details: {} },
+      { id: 12, name: "무대 설치·철거 용역", budgetLine: "행사 운영비", purchaseType: "용역", quantity: 1, unit: "건", estimatedUnitPrice: 300000, estimatedTotalPrice: 300000, status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "이행 중", evidenceStatus: "해당 없음", priceEvidence: "무대 설치 견적.pdf", details: {} },
     ],
     history: [
       { date: "2026-03-05 13:00", action: "요청 생성", user: "박해랑" },
@@ -2657,7 +2692,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     functions: [
       { num: "01", element: "요청 정보", description: "제목, 구매 목적, 필요일, 우선순위를 입력하고 요청 부서는 작성자 소속으로 고정한다. 우선순위를 긴급으로 선택하면 긴급 사유를 조건부 필수로 입력받는다.", constraint: "긴급 사유가 비어 있으면 제출할 수 없다" },
       { num: "02", element: "품목 추가·삭제", description: "여러 품목을 한 요청에 담을 수 있으며 새 품목은 목록 맨 위에 추가된다." },
-      { num: "03", element: "구매 유형 선택", description: "일반 구매, 제작·인쇄, 대여, 용역에 따라 입력 필드를 전환한다. 유형별 상세 입력값은 품목 details로 저장된다.", constraint: "작성·수정·상세 보기가 같은 유형별 필드 정의(PURCHASE_TYPE_FIELDS)를 공유한다" },
+      { num: "03", element: "구매 유형별 필드 전환·필수 검증", description: "일반 구매·제작·인쇄·대여·용역에 따라 유형별 상세 입력 필드를 전환한다(details 저장). 재정 스펙 5.1 표의 유형별 필수·조건부 필수 정보를 금액과 무관하게 강제한다(스펙 729·752). 일반 구매=상품 옵션·규격, 제작·인쇄=제작물 종류·규격·재질·제작 조건·납품 희망일·디자인 파일 상태(미확정이면 사유), 대여=수령·설치 장소·대여/반납 일시·반납 장소·방법·설치·철거 포함 여부, 용역=수행 일시·이행 범위·결과물·완료 기준을 필수로 받는다. 계약서·제안서 등은 선택·조건부다.", constraint: "필수 누락 시 항목별 오류를 표시하고 제출을 막는다(PURCHASE_TYPE_REQUIRED_FIELDS). 작성·상세 보기가 같은 유형별 필드 정의(PURCHASE_TYPE_FIELDS)를 공유한다. 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(스펙 708·709·727)" },
       { num: "04", element: "가격 근거", description: "일반 구매는 상품 링크·판매처·가격 화면 중 1건, 제작·인쇄·대여·용역은 업체 견적서를 필수로 등록한다." },
       { num: "05", element: "작성 액션", description: "구매 요청 제출(검토 대기 요청 생성) / 임시 저장.", constraint: "작성 화면은 editingRequestId가 없을 때 렌더된다(단일 컴포넌트 2모드)" },
       { num: "06", element: "예산 항목 선택", description: "품목마다 이 행사에 편성된 예산 항목 중에서 선택한다(재정 스펙 712·757).", constraint: "예산 항목 옵션은 행사 편성 예산(eventBudget)에서 파생하며 고정 목록을 하드코딩하지 않는다" },
@@ -3008,12 +3043,13 @@ function TaskStatusDialog({ taskName, currentStatus, onClose, onSubmit }: {
   );
 }
 
-function Input({ label, placeholder, type = "text", required, hint, select, selectOptions, value, defaultValue, onChange, disabled, className: extraClass }: {
+function Input({ label, placeholder, type = "text", required, hint, error, select, selectOptions, value, defaultValue, onChange, disabled, className: extraClass }: {
   label?: string; placeholder?: string; type?: string;
-  required?: boolean; hint?: string; select?: boolean; selectOptions?: string[];
+  required?: boolean; hint?: string; error?: string; select?: boolean; selectOptions?: string[];
   value?: string; defaultValue?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   disabled?: boolean; className?: string;
 }) {
+  const borderCls = error ? "border-red-400" : "border-gray-300";
   return (
     <div className="flex flex-col gap-1">
       {label && (
@@ -3027,7 +3063,7 @@ function Input({ label, placeholder, type = "text", required, hint, select, sele
             value={value} defaultValue={defaultValue}
             onChange={onChange as React.ChangeEventHandler<HTMLSelectElement>}
             disabled={disabled}
-            className={`w-full border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 bg-white appearance-none pr-8 disabled:bg-gray-50 disabled:text-gray-400 ${extraClass || ""}`}
+            className={`w-full border ${borderCls} rounded px-3 py-2 text-sm text-gray-800 bg-white appearance-none pr-8 disabled:bg-gray-50 disabled:text-gray-400 ${extraClass || ""}`}
           >
             <option value="">{placeholder || "선택"}</option>
             {selectOptions?.map(o => <option key={o}>{o}</option>)}
@@ -3040,10 +3076,10 @@ function Input({ label, placeholder, type = "text", required, hint, select, sele
           value={value} defaultValue={defaultValue}
           onChange={onChange as React.ChangeEventHandler<HTMLInputElement>}
           disabled={disabled}
-          className={`border border-gray-300 rounded px-3 py-2 text-sm text-gray-800 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-50 disabled:text-gray-400 ${extraClass || ""}`}
+          className={`border ${borderCls} rounded px-3 py-2 text-sm text-gray-800 bg-white placeholder-gray-400 focus:outline-none focus:ring-1 ${error ? "focus:ring-red-400 focus:border-red-400" : "focus:ring-blue-400 focus:border-blue-400"} disabled:bg-gray-50 disabled:text-gray-400 ${extraClass || ""}`}
         />
       )}
-      {hint && <p className="text-xs text-gray-400">{hint}</p>}
+      {error ? <p className="text-[10px] text-red-500">{error}</p> : hint && <p className="text-xs text-gray-400">{hint}</p>}
     </div>
   );
 }
@@ -13226,19 +13262,22 @@ function FINREQ01() {
   const [priority, setPriority] = useState<"보통" | "긴급">(activeDraft?.priority ?? editingRequest?.priority ?? "보통");
   const [urgentReason, setUrgentReason] = useState(activeDraft?.urgentReason ?? editingRequest?.urgentReason ?? "");
   const [items, setItems] = useState<PurchaseDraftItem[]>(activeDraft?.items ?? (editingRequest ? requestItemsToDraft(editingRequest) : (isDemoEmpty ? [
-    { id: 1, name: "", category: "운영 물품", budgetLine: budgetLineOptions[0] ?? "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" },
+    { id: 1, name: "", budgetLine: budgetLineOptions[0] ?? "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" },
   ] : [
-    { id: 1, name: "박스테이프", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 5, unit: "개", estimatedUnitPrice: 2000, estimatedTotalPrice: 10000, details: {}, quoteStatus: "미요청" },
-    { id: 2, name: "생수 500ml", category: "식음료", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, details: {}, quoteStatus: "미요청" },
-    { id: 3, name: "이름표 용지", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, details: {}, quoteStatus: "미요청" },
-    { id: 4, name: "유성 마커", category: "운영 물품", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 10, unit: "개", estimatedUnitPrice: 1500, estimatedTotalPrice: 15000, details: {}, quoteStatus: "미요청" },
+    { id: 1, name: "박스테이프", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 5, unit: "개", estimatedUnitPrice: 2000, estimatedTotalPrice: 10000, details: { 옵션규격: "50mm 투명" }, quoteStatus: "미요청" },
+    { id: 2, name: "생수 500ml", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, details: { 옵션규격: "500ml x 20입" }, quoteStatus: "미요청" },
+    { id: 3, name: "이름표 용지", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, details: { 옵션규격: "A6 / 화이트" }, quoteStatus: "미요청" },
+    { id: 4, name: "유성 마커", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 10, unit: "개", estimatedUnitPrice: 1500, estimatedTotalPrice: 15000, details: { 옵션규격: "검정 / 중간 굵기" }, quoteStatus: "미요청" },
+    { id: 5, name: "홍보 현수막", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 2, unit: "개", estimatedUnitPrice: 90000, estimatedTotalPrice: 180000, priceEvidence: "현수막 견적서.pdf", details: { 제작물종류: "현수막", 규격: "500x90cm", 재질제작조건: "부직포 / 양면 인쇄", 색상: "배경 블루 / 흰색 글자", 인쇄방식: "실사출력 · 무광 코팅", 납품희망일: "2026-09-05", 디자인상태: "준비됨", 제작요청: "로고 고해상도 사용, 오탈자 확인" }, quoteStatus: "수령 완료" },
+    { id: 6, name: "앰프·스피커 세트 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 1, unit: "세트", estimatedUnitPrice: 150000, estimatedTotalPrice: 150000, priceEvidence: "음향 대여 견적.pdf", details: { 대여처: "바다렌탈", 수령장소: "대운동장 무대 뒤", 대여시작: "2026-09-10T08:00", 반납예정: "2026-09-10T20:00", 반납장소방법: "행사 종료 후 대여처 직접 회수", 설치철거: "포함", 담당자연락처: "010-1234-5678", 보증금: "50,000원 · 반납 시 환입", 대여조건: "파손·분실 시 실비 배상" }, quoteStatus: "수령 완료" },
+    { id: 7, name: "무대 설치·철거 용역", budgetLine: "행사 운영비", purchaseType: "용역", quantity: 1, unit: "건", estimatedUnitPrice: 300000, estimatedTotalPrice: 300000, priceEvidence: "무대 설치 견적.pdf", details: { 용역제공자: "무대설치 전문업체", 수행장소: "대운동장", 수행시작: "2026-09-10T06:00", 수행종료: "2026-09-10T22:00", 담당자연락처: "010-2222-3333", 계약제안: "표준 용역 계약서.pdf", 용역포함: "설치·철거·현장 안전관리 포함", 완료기준: "행사 종료 후 원상복구 완료 확인" }, quoteStatus: "수령 완료" },
   ])));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [draftSaved, setDraftSaved] = useState(false);
 
   const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.estimatedUnitPrice), 0);
 
-  const addItem = () => setItems([{ id: Date.now(), name: "", category: "운영 물품", budgetLine: budgetLineOptions[0] ?? "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" }, ...items]);
+  const addItem = () => setItems([{ id: Date.now(), name: "", budgetLine: budgetLineOptions[0] ?? "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" }, ...items]);
   const removeItem = (id: number) => setItems(items.filter(i => i.id !== id));
   
   const updateItem = (id: number, field: string, value: any) => {
@@ -13261,7 +13300,13 @@ function FINREQ01() {
 
   const handleTypeChange = (id: number, type: any) => {
     // 유형과 상세 정보를 한 번에 갱신한다. updateItem을 두 번 부르면 두 번째 호출이 이전 items를 덮어쓴다.
-    setItems(items.map(item => item.id === id ? { ...item, purchaseType: type, details: {} } : item));
+    // 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(재정 스펙 708·709·727행).
+    setItems(items.map(item => {
+      if (item.id !== id) return item;
+      const base = { ...item, purchaseType: type, details: {} };
+      if (type === "용역") return { ...base, quantity: 1, unit: "건", estimatedTotalPrice: item.estimatedUnitPrice };
+      return base;
+    }));
   };
 
   const validate = (submittedNeededDate = neededDate) => {
@@ -13279,6 +13324,11 @@ function FINREQ01() {
       if (!item.unit) newErrors[`item_${item.id}_unit`] = "단위를 입력해 주세요.";
       if (!item.estimatedUnitPrice || item.estimatedUnitPrice <= 0) newErrors[`item_${item.id}_price`] = "단가를 입력해 주세요.";
       if (!item.priceEvidence?.trim()) newErrors[`item_${item.id}_evidence`] = item.purchaseType === "일반 구매" ? "상품 링크·판매처·가격 화면 중 하나를 입력해 주세요." : "업체 견적서를 등록해 주세요.";
+      // 구매 유형별 필수·조건부 필수 상세 정보 누락(재정 스펙 5.1, 729·752행) — 금액과 무관하게 적용
+      (PURCHASE_TYPE_REQUIRED_FIELDS[item.purchaseType] ?? []).forEach(rule => {
+        if (rule.when && !rule.when(item.details ?? {})) return;
+        if (!String(item.details?.[rule.key] ?? "").trim()) newErrors[`item_${item.id}_detail_${rule.key}`] = `${rule.label}을(를) 입력해 주세요.`;
+      });
     });
 
     setErrors(newErrors);
@@ -13451,11 +13501,10 @@ function FINREQ01() {
                     </div>
                     
                     <div className="p-5 flex flex-col gap-5">
-                      <div className="grid grid-cols-3 gap-5">
+                      <div className="grid grid-cols-2 gap-5">
                         <div id={`item_${item.id}_name`}>
                           <Input label="품목명" value={item.name} onChange={e => updateItem(item.id, "name", e.target.value)} placeholder="예: 박스테이프" required error={errors[`item_${item.id}_name`]} />
                         </div>
-                        <Input label="품목 카테고리" select selectOptions={["운영 물품", "제작·굿즈", "식음료", "인쇄물", "대여", "용역", "기타"]} value={item.category} onChange={e => updateItem(item.id, "category", e.target.value)} required />
                         <Input label="예산 항목" select selectOptions={budgetLineOptions} value={item.budgetLine} onChange={e => updateItem(item.id, "budgetLine", e.target.value)} required />
                       </div>
 
@@ -13482,7 +13531,6 @@ function FINREQ01() {
                           error={errors[`item_${item.id}_evidence`]}
                           hint={item.purchaseType === "일반 구매" ? "금액과 무관하게 가격 근거 1건이 필요합니다." : "제작·인쇄·대여·용역은 업체 견적서가 필요합니다."}
                         />
-                        {errors[`item_${item.id}_evidence`] && <p className="text-[10px] text-red-500 mt-1">{errors[`item_${item.id}_evidence`]}</p>}
                       </div>
 
                       {/* Conditional Detail Inputs */}
@@ -13493,7 +13541,7 @@ function FINREQ01() {
                           <div className="grid grid-cols-2 gap-4">
                             <Input label="판매처 또는 쇼핑몰" placeholder="예: 쿠팡, 네이버쇼핑 등" value={item.details?.["판매처"] ?? ""} onChange={e => updateDetail(item.id, "판매처", e.target.value)} />
                             <Input label="상품 URL" placeholder="https://..." value={item.details?.["상품URL"] ?? ""} onChange={e => updateDetail(item.id, "상품URL", e.target.value)} />
-                            <Input label="상품 옵션 또는 규격" placeholder="예: 검정 / 대형 / 50m" value={item.details?.["옵션규격"] ?? ""} onChange={e => updateDetail(item.id, "옵션규격", e.target.value)} />
+                            <Input label="상품 옵션 또는 규격" required error={errors[`item_${item.id}_detail_옵션규격`]} placeholder="예: 검정 / 대형 / 50m" value={item.details?.["옵션규격"] ?? ""} onChange={e => updateDetail(item.id, "옵션규격", e.target.value)} />
                             <Input label="배송 요청사항" placeholder="특이사항 입력" value={item.details?.["배송요청"] ?? ""} onChange={e => updateDetail(item.id, "배송요청", e.target.value)} />
                           </div>
                         )}
@@ -13501,55 +13549,68 @@ function FINREQ01() {
                         {item.purchaseType === "제작·인쇄" && (
                           <div className="flex flex-col gap-4">
                             <div className="grid grid-cols-3 gap-4">
-                              <Input label="제작물 종류" placeholder="예: 현수막, 굿즈 등" value={item.details?.["제작물종류"] ?? ""} onChange={e => updateDetail(item.id, "제작물종류", e.target.value)} />
-                              <Input label="사이즈 또는 규격" placeholder="예: 500x90cm" value={item.details?.["규격"] ?? ""} onChange={e => updateDetail(item.id, "규격", e.target.value)} />
+                              <Input label="제작물 종류" required error={errors[`item_${item.id}_detail_제작물종류`]} placeholder="예: 현수막, 굿즈 등" value={item.details?.["제작물종류"] ?? ""} onChange={e => updateDetail(item.id, "제작물종류", e.target.value)} />
+                              <Input label="사이즈 또는 규격" required error={errors[`item_${item.id}_detail_규격`]} placeholder="예: 500x90cm" value={item.details?.["규격"] ?? ""} onChange={e => updateDetail(item.id, "규격", e.target.value)} />
+                              <Input label="재질·제작 조건" required error={errors[`item_${item.id}_detail_재질제작조건`]} placeholder="예: 부직포 / 양면 코팅" value={item.details?.["재질제작조건"] ?? ""} onChange={e => updateDetail(item.id, "재질제작조건", e.target.value)} />
+                            </div>
+                            <div className="grid grid-cols-3 gap-4">
                               <Input label="색상" placeholder="예: 배경색 파랑" value={item.details?.["색상"] ?? ""} onChange={e => updateDetail(item.id, "색상", e.target.value)} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                              <div className="flex flex-col gap-1.5">
-                                <label className="text-[11px] font-medium text-gray-700">옵션별 수량 (예: M-10개, L-20개)</label>
-                                <textarea className="border border-gray-300 rounded px-3 py-2 text-xs h-16 bg-white" placeholder="사이즈·색상 조합별 수량을 입력하세요." value={item.details?.["옵션수량"] ?? ""} onChange={e => updateDetail(item.id, "옵션수량", e.target.value)} />
+                              <Input label="인쇄·후가공 조건" placeholder="예: 실사출력 / 무광 코팅" value={item.details?.["인쇄방식"] ?? ""} onChange={e => updateDetail(item.id, "인쇄방식", e.target.value)} />
+                              <div className="flex flex-col gap-1">
+                                <label className="text-[11px] font-medium text-gray-700">납품 희망일<span className="text-red-500 ml-0.5">*</span></label>
+                                <input type="date" className={`border ${errors[`item_${item.id}_detail_납품희망일`] ? "border-red-400" : "border-gray-300"} rounded px-2 py-1.5 text-xs bg-white`} value={item.details?.["납품희망일"] ?? ""} onChange={e => updateDetail(item.id, "납품희망일", e.target.value)} />
+                                {errors[`item_${item.id}_detail_납품희망일`] && <p className="text-[10px] text-red-500">{errors[`item_${item.id}_detail_납품희망일`]}</p>}
                               </div>
-                              <div className="grid grid-cols-2 gap-4">
-                                <Input label="인쇄 방식" placeholder="예: 실사출력" value={item.details?.["인쇄방식"] ?? ""} onChange={e => updateDetail(item.id, "인쇄방식", e.target.value)} />
-                                <div className="flex flex-col gap-1">
-                                  <label className="text-[11px] font-medium text-gray-700">납품 희망일</label>
-                                  <input type="date" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" value={item.details?.["납품희망일"] ?? ""} onChange={e => updateDetail(item.id, "납품희망일", e.target.value)} />
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                              <label className="text-[11px] font-medium text-gray-700">옵션별 수량 (예: M-10개, L-20개)</label>
+                              <textarea className="border border-gray-300 rounded px-3 py-2 text-xs h-16 bg-white" placeholder="사이즈·색상 조합별 수량을 입력하세요." value={item.details?.["옵션수량"] ?? ""} onChange={e => updateDetail(item.id, "옵션수량", e.target.value)} />
+                            </div>
+                            <div className="grid grid-cols-4 gap-4 items-end">
+                              <Input label="디자인 파일 상태" select selectOptions={["준비됨", "미확정"]} required error={errors[`item_${item.id}_detail_디자인상태`]} value={item.details?.["디자인상태"] ?? ""} onChange={e => updateDetail(item.id, "디자인상태", e.target.value)} />
+                              {item.details?.["디자인상태"] === "미확정" ? (
+                                <div className="col-span-3">
+                                  <Input label="디자인 미확정 사유" required error={errors[`item_${item.id}_detail_디자인미확정사유`]} placeholder="확정 예정 시점과 사유를 적어 주세요." value={item.details?.["디자인미확정사유"] ?? ""} onChange={e => updateDetail(item.id, "디자인미확정사유", e.target.value)} />
                                 </div>
-                              </div>
+                              ) : (
+                                <>
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-[11px] font-medium text-gray-700">디자인 파일</label>
+                                    <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-[11px] font-medium text-gray-700">인쇄 파일</label>
+                                    <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
+                                  </div>
+                                  <div className="flex flex-col gap-1">
+                                    <label className="text-[11px] font-medium text-gray-700">참고 이미지</label>
+                                    <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
+                                  </div>
+                                </>
+                              )}
                             </div>
-                            <div className="grid grid-cols-4 gap-4">
-                              <div className="flex flex-col gap-1">
-                                <label className="text-[11px] font-medium text-gray-700">디자인 파일</label>
-                                <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <label className="text-[11px] font-medium text-gray-700">인쇄 파일</label>
-                                <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
-                              </div>
-                              <div className="flex flex-col gap-1">
-                                <label className="text-[11px] font-medium text-gray-700">참고 이미지</label>
-                                <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
-                              </div>
-                              <Input label="제작 요청사항" placeholder="특이사항 입력" value={item.details?.["제작요청"] ?? ""} onChange={e => updateDetail(item.id, "제작요청", e.target.value)} />
-                            </div>
+                            <Input label="제작 요청사항" placeholder="특이사항 입력" value={item.details?.["제작요청"] ?? ""} onChange={e => updateDetail(item.id, "제작요청", e.target.value)} />
                           </div>
                         )}
 
                         {item.purchaseType === "대여" && (
                           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
                              <Input label="대여처" placeholder="예: 바다렌탈" value={item.details?.["대여처"] ?? ""} onChange={e => updateDetail(item.id, "대여처", e.target.value)} />
-                             <Input label="수령 장소" placeholder="예: 학교 정문 앞" value={item.details?.["수령장소"] ?? ""} onChange={e => updateDetail(item.id, "수령장소", e.target.value)} />
+                             <Input label="수령·설치 장소" required error={errors[`item_${item.id}_detail_수령장소`]} placeholder="예: 학교 정문 앞" value={item.details?.["수령장소"] ?? ""} onChange={e => updateDetail(item.id, "수령장소", e.target.value)} />
                              <div className="grid grid-cols-2 gap-3">
                                <div className="flex flex-col gap-1">
-                                 <label className="text-[11px] font-medium text-gray-700">대여 시작(수령) 일시</label>
-                                 <input type="datetime-local" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" value={item.details?.["대여시작"] ?? ""} onChange={e => updateDetail(item.id, "대여시작", e.target.value)} />
+                                 <label className="text-[11px] font-medium text-gray-700">대여 시작(수령) 일시<span className="text-red-500 ml-0.5">*</span></label>
+                                 <input type="datetime-local" className={`border ${errors[`item_${item.id}_detail_대여시작`] ? "border-red-400" : "border-gray-300"} rounded px-2 py-1.5 text-xs bg-white`} value={item.details?.["대여시작"] ?? ""} onChange={e => updateDetail(item.id, "대여시작", e.target.value)} />
+                                 {errors[`item_${item.id}_detail_대여시작`] && <p className="text-[10px] text-red-500">{errors[`item_${item.id}_detail_대여시작`]}</p>}
                                </div>
                                <div className="flex flex-col gap-1">
-                                 <label className="text-[11px] font-medium text-gray-700">반납 예정 일시</label>
-                                 <input type="datetime-local" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" value={item.details?.["반납예정"] ?? ""} onChange={e => updateDetail(item.id, "반납예정", e.target.value)} />
+                                 <label className="text-[11px] font-medium text-gray-700">반납 예정 일시<span className="text-red-500 ml-0.5">*</span></label>
+                                 <input type="datetime-local" className={`border ${errors[`item_${item.id}_detail_반납예정`] ? "border-red-400" : "border-gray-300"} rounded px-2 py-1.5 text-xs bg-white`} value={item.details?.["반납예정"] ?? ""} onChange={e => updateDetail(item.id, "반납예정", e.target.value)} />
+                                 {errors[`item_${item.id}_detail_반납예정`] && <p className="text-[10px] text-red-500">{errors[`item_${item.id}_detail_반납예정`]}</p>}
                                </div>
                              </div>
+                             <Input label="반납 장소·방법" required error={errors[`item_${item.id}_detail_반납장소방법`]} placeholder="예: 대여처 방문 반납 / 택배 회수" value={item.details?.["반납장소방법"] ?? ""} onChange={e => updateDetail(item.id, "반납장소방법", e.target.value)} />
+                             <Input label="설치·철거 포함 여부" select selectOptions={["포함", "미포함"]} required error={errors[`item_${item.id}_detail_설치철거`]} value={item.details?.["설치철거"] ?? ""} onChange={e => updateDetail(item.id, "설치철거", e.target.value)} />
                              <Input label="담당자 연락처" placeholder="예: 010-1234-5678" value={item.details?.["담당자연락처"] ?? ""} onChange={e => updateDetail(item.id, "담당자연락처", e.target.value)} />
                              <Input label="보증금(있으면)" placeholder="예: 50,000원 · 반납 시 환입" value={item.details?.["보증금"] ?? ""} onChange={e => updateDetail(item.id, "보증금", e.target.value)} />
                              <div className="col-span-2">
@@ -13564,17 +13625,23 @@ function FINREQ01() {
                              <Input label="수행 장소" placeholder="예: 학교 대운동장" value={item.details?.["수행장소"] ?? ""} onChange={e => updateDetail(item.id, "수행장소", e.target.value)} />
                              <div className="grid grid-cols-2 gap-3">
                                <div className="flex flex-col gap-1">
-                                 <label className="text-[11px] font-medium text-gray-700">수행 시작 일시</label>
-                                 <input type="datetime-local" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" value={item.details?.["수행시작"] ?? ""} onChange={e => updateDetail(item.id, "수행시작", e.target.value)} />
+                                 <label className="text-[11px] font-medium text-gray-700">수행 시작 일시<span className="text-red-500 ml-0.5">*</span></label>
+                                 <input type="datetime-local" className={`border ${errors[`item_${item.id}_detail_수행시작`] ? "border-red-400" : "border-gray-300"} rounded px-2 py-1.5 text-xs bg-white`} value={item.details?.["수행시작"] ?? ""} onChange={e => updateDetail(item.id, "수행시작", e.target.value)} />
+                                 {errors[`item_${item.id}_detail_수행시작`] && <p className="text-[10px] text-red-500">{errors[`item_${item.id}_detail_수행시작`]}</p>}
                                </div>
                                <div className="flex flex-col gap-1">
-                                 <label className="text-[11px] font-medium text-gray-700">수행 종료 일시</label>
-                                 <input type="datetime-local" className="border border-gray-300 rounded px-2 py-1.5 text-xs bg-white" value={item.details?.["수행종료"] ?? ""} onChange={e => updateDetail(item.id, "수행종료", e.target.value)} />
+                                 <label className="text-[11px] font-medium text-gray-700">수행 종료 일시<span className="text-red-500 ml-0.5">*</span></label>
+                                 <input type="datetime-local" className={`border ${errors[`item_${item.id}_detail_수행종료`] ? "border-red-400" : "border-gray-300"} rounded px-2 py-1.5 text-xs bg-white`} value={item.details?.["수행종료"] ?? ""} onChange={e => updateDetail(item.id, "수행종료", e.target.value)} />
+                                 {errors[`item_${item.id}_detail_수행종료`] && <p className="text-[10px] text-red-500">{errors[`item_${item.id}_detail_수행종료`]}</p>}
                                </div>
                              </div>
                              <Input label="담당자 연락처" placeholder="예: 010-1234-5678" value={item.details?.["담당자연락처"] ?? ""} onChange={e => updateDetail(item.id, "담당자연락처", e.target.value)} />
+                             <Input label="계약서·제안서(요구 시)" placeholder="계약·감사 기준상 필요하면 파일명·근거 기재" value={item.details?.["계약제안"] ?? ""} onChange={e => updateDetail(item.id, "계약제안", e.target.value)} />
                              <div className="col-span-2">
-                               <Input label="용역 포함 항목 및 요청사항" placeholder="설치·철거 포함 여부, 산출물 등 기재" value={item.details?.["용역포함"] ?? ""} onChange={e => updateDetail(item.id, "용역포함", e.target.value)} />
+                               <Input label="이행 범위·포함 항목" required error={errors[`item_${item.id}_detail_용역포함`]} placeholder="설치·철거 포함 여부, 이행 범위 등 기재" value={item.details?.["용역포함"] ?? ""} onChange={e => updateDetail(item.id, "용역포함", e.target.value)} />
+                             </div>
+                             <div className="col-span-2">
+                               <Input label="결과물·완료 기준" required error={errors[`item_${item.id}_detail_완료기준`]} placeholder="완료로 인정할 산출물·기준을 적어 주세요." value={item.details?.["완료기준"] ?? ""} onChange={e => updateDetail(item.id, "완료기준", e.target.value)} />
                              </div>
                           </div>
                         )}
@@ -13963,7 +14030,7 @@ function FINREV01() {
                             <tr key={item.id} className="hover:bg-gray-50/30 transition-colors">
                               <td className="px-6 py-4">
                                 <p className="font-bold text-gray-800 mb-0.5">{item.name}</p>
-                                <p className="text-[10px] text-gray-400 font-medium">{item.category} · {item.budgetLine}</p>
+                                <p className="text-[10px] text-gray-400 font-medium">{item.budgetLine}</p>
                                 <p className="text-[9px] bg-gray-100 text-gray-500 px-1 rounded inline-block mt-1">{item.purchaseType}</p>
                               </td>
                               <td className="px-6 py-4 text-gray-600 font-medium">{item.quantity}{item.unit}</td>
@@ -14047,7 +14114,7 @@ function FINREV01() {
                           <div key={item.id} className="border border-gray-200 rounded-xl p-4 flex items-start justify-between gap-5">
                             <div>
                               <p className="text-xs font-bold text-gray-900">{item.name}</p>
-                              <p className="text-[10px] text-gray-500 mt-1">{item.category} · {item.purchaseType} · {item.budgetLine}</p>
+                              <p className="text-[10px] text-gray-500 mt-1">{item.purchaseType} · {item.budgetLine}</p>
                               {Object.keys(item.details ?? {}).length > 0 && (
                                 <p className="text-[10px] text-gray-500 mt-2">
                                   {Object.entries(item.details).map(([key, value]) => `${key}: ${String(value)}`).join(" · ")}
@@ -14883,7 +14950,6 @@ function FINREQ02() {
                         <div className="flex flex-col gap-3">
                           <p className="text-[10px] font-bold text-gray-400">제출한 요청 정보 (작성 화면과 동일)</p>
                           <div className="grid grid-cols-3 gap-x-6 gap-y-2 text-[11px]">
-                            <div><span className="text-gray-400">품목 카테고리 </span><span className="text-gray-700 font-medium">{item.category}</span></div>
                             <div><span className="text-gray-400">예산 항목 </span><span className="text-gray-700 font-medium">{item.budgetLine}</span></div>
                             <div><span className="text-gray-400">구매 유형 </span><span className="text-gray-700 font-medium">{item.purchaseType}</span></div>
                             <div><span className="text-gray-400">수량 </span><span className="text-gray-700 font-medium">{item.quantity}{item.unit}</span></div>
