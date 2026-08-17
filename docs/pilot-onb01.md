@@ -26,8 +26,9 @@
 | 1 | 섹션 라벨·푸터 fontSize 11(lh 16.5)은 ÷0.875=12.57로 표준 스케일 밖 — 0.875 가설의 첫 반례. 카드 radius 9.25(→10.57)도 동일 | 아니오 | text-xs(12)·rounded-xl(12)로 스냅 | interpretation에 "표준 밖 값과 스냅 결과" 사례표 |
 | 2 | 열린 드롭다운 목록 패널의 시각이 번들에 없음(와이어프레임에 열린 상태가 그려진 화면 없음) | 아니오 | white·border gray-200·rounded-md·shadow-md, 항목 hover gray-50, 선택 항목 blue-600 | vada-conventions 7번에 패널 스타일 추가(반영함) |
 | 3 | mock 데이터의 내용과 value(id) 형식이 번들에 없음 — schools 응답의 value가 무엇인지(uuid? 코드?) 미정 | 아니오 | `sch-001` 형식의 임시 fixture 작성 | option-sources에 값 형식·예시 응답 계약 추가 |
-| 4 | select은 value(id)만 저장하는데 재방문 시 라벨을 다시 그릴 방법이 스펙에 없음 | 아니오 | draft에 labels 보조 저장(값과 별도) | 상태 스코프 저장 형태(값+표시 라벨) 관례 |
-| 5 | 비활성 필드 시각이 관례 6번(bg gray-100)과 wireframe 사실(bg gray-50, 라벨·텍스트 gray-400, 아이콘 gray-300)이 충돌 | 예(design.json) | wireframe 값을 적용 | 관례 문서에 "디자인에 있는 사실 > 관례" 우선순위 명시 |
+| 4 | select은 value(id)만 저장하는데 재방문 시 라벨을 다시 그릴 방법이 스펙에 없음 | 아니오 | draft에 labels 보조 저장(값과 별도) | 해결 — vada-conventions 7번에 라벨 병행 저장 관례 반영 |
+| 5 | 비활성 필드 시각이 관례 6번(bg gray-100)과 wireframe 사실(bg gray-50, 라벨·텍스트 gray-400, 아이콘 gray-300)이 충돌 | 예(design.json) | wireframe 값을 적용 | 해결 — vada-conventions 상단에 우선순위 원칙 명시 |
 | 6 | 구현 결과를 reference.png와 자동 대조할 수단이 파이프라인에 없음 | 아니오 | 육안 대조 | 스크린샷 비교 도구 — 트리거: 구현 화면 수 증가 |
 | 7 | 현재 학년 빈 Dropdown(7:75): "다른 입력과 같은 스타일"이되 셀렉트 어포던스(chevron)·빈 표시는 유추 | 부분(interpretation ONB-01 절) | 다른 select와 동일 스타일 + chevron, 값 없으면 빈 칸 | 없음(해결로 간주) |
 | 8 | (사용자 검증에서 발견) 단과대학 placeholder "학교를 먼저 선택하세요"가 비활성 사유 안내를 겸하는데, 학교 선택 후 활성화되면 문구가 상황과 안 맞음 — 스펙에 placeholder가 상태별로 하나뿐 | 아니오 | 스펙 문구 그대로 표시 | select 스키마에 활성 상태 placeholder(예: enabledPlaceholder) 추가 여부 |
+| 9 | (코드 리뷰 F2에서 발견) 검색형 select의 키보드 조작 계약이 스펙 어디에도 없음 — searchable: true만 있고 상호작용 정의 부재 | 아니오 | 표준 콤보박스 키보드(화살표·Enter·Escape·focusout 닫힘) 구현 | 해결 — vada-conventions 7번에 키보드 관례 반영 |

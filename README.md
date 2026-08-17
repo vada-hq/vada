@@ -27,6 +27,7 @@ figma-spec-v2/
 - 제품 결정(스택·폰트·관례): `docs/decisions/<제품>-*.md` (예: `vada-conventions.md`), 앱은 `apps/<제품>-web`
 - wireframe 원본을 읽는 법과 화면별 특이사항: `specs/figma/<wireframeKey>/interpretation.md`
 - 진행 상태와 다음 단계: `docs/HANDOFF.md`
+- 미착수 백로그(스코프 태그·트리거 포함): `docs/BACKLOG.md`
 
 ## 화면별 Figma 산출물
 

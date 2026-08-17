@@ -2,6 +2,8 @@
 
 vada 제품의 wireframe 원본을 제품 코드로 옮길 때 적용하는 **제품 스코프** 관례다. 제품 무관 방법론은 `implementation-methodology.md`, 특정 wireframe 원본을 읽는 법은 해당 wireframe 폴더의 `specs/figma/<wireframeKey>/interpretation.md`에 있다. (2026-08-17 확정)
 
+**우선순위**: 디자인 문서에 실제로 그려진 사실은 아래 관례보다 우선한다. 관례는 원본에 없는 것을 보충할 때만 적용한다(예: 비활성 배경은 관례상 gray-100이지만 wireframe이 gray-50으로 그렸으므로 gray-50).
+
 ## 0. 위치와 스택
 
 - 앱은 `apps/vada-web`이다.
@@ -46,6 +48,8 @@ vada 제품의 wireframe 원본을 제품 코드로 옮길 때 적용하는 **�
 - 필드 오류는 **필드 아래 인라인**으로 red-500 텍스트를 표시하고 해당 필드 테두리를 red-500으로 바꾼다. 필수 누락 문구는 `"필수 항목입니다"`로 통일한다.
 - 버튼 차단(`showMissingRequiredFields`)의 구현 형태: 판정기의 `missingFieldKeys` 전부에 인라인 오류를 표시하고, `firstMissingField`(화면 순서상 첫 누락)로 포커스와 스크롤을 이동한다.
 - 개발 mock에는 300~600ms 인위 지연을 둬 로딩 상태를 실제로 확인할 수 있게 한다.
+- 검색·선택 콤보박스의 키보드 조작: ArrowDown/ArrowUp으로 하이라이트 이동(닫혀 있으면 열기), Enter로 선택, Escape로 닫기. 포커스가 컴포넌트를 떠나면 패널을 닫고, 하이라이트는 `aria-activedescendant`로 노출한다.
+- select 값을 상태에 저장할 때 표시 라벨을 함께 보관한다. 값(id)만으로는 재방문 시 라벨을 복원할 수 없다.
 
 ## 8. 컴포넌트 구조
 
