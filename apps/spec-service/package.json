@@ -5,9 +5,13 @@
   "scripts": {
     "generate:figma-design": "node src/generate-figma-design.mjs",
     "start": "node src/cli.mjs",
-    "test": "node --test ../../tests/spec-service.test.mjs ../../tests/figma-design.test.mjs"
+    "validate": "node src/validate-specs.mjs",
+    "test": "node --test ../../tests/spec-service.test.mjs ../../tests/figma-design.test.mjs ../../tests/spec-validation.test.mjs"
   },
   "engines": {
     "node": ">=20"
+  },
+  "dependencies": {
+    "ajv": "^8.20.0"
   }
 }

@@ -59,7 +59,8 @@
 - 플러그인은 현재 화면의 스코프 key, 같은 스코프 화면 간 유지·복원, 제거 시점을 읽기 전용으로 표시하며 미지정·정의 누락·카탈로그 오류도 구분한다.
 - 로컬 초안을 불러오거나 화면을 다시 저장해도 `stateScopeKey`를 보존한다. 이 계약은 개발 구현 명세이며 플러그인이 실제 앱 상태를 실행하지는 않는다.
 - 공통 버튼 판정기는 현재 화면의 적용 가능한 필수 필드를 계산하고 값 존재 여부를 판정한다. 공백 문자열과 `null`은 누락이고 숫자 `0`과 boolean `false`는 값이며, 별도의 `validation` 규칙은 실행하지 않는다.
-- 저장 시 스키마 필수값 누락이나 중복 `fieldKey`를 막는 별도 검증은 아직 실행하지 않는다.
+- `node apps/spec-service/src/validate-specs.mjs`가 모든 명세를 JSON Schema(ajv)와 교차 참조 규칙으로 검증한다: 화면 envelope(`screen.schema.json` 신설)·요소·카탈로그·figma.design.json 스키마, 중복 fieldKey·nodeId, 선택지 출처 key와 인자 매핑, enabledWhen·resetOnChangeOf 참조, 상태 스코프 key, 이동 대상 화면 존재(경고), design.json nodeId·자산 파일·reference.png 존재, screenId와 파일 이름 일치. 오류 시 종료 코드 1. 교차 참조 로직은 `packages/contracts/src/spec-validation.mjs`에 있다.
+- 플러그인의 저장 시점 검증은 여전히 별도로 실행하지 않는다. 저장 후 위 검증 CLI로 확인한다.
 - `apps/spec-service`에 로컬 JSON 브리지가 구현되어 있다.
 - 브리지는 `127.0.0.1:3846`에서만 실행하며 저장 루트는 저장소의 `specs/figma`로 고정한다.
 - `GET /health`, `GET/PUT /v1/screens/<wireframeKey>/<screenId>`, `PUT /v1/screens/<wireframeKey>/<screenId>/figma-raw`, `PUT /v1/screens/<wireframeKey>/<screenId>/assets/<파일명>.svg`, `PUT /v1/screens/<wireframeKey>/<screenId>/reference`, `GET /v1/option-sources/<wireframeKey>`, `GET /v1/state-scopes/<wireframeKey>`와 CORS preflight를 지원한다.

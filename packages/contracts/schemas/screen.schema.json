@@ -1,0 +1,104 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "screen.schema.json",
+  "title": "Screen behavior spec",
+  "description": "화면 단위 동작 명세의 겉 구조. elements[].spec 본문은 spec.type에 따라 input/select/button 스키마로 별도 검증한다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "screenId",
+    "source",
+    "elements"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "screenId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "stateScopeKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "pageName",
+        "nodeId",
+        "name",
+        "figmaType"
+      ],
+      "properties": {
+        "pageName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "nodeId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "figmaType": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "elements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "spec"
+        ],
+        "properties": {
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "nodeId",
+              "name",
+              "figmaType"
+            ],
+            "properties": {
+              "nodeId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string"
+              },
+              "figmaType": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "spec": {
+            "type": "object",
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "enum": [
+                  "input",
+                  "select",
+                  "button"
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
