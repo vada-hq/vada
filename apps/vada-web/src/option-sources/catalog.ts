@@ -45,10 +45,45 @@ interface StaticSource {
 
 export type OptionSource = RemoteSource | StaticSource
 
+// 카탈로그 드리프트가 조용한 오동작(예: 검색이 영구 idle) 대신 명확한 오류로
+// 드러나게 하는 최소 런타임 가드다. 깊은 검증은 검증 CLI가 담당한다.
+export function asOptionSourcesCatalog(json: unknown): { sources: OptionSource[] } {
+  if (json === null || typeof json !== 'object' || Array.isArray(json)) {
+    throw new Error('선택지 카탈로그는 객체여야 합니다.')
+  }
+  const sources = (json as Record<string, unknown>).sources
+  if (!Array.isArray(sources)) {
+    throw new Error('선택지 카탈로그에 sources 배열이 필요합니다.')
+  }
+  for (const source of sources as OptionSource[]) {
+    if (typeof source?.key !== 'string' || source.key.length === 0) {
+      throw new Error('카탈로그 출처에 key가 필요합니다.')
+    }
+    if (source.type === 'remote') {
+      if (!source.request) {
+        throw new Error(`'${source.key}'는 remote이므로 request가 필요합니다.`)
+      }
+      if (
+        source.request.loadOn === 'search' &&
+        source.request.search?.mode !== 'remote'
+      ) {
+        throw new Error(
+          `'${source.key}'는 loadOn: search이므로 원격 검색 계약(search.mode: remote)이 필요합니다.`,
+        )
+      }
+    } else if (source.type === 'static') {
+      if (!Array.isArray(source.options)) {
+        throw new Error(`'${source.key}'는 static이므로 options가 필요합니다.`)
+      }
+    } else {
+      throw new Error(`'${(source as { key: string }).key}'의 type이 올바르지 않습니다.`)
+    }
+  }
+  return { sources: sources as OptionSource[] }
+}
+
 const sourceByKey = new Map<string, OptionSource>(
-  (catalogJson as unknown as { sources: OptionSource[] }).sources.map(
-    (source) => [source.key, source],
-  ),
+  asOptionSourcesCatalog(catalogJson).sources.map((source) => [source.key, source]),
 )
 
 export function getOptionSource(key: string): OptionSource {

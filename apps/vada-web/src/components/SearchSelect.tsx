@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import type { FocusEvent, KeyboardEvent } from 'react'
 import { ChevronDown, Loader2, Search } from 'lucide-react'
 import { fetchOptions, getOptionSource } from '../option-sources/catalog'
 import type { Option } from '../option-sources/catalog'
@@ -21,7 +22,7 @@ type PanelStatus = 'idle' | 'loading' | 'ready' | 'error'
 // Text Input 7:46 계열: pl 31.5→36(pl-9), pr 28→32(pr-8), py 7→8, radius 5.25→6.
 // 활성: bg white·border gray-300·아이콘 gray-400 / 비활성(7:57): bg gray-50·
 // border gray-200·텍스트 gray-400·아이콘 gray-300 — wireframe 사실.
-// 목록 패널과 상태 표시는 vada-conventions 7번(카탈로그 messages + Loader2).
+// 목록 패널·상태 표시·키보드 조작은 vada-conventions 7번을 따른다.
 export function SearchSelect({
   id,
   placeholder,
@@ -34,15 +35,8 @@ export function SearchSelect({
   onSelect,
   triggerRef,
 }: SearchSelectProps) {
-  const [open, setOpen] = useState(false)
-  const [query, setQuery] = useState('')
-  const [remoteOptions, setRemoteOptions] = useState<Option[]>([])
-  const [status, setStatus] = useState<PanelStatus>('idle')
-  const rootRef = useRef<HTMLDivElement | null>(null)
-
   const source = useMemo(() => getOptionSource(sourceKey), [sourceKey])
-  const loadMode =
-    source.type === 'static' ? 'static' : source.request.loadOn
+  const loadMode = source.type === 'static' ? 'static' : source.request.loadOn
   const remoteSearch =
     source.type === 'remote' && source.request.search?.mode === 'remote'
       ? source.request.search
@@ -50,29 +44,30 @@ export function SearchSelect({
   const messages = source.type === 'remote' ? source.messages : null
   const paramsKey = JSON.stringify(sourceParams)
 
+  // 닫힘 상태의 기준값. 열리는 첫 프레임에 stale 목록·오도성 메시지가
+  // 그려지지 않도록 close 시 항상 이 기준으로 되돌린다(F3).
+  const baseStatus: PanelStatus =
+    loadMode === 'open' ? 'loading' : loadMode === 'search' ? 'idle' : 'ready'
+
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [remoteOptions, setRemoteOptions] = useState<Option[]>([])
+  const [status, setStatus] = useState<PanelStatus>(baseStatus)
+  const [highlightIndex, setHighlightIndex] = useState(-1)
+
   function close() {
     setOpen(false)
     setQuery('')
+    setRemoteOptions([])
+    setStatus(baseStatus)
+    setHighlightIndex(-1)
   }
 
   useEffect(() => {
     if (disabled && open) {
       close()
     }
-  }, [disabled, open])
-
-  useEffect(() => {
-    if (!open) {
-      return
-    }
-    const onPointerDown = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        close()
-      }
-    }
-    document.addEventListener('pointerdown', onPointerDown)
-    return () => document.removeEventListener('pointerdown', onPointerDown)
-  }, [open])
+  }, [disabled, open]) // eslint-disable-line react-hooks/exhaustive-deps -- close는 setState 묶음이라 안정적이다
 
   // loadOn: open — 메뉴를 열 때 목록을 불러온다(education.colleges/departments).
   useEffect(() => {
@@ -138,9 +133,64 @@ export function SearchSelect({
     ? baseOptions.filter((option) => option.label.includes(query.trim()))
     : baseOptions
 
+  // 목록 내용이 바뀌면 키보드 하이라이트를 초기화한다.
+  const optionsKey = visibleOptions.map((option) => option.value).join('|')
+  useEffect(() => {
+    setHighlightIndex(-1)
+  }, [optionsKey, open])
+
   function pick(option: Option) {
     onSelect(option)
     close()
+  }
+
+  function moveHighlight(delta: number) {
+    if (visibleOptions.length === 0) {
+      return
+    }
+    const next =
+      highlightIndex < 0
+        ? delta > 0
+          ? 0
+          : visibleOptions.length - 1
+        : (highlightIndex + delta + visibleOptions.length) % visibleOptions.length
+    setHighlightIndex(next)
+    document
+      .getElementById(`${id}-option-${next}`)
+      ?.scrollIntoView({ block: 'nearest' })
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (disabled) {
+      return
+    }
+    if (event.key === 'Escape') {
+      close()
+      return
+    }
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      if (!open) {
+        setOpen(true)
+        return
+      }
+      moveHighlight(event.key === 'ArrowDown' ? 1 : -1)
+      return
+    }
+    if (event.key === 'Enter' && open) {
+      event.preventDefault()
+      const option = visibleOptions[highlightIndex]
+      if (option) {
+        pick(option)
+      }
+    }
+  }
+
+  // 포커스가 컴포넌트(입력·옵션 버튼) 밖으로 나가면 닫는다(F1).
+  function handleBlur(event: FocusEvent<HTMLDivElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      close()
+    }
   }
 
   const boxClass = `w-full rounded-md border py-2 text-left text-sm focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none ${
@@ -154,57 +204,22 @@ export function SearchSelect({
     disabled ? 'text-gray-300' : 'text-gray-400'
   }`
 
-  let panelBody
+  const activeDescendant =
+    open && highlightIndex >= 0 ? `${id}-option-${highlightIndex}` : undefined
+
+  let statusMessage: string | null = null
   if (status === 'loading') {
-    panelBody = (
-      <div className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500">
-        <Loader2 className="size-4 animate-spin" />
-        {messages?.loading}
-      </div>
-    )
+    statusMessage = messages?.loading ?? '불러오는 중입니다'
   } else if (status === 'error') {
-    panelBody = (
-      <div className="px-3 py-2 text-sm text-red-500">{messages?.error}</div>
-    )
+    statusMessage = messages?.error ?? '목록을 불러오지 못했습니다'
   } else if (status === 'idle' && loadMode === 'search') {
-    panelBody = (
-      <div className="px-3 py-2 text-sm text-gray-500">{messages?.idle}</div>
-    )
+    statusMessage = messages?.idle ?? null
   } else if (visibleOptions.length === 0) {
-    panelBody = (
-      <div className="px-3 py-2 text-sm text-gray-500">
-        {messages?.empty ?? '선택할 수 있는 항목이 없습니다.'}
-      </div>
-    )
-  } else {
-    panelBody = visibleOptions.map((option) => (
-      <button
-        key={option.value}
-        type="button"
-        role="option"
-        aria-selected={option.value === value?.value}
-        onClick={() => pick(option)}
-        className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-          option.value === value?.value
-            ? 'font-medium text-blue-600'
-            : 'text-gray-800'
-        }`}
-      >
-        {option.label}
-      </button>
-    ))
+    statusMessage = messages?.empty ?? '선택할 수 있는 항목이 없습니다.'
   }
 
   return (
-    <div
-      ref={rootRef}
-      className="relative"
-      onKeyDown={(event) => {
-        if (event.key === 'Escape') {
-          close()
-        }
-      }}
-    >
+    <div className="relative" onKeyDown={handleKeyDown} onBlur={handleBlur}>
       {searchable ? (
         <input
           ref={triggerRef}
@@ -213,12 +228,13 @@ export function SearchSelect({
           role="combobox"
           aria-expanded={open}
           aria-controls={`${id}-listbox`}
+          aria-activedescendant={activeDescendant}
+          aria-autocomplete="list"
           aria-invalid={hasError || undefined}
           aria-describedby={hasError ? `${id}-error` : undefined}
           disabled={disabled}
           placeholder={placeholder ?? undefined}
           value={open ? query : (value?.label ?? '')}
-          onFocus={() => setOpen(true)}
           onClick={() => setOpen(true)}
           onChange={(event) => {
             setOpen(true)
@@ -231,9 +247,11 @@ export function SearchSelect({
           ref={triggerRef}
           id={id}
           type="button"
+          role="combobox"
           aria-haspopup="listbox"
           aria-expanded={open}
           aria-controls={`${id}-listbox`}
+          aria-activedescendant={activeDescendant}
           aria-invalid={hasError || undefined}
           aria-describedby={hasError ? `${id}-error` : undefined}
           disabled={disabled}
@@ -248,12 +266,41 @@ export function SearchSelect({
       {searchable && <Search className={`${iconClass} left-3`} />}
       <ChevronDown className={`${iconClass} right-2.5`} />
       {open && !disabled && (
-        <div
-          id={`${id}-listbox`}
-          role="listbox"
-          className="absolute top-full left-0 z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-md"
-        >
-          {panelBody}
+        <div className="absolute top-full left-0 z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-md">
+          {statusMessage !== null ? (
+            <div
+              role="status"
+              className={`flex items-center gap-2 px-3 py-2 text-sm ${
+                status === 'error' ? 'text-red-500' : 'text-gray-500'
+              }`}
+            >
+              {status === 'loading' && <Loader2 className="size-4 animate-spin" />}
+              {statusMessage}
+            </div>
+          ) : (
+            <div id={`${id}-listbox`} role="listbox">
+              {visibleOptions.map((option, index) => (
+                <button
+                  key={option.value}
+                  id={`${id}-option-${index}`}
+                  type="button"
+                  role="option"
+                  aria-selected={option.value === value?.value}
+                  onClick={() => pick(option)}
+                  onMouseEnter={() => setHighlightIndex(index)}
+                  className={`block w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                    index === highlightIndex ? 'bg-gray-50' : ''
+                  } ${
+                    option.value === value?.value
+                      ? 'font-medium text-blue-600'
+                      : 'text-gray-800'
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

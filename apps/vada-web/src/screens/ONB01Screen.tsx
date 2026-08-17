@@ -33,6 +33,14 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
   const nextButtonSpec = findButtonSpec(onb01)
 
   function setFieldValue(fieldKey: string, value: string | null, label?: string) {
+    // 같은 값 재선택은 "변경"이 아니므로 resetOnChangeOf를 발동하지 않는다(F4).
+    if ((draft.values[fieldKey] ?? null) === value) {
+      if (value !== null && label !== undefined && draft.labels[fieldKey] !== label) {
+        onChangeDraft({ values: draft.values, labels: { ...draft.labels, [fieldKey]: label } })
+      }
+      return
+    }
+
     const values = { ...draft.values, [fieldKey]: value }
     const labels = { ...draft.labels }
     if (value !== null && label !== undefined) {
