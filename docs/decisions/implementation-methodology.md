@@ -11,6 +11,19 @@
 
 참고 지표(누적): ONB-01 사이클 마찰 11건, ONB-02 사이클 5건(신규 계급 2건) — 아직 수렴 전.
 
+## 요소 등록의 분업
+
+요소 등록은 **AI가 초안을 뽑고 사람은 디자인에 없는 값만 답한다**. 근거는 실측이다(2026-08-18): `figma.design.json`만 읽는 추출기가 등록된 요소 18개 중 17개를 nodeId·유형·라벨까지 정확히 재현했고, 유일한 미달인 `note`는 완성된 문자열만 그려져 있어 원리적으로 유도할 수 없다. 계층 깊이(최대 7단계)는 장애물이 아니었다. 오히려 사람이 등록한 결과에 일관성이 없어 등록 노드 계약을 별도로 세워야 했다.
+
+- 기계가 확정하는 것: 등록 노드, 요소 유형, 라벨·필수, placeholder(비활성이면 `disabledPlaceholder`), `searchable`, `presentation`, 묶음과 그 제목·설명·멤버
+- 사람만 아는 것: `fieldKey` 작명, 선택지 출처(드롭다운은 선택지가 디자인에 없다), 활성 상태 문구, `inputType`·`valueType`, 이동 대상 화면, `note`의 파생 의도
+- 추출기는 후자를 **추측하지 않고 질문으로 보고한다**. ORG-01(요소 9개) 기준 질문 15건이었다 — 이 수치가 "화면당 사람 개입"의 실측값이며, 줄어드는지가 수렴의 지표다.
+
+```powershell
+node apps/spec-service/src/draft-screen-spec.mjs <wireframeKey> <screenId>            # 초안 + 질문
+node apps/spec-service/src/draft-screen-spec.mjs <wireframeKey> <screenId> --verify   # 등록된 명세와 대조
+```
+
 ## 원칙
 
 - 각 제품의 화면 구현은 이 저장소의 `apps/<제품>-web`에서 한다. 스펙 번들과 구현이 한 저장소·한 git 히스토리로 묶여, 구현 AI가 같은 컨텍스트에서 스펙을 읽고 스펙 버전과 구현 변경이 함께 추적된다.

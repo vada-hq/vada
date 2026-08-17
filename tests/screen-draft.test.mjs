@@ -1,0 +1,105 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import test from "node:test";
+
+import {
+  compareWithSpec,
+  draftScreenElements
+} from "../packages/contracts/src/screen-draft.mjs";
+
+const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
+
+async function loadScreen(screenId) {
+  const dir = join(repoRoot, "specs", "figma", "vada-wireframe", "screens", screenId);
+  return {
+    design: JSON.parse(await readFile(join(dir, "figma.design.json"), "utf8")),
+    spec: JSON.parse(await readFile(join(dir, "screen.json"), "utf8"))
+  };
+}
+
+// 등록된 요소를 초안이 얼마나 재현하는가. 화면이 늘면 여기에 줄을 추가한다.
+// note는 완성된 문자열만 그려져 있어 디자인에서 유도할 수 없다(의도된 미달).
+const EXPECTED = [
+  { screenId: "ONB-01", derivable: 7, note: 0 },
+  { screenId: "ONB-02", derivable: 3, note: 0 },
+  { screenId: "ORG-01", derivable: 8, note: 1 }
+];
+
+for (const { screenId, derivable, note } of EXPECTED) {
+  test(`${screenId}의 등록 요소를 초안이 재현한다(note 제외)`, async () => {
+    const { design, spec } = await loadScreen(screenId);
+    const { elements } = draftScreenElements(design);
+    const rows = compareWithSpec(elements, spec.elements).filter(
+      (row) => !row.actual.includes("등록되지 않은 요소")
+    );
+
+    const derived = rows.filter((row) => row.matched && row.typeMatch && row.labelMatch);
+    assert.equal(
+      derived.length,
+      derivable,
+      `재현 실패: ${rows
+        .filter((row) => !(row.matched && row.typeMatch && row.labelMatch))
+        .map((row) => `${row.actual} ← ${row.draft}`)
+        .join(" | ")}`
+    );
+    assert.equal(rows.length - derived.length, note, "유도 불가 요소 수가 기대와 다릅니다");
+  });
+}
+
+test("초안은 사람만 아는 값을 추측하지 않고 질문으로 보고한다", async () => {
+  const { design } = await loadScreen("ORG-01");
+  const { elements, questions } = draftScreenElements(design);
+
+  for (const element of elements) {
+    if (element.spec.type === "input" || element.spec.type === "select") {
+      assert.equal(element.spec.fieldKey, undefined, "fieldKey는 디자인에 없으므로 비워야 한다");
+    }
+    if (element.spec.type === "select") {
+      assert.equal(
+        element.spec.optionsSource,
+        undefined,
+        "선택지 출처는 디자인에 없으므로 비워야 한다"
+      );
+    }
+    if (element.spec.type === "button") {
+      assert.equal(element.spec.action, undefined, "이동 대상은 디자인에 없으므로 비워야 한다");
+    }
+  }
+
+  const asks = (part) => questions.some((question) => question.includes(part));
+  assert.ok(asks("fieldKey"), "fieldKey를 물어야 한다");
+  assert.ok(asks("optionsSource.key"), "선택지 출처를 물어야 한다");
+  assert.ok(asks("targetScreenId"), "이동 대상을 물어야 한다");
+  assert.ok(asks("note 요소"), "note 판정 불가를 알려야 한다");
+});
+
+test("비활성 select의 문구는 placeholder가 아니라 disabledPlaceholder다", async () => {
+  const { design } = await loadScreen("ORG-01");
+  const { elements, questions } = draftScreenElements(design);
+  const disabled = elements.find(
+    (element) => element.spec.type === "select" && element.spec.initiallyDisabled
+  );
+
+  assert.equal(disabled.spec.disabledPlaceholder, "학교를 먼저 선택하세요");
+  assert.equal(disabled.spec.placeholder, null, "활성 문구는 디자인에 없다");
+  assert.ok(
+    questions.some((question) => question.includes("활성 상태 문구가 필요합니다")),
+    "활성 문구를 물어야 한다"
+  );
+});
+
+test("화면 카드 전체는 묶음으로 오인하지 않는다", async () => {
+  for (const screenId of ["ONB-01", "ORG-01"]) {
+    const { design } = await loadScreen(screenId);
+    const groups = draftScreenElements(design).elements.filter(
+      (element) => element.spec.type === "group"
+    );
+    // 카드 전체(버튼을 품는 컨테이너)를 잡으면 화면 제목이 묶음 제목으로 새어 나온다.
+    assert.ok(
+      groups.every((group) => group.spec.title.length < 20),
+      `${screenId}에서 카드 전체를 묶음으로 잡았다: ${groups.map((g) => g.spec.title).join(", ")}`
+    );
+  }
+});
