@@ -25,6 +25,93 @@ export function collectDesignNodeIds(root, ids = new Set()) {
   return ids;
 }
 
+function findDesignNode(root, nodeId) {
+  if (!isObject(root)) {
+    return null;
+  }
+  if (root.id === nodeId) {
+    return root;
+  }
+  for (const child of Array.isArray(root.children) ? root.children : []) {
+    const found = findDesignNode(child, nodeId);
+    if (found) {
+      return found;
+    }
+  }
+  return null;
+}
+
+function collectSubtreeText(node, parts = []) {
+  if (!isObject(node)) {
+    return parts;
+  }
+  if (typeof node.text?.content === "string") {
+    parts.push(node.text.content);
+  }
+  for (const child of Array.isArray(node.children) ? node.children : []) {
+    collectSubtreeText(child, parts);
+  }
+  return parts;
+}
+
+function normalizeForCompare(value) {
+  // 라벨 끝의 필수 표시(*)는 required로 분리되어 spec.label에는 없다.
+  return value.replace(/\s+/gu, "").replace(/\*$/u, "");
+}
+
+function collectSubtreeNodes(node, out = []) {
+  if (!isObject(node)) {
+    return out;
+  }
+  out.push(node);
+  for (const child of Array.isArray(node.children) ? node.children : []) {
+    collectSubtreeNodes(child, out);
+  }
+  return out;
+}
+
+// 하위 어딘가에 "합치면 정확히 이 텍스트가 되는" 노드가 있는지 본다.
+// 부분 일치로 하면 placeholder가 라벨을 품기만 해도 통과한다
+// (예: 라벨 '학교' ⊂ placeholder '학교명을 검색하세요').
+function hasNodeWithExactText(root, expected) {
+  const target = normalizeForCompare(expected);
+  return collectSubtreeNodes(root).some(
+    (node) => normalizeForCompare(collectSubtreeText(node).join("")) === target
+  );
+}
+
+// 등록 노드 계약(element-types.md): nodeId는 요소의 모든 부분을 포함하는
+// 가장 안쪽 노드다. 식별 텍스트가 하위 트리에 없으면 안쪽 컨트롤만 등록해
+// 라벨·아이콘이 바깥에 남은 상태다.
+function checkElementNodeCoverage(findings, context) {
+  const { file, element, index, design } = context;
+  const spec = element.spec;
+  const identifyingText = spec.type === "group" ? spec.title : spec.label;
+  const nodeId = element.source?.nodeId;
+
+  if (
+    typeof identifyingText !== "string" ||
+    !identifyingText.trim() ||
+    typeof nodeId !== "string"
+  ) {
+    return;
+  }
+
+  const node = findDesignNode(design.root, nodeId);
+  if (!node) {
+    // nodeId 부재는 별도 검사가 이미 보고한다.
+    return;
+  }
+
+  if (!hasNodeWithExactText(node, identifyingText)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 nodeId '${nodeId}'(${node.name})가 요소 전체를 대표하지 않습니다. 식별 텍스트 '${identifyingText}'가 이 노드 안에 없습니다. 라벨과 컨트롤을 모두 포함하는 노드로 등록하세요.`
+    });
+  }
+}
+
 function checkScreenAgainstDesign(findings, screen, designEntry) {
   const { file, spec } = screen;
   const design = designEntry?.design;
@@ -49,6 +136,10 @@ function checkScreenAgainstDesign(findings, screen, designEntry) {
         file,
         message: `${elementLabel(element, index)}의 nodeId '${nodeId}'가 figma.design.json에 없습니다.`
       });
+      return;
+    }
+    if (isObject(element?.spec)) {
+      checkElementNodeCoverage(findings, { file, element, index, design });
     }
   });
 

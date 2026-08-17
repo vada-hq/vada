@@ -192,9 +192,24 @@ test("collectSpecFindings는 정합한 명세에서 아무것도 보고하지 �
           id: "1:1",
           type: "frame",
           name: "SCR-01",
+          // 등록 노드는 요소의 라벨을 품어야 한다(element-types.md의 등록 노드 계약).
           children: [
-            { id: "9:1", type: "frame", name: "name" },
-            { id: "9:5", type: "frame", name: "다음" },
+            {
+              id: "9:1",
+              type: "frame",
+              name: "name",
+              children: [
+                { id: "9:2", type: "text", name: "Label", text: { content: "name" } }
+              ]
+            },
+            {
+              id: "9:5",
+              type: "frame",
+              name: "다음",
+              children: [
+                { id: "9:6", type: "text", name: "Label", text: { content: "다음" } }
+              ]
+            },
             { id: "7:7", type: "vector", name: "icon", assetRef: "assets/7-7.svg" }
           ]
         },
@@ -462,4 +477,92 @@ test("validateSpecsRoot는 스키마 위반과 파일 이름 불일치를 오류
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test("등록 노드가 요소의 라벨을 품지 않으면 오류로 보고한다", () => {
+  // ProfileSearchSelect(래퍼) = Label + Text Input(placeholder).
+  // 안쪽 Text Input만 등록하면 라벨이 등록 노드 바깥에 남는다.
+  const design = {
+    schemaVersion: 1,
+    screenId: "SCR-01",
+    root: {
+      id: "1:1",
+      type: "frame",
+      name: "SCR-01",
+      children: [
+        {
+          id: "7:39",
+          type: "frame",
+          name: "ProfileSearchSelect",
+          children: [
+            {
+              id: "7:40",
+              type: "frame",
+              name: "Label",
+              children: [{ id: "7:41", type: "text", name: "학교*", text: { content: "학교*" } }]
+            },
+            {
+              id: "7:46",
+              type: "frame",
+              name: "Text Input",
+              // placeholder가 라벨을 부분 문자열로 품는다 — 부분 일치로는 못 걸러낸다.
+              children: [
+                { id: "7:47", type: "text", name: "t", text: { content: "학교명을 검색하세요" } }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    assets: []
+  };
+  const selectSpec = {
+    type: "select",
+    fieldKey: "school",
+    label: "학교",
+    placeholder: null,
+    initialValue: null,
+    valueType: "string",
+    required: true,
+    initiallyDisabled: false,
+    searchable: true,
+    optionsSource: { key: "education.schools" }
+  };
+  const designs = {
+    "SCR-01": {
+      file: "screens/SCR-01/figma.design.json",
+      design,
+      assetFiles: [],
+      hasReference: true
+    }
+  };
+  const makeScreen = (nodeId, name) => [
+    {
+      file: "screens/SCR-01/screen.json",
+      spec: {
+        schemaVersion: 1,
+        screenId: "SCR-01",
+        source: { pageName: "P", nodeId: "1:1", name: "SCR-01", figmaType: "FRAME" },
+        elements: [{ source: { nodeId, name, figmaType: "FRAME" }, spec: selectSpec }]
+      }
+    }
+  ];
+
+  const inner = collectSpecFindings({ screens: makeScreen("7:46", "Text Input"), designs });
+  assert.ok(
+    inner.some(
+      (finding) => finding.level === "error" && finding.message.includes("대표하지 않습니다")
+    ),
+    "안쪽 컨트롤만 등록하면 오류여야 한다"
+  );
+
+  const wrapper = collectSpecFindings({
+    screens: makeScreen("7:39", "ProfileSearchSelect"),
+    designs
+  });
+  assert.deepEqual(
+    wrapper.filter((finding) => finding.message.includes("대표하지 않습니다")),
+    [],
+    "라벨과 컨트롤을 모두 품는 래퍼는 통과해야 한다"
+  );
 });
