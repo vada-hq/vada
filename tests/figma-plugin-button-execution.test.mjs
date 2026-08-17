@@ -188,3 +188,72 @@ test("모든 적용 대상 필드에 값이 있으면 이동 실행을 허용한
   assert.deepEqual(result.missingFieldKeys, []);
   assert.equal(result.onExecutionBlocked, null);
 });
+
+test("executeWhen을 생략한 버튼은 필수값과 무관하게 항상 실행한다", () => {
+  const result = evaluateButtonExecution({
+    action: { type: "navigate", targetScreenId: "ONB-01" },
+    elements,
+    values: {}
+  });
+
+  assert.deepEqual(result, {
+    allowed: true,
+    applicableFieldKeys: [],
+    missingFieldKeys: [],
+    onExecutionBlocked: null
+  });
+});
+
+test("executeWhen과 onExecutionBlocked는 함께만 명시할 수 있다", () => {
+  assert.throws(
+    () =>
+      evaluateButtonExecution({
+        action: {
+          type: "navigate",
+          targetScreenId: "ONB-01",
+          executeWhen: { type: "allRequiredFieldsHaveValue", scope: "screen" }
+        },
+        elements,
+        values: {}
+      }),
+    /함께/
+  );
+  assert.throws(
+    () =>
+      evaluateButtonExecution({
+        action: {
+          type: "navigate",
+          targetScreenId: "ONB-01",
+          onExecutionBlocked: {
+            type: "showMissingRequiredFields",
+            focus: "firstMissingField"
+          }
+        },
+        elements,
+        values: {}
+      }),
+    /함께/
+  );
+});
+
+test("ONB-02의 버튼은 필수 입력이 없는 화면이므로 실행 조건을 갖지 않는다", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const screenSpec = JSON.parse(
+    await readFile(
+      new URL(
+        "../specs/figma/vada-wireframe/screens/ONB-02.json",
+        import.meta.url
+      ),
+      "utf8"
+    )
+  );
+  const buttons = screenSpec.elements.filter(
+    ({ spec }) => spec.type === "button"
+  );
+
+  assert.equal(buttons.length, 3);
+  for (const { spec } of buttons) {
+    assert.equal("executeWhen" in spec.action, false);
+    assert.equal("onExecutionBlocked" in spec.action, false);
+  }
+});

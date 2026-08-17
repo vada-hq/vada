@@ -15,7 +15,9 @@
 - 현재 작업 화면 내부 요소만 등록할 수 있고, 다른 화면은 명시적으로 변경한다.
 - `입력` 선택 시 `input.schema.json`의 키에 맞는 편집 UI를 표시한다.
 - `버튼` 선택 시 `button.schema.json`을 표시하며, 이동 대상과 실행 조건을 `action.type: navigate`, `targetScreenId`, `executeWhen: { type: allRequiredFieldsHaveValue, scope: screen }`으로 표현한다.
+- `executeWhen`은 선택 사항이며 생략하면 항상 실행이다(필수 입력이 없는 화면·뒤로 가기 버튼). 명시하면 `onExecutionBlocked`와 쌍으로 명시해야 하며 스키마 `dependentRequired`로 강제한다. ONB-02의 버튼 3개는 실행 조건 없이 이동만 한다.
 - 실행이 차단되면 `onExecutionBlocked: { type: showMissingRequiredFields, focus: firstMissingField }`에 따라 누락 오류를 표시하고 화면 순서상 첫 누락 필드로 이동하도록 명시한다.
+- 플러그인 직렬화는 로컬 JSON에서 생략된 `executeWhen`·`onExecutionBlocked`를 부재 마커(hidden 폼 값 `""`)로 왕복 보존한다. 신규 등록 버튼은 기존처럼 실행 조건을 기본 포함하며, 조건 제거는 로컬 JSON 편집 후 `로컬 초안 불러오기`로 한다. 실행 조건이 없는 버튼은 검토 UI에 `항상 실행`으로 표시된다.
 - 플러그인은 버튼 아래에 현재 화면의 `required: true` 입력·선택 요소를 `판정 후보`로 풀어서 보여 준다. 실행 시점에는 `enabledWhen`을 만족한 후보만 판정한다.
 - `선택` 선택 시 `select.schema.json`을 공통 편집 UI로 표시하며 `searchable`, `optionsSource`, `enabledWhen`, `resetOnChangeOf`를 지원한다.
 - 선택지 출처의 실제 `type`, 설명, 필요 인자, 정적 선택지와 원격 요청 계약은 wireframe 단위 `specs/figma/<wireframeKey>/option-sources.json`에서 한 번만 관리한다.
@@ -59,7 +61,7 @@
 - ONB-01과 ONB-02는 모두 `stateScopeKey: onboardingDraft`를 참조한다. 화면 이동 버튼마다 별도의 값 유지 설정은 넣지 않는다.
 - 플러그인은 현재 화면의 스코프 key, 같은 스코프 화면 간 유지·복원, 제거 시점을 읽기 전용으로 표시하며 미지정·정의 누락·카탈로그 오류도 구분한다.
 - 로컬 초안을 불러오거나 화면을 다시 저장해도 `stateScopeKey`를 보존한다. 이 계약은 개발 구현 명세이며 플러그인이 실제 앱 상태를 실행하지는 않는다.
-- 공통 버튼 판정기는 현재 화면의 적용 가능한 필수 필드를 계산하고 값 존재 여부를 판정한다. 공백 문자열과 `null`은 누락이고 숫자 `0`과 boolean `false`는 값이며, 별도의 `validation` 규칙은 실행하지 않는다.
+- 공통 버튼 판정기는 현재 화면의 적용 가능한 필수 필드를 계산하고 값 존재 여부를 판정한다. 공백 문자열과 `null`은 누락이고 숫자 `0`과 boolean `false`는 값이며, 별도의 `validation` 규칙은 실행하지 않는다. `executeWhen`이 생략된 버튼은 판정 없이 항상 실행을 허용하고, `executeWhen`과 `onExecutionBlocked`가 한쪽만 있으면 거부한다.
 - `node apps/spec-service/src/validate-specs.mjs`가 모든 명세를 JSON Schema(ajv)와 교차 참조 규칙으로 검증한다: 화면 envelope(`screen.schema.json` 신설)·요소·카탈로그·figma.design.json 스키마, 중복 fieldKey·nodeId, 선택지 출처 key와 인자 매핑, enabledWhen·resetOnChangeOf 참조, 상태 스코프 key, 이동 대상 화면 존재(경고), design.json nodeId·자산 파일·reference.png 존재, screenId와 파일 이름 일치. 오류 시 종료 코드 1. 교차 참조 로직은 `packages/contracts/src/spec-validation.mjs`에 있다.
 - 플러그인의 저장 시점 검증은 여전히 별도로 실행하지 않는다. 저장 후 위 검증 CLI로 확인한다.
 - `apps/spec-service`에 로컬 JSON 브리지가 구현되어 있다.
@@ -78,7 +80,7 @@
 - 학교는 `GET /api/education/schools`를 검색어 2자 이상에서 300ms debounce로 호출한다. 단과대학과 학부·학과는 메뉴를 열 때 각각 `GET /api/education/colleges`, `GET /api/education/departments`를 호출하고 받은 목록을 클라이언트에서 검색한다.
 - 원격 선택이 아닌 단순 목록도 표현할 수 있도록 `request.search`는 선택 사항이며, `loadOn: search`일 때만 원격 검색 계약이 필수다.
 - ONB-01 다음 버튼은 현재 화면 범위의 필수값 존재 조건과 차단 동작을 명시하며, 일반화된 계약·공통 판정기·회귀 테스트가 추가되었다.
-- 플러그인 전체 테스트 96개, spec-service·변환기 테스트 18개와 번들 빌드가 통과했다.
+- 플러그인 전체 테스트 100개, spec-service·변환기·검증 테스트 24개와 번들 빌드가 통과했다.
 - 저장소를 git으로 관리한다(main 브랜치, node_modules·dist 제외, LF 정규화). 명세 변경 이력·롤백은 git이 담당하므로 SHA-256 수기 기록은 더 이상 하지 않는다.
 - 프론트엔드 구현 해석 규칙을 `docs/decisions/implementation-conventions.md`로 확정했다: ÷0.875 환산 후 표준 스케일 스냅, lucide 아이콘 직접 사용(assets/*.svg는 검증 증거물), Pretendard, 유동 반응형(모바일 별도 설계 없음), 시맨틱 색 토큰, placeholder gray-400, 상태 시각 관례.
 

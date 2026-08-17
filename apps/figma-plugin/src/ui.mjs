@@ -748,12 +748,35 @@ function getScreenRequiredFieldCandidates() {
   );
 }
 
-function createButtonExecutionReviewItem() {
+function createAbsentObjectMarkerItem(propertyPath) {
+  // 로컬 JSON에서 생략된 선택적 object의 부재를 폼 값으로 보존해
+  // 재저장 시 기본 구조가 다시 붙지 않게 한다.
+  const item = document.createElement("li");
+  item.hidden = true;
+
+  const marker = document.createElement("input");
+  marker.type = "hidden";
+  marker.name = propertyPath;
+  marker.value = "";
+
+  item.append(marker);
+  return item;
+}
+
+function createButtonExecutionReviewItem(alwaysExecutes) {
   const item = document.createElement("li");
   item.className = "button-execution-review-item";
 
   const heading = document.createElement("strong");
   heading.textContent = "실행 조건 해석";
+
+  if (alwaysExecutes) {
+    const always = document.createElement("p");
+    always.textContent =
+      "이 버튼은 실행 조건 없이 항상 실행됩니다. 필수값 판정을 하지 않습니다.";
+    item.append(heading, always);
+    return item;
+  }
 
   const description = document.createElement("p");
   description.textContent =
@@ -1248,21 +1271,34 @@ function createSchemaPropertyItem(
     item.classList.add("schema-object-item");
     const propertySchema = schema.properties[propertyKey];
     const nestedKeys = getSchemaPropertyKeys(propertySchema);
+    const isAbsentOptionalObject = (nestedKey) =>
+      getSchemaPropertyEditorKind(propertySchema, nestedKey) === "object" &&
+      !(
+        Array.isArray(propertySchema.required) &&
+        propertySchema.required.includes(nestedKey)
+      ) &&
+      savedValues?.[`${propertyPath}.${nestedKey}`] === "";
     const nestedList = document.createElement("ul");
     nestedList.className = "schema-object-keys";
     nestedList.replaceChildren(
       ...nestedKeys.map((nestedKey) =>
-        createSchemaPropertyItem(
-          propertySchema,
-          nestedKey,
-          savedValues,
-          propertyPath
-        )
+        isAbsentOptionalObject(nestedKey)
+          ? createAbsentObjectMarkerItem(`${propertyPath}.${nestedKey}`)
+          : createSchemaPropertyItem(
+              propertySchema,
+              nestedKey,
+              savedValues,
+              propertyPath
+            )
       )
     );
 
     if (propertyPath === "action") {
-      nestedList.append(createButtonExecutionReviewItem());
+      nestedList.append(
+        createButtonExecutionReviewItem(
+          savedValues?.["action.executeWhen"] === ""
+        )
+      );
     }
 
     item.append(nestedList);

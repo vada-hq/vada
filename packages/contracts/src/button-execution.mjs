@@ -60,6 +60,19 @@ function assertSupportedAction(action) {
     throw new TypeError(`지원하지 않는 버튼 action입니다: ${action?.type ?? "없음"}`);
   }
 
+  const hasExecuteWhen = action.executeWhen !== undefined;
+  const hasOnExecutionBlocked = action.onExecutionBlocked !== undefined;
+
+  if (hasExecuteWhen !== hasOnExecutionBlocked) {
+    throw new TypeError(
+      "executeWhen과 onExecutionBlocked는 함께 명시해야 합니다."
+    );
+  }
+
+  if (!hasExecuteWhen) {
+    return false;
+  }
+
   if (
     action.executeWhen?.type !== "allRequiredFieldsHaveValue" ||
     action.executeWhen?.scope !== "screen"
@@ -73,10 +86,21 @@ function assertSupportedAction(action) {
   ) {
     throw new TypeError("지원하지 않는 버튼 실행 차단 동작입니다.");
   }
+
+  return true;
 }
 
 export function evaluateButtonExecution({ action, elements, values = {} }) {
-  assertSupportedAction(action);
+  const gated = assertSupportedAction(action);
+
+  if (!gated) {
+    return {
+      allowed: true,
+      applicableFieldKeys: [],
+      missingFieldKeys: [],
+      onExecutionBlocked: null
+    };
+  }
 
   const applicableCandidates = getRequiredFieldCandidates(elements).filter(
     (candidate) => isCandidateApplicable(candidate, values)

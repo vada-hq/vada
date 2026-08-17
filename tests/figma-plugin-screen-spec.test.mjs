@@ -621,9 +621,29 @@ test("저장된 요소 spec을 UI 초안 값으로 다시 펼친다", async () =
     {
       label: "다음: 시작 방식 선택",
       initiallyDisabled: "false",
-      "action.targetScreenId": "ONB-02"
+      "action.targetScreenId": "ONB-02",
+      "action.executeWhen": "present",
+      "action.onExecutionBlocked": ""
     }
   );
+});
+
+test("실행 조건 없는 버튼은 부재 마커로 왕복 보존한다", async () => {
+  const buttonSchema = await readSchema("button.schema.json");
+  const spec = {
+    type: "button",
+    label: "이전으로",
+    initiallyDisabled: false,
+    action: {
+      type: "navigate",
+      targetScreenId: "ONB-01"
+    }
+  };
+
+  const values = flattenElementSpec(buttonSchema, spec);
+  assert.equal(values["action.executeWhen"], "");
+  assert.equal(values["action.onExecutionBlocked"], "");
+  assert.deepEqual(serializeElementSpec(buttonSchema, values), spec);
 });
 
 test("저장된 화면 요소를 nodeId별 UI 초안 목록으로 복원한다", async () => {
@@ -660,7 +680,9 @@ test("저장된 화면 요소를 nodeId별 UI 초안 목록으로 복원한다",
         values: {
           label: "다음: 시작 방식 선택",
           initiallyDisabled: "false",
-          "action.targetScreenId": "ONB-02"
+          "action.targetScreenId": "ONB-02",
+          "action.executeWhen": "present",
+          "action.onExecutionBlocked": ""
         }
       }
     ]

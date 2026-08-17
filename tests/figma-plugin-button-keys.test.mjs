@@ -48,12 +48,11 @@ test("button action은 일반 navigate 대상 화면을 표현한다", async () 
     "executeWhen",
     "onExecutionBlocked"
   ]);
-  assert.deepEqual(actionSchema.required, [
-    "type",
-    "targetScreenId",
-    "executeWhen",
-    "onExecutionBlocked"
-  ]);
+  assert.deepEqual(actionSchema.required, ["type", "targetScreenId"]);
+  assert.deepEqual(actionSchema.dependentRequired, {
+    executeWhen: ["onExecutionBlocked"],
+    onExecutionBlocked: ["executeWhen"]
+  });
   assert.equal(actionSchema.additionalProperties, false);
   assert.equal(getSchemaConstantValue(actionSchema, "type"), "navigate");
   assert.equal(
@@ -126,6 +125,7 @@ test("플러그인은 버튼 실행 조건을 현재 화면 필수 필드 기준
   assert.match(uiSource, /판정 후보/);
   assert.match(uiSource, /enabledWhen을 만족한 후보만 판정/);
   assert.match(uiSource, /첫 누락 필드로 이동/);
+  assert.match(uiSource, /실행 조건 없이 항상 실행/);
 });
 
 test("ONB-01 다음 버튼은 실행 범위와 차단 동작을 명시한다", async () => {

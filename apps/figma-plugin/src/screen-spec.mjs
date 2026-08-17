@@ -56,6 +56,12 @@ function serializeSchemaObject(schema, values, parentPath = "") {
     }
 
     if (editorKind === "object") {
+      // 선택적 object는 빈 문자열 마커("")로 명시적 부재를 표현한다.
+      // 마커가 없으면(신규 등록) 기존처럼 기본 구조를 기록한다.
+      if (!isRequired && values[propertyPath] === "") {
+        continue;
+      }
+
       const objectValue = serializeSchemaObject(
         property,
         values,
@@ -147,7 +153,11 @@ function flattenSchemaObject(schema, spec, parentPath = "") {
     const editorKind = getSchemaPropertyEditorKind(schema, propertyKey);
     const value = spec?.[propertyKey];
 
-    if (!isRequiredProperty(schema, propertyKey) && value === undefined) {
+    if (
+      !isRequiredProperty(schema, propertyKey) &&
+      value === undefined &&
+      editorKind !== "object"
+    ) {
       continue;
     }
 
@@ -156,6 +166,14 @@ function flattenSchemaObject(schema, spec, parentPath = "") {
     }
 
     if (editorKind === "object") {
+      if (!isRequiredProperty(schema, propertyKey)) {
+        values[propertyPath] = value === undefined ? "" : "present";
+
+        if (value === undefined) {
+          continue;
+        }
+      }
+
       Object.assign(
         values,
         flattenSchemaObject(

@@ -4,6 +4,8 @@
 - 실제 화면에 필요한 요소이면서 기존 유형과 다른 스키마가 필요할 때만 새 유형을 추가한다.
 - `button`은 화면에 보이는 조작 요소이고, 클릭 후 수행할 `action`은 버튼 명세의 속성으로 다룬다.
 - 현재 확인된 버튼 이동은 `action.type: navigate`와 `targetScreenId`로 표현하며, 새 동작 유형은 실제 화면에서 필요할 때 추가한다.
+- `action.executeWhen`은 선택 사항이다. 생략하면 버튼은 조건 없이 항상 실행되고, 명시하면 `onExecutionBlocked`와 반드시 쌍으로 명시한다(스키마 `dependentRequired`로 강제).
+- 필수 입력이 없는 화면의 버튼과 뒤로 가기 버튼에는 실행 조건을 붙이지 않는다. 뒤로 가기도 별도 유형 없이 `action.type: navigate`와 명시적 `targetScreenId`로 표현한다.
 - `select`는 목록에서 하나를 고르는 요소이며, `searchable`로 목록 필터링 가능 여부를 구분한다.
 - `select`의 값은 목록에서 선택하며 임의 문자열 입력은 허용하지 않는다.
 - `select.optionsSource`는 wireframe 단위 카탈로그의 의미 `key`를 참조하며 출처 `type`을 화면 JSON에 중복하지 않는다.
