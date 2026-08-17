@@ -192,6 +192,7 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
                 id={nameSpec.fieldKey}
                 value={draft.values[nameSpec.fieldKey] ?? ''}
                 placeholder={nameSpec.placeholder}
+                type={nameSpec.inputType}
                 hasError={Boolean(errors[nameSpec.fieldKey])}
                 onChange={(value) =>
                   setFieldValue(nameSpec.fieldKey, value === '' ? null : value)
@@ -209,6 +210,7 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
                 id={studentNumberSpec.fieldKey}
                 value={draft.values[studentNumberSpec.fieldKey] ?? ''}
                 placeholder={studentNumberSpec.placeholder}
+                type={studentNumberSpec.inputType}
                 hasError={Boolean(errors[studentNumberSpec.fieldKey])}
                 onChange={(value) =>
                   setFieldValue(studentNumberSpec.fieldKey, value === '' ? null : value)

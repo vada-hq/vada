@@ -26,6 +26,7 @@ export function Field({
   return (
     <div className="flex flex-col gap-1.5">
       <label
+        id={`${htmlFor}-label`}
         htmlFor={htmlFor}
         className={`text-xs font-medium ${disabled ? 'text-gray-400' : 'text-gray-700'}`}
       >

@@ -158,6 +158,7 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
             id={spec.fieldKey}
             value={draft.values[spec.fieldKey] ?? ''}
             placeholder={spec.placeholder}
+            type={spec.inputType}
             hasError={Boolean(error)}
             onChange={(value) => setFieldValue(spec.fieldKey, value === '' ? null : value)}
             inputRef={registerRef(spec.fieldKey)}

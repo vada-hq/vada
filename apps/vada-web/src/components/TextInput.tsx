@@ -2,6 +2,8 @@ interface TextInputProps {
   id: string
   value: string
   placeholder: string | null
+  // 스펙의 inputType. 소비하지 않으면 스펙이 email이어도 화면은 text로 남는다.
+  type?: string
   hasError?: boolean
   onChange: (value: string) => void
   inputRef?: (element: HTMLInputElement | null) => void
@@ -10,12 +12,20 @@ interface TextInputProps {
 // Text Input 7:29: px 10.5→12, py 7→8, radius 5.25→6(rounded-md),
 // border #D1D5DC(gray-300), 텍스트 12.25→14(text-sm) #1E2939(gray-800).
 // placeholder는 원본 결함을 따르지 않고 gray-400(vada-conventions 5번).
-export function TextInput({ id, value, placeholder, hasError, onChange, inputRef }: TextInputProps) {
+export function TextInput({
+  id,
+  value,
+  placeholder,
+  type = 'text',
+  hasError,
+  onChange,
+  inputRef,
+}: TextInputProps) {
   return (
     <input
       ref={inputRef}
       id={id}
-      type="text"
+      type={type}
       value={value}
       placeholder={placeholder ?? undefined}
       aria-invalid={hasError || undefined}

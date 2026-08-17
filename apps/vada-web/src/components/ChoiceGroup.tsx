@@ -59,6 +59,8 @@ export function ChoiceGroup({
     <div
       id={id}
       role="radiogroup"
+      // label 요소는 div를 이름 짓지 못하므로 명시적으로 연결한다.
+      aria-labelledby={`${id}-label`}
       aria-invalid={hasError || undefined}
       aria-describedby={hasError ? `${id}-error` : undefined}
       className="grid grid-cols-3 gap-2"
