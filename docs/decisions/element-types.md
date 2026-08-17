@@ -10,6 +10,8 @@
 - **action 확장 방향(2026-08-17 확정, 스키마는 예약)**: 데이터 전송은 `action.type: submit`으로 표현한다 — 제출 계약(POST 경로·payload 스코프·상태 문구)은 option-sources와 같은 패턴의 wireframe 단위 `mutations.json` 카탈로그에 중앙화하고 버튼은 key만 참조하며, 성공 시 `onSuccess: { navigate, scopeEvent? }`로 이동·스코프 이벤트를 함께 표현한다. **상태 스코프의 complete/cancel 이벤트는 action의 `scopeEvent`로만 발생한다** — 수명 관리(스코프 제거)와 데이터 전송(제출)은 분리된 관심사다. 스키마·검증기·구현 반영은 첫 제출 버튼이 등장하는 화면(ORG-01 예상)에서 증거와 함께 굳힌다.
 - 화면 수준 카피(제목·부제·안내문)는 화면 JSON의 선택적 `meta`(title·description·footerNote)에 두고, 구현은 이를 렌더하며 하드코딩하지 않는다. 흐름 단계 표시는 wireframe 단위 `flows.json` 카탈로그(순서 배열 멤버십, 한 화면은 한 흐름)에서 계산한다.
 - `select`는 목록에서 하나를 고르는 요소이며, `searchable`로 목록 필터링 가능 여부를 구분한다.
+- `select.presentation`은 선택 UI 형태다: `dropdown`(목록 패널을 열어 고른다, 생략 시 기본)과 `choiceGroup`(선택지를 모두 펼친 버튼 묶음). **`searchable`과는 다른 축이다** — 전자는 목록을 여는 방식, 후자는 목록을 거르는 방식이다. 같은 의미(하나 고르기)를 유지하므로 새 요소 유형을 만들지 않는다(ORG-01 `orgType`이 첫 사례).
+- `group`은 여러 입력 필드를 하나의 의미 단위로 묶고 그 제목·설명을 담는 요소다. `memberFieldKeys`로 멤버를 나열하고, 구현은 멤버를 묶음 안에 순서대로 렌더하며 바깥 나열에서는 건너뛴다. 한 필드는 최대 한 묶음에만 속한다(검증기가 강제). 묶음의 시각(배경·테두리 유무)은 화면마다 다르므로 `figma.design.json`의 사실을 따르고 스키마에 넣지 않는다.
 - `select`의 값은 목록에서 선택하며 임의 문자열 입력은 허용하지 않는다.
 - `select.placeholder`는 활성 상태 문구다. 비활성(enabledWhen 미충족) 사유 안내가 필요하면 선택적 `disabledPlaceholder`에 두고, 생략하면 placeholder를 그대로 쓴다.
 - `select.optionsSource`는 wireframe 단위 카탈로그의 의미 `key`를 참조하며 출처 `type`을 화면 JSON에 중복하지 않는다.

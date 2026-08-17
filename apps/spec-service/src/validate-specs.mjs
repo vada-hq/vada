@@ -13,11 +13,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, "..", "..", "..");
 const schemasDir = join(repoRoot, "packages", "contracts", "schemas");
 
-const SCHEMA_FILES = [
+const CATALOG_SCHEMA_FILES = [
   "screen.schema.json",
-  "input.schema.json",
-  "select.schema.json",
-  "button.schema.json",
   "option-sources.schema.json",
   "state-scopes.schema.json",
   "flows.schema.json",
@@ -26,21 +23,40 @@ const SCHEMA_FILES = [
 
 async function createValidators() {
   const ajv = new Ajv2020({ allErrors: true, allowUnionTypes: true });
-  for (const fileName of SCHEMA_FILES) {
+  for (const fileName of CATALOG_SCHEMA_FILES) {
     const schema = JSON.parse(await readFile(join(schemasDir, fileName), "utf8"));
     ajv.addSchema(schema);
   }
+
+  // 요소 스키마 목록은 screen.schema.json의 spec.type enum이 유일한 원본이다.
+  // 목록을 손으로 이중화하면 새 유형이 "검증 없이 통과"로 조용히 새어나간다.
+  const screenSchema = JSON.parse(
+    await readFile(join(schemasDir, "screen.schema.json"), "utf8")
+  );
+  const elementTypes =
+    screenSchema.properties.elements.items.properties.spec.properties.type.enum;
+  const elements = {};
+  for (const elementType of elementTypes) {
+    const fileName = `${elementType}.schema.json`;
+    let schema;
+    try {
+      schema = JSON.parse(await readFile(join(schemasDir, fileName), "utf8"));
+    } catch (error) {
+      throw new Error(
+        `요소 유형 '${elementType}'의 스키마 ${fileName}을 읽을 수 없습니다: ${error.message}`
+      );
+    }
+    ajv.addSchema(schema);
+    elements[elementType] = ajv.getSchema(fileName);
+  }
+
   return {
     screen: ajv.getSchema("screen.schema.json"),
     optionSources: ajv.getSchema("option-sources.schema.json"),
     stateScopes: ajv.getSchema("state-scopes.schema.json"),
     flows: ajv.getSchema("flows.schema.json"),
     figmaDesign: ajv.getSchema("figma-design.schema.json"),
-    elements: {
-      input: ajv.getSchema("input.schema.json"),
-      select: ajv.getSchema("select.schema.json"),
-      button: ajv.getSchema("button.schema.json")
-    }
+    elements
   };
 }
 
@@ -112,6 +128,12 @@ function validateScreenElements(findings, fileLabel, spec, validators) {
     const elementSpec = element?.spec;
     const validator = validators.elements[elementSpec?.type];
     if (!validator) {
+      // 검증기가 모르는 유형을 조용히 통과시키면 스키마 구멍이 된다.
+      findings.push({
+        level: "error",
+        file: fileLabel,
+        message: `elements[${index}]의 유형 '${elementSpec?.type}'을 검증할 스키마가 없습니다.`
+      });
       return;
     }
     if (!validator(elementSpec)) {

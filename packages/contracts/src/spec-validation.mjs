@@ -131,6 +131,114 @@ function checkOptionsSource(findings, context) {
   }
 }
 
+// 화면들이 선언한 상태 스코프별로, 그 스코프에 값을 쓰는 fieldKey 집합을 모은다.
+// note는 다른 화면의 스코프를 읽으므로 화면 단위가 아니라 wireframe 단위로 봐야 한다.
+function collectFieldKeysByScope(screens) {
+  const fieldKeysByScope = new Map();
+
+  for (const screen of screens) {
+    const spec = screen?.spec;
+    const scopeKey = spec?.stateScopeKey;
+    if (typeof scopeKey !== "string" || !Array.isArray(spec.elements)) {
+      continue;
+    }
+
+    const fieldKeys = fieldKeysByScope.get(scopeKey) ?? new Set();
+    for (const element of spec.elements) {
+      const elementSpec = element?.spec;
+      if (
+        isObject(elementSpec) &&
+        FIELD_ELEMENT_TYPES.has(elementSpec.type) &&
+        typeof elementSpec.fieldKey === "string"
+      ) {
+        fieldKeys.add(elementSpec.fieldKey);
+      }
+    }
+    fieldKeysByScope.set(scopeKey, fieldKeys);
+  }
+
+  return fieldKeysByScope;
+}
+
+function checkNoteFieldRefs(findings, context) {
+  const { file, element, index, stateScopes, scopeKeys, fieldKeysByScope } =
+    context;
+  const fieldRefs = element.spec.fieldRefs;
+
+  if (!Array.isArray(fieldRefs)) {
+    return;
+  }
+
+  for (const fieldRef of fieldRefs) {
+    const scope = fieldRef?.scope;
+    const fieldKey = fieldRef?.fieldKey;
+    if (typeof scope !== "string" || typeof fieldKey !== "string") {
+      continue;
+    }
+
+    if (!isObject(stateScopes)) {
+      findings.push({
+        level: "warning",
+        file,
+        message: `state-scopes.json이 없어 ${elementLabel(element, index)}의 참조 스코프 '${scope}'를 확인하지 못했습니다.`
+      });
+      continue;
+    }
+
+    if (!scopeKeys.has(scope)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 참조한 상태 스코프 '${scope}'가 카탈로그에 없습니다.`
+      });
+      continue;
+    }
+
+    if (!(fieldKeysByScope.get(scope)?.has(fieldKey) ?? false)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 참조한 '${fieldKey}'를 상태 스코프 '${scope}'의 어느 화면도 쓰지 않습니다.`
+      });
+    }
+  }
+}
+
+function checkGroupMembers(findings, context) {
+  const { file, element, index, fieldKeys, groupedFieldKeys } = context;
+  const memberFieldKeys = element.spec.memberFieldKeys;
+
+  if (!Array.isArray(memberFieldKeys)) {
+    return;
+  }
+
+  for (const fieldKey of memberFieldKeys) {
+    if (typeof fieldKey !== "string") {
+      continue;
+    }
+
+    if (!fieldKeys.has(fieldKey)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 묶은 fieldKey '${fieldKey}'가 화면에 없습니다.`
+      });
+      continue;
+    }
+
+    // 한 필드가 두 묶음에 속하면 어느 묶음 안에 그릴지가 모호해진다.
+    if (groupedFieldKeys.has(fieldKey)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 fieldKey '${fieldKey}'가 이미 다른 묶음에 속합니다.`
+      });
+      continue;
+    }
+    groupedFieldKeys.add(fieldKey);
+  }
+}
+
 function checkFieldReferences(findings, context) {
   const { file, element, index, fieldKeys } = context;
   const { enabledWhen, resetOnChangeOf } = element.spec;
@@ -186,6 +294,7 @@ export function collectSpecFindings({
       : []
     ).map((scope) => scope.key)
   );
+  const fieldKeysByScope = collectFieldKeysByScope(screens);
 
   for (const screen of screens) {
     const { file, spec } = screen;
@@ -262,6 +371,7 @@ export function collectSpecFindings({
       }
     });
 
+    const groupedFieldKeys = new Set();
     spec.elements.forEach((element, index) => {
       const spec_ = element?.spec;
       if (!isObject(spec_)) {
@@ -273,10 +383,20 @@ export function collectSpecFindings({
         index,
         optionSources,
         sourceByKey,
-        fieldKeys
+        fieldKeys,
+        stateScopes,
+        scopeKeys,
+        fieldKeysByScope,
+        groupedFieldKeys
       };
       if (spec_.type === "select") {
         checkOptionsSource(findings, context);
+      }
+      if (spec_.type === "note") {
+        checkNoteFieldRefs(findings, context);
+      }
+      if (spec_.type === "group") {
+        checkGroupMembers(findings, context);
       }
       checkFieldReferences(findings, context);
 

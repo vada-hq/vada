@@ -1,5 +1,7 @@
 import buttonSchema from "../../../packages/contracts/schemas/button.schema.json";
+import groupSchema from "../../../packages/contracts/schemas/group.schema.json";
 import inputSchema from "../../../packages/contracts/schemas/input.schema.json";
+import noteSchema from "../../../packages/contracts/schemas/note.schema.json";
 import selectSchema from "../../../packages/contracts/schemas/select.schema.json";
 import { getRequiredFieldCandidates } from "../../../packages/contracts/src/button-execution.mjs";
 import {
@@ -92,7 +94,9 @@ const schemaKeys = document.querySelector("#schema-keys");
 const typeOptions = getElementTypeOptions();
 const schemaByType = {
   button: buttonSchema,
+  group: groupSchema,
   input: inputSchema,
+  note: noteSchema,
   select: selectSchema
 };
 const STATIC_OPTION_SEARCH_THRESHOLD = 20;

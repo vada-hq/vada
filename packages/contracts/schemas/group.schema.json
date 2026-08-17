@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "group.schema.json",
+  "title": "Group element",
+  "description": "여러 입력 필드를 하나의 의미 단위로 묶고 그 제목·설명을 담는 요소. 구현은 memberFieldKeys의 필드를 이 묶음 안에 순서대로 렌더하고 바깥 나열에서는 건너뛴다. 묶음의 시각(배경·테두리 유무)은 figma.design.json의 사실을 따른다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "title",
+    "memberFieldKeys"
+  ],
+  "properties": {
+    "type": {
+      "const": "group"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "memberFieldKeys": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

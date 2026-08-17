@@ -1,0 +1,221 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-01",
+  "stateScopeKey": "orgCreationDraft",
+  "meta": {
+    "eyebrow": "새 학생회 만들기",
+    "title": "학생회 기본 정보",
+    "footerNote": "다음 단계에서 기본 조직 또는 빈 조직을 선택하고 부서를 구성합니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "11:2",
+    "name": "학생회 생성 · ORG-01 · 새 학생회 생성",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "14:167",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "orgType",
+        "label": "학생회 유형",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "presentation": "choiceGroup",
+        "optionsSource": {
+          "key": "org.types"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:179",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "대표 범위",
+        "description": "대표 학교와 단과대학을 선택해 주세요.",
+        "memberFieldKeys": [
+          "repSchool",
+          "repCollege"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:185",
+        "name": "ProfileSearchSelect",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "repSchool",
+        "label": "학교",
+        "placeholder": "대표 학교를 검색하세요",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": true,
+        "optionsSource": {
+          "key": "education.schools"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:196",
+        "name": "ProfileSearchSelect",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "repCollege",
+        "label": "단과대학",
+        "placeholder": "단과대학을 선택하세요",
+        "disabledPlaceholder": "학교를 먼저 선택하세요",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": true,
+        "searchable": true,
+        "optionsSource": {
+          "key": "education.colleges",
+          "params": {
+            "schoolId": "repSchool"
+          }
+        },
+        "enabledWhen": [
+          {
+            "fieldKey": "repSchool",
+            "operator": "hasValue"
+          }
+        ],
+        "resetOnChangeOf": [
+          "repSchool"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:207",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "orgName",
+        "label": "학생회명",
+        "placeholder": "예: 제12대 소프트웨어융합대학 학생회",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:213",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "operatingYear",
+        "label": "운영 연도",
+        "placeholder": null,
+        "helperText": "학생회 기록과 구분을 위한 기준 연도입니다.",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "org.operatingYears"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:222",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "note",
+        "prefix": "내 소속 정보 (참고): ",
+        "separator": " · ",
+        "fieldRefs": [
+          {
+            "scope": "onboardingDraft",
+            "fieldKey": "school"
+          },
+          {
+            "scope": "onboardingDraft",
+            "fieldKey": "college"
+          },
+          {
+            "scope": "onboardingDraft",
+            "fieldKey": "department"
+          },
+          {
+            "scope": "onboardingDraft",
+            "fieldKey": "currentGrade"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:226",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "이전",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ONB-02"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:233",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "다음: 조직 구조 설정",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ORG-02",
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}

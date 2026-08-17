@@ -9,6 +9,15 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "orgCreationDraft",
+      "description": "학생회 생성 입력 초안",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

@@ -31,6 +31,13 @@
       ],
       "description": "화면 수준 카피. 구현은 이 값을 렌더하며 JSX에 하드코딩하지 않는다.",
       "properties": {
+        "eyebrow": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "제목 위에 표시하는 소제목(선택). 예: 새 학생회 만들기"
+        },
         "title": {
           "type": "string",
           "minLength": 1
@@ -119,7 +126,9 @@
                 "enum": [
                   "input",
                   "select",
-                  "button"
+                  "button",
+                  "note",
+                  "group"
                 ]
               }
             }

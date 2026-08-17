@@ -30,6 +30,7 @@ test("input 스키마의 properties key를 선언 순서대로 반환한다", as
     "fieldKey",
     "label",
     "placeholder",
+    "helperText",
     "initialValue",
     "inputType",
     "valueType",
@@ -63,11 +64,13 @@ test("선택한 Figma 노드에서 표시할 식별 정보만 반환한다", () 
   assert.equal(getSelectedNodeInfo(null), null);
 });
 
-test("현재 지원하는 요소 유형은 입력, 버튼, 선택이다", () => {
+test("현재 지원하는 요소 유형은 입력, 버튼, 선택, 안내, 묶음이다", () => {
   assert.deepEqual(getElementTypeOptions(), [
     { value: "input", label: "입력" },
     { value: "button", label: "버튼" },
-    { value: "select", label: "선택" }
+    { value: "select", label: "선택" },
+    { value: "note", label: "안내" },
+    { value: "group", label: "묶음" }
   ]);
 });
 
@@ -82,6 +85,7 @@ test("입력 유형을 선택하면 input 스키마 key를 반환한다", async 
       "fieldKey",
       "label",
       "placeholder",
+      "helperText",
       "initialValue",
       "inputType",
       "valueType",
@@ -147,6 +151,7 @@ test("문자열 또는 nullable 문자열 속성을 텍스트 입력 대상으�
     "fieldKey",
     "label",
     "placeholder",
+    "helperText",
     "initialValue"
   ]);
 });

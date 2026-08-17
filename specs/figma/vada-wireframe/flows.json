@@ -13,6 +13,19 @@
           "label": "시작 방식 선택"
         }
       ]
+    },
+    {
+      "key": "org-creation",
+      "screens": [
+        {
+          "screenId": "ORG-01",
+          "label": "기본 정보"
+        },
+        {
+          "screenId": "ORG-02",
+          "label": "조직 구조 설정"
+        }
+      ]
     }
   ]
 }

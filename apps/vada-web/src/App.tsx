@@ -1,18 +1,22 @@
 import { useState } from 'react'
 import { ScreenRouter } from './screens/ScreenRouter'
-import { createEmptyDraft } from './state/onboarding'
-import type { OnboardingDraft } from './state/onboarding'
+import type { ScopeDraft, ScopeStore } from './state/scopes'
 
 function App() {
   const [screenId, setScreenId] = useState('ONB-01')
-  // onboardingDraft 스코프: 화면 이동 후 복귀해도 입력값이 유지된다(메모리 수준).
-  const [draft, setDraft] = useState<OnboardingDraft>(createEmptyDraft)
+  // state-scopes.json의 스코프별 초안. 화면 이동 후 복귀해도 값이 유지되고,
+  // ORG-01의 note는 onboardingDraft 스코프를 읽는다(메모리 수준).
+  const [scopes, setScopes] = useState<ScopeStore>({})
+
+  function changeScope(scopeKey: string, next: ScopeDraft) {
+    setScopes((previous) => ({ ...previous, [scopeKey]: next }))
+  }
 
   return (
     <ScreenRouter
       screenId={screenId}
-      draft={draft}
-      onChangeDraft={setDraft}
+      scopes={scopes}
+      onChangeScope={changeScope}
       onNavigate={setScreenId}
     />
   )

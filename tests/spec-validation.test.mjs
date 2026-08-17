@@ -214,6 +214,105 @@ test("collectSpecFindings는 정합한 명세에서 아무것도 보고하지 �
   assert.deepEqual(findings, []);
 });
 
+test("collectSpecFindings는 note의 스코프·필드 참조를 교차 검사한다", () => {
+  const screens = [
+    {
+      file: "screens/SRC-01/screen.json",
+      spec: {
+        schemaVersion: 1,
+        screenId: "SRC-01",
+        stateScopeKey: "sourceScope",
+        source: { pageName: "P", nodeId: "1:1", name: "SRC-01", figmaType: "FRAME" },
+        elements: [element("9:1", inputSpec("knownField"))]
+      }
+    },
+    {
+      file: "screens/VIEW-01/screen.json",
+      spec: {
+        schemaVersion: 1,
+        screenId: "VIEW-01",
+        source: { pageName: "P", nodeId: "2:1", name: "VIEW-01", figmaType: "FRAME" },
+        elements: [
+          element("9:9", {
+            type: "note",
+            prefix: "참고: ",
+            fieldRefs: [
+              { scope: "sourceScope", fieldKey: "knownField" },
+              { scope: "sourceScope", fieldKey: "ghostField" },
+              { scope: "missingScope", fieldKey: "whatever" }
+            ]
+          })
+        ]
+      }
+    }
+  ];
+  const stateScopes = {
+    schemaVersion: 1,
+    scopes: [
+      { key: "sourceScope", description: "d", lifetime: "flow", clearOn: ["complete"] }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, stateScopes });
+  const errors = findings.filter((finding) => finding.level === "error");
+  assert.ok(
+    errors.some((finding) => finding.message.includes("ghostField")),
+    "스코프에 없는 fieldKey 참조는 오류여야 한다"
+  );
+  assert.ok(
+    errors.some((finding) => finding.message.includes("missingScope")),
+    "카탈로그에 없는 스코프 참조는 오류여야 한다"
+  );
+  assert.ok(
+    !findings.some((finding) => finding.message.includes("knownField")),
+    "존재하는 참조는 보고하지 않는다"
+  );
+});
+
+test("collectSpecFindings는 묶음의 멤버 필드 존재와 단일 소속을 검사한다", () => {
+  const screens = [
+    {
+      file: "screens/GRP-01/screen.json",
+      spec: {
+        schemaVersion: 1,
+        screenId: "GRP-01",
+        source: { pageName: "P", nodeId: "1:1", name: "GRP-01", figmaType: "FRAME" },
+        elements: [
+          element("9:1", inputSpec("alpha")),
+          element("9:2", inputSpec("beta")),
+          element("9:3", {
+            type: "group",
+            title: "첫 묶음",
+            memberFieldKeys: ["alpha", "ghostField"]
+          }),
+          element("9:4", {
+            type: "group",
+            title: "둘째 묶음",
+            memberFieldKeys: ["alpha", "beta"]
+          })
+        ]
+      }
+    }
+  ];
+
+  const errors = collectSpecFindings({ screens }).filter(
+    (finding) => finding.level === "error"
+  );
+
+  assert.ok(
+    errors.some((finding) => finding.message.includes("ghostField")),
+    "화면에 없는 fieldKey를 묶으면 오류여야 한다"
+  );
+  assert.ok(
+    errors.some((finding) => finding.message.includes("이미 다른 묶음")),
+    "한 필드가 두 묶음에 속하면 오류여야 한다"
+  );
+  assert.ok(
+    !errors.some((finding) => finding.message.includes("'beta'")),
+    "한 묶음에만 속한 필드는 보고하지 않는다"
+  );
+});
+
 test("collectSpecFindings는 흐름 카탈로그의 참조와 중복 멤버십을 검사한다", () => {
   const screens = [
     {

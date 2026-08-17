@@ -10,6 +10,7 @@ export interface InputSpec {
   fieldKey: string
   label: string
   placeholder: string | null
+  helperText?: string
   initialValue: string | null
   inputType: string
   valueType: string
@@ -23,11 +24,14 @@ export interface SelectSpec {
   label: string
   placeholder: string | null
   disabledPlaceholder?: string
+  helperText?: string
   initialValue: string | null
   valueType: string
   required: boolean
   initiallyDisabled: boolean
   searchable: boolean
+  // 선택 UI 형태. 생략하면 dropdown.
+  presentation?: 'dropdown' | 'choiceGroup'
   optionsSource: {
     key: string
     params?: Record<string, string>
@@ -58,7 +62,31 @@ export interface ButtonSpec {
   action: ButtonAction
 }
 
-export type ElementSpec = InputSpec | SelectSpec | ButtonSpec
+// 다른 상태 스코프의 필드 값을 읽어 표시하는 파생 표시 요소.
+// 구현은 fieldRefs의 표시 라벨을 separator로 이어 prefix 뒤에 렌더하고,
+// 값이 없는 참조는 생략한다.
+export interface NoteSpec {
+  type: 'note'
+  prefix?: string
+  separator?: string
+  fieldRefs: Array<{
+    scope: string
+    fieldKey: string
+  }>
+}
+
+// 여러 입력 필드를 하나의 의미 단위로 묶고 그 제목·설명을 담는 요소.
+// 구현은 memberFieldKeys의 필드를 묶음 안에 렌더하고 바깥 나열에서는 건너뛴다.
+export interface GroupSpec {
+  type: 'group'
+  title: string
+  description?: string | null
+  memberFieldKeys: string[]
+}
+
+export type ElementSpec = InputSpec | SelectSpec | ButtonSpec | NoteSpec | GroupSpec
+
+export type FieldSpec = InputSpec | SelectSpec
 
 export interface ScreenElement {
   source: {
@@ -70,6 +98,7 @@ export interface ScreenElement {
 }
 
 export interface ScreenMeta {
+  eyebrow?: string | null
   title: string
   description?: string | null
   footerNote?: string | null

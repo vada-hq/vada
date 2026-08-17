@@ -28,6 +28,8 @@ test("select 스키마는 승인된 v1 필드만 선언한다", async () => {
     "label",
     "placeholder",
     "disabledPlaceholder",
+    "helperText",
+    "presentation",
     "initialValue",
     "valueType",
     "required",
@@ -37,7 +39,13 @@ test("select 스키마는 승인된 v1 필드만 선언한다", async () => {
     "enabledWhen",
     "resetOnChangeOf"
   ];
-  const optionalKeys = ["disabledPlaceholder", "enabledWhen", "resetOnChangeOf"];
+  const optionalKeys = [
+    "disabledPlaceholder",
+    "helperText",
+    "presentation",
+    "enabledWhen",
+    "resetOnChangeOf"
+  ];
   const requiredKeys = propertyKeys.filter(
     (propertyKey) => !optionalKeys.includes(propertyKey)
   );

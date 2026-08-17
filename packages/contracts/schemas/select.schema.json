@@ -39,6 +39,19 @@
       "minLength": 1,
       "description": "비활성(enabledWhen 미충족) 상태에서 표시할 문구. 생략하면 placeholder를 그대로 쓴다. placeholder는 활성 상태 문구다."
     },
+    "helperText": {
+      "type": "string",
+      "minLength": 1,
+      "description": "필드 아래에 항상 표시하는 보조 설명(선택)."
+    },
+    "presentation": {
+      "type": "string",
+      "enum": [
+        "dropdown",
+        "choiceGroup"
+      ],
+      "description": "선택 UI 형태. dropdown=목록 패널을 열어 고른다. choiceGroup=선택지를 모두 펼친 버튼 묶음에서 고른다. 생략하면 dropdown이다. searchable(목록 필터링 가능 여부)과는 다른 축이다."
+    },
     "initialValue": {
       "type": [
         "string",

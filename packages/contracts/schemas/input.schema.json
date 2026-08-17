@@ -33,6 +33,11 @@
         "null"
       ]
     },
+    "helperText": {
+      "type": "string",
+      "minLength": 1,
+      "description": "필드 아래에 항상 표시하는 보조 설명(선택)."
+    },
     "initialValue": {
       "type": [
         "string",

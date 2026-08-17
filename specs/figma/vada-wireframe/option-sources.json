@@ -70,6 +70,50 @@
       }
     },
     {
+      "key": "org.types",
+      "type": "static",
+      "description": "학생회 유형",
+      "params": [],
+      "options": [
+        {
+          "value": "general",
+          "label": "총학생회"
+        },
+        {
+          "value": "college",
+          "label": "단과대 학생회"
+        },
+        {
+          "value": "department",
+          "label": "학부·학과 학생회"
+        },
+        {
+          "value": "etc",
+          "label": "기타"
+        }
+      ]
+    },
+    {
+      "key": "org.operatingYears",
+      "type": "static",
+      "description": "학생회 운영 연도(기록·구분 기준)",
+      "params": [],
+      "options": [
+        {
+          "value": "2025",
+          "label": "2025년"
+        },
+        {
+          "value": "2026",
+          "label": "2026년"
+        },
+        {
+          "value": "2027",
+          "label": "2027년"
+        }
+      ]
+    },
+    {
       "key": "education.currentGrades",
       "type": "static",
       "description": "현재 학년 목록",
