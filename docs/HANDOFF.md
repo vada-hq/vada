@@ -82,13 +82,15 @@
 - 원격 선택이 아닌 단순 목록도 표현할 수 있도록 `request.search`는 선택 사항이며, `loadOn: search`일 때만 원격 검색 계약이 필수다.
 - ONB-01 다음 버튼은 현재 화면 범위의 필수값 존재 조건과 차단 동작을 명시하며, 일반화된 계약·공통 판정기·회귀 테스트가 추가되었다.
 - 플러그인 전체 테스트 100개, spec-service·변환기·검증 테스트 25개와 번들 빌드가 통과했다.
+- `apps/vada-web`에 ONB-01 파일럿 화면을 1차 구현했다. 동작은 `ONB-01.json`을 import해 라벨·placeholder·enabledWhen·resetOnChangeOf를 스펙에서 읽고, 버튼 판정은 `packages/contracts/src/button-execution.mjs`를 직접 import한다(실제 스펙으로 스모크 확인: 빈 값 누락 4개·첫 누락 name, 전부 입력 시 허용). 선택지 로딩은 `option-sources.json` 계약(검색 2자·300ms debounce, 열 때 로딩, 상태 문구)을 카탈로그에서 읽고 네트워크만 mock(450ms 지연)이다. ONB-02는 자리표시 화면으로 뒤로 가기만 동작하며, onboardingDraft 값은 App 상태로 왕복 유지된다.
+- 파일럿 마찰 로그 7건을 `docs/pilot-onb01.md`에 기록했다(표준 밖 수치 스냅, 목록 패널 시각 부재→관례 추가, mock 데이터·값 형식 미정, 라벨 재표시 저장, 디자인 사실과 관례 충돌 우선순위, 시각 자동 대조 부재, 빈 Dropdown 해석).
 - 저장소를 git으로 관리한다(main 브랜치, node_modules·dist 제외, LF 정규화). 명세 변경 이력·롤백은 git이 담당하므로 SHA-256 수기 기록은 더 이상 하지 않는다.
 - 저장소는 3층 스코프 모델을 따른다(`docs/decisions/repo-scopes.md`): 파이프라인(제품 무관, 접두 없는 결정 문서·코드에 제품명 금지), 제품(`docs/decisions/<제품>-*.md`, `apps/<제품>-web`; 첫 제품 vada), wireframe(출처 단위, `specs/figma/<wireframeKey>/`). screenId·카탈로그 key·상태 스코프 key는 제품 안에서 유일하고, wireframeKey는 `<제품>-` 접두 관례다. 다중 제품용 검증·경로 확장은 두 번째 제품 등장 시점에 결정한다.
 - vada 구현 관례(위치·스택 apps/vada-web·Vite+React+TS+Tailwind v4, 캡처 스케일 해제 후 표준 스냅, lucide 직접 사용, Pretendard, 유동 반응형, 시맨틱 색 토큰, placeholder gray-400, 상태 시각)는 `docs/decisions/vada-conventions.md`, wireframe별 캡처 특성·색 매핑표·화면 특이사항은 `specs/figma/<wireframeKey>/interpretation.md`다(vada-wireframe: 0.875 스케일, Inter 아티팩트, ONB-01 아이콘 식별·빈 Dropdown).
 
 ## 다음 한 단계
 
-ONB-01 파일럿 구현을 시작한다. 이 구현은 파이프라인 검증 실험이며, 완료 기준과 마찰 로그는 `docs/pilot-onb01.md`, 방법론은 `docs/decisions/implementation-methodology.md`, 스택·관례는 `docs/decisions/vada-conventions.md`를 따른다. `apps/vada-web`(Vite+React+TS+Tailwind v4+lucide-react, Pretendard) 스캐폴드는 완료됐고 빌드가 통과하므로 화면 구현부터 시작하면 된다.
+ONB-01 파일럿 구현 1차가 `apps/vada-web`에 완료됐다(빌드·판정기 스모크 통과, 마찰 로그 7건 기록). 다음은 사용자 검증이다: `apps/vada-web`에서 `npm run dev`를 실행해 `reference.png`와 구조·비율을 육안 대조하고, 동작 시나리오(학교 검색→단과대학·학부·학과 연쇄, 빈 제출 시 첫 누락 필드 포커스, ONB-02 왕복 후 값 유지)를 확인한다. 검증에서 발견되는 것은 `docs/pilot-onb01.md` 마찰 로그에 추가하고, 그 로그를 근거로 다음 형식화(마찰 로그 3·4·5번 등)를 결정한다.
 
 1. 동작은 `specs/figma/vada-wireframe/screens/ONB-01.json`, `option-sources.json`, `state-scopes.json`을 따른다.
 2. 시각은 `screens/ONB-01/figma.design.json`을 기준으로 하되 제품 관례 `docs/decisions/vada-conventions.md`와 wireframe 해석 `specs/figma/vada-wireframe/interpretation.md`(0.875 환산, 색 매핑표 등)를 적용하고, 레이아웃 구조·비율 검증은 `reference.png`와 대조한다. `assets/*.svg`는 구현용 자산이 아니라 추출 검증 증거물이다.

@@ -38,3 +38,17 @@ vada 제품의 wireframe 원본을 제품 코드로 옮길 때 적용하는 **�
 ## 6. 상태 시각: 구현 관례로 보충
 
 - wireframe에 없는 상태는 관례로 보충한다. focus는 테두리 강조와 ring, error는 red 계열 테두리와 메시지, disabled는 배경 gray-100·텍스트 gray-400.
+
+## 7. 공통 UI 상태
+
+- 선택 목록의 상태(idle/loading/empty/error)는 **목록 패널 안**에 카탈로그 `messages` 문구를 그대로 텍스트로 표시한다. loading에는 lucide `Loader2` 회전 아이콘을 병기한다.
+- 목록 패널은 흰 배경, border gray-200, rounded-md, shadow-md로 그리고, 항목 hover는 gray-50, 선택된 항목은 blue-600 medium으로 표시한다(와이어프레임에 열린 상태가 없어 관례로 정함).
+- 필드 오류는 **필드 아래 인라인**으로 red-500 텍스트를 표시하고 해당 필드 테두리를 red-500으로 바꾼다. 필수 누락 문구는 `"필수 항목입니다"`로 통일한다.
+- 버튼 차단(`showMissingRequiredFields`)의 구현 형태: 판정기의 `missingFieldKeys` 전부에 인라인 오류를 표시하고, `firstMissingField`(화면 순서상 첫 누락)로 포커스와 스크롤을 이동한다.
+- 개발 mock에는 300~600ms 인위 지연을 둬 로딩 상태를 실제로 확인할 수 있게 한다.
+
+## 8. 컴포넌트 구조
+
+- 화면은 조립만 한다. 요소 유형(input/select/button)은 `apps/vada-web/src/components/`의 공통 컴포넌트로 구현하고, 첫 화면에서 태어난 컴포넌트가 이후 화면의 기반이 된다.
+- 공통 컴포넌트의 props 계약은 동작 명세의 스키마 필드(`fieldKey`, `label`, `placeholder`, `required`, `initiallyDisabled`, `searchable`, `enabledWhen`, `resetOnChangeOf`…)에서 출발한다.
+- 버튼 실행 판정은 재구현하지 않고 `packages/contracts/src/button-execution.mjs`를 직접 import해 단일 의미론을 유지한다.
