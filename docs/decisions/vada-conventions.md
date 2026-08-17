@@ -1,6 +1,11 @@
-# 프론트엔드 구현 관례
+# vada 구현 관례
 
-wireframe 원본을 제품 코드로 옮길 때 wireframe과 무관하게 적용하는 전역 관례다. 특정 wireframe 원본을 읽는 법(캡처 스케일, 폰트 아티팩트, 색 매핑표, 화면별 특이사항)은 해당 wireframe 폴더의 `specs/figma/<wireframeKey>/interpretation.md`에 기록한다. (2026-08-17 확정)
+vada 제품의 wireframe 원본을 제품 코드로 옮길 때 적용하는 **제품 스코프** 관례다. 제품 무관 방법론은 `implementation-methodology.md`, 특정 wireframe 원본을 읽는 법은 해당 wireframe 폴더의 `specs/figma/<wireframeKey>/interpretation.md`에 있다. (2026-08-17 확정)
+
+## 0. 위치와 스택
+
+- 앱은 `apps/vada-web`이다.
+- Vite + React + TypeScript + Tailwind CSS v4 + lucide-react. 와이어프레임 수치가 Tailwind 파생 값이라 토큰 복원이 1:1이고, 식별된 아이콘이 lucide이기 때문이다.
 
 ## 1. 치수: 캡처 아티팩트를 복제하지 않는다
 
@@ -16,7 +21,7 @@ wireframe 원본을 제품 코드로 옮길 때 wireframe과 무관하게 적용
 
 ## 3. 폰트: Pretendard
 
-- 본문과 UI 전체에 Pretendard(가변 폰트 권장)를 사용한다.
+- 본문과 UI 전체에 Pretendard(가변 폰트, CDN 로드)를 사용한다.
 - 폴백 스택: `Pretendard, -apple-system, BlinkMacSystemFont, system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif`.
 - wireframe에 기록된 폰트명은 캡처 아티팩트일 수 있다. `interpretation.md`의 판정을 따르고 크기·굵기 위계만 신뢰한다.
 

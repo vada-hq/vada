@@ -1,6 +1,6 @@
 # vada-wireframe 원본 해석
 
-이 wireframe의 `figma.raw.json`·`figma.design.json`을 읽을 때 필요한 캡처 특성과 화면별 특이사항이다. wireframe과 무관한 전역 구현 관례는 `docs/decisions/implementation-conventions.md`를 따른다. (2026-08-17)
+이 wireframe의 `figma.raw.json`·`figma.design.json`을 읽을 때 필요한 캡처 특성과 화면별 특이사항이다. wireframe과 무관한 제품(vada) 구현 관례는 `docs/decisions/vada-conventions.md`를 따른다. (2026-08-17)
 
 ## 캡처 특성
 

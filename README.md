@@ -7,23 +7,25 @@ Figma에서 선택한 화면을 분석하여 개발 구현에 사용할 JSON 명
 ```text
 figma-spec-v2/
 ├─ apps/
-│  ├─ figma-plugin/    # 화면 선택, Figma 구조 수집, 검토 UI
-│  └─ spec-service/    # Figma 플러그인과 로컬 화면 JSON 사이의 브리지
+│  ├─ figma-plugin/    # [파이프라인] 화면 선택, Figma 구조 수집, 검토 UI
+│  ├─ spec-service/    # [파이프라인] 플러그인과 로컬 화면 JSON 사이의 브리지
+│  └─ vada-web/        # [제품 vada] 명세 번들로 구현하는 프론트엔드
 ├─ packages/
-│  └─ contracts/       # JSON 형식과 검증 규칙의 유일한 원본
+│  └─ contracts/       # [파이프라인] JSON 형식과 검증 규칙의 유일한 원본
 │     └─ schemas/      # 사람이 직접 관리하는 JSON Schema 원본
 ├─ docs/
-│  └─ decisions/       # 프로젝트 전역 설계 결정 기록
-├─ specs/figma/         # wireframe별 화면·옵션 출처·상태 스코프 JSON·원본 해석
-└─ tests/               # 구성 요소 사이의 통합 검증
+│  └─ decisions/       # 설계 결정 기록 (접두 없음=파이프라인, <제품>-*.md=제품)
+├─ specs/figma/         # [wireframe] 화면·옵션 출처·상태 스코프 JSON·원본 해석
+└─ tests/               # [파이프라인] 구성 요소 사이의 통합 검증
 ```
 
-## 결정 기록 위치
+## 스코프와 기록 위치
 
-기록은 적용 범위에 맞는 위치에 남긴다. 특정 wireframe 사례를 전역 문서에 섞지 않는다.
+이 저장소는 제품 무관 파이프라인과 여러 제품의 콘텐츠를 담는 모노레포다. 모든 산출물·기록은 세 스코프 중 하나에 속한다. 상세 규칙(네임스페이스, 확장 트리거)은 `docs/decisions/repo-scopes.md`.
 
-- 프로젝트 전역 결정(요소 유형, 구현 관례): `docs/decisions/*.md`
-- wireframe 원본을 읽는 법과 화면별 특이사항(캡처 스케일, 폰트 아티팩트, 색 매핑표): `specs/figma/<wireframeKey>/interpretation.md`
+- 파이프라인(제품 무관) 결정: `docs/decisions/*.md` (접두 없음, 예: `element-types.md`)
+- 제품 결정(스택·폰트·관례): `docs/decisions/<제품>-*.md` (예: `vada-conventions.md`), 앱은 `apps/<제품>-web`
+- wireframe 원본을 읽는 법과 화면별 특이사항: `specs/figma/<wireframeKey>/interpretation.md`
 - 진행 상태와 다음 단계: `docs/HANDOFF.md`
 
 ## 화면별 Figma 산출물
