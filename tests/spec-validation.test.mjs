@@ -220,6 +220,60 @@ test("validateSpecsRoot는 실제 저장소 명세에서 오류 0건이어야 �
   assert.deepEqual(errors, []);
 });
 
+test("validateSpecsRoot는 raw와 design의 신선도 불일치를 오류로 보고한다", async () => {
+  const root = await mkdtemp(join(tmpdir(), "figma-spec-stale-"));
+  try {
+    const staleDir = join(root, "wf", "screens", "STALE-01");
+    const freshDir = join(root, "wf", "screens", "NOHASH-01");
+    await mkdir(staleDir, { recursive: true });
+    await mkdir(freshDir, { recursive: true });
+
+    const design = (screenId, source) => ({
+      schemaVersion: 1,
+      screenId,
+      source: { format: "JSON_REST_V1", nodeId: "1:1", rawFile: "figma.raw.json", ...source },
+      viewport: { width: 10, height: 10 },
+      root: { id: "1:1", type: "frame", name: screenId },
+      assets: []
+    });
+
+    await writeFile(join(staleDir, "figma.raw.json"), JSON.stringify({ document: {} }), "utf8");
+    await writeFile(
+      join(staleDir, "figma.design.json"),
+      JSON.stringify(design("STALE-01", { hash: "0".repeat(64) })),
+      "utf8"
+    );
+    await writeFile(join(freshDir, "figma.raw.json"), JSON.stringify({ document: {} }), "utf8");
+    await writeFile(
+      join(freshDir, "figma.design.json"),
+      JSON.stringify(design("NOHASH-01", {})),
+      "utf8"
+    );
+
+    const findings = await validateSpecsRoot(root);
+    assert.ok(
+      findings.some(
+        (finding) =>
+          finding.level === "error" &&
+          finding.file.includes("STALE-01") &&
+          finding.message.includes("정규화")
+      ),
+      "hash 불일치는 정규화 재실행 오류여야 한다"
+    );
+    assert.ok(
+      findings.some(
+        (finding) =>
+          finding.level === "warning" &&
+          finding.file.includes("NOHASH-01") &&
+          finding.message.includes("hash")
+      ),
+      "hash 부재는 경고여야 한다"
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test("validateSpecsRoot는 스키마 위반과 파일 이름 불일치를 오류로 보고한다", async () => {
   const root = await mkdtemp(join(tmpdir(), "figma-spec-validate-"));
   try {

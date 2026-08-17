@@ -655,14 +655,19 @@ export function normalizeFigmaDesign(raw, options = {}) {
   const rootBounds = raw.document.absoluteBoundingBox;
   const root = normalizeNode(raw.document, undefined, assets);
 
+  const source = {
+    format: "JSON_REST_V1",
+    nodeId: raw.document.id,
+    rawFile: options.rawFile ?? "figma.raw.json"
+  };
+  if (typeof options.sourceHash === "string" && options.sourceHash.length > 0) {
+    source.hash = options.sourceHash;
+  }
+
   return {
     schemaVersion: 1,
     screenId,
-    source: {
-      format: "JSON_REST_V1",
-      nodeId: raw.document.id,
-      rawFile: options.rawFile ?? "figma.raw.json"
-    },
+    source,
     viewport: {
       width: round(rootBounds.width),
       height: round(rootBounds.height)

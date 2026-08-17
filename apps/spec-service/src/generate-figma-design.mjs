@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -34,10 +35,12 @@ export async function generateFigmaDesignFile(
     outputPath ?? join(dirname(resolvedRawPath), "figma.design.json")
   );
   const inferredScreenId = screenId?.trim() || basename(dirname(resolvedRawPath));
-  const raw = JSON.parse(await readFile(resolvedRawPath, "utf8"));
+  const rawText = await readFile(resolvedRawPath, "utf8");
+  const raw = JSON.parse(rawText);
   const design = normalizeFigmaDesign(raw, {
     screenId: inferredScreenId,
-    rawFile: basename(resolvedRawPath)
+    rawFile: basename(resolvedRawPath),
+    sourceHash: createHash("sha256").update(rawText, "utf8").digest("hex")
   });
 
   await writeJsonAtomically(resolvedOutputPath, design);

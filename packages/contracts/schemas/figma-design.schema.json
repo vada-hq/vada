@@ -37,6 +37,11 @@
         },
         "rawFile": {
           "$ref": "#/$defs/nonEmptyString"
+        },
+        "hash": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "SHA-256 of the figma.raw.json text this document was normalized from; lets tooling detect a stale figma.design.json."
         }
       }
     },

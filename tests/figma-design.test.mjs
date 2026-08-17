@@ -383,3 +383,14 @@ test("ONB-01의 전체 노드와 GRID·혼합 텍스트·벡터 참조를 보존
   assert.equal(serialized.includes("e+38"), false);
   assert.ok(serialized.length < JSON.stringify(raw).length * 0.65);
 });
+
+test("sourceHash 옵션을 provenance로 기록한다", () => {
+  const raw = createRawFixture();
+  const hash = "a".repeat(64);
+
+  const withHash = normalizeFigmaDesign(raw, { screenId: "TEST-01", sourceHash: hash });
+  assert.equal(withHash.source.hash, hash);
+
+  const withoutHash = normalizeFigmaDesign(raw, { screenId: "TEST-01" });
+  assert.equal("hash" in withoutHash.source, false);
+});

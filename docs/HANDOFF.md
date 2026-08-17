@@ -40,6 +40,7 @@
 - ONB-01의 결과는 `specs/figma/vada-wireframe/screens/ONB-01/figma.design.json`에 생성되어 있다. 루트 기준 viewport, 부모 기준 box, auto-layout·grid·sizing·constraints, fills·strokes·effects·corners, 텍스트와 혼합 스타일 run, component 참조, vector asset 참조를 담는다.
 - ONB-01 원본의 83개 노드와 11개 vector asset 참조를 보존했다. 축약 직렬화 크기는 원본의 약 38.1%이며, 동일 원본을 다시 변환했을 때 SHA-256이 동일했다.
 - 현재 `Figma 원본 JSON 저장`과 정규화 변환은 자동 연결하지 않았다. 원본 저장 뒤 CLI를 명시적으로 실행해야 하며 자동 연결은 편의 기능으로 보류한다.
+- 정규화 CLI는 `figma.raw.json` 텍스트의 SHA-256을 `figma.design.json`의 `source.hash`로 기록한다. 검증 CLI가 이 값으로 신선도를 검사해 raw 재저장 후 정규화를 잊으면 오류로, hash가 없으면 경고로 알린다. 결정성은 유지된다(hash는 원본에만 의존).
 - ONB-01 `figma.design.json` 단독 검토 결과, 계층·좌표·간격·auto-layout·grid·색상·타이포·혼합 run은 원본 없이 화면을 재구성하기에 충분하다. 상태(hover/focus/오류) 시각과 반응형 브레이크포인트는 wireframe 원본 자체에 없으므로 구현 관례로 보충한다. 이 화면에는 component instance가 없다.
 - 11개 벡터는 stroke 1.167(=lucide 기본 2px의 14px 환산)로 Search ×3(각 2개 벡터), ChevronDown ×3, ArrowRight ×1(2개 벡터)로 식별된다. 따라서 SVG 파일 부재는 구현 차단이 아니며, reference.png 부재도 차단은 아니지만 검증 기준으로 필요하다.
 - 원본 디자인에서 확인된 이슈와 처리: ① 검색 아이콘이 입력 상자 뒤에 가려지던 z-순서 문제는 wireframe에서 돋보기 `Icon`(7:43, 7:54, 7:65)을 앞으로 옮겨 해결했고, 재저장한 `reference.png`에서 돋보기 3개가 보이는 것과 정규화 재실행·테스트 통과를 확인했다. ② 현재 학년 `Dropdown`(7:75)은 자식 없는 448×20 빈 프레임이라 다른 입력(높이 33.5)과 다르며 구현은 동작 명세와 다른 입력 스타일을 따른다. ③ placeholder 텍스트가 값 색(#1E2939)으로 그려져 있어 구현 시 placeholder 색 관례를 적용한다. ④ 값 대부분이 통상 웹 값의 0.875배(448=512×0.875 등)라 소수점 px 처리 정책을 구현 시 정한다.

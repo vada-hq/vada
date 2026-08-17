@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -201,6 +202,33 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     }
     if (!validators.figmaDesign(design)) {
       pushSchemaFindings(findings, designLabel, "스키마 위반: ", validators.figmaDesign.errors);
+    }
+
+    if (await pathExists(rawPath)) {
+      const rawText = await readFile(rawPath, "utf8");
+      const rawHash = createHash("sha256").update(rawText, "utf8").digest("hex");
+      const designHash = design?.source?.hash;
+      if (typeof designHash !== "string") {
+        findings.push({
+          level: "warning",
+          file: designLabel,
+          message:
+            "source.hash가 없어 figma.raw.json과의 신선도를 확인할 수 없습니다. 정규화 CLI를 다시 실행하면 기록됩니다."
+        });
+      } else if (designHash !== rawHash) {
+        findings.push({
+          level: "error",
+          file: designLabel,
+          message:
+            "figma.raw.json이 변경된 뒤 정규화가 실행되지 않았습니다. generate-figma-design.mjs를 다시 실행하세요."
+        });
+      }
+    } else {
+      findings.push({
+        level: "warning",
+        file: designLabel,
+        message: "원본 figma.raw.json이 없어 신선도를 확인할 수 없습니다."
+      });
     }
 
     let assetFiles = [];

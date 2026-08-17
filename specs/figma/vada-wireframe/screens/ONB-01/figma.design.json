@@ -4,7 +4,8 @@
   "source": {
     "format": "JSON_REST_V1",
     "nodeId": "3:2",
-    "rawFile": "figma.raw.json"
+    "rawFile": "figma.raw.json",
+    "hash": "7ce4e4e11ff25ea997b14511aa1b54a5f0c8115f71274d0c1607c7e8a6566a52"
   },
   "viewport": {
     "width": 1288,
