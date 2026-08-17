@@ -16,11 +16,12 @@ export function AppHeader({ label, step, totalSteps }: AppHeaderProps) {
         <span className="text-base font-semibold text-gray-900">Vada</span>
       </div>
       <div className="flex items-center gap-1.5">
+        {/* 완료한 단계까지 채운다(ONB-02 reference: 2/2에서 pill 두 개 모두 파랑) */}
         {Array.from({ length: totalSteps }, (_, index) => (
           <span
             key={index}
             className={`h-1.5 w-5 rounded-full ${
-              index + 1 === step ? 'bg-blue-600' : 'bg-gray-200'
+              index + 1 <= step ? 'bg-blue-600' : 'bg-gray-200'
             }`}
           />
         ))}

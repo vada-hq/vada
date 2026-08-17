@@ -304,7 +304,8 @@ export function collectSpecFindings({
       if (!isObject(flow) || !Array.isArray(flow.screens)) {
         continue;
       }
-      for (const screenId of flow.screens) {
+      for (const step of flow.screens) {
+        const screenId = step?.screenId;
         if (typeof screenId !== "string") {
           continue;
         }

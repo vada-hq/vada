@@ -27,14 +27,19 @@ test("button 스키마는 승인된 v1 필드만 선언한다", async () => {
   const propertyKeys = [
     "type",
     "label",
+    "description",
+    "badge",
     "initiallyDisabled",
     "action"
   ];
+  const requiredKeys = ["type", "label", "initiallyDisabled", "action"];
 
   assert.deepEqual(getSchemaPropertyKeys(schema), propertyKeys);
-  assert.deepEqual(schema.required, propertyKeys);
+  assert.deepEqual(schema.required, requiredKeys);
   assert.equal(schema.additionalProperties, false);
   assert.equal(getSchemaConstantValue(schema, "type"), "button");
+  assert.equal(getSchemaPropertyEditorKind(schema, "description"), "text");
+  assert.equal(getSchemaPropertyEditorKind(schema, "badge"), "text");
 });
 
 test("button action은 일반 navigate 대상 화면을 표현한다", async () => {

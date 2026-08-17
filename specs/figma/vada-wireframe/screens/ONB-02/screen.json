@@ -3,7 +3,9 @@
   "screenId": "ONB-02",
   "stateScopeKey": "onboardingDraft",
   "meta": {
-    "title": "시작 방식 선택"
+    "title": "어떻게 시작하시겠어요?",
+    "description": "참여할 학생회를 선택해 주세요.",
+    "footerNote": "초대 링크로 직접 접속한 경우 이 화면을 건너뜁니다."
   },
   "source": {
     "pageName": "Wireframe",
@@ -21,10 +23,12 @@
       "spec": {
         "type": "button",
         "label": "새 학생회 만들기",
+        "description": "새로운 학생회를 생성하고 조직을 구성합니다.",
         "initiallyDisabled": false,
         "action": {
           "type": "navigate",
-          "targetScreenId": "ORG-01"        }
+          "targetScreenId": "ORG-01"
+        }
       }
     },
     {
@@ -36,10 +40,13 @@
       "spec": {
         "type": "button",
         "label": "초대받은 학생회 참여하기",
+        "description": "관리자에게 전달받은 초대 코드 또는 초대 링크로 참여합니다.",
+        "badge": "초대 코드 입력",
         "initiallyDisabled": false,
         "action": {
           "type": "navigate",
-          "targetScreenId": "INV-00"        }
+          "targetScreenId": "INV-00"
+        }
       }
     },
     {
@@ -54,7 +61,8 @@
         "initiallyDisabled": false,
         "action": {
           "type": "navigate",
-          "targetScreenId": "ONB-01"        }
+          "targetScreenId": "ONB-01"
+        }
       }
     }
   ]

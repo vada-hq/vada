@@ -35,6 +35,7 @@ Tailwind v4 팔레트와 일치하는 값은 토큰으로 매핑한다.
 | wireframe 값 | ÷0.875 | 적용 |
 | --- | --- | --- |
 | fontSize 11 / lineHeight 16.5 (섹션 라벨·안내문) | 12.57 / 18.86 | text-xs(12/16) |
+| fontSize 10 / lineHeight 15 (ONB-02 배지) | 11.43 / 17.1 | text-xs(12) |
 | 카드 cornerRadius 9.25 | 10.57 | rounded-xl(12) |
 | 입력 높이 33.5 | 38.29 | 구성 합(py-2 + text-sm 행간 20 + border 2 = 38)으로 자연 결정 |
 | 카드 총폭 520 | 594.3 | 콘텐츠 512(max-w-lg 상당) + padding 40×2 + border 1×2 = 594 |
@@ -47,3 +48,10 @@ Tailwind v4 팔레트와 일치하는 값은 토큰으로 매핑한다.
 - 현재 학년 `Dropdown`(7:75)은 자식 없는 448×20 빈 프레임이다. 다른 입력과 동일한 스타일로 구현한다.
 - placeholder 텍스트가 값 색(#1E2939)으로 그려져 있다. 원본 결함으로 보고 전역 관례(placeholder gray-400)를 적용한다.
 - 비활성 select(7:57, 7:68)의 시각: 배경 gray-50, 테두리 gray-200, 라벨·placeholder gray-400, 아이콘 gray-300. 활성 select(7:46): 배경 white, 테두리 gray-300, 아이콘 gray-400. 디자인에 있는 사실이므로 관례 6번(disabled 배경 gray-100)보다 우선한다.
+
+### ONB-02
+
+- 벡터 11개 식별: Plus(14:113, 20px·stroke 1.458=lucide 2px의 20px 환산), ExternalLink(14:127, 20px), ArrowRight ×2(카드 우측, 16px), ArrowLeft(14:147, 14px·stroke 1.021).
+- 옵션 카드: 테두리 gray-200, 아이콘 타일 40px 배경 gray-100(#F3F4F6), 배지 배경 #FFEDD4=orange-100·텍스트 #CA3500=orange-700.
+- 뒤로 가기(14:146)는 카드가 아니라 blue-600 텍스트 링크다. 카드/링크 구분은 흐름 순서(뒤로 이동=링크)로 판별한다.
+- 진행 pill은 완료 단계까지 파란색으로 채운다(2/2에서 두 개 모두 파랑).

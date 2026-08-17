@@ -18,6 +18,16 @@
       "type": "string",
       "minLength": 1
     },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "버튼 아래에 표시할 보조 설명(선택). 카드형 버튼의 부연 문구."
+    },
+    "badge": {
+      "type": "string",
+      "minLength": 1,
+      "description": "라벨 옆에 표시할 짧은 배지 문구(선택). 예: 초대 코드 입력"
+    },
     "initiallyDisabled": {
       "type": "boolean"
     },

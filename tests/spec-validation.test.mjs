@@ -229,8 +229,14 @@ test("collectSpecFindings는 흐름 카탈로그의 참조와 중복 멤버십�
   const flows = {
     schemaVersion: 1,
     flows: [
-      { key: "a", label: "에이", screens: ["SCR-01", "SCR-99"] },
-      { key: "b", label: "비", screens: ["SCR-01"] }
+      {
+        key: "a",
+        screens: [
+          { screenId: "SCR-01", label: "일단계" },
+          { screenId: "SCR-99", label: "이단계" }
+        ]
+      },
+      { key: "b", screens: [{ screenId: "SCR-01", label: "다른 일단계" }] }
     ]
   };
 

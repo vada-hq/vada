@@ -52,6 +52,8 @@ export interface ButtonAction {
 export interface ButtonSpec {
   type: 'button'
   label: string
+  description?: string
+  badge?: string
   initiallyDisabled: boolean
   action: ButtonAction
 }
@@ -77,8 +79,10 @@ export interface FlowsCatalog {
   schemaVersion: number
   flows: Array<{
     key: string
-    label: string
-    screens: string[]
+    screens: Array<{
+      screenId: string
+      label: string
+    }>
   }>
 }
 

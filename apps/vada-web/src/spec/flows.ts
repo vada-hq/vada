@@ -13,17 +13,20 @@ export function asFlowsCatalog(json: unknown): FlowsCatalog {
   }
   const seen = new Set<string>()
   for (const flow of flows as FlowsCatalog['flows']) {
-    if (typeof flow?.key !== 'string' || typeof flow.label !== 'string') {
-      throw new Error('흐름에 key와 label이 필요합니다.')
+    if (typeof flow?.key !== 'string') {
+      throw new Error('흐름에 key가 필요합니다.')
     }
     if (!Array.isArray(flow.screens) || flow.screens.length === 0) {
       throw new Error(`흐름 '${flow.key}'에 screens 배열이 필요합니다.`)
     }
-    for (const screenId of flow.screens) {
-      if (seen.has(screenId)) {
-        throw new Error(`화면 '${screenId}'가 여러 흐름에 속합니다.`)
+    for (const step of flow.screens) {
+      if (typeof step?.screenId !== 'string' || typeof step.label !== 'string') {
+        throw new Error(`흐름 '${flow.key}'의 단계에 screenId와 label이 필요합니다.`)
       }
-      seen.add(screenId)
+      if (seen.has(step.screenId)) {
+        throw new Error(`화면 '${step.screenId}'가 여러 흐름에 속합니다.`)
+      }
+      seen.add(step.screenId)
     }
   }
   return json as FlowsCatalog
@@ -31,13 +34,29 @@ export function asFlowsCatalog(json: unknown): FlowsCatalog {
 
 const catalog = asFlowsCatalog(flowsJson)
 
-// 단계 = 배열 위치+1, 전체 = 배열 길이. 흐름에 없는 화면은 null.
+// 단계 = 배열 위치+1, 전체 = 배열 길이, 라벨 = 해당 단계의 label.
 export function findFlowStep(screenId: string): FlowStep | null {
   for (const flow of catalog.flows) {
-    const index = flow.screens.indexOf(screenId)
+    const index = flow.screens.findIndex((step) => step.screenId === screenId)
     if (index >= 0) {
-      return { label: flow.label, step: index + 1, total: flow.screens.length }
+      return {
+        label: flow.screens[index].label,
+        step: index + 1,
+        total: flow.screens.length,
+      }
     }
   }
   return null
+}
+
+// 같은 흐름 안에서 순서가 앞인 화면으로의 이동인가 — 뒤로 가기 판별에 쓴다.
+export function isBackwardNavigation(fromScreenId: string, toScreenId: string): boolean {
+  for (const flow of catalog.flows) {
+    const fromIndex = flow.screens.findIndex((step) => step.screenId === fromScreenId)
+    const toIndex = flow.screens.findIndex((step) => step.screenId === toScreenId)
+    if (fromIndex >= 0 && toIndex >= 0) {
+      return toIndex < fromIndex
+    }
+  }
+  return false
 }

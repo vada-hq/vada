@@ -3,10 +3,15 @@
   "flows": [
     {
       "key": "onboarding",
-      "label": "기본 설정",
       "screens": [
-        "ONB-01",
-        "ONB-02"
+        {
+          "screenId": "ONB-01",
+          "label": "기본 설정"
+        },
+        {
+          "screenId": "ONB-02",
+          "label": "시작 방식 선택"
+        }
       ]
     }
   ]

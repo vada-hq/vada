@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "flows.schema.json",
   "title": "Wireframe flow catalog",
-  "description": "화면 흐름(단계) 정의. 화면의 단계 번호는 screens 배열의 위치+1, 전체 단계 수는 배열 길이로 자동 계산한다. 한 화면은 최대 하나의 흐름에만 속한다.",
+  "description": "화면 흐름(단계) 정의. 화면의 단계 번호는 screens 배열의 위치+1, 전체 단계 수는 배열 길이로 자동 계산하며, 진행 표시 라벨은 단계별 label을 쓴다. 한 화면은 최대 하나의 흐름에만 속한다.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -20,7 +20,6 @@
         "additionalProperties": false,
         "required": [
           "key",
-          "label",
           "screens"
         ],
         "properties": {
@@ -28,17 +27,27 @@
             "type": "string",
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
           },
-          "label": {
-            "type": "string",
-            "minLength": 1
-          },
           "screens": {
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
             "items": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "screenId",
+                "label"
+              ],
+              "properties": {
+                "screenId": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
             }
           }
         }
