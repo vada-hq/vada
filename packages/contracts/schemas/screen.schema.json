@@ -52,6 +52,7 @@
     },
     "elements": {
       "type": "array",
+      "description": "화면에 보이는 순서대로 나열한다. 버튼 실행 차단의 firstMissingField(화면 순서상 첫 누락 필드)와 판정 후보 순서는 이 배열 순서를 따른다.",
       "items": {
         "type": "object",
         "additionalProperties": false,

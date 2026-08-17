@@ -1,3 +1,4 @@
+import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
 import { onb02 } from '../spec/screens'
 import type { ButtonSpec } from '../spec/types'
@@ -15,19 +16,7 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
 
   return (
     <PageCard>
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">
-            V
-          </div>
-          <span className="text-base font-semibold text-gray-900">Vada</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-5 rounded-full bg-gray-200" />
-          <span className="h-1.5 w-5 rounded-full bg-blue-600" />
-          <span className="pl-1 text-xs text-gray-400">기본 설정 2 / 2</span>
-        </div>
-      </header>
+      <AppHeader step={2} totalSteps={2} />
 
       <h1 className="pt-6 text-lg font-semibold text-gray-900">시작 방식 선택</h1>
       <p className="pt-1 text-sm text-gray-500">

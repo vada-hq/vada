@@ -3,6 +3,7 @@ import {
   evaluateButtonExecution,
   hasFieldValue,
 } from '../../../../packages/contracts/src/button-execution.mjs'
+import { AppHeader } from '../components/AppHeader'
 import { Field } from '../components/Field'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
@@ -159,20 +160,7 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
 
   return (
     <PageCard>
-      {/* 헤더 7:5: 로고 24.5→28, gap 7→8 / 진행 pill 17.5×5.25→20×6, gap 5.25→6 */}
-      <header className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded bg-blue-600 text-xs font-bold text-white">
-            V
-          </div>
-          <span className="text-base font-semibold text-gray-900">Vada</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="h-1.5 w-5 rounded-full bg-blue-600" />
-          <span className="h-1.5 w-5 rounded-full bg-gray-200" />
-          <span className="pl-1 text-xs text-gray-400">기본 설정 1 / 2</span>
-        </div>
-      </header>
+      <AppHeader step={1} totalSteps={2} />
 
       {/* 제목 7:18(15.75→18) · 부제 7:20(12.25→14) */}
       <h1 className="pt-6 text-lg font-semibold text-gray-900">
