@@ -18,13 +18,13 @@
 - **검증**(validate-specs.mjs): 스키마(ajv) + 교차 참조(중복 fieldKey·nodeId, 출처 key·인자 매핑, enabledWhen/resetOnChangeOf, 상태 스코프, 이동 대상, design nodeId·자산·reference, hash 신선도). 오류 시 종료 코드 1.
 - **판정기**(button-execution.mjs): 필수값 존재 판정(공백·null은 누락, 0·false는 값), `executeWhen` 생략=항상 실행, `onExecutionBlocked`와 쌍 규칙. 앱이 재구현 없이 직접 import한다.
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md). 플러그인은 meta를 저장 왕복에서 보존하고(실전 검증됨) 새 텍스트 필드 편집란은 스키마 주도로 자동 생성된다.
-- **테스트**: 플러그인 102, spec-service·변환기·검증 26, vada-web(vitest) 22 — 전부 통과. 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **테스트**: 플러그인 102, spec-service·변환기·검증 26, vada-web(vitest) 22 + Playwright e2e 2 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
 - **화면 산출물 구조**: 화면의 모든 산출물(screen.json·figma.raw.json·figma.design.json·assets·reference.png)은 `screens/<screenId>/` 폴더 하나에 모인다. 브리지 API 경로는 그대로다.
 
 ## 현재 상태 — 제품 vada
 
 - **명세**: ONB-01·ONB-02 완결(각각 동작 + figma.design.json + 자산 11 + reference.png). ORG-01·INV-00은 이동 대상으로만 등장(검증 경고 2건, 의도된 미완성).
-- **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): ONB-01 파일럿 검증 통과, ONB-02 실구현 완료(카드 2·배지·안내문·뒤로 링크 — 사용자 육안 검증 대기). 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답하며, onboardingDraft는 메모리 수준 왕복 유지. ORG-01·INV-00 카드 클릭 시 미등록 화면 오류 카드가 뜨는 것은 내비게이션 계약의 정상 동작이다.
+- **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): ONB-01·ONB-02 모두 구현·검증 통과(2026-08-17). 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답하며, onboardingDraft는 메모리 수준 왕복 유지. ORG-01·INV-00 카드 클릭 시 미등록 화면 오류 카드가 뜨는 것은 내비게이션 계약의 정상 동작이다.
 - **마찰 로그**: `docs/pilot-onb01.md` 11건(해결 8·기록 1·백로그 2) + `docs/pilot-onb02.md` 5건(해결 3·기록 2). 잔여 발견은 전부 `docs/BACKLOG.md`에 있다.
 - **주의(다음 플러그인 사용 시)**: Figma 안의 ONB-02 공유 사본에는 이번에 추가된 meta 확장·button description/badge가 없다. 플러그인에서 ONB-02의 **`로컬 초안 불러오기` → `이 화면 저장`**을 먼저 해 동기화한다(ONB-01은 동기화 완료됨).
 
@@ -38,7 +38,7 @@
 
 ## 다음 한 단계
 
-ONB-02 사이클의 구현이 끝났다(`docs/pilot-onb02.md`). 다음은 사용자 육안 검증이다: `apps/vada-web`에서 `npm run dev` 실행 후 ONB-01에서 다음 버튼으로 ONB-02 진입 → `reference.png`와 대조(카드 2·배지·안내문·뒤로 링크·헤더 "시작 방식 선택 2/2"·pill 2개 파랑), 카드 클릭 시 미등록 화면 오류 카드(계약 동작), 이전으로 복귀 시 ONB-01 값 유지 확인. 통과하면 다음 화면(ORG-01 또는 INV-00)의 스펙 사이클로 진행한다.
+ONB-02 사이클이 검증까지 완료됐다(`docs/pilot-onb02.md`). 다음 화면(ORG-01 또는 INV-00)의 사이클을 시작한다: 사용자가 Figma에서 해당 화면을 플러그인으로 등록·저장(`이 화면 저장` + `Figma 원본 JSON 저장`) → 정규화 → 구현 → e2e 검증. 잔여 소소한 일: Figma 쪽 ONB-02 사본에 신규 필드 동기화(`로컬 초안 불러오기`→`이 화면 저장` 1회).
 
 ## 확인 명령
 
