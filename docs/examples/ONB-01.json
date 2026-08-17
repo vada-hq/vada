@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ONB-01",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "3:2",
+    "name": "온보딩 · ONB-01 · 본인 소속 입력",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "7:29",
+        "name": "Text Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "name",
+        "label": "이름",
+        "placeholder": "김바다",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    }
+  ]
+}

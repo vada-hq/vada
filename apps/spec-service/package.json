@@ -1,0 +1,13 @@
+{
+  "name": "figma-spec-v2-spec-service",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate:figma-design": "node src/generate-figma-design.mjs",
+    "start": "node src/cli.mjs",
+    "test": "node --test ../../tests/spec-service.test.mjs ../../tests/figma-design.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

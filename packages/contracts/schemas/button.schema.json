@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "button.schema.json",
+  "title": "Button element",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "label",
+    "initiallyDisabled",
+    "action"
+  ],
+  "properties": {
+    "type": {
+      "const": "button"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "initiallyDisabled": {
+      "type": "boolean"
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "targetScreenId",
+        "executeWhen",
+        "onExecutionBlocked"
+      ],
+      "properties": {
+        "type": {
+          "const": "navigate"
+        },
+        "targetScreenId": {
+          "type": "string",
+          "minLength": 1
+        },
+        "executeWhen": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "scope"
+          ],
+          "properties": {
+            "type": {
+              "const": "allRequiredFieldsHaveValue"
+            },
+            "scope": {
+              "const": "screen"
+            }
+          }
+        },
+        "onExecutionBlocked": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "focus"
+          ],
+          "properties": {
+            "type": {
+              "const": "showMissingRequiredFields"
+            },
+            "focus": {
+              "const": "firstMissingField"
+            }
+          }
+        }
+      }
+    }
+  }
+}

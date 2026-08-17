@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "scopes": [
+    {
+      "key": "onboardingDraft",
+      "description": "온보딩 입력 초안",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,628 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Figma Spec v2</title>
+    <style>
+      :root {
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg);
+        font: 12px/1.5 Inter, sans-serif;
+      }
+
+      body {
+        margin: 0;
+        padding: 16px;
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      h1 {
+        margin: 0 0 4px;
+        font-size: 16px;
+      }
+
+      h2 {
+        margin: 0;
+        font-size: 14px;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .context-card {
+        margin-top: 16px;
+        padding: 12px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 8px;
+        background: var(--figma-color-bg-secondary);
+      }
+
+      .context-card p {
+        margin: 4px 0 0;
+        color: var(--figma-color-text-secondary);
+      }
+
+      #current-screen-summary {
+        display: grid;
+        gap: 4px;
+        margin-top: 8px;
+      }
+
+      #current-screen-id {
+        font-size: 14px;
+        color: var(--figma-color-text-success);
+      }
+
+      #current-screen-name,
+      #current-wireframe-key {
+        overflow-wrap: anywhere;
+      }
+
+      #state-scope-summary {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid var(--figma-color-border);
+      }
+
+      #state-scope-summary h3 {
+        margin: 0 0 6px;
+        font-size: 12px;
+      }
+
+      #state-scope-summary dl {
+        display: grid;
+        gap: 4px;
+        margin: 0;
+      }
+
+      #state-scope-summary dl div {
+        display: grid;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 8px;
+      }
+
+      #state-scope-summary dt {
+        margin: 0;
+      }
+
+      #state-scope-summary dd {
+        overflow-wrap: anywhere;
+      }
+
+      #state-scope-status[data-tone="error"] {
+        color: var(--figma-color-text-danger, #f24822);
+      }
+
+      #save-screen {
+        width: 100%;
+        margin-top: 12px;
+        padding: 9px;
+        border: 1px solid var(--figma-color-border-selected);
+        border-radius: 6px;
+        color: var(--figma-color-text-onbrand);
+        background: var(--figma-color-bg-brand);
+        cursor: pointer;
+      }
+
+      #save-screen:disabled {
+        cursor: wait;
+        opacity: 0.6;
+      }
+
+      #save-figma-raw,
+      #load-local-screen {
+        width: 100%;
+        margin-top: 8px;
+        padding: 9px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 6px;
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg);
+        cursor: pointer;
+      }
+
+      #load-local-screen[data-changed="true"] {
+        border-color: var(--figma-color-border-selected);
+        color: var(--figma-color-text-brand);
+      }
+
+      #save-figma-raw:disabled,
+      #load-local-screen:disabled {
+        cursor: wait;
+        opacity: 0.6;
+      }
+
+      #screen-save-status[data-tone="error"] {
+        color: var(--figma-color-text-danger, #f24822);
+      }
+
+      #selected-node-heading {
+        margin-top: 20px;
+      }
+
+      #empty-state {
+        padding: 16px;
+        border: 1px dashed var(--figma-color-border);
+        border-radius: 6px;
+        text-align: center;
+        color: var(--figma-color-text-secondary);
+      }
+
+      #selection-details {
+        margin: 8px 0 0;
+      }
+
+      #selection-details div {
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--figma-color-border);
+      }
+
+      dt {
+        margin-bottom: 4px;
+        color: var(--figma-color-text-secondary);
+      }
+
+      dd {
+        margin: 0;
+      }
+
+      code {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      }
+
+      #element-type-section {
+        margin-top: 20px;
+      }
+
+      #screen-selection-section label {
+        display: grid;
+        gap: 4px;
+        margin-top: 12px;
+        color: var(--figma-color-text-secondary);
+      }
+
+      #screen-selection-section input {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 8px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 4px;
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg);
+      }
+
+      #screen-selection-section input:focus {
+        border-color: var(--figma-color-border-selected);
+        outline: none;
+      }
+
+      #set-active-screen {
+        width: 100%;
+        margin-top: 12px;
+        padding: 9px;
+        border: 1px solid var(--figma-color-border-selected);
+        border-radius: 6px;
+        color: var(--figma-color-text-onbrand);
+        background: var(--figma-color-bg-brand);
+        cursor: pointer;
+      }
+
+      #set-active-screen:disabled {
+        cursor: wait;
+        opacity: 0.6;
+      }
+
+      #screen-context-error {
+        color: var(--figma-color-text-danger, #f24822);
+      }
+
+      #selection-notice {
+        margin-top: 12px;
+        padding: 10px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 6px;
+        color: var(--figma-color-text-secondary);
+      }
+
+      #element-type-section p {
+        margin: 4px 0 12px;
+        color: var(--figma-color-text-secondary);
+      }
+
+      #element-type-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+        gap: 8px;
+      }
+
+      #element-type-options button {
+        padding: 10px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 6px;
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg-secondary);
+        cursor: pointer;
+      }
+
+      #element-type-options button[aria-pressed="true"] {
+        border-color: var(--figma-color-border-selected);
+        color: var(--figma-color-text-onbrand);
+        background: var(--figma-color-bg-brand);
+      }
+
+      #registration-controls {
+        margin-top: 10px;
+      }
+
+      #registration-summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      #selected-element-type {
+        color: var(--figma-color-text-success);
+      }
+
+      #cancel-registration,
+      #keep-registration,
+      #confirm-cancel-registration {
+        padding: 6px 8px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 6px;
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg);
+        cursor: pointer;
+      }
+
+      #cancel-registration,
+      #confirm-cancel-registration {
+        border-color: var(--figma-color-border-danger, #f24822);
+        color: var(--figma-color-text-danger, #f24822);
+      }
+
+      #cancel-registration-confirmation {
+        margin-top: 8px;
+        padding: 8px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 6px;
+        background: var(--figma-color-bg-secondary);
+      }
+
+      #cancel-registration-confirmation p {
+        margin: 0 0 8px;
+        color: var(--figma-color-text);
+      }
+
+      #cancel-registration-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+
+      #schema-keys-section {
+        margin-top: 20px;
+      }
+
+      #schema-keys {
+        margin: 8px 0 0;
+        padding: 0;
+        list-style: none;
+        border-top: 1px solid var(--figma-color-border);
+      }
+
+      #schema-keys li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 8px;
+        border-bottom: 1px solid var(--figma-color-border);
+      }
+
+      #schema-keys li.schema-object-item {
+        display: block;
+      }
+
+      .schema-object-keys {
+        margin: 8px 0 0;
+        padding: 0 0 0 12px;
+        list-style: none;
+        border-left: 1px solid var(--figma-color-border);
+      }
+
+      #schema-keys .schema-object-keys li:last-child {
+        border-bottom: 0;
+      }
+
+      .schema-constant {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--figma-color-text-secondary);
+      }
+
+      .schema-constant code {
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg-tertiary);
+      }
+
+      .schema-text-input,
+      .schema-select {
+        box-sizing: border-box;
+        width: 160px;
+        padding: 6px 8px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 4px;
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg);
+      }
+
+      .schema-text-input:focus,
+      .schema-select:focus {
+        border-color: var(--figma-color-border-selected);
+        outline: none;
+      }
+
+      .option-source-detail {
+        max-width: 160px;
+        color: var(--figma-color-text-secondary);
+        text-align: right;
+        overflow-wrap: anywhere;
+      }
+
+      .option-source-contract-detail,
+      .option-source-readiness {
+        max-width: 240px;
+      }
+
+      #schema-keys li.option-source-options-item {
+        display: block;
+      }
+
+      .option-source-options summary {
+        padding: 2px 0;
+        color: var(--figma-color-text-secondary);
+        cursor: pointer;
+        user-select: none;
+      }
+
+      .option-source-options-content {
+        display: grid;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .option-source-option-search {
+        width: 100%;
+      }
+
+      .option-source-option-list {
+        max-height: 240px;
+        margin: 0;
+        padding: 0;
+        overflow-y: auto;
+        list-style: none;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 4px;
+      }
+
+      #schema-keys .option-source-option-list li {
+        justify-content: flex-start;
+        gap: 6px;
+        padding: 8px;
+      }
+
+      .option-source-option-value {
+        max-width: 96px;
+        overflow-wrap: anywhere;
+      }
+
+      .option-source-option-arrow {
+        color: var(--figma-color-text-tertiary);
+      }
+
+      .option-source-option-label {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .option-source-option-disabled {
+        padding: 2px 5px;
+        border-radius: 4px;
+        color: var(--figma-color-text-secondary);
+        background: var(--figma-color-bg-tertiary);
+        font-size: 10px;
+      }
+
+      .option-source-option-empty {
+        margin: 0;
+        padding: 8px;
+        color: var(--figma-color-text-secondary);
+        text-align: center;
+      }
+
+      .option-source-readiness[data-ready="true"] {
+        color: var(--figma-color-text-success);
+      }
+
+      .option-source-readiness[data-ready="false"] {
+        color: var(--figma-color-text-danger, #f24822);
+      }
+
+      .option-source-params-item {
+        align-items: flex-start !important;
+      }
+
+      .option-source-params {
+        display: grid;
+        gap: 8px;
+      }
+
+      .option-source-param {
+        display: grid;
+        gap: 4px;
+      }
+
+      #schema-keys li.button-execution-review-item {
+        display: grid;
+        justify-content: stretch;
+        gap: 8px;
+        margin: 8px 0;
+        padding: 12px;
+        border: 1px solid var(--figma-color-border);
+        border-radius: 6px;
+        background: var(--figma-color-bg-secondary);
+      }
+
+      .button-execution-review-item p {
+        margin: 0;
+        color: var(--figma-color-text-secondary);
+        line-height: 1.5;
+      }
+
+      .button-execution-candidate-heading {
+        color: var(--figma-color-text-secondary);
+        font-size: 11px;
+      }
+
+      .button-execution-candidates {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .button-execution-candidates code {
+        padding: 3px 6px;
+        border-radius: 4px;
+        color: var(--figma-color-text);
+        background: var(--figma-color-bg-tertiary);
+      }
+
+      .button-execution-empty {
+        color: var(--figma-color-text-secondary);
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Figma Spec v2</h1>
+
+    <section id="current-screen-section" class="context-card">
+      <h2>현재 작업 화면</h2>
+      <p id="current-screen-empty">아직 작업 화면을 선택하지 않았습니다.</p>
+      <div id="current-screen-summary" hidden>
+        <strong id="current-screen-id"></strong>
+        <span id="current-screen-name"></span>
+        <code id="current-wireframe-key"></code>
+        <section id="state-scope-summary" hidden>
+          <h3>입력값 처리</h3>
+          <dl>
+            <div>
+              <dt>스코프</dt>
+              <dd><code id="state-scope-key"></code></dd>
+            </div>
+            <div>
+              <dt>유지</dt>
+              <dd id="state-scope-retention"></dd>
+            </div>
+            <div>
+              <dt>제거</dt>
+              <dd id="state-scope-clear-on"></dd>
+            </div>
+          </dl>
+          <p id="state-scope-status" role="status"></p>
+        </section>
+      </div>
+      <button id="save-screen" type="button" hidden>이 화면 저장</button>
+      <button id="save-figma-raw" type="button" hidden>
+        Figma 원본 JSON 저장
+      </button>
+      <button id="load-local-screen" type="button" hidden>
+        로컬 초안 불러오기
+      </button>
+      <p id="screen-save-status" role="status" hidden></p>
+    </section>
+
+    <h2 id="selected-node-heading">선택한 노드</h2>
+    <div id="empty-state">Figma 요소를 선택하세요.</div>
+    <dl id="selection-details" hidden>
+      <div>
+        <dt>nodeId</dt>
+        <dd><code id="node-id"></code></dd>
+      </div>
+      <div>
+        <dt>name</dt>
+        <dd><code id="node-name"></code></dd>
+      </div>
+      <div>
+        <dt>type</dt>
+        <dd><code id="node-type"></code></dd>
+      </div>
+    </dl>
+
+    <section id="screen-selection-section" class="context-card" hidden>
+      <h2 id="screen-selection-title">작업 화면 선택</h2>
+      <p id="screen-selection-description"></p>
+      <label>
+        wireframeKey
+        <input
+          id="wireframe-key-input"
+          type="text"
+          autocomplete="off"
+          placeholder="예: vada-onboarding"
+        />
+      </label>
+      <label>
+        screenId
+        <input
+          id="screen-id-input"
+          type="text"
+          autocomplete="off"
+          placeholder="예: ONB-01"
+        />
+      </label>
+      <button id="set-active-screen" type="button">
+        이 화면에서 작업하기
+      </button>
+      <p id="screen-context-error" role="alert" hidden></p>
+    </section>
+
+    <div id="selection-notice" role="status" hidden></div>
+
+    <section id="element-type-section" hidden>
+      <h2>요소 유형</h2>
+      <p>이 요소가 구현에서 맡는 역할을 선택하세요.</p>
+      <div id="element-type-options"></div>
+      <div id="registration-controls" hidden>
+        <div id="registration-summary">
+          <div id="selected-element-type" role="status"></div>
+          <button id="cancel-registration" type="button">요소 등록 취소</button>
+        </div>
+        <div id="cancel-registration-confirmation" hidden>
+          <p>이 요소의 작성 내용을 삭제할까요?</p>
+          <div id="cancel-registration-actions">
+            <button id="keep-registration" type="button">돌아가기</button>
+            <button id="confirm-cancel-registration" type="button">등록 삭제</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="schema-keys-section" hidden>
+      <h2>요소 스키마 key</h2>
+      <ul id="schema-keys"></ul>
+    </section>
+
+    <!-- UI_SCRIPT -->
+  </body>
+</html>

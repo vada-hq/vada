@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "option-sources.schema.json",
+  "title": "Wireframe option source catalog",
+  "description": "Remote responses are normalized to { options: [{ value, label, disabled? }] }.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "sources"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 2
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "type",
+          "description",
+          "params"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "static",
+              "remote"
+            ]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "params": {
+            "type": "array",
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "options": {
+            "$ref": "#/$defs/options"
+          },
+          "request": {
+            "$ref": "#/$defs/request"
+          },
+          "messages": {
+            "$ref": "#/$defs/messages"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "static"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            "then": {
+              "required": [
+                "options"
+              ],
+              "not": {
+                "anyOf": [
+                  {
+                    "required": [
+                      "request"
+                    ]
+                  },
+                  {
+                    "required": [
+                      "messages"
+                    ]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "type": {
+                  "const": "remote"
+                }
+              },
+              "required": [
+                "type"
+              ]
+            },
+            "then": {
+              "required": [
+                "request",
+                "messages"
+              ],
+              "not": {
+                "required": [
+                  "options"
+                ]
+              }
+            }
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "options": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "value",
+          "label"
+        ],
+        "properties": {
+          "value": {
+            "type": [
+              "string",
+              "integer",
+              "number",
+              "boolean"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "disabled": {
+            "type": "boolean"
+          }
+        }
+      }
+    },
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "method",
+        "path",
+        "loadOn"
+      ],
+      "properties": {
+        "method": {
+          "const": "GET"
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^/"
+        },
+        "loadOn": {
+          "type": "string",
+          "enum": [
+            "search",
+            "open"
+          ]
+        },
+        "search": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/remoteSearch"
+            },
+            {
+              "$ref": "#/$defs/clientSearch"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "loadOn": {
+                "const": "search"
+              }
+            },
+            "required": [
+              "loadOn"
+            ]
+          },
+          "then": {
+            "required": [
+              "search"
+            ],
+            "properties": {
+              "search": {
+                "$ref": "#/$defs/remoteSearch"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "remoteSearch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "queryParam",
+        "minLength",
+        "debounceMs"
+      ],
+      "properties": {
+        "mode": {
+          "const": "remote"
+        },
+        "queryParam": {
+          "type": "string",
+          "minLength": 1
+        },
+        "minLength": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "debounceMs": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "clientSearch": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "const": "client"
+        }
+      }
+    },
+    "messages": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "idle",
+        "loading",
+        "empty",
+        "error"
+      ],
+      "properties": {
+        "idle": {
+          "type": "string",
+          "minLength": 1
+        },
+        "loading": {
+          "type": "string",
+          "minLength": 1
+        },
+        "empty": {
+          "type": "string",
+          "minLength": 1
+        },
+        "error": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

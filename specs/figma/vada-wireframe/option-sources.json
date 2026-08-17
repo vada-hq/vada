@@ -1,0 +1,105 @@
+{
+  "schemaVersion": 2,
+  "sources": [
+    {
+      "key": "education.schools",
+      "type": "remote",
+      "description": "학교명 검색 결과",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/education/schools",
+        "loadOn": "search",
+        "search": {
+          "mode": "remote",
+          "queryParam": "q",
+          "minLength": 2,
+          "debounceMs": 300
+        }
+      },
+      "messages": {
+        "idle": "학교명을 2자 이상 입력하세요",
+        "loading": "학교를 검색하는 중입니다",
+        "empty": "검색 결과가 없습니다",
+        "error": "학교 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "education.colleges",
+      "type": "remote",
+      "description": "선택한 학교의 단과대학 목록",
+      "params": [
+        "schoolId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/education/colleges",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 단과대학 목록을 불러오세요",
+        "loading": "단과대학 목록을 불러오는 중입니다",
+        "empty": "선택할 수 있는 단과대학이 없습니다",
+        "error": "단과대학 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "education.departments",
+      "type": "remote",
+      "description": "선택한 학교와 단과대학의 학부·학과 목록",
+      "params": [
+        "schoolId",
+        "collegeId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/education/departments",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 학부·학과 목록을 불러오세요",
+        "loading": "학부·학과 목록을 불러오는 중입니다",
+        "empty": "선택할 수 있는 학부·학과가 없습니다",
+        "error": "학부·학과 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "education.currentGrades",
+      "type": "static",
+      "description": "현재 학년 목록",
+      "params": [],
+      "options": [
+        {
+          "value": "1",
+          "label": "1학년"
+        },
+        {
+          "value": "2",
+          "label": "2학년"
+        },
+        {
+          "value": "3",
+          "label": "3학년"
+        },
+        {
+          "value": "4",
+          "label": "4학년"
+        },
+        {
+          "value": "5",
+          "label": "5학년"
+        },
+        {
+          "value": "6",
+          "label": "6학년"
+        }
+      ]
+    }
+  ]
+}

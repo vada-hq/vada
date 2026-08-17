@@ -1,0 +1,385 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "figma-design.schema.json",
+  "title": "Normalized Figma screen design",
+  "description": "Deterministic implementation-oriented derivative of figma.raw.json. Rendering conventions: (1) node.children is ordered back-to-front, so later siblings paint above earlier siblings; (2) children of a frame without layout.mode are absolutely positioned at their box coordinates; (3) box values are the saved-state snapshot relative to the parent (root at 0,0) — when the parent declares auto-layout, the layout rules are authoritative for resize behavior.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "screenId",
+    "source",
+    "viewport",
+    "root",
+    "assets"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "screenId": {
+      "$ref": "#/$defs/nonEmptyString"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "format",
+        "nodeId",
+        "rawFile"
+      ],
+      "properties": {
+        "format": {
+          "const": "JSON_REST_V1"
+        },
+        "nodeId": {
+          "$ref": "#/$defs/nonEmptyString"
+        },
+        "rawFile": {
+          "$ref": "#/$defs/nonEmptyString"
+        }
+      }
+    },
+    "viewport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "number",
+          "minimum": 0
+        },
+        "height": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    },
+    "root": {
+      "$ref": "#/$defs/node"
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    }
+  },
+  "$defs": {
+    "nonEmptyString": {
+      "type": "string",
+      "minLength": 1
+    },
+    "box": {
+      "type": "object",
+      "description": "Position and size relative to the parent node's box (the root sits at 0,0). This is the saved-state snapshot; auto-layout rules on the parent take precedence for resize behavior.",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "width",
+        "height"
+      ],
+      "properties": {
+        "x": { "type": "number" },
+        "y": { "type": "number" },
+        "width": { "type": "number", "minimum": 0 },
+        "height": { "type": "number", "minimum": 0 },
+        "rotation": { "type": "number" }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": { "$ref": "#/$defs/nonEmptyString" },
+        "sizing": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "horizontal": { "$ref": "#/$defs/nonEmptyString" },
+            "vertical": { "$ref": "#/$defs/nonEmptyString" },
+            "primaryAxis": { "$ref": "#/$defs/nonEmptyString" },
+            "counterAxis": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "alignment": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "primaryAxis": { "$ref": "#/$defs/nonEmptyString" },
+            "counterAxis": { "$ref": "#/$defs/nonEmptyString" },
+            "self": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "grow": {
+          "const": 1,
+          "description": "Present when the node stretches along the parent's primary axis (normalized flex-grow)."
+        },
+        "positioning": { "$ref": "#/$defs/nonEmptyString" },
+        "gap": { "type": "number" },
+        "crossGap": { "type": "number" },
+        "strokesIncludedInLayout": {
+          "const": true,
+          "description": "Present when this auto-layout frame has strokes that consume layout space: padding is measured inside the stroke, like the CSS border-box model. Absent means strokes overlay without affecting layout (Figma default)."
+        },
+        "padding": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["top", "right", "bottom", "left"],
+          "properties": {
+            "top": { "type": "number" },
+            "right": { "type": "number" },
+            "bottom": { "type": "number" },
+            "left": { "type": "number" }
+          }
+        },
+        "overflow": {
+          "type": "string",
+          "enum": ["horizontal", "vertical", "both"]
+        },
+        "wrap": { "$ref": "#/$defs/nonEmptyString" },
+        "constraints": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["horizontal", "vertical"],
+          "properties": {
+            "horizontal": { "$ref": "#/$defs/nonEmptyString" },
+            "vertical": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "grid": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "columns": { "type": "integer", "minimum": 0 },
+            "rows": { "type": "integer", "minimum": 0 },
+            "columnGap": { "type": "number" },
+            "rowGap": { "type": "number" },
+            "columnsSizing": { "$ref": "#/$defs/nonEmptyString" },
+            "rowsSizing": { "$ref": "#/$defs/nonEmptyString" },
+            "autoTracks": { "$ref": "#/$defs/nonEmptyString" },
+            "itemsPositioning": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "gridPlacement": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "row": { "type": "integer", "minimum": 0 },
+            "column": { "type": "integer", "minimum": 0 },
+            "rowSpan": { "type": "integer", "minimum": 1 },
+            "columnSpan": { "type": "integer", "minimum": 1 },
+            "horizontalAlign": { "$ref": "#/$defs/nonEmptyString" },
+            "verticalAlign": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "minWidth": { "type": "number" },
+            "maxWidth": { "type": "number" },
+            "minHeight": { "type": "number" },
+            "maxHeight": { "type": "number" }
+          }
+        }
+      }
+    },
+    "paint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": { "$ref": "#/$defs/nonEmptyString" },
+        "color": { "type": "string", "pattern": "^#[0-9A-F]{6}$" },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "visible": { "type": "boolean" },
+        "blendMode": { "$ref": "#/$defs/nonEmptyString" },
+        "imageRef": { "$ref": "#/$defs/nonEmptyString" },
+        "scaleMode": { "$ref": "#/$defs/nonEmptyString" },
+        "rotation": { "type": "number" },
+        "scalingFactor": { "type": "number" },
+        "stops": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["position"],
+            "properties": {
+              "position": { "type": "number" },
+              "color": { "type": "string", "pattern": "^#[0-9A-F]{6}$" },
+              "opacity": { "type": "number", "minimum": 0, "maximum": 1 }
+            }
+          }
+        },
+        "handles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["x", "y"],
+            "properties": {
+              "x": { "type": "number" },
+              "y": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "appearance": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fills": { "type": "array", "items": { "$ref": "#/$defs/paint" } },
+        "strokes": { "type": "array", "items": { "$ref": "#/$defs/paint" } },
+        "stroke": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "weight": { "type": "number" },
+            "align": { "$ref": "#/$defs/nonEmptyString" },
+            "join": { "$ref": "#/$defs/nonEmptyString" },
+            "cap": { "$ref": "#/$defs/nonEmptyString" },
+            "dashPattern": { "type": "array", "items": { "type": "number" } }
+          }
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type"],
+            "properties": {
+              "type": { "$ref": "#/$defs/nonEmptyString" },
+              "visible": { "type": "boolean" },
+              "radius": { "type": "number" },
+              "spread": { "type": "number" },
+              "offset": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["x", "y"],
+                "properties": {
+                  "x": { "type": "number" },
+                  "y": { "type": "number" }
+                }
+              },
+              "color": { "type": "string", "pattern": "^#[0-9A-F]{6}$" },
+              "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+              "blendMode": { "$ref": "#/$defs/nonEmptyString" }
+            }
+          }
+        },
+        "opacity": { "type": "number", "minimum": 0, "maximum": 1 },
+        "blendMode": { "$ref": "#/$defs/nonEmptyString" },
+        "clipsContent": { "type": "boolean" },
+        "mask": { "type": "boolean" },
+        "visible": { "type": "boolean" },
+        "cornerRadius": {
+          "type": "number",
+          "description": "Clamped to half of the node's smaller box dimension, so pill shapes carry their effective radius instead of Figma's float-max sentinel."
+        },
+        "cornerRadii": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": { "type": "number" },
+          "description": "Per-corner radii (top-left, top-right, bottom-right, bottom-left), clamped like cornerRadius."
+        }
+      }
+    },
+    "textStyle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "fontFamily": { "$ref": "#/$defs/nonEmptyString" },
+        "fontStyle": { "$ref": "#/$defs/nonEmptyString" },
+        "fontWeight": { "type": "number" },
+        "fontSize": { "type": "number" },
+        "horizontalAlign": { "$ref": "#/$defs/nonEmptyString" },
+        "verticalAlign": { "$ref": "#/$defs/nonEmptyString" },
+        "autoResize": { "$ref": "#/$defs/nonEmptyString" },
+        "letterSpacing": { "type": "number" },
+        "lineHeight": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["unit"],
+          "properties": {
+            "value": { "type": "number" },
+            "unit": { "$ref": "#/$defs/nonEmptyString" }
+          }
+        },
+        "textCase": { "$ref": "#/$defs/nonEmptyString" },
+        "textDecoration": { "$ref": "#/$defs/nonEmptyString" },
+        "paragraphSpacing": { "type": "number" },
+        "paragraphIndent": { "type": "number" }
+      }
+    },
+    "text": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["content"],
+      "properties": {
+        "content": { "type": "string" },
+        "style": { "$ref": "#/$defs/textStyle" },
+        "runs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["start", "end", "style"],
+            "properties": {
+              "start": { "type": "integer", "minimum": 0 },
+              "end": { "type": "integer", "minimum": 0 },
+              "style": {
+                "type": "object",
+                "description": "Text-style overrides plus optional paints or hyperlink metadata."
+              }
+            }
+          }
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "name"],
+      "properties": {
+        "id": { "$ref": "#/$defs/nonEmptyString" },
+        "type": { "$ref": "#/$defs/nonEmptyString" },
+        "name": { "type": "string" },
+        "box": { "$ref": "#/$defs/box" },
+        "layout": { "$ref": "#/$defs/layout" },
+        "appearance": { "$ref": "#/$defs/appearance" },
+        "text": { "$ref": "#/$defs/text" },
+        "component": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "id": { "$ref": "#/$defs/nonEmptyString" },
+            "properties": { "type": "object" }
+          }
+        },
+        "assetRef": { "$ref": "#/$defs/nonEmptyString" },
+        "children": {
+          "type": "array",
+          "description": "Ordered back-to-front: later siblings render above earlier siblings. Inside a frame without layout.mode, each child is absolutely positioned at its box coordinates.",
+          "items": { "$ref": "#/$defs/node" }
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nodeId", "format", "file"],
+      "properties": {
+        "nodeId": { "$ref": "#/$defs/nonEmptyString" },
+        "format": { "const": "svg" },
+        "file": { "$ref": "#/$defs/nonEmptyString" }
+      }
+    }
+  }
+}
