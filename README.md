@@ -44,6 +44,15 @@ node apps/spec-service/src/generate-figma-design.mjs specs/figma/<wireframeKey>/
 
 변환 결과는 원본과 같은 화면 폴더의 `figma.design.json`에 원자적으로 저장된다.
 
+## 전체 검사
+
+저장소 루트에서 세 앱의 테스트·검증·e2e·빌드를 일괄 실행한다. 각 앱은 자기 `package.json`과 `node_modules`를 그대로 유지하며, 루트는 스크립트만 모은다.
+
+```powershell
+npm run check     # test + validate + e2e + build
+npm test          # 세 앱의 테스트만
+```
+
 ## 커밋 훅
 
 스펙 검증은 pre-commit 훅으로 강제된다(오류 시 커밋 차단). 새로 클론하면 한 번 활성화한다:
