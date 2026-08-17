@@ -17,13 +17,14 @@
 - **정규화**(packages/contracts + generate-figma-design.mjs): raw→design 결정적 변환(AI 불필요), `source.hash`(raw SHA-256)로 신선도 추적. 원본 저장→정규화 자동 연결은 보류 — 저장 후 CLI를 수동 실행한다.
 - **검증**(validate-specs.mjs): 스키마(ajv) + 교차 참조(중복 fieldKey·nodeId, 출처 key·인자 매핑, enabledWhen/resetOnChangeOf, 상태 스코프, 이동 대상, design nodeId·자산·reference, hash 신선도). 오류 시 종료 코드 1.
 - **판정기**(button-execution.mjs): 필수값 존재 판정(공백·null은 누락, 0·false는 값), `executeWhen` 생략=항상 실행, `onExecutionBlocked`와 쌍 규칙. 앱이 재구현 없이 직접 import한다.
-- **테스트**: 플러그인 100, spec-service·변환기·검증 25, vada-web(vitest) 12 — 전부 통과. 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **테스트**: 플러그인 100, spec-service·변환기·검증 25, vada-web(vitest) 13 — 전부 통과. 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **화면 산출물 구조**: 화면의 모든 산출물(screen.json·figma.raw.json·figma.design.json·assets·reference.png)은 `screens/<screenId>/` 폴더 하나에 모인다. 브리지 API 경로는 그대로다.
 
 ## 현재 상태 — 제품 vada
 
 - **명세**: ONB-01 완결(동작 + figma.design.json + 자산 11 + reference.png). ONB-02는 동작 명세만(버튼 3개, 실행 조건 없음). ORG-01·INV-00은 이동 대상으로만 등장(검증 경고 2건, 의도된 미완성).
 - **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): ONB-01 파일럿 구현·사용자 검증 통과(2026-08-17). 스펙 JSON과 판정기를 직접 import하고, option-sources 계약대로 mock(450ms 지연)이 응답하며, onboardingDraft는 메모리 수준으로 왕복 유지, ONB-02는 자리표시. 독립 코드 리뷰 결함 6건(F1~F6)은 vitest 테스트와 함께 전부 수정했다.
-- **마찰 로그**: `docs/pilot-onb01.md`에 9건 — 2·4·5·7·9 해결(관례 반영), 1 기록(interpretation 사례표), 3·6·8은 백로그.
+- **마찰 로그**: `docs/pilot-onb01.md`에 11건 — 2·4·5·7·9 해결(관례 반영), 1 기록(interpretation 사례표), 3·6·8·10·11은 백로그·차기 결정. ONB-01 코드 워크스루 리뷰(2026-08-17)의 잔여 발견은 전부 `docs/BACKLOG.md`에 있다.
 
 ## 규약 포인터
 
