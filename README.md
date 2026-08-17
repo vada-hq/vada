@@ -13,10 +13,18 @@ figma-spec-v2/
 │  └─ contracts/       # JSON 형식과 검증 규칙의 유일한 원본
 │     └─ schemas/      # 사람이 직접 관리하는 JSON Schema 원본
 ├─ docs/
-│  └─ decisions/       # 확정된 설계 결정 기록
-├─ specs/figma/         # wireframe별 화면·옵션 출처·상태 스코프 JSON
+│  └─ decisions/       # 프로젝트 전역 설계 결정 기록
+├─ specs/figma/         # wireframe별 화면·옵션 출처·상태 스코프 JSON·원본 해석
 └─ tests/               # 구성 요소 사이의 통합 검증
 ```
+
+## 결정 기록 위치
+
+기록은 적용 범위에 맞는 위치에 남긴다. 특정 wireframe 사례를 전역 문서에 섞지 않는다.
+
+- 프로젝트 전역 결정(요소 유형, 구현 관례): `docs/decisions/*.md`
+- wireframe 원본을 읽는 법과 화면별 특이사항(캡처 스케일, 폰트 아티팩트, 색 매핑표): `specs/figma/<wireframeKey>/interpretation.md`
+- 진행 상태와 다음 단계: `docs/HANDOFF.md`
 
 ## 화면별 Figma 산출물
 

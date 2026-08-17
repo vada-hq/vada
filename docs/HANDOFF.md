@@ -83,15 +83,15 @@
 - ONB-01 다음 버튼은 현재 화면 범위의 필수값 존재 조건과 차단 동작을 명시하며, 일반화된 계약·공통 판정기·회귀 테스트가 추가되었다.
 - 플러그인 전체 테스트 100개, spec-service·변환기·검증 테스트 25개와 번들 빌드가 통과했다.
 - 저장소를 git으로 관리한다(main 브랜치, node_modules·dist 제외, LF 정규화). 명세 변경 이력·롤백은 git이 담당하므로 SHA-256 수기 기록은 더 이상 하지 않는다.
-- 프론트엔드 구현 해석 규칙을 `docs/decisions/implementation-conventions.md`로 확정했다: ÷0.875 환산 후 표준 스케일 스냅, lucide 아이콘 직접 사용(assets/*.svg는 검증 증거물), Pretendard, 유동 반응형(모바일 별도 설계 없음), 시맨틱 색 토큰, placeholder gray-400, 상태 시각 관례.
+- 프론트엔드 구현 관례를 적용 범위에 따라 두 층위로 기록한다. 전역 관례는 `docs/decisions/implementation-conventions.md`(캡처 스케일 해제 후 표준 스냅, 아이콘 라이브러리 직접 사용, Pretendard, 유동 반응형, 시맨틱 색 토큰, placeholder gray-400, 상태 시각 관례), wireframe별 캡처 특성·색 매핑표·화면 특이사항은 `specs/figma/<wireframeKey>/interpretation.md`다. vada-wireframe의 해석(0.875 스케일, Inter 아티팩트, ONB-01 아이콘 식별·빈 Dropdown)은 `specs/figma/vada-wireframe/interpretation.md`에 있고, 이후 다른 wireframe도 같은 구조로 기록한다.
 
 ## 다음 한 단계
 
 ONB-01 명세가 완결되었으므로 프론트엔드 화면 구현을 시작한다. 구현 위치(저장소·앱 구조)와 스택은 시작 전에 사용자와 정한다.
 
 1. 동작은 `specs/figma/vada-wireframe/screens/ONB-01.json`, `option-sources.json`, `state-scopes.json`을 따른다.
-2. 시각은 `screens/ONB-01/figma.design.json`을 기준으로 하되 `docs/decisions/implementation-conventions.md`의 확정 규칙(÷0.875 환산 후 표준 스케일 스냅, lucide 아이콘 직접 사용, Pretendard, 유동 반응형, 시맨틱 색 토큰)을 적용하고, 레이아웃 구조·비율 검증은 `reference.png`와 대조한다. `assets/*.svg`는 구현용 자산이 아니라 추출 검증 증거물이다.
-3. 세부 상태 관례(placeholder 색, hover/focus/오류, 빈 Dropdown 처리)도 같은 규칙 문서를 따른다.
+2. 시각은 `screens/ONB-01/figma.design.json`을 기준으로 하되 전역 관례 `docs/decisions/implementation-conventions.md`와 wireframe 해석 `specs/figma/vada-wireframe/interpretation.md`(0.875 환산, 색 매핑표 등)를 적용하고, 레이아웃 구조·비율 검증은 `reference.png`와 대조한다. `assets/*.svg`는 구현용 자산이 아니라 추출 검증 증거물이다.
+3. 세부 상태 관례(placeholder 색, hover/focus/오류)는 전역 관례 문서를, ONB-01 특이사항(빈 Dropdown, 아이콘 식별)은 interpretation.md를 따른다.
 
 주기적 자동 감시, 원본 저장 직후 자동 정규화, 변경점 비교 화면, 자동 병합은 편의 기능으로 보류한다. 개인 Figma 계정이 연결되는 원격 Figma MCP 통합도 진행하지 않는다.
 
