@@ -90,7 +90,7 @@
 
 ## 다음 한 단계
 
-ONB-01 파일럿 구현 1차가 `apps/vada-web`에 완료됐다(빌드·판정기 스모크 통과, 마찰 로그 7건 기록). 다음은 사용자 검증이다: `apps/vada-web`에서 `npm run dev`를 실행해 `reference.png`와 구조·비율을 육안 대조하고, 동작 시나리오(학교 검색→단과대학·학부·학과 연쇄, 빈 제출 시 첫 누락 필드 포커스, ONB-02 왕복 후 값 유지)를 확인한다. 검증에서 발견되는 것은 `docs/pilot-onb01.md` 마찰 로그에 추가하고, 그 로그를 근거로 다음 형식화(마찰 로그 3·4·5번 등)를 결정한다.
+ONB-01 파일럿이 사용자 검증을 통과했다(2026-08-17, 스크린샷 6장: 초기 상태·검색 목록·연쇄 활성화·차단 시 첫 누락 포커스·ONB-02 왕복·값 유지 복원 모두 명세대로). 검증 중 마찰 로그 8번(활성화 후 placeholder 문구 부적합)이 추가됐다. 다음은 두 갈래를 사용자와 정한다: ① 마찰 로그 3·4·5·8번의 형식화 여부 결정(스펙·관례 반영), ② 다음 화면 사이클 — ONB-02 시각 스펙 추출(플러그인 원본 저장→정규화)→구현으로 화면당 비용을 처음 실측한다.
 
 1. 동작은 `specs/figma/vada-wireframe/screens/ONB-01.json`, `option-sources.json`, `state-scopes.json`을 따른다.
 2. 시각은 `screens/ONB-01/figma.design.json`을 기준으로 하되 제품 관례 `docs/decisions/vada-conventions.md`와 wireframe 해석 `specs/figma/vada-wireframe/interpretation.md`(0.875 환산, 색 매핑표 등)를 적용하고, 레이아웃 구조·비율 검증은 `reference.png`와 대조한다. `assets/*.svg`는 구현용 자산이 아니라 추출 검증 증거물이다.
