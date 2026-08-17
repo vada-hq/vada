@@ -25,7 +25,7 @@
 | --- | --- | --- | --- | --- |
 | 1 | 섹션 라벨·푸터 fontSize 11(lh 16.5)은 ÷0.875=12.57로 표준 스케일 밖 — 0.875 가설의 첫 반례. 카드 radius 9.25(→10.57)도 동일 | 아니오 | text-xs(12)·rounded-xl(12)로 스냅 | interpretation에 "표준 밖 값과 스냅 결과" 사례표 |
 | 2 | 열린 드롭다운 목록 패널의 시각이 번들에 없음(와이어프레임에 열린 상태가 그려진 화면 없음) | 아니오 | white·border gray-200·rounded-md·shadow-md, 항목 hover gray-50, 선택 항목 blue-600 | vada-conventions 7번에 패널 스타일 추가(반영함) |
-| 3 | mock 데이터의 내용과 value(id) 형식이 번들에 없음 — schools 응답의 value가 무엇인지(uuid? 코드?) 미정 | 아니오 | `sch-001` 형식의 임시 fixture 작성 | option-sources에 값 형식·예시 응답 계약 추가 |
+| 3 | mock 데이터의 내용과 value(id) 형식이 번들에 없음 — schools 응답의 value가 무엇인지(uuid? 코드?), 검색 의미론(부분일치·초성·대소문자)도 미정 | 아니오 | `sch-001` 형식의 임시 fixture + label 부분일치 검색 | option-sources에 값 형식·검색 의미론·예시 응답 계약 추가 |
 | 4 | select은 value(id)만 저장하는데 재방문 시 라벨을 다시 그릴 방법이 스펙에 없음 | 아니오 | draft에 labels 보조 저장(값과 별도) | 해결 — vada-conventions 7번에 라벨 병행 저장 관례 반영 |
 | 5 | 비활성 필드 시각이 관례 6번(bg gray-100)과 wireframe 사실(bg gray-50, 라벨·텍스트 gray-400, 아이콘 gray-300)이 충돌 | 예(design.json) | wireframe 값을 적용 | 해결 — vada-conventions 상단에 우선순위 원칙 명시 |
 | 6 | 구현 결과를 reference.png와 자동 대조할 수단이 파이프라인에 없음 | 아니오 | 육안 대조 | 스크린샷 비교 도구 — 트리거: 구현 화면 수 증가 |
