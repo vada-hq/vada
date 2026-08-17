@@ -560,3 +560,65 @@ test("허용되지 않은 웹 Origin의 요청은 쓰기 전에 거부한다", a
     "https://www.figma.com"
   );
 });
+
+test("화면 폴더의 Figma 노드 신원이 다르면 원본 번들을 덮어쓰지 않는다", async (t) => {
+  const { baseUrl, specsRoot } = await startServer(t);
+  const rawUrl = `${baseUrl}/v1/screens/vada-wireframe/ONB-02/figma-raw`;
+  const json = { "Content-Type": "application/json" };
+
+  const first = await fetch(rawUrl, {
+    method: "PUT",
+    headers: json,
+    body: JSON.stringify(createFigmaRaw())
+  });
+  assert.equal(first.status, 200);
+
+  // 같은 화면 재저장(디자인 수정 후 다시 뽑기)은 정상 동작이다.
+  const again = await fetch(rawUrl, {
+    method: "PUT",
+    headers: json,
+    body: JSON.stringify(createFigmaRaw())
+  });
+  assert.equal(again.status, 200, "같은 노드의 재저장은 허용해야 한다");
+
+  // screenId를 잘못 지정한 채 다른 프레임을 저장하면 차단한다.
+  const mismatched = await fetch(rawUrl, {
+    method: "PUT",
+    headers: json,
+    body: JSON.stringify({ document: { id: "9:9", name: "다른 화면" } })
+  });
+  assert.equal(mismatched.status, 409);
+  assert.equal((await mismatched.json()).error.code, "screen_identity_mismatch");
+
+  const stored = JSON.parse(
+    await readFile(
+      join(specsRoot, "vada-wireframe", "screens", "ONB-02", "figma.raw.json"),
+      "utf8"
+    )
+  );
+  assert.equal(stored.document.id, "10:2", "기존 원본이 보존되어야 한다");
+});
+
+test("화면 JSON도 폴더 신원이 다른 노드로 덮어쓰지 못한다", async (t) => {
+  const { baseUrl } = await startServer(t);
+  const url = `${baseUrl}/v1/screens/vada-wireframe/ONB-02`;
+  const json = { "Content-Type": "application/json" };
+
+  const first = await fetch(url, {
+    method: "PUT",
+    headers: json,
+    body: JSON.stringify(createScreenSpec())
+  });
+  assert.equal(first.status, 200);
+
+  const mismatched = await fetch(url, {
+    method: "PUT",
+    headers: { ...json, "If-Match": first.headers.get("etag") },
+    body: JSON.stringify({
+      ...createScreenSpec(),
+      source: { ...createScreenSpec().source, nodeId: "9:9" }
+    })
+  });
+  assert.equal(mismatched.status, 409);
+  assert.equal((await mismatched.json()).error.code, "screen_identity_mismatch");
+});

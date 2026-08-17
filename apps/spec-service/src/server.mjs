@@ -530,6 +530,49 @@ async function readStoredText(filePath) {
   }
 }
 
+async function readJsonField(filePath, pick) {
+  const text = await readStoredText(filePath);
+
+  if (text === null) {
+    return null;
+  }
+
+  try {
+    const value = pick(JSON.parse(text));
+    return typeof value === "string" && value ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+// 화면 폴더의 신원은 Figma 노드 id다. screenId를 잘못 지정한 채 저장하면
+// 원본·자산 11개·reference.png가 한꺼번에 다른 화면 것으로 바뀌고,
+// reference.png는 시각 검증의 유일한 기준이라 어떤 검사도 이를 잡지 못한다.
+async function assertScreenFolderIdentity({ filePath, incomingNodeId, screenId }) {
+  if (typeof incomingNodeId !== "string" || !incomingNodeId) {
+    return;
+  }
+
+  const directory = dirname(filePath);
+  const knownNodeId =
+    (await readJsonField(
+      join(directory, "figma.raw.json"),
+      (value) => value?.document?.id
+    )) ??
+    (await readJsonField(
+      join(directory, "screen.json"),
+      (value) => value?.source?.nodeId
+    ));
+
+  if (knownNodeId !== null && knownNodeId !== incomingNodeId) {
+    throw new HttpError(
+      409,
+      "screen_identity_mismatch",
+      `'${screenId}' 폴더는 Figma 노드 ${knownNodeId}의 산출물입니다. 지금 저장하려는 화면은 ${incomingNodeId}이라 덮어쓰지 않았습니다. 작업 화면의 screenId를 확인하세요.`
+    );
+  }
+}
+
 function assertWriteRevision(request, storedText) {
   const ifMatch = String(request.headers["if-match"] ?? "").trim();
   const ifNoneMatch = String(
@@ -687,6 +730,11 @@ async function handlePutScreen({
 
   const body = await readRequestBody(request, maxBodyBytes);
   const screenSpec = parseScreenSpecJson(body, screenId);
+  await assertScreenFolderIdentity({
+    filePath,
+    incomingNodeId: screenSpec.source?.nodeId,
+    screenId
+  });
   const savedText = await writeJsonAtomically(filePath, screenSpec);
 
   response.setHeader("ETag", createRevision(savedText));
@@ -725,6 +773,13 @@ async function handlePutFigmaRaw({
     "Figma 원본 JSON은 25MB를 넘을 수 없습니다."
   );
   const raw = parseFigmaRawJson(body);
+  // 원본이 먼저 저장되고 실패 시 자산·reference 저장이 중단되므로,
+  // 여기서 막으면 번들 전체가 어긋난 폴더에 쓰이는 것을 막을 수 있다.
+  await assertScreenFolderIdentity({
+    filePath,
+    incomingNodeId: raw.document?.id,
+    screenId
+  });
   await writeJsonAtomically(filePath, raw);
 
   sendJson(response, 200, {
