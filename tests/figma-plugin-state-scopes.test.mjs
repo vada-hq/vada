@@ -16,11 +16,11 @@ const schemaUrl = new URL(
   import.meta.url
 );
 const onb01Url = new URL(
-  "../specs/figma/vada-wireframe/screens/ONB-01.json",
+  "../specs/figma/vada-wireframe/screens/ONB-01/screen.json",
   import.meta.url
 );
 const onb02Url = new URL(
-  "../specs/figma/vada-wireframe/screens/ONB-02.json",
+  "../specs/figma/vada-wireframe/screens/ONB-02/screen.json",
   import.meta.url
 );
 const uiHtmlUrl = new URL(

@@ -593,7 +593,8 @@ test("플러그인 저장 요청이 실제 브리지를 거쳐 정식 구조의 
           specsRoot,
           "vada-wireframe",
           "screens",
-          "ONB-02.json"
+          "ONB-02",
+          "screen.json"
         ),
         "utf8"
       )

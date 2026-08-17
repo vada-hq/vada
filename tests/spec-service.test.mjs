@@ -105,14 +105,15 @@ test("화면 JSON을 정식 경로에 원자적으로 저장하고 다시 조회
     specsRoot,
     "vada-wireframe",
     "screens",
-    "ONB-02.json"
+    "ONB-02",
+    "screen.json"
   );
   const fileContents = await readFile(filePath, "utf8");
   assert.equal(fileContents.endsWith("\n"), true);
   assert.deepEqual(JSON.parse(fileContents), screenSpec);
   assert.deepEqual(
     await readdir(join(specsRoot, "vada-wireframe", "screens")),
-    ["ONB-02.json"]
+    ["ONB-02"]
   );
 
   const updatedScreenSpec = {
@@ -154,7 +155,7 @@ test("화면 JSON을 정식 경로에 원자적으로 저장하고 다시 조회
   );
   assert.deepEqual(
     await readdir(join(specsRoot, "vada-wireframe", "screens")),
-    ["ONB-02.json"]
+    ["ONB-02"]
   );
 
   const getResponse = await fetch(screenUrl);
@@ -352,7 +353,7 @@ test("오래된 리비전으로 로컬 JSON을 덮어쓰지 못한다", async (t
   assert.deepEqual(
     JSON.parse(
       await readFile(
-        join(specsRoot, "vada-wireframe", "screens", "ONB-02.json"),
+        join(specsRoot, "vada-wireframe", "screens", "ONB-02", "screen.json"),
         "utf8"
       )
     ),

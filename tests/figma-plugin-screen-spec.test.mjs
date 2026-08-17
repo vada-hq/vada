@@ -697,7 +697,7 @@ test("화면 JSON 다운로드 이름과 내용은 screenId를 기준으로 만�
     elements: []
   };
 
-  assert.equal(getScreenSpecFileName(screenSpec), "ONB-01.json");
+  assert.equal(getScreenSpecFileName(screenSpec), "screens/ONB-01/screen.json");
   assert.equal(formatScreenSpecJson(screenSpec).endsWith("\n"), true);
   assert.deepEqual(JSON.parse(formatScreenSpecJson(screenSpec)), screenSpec);
 });

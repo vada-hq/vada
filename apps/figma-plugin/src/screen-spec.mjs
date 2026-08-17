@@ -515,7 +515,7 @@ export function restoreScreenSpec(screenNode) {
 }
 
 export function getScreenSpecFileName(screenSpec) {
-  return `${screenSpec.screenId}.json`;
+  return `screens/${screenSpec.screenId}/screen.json`;
 }
 
 export function formatScreenSpecJson(screenSpec) {

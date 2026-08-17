@@ -35,7 +35,7 @@ function element(nodeId, spec) {
 test("collectSpecFindings는 교차 참조 오류를 모두 찾는다", () => {
   const screens = [
     {
-      file: "screens/SCR-01.json",
+      file: "screens/SCR-01/screen.json",
       spec: {
         schemaVersion: 1,
         screenId: "SCR-01",
@@ -141,7 +141,7 @@ test("collectSpecFindings는 교차 참조 오류를 모두 찾는다", () => {
 test("collectSpecFindings는 정합한 명세에서 아무것도 보고하지 않는다", () => {
   const screens = [
     {
-      file: "screens/SCR-01.json",
+      file: "screens/SCR-01/screen.json",
       spec: {
         schemaVersion: 1,
         screenId: "SCR-01",
@@ -167,7 +167,7 @@ test("collectSpecFindings는 정합한 명세에서 아무것도 보고하지 �
       }
     },
     {
-      file: "screens/SCR-02.json",
+      file: "screens/SCR-02/screen.json",
       spec: {
         schemaVersion: 1,
         screenId: "SCR-02",
@@ -278,9 +278,9 @@ test("validateSpecsRoot는 스키마 위반과 파일 이름 불일치를 오류
   const root = await mkdtemp(join(tmpdir(), "figma-spec-validate-"));
   try {
     const wireframe = join(root, "test-wireframe");
-    await mkdir(join(wireframe, "screens"), { recursive: true });
+    await mkdir(join(wireframe, "screens", "BAD-01"), { recursive: true });
     await writeFile(
-      join(wireframe, "screens", "BAD-01.json"),
+      join(wireframe, "screens", "BAD-01", "screen.json"),
       JSON.stringify({
         schemaVersion: 1,
         screenId: "OTHER-ID",

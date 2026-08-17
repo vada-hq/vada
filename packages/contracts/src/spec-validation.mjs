@@ -191,12 +191,23 @@ export function collectSpecFindings({
       continue;
     }
 
-    const fileBase = String(file).split("/").pop()?.replace(/\.json$/u, "");
-    if (typeof spec.screenId === "string" && fileBase && fileBase !== spec.screenId) {
+    // 위치에서 기대 screenId를 얻는다: screens/<screenId>/screen.json 또는
+    // (과거 형태) screens/<screenId>.json 모두 지원한다.
+    const segments = String(file).split("/");
+    const screensIndex = segments.lastIndexOf("screens");
+    const locationId =
+      screensIndex >= 0 && segments.length > screensIndex + 1
+        ? segments[screensIndex + 1].replace(/\.json$/u, "")
+        : undefined;
+    if (
+      typeof spec.screenId === "string" &&
+      locationId &&
+      locationId !== spec.screenId
+    ) {
       findings.push({
         level: "error",
         file,
-        message: `screenId '${spec.screenId}'가 파일 이름 '${fileBase}'과 다릅니다.`
+        message: `screenId '${spec.screenId}'가 위치 '${locationId}'과 다릅니다.`
       });
     }
 

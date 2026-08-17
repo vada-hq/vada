@@ -232,7 +232,8 @@ export function resolveScreenSpecPath({ specsRoot, wireframeKey, screenId }) {
     absoluteRoot,
     wireframeKey,
     "screens",
-    `${screenId}.json`
+    screenId,
+    "screen.json"
   );
   const rootPrefix = absoluteRoot.endsWith(sep)
     ? absoluteRoot

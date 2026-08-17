@@ -1,6 +1,6 @@
 import type { ButtonSpec, InputSpec, ScreenSpec, SelectSpec } from './types'
-import onb01Json from '../../../../specs/figma/vada-wireframe/screens/ONB-01.json'
-import onb02Json from '../../../../specs/figma/vada-wireframe/screens/ONB-02.json'
+import onb01Json from '../../../../specs/figma/vada-wireframe/screens/ONB-01/screen.json'
+import onb02Json from '../../../../specs/figma/vada-wireframe/screens/ONB-02/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.

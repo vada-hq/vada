@@ -186,7 +186,7 @@ test("ONB-01 선택 요소는 wireframe 카탈로그 key와 인자 매핑만 참
     ),
     readFile(
       new URL(
-        "../specs/figma/vada-wireframe/screens/ONB-01.json",
+        "../specs/figma/vada-wireframe/screens/ONB-01/screen.json",
         import.meta.url
       ),
       "utf8"

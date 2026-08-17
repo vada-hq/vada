@@ -29,10 +29,14 @@ figma-spec-v2/
 - 진행 상태와 다음 단계: `docs/HANDOFF.md`
 - 미착수 백로그(스코프 태그·트리거 포함): `docs/BACKLOG.md`
 
-## 화면별 Figma 산출물
+## 화면별 산출물
 
+화면 하나의 모든 산출물은 `specs/figma/<wireframeKey>/screens/<screenId>/` 폴더 하나에 모인다.
+
+- `screen.json`: 동작 명세 (플러그인의 `이 화면 저장`이 생성)
 - `figma.raw.json`: 플러그인이 저장한 Figma REST 형식의 원본
 - `figma.design.json`: 원본을 결정적 규칙으로 정규화한 구현용 디자인 문서
+- `assets/*.svg`, `reference.png`: 벡터 추출 증거물과 검증 기준 스크린샷
 
 ```powershell
 node apps/spec-service/src/generate-figma-design.mjs specs/figma/<wireframeKey>/screens/<screenId>/figma.raw.json <screenId>

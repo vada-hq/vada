@@ -28,7 +28,7 @@ Figma에서 `이 화면 저장`을 사용하기 전에 이 프로세스가 실�
 
 `PUT`은 `application/json`만 허용한다. URL의 `screenId`와 JSON 본문의
 `screenId`가 같아야 하며, 저장 파일은
-`specs/figma/<wireframeKey>/screens/<screenId>.json`이다.
+`specs/figma/<wireframeKey>/screens/<screenId>/screen.json`이다.
 
 옵션 출처 GET은
 `specs/figma/<wireframeKey>/option-sources.json`을 읽는다. 이 카탈로그는

@@ -148,24 +148,15 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
   const designs = {};
 
   for (const entry of entries) {
-    if (entry.isFile() && entry.name.endsWith(".json")) {
-      const fileLabel = label("screens", entry.name);
-      let spec;
-      try {
-        spec = await readJsonFile(join(screensDir, entry.name));
-      } catch (error) {
+    if (entry.isFile()) {
+      if (entry.name.endsWith(".json")) {
         findings.push({
-          level: "error",
-          file: fileLabel,
-          message: `JSON을 읽을 수 없습니다: ${error.message}`
+          level: "warning",
+          file: label("screens", entry.name),
+          message:
+            "화면 명세는 screens/<screenId>/screen.json 구조를 따라야 합니다. screens/ 바로 아래의 파일은 무시됩니다."
         });
-        continue;
       }
-      if (!validators.screen(spec)) {
-        pushSchemaFindings(findings, fileLabel, "화면 스키마 위반: ", validators.screen.errors);
-      }
-      validateScreenElements(findings, fileLabel, spec, validators);
-      screens.push({ file: fileLabel, spec });
       continue;
     }
 
@@ -174,6 +165,29 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     }
 
     const screenDir = join(screensDir, entry.name);
+    const specPath = join(screenDir, "screen.json");
+    if (await pathExists(specPath)) {
+      const fileLabel = label("screens", entry.name, "screen.json");
+      let spec;
+      try {
+        spec = await readJsonFile(specPath);
+      } catch (error) {
+        findings.push({
+          level: "error",
+          file: fileLabel,
+          message: `JSON을 읽을 수 없습니다: ${error.message}`
+        });
+        spec = undefined;
+      }
+      if (spec !== undefined) {
+        if (!validators.screen(spec)) {
+          pushSchemaFindings(findings, fileLabel, "화면 스키마 위반: ", validators.screen.errors);
+        }
+        validateScreenElements(findings, fileLabel, spec, validators);
+        screens.push({ file: fileLabel, spec });
+      }
+    }
+
     const designPath = join(screenDir, "figma.design.json");
     const rawPath = join(screenDir, "figma.raw.json");
     const designLabel = label("screens", entry.name, "figma.design.json");
@@ -253,7 +267,7 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
       findings.push({
         level: "warning",
         file: designs[screenId].file,
-        message: `figma.design.json은 있으나 동작 명세 screens/${screenId}.json이 없습니다.`
+        message: `figma.design.json은 있으나 동작 명세 screens/${screenId}/screen.json이 없습니다.`
       });
     }
   }

@@ -241,7 +241,7 @@ test("ONB-02의 버튼은 필수 입력이 없는 화면이므로 실행 조건�
   const screenSpec = JSON.parse(
     await readFile(
       new URL(
-        "../specs/figma/vada-wireframe/screens/ONB-02.json",
+        "../specs/figma/vada-wireframe/screens/ONB-02/screen.json",
         import.meta.url
       ),
       "utf8"
