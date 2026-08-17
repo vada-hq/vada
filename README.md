@@ -44,6 +44,14 @@ node apps/spec-service/src/generate-figma-design.mjs specs/figma/<wireframeKey>/
 
 변환 결과는 원본과 같은 화면 폴더의 `figma.design.json`에 원자적으로 저장된다.
 
+## 커밋 훅
+
+스펙 검증은 pre-commit 훅으로 강제된다(오류 시 커밋 차단). 새로 클론하면 한 번 활성화한다:
+
+```powershell
+git config core.hooksPath .githooks
+```
+
 ## 명세 검증
 
 모든 명세를 JSON Schema와 교차 참조 규칙(중복 fieldKey, 선택지 출처·인자 매핑, 상태 스코프, 이동 대상 화면, design.json nodeId·자산 존재)으로 검사한다. 오류가 있으면 종료 코드 1을 반환한다.

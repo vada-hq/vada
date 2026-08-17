@@ -1,0 +1,10 @@
+#!/bin/sh
+# 스펙 검증을 커밋마다 강제한다 — 규율이 아니라 장치로.
+# 오류(경고 제외)가 있으면 커밋을 차단한다.
+node apps/spec-service/src/validate-specs.mjs
+status=$?
+if [ $status -ne 0 ]; then
+  echo "" >&2
+  echo "스펙 검증 오류로 커밋이 차단되었습니다. 위 오류를 고친 뒤 다시 커밋하세요." >&2
+  exit $status
+fi
