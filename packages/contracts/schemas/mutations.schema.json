@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "mutations.schema.json",
+  "title": "Mutation catalog",
+  "description": "wireframe 단위 데이터 전송 계약. option-sources와 같은 패턴으로, 버튼은 key만 참조하고 경로·payload 스코프·상태 문구는 여기에 중앙화한다. base URL과 인증 정보는 넣지 않는다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "mutations"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "mutations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "description",
+          "request",
+          "payloadScope",
+          "messages"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "request": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "method",
+              "path"
+            ],
+            "properties": {
+              "method": {
+                "enum": [
+                  "POST",
+                  "PUT",
+                  "PATCH",
+                  "DELETE"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "payloadScope": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+            "description": "전송할 값이 담긴 상태 스코프의 key. 그 스코프의 필드 값 전체를 보낸다."
+          },
+          "messages": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "submitting",
+              "error"
+            ],
+            "properties": {
+              "submitting": {
+                "type": "string",
+                "minLength": 1
+              },
+              "error": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

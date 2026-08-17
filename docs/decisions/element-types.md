@@ -17,7 +17,11 @@
 - `action.executeWhen`은 선택 사항이다. 생략하면 버튼은 조건 없이 항상 실행되고, 명시하면 `onExecutionBlocked`와 반드시 쌍으로 명시한다(스키마 `dependentRequired`로 강제).
 - 필수 입력이 없는 화면의 버튼과 뒤로 가기 버튼에는 실행 조건을 붙이지 않는다. 뒤로 가기도 별도 유형 없이 `action.type: navigate`와 명시적 `targetScreenId`로 표현한다.
 - **내비게이션 정합성 계약**: `targetScreenId`가 구현에 등록되지 않은 화면이면 구현은 조용한 대체(다른 화면 렌더) 없이 명시적 오류를 표시해야 한다. 스펙 단계에서는 검증 CLI가 미작성 대상 화면을 경고한다.
-- **action 확장 방향(2026-08-17 확정, 스키마는 예약)**: 데이터 전송은 `action.type: submit`으로 표현한다 — 제출 계약(POST 경로·payload 스코프·상태 문구)은 option-sources와 같은 패턴의 wireframe 단위 `mutations.json` 카탈로그에 중앙화하고 버튼은 key만 참조하며, 성공 시 `onSuccess: { navigate, scopeEvent? }`로 이동·스코프 이벤트를 함께 표현한다. **상태 스코프의 complete/cancel 이벤트는 action의 `scopeEvent`로만 발생한다** — 수명 관리(스코프 제거)와 데이터 전송(제출)은 분리된 관심사다. 스키마·검증기·구현 반영은 첫 제출 버튼이 등장하는 화면(ORG-01 예상)에서 증거와 함께 굳힌다.
+- **action 확장(2026-08-17 방향 확정 → 2026-08-18 ORG-02에서 스키마화)**: 데이터 전송은 `action.type: submit`으로 표현한다 — 제출 계약(경로·payload 스코프·상태 문구)은 option-sources와 같은 패턴의 wireframe 단위 `mutations.json` 카탈로그에 중앙화하고 버튼은 `mutationKey`만 참조하며, 성공 시 `onSuccess: { navigate?, scopeEvent? }`로 이동·스코프 이벤트를 함께 표현한다. **상태 스코프의 complete/cancel 이벤트는 action의 `scopeEvent`로만 발생한다** — 수명 관리(스코프 제거)와 데이터 전송(제출)은 분리된 관심사다. 예약해 둔 설계가 첫 실제 사례(ORG-02 `조직 만들기`)에서 그대로 맞았다.
+- 실행 조건 판정(`executeWhen`·`onExecutionBlocked`)은 action 종류와 무관하다. navigate든 submit이든 같은 필수값 규칙을 쓴다.
+- `list`는 사용자가 항목을 추가·이름 수정·삭제하는 목록이다. 지금까지의 요소가 모두 "값 하나"였던 것과 달리 값이 항목의 배열이다. `rootItem`이 있으면 고정 루트를 가진 트리로, 없으면 평면 목록으로 렌더한다. 개수는 `minItems`·`maxItems`로 정하며 `required`로 판정하지 않는다(필수값 판정 후보에 들어가지 않는다). 다른 필드 값에 따른 초기 항목은 `initialItems`로 표현하고, 그 값이 바뀔 때의 처리는 기존 `resetOnChangeOf`를 재사용한다.
+- `select.label`은 선택 사항이다. 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식 라디오 카드)은 생략한다 — 없는 카피를 지어내지 않는다.
+- 선택지에 부연 설명이 필요하면 카탈로그의 `options[].description`에 둔다. 구현은 설명이 있는 선택지를 카드형으로, 없으면 압축형으로 그린다.
 - 화면 수준 카피(제목·부제·안내문)는 화면 JSON의 선택적 `meta`(title·description·footerNote)에 두고, 구현은 이를 렌더하며 하드코딩하지 않는다. 흐름 단계 표시는 wireframe 단위 `flows.json` 카탈로그(순서 배열 멤버십, 한 화면은 한 흐름)에서 계산한다.
 - `select`는 목록에서 하나를 고르는 요소이며, `searchable`로 목록 필터링 가능 여부를 구분한다.
 - `select.presentation`은 선택 UI 형태다: `dropdown`(목록 패널을 열어 고른다, 생략 시 기본)과 `choiceGroup`(선택지를 모두 펼친 버튼 묶음). **`searchable`과는 다른 축이다** — 전자는 목록을 여는 방식, 후자는 목록을 거르는 방식이다. 같은 의미(하나 고르기)를 유지하므로 새 요소 유형을 만들지 않는다(ORG-01 `orgType`이 첫 사례).

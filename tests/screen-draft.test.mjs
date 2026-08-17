@@ -20,15 +20,20 @@ async function loadScreen(screenId) {
 }
 
 // 등록된 요소를 초안이 얼마나 재현하는가. 화면이 늘면 여기에 줄을 추가한다.
-// note는 완성된 문자열만 그려져 있어 디자인에서 유도할 수 없다(의도된 미달).
+// 유도 불가는 의도된 미달이며 그 이유가 서로 다르다:
+//   ORG-01 note  — 완성된 문자열만 그려져 있어 파생 여부를 알 수 없다
+//   ORG-02 select — 버튼 묶음이 '각각 버튼'인지 '하나 고르기'인지 색으로만 갈리는데
+//                   그건 이 제품의 디자인 시스템이라 파이프라인이 알 수 없다
+//   ORG-02 list   — 조직도 구조는 사례가 하나뿐이라 아직 일반화하지 않는다
 const EXPECTED = [
-  { screenId: "ONB-01", derivable: 7, note: 0 },
-  { screenId: "ONB-02", derivable: 3, note: 0 },
-  { screenId: "ORG-01", derivable: 8, note: 1 }
+  { screenId: "ONB-01", derivable: 7, notDerivable: 0 },
+  { screenId: "ONB-02", derivable: 3, notDerivable: 0 },
+  { screenId: "ORG-01", derivable: 8, notDerivable: 1 },
+  { screenId: "ORG-02", derivable: 2, notDerivable: 2 }
 ];
 
-for (const { screenId, derivable, note } of EXPECTED) {
-  test(`${screenId}의 등록 요소를 초안이 재현한다(note 제외)`, async () => {
+for (const { screenId, derivable, notDerivable } of EXPECTED) {
+  test(`${screenId}의 등록 요소를 초안이 재현한다(유도 불가 제외)`, async () => {
     const { design, spec } = await loadScreen(screenId);
     const { elements } = draftScreenElements(design);
     const rows = compareWithSpec(elements, spec.elements).filter(
@@ -44,9 +49,29 @@ for (const { screenId, derivable, note } of EXPECTED) {
         .map((row) => `${row.actual} ← ${row.draft}`)
         .join(" | ")}`
     );
-    assert.equal(rows.length - derived.length, note, "유도 불가 요소 수가 기대와 다릅니다");
+    assert.equal(
+      rows.length - derived.length,
+      notDerivable,
+      "유도 불가 요소 수가 기대와 다릅니다"
+    );
   });
 }
+
+test("애매한 버튼 묶음은 추측하지 않고 두 가지 읽기를 질문한다", async () => {
+  const { design } = await loadScreen("ORG-02");
+  const { questions } = draftScreenElements(design);
+
+  assert.ok(
+    questions.some(
+      (question) => question.includes("기본 조직, 빈 조직") && question.includes("choiceGroup")
+    ),
+    "라디오 카드로도 읽힐 수 있음을 알려야 한다"
+  );
+  assert.ok(
+    questions.some((question) => question.includes("텍스트 없는 조작")),
+    "항목 내부 조작(… 메뉴)은 화면 요소로 뽑지 않고 질문해야 한다"
+  );
+});
 
 test("초안은 사람만 아는 값을 추측하지 않고 질문으로 보고한다", async () => {
   const { design } = await loadScreen("ORG-01");

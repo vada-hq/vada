@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   getSchemaConstantValue,
+  getSchemaEnumValues,
   getSchemaPropertyEditorKind,
   getSchemaPropertyKeys,
   getSchemaPropertyKeysForElementType
@@ -50,16 +51,29 @@ test("button action은 일반 navigate 대상 화면을 표현한다", async () 
   assert.deepEqual(getSchemaPropertyKeys(actionSchema), [
     "type",
     "targetScreenId",
+    "mutationKey",
+    "onSuccess",
     "executeWhen",
     "onExecutionBlocked"
   ]);
-  assert.deepEqual(actionSchema.required, ["type", "targetScreenId"]);
+  // type만 공통 필수다. navigate·submit이 각각 요구하는 필드는 allOf가 강제한다.
+  assert.deepEqual(actionSchema.required, ["type"]);
+  assert.deepEqual(
+    actionSchema.allOf.map((branch) => [
+      branch.if.properties.type.const,
+      branch.then.required
+    ]),
+    [
+      ["navigate", ["targetScreenId"]],
+      ["submit", ["mutationKey", "onSuccess"]]
+    ]
+  );
   assert.deepEqual(actionSchema.dependentRequired, {
     executeWhen: ["onExecutionBlocked"],
     onExecutionBlocked: ["executeWhen"]
   });
   assert.equal(actionSchema.additionalProperties, false);
-  assert.equal(getSchemaConstantValue(actionSchema, "type"), "navigate");
+  assert.deepEqual(getSchemaEnumValues(actionSchema, "type"), ["navigate", "submit"]);
   assert.equal(
     getSchemaPropertyEditorKind(actionSchema, "targetScreenId"),
     "text"

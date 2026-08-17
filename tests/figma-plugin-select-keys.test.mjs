@@ -40,6 +40,8 @@ test("select 스키마는 승인된 v1 필드만 선언한다", async () => {
     "resetOnChangeOf"
   ];
   const optionalKeys = [
+    // 라벨 없는 select(ORG-02의 조직 구성 방식 라디오 카드)를 허용한다.
+    "label",
     "disabledPlaceholder",
     "helperText",
     "presentation",

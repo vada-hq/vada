@@ -7,6 +7,8 @@ import { COLLEGES, DEPARTMENTS, SCHOOLS } from './fixtures'
 export interface Option {
   value: string
   label: string
+  // 라디오 카드처럼 선택지마다 설명이 붙는 표현에서 쓴다.
+  description?: string
   disabled?: boolean
 }
 

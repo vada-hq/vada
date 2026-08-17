@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "mutations": [
+    {
+      "key": "org.create",
+      "description": "학생회와 초기 조직 구조를 생성한다",
+      "request": {
+        "method": "POST",
+        "path": "/api/orgs"
+      },
+      "payloadScope": "orgCreationDraft",
+      "messages": {
+        "submitting": "학생회를 만드는 중입니다",
+        "error": "학생회를 만들지 못했습니다"
+      }
+    }
+  ]
+}

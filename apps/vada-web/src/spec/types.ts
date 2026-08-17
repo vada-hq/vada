@@ -21,7 +21,8 @@ export interface InputSpec {
 export interface SelectSpec {
   type: 'select'
   fieldKey: string
-  label: string
+  // 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식)은 null이다.
+  label: string | null
   placeholder: string | null
   disabledPlaceholder?: string
   helperText?: string
@@ -40,9 +41,7 @@ export interface SelectSpec {
   resetOnChangeOf?: string[]
 }
 
-export interface ButtonAction {
-  type: 'navigate'
-  targetScreenId: string
+interface ExecutionGate {
   executeWhen?: {
     type: 'allRequiredFieldsHaveValue'
     scope: 'screen'
@@ -52,6 +51,24 @@ export interface ButtonAction {
     focus: 'firstMissingField'
   }
 }
+
+export interface NavigateAction extends ExecutionGate {
+  type: 'navigate'
+  targetScreenId: string
+}
+
+// 데이터 전송. 경로·payload 스코프·상태 문구는 mutations.json이 갖고
+// 버튼은 key만 참조한다. 스코프 수명 이벤트는 onSuccess에서만 발생한다.
+export interface SubmitAction extends ExecutionGate {
+  type: 'submit'
+  mutationKey: string
+  onSuccess: {
+    navigate?: string
+    scopeEvent?: 'complete' | 'cancel'
+  }
+}
+
+export type ButtonAction = NavigateAction | SubmitAction
 
 export interface ButtonSpec {
   type: 'button'
@@ -84,7 +101,35 @@ export interface GroupSpec {
   memberFieldKeys: string[]
 }
 
-export type ElementSpec = InputSpec | SelectSpec | ButtonSpec | NoteSpec | GroupSpec
+// 사용자가 항목을 추가·이름 수정·삭제하는 목록. 값이 하나가 아니라 배열이다.
+export interface ListSpec {
+  type: 'list'
+  fieldKey: string
+  label?: string | null
+  itemNoun: string
+  addLabel: string
+  itemNote?: string
+  minItems: number
+  maxItems: number
+  itemActions: Array<'rename' | 'remove'>
+  rootItem?: {
+    initialName: string
+    actions: Array<'rename'>
+  }
+  initialItems?: {
+    fieldKey: string
+    byValue: Record<string, string[]>
+  }
+  resetOnChangeOf?: string[]
+}
+
+export type ElementSpec =
+  | InputSpec
+  | SelectSpec
+  | ButtonSpec
+  | NoteSpec
+  | GroupSpec
+  | ListSpec
 
 export type FieldSpec = InputSpec | SelectSpec
 

@@ -10,7 +10,7 @@ import { PrimaryButton } from '../components/PrimaryButton'
 import { SearchSelect } from '../components/SearchSelect'
 import { TextInput } from '../components/TextInput'
 import { findFlowStep } from '../spec/flows'
-import { findButtonSpec, findInputSpec, findSelectSpec, onb01 } from '../spec/screens'
+import { findButtonSpec, findInputSpec, findSelectSpec, navigateTarget, onb01 } from '../spec/screens'
 import type { SelectSpec } from '../spec/types'
 import type { OnboardingDraft } from '../state/onboarding'
 
@@ -118,7 +118,7 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
     })
 
     if (result.allowed) {
-      onNavigate(nextButtonSpec.action.targetScreenId)
+      onNavigate(navigateTarget(nextButtonSpec.action))
       return
     }
 

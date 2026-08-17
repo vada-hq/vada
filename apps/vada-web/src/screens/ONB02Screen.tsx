@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
 import { findFlowStep, isBackwardNavigation } from '../spec/flows'
-import { onb02 } from '../spec/screens'
+import { navigateTarget, onb02 } from '../spec/screens'
 import type { ButtonSpec } from '../spec/types'
 
 interface ONB02ScreenProps {
@@ -25,10 +25,10 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
     .map((element) => element.spec as ButtonSpec)
   // 흐름 순서상 뒤로 가는 버튼은 링크, 나머지는 카드로 그린다(시각 명세의 구분).
   const cardButtons = buttons.filter(
-    (button) => !isBackwardNavigation(onb02.screenId, button.action.targetScreenId),
+    (button) => !isBackwardNavigation(onb02.screenId, navigateTarget(button.action)),
   )
   const backButtons = buttons.filter((button) =>
-    isBackwardNavigation(onb02.screenId, button.action.targetScreenId),
+    isBackwardNavigation(onb02.screenId, navigateTarget(button.action)),
   )
 
   return (
@@ -43,12 +43,12 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
       {/* 옵션 카드 14:110: pt 21→24, gap 10.5→12 / 카드 14:111: p 17.5→20, gap 14→16 */}
       <div className="flex flex-col gap-3 pt-6">
         {cardButtons.map((button) => {
-          const Icon = CARD_ICON_BY_TARGET[button.action.targetScreenId]
+          const Icon = CARD_ICON_BY_TARGET[navigateTarget(button.action)]
           return (
             <button
               key={button.label}
               type="button"
-              onClick={() => onNavigate(button.action.targetScreenId)}
+              onClick={() => onNavigate(navigateTarget(button.action))}
               className="flex w-full items-center gap-4 rounded-md border border-gray-200 bg-white p-5 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
             >
               <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-gray-100">
@@ -87,7 +87,7 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
             <button
               key={button.label}
               type="button"
-              onClick={() => onNavigate(button.action.targetScreenId)}
+              onClick={() => onNavigate(navigateTarget(button.action))}
               className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
             >
               <ArrowLeft className="size-3.5" />

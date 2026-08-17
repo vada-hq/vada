@@ -94,6 +94,24 @@
       ]
     },
     {
+      "key": "org.setupModes",
+      "type": "static",
+      "description": "조직 구조 생성 방식",
+      "params": [],
+      "options": [
+        {
+          "value": "basic",
+          "label": "기본 조직",
+          "description": "일반적인 학생회 조직을 생성합니다"
+        },
+        {
+          "value": "empty",
+          "label": "빈 조직",
+          "description": "회장단만 생성하고 필요한 부서를 직접 추가합니다"
+        }
+      ]
+    },
+    {
       "key": "org.operatingYears",
       "type": "static",
       "description": "학생회 운영 연도(기록·구분 기준)",

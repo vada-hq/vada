@@ -128,7 +128,8 @@
                   "select",
                   "button",
                   "note",
-                  "group"
+                  "group",
+                  "list"
                 ]
               }
             }

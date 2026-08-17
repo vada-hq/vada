@@ -1,4 +1,7 @@
-const FIELD_ELEMENT_TYPES = new Set(["input", "select"]);
+// fieldKey를 갖고 값을 담는 요소. 중복 검사와 참조 해석의 대상이다.
+// 필수값 판정 후보(button-execution의 VALUE_FIELD_TYPES)와는 다른 집합이다 —
+// list는 minItems로 개수를 정하지 결 required로 판정하지 않는다.
+const FIELD_ELEMENT_TYPES = new Set(["input", "select", "list"]);
 
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
@@ -124,6 +127,19 @@ function checkScreenAgainstDesign(findings, screen, designEntry) {
       level: "error",
       file: designEntry.file,
       message: `figma.design.json의 screenId(${design.screenId})가 화면(${spec.screenId})과 다릅니다.`
+    });
+  }
+
+  // 화면 폴더의 신원(브리지가 쓰는 앵커)이 어긋나면 이후 저장이 409로 막힌다.
+  if (
+    typeof spec.source?.nodeId === "string" &&
+    typeof design.root?.id === "string" &&
+    spec.source.nodeId !== design.root.id
+  ) {
+    findings.push({
+      level: "error",
+      file,
+      message: `화면 source.nodeId '${spec.source.nodeId}'가 figma.design.json의 루트 '${design.root.id}'와 다릅니다.`
     });
   }
 
@@ -330,6 +346,87 @@ function checkGroupMembers(findings, context) {
   }
 }
 
+function checkListReferences(findings, context) {
+  const { file, element, index, fieldKeys } = context;
+  const { initialItems, minItems, maxItems } = element.spec;
+
+  if (typeof minItems === "number" && typeof maxItems === "number" && minItems > maxItems) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 minItems(${minItems})가 maxItems(${maxItems})보다 큽니다.`
+    });
+  }
+
+  if (isObject(initialItems) && typeof initialItems.fieldKey === "string") {
+    if (!fieldKeys.has(initialItems.fieldKey)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 initialItems가 참조한 fieldKey '${initialItems.fieldKey}'가 화면에 없습니다.`
+      });
+    }
+    const counts = Object.values(
+      isObject(initialItems.byValue) ? initialItems.byValue : {}
+    );
+    for (const items of counts) {
+      if (Array.isArray(items) && typeof maxItems === "number" && items.length > maxItems) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${elementLabel(element, index)}의 초기 항목 ${items.length}개가 maxItems(${maxItems})를 넘습니다.`
+        });
+      }
+    }
+  }
+}
+
+function checkSubmitAction(findings, context) {
+  const { file, element, index, mutations, mutationKeys, scopeKeys, stateScopes } = context;
+  const action = element.spec.action;
+
+  if (!isObject(action) || action.type !== "submit") {
+    return;
+  }
+
+  if (typeof action.mutationKey === "string") {
+    if (!isObject(mutations)) {
+      findings.push({
+        level: "warning",
+        file,
+        message: `mutations.json이 없어 ${elementLabel(element, index)}의 제출 계약 '${action.mutationKey}'를 확인하지 못했습니다.`
+      });
+    } else if (!mutationKeys.has(action.mutationKey)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 제출 계약 '${action.mutationKey}'가 카탈로그에 없습니다.`
+      });
+    }
+  }
+
+  // 스코프 이벤트는 그 화면이 참조하는 스코프의 수명을 끝낸다.
+  const scopeEvent = action.onSuccess?.scopeEvent;
+  if (typeof scopeEvent === "string" && isObject(stateScopes)) {
+    const screenScope = context.screenScopeKey;
+    if (!screenScope) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 scopeEvent '${scopeEvent}'를 내지만 화면에 stateScopeKey가 없습니다.`
+      });
+    } else if (!scopeKeys.has(screenScope)) {
+      // 화면 스코프 자체의 오류는 별도 검사가 이미 보고한다.
+    } else if (!(context.clearOnByScope.get(screenScope) ?? []).includes(scopeEvent)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 scopeEvent '${scopeEvent}'가 상태 스코프 '${screenScope}'의 clearOn에 없습니다.`
+      });
+    }
+  }
+}
+
 function checkFieldReferences(findings, context) {
   const { file, element, index, fieldKeys } = context;
   const { enabledWhen, resetOnChangeOf } = element.spec;
@@ -365,7 +462,9 @@ export function collectSpecFindings({
   stateScopes = null,
   designs = {},
   flows = null,
-  flowsFile = "flows.json"
+  flowsFile = "flows.json",
+  mutations = null,
+  mutationsFile = "mutations.json"
 } = {}) {
   const findings = [];
   const screenIds = new Set(
@@ -386,6 +485,25 @@ export function collectSpecFindings({
     ).map((scope) => scope.key)
   );
   const fieldKeysByScope = collectFieldKeysByScope(screens);
+  const scopeList =
+    isObject(stateScopes) && Array.isArray(stateScopes.scopes) ? stateScopes.scopes : [];
+  const clearOnByScope = new Map(
+    scopeList.map((scope) => [scope.key, Array.isArray(scope.clearOn) ? scope.clearOn : []])
+  );
+  const mutationList =
+    isObject(mutations) && Array.isArray(mutations.mutations) ? mutations.mutations : [];
+  const mutationKeys = new Set(mutationList.map((mutation) => mutation.key));
+
+  // 제출 계약이 참조하는 payload 스코프는 카탈로그에 있어야 한다.
+  for (const mutation of mutationList) {
+    if (typeof mutation?.payloadScope === "string" && !scopeKeys.has(mutation.payloadScope)) {
+      findings.push({
+        level: "error",
+        file: mutationsFile,
+        message: `제출 계약 '${mutation.key}'의 payloadScope '${mutation.payloadScope}'가 상태 스코프 카탈로그에 없습니다.`
+      });
+    }
+  }
 
   for (const screen of screens) {
     const { file, spec } = screen;
@@ -478,7 +596,11 @@ export function collectSpecFindings({
         stateScopes,
         scopeKeys,
         fieldKeysByScope,
-        groupedFieldKeys
+        groupedFieldKeys,
+        mutations,
+        mutationKeys,
+        clearOnByScope,
+        screenScopeKey: spec.stateScopeKey
       };
       if (spec_.type === "select") {
         checkOptionsSource(findings, context);
@@ -489,19 +611,30 @@ export function collectSpecFindings({
       if (spec_.type === "group") {
         checkGroupMembers(findings, context);
       }
+      if (spec_.type === "list") {
+        checkListReferences(findings, context);
+      }
+      if (spec_.type === "button") {
+        checkSubmitAction(findings, context);
+      }
       checkFieldReferences(findings, context);
 
-      const targetScreenId = spec_.action?.targetScreenId;
-      if (
-        spec_.type === "button" &&
-        typeof targetScreenId === "string" &&
-        !screenIds.has(targetScreenId)
-      ) {
-        findings.push({
-          level: "warning",
-          file,
-          message: `${elementLabel(element, index)}의 이동 대상 화면 '${targetScreenId}'의 명세 파일이 아직 없습니다.`
-        });
+      // navigate의 targetScreenId와 submit 성공 후 이동은 같은 규칙으로 검사한다.
+      for (const targetScreenId of [
+        spec_.action?.targetScreenId,
+        spec_.action?.onSuccess?.navigate
+      ]) {
+        if (
+          spec_.type === "button" &&
+          typeof targetScreenId === "string" &&
+          !screenIds.has(targetScreenId)
+        ) {
+          findings.push({
+            level: "warning",
+            file,
+            message: `${elementLabel(element, index)}의 이동 대상 화면 '${targetScreenId}'의 명세 파일이 아직 없습니다.`
+          });
+        }
       }
     });
 

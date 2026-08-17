@@ -5,8 +5,8 @@
 ## 목표 흐름
 
 1. 개발할 Figma 화면을 선택한다.
-2. 플러그인에서 요소를 `입력`, `버튼`, `선택`으로 등록한다.
-3. 확정적으로 읽을 수 있는 값은 자동으로 채우고, 나머지는 사용자가 검토·입력한다.
+2. 요소를 등록한다 — **추출기(`draft-screen-spec.mjs`)가 초안을 뽑고**, 플러그인은 검토·수정 수단이다.
+3. 디자인에서 확정할 수 있는 값은 추출기가 채우고, 디자인에 없는 값(fieldKey 작명·선택지 출처·이동 대상 등)만 사용자가 답한다.
 4. 화면 단위 저장 버튼을 한 번 눌러 개발 AI가 사용할 로컬 JSON 명세를 만든다.
 5. 개발 AI가 명세 번들로 화면을 구현하고, 마찰 로그가 파이프라인을 개선한다.
 
@@ -20,17 +20,19 @@
 - **검증**(validate-specs.mjs): 스키마(ajv) + 교차 참조(중복 fieldKey·nodeId, 출처 key·인자 매핑, enabledWhen/resetOnChangeOf, 상태 스코프, 이동 대상, design nodeId·자산·reference, hash 신선도). 오류 시 종료 코드 1.
 - **판정기**(button-execution.mjs): 필수값 존재 판정(공백·null은 누락, 0·false는 값), `executeWhen` 생략=항상 실행, `onExecutionBlocked`와 쌍 규칙. 앱이 재구현 없이 직접 import한다.
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md). 플러그인은 meta를 저장 왕복에서 보존하고(실전 검증됨) 새 텍스트 필드 편집란은 스키마 주도로 자동 생성된다.
+- **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다. 전부 스키마 주도라 플러그인 편집 UI는 자동 생성된다.
-- **테스트**: 플러그인 105, spec-service·변환기·검증 28, vada-web(vitest) 29 + Playwright e2e 3 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **테스트**: 플러그인 105, spec-service·변환기·검증 37, vada-web(vitest) 50 + Playwright e2e 5 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). `tests/element-type-registry.test.mjs`가 enum↔스키마 파일↔플러그인 옵션↔플러그인 `schemaByType`의 일치를 강제한다.
 - **화면 산출물 구조**: 화면의 모든 산출물(screen.json·figma.raw.json·figma.design.json·assets·reference.png)은 `screens/<screenId>/` 폴더 하나에 모인다. 브리지 API 경로는 그대로다.
 
 ## 현재 상태 — 제품 vada
 
-- **명세**: ONB-01·ONB-02·ORG-01 완결(각각 동작 + figma.design.json + 자산 11 + reference.png). ORG-02·INV-00은 이동 대상으로만 등장(검증 경고 3건, 의도된 미완성).
-- **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): ONB-01·ONB-02·ORG-01 모두 구현·검증 통과. 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답한다. 상태는 스코프별 저장소(`state/scopes.ts`)로 일반화되어, ORG-01의 note가 **다른 스코프**(onboardingDraft)를 읽는다. ORG-02·INV-00 이동 시 미등록 화면 오류 카드가 뜨는 것은 내비게이션 계약의 정상 동작이다.
+- **명세**: ONB-01·ONB-02·ORG-01·ORG-02 완결. INV-00·ORG-10은 이동 대상으로만 등장(검증 경고 2건, 의도된 미완성).
+- **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): ONB-01·ONB-02·ORG-01·ORG-02 모두 구현·검증 통과. 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답한다. 상태는 스코프별 저장소(`state/scopes.ts`)로 일반화되어, ORG-01의 note가 **다른 스코프**(onboardingDraft)를 읽는다. INV-00·ORG-10 이동 시 미등록 화면 오류 카드가 뜨는 것은 내비게이션 계약의 정상 동작이다.
 - **ORG-01은 elements 배열 순회로 렌더한다**(ONB-01·ONB-02의 화면별 하드코딩과 다름). 화면당 손코딩을 줄이는 방향의 첫 사례다.
-- **마찰 로그**: `docs/pilot-onb01.md` 11건 + `docs/pilot-onb02.md` 5건 + `docs/pilot-org01.md` 6건(신규 계급 2건). 잔여 발견은 전부 `docs/BACKLOG.md`에 있다.
+- **제출 왕복이 실제로 돈다**(ORG-02): `조직 만들기` → mutations 카탈로그의 mock 전송 → `onSuccess.navigate`로 ORG-10 이동 + `scopeEvent: complete`로 orgCreationDraft 제거.
+- **마찰 로그**: `docs/pilot-onb01.md` 11건 + `docs/pilot-onb02.md` 5건 + `docs/pilot-org01.md` 6건 + `docs/pilot-org02.md` 10건(신규 계급 3건). 잔여 발견은 전부 `docs/BACKLOG.md`에 있다.
 - **주의(다음 플러그인 사용 시)**: Figma 안의 ONB-01·ONB-02 공유 사본에는 이번에 추가된 확장(`helperText`·`presentation`·`group` 등)이 없다. 각 화면에서 **`로컬 초안 불러오기` → `이 화면 저장`**으로 동기화한다. `presentation`은 선택적 enum이라 저장 시 모든 select에 `"dropdown"`이 명시적으로 기록된다(무해).
 
 ## 규약 포인터
@@ -59,11 +61,15 @@
 
 ## 다음 한 단계
 
-ORG-01 사이클 완료, 화면 사이클 1~3단계 비판 검토 완료(발견 사항은 백로그), 변경 전파 시험 완료(위 결과·처분 반영됨).
+ORG-02 사이클 완료. 새 분업(사용자는 화면 지정 + 원본 저장만, 요소 등록은 추출기 초안 + 질문 응답)을 처음 적용했고, 목록·제출이라는 큰 미개척 영역을 한 번에 흡수했다.
 
-요소 등록 추출기까지 도입했다(`draft-screen-spec.mjs`, 재현율 17/18). 다음은 **ORG-02 사이클을 새 분업으로 실제로 돌려 보는 것**이다: 사용자는 Figma에서 화면 지정과 `Figma 원본 JSON 저장`만 하고, 요소 등록은 추출기 초안 + 질문 응답으로 진행한다. 이때 재는 것은 **질문 수**다 — ORG-01 기준 15건이었고, 이 수가 화면마다 줄어드는지가 수렴의 실질 지표다(방법론의 "신규 마찰 계급 0건"보다 정직한 측정이다).
+다음은 **같은 화면을 추출기로 다시 뽑아 재현율을 재는 것**이다. ORG-02 첫 실행에서 7개 중 2개만 맞았는데 원인은 추출기 성능이 아니라 `list`·`options[].description`이 아직 없었기 때문이다. 이제 생겼으니 재현율이 오를 것이고, 오르지 않으면 추출기의 진짜 한계다.
 
-남은 검토: 화면 사이클 4~7단계(저장·AI 인계·동기화·최종 확인).
+```powershell
+node apps/spec-service/src/draft-screen-spec.mjs vada-wireframe ORG-02 --verify
+```
+
+이어서 **Figma 쪽 사본 동기화**가 밀려 있다(주의 항목 참조). 남은 검토: 화면 사이클 4~7단계(저장·AI 인계·동기화·최종 확인).
 
 ## 확인 명령
 

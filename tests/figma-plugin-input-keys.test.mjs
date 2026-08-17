@@ -70,7 +70,8 @@ test("현재 지원하는 요소 유형은 입력, 버튼, 선택, 안내, 묶�
     { value: "button", label: "버튼" },
     { value: "select", label: "선택" },
     { value: "note", label: "안내" },
-    { value: "group", label: "묶음" }
+    { value: "group", label: "묶음" },
+    { value: "list", label: "목록" }
   ]);
 });
 

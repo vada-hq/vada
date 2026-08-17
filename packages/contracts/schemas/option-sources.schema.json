@@ -141,6 +141,11 @@
             "type": "string",
             "minLength": 1
           },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "선택지 부연 설명(선택). 라디오 카드처럼 선택지마다 설명이 붙는 표현에서 쓴다."
+          },
           "disabled": {
             "type": "boolean"
           }

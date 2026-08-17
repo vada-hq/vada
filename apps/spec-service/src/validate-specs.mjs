@@ -18,6 +18,7 @@ const CATALOG_SCHEMA_FILES = [
   "option-sources.schema.json",
   "state-scopes.schema.json",
   "flows.schema.json",
+  "mutations.schema.json",
   "figma-design.schema.json"
 ];
 
@@ -55,6 +56,7 @@ async function createValidators() {
     optionSources: ajv.getSchema("option-sources.schema.json"),
     stateScopes: ajv.getSchema("state-scopes.schema.json"),
     flows: ajv.getSchema("flows.schema.json"),
+    mutations: ajv.getSchema("mutations.schema.json"),
     figmaDesign: ajv.getSchema("figma-design.schema.json"),
     elements
   };
@@ -165,24 +167,31 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     missingMessage: "상태 스코프 카탈로그가 없습니다."
   });
 
-  // 흐름 카탈로그는 선택 사항이다: 없으면 조용히 지나가고, 있으면 검증한다.
-  let flowsCatalog = null;
-  const flowsPath = join(wireframeDir, "flows.json");
-  if (await pathExists(flowsPath)) {
+  // 흐름·제출 카탈로그는 선택 사항이다: 없으면 조용히 지나가고, 있으면 검증한다.
+  const readOptionalOwnCatalog = async (fileName, validator) => {
+    const filePath = join(wireframeDir, fileName);
+    if (!(await pathExists(filePath))) {
+      return null;
+    }
+    let catalog;
     try {
-      flowsCatalog = await readJsonFile(flowsPath);
+      catalog = await readJsonFile(filePath);
     } catch (error) {
       findings.push({
         level: "error",
-        file: label("flows.json"),
+        file: label(fileName),
         message: `JSON을 읽을 수 없습니다: ${error.message}`
       });
-      flowsCatalog = null;
+      return null;
     }
-    if (flowsCatalog !== null && !validators.flows(flowsCatalog)) {
-      pushSchemaFindings(findings, label("flows.json"), "스키마 위반: ", validators.flows.errors);
+    if (!validator(catalog)) {
+      pushSchemaFindings(findings, label(fileName), "스키마 위반: ", validator.errors);
     }
-  }
+    return catalog;
+  };
+
+  const flowsCatalog = await readOptionalOwnCatalog("flows.json", validators.flows);
+  const mutations = await readOptionalOwnCatalog("mutations.json", validators.mutations);
 
   const screensDir = join(wireframeDir, "screens");
   const entries = await readdir(screensDir, { withFileTypes: true });
@@ -322,7 +331,9 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
       stateScopes,
       designs,
       flows: flowsCatalog,
-      flowsFile: label("flows.json")
+      flowsFile: label("flows.json"),
+      mutations,
+      mutationsFile: label("mutations.json")
     })
   );
 }

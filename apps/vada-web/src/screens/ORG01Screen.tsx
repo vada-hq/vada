@@ -15,7 +15,7 @@ import { SearchSelect } from '../components/SearchSelect'
 import { SecondaryButton } from '../components/SecondaryButton'
 import { TextInput } from '../components/TextInput'
 import { findFlowStep } from '../spec/flows'
-import { org01 } from '../spec/screens'
+import { navigateTarget, org01 } from '../spec/screens'
 import type { ButtonSpec, FieldSpec, GroupSpec, NoteSpec, SelectSpec } from '../spec/types'
 import { readScopeDisplayValue } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
@@ -123,7 +123,7 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
     })
 
     if (result.allowed) {
-      onNavigate(primaryButton.action.targetScreenId)
+      onNavigate(navigateTarget(primaryButton.action))
       return
     }
 
@@ -167,6 +167,7 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
           <ChoiceGroup
             id={spec.fieldKey}
             disabled={!enabled}
+            labelledBy={`${spec.fieldKey}-label`}
             hasError={Boolean(error)}
             sourceKey={spec.optionsSource.key}
             sourceParams={resolveSourceParams(spec)}
@@ -237,6 +238,10 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
         </FieldGroup>
       )
     }
+    if (spec.type === 'list') {
+      // ORG-01에는 목록이 없다. 등장하면 조용히 빠뜨리지 않고 명시적으로 알린다.
+      throw new Error(`ORG-01 구현이 아직 다루지 않는 요소 유형입니다: ${spec.type}`)
+    }
     return groupedFieldKeys.has(spec.fieldKey) ? null : renderField(spec)
   })
 
@@ -264,7 +269,7 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
             <SecondaryButton
               key={button.label}
               label={button.label}
-              onClick={() => onNavigate(button.action.targetScreenId)}
+              onClick={() => onNavigate(navigateTarget(button.action))}
             />
           ))}
         </div>

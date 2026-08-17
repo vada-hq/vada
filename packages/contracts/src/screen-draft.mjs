@@ -168,6 +168,20 @@ function describeButton(node, questions, index) {
   return { source: toSource(node), spec: { type: "button", label: label ?? "" } };
 }
 
+// 텍스트를 가진 Button 형제 묶음. 두 가지로 읽힐 수 있다:
+//   - 각각 별도 버튼(ONB-02의 시작 방식 카드 — 각자 다른 화면으로 이동)
+//   - 하나를 고르는 선택지(ORG-02의 조직 구성 방식 라디오 카드)
+// 이 wireframe에서는 선택 상태만 파란 계열로 그려 구분되지만, 그건 이 제품의
+// 디자인 시스템 색이라 파이프라인이 알 수 없다. 추측하지 않고 질문한다.
+function findSiblingButtonGroup(node) {
+  const buttons = children(node).filter(isButton);
+  return buttons.length >= 2 &&
+    buttons.length === children(node).length &&
+    buttons.every((button) => textOf(button) !== "")
+    ? buttons
+    : null;
+}
+
 function countFieldWrappers(node) {
   let count = 0;
   for (const child of children(node)) {
@@ -217,7 +231,24 @@ export function draftScreenElements(design) {
         elements.push(describeField(child, questions, elements.length));
         continue; // 필드 내부는 더 파지 않는다(등록 노드 계약)
       }
+      const siblingButtons = findSiblingButtonGroup(child);
+      if (siblingButtons) {
+        // 보수적으로 각각 별도 버튼으로 뽑는다 — 합치는 것이 나누는 것보다 쉽다.
+        questions.push(
+          `${child.id} — 텍스트를 가진 버튼 ${siblingButtons.length}개가 나란히 있습니다(${siblingButtons
+            .map((button) => collectText(button)[0]?.trim())
+            .join(", ")}). 각각 별도 버튼입니까, 아니면 하나를 고르는 선택지(select.presentation: choiceGroup)입니까?`
+        );
+      }
       if (isButton(child)) {
+        // 스키마상 button.label은 필수다. 텍스트 없는 버튼(항목 메뉴의 … 등)은
+        // 화면 수준 요소가 아니라 다른 요소의 내부 조작이다.
+        if (textOf(child) === "") {
+          questions.push(
+            `${child.id}(${child.name}) — 텍스트 없는 조작입니다. 어떤 요소의 내부 조작인지 알려주세요.`
+          );
+          continue;
+        }
         elements.push(describeButton(child, questions, elements.length));
         continue;
       }

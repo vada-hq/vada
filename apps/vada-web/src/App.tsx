@@ -12,12 +12,23 @@ function App() {
     setScopes((previous) => ({ ...previous, [scopeKey]: next }))
   }
 
+  // state-scopes.json의 clearOn: complete·cancel 시 스코프를 제거한다.
+  // 수명 관리와 데이터 전송은 분리된 관심사이므로 이벤트는 action에서만 온다.
+  function handleScopeEvent(scopeKey: string) {
+    setScopes((previous) => {
+      const next = { ...previous }
+      delete next[scopeKey]
+      return next
+    })
+  }
+
   return (
     <ScreenRouter
       screenId={screenId}
       scopes={scopes}
       onChangeScope={changeScope}
       onNavigate={setScreenId}
+      onScopeEvent={handleScopeEvent}
     />
   )
 }

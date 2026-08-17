@@ -55,10 +55,14 @@ function isCandidateApplicable(candidate, values) {
   );
 }
 
+const SUPPORTED_ACTION_TYPES = new Set(["navigate", "submit"]);
+
 function assertSupportedAction(action) {
-  if (action?.type !== "navigate") {
+  if (!SUPPORTED_ACTION_TYPES.has(action?.type)) {
     throw new TypeError(`지원하지 않는 버튼 action입니다: ${action?.type ?? "없음"}`);
   }
+
+  // 실행 조건 판정은 action 종류와 무관하다. submit도 같은 필수값 규칙을 쓴다.
 
   const hasExecuteWhen = action.executeWhen !== undefined;
   const hasOnExecutionBlocked = action.onExecutionBlocked !== undefined;

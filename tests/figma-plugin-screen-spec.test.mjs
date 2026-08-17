@@ -229,6 +229,7 @@ test("요소 초안을 스키마의 실제 JSON 타입과 중첩 구조로 변�
     serializeElementSpec(buttonSchema, {
       label: "다음: 시작 방식 선택",
       initiallyDisabled: "false",
+      "action.type": "navigate",
       "action.targetScreenId": "ONB-02"
     }),
     {
@@ -383,6 +384,7 @@ test("화면별 pluginData에 source와 등록 요소를 하나의 화면 JSON�
         values: {
           label: "다음: 시작 방식 선택",
           initiallyDisabled: "false",
+          "action.type": "navigate",
           "action.targetScreenId": "ONB-02"
         }
       }
@@ -621,7 +623,9 @@ test("저장된 요소 spec을 UI 초안 값으로 다시 펼친다", async () =
     {
       label: "다음: 시작 방식 선택",
       initiallyDisabled: "false",
+      "action.type": "navigate",
       "action.targetScreenId": "ONB-02",
+      "action.onSuccess": "",
       "action.executeWhen": "present",
       "action.onExecutionBlocked": ""
     }
@@ -643,6 +647,7 @@ test("실행 조건 없는 버튼은 부재 마커로 왕복 보존한다", asyn
   const values = flattenElementSpec(buttonSchema, spec);
   assert.equal(values["action.executeWhen"], "");
   assert.equal(values["action.onExecutionBlocked"], "");
+  assert.equal(values["action.onSuccess"], "", "submit 전용 필드도 부재 마커로 보존한다");
   assert.deepEqual(serializeElementSpec(buttonSchema, values), spec);
 });
 
@@ -680,7 +685,9 @@ test("저장된 화면 요소를 nodeId별 UI 초안 목록으로 복원한다",
         values: {
           label: "다음: 시작 방식 선택",
           initiallyDisabled: "false",
+          "action.type": "navigate",
           "action.targetScreenId": "ONB-02",
+          "action.onSuccess": "",
           "action.executeWhen": "present",
           "action.onExecutionBlocked": ""
         }

@@ -1,0 +1,125 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-02",
+  "stateScopeKey": "orgCreationDraft",
+  "meta": {
+    "eyebrow": "새 학생회 만들기",
+    "title": "조직 구조 설정",
+    "description": "부서 구조를 설정하세요. 구성원 배정은 학생회를 만든 뒤 진행합니다.",
+    "footerNote": "각 부서 카드 우측의 … 버튼으로 부서명 수정 및 삭제를 할 수 있습니다. 구성원은 학생회를 만든 뒤 초대해 배정합니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "12:2",
+    "name": "학생회 생성 · ORG-02 · 조직 구조 설정",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "14:257",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "setupMode",
+        "label": null,
+        "placeholder": null,
+        "initialValue": "basic",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "presentation": "choiceGroup",
+        "optionsSource": {
+          "key": "org.setupModes"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:273",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "list",
+        "fieldKey": "departments",
+        "itemNoun": "부서",
+        "addLabel": "부서 추가",
+        "itemNote": "구성원은 다음 단계에서 배정합니다",
+        "minItems": 0,
+        "maxItems": 10,
+        "itemActions": [
+          "rename",
+          "remove"
+        ],
+        "rootItem": {
+          "initialName": "회장단",
+          "actions": [
+            "rename"
+          ]
+        },
+        "initialItems": {
+          "fieldKey": "setupMode",
+          "byValue": {
+            "basic": [
+              "기획부",
+              "홍보부",
+              "디자인부"
+            ],
+            "empty": []
+          }
+        },
+        "resetOnChangeOf": [
+          "setupMode"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:343",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "이전",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ORG-01"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:348",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "조직 만들기",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "org.create",
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          },
+          "onSuccess": {
+            "navigate": "ORG-10",
+            "scopeEvent": "complete"
+          }
+        }
+      }
+    }
+  ]
+}

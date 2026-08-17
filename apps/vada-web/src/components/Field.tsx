@@ -2,7 +2,9 @@ import type { ReactNode } from 'react'
 
 interface FieldProps {
   htmlFor: string
-  label: string
+  // 디자인에 라벨이 없는 필드(ORG-02의 조직 구성 방식)는 null이다.
+  // 없는 카피를 지어내지 않고 라벨 자체를 그리지 않는다.
+  label: string | null
   required: boolean
   disabled?: boolean
   error?: string
@@ -25,14 +27,16 @@ export function Field({
 }: FieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      <label
-        id={`${htmlFor}-label`}
-        htmlFor={htmlFor}
-        className={`text-xs font-medium ${disabled ? 'text-gray-400' : 'text-gray-700'}`}
-      >
-        {label}
-        {required && <span className="text-red-500">*</span>}
-      </label>
+      {label !== null && (
+        <label
+          id={`${htmlFor}-label`}
+          htmlFor={htmlFor}
+          className={`text-xs font-medium ${disabled ? 'text-gray-400' : 'text-gray-700'}`}
+        >
+          {label}
+          {required && <span className="text-red-500">*</span>}
+        </label>
+      )}
       {children}
       {helperText && <p className="text-xs text-gray-400">{helperText}</p>}
       {error && (

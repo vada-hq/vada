@@ -78,7 +78,8 @@ test('ORG-01: 온보딩 값을 note로 읽고, 묶음·선택 버튼·보조 설
   await page.getByRole('option', { name: '2026년', exact: true }).click()
   await page.screenshot({ path: `${SHOTS}/09-org01-filled.png`, fullPage: true })
 
+  // 미구현 화면임을 단언하면 그 화면을 구현할 때마다 깨진다.
+  // 스펙의 이동 대상에 실제로 도착하는지만 검사한다.
   await page.getByRole('button', { name: /다음: 조직 구조 설정/ }).click()
-  await expect(page.getByText('구현에 등록되지 않은 화면입니다')).toBeVisible()
-  await expect(page.getByText('ORG-02')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '조직 구조 설정' })).toBeVisible()
 })

@@ -5,6 +5,7 @@ import type { Option } from '../option-sources/catalog'
 interface ChoiceGroupProps {
   id: string
   disabled: boolean
+  labelledBy?: string
   hasError?: boolean
   sourceKey: string
   sourceParams: Record<string, string>
@@ -20,6 +21,7 @@ interface ChoiceGroupProps {
 export function ChoiceGroup({
   id,
   disabled,
+  labelledBy,
   hasError,
   sourceKey,
   sourceParams,
@@ -55,15 +57,19 @@ export function ChoiceGroup({
     }
   }, [source.type, sourceKey, paramsKey])
 
+  const hasDescriptions = options.some((option) => Boolean(option.description))
+
   return (
     <div
       id={id}
       role="radiogroup"
       // label 요소는 div를 이름 짓지 못하므로 명시적으로 연결한다.
-      aria-labelledby={`${id}-label`}
+      // 디자인에 라벨이 없는 선택(ORG-02)은 연결할 대상이 없어 생략한다.
+      aria-labelledby={labelledBy}
       aria-invalid={hasError || undefined}
       aria-describedby={hasError ? `${id}-error` : undefined}
-      className="grid grid-cols-3 gap-2"
+      // 설명이 있는 선택지는 카드형(2열, 14:257), 없으면 압축형(3열, ORG-01 14:170).
+      className={`grid gap-2 ${hasDescriptions ? 'grid-cols-2' : 'grid-cols-3'}`}
     >
       {options.map((option, index) => {
         const selected = option.value === value?.value
@@ -77,15 +83,42 @@ export function ChoiceGroup({
             aria-checked={selected}
             disabled={disabled || option.disabled}
             onClick={() => onSelect(option)}
-            className={`rounded border px-3 py-2 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none ${
+            className={`rounded border focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none ${
+              hasDescriptions ? 'px-4 py-3 text-left' : 'px-3 py-2 text-xs font-medium'
+            } ${
               selected
-                ? 'border-blue-500 bg-blue-50 text-blue-700'
-                : `bg-white text-gray-600 hover:bg-gray-50 ${
-                    hasError ? 'border-red-500' : 'border-gray-200'
-                  }`
+                ? 'border-blue-500 bg-blue-50'
+                : `bg-white hover:bg-gray-50 ${hasError ? 'border-red-500' : 'border-gray-200'}`
             } ${disabled || option.disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           >
-            {option.label}
+            {hasDescriptions ? (
+              <>
+                {/* 라디오 표시 14:260/14:261: 선택 시 blue-600 점 */}
+                <span className="flex items-center gap-2">
+                  <span
+                    className={`flex size-4 shrink-0 items-center justify-center rounded-full border ${
+                      selected ? 'border-blue-600' : 'border-gray-300'
+                    }`}
+                  >
+                    {selected && <span className="size-2 rounded-full bg-blue-600" />}
+                  </span>
+                  <span
+                    className={`text-sm font-semibold ${
+                      selected ? 'text-blue-800' : 'text-gray-800'
+                    }`}
+                  >
+                    {option.label}
+                  </span>
+                </span>
+                {option.description && (
+                  <span className="block pt-1 pl-6 text-xs text-gray-500">
+                    {option.description}
+                  </span>
+                )}
+              </>
+            ) : (
+              <span className={selected ? 'text-blue-700' : 'text-gray-600'}>{option.label}</span>
+            )}
           </button>
         )
       })}

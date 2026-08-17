@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "list.schema.json",
+  "title": "List element",
+  "description": "사용자가 항목을 추가·이름 수정·삭제하는 목록. 지금까지의 요소가 모두 '값 하나'였던 것과 달리 값이 항목의 배열이다. rootItem이 있으면 트리(고정 루트 + 하위 항목)로, 없으면 평면 목록으로 렌더한다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "fieldKey",
+    "itemNoun",
+    "addLabel",
+    "minItems",
+    "maxItems",
+    "itemActions"
+  ],
+  "properties": {
+    "type": {
+      "const": "list"
+    },
+    "fieldKey": {
+      "type": "string",
+      "minLength": 1
+    },
+    "label": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "목록 위에 표시할 라벨(선택). 디자인에 라벨이 없으면 생략한다."
+    },
+    "itemNoun": {
+      "type": "string",
+      "minLength": 1,
+      "description": "항목의 명칭. 확인 문구·빈 상태 안내 등에 쓴다. 예: 부서"
+    },
+    "addLabel": {
+      "type": "string",
+      "minLength": 1,
+      "description": "항목 추가 조작의 문구. 예: 부서 추가"
+    },
+    "itemNote": {
+      "type": "string",
+      "minLength": 1,
+      "description": "모든 항목에 함께 표시하는 안내(선택). 항목마다 다른 값이 아니라 고정 문구다."
+    },
+    "minItems": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "maxItems": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "이 수에 도달하면 추가 조작을 비활성한다."
+    },
+    "itemActions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "enum": [
+          "rename",
+          "remove"
+        ]
+      }
+    },
+    "rootItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "initialName",
+        "actions"
+      ],
+      "description": "삭제할 수 없는 고정 루트 항목(선택). 조직도의 회장단처럼 항상 존재하는 노드를 표현한다.",
+      "properties": {
+        "initialName": {
+          "type": "string",
+          "minLength": 1
+        },
+        "actions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "rename"
+            ]
+          }
+        }
+      }
+    },
+    "initialItems": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fieldKey",
+        "byValue"
+      ],
+      "description": "다른 필드의 값에 따라 정해지는 초기 항목. 값이 바뀌면 resetOnChangeOf로 초기화한다.",
+      "properties": {
+        "fieldKey": {
+          "type": "string",
+          "minLength": 1
+        },
+        "byValue": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "resetOnChangeOf": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}
