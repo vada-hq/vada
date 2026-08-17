@@ -9,6 +9,7 @@ import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { SearchSelect } from '../components/SearchSelect'
 import { TextInput } from '../components/TextInput'
+import { findFlowStep } from '../spec/flows'
 import { findButtonSpec, findInputSpec, findSelectSpec, onb01 } from '../spec/screens'
 import type { SelectSpec } from '../spec/types'
 import type { OnboardingDraft } from '../state/onboarding'
@@ -32,6 +33,8 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
   const departmentSpec = findSelectSpec(onb01, 'department')
   const currentGradeSpec = findSelectSpec(onb01, 'currentGrade')
   const nextButtonSpec = findButtonSpec(onb01)
+  const meta = onb01.meta
+  const flowStep = findFlowStep(onb01.screenId)
 
   function setFieldValue(fieldKey: string, value: string | null, label?: string) {
     // 같은 값 재선택은 "변경"이 아니므로 resetOnChangeOf를 발동하지 않는다(F4).
@@ -144,7 +147,9 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
       >
         <SearchSelect
           id={spec.fieldKey}
-          placeholder={spec.placeholder}
+          placeholder={
+            enabled ? spec.placeholder : (spec.disabledPlaceholder ?? spec.placeholder)
+          }
           searchable={spec.searchable}
           disabled={!enabled}
           hasError={Boolean(errors[spec.fieldKey])}
@@ -160,13 +165,17 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
 
   return (
     <PageCard>
-      <AppHeader step={1} totalSteps={2} />
+      {flowStep && (
+        <AppHeader label={flowStep.label} step={flowStep.step} totalSteps={flowStep.total} />
+      )}
 
-      {/* 제목 7:18(15.75→18) · 부제 7:20(12.25→14) */}
-      <h1 className="pt-6 text-lg font-semibold text-gray-900">
-        내 프로필에 표시될 학적 정보를 입력해 주세요
-      </h1>
-      <p className="pt-1 text-sm text-gray-500">학생회 활동에 사용할 내 프로필 정보입니다.</p>
+      {/* 제목 7:18(15.75→18) · 부제 7:20(12.25→14) — 카피는 스펙 meta에서 온다 */}
+      {meta && (
+        <h1 className="pt-6 text-lg font-semibold text-gray-900">{meta.title}</h1>
+      )}
+      {meta?.description && (
+        <p className="pt-1 text-sm text-gray-500">{meta.description}</p>
+      )}
 
       {/* 폼 7:21: pt 21→24, 섹션 간 gap 17.5→20 */}
       <div className="flex flex-col gap-5 pt-6">
@@ -222,9 +231,9 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
       {/* 버튼 7:76: pt 28→32 / 안내 7:82: pt 7→8 */}
       <div className="pt-8">
         <PrimaryButton label={nextButtonSpec.label} onClick={handleNext} />
-        <p className="pt-2 text-center text-xs text-gray-400">
-          다음 단계에서 학생회 시작 방식을 선택합니다.
-        </p>
+        {meta?.footerNote && (
+          <p className="pt-2 text-center text-xs text-gray-400">{meta.footerNote}</p>
+        )}
       </div>
     </PageCard>
   )

@@ -30,7 +30,7 @@
 | 5 | 비활성 필드 시각이 관례 6번(bg gray-100)과 wireframe 사실(bg gray-50, 라벨·텍스트 gray-400, 아이콘 gray-300)이 충돌 | 예(design.json) | wireframe 값을 적용 | 해결 — vada-conventions 상단에 우선순위 원칙 명시 |
 | 6 | 구현 결과를 reference.png와 자동 대조할 수단이 파이프라인에 없음 | 아니오 | 육안 대조 | 스크린샷 비교 도구 — 트리거: 구현 화면 수 증가 |
 | 7 | 현재 학년 빈 Dropdown(7:75): "다른 입력과 같은 스타일"이되 셀렉트 어포던스(chevron)·빈 표시는 유추 | 부분(interpretation ONB-01 절) | 다른 select와 동일 스타일 + chevron, 값 없으면 빈 칸 | 없음(해결로 간주) |
-| 8 | (사용자 검증에서 발견) 단과대학 placeholder "학교를 먼저 선택하세요"가 비활성 사유 안내를 겸하는데, 학교 선택 후 활성화되면 문구가 상황과 안 맞음 — 스펙에 placeholder가 상태별로 하나뿐 | 아니오 | 스펙 문구 그대로 표시 | select 스키마에 활성 상태 placeholder(예: enabledPlaceholder) 추가 여부 |
+| 8 | (사용자 검증에서 발견) 단과대학 placeholder "학교를 먼저 선택하세요"가 비활성 사유 안내를 겸하는데, 학교 선택 후 활성화되면 문구가 상황과 안 맞음 — 스펙에 placeholder가 상태별로 하나뿐 | 아니오 | 스펙 문구 그대로 표시 | 해결 — select 스키마에 disabledPlaceholder 추가, placeholder는 활성 문구로 이행 |
 | 9 | (코드 리뷰 F2에서 발견) 검색형 select의 키보드 조작 계약이 스펙 어디에도 없음 — searchable: true만 있고 상호작용 정의 부재 | 아니오 | 표준 콤보박스 키보드(화살표·Enter·Escape·focusout 닫힘) 구현 | 해결 — vada-conventions 7번에 키보드 관례 반영 |
-| 10 | (리뷰에서 발견) 화면 수준 텍스트(제목·부제·안내문)가 동작 명세에 없어 design.json에서 JSX로 수동 복사됨 — Figma에서 카피를 바꿔 재추출해도 구현이 자동으로 안 따라옴 | 아니오 | JSX에 하드코딩 | 동작 명세에 화면 메타(title·description 등) 추가 또는 카피 추출 단계 — 다음 화면 전 결정 |
-| 11 | (리뷰에서 발견) 온보딩 흐름의 단계 정보(전체 몇 단계 중 몇 번째, 단계 라벨)가 스펙 체계에 없음 — 진행 표시가 하드코딩 | 아니오 | AppHeader 컴포넌트에 step/totalSteps를 화면이 직접 전달 | 흐름(flow) 정의(화면 순서·단계 라벨)를 스펙에 추가할지 — 다음 화면 전 결정 |
+| 10 | (리뷰에서 발견) 화면 수준 텍스트(제목·부제·안내문)가 동작 명세에 없어 design.json에서 JSX로 수동 복사됨 — Figma에서 카피를 바꿔 재추출해도 구현이 자동으로 안 따라옴 | 아니오 | JSX에 하드코딩 | 해결 — screen.json에 선택적 meta(title·description·footerNote) 추가, 구현 하드코딩 제거 |
+| 11 | (리뷰에서 발견) 온보딩 흐름의 단계 정보(전체 몇 단계 중 몇 번째, 단계 라벨)가 스펙 체계에 없음 — 진행 표시가 하드코딩 | 아니오 | AppHeader 컴포넌트에 step/totalSteps를 화면이 직접 전달 | 해결 — wireframe 단위 flows.json 카탈로그 신설(순서 배열 멤버십, 단계 자동 계산) |

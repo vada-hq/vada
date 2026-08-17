@@ -22,6 +22,7 @@ export interface SelectSpec {
   fieldKey: string
   label: string
   placeholder: string | null
+  disabledPlaceholder?: string
   initialValue: string | null
   valueType: string
   required: boolean
@@ -66,10 +67,32 @@ export interface ScreenElement {
   spec: ElementSpec
 }
 
+export interface ScreenMeta {
+  title: string
+  description?: string | null
+  footerNote?: string | null
+}
+
+export interface FlowsCatalog {
+  schemaVersion: number
+  flows: Array<{
+    key: string
+    label: string
+    screens: string[]
+  }>
+}
+
+export interface FlowStep {
+  label: string
+  step: number
+  total: number
+}
+
 export interface ScreenSpec {
   schemaVersion: number
   screenId: string
   stateScopeKey?: string
+  meta?: ScreenMeta
   source: {
     pageName: string
     nodeId: string

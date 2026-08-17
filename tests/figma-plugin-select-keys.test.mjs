@@ -27,6 +27,7 @@ test("select 스키마는 승인된 v1 필드만 선언한다", async () => {
     "fieldKey",
     "label",
     "placeholder",
+    "disabledPlaceholder",
     "initialValue",
     "valueType",
     "required",
@@ -36,9 +37,9 @@ test("select 스키마는 승인된 v1 필드만 선언한다", async () => {
     "enabledWhen",
     "resetOnChangeOf"
   ];
+  const optionalKeys = ["disabledPlaceholder", "enabledWhen", "resetOnChangeOf"];
   const requiredKeys = propertyKeys.filter(
-    (propertyKey) =>
-      propertyKey !== "enabledWhen" && propertyKey !== "resetOnChangeOf"
+    (propertyKey) => !optionalKeys.includes(propertyKey)
   );
 
   assert.deepEqual(getSchemaPropertyKeys(schema), propertyKeys);
@@ -52,6 +53,7 @@ test("select 스키마 속성은 공통 편집기로 표시할 수 있다", asyn
 
   assert.equal(getSchemaPropertyEditorKind(schema, "fieldKey"), "text");
   assert.equal(getSchemaPropertyEditorKind(schema, "placeholder"), "text");
+  assert.equal(getSchemaPropertyEditorKind(schema, "disabledPlaceholder"), "text");
   assert.equal(getSchemaPropertyEditorKind(schema, "valueType"), "enum");
   assert.equal(getSchemaPropertyEditorKind(schema, "required"), "boolean");
   assert.equal(

@@ -2,6 +2,11 @@
   "schemaVersion": 1,
   "screenId": "ONB-01",
   "stateScopeKey": "onboardingDraft",
+  "meta": {
+    "title": "내 프로필에 표시될 학적 정보를 입력해 주세요",
+    "description": "학생회 활동에 사용할 내 프로필 정보입니다.",
+    "footerNote": "다음 단계에서 학생회 시작 방식을 선택합니다."
+  },
   "source": {
     "pageName": "Wireframe",
     "nodeId": "3:2",
@@ -76,7 +81,8 @@
         "type": "select",
         "fieldKey": "college",
         "label": "단과대학",
-        "placeholder": "학교를 먼저 선택하세요",
+        "placeholder": "단과대학을 선택하세요",
+        "disabledPlaceholder": "학교를 먼저 선택하세요",
         "initialValue": null,
         "valueType": "string",
         "required": true,
@@ -109,7 +115,8 @@
         "type": "select",
         "fieldKey": "department",
         "label": "학부·학과",
-        "placeholder": "단과대학을 먼저 선택하세요",
+        "placeholder": "학부·학과를 선택하세요",
+        "disabledPlaceholder": "단과대학을 먼저 선택하세요",
         "initialValue": null,
         "valueType": "string",
         "required": true,

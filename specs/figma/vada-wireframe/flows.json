@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "flows": [
+    {
+      "key": "onboarding",
+      "label": "기본 설정",
+      "screens": [
+        "ONB-01",
+        "ONB-02"
+      ]
+    }
+  ]
+}

@@ -116,6 +116,7 @@ async function handleSaveScreenSpec(message) {
       screenNode: screenContext.activeScreenNode,
       screenId: screenContext.activeScreen.screenId,
       stateScopeKey: message.stateScopeKey,
+      meta: message.meta,
       drafts: message.drafts,
       schemaByType,
       getNodeByIdAsync: (nodeId) => figma.getNodeByIdAsync(nodeId)

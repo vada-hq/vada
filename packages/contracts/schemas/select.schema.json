@@ -34,6 +34,11 @@
         "null"
       ]
     },
+    "disabledPlaceholder": {
+      "type": "string",
+      "minLength": 1,
+      "description": "비활성(enabledWhen 미충족) 상태에서 표시할 문구. 생략하면 placeholder를 그대로 쓴다. placeholder는 활성 상태 문구다."
+    },
     "initialValue": {
       "type": [
         "string",

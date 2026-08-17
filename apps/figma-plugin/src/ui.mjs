@@ -111,6 +111,8 @@ let optionSourceCatalog = { schemaVersion: 2, sources: [] };
 let optionSourceCatalogError = "";
 let optionSourceRequestVersion = 0;
 let currentScreenStateScopeKey = "";
+// 화면 meta(제목·부제·안내문)는 UI에서 편집하지 않지만 저장 왕복에서 보존한다.
+let currentScreenMeta = null;
 let stateScopeCatalog = { schemaVersion: 1, scopes: [] };
 let stateScopeCatalogError = "";
 let stateScopeRequestVersion = 0;
@@ -1443,6 +1445,7 @@ saveScreen.addEventListener("click", () => {
       pluginMessage: {
         type: "save-screen-spec",
         stateScopeKey: currentScreenStateScopeKey || undefined,
+        meta: currentScreenMeta ?? undefined,
         drafts: nodeDraftStore.entries()
       }
     },
@@ -1601,6 +1604,7 @@ window.onmessage = async (event) => {
   if (message?.type === "local-screen-spec-ready") {
     replaceScreenDrafts(message.screenSpec);
     currentScreenStateScopeKey = message.screenSpec.stateScopeKey ?? "";
+    currentScreenMeta = message.screenSpec.meta ?? null;
     renderCurrentStateScope();
     localRevision = message.revision;
     setLocalChangedState(false);
@@ -1614,6 +1618,7 @@ window.onmessage = async (event) => {
   if (message?.type === "screen-spec-saved") {
     currentPersistedScreenSpec = message.screenSpec;
     currentScreenStateScopeKey = message.screenSpec.stateScopeKey ?? "";
+    currentScreenMeta = message.screenSpec.meta ?? null;
     renderCurrentStateScope();
     try {
       const result = await saveScreenSpecToLocal({
@@ -1657,6 +1662,7 @@ window.onmessage = async (event) => {
   currentPersistedScreenSpec = message.screenSpec;
   if (screenChanged) {
     currentScreenStateScopeKey = message.screenSpec?.stateScopeKey ?? "";
+    currentScreenMeta = message.screenSpec?.meta ?? null;
   }
   renderCurrentScreen(message.activeScreen, message.wireframeKey);
   renderScreenCandidate(

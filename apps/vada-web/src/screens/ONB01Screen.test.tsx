@@ -36,6 +36,27 @@ describe('ONB01Screen', () => {
     expect(college).toHaveValue('해양과학대학')
   })
 
+  it('학교 선택 후 단과대학 placeholder가 활성 문구로 바뀐다 (마찰 8)', async () => {
+    const user = userEvent.setup()
+    render(<ScreenHarness />)
+
+    const college = screen.getByRole('combobox', { name: '단과대학*' })
+    expect(college).toHaveAttribute('placeholder', '학교를 먼저 선택하세요')
+
+    await pickSchool(user, '바다대학교')
+    expect(college).toHaveAttribute('placeholder', '단과대학을 선택하세요')
+  })
+
+  it('화면 카피는 스펙 meta에서 렌더한다 (마찰 10)', () => {
+    render(<ScreenHarness />)
+
+    expect(
+      screen.getByRole('heading', { name: '내 프로필에 표시될 학적 정보를 입력해 주세요' }),
+    ).toBeInTheDocument()
+    expect(screen.getByText('학생회 활동에 사용할 내 프로필 정보입니다.')).toBeInTheDocument()
+    expect(screen.getByText('다음 단계에서 학생회 시작 방식을 선택합니다.')).toBeInTheDocument()
+  })
+
   it('다른 학교로 바꾸면 하위 필드를 초기화한다 (resetOnChangeOf)', async () => {
     const user = userEvent.setup()
     render(<ScreenHarness />)

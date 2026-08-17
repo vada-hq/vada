@@ -164,7 +164,9 @@ export function collectSpecFindings({
   screens = [],
   optionSources = null,
   stateScopes = null,
-  designs = {}
+  designs = {},
+  flows = null,
+  flowsFile = "flows.json"
 } = {}) {
   const findings = [];
   const screenIds = new Set(
@@ -293,6 +295,40 @@ export function collectSpecFindings({
     });
 
     checkScreenAgainstDesign(findings, screen, designs[spec.screenId]);
+  }
+
+  // 흐름 카탈로그: 참조한 화면의 명세 존재와 단일 멤버십(단계 표시의 유일성)을 검사한다.
+  if (isObject(flows) && Array.isArray(flows.flows)) {
+    const flowKeysByScreen = new Map();
+    for (const flow of flows.flows) {
+      if (!isObject(flow) || !Array.isArray(flow.screens)) {
+        continue;
+      }
+      for (const screenId of flow.screens) {
+        if (typeof screenId !== "string") {
+          continue;
+        }
+        if (!screenIds.has(screenId)) {
+          findings.push({
+            level: "warning",
+            file: flowsFile,
+            message: `흐름 '${flow.key}'의 화면 '${screenId}' 명세가 아직 없습니다.`
+          });
+        }
+        const owners = flowKeysByScreen.get(screenId) ?? [];
+        owners.push(flow.key);
+        flowKeysByScreen.set(screenId, owners);
+      }
+    }
+    for (const [screenId, owners] of flowKeysByScreen) {
+      if (owners.length > 1) {
+        findings.push({
+          level: "error",
+          file: flowsFile,
+          message: `화면 '${screenId}'가 여러 흐름(${owners.join(", ")})에 속합니다. 단계 표시가 모호해집니다.`
+        });
+      }
+    }
   }
 
   return findings;

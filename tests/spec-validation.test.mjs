@@ -214,6 +214,45 @@ test("collectSpecFindings는 정합한 명세에서 아무것도 보고하지 �
   assert.deepEqual(findings, []);
 });
 
+test("collectSpecFindings는 흐름 카탈로그의 참조와 중복 멤버십을 검사한다", () => {
+  const screens = [
+    {
+      file: "screens/SCR-01/screen.json",
+      spec: {
+        schemaVersion: 1,
+        screenId: "SCR-01",
+        source: { pageName: "P", nodeId: "1:1", name: "SCR-01", figmaType: "FRAME" },
+        elements: []
+      }
+    }
+  ];
+  const flows = {
+    schemaVersion: 1,
+    flows: [
+      { key: "a", label: "에이", screens: ["SCR-01", "SCR-99"] },
+      { key: "b", label: "비", screens: ["SCR-01"] }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, flows });
+  assert.ok(
+    findings.some(
+      (finding) =>
+        finding.level === "warning" && finding.message.includes("SCR-99")
+    ),
+    "흐름이 참조한 미작성 화면은 경고여야 한다"
+  );
+  assert.ok(
+    findings.some(
+      (finding) =>
+        finding.level === "error" &&
+        finding.message.includes("여러 흐름") &&
+        finding.message.includes("SCR-01")
+    ),
+    "여러 흐름에 속한 화면은 오류여야 한다"
+  );
+});
+
 test("validateSpecsRoot는 실제 저장소 명세에서 오류 0건이어야 한다", async () => {
   const findings = await validateSpecsRoot(join(repoRoot, "specs", "figma"));
   const errors = findings.filter((finding) => finding.level === "error");
@@ -295,6 +334,12 @@ test("validateSpecsRoot는 스키마 위반과 파일 이름 불일치를 오류
       "utf8"
     );
 
+    await writeFile(
+      join(wireframe, "flows.json"),
+      JSON.stringify({ schemaVersion: 1, flows: "nope" }),
+      "utf8"
+    );
+
     const findings = await validateSpecsRoot(root);
     const errors = findings.filter((finding) => finding.level === "error");
     assert.ok(
@@ -304,6 +349,10 @@ test("validateSpecsRoot는 스키마 위반과 파일 이름 불일치를 오류
     assert.ok(
       errors.some((finding) => finding.message.includes("label")),
       "input 스키마 위반(label 누락) 오류가 있어야 한다"
+    );
+    assert.ok(
+      errors.some((finding) => finding.file.includes("flows.json")),
+      "flows.json 스키마 위반 오류가 있어야 한다"
     );
   } finally {
     await rm(root, { recursive: true, force: true });

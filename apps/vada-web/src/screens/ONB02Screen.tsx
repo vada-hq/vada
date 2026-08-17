@@ -1,5 +1,6 @@
 import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
+import { findFlowStep } from '../spec/flows'
 import { onb02 } from '../spec/screens'
 import type { ButtonSpec } from '../spec/types'
 
@@ -13,12 +14,17 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
   const buttons = onb02.elements
     .filter((element) => element.spec.type === 'button')
     .map((element) => element.spec as ButtonSpec)
+  const flowStep = findFlowStep(onb02.screenId)
 
   return (
     <PageCard>
-      <AppHeader step={2} totalSteps={2} />
+      {flowStep && (
+        <AppHeader label={flowStep.label} step={flowStep.step} totalSteps={flowStep.total} />
+      )}
 
-      <h1 className="pt-6 text-lg font-semibold text-gray-900">시작 방식 선택</h1>
+      <h1 className="pt-6 text-lg font-semibold text-gray-900">
+        {onb02.meta?.title ?? onb02.screenId}
+      </h1>
       <p className="pt-1 text-sm text-gray-500">
         파일럿 자리표시 화면입니다. 아래 버튼 중 뒤로 가기만 동작합니다.
       </p>

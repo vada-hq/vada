@@ -20,6 +20,7 @@ const SCHEMA_FILES = [
   "button.schema.json",
   "option-sources.schema.json",
   "state-scopes.schema.json",
+  "flows.schema.json",
   "figma-design.schema.json"
 ];
 
@@ -33,6 +34,7 @@ async function createValidators() {
     screen: ajv.getSchema("screen.schema.json"),
     optionSources: ajv.getSchema("option-sources.schema.json"),
     stateScopes: ajv.getSchema("state-scopes.schema.json"),
+    flows: ajv.getSchema("flows.schema.json"),
     figmaDesign: ajv.getSchema("figma-design.schema.json"),
     elements: {
       input: ajv.getSchema("input.schema.json"),
@@ -140,6 +142,25 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     validator: validators.stateScopes,
     missingMessage: "상태 스코프 카탈로그가 없습니다."
   });
+
+  // 흐름 카탈로그는 선택 사항이다: 없으면 조용히 지나가고, 있으면 검증한다.
+  let flowsCatalog = null;
+  const flowsPath = join(wireframeDir, "flows.json");
+  if (await pathExists(flowsPath)) {
+    try {
+      flowsCatalog = await readJsonFile(flowsPath);
+    } catch (error) {
+      findings.push({
+        level: "error",
+        file: label("flows.json"),
+        message: `JSON을 읽을 수 없습니다: ${error.message}`
+      });
+      flowsCatalog = null;
+    }
+    if (flowsCatalog !== null && !validators.flows(flowsCatalog)) {
+      pushSchemaFindings(findings, label("flows.json"), "스키마 위반: ", validators.flows.errors);
+    }
+  }
 
   const screensDir = join(wireframeDir, "screens");
   const entries = await readdir(screensDir, { withFileTypes: true });
@@ -273,7 +294,14 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
   }
 
   findings.push(
-    ...collectSpecFindings({ screens, optionSources, stateScopes, designs })
+    ...collectSpecFindings({
+      screens,
+      optionSources,
+      stateScopes,
+      designs,
+      flows: flowsCatalog,
+      flowsFile: label("flows.json")
+    })
   );
 }
 

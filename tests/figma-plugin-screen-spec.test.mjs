@@ -689,6 +689,57 @@ test("저장된 화면 요소를 nodeId별 UI 초안 목록으로 복원한다",
   );
 });
 
+test("화면 저장은 화면 meta를 보존하고 없으면 생략한다", async () => {
+  const page = { type: "PAGE", name: "Wireframe", parent: null };
+  const screenNode = createPluginNode({
+    id: "3:2",
+    name: "온보딩 · ONB-01 · 본인 소속 입력",
+    type: "FRAME",
+    parent: page
+  });
+  const meta = {
+    title: "내 프로필에 표시될 학적 정보를 입력해 주세요",
+    description: "학생회 활동에 사용할 내 프로필 정보입니다.",
+    footerNote: null
+  };
+
+  const withMeta = await saveScreenSpec({
+    screenNode,
+    screenId: "ONB-01",
+    stateScopeKey: "onboardingDraft",
+    meta,
+    drafts: [],
+    schemaByType: {},
+    getNodeByIdAsync: async () => null
+  });
+  assert.deepEqual(withMeta.meta, meta);
+  assert.deepEqual(JSON.parse(screenNode.getPluginData("screen-spec")).meta, meta);
+
+  const withoutMeta = await saveScreenSpec({
+    screenNode,
+    screenId: "ONB-01",
+    drafts: [],
+    schemaByType: {},
+    getNodeByIdAsync: async () => null
+  });
+  assert.equal("meta" in withoutMeta, false);
+});
+
+test("meta는 UI와 code 경로로 저장까지 전달된다", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const uiSource = await readFile(
+    new URL("../apps/figma-plugin/src/ui.mjs", import.meta.url),
+    "utf8"
+  );
+  const codeSource = await readFile(
+    new URL("../apps/figma-plugin/src/code.mjs", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(uiSource, /currentScreenMeta/);
+  assert.match(codeSource, /meta:\s*message\.meta/);
+});
+
 test("화면 JSON 다운로드 이름과 내용은 screenId를 기준으로 만든다", () => {
   const screenSpec = {
     schemaVersion: 1,

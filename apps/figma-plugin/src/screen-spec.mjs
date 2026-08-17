@@ -372,6 +372,7 @@ export async function saveScreenSpec({
   screenNode,
   screenId,
   stateScopeKey,
+  meta,
   drafts,
   schemaByType,
   getNodeByIdAsync
@@ -413,12 +414,19 @@ export async function saveScreenSpec({
     stateScopeKey === undefined
       ? null
       : normalizeStateScopeKey(stateScopeKey);
+  // 화면 meta는 로컬 JSON(AI 왕복)에서 작성되며, 플러그인 저장은 이를 보존한다.
+  const hasMeta =
+    meta !== null &&
+    typeof meta === "object" &&
+    !Array.isArray(meta) &&
+    Object.keys(meta).length > 0;
   const screenSpec = {
     schemaVersion: SCREEN_SPEC_VERSION,
     screenId,
     ...(normalizedStateScopeKey
       ? { stateScopeKey: normalizedStateScopeKey }
       : {}),
+    ...(hasMeta ? { meta } : {}),
     source: createScreenSource(screenNode),
     elements
   };

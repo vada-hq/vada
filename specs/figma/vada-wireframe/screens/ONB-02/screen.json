@@ -2,6 +2,9 @@
   "schemaVersion": 1,
   "screenId": "ONB-02",
   "stateScopeKey": "onboardingDraft",
+  "meta": {
+    "title": "시작 방식 선택"
+  },
   "source": {
     "pageName": "Wireframe",
     "nodeId": "10:2",
