@@ -37,6 +37,7 @@
             "const": "flow"
           },
           "clearOn": {
+            "description": "스코프를 제거하는 수명 이벤트. complete/cancel은 버튼 action의 scopeEvent로만 발생한다(설계 방향: element-types.md — 발생 지점 스키마는 첫 제출 버튼 등장 시 확정).",
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
