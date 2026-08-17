@@ -26,8 +26,31 @@ class HttpError extends Error {
   }
 }
 
-function setCorsHeaders(response) {
-  response.setHeader("Access-Control-Allow-Origin", "*");
+const ALLOWED_WEB_ORIGIN_PATTERN = /^https:\/\/([a-z0-9-]+\.)?figma\.com$/i;
+
+function resolveRequestOrigin(request) {
+  const origin = request.headers.origin;
+
+  // Origin 헤더가 없는 요청은 브라우저 밖 로컬 도구(CLI, 테스트)다.
+  if (origin === undefined) {
+    return { allowed: true, origin: null };
+  }
+
+  const value = String(origin).trim();
+
+  // Figma 플러그인 iframe은 opaque origin이라 "null"을 보낸다.
+  if (value === "null" || ALLOWED_WEB_ORIGIN_PATTERN.test(value)) {
+    return { allowed: true, origin: value };
+  }
+
+  return { allowed: false, origin: null };
+}
+
+function setCorsHeaders(response, allowedOrigin) {
+  response.setHeader("Vary", "Origin");
+  if (allowedOrigin) {
+    response.setHeader("Access-Control-Allow-Origin", allowedOrigin);
+  }
   response.setHeader("Access-Control-Allow-Methods", "GET, PUT, OPTIONS");
   response.setHeader(
     "Access-Control-Allow-Headers",
@@ -826,9 +849,19 @@ export function createSpecServer({
   const absoluteSpecsRoot = resolve(specsRoot);
 
   return createServer((request, response) => {
-    setCorsHeaders(response);
+    const originCheck = resolveRequestOrigin(request);
+    setCorsHeaders(response, originCheck.origin);
 
     void (async () => {
+      if (!originCheck.allowed) {
+        request.resume();
+        throw new HttpError(
+          403,
+          "forbidden_origin",
+          "허용되지 않은 Origin입니다. 브리지는 Figma 플러그인과 로컬 도구의 요청만 받습니다."
+        );
+      }
+
       if (request.method === "OPTIONS") {
         response.statusCode = 204;
         response.end();

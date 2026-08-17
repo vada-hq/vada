@@ -74,7 +74,7 @@ test("상태 확인은 loopback 브리지의 준비 상태를 반환한다", asy
   const response = await fetch(`${baseUrl}/health`);
 
   assert.equal(response.status, 200);
-  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.equal(response.headers.get("access-control-allow-origin"), null);
   assert.deepEqual(await response.json(), { status: "ok" });
 });
 
@@ -500,11 +500,62 @@ test("Figma 플러그인용 CORS preflight를 처리한다", async (t) => {
   );
 
   assert.equal(response.status, 204);
-  assert.equal(response.headers.get("access-control-allow-origin"), "*");
+  assert.equal(response.headers.get("access-control-allow-origin"), "null");
+  assert.equal(response.headers.get("vary"), "Origin");
   assert.equal(response.headers.get("access-control-allow-methods"), "GET, PUT, OPTIONS");
   assert.equal(
     response.headers.get("access-control-allow-headers"),
     "Content-Type, If-Match, If-None-Match"
   );
   assert.equal(response.headers.get("access-control-expose-headers"), "ETag");
+});
+
+test("허용되지 않은 웹 Origin의 요청은 쓰기 전에 거부한다", async (t) => {
+  const { baseUrl, specsRoot } = await startServer(t);
+  const screenUrl = `${baseUrl}/v1/screens/vada-wireframe/ONB-02`;
+
+  const preflight = await fetch(screenUrl, {
+    method: "OPTIONS",
+    headers: {
+      origin: "https://evil.example",
+      "access-control-request-method": "PUT"
+    }
+  });
+  assert.equal(preflight.status, 403);
+  assert.equal(preflight.headers.get("access-control-allow-origin"), null);
+
+  const blockedPut = await fetch(screenUrl, {
+    method: "PUT",
+    headers: {
+      "content-type": "application/json",
+      origin: "https://evil.example",
+      "if-none-match": "*"
+    },
+    body: JSON.stringify(createScreenSpec())
+  });
+  assert.equal(blockedPut.status, 403);
+  const blockedBody = await blockedPut.json();
+  assert.equal(blockedBody.error.code, "forbidden_origin");
+  assert.deepEqual(await readdir(specsRoot), []);
+
+  const pluginPut = await fetch(screenUrl, {
+    method: "PUT",
+    headers: {
+      "content-type": "application/json",
+      origin: "null",
+      "if-none-match": "*"
+    },
+    body: JSON.stringify(createScreenSpec())
+  });
+  assert.equal(pluginPut.status, 200);
+  assert.equal(pluginPut.headers.get("access-control-allow-origin"), "null");
+
+  const figmaHealth = await fetch(`${baseUrl}/health`, {
+    headers: { origin: "https://www.figma.com" }
+  });
+  assert.equal(figmaHealth.status, 200);
+  assert.equal(
+    figmaHealth.headers.get("access-control-allow-origin"),
+    "https://www.figma.com"
+  );
 });

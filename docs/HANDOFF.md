@@ -71,6 +71,7 @@
 - 화면 GET과 PUT은 파일 내용 기반 `ETag` 리비전을 반환한다. 플러그인은 `If-Match` 또는 `If-None-Match`로 AI가 새로 수정한 로컬 JSON의 무음 덮어쓰기를 막는다.
 - 식별자 경로 이탈, 잘못된 JSON, URL과 본문의 `screenId` 불일치를 거부하고 임시 파일 교체 방식으로 저장한다.
 - Figma 개발 플러그인의 공개 네트워크 접근은 계속 차단하고 `devAllowedDomains`에서 Figma가 허용하는 `http://localhost:3846`만 연다. 서버 자체는 `127.0.0.1`에만 바인딩한다.
+- 브리지는 Origin을 검사한다: Origin 헤더 없음(로컬 CLI·테스트), `null`(Figma 플러그인 iframe), `https://*.figma.com`만 허용하고 그 외 웹 Origin은 CORS 허용 없이 403 `forbidden_origin`으로 거부한다. 일반 웹페이지의 드라이브바이 쓰기를 막기 위한 것으로, null-origin을 위조하는 표적형 sandbox iframe 공격은 잔존 위험이며 필요해지면 공유 토큰으로 격상한다.
 - ONB-02의 `14:111` 버튼을 대상으로 AI의 로컬 JSON 수정, 플러그인 변경 감지, 명시적 불러오기, 사용자 검토, 최종 저장까지 왕복 동작을 실제 Figma 앱에서 확인했다.
 - ONB-01의 네 선택 요소는 `education.schools`, `education.colleges`, `education.departments`, `education.currentGrades` 카탈로그 key로 전환했다.
 - 단과대학은 `schoolId ← school`, 학부·학과는 `schoolId ← school`, `collegeId ← college`로 요청 인자를 연결했다.
@@ -80,7 +81,7 @@
 - 학교는 `GET /api/education/schools`를 검색어 2자 이상에서 300ms debounce로 호출한다. 단과대학과 학부·학과는 메뉴를 열 때 각각 `GET /api/education/colleges`, `GET /api/education/departments`를 호출하고 받은 목록을 클라이언트에서 검색한다.
 - 원격 선택이 아닌 단순 목록도 표현할 수 있도록 `request.search`는 선택 사항이며, `loadOn: search`일 때만 원격 검색 계약이 필수다.
 - ONB-01 다음 버튼은 현재 화면 범위의 필수값 존재 조건과 차단 동작을 명시하며, 일반화된 계약·공통 판정기·회귀 테스트가 추가되었다.
-- 플러그인 전체 테스트 100개, spec-service·변환기·검증 테스트 24개와 번들 빌드가 통과했다.
+- 플러그인 전체 테스트 100개, spec-service·변환기·검증 테스트 25개와 번들 빌드가 통과했다.
 - 저장소를 git으로 관리한다(main 브랜치, node_modules·dist 제외, LF 정규화). 명세 변경 이력·롤백은 git이 담당하므로 SHA-256 수기 기록은 더 이상 하지 않는다.
 - 프론트엔드 구현 해석 규칙을 `docs/decisions/implementation-conventions.md`로 확정했다: ÷0.875 환산 후 표준 스케일 스냅, lucide 아이콘 직접 사용(assets/*.svg는 검증 증거물), Pretendard, 유동 반응형(모바일 별도 설계 없음), 시맨틱 색 토큰, placeholder gray-400, 상태 시각 관례.
 
