@@ -53,6 +53,7 @@ node src/validate-specs.mjs
 
 Set-Location 'C:\Users\82108\figma-spec-v2\apps\vada-web'
 npm test
+npm run e2e
 npm run build
 
 Set-Location 'C:\Users\82108\figma-spec-v2'
