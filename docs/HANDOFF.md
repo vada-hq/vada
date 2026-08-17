@@ -87,7 +87,7 @@
 
 ## 다음 한 단계
 
-ONB-01 명세가 완결되었으므로 프론트엔드 화면 구현을 시작한다. 구현 위치(저장소·앱 구조)와 스택은 시작 전에 사용자와 정한다.
+ONB-01 파일럿 구현을 시작한다. 이 구현은 파이프라인 검증 실험이며, 완료 기준과 마찰 로그는 `docs/pilot-onb01.md`, 방법론·스택 결정은 `docs/decisions/app-implementation.md`를 따른다. `apps/web`(Vite+React+TS+Tailwind v4+lucide-react, Pretendard) 스캐폴드는 완료됐고 빌드가 통과하므로 화면 구현부터 시작하면 된다.
 
 1. 동작은 `specs/figma/vada-wireframe/screens/ONB-01.json`, `option-sources.json`, `state-scopes.json`을 따른다.
 2. 시각은 `screens/ONB-01/figma.design.json`을 기준으로 하되 전역 관례 `docs/decisions/implementation-conventions.md`와 wireframe 해석 `specs/figma/vada-wireframe/interpretation.md`(0.875 환산, 색 매핑표 등)를 적용하고, 레이아웃 구조·비율 검증은 `reference.png`와 대조한다. `assets/*.svg`는 구현용 자산이 아니라 추출 검증 증거물이다.

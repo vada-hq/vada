@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+/* docs/decisions/implementation-conventions.md 3번: 본문 폰트는 Pretendard */
+@theme {
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont,
+    system-ui, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR",
+    "Malgun Gothic", sans-serif;
+}
