@@ -106,7 +106,7 @@
           "type": "submit",
           "mutationKey": "org.create",
           "onSuccess": {
-            "navigate": "ORG-10",
+            "navigate": "HOME-01K",
             "scopeEvent": "complete"
           },
           "executeWhen": {

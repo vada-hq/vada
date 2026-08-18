@@ -76,10 +76,10 @@ test('ORG-02: 빈 조직으로 바꾸면 부서가 초기화되고, 제출은 �
   await expect(page.getByText('회장단', { exact: true })).toBeVisible()
   await page.screenshot({ path: `${SHOTS}/12-org02-empty.png`, fullPage: true })
 
-  // submit: 성공하면 onSuccess.navigate로 이동한다. ORG-10은 미구현이므로
-  // 내비게이션 계약대로 명시적 오류가 뜬다.
+  // submit: mock 전송이 끝나면 onSuccess.navigate로 이동한다. 도착 화면이
+  // 무엇인지는 단언하지 않는다 — 그 화면을 구현하는 순간 깨지기 때문이다
+  // (방법론: 미구현을 단언하지 않는다). 여기서 볼 것은 "떠났는가"다.
   await page.getByRole('button', { name: /조직 만들기/ }).click()
-  await expect(page.getByText('구현에 등록되지 않은 화면입니다')).toBeVisible()
-  await expect(page.getByText('ORG-10')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '조직 구조 설정' })).toHaveCount(0)
   await page.screenshot({ path: `${SHOTS}/13-org02-submitted.png`, fullPage: true })
 })
