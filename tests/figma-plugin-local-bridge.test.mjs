@@ -509,3 +509,18 @@ test("플러그인 UI는 선택지 출처를 카탈로그에서 찾아 함께 �
   assert.match(uiSource, /findOptionSourceByKey\(/u);
   assert.match(uiSource, /카탈로그에/u);
 });
+
+// 고정폭 스택을 명시하지 않으면 브라우저 기본 monospace로 떨어져 본문과
+// 눈에 띄게 다른 폰트가 섞인다(ui.html을 다시 쓰다가 실제로 빠뜨렸다).
+test("플러그인 UI는 식별자용 고정폭 폰트를 명시한다", async () => {
+  const uiHtml = await readFile(
+    new URL("../apps/figma-plugin/src/ui.html", import.meta.url),
+    "utf8"
+  );
+
+  assert.match(uiHtml, /code \{\s*font-family:[^;]*monospace;/u);
+
+  // 한글이 들어가는 값은 고정폭으로 그리지 않는다. Consolas에 한글 글리프가
+  // 없어 시스템 한글 폰트로 갈라지기 때문이다.
+  assert.doesNotMatch(uiHtml, /<code id="node-name">/u);
+});

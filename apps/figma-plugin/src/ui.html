@@ -35,6 +35,13 @@
         font: inherit;
       }
 
+      /* 식별자(nodeId·key·속성 이름)만 고정폭으로 쓴다. Consolas에는 한글
+         글리프가 없어서 한글이 섞이면 시스템 한글 폰트로 갈라진다 — 그래서
+         한글이 들어갈 수 있는 값(화면 이름·라벨)에는 code를 쓰지 않는다. */
+      code {
+        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      }
+
       dt {
         margin: 0;
         color: var(--figma-color-text-secondary);
@@ -330,7 +337,7 @@
       </div>
       <div>
         <dt>name</dt>
-        <dd><code id="node-name"></code></dd>
+        <dd id="node-name"></dd>
       </div>
       <div>
         <dt>type</dt>
