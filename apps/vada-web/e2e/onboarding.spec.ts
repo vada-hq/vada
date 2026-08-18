@@ -35,14 +35,12 @@ test('온보딩 왕복: 입력→이동→미등록 화면 오류→복귀 시 �
   await expect(page.getByText('시작 방식 선택 2 / 2')).toBeVisible()
   await page.screenshot({ path: `${SHOTS}/03-onb02.png`, fullPage: true })
 
-  // 미등록 화면 이동은 내비게이션 계약대로 명시적 오류여야 한다.
-  await page.getByRole('button', { name: /초대받은 학생회 참여하기/ }).click()
-  await expect(page.getByText('구현에 등록되지 않은 화면입니다')).toBeVisible()
-  await expect(page.getByText('INV-00')).toBeVisible()
-  await page.screenshot({ path: `${SHOTS}/04-unregistered-inv00.png`, fullPage: true })
+  // 미등록 이동이 명시적 오류라는 계약은 ScreenRouter 단위 테스트가
+  // 절대 구현되지 않을 id로 검사한다. 실제 화면 id로 여기서 단언하면
+  // 그 화면을 구현하는 순간 깨진다(방법론: 미구현을 단언하지 않는다).
 
   // onboardingDraft 스코프: 복귀해도 입력값이 유지된다.
-  await page.getByRole('button', { name: '처음 화면으로 돌아가기' }).click()
+  await page.getByRole('button', { name: /이전으로/ }).click()
   await expect(page.getByRole('textbox', { name: '이름*' })).toHaveValue('김바다')
   await expect(page.getByRole('combobox', { name: '학교*' })).toHaveValue('바다대학교')
   await expect(page.getByRole('combobox', { name: '학부·학과*' })).toHaveValue('해양환경학과')

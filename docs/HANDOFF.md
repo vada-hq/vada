@@ -28,8 +28,8 @@
 
 ## 현재 상태 — 제품 vada
 
-- **명세**: ONB-01·ONB-02·ORG-01·ORG-02 완결. INV-00·ORG-10은 이동 대상으로만 등장(검증 경고 2건, 의도된 미완성).
-- **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): ONB-01·ONB-02·ORG-01·ORG-02 모두 구현·검증 통과. 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답한다. 상태는 스코프별 저장소(`state/scopes.ts`)로 일반화되어, ORG-01의 note가 **다른 스코프**(onboardingDraft)를 읽는다. INV-00·ORG-10 이동 시 미등록 화면 오류 카드가 뜨는 것은 내비게이션 계약의 정상 동작이다.
+- **명세**: ONB-01·ONB-02·ORG-01·ORG-02 완결. INV-01·ORG-10은 이동 대상으로만 등장(검증 경고 2건, 의도된 미완성).
+- **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): ONB-01·ONB-02·ORG-01·ORG-02 모두 구현·검증 통과. 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답한다. 상태는 스코프별 저장소(`state/scopes.ts`)로 일반화되어, ORG-01의 note가 **다른 스코프**(onboardingDraft)를 읽는다. INV-01·ORG-10 이동 시 미등록 화면 오류 카드가 뜨는 것은 내비게이션 계약의 정상 동작이다.
 - **ORG-01은 elements 배열 순회로 렌더한다**(ONB-01·ONB-02의 화면별 하드코딩과 다름). 화면당 손코딩을 줄이는 방향의 첫 사례다.
 - **제출 왕복이 실제로 돈다**(ORG-02): `조직 만들기` → mutations 카탈로그의 mock 전송 → `onSuccess.navigate`로 ORG-10 이동 + `scopeEvent: complete`로 orgCreationDraft 제거.
 - **마찰 로그**: `docs/pilot-onb01.md` 11건 + `docs/pilot-onb02.md` 5건 + `docs/pilot-org01.md` 6건 + `docs/pilot-org02.md` 10건(신규 계급 3건). 잔여 발견은 전부 `docs/BACKLOG.md`에 있다.
@@ -63,13 +63,15 @@
 
 플러그인을 편집기에서 확인기로 전환했다(`docs/decisions/plugin-role.md`). 편집 왕복이 사라지면서 그 왕복에서만 생기던 결함 계급도 함께 없어졌다.
 
-다음은 **같은 화면을 추출기로 다시 뽑아 재현율을 재는 것**이다. ORG-02 첫 실행에서 7개 중 2개만 맞았는데 원인은 추출기 성능이 아니라 `list`·`options[].description`이 아직 없었기 때문이다. 이제 생겼으니 재현율이 오를 것이고, 오르지 않으면 추출기의 진짜 한계다.
+추출기 재현율은 재측정을 끝냈다. `list`·`options[].description`이 생긴 뒤에도 ORG-02는 `찾음 2/6`으로 **오르지 않았다** — 즉 추출기 성능이 아니라 진짜 한계다. 나란한 버튼이 '각각 버튼'인지 '하나 고르기'인지는 선택 상태 색으로만 갈리고 그건 제품 디자인 시스템 지식이며, 조직도는 사례가 하나뿐이라 일반화하지 않았다. 둘 다 트리거와 함께 백로그에 있다.
 
 ```powershell
 node apps/spec-service/src/draft-screen-spec.mjs vada-wireframe ORG-02 --verify
 ```
 
-이어서 **값의 근거(provenance) 표시**가 예약돼 있다 — 확인 대상을 135개 값에서 추정값 몇 개로 줄이는 것이 목적이다(`plugin-role.md`).
+다음은 **INV-01 사이클을 돌면서 AI 읽기 마찰을 측정하는 것**이다(`implementation-methodology.md`의 측정 규약). 지금까지 측정한 것은 전부 명세를 *만드는* 쪽이고, 명세를 *읽고 구현하는* 쪽은 0건이다. 값의 근거(provenance) 표시는 이 측정 결과를 보고 설계한다 — 수치 없이 먼저 만들지 않는다.
+
+**막혀 있는 것**: INV-01의 `figma.raw.json`이 아직 없다. 사용자가 Figma에서 화면을 지정하고 `Figma 원본 JSON 저장`을 눌러야 한다. `ORG-10`의 실제 Figma 화면 이름도 미확인이다(ONB-02의 `INV-00`은 실제 이름 `INV-01`로 교정했다).
 
 ## 확인 명령
 

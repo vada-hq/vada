@@ -14,7 +14,7 @@ interface ONB02ScreenProps {
 // 14:127 ExternalLink)에서 유추해 targetScreenId로 매핑한다(마찰 로그 참조).
 const CARD_ICON_BY_TARGET: Record<string, LucideIcon> = {
   'ORG-01': Plus,
-  'INV-00': ExternalLink,
+  'INV-01': ExternalLink,
 }
 
 export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {

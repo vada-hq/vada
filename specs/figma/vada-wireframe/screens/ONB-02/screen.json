@@ -45,7 +45,7 @@
         "initiallyDisabled": false,
         "action": {
           "type": "navigate",
-          "targetScreenId": "INV-00"
+          "targetScreenId": "INV-01"
         }
       }
     },
