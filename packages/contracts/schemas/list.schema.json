@@ -23,11 +23,9 @@
       "minLength": 1
     },
     "label": {
-      "type": [
-        "string",
-        "null"
-      ],
-      "description": "목록 위에 표시할 라벨(선택). 디자인에 라벨이 없으면 생략한다."
+      "type": "string",
+      "minLength": 1,
+      "description": "목록 위에 표시할 라벨(선택). 디자인에 라벨이 없으면 key를 생략한다."
     },
     "itemNoun": {
       "type": "string",

@@ -295,6 +295,19 @@ export function getSchemaPropertyEditorKind(schema, propertyKey) {
     return "json-object";
   }
 
+  const isNumber =
+    property.type === "integer" ||
+    property.type === "number" ||
+    (Array.isArray(property.type) &&
+      property.type.some((type) => type === "integer" || type === "number") &&
+      property.type.every(
+        (type) => type === "integer" || type === "number" || type === "null"
+      ));
+
+  if (isNumber) {
+    return "number";
+  }
+
   const isString =
     property.type === "string" ||
     (Array.isArray(property.type) &&

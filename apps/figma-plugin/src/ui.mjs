@@ -1167,6 +1167,32 @@ function createSchemaPropertyItem(
     item.append(input);
   }
 
+  if (editorKind === "number") {
+    const property = schema.properties[propertyKey];
+    const input = document.createElement("input");
+    input.type = "number";
+    input.name = propertyPath;
+    input.className = "schema-text-input";
+    input.setAttribute("aria-label", propertyPath);
+    input.setAttribute("autocomplete", "off");
+
+    if (property.type === "integer") {
+      input.step = "1";
+    }
+    if (typeof property.minimum === "number") {
+      input.min = String(property.minimum);
+    }
+    if (typeof property.maximum === "number") {
+      input.max = String(property.maximum);
+    }
+
+    if (savedValues && hasOwn(savedValues, propertyPath)) {
+      input.value = savedValues[propertyPath];
+    }
+
+    item.append(input);
+  }
+
   if (editorKind === "boolean") {
     const select = document.createElement("select");
     select.name = propertyPath;

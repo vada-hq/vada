@@ -68,7 +68,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     renderScreen(screenId)
     for (const field of fieldsOf(spec)) {
       // 라벨이 없는 필드(ORG-02의 조직 구성 방식)는 접근성 이름을 만들 근거가 없다.
-      if (field.type === 'select' && field.label === null) {
+      if (field.label === undefined) {
         continue
       }
       expect(

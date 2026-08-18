@@ -130,6 +130,35 @@ function serializeSchemaObject(schema, values, parentPath = "") {
       continue;
     }
 
+    if (editorKind === "number") {
+      if (rawValue === "") {
+        // 여기에 도달했다면 필수 속성이다(선택 속성의 빈 값은 위에서 생략된다).
+        if (isNullableProperty(property)) {
+          result[propertyKey] = null;
+          continue;
+        }
+
+        throw new TypeError(`${propertyPath}에 숫자를 입력하세요.`);
+      }
+
+      const parsedValue = Number(rawValue);
+      const needsInteger =
+        property.type === "integer" ||
+        (Array.isArray(property.type) && property.type.includes("integer"));
+
+      if (
+        !Number.isFinite(parsedValue) ||
+        (needsInteger && !Number.isInteger(parsedValue))
+      ) {
+        throw new TypeError(
+          `${propertyPath}는 ${needsInteger ? "정수" : "숫자"}여야 합니다.`
+        );
+      }
+
+      result[propertyKey] = parsedValue;
+      continue;
+    }
+
     if (
       editorKind === "text" &&
       rawValue === "" &&

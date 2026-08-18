@@ -21,8 +21,8 @@ export interface InputSpec {
 export interface SelectSpec {
   type: 'select'
   fieldKey: string
-  // 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식)은 null이다.
-  label: string | null
+  // 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식)은 key 자체가 없다.
+  label?: string
   placeholder: string | null
   disabledPlaceholder?: string
   helperText?: string
@@ -97,7 +97,7 @@ export interface NoteSpec {
 export interface GroupSpec {
   type: 'group'
   title: string
-  description?: string | null
+  description?: string
   memberFieldKeys: string[]
 }
 
@@ -105,7 +105,7 @@ export interface GroupSpec {
 export interface ListSpec {
   type: 'list'
   fieldKey: string
-  label?: string | null
+  label?: string
   itemNoun: string
   addLabel: string
   itemNote?: string

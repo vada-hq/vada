@@ -24,7 +24,6 @@
       "spec": {
         "type": "select",
         "fieldKey": "setupMode",
-        "label": null,
         "placeholder": null,
         "initialValue": "basic",
         "valueType": "string",

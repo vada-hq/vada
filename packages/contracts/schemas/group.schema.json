@@ -19,10 +19,9 @@
       "minLength": 1
     },
     "description": {
-      "type": [
-        "string",
-        "null"
-      ]
+      "type": "string",
+      "minLength": 1,
+      "description": "묶음 제목 아래 보조 설명(선택). 없으면 key를 생략한다."
     },
     "memberFieldKeys": {
       "type": "array",

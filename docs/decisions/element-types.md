@@ -8,6 +8,15 @@
 
 검증기는 이 계약을 기계적으로 강제한다: 요소의 식별 텍스트(`label`, group은 `title`)가 등록 노드의 하위 트리 안에 없으면 오류다. 이 규칙이 있으면 사람이 등록하든 AI가 `figma.design.json`에서 뽑든 같은 답이 나온다.
 
+## 스키마 작성 계약 (2026-08-18 확정)
+
+플러그인 UI는 이 스키마들로 만들어지고, `로컬 초안 불러오기` → `이 화면 저장`은 저장된 명세를 초안 값으로 펼쳤다가 그대로 다시 직렬화한다. 브리지는 저장 시 스키마 검증을 하지 않으므로 이 왕복에서 뭉개진 값은 그대로 디스크에 쓰인다. 따라서 스키마는 **왕복에서 원형이 보존되는 형태로만** 쓴다.
+
+- **선택 속성은 nullable일 수 없다.** 초안 값은 빈 문자열 하나뿐이라 '부재'와 `null`을 구분하지 못한다. 값이 없을 수 있으면 `required` + nullable(`null`로 명시), 개념 자체가 없을 수 있으면 선택 + non-nullable(key 생략)로 간다. 둘을 겹치면 왕복에서 반드시 한쪽으로 뭉개진다.
+- **모든 속성에 편집 위젯이 있어야 한다.** 판정기(`getSchemaPropertyEditorKind`)가 모르는 타입은 key 이름만 있는 죽은 줄로 그려지고, 불러온 값을 되돌려주지 못해 저장 한 번에 사라진다. 새 JSON 타입을 쓰려면 판정기와 `ui.mjs` 렌더러 **양쪽**에 분기를 추가한다.
+
+두 규칙 모두 `tests/element-type-registry.test.mjs`가 요소 유형 전체를 훑어 강제하고, `tests/figma-plugin-screen-spec.test.mjs`가 등록된 실제 요소로 왕복 보존을 확인한다.
+
 ## 유형
 
 - 현재 지원 유형은 `input`, `button`, `select` 세 가지다.
@@ -20,7 +29,7 @@
 - **action 확장(2026-08-17 방향 확정 → 2026-08-18 ORG-02에서 스키마화)**: 데이터 전송은 `action.type: submit`으로 표현한다 — 제출 계약(경로·payload 스코프·상태 문구)은 option-sources와 같은 패턴의 wireframe 단위 `mutations.json` 카탈로그에 중앙화하고 버튼은 `mutationKey`만 참조하며, 성공 시 `onSuccess: { navigate?, scopeEvent? }`로 이동·스코프 이벤트를 함께 표현한다. **상태 스코프의 complete/cancel 이벤트는 action의 `scopeEvent`로만 발생한다** — 수명 관리(스코프 제거)와 데이터 전송(제출)은 분리된 관심사다. 예약해 둔 설계가 첫 실제 사례(ORG-02 `조직 만들기`)에서 그대로 맞았다.
 - 실행 조건 판정(`executeWhen`·`onExecutionBlocked`)은 action 종류와 무관하다. navigate든 submit이든 같은 필수값 규칙을 쓴다.
 - `list`는 사용자가 항목을 추가·이름 수정·삭제하는 목록이다. 지금까지의 요소가 모두 "값 하나"였던 것과 달리 값이 항목의 배열이다. `rootItem`이 있으면 고정 루트를 가진 트리로, 없으면 평면 목록으로 렌더한다. 개수는 `minItems`·`maxItems`로 정하며 `required`로 판정하지 않는다(필수값 판정 후보에 들어가지 않는다). 다른 필드 값에 따른 초기 항목은 `initialItems`로 표현하고, 그 값이 바뀔 때의 처리는 기존 `resetOnChangeOf`를 재사용한다.
-- `select.label`은 선택 사항이다. 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식 라디오 카드)은 생략한다 — 없는 카피를 지어내지 않는다.
+- `select.label`은 선택 사항이다. 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식 라디오 카드)은 **key 자체를 생략한다** — 없는 카피를 지어내지 않는다. `null`을 쓰지 않는 이유는 위 스키마 작성 계약이다(`group.description`·`list.label`도 같다).
 - 선택지에 부연 설명이 필요하면 카탈로그의 `options[].description`에 둔다. 구현은 설명이 있는 선택지를 카드형으로, 없으면 압축형으로 그린다.
 - 화면 수준 카피(제목·부제·안내문)는 화면 JSON의 선택적 `meta`(title·description·footerNote)에 두고, 구현은 이를 렌더하며 하드코딩하지 않는다. 흐름 단계 표시는 wireframe 단위 `flows.json` 카탈로그(순서 배열 멤버십, 한 화면은 한 흐름)에서 계산한다.
 - `select`는 목록에서 하나를 고르는 요소이며, `searchable`로 목록 필터링 가능 여부를 구분한다.

@@ -759,3 +759,47 @@ test("화면 JSON 다운로드 이름과 내용은 screenId를 기준으로 만�
   assert.equal(formatScreenSpecJson(screenSpec).endsWith("\n"), true);
   assert.deepEqual(JSON.parse(formatScreenSpecJson(screenSpec)), screenSpec);
 });
+
+// `로컬 초안 불러오기` → `이 화면 저장`은 저장된 명세를 초안 값으로 펼쳤다가
+// 그대로 다시 직렬화한다. 브리지는 저장 시 스키마 검증을 하지 않으므로
+// 이 왕복에서 깨진 값은 그대로 디스크에 쓰인다. 등록된 실제 요소 전부로 확인한다.
+test("등록된 모든 요소가 불러오기·저장 왕복에서 원형을 유지한다", async () => {
+  const screensUrl = new URL(
+    "../specs/figma/vada-wireframe/screens/",
+    import.meta.url
+  );
+  const { readdir } = await import("node:fs/promises");
+  const schemaByType = new Map();
+  let checked = 0;
+
+  for (const screenId of await readdir(screensUrl)) {
+    let screen;
+    try {
+      screen = JSON.parse(
+        await readFile(new URL(`${screenId}/screen.json`, screensUrl), "utf8")
+      );
+    } catch {
+      continue;
+    }
+
+    for (const [index, element] of screen.elements.entries()) {
+      const elementType = element.spec.type;
+
+      if (!schemaByType.has(elementType)) {
+        schemaByType.set(elementType, await readSchema(`${elementType}.schema.json`));
+      }
+
+      const schema = schemaByType.get(elementType);
+      const values = flattenElementSpec(schema, element.spec);
+
+      assert.deepEqual(
+        serializeElementSpec(schema, values),
+        element.spec,
+        `${screenId} elements[${index}](${elementType})가 왕복에서 변형됩니다.`
+      );
+      checked += 1;
+    }
+  }
+
+  assert.ok(checked > 0, "검사한 요소가 없습니다. 화면 경로를 확인하세요.");
+});

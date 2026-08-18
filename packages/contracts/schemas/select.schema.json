@@ -24,12 +24,9 @@
       "minLength": 1
     },
     "label": {
-      "type": [
-        "string",
-        "null"
-      ],
+      "type": "string",
       "minLength": 1,
-      "description": "필드 라벨. 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식 라디오 카드)은 생략한다."
+      "description": "필드 라벨(선택). 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식 라디오 카드)은 이 key를 생략한다. null을 쓰지 않는 이유는 선택 속성에서 '부재'와 'null'이 같은 뜻이 되어 플러그인 왕복에서 한쪽이 소실되기 때문이다."
     },
     "placeholder": {
       "type": [

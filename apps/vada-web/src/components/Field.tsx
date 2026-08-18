@@ -2,9 +2,9 @@ import type { ReactNode } from 'react'
 
 interface FieldProps {
   htmlFor: string
-  // 디자인에 라벨이 없는 필드(ORG-02의 조직 구성 방식)는 null이다.
+  // 디자인에 라벨이 없는 필드(ORG-02의 조직 구성 방식)는 스펙에 key가 없다.
   // 없는 카피를 지어내지 않고 라벨 자체를 그리지 않는다.
-  label: string | null
+  label?: string
   required: boolean
   disabled?: boolean
   error?: string
@@ -27,7 +27,7 @@ export function Field({
 }: FieldProps) {
   return (
     <div className="flex flex-col gap-1.5">
-      {label !== null && (
+      {label !== undefined && (
         <label
           id={`${htmlFor}-label`}
           htmlFor={htmlFor}
