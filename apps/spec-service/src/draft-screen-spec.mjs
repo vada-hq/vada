@@ -1,10 +1,13 @@
 // figma.design.json에서 화면 동작 명세 초안을 뽑고, 사람이 답해야 할 것을 보고한다.
 //
 //   node apps/spec-service/src/draft-screen-spec.mjs <wireframeKey> <screenId>
+//   node apps/spec-service/src/draft-screen-spec.mjs <wireframeKey> <screenId> --scope <키>
 //   node apps/spec-service/src/draft-screen-spec.mjs <wireframeKey> <screenId> --verify
 //
 // --verify는 이미 등록된 screen.json과 대조해 추출 정확도를 표로 보여준다.
-import { readFile } from "node:fs/promises";
+// --scope는 이 화면이 쓸 stateScopeKey다. 같은 스코프에 등록된 다른 화면의
+// 필드를 선례로 삼아 fieldKey와 데이터 계약을 확정한다.
+import { readdir, readFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
@@ -12,11 +15,30 @@ import {
   compareWithSpec,
   draftScreenElements
 } from "../../../packages/contracts/src/screen-draft.mjs";
+import { collectFieldPrecedents } from "../../../packages/contracts/src/spec-precedent.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
 
 async function readJson(filePath) {
   return JSON.parse(await readFile(filePath, "utf8"));
+}
+
+// 선례는 **다른** 화면에서만 모은다. 대상 화면 자신을 넣으면 스스로를
+// 근거로 삼아 질문이 사라지는 착시가 생긴다.
+async function loadPrecedentScreens(screensDir, exceptScreenId) {
+  const dirents = await readdir(screensDir, { withFileTypes: true });
+  const screens = [];
+  for (const dirent of dirents) {
+    if (!dirent.isDirectory() || dirent.name === exceptScreenId) {
+      continue;
+    }
+    try {
+      screens.push(await readJson(join(screensDir, dirent.name, "screen.json")));
+    } catch {
+      continue; // 아직 등록되지 않은 화면
+    }
+  }
+  return screens;
 }
 
 async function runCli() {
@@ -29,9 +51,20 @@ async function runCli() {
     return;
   }
 
-  const screenDir = join(repoRoot, "specs", "figma", wireframeKey, "screens", screenId);
+  const screensDir = join(repoRoot, "specs", "figma", wireframeKey, "screens");
+  const screenDir = join(screensDir, screenId);
   const design = await readJson(join(screenDir, "figma.design.json"));
-  const { elements, questions } = draftScreenElements(design);
+
+  const flagIndex = flags.indexOf("--scope");
+  const stateScopeKey =
+    (flagIndex >= 0 ? flags[flagIndex + 1] : undefined) ??
+    // 이미 등록된 화면이면(--verify 등) 그 화면이 선언한 스코프를 쓴다.
+    (await readJson(join(screenDir, "screen.json"))
+      .then((spec) => spec.stateScopeKey)
+      .catch(() => undefined));
+
+  const precedents = collectFieldPrecedents(await loadPrecedentScreens(screensDir, screenId));
+  const { elements, questions } = draftScreenElements(design, { precedents, stateScopeKey });
 
   if (flags.includes("--verify")) {
     const spec = await readJson(join(screenDir, "screen.json"));
@@ -73,7 +106,12 @@ async function runCli() {
       2
     )}\n`
   );
-  process.stderr.write(`\n사람이 답해야 할 것 ${questions.length}건:\n`);
+  process.stderr.write(
+    stateScopeKey
+      ? `\n선례 ${precedents.entries.length}건을 스코프 '${stateScopeKey}'로 대조했습니다.\n`
+      : "\n스코프를 주지 않아 선례를 확정에 쓰지 않았습니다(--scope <키>)."
+  );
+  process.stderr.write(`사람이 답해야 할 것 ${questions.length}건:\n`);
   for (const question of questions) {
     process.stderr.write(`  - ${question}\n`);
   }

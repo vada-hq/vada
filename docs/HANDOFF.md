@@ -22,8 +22,10 @@
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md). 플러그인은 meta를 저장 왕복에서 보존하고(실전 검증됨) 새 텍스트 필드 편집란은 스키마 주도로 자동 생성된다.
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다. 전부 스키마 주도라 플러그인 편집 UI는 자동 생성된다.
-- **테스트**: 플러그인 105, spec-service·변환기·검증 37, vada-web(vitest) 50 + Playwright e2e 5 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **테스트**: 플러그인 83, spec-service·변환기·검증 58, vada-web(vitest) 49 + Playwright e2e 7 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). `tests/element-type-registry.test.mjs`가 enum↔스키마 파일↔플러그인 옵션↔플러그인 `schemaByType`의 일치를 강제한다.
+- **추출기의 선례 재사용(2026-08-19)**: 초안을 뽑을 때 이미 등록된 다른 화면의 필드를 선례로 삼는다(`spec-precedent.mjs`). 확정 단위는 **스코프 + 라벨**이다 — 라벨이 같아도 스코프가 다르면 다른 필드일 수 있고 실제 반례가 있다(ONB-01 '학교'=`school`, ORG-01 '학교'=`repSchool`). 다른 스코프의 선례는 질문에 후보로 덧붙일 뿐 확정하지 않는다. 물려주는 것은 **데이터 계약**(`valueType`·`inputType`·`optionsSource`·`enabledWhen`·`resetOnChangeOf`·`validation`)뿐이고, 문구·필수·활성 여부는 화면마다 다르므로 디자인에서 유도한 값을 그대로 둔다. 같은 스코프에서 한 라벨이 두 키를 가리키거나 같은 키의 계약이 어긋나면 확정 대신 **모순으로 보고**한다. INV-01 기준 질문 **17건 → 6건**(남은 것은 버튼 이동 대상 2·버튼 묶음 읽기 1·활성 문구 2·note 1로, 전부 디자인에도 선례에도 없는 것이다).
+
 - **화면 산출물 구조**: 화면의 모든 산출물(screen.json·figma.raw.json·figma.design.json·assets·reference.png)은 `screens/<screenId>/` 폴더 하나에 모인다. 브리지 API 경로는 그대로다.
 
 ## 현재 상태 — 제품 vada
@@ -61,17 +63,17 @@
 
 ## 다음 한 단계
 
-플러그인을 편집기에서 확인기로 전환했다(`docs/decisions/plugin-role.md`). 편집 왕복이 사라지면서 그 왕복에서만 생기던 결함 계급도 함께 없어졌다.
+INV-01 사이클을 돌며 **AI 읽기 마찰을 처음 측정**했다(`docs/pilot-inv01.md`). 결과: 명세 밖을 본 13건 중 **(A) 스키마에 자리가 없다 = 0건**. 구현하다 명세에 자리가 없어 막힌 것이 하나도 없다는 뜻이다. 반면 명세를 *만드는* 쪽에서는 신규 계급 2건(`summary` 요소, 버튼 강조도)이 나와 수렴 기준(연속 2화면 0건)을 못 맞춘다. **두 축의 상태가 다르다**: 만드는 어휘는 아직 자라는 중이고, 읽고 구현하는 데는 부족함이 없다.
 
-추출기 재현율은 재측정을 끝냈다. `list`·`options[].description`이 생긴 뒤에도 ORG-02는 `찾음 2/6`으로 **오르지 않았다** — 즉 추출기 성능이 아니라 진짜 한계다. 나란한 버튼이 '각각 버튼'인지 '하나 고르기'인지는 선택 상태 색으로만 갈리고 그건 제품 디자인 시스템 지식이며, 조직도는 사례가 하나뿐이라 일반화하지 않았다. 둘 다 트리거와 함께 백로그에 있다.
+이어서 추출기에 **선례 재사용**을 넣어 화면당 사람 개입을 INV-01 기준 17건 → 6건으로 줄였다(위 파이프라인 항목).
 
-```powershell
-node apps/spec-service/src/draft-screen-spec.mjs vada-wireframe ORG-02 --verify
-```
+다음 후보는 셋이다.
 
-다음은 **INV-01 사이클을 돌면서 AI 읽기 마찰을 측정하는 것**이다(`implementation-methodology.md`의 측정 규약). 지금까지 측정한 것은 전부 명세를 *만드는* 쪽이고, 명세를 *읽고 구현하는* 쪽은 0건이다. 값의 근거(provenance) 표시는 이 측정 결과를 보고 설계한다 — 수치 없이 먼저 만들지 않는다.
+1. **`HOME-01K` 사이클** — 마지막으로 남은 미작성 이동 대상(경고 2건의 원인). 대시보드라 미개척 영역이고, 신규 계급이 또 나오는지가 수렴 판단의 재료다. 선례 재사용의 효과도 여기서 처음 실측된다.
+2. **값의 근거(provenance) 표시** — 읽기 전용 플러그인이 값만 나열하면 확인 대상이 요소 9 × 속성 15 ≈ 135개다. 이제 추출기가 '디자인에서 유도'와 '선례에서 확정'과 '사람이 답함'을 구분할 수 있으므로 계산 재료가 갖춰졌다.
+3. **`useFieldDraft` 이관** — ONB-01·ORG-01·ORG-02가 아직 같은 판정 코드를 각자 들고 있다.
 
-**막혀 있는 것**: INV-01의 `figma.raw.json`이 아직 없다. 사용자가 Figma에서 화면을 지정하고 `Figma 원본 JSON 저장`을 눌러야 한다. `ORG-10`의 실제 Figma 화면 이름도 미확인이다(ONB-02의 `INV-00`은 실제 이름 `INV-01`로 교정했다).
+**막혀 있는 것**: `HOME-01K`의 `figma.raw.json`이 없다. 사용자가 Figma에서 화면을 지정하고 `Figma 원본 JSON 저장`을 눌러야 한다. `ORG-10`의 실제 Figma 화면 이름도 미확인이다.
 
 ## 확인 명령
 

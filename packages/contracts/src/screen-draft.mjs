@@ -6,6 +6,8 @@
 // 등록 노드는 element-types.md의 계약을 따른다: 요소의 모든 부분(라벨·컨트롤·
 // 보조 텍스트)을 포함하는 가장 안쪽 노드.
 
+import { findPrecedent } from "./spec-precedent.mjs";
+
 const BUTTON_NAME_PATTERN = /^(Btn|Button)\b/u;
 const SEARCHABLE_WRAPPER_NAME = "ProfileSearchSelect";
 const CONTROL_NAMES = new Set(["Text Input", "Dropdown"]);
@@ -76,10 +78,43 @@ function findChoiceButtons(wrapper) {
   return container ? children(container).filter(isButton) : [];
 }
 
-function describeField(wrapper, questions, index) {
+// 다른 스코프의 같은 라벨은 답이 아니라 실마리다. 질문에 덧붙여 보여준다.
+function describeCandidates(candidates) {
+  if (candidates.length === 0) {
+    return "";
+  }
+  return ` (선례: ${candidates
+    .map((entry) => `${entry.screenIds.join("·")}의 '${entry.stateScopeKey}'에서는 ${entry.fieldKey}`)
+    .join(", ")})`;
+}
+
+// 스키마 선언 순서대로 다시 쌓는다. 검증기가 순서를 강제하므로 초안도 맞춘다.
+const DRAFT_KEY_ORDER = {
+  input: ["type", "fieldKey", "label", "placeholder", "helperText", "initialValue", "inputType", "valueType", "required", "validation"],
+  select: ["type", "fieldKey", "label", "placeholder", "disabledPlaceholder", "helperText", "presentation", "initialValue", "valueType", "required", "initiallyDisabled", "searchable", "optionsSource", "enabledWhen", "resetOnChangeOf"]
+};
+
+// 확정된 선례를 초안에 얹는다. 데이터 계약만 물려받고 문구·활성 여부는
+// 화면 고유라 디자인에서 유도한 값을 그대로 둔다.
+function withPrecedent(spec, confirmed) {
+  if (!confirmed) {
+    return spec;
+  }
+  const merged = { ...spec, fieldKey: confirmed.fieldKey, ...confirmed.contract };
+  const ordered = {};
+  for (const key of DRAFT_KEY_ORDER[spec.type] ?? Object.keys(merged)) {
+    if (merged[key] !== undefined) {
+      ordered[key] = merged[key];
+    }
+  }
+  return ordered;
+}
+
+function describeField(wrapper, questions, index, lookup) {
   const labelNode = directChildNamed(wrapper, "Label");
   const { label, required } = parseLabel(textOf(labelNode));
   const at = `elements[${index}](${label})`;
+  const { confirmed, candidates } = lookup(label);
 
   const choiceButtons = findChoiceButtons(wrapper);
   const control = findDescendant(wrapper, (node) => CONTROL_NAMES.has(node.name));
@@ -88,24 +123,34 @@ function describeField(wrapper, questions, index) {
   const controlText = control ? textOf(control) : "";
 
   // fieldKey는 디자인에 없다 — 라벨의 번역·명명 규칙이므로 사람이 정한다.
-  questions.push(`${at} fieldKey — 라벨 '${label}'에 쓸 영문 키를 정하세요.`);
+  // 다만 같은 스코프의 다른 화면에 같은 라벨이 있으면 그 선례가 답이다.
+  if (!confirmed) {
+    questions.push(
+      `${at} fieldKey — 라벨 '${label}'에 쓸 영문 키를 정하세요.${describeCandidates(candidates)}`
+    );
+  }
 
   if (choiceButtons.length > 0) {
-    questions.push(
-      `${at} optionsSource.key — 펼친 선택지 ${choiceButtons.length}개: ${choiceButtons
-        .map((button) => textOf(button))
-        .join(", ")}. 카탈로그 key를 정하거나 새로 만드세요.`
-    );
+    if (!confirmed) {
+      questions.push(
+        `${at} optionsSource.key — 펼친 선택지 ${choiceButtons.length}개: ${choiceButtons
+          .map((button) => textOf(button))
+          .join(", ")}. 카탈로그 key를 정하거나 새로 만드세요.`
+      );
+    }
     return {
       source: toSource(wrapper),
-      spec: {
-        type: "select",
-        label,
-        required,
-        initiallyDisabled,
-        searchable: false,
-        presentation: "choiceGroup"
-      }
+      spec: withPrecedent(
+        {
+          type: "select",
+          label,
+          required,
+          initiallyDisabled,
+          searchable: false,
+          presentation: "choiceGroup"
+        },
+        confirmed
+      )
     };
   }
 
@@ -115,22 +160,31 @@ function describeField(wrapper, questions, index) {
     findDescendant(wrapper, (node) => node.name === "Dropdown") !== null;
 
   if (!isSelect) {
-    questions.push(`${at} inputType·valueType — 디자인에 없습니다(기본 text/string).`);
+    if (!confirmed) {
+      questions.push(`${at} inputType·valueType — 디자인에 없습니다(기본 text/string).`);
+    }
     return {
       source: toSource(wrapper),
-      spec: {
-        type: "input",
-        label,
-        placeholder: controlText || null,
-        required
-      }
+      spec: withPrecedent(
+        {
+          type: "input",
+          label,
+          placeholder: controlText || null,
+          required
+        },
+        confirmed
+      )
     };
   }
 
   // 드롭다운은 선택지가 디자인에 없다(자식 없는 빈 프레임인 경우가 많다).
-  questions.push(
-    `${at} optionsSource.key — 드롭다운 선택지는 디자인에 없습니다. 정적 목록인지 원격인지와 카탈로그 key를 알려주세요.`
-  );
+  if (!confirmed) {
+    questions.push(
+      `${at} optionsSource.key — 드롭다운 선택지는 디자인에 없습니다. 정적 목록인지 원격인지와 카탈로그 key를 알려주세요.`
+    );
+  }
+  // 문구는 선례로 답할 수 없다 — 같은 필드라도 화면마다 다르게 쓴다
+  // (ONB-01 '단과대학을 선택하세요' 대 INV-01 '단과대학을 검색하세요').
   if (initiallyDisabled) {
     questions.push(
       `${at} placeholder — 디자인은 비활성 상태만 그려서 '${controlText}'는 disabledPlaceholder입니다. 활성 상태 문구가 필요합니다.`
@@ -139,17 +193,20 @@ function describeField(wrapper, questions, index) {
 
   return {
     source: toSource(wrapper),
-    spec: {
-      type: "select",
-      label,
-      ...(initiallyDisabled
-        ? { placeholder: null, disabledPlaceholder: controlText || null }
-        : { placeholder: controlText || null }),
-      required,
-      initiallyDisabled,
-      searchable: wrapper.name === SEARCHABLE_WRAPPER_NAME,
-      presentation: "dropdown"
-    }
+    spec: withPrecedent(
+      {
+        type: "select",
+        label,
+        ...(initiallyDisabled
+          ? { placeholder: null, disabledPlaceholder: controlText || null }
+          : { placeholder: controlText || null }),
+        required,
+        initiallyDisabled,
+        searchable: wrapper.name === SEARCHABLE_WRAPPER_NAME,
+        presentation: "dropdown"
+      },
+      confirmed
+    )
   };
 }
 
@@ -245,14 +302,26 @@ function readGroupTitle(node) {
   return parts.length > 0 ? { title: parts[0], description: parts[1] ?? null } : null;
 }
 
-export function draftScreenElements(design) {
+/**
+ * @param {object} design figma.design.json
+ * @param {{precedents?: {entries: object[], conflicts: string[]}, stateScopeKey?: string}} options
+ *   이미 등록된 화면에서 모은 선례. 같은 스코프의 같은 라벨만 확정에 쓴다.
+ */
+export function draftScreenElements(design, options = {}) {
   const elements = [];
   const questions = [];
+  const { precedents, stateScopeKey } = options;
+  const lookup = (label) =>
+    precedents ? findPrecedent(precedents, { label, stateScopeKey }) : { confirmed: null, candidates: [] };
+
+  for (const conflict of precedents?.conflicts ?? []) {
+    questions.push(`선례가 서로 어긋납니다 — ${conflict} 어느 쪽이 맞는지 정하세요.`);
+  }
 
   const visit = (node, insideGroup) => {
     for (const child of children(node)) {
       if (isFieldWrapper(child)) {
-        elements.push(describeField(child, questions, elements.length));
+        elements.push(describeField(child, questions, elements.length, lookup));
         continue; // 필드 내부는 더 파지 않는다(등록 노드 계약)
       }
       const siblingButtons = findSiblingButtonGroup(child);
@@ -292,10 +361,14 @@ export function draftScreenElements(design) {
         const members = elements
           .slice(marker + 1)
           .filter((element) => element.spec.type === "input" || element.spec.type === "select");
-        elements[marker].spec.memberFieldKeys = members.map((member) => member.spec.label);
-        questions.push(
-          `${at} memberFieldKeys — 지금은 라벨로 채워 뒀습니다. 멤버 필드의 fieldKey가 정해지면 바꾸세요.`
+        elements[marker].spec.memberFieldKeys = members.map(
+          (member) => member.spec.fieldKey ?? member.spec.label
         );
+        if (members.some((member) => member.spec.fieldKey === undefined)) {
+          questions.push(
+            `${at} memberFieldKeys — fieldKey가 없는 멤버는 라벨로 채워 뒀습니다. 키가 정해지면 바꾸세요.`
+          );
+        }
         continue;
       }
 
