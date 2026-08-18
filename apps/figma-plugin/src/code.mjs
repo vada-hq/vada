@@ -1,6 +1,4 @@
-import buttonSchema from "../../../packages/contracts/schemas/button.schema.json";
-import inputSchema from "../../../packages/contracts/schemas/input.schema.json";
-import selectSchema from "../../../packages/contracts/schemas/select.schema.json";
+import { schemaByType } from "./element-schemas.mjs";
 import { exportFigmaRaw, exportFigmaScreenAssets } from "./figma-raw.mjs";
 import { getSelectedNodeInfo } from "./plugin-model.mjs";
 import {
@@ -14,12 +12,6 @@ import {
   restoreScreenSpec,
   saveScreenSpec
 } from "./screen-spec.mjs";
-
-const schemaByType = {
-  button: buttonSchema,
-  input: inputSchema,
-  select: selectSchema
-};
 
 figma.showUI(__html__, {
   width: 320,

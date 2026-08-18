@@ -13,6 +13,30 @@ import {
 // screen.schema.json의 spec.type enum을 유일한 원본으로 두고 나머지를 대조한다.
 const schemasUrl = new URL("../packages/contracts/schemas/", import.meta.url);
 const uiSourceUrl = new URL("../apps/figma-plugin/src/ui.mjs", import.meta.url);
+// 요소 유형 레지스트리는 element-schemas.mjs 한 곳이다. 예전에는 UI(iframe)와
+// code(Figma 샌드박스)가 각자 들고 있었고, ORG-02 작업에서 code 쪽 갱신이
+// 누락돼 note·group·list가 있는 화면은 불러오기가 통째로 실패했다.
+// 파일 목록을 손으로 적으면 같은 일이 반복되므로 소스를 훑어 찾는다.
+const pluginSourceUrl = new URL("../apps/figma-plugin/src/", import.meta.url);
+
+async function findRegistrySourceUrls() {
+  const { readdir } = await import("node:fs/promises");
+  const found = [];
+
+  for (const fileName of await readdir(pluginSourceUrl)) {
+    if (!fileName.endsWith(".mjs")) {
+      continue;
+    }
+
+    const sourceUrl = new URL(fileName, pluginSourceUrl);
+
+    if ((await readFile(sourceUrl, "utf8")).includes("const schemaByType = {")) {
+      found.push(sourceUrl);
+    }
+  }
+
+  return found;
+}
 
 async function readSchema(fileName) {
   return JSON.parse(await readFile(new URL(fileName, schemasUrl), "utf8"));
@@ -48,21 +72,35 @@ test("플러그인 등록 유형 목록이 스키마 enum과 일치한다", asyn
   );
 });
 
-test("플러그인 UI의 schemaByType이 모든 요소 유형을 담는다", async () => {
+test("모든 schemaByType 레지스트리가 모든 요소 유형을 담는다", async () => {
   const elementTypes = await readElementTypes();
-  const source = await readFile(uiSourceUrl, "utf8");
-  const declaration = source.match(
-    /const schemaByType = \{(?<body>[^}]*)\}/u
-  )?.groups?.body;
 
-  assert.ok(declaration, "ui.mjs에서 schemaByType 선언을 찾지 못했습니다.");
+  const registrySourceUrls = await findRegistrySourceUrls();
 
-  for (const elementType of elementTypes) {
-    assert.match(
-      declaration,
-      new RegExp(`\\b${elementType}\\s*:`, "u"),
-      `ui.mjs의 schemaByType에 '${elementType}'이 없습니다. 저장·불러오기에서 이 유형이 조용히 사라집니다.`
-    );
+  // 레지스트리는 한 벌이어야 한다. 번들마다 따로 들고 있으면 한쪽 갱신이
+  // 누락돼도 아무도 모른다(실제로 code.mjs가 note·group·list를 빠뜨렸다).
+  assert.deepEqual(
+    registrySourceUrls.map((sourceUrl) => sourceUrl.pathname.split("/").pop()),
+    ["element-schemas.mjs"],
+    "schemaByType은 element-schemas.mjs 한 곳에서만 선언하고 나머지는 import 하세요."
+  );
+
+  for (const sourceUrl of registrySourceUrls) {
+    const fileName = sourceUrl.pathname.split("/").pop();
+    const source = await readFile(sourceUrl, "utf8");
+    const declaration = source.match(
+      /const schemaByType = \{(?<body>[^}]*)\}/u
+    )?.groups?.body;
+
+    assert.ok(declaration, `${fileName}에서 schemaByType 선언을 찾지 못했습니다.`);
+
+    for (const elementType of elementTypes) {
+      assert.match(
+        declaration,
+        new RegExp(`\\b${elementType}\\s*:`, "u"),
+        `${fileName}의 schemaByType에 '${elementType}'이 없습니다. 이 유형이 있는 화면은 저장·불러오기가 통째로 실패합니다.`
+      );
+    }
   }
 });
 

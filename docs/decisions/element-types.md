@@ -15,7 +15,9 @@
 - **선택 속성은 nullable일 수 없다.** 초안 값은 빈 문자열 하나뿐이라 '부재'와 `null`을 구분하지 못한다. 값이 없을 수 있으면 `required` + nullable(`null`로 명시), 개념 자체가 없을 수 있으면 선택 + non-nullable(key 생략)로 간다. 둘을 겹치면 왕복에서 반드시 한쪽으로 뭉개진다.
 - **모든 속성에 편집 위젯이 있어야 한다.** 판정기(`getSchemaPropertyEditorKind`)가 모르는 타입은 key 이름만 있는 죽은 줄로 그려지고, 불러온 값을 되돌려주지 못해 저장 한 번에 사라진다. 새 JSON 타입을 쓰려면 판정기와 `ui.mjs` 렌더러 **양쪽**에 분기를 추가한다.
 
-두 규칙 모두 `tests/element-type-registry.test.mjs`가 요소 유형 전체를 훑어 강제하고, `tests/figma-plugin-screen-spec.test.mjs`가 등록된 실제 요소로 왕복 보존을 확인한다.
+- **요소 유형 레지스트리는 한 벌만 둔다.** 플러그인은 UI(iframe)와 code(Figma 샌드박스) 두 번들로 나뉘지만 `schemaByType`은 `apps/figma-plugin/src/element-schemas.mjs` 한 곳에서만 선언하고 양쪽이 import 한다. 각자 들고 있었더니 ORG-02 작업에서 code 쪽 갱신이 누락돼, `note`·`group`·`list`가 있는 화면은 `로컬 초안 불러오기`가 "지원하지 않는 요소 유형입니다"로 통째로 실패했다 — 그런데 테스트는 ui.mjs만 검사해 통과했다.
+
+세 규칙 모두 `tests/element-type-registry.test.mjs`가 요소 유형 전체를 훑어 강제하고, `tests/figma-plugin-screen-spec.test.mjs`가 등록된 실제 요소로 왕복 보존을 확인한다.
 
 ## 유형
 
