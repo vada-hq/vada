@@ -153,7 +153,24 @@ function describeField(wrapper, questions, index) {
   };
 }
 
-function describeButton(node, questions, index) {
+// 버튼 강조도는 형태에서 유도한다: 채워진 것 > 테두리만 있는 것 > 아무것도
+// 없는 것. 이건 일반 시각 관례라 파이프라인이 알아도 된다. 반면 "#155DFC가
+// 주 버튼"은 이 제품의 디자인 시스템이라 알면 안 된다 — 색은 보지 않는다.
+function getButtonEmphasis(node) {
+  const appearance = node?.appearance ?? {};
+  const hasFill = Array.isArray(appearance.fills) && appearance.fills.length > 0;
+  const hasStroke =
+    Array.isArray(appearance.strokes) && appearance.strokes.length > 0;
+
+  // 테두리를 두른 버튼은 외곽선형(보조)이다. 색을 보지 않아도 갈린다 —
+  // 꽉 찬 버튼은 테두리가 필요 없고, 외곽선형은 테두리가 형태 그 자체다.
+  if (hasStroke) {
+    return "secondary";
+  }
+  return hasFill ? "primary" : "quiet";
+}
+
+function describeButton(node, questions, index, emphasis) {
   // 카드형 버튼은 설명문·배지까지 품는다. 라벨은 첫 텍스트다.
   const [label, ...rest] = collectText(node)
     .map((part) => part.trim())
@@ -165,7 +182,14 @@ function describeButton(node, questions, index) {
       `${at} description·badge — 라벨 외 텍스트 ${rest.length}건: ${rest.join(" / ")}. 어느 것이 설명이고 배지인지 알려주세요.`
     );
   }
-  return { source: toSource(node), spec: { type: "button", label: label ?? "" } };
+  return {
+    source: toSource(node),
+    spec: {
+      type: "button",
+      label: label ?? "",
+      ...(emphasis ? { emphasis } : {})
+    }
+  };
 }
 
 // 텍스트를 가진 Button 형제 묶음. 두 가지로 읽힐 수 있다:
@@ -249,7 +273,9 @@ export function draftScreenElements(design) {
           );
           continue;
         }
-        elements.push(describeButton(child, questions, elements.length));
+        elements.push(
+          describeButton(child, questions, elements.length, getButtonEmphasis(child))
+        );
         continue;
       }
 

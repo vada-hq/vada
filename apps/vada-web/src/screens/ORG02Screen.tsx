@@ -9,7 +9,7 @@ import { PrimaryButton } from '../components/PrimaryButton'
 import { SecondaryButton } from '../components/SecondaryButton'
 import { findFlowStep } from '../spec/flows'
 import { getMutation, runMutation } from '../spec/mutations'
-import { org02 } from '../spec/screens'
+import { buttonsByEmphasis, org02, primaryButtonOf } from '../spec/screens'
 import type { ButtonSpec, ListSpec, SelectSpec, SubmitAction } from '../spec/types'
 import type { ScopeDraft } from '../state/scopes'
 
@@ -57,8 +57,8 @@ export function ORG02Screen({
   const buttons = elements
     .filter((element) => element.spec.type === 'button')
     .map((element) => element.spec as ButtonSpec)
-  const primaryButton = buttons[buttons.length - 1]
-  const secondaryButtons = buttons.slice(0, -1)
+  const primaryButton = primaryButtonOf(buttons)
+  const secondaryButtons = buttonsByEmphasis(buttons, 'secondary')
 
   const setupValue = effectiveValue(draft, setupSpec)
   const listValue = readListValue(draft, listSpec, setupValue)

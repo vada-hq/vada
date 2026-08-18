@@ -2,8 +2,8 @@ import { ArrowLeft, ArrowRight, ExternalLink, Plus } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
-import { findFlowStep, isBackwardNavigation } from '../spec/flows'
-import { navigateTarget, onb02 } from '../spec/screens'
+import { findFlowStep } from '../spec/flows'
+import { buttonsByEmphasis, navigateTarget, onb02 } from '../spec/screens'
 import type { ButtonSpec } from '../spec/types'
 
 interface ONB02ScreenProps {
@@ -23,13 +23,10 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
   const buttons = onb02.elements
     .filter((element) => element.spec.type === 'button')
     .map((element) => element.spec as ButtonSpec)
-  // 흐름 순서상 뒤로 가는 버튼은 링크, 나머지는 카드로 그린다(시각 명세의 구분).
-  const cardButtons = buttons.filter(
-    (button) => !isBackwardNavigation(onb02.screenId, navigateTarget(button.action)),
-  )
-  const backButtons = buttons.filter((button) =>
-    isBackwardNavigation(onb02.screenId, navigateTarget(button.action)),
-  )
+  // 강조도가 형태를 정한다: 외곽선형(secondary)은 카드, 최소(quiet)는 링크.
+  // 예전에는 흐름 순서로 판별했는데 흐름을 넘는 이동에서 무력했다.
+  const cardButtons = buttonsByEmphasis(buttons, 'secondary')
+  const backButtons = buttonsByEmphasis(buttons, 'quiet')
 
   return (
     <PageCard>

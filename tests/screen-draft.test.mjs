@@ -11,6 +11,11 @@ import {
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+async function loadDesign(screenId) {
+  const dir = join(repoRoot, "specs", "figma", "vada-wireframe", "screens", screenId);
+  return JSON.parse(await readFile(join(dir, "figma.design.json"), "utf8"));
+}
+
 async function loadScreen(screenId) {
   const dir = join(repoRoot, "specs", "figma", "vada-wireframe", "screens", screenId);
   return {
@@ -127,4 +132,37 @@ test("화면 카드 전체는 묶음으로 오인하지 않는다", async () => 
       `${screenId}에서 카드 전체를 묶음으로 잡았다: ${groups.map((g) => g.spec.title).join(", ")}`
     );
   }
+});
+
+// 버튼 강조도는 색이 아니라 형태에서 유도한다: 채움 > 테두리 > 없음.
+// 이건 일반 시각 관례라 파이프라인이 알아도 되지만, "#155DFC가 주 버튼"은
+// 이 제품의 디자인 시스템이라 알면 안 된다.
+test("버튼 강조도를 채움·테두리 형태에서 유도한다", async () => {
+  const cases = [
+    // 주 버튼은 꽉 찬 형태, 보조는 외곽선형, 최소는 텍스트만이다.
+    { screenId: "INV-01", expected: ["primary", "quiet"] },
+    { screenId: "ORG-01", expected: ["secondary", "primary"] },
+    { screenId: "ONB-02", expected: ["secondary", "secondary", "quiet"] },
+    // ORG-02의 앞 둘은 선택지 카드다(추출기가 아직 버튼으로 뽑는다).
+    { screenId: "ORG-02", expected: ["secondary", "secondary", "secondary", "primary"] }
+  ];
+
+  for (const { screenId, expected } of cases) {
+    const design = await loadDesign(screenId);
+    const emphases = draftScreenElements(design)
+      .elements.filter((element) => element.spec.type === "button")
+      .map((element) => element.spec.emphasis);
+
+    assert.deepEqual(emphases, expected, `${screenId}의 버튼 강조도`);
+  }
+});
+
+test("버튼이 하나뿐이어도 형태로 강조도를 유도한다", async () => {
+  const { design } = await loadScreen("ONB-01");
+  const buttons = draftScreenElements(design).elements.filter(
+    (element) => element.spec.type === "button"
+  );
+
+  assert.equal(buttons.length, 1);
+  assert.equal(buttons[0].spec.emphasis, "primary");
 });

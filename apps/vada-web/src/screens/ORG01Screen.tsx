@@ -15,7 +15,12 @@ import { SearchSelect } from '../components/SearchSelect'
 import { SecondaryButton } from '../components/SecondaryButton'
 import { TextInput } from '../components/TextInput'
 import { findFlowStep } from '../spec/flows'
-import { navigateTarget, org01 } from '../spec/screens'
+import {
+  buttonsByEmphasis,
+  navigateTarget,
+  org01,
+  primaryButtonOf,
+} from '../spec/screens'
 import type { ButtonSpec, FieldSpec, GroupSpec, NoteSpec, SelectSpec } from '../spec/types'
 import { readScopeDisplayValue } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
@@ -43,8 +48,8 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
   // 주/보조 버튼 구분 근거가 동작 명세에 없다. ONB-02는 흐름 순서로 판별했지만
   // ORG-01의 '이전'은 다른 흐름(onboarding)으로 나가 순서를 비교할 수 없다.
   // 임시 결정: 화면 순서상 마지막 버튼이 주 동작이다(마찰 로그 참조).
-  const primaryButton = buttons[buttons.length - 1]
-  const secondaryButtons = buttons.slice(0, -1)
+  const primaryButton = primaryButtonOf(buttons)
+  const secondaryButtons = buttonsByEmphasis(buttons, 'secondary')
 
   function setFieldValue(fieldKey: string, value: string | null, label?: string) {
     // 같은 값 재선택은 "변경"이 아니므로 resetOnChangeOf를 발동하지 않는다.

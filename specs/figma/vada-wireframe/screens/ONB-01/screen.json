@@ -171,6 +171,7 @@
       "spec": {
         "type": "button",
         "label": "다음: 시작 방식 선택",
+        "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
           "type": "navigate",

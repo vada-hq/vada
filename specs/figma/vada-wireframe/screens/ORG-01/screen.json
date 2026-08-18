@@ -186,6 +186,7 @@
       "spec": {
         "type": "button",
         "label": "이전",
+        "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
           "type": "navigate",
@@ -202,6 +203,7 @@
       "spec": {
         "type": "button",
         "label": "다음: 조직 구조 설정",
+        "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
           "type": "navigate",

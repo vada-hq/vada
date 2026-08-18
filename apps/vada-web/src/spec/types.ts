@@ -70,11 +70,16 @@ export interface SubmitAction extends ExecutionGate {
 
 export type ButtonAction = NavigateAction | SubmitAction
 
+export type ButtonEmphasis = 'primary' | 'secondary' | 'quiet'
+
 export interface ButtonSpec {
   type: 'button'
   label: string
   description?: string
   badge?: string
+  // 화면 안에서의 상대적 강조도. 시각 형태가 아니라 역할이며, 구현이 형태로
+  // 옮긴다. 디자인의 채움·테두리에서 유도한다(추출기).
+  emphasis?: ButtonEmphasis
   initiallyDisabled: boolean
   action: ButtonAction
 }

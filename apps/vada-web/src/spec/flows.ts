@@ -48,15 +48,3 @@ export function findFlowStep(screenId: string): FlowStep | null {
   }
   return null
 }
-
-// 같은 흐름 안에서 순서가 앞인 화면으로의 이동인가 — 뒤로 가기 판별에 쓴다.
-export function isBackwardNavigation(fromScreenId: string, toScreenId: string): boolean {
-  for (const flow of catalog.flows) {
-    const fromIndex = flow.screens.findIndex((step) => step.screenId === fromScreenId)
-    const toIndex = flow.screens.findIndex((step) => step.screenId === toScreenId)
-    if (fromIndex >= 0 && toIndex >= 0) {
-      return toIndex < fromIndex
-    }
-  }
-  return false
-}

@@ -85,6 +85,7 @@
       "spec": {
         "type": "button",
         "label": "이전",
+        "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
           "type": "navigate",
@@ -101,6 +102,7 @@
       "spec": {
         "type": "button",
         "label": "조직 만들기",
+        "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
           "type": "submit",

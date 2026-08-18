@@ -29,6 +29,7 @@ test("button 스키마는 승인된 v1 필드만 선언한다", async () => {
     "label",
     "description",
     "badge",
+    "emphasis",
     "initiallyDisabled",
     "action"
   ];
@@ -149,4 +150,17 @@ test("ONB-01 다음 버튼은 실행 범위와 차단 동작을 명시한다", a
     type: "showMissingRequiredFields",
     focus: "firstMissingField"
   });
+});
+
+// 강조도는 시각 형태가 아니라 역할이다. 구현이 형태로 옮기며, 값은 디자인의
+// 채움·테두리에서 유도한다(색은 보지 않는다 — 제품 디자인 시스템이므로).
+test("button 강조도는 역할 세 단계를 선택 사항으로 선언한다", async () => {
+  const schema = JSON.parse(await readFile(schemaUrl, "utf8"));
+
+  assert.deepEqual(getSchemaEnumValues(schema, "emphasis"), [
+    "primary",
+    "secondary",
+    "quiet"
+  ]);
+  assert.ok(!schema.required.includes("emphasis"));
 });
