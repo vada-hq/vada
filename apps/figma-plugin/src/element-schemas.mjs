@@ -10,6 +10,7 @@ import inputSchema from "../../../packages/contracts/schemas/input.schema.json";
 import listSchema from "../../../packages/contracts/schemas/list.schema.json";
 import noteSchema from "../../../packages/contracts/schemas/note.schema.json";
 import selectSchema from "../../../packages/contracts/schemas/select.schema.json";
+import summarySchema from "../../../packages/contracts/schemas/summary.schema.json";
 
 export const schemaByType = {
   button: buttonSchema,
@@ -17,5 +18,6 @@ export const schemaByType = {
   input: inputSchema,
   list: listSchema,
   note: noteSchema,
-  select: selectSchema
+  select: selectSchema,
+  summary: summarySchema
 };

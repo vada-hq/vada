@@ -84,6 +84,16 @@ export interface ButtonSpec {
   action: ButtonAction
 }
 
+// 이 화면이 다루는 대상의 요약 카드. note가 값들을 한 줄로 잇는 것과 달리
+// 제목과 라벨-값 쌍의 구조를 가진다. 값의 출처가 정해지기 전에는 디자인에
+// 그려진 예시 문자열을 그대로 담는다.
+export interface SummarySpec {
+  type: 'summary'
+  eyebrow?: string
+  title: string
+  items: Array<{ label: string; value: string }>
+}
+
 // 다른 상태 스코프의 필드 값을 읽어 표시하는 파생 표시 요소.
 // 구현은 fieldRefs의 표시 라벨을 separator로 이어 prefix 뒤에 렌더하고,
 // 값이 없는 참조는 생략한다.
@@ -135,6 +145,7 @@ export type ElementSpec =
   | NoteSpec
   | GroupSpec
   | ListSpec
+  | SummarySpec
 
 export type FieldSpec = InputSpec | SelectSpec
 

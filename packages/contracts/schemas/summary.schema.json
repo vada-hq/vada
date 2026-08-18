@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "summary.schema.json",
+  "title": "Summary element",
+  "description": "이 화면이 다루는 대상이 무엇인지 보여주는 요약 카드. note가 값들을 한 줄로 잇는 것과 달리 제목과 라벨-값 쌍의 구조를 가진다. 값의 출처(원격 조회·앞 화면의 스코프)가 정해지기 전에는 디자인에 그려진 문자열을 그대로 담는다 — 그 경우 items[].value와 title은 예시 값이며 구현은 그대로 렌더한다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "title",
+    "items"
+  ],
+  "properties": {
+    "type": {
+      "const": "summary"
+    },
+    "eyebrow": {
+      "type": "string",
+      "minLength": 1,
+      "description": "제목 위에 표시하는 소제목(선택). 예: 초대받은 학생회"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "요약 대상의 이름. 출처가 정해지기 전에는 디자인의 예시 값이다."
+    },
+    "items": {
+      "type": "array",
+      "minItems": 1,
+      "description": "라벨-값 쌍. label은 확정된 카피이고, value는 출처가 정해지기 전까지 디자인의 예시 값이다.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "value"
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

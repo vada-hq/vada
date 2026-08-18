@@ -1,9 +1,10 @@
 import { PageCard } from '../components/PageCard'
+import { INV01Screen } from './INV01Screen'
 import { ONB01Screen } from './ONB01Screen'
 import { ONB02Screen } from './ONB02Screen'
 import { ORG01Screen } from './ORG01Screen'
 import { ORG02Screen } from './ORG02Screen'
-import { onb01, org01, org02 } from '../spec/screens'
+import { inv01, onb01, org01, org02 } from '../spec/screens'
 import { readScopeDraft } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
@@ -32,6 +33,15 @@ export function ScreenRouter({
       <ONB01Screen
         draft={readScopeDraft(scopes, onb01.stateScopeKey)}
         onChangeDraft={(next) => onChangeScope(onb01.stateScopeKey ?? '', next)}
+        onNavigate={onNavigate}
+      />
+    )
+  }
+  if (screenId === 'INV-01') {
+    return (
+      <INV01Screen
+        draft={readScopeDraft(scopes, inv01.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(inv01.stateScopeKey ?? '', next)}
         onNavigate={onNavigate}
       />
     )

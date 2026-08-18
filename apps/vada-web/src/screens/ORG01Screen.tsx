@@ -45,9 +45,8 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
   const buttons = elements
     .filter((element) => element.spec.type === 'button')
     .map((element) => element.spec as ButtonSpec)
-  // 주/보조 버튼 구분 근거가 동작 명세에 없다. ONB-02는 흐름 순서로 판별했지만
-  // ORG-01의 '이전'은 다른 흐름(onboarding)으로 나가 순서를 비교할 수 없다.
-  // 임시 결정: 화면 순서상 마지막 버튼이 주 동작이다(마찰 로그 참조).
+  // 주/보조는 명세의 emphasis가 말한다. 예전에는 배열 위치로 추측했는데
+  // ORG-01의 '이전'처럼 다른 흐름으로 나가는 버튼에서 근거가 없었다.
   const primaryButton = primaryButtonOf(buttons)
   const secondaryButtons = buttonsByEmphasis(buttons, 'secondary')
 
@@ -243,8 +242,8 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
         </FieldGroup>
       )
     }
-    if (spec.type === 'list') {
-      // ORG-01에는 목록이 없다. 등장하면 조용히 빠뜨리지 않고 명시적으로 알린다.
+    if (spec.type === 'list' || spec.type === 'summary') {
+      // ORG-01에는 없다. 등장하면 조용히 빠뜨리지 않고 명시적으로 알린다.
       throw new Error(`ORG-01 구현이 아직 다루지 않는 요소 유형입니다: ${spec.type}`)
     }
     return groupedFieldKeys.has(spec.fieldKey) ? null : renderField(spec)

@@ -129,7 +129,8 @@
                   "button",
                   "note",
                   "group",
-                  "list"
+                  "list",
+                  "summary"
                 ]
               }
             }

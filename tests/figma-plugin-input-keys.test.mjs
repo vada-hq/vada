@@ -61,15 +61,17 @@ test("선택한 Figma 노드에서 표시할 식별 정보만 반환한다", () 
   assert.equal(getSelectedNodeInfo(null), null);
 });
 
-test("현재 지원하는 요소 유형은 입력, 버튼, 선택, 안내, 묶음이다", () => {
-  assert.deepEqual(getElementTypeOptions(), [
-    { value: "input", label: "입력" },
-    { value: "button", label: "버튼" },
-    { value: "select", label: "선택" },
-    { value: "note", label: "안내" },
-    { value: "group", label: "묶음" },
-    { value: "list", label: "목록" }
-  ]);
+// 목록 자체는 element-type-registry 테스트가 screen.schema.json의 enum과
+// 대조한다. 여기서는 사람이 읽을 한글 라벨이 붙어 있는지만 본다 — 제목에
+// 유형 이름을 나열하면 유형이 늘 때마다 제목까지 낡는다(실제로 그랬다).
+test("등록 유형마다 한글 라벨이 붙어 있다", () => {
+  const options = getElementTypeOptions();
+
+  assert.ok(options.length >= 6);
+  for (const option of options) {
+    assert.match(option.value, /^[a-z]+$/u);
+    assert.ok(option.label.trim().length > 0, `${option.value}에 라벨이 없습니다`);
+  }
 });
 
 test("입력 유형을 선택하면 input 스키마 key를 반환한다", async () => {

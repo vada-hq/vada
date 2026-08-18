@@ -5,7 +5,8 @@ const ELEMENT_TYPE_OPTIONS = [
   { value: "select", label: "선택" },
   { value: "note", label: "안내" },
   { value: "group", label: "묶음" },
-  { value: "list", label: "목록" }
+  { value: "list", label: "목록" },
+  { value: "summary", label: "요약" }
 ];
 const PLACEHOLDER_OPACITY_THRESHOLD = 0.7;
 const LABEL_MAX_VERTICAL_GAP = 24;

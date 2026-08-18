@@ -1,0 +1,238 @@
+{
+  "schemaVersion": 1,
+  "screenId": "INV-01",
+  "stateScopeKey": "onboardingDraft",
+  "meta": {
+    "title": "초대받은 학생회 확인",
+    "footerNote": "참여하면 미배정 구성원으로 등록됩니다. 부서 배정은 학생회 관리자가 진행합니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "9:2",
+    "name": "학생회 참여 · INV-01 · 초대받은 학생회 확인",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "14:12",
+        "name": "Container:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "eyebrow": "초대받은 학생회",
+        "title": "제12대 소프트웨어융합대학 학생회",
+        "items": [
+          {
+            "label": "유형",
+            "value": "단과대 학생회"
+          },
+          {
+            "label": "대표 범위",
+            "value": "한양대학교 ERICA · 소프트웨어융합대학"
+          },
+          {
+            "label": "운영 연도",
+            "value": "2026년"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:35",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "본인 소속 입력",
+        "description": "초대 링크로 처음 참여하는 경우에만 입력합니다.",
+        "memberFieldKeys": [
+          "school",
+          "college",
+          "department",
+          "currentGrade",
+          "studentNumber"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:41",
+        "name": "ProfileSearchSelect",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "school",
+        "label": "학교",
+        "placeholder": "학교명을 검색하세요",
+        "presentation": "dropdown",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": true,
+        "optionsSource": {
+          "key": "education.schools"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:52",
+        "name": "ProfileSearchSelect",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "college",
+        "label": "단과대학",
+        "placeholder": "단과대학을 검색하세요",
+        "disabledPlaceholder": "학교를 먼저 선택하세요",
+        "presentation": "dropdown",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": true,
+        "searchable": true,
+        "optionsSource": {
+          "key": "education.colleges",
+          "params": {
+            "schoolId": "school"
+          }
+        },
+        "enabledWhen": [
+          {
+            "operator": "hasValue",
+            "fieldKey": "school"
+          }
+        ],
+        "resetOnChangeOf": [
+          "school"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:63",
+        "name": "ProfileSearchSelect",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "department",
+        "label": "학부·학과",
+        "placeholder": "학부·학과를 검색하세요",
+        "disabledPlaceholder": "단과대학을 먼저 선택하세요",
+        "presentation": "dropdown",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": true,
+        "searchable": true,
+        "optionsSource": {
+          "key": "education.departments",
+          "params": {
+            "schoolId": "school",
+            "collegeId": "college"
+          }
+        },
+        "enabledWhen": [
+          {
+            "operator": "hasValue",
+            "fieldKey": "college"
+          }
+        ],
+        "resetOnChangeOf": [
+          "school",
+          "college"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:75",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "currentGrade",
+        "label": "현재 학년",
+        "placeholder": "학년을 선택하세요",
+        "presentation": "dropdown",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "education.currentGrades"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:79",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "studentNumber",
+        "label": "학번",
+        "placeholder": "예: 2022123456",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:87",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "소속 입력 후 학생회 참여하기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "HOME-01K",
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:89",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "참여하지 않기",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ONB-02"
+        }
+      }
+    }
+  ]
+}

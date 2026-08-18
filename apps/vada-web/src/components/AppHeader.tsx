@@ -1,9 +1,10 @@
 import { FlowProgress } from './FlowProgress'
 
 interface AppHeaderProps {
-  label: string
-  step: number
-  totalSteps: number
+  // 흐름에 속하지 않는 화면(INV-01)은 진행 표시가 없다 — design의 사실이다.
+  label?: string
+  step?: number
+  totalSteps?: number
 }
 
 // 헤더 7:5: 로고 24.5→28, gap 7→8. 진행 표시는 FlowProgress가 담당한다.
@@ -17,7 +18,9 @@ export function AppHeader({ label, step, totalSteps }: AppHeaderProps) {
         </div>
         <span className="text-base font-semibold text-gray-900">Vada</span>
       </div>
-      <FlowProgress label={label} step={step} totalSteps={totalSteps} />
+      {label !== undefined && step !== undefined && totalSteps !== undefined && (
+        <FlowProgress label={label} step={step} totalSteps={totalSteps} />
+      )}
     </header>
   )
 }
