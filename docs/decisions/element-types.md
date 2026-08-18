@@ -14,10 +14,10 @@
 
 - **선택 속성은 nullable일 수 없다.** 초안 값은 빈 문자열 하나뿐이라 '부재'와 `null`을 구분하지 못한다. 값이 없을 수 있으면 `required` + nullable(`null`로 명시), 개념 자체가 없을 수 있으면 선택 + non-nullable(key 생략)로 간다. 둘을 겹치면 왕복에서 반드시 한쪽으로 뭉개진다.
 - **모든 속성에 편집 위젯이 있어야 한다.** 판정기(`getSchemaPropertyEditorKind`)가 모르는 타입은 key 이름만 있는 죽은 줄로 그려지고, 불러온 값을 되돌려주지 못해 저장 한 번에 사라진다. 새 JSON 타입을 쓰려면 판정기와 `ui.mjs` 렌더러 **양쪽**에 분기를 추가한다.
-
 - **요소 유형 레지스트리는 한 벌만 둔다.** 플러그인은 UI(iframe)와 code(Figma 샌드박스) 두 번들로 나뉘지만 `schemaByType`은 `apps/figma-plugin/src/element-schemas.mjs` 한 곳에서만 선언하고 양쪽이 import 한다. 각자 들고 있었더니 ORG-02 작업에서 code 쪽 갱신이 누락돼, `note`·`group`·`list`가 있는 화면은 `로컬 초안 불러오기`가 "지원하지 않는 요소 유형입니다"로 통째로 실패했다 — 그런데 테스트는 ui.mjs만 검사해 통과했다.
+- **화면 JSON의 요소 속성 순서는 스키마 선언 순서를 따른다.** 플러그인은 항상 그 순서로 쓰므로, 손으로 쓴 파일의 순서가 다르면 Figma에서 저장할 때마다 순서만 바뀐 diff가 나온다. 그러면 "저장 후 `git diff`가 비어 있다"를 왕복 보존의 신호로 쓸 수 없다. 값이 아니라 표현의 문제고 기계적으로 고칠 수 있어서 경고가 아니라 오류다(`checkPropertyOrder`).
 
-세 규칙 모두 `tests/element-type-registry.test.mjs`가 요소 유형 전체를 훑어 강제하고, `tests/figma-plugin-screen-spec.test.mjs`가 등록된 실제 요소로 왕복 보존을 확인한다.
+앞의 세 규칙은 `tests/element-type-registry.test.mjs`가 요소 유형 전체를 훑어 강제하고, `tests/figma-plugin-screen-spec.test.mjs`가 등록된 실제 요소로 왕복 보존을 확인한다. 마지막 규칙은 검증 CLI가 매번 검사한다.
 
 ## 유형
 

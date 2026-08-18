@@ -427,6 +427,30 @@ function checkSubmitAction(findings, context) {
   }
 }
 
+// 플러그인은 스키마 선언 순서로 화면 JSON을 쓴다. 손으로 쓴 파일의 순서가
+// 다르면 Figma에서 저장할 때마다 순서만 바뀐 diff가 나오고, "저장 후 diff가
+// 비어 있다"를 왕복 보존의 신호로 쓸 수 없게 된다. 값이 아니라 표현의 문제라
+// 기계적으로 고칠 수 있고, 그래서 경고가 아니라 오류다.
+function checkPropertyOrder(findings, context) {
+  const { file, element, index, propertyOrderByType } = context;
+  const declaredOrder = propertyOrderByType?.[element.spec.type];
+
+  if (!Array.isArray(declaredOrder)) {
+    return;
+  }
+
+  const actual = Object.keys(element.spec);
+  const expected = declaredOrder.filter((key) => actual.includes(key));
+
+  if (actual.length !== expected.length || actual.some((key, at) => key !== expected[at])) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 속성 순서가 ${element.spec.type}.schema.json 선언 순서와 다릅니다. 기대: ${expected.join(", ")}`
+    });
+  }
+}
+
 function checkFieldReferences(findings, context) {
   const { file, element, index, fieldKeys } = context;
   const { enabledWhen, resetOnChangeOf } = element.spec;
@@ -464,7 +488,8 @@ export function collectSpecFindings({
   flows = null,
   flowsFile = "flows.json",
   mutations = null,
-  mutationsFile = "mutations.json"
+  mutationsFile = "mutations.json",
+  propertyOrderByType = null
 } = {}) {
   const findings = [];
   const screenIds = new Set(
@@ -600,8 +625,10 @@ export function collectSpecFindings({
         mutations,
         mutationKeys,
         clearOnByScope,
-        screenScopeKey: spec.stateScopeKey
+        screenScopeKey: spec.stateScopeKey,
+        propertyOrderByType
       };
+      checkPropertyOrder(findings, context);
       if (spec_.type === "select") {
         checkOptionsSource(findings, context);
       }

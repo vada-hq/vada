@@ -25,12 +25,12 @@
         "fieldKey": "orgType",
         "label": "학생회 유형",
         "placeholder": null,
+        "presentation": "choiceGroup",
         "initialValue": null,
         "valueType": "string",
         "required": true,
         "initiallyDisabled": false,
         "searchable": false,
-        "presentation": "choiceGroup",
         "optionsSource": {
           "key": "org.types"
         }

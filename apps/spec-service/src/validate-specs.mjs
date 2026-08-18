@@ -37,6 +37,7 @@ async function createValidators() {
   const elementTypes =
     screenSchema.properties.elements.items.properties.spec.properties.type.enum;
   const elements = {};
+  const elementPropertyOrder = {};
   for (const elementType of elementTypes) {
     const fileName = `${elementType}.schema.json`;
     let schema;
@@ -49,6 +50,8 @@ async function createValidators() {
     }
     ajv.addSchema(schema);
     elements[elementType] = ajv.getSchema(fileName);
+    // 화면 JSON의 속성 순서 원본. 플러그인이 쓰는 순서와 같아야 한다.
+    elementPropertyOrder[elementType] = Object.keys(schema.properties ?? {});
   }
 
   return {
@@ -58,6 +61,7 @@ async function createValidators() {
     flows: ajv.getSchema("flows.schema.json"),
     mutations: ajv.getSchema("mutations.schema.json"),
     figmaDesign: ajv.getSchema("figma-design.schema.json"),
+    elementPropertyOrder,
     elements
   };
 }
@@ -333,7 +337,8 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
       flows: flowsCatalog,
       flowsFile: label("flows.json"),
       mutations,
-      mutationsFile: label("mutations.json")
+      mutationsFile: label("mutations.json"),
+      propertyOrderByType: validators.elementPropertyOrder
     })
   );
 }

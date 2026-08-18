@@ -566,3 +566,75 @@ test("등록 노드가 요소의 라벨을 품지 않으면 오류로 보고한�
     "라벨과 컨트롤을 모두 품는 래퍼는 통과해야 한다"
   );
 });
+
+// 플러그인은 스키마 선언 순서로 화면 JSON을 쓴다. 손으로 쓴 파일의 순서가
+// 다르면 Figma에서 저장할 때마다 순서만 바뀐 diff가 나오고, 그러면
+// "저장 후 git diff가 비어 있다"를 왕복 보존의 신호로 쓸 수 없게 된다.
+test("collectSpecFindings는 요소 속성 순서가 스키마 선언 순서와 다르면 오류로 보고한다", () => {
+  const propertyOrderByType = {
+    input: ["type", "fieldKey", "label", "placeholder", "initialValue", "inputType", "valueType", "required", "validation"]
+  };
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:1", inputSpec("name")),
+          // required를 valueType 앞으로 옮겼다. 값은 같고 순서만 다르다.
+          element("1:2", {
+            type: "input",
+            fieldKey: "phone",
+            label: "phone",
+            placeholder: null,
+            initialValue: null,
+            inputType: "text",
+            required: true,
+            valueType: "string",
+            validation: []
+          })
+        ]
+      }
+    }
+  ];
+
+  const findings = collectSpecFindings({ screens, propertyOrderByType });
+  const orderFindings = findings.filter((finding) =>
+    finding.message.includes("속성 순서")
+  );
+
+  assert.equal(orderFindings.length, 1, `기대와 다름: ${JSON.stringify(findings)}`);
+  assert.equal(orderFindings[0].level, "error");
+  assert.match(orderFindings[0].message, /elements\[1\]/u);
+});
+
+test("collectSpecFindings는 순서 원본이 없으면 순서를 검사하지 않는다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "input",
+            fieldKey: "phone",
+            label: "phone",
+            placeholder: null,
+            initialValue: null,
+            inputType: "text",
+            required: true,
+            valueType: "string",
+            validation: []
+          })
+        ]
+      }
+    }
+  ];
+
+  assert.deepEqual(
+    collectSpecFindings({ screens }).filter((finding) =>
+      finding.message.includes("속성 순서")
+    ),
+    []
+  );
+});

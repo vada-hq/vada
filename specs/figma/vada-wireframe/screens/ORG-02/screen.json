@@ -25,12 +25,12 @@
         "type": "select",
         "fieldKey": "setupMode",
         "placeholder": null,
+        "presentation": "choiceGroup",
         "initialValue": "basic",
         "valueType": "string",
         "required": true,
         "initiallyDisabled": false,
         "searchable": false,
-        "presentation": "choiceGroup",
         "optionsSource": {
           "key": "org.setupModes"
         }
@@ -105,6 +105,10 @@
         "action": {
           "type": "submit",
           "mutationKey": "org.create",
+          "onSuccess": {
+            "navigate": "ORG-10",
+            "scopeEvent": "complete"
+          },
           "executeWhen": {
             "type": "allRequiredFieldsHaveValue",
             "scope": "screen"
@@ -112,10 +116,6 @@
           "onExecutionBlocked": {
             "type": "showMissingRequiredFields",
             "focus": "firstMissingField"
-          },
-          "onSuccess": {
-            "navigate": "ORG-10",
-            "scopeEvent": "complete"
           }
         }
       }
