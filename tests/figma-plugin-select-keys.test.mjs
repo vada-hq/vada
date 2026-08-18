@@ -5,7 +5,6 @@ import test from "node:test";
 import {
   getSchemaConstantValue,
   getSchemaEnumValues,
-  getSchemaPropertyEditorKind,
   getSchemaPropertyKeys,
   getSchemaPropertyKeysForElementType,
   getSelectedNodeInfo
@@ -61,38 +60,11 @@ test("select 스키마는 승인된 v1 필드만 선언한다", async () => {
 test("select 스키마 속성은 공통 편집기로 표시할 수 있다", async () => {
   const schema = JSON.parse(await readFile(schemaUrl, "utf8"));
 
-  assert.equal(getSchemaPropertyEditorKind(schema, "fieldKey"), "text");
-  assert.equal(getSchemaPropertyEditorKind(schema, "placeholder"), "text");
-  assert.equal(getSchemaPropertyEditorKind(schema, "disabledPlaceholder"), "text");
-  assert.equal(getSchemaPropertyEditorKind(schema, "valueType"), "enum");
-  assert.equal(getSchemaPropertyEditorKind(schema, "required"), "boolean");
-  assert.equal(
-    getSchemaPropertyEditorKind(schema, "initiallyDisabled"),
-    "boolean"
-  );
-  assert.equal(getSchemaPropertyEditorKind(schema, "searchable"), "boolean");
-  assert.equal(getSchemaPropertyEditorKind(schema, "optionsSource"), "object");
   assert.deepEqual(
     getSchemaPropertyKeys(schema.properties.optionsSource),
     ["key", "params"]
   );
   assert.deepEqual(schema.properties.optionsSource.required, ["key"]);
-  assert.equal(
-    getSchemaPropertyEditorKind(schema.properties.optionsSource, "key"),
-    "text"
-  );
-  assert.equal(
-    getSchemaPropertyEditorKind(schema.properties.optionsSource, "params"),
-    "json-object"
-  );
-  assert.equal(
-    getSchemaPropertyEditorKind(schema, "enabledWhen"),
-    "json-array"
-  );
-  assert.equal(
-    getSchemaPropertyEditorKind(schema, "resetOnChangeOf"),
-    "json-array"
-  );
   assert.deepEqual(getSchemaEnumValues(schema, "valueType"), [
     "string",
     "integer",

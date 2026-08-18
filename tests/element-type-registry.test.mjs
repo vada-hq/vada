@@ -4,7 +4,6 @@ import test from "node:test";
 
 import {
   getElementTypeOptions,
-  getSchemaPropertyEditorKind,
   getSchemaPropertyKeys
 } from "../apps/figma-plugin/src/plugin-model.mjs";
 
@@ -107,41 +106,6 @@ test("모든 schemaByType 레지스트리가 모든 요소 유형을 담는다",
 // 편집 위젯이 없는 속성은 key 이름만 있는 죽은 줄로 그려진다. 값을 입력할 수도,
 // 불러온 값을 되돌려줄 수도 없어서 `이 화면 저장` 한 번에 조용히 파괴된다
 // (list.minItems/maxItems가 integer라 실제로 이 구멍에 빠졌다).
-test("모든 요소 유형의 모든 속성에 편집 위젯이 있다", async () => {
-  const pending = [];
-
-  for (const elementType of await readElementTypes()) {
-    const schema = await readSchema(`${elementType}.schema.json`);
-    const walk = (objectSchema, parentPath) => {
-      for (const propertyKey of getSchemaPropertyKeys(objectSchema)) {
-        const propertyPath = parentPath
-          ? `${parentPath}.${propertyKey}`
-          : propertyKey;
-        const editorKind = getSchemaPropertyEditorKind(
-          objectSchema,
-          propertyKey
-        );
-
-        if (editorKind === "pending") {
-          pending.push(`${elementType}.${propertyPath}`);
-        }
-
-        if (editorKind === "object") {
-          walk(objectSchema.properties[propertyKey], propertyPath);
-        }
-      }
-    };
-
-    walk(schema, "");
-  }
-
-  assert.deepEqual(
-    pending,
-    [],
-    `편집 위젯이 없는 속성이 있습니다: ${pending.join(", ")}`
-  );
-});
-
 // 선택 속성이면서 nullable이면 '부재'와 'null'이 같은 뜻이 된다. 플러그인의 초안
 // 값은 빈 문자열 하나로 둘을 표현하므로 왕복에서 반드시 한쪽으로 뭉개진다
 // (select.label·group.description·list.label이 실제로 이 조합이었다).
@@ -189,41 +153,3 @@ test("선택 속성은 nullable일 수 없다", async () => {
 
 // 판정기가 새 편집 종류를 돌려줘도 렌더러에 분기가 없으면 여전히 죽은 줄이다.
 // 판정기만 고치고 UI를 빠뜨리는 것이 이 결함의 실제 재발 경로다.
-test("UI 렌더러가 모든 편집 종류를 그린다", async () => {
-  const source = await readFile(uiSourceUrl, "utf8");
-  const rendered = new Set(
-    [...source.matchAll(/editorKind === "(?<kind>[a-z-]+)"/gu)].map(
-      (match) => match.groups.kind
-    )
-  );
-  const missing = new Set();
-
-  for (const elementType of await readElementTypes()) {
-    const schema = await readSchema(`${elementType}.schema.json`);
-    const walk = (objectSchema) => {
-      for (const propertyKey of getSchemaPropertyKeys(objectSchema)) {
-        const editorKind = getSchemaPropertyEditorKind(
-          objectSchema,
-          propertyKey
-        );
-
-        // readonly는 const 값 표시가 따로 처리한다.
-        if (editorKind !== "readonly" && !rendered.has(editorKind)) {
-          missing.add(`${editorKind}(${elementType}.${propertyKey})`);
-        }
-
-        if (editorKind === "object") {
-          walk(objectSchema.properties[propertyKey]);
-        }
-      }
-    };
-
-    walk(schema);
-  }
-
-  assert.deepEqual(
-    [...missing],
-    [],
-    `ui.mjs에 렌더링 분기가 없는 편집 종류가 있습니다: ${[...missing].join(", ")}`
-  );
-});

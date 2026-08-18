@@ -33,7 +33,7 @@ figma-spec-v2/
 
 화면 하나의 모든 산출물은 `specs/figma/<wireframeKey>/screens/<screenId>/` 폴더 하나에 모인다.
 
-- `screen.json`: 동작 명세 (플러그인의 `이 화면 저장`이 생성)
+- `screen.json`: 동작 명세 (AI가 작성하고 플러그인은 읽기 전용으로 보여준다 — `docs/decisions/plugin-role.md`)
 - `figma.raw.json`: 플러그인이 저장한 Figma REST 형식의 원본
 - `figma.design.json`: 원본을 결정적 규칙으로 정규화한 구현용 디자인 문서
 - `assets/*.svg`, `reference.png`: 벡터 추출 증거물과 검증 기준 스크린샷

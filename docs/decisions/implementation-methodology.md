@@ -19,6 +19,8 @@
 - 사람만 아는 것: `fieldKey` 작명, 선택지 출처(드롭다운은 선택지가 디자인에 없다), 활성 상태 문구, `inputType`·`valueType`, 이동 대상 화면, `note`의 파생 의도
 - 추출기는 후자를 **추측하지 않고 질문으로 보고한다**. ORG-01(요소 9개) 기준 질문 15건이었다 — 이 수치가 "화면당 사람 개입"의 실측값이며, 줄어드는지가 수렴의 지표다.
 
+2026-08-19에 이 분업을 한 걸음 더 밀었다: **답을 받아 명세를 쓰는 일도 AI가 한다**. 플러그인은 값을 입력받지 않고 결과를 보여주기만 한다(`plugin-role.md`). 사람이 플러그인에서 하는 일은 화면 지정과 원본 저장뿐이다.
+
 ```powershell
 node apps/spec-service/src/draft-screen-spec.mjs <wireframeKey> <screenId>            # 초안 + 질문
 node apps/spec-service/src/draft-screen-spec.mjs <wireframeKey> <screenId> --verify   # 등록된 명세와 대조

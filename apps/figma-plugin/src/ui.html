@@ -35,6 +35,16 @@
         font: inherit;
       }
 
+      dt {
+        margin: 0;
+        color: var(--figma-color-text-secondary);
+      }
+
+      dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
+
       .context-card {
         margin-top: 16px;
         padding: 12px;
@@ -87,39 +97,15 @@
         gap: 8px;
       }
 
-      #state-scope-summary dt {
-        margin: 0;
-      }
-
-      #state-scope-summary dd {
-        overflow-wrap: anywhere;
-      }
-
       #state-scope-status[data-tone="error"] {
         color: var(--figma-color-text-danger, #f24822);
       }
 
-      #save-screen {
-        width: 100%;
-        margin-top: 12px;
-        padding: 9px;
-        border: 1px solid var(--figma-color-border-selected);
-        border-radius: 6px;
-        color: var(--figma-color-text-onbrand);
-        background: var(--figma-color-bg-brand);
-        cursor: pointer;
-      }
-
-      #save-screen:disabled {
-        cursor: wait;
-        opacity: 0.6;
-      }
-
       #save-figma-raw,
-      #load-local-screen {
+      #refresh-screen-spec {
         width: 100%;
         margin-top: 8px;
-        padding: 9px;
+        padding: 8px;
         border: 1px solid var(--figma-color-border);
         border-radius: 6px;
         color: var(--figma-color-text);
@@ -127,15 +113,14 @@
         cursor: pointer;
       }
 
-      #load-local-screen[data-changed="true"] {
-        border-color: var(--figma-color-border-selected);
-        color: var(--figma-color-text-brand);
-      }
-
       #save-figma-raw:disabled,
-      #load-local-screen:disabled {
+      #refresh-screen-spec:disabled {
         cursor: wait;
         opacity: 0.6;
+      }
+
+      #screen-save-status {
+        margin-top: 8px;
       }
 
       #screen-save-status[data-tone="error"] {
@@ -143,54 +128,38 @@
       }
 
       #selected-node-heading {
-        margin-top: 20px;
+        margin: 24px 0 8px;
       }
 
       #empty-state {
-        padding: 16px;
+        padding: 12px;
         border: 1px dashed var(--figma-color-border);
         border-radius: 6px;
-        text-align: center;
         color: var(--figma-color-text-secondary);
+        text-align: center;
       }
 
       #selection-details {
-        margin: 8px 0 0;
-      }
-
-      #selection-details div {
-        padding: 10px 8px;
-        border-bottom: 1px solid var(--figma-color-border);
-      }
-
-      dt {
-        margin-bottom: 4px;
-        color: var(--figma-color-text-secondary);
-      }
-
-      dd {
+        display: grid;
+        gap: 4px;
         margin: 0;
       }
 
-      code {
-        font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
-      }
-
-      #element-type-section {
-        margin-top: 20px;
+      #selection-details div {
+        display: grid;
+        grid-template-columns: 64px minmax(0, 1fr);
+        gap: 8px;
       }
 
       #screen-selection-section label {
         display: grid;
         gap: 4px;
-        margin-top: 12px;
+        margin-top: 8px;
         color: var(--figma-color-text-secondary);
       }
 
       #screen-selection-section input {
-        box-sizing: border-box;
-        width: 100%;
-        padding: 8px;
+        padding: 6px 8px;
         border: 1px solid var(--figma-color-border);
         border-radius: 4px;
         color: var(--figma-color-text);
@@ -198,14 +167,13 @@
       }
 
       #screen-selection-section input:focus {
-        border-color: var(--figma-color-border-selected);
-        outline: none;
+        outline: 1px solid var(--figma-color-border-selected);
       }
 
       #set-active-screen {
         width: 100%;
         margin-top: 12px;
-        padding: 9px;
+        padding: 8px;
         border: 1px solid var(--figma-color-border-selected);
         border-radius: 6px;
         color: var(--figma-color-text-onbrand);
@@ -224,293 +192,94 @@
 
       #selection-notice {
         margin-top: 12px;
-        padding: 10px;
-        border: 1px solid var(--figma-color-border);
-        border-radius: 6px;
+        padding: 8px;
+        border-radius: 4px;
         color: var(--figma-color-text-secondary);
-      }
-
-      #element-type-section p {
-        margin: 4px 0 12px;
-        color: var(--figma-color-text-secondary);
-      }
-
-      #element-type-options {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-        gap: 8px;
-      }
-
-      #element-type-options button {
-        padding: 10px;
-        border: 1px solid var(--figma-color-border);
-        border-radius: 6px;
-        color: var(--figma-color-text);
         background: var(--figma-color-bg-secondary);
-        cursor: pointer;
       }
 
-      #element-type-options button[aria-pressed="true"] {
-        border-color: var(--figma-color-border-selected);
-        color: var(--figma-color-text-onbrand);
-        background: var(--figma-color-bg-brand);
+      /* 화면 명세는 읽기 전용이다. 로컬 screen.json이 유일한 원본이고
+         플러그인은 그것을 보여주기만 한다. */
+      #screen-spec-section {
+        margin-top: 24px;
       }
 
-      #registration-controls {
-        margin-top: 10px;
+      #screen-spec-status {
+        margin: 8px 0 0;
+        color: var(--figma-color-text-secondary);
       }
 
-      #registration-summary {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 8px;
-      }
-
-      #selected-element-type {
-        color: var(--figma-color-text-success);
-      }
-
-      #cancel-registration,
-      #keep-registration,
-      #confirm-cancel-registration {
-        padding: 6px 8px;
-        border: 1px solid var(--figma-color-border);
-        border-radius: 6px;
-        color: var(--figma-color-text);
-        background: var(--figma-color-bg);
-        cursor: pointer;
-      }
-
-      #cancel-registration,
-      #confirm-cancel-registration {
-        border-color: var(--figma-color-border-danger, #f24822);
+      #screen-spec-status[data-tone="error"] {
         color: var(--figma-color-text-danger, #f24822);
       }
 
-      #cancel-registration-confirmation {
-        margin-top: 8px;
-        padding: 8px;
+      #screen-spec-elements {
+        display: grid;
+        gap: 8px;
+        margin: 8px 0 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .spec-element {
+        padding: 10px;
         border: 1px solid var(--figma-color-border);
         border-radius: 6px;
+      }
+
+      .spec-element[data-selected="true"] {
+        border-color: var(--figma-color-border-selected);
         background: var(--figma-color-bg-secondary);
       }
 
-      #cancel-registration-confirmation p {
-        margin: 0 0 8px;
-        color: var(--figma-color-text);
-      }
-
-      #cancel-registration-actions {
+      .spec-element-heading {
         display: flex;
-        justify-content: flex-end;
-        gap: 8px;
-      }
-
-      #schema-keys-section {
-        margin-top: 20px;
-      }
-
-      #schema-keys {
-        margin: 8px 0 0;
-        padding: 0;
-        list-style: none;
-        border-top: 1px solid var(--figma-color-border);
-      }
-
-      #schema-keys li {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 10px 8px;
-        border-bottom: 1px solid var(--figma-color-border);
-      }
-
-      #schema-keys li.schema-object-item {
-        display: block;
-      }
-
-      .schema-object-keys {
-        margin: 8px 0 0;
-        padding: 0 0 0 12px;
-        list-style: none;
-        border-left: 1px solid var(--figma-color-border);
-      }
-
-      #schema-keys .schema-object-keys li:last-child {
-        border-bottom: 0;
-      }
-
-      .schema-constant {
-        display: flex;
-        align-items: center;
+        flex-wrap: wrap;
+        align-items: baseline;
         gap: 6px;
-        color: var(--figma-color-text-secondary);
       }
 
-      .schema-constant code {
-        padding: 2px 6px;
-        border-radius: 4px;
-        color: var(--figma-color-text);
-        background: var(--figma-color-bg-tertiary);
-      }
-
-      .schema-text-input,
-      .schema-select {
-        box-sizing: border-box;
-        width: 160px;
-        padding: 6px 8px;
-        border: 1px solid var(--figma-color-border);
-        border-radius: 4px;
-        color: var(--figma-color-text);
-        background: var(--figma-color-bg);
-      }
-
-      .schema-text-input:focus,
-      .schema-select:focus {
-        border-color: var(--figma-color-border-selected);
-        outline: none;
-      }
-
-      .option-source-detail {
-        max-width: 160px;
-        color: var(--figma-color-text-secondary);
-        text-align: right;
-        overflow-wrap: anywhere;
-      }
-
-      .option-source-contract-detail,
-      .option-source-readiness {
-        max-width: 240px;
-      }
-
-      #schema-keys li.option-source-options-item {
-        display: block;
-      }
-
-      .option-source-options summary {
-        padding: 2px 0;
-        color: var(--figma-color-text-secondary);
-        cursor: pointer;
-        user-select: none;
-      }
-
-      .option-source-options-content {
-        display: grid;
-        gap: 8px;
-        margin-top: 10px;
-      }
-
-      .option-source-option-search {
-        width: 100%;
-      }
-
-      .option-source-option-list {
-        max-height: 240px;
-        margin: 0;
-        padding: 0;
-        overflow-y: auto;
-        list-style: none;
-        border: 1px solid var(--figma-color-border);
-        border-radius: 4px;
-      }
-
-      #schema-keys .option-source-option-list li {
-        justify-content: flex-start;
-        gap: 6px;
-        padding: 8px;
-      }
-
-      .option-source-option-value {
-        max-width: 96px;
-        overflow-wrap: anywhere;
-      }
-
-      .option-source-option-arrow {
+      .spec-element-index {
         color: var(--figma-color-text-tertiary);
       }
 
-      .option-source-option-label {
-        flex: 1;
-        min-width: 0;
-        overflow-wrap: anywhere;
-      }
-
-      .option-source-option-disabled {
-        padding: 2px 5px;
+      .spec-element-type {
+        padding: 1px 6px;
         border-radius: 4px;
         color: var(--figma-color-text-secondary);
         background: var(--figma-color-bg-tertiary);
         font-size: 10px;
       }
 
-      .option-source-option-empty {
-        margin: 0;
-        padding: 8px;
-        color: var(--figma-color-text-secondary);
-        text-align: center;
+      .spec-element-identity {
+        font-weight: 600;
+        overflow-wrap: anywhere;
       }
 
-      .option-source-readiness[data-ready="true"] {
-        color: var(--figma-color-text-success);
+      .spec-element-node {
+        color: var(--figma-color-text-tertiary);
       }
 
-      .option-source-readiness[data-ready="false"] {
-        color: var(--figma-color-text-danger, #f24822);
-      }
-
-      .option-source-params-item {
-        align-items: flex-start !important;
-      }
-
-      .option-source-params {
+      .spec-properties {
         display: grid;
+        gap: 2px;
+        margin: 8px 0 0;
+      }
+
+      .spec-properties div {
+        display: grid;
+        grid-template-columns: 116px minmax(0, 1fr);
         gap: 8px;
       }
 
-      .option-source-param {
-        display: grid;
-        gap: 4px;
+      .spec-nested {
+        margin-left: 12px;
+        padding-left: 8px;
+        border-left: 1px solid var(--figma-color-border);
       }
 
-      #schema-keys li.button-execution-review-item {
-        display: grid;
-        justify-content: stretch;
-        gap: 8px;
-        margin: 8px 0;
-        padding: 12px;
-        border: 1px solid var(--figma-color-border);
-        border-radius: 6px;
-        background: var(--figma-color-bg-secondary);
-      }
-
-      .button-execution-review-item p {
-        margin: 0;
-        color: var(--figma-color-text-secondary);
-        line-height: 1.5;
-      }
-
-      .button-execution-candidate-heading {
-        color: var(--figma-color-text-secondary);
-        font-size: 11px;
-      }
-
-      .button-execution-candidates {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
-      .button-execution-candidates code {
-        padding: 3px 6px;
-        border-radius: 4px;
-        color: var(--figma-color-text);
-        background: var(--figma-color-bg-tertiary);
-      }
-
-      .button-execution-empty {
-        color: var(--figma-color-text-secondary);
+      .spec-value-absent {
+        color: var(--figma-color-text-tertiary);
       }
     </style>
   </head>
@@ -543,12 +312,11 @@
           <p id="state-scope-status" role="status"></p>
         </section>
       </div>
-      <button id="save-screen" type="button" hidden>이 화면 저장</button>
       <button id="save-figma-raw" type="button" hidden>
         Figma 원본 JSON 저장
       </button>
-      <button id="load-local-screen" type="button" hidden>
-        로컬 초안 불러오기
+      <button id="refresh-screen-spec" type="button" hidden>
+        명세 새로고침
       </button>
       <p id="screen-save-status" role="status" hidden></p>
     </section>
@@ -599,28 +367,10 @@
 
     <div id="selection-notice" role="status" hidden></div>
 
-    <section id="element-type-section" hidden>
-      <h2>요소 유형</h2>
-      <p>이 요소가 구현에서 맡는 역할을 선택하세요.</p>
-      <div id="element-type-options"></div>
-      <div id="registration-controls" hidden>
-        <div id="registration-summary">
-          <div id="selected-element-type" role="status"></div>
-          <button id="cancel-registration" type="button">요소 등록 취소</button>
-        </div>
-        <div id="cancel-registration-confirmation" hidden>
-          <p>이 요소의 작성 내용을 삭제할까요?</p>
-          <div id="cancel-registration-actions">
-            <button id="keep-registration" type="button">돌아가기</button>
-            <button id="confirm-cancel-registration" type="button">등록 삭제</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section id="schema-keys-section" hidden>
-      <h2>요소 스키마 key</h2>
-      <ul id="schema-keys"></ul>
+    <section id="screen-spec-section" hidden>
+      <h2>화면 명세</h2>
+      <p id="screen-spec-status" role="status"></p>
+      <ol id="screen-spec-elements"></ol>
     </section>
 
     <!-- UI_SCRIPT -->

@@ -18,7 +18,6 @@ import {
   saveFigmaAssetToLocal,
   saveFigmaRawToLocal,
   saveFigmaReferenceToLocal,
-  saveScreenSpecToLocal
 } from "../apps/figma-plugin/src/local-bridge.mjs";
 import {
   DEFAULT_HOST,
@@ -348,58 +347,6 @@ test("wireframe 옵션 출처 카탈로그를 브리지 GET API로 불러온다"
   ]);
 });
 
-test("화면 JSON 전체를 브리지 PUT API로 저장한다", async () => {
-  const calls = [];
-  const screenSpec = createScreenSpec();
-  const fetchImpl = async (...args) => {
-    calls.push(args);
-    return {
-      ok: true,
-      headers: {
-        get(name) {
-          return name.toLowerCase() === "etag"
-            ? '"revision-1"'
-            : null;
-        }
-      },
-      async json() {
-        return {
-          screenId: "ONB-02",
-          status: "saved",
-          wireframeKey: "vada-wireframe"
-        };
-      }
-    };
-  };
-
-  const result = await saveScreenSpecToLocal({
-    fetchImpl,
-    expectedRevision: null,
-    screenSpec,
-    wireframeKey: "vada-wireframe"
-  });
-
-  assert.deepEqual(calls, [
-    [
-      "http://localhost:3846/v1/screens/vada-wireframe/ONB-02",
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          "If-None-Match": "*"
-        },
-        body: `${JSON.stringify(screenSpec, null, 2)}\n`
-      }
-    ]
-  ]);
-  assert.deepEqual(result, {
-    screenId: "ONB-02",
-    status: "saved",
-    wireframeKey: "vada-wireframe",
-    revision: '"revision-1"'
-  });
-});
-
 test("로컬 화면 JSON과 리비전을 GET으로 불러온다", async () => {
   const calls = [];
   const screenSpec = createScreenSpec();
@@ -452,157 +399,6 @@ test("로컬 화면 JSON이 없으면 새 파일 기준을 반환한다", async 
   );
 });
 
-test("기존 리비전 저장에는 If-Match를 전송한다", async () => {
-  const calls = [];
-
-  await saveScreenSpecToLocal({
-    expectedRevision: '"revision-1"',
-    fetchImpl: async (...args) => {
-      calls.push(args);
-      return {
-        ok: true,
-        headers: { get: () => '"revision-2"' },
-        async json() {
-          return { status: "saved" };
-        }
-      };
-    },
-    screenSpec: createScreenSpec(),
-    wireframeKey: "vada-wireframe"
-  });
-
-  assert.equal(calls[0][1].headers["If-Match"], '"revision-1"');
-  assert.equal(calls[0][1].headers["If-None-Match"], undefined);
-});
-
-test("브리지 연결 실패와 HTTP 오류를 사용자가 이해할 수 있게 변환한다", async () => {
-  const screenSpec = createScreenSpec();
-
-  await assert.rejects(
-    saveScreenSpecToLocal({
-      fetchImpl: async () => {
-        throw new TypeError("Failed to fetch");
-      },
-      screenSpec,
-      wireframeKey: "vada-wireframe"
-    }),
-    /로컬 브리지에 연결할 수 없습니다/
-  );
-
-  await assert.rejects(
-    saveScreenSpecToLocal({
-      fetchImpl: async () => ({
-        ok: false,
-        status: 400,
-        async json() {
-          return {
-            error: {
-              code: "screen_id_mismatch",
-              message: "screenId가 일치하지 않습니다."
-            }
-          };
-        }
-      }),
-      screenSpec,
-      wireframeKey: "vada-wireframe"
-    }),
-    /screenId가 일치하지 않습니다/
-  );
-
-  await assert.rejects(
-    saveScreenSpecToLocal({
-      expectedRevision: '"stale"',
-      fetchImpl: async () => ({
-        ok: false,
-        status: 412,
-        async json() {
-          return {
-            error: {
-              code: "revision_conflict",
-              message: "로컬 JSON이 변경되었습니다. 최신 초안을 다시 불러오세요."
-            }
-          };
-        }
-      }),
-      screenSpec,
-      wireframeKey: "vada-wireframe"
-    }),
-    /최신 초안을 다시 불러오세요/
-  );
-});
-
-test("wireframeKey 또는 screenId가 없으면 네트워크 요청 전에 거부한다", async () => {
-  let called = false;
-
-  await assert.rejects(
-    saveScreenSpecToLocal({
-      fetchImpl: async () => {
-        called = true;
-      },
-      screenSpec: createScreenSpec(),
-      wireframeKey: ""
-    }),
-    /wireframeKey/
-  );
-  assert.equal(called, false);
-});
-
-test("Figma 내부 저장 뒤 다운로드 대신 로컬 브리지 저장을 실행한다", async () => {
-  const [codeSource, uiSource] = await Promise.all([
-    readFile(codeUrl, "utf8"),
-    readFile(uiUrl, "utf8")
-  ]);
-
-  assert.match(
-    codeSource,
-    /wireframeKey:\s*screenContext\.wireframeKey/
-  );
-  assert.match(uiSource, /await saveScreenSpecToLocal\(/);
-  assert.doesNotMatch(uiSource, /function downloadScreenSpec\(/);
-});
-
-test("플러그인 저장 요청이 실제 브리지를 거쳐 정식 구조의 파일을 만든다", async (t) => {
-  const specsRoot = await mkdtemp(join(tmpdir(), "figma-plugin-bridge-"));
-  const server = createSpecServer({ specsRoot });
-
-  await new Promise((resolve, reject) => {
-    server.once("error", reject);
-    server.listen(0, DEFAULT_HOST, resolve);
-  });
-  t.after(async () => {
-    await new Promise((resolve, reject) => {
-      server.close((error) => (error ? reject(error) : resolve()));
-    });
-    await rm(specsRoot, { recursive: true, force: true });
-  });
-
-  const address = server.address();
-  const screenSpec = createScreenSpec();
-
-  await saveScreenSpecToLocal({
-    expectedRevision: null,
-    origin: `http://${address.address}:${address.port}`,
-    screenSpec,
-    wireframeKey: "vada-wireframe"
-  });
-
-  assert.deepEqual(
-    JSON.parse(
-      await readFile(
-        join(
-          specsRoot,
-          "vada-wireframe",
-          "screens",
-          "ONB-02",
-          "screen.json"
-        ),
-        "utf8"
-      )
-    ),
-    screenSpec
-  );
-});
-
 test("자산 저장 요청이 실제 브리지를 거쳐 SVG와 reference.png 파일을 만든다", async (t) => {
   const specsRoot = await mkdtemp(join(tmpdir(), "figma-plugin-assets-"));
   const server = createSpecServer({ specsRoot });
@@ -647,23 +443,47 @@ test("자산 저장 요청이 실제 브리지를 거쳐 SVG와 reference.png �
   );
 });
 
-test("플러그인 UI는 로컬 변경 감지와 명시적 불러오기를 제공한다", async () => {
-  const [codeSource, uiSource, uiHtml] = await Promise.all([
+// 2026-08-19 결정: 플러그인은 명세를 쓰지 않는다. 값을 정하는 일은 AI가 하고
+// 사람은 확인만 한다. 편집이 없으면 "명세를 폼으로 펼쳤다가 다시 직렬화하는"
+// 왕복이 없고, 그 왕복에서만 생기던 결함 계급도 함께 사라진다.
+test("플러그인은 화면 JSON을 쓰지 않는다", async () => {
+  const [codeSource, uiSource, bridgeSource] = await Promise.all([
     readFile(codeUrl, "utf8"),
     readFile(uiUrl, "utf8"),
     readFile(
-      new URL("../apps/figma-plugin/src/ui.html", import.meta.url),
+      new URL("../apps/figma-plugin/src/local-bridge.mjs", import.meta.url),
       "utf8"
     )
   ]);
 
-  assert.match(uiHtml, /id="load-local-screen"/);
-  assert.match(uiSource, /await loadScreenSpecFromLocal\(/);
-  assert.match(uiSource, /type:\s*"prepare-local-screen-spec"/);
-  assert.match(codeSource, /message\?\.type === "prepare-local-screen-spec"/);
+  assert.doesNotMatch(
+    bridgeSource,
+    /saveScreenSpecToLocal/u,
+    "브리지 클라이언트에 화면 JSON 저장 함수가 남아 있습니다."
+  );
+  for (const [source, name] of [
+    [uiSource, "ui.mjs"],
+    [codeSource, "code.mjs"]
+  ]) {
+    assert.doesNotMatch(
+      source,
+      /save-screen-spec|prepare-local-screen-spec/u,
+      `${name}에 명세 저장·가져오기 메시지가 남아 있습니다.`
+    );
+  }
 });
 
-test("플러그인 UI는 카탈로그 계약과 구현 준비 상태를 전용 편집기로 표시한다", async () => {
+test("플러그인은 Figma 문서에 명세 사본을 두지 않는다", async () => {
+  const codeSource = await readFile(codeUrl, "utf8");
+
+  // 화면 신원(screen-context)은 Figma에 남지만 명세(screen-spec)는 남지 않는다.
+  // 사본이 있으면 로컬 JSON과 어긋날 수 있고, 그걸 맞추는 동기화 의식이
+  // 영구히 따라붙는다.
+  assert.doesNotMatch(codeSource, /screen-spec\.mjs|restoreScreenSpec/u);
+  assert.match(codeSource, /restoreScreenContext/u);
+});
+
+test("플러그인 UI는 명세를 브리지에서 읽어 읽기 전용으로 표시한다", async () => {
   const [uiSource, uiHtml] = await Promise.all([
     readFile(uiUrl, "utf8"),
     readFile(
@@ -672,24 +492,20 @@ test("플러그인 UI는 카탈로그 계약과 구현 준비 상태를 전용 �
     )
   ]);
 
-  assert.match(uiSource, /await loadOptionSourcesFromLocal\(/);
-  assert.match(uiSource, /function createOptionsSourcePropertyItem\(/);
-  assert.match(uiSource, /function appendRemoteOptionSourceDetails\(/);
-  assert.match(uiSource, /getOptionSourceReadiness\(/);
-  assert.match(uiSource, /"response\.options\[\]\.value"/);
-  assert.match(uiSource, /"response\.options\[\]\.label"/);
-  assert.match(uiSource, /"response\.options\[\]\.disabled"/);
-  assert.match(uiSource, /"search\.mode"/);
-  assert.match(uiSource, /"search\.queryParam"/);
-  assert.match(uiSource, /"search\.minLength"/);
-  assert.match(uiSource, /"search\.debounceMs"/);
-  assert.match(uiSource, /function createStaticOptionSourceDetails\(/);
-  assert.match(uiSource, /STATIC_OPTION_SEARCH_THRESHOLD = 20/);
-  assert.match(uiSource, /filterOptionSourceOptions\(/);
-  assert.match(uiSource, /option-source-option-disabled/);
-  assert.match(uiHtml, /\.option-source-option-list/);
-  assert.match(uiHtml, /max-height:\s*240px/);
-  assert.match(uiSource, /option-source-readiness/);
-  assert.match(uiSource, /option-source-type/);
-  assert.match(uiSource, /optionsSource\.params/);
+  assert.match(uiSource, /await loadScreenSpecFromLocal\(/u);
+  assert.match(uiHtml, /id="screen-spec-elements"/u);
+  assert.match(uiHtml, /id="refresh-screen-spec"/u);
+
+  // 입력 위젯이 남아 있으면 읽기 전용이 아니다.
+  assert.doesNotMatch(uiSource, /createElement\("input"\)/u);
+  assert.doesNotMatch(uiSource, /createElement\("select"\)/u);
+});
+
+test("플러그인 UI는 선택지 출처를 카탈로그에서 찾아 함께 보여준다", async () => {
+  const uiSource = await readFile(uiUrl, "utf8");
+
+  // 선택지 내용은 카탈로그가 원본이라 화면 JSON만 봐서는 확인할 수 없다.
+  assert.match(uiSource, /await loadOptionSourcesFromLocal\(/u);
+  assert.match(uiSource, /findOptionSourceByKey\(/u);
+  assert.match(uiSource, /카탈로그에/u);
 });

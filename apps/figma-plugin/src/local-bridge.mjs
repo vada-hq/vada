@@ -1,4 +1,3 @@
-import { formatScreenSpecJson } from "./screen-spec.mjs";
 
 export const LOCAL_SPEC_SERVICE_ORIGIN = "http://localhost:3846";
 
@@ -222,59 +221,6 @@ export async function loadStateScopesFromLocal({
   }
 
   return catalog;
-}
-
-export async function saveScreenSpecToLocal({
-  wireframeKey,
-  screenSpec,
-  expectedRevision,
-  fetchImpl = globalThis.fetch,
-  origin = LOCAL_SPEC_SERVICE_ORIGIN
-}) {
-  if (!screenSpec || typeof screenSpec !== "object") {
-    throw new Error("저장할 화면 JSON이 필요합니다.");
-  }
-
-  const url = getLocalScreenSpecUrl({
-    wireframeKey,
-    screenId: screenSpec.screenId,
-    origin
-  });
-
-  const headers = { "Content-Type": "application/json" };
-
-  if (expectedRevision === null) {
-    headers["If-None-Match"] = "*";
-  } else if (
-    typeof expectedRevision === "string" &&
-    expectedRevision.trim()
-  ) {
-    headers["If-Match"] = expectedRevision.trim();
-  }
-
-  let response;
-  try {
-    response = await fetchImpl(url, {
-      method: "PUT",
-      headers,
-      body: formatScreenSpecJson(screenSpec)
-    });
-  } catch {
-    throw new Error(
-      "로컬 브리지에 연결할 수 없습니다. spec-service를 실행한 뒤 다시 저장하세요."
-    );
-  }
-
-  if (!response.ok) {
-    throw new Error(await getResponseErrorMessage(response));
-  }
-
-  const result = await response.json();
-
-  return {
-    ...result,
-    revision: getResponseRevision(response)
-  };
 }
 
 export async function saveFigmaRawToLocal({

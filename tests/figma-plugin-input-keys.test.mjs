@@ -3,14 +3,11 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
-  createNodeDraftStore,
   extractLabelFromDirectParent,
   findInputElement,
   getElementTypeOptions,
   getSchemaConstantValue,
   getSchemaEnumValues,
-  getSchemaPropertyEditorKind,
-  getSchemaTextPropertyKeys,
   getSchemaPropertyKeysForElementType,
   getSchemaPropertyKeys,
   getSelectedNodeInfo,
@@ -110,15 +107,6 @@ test("const가 선언된 type의 고정값만 반환한다", async () => {
 test("스키마 속성 유형에 맞는 편집기를 선택한다", async () => {
   const schema = JSON.parse(await readFile(schemaUrl, "utf8"));
 
-  assert.equal(getSchemaPropertyEditorKind(schema, "type"), "readonly");
-  assert.equal(getSchemaPropertyEditorKind(schema, "fieldKey"), "text");
-  assert.equal(getSchemaPropertyEditorKind(schema, "required"), "boolean");
-  assert.equal(getSchemaPropertyEditorKind(schema, "inputType"), "enum");
-  assert.equal(getSchemaPropertyEditorKind(schema, "valueType"), "enum");
-  assert.equal(
-    getSchemaPropertyEditorKind(schema, "validation"),
-    "empty-array"
-  );
 });
 
 test("enum 속성의 선택지를 스키마 선언 순서대로 반환한다", async () => {
@@ -148,13 +136,6 @@ test("enum 속성의 선택지를 스키마 선언 순서대로 반환한다", a
 test("문자열 또는 nullable 문자열 속성을 텍스트 입력 대상으로 반환한다", async () => {
   const schema = JSON.parse(await readFile(schemaUrl, "utf8"));
 
-  assert.deepEqual(getSchemaTextPropertyKeys(schema), [
-    "fieldKey",
-    "label",
-    "placeholder",
-    "helperText",
-    "initialValue"
-  ]);
 });
 
 test("선택 요소의 직접 부모 안에 있는 유일한 위쪽 TEXT를 라벨로 추출한다", () => {
@@ -385,87 +366,4 @@ test("부모의 낮은 opacity는 내부 TEXT의 플레이스홀더 판정에 �
 
   assert.equal(getSelectedNodeInfo(input).suggestedInitialValue, "김바다");
   assert.equal(getSelectedNodeInfo(input).suggestedPlaceholder, undefined);
-});
-
-test("nodeId별 요소 초안을 독립적으로 보존하고 복사본으로 복원한다", () => {
-  const store = createNodeDraftStore();
-
-  store.save("7:29", {
-    elementType: "input",
-    values: {
-      fieldKey: "name",
-      label: "이름",
-      required: "true"
-    }
-  });
-  store.save("7:34", {
-    elementType: "input",
-    values: {
-      fieldKey: "studentNumber",
-      label: "학번"
-    }
-  });
-
-  assert.deepEqual(store.load("7:29"), {
-    elementType: "input",
-    values: {
-      fieldKey: "name",
-      label: "이름",
-      required: "true"
-    }
-  });
-  assert.deepEqual(store.load("7:34"), {
-    elementType: "input",
-    values: {
-      fieldKey: "studentNumber",
-      label: "학번"
-    }
-  });
-
-  const restored = store.load("7:29");
-  restored.values.label = "변경";
-
-  assert.equal(store.load("7:29").values.label, "이름");
-});
-
-test("등록 취소는 선택한 nodeId의 초안만 삭제한다", () => {
-  const store = createNodeDraftStore();
-  const firstDraft = {
-    elementType: "input",
-    values: { label: "이름" }
-  };
-  const secondDraft = {
-    elementType: "button",
-    values: { label: "다음" }
-  };
-
-  store.save("7:29", firstDraft);
-  store.save("7:34", secondDraft);
-
-  assert.equal(store.remove("7:29"), true);
-  assert.equal(store.load("7:29"), undefined);
-  assert.deepEqual(store.load("7:34"), secondDraft);
-  assert.equal(store.remove("missing"), false);
-});
-
-test("화면 저장용 초안 목록을 복사본으로 반환하고 초기화한다", () => {
-  const store = createNodeDraftStore();
-  store.save("7:29", {
-    elementType: "input",
-    values: { fieldKey: "name" }
-  });
-
-  const entries = store.entries();
-  entries[0].values.fieldKey = "changed";
-
-  assert.deepEqual(store.entries(), [
-    {
-      nodeId: "7:29",
-      elementType: "input",
-      values: { fieldKey: "name" }
-    }
-  ]);
-
-  store.clear();
-  assert.deepEqual(store.entries(), []);
 });

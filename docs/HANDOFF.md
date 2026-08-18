@@ -4,15 +4,15 @@
 
 ## 목표 흐름
 
-1. 개발할 Figma 화면을 선택한다.
-2. 요소를 등록한다 — **추출기(`draft-screen-spec.mjs`)가 초안을 뽑고**, 플러그인은 검토·수정 수단이다.
-3. 디자인에서 확정할 수 있는 값은 추출기가 채우고, 디자인에 없는 값(fieldKey 작명·선택지 출처·이동 대상 등)만 사용자가 답한다.
-4. 화면 단위 저장 버튼을 한 번 눌러 개발 AI가 사용할 로컬 JSON 명세를 만든다.
+1. 사용자가 Figma에서 화면을 지정하고 `Figma 원본 JSON 저장`을 누른다. **사용자가 플러그인에서 하는 일은 여기까지다.**
+2. 추출기(`draft-screen-spec.mjs`)가 `figma.design.json`에서 요소 초안을 뽑고, 디자인만으로 알 수 없는 것은 질문으로 보고한다.
+3. 사용자가 질문에 답한다(fieldKey 작명·선택지 출처·이동 대상 등 도메인 결정).
+4. AI가 `screen.json`을 쓴다. **플러그인은 그것을 읽어 보여주기만 한다**(읽기 전용, `plugin-role.md`).
 5. 개발 AI가 명세 번들로 화면을 구현하고, 마찰 로그가 파이프라인을 개선한다.
 
 ## 현재 상태 — 파이프라인
 
-- **플러그인**(apps/figma-plugin): 화면 선택→요소 등록→화면 JSON 저장(Figma sharedPluginData `figmaspecv2`/`screen-spec` + 로컬 브리지, 비밀값 저장 금지). `Figma 원본 JSON 저장`은 raw JSON·벡터 SVG·2배율 reference.png를 함께 브리지로 저장한다. 로컬 초안 변경 감지와 명시적 불러오기로 AI 편집을 왕복하며, 로컬 JSON에서 생략된 버튼 실행 조건은 부재 마커로 왕복 보존된다.
+- **플러그인**(apps/figma-plugin): **명세를 쓰지 않는다**(2026-08-19, `docs/decisions/plugin-role.md`). 하는 일은 Figma 안에서만 가능한 두 가지 — 화면 신원 등록(pluginData `screen-context`)과 `Figma 원본 JSON 저장`(raw JSON·벡터 SVG·2배율 reference.png를 브리지로 저장). 명세는 브리지에서 읽어 **읽기 전용으로** 표시하며, 값이 없는 속성도 이름을 보여주고 선택지 출처·버튼 실행 판정 후보를 풀어 준다. Figma 문서 안의 명세 사본은 없앴다.
 - **브리지**(apps/spec-service): `127.0.0.1:3846` 고정, 저장 루트 `specs/figma`. 화면 GET/PUT(ETag/If-Match), figma-raw·자산(svg)·reference(png) PUT, 카탈로그 GET.
 - **등록 노드 계약(2026-08-18)**: 요소의 `source.nodeId`는 그 요소의 모든 부분(라벨·컨트롤·보조 텍스트)을 포함하는 **가장 안쪽 노드**다(element-types.md). 검증기가 식별 텍스트(`label`, group은 `title`)를 등록 노드 하위 트리에서 **정확 일치**로 찾아 강제한다(부분 일치로 하면 placeholder가 라벨을 품기만 해도 통과한다). ONB-01은 안쪽 컨트롤을 등록하고 있어 6건을 래퍼로 마이그레이션했다. 이 계약 덕에 사람이 등록하든 AI가 design.json에서 뽑든 같은 답이 나온다.
 - **화면 폴더 신원 계약(2026-08-18)**: 화면 폴더의 신원은 Figma 노드 id다(`figma.raw.json`의 `document.id` = `screen.json`의 `source.nodeId`). 폴더에 이미 다른 노드의 산출물이 있으면 screen.json·figma-raw PUT을 **409로 거부**한다. 원본은 번들에서 가장 먼저 저장되므로 여기서 막으면 자산 11개·reference.png까지 함께 보호된다. 같은 노드의 재저장(디자인 수정 후 재추출)은 정상 허용. 이 보호 이전에는 screenId를 잘못 지정하면 **reference.png가 조용히 다른 화면 것으로 바뀌었고**, reference는 존재 여부만 검사되므로 어떤 검증도 이를 잡지 못했다. Origin 검사: 헤더 없음(로컬 도구)·`null`(플러그인)·`*.figma.com`만 허용, 그 외 403(null-origin 위조 표적 공격은 잔존 위험 — 필요 시 공유 토큰으로 격상).
@@ -33,7 +33,7 @@
 - **ORG-01은 elements 배열 순회로 렌더한다**(ONB-01·ONB-02의 화면별 하드코딩과 다름). 화면당 손코딩을 줄이는 방향의 첫 사례다.
 - **제출 왕복이 실제로 돈다**(ORG-02): `조직 만들기` → mutations 카탈로그의 mock 전송 → `onSuccess.navigate`로 ORG-10 이동 + `scopeEvent: complete`로 orgCreationDraft 제거.
 - **마찰 로그**: `docs/pilot-onb01.md` 11건 + `docs/pilot-onb02.md` 5건 + `docs/pilot-org01.md` 6건 + `docs/pilot-org02.md` 10건(신규 계급 3건). 잔여 발견은 전부 `docs/BACKLOG.md`에 있다.
-- **Figma 사본 동기화 완료(2026-08-19)**: 4개 화면 모두 `로컬 초안 불러오기` → `이 화면 저장`을 돌렸고 **전부 diff 0**이다. 왕복 보존이 실증됐으므로 이후 `git diff`가 비지 않으면 그것은 진짜 손실이다. `이 화면 저장`은 캔버스 선택이 아니라 플러그인 상단의 **현재 작업 화면**에 저장하므로, 화면을 바꿨으면 상단 표시를 눈으로 확인하고 눌러야 한다(실제로 한 번 엉뚱한 화면에 저장했다).
+- **동기화 개념이 사라졌다(2026-08-19)**: 플러그인이 명세를 쓰지 않으므로 Figma 사본과 로컬 JSON이 어긋날 일이 없다. 전환 직전 4개 화면 모두 왕복 diff 0으로 보존을 실증한 뒤 편집 경로를 걷어냈다. 플러그인 소스는 4643 → 2761줄(-41%)이고 `screen-spec.mjs`(560줄)와 그 테스트(805줄)는 통째로 사라졌다.
 
 ## 규약 포인터
 
@@ -61,7 +61,7 @@
 
 ## 다음 한 단계
 
-ORG-02 사이클 완료 후, 플러그인 왕복에서 결함 4건을 찾아 처분했다(모두 계급으로 승격). Figma 사본 동기화까지 끝나 **4개 화면 전부 왕복 diff 0**이다.
+플러그인을 편집기에서 확인기로 전환했다(`docs/decisions/plugin-role.md`). 편집 왕복이 사라지면서 그 왕복에서만 생기던 결함 계급도 함께 없어졌다.
 
 다음은 **같은 화면을 추출기로 다시 뽑아 재현율을 재는 것**이다. ORG-02 첫 실행에서 7개 중 2개만 맞았는데 원인은 추출기 성능이 아니라 `list`·`options[].description`이 아직 없었기 때문이다. 이제 생겼으니 재현율이 오를 것이고, 오르지 않으면 추출기의 진짜 한계다.
 
@@ -69,7 +69,7 @@ ORG-02 사이클 완료 후, 플러그인 왕복에서 결함 4건을 찾아 처
 node apps/spec-service/src/draft-screen-spec.mjs vada-wireframe ORG-02 --verify
 ```
 
-남은 검토: 화면 사이클 4~7단계(저장·AI 인계·동기화·최종 확인). 브랜치 `org-01-cycle`은 아직 `main`에 병합하지 않았다.
+이어서 **값의 근거(provenance) 표시**가 예약돼 있다 — 확인 대상을 135개 값에서 추정값 몇 개로 줄이는 것이 목적이다(`plugin-role.md`).
 
 ## 확인 명령
 

@@ -1,4 +1,8 @@
-import { schemaByType } from "./element-schemas.mjs";
+// Figma 샌드박스 쪽 진입점. 플러그인은 명세를 쓰지 않는다(2026-08-19 결정).
+// 여기서 하는 일은 Figma 안에서만 가능한 두 가지뿐이다:
+//   - 화면 신원 등록(wireframeKey/screenId를 Figma 문서 pluginData에 새긴다)
+//   - 원본·자산·reference.png 추출
+// 화면 명세는 UI가 로컬 브리지에서 직접 읽는다.
 import { exportFigmaRaw, exportFigmaScreenAssets } from "./figma-raw.mjs";
 import { getSelectedNodeInfo } from "./plugin-model.mjs";
 import {
@@ -7,11 +11,6 @@ import {
   registerActiveScreen,
   restoreScreenContext
 } from "./screen-context.mjs";
-import {
-  prepareImportedScreenSpec,
-  restoreScreenSpec,
-  saveScreenSpec
-} from "./screen-spec.mjs";
 
 figma.showUI(__html__, {
   width: 320,
@@ -46,7 +45,6 @@ async function publishPluginState() {
     selectionScope,
     wireframeKey: screenContext.wireframeKey,
     activeScreen: screenContext.activeScreen,
-    screenSpec: restoreScreenSpec(screenContext.activeScreenNode),
     screenCandidate: getScreenCandidate(selectedNode, selectionScope)
   });
 }
@@ -96,40 +94,6 @@ async function handleSetActiveScreen(message) {
   }
 }
 
-async function handleSaveScreenSpec(message) {
-  try {
-    await screenContextReady;
-
-    if (!screenContext.activeScreenNode || !screenContext.activeScreen) {
-      throw new Error("먼저 작업 화면을 선택하세요.");
-    }
-
-    const screenSpec = await saveScreenSpec({
-      screenNode: screenContext.activeScreenNode,
-      screenId: screenContext.activeScreen.screenId,
-      stateScopeKey: message.stateScopeKey,
-      meta: message.meta,
-      drafts: message.drafts,
-      schemaByType,
-      getNodeByIdAsync: (nodeId) => figma.getNodeByIdAsync(nodeId)
-    });
-
-    figma.ui.postMessage({
-      type: "screen-spec-saved",
-      wireframeKey: screenContext.wireframeKey,
-      screenSpec
-    });
-  } catch (error) {
-    figma.ui.postMessage({
-      type: "screen-spec-error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "화면 JSON을 저장하지 못했습니다."
-    });
-  }
-}
-
 async function handleExportFigmaRaw() {
   try {
     await screenContextReady;
@@ -173,38 +137,6 @@ async function handleExportFigmaRaw() {
   }
 }
 
-async function handlePrepareLocalScreenSpec(message) {
-  try {
-    await screenContextReady;
-
-    if (!screenContext.activeScreenNode || !screenContext.activeScreen) {
-      throw new Error("먼저 작업 화면을 선택하세요.");
-    }
-
-    const screenSpec = await prepareImportedScreenSpec({
-      screenSpec: message.screenSpec,
-      screenNode: screenContext.activeScreenNode,
-      screenId: screenContext.activeScreen.screenId,
-      schemaByType,
-      getNodeByIdAsync: (nodeId) => figma.getNodeByIdAsync(nodeId)
-    });
-
-    figma.ui.postMessage({
-      type: "local-screen-spec-ready",
-      revision: message.revision ?? null,
-      screenSpec
-    });
-  } catch (error) {
-    figma.ui.postMessage({
-      type: "local-screen-spec-error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "로컬 화면 JSON을 불러오지 못했습니다."
-    });
-  }
-}
-
 figma.ui.onmessage = async (message) => {
   if (message?.type === "ui-ready") {
     await publishPluginState();
@@ -216,17 +148,7 @@ figma.ui.onmessage = async (message) => {
     return;
   }
 
-  if (message?.type === "save-screen-spec") {
-    await handleSaveScreenSpec(message);
-    return;
-  }
-
   if (message?.type === "export-figma-raw") {
     await handleExportFigmaRaw();
-    return;
-  }
-
-  if (message?.type === "prepare-local-screen-spec") {
-    await handlePrepareLocalScreenSpec(message);
   }
 };

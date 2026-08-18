@@ -5,7 +5,6 @@ import test from "node:test";
 import {
   getSchemaConstantValue,
   getSchemaEnumValues,
-  getSchemaPropertyEditorKind,
   getSchemaPropertyKeys,
   getSchemaPropertyKeysForElementType
 } from "../apps/figma-plugin/src/plugin-model.mjs";
@@ -39,15 +38,12 @@ test("button 스키마는 승인된 v1 필드만 선언한다", async () => {
   assert.deepEqual(schema.required, requiredKeys);
   assert.equal(schema.additionalProperties, false);
   assert.equal(getSchemaConstantValue(schema, "type"), "button");
-  assert.equal(getSchemaPropertyEditorKind(schema, "description"), "text");
-  assert.equal(getSchemaPropertyEditorKind(schema, "badge"), "text");
 });
 
 test("button action은 일반 navigate 대상 화면을 표현한다", async () => {
   const schema = JSON.parse(await readFile(schemaUrl, "utf8"));
   const actionSchema = schema.properties.action;
 
-  assert.equal(getSchemaPropertyEditorKind(schema, "action"), "object");
   assert.deepEqual(getSchemaPropertyKeys(actionSchema), [
     "type",
     "targetScreenId",
@@ -74,14 +70,6 @@ test("button action은 일반 navigate 대상 화면을 표현한다", async () 
   });
   assert.equal(actionSchema.additionalProperties, false);
   assert.deepEqual(getSchemaEnumValues(actionSchema, "type"), ["navigate", "submit"]);
-  assert.equal(
-    getSchemaPropertyEditorKind(actionSchema, "targetScreenId"),
-    "text"
-  );
-  assert.equal(
-    getSchemaPropertyEditorKind(actionSchema, "executeWhen"),
-    "object"
-  );
   assert.equal(
     getSchemaConstantValue(
       actionSchema.properties.executeWhen,
