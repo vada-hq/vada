@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import React from "react";
-import { SCREEN_COMPONENTS } from "./App";
+import { SCREEN_COMPONENTS, AppContext } from "./App";
 
 afterEach(cleanup);
 
@@ -130,5 +130,35 @@ describe("처리 단계 보드 — 증빙 영역이 완료 영역으로 대체�
     expect(done, "완료 영역 탭이 있어야 함").toBeTruthy();
     fireEvent.click(done!);
     expect(container.textContent).toContain("정산 완료");
+  });
+});
+
+// 구매 이유 기록은 pain point 정면인데 요청자 본인이 볼 곳이 없었다(VADA_MVP_SPEC.md 6.1).
+// purpose는 저장돼 있고 FIN-REV-01·FIN-LEDGER-01에서만 보이던 상태였다.
+describe("구매 목적이 요청자에게 보인다", () => {
+  it("FIN-REQ-02 요약 카드에 구매 목적 라벨과 본문이 있다", () => {
+    const Comp = SCREEN_COMPONENTS["FIN-REQ-02"];
+    const { container } = render(<Comp />);
+    expect(container.textContent).toContain("구매 목적");
+  });
+
+  // MY-REQ-01은 기본 사용자(김바다)에게 요청이 없어 기본 렌더가 빈 상태다.
+  // 샘플 요청자(박해랑)를 주입해 실제 행이 그려지는 상태에서 확인한다.
+  it("MY-REQ-01 목록의 제목 아래에 목적이 붙는다", () => {
+    const Comp = SCREEN_COMPONENTS["MY-REQ-01"];
+    const { container } = render(
+      <AppContext.Consumer>
+        {value => (
+          <AppContext.Provider value={{ ...value, currentUser: { name: "박해랑", dept: "운영부", role: "부서장" } }}>
+            <Comp />
+          </AppContext.Provider>
+        )}
+      </AppContext.Consumer>
+    );
+    const rows = Array.from(container.querySelectorAll("tbody tr"));
+    expect(rows.length, "박해랑의 요청 행이 있어야 함").toBeGreaterThan(0);
+    const withPurpose = Array.from(container.querySelectorAll("p[title]"));
+    expect(withPurpose.length, "목적이 붙은 행이 있어야 함").toBeGreaterThan(0);
+    expect(withPurpose[0].textContent?.trim().length).toBeGreaterThan(0);
   });
 });

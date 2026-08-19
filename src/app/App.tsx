@@ -1640,7 +1640,8 @@ const DEFAULT_EVENT_RECORDS: EventRecord[] = [
   },
 ];
 
-const AppContext = React.createContext<AppContextType>({
+// 테스트에서 사용자·선택 행사를 주입해 화면을 렌더하려고 export 한다(finance.test.tsx).
+export const AppContext = React.createContext<AppContextType>({
   eventInfo: DEFAULT_EVENT_INFO,
   setEventInfo: () => {},
   eventLifecycle: "기획 중",
@@ -2113,7 +2114,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "행사 > 재정 → 내 구매 요청 (2026-07-19 위치 확정)",
     functions: [
       { num: "01", element: "상태 요약 카드", description: "현재 사용자가 제출한 요청을 기준으로 검토 대기, 보완 필요, 승인 완료, 구매 진행, 처리 완료 건수를 표시한다." },
-      { num: "02", element: "요청 목록", description: "요청 번호, 제목, 요청액, 품목 수, 필요한 날짜, 상태를 표시한다. 새로 제출한 요청도 즉시 목록에 반영한다." },
+      { num: "02", element: "요청 목록", description: "요청 번호, 제목, 구매 목적, 요청액, 품목 수, 요청일, 필요한 날짜, 상태를 표시한다. 구매 목적은 제목 아래 한 줄로 줄여 보여 주고 잘리면 마우스를 올려 전문을 확인한다. 새로 제출한 요청도 즉시 목록에 반영한다.", constraint: "제목만으로는 어떤 요청인지 구분되지 않아 목적을 함께 노출한다" },
       { num: "03", element: "보완하기", description: "보완 필요 요청은 FIN-SUP-01B 재제출로 이동한다." },
       { num: "04", element: "새 구매 요청", description: "FIN-REQ-01B 작성으로 이동한다.", constraint: "재정부·부서장에게만 노출" },
     ],
@@ -2127,10 +2128,11 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "내 구매 요청 → 상태 확인",
     functions: [
       { num: "01", element: "진행 단계", description: "요청 제출 → 재정부 검토 → 구매·발주 → 결제·증빙 → 처리 완료 단계를 표시한다." },
-      { num: "02", element: "품목별 상태", description: "품목 단위로 승인·보완 필요를 구분해 표시한다.", constraint: "부분 승인 존재" },
-      { num: "03", element: "처리 이력", description: "제출, 검토 시작, 보완 요청 발송 등 이력을 시간순으로 표시한다." },
-      { num: "04", element: "주문 취소 요청", description: "요청자 본인이 주문 완료된 개별 실행분의 취소를 사유·수량 모달과 함께 요청한다. 취소 수량을 실행분 전체보다 적게 입력하면 부분 취소이며, 재정부 확정 시 취소 범위만 새 실행분으로 분리되고 나머지는 계속 진행된다(§8.6). 요청하면 `취소 요청됨 · 재정부 확인 대기`로 표시되고, 재정부가 확정하면 주문 취소·환불 흐름으로 이어진다. 외부 취소가 성립하지 않으면 재정부가 불성립으로 종료해 기존 진행을 유지한다(§8.5).", constraint: "요청자 본인에게만 노출하며 수령·이행 완료 전 실행분만 대상" },
-      { num: "05", element: "요청 취소(품목 단위)", description: "요청자가 주문 완료 전 개별 품목(검토 대기·보완 요청·미주문 승인)을 사유 모달과 함께 취소한다. 취소한 품목은 상태가 `요청 취소`가 되어 요청 아카이브(전체 요청)엔 취소 기록으로 남고, 승인 묶음 생성 시 자동 제외되며 승인·예산 예약이 있으면 해제된다.", constraint: "요청자 본인(재정부·부서장)에게만 노출. 이미 주문된 실행분이 있는 품목은 요청 취소 대신 개별 주문 취소 요청을 사용한다" },
+      { num: "02", element: "요약 카드", description: "요청 번호·상태·제목·전체 요청액과 행사명·요청 부서·요청자·필요한 날짜를 표시하고, 그 아래 구매 목적 전문을 보여 준다.", constraint: "요청자가 제출한 구매 이유를 본인이 다시 확인할 수 있어야 한다" },
+      { num: "03", element: "품목별 상태", description: "품목 단위로 승인·보완 필요를 구분해 표시한다.", constraint: "부분 승인 존재" },
+      { num: "04", element: "처리 이력", description: "제출, 검토 시작, 보완 요청 발송 등 이력을 시간순으로 표시한다." },
+      { num: "05", element: "주문 취소 요청", description: "요청자 본인이 주문 완료된 개별 실행분의 취소를 사유·수량 모달과 함께 요청한다. 취소 수량을 실행분 전체보다 적게 입력하면 부분 취소이며, 재정부 확정 시 취소 범위만 새 실행분으로 분리되고 나머지는 계속 진행된다(§8.6). 요청하면 `취소 요청됨 · 재정부 확인 대기`로 표시되고, 재정부가 확정하면 주문 취소·환불 흐름으로 이어진다. 외부 취소가 성립하지 않으면 재정부가 불성립으로 종료해 기존 진행을 유지한다(§8.5).", constraint: "요청자 본인에게만 노출하며 수령·이행 완료 전 실행분만 대상" },
+      { num: "06", element: "요청 취소(품목 단위)", description: "요청자가 주문 완료 전 개별 품목(검토 대기·보완 요청·미주문 승인)을 사유 모달과 함께 취소한다. 취소한 품목은 상태가 `요청 취소`가 되어 요청 아카이브(전체 요청)엔 취소 기록으로 남고, 승인 묶음 생성 시 자동 제외되며 승인·예산 예약이 있으면 해제된다.", constraint: "요청자 본인(재정부·부서장)에게만 노출. 이미 주문된 실행분이 있는 품목은 요청 취소 대신 개별 주문 취소 요청을 사용한다" },
     ],
     exceptions: ["요청자와 재정부 외 사용자는 민감한 구매 세부정보를 수정할 수 없다", "보완 요청 상태가 아니면 재제출 행동을 노출하지 않는다"],
     nextScreens: ["FIN-SUP-01B 보완 재제출"],
@@ -15345,6 +15347,8 @@ function MYREQ01() {
                   <td className="px-5 py-3 font-mono text-gray-400">{r.id}</td>
                   <td className="px-5 py-3">
                     <p className="font-semibold text-gray-800">{r.title}</p>
+                    {/* 제목만으로는 "이게 뭐였지"가 된다. 목적 한 줄을 붙여 목록에서 바로 알아보게 한다. */}
+                    {r.purpose && <p className="text-[10px] text-gray-400 mt-0.5 max-w-[22rem] truncate" title={r.purpose}>{r.purpose}</p>}
                   </td>
                   <td className="px-5 py-3 text-right font-mono text-gray-700">{r.totalEstimatedAmount.toLocaleString()}원</td>
                   <td className="px-5 py-3 text-center text-gray-600">{r.items.length}종</td>
@@ -15463,6 +15467,14 @@ function FINREQ02() {
               <div key={k}><p className="text-[10px] text-gray-400 font-semibold mb-0.5">{k}</p><p className="text-gray-700">{v}</p></div>
             ))}
           </div>
+          {/* 구매 목적 — 요청자가 왜 샀는지 다시 확인하는 자리. 재정부는 FIN-REV-01에서 이미 보고 있었으나
+              정작 요청자 본인이 볼 곳이 없었다(VADA_MVP_SPEC.md 6.1 `구매 이유 기록`). */}
+          {request.purpose && (
+            <div className="border-t border-gray-100 pt-5 mt-5">
+              <p className="text-[10px] text-gray-400 font-semibold mb-1">구매 목적</p>
+              <p className="text-xs text-gray-700 leading-5 whitespace-pre-line">{request.purpose}</p>
+            </div>
+          )}
         </div>
 
         {/* 품목별 처리 결과 */}
