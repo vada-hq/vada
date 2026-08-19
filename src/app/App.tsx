@@ -84,9 +84,11 @@ const SCREENS: Screen[] = [
   { id: "FIN-REV-01", label: "구매 요청 검토", group: "운영 — 행사 · 재정" },
   { id: "FIN-REV-01B", label: "구매 요청 재검토 — 보완 재제출", group: "운영 — 행사 · 재정" },
   { id: "FIN-PROC-01", label: "구매·발주 처리", group: "운영 — 행사 · 재정" },
-  { id: "FIN-EVID-01", label: "결제·증빙 정리", group: "운영 — 행사 · 재정" },
-  { id: "FIN-ADV-01", label: "사비 선지출·환급", group: "운영 — 행사 · 재정" },
-  { id: "FIN-ADV-01B", label: "사비 선지출·환급 — 재정부", group: "운영 — 행사 · 재정" },
+  // MVP 제품화 제외(2026-08-19, docs/VADA_MVP_SPEC.md 6.1). 화면은 지우지 않고 그룹으로 분리해
+  // 검토자가 MVP 범위로 오해하지 않게 한다. 재개 절차는 docs/VADA_FINANCE_DEFERRED.md.
+  { id: "FIN-EVID-01", label: "결제·증빙 정리", group: "운영 — 행사 · 재정(MVP 제외·보류)" },
+  { id: "FIN-ADV-01", label: "사비 선지출·환급", group: "운영 — 행사 · 재정(MVP 제외·보류)" },
+  { id: "FIN-ADV-01B", label: "사비 선지출·환급 — 재정부", group: "운영 — 행사 · 재정(MVP 제외·보류)" },
   { id: "OPS-CAL-01", label: "캘린더 — 월간 일정", group: "운영 — 캘린더" },
   { id: "FIN-00", label: "전체 재정 현황", group: "재정 (전체)" },
   { id: "FIN-00B", label: "전체 재정 현황 — 재정부", group: "재정 (전체)" },
