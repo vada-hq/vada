@@ -104,6 +104,6 @@ describe("구매 요청 상세 — 제출 정보 다시 보기", () => {
     expect(screen.queryByText(/제출한 요청 정보/), "처음엔 상세가 접혀 있어야 함").toBeNull();
     fireEvent.click(screen.getByText("박스테이프")); // REQ-001 첫 품목
     expect(screen.queryByText(/제출한 요청 정보/), "펼치면 제출 정보가 보여야 함").not.toBeNull();
-    expect(screen.queryByText("유형별 상세 정보"), "유형별 상세 정보 섹션이 있어야 함").not.toBeNull();
+    expect(screen.queryByText(/구매 정보/), "구매 정보 섹션이 있어야 함").not.toBeNull();
   });
 });
