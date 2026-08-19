@@ -296,6 +296,12 @@ export function getGeneralPurchaseProgress(request: PurchaseRequest, item: Purch
   return "구매 준비";
 }
 
+// 증빙 단계 스위치 — MVP 제품화 범위에서 증빙 묶음을 제외한다(`docs/VADA_MVP_SPEC.md` 6.1, 2026-08-19).
+// false면 처리 단계가 `수령 완료`·`이행 완료`에서 `정산 완료`로 종결되고, 처리 단계 보드의 `증빙` 영역이 `완료` 영역으로 바뀐다.
+// 증빙을 다시 꺼낼 때는 이 상수만 true로 바꾼다. 재개 절차와 회귀 확인은 `docs/VADA_FINANCE_DEFERRED.md`.
+// `FIN-EVID-01` 화면과 `evidenceStatus` 원본 필드는 그대로 살아 있다. 이 스위치는 처리 단계 계산과 보드 영역만 바꾼다.
+export const EVIDENCE_STAGE_ENABLED = false;
+
 function getFinancePurchaseProgress(request: PurchaseRequest, item: PurchaseItem): FinancePurchaseProgress {
   if (request.status === "요청 취소" || item.status === "요청 취소") return "요청 취소";
   if (item.orderStatus === "구매 불가") return "구매 불가 처리 필요";
@@ -306,8 +312,13 @@ function getFinancePurchaseProgress(request: PurchaseRequest, item: PurchaseItem
   if (item.status !== "승인") return "검토 대기"; // 검토는 대기 → 결정(승인/보완/반려) 단발. 별도 '검토 중' 단계는 두지 않음(financeOwner는 담당 표시용)
   if (item.agreedForPurchase === false) return "선진행 동의 대기";
   if (item.evidenceStatus === "증빙 완료" || request.status === "정산 완료") return "정산 완료";
-  if (item.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
-  if (item.evidenceStatus === "증빙 필요" || request.status === "증빙 필요" || item.fulfillmentStatus === "수령 완료" || item.fulfillmentStatus === "이행 완료") return "증빙 필요";
+  if (EVIDENCE_STAGE_ENABLED) {
+    if (item.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
+    if (item.evidenceStatus === "증빙 필요" || request.status === "증빙 필요" || item.fulfillmentStatus === "수령 완료" || item.fulfillmentStatus === "이행 완료") return "증빙 필요";
+  } else if (item.fulfillmentStatus === "수령 완료" || item.fulfillmentStatus === "이행 완료" || item.evidenceStatus === "증빙 필요" || item.evidenceStatus === "증빙 정리 중" || request.status === "증빙 필요") {
+    // 실행분 계산과 같은 규칙(getFinanceStageForExecution). 증빙 단계를 쓰지 않으면 수령·이행 완료가 곧 종결이다.
+    return "정산 완료";
+  }
   if (item.fulfillmentStatus === "수령 확인 필요") return "수령 확인 필요";
   if (item.fulfillmentStatus === "배송 중") return "배송 중";
   if (item.fulfillmentStatus === "반납 확인 필요") return "반납 확인 필요";
@@ -361,22 +372,31 @@ export function getFinanceStageForExecution(ex: PurchaseExecution, siblings: Pur
   // 주문 취소 실행분: 환불·취소 비용 증빙·재주문 후속 업무를 계산 (원본 주문 취소는 처리 단계명으로 쓰지 않음)
   if (ex.orderStatus === "주문 취소") {
     if (ex.paid && (ex.refundResult ?? "미확정") === "미확정") return ex.refundDocsReady ? "환불 확인" : "환불 대기";
-    if (ex.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
-    if (ex.evidenceStatus === "증빙 필요") return "증빙 필요";
-    // 환불·증빙 정리 완료 후, 재주문했거나(재주문 실행분 존재) 재주문 안 함으로 종결하면 활성 처리에서 제외한다.
+    if (EVIDENCE_STAGE_ENABLED) {
+      if (ex.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
+      if (ex.evidenceStatus === "증빙 필요") return "증빙 필요";
+    }
+    // 환불(증빙 단계를 쓰면 증빙 정리까지) 완료 후, 재주문했거나(재주문 실행분 존재) 재주문 안 함으로 종결하면 활성 처리에서 제외한다.
     if (siblings.some(e => e.reorderOfExecutionId === ex.id) || ex.reorderDeclined) return "정산 완료";
     return "재주문 판단";
   }
-  // 재주문 실행분: 원래 취소 실행분의 환불·증빙 차단 조건이 남아 있으면 재주문 보류
+  // 재주문 실행분: 원래 취소 실행분의 환불(·증빙) 차단 조건이 남아 있으면 재주문 보류
   if (ex.reorderOfExecutionId && ex.orderStatus === "주문 대기") {
     const origin = siblings.find(e => e.id === ex.reorderOfExecutionId);
-    const blocked = !!origin && ((origin.paid && (origin.refundResult ?? "미확정") === "미확정") || origin.evidenceStatus === "증빙 필요" || origin.evidenceStatus === "증빙 정리 중");
+    const evidenceBlocked = EVIDENCE_STAGE_ENABLED && !!origin && (origin.evidenceStatus === "증빙 필요" || origin.evidenceStatus === "증빙 정리 중");
+    const blocked = !!origin && ((origin.paid && (origin.refundResult ?? "미확정") === "미확정") || evidenceBlocked);
     if (blocked) return "재주문 보류";
   }
   if (ex.orderStatus === "구매 불가") return "구매 불가 처리 필요";
   if (ex.evidenceStatus === "증빙 완료") return "정산 완료";
-  if (ex.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
-  if (ex.evidenceStatus === "증빙 필요" || ex.receiptStatus === "수령 완료" || ex.serviceStatus === "이행 완료") return "증빙 필요";
+  if (EVIDENCE_STAGE_ENABLED) {
+    if (ex.evidenceStatus === "증빙 정리 중") return "증빙 정리 중";
+    if (ex.evidenceStatus === "증빙 필요" || ex.receiptStatus === "수령 완료" || ex.serviceStatus === "이행 완료") return "증빙 필요";
+  } else if (ex.receiptStatus === "수령 완료" || ex.serviceStatus === "이행 완료" || ex.evidenceStatus === "증빙 필요" || ex.evidenceStatus === "증빙 정리 중") {
+    // 증빙 단계를 쓰지 않으면 수령·이행 완료가 곧 종결이다. 증빙 상태가 이미 붙은 실행분도 종결로 본다
+    // (그러지 않으면 어느 영역에도 잡히지 않아 보드에서 사라진다).
+    return "정산 완료";
+  }
   if (ex.receiptStatus === "수령 확인 필요") return "수령 확인 필요";
   // 요청자의 유효한 주문 취소 요청은 기존 배송 대기·배송 중·이행 대기·이행 중보다 우선한다(기준 문서 11.3). 외부 취소가 성립하면 orderStatus가 "주문 취소"로 바뀌어 위에서 처리된다.
   if (ex.cancelRequested) return "주문 취소 요청 확인";
@@ -2224,7 +2244,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "예산 편성·요약·조정", description: "배정 예산, 승인 예약액, 실제 지출액, 사용 가능액을 표시한다. 재정부는 ‘예산 편성’으로 행사별 예산 항목·배정액을 편성하고(미편성 행사는 편성 안내와 진입점 표시), 편성 후에는 항목 간 예산 조정 이력을 남긴다.", constraint: "예산은 행사 레코드에 저장되어 행사별로 분리된다. 편성 전 행사는 배정 예산을 임의 생성하지 않고 미편성으로 표시한다" },
       { num: "02", element: "하위 메뉴 그룹(작업 보드·기록)", description: "재정부에게만 탭을 두 묶음으로 나눈다. [작업 보드]는 진행 중 업무 칸반(품목 현황·처리 단계), [기록]은 요청·묶음 단위 아카이브(구매 요청·승인 묶음·증빙 묶음)다. 일반 구성원·부서장에게는 처리 단계와 기록 그룹을 노출하지 않고 품목 현황만 보이며, 본인 요청 열람은 내 구매 요청(MY-REQ-01)으로 한다.", constraint: "기록·처리 단계는 재정부 전용. ‘아카이브’ 명칭은 행사 아카이브와 겹치지 않도록 ‘기록’으로 묶고, 묶음(📦)과 개별(▪)의 경계를 시각적으로 구분한다" },
       { num: "03", element: "품목 현황 칸반보드", description: "일반 구성원과 부서장에게 기본으로 표시한다. 품목 카드를 확인 필요, 검토 중, 동의 대기, 구매 준비, 주문 완료, 진행 중, 수령·이행 완료, 정산 중, 처리 완료 열로 나누어 보여준다. 부분 승인으로 요청자의 선진행 동의가 필요한 승인 품목은 ‘동의 대기’ 열에 표시한다. 카드의 대표 상태는 구매 유형에 따라 물품은 배송 중·수령 완료, 대여·용역은 이행 중·이행 완료로 표시한다. ‘전체 요청 / 내 요청’ 필터로 내가 요청한 구매 품목만 볼 수 있다. 한 열에서 같은 구매 요청(REQ)의 카드가 2개 이상이면 반쯤 겹친 스택(📦 N)으로 묶고, 마우스를 올리면 개별 카드로 펼쳐지고 묶음 밖으로 커서가 나가면(또는 바깥 클릭 시) 다시 접힌다.", constraint: "대표 진행 상태는 검토·주문·수령·이행·증빙 상태의 단일 원본에서 계산하며 별도로 저장하지 않는다. 내 요청 필터는 요청자 기준으로만 거른다. 같은 요청 카드 스택은 표시 방식일 뿐 상태·집계를 바꾸지 않는다" },
-      { num: "04", element: "재정부 처리 단계", description: "재정부에만 기본으로 표시한다. 요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·증빙의 7개 업무 영역으로 나누고, 각 영역 안에서 다음 처리해야 할 실행분을 처리 단계 열별로 보여준다. 정산 완료·반려는 활성 처리에서 제외한다.", constraint: "일반 구성원에게는 재정부 내부 처리 대기열을 노출하지 않는다. 처리 단계는 실행분 원본 상태에서 계산하며 별도 저장하지 않는다" },
+      { num: "04", element: "재정부 처리 단계", description: "재정부에만 기본으로 표시한다. 요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·완료의 7개 업무 영역으로 나누고, 각 영역 안에서 다음 처리해야 할 실행분을 처리 단계 열별로 보여준다. 수령 완료·이행 완료는 정산 완료로 종결해 완료 영역에 모으고, 반려·요청 취소는 활성 처리에서 제외한다.", constraint: "일반 구성원에게는 재정부 내부 처리 대기열을 노출하지 않는다. 처리 단계는 실행분 원본 상태에서 계산하며 별도 저장하지 않는다" },
       { num: "05", element: "기록 · 구매 요청 (재정부 전용)", description: "이 행사의 구매 요청을 요청 단위(▪)로 표시한다. 취소된 품목도 요청 기록에 남는다. 행을 누르면 품목별 상세로 이동한다.", constraint: "재정부 전용. 일반 구성원·부서장은 내 구매 요청(MY-REQ-01)에서 본인 요청만 열람한다" },
       { num: "06", element: "기록 · 승인 묶음 (재정부 전용)", description: "선진행 동의된 승인 품목을 요청별 묶음(📦)으로 보여준다. 각 묶음 안에 개별 품목(▪)과 진행 상태가 들어간다. 요청 취소·미동의 품목은 묶음에서 자동 제외된다. 파생 표시이며 별도 저장하지 않는다.", constraint: "재정부 전용" },
       { num: "07", element: "기록 · 증빙 묶음 (재정부 전용)", description: "완료되어 저장된 증빙 묶음(📦)을 행사 기준으로 열람한다. 구매처·결제·영수증·실제 지출과 담긴 개별 실행분(▪)을 보여준다. 서로 다른 요청·승인 묶음의 실행분도 같은 거래면 한 묶음에 담긴다.", constraint: "재정부 전용(기준 문서: 증빙 아카이브 원본은 재정부 열람). 증빙 묶음은 완료 시 레코드로 저장되어 다시 열람할 수 있다" },
@@ -2267,7 +2287,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "행사 > 재정 탭 (구매 요청 없음 · 연결 데이터 없는 행사)",
     functions: [
       { num: "01", element: "예산 요약(빈)", description: "배정 예산·승인 예약액·실제 지출액·사용 가능액을 연결 데이터 없음·집계 전으로 표시한다." },
-      { num: "02", element: "처리 단계 보드(빈)", description: "요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·증빙 7개 영역 골격과 건수 0을 유지하고, 현재 영역에 ‘이 영역에 처리할 실행분이 없습니다’를 표시한다.", constraint: "영역·열 구조를 접거나 숨기지 않는다" },
+      { num: "02", element: "처리 단계 보드(빈)", description: "요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·완료 7개 영역 골격과 건수 0을 유지하고, 현재 영역에 ‘이 영역에 처리할 실행분이 없습니다’를 표시한다.", constraint: "영역·열 구조를 접거나 숨기지 않는다" },
       { num: "03", element: "기록(빈)", description: "구매 요청·승인 묶음·증빙 묶음 각각에 빈 상태 안내를 표시한다.", constraint: "재정부 전용" },
     ],
     exceptions: ["처리할 실행분이 없어도 영역·열 구조를 유지하고 예시 카드를 만들지 않는다"],
@@ -2280,7 +2300,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "행사 > 재정 탭 (재정부)",
     functions: [
       { num: "01", element: "하위 메뉴 그룹(작업 보드·기록)", description: "탭을 [작업 보드](품목 현황·처리 단계)와 [기록](구매 요청·승인 묶음·증빙 묶음) 두 묶음으로 나눈다. 기본 진입은 작업 보드의 처리 단계다.", constraint: "기록 탭은 요청·묶음 단위 아카이브로, 묶음(📦)과 개별(▪)의 경계를 시각적으로 구분한다" },
-      { num: "02", element: "처리 단계 7개 업무 영역", description: "요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·증빙의 7개 업무 영역을 하위 메뉴(영역 탭)로 전환하며, 선택한 영역의 처리 단계 칸반만 표시한다. 구매 준비는 선진행 동의 대기·주문 대기·재주문 보류·구매 불가 처리 필요, 환불은 환불 대기·환불 확인·재주문 판단으로 구성한다(취소 실행분의 환불 확인 직후 재주문 판단이 이어지므로 환불 영역에 둔다). 물품 배송·수령은 배송 대기→배송 중→수령 확인 필요, 대여 이행은 이행 대기→이행 중→반납 확인 필요→이행 완료, 용역 이행은 이행 대기→이행 중→이행 완료(반납 없음)로 구성하며, 주문 취소 요청 확인은 해당 실행분의 구매 유형(물품/대여/용역) 영역에 표시한다. 각 영역 안에서 정상 진행 흐름 열(순차, → 연결)과 예외·후속 열(보완 응답 대기·재검토 대기·재주문 보류·구매 불가 처리 필요·주문 취소 요청 확인·재주문 판단)을 구분해, 예외·후속 열은 구분선 뒤에 호박색 테두리와 ‘예외’ 태그로 시각 분리한다. 한 열에서 같은 구매 요청(REQ)의 카드가 2개 이상이면 반쯤 겹친 스택(📦 N)으로 묶고, 마우스를 올리면 개별 카드로 펼쳐지고 묶음 밖으로 커서가 나가면(또는 바깥 클릭 시) 접힌다.", constraint: "영역별 카운트 배지로 각 영역의 미완료 업무 수를 함께 표시한다. 배송·수령·이행을 구매 유형에 따라 물품·대여·용역 세 영역으로 나눈다. 대여의 반납은 반납 확인 필요 단계로 처리하고 보증금은 증빙·실제 지출 흐름으로 흡수한다. 정상 흐름과 예외·후속 열을 시각적으로 구분한다. 같은 요청 카드 스택은 표시 방식일 뿐 상태·집계를 바꾸지 않는다" },
+      { num: "02", element: "처리 단계 7개 업무 영역", description: "요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·완료의 7개 업무 영역을 하위 메뉴(영역 탭)로 전환하며, 선택한 영역의 처리 단계 칸반만 표시한다. 구매 준비는 선진행 동의 대기·주문 대기·재주문 보류·구매 불가 처리 필요, 환불은 환불 대기·환불 확인·재주문 판단, 완료는 정산 완료로 구성한다(취소 실행분의 환불 확인 직후 재주문 판단이 이어지므로 환불 영역에 둔다). 물품 배송·수령은 배송 대기→배송 중→수령 확인 필요, 대여 이행은 이행 대기→이행 중→반납 확인 필요→이행 완료, 용역 이행은 이행 대기→이행 중→이행 완료(반납 없음)로 구성하며, 주문 취소 요청 확인은 해당 실행분의 구매 유형(물품/대여/용역) 영역에 표시한다. 각 영역 안에서 정상 진행 흐름 열(순차, → 연결)과 예외·후속 열(보완 응답 대기·재검토 대기·재주문 보류·구매 불가 처리 필요·주문 취소 요청 확인·재주문 판단)을 구분해, 예외·후속 열은 구분선 뒤에 호박색 테두리와 ‘예외’ 태그로 시각 분리한다. 한 열에서 같은 구매 요청(REQ)의 카드가 2개 이상이면 반쯤 겹친 스택(📦 N)으로 묶고, 마우스를 올리면 개별 카드로 펼쳐지고 묶음 밖으로 커서가 나가면(또는 바깥 클릭 시) 접힌다.", constraint: "영역별 카운트 배지로 각 영역의 미완료 업무 수를 함께 표시한다. 배송·수령·이행을 구매 유형에 따라 물품·대여·용역 세 영역으로 나눈다. 대여의 반납은 반납 확인 필요 단계로 처리하고 보증금은 증빙·실제 지출 흐름으로 흡수한다. 정상 흐름과 예외·후속 열을 시각적으로 구분한다. 같은 요청 카드 스택은 표시 방식일 뿐 상태·집계를 바꾸지 않는다" },
       { num: "03", element: "카드 빠른 처리 팝오버", description: "처리 단계 보드의 실행분 카드를 누르면 옆에 작은 팝오버가 열려 그 단계의 유효한 다음 액션만 바로 처리한다(구매 진행 동의, 주문 완료·구매 불가, 배송·수령·이행 단계 진행, 취소 요청 확정, 환불 확인 전액·일부·없음). 증빙 필요·정리 중은 ‘증빙 처리하기’로 결제·증빙 정리(FIN-EVID-01)에 직행하고, 검토·재주문 등은 상세보기로 해당 화면에서 처리한다.", constraint: "상태 전이 규칙을 지키기 위해 임의 상태 선택이 아닌 다음 액션만 노출한다. 처리 시 담당자·시각을 기록한다" },
       { num: "04", element: "품목 현황 칸반보드 전환", description: "품목의 대표 진행 단계별 칸반보드로 전환한다. 재정부가 보는 카드에는 일반 구성원용 상태와 재정부 세부 처리 상태를 함께 표시한다. ‘전체 요청 / 내 요청’ 필터로 내가 요청한 품목만 볼 수 있다." },
       { num: "05", element: "기록(구매 요청·승인 묶음·증빙 묶음)", description: "요청 단위(구매 요청), 요청 내 승인 품목 묶음(승인 묶음, 파생), 구매처·영수증 기준 실행분 재구성(증빙 묶음, 저장 레코드)을 각각의 하위 탭에서 열람한다.", constraint: "승인 묶음은 파생 표시, 증빙 묶음은 완료 시 저장되어 재열람된다" },
@@ -13077,7 +13097,11 @@ function EVTFIN01() {
     { area: "대여 이행", stages: ["이행 대기", "이행 중", "반납 확인 필요", "주문 취소 요청 확인"], track: "rental" },
     { area: "용역 이행", stages: ["이행 대기", "이행 중", "주문 취소 요청 확인"], track: "service" },
     { area: "환불", stages: ["환불 대기", "환불 확인", "재주문 판단"] },
-    { area: "증빙", stages: ["증빙 필요", "증빙 정리 중"] },
+    // 증빙 단계를 쓰면 `증빙` 영역, 쓰지 않으면 종결 카드를 모으는 `완료` 영역이다(EVIDENCE_STAGE_ENABLED).
+    // 완료 카드를 보드에서 지우지 않는 이유는 "이번 학기에 뭘 사서 받았나"가 재정부의 실제 조회 요구이기 때문이다.
+    EVIDENCE_STAGE_ENABLED
+      ? { area: "증빙", stages: ["증빙 필요", "증빙 정리 중"] as FinancePurchaseProgress[] }
+      : { area: "완료", stages: ["정산 완료"] as FinancePurchaseProgress[] },
   ];
   // 구매 유형 트랙 판정 — 물품(일반 구매·제작·인쇄) / 대여 / 용역. 영역 분리와, 주문 취소 요청 확인이 어느 영역에 속할지 결정에 쓴다.
   const rowTrack = (row: { item?: PurchaseItem }): "goods" | "rental" | "service" => {

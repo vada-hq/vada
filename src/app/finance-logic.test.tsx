@@ -5,6 +5,7 @@ import {
   getFinanceStageForExecution,
   withoutEventData,
   budgetLineOverages,
+  EVIDENCE_STAGE_ENABLED,
 } from "./App";
 
 // 상태 전이 로직 단위 테스트 — 렌더 스모크로는 검증되지 않는 계산 규칙을 고정한다.
@@ -94,5 +95,37 @@ describe("budgetLineOverages — 예산 항목별 승인액이 항목 사용 가
     const reserved = () => 0;
     const approving = (l: string) => (l === "행사 운영비" ? 800000 : 500000);
     expect(budgetLineOverages(lines, reserved, approving)).toEqual([]);
+  });
+});
+
+// MVP 제품화 범위에서 증빙 단계를 제외했다(VADA_MVP_SPEC.md 6.1, 2026-08-19).
+// 증빙을 다시 켜면(EVIDENCE_STAGE_ENABLED = true) 이 describe는 통째로 건너뛴다.
+describe.skipIf(EVIDENCE_STAGE_ENABLED)("증빙 제외 — 수령·이행 완료가 곧 종결이다", () => {
+  it("수령 완료 → 정산 완료 (증빙 필요로 가지 않는다)", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료" }), [])).toBe("정산 완료");
+  });
+  it("이행 완료 → 정산 완료", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "해당 없음", serviceStatus: "이행 완료" }), [])).toBe("정산 완료");
+  });
+  it("증빙 상태가 이미 붙은 실행분도 종결로 본다 — 어느 영역에도 안 잡혀 사라지는 것을 막는다", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", evidenceStatus: "증빙 필요" }), [])).toBe("정산 완료");
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", evidenceStatus: "증빙 정리 중" }), [])).toBe("정산 완료");
+  });
+  it("수령 확인 필요는 아직 종결이 아니다", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 확인 필요" }), [])).toBe("수령 확인 필요");
+  });
+  it("재주문 보류 게이트는 환불 미확정만으로 판정한다 — 증빙은 더 이상 막지 않는다", () => {
+    const origin = exe({ id: "1-EX1", orderStatus: "주문 취소", paid: true, refundResult: "전액 환불", evidenceStatus: "증빙 필요" });
+    const reorder = exe({ id: "1-EX2", orderStatus: "주문 대기", reorderOfExecutionId: "1-EX1" });
+    expect(getFinanceStageForExecution(reorder, [origin, reorder])).toBe("주문 대기");
+  });
+  it("환불이 미확정이면 재주문은 여전히 보류된다", () => {
+    const origin = exe({ id: "1-EX1", orderStatus: "주문 취소", paid: true });
+    const reorder = exe({ id: "1-EX2", orderStatus: "주문 대기", reorderOfExecutionId: "1-EX1" });
+    expect(getFinanceStageForExecution(reorder, [origin, reorder])).toBe("재주문 보류");
+  });
+  it("취소 실행분은 환불 확정 후 증빙을 거치지 않고 재주문 판단으로 간다", () => {
+    const ex = exe({ id: "1-EX1", orderStatus: "주문 취소", paid: true, refundResult: "전액 환불", evidenceStatus: "증빙 필요" });
+    expect(getFinanceStageForExecution(ex, [ex])).toBe("재주문 판단");
   });
 });

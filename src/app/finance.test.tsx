@@ -107,3 +107,28 @@ describe("구매 요청 상세 — 제출 정보 다시 보기", () => {
     expect(screen.queryByText(/구매 정보/), "구매 정보 섹션이 있어야 함").not.toBeNull();
   });
 });
+
+// 증빙 단계를 MVP 제품화에서 제외했다(VADA_MVP_SPEC.md 6.1). 보드 영역이 실제로 바뀌었는지 렌더로 확인한다.
+describe("처리 단계 보드 — 증빙 영역이 완료 영역으로 대체됐다", () => {
+  const areaTabNames = (container: HTMLElement) =>
+    Array.from(container.querySelectorAll("button"))
+      .map(b => (b.textContent ?? "").replace(/\d+$/, "").trim());
+
+  it("영역 탭에 `완료`가 있고 `증빙`이 없다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"];
+    const { container } = render(<Comp />);
+    const names = areaTabNames(container);
+    expect(names).toContain("완료");
+    expect(names).not.toContain("증빙");
+  });
+
+  it("`완료` 탭을 열면 종결 카드가 보인다 — 보드에서 사라지지 않는다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"];
+    const { container } = render(<Comp />);
+    const done = Array.from(container.querySelectorAll("button"))
+      .find(b => (b.textContent ?? "").replace(/\d+$/, "").trim() === "완료");
+    expect(done, "완료 영역 탭이 있어야 함").toBeTruthy();
+    fireEvent.click(done!);
+    expect(container.textContent).toContain("정산 완료");
+  });
+});
