@@ -162,3 +162,53 @@ describe("구매 목적이 요청자에게 보인다", () => {
     expect(withPurpose[0].textContent?.trim().length).toBeGreaterThan(0);
   });
 });
+
+// 진행 단계는 요청 상태만 보고 계산해 반려·요청 취소도 1단계(재정부 검토)로 그려졌고,
+// 4번째 단계 이름이 증빙 제외 결정과 어긋나 있었다.
+describe("FIN-REQ-02 진행 단계", () => {
+  // 기본 컨텍스트 값을 받아 덮어쓸 값을 만든다(샘플 요청을 그대로 재료로 쓰기 위해).
+  const renderWith = (make: (v: any) => any = () => ({})) => {
+    const Comp = SCREEN_COMPONENTS["FIN-REQ-02"];
+    return render(
+      <AppContext.Consumer>
+        {value => (
+          <AppContext.Provider value={{ ...value, ...make(value) }}>
+            <Comp />
+          </AppContext.Provider>
+        )}
+      </AppContext.Consumer>
+    );
+  };
+  // 현재 단계는 노란색 라벨이다.
+  const currentLabel = (c: HTMLElement) =>
+    (Array.from(c.querySelectorAll("p")).find(p => p.className.includes("text-yellow-600"))?.textContent ?? "").trim();
+
+  it("단계 이름이 증빙 제외 결정과 맞는다", () => {
+    const { container } = renderWith();
+    expect(container.textContent).toContain("수령·이행");
+    expect(container.textContent).not.toContain("결제·증빙");
+  });
+
+  it("검토 대기 요청은 재정부 검토 단계에 있다", () => {
+    const { container } = renderWith(() => ({ selectedPurchaseRequestId: "REQ-001" }));
+    expect(currentLabel(container)).toBe("재정부 검토");
+  });
+
+  it("반려 요청은 단계 막대 대신 종결 안내를 보여준다", () => {
+    const { container } = renderWith(v => ({
+      purchaseRequests: [{ ...v.purchaseRequests[0], id: "REQ-X", status: "반려" }],
+      selectedPurchaseRequestId: "REQ-X",
+    }));
+    expect(container.textContent).toContain("반려되어 종결된 요청입니다");
+    // 단계 막대가 사라졌는지는 단계 전용 라벨로 확인한다(종결 문구에도 "재정부 검토"가 들어간다).
+    expect(container.textContent).not.toContain("수령·이행");
+  });
+
+  it("요청 취소도 종결로 표시한다", () => {
+    const { container } = renderWith(v => ({
+      purchaseRequests: [{ ...v.purchaseRequests[0], id: "REQ-Y", status: "요청 취소" }],
+      selectedPurchaseRequestId: "REQ-Y",
+    }));
+    expect(container.textContent).toContain("취소해 종결된 요청입니다");
+  });
+});

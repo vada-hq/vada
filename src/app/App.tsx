@@ -2127,14 +2127,14 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "전 구성원 (조회)",
     entryPath: "내 구매 요청 → 상태 확인",
     functions: [
-      { num: "01", element: "진행 단계", description: "요청 제출 → 재정부 검토 → 구매·발주 → 결제·증빙 → 처리 완료 단계를 표시한다." },
+      { num: "01", element: "진행 단계", description: "요청 제출 → 재정부 검토 → 구매·발주 → 수령·이행 → 처리 완료 단계를 표시한다. 현재 단계는 요청 상태가 아니라 승인 품목의 실행분 진행에서 계산한다. 승인 품목이 없으면 재정부 검토, 실행분이 배송·수령·이행 중이면 수령·이행, 전부 정산 완료면 처리 완료다.", constraint: "반려·요청 취소는 진행이 아니라 종결이므로 단계 막대를 감추고 종결 사유 안내로 대체한다. 종결 요청을 검토 단계로 그리지 않는다" },
       { num: "02", element: "요약 카드", description: "요청 번호·상태·제목·전체 요청액과 행사명·요청 부서·요청자·필요한 날짜를 표시하고, 그 아래 구매 목적 전문을 보여 준다.", constraint: "요청자가 제출한 구매 이유를 본인이 다시 확인할 수 있어야 한다" },
       { num: "03", element: "품목별 상태", description: "품목 단위로 승인·보완 필요를 구분해 표시한다.", constraint: "부분 승인 존재" },
       { num: "04", element: "처리 이력", description: "제출, 검토 시작, 보완 요청 발송 등 이력을 시간순으로 표시한다." },
       { num: "05", element: "주문 취소 요청", description: "요청자 본인이 주문 완료된 개별 실행분의 취소를 사유·수량 모달과 함께 요청한다. 취소 수량을 실행분 전체보다 적게 입력하면 부분 취소이며, 재정부 확정 시 취소 범위만 새 실행분으로 분리되고 나머지는 계속 진행된다(§8.6). 요청하면 `취소 요청됨 · 재정부 확인 대기`로 표시되고, 재정부가 확정하면 주문 취소·환불 흐름으로 이어진다. 외부 취소가 성립하지 않으면 재정부가 불성립으로 종료해 기존 진행을 유지한다(§8.5).", constraint: "요청자 본인에게만 노출하며 수령·이행 완료 전 실행분만 대상" },
       { num: "06", element: "요청 취소(품목 단위)", description: "요청자가 주문 완료 전 개별 품목(검토 대기·보완 요청·미주문 승인)을 사유 모달과 함께 취소한다. 취소한 품목은 상태가 `요청 취소`가 되어 요청 아카이브(전체 요청)엔 취소 기록으로 남고, 승인 묶음 생성 시 자동 제외되며 승인·예산 예약이 있으면 해제된다.", constraint: "요청자 본인(재정부·부서장)에게만 노출. 이미 주문된 실행분이 있는 품목은 요청 취소 대신 개별 주문 취소 요청을 사용한다" },
     ],
-    exceptions: ["요청자와 재정부 외 사용자는 민감한 구매 세부정보를 수정할 수 없다", "보완 요청 상태가 아니면 재제출 행동을 노출하지 않는다"],
+    exceptions: ["요청자와 재정부 외 사용자는 민감한 구매 세부정보를 수정할 수 없다", "보완 요청 상태가 아니면 재제출 행동을 노출하지 않는다", "반려·요청 취소된 요청은 진행 단계 막대를 표시하지 않고 종결 안내로 대체한다"],
     nextScreens: ["FIN-SUP-01B 보완 재제출"],
   },
   "FIN-SUP-01B": {
@@ -15411,8 +15411,22 @@ function FINREQ02() {
     setItemCancelTarget(null);
     setItemCancelReason("");
   };
-  const steps = ["요청 제출", "재정부 검토", "구매·발주", "결제·증빙", "처리 완료"];
-  const currentStep = request.status === "정산 완료" ? 4 : request.status === "증빙 필요" ? 3 : request.status === "승인" || request.status === "부분 승인" ? 2 : 1;
+  // 진행 단계 — 반려·요청 취소는 진행이 아니라 종결이므로 단계 막대를 쓰지 않는다.
+  // 종결 요청을 1단계(재정부 검토)로 그리면 이미 끝난 요청이 검토 중으로 보인다.
+  const closedStatus = request.status === "반려" || request.status === "요청 취소" ? request.status : null;
+  const steps = ["요청 제출", "재정부 검토", "구매·발주", "수령·이행", "처리 완료"];
+  // 승인 품목의 실행분 진행에서 계산한다. 요청 상태만 보면 주문·배송·수령이 잡히지 않는다.
+  const FULFILL_STAGES: FinancePurchaseProgress[] = ["배송 대기", "배송 중", "수령 확인 필요", "이행 대기", "이행 중", "반납 확인 필요"];
+  const currentStep = (() => {
+    if (["검토 대기", "보완 요청", "재검토 대기"].includes(request.status)) return 1;
+    const stages = request.items
+      .filter(it => it.status === "승인")
+      .flatMap(it => { const execs = getExecutions(it); return execs.map(ex => getFinanceStageForExecution(ex, execs)); });
+    if (stages.length === 0) return 1;                              // 승인 품목이 아직 없다 = 검토 단계
+    if (stages.every(st => st === "정산 완료")) return 4;            // 전부 종결
+    if (stages.some(st => FULFILL_STAGES.includes(st))) return 3;   // 수령·이행 진행 중
+    return 2;                                                       // 승인됐고 주문 준비·발주 단계
+  })();
   const history = request.history;
   const canResubmit = request.status === "보완 요청" && request.requester === currentUser.name && canSubmitPurchaseRequest(currentUser);
   // 수정하기: 본인 요청이고 아직 최초 검토 전(검토 대기)일 때만. 재제출 후에는 상태가 바뀌므로 자연히 사라진다.
@@ -15431,6 +15445,17 @@ function FINREQ02() {
         )}
         {/* 진행 단계 */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          {closedStatus ? (
+            <div className="flex items-center gap-2.5">
+              <Chip label={closedStatus} variant="red" />
+              <p className="text-xs text-gray-600">
+                {closedStatus === "반려"
+                  ? "재정부 검토에서 반려되어 종결된 요청입니다."
+                  : "요청자가 취소해 종결된 요청입니다."}
+                {" "}더 이상 진행되지 않으며, 사유와 처리 기록은 아래에서 확인할 수 있습니다.
+              </p>
+            </div>
+          ) : (
           <div className="flex items-center gap-0">
             {steps.map((s, i) => (
               <React.Fragment key={s}>
@@ -15445,6 +15470,7 @@ function FINREQ02() {
               </React.Fragment>
             ))}
           </div>
+          )}
         </div>
 
         {/* 요약 카드 */}
