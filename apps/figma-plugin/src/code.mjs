@@ -3,7 +3,11 @@
 //   - 화면 신원 등록(wireframeKey/screenId를 Figma 문서 pluginData에 새긴다)
 //   - 원본·자산·reference.png 추출
 // 화면 명세는 UI가 로컬 브리지에서 직접 읽는다.
-import { exportFigmaRaw, exportFigmaScreenAssets } from "./figma-raw.mjs";
+import {
+  exportFigmaRaw,
+  exportFigmaScreenAssets,
+  toErrorMessage
+} from "./figma-raw.mjs";
 import { getSelectedNodeInfo } from "./plugin-model.mjs";
 import {
   getScreenCandidate,
@@ -86,10 +90,7 @@ async function handleSetActiveScreen(message) {
   } catch (error) {
     figma.ui.postMessage({
       type: "screen-context-error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "작업 화면을 저장하지 못했습니다."
+      message: toErrorMessage(error)
     });
   }
 }
@@ -105,16 +106,15 @@ async function handleExportFigmaRaw() {
     const raw = await exportFigmaRaw(screenContext.activeScreenNode);
 
     let screenAssets = null;
-    let assetsError = null;
+    let assetFailures = [];
     try {
       screenAssets = await exportFigmaScreenAssets(
         screenContext.activeScreenNode
       );
+      assetFailures = screenAssets.failures;
     } catch (error) {
-      assetsError =
-        error instanceof Error
-          ? error.message
-          : "화면 자산을 추출하지 못했습니다.";
+      // 자산 추출 자체가 통째로 실패한 경우(잘못된 노드 등).
+      assetFailures = [toErrorMessage(error)];
     }
 
     figma.ui.postMessage({
@@ -124,15 +124,12 @@ async function handleExportFigmaRaw() {
       raw,
       assets: screenAssets?.assets ?? null,
       referencePng: screenAssets?.referencePng ?? null,
-      assetsError
+      assetFailures
     });
   } catch (error) {
     figma.ui.postMessage({
       type: "figma-raw-export-error",
-      message:
-        error instanceof Error
-          ? error.message
-          : "Figma 원본 JSON을 추출하지 못했습니다."
+      message: toErrorMessage(error)
     });
   }
 }

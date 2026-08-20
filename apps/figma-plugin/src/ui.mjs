@@ -9,6 +9,7 @@
 //   - Figma 원본·자산·reference.png 추출 (Figma 안에서만 가능)
 //   - 화면 신원 등록 (wireframeKey/screenId를 Figma 문서에 새긴다)
 import { schemaByType } from "./element-schemas.mjs";
+import { toErrorMessage } from "./figma-raw.mjs";
 import { getRequiredFieldCandidates } from "../../../packages/contracts/src/button-execution.mjs";
 import { getElementTypeOptions, getSchemaPropertyKeys } from "./plugin-model.mjs";
 import {
@@ -545,9 +546,7 @@ async function loadCurrentScreenSpec({ showStatus = false } = {}) {
     }
     currentScreenSpec = null;
     showSpecStatus(
-      error instanceof Error
-        ? error.message
-        : "로컬 화면 JSON을 읽지 못했습니다.",
+      toErrorMessage(error),
       "error"
     );
   } finally {
@@ -589,9 +588,7 @@ async function loadCurrentOptionSources() {
 
     optionSourceCatalog = { schemaVersion: 2, sources: [] };
     optionSourceCatalogError =
-      error instanceof Error
-        ? error.message
-        : "선택지 출처 카탈로그를 읽지 못했습니다.";
+      toErrorMessage(error);
   } finally {
     if (requestVersion === optionSourceRequestVersion) {
       renderScreenSpec();
@@ -628,9 +625,7 @@ async function loadCurrentStateScopes() {
 
     stateScopeCatalog = { schemaVersion: 1, scopes: [] };
     stateScopeCatalogError =
-      error instanceof Error
-        ? error.message
-        : "상태 스코프 카탈로그를 읽지 못했습니다.";
+      toErrorMessage(error);
   } finally {
     if (requestVersion === stateScopeRequestVersion) {
       renderCurrentStateScope();
@@ -709,8 +704,8 @@ window.onmessage = async (event) => {
       const savedArtifacts = [`${message.screenId}/figma.raw.json`];
       const failures = [];
 
-      if (message.assetsError) {
-        failures.push(message.assetsError);
+      if (Array.isArray(message.assetFailures)) {
+        failures.push(...message.assetFailures);
       }
 
       if (Array.isArray(message.assets) && message.assets.length > 0) {
@@ -727,7 +722,7 @@ window.onmessage = async (event) => {
           } catch (error) {
             failures.push(
               `${asset.fileName}: ${
-                error instanceof Error ? error.message : "저장 실패"
+                toErrorMessage(error)
               }`
             );
           }
@@ -747,7 +742,7 @@ window.onmessage = async (event) => {
           savedArtifacts.push("reference.png");
         } catch (error) {
           failures.push(
-            error instanceof Error ? error.message : "reference.png 저장 실패"
+            toErrorMessage(error)
           );
         }
       }
@@ -766,9 +761,7 @@ window.onmessage = async (event) => {
       }
     } catch (error) {
       showScreenSaveStatus(
-        error instanceof Error
-          ? error.message
-          : "로컬 파일 저장에 실패했습니다.",
+        toErrorMessage(error),
         "error"
       );
     } finally {

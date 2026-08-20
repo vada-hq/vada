@@ -5,7 +5,8 @@ import test from "node:test";
 import {
   REFERENCE_PNG_SCALE,
   exportFigmaRaw,
-  exportFigmaScreenAssets
+  exportFigmaScreenAssets,
+  toErrorMessage
 } from "../apps/figma-plugin/src/figma-raw.mjs";
 
 const codeUrl = new URL("../apps/figma-plugin/src/code.mjs", import.meta.url);
@@ -93,14 +94,74 @@ test("화면의 벡터 SVG와 참조 PNG를 함께 추출한다", async () => {
   ]);
 });
 
-test("SVG나 참조 PNG 추출이 실패하면 명확히 거부한다", async () => {
-  const brokenSvgScreen = {
+// HOME-01K에서 벡터 64개 중 하나가 실패하자 나머지 63개와 reference.png까지
+// 통째로 버려졌다. 실패한 것만 보고하고 나머지는 건진다.
+test("벡터 하나가 실패해도 나머지 벡터와 참조 PNG는 건진다", async () => {
+  const pngBytes = new Uint8Array([0x89, 0x50]);
+  const screenNode = {
+    findAll: () => [
+      { id: "7:44", type: "VECTOR", async exportAsync() { return ""; } },
+      {
+        id: "7:90",
+        type: "VECTOR",
+        async exportAsync() {
+          return '<svg data-node="7:90"></svg>';
+        }
+      }
+    ],
+    async exportAsync() {
+      return pngBytes;
+    }
+  };
+
+  const result = await exportFigmaScreenAssets(screenNode);
+
+  assert.equal(result.assets.length, 1);
+  assert.equal(result.assets[0].nodeId, "7:90");
+  assert.equal(result.referencePng, pngBytes);
+  assert.equal(result.failures.length, 1);
+  assert.match(result.failures[0], /7:44/u);
+});
+
+test("참조 PNG가 실패해도 벡터는 건지고 실패만 보고한다", async () => {
+  const screenNode = {
+    findAll: () => [
+      {
+        id: "7:90",
+        type: "VECTOR",
+        async exportAsync() {
+          return '<svg data-node="7:90"></svg>';
+        }
+      }
+    ],
+    async exportAsync() {
+      return null;
+    }
+  };
+
+  const result = await exportFigmaScreenAssets(screenNode);
+
+  assert.equal(result.assets.length, 1);
+  assert.equal(result.referencePng, null);
+  assert.equal(result.failures.length, 1);
+  assert.match(result.failures[0], /PNG/u);
+});
+
+// Figma 샌드박스가 던지는 값은 Error 인스턴스가 아닐 수 있다. instanceof로
+// 거르면 진짜 원인이 사라지고 fallback 문구만 남는다(HOME-01K에서 실제로 그랬다).
+test("Error가 아닌 값을 던져도 메시지를 잃지 않는다", async () => {
+  assert.equal(toErrorMessage(new Error("진짜 원인")), "진짜 원인");
+  assert.equal(toErrorMessage("문자열로 던짐"), "문자열로 던짐");
+  assert.equal(toErrorMessage({ message: "다른 렐름의 오류" }), "다른 렐름의 오류");
+  assert.match(toErrorMessage(undefined), /알 수 없는/u);
+
+  const screenNode = {
     findAll: () => [
       {
         id: "7:44",
         type: "VECTOR",
         async exportAsync() {
-          return "";
+          throw { message: "Cannot export node with no area" };
         }
       }
     ],
@@ -108,15 +169,9 @@ test("SVG나 참조 PNG 추출이 실패하면 명확히 거부한다", async ()
       return new Uint8Array([1]);
     }
   };
-  await assert.rejects(exportFigmaScreenAssets(brokenSvgScreen), /SVG/);
 
-  const brokenPngScreen = {
-    findAll: () => [],
-    async exportAsync() {
-      return null;
-    }
-  };
-  await assert.rejects(exportFigmaScreenAssets(brokenPngScreen), /PNG/);
+  const result = await exportFigmaScreenAssets(screenNode);
+  assert.match(result.failures[0], /Cannot export node with no area/u);
 });
 
 test("원본 저장 시 벡터 SVG와 참조 PNG도 함께 로컬로 저장한다", async () => {
