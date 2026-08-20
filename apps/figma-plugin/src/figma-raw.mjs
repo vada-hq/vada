@@ -1,6 +1,7 @@
-import { figmaAssetFileName } from "../../../packages/contracts/src/figma-design.mjs";
-
-const VECTOR_ASSET_NODE_TYPES = new Set(["VECTOR", "BOOLEAN_OPERATION"]);
+import {
+  figmaAssetFileName,
+  isVectorAssetNode
+} from "../../../packages/contracts/src/figma-design.mjs";
 
 export const REFERENCE_PNG_SCALE = 2;
 
@@ -53,9 +54,7 @@ export async function exportFigmaScreenAssets(screenNode) {
     throw new Error("Figma 자산을 추출할 작업 화면이 필요합니다.");
   }
 
-  const vectorNodes = screenNode.findAll((node) =>
-    VECTOR_ASSET_NODE_TYPES.has(node.type)
-  );
+  const vectorNodes = screenNode.findAll((node) => isVectorAssetNode(node));
   const assets = [];
   const failures = [];
 

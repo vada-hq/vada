@@ -2,7 +2,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-import { normalizeFigmaDesign } from "../packages/contracts/src/figma-design.mjs";
+import {
+  isVectorAssetNode,
+  normalizeFigmaDesign
+} from "../packages/contracts/src/figma-design.mjs";
 
 function createRawFixture() {
   return {
@@ -393,4 +396,56 @@ test("sourceHash 옵션을 provenance로 기록한다", () => {
 
   const withoutHash = normalizeFigmaDesign(raw, { screenId: "TEST-01" });
   assert.equal("hash" in withoutHash.source, false);
+});
+
+// HOME-01K에서 벡터 64개 중 3개가 이 오류로 export를 거부당했다:
+// "Failed to export node. This node may not have any visible layers."
+// 세 노드만 absoluteRenderBounds가 null이었고, 등록된 6개 화면을 전부 대조해도
+// null인 벡터는 그 셋뿐이었다. 그리는 것이 없는 벡터는 자산이 아니다.
+test("아무것도 그리지 않는 벡터는 자산으로 참조하지 않는다", () => {
+  const vector = (id, renderBounds) => ({
+    id,
+    name: "Vector",
+    type: "VECTOR",
+    absoluteBoundingBox: { x: 0, y: 0, width: 4, height: 4 },
+    absoluteRenderBounds: renderBounds
+  });
+
+  const raw = {
+    document: {
+      id: "1:1",
+      name: "테스트 · TEST-02 · 빈 벡터",
+      type: "FRAME",
+      absoluteBoundingBox: { x: 0, y: 0, width: 10, height: 10 },
+      children: [
+        vector("1:2", { x: 0, y: 0, width: 4, height: 4 }),
+        vector("1:3", null)
+      ]
+    }
+  };
+
+  const design = normalizeFigmaDesign(raw, { screenId: "TEST-02" });
+
+  assert.deepEqual(
+    design.assets.map((asset) => asset.nodeId),
+    ["1:2"]
+  );
+  const [drawn, empty] = design.root.children;
+  assert.equal(drawn.assetRef, "assets/1-2.svg");
+  assert.equal("assetRef" in empty, false);
+  // 노드 자체는 남는다 — 사라지면 트리가 어긋난다.
+  assert.equal(empty.id, "1:3");
+});
+
+test("자산 판별은 플러그인과 정규화기가 같은 규칙을 쓴다", () => {
+  const renderable = {
+    type: "VECTOR",
+    absoluteRenderBounds: { x: 0, y: 0, width: 1, height: 1 }
+  };
+
+  assert.equal(isVectorAssetNode(renderable), true);
+  assert.equal(isVectorAssetNode({ ...renderable, absoluteRenderBounds: null }), false);
+  assert.equal(isVectorAssetNode({ type: "FRAME", absoluteRenderBounds: null }), false);
+  assert.equal(isVectorAssetNode({ type: "BOOLEAN_OPERATION" }), true, "값이 없으면 판정하지 않는다");
+  assert.equal(isVectorAssetNode(null), false);
 });

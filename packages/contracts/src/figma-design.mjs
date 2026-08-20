@@ -5,6 +5,28 @@ const DEFAULT_CONSTRAINTS = {
 
 const VECTOR_ASSET_TYPES = new Set(["VECTOR", "BOOLEAN_OPERATION"]);
 
+/**
+ * 벡터 자산으로 뽑을 수 있는 노드인가.
+ *
+ * 유형만으로는 부족하다. absoluteRenderBounds가 null이면 그 노드는 실제로
+ * 아무것도 그리지 않으며 Figma 자신이 export를 거부한다:
+ *   "Failed to export node. This node may not have any visible layers."
+ * HOME-01K의 벡터 64개 중 3개가 그랬고, 등록된 화면을 전부 대조해도
+ * null인 벡터는 그 셋뿐이었다.
+ *
+ * 값이 없으면(undefined) 판정하지 않는다 — 옛 원본을 소급해서 자산에서
+ * 떨어뜨리면 이미 저장된 SVG가 고아가 된다.
+ *
+ * 플러그인(추출)과 정규화기(참조)가 같은 규칙을 써야 한다. 한쪽만 알면
+ * 참조는 있는데 파일이 없거나, 파일은 있는데 참조가 없다.
+ */
+export function isVectorAssetNode(node) {
+  if (!VECTOR_ASSET_TYPES.has(node?.type)) {
+    return false;
+  }
+  return node.absoluteRenderBounds !== null;
+}
+
 function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
@@ -611,7 +633,7 @@ function normalizeNode(node, parentBounds, assets) {
     normalized.component = component;
   }
 
-  if (VECTOR_ASSET_TYPES.has(node.type)) {
+  if (isVectorAssetNode(node)) {
     const file = assetFileForNode(node.id);
     normalized.assetRef = file;
     if (!assets.has(node.id)) {
