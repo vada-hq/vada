@@ -1,4 +1,5 @@
 import { PageCard } from '../components/PageCard'
+import { HOME01KScreen } from './HOME01KScreen'
 import { INV01Screen } from './INV01Screen'
 import { ONB01Screen } from './ONB01Screen'
 import { ONB02Screen } from './ONB02Screen'
@@ -45,6 +46,10 @@ export function ScreenRouter({
         onNavigate={onNavigate}
       />
     )
+  }
+  if (screenId === 'HOME-01K') {
+    // 읽기 전용 대시보드다. 상태 스코프를 참조하지 않는다.
+    return <HOME01KScreen />
   }
   if (screenId === 'ONB-02') {
     return <ONB02Screen onNavigate={onNavigate} />

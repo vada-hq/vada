@@ -68,7 +68,14 @@ export interface SubmitAction extends ExecutionGate {
   }
 }
 
-export type ButtonAction = NavigateAction | SubmitAction
+// 누르면 무엇이 일어나는지 아직 정해지지 않았다. 대상 화면 id를 지어내는
+// 대신 무엇이 미정인지를 남긴다.
+export interface PendingAction extends ExecutionGate {
+  type: 'pending'
+  note: string
+}
+
+export type ButtonAction = NavigateAction | SubmitAction | PendingAction
 
 export type ButtonEmphasis = 'primary' | 'secondary' | 'quiet'
 
@@ -87,11 +94,31 @@ export interface ButtonSpec {
 // 이 화면이 다루는 대상의 요약 카드. note가 값들을 한 줄로 잇는 것과 달리
 // 제목과 라벨-값 쌍의 구조를 가진다. 값의 출처가 정해지기 전에는 디자인에
 // 그려진 예시 문자열을 그대로 담는다.
+export interface SummaryItem {
+  label: string
+  // 값의 출처. field면 dataSourceKey가 가리키는 응답의 조각이고,
+  // value면 명세에 담긴 예시 값이다. 스키마가 둘 중 하나를 강제한다.
+  field?: string
+  value?: string
+}
+
 export interface SummarySpec {
   type: 'summary'
   eyebrow?: string
-  title: string
-  items: Array<{ label: string; value: string }>
+  title?: string
+  // 제목이 서버에서 오는 경우(홈 브리핑의 '박해랑님, 확인이 필요해요').
+  titleField?: string
+  dataSourceKey?: string
+  items?: SummaryItem[]
+}
+
+// 데이터의 개수만큼 반복하는 읽기 전용 목록. list(사람이 편집하는 목록)와
+// 다르고, summary(항목이 명세에 고정)와도 다르다 — 경계는 항목 수가 명세에
+// 있느냐 데이터에 있느냐다. 항목의 조각은 dataSource의 fields가 갖는다.
+export interface ItemListSpec {
+  type: 'itemList'
+  title?: string
+  dataSourceKey: string
 }
 
 // 다른 상태 스코프의 필드 값을 읽어 표시하는 파생 표시 요소.
@@ -146,6 +173,7 @@ export type ElementSpec =
   | GroupSpec
   | ListSpec
   | SummarySpec
+  | ItemListSpec
 
 export type FieldSpec = InputSpec | SelectSpec
 

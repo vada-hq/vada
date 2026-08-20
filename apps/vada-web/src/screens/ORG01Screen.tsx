@@ -242,7 +242,7 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
         </FieldGroup>
       )
     }
-    if (spec.type === 'list' || spec.type === 'summary') {
+    if (spec.type === 'list' || spec.type === 'summary' || spec.type === 'itemList') {
       // ORG-01에는 없다. 등장하면 조용히 빠뜨리지 않고 명시적으로 알린다.
       throw new Error(`ORG-01 구현이 아직 다루지 않는 요소 유형입니다: ${spec.type}`)
     }

@@ -108,7 +108,19 @@ export function INV01Screen({ draft, onChangeDraft, onNavigate }: INV01ScreenPro
       return null
     }
     if (spec.type === 'summary') {
-      return <SummaryCard key={key} eyebrow={spec.eyebrow} title={spec.title} items={spec.items} />
+      // summary는 제목 없이 값 타일만 늘어놓는 쓰임(HOME-01K)도 생겨 title·items가
+      // 선택이 됐다. INV-01의 요약 카드는 둘 다 있어야 하므로 조용히 비우지 않는다.
+      if (!spec.title || !spec.items) {
+        throw new Error('INV-01의 요약 카드에는 title과 items가 모두 필요합니다.')
+      }
+      // 값은 서버(field)에서 올 수도 있게 됐지만 이 화면은 아직 명세의 값을 쓴다.
+      const items = spec.items.map((item) => {
+        if (item.value === undefined) {
+          throw new Error(`INV-01의 요약 항목 '${item.label}'에 value가 없습니다.`)
+        }
+        return { label: item.label, value: item.value }
+      })
+      return <SummaryCard key={key} eyebrow={spec.eyebrow} title={spec.title} items={items} />
     }
     if (spec.type === 'group') {
       return (
@@ -125,7 +137,7 @@ export function INV01Screen({ draft, onChangeDraft, onNavigate }: INV01ScreenPro
         </FieldGroup>
       )
     }
-    if (spec.type === 'note' || spec.type === 'list') {
+    if (spec.type === 'note' || spec.type === 'list' || spec.type === 'itemList') {
       // INV-01에는 없다. 등장하면 조용히 빠뜨리지 않고 명시적으로 알린다.
       throw new Error(`INV-01 구현이 아직 다루지 않는 요소 유형입니다: ${spec.type}`)
     }
