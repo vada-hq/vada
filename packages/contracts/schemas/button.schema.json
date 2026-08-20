@@ -83,14 +83,44 @@
               "onSuccess"
             ]
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "pending"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "note"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "targetScreenId"
+                  ]
+                },
+                {
+                  "required": [
+                    "mutationKey"
+                  ]
+                }
+              ]
+            }
+          }
         }
       ],
       "properties": {
         "type": {
           "enum": [
             "navigate",
-            "submit"
-          ]
+            "submit",
+            "pending"
+          ],
+          "description": "pending은 '누르면 무엇이 일어나는지 아직 정해지지 않았다'를 명시한다. 대상 화면이 아직 명세되지 않았을 때 쓴다."
         },
         "targetScreenId": {
           "type": "string",
@@ -118,6 +148,11 @@
               ]
             }
           }
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "pending 전용. 무엇이 정해지지 않았는지. 대상 화면 id를 지어내면 그건 추측이고, 실제 화면이 등록될 때 전부 틀린 것으로 드러난다."
         },
         "executeWhen": {
           "description": "생략하면 버튼은 조건 없이 항상 실행됩니다(예: 필수 입력이 없는 화면의 버튼, 뒤로 가기). 명시하면 onExecutionBlocked도 함께 명시해야 합니다.",

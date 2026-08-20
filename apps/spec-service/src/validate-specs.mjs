@@ -16,6 +16,7 @@ const schemasDir = join(repoRoot, "packages", "contracts", "schemas");
 const CATALOG_SCHEMA_FILES = [
   "screen.schema.json",
   "option-sources.schema.json",
+  "data-sources.schema.json",
   "state-scopes.schema.json",
   "flows.schema.json",
   "mutations.schema.json",
@@ -57,6 +58,7 @@ async function createValidators() {
   return {
     screen: ajv.getSchema("screen.schema.json"),
     optionSources: ajv.getSchema("option-sources.schema.json"),
+    dataSources: ajv.getSchema("data-sources.schema.json"),
     stateScopes: ajv.getSchema("state-scopes.schema.json"),
     flows: ajv.getSchema("flows.schema.json"),
     mutations: ajv.getSchema("mutations.schema.json"),
@@ -162,6 +164,13 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     fileLabel: label("option-sources.json"),
     validator: validators.optionSources,
     missingMessage: "선택지 출처 카탈로그가 없습니다."
+  });
+  const dataSources = await readOptionalCatalog({
+    findings,
+    filePath: join(wireframeDir, "data-sources.json"),
+    fileLabel: label("data-sources.json"),
+    validator: validators.dataSources,
+    missingMessage: "데이터 출처 카탈로그가 없습니다."
   });
   const stateScopes = await readOptionalCatalog({
     findings,
@@ -332,6 +341,7 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     ...collectSpecFindings({
       screens,
       optionSources,
+      dataSources,
       stateScopes,
       designs,
       flows: flowsCatalog,

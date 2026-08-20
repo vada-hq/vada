@@ -50,6 +50,7 @@ test("button action은 일반 navigate 대상 화면을 표현한다", async () 
     "targetScreenId",
     "mutationKey",
     "onSuccess",
+    "note",
     "executeWhen",
     "onExecutionBlocked"
   ]);
@@ -62,7 +63,10 @@ test("button action은 일반 navigate 대상 화면을 표현한다", async () 
     ]),
     [
       ["navigate", ["targetScreenId"]],
-      ["submit", ["mutationKey", "onSuccess"]]
+      ["submit", ["mutationKey", "onSuccess"]],
+      // pending은 '아직 정해지지 않았다'를 명시한다. 대상 화면 id를 지어내는
+      // 것보다 낫다 — 실제 화면이 등록될 때 전부 틀린 것으로 드러난다.
+      ["pending", ["note"]]
     ]
   );
   assert.deepEqual(actionSchema.dependentRequired, {
@@ -70,7 +74,11 @@ test("button action은 일반 navigate 대상 화면을 표현한다", async () 
     onExecutionBlocked: ["executeWhen"]
   });
   assert.equal(actionSchema.additionalProperties, false);
-  assert.deepEqual(getSchemaEnumValues(actionSchema, "type"), ["navigate", "submit"]);
+  assert.deepEqual(getSchemaEnumValues(actionSchema, "type"), [
+    "navigate",
+    "submit",
+    "pending"
+  ]);
   assert.equal(
     getSchemaConstantValue(
       actionSchema.properties.executeWhen,

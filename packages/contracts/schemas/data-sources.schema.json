@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "data-sources.schema.json",
+  "title": "Wireframe data source catalog",
+  "description": "화면이 읽어서 보여주는 데이터의 출처. option-sources.json이 select의 선택지를 다루는 것과 짝을 이루며, 이쪽은 표시 전용 데이터다. 대시보드처럼 화면의 값이 전부 서버에서 오는 경우 이 카탈로그가 없으면 구현이 무엇을 받는지 추측하게 된다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "sources"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["key", "shape", "description", "params", "request", "messages", "fields"],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "shape": {
+            "enum": ["object", "list"],
+            "description": "object는 값 묶음 하나, list는 같은 모양의 항목이 개수만큼 반복된다. 이 구분이 화면의 summary(고정 항목)와 itemList(반복 항목)를 가른다."
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "params": {
+            "type": "array",
+            "uniqueItems": true,
+            "description": "조회에 필요한 인자 이름. 없으면 빈 배열이다.",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "request": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["method", "path"],
+            "properties": {
+              "method": { "const": "GET" },
+              "path": { "type": "string", "pattern": "^/" }
+            }
+          },
+          "messages": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["loading", "empty", "error"],
+            "description": "구현이 문구를 지어내지 않도록 상태별 문구를 카탈로그가 갖는다.",
+            "properties": {
+              "loading": { "type": "string", "minLength": 1 },
+              "empty": { "type": "string", "minLength": 1 },
+              "error": { "type": "string", "minLength": 1 }
+            }
+          },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "description": "응답이 담는 조각. shape가 list면 항목 하나의 조각이다. 화면 요소는 이 key로 값을 가리킨다.",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["key", "description"],
+              "properties": {
+                "key": { "type": "string", "minLength": 1 },
+                "description": { "type": "string", "minLength": 1 },
+                "optional": {
+                  "type": "boolean",
+                  "description": "생략하면 항상 온다는 뜻이다."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

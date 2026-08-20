@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "itemList.schema.json",
+  "title": "Item list element",
+  "description": "데이터의 개수만큼 반복해서 보여주는 읽기 전용 목록. list와 다르다 — list는 사람이 추가·수정·삭제하는 편집 목록이고, itemList는 서버가 준 것을 그대로 읽는다. summary와도 다르다 — summary는 항목이 명세에 고정되어 있고, itemList는 항목 수가 데이터에 달렸다. 항목 하나가 어떤 조각으로 이루어지는지는 dataSource의 fields가, 그 조각을 어떻게 그리는지는 figma.design.json이 갖는다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["type", "dataSourceKey"],
+  "properties": {
+    "type": { "const": "itemList" },
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "목록 위에 붙는 섹션 제목(선택). 예: 진행 중·예정 행사"
+    },
+    "dataSourceKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "data-sources.json 카탈로그의 key. shape가 list인 출처여야 한다."
+    }
+  }
+}

@@ -130,7 +130,8 @@
                   "note",
                   "group",
                   "list",
-                  "summary"
+                  "summary",
+                  "itemList"
                 ]
               }
             }

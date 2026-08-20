@@ -2,13 +2,11 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "summary.schema.json",
   "title": "Summary element",
-  "description": "이 화면이 다루는 대상이 무엇인지 보여주는 요약 카드. note가 값들을 한 줄로 잇는 것과 달리 제목과 라벨-값 쌍의 구조를 가진다. 값의 출처(원격 조회·앞 화면의 스코프)가 정해지기 전에는 디자인에 그려진 문자열을 그대로 담는다 — 그 경우 items[].value와 title은 예시 값이며 구현은 그대로 렌더한다.",
+  "description": "라벨-값 쌍이 명세에 고정된 표시 묶음. note가 값들을 한 줄로 잇는 것과 달리 제목과 쌍의 구조를 가진다. itemList와의 경계는 항목 수다 — summary의 항목은 명세가 정하고, itemList의 항목 수는 데이터가 정한다. 값은 dataSourceKey+items[].field로 출처를 가리키거나, 출처가 정해지기 전이면 items[].value에 디자인의 예시 값을 담는다.",
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "type",
-    "title",
-    "items"
+    "type"
   ],
   "properties": {
     "type": {
@@ -22,30 +20,80 @@
     "title": {
       "type": "string",
       "minLength": 1,
-      "description": "요약 대상의 이름. 출처가 정해지기 전에는 디자인의 예시 값이다."
+      "description": "요약 대상의 이름(선택). 제목 없이 값 타일만 늘어놓는 묶음도 있다. 출처가 정해지기 전에는 디자인의 예시 값이다."
+    },
+    "titleField": {
+      "type": "string",
+      "minLength": 1,
+      "description": "제목이 서버에서 오는 경우 dataSourceKey가 가리키는 출처의 fields[].key. title과 함께 쓰지 않는다(홈 브리핑의 '박해랑님, 확인이 필요해요'가 그렇다)."
+    },
+    "dataSourceKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "data-sources.json 카탈로그의 key(선택). shape가 object인 출처여야 한다. 있으면 items[].field가 이 출처의 조각을 가리킨다."
     },
     "items": {
       "type": "array",
       "minItems": 1,
-      "description": "라벨-값 쌍. label은 확정된 카피이고, value는 출처가 정해지기 전까지 디자인의 예시 값이다.",
+      "description": "라벨-값 쌍. label은 확정된 카피다. 값은 field(서버에서 온다)이거나 value(명세에 담긴 예시 값)이며 둘 중 하나는 있어야 한다.",
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "label",
-          "value"
+          "label"
+        ],
+        "anyOf": [
+          {
+            "required": [
+              "field"
+            ]
+          },
+          {
+            "required": [
+              "value"
+            ]
+          }
         ],
         "properties": {
           "label": {
             "type": "string",
             "minLength": 1
           },
+          "field": {
+            "type": "string",
+            "minLength": 1,
+            "description": "dataSourceKey가 가리키는 출처의 fields[].key."
+          },
           "value": {
             "type": "string",
-            "minLength": 1
+            "minLength": 1,
+            "description": "출처가 없을 때 그대로 그리는 값."
           }
         }
       }
     }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "items"
+      ]
+    },
+    {
+      "required": [
+        "title"
+      ]
+    },
+    {
+      "required": [
+        "titleField"
+      ]
+    }
+  ],
+  "not": {
+    "required": [
+      "title",
+      "titleField"
+    ]
   }
 }

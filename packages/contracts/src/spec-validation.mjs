@@ -89,7 +89,9 @@ function hasNodeWithExactText(root, expected) {
 function checkElementNodeCoverage(findings, context) {
   const { file, element, index, design } = context;
   const spec = element.spec;
-  const identifyingText = spec.type === "group" ? spec.title : spec.label;
+  // label을 쓰는 유형(input·select·button)과 title을 쓰는 유형(group·summary·
+  // itemList)이 섞여 있다. 새 유형이 생길 때마다 여기를 고치지 않도록 둘 다 본다.
+  const identifyingText = spec.label ?? spec.title;
   const nodeId = element.source?.nodeId;
 
   if (
@@ -451,6 +453,70 @@ function checkPropertyOrder(findings, context) {
   }
 }
 
+// summary·itemList가 가리키는 데이터 출처는 카탈로그에 있어야 하고, 모양이
+// 맞아야 한다. summary는 값 묶음 하나(object), itemList는 반복 항목(list)이다.
+function checkDataSource(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey } = context;
+  const spec = element.spec;
+  const key = spec.dataSourceKey;
+
+  if (typeof key !== "string") {
+    // 출처가 없으면 값은 명세에 담긴 예시다. field를 가리킬 수는 없다.
+    const withField = (spec.items ?? []).filter((item) => item?.field !== undefined);
+    if (spec.titleField !== undefined || withField.length > 0) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 dataSourceKey 없이 field를 가리킵니다.`
+      });
+    }
+    return;
+  }
+
+  if (!isObject(dataSources)) {
+    findings.push({
+      level: "warning",
+      file,
+      message: `data-sources.json이 없어 ${elementLabel(element, index)}의 데이터 출처 '${key}'를 확인하지 못했습니다.`
+    });
+    return;
+  }
+
+  const source = dataSourceByKey.get(key);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 데이터 출처 '${key}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+
+  const expectedShape = spec.type === "itemList" ? "list" : "object";
+  if (source.shape !== expectedShape) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}(${spec.type})는 shape가 '${expectedShape}'인 출처를 써야 하는데 '${key}'는 '${source.shape}'입니다.`
+    });
+  }
+
+  const fieldKeys = new Set((source.fields ?? []).map((field) => field.key));
+  const referenced = [
+    ...(spec.titleField === undefined ? [] : [spec.titleField]),
+    ...(spec.items ?? []).map((item) => item?.field).filter((field) => field !== undefined)
+  ];
+  for (const field of referenced) {
+    if (!fieldKeys.has(field)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 가리킨 조각 '${field}'가 데이터 출처 '${key}'에 없습니다.`
+      });
+    }
+  }
+}
+
 function checkFieldReferences(findings, context) {
   const { file, element, index, fieldKeys } = context;
   const { enabledWhen, resetOnChangeOf } = element.spec;
@@ -483,6 +549,7 @@ function checkFieldReferences(findings, context) {
 export function collectSpecFindings({
   screens = [],
   optionSources = null,
+  dataSources = null,
   stateScopes = null,
   designs = {},
   flows = null,
@@ -500,6 +567,12 @@ export function collectSpecFindings({
   const sourceByKey = new Map(
     (isObject(optionSources) && Array.isArray(optionSources.sources)
       ? optionSources.sources
+      : []
+    ).map((source) => [source.key, source])
+  );
+  const dataSourceByKey = new Map(
+    (isObject(dataSources) && Array.isArray(dataSources.sources)
+      ? dataSources.sources
       : []
     ).map((source) => [source.key, source])
   );
@@ -617,6 +690,8 @@ export function collectSpecFindings({
         index,
         optionSources,
         sourceByKey,
+        dataSources,
+        dataSourceByKey,
         fieldKeys,
         stateScopes,
         scopeKeys,
@@ -643,6 +718,9 @@ export function collectSpecFindings({
       }
       if (spec_.type === "button") {
         checkSubmitAction(findings, context);
+      }
+      if (spec_.type === "summary" || spec_.type === "itemList") {
+        checkDataSource(findings, context);
       }
       checkFieldReferences(findings, context);
 

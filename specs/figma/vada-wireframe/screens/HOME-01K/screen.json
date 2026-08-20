@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "screenId": "HOME-01K",
+  "meta": {
+    "title": "홈"
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "16:2",
+    "name": "홈 · HOME-01K · 홈 — 끼룩이 브리핑",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "16:88",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "eyebrow": "끼룩이가 알려드려요",
+        "titleField": "title",
+        "dataSourceKey": "home.briefing"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:93",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "home.briefingNotices"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:99",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "지연 업무 보기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "지연된 업무 목록 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:101",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "home.eventCounts",
+        "items": [
+          { "label": "진행 중 행사", "field": "activeEvents" },
+          { "label": "예정 행사", "field": "upcomingEvents" },
+          { "label": "이번 주 주요 일정", "field": "weeklySchedules" }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:135",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "진행 중·예정 행사",
+        "dataSourceKey": "home.events"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:206",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "다가오는 주요 일정",
+        "dataSourceKey": "home.schedules"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:210",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "캘린더 보기",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "캘린더 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:239",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "조직 주요 알림",
+        "dataSourceKey": "home.orgAlerts"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:269",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "전체 재정 요약",
+        "dataSourceKey": "home.financeSummary",
+        "items": [
+          { "label": "전체 예산 사용률", "field": "budgetUsedPercent" },
+          { "label": "사용 가능 예산", "field": "availableBudgetPercent" },
+          { "label": "승인·집행 예정", "field": "plannedCount" },
+          { "label": "증빙 누락", "field": "missingProofCount" }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:273",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "전체 재정 보기",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "재정 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:305",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "내 담당 업무",
+        "description": "진행 중·검토 필요 4건",
+        "badge": "내 업무 보기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "내 업무 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

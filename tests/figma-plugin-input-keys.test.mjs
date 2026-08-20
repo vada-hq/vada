@@ -69,7 +69,7 @@ test("등록 유형마다 한글 라벨이 붙어 있다", () => {
 
   assert.ok(options.length >= 6);
   for (const option of options) {
-    assert.match(option.value, /^[a-z]+$/u);
+    assert.match(option.value, /^[a-z][A-Za-z]*$/u);
     assert.ok(option.label.trim().length > 0, `${option.value}에 라벨이 없습니다`);
   }
 });
