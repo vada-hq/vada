@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import {
-  isVectorAssetNode,
+  collectAssetNodes,
   normalizeFigmaDesign
 } from "../packages/contracts/src/figma-design.mjs";
 
@@ -364,8 +364,11 @@ test("ONB-01의 전체 노드와 GRID·혼합 텍스트·벡터 참조를 보존
       }
     }
   ]);
-  assert.equal(nodes.find((node) => node.id === "7:44")?.assetRef, "assets/7-44.svg");
-  assert.equal(design.assets.length, 11);
+  // 자산 참조는 아이콘 묶음(7:43)이 갖고 안쪽 벡터(7:44)는 갖지 않는다.
+  // 벡터마다 뽑으면 조각이 나와 아무도 쓸 수 없다.
+  assert.equal(nodes.find((node) => node.id === "7:43")?.assetRef, "assets/7-43.svg");
+  assert.equal(nodes.find((node) => node.id === "7:44")?.assetRef, undefined);
+  assert.equal(design.assets.length, 7);
 
   assert.equal(nodes.find((node) => node.id === "7:13")?.appearance?.cornerRadius, 2.625);
   assert.equal(nodes.find((node) => node.id === "7:14")?.appearance?.cornerRadius, 2.625);
@@ -418,6 +421,7 @@ test("아무것도 그리지 않는 벡터는 자산으로 참조하지 않는�
       type: "FRAME",
       absoluteBoundingBox: { x: 0, y: 0, width: 10, height: 10 },
       children: [
+        { id: "1:9", type: "TEXT", absoluteRenderBounds: { x: 0, y: 0, width: 2, height: 2 } },
         vector("1:2", { x: 0, y: 0, width: 4, height: 4 }),
         vector("1:3", null)
       ]
@@ -430,22 +434,109 @@ test("아무것도 그리지 않는 벡터는 자산으로 참조하지 않는�
     design.assets.map((asset) => asset.nodeId),
     ["1:2"]
   );
-  const [drawn, empty] = design.root.children;
+  const [, drawn, empty] = design.root.children;
   assert.equal(drawn.assetRef, "assets/1-2.svg");
   assert.equal("assetRef" in empty, false);
   // 노드 자체는 남는다 — 사라지면 트리가 어긋난다.
   assert.equal(empty.id, "1:3");
 });
 
-test("자산 판별은 플러그인과 정규화기가 같은 규칙을 쓴다", () => {
-  const renderable = {
+// 아이콘 하나는 보통 벡터 여러 개로 그려진다. 벡터마다 SVG를 뽑으면 조각이
+// 나와 아무도 쓸 수 없다 — HOME-01K는 아이콘 22개가 파일 61개로 흩어졌다.
+// 자산의 단위는 '벡터만 품은 가장 바깥 노드'다.
+test("아이콘은 벡터 조각이 아니라 묶음 하나로 뽑는다", () => {
+  const vector = (id) => ({
+    id,
     type: "VECTOR",
     absoluteRenderBounds: { x: 0, y: 0, width: 1, height: 1 }
+  });
+  const root = {
+    id: "1:1",
+    type: "FRAME",
+    absoluteRenderBounds: { x: 0, y: 0, width: 10, height: 10 },
+    children: [
+      {
+        id: "1:2",
+        name: "Icon",
+        type: "FRAME",
+        absoluteRenderBounds: { x: 0, y: 0, width: 4, height: 4 },
+        children: [vector("1:3"), vector("1:4"), vector("1:5")]
+      },
+      // 텍스트가 섞이면 아이콘이 아니다. 안쪽 벡터를 따로 뽑는다.
+      {
+        id: "1:6",
+        type: "FRAME",
+        absoluteRenderBounds: { x: 0, y: 0, width: 8, height: 4 },
+        children: [{ id: "1:7", type: "TEXT" }, vector("1:8")]
+      }
+    ]
   };
 
-  assert.equal(isVectorAssetNode(renderable), true);
-  assert.equal(isVectorAssetNode({ ...renderable, absoluteRenderBounds: null }), false);
-  assert.equal(isVectorAssetNode({ type: "FRAME", absoluteRenderBounds: null }), false);
-  assert.equal(isVectorAssetNode({ type: "BOOLEAN_OPERATION" }), true, "값이 없으면 판정하지 않는다");
-  assert.equal(isVectorAssetNode(null), false);
+  assert.deepEqual(
+    collectAssetNodes(root).map((asset) => [asset.node.id, asset.format]),
+    [
+      ["1:2", "svg"],
+      ["1:8", "svg"]
+    ]
+  );
+});
+
+test("이미지 fill을 가진 노드는 png 자산이다", () => {
+  const root = {
+    id: "1:1",
+    type: "FRAME",
+    absoluteRenderBounds: { x: 0, y: 0, width: 10, height: 10 },
+    children: [
+      {
+        id: "1:2",
+        name: "KkirukMark",
+        type: "FRAME",
+        absoluteRenderBounds: { x: 0, y: 0, width: 4, height: 4 },
+        fills: [{ type: "IMAGE", imageRef: "abc", scaleMode: "FIT" }]
+      }
+    ]
+  };
+
+  assert.deepEqual(
+    collectAssetNodes(root).map((asset) => [asset.node.id, asset.format]),
+    [["1:2", "png"]]
+  );
+});
+
+test("그리는 것이 없는 노드는 묶음이든 낱개든 자산이 아니다", () => {
+  const root = {
+    id: "1:1",
+    type: "FRAME",
+    absoluteRenderBounds: { x: 0, y: 0, width: 10, height: 10 },
+    children: [
+      { id: "1:2", type: "VECTOR", absoluteRenderBounds: null },
+      {
+        id: "1:3",
+        type: "FRAME",
+        absoluteRenderBounds: null,
+        children: [{ id: "1:4", type: "VECTOR", absoluteRenderBounds: null }]
+      }
+    ]
+  };
+
+  assert.deepEqual(collectAssetNodes(root), []);
+});
+
+test("자산 판별은 플러그인과 정규화기가 같은 규칙을 쓴다", () => {
+  const at = (root) => collectAssetNodes(root).map((asset) => asset.node.id);
+  const box = { x: 0, y: 0, width: 1, height: 1 };
+
+  // 화면 루트에는 텍스트가 섞이므로 루트 자신은 아이콘이 되지 않는다.
+  const screen = (child) => ({
+    id: "r",
+    type: "FRAME",
+    absoluteRenderBounds: box,
+    children: [{ id: "t", type: "TEXT", absoluteRenderBounds: box }, child]
+  });
+
+  assert.deepEqual(at(screen({ id: "1:2", type: "VECTOR", absoluteRenderBounds: box })), ["1:2"]);
+  // 값이 없으면(undefined) 판정하지 않는다 — 옛 원본을 소급해 떨어뜨리면
+  // 이미 저장된 자산이 고아가 된다.
+  assert.deepEqual(at(screen({ id: "1:2", type: "BOOLEAN_OPERATION" })), ["1:2"]);
+  assert.deepEqual(at(screen({ id: "1:2", type: "TEXT" })), []);
 });

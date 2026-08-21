@@ -10,7 +10,10 @@ export const DEFAULT_MAX_BODY_BYTES = 1024 * 1024;
 export const DEFAULT_MAX_FIGMA_RAW_BODY_BYTES = 25 * 1024 * 1024;
 
 const IDENTIFIER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
-const SVG_ASSET_FILE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.svg$/;
+// 자산은 벡터(SVG)와 래스터(PNG) 둘 다 있다. 마스코트처럼 이미지 fill을 가진
+// 노드는 벡터로 뽑을 수 없다.
+const ASSET_FILE_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}\.(svg|png)$/;
+const ASSET_CONTENT_TYPE = { svg: "image/svg+xml", png: "image/png" };
 const PNG_SIGNATURE = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 const DEFAULT_SPECS_ROOT = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -286,11 +289,11 @@ export function resolveScreenAssetPath({
   assertIdentifier(wireframeKey);
   assertIdentifier(screenId);
 
-  if (!SVG_ASSET_FILE_PATTERN.test(fileName)) {
+  if (!ASSET_FILE_PATTERN.test(fileName)) {
     throw new HttpError(
       400,
       "invalid_asset_name",
-      "자산 파일 이름은 영숫자로 시작하고 .svg로 끝나야 합니다."
+      "자산 파일 이름은 영숫자로 시작하고 .svg 또는 .png로 끝나야 합니다."
     );
   }
 
@@ -311,7 +314,7 @@ export function resolveScreenAssetPath({
     throw new HttpError(
       400,
       "invalid_asset_name",
-      "자산 파일 이름은 영숫자로 시작하고 .svg로 끝나야 합니다."
+      "자산 파일 이름은 영숫자로 시작하고 .svg 또는 .png로 끝나야 합니다."
     );
   }
 
@@ -804,27 +807,40 @@ async function handlePutScreenAsset({
     .trim()
     .toLowerCase();
 
-  if (contentType !== "image/svg+xml") {
+  const extension = fileName.slice(fileName.lastIndexOf(".") + 1);
+  const expectedType = ASSET_CONTENT_TYPE[extension];
+
+  if (contentType !== expectedType) {
     request.resume();
     throw new HttpError(
       415,
       "unsupported_media_type",
-      "Content-Type은 image/svg+xml이어야 합니다."
+      `${fileName}의 Content-Type은 ${expectedType}이어야 합니다.`
     );
   }
 
   const body = await readRequestBody(
     request,
     maxBodyBytes,
-    "SVG 자산은 1MB를 넘을 수 없습니다."
+    "자산은 1MB를 넘을 수 없습니다.",
+    { binary: extension === "png" }
   );
 
-  if (!body.includes("<svg")) {
+  if (extension === "svg" && !body.includes("<svg")) {
     throw new HttpError(
       400,
       "invalid_svg",
       "요청 본문이 올바른 SVG가 아닙니다."
     );
+  }
+  // PNG는 시그니처로 확인한다. 잘못된 바이트를 조용히 저장하면 화면이 깨진
+  // 이미지를 그리고 원인은 파일에 남지 않는다.
+  if (
+    extension === "png" &&
+    (body.length < PNG_SIGNATURE.length ||
+      !body.subarray(0, PNG_SIGNATURE.length).equals(PNG_SIGNATURE))
+  ) {
+    throw new HttpError(400, "invalid_png", "요청 본문이 올바른 PNG가 아닙니다.");
   }
 
   await writeDataAtomically(filePath, body);

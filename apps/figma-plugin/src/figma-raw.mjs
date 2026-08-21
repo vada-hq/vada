@@ -1,9 +1,12 @@
 import {
-  figmaAssetFileName,
-  isVectorAssetNode
+  collectAssetNodes,
+  figmaAssetFileName
 } from "../../../packages/contracts/src/figma-design.mjs";
 
 export const REFERENCE_PNG_SCALE = 2;
+
+// 래스터 자산도 참조 이미지와 같은 배율로 뽑는다.
+export const ASSET_PNG_SCALE = 2;
 
 // Figma 샌드박스가 던지는 값은 Error 인스턴스가 아닐 수 있다(렐름이 다르다).
 // `error instanceof Error ? error.message : "..."`로 거르면 진짜 원인이 사라지고
@@ -46,37 +49,49 @@ export async function exportFigmaRaw(screenNode) {
 }
 
 export async function exportFigmaScreenAssets(screenNode) {
-  if (
-    !screenNode ||
-    typeof screenNode.exportAsync !== "function" ||
-    typeof screenNode.findAll !== "function"
-  ) {
+  if (!screenNode || typeof screenNode.exportAsync !== "function") {
     throw new Error("Figma 자산을 추출할 작업 화면이 필요합니다.");
   }
 
-  const vectorNodes = screenNode.findAll((node) => isVectorAssetNode(node));
+  // 자산의 단위는 정규화기와 같은 규칙으로 정한다(collectAssetNodes).
+  // 벡터 하나씩이 아니라 아이콘 묶음이고, 래스터는 PNG다.
+  const assetNodes = collectAssetNodes(screenNode);
   const assets = [];
   const failures = [];
 
   // 하나가 실패해도 나머지를 버리지 않는다. 화면이 커질수록(HOME-01K는 벡터
   // 64개) 전부 아니면 전무는 진단도 복구도 불가능하게 만든다.
-  for (const node of vectorNodes) {
+  for (const { node, format } of assetNodes) {
     try {
-      const svg = await node.exportAsync({ format: "SVG_STRING" });
+      if (format === "png") {
+        const bytes = await node.exportAsync({
+          format: "PNG",
+          constraint: { type: "SCALE", value: ASSET_PNG_SCALE }
+        });
+        if (!(bytes instanceof Uint8Array) || bytes.length === 0) {
+          throw new Error("PNG 바이트가 비어 있습니다.");
+        }
+        assets.push({
+          nodeId: node.id,
+          fileName: figmaAssetFileName(node.id, "png"),
+          format,
+          bytes
+        });
+        continue;
+      }
 
+      const svg = await node.exportAsync({ format: "SVG_STRING" });
       if (typeof svg !== "string" || !svg.includes("<svg")) {
         throw new Error("SVG 형식이 아닙니다.");
       }
-
       assets.push({
         nodeId: node.id,
-        fileName: figmaAssetFileName(node.id),
+        fileName: figmaAssetFileName(node.id, "svg"),
+        format,
         svg
       });
     } catch (error) {
-      failures.push(
-        `벡터 ${node.id}의 SVG 추출 실패: ${toErrorMessage(error)}`
-      );
+      failures.push(`자산 ${node.id}(${format}) 추출 실패: ${toErrorMessage(error)}`);
     }
   }
 

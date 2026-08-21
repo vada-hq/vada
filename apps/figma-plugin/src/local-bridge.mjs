@@ -268,15 +268,22 @@ export async function saveFigmaRawToLocal({
   return response.json();
 }
 
+// 자산은 벡터(SVG 문자열)와 래스터(PNG 바이트) 둘 다 있다.
 export async function saveFigmaAssetToLocal({
   wireframeKey,
   screenId,
   fileName,
   svg,
+  bytes,
   fetchImpl = globalThis.fetch,
   origin = LOCAL_SPEC_SERVICE_ORIGIN
 }) {
-  if (typeof svg !== "string" || !svg.includes("<svg")) {
+  const isPng = bytes !== undefined;
+  if (isPng) {
+    if (!(bytes instanceof Uint8Array) || bytes.length === 0) {
+      throw new Error("저장할 PNG 바이트가 필요합니다.");
+    }
+  } else if (typeof svg !== "string" || !svg.includes("<svg")) {
     throw new Error("저장할 SVG 본문이 필요합니다.");
   }
 
@@ -291,8 +298,8 @@ export async function saveFigmaAssetToLocal({
   try {
     response = await fetchImpl(url, {
       method: "PUT",
-      headers: { "Content-Type": "image/svg+xml" },
-      body: svg
+      headers: { "Content-Type": isPng ? "image/png" : "image/svg+xml" },
+      body: isPng ? bytes : svg
     });
   } catch {
     throw new Error(

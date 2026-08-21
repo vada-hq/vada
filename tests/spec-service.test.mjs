@@ -274,8 +274,9 @@ test("자산 파일 이름과 본문 형식을 검증하고 잘못된 요청을 
   );
   assert.equal(badNameResponse.status, 400);
 
+  // 지원하지 않는 확장자는 이름 단계에서 거부한다.
   const badExtensionResponse = await fetch(
-    `${baseUrl}/v1/screens/vada-wireframe/ONB-01/assets/logo.png`,
+    `${baseUrl}/v1/screens/vada-wireframe/ONB-01/assets/logo.gif`,
     {
       method: "PUT",
       headers: { "content-type": "image/svg+xml" },
@@ -283,6 +284,25 @@ test("자산 파일 이름과 본문 형식을 검증하고 잘못된 요청을 
     }
   );
   assert.equal(badExtensionResponse.status, 400);
+
+  // 래스터 자산은 png로 받는다(이미지 fill을 가진 노드는 벡터로 뽑을 수 없다).
+  // 확장자와 Content-Type이 어긋나면 415다.
+  const pngUrl = `${baseUrl}/v1/screens/vada-wireframe/ONB-01/assets/7-87.png`;
+  const mismatchedTypeResponse = await fetch(pngUrl, {
+    method: "PUT",
+    headers: { "content-type": "image/svg+xml" },
+    body: svg
+  });
+  assert.equal(mismatchedTypeResponse.status, 415);
+
+  // PNG 시그니처가 아닌 바이트는 조용히 저장하지 않는다.
+  const badPngBytesResponse = await fetch(pngUrl, {
+    method: "PUT",
+    headers: { "content-type": "image/png" },
+    body: new Uint8Array([1, 2, 3, 4, 5, 6, 7, 8])
+  });
+  assert.equal(badPngBytesResponse.status, 400);
+
 
   const badTypeResponse = await fetch(assetUrl, {
     method: "PUT",
@@ -313,6 +333,30 @@ test("자산 파일 이름과 본문 형식을 검증하고 잘못된 요청을 
   assert.equal(getAssetResponse.headers.get("allow"), "PUT, OPTIONS");
 
   assert.deepEqual(await readdir(specsRoot), []);
+});
+
+// 이미지 fill을 가진 노드(HOME-01K의 마스코트)는 벡터로 뽑을 수 없어 PNG로 온다.
+test("래스터 자산을 png로 저장한다", async (t) => {
+  const { baseUrl, specsRoot } = await startServer(t);
+  const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);
+
+  const response = await fetch(
+    `${baseUrl}/v1/screens/vada-wireframe/HOME-01K/assets/16-87.png`,
+    {
+      method: "PUT",
+      headers: { "content-type": "image/png" },
+      body: png
+    }
+  );
+
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).artifact, "assets/16-87.png");
+  assert.deepEqual(
+    await readFile(
+      join(specsRoot, "vada-wireframe", "screens", "HOME-01K", "assets", "16-87.png")
+    ),
+    Buffer.from(png)
+  );
 });
 
 test("오래된 리비전으로 로컬 JSON을 덮어쓰지 못한다", async (t) => {

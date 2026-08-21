@@ -716,7 +716,8 @@ window.onmessage = async (event) => {
               wireframeKey: message.wireframeKey,
               screenId: message.screenId,
               fileName: asset.fileName,
-              svg: asset.svg
+              svg: asset.svg,
+              bytes: asset.bytes
             });
             savedAssetCount += 1;
           } catch (error) {
@@ -728,7 +729,7 @@ window.onmessage = async (event) => {
           }
         }
         if (savedAssetCount > 0) {
-          savedArtifacts.push(`벡터 SVG ${savedAssetCount}개`);
+          savedArtifacts.push(`자산 ${savedAssetCount}개`);
         }
       }
 

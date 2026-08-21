@@ -6,25 +6,81 @@ const DEFAULT_CONSTRAINTS = {
 const VECTOR_ASSET_TYPES = new Set(["VECTOR", "BOOLEAN_OPERATION"]);
 
 /**
- * 벡터 자산으로 뽑을 수 있는 노드인가.
+ * 자산으로 뽑을 노드를 트리에서 모은다.
  *
- * 유형만으로는 부족하다. absoluteRenderBounds가 null이면 그 노드는 실제로
- * 아무것도 그리지 않으며 Figma 자신이 export를 거부한다:
- *   "Failed to export node. This node may not have any visible layers."
- * HOME-01K의 벡터 64개 중 3개가 그랬고, 등록된 화면을 전부 대조해도
- * null인 벡터는 그 셋뿐이었다.
+ * 단위가 벡터 하나가 아니라 **벡터만 품은 가장 바깥 노드**다. 아이콘 하나는
+ * 보통 벡터 여러 개로 그려지므로, 벡터마다 SVG를 뽑으면 조각이 나와 아무도
+ * 쓸 수 없다 — HOME-01K는 아이콘 22개가 파일 61개로 흩어졌다. 판별은 이름이
+ * 아니라 구조로 한다(제품마다 레이어 이름이 다르다).
  *
- * 값이 없으면(undefined) 판정하지 않는다 — 옛 원본을 소급해서 자산에서
- * 떨어뜨리면 이미 저장된 SVG가 고아가 된다.
+ * absoluteRenderBounds가 null이면 그 노드는 아무것도 그리지 않으며 Figma 자신이
+ * export를 거부한다("Failed to export node. This node may not have any visible
+ * layers."). 값이 없으면(undefined) 판정하지 않는다 — 옛 원본을 소급해서
+ * 떨어뜨리면 이미 저장된 자산이 고아가 된다.
  *
- * 플러그인(추출)과 정규화기(참조)가 같은 규칙을 써야 한다. 한쪽만 알면
- * 참조는 있는데 파일이 없거나, 파일은 있는데 참조가 없다.
+ * 플러그인(추출)과 정규화기(참조)가 같은 함수를 써야 한다. 한쪽만 알면 참조는
+ * 있는데 파일이 없거나, 파일은 있는데 참조가 없다.
+ *
+ * @returns {Array<{node: object, format: "svg"|"png"}>}
  */
-export function isVectorAssetNode(node) {
-  if (!VECTOR_ASSET_TYPES.has(node?.type)) {
+export function collectAssetNodes(root) {
+  const assets = [];
+  const visit = (node) => {
+    if (!node || node.absoluteRenderBounds === null) {
+      return;
+    }
+    if (hasImageFill(node)) {
+      // 래스터는 벡터로 뽑을 수 없다. 노드를 그대로 그려 담는다.
+      assets.push({ node, format: "png" });
+      return;
+    }
+    if (hasVectorDescendant(node) && isVectorOnlySubtree(node)) {
+      assets.push({ node, format: "svg" });
+      return;
+    }
+    for (const child of childNodes(node)) {
+      visit(child);
+    }
+  };
+  visit(root);
+  return assets;
+}
+
+function childNodes(node) {
+  return Array.isArray(node?.children) ? node.children : [];
+}
+
+export function hasImageFill(node) {
+  return (Array.isArray(node?.fills) ? node.fills : []).some(
+    (fill) => fill?.type === "IMAGE"
+  );
+}
+
+function rendersNothing(node) {
+  return node?.absoluteRenderBounds === null;
+}
+
+function hasVectorDescendant(node) {
+  if (rendersNothing(node)) {
     return false;
   }
-  return node.absoluteRenderBounds !== null;
+  if (VECTOR_ASSET_TYPES.has(node?.type)) {
+    return true;
+  }
+  return childNodes(node).some(hasVectorDescendant);
+}
+
+// 그리는 것이 없는 가지는 섞임을 만들지 않는다 — 있으나 마나이므로 아이콘
+// 판정을 깨뜨려서도, 혼자 아이콘이 되어서도 안 된다.
+function isVectorOnlySubtree(node) {
+  if (rendersNothing(node)) {
+    return true;
+  }
+  const children = childNodes(node);
+  if (children.length === 0) {
+    return VECTOR_ASSET_TYPES.has(node?.type);
+  }
+  return children.every(isVectorOnlySubtree);
 }
 
 function isObject(value) {
@@ -583,12 +639,12 @@ function normalizeText(node) {
   return text;
 }
 
-export function figmaAssetFileName(nodeId) {
-  return `${String(nodeId).replace(/[^a-zA-Z0-9._-]/g, "-")}.svg`;
+export function figmaAssetFileName(nodeId, format = "svg") {
+  return `${String(nodeId).replace(/[^a-zA-Z0-9._-]/g, "-")}.${format}`;
 }
 
-function assetFileForNode(nodeId) {
-  return `assets/${figmaAssetFileName(nodeId)}`;
+function assetFileForNode(nodeId, format) {
+  return `assets/${figmaAssetFileName(nodeId, format)}`;
 }
 
 function normalizeComponentReference(node) {
@@ -633,11 +689,12 @@ function normalizeNode(node, parentBounds, assets) {
     normalized.component = component;
   }
 
-  if (isVectorAssetNode(node)) {
-    const file = assetFileForNode(node.id);
+  const assetFormat = assets.formatByNodeId.get(node.id);
+  if (assetFormat) {
+    const file = assetFileForNode(node.id, assetFormat);
     normalized.assetRef = file;
-    if (!assets.has(node.id)) {
-      assets.set(node.id, { nodeId: node.id, format: "svg", file });
+    if (!assets.entries.has(node.id)) {
+      assets.entries.set(node.id, { nodeId: node.id, format: assetFormat, file });
     }
   }
 
@@ -673,7 +730,12 @@ export function normalizeFigmaDesign(raw, options = {}) {
   }
   assertRawDocument(raw);
 
-  const assets = new Map();
+  const assets = {
+    formatByNodeId: new Map(
+      collectAssetNodes(raw.document).map((asset) => [asset.node.id, asset.format])
+    ),
+    entries: new Map()
+  };
   const rootBounds = raw.document.absoluteBoundingBox;
   const root = normalizeNode(raw.document, undefined, assets);
 
@@ -695,6 +757,6 @@ export function normalizeFigmaDesign(raw, options = {}) {
       height: round(rootBounds.height)
     },
     root,
-    assets: [...assets.values()]
+    assets: [...assets.entries.values()]
   };
 }
