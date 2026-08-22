@@ -17,7 +17,7 @@ import {
   org01,
   primaryButtonOf,
 } from '../spec/screens'
-import type { ButtonSpec, FieldSpec, GroupSpec, NoteSpec, SelectSpec } from '../spec/types'
+import type { ButtonSpec, FieldSpec, GroupSpec, NoteSpec } from '../spec/types'
 import { readScopeDisplayValue } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 

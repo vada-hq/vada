@@ -1,21 +1,17 @@
 import { afterEach } from 'vitest'
+import '@testing-library/jest-dom/vitest'
+import { cleanup } from '@testing-library/react'
 
-// setupFiles는 모든 테스트 파일에 걸린다. DOM을 쓰지 않는 테스트는
-// `// @vitest-environment node`로 jsdom을 띄우지 않으므로, 여기서 DOM 도구를
-// 최상위에서 import하면 그쪽이 `Element is not defined`로 죽는다.
-const hasDom = typeof document !== 'undefined'
+// 이 파일은 dom 프로젝트(.tsx 테스트)에서만 돌므로 DOM이 항상 있다.
+// 동적 import로 미루지 않는다 — setupFiles에서 await 뒤에 훅을 걸면
+// vitest가 수집 문맥을 이미 닫아 간헐적으로 죽는다.
 
-if (hasDom) {
-  await import('@testing-library/jest-dom/vitest')
+// globals: false에서는 testing-library의 자동 cleanup이 등록되지 않는다.
+afterEach(() => {
+  cleanup()
+})
 
-  // globals: false에서는 testing-library의 자동 cleanup이 등록되지 않는다.
-  const { cleanup } = await import('@testing-library/react')
-  afterEach(() => {
-    cleanup()
-  })
-
-  // jsdom에는 scrollIntoView가 없다.
-  if (!Element.prototype.scrollIntoView) {
-    Element.prototype.scrollIntoView = () => {}
-  }
+// jsdom에는 scrollIntoView가 없다.
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = () => {}
 }
