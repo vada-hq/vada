@@ -288,6 +288,27 @@
       .spec-value-absent {
         color: var(--figma-color-text-tertiary);
       }
+
+      /* 값의 근거. 확인해야 하는 것은 '추정'뿐이므로 그것만 눈에 띈다 */
+      .spec-source {
+        display: inline-block;
+        margin-left: 4px;
+        padding: 0 4px;
+        border-radius: 3px;
+        font-size: 10px;
+        line-height: 15px;
+        vertical-align: 1px;
+        white-space: nowrap;
+      }
+      .spec-source-design,
+      .spec-source-precedent {
+        color: var(--figma-color-text-tertiary);
+        background: var(--figma-color-bg-secondary);
+      }
+      .spec-source-authored {
+        color: var(--figma-color-text-onwarning, #7a4b00);
+        background: var(--figma-color-bg-warning-tertiary, #ffe8b3);
+      }
     </style>
   </head>
   <body>

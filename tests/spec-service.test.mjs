@@ -336,6 +336,40 @@ test("자산 파일 이름과 본문 형식을 검증하고 잘못된 요청을 
 });
 
 // 이미지 fill을 가진 노드(HOME-01K의 마스코트)는 벡터로 뽑을 수 없어 PNG로 온다.
+// 근거 표시는 추출기를 다시 돌려 '디자인이 말해 준 값'을 재현한다. 그러려면
+// 플러그인이 figma.design.json과 같은 wireframe의 화면 목록을 읽을 수 있어야 한다.
+test("정규화된 design과 화면 목록을 읽을 수 있다", async (t) => {
+  const { baseUrl, specsRoot } = await startServer(t);
+  const design = { schemaVersion: 1, screenId: "ONB-01", root: { id: "7:1" } };
+  const screenDir = join(specsRoot, "vada-wireframe", "screens", "ONB-01");
+  await mkdir(screenDir, { recursive: true });
+  await writeFile(join(screenDir, "figma.design.json"), JSON.stringify(design), "utf8");
+
+  const designResponse = await fetch(
+    `${baseUrl}/v1/screens/vada-wireframe/ONB-01/figma-design`
+  );
+  assert.equal(designResponse.status, 200);
+  assert.deepEqual(await designResponse.json(), design);
+
+  const listResponse = await fetch(`${baseUrl}/v1/screens/vada-wireframe`);
+  assert.equal(listResponse.status, 200);
+  assert.deepEqual(await listResponse.json(), {
+    wireframeKey: "vada-wireframe",
+    screenIds: ["ONB-01"]
+  });
+
+  // 정규화 전에는 없다고 분명히 말한다 — 빈 값을 돌려주면 근거가 전부
+  // authored로 보여 확인 대상이 부풀어 오른다.
+  const missing = await fetch(`${baseUrl}/v1/screens/vada-wireframe/ORG-01/figma-design`);
+  assert.equal(missing.status, 404);
+
+  const wrongMethod = await fetch(
+    `${baseUrl}/v1/screens/vada-wireframe/ONB-01/figma-design`,
+    { method: "PUT", headers: { "content-type": "application/json" }, body: "{}" }
+  );
+  assert.equal(wrongMethod.status, 405);
+});
+
 test("래스터 자산을 png로 저장한다", async (t) => {
   const { baseUrl, specsRoot } = await startServer(t);
   const png = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00]);

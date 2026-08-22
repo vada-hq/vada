@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { readFile, mkdir, rename, rm, writeFile } from "node:fs/promises";
+import { readFile, mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { basename, dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -216,6 +216,45 @@ function parseStateScopesRoute(requestUrl) {
   };
 }
 
+// 근거(provenance) 표시에 필요한 두 가지 읽기.
+//   figma-design — 추출기를 다시 돌려 '디자인이 말해 준 값'을 재현한다
+//   화면 목록     — 같은 스코프의 다른 화면에서 선례를 모은다
+function parseFigmaDesignRoute(requestUrl) {
+  const { pathname } = new URL(requestUrl ?? "/", "http://127.0.0.1");
+  const segments = pathname.split("/");
+
+  if (
+    segments.length !== 6 ||
+    segments[0] !== "" ||
+    segments[1] !== "v1" ||
+    segments[2] !== "screens" ||
+    segments[5] !== "figma-design"
+  ) {
+    return null;
+  }
+
+  return {
+    wireframeKey: decodePathSegment(segments[3]),
+    screenId: decodePathSegment(segments[4])
+  };
+}
+
+function parseScreenListRoute(requestUrl) {
+  const { pathname } = new URL(requestUrl ?? "/", "http://127.0.0.1");
+  const segments = pathname.split("/");
+
+  if (
+    segments.length !== 4 ||
+    segments[0] !== "" ||
+    segments[1] !== "v1" ||
+    segments[2] !== "screens"
+  ) {
+    return null;
+  }
+
+  return { wireframeKey: decodePathSegment(segments[3]) };
+}
+
 function assertIdentifier(value) {
   if (!IDENTIFIER_PATTERN.test(value)) {
     throw new HttpError(
@@ -390,6 +429,68 @@ export function resolveStateScopesPath({ specsRoot, wireframeKey }) {
   }
 
   return filePath;
+}
+
+export function resolveFigmaDesignPath({ specsRoot, wireframeKey, screenId }) {
+  assertIdentifier(wireframeKey);
+  assertIdentifier(screenId);
+
+  const absoluteRoot = resolve(specsRoot);
+  const filePath = resolve(
+    absoluteRoot,
+    wireframeKey,
+    "screens",
+    screenId,
+    "figma.design.json"
+  );
+  const rootPrefix = absoluteRoot.endsWith(sep)
+    ? absoluteRoot
+    : `${absoluteRoot}${sep}`;
+
+  if (!filePath.startsWith(rootPrefix)) {
+    throw new HttpError(
+      400,
+      "invalid_identifier",
+      "wireframeKey 또는 screenId 형식이 올바르지 않습니다."
+    );
+  }
+
+  return filePath;
+}
+
+async function handleGetFigmaDesign(response, filePath) {
+  const text = await readStoredText(filePath);
+
+  if (text === null) {
+    throw new HttpError(
+      404,
+      "figma_design_not_found",
+      "정규화된 figma.design.json을 찾을 수 없습니다. 원본을 저장한 뒤 정규화 CLI를 실행하세요."
+    );
+  }
+
+  response.setHeader("ETag", createRevision(text));
+  response.setHeader("Content-Type", "application/json; charset=utf-8");
+  response.end(text);
+}
+
+async function handleGetScreenList(response, { specsRoot, wireframeKey }) {
+  assertIdentifier(wireframeKey);
+  const screensDir = resolve(resolve(specsRoot), wireframeKey, "screens");
+
+  let entries;
+  try {
+    entries = await readdir(screensDir, { withFileTypes: true });
+  } catch {
+    throw new HttpError(404, "wireframe_not_found", "저장된 화면이 없습니다.");
+  }
+
+  const screenIds = entries
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort();
+
+  sendJson(response, 200, { wireframeKey, screenIds });
 }
 
 function readRequestBody(
@@ -991,6 +1092,47 @@ export function createSpecServer({
             ...optionSourcesRoute
           })
         );
+        return;
+      }
+
+      const figmaDesignRoute = parseFigmaDesignRoute(request.url);
+      if (figmaDesignRoute !== null) {
+        if (request.method !== "GET") {
+          request.resume();
+          response.setHeader("Allow", "GET, OPTIONS");
+          throw new HttpError(
+            405,
+            "method_not_allowed",
+            "지원하지 않는 HTTP 메서드입니다."
+          );
+        }
+
+        await handleGetFigmaDesign(
+          response,
+          resolveFigmaDesignPath({
+            specsRoot: absoluteSpecsRoot,
+            ...figmaDesignRoute
+          })
+        );
+        return;
+      }
+
+      const screenListRoute = parseScreenListRoute(request.url);
+      if (screenListRoute !== null) {
+        if (request.method !== "GET") {
+          request.resume();
+          response.setHeader("Allow", "GET, OPTIONS");
+          throw new HttpError(
+            405,
+            "method_not_allowed",
+            "지원하지 않는 HTTP 메서드입니다."
+          );
+        }
+
+        await handleGetScreenList(response, {
+          specsRoot: absoluteSpecsRoot,
+          ...screenListRoute
+        });
         return;
       }
 

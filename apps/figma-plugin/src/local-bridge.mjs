@@ -92,6 +92,27 @@ export function getLocalStateScopesUrl({
   )}`;
 }
 
+// 근거 표시가 쓰는 두 가지 읽기. 정규화된 design은 '디자인이 말해 준 값'을,
+// 화면 목록은 같은 스코프의 선례를 재현하는 데 쓴다.
+export function getLocalFigmaDesignUrl({
+  wireframeKey,
+  screenId,
+  origin = LOCAL_SPEC_SERVICE_ORIGIN
+}) {
+  return `${origin}/v1/screens/${encodeURIComponent(
+    requireNonEmptyString(wireframeKey, "wireframeKey")
+  )}/${encodeURIComponent(requireNonEmptyString(screenId, "screenId"))}/figma-design`;
+}
+
+export function getLocalScreenListUrl({
+  wireframeKey,
+  origin = LOCAL_SPEC_SERVICE_ORIGIN
+}) {
+  return `${origin}/v1/screens/${encodeURIComponent(
+    requireNonEmptyString(wireframeKey, "wireframeKey")
+  )}`;
+}
+
 async function getResponseErrorMessage(
   response,
   fallbackMessage = "로컬 파일 요청에 실패했습니다."
@@ -153,6 +174,57 @@ export async function loadScreenSpecFromLocal({
     revision: getResponseRevision(response),
     status: "loaded"
   };
+}
+
+// 근거 계산은 부가 정보다. 실패하면 화면 명세 표시까지 막지 않고 null을 준다.
+async function getJsonOrNull(url, fetchImpl) {
+  try {
+    const response = await fetchImpl(url, { method: "GET" });
+    return response.ok ? await response.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function loadFigmaDesignFromLocal({
+  wireframeKey,
+  screenId,
+  fetchImpl = globalThis.fetch,
+  origin = LOCAL_SPEC_SERVICE_ORIGIN
+}) {
+  return getJsonOrNull(
+    getLocalFigmaDesignUrl({ wireframeKey, screenId, origin }),
+    fetchImpl
+  );
+}
+
+export async function loadPrecedentScreensFromLocal({
+  wireframeKey,
+  exceptScreenId,
+  fetchImpl = globalThis.fetch,
+  origin = LOCAL_SPEC_SERVICE_ORIGIN
+}) {
+  const list = await getJsonOrNull(
+    getLocalScreenListUrl({ wireframeKey, origin }),
+    fetchImpl
+  );
+  const screenIds = Array.isArray(list?.screenIds) ? list.screenIds : [];
+  const screens = [];
+
+  for (const screenId of screenIds) {
+    if (screenId === exceptScreenId) {
+      continue; // 자기 자신을 선례로 삼으면 전부 precedent로 보인다
+    }
+    const screen = await getJsonOrNull(
+      getLocalScreenSpecUrl({ wireframeKey, screenId, origin }),
+      fetchImpl
+    );
+    if (screen) {
+      screens.push(screen);
+    }
+  }
+
+  return screens;
 }
 
 export async function loadOptionSourcesFromLocal({

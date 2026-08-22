@@ -16,6 +16,8 @@ import {
   loadOptionSourcesFromLocal,
   loadScreenSpecFromLocal,
   loadStateScopesFromLocal,
+  loadFigmaDesignFromLocal,
+  loadPrecedentScreensFromLocal,
   saveFigmaAssetToLocal,
   saveFigmaRawToLocal,
   saveFigmaReferenceToLocal
@@ -28,6 +30,8 @@ import {
   findStateScopeByKey,
   normalizeStateScopeCatalog
 } from "./state-scopes.mjs";
+import { classifySpecProvenance } from "../../../packages/contracts/src/spec-provenance.mjs";
+import { collectFieldPrecedents } from "../../../packages/contracts/src/spec-precedent.mjs";
 
 const selectionDetails = document.querySelector("#selection-details");
 const emptyState = document.querySelector("#empty-state");
@@ -67,11 +71,15 @@ const typeLabelByValue = new Map(
   getElementTypeOptions().map((option) => [option.value, option.label])
 );
 
+
 let currentSelection = null;
 let currentActiveScreen = null;
 let activeWireframeKey = "";
 let loadedScreenNodeId;
 let currentScreenSpec = null;
+// 값 하나하나가 어디서 왔는지(디자인·선례·추정). 계산에 실패하면 null이고
+// 그때는 배지를 달지 않는다 — 근거를 모르는 것과 추정인 것은 다르다.
+let currentProvenance = null;
 let specRequestVersion = 0;
 let lastSelectionScope = null;
 let lastHadScreenCandidate = false;
@@ -278,6 +286,13 @@ function findElementByNodeId(candidateNodeId) {
 
 // 값이 없는 속성도 이름은 보여준다. "무엇을 결정해야 하는지"를 빠짐없이
 // 드러내는 것이 스키마를 UI로 쓰는 목적이고, 그건 편집이 없어도 유효하다.
+// 확인이 목적이므로 '기계가 알아낸 값'과 '누군가 정한 값'을 갈라 보여준다.
+const SOURCE_LABEL = {
+  design: "디자인",
+  precedent: "선례",
+  authored: "추정"
+};
+
 function createPropertyRow(label, value, options = {}) {
   const row = document.createElement("div");
   if (options.nested) {
@@ -302,11 +317,18 @@ function createPropertyRow(label, value, options = {}) {
     detail.textContent = String(value);
   }
 
+  if (options.source) {
+    const badge = document.createElement("span");
+    badge.className = `spec-source spec-source-${options.source}`;
+    badge.textContent = SOURCE_LABEL[options.source] ?? options.source;
+    detail.append(" ", badge);
+  }
+
   row.append(name, detail);
   return row;
 }
 
-function appendSpecProperties(list, schema, spec, nested = false) {
+function appendSpecProperties(list, schema, spec, nested = false, sources = null) {
   for (const propertyKey of getSchemaPropertyKeys(schema)) {
     const property = schema.properties[propertyKey];
     const value = spec?.[propertyKey];
@@ -329,7 +351,12 @@ function appendSpecProperties(list, schema, spec, nested = false) {
       continue;
     }
 
-    list.append(createPropertyRow(propertyKey, value, { nested }));
+    list.append(
+      createPropertyRow(propertyKey, value, {
+        nested,
+        source: nested ? undefined : sources?.[propertyKey]
+      })
+    );
   }
 }
 
@@ -446,7 +473,13 @@ function createSpecElementItem(element, index) {
 
   const properties = document.createElement("dl");
   properties.className = "spec-properties";
-  appendSpecProperties(properties, schema, spec);
+  appendSpecProperties(
+    properties,
+    schema,
+    spec,
+    false,
+    currentProvenance?.byNodeId?.get(element?.source?.nodeId ?? "")
+  );
 
   const optionSourceRow = createOptionSourceRow(spec);
   if (optionSourceRow) {
@@ -500,6 +533,36 @@ function renderEmptyState() {
   renderScreenSpec();
 }
 
+// 값이 어디서 왔는지 센다. 추출기를 다시 돌려 재현하는 방식이라 별도의
+// 기록이 필요 없다 — 근거를 파일에 적어 두면 그 자체가 두 번째 원본이 된다.
+//
+// 정규화된 design이 없으면(원본만 저장하고 CLI를 안 돌린 경우) 계산하지 않고
+// null을 준다. 전부 '추정'으로 보이는 것보다 배지가 없는 편이 정직하다.
+async function computeProvenance(wireframeKey, screenSpec) {
+  const design = await loadFigmaDesignFromLocal({
+    wireframeKey,
+    screenId: screenSpec?.screenId
+  });
+
+  if (!design) {
+    return null;
+  }
+
+  try {
+    const screens = await loadPrecedentScreensFromLocal({
+      wireframeKey,
+      exceptScreenId: screenSpec?.screenId
+    });
+    return classifySpecProvenance({
+      screen: screenSpec,
+      design,
+      precedents: collectFieldPrecedents(screens)
+    });
+  } catch {
+    return null;
+  }
+}
+
 async function loadCurrentScreenSpec({ showStatus = false } = {}) {
   const activeScreen = currentActiveScreen;
   const wireframeKey = activeWireframeKey;
@@ -526,18 +589,24 @@ async function loadCurrentScreenSpec({ showStatus = false } = {}) {
 
     if (result.status === "missing") {
       currentScreenSpec = null;
+      currentProvenance = null;
       showSpecStatus(
         `${activeScreen.screenId}/screen.json이 아직 없습니다. AI가 명세를 작성하면 여기에 표시됩니다.`
       );
     } else {
       currentScreenSpec = result.screenSpec;
+      currentProvenance = await computeProvenance(wireframeKey, result.screenSpec);
+
       const count = Array.isArray(result.screenSpec?.elements)
         ? result.screenSpec.elements.length
         : 0;
+      const counts = currentProvenance?.counts;
       showSpecStatus(
-        showStatus
-          ? `${activeScreen.screenId}/screen.json에서 요소 ${count}개를 읽었습니다.`
-          : `요소 ${count}개`
+        counts
+          ? `요소 ${count}개 · 속성 ${counts.total}개 중 확인할 추정값 ${counts.authored}개 (디자인 ${counts.design} · 선례 ${counts.precedent})`
+          : showStatus
+            ? `${activeScreen.screenId}/screen.json에서 요소 ${count}개를 읽었습니다.`
+            : `요소 ${count}개`
       );
     }
   } catch (error) {
@@ -545,6 +614,7 @@ async function loadCurrentScreenSpec({ showStatus = false } = {}) {
       return;
     }
     currentScreenSpec = null;
+    currentProvenance = null;
     showSpecStatus(
       toErrorMessage(error),
       "error"

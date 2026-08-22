@@ -5,6 +5,11 @@ import { join } from "node:path";
 import test from "node:test";
 
 import {
+  loadFigmaDesignFromLocal,
+  loadPrecedentScreensFromLocal
+} from "../apps/figma-plugin/src/local-bridge.mjs";
+
+import {
   LOCAL_SPEC_SERVICE_ORIGIN,
   getLocalFigmaRawUrl,
   getLocalOptionSourcesUrl,
@@ -523,4 +528,52 @@ test("플러그인 UI는 식별자용 고정폭 폰트를 명시한다", async (
   // 한글이 들어가는 값은 고정폭으로 그리지 않는다. Consolas에 한글 글리프가
   // 없어 시스템 한글 폰트로 갈라지기 때문이다.
   assert.doesNotMatch(uiHtml, /<code id="node-name">/u);
+});
+
+// 근거 표시가 쓰는 읽기. 부가 정보이므로 실패해도 명세 표시를 막지 않는다.
+test("정규화된 design이 없으면 근거 계산을 포기하고 null을 준다", async () => {
+  const design = await loadFigmaDesignFromLocal({
+    wireframeKey: "vada-wireframe",
+    screenId: "ONB-01",
+    fetchImpl: async () => ({ ok: false, status: 404, json: async () => ({}) })
+  });
+
+  assert.equal(design, null);
+});
+
+test("브리지에 닿지 못해도 던지지 않는다", async () => {
+  const screens = await loadPrecedentScreensFromLocal({
+    wireframeKey: "vada-wireframe",
+    exceptScreenId: "ONB-01",
+    fetchImpl: async () => {
+      throw new Error("연결 실패");
+    }
+  });
+
+  assert.deepEqual(screens, []);
+});
+
+// 자기 자신을 선례로 삼으면 모든 값이 precedent로 보여 확인 대상이 사라진다.
+test("선례를 모을 때 대상 화면 자신은 뺀다", async () => {
+  const asked = [];
+  const screens = await loadPrecedentScreensFromLocal({
+    wireframeKey: "vada-wireframe",
+    exceptScreenId: "INV-01",
+    fetchImpl: async (url) => {
+      asked.push(url);
+      if (url.endsWith("/v1/screens/vada-wireframe")) {
+        return {
+          ok: true,
+          json: async () => ({ screenIds: ["INV-01", "ONB-01"] })
+        };
+      }
+      return { ok: true, json: async () => ({ screenId: "ONB-01" }) };
+    }
+  });
+
+  assert.deepEqual(screens, [{ screenId: "ONB-01" }]);
+  assert.equal(
+    asked.some((url) => url.includes("/INV-01")),
+    false
+  );
 });
