@@ -1,3 +1,6 @@
+// @vitest-environment node
+// DOM을 쓰지 않는 테스트다. jsdom을 띄우지 않으면 워커 기동이 빨라지고,
+// 부하가 걸렸을 때 환경 준비가 타임아웃되는 경로 자체가 사라진다.
 import { describe, expect, it } from 'vitest'
 import { asOptionSourcesCatalog, getOptionSource } from './catalog'
 
