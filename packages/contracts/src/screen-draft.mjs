@@ -249,9 +249,12 @@ function describeButton(node, questions, index, emphasis) {
   };
 }
 
-// 텍스트를 가진 Button 형제 묶음. 두 가지로 읽힐 수 있다:
+// 텍스트를 가진 Button 형제 묶음. 세 가지로 읽힐 수 있다:
 //   - 각각 별도 버튼(ONB-02의 시작 방식 카드 — 각자 다른 화면으로 이동)
 //   - 하나를 고르는 선택지(ORG-02의 조직 구성 방식 라디오 카드)
+//   - 값 묶음·되풀이 목록(HOME-01K의 통계 타일 — 누르는 것이 아니라 읽는 것)
+// 섹션(제목 + 되풀이 묶음) 안에 있으면 셋째로 확정되지만, 여기까지 온 것은
+// 섹션 밖이라 구조로는 갈리지 않는다.
 // 이 wireframe에서는 선택 상태만 파란 계열로 그려 구분되지만, 그건 이 제품의
 // 디자인 시스템 색이라 파이프라인이 알 수 없다. 추측하지 않고 질문한다.
 function findSiblingButtonGroup(node) {
@@ -307,6 +310,45 @@ function readGroupTitle(node) {
  * @param {{precedents?: {entries: object[], conflicts: string[]}, stateScopeKey?: string}} options
  *   이미 등록된 화면에서 모은 선례. 같은 스코프의 같은 라벨만 확정에 쓴다.
  */
+// 대시보드의 섹션: 자식이 정확히 둘이고 첫째가 제목(텍스트만), 둘째가
+// 되풀이 묶음인 노드. 그 안의 항목은 화면 요소가 아니라 데이터의 되풀이다.
+//
+// 되풀이 판별은 형제의 이름이 같은가로 한다. 이름은 제품마다 다르지만
+// '형제끼리 같다'는 관계는 제품과 무관하다.
+//
+// ONB-02의 시작 방식 카드도 닮은 형제 둘이지만 각각 별도 버튼이다. 갈리는
+// 곳은 부모다 — 그쪽 부모는 화면 카드 전체라 자식이 여섯이다.
+function isRepeatedGroup(node) {
+  const items = children(node);
+  if (items.length < 2) {
+    return false;
+  }
+  const first = items[0]?.name ?? "";
+  return (
+    first !== "" &&
+    items.every((item) => item.name === first) &&
+    items.every((item) => textOf(item) !== "") &&
+    // 필드는 데이터의 되풀이가 아니라 각각이 화면 요소다. 폼의 '제목 + 필드
+    // 둘'(ONB-01 7:22)이 섹션으로 오인되면 필드를 통째로 삼킨다.
+    countFieldWrappers(node) === 0
+  );
+}
+
+function readSection(node) {
+  const parts = children(node);
+  if (parts.length !== 2) {
+    return null;
+  }
+  const [header, body] = parts;
+  if (!isRepeatedGroup(body) || isRepeatedGroup(header)) {
+    return null;
+  }
+  const titles = collectText(header).map((part) => part.trim()).filter(Boolean);
+  return titles.length > 0
+    ? { title: titles[0], header, body, itemCount: children(body).length }
+    : null;
+}
+
 export function draftScreenElements(design, options = {}) {
   const elements = [];
   const questions = [];
@@ -324,13 +366,31 @@ export function draftScreenElements(design, options = {}) {
         elements.push(describeField(child, questions, elements.length, lookup));
         continue; // 필드 내부는 더 파지 않는다(등록 노드 계약)
       }
+
+      const section = readSection(child);
+      if (section) {
+        const at = `elements[${elements.length}](${section.title})`;
+        elements.push({
+          source: toSource(child),
+          // 항목 수가 명세에 고정인지 데이터에 달렸는지는 디자인이 말해 주지
+          // 않는다. 되풀이가 보이므로 itemList를 기본으로 두고 질문한다.
+          spec: { type: "itemList", title: section.title }
+        });
+        questions.push(
+          `${at} 유형 — 항목 ${section.itemCount}개가 되풀이됩니다. 항목 수가 명세에 고정이면 summary, 데이터에 달렸으면 itemList입니다. itemList면 dataSourceKey도 정하세요.`
+        );
+        // 본문은 데이터의 되풀이라 파지 않는다. 헤더는 링크 버튼을 품을 수
+        // 있으므로 계속 훑는다.
+        visit(section.header, insideGroup);
+        continue;
+      }
       const siblingButtons = findSiblingButtonGroup(child);
       if (siblingButtons) {
         // 보수적으로 각각 별도 버튼으로 뽑는다 — 합치는 것이 나누는 것보다 쉽다.
         questions.push(
           `${child.id} — 텍스트를 가진 버튼 ${siblingButtons.length}개가 나란히 있습니다(${siblingButtons
             .map((button) => collectText(button)[0]?.trim())
-            .join(", ")}). 각각 별도 버튼입니까, 아니면 하나를 고르는 선택지(select.presentation: choiceGroup)입니까?`
+            .join(", ")}). 읽는 방법이 셋입니다: 각각 별도 버튼(ONB-02의 시작 방식 카드), 하나를 고르는 선택지(select.presentation: choiceGroup), 값 묶음이나 되풀이 목록(summary·itemList — HOME-01K의 통계 타일). 어느 쪽입니까?`
         );
       }
       if (isButton(child)) {

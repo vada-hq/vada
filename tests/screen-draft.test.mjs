@@ -62,6 +62,52 @@ for (const { screenId, derivable, notDerivable } of EXPECTED) {
   });
 }
 
+// 대시보드의 섹션은 '제목 헤더 + 닮은 형제 묶음' 정확히 둘로 이루어진다.
+// 그 안의 항목은 화면 요소가 아니라 데이터의 되풀이다 — 항목마다 요소를
+// 뽑으면 행사 카드와 일정 행이 전부 button이 된다(HOME-01K에서 10건).
+//
+// ONB-02의 시작 방식 카드도 닮은 형제 둘이지만 각각 별도 버튼이다. 갈리는
+// 곳은 부모다: 그쪽 부모(14:93)는 화면 카드 전체라 자식이 6개다.
+test("섹션 안의 되풀이 항목은 요소로 뽑지 않고 섹션을 뽑는다", async () => {
+  const design = await loadDesign("HOME-01K");
+  const { elements } = draftScreenElements(design);
+  const ids = new Set(elements.map((element) => element.source.nodeId));
+
+  for (const sectionId of ["16:135", "16:206", "16:239", "16:269"]) {
+    assert.ok(ids.has(sectionId), `섹션 ${sectionId}을 뽑지 못했다`);
+  }
+  // 섹션 본문의 항목들 — 되풀이라 요소가 아니다.
+  for (const itemId of ["16:140", "16:174", "16:217", "16:224", "16:231", "16:244", "16:257"]) {
+    assert.equal(ids.has(itemId), false, `되풀이 항목 ${itemId}을 요소로 뽑았다`);
+  }
+  // 섹션 헤더의 링크 버튼은 되풀이가 아니므로 그대로 뽑는다.
+  for (const buttonId of ["16:210", "16:273"]) {
+    assert.ok(ids.has(buttonId), `헤더 버튼 ${buttonId}을 놓쳤다`);
+  }
+});
+
+test("섹션의 유형은 추측하지 않고 질문한다", async () => {
+  const design = await loadDesign("HOME-01K");
+  const { questions } = draftScreenElements(design);
+
+  // 항목 수가 명세에 고정인지(summary) 데이터에 달렸는지(itemList)는
+  // 디자인이 말해 주지 않는다.
+  assert.ok(
+    questions.some((question) => /summary/u.test(question) && /itemList/u.test(question)),
+    "섹션 유형을 묻지 않았다"
+  );
+});
+
+// ONB-02가 회귀하지 않는지 — 카드 두 장은 여전히 각각 버튼이다.
+test("섹션이 아닌 나란한 카드는 그대로 각각 버튼으로 뽑는다", async () => {
+  const design = await loadDesign("ONB-02");
+  const { elements } = draftScreenElements(design);
+  const ids = new Set(elements.map((element) => element.source.nodeId));
+
+  assert.ok(ids.has("14:111"));
+  assert.ok(ids.has("14:125"));
+});
+
 test("애매한 버튼 묶음은 추측하지 않고 두 가지 읽기를 질문한다", async () => {
   const { design } = await loadScreen("ORG-02");
   const { questions } = draftScreenElements(design);
