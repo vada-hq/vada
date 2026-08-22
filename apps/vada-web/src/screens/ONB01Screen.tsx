@@ -1,8 +1,3 @@
-import { useRef, useState } from 'react'
-import {
-  evaluateButtonExecution,
-  hasFieldValue,
-} from '../../../../packages/contracts/src/button-execution.mjs'
 import { AppHeader } from '../components/AppHeader'
 import { Field } from '../components/Field'
 import { PageCard } from '../components/PageCard'
@@ -10,6 +5,7 @@ import { PrimaryButton } from '../components/PrimaryButton'
 import { SearchSelect } from '../components/SearchSelect'
 import { TextInput } from '../components/TextInput'
 import { findFlowStep } from '../spec/flows'
+import { useFieldDraft } from '../spec/useFieldDraft'
 import { findButtonSpec, findInputSpec, findSelectSpec, navigateTarget, onb01 } from '../spec/screens'
 import type { SelectSpec } from '../spec/types'
 import type { OnboardingDraft } from '../state/onboarding'
@@ -20,12 +16,7 @@ interface ONB01ScreenProps {
   onNavigate: (screenId: string) => void
 }
 
-const MISSING_FIELD_MESSAGE = '필수 항목입니다'
-
 export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenProps) {
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const fieldRefs = useRef<Record<string, HTMLElement | null>>({})
-
   const nameSpec = findInputSpec(onb01, 'name')
   const studentNumberSpec = findInputSpec(onb01, 'studentNumber')
   const schoolSpec = findSelectSpec(onb01, 'school')
@@ -36,103 +27,18 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
   const meta = onb01.meta
   const flowStep = findFlowStep(onb01.screenId)
 
-  function setFieldValue(fieldKey: string, value: string | null, label?: string) {
-    // 같은 값 재선택은 "변경"이 아니므로 resetOnChangeOf를 발동하지 않는다(F4).
-    if ((draft.values[fieldKey] ?? null) === value) {
-      if (value !== null && label !== undefined && draft.labels[fieldKey] !== label) {
-        onChangeDraft({ values: draft.values, labels: { ...draft.labels, [fieldKey]: label } })
-      }
-      return
-    }
-
-    const values = { ...draft.values, [fieldKey]: value }
-    const labels = { ...draft.labels }
-    if (value !== null && label !== undefined) {
-      labels[fieldKey] = label
-    } else {
-      delete labels[fieldKey]
-    }
-
-    // resetOnChangeOf: 상위 필드가 변경되거나 지워지면 값을 초기화한다.
-    // (스펙이 전이적 상위까지 나열하므로 1단계 순회로 충분하다)
-    const clearedKeys = [fieldKey]
-    for (const element of onb01.elements) {
-      const spec = element.spec
-      if (spec.type === 'select' && spec.resetOnChangeOf?.includes(fieldKey)) {
-        values[spec.fieldKey] = null
-        delete labels[spec.fieldKey]
-        clearedKeys.push(spec.fieldKey)
-      }
-    }
-
-    onChangeDraft({ values, labels })
-    setErrors((previous) => {
-      const next = { ...previous }
-      for (const key of clearedKeys) {
-        delete next[key]
-      }
-      return next
-    })
-  }
-
-  // enabledWhen을 생략하면 항상 활성화, 명시하면 모든 조건 충족 시 활성화.
-  function isSelectEnabled(spec: SelectSpec): boolean {
-    if (!spec.enabledWhen) {
-      return true
-    }
-    return spec.enabledWhen.every((condition) =>
-      hasFieldValue(draft.values[condition.fieldKey]),
-    )
-  }
-
-  function resolveSourceParams(spec: SelectSpec): Record<string, string> {
-    const params: Record<string, string> = {}
-    for (const [param, fieldKey] of Object.entries(spec.optionsSource.params ?? {})) {
-      const value = draft.values[fieldKey]
-      if (typeof value === 'string') {
-        params[param] = value
-      }
-    }
-    return params
-  }
-
-  function selectValue(fieldKey: string) {
-    const value = draft.values[fieldKey]
-    if (typeof value !== 'string' || value.length === 0) {
-      return null
-    }
-    return { value, label: draft.labels[fieldKey] ?? value }
-  }
-
-  function registerRef(fieldKey: string) {
-    return (element: HTMLElement | null) => {
-      fieldRefs.current[fieldKey] = element
-    }
-  }
+  const {
+    errors,
+    isSelectEnabled,
+    registerRef,
+    resolveSourceParams,
+    runButton,
+    selectValue,
+    setFieldValue,
+  } = useFieldDraft({ elements: onb01.elements, draft, onChangeDraft })
 
   function handleNext() {
-    const result = evaluateButtonExecution({
-      action: nextButtonSpec.action,
-      elements: onb01.elements,
-      values: draft.values,
-    })
-
-    if (result.allowed) {
-      onNavigate(navigateTarget(nextButtonSpec.action))
-      return
-    }
-
-    // onExecutionBlocked: showMissingRequiredFields + firstMissingField
-    const nextErrors: Record<string, string> = {}
-    for (const fieldKey of result.missingFieldKeys) {
-      nextErrors[fieldKey] = MISSING_FIELD_MESSAGE
-    }
-    setErrors(nextErrors)
-
-    const firstMissing = result.missingFieldKeys[0]
-    const element = firstMissing ? fieldRefs.current[firstMissing] : null
-    element?.focus()
-    element?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    runButton(nextButtonSpec, () => onNavigate(navigateTarget(nextButtonSpec.action)))
   }
 
   function renderSelectField(spec: SelectSpec) {

@@ -1,9 +1,4 @@
-import { useRef, useState } from 'react'
 import type { ReactNode } from 'react'
-import {
-  evaluateButtonExecution,
-  hasFieldValue,
-} from '../../../../packages/contracts/src/button-execution.mjs'
 import { ChoiceGroup } from '../components/ChoiceGroup'
 import { Field } from '../components/Field'
 import { FieldGroup } from '../components/FieldGroup'
@@ -15,6 +10,7 @@ import { SearchSelect } from '../components/SearchSelect'
 import { SecondaryButton } from '../components/SecondaryButton'
 import { TextInput } from '../components/TextInput'
 import { findFlowStep } from '../spec/flows'
+import { useFieldDraft } from '../spec/useFieldDraft'
 import {
   buttonsByEmphasis,
   navigateTarget,
@@ -32,12 +28,7 @@ interface ORG01ScreenProps {
   onNavigate: (screenId: string) => void
 }
 
-const MISSING_FIELD_MESSAGE = '필수 항목입니다'
-
 export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01ScreenProps) {
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const fieldRefs = useRef<Record<string, HTMLElement | null>>({})
-
   const meta = org01.meta
   const flowStep = findFlowStep(org01.screenId)
   const elements = org01.elements
@@ -50,97 +41,18 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
   const primaryButton = primaryButtonOf(buttons)
   const secondaryButtons = buttonsByEmphasis(buttons, 'secondary')
 
-  function setFieldValue(fieldKey: string, value: string | null, label?: string) {
-    // 같은 값 재선택은 "변경"이 아니므로 resetOnChangeOf를 발동하지 않는다.
-    if ((draft.values[fieldKey] ?? null) === value) {
-      if (value !== null && label !== undefined && draft.labels[fieldKey] !== label) {
-        onChangeDraft({ values: draft.values, labels: { ...draft.labels, [fieldKey]: label } })
-      }
-      return
-    }
-
-    const values = { ...draft.values, [fieldKey]: value }
-    const labels = { ...draft.labels }
-    if (value !== null && label !== undefined) {
-      labels[fieldKey] = label
-    } else {
-      delete labels[fieldKey]
-    }
-
-    const clearedKeys = [fieldKey]
-    for (const element of elements) {
-      const spec = element.spec
-      if (spec.type === 'select' && spec.resetOnChangeOf?.includes(fieldKey)) {
-        values[spec.fieldKey] = null
-        delete labels[spec.fieldKey]
-        clearedKeys.push(spec.fieldKey)
-      }
-    }
-
-    onChangeDraft({ values, labels })
-    setErrors((previous) => {
-      const next = { ...previous }
-      for (const key of clearedKeys) {
-        delete next[key]
-      }
-      return next
-    })
-  }
-
-  function isSelectEnabled(spec: SelectSpec): boolean {
-    if (!spec.enabledWhen) {
-      return true
-    }
-    return spec.enabledWhen.every((condition) => hasFieldValue(draft.values[condition.fieldKey]))
-  }
-
-  function resolveSourceParams(spec: SelectSpec): Record<string, string> {
-    const params: Record<string, string> = {}
-    for (const [param, fieldKey] of Object.entries(spec.optionsSource.params ?? {})) {
-      const value = draft.values[fieldKey]
-      if (typeof value === 'string') {
-        params[param] = value
-      }
-    }
-    return params
-  }
-
-  function selectValue(fieldKey: string) {
-    const value = draft.values[fieldKey]
-    if (typeof value !== 'string' || value.length === 0) {
-      return null
-    }
-    return { value, label: draft.labels[fieldKey] ?? value }
-  }
-
-  function registerRef(fieldKey: string) {
-    return (element: HTMLElement | null) => {
-      fieldRefs.current[fieldKey] = element
-    }
-  }
+  const {
+    errors,
+    isSelectEnabled,
+    registerRef,
+    resolveSourceParams,
+    runButton,
+    selectValue,
+    setFieldValue,
+  } = useFieldDraft({ elements, draft, onChangeDraft })
 
   function handlePrimary() {
-    const result = evaluateButtonExecution({
-      action: primaryButton.action,
-      elements,
-      values: draft.values,
-    })
-
-    if (result.allowed) {
-      onNavigate(navigateTarget(primaryButton.action))
-      return
-    }
-
-    const nextErrors: Record<string, string> = {}
-    for (const fieldKey of result.missingFieldKeys) {
-      nextErrors[fieldKey] = MISSING_FIELD_MESSAGE
-    }
-    setErrors(nextErrors)
-
-    const firstMissing = result.missingFieldKeys[0]
-    const element = firstMissing ? fieldRefs.current[firstMissing] : null
-    element?.focus()
-    element?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    runButton(primaryButton, () => onNavigate(navigateTarget(primaryButton.action)))
   }
 
   function renderField(spec: FieldSpec): ReactNode {
