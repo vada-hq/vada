@@ -382,7 +382,7 @@
       "required": ["nodeId", "format", "file"],
       "properties": {
         "nodeId": { "$ref": "#/$defs/nonEmptyString" },
-        "format": { "const": "svg" },
+        "format": { "enum": ["svg", "png"] },
         "file": { "$ref": "#/$defs/nonEmptyString" }
       }
     }

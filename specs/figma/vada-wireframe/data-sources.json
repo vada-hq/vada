@@ -6,14 +6,20 @@
       "shape": "object",
       "description": "홈 브리핑의 인사 제목. 사용자 이름이 들어가므로 서버가 완성해서 준다.",
       "params": [],
-      "request": { "method": "GET", "path": "/api/home/briefing" },
+      "request": {
+        "method": "GET",
+        "path": "/api/home/briefing"
+      },
       "messages": {
         "loading": "브리핑을 불러오는 중입니다",
         "empty": "확인할 내용이 없습니다",
         "error": "브리핑을 불러오지 못했습니다"
       },
       "fields": [
-        { "key": "title", "description": "인사 제목. 예: 박해랑님, 확인이 필요해요" }
+        {
+          "key": "title",
+          "description": "인사 제목. 예: 박해랑님, 확인이 필요해요"
+        }
       ]
     },
     {
@@ -21,14 +27,20 @@
       "shape": "list",
       "description": "브리핑이 짚어 주는 문장들. 짚을 것이 없으면 빈 목록이므로 개수가 데이터에 달렸다.",
       "params": [],
-      "request": { "method": "GET", "path": "/api/home/briefing/notices" },
+      "request": {
+        "method": "GET",
+        "path": "/api/home/briefing/notices"
+      },
       "messages": {
         "loading": "확인할 내용을 살펴보는 중입니다",
         "empty": "지금은 확인할 내용이 없습니다",
         "error": "확인할 내용을 불러오지 못했습니다"
       },
       "fields": [
-        { "key": "message", "description": "완성된 문장. 예: 지연된 업무가 1건 있습니다." }
+        {
+          "key": "message",
+          "description": "완성된 문장. 예: 지연된 업무가 1건 있습니다."
+        }
       ]
     },
     {
@@ -36,16 +48,28 @@
       "shape": "object",
       "description": "홈 상단에 나열하는 행사·일정 건수.",
       "params": [],
-      "request": { "method": "GET", "path": "/api/home/event-counts" },
+      "request": {
+        "method": "GET",
+        "path": "/api/home/event-counts"
+      },
       "messages": {
         "loading": "건수를 불러오는 중입니다",
         "empty": "표시할 건수가 없습니다",
         "error": "건수를 불러오지 못했습니다"
       },
       "fields": [
-        { "key": "activeEvents", "description": "진행 중 행사 수" },
-        { "key": "upcomingEvents", "description": "예정 행사 수" },
-        { "key": "weeklySchedules", "description": "이번 주 주요 일정 수" }
+        {
+          "key": "activeEvents",
+          "description": "진행 중 행사 수"
+        },
+        {
+          "key": "upcomingEvents",
+          "description": "예정 행사 수"
+        },
+        {
+          "key": "weeklySchedules",
+          "description": "이번 주 주요 일정 수"
+        }
       ]
     },
     {
@@ -53,19 +77,40 @@
       "shape": "list",
       "description": "진행 중이거나 예정된 행사.",
       "params": [],
-      "request": { "method": "GET", "path": "/api/home/events" },
+      "request": {
+        "method": "GET",
+        "path": "/api/home/events"
+      },
       "messages": {
         "loading": "행사를 불러오는 중입니다",
         "empty": "진행 중이거나 예정된 행사가 없습니다",
         "error": "행사를 불러오지 못했습니다"
       },
       "fields": [
-        { "key": "status", "description": "진행 상태. 예: 기획 중" },
-        { "key": "title", "description": "행사 이름" },
-        { "key": "date", "description": "행사 날짜. 정해지지 않았으면 '미정'" },
-        { "key": "place", "description": "장소. 정해지지 않았으면 '미정'" },
-        { "key": "team", "description": "주관 부서" },
-        { "key": "progressPercent", "description": "준비 진행률(0-100)" },
+        {
+          "key": "status",
+          "description": "진행 상태. 예: 기획 중"
+        },
+        {
+          "key": "title",
+          "description": "행사 이름"
+        },
+        {
+          "key": "date",
+          "description": "행사 날짜. 정해지지 않았으면 '미정'"
+        },
+        {
+          "key": "place",
+          "description": "장소. 정해지지 않았으면 '미정'"
+        },
+        {
+          "key": "team",
+          "description": "주관 부서"
+        },
+        {
+          "key": "progressPercent",
+          "description": "준비 진행률(0-100)"
+        },
         {
           "key": "delayedTaskCount",
           "description": "지연된 업무 수. 없으면 오지 않는다.",
@@ -78,16 +123,28 @@
       "shape": "list",
       "description": "다가오는 주요 일정.",
       "params": [],
-      "request": { "method": "GET", "path": "/api/home/schedules" },
+      "request": {
+        "method": "GET",
+        "path": "/api/home/schedules"
+      },
       "messages": {
         "loading": "일정을 불러오는 중입니다",
         "empty": "다가오는 일정이 없습니다",
         "error": "일정을 불러오지 못했습니다"
       },
       "fields": [
-        { "key": "date", "description": "월.일. 예: 07.20" },
-        { "key": "title", "description": "일정 이름" },
-        { "key": "badge", "description": "일정의 성격. 예: 마감" }
+        {
+          "key": "date",
+          "description": "월.일. 예: 07.20"
+        },
+        {
+          "key": "title",
+          "description": "일정 이름"
+        },
+        {
+          "key": "badge",
+          "description": "일정의 성격. 예: 마감"
+        }
       ]
     },
     {
@@ -95,15 +152,28 @@
       "shape": "list",
       "description": "조직 운영에서 확인이 필요한 항목. 종류가 상황에 따라 달라지므로 개수가 데이터에 달렸다.",
       "params": [],
-      "request": { "method": "GET", "path": "/api/home/org-alerts" },
+      "request": {
+        "method": "GET",
+        "path": "/api/home/org-alerts"
+      },
       "messages": {
         "loading": "알림을 불러오는 중입니다",
         "empty": "확인이 필요한 알림이 없습니다",
         "error": "알림을 불러오지 못했습니다"
       },
       "fields": [
-        { "key": "label", "description": "알림 이름. 예: 증빙 서류 누락" },
-        { "key": "count", "description": "해당 건수" }
+        {
+          "key": "kind",
+          "description": "알림의 종류. 화면은 종류마다 다른 아이콘을 그린다(디자인에 문서형·인원형 둘이 있다)."
+        },
+        {
+          "key": "label",
+          "description": "알림 이름. 예: 증빙 서류 누락"
+        },
+        {
+          "key": "count",
+          "description": "해당 건수"
+        }
       ]
     },
     {
@@ -111,17 +181,32 @@
       "shape": "object",
       "description": "조직 전체의 재정 현황 요약.",
       "params": [],
-      "request": { "method": "GET", "path": "/api/home/finance-summary" },
+      "request": {
+        "method": "GET",
+        "path": "/api/home/finance-summary"
+      },
       "messages": {
         "loading": "재정 현황을 불러오는 중입니다",
         "empty": "재정 현황이 없습니다",
         "error": "재정 현황을 불러오지 못했습니다"
       },
       "fields": [
-        { "key": "budgetUsedPercent", "description": "전체 예산 사용률(0-100)" },
-        { "key": "availableBudgetPercent", "description": "사용 가능 예산 비율(0-100)" },
-        { "key": "plannedCount", "description": "승인·집행 예정 건수" },
-        { "key": "missingProofCount", "description": "증빙 누락 건수" }
+        {
+          "key": "budgetUsedPercent",
+          "description": "전체 예산 사용률(0-100)"
+        },
+        {
+          "key": "availableBudgetPercent",
+          "description": "사용 가능 예산 비율(0-100)"
+        },
+        {
+          "key": "plannedCount",
+          "description": "승인·집행 예정 건수"
+        },
+        {
+          "key": "missingProofCount",
+          "description": "증빙 누락 건수"
+        }
       ]
     }
   ]

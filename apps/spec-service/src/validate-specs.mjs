@@ -312,8 +312,10 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
 
     let assetFiles = [];
     try {
-      assetFiles = (await readdir(join(screenDir, "assets"))).filter((name) =>
-        name.endsWith(".svg")
+      // 자산은 벡터(svg)와 래스터(png) 둘 다다. svg만 세면 png 자산이
+      // 있는데도 '없다'고 보고한다.
+      assetFiles = (await readdir(join(screenDir, "assets"))).filter(
+        (name) => name.endsWith(".svg") || name.endsWith(".png")
       );
     } catch {
       assetFiles = [];

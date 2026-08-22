@@ -39,8 +39,8 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     { date: '07.21', title: '주간 운영회의 자료 준비', badge: '마감' },
   ],
   'home.orgAlerts': [
-    { label: '증빙 서류 누락', count: 3 },
-    { label: '참가자 명단 확인 필요', count: 1 },
+    { kind: 'document', label: '증빙 서류 누락', count: 3 },
+    { kind: 'members', label: '참가자 명단 확인 필요', count: 1 },
   ],
   'home.financeSummary': {
     budgetUsedPercent: 34,
