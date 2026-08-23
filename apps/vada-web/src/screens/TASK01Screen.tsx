@@ -39,6 +39,9 @@ const ASSET = {
     unassignedCount: '18:116',
   } as Record<string, string>,
   cardDate: '18:149',
+  // 기한이 지난 카드는 아이콘까지 붉다(18:253이 #FB2C36, 나머지는 #99A1AF).
+  // 자산 대조가 잡아낸 차이다 — 글자 색만 바꾸고 아이콘은 회색으로 두고 있었다.
+  cardDateOverdue: '18:253',
 } as const
 
 interface TASK01ScreenProps {
@@ -246,7 +249,11 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
             overdue ? 'font-semibold text-red-500' : 'font-medium text-gray-400'
           }`}
         >
-          <FigmaAsset screenId={SCREEN} nodeId={ASSET.cardDate} className="size-3" />
+          <FigmaAsset
+            screenId={SCREEN}
+            nodeId={overdue ? ASSET.cardDateOverdue : ASSET.cardDate}
+            className="size-3"
+          />
           {overdue ? `${row.dueDate} · ${row.alert}` : String(row.dueDate)}
         </span>
       </button>

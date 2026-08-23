@@ -7,11 +7,14 @@ import type { ScopeStore } from '../state/scopes'
 import {
   applyDeviations,
   compareScreen,
+  compareScreenAssets,
   findNode,
   report,
   staleReport,
   textsIn,
+  drawingKey,
   unusedDeviations,
+  usesVectorUnitAssets,
 } from '.'
 import type { DesignFile, SeenDifference } from '.'
 import { DEVIATIONS } from '../design/deviations'
@@ -30,6 +33,22 @@ const DESIGN_MODULES = import.meta.glob(
   '../../../../specs/figma/vada-wireframe/screens/*/figma.design.json',
   { import: 'default' },
 )
+
+// 그림의 '내용'이 있어야 같은 그림인지 가릴 수 있다. 파일 이름은 노드 id라 자리마다
+// 다르고, img의 src는 번들러가 만든 주소라 되짚을 수 없다.
+const ASSET_SOURCES = import.meta.glob(
+  '../../../../specs/figma/vada-wireframe/screens/*/assets/*.svg',
+  { query: '?raw', import: 'default', eager: true },
+) as Record<string, string>
+
+function drawingOfScreen(screenId: string): (file: string) => string {
+  const prefix = `../../../../specs/figma/vada-wireframe/screens/${screenId}/`
+  return (file) => {
+    const source = ASSET_SOURCES[`${prefix}${file}`]
+    // png는 raw로 읽지 않는다. 내용을 모르면 파일 이름이 곧 그 그림이다.
+    return source === undefined ? file : drawingKey(source)
+  }
+}
 
 // 화면 아홉 개의 design을 한꺼번에 안고 있으면 무겁다. 필요한 것만 불러 쓴다.
 const designByScreenId = new Map<string, DesignFile>()
@@ -131,6 +150,39 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
       )
 
       expect(remaining, report(screenId, remaining)).toEqual([])
+    })
+
+    // 그림이 통째로 빠져도 글 대조는 조용하다. MY-01·OPS-00에서 실제로 두 번
+    // 그랬고, 그때는 사람이 스크린샷을 봐야만 잡혔다 — 그 개입을 없애는 검사다.
+    it('design이 그림으로 뽑아 둔 자리를 모두 그린다', () => {
+      const design = designByScreenId.get(screenId)
+      if (design === undefined) {
+        throw new Error(`design 파일이 없습니다: ${screenId}`)
+      }
+
+      const { container } = render(
+        <ScreenRouter
+          screenId={screenId}
+          scopes={scopesDrawnBy(spec, design)}
+          onChangeScope={() => {}}
+          onNavigate={() => {}}
+        />,
+      )
+      const drawn = container.querySelectorAll('[data-asset-node-id]').length
+
+      if (usesVectorUnitAssets(design)) {
+        // 이 화면의 자산은 벡터 조각 단위라 아이콘 하나로 그릴 수 없다(옛 추출기).
+        // 그리지 않는 것이 지금의 사실이므로 그대로 못 박아 둔다 — Figma에서 이
+        // 화면을 다시 저장하면 판정이 저절로 반대편으로 넘어간다(BACKLOG).
+        expect(
+          drawn,
+          `${screenId}의 자산은 벡터 조각 단위입니다. 아이콘 단위로 다시 저장해야 그림을 대조할 수 있습니다.`,
+        ).toBe(0)
+        return
+      }
+
+      const missing = compareScreenAssets(container, spec, design, drawingOfScreen(screenId))
+      expect(missing, report(screenId, missing)).toEqual([])
     })
   },
 )

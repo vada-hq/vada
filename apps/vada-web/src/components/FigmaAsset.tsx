@@ -40,5 +40,15 @@ interface FigmaAssetProps {
 }
 
 export function FigmaAsset({ screenId, nodeId, className, alt = '' }: FigmaAssetProps) {
-  return <img src={assetUrl(screenId, nodeId)} alt={alt} className={className} />
+  // 어느 자산을 그렸는지 화면이 내놓는다. 이 끈이 없으면 대조는 그림이 빠진 것을
+  // 알 수 없다 — src는 번들러가 만든 주소라 되짚을 수 없기 때문이다.
+  // (design-check/index.ts의 ASSET_ATTRIBUTE.)
+  return (
+    <img
+      data-asset-node-id={nodeId}
+      src={assetUrl(screenId, nodeId)}
+      alt={alt}
+      className={className}
+    />
+  )
 }

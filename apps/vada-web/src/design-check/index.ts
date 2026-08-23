@@ -9,7 +9,8 @@ import { FONT_WEIGHTS, colorOf, sameColor, tokenOf } from './palette'
 //
 // 무엇을 대조하고 무엇을 대조하지 않는가.
 //
-// - 대조한다: 글의 내용, 글자 색, 글자 굵기, 칸의 배경색과 테두리색.
+// - 대조한다: 글의 내용, 글자 색, 글자 굵기, 칸의 배경색과 테두리색,
+//   그리고 design이 그림으로 뽑아 둔 자리를 화면이 그렸는지.
 // - 대조하지 않는다: 여백·크기·위치·글자 크기. 와이어프레임이 0.875배로 떠 있어서
 //   숫자가 Tailwind 눈금에 딱 떨어지지 않는다. 그 축은 구조적으로 잡음이 섞여
 //   있으므로 지금 붙이면 거짓 경보만 낸다.
@@ -41,6 +42,8 @@ export interface DesignNode {
   id: string
   type: string
   name: string
+  /** 이 노드가 그림 하나로 뽑힌 자리(예: 'assets/16-403.svg'). */
+  assetRef?: string
   appearance?: {
     fills?: DesignFill[]
     strokes?: DesignFill[]
@@ -172,6 +175,34 @@ export function boxesIn(node: DesignNode, exclude: ReadonlySet<string> = EMPTY):
   return dedupe(boxes, (b) => `${b.content}|${b.background}|${b.border}`)
 }
 
+/** design이 그림 하나로 뽑아 둔 자리. */
+export interface DesignAsset {
+  nodeId: string
+  name: string
+  file: string
+}
+
+export function assetsIn(node: DesignNode, exclude: ReadonlySet<string> = EMPTY): DesignAsset[] {
+  return descendants(node, exclude)
+    .filter((child) => child.assetRef !== undefined)
+    .map((child) => ({ nodeId: child.id, name: child.name, file: child.assetRef as string }))
+}
+
+/**
+ * 자산이 아이콘 단위가 아니라 **벡터 조각 단위**로 뽑힌 화면인가.
+ *
+ * 옛 추출기는 벡터 하나를 파일 하나로 냈다. 지금은 '벡터만 품은 가장 바깥 노드'가
+ * 단위라 파일 하나가 곧 아이콘 하나다(packages/contracts의 isVectorOnlySubtree).
+ * 조각 단위 파일은 아이콘으로 그릴 수 없으므로 그 화면은 그림 대조를 할 수 없다.
+ *
+ * 화면 목록을 손으로 들지 않는다 — 조각은 Figma가 붙이는 이름이 'Vector'다.
+ * 피그마에서 다시 저장하면 이 판정이 저절로 넘어간다.
+ */
+export function usesVectorUnitAssets(design: DesignFile): boolean {
+  const assets = assetsIn(design.root)
+  return assets.length > 0 && assets.every((asset) => asset.name === 'Vector')
+}
+
 // --- DOM 쪽 -------------------------------------------------------------
 
 // 공백은 대조에서 뺀다. Figma는 한 텍스트 노드 안에 공백을 담지만 DOM은 같은 글을
@@ -192,6 +223,15 @@ export const STATE_ATTRIBUTE = 'data-design-state'
  * 예외를 규칙에 걸 수 있고, 그러면 같은 규칙을 쓰는 자리가 몇이든 한 줄이다.
  */
 export const RULE_ATTRIBUTE = 'data-design-rule'
+
+/**
+ * 화면이 어느 자산을 그렸는지 내놓는 표시(components/FigmaAsset.tsx).
+ *
+ * img의 src는 번들러가 만든 주소라 되짚을 수 없다. 끈이 없으면 그림이 통째로
+ * 빠져도 대조가 알 수 없다 — MY-01·OPS-00에서 실제로 두 번 그랬고, 그때는
+ * 사람이 스크린샷을 봐야만 잡혔다.
+ */
+export const ASSET_ATTRIBUTE = 'data-asset-node-id'
 
 interface Holder {
   element: Element
@@ -359,7 +399,7 @@ function innermost(holders: Holder[]): Holder {
 
 export interface Difference {
   content: string
-  kind: '자리 없음' | '글 없음' | '칸 없음' | '색' | '굵기' | '배경' | '테두리'
+  kind: '자리 없음' | '글 없음' | '칸 없음' | '그림 없음' | '색' | '굵기' | '배경' | '테두리'
   design: string
   screen: string
   /** 이 자리의 색을 정한 규칙 이름(RULE_ATTRIBUTE). 예외를 규칙에 걸 때 쓴다. */
@@ -498,11 +538,86 @@ export function compareScreen(
 }
 
 /**
- * 일부러 design과 다르게 하기로 한 자리.
+ * 같은 그림인지 가릴 때 쓰는 열쇠. Figma가 파일마다 새로 매기는 id를 지운 SVG다.
  *
- * 검사가 뱉은 줄을 그대로 옮기고 이유를 붙인 것이다 — 그래서 예외를 적는 말과
- * 검사가 말하는 말이 같다.
+ * 같은 아이콘도 자리마다 파일이 따로 나오고, 그 파일들은 `clip0_18_150` 같은
+ * 일련번호만 다르다. 지우지 않으면 같은 달력 아이콘 아홉 개가 서로 다른 그림이 된다.
  */
+export function drawingKey(svg: string): string {
+  return svg.replace(/(?:clip|filter|paint|pattern|image)\d+_[0-9_]+/g, 'ID')
+}
+
+/**
+ * design이 그림으로 뽑아 둔 자리를 화면이 그렸는가.
+ *
+ * 같은 그림이 여러 자리에 있으면 하나만 그려도 통과시킨다. design은 목록 항목마다
+ * 그림을 따로 뽑지만 구현은 데이터로 되풀이해 그리므로, 어느 항목이 어느 노드인지
+ * 짝지을 근거가 없다 — 글 대조가 같은 글에 대해 하는 것과 같은 이유다.
+ *
+ * 그래서 **내용이 다르면 다른 그림**이다. TASK-01의 지연 카드 날짜 아이콘이 빨강인
+ * 것이 이 규칙으로 드러났다.
+ */
+export function compareAssets(
+  container: Element,
+  assets: DesignAsset[],
+  drawingOf: (file: string) => string,
+): Difference[] {
+  const drawn = new Set(
+    Array.from(container.querySelectorAll(`[${ASSET_ATTRIBUTE}]`)).map((element) =>
+      element.getAttribute(ASSET_ATTRIBUTE),
+    ),
+  )
+  const byDrawing = new Map<string, DesignAsset[]>()
+  for (const asset of assets) {
+    const key = drawingOf(asset.file)
+    byDrawing.set(key, [...(byDrawing.get(key) ?? []), asset])
+  }
+
+  const differences: Difference[] = []
+  for (const group of byDrawing.values()) {
+    if (group.some((asset) => drawn.has(asset.nodeId))) {
+      continue
+    }
+    const asset = group[0]
+    differences.push({
+      content: group.length === 1 ? `${asset.nodeId} ${asset.name}` : `${asset.nodeId} ${asset.name} 외 ${group.length - 1}`,
+      kind: '그림 없음',
+      design: asset.file,
+      screen: `${ASSET_ATTRIBUTE}를 단 그림이 없음`,
+    })
+  }
+  return differences
+}
+
+/**
+ * 등록 노드 안의 그림을 대조한다. 셸(사이드바·헤더)의 아이콘은 등록 밖이라
+ * 빠진다 — 글 대조와 같은 범위다.
+ *
+ * 다만 글 대조와 달리 **등록 노드로 쪼개지 않고 화면 전체를 한 자루에 넣는다.**
+ * 글은 같은 글자가 여럿이면 어느 것이 어느 것인지 노드로 좁혀야 가려지지만,
+ * 그림은 내용 자체가 신원이라 좁힐 필요가 없다. 오히려 좁히면 틀린다 —
+ * TASK-01의 네 열이 같은 달력 아이콘을 쓰는데 열마다 design 노드가 다르다.
+ */
+export function compareScreenAssets(
+  container: Element,
+  screen: { screenId: string; elements: RegisteredElement[] },
+  design: DesignFile,
+  drawingOf: (file: string) => string,
+): Difference[] {
+  const assets = new Map<string, DesignAsset>()
+  for (const element of screen.elements) {
+    const nodeId = element.source.nodeId
+    if (container.querySelector(nodeSelector(nodeId)) === null) {
+      // 자리 자체가 없는 것은 compareScreen이 이미 알린다. 두 번 세지 않는다.
+      continue
+    }
+    for (const asset of assetsIn(findNode(design.root, nodeId))) {
+      assets.set(asset.nodeId, asset)
+    }
+  }
+  return compareAssets(container, Array.from(assets.values()), drawingOf)
+}
+
 /**
  * 일부러 design과 다르게 하기로 한 자리.
  *
