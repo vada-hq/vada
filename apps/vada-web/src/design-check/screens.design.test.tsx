@@ -1,11 +1,19 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { render } from '@testing-library/react'
+import { cleanup, render } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS } from '../spec/screens'
 import type { ScreenSpec } from '../spec/types'
 import type { ScopeStore } from '../state/scopes'
-import { applyDeviations, compareScreen, findNode, report, staleReport, textsIn } from '.'
-import type { DesignFile } from '.'
+import {
+  applyDeviations,
+  compareScreen,
+  findNode,
+  report,
+  staleReport,
+  textsIn,
+  unusedDeviations,
+} from '.'
+import type { DesignFile, SeenDifference } from '.'
 import { DEVIATIONS } from '../design/deviations'
 
 // 모든 화면이 design과 같은 모습인지 대조한다.
@@ -113,16 +121,45 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
         />,
       )
 
-      // 일부러 다르게 하기로 한 자리는 덜어낸다. 다만 그 목록이 썩지 않게, 더는
-      // 어긋나지 않는 예외가 남아 있으면 그것도 실패로 다룬다.
-      const { remaining, unused } = applyDeviations(
+      // 일부러 다르게 하기로 한 자리는 덜어낸다. 그 목록이 썩지 않는지는 화면
+      // 하나로 판정할 수 없다(규칙에 건 예외는 여러 화면에 걸쳐 쓰인다) — 아래에
+      // 화면 전부를 모아 보는 검사가 따로 있다.
+      const remaining = applyDeviations(
         screenId,
         compareScreen(document.body, spec, design),
         DEVIATIONS,
       )
 
       expect(remaining, report(screenId, remaining)).toEqual([])
-      expect(unused, staleReport(unused)).toEqual([])
     })
   },
 )
+
+// 예외 목록이 썩지 않는지는 화면 전부를 모아야 판정할 수 있다. 규칙에 건 예외는
+// 여러 화면에 걸쳐 쓰이므로, 화면마다 따로 물으면 안 쓰인 화면에서 거짓 경보가 난다.
+describe('design/deviations.ts', () => {
+  it('쓰이지 않는 예외가 없다', () => {
+    const seen: SeenDifference[] = []
+    for (const spec of ALL_SCREENS) {
+      const design = designByScreenId.get(spec.screenId)
+      if (design === undefined) {
+        throw new Error(`design 파일이 없습니다: ${spec.screenId}`)
+      }
+      const { container } = render(
+        <ScreenRouter
+          screenId={spec.screenId}
+          scopes={scopesDrawnBy(spec, design)}
+          onChangeScope={() => {}}
+          onNavigate={() => {}}
+        />,
+      )
+      for (const difference of compareScreen(container, spec, design)) {
+        seen.push({ ...difference, screenId: spec.screenId })
+      }
+      cleanup()
+    }
+
+    const unused = unusedDeviations(seen, DEVIATIONS)
+    expect(unused, staleReport(unused)).toEqual([])
+  })
+})

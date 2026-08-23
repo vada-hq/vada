@@ -184,15 +184,30 @@ function squash(text: string): string {
 /** 이 자리의 색·굵기는 화면 상태가 정한다는 표시. 화면이 직접 단다. */
 export const STATE_ATTRIBUTE = 'data-design-state'
 
+/**
+ * 이 자리의 색은 우리 규칙이 정한다는 표시(예: 'status-chip'). 화면이 직접 단다.
+ *
+ * 왜 필요한가. 와이어프레임의 불규칙을 따르지 않기로 한 자리는 design과 어긋나는데,
+ * 그 예외를 **자리마다** 적으면 화면이 늘 때마다 목록도 는다. 규칙 이름을 달아 두면
+ * 예외를 규칙에 걸 수 있고, 그러면 같은 규칙을 쓰는 자리가 몇이든 한 줄이다.
+ */
+export const RULE_ATTRIBUTE = 'data-design-rule'
+
 interface Holder {
   element: Element
   // 색이 화면 상태에 달린 자리다(빈 칸의 안내 문구, 아무것도 고르지 않은 선택지).
   // 정적 와이어프레임은 한 상태만 그리므로 이런 자리는 색을 견주지 않는다.
   stateDependent: boolean
+  // 이 자리의 색을 정한 규칙 이름. 없으면 규칙이 아니라 그 자리의 색이다.
+  rule: string | null
 }
 
 function isStateDependent(element: Element): boolean {
   return element.closest(`[${STATE_ATTRIBUTE}]`) !== null
+}
+
+function ruleOf(element: Element): string | null {
+  return element.closest(`[${RULE_ATTRIBUTE}]`)?.getAttribute(RULE_ATTRIBUTE) ?? null
 }
 
 // 상태 클래스(hover:, focus-visible:)는 평상시 모습이 아니므로 보지 않는다. 다만
@@ -277,15 +292,15 @@ function holdersOf(container: Element, content: string): Holder[] {
   for (const element of [container, ...container.querySelectorAll('*')]) {
     if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
       if (element.value !== '' && squash(element.value) === wanted) {
-        holders.push({ element, stateDependent: isStateDependent(element) })
+        holders.push({ element, stateDependent: isStateDependent(element), rule: ruleOf(element) })
       } else if (squash(element.placeholder) === wanted) {
         // 안내 문구는 '빈 칸'이라는 상태에서만 보인다.
-        holders.push({ element, stateDependent: true })
+        holders.push({ element, stateDependent: true, rule: ruleOf(element) })
       }
       continue
     }
     if (squash(visibleText(element)) === wanted) {
-      holders.push({ element, stateDependent: isStateDependent(element) })
+      holders.push({ element, stateDependent: isStateDependent(element), rule: ruleOf(element) })
     }
   }
   return holders
@@ -323,6 +338,7 @@ function boxHoldersOf(container: Element, runs: string[]): Holder[] {
   return Array.from(holders).map((element) => ({
     element,
     stateDependent: isStateDependent(element),
+    rule: ruleOf(element),
   }))
 }
 
@@ -346,6 +362,8 @@ export interface Difference {
   kind: '자리 없음' | '글 없음' | '칸 없음' | '색' | '굵기' | '배경' | '테두리'
   design: string
   screen: string
+  /** 이 자리의 색을 정한 규칙 이름(RULE_ATTRIBUTE). 예외를 규칙에 걸 때 쓴다. */
+  rule?: string
 }
 
 function describe(color: string | null): string {
@@ -373,19 +391,23 @@ export function compareTexts(container: Element, texts: DesignText[]): Differenc
       continue
     }
     if (text.color !== null && !holders.some((h) => sameColor(effectiveColor(h), text.color))) {
+      const holder = innermost(holders)
       differences.push({
         content: text.content,
         kind: '색',
         design: tokenOf(text.color),
-        screen: describe(effectiveColor(innermost(holders))),
+        screen: describe(effectiveColor(holder)),
+        ...(holder.rule === null ? {} : { rule: holder.rule }),
       })
     }
     if (!holders.some((holder) => effectiveWeight(holder) === text.fontWeight)) {
+      const holder = innermost(holders)
       differences.push({
         content: text.content,
         kind: '굵기',
         design: String(text.fontWeight),
-        screen: String(effectiveWeight(innermost(holders))),
+        screen: String(effectiveWeight(holder)),
+        ...(holder.rule === null ? {} : { rule: holder.rule }),
       })
     }
   }
@@ -417,11 +439,13 @@ export function compareBoxes(container: Element, boxes: DesignBox[]): Difference
         continue
       }
       if (!elements.some((element) => sameColor(ownPaint(element, prefix), wanted))) {
+        const holder = innermost(holders)
         differences.push({
           content: box.content,
           kind,
           design: tokenOf(wanted),
-          screen: describe(ownPaint(innermost(holders).element, prefix)),
+          screen: describe(ownPaint(holder.element, prefix)),
+          ...(holder.rule === null ? {} : { rule: holder.rule }),
         })
       }
     }
@@ -479,55 +503,107 @@ export function compareScreen(
  * 검사가 뱉은 줄을 그대로 옮기고 이유를 붙인 것이다 — 그래서 예외를 적는 말과
  * 검사가 말하는 말이 같다.
  */
-export interface Deviation extends Difference {
-  screenId: string
+/**
+ * 일부러 design과 다르게 하기로 한 자리.
+ *
+ * 무엇에 거느냐가 셋이다. 고르는 기준은 하나 — **화면이 늘면 이 줄도 느는가.**
+ *
+ * - `rule`: 우리 규칙이 정하는 색(RULE_ATTRIBUTE로 표시된 자리). 상태 칩이 몇 개든,
+ *   화면이 몇이든 한 줄이다. 늘지 않는다.
+ * - `color`: design의 그 색이 나오는 모든 자리. 팔레트 밖 색을 이름 있는 색으로
+ *   바꾸는 경우다. 그 색이 어디에 또 쓰였든 한 줄이다. 늘지 않는다.
+ * - `place`: 이 화면의 이 글. 와이어프레임이 같은 것을 두 군데에 다르게 그린
+ *   일회성 사고에만 쓴다. 규칙이 아니므로 저절로 늘지도 않는다.
+ *
+ * design·screen 값은 대조 검사가 뱉은 줄을 그대로 옮긴 것이다 — 예외를 적는 말과
+ * 검사가 말하는 말이 같다.
+ */
+interface DeviationBody {
+  kind: Difference['kind']
+  design: string
+  screen: string
   why: string
 }
 
-function sameDifference(left: Difference, right: Difference): boolean {
-  return (
-    left.content === right.content &&
-    left.kind === right.kind &&
-    left.design === right.design &&
-    left.screen === right.screen
-  )
+export type Deviation =
+  | (DeviationBody & { by: 'rule'; rule: string })
+  | (DeviationBody & { by: 'color' })
+  | (DeviationBody & { by: 'place'; screenId: string; content: string })
+
+/** 어긋남 하나가 어느 화면 것인지까지 기억한 것. 썩음 판정에 쓴다. */
+export type SeenDifference = Difference & { screenId: string }
+
+function covers(deviation: Deviation, difference: Difference, screenId: string): boolean {
+  if (
+    deviation.kind !== difference.kind ||
+    deviation.design !== difference.design ||
+    deviation.screen !== difference.screen
+  ) {
+    return false
+  }
+  switch (deviation.by) {
+    case 'rule':
+      return difference.rule === deviation.rule
+    case 'color':
+      return true
+    case 'place':
+      return deviation.screenId === screenId && deviation.content === difference.content
+  }
 }
 
-/**
- * 적어 둔 예외를 덜어낸다. 그리고 **쓰이지 않은 예외**를 함께 돌려준다.
- *
- * 예외 목록은 썩는다 — design이 고쳐져 더는 어긋나지 않는데도 예외가 남아 있으면,
- * 그 자리는 아무도 보지 않는 사각이 된다. 쓰이지 않은 예외를 실패로 다루면 목록이
- * 저절로 현재를 가리킨다.
- */
+/** 적어 둔 예외를 덜어낸다. 남는 것이 진짜 어긋남이다. */
 export function applyDeviations(
   screenId: string,
   differences: Difference[],
   deviations: Deviation[],
-): { remaining: Difference[]; unused: Deviation[] } {
-  const mine = deviations.filter((deviation) => deviation.screenId === screenId)
-  const remaining = differences.filter(
-    (difference) => !mine.some((deviation) => sameDifference(deviation, difference)),
+): Difference[] {
+  return differences.filter(
+    (difference) => !deviations.some((deviation) => covers(deviation, difference, screenId)),
   )
-  const unused = mine.filter(
-    (deviation) => !differences.some((difference) => sameDifference(deviation, difference)),
+}
+
+/**
+ * 어느 화면에서도 쓰이지 않은 예외.
+ *
+ * 예외 목록은 썩는다 — design이 고쳐져 더는 어긋나지 않는데도 예외가 남아 있으면
+ * 그 자리는 아무도 보지 않는 사각이 된다. 쓰이지 않은 예외를 실패로 다루면 목록이
+ * 저절로 현재를 가리킨다.
+ *
+ * 화면 하나가 아니라 **전부**를 모아 판정해야 한다. 규칙에 건 예외는 여러 화면에
+ * 걸쳐 쓰이므로, 화면마다 따로 물으면 안 쓰인 화면에서 거짓 경보가 난다.
+ */
+export function unusedDeviations(seen: SeenDifference[], deviations: Deviation[]): Deviation[] {
+  return deviations.filter(
+    (deviation) => !seen.some((difference) => covers(deviation, difference, difference.screenId)),
   )
-  return { remaining, unused }
 }
 
 /** 실패 메시지로 쓸 표. 어느 글이 어떻게 어긋났는지 한 줄씩 보인다. */
 export function report(screenId: string, differences: Difference[]): string {
   const lines = differences.map(
-    (d) => `  [${d.kind}] "${d.content}" — design ${d.design} / 화면 ${d.screen}`,
+    (d) =>
+      `  [${d.kind}] "${d.content}"${d.rule ? ` (규칙 ${d.rule})` : ''}` +
+      ` — design ${d.design} / 화면 ${d.screen}`,
   )
   return `${screenId}이(가) design과 ${differences.length}곳 어긋납니다.\n${lines.join('\n')}`
+}
+
+function deviationLabel(deviation: Deviation): string {
+  switch (deviation.by) {
+    case 'rule':
+      return `규칙 '${deviation.rule}'`
+    case 'color':
+      return `design ${deviation.design}인 자리`
+    case 'place':
+      return `${deviation.screenId}의 "${deviation.content}"`
+  }
 }
 
 /** 더는 일어나지 않는 예외. 목록에서 지우라는 뜻이다. */
 export function staleReport(unused: Deviation[]): string {
   const lines = unused.map(
     (deviation) =>
-      `  [${deviation.kind}] "${deviation.content}" — 이제 design과 어긋나지 않습니다`,
+      `  [${deviation.kind}] ${deviationLabel(deviation)} — 이제 design과 어긋나지 않습니다`,
   )
   return (
     `design/deviations.ts에 쓰이지 않는 예외가 ${unused.length}개 있습니다. 지우세요.\n` +

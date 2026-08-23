@@ -72,6 +72,7 @@ export function TASK01Screen({ onNavigate }: TASK01ScreenProps) {
           {(alerts.items ?? []).map((item) => (
             <span
               key={item.label}
+              data-design-rule="status-chip"
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${
                 STATUS_CHIP[item.field ?? ''] ?? NEUTRAL_CHIP
               }`}

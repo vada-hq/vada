@@ -34,7 +34,12 @@ export function StatTile({
         <p className={`text-xs text-gray-400 ${tone === 'card' ? 'font-medium' : 'font-normal'}`}>
           {label}
         </p>
-        <p className={`pt-1 text-xl font-bold ${valueClass}`}>{value}</p>
+        {/* 이 숫자의 색은 우리 규칙(tones.ts의 VALUE_TEXT)이 정한다. 그 표시를
+            여기 달아 두면 와이어프레임과 어긋나기로 한 것을 규칙 한 줄로 적을 수
+            있다(design-check의 RULE_ATTRIBUTE). */}
+        <p data-design-rule="value-text" className={`pt-1 text-xl font-bold ${valueClass}`}>
+          {value}
+        </p>
       </div>
     </div>
   )
