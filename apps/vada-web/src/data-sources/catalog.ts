@@ -2,7 +2,7 @@
 // option-sources/catalog.ts와 같은 방식이다: 계약(요청 경로·상태 문구·응답
 // 조각)은 카탈로그를 단일 원본으로 읽고, 네트워크만 개발용 mock으로 대체한다.
 import catalogJson from '../../../../specs/figma/vada-wireframe/data-sources.json'
-import { DASHBOARD_FIXTURES } from './fixtures'
+import { DASHBOARD_FIXTURES, FILTERED_FIXTURES } from './fixtures'
 
 export interface DataSourceMessages {
   loading: string
@@ -46,9 +46,24 @@ export type DataRow = Record<string, string | number>
 
 // 개발용 mock. 실제 응답이 붙기 전까지 fixtures가 대신하며, 카탈로그가 선언한
 // fields와 어긋나면 조용히 비는 대신 오류로 드러난다.
-export function readDataSource(key: string): DataRow | DataRow[] {
+export function readDataSource(
+  key: string,
+  params: Record<string, string> = {},
+): DataRow | DataRow[] {
   const source = findDataSource(key)
-  const fixture = DASHBOARD_FIXTURES[key]
+
+  // 넘긴 인자는 카탈로그가 선언한 것이어야 한다. 이름이 틀리면 조용히
+  // 안 걸러지는 대신 여기서 드러난다.
+  for (const name of Object.keys(params)) {
+    if (!source.params.includes(name)) {
+      throw new Error(
+        `데이터 출처 '${key}'에 선언되지 않은 조회 인자 '${name}'을 넘겼습니다.`,
+      )
+    }
+  }
+
+  const filtered = FILTERED_FIXTURES[key]
+  const fixture = filtered ? filtered(params) : DASHBOARD_FIXTURES[key]
   if (fixture === undefined) {
     throw new Error(`데이터 출처 '${key}'의 개발용 응답이 없습니다.`)
   }
@@ -81,8 +96,11 @@ export function readObjectSource(key: string): DataRow {
   return value
 }
 
-export function readListSource(key: string): DataRow[] {
-  const value = readDataSource(key)
+export function readListSource(
+  key: string,
+  params: Record<string, string> = {},
+): DataRow[] {
+  const value = readDataSource(key, params)
   if (!Array.isArray(value)) {
     throw new Error(`데이터 출처 '${key}'는 목록이 아닙니다.`)
   }

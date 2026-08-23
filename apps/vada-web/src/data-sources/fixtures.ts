@@ -3,6 +3,63 @@
 // catalog.ts의 request.path로 대체된다.
 import type { DataRow } from './catalog'
 
+const MY_TASKS: Array<{ tab: string; row: DataRow }> = [
+  {
+    tab: 'todo',
+    row: {
+      title: '행사 안전 안내문 검토',
+      department: '기획부',
+      status: '검토 필요',
+      nextAction: '검토 의견을 확인하고 처리 내용을 기록',
+      context: '2026 소프트웨어융합대학 체육대회',
+      date: '07.22',
+      linkedDocument: '행사 안전 안내문 검토 관련 문서',
+    },
+  },
+  {
+    tab: 'todo',
+    row: {
+      title: '학생 건의 답변 문안 검토',
+      department: '기획부',
+      status: '검토 필요',
+      nextAction: '검토 의견을 확인하고 처리 내용을 기록',
+      context: '상시 업무',
+      date: '07.22',
+    },
+  },
+  {
+    tab: 'inProgress',
+    row: {
+      title: '참가자 모집 공지 작성',
+      department: '홍보부',
+      status: '진행 중',
+      nextAction: '공지 문안을 작성하고 검토를 요청',
+      context: '2026 소프트웨어융합대학 체육대회',
+      date: '07.20',
+    },
+  },
+  {
+    tab: 'inProgress',
+    row: {
+      title: '주간 운영회의 자료 준비',
+      department: '운영부',
+      status: '진행 중',
+      nextAction: '지난 회의 결정 사항을 정리',
+      context: '상시 업무',
+      date: '07.21',
+    },
+  },
+]
+
+// 탭 배지는 목록에서 센다. 따로 적어 두면 목록과 어긋날 수 있다.
+function countByTab(): DataRow {
+  const counts: DataRow = { todo: 0, inProgress: 0, done: 0 }
+  for (const task of MY_TASKS) {
+    counts[task.tab] = Number(counts[task.tab] ?? 0) + 1
+  }
+  return counts
+}
+
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   'home.briefing': { title: '박해랑님, 확인이 필요해요' },
   'home.briefingNotices': [
@@ -48,4 +105,41 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     plannedCount: 4,
     missingProofCount: 5,
   },
+
+  // 셸 — 모든 데스크톱 화면이 공유한다.
+  'shell.organization': { name: '소프트웨어융합대학' },
+  'shell.viewer': { name: '박해랑', role: '운영부 · 부원' },
+
+  // 내 업무(MY-01).
+  'my.taskAlerts': { delayedCount: 0, todoCount: 2, reviewCount: 2 },
+  'my.taskTabCounts': countByTab(),
 }
+
+// 인자를 받는 출처. 실제로는 서버가 걸러 주므로 mock도 여기서 거른다 —
+// 받아온 것을 화면에서 거르면 명세(itemList.params)와 다른 것을 구현하게 된다.
+//
+// MY-01 디자인이 그린 것은 '해야 할 업무' 탭 2건뿐이다. 다른 탭의 행은
+// 탭이 실제로 무언가를 바꾸는지 보려고 둔 개발용 값이다(HOME-01K의 일정에서
+// 가져왔다). 탭 건수는 이 목록에서 세므로 목록과 배지가 어긋날 수 없다.
+
+function matchesQuery(row: DataRow, query: string): boolean {
+  if (query.trim() === '') {
+    return true
+  }
+  const needle = query.trim().toLowerCase()
+  return Object.values(row).some((value) =>
+    String(value).toLowerCase().includes(needle),
+  )
+}
+
+export const FILTERED_FIXTURES: Record<
+  string,
+  (params: Record<string, string>) => DataRow[]
+> = {
+  'my.tasks': ({ tab = 'todo', query = '' }) =>
+    MY_TASKS.filter((task) => task.tab === tab)
+      .map((task) => task.row)
+      .filter((row) => matchesQuery(row, query)),
+}
+
+

@@ -62,9 +62,18 @@
         "type": "summary",
         "dataSourceKey": "home.eventCounts",
         "items": [
-          { "label": "진행 중 행사", "field": "activeEvents" },
-          { "label": "예정 행사", "field": "upcomingEvents" },
-          { "label": "이번 주 주요 일정", "field": "weeklySchedules" }
+          {
+            "label": "진행 중 행사",
+            "field": "activeEvents"
+          },
+          {
+            "label": "예정 행사",
+            "field": "upcomingEvents"
+          },
+          {
+            "label": "이번 주 주요 일정",
+            "field": "weeklySchedules"
+          }
         ]
       }
     },
@@ -132,10 +141,22 @@
         "title": "전체 재정 요약",
         "dataSourceKey": "home.financeSummary",
         "items": [
-          { "label": "전체 예산 사용률", "field": "budgetUsedPercent" },
-          { "label": "사용 가능 예산", "field": "availableBudgetPercent" },
-          { "label": "승인·집행 예정", "field": "plannedCount" },
-          { "label": "증빙 누락", "field": "missingProofCount" }
+          {
+            "label": "전체 예산 사용률",
+            "field": "budgetUsedPercent"
+          },
+          {
+            "label": "사용 가능 예산",
+            "field": "availableBudgetPercent"
+          },
+          {
+            "label": "승인·집행 예정",
+            "field": "plannedCount"
+          },
+          {
+            "label": "증빙 누락",
+            "field": "missingProofCount"
+          }
         ]
       }
     },
@@ -170,8 +191,8 @@
         "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "내 업무 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "MY-01"
         }
       }
     }

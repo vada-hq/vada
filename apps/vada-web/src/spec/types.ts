@@ -33,6 +33,8 @@ export interface SelectSpec {
   searchable: boolean
   // 선택 UI 형태. 생략하면 dropdown.
   presentation?: 'dropdown' | 'choiceGroup'
+  // 선택지마다 곁들이는 건수의 출처. 선택지는 명세가, 건수는 데이터가 정한다.
+  optionCounts?: { dataSourceKey: string }
   optionsSource: {
     key: string
     params?: Record<string, string>
@@ -119,6 +121,13 @@ export interface ItemListSpec {
   type: 'itemList'
   title?: string
   dataSourceKey: string
+  // 목록을 거르는 값. key는 출처가 선언한 인자 이름, 값은 그 값을 담은 fieldKey.
+  // 받아온 것을 화면에서 거르지 않고 값이 바뀌면 다시 조회한다.
+  params?: Record<string, string>
+  // 항목 하나를 눌렀을 때. 어느 항목인지는 데이터가, 어느 화면인지는 명세가 말한다.
+  itemAction?:
+    | { type: 'navigate'; targetScreenId: string }
+    | { type: 'pending'; note: string }
 }
 
 // 다른 상태 스코프의 필드 값을 읽어 표시하는 파생 표시 요소.
