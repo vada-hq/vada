@@ -1,8 +1,6 @@
-import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { renderField } from '../spec/elements'
-import { findFlowStep } from '../spec/flows'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import {
   findButtonSpec,
@@ -24,7 +22,6 @@ interface ONB01ScreenProps {
 export function ONB01Screen({ draft, scopes, onChangeDraft, onNavigate }: ONB01ScreenProps) {
   const nextButtonSpec = findButtonSpec(onb01)
   const meta = onb01.meta
-  const flowStep = findFlowStep(onb01.screenId)
 
   const field = useFieldDraft({ elements: onb01.elements, draft, onChangeDraft })
 
@@ -44,15 +41,7 @@ export function ONB01Screen({ draft, scopes, onChangeDraft, onNavigate }: ONB01S
   }
 
   return (
-    <PageCard>
-      {flowStep && (
-        <AppHeader label={flowStep.label} step={flowStep.step} totalSteps={flowStep.total} />
-      )}
-
-      {/* 제목 7:18(15.75→18) · 부제 7:20(12.25→14) — 카피는 스펙 meta에서 온다 */}
-      {meta && <h1 className="pt-6 text-lg font-semibold text-gray-900">{meta.title}</h1>}
-      {meta?.description && <p className="pt-1 text-sm text-gray-500">{meta.description}</p>}
-
+    <PageCard screen={onb01}>
       {/* 폼 7:21: pt 21→24, 섹션 간 gap 17.5→20 */}
       <div className="flex flex-col gap-5 pt-6">
         <section className="flex flex-col gap-3">

@@ -1,9 +1,7 @@
-import { FlowProgress } from '../components/FlowProgress'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { SecondaryButton } from '../components/SecondaryButton'
 import { renderBody } from '../spec/elements'
-import { findFlowStep } from '../spec/flows'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import {
   buttonsByEmphasis,
@@ -24,7 +22,6 @@ interface ORG01ScreenProps {
 
 export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01ScreenProps) {
   const meta = org01.meta
-  const flowStep = findFlowStep(org01.screenId)
   const elements = org01.elements
 
   const buttons = elements
@@ -46,19 +43,7 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
   const body = renderBody({ screen: org01, draft, scopes, field })
 
   return (
-    <PageCard>
-      {/* 헤더 14:155: 좌측 eyebrow+제목, 우측 진행 표시(로고 없음 — design의 사실) */}
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          {meta?.eyebrow && <p className="text-xs text-gray-400">{meta.eyebrow}</p>}
-          {meta && <h1 className="pt-1 text-lg font-semibold text-gray-900">{meta.title}</h1>}
-        </div>
-        {flowStep && (
-          <FlowProgress label={flowStep.label} step={flowStep.step} totalSteps={flowStep.total} />
-        )}
-      </header>
-      {meta?.description && <p className="pt-1 text-sm text-gray-500">{meta.description}</p>}
-
+    <PageCard screen={org01}>
       {/* 폼 14:166: pt 21→24, 요소 간 gap 17.5→20 */}
       <div className="flex flex-col gap-5 pt-6">{body}</div>
 

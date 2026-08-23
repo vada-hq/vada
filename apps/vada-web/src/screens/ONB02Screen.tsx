@@ -1,8 +1,6 @@
 import { ArrowLeft, ArrowRight, ExternalLink, Plus } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
-import { findFlowStep } from '../spec/flows'
 import { buttonsByEmphasis, navigateTarget, nodeIdOf, onb02 } from '../spec/screens'
 import type { ButtonSpec } from '../spec/types'
 
@@ -19,7 +17,6 @@ const CARD_ICON_BY_TARGET: Record<string, LucideIcon> = {
 
 export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
   const meta = onb02.meta
-  const flowStep = findFlowStep(onb02.screenId)
   const buttons = onb02.elements
     .filter((element) => element.spec.type === 'button')
     .map((element) => element.spec as ButtonSpec)
@@ -29,14 +26,7 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
   const backButtons = buttonsByEmphasis(buttons, 'quiet')
 
   return (
-    <PageCard>
-      {flowStep && (
-        <AppHeader label={flowStep.label} step={flowStep.step} totalSteps={flowStep.total} />
-      )}
-
-      {meta && <h1 className="pt-6 text-lg font-semibold text-gray-900">{meta.title}</h1>}
-      {meta?.description && <p className="pt-1 text-sm text-gray-500">{meta.description}</p>}
-
+    <PageCard screen={onb02}>
       {/* 옵션 카드 14:110: pt 21→24, gap 10.5→12 / 카드 14:111: p 17.5→20, gap 14→16 */}
       <div className="flex flex-col gap-3 pt-6">
         {cardButtons.map((button) => {

@@ -66,6 +66,35 @@ function scopesDrawnBy(screen: ScreenSpec, design: DesignFile): ScopeStore {
   return store
 }
 
+// 머리 형태는 화면이 고르지 않고 meta.eyebrow가 정한다(components/PageCard.tsx).
+// 그 규칙이 design과 맞는지를 여기서 채점한다 — 짐작을 코드에 적어 두고 아무도
+// 확인하지 않으면, 여섯 번째 카드형 화면에서 조용히 틀린다.
+//
+// 카드형 화면에만 적용한다. 셸이 있는 화면은 로고가 사이드바에 있어서 머리의
+// 눈썹과 로고가 함께 나온다(MY-01·OPS-00).
+const CARD_SCREENS = ALL_SCREENS.filter((spec) => spec.stateScopeKey !== undefined)
+
+describe.each(CARD_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
+  '$screenId 머리 형태',
+  ({ screenId, spec }) => {
+    it('눈썹이 있으면 design에 로고가 없고, 없으면 있다', () => {
+      const design = designByScreenId.get(screenId)
+      if (design === undefined) {
+        throw new Error(`design 파일이 없습니다: ${screenId}`)
+      }
+      const drawsLogo = textsIn(design.root).some((text) => text.content === 'Vada')
+      const hasEyebrow = spec.meta?.eyebrow !== undefined && spec.meta.eyebrow !== null
+
+      expect(
+        hasEyebrow,
+        hasEyebrow
+          ? `${screenId}: meta.eyebrow가 있으니 제목형인데 design은 로고를 그립니다.`
+          : `${screenId}: meta.eyebrow가 없으니 로고형인데 design은 로고를 그리지 않습니다.`,
+      ).toBe(!drawsLogo)
+    })
+  },
+)
+
 describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
   '$screenId design 대조',
   ({ screenId, spec }) => {

@@ -1,4 +1,3 @@
-import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { renderBody } from '../spec/elements'
@@ -38,10 +37,9 @@ export function INV01Screen({ draft, scopes, onChangeDraft, onNavigate }: INV01S
   )
 
   return (
-    <PageCard>
-      {/* 로고 14:6 — 이 화면은 흐름 진행 표시가 없다(design의 사실). */}
-      <AppHeader />
-
+    // 머리는 로고뿐이다 — 흐름에 속하지 않아 진행 표시가 없고(14:6), design에
+    // 화면 제목도 없다(spec/screens.ts의 drawsTitle). 둘 다 PageCard가 안다.
+    <PageCard screen={inv01}>
       {/* 카드 14:12부터 세로로 쌓인다. 섹션 간 간격 21→pt-6. */}
       <div className="flex flex-col gap-6 pt-6">{body}</div>
 

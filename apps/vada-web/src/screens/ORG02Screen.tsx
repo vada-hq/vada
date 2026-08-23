@@ -1,13 +1,11 @@
 import { useState } from 'react'
 import { evaluateButtonExecution } from '../../../../packages/contracts/src/button-execution.mjs'
 import { ChoiceGroup } from '../components/ChoiceGroup'
-import { FlowProgress } from '../components/FlowProgress'
 import { OrgTree } from '../components/OrgTree'
 import type { ListValue } from '../components/OrgTree'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { SecondaryButton } from '../components/SecondaryButton'
-import { findFlowStep } from '../spec/flows'
 import { getMutation, runMutation } from '../spec/mutations'
 import { buttonsByEmphasis, nodeIdOf, org02, primaryButtonOf } from '../spec/screens'
 import type { ButtonSpec, ListSpec, SelectSpec, SubmitAction } from '../spec/types'
@@ -48,7 +46,6 @@ export function ORG02Screen({
   const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'error'>('idle')
 
   const meta = org02.meta
-  const flowStep = findFlowStep(org02.screenId)
   const elements = org02.elements
 
   const setupSpec = elements.find((element) => element.spec.type === 'select')!
@@ -128,18 +125,7 @@ export function ORG02Screen({
 
   return (
     // 카드 14:242: 총폭 860 → ÷0.875 = 982 (콘텐츠 900 + padding 40×2 + border 1×2)
-    <PageCard maxWidth={982}>
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          {meta?.eyebrow && <p className="text-xs text-gray-400">{meta.eyebrow}</p>}
-          {meta && <h1 className="pt-1 text-lg font-semibold text-gray-900">{meta.title}</h1>}
-        </div>
-        {flowStep && (
-          <FlowProgress label={flowStep.label} step={flowStep.step} totalSteps={flowStep.total} />
-        )}
-      </header>
-      {meta?.description && <p className="pt-1 text-sm text-gray-500">{meta.description}</p>}
-
+    <PageCard screen={org02} maxWidth={982}>
       <div className="flex flex-col gap-5 pt-6">
         {/* 라디오 카드 14:257에는 라벨이 없다 — 없는 카피를 지어내지 않는다. */}
         <ChoiceGroup

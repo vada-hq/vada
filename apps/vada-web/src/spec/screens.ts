@@ -58,6 +58,18 @@ export const ALL_SCREENS: ScreenSpec[] = [
   task01,
 ]
 
+// meta.title을 화면에 그리는가.
+//
+// meta.title은 두 가지를 겸한다 — 화면의 이름이자 그려지는 제목이다. 둘이 갈리는
+// 사례가 하나 있다: INV-01의 design(14:1)에는 화면 제목이 아예 없고, 그 자리를
+// 요약 카드가 대신한다. 사례가 하나뿐이라 스키마를 넓히지 않고 사실을 여기 적는다.
+// 구현과 준수 검사가 같은 곳을 본다 — 두 곳에 적으면 언젠가 갈린다.
+const TITLE_NOT_DRAWN = new Set(['INV-01'])
+
+export function drawsTitle(screenId: string): boolean {
+  return !TITLE_NOT_DRAWN.has(screenId)
+}
+
 // 배치가 명세에 없는 화면(대시보드)은 구현이 design의 자리마다 요소를 끼운다.
 // nodeId로 찾는다 — 라벨은 화면 안에서 유일하지 않을 수 있지만 nodeId는 유일하다.
 export function elementByNodeId(screen: ScreenSpec, nodeId: string): ScreenElement {
