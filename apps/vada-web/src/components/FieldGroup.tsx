@@ -2,6 +2,8 @@ import { useId } from 'react'
 import type { ReactNode } from 'react'
 
 interface FieldGroupProps {
+  /** design 대조가 이 묶음을 찾아가는 끈(spec/screens.ts의 nodeIdOf). */
+  nodeId?: string
   title: string
   description?: string | null
   // 묶음의 시각은 화면마다 다르다(element-types.md: design의 사실을 따르고
@@ -26,6 +28,7 @@ const TITLE_CLASS = {
 }
 
 export function FieldGroup({
+  nodeId,
   title,
   description,
   variant = 'filled',
@@ -36,6 +39,7 @@ export function FieldGroup({
 
   return (
     <section
+      data-node-id={nodeId}
       aria-labelledby={titleId}
       className={`flex flex-col gap-3 rounded-md p-4 ${BOX_CLASS[variant]}`}
     >

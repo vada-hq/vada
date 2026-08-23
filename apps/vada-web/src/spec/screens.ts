@@ -68,6 +68,19 @@ export function elementByNodeId(screen: ScreenSpec, nodeId: string): ScreenEleme
   return found
 }
 
+// 화면이 어느 요소를 어디에 그렸는지 design 대조에 알리는 끈(data-node-id)의 값.
+//
+// 따로 적어 두지 않는다 — 화면은 이미 명세의 spec 객체를 손에 들고 있으므로, 그
+// 객체가 어느 등록 노드에서 왔는지는 명세가 답할 수 있다. 화면이 nodeId를 손으로
+// 적으면 그 순간 두 번째 진실이 생긴다.
+export function nodeIdOf(screen: ScreenSpec, spec: ScreenElement['spec']): string {
+  const found = screen.elements.find((element) => element.spec === spec)
+  if (!found) {
+    throw new Error(`화면 ${screen.screenId}에 등록되지 않은 요소입니다.`)
+  }
+  return found.source.nodeId
+}
+
 export function findInputSpec(screen: ScreenSpec, fieldKey: string): InputSpec {
   for (const element of screen.elements) {
     if (element.spec.type === 'input' && element.spec.fieldKey === fieldKey) {

@@ -258,7 +258,13 @@ export function SearchSelect({
           onClick={() => (open ? close() : setOpen(true))}
           className={boxClass}
         >
-          <span className={`block min-h-5 truncate ${value ? '' : 'text-gray-400'}`}>
+          {/* 값이 없어 안내 문구를 그리는 중이라는 표시. design 대조가 이 자리의
+              색을 견주지 않는다 — 정적 와이어프레임은 빈 칸과 값이 든 칸을
+              구분해 그리지 못한다(design-check/index.ts). */}
+          <span
+            data-design-state={value ? undefined : ''}
+            className={`block min-h-5 truncate ${value ? '' : 'text-gray-400'}`}
+          >
             {value?.label ?? placeholder ?? ''}
           </span>
         </button>

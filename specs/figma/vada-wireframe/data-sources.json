@@ -492,6 +492,10 @@
           "description": "담당 부서. 예: 운영부"
         },
         {
+          "key": "departmentTone",
+          "description": "부서에 배정된 색 이름. 부서는 조직이 만드는 것이므로 색도 조직 데이터가 갖는다. 예: teal"
+        },
+        {
           "key": "cycle",
           "description": "되풀이 주기. 예: 매주 · 매월 · 상시"
         },
@@ -506,6 +510,15 @@
         {
           "key": "alert",
           "description": "주의 표시. 없으면 오지 않는다. 예: 지연",
+          "optional": true
+        },
+        {
+          "key": "tone",
+          "description": "업무 카드를 두르는 강조 색 이름. 기본은 부서 색이고, 담당자가 없는 업무처럼 먼저 봐야 하는 것은 경고 색으로 온다. 예: red"
+        },
+        {
+          "key": "alertTone",
+          "description": "주의 표시에 딸린 색 이름. 주의 표시가 없으면 오지 않는다. 예: red",
           "optional": true
         }
       ]

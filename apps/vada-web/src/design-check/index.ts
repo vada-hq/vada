@@ -1,4 +1,4 @@
-import { FONT_WEIGHTS, colorOf, tokenOf } from './palette'
+import { FONT_WEIGHTS, colorOf, sameColor, tokenOf } from './palette'
 
 // figma.design.json과 실제로 그려진 DOM을 대조한다.
 //
@@ -61,7 +61,10 @@ export interface DesignText {
 
 /** 배경이나 테두리를 가진 칸. 안에 담긴 글로 화면에서 같은 칸을 찾는다. */
 export interface DesignBox {
+  /** 보고용으로 이어 붙인 글. */
   content: string
+  /** 칸이 품은 글줄들. 화면에서 이 줄들을 모두 품은 가장 작은 요소가 같은 칸이다. */
+  runs: string[]
   background: string | null
   border: string | null
 }
@@ -89,11 +92,17 @@ function tryFindNode(node: DesignNode, nodeId: string): DesignNode | null {
   return null
 }
 
-function descendants(node: DesignNode): DesignNode[] {
+// 등록된 요소 안에 다른 등록 요소가 들어 있을 수 있다 — design에 더 안쪽 칸이 없어서
+// 요약 칩 넷과 범위 토글이 한 칸에 함께 사는 식이다(TASK-01 18:95 ⊃ 18:122).
+// 그 안쪽은 그 요소가 제 몫으로 대조하므로, 바깥 요소는 들여다보지 않는다.
+function descendants(node: DesignNode, exclude: ReadonlySet<string> = EMPTY): DesignNode[] {
   const all: DesignNode[] = []
   const visit = (current: DesignNode) => {
     all.push(current)
     for (const child of current.children ?? []) {
+      if (exclude.has(child.id)) {
+        continue
+      }
       visit(child)
     }
   }
@@ -101,17 +110,20 @@ function descendants(node: DesignNode): DesignNode[] {
   return all
 }
 
+const EMPTY: ReadonlySet<string> = new Set()
+
 // 투명한 칠(opacity 0)은 자리를 맞추려고 둔 것이지 보이는 색이 아니다.
 function solidColor(paints: DesignFill[] | undefined): string | null {
   const paint = (paints ?? []).find((p) => p.type === 'solid' && p.opacity !== 0)
   return paint?.color?.toUpperCase() ?? null
 }
 
-function textOf(node: DesignNode): string {
+// 칸을 화면에서 찾을 때 쓰는 글줄은 안쪽까지 다 센다. 무엇을 대조할지와 어떻게
+// 찾을지는 다른 문제다 — 글줄을 덜어내면 더 작은 요소가 걸려 색을 가진 칸을 놓친다.
+function runsOf(node: DesignNode): string[] {
   return descendants(node)
     .filter((n) => n.type === 'text' && n.text)
     .map((n) => n.text?.content ?? '')
-    .join('')
 }
 
 // 같은 글이 같은 모양으로 되풀이되면(목록의 되풀이 항목) 한 번만 본다.
@@ -127,8 +139,8 @@ function dedupe<T>(items: T[], keyOf: (item: T) => string): T[] {
   })
 }
 
-export function textsIn(node: DesignNode): DesignText[] {
-  const texts = descendants(node)
+export function textsIn(node: DesignNode, exclude: ReadonlySet<string> = EMPTY): DesignText[] {
+  const texts = descendants(node, exclude)
     .filter((n) => n.type === 'text' && n.text)
     .map((n) => ({
       content: n.text?.content ?? '',
@@ -138,16 +150,20 @@ export function textsIn(node: DesignNode): DesignText[] {
   return dedupe(texts, (t) => `${t.content}|${t.color}|${t.fontWeight}`)
 }
 
-export function boxesIn(node: DesignNode): DesignBox[] {
-  const boxes = descendants(node)
+export function boxesIn(node: DesignNode, exclude: ReadonlySet<string> = EMPTY): DesignBox[] {
+  const boxes = descendants(node, exclude)
     .filter((n) => n.type === 'frame')
-    .map((n) => ({
-      content: textOf(n),
-      background: solidColor(n.appearance?.fills),
-      border: solidColor(n.appearance?.strokes),
-    }))
+    .map((n) => {
+      const runs = runsOf(n)
+      return {
+        content: runs.join(' '),
+        runs,
+        background: solidColor(n.appearance?.fills),
+        border: solidColor(n.appearance?.strokes),
+      }
+    })
     // 색이 없는 칸은 대조할 것이 없고, 글이 없는 칸은 화면에서 찾을 방법이 없다.
-    .filter((box) => box.content !== '' && (box.background !== null || box.border !== null))
+    .filter((box) => box.runs.length > 0 && (box.background !== null || box.border !== null))
   return dedupe(boxes, (b) => `${b.content}|${b.background}|${b.border}`)
 }
 
@@ -160,10 +176,18 @@ function squash(text: string): string {
   return text.replace(/\s+/g, '')
 }
 
+/** 이 자리의 색·굵기는 화면 상태가 정한다는 표시. 화면이 직접 단다. */
+export const STATE_ATTRIBUTE = 'data-design-state'
+
 interface Holder {
   element: Element
-  /** 글이 textContent가 아니라 입력칸의 안내 문구로 있는 경우. */
-  viaPlaceholder: boolean
+  // 색이 화면 상태에 달린 자리다(빈 칸의 안내 문구, 아무것도 고르지 않은 선택지).
+  // 정적 와이어프레임은 한 상태만 그리므로 이런 자리는 색을 견주지 않는다.
+  stateDependent: boolean
+}
+
+function isStateDependent(element: Element): boolean {
+  return element.closest(`[${STATE_ATTRIBUTE}]`) !== null
 }
 
 // 상태 클래스(hover:, focus-visible:)는 평상시 모습이 아니므로 보지 않는다. 다만
@@ -174,15 +198,12 @@ function classesFor(element: Element, prefix: string): string[] {
     .map((name) => name.slice(prefix.length))
 }
 
-function ownColor(element: Element, holder: Holder): string | null {
-  const prefixes = holder.viaPlaceholder ? ['placeholder:text-', 'text-'] : ['text-']
-  for (const prefix of prefixes) {
-    for (const token of classesFor(element, prefix)) {
-      // text-sm처럼 색이 아닌 text- 유틸리티는 팔레트에 없으므로 걸러진다.
-      const color = colorOf(token)
-      if (color !== null) {
-        return color
-      }
+function ownColor(element: Element): string | null {
+  for (const token of classesFor(element, 'text-')) {
+    // text-sm처럼 색이 아닌 text- 유틸리티는 팔레트에 없으므로 걸러진다.
+    const color = colorOf(token)
+    if (color !== null) {
+      return color
     }
   }
   return null
@@ -192,7 +213,7 @@ function ownColor(element: Element, holder: Holder): string | null {
 function effectiveColor(holder: Holder): string | null {
   let current: Element | null = holder.element
   while (current !== null) {
-    const color = ownColor(current, holder)
+    const color = ownColor(current)
     if (color !== null) {
       return color
     }
@@ -251,17 +272,53 @@ function holdersOf(container: Element, content: string): Holder[] {
   for (const element of [container, ...container.querySelectorAll('*')]) {
     if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
       if (element.value !== '' && squash(element.value) === wanted) {
-        holders.push({ element, viaPlaceholder: false })
+        holders.push({ element, stateDependent: isStateDependent(element) })
       } else if (squash(element.placeholder) === wanted) {
-        holders.push({ element, viaPlaceholder: true })
+        // 안내 문구는 '빈 칸'이라는 상태에서만 보인다.
+        holders.push({ element, stateDependent: true })
       }
       continue
     }
     if (squash(visibleText(element)) === wanted) {
-      holders.push({ element, viaPlaceholder: false })
+      holders.push({ element, stateDependent: isStateDependent(element) })
     }
   }
   return holders
+}
+
+// 칸은 글자가 딱 맞아떨어지는 것으로 찾지 않는다. design이 비워 둔 자리를 화면이
+// 안내 문구로 채우는 일이 있어서(INV-01의 '현재 학년'), 통째 글자를 견주면 한 마디
+// 차이로 칸 전체를 못 찾는다. 대신 '이 줄들을 모두 품은 가장 작은 요소'를 찾는다 —
+// 안쪽에 더 들어 있어도 상관없다.
+function boxHoldersOf(container: Element, runs: string[]): Holder[] {
+  const wanted = runs.map(squash).filter((run) => run !== '')
+  if (wanted.length === 0) {
+    return []
+  }
+  const containing = [container, ...container.querySelectorAll('*')].filter((element) => {
+    const text = squash(visibleText(element))
+    return wanted.every((run) => text.includes(run))
+  })
+  // 조상도 같은 줄을 품으므로, 더 안쪽 후보를 가진 것은 뺀다.
+  const innermost = containing.filter(
+    (element) => !containing.some((other) => other !== element && element.contains(other)),
+  )
+  // 다만 색을 칠한 요소가 글을 직접 담은 요소보다 바깥일 때가 많다(카드의 테두리는
+  // 바깥 div에 있고 글은 그 안 button에 있다). 글이 늘지 않는 동안은 같은 칸으로
+  // 보고 위로 따라 올라간다 — 글이 늘면 다른 칸이다.
+  const holders = new Set<Element>()
+  for (const element of innermost) {
+    const text = squash(visibleText(element))
+    let current: Element | null = element
+    while (current !== null && squash(visibleText(current)) === text) {
+      holders.add(current)
+      current = current === container ? null : current.parentElement
+    }
+  }
+  return Array.from(holders).map((element) => ({
+    element,
+    stateDependent: isStateDependent(element),
+  }))
 }
 
 // 같은 글이 화면에 여럿이면(탭의 건수 배지 "2"처럼) 어느 것이 어느 것인지 글만으로는
@@ -278,6 +335,20 @@ function innermost(holders: Holder[]): Holder {
 
 // --- 대조 ---------------------------------------------------------------
 
+function groupBy<T>(items: T[], keyOf: (item: T) => string): Map<string, T[]> {
+  const groups = new Map<string, T[]>()
+  for (const item of items) {
+    const key = keyOf(item)
+    const group = groups.get(key)
+    if (group) {
+      group.push(item)
+    } else {
+      groups.set(key, [item])
+    }
+  }
+  return groups
+}
+
 export interface Difference {
   content: string
   kind: '자리 없음' | '글 없음' | '칸 없음' | '색' | '굵기' | '배경' | '테두리'
@@ -291,30 +362,46 @@ function describe(color: string | null): string {
 
 export function compareTexts(container: Element, texts: DesignText[]): Difference[] {
   const differences: Difference[] = []
-  for (const text of texts) {
-    const holders = holdersOf(container, text.content)
+  // 같은 글을 design이 두 가지 색으로 그린 자리가 있다(HOME-01K의 '기획 중' 딱지는
+  // 한 줄에서 blue-700, 다음 줄에서 gray-500이다). design 자신이 그 글의 색을 정하지
+  // 못한 것이므로, 화면이 그중 하나와 맞으면 어긋났다고 하지 않는다.
+  for (const [content, variants] of groupBy(texts, (text) => text.content)) {
+    const holders = holdersOf(container, content)
     if (holders.length === 0) {
       differences.push({
-        content: text.content,
+        content,
         kind: '글 없음',
-        design: describe(text.color),
+        design: describe(variants[0].color),
         screen: '화면에 없음',
       })
       continue
     }
-    if (text.color !== null && !holders.some((h) => effectiveColor(h) === text.color)) {
+    // 상태가 색을 정하는 자리는 색·굵기를 대조하지 않는다. 정적 와이어프레임은
+    // 한 상태만 그리므로, design이 칠한 색은 그 상태의 색이지 지금 상태의 색이
+    // 아니다. 같은 와이어프레임 안에서 안내 문구가 gray-700과 gray-800으로
+    // 갈리는 것이 그 증거다. 글이 있는지는 그대로 본다.
+    // some이지 every가 아니다 — 그런 자리를 감싼 바깥 칸도 같은 글을 품는다.
+    if (holders.some((holder) => holder.stateDependent)) {
+      continue
+    }
+    const colors = variants.map((text) => text.color).filter((color) => color !== null)
+    if (
+      colors.length > 0 &&
+      !holders.some((holder) => colors.some((color) => sameColor(effectiveColor(holder), color)))
+    ) {
       differences.push({
-        content: text.content,
+        content,
         kind: '색',
-        design: tokenOf(text.color),
+        design: colors.map(tokenOf).join(' 또는 '),
         screen: describe(effectiveColor(innermost(holders))),
       })
     }
-    if (!holders.some((h) => effectiveWeight(h) === text.fontWeight)) {
+    const weights = variants.map((text) => text.fontWeight)
+    if (!holders.some((holder) => weights.includes(effectiveWeight(holder)))) {
       differences.push({
-        content: text.content,
+        content,
         kind: '굵기',
-        design: String(text.fontWeight),
+        design: weights.join(' 또는 '),
         screen: String(effectiveWeight(innermost(holders))),
       })
     }
@@ -324,39 +411,41 @@ export function compareTexts(container: Element, texts: DesignText[]): Differenc
 
 export function compareBoxes(container: Element, boxes: DesignBox[]): Difference[] {
   const differences: Difference[] = []
-  for (const box of boxes) {
-    const holders = holdersOf(container, box.content)
+  // 글이 같은 칸을 design이 다르게 칠한 자리도 텍스트와 같은 이유로 묶어서 본다.
+  for (const [content, variants] of groupBy(boxes, (box) => box.content)) {
+    const holders = boxHoldersOf(container, variants[0].runs)
     if (holders.length === 0) {
       differences.push({
-        content: box.content,
+        content,
         kind: '칸 없음',
-        design: `배경 ${describe(box.background)} / 테두리 ${describe(box.border)}`,
+        design: `배경 ${describe(variants[0].background)} / 테두리 ${describe(variants[0].border)}`,
         screen: '화면에 없음',
       })
       continue
     }
-    const elements = holders.map((holder) => holder.element)
-    if (
-      box.background !== null &&
-      !elements.some((element) => ownPaint(element, 'bg-') === box.background)
-    ) {
-      differences.push({
-        content: box.content,
-        kind: '배경',
-        design: tokenOf(box.background),
-        screen: describe(ownPaint(innermost(holders).element, 'bg-')),
-      })
+    if (holders.some((holder) => holder.stateDependent)) {
+      continue
     }
-    if (
-      box.border !== null &&
-      !elements.some((element) => ownPaint(element, 'border-') === box.border)
-    ) {
-      differences.push({
-        content: box.content,
-        kind: '테두리',
-        design: tokenOf(box.border),
-        screen: describe(ownPaint(innermost(holders).element, 'border-')),
-      })
+    const elements = holders.map((holder) => holder.element)
+    for (const [kind, prefix, pick] of [
+      ['배경', 'bg-', (box: DesignBox) => box.background],
+      ['테두리', 'border-', (box: DesignBox) => box.border],
+    ] as const) {
+      const wanted = variants.map(pick).filter((color) => color !== null)
+      if (wanted.length === 0) {
+        continue
+      }
+      const matched = elements.some((element) =>
+        wanted.some((color) => sameColor(ownPaint(element, prefix), color)),
+      )
+      if (!matched) {
+        differences.push({
+          content,
+          kind,
+          design: wanted.map(tokenOf).join(' 또는 '),
+          screen: describe(ownPaint(innermost(holders).element, prefix)),
+        })
+      }
     }
   }
   return differences
@@ -385,8 +474,10 @@ export function compareScreen(
   design: DesignFile,
 ): Difference[] {
   const differences: Difference[] = []
+  const registered = new Set(screen.elements.map((element) => element.source.nodeId))
   for (const element of screen.elements) {
     const nodeId = element.source.nodeId
+    const exclude = new Set([...registered].filter((id) => id !== nodeId))
     const node = findNode(design.root, nodeId)
     const holder = container.querySelector(nodeSelector(nodeId))
     if (holder === null) {
@@ -398,8 +489,8 @@ export function compareScreen(
       })
       continue
     }
-    differences.push(...compareTexts(holder, textsIn(node)))
-    differences.push(...compareBoxes(holder, boxesIn(node)))
+    differences.push(...compareTexts(holder, textsIn(node, exclude)))
+    differences.push(...compareBoxes(holder, boxesIn(node, exclude)))
   }
   return differences
 }

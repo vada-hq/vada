@@ -4,6 +4,8 @@ interface SummaryItem {
 }
 
 interface SummaryCardProps {
+  /** design 대조가 이 카드를 찾아가는 끈(spec/screens.ts의 nodeIdOf). */
+  nodeId?: string
   eyebrow?: string
   title: string
   items: SummaryItem[]
@@ -13,9 +15,9 @@ interface SummaryCardProps {
 // 카드 14:13: 테두리 gray-200, radius 9.25→rounded-xl, padding 21→24.
 // 눈썹·라벨 10.5→text-xs gray-400, 제목 14→text-base semibold gray-900,
 // 값 10.5→text-xs gray-700. 행 gap 10.5→3, 목록 gap 8.75→2.5, pt 14→4.
-export function SummaryCard({ eyebrow, title, items }: SummaryCardProps) {
+export function SummaryCard({ nodeId, eyebrow, title, items }: SummaryCardProps) {
   return (
-    <div className="rounded-xl border border-gray-200 p-6">
+    <div data-node-id={nodeId} className="rounded-xl border border-gray-200 p-6">
       {eyebrow && <p className="text-xs text-gray-400">{eyebrow}</p>}
       <h2 className="pt-1 text-base font-semibold text-gray-900">{title}</h2>
       <dl className="flex flex-col gap-2.5 pt-4">

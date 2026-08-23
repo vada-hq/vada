@@ -6,7 +6,14 @@ import { SearchSelect } from '../components/SearchSelect'
 import { TextInput } from '../components/TextInput'
 import { findFlowStep } from '../spec/flows'
 import { useFieldDraft } from '../spec/useFieldDraft'
-import { findButtonSpec, findInputSpec, findSelectSpec, navigateTarget, onb01 } from '../spec/screens'
+import {
+  findButtonSpec,
+  findInputSpec,
+  findSelectSpec,
+  navigateTarget,
+  nodeIdOf,
+  onb01,
+} from '../spec/screens'
 import type { SelectSpec } from '../spec/types'
 import type { OnboardingDraft } from '../state/onboarding'
 
@@ -46,6 +53,7 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
     return (
       <Field
         htmlFor={spec.fieldKey}
+        nodeId={nodeIdOf(onb01, spec)}
         label={spec.label}
         required={spec.required}
         disabled={!enabled}
@@ -90,6 +98,7 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
           <div className="grid grid-cols-2 gap-3">
             <Field
               htmlFor={nameSpec.fieldKey}
+              nodeId={nodeIdOf(onb01, nameSpec)}
               label={nameSpec.label}
               required={nameSpec.required}
               error={errors[nameSpec.fieldKey]}
@@ -108,6 +117,7 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
             </Field>
             <Field
               htmlFor={studentNumberSpec.fieldKey}
+              nodeId={nodeIdOf(onb01, studentNumberSpec)}
               label={studentNumberSpec.label}
               required={studentNumberSpec.required}
               error={errors[studentNumberSpec.fieldKey]}
@@ -138,7 +148,11 @@ export function ONB01Screen({ draft, onChangeDraft, onNavigate }: ONB01ScreenPro
 
       {/* 버튼 7:76: pt 28→32 / 안내 7:82: pt 7→8 */}
       <div className="pt-8">
-        <PrimaryButton label={nextButtonSpec.label} onClick={handleNext} />
+        <PrimaryButton
+          label={nextButtonSpec.label}
+          nodeId={nodeIdOf(onb01, nextButtonSpec)}
+          onClick={handleNext}
+        />
         {meta?.footerNote && (
           <p className="pt-2 text-center text-xs text-gray-400">{meta.footerNote}</p>
         )}

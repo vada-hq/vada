@@ -7,7 +7,13 @@ import { PrimaryButton } from '../components/PrimaryButton'
 import { SearchSelect } from '../components/SearchSelect'
 import { SummaryCard } from '../components/SummaryCard'
 import { TextInput } from '../components/TextInput'
-import { buttonsByEmphasis, inv01, navigateTarget, primaryButtonOf } from '../spec/screens'
+import {
+  buttonsByEmphasis,
+  inv01,
+  navigateTarget,
+  nodeIdOf,
+  primaryButtonOf,
+} from '../spec/screens'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import type { ButtonSpec, FieldSpec, GroupSpec, SelectSpec } from '../spec/types'
 import type { ScopeDraft } from '../state/scopes'
@@ -45,6 +51,7 @@ export function INV01Screen({ draft, onChangeDraft, onNavigate }: INV01ScreenPro
         <Field
           key={spec.fieldKey}
           htmlFor={spec.fieldKey}
+          nodeId={nodeIdOf(inv01, spec)}
           label={spec.label}
           required={spec.required}
           error={error}
@@ -67,6 +74,7 @@ export function INV01Screen({ draft, onChangeDraft, onNavigate }: INV01ScreenPro
       <Field
         key={spec.fieldKey}
         htmlFor={spec.fieldKey}
+        nodeId={nodeIdOf(inv01, spec)}
         label={spec.label}
         required={spec.required}
         disabled={!enabled}
@@ -120,12 +128,21 @@ export function INV01Screen({ draft, onChangeDraft, onNavigate }: INV01ScreenPro
         }
         return { label: item.label, value: item.value }
       })
-      return <SummaryCard key={key} eyebrow={spec.eyebrow} title={spec.title} items={items} />
+      return (
+        <SummaryCard
+          key={key}
+          nodeId={key}
+          eyebrow={spec.eyebrow}
+          title={spec.title}
+          items={items}
+        />
+      )
     }
     if (spec.type === 'group') {
       return (
         <FieldGroup
           key={key}
+          nodeId={key}
           title={spec.title}
           description={spec.description}
           variant="outlined"
@@ -157,14 +174,16 @@ export function INV01Screen({ draft, onChangeDraft, onNavigate }: INV01ScreenPro
       <div className="flex flex-col gap-2 pt-4">
         <PrimaryButton
           label={primaryButton.label}
+          nodeId={nodeIdOf(inv01, primaryButton)}
           onClick={() => runButton(primaryButton, () => onNavigate(navigateTarget(primaryButton.action)))}
         />
         {quietButtons.map((button) => (
           <button
             key={button.label}
             type="button"
+            data-node-id={nodeIdOf(inv01, button)}
             onClick={() => onNavigate(navigateTarget(button.action))}
-            className="rounded px-3 py-1.5 text-xs font-medium text-gray-400 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
+            className="rounded px-3 py-1.5 text-xs font-medium text-gray-500 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
           >
             {button.label}
           </button>

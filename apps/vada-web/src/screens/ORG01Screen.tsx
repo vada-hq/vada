@@ -14,6 +14,7 @@ import { useFieldDraft } from '../spec/useFieldDraft'
 import {
   buttonsByEmphasis,
   navigateTarget,
+  nodeIdOf,
   org01,
   primaryButtonOf,
 } from '../spec/screens'
@@ -63,6 +64,7 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
       <Field
         key={spec.fieldKey}
         htmlFor={spec.fieldKey}
+        nodeId={nodeIdOf(org01, spec)}
         label={spec.label}
         required={spec.required}
         disabled={!enabled}
@@ -119,7 +121,13 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
     if (parts.length === 0) {
       return null
     }
-    return <NoteBox key={key} text={`${spec.prefix ?? ''}${parts.join(spec.separator ?? ' ')}`} />
+    return (
+      <NoteBox
+        key={key}
+        nodeId={key}
+        text={`${spec.prefix ?? ''}${parts.join(spec.separator ?? ' ')}`}
+      />
+    )
   }
 
   const fieldByKey = new Map(
@@ -146,7 +154,7 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
     }
     if (spec.type === 'group') {
       return (
-        <FieldGroup key={key} title={spec.title} description={spec.description}>
+        <FieldGroup key={key} nodeId={key} title={spec.title} description={spec.description}>
           {spec.memberFieldKeys.map((fieldKey) => {
             const member = fieldByKey.get(fieldKey)
             return member ? renderField(member) : null
@@ -185,12 +193,18 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
             <SecondaryButton
               key={button.label}
               label={button.label}
+              nodeId={nodeIdOf(org01, button)}
               onClick={() => onNavigate(navigateTarget(button.action))}
             />
           ))}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <PrimaryButton label={primaryButton.label} onClick={handlePrimary} fullWidth={false} />
+          <PrimaryButton
+            label={primaryButton.label}
+            nodeId={nodeIdOf(org01, primaryButton)}
+            onClick={handlePrimary}
+            fullWidth={false}
+          />
           {meta?.footerNote && (
             <p className="text-right text-xs text-gray-400">{meta.footerNote}</p>
           )}

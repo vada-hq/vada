@@ -68,6 +68,8 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: '동아리방·물품 정기 점검',
       department: '운영부',
+      departmentTone: 'teal',
+      tone: 'red',
       cycle: '매월',
       assignee: '담당자 없음 · 배정 필요',
       dueDate: '2026-08-01',
@@ -78,6 +80,8 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: '게시판 공지물 정리',
       department: '홍보부',
+      departmentTone: 'pink',
+      tone: 'pink',
       cycle: '매월',
       assignee: '이윤슬',
       dueDate: '2026-07-31',
@@ -88,6 +92,8 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: '주간 운영회의 자료 준비',
       department: '운영부',
+      departmentTone: 'teal',
+      tone: 'teal',
       cycle: '매주',
       assignee: '박해랑',
       dueDate: '2026-07-21',
@@ -98,6 +104,8 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: '회계 장부 주간 정리',
       department: '재정부',
+      departmentTone: 'emerald',
+      tone: 'emerald',
       cycle: '매주',
       assignee: '김민준',
       dueDate: '2026-07-22',
@@ -108,6 +116,8 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: 'SNS 계정 운영·공지 게시',
       department: '홍보부',
+      departmentTone: 'pink',
+      tone: 'pink',
       cycle: '상시',
       assignee: '이윤슬',
       dueDate: '상시',
@@ -118,10 +128,13 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: '학생 건의함 확인·답변',
       department: '기획부',
+      departmentTone: 'violet',
+      tone: 'violet',
       cycle: '매주',
       assignee: '이수현',
       dueDate: '2026-07-18',
       alert: '지연',
+      alertTone: 'red',
     },
   },
   {
@@ -129,10 +142,13 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: '학생 건의 답변 문안 검토',
       department: '기획부',
+      departmentTone: 'violet',
+      tone: 'violet',
       cycle: '매주',
       assignee: '박해랑',
       dueDate: '2026-07-22',
       alert: '검토 필요',
+      alertTone: 'yellow',
     },
   },
   {
@@ -140,6 +156,8 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: '회의실 예약 현황 관리',
       department: '운영부',
+      departmentTone: 'teal',
+      tone: 'teal',
       cycle: '매주',
       assignee: '정하늘',
       dueDate: '2026-07-15',
@@ -150,6 +168,8 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
     row: {
       title: '월간 예산 사용 공유',
       department: '재정부',
+      departmentTone: 'emerald',
+      tone: 'emerald',
       cycle: '매월',
       assignee: '김민준',
       dueDate: '2026-07-05',

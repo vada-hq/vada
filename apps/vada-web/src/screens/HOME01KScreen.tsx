@@ -5,7 +5,7 @@ import { FigmaAsset } from "../components/FigmaAsset";
 import { ProgressBar } from "../components/ProgressBar";
 import { StatTile } from "../components/StatTile";
 import { readListSource, readObjectSource } from "../data-sources/catalog";
-import { elementByNodeId, home01k } from "../spec/screens";
+import { elementByNodeId, home01k, nodeIdOf } from "../spec/screens";
 import type { ButtonSpec, ItemListSpec, SummarySpec } from "../spec/types";
 
 // 홈 대시보드(HOME-01K).
@@ -53,6 +53,13 @@ const NODE = {
   myTasksButton: "16:305",
 } as const;
 
+// 값의 색은 타일마다 다르다. design의 사실이므로 여기서 지목한다.
+const COUNT_TILE_VALUE = ["text-blue-600", "text-indigo-600", "text-orange-600"];
+const FINANCE_TILE_VALUE: Record<string, string> = {
+  availableBudgetPercent: "text-blue-600",
+  missingProofCount: "text-red-500",
+};
+
 function specOf<T>(nodeId: string): T {
   return elementByNodeId(home01k, nodeId).spec as T;
 }
@@ -93,11 +100,12 @@ function ActionLink({
   const shape =
     variant === "outlined"
       ? "rounded border border-gray-300 bg-white px-3 py-1.5 text-gray-700 hover:bg-gray-50"
-      : "rounded px-2 py-1 text-gray-500 hover:bg-gray-100";
+      : "rounded px-2 py-1 text-gray-400 hover:bg-gray-100";
 
   return (
     <button
       type="button"
+      data-node-id={nodeIdOf(home01k, spec)}
       title={title}
       onClick={onClick}
       className={`flex shrink-0 items-center gap-1 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none ${shape}`}
@@ -133,14 +141,17 @@ function BriefingCard() {
         />
       </div>
       {/* 16:88: 흰 말풍선. 테두리 #E5E7EB→gray-200, radius 14→2xl, padding 14/21→4/6. */}
-      <div className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4">
+      <div
+        data-node-id={NODE.briefing}
+        className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4"
+      >
         {summary.eyebrow && (
-          <p className="text-xs font-medium text-red-500">{summary.eyebrow}</p>
+          <p className="text-xs font-bold text-[#EF4444]">{summary.eyebrow}</p>
         )}
-        <h2 className="pt-1 text-base font-semibold text-gray-900">
+        <h2 className="pt-1 text-base font-bold text-[#0A1F44]">
           {String(briefing[summary.titleField!])}
         </h2>
-        <ul className="flex flex-col gap-1 pt-3">
+        <ul data-node-id={NODE.briefingNotices} className="flex flex-col gap-1 pt-3">
           {lines.map((line) => (
             <li key={String(line.message)} className="text-sm text-gray-600">
               {String(line.message)}
@@ -159,12 +170,13 @@ function EventCountTiles() {
 
   // 16:101은 3열 grid, 간격 14→gap-4.
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div data-node-id={NODE.eventCounts} className="grid grid-cols-3 gap-4">
       {summary.items!.map((item, at) => (
         <StatTile
           key={item.label}
           label={item.label}
           value={`${counts[item.field!]}개`}
+          valueClass={COUNT_TILE_VALUE[at] ?? "text-gray-900"}
           icon={
             <FigmaAsset
               screenId={SCREEN}
@@ -183,15 +195,18 @@ function EventList() {
   const events = readListSource(spec.dataSourceKey);
 
   return (
-    <DashboardSection title={spec.title}>
-      <ul className="divide-y divide-gray-100">
+    <DashboardSection nodeId={NODE.events} title={spec.title}>
+      <ul>
         {events.map((event) => (
-          <li key={String(event.title)} className="px-5 py-4">
+          <li
+            key={String(event.title)}
+            className="border-b border-gray-100 px-5 py-4 last:border-b-0"
+          >
             <div className="flex items-center gap-2">
-              <span className="rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-xs text-blue-700">
+              <span className="rounded border border-blue-200 bg-blue-50 px-1.5 py-0.5 text-xs font-medium text-blue-700">
                 {String(event.status)}
               </span>
-              <span className="min-w-0 flex-1 text-sm font-semibold text-gray-900">
+              <span className="min-w-0 flex-1 text-sm font-bold text-gray-900">
                 {String(event.title)}
               </span>
               <FigmaAsset
@@ -200,28 +215,37 @@ function EventList() {
                 className="size-3.5 shrink-0"
               />
             </div>
-            <p className="flex items-center gap-1.5 pt-2 text-xs text-gray-500">
+            <p className="flex items-center gap-1.5 pt-2 text-xs font-medium text-gray-400">
               <FigmaAsset
                 screenId={SCREEN}
                 nodeId={ASSET.eventDate}
                 className="size-3"
               />
-              {String(event.date)}
+              <span>{String(event.date)}</span>
               <FigmaAsset
                 screenId={SCREEN}
                 nodeId={ASSET.eventPlace}
                 className="ml-1.5 size-3"
               />
-              {String(event.place)}
+              <span>{String(event.place)}</span>
               <span className="ml-1.5">{String(event.team)}</span>
             </p>
             <div className="pt-2">
               <ProgressBar
                 percent={Number(event.progressPercent)}
-                label={
+                ariaLabel={
                   event.delayedTaskCount === undefined
                     ? `준비 ${event.progressPercent}%`
                     : `준비 ${event.progressPercent}% · 지연 업무 ${event.delayedTaskCount}건`
+                }
+                label={
+                  <>
+                    {/* design은 준비율과 지연 알림을 색이 다른 두 줄기로 그린다. */}
+                    <span className="text-gray-500">{`준비 ${event.progressPercent}%`}</span>
+                    {event.delayedTaskCount === undefined ? null : (
+                      <span className="text-red-500">{` · 지연 업무 ${event.delayedTaskCount}건`}</span>
+                    )}
+                  </>
                 }
               />
             </div>
@@ -239,22 +263,23 @@ function ScheduleList() {
 
   return (
     <DashboardSection
+      nodeId={NODE.schedules}
       title={spec.title}
       action={<ActionLink spec={button} iconNodeId={ASSET.calendarLink} />}
     >
-      <ul className="divide-y divide-gray-100">
+      <ul>
         {schedules.map((schedule) => (
           <li
             key={`${schedule.date}-${schedule.title}`}
-            className="flex items-center gap-4 px-5 py-3"
+            className="flex items-center gap-4 border-b border-gray-100 px-5 py-3 last:border-b-0"
           >
-            <span className="shrink-0 font-mono text-xs text-gray-400">
+            <span className="shrink-0 font-mono text-xs font-bold text-gray-500">
               {String(schedule.date)}
             </span>
-            <span className="min-w-0 flex-1 text-sm text-gray-800">
+            <span className="min-w-0 flex-1 text-sm font-medium text-gray-800">
               {String(schedule.title)}
             </span>
-            <span className="shrink-0 rounded bg-red-50 px-1.5 py-0.5 text-xs text-red-600">
+            <span className="shrink-0 rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium text-red-600">
               {String(schedule.badge)}
             </span>
           </li>
@@ -279,22 +304,22 @@ function OrgAlertList() {
   const alerts = readListSource(spec.dataSourceKey);
 
   return (
-    <DashboardSection title={spec.title}>
-      <ul className="divide-y divide-gray-100">
+    <DashboardSection nodeId={NODE.orgAlerts} title={spec.title}>
+      <ul>
         {alerts.map((alert) => (
           <li
             key={String(alert.label)}
-            className="flex items-center gap-3 px-5 py-3"
+            className="flex items-center gap-3 border-b border-gray-100 px-5 py-3 last:border-b-0"
           >
             <FigmaAsset
               screenId={SCREEN}
               nodeId={alertIconOf(String(alert.kind))}
               className="size-6 shrink-0"
             />
-            <span className="min-w-0 flex-1 text-sm text-gray-800">
+            <span className="min-w-0 flex-1 text-sm font-medium text-gray-700">
               {String(alert.label)}
             </span>
-            <span className="shrink-0 text-sm font-semibold text-gray-900">
+            <span className="shrink-0 text-sm font-bold text-gray-900">
               {String(alert.count)}건
             </span>
           </li>
@@ -314,13 +339,14 @@ function FinanceSummary() {
 
   return (
     <DashboardSection
+      nodeId={NODE.finance}
       title={summary.title}
       action={<ActionLink spec={button} iconNodeId={ASSET.financeLink} />}
     >
       <div className="px-5 py-4">
         <div className="flex items-center justify-between gap-3">
-          <span className="text-xs text-gray-500">{usage.label}</span>
-          <span className="text-sm font-semibold text-gray-900">
+          <span className="text-xs text-gray-400">{usage.label}</span>
+          <span className="text-sm font-bold text-gray-900">
             {String(finance[usage.field!])}%
           </span>
         </div>
@@ -333,6 +359,8 @@ function FinanceSummary() {
               key={tile.label}
               label={tile.label}
               value={`${finance[tile.field!]}${suffix(tile.field!)}`}
+              tone="inset"
+              valueClass={FINANCE_TILE_VALUE[tile.field!] ?? "text-gray-900"}
             />
           ))}
         </div>
@@ -348,22 +376,21 @@ function MyTasksCard() {
   return (
     <button
       type="button"
+      data-node-id={NODE.myTasksButton}
       title={title}
       onClick={onClick}
-      className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
+      className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-left hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
     >
       <span className="min-w-0">
-        <span className="block text-sm font-semibold text-gray-900">
-          {spec.label}
-        </span>
+        <span className="block text-sm font-medium text-gray-400">{spec.label}</span>
         {spec.description && (
-          <span className="block pt-0.5 text-xs text-gray-500">
+          <span className="block pt-0.5 text-xs font-bold text-gray-700">
             {spec.description}
           </span>
         )}
       </span>
       {spec.badge && (
-        <span className="shrink-0 text-xs text-blue-600">{spec.badge}</span>
+        <span className="shrink-0 text-xs font-medium text-gray-400">{spec.badge}</span>
       )}
     </button>
   );

@@ -5,7 +5,7 @@ import { ScreenRouter } from './ScreenRouter'
 import { task01 } from '../spec/screens'
 import type { ItemListSpec, SelectSpec } from '../spec/types'
 import { getOptionSource } from '../option-sources/catalog'
-import { readListSource } from '../data-sources/catalog'
+import { readListSource, readObjectSource } from '../data-sources/catalog'
 
 // TASK-01의 완료 조건. 이 사이클에서 새로 연 자리는 itemList.params의 고정값
 // (value) 하나뿐이고, 나머지는 MY-01·OPS-00이 연 자리를 그대로 쓴다.
@@ -85,10 +85,14 @@ describe('TASK-01 스펙 준수', () => {
       ?.spec
     if (summary?.type !== 'summary') throw new Error('summary가 없다')
     const chips = within(screen.getByTestId('task01-alerts'))
+    const row = readObjectSource(summary.dataSourceKey ?? '')
     for (const item of summary.items ?? []) {
-      const chip = chips.getByText(item.label).parentElement
-      expect(chip?.textContent).toContain(item.label)
-      expect(chip?.textContent).toContain(item.unit ?? '')
+      // design이 이름과 건수를 한 덩어리로 그리므로 화면도 한 덩어리다.
+      const chip = chips.getByText(
+        `${item.label} ${row[item.field ?? '']}${item.unit ?? ''}`,
+      )
+      expect(chip.textContent).toContain(item.label)
+      expect(chip.textContent).toContain(item.unit ?? '')
     }
   })
 

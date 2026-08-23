@@ -3,7 +3,7 @@ import type { LucideIcon } from 'lucide-react'
 import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
 import { findFlowStep } from '../spec/flows'
-import { buttonsByEmphasis, navigateTarget, onb02 } from '../spec/screens'
+import { buttonsByEmphasis, navigateTarget, nodeIdOf, onb02 } from '../spec/screens'
 import type { ButtonSpec } from '../spec/types'
 
 interface ONB02ScreenProps {
@@ -45,6 +45,7 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
             <button
               key={button.label}
               type="button"
+              data-node-id={nodeIdOf(onb02, button)}
               onClick={() => onNavigate(navigateTarget(button.action))}
               className="flex w-full items-center gap-4 rounded-md border border-gray-200 bg-white p-5 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
             >
@@ -84,6 +85,7 @@ export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {
             <button
               key={button.label}
               type="button"
+              data-node-id={nodeIdOf(onb02, button)}
               onClick={() => onNavigate(navigateTarget(button.action))}
               className="flex items-center gap-1.5 rounded px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
             >

@@ -58,11 +58,14 @@ export function OPS00Screen({ onNavigate }: OPS00ScreenProps) {
       footerNote={ops00.meta?.footerNote}
       onNavigate={onNavigate}
     >
-      <div className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <div
+        data-node-id={NODE.intro}
+        className="flex items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 px-5 py-4"
+      >
         <FigmaAsset screenId={SCREEN} nodeId={ASSET.intro} className="mt-0.5 size-5" />
         <span>
-          <span className="block text-sm font-semibold text-gray-900">{intro.title}</span>
-          <span className="block pt-0.5 text-xs text-gray-500">
+          <span className="block text-sm font-bold text-blue-950">{intro.title}</span>
+          <span className="block pt-0.5 text-xs text-blue-800">
             {intro.descriptionField && introRow
               ? String(introRow[intro.descriptionField])
               : intro.description}
@@ -70,9 +73,13 @@ export function OPS00Screen({ onNavigate }: OPS00ScreenProps) {
         </span>
       </div>
 
-      <div className="pt-6">
-        <h2 className="text-sm font-semibold text-gray-900">{menu.title}</h2>
-        <p className="pt-0.5 text-xs text-gray-500">{menu.description}</p>
+      <div data-node-id={NODE.menuHeading} className="pt-6">
+        <span className="flex items-baseline gap-2">
+          <h2 className="text-sm font-bold text-gray-900">{menu.title}</h2>
+          {/* 공간 수는 명세에 없다. 카드 수가 곧 공간 수다. */}
+          <span className="text-xs text-gray-400">{`${NODE.cards.length}개 공간`}</span>
+        </span>
+        <p className="pt-0.5 text-xs text-gray-400">{menu.description}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 pt-3 lg:grid-cols-2">
@@ -82,6 +89,15 @@ export function OPS00Screen({ onNavigate }: OPS00ScreenProps) {
       </div>
     </AppShell>
   )
+}
+
+// 공간마다 테두리 색이 다르다. 어느 공간이냐는 등록 노드가 말하고 무슨 색이냐는
+// design이 말한다 — 자산을 등록 노드로 찾는 것과 같은 방식이다.
+const CARD_BORDER: Record<string, string> = {
+  '16:614': 'border-blue-200',
+  '16:643': 'border-indigo-200',
+  '16:674': 'border-purple-200',
+  '16:702': 'border-orange-200',
 }
 
 interface SpaceCardProps {
@@ -96,7 +112,10 @@ function SpaceCard({ nodeId, onNavigate }: SpaceCardProps) {
   const action: DisplayAction | undefined = spec.action
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white">
+    <div
+      data-node-id={nodeId}
+      className={`rounded-xl border bg-white ${CARD_BORDER[nodeId] ?? 'border-gray-200'}`}
+    >
       <button
         type="button"
         onClick={() => {
@@ -116,19 +135,20 @@ function SpaceCard({ nodeId, onNavigate }: SpaceCardProps) {
           nodeId={ASSET.cardIcon[nodeId]}
           className="block h-auto w-full"
         />
-        <span className="block pt-2 text-sm font-semibold text-gray-900">
-          {spec.title}
+        <span className="block pt-2 text-sm font-bold text-gray-900">{spec.title}</span>
+        <span className="block pt-0.5 text-xs font-medium text-gray-500">
+          {spec.description}
         </span>
-        <span className="block pt-0.5 text-xs text-gray-500">{spec.description}</span>
 
-        <span className="mt-3 grid grid-cols-2 gap-2">
+        {/* 두 타일을 함께 감싼 칸 16:628에 테두리가 있다(타일 자체엔 없다). */}
+        <span className="mt-3 grid grid-cols-2 gap-2 rounded-lg border border-gray-100 p-1">
           {(spec.items ?? []).map((item) => (
             <span
               key={item.label}
-              className="rounded-lg bg-gray-50 px-3 py-2 text-xs text-gray-500"
+              className="rounded-lg bg-gray-50 px-3 py-2 text-xs font-medium text-gray-400"
             >
               <span className="block">{item.label}</span>
-              <span className="block pt-0.5 text-sm font-semibold text-gray-900">
+              <span className="block pt-0.5 text-sm font-bold text-gray-800">
                 {`${item.field && stats ? stats[item.field] : (item.value ?? '')}${item.unit ?? ''}`}
               </span>
             </span>
@@ -136,7 +156,7 @@ function SpaceCard({ nodeId, onNavigate }: SpaceCardProps) {
         </span>
 
         {action?.label === undefined ? null : (
-          <span className="flex items-center gap-1 pt-3 text-xs font-medium text-blue-700">
+          <span className="flex items-center gap-1 pt-3 text-xs font-medium text-blue-600">
             {action.label}
             <FigmaAsset
               screenId={SCREEN}

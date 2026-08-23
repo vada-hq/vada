@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 
 interface FieldProps {
   htmlFor: string
+  /** design 대조가 이 필드를 찾아가는 끈(spec/screens.ts의 nodeIdOf). */
+  nodeId?: string
   // 디자인에 라벨이 없는 필드(ORG-02의 조직 구성 방식)는 스펙에 key가 없다.
   // 없는 카피를 지어내지 않고 라벨 자체를 그리지 않는다.
   label?: string
@@ -18,6 +20,7 @@ interface FieldProps {
 // 오류는 vada-conventions 7번: 필드 아래 인라인 red-500.
 export function Field({
   htmlFor,
+  nodeId,
   label,
   required,
   disabled,
@@ -26,14 +29,16 @@ export function Field({
   children,
 }: FieldProps) {
   return (
-    <div className="flex flex-col gap-1.5">
+    <div data-node-id={nodeId} className="flex flex-col gap-1.5">
       {label !== undefined && (
         <label
           id={`${htmlFor}-label`}
           htmlFor={htmlFor}
           className={`text-xs font-medium ${disabled ? 'text-gray-400' : 'text-gray-700'}`}
         >
-          {label}
+          {/* design은 라벨과 필수 표시를 색이 다른 두 줄기로 그린다. 한 덩어리로
+              그리면 그 색을 맞출 자리가 없어진다. */}
+          <span>{label}</span>
           {required && <span className="text-red-500">*</span>}
         </label>
       )}

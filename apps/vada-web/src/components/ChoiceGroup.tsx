@@ -4,6 +4,8 @@ import type { Option } from '../option-sources/catalog'
 
 interface ChoiceGroupProps {
   id: string
+  /** design 대조가 이 묶음을 찾아가는 끈(spec/screens.ts의 nodeIdOf). */
+  nodeId?: string
   disabled: boolean
   labelledBy?: string
   hasError?: boolean
@@ -20,6 +22,7 @@ interface ChoiceGroupProps {
 // 선택됨 14:173: bg #EFF6FF(blue-50), border #2B7FFF(blue-500), 텍스트 #1447E6(blue-700).
 export function ChoiceGroup({
   id,
+  nodeId,
   disabled,
   labelledBy,
   hasError,
@@ -62,6 +65,7 @@ export function ChoiceGroup({
   return (
     <div
       id={id}
+      data-node-id={nodeId}
       role="radiogroup"
       // label 요소는 div를 이름 짓지 못하므로 명시적으로 연결한다.
       // 디자인에 라벨이 없는 선택(ORG-02)은 연결할 대상이 없어 생략한다.
@@ -79,6 +83,10 @@ export function ChoiceGroup({
             ref={index === 0 ? triggerRef : undefined}
             key={option.value}
             type="button"
+            // 아무것도 고르지 않은 상태는 design이 그리지 않았다 — 와이어프레임은
+            // 늘 하나가 골라진 모습이다. 그 상태의 색은 대조하지 않는다
+            // (design-check/index.ts의 data-design-state).
+            data-design-state={value === null ? '' : undefined}
             role="radio"
             aria-checked={selected}
             disabled={disabled || option.disabled}
@@ -87,7 +95,9 @@ export function ChoiceGroup({
               hasDescriptions ? 'px-4 py-3 text-left' : 'px-3 py-2 text-xs font-medium'
             } ${
               selected
-                ? 'border-blue-500 bg-blue-50'
+                ? // 고른 테두리는 형태마다 다르다: 압축형 14:173은 blue-500,
+                  // 카드형 14:259는 blue-400 — design의 사실이다.
+                  `bg-blue-50 ${hasDescriptions ? 'border-blue-400' : 'border-blue-500'}`
                 : `bg-white hover:bg-gray-50 ${hasError ? 'border-red-500' : 'border-gray-200'}`
             } ${disabled || option.disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           >
@@ -111,7 +121,7 @@ export function ChoiceGroup({
                   </span>
                 </span>
                 {option.description && (
-                  <span className="block pt-1 pl-6 text-xs text-gray-500">
+                  <span className="block pt-1 pl-6 text-xs font-medium text-gray-500">
                     {option.description}
                   </span>
                 )}

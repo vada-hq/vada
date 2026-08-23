@@ -9,7 +9,7 @@ import { PrimaryButton } from '../components/PrimaryButton'
 import { SecondaryButton } from '../components/SecondaryButton'
 import { findFlowStep } from '../spec/flows'
 import { getMutation, runMutation } from '../spec/mutations'
-import { buttonsByEmphasis, org02, primaryButtonOf } from '../spec/screens'
+import { buttonsByEmphasis, nodeIdOf, org02, primaryButtonOf } from '../spec/screens'
 import type { ButtonSpec, ListSpec, SelectSpec, SubmitAction } from '../spec/types'
 import type { ScopeDraft } from '../state/scopes'
 
@@ -144,6 +144,7 @@ export function ORG02Screen({
         {/* 라디오 카드 14:257에는 라벨이 없다 — 없는 카피를 지어내지 않는다. */}
         <ChoiceGroup
           id={setupSpec.fieldKey}
+          nodeId={nodeIdOf(org02, setupSpec)}
           disabled={false}
           sourceKey={setupSpec.optionsSource.key}
           sourceParams={{}}
@@ -153,6 +154,7 @@ export function ORG02Screen({
 
         <OrgTree
           id={listSpec.fieldKey}
+          nodeId={nodeIdOf(org02, listSpec)}
           spec={listSpec}
           value={listValue}
           onChange={setListValue}
@@ -175,6 +177,7 @@ export function ORG02Screen({
             <SecondaryButton
               key={button.label}
               label={button.label}
+              nodeId={nodeIdOf(org02, button)}
               onClick={() =>
                 onNavigate(
                   button.action.type === 'navigate' ? button.action.targetScreenId : org02.screenId,
@@ -185,6 +188,7 @@ export function ORG02Screen({
         </div>
         <PrimaryButton
           label={submitState === 'submitting' ? mutation.messages.submitting : primaryButton.label}
+          nodeId={nodeIdOf(org02, primaryButton)}
           onClick={() => void handlePrimary()}
           fullWidth={false}
         />

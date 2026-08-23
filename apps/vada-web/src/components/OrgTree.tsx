@@ -10,6 +10,8 @@ export interface ListValue {
 
 interface OrgTreeProps {
   id: string
+  /** design 대조가 이 트리를 찾아가는 끈(spec/screens.ts의 nodeIdOf). */
+  nodeId?: string
   spec: ListSpec
   value: ListValue
   onChange: (next: ListValue) => void
@@ -27,7 +29,7 @@ const ROOT_WIDTH = 274
 const ITEM_WIDTH = 192
 const ADD_WIDTH = 100
 
-export function OrgTree({ id, spec, value, onChange }: OrgTreeProps) {
+export function OrgTree({ id, nodeId, spec, value, onChange }: OrgTreeProps) {
   const [editing, setEditing] = useState<number | 'root' | null>(null)
   const [openMenu, setOpenMenu] = useState<number | 'root' | null>(null)
 
@@ -106,14 +108,15 @@ export function OrgTree({ id, spec, value, onChange }: OrgTreeProps) {
   const menuItemClass = 'block w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50'
 
   return (
-    <div id={id} className="flex flex-col items-center pt-2">
+    <div id={id} data-node-id={nodeId} className="flex flex-col items-center pt-2">
       {spec.rootItem && (
         <>
           <div
             style={{ width: ROOT_WIDTH }}
             className="rounded-md border-2 border-gray-300 bg-white"
           >
-            <div className="flex items-center gap-2 rounded-t-md bg-gray-50 px-3 py-2">
+            {/* 머리줄 14:275: bg gray-50, 테두리 gray-200 */}
+            <div className="flex items-center gap-2 rounded-t-md border-b border-gray-200 bg-gray-50 px-3 py-2">
               <Star className="size-4 shrink-0 text-amber-400" />
               {nameCell(value.rootName, 'root')}
               {canRenameRoot &&
