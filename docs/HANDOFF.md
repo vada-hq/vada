@@ -115,6 +115,10 @@ npm run validate  # 명세 검증 CLI
 npm run e2e       # Playwright(스크린샷은 apps/vada-web/e2e/shots)
 npm run build
 
+# 특정 화면만 바로 열기 — 화면의 주소는 screenId다
+#   http://localhost:5173/#/TASK-01
+# 개발 빌드에는 오른쪽 아래에 화면 목록 버튼이 있다(배포 빌드에는 없다).
+
 # 원본 정규화(화면 저장 후 수동 실행)
 node apps/spec-service/src/generate-figma-design.mjs specs/figma/vada-wireframe/screens/ONB-01/figma.raw.json ONB-01
 ```

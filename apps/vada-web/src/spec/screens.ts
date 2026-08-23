@@ -43,6 +43,21 @@ export const my01 = asScreenSpec(my01Json)
 export const ops00 = asScreenSpec(ops00Json)
 export const task01 = asScreenSpec(task01Json)
 
+// 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
+// ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
+// 지금은 이 배열과 라우터가 같은 파일 묶음 안에 있어 한눈에 보인다.
+export const ALL_SCREENS: ScreenSpec[] = [
+  onb01,
+  onb02,
+  inv01,
+  org01,
+  org02,
+  home01k,
+  my01,
+  ops00,
+  task01,
+]
+
 // 배치가 명세에 없는 화면(대시보드)은 구현이 design의 자리마다 요소를 끼운다.
 // nodeId로 찾는다 — 라벨은 화면 안에서 유일하지 않을 수 있지만 nodeId는 유일하다.
 export function elementByNodeId(screen: ScreenSpec, nodeId: string): ScreenElement {
