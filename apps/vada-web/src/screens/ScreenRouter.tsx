@@ -23,8 +23,10 @@ interface ScreenRouterProps {
 
 // 내비게이션 계약(element-types.md): 스펙의 targetScreenId가 구현에 등록되지
 // 않은 화면이면 조용한 대체 없이 명시적 오류를 표시한다.
-// 각 화면에는 자기 stateScopeKey의 초안만 전달한다. 다른 스코프를 읽는 요소
-// (note)는 scopes 전체를 받는다.
+// 각 화면에는 자기 stateScopeKey의 초안을 전달한다. 여기에 더해, 부품 표를 쓰는
+// 화면은 scopes 전체도 받는다 — note가 *다른* 스코프의 값을 읽기 때문이다.
+// 지금 note가 없는 화면에도 넘긴다: 화면이 정하는 것은 자리뿐이어야 하고,
+// note가 하나 생겼다고 배선을 다시 손볼 자리가 있으면 안 된다.
 export function ScreenRouter({
   screenId,
   scopes,
@@ -36,6 +38,7 @@ export function ScreenRouter({
     return (
       <ONB01Screen
         draft={readScopeDraft(scopes, onb01.stateScopeKey)}
+        scopes={scopes}
         onChangeDraft={(next) => onChangeScope(onb01.stateScopeKey ?? '', next)}
         onNavigate={onNavigate}
       />
@@ -45,6 +48,7 @@ export function ScreenRouter({
     return (
       <INV01Screen
         draft={readScopeDraft(scopes, inv01.stateScopeKey)}
+        scopes={scopes}
         onChangeDraft={(next) => onChangeScope(inv01.stateScopeKey ?? '', next)}
         onNavigate={onNavigate}
       />

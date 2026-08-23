@@ -1,17 +1,20 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { onb01, org01, org02 } from './screens'
+import { ALL_SCREENS } from './screens'
 import type { FieldSpec, ListSpec, ScreenSpec } from './types'
 
 // 스펙 필드 소비 커버리지: 기대값을 스펙 JSON에서 읽어 화면과 대조한다.
 // 하드코딩한 단언이 아니라서, 스펙을 고치면 이 검사가 자동으로 따라간다.
 // 스키마에 필드를 추가하면 여기에 단언을 한 줄 늘리는 것이 완료 조건이다.
-const SCREENS: Array<{ screenId: string; spec: ScreenSpec }> = [
-  { screenId: 'ONB-01', spec: onb01 },
-  { screenId: 'ORG-01', spec: org01 },
-  { screenId: 'ORG-02', spec: org02 },
-]
+//
+// 화면 목록을 손으로 들고 있지 않는다. 예전에는 세 화면만 적혀 있었고, 그래서
+// INV-01이 스펙의 helperText를 그리지 않아도 아무도 몰랐다 — 붙이는 것을 잊을
+// 자리가 있으면 언젠가 잊는다.
+const SCREENS: Array<{ screenId: string; spec: ScreenSpec }> = ALL_SCREENS.map((spec) => ({
+  screenId: spec.screenId,
+  spec,
+}))
 
 function renderScreen(screenId: string) {
   render(
@@ -30,8 +33,10 @@ function listsOf(spec: ScreenSpec): ListSpec[] {
 }
 
 // 요소 유형과 표현 형태에 따라 컨트롤의 ARIA role이 정해진다.
+// input은 inputType이 role까지 정한다 — <input type="search">는 textbox가 아니라
+// searchbox다(MY-01의 업무 검색).
 function roleOf(spec: FieldSpec) {
-  if (spec.type === 'input') return 'textbox'
+  if (spec.type === 'input') return spec.inputType === 'search' ? 'searchbox' : 'textbox'
   return spec.presentation === 'choiceGroup' ? 'radiogroup' : 'combobox'
 }
 
@@ -82,7 +87,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     renderScreen(screenId)
     for (const field of fieldsOf(spec)) {
       if (field.type !== 'input') continue
-      const control = screen.getByRole('textbox', { name: accessibleName(field) })
+      const control = screen.getByRole(roleOf(field), { name: accessibleName(field) })
       expect(control, `${field.fieldKey}의 inputType`).toHaveAttribute('type', field.inputType)
       if (field.placeholder !== null) {
         expect(control, `${field.fieldKey}의 placeholder`).toHaveAttribute(
@@ -99,10 +104,17 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       // 비활성(enabledWhen 미충족) 필드는 disabledPlaceholder를 쓰므로 제외한다.
       if (field.type !== 'select' || field.presentation === 'choiceGroup') continue
       if (field.initiallyDisabled || field.placeholder === null) continue
-      expect(
-        screen.getByRole('combobox', { name: accessibleName(field) }),
-        `${field.fieldKey}의 placeholder`,
-      ).toHaveAttribute('placeholder', field.placeholder)
+      const control = screen.getByRole('combobox', { name: accessibleName(field) })
+      // 검색되는 선택은 입력칸이라 placeholder가 속성이고, 안 되는 선택은 버튼이라
+      // 안내 문구가 글이다. 같은 스펙 값이 형태에 따라 다른 자리에 놓인다.
+      if (field.searchable) {
+        expect(control, `${field.fieldKey}의 placeholder`).toHaveAttribute(
+          'placeholder',
+          field.placeholder,
+        )
+      } else {
+        expect(control, `${field.fieldKey}의 안내 문구`).toHaveTextContent(field.placeholder)
+      }
     }
   })
 
@@ -114,12 +126,21 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
+  // meta.title이 늘 화면에 그려지는 것은 아니다. INV-01의 design(14:1)에는 화면
+  // 제목이 아예 없다 — 거기서 meta.title은 그려지는 카피가 아니라 화면의 이름이다.
+  // 하나뿐인 사실이므로 규칙으로 만들지 않고 여기 적어 둔다(docs/BACKLOG.md).
+  const TITLE_NOT_DRAWN = new Set(['INV-01'])
+
   it('화면 카피(meta)와 묶음(group)을 렌더한다', () => {
     renderScreen(screenId)
     if (spec.meta) {
-      expect(screen.getByRole('heading', { name: spec.meta.title })).toBeInTheDocument()
+      if (!TITLE_NOT_DRAWN.has(screenId)) {
+        expect(screen.getByRole('heading', { name: spec.meta.title })).toBeInTheDocument()
+      }
+      // 같은 카피가 여러 자리에 놓일 수 있다 — MY-01은 눈썹과 제목이 같은 글이고
+      // 옆 메뉴에도 같은 이름이 있다. 있는지를 보지 몇 개인지를 보지 않는다.
       for (const copy of [spec.meta.eyebrow, spec.meta.description, spec.meta.footerNote]) {
-        if (copy) expect(screen.getByText(copy)).toBeInTheDocument()
+        if (copy) expect(screen.getAllByText(copy).length).toBeGreaterThan(0)
       }
     }
     for (const element of spec.elements) {

@@ -10,7 +10,7 @@ const FIND_TIMEOUT = { timeout: 4000 }
 
 function ScreenHarness({ onNavigate = () => {} }: { onNavigate?: (id: string) => void }) {
   const [draft, setDraft] = useState<OnboardingDraft>(createEmptyDraft)
-  return <ONB01Screen draft={draft} onChangeDraft={setDraft} onNavigate={onNavigate} />
+  return <ONB01Screen draft={draft} scopes={{}} onChangeDraft={setDraft} onNavigate={onNavigate} />
 }
 
 async function pickSchool(user: ReturnType<typeof userEvent.setup>, label: string) {

@@ -1,14 +1,8 @@
-import type { ReactNode } from 'react'
-import { ChoiceGroup } from '../components/ChoiceGroup'
-import { Field } from '../components/Field'
-import { FieldGroup } from '../components/FieldGroup'
 import { FlowProgress } from '../components/FlowProgress'
-import { NoteBox } from '../components/NoteBox'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
-import { SearchSelect } from '../components/SearchSelect'
 import { SecondaryButton } from '../components/SecondaryButton'
-import { TextInput } from '../components/TextInput'
+import { renderBody } from '../spec/elements'
 import { findFlowStep } from '../spec/flows'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import {
@@ -18,8 +12,7 @@ import {
   org01,
   primaryButtonOf,
 } from '../spec/screens'
-import type { ButtonSpec, FieldSpec, GroupSpec, NoteSpec } from '../spec/types'
-import { readScopeDisplayValue } from '../state/scopes'
+import type { ButtonSpec } from '../spec/types'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
 interface ORG01ScreenProps {
@@ -42,132 +35,15 @@ export function ORG01Screen({ draft, scopes, onChangeDraft, onNavigate }: ORG01S
   const primaryButton = primaryButtonOf(buttons)
   const secondaryButtons = buttonsByEmphasis(buttons, 'secondary')
 
-  const {
-    errors,
-    isSelectEnabled,
-    registerRef,
-    resolveSourceParams,
-    runButton,
-    selectValue,
-    setFieldValue,
-  } = useFieldDraft({ elements, draft, onChangeDraft })
+  const field = useFieldDraft({ elements, draft, onChangeDraft })
 
   function handlePrimary() {
-    runButton(primaryButton, () => onNavigate(navigateTarget(primaryButton.action)))
+    field.runButton(primaryButton, () => onNavigate(navigateTarget(primaryButton.action)))
   }
 
-  function renderField(spec: FieldSpec): ReactNode {
-    const enabled = spec.type === 'select' ? isSelectEnabled(spec) : true
-    const error = errors[spec.fieldKey]
-
-    return (
-      <Field
-        key={spec.fieldKey}
-        htmlFor={spec.fieldKey}
-        nodeId={nodeIdOf(org01, spec)}
-        label={spec.label}
-        required={spec.required}
-        disabled={!enabled}
-        error={error}
-        helperText={spec.helperText}
-      >
-        {spec.type === 'input' ? (
-          <TextInput
-            id={spec.fieldKey}
-            value={draft.values[spec.fieldKey] ?? ''}
-            placeholder={spec.placeholder}
-            type={spec.inputType}
-            hasError={Boolean(error)}
-            onChange={(value) => setFieldValue(spec.fieldKey, value === '' ? null : value)}
-            inputRef={registerRef(spec.fieldKey)}
-          />
-        ) : spec.presentation === 'choiceGroup' ? (
-          <ChoiceGroup
-            id={spec.fieldKey}
-            disabled={!enabled}
-            labelledBy={`${spec.fieldKey}-label`}
-            hasError={Boolean(error)}
-            sourceKey={spec.optionsSource.key}
-            sourceParams={resolveSourceParams(spec)}
-            value={selectValue(spec.fieldKey)}
-            onSelect={(option) => setFieldValue(spec.fieldKey, option.value, option.label)}
-            triggerRef={registerRef(spec.fieldKey)}
-          />
-        ) : (
-          <SearchSelect
-            id={spec.fieldKey}
-            placeholder={enabled ? spec.placeholder : (spec.disabledPlaceholder ?? spec.placeholder)}
-            searchable={spec.searchable}
-            disabled={!enabled}
-            hasError={Boolean(error)}
-            sourceKey={spec.optionsSource.key}
-            sourceParams={resolveSourceParams(spec)}
-            value={selectValue(spec.fieldKey)}
-            onSelect={(option) => setFieldValue(spec.fieldKey, option.value, option.label)}
-            triggerRef={registerRef(spec.fieldKey)}
-          />
-        )}
-      </Field>
-    )
-  }
-
-  // note.fieldRefs를 표시 라벨로 풀어 separator로 잇는다. 값이 없는 참조는 생략하고,
-  // 남는 것이 없으면 안내 자체를 그리지 않는다.
-  function renderNote(spec: NoteSpec, key: string): ReactNode {
-    const parts = spec.fieldRefs
-      .map((ref) => readScopeDisplayValue(scopes, ref.scope, ref.fieldKey))
-      .filter((part): part is string => part !== null)
-
-    if (parts.length === 0) {
-      return null
-    }
-    return (
-      <NoteBox
-        key={key}
-        nodeId={key}
-        text={`${spec.prefix ?? ''}${parts.join(spec.separator ?? ' ')}`}
-      />
-    )
-  }
-
-  const fieldByKey = new Map(
-    elements
-      .filter((element) => element.spec.type === 'input' || element.spec.type === 'select')
-      .map((element) => [(element.spec as FieldSpec).fieldKey, element.spec as FieldSpec]),
-  )
-  const groupedFieldKeys = new Set(
-    elements
-      .filter((element) => element.spec.type === 'group')
-      .flatMap((element) => (element.spec as GroupSpec).memberFieldKeys),
-  )
-
-  // 동작 명세의 elements 순서를 그대로 따라 그린다. 묶음 멤버는 묶음 안에서만 나온다.
-  const body = elements.map((element, index) => {
-    const spec = element.spec
-    const key = element.source.nodeId ?? String(index)
-
-    if (spec.type === 'button') {
-      return null
-    }
-    if (spec.type === 'note') {
-      return renderNote(spec, key)
-    }
-    if (spec.type === 'group') {
-      return (
-        <FieldGroup key={key} nodeId={key} title={spec.title} description={spec.description}>
-          {spec.memberFieldKeys.map((fieldKey) => {
-            const member = fieldByKey.get(fieldKey)
-            return member ? renderField(member) : null
-          })}
-        </FieldGroup>
-      )
-    }
-    if (spec.type === 'list' || spec.type === 'summary' || spec.type === 'itemList') {
-      // ORG-01에는 없다. 등장하면 조용히 빠뜨리지 않고 명시적으로 알린다.
-      throw new Error(`ORG-01 구현이 아직 다루지 않는 요소 유형입니다: ${spec.type}`)
-    }
-    return groupedFieldKeys.has(spec.fieldKey) ? null : renderField(spec)
-  })
+  // 무엇을 그릴지는 부품 표가 정한다(spec/elements.tsx). 이 화면이 정하는 것은
+  // 그것을 어디에 놓느냐뿐이다.
+  const body = renderBody({ screen: org01, draft, scopes, field })
 
   return (
     <PageCard>
