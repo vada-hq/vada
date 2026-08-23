@@ -880,3 +880,38 @@ test("셸이 가리킨 데이터 조각이 없으면 오류다", () => {
   });
   assert.equal(findings.filter((f) => f.message.includes("'없는조각'")).length, 1);
 });
+
+// title/titleField 쌍에는 검사가 있었지만 description/descriptionField를 새로
+// 열면서 같은 검사가 따라오지 않았다. 새 자리마다 되풀이되는 실수라 여기서 막는다.
+test("summary의 descriptionField가 없는 조각을 가리키면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "summary",
+            title: "운영 공간",
+            descriptionField: "없는조각",
+            dataSourceKey: "ops.intro"
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "ops.intro",
+        shape: "object",
+        description: "안내",
+        params: [],
+        fields: [{ key: "description", description: "안내 문장" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("'없는조각'")).length, 1);
+});

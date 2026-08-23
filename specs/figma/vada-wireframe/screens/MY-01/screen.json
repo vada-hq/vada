@@ -25,14 +25,17 @@
         "items": [
           {
             "label": "지연",
+            "unit": "건",
             "field": "delayedCount"
           },
           {
             "label": "해야 할 업무",
+            "unit": "건",
             "field": "todoCount"
           },
           {
             "label": "검토 필요",
+            "unit": "건",
             "field": "reviewCount"
           }
         ]

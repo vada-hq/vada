@@ -96,8 +96,15 @@ export interface ButtonSpec {
 // 이 화면이 다루는 대상의 요약 카드. note가 값들을 한 줄로 잇는 것과 달리
 // 제목과 라벨-값 쌍의 구조를 가진다. 값의 출처가 정해지기 전에는 디자인에
 // 그려진 예시 문자열을 그대로 담는다.
+// 표시 요소가 눌렸을 때의 동작. 값을 보내지 않으므로 submit이 없다.
+export type DisplayAction =
+  | { type: 'navigate'; label?: string; targetScreenId: string }
+  | { type: 'pending'; label?: string; note: string }
+
 export interface SummaryItem {
   label: string
+  // 값 뒤에 붙는 단위. 세는 말이 대상마다 다르다(업무는 '건', 행사는 '개').
+  unit?: string
   // 값의 출처. field면 dataSourceKey가 가리키는 응답의 조각이고,
   // value면 명세에 담긴 예시 값이다. 스키마가 둘 중 하나를 강제한다.
   field?: string
@@ -110,8 +117,13 @@ export interface SummarySpec {
   title?: string
   // 제목이 서버에서 오는 경우(홈 브리핑의 '박해랑님, 확인이 필요해요').
   titleField?: string
+  description?: string
+  // 설명이 서버에서 오는 경우(OPS-00의 '박해랑님이 확인할 …').
+  descriptionField?: string
   dataSourceKey?: string
   items?: SummaryItem[]
+  // 묶음 전체를 눌렀을 때. itemList.itemAction과 같은 규칙이다.
+  action?: DisplayAction
 }
 
 // 데이터의 개수만큼 반복하는 읽기 전용 목록. list(사람이 편집하는 목록)와
@@ -125,9 +137,7 @@ export interface ItemListSpec {
   // 받아온 것을 화면에서 거르지 않고 값이 바뀌면 다시 조회한다.
   params?: Record<string, string>
   // 항목 하나를 눌렀을 때. 어느 항목인지는 데이터가, 어느 화면인지는 명세가 말한다.
-  itemAction?:
-    | { type: 'navigate'; targetScreenId: string }
-    | { type: 'pending'; note: string }
+  itemAction?: DisplayAction
 }
 
 // 다른 상태 스코프의 필드 값을 읽어 표시하는 파생 표시 요소.

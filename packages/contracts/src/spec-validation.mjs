@@ -463,7 +463,11 @@ function checkDataSource(findings, context) {
   if (typeof key !== "string") {
     // 출처가 없으면 값은 명세에 담긴 예시다. field를 가리킬 수는 없다.
     const withField = (spec.items ?? []).filter((item) => item?.field !== undefined);
-    if (spec.titleField !== undefined || withField.length > 0) {
+    if (
+      spec.titleField !== undefined ||
+      spec.descriptionField !== undefined ||
+      withField.length > 0
+    ) {
       findings.push({
         level: "error",
         file,
@@ -504,6 +508,7 @@ function checkDataSource(findings, context) {
   const fieldKeys = new Set((source.fields ?? []).map((field) => field.key));
   const referenced = [
     ...(spec.titleField === undefined ? [] : [spec.titleField]),
+    ...(spec.descriptionField === undefined ? [] : [spec.descriptionField]),
     ...(spec.items ?? []).map((item) => item?.field).filter((field) => field !== undefined)
   ];
   for (const field of referenced) {

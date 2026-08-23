@@ -102,7 +102,7 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
             ) : null}
             <span>{item.label}</span>
             <span className="font-semibold text-gray-900">
-              {`${item.field ? alertRow[item.field] : (item.value ?? "")}건`}
+              {`${item.field ? alertRow[item.field] : (item.value ?? '')}${item.unit ?? ''}`}
             </span>
           </span>
         ))}

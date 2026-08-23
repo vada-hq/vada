@@ -2,6 +2,7 @@ import { PageCard } from '../components/PageCard'
 import { HOME01KScreen } from './HOME01KScreen'
 import { INV01Screen } from './INV01Screen'
 import { MY01Screen } from './MY01Screen'
+import { OPS00Screen } from './OPS00Screen'
 import { ONB01Screen } from './ONB01Screen'
 import { ONB02Screen } from './ONB02Screen'
 import { ORG01Screen } from './ORG01Screen'
@@ -56,6 +57,10 @@ export function ScreenRouter({
     // 대시보드와 같은 읽기 화면이다. 탭·검색어는 목록을 거르는 화면 안의 값이라
     // 상태 스코프(화면 간 유지)에 담지 않는다.
     return <MY01Screen onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-00') {
+    // 운영 허브다. 고를 것은 갈 곳뿐이라 상태 스코프를 참조하지 않는다.
+    return <OPS00Screen onNavigate={onNavigate} />
   }
   if (screenId === 'ONB-02') {
     return <ONB02Screen onNavigate={onNavigate} />

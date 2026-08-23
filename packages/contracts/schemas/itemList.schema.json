@@ -32,76 +32,8 @@
       "description": "목록을 조회할 때 넘기는 인자(선택). key는 dataSource의 params에 선언된 이름이고, 값은 그 값을 담고 있는 화면 필드의 fieldKey다. select.optionsSource.params와 같은 모양이다. 값이 바뀌면 목록을 다시 조회한다 — 받아온 것을 화면에서 거르지 않는다."
     },
     "itemAction": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "type"
-      ],
-      "description": "항목 하나를 눌렀을 때의 동작(선택). 어느 항목으로 가는지는 데이터가 정하므로, 명세는 종류만 말한다. button.action의 navigate/pending과 같은 규칙이다.",
-      "properties": {
-        "type": {
-          "type": "string",
-          "enum": [
-            "navigate",
-            "pending"
-          ]
-        },
-        "targetScreenId": {
-          "type": "string",
-          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
-        },
-        "note": {
-          "type": "string",
-          "minLength": 1,
-          "description": "아직 명세되지 않은 화면임을 알리는 문구."
-        }
-      },
-      "allOf": [
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "navigate"
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          "then": {
-            "required": [
-              "targetScreenId"
-            ],
-            "not": {
-              "required": [
-                "note"
-              ]
-            }
-          }
-        },
-        {
-          "if": {
-            "properties": {
-              "type": {
-                "const": "pending"
-              }
-            },
-            "required": [
-              "type"
-            ]
-          },
-          "then": {
-            "required": [
-              "note"
-            ],
-            "not": {
-              "required": [
-                "targetScreenId"
-              ]
-            }
-          }
-        }
-      ]
+      "description": "항목 하나를 눌렀을 때의 동작(선택). 어느 항목인지는 데이터가 정하므로 명세는 종류만 말한다.",
+      "$ref": "element-action.schema.json#/$defs/displayAction"
     }
   }
 }

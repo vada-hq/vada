@@ -361,6 +361,76 @@
           "optional": true
         }
       ]
+    },
+    {
+      "key": "ops.intro",
+      "shape": "object",
+      "description": "운영 허브의 안내 문장. 보는 사람의 이름이 들어가므로 서버가 완성해서 준다(home.briefing과 같은 이유).",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/intro"
+      },
+      "messages": {
+        "loading": "운영 공간을 불러오는 중입니다",
+        "empty": "안내할 내용이 없습니다",
+        "error": "운영 공간을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "description",
+          "description": "완성된 안내 문장. 예: 박해랑님이 확인할 업무·회의·행사·일정을 선택하세요. …"
+        }
+      ]
+    },
+    {
+      "key": "ops.spaceStats",
+      "shape": "object",
+      "description": "운영 공간 4개가 각각 곁들이는 건수. 공간 자체는 제품이 정한 고정 구조라 명세가 갖고, 건수만 서버가 준다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/space-stats"
+      },
+      "messages": {
+        "loading": "건수를 불러오는 중입니다",
+        "empty": "표시할 건수가 없습니다",
+        "error": "건수를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "taskInProgress",
+          "description": "상시 업무 중 진행 중인 수"
+        },
+        {
+          "key": "taskReview",
+          "description": "상시 업무 중 검토가 필요한 수"
+        },
+        {
+          "key": "meetingToday",
+          "description": "오늘 예정된 회의 수"
+        },
+        {
+          "key": "meetingCleanup",
+          "description": "정리가 필요한 회의 수"
+        },
+        {
+          "key": "eventInProgress",
+          "description": "진행 중인 행사 수"
+        },
+        {
+          "key": "eventPlanning",
+          "description": "기획 중인 행사 수"
+        },
+        {
+          "key": "calendarThisWeek",
+          "description": "이번 주 마감 수"
+        },
+        {
+          "key": "calendarUpcoming",
+          "description": "다가오는 마감 수"
+        }
+      ]
     }
   ]
 }

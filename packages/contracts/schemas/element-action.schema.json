@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "element-action.schema.json",
+  "title": "Shared element action",
+  "description": "표시 요소가 눌렸을 때의 동작. button.action과 규칙이 같지만 제출(submit)은 갖지 않는다 — 표시 요소는 값을 보내지 않는다. itemList.itemAction과 summary.action이 이것을 참조한다. 세 번째로 같은 모양이 필요해졌을 때 뽑았다.",
+  "$defs": {
+    "displayAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["navigate", "pending"]
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "동작을 알리는 문구(선택). 예: 업무 보드 열기. 요소 자체의 제목과 다르다."
+        },
+        "targetScreenId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "아직 명세되지 않은 화면임을 알리는 문구."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "navigate" } }, "required": ["type"] },
+          "then": { "required": ["targetScreenId"], "not": { "required": ["note"] } }
+        },
+        {
+          "if": { "properties": { "type": { "const": "pending" } }, "required": ["type"] },
+          "then": { "required": ["note"], "not": { "required": ["targetScreenId"] } }
+        }
+      ]
+    }
+  }
+}

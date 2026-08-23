@@ -27,6 +27,16 @@
       "minLength": 1,
       "description": "제목이 서버에서 오는 경우 dataSourceKey가 가리키는 출처의 fields[].key. title과 함께 쓰지 않는다(홈 브리핑의 '박해랑님, 확인이 필요해요'가 그렇다)."
     },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "description": "제목 아래 붙는 설명 문장(선택). title/titleField와 같은 쌍이다 — 서버가 완성하면 descriptionField를 쓴다. OPS-00의 운영 공간 카드가 첫 사례다."
+    },
+    "descriptionField": {
+      "type": "string",
+      "minLength": 1,
+      "description": "설명이 서버에서 오는 경우 dataSourceKey가 가리키는 출처의 fields[].key. description과 함께 쓰지 않는다."
+    },
     "dataSourceKey": {
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
@@ -59,6 +69,11 @@
             "type": "string",
             "minLength": 1
           },
+          "unit": {
+            "type": "string",
+            "minLength": 1,
+            "description": "값 뒤에 붙는 단위(선택). 세는 말이 대상마다 다르다 — OPS-00은 업무를 '건', 행사를 '개'로 센다. 확정된 카피이므로 구현이 정하지 않는다."
+          },
           "field": {
             "type": "string",
             "minLength": 1,
@@ -71,6 +86,10 @@
           }
         }
       }
+    },
+    "action": {
+      "description": "묶음 전체를 눌렀을 때의 동작(선택). 표시 요소가 자기 동작을 갖는 것은 itemList.itemAction과 같은 규칙이다.",
+      "$ref": "element-action.schema.json#/$defs/displayAction"
     }
   },
   "anyOf": [
@@ -91,9 +110,19 @@
     }
   ],
   "not": {
-    "required": [
-      "title",
-      "titleField"
+    "anyOf": [
+      {
+        "required": [
+          "title",
+          "titleField"
+        ]
+      },
+      {
+        "required": [
+          "description",
+          "descriptionField"
+        ]
+      }
     ]
   }
 }

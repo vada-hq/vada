@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-00",
+  "meta": {
+    "eyebrow": "운영",
+    "title": "운영",
+    "footerNote": "회의 생성, 행사 생성, 일정 수정처럼 권한이 필요한 행동은 이 허브가 아닌 각 하위 공간에서만 표시됩니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "16:511",
+    "name": "운영 · OPS-00 · 운영 홈 — 업무·회의·행사·캘린더",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "16:593",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "운영 공간",
+        "descriptionField": "description",
+        "dataSourceKey": "ops.intro"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:604",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "운영 메뉴",
+        "description": "운영 업무의 성격에 따라 공간을 선택합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:614",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "상시 업무",
+        "description": "행사에 속하지 않는 반복·조직 운영 업무를 관리합니다.",
+        "dataSourceKey": "ops.spaceStats",
+        "items": [
+          {
+            "label": "진행 중",
+            "unit": "건",
+            "field": "taskInProgress"
+          },
+          {
+            "label": "검토 필요",
+            "unit": "건",
+            "field": "taskReview"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "label": "업무 보드 열기",
+          "note": "상시 업무 보드 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:643",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의",
+        "description": "예정·진행 중·완료된 회의와 내 참여 상태를 확인합니다.",
+        "dataSourceKey": "ops.spaceStats",
+        "items": [
+          {
+            "label": "오늘 예정",
+            "unit": "건",
+            "field": "meetingToday"
+          },
+          {
+            "label": "정리 필요",
+            "unit": "건",
+            "field": "meetingCleanup"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "label": "회의 목록 보기",
+          "note": "회의 목록 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:674",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "행사",
+        "description": "기획·진행·후속 정리 중인 행사를 한곳에서 확인합니다.",
+        "dataSourceKey": "ops.spaceStats",
+        "items": [
+          {
+            "label": "진행 중",
+            "unit": "개",
+            "field": "eventInProgress"
+          },
+          {
+            "label": "기획 중",
+            "unit": "개",
+            "field": "eventPlanning"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "label": "행사 목록 보기",
+          "note": "행사 목록 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:702",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "캘린더",
+        "description": "행사·회의·마감 일정을 월간 단위로 통합해 봅니다.",
+        "dataSourceKey": "ops.spaceStats",
+        "items": [
+          {
+            "label": "이번 주 마감",
+            "unit": "건",
+            "field": "calendarThisWeek"
+          },
+          {
+            "label": "다가오는 마감",
+            "unit": "건",
+            "field": "calendarUpcoming"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "label": "월간 일정 보기",
+          "note": "월간 일정 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

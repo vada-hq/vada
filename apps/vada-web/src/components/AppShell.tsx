@@ -27,6 +27,7 @@ interface AppShellProps {
   eyebrow?: string | null
   title: string
   description?: string | null
+  footerNote?: string | null
   onNavigate: (screenId: string) => void
   children: ReactNode
 }
@@ -36,6 +37,7 @@ export function AppShell({
   eyebrow,
   title,
   description,
+  footerNote,
   onNavigate,
   children,
 }: AppShellProps) {
@@ -119,6 +121,9 @@ export function AppShell({
             <p className="pb-4 text-sm text-gray-600">{description}</p>
           )}
           {children}
+          {footerNote === null || footerNote === undefined ? null : (
+            <p className="pt-6 text-xs text-gray-500">{footerNote}</p>
+          )}
         </main>
       </div>
     </div>

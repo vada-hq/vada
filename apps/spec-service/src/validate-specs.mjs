@@ -21,6 +21,7 @@ const CATALOG_SCHEMA_FILES = [
   "flows.schema.json",
   "mutations.schema.json",
   "shell.schema.json",
+  "element-action.schema.json",
   "figma-design.schema.json"
 ];
 

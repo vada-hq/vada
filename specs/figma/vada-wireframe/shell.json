@@ -22,7 +22,7 @@
     },
     {
       "label": "운영",
-      "note": "운영 화면이 아직 명세되지 않았습니다."
+      "targetScreenId": "OPS-00"
     },
     {
       "label": "재정",
