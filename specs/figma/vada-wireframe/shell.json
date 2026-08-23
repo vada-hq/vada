@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 1,
+  "design": {
+    "excludeNodeNames": [
+      "Sidebar",
+      "Header"
+    ]
+  },
+  "brand": {
+    "name": "Vada",
+    "dataSourceKey": "shell.organization",
+    "subtitleField": "name"
+  },
+  "navigation": [
+    {
+      "label": "홈",
+      "targetScreenId": "HOME-01K"
+    },
+    {
+      "label": "내 업무",
+      "targetScreenId": "MY-01"
+    },
+    {
+      "label": "운영",
+      "note": "운영 화면이 아직 명세되지 않았습니다."
+    },
+    {
+      "label": "재정",
+      "note": "재정 화면이 아직 명세되지 않았습니다."
+    },
+    {
+      "label": "기록",
+      "note": "기록 화면이 아직 명세되지 않았습니다."
+    },
+    {
+      "label": "조직 관리",
+      "note": "조직 관리 화면이 아직 명세되지 않았습니다."
+    },
+    {
+      "label": "메시지",
+      "note": "메시지 화면이 아직 명세되지 않았습니다."
+    }
+  ],
+  "viewer": {
+    "dataSourceKey": "shell.viewer",
+    "nameField": "name",
+    "roleField": "role"
+  }
+}

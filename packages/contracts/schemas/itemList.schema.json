@@ -5,9 +5,14 @@
   "description": "데이터의 개수만큼 반복해서 보여주는 읽기 전용 목록. list와 다르다 — list는 사람이 추가·수정·삭제하는 편집 목록이고, itemList는 서버가 준 것을 그대로 읽는다. summary와도 다르다 — summary는 항목이 명세에 고정되어 있고, itemList는 항목 수가 데이터에 달렸다. 항목 하나가 어떤 조각으로 이루어지는지는 dataSource의 fields가, 그 조각을 어떻게 그리는지는 figma.design.json이 갖는다.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["type", "dataSourceKey"],
+  "required": [
+    "type",
+    "dataSourceKey"
+  ],
   "properties": {
-    "type": { "const": "itemList" },
+    "type": {
+      "const": "itemList"
+    },
     "title": {
       "type": "string",
       "minLength": 1,
@@ -17,6 +22,86 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
       "description": "data-sources.json 카탈로그의 key. shape가 list인 출처여야 한다."
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "목록을 조회할 때 넘기는 인자(선택). key는 dataSource의 params에 선언된 이름이고, 값은 그 값을 담고 있는 화면 필드의 fieldKey다. select.optionsSource.params와 같은 모양이다. 값이 바뀌면 목록을 다시 조회한다 — 받아온 것을 화면에서 거르지 않는다."
+    },
+    "itemAction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type"
+      ],
+      "description": "항목 하나를 눌렀을 때의 동작(선택). 어느 항목으로 가는지는 데이터가 정하므로, 명세는 종류만 말한다. button.action의 navigate/pending과 같은 규칙이다.",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "navigate",
+            "pending"
+          ]
+        },
+        "targetScreenId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "note": {
+          "type": "string",
+          "minLength": 1,
+          "description": "아직 명세되지 않은 화면임을 알리는 문구."
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "navigate"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "targetScreenId"
+            ],
+            "not": {
+              "required": [
+                "note"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "pending"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "note"
+            ],
+            "not": {
+              "required": [
+                "targetScreenId"
+              ]
+            }
+          }
+        }
+      ]
     }
   }
 }

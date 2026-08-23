@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "screenId": "MY-01",
+  "meta": {
+    "eyebrow": "내 업무",
+    "title": "내 업무",
+    "description": "여러 행사와 조직 활동에서 내가 처리할 업무를 확인합니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "16:317",
+    "name": "내 업무 · MY-01 · 내 업무",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "16:401",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "my.taskAlerts",
+        "items": [
+          {
+            "label": "지연",
+            "field": "delayedCount"
+          },
+          {
+            "label": "해야 할 업무",
+            "field": "todoCount"
+          },
+          {
+            "label": "검토 필요",
+            "field": "reviewCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:422",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "taskTab",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "todo",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "my.taskTab"
+        },
+        "optionCounts": {
+          "dataSourceKey": "my.taskTabCounts"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:441",
+        "name": "Label:align",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "taskQuery",
+        "label": "업무 검색",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "16:448",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "확인 필요",
+        "dataSourceKey": "my.tasks",
+        "params": {
+          "tab": "taskTab",
+          "query": "taskQuery"
+        },
+        "itemAction": {
+          "type": "pending",
+          "note": "업무 상세 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

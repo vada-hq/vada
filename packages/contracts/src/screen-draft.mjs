@@ -352,7 +352,11 @@ function readSection(node) {
 export function draftScreenElements(design, options = {}) {
   const elements = [];
   const questions = [];
-  const { precedents, stateScopeKey } = options;
+  const { precedents, stateScopeKey, excludeNodeNames } = options;
+  // 셸(사이드바·헤더)은 화면의 요소가 아니라 모든 화면이 공유하는 구조다.
+  // 어느 노드가 셸인지는 wireframe이 아는 것이라 파이프라인이 이름을 갖지 않고
+  // 호출자가 넘긴다(specs/<wireframe>/shell.json의 design.excludeNodeNames).
+  const excluded = new Set(excludeNodeNames ?? []);
   const lookup = (label) =>
     precedents ? findPrecedent(precedents, { label, stateScopeKey }) : { confirmed: null, candidates: [] };
 
@@ -362,6 +366,10 @@ export function draftScreenElements(design, options = {}) {
 
   const visit = (node, insideGroup) => {
     for (const child of children(node)) {
+      if (excluded.has(child?.name)) {
+        continue;
+      }
+
       if (isFieldWrapper(child)) {
         elements.push(describeField(child, questions, elements.length, lookup));
         continue; // 필드 내부는 더 파지 않는다(등록 노드 계약)

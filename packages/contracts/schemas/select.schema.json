@@ -96,6 +96,20 @@
         }
       }
     },
+    "optionCounts": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataSourceKey"
+      ],
+      "description": "선택지마다 곁들이는 개수의 출처(선택). 무엇을 고를 수 있는지는 명세가 정하고(optionsSource), 각 선택지에 몇 건이 있는지는 데이터가 정한다. shape가 object인 출처여야 하며 fields[].key가 선택지의 value와 같아야 한다. MY-01의 업무 탭이 첫 사례다.",
+      "properties": {
+        "dataSourceKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        }
+      }
+    },
     "enabledWhen": {
       "description": "생략하면 항상 활성화됩니다. 명시하면 모든 조건을 만족할 때 활성화됩니다.",
       "type": "array",

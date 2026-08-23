@@ -212,3 +212,53 @@ test("버튼이 하나뿐이어도 형태로 강조도를 유도한다", async (
   assert.equal(buttons.length, 1);
   assert.equal(buttons[0].spec.emphasis, "primary");
 });
+
+// 셸(사이드바·헤더)은 화면의 요소가 아니라 모든 데스크톱 화면이 공유하는 구조다.
+// 막지 않으면 화면마다 사이드바 로고와 메뉴 7개가 초안에 섞여 들어온다
+// (MY-01 초안의 첫 요소가 실제로 사이드바 로고 'V'였다).
+test("셸로 선언된 노드는 초안에서 제외한다", () => {
+  const design = {
+    root: {
+      id: "1:1",
+      type: "frame",
+      name: "화면",
+      children: [
+        {
+          id: "1:2",
+          type: "frame",
+          name: "Sidebar",
+          children: [
+            { id: "1:3", type: "text", name: "홈", text: "홈" },
+            { id: "1:4", type: "text", name: "재정", text: "재정" }
+          ]
+        },
+        {
+          id: "1:5",
+          type: "frame",
+          name: "Container",
+          children: [
+            {
+              id: "1:6",
+              type: "frame",
+              name: "Label",
+              children: [
+                { id: "1:7", type: "text", name: "이름", text: "이름" },
+                { id: "1:8", type: "frame", name: "Text Input - 이름", children: [] }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  };
+
+  const withoutGuard = draftScreenElements(design, {});
+  const withGuard = draftScreenElements(design, { excludeNodeNames: ["Sidebar"] });
+
+  assert.ok(
+    withGuard.elements.every((element) => element.source.nodeId !== "1:2"),
+    "셸 노드가 요소로 남았다"
+  );
+  assert.ok(withGuard.elements.length < withoutGuard.elements.length + 1);
+  assert.ok(withGuard.elements.some((element) => element.source.nodeId === "1:5"));
+});

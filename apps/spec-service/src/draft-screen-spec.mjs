@@ -64,7 +64,15 @@ async function runCli() {
       .catch(() => undefined));
 
   const precedents = collectFieldPrecedents(await loadPrecedentScreens(screensDir, screenId));
-  const { elements, questions } = draftScreenElements(design, { precedents, stateScopeKey });
+  // 셸은 화면의 요소가 아니다. 어느 노드가 셸인지는 wireframe이 안다.
+  const excludeNodeNames = await readJson(join(screensDir, "..", "shell.json"))
+    .then((shell) => shell.design?.excludeNodeNames)
+    .catch(() => undefined);
+  const { elements, questions } = draftScreenElements(design, {
+    precedents,
+    stateScopeKey,
+    excludeNodeNames
+  });
 
   if (flags.includes("--verify")) {
     const spec = await readJson(join(screenDir, "screen.json"));

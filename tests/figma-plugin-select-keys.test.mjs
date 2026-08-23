@@ -35,6 +35,7 @@ test("select 스키마는 승인된 v1 필드만 선언한다", async () => {
     "initiallyDisabled",
     "searchable",
     "optionsSource",
+    "optionCounts",
     "enabledWhen",
     "resetOnChangeOf"
   ];
@@ -44,6 +45,8 @@ test("select 스키마는 승인된 v1 필드만 선언한다", async () => {
     "disabledPlaceholder",
     "helperText",
     "presentation",
+    // 선택지별 건수는 서버 값이라 없는 화면이 대부분이다(MY-01의 업무 탭이 첫 사례).
+    "optionCounts",
     "enabledWhen",
     "resetOnChangeOf"
   ];

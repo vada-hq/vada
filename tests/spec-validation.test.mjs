@@ -638,3 +638,245 @@ test("collectSpecFindings는 순서 원본이 없으면 순서를 검사하지 �
     []
   );
 });
+
+// 새 자리를 만들면 검증기가 따라와야 한다. 검사 없는 자리는 조용히 틀린 값을
+// 통과시키고, 틀려도 화면이 멀쩡히 도는 값(출처 key·인자 이름)은 아무도 못 잡는다.
+// MY-01 사이클에서 세 자리를 한꺼번에 열었으므로 셋 다 여기서 막는다.
+
+function myTasksSource(overrides = {}) {
+  return {
+    key: "my.tasks",
+    shape: "list",
+    description: "내 업무",
+    params: ["tab", "query"],
+    fields: [{ key: "title", description: "업무 이름" }],
+    ...overrides
+  };
+}
+
+test("itemList가 카탈로그에 없는 조회 인자를 넘기면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", inputSpec("taskQuery")),
+          element("1:3", {
+            type: "itemList",
+            dataSourceKey: "my.tasks",
+            params: { tab: "taskQuery" }
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = { sources: [myTasksSource({ params: ["query"] })] };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(
+    findings.filter((f) => f.message.includes("조회 인자 'tab'")).length,
+    1
+  );
+});
+
+test("itemList의 조회 인자가 없는 필드를 가리키면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:3", {
+            type: "itemList",
+            dataSourceKey: "my.tasks",
+            params: { tab: "없는필드" }
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = { sources: [myTasksSource({ params: ["tab"] })] };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(
+    findings.filter((f) => f.message.includes("'없는필드'")).length,
+    1
+  );
+});
+
+test("select의 개수 출처가 카탈로그에 없으면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "select",
+            fieldKey: "taskTab",
+            placeholder: null,
+            presentation: "choiceGroup",
+            initialValue: "todo",
+            valueType: "string",
+            required: true,
+            initiallyDisabled: false,
+            searchable: false,
+            optionsSource: { key: "my.taskTab" },
+            optionCounts: { dataSourceKey: "nope.missing" }
+          })
+        ]
+      }
+    }
+  ];
+  const optionSources = {
+    sources: [
+      {
+        key: "my.taskTab",
+        type: "static",
+        description: "탭",
+        params: [],
+        options: [{ value: "todo", label: "해야 할 업무" }]
+      }
+    ]
+  };
+  const dataSources = { sources: [] };
+
+  const findings = collectSpecFindings({ screens, optionSources, dataSources });
+  assert.equal(
+    findings.filter((f) => f.message.includes("nope.missing")).length,
+    1
+  );
+});
+
+test("개수 출처가 선택지의 value를 조각으로 갖지 않으면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "select",
+            fieldKey: "taskTab",
+            placeholder: null,
+            presentation: "choiceGroup",
+            initialValue: "todo",
+            valueType: "string",
+            required: true,
+            initiallyDisabled: false,
+            searchable: false,
+            optionsSource: { key: "my.taskTab" },
+            optionCounts: { dataSourceKey: "my.taskTabCounts" }
+          })
+        ]
+      }
+    }
+  ];
+  const optionSources = {
+    sources: [
+      {
+        key: "my.taskTab",
+        type: "static",
+        description: "탭",
+        params: [],
+        options: [
+          { value: "todo", label: "해야 할 업무" },
+          { value: "done", label: "완료된 업무" }
+        ]
+      }
+    ]
+  };
+  const dataSources = {
+    sources: [
+      {
+        key: "my.taskTabCounts",
+        shape: "object",
+        description: "탭 건수",
+        params: [],
+        fields: [{ key: "todo", description: "해야 할 업무 수" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, optionSources, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("'done'")).length, 1);
+});
+
+test("itemList 항목의 이동 대상 화면이 없으면 경고다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:3", {
+            type: "itemList",
+            dataSourceKey: "my.tasks",
+            itemAction: { type: "navigate", targetScreenId: "ZZZ-99" }
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = { sources: [myTasksSource()] };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(
+    findings.filter(
+      (f) => f.level === "warning" && f.message.includes("ZZZ-99")
+    ).length,
+    1
+  );
+});
+
+// 화면 셸은 화면마다 복사하지 않으려고 카탈로그로 뺐다. 그 대가로 셸이 가리키는
+// 화면·데이터가 실제로 있는지는 아무 화면도 검사해 주지 않으므로 여기서 본다.
+test("셸의 내비게이션이 없는 화면을 가리키면 경고다", () => {
+  const shell = {
+    schemaVersion: 1,
+    navigation: [
+      { label: "홈", targetScreenId: "S-01" },
+      { label: "재정", targetScreenId: "ZZZ-99" }
+    ]
+  };
+  const screens = [
+    { file: "w/screens/S-01/screen.json", spec: { screenId: "S-01", elements: [] } }
+  ];
+
+  const findings = collectSpecFindings({ screens, shell, shellFile: "w/shell.json" });
+  assert.equal(
+    findings.filter((f) => f.level === "warning" && f.message.includes("ZZZ-99")).length,
+    1
+  );
+});
+
+test("셸이 가리킨 데이터 조각이 없으면 오류다", () => {
+  const shell = {
+    schemaVersion: 1,
+    navigation: [{ label: "홈", targetScreenId: "S-01" }],
+    viewer: { dataSourceKey: "shell.viewer", nameField: "name", roleField: "없는조각" }
+  };
+  const screens = [
+    { file: "w/screens/S-01/screen.json", spec: { screenId: "S-01", elements: [] } }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "shell.viewer",
+        shape: "object",
+        description: "보는 사람",
+        params: [],
+        fields: [{ key: "name", description: "이름" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({
+    screens,
+    dataSources,
+    shell,
+    shellFile: "w/shell.json"
+  });
+  assert.equal(findings.filter((f) => f.message.includes("'없는조각'")).length, 1);
+});

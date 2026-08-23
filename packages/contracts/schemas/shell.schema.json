@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shell.schema.json",
+  "title": "Wireframe app shell",
+  "description": "모든 데스크톱 화면이 공유하는 앱 구조 — 사이드바(조직 신원·내비게이션·보는 사람)와 헤더의 자리. 화면 하나의 요소가 아니므로 screen.json에 담지 않고, 화면마다 복사하면 원본이 화면 수만큼 생기므로 wireframe 단위 카탈로그로 둔다. 헤더에 무엇을 쓸지는 각 화면의 meta가 갖는다 — 셸은 자리만 정한다. 근거: HOME-01K와 MY-01의 셸이 텍스트까지 동일하다(사례 2건).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "navigation"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "brand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name"
+      ],
+      "description": "제품 신원. name은 고정 카피이고, 그 아래 붙는 조직 이름은 보는 사람마다 다르므로 서버에서 온다.",
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "dataSourceKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "data-sources.json의 key. shape가 object여야 한다."
+        },
+        "subtitleField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "dataSourceKey가 가리키는 출처의 fields[].key. 조직 이름이 여기 온다."
+        }
+      },
+      "dependentRequired": {
+        "subtitleField": [
+          "dataSourceKey"
+        ]
+      }
+    },
+    "navigation": {
+      "type": "array",
+      "minItems": 1,
+      "description": "사이드바 메뉴. 순서가 화면에 그려지는 순서다. 지금 있는 화면으로 가는 항목은 targetScreenId를, 아직 없는 화면은 note를 갖는다(button.action의 navigate/pending과 같은 규칙).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label"
+        ],
+        "oneOf": [
+          {
+            "required": [
+              "targetScreenId"
+            ]
+          },
+          {
+            "required": [
+              "note"
+            ]
+          }
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "targetScreenId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1,
+            "description": "아직 명세되지 않은 화면임을 알리는 문구."
+          }
+        }
+      }
+    },
+    "viewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataSourceKey",
+        "nameField"
+      ],
+      "description": "사이드바 아래에 표시하는 '보는 사람'. 전부 서버 값이다.",
+      "properties": {
+        "dataSourceKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "nameField": {
+          "type": "string",
+          "minLength": 1
+        },
+        "roleField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "소속과 직책. 예: 운영부 · 부원"
+        }
+      }
+    },
+    "design": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "excludeNodeNames"
+      ],
+      "description": "셸이 디자인에서 어떤 노드인지(선택). 추출기가 화면 요소를 뽑을 때 이 이름의 노드를 건너뛴다. 파이프라인은 wireframe의 레이어 이름을 알 수 없으므로 여기서 알려준다.",
+      "properties": {
+        "excludeNodeNames": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }
+}

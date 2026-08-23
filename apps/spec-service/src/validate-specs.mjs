@@ -20,6 +20,7 @@ const CATALOG_SCHEMA_FILES = [
   "state-scopes.schema.json",
   "flows.schema.json",
   "mutations.schema.json",
+  "shell.schema.json",
   "figma-design.schema.json"
 ];
 
@@ -62,6 +63,7 @@ async function createValidators() {
     stateScopes: ajv.getSchema("state-scopes.schema.json"),
     flows: ajv.getSchema("flows.schema.json"),
     mutations: ajv.getSchema("mutations.schema.json"),
+    shell: ajv.getSchema("shell.schema.json"),
     figmaDesign: ajv.getSchema("figma-design.schema.json"),
     elementPropertyOrder,
     elements
@@ -204,6 +206,7 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
   };
 
   const flowsCatalog = await readOptionalOwnCatalog("flows.json", validators.flows);
+  const shellCatalog = await readOptionalOwnCatalog("shell.json", validators.shell);
   const mutations = await readOptionalOwnCatalog("mutations.json", validators.mutations);
 
   const screensDir = join(wireframeDir, "screens");
@@ -348,6 +351,8 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
       designs,
       flows: flowsCatalog,
       flowsFile: label("flows.json"),
+      shell: shellCatalog,
+      shellFile: label("shell.json"),
       mutations,
       mutationsFile: label("mutations.json"),
       propertyOrderByType: validators.elementPropertyOrder

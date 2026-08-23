@@ -517,6 +517,98 @@ function checkDataSource(findings, context) {
   }
 }
 
+// 목록을 거르는 값이 어디서 오는지 검사한다. 인자 이름은 카탈로그가, 그 값을
+// 담은 필드는 화면이 갖는다 — 둘 중 하나만 틀려도 목록이 조용히 안 걸러진다.
+function checkItemListParams(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey, fieldKeys } = context;
+  const spec = element.spec;
+  const params = spec.params;
+
+  if (!isObject(params)) {
+    return;
+  }
+
+  const source = isObject(dataSources) ? dataSourceByKey.get(spec.dataSourceKey) : null;
+  const declared = new Set(source ? source.params ?? [] : []);
+
+  for (const [paramName, fieldKey] of Object.entries(params)) {
+    if (source && !declared.has(paramName)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 넘긴 조회 인자 '${paramName}'가 데이터 출처 '${spec.dataSourceKey}'에 선언돼 있지 않습니다.`
+      });
+    }
+    if (typeof fieldKey === "string" && !fieldKeys.has(fieldKey)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 조회 인자 '${paramName}'가 참조한 fieldKey '${fieldKey}'가 화면에 없습니다.`
+      });
+    }
+  }
+}
+
+// 선택지는 명세가, 각 선택지의 건수는 데이터가 정한다. 둘을 잇는 것은 value와
+// fields[].key의 일치뿐이라 검사하지 않으면 배지가 통째로 비어도 알 수 없다.
+function checkOptionCounts(findings, context) {
+  const { file, element, index, optionSources, sourceByKey, dataSources, dataSourceByKey } =
+    context;
+  const spec = element.spec;
+  const counts = spec.optionCounts;
+
+  if (!isObject(counts)) {
+    return;
+  }
+
+  if (!isObject(dataSources)) {
+    findings.push({
+      level: "warning",
+      file,
+      message: `data-sources.json이 없어 ${elementLabel(element, index)}의 개수 출처 '${counts.dataSourceKey}'를 확인하지 못했습니다.`
+    });
+    return;
+  }
+
+  const source = dataSourceByKey.get(counts.dataSourceKey);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 개수 출처 '${counts.dataSourceKey}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+
+  if (source.shape !== "object") {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 개수 출처 '${counts.dataSourceKey}'는 shape가 'object'여야 하는데 '${source.shape}'입니다.`
+    });
+    return;
+  }
+
+  const optionSource = isObject(optionSources)
+    ? sourceByKey.get(spec.optionsSource?.key)
+    : null;
+  if (!optionSource || !Array.isArray(optionSource.options)) {
+    return;
+  }
+
+  const countFields = new Set((source.fields ?? []).map((field) => field.key));
+  for (const option of optionSource.options) {
+    const value = option?.value;
+    if (value !== undefined && !countFields.has(String(value))) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 개수 출처 '${counts.dataSourceKey}'에 선택지 '${value}'의 조각이 없습니다.`
+      });
+    }
+  }
+}
+
 function checkFieldReferences(findings, context) {
   const { file, element, index, fieldKeys } = context;
   const { enabledWhen, resetOnChangeOf } = element.spec;
@@ -556,6 +648,8 @@ export function collectSpecFindings({
   flowsFile = "flows.json",
   mutations = null,
   mutationsFile = "mutations.json",
+  shell = null,
+  shellFile = "shell.json",
   propertyOrderByType = null
 } = {}) {
   const findings = [];
@@ -722,15 +816,21 @@ export function collectSpecFindings({
       if (spec_.type === "summary" || spec_.type === "itemList") {
         checkDataSource(findings, context);
       }
+      if (spec_.type === "itemList") {
+        checkItemListParams(findings, context);
+      }
+      if (spec_.type === "select") {
+        checkOptionCounts(findings, context);
+      }
       checkFieldReferences(findings, context);
 
       // navigate의 targetScreenId와 submit 성공 후 이동은 같은 규칙으로 검사한다.
       for (const targetScreenId of [
         spec_.action?.targetScreenId,
-        spec_.action?.onSuccess?.navigate
+        spec_.action?.onSuccess?.navigate,
+        spec_.itemAction?.targetScreenId
       ]) {
         if (
-          spec_.type === "button" &&
           typeof targetScreenId === "string" &&
           !screenIds.has(targetScreenId)
         ) {
@@ -744,6 +844,68 @@ export function collectSpecFindings({
     });
 
     checkScreenAgainstDesign(findings, screen, designs[spec.screenId]);
+  }
+
+  // 화면 셸: 화면마다 복사하지 않으려고 카탈로그로 뺐으므로, 셸이 가리키는
+  // 화면과 데이터 조각은 어느 화면도 검사해 주지 않는다. 여기서 본다.
+  if (isObject(shell)) {
+    for (const item of shell.navigation ?? []) {
+      const targetScreenId = item?.targetScreenId;
+      if (typeof targetScreenId === "string" && !screenIds.has(targetScreenId)) {
+        findings.push({
+          level: "warning",
+          file: shellFile,
+          message: `셸 메뉴 '${item.label}'의 이동 대상 화면 '${targetScreenId}'의 명세 파일이 아직 없습니다.`
+        });
+      }
+    }
+
+    const shellRefs = [
+      { part: "brand", ref: shell.brand, fields: ["subtitleField"] },
+      { part: "viewer", ref: shell.viewer, fields: ["nameField", "roleField"] }
+    ];
+    for (const { part, ref, fields } of shellRefs) {
+      const key = ref?.dataSourceKey;
+      if (typeof key !== "string") {
+        continue;
+      }
+      if (!isObject(dataSources)) {
+        findings.push({
+          level: "warning",
+          file: shellFile,
+          message: `data-sources.json이 없어 셸 ${part}의 데이터 출처 '${key}'를 확인하지 못했습니다.`
+        });
+        continue;
+      }
+      const source = dataSourceByKey.get(key);
+      if (!source) {
+        findings.push({
+          level: "error",
+          file: shellFile,
+          message: `셸 ${part}의 데이터 출처 '${key}'가 카탈로그에 없습니다.`
+        });
+        continue;
+      }
+      if (source.shape !== "object") {
+        findings.push({
+          level: "error",
+          file: shellFile,
+          message: `셸 ${part}의 데이터 출처 '${key}'는 shape가 'object'여야 하는데 '${source.shape}'입니다.`
+        });
+        continue;
+      }
+      const sourceFields = new Set((source.fields ?? []).map((field) => field.key));
+      for (const fieldName of fields) {
+        const field = ref[fieldName];
+        if (typeof field === "string" && !sourceFields.has(field)) {
+          findings.push({
+            level: "error",
+            file: shellFile,
+            message: `셸 ${part}가 가리킨 조각 '${field}'가 데이터 출처 '${key}'에 없습니다.`
+          });
+        }
+      }
+    }
   }
 
   // 흐름 카탈로그: 참조한 화면의 명세 존재와 단일 멤버십(단계 표시의 유일성)을 검사한다.
