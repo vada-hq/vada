@@ -23,8 +23,13 @@ import { FONT_WEIGHTS, colorOf, sameColor, tokenOf } from './palette'
 // - 한 방향이다. design에 있는 것이 화면에 있는지를 보지, 화면에만 있는 장식이
 //   design에 없다는 것은 잡지 못한다.
 // - 등록 노드 밖은 보지 않는다. 셸(사이드바·헤더)은 등록에서 빠져 있다.
-// - 같은 글이 여럿이면 하나만 맞아도 통과시킨다. 없는 것을 잡는 것이 목적이지
-//   짝을 맞히는 것이 목적이 아니다.
+// - 같은 글이 화면에 여럿이면 하나만 맞아도 통과시킨다. 글자만으로는 어느 것이
+//   어느 것인지 가릴 수 없기 때문이다. 없는 것을 잡는 것이 목적이지 짝을 맞히는
+//   것이 목적이 아니다.
+//
+// 와이어프레임이 규칙적이지 않은 자리는 규칙을 따르고, 그래서 생긴 차이는 지우지
+// 않고 design/deviations.ts에 적는다 — 어긋난 것을 숨기는 것과 어긋나기로 한 것을
+// 적어 두는 것은 다른 일이다.
 
 export interface DesignFill {
   type: string
@@ -335,19 +340,6 @@ function innermost(holders: Holder[]): Holder {
 
 // --- 대조 ---------------------------------------------------------------
 
-function groupBy<T>(items: T[], keyOf: (item: T) => string): Map<string, T[]> {
-  const groups = new Map<string, T[]>()
-  for (const item of items) {
-    const key = keyOf(item)
-    const group = groups.get(key)
-    if (group) {
-      group.push(item)
-    } else {
-      groups.set(key, [item])
-    }
-  }
-  return groups
-}
 
 export interface Difference {
   content: string
@@ -362,46 +354,37 @@ function describe(color: string | null): string {
 
 export function compareTexts(container: Element, texts: DesignText[]): Difference[] {
   const differences: Difference[] = []
-  // 같은 글을 design이 두 가지 색으로 그린 자리가 있다(HOME-01K의 '기획 중' 딱지는
-  // 한 줄에서 blue-700, 다음 줄에서 gray-500이다). design 자신이 그 글의 색을 정하지
-  // 못한 것이므로, 화면이 그중 하나와 맞으면 어긋났다고 하지 않는다.
-  for (const [content, variants] of groupBy(texts, (text) => text.content)) {
-    const holders = holdersOf(container, content)
+  for (const text of texts) {
+    const holders = holdersOf(container, text.content)
     if (holders.length === 0) {
       differences.push({
-        content,
+        content: text.content,
         kind: '글 없음',
-        design: describe(variants[0].color),
+        design: describe(text.color),
         screen: '화면에 없음',
       })
       continue
     }
     // 상태가 색을 정하는 자리는 색·굵기를 대조하지 않는다. 정적 와이어프레임은
     // 한 상태만 그리므로, design이 칠한 색은 그 상태의 색이지 지금 상태의 색이
-    // 아니다. 같은 와이어프레임 안에서 안내 문구가 gray-700과 gray-800으로
-    // 갈리는 것이 그 증거다. 글이 있는지는 그대로 본다.
+    // 아니다. 글이 있는지는 그대로 본다.
     // some이지 every가 아니다 — 그런 자리를 감싼 바깥 칸도 같은 글을 품는다.
     if (holders.some((holder) => holder.stateDependent)) {
       continue
     }
-    const colors = variants.map((text) => text.color).filter((color) => color !== null)
-    if (
-      colors.length > 0 &&
-      !holders.some((holder) => colors.some((color) => sameColor(effectiveColor(holder), color)))
-    ) {
+    if (text.color !== null && !holders.some((h) => sameColor(effectiveColor(h), text.color))) {
       differences.push({
-        content,
+        content: text.content,
         kind: '색',
-        design: colors.map(tokenOf).join(' 또는 '),
+        design: tokenOf(text.color),
         screen: describe(effectiveColor(innermost(holders))),
       })
     }
-    const weights = variants.map((text) => text.fontWeight)
-    if (!holders.some((holder) => weights.includes(effectiveWeight(holder)))) {
+    if (!holders.some((holder) => effectiveWeight(holder) === text.fontWeight)) {
       differences.push({
-        content,
+        content: text.content,
         kind: '굵기',
-        design: weights.join(' 또는 '),
+        design: String(text.fontWeight),
         screen: String(effectiveWeight(innermost(holders))),
       })
     }
@@ -411,14 +394,13 @@ export function compareTexts(container: Element, texts: DesignText[]): Differenc
 
 export function compareBoxes(container: Element, boxes: DesignBox[]): Difference[] {
   const differences: Difference[] = []
-  // 글이 같은 칸을 design이 다르게 칠한 자리도 텍스트와 같은 이유로 묶어서 본다.
-  for (const [content, variants] of groupBy(boxes, (box) => box.content)) {
-    const holders = boxHoldersOf(container, variants[0].runs)
+  for (const box of boxes) {
+    const holders = boxHoldersOf(container, box.runs)
     if (holders.length === 0) {
       differences.push({
-        content,
+        content: box.content,
         kind: '칸 없음',
-        design: `배경 ${describe(variants[0].background)} / 테두리 ${describe(variants[0].border)}`,
+        design: `배경 ${describe(box.background)} / 테두리 ${describe(box.border)}`,
         screen: '화면에 없음',
       })
       continue
@@ -427,22 +409,18 @@ export function compareBoxes(container: Element, boxes: DesignBox[]): Difference
       continue
     }
     const elements = holders.map((holder) => holder.element)
-    for (const [kind, prefix, pick] of [
-      ['배경', 'bg-', (box: DesignBox) => box.background],
-      ['테두리', 'border-', (box: DesignBox) => box.border],
+    for (const [kind, prefix, wanted] of [
+      ['배경', 'bg-', box.background],
+      ['테두리', 'border-', box.border],
     ] as const) {
-      const wanted = variants.map(pick).filter((color) => color !== null)
-      if (wanted.length === 0) {
+      if (wanted === null) {
         continue
       }
-      const matched = elements.some((element) =>
-        wanted.some((color) => sameColor(ownPaint(element, prefix), color)),
-      )
-      if (!matched) {
+      if (!elements.some((element) => sameColor(ownPaint(element, prefix), wanted))) {
         differences.push({
-          content,
+          content: box.content,
           kind,
-          design: wanted.map(tokenOf).join(' 또는 '),
+          design: tokenOf(wanted),
           screen: describe(ownPaint(innermost(holders).element, prefix)),
         })
       }
@@ -495,10 +473,64 @@ export function compareScreen(
   return differences
 }
 
+/**
+ * 일부러 design과 다르게 하기로 한 자리.
+ *
+ * 검사가 뱉은 줄을 그대로 옮기고 이유를 붙인 것이다 — 그래서 예외를 적는 말과
+ * 검사가 말하는 말이 같다.
+ */
+export interface Deviation extends Difference {
+  screenId: string
+  why: string
+}
+
+function sameDifference(left: Difference, right: Difference): boolean {
+  return (
+    left.content === right.content &&
+    left.kind === right.kind &&
+    left.design === right.design &&
+    left.screen === right.screen
+  )
+}
+
+/**
+ * 적어 둔 예외를 덜어낸다. 그리고 **쓰이지 않은 예외**를 함께 돌려준다.
+ *
+ * 예외 목록은 썩는다 — design이 고쳐져 더는 어긋나지 않는데도 예외가 남아 있으면,
+ * 그 자리는 아무도 보지 않는 사각이 된다. 쓰이지 않은 예외를 실패로 다루면 목록이
+ * 저절로 현재를 가리킨다.
+ */
+export function applyDeviations(
+  screenId: string,
+  differences: Difference[],
+  deviations: Deviation[],
+): { remaining: Difference[]; unused: Deviation[] } {
+  const mine = deviations.filter((deviation) => deviation.screenId === screenId)
+  const remaining = differences.filter(
+    (difference) => !mine.some((deviation) => sameDifference(deviation, difference)),
+  )
+  const unused = mine.filter(
+    (deviation) => !differences.some((difference) => sameDifference(deviation, difference)),
+  )
+  return { remaining, unused }
+}
+
 /** 실패 메시지로 쓸 표. 어느 글이 어떻게 어긋났는지 한 줄씩 보인다. */
 export function report(screenId: string, differences: Difference[]): string {
   const lines = differences.map(
     (d) => `  [${d.kind}] "${d.content}" — design ${d.design} / 화면 ${d.screen}`,
   )
   return `${screenId}이(가) design과 ${differences.length}곳 어긋납니다.\n${lines.join('\n')}`
+}
+
+/** 더는 일어나지 않는 예외. 목록에서 지우라는 뜻이다. */
+export function staleReport(unused: Deviation[]): string {
+  const lines = unused.map(
+    (deviation) =>
+      `  [${deviation.kind}] "${deviation.content}" — 이제 design과 어긋나지 않습니다`,
+  )
+  return (
+    `design/deviations.ts에 쓰이지 않는 예외가 ${unused.length}개 있습니다. 지우세요.\n` +
+    lines.join('\n')
+  )
 }

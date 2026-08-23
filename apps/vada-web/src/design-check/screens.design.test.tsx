@@ -4,8 +4,9 @@ import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS } from '../spec/screens'
 import type { ScreenSpec } from '../spec/types'
 import type { ScopeStore } from '../state/scopes'
-import { compareScreen, findNode, report, textsIn } from '.'
+import { applyDeviations, compareScreen, findNode, report, staleReport, textsIn } from '.'
 import type { DesignFile } from '.'
+import { DEVIATIONS } from '../design/deviations'
 
 // 모든 화면이 design과 같은 모습인지 대조한다.
 //
@@ -83,9 +84,16 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
         />,
       )
 
-      const differences = compareScreen(document.body, spec, design)
+      // 일부러 다르게 하기로 한 자리는 덜어낸다. 다만 그 목록이 썩지 않게, 더는
+      // 어긋나지 않는 예외가 남아 있으면 그것도 실패로 다룬다.
+      const { remaining, unused } = applyDeviations(
+        screenId,
+        compareScreen(document.body, spec, design),
+        DEVIATIONS,
+      )
 
-      expect(differences, report(screenId, differences)).toEqual([])
+      expect(remaining, report(screenId, remaining)).toEqual([])
+      expect(unused, staleReport(unused)).toEqual([])
     })
   },
 )

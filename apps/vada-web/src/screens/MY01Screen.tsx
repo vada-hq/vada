@@ -176,7 +176,7 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
             value={query}
             placeholder={search.placeholder ?? search.label}
             onChange={(event) => setQuery(event.target.value)}
-            className="min-w-0 flex-1 text-sm text-gray-700 placeholder:text-gray-700 focus:outline-none"
+            className="min-w-0 flex-1 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
           />
         </span>
       </div>

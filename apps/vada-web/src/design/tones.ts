@@ -44,33 +44,36 @@ export const SOFT_BORDER: Record<string, string> = {
 }
 
 /**
- * 큰 값 글씨(HOME-01K 16:102·16:295).
+ * 큰 값 글씨(HOME-01K 16:102·16:295). **톤의 -600으로 통일한다.**
  *
- * red만 500이고 나머지는 600이다. 규칙이 아니라 와이어프레임이 그렇게 그렸다 —
- * 짐작으로 600으로 맞추면 design 대조가 잡는다.
+ * 와이어프레임은 red만 500으로 그렸다. 규칙이 아니라 흔들림이므로 따르지 않는다 —
+ * 그래야 값 타일을 하나 더 만들 때 와이어프레임을 다시 들여다보지 않아도 된다.
+ * 그래서 생긴 차이는 design/deviations.ts에 적혀 있다.
  */
 export const VALUE_TEXT: Record<string, string> = {
   blue: 'text-blue-600',
   indigo: 'text-indigo-600',
   orange: 'text-orange-600',
-  red: 'text-red-500',
+  red: 'text-red-600',
 }
 
 /**
  * 요약의 상태 칩(MY-01 16:402·TASK-01 18:96).
+ * **바탕 -50, 테두리 -100, 글씨 -800으로 통일한다.**
  *
  * 어느 상태냐는 명세의 field가 말한다 — 이 이름들은 화면이 아니라 데이터 출처의
  * 것이므로, 같은 상태는 어느 화면에서든 같은 색이다.
  *
- * 글씨 진하기가 상태마다 갈린다(지연만 700, 나머지는 800). 이것도 규칙이 아니라
- * 와이어프레임의 사실이다.
+ * 와이어프레임은 지연만 -700으로 그렸다. 규칙이 아니라 흔들림이므로 따르지 않는다 —
+ * 상태가 하나 늘 때 무슨 색을 줄지 규칙만 보고 정할 수 있어야 한다. 그래서 생긴
+ * 차이는 design/deviations.ts에 적혀 있다.
  */
 export const STATUS_CHIP: Record<string, string> = {
-  delayedCount: 'border-red-100 bg-red-50 text-red-700',
+  delayedCount: 'border-red-100 bg-red-50 text-red-800',
   todoCount: 'border-orange-100 bg-orange-50 text-orange-800',
   reviewCount: 'border-yellow-100 bg-yellow-50 text-yellow-800',
   mineCount: 'border-blue-100 bg-blue-50 text-blue-800',
-  unassignedCount: 'border-red-100 bg-red-50 text-red-700',
+  unassignedCount: 'border-red-100 bg-red-50 text-red-800',
 }
 
 /** 표에 없는 톤은 조용히 색 없이 지나가지 않고 무채색으로 드러난다. */

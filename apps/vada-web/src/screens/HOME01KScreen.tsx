@@ -148,9 +148,9 @@ function BriefingCard() {
         className="min-w-0 flex-1 rounded-2xl border border-gray-200 bg-white px-6 py-4"
       >
         {summary.eyebrow && (
-          <p className="text-xs font-bold text-[#EF4444]">{summary.eyebrow}</p>
+          <p className="text-xs font-bold text-red-500">{summary.eyebrow}</p>
         )}
-        <h2 className="pt-1 text-base font-bold text-[#0A1F44]">
+        <h2 className="pt-1 text-base font-bold text-blue-950">
           {String(briefing[summary.titleField!])}
         </h2>
         <ul data-node-id={NODE.briefingNotices} className="flex flex-col gap-1 pt-3">
