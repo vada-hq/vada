@@ -33,7 +33,8 @@ test('MY-01: 탭과 검색어가 목록의 조회 인자다', async ({ page }) =
   await expect(page.getByRole('heading', { name: '내 업무' })).toBeVisible()
 
   // summary: 항목이 명세에 고정이고 값은 서버에서 온다.
-  await expect(page.getByText('지연', { exact: true })).toBeVisible()
+  // design이 이름과 건수를 한 덩어리로 그리므로 화면도 한 덩어리다.
+  await expect(page.getByText(/^지연 \d+건$/)).toBeVisible()
 
   // 탭 배지는 목록에서 센 값이라 목록과 어긋날 수 없다.
   const todo = page.getByRole('tab', { name: /해야 할 업무/ })

@@ -35,12 +35,15 @@ describe('MY-01 스펙 준수', () => {
     const summary = specOf<SummarySpec>('16:401')
     const row = readObjectSource(summary.dataSourceKey ?? '')
     // 같은 문구가 사이드바 메뉴와 탭에도 있고, 건수 '2건'은 두 타일에 겹친다.
-    // 그래서 타일 하나 안에서 라벨과 값이 짝을 이루는지를 본다.
+    // 그래서 타일 하나 안에서 라벨과 값이 짝을 이루는지를 본다. design이 라벨과
+    // 건수를 한 덩어리로 그리므로 화면도 한 덩어리다(MY01Screen.design.test).
     const tiles = within(screen.getByTestId('my01-alerts'))
     for (const item of summary.items ?? []) {
-      const tile = tiles.getByText(item.label).closest('div')
-      expect(tile?.textContent).toContain(item.label)
-      expect(tile?.textContent).toContain(`${row[item.field ?? '']}건`)
+      const tile = tiles.getByText(
+        `${item.label} ${row[item.field ?? '']}${item.unit ?? ''}`,
+      )
+      expect(tile.textContent).toContain(item.label)
+      expect(tile.textContent).toContain(`${row[item.field ?? '']}건`)
     }
   })
 

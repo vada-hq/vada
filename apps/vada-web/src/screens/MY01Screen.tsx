@@ -19,6 +19,11 @@ import type {
 // 탭은 select다 — 명세에서 '하나를 고르는 값'이고, 탭 모양이냐 카드 모양이냐는
 // 시각이라 design이 갖는다. 다만 구현이 design을 자동으로 읽지는 않으므로
 // ORG-02의 라디오 카드(ChoiceGroup)와 달리 여기서는 탭 줄로 그린다.
+//
+// 색·굵기는 손으로 골랐지만 짐작으로 고른 것이 아니다. MY01Screen.design.test가
+// figma.design.json과 한 자리씩 대조하므로, 어긋나면 게이트에서 걸린다.
+// 글의 덩어리도 design을 따른다 — design의 텍스트 노드 하나가 색이 바뀌는 경계이므로,
+// 그 경계를 무시하고 한 덩어리로 그리면 색을 맞출 방법 자체가 없어진다.
 
 const SCREEN = "MY-01";
 
@@ -42,6 +47,14 @@ const ASSET = {
   linkedDocument: "16:476",
   itemChevron: "16:486",
 } as const;
+
+// 요약 칩은 상태마다 색이 다르다. 어느 상태냐는 명세의 field가 말하고 무슨 색이냐는
+// design이 말한다 — 자산을 field로 찾는 것과 같은 방식이다.
+const ALERT_STYLE: Record<string, string> = {
+  delayedCount: "border-red-100 bg-red-50 text-red-700",
+  todoCount: "border-orange-100 bg-orange-50 text-orange-800",
+  reviewCount: "border-yellow-100 bg-yellow-50 text-yellow-800",
+};
 
 interface MY01ScreenProps {
   onNavigate: (screenId: string) => void;
@@ -88,11 +101,17 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
       description={my01.meta?.description}
       onNavigate={onNavigate}
     >
-      <div data-testid="my01-alerts" className="flex flex-wrap gap-2 pb-4">
+      <div
+        data-node-id={NODE.alerts}
+        data-testid="my01-alerts"
+        className="flex flex-wrap gap-2 pb-4"
+      >
         {(alerts.items ?? []).map((item) => (
           <span
             key={item.label}
-            className="flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700"
+            className={`flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium ${
+              ALERT_STYLE[item.field ?? ""] ?? "border-gray-200 bg-white text-gray-700"
+            }`}
           >
             {item.field && ASSET.alertByField[item.field] ? (
               <FigmaAsset
@@ -101,15 +120,14 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
                 className="size-3.5"
               />
             ) : null}
-            <span>{item.label}</span>
-            <span className="font-semibold text-gray-900">
-              {`${item.field ? alertRow[item.field] : (item.value ?? '')}${item.unit ?? ''}`}
-            </span>
+            {/* design은 이름과 건수를 한 텍스트 노드로 그린다 — 쪼개지 않는다. */}
+            {`${item.label} ${item.field ? alertRow[item.field] : (item.value ?? "")}${item.unit ?? ""}`}
           </span>
         ))}
       </div>
 
       <div
+        data-node-id={NODE.tab}
         role="tablist"
         aria-label={tab.label ?? "업무 단계"}
         className="flex gap-1 border-b border-gray-200"
@@ -125,15 +143,21 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
               role="tab"
               aria-selected={selected}
               onClick={() => setTabValue(value)}
-              className={`-mb-px border-b-2 px-3 py-2 text-sm ${
+              className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium ${
                 selected
-                  ? "border-blue-600 font-medium text-blue-700"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
+                  ? "border-blue-600"
+                  : "border-transparent hover:text-gray-700"
               }`}
             >
-              {option.label}
+              <span className={selected ? "text-blue-700" : "text-gray-500"}>
+                {option.label}
+              </span>
               {count === null || count === undefined ? null : (
-                <span className="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">
+                <span
+                  className={`ml-1.5 rounded px-1.5 py-0.5 text-xs ${
+                    selected ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
+                  }`}
+                >
                   {count}
                 </span>
               )}
@@ -142,30 +166,31 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
         })}
       </div>
 
-      <div className="flex items-center gap-2 py-4">
+      <div data-node-id={NODE.search} className="py-4">
         <label htmlFor="my01-search" className="sr-only">
           {search.label}
         </label>
-        <FigmaAsset
-          screenId={SCREEN}
-          nodeId={ASSET.search}
-          className="size-4"
-        />
-        <input
-          id="my01-search"
-          type={search.inputType}
-          value={query}
-          placeholder={search.placeholder ?? search.label}
-          onChange={(event) => setQuery(event.target.value)}
-          className="w-64 rounded border border-gray-300 px-3 py-1.5 text-sm focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
-        />
+        {/* design은 돋보기와 입력칸을 한 테두리 안에 함께 담는다. */}
+        <span className="flex w-64 items-center gap-2 rounded border border-gray-200 bg-white px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-600/50">
+          <FigmaAsset
+            screenId={SCREEN}
+            nodeId={ASSET.search}
+            className="size-4 shrink-0"
+          />
+          <input
+            id="my01-search"
+            type={search.inputType}
+            value={query}
+            placeholder={search.placeholder ?? search.label}
+            onChange={(event) => setQuery(event.target.value)}
+            className="min-w-0 flex-1 text-sm text-gray-700 placeholder:text-gray-700 focus:outline-none"
+          />
+        </span>
       </div>
 
-      <section>
+      <section data-node-id={NODE.tasks}>
         {tasks.title === undefined ? null : (
-          <h2 className="pb-2 text-sm font-semibold text-red-600">
-            {tasks.title}
-          </h2>
+          <h2 className="pb-2 text-sm font-bold text-red-600">{tasks.title}</h2>
         )}
         {rows.length === 0 ? (
           <p className="rounded border border-gray-200 bg-white px-4 py-6 text-center text-sm text-gray-500">
@@ -201,7 +226,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
   const [note, setNote] = useState<string | null>(null);
 
   return (
-    <div className="rounded border border-gray-200 bg-white">
+    <div className="rounded-md border border-violet-500 bg-white">
       <button
         type="button"
         onClick={() => {
@@ -218,30 +243,38 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
       >
         <span className="min-w-0 flex-1">
           <span className="flex flex-wrap items-center gap-2">
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-semibold text-gray-900">
               {String(row.title)}
             </span>
-            <span className="rounded bg-gray-100 px-1.5 py-0.5 text-xs text-gray-600">
+            <span className="rounded bg-violet-100 px-1.5 py-0.5 text-xs font-medium text-violet-700">
               {String(row.department)}
             </span>
-            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-xs text-amber-700">
+            <span className="rounded border border-yellow-200 bg-yellow-50 px-1.5 py-0.5 text-xs font-medium text-yellow-700">
               {String(row.status)}
             </span>
           </span>
-          <span className="block pt-1 text-xs text-gray-500">
-            다음 행동 {String(row.nextAction)}
+          <span className="block pt-1 text-xs">
+            <span className="font-semibold text-gray-400">다음 행동</span>{" "}
+            <span className="font-medium text-gray-700">
+              {String(row.nextAction)}
+            </span>
           </span>
-          <span className="block pt-1 text-xs text-gray-500">
-            {String(row.context)} · {String(row.date)}
+          <span className="block pt-1 text-xs font-medium">
+            <span className="text-gray-500">{String(row.context)}</span>
+            <span className="text-gray-300"> · </span>
+            <span className="text-gray-600">{String(row.date)}</span>
             {row.linkedDocument === undefined ? null : (
               <>
-                {" · "}
+                <span className="text-gray-300"> · </span>
                 <FigmaAsset
                   screenId={SCREEN}
                   nodeId={ASSET.linkedDocument}
                   className="inline size-3"
                 />
-                {` 연결 문서 ${String(row.linkedDocument)}`}
+                <span className="text-gray-400"> 연결 문서 </span>
+                <span className="text-gray-600">
+                  {String(row.linkedDocument)}
+                </span>
               </>
             )}
           </span>
