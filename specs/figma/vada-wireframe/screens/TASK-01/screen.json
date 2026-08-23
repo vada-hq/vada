@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "screenId": "TASK-01",
+  "meta": {
+    "eyebrow": "운영 · 상시 업무",
+    "title": "상시 업무",
+    "description": "행사에 속하지 않는 학생회 반복·운영 업무를 부서와 함께 관리합니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "18:2",
+    "name": "운영 — 상시 업무 · OPS-TASK-01 · 상시 업무 — 칸반 보드",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "18:95",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "task.alerts",
+        "items": [
+          {
+            "label": "지연",
+            "unit": "건",
+            "field": "delayedCount"
+          },
+          {
+            "label": "검토 필요",
+            "unit": "건",
+            "field": "reviewCount"
+          },
+          {
+            "label": "내 담당",
+            "unit": "건",
+            "field": "mineCount"
+          },
+          {
+            "label": "담당자 없음",
+            "unit": "건",
+            "field": "unassignedCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:122",
+        "name": "Container:align",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "taskScope",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "all",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "task.scope"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:129",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "예정",
+        "dataSourceKey": "task.board",
+        "params": {
+          "scope": {
+            "fieldKey": "taskScope"
+          },
+          "status": {
+            "value": "planned"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "note": "업무 상세 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:174",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "진행 중",
+        "dataSourceKey": "task.board",
+        "params": {
+          "scope": {
+            "fieldKey": "taskScope"
+          },
+          "status": {
+            "value": "inProgress"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "note": "업무 상세 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:259",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "검토 필요",
+        "dataSourceKey": "task.board",
+        "params": {
+          "scope": {
+            "fieldKey": "taskScope"
+          },
+          "status": {
+            "value": "review"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "note": "업무 상세 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:286",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "완료",
+        "dataSourceKey": "task.board",
+        "params": {
+          "scope": {
+            "fieldKey": "taskScope"
+          },
+          "status": {
+            "value": "done"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "note": "업무 상세 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

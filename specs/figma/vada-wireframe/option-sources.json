@@ -182,6 +182,22 @@
           "label": "완료된 업무"
         }
       ]
+    },
+    {
+      "key": "task.scope",
+      "type": "static",
+      "description": "상시 업무 보드를 조직 전체로 볼지 내 담당만 볼지 고르는 범위. 선택지는 디자인에 고정돼 있다.",
+      "params": [],
+      "options": [
+        {
+          "value": "all",
+          "label": "전체 업무"
+        },
+        {
+          "value": "mine",
+          "label": "내 업무"
+        }
+      ]
     }
   ]
 }

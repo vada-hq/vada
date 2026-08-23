@@ -431,6 +431,84 @@
           "description": "다가오는 마감 수"
         }
       ]
+    },
+    {
+      "key": "task.alerts",
+      "shape": "object",
+      "description": "상시 업무 보드 위에 나열하는 상태별 건수. 보는 범위와 무관하게 보드 전체를 센다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/tasks/alerts"
+      },
+      "messages": {
+        "loading": "건수를 불러오는 중입니다",
+        "empty": "표시할 건수가 없습니다",
+        "error": "건수를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "delayedCount",
+          "description": "기한이 지난 업무 수"
+        },
+        {
+          "key": "reviewCount",
+          "description": "검토가 필요한 업무 수"
+        },
+        {
+          "key": "mineCount",
+          "description": "내가 담당인 업무 수"
+        },
+        {
+          "key": "unassignedCount",
+          "description": "담당자가 없는 업무 수"
+        }
+      ]
+    },
+    {
+      "key": "task.board",
+      "shape": "list",
+      "description": "칸반 열 하나에 담기는 상시 업무. 보는 범위(scope)와 열의 단계(status)로 걸러서 서버가 준다 — 열마다 따로 조회한다.",
+      "params": [
+        "scope",
+        "status"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/tasks"
+      },
+      "messages": {
+        "loading": "업무를 불러오는 중입니다",
+        "empty": "이 단계에 업무가 없습니다",
+        "error": "업무를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "업무 이름. 예: 주간 운영회의 자료 준비"
+        },
+        {
+          "key": "department",
+          "description": "담당 부서. 예: 운영부"
+        },
+        {
+          "key": "cycle",
+          "description": "되풀이 주기. 예: 매주 · 매월 · 상시"
+        },
+        {
+          "key": "assignee",
+          "description": "담당자 이름. 없으면 완성된 안내로 온다. 예: 담당자 없음 · 배정 필요"
+        },
+        {
+          "key": "dueDate",
+          "description": "기한. 되풀이가 상시면 그대로 상시. 예: 2026-07-21"
+        },
+        {
+          "key": "alert",
+          "description": "주의 표시. 없으면 오지 않는다. 예: 지연",
+          "optional": true
+        }
+      ]
     }
   ]
 }

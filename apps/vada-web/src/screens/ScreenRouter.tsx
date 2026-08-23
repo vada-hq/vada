@@ -3,6 +3,7 @@ import { HOME01KScreen } from './HOME01KScreen'
 import { INV01Screen } from './INV01Screen'
 import { MY01Screen } from './MY01Screen'
 import { OPS00Screen } from './OPS00Screen'
+import { TASK01Screen } from './TASK01Screen'
 import { ONB01Screen } from './ONB01Screen'
 import { ONB02Screen } from './ONB02Screen'
 import { ORG01Screen } from './ORG01Screen'
@@ -61,6 +62,10 @@ export function ScreenRouter({
   if (screenId === 'OPS-00') {
     // 운영 허브다. 고를 것은 갈 곳뿐이라 상태 스코프를 참조하지 않는다.
     return <OPS00Screen onNavigate={onNavigate} />
+  }
+  if (screenId === 'TASK-01') {
+    // 칸반 보드다. 보는 범위는 목록을 거르는 화면 안의 값이라 스코프에 담지 않는다.
+    return <TASK01Screen onNavigate={onNavigate} />
   }
   if (screenId === 'ONB-02') {
     return <ONB02Screen onNavigate={onNavigate} />

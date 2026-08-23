@@ -915,3 +915,69 @@ test("summary의 descriptionField가 없는 조각을 가리키면 오류다", (
   const findings = collectSpecFindings({ screens, dataSources });
   assert.equal(findings.filter((f) => f.message.includes("'없는조각'")).length, 1);
 });
+
+// 칸반 열마다 status가 고정값이라 조회 인자가 화면 필드만 가리켜서는 부족하다.
+// summary.items의 field(서버)/value(명세) 구분과 같은 문제라 같은 모양으로 푼다.
+test("조회 인자의 고정값은 필드 참조로 검사하지 않는다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", inputSpec("taskScope")),
+          element("1:3", {
+            type: "itemList",
+            dataSourceKey: "task.board",
+            params: { scope: { fieldKey: "taskScope" }, status: { value: "planned" } }
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "task.board",
+        shape: "list",
+        description: "칸반",
+        params: ["scope", "status"],
+        fields: [{ key: "title", description: "제목" }]
+      }
+    ]
+  };
+
+  assert.deepEqual(collectSpecFindings({ screens, dataSources }), []);
+});
+
+test("조회 인자가 없는 필드를 가리키면 고정값과 섞여 있어도 잡는다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:3", {
+            type: "itemList",
+            dataSourceKey: "task.board",
+            params: { scope: { fieldKey: "없는필드" }, status: { value: "planned" } }
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "task.board",
+        shape: "list",
+        description: "칸반",
+        params: ["scope", "status"],
+        fields: [{ key: "title", description: "제목" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("'없는필드'")).length, 1);
+});

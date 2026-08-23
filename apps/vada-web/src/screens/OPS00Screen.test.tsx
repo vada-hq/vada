@@ -76,10 +76,13 @@ describe('OPS-00 스펙 준수', () => {
       }
     }
 
-    const first = withAction[0]
-    if (first.action?.type !== 'pending') throw new Error('이 검사는 pending을 본다')
-    await user.click(screen.getByRole('button', { name: new RegExp(first.title ?? '') }))
-    expect(screen.getByText(first.action.note)).toBeInTheDocument()
+    // 상시 업무 카드는 TASK-01이 생기면서 진짜 이동이 됐다. pending인 것을 고른다.
+    const pending = withAction.find((spec) => spec.action?.type === 'pending')
+    if (pending?.action?.type !== 'pending') throw new Error('pending 카드가 없다')
+    // 카드 제목이 다른 카드의 설명에도 나온다(캘린더 설명에 '회의'). 제목 노드로 찾는다.
+    const card = screen.getByText(pending.title ?? '', { exact: true }).closest('button')
+    await user.click(card as HTMLElement)
+    expect(screen.getByText(pending.action.note)).toBeInTheDocument()
   })
 
   it('meta.footerNote를 그린다', () => {

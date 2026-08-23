@@ -133,9 +133,10 @@ export interface ItemListSpec {
   type: 'itemList'
   title?: string
   dataSourceKey: string
-  // 목록을 거르는 값. key는 출처가 선언한 인자 이름, 값은 그 값을 담은 fieldKey.
+  // 목록을 거르는 값. key는 출처가 선언한 인자 이름이고, 값은 화면 필드를
+  // 가리키거나(fieldKey) 명세가 정한 고정값이다(value) — 칸반의 열이 후자다.
   // 받아온 것을 화면에서 거르지 않고 값이 바뀌면 다시 조회한다.
-  params?: Record<string, string>
+  params?: Record<string, { fieldKey?: string; value?: string }>
   // 항목 하나를 눌렀을 때. 어느 항목인지는 데이터가, 어느 화면인지는 명세가 말한다.
   itemAction?: DisplayAction
 }

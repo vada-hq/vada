@@ -50,11 +50,19 @@ test('OPS-00: 공간 넷과 각 공간의 건수를 보여준다', async ({ page
   await page.screenshot({ path: `${SHOTS}/50-ops00.png`, fullPage: true })
 })
 
-test('OPS-00: 카드를 누르면 아직 없는 화면임을 남긴다', async ({ page }) => {
+test('OPS-00: 아직 없는 화면으로 가는 카드는 사유를 남긴다', async ({ page }) => {
   await goToOperations(page)
 
-  await page.getByRole('button', { name: /상시 업무/ }).click()
+  // 상시 업무는 TASK-01이 생기면서 진짜 이동이 됐다. 아직 pending인 카드를 본다.
+  await page.getByText('행사', { exact: true }).click()
   await expect(
-    page.getByText('상시 업무 보드 화면이 아직 명세되지 않았습니다.'),
+    page.getByText('행사 목록 화면이 아직 명세되지 않았습니다.'),
   ).toBeVisible()
+})
+
+test('OPS-00: 상시 업무 카드는 칸반 보드로 이동한다', async ({ page }) => {
+  await goToOperations(page)
+
+  await page.getByText('상시 업무', { exact: true }).click()
+  await expect(page.getByRole('heading', { name: '상시 업무', level: 1 })).toBeVisible()
 })

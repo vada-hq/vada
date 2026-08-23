@@ -60,6 +60,117 @@ function countByTab(): DataRow {
   return counts
 }
 
+// 상시 업무 보드(TASK-01). 값은 디자인이 그린 예시를 그대로 옮긴 것이다.
+// 건수는 이 목록에서 세므로 칩·열 머리와 목록이 어긋날 수 없다.
+const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
+  {
+    status: 'planned',
+    row: {
+      title: '동아리방·물품 정기 점검',
+      department: '운영부',
+      cycle: '매월',
+      assignee: '담당자 없음 · 배정 필요',
+      dueDate: '2026-08-01',
+    },
+  },
+  {
+    status: 'planned',
+    row: {
+      title: '게시판 공지물 정리',
+      department: '홍보부',
+      cycle: '매월',
+      assignee: '이윤슬',
+      dueDate: '2026-07-31',
+    },
+  },
+  {
+    status: 'inProgress',
+    row: {
+      title: '주간 운영회의 자료 준비',
+      department: '운영부',
+      cycle: '매주',
+      assignee: '박해랑',
+      dueDate: '2026-07-21',
+    },
+  },
+  {
+    status: 'inProgress',
+    row: {
+      title: '회계 장부 주간 정리',
+      department: '재정부',
+      cycle: '매주',
+      assignee: '김민준',
+      dueDate: '2026-07-22',
+    },
+  },
+  {
+    status: 'inProgress',
+    row: {
+      title: 'SNS 계정 운영·공지 게시',
+      department: '홍보부',
+      cycle: '상시',
+      assignee: '이윤슬',
+      dueDate: '상시',
+    },
+  },
+  {
+    status: 'inProgress',
+    row: {
+      title: '학생 건의함 확인·답변',
+      department: '기획부',
+      cycle: '매주',
+      assignee: '이수현',
+      dueDate: '2026-07-18',
+      alert: '지연',
+    },
+  },
+  {
+    status: 'review',
+    row: {
+      title: '학생 건의 답변 문안 검토',
+      department: '기획부',
+      cycle: '매주',
+      assignee: '박해랑',
+      dueDate: '2026-07-22',
+      alert: '검토 필요',
+    },
+  },
+  {
+    status: 'done',
+    row: {
+      title: '회의실 예약 현황 관리',
+      department: '운영부',
+      cycle: '매주',
+      assignee: '정하늘',
+      dueDate: '2026-07-15',
+    },
+  },
+  {
+    status: 'done',
+    row: {
+      title: '월간 예산 사용 공유',
+      department: '재정부',
+      cycle: '매월',
+      assignee: '김민준',
+      dueDate: '2026-07-05',
+    },
+  },
+]
+
+// 보는 사람. 실제로는 서버가 세션에서 안다.
+const VIEWER_NAME = '박해랑'
+
+function taskAlerts(): DataRow {
+  const rows = TASK_BOARD.map((task) => task.row)
+  return {
+    delayedCount: rows.filter((row) => row.alert === '지연').length,
+    reviewCount: rows.filter((row) => row.alert === '검토 필요').length,
+    mineCount: rows.filter((row) => row.assignee === VIEWER_NAME).length,
+    unassignedCount: rows.filter((row) => String(row.assignee).startsWith('담당자 없음'))
+      .length,
+  }
+}
+
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   'home.briefing': { title: '박해랑님, 확인이 필요해요' },
   'home.briefingNotices': [
@@ -128,6 +239,7 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     calendarUpcoming: 4,
   },
   'my.taskTabCounts': countByTab(),
+  'task.alerts': taskAlerts(),
 }
 
 // 인자를 받는 출처. 실제로는 서버가 걸러 주므로 mock도 여기서 거른다 —
@@ -151,6 +263,10 @@ export const FILTERED_FIXTURES: Record<
   string,
   (params: Record<string, string>) => DataRow[]
 > = {
+  'task.board': ({ scope = 'all', status = 'planned' }) =>
+    TASK_BOARD.filter((task) => task.status === status)
+      .filter((task) => scope !== 'mine' || task.row.assignee === VIEWER_NAME)
+      .map((task) => task.row),
   'my.tasks': ({ tab = 'todo', query = '' }) =>
     MY_TASKS.filter((task) => task.tab === tab)
       .map((task) => task.row)

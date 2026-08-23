@@ -71,9 +71,10 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
     [search.fieldKey]: query,
   };
   const taskParams = Object.fromEntries(
-    Object.entries(tasks.params ?? {}).map(([name, fieldKey]) => [
+    // 인자는 화면 필드를 가리키거나(fieldKey) 명세가 정한 고정값이다(value).
+    Object.entries(tasks.params ?? {}).map(([name, argument]) => [
       name,
-      byFieldKey[fieldKey] ?? "",
+      argument.value ?? byFieldKey[argument.fieldKey ?? ""] ?? "",
     ]),
   );
   const rows = readListSource(tasks.dataSourceKey, taskParams);

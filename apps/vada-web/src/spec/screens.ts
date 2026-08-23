@@ -15,6 +15,7 @@ import inv01Json from '../../../../specs/figma/vada-wireframe/screens/INV-01/scr
 import home01kJson from '../../../../specs/figma/vada-wireframe/screens/HOME-01K/screen.json'
 import my01Json from '../../../../specs/figma/vada-wireframe/screens/MY-01/screen.json'
 import ops00Json from '../../../../specs/figma/vada-wireframe/screens/OPS-00/screen.json'
+import task01Json from '../../../../specs/figma/vada-wireframe/screens/TASK-01/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -40,6 +41,7 @@ export const inv01 = asScreenSpec(inv01Json)
 export const home01k = asScreenSpec(home01kJson)
 export const my01 = asScreenSpec(my01Json)
 export const ops00 = asScreenSpec(ops00Json)
+export const task01 = asScreenSpec(task01Json)
 
 // 배치가 명세에 없는 화면(대시보드)은 구현이 design의 자리마다 요소를 끼운다.
 // nodeId로 찾는다 — 라벨은 화면 안에서 유일하지 않을 수 있지만 nodeId는 유일하다.

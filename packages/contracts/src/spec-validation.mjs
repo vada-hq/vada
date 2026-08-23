@@ -536,7 +536,7 @@ function checkItemListParams(findings, context) {
   const source = isObject(dataSources) ? dataSourceByKey.get(spec.dataSourceKey) : null;
   const declared = new Set(source ? source.params ?? [] : []);
 
-  for (const [paramName, fieldKey] of Object.entries(params)) {
+  for (const [paramName, argument] of Object.entries(params)) {
     if (source && !declared.has(paramName)) {
       findings.push({
         level: "error",
@@ -544,6 +544,8 @@ function checkItemListParams(findings, context) {
         message: `${elementLabel(element, index)}가 넘긴 조회 인자 '${paramName}'가 데이터 출처 '${spec.dataSourceKey}'에 선언돼 있지 않습니다.`
       });
     }
+    // 고정값(value)은 명세가 정한 것이라 참조할 필드가 없다.
+    const fieldKey = isObject(argument) ? argument.fieldKey : argument;
     if (typeof fieldKey === "string" && !fieldKeys.has(fieldKey)) {
       findings.push({
         level: "error",

@@ -62,9 +62,9 @@
           }
         ],
         "action": {
-          "type": "pending",
+          "type": "navigate",
           "label": "업무 보드 열기",
-          "note": "상시 업무 보드 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "TASK-01"
         }
       }
     },

@@ -94,8 +94,12 @@
         "title": "확인 필요",
         "dataSourceKey": "my.tasks",
         "params": {
-          "tab": "taskTab",
-          "query": "taskQuery"
+          "tab": {
+            "fieldKey": "taskTab"
+          },
+          "query": {
+            "fieldKey": "taskQuery"
+          }
         },
         "itemAction": {
           "type": "pending",
