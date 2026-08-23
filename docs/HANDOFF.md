@@ -111,6 +111,7 @@ npm run check     # test(3개 앱) + validate + e2e + build 일괄
 
 # 개별 실행
 npm test          # 플러그인 → spec-service → vada-web
+                  # 실패하면 전체 출력이 .test-last.log에 남는다(추적용, git 제외)
 npm run validate  # 명세 검증 CLI
 npm run e2e       # Playwright(스크린샷은 apps/vada-web/e2e/shots)
 npm run build

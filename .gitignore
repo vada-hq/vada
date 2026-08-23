@@ -5,3 +5,4 @@ npm-debug.log*
 apps/vada-web/e2e/shots/
 apps/vada-web/test-results/
 apps/vada-web/playwright-report/
+.test-last.log
