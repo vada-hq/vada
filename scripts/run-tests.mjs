@@ -12,6 +12,8 @@ import { fileURLToPath } from "node:url";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const logPath = join(repoRoot, ".test-last.log");
+// 이쪽은 덮어쓰지 않는다. 드물게 나는 일은 쌓여야 보인다.
+const flakePath = join(repoRoot, ".test-flakes.log");
 
 const APPS = ["apps/figma-plugin", "apps/spec-service", "apps/vada-web"];
 
@@ -43,6 +45,7 @@ function runOne(app) {
   return new Promise((resolve) => {
     const started = Date.now();
     record(`\n===== ${app} =====\n`);
+    let output = "";
 
     const child = spawn("npm", ["--prefix", app, "test"], {
       cwd: repoRoot,
@@ -51,6 +54,7 @@ function runOne(app) {
 
     const echo = (chunk) => {
       const text = chunk.toString();
+      output += text;
       process.stdout.write(text);
       record(text);
     };
@@ -60,9 +64,26 @@ function runOne(app) {
     child.on("close", (code) => {
       const seconds = ((Date.now() - started) / 1000).toFixed(1);
       record(`----- ${app}: 종료 코드 ${code}, ${seconds}초 -----\n`);
-      resolve(code ?? 1);
+      resolve({ code: code ?? 1, output });
     });
   });
+}
+
+// 검사가 실패한 것과 검사를 돌리지 못한 것은 다른 일이다.
+//
+// 실제로 겪은 실패의 지문: 열네 파일이 전부 "0 test"로 죽고, 그 안에서 vitest가
+// 러너를 찾지 못한다("Vitest failed to find the current suite", "Cannot read
+// properties of undefined (reading 'config')"). jsdom을 쓰지 않는 node 검사까지
+// 같이 죽고, tests 0ms다 — 단언이 틀린 게 아니라 아무것도 시작되지 못한 것이다.
+//
+// 원인은 못 찾았다. CI 환경·반복·동시 실행·CPU 부하·찬 캐시·중복 설치를 하나씩
+// 지웠지만 재현되지 않는다. 그래서 진단하는 대신 두 가지를 가른다.
+//
+// 가르는 근거: 진짜 실패는 검사가 돌다가 난다. 하나도 돌지 않았는데 실패했다면
+// 그건 검사의 판정이 아니다. 이 경우에만 한 번 다시 돌린다 — setup 파일이 깨진
+// 것처럼 진짜로 못 도는 상태라면 두 번째도 똑같이 죽으므로 걸러지지 않는다.
+function ranNothing(output) {
+  return /Tests\s+no tests/.test(output);
 }
 
 writeFileSync(logPath, `테스트 실행 ${stamp()}\n`);
@@ -70,7 +91,24 @@ writeFileSync(logPath, `테스트 실행 ${stamp()}\n`);
 const startedAll = Date.now();
 
 for (const app of APPS) {
-  const code = await runOne(app);
+  let { code, output } = await runOne(app);
+
+  if (code !== 0 && ranNothing(output)) {
+    // 다시 돌리기 전에, 이번 일이 있었다는 사실부터 남긴다. 다시 돌려서 통과하면
+    // 아무 일도 없던 것처럼 보이는데, 그러면 이 문제는 영영 잡히지 않는다.
+    // `.test-flakes.log`는 덮어쓰지 않고 쌓인다 — 언젠가 이 기록이 원인을 말해준다.
+    appendFileSync(
+      flakePath,
+      `\n===== ${stamp()} ${app}: 검사가 하나도 돌지 못했습니다 =====\n${output}`
+    );
+    record(`\n>>> ${app}이(가) 하나도 돌지 못했습니다. 한 번 다시 돌립니다.\n`);
+    process.stdout.write(
+      `\n[run-tests] ${app}: 검사가 하나도 돌지 못했습니다(검사 실패가 아닙니다).\n` +
+        `           한 번 다시 돌립니다. 기록은 .test-flakes.log에 쌓입니다.\n`
+    );
+    ({ code, output } = await runOne(app));
+  }
+
   if (code !== 0) {
     record(`\n>>> ${app}에서 실패했습니다. 위 출력이 원인입니다.\n`);
     process.stdout.write(
