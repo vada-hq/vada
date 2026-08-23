@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
+import {
+  ACCENT_BORDER,
+  ALERT_CHIP,
+  DEPARTMENT_CHIP,
+  NEUTRAL_BORDER,
+  NEUTRAL_CHIP,
+  STATUS_CHIP,
+} from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
@@ -32,38 +40,6 @@ const ASSET = {
   } as Record<string, string>,
   cardDate: '18:149',
 } as const
-
-// 상태 칩은 무엇을 세느냐에 따라 색이 다르다. 어느 상태냐는 명세의 field가 말하고
-// 무슨 색이냐는 design이 말한다 — 자산을 field로 찾는 것과 같은 방식이다.
-const ALERT_STYLE: Record<string, string> = {
-  delayedCount: 'border-red-100 bg-red-50 text-red-700',
-  reviewCount: 'border-yellow-100 bg-yellow-50 text-yellow-800',
-  mineCount: 'border-blue-100 bg-blue-50 text-blue-800',
-  unassignedCount: 'border-red-100 bg-red-50 text-red-700',
-}
-
-// 부서 색은 조직이 정하는 데이터라 이름으로 온다. 이름을 실제 색으로 옮기는 표만
-// 구현이 갖는다 — 부서 이름을 여기 적으면 조직마다 달라지는 값을 코드에 박게 된다.
-const DEPARTMENT_CHIP: Record<string, string> = {
-  teal: 'bg-teal-100 text-teal-700',
-  pink: 'bg-pink-100 text-pink-700',
-  emerald: 'bg-emerald-100 text-emerald-700',
-  violet: 'bg-violet-100 text-violet-700',
-  red: 'bg-red-100 text-red-700',
-}
-
-const CARD_BORDER: Record<string, string> = {
-  teal: 'border-teal-500',
-  pink: 'border-pink-500',
-  emerald: 'border-emerald-500',
-  violet: 'border-violet-500',
-  red: 'border-red-500',
-}
-
-const ALERT_CHIP: Record<string, string> = {
-  red: 'border-red-200 bg-red-50 text-red-700',
-  yellow: 'border-yellow-200 bg-yellow-50 text-yellow-700',
-}
 
 interface TASK01ScreenProps {
   onNavigate: (screenId: string) => void
@@ -97,7 +73,7 @@ export function TASK01Screen({ onNavigate }: TASK01ScreenProps) {
             <span
               key={item.label}
               className={`flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium ${
-                ALERT_STYLE[item.field ?? ''] ?? 'border-gray-200 bg-white text-gray-700'
+                STATUS_CHIP[item.field ?? ''] ?? NEUTRAL_CHIP
               }`}
             >
               {item.field && ASSET.alertByField[item.field] ? (
@@ -219,7 +195,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
 
   return (
     <div
-      className={`rounded-lg border bg-white ${CARD_BORDER[String(row.tone)] ?? 'border-gray-200'}`}
+      className={`rounded-lg border bg-white ${ACCENT_BORDER[String(row.tone)] ?? NEUTRAL_BORDER}`}
     >
       <button
         type="button"
@@ -238,7 +214,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
           {/* 부서 색·주의 색은 조직 데이터가 갖는다(data-sources.json task.board). */}
           <span
             className={`rounded px-1.5 py-0.5 text-[11px] font-medium ${
-              DEPARTMENT_CHIP[String(row.departmentTone)] ?? 'bg-gray-100 text-gray-600'
+              DEPARTMENT_CHIP[String(row.departmentTone)] ?? NEUTRAL_CHIP
             }`}
           >
             {String(row.department)}
@@ -249,8 +225,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
           {row.alert === undefined ? null : (
             <span
               className={`rounded border px-1.5 py-0.5 text-[11px] font-medium ${
-                ALERT_CHIP[String(row.alertTone)] ??
-                'border-gray-200 bg-gray-100 text-gray-600'
+                ALERT_CHIP[String(row.alertTone)] ?? NEUTRAL_CHIP
               }`}
             >
               {String(row.alert)}

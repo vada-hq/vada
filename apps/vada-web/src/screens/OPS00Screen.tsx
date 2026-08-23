@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
+import { NEUTRAL_BORDER, SOFT_BORDER } from '../design/tones'
 import { readObjectSource } from '../data-sources/catalog'
 import { elementByNodeId, ops00 } from '../spec/screens'
 import type { DisplayAction, SummarySpec } from '../spec/types'
@@ -91,13 +92,13 @@ export function OPS00Screen({ onNavigate }: OPS00ScreenProps) {
   )
 }
 
-// 공간마다 테두리 색이 다르다. 어느 공간이냐는 등록 노드가 말하고 무슨 색이냐는
-// design이 말한다 — 자산을 등록 노드로 찾는 것과 같은 방식이다.
-const CARD_BORDER: Record<string, string> = {
-  '16:614': 'border-blue-200',
-  '16:643': 'border-indigo-200',
-  '16:674': 'border-purple-200',
-  '16:702': 'border-orange-200',
+// 공간마다 색이 다르다. 어느 공간이 어느 톤인지는 등록 노드로 찾고(자산과 같은
+// 방식), 톤을 실제 색으로 옮기는 일은 design/tones가 한 곳에서 한다.
+const CARD_TONE: Record<string, string> = {
+  '16:614': 'blue',
+  '16:643': 'indigo',
+  '16:674': 'purple',
+  '16:702': 'orange',
 }
 
 interface SpaceCardProps {
@@ -114,7 +115,7 @@ function SpaceCard({ nodeId, onNavigate }: SpaceCardProps) {
   return (
     <div
       data-node-id={nodeId}
-      className={`rounded-xl border bg-white ${CARD_BORDER[nodeId] ?? 'border-gray-200'}`}
+      className={`rounded-xl border bg-white ${SOFT_BORDER[CARD_TONE[nodeId]] ?? NEUTRAL_BORDER}`}
     >
       <button
         type="button"

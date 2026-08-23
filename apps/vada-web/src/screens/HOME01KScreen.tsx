@@ -2,6 +2,7 @@ import { createContext, useContext, type ReactNode } from "react";
 import { AppShell } from "../components/AppShell";
 import { DashboardSection } from "../components/DashboardSection";
 import { FigmaAsset } from "../components/FigmaAsset";
+import { NEUTRAL_VALUE, VALUE_TEXT } from "../design/tones";
 import { ProgressBar } from "../components/ProgressBar";
 import { StatTile } from "../components/StatTile";
 import { readListSource, readObjectSource } from "../data-sources/catalog";
@@ -53,11 +54,12 @@ const NODE = {
   myTasksButton: "16:305",
 } as const;
 
-// 값의 색은 타일마다 다르다. design의 사실이므로 여기서 지목한다.
-const COUNT_TILE_VALUE = ["text-blue-600", "text-indigo-600", "text-orange-600"];
-const FINANCE_TILE_VALUE: Record<string, string> = {
-  availableBudgetPercent: "text-blue-600",
-  missingProofCount: "text-red-500",
+// 타일마다 값의 톤이 다르다. 어느 타일이 어느 톤인지만 여기서 말하고, 톤을 실제
+// 색으로 옮기는 일은 design/tones가 한 곳에서 한다.
+const COUNT_TILE_TONE = ["blue", "indigo", "orange"];
+const FINANCE_TILE_TONE: Record<string, string> = {
+  availableBudgetPercent: "blue",
+  missingProofCount: "red",
 };
 
 function specOf<T>(nodeId: string): T {
@@ -176,7 +178,7 @@ function EventCountTiles() {
           key={item.label}
           label={item.label}
           value={`${counts[item.field!]}개`}
-          valueClass={COUNT_TILE_VALUE[at] ?? "text-gray-900"}
+          valueClass={VALUE_TEXT[COUNT_TILE_TONE[at]] ?? NEUTRAL_VALUE}
           icon={
             <FigmaAsset
               screenId={SCREEN}
@@ -360,7 +362,7 @@ function FinanceSummary() {
               label={tile.label}
               value={`${finance[tile.field!]}${suffix(tile.field!)}`}
               tone="inset"
-              valueClass={FINANCE_TILE_VALUE[tile.field!] ?? "text-gray-900"}
+              valueClass={VALUE_TEXT[FINANCE_TILE_TONE[tile.field!]] ?? NEUTRAL_VALUE}
             />
           ))}
         </div>

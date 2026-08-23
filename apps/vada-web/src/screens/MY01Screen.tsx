@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { AppShell } from "../components/AppShell";
 import { FigmaAsset } from "../components/FigmaAsset";
+import { NEUTRAL_CHIP, STATUS_CHIP } from "../design/tones";
 import { readListSource, readObjectSource } from "../data-sources/catalog";
 import { getOptionSource } from "../option-sources/catalog";
 import { elementByNodeId, my01 } from "../spec/screens";
@@ -20,7 +21,7 @@ import type {
 // 시각이라 design이 갖는다. 다만 구현이 design을 자동으로 읽지는 않으므로
 // ORG-02의 라디오 카드(ChoiceGroup)와 달리 여기서는 탭 줄로 그린다.
 //
-// 색·굵기는 손으로 골랐지만 짐작으로 고른 것이 아니다. MY01Screen.design.test가
+// 색·굵기는 손으로 골랐지만 짐작으로 고른 것이 아니다. design 대조(design-check)가
 // figma.design.json과 한 자리씩 대조하므로, 어긋나면 게이트에서 걸린다.
 // 글의 덩어리도 design을 따른다 — design의 텍스트 노드 하나가 색이 바뀌는 경계이므로,
 // 그 경계를 무시하고 한 덩어리로 그리면 색을 맞출 방법 자체가 없어진다.
@@ -47,14 +48,6 @@ const ASSET = {
   linkedDocument: "16:476",
   itemChevron: "16:486",
 } as const;
-
-// 요약 칩은 상태마다 색이 다르다. 어느 상태냐는 명세의 field가 말하고 무슨 색이냐는
-// design이 말한다 — 자산을 field로 찾는 것과 같은 방식이다.
-const ALERT_STYLE: Record<string, string> = {
-  delayedCount: "border-red-100 bg-red-50 text-red-700",
-  todoCount: "border-orange-100 bg-orange-50 text-orange-800",
-  reviewCount: "border-yellow-100 bg-yellow-50 text-yellow-800",
-};
 
 interface MY01ScreenProps {
   onNavigate: (screenId: string) => void;
@@ -110,7 +103,7 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
           <span
             key={item.label}
             className={`flex items-center gap-1.5 rounded-md border px-3 py-1 text-xs font-medium ${
-              ALERT_STYLE[item.field ?? ""] ?? "border-gray-200 bg-white text-gray-700"
+              STATUS_CHIP[item.field ?? ""] ?? NEUTRAL_CHIP
             }`}
           >
             {item.field && ASSET.alertByField[item.field] ? (
