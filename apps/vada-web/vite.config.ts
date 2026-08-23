@@ -55,6 +55,18 @@ export default defineConfig({
           // setup이 테스트마다 DOM을 비운다. 전역을 건드리는 테스트가 생기면
           // 이 줄을 지워야 한다.
           isolate: false,
+          // 격리를 풀면 환경이 워커 안에 오래 남는다. 워커가 둘이면 그 하나의
+          // 환경을 두고 수명이 엇갈려, 파일이 수집도 되기 전에 전부 죽는다
+          // (게이트가 "Cannot read properties of undefined (reading 'config')"로
+          // 세 번 막았다. 단독 실행은 통과하고 npm test 경로에서만 났다).
+          //
+          // 워커를 하나로 줄이면 그 경쟁이 사라진다. 속도 손해도 거의 없다 —
+          // 애초에 이득의 출처가 병렬이 아니라 환경 재사용이기 때문이다.
+          maxWorkers: 1,
+          minWorkers: 1,
+          // 두 프로젝트가 워커 수가 다르면 순서 묶음을 갈라야 한다(vitest가
+          // 요구한다). 갈라 두면 dom과 node가 워커 풀을 공유하지 않는다.
+          sequence: { groupOrder: 0 },
         },
       },
       {
@@ -63,6 +75,7 @@ export default defineConfig({
           name: 'node',
           include: ['src/**/*.test.ts'],
           environment: 'node',
+          sequence: { groupOrder: 1 },
         },
       },
     ],
