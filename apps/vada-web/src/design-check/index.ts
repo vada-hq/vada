@@ -544,7 +544,24 @@ export function compareScreen(
  * 일련번호만 다르다. 지우지 않으면 같은 달력 아이콘 아홉 개가 서로 다른 그림이 된다.
  */
 export function drawingKey(svg: string): string {
-  return svg.replace(/(?:clip|filter|paint|pattern|image)\d+_[0-9_]+/g, 'ID')
+  return (
+    svg
+      // 잘라내는 틀과 그것을 묶는 껍데기. 같은 아이콘인데 어떤 파일은 clipPath로
+      // 감싸여 나오고 어떤 파일은 그냥 나온다 — 그려지는 것은 같다.
+      // (그라디언트 정의는 남긴다. 그건 실제로 보이는 차이다.)
+      .replace(/<clipPath[\s\S]*?<\/clipPath>/g, '')
+      .replace(/<defs>\s*<\/defs>/g, '')
+      .replace(/\sclip-path="[^"]*"/g, '')
+      .replace(/<\/?g[^>]*>/g, '')
+      .replace(/(?:clip|filter|paint|pattern|image)\d+_[0-9_]+/g, 'ID')
+      // 좌표의 끝자리. 같은 아이콘도 자리마다 소수점 다섯째 자리가 다르게 나온다
+      // (18:476은 6.12498, 18:568은 6.12501 — 눈으로는 같은 그림이다).
+      // 소수 첫째 자리까지만 본다. 둘째 자리로는 위 둘이 6.12와 6.13으로 갈린다.
+      // 13픽셀짜리 아이콘에서 0.1은 눈에 보이지 않는 차이다.
+      .replace(/\d+\.\d+/g, (n) => Number(n).toFixed(1))
+      .replace(/\s+/g, ' ')
+      .trim()
+  )
 }
 
 /**

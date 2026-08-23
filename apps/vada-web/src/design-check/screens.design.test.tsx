@@ -181,7 +181,11 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
         return
       }
 
-      const missing = compareScreenAssets(container, spec, design, drawingOfScreen(screenId))
+      const missing = applyDeviations(
+        screenId,
+        compareScreenAssets(container, spec, design, drawingOfScreen(screenId)),
+        DEVIATIONS,
+      )
       expect(missing, report(screenId, missing)).toEqual([])
     })
   },
@@ -205,7 +209,15 @@ describe('design/deviations.ts', () => {
           onNavigate={() => {}}
         />,
       )
-      for (const difference of compareScreen(container, spec, design)) {
+      const found = [
+        ...compareScreen(container, spec, design),
+        // 그림 대조도 예외를 쓴다. 여기서 빠뜨리면 그림에 건 예외가 늘 '쓰이지 않는
+        // 예외'로 잡힌다.
+        ...(usesVectorUnitAssets(design)
+          ? []
+          : compareScreenAssets(container, spec, design, drawingOfScreen(spec.screenId))),
+      ]
+      for (const difference of found) {
         seen.push({ ...difference, screenId: spec.screenId })
       }
       cleanup()

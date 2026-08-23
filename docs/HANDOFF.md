@@ -22,7 +22,7 @@
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md). 플러그인은 meta를 저장 왕복에서 보존하고(실전 검증됨) 새 텍스트 필드 편집란은 스키마 주도로 자동 생성된다.
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다. 전부 스키마 주도라 플러그인 편집 UI는 자동 생성된다.
-- **테스트**: 플러그인 89, spec-service·변환기·검증 82, vada-web(vitest) 132 + Playwright e2e 21 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **테스트**: 플러그인 89, spec-service·변환기·검증 82, vada-web(vitest) 141 + Playwright e2e 26 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). `tests/element-type-registry.test.mjs`가 enum↔스키마 파일↔플러그인 옵션↔플러그인 `schemaByType`의 일치를 강제한다.
 - **추출기의 선례 재사용(2026-08-19)**: 초안을 뽑을 때 이미 등록된 다른 화면의 필드를 선례로 삼는다(`spec-precedent.mjs`). 확정 단위는 **스코프 + 라벨**이다 — 라벨이 같아도 스코프가 다르면 다른 필드일 수 있고 실제 반례가 있다(ONB-01 '학교'=`school`, ORG-01 '학교'=`repSchool`). 다른 스코프의 선례는 질문에 후보로 덧붙일 뿐 확정하지 않는다. 물려주는 것은 **데이터 계약**(`valueType`·`inputType`·`optionsSource`·`enabledWhen`·`resetOnChangeOf`·`validation`)뿐이고, 문구·필수·활성 여부는 화면마다 다르므로 디자인에서 유도한 값을 그대로 둔다. 같은 스코프에서 한 라벨이 두 키를 가리키거나 같은 키의 계약이 어긋나면 확정 대신 **모순으로 보고**한다. INV-01 기준 질문 **17건 → 6건**(남은 것은 버튼 이동 대상 2·버튼 묶음 읽기 1·활성 문구 2·note 1로, 전부 디자인에도 선례에도 없는 것이다).
 
@@ -30,8 +30,8 @@
 
 ## 현재 상태 — 제품 vada
 
-- **명세**: ONB-01·ONB-02·ORG-01·ORG-02·INV-01·HOME-01K·MY-01·OPS-00·TASK-01 9개 완결. 검증 오류 0건 경고 0건.
-- **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): **9개 화면 전부 구현·검증 통과.** 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답한다. 상태는 스코프별 저장소(`state/scopes.ts`)로 일반화되어 ORG-01의 note가 **다른 스코프**(onboardingDraft)를 읽는다. 미등록 화면 오류 카드는 이제 명세에 없는 화면으로 갈 때만 뜬다.
+- **명세**: ONB-01·ONB-02·ORG-01·ORG-02·INV-01·HOME-01K·MY-01·OPS-00·TASK-01·OPS-MEET-01A 10개 완결. 검증 오류 0건 경고 0건.
+- **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): **10개 화면 전부 구현·검증 통과.** 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답한다. 상태는 스코프별 저장소(`state/scopes.ts`)로 일반화되어 ORG-01의 note가 **다른 스코프**(onboardingDraft)를 읽는다. 미등록 화면 오류 카드는 이제 명세에 없는 화면으로 갈 때만 뜬다.
 - **화면은 자리만 정한다(2026-08-24)**: 무엇을 그릴지는 화면이 정하지 않는다.
   - **부품 표**(`spec/elements.tsx`): 요소 유형 → 컴포넌트 매핑이 한 곳이다. 예전에는 ORG-01·INV-01이 각자 `renderField`를 들고 있었고 **이미 어긋나 있었다**(ORG-01만 `helperText`를 넘겨, INV-01에서는 스펙의 보조 설명이 그려지지 않을 수 있었다). `useFieldDraft`가 '동작'에 대해 한 일을 이 파일이 '형태'에 대해 한다. 폼 화면당 190줄 → 84줄.
   - **머리는 카드가 그린다**(`components/PageCard.tsx`): `screen` 하나를 받아 로고·눈썹·제목·설명·진행 표시를 그린다. 어느 형태인지도 화면이 고르지 않고 **`meta.eyebrow`가 정한다** — 눈썹(흐름 이름)이 있으면 머리 왼쪽을 그것이 차지해 로고가 빠진다. 카드형 5개가 모두 그렇고, design의 로고 유무와 대조하는 검사가 채점한다.
@@ -44,7 +44,7 @@
   - **못 보는 것**: 한 방향이다(화면에만 있는 장식은 못 잡는다), 등록 노드 밖(셸)은 안 본다, 같은 글이 여럿이면 하나만 맞아도 통과, 여백·크기·위치·글자 크기는 안 본다(와이어프레임이 0.875배라 잡음이 섞인다).
 - **색은 한 곳에 있다**(`design/tones.ts`): 부서 칩·강조 테두리·상태 칩·값 타일 색. Tailwind가 실행 중에 클래스 이름을 만들 수 없어 표가 필요하다. 톤 이름은 **데이터가 준다** — 부서 색은 조직이 정하는 값이라 `data-sources.json`의 `departmentTone`으로 온다.
 - **와이어프레임의 불규칙은 따르지 않는다**(`design/deviations.ts`): 규칙을 따르고 그래서 생긴 차이를 적어 둔다(상태 칩 글씨 -800, 값 타일 숫자 -600, 팔레트 밖 색 금지, 같은 상태는 같은 색). **예외는 자리가 아니라 규칙·색에 건다** — 화면이 늘어도 목록이 늘지 않아야 하기 때문이다(`data-design-rule`). 쓰이지 않는 예외는 실패로 다뤄 목록이 썩지 않게 한다.
-- **준수 검사가 9개 화면 전부를 본다**(`spec/conformance.test.tsx`): 예전에는 세 화면만 손으로 적혀 있었고 그래서 INV-01의 어긋남을 아무도 못 봤다. 넓히면서 검사 자체의 눈이 좁았던 곳도 드러났다(`<input type="search">`는 `textbox`가 아니라 `searchbox`, 안 검색되는 select는 placeholder가 속성이 아니라 글).
+- **준수 검사가 화면 전부를 본다**(`spec/conformance.test.tsx`): 예전에는 세 화면만 손으로 적혀 있었고 그래서 INV-01의 어긋남을 아무도 못 봤다. 넓히면서 검사 자체의 눈이 좁았던 곳도 드러났다(`<input type="search">`는 `textbox`가 아니라 `searchbox`, 안 검색되는 select는 placeholder가 속성이 아니라 글).
 - **제출 왕복이 실제로 돈다**(ORG-02): `조직 만들기` → mutations 카탈로그의 mock 전송 → `onSuccess.navigate`로 HOME-01K 이동 + `scopeEvent: complete`로 orgCreationDraft 제거.
 - **마찰 로그**: 화면마다 `docs/pilot-<screenId>.md`에 있다(9개). 잔여 발견은 전부 `docs/BACKLOG.md`에 있고, 미룬 것에는 **트리거**가 달려 있다.
 - **동기화 개념이 사라졌다(2026-08-19)**: 플러그인이 명세를 쓰지 않으므로 Figma 사본과 로컬 JSON이 어긋날 일이 없다. 전환 직전 4개 화면 모두 왕복 diff 0으로 보존을 실증한 뒤 편집 경로를 걷어냈다. 플러그인 소스는 4643 → 2761줄(-41%)이고 `screen-spec.mjs`(560줄)와 그 테스트(805줄)는 통째로 사라졌다.
@@ -76,8 +76,8 @@
 
 ## 다음 한 단계
 
-TASK-01(상시 업무 칸반 보드) 사이클을 마쳤다(`docs/pilot-task01.md`).
-**MY-01과 같은 계열의 화면이고, 신규 계급 1건이다.**
+OPS-MEET-01A(회의 목록) 사이클을 마쳤다(`docs/pilot-ops-meet-01a.md`).
+**TASK-01과 같은 계열이고, 신규 계급 3건이다.**
 
 | 사이클 | 신규 계급 | 새 개념 | (A) 마찰 |
 | --- | --- | --- | --- |
@@ -85,31 +85,42 @@ TASK-01(상시 업무 칸반 보드) 사이클을 마쳤다(`docs/pilot-task01.m
 | HOME-01K | 3 | 3 | 1 |
 | MY-01 | 4 | 1 | 1 |
 | OPS-00 | 3 | 0 | 1 |
-| **TASK-01** | **1** | **0** | **0** |
+| TASK-01 | 1 | 0 | 0 |
+| **OPS-MEET-01A** | **3** | **2** | **3** |
 
-MY-01이 연 자리(`itemList.params`·`itemAction`·`select` choiceGroup·`summary.unit`)가
-**전부 고치지 않고 쓰였다**. 유일한 추가는 `params`의 값이 화면 필드 대신 고정값도
-될 수 있게 한 것인데, 이는 `summary.items`의 `field`/`value` 구분을 한 자리 더
-적용한 것이라 새 개념이 아니다.
+### 수렴 판정: 아직 아니다
 
-**(A) 마찰 0건** — 구현하다 명세에 자리가 없어 막힌 것이 하나도 없었다.
+기준은 "연속 2개 화면 사이클에서 새로운 마찰 계급 0건"이다. TASK-01이 1건으로
+내려간 것을 보고 수렴이 가깝다고 읽었는데, **그것은 TASK-01이 MY-01과 거의 같은
+화면이었기 때문이다.** 같은 계열 안에서도 목록의 모양이 한 단계 달라지자 계급이
+셋 나왔다.
 
-### 수렴 판정
+넓힌 자리 셋은 전부 '목록'이었다.
 
-기준은 "연속 2개 화면 사이클에서 새로운 마찰 계급 0건"이다. 아직 도달하지
-않았다(TASK-01은 1건). 다만 **추세는 분명하다** — 새 개념은 두 사이클 연속 0이고,
-신규 계급도 3 → 1로 줄었다.
+1. **묶음이 데이터에서 온다**(`itemList.group` + `data-sources`의 조각 중첩) —
+   칸반의 열은 명세에 고정이라 요소를 넷 등록했지만, 행사별 묶음은 행사가 늘면
+   묶음도 는다.
+2. **항목의 버튼 문구·강조도가 행마다 다르다**(`labelField`·`emphasisField`) —
+   같은 자리에 다섯 가지 문구가 온다.
+3. **접기**(`group.collapsible`) — 지금까지의 화면 안 상태는 전부 데이터를 다시
+   조회하는 것이었다. 접기는 조회를 일으키지 않는다.
 
-`docs/pilot-ops00.md`에서 배운 것을 지켰다: 연속을 데스크톱 화면 수로 세지 않고
-**같은 계열**로 셌다. OPS-00(허브)은 MY-01의 자리를 하나도 쓰지 않아 판정에
-쓸 수 없었고, TASK-01(목록)이 판정했다.
+`docs/pilot-ops00.md`에서 "연속을 같은 계열로 세라"고 배웠는데, **계열 안에서도
+무엇이 같아야 연속으로 셀 수 있는지**는 아직 정하지 못했다. 다음 판정 전에 정해야
+한다 — 아니면 판정이 화면 고르기에 좌우된다.
+
+### 반가운 신호 하나
+
+design 대조가 **6곳**에서 시작했다. 첫 화면(MY-01)은 30곳, 아홉 화면 전체로는
+234곳이었다. 색·굵기는 처음부터 하나도 어긋나지 않았다 — `design/tones.ts`와
+부품 표가 자리를 잡은 뒤로 손으로 고를 것이 거의 없어졌다는 뜻이다.
 
 **다음 후보**
 
-1. **목록 계열 화면 하나 더** — 신규 계급 0이면 첫 수렴이다. 회의 목록
-   (OPS-MEET-01A)이 Figma에 있고 필터·목록 구조가 같아 보인다.
-2. ~~자산 소비 검사~~ — 2026-08-24 완료. `data-asset-node-id`로 design의 그림과
-   화면을 대조한다. 붙이자마자 TASK-01의 지연 카드 아이콘 색을 잡았다.
+1. **목록 계열 화면 하나 더** — 행사 목록(OPS-00 `16:674`)이 가장 가깝다.
+   회의 목록에서 넓힌 셋이 고치지 않고 쓰이는지가 판정이다.
+2. **업무 상세** — 제품에서 가장 급하다(MY-01·TASK-01이 5곳에서 막혀 있다).
+   다만 새 계열이라 판정은 0부터 다시 센다.
 
 **막혀 있는 것**: 다음 화면의 `figma.raw.json`이 없다. 사용자가 Figma에서 화면을
 지정하고 `Figma 원본 JSON 저장`을 눌러야 한다.

@@ -16,6 +16,7 @@ import home01kJson from '../../../../specs/figma/vada-wireframe/screens/HOME-01K
 import my01Json from '../../../../specs/figma/vada-wireframe/screens/MY-01/screen.json'
 import ops00Json from '../../../../specs/figma/vada-wireframe/screens/OPS-00/screen.json'
 import task01Json from '../../../../specs/figma/vada-wireframe/screens/TASK-01/screen.json'
+import opsMeet01aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01A/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -42,6 +43,7 @@ export const home01k = asScreenSpec(home01kJson)
 export const my01 = asScreenSpec(my01Json)
 export const ops00 = asScreenSpec(ops00Json)
 export const task01 = asScreenSpec(task01Json)
+export const opsMeet01a = asScreenSpec(opsMeet01aJson)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
 // ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
@@ -56,6 +58,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   my01,
   ops00,
   task01,
+  opsMeet01a,
 ]
 
 // meta.title을 화면에 그리는가.

@@ -92,9 +92,9 @@
           }
         ],
         "action": {
-          "type": "pending",
+          "type": "navigate",
           "label": "회의 목록 보기",
-          "note": "회의 목록 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "OPS-MEET-01A"
         }
       }
     },

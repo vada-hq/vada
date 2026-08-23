@@ -14,6 +14,8 @@ export interface DataSourceField {
   key: string
   description: string
   optional?: boolean
+  // 이 조각이 다시 같은 모양의 항목 목록일 때 그 항목의 조각(묶인 목록).
+  fields?: DataSourceField[]
 }
 
 export interface DataSource {
@@ -42,7 +44,9 @@ export function findDataSource(key: string): DataSource {
   return source
 }
 
-export type DataRow = Record<string, string | number>
+// 묶인 목록은 조각 하나가 다시 항목 목록이다(회의 목록의 행사별 묶음).
+export type DataValue = string | number | DataRow[]
+export type DataRow = Record<string, DataValue>
 
 // 개발용 mock. 실제 응답이 붙기 전까지 fixtures가 대신하며, 카탈로그가 선언한
 // fields와 어긋나면 조용히 비는 대신 오류로 드러난다.
@@ -69,15 +73,34 @@ export function readDataSource(
   }
 
   const rows = Array.isArray(fixture) ? fixture : [fixture]
-  const required = source.fields.filter((field) => field.optional !== true)
-  for (const row of rows) {
-    for (const field of required) {
-      if (row[field.key] === undefined) {
+  // 묶인 목록은 안쪽 항목까지 본다. 겉만 보면 묶음은 맞는데 그 안이 빈 응답이
+  // 조용히 지나간다.
+  function assertFields(row: DataRow, fields: DataSourceField[], where: string) {
+    for (const field of fields) {
+      const value = row[field.key]
+      if (value === undefined) {
+        if (field.optional === true) {
+          continue
+        }
         throw new Error(
-          `데이터 출처 '${key}'의 응답에 카탈로그가 선언한 조각 '${field.key}'가 없습니다.`,
+          `데이터 출처 '${key}'의 ${where}에 카탈로그가 선언한 조각 '${field.key}'가 없습니다.`,
         )
       }
+      if (field.fields === undefined) {
+        continue
+      }
+      if (!Array.isArray(value)) {
+        throw new Error(
+          `데이터 출처 '${key}'의 조각 '${field.key}'는 항목 목록이어야 하는데 아닙니다.`,
+        )
+      }
+      for (const nested of value) {
+        assertFields(nested, field.fields, `'${field.key}'의 항목`)
+      }
     }
+  }
+  for (const row of rows) {
+    assertFields(row, source.fields, '응답')
   }
 
   if (Array.isArray(fixture) !== (source.shape === 'list')) {

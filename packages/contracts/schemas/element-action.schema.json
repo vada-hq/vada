@@ -7,11 +7,16 @@
     "displayAction": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type"],
+      "required": [
+        "type"
+      ],
       "properties": {
         "type": {
           "type": "string",
-          "enum": ["navigate", "pending"]
+          "enum": [
+            "navigate",
+            "pending"
+          ]
         },
         "label": {
           "type": "string",
@@ -26,16 +31,70 @@
           "type": "string",
           "minLength": 1,
           "description": "아직 명세되지 않은 화면임을 알리는 문구."
+        },
+        "labelField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "동작의 문구가 데이터에서 오는 경우 그 조각의 key(선택). label과 함께 쓸 수 없다. 목록 항목마다 문구가 다른 경우다 — 회의 목록의 '회의록 보기'·'회의로 돌아가기'는 그 회의의 상태가 정한다."
+        },
+        "emphasisField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "동작의 강조도가 데이터에서 오는 경우 그 조각의 key(선택). 값은 button.emphasis와 같은 말(primary·secondary·quiet)이다. 항목마다 얼마나 앞세울지가 다른 경우다."
         }
       },
       "allOf": [
         {
-          "if": { "properties": { "type": { "const": "navigate" } }, "required": ["type"] },
-          "then": { "required": ["targetScreenId"], "not": { "required": ["note"] } }
+          "if": {
+            "properties": {
+              "type": {
+                "const": "navigate"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "targetScreenId"
+            ],
+            "not": {
+              "required": [
+                "note"
+              ]
+            }
+          }
         },
         {
-          "if": { "properties": { "type": { "const": "pending" } }, "required": ["type"] },
-          "then": { "required": ["note"], "not": { "required": ["targetScreenId"] } }
+          "if": {
+            "properties": {
+              "type": {
+                "const": "pending"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "note"
+            ],
+            "not": {
+              "required": [
+                "targetScreenId"
+              ]
+            }
+          }
+        },
+        {
+          "not": {
+            "required": [
+              "label",
+              "labelField"
+            ]
+          }
         }
       ]
     }

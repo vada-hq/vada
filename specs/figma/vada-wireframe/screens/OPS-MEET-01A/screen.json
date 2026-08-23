@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-01A",
+  "meta": {
+    "eyebrow": "운영",
+    "title": "회의",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "18:331",
+    "name": "운영 — 회의 · OPS-MEET-01A · 전체 회의 — 일반 참가자",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "18:418",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "일반 참가자 화면",
+        "description": "초대된 회의의 일정과 참가 상태를 확인합니다.",
+        "dataSourceKey": "meeting.attention",
+        "items": [
+          {
+            "label": "확인 필요한 회의",
+            "unit": "건",
+            "field": "attentionCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:432",
+        "name": "Text Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "meetingQuery",
+        "label": "회의명 검색",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:437",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.groups",
+        "params": {
+          "query": {
+            "fieldKey": "meetingQuery"
+          }
+        },
+        "group": {
+          "itemsField": "meetings",
+          "collapsible": true
+        },
+        "itemAction": {
+          "type": "pending",
+          "labelField": "actionLabel",
+          "emphasisField": "actionEmphasis",
+          "note": "회의 상세 화면이 아직 명세되지 않았습니다. 진행 중인 회의로 돌아가는 것이 같은 화면인지도 정해지지 않았습니다."
+        }
+      }
+    }
+  ]
+}

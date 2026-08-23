@@ -178,6 +178,128 @@ const TASK_BOARD: Array<{ status: string; row: DataRow }> = [
 ]
 
 // 보는 사람. 실제로는 서버가 세션에서 안다.
+
+// 회의 목록(OPS-MEET-01A). 묶음 하나가 행사 하나이고, 어디에도 속하지 않는 회의는
+// '정기·상시 회의' 묶음으로 온다.
+const MEETING_GROUPS: DataRow[] = [
+  {
+    title: '정기·상시 회의',
+    nextMeetingNote: '가장 가까운 회의: 07.22 (수) 18:00',
+    meetings: [
+      {
+        title: '7월 예산 검토회의',
+        status: '완료',
+        statusTone: 'gray',
+        startAt: '2026.07.10 14:00',
+        place: '온라인 (Zoom)',
+        host: '김민준',
+        attendees: '5명',
+        agenda: '2개',
+        minutesStatus: '정리 완료',
+        actionLabel: '회의록 보기',
+        actionEmphasis: 'secondary',
+      },
+      {
+        title: '학생회 정기 운영회의',
+        status: '예정',
+        statusTone: 'blue',
+        startAt: '2026.07.22 18:00',
+        place: '학생회실 (A204)',
+        host: '이수현',
+        attendees: '12명',
+        agenda: '4개',
+        minutesStatus: '작성 전',
+        actionLabel: '회의 상세 보기',
+        actionEmphasis: 'secondary',
+      },
+      {
+        title: '회장단 비공개 안건 조율',
+        status: '예정',
+        statusTone: 'blue',
+        badge: '비공개',
+        startAt: '2026.07.24 17:00',
+        place: '회장실',
+        host: '김바다',
+        attendees: '4명',
+        agenda: '3개',
+        minutesStatus: '작성 전',
+        actionLabel: '회의 상세 보기',
+        actionEmphasis: 'secondary',
+      },
+    ],
+  },
+  {
+    title: '2026 소프트웨어융합대학 체육대회',
+    nextMeetingNote: '가장 가까운 회의: 07.18 (토) 10:00',
+    meetings: [
+      {
+        title: '체육대회 운영 점검 회의',
+        status: '진행 중',
+        statusTone: 'green',
+        startAt: '2026.07.18 10:00',
+        place: '제1회의실',
+        host: '박해랑',
+        attendees: '8명',
+        agenda: '6개',
+        minutesStatus: '작성 중',
+        actionLabel: '회의로 돌아가기',
+        actionEmphasis: 'primary',
+      },
+      {
+        title: '안전 관리 최종 회의',
+        status: '예정',
+        statusTone: 'blue',
+        startAt: '2026.07.25 15:00',
+        place: '학생회실',
+        host: '박해랑',
+        attendees: '4명',
+        agenda: '3개',
+        minutesStatus: '작성 전',
+        actionLabel: '회의 상세 보기',
+        actionEmphasis: 'secondary',
+      },
+    ],
+  },
+  {
+    title: '신입생 환영 행사',
+    nextMeetingNote: '가장 가까운 회의: 07.15 (수) 16:00',
+    meetings: [
+      {
+        title: '신입생 환영 행사 기획회의',
+        status: '정리 중',
+        statusTone: 'yellow',
+        startAt: '2026.07.15 16:00',
+        place: '온라인 (Discord)',
+        host: '이윤슬',
+        attendees: '10명',
+        agenda: '5개',
+        minutesStatus: '내용 열람 가능',
+        actionLabel: '회의 내용 보기',
+        actionEmphasis: 'secondary',
+      },
+    ],
+  },
+  {
+    title: '가을 축제',
+    nextMeetingNote: '가장 가까운 회의: 08.05 (수) 13:00',
+    meetings: [
+      {
+        title: '가을 축제 1차 준비회의',
+        status: '취소',
+        statusTone: 'red',
+        startAt: '2026.08.05 13:00',
+        place: '미정',
+        host: '김바다',
+        attendees: '15명',
+        agenda: '2개',
+        minutesStatus: '취소 사유 등록',
+        actionLabel: '취소 내용 보기',
+        actionEmphasis: 'secondary',
+      },
+    ],
+  },
+]
+
 const VIEWER_NAME = '박해랑'
 
 function taskAlerts(): DataRow {
@@ -192,6 +314,7 @@ function taskAlerts(): DataRow {
 }
 
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
+  'meeting.attention': { attentionCount: 2 },
   'home.briefing': { title: '박해랑님, 확인이 필요해요' },
   'home.briefingNotices': [
     { message: '지연된 업무가 1건 있습니다.' },
@@ -287,6 +410,13 @@ export const FILTERED_FIXTURES: Record<
     TASK_BOARD.filter((task) => task.status === status)
       .filter((task) => scope !== 'mine' || task.row.assignee === VIEWER_NAME)
       .map((task) => task.row),
+  // 검색은 묶음이 아니라 회의를 거른다. 남는 회의가 없는 묶음은 통째로 사라진다 —
+  // 빈 묶음 머리만 남으면 '총 0건'이 줄줄이 보인다.
+  'meeting.groups': ({ query = '' }) =>
+    MEETING_GROUPS.map((group) => ({
+      ...group,
+      meetings: (group.meetings as DataRow[]).filter((row) => matchesQuery(row, query)),
+    })).filter((group) => (group.meetings as DataRow[]).length > 0),
   'my.tasks': ({ tab = 'todo', query = '' }) =>
     MY_TASKS.filter((task) => task.tab === tab)
       .map((task) => task.row)

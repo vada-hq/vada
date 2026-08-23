@@ -97,9 +97,17 @@ export interface ButtonSpec {
 // 제목과 라벨-값 쌍의 구조를 가진다. 값의 출처가 정해지기 전에는 디자인에
 // 그려진 예시 문자열을 그대로 담는다.
 // 표시 요소가 눌렸을 때의 동작. 값을 보내지 않으므로 submit이 없다.
+interface DisplayActionCopy {
+  label?: string
+  // 문구·강조도가 데이터에서 오는 경우 그 조각의 key. 목록 항목마다 다른 경우다 —
+  // 회의 목록의 '회의록 보기'·'회의로 돌아가기'는 그 회의의 상태가 정한다.
+  labelField?: string
+  emphasisField?: string
+}
+
 export type DisplayAction =
-  | { type: 'navigate'; label?: string; targetScreenId: string }
-  | { type: 'pending'; label?: string; note: string }
+  | ({ type: 'navigate'; targetScreenId: string } & DisplayActionCopy)
+  | ({ type: 'pending'; note: string } & DisplayActionCopy)
 
 export interface SummaryItem {
   label: string
@@ -133,6 +141,10 @@ export interface ItemListSpec {
   type: 'itemList'
   title?: string
   dataSourceKey: string
+  // 목록이 묶음으로 온다는 선언. 이때 항목 하나가 곧 묶음이고 itemsField가 그
+  // 묶음에 든 것들을 담는다. 묶음 수도 안쪽 항목 수도 데이터에 달렸다 — 칸반의
+  // 열처럼 묶음이 명세에 고정인 경우와 다르다.
+  group?: { itemsField: string; collapsible?: boolean }
   // 목록을 거르는 값. key는 출처가 선언한 인자 이름이고, 값은 화면 필드를
   // 가리키거나(fieldKey) 명세가 정한 고정값이다(value) — 칸반의 열이 후자다.
   // 받아온 것을 화면에서 거르지 않고 값이 바뀌면 다시 조회한다.

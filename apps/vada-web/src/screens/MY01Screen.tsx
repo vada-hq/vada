@@ -3,6 +3,7 @@ import { AppShell } from "../components/AppShell";
 import { FigmaAsset } from "../components/FigmaAsset";
 import { NEUTRAL_CHIP, STATUS_CHIP } from "../design/tones";
 import { readListSource, readObjectSource } from "../data-sources/catalog";
+import type { DataRow } from "../data-sources/catalog";
 import { getOptionSource } from "../option-sources/catalog";
 import { elementByNodeId, my01 } from "../spec/screens";
 import type {
@@ -152,7 +153,7 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
                     selected ? "bg-blue-50 text-blue-600" : "bg-gray-100 text-gray-500"
                   }`}
                 >
-                  {count}
+                  {String(count)}
                 </span>
               )}
             </button>
@@ -209,7 +210,7 @@ export function MY01Screen({ onNavigate }: MY01ScreenProps) {
 }
 
 interface TaskCardProps {
-  row: Record<string, string | number>;
+  row: DataRow;
   itemAction: ItemListSpec["itemAction"];
   onNavigate: (screenId: string) => void;
 }

@@ -76,6 +76,24 @@ export const STATUS_CHIP: Record<string, string> = {
   unassignedCount: 'border-red-100 bg-red-50 text-red-800',
 }
 
+/**
+ * 상태 딱지(OPS-MEET-01A 18:458). **바탕 -50, 글씨 -700으로 통일한다.**
+ *
+ * 회의 상태(예정·진행 중·정리 중·취소)는 조직 운영에 따라 늘 수 있으므로 색 이름은
+ * 데이터가 준다(data-sources.json의 statusTone). 이름을 색으로 옮기는 일만 여기서 한다.
+ *
+ * 무채색만 다르다 — 끝난 것(완료)과 덧붙는 표시(비공개)는 테두리 없이
+ * gray-100/gray-500이다. 흔들림이 아니라 이유가 있다: gray-50은 흰 카드 위에서
+ * 바탕이 보이지 않고, 끝난 것을 테두리로 앞세울 이유도 없다.
+ */
+export const STATE_CHIP: Record<string, string> = {
+  gray: 'bg-gray-100 text-gray-500',
+  blue: 'border border-blue-200 bg-blue-50 text-blue-700',
+  green: 'border border-green-200 bg-green-50 text-green-700',
+  yellow: 'border border-yellow-200 bg-yellow-50 text-yellow-700',
+  red: 'border border-red-200 bg-red-50 text-red-700',
+}
+
 /** 표에 없는 톤은 조용히 색 없이 지나가지 않고 무채색으로 드러난다. */
 export const NEUTRAL_CHIP = 'border-gray-200 bg-white text-gray-700'
 export const NEUTRAL_BORDER = 'border-gray-200'

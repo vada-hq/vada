@@ -522,6 +522,109 @@
           "optional": true
         }
       ]
+    },
+    {
+      "key": "meeting.attention",
+      "shape": "object",
+      "description": "회의 목록 위의 안내에 딸린 건수. 무엇을 '확인 필요'로 세는지는 화면이 알 수 없어 서버가 정한다 — 그려진 2건은 진행 중 1 + 정리 중 1로도, 내가 주최한 회의 2건으로도 맞는다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/attention"
+      },
+      "messages": {
+        "loading": "확인 필요한 회의를 세는 중입니다",
+        "empty": "확인이 필요한 회의가 없습니다",
+        "error": "확인 필요한 회의를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "attentionCount",
+          "description": "내가 확인해야 하는 회의 수. 예: 2"
+        }
+      ]
+    },
+    {
+      "key": "meeting.groups",
+      "shape": "list",
+      "description": "묶음으로 오는 회의 목록. 묶음 하나가 행사 하나이고, 어느 행사에도 속하지 않는 회의는 '정기·상시 회의' 묶음으로 온다. 묶음 수가 데이터에 달려 있어 명세가 묶음마다 조회를 미리 적을 수 없으므로 한 번에 묶어서 온다 — 칸반의 열(명세에 고정)과 다른 점이다.",
+      "params": [
+        "query"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings"
+      },
+      "messages": {
+        "loading": "회의를 불러오는 중입니다",
+        "empty": "회의가 없습니다",
+        "error": "회의를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "묶음 이름. 행사 이름이거나 '정기·상시 회의'다. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "nextMeetingNote",
+          "description": "이 묶음에서 가장 가까운 회의를 알리는 완성된 문구. 무엇을 '가장 가까운'으로 세는지는 화면이 유도할 수 없어 서버가 정한다 — 그려진 것을 보면 완료는 빼고 취소는 넣는다. 예: 가장 가까운 회의: 07.22 (수) 18:00"
+        },
+        {
+          "key": "meetings",
+          "description": "이 묶음에 든 회의들.",
+          "fields": [
+            {
+              "key": "title",
+              "description": "회의 이름. 예: 학생회 정기 운영회의"
+            },
+            {
+              "key": "status",
+              "description": "회의 상태를 알리는 말. 예: 예정 · 진행 중 · 정리 중 · 완료 · 취소"
+            },
+            {
+              "key": "statusTone",
+              "description": "상태 딱지에 배정된 색 이름. 상태 목록이 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+            },
+            {
+              "key": "badge",
+              "description": "회의 이름 옆에 덧붙는 표시. 없으면 오지 않는다. 예: 비공개",
+              "optional": true
+            },
+            {
+              "key": "startAt",
+              "description": "회의 시작 때. 예: 2026.07.22 18:00"
+            },
+            {
+              "key": "place",
+              "description": "회의 장소. 정해지지 않았으면 완성된 안내로 온다. 예: 학생회실 (A204) · 미정"
+            },
+            {
+              "key": "host",
+              "description": "회의를 여는 사람 이름. 예: 이수현"
+            },
+            {
+              "key": "attendees",
+              "description": "참가자 수. 세는 말까지 붙어서 온다. 예: 12명"
+            },
+            {
+              "key": "agenda",
+              "description": "안건 수. 세는 말까지 붙어서 온다. 예: 4개"
+            },
+            {
+              "key": "minutesStatus",
+              "description": "회의록이 어디까지 됐는지. 예: 작성 전 · 작성 중 · 정리 완료 · 내용 열람 가능 · 취소 사유 등록"
+            },
+            {
+              "key": "actionLabel",
+              "description": "이 회의로 들어가는 문구. 회의 상태에 따라 다르다. 예: 회의 상세 보기 · 회의로 돌아가기 · 회의록 보기"
+            },
+            {
+              "key": "actionEmphasis",
+              "description": "그 문구를 얼마나 앞세우는지(primary·secondary·quiet). 지금 진행 중인 회의만 앞세운다. 예: secondary"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
