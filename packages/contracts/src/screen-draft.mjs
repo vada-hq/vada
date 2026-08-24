@@ -66,6 +66,15 @@ function isButton(node) {
   return BUTTON_NAME_PATTERN.test(node?.name ?? "");
 }
 
+// 라벨 없이 홀로 선 컨트롤인가.
+//
+// 폼은 라벨이 컨트롤을 이름 붙이지만, 목록 화면의 검색칸·거르개는 라벨 없이
+// 그려진 문구만 있다(EVT-00A 20:4153). 라벨 노드를 요구하면 이런 칸이 통째로
+// 보이지 않는다 — 그것이 EVT-00A 초안에 버튼 4개만 나온 원인이다.
+function isBareControl(node) {
+  return CONTROL_NAMES.has(node?.name ?? "");
+}
+
 function toSource(node) {
   return { nodeId: node.id, name: node.name, figmaType: "FRAME" };
 }
@@ -210,6 +219,56 @@ function describeField(wrapper, questions, index, lookup) {
   };
 }
 
+// 라벨 없이 홀로 선 컨트롤을 필드로 뽑는다.
+//
+// 등록 노드는 컨트롤 자신이다 — 라벨도 보조 텍스트도 없으니 그것이 모든 부분을
+// 담는 가장 안쪽 노드다(등록 노드 계약).
+//
+// 라벨은 그려진 문구에서 짐작한다. 짐작이므로 반드시 질문으로 알린다 — 명세의
+// label은 검증기가 등록 노드 하위에서 정확 일치로 찾으므로 문구를 그대로 둬야
+// 통과하지만, 그것이 사람이 부를 이름인지는 다른 문제다.
+function describeBareControl(node, questions, lookup) {
+  const drawn = textOf(node);
+  const isSelect = node.name === "Dropdown";
+
+  if (drawn === "") {
+    // 선택지도 문구도 없는 빈 프레임이다(EVT-00A 20:4166, MY-01도 같은 자리).
+    // 조용히 빠뜨리면 명세에 구멍이 나고도 아무도 모른다.
+    questions.push(
+      `${node.id}(${node.name}) — 문구도 선택지도 그려져 있지 않습니다. 명세에 넣을지, 넣는다면 라벨과 선택지 출처를 알려주세요.`
+    );
+    return null;
+  }
+
+  const { confirmed, candidates } = lookup(drawn);
+  questions.push(
+    `${node.id} 라벨 — 라벨 노드가 없어 그려진 문구 '${drawn}'을 라벨로 뒀습니다. 이것이 placeholder라면 라벨을 따로 정하세요.${describeCandidates(candidates)}`
+  );
+  if (!confirmed) {
+    questions.push(
+      `${node.id} fieldKey — '${drawn}'에 쓸 영문 키를 정하세요.`
+    );
+  }
+
+  return {
+    source: toSource(node),
+    spec: withPrecedent(
+      isSelect
+        ? {
+            type: "select",
+            label: drawn,
+            placeholder: null,
+            required: false,
+            initiallyDisabled: false,
+            searchable: false,
+            presentation: "dropdown"
+          }
+        : { type: "input", label: drawn, placeholder: null, required: false },
+      confirmed
+    )
+  };
+}
+
 // 버튼 강조도는 형태에서 유도한다: 채워진 것 > 테두리만 있는 것 > 아무것도
 // 없는 것. 이건 일반 시각 관례라 파이프라인이 알아도 된다. 반면 "#155DFC가
 // 주 버튼"은 이 제품의 디자인 시스템이라 알면 안 된다 — 색은 보지 않는다.
@@ -334,6 +393,44 @@ function isRepeatedGroup(node) {
   );
 }
 
+// 제목 없이 맨몸으로 선 되풀이 묶음인가.
+//
+// `readSection`은 '제목 + 되풀이' 두 자식을 요구한다. 목록 화면의 카드 목록은
+// 제목이 없어 그 틀에 걸리지 않았다(EVT-00A 20:4167). 되풀이 자체는 이미
+// `isRepeatedGroup`이 가릴 수 있으므로, 제목을 요구하지 않는 길을 하나 더 낸다.
+//
+// 버튼만 든 묶음은 제외한다 — 그쪽은 '각각 버튼인지 하나 고르기인지'가 쟁점이라
+// 이미 findSiblingButtonGroup이 다르게 묻는다(ONB-02의 시작 방식 카드).
+function isBareList(node) {
+  if (!isRepeatedGroup(node)) {
+    return false;
+  }
+  // 버튼만 든 묶음은 제외한다 — 그쪽은 '각각 버튼인지 하나 고르기인지'가 쟁점이라
+  // findSiblingButtonGroup이 이미 다르게 묻는다(ONB-02의 시작 방식 카드).
+  if (children(node).every(isButton)) {
+    return false;
+  }
+  // 안에 섹션(제목 + 되풀이)이 있으면 바깥은 목록이 아니라 배치다. 삼키면 섹션이
+  // 통째로 보이지 않는다.
+  //
+  // 여기서 한 가지를 포기했다. OPS-MEET-01A의 행사별 묶음(18:437)은 '섹션들의
+  // 목록'이라 이 규칙에 걸려 통째로는 안 잡히고 묶음 하나하나가 섹션으로 잡힌다.
+  // 그런데 HOME-01K의 대시보드 열(16:134)도 **구조가 똑같다** — 섹션 둘을 담은
+  // Container다. 구조로는 갈 수 없어 둘 다 안쪽을 잡는 쪽을 골랐다. 묶음이
+  // 하나로 묶이는지는 사람이 답할 것이고, 섹션을 통째로 잃는 것이 더 나쁘다.
+  if (findDescendant(node, (inner) => readSection(inner) !== null)) {
+    return false;
+  }
+  // **되풀이의 깊이가 목록을 가른다.** 카드 안의 '아이콘+글' 줄이나 라벨-값 쌍도
+  // 형제 이름이 같아 되풀이로 보이지만, 그것들은 항목이 아니라 항목의 부분이다.
+  // 진짜 목록의 항목은 저마다 안에 또 되풀이를 품는다(카드 안의 날짜·장소·담당 줄).
+  //
+  // OPS-MEET-01A에서 카드 하나하나가 itemList로 뽑힌 것이 이 구분이 없어서였다.
+  return children(node).every(
+    (item) => findDescendant(item, isRepeatedGroup) !== null
+  );
+}
+
 function readSection(node) {
   const parts = children(node);
   if (parts.length !== 2) {
@@ -341,6 +438,13 @@ function readSection(node) {
   }
   const [header, body] = parts;
   if (!isRepeatedGroup(body) || isRepeatedGroup(header)) {
+    return null;
+  }
+  // 본문의 항목이 저마다 글 하나뿐이면 그것은 항목이 아니라 한 줄이다. 카드 안의
+  // '아이콘+날짜 / 아이콘+장소 / 아이콘+담당' 줄이 그렇다 — 되풀이는 맞지만 카드의
+  // 부분이지 목록이 아니다. OPS-MEET-01A에서 회의 카드 하나하나가 섹션으로 읽힌
+  // 원인이 이것이다.
+  if (children(body).every((item) => collectText(item).length < 2)) {
     return null;
   }
   const titles = collectText(header).map((part) => part.trim()).filter(Boolean);
@@ -373,6 +477,28 @@ export function draftScreenElements(design, options = {}) {
       if (isFieldWrapper(child)) {
         elements.push(describeField(child, questions, elements.length, lookup));
         continue; // 필드 내부는 더 파지 않는다(등록 노드 계약)
+      }
+
+      // 라벨 없이 홀로 선 컨트롤. 위의 래퍼 검사를 지났다는 것은 이 컨트롤을
+      // 이름 붙이는 라벨이 없다는 뜻이다.
+      if (isBareControl(child)) {
+        const bare = describeBareControl(child, questions, lookup);
+        if (bare) {
+          elements.push(bare);
+        }
+        continue;
+      }
+
+      if (isBareList(child)) {
+        const at = `elements[${elements.length}]`;
+        elements.push({
+          source: toSource(child),
+          spec: { type: "itemList" }
+        });
+        questions.push(
+          `${child.id} — 이름이 같은 형제 ${children(child).length}개가 제목 없이 되풀이됩니다. 읽는 방법이 셋입니다: 개수를 데이터가 정하면 itemList 하나(${at}, dataSourceKey도 정하세요), 개수가 명세에 고정이면 형제 각각을 따로 등록(TASK-01의 칸반 열), 값 묶음이면 summary. 어느 쪽입니까?`
+        );
+        continue; // 안의 항목은 데이터의 되풀이라 파지 않는다
       }
 
       const section = readSection(child);

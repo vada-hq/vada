@@ -68,6 +68,131 @@ for (const { screenId, derivable, notDerivable } of EXPECTED) {
 //
 // ONB-02의 시작 방식 카드도 닮은 형제 둘이지만 각각 별도 버튼이다. 갈리는
 // 곳은 부모다: 그쪽 부모(14:93)는 화면 카드 전체라 자식이 6개다.
+// 화면 전체에 대한 눈금. 화면별 표는 폼 화면 넷만 보므로 목록 화면이 나빠져도
+// 조용하다. 여기서 총합을 래칫으로 잠근다 — 규칙을 손댈 때마다 이 수치를 보고
+// 고르라는 뜻이다(2026-08-24 기준: 맞춤 36 → 41, 헛것 41 → 19).
+test("초안 재현율이 떨어지지 않는다(11개 화면 총합)", async () => {
+  const shell = JSON.parse(
+    await readFile(
+      join(repoRoot, "specs", "figma", "vada-wireframe", "shell.json"),
+      "utf8"
+    )
+  );
+  const screenIds = [
+    "ONB-01", "ONB-02", "ORG-01", "ORG-02", "INV-01", "HOME-01K",
+    "MY-01", "OPS-00", "TASK-01", "OPS-MEET-01A", "EVT-00A"
+  ];
+
+  let registered = 0;
+  let matched = 0;
+  let spurious = 0;
+  const worse = [];
+  for (const screenId of screenIds) {
+    const { design, spec } = await loadScreen(screenId);
+    const { elements } = draftScreenElements(design, {
+      excludeNodeNames: shell.design?.excludeNodeNames
+    });
+    const rows = compareWithSpec(elements, spec.elements);
+    const hit = rows.filter((row) => row.matched && row.typeMatch && row.labelMatch).length;
+    registered += spec.elements.length;
+    matched += hit;
+    spurious += rows.length - spec.elements.length;
+    worse.push(`${screenId} ${hit}/${spec.elements.length}`);
+  }
+
+  assert.ok(
+    matched >= 41,
+    `등록 ${registered}개 중 ${matched}개만 재현했습니다(41 이상이어야 함): ${worse.join(", ")}`
+  );
+  assert.ok(
+    spurious <= 19,
+    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(19 이하여야 함)`
+  );
+});
+
+test("헤더 안의 화면 동작도 뽑는다", async () => {
+  // 헤더를 통째로 셸로 제외하면 그 안의 버튼이 원리적으로 보이지 않는다.
+  // TASK-01의 '업무 추가'(18:86)가 그렇게 명세에서 빠져 있었다.
+  const design = await loadDesign("TASK-01");
+  const { elements } = draftScreenElements(design, { excludeNodeNames: ["Sidebar"] });
+
+  const add = elements.find((element) => element.source.nodeId === "18:86");
+  assert.ok(add, "헤더의 버튼을 뽑지 못했습니다");
+  assert.equal(add.spec.type, "button");
+  assert.equal(add.spec.label, "업무 추가");
+});
+
+test("카드 안의 한 줄짜리 되풀이는 목록으로 읽지 않는다", async () => {
+  // OPS-MEET-01A에서 카드 하나하나가 itemList로 뽑히던 오독. 카드 안의
+  // '아이콘+날짜 / 아이콘+장소 / 아이콘+주최자' 줄은 되풀이지만 항목이 아니다.
+  const design = await loadDesign("OPS-MEET-01A");
+  const { elements } = draftScreenElements(design, { excludeNodeNames: ["Sidebar"] });
+
+  const insideCards = elements.filter(
+    (element) => element.spec.type === "itemList" && element.source.nodeId !== "18:437"
+  );
+  assert.deepEqual(
+    insideCards.map((element) => element.source.nodeId),
+    [],
+    "회의 카드 안을 목록으로 읽었습니다"
+  );
+});
+
+test("라벨이 없는 컨트롤도 필드로 뽑는다", async () => {
+  // EVT-00A의 검색칸(20:4153)은 Label 노드 없이 placeholder만 있다. 라벨 노드를
+  // 요구하면 이런 칸은 통째로 보이지 않는다 — 초안에 버튼 4개만 나온 원인이다.
+  const design = await loadDesign("EVT-00A");
+  const { elements, questions } = draftScreenElements(design);
+
+  const search = elements.find((element) => element.source.nodeId === "20:4153");
+  assert.ok(search, "라벨 없는 Text Input을 뽑지 못했습니다");
+  assert.equal(search.spec.type, "input");
+  // 라벨이 없으니 그려진 문구를 라벨로 두되, 그것이 추정임을 질문으로 알린다.
+  assert.equal(search.spec.label, "행사명 검색");
+  assert.ok(
+    questions.some((question) => question.includes("20:4153") && question.includes("라벨")),
+    "라벨을 문구에서 짐작했다는 것을 알리지 않습니다"
+  );
+});
+
+test("선택지도 문구도 없는 드롭다운은 뽑지 않고 질문한다", async () => {
+  // EVT-00A의 20:4166은 빈 프레임이다. MY-01에서도 같은 자리를 명세에서 뺐다.
+  // 조용히 빠뜨리는 대신 질문으로 남긴다.
+  const design = await loadDesign("EVT-00A");
+  const { elements, questions } = draftScreenElements(design);
+
+  assert.equal(
+    elements.find((element) => element.source.nodeId === "20:4166"),
+    undefined
+  );
+  assert.ok(questions.some((question) => question.includes("20:4166")));
+});
+
+test("제목 없는 맨 되풀이 묶음도 목록으로 뽑는다", async () => {
+  // EVT-00A의 카드 목록(20:4167)에는 제목이 없다. 제목을 요구하면 목록 자체가
+  // 보이지 않는다. 유형은 여전히 추측하지 않고 질문한다.
+  const design = await loadDesign("EVT-00A");
+  const { elements, questions } = draftScreenElements(design);
+
+  const list = elements.find((element) => element.source.nodeId === "20:4167");
+  assert.ok(list, "제목 없는 되풀이 묶음을 뽑지 못했습니다");
+  assert.equal(list.spec.type, "itemList");
+  assert.ok(
+    questions.some((question) => question.includes("20:4167")),
+    "항목 수가 명세 고정인지 데이터인지 묻지 않습니다"
+  );
+  // 묶음 안의 카드는 데이터의 되풀이지 화면 요소가 아니다.
+  assert.equal(
+    elements.filter((element) => element.source.nodeId.startsWith("20:41")).length >= 1,
+    true
+  );
+  assert.equal(
+    elements.find((element) => element.source.nodeId === "20:4168"),
+    undefined,
+    "목록 안의 카드를 요소로 뽑았습니다"
+  );
+});
+
 test("섹션 안의 되풀이 항목은 요소로 뽑지 않고 섹션을 뽑는다", async () => {
   const design = await loadDesign("HOME-01K");
   const { elements } = draftScreenElements(design);
