@@ -17,12 +17,13 @@
 - **등록 노드 계약(2026-08-18)**: 요소의 `source.nodeId`는 그 요소의 모든 부분(라벨·컨트롤·보조 텍스트)을 포함하는 **가장 안쪽 노드**다(element-types.md). 검증기가 식별 텍스트(`label`, group은 `title`)를 등록 노드 하위 트리에서 **정확 일치**로 찾아 강제한다(부분 일치로 하면 placeholder가 라벨을 품기만 해도 통과한다). ONB-01은 안쪽 컨트롤을 등록하고 있어 6건을 래퍼로 마이그레이션했다. 이 계약 덕에 사람이 등록하든 AI가 design.json에서 뽑든 같은 답이 나온다.
 - **화면 폴더 신원 계약(2026-08-18)**: 화면 폴더의 신원은 Figma 노드 id다(`figma.raw.json`의 `document.id` = `screen.json`의 `source.nodeId`). 폴더에 이미 다른 노드의 산출물이 있으면 screen.json·figma-raw PUT을 **409로 거부**한다. 원본은 번들에서 가장 먼저 저장되므로 여기서 막으면 자산 11개·reference.png까지 함께 보호된다. 같은 노드의 재저장(디자인 수정 후 재추출)은 정상 허용. 이 보호 이전에는 screenId를 잘못 지정하면 **reference.png가 조용히 다른 화면 것으로 바뀌었고**, reference는 존재 여부만 검사되므로 어떤 검증도 이를 잡지 못했다. Origin 검사: 헤더 없음(로컬 도구)·`null`(플러그인)·`*.figma.com`만 허용, 그 외 403(null-origin 위조 표적 공격은 잔존 위험 — 필요 시 공유 토큰으로 격상).
 - **정규화**(packages/contracts + generate-figma-design.mjs): raw→design 결정적 변환(AI 불필요), `source.hash`(raw SHA-256)로 신선도 추적. 원본 저장→정규화 자동 연결은 보류 — 저장 후 CLI를 수동 실행한다.
+- **대조가 양방향이 됐다(2026-08-24)**: 지금까지 검사는 전부 **명세 → 화면** 한 방향이었다. 명세가 가리키는 자리를 화면이 그렸는지는 봤지만, **design에 있는데 명세에 없는 것은 아무도 보지 않았다.** TASK-01의 헤더 버튼 `18:86`('업무 추가')이 그렇게 조용히 빠져 있었고, EVT-00A 사이클에서 헤더에 자리를 내다 우연히 드러났다. 검증기가 이제 반대 방향을 본다 — design의 **상호작용 노드**(`Btn`·`Button`·`Text Input`·`Dropdown`) 중 등록된 어느 요소의 하위 트리에도 없는 것을 오류로 알린다. 이름이 곧 신호라 판정이 흔들리지 않는 것들만 본다. 문구 없는 노드는 세지 않는다 — 명세에 적을 라벨이 없다(선택지가 비어 있는 드롭다운, 항목의 '…' 메뉴). 셸은 `shell.json`의 `excludeNodeNames`로 빠진다. 붙일 때 11개 화면에서 **0건**이었고, `18:86`을 도로 지워 실제로 그 한 줄을 짚는 것을 확인했다.
 - **검증**(validate-specs.mjs): 스키마(ajv) + 교차 참조(중복 fieldKey·nodeId, 출처 key·인자 매핑, enabledWhen/resetOnChangeOf, 상태 스코프, 이동 대상, design nodeId·자산·reference, hash 신선도). 오류 시 종료 코드 1.
 - **판정기**(button-execution.mjs): 필수값 존재 판정(공백·null은 누락, 0·false는 값), `executeWhen` 생략=항상 실행, `onExecutionBlocked`와 쌍 규칙. 앱이 재구현 없이 직접 import한다.
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md). 플러그인은 meta를 저장 왕복에서 보존하고(실전 검증됨) 새 텍스트 필드 편집란은 스키마 주도로 자동 생성된다.
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다. 전부 스키마 주도라 플러그인 편집 UI는 자동 생성된다.
-- **테스트**: 플러그인 89, spec-service·변환기·검증 88, vada-web(vitest) 150 + Playwright e2e 32 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **테스트**: 플러그인 89, spec-service·변환기·검증 89, vada-web(vitest) 150 + Playwright e2e 32 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). `tests/element-type-registry.test.mjs`가 enum↔스키마 파일↔플러그인 옵션↔플러그인 `schemaByType`의 일치를 강제한다.
 - **추출기가 화면을 보는 눈(2026-08-24)**: 초안 재현율을 **36/67 → 41/67(61%)**, 헛것(등록되지 않은 것을 뽑음)을 **41 → 19개**로 고쳤다. 막혔던 네 곳이다.
   - **이름표 없는 것을 못 봤다**: 필드는 직계 자식에 `Label` 노드를, 목록은 묶음 제목을 요구했다. 목록 화면의 검색칸(EVT-00A `20:4153`)과 카드 목록(`20:4167`)이 통째로 안 보여 초안에 버튼 4개만 나왔다. 라벨 없이 홀로 선 컨트롤과 제목 없는 되풀이를 각각 길로 냈다. 라벨은 그려진 문구에서 짐작하고 **짐작임을 질문으로 알린다.**
@@ -109,14 +110,12 @@ EVT-00A(행사 목록) 사이클(`docs/pilot-evt-00a.md`) 뒤에 **추출기를 
 **다음 후보**
 
 1. **업무 상세** — 제품에서 가장 급하다(MY-01·TASK-01·OPS-MEET-01A가 막혀 있다).
-   새 계열이므로 고친 추출기의 첫 시험이기도 하다. `figma.raw.json`이 없어
-   사용자가 Figma에서 저장해야 시작된다.
-2. **design에 있는데 명세에 없는 것 검사** — 대조는 명세 → 화면 한 방향이라
-   명세의 구멍은 통과한다. TASK-01 `18:86` 누락이 근거다. 이제 추출기가 헤더까지
-   보므로, **추출기가 뽑은 것과 등록된 것을 견주는** 방식으로 값싸게 만들 수 있다.
-3. **남은 재현율 39%** — 나란한 버튼이 select인지 낱개 버튼인지, 되풀이가 summary인지
-   itemList인지. 둘 다 디자인 시스템 지식이라 `interpretation.md`의 기계 판독 승격이
-   필요하다.
+   새 계열이므로 고친 추출기의 첫 시험이기도 하다. **막혀 있다** — `figma.raw.json`이
+   없어 사용자가 Figma에서 화면을 지정하고 `Figma 원본 JSON 저장`을 눌러야 한다.
+2. **남은 재현율 39%** — 나란한 버튼이 select인지 낱개 버튼인지, 되풀이가 summary인지
+   itemList인지. 둘 다 이 제품의 디자인 시스템 지식이라 `interpretation.md`의 기계
+   판독 승격이 필요하다. 파이프라인만으로는 갈 수 없는 자리다.
+
 
 ## 2026-08-24 정리: 화면당 손 작업 줄이기
 

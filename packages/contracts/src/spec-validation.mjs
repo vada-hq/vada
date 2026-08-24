@@ -1,3 +1,5 @@
+import { DRAFT_SIGNALS } from "./screen-draft.mjs";
+
 // fieldKey를 갖고 값을 담는 요소. 중복 검사와 참조 해석의 대상이다.
 // 필수값 판정 후보(button-execution의 VALUE_FIELD_TYPES)와는 다른 집합이다 —
 // list는 minItems로 개수를 정하지 결 required로 판정하지 않는다.
@@ -117,7 +119,56 @@ function checkElementNodeCoverage(findings, context) {
   }
 }
 
-function checkScreenAgainstDesign(findings, screen, designEntry) {
+// design에 있는데 명세에 없는 것을 본다.
+//
+// 지금까지 대조는 **한 방향**이었다 — 명세가 가리키는 자리를 화면이 그렸는가.
+// 그래서 명세 자체의 구멍은 통과했다. TASK-01의 design `18:86`('업무 추가')이
+// 명세에도 화면에도 없었는데 어떤 검사도 이를 잡지 못했고, EVT-00A 사이클에서
+// 헤더에 자리를 내다가 우연히 드러났다.
+//
+// 보는 것은 **상호작용 노드**뿐이다(Btn·Button·Text Input·Dropdown). 이름이 곧
+// 신호라 판정이 흔들리지 않고, 빠지면 화면의 동작이 통째로 사라진다. 되풀이나
+// 카드처럼 읽는 방법이 여럿인 것은 여기서 세지 않는다 — 초안 추출기가 질문한다.
+//
+// 등록 요소의 하위 트리에 든 것은 그 요소의 내부다(목록 항목의 버튼, 선택지 묶음의
+// 버튼). 문구 없는 노드도 세지 않는다 — 명세에 적을 라벨이 없다(선택지가 디자인에
+// 비어 있는 드롭다운, 항목의 '…' 메뉴).
+function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
+  const excluded = new Set(
+    Array.isArray(shell?.design?.excludeNodeNames) ? shell.design.excludeNodeNames : []
+  );
+  const registered = new Set(
+    spec.elements
+      .map((element) => element?.source?.nodeId)
+      .filter((nodeId) => typeof nodeId === "string")
+  );
+  const isInteraction = (node) =>
+    DRAFT_SIGNALS.BUTTON_NAME_PATTERN.test(node.name ?? "") ||
+    DRAFT_SIGNALS.CONTROL_NAMES.has(node.name ?? "");
+
+  const walk = (node, covered) => {
+    for (const child of Array.isArray(node?.children) ? node.children : []) {
+      if (excluded.has(child.name)) {
+        continue;
+      }
+      const inside = covered || registered.has(child.id);
+      if (!inside && isInteraction(child)) {
+        const drawn = collectSubtreeText(child).join("").trim();
+        if (drawn) {
+          findings.push({
+            level: "error",
+            file,
+            message: `design의 '${drawn}'(${child.id} ${child.name})이 명세에 없습니다. 등록된 어느 요소 안에도 들어 있지 않습니다 — 화면의 동작이라면 요소로 등록하고, 다른 요소의 내부 조작이라면 그 요소의 nodeId가 이것을 품어야 합니다.`
+          });
+        }
+      }
+      walk(child, inside);
+    }
+  };
+  walk(design.root, false);
+}
+
+function checkScreenAgainstDesign(findings, screen, designEntry, shell) {
   const { file, spec } = screen;
   const design = designEntry?.design;
   if (!isObject(design)) {
@@ -160,6 +211,8 @@ function checkScreenAgainstDesign(findings, screen, designEntry) {
       checkElementNodeCoverage(findings, { file, element, index, design });
     }
   });
+
+  checkDesignInteractionCoverage(findings, file, spec, design, shell);
 
   const assetFiles = new Set(designEntry.assetFiles ?? []);
   for (const asset of Array.isArray(design.assets) ? design.assets : []) {
@@ -850,7 +903,7 @@ export function collectSpecFindings({
       }
     });
 
-    checkScreenAgainstDesign(findings, screen, designs[spec.screenId]);
+    checkScreenAgainstDesign(findings, screen, designs[spec.screenId], shell);
   }
 
   // 화면 셸: 화면마다 복사하지 않으려고 카탈로그로 뺐으므로, 셸이 가리키는

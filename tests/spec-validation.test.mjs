@@ -479,6 +479,99 @@ test("validateSpecsRoot는 스키마 위반과 파일 이름 불일치를 오류
   }
 });
 
+test("design에 있는데 명세에 없는 상호작용은 오류로 보고한다", () => {
+  // 대조가 명세 → 화면 한 방향이라 명세의 구멍은 통과했다. TASK-01의 헤더 버튼
+  // '업무 추가'(18:86)가 그렇게 조용히 빠져 있었다.
+  const design = {
+    schemaVersion: 1,
+    screenId: "SCR-01",
+    root: {
+      id: "1:1",
+      type: "frame",
+      name: "SCR-01",
+      children: [
+        {
+          id: "2:1",
+          type: "frame",
+          name: "Sidebar",
+          // 셸은 화면의 요소가 아니다. 이름으로 제외된다.
+          children: [{ id: "2:2", type: "frame", name: "Btn", children: [
+            { id: "2:3", type: "text", name: "t", text: { content: "홈" } }
+          ] }]
+        },
+        {
+          id: "3:1",
+          type: "frame",
+          name: "Btn",
+          children: [{ id: "3:2", type: "text", name: "t", text: { content: "업무 추가" } }]
+        },
+        {
+          id: "4:1",
+          type: "frame",
+          name: "Container",
+          children: [
+            // 등록 요소 안의 버튼은 그 요소의 내부다.
+            { id: "4:2", type: "frame", name: "Btn", children: [
+              { id: "4:3", type: "text", name: "t", text: { content: "항목 열기" } }
+            ] },
+            // 문구 없는 조작은 명세에 적을 라벨이 없다.
+            { id: "4:4", type: "frame", name: "Dropdown", children: [] }
+          ]
+        }
+      ]
+    },
+    assets: []
+  };
+  const designs = {
+    "SCR-01": {
+      file: "screens/SCR-01/figma.design.json",
+      design,
+      assetFiles: [],
+      hasReference: true
+    }
+  };
+  const screen = {
+    file: "screens/SCR-01/screen.json",
+    spec: {
+      schemaVersion: 1,
+      screenId: "SCR-01",
+      source: { nodeId: "1:1" },
+      elements: [
+        {
+          source: { nodeId: "4:1" },
+          spec: {
+            type: "itemList",
+            title: "항목 열기",
+            dataSourceKey: "x.list",
+            itemAction: { type: "pending", note: "미정" }
+          }
+        }
+      ]
+    }
+  };
+  const shell = { design: { excludeNodeNames: ["Sidebar"] } };
+
+  const findings = collectSpecFindings({ screens: [screen], designs, shell });
+  const messages = findings.map((finding) => finding.message);
+
+  assert.ok(
+    messages.some((message) => message.includes("3:1") && message.includes("업무 추가")),
+    `등록되지 않은 헤더 버튼을 잡지 못했습니다: ${messages.join(" | ")}`
+  );
+  assert.ok(
+    !messages.some((message) => message.includes("4:2")),
+    "등록 요소 안의 버튼을 바깥 것으로 셌습니다"
+  );
+  assert.ok(
+    !messages.some((message) => message.includes("4:4")),
+    "문구 없는 드롭다운을 셌습니다"
+  );
+  assert.ok(
+    !messages.some((message) => message.includes("2:2")),
+    "셸 안의 버튼을 셌습니다"
+  );
+});
+
 test("등록 노드가 요소의 라벨을 품지 않으면 오류로 보고한다", () => {
   // ProfileSearchSelect(래퍼) = Label + Text Input(placeholder).
   // 안쪽 Text Input만 등록하면 라벨이 등록 노드 바깥에 남는다.

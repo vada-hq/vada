@@ -619,6 +619,7 @@ export function compareWithSpec(draftElements, specElements) {
 
 export const DRAFT_SIGNALS = {
   BUTTON_NAME_PATTERN,
+  CONTROL_NAMES,
   SEARCHABLE_WRAPPER_NAME,
   DISABLED_CONTROL_FILL,
   ACTIVE_CONTROL_FILL
