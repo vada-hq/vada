@@ -347,6 +347,137 @@ const EVENT_LIST: { status: string; row: DataRow }[] = [
 
 // 업무 상세(EVT-TASK-02). 목록이 아니라 한 건이고, 어느 건인지는 화면이 받은
 // taskId가 정한다 — 지금까지의 화면은 전부 인자가 없었다.
+// 행사 업무 보드(EVT-TASK-01 25:1392·25:1433·25:1505·25:1536)의 카드.
+//
+// id는 카드에 그려지지 않는다. 그런데도 데이터에 있는 이유는 카드를 누르면 그
+// 값이 '어느 업무의 상세인지'로 넘어가기 때문이다 — 제목으로 넘기면 이름이 같은
+// 업무가 둘 생기는 날 조용히 어긋난다.
+const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }> = [
+  {
+    eventId: 'E-01',
+    status: 'planned',
+    row: {
+      id: 'T-05',
+      title: '행사장 안전 점검',
+      department: '운영부',
+      departmentTone: 'teal',
+      tone: 'red',
+      assignee: '담당자 없음 · 배정 필요',
+      dueDate: '2026-08-18',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'planned',
+    row: {
+      id: 'T-06',
+      title: '참가자 명단 최종 확정',
+      department: '기획부',
+      departmentTone: 'violet',
+      tone: 'red',
+      assignee: '담당자 없음 · 배정 필요',
+      dueDate: '2026-08-10',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'inProgress',
+    row: {
+      id: 'T-01',
+      title: '참가자 모집 공지 작성',
+      department: '홍보부',
+      departmentTone: 'pink',
+      tone: 'pink',
+      assignee: '이윤슬',
+      dueDate: '2026-07-20',
+      hasDocuments: '예',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'inProgress',
+    row: {
+      id: 'T-03',
+      title: '현수막 디자인 수정 반영',
+      department: '홍보부',
+      departmentTone: 'pink',
+      tone: 'pink',
+      assignee: '이윤슬',
+      dueDate: '2026-07-18 · 지연',
+      alert: '지연',
+      alertTone: 'red',
+      hasDocuments: '예',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'inProgress',
+    row: {
+      id: 'T-07',
+      title: '물품 구매 요청',
+      department: '운영부',
+      departmentTone: 'teal',
+      tone: 'teal',
+      assignee: '박해랑',
+      dueDate: '2026-07-25',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'review',
+    row: {
+      id: 'T-08',
+      title: '행사 안전 안내문 검토',
+      department: '기획부',
+      departmentTone: 'violet',
+      tone: 'violet',
+      assignee: '박해랑',
+      dueDate: '2026-07-22',
+      alert: '검토 필요',
+      alertTone: 'yellow',
+      hasDocuments: '예',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'done',
+    row: {
+      id: 'T-09',
+      title: '행사 운영 계획 확정',
+      department: '기획부',
+      departmentTone: 'violet',
+      tone: 'violet',
+      assignee: '이수현',
+      dueDate: '2026-07-10',
+      hasDocuments: '예',
+    },
+  },
+]
+
+// 행사 작업 공간의 머리와 행사 카드. 갈피를 옮겨 다녀도 그대로인 값이다.
+const EVENT_WORKSPACES: Record<string, DataRow> = {
+  'E-01': {
+    status: '기획 중',
+    statusTone: 'blue',
+    alert: '주의 · 지연 업무 1건',
+    alertTone: 'red',
+    host: '담당 학술체육부 · 김바다',
+    startAt: '08.20 10:00',
+    nextSchedule: '다음 일정 · 07.20 참가자 모집 공지 작성',
+    permissionNote: '행사 관리 행동은 담당 운영진에게 제공됩니다.',
+  },
+}
+
+const EVENT_SUMMARIES: Record<string, DataRow> = {
+  'E-01': {
+    title: '2026 소프트웨어융합대학 체육대회',
+    schedule: '행사일 2026-08-20 · ERICA 체육관',
+    dday: 'D-33',
+    progressPercent: 14,
+    progressLabel: '1 / 7 완료',
+  },
+}
+
 const TASK_DETAILS: Record<string, DataRow> = {
   'T-03': {
     code: 'T-03',
@@ -538,6 +669,30 @@ export const FILTERED_FIXTURES: Record<
       .filter((row) => matchesQuery(row, query)),
   // 상세는 목록이 아니지만 인자를 받으므로 같은 자리를 쓴다 — 한 건을 담은
   // 배열로 오고, readObjectSource가 첫 줄을 집는다.
+  'event.workspace': ({ eventId = '' }) =>
+    EVENT_WORKSPACES[eventId] ? [EVENT_WORKSPACES[eventId]] : [],
+  'event.summary': ({ eventId = '' }) =>
+    EVENT_SUMMARIES[eventId] ? [EVENT_SUMMARIES[eventId]] : [],
+  // 건수는 보는 범위와 무관하게 이 행사의 보드 전체를 센다.
+  'event.taskAlerts': ({ eventId = '' }) => {
+    const rows = EVENT_TASK_BOARD.filter((task) => task.eventId === eventId)
+    if (rows.length === 0) return []
+    return [
+      {
+        delayedCount: rows.filter((task) => task.row.alert === '지연').length,
+        reviewCount: rows.filter((task) => task.row.alert === '검토 필요').length,
+        mineCount: rows.filter((task) => task.row.assignee === VIEWER_NAME).length,
+        unassignedCount: rows.filter((task) => task.row.tone !== task.row.departmentTone)
+          .length,
+      },
+    ]
+  },
+  'event.taskBoard': ({ eventId = '', scope = 'all', status = 'planned' }) =>
+    EVENT_TASK_BOARD.filter(
+      (task) => task.eventId === eventId && task.status === status,
+    )
+      .filter((task) => scope !== 'mine' || task.row.assignee === VIEWER_NAME)
+      .map((task) => task.row),
   'task.detail': ({ taskId = '' }) => (TASK_DETAILS[taskId] ? [TASK_DETAILS[taskId]] : []),
   'task.referenceDocuments': ({ taskId = '' }) => TASK_REFERENCE_DOCUMENTS[taskId] ?? [],
   'task.workDocuments': ({ taskId = '' }) => TASK_WORK_DOCUMENTS[taskId] ?? [],

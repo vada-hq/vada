@@ -176,7 +176,7 @@ function EventCountTiles() {
       {summary.items!.map((item, at) => (
         <StatTile
           key={item.label}
-          label={item.label}
+          label={item.label!}
           value={`${counts[item.field!]}개`}
           valueClass={VALUE_TEXT[COUNT_TILE_TONE[at]] ?? NEUTRAL_VALUE}
           icon={
@@ -359,7 +359,7 @@ function FinanceSummary() {
           {tiles.map((tile) => (
             <StatTile
               key={tile.label}
-              label={tile.label}
+              label={tile.label!}
               value={`${finance[tile.field!]}${suffix(tile.field!)}`}
               tone="inset"
               valueClass={VALUE_TEXT[FINANCE_TILE_TONE[tile.field!]] ?? NEUTRAL_VALUE}

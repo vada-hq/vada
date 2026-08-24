@@ -7,6 +7,8 @@ import type {
   ScreenSpec,
   SelectSpec,
 } from './types'
+import { readObjectSource } from '../data-sources/catalog'
+import { resolveParams } from './params'
 import onb01Json from '../../../../specs/figma/vada-wireframe/screens/ONB-01/screen.json'
 import onb02Json from '../../../../specs/figma/vada-wireframe/screens/ONB-02/screen.json'
 import org01Json from '../../../../specs/figma/vada-wireframe/screens/ORG-01/screen.json'
@@ -18,6 +20,7 @@ import ops00Json from '../../../../specs/figma/vada-wireframe/screens/OPS-00/scr
 import task01Json from '../../../../specs/figma/vada-wireframe/screens/TASK-01/screen.json'
 import opsMeet01aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01A/screen.json'
 import evt00aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00A/screen.json'
+import evtTask01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-01/screen.json'
 import evtTask02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-02/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
@@ -47,6 +50,7 @@ export const ops00 = asScreenSpec(ops00Json)
 export const task01 = asScreenSpec(task01Json)
 export const opsMeet01a = asScreenSpec(opsMeet01aJson)
 export const evt00a = asScreenSpec(evt00aJson)
+export const evtTask01 = asScreenSpec(evtTask01Json)
 export const evtTask02 = asScreenSpec(evtTask02Json)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
@@ -64,6 +68,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   task01,
   opsMeet01a,
   evt00a,
+  evtTask01,
   evtTask02,
 ]
 
@@ -81,6 +86,29 @@ export function exampleParamsOf(screenId: string): Record<string, string> {
       .filter((param) => param.example !== undefined)
       .map((param) => [param.key, param.example as string]),
   )
+}
+
+// 화면에 그려지는 제목.
+//
+// meta.title은 **화면의 이름**이다. 대개 그것이 그대로 제목으로 그려지지만,
+// 무엇의 화면인지가 곧 제목인 자리가 있다 — 행사 업무 보드의 제목은 그 행사의
+// 이름이고, 이름은 데이터에만 있다. 그럴 때 meta.titleFrom이 어디서 읽을지를
+// 말하고, meta.title은 사람이 이 화면을 부르는 말로 남는다.
+//
+// 화면과 준수 검사가 같은 함수를 본다 — 두 곳에 적으면 언젠가 갈린다.
+export function drawnTitleOf(
+  screen: ScreenSpec,
+  screenParams: Record<string, string> = {},
+): string {
+  const from = screen.meta?.titleFrom
+  if (from === undefined) {
+    return screen.meta?.title ?? screen.screenId
+  }
+  const row = readObjectSource(
+    from.dataSourceKey,
+    resolveParams(from.params, { screenParams }),
+  )
+  return String(row[from.field])
 }
 
 // meta.title을 화면에 그리는가.

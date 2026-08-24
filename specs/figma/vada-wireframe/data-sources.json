@@ -690,6 +690,197 @@
       ]
     },
     {
+      "key": "event.workspace",
+      "shape": "object",
+      "description": "행사 작업 공간의 머리에 늘 붙는 한 줄. 어느 행사인지는 화면이 받은 eventId가 정한다. 이 줄은 행사의 갈피(개요·업무·문서…)를 옮겨 다녀도 그대로이므로 화면이 아니라 행사에 딸린 값이다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/workspace"
+      },
+      "messages": {
+        "loading": "행사 정보를 불러오는 중입니다",
+        "empty": "행사를 찾지 못했습니다",
+        "error": "행사 정보를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "status",
+          "description": "행사의 진행 단계를 알리는 말. 예: 기획 중"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지에 배정된 색 이름. 예: blue"
+        },
+        {
+          "key": "alert",
+          "description": "지금 눈에 띄어야 하는 것을 알리는 완성된 문구. 없으면 오지 않는다. 예: 주의 · 지연 업무 1건",
+          "optional": true
+        },
+        {
+          "key": "alertTone",
+          "description": "주의 문구에 딸린 색 이름. 주의 문구가 없으면 오지 않는다. 예: red",
+          "optional": true
+        },
+        {
+          "key": "host",
+          "description": "이 행사를 맡은 곳과 사람. 완성된 문구로 온다. 예: 담당 학술체육부 · 김바다"
+        },
+        {
+          "key": "startAt",
+          "description": "행사가 열리는 때. 완성된 문구로 온다. 예: 08.20 10:00"
+        },
+        {
+          "key": "nextSchedule",
+          "description": "다음에 무엇이 있는지 알리는 완성된 문구. 예: 다음 일정 · 07.20 참가자 모집 공지 작성"
+        },
+        {
+          "key": "permissionNote",
+          "description": "이 행사에서 무엇을 할 수 있는지 알리는 완성된 문구. 보는 사람에 따라 다르므로 화면이 유도할 수 없다. 예: 행사 관리 행동은 담당 운영진에게 제공됩니다."
+        }
+      ]
+    },
+    {
+      "key": "event.summary",
+      "shape": "object",
+      "description": "행사 업무 보드 위에 놓이는 행사 카드. 어느 행사인지는 화면이 받은 eventId가 정한다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/summary"
+      },
+      "messages": {
+        "loading": "행사를 불러오는 중입니다",
+        "empty": "행사를 찾지 못했습니다",
+        "error": "행사를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "schedule",
+          "description": "언제 어디서 여는지. 완성된 문구로 온다. 예: 행사일 2026-08-20 · ERICA 체육관"
+        },
+        {
+          "key": "dday",
+          "description": "행사까지 남은 날. 지났으면 그 사실까지 붙어서 온다 — 오늘이 언제인지 화면이 알 수 없다. 예: D-33"
+        },
+        {
+          "key": "progressPercent",
+          "description": "업무 진행률(0-100). 예: 14"
+        },
+        {
+          "key": "progressLabel",
+          "description": "진행률을 세어 말한 완성된 문구. 무엇을 완료로 세는지 화면이 정하지 않는다. 예: 1 / 7 완료"
+        }
+      ]
+    },
+    {
+      "key": "event.taskAlerts",
+      "shape": "object",
+      "description": "행사 업무 보드 위에 나열하는 상태별 건수. 보는 범위와 무관하게 이 행사의 보드 전체를 센다 — 상시 업무의 task.alerts와 세는 대상이 다르다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/tasks/alerts"
+      },
+      "messages": {
+        "loading": "건수를 불러오는 중입니다",
+        "empty": "표시할 건수가 없습니다",
+        "error": "건수를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "delayedCount",
+          "description": "기한이 지난 업무 수"
+        },
+        {
+          "key": "reviewCount",
+          "description": "검토가 필요한 업무 수"
+        },
+        {
+          "key": "mineCount",
+          "description": "내가 담당인 업무 수"
+        },
+        {
+          "key": "unassignedCount",
+          "description": "담당자가 없는 업무 수"
+        }
+      ]
+    },
+    {
+      "key": "event.taskBoard",
+      "shape": "list",
+      "description": "행사 칸반 열 하나에 담기는 업무. 어느 행사인지(eventId)와 보는 범위(scope), 열의 단계(status)로 걸러서 서버가 준다 — 열마다 따로 조회한다.",
+      "params": [
+        "eventId",
+        "scope",
+        "status"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/tasks"
+      },
+      "messages": {
+        "loading": "업무를 불러오는 중입니다",
+        "empty": "이 단계에 업무가 없습니다",
+        "error": "업무를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "업무를 가리키는 값. 카드에 그려지지 않지만, 눌러서 상세로 갈 때 '어느 업무인지'로 넘어간다 — 그리지 않는 조각이다. 예: T-03"
+        },
+        {
+          "key": "title",
+          "description": "업무 이름. 예: 현수막 디자인 수정 반영"
+        },
+        {
+          "key": "department",
+          "description": "담당 부서. 예: 홍보부"
+        },
+        {
+          "key": "departmentTone",
+          "description": "부서에 배정된 색 이름. 부서는 조직이 만드는 것이므로 색도 조직 데이터가 갖는다. 예: pink"
+        },
+        {
+          "key": "assignee",
+          "description": "담당자 이름. 없으면 완성된 안내로 온다. 예: 담당자 없음 · 배정 필요"
+        },
+        {
+          "key": "dueDate",
+          "description": "기한. 늦었으면 그 사실까지 붙어서 온다. 예: 2026-07-18 · 지연"
+        },
+        {
+          "key": "alert",
+          "description": "주의 표시. 없으면 오지 않는다. 예: 지연 · 검토 필요",
+          "optional": true
+        },
+        {
+          "key": "alertTone",
+          "description": "주의 표시에 딸린 색 이름. 주의 표시가 없으면 오지 않는다. 예: red",
+          "optional": true
+        },
+        {
+          "key": "tone",
+          "description": "업무 카드를 두르는 강조 색 이름. 기본은 부서 색이고, 담당자가 없는 업무처럼 먼저 봐야 하는 것은 경고 색으로 온다. 예: red"
+        },
+        {
+          "key": "hasDocuments",
+          "description": "이 업무에 딸린 문서가 있는가. 있을 때만 오고, 카드에 문서 표시가 붙는다. 예: 예",
+          "optional": true
+        }
+      ]
+    },
+    {
       "key": "task.detail",
       "shape": "object",
       "description": "업무 하나의 값. 어느 업무인지는 화면이 받은 taskId가 정한다 — 이 화면은 목록이 아니라 한 건의 상세다.",

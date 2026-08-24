@@ -141,7 +141,9 @@ export function renderSummary(
         `${screenId}의 요약 항목 '${item.label}'은 값이 데이터에서 옵니다. 이 표는 아직 명세의 값만 그립니다.`,
       )
     }
-    return { label: item.label, value: item.value }
+    // 이 표는 라벨이 그려지는 요약만 그린다. 라벨 없는 묶음(행사 머리)은
+    // 자리마다 모양이 달라 화면이 직접 그린다.
+    return { label: item.label!, value: item.value }
   })
   return <SummaryCard key={key} nodeId={key} eyebrow={spec.eyebrow} title={spec.title} items={items} />
 }

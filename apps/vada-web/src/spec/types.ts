@@ -57,6 +57,8 @@ interface ExecutionGate {
 export interface NavigateAction extends ExecutionGate {
   type: 'navigate'
   targetScreenId: string
+  // 이동하면서 대상 화면에 넘기는 인자. 화면이 인자를 받으면 누군가는 그 값을 준다.
+  params?: QueryParams
 }
 
 // 데이터 전송. 경로·payload 스코프·상태 문구는 mutations.json이 갖고
@@ -106,11 +108,13 @@ interface DisplayActionCopy {
 }
 
 export type DisplayAction =
-  | ({ type: 'navigate'; targetScreenId: string } & DisplayActionCopy)
+  | ({ type: 'navigate'; targetScreenId: string; params?: QueryParams } & DisplayActionCopy)
   | ({ type: 'pending'; note: string } & DisplayActionCopy)
 
 export interface SummaryItem {
-  label: string
+  // 그려지지 않는 자리에서는 없다 — 서버가 '담당 학술체육부 · 김바다'처럼
+  // 라벨까지 품은 문장을 완성해 보내는 자리가 있다.
+  label?: string
   // 값 뒤에 붙는 단위. 세는 말이 대상마다 다르다(업무는 '건', 행사는 '개').
   unit?: string
   // 값의 출처. field면 dataSourceKey가 가리키는 응답의 조각이고,
@@ -222,7 +226,15 @@ export interface ScreenElement {
 
 export interface ScreenMeta {
   eyebrow?: string | null
+  // 화면의 이름. titleFrom이 있으면 그려지는 것은 데이터이고 이 값은 이름으로만 남는다.
   title: string
+  // 제목이 데이터에서 오는 경우 그 출처. 무엇의 화면인지가 곧 제목인 자리가 있다 —
+  // 행사 업무 보드의 제목은 그 행사의 이름이다.
+  titleFrom?: {
+    dataSourceKey: string
+    field: string
+    params?: QueryParams
+  }
   description?: string | null
   footerNote?: string | null
 }
@@ -244,11 +256,12 @@ export interface FlowStep {
   total: number
 }
 
-// 조회에 넘기는 인자. 값이 어디서 오는지가 셋이다 — 화면 필드(fieldKey),
-// 명세가 정한 고정값(value), 화면이 밖에서 받은 인자(screenParam).
+// 넘기는 인자. 값이 어디서 오는지가 넷이다 — 화면 필드(fieldKey), 명세가 정한
+// 고정값(value), 화면이 밖에서 받은 인자(screenParam), 눌린 항목의 조각(itemField).
+// 마지막 하나는 목록 항목의 동작에서만 쓴다 — 조회하는 시점에는 항목이 없다.
 export type QueryParams = Record<
   string,
-  { fieldKey?: string; value?: string; screenParam?: string }
+  { fieldKey?: string; value?: string; screenParam?: string; itemField?: string }
 >
 
 export interface ScreenParam {

@@ -41,6 +41,10 @@
           "type": "string",
           "minLength": 1,
           "description": "동작의 강조도가 데이터에서 오는 경우 그 조각의 key(선택). 값은 button.emphasis와 같은 말(primary·secondary·quiet)이다. 항목마다 얼마나 앞세울지가 다른 경우다."
+        },
+        "params": {
+          "$ref": "element-params.schema.json#/$defs/argument",
+          "description": "이동하면서 대상 화면에 넘기는 인자(선택). key는 대상 화면의 params에 선언된 이름이다. 화면이 인자를 받는다면 누군가는 그 값을 줘야 하고, 그 자리가 여기다 — 칸반 카드가 '어느 업무의 상세인지'를 넘기는 것이 첫 사례다. 값의 출처는 조회 인자와 같은 넷이며, 목록 항목의 동작에서는 눌린 그 항목의 조각(itemField)을 쓴다."
         }
       },
       "allOf": [

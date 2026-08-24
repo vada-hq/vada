@@ -48,12 +48,16 @@ export function findDataSource(key: string): DataSource {
 export type DataValue = string | number | DataRow[]
 export type DataRow = Record<string, DataValue>
 
+// 인자로 집어 온 한 건이 없을 때. 오류가 아니라 답이다 — 카탈로그의
+// messages.empty가 무엇이라 말할지 이미 갖고 있다.
+export const NOT_FOUND = Symbol('데이터 없음')
+
 // 개발용 mock. 실제 응답이 붙기 전까지 fixtures가 대신하며, 카탈로그가 선언한
 // fields와 어긋나면 조용히 비는 대신 오류로 드러난다.
 export function readDataSource(
   key: string,
   params: Record<string, string> = {},
-): DataRow | DataRow[] {
+): DataRow | DataRow[] | typeof NOT_FOUND {
   const source = findDataSource(key)
 
   // 넘긴 인자는 카탈로그가 선언한 것이어야 한다. 이름이 틀리면 조용히
@@ -74,6 +78,12 @@ export function readDataSource(
     fixture = DASHBOARD_FIXTURES[key]
   } else {
     const rows = filtered(params)
+    // 인자로 거른 결과가 비면 그것은 '개발용 응답이 없다'가 아니라 **찾지 못했다**다.
+    // 서버도 같은 답을 한다 — 없는 것을 물으면 없다고 한다. 두 경우를 섞으면
+    // 사람이 주소를 잘못 친 것과 만드는 사람이 빠뜨린 것이 같은 오류로 보인다.
+    if (source.shape === 'object' && rows.length === 0) {
+      return NOT_FOUND
+    }
     fixture = source.shape === 'object' ? rows[0] : rows
   }
   if (fixture === undefined) {
@@ -126,6 +136,26 @@ export function readObjectSource(
   params: Record<string, string> = {},
 ): DataRow {
   const value = readDataSource(key, params)
+  if (value === NOT_FOUND) {
+    // 없을 수 있는 자리라면 부르는 쪽이 readObjectSourceOrNull을 쓴다.
+    throw new Error(`데이터 출처 '${key}'에서 찾지 못했습니다(인자 ${JSON.stringify(params)}).`)
+  }
+  if (Array.isArray(value)) {
+    throw new Error(`데이터 출처 '${key}'는 목록입니다.`)
+  }
+  return value
+}
+
+// 인자가 가리키는 한 건이 없을 수 있는 자리. 상세 화면이 그렇다 — 주소로 아무
+// 값이나 들어올 수 있고, 그때 화면은 터지는 대신 못 찾았다고 말해야 한다.
+export function readObjectSourceOrNull(
+  key: string,
+  params: Record<string, string> = {},
+): DataRow | null {
+  const value = readDataSource(key, params)
+  if (value === NOT_FOUND) {
+    return null
+  }
   if (Array.isArray(value)) {
     throw new Error(`데이터 출처 '${key}'는 목록입니다.`)
   }
@@ -137,6 +167,9 @@ export function readListSource(
   params: Record<string, string> = {},
 ): DataRow[] {
   const value = readDataSource(key, params)
+  if (value === NOT_FOUND) {
+    throw new Error(`데이터 출처 '${key}'는 목록입니다.`)
+  }
   if (!Array.isArray(value)) {
     throw new Error(`데이터 출처 '${key}'는 목록이 아닙니다.`)
   }

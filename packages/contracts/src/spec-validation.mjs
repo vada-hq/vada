@@ -617,6 +617,108 @@ function checkQueryParams(findings, context) {
         message: `${elementLabel(element, index)}의 조회 인자 '${paramName}'가 화면 인자 '${screenParam}'를 가리키는데 화면의 params에 없습니다.`
       });
     }
+    // 목록을 조회하는 시점에는 아직 항목이 없다. 자기가 받아 올 행을 가리켜
+    // 조회할 수는 없으므로 itemField는 여기서 뜻이 없다.
+    if (isObject(argument) && typeof argument.itemField === "string") {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 조회 인자 '${paramName}'가 항목의 조각(itemField)을 가리킵니다. 조회하는 시점에는 아직 항목이 없습니다 — 항목의 조각은 눌렸을 때의 동작(action.params)에서만 쓸 수 있습니다.`
+      });
+    }
+  }
+}
+
+// 이동하면서 넘기는 인자.
+//
+// 화면이 인자를 받으면(screen.params) 누군가는 그 값을 줘야 한다. 주지 않으면
+// 대상 화면은 오류 카드를 띄우고 끝나는데, **그 사실이 명세를 읽어서는 보이지
+// 않는다** — 이동은 성공하고 화면만 비기 때문이다. 그래서 여기서 본다.
+function checkNavigateParams(findings, context) {
+  const { file, element, index, dataSourceByKey, fieldKeys, screenParams, screenParamsById } =
+    context;
+  const spec = element.spec;
+
+  const actions = [
+    { at: "action", action: spec.action },
+    { at: "itemAction", action: spec.itemAction }
+  ].filter(({ action }) => isObject(action));
+
+  for (const { at, action } of actions) {
+    const params = action.params;
+    const target = action.targetScreenId;
+    const targetParams = screenParamsById?.get(target) ?? null;
+    const label = elementLabel(element, index);
+
+    if (isObject(params) && action.type !== "navigate") {
+      findings.push({
+        level: "error",
+        file,
+        message: `${label}의 ${at}이 이동하지 않는데 인자를 넘깁니다(type=${action.type}). 받을 화면이 없습니다.`
+      });
+      continue;
+    }
+
+    // 항목의 조각은 눌린 행이 있는 자리에서만 가리킬 것이 있다.
+    const rowFields =
+      at === "itemAction" && spec.type === "itemList"
+        ? new Set((dataSourceByKey.get(spec.dataSourceKey)?.fields ?? []).map((f) => f?.key))
+        : null;
+
+    for (const [paramName, argument] of Object.entries(isObject(params) ? params : {})) {
+      if (targetParams && !targetParams.has(paramName)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${label}이 이동하며 넘긴 인자 '${paramName}'를 대상 화면 '${target}'이 받지 않습니다(그 화면의 params에 없습니다).`
+        });
+      }
+      if (!isObject(argument)) {
+        continue;
+      }
+      if (typeof argument.fieldKey === "string" && !fieldKeys.has(argument.fieldKey)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${label}의 이동 인자 '${paramName}'가 참조한 fieldKey '${argument.fieldKey}'가 화면에 없습니다.`
+        });
+      }
+      if (typeof argument.screenParam === "string" && !screenParams.has(argument.screenParam)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${label}의 이동 인자 '${paramName}'가 화면 인자 '${argument.screenParam}'를 가리키는데 화면의 params에 없습니다.`
+        });
+      }
+      if (typeof argument.itemField === "string") {
+        if (rowFields === null) {
+          findings.push({
+            level: "error",
+            file,
+            message: `${label}의 이동 인자 '${paramName}'가 항목의 조각(itemField)을 가리키는데 이 자리에는 눌린 항목이 없습니다. 항목의 조각은 itemList의 itemAction에서만 쓸 수 있습니다.`
+          });
+        } else if (rowFields.size > 0 && !rowFields.has(argument.itemField)) {
+          findings.push({
+            level: "error",
+            file,
+            message: `${label}의 이동 인자 '${paramName}'가 항목의 조각 '${argument.itemField}'를 가리키는데 데이터 출처 '${spec.dataSourceKey}'에 그 조각이 없습니다.`
+          });
+        }
+      }
+    }
+
+    // 대상이 받는데 아무도 주지 않으면 그 화면은 열리자마자 비어 있다.
+    if (action.type === "navigate" && targetParams) {
+      const given = new Set(Object.keys(isObject(params) ? params : {}));
+      const missing = [...targetParams].filter((name) => !given.has(name));
+      if (missing.length > 0) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${label}이 화면 '${target}'으로 이동하는데 그 화면이 받는 인자 ${missing.map((name) => `'${name}'`).join(", ")}를 넘기지 않습니다. 넘기지 않으면 그 화면은 무엇을 보여줄지 알 수 없습니다.`
+        });
+      }
+    }
   }
 }
 
@@ -729,6 +831,19 @@ export function collectSpecFindings({
       .map((screen) => screen?.spec?.screenId)
       .filter((screenId) => typeof screenId === "string")
   );
+  // 화면마다 '받는 인자'. 이동하는 쪽이 무엇을 넘겨야 하는지 여기서만 알 수 있다.
+  const screenParamsById = new Map(
+    screens
+      .filter((screen) => typeof screen?.spec?.screenId === "string")
+      .map((screen) => [
+        screen.spec.screenId,
+        new Set(
+          (Array.isArray(screen.spec.params) ? screen.spec.params : [])
+            .map((param) => param?.key)
+            .filter((key) => typeof key === "string")
+        )
+      ])
+  );
   const sourceByKey = new Map(
     (isObject(optionSources) && Array.isArray(optionSources.sources)
       ? optionSources.sources
@@ -810,6 +925,65 @@ export function collectSpecFindings({
       }
     }
 
+    // 제목이 데이터에서 오는 화면. 요소가 아니라 화면 자체가 값을 읽으므로
+    // 요소 검사가 지나치고, 지나치면 없는 조각을 가리켜도 제목만 조용히 빈다.
+    const titleFrom = isObject(spec.meta) ? spec.meta.titleFrom : null;
+    if (isObject(titleFrom)) {
+      const screenParamKeys = new Set(
+        (Array.isArray(spec.params) ? spec.params : [])
+          .map((param) => param?.key)
+          .filter((key) => typeof key === "string")
+      );
+      const source = dataSourceByKey.get(titleFrom.dataSourceKey);
+      if (!isObject(dataSources)) {
+        findings.push({
+          level: "warning",
+          file,
+          message: `data-sources.json이 없어 화면 제목의 출처 '${titleFrom.dataSourceKey}'를 확인하지 못했습니다.`
+        });
+      } else if (!source) {
+        findings.push({
+          level: "error",
+          file,
+          message: `화면 제목의 데이터 출처 '${titleFrom.dataSourceKey}'가 카탈로그에 없습니다.`
+        });
+      } else {
+        if (source.shape !== "object") {
+          findings.push({
+            level: "error",
+            file,
+            message: `화면 제목의 데이터 출처 '${titleFrom.dataSourceKey}'는 shape가 '${source.shape}'입니다. 제목은 값 하나이므로 object여야 합니다.`
+          });
+        }
+        const sourceFields = new Set((source.fields ?? []).map((field) => field?.key));
+        if (!sourceFields.has(titleFrom.field)) {
+          findings.push({
+            level: "error",
+            file,
+            message: `화면 제목이 가리킨 조각 '${titleFrom.field}'가 데이터 출처 '${titleFrom.dataSourceKey}'에 없습니다.`
+          });
+        }
+        const declared = new Set(source.params ?? []);
+        for (const [paramName, argument] of Object.entries(titleFrom.params ?? {})) {
+          if (!declared.has(paramName)) {
+            findings.push({
+              level: "error",
+              file,
+              message: `화면 제목이 넘긴 조회 인자 '${paramName}'가 데이터 출처 '${titleFrom.dataSourceKey}'에 선언돼 있지 않습니다.`
+            });
+          }
+          const screenParam = isObject(argument) ? argument.screenParam : undefined;
+          if (typeof screenParam === "string" && !screenParamKeys.has(screenParam)) {
+            findings.push({
+              level: "error",
+              file,
+              message: `화면 제목의 조회 인자 '${paramName}'가 화면 인자 '${screenParam}'를 가리키는데 화면의 params에 없습니다.`
+            });
+          }
+        }
+      }
+    }
+
     const fieldKeys = new Set();
     const seenFieldKeys = new Set();
     const seenNodeIds = new Set();
@@ -872,6 +1046,7 @@ export function collectSpecFindings({
             .map((param) => param?.key)
             .filter((key) => typeof key === "string")
         ),
+        screenParamsById,
         propertyOrderByType
       };
       checkPropertyOrder(findings, context);
@@ -899,6 +1074,7 @@ export function collectSpecFindings({
         checkOptionCounts(findings, context);
       }
       checkFieldReferences(findings, context);
+      checkNavigateParams(findings, context);
 
       // navigate의 targetScreenId와 submit 성공 후 이동은 같은 규칙으로 검사한다.
       for (const targetScreenId of [

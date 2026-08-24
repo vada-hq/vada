@@ -51,8 +51,9 @@ test('EVT-TASK-02: 머리의 두 버튼과 파일 추가는 아직 정해지지 
   await page.getByRole('button', { name: '상태 변경' }).click()
   await expect(page.getByText(/업무 상태를 바꾸는 방법이 아직 정해지지 않았습니다/)).toBeVisible()
 
+  // 보드는 생겼다(EVT-TASK-01). 남은 것은 상세가 '어느 행사인지'를 어디서 얻느냐다.
   await page.getByRole('button', { name: '업무 보드로' }).click()
-  await expect(page.getByText(/행사 업무 보드 화면이 아직 명세되지 않았습니다/)).toBeVisible()
+  await expect(page.getByText(/어느 행사의 보드인지가 필요한데/)).toBeVisible()
 
   await page.getByRole('button', { name: '파일 추가' }).click()
   await expect(page.getByText(/파일을 올리는 방법이 아직 정해지지 않았습니다/)).toBeVisible()

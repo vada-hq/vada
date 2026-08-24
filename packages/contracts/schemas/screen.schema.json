@@ -76,7 +76,33 @@
         },
         "title": {
           "type": "string",
-          "minLength": 1
+          "minLength": 1,
+          "description": "화면의 이름. 사람이 이 화면을 부르는 말이고, 대개 그대로 제목으로 그려진다. titleFrom이 있으면 그려지는 것은 데이터이고 이 값은 이름으로만 남는다 — 둘을 가르지 않으면 데이터가 제목인 화면의 이름을 부를 말이 없어진다."
+        },
+        "titleFrom": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dataSourceKey",
+            "field"
+          ],
+          "description": "제목이 데이터에서 오는 경우 그 출처(선택). 무엇의 화면인지가 제목인 자리가 있다 — 행사 업무 보드의 제목은 그 행사의 이름이다. 모양은 summary의 titleField와 같다.",
+          "properties": {
+            "dataSourceKey": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "description": "data-sources.json 카탈로그의 key. shape가 object인 출처여야 한다."
+            },
+            "field": {
+              "type": "string",
+              "minLength": 1,
+              "description": "그 출처의 fields[].key."
+            },
+            "params": {
+              "$ref": "element-params.schema.json#/$defs/argument",
+              "description": "한 건을 집어 올 때 넘기는 인자(선택). 대개 화면이 받은 인자를 그대로 넘긴다."
+            }
+          }
         },
         "description": {
           "type": [

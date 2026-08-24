@@ -2,7 +2,12 @@ import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { MUTED_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
-import { readListSource, readObjectSource } from '../data-sources/catalog'
+import {
+  findDataSource,
+  readListSource,
+  readObjectSource,
+  readObjectSourceOrNull,
+} from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
@@ -85,7 +90,29 @@ export function EVTTASK02Screen({ screenParams, onNavigate }: EVTTASK02ScreenPro
   const argumentsOf = (params: SummarySpec['params']) =>
     resolveParams(params, { screenParams, fields: { [tab.fieldKey]: tabValue } })
 
-  const detail = readObjectSource(detailSpec.dataSourceKey ?? '', argumentsOf(detailSpec.params))
+  // 주소로는 아무 값이나 들어올 수 있다. 없는 업무를 물으면 터지는 대신
+  // 카탈로그가 이미 갖고 있는 말로 답한다(messages.empty).
+  const detail = readObjectSourceOrNull(
+    detailSpec.dataSourceKey ?? '',
+    argumentsOf(detailSpec.params),
+  )
+  if (detail === null) {
+    return (
+      <AppShell
+        screenId={evtTask02.screenId}
+        eyebrow={evtTask02.meta?.eyebrow}
+        title={evtTask02.meta?.title ?? evtTask02.screenId}
+        onNavigate={onNavigate}
+      >
+        <p
+          role="alert"
+          className="rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-600"
+        >
+          {findDataSource(detailSpec.dataSourceKey ?? '').messages.empty}
+        </p>
+      </AppShell>
+    )
+  }
   const review = readObjectSource(reviewSpec.dataSourceKey ?? '', argumentsOf(reviewSpec.params))
   const referenceRows = readListSource(references.dataSourceKey, argumentsOf(references.params))
   const workRows = readListSource(work.dataSourceKey, argumentsOf(work.params))

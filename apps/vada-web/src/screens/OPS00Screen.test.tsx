@@ -57,7 +57,7 @@ describe('OPS-00 스펙 준수', () => {
       for (const item of spec.items) {
         if (item.field === undefined) continue
         // 한 카드 안에서도 값이 겹친다(회의는 1건·1건). 항목 상자 단위로 본다.
-        const box = within(card as HTMLElement).getByText(item.label).parentElement
+        const box = within(card as HTMLElement).getByText(item.label!).parentElement
         expect(box?.textContent).toContain(item.label)
         expect(box?.textContent).toContain(`${row[item.field]}${item.unit ?? ''}`)
       }

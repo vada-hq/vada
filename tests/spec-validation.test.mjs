@@ -1074,3 +1074,196 @@ test("조회 인자가 없는 필드를 가리키면 고정값과 섞여 있어�
   const findings = collectSpecFindings({ screens, dataSources });
   assert.equal(findings.filter((f) => f.message.includes("'없는필드'")).length, 1);
 });
+
+// 이동 인자. 화면이 인자를 받는다면 누군가는 그 값을 줘야 하는데, 주지 않아도
+// **이동은 성공한다** — 대상 화면만 조용히 빈다. 명세를 읽어서는 보이지 않는
+// 종류의 구멍이라 여기서 막는다.
+
+function boardScreens(itemAction, targetParams = [{ key: "taskId", description: "어느 업무" }]) {
+  return [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        params: [{ key: "eventId", description: "어느 행사" }],
+        elements: [
+          element("1:3", {
+            type: "itemList",
+            dataSourceKey: "event.taskBoard",
+            params: { eventId: { screenParam: "eventId" } },
+            itemAction
+          })
+        ]
+      }
+    },
+    { file: "w/screens/S-02/screen.json", spec: { screenId: "S-02", params: targetParams, elements: [] } }
+  ];
+}
+
+const boardSources = {
+  sources: [
+    {
+      key: "event.taskBoard",
+      shape: "list",
+      description: "행사 칸반",
+      params: ["eventId"],
+      fields: [
+        { key: "id", description: "업무를 가리키는 값" },
+        { key: "title", description: "제목" }
+      ]
+    }
+  ]
+};
+
+test("항목이 넘기는 이동 인자를 대상 화면이 받지 않으면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: boardScreens({
+      type: "navigate",
+      targetScreenId: "S-02",
+      params: { taskCode: { itemField: "id" } }
+    }),
+    dataSources: boardSources
+  });
+
+  assert.equal(findings.filter((f) => f.message.includes("'taskCode'를 대상 화면")).length, 1);
+  // 받는 인자를 아무도 주지 않는 것도 같은 구멍이다.
+  assert.equal(findings.filter((f) => f.message.includes("'taskId'를 넘기지 않습니다")).length, 1);
+});
+
+test("이동 인자가 없는 조각을 가리키면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: boardScreens({
+      type: "navigate",
+      targetScreenId: "S-02",
+      params: { taskId: { itemField: "없는조각" } }
+    }),
+    dataSources: boardSources
+  });
+
+  assert.equal(findings.filter((f) => f.message.includes("'없는조각'")).length, 1);
+});
+
+test("제대로 넘기면 조용하다", () => {
+  assert.deepEqual(
+    collectSpecFindings({
+      screens: boardScreens({
+        type: "navigate",
+        targetScreenId: "S-02",
+        params: { taskId: { itemField: "id" } }
+      }),
+      dataSources: boardSources
+    }),
+    []
+  );
+});
+
+test("항목이 없는 자리에서 항목의 조각을 가리키면 오류다", () => {
+  // 조회하는 시점에도, 버튼을 누르는 자리에도 눌린 행이 없다.
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "button",
+            label: "이동",
+            action: {
+              type: "navigate",
+              targetScreenId: "S-02",
+              params: { taskId: { itemField: "id" } }
+            }
+          }),
+          element("1:3", {
+            type: "itemList",
+            dataSourceKey: "event.taskBoard",
+            params: { eventId: { itemField: "id" } }
+          })
+        ]
+      }
+    },
+    { file: "w/screens/S-02/screen.json", spec: { screenId: "S-02", elements: [] } }
+  ];
+
+  const findings = collectSpecFindings({ screens, dataSources: boardSources });
+  assert.equal(findings.filter((f) => f.message.includes("눌린 항목이 없습니다")).length, 1);
+  assert.equal(findings.filter((f) => f.message.includes("아직 항목이 없습니다")).length, 1);
+});
+
+test("이동하지 않는 동작은 인자를 나를 수 없다", () => {
+  const findings = collectSpecFindings({
+    screens: boardScreens({
+      type: "pending",
+      note: "아직",
+      params: { taskId: { itemField: "id" } }
+    }),
+    dataSources: boardSources
+  });
+
+  assert.equal(findings.filter((f) => f.message.includes("받을 화면이 없습니다")).length, 1);
+});
+
+// 제목이 데이터에서 오는 화면. 요소가 아니라 화면 자체가 값을 읽으므로 요소
+// 검사가 지나친다 — 지나치면 없는 조각을 가리켜도 제목만 조용히 빈다.
+test("화면 제목의 출처와 조각을 검사한다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        params: [{ key: "eventId", description: "어느 행사" }],
+        meta: {
+          title: "행사 업무",
+          titleFrom: {
+            dataSourceKey: "event.summary",
+            field: "없는조각",
+            params: { eventId: { screenParam: "없는인자" } }
+          }
+        },
+        elements: []
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "event.summary",
+        shape: "object",
+        description: "행사 카드",
+        params: ["eventId"],
+        fields: [{ key: "title", description: "행사 이름" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("'없는조각'")).length, 1);
+  assert.equal(findings.filter((f) => f.message.includes("'없는인자'")).length, 1);
+});
+
+test("제목의 출처가 목록이면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        meta: { title: "행사 업무", titleFrom: { dataSourceKey: "event.list", field: "title" } },
+        elements: []
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "event.list",
+        shape: "list",
+        description: "행사 목록",
+        params: [],
+        fields: [{ key: "title", description: "행사 이름" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("object여야 합니다")).length, 1);
+});

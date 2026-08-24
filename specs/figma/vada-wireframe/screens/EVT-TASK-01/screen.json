@@ -1,0 +1,433 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-TASK-01",
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-01",
+      "description": "어느 행사의 업무 보드인지. 행사를 골라 들어올 때 그 행사가 정한다. 지금은 행사 개요 화면이 아직 명세되지 않아 주소로만 들어온다."
+    }
+  ],
+  "meta": {
+    "eyebrow": "운영 · 행사 · 업무",
+    "title": "행사 업무 — 칸반 보드",
+    "titleFrom": {
+      "dataSourceKey": "event.summary",
+      "field": "title",
+      "params": {
+        "eventId": {
+          "screenParam": "eventId"
+        }
+      }
+    },
+    "description": "부서 색상선 · 상태 배지는 별도 표시",
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "25:1186",
+    "name": "운영 — 행사 · EVT-TASK-01 · 행사 업무 — 칸반 보드",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "25:1280",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "업무 추가",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "업무 추가 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1286",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "개요",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사 개요 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1289",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "업무",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-TASK-01",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1292",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "문서",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사 문서 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1295",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "관련 회의",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사 관련 회의 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1298",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "일정",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사 일정 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1301",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "인원 관리",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사 참가자 명단 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1304",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "재정",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사 재정 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1307",
+        "name": "EventWorkspaceHeader",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "event.workspace",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "field": "status"
+          },
+          {
+            "field": "alert"
+          },
+          {
+            "field": "host"
+          },
+          {
+            "field": "startAt"
+          },
+          {
+            "field": "nextSchedule"
+          },
+          {
+            "field": "permissionNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1331",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "title",
+        "dataSourceKey": "event.summary",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "field": "schedule"
+          },
+          {
+            "label": "D-DAY",
+            "field": "dday"
+          },
+          {
+            "label": "전체 진행 현황",
+            "field": "progressLabel"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1352",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "event.taskAlerts",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "label": "지연",
+            "unit": "건",
+            "field": "delayedCount"
+          },
+          {
+            "label": "검토 필요",
+            "unit": "건",
+            "field": "reviewCount"
+          },
+          {
+            "label": "내 담당",
+            "unit": "건",
+            "field": "mineCount"
+          },
+          {
+            "label": "담당자 없음",
+            "unit": "건",
+            "field": "unassignedCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1379",
+        "name": "Container:align",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "taskScope",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "all",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "task.scope"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1392",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "예정",
+        "dataSourceKey": "event.taskBoard",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "scope": {
+            "fieldKey": "taskScope"
+          },
+          "status": {
+            "value": "planned"
+          }
+        },
+        "itemAction": {
+          "type": "navigate",
+          "label": "업무 상세 보기",
+          "targetScreenId": "EVT-TASK-02",
+          "params": {
+            "taskId": {
+              "itemField": "id"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1433",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "진행 중",
+        "dataSourceKey": "event.taskBoard",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "scope": {
+            "fieldKey": "taskScope"
+          },
+          "status": {
+            "value": "inProgress"
+          }
+        },
+        "itemAction": {
+          "type": "navigate",
+          "label": "업무 상세 보기",
+          "targetScreenId": "EVT-TASK-02",
+          "params": {
+            "taskId": {
+              "itemField": "id"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1505",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "검토 필요",
+        "dataSourceKey": "event.taskBoard",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "scope": {
+            "fieldKey": "taskScope"
+          },
+          "status": {
+            "value": "review"
+          }
+        },
+        "itemAction": {
+          "type": "navigate",
+          "label": "업무 상세 보기",
+          "targetScreenId": "EVT-TASK-02",
+          "params": {
+            "taskId": {
+              "itemField": "id"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1536",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "완료",
+        "dataSourceKey": "event.taskBoard",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "scope": {
+            "fieldKey": "taskScope"
+          },
+          "status": {
+            "value": "done"
+          }
+        },
+        "itemAction": {
+          "type": "navigate",
+          "label": "업무 상세 보기",
+          "targetScreenId": "EVT-TASK-02",
+          "params": {
+            "taskId": {
+              "itemField": "id"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

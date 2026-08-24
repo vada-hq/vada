@@ -127,6 +127,10 @@
           "minLength": 1,
           "description": "navigate 전용. 이동할 화면."
         },
+        "params": {
+          "$ref": "element-params.schema.json#/$defs/argument",
+          "description": "navigate 전용. 이동하면서 대상 화면에 넘기는 인자(선택). key는 대상 화면의 params에 선언된 이름이다. 표시 요소의 동작(element-action.schema.json)과 같은 모양이다 — 항목이 없는 자리이므로 itemField는 쓸 수 없다."
+        },
         "mutationKey": {
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",

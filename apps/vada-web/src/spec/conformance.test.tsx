@@ -162,9 +162,12 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     renderScreen(screenId)
     for (const element of spec.elements) {
       if (element.spec.type !== 'button') continue
+      // 아이콘의 대체 텍스트가 이름에 섞이므로 부분 일치로 본다. 그래서 짧은
+      // 라벨이 긴 라벨을 함께 집는다 — EVT-TASK-01의 '업무' 갈피는 '업무 추가'
+      // 버튼도 집는다. 있는지를 보지 몇 개인지를 보지 않는다(meta 카피와 같다).
       expect(
-        screen.getByRole('button', { name: new RegExp(element.spec.label) }),
-      ).toBeInTheDocument()
+        screen.getAllByRole('button', { name: new RegExp(element.spec.label) }).length,
+      ).toBeGreaterThan(0)
     }
   })
 })

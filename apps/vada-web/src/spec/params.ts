@@ -1,3 +1,4 @@
+import type { DataRow } from '../data-sources/catalog'
 import type { QueryParams } from './types'
 
 // 조회 인자를 실제 값으로 바꾼다.
@@ -8,11 +9,19 @@ import type { QueryParams } from './types'
 // - value: 명세가 정한 고정값(칸반 열의 status)
 // - fieldKey: 화면 안의 필드 값(검색어·탭)
 // - screenParam: 화면이 밖에서 받은 인자(어느 업무의 상세인지)
+// - itemField: 눌린 항목의 조각(칸반 카드가 넘기는 업무 번호)
+//
+// 앞의 셋은 조회할 때도 이동할 때도 쓰지만 itemField는 이동할 때만이다 —
+// 조회하는 시점에는 아직 항목이 없다. 검증기가 그 자리를 막는다.
 //
 // 가리키는 곳에 값이 없으면 빈 문자열이다 — 조용히 다른 것을 집어 오지 않는다.
 export function resolveParams(
   params: QueryParams | undefined,
-  sources: { fields?: Record<string, string>; screenParams?: Record<string, string> },
+  sources: {
+    fields?: Record<string, string>
+    screenParams?: Record<string, string>
+    row?: DataRow
+  },
 ): Record<string, string> {
   return Object.fromEntries(
     Object.entries(params ?? {}).map(([name, argument]) => {
@@ -24,6 +33,10 @@ export function resolveParams(
       }
       if (argument.fieldKey !== undefined) {
         return [name, sources.fields?.[argument.fieldKey] ?? '']
+      }
+      if (argument.itemField !== undefined) {
+        const value = sources.row?.[argument.itemField]
+        return [name, value === undefined ? '' : String(value)]
       }
       return [name, '']
     }),

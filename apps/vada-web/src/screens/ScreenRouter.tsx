@@ -1,5 +1,6 @@
 import { PageCard } from '../components/PageCard'
 import { EVT00AScreen } from './EVT00AScreen'
+import { EVTTASK01Screen } from './EVTTASK01Screen'
 import { EVTTASK02Screen } from './EVTTASK02Screen'
 import { HOME01KScreen } from './HOME01KScreen'
 import { INV01Screen } from './INV01Screen'
@@ -21,7 +22,8 @@ interface ScreenRouterProps {
   screenParams?: Record<string, string>
   scopes: ScopeStore
   onChangeScope: (scopeKey: string, next: ScopeDraft) => void
-  onNavigate: (screenId: string) => void
+  // 이동하면서 인자를 함께 넘긴다 — 칸반 카드가 '어느 업무인지'를 준다.
+  onNavigate: (screenId: string, params?: Record<string, string>) => void
   // 상태 스코프의 수명 이벤트. 제출 성공 시 action.onSuccess.scopeEvent로만 발생한다.
   onScopeEvent?: (scopeKey: string, event: 'complete' | 'cancel') => void
 }
@@ -76,6 +78,10 @@ export function ScreenRouter({
   if (screenId === 'OPS-MEET-01A') {
     // 회의 목록이다. 거르는 값(검색어)은 화면 안에서만 쓰므로 스코프에 담지 않는다.
     return <OPSMEET01AScreen onNavigate={onNavigate} />
+  }
+  if (screenId === 'EVT-TASK-01') {
+    // 행사 업무 보드다. 어느 행사인지는 화면 안에 없고 주소가 실어 온다.
+    return <EVTTASK01Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'EVT-TASK-02') {
     // 상세 화면이다. 무엇의 상세인지는 화면 안에 없고 주소가 실어 온다.

@@ -48,6 +48,8 @@ test("button action은 일반 navigate 대상 화면을 표현한다", async () 
   assert.deepEqual(getSchemaPropertyKeys(actionSchema), [
     "type",
     "targetScreenId",
+    // 이동하면서 대상 화면에 넘기는 인자. 화면이 인자를 받으면 누군가는 준다.
+    "params",
     "mutationKey",
     "onSuccess",
     "note",
