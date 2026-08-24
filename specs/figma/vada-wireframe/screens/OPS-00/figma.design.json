@@ -7512,6 +7512,7 @@
                                     "left": 0
                                   }
                                 },
+                                "assetRef": "assets/16-734.svg",
                                 "children": [
                                   {
                                     "id": "16:735",
@@ -7810,6 +7811,11 @@
       "nodeId": "16:731",
       "format": "svg",
       "file": "assets/16-731.svg"
+    },
+    {
+      "nodeId": "16:734",
+      "format": "svg",
+      "file": "assets/16-734.svg"
     }
   ]
 }

@@ -18,6 +18,7 @@ import ops00Json from '../../../../specs/figma/vada-wireframe/screens/OPS-00/scr
 import task01Json from '../../../../specs/figma/vada-wireframe/screens/TASK-01/screen.json'
 import opsMeet01aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01A/screen.json'
 import evt00aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00A/screen.json'
+import evtTask02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-02/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -46,6 +47,7 @@ export const ops00 = asScreenSpec(ops00Json)
 export const task01 = asScreenSpec(task01Json)
 export const opsMeet01a = asScreenSpec(opsMeet01aJson)
 export const evt00a = asScreenSpec(evt00aJson)
+export const evtTask02 = asScreenSpec(evtTask02Json)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
 // ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
@@ -62,7 +64,24 @@ export const ALL_SCREENS: ScreenSpec[] = [
   task01,
   opsMeet01a,
   evt00a,
+  evtTask02,
 ]
+
+// 화면 하나만 열어 볼 때 넘길 인자.
+//
+// 상세 화면은 "무엇의 상세인지"를 밖에서 받는다. 검사는 앞 화면을 거치지 않고
+// 화면을 바로 그리므로 그 값을 어디선가 얻어야 하는데, 검사가 지어내면 그것은
+// 명세에 없는 사실이 된다. 그래서 **명세가 예시 값을 들고 있고**(params[].example)
+// 검사는 그것을 읽기만 한다. 구현은 이 값을 쓰지 않는다 — 인자가 없으면
+// 조용히 아무거나 보여주는 대신 드러내야 한다.
+export function exampleParamsOf(screenId: string): Record<string, string> {
+  const screen = ALL_SCREENS.find((candidate) => candidate.screenId === screenId)
+  return Object.fromEntries(
+    (screen?.params ?? [])
+      .filter((param) => param.example !== undefined)
+      .map((param) => [param.key, param.example as string]),
+  )
+}
 
 // meta.title을 화면에 그리는가.
 //

@@ -42,6 +42,10 @@
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
       "description": "data-sources.json 카탈로그의 key(선택). shape가 object인 출처여야 한다. 있으면 items[].field가 이 출처의 조각을 가리킨다."
     },
+    "params": {
+      "$ref": "element-params.schema.json#/$defs/argument",
+      "description": "한 건을 집어 올 때 넘기는 인자(선택). 상세 화면의 요약 카드가 어느 것의 값을 보여줄지 여기서 정한다."
+    },
     "items": {
       "type": "array",
       "minItems": 1,

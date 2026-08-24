@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "element-params.schema.json",
+  "title": "Shared data-source argument",
+  "description": "조회에 넘기는 인자 하나. itemList와 summary가 같은 모양을 쓴다 — 목록을 거르는 것과 한 건을 집어 오는 것이 다르지 않기 때문이다. 두 곳에 같은 40줄을 두면 언젠가 갈리므로 여기 하나만 둔다.",
+  "$defs": {
+    "argument": {
+      "type": "object",
+      "description": "key는 dataSource의 params에 선언된 이름이다. 값이 어디서 오는지가 셋이다.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "oneOf": [
+          { "required": ["fieldKey"] },
+          { "required": ["value"] },
+          { "required": ["screenParam"] }
+        ],
+        "properties": {
+          "fieldKey": {
+            "type": "string",
+            "minLength": 1,
+            "description": "이 값을 담고 있는 화면 필드의 fieldKey. 값이 바뀌면 다시 조회한다."
+          },
+          "value": {
+            "type": "string",
+            "minLength": 1,
+            "description": "명세가 정한 고정값. 예: 칸반 열의 status."
+          },
+          "screenParam": {
+            "type": "string",
+            "minLength": 1,
+            "description": "이 화면이 받은 인자의 key(화면의 params에 선언돼 있어야 한다). 상세 화면이 '어느 것의 상세인지'를 여기서 받는다 — 화면 안에 그 값을 담을 필드가 없다는 점이 fieldKey와 다르다."
+          }
+        }
+      }
+    }
+  }
+}

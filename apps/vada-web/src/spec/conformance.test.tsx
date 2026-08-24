@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { ALL_SCREENS } from './screens'
+import { ALL_SCREENS, exampleParamsOf } from './screens'
 import type { FieldSpec, ListSpec, ScreenSpec } from './types'
 
 // 스펙 필드 소비 커버리지: 기대값을 스펙 JSON에서 읽어 화면과 대조한다.
@@ -18,7 +18,13 @@ const SCREENS: Array<{ screenId: string; spec: ScreenSpec }> = ALL_SCREENS.map((
 
 function renderScreen(screenId: string) {
   render(
-    <ScreenRouter screenId={screenId} scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />,
+    <ScreenRouter
+      screenId={screenId}
+      screenParams={exampleParamsOf(screenId)}
+      scopes={{}}
+      onChangeScope={() => {}}
+      onNavigate={() => {}}
+    />,
   )
 }
 

@@ -103,6 +103,9 @@ export const STATE_CHIP: Record<string, string> = {
  */
 export const INFO_CHIP = 'border border-gray-100 bg-gray-50 text-gray-600'
 
+/** 더 옅은 정보 딱지(EVT-TASK-02 25:1738). 바탕까지 gray-100이다. */
+export const MUTED_CHIP = 'border border-gray-100 bg-gray-100 text-gray-600'
+
 /** 표에 없는 톤은 조용히 색 없이 지나가지 않고 무채색으로 드러난다. */
 export const NEUTRAL_CHIP = 'border-gray-200 bg-white text-gray-700'
 export const NEUTRAL_BORDER = 'border-gray-200'

@@ -10304,6 +10304,7 @@
                                             "appearance": {
                                               "clipsContent": true
                                             },
+                                            "assetRef": "assets/16-313.svg",
                                             "children": [
                                               {
                                                 "id": "16:314",
@@ -10530,6 +10531,11 @@
       "nodeId": "16:275",
       "format": "svg",
       "file": "assets/16-275.svg"
+    },
+    {
+      "nodeId": "16:313",
+      "format": "svg",
+      "file": "assets/16-313.svg"
     }
   ]
 }

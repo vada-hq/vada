@@ -503,23 +503,48 @@ test("이미지 fill을 가진 노드는 png 자산이다", () => {
   );
 });
 
-test("그리는 것이 없는 노드는 묶음이든 낱개든 자산이 아니다", () => {
+test("숨긴 것은 자산이 아니고, 잘린 것은 자산이다", () => {
+  // 예전에는 absoluteRenderBounds가 null이면 '그리는 것이 없다'로 읽고 건너뛰었다.
+  // 그런데 그 값은 **틀 밖으로 잘렸다**는 뜻이기도 하다 — 화면 프레임(1288×740)
+  // 아래에 있는 것은 전부 null이다. 그래서 접힌 아래쪽 아이콘이 자산에서 조용히
+  // 빠졌다(EVT-TASK-02의 '파일 추가' 25:1822, 글 500개 중 23개도 같은 이유).
+  //
+  // 숨긴 것은 Figma가 visible: false로 명시한다. 그것만 건너뛴다.
+  const box = { x: 0, y: 900, width: 10, height: 10 };
   const root = {
     id: "1:1",
     type: "FRAME",
+    absoluteBoundingBox: { x: 0, y: 0, width: 10, height: 10 },
     absoluteRenderBounds: { x: 0, y: 0, width: 10, height: 10 },
     children: [
-      { id: "1:2", type: "VECTOR", absoluteRenderBounds: null },
+      // 뿌리 자신이 아이콘으로 읽히지 않도록 글을 하나 둔다.
+      {
+        id: "1:2",
+        type: "TEXT",
+        absoluteBoundingBox: { x: 0, y: 0, width: 10, height: 4 },
+        absoluteRenderBounds: { x: 0, y: 0, width: 10, height: 4 }
+      },
+      // 화면 아래로 잘린 아이콘. 그림이다.
       {
         id: "1:3",
         type: "FRAME",
+        absoluteBoundingBox: box,
         absoluteRenderBounds: null,
-        children: [{ id: "1:4", type: "VECTOR", absoluteRenderBounds: null }]
+        children: [{ id: "1:4", type: "VECTOR", absoluteBoundingBox: box, absoluteRenderBounds: null }]
+      },
+      // 숨긴 아이콘. 그림이 아니다.
+      {
+        id: "1:5",
+        type: "FRAME",
+        visible: false,
+        absoluteBoundingBox: box,
+        absoluteRenderBounds: null,
+        children: [{ id: "1:6", type: "VECTOR", absoluteBoundingBox: box, absoluteRenderBounds: null }]
       }
     ]
   };
 
-  assert.deepEqual(collectAssetNodes(root), []);
+  assert.deepEqual(collectAssetNodes(root).map((asset) => asset.node.id), ["1:3"]);
 });
 
 test("자산 판별은 플러그인과 정규화기가 같은 규칙을 쓴다", () => {

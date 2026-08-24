@@ -688,6 +688,204 @@
           "description": "마지막으로 손댄 때를 알리는 완성된 문구. 오늘·어제 같은 상대적인 말이 섞이므로 화면이 유도할 수 없다. 예: 마지막 수정 오늘 10:30"
         }
       ]
+    },
+    {
+      "key": "task.detail",
+      "shape": "object",
+      "description": "업무 하나의 값. 어느 업무인지는 화면이 받은 taskId가 정한다 — 이 화면은 목록이 아니라 한 건의 상세다.",
+      "params": [
+        "taskId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/task"
+      },
+      "messages": {
+        "loading": "업무를 불러오는 중입니다",
+        "empty": "업무를 찾지 못했습니다",
+        "error": "업무를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "code",
+          "description": "업무 번호. 예: T-03"
+        },
+        {
+          "key": "title",
+          "description": "업무 이름. 예: 현수막 디자인 수정 반영"
+        },
+        {
+          "key": "status",
+          "description": "진행 단계를 알리는 말. 예: 진행 중"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지에 배정된 색 이름. 예: blue"
+        },
+        {
+          "key": "priority",
+          "description": "우선순위를 알리는 말. 예: 높음"
+        },
+        {
+          "key": "priorityTone",
+          "description": "우선순위 딱지에 배정된 색 이름. 예: red"
+        },
+        {
+          "key": "assignee",
+          "description": "담당자 이름. 정해지지 않았으면 완성된 안내로 온다. 예: 이윤슬"
+        },
+        {
+          "key": "department",
+          "description": "담당 부서. 예: 홍보부"
+        },
+        {
+          "key": "dueDate",
+          "description": "마감일. 늦었으면 그 사실까지 붙어서 온다 — 무엇을 지연으로 세는지 화면이 유도할 수 없다. 예: 2026-07-18 · 지연"
+        },
+        {
+          "key": "description",
+          "description": "업무 설명. 예: 검토 의견을 반영해 현수막 디자인을 수정하고…"
+        },
+        {
+          "key": "completionCriteria",
+          "description": "완료 기준. 등록되지 않았으면 완성된 안내로 온다. 예: 완료 기준이 아직 등록되지 않았습니다."
+        },
+        {
+          "key": "expectedOutput",
+          "description": "예상 결과물의 종류. 예: 문서·파일"
+        },
+        {
+          "key": "linkedItems",
+          "description": "이 업무에 이어진 항목들. 개수가 업무마다 다르다.",
+          "fields": [
+            {
+              "key": "label",
+              "description": "항목 이름. 예: 현수막 제작 사양서"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "task.referenceDocuments",
+      "shape": "list",
+      "description": "이 업무가 따르는 공식 문서. 업무의 것이 아니라 행사의 공용 원본이라 여러 업무가 같은 것을 본다.",
+      "params": [
+        "taskId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/task/reference-documents"
+      },
+      "messages": {
+        "loading": "참고 문서를 불러오는 중입니다",
+        "empty": "참고할 공식 문서가 없습니다",
+        "error": "참고 문서를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "문서 이름. 예: 2026 체육대회 홍보 가이드라인"
+        },
+        {
+          "key": "description",
+          "description": "문서가 무엇을 정하는지. 예: 행사 전반의 시각 언어, 색상 코드…"
+        },
+        {
+          "key": "lastModifiedNote",
+          "description": "마지막으로 손댄 때를 알리는 완성된 문구. 예: 최종 수정일 2026-07-12"
+        },
+        {
+          "key": "status",
+          "description": "검토 단계를 알리는 말. 예: 확정 · 검토 중"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지에 배정된 색 이름. 예: green"
+        }
+      ]
+    },
+    {
+      "key": "task.workDocuments",
+      "shape": "list",
+      "description": "이 업무에서 만들고 있는 파일과 문서. 표로 그린다 — 열은 design이 정한 카피다.",
+      "params": [
+        "taskId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/task/work-documents"
+      },
+      "messages": {
+        "loading": "작업 문서를 불러오는 중입니다",
+        "empty": "아직 올린 파일이나 문서가 없습니다",
+        "error": "작업 문서를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "파일이나 문서 이름. 예: 현수막 시안 v2.png"
+        },
+        {
+          "key": "kind",
+          "description": "파일인지 문서인지. 예: 파일 · 문서"
+        },
+        {
+          "key": "status",
+          "description": "검토 단계를 알리는 말. 예: 검토 중 · 작성 중"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지에 배정된 색 이름. 예: yellow"
+        },
+        {
+          "key": "officialReflection",
+          "description": "공식 문서에 반영됐는지를 알리는 말. 예: 미반영"
+        }
+      ]
+    },
+    {
+      "key": "task.reviewStatus",
+      "shape": "object",
+      "description": "이 업무의 검토가 어디까지 왔는지. 딱지 둘과 검토 의견, 그리고 다음에 할 일을 알리는 문구다.",
+      "params": [
+        "taskId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/task/review-status"
+      },
+      "messages": {
+        "loading": "검토 현황을 불러오는 중입니다",
+        "empty": "검토 현황이 없습니다",
+        "error": "검토 현황을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "submission",
+          "description": "제출 상태를 알리는 말. 예: 제출 완료"
+        },
+        {
+          "key": "submissionTone",
+          "description": "제출 상태 딱지의 색 이름. 예: green"
+        },
+        {
+          "key": "officialResult",
+          "description": "공식 결과가 확정됐는지. 예: 미확정"
+        },
+        {
+          "key": "officialResultTone",
+          "description": "그 딱지의 색 이름. 예: gray"
+        },
+        {
+          "key": "reviewComment",
+          "description": "검토 의견. 없으면 완성된 안내로 온다. 예: 메인 색상이 가이드라인과 다름…"
+        },
+        {
+          "key": "nextStepNote",
+          "description": "다음에 무엇을 해야 하는지 알리는 완성된 문구. 예: 수정 후 재제출이 필요합니다."
+        }
+      ]
     }
   ]
 }

@@ -25,8 +25,12 @@ const VECTOR_ASSET_TYPES = new Set(["VECTOR", "BOOLEAN_OPERATION"]);
  */
 export function collectAssetNodes(root) {
   const assets = [];
+  // 틀은 화면 프레임이다. 이 밖으로 나간 것은 잘린 것이지 없는 것이 아니다.
+  const frame = root?.absoluteBoundingBox;
   const visit = (node) => {
-    if (!node || node.absoluteRenderBounds === null) {
+    // 숨긴 것은 Figma가 명시적으로 말해 준다(visible: false). 보이는 것에는
+    // 이 값이 아예 없다. 렌더 범위와 달리 이것은 뜻이 흔들리지 않는다.
+    if (!node || node.visible === false) {
       return;
     }
     if (hasImageFill(node)) {
@@ -34,7 +38,11 @@ export function collectAssetNodes(root) {
       assets.push({ node, format: "png" });
       return;
     }
-    if (hasVectorDescendant(node) && isVectorOnlySubtree(node) && !isSpreadApart(node)) {
+    if (
+      hasVectorDescendant(node, frame) &&
+      isVectorOnlySubtree(node, frame) &&
+      !isSpreadApart(node)
+    ) {
       assets.push({ node, format: "svg" });
       return;
     }
@@ -56,18 +64,45 @@ export function hasImageFill(node) {
   );
 }
 
-function rendersNothing(node) {
-  return node?.absoluteRenderBounds === null;
-}
-
-function hasVectorDescendant(node) {
-  if (rendersNothing(node)) {
+// 틀(화면 프레임) 밖으로 삐져나갔는가. 화면 아래로 이어지는 내용이 그렇다.
+function isClipped(node, frame) {
+  const box = node?.absoluteBoundingBox;
+  if (!box || !frame) {
     return false;
   }
+  return (
+    box.x < frame.x ||
+    box.y < frame.y ||
+    box.x + box.width > frame.x + frame.width ||
+    box.y + box.height > frame.y + frame.height
+  );
+}
+
+// **absoluteRenderBounds가 null인 것은 뜻이 둘이다.**
+//
+// 하나는 진짜로 아무것도 그리지 않는 것(Figma가 export를 거부한다). 다른 하나는
+// **틀 밖으로 잘린 것** — 화면 프레임(1288×740)보다 아래에 있는 내용은 전부 그렇다.
+// 둘을 가르지 않아서 접힌 아래쪽 아이콘이 자산에서 조용히 빠졌고(EVT-TASK-02의
+// '파일 추가' 25:1822), 보이는 글이 '있으나 마나'로 읽혔다(글 500개 중 23개).
+//
+// 가르는 것은 좌표다. 잘린 것은 틀 경계를 넘어간다.
+function rendersNothing(node, frame) {
+  return node?.absoluteRenderBounds === null && !isClipped(node, frame);
+}
+
+// **absoluteRenderBounds가 null인 것은 '안 그린다'가 아니라 '틀 밖으로 잘렸다'다.**
+//
+// 화면 프레임(1288×740)보다 아래에 있는 것은 Figma가 렌더 범위를 주지 않는다.
+// EVT-TASK-02의 '파일 추가' 아이콘(25:1822)은 Vector 셋을 품고 있는데도 그래서
+// 자산에서 빠졌고, 글 500개 중 23개가 null이던 것도 같은 이유다.
+//
+// 그러므로 벡터를 품었는지는 렌더 범위로 판정하지 않는다. 잘린 것도 그림이다.
+function hasVectorDescendant(node, frame) {
   if (VECTOR_ASSET_TYPES.has(node?.type)) {
-    return true;
+    // 그리는 것이 없는 벡터는 Figma가 export를 거부한다. 잘린 것은 그리는 것이다.
+    return !rendersNothing(node, frame);
   }
-  return childNodes(node).some(hasVectorDescendant);
+  return childNodes(node).some((child) => hasVectorDescendant(child, frame));
 }
 
 // 글은 그림이 아니다. **그리는 것이 없다는 판정에서 글은 뺀다.**
@@ -82,18 +117,21 @@ function isText(node) {
 
 // 그리는 것이 없는 가지는 섞임을 만들지 않는다 — 있으나 마나이므로 아이콘
 // 판정을 깨뜨려서도, 혼자 아이콘이 되어서도 안 된다.
-function isVectorOnlySubtree(node) {
+function isVectorOnlySubtree(node, frame) {
   if (isText(node)) {
     return false;
   }
-  if (rendersNothing(node)) {
-    return true;
-  }
   const children = childNodes(node);
   if (children.length === 0) {
-    return VECTOR_ASSET_TYPES.has(node?.type);
+    // 잎이다. 벡터면 그림이고, 아무것도 그리지 않으면 있으나 마나다 — 있으나
+    // 마나인 것이 아이콘 판정을 깨뜨려서는 안 된다.
+    //
+    // 이 판정을 잎에서만 한다. 위에서 하면 **틀 밖으로 잘린 가지가 통째로
+    // 투명해진다** — EVT-TASK-02의 '파일 추가' 버튼은 아이콘과 글 둘인데,
+    // 화면 아래로 잘려 렌더 범위가 없어 글까지 한 자산이 될 뻔했다.
+    return VECTOR_ASSET_TYPES.has(node?.type) || rendersNothing(node, frame);
   }
-  return children.every(isVectorOnlySubtree);
+  return children.every((child) => isVectorOnlySubtree(child, frame));
 }
 
 // 한 자산은 **붙어 있어야 한다.**

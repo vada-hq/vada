@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { ALL_SCREENS } from '../spec/screens'
+import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
 import type { ScreenSpec } from '../spec/types'
 import type { ScopeStore } from '../state/scopes'
 import {
@@ -133,6 +133,7 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
 
       render(
         <ScreenRouter
+          screenParams={exampleParamsOf(screenId)}
           screenId={screenId}
           scopes={scopesDrawnBy(spec, design)}
           onChangeScope={() => {}}
@@ -162,6 +163,7 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
 
       const { container } = render(
         <ScreenRouter
+          screenParams={exampleParamsOf(screenId)}
           screenId={screenId}
           scopes={scopesDrawnBy(spec, design)}
           onChangeScope={() => {}}
@@ -203,6 +205,7 @@ describe('design/deviations.ts', () => {
       }
       const { container } = render(
         <ScreenRouter
+          screenParams={exampleParamsOf(spec.screenId)}
           screenId={spec.screenId}
           scopes={scopesDrawnBy(spec, design)}
           onChangeScope={() => {}}

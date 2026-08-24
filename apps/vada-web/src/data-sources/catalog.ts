@@ -66,10 +66,20 @@ export function readDataSource(
     }
   }
 
+  // 인자로 거르는 응답은 목록으로 만들어 두고, shape가 object면 첫 줄을 집는다.
+  // 한 건을 집어 오는 것도 거르는 일이라 자리를 따로 만들지 않는다.
   const filtered = FILTERED_FIXTURES[key]
-  const fixture = filtered ? filtered(params) : DASHBOARD_FIXTURES[key]
+  let fixture: DataRow | DataRow[] | undefined
+  if (filtered === undefined) {
+    fixture = DASHBOARD_FIXTURES[key]
+  } else {
+    const rows = filtered(params)
+    fixture = source.shape === 'object' ? rows[0] : rows
+  }
   if (fixture === undefined) {
-    throw new Error(`데이터 출처 '${key}'의 개발용 응답이 없습니다.`)
+    throw new Error(
+      `데이터 출처 '${key}'의 개발용 응답이 없습니다(인자 ${JSON.stringify(params)}).`,
+    )
   }
 
   const rows = Array.isArray(fixture) ? fixture : [fixture]
@@ -111,8 +121,11 @@ export function readDataSource(
   return fixture
 }
 
-export function readObjectSource(key: string): DataRow {
-  const value = readDataSource(key)
+export function readObjectSource(
+  key: string,
+  params: Record<string, string> = {},
+): DataRow {
+  const value = readDataSource(key, params)
   if (Array.isArray(value)) {
     throw new Error(`데이터 출처 '${key}'는 목록입니다.`)
   }

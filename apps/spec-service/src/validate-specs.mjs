@@ -22,6 +22,7 @@ const CATALOG_SCHEMA_FILES = [
   "mutations.schema.json",
   "shell.schema.json",
   "element-action.schema.json",
+  "element-params.schema.json",
   "figma-design.schema.json",
   "figma-file.schema.json"
 ];

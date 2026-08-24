@@ -575,10 +575,11 @@ function checkDataSource(findings, context) {
   }
 }
 
-// 목록을 거르는 값이 어디서 오는지 검사한다. 인자 이름은 카탈로그가, 그 값을
-// 담은 필드는 화면이 갖는다 — 둘 중 하나만 틀려도 목록이 조용히 안 걸러진다.
-function checkItemListParams(findings, context) {
-  const { file, element, index, dataSources, dataSourceByKey, fieldKeys } = context;
+// 조회에 넘기는 값이 어디서 오는지 검사한다. 인자 이름은 카탈로그가, 그 값을
+// 담은 필드는 화면이 갖는다 — 둘 중 하나만 틀려도 조용히 안 걸러진다.
+function checkQueryParams(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey, fieldKeys, screenParams } =
+    context;
   const spec = element.spec;
   const params = spec.params;
 
@@ -604,6 +605,16 @@ function checkItemListParams(findings, context) {
         level: "error",
         file,
         message: `${elementLabel(element, index)}의 조회 인자 '${paramName}'가 참조한 fieldKey '${fieldKey}'가 화면에 없습니다.`
+      });
+    }
+    // 화면이 밖에서 받은 인자. 선언하지 않은 것을 가리키면 상세 화면이 아무것도
+    // 못 집어 오고, 그 사실이 조용하다 — 화면에 필드가 없는 것이 정상이기 때문이다.
+    const screenParam = isObject(argument) ? argument.screenParam : undefined;
+    if (typeof screenParam === "string" && !screenParams.has(screenParam)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 조회 인자 '${paramName}'가 화면 인자 '${screenParam}'를 가리키는데 화면의 params에 없습니다.`
       });
     }
   }
@@ -855,6 +866,12 @@ export function collectSpecFindings({
         mutationKeys,
         clearOnByScope,
         screenScopeKey: spec.stateScopeKey,
+        // 이 화면이 밖에서 받는 인자. 상세 화면만 갖는다.
+        screenParams: new Set(
+          (Array.isArray(spec.params) ? spec.params : [])
+            .map((param) => param?.key)
+            .filter((key) => typeof key === "string")
+        ),
         propertyOrderByType
       };
       checkPropertyOrder(findings, context);
@@ -875,9 +892,8 @@ export function collectSpecFindings({
       }
       if (spec_.type === "summary" || spec_.type === "itemList") {
         checkDataSource(findings, context);
-      }
-      if (spec_.type === "itemList") {
-        checkItemListParams(findings, context);
+        // 조회 인자는 목록만의 것이 아니다 — 상세 화면의 요약도 한 건을 집어 온다.
+        checkQueryParams(findings, context);
       }
       if (spec_.type === "select") {
         checkOptionCounts(findings, context);

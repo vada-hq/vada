@@ -23,6 +23,42 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
     },
+    "params": {
+      "type": "array",
+      "description": "이 화면이 받는 인자(선택). 상세 화면은 \"무엇의 상세인지\"를 밖에서 받아야 한다 — 지금까지의 화면은 전부 인자가 없었다. 값은 요소의 params에서 screenParam으로 가리킨다.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "description"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][A-Za-z0-9]*$",
+            "description": "인자 이름. 예: taskId"
+          },
+          "valueType": {
+            "enum": [
+              "string",
+              "number"
+            ],
+            "description": "값의 종류(선택, 기본 string)."
+          },
+          "example": {
+            "type": "string",
+            "minLength": 1,
+            "description": "화면 하나만 열어 볼 때 쓰는 예시 값(선택). 실제 값은 앞 화면이 정한다 — summary.items의 value와 같은 성격이다. 구현은 이 값으로 대신하지 않는다. 인자가 없으면 조용히 아무거나 보여주는 대신 드러내야 하기 때문이다. 쓰는 것은 검사뿐이다."
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "무엇을 가리키는 값인지. 어디서 오는지도 적는다."
+          }
+        }
+      }
+    },
     "meta": {
       "type": "object",
       "additionalProperties": false,

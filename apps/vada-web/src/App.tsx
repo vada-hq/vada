@@ -8,13 +8,21 @@ import type { ScopeDraft, ScopeStore } from './state/scopes'
 // 브라우저의 뒤로/앞으로가 그대로 동작한다.
 const FIRST_SCREEN = 'ONB-01'
 
-function screenIdFromHash(): string {
+// 주소는 `#/<screenId>`이고, 상세 화면은 뒤에 인자가 붙는다(`#/EVT-TASK-02?taskId=T-03`).
+// 인자를 주소에 두는 이유는 화면의 주소로 여는 성질을 지키기 위해서다 — 상세를
+// 열려면 앞 화면을 반드시 거쳐야 한다면 그 화면만 따로 볼 수 없다.
+function routeFromHash(): { screenId: string; params: Record<string, string> } {
   const hash = window.location.hash.replace(/^#\/?/, '').trim()
-  return hash === '' ? FIRST_SCREEN : hash
+  const [id, query] = hash.split('?')
+  return {
+    screenId: id === '' ? FIRST_SCREEN : id,
+    params: Object.fromEntries(new URLSearchParams(query ?? '')),
+  }
 }
 
 function App() {
-  const [screenId, setScreenId] = useState(screenIdFromHash)
+  const [route, setRoute] = useState(routeFromHash)
+  const { screenId, params: screenParams } = route
   // state-scopes.json의 스코프별 초안. 화면 이동 후 복귀해도 값이 유지되고,
   // ORG-01의 note는 onboardingDraft 스코프를 읽는다(메모리 수준).
   const [scopes, setScopes] = useState<ScopeStore>({})
@@ -22,17 +30,19 @@ function App() {
   // 주소창을 직접 고치거나 뒤로/앞으로를 누른 경우.
   useEffect(() => {
     function sync() {
-      setScreenId(screenIdFromHash())
+      setRoute(routeFromHash())
     }
     window.addEventListener('hashchange', sync)
     return () => window.removeEventListener('hashchange', sync)
   }, [])
 
-  function navigate(next: string) {
-    setScreenId(next)
-    // 주소를 화면과 맞춘다. 같은 화면이면 기록을 늘리지 않는다.
-    if (screenIdFromHash() !== next) {
-      window.location.hash = `#/${next}`
+  function navigate(next: string, params: Record<string, string> = {}) {
+    setRoute({ screenId: next, params })
+    // 주소를 화면과 맞춘다. 같은 자리면 기록을 늘리지 않는다.
+    const query = new URLSearchParams(params).toString()
+    const target = query === '' ? `#/${next}` : `#/${next}?${query}`
+    if (window.location.hash !== target) {
+      window.location.hash = target
     }
   }
 
@@ -54,6 +64,7 @@ function App() {
     <>
       <ScreenRouter
         screenId={screenId}
+        screenParams={screenParams}
         scopes={scopes}
         onChangeScope={changeScope}
         onNavigate={navigate}

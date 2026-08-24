@@ -345,6 +345,75 @@ const EVENT_LIST: { status: string; row: DataRow }[] = [
   },
 ]
 
+// 업무 상세(EVT-TASK-02). 목록이 아니라 한 건이고, 어느 건인지는 화면이 받은
+// taskId가 정한다 — 지금까지의 화면은 전부 인자가 없었다.
+const TASK_DETAILS: Record<string, DataRow> = {
+  'T-03': {
+    code: 'T-03',
+    title: '현수막 디자인 수정 반영',
+    status: '진행 중',
+    statusTone: 'blue',
+    priority: '높음',
+    priorityTone: 'red',
+    assignee: '이윤슬',
+    department: '홍보부',
+    dueDate: '2026-07-18 · 지연',
+    description: '검토 의견을 반영해 현수막 디자인을 수정하고 인쇄 전 시안을 확정합니다.',
+    completionCriteria: '완료 기준이 아직 등록되지 않았습니다.',
+    expectedOutput: '문서·파일',
+    linkedItems: [{ label: '현수막 제작 사양서' }, { label: '홍보 가이드라인' }],
+  },
+}
+
+const TASK_REFERENCE_DOCUMENTS: Record<string, DataRow[]> = {
+  'T-03': [
+    {
+      title: '2026 체육대회 홍보 가이드라인',
+      description: '행사 전반의 시각 언어, 색상 코드, 글꼴 사용 기준을 정의합니다.',
+      lastModifiedNote: '최종 수정일 2026-07-12',
+      status: '확정',
+      statusTone: 'green',
+    },
+    {
+      title: '현수막 제작 사양서',
+      description: '메인 현수막 및 보조 배너의 규격, 소재, 인쇄 방식에 대한 공식 사양.',
+      lastModifiedNote: '최종 수정일 2026-07-10',
+      status: '검토 중',
+      statusTone: 'yellow',
+    },
+  ],
+}
+
+const TASK_WORK_DOCUMENTS: Record<string, DataRow[]> = {
+  'T-03': [
+    {
+      title: '현수막 시안 v2.png',
+      kind: '파일',
+      status: '검토 중',
+      statusTone: 'yellow',
+      officialReflection: '미반영',
+    },
+    {
+      title: '현수막 디자인 작업 노트',
+      kind: '문서',
+      status: '작성 중',
+      statusTone: 'gray',
+      officialReflection: '미반영',
+    },
+  ],
+}
+
+const TASK_REVIEW_STATUS: Record<string, DataRow> = {
+  'T-03': {
+    submission: '제출 완료',
+    submissionTone: 'blue',
+    officialResult: '미확정',
+    officialResultTone: 'gray',
+    reviewComment: '메인 색상이 가이드라인과 다름. 교정 후 재제출 바랍니다.',
+    nextStepNote: '수정 후 재제출이 필요합니다.',
+  },
+}
+
 const VIEWER_NAME = '박해랑'
 
 function taskAlerts(): DataRow {
@@ -467,6 +536,13 @@ export const FILTERED_FIXTURES: Record<
     EVENT_LIST.filter((event) => status === 'all' || event.status === status)
       .map((event) => event.row)
       .filter((row) => matchesQuery(row, query)),
+  // 상세는 목록이 아니지만 인자를 받으므로 같은 자리를 쓴다 — 한 건을 담은
+  // 배열로 오고, readObjectSource가 첫 줄을 집는다.
+  'task.detail': ({ taskId = '' }) => (TASK_DETAILS[taskId] ? [TASK_DETAILS[taskId]] : []),
+  'task.referenceDocuments': ({ taskId = '' }) => TASK_REFERENCE_DOCUMENTS[taskId] ?? [],
+  'task.workDocuments': ({ taskId = '' }) => TASK_WORK_DOCUMENTS[taskId] ?? [],
+  'task.reviewStatus': ({ taskId = '' }) =>
+    TASK_REVIEW_STATUS[taskId] ? [TASK_REVIEW_STATUS[taskId]] : [],
   'my.tasks': ({ tab = 'todo', query = '' }) =>
     MY_TASKS.filter((task) => task.tab === tab)
       .map((task) => task.row)

@@ -1,0 +1,214 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-TASK-02",
+  "params": [
+    {
+      "key": "taskId",
+      "valueType": "string",
+      "example": "T-03",
+      "description": "어느 업무의 상세인지. 업무 보드에서 항목을 눌러 들어올 때 그 항목이 정한다. 지금은 그 보드가 아직 명세되지 않아 주소로만 들어온다."
+    }
+  ],
+  "meta": {
+    "eyebrow": "운영 · 행사 · 업무",
+    "title": "업무 상세 — 관련 문서·결과물",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "25:1565",
+    "name": "운영 — 행사 · EVT-TASK-02 · 업무 상세 — 관련 문서·결과물",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "25:1665",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "업무 보드로",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사 업무 보드 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1670",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "상태 변경",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "업무 상태를 바꾸는 방법이 아직 정해지지 않았습니다. 이 화면에서 바로 고르는지 다른 화면으로 가는지도 정해지지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1682",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "title",
+        "dataSourceKey": "task.detail",
+        "params": {
+          "taskId": {
+            "screenParam": "taskId"
+          }
+        },
+        "items": [
+          {
+            "label": "담당자",
+            "field": "assignee"
+          },
+          {
+            "label": "담당 부서",
+            "field": "department"
+          },
+          {
+            "label": "업무 상태",
+            "field": "status"
+          },
+          {
+            "label": "마감일",
+            "field": "dueDate"
+          },
+          {
+            "label": "업무 설명",
+            "field": "description"
+          },
+          {
+            "label": "완료 기준",
+            "field": "completionCriteria"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1743",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "taskDetailTab",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "documents",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "task.detailTab"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1751",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "공식 참고 문서",
+        "dataSourceKey": "task.referenceDocuments",
+        "params": {
+          "taskId": {
+            "screenParam": "taskId"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "note": "문서 상세 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1794",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "작업 문서 및 결과물",
+        "dataSourceKey": "task.workDocuments",
+        "params": {
+          "taskId": {
+            "screenParam": "taskId"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "note": "문서 상세 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1821",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "파일 추가",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "파일을 올리는 방법이 아직 정해지지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:1827",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "검토 현황",
+        "dataSourceKey": "task.reviewStatus",
+        "params": {
+          "taskId": {
+            "screenParam": "taskId"
+          }
+        },
+        "items": [
+          {
+            "label": "제출 상태",
+            "field": "submission"
+          },
+          {
+            "label": "공식 결과 확정",
+            "field": "officialResult"
+          },
+          {
+            "label": "검토 의견",
+            "field": "reviewComment"
+          }
+        ]
+      }
+    }
+  ]
+}

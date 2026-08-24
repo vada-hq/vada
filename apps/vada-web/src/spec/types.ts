@@ -129,6 +129,8 @@ export interface SummarySpec {
   // 설명이 서버에서 오는 경우(OPS-00의 '박해랑님이 확인할 …').
   descriptionField?: string
   dataSourceKey?: string
+  // 한 건을 집어 올 때 넘기는 인자. 상세 화면의 요약 카드가 쓴다.
+  params?: QueryParams
   items?: SummaryItem[]
   // 묶음 전체를 눌렀을 때. itemList.itemAction과 같은 규칙이다.
   action?: DisplayAction
@@ -148,7 +150,7 @@ export interface ItemListSpec {
   // 목록을 거르는 값. key는 출처가 선언한 인자 이름이고, 값은 화면 필드를
   // 가리키거나(fieldKey) 명세가 정한 고정값이다(value) — 칸반의 열이 후자다.
   // 받아온 것을 화면에서 거르지 않고 값이 바뀌면 다시 조회한다.
-  params?: Record<string, { fieldKey?: string; value?: string }>
+  params?: QueryParams
   // 항목 하나를 눌렀을 때. 어느 항목인지는 데이터가, 어느 화면인지는 명세가 말한다.
   itemAction?: DisplayAction
 }
@@ -242,10 +244,29 @@ export interface FlowStep {
   total: number
 }
 
+// 조회에 넘기는 인자. 값이 어디서 오는지가 셋이다 — 화면 필드(fieldKey),
+// 명세가 정한 고정값(value), 화면이 밖에서 받은 인자(screenParam).
+export type QueryParams = Record<
+  string,
+  { fieldKey?: string; value?: string; screenParam?: string }
+>
+
+export interface ScreenParam {
+  key: string
+  valueType?: 'string' | 'number'
+  // 화면 하나만 열어 볼 때 쓰는 예시 값. 구현은 이 값으로 대신하지 않는다 —
+  // 인자가 없으면 드러내야 한다. 쓰는 것은 검사뿐이다.
+  example?: string
+  description: string
+}
+
 export interface ScreenSpec {
   schemaVersion: number
   screenId: string
   stateScopeKey?: string
+  // 이 화면이 밖에서 받는 인자. 상세 화면만 갖는다 — 무엇의 상세인지는 화면
+  // 안에 없기 때문이다.
+  params?: ScreenParam[]
   meta?: ScreenMeta
   source: {
     pageName: string

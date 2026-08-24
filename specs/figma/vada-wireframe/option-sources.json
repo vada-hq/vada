@@ -222,6 +222,23 @@
           "label": "후속 정리 중"
         }
       ]
+    },
+    {
+      "key": "task.detailTab",
+      "type": "static",
+      "description": "업무 상세를 보는 갈피. 선택지는 디자인에 고정돼 있다.",
+      "params": [],
+      "options": [
+        {
+          "value": "documents",
+          "label": "관련 문서·결과물"
+        },
+        {
+          "value": "history",
+          "label": "처리 기록",
+          "description": "이 갈피의 내용은 아직 명세되지 않았습니다."
+        }
+      ]
     }
   ]
 }

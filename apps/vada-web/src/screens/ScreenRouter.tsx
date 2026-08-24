@@ -1,5 +1,6 @@
 import { PageCard } from '../components/PageCard'
 import { EVT00AScreen } from './EVT00AScreen'
+import { EVTTASK02Screen } from './EVTTASK02Screen'
 import { HOME01KScreen } from './HOME01KScreen'
 import { INV01Screen } from './INV01Screen'
 import { MY01Screen } from './MY01Screen'
@@ -16,6 +17,8 @@ import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
 interface ScreenRouterProps {
   screenId: string
+  // 주소가 실어 온 화면 인자. 상세 화면만 쓴다(screen.json의 params).
+  screenParams?: Record<string, string>
   scopes: ScopeStore
   onChangeScope: (scopeKey: string, next: ScopeDraft) => void
   onNavigate: (screenId: string) => void
@@ -31,6 +34,7 @@ interface ScreenRouterProps {
 // note가 하나 생겼다고 배선을 다시 손볼 자리가 있으면 안 된다.
 export function ScreenRouter({
   screenId,
+  screenParams = {},
   scopes,
   onChangeScope,
   onNavigate,
@@ -72,6 +76,10 @@ export function ScreenRouter({
   if (screenId === 'OPS-MEET-01A') {
     // 회의 목록이다. 거르는 값(검색어)은 화면 안에서만 쓰므로 스코프에 담지 않는다.
     return <OPSMEET01AScreen onNavigate={onNavigate} />
+  }
+  if (screenId === 'EVT-TASK-02') {
+    // 상세 화면이다. 무엇의 상세인지는 화면 안에 없고 주소가 실어 온다.
+    return <EVTTASK02Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'EVT-00A') {
     // 행사 목록이다. 거르는 값(검색어·진행 단계)은 화면 안에서만 쓴다.
