@@ -28,11 +28,19 @@ const NODE = {
 // 등록 노드로 찾는다 — 순서에 기대지 않는다.
 const ASSET = {
   intro: '16:594',
-  cardIcon: {
-    '16:614': '16:615',
-    '16:643': '16:644',
-    '16:674': '16:675',
-    '16:702': '16:703',
+  // 카드 머리 줄은 왼쪽의 색 타일과 오른쪽 끝의 화살표 둘이다. 예전에는 그 줄
+  // 전체가 383×35짜리 한 자산이었다 — 자산 단위 규칙이 334px 떨어진 둘을 못 갈랐다.
+  cardTile: {
+    '16:614': '16:616',
+    '16:643': '16:645',
+    '16:674': '16:676',
+    '16:702': '16:704',
+  } as Record<string, string>,
+  cardChevron: {
+    '16:614': '16:620',
+    '16:643': '16:651',
+    '16:674': '16:679',
+    '16:702': '16:710',
   } as Record<string, string>,
   cardArrow: {
     '16:614': '16:641',
@@ -129,13 +137,15 @@ function SpaceCard({ nodeId, onNavigate }: SpaceCardProps) {
         }}
         className="w-full px-5 py-4 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
       >
-        {/* 자산이 카드 머리 줄 전체(아이콘 + 오른쪽 표시)를 한 덩이로 담고 있다.
-            자산 단위 규칙이 나란한 두 아이콘을 가르지 못한 결과라 원래 비율로 그린다. */}
-        <FigmaAsset
-          screenId={SCREEN}
-          nodeId={ASSET.cardIcon[nodeId]}
-          className="block h-auto w-full"
-        />
+        {/* 머리 줄: 왼쪽 색 타일(35×35), 오른쪽 끝 화살표(14×17.5). */}
+        <span className="flex items-center justify-between">
+          <FigmaAsset screenId={SCREEN} nodeId={ASSET.cardTile[nodeId]} className="size-9" />
+          <FigmaAsset
+            screenId={SCREEN}
+            nodeId={ASSET.cardChevron[nodeId]}
+            className="h-4.5 w-3.5"
+          />
+        </span>
         <span className="block pt-2 text-sm font-bold text-gray-900">{spec.title}</span>
         <span className="block pt-0.5 text-xs font-medium text-gray-500">
           {spec.description}

@@ -34,7 +34,7 @@ export function collectAssetNodes(root) {
       assets.push({ node, format: "png" });
       return;
     }
-    if (hasVectorDescendant(node) && isVectorOnlySubtree(node)) {
+    if (hasVectorDescendant(node) && isVectorOnlySubtree(node) && !isSpreadApart(node)) {
       assets.push({ node, format: "svg" });
       return;
     }
@@ -70,9 +70,22 @@ function hasVectorDescendant(node) {
   return childNodes(node).some(hasVectorDescendant);
 }
 
+// 글은 그림이 아니다. **그리는 것이 없다는 판정에서 글은 뺀다.**
+//
+// Figma가 보이는 글에도 absoluteRenderBounds를 null로 주는 일이 있다(500개 중
+// 23개, 채움도 있고 reference.png에도 그려져 있다). 그것을 '있으나 마나'로 읽으면
+// 아이콘과 글이 나란한 줄이 통째로 한 자산이 된다 — OPS-MEET-01A의 `18:720`이
+// 582×19짜리 한 덩이로 뽑힌 원인이다. 글이 그려지는지 Figma에게 묻지 않는다.
+function isText(node) {
+  return node?.type === "TEXT";
+}
+
 // 그리는 것이 없는 가지는 섞임을 만들지 않는다 — 있으나 마나이므로 아이콘
 // 판정을 깨뜨려서도, 혼자 아이콘이 되어서도 안 된다.
 function isVectorOnlySubtree(node) {
+  if (isText(node)) {
+    return false;
+  }
   if (rendersNothing(node)) {
     return true;
   }
@@ -81,6 +94,43 @@ function isVectorOnlySubtree(node) {
     return VECTOR_ASSET_TYPES.has(node?.type);
   }
   return children.every(isVectorOnlySubtree);
+}
+
+// 한 자산은 **붙어 있어야 한다.**
+//
+// 글이 사이에 없어도 자산이 아닌 것이 있다. OPS-00의 카드는 왼쪽 위 아이콘과
+// 오른쪽 끝 화살표만 든 Container라 벡터만 품고 있지만, 둘 사이가 334px 비어
+// 있다. 한 파일로 뽑으면 383×35가 되어 어느 자리에도 그릴 수 없다.
+//
+// 임계값은 재서 정했다. 자식이 둘 이상인 자산 111개의 '벌어진 비율'(가장 큰 틈 ÷
+// 제 크기)을 보면 87%가 넷(전부 OPS-00의 그 카드), 나머지 107개는 전부 25% 이하다.
+// 골이 깊어 절반에 그으면 어느 쪽도 아슬아슬하지 않다.
+const SPREAD_LIMIT = 0.5;
+
+function widestGap(children, axis, size) {
+  const spans = children
+    .map((child) => child?.absoluteBoundingBox)
+    .filter((box) => box && isFiniteNumber(box[axis]) && isFiniteNumber(box[size]))
+    .map((box) => [box[axis], box[axis] + box[size]])
+    .sort((left, right) => left[0] - right[0]);
+  let widest = 0;
+  let reach = spans[0]?.[1] ?? 0;
+  for (const [start, end] of spans.slice(1)) {
+    widest = Math.max(widest, start - reach);
+    reach = Math.max(reach, end);
+  }
+  return widest;
+}
+
+function isSpreadApart(node) {
+  const children = childNodes(node);
+  const box = node?.absoluteBoundingBox;
+  if (children.length < 2 || !box) {
+    return false;
+  }
+  const spreadX = box.width ? widestGap(children, "x", "width") / box.width : 0;
+  const spreadY = box.height ? widestGap(children, "y", "height") / box.height : 0;
+  return Math.max(spreadX, spreadY) >= SPREAD_LIMIT;
 }
 
 function isObject(value) {

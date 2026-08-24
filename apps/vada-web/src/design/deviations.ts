@@ -96,15 +96,4 @@ export const DEVIATIONS: Deviation[] = [
   // 같은 아이콘들이 다른 카드에서는 따로 뽑혀 있어 화면은 그것을 그린다. 추출기가
   // 고쳐지거나 이 화면을 다시 저장하면 이 예외가 쓰이지 않게 되고, 그때 검사가
   // 지우라고 알려 준다.
-  {
-    by: 'place',
-    screenId: 'OPS-MEET-01A',
-    content: '18:720 Container',
-    kind: '그림 없음',
-    design: 'assets/18-720.svg',
-    screen: 'data-asset-node-id를 단 그림이 없음',
-    why:
-      '아이콘 셋이 한 덩이로 뽑혀 나눠 그릴 수 없다. 같은 아이콘을 따로 뽑아 둔 ' +
-      '다른 카드의 자산(18:464·18:471·18:476)으로 그린다.',
-  },
 ]

@@ -26,6 +26,10 @@
   - **토큰**: 저장소 루트 `.env`의 `FIGMA_TOKEN`(git 제외). 필요한 권한은 `file_content:read` 하나뿐이고 file content에는 쓰기 권한 자체가 없다. 파일 key는 비밀이 아니므로 `specs/figma/<wireframe>/figma-file.json`에 둔다.
   - **한도**: Tier 1, 분당 10~20회. **파일이 속한 플랜이 정한다 — 토큰 주인의 좌석이 아니다.** 화면 하나에 3~4회면 된다.
   - **플러그인은 아직 지우지 않는다.** 두 경로가 같은 결과를 낸다는 것은 확인했지만, 플러그인만 하는 일(화면 신원 등록 UI)이 남아 있고 지우는 것은 되돌리기 어렵다.
+- **자산의 단위(2026-08-24 수정)**: "벡터만 품은 가장 바깥 노드"인데 그 판정이 두 곳에서 틀렸고, 둘 다 **화면에 그릴 수 없는 파일**을 만들었다.
+  - **글이 든 줄이 한 덩이가 됐다**: Figma가 보이는 글에도 `absoluteRenderBounds`를 null로 주는 일이 있다(글 500개 중 23개, 채움도 있고 reference.png에도 그려져 있다). 그것을 '있으나 마나'로 읽어 아이콘과 글이 나란한 줄이 통째로 한 자산이 됐다(OPS-MEET-01A `18:720`, 582×19). **글이 그려지는지 Figma에게 묻지 않는다** — 글은 글이다.
+  - **멀리 떨어진 둘이 한 덩이가 됐다**: OPS-00 카드의 머리 줄은 왼쪽 타일과 오른쪽 끝 화살표만 들어 글이 없다. 사이가 334px 비어 383×35짜리 파일이 나왔다. **한 자산은 붙어 있어야 한다** — 가장 큰 틈이 제 크기의 절반을 넘으면 가른다. 임계값은 재서 정했다(자식 둘 이상인 자산 111개 중 이 넷만 87%, 나머지는 전부 25% 이하).
+  - 고친 뒤 두 화면을 REST로 다시 받았다. OPS-00 17 → 21개, OPS-MEET-01A 32 → 33개. `design/deviations.ts`의 예외 하나가 쓰이지 않게 돼 지웠다.
 - **정규화**(packages/contracts + generate-figma-design.mjs): raw→design 결정적 변환(AI 불필요), `source.hash`(raw SHA-256)로 신선도 추적. 원본 저장→정규화 자동 연결은 보류 — 저장 후 CLI를 수동 실행한다.
 - **대조가 양방향이 됐다(2026-08-24)**: 지금까지 검사는 전부 **명세 → 화면** 한 방향이었다. 명세가 가리키는 자리를 화면이 그렸는지는 봤지만, **design에 있는데 명세에 없는 것은 아무도 보지 않았다.** TASK-01의 헤더 버튼 `18:86`('업무 추가')이 그렇게 조용히 빠져 있었고, EVT-00A 사이클에서 헤더에 자리를 내다 우연히 드러났다. 검증기가 이제 반대 방향을 본다 — design의 **상호작용 노드**(`Btn`·`Button`·`Text Input`·`Dropdown`) 중 등록된 어느 요소의 하위 트리에도 없는 것을 오류로 알린다. 이름이 곧 신호라 판정이 흔들리지 않는 것들만 본다. 문구 없는 노드는 세지 않는다 — 명세에 적을 라벨이 없다(선택지가 비어 있는 드롭다운, 항목의 '…' 메뉴). 셸은 `shell.json`의 `excludeNodeNames`로 빠진다. 붙일 때 11개 화면에서 **0건**이었고, `18:86`을 도로 지워 실제로 그 한 줄을 짚는 것을 확인했다.
 - **검증**(validate-specs.mjs): 스키마(ajv) + 교차 참조(중복 fieldKey·nodeId, 출처 key·인자 매핑, enabledWhen/resetOnChangeOf, 상태 스코프, 이동 대상, design nodeId·자산·reference, hash 신선도). 오류 시 종료 코드 1.
@@ -33,7 +37,7 @@
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md). 플러그인은 meta를 저장 왕복에서 보존하고(실전 검증됨) 새 텍스트 필드 편집란은 스키마 주도로 자동 생성된다.
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다. 전부 스키마 주도라 플러그인 편집 UI는 자동 생성된다.
-- **테스트**: 플러그인 89, spec-service·변환기·검증 94, vada-web(vitest) 150 + Playwright e2e 32 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **테스트**: 플러그인 89, spec-service·변환기·검증 96, vada-web(vitest) 150 + Playwright e2e 32 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). `tests/element-type-registry.test.mjs`가 enum↔스키마 파일↔플러그인 옵션↔플러그인 `schemaByType`의 일치를 강제한다.
 - **추출기가 화면을 보는 눈(2026-08-24)**: 초안 재현율을 **36/67 → 41/67(61%)**, 헛것(등록되지 않은 것을 뽑음)을 **41 → 19개**로 고쳤다. 막혔던 네 곳이다.
   - **이름표 없는 것을 못 봤다**: 필드는 직계 자식에 `Label` 노드를, 목록은 묶음 제목을 요구했다. 목록 화면의 검색칸(EVT-00A `20:4153`)과 카드 목록(`20:4167`)이 통째로 안 보여 초안에 버튼 4개만 나왔다. 라벨 없이 홀로 선 컨트롤과 제목 없는 되풀이를 각각 길로 냈다. 라벨은 그려진 문구에서 짐작하고 **짐작임을 질문으로 알린다.**
@@ -120,13 +124,12 @@ EVT-00A(행사 목록) 사이클(`docs/pilot-evt-00a.md`) 뒤에 **추출기를 
 **다음 후보**
 
 1. **업무 상세** — 제품에서 가장 급하다(MY-01·TASK-01·OPS-MEET-01A가 막혀 있다).
-   와이어프레임에서 이름은 `EVT-TASK-02`(업무 상세 — 관련 문서·결과물, `25:1565`)다.
-   **더는 막혀 있지 않다** — `fetch-figma-screen.mjs`로 바로 받는다.
-2. **자산 단위 규칙 고치기** — 트리거는 이미 충족돼 있었고(OPS-00 `16:615`,
-   OPS-MEET-01A `18:720`), 이제 재저장 없이 고쳐서 바로 다시 뽑을 수 있다.
+   와이어프레임 이름은 `EVT-TASK-02`(`25:1565`)다. `fetch-figma-screen.mjs`로 받는다.
+2. **옛 벡터 단위 자산 5화면**(ONB-01·ONB-02·ORG-01·ORG-02·INV-01) — 이제 다시 받으면
+   아이콘이 제대로 묶인다(11개 → 7개 식). 다만 그러면 그림 대조가 그 화면들에서
+   처음 켜지므로 '그림 없음'이 여럿 나올 수 있다. 별건으로 잡아야 한다.
 3. **남은 재현율 39%** — 나란한 버튼이 select인지 낱개 버튼인지, 되풀이가 summary인지
-   itemList인지. 둘 다 이 제품의 디자인 시스템 지식이라 `interpretation.md`의 기계
-   판독 승격이 필요하다.
+   itemList인지. `interpretation.md`의 기계 판독 승격이 필요하다.
 
 
 ## 2026-08-24 정리: 화면당 손 작업 줄이기

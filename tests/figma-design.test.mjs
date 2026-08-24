@@ -540,3 +540,88 @@ test("자산 판별은 플러그인과 정규화기가 같은 규칙을 쓴다",
   assert.deepEqual(at(screen({ id: "1:2", type: "BOOLEAN_OPERATION" })), ["1:2"]);
   assert.deepEqual(at(screen({ id: "1:2", type: "TEXT" })), []);
 });
+
+// 자산의 단위는 "벡터만 품은 가장 바깥 노드"인데, 그 판정이 두 곳에서 틀렸다.
+// 둘 다 실제로 겪은 일이고 둘 다 화면에 그릴 수 없는 파일을 만들었다.
+
+test("글이 든 줄은 한 자산이 아니다 — Figma가 글의 렌더 범위를 안 줘도", () => {
+  // OPS-MEET-01A의 18:720이 582×19짜리 한 덩이로 뽑혔다. 보이는 글인데도
+  // absoluteRenderBounds가 null이라(500개 중 23개가 그렇다) '있으나 마나'로 읽혔다.
+  const box = (x, width) => ({ x, y: 0, width, height: 12 });
+  const icon = (id, x) => ({
+    id,
+    type: "FRAME",
+    name: "Icon",
+    absoluteBoundingBox: box(x, 12),
+    absoluteRenderBounds: box(x, 12),
+    children: [{ id: `${id}v`, type: "VECTOR", absoluteRenderBounds: box(x, 12), children: [] }]
+  });
+  const row = {
+    id: "1:100",
+    type: "FRAME",
+    name: "Container",
+    absoluteBoundingBox: box(0, 200),
+    absoluteRenderBounds: box(0, 200),
+    children: [
+      {
+        id: "1:101",
+        type: "FRAME",
+        absoluteBoundingBox: box(0, 90),
+        absoluteRenderBounds: box(0, 90),
+        children: [
+          icon("1:102", 0),
+          // 보이는 글인데 Figma가 렌더 범위를 주지 않았다.
+          { id: "1:103", type: "TEXT", characters: "2026.07.15", absoluteRenderBounds: null, children: [] }
+        ]
+      },
+      {
+        id: "1:104",
+        type: "FRAME",
+        absoluteBoundingBox: box(100, 90),
+        absoluteRenderBounds: box(100, 90),
+        children: [
+          icon("1:105", 100),
+          { id: "1:106", type: "TEXT", characters: "학생회실", absoluteRenderBounds: null, children: [] }
+        ]
+      }
+    ]
+  };
+
+  const ids = collectAssetNodes(row).map((asset) => asset.node.id);
+  assert.deepEqual(ids, ["1:102", "1:105"], "글이 든 줄을 통째로 한 자산으로 뽑았습니다");
+});
+
+test("멀리 떨어진 아이콘 둘은 한 자산이 아니다", () => {
+  // OPS-00의 카드 머리 줄(16:615)은 왼쪽 타일과 오른쪽 끝 화살표만 든 Container다.
+  // 글이 없어 '벡터만 품은 노드'가 맞지만, 사이가 334px 비어 있어 383×35짜리
+  // 파일이 나왔고 어느 자리에도 그릴 수 없었다.
+  //
+  // 임계값은 재서 정했다 — 자식 둘 이상인 자산 111개 중 이 넷만 87%이고 나머지는
+  // 전부 25% 이하다.
+  const at = (x, width) => ({ x, y: 0, width, height: 35 });
+  const part = (id, x, width) => ({
+    id,
+    type: "FRAME",
+    absoluteBoundingBox: at(x, width),
+    absoluteRenderBounds: at(x, width),
+    children: [{ id: `${id}v`, type: "VECTOR", absoluteRenderBounds: at(x, width), children: [] }]
+  });
+  const head = {
+    id: "1:200",
+    type: "FRAME",
+    absoluteBoundingBox: at(0, 383),
+    absoluteRenderBounds: at(0, 383),
+    children: [part("1:201", 0, 35), part("1:202", 369, 14)]
+  };
+  assert.deepEqual(collectAssetNodes(head).map((asset) => asset.node.id), ["1:201", "1:202"]);
+
+  // 붙어 있는 조각들은 한 아이콘이다. 가르면 조각이 나와 아무도 쓸 수 없다.
+  const glyph = {
+    id: "1:300",
+    type: "FRAME",
+    absoluteBoundingBox: at(0, 14),
+    absoluteRenderBounds: at(0, 14),
+    children: [part("1:301", 0, 6), part("1:302", 8, 6)]
+  };
+  assert.deepEqual(collectAssetNodes(glyph).map((asset) => asset.node.id), ["1:300"]);
+});
