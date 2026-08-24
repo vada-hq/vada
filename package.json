@@ -6,7 +6,7 @@
     "test": "node scripts/run-tests.mjs",
     "validate": "node apps/spec-service/src/validate-specs.mjs",
     "e2e": "npm --prefix apps/vada-web run e2e",
-    "build": "npm --prefix apps/figma-plugin run build && npm --prefix apps/vada-web run build",
+    "build": "npm --prefix apps/vada-web run build",
     "check": "npm run test && npm run validate && npm run e2e && npm run build"
   }
 }

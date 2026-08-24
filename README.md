@@ -7,8 +7,7 @@ Figma에서 선택한 화면을 분석하여 개발 구현에 사용할 JSON 명
 ```text
 figma-spec-v2/
 ├─ apps/
-│  ├─ figma-plugin/    # [파이프라인] 화면 선택, Figma 구조 수집, 검토 UI
-│  ├─ spec-service/    # [파이프라인] 플러그인과 로컬 화면 JSON 사이의 브리지
+│  ├─ spec-service/    # [파이프라인] Figma REST 수신·초안 추출·명세 검증 CLI
 │  └─ vada-web/        # [제품 vada] 명세 번들로 구현하는 프론트엔드
 ├─ packages/
 │  └─ contracts/       # [파이프라인] JSON 형식과 검증 규칙의 유일한 원본
@@ -33,8 +32,8 @@ figma-spec-v2/
 
 화면 하나의 모든 산출물은 `specs/figma/<wireframeKey>/screens/<screenId>/` 폴더 하나에 모인다.
 
-- `screen.json`: 동작 명세 (AI가 작성하고 플러그인은 읽기 전용으로 보여준다 — `docs/decisions/plugin-role.md`)
-- `figma.raw.json`: 플러그인이 저장한 Figma REST 형식의 원본
+- `screen.json`: 동작 명세 (AI가 작성한다 — `docs/decisions/plugin-role.md`)
+- `figma.raw.json`: Figma REST에서 받은 원본
 - `figma.design.json`: 원본을 결정적 규칙으로 정규화한 구현용 디자인 문서
 - `assets/*.svg`, `reference.png`: 벡터 추출 증거물과 검증 기준 스크린샷
 

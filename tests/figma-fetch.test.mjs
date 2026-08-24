@@ -92,9 +92,10 @@ test("저장된 화면의 폴더 이름과 design의 이름이 말하는 screenI
 });
 
 test("tests 폴더의 검사 파일은 정확히 한 앱이 돌린다", async () => {
-  // 두 앱이 같은 폴더를 나눠 돌린다. 목록이 손으로 적혀 있어, 새 파일을 어느 쪽에도
-  // 넣지 않으면 **검사가 있는데 아무도 안 돌린다**(figma-fetch.test.mjs가 실제로
-  // 그랬다). 준수 검사가 세 화면만 보고 있던 것과 같은 함정이다.
+  // 목록이 손으로 적혀 있어, 새 파일을 넣지 않으면 **검사가 있는데 아무도 안
+  // 돌린다**(figma-fetch.test.mjs가 실제로 그랬다). 준수 검사가 세 화면만 보고
+  // 있던 것과 같은 함정이다. 플러그인이 사라져 지금은 앱이 하나지만, 둘로 나뉜
+  // 적이 있었으므로 겹침 검사도 그대로 둔다.
   const { readdir, readFile } = await import("node:fs/promises");
   const { join, dirname } = await import("node:path");
   const { fileURLToPath } = await import("node:url");
@@ -104,7 +105,7 @@ test("tests 폴더의 검사 파일은 정확히 한 앱이 돌린다", async ()
     name.endsWith(".test.mjs")
   );
   const scripts = await Promise.all(
-    ["apps/figma-plugin", "apps/spec-service"].map(async (app) =>
+    ["apps/spec-service"].map(async (app) =>
       JSON.parse(await readFile(join(repoRoot, app, "package.json"), "utf8")).scripts.test
     )
   );

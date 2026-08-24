@@ -87,3 +87,15 @@ test('EVT-TASK-02: 업무 보드로 돌아가는 길이 아직 정해지지 않�
   await page.getByRole('button', { name: '업무 보드로' }).click()
   await expect(page.getByText(/어느 행사의 보드인지가 필요한데/)).toBeVisible()
 })
+
+// 명세의 구멍을 드러내려고 던진 예외가 백지가 되면 가장 안 보이는 모양이 된다.
+test('렌더 중 예외는 백지가 아니라 내용으로 드러난다', async ({ page }) => {
+  // 없는 행사를 물으면 행사 머리가 던진다 — 그 자리는 '없을 수 있는 자리'로
+  // 선언돼 있지 않다(업무 상세와 다르다). 백지가 아니라 메시지가 나와야 한다.
+  await page.goto('/#/EVT-TASK-01?eventId=없는행사')
+
+  const alert = page.getByRole('alert')
+  await expect(alert).toContainText('화면을 그리지 못했습니다')
+  await expect(alert).toContainText('EVT-TASK-01')
+  await expect(alert).toContainText('event.workspace')
+})

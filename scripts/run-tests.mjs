@@ -1,4 +1,4 @@
-// 세 앱의 테스트를 차례로 돌리고, 무슨 일이 있었는지 파일로 남긴다.
+// 두 앱의 테스트를 차례로 돌리고, 무슨 일이 있었는지 파일로 남긴다.
 //
 // 자동 테스트 게이트가 실패를 알릴 때 출력이 비어 있는 일이 반복됐다. 출력이
 // 없으면 원인을 추측할 수밖에 없고, 실제로 세 번 추측하고 세 번 다 빗나갔다.
@@ -15,7 +15,7 @@ const logPath = join(repoRoot, ".test-last.log");
 // 이쪽은 덮어쓰지 않는다. 드물게 나는 일은 쌓여야 보인다.
 const flakePath = join(repoRoot, ".test-flakes.log");
 
-const APPS = ["apps/figma-plugin", "apps/spec-service", "apps/vada-web"];
+const APPS = ["apps/spec-service", "apps/vada-web"];
 
 // 검사 전체에 허용하는 시간. 넘기면 전부 통과했더라도 실패로 끝낸다.
 //

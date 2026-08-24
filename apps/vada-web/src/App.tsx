@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { DevScreenPicker } from './components/DevScreenPicker'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScreenRouter } from './screens/ScreenRouter'
 import type { ScopeDraft, ScopeStore } from './state/scopes'
 
@@ -62,14 +63,19 @@ function App() {
 
   return (
     <>
-      <ScreenRouter
-        screenId={screenId}
-        screenParams={screenParams}
-        scopes={scopes}
-        onChangeScope={changeScope}
-        onNavigate={navigate}
-        onScopeEvent={handleScopeEvent}
-      />
+      {/* 렌더 중 throw가 백지가 되지 않게 받는다. 이 저장소는 명세의 구멍을
+          조용히 넘기지 않고 던지므로, 받는 자리가 없으면 그 던짐이 가장 안
+          보이는 모양이 된다. 화면을 옮기면 경계가 다시 그려 본다. */}
+      <ErrorBoundary screenId={screenId}>
+        <ScreenRouter
+          screenId={screenId}
+          screenParams={screenParams}
+          scopes={scopes}
+          onChangeScope={changeScope}
+          onNavigate={navigate}
+          onScopeEvent={handleScopeEvent}
+        />
+      </ErrorBoundary>
       {import.meta.env.DEV ? (
         <DevScreenPicker screenId={screenId} onNavigate={navigate} />
       ) : null}
