@@ -1,0 +1,6 @@
+{
+  "schemaVersion": 1,
+  "fileKey": "B5OHqrl9bbvXCUkhME4Sfo",
+  "name": "와이어프레임",
+  "note": "이 wireframe이 비추는 Figma 문서. 비밀이 아니다 — 파일 주소에 그대로 들어 있다(figma.com/design/<fileKey>/...). 읽으려면 개인 액세스 토큰이 따로 필요하고, 그것은 저장소에 두지 않는다(.env의 FIGMA_TOKEN)."
+}

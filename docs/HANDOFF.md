@@ -16,6 +16,16 @@
 - **브리지**(apps/spec-service): `127.0.0.1:3846` 고정, 저장 루트 `specs/figma`. 화면 GET/PUT(ETag/If-Match), figma-raw·자산(svg)·reference(png) PUT, 카탈로그 GET.
 - **등록 노드 계약(2026-08-18)**: 요소의 `source.nodeId`는 그 요소의 모든 부분(라벨·컨트롤·보조 텍스트)을 포함하는 **가장 안쪽 노드**다(element-types.md). 검증기가 식별 텍스트(`label`, group은 `title`)를 등록 노드 하위 트리에서 **정확 일치**로 찾아 강제한다(부분 일치로 하면 placeholder가 라벨을 품기만 해도 통과한다). ONB-01은 안쪽 컨트롤을 등록하고 있어 6건을 래퍼로 마이그레이션했다. 이 계약 덕에 사람이 등록하든 AI가 design.json에서 뽑든 같은 답이 나온다.
 - **화면 폴더 신원 계약(2026-08-18)**: 화면 폴더의 신원은 Figma 노드 id다(`figma.raw.json`의 `document.id` = `screen.json`의 `source.nodeId`). 폴더에 이미 다른 노드의 산출물이 있으면 screen.json·figma-raw PUT을 **409로 거부**한다. 원본은 번들에서 가장 먼저 저장되므로 여기서 막으면 자산 11개·reference.png까지 함께 보호된다. 같은 노드의 재저장(디자인 수정 후 재추출)은 정상 허용. 이 보호 이전에는 screenId를 잘못 지정하면 **reference.png가 조용히 다른 화면 것으로 바뀌었고**, reference는 존재 여부만 검사되므로 어떤 검증도 이를 잡지 못했다. Origin 검사: 헤더 없음(로컬 도구)·`null`(플러그인)·`*.figma.com`만 허용, 그 외 403(null-origin 위조 표적 공격은 잔존 위험 — 필요 시 공유 토큰으로 격상).
+- **REST로 직접 받는다(2026-08-24)**: 화면 하나의 산출물을 **플러그인을 열지 않고** 받는다. `node apps/spec-service/src/fetch-figma-screen.mjs vada-wireframe <screenId>` 한 줄이면 `figma.raw.json`·자산·`reference.png`에 `figma.design.json`까지 만들어진다.
+  - **왜 되는가**: 플러그인이 쓰던 `exportAsync({ format: "JSON_REST_V1" })`이 Figma 문서상 "REST API가 주는 것과 같은 JSON"이다. EVT-00A로 실측했다 — 노드 212개, 속성 차이 0건, 값 차이 0건, 직렬화 길이까지 187187로 같다.
+  - **`geometry=paths`를 붙이면 안 된다** — 벡터 경로가 붙어 1.8배가 되고, 플러그인이 저장해 온 것과 다른 물건이 된다.
+  - **자산의 단위를 이제 로컬에서 정한다**(`collectAssetNodes`를 받은 원본에 돌린다). 플러그인 안에서 정하던 때는 규칙을 고치려면 사람이 Figma를 열어 다시 저장해야 했다. **BACKLOG의 '자산 단위 규칙' 항목이 이제 재저장 없이 고칠 수 있는 것이 됐다.**
+  - **다른 것 둘**: reference.png는 크기(2588×1492)·색 깊이·색 형식이 같고 압축만 다르다. 자산 SVG는 20개 중 13개가 다른데, 그림은 같고 **크기 기준이 다르다** — 플러그인은 와이어프레임의 0.875배를 경로 좌표에 굽고 REST는 viewBox에 맞춘다. design 대조·자산 대조 전부 통과한다(양쪽이 같은 파일을 본다).
+  - **화면 신원은 이름이 말한다**: 플러그인은 pluginData(비공개, REST가 못 읽음)에 적지만 읽을 필요가 없다 — 프레임 이름에 screenId가 들어 있다(`운영 — 행사 · EVT-00A · …`). 새 화면은 이름으로 찾고, 이미 있는 폴더는 그 폴더의 노드를 다시 받는다. 폴더 신원 계약(다른 노드 덮어쓰기 금지)은 `packages/contracts/src/screen-folder-identity.mjs`가 한 곳에서 판정하고 브리지와 이 명령이 함께 쓴다.
+  - **화면 목록을 볼 수 있다**: `node apps/spec-service/src/list-figma-screens.mjs vada-wireframe --todo`. 와이어프레임에 **화면 85개**가 있고 그중 11개가 명세됐다. 다음 화면을 제품 순서로 고르기로 했는데(implementation-methodology.md) 그 순서를 이제 Figma를 열지 않고 본다.
+  - **토큰**: 저장소 루트 `.env`의 `FIGMA_TOKEN`(git 제외). 필요한 권한은 `file_content:read` 하나뿐이고 file content에는 쓰기 권한 자체가 없다. 파일 key는 비밀이 아니므로 `specs/figma/<wireframe>/figma-file.json`에 둔다.
+  - **한도**: Tier 1, 분당 10~20회. **파일이 속한 플랜이 정한다 — 토큰 주인의 좌석이 아니다.** 화면 하나에 3~4회면 된다.
+  - **플러그인은 아직 지우지 않는다.** 두 경로가 같은 결과를 낸다는 것은 확인했지만, 플러그인만 하는 일(화면 신원 등록 UI)이 남아 있고 지우는 것은 되돌리기 어렵다.
 - **정규화**(packages/contracts + generate-figma-design.mjs): raw→design 결정적 변환(AI 불필요), `source.hash`(raw SHA-256)로 신선도 추적. 원본 저장→정규화 자동 연결은 보류 — 저장 후 CLI를 수동 실행한다.
 - **대조가 양방향이 됐다(2026-08-24)**: 지금까지 검사는 전부 **명세 → 화면** 한 방향이었다. 명세가 가리키는 자리를 화면이 그렸는지는 봤지만, **design에 있는데 명세에 없는 것은 아무도 보지 않았다.** TASK-01의 헤더 버튼 `18:86`('업무 추가')이 그렇게 조용히 빠져 있었고, EVT-00A 사이클에서 헤더에 자리를 내다 우연히 드러났다. 검증기가 이제 반대 방향을 본다 — design의 **상호작용 노드**(`Btn`·`Button`·`Text Input`·`Dropdown`) 중 등록된 어느 요소의 하위 트리에도 없는 것을 오류로 알린다. 이름이 곧 신호라 판정이 흔들리지 않는 것들만 본다. 문구 없는 노드는 세지 않는다 — 명세에 적을 라벨이 없다(선택지가 비어 있는 드롭다운, 항목의 '…' 메뉴). 셸은 `shell.json`의 `excludeNodeNames`로 빠진다. 붙일 때 11개 화면에서 **0건**이었고, `18:86`을 도로 지워 실제로 그 한 줄을 짚는 것을 확인했다.
 - **검증**(validate-specs.mjs): 스키마(ajv) + 교차 참조(중복 fieldKey·nodeId, 출처 key·인자 매핑, enabledWhen/resetOnChangeOf, 상태 스코프, 이동 대상, design nodeId·자산·reference, hash 신선도). 오류 시 종료 코드 1.
@@ -23,7 +33,7 @@
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md). 플러그인은 meta를 저장 왕복에서 보존하고(실전 검증됨) 새 텍스트 필드 편집란은 스키마 주도로 자동 생성된다.
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다. 전부 스키마 주도라 플러그인 편집 UI는 자동 생성된다.
-- **테스트**: 플러그인 89, spec-service·변환기·검증 89, vada-web(vitest) 150 + Playwright e2e 32 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
+- **테스트**: 플러그인 89, spec-service·변환기·검증 94, vada-web(vitest) 150 + Playwright e2e 32 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`). 플러그인은 `manifest.json`을 Figma 데스크톱에서 불러온다.
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). `tests/element-type-registry.test.mjs`가 enum↔스키마 파일↔플러그인 옵션↔플러그인 `schemaByType`의 일치를 강제한다.
 - **추출기가 화면을 보는 눈(2026-08-24)**: 초안 재현율을 **36/67 → 41/67(61%)**, 헛것(등록되지 않은 것을 뽑음)을 **41 → 19개**로 고쳤다. 막혔던 네 곳이다.
   - **이름표 없는 것을 못 봤다**: 필드는 직계 자식에 `Label` 노드를, 목록은 묶음 제목을 요구했다. 목록 화면의 검색칸(EVT-00A `20:4153`)과 카드 목록(`20:4167`)이 통째로 안 보여 초안에 버튼 4개만 나왔다. 라벨 없이 홀로 선 컨트롤과 제목 없는 되풀이를 각각 길로 냈다. 라벨은 그려진 문구에서 짐작하고 **짐작임을 질문으로 알린다.**
@@ -110,11 +120,13 @@ EVT-00A(행사 목록) 사이클(`docs/pilot-evt-00a.md`) 뒤에 **추출기를 
 **다음 후보**
 
 1. **업무 상세** — 제품에서 가장 급하다(MY-01·TASK-01·OPS-MEET-01A가 막혀 있다).
-   새 계열이므로 고친 추출기의 첫 시험이기도 하다. **막혀 있다** — `figma.raw.json`이
-   없어 사용자가 Figma에서 화면을 지정하고 `Figma 원본 JSON 저장`을 눌러야 한다.
-2. **남은 재현율 39%** — 나란한 버튼이 select인지 낱개 버튼인지, 되풀이가 summary인지
+   와이어프레임에서 이름은 `EVT-TASK-02`(업무 상세 — 관련 문서·결과물, `25:1565`)다.
+   **더는 막혀 있지 않다** — `fetch-figma-screen.mjs`로 바로 받는다.
+2. **자산 단위 규칙 고치기** — 트리거는 이미 충족돼 있었고(OPS-00 `16:615`,
+   OPS-MEET-01A `18:720`), 이제 재저장 없이 고쳐서 바로 다시 뽑을 수 있다.
+3. **남은 재현율 39%** — 나란한 버튼이 select인지 낱개 버튼인지, 되풀이가 summary인지
    itemList인지. 둘 다 이 제품의 디자인 시스템 지식이라 `interpretation.md`의 기계
-   판독 승격이 필요하다. 파이프라인만으로는 갈 수 없는 자리다.
+   판독 승격이 필요하다.
 
 
 ## 2026-08-24 정리: 화면당 손 작업 줄이기
@@ -143,7 +155,16 @@ EVT-00A(행사 목록) 사이클(`docs/pilot-evt-00a.md`) 뒤에 **추출기를 
   조각으로 저장돼 있어 그림 대조를 할 수 없다. 대조기가 `usesVectorUnitAssets`로
   **유도해서** 건너뛴다(조각은 Figma가 붙이는 이름이 `Vector`다). 손으로 든 목록이
   아니므로 Figma에서 다시 저장하면 판정이 저절로 넘어간다.
-- **게이트 간헐 실패가 아직 있다** — `Tests  no tests` + 종료 코드 1로 나타난다.
+- **게이트 간헐 실패 — 원인이 처음으로 좁혀졌다(2026-08-24)**: `.test-flakes.log`에 쌓인
+  세 번이 **전부 같은 모양**이었다. dom은 `Vitest failed to find the current suite`가
+  `src/test/setup.ts`의 `afterEach`에서, node는 `Cannot read properties of undefined
+  (reading 'config')`가 `describe`에서 난다. 파일 열넷이 하나도 못 돌고 2~3초 만에 죽는다.
+  dom의 격리를 풀어 두었으므로(`isolate: false`) setup은 **워커마다 한 번** 도는데, 그
+  워커가 수집 문맥이 닫힌 뒤 재활용되면 이 모양이 된다. `groupOrder`는 순서만 가르지
+  프로세스를 가르지 않아 dom의 fork를 node가 물려받을 수 있었다. **node 프로젝트를
+  다른 풀(`threads`)로 옮겼다.** 덤으로 vada-web 검사가 60초 → 33초가 됐다.
+  **아직 고쳤다고 말하지 않는다** — 세 번뿐인 일이라 통과 한 번으로는 증명되지 않는다.
+- (옛 기록) **게이트 간헐 실패** — `Tests  no tests` + 종료 코드 1로 나타난다.
   `scripts/run-tests.mjs`가 한 번 다시 돌리고 증거를 `.test-flakes.log`에 쌓는다.
   2026-08-24에 **재시도까지 연속 실패한 사례가 처음 나왔다**(바로 다시 돌리면 통과).
   원인 미상. 반증한 것: CI 환경변수, 연속 6회 반복, 동시 실행 2개, CPU 부하,

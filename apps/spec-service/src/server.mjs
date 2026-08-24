@@ -1,4 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
+import {
+  conflictsWithScreenFolder,
+  screenFolderConflictMessage
+} from "../../../packages/contracts/src/screen-folder-identity.mjs";
 import { readFile, mkdir, readdir, rename, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { basename, dirname, join, resolve, sep } from "node:path";
@@ -649,14 +653,8 @@ async function readJsonField(filePath, pick) {
   }
 }
 
-// 화면 폴더의 신원은 Figma 노드 id다. screenId를 잘못 지정한 채 저장하면
-// 원본·자산 11개·reference.png가 한꺼번에 다른 화면 것으로 바뀌고,
-// reference.png는 시각 검증의 유일한 기준이라 어떤 검사도 이를 잡지 못한다.
+// 판정은 packages/contracts가 갖는다 — REST로 내려받는 길도 같은 계약을 지킨다.
 async function assertScreenFolderIdentity({ filePath, incomingNodeId, screenId }) {
-  if (typeof incomingNodeId !== "string" || !incomingNodeId) {
-    return;
-  }
-
   const directory = dirname(filePath);
   const knownNodeId =
     (await readJsonField(
@@ -668,11 +666,11 @@ async function assertScreenFolderIdentity({ filePath, incomingNodeId, screenId }
       (value) => value?.source?.nodeId
     ));
 
-  if (knownNodeId !== null && knownNodeId !== incomingNodeId) {
+  if (conflictsWithScreenFolder(knownNodeId, incomingNodeId)) {
     throw new HttpError(
       409,
       "screen_identity_mismatch",
-      `'${screenId}' 폴더는 Figma 노드 ${knownNodeId}의 산출물입니다. 지금 저장하려는 화면은 ${incomingNodeId}이라 덮어쓰지 않았습니다. 작업 화면의 screenId를 확인하세요.`
+      screenFolderConflictMessage({ screenId, knownNodeId, incomingNodeId })
     );
   }
 }

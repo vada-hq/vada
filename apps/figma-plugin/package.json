@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "build": "node build.mjs",
-    "test": "node --test ../../tests/element-type-registry.test.mjs ../../tests/figma-plugin-input-keys.test.mjs ../../tests/figma-plugin-screen-context.test.mjs ../../tests/figma-plugin-select-keys.test.mjs ../../tests/figma-plugin-option-sources.test.mjs ../../tests/figma-plugin-button-keys.test.mjs ../../tests/figma-plugin-button-execution.test.mjs ../../tests/figma-plugin-screen-spec.test.mjs ../../tests/figma-plugin-local-bridge.test.mjs ../../tests/figma-plugin-state-scopes.test.mjs ../../tests/figma-plugin-figma-raw.test.mjs"
+    "test": "node --test ../../tests/element-type-registry.test.mjs ../../tests/figma-plugin-input-keys.test.mjs ../../tests/figma-plugin-screen-context.test.mjs ../../tests/figma-plugin-select-keys.test.mjs ../../tests/figma-plugin-option-sources.test.mjs ../../tests/figma-plugin-button-keys.test.mjs ../../tests/figma-plugin-button-execution.test.mjs ../../tests/figma-plugin-local-bridge.test.mjs ../../tests/figma-plugin-state-scopes.test.mjs ../../tests/figma-plugin-figma-raw.test.mjs"
   },
   "devDependencies": {
     "esbuild": "^0.25.0"

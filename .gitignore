@@ -7,3 +7,6 @@ apps/vada-web/test-results/
 apps/vada-web/playwright-report/
 .test-last.log
 .test-flakes.log
+
+# Figma 개인 액세스 토큰. 절대 커밋하지 않는다.
+.env

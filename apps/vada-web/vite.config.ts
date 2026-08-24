@@ -64,7 +64,7 @@ export default defineConfig({
           // 애초에 이득의 출처가 병렬이 아니라 환경 재사용이기 때문이다.
           maxWorkers: 1,
           // 두 프로젝트가 워커 수가 다르면 순서 묶음을 갈라야 한다(vitest가
-          // 요구한다). 갈라 두면 dom과 node가 워커 풀을 공유하지 않는다.
+          // 요구한다).
           sequence: { groupOrder: 0 },
         },
       },
@@ -74,6 +74,22 @@ export default defineConfig({
           name: 'node',
           include: ['src/**/*.test.ts'],
           environment: 'node',
+          // **풀을 갈라 둔다.** groupOrder는 순서만 가르지 프로세스를 가르지
+          // 않는다 — dom이 끝난 뒤 그 fork를 node가 물려받을 수 있다.
+          //
+          // 위에서 dom의 격리를 풀었으므로(isolate:false) setup은 파일마다가
+          // 아니라 **워커마다 한 번** 돈다. 그 워커가 수집 문맥이 닫힌 뒤에
+          // 재활용되면 setup의 afterEach가 문맥 밖에서 걸리고, 그 순간 파일
+          // 열넷이 하나도 못 돌고 죽는다 — `.test-flakes.log`에 쌓인 세 번이
+          // 전부 그 모양이다(dom은 "Vitest failed to find the current suite",
+          // node는 "Cannot read properties of undefined (reading 'config')").
+          //
+          // 이 파일들은 순수 로직이라 jsdom을 쌓지 않는다. 스레드가 "Worker
+          // exited unexpectedly"로 죽던 경로는 jsdom 쪽이었으므로 여기는 안전하다.
+          //
+          // **아직 고쳤다고 말하지 않는다.** 세 번뿐인 일이라 통과 한 번으로는
+          // 증명되지 않는다. 다시 나면 이 줄부터 의심할 것.
+          pool: 'threads',
           sequence: { groupOrder: 1 },
         },
       },

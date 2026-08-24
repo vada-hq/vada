@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "figma-file.schema.json",
+  "title": "Figma file identity",
+  "description": "이 wireframe이 비추는 Figma 문서. REST로 원본을 내려받을 때 쓴다. 비밀이 아니므로 저장소에 둔다 — 파일 주소에 그대로 들어 있는 값이다. 토큰은 여기 두지 않는다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "fileKey"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "fileKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9]{10,64}$",
+      "description": "figma.com/design/<fileKey>/... 의 그 값."
+    },
+    "name": { "type": "string", "minLength": 1 },
+    "note": { "type": "string", "minLength": 1 }
+  }
+}

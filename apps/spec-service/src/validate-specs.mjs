@@ -22,7 +22,8 @@ const CATALOG_SCHEMA_FILES = [
   "mutations.schema.json",
   "shell.schema.json",
   "element-action.schema.json",
-  "figma-design.schema.json"
+  "figma-design.schema.json",
+  "figma-file.schema.json"
 ];
 
 async function createValidators() {
@@ -65,6 +66,7 @@ async function createValidators() {
     flows: ajv.getSchema("flows.schema.json"),
     mutations: ajv.getSchema("mutations.schema.json"),
     shell: ajv.getSchema("shell.schema.json"),
+    figmaFile: ajv.getSchema("figma-file.schema.json"),
     figmaDesign: ajv.getSchema("figma-design.schema.json"),
     elementPropertyOrder,
     elements
@@ -209,6 +211,8 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
   const flowsCatalog = await readOptionalOwnCatalog("flows.json", validators.flows);
   const shellCatalog = await readOptionalOwnCatalog("shell.json", validators.shell);
   const mutations = await readOptionalOwnCatalog("mutations.json", validators.mutations);
+  // Figma 문서 신원. 없어도 되지만(플러그인으로만 저장해 온 wireframe) 있으면 검사한다.
+  await readOptionalOwnCatalog("figma-file.json", validators.figmaFile);
 
   const screensDir = join(wireframeDir, "screens");
   const entries = await readdir(screensDir, { withFileTypes: true });

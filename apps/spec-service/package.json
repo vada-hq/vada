@@ -7,7 +7,7 @@
     "draft:screen-spec": "node src/draft-screen-spec.mjs",
     "start": "node src/cli.mjs",
     "validate": "node src/validate-specs.mjs",
-    "test": "node --test ../../tests/spec-service.test.mjs ../../tests/figma-design.test.mjs ../../tests/spec-validation.test.mjs ../../tests/screen-draft.test.mjs ../../tests/screen-flow.test.mjs ../../tests/spec-precedent.test.mjs ../../tests/spec-provenance.test.mjs"
+    "test": "node --test ../../tests/spec-service.test.mjs ../../tests/figma-design.test.mjs ../../tests/figma-fetch.test.mjs ../../tests/spec-validation.test.mjs ../../tests/screen-draft.test.mjs ../../tests/screen-flow.test.mjs ../../tests/spec-precedent.test.mjs ../../tests/spec-provenance.test.mjs"
   },
   "engines": {
     "node": ">=20"
