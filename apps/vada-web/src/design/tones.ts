@@ -92,7 +92,16 @@ export const STATE_CHIP: Record<string, string> = {
   green: 'border border-green-200 bg-green-50 text-green-700',
   yellow: 'border border-yellow-200 bg-yellow-50 text-yellow-700',
   red: 'border border-red-200 bg-red-50 text-red-700',
+  orange: 'border border-orange-200 bg-orange-50 text-orange-700',
 }
+
+/**
+ * 정보 딱지(EVT-00A 20:4195). 색이 하나뿐이라 이름을 받지 않는다.
+ *
+ * 상태 딱지와 다른 것이다 — 상태는 무엇이냐를 말하므로 색이 갈리지만, 이것은
+ * 행사마다 개수만 다른 요약 문구라 전부 같은 무채색이다.
+ */
+export const INFO_CHIP = 'border border-gray-100 bg-gray-50 text-gray-600'
 
 /** 표에 없는 톤은 조용히 색 없이 지나가지 않고 무채색으로 드러난다. */
 export const NEUTRAL_CHIP = 'border-gray-200 bg-white text-gray-700'

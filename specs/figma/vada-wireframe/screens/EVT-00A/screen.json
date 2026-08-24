@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-00A",
+  "meta": {
+    "eyebrow": "운영 · 행사",
+    "title": "행사",
+    "description": "기획 중이거나 운영 및 후속 정리가 진행 중인 행사를 관리합니다.",
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:4058",
+    "name": "운영 — 행사 · EVT-00A · 행사 목록 — 일반 구성원",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:4142",
+        "name": "EventListScreen",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "완료된 행사 보기 →",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "완료된 행사 목록 화면이 아직 명세되지 않았습니다. 같은 화면을 다른 조건으로 보는 것인지 별도 화면인지도 정해지지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4153",
+        "name": "Text Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "eventQuery",
+        "label": "행사명 검색",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4155",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "eventStatus",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "all",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.status"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4167",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "event.list",
+        "params": {
+          "query": {
+            "fieldKey": "eventQuery"
+          },
+          "status": {
+            "fieldKey": "eventStatus"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "label": "행사 상세 보기",
+          "note": "행사 상세 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

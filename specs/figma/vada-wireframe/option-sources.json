@@ -198,6 +198,30 @@
           "label": "내 업무"
         }
       ]
+    },
+    {
+      "key": "event.status",
+      "type": "static",
+      "description": "행사 목록을 진행 단계로 거르는 버튼 묶음. 선택지는 디자인에 고정돼 있다. 완료된 행사는 이 목록에 오지 않으므로 선택지에도 없다 — 머리의 별도 이동으로 본다.",
+      "params": [],
+      "options": [
+        {
+          "value": "all",
+          "label": "전체"
+        },
+        {
+          "value": "planning",
+          "label": "기획 중"
+        },
+        {
+          "value": "running",
+          "label": "진행 중"
+        },
+        {
+          "value": "wrapUp",
+          "label": "후속 정리 중"
+        }
+      ]
     }
   ]
 }

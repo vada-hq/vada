@@ -28,6 +28,10 @@ interface AppShellProps {
   title: string
   description?: string | null
   footerNote?: string | null
+  // 머리 오른쪽의 화면 동작. 셸이 아니라 화면의 요소다 — 그려지는 자리만 여기다.
+  // 이 자리가 없던 동안 TASK-01의 '업무 추가'(18:90)는 명세에도 화면에도 없었고,
+  // 대조기는 등록 노드 밖을 보지 않아 아무도 몰랐다.
+  headerAction?: ReactNode
   onNavigate: (screenId: string) => void
   children: ReactNode
 }
@@ -38,6 +42,7 @@ export function AppShell({
   title,
   description,
   footerNote,
+  headerAction,
   onNavigate,
   children,
 }: AppShellProps) {
@@ -110,11 +115,16 @@ export function AppShell({
       </aside>
 
       <div className="min-w-0 flex-1">
-        <header className="border-b border-gray-200 bg-white px-8 py-4">
-          {eyebrow === null || eyebrow === undefined ? null : (
-            <span className="block text-xs text-gray-500">{eyebrow}</span>
+        <header className="flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-8 py-4">
+          <span className="min-w-0">
+            {eyebrow === null || eyebrow === undefined ? null : (
+              <span className="block text-xs text-gray-500">{eyebrow}</span>
+            )}
+            <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+          </span>
+          {headerAction === undefined ? null : (
+            <span className="shrink-0">{headerAction}</span>
           )}
-          <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
         </header>
         <main className="px-8 py-6">
           {description === null || description === undefined ? null : (

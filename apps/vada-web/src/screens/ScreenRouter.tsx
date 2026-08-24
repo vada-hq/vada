@@ -1,4 +1,5 @@
 import { PageCard } from '../components/PageCard'
+import { EVT00AScreen } from './EVT00AScreen'
 import { HOME01KScreen } from './HOME01KScreen'
 import { INV01Screen } from './INV01Screen'
 import { MY01Screen } from './MY01Screen'
@@ -71,6 +72,10 @@ export function ScreenRouter({
   if (screenId === 'OPS-MEET-01A') {
     // 회의 목록이다. 거르는 값(검색어)은 화면 안에서만 쓰므로 스코프에 담지 않는다.
     return <OPSMEET01AScreen onNavigate={onNavigate} />
+  }
+  if (screenId === 'EVT-00A') {
+    // 행사 목록이다. 거르는 값(검색어·진행 단계)은 화면 안에서만 쓴다.
+    return <EVT00AScreen onNavigate={onNavigate} />
   }
   if (screenId === 'TASK-01') {
     // 칸반 보드다. 보는 범위는 목록을 거르는 화면 안의 값이라 스코프에 담지 않는다.

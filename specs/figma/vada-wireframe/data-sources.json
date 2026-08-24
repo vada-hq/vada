@@ -625,6 +625,69 @@
           ]
         }
       ]
+    },
+    {
+      "key": "event.list",
+      "shape": "list",
+      "description": "진행 중인 행사 목록. 완료된 행사는 오지 않는다 — 머리의 별도 이동이 그것을 본다. 행사명(query)과 진행 단계(status)로 걸러서 서버가 준다.",
+      "params": [
+        "query",
+        "status"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/events"
+      },
+      "messages": {
+        "loading": "행사를 불러오는 중입니다",
+        "empty": "행사가 없습니다",
+        "error": "행사를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "status",
+          "description": "진행 단계를 알리는 말. 예: 기획 중 · 진행 중 · 후속 정리 중"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지에 배정된 색 이름. 단계가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+        },
+        {
+          "key": "startAt",
+          "description": "행사가 열리는 때. 정해지지 않았으면 완성된 안내로 온다. 예: 2026. 08. 20 10:00 · 일시 미정"
+        },
+        {
+          "key": "place",
+          "description": "행사 장소. 정해지지 않았으면 완성된 안내로 온다. 예: ERICA 체육관 · 장소 미정"
+        },
+        {
+          "key": "host",
+          "description": "맡은 부서. 정해지지 않았으면 완성된 안내로 온다. 예: 학술체육부 · 담당 미정"
+        },
+        {
+          "key": "highlights",
+          "description": "이 행사에서 지금 눈에 띄어야 하는 것들. 완성된 문구로 오고 개수가 행사마다 다르다 — 기획 중이면 무엇이 비었는지, 끝난 뒤면 실제 참석자 수다.",
+          "fields": [
+            {
+              "key": "label",
+              "description": "딱지에 쓰이는 완성된 문구. 예: 신청자 142/200명 · 기본 정보 입력 필요"
+            }
+          ]
+        },
+        {
+          "key": "alert",
+          "description": "아직 닫히지 않은 것을 알리는 완성된 문구. 없으면 오지 않는다. 예: 미완료 업무 3건 · 미정리 문서 2건",
+          "optional": true
+        },
+        {
+          "key": "lastModifiedNote",
+          "description": "마지막으로 손댄 때를 알리는 완성된 문구. 오늘·어제 같은 상대적인 말이 섞이므로 화면이 유도할 수 없다. 예: 마지막 수정 오늘 10:30"
+        }
+      ]
     }
   ]
 }

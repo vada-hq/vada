@@ -15,6 +15,23 @@
   "elements": [
     {
       "source": {
+        "nodeId": "18:86",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "업무 추가",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "업무 추가 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
         "nodeId": "18:95",
         "name": "Container",
         "figmaType": "FRAME"

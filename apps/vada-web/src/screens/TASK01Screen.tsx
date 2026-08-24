@@ -13,7 +13,7 @@ import { readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import { elementByNodeId, task01 } from '../spec/screens'
-import type { ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
+import type { ButtonSpec, ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 
 // 상시 업무 칸반 보드(TASK-01).
 //
@@ -24,6 +24,7 @@ import type { ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 const SCREEN = 'TASK-01'
 
 const NODE = {
+  addTask: '18:86',
   alerts: '18:95',
   scope: '18:122',
   columns: ['18:129', '18:174', '18:259', '18:286'],
@@ -38,6 +39,7 @@ const ASSET = {
     mineCount: '18:110',
     unassignedCount: '18:116',
   } as Record<string, string>,
+  addTask: '18:87',
   cardDate: '18:149',
   // 기한이 지난 카드는 아이콘까지 붉다(18:253이 #FB2C36, 나머지는 #99A1AF).
   // 자산 대조가 잡아낸 차이다 — 글자 색만 바꾸고 아이콘은 회색으로 두고 있었다.
@@ -49,10 +51,12 @@ interface TASK01ScreenProps {
 }
 
 export function TASK01Screen({ onNavigate }: TASK01ScreenProps) {
+  const addTask = elementByNodeId(task01, NODE.addTask).spec as ButtonSpec
   const alerts = elementByNodeId(task01, NODE.alerts).spec as SummarySpec
   const scope = elementByNodeId(task01, NODE.scope).spec as SelectSpec
 
   const [scopeValue, setScopeValue] = useState(scope.initialValue ?? '')
+  const [headerNote, setHeaderNote] = useState<string | null>(null)
   const alertRow = readObjectSource(alerts.dataSourceKey ?? '')
 
   const scopeSource = getOptionSource(scope.optionsSource.key)
@@ -65,7 +69,28 @@ export function TASK01Screen({ onNavigate }: TASK01ScreenProps) {
       title={task01.meta?.title ?? task01.screenId}
       description={task01.meta?.description}
       onNavigate={onNavigate}
+      headerAction={
+        <button
+          type="button"
+          data-node-id={NODE.addTask}
+          disabled={addTask.initiallyDisabled}
+          onClick={() => {
+            if (addTask.action.type === 'pending') {
+              setHeaderNote(addTask.action.note)
+            }
+          }}
+          className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
+        >
+          <FigmaAsset screenId={SCREEN} nodeId={ASSET.addTask} className="size-3.5" />
+          {addTask.label}
+        </button>
+      }
     >
+      {headerNote === null ? null : (
+        <p role="status" className="pb-3 text-xs font-medium text-gray-500">
+          {headerNote}
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-2 pb-4">
         <div
           data-node-id={NODE.alerts}

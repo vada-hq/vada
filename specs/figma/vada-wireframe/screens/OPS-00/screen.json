@@ -122,9 +122,9 @@
           }
         ],
         "action": {
-          "type": "pending",
+          "type": "navigate",
           "label": "행사 목록 보기",
-          "note": "행사 목록 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "EVT-00A"
         }
       }
     },

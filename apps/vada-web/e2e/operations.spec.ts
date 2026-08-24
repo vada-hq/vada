@@ -53,10 +53,11 @@ test('OPS-00: 공간 넷과 각 공간의 건수를 보여준다', async ({ page
 test('OPS-00: 아직 없는 화면으로 가는 카드는 사유를 남긴다', async ({ page }) => {
   await goToOperations(page)
 
-  // 상시 업무는 TASK-01이 생기면서 진짜 이동이 됐다. 아직 pending인 카드를 본다.
-  await page.getByText('행사', { exact: true }).click()
+  // 상시 업무·회의·행사는 화면이 생기면서 차례로 진짜 이동이 됐다.
+  // 남은 pending은 캘린더 하나다.
+  await page.getByText('캘린더', { exact: true }).click()
   await expect(
-    page.getByText('행사 목록 화면이 아직 명세되지 않았습니다.'),
+    page.getByText('월간 일정 화면이 아직 명세되지 않았습니다.'),
   ).toBeVisible()
 })
 

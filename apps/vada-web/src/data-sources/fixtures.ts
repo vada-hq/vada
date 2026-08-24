@@ -300,6 +300,51 @@ const MEETING_GROUPS: DataRow[] = [
   },
 ]
 
+// 행사 목록(EVT-00A 20:4167). 완료된 행사는 이 목록에 오지 않는다 — 머리의 별도
+// 이동이 그것을 본다. 딱지(highlights)는 행사마다 개수가 다르다.
+const EVENT_LIST: { status: string; row: DataRow }[] = [
+  {
+    status: 'planning',
+    row: {
+      title: '2026 소프트웨어융합대학 체육대회',
+      status: '기획 중',
+      statusTone: 'blue',
+      startAt: '2026. 08. 20 10:00',
+      place: 'ERICA 체육관',
+      host: '학술체육부',
+      highlights: [{ label: '신청자 142/200명' }, { label: '명단 확인 필요 6명' }],
+      lastModifiedNote: '마지막 수정 오늘 10:30',
+    },
+  },
+  {
+    status: 'planning',
+    row: {
+      title: '2026 신입생 환영 행사',
+      status: '기획 중',
+      statusTone: 'blue',
+      startAt: '일시 미정',
+      place: '장소 미정',
+      host: '담당 미정',
+      highlights: [{ label: '기본 정보 입력 필요' }],
+      lastModifiedNote: '마지막 수정 어제 16:20',
+    },
+  },
+  {
+    status: 'wrapUp',
+    row: {
+      title: '봄 축제 학생회 부스',
+      status: '후속 정리 중',
+      statusTone: 'orange',
+      startAt: '2026. 05. 28',
+      place: '한양대 ERICA 잔디밭',
+      host: '대외협력부',
+      highlights: [{ label: '실제 참석자 186명' }],
+      alert: '미완료 업무 3건 · 미정리 문서 2건',
+      lastModifiedNote: '마지막 수정 2026. 06. 02',
+    },
+  },
+]
+
 const VIEWER_NAME = '박해랑'
 
 function taskAlerts(): DataRow {
@@ -417,6 +462,11 @@ export const FILTERED_FIXTURES: Record<
       ...group,
       meetings: (group.meetings as DataRow[]).filter((row) => matchesQuery(row, query)),
     })).filter((group) => (group.meetings as DataRow[]).length > 0),
+  // 진행 단계는 '전체'가 아니면 그 단계만 남긴다. 검색은 행사 이름·장소·담당을 본다.
+  'event.list': ({ query = '', status = 'all' }) =>
+    EVENT_LIST.filter((event) => status === 'all' || event.status === status)
+      .map((event) => event.row)
+      .filter((row) => matchesQuery(row, query)),
   'my.tasks': ({ tab = 'todo', query = '' }) =>
     MY_TASKS.filter((task) => task.tab === tab)
       .map((task) => task.row)
