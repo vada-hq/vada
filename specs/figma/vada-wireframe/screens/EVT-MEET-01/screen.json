@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-MEET-01",
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-01",
+      "description": "어느 행사의 회의인지. 작업 공간의 갈피를 옮겨 들어올 때 그 행사가 정한다."
+    }
+  ],
+  "workspace": {
+    "key": "event",
+    "source": {
+      "tabs": "25:1948",
+      "status": "25:1970"
+    }
+  },
+  "meta": {
+    "eyebrow": "운영 · 행사 · 회의",
+    "title": "행사 관련 회의",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "25:1854",
+    "name": "운영 — 행사 · EVT-MEET-01 · 행사 관련 회의",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "25:1994",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "value": "이 행사와 연결된 회의만 모아 봅니다. 회의 생성과 수정 권한은 전체 회의 공간에서 역할에 따라 제공됩니다."
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:2004",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "관련 회의",
+        "descriptionField": "countsNote",
+        "dataSourceKey": "event.meetingCounts",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:2009",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "전체 회의 보기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-01A"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:2011",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "event.meetings",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "label": "회의 상세 보기",
+          "note": "회의를 여는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

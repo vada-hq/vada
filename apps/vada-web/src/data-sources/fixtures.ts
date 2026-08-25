@@ -611,6 +611,57 @@ const EVENT_DOCUMENT_STATS: Record<string, DataRow> = {
   },
 }
 
+// 행사 관련 회의(EVT-MEET-01). 회의 전체 목록(meeting.groups)과 다른 것이다 —
+// 저쪽은 행사별로 묶어 오고 카드에 담기는 조각도 더 많다.
+//
+// 참가 인원의 세는 말이 회의마다 다르다(참가 · 참가 예정 · 참석). 끝난 회의인지에
+// 따라 갈리므로 화면이 유도할 수 없어 완성된 문구로 온다.
+const EVENT_MEETINGS: Array<{ eventId: string; row: DataRow }> = [
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'M-01',
+      status: '진행 중',
+      statusTone: 'blue',
+      kindLabel: '행사 연결 회의',
+      title: '체육대회 운영 점검 회의',
+      startAt: '2026. 07. 18 (토) 10:00',
+      place: '제1회의실',
+      attendanceNote: '참가 8명',
+    },
+  },
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'M-02',
+      status: '예정',
+      statusTone: 'yellow',
+      kindLabel: '행사 연결 회의',
+      title: '안전 관리 최종 회의',
+      startAt: '2026. 07. 25 (토) 15:00',
+      place: '학생회실',
+      attendanceNote: '참가 예정 4명',
+    },
+  },
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'M-03',
+      status: '완료',
+      statusTone: 'green',
+      kindLabel: '행사 연결 회의',
+      title: '참가자 모집 결과 검토',
+      startAt: '2026. 07. 12 (일) 18:00',
+      place: '온라인 (Discord)',
+      attendanceNote: '참석 6명',
+    },
+  },
+]
+
+const EVENT_MEETING_COUNTS: Record<string, DataRow> = {
+  'E-01': { countsNote: '진행 중 1건 · 예정 1건 · 정리 중 0건 · 완료 1건' },
+}
+
 const EVENT_WORKSPACES: Record<string, DataRow> = {
   'E-01': {
     status: '기획 중',
@@ -861,6 +912,12 @@ export const FILTERED_FIXTURES: Record<
       (document) =>
         document.eventId === eventId && (status === 'all' || document.status === status),
     ).map((document) => document.row),
+  'event.meetings': ({ eventId = '' }) =>
+    EVENT_MEETINGS.filter((meeting) => meeting.eventId === eventId).map(
+      (meeting) => meeting.row,
+    ),
+  'event.meetingCounts': ({ eventId = '' }) =>
+    EVENT_MEETING_COUNTS[eventId] ? [EVENT_MEETING_COUNTS[eventId]] : [],
   'event.workspace': ({ eventId = '' }) =>
     EVENT_WORKSPACES[eventId] ? [EVENT_WORKSPACES[eventId]] : [],
   'event.summary': ({ eventId = '' }) =>

@@ -36,7 +36,7 @@
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md).
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다.
-- **테스트**: spec-service·변환기·검증 94, vada-web(vitest) 193 + Playwright e2e 59 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`).
+- **테스트**: spec-service·변환기·검증 94, vada-web(vitest) 202 + Playwright e2e 65 — 전부 통과. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`).
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). 검증기 기동이 그 일치를 강제한다(플러그인이 사라지며 `element-type-registry.test.mjs`는 지웠다 — 검사하던 대상의 절반이 플러그인 쪽이었다).
 - **추출기가 화면을 보는 눈(2026-08-24)**: 초안 재현율을 **36/67 → 41/67(61%)**, 헛것(등록되지 않은 것을 뽑음)을 **41 → 19개**로 고쳤다. 막혔던 네 곳이다.
   - **이름표 없는 것을 못 봤다**: 필드는 직계 자식에 `Label` 노드를, 목록은 묶음 제목을 요구했다. 목록 화면의 검색칸(EVT-00A `20:4153`)과 카드 목록(`20:4167`)이 통째로 안 보여 초안에 버튼 4개만 나왔다. 라벨 없이 홀로 선 컨트롤과 제목 없는 되풀이를 각각 길로 냈다. 라벨은 그려진 문구에서 짐작하고 **짐작임을 질문으로 알린다.**
@@ -50,8 +50,9 @@
 
 ## 현재 상태 — 제품 vada
 
-- **명세**: ONB-01·ONB-02·ORG-01·ORG-02·INV-01·HOME-01K·MY-01·OPS-00·TASK-01·OPS-MEET-01A·EVT-00A·EVT-02·EVT-TASK-01·EVT-TASK-02·EVT-DOC-01 15개 완결. 검증 오류 0건 경고 0건.
+- **명세**: ONB-01·ONB-02·ORG-01·ORG-02·INV-01·HOME-01K·MY-01·OPS-00·TASK-01·OPS-MEET-01A·EVT-00A·EVT-02·EVT-TASK-01·EVT-TASK-02·EVT-DOC-01·EVT-MEET-01 16개 완결. 검증 오류 0건 경고 0건.
 - **구현**(apps/vada-web, Vite+React+TS+Tailwind v4+lucide-react+Pretendard): **12개 화면 전부 구현·검증 통과.** 스펙 JSON·판정기·flows 카탈로그를 직접 import하고, option-sources 계약대로 mock(450ms)이 응답한다. 상태는 스코프별 저장소(`state/scopes.ts`)로 일반화되어 ORG-01의 note가 **다른 스코프**(onboardingDraft)를 읽는다. 미등록 화면 오류 카드는 이제 명세에 없는 화면으로 갈 때만 뜬다.
+- **새 어휘 없이 화면이 나왔다(2026-08-25, EVT-MEET-01)**: 작업 공간의 네 번째 화면인데 `packages/contracts`를 한 줄도 손대지 않았다. **신규 마찰 계급 0건이 연속 둘**이라 수렴 판정의 조건 (1)이 채워졌다 — 조건 (2)(사람 개입 고정)는 아직 아니다(추출기가 요소 4개 중 1개만 뽑는다). 여기서 처음인 것은 **공간 밖의 이미 있는 화면으로 나가는 이동**이다(`전체 회의 보기` → OPS-MEET-01A). 그 화면은 행사에 매이지 않아 인자를 받지 않으므로 **아무것도 넘기지 않는 것이 맞다** — EVT-TASK-01에서 만든 인자 검사가 여기서 처음 그렇게 답했다. 안내 배너는 EVT-02의 것과 같은 요소이고 값의 출처만 다르다(`items[].field` → `items[].value`).
 - **작업 공간이 세 번째로 쓰였다(2026-08-25, EVT-DOC-01)**: 두 화면일 때는 자리가 맞은 것이 우연일 수 있었다. 세 번째 화면을 넣으며 `shell.json`의 작업 공간에서 고친 것은 **한 줄**이다(`문서` 갈피의 `note` → `targetScreenId`). 화면이 새로 적은 것도 `workspace.key`와 노드 둘뿐이다. **(A) 마찰 0건 · 신규 계급 1건**으로 사이클 중 가장 낮다.
 - **표에는 열 머리가 있다(2026-08-25, EVT-DOC-01)**: 지금까지의 목록은 전부 카드였다. 열 머리는 **그려지는 글**이라 "어떻게 그리는지는 design.json이 갖는다"가 답을 주지 못한다 — 화면은 design.json을 실행 중에 읽지 않는다. `itemList.columns`가 라벨과 **그 열에 오는 조각**을 함께 갖고, 검증기가 조각의 존재와 한 조각이 두 열에 오지 않는지를 본다. 라벨만 적으면 표는 그려지고 칸만 비는 어긋남을 아무도 못 본다. 열 폭은 명세에 없다.
 - **개수 출처도 인자를 받는다(2026-08-25, EVT-DOC-01)**: `select.optionCounts`는 MY-01에서 이미 있던 것이고 여기서 `params`만 늘었다 — 무엇을 고를 수 있는지는 고정이어도 몇 건인지는 어느 행사의 것인지에 달렸다. `itemList.params`와 같은 축이라 판정을 한 곳으로 합쳤다(`checkArgumentMap`).
@@ -72,7 +73,7 @@
 - **와이어프레임의 불규칙은 따르지 않는다**(`design/deviations.ts`): 규칙을 따르고 그래서 생긴 차이를 적어 둔다(상태 칩 글씨 -800, 값 타일 숫자 -600, 팔레트 밖 색 금지, 같은 상태는 같은 색). **예외는 자리가 아니라 규칙·색에 건다** — 화면이 늘어도 목록이 늘지 않아야 하기 때문이다(`data-design-rule`). 쓰이지 않는 예외는 실패로 다뤄 목록이 썩지 않게 한다.
 - **준수 검사가 화면 전부를 본다**(`spec/conformance.test.tsx`): 예전에는 세 화면만 손으로 적혀 있었고 그래서 INV-01의 어긋남을 아무도 못 봤다. 넓히면서 검사 자체의 눈이 좁았던 곳도 드러났다(`<input type="search">`는 `textbox`가 아니라 `searchbox`, 안 검색되는 select는 placeholder가 속성이 아니라 글).
 - **제출 왕복이 실제로 돈다**(ORG-02): `조직 만들기` → mutations 카탈로그의 mock 전송 → `onSuccess.navigate`로 HOME-01K 이동 + `scopeEvent: complete`로 orgCreationDraft 제거.
-- **마찰 로그**: 화면마다 `docs/pilot-<screenId>.md`에 있다(11개). 잔여 발견은 전부 `docs/BACKLOG.md`에 있고, 미룬 것에는 **트리거**가 달려 있다.
+- **마찰 로그**: 화면마다 `docs/pilot-<screenId>.md`에 있다(12개). 잔여 발견은 전부 `docs/BACKLOG.md`에 있고, 미룬 것에는 **트리거**가 달려 있다.
 - **동기화 개념이 사라졌다(2026-08-19)**: 플러그인이 명세를 쓰지 않으므로 Figma 사본과 로컬 JSON이 어긋날 일이 없다. 전환 직전 4개 화면 모두 왕복 diff 0으로 보존을 실증한 뒤 편집 경로를 걷어냈다. 플러그인 소스는 4643 → 2761줄(-41%)이고 `screen-spec.mjs`(560줄)와 그 테스트(805줄)는 통째로 사라졌다.
 
 ## 규약 포인터

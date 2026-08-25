@@ -87,7 +87,7 @@
         },
         {
           "label": "관련 회의",
-          "note": "행사 관련 회의 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "EVT-MEET-01"
         },
         {
           "label": "일정",
