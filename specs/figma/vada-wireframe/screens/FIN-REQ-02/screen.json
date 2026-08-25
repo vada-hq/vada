@@ -1,0 +1,191 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-REQ-02",
+  "params": [
+    {
+      "key": "requestId",
+      "example": "PR-2026-0031",
+      "description": "무엇의 상세인지. 앞 화면(EVT-FIN-01의 처리 단계 카드, 또는 내 구매 요청 목록)이 정한다. 어느 행사인지는 따로 받지 않는다 — 요청이 자기 행사를 안다."
+    }
+  ],
+  "meta": {
+    "eyebrow": null,
+    "title": "구매 요청 상세·진행 상태",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:822",
+    "name": "운영 — 행사 · 재정 · FIN-REQ-02 · 구매 요청 상세·진행 상태",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:929",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "steps",
+        "dataSourceKey": "finance.purchaseRequestDetail",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "currentField": "stage",
+        "items": [
+          {
+            "key": "submitted",
+            "label": "요청 제출"
+          },
+          {
+            "key": "review",
+            "label": "재정부 검토"
+          },
+          {
+            "key": "purchase",
+            "label": "구매·발주"
+          },
+          {
+            "key": "evidence",
+            "label": "결제·증빙"
+          },
+          {
+            "key": "done",
+            "label": "처리 완료"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:960",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "eyebrowField": "code",
+        "status": {
+          "field": "status",
+          "toneField": "statusTone"
+        },
+        "titleField": "title",
+        "dataSourceKey": "finance.purchaseRequestDetail",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "items": [
+          {
+            "label": "전체 요청액",
+            "field": "amountNote"
+          },
+          {
+            "label": "행사명",
+            "field": "eventName"
+          },
+          {
+            "label": "요청 부서",
+            "field": "department"
+          },
+          {
+            "label": "요청자",
+            "field": "requester"
+          },
+          {
+            "label": "필요한 날짜",
+            "field": "neededOn"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:997",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "품목별 처리 결과",
+        "dataSourceKey": "finance.purchaseRequestItems",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "columns": [
+          {
+            "label": "품목",
+            "fields": [
+              "name"
+            ]
+          },
+          {
+            "label": "수량",
+            "fields": [
+              "quantityNote"
+            ]
+          },
+          {
+            "label": "요청액",
+            "fields": [
+              "amountNote"
+            ]
+          },
+          {
+            "label": "처리 결과",
+            "fields": [
+              "result"
+            ]
+          },
+          {
+            "label": "재정부 전달사항",
+            "fields": [
+              "note"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1001",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "보완 내용 확인",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "보완 요청을 확인하고 다시 제출하는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1038",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "처리 기록",
+        "dataSourceKey": "finance.purchaseRequestHistory",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        }
+      }
+    }
+  ]
+}

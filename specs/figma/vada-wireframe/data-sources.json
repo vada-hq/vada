@@ -1912,6 +1912,143 @@
           ]
         }
       ]
+    },
+    {
+      "key": "finance.purchaseRequestDetail",
+      "shape": "object",
+      "description": "구매 요청 한 건의 겉면과 지금 어느 단계인지. 화면 머리의 요약 카드와 진행 단계 줄이 함께 읽는다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/detail"
+      },
+      "messages": {
+        "loading": "구매 요청을(를) 불러오는 중입니다",
+        "empty": "구매 요청이(가) 없습니다",
+        "error": "구매 요청을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "code",
+          "description": "요청 번호. 사람이 이 요청을 부르는 말이다. 예: REQ-001"
+        },
+        {
+          "key": "status",
+          "description": "지금 상태. 딱지에 그려진다. 예: 보완 요청"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지의 색 이름(design/tones.ts의 톤). 예: yellow"
+        },
+        {
+          "key": "title",
+          "description": "요청 제목. 예: 체육대회 운영 물품 4종"
+        },
+        {
+          "key": "amountNote",
+          "description": "전체 요청액. 자릿점과 단위까지 찍혀서 온다 — 화폐 표기는 조직의 것이다. 예: 135,000원"
+        },
+        {
+          "key": "eventName",
+          "description": "어느 행사의 요청인지. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "department",
+          "description": "요청 부서. 예: 운영부"
+        },
+        {
+          "key": "requester",
+          "description": "요청자. 예: 박해랑"
+        },
+        {
+          "key": "neededOn",
+          "description": "필요한 날짜. YYYY-MM-DD. 예: 2026-03-15"
+        },
+        {
+          "key": "stage",
+          "description": "지금 어느 단계인지. steps 요소의 items[].key와 같은 말이어야 한다. 예: review"
+        }
+      ]
+    },
+    {
+      "key": "finance.purchaseRequestItems",
+      "shape": "list",
+      "description": "요청에 담긴 품목마다의 처리 결과. 개수는 요청이 정한다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/items"
+      },
+      "messages": {
+        "loading": "품목을(를) 불러오는 중입니다",
+        "empty": "품목이(가) 없습니다",
+        "error": "품목을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "항목 식별자. 그려지지 않는다."
+        },
+        {
+          "key": "name",
+          "description": "품목명. 예: 박스테이프"
+        },
+        {
+          "key": "quantityNote",
+          "description": "수량과 세는 말이 함께 온다 — 세는 말이 품목마다 다르다. 예: 10박스"
+        },
+        {
+          "key": "amountNote",
+          "description": "이 품목의 요청액. 자릿점과 단위까지 찍혀서 온다. 예: 10,000원"
+        },
+        {
+          "key": "result",
+          "description": "재정부의 처리 결과. 딱지에 그려진다. 예: 승인"
+        },
+        {
+          "key": "resultTone",
+          "description": "처리 결과 딱지의 색 이름. 예: green"
+        },
+        {
+          "key": "note",
+          "description": "재정부가 남긴 말. 없으면 줄표가 온다 — 빈 칸과 할 말이 없다는 것은 다르다. 예: 규격·수량 확인 후 견적서 재첨부 요망"
+        }
+      ]
+    },
+    {
+      "key": "finance.purchaseRequestHistory",
+      "shape": "list",
+      "description": "이 요청에 무슨 일이 있었는지. 시간순으로 온다 — 화면이 다시 정렬하지 않는다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/history"
+      },
+      "messages": {
+        "loading": "처리 기록을(를) 불러오는 중입니다",
+        "empty": "처리 기록이(가) 없습니다",
+        "error": "처리 기록을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "항목 식별자. 그려지지 않는다."
+        },
+        {
+          "key": "action",
+          "description": "무슨 일이 있었는지. 예: 재정부 검토 시작"
+        },
+        {
+          "key": "actorNote",
+          "description": "누가 언제 했는지가 한 줄로 온다 — 사람과 시각을 잇는 방식은 조직의 표기다. 예: 김바다 · 2026-03-02 09:30"
+        }
+      ]
     }
   ]
 }

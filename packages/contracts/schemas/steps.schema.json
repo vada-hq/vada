@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "steps.schema.json",
+  "title": "Steps element",
+  "description": "정해진 단계들을 늘어놓고 지금 어디인지를 표시하는 요소.\n\n**단계는 명세가 알고, 지금 어디인지는 데이터가 안다.** 구매 요청이 거치는 다섯 단계(요청 제출 → 재정부 검토 → 구매·발주 → 결제·증빙 → 처리 완료)는 조직의 절차라 요청마다 달라지지 않는다. 달라지는 것은 이 요청이 그중 어디에 있는가뿐이다.\n\nsummary와 다르다 — summary는 라벨-값 쌍이고 순서에 뜻이 없다. 여기는 **순서가 곧 뜻**이고, 각 단계에 값이 붙지 않는다.\n\nflows.json의 흐름 표시와도 다르다. 저것은 **사람이 지금 몇 번째 화면에 있는지**이고 화면을 옮기면 바뀐다. 이것은 **그 요청이 어디까지 처리됐는지**이고 화면과 무관하다.\n\n지난 단계·지금 단계·앞으로 올 단계를 화면이 어떻게 그릴지는 명세가 정하지 않는다. 셋을 가르는 데 필요한 것은 items의 순서와 currentField뿐이고, 그 앞은 지났고 그 뒤는 아직이다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "dataSourceKey",
+    "currentField",
+    "items"
+  ],
+  "properties": {
+    "type": {
+      "const": "steps"
+    },
+    "dataSourceKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "지금 어느 단계인지를 아는 출처. shape가 object여야 한다 — 단계는 한 건의 상태다."
+    },
+    "params": {
+      "$ref": "element-params.schema.json#/$defs/argument",
+      "description": "한 건을 집어 올 때 넘기는 인자(선택)."
+    },
+    "currentField": {
+      "type": "string",
+      "minLength": 1,
+      "description": "dataSourceKey가 가리키는 출처의 fields[].key. 그 값이 items의 어느 key와 같은지가 '지금'이다. 어느 것과도 맞지 않으면 화면은 조용히 첫 단계를 고르는 대신 드러내야 한다 — 모르는 단계가 온 것이다."
+    },
+    "items": {
+      "type": "array",
+      "minItems": 2,
+      "description": "단계들. **그려지는 순서대로** 적는다 — 순서가 곧 절차다. 하나짜리 단계는 단계가 아니므로 둘 이상이다.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "label"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "minLength": 1,
+            "description": "currentField의 값과 견줄 이름. 화면에 그려지지 않는다."
+          },
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "단계에 그려지는 글. 예: 재정부 검토"
+          }
+        }
+      }
+    }
+  }
+}

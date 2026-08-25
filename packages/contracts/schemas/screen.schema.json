@@ -253,7 +253,8 @@
                   "group",
                   "list",
                   "summary",
-                  "itemList"
+                  "itemList",
+                  "steps"
                 ]
               }
             }

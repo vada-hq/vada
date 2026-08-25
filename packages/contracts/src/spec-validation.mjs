@@ -719,6 +719,52 @@ function checkSummaryCompute(findings, context) {
   }
 }
 
+// 정해진 단계들과 '지금 어디인지'.
+//
+// 단계는 명세가 알고 지금 어디인지는 데이터가 안다. 그 둘이 **같은 말을 쓰는지**를
+// 여기서 본다 — 어긋나면 줄은 그려지고 어느 단계도 켜지지 않는다. 조용한 어긋남이다.
+function checkSteps(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey } = context;
+  const spec = element.spec;
+
+  const seen = new Set();
+  for (const item of Array.isArray(spec.items) ? spec.items : []) {
+    if (typeof item?.key !== "string") {
+      continue;
+    }
+    if (seen.has(item.key)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 단계 '${item.key}'가 두 번 나옵니다. 어느 것이 '지금'인지 정할 수 없습니다.`
+      });
+    }
+    seen.add(item.key);
+  }
+
+  if (!isObject(dataSources)) {
+    findings.push({
+      level: "warning",
+      file,
+      message: `data-sources.json이 없어 단계의 출처 '${spec.dataSourceKey}'를 확인하지 못했습니다.`
+    });
+    return;
+  }
+  const source = dataSourceByKey.get(spec.dataSourceKey);
+  if (!source) {
+    // 출처 부재는 checkDataSource가 이미 보고한다.
+    return;
+  }
+  const fields = new Set((source.fields ?? []).map((field) => field?.key));
+  if (!fields.has(spec.currentField)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 currentField '${spec.currentField}'가 데이터 출처 '${spec.dataSourceKey}'에 없습니다.`
+    });
+  }
+}
+
 function checkSubmitAction(findings, context) {
   const { file, element, index, mutations, mutationKeys, scopeKeys, stateScopes } = context;
   const action = element.spec.action;
@@ -843,8 +889,14 @@ function checkDataSource(findings, context) {
 
   const fieldKeys = new Set((source.fields ?? []).map((field) => field.key));
   const referenced = [
+    ...(spec.eyebrowField === undefined ? [] : [spec.eyebrowField]),
     ...(spec.titleField === undefined ? [] : [spec.titleField]),
     ...(spec.descriptionField === undefined ? [] : [spec.descriptionField]),
+    // 상태 딱지는 글과 색 이름을 따로 가리킨다. 색만 없으면 딱지가 무채색으로
+    // 그려지고 아무도 그것이 틀렸다고 말하지 않는다.
+    ...(isObject(spec.status) ? [spec.status.field, spec.status.toneField] : []).filter(
+      (field) => typeof field === "string"
+    ),
     ...(spec.items ?? []).map((item) => item?.field).filter((field) => field !== undefined)
   ];
   for (const field of referenced) {
@@ -1589,7 +1641,10 @@ export function collectSpecFindings({
       if (spec_.type === "summary") {
         checkSummaryCompute(findings, context);
       }
-      if (spec_.type === "summary" || spec_.type === "itemList") {
+      if (spec_.type === "steps") {
+        checkSteps(findings, context);
+      }
+      if (spec_.type === "summary" || spec_.type === "itemList" || spec_.type === "steps") {
         checkDataSource(findings, context);
         // 조회 인자는 목록만의 것이 아니다 — 상세 화면의 요약도 한 건을 집어 온다.
         checkQueryParams(findings, context);

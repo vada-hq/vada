@@ -1286,6 +1286,76 @@ export const NEW_PURCHASE_REQUEST: DataRow = {
   items: [EMPTY_PURCHASE_REQUEST_ITEM],
 }
 
+
+// 구매 요청 한 건의 상세. 값은 전부 design(30:822)이 그린 그대로다.
+//
+// 자릿점과 단위가 찍힌 글로 오는 것에 주의한다 — 이 화면은 아무것도 셈하지 않는다.
+// 이미 일어난 일의 금액이라 서버의 것이다(FIN-REQ-01과 반대다).
+const PURCHASE_REQUEST_DETAILS: Record<string, DataRow> = {
+  'PR-2026-0031': {
+    code: 'REQ-001',
+    status: '보완 요청',
+    statusTone: 'yellow',
+    title: '체육대회 운영 물품 4종',
+    amountNote: '135,000원',
+    eventName: '2026 소프트웨어융합대학 체육대회',
+    department: '운영부',
+    requester: '박해랑',
+    neededOn: '2026-03-15',
+    stage: 'review',
+  },
+}
+
+const PURCHASE_REQUEST_RESULTS: Record<string, DataRow[]> = {
+  'PR-2026-0031': [
+    {
+      id: 'it-1',
+      name: '박스테이프',
+      quantityNote: '5개',
+      amountNote: '10,000원',
+      result: '승인',
+      resultTone: 'green',
+      note: '—',
+    },
+    {
+      id: 'it-2',
+      name: '생수 500ml',
+      quantityNote: '10박스',
+      amountNote: '50,000원',
+      result: '승인',
+      resultTone: 'green',
+      note: '—',
+    },
+    {
+      id: 'it-3',
+      name: '이름표 용지',
+      quantityNote: '200장',
+      amountNote: '60,000원',
+      result: '보완 필요',
+      resultTone: 'yellow',
+      note: '규격·수량 확인 후 견적서 재첨부 요망',
+    },
+    {
+      id: 'it-4',
+      name: '유성 마커',
+      quantityNote: '10개',
+      amountNote: '15,000원',
+      result: '승인',
+      resultTone: 'green',
+      note: '—',
+    },
+  ],
+}
+
+// 시간순으로 온다. 화면이 다시 정렬하지 않는다.
+const PURCHASE_REQUEST_HISTORY: Record<string, DataRow[]> = {
+  'PR-2026-0031': [
+    { id: 'h-1', action: '제출', actorNote: '박해랑 · 2026-03-01 10:05' },
+    { id: 'h-2', action: '재정부 검토 시작', actorNote: '김바다 · 2026-03-02 09:30' },
+    { id: 'h-3', action: '보완 요청 발송', actorNote: '김바다 · 2026-03-03 14:00' },
+  ],
+}
+
 export const FILTERED_FIXTURES: Record<
   string,
   (params: Record<string, string>) => DataRow[]
@@ -1409,6 +1479,12 @@ export const FILTERED_FIXTURES: Record<
       : PURCHASE_REQUEST_DRAFTS[requestId]
         ? [PURCHASE_REQUEST_DRAFTS[requestId]]
         : [],
+  'finance.purchaseRequestDetail': ({ requestId = '' }) =>
+    PURCHASE_REQUEST_DETAILS[requestId] ? [PURCHASE_REQUEST_DETAILS[requestId]] : [],
+  'finance.purchaseRequestItems': ({ requestId = '' }) =>
+    PURCHASE_REQUEST_RESULTS[requestId] ?? [],
+  'finance.purchaseRequestHistory': ({ requestId = '' }) =>
+    PURCHASE_REQUEST_HISTORY[requestId] ?? [],
   'my.tasks': ({ tab = 'todo', query = '' }) =>
     MY_TASKS.filter((task) => task.tab === tab)
       .map((task) => task.row)
