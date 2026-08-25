@@ -116,16 +116,16 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
     worse.push(`${screenId} ${hit}/${spec.elements.length}(헛것 ${rows.length - spec.elements.length})`);
   }
 
-  // 2026-08-25 기준: 등록 100개 중 맞춤 52, 헛것 14.
+  // 2026-08-25 기준: 등록 100개 중 맞춤 64, 헛것 11.
   // 그날 안에서 48/59 → 49/26(갈피 줄·눌리는 카드 목록) → 51/17(바탕으로 고르기)
-  // → 52/14(글자 색으로 고르기).
+  // → 52/14(글자 색으로 고르기) → 64/11(되풀이 판별 셋).
   assert.ok(
-    matched >= 52,
-    `등록 ${registered}개 중 ${matched}개만 재현했습니다(52 이상이어야 함): ${worse.join(", ")}`
+    matched >= 64,
+    `등록 ${registered}개 중 ${matched}개만 재현했습니다(64 이상이어야 함): ${worse.join(", ")}`
   );
   assert.ok(
-    spurious <= 14,
-    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(14 이하여야 함): ${worse.join(", ")}`
+    spurious <= 11,
+    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(11 이하여야 함): ${worse.join(", ")}`
   );
 });
 
@@ -471,5 +471,50 @@ test("셋 이상이고 하나만 배경이 다르면 하나 고르기로 읽는�
     ).length,
     0,
     "갈피 하나하나가 버튼으로 남았습니다"
+  );
+});
+
+// 되풀이 판별이 걸려 있던 세 곳. 셋 다 칸반 보드에서 드러났고 원인이 달랐다.
+test("칸반 열 넷이 저마다 목록으로 잡힌다", async () => {
+  const shell = JSON.parse(
+    await readFile(
+      join(repoRoot, "specs", "figma", "vada-wireframe", "shell.json"),
+      "utf8"
+    )
+  );
+  const { design } = await loadScreen("EVT-TASK-01");
+  const { elements } = draftScreenElements(design, {
+    excludeNodeNames: shell.design?.excludeNodeNames,
+    workspaces: shell.workspaces
+  });
+  const listAt = (nodeId) =>
+    elements.find((element) => element.source.nodeId === nodeId)?.spec;
+
+  // (1) 카드 이름에 그 카드의 내용이 들어 있다(`Button - 행사장 안전 점검 상세 보기`).
+  //     이름을 통째로 견주면 카드 둘이 다른 것이 되어 열이 되풀이로 보이지 않는다.
+  // (2) 열의 머리 줄('예정' + 건수)이 되풀이처럼 보여 섹션이 되지 못했다.
+  assert.deepEqual(listAt("25:1392"), { type: "itemList", title: "예정" });
+  assert.deepEqual(listAt("25:1433"), { type: "itemList", title: "진행 중" });
+
+  // (3) 한 장짜리 열은 Figma가 감싸개를 접어 카드가 곧장 본문이 된다.
+  assert.deepEqual(listAt("25:1505"), { type: "itemList", title: "검토 필요" });
+  assert.deepEqual(listAt("25:1536"), { type: "itemList", title: "완료" });
+
+  // 보드 전체를 목록 하나로 삼키지 않는다 — 그러면 열 넷이 통째로 사라진다.
+  assert.equal(listAt("25:1385"), undefined);
+
+  // 섹션 머리 옆의 조작은 항목이 아니다(EVT-MEET-01의 '전체 회의 보기').
+  const meetings = await loadScreen("EVT-MEET-01");
+  const drafted = draftScreenElements(meetings.design, {
+    excludeNodeNames: shell.design?.excludeNodeNames,
+    workspaces: shell.workspaces
+  }).elements;
+  assert.equal(
+    drafted.find((element) => element.source.nodeId === "25:2003"),
+    undefined
+  );
+  assert.equal(
+    drafted.find((element) => element.source.nodeId === "25:2009")?.spec.type,
+    "button"
   );
 });

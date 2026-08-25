@@ -377,15 +377,29 @@ function readGroupTitle(node) {
 //
 // ONB-02의 시작 방식 카드도 닮은 형제 둘이지만 각각 별도 버튼이다. 갈리는
 // 곳은 부모다 — 그쪽 부모는 화면 카드 전체라 자식이 여섯이다.
+// 레이어 이름에서 **꼴**만 떼어 낸다.
+//
+// 이 wireframe은 되풀이되는 항목의 이름에 그 항목의 내용을 적는다
+// (`Button - 행사장 안전 점검 상세 보기`). 그래서 이름을 통째로 견주면 칸반
+// 카드 둘이 서로 다른 것이 되고, 그 위의 열이 되풀이로 보이지 않아 **열 넷이
+// 통째로 사라졌다**(EVT-TASK-01).
+//
+// 되풀이는 이름이 같아서가 아니라 **같은 꼴이라서** 되풀이다. 저장소 전체에서
+// ` - `를 쓰는 이름은 스물하나뿐이고 앞부분은 전부 추출기가 이미 아는 유형
+// 이름이다(Button 18 · Dropdown 2 · Text Input 1) — 관례가 흔들리지 않는다.
+function nameKind(name) {
+  return (name ?? "").split(" - ")[0];
+}
+
 function isRepeatedGroup(node) {
   const items = children(node);
   if (items.length < 2) {
     return false;
   }
-  const first = items[0]?.name ?? "";
+  const first = nameKind(items[0]?.name);
   return (
     first !== "" &&
-    items.every((item) => item.name === first) &&
+    items.every((item) => nameKind(item.name) === first) &&
     items.every((item) => textOf(item) !== "") &&
     // 필드는 데이터의 되풀이가 아니라 각각이 화면 요소다. 폼의 '제목 + 필드
     // 둘'(ONB-01 7:22)이 섹션으로 오인되면 필드를 통째로 삼킨다.
@@ -524,25 +538,58 @@ function matchesWorkspaceTabs(buttons, workspaces) {
   });
 }
 
+// 항목이 저마다 글을 둘 이상 갖는 되풀이인가.
+//
+// 되풀이는 맞는데 항목이 글 하나뿐이면 그것은 목록이 아니라 **한 줄**이다. 카드
+// 안의 '아이콘+날짜 / 아이콘+장소 / 아이콘+담당' 줄이 그렇고(OPS-MEET-01A에서
+// 회의 카드 하나하나가 섹션으로 읽힌 원인), 칸반 열의 머리 줄('예정' + 건수)도
+// 그렇다.
+function isItemRepeat(node) {
+  return (
+    isRepeatedGroup(node) &&
+    !children(node).every((item) => collectText(item).length < 2)
+  );
+}
+
 function readSection(node) {
   const parts = children(node);
   if (parts.length !== 2) {
     return null;
   }
   const [header, body] = parts;
-  if (!isRepeatedGroup(body) || isRepeatedGroup(header)) {
+  // 머리에도 본문과 같은 잣대를 쓴다. 예전에는 머리가 '되풀이처럼 보이기만 해도'
+  // 물러났는데, 칸반 열의 머리는 이름이 같은 Text 둘('예정'과 건수)이라 그렇게
+  // 보인다. 그래서 **열 넷이 통째로 섹션이 되지 못했다**(EVT-TASK-01·TASK-01).
+  if (isItemRepeat(header)) {
     return null;
   }
-  // 본문의 항목이 저마다 글 하나뿐이면 그것은 항목이 아니라 한 줄이다. 카드 안의
-  // '아이콘+날짜 / 아이콘+장소 / 아이콘+담당' 줄이 그렇다 — 되풀이는 맞지만 카드의
-  // 부분이지 목록이 아니다. OPS-MEET-01A에서 회의 카드 하나하나가 섹션으로 읽힌
-  // 원인이 이것이다.
-  if (children(body).every((item) => collectText(item).length < 2)) {
+  // 항목이 하나뿐인 열은 되풀이로 보이지 않는다 — Figma가 감싸개를 접어 카드가
+  // 곧장 본문이 된다(TASK-01 18:259, EVT-TASK-01 25:1505·25:1536).
+  // 그때는 **이름이 말한다**: 이름에 그 항목의 내용이 적혀 있으면 인스턴스이고,
+  // 인스턴스가 하나뿐인 목록도 목록이다. 저장소의 `X - 내용` 이름 스물하나가
+  // 전부 그런 항목이라 흔들리지 않는다 — 섹션 머리 옆의 조작은 그냥 `Btn`이다
+  // (EVT-MEET-01의 '전체 회의 보기').
+  const single = !isItemRepeat(body) && nameKind(body?.name) !== (body?.name ?? "");
+  if (!isItemRepeat(body) && !single) {
+    return null;
+  }
+  // 본문의 항목이 저마다 섹션이면 바깥은 목록이 아니라 **배치**다.
+  //
+  // `isBareList`는 이미 이 가드를 갖고 있었는데 여기에는 없었다. 그래서 칸반
+  // 보드 전체(EVT-TASK-01 25:1385 = '행사 업무' 제목 + 열 넷)가 목록 하나로
+  // 읽혀 열 넷이 통째로 사라졌다. 안쪽을 잡는 쪽을 고르는 것은 `isBareList`가
+  // 내린 것과 같은 판단이다 — 섹션을 통째로 잃는 것이 더 나쁘다.
+  if (
+    !single &&
+    children(body).some(
+      (item) => readSection(item) !== null || findDescendant(item, (inner) => readSection(inner) !== null)
+    )
+  ) {
     return null;
   }
   const titles = collectText(header).map((part) => part.trim()).filter(Boolean);
   return titles.length > 0
-    ? { title: titles[0], header, body, itemCount: children(body).length }
+    ? { title: titles[0], header, body, itemCount: single ? 1 : children(body).length }
     : null;
 }
 
