@@ -75,6 +75,36 @@ export const DEVIATIONS: Deviation[] = [
     why: '위와 같다(EVT-02 20:4823).',
   },
 
+  {
+    by: 'rule',
+    rule: 'choice-chip',
+    kind: '배경',
+    design: 'gray-800(#1E2939)',
+    screen: 'blue-600(#155DFC)',
+    why:
+      '좁혀 보기 칩에서 고른 것은 blue-600이다(design/tones.ts의 CHOICE_CHIP). ' +
+      '와이어프레임은 EVT-00A·EVT-SCHED-01이 blue-600이고 EVT-DOC-01만 gray-800이다. ' +
+      '필터를 하나 더 만들 때 무슨 색을 줄지 와이어프레임을 열어 보지 않아야 한다.',
+  },
+  {
+    by: 'rule',
+    rule: 'choice-chip',
+    kind: '테두리',
+    design: 'gray-800(#1E2939)',
+    screen: 'blue-600(#155DFC)',
+    why: '위와 같다 — 고른 칩은 바탕과 테두리가 같은 색이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'choice-chip',
+    kind: '색',
+    design: 'gray-500(#6A7282)',
+    screen: 'gray-600(#4A5565)',
+    why:
+      '좁혀 보기 칩에서 고르지 않은 것의 글씨는 gray-600이다(CHOICE_CHIP). ' +
+      '와이어프레임은 EVT-DOC-01·EVT-SCHED-01이 gray-600이고 EVT-00A만 gray-500이다.',
+  },
+
   // --- 색에 건다: 그 색이 어디에 또 쓰였든 한 줄 -------------------------------
   //
   // 와이어프레임에 Tailwind 팔레트에 없는 색이 둘 있다. 팔레트 밖 색을 쓰면 그

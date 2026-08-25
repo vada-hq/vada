@@ -26,6 +26,7 @@ import evtTask01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TA
 import evtTask02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-02/screen.json'
 import evtDoc01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-DOC-01/screen.json'
 import evtMeet01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-MEET-01/screen.json'
+import evtSched01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-SCHED-01/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -59,6 +60,7 @@ export const evtTask01 = asScreenSpec(evtTask01Json)
 export const evtTask02 = asScreenSpec(evtTask02Json)
 export const evtDoc01 = asScreenSpec(evtDoc01Json)
 export const evtMeet01 = asScreenSpec(evtMeet01Json)
+export const evtSched01 = asScreenSpec(evtSched01Json)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
 // ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
@@ -80,6 +82,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   evtTask02,
   evtDoc01,
   evtMeet01,
+  evtSched01,
 ]
 
 // 화면 하나만 열어 볼 때 넘길 인자.

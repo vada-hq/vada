@@ -346,6 +346,28 @@ function holdersOf(container: Element, content: string): Holder[] {
   return holders
 }
 
+// 이 글이 design이 그린 줄들을 **그 순서대로** 품고 있는가.
+//
+// 그냥 품고 있는지만 보면 우연히 맞는 자리가 생긴다. EVT-SCHED-01의 행사 당일 줄이
+// 그랬다: 날짜 '08. 20'은 공백을 지우면 '08.20'이고, 같은 줄의 설명
+// '2026.08.20 10:00 ~ 14:00'이 그것을 통째로 품는다. 그래서 날짜를 담지 않은 안쪽
+// 칸이 줄 전체를 품은 것처럼 보였고, 진짜 줄(테두리를 가진 바깥 칸)이 후보에서
+// 밀려났다.
+//
+// 순서를 보면 그 우연이 사라진다 — 안쪽 칸에서 '08.20'을 찾으면 그 뒤에 제목이
+// 없다. design은 줄을 그린 순서대로 갖고 있고, 화면도 그 순서로 그린다.
+function holdsRuns(text: string, runs: string[]): boolean {
+  let at = 0
+  for (const run of runs) {
+    const found = text.indexOf(run, at)
+    if (found === -1) {
+      return false
+    }
+    at = found + run.length
+  }
+  return true
+}
+
 // 칸은 글자가 딱 맞아떨어지는 것으로 찾지 않는다. design이 비워 둔 자리를 화면이
 // 안내 문구로 채우는 일이 있어서(INV-01의 '현재 학년'), 통째 글자를 견주면 한 마디
 // 차이로 칸 전체를 못 찾는다. 대신 '이 줄들을 모두 품은 가장 작은 요소'를 찾는다 —
@@ -355,10 +377,9 @@ function boxHoldersOf(container: Element, runs: string[]): Holder[] {
   if (wanted.length === 0) {
     return []
   }
-  const containing = [container, ...container.querySelectorAll('*')].filter((element) => {
-    const text = squash(visibleText(element))
-    return wanted.every((run) => text.includes(run))
-  })
+  const containing = [container, ...container.querySelectorAll('*')].filter((element) =>
+    holdsRuns(squash(visibleText(element)), wanted),
+  )
   // 조상도 같은 줄을 품으므로, 더 안쪽 후보를 가진 것은 뺀다.
   const innermost = containing.filter(
     (element) => !containing.some((other) => other !== element && element.contains(other)),

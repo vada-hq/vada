@@ -84,6 +84,37 @@ export const ACCENT_BAR: Record<string, string> = {
   gray: 'bg-gray-400',
 }
 
+/**
+ * 목록을 좁혀 보는 버튼 묶음의 칩(EVT-00A 20:4155·EVT-DOC-01 28:562·EVT-SCHED-01 28:150).
+ * **고른 것은 blue-600 바탕에 흰 글씨, 아닌 것은 흰 바탕에 gray-200 테두리·gray-600 글씨.**
+ *
+ * 색 이름을 데이터가 주지 않는 유일한 표다. 무엇을 고를 수 있는지는 명세에
+ * 고정이고(option-sources.json), 고른 것이 하나라는 사실 말고 갈릴 것이 없다.
+ *
+ * 와이어프레임이 세 자리에서 흔들렸다. 고른 것의 바탕은 blue-600이 둘·gray-800이
+ * 하나(EVT-DOC-01), 안 고른 글씨는 gray-600이 둘·gray-500이 하나(EVT-00A)다.
+ * 많은 쪽을 규칙으로 삼고 나머지는 design/deviations.ts에 적는다 — 필터를 하나 더
+ * 만들 때 무슨 색을 줄지 와이어프레임을 열어 보지 않아야 한다.
+ */
+export const CHOICE_CHIP = {
+  on: 'border-blue-600 bg-blue-600 text-white',
+  off: 'border-gray-200 bg-white text-gray-600 hover:bg-gray-50',
+} as const
+
+/**
+ * 줄 앞머리의 때(EVT-SCHED-01 28:353). **톤의 -700, 무채색만 gray-500.**
+ *
+ * ACCENT_BAR와 같은 톤 이름을 받는다 — 한 줄에서 점과 날짜가 같은 사실을 말하기
+ * 때문이다. 무채색이 본문과 같은 색인 것은 흔들림이 아니라 이유가 있다: 도드라질
+ * 것이 없는 줄은 도드라지지 않아야 한다.
+ */
+export const LEAD_TEXT: Record<string, string> = {
+  blue: 'text-blue-700',
+  amber: 'text-amber-700',
+  violet: 'text-violet-700',
+  gray: 'text-gray-500',
+}
+
 /** 공간 카드의 옅은 테두리(OPS-00 16:614). */
 export const SOFT_BORDER: Record<string, string> = {
   blue: 'border-blue-200',

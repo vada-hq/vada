@@ -267,6 +267,34 @@
           "label": "작성 전"
         }
       ]
+    },
+    {
+      "key": "event.scheduleFilter",
+      "type": "static",
+      "description": "행사 일정을 좁혀 보는 버튼 묶음. 선택지는 디자인에 고정돼 있다. 한 축이 아니다 — '이번 주'는 때로 자르고 나머지는 무엇이냐로 자른다. 그래서 여러 개를 겹쳐 고르지 못하고 하나만 고른다.",
+      "params": [],
+      "options": [
+        {
+          "value": "all",
+          "label": "전체"
+        },
+        {
+          "value": "thisWeek",
+          "label": "이번 주"
+        },
+        {
+          "value": "deadline",
+          "label": "마감"
+        },
+        {
+          "value": "meeting",
+          "label": "회의"
+        },
+        {
+          "value": "eventDay",
+          "label": "행사 당일"
+        }
+      ]
     }
   ]
 }

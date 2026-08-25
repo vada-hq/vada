@@ -662,6 +662,180 @@ const EVENT_MEETING_COUNTS: Record<string, DataRow> = {
   'E-01': { countsNote: '진행 중 1건 · 예정 1건 · 정리 중 0건 · 완료 1건' },
 }
 
+// 행사 일정. 원본은 여기가 아니다 — 업무·회의·행사 기본정보가 각자 원본이고 이
+// 목록은 그것이 비친 것이다. 그래서 줄마다 originNote가 어디를 고쳐야 하는지 말한다.
+//
+// buckets는 서버가 답을 아는 자리를 흉내 낸 것이다. '이번 주'는 오늘이 언제냐에
+// 달렸고 그것은 화면도 이 붙박이 값도 모른다 — 그래서 어느 묶음에 드는지를 미리
+// 적어 둔다.
+const EVENT_SCHEDULE: Array<{ eventId: string; buckets: string[]; row: DataRow }> = [
+  {
+    eventId: 'E-01',
+    buckets: [],
+    row: {
+      id: 'SCH-01',
+      dateLabel: '07. 10',
+      tone: 'gray',
+      title: '행사 운영 계획 확정',
+      kindLabel: '업무',
+      kindTone: 'gray',
+      description: '완료 · 행사 운영 계획의 범위와 역할 분담을 최종 확정합니다.',
+      ownerNote: '담당 · 이수현',
+      originNote: '원본 · 행사 업무',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: ['thisWeek'],
+    row: {
+      id: 'SCH-02',
+      dateLabel: '07. 18',
+      tone: 'gray',
+      title: '현수막 디자인 수정 반영',
+      kindLabel: '업무',
+      kindTone: 'gray',
+      description: '진행 중 · 지연 · 검토 의견을 반영해 현수막 디자인을 수정하고 인쇄 전 시안을 확정합니다.',
+      ownerNote: '담당 · 이윤슬',
+      originNote: '원본 · 행사 업무',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: ['thisWeek', 'deadline'],
+    row: {
+      id: 'SCH-03',
+      dateLabel: '07. 20',
+      tone: 'gray',
+      title: '참여 설문 마감',
+      kindLabel: '마감',
+      kindTone: 'yellow',
+      description: '신청 현황 및 대기자 확인',
+      ownerNote: '담당 · 홍보팀',
+      originNote: '원본 · 참여 설문',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: ['thisWeek'],
+    row: {
+      id: 'SCH-04',
+      dateLabel: '07. 20',
+      tone: 'gray',
+      title: '참가자 모집 공지 작성',
+      kindLabel: '업무',
+      kindTone: 'gray',
+      description: '진행 중 · 참가 신청 일정과 안내 사항을 포함한 모집 공지를 작성합니다.',
+      ownerNote: '담당 · 이윤슬',
+      originNote: '원본 · 행사 업무',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: ['thisWeek'],
+    row: {
+      id: 'SCH-05',
+      dateLabel: '07. 22',
+      tone: 'gray',
+      title: '행사 안전 안내문 검토',
+      kindLabel: '업무',
+      kindTone: 'gray',
+      description: '검토 필요 · 참가자에게 전달할 안전 안내문을 검토하고 승인 의견을 남깁니다.',
+      ownerNote: '담당 · 박해랑',
+      originNote: '원본 · 행사 업무',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: ['meeting'],
+    row: {
+      id: 'SCH-06',
+      dateLabel: '07. 25',
+      tone: 'gray',
+      title: '안전 관리 최종 회의',
+      kindLabel: '회의',
+      kindTone: 'gray',
+      description: '관련 회의에서 세부 안건 확인',
+      ownerNote: '담당 · 박해랑',
+      originNote: '원본 · 관련 회의',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: [],
+    row: {
+      id: 'SCH-07',
+      dateLabel: '07. 25',
+      tone: 'gray',
+      title: '물품 구매 요청',
+      kindLabel: '업무',
+      kindTone: 'gray',
+      description: '진행 중 · 행사 운영 물품을 정리하고 구매 요청서를 제출합니다.',
+      ownerNote: '담당 · 박해랑',
+      originNote: '원본 · 행사 업무',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: [],
+    row: {
+      id: 'SCH-08',
+      dateLabel: '08. 10',
+      tone: 'gray',
+      title: '참가자 명단 최종 확정',
+      kindLabel: '업무',
+      kindTone: 'gray',
+      description: '예정 · 신청과 확인이 끝난 참가자 명단을 최종 확정합니다.',
+      ownerNote: '담당 · 미지정 · 배정 필요',
+      originNote: '원본 · 행사 업무',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: [],
+    row: {
+      id: 'SCH-09',
+      dateLabel: '08. 18',
+      tone: 'gray',
+      title: '행사장 안전 점검',
+      kindLabel: '업무',
+      kindTone: 'gray',
+      description: '예정 · 행사장 동선과 안전 설비를 점검하고 개선 사항을 등록합니다.',
+      ownerNote: '담당 · 미지정 · 배정 필요',
+      originNote: '원본 · 행사 업무',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: ['eventDay'],
+    row: {
+      id: 'SCH-10',
+      dateLabel: '08. 20',
+      tone: 'blue',
+      title: '2026 소프트웨어융합대학 체육대회',
+      kindLabel: '행사',
+      kindTone: 'blue',
+      description: '2026.08.20 10:00 ~ 14:00 · ERICA 체육관',
+      ownerNote: '담당 · 김바다',
+      originNote: '원본 · 행사 기본정보',
+    },
+  },
+  {
+    eventId: 'E-01',
+    buckets: [],
+    row: {
+      id: 'SCH-11',
+      dateLabel: '행사 후',
+      tone: 'gray',
+      title: '결과 보고·정산 자료 정리',
+      kindLabel: '후속',
+      kindTone: 'gray',
+      description: '후속 정리 단계에서 진행',
+      ownerNote: '담당 · 미정',
+      originNote: '원본 · 행사 업무',
+    },
+  },
+]
+
 const EVENT_WORKSPACES: Record<string, DataRow> = {
   'E-01': {
     status: '기획 중',
@@ -916,6 +1090,11 @@ export const FILTERED_FIXTURES: Record<
     EVENT_MEETINGS.filter((meeting) => meeting.eventId === eventId).map(
       (meeting) => meeting.row,
     ),
+  'event.schedule': ({ eventId = '', filter = 'all' }) =>
+    EVENT_SCHEDULE.filter(
+      (entry) =>
+        entry.eventId === eventId && (filter === 'all' || entry.buckets.includes(filter)),
+    ).map((entry) => entry.row),
   'event.meetingCounts': ({ eventId = '' }) =>
     EVENT_MEETING_COUNTS[eventId] ? [EVENT_MEETING_COUNTS[eventId]] : [],
   'event.workspace': ({ eventId = '' }) =>

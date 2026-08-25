@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
-import { INFO_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
+import { CHOICE_CHIP, INFO_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readListSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
@@ -112,6 +112,7 @@ export function EVT00AScreen({ onNavigate }: EVT00AScreenProps) {
             안의 알약이고 여기는 낱개 버튼이다. 형태는 design이 갖는다. */}
         <div
           data-node-id={NODE.status}
+          data-design-rule="choice-chip"
           role="radiogroup"
           aria-label={status.label ?? '진행 단계'}
           className="flex shrink-0 gap-2"
@@ -127,9 +128,7 @@ export function EVT00AScreen({ onNavigate }: EVT00AScreenProps) {
                 aria-checked={selected}
                 onClick={() => setStatusValue(value)}
                 className={`rounded-full border px-3 py-1.5 text-xs font-medium ${
-                  selected
-                    ? 'border-blue-600 bg-blue-600 text-white'
-                    : 'border-gray-200 bg-white text-gray-500 hover:bg-gray-50'
+                  selected ? CHOICE_CHIP.on : CHOICE_CHIP.off
                 }`}
               >
                 {option.label}

@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-SCHED-01",
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-01",
+      "description": "어느 행사의 일정인지. 작업 공간의 갈피를 옮겨 들어올 때 그 행사가 정한다."
+    }
+  ],
+  "workspace": {
+    "key": "event",
+    "source": {
+      "tabs": "28:96",
+      "status": "28:118"
+    }
+  },
+  "meta": {
+    "eyebrow": "운영 · 행사 · 일정",
+    "title": "행사 일정",
+    "description": "업무·회의·행사 기본정보에서 연결된 주요 일정입니다.",
+    "footerNote": "일정은 여기서 중복 수정하지 않습니다. 행사 일시·장소는 기본정보, 회의 일시는 관련 회의, 업무 마감은 행사 업무가 단일 원본입니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "28:2",
+    "name": "운영 — 행사 · EVT-SCHED-01 · 행사 일정",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "28:148",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "전체 캘린더 보기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "전체 캘린더 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:150",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "scheduleFilter",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "all",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.scheduleFilter"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:161",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "event.schedule",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "filter": {
+            "fieldKey": "scheduleFilter"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "label": "일정 원본 열기",
+          "note": "일정의 원본을 여는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

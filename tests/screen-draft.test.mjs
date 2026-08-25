@@ -116,12 +116,15 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
     worse.push(`${screenId} ${hit}/${spec.elements.length}(헛것 ${rows.length - spec.elements.length})`);
   }
 
-  // 2026-08-25 기준: 등록 100개 중 맞춤 64, 헛것 11.
+  // 2026-08-25 기준: 등록 103개 중 맞춤 67, 헛것 11.
   // 그날 안에서 48/59 → 49/26(갈피 줄·눌리는 카드 목록) → 51/17(바탕으로 고르기)
   // → 52/14(글자 색으로 고르기) → 64/11(되풀이 판별 셋).
+  //
+  // EVT-SCHED-01은 등록 3개를 3개 다 맞히고 헛것이 없다 — 화면 하나를 통째로
+  // 맞힌 첫 사례다. 눈금이 100 → 103으로 는 것이 그 화면이다.
   assert.ok(
-    matched >= 64,
-    `등록 ${registered}개 중 ${matched}개만 재현했습니다(64 이상이어야 함): ${worse.join(", ")}`
+    matched >= 67,
+    `등록 ${registered}개 중 ${matched}개만 재현했습니다(67 이상이어야 함): ${worse.join(", ")}`
   );
   assert.ok(
     spurious <= 11,

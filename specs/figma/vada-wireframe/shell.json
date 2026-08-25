@@ -91,7 +91,7 @@
         },
         {
           "label": "일정",
-          "note": "행사 일정 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "EVT-SCHED-01"
         },
         {
           "label": "인원 관리",

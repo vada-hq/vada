@@ -74,8 +74,10 @@ test('EVT-TASK-01: 내 업무만 보면 내가 담당인 것만 남는다', asyn
 test('EVT-TASK-01: 아직 명세되지 않은 갈피는 그 사실을 남긴다', async ({ page }) => {
   await page.goto(BOARD)
 
-  await page.getByRole('button', { name: '일정', exact: true }).click()
-  await expect(page.getByText(/행사 일정 화면이 아직 명세되지 않았습니다/)).toBeVisible()
+  // 갈피가 하나씩 채워질 때마다 이 검사가 다음 빈 갈피로 옮겨 간다. 일곱이 다
+  // 차면 없어질 검사다 — 지금까지 문서·관련 회의·일정을 거쳐 왔다.
+  await page.getByRole('button', { name: '인원 관리', exact: true }).click()
+  await expect(page.getByText(/행사 참가자 명단 화면이 아직 명세되지 않았습니다/)).toBeVisible()
 })
 
 test('EVT-TASK-02: 업무 보드로 돌아가는 길이 아직 정해지지 않았음을 남긴다', async ({

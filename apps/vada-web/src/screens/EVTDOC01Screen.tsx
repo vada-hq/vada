@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
-import { ACCENT_BAR, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
+import { ACCENT_BAR, CHOICE_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
@@ -145,6 +145,7 @@ export function EVTDOC01Screen({ screenParams, onNavigate }: EVTDOC01ScreenProps
       {/* 고를 것은 명세가, 몇 건인지는 데이터가 정한다. */}
       <div
         data-node-id={NODE.filter}
+        data-design-rule="choice-chip"
         role="radiogroup"
         aria-label={optionSource.description}
         className="flex flex-wrap gap-2 pt-4"
@@ -161,14 +162,10 @@ export function EVTDOC01Screen({ screenParams, onNavigate }: EVTDOC01ScreenProps
               aria-checked={selected}
               onClick={() => setStatus(value)}
               className={`rounded-full border px-3 py-1 text-xs font-medium ${
-                selected
-                  ? 'border-gray-800 bg-gray-800'
-                  : 'border-gray-200 bg-white hover:bg-gray-50'
+                selected ? CHOICE_CHIP.on : CHOICE_CHIP.off
               }`}
             >
-              <span className={selected ? 'text-white' : 'text-gray-600'}>
-                {option.label}
-              </span>
+              <span>{option.label}</span>
               {count === undefined ? null : (
                 <span className={`pl-1.5 ${selected ? 'text-gray-300' : 'text-gray-400'}`}>
                   {String(count)}
