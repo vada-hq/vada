@@ -1,6 +1,7 @@
 import { PageCard } from '../components/PageCard'
 import { EVT00AScreen } from './EVT00AScreen'
 import { EVT02Screen } from './EVT02Screen'
+import { EVTDOC01Screen } from './EVTDOC01Screen'
 import { EVTTASK01Screen } from './EVTTASK01Screen'
 import { EVTTASK02Screen } from './EVTTASK02Screen'
 import { HOME01KScreen } from './HOME01KScreen'
@@ -83,6 +84,10 @@ export function ScreenRouter({
   if (screenId === 'EVT-02') {
     // 행사 개요다. 행사 작업 공간의 첫 갈피이고, 어느 행사인지는 주소가 실어 온다.
     return <EVT02Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'EVT-DOC-01') {
+    // 행사 문서다. 작업 공간의 세 번째 갈피이고, 어느 행사인지는 주소가 실어 온다.
+    return <EVTDOC01Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'EVT-TASK-01') {
     // 행사 업무 보드다. 어느 행사인지는 화면 안에 없고 주소가 실어 온다.

@@ -535,6 +535,82 @@ const EVENT_RECENT_CHANGES: Record<string, DataRow[]> = {
 }
 
 // 행사 작업 공간의 머리와 행사 카드. 갈피를 옮겨 다녀도 그대로인 값이다.
+// 행사 문서(EVT-DOC-01). 표의 한 줄이고, 상태 필터가 고른 값으로 걸러서 온다 —
+// 받아온 것을 화면에서 거르지 않으므로 여기서 거른다.
+//
+// id는 표에 그려지지 않는다. 그런데도 데이터에 있는 이유는 업무 카드와 같다 —
+// 문서를 여는 화면이 생기면 그 값이 '어느 문서인지'로 넘어간다.
+const EVENT_DOCUMENTS: Array<{ eventId: string; status: string; row: DataRow }> = [
+  {
+    eventId: 'E-01',
+    status: 'confirmed',
+    row: {
+      id: 'DOC-01',
+      category: '기획',
+      title: '행사 운영 계획서',
+      description: '운영 목표, 역할 분담, 당일 진행 순서',
+      status: '확정',
+      statusTone: 'green',
+      tone: 'blue',
+      updatedNote: '07. 12 · 이수현',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'reviewing',
+    row: {
+      id: 'DOC-02',
+      category: '운영',
+      title: '안전 관리 체크리스트',
+      description: '현장 안전 점검 및 비상 대응 항목',
+      status: '검토 중',
+      statusTone: 'yellow',
+      tone: 'amber',
+      updatedNote: '07. 18 · 박해랑',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'drafting',
+    row: {
+      id: 'DOC-03',
+      category: '참가자',
+      title: '참가자 명단 최종본',
+      description: '신청·납부·참석 확인 기준의 최종 명단',
+      status: '작성 중',
+      statusTone: 'blue',
+      tone: 'violet',
+      updatedNote: '07. 19 · 김바다',
+    },
+  },
+  {
+    eventId: 'E-01',
+    status: 'notStarted',
+    row: {
+      id: 'DOC-04',
+      category: '후속 정리',
+      title: '행사 결과 보고서',
+      description: '운영 결과와 정산 자료를 정리하는 문서',
+      status: '작성 전',
+      statusTone: 'gray',
+      tone: 'gray',
+      // 아직 손댄 적이 없으므로 언제 쓸 것인지로 온다.
+      updatedNote: '행사 종료 후',
+    },
+  },
+]
+
+const EVENT_DOCUMENT_STATS: Record<string, DataRow> = {
+  'E-01': {
+    total: '4개',
+    totalNote: '행사 공용 문서',
+    drafting: '1개',
+    draftingNote: '계속 확인이 필요해요',
+    reviewing: '1개',
+    reviewingNote: '의견 확인이 필요해요',
+  },
+}
+
 const EVENT_WORKSPACES: Record<string, DataRow> = {
   'E-01': {
     status: '기획 중',
@@ -762,6 +838,29 @@ export const FILTERED_FIXTURES: Record<
   'event.participantStats': ({ eventId = '' }) => overview(eventId, 'participantStats'),
   'event.checklist': ({ eventId = '' }) => EVENT_CHECKLIST[eventId] ?? [],
   'event.recentChanges': ({ eventId = '' }) => EVENT_RECENT_CHANGES[eventId] ?? [],
+  'event.documentStats': ({ eventId = '' }) =>
+    EVENT_DOCUMENT_STATS[eventId] ? [EVENT_DOCUMENT_STATS[eventId]] : [],
+  // 개수는 고른 상태와 무관하게 이 행사의 문서 전체를 센다 — 거른 뒤에 세면
+  // 고르는 순간 나머지 선택지의 개수가 0이 된다.
+  'event.documentStatusCounts': ({ eventId = '' }) => {
+    const rows = EVENT_DOCUMENTS.filter((document) => document.eventId === eventId)
+    if (rows.length === 0) return []
+    const count = (status: string) => rows.filter((row) => row.status === status).length
+    return [
+      {
+        all: rows.length,
+        drafting: count('drafting'),
+        reviewing: count('reviewing'),
+        confirmed: count('confirmed'),
+        notStarted: count('notStarted'),
+      },
+    ]
+  },
+  'event.documents': ({ eventId = '', status = 'all' }) =>
+    EVENT_DOCUMENTS.filter(
+      (document) =>
+        document.eventId === eventId && (status === 'all' || document.status === status),
+    ).map((document) => document.row),
   'event.workspace': ({ eventId = '' }) =>
     EVENT_WORKSPACES[eventId] ? [EVENT_WORKSPACES[eventId]] : [],
   'event.summary': ({ eventId = '' }) =>

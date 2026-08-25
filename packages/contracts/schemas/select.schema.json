@@ -102,11 +102,15 @@
       "required": [
         "dataSourceKey"
       ],
-      "description": "선택지마다 곁들이는 개수의 출처(선택). 무엇을 고를 수 있는지는 명세가 정하고(optionsSource), 각 선택지에 몇 건이 있는지는 데이터가 정한다. shape가 object인 출처여야 하며 fields[].key가 선택지의 value와 같아야 한다. MY-01의 업무 탭이 첫 사례다.",
+      "description": "선택지마다 곁들이는 개수의 출처(선택). 무엇을 고를 수 있는지는 명세가 정하고(optionsSource), 각 선택지에 몇 건이 있는지는 데이터가 정한다. shape가 object인 출처여야 하며 fields[].key가 선택지의 value와 같아야 한다. MY-01의 업무 탭이 첫 사례고, EVT-DOC-01의 문서 상태 필터에서 인자를 받게 됐다.",
       "properties": {
         "dataSourceKey": {
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "params": {
+          "$ref": "element-params.schema.json#/$defs/argument",
+          "description": "개수를 조회할 때 넘기는 인자(선택). itemList·summary의 params와 같은 축이다 — 무엇을 고를 수 있는지는 고정이어도 몇 건인지는 어느 행사의 것인지에 달릴 수 있다."
         }
       }
     },

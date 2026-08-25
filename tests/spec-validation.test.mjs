@@ -896,6 +896,137 @@ test("개수 출처가 선택지의 value를 조각으로 갖지 않으면 오�
   assert.equal(findings.filter((f) => f.message.includes("'done'")).length, 1);
 });
 
+test("개수 출처에 넘긴 인자가 그 출처에 없으면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        params: [{ key: "eventId", valueType: "string", description: "어느 행사" }],
+        elements: [
+          element("1:2", {
+            type: "select",
+            fieldKey: "documentStatus",
+            placeholder: null,
+            presentation: "choiceGroup",
+            initialValue: "all",
+            valueType: "string",
+            required: true,
+            initiallyDisabled: false,
+            searchable: false,
+            optionsSource: { key: "doc.status" },
+            optionCounts: {
+              dataSourceKey: "doc.counts",
+              params: { eventIdX: { screenParam: "eventId" } }
+            }
+          })
+        ]
+      }
+    }
+  ];
+  const optionSources = {
+    sources: [
+      {
+        key: "doc.status",
+        type: "static",
+        description: "문서 상태",
+        params: [],
+        options: [{ value: "all", label: "전체" }]
+      }
+    ]
+  };
+  const dataSources = {
+    sources: [
+      {
+        key: "doc.counts",
+        shape: "object",
+        description: "문서 수",
+        params: ["eventId"],
+        fields: [{ key: "all", description: "전체 수" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, optionSources, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("'eventIdX'")).length, 1);
+});
+
+test("표의 열이 가리킨 조각이 데이터 출처에 없으면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "itemList",
+            dataSourceKey: "doc.list",
+            columns: [
+              { label: "문서", fields: ["title"] },
+              { label: "상태", fields: ["없는조각"] }
+            ]
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "doc.list",
+        shape: "list",
+        description: "문서",
+        params: [],
+        fields: [
+          { key: "title", description: "이름" },
+          { key: "status", description: "상태" }
+        ]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("'없는조각'")).length, 1);
+});
+
+test("한 조각이 두 열에 오면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "itemList",
+            dataSourceKey: "doc.list",
+            columns: [
+              { label: "문서", fields: ["title"] },
+              { label: "상태", fields: ["title", "status"] }
+            ]
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "doc.list",
+        shape: "list",
+        description: "문서",
+        params: [],
+        fields: [
+          { key: "title", description: "이름" },
+          { key: "status", description: "상태" }
+        ]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("둘에 옵니다")).length, 1);
+});
+
 test("itemList 항목의 이동 대상 화면이 없으면 경고다", () => {
   const screens = [
     {

@@ -239,6 +239,34 @@
           "description": "이 갈피의 내용은 아직 명세되지 않았습니다."
         }
       ]
+    },
+    {
+      "key": "event.documentStatus",
+      "type": "static",
+      "description": "행사 문서를 상태로 거르는 버튼 묶음. 선택지는 디자인에 고정돼 있다. 곁들이는 개수는 선택지가 아니라 데이터에서 온다(optionCounts).",
+      "params": [],
+      "options": [
+        {
+          "value": "all",
+          "label": "전체"
+        },
+        {
+          "value": "drafting",
+          "label": "작성 중"
+        },
+        {
+          "value": "reviewing",
+          "label": "검토 중"
+        },
+        {
+          "value": "confirmed",
+          "label": "확정"
+        },
+        {
+          "value": "notStarted",
+          "label": "작성 전"
+        }
+      ]
     }
   ]
 }

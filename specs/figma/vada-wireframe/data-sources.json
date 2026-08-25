@@ -1343,6 +1343,140 @@
           "description": "다음에 무엇을 해야 하는지 알리는 완성된 문구. 예: 수정 후 재제출이 필요합니다."
         }
       ]
+    },
+    {
+      "key": "event.documentStats",
+      "shape": "object",
+      "description": "행사 문서 화면 머리의 타일 셋. 어느 행사인지는 화면이 받은 eventId가 정한다. 값은 단위까지 붙어서 온다 — 화면이 숫자에 '개'를 붙이지 않는다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/documents/stats"
+      },
+      "messages": {
+        "loading": "문서 현황을 불러오는 중입니다",
+        "empty": "행사를 찾지 못했습니다",
+        "error": "문서 현황을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "total",
+          "description": "이 행사에 딸린 문서 수. 예: 4개"
+        },
+        {
+          "key": "totalNote",
+          "description": "전체 문서가 어떤 것인지 말하는 완성된 문구. 예: 행사 공용 문서"
+        },
+        {
+          "key": "drafting",
+          "description": "작성 중인 문서 수. 예: 1개"
+        },
+        {
+          "key": "draftingNote",
+          "description": "작성 중인 문서에 무엇이 필요한지 말하는 완성된 문구. 예: 계속 확인이 필요해요"
+        },
+        {
+          "key": "reviewing",
+          "description": "검토 중인 문서 수. 예: 1개"
+        },
+        {
+          "key": "reviewingNote",
+          "description": "검토 중인 문서에 무엇이 필요한지 말하는 완성된 문구. 예: 의견 확인이 필요해요"
+        }
+      ]
+    },
+    {
+      "key": "event.documentStatusCounts",
+      "shape": "object",
+      "description": "문서 상태 필터의 선택지마다 곁들이는 개수. 조각의 key가 선택지의 value와 같다(event.documentStatus) — 선택지는 명세에 고정이고 개수만 데이터가 준다. 어느 행사인지는 화면이 받은 eventId가 정한다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/documents/counts"
+      },
+      "messages": {
+        "loading": "문서 수를 세는 중입니다",
+        "empty": "행사를 찾지 못했습니다",
+        "error": "문서 수를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "all",
+          "description": "이 행사의 문서 전체 수. 예: 4"
+        },
+        {
+          "key": "drafting",
+          "description": "작성 중인 문서 수. 예: 1"
+        },
+        {
+          "key": "reviewing",
+          "description": "검토 중인 문서 수. 예: 1"
+        },
+        {
+          "key": "confirmed",
+          "description": "확정된 문서 수. 예: 1"
+        },
+        {
+          "key": "notStarted",
+          "description": "아직 시작하지 않은 문서 수. 예: 1"
+        }
+      ]
+    },
+    {
+      "key": "event.documents",
+      "shape": "list",
+      "description": "행사 문서 표의 한 줄. 어느 행사인지(eventId)와 고른 상태(status)로 걸러서 서버가 준다 — 받아온 것을 화면에서 거르지 않는다.",
+      "params": [
+        "eventId",
+        "status"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/documents"
+      },
+      "messages": {
+        "loading": "문서를 불러오는 중입니다",
+        "empty": "이 상태의 문서가 없습니다",
+        "error": "문서를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "문서를 가리키는 값. 표에 그려지지 않지만, 눌러서 문서를 열 때 '어느 문서인지'로 넘어간다 — 그리지 않는 조각이다. 예: DOC-01"
+        },
+        {
+          "key": "category",
+          "description": "문서가 행사의 어느 국면에 속하는지. 예: 기획 · 운영 · 참가자 · 후속 정리"
+        },
+        {
+          "key": "title",
+          "description": "문서 이름. 예: 행사 운영 계획서"
+        },
+        {
+          "key": "description",
+          "description": "문서에 무엇이 담기는지 한 줄로. 예: 운영 목표, 역할 분담, 당일 진행 순서"
+        },
+        {
+          "key": "status",
+          "description": "문서의 상태를 알리는 말. 예: 확정 · 검토 중 · 작성 중 · 작성 전"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지에 배정된 색 이름. 상태가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: green"
+        },
+        {
+          "key": "tone",
+          "description": "줄 왼쪽 강조선의 색 이름. 문서가 속한 국면이 정한다 — 국면은 조직이 늘릴 수 있으므로 색도 데이터가 갖는다. 예: blue"
+        },
+        {
+          "key": "updatedNote",
+          "description": "마지막으로 손댄 때와 사람. 아직 시작하지 않은 문서는 언제 쓸 것인지로 온다 — 오늘이 언제인지 화면이 알 수 없다. 예: 07. 12 · 이수현 · 행사 종료 후"
+        }
+      ]
     }
   ]
 }

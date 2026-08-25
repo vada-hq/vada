@@ -83,7 +83,7 @@
         },
         {
           "label": "문서",
-          "note": "행사 문서 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "EVT-DOC-01"
         },
         {
           "label": "관련 회의",

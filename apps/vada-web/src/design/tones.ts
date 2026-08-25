@@ -68,6 +68,22 @@ export const SOFT_BOX_TEXT: Record<
   red: { label: 'text-red-600', value: 'text-red-800', note: 'text-red-500' },
 }
 
+/**
+ * 표 한 줄 왼쪽의 강조선(EVT-DOC-01 28:589). **톤의 -500으로 통일한다.**
+ *
+ * 무채색만 -400이다. 흔들림이 아니라 이유가 있다 — gray-500은 본문 글자의 색이라
+ * 장식인 선이 글보다 진해진다.
+ *
+ * 톤 이름은 데이터가 준다. 문서가 행사의 어느 국면에 속하는지가 색을 정하는데,
+ * 국면은 조직이 늘릴 수 있는 것이라 화면이 목록을 들고 있을 수 없다.
+ */
+export const ACCENT_BAR: Record<string, string> = {
+  blue: 'bg-blue-500',
+  amber: 'bg-amber-500',
+  violet: 'bg-violet-500',
+  gray: 'bg-gray-400',
+}
+
 /** 공간 카드의 옅은 테두리(OPS-00 16:614). */
 export const SOFT_BORDER: Record<string, string> = {
   blue: 'border-blue-200',

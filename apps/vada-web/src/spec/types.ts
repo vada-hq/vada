@@ -34,7 +34,8 @@ export interface SelectSpec {
   // 선택 UI 형태. 생략하면 dropdown.
   presentation?: 'dropdown' | 'choiceGroup'
   // 선택지마다 곁들이는 건수의 출처. 선택지는 명세가, 건수는 데이터가 정한다.
-  optionCounts?: { dataSourceKey: string }
+  // 건수도 걸러서 오는 것이라 인자를 받을 수 있다 — 어느 행사의 문서 수인지.
+  optionCounts?: { dataSourceKey: string; params?: QueryParams }
   optionsSource: {
     key: string
     params?: Record<string, string>
@@ -159,6 +160,9 @@ export interface ItemListSpec {
   // 가리키거나(fieldKey) 명세가 정한 고정값이다(value) — 칸반의 열이 후자다.
   // 받아온 것을 화면에서 거르지 않고 값이 바뀌면 다시 조회한다.
   params?: QueryParams
+  // 표로 그려지는 목록의 열 머리. 카드로 그려지는 목록은 이것이 없다. 열 머리는
+  // 그려지는 글이라 명세가 갖는다 — 화면은 design.json을 실행 중에 읽지 않는다.
+  columns?: { label: string; fields: string[] }[]
   // 항목 하나를 눌렀을 때. 어느 항목인지는 데이터가, 어느 화면인지는 명세가 말한다.
   itemAction?: DisplayAction
 }

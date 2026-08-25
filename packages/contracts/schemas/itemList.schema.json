@@ -27,6 +27,36 @@
       "$ref": "element-params.schema.json#/$defs/argument",
       "description": "목록을 조회할 때 넘기는 인자(선택). key는 dataSource의 params에 선언된 이름이다. 값은 화면 필드를 가리키거나(fieldKey) 명세에 담긴 고정값이다(value) — summary.items의 field/value 구분과 같은 축이다. 칸반의 열처럼 인자가 열마다 고정인 경우 value를 쓴다. 값이 바뀌면 목록을 다시 조회한다 — 받아온 것을 화면에서 거르지 않는다."
     },
+    "columns": {
+      "type": "array",
+      "minItems": 1,
+      "description": "표로 그려지는 목록의 열 머리(선택). 카드로 그려지는 목록은 이것이 없다. 열 머리는 그려지는 글이므로 명세가 갖는다 — 화면은 figma.design.json을 실행 중에 읽지 않는다. 한 열이 여러 조각을 담을 수 있다(문서 열은 분류·제목·설명을 함께 담는다).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "fields"
+        ],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "description": "열 머리에 그려지는 글. 예: 최근 갱신"
+          },
+          "fields": {
+            "type": "array",
+            "minItems": 1,
+            "uniqueItems": true,
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "description": "이 열에 오는 조각의 key. dataSource의 fields에 있어야 하고, 한 조각은 한 열에만 온다. 그리지 않는 조각(id)과 색 이름(tone)은 어느 열에도 오지 않는다."
+          }
+        }
+      }
+    },
     "group": {
       "type": "object",
       "additionalProperties": false,

@@ -585,16 +585,21 @@ function checkDataSource(findings, context) {
 // 조회에 넘기는 값이 어디서 오는지 검사한다. 인자 이름은 카탈로그가, 그 값을
 // 담은 필드는 화면이 갖는다 — 둘 중 하나만 틀려도 조용히 안 걸러진다.
 function checkQueryParams(findings, context) {
+  const { params, dataSourceKey } = context.element.spec;
+  checkArgumentMap(findings, context, params, dataSourceKey);
+}
+
+// 조회하며 넘기는 인자 한 묶음. 목록·요약의 params와 선택지 개수의 params가 같은
+// 것이라 판정도 한 곳이다 — 인자의 출처가 늘면 두 자리가 함께 늘어야 한다.
+function checkArgumentMap(findings, context, params, dataSourceKey) {
   const { file, element, index, dataSources, dataSourceByKey, fieldKeys, screenParams } =
     context;
-  const spec = element.spec;
-  const params = spec.params;
 
   if (!isObject(params)) {
     return;
   }
 
-  const source = isObject(dataSources) ? dataSourceByKey.get(spec.dataSourceKey) : null;
+  const source = isObject(dataSources) ? dataSourceByKey.get(dataSourceKey) : null;
   const declared = new Set(source ? source.params ?? [] : []);
 
   for (const [paramName, argument] of Object.entries(params)) {
@@ -602,7 +607,7 @@ function checkQueryParams(findings, context) {
       findings.push({
         level: "error",
         file,
-        message: `${elementLabel(element, index)}가 넘긴 조회 인자 '${paramName}'가 데이터 출처 '${spec.dataSourceKey}'에 선언돼 있지 않습니다.`
+        message: `${elementLabel(element, index)}가 넘긴 조회 인자 '${paramName}'가 데이터 출처 '${dataSourceKey}'에 선언돼 있지 않습니다.`
       });
     }
     // 고정값(value)은 명세가 정한 것이라 참조할 필드가 없다.
@@ -632,6 +637,51 @@ function checkQueryParams(findings, context) {
         file,
         message: `${elementLabel(element, index)}의 조회 인자 '${paramName}'가 항목의 조각(itemField)을 가리킵니다. 조회하는 시점에는 아직 항목이 없습니다 — 항목의 조각은 눌렸을 때의 동작(action.params)에서만 쓸 수 있습니다.`
       });
+    }
+  }
+}
+
+// 표로 그려지는 목록의 열 머리.
+//
+// 열 머리는 그려지는 글이라 명세가 갖는데, 그 열에 무엇이 오는지는 데이터 출처의
+// 조각 이름이다. 둘이 어긋나면 표는 그려지고 칸만 빈다 — 조용한 어긋남이라 여기서
+// 본다. 한 조각이 두 열에 오면 어느 칸에 그릴지 화면이 정하게 되므로 그것도 막는다.
+function checkListColumns(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey } = context;
+  const spec = element.spec;
+  const columns = spec.columns;
+
+  if (!Array.isArray(columns) || !isObject(dataSources)) {
+    return;
+  }
+
+  const source = dataSourceByKey.get(spec.dataSourceKey);
+  if (!source) {
+    return;
+  }
+
+  const known = new Set((source.fields ?? []).map((field) => field.key));
+  const seen = new Map();
+  for (const column of columns) {
+    for (const field of column?.fields ?? []) {
+      if (!known.has(field)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${elementLabel(element, index)}의 열 '${column.label}'이 가리킨 조각 '${field}'가 데이터 출처 '${spec.dataSourceKey}'에 없습니다.`
+        });
+        continue;
+      }
+      const owner = seen.get(field);
+      if (owner !== undefined) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${elementLabel(element, index)}의 조각 '${field}'가 열 '${owner}'와 '${column.label}' 둘에 옵니다. 한 조각은 한 열에만 올 수 있습니다.`
+        });
+        continue;
+      }
+      seen.set(field, column.label);
     }
   }
 }
@@ -768,6 +818,10 @@ function checkOptionCounts(findings, context) {
     });
     return;
   }
+
+  // 개수도 걸러서 오는 것이라 넘기는 인자가 있다. 조회 인자와 같은 것이므로
+  // 같은 판정을 쓴다.
+  checkArgumentMap(findings, context, counts.params, counts.dataSourceKey);
 
   const optionSource = isObject(optionSources)
     ? sourceByKey.get(spec.optionsSource?.key)
@@ -1130,6 +1184,9 @@ export function collectSpecFindings({
         checkDataSource(findings, context);
         // 조회 인자는 목록만의 것이 아니다 — 상세 화면의 요약도 한 건을 집어 온다.
         checkQueryParams(findings, context);
+      }
+      if (spec_.type === "itemList") {
+        checkListColumns(findings, context);
       }
       if (spec_.type === "select") {
         checkOptionCounts(findings, context);
