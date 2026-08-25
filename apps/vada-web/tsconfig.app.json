@@ -4,7 +4,8 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client"],
+    // design 대조가 design 파일을 번들러 대신 파일에서 읽는다(node:fs).
+    "types": ["vite/client", "node"],
     "allowArbitraryExtensions": true,
     "skipLibCheck": true,
     "strict": true,

@@ -1,3 +1,5 @@
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { join } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { cleanup, render } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
@@ -29,9 +31,18 @@ import { DEVIATIONS } from '../design/deviations'
 // design과 화면이 만나야 하는 자리가 바로 거기다. 셸(사이드바·헤더)은 등록에서
 // 빠져 있으므로 여기서도 빠진다.
 
-const DESIGN_MODULES = import.meta.glob(
-  '../../../../specs/figma/vada-wireframe/screens/*/figma.design.json',
-  { import: 'default' },
+// design 파일은 번들러를 거치지 않고 파일에서 읽는다.
+//
+// import.meta.glob으로 불러오면 vite가 화면마다 JSON을 ES 모듈로 바꾼다. 지금
+// 15개 합쳐 6MB고, 그 변환이 dom 검사 전체에서 가장 큰 값이었다(측정: 이 파일
+// 하나가 39초 중 14초, 프로젝트 전체의 import 36초). 검사는 Node에서 도니
+// 읽기만 하면 되고, 화면이 늘 때마다 6MB가 커지는 자리를 없앤다.
+//
+// 경로는 import.meta.url에서 얻지 않는다 — vitest 안에서 그것은 dev 서버의 http
+// 주소라 파일 경로가 아니다. vitest의 root가 이 앱이므로 거기서 올라간다.
+const SCREENS_DIR = join(
+  process.cwd(),
+  '../../specs/figma/vada-wireframe/screens',
 )
 
 // 그림의 '내용'이 있어야 같은 그림인지 가릴 수 있다. 파일 이름은 노드 id라 자리마다
@@ -53,10 +64,13 @@ function drawingOfScreen(screenId: string): (file: string) => string {
 // 화면 아홉 개의 design을 한꺼번에 안고 있으면 무겁다. 필요한 것만 불러 쓴다.
 const designByScreenId = new Map<string, DesignFile>()
 
-beforeAll(async () => {
-  for (const [path, load] of Object.entries(DESIGN_MODULES)) {
-    const screenId = path.split('/').at(-2) ?? ''
-    designByScreenId.set(screenId, (await load()) as DesignFile)
+beforeAll(() => {
+  for (const screenId of readdirSync(SCREENS_DIR)) {
+    const file = join(SCREENS_DIR, screenId, 'figma.design.json')
+    if (!existsSync(file)) {
+      continue
+    }
+    designByScreenId.set(screenId, JSON.parse(readFileSync(file, 'utf-8')) as DesignFile)
   }
 })
 
