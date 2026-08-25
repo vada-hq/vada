@@ -43,9 +43,24 @@ function listsOf(spec: ScreenSpec): ListSpec[] {
 // 요소 유형과 표현 형태에 따라 컨트롤의 ARIA role이 정해진다.
 // input은 inputType이 role까지 정한다 — <input type="search">는 textbox가 아니라
 // searchbox다(MY-01의 업무 검색).
+//
+// 날짜·시간 칸에는 role이 아예 없다. 브라우저마다 다르게 그리는 컨트롤이라
+// ARIA가 이름을 정해 두지 않았다(FIN-REQ-01의 '필요한 날짜'가 처음이다).
+// 없는 역할을 지어내 붙이면 화면이 실제로 그런 척하게 되므로, 그 칸은 라벨로 찾는다.
+const ROLELESS_INPUT_TYPES = new Set(['date', 'time', 'datetime-local'])
+
 function roleOf(spec: FieldSpec) {
   if (spec.type === 'input') return spec.inputType === 'search' ? 'searchbox' : 'textbox'
   return spec.presentation === 'choiceGroup' ? 'radiogroup' : 'combobox'
+}
+
+// 접근성 이름으로 컨트롤을 집는다. 역할이 있으면 역할까지 함께 본다 —
+// 같은 이름의 다른 컨트롤이 있을 수 있기 때문이다.
+function controlOf(spec: FieldSpec): HTMLElement {
+  if (spec.type === 'input' && ROLELESS_INPUT_TYPES.has(spec.inputType)) {
+    return screen.getByLabelText(accessibleName(spec))
+  }
+  return screen.getByRole(roleOf(spec), { name: accessibleName(spec) })
 }
 
 function fieldsOf(spec: ScreenSpec): FieldSpec[] {
@@ -84,10 +99,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       if (field.label === undefined) {
         continue
       }
-      expect(
-        screen.getByRole(roleOf(field), { name: accessibleName(field) }),
-        `${field.fieldKey}의 라벨·필수 표시`,
-      ).toBeInTheDocument()
+      expect(controlOf(field), `${field.fieldKey}의 라벨·필수 표시`).toBeInTheDocument()
     }
   })
 
@@ -95,7 +107,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     renderScreen(screenId)
     for (const field of fieldsOf(spec)) {
       if (field.type !== 'input') continue
-      const control = screen.getByRole(roleOf(field), { name: accessibleName(field) })
+      const control = controlOf(field)
       expect(control, `${field.fieldKey}의 inputType`).toHaveAttribute('type', field.inputType)
       if (field.placeholder !== null) {
         expect(control, `${field.fieldKey}의 placeholder`).toHaveAttribute(

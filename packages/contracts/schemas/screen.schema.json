@@ -46,6 +46,10 @@
             ],
             "description": "값의 종류(선택, 기본 string)."
           },
+          "optional": {
+            "type": "boolean",
+            "description": "없어도 화면이 열리는가(기본 false). 지금까지 인자는 전부 '없으면 아무것도 못 여는 것'이었다 — 무엇의 상세인지 모르면 상세가 없다. 그런데 **한 화면이 두 모드를 겸하는 자리**가 있다: FIN-REQ-01은 '작성·수정'이고, 요청 id가 있으면 그 요청을 읽어 고치고 없으면 빈 요청을 새로 쓴다. 이때 인자가 없는 것은 사고가 아니라 뜻이므로 화면이 막아서는 안 된다."
+          },
           "example": {
             "type": "string",
             "minLength": 1,
@@ -56,6 +60,25 @@
             "minLength": 1,
             "description": "무엇을 가리키는 값인지. 어디서 오는지도 적는다."
           }
+        }
+      }
+    },
+    "draftFrom": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataSourceKey"
+      ],
+      "description": "이 화면의 입력이 무엇을 읽어 채워지는지(선택). **고치는 화면은 고칠 것을 먼저 읽어 와야 한다** — 지금까지의 폼은 전부 빈칸에서 시작했고, 그래서 값이 서버에서 오는 길이 없었다.\n\n필드마다 출처를 따로 적지 않는 이유는 그것이 한 벌이기 때문이다: 요청 하나를 읽어 오면 제목도 부서도 품목도 그 안에 함께 온다. 출처의 조각 이름이 화면의 fieldKey와 같으면 그 값으로 시작하고, list의 fieldKey와 같은 조각은 그 조각의 fields가 항목의 칸이 된다.\n\n**새로 쓰는 것도 읽는다.** 인자가 비면 아직 아무것도 적히지 않은 요청이 오고, 그 안에는 서버가 이미 아는 것이 들어 있다(FIN-REQ-01의 요청 부서는 작성자의 소속이라 새 요청에도 이미 채워져 있다). 화면에 '읽는 경우'와 '안 읽는 경우'를 두지 않는 이유가 이것이다 — 갈래가 생기면 한쪽만 맞는 화면이 된다.",
+      "properties": {
+        "dataSourceKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "data-sources.json 카탈로그의 key. shape가 object인 출처여야 한다 — 고치는 대상은 한 건이다."
+        },
+        "params": {
+          "$ref": "element-params.schema.json#/$defs/argument",
+          "description": "무엇을 읽어 오는지. 대개 화면이 받은 인자를 그대로 넘긴다."
         }
       }
     },

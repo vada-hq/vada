@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "list.schema.json",
   "title": "List element",
-  "description": "사용자가 항목을 추가·이름 수정·삭제하는 목록. 지금까지의 요소가 모두 '값 하나'였던 것과 달리 값이 항목의 배열이다. rootItem이 있으면 트리(고정 루트 + 하위 항목)로, 없으면 평면 목록으로 렌더한다.",
+  "description": "사용자가 항목을 추가·이름 수정·삭제하는 목록. 지금까지의 요소가 모두 '값 하나'였던 것과 달리 값이 항목의 배열이다. rootItem이 있으면 트리(고정 루트 + 하위 항목)로, 없으면 평면 목록으로 렌더한다. 항목이 이름 하나가 아니라 여러 칸을 갖는 목록은 itemFields로 그 칸들을 담는다.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -53,13 +53,62 @@
     },
     "itemActions": {
       "type": "array",
-      "minItems": 1,
       "uniqueItems": true,
+      "description": "항목마다 할 수 있는 일. 비어 있을 수 있다 — FIN-REQ-01의 품목 리스트는 항목 넷을 그리면서 지우는 자리를 하나도 그리지 않았고, 없는 조작을 명세가 지어내면 그것은 디자인에 없는 동작이 된다. itemFields가 있는 목록에서 rename은 쓰지 않는다: 이름도 항목의 칸 하나이므로 그 칸을 고치는 것이 곧 이름을 고치는 것이다.",
       "items": {
         "enum": [
           "rename",
           "remove"
         ]
+      }
+    },
+    "itemTitleFieldKey": {
+      "type": "string",
+      "minLength": 1,
+      "description": "항목의 머리에 그리는 이름이 어느 칸의 값인지(itemFields가 있을 때 필수). 항목 머리는 순번과 이름으로 이루어지는데(FIN-REQ-01의 '1 박스테이프'), 순번은 자리에서 나오고 이름은 칸에서 나온다."
+    },
+    "itemFields": {
+      "type": "array",
+      "minItems": 1,
+      "description": "항목 하나가 담는 요소들. screen.elements와 **같은 모양**이며(source + spec) 같은 규칙으로 검증한다.\n\n왜 화면의 요소로 평평하게 두지 않는가. group.memberFieldKeys는 이미 있는 필드를 자리로 묶는 것이라 값의 모양을 바꾸지 않지만, 되풀이되는 묶음의 칸은 **화면의 것이 아니라 항목의 것**이다 — 품목이 넷이면 수량도 넷이고, 화면에 수량이라는 값 하나가 있는 것이 아니다. 값의 모양이 다르므로 적는 자리도 다르다.\n\n디자인이 항목을 넷 그렸어도 여기 적는 것은 하나다. itemList가 줄을 여섯 그린 표를 columns 한 벌로 적는 것과 같은 규칙이고, 실제 개수는 데이터가 정한다.\n\n항목의 fieldKey는 화면의 fieldKey와 **한 이름 공간**을 쓴다. 한 화면에서 같은 말이 두 가지를 뜻하면 어느 쪽을 가리킨 것인지 아무도 말할 수 없다.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "spec"
+        ],
+        "properties": {
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "nodeId",
+              "name",
+              "figmaType"
+            ],
+            "description": "디자인이 그린 항목 **첫째**의 노드다. 둘째부터는 같은 틀을 다른 값으로 그린 것이라 등록하지 않는다.",
+            "properties": {
+              "nodeId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string"
+              },
+              "figmaType": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "spec": {
+            "type": "object",
+            "required": [
+              "type"
+            ]
+          }
+        }
       }
     },
     "rootItem": {

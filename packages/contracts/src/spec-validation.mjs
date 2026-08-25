@@ -15,6 +15,29 @@ function elementLabel(element, index) {
   return name ? `elements[${index}](${name})` : `elements[${index}]`;
 }
 
+// 화면의 요소 전부 — 되풀이되는 항목의 칸까지 편다.
+//
+// list.itemFields는 화면의 요소와 **같은 모양**이고 같은 규칙을 받아야 한다.
+// 항목의 드롭다운도 선택지 출처를 가리키고, 항목의 칸도 디자인의 노드에 등록되며,
+// 항목의 fieldKey도 화면 안에서 유일해야 한다. 여기서 펴 두지 않으면 그 전부가
+// 검사 밖으로 빠지고, 빠진 것은 조용하다.
+//
+// 어느 목록에 속했는지는 함께 들고 다닌다. 항목 안에서만 뜻이 있는 것이 있기
+// 때문이다 — compute의 product는 '한 항목 안에서 곱한다'는 말이라 항목 밖에서는
+// 곱할 것이 없다.
+function allElementsOf(spec) {
+  const out = [];
+  for (const element of Array.isArray(spec?.elements) ? spec.elements : []) {
+    out.push({ element, inList: null });
+    if (isObject(element?.spec) && Array.isArray(element.spec.itemFields)) {
+      for (const nested of element.spec.itemFields) {
+        out.push({ element: nested, inList: element.spec });
+      }
+    }
+  }
+  return out;
+}
+
 export function collectDesignNodeIds(root, ids = new Set()) {
   if (!isObject(root)) {
     return ids;
@@ -138,8 +161,8 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
     Array.isArray(shell?.design?.excludeNodeNames) ? shell.design.excludeNodeNames : []
   );
   const registered = new Set(
-    spec.elements
-      .map((element) => element?.source?.nodeId)
+    allElementsOf(spec)
+      .map(({ element }) => element?.source?.nodeId)
       .filter((nodeId) => typeof nodeId === "string")
   );
   // 작업 공간의 갈피 줄도 등록 노드다. 무엇을 그리는지는 셸이 알고 화면은 어디에
@@ -161,9 +184,18 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
     DRAFT_SIGNALS.BUTTON_NAME_PATTERN.test(node.name ?? "") ||
     DRAFT_SIGNALS.CONTROL_NAMES.has(node.name ?? "");
 
+  // 이름으로 빼는 것은 셸이다(왼쪽 사이드바). 그런데 **화면이 제 안쪽 패널에도
+  // 같은 이름을 붙일 수 있다** — FIN-REQ-01의 요청 요약 패널이 'Sidebar'다.
+  // 이름만 보고 빼면 그 안의 제출 버튼 셋이 통째로 검사 밖으로 나간다.
+  // 화면이 그 안에 요소를 등록했으면 셸이 아니다.
+  const holdsRegistered = (node) =>
+    (Array.isArray(node?.children) ? node.children : []).some(
+      (child) => registered.has(child.id) || holdsRegistered(child)
+    );
+
   const walk = (node, covered) => {
     for (const child of Array.isArray(node?.children) ? node.children : []) {
-      if (excluded.has(child.name)) {
+      if (excluded.has(child.name) && !holdsRegistered(child)) {
         continue;
       }
       const inside = covered || registered.has(child.id);
@@ -212,7 +244,7 @@ function checkScreenAgainstDesign(findings, screen, designEntry, shell) {
   }
 
   const nodeIds = collectDesignNodeIds(design.root);
-  spec.elements.forEach((element, index) => {
+  allElementsOf(spec).forEach(({ element }, index) => {
     const nodeId = element?.source?.nodeId;
     if (typeof nodeId === "string" && !nodeIds.has(nodeId)) {
       findings.push({
@@ -433,6 +465,254 @@ function checkListReferences(findings, context) {
           level: "error",
           file,
           message: `${elementLabel(element, index)}의 초기 항목 ${items.length}개가 maxItems(${maxItems})를 넘습니다.`
+        });
+      }
+    }
+  }
+}
+
+// 항목이 여러 칸을 갖는 목록.
+//
+// 항목 머리에 그리는 이름은 항목의 칸 하나다. 그것을 가리키지 않으면 화면은 머리에
+// 무엇을 적을지 모르고, 순번만 남는다.
+function checkListItemFields(findings, context) {
+  const { file, element, index } = context;
+  const { itemFields, itemTitleFieldKey, itemActions } = element.spec;
+
+  if (!Array.isArray(itemFields)) {
+    if (typeof itemTitleFieldKey === "string") {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}에 itemTitleFieldKey가 있는데 itemFields가 없습니다. 가리킬 칸이 없습니다.`
+      });
+    }
+    return;
+  }
+
+  const itemKeys = new Set(
+    itemFields
+      .map((field) => field?.spec?.fieldKey)
+      .filter((key) => typeof key === "string")
+  );
+
+  if (typeof itemTitleFieldKey !== "string") {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}에 itemTitleFieldKey가 없습니다. 항목 머리에 그릴 이름이 어느 칸의 값인지 정해야 합니다.`
+    });
+  } else if (!itemKeys.has(itemTitleFieldKey)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 itemTitleFieldKey '${itemTitleFieldKey}'가 itemFields에 없습니다.`
+    });
+  }
+
+  // 이름도 항목의 칸이므로, 그 칸을 고치는 것이 곧 이름을 고치는 것이다.
+  if (Array.isArray(itemActions) && itemActions.includes("rename")) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}는 itemFields가 있으므로 itemActions에 'rename'을 쓸 수 없습니다. 이름은 '${itemTitleFieldKey}' 칸이고, 그 칸을 고치는 것이 이름을 고치는 것입니다.`
+    });
+  }
+}
+
+// 고칠 것을 먼저 읽어 오는 화면.
+//
+// 읽어 온 조각이 화면의 어느 칸에도 닿지 않으면 그 조각은 받아만 놓고 버려진다.
+// 반대로 목록의 칸이 조각에 없으면 그 칸은 고치는 화면에서도 늘 비어 있다. 둘 다
+// 조용하다 — 화면은 멀쩡히 그려지고 값만 없다.
+function checkDraftFrom(findings, file, spec, { dataSources, dataSourceByKey, screenParams }) {
+  const draftFrom = isObject(spec.draftFrom) ? spec.draftFrom : null;
+  if (!draftFrom) {
+    return;
+  }
+
+  if (!isObject(dataSources)) {
+    findings.push({
+      level: "warning",
+      file,
+      message: `data-sources.json이 없어 초안 출처 '${draftFrom.dataSourceKey}'를 확인하지 못했습니다.`
+    });
+    return;
+  }
+
+  const source = dataSourceByKey.get(draftFrom.dataSourceKey);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `초안 출처 '${draftFrom.dataSourceKey}'가 데이터 출처 카탈로그에 없습니다.`
+    });
+    return;
+  }
+  if (source.shape !== "object") {
+    findings.push({
+      level: "error",
+      file,
+      message: `초안 출처 '${draftFrom.dataSourceKey}'는 shape가 '${source.shape}'입니다. 고치는 대상은 한 건이므로 object여야 합니다.`
+    });
+  }
+
+  const declared = new Set(source.params ?? []);
+  for (const [paramName, argument] of Object.entries(draftFrom.params ?? {})) {
+    if (!declared.has(paramName)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `초안 출처에 넘긴 인자 '${paramName}'가 '${draftFrom.dataSourceKey}'에 선언돼 있지 않습니다.`
+      });
+    }
+    const screenParam = isObject(argument) ? argument.screenParam : undefined;
+    if (typeof screenParam === "string" && !screenParams.has(screenParam)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `초안 출처의 인자 '${paramName}'가 화면 인자 '${screenParam}'를 가리키는데 화면의 params에 없습니다.`
+      });
+    }
+  }
+
+  // 조각 이름과 칸 이름을 맞춰 본다. 목록의 조각은 다시 항목의 칸과 맞춰 본다.
+  const lists = new Map(
+    allElementsOf(spec)
+      .map(({ element }) => element?.spec)
+      .filter((candidate) => isObject(candidate) && candidate.type === "list")
+      .map((candidate) => [candidate.fieldKey, candidate])
+  );
+  const screenFieldKeys = new Set(
+    allElementsOf(spec)
+      .map(({ element }) => element?.spec)
+      .filter((candidate) => isObject(candidate) && FIELD_ELEMENT_TYPES.has(candidate.type))
+      .map((candidate) => candidate.fieldKey)
+      .filter((key) => typeof key === "string")
+  );
+
+  for (const field of Array.isArray(source.fields) ? source.fields : []) {
+    if (typeof field?.key !== "string") {
+      continue;
+    }
+    if (!screenFieldKeys.has(field.key)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `초안 출처 '${draftFrom.dataSourceKey}'의 조각 '${field.key}'를 받을 칸이 화면에 없습니다. 읽어만 놓고 아무 데도 쓰지 않습니다.`
+      });
+      continue;
+    }
+    const list = lists.get(field.key);
+    if (!list) {
+      continue;
+    }
+    const itemKeys = new Set(
+      (Array.isArray(list.itemFields) ? list.itemFields : [])
+        .map((entry) => entry?.spec?.fieldKey)
+        .filter((key) => typeof key === "string")
+    );
+    const nested = new Set(
+      (Array.isArray(field.fields) ? field.fields : [])
+        .map((entry) => entry?.key)
+        .filter((key) => typeof key === "string")
+    );
+    for (const key of itemKeys) {
+      if (!nested.has(key)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `목록 '${field.key}'의 칸 '${key}'가 초안 출처 '${draftFrom.dataSourceKey}'의 항목 조각에 없습니다. 고치러 들어와도 그 칸만 늘 비어 있습니다.`
+        });
+      }
+    }
+  }
+}
+
+// 화면이 스스로 셈하는 값.
+//
+// 셈이 가리키는 목록과 칸이 실제로 있어야 한다. 없으면 값은 조용히 0이 되고,
+// 0원은 틀린 값처럼 보이지 않는다 — 아직 아무것도 안 넣은 것처럼 보인다.
+function checkSummaryCompute(findings, context) {
+  const { file, element, index, inList, listsByFieldKey } = context;
+
+  for (const item of Array.isArray(element.spec.items) ? element.spec.items : []) {
+    const compute = isObject(item?.compute) ? item.compute : null;
+    if (!compute) {
+      continue;
+    }
+    const where = `${elementLabel(element, index)}의 '${item.label ?? compute.op}'`;
+
+    if (compute.op === "product") {
+      if (!inList) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${where}는 product인데 항목 안에 있지 않습니다. 곱할 것은 한 항목의 칸들이므로 list.itemFields 안에서만 쓸 수 있습니다.`
+        });
+        continue;
+      }
+      if (typeof compute.listFieldKey === "string") {
+        findings.push({
+          level: "error",
+          file,
+          message: `${where}는 product인데 listFieldKey를 갖습니다. 지금 있는 그 항목 안에서 곱하므로 목록을 다시 가리키지 않습니다.`
+        });
+      }
+    }
+
+    const owner =
+      compute.op === "product" ? inList : listsByFieldKey.get(compute.listFieldKey);
+
+    if (compute.op !== "product") {
+      if (typeof compute.listFieldKey !== "string") {
+        findings.push({
+          level: "error",
+          file,
+          message: `${where}는 ${compute.op}인데 listFieldKey가 없습니다. 무엇을 세거나 더하는지 정해야 합니다.`
+        });
+        continue;
+      }
+      if (!owner) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${where}가 가리킨 목록 '${compute.listFieldKey}'가 화면에 없습니다.`
+        });
+        continue;
+      }
+    }
+
+    if (compute.op === "count") {
+      if (Array.isArray(compute.fieldKeys)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${where}는 count인데 fieldKeys를 갖습니다. 세는 것은 항목이지 칸이 아닙니다.`
+        });
+      }
+      continue;
+    }
+
+    if (!Array.isArray(compute.fieldKeys)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${where}는 ${compute.op}인데 fieldKeys가 없습니다. 무엇을 곱하는지 정해야 합니다.`
+      });
+      continue;
+    }
+    const itemKeys = new Set(
+      (Array.isArray(owner?.itemFields) ? owner.itemFields : [])
+        .map((entry) => entry?.spec?.fieldKey)
+        .filter((key) => typeof key === "string")
+    );
+    for (const key of compute.fieldKeys) {
+      if (!itemKeys.has(key)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${where}가 곱하려는 칸 '${key}'가 목록 '${owner?.fieldKey}'의 항목에 없습니다.`
         });
       }
     }
@@ -772,8 +1052,16 @@ function checkListPaging(findings, context) {
 // 대상 화면은 오류 카드를 띄우고 끝나는데, **그 사실이 명세를 읽어서는 보이지
 // 않는다** — 이동은 성공하고 화면만 비기 때문이다. 그래서 여기서 본다.
 function checkNavigateParams(findings, context) {
-  const { file, element, index, dataSourceByKey, fieldKeys, screenParams, screenParamsById } =
-    context;
+  const {
+    file,
+    element,
+    index,
+    dataSourceByKey,
+    fieldKeys,
+    screenParams,
+    screenParamsById,
+    requiredParamsById
+  } = context;
   const spec = element.spec;
 
   const actions = [
@@ -785,6 +1073,7 @@ function checkNavigateParams(findings, context) {
     const params = action.params;
     const target = action.targetScreenId;
     const targetParams = screenParamsById?.get(target) ?? null;
+    const targetRequired = requiredParamsById?.get(target) ?? null;
     const label = elementLabel(element, index);
 
     if (isObject(params) && action.type !== "navigate") {
@@ -845,9 +1134,9 @@ function checkNavigateParams(findings, context) {
     }
 
     // 대상이 받는데 아무도 주지 않으면 그 화면은 열리자마자 비어 있다.
-    if (action.type === "navigate" && targetParams) {
+    if (action.type === "navigate" && targetRequired) {
       const given = new Set(Object.keys(isObject(params) ? params : {}));
-      const missing = [...targetParams].filter((name) => !given.has(name));
+      const missing = [...targetRequired].filter((name) => !given.has(name));
       if (missing.length > 0) {
         findings.push({
           level: "error",
@@ -950,6 +1239,16 @@ function checkFieldReferences(findings, context) {
       }
     }
   }
+  // 폼의 값을 되비추는 요약. 가리킨 칸이 없으면 요약만 조용히 빈다.
+  for (const item of Array.isArray(element.spec.items) ? element.spec.items : []) {
+    if (typeof item?.fieldKey === "string" && !fieldKeys.has(item.fieldKey)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 '${item.label ?? item.fieldKey}'가 참조한 fieldKey '${item.fieldKey}'가 화면에 없습니다.`
+      });
+    }
+  }
 }
 
 export function collectSpecFindings({
@@ -973,17 +1272,23 @@ export function collectSpecFindings({
       .filter((screenId) => typeof screenId === "string")
   );
   // 화면마다 '받는 인자'. 이동하는 쪽이 무엇을 넘겨야 하는지 여기서만 알 수 있다.
+  //
+  // 두 벌이다. **받을 수 있는 것**과 **반드시 받아야 하는 것**은 다르다 —
+  // 없어도 화면이 열리는 인자는 넘기지 않아도 되지만, 넘기면 받아야 한다.
+  // FIN-REQ-01은 요청 id가 있으면 고치고 없으면 새로 쓴다.
+  const paramsOf = (screen, onlyRequired) =>
+    new Set(
+      (Array.isArray(screen.spec.params) ? screen.spec.params : [])
+        .filter((param) => !onlyRequired || param?.optional !== true)
+        .map((param) => param?.key)
+        .filter((key) => typeof key === "string")
+    );
+  const named = screens.filter((screen) => typeof screen?.spec?.screenId === "string");
   const screenParamsById = new Map(
-    screens
-      .filter((screen) => typeof screen?.spec?.screenId === "string")
-      .map((screen) => [
-        screen.spec.screenId,
-        new Set(
-          (Array.isArray(screen.spec.params) ? screen.spec.params : [])
-            .map((param) => param?.key)
-            .filter((key) => typeof key === "string")
-        )
-      ])
+    named.map((screen) => [screen.spec.screenId, paramsOf(screen, false)])
+  );
+  const requiredParamsById = new Map(
+    named.map((screen) => [screen.spec.screenId, paramsOf(screen, true)])
   );
   const sourceByKey = new Map(
     (isObject(optionSources) && Array.isArray(optionSources.sources)
@@ -1179,10 +1484,21 @@ export function collectSpecFindings({
       }
     }
 
+    checkDraftFrom(findings, file, spec, {
+      dataSources,
+      dataSourceByKey,
+      screenParams: new Set(
+        (Array.isArray(spec.params) ? spec.params : [])
+          .map((param) => param?.key)
+          .filter((key) => typeof key === "string")
+      )
+    });
+
+    const flattened = allElementsOf(spec);
     const fieldKeys = new Set();
     const seenFieldKeys = new Set();
     const seenNodeIds = new Set();
-    spec.elements.forEach((element, index) => {
+    flattened.forEach(({ element }, index) => {
       const nodeId = element?.source?.nodeId;
       if (typeof nodeId === "string") {
         if (seenNodeIds.has(nodeId)) {
@@ -1212,8 +1528,14 @@ export function collectSpecFindings({
       }
     });
 
+    const listsByFieldKey = new Map(
+      flattened
+        .map(({ element }) => element?.spec)
+        .filter((candidate) => isObject(candidate) && candidate.type === "list")
+        .map((candidate) => [candidate.fieldKey, candidate])
+    );
     const groupedFieldKeys = new Set();
-    spec.elements.forEach((element, index) => {
+    flattened.forEach(({ element, inList }, index) => {
       const spec_ = element?.spec;
       if (!isObject(spec_)) {
         return;
@@ -1222,6 +1544,8 @@ export function collectSpecFindings({
         file,
         element,
         index,
+        inList,
+        listsByFieldKey,
         optionSources,
         sourceByKey,
         dataSources,
@@ -1242,6 +1566,7 @@ export function collectSpecFindings({
             .filter((key) => typeof key === "string")
         ),
         screenParamsById,
+        requiredParamsById,
         propertyOrderByType
       };
       checkPropertyOrder(findings, context);
@@ -1256,9 +1581,13 @@ export function collectSpecFindings({
       }
       if (spec_.type === "list") {
         checkListReferences(findings, context);
+        checkListItemFields(findings, context);
       }
       if (spec_.type === "button") {
         checkSubmitAction(findings, context);
+      }
+      if (spec_.type === "summary") {
+        checkSummaryCompute(findings, context);
       }
       if (spec_.type === "summary" || spec_.type === "itemList") {
         checkDataSource(findings, context);

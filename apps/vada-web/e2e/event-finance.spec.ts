@@ -72,11 +72,9 @@ test('EVT-FIN-01: 재정 갈피 둘 중 하나는 아직 없다', async ({ page 
   await expect(page.getByText(/이 갈피의 내용은 아직 명세되지 않았습니다/)).toBeVisible()
 })
 
-test('EVT-FIN-01: 구매 요청을 만들거나 여는 화면이 아직 없다', async ({ page }) => {
+// 새 구매 요청이 이어지는 것은 purchase-request.spec.ts가 본다 — 그 화면의 일이다.
+test('EVT-FIN-01: 이미 있는 요청을 여는 화면은 아직 없다', async ({ page }) => {
   await page.goto(FINANCE)
-
-  await page.getByRole('button', { name: '새 구매 요청' }).click()
-  await expect(page.getByText(/구매 요청을 작성하는 화면이 아직 명세되지 않았습니다/)).toBeVisible()
 
   await page.getByRole('button', { name: /체육대회 운영 물품 4종 구매 요청 열기/ }).click()
   await expect(page.getByText(/구매 요청을 여는 화면이 아직 명세되지 않았습니다/)).toBeVisible()

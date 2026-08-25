@@ -543,8 +543,15 @@ interface RegisteredElement {
  * '쓰이지 않는 예외'가 그것을 알렸다.
  */
 export function registeredNodeIds(screen: ComparableScreen): string[] {
+  // 되풀이되는 항목의 칸도 등록 노드다. design은 항목을 넷 그렸지만 명세가 적은
+  // 것은 첫째 하나이고, 화면도 그 자리에만 끈을 단다 — 둘째부터는 같은 틀이라
+  // 대조할 새 사실이 없다.
+  const itemFields = screen.elements.flatMap(
+    (element) => (element.spec as { itemFields?: RegisteredElement[] })?.itemFields ?? [],
+  )
   return [
     ...screen.elements.map((element) => element.source.nodeId),
+    ...itemFields.map((element) => element.source.nodeId),
     ...screen.elements
       .map((element) => (element.spec as { paging?: { source?: string } })?.paging?.source)
       .filter((nodeId): nodeId is string => typeof nodeId === 'string'),

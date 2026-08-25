@@ -108,14 +108,29 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
       // 갈피 줄은 화면의 요소가 아니다. 그 문구를 셸이 갖고 있다.
       workspaces: shell.workspaces
     });
-    const rows = compareWithSpec(elements, spec.elements);
+    // 되풀이되는 항목의 칸도 등록된 요소다(list.itemFields). 명세가 적는 것은
+    // 항목 하나의 틀이고 design은 항목 넷을 그리므로, 나머지 셋은 여기서
+    // '헛것'으로 잡힌다 — 그것이 사실이다. 추출기는 아직 되풀이를 못 본다.
+    const declared = spec.elements.flatMap((element) => [
+      element,
+      ...(element.spec?.itemFields ?? [])
+    ]);
+    const rows = compareWithSpec(elements, declared);
     const hit = rows.filter((row) => row.matched && row.typeMatch && row.labelMatch).length;
-    registered += spec.elements.length;
+    registered += declared.length;
     matched += hit;
-    spurious += rows.length - spec.elements.length;
-    worse.push(`${screenId} ${hit}/${spec.elements.length}(헛것 ${rows.length - spec.elements.length})`);
+    spurious += rows.length - declared.length;
+    worse.push(`${screenId} ${hit}/${declared.length}(헛것 ${rows.length - declared.length})`);
   }
 
+  // 2026-08-26 기준: 등록 151개 중 맞춤 94, 헛것 57.
+  //
+  // **헛것이 16에서 57로 뛰었다. 한 계급이 한 화면에서 39번 되풀이된 것이다.**
+  // FIN-REQ-01은 같은 열두 칸을 가진 품목을 넷 그렸고, 명세가 적는 것은 그 틀
+  // 하나다. 추출기는 되풀이를 못 보므로 나머지 셋(3×13=39)을 각각 새 요소로
+  // 뽑는다. 이미 알려진 계급(BACKLOG — 추출기가 표를 못 본다)의 세 번째 사례이고,
+  // 지금까지 중 가장 큰 증거다. 하나가 조용히 더 늘어나는 것만 막으면 된다.
+  //
   // 2026-08-25 기준: 등록 124개 중 맞춤 76, 헛것 16.
   // 그날 안에서 48/59 → 49/26(갈피 줄·눌리는 카드 목록) → 51/17(바탕으로 고르기)
   // → 52/14(글자 색으로 고르기) → 64/11(되풀이 판별 셋).
@@ -128,12 +143,12 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
   // EVT-FIN-01의 둘(머리 버튼 짝, 화면 안 갈피 둘). 눈금을 늘려 잠그는 것은
   // 그것이 조용히 하나 더 늘어나는 것을 막기 위해서다.
   assert.ok(
-    matched >= 76,
-    `등록 ${registered}개 중 ${matched}개만 재현했습니다(76 이상이어야 함): ${worse.join(", ")}`
+    matched >= 94,
+    `등록 ${registered}개 중 ${matched}개만 재현했습니다(94 이상이어야 함): ${worse.join(", ")}`
   );
   assert.ok(
-    spurious <= 16,
-    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(16 이하여야 함): ${worse.join(", ")}`
+    spurious <= 57,
+    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(57 이하여야 함): ${worse.join(", ")}`
   );
 });
 

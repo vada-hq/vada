@@ -49,7 +49,7 @@
     "items": {
       "type": "array",
       "minItems": 1,
-      "description": "라벨-값 쌍. label은 확정된 카피이며, 그려지지 않는 자리에서는 없다 — 서버가 '담당 학술체육부 · 김바다'처럼 라벨까지 품은 문장을 완성해 보내면 화면이 앞에 다시 '담당'을 적을 자리가 없다. 없는 라벨을 명세가 지어내면 그것은 디자인에 없는 카피가 된다. 값은 field(서버에서 온다)이거나 value(명세에 담긴 예시 값)이며 둘 중 하나는 있어야 한다.",
+      "description": "라벨-값 쌍. label은 확정된 카피이며, 그려지지 않는 자리에서는 없다 — 서버가 '담당 학술체육부 · 김바다'처럼 라벨까지 품은 문장을 완성해 보내면 화면이 앞에 다시 '담당'을 적을 자리가 없다. 없는 라벨을 명세가 지어내면 그것은 디자인에 없는 카피가 된다.\n\n값이 어디서 오는지는 넷 중 하나이며 반드시 하나는 있어야 한다 — field(서버가 보낸다) · value(명세에 담긴 예시) · fieldKey(이 화면의 입력 값) · compute(화면이 셈한다).",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -62,6 +62,16 @@
           {
             "required": [
               "value"
+            ]
+          },
+          {
+            "required": [
+              "fieldKey"
+            ]
+          },
+          {
+            "required": [
+              "compute"
             ]
           }
         ],
@@ -84,6 +94,43 @@
             "type": "string",
             "minLength": 1,
             "description": "출처가 없을 때 그대로 그리는 값."
+          },
+          "fieldKey": {
+            "type": "string",
+            "minLength": 1,
+            "description": "이 화면의 입력 값을 그대로 되비추는 경우 그 필드의 key. 서버에서 오는 field와 다르다 — **아직 아무 데도 보내지 않은 값**이다. 작성 중인 요청을 옆에서 요약해 보여주는 자리가 이것이다(FIN-REQ-01의 '우선순위 보통'은 왼쪽 폼에서 고른 그 값이다). 가리킨 필드가 select면 고른 선택지의 label을 그린다 — 값은 'normal'이지만 사람이 읽는 것은 '보통'이다."
+          },
+          "compute": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "op"
+            ],
+            "description": "화면이 스스로 셈해 내는 값. 지금까지 금액은 전부 서버가 보내 온 글이었고 그것이 옳았다 — 무엇을 더하고 빼는지가 곧 조직의 재정 규칙이기 때문이다. 그런데 **아직 제출하지 않은 요청의 합계를 아는 서버는 없다.** 사람이 수량을 고치는 순간 화면에 다시 그려져야 하고, 그 셈을 아는 곳은 화면뿐이다.\n\n이것은 식이 아니라 **이름 붙은 셈 셋**이다. 식을 적을 수 있게 만들면 명세가 코드가 되고, 그러면 명세를 읽는 사람이 다시 프로그램을 읽게 된다. 넷째가 필요해지면 그때 이름을 하나 더 짓는다.\n\n셈한 수의 자릿점은 화면이 찍는다. 서버가 보낸 글에는 이미 찍혀 있지만 이 값은 방금 나온 수다 — **화면이 셈을 하면 표기도 화면의 몫이다.**",
+            "properties": {
+              "op": {
+                "enum": [
+                  "count",
+                  "sum",
+                  "product"
+                ],
+                "description": "count=목록의 항목 수. sum=목록의 항목마다 fieldKeys를 곱한 뒤 전부 더한다. product=한 항목 안에서 fieldKeys를 곱한다(항목의 itemFields 안에 놓인 요소만 쓸 수 있다).\n\nsum이 '더하기'가 아니라 '곱해서 더하기'인 이유는 줄마다 금액이 수량 곱하기 단가로 나오기 때문이다. 이것을 곱하기와 더하기 둘로 나누면 둘을 잇는 식이 필요해지고, 식이 생기면 이 목록은 언어가 된다."
+              },
+              "listFieldKey": {
+                "type": "string",
+                "minLength": 1,
+                "description": "count·sum 전용. 무엇을 세거나 더하는지 — list 요소의 fieldKey다."
+              },
+              "fieldKeys": {
+                "type": "array",
+                "minItems": 1,
+                "description": "sum·product 전용. 곱할 칸들. 항목 하나 안의 칸 이름이며(수량·예상 단가), 값이 수로 읽히지 않는 항목은 셈에서 빠진다.",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              }
+            }
           },
           "description": {
             "type": "string",

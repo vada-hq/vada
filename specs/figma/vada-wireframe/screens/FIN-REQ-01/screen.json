@@ -1,0 +1,589 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-REQ-01",
+  "stateScopeKey": "purchaseRequestDraft",
+  "params": [
+    {
+      "key": "eventId",
+      "example": "E-01",
+      "description": "어느 행사의 구매 요청인지. 빵부스러기가 그 행사를 가리키고, 예산 항목도 그 행사의 것이다. 앞 화면(EVT-FIN-01)이 정한다."
+    },
+    {
+      "key": "requestId",
+      "optional": true,
+      "example": "PR-2026-0031",
+      "description": "고치려는 구매 요청. 없으면 새로 쓰는 것이다 — 이 화면은 '작성·수정' 둘을 겸한다."
+    }
+  ],
+  "draftFrom": {
+    "dataSourceKey": "finance.purchaseRequestDraft",
+    "params": {
+      "eventId": {
+        "screenParam": "eventId"
+      },
+      "requestId": {
+        "screenParam": "requestId"
+      }
+    }
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "구매 요청 작성·수정",
+    "description": null,
+    "footerNote": "제출된 요청은 재정부의 검토 후 구매가 진행됩니다. 보완 요청이 있을 경우 '내 업무'에서 확인할 수 있습니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:211",
+    "name": "운영 — 행사 · 재정 · FIN-REQ-01 · 구매 요청 작성·수정",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:314",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "구매 요청서 작성",
+        "description": "행사 운영에 필요한 물품 또는 용역의 구매를 요청합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:319",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "기본 요청 정보",
+        "memberFieldKeys": [
+          "title",
+          "department",
+          "neededOn",
+          "priority",
+          "purpose"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:326",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "title",
+        "label": "요청 제목",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:332",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "department",
+        "label": "요청 부서",
+        "placeholder": null,
+        "helperText": "작성자의 소속 부서로 고정됩니다.",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "readOnly": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:339",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "neededOn",
+        "label": "필요한 날짜",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "date",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:344",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "priority",
+        "label": "우선순위",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "finance.requestPriorities"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:351",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "purpose",
+        "label": "구매 목적",
+        "placeholder": "예산을 사용하는 구체적인 이유와 용도를 설명해 주세요.",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:363",
+        "name": "Text",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "label": "총",
+            "unit": "개 품목",
+            "compute": {
+              "op": "count",
+              "listFieldKey": "items"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:357",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "list",
+        "fieldKey": "items",
+        "label": "품목 리스트",
+        "itemNoun": "품목",
+        "addLabel": "품목 추가",
+        "minItems": 1,
+        "maxItems": 30,
+        "itemActions": [],
+        "itemTitleFieldKey": "itemName",
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:380",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "itemName",
+              "label": "품목명",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:386",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "select",
+              "fieldKey": "itemCategory",
+              "label": "품목 카테고리",
+              "placeholder": null,
+              "initialValue": null,
+              "valueType": "string",
+              "required": true,
+              "initiallyDisabled": false,
+              "searchable": false,
+              "optionsSource": {
+                "key": "finance.itemCategories"
+              }
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:394",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "select",
+              "fieldKey": "budgetItem",
+              "label": "예산 항목",
+              "placeholder": null,
+              "initialValue": null,
+              "valueType": "string",
+              "required": true,
+              "initiallyDisabled": false,
+              "searchable": false,
+              "optionsSource": {
+                "key": "finance.budgetItems",
+                "params": {
+                  "eventId": {
+                    "screenParam": "eventId"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:403",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "select",
+              "fieldKey": "purchaseType",
+              "label": "구매 유형",
+              "placeholder": null,
+              "initialValue": null,
+              "valueType": "string",
+              "required": true,
+              "initiallyDisabled": false,
+              "searchable": false,
+              "optionsSource": {
+                "key": "finance.purchaseTypes"
+              }
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:412",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "quantity",
+              "label": "수량",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "number",
+              "valueType": "integer",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:418",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "unit",
+              "label": "단위",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:424",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "unitPrice",
+              "label": "예상 단가",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "number",
+              "valueType": "integer",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:430",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "items": [
+                {
+                  "label": "품목 총액",
+                  "unit": "원",
+                  "compute": {
+                    "op": "product",
+                    "fieldKeys": [
+                      "quantity",
+                      "unitPrice"
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:435",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "group",
+              "title": "유형별 상세 정보",
+              "memberFieldKeys": [
+                "vendor",
+                "productUrl",
+                "option",
+                "deliveryNote",
+                "quoteStatus"
+              ]
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:440",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "vendor",
+              "label": "판매처 또는 쇼핑몰",
+              "placeholder": "예: 쿠팡, 네이버쇼핑 등",
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": false,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:445",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "productUrl",
+              "label": "상품 URL",
+              "placeholder": "https://...",
+              "initialValue": null,
+              "inputType": "url",
+              "valueType": "string",
+              "required": false,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:450",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "option",
+              "label": "상품 옵션 또는 규격",
+              "placeholder": "예: 검정 / 대형 / 50m",
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": false,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:455",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "deliveryNote",
+              "label": "배송 요청사항",
+              "placeholder": "특이사항 입력",
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": false,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:462",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "select",
+              "fieldKey": "quoteStatus",
+              "label": "견적서 확보 상태",
+              "placeholder": null,
+              "presentation": "choiceGroup",
+              "initialValue": "none",
+              "valueType": "string",
+              "required": false,
+              "initiallyDisabled": false,
+              "searchable": false,
+              "optionsSource": {
+                "key": "finance.quoteStatus"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:776",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "요청 요약",
+        "description": "제출 전 최종 내용을 확인하세요.",
+        "items": [
+          {
+            "label": "전체 예상 금액",
+            "unit": "원",
+            "compute": {
+              "op": "sum",
+              "listFieldKey": "items",
+              "fieldKeys": [
+                "quantity",
+                "unitPrice"
+              ]
+            }
+          },
+          {
+            "label": "총 품목 수",
+            "unit": "개",
+            "compute": {
+              "op": "count",
+              "listFieldKey": "items"
+            }
+          },
+          {
+            "label": "우선순위",
+            "fieldKey": "priority"
+          },
+          {
+            "label": "희망 기한",
+            "fieldKey": "neededOn"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:807",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "구매 요청 제출",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "finance.purchaseRequest.submit",
+          "onSuccess": {
+            "navigate": "EVT-FIN-01",
+            "scopeEvent": "complete"
+          },
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:809",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "임시 저장",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "finance.purchaseRequest.saveDraft",
+          "onSuccess": {}
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:811",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "취소",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "취소하면 어디로 가는지가 디자인에 없습니다. 적어 둔 것을 버릴지 물어보는지도 그려져 있지 않습니다."
+        }
+      }
+    }
+  ]
+}

@@ -5,10 +5,14 @@ import catalogJson from '../../../../specs/figma/vada-wireframe/option-sources.j
 import {
   COLLEGES,
   DEPARTMENTS,
+  BUDGET_ITEMS,
+  ITEM_CATEGORIES,
   PARTICIPANT_AFFILIATIONS,
   PARTICIPANT_APPLY_STATUS,
   PARTICIPANT_ATTEND_STATUS,
   PARTICIPANT_PAY_STATUS,
+  PURCHASE_TYPES,
+  REQUEST_PRIORITIES,
   SCHOOLS,
 } from './fixtures'
 
@@ -140,6 +144,14 @@ export async function fetchOptions(
       return PARTICIPANT_PAY_STATUS
     case 'event.participantAttendStatus':
       return PARTICIPANT_ATTEND_STATUS
+    case 'finance.requestPriorities':
+      return REQUEST_PRIORITIES
+    case 'finance.itemCategories':
+      return ITEM_CATEGORIES
+    case 'finance.budgetItems':
+      return BUDGET_ITEMS[params.eventId] ?? []
+    case 'finance.purchaseTypes':
+      return PURCHASE_TYPES
     default:
       throw new Error(`'${key}'의 mock 응답이 없습니다.`)
   }

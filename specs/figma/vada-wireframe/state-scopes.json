@@ -18,6 +18,15 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "purchaseRequestDraft",
+      "description": "구매 요청 작성·수정 입력 초안. 제출과 임시 저장이 같은 이 초안을 보낸다 — 보내는 곳이 다를 뿐 보내는 것은 같다.",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

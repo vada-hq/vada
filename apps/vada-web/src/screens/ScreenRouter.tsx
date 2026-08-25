@@ -6,6 +6,7 @@ import { EVTMEET01Screen } from './EVTMEET01Screen'
 import { EVTSCHED01Screen } from './EVTSCHED01Screen'
 import { EVT04Screen } from './EVT04Screen'
 import { EVTFIN01Screen } from './EVTFIN01Screen'
+import { FINREQ01Screen } from './FINREQ01Screen'
 import { EVTTASK01Screen } from './EVTTASK01Screen'
 import { EVTTASK02Screen } from './EVTTASK02Screen'
 import { HOME01KScreen } from './HOME01KScreen'
@@ -108,6 +109,17 @@ export function ScreenRouter({
   if (screenId === 'EVT-FIN-01') {
     // 행사 재정이다. 작업 공간의 일곱 번째이자 마지막 갈피다.
     return <EVTFIN01Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'FIN-REQ-01') {
+    // 구매 요청을 쓰거나 고친다. 요청 id가 있으면 그것을 읽어 채우고, 없으면
+    // 아직 아무것도 적히지 않은 요청을 받아 새로 쓴다.
+    return (
+      <FINREQ01Screen
+        screenParams={screenParams}
+        onNavigate={onNavigate}
+        onScopeEvent={onScopeEvent}
+      />
+    )
   }
   if (screenId === 'EVT-TASK-01') {
     // 행사 업무 보드다. 어느 행사인지는 화면 안에 없고 주소가 실어 온다.

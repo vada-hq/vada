@@ -71,6 +71,10 @@
     "required": {
       "type": "boolean"
     },
+    "readOnly": {
+      "type": "boolean",
+      "description": "값을 보여주되 사람이 고칠 수 없는 칸(기본 false). 비활성(initiallyDisabled)과 다르다 — 저것은 아직 못 고치는 것이고 이것은 **애초에 사람이 정하는 값이 아닌 것**이다. FIN-REQ-01의 요청 부서는 작성자의 소속이라 이 화면에서 고를 일이 없고, 디자인도 그 칸만 흐리게 그린 뒤 '작성자의 소속 부서로 고정됩니다'라고 적어 두었다. 고칠 수 없으므로 required도 될 수 없다."
+    },
     "validation": {
       "type": "array",
       "readOnly": true,

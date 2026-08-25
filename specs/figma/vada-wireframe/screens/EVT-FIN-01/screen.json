@@ -57,8 +57,13 @@
         "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "구매 요청을 작성하는 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "FIN-REQ-01",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },

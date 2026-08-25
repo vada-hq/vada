@@ -87,12 +87,19 @@ export function ChoiceGroup({
             // 늘 하나가 골라진 모습이다. 그 상태의 색은 대조하지 않는다
             // (design-check/index.ts의 data-design-state).
             data-design-state={value === null ? '' : undefined}
+            // 고른 것의 색은 우리 규칙이 정한다(design/deviations.ts의 choice-group).
+            data-design-rule="choice-group"
             role="radio"
             aria-checked={selected}
             disabled={disabled || option.disabled}
             onClick={() => onSelect(option)}
             className={`rounded border focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none ${
-              hasDescriptions ? 'px-4 py-3 text-left' : 'px-3 py-2 text-xs font-medium'
+              hasDescriptions
+                ? 'px-4 py-3 text-left'
+                : // 압축형은 글자색을 버튼 자신이 갖는다. 안쪽 span에 칠하면 대조가
+                  // 찾는 '가장 안쪽 칸'이 색 없는 그 span이 되어, 바탕과 글씨가
+                  // 서로 다른 요소로 갈린다.
+                  `px-3 py-2 text-xs font-medium ${selected ? 'text-blue-700' : 'text-gray-600'}`
             } ${
               selected
                 ? // 고른 테두리는 형태마다 다르다: 압축형 14:173은 blue-500,
@@ -127,7 +134,7 @@ export function ChoiceGroup({
                 )}
               </>
             ) : (
-              <span className={selected ? 'text-blue-700' : 'text-gray-600'}>{option.label}</span>
+              option.label
             )}
           </button>
         )

@@ -1,4 +1,4 @@
-// 두 앱의 테스트를 차례로 돌리고, 무슨 일이 있었는지 파일로 남긴다.
+// 두 앱의 테스트를 **함께** 돌리고, 무슨 일이 있었는지 파일로 남긴다.
 //
 // 자동 테스트 게이트가 실패를 알릴 때 출력이 비어 있는 일이 반복됐다. 출력이
 // 없으면 원인을 추측할 수밖에 없고, 실제로 세 번 추측하고 세 번 다 빗나갔다.
@@ -41,10 +41,13 @@ function record(text) {
   appendFileSync(logPath, text);
 }
 
+// 출력은 흘려보내지 않고 앱마다 모아 둔다.
+//
+// 둘이 함께 도니 그대로 흘리면 두 앱의 줄이 섞인다. 섞인 로그는 원인을 말해주지
+// 못하고, 이 파일이 있는 이유가 바로 그것이었다. 끝난 뒤 앱 순서대로 적는다.
 function runOne(app) {
   return new Promise((resolve) => {
     const started = Date.now();
-    record(`\n===== ${app} =====\n`);
     let output = "";
 
     const child = spawn("npm", ["--prefix", app, "test"], {
@@ -52,21 +55,28 @@ function runOne(app) {
       shell: true
     });
 
-    const echo = (chunk) => {
-      const text = chunk.toString();
-      output += text;
-      process.stdout.write(text);
-      record(text);
+    const collect = (chunk) => {
+      output += chunk.toString();
     };
-    child.stdout.on("data", echo);
-    child.stderr.on("data", echo);
+    child.stdout.on("data", collect);
+    child.stderr.on("data", collect);
 
     child.on("close", (code) => {
       const seconds = ((Date.now() - started) / 1000).toFixed(1);
-      record(`----- ${app}: 종료 코드 ${code}, ${seconds}초 -----\n`);
-      resolve({ code: code ?? 1, output });
+      resolve({ code: code ?? 1, output, seconds });
     });
   });
+}
+
+function reportOne(app, { code, output, seconds }) {
+  record(`
+===== ${app} =====
+` + output);
+  record(`----- ${app}: 종료 코드 ${code}, ${seconds}초 -----
+`);
+  process.stdout.write(`
+===== ${app} (${seconds}초) =====
+` + output);
 }
 
 // 검사가 실패한 것과 검사를 돌리지 못한 것은 다른 일이다.
@@ -90,8 +100,19 @@ writeFileSync(logPath, `테스트 실행 ${stamp()}\n`);
 
 const startedAll = Date.now();
 
-for (const app of APPS) {
-  let { code, output } = await runOne(app);
+// 두 앱을 **함께** 돌린다.
+//
+// 차례로 돌리면 두 시간이 그대로 더해지는데, 그 합이 예산(60초)을 넘겼다(68.3초).
+// 두 앱은 서로의 산출물을 쓰지 않는다 — 한쪽은 node --test로 계약을 검사하고
+// 다른 쪽은 vitest로 화면을 그린다. 순서가 뜻을 갖지 않으므로 함께 돌려도 된다.
+//
+// 그래도 넘치면 그때는 **바뀐 경로가 깨뜨릴 수 있는 앱만** 돌리도록 고른다.
+// 검사를 지우는 것은 답이 아니다.
+const results = await Promise.all(APPS.map((app) => runOne(app)));
+
+for (const [at, app] of APPS.entries()) {
+  let { code, output } = results[at];
+  reportOne(app, results[at]);
 
   if (code !== 0 && ranNothing(output)) {
     // 다시 돌리기 전에, 이번 일이 있었다는 사실부터 남긴다. 다시 돌려서 통과하면
@@ -106,7 +127,9 @@ for (const app of APPS) {
       `\n[run-tests] ${app}: 검사가 하나도 돌지 못했습니다(검사 실패가 아닙니다).\n` +
         `           한 번 다시 돌립니다. 기록은 .test-flakes.log에 쌓입니다.\n`
     );
-    ({ code, output } = await runOne(app));
+    const again = await runOne(app);
+    reportOne(app, again);
+    ({ code, output } = again);
   }
 
   if (code !== 0) {

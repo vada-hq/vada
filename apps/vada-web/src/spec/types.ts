@@ -15,6 +15,9 @@ export interface InputSpec {
   inputType: string
   valueType: string
   required: boolean
+  // 값을 보여주되 사람이 고칠 수 없는 칸(FIN-REQ-01의 요청 부서). 비활성과 다르다 —
+  // 저것은 아직 못 고치는 것이고 이것은 애초에 사람이 정하는 값이 아닌 것이다.
+  readOnly?: boolean
   validation: unknown[]
 }
 
@@ -128,6 +131,20 @@ export interface SummaryItem {
   // ('142명' 아래의 '정원 200명').
   description?: string
   descriptionField?: string
+  // 이 화면의 입력 값을 되비춘다. 서버가 보낸 field와 다르다 — 아직 아무 데도
+  // 보내지 않은 값이다. select를 가리키면 고른 선택지의 label을 그린다.
+  fieldKey?: string
+  // 화면이 스스로 셈해 내는 값. 아직 제출하지 않은 요청의 합계를 아는 서버는 없다.
+  compute?: SummaryCompute
+}
+
+// 식이 아니라 이름 붙은 셈 셋이다. 식을 적을 수 있게 만들면 명세가 코드가 된다.
+export interface SummaryCompute {
+  op: 'count' | 'sum' | 'product'
+  // count·sum: 무엇을 세거나 더하는지(list 요소의 fieldKey).
+  listFieldKey?: string
+  // sum·product: 항목 하나 안에서 곱할 칸들.
+  fieldKeys?: string[]
 }
 
 export interface SummarySpec {
@@ -216,6 +233,11 @@ export interface ListSpec {
   minItems: number
   maxItems: number
   itemActions: Array<'rename' | 'remove'>
+  // 항목의 머리에 그리는 이름이 어느 칸의 값인지(itemFields가 있을 때).
+  itemTitleFieldKey?: string
+  // 항목 하나가 담는 요소들. 화면의 요소와 같은 모양이다 — 되풀이되는 묶음의 칸은
+  // 화면의 것이 아니라 항목의 것이기 때문이다(품목이 넷이면 수량도 넷이다).
+  itemFields?: ScreenElement[]
   rootItem?: {
     initialName: string
     actions: Array<'rename'>
@@ -291,6 +313,9 @@ export type QueryParams = Record<
 export interface ScreenParam {
   key: string
   valueType?: 'string' | 'number'
+  // 없어도 화면이 열리는가. 한 화면이 두 모드를 겸하는 자리가 있다 —
+  // FIN-REQ-01은 요청 id가 있으면 고치고 없으면 새로 쓴다.
+  optional?: boolean
   // 화면 하나만 열어 볼 때 쓰는 예시 값. 구현은 이 값으로 대신하지 않는다 —
   // 인자가 없으면 드러내야 한다. 쓰는 것은 검사뿐이다.
   example?: string
@@ -304,6 +329,12 @@ export interface ScreenSpec {
   // 이 화면이 밖에서 받는 인자. 상세 화면만 갖는다 — 무엇의 상세인지는 화면
   // 안에 없기 때문이다.
   params?: ScreenParam[]
+  // 이 화면의 입력이 무엇을 읽어 채워지는지. 고치는 화면은 고칠 것을 먼저 읽어
+  // 온다. 새로 쓰는 것도 읽는다 — 아직 아무것도 적히지 않은 요청이 온다.
+  draftFrom?: {
+    dataSourceKey: string
+    params?: QueryParams
+  }
   // 이 화면이 속한 작업 공간. 무엇을 그리는지는 shell.json이 알고, 화면은
   // 어디에 그리는지만 갖는다.
   workspace?: {

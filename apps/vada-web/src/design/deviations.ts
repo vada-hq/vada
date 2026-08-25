@@ -105,6 +105,44 @@ export const DEVIATIONS: Deviation[] = [
       '와이어프레임은 EVT-DOC-01·EVT-SCHED-01이 gray-600이고 EVT-00A만 gray-500이다.',
   },
 
+  {
+    by: 'rule',
+    rule: 'choice-group',
+    kind: '배경',
+    design: 'gray-800(#1E2939)',
+    screen: 'blue-50(#EFF6FF)',
+    why:
+      '펼친 선택지에서 고른 것은 blue-50 바탕이다(components/ChoiceGroup). ' +
+      '와이어프레임은 ORG-01·ORG-02가 blue-50이고 FIN-REQ-01의 견적서 확보 상태만 ' +
+      'gray-800이다. 같은 컨트롤이 화면마다 다른 색으로 골라질 이유가 없다.',
+  },
+  {
+    by: 'rule',
+    rule: 'choice-group',
+    kind: '테두리',
+    design: 'gray-800(#1E2939)',
+    screen: 'blue-500(#2B7FFF)',
+    why: '위와 같다 — 고른 것의 테두리는 blue-500이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'choice-group',
+    kind: '색',
+    design: 'white(#FFFFFF)',
+    screen: 'blue-700(#1447E6)',
+    why: '위와 같다 — 바탕이 옅으므로 글씨는 blue-700이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'choice-group',
+    kind: '색',
+    design: 'gray-500(#6A7282)',
+    screen: 'gray-600(#4A5565)',
+    why:
+      '고르지 않은 선택지의 글씨는 gray-600이다. 와이어프레임은 ORG-01이 gray-600이고 ' +
+      'FIN-REQ-01만 gray-500이다.',
+  },
+
   // --- 색에 건다: 그 색이 어디에 또 쓰였든 한 줄 -------------------------------
   //
   // 와이어프레임에 Tailwind 팔레트에 없는 색이 둘 있다. 팔레트 밖 색을 쓰면 그

@@ -1814,6 +1814,104 @@
           "description": "상태 딱지에 배정된 색 이름. 재정 처리 단계가 조직 규칙에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: orange"
         }
       ]
+    },
+    {
+      "key": "finance.purchaseRequestDraft",
+      "shape": "object",
+      "description": "작성하거나 고치는 구매 요청 한 건. 이 화면의 입력을 채운다. requestId가 비면 아직 아무것도 적히지 않은 요청이 오며, 그때도 서버가 이미 아는 것(작성자의 소속 부서)은 채워져 온다.",
+      "params": [
+        "eventId",
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-request-draft"
+      },
+      "messages": {
+        "loading": "구매 요청을 불러오는 중입니다",
+        "empty": "구매 요청을 찾지 못했습니다",
+        "error": "구매 요청을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "요청 제목. 예: 체육대회 운영 물품"
+        },
+        {
+          "key": "department",
+          "description": "요청 부서. 작성자의 소속이라 이 화면에서 고르지 않는다. 예: 운영부"
+        },
+        {
+          "key": "neededOn",
+          "description": "필요한 날짜. YYYY-MM-DD. 예: 2026-08-12"
+        },
+        {
+          "key": "priority",
+          "description": "우선순위. finance.requestPriorities의 값. 예: 보통"
+        },
+        {
+          "key": "purpose",
+          "description": "구매 목적. 예산을 쓰는 이유와 용도."
+        },
+        {
+          "key": "items",
+          "description": "요청에 담긴 품목들. 개수는 요청마다 다르다.",
+          "fields": [
+            {
+              "key": "itemName",
+              "description": "품목명. 예: 박스테이프"
+            },
+            {
+              "key": "itemCategory",
+              "description": "품목 카테고리. finance.itemCategories의 값."
+            },
+            {
+              "key": "budgetItem",
+              "description": "어느 예산 항목에서 쓰는지. finance.budgetItems의 값."
+            },
+            {
+              "key": "purchaseType",
+              "description": "구매 유형. finance.purchaseTypes의 값."
+            },
+            {
+              "key": "quantity",
+              "description": "수량. 수로 읽힌다. 예: 5"
+            },
+            {
+              "key": "unit",
+              "description": "세는 말. 예: 개"
+            },
+            {
+              "key": "unitPrice",
+              "description": "예상 단가. 수로 읽힌다. 자릿점 없이 온다 — 곱해야 하는 수이지 읽으라고 준 글이 아니다. 예: 2000"
+            },
+            {
+              "key": "vendor",
+              "description": "판매처 또는 쇼핑몰. 없으면 오지 않는다.",
+              "optional": true
+            },
+            {
+              "key": "productUrl",
+              "description": "상품 URL. 없으면 오지 않는다.",
+              "optional": true
+            },
+            {
+              "key": "option",
+              "description": "상품 옵션 또는 규격. 없으면 오지 않는다.",
+              "optional": true
+            },
+            {
+              "key": "deliveryNote",
+              "description": "배송 요청사항. 없으면 오지 않는다.",
+              "optional": true
+            },
+            {
+              "key": "quoteStatus",
+              "description": "견적서 확보 상태. finance.quoteStatus의 값."
+            }
+          ]
+        }
+      ]
     }
   ]
 }

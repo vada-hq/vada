@@ -417,6 +417,108 @@
           "description": "이 갈피의 내용은 아직 명세되지 않았습니다."
         }
       ]
+    },
+    {
+      "key": "finance.requestPriorities",
+      "type": "remote",
+      "description": "구매 요청의 우선순위. 디자인이 펼친 목록을 그리지 않아 명세가 지어내지 않는다 — 아는 쪽은 서버다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/request-priorities",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 우선순위 목록을 불러오세요",
+        "loading": "우선순위 목록을 불러오는 중입니다",
+        "empty": "고를 수 있는 우선순위이(가) 없습니다",
+        "error": "우선순위 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "finance.itemCategories",
+      "type": "remote",
+      "description": "품목 카테고리. 조직이 정하는 분류라 화면이 목록을 갖지 않는다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/item-categories",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 품목 카테고리 목록을 불러오세요",
+        "loading": "품목 카테고리 목록을 불러오는 중입니다",
+        "empty": "고를 수 있는 품목 카테고리이(가) 없습니다",
+        "error": "품목 카테고리 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "finance.budgetItems",
+      "type": "remote",
+      "description": "어느 예산 항목에서 쓰는지. 그 행사의 예산이라 행사마다 다르다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/budget-items",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 예산 항목 목록을 불러오세요",
+        "loading": "예산 항목 목록을 불러오는 중입니다",
+        "empty": "고를 수 있는 예산 항목이(가) 없습니다",
+        "error": "예산 항목 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "finance.purchaseTypes",
+      "type": "remote",
+      "description": "구매 유형. 유형에 따라 처리 방식이 달라지므로 조직의 규칙이다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-types",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 구매 유형 목록을 불러오세요",
+        "loading": "구매 유형 목록을 불러오는 중입니다",
+        "empty": "고를 수 있는 구매 유형이(가) 없습니다",
+        "error": "구매 유형 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "finance.quoteStatus",
+      "type": "static",
+      "description": "견적서를 어디까지 받았는지. 셋 다 디자인에 펼쳐져 있어 명세가 그대로 갖는다.",
+      "params": [],
+      "options": [
+        {
+          "value": "none",
+          "label": "미요청"
+        },
+        {
+          "value": "requested",
+          "label": "요청 중"
+        },
+        {
+          "value": "received",
+          "label": "수령 완료"
+        }
+      ]
     }
   ]
 }

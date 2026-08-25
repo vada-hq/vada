@@ -76,8 +76,16 @@ export function EVTFIN01Screen({ screenParams, onNavigate }: EVTFIN01ScreenProps
   }
 
   const buttonAt = (nodeId: string) => elementByNodeId(evtFin01, nodeId).spec as ButtonSpec
-  const pend = (spec: ButtonSpec) => () => {
-    if (spec.action.type === 'pending') setNote(spec.action.note)
+  // 아직 갈 곳이 없는 것과 이제 갈 곳이 생긴 것이 나란히 있다 — 구매 요청을 쓰는
+  // 화면은 생겼고, 내 요청만 모아 보는 화면은 아직이다.
+  const press = (spec: ButtonSpec) => () => {
+    if (spec.action.type === 'pending') {
+      setNote(spec.action.note)
+      return
+    }
+    if (spec.action.type === 'navigate') {
+      onNavigate(spec.action.targetScreenId, resolveParams(spec.action.params, { screenParams }))
+    }
   }
 
   const totals = elementByNodeId(evtFin01, NODE.totals).spec as SummarySpec
@@ -114,7 +122,7 @@ export function EVTFIN01Screen({ screenParams, onNavigate }: EVTFIN01ScreenProps
                 key={nodeId}
                 type="button"
                 data-node-id={nodeId}
-                onClick={pend(spec)}
+                onClick={press(spec)}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium ${
                   primary
                     ? 'bg-blue-600 text-white hover:bg-blue-700'

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { FocusEvent, KeyboardEvent } from 'react'
+import type { FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { ChevronDown, Loader2, Search } from 'lucide-react'
 import { fetchOptions, getOptionSource } from '../option-sources/catalog'
 import type { Option } from '../option-sources/catalog'
@@ -15,6 +15,10 @@ interface SearchSelectProps {
   value: Option | null
   onSelect: (option: Option) => void
   triggerRef?: (element: HTMLElement | null) => void
+  // 화살표를 밖에서 받는다(선택). design이 이 자리의 화살표를 **그림으로 뽑아 둔**
+  // 화면이 있고(FIN-REQ-01), 그때는 그 그림을 그려야 자산 대조가 맞는다. 뽑히지
+  // 않은 화면에서는 우리 아이콘을 그대로 쓴다.
+  chevron?: ReactNode
 }
 
 type PanelStatus = 'idle' | 'loading' | 'ready' | 'error'
@@ -34,6 +38,7 @@ export function SearchSelect({
   value,
   onSelect,
   triggerRef,
+  chevron,
 }: SearchSelectProps) {
   const source = useMemo(() => getOptionSource(sourceKey), [sourceKey])
   const loadMode = source.type === 'static' ? 'static' : source.request.loadOn
@@ -270,7 +275,11 @@ export function SearchSelect({
         </button>
       )}
       {searchable && <Search className={`${iconClass} left-3`} />}
-      <ChevronDown className={`${iconClass} right-2.5`} />
+      {chevron === undefined ? (
+        <ChevronDown className={`${iconClass} right-2.5`} />
+      ) : (
+        <span className={`${iconClass} right-2.5`}>{chevron}</span>
+      )}
       {open && !disabled && (
         <div className="absolute top-full left-0 z-10 mt-1 max-h-56 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 shadow-md">
           {statusMessage !== null ? (

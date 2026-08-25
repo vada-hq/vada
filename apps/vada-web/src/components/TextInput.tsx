@@ -5,6 +5,10 @@ interface TextInputProps {
   // 스펙의 inputType. 소비하지 않으면 스펙이 email이어도 화면은 text로 남는다.
   type?: string
   hasError?: boolean
+  // 값을 보여주되 고칠 수 없는 칸(FIN-REQ-01의 요청 부서). 비활성이 아니다 —
+  // 읽을 수 있고 고를 수 있으며 접근성 이름도 그대로다. 사람이 정하는 값이
+  // 아닐 뿐이다. design도 이 칸만 바탕을 회색으로, 글을 흐리게 그렸다.
+  readOnly?: boolean
   onChange: (value: string) => void
   inputRef?: (element: HTMLInputElement | null) => void
 }
@@ -18,6 +22,7 @@ export function TextInput({
   placeholder,
   type = 'text',
   hasError,
+  readOnly,
   onChange,
   inputRef,
 }: TextInputProps) {
@@ -27,13 +32,14 @@ export function TextInput({
       id={id}
       type={type}
       value={value}
+      readOnly={readOnly}
       placeholder={placeholder ?? undefined}
       aria-invalid={hasError || undefined}
       aria-describedby={hasError ? `${id}-error` : undefined}
       onChange={(event) => onChange(event.target.value)}
-      className={`w-full rounded-md border bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none ${
-        hasError ? 'border-red-500' : 'border-gray-300'
-      }`}
+      className={`w-full rounded-md border px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 focus:outline-none ${
+        readOnly ? 'bg-gray-50 text-gray-400' : 'bg-white text-gray-800'
+      } ${hasError ? 'border-red-500' : 'border-gray-300'}`}
     />
   )
 }

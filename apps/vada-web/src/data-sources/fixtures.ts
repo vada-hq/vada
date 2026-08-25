@@ -1203,6 +1203,89 @@ function overview(eventId: string, part: string): DataRow[] {
   return row === undefined ? [] : [row]
 }
 
+
+// 고치려는 구매 요청 한 건. 품목 넷과 수량·단가는 디자인이 그린 그대로다 —
+// 5×2000=10,000, 10×5000=50,000, 200×300=60,000, 10×1500=15,000이고 합이
+// 135,000이다. 디자인의 셈이 맞는지 여기서 확인된다.
+//
+// 카테고리·예산 항목·구매 유형은 디자인이 넷 다 빈 드롭다운으로 그렸다. 채워
+// 넣으면 그림에 없는 사실이 되므로 빈 채로 둔다.
+const PURCHASE_REQUEST_ITEMS: DataRow[] = [
+  {
+    itemName: '박스테이프',
+    itemCategory: '',
+    budgetItem: '',
+    purchaseType: '',
+    quantity: 5,
+    unit: '개',
+    unitPrice: 2000,
+    quoteStatus: 'none',
+  },
+  {
+    itemName: '생수 500ml',
+    itemCategory: '',
+    budgetItem: '',
+    purchaseType: '',
+    quantity: 10,
+    unit: '박스',
+    unitPrice: 5000,
+    quoteStatus: 'none',
+  },
+  {
+    itemName: '이름표 용지',
+    itemCategory: '',
+    budgetItem: '',
+    purchaseType: '',
+    quantity: 200,
+    unit: '장',
+    unitPrice: 300,
+    quoteStatus: 'none',
+  },
+  {
+    itemName: '유성 마커',
+    itemCategory: '',
+    budgetItem: '',
+    purchaseType: '',
+    quantity: 10,
+    unit: '개',
+    unitPrice: 1500,
+    quoteStatus: 'none',
+  },
+]
+
+// 아직 아무것도 적히지 않은 요청. 비어 있지 않은 것이 둘 있다 — 작성자의 소속
+// 부서와 품목 한 줄이다. 부서는 서버가 이미 알고, 품목 한 줄은 minItems가 정한다.
+const EMPTY_PURCHASE_REQUEST_ITEM: DataRow = {
+  itemName: '',
+  itemCategory: '',
+  budgetItem: '',
+  purchaseType: '',
+  quantity: '',
+  unit: '',
+  unitPrice: '',
+  quoteStatus: 'none',
+}
+
+export const PURCHASE_REQUEST_DRAFTS: Record<string, DataRow> = {
+  'PR-2026-0031': {
+    title: '체육대회 운영 물품',
+    department: '운영부',
+    neededOn: '2026-08-12',
+    priority: '보통',
+    purpose: '',
+    items: PURCHASE_REQUEST_ITEMS,
+  },
+}
+
+export const NEW_PURCHASE_REQUEST: DataRow = {
+  title: '',
+  department: '운영부',
+  neededOn: '',
+  priority: '',
+  purpose: '',
+  items: [EMPTY_PURCHASE_REQUEST_ITEM],
+}
+
 export const FILTERED_FIXTURES: Record<
   string,
   (params: Record<string, string>) => DataRow[]
@@ -1319,6 +1402,13 @@ export const FILTERED_FIXTURES: Record<
   'task.workDocuments': ({ taskId = '' }) => TASK_WORK_DOCUMENTS[taskId] ?? [],
   'task.reviewStatus': ({ taskId = '' }) =>
     TASK_REVIEW_STATUS[taskId] ? [TASK_REVIEW_STATUS[taskId]] : [],
+  // 요청 id가 비면 새 요청이다 — 없는 것이 아니라 아직 안 적힌 것이다.
+  'finance.purchaseRequestDraft': ({ requestId = '' }) =>
+    requestId === ''
+      ? [NEW_PURCHASE_REQUEST]
+      : PURCHASE_REQUEST_DRAFTS[requestId]
+        ? [PURCHASE_REQUEST_DRAFTS[requestId]]
+        : [],
   'my.tasks': ({ tab = 'todo', query = '' }) =>
     MY_TASKS.filter((task) => task.tab === tab)
       .map((task) => task.row)

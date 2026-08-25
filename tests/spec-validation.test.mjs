@@ -1551,3 +1551,256 @@ test("제목의 출처가 목록이면 오류다", () => {
   const findings = collectSpecFindings({ screens, dataSources });
   assert.equal(findings.filter((f) => f.message.includes("object여야 합니다")).length, 1);
 });
+
+// --- 되풀이되는 항목의 칸 ---------------------------------------------------
+
+function listScreen(listSpec, extra = {}) {
+  return [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          {
+            source: { nodeId: "1:1", name: "Container", figmaType: "FRAME" },
+            spec: {
+              type: "list",
+              fieldKey: "items",
+              itemNoun: "품목",
+              addLabel: "품목 추가",
+              minItems: 1,
+              maxItems: 10,
+              itemActions: [],
+              ...listSpec
+            }
+          },
+          ...(extra.elements ?? [])
+        ],
+        ...(extra.screen ?? {})
+      }
+    }
+  ];
+}
+
+const ITEM_FIELD = {
+  source: { nodeId: "1:2", name: "Input", figmaType: "FRAME" },
+  spec: {
+    type: "input",
+    fieldKey: "quantity",
+    label: "수량",
+    placeholder: null,
+    initialValue: null,
+    inputType: "number",
+    valueType: "integer",
+    required: true,
+    validation: []
+  }
+};
+
+test("항목의 칸이 있으면 머리에 그릴 이름도 있어야 한다", () => {
+  const findings = collectSpecFindings({
+    screens: listScreen({ itemFields: [ITEM_FIELD] })
+  });
+  assert.equal(findings.filter((f) => f.message.includes("itemTitleFieldKey가 없습니다")).length, 1);
+});
+
+test("항목 머리의 이름은 항목의 칸을 가리켜야 한다", () => {
+  const findings = collectSpecFindings({
+    screens: listScreen({ itemTitleFieldKey: "없는칸", itemFields: [ITEM_FIELD] })
+  });
+  assert.equal(findings.filter((f) => f.message.includes("'없는칸'")).length, 1);
+});
+
+test("항목의 칸이 있으면 이름 고치기는 칸을 고치는 것이다", () => {
+  const findings = collectSpecFindings({
+    screens: listScreen({
+      itemActions: ["rename"],
+      itemTitleFieldKey: "quantity",
+      itemFields: [ITEM_FIELD]
+    })
+  });
+  assert.equal(findings.filter((f) => f.message.includes("'rename'을 쓸 수 없습니다")).length, 1);
+});
+
+test("항목의 칸도 화면의 요소와 같은 검사를 받는다", () => {
+  // 항목 안의 드롭다운이 없는 선택지 출처를 가리킨다. 펴 두지 않으면 조용히 지나간다.
+  const findings = collectSpecFindings({
+    screens: listScreen({
+      itemTitleFieldKey: "quantity",
+      itemFields: [
+        ITEM_FIELD,
+        {
+          source: { nodeId: "1:3", name: "Input", figmaType: "FRAME" },
+          spec: {
+            type: "select",
+            fieldKey: "category",
+            placeholder: null,
+            initialValue: null,
+            valueType: "string",
+            required: true,
+            initiallyDisabled: false,
+            searchable: false,
+            optionsSource: { key: "없는출처" }
+          }
+        }
+      ]
+    }),
+    optionSources: { sources: [] }
+  });
+  assert.equal(findings.filter((f) => f.message.includes("'없는출처'")).length, 1);
+});
+
+// --- 화면이 스스로 셈하는 값 -------------------------------------------------
+
+function summaryScreen(items, extra = {}) {
+  return listScreen(
+    { itemTitleFieldKey: "quantity", itemFields: [ITEM_FIELD] },
+    {
+      elements: [
+        {
+          source: { nodeId: "1:9", name: "Container", figmaType: "FRAME" },
+          spec: { type: "summary", items }
+        }
+      ],
+      ...extra
+    }
+  );
+}
+
+test("셈이 가리킨 목록이 없으면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: summaryScreen([
+      { label: "총 품목 수", compute: { op: "count", listFieldKey: "없는목록" } }
+    ])
+  });
+  assert.equal(findings.filter((f) => f.message.includes("'없는목록'")).length, 1);
+});
+
+test("항목 밖에서는 곱할 것이 없다", () => {
+  const findings = collectSpecFindings({
+    screens: summaryScreen([
+      { label: "품목 총액", compute: { op: "product", fieldKeys: ["quantity"] } }
+    ])
+  });
+  assert.equal(
+    findings.filter((f) => f.message.includes("항목 안에 있지 않습니다")).length,
+    1
+  );
+});
+
+test("곱하려는 칸이 항목에 없으면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: summaryScreen([
+      {
+        label: "전체 예상 금액",
+        compute: { op: "sum", listFieldKey: "items", fieldKeys: ["quantity", "없는칸"] }
+      }
+    ])
+  });
+  assert.equal(findings.filter((f) => f.message.includes("'없는칸'")).length, 1);
+});
+
+test("세는 것은 항목이지 칸이 아니다", () => {
+  const findings = collectSpecFindings({
+    screens: summaryScreen([
+      { label: "총 품목 수", compute: { op: "count", listFieldKey: "items", fieldKeys: ["quantity"] } }
+    ])
+  });
+  assert.equal(findings.filter((f) => f.message.includes("세는 것은 항목이지")).length, 1);
+});
+
+test("요약이 되비추는 칸이 화면에 없으면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: summaryScreen([{ label: "우선순위", fieldKey: "없는칸" }])
+  });
+  assert.equal(findings.filter((f) => f.message.includes("'없는칸'")).length, 1);
+});
+
+// --- 고칠 것을 먼저 읽어 오는 화면 -------------------------------------------
+
+test("초안 출처의 조각을 받을 칸이 없으면 오류다", () => {
+  const screens = listScreen(
+    { itemTitleFieldKey: "quantity", itemFields: [ITEM_FIELD] },
+    { screen: { draftFrom: { dataSourceKey: "req.draft" } } }
+  );
+  const dataSources = {
+    sources: [
+      {
+        key: "req.draft",
+        shape: "object",
+        description: "요청 한 건",
+        params: [],
+        fields: [
+          { key: "items", description: "품목", fields: [{ key: "quantity", description: "수량" }] },
+          { key: "쓰이지않는조각", description: "아무도 안 받는다" }
+        ]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("'쓰이지않는조각'")).length, 1);
+});
+
+test("목록의 칸이 초안 출처에 없으면 오류다", () => {
+  const screens = listScreen(
+    { itemTitleFieldKey: "quantity", itemFields: [ITEM_FIELD] },
+    { screen: { draftFrom: { dataSourceKey: "req.draft" } } }
+  );
+  const dataSources = {
+    sources: [
+      {
+        key: "req.draft",
+        shape: "object",
+        description: "요청 한 건",
+        params: [],
+        fields: [
+          { key: "items", description: "품목", fields: [{ key: "다른칸", description: "딴것" }] }
+        ]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("칸 'quantity'가 초안 출처")).length, 1);
+});
+
+test("없어도 되는 인자는 넘기지 않아도 되지만, 넘기면 받는다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          {
+            source: { nodeId: "1:1", name: "Btn", figmaType: "FRAME" },
+            spec: {
+              type: "button",
+              label: "새로 쓰기",
+              initiallyDisabled: false,
+              action: {
+                type: "navigate",
+                targetScreenId: "S-02",
+                params: { eventId: { value: "E-01" } }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      file: "w/screens/S-02/screen.json",
+      spec: {
+        screenId: "S-02",
+        params: [
+          { key: "eventId", description: "어느 행사" },
+          { key: "requestId", optional: true, description: "고칠 요청. 없으면 새로 쓴다" }
+        ],
+        elements: []
+      }
+    }
+  ];
+
+  const findings = collectSpecFindings({ screens });
+  assert.equal(findings.filter((f) => f.message.includes("'requestId'")).length, 0);
+});
