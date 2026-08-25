@@ -52,7 +52,7 @@ export function WorkspaceHeader({
   if (workspace === null || screen.workspace === undefined) {
     return null
   }
-  const here = currentTabOf(workspace, screen.screenId)
+  const here = currentTabOf(screen, workspace)
   const argument = { [workspace.param]: screenParams[workspace.param] ?? '' }
   const status = workspace.status
     ? readObjectSource(workspace.status.dataSourceKey, argument)

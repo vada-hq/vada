@@ -39,7 +39,14 @@ export function workspaceOf(screen: ScreenSpec): Workspace | null {
   return screen.workspace === undefined ? null : findWorkspace(screen.workspace.key)
 }
 
-/** 지금 보고 있는 갈피. 이 화면을 가리키는 갈피가 곧 그것이다. */
-export function currentTabOf(workspace: Workspace, screenId: string): WorkspaceTab | null {
-  return workspace.tabs.find((tab) => tab.targetScreenId === screenId) ?? null
+/**
+ * 지금 보고 있는 갈피. 대개 이 화면을 가리키는 갈피가 곧 그것이다.
+ *
+ * 갈피 아래로 한 겹 더 들어가는 화면은 자기를 가리키는 갈피가 없다(MY-REQ-01은
+ * 재정 갈피에서 열리지만 자기가 갈피는 아니다). 그때 어느 갈피 아래인지는 화면이
+ * 말한다 — 셸의 최상위 메뉴를 activeNavigationScreenId가 가리키는 것과 같다.
+ */
+export function currentTabOf(screen: ScreenSpec, workspace: Workspace): WorkspaceTab | null {
+  const active = screen.workspace?.activeTabScreenId ?? screen.screenId
+  return workspace.tabs.find((tab) => tab.targetScreenId === active) ?? null
 }

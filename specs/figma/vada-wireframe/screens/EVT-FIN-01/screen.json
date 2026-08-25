@@ -41,8 +41,13 @@
         "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "내 구매 요청만 모아 보는 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "MY-REQ-01",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },

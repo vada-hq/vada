@@ -2049,6 +2049,104 @@
           "description": "누가 언제 했는지가 한 줄로 온다 — 사람과 시각을 잇는 방식은 조직의 표기다. 예: 김바다 · 2026-03-02 09:30"
         }
       ]
+    },
+    {
+      "key": "event.myPurchaseRequestSummary",
+      "shape": "object",
+      "description": "이 행사에서 내가 낸 구매 요청의 머리. 누가 보고 있는지는 셸도 알지만, 그 이름을 화면이 문장으로 잇지 않는다 — 무엇을 어떻게 부를지는 서버가 정한다(EVT-FIN-01의 itemsNote와 같은 계열).\n\n상태별 개수는 진행 단계와 다른 축이다. '보완 필요'는 어느 단계에서도 생길 수 있는 상태이지 단계가 아니다 — 요청 하나는 단계 하나와 상태 하나를 함께 갖는다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/finance/my-requests/summary"
+      },
+      "messages": {
+        "loading": "내 구매 요청을(를) 불러오는 중입니다",
+        "empty": "내 구매 요청이(가) 없습니다",
+        "error": "내 구매 요청을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "scopeNote",
+          "description": "무엇을 모아 보고 있는지가 한 줄로 온다. 예: 이 행사에서 내가 제출한 구매 요청 · 박해랑 · 운영부 · 부원"
+        },
+        {
+          "key": "reviewCount",
+          "description": "검토를 기다리는 요청 수. 예: 1"
+        },
+        {
+          "key": "supplementCount",
+          "description": "보완이 필요한 요청 수. 예: 0"
+        },
+        {
+          "key": "approvedCount",
+          "description": "승인이 끝난 요청 수. 예: 0"
+        },
+        {
+          "key": "purchasingCount",
+          "description": "구매가 진행 중인 요청 수. 예: 0"
+        },
+        {
+          "key": "doneCount",
+          "description": "처리가 끝난 요청 수. 예: 0"
+        }
+      ]
+    },
+    {
+      "key": "event.myPurchaseRequests",
+      "shape": "list",
+      "description": "이 행사에서 내가 낸 구매 요청들. 누가 냈는지로 거르는 것은 서버가 한다 — 화면은 받아온 것을 다시 자르지 않는다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/finance/my-requests"
+      },
+      "messages": {
+        "loading": "내 구매 요청을(를) 불러오는 중입니다",
+        "empty": "아직 제출한 구매 요청이 없습니다",
+        "error": "내 구매 요청을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "구매 요청을 가리키는 값. 표에 그려지지 않지만, 눌러서 상세를 열 때 '어느 요청인지'로 넘어간다. 예: PR-2026-0031"
+        },
+        {
+          "key": "code",
+          "description": "사람이 부르는 요청 번호. 예: REQ-001"
+        },
+        {
+          "key": "title",
+          "description": "무엇을 사려는지. 예: 체육대회 운영 물품 4종"
+        },
+        {
+          "key": "amountNote",
+          "description": "요청 금액. 단위까지 붙어서 온다. 예: 135,000원"
+        },
+        {
+          "key": "itemCountNote",
+          "description": "품목이 몇인지가 세는 말까지 붙어서 온다 — 무엇을 무엇으로 세는지는 조직의 표기다. 예: 4종"
+        },
+        {
+          "key": "requestedAt",
+          "description": "요청한 날. 예: 2026-03-01"
+        },
+        {
+          "key": "neededOn",
+          "description": "필요한 날짜. 예: 2026-03-15"
+        },
+        {
+          "key": "status",
+          "description": "이 요청이 지금 무엇을 기다리는지. 예: 검토 대기"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지에 배정된 색 이름. 상태가 조직 규칙에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+        }
+      ]
     }
   ]
 }

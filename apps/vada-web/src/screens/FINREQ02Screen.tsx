@@ -208,6 +208,7 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
         <DataTable
           nodeId={nodeIdOf(finReq02, resultListSpec)}
           title={resultListSpec.title}
+          label={resultListSpec.title}
           columns={resultListSpec.columns}
           rows={resultRows}
           emptyMessage={resultSource.messages.empty}

@@ -116,7 +116,9 @@ function checkElementNodeCoverage(findings, context) {
   const spec = element.spec;
   // label을 쓰는 유형(input·select·button)과 title을 쓰는 유형(group·summary·
   // itemList)이 섞여 있다. 새 유형이 생길 때마다 여기를 고치지 않도록 둘 다 본다.
-  const identifyingText = spec.label ?? spec.title;
+  // 그려지지 않는 라벨은 디자인에서 찾을 수 없다. 글 없는 조작의 label은
+  // '부르는 이름'이지 '그려지는 글'이 아니다.
+  const identifyingText = spec.labelHidden === true ? undefined : (spec.label ?? spec.title);
   const nodeId = element.source?.nodeId;
 
   if (
@@ -1618,20 +1620,29 @@ export function collectSpecFindings({
           });
         }
         // 갈피가 이 화면을 가리키는지. 없으면 갈피 줄에 지금 자리가 표시되지 않는다.
-        const here = (declared.tabs ?? []).filter(
-          (item) => item?.targetScreenId === spec.screenId
-        );
+        //
+        // 갈피 아래로 한 겹 더 들어가는 화면은 자기를 가리키는 갈피가 없다. 그때는
+        // 어느 갈피 아래인지를 화면이 말하고, 켜지는 것은 그 갈피다.
+        const activeTab = workspace.activeTabScreenId ?? spec.screenId;
+        if (workspace.activeTabScreenId === spec.screenId) {
+          findings.push({
+            level: "error",
+            file,
+            message: `작업 공간 '${workspace.key}'의 activeTabScreenId가 이 화면 자신을 가리킵니다. 갈피면 적지 않고, 갈피가 아니면 다른 화면을 가리킵니다.`
+          });
+        }
+        const here = (declared.tabs ?? []).filter((item) => item?.targetScreenId === activeTab);
         if (here.length === 0) {
           findings.push({
             level: "warning",
             file,
-            message: `작업 공간 '${workspace.key}'의 갈피 중 이 화면을 가리키는 것이 없습니다. 갈피 줄이 지금 어디인지 표시하지 못합니다.`
+            message: `작업 공간 '${workspace.key}'의 갈피 중 '${activeTab}'을 가리키는 것이 없습니다. 갈피 줄이 지금 어디인지 표시하지 못합니다.`
           });
         } else if (here.length > 1) {
           findings.push({
             level: "error",
             file,
-            message: `작업 공간 '${workspace.key}'의 갈피 ${here.length}개가 같은 화면 '${spec.screenId}'을 가리킵니다.`
+            message: `작업 공간 '${workspace.key}'의 갈피 ${here.length}개가 같은 화면 '${activeTab}'을 가리킵니다.`
           });
         }
       }

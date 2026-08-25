@@ -1028,6 +1028,38 @@ const EVENT_SUMMARIES: Record<string, DataRow> = {
   },
 }
 
+
+// 이 행사에서 내가 낸 구매 요청. 재정 보드의 카드와 같은 요청이므로 id를 맞춘다 —
+// 두 벌이 같은 것에 다른 이름을 붙이면 눌러도 상세가 열리지 않는다.
+const MY_PURCHASE_REQUESTS: Record<string, DataRow[]> = {
+  'E-01': [
+    {
+      id: 'PR-2026-0031',
+      code: 'REQ-001',
+      title: '체육대회 운영 물품 4종',
+      amountNote: '135,000원',
+      itemCountNote: '4종',
+      requestedAt: '2026-03-01',
+      neededOn: '2026-03-15',
+      status: '검토 대기',
+      statusTone: 'blue',
+    },
+  ],
+}
+
+// 상태별 개수는 목록에서 세지 않는다. 무엇을 어느 칸에 넣는지가 곧 조직의 절차라
+// 서버가 안다 — 화면이 세면 절차가 화면에 적히게 된다.
+const MY_PURCHASE_REQUEST_SUMMARY: Record<string, DataRow> = {
+  'E-01': {
+    scopeNote: '이 행사에서 내가 제출한 구매 요청 · 박해랑 · 운영부 · 부원',
+    reviewCount: '1',
+    supplementCount: '0',
+    approvedCount: '0',
+    purchasingCount: '0',
+    doneCount: '0',
+  },
+}
+
 const TASK_DETAILS: Record<string, DataRow> = {
   'T-03': {
     code: 'T-03',
@@ -1545,6 +1577,11 @@ export const FILTERED_FIXTURES: Record<
     PURCHASE_REQUEST_DETAILS[requestId] ? [PURCHASE_REQUEST_DETAILS[requestId]] : [],
   'finance.purchaseRequestItems': ({ requestId = '' }) =>
     PURCHASE_REQUEST_RESULTS[requestId] ?? [],
+  'event.myPurchaseRequests': ({ eventId = '' }) => MY_PURCHASE_REQUESTS[eventId] ?? [],
+  'event.myPurchaseRequestSummary': ({ eventId = '' }) => {
+    const row = MY_PURCHASE_REQUEST_SUMMARY[eventId]
+    return row === undefined ? [] : [row]
+  },
   'finance.purchaseRequestHistory': ({ requestId = '' }) =>
     PURCHASE_REQUEST_HISTORY[requestId] ?? [],
   'my.tasks': ({ tab = 'todo', query = '' }) =>

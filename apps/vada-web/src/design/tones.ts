@@ -135,6 +135,12 @@ export const VALUE_TEXT: Record<string, string> = {
   indigo: 'text-indigo-600',
   orange: 'text-orange-600',
   red: 'text-red-600',
+  // 상태별 개수 타일(MY-REQ-01 30:164). 앞의 넷보다 한 단계 짙다 — 옆에 라벨이
+  // 회색으로 작게 붙어 수가 홀로 서기 때문이다.
+  yellow: 'text-yellow-700',
+  green: 'text-green-700',
+  purple: 'text-purple-700',
+  gray: 'text-gray-600',
 }
 
 /**

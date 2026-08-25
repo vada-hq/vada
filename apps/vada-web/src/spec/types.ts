@@ -379,6 +379,9 @@ export interface ScreenSpec {
   // 어디에 그리는지만 갖는다.
   workspace?: {
     key: string
+    // 갈피 자체가 아니라 어느 갈피 아래에 있는지. 갈피 아래로 한 겹 더 들어가는
+    // 화면은 자기를 가리키는 갈피가 없다(MY-REQ-01은 재정 갈피에서 열린다).
+    activeTabScreenId?: string
     // 공간의 제목 대신 자기 이름을 쓰는가. 자기 아래에 다시 여러 화면을 거느리는
     // 입구가 그렇다(EVT-FIN-01).
     ownTitle?: boolean

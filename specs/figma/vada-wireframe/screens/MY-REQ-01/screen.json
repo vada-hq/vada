@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "screenId": "MY-REQ-01",
+  "params": [
+    {
+      "key": "eventId",
+      "example": "E-01",
+      "missingNote": "어떤 행사를 볼지 정하지 않고 열렸습니다. 행사 목록에서 행사를 고르면 이 화면이 열립니다.",
+      "description": "어느 행사의 구매 요청인지. 앞 화면(EVT-FIN-01)이 정한다. 누가 냈는지는 받지 않는다 — 보고 있는 사람이 곧 그 사람이다."
+    }
+  ],
+  "breadcrumb": {
+    "source": "30:76",
+    "dataSourceKey": "event.summary",
+    "params": {
+      "eventId": {
+        "screenParam": "eventId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "행사"
+      },
+      {
+        "field": "title"
+      },
+      {
+        "value": "재정"
+      },
+      {
+        "value": "내 구매 요청"
+      }
+    ]
+  },
+  "workspace": {
+    "key": "event",
+    "activeTabScreenId": "EVT-FIN-01",
+    "source": {
+      "tabs": "30:101",
+      "status": "30:123"
+    }
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "내 구매 요청 — 행사 재정",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:2",
+    "name": "운영 — 행사 · 재정 · MY-REQ-01 · 내 구매 요청 — 행사 재정",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:151",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "행사 재정 개요로",
+        "labelHidden": true,
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-FIN-01",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:155",
+        "name": "Heading 2",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "내 구매 요청"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:157",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "descriptionField": "scopeNote",
+        "dataSourceKey": "event.myPurchaseRequestSummary",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "field": "scopeNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:159",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "새 구매 요청",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "FIN-REQ-01",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:164",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "event.myPurchaseRequestSummary",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "label": "검토 대기",
+            "field": "reviewCount"
+          },
+          {
+            "label": "보완 필요",
+            "field": "supplementCount"
+          },
+          {
+            "label": "승인 완료",
+            "field": "approvedCount"
+          },
+          {
+            "label": "구매 진행",
+            "field": "purchasingCount"
+          },
+          {
+            "label": "처리 완료",
+            "field": "doneCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:190",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "event.myPurchaseRequests",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "columns": [
+          {
+            "label": "요청 번호",
+            "fields": [
+              "code"
+            ]
+          },
+          {
+            "label": "요청 제목",
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "label": "요청액",
+            "fields": [
+              "amountNote"
+            ]
+          },
+          {
+            "label": "품목 수",
+            "fields": [
+              "itemCountNote"
+            ]
+          },
+          {
+            "label": "요청일",
+            "fields": [
+              "requestedAt"
+            ]
+          },
+          {
+            "label": "필요한 날짜",
+            "fields": [
+              "neededOn"
+            ]
+          },
+          {
+            "label": "상태",
+            "fields": [
+              "status"
+            ],
+            "toneField": "statusTone"
+          }
+        ],
+        "itemAction": {
+          "type": "navigate",
+          "label": "상태 확인",
+          "targetScreenId": "FIN-REQ-02",
+          "params": {
+            "requestId": {
+              "itemField": "id"
+            }
+          }
+        }
+      }
+    }
+  ]
+}
