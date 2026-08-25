@@ -36,7 +36,7 @@
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md).
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다.
-- **테스트**: spec-service·변환기·검증 111, vada-web(vitest) 239 + Playwright e2e 96 — 전부 통과. 게이트는 두 앱을 **함께** 돌린다(벽시계 27초). e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`).
+- **테스트**: spec-service·변환기·검증 111, vada-web(vitest) 239 + Playwright e2e 96 — 전부 통과. 게이트는 두 앱을 **함께** 돌리고, 대조 검사가 SVG 391개를 번들러 대신 디스크에서 읽는다(벽시계 34~50초). e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`).
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). 검증기 기동이 그 일치를 강제한다(플러그인이 사라지며 `element-type-registry.test.mjs`는 지웠다 — 검사하던 대상의 절반이 플러그인 쪽이었다).
 - **추출기가 화면을 보는 눈(2026-08-24)**: 초안 재현율을 **36/67 → 41/67(61%)**, 헛것(등록되지 않은 것을 뽑음)을 **41 → 19개**로 고쳤다. 막혔던 네 곳이다.
   - **이름표 없는 것을 못 봤다**: 필드는 직계 자식에 `Label` 노드를, 목록은 묶음 제목을 요구했다. 목록 화면의 검색칸(EVT-00A `20:4153`)과 카드 목록(`20:4167`)이 통째로 안 보여 초안에 버튼 4개만 나왔다. 라벨 없이 홀로 선 컨트롤과 제목 없는 되풀이를 각각 길로 냈다. 라벨은 그려진 문구에서 짐작하고 **짐작임을 질문으로 알린다.**
@@ -134,7 +134,10 @@ FIN-REQ-01(구매 요청 작성·수정) 사이클을 마쳤다(`docs/pilot-fin-
 - **읽기와 쓰기는 다른 계열이다.** 앞의 열두 화면이 새 어휘를 거의 안 쓴 것은
   그것들이 전부 읽기 전용이었기 때문이기도 하다. 쓰는 화면이 처음 오자 다섯이 났다.
 - **셋은 도구가 넓어진 자리다**: 화면 안의 패널도 `Sidebar`라 불릴 수 있다는 것,
-  날짜 칸에는 ARIA 역할이 없다는 것, 게이트가 예산을 넘겨 두 앱을 함께 돌리게 된 것.
+  날짜 칸에는 ARIA 역할이 없다는 것, 게이트가 예산을 넘긴 것. 마지막 것은 두 번
+  손댔다 — 두 앱을 함께 돌리고, 대조 검사가 SVG 391개를 번들러로 끌어오던 것을
+  디스크 읽기로 바꿨다. **그 파일은 design JSON에 대해 같은 규칙을 이미 적어 두고
+  있었는데 자산에는 적용하지 않고 있었다.**
 
 **다음 후보**
 

@@ -47,15 +47,16 @@ const SCREENS_DIR = join(
 
 // 그림의 '내용'이 있어야 같은 그림인지 가릴 수 있다. 파일 이름은 노드 id라 자리마다
 // 다르고, img의 src는 번들러가 만든 주소라 되짚을 수 없다.
-const ASSET_SOURCES = import.meta.glob(
-  '../../../../specs/figma/vada-wireframe/screens/*/assets/*.svg',
-  { query: '?raw', import: 'default', eager: true },
-) as Record<string, string>
+//
+// design 파일과 **같은 이유로** 번들러를 거치지 않는다. glob으로 불러오면 vite가
+// 화면마다 SVG를 ES 모듈로 바꾸는데, 지금 391개다. 검사는 Node에서 도니 읽기만
+// 하면 되고, 화면이 늘 때마다 커지는 자리를 하나 더 만들지 않는다.
+// (실측: 게이트 벽시계가 예산 60초 언저리에서 흔들렸고 이것이 그 몫이었다.)
+const assetSources = new Map<string, string>()
 
 function drawingOfScreen(screenId: string): (file: string) => string {
-  const prefix = `../../../../specs/figma/vada-wireframe/screens/${screenId}/`
   return (file) => {
-    const source = ASSET_SOURCES[`${prefix}${file}`]
+    const source = assetSources.get(`${screenId}/${file}`)
     // png는 raw로 읽지 않는다. 내용을 모르면 파일 이름이 곧 그 그림이다.
     return source === undefined ? file : drawingKey(source)
   }
@@ -71,6 +72,20 @@ beforeAll(() => {
       continue
     }
     designByScreenId.set(screenId, JSON.parse(readFileSync(file, 'utf-8')) as DesignFile)
+
+    const assetsDir = join(SCREENS_DIR, screenId, 'assets')
+    if (!existsSync(assetsDir)) {
+      continue
+    }
+    for (const name of readdirSync(assetsDir)) {
+      if (!name.endsWith('.svg')) {
+        continue
+      }
+      assetSources.set(
+        `${screenId}/assets/${name}`,
+        readFileSync(join(assetsDir, name), 'utf-8'),
+      )
+    }
   }
 })
 
