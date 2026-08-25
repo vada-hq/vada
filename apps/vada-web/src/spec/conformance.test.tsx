@@ -3,6 +3,8 @@ import { render, screen, within } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, drawsTitle, exampleParamsOf } from './screens'
 import type { FieldSpec, ListSpec, ScreenSpec } from './types'
+import { readObjectSource } from '../data-sources/catalog'
+import { resolveParams } from './params'
 
 // 스펙 필드 소비 커버리지: 기대값을 스펙 JSON에서 읽어 화면과 대조한다.
 // 하드코딩한 단언이 아니라서, 스펙을 고치면 이 검사가 자동으로 따라간다.
@@ -179,6 +181,62 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       expect(
         screen.getAllByRole('button', { name: new RegExp(element.spec.label) }).length,
       ).toBeGreaterThan(0)
+    }
+  })
+
+  it('steps의 모든 단계와 데이터가 가리킨 현재 단계를 렌더한다', () => {
+    renderScreen(screenId)
+    const screenParams = exampleParamsOf(screenId)
+    for (const element of spec.elements) {
+      if (element.spec.type !== 'steps') continue
+      const stepSpec = element.spec
+      const holder = document.querySelector<HTMLElement>(
+        `[data-node-id="${element.source.nodeId}"]`,
+      )
+      expect(holder, `${screenId}의 steps 등록 자리`).not.toBeNull()
+      if (holder === null) continue
+
+      for (const item of stepSpec.items) {
+        expect(within(holder).getByText(item.label)).toBeInTheDocument()
+      }
+      const row = readObjectSource(
+        stepSpec.dataSourceKey,
+        resolveParams(stepSpec.params, { screenParams }),
+      )
+      const current = stepSpec.items.find((item) => item.key === String(row[stepSpec.currentField]))
+      expect(current, `${screenId}의 현재 단계가 items에 있어야 함`).toBeDefined()
+      expect(within(holder).getByText(current?.label ?? '')).toHaveAttribute(
+        'aria-current',
+        'step',
+      )
+    }
+  })
+
+  it('summary의 데이터 소제목과 상태 딱지를 렌더한다', () => {
+    renderScreen(screenId)
+    const screenParams = exampleParamsOf(screenId)
+    for (const element of spec.elements) {
+      if (element.spec.type !== 'summary') continue
+      const summary = element.spec
+      if (summary.eyebrowField === undefined && summary.status === undefined) continue
+      if (summary.dataSourceKey === undefined) {
+        throw new Error(`${screenId}의 데이터 요약에 dataSourceKey가 없습니다.`)
+      }
+      const holder = document.querySelector<HTMLElement>(
+        `[data-node-id="${element.source.nodeId}"]`,
+      )
+      expect(holder, `${screenId}의 summary 등록 자리`).not.toBeNull()
+      if (holder === null) continue
+      const row = readObjectSource(
+        summary.dataSourceKey,
+        resolveParams(summary.params, { screenParams }),
+      )
+      if (summary.eyebrowField !== undefined) {
+        expect(within(holder).getByText(String(row[summary.eyebrowField]))).toBeInTheDocument()
+      }
+      if (summary.status !== undefined) {
+        expect(within(holder).getByText(String(row[summary.status.field]))).toBeInTheDocument()
+      }
     }
   })
 })

@@ -27,10 +27,14 @@ export const shell = shellJson as Shell
 
 interface AppShellProps {
   screenId: string
+  /** 하위 상세 화면이 어느 최상위 메뉴에 속하는지. 없으면 screenId로 판정한다. */
+  activeNavigationScreenId?: string
   eyebrow?: string | null
   title: string
   description?: string | null
   footerNote?: string | null
+  /** 제목 위의 현재 위치 경로. 셸은 자리를 만들고 화면이 경로의 내용을 정한다. */
+  breadcrumb?: ReactNode
   // 머리 오른쪽의 화면 동작. 셸이 아니라 화면의 요소다 — 그려지는 자리만 여기다.
   // 이 자리가 없던 동안 TASK-01의 '업무 추가'(18:90)는 명세에도 화면에도 없었고,
   // 대조기는 등록 노드 밖을 보지 않아 아무도 몰랐다.
@@ -41,10 +45,12 @@ interface AppShellProps {
 
 export function AppShell({
   screenId,
+  activeNavigationScreenId,
   eyebrow,
   title,
   description,
   footerNote,
+  breadcrumb,
   headerAction,
   onNavigate,
   children,
@@ -75,7 +81,7 @@ export function AppShell({
 
           <nav aria-label="주요 메뉴" className="px-2">
             {shell.navigation.map((item) => {
-              const current = item.targetScreenId === screenId
+              const current = item.targetScreenId === (activeNavigationScreenId ?? screenId)
               return (
                 <button
                   key={item.label}
@@ -120,6 +126,7 @@ export function AppShell({
       <div className="min-w-0 flex-1">
         <header className="flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-8 py-4">
           <span className="min-w-0">
+            {breadcrumb}
             {eyebrow === null || eyebrow === undefined ? null : (
               <span className="block text-xs text-gray-500">{eyebrow}</span>
             )}

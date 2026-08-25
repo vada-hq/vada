@@ -150,9 +150,16 @@ export interface SummaryCompute {
 export interface SummarySpec {
   type: 'summary'
   eyebrow?: string
+  // 소제목이 서버에서 오는 경우. 한 건의 번호처럼 요청마다 달라지는 자리다.
+  eyebrowField?: string
   title?: string
   // 제목이 서버에서 오는 경우(홈 브리핑의 '박해랑님, 확인이 필요해요').
   titleField?: string
+  // 제목 곁의 상태 딱지. 글과 톤 이름 모두 데이터가 준다.
+  status?: {
+    field: string
+    toneField: string
+  }
   description?: string
   // 설명이 서버에서 오는 경우(OPS-00의 '박해랑님이 확인할 …').
   descriptionField?: string
@@ -198,6 +205,19 @@ export interface ItemListSpec {
   // 항목을 여럿 고를 수 있다는 선언. 고르는 것은 화면 안의 상태라 다시 조회하지
   // 않는다. 고른 다음 무엇을 하는지가 없으면 고르기도 없으므로 action이 필수다.
   selection?: { action: DisplayAction }
+}
+
+// 정해진 절차 중 한 건이 지금 어디에 있는지를 보여주는 단계 줄.
+// 순서는 명세가, 현재 단계는 데이터가 정한다.
+export interface StepsSpec {
+  type: 'steps'
+  dataSourceKey: string
+  params?: QueryParams
+  currentField: string
+  items: Array<{
+    key: string
+    label: string
+  }>
 }
 
 // 다른 상태 스코프의 필드 값을 읽어 표시하는 파생 표시 요소.
@@ -258,6 +278,7 @@ export type ElementSpec =
   | ListSpec
   | SummarySpec
   | ItemListSpec
+  | StepsSpec
 
 export type FieldSpec = InputSpec | SelectSpec
 

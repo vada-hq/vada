@@ -175,6 +175,9 @@ export const STATE_CHIP: Record<string, string> = {
   orange: 'border border-orange-200 bg-orange-50 text-orange-700',
 }
 
+/** 보완처럼 주의를 요구하지만 위험 동작은 아닌 작은 화면 행동. */
+export const CAUTION_BUTTON = 'bg-yellow-100 text-yellow-700'
+
 /**
  * 정보 딱지(EVT-00A 20:4195). 색이 하나뿐이라 이름을 받지 않는다.
  *
