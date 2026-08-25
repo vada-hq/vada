@@ -121,6 +121,10 @@ export interface SummaryItem {
   // value면 명세에 담긴 예시 값이다. 스키마가 둘 중 하나를 강제한다.
   field?: string
   value?: string
+  // 값 아래 붙는 보조 문구. 값과 크기·색이 달라 한 문자열로 합칠 수 없다
+  // ('142명' 아래의 '정원 200명').
+  description?: string
+  descriptionField?: string
 }
 
 export interface SummarySpec {
@@ -280,6 +284,12 @@ export interface ScreenSpec {
   // 이 화면이 밖에서 받는 인자. 상세 화면만 갖는다 — 무엇의 상세인지는 화면
   // 안에 없기 때문이다.
   params?: ScreenParam[]
+  // 이 화면이 속한 작업 공간. 무엇을 그리는지는 shell.json이 알고, 화면은
+  // 어디에 그리는지만 갖는다.
+  workspace?: {
+    key: string
+    source: { tabs?: string; status?: string }
+  }
   meta?: ScreenMeta
   source: {
     pageName: string

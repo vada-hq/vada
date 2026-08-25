@@ -35,6 +35,39 @@ export const ALERT_CHIP: Record<string, string> = {
   yellow: 'border-yellow-200 bg-yellow-50 text-yellow-700',
 }
 
+/**
+ * 옅은 상자(EVT-02 20:4819·20:4911). 바탕 -50, 테두리 -200.
+ *
+ * 딱지(STATE_CHIP)와 같은 배합이지만 글자 색을 함께 갖지 않는다 — 상자 안에서
+ * 제목·값·부연의 색이 저마다 다르기 때문이다.
+ */
+export const SOFT_BOX: Record<string, string> = {
+  blue: 'border-blue-200 bg-blue-50',
+  green: 'border-green-200 bg-green-50',
+  yellow: 'border-yellow-200 bg-yellow-50',
+  red: 'border-red-200 bg-red-50',
+}
+
+/**
+ * 옅은 상자 안의 글(EVT-02 20:4911). **값은 -800으로 통일한다.**
+ *
+ * 라벨과 부연은 green·yellow만 한 단계 내린다. 흔들림이 아니라 이유가 있다 —
+ * green-500·yellow-500은 같은 계열의 -50 바탕 위에서 읽히지 않는다. blue·red는
+ * 그 자리에서도 충분히 진하다.
+ *
+ * 와이어프레임은 강조 카드의 값만 -700으로 그렸다(blue·red). 그것은 규칙이
+ * 아니라 흔들림이므로 따르지 않고 design/deviations.ts에 적는다.
+ */
+export const SOFT_BOX_TEXT: Record<
+  string,
+  { label: string; value: string; note: string }
+> = {
+  blue: { label: 'text-blue-600', value: 'text-blue-800', note: 'text-blue-500' },
+  green: { label: 'text-green-700', value: 'text-green-800', note: 'text-green-600' },
+  yellow: { label: 'text-yellow-700', value: 'text-yellow-800', note: 'text-yellow-600' },
+  red: { label: 'text-red-600', value: 'text-red-800', note: 'text-red-500' },
+}
+
 /** 공간 카드의 옅은 테두리(OPS-00 16:614). */
 export const SOFT_BORDER: Record<string, string> = {
   blue: 'border-blue-200',

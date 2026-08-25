@@ -142,6 +142,13 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       .map((element) => element?.source?.nodeId)
       .filter((nodeId) => typeof nodeId === "string")
   );
+  // 작업 공간의 갈피 줄도 등록 노드다. 무엇을 그리는지는 셸이 알고 화면은 어디에
+  // 그리는지만 아는데, 그 '어디'가 없으면 갈피 일곱이 명세에 없는 것으로 보인다.
+  for (const nodeId of Object.values(spec.workspace?.source ?? {})) {
+    if (typeof nodeId === "string") {
+      registered.add(nodeId);
+    }
+  }
   const isInteraction = (node) =>
     DRAFT_SIGNALS.BUTTON_NAME_PATTERN.test(node.name ?? "") ||
     DRAFT_SIGNALS.CONTROL_NAMES.has(node.name ?? "");
@@ -925,6 +932,60 @@ export function collectSpecFindings({
       }
     }
 
+    // 작업 공간. 화면은 key만 가리키므로, 가리킨 곳이 없거나 그 공간이 요구하는
+    // 인자를 화면이 받지 않으면 **제목과 상태 줄이 통째로 빈다** — 요소가 아니라
+    // 아무도 안 본다.
+    const workspace = isObject(spec.workspace) ? spec.workspace : null;
+    if (workspace) {
+      const declared = (isObject(shell) && Array.isArray(shell.workspaces)
+        ? shell.workspaces
+        : []
+      ).find((candidate) => candidate?.key === workspace.key);
+      if (!isObject(shell) || !Array.isArray(shell.workspaces)) {
+        findings.push({
+          level: "warning",
+          file,
+          message: `shell.json에 작업 공간 목록이 없어 '${workspace.key}'를 확인하지 못했습니다.`
+        });
+      } else if (!declared) {
+        findings.push({
+          level: "error",
+          file,
+          message: `작업 공간 '${workspace.key}'가 shell.json에 없습니다.`
+        });
+      } else {
+        const screenParamKeys = new Set(
+          (Array.isArray(spec.params) ? spec.params : [])
+            .map((param) => param?.key)
+            .filter((key) => typeof key === "string")
+        );
+        if (!screenParamKeys.has(declared.param)) {
+          findings.push({
+            level: "error",
+            file,
+            message: `작업 공간 '${workspace.key}'는 인자 '${declared.param}'로 무엇의 공간인지를 정하는데 이 화면이 그것을 받지 않습니다(params에 없습니다).`
+          });
+        }
+        // 갈피가 이 화면을 가리키는지. 없으면 갈피 줄에 지금 자리가 표시되지 않는다.
+        const here = (declared.tabs ?? []).filter(
+          (item) => item?.targetScreenId === spec.screenId
+        );
+        if (here.length === 0) {
+          findings.push({
+            level: "warning",
+            file,
+            message: `작업 공간 '${workspace.key}'의 갈피 중 이 화면을 가리키는 것이 없습니다. 갈피 줄이 지금 어디인지 표시하지 못합니다.`
+          });
+        } else if (here.length > 1) {
+          findings.push({
+            level: "error",
+            file,
+            message: `작업 공간 '${workspace.key}'의 갈피 ${here.length}개가 같은 화면 '${spec.screenId}'을 가리킵니다.`
+          });
+        }
+      }
+    }
+
     // 제목이 데이터에서 오는 화면. 요소가 아니라 화면 자체가 값을 읽으므로
     // 요소 검사가 지나치고, 지나치면 없는 조각을 가리켜도 제목만 조용히 빈다.
     const titleFrom = isObject(spec.meta) ? spec.meta.titleFrom : null;
@@ -1112,9 +1173,37 @@ export function collectSpecFindings({
       }
     }
 
+    // 작업 공간. 갈피가 가리키는 화면과 제목·상태 줄이 읽는 조각을 본다 —
+    // 화면 쪽 검사는 key만 보므로 여기가 아니면 아무도 안 본다.
+    for (const workspace of shell.workspaces ?? []) {
+      for (const item of workspace.tabs ?? []) {
+        const targetScreenId = item?.targetScreenId;
+        if (typeof targetScreenId === "string" && !screenIds.has(targetScreenId)) {
+          findings.push({
+            level: "warning",
+            file: shellFile,
+            message: `작업 공간 '${workspace.key}'의 갈피 '${item.label}'이 가리키는 화면 '${targetScreenId}'의 명세 파일이 아직 없습니다.`
+          });
+        }
+      }
+    }
+
     const shellRefs = [
       { part: "brand", ref: shell.brand, fields: ["subtitleField"] },
-      { part: "viewer", ref: shell.viewer, fields: ["nameField", "roleField"] }
+      { part: "viewer", ref: shell.viewer, fields: ["nameField", "roleField"] },
+      ...(shell.workspaces ?? []).flatMap((workspace) => [
+        {
+          part: `작업 공간 '${workspace.key}'의 제목`,
+          ref: workspace.titleFrom,
+          fields: ["field"]
+        },
+        {
+          part: `작업 공간 '${workspace.key}'의 상태 줄`,
+          ref: workspace.status,
+          // items[].field는 아래에서 따로 편다.
+          fields: (workspace.status?.items ?? []).map((_, at) => `items.${at}.field`)
+        }
+      ])
     ];
     for (const { part, ref, fields } of shellRefs) {
       const key = ref?.dataSourceKey;
@@ -1147,8 +1236,11 @@ export function collectSpecFindings({
         continue;
       }
       const sourceFields = new Set((source.fields ?? []).map((field) => field.key));
+      // 'items.0.field'처럼 파고들어야 하는 이름도 온다(작업 공간의 상태 줄).
+      const readRef = (name) =>
+        name.split(".").reduce((value, part) => (isObject(value) || Array.isArray(value) ? value[part] : undefined), ref);
       for (const fieldName of fields) {
-        const field = ref[fieldName];
+        const field = readRef(fieldName);
         if (typeof field === "string" && !sourceFields.has(field)) {
           findings.push({
             level: "error",

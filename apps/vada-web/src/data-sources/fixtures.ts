@@ -454,6 +454,86 @@ const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }>
   },
 ]
 
+// 행사 개요(EVT-02). 전부 이 행사에 딸린 값이라 eventId로 집어 온다.
+const EVENT_OVERVIEW: Record<string, Record<string, DataRow>> = {
+  'E-01': {
+    briefing: {
+      headline:
+        '모집 마감까지 3일 남았습니다. 정원 200명 중 142명이 신청했고, 명단 확인이 필요한 신청자가 6명 있습니다.',
+      stateNote: '현재 상태: 기획 중 · 다음 운영 단계는 모집 마감 확인입니다.',
+    },
+    highlights: {
+      unassignedTasks: '2건',
+      unassignedTasksDetail: '행사장 안전 점검 · 참가자 명단 최종 확정',
+      needsCheck: '6명',
+      needsCheckDetail: '학번·이름 또는 납부 확인',
+      nextMilestone: '참가자 모집 공지 작성',
+      nextMilestoneDetail: '07.20 · 이윤슬',
+    },
+    basics: {
+      title: '2026 소프트웨어융합대학 체육대회',
+      startAt: '08. 20. (목) 10:00',
+      place: 'ERICA 체육관',
+      audience: '소프트웨어융합대학 전체',
+      fee: '납부자 무료 / 미납자 5000원',
+      capacity: '200명',
+      contact: '카카오톡 채널 @swcollege',
+    },
+    recruitSettings: {
+      surveyStatus: '초안',
+      period: '마감일 미입력',
+      method: '선착순',
+      applicantCount: '142명',
+    },
+    participantStats: {
+      applicants: '142명',
+      applicantsNote: '정원 200명',
+      paid: '129명',
+      paidNote: '미납 13명',
+      needsCheck: '6명',
+      needsCheckNote: '명단 불일치',
+      unassignedTasks: '2개',
+      unassignedTasksNote: '처리 필요',
+    },
+  },
+}
+
+const EVENT_CHECKLIST: Record<string, DataRow[]> = {
+  'E-01': [
+    {
+      title: '명단 확인이 필요한 신청자 6명',
+      detail: '학번·이름 불일치 또는 명단 외 학생',
+      tone: 'yellow',
+      actionLabel: '참가자 명단 보기',
+    },
+    {
+      title: '모집 마감까지 3일 남았습니다',
+      detail: '2026. 07. 20 마감',
+      tone: 'orange',
+    },
+    {
+      title: '담당자 없는 업무 2개',
+      detail: '현장 준비 · 장비 반납',
+      tone: 'red',
+      actionLabel: '업무 보기',
+    },
+    {
+      title: 'QR 참석 확인 설정 완료',
+      detail: '행사 시작 시 활성화',
+      tone: 'green',
+    },
+  ],
+}
+
+const EVENT_RECENT_CHANGES: Record<string, DataRow[]> = {
+  'E-01': [
+    { at: '오늘 10:30', title: '신규 신청자 5명 추가' },
+    { at: '어제 16:20', title: 'QR 참석 확인 활성화' },
+    { at: '07. 14', title: '행사 장소 ERICA 체육관으로 확정' },
+    { at: '07. 12', title: '운영 조직 구성 완료' },
+  ],
+}
+
 // 행사 작업 공간의 머리와 행사 카드. 갈피를 옮겨 다녀도 그대로인 값이다.
 const EVENT_WORKSPACES: Record<string, DataRow> = {
   'E-01': {
@@ -647,6 +727,12 @@ function matchesQuery(row: DataRow, query: string): boolean {
   )
 }
 
+// 개요의 조각들은 한 행사에 딸려 있으므로 한 자리에 모아 두고 이름으로 집는다.
+function overview(eventId: string, part: string): DataRow[] {
+  const row = EVENT_OVERVIEW[eventId]?.[part]
+  return row === undefined ? [] : [row]
+}
+
 export const FILTERED_FIXTURES: Record<
   string,
   (params: Record<string, string>) => DataRow[]
@@ -669,6 +755,13 @@ export const FILTERED_FIXTURES: Record<
       .filter((row) => matchesQuery(row, query)),
   // 상세는 목록이 아니지만 인자를 받으므로 같은 자리를 쓴다 — 한 건을 담은
   // 배열로 오고, readObjectSource가 첫 줄을 집는다.
+  'event.overviewBriefing': ({ eventId = '' }) => overview(eventId, 'briefing'),
+  'event.overviewHighlights': ({ eventId = '' }) => overview(eventId, 'highlights'),
+  'event.basics': ({ eventId = '' }) => overview(eventId, 'basics'),
+  'event.recruitSettings': ({ eventId = '' }) => overview(eventId, 'recruitSettings'),
+  'event.participantStats': ({ eventId = '' }) => overview(eventId, 'participantStats'),
+  'event.checklist': ({ eventId = '' }) => EVENT_CHECKLIST[eventId] ?? [],
+  'event.recentChanges': ({ eventId = '' }) => EVENT_RECENT_CHANGES[eventId] ?? [],
   'event.workspace': ({ eventId = '' }) =>
     EVENT_WORKSPACES[eventId] ? [EVENT_WORKSPACES[eventId]] : [],
   'event.summary': ({ eventId = '' }) =>

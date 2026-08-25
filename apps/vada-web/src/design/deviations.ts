@@ -55,6 +55,26 @@ export const DEVIATIONS: Deviation[] = [
       '-700이다. 같은 종류의 딱지가 나란히 다른 규칙을 따를 이유가 없다.',
   },
 
+  {
+    by: 'rule',
+    rule: 'soft-box-value',
+    kind: '색',
+    design: 'blue-700(#1447E6)',
+    screen: 'blue-800(#193CB8)',
+    why:
+      '옅은 상자 안의 값은 톤의 -800으로 통일한다(design/tones.ts의 SOFT_BOX_TEXT). ' +
+      '와이어프레임은 같은 화면에서 통계 타일은 -800으로, 강조 카드는 -700으로 그렸다. ' +
+      '같은 종류의 값이 카드냐 타일이냐로 갈릴 이유가 없다.',
+  },
+  {
+    by: 'rule',
+    rule: 'soft-box-value',
+    kind: '색',
+    design: 'red-700(#C10007)',
+    screen: 'red-800(#9F0712)',
+    why: '위와 같다(EVT-02 20:4823).',
+  },
+
   // --- 색에 건다: 그 색이 어디에 또 쓰였든 한 줄 -------------------------------
   //
   // 와이어프레임에 Tailwind 팔레트에 없는 색이 둘 있다. 팔레트 밖 색을 쓰면 그

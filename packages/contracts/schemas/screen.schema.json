@@ -59,6 +59,39 @@
         }
       }
     },
+    "workspace": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "key",
+        "source"
+      ],
+      "description": "이 화면이 속한 작업 공간(선택). 무엇을 그리는지는 shell.json의 workspaces가 알고, 화면은 **어디에 그리는지만** 갖는다 — 같은 갈피 줄이라도 화면마다 다른 노드에 그려지기 때문이다. 이 공간에 속하면 공간의 param을 화면의 params에 선언해야 한다.",
+      "properties": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*$",
+          "description": "shell.json의 workspaces[].key."
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "공간의 각 부분이 이 화면의 어느 노드에 그려지는지. 등록 노드이므로 역방향 대조가 그 안의 상호작용을 이미 명세된 것으로 본다.",
+          "properties": {
+            "tabs": {
+              "type": "string",
+              "minLength": 1,
+              "description": "갈피 줄을 담은 노드의 id."
+            },
+            "status": {
+              "type": "string",
+              "minLength": 1,
+              "description": "상태 줄을 담은 노드의 id."
+            }
+          }
+        }
+      }
+    },
     "meta": {
       "type": "object",
       "additionalProperties": false,

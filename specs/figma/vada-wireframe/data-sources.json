@@ -881,6 +881,272 @@
       ]
     },
     {
+      "key": "event.overviewBriefing",
+      "shape": "object",
+      "description": "행사 개요 맨 위의 안내. 지금 무엇을 봐야 하는지를 서버가 문장으로 완성해 준다 — 무엇을 급한 것으로 셀지는 화면이 정할 수 없다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/overview/briefing"
+      },
+      "messages": {
+        "loading": "안내를 불러오는 중입니다",
+        "empty": "안내가 없습니다",
+        "error": "안내를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "headline",
+          "description": "지금 눈에 띄어야 하는 것. 완성된 문장으로 온다. 예: 모집 마감까지 3일 남았습니다. 정원 200명 중 142명이 신청했고, 명단 확인이 필요한 신청자가 6명 있습니다."
+        },
+        {
+          "key": "stateNote",
+          "description": "현재 단계와 다음 단계를 알리는 완성된 문장. 예: 현재 상태: 기획 중 · 다음 운영 단계는 모집 마감 확인입니다."
+        }
+      ]
+    },
+    {
+      "key": "event.overviewHighlights",
+      "shape": "object",
+      "description": "행사 개요의 강조 카드 셋. 카드는 명세에 고정이고 값과 부연만 서버가 준다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/overview/highlights"
+      },
+      "messages": {
+        "loading": "불러오는 중입니다",
+        "empty": "표시할 것이 없습니다",
+        "error": "불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "unassignedTasks",
+          "description": "담당자 없는 업무 수. 단위까지 붙어서 온다. 예: 2건"
+        },
+        {
+          "key": "unassignedTasksDetail",
+          "description": "그 업무들이 무엇인지 알리는 완성된 문구. 예: 행사장 안전 점검 · 참가자 명단 최종 확정"
+        },
+        {
+          "key": "needsCheck",
+          "description": "확인이 필요한 참가자 수. 단위까지 붙어서 온다. 예: 6명"
+        },
+        {
+          "key": "needsCheckDetail",
+          "description": "무엇을 확인해야 하는지. 예: 학번·이름 또는 납부 확인"
+        },
+        {
+          "key": "nextMilestone",
+          "description": "다음 핵심 일정의 이름. 예: 참가자 모집 공지 작성"
+        },
+        {
+          "key": "nextMilestoneDetail",
+          "description": "그 일정의 때와 담당. 예: 07.20 · 이윤슬"
+        }
+      ]
+    },
+    {
+      "key": "event.basics",
+      "shape": "object",
+      "description": "행사의 기본 정보. 사람이 입력한 값이고, 비어 있으면 완성된 안내로 온다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/basics"
+      },
+      "messages": {
+        "loading": "행사 정보를 불러오는 중입니다",
+        "empty": "행사를 찾지 못했습니다",
+        "error": "행사 정보를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "행사명. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "startAt",
+          "description": "일시. 정해지지 않았으면 완성된 안내로 온다. 예: 08. 20. (목) 10:00"
+        },
+        {
+          "key": "place",
+          "description": "장소. 예: ERICA 체육관"
+        },
+        {
+          "key": "audience",
+          "description": "참여 대상. 예: 소프트웨어융합대학 전체"
+        },
+        {
+          "key": "fee",
+          "description": "참가비. 조건까지 문장으로 온다 — 무엇이 무료인지 화면이 유도할 수 없다. 예: 납부자 무료 / 미납자 5000원"
+        },
+        {
+          "key": "capacity",
+          "description": "모집 정원. 예: 200명"
+        },
+        {
+          "key": "contact",
+          "description": "문의처. 예: 카카오톡 채널 @swcollege"
+        }
+      ]
+    },
+    {
+      "key": "event.recruitSettings",
+      "shape": "object",
+      "description": "모집(참여 설문) 설정. 이 화면은 보여주기만 하고 고치는 것은 참여 설문 화면이 한다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/recruit-settings"
+      },
+      "messages": {
+        "loading": "모집 설정을 불러오는 중입니다",
+        "empty": "모집 설정이 없습니다",
+        "error": "모집 설정을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "surveyStatus",
+          "description": "설문 상태. 예: 초안"
+        },
+        {
+          "key": "period",
+          "description": "신청 기간. 정해지지 않았으면 완성된 안내로 온다. 예: 마감일 미입력"
+        },
+        {
+          "key": "method",
+          "description": "신청 방식. 예: 선착순"
+        },
+        {
+          "key": "applicantCount",
+          "description": "신청자 수. 단위까지 붙어서 온다. 예: 142명"
+        }
+      ]
+    },
+    {
+      "key": "event.participantStats",
+      "shape": "object",
+      "description": "참가 현황 타일 넷. 타일은 명세에 고정이고, 값과 그 아래 보조 문구를 서버가 준다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/participant-stats"
+      },
+      "messages": {
+        "loading": "참가 현황을 불러오는 중입니다",
+        "empty": "참가 현황이 없습니다",
+        "error": "참가 현황을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "applicants",
+          "description": "신청자 수. 예: 142명"
+        },
+        {
+          "key": "applicantsNote",
+          "description": "정원 대비. 예: 정원 200명"
+        },
+        {
+          "key": "paid",
+          "description": "납부가 확인된 수. 예: 129명"
+        },
+        {
+          "key": "paidNote",
+          "description": "남은 것. 예: 미납 13명"
+        },
+        {
+          "key": "needsCheck",
+          "description": "확인이 필요한 수. 예: 6명"
+        },
+        {
+          "key": "needsCheckNote",
+          "description": "왜 확인이 필요한지. 예: 명단 불일치"
+        },
+        {
+          "key": "unassignedTasks",
+          "description": "담당자 없는 업무 수. 예: 2개"
+        },
+        {
+          "key": "unassignedTasksNote",
+          "description": "무엇을 해야 하는지. 예: 처리 필요"
+        }
+      ]
+    },
+    {
+      "key": "event.checklist",
+      "shape": "list",
+      "description": "지금 확인해야 할 항목. 개수도 내용도 행사의 상태가 정한다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/checklist"
+      },
+      "messages": {
+        "loading": "확인할 항목을 불러오는 중입니다",
+        "empty": "지금 확인할 항목이 없습니다",
+        "error": "확인할 항목을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "무엇을 확인해야 하는지. 완성된 문구로 온다. 예: 명단 확인이 필요한 신청자 6명"
+        },
+        {
+          "key": "detail",
+          "description": "그 까닭이나 때. 예: 학번·이름 불일치 또는 명단 외 학생"
+        },
+        {
+          "key": "tone",
+          "description": "항목의 성격에 배정된 색 이름. 급한 것과 끝난 것이 갈린다. 예: red · orange · green"
+        },
+        {
+          "key": "actionLabel",
+          "description": "이 항목에서 갈 수 있는 곳의 문구. 갈 곳이 없으면 오지 않는다. 예: 참가자 명단 보기",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "event.recentChanges",
+      "shape": "list",
+      "description": "최근 변경 사항. 때는 오늘·어제 같은 상대적인 말이 섞이므로 화면이 유도할 수 없다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/recent-changes"
+      },
+      "messages": {
+        "loading": "변경 사항을 불러오는 중입니다",
+        "empty": "변경 사항이 없습니다",
+        "error": "변경 사항을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "at",
+          "description": "언제. 완성된 문구로 온다. 예: 오늘 10:30 · 07. 14"
+        },
+        {
+          "key": "title",
+          "description": "무엇이 바뀌었는지. 예: 신규 신청자 5명 추가"
+        }
+      ]
+    },
+    {
       "key": "task.detail",
       "shape": "object",
       "description": "업무 하나의 값. 어느 업무인지는 화면이 받은 taskId가 정한다 — 이 화면은 목록이 아니라 한 건의 상세다.",

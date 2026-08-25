@@ -40,6 +40,70 @@
       "note": "메시지 화면이 아직 명세되지 않았습니다."
     }
   ],
+  "workspaces": [
+    {
+      "key": "event",
+      "description": "한 행사를 여는 화면들이 나눠 쓰는 머리. 갈피를 옮겨 다녀도 제목·상태 줄이 그대로다 — 그 값들은 화면이 아니라 그 행사에 딸려 있다.",
+      "param": "eventId",
+      "titleFrom": {
+        "dataSourceKey": "event.summary",
+        "field": "title"
+      },
+      "status": {
+        "dataSourceKey": "event.workspace",
+        "items": [
+          {
+            "field": "status"
+          },
+          {
+            "field": "alert"
+          },
+          {
+            "field": "host"
+          },
+          {
+            "field": "startAt"
+          },
+          {
+            "field": "nextSchedule"
+          },
+          {
+            "field": "permissionNote"
+          }
+        ]
+      },
+      "tabs": [
+        {
+          "label": "개요",
+          "targetScreenId": "EVT-02"
+        },
+        {
+          "label": "업무",
+          "targetScreenId": "EVT-TASK-01"
+        },
+        {
+          "label": "문서",
+          "note": "행사 문서 화면이 아직 명세되지 않았습니다."
+        },
+        {
+          "label": "관련 회의",
+          "note": "행사 관련 회의 화면이 아직 명세되지 않았습니다."
+        },
+        {
+          "label": "일정",
+          "note": "행사 일정 화면이 아직 명세되지 않았습니다."
+        },
+        {
+          "label": "인원 관리",
+          "note": "행사 참가자 명단 화면이 아직 명세되지 않았습니다."
+        },
+        {
+          "label": "재정",
+          "note": "행사 재정 화면이 아직 명세되지 않았습니다."
+        }
+      ]
+    }
+  ],
   "viewer": {
     "dataSourceKey": "shell.viewer",
     "nameField": "name",

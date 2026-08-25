@@ -58,7 +58,7 @@ export function PageCard({ screen, children, maxWidth = DEFAULT_MAX_WIDTH }: Pag
                 step={flowStep?.step}
                 totalSteps={flowStep?.total}
               />
-              {meta && drawsTitle(screen.screenId) && (
+              {meta && drawsTitle(screen) && (
                 <h1 className="pt-6 text-lg font-semibold text-gray-900">{meta.title}</h1>
               )}
             </>

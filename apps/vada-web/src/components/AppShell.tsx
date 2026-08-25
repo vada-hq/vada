@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import shellJson from '../../../../specs/figma/vada-wireframe/shell.json'
 import { readObjectSource } from '../data-sources/catalog'
+import type { Workspace } from '../spec/workspaces'
 
 // 모든 데스크톱 화면이 공유하는 앱 구조(사이드바 + 헤더).
 //
@@ -17,6 +18,8 @@ interface Shell {
   schemaVersion: 1
   brand: { name: string; dataSourceKey?: string; subtitleField?: string }
   navigation: ShellNavItem[]
+  // 화면 묶음이 나눠 쓰는 머리. spec/workspaces.ts가 읽는다.
+  workspaces?: Workspace[]
   viewer?: { dataSourceKey: string; nameField: string; roleField?: string }
 }
 

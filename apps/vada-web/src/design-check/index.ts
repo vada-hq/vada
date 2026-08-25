@@ -510,15 +510,38 @@ interface RegisteredElement {
 // 좁히려면 design 노드와 DOM 요소를 잇는 끈이 있어야 하는데, 그 끈은 화면이
 // data-node-id로 내놓는다. 끈이 없으면 대조가 아니라 짐작이 되므로, 없는 것도
 // 차이로 센다.
+/**
+ * 이 화면의 등록 노드 전부.
+ *
+ * 요소만 세면 **작업 공간의 갈피 줄과 상태 줄이 대조에서 통째로 빠진다** —
+ * 무엇을 그리는지는 shell.json이 알고 화면은 어디에 그리는지만 갖기 때문이다.
+ * 실제로 EVT-TASK-01을 공간으로 옮기자마자 상태 줄이 대조 밖으로 나갔고,
+ * '쓰이지 않는 예외'가 그것을 알렸다.
+ */
+export function registeredNodeIds(screen: ComparableScreen): string[] {
+  return [
+    ...screen.elements.map((element) => element.source.nodeId),
+    ...Object.values(screen.workspace?.source ?? {}).filter(
+      (nodeId): nodeId is string => typeof nodeId === 'string',
+    ),
+  ]
+}
+
+export interface ComparableScreen {
+  screenId: string
+  elements: RegisteredElement[]
+  workspace?: { source: Record<string, string | undefined> }
+}
+
 export function compareScreen(
   container: Element,
-  screen: { screenId: string; elements: RegisteredElement[] },
+  screen: ComparableScreen,
   design: DesignFile,
 ): Difference[] {
   const differences: Difference[] = []
-  const registered = new Set(screen.elements.map((element) => element.source.nodeId))
-  for (const element of screen.elements) {
-    const nodeId = element.source.nodeId
+  const nodeIds = registeredNodeIds(screen)
+  const registered = new Set(nodeIds)
+  for (const nodeId of nodeIds) {
     const exclude = new Set([...registered].filter((id) => id !== nodeId))
     const node = findNode(design.root, nodeId)
     const holder = container.querySelector(nodeSelector(nodeId))
@@ -617,13 +640,12 @@ export function compareAssets(
  */
 export function compareScreenAssets(
   container: Element,
-  screen: { screenId: string; elements: RegisteredElement[] },
+  screen: ComparableScreen,
   design: DesignFile,
   drawingOf: (file: string) => string,
 ): Difference[] {
   const assets = new Map<string, DesignAsset>()
-  for (const element of screen.elements) {
-    const nodeId = element.source.nodeId
+  for (const nodeId of registeredNodeIds(screen)) {
     if (container.querySelector(nodeSelector(nodeId)) === null) {
       // 자리 자체가 없는 것은 compareScreen이 이미 알린다. 두 번 세지 않는다.
       continue

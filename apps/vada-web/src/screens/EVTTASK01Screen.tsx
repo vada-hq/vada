@@ -2,13 +2,13 @@ import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { ProgressBar } from '../components/ProgressBar'
+import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import {
   ACCENT_BORDER,
   ALERT_CHIP,
   DEPARTMENT_CHIP,
   NEUTRAL_BORDER,
   NEUTRAL_CHIP,
-  STATE_CHIP,
   STATUS_CHIP,
 } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
@@ -34,15 +34,16 @@ import type {
 // - 넘긴다: 카드를 누르면 그 카드가 '어느 업무인지'(taskId)를 업무 상세에 준다.
 //   값은 눌린 그 행만 안다 — 명세도 화면도 모른다(itemField).
 //
-// 제목도 처음이다. 이 화면의 제목은 그 행사의 이름이고, 이름은 데이터에만 있다
-// (meta.titleFrom). meta.title은 화면을 부르는 말로 남아 보드의 머리에 그려진다.
+// 제목도 처음이다. 이 화면의 제목은 그 행사의 이름이고, 이름은 데이터에만 있다.
+// meta.title은 화면을 부르는 말로 남아 보드의 머리에 그려진다.
+//
+// 갈피 줄과 상태 줄은 **이 화면의 것이 아니다** — 행사 화면 일곱이 똑같이 그리므로
+// shell.json의 작업 공간이 갖는다. 화면은 어디에 그리는지(nodeId)만 준다.
 
 const SCREEN = 'EVT-TASK-01'
 
 const NODE = {
   addTask: '25:1280',
-  tabs: ['25:1286', '25:1289', '25:1292', '25:1295', '25:1298', '25:1301', '25:1304'],
-  workspace: '25:1307',
   event: '25:1331',
   alerts: '25:1352',
   scope: '25:1379',
@@ -51,7 +52,9 @@ const NODE = {
 
 const ASSET = {
   addTask: '25:1281',
-  workspaceTime: '25:1318',
+  // 작업 공간 상태 줄의 아이콘. 그리는 것은 공용 부품이지만 자산은 화면마다
+  // 다른 노드라 어느 조각에 무엇이 오는지는 화면이 지목한다.
+  workspaceStatus: { startAt: '25:1318' } as Record<string, string>,
   alertByField: {
     delayedCount: '25:1354',
     reviewCount: '25:1361',
@@ -72,7 +75,6 @@ interface EVTTASK01ScreenProps {
 
 export function EVTTASK01Screen({ screenParams, onNavigate }: EVTTASK01ScreenProps) {
   const addTask = elementByNodeId(evtTask01, NODE.addTask).spec as ButtonSpec
-  const workspaceSpec = elementByNodeId(evtTask01, NODE.workspace).spec as SummarySpec
   const eventSpec = elementByNodeId(evtTask01, NODE.event).spec as SummarySpec
   const alerts = elementByNodeId(evtTask01, NODE.alerts).spec as SummarySpec
   const scope = elementByNodeId(evtTask01, NODE.scope).spec as SelectSpec
@@ -107,22 +109,11 @@ export function EVTTASK01Screen({ screenParams, onNavigate }: EVTTASK01ScreenPro
   const argumentsOf = (params: SummarySpec['params']) =>
     resolveParams(params, { screenParams, fields: { [scope.fieldKey]: scopeValue } })
 
-  const workspace = readObjectSource(
-    workspaceSpec.dataSourceKey ?? '',
-    argumentsOf(workspaceSpec.params),
-  )
   const event = readObjectSource(eventSpec.dataSourceKey ?? '', argumentsOf(eventSpec.params))
   const alertRow = readObjectSource(alerts.dataSourceKey ?? '', argumentsOf(alerts.params))
 
   const scopeSource = getOptionSource(scope.optionsSource.key)
   const scopeOptions = scopeSource.type === 'static' ? scopeSource.options : []
-
-  // 눈에 띄어야 하는 것은 없으면 아예 오지 않는다 — 자리를 비워 두지 않는다.
-  const workspaceItems = (workspaceSpec.items ?? []).filter(
-    (item) => workspace[item.field ?? ''] !== undefined,
-  )
-  const chipFields = new Set(['status', 'alert'])
-  const noteField = 'permissionNote'
 
   return (
     <AppShell
@@ -146,88 +137,14 @@ export function EVTTASK01Screen({ screenParams, onNavigate }: EVTTASK01ScreenPro
         </button>
       }
     >
-      {/* 행사 작업 공간의 갈피. 갈피마다 다른 화면이라 고르는 것이 아니라 옮겨 간다. */}
-      <nav
-        aria-label="행사 작업 공간"
-        className="-mx-8 -mt-6 flex gap-6 border-b border-gray-100 bg-white px-8"
-      >
-        {NODE.tabs.map((nodeId) => {
-          const tab = elementByNodeId(evtTask01, nodeId).spec as ButtonSpec
-          const current = tab.emphasis === 'primary'
-          return (
-            <button
-              key={nodeId}
-              type="button"
-              data-node-id={nodeId}
-              aria-current={current ? 'page' : undefined}
-              onClick={() => {
-                if (tab.action.type === 'pending') {
-                  setNote(tab.action.note)
-                  return
-                }
-                if (tab.action.type === 'navigate') {
-                  onNavigate(
-                    tab.action.targetScreenId,
-                    resolveParams(tab.action.params, { screenParams }),
-                  )
-                }
-              }}
-              className={`border-b-2 py-3.5 text-sm font-medium ${
-                current
-                  ? 'border-blue-600 text-blue-700'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
-            >
-              {tab.label}
-            </button>
-          )
-        })}
-      </nav>
-
-      {/* 행사 머리. 갈피를 옮겨 다녀도 그대로인 값이라 화면이 아니라 행사에 딸린다. */}
-      <div
-        data-node-id={NODE.workspace}
-        className="-mx-8 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-gray-200 bg-white px-8 py-2.5"
-      >
-        {workspaceItems.map((item) => {
-          const field = item.field ?? ''
-          const value = String(workspace[field])
-          if (chipFields.has(field)) {
-            const tone = String(workspace[`${field === 'status' ? 'status' : 'alert'}Tone`])
-            return (
-              <span
-                key={field}
-                data-design-rule="state-chip"
-                className={`rounded px-2 py-0.5 text-xs font-medium ${
-                  STATE_CHIP[tone] ?? NEUTRAL_CHIP
-                }`}
-              >
-                {value}
-              </span>
-            )
-          }
-          if (field === noteField) {
-            // 이 안내만 오른쪽 끝으로 밀려 옅게 놓인다.
-            return (
-              <span key={field} className="ml-auto text-xs text-gray-400">
-                {value}
-              </span>
-            )
-          }
-          return (
-            <span key={field} className="flex items-center gap-1.5 text-xs text-gray-500">
-              {field === 'startAt' ? (
-                <FigmaAsset
-                  screenId={SCREEN}
-                  nodeId={ASSET.workspaceTime}
-                  className="size-3"
-                />
-              ) : null}
-              {value}
-            </span>
-          )
-        })}
-      </div>
+      <WorkspaceHeader
+        screen={evtTask01}
+        screenParams={screenParams}
+        onNavigate={onNavigate}
+        onPending={setNote}
+        assetScreenId={SCREEN}
+        statusAssets={ASSET.workspaceStatus}
+      />
 
       {note === null ? null : (
         <p role="status" className="pt-4 text-xs font-medium text-gray-500">

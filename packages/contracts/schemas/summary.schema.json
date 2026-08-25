@@ -84,6 +84,16 @@
             "type": "string",
             "minLength": 1,
             "description": "출처가 없을 때 그대로 그리는 값."
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "description": "값 아래 붙는 보조 문구(선택). 값과 다른 것이라 한 문자열로 합칠 수 없다 — 신청자 '142명' 아래의 '정원 200명'은 크기도 색도 다르게 그려진다. 묶음 전체의 description과 같은 축이며, 서버가 완성하면 descriptionField를 쓴다."
+          },
+          "descriptionField": {
+            "type": "string",
+            "minLength": 1,
+            "description": "보조 문구가 서버에서 오는 경우 dataSourceKey가 가리키는 출처의 fields[].key. description과 함께 쓰지 않는다."
           }
         }
       }

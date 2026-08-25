@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { ALL_SCREENS, exampleParamsOf } from './screens'
+import { ALL_SCREENS, drawsTitle, exampleParamsOf } from './screens'
 import type { FieldSpec, ListSpec, ScreenSpec } from './types'
 
 // 스펙 필드 소비 커버리지: 기대값을 스펙 JSON에서 읽어 화면과 대조한다.
@@ -132,15 +132,12 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  // meta.title이 늘 화면에 그려지는 것은 아니다. INV-01의 design(14:1)에는 화면
-  // 제목이 아예 없다 — 거기서 meta.title은 그려지는 카피가 아니라 화면의 이름이다.
-  // 하나뿐인 사실이므로 규칙으로 만들지 않고 여기 적어 둔다(docs/BACKLOG.md).
-  const TITLE_NOT_DRAWN = new Set(['INV-01'])
-
   it('화면 카피(meta)와 묶음(group)을 렌더한다', () => {
     renderScreen(screenId)
     if (spec.meta) {
-      if (!TITLE_NOT_DRAWN.has(screenId)) {
+      // meta.title이 늘 그려지는 것은 아니다. 판정은 구현과 같은 함수가 한다 —
+      // 두 곳에 적으면 언젠가 갈린다.
+      if (drawsTitle(spec)) {
         expect(screen.getByRole('heading', { name: spec.meta.title })).toBeInTheDocument()
       }
       // 같은 카피가 여러 자리에 놓일 수 있다 — MY-01은 눈썹과 제목이 같은 글이고
