@@ -116,15 +116,15 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
     worse.push(`${screenId} ${hit}/${spec.elements.length}(헛것 ${rows.length - spec.elements.length})`);
   }
 
-  // 2026-08-25 기준: 등록 100개 중 맞춤 49, 헛것 26.
-  // 그 직전은 맞춤 48 · 헛것 59였다(갈피 줄 28개 + 눌리는 카드 목록).
+  // 2026-08-25 기준: 등록 100개 중 맞춤 51, 헛것 17.
+  // 그날 안에서 48/59 → 49/26(갈피 줄·눌리는 카드 목록) → 51/17(하나 고르기).
   assert.ok(
-    matched >= 49,
-    `등록 ${registered}개 중 ${matched}개만 재현했습니다(49 이상이어야 함): ${worse.join(", ")}`
+    matched >= 51,
+    `등록 ${registered}개 중 ${matched}개만 재현했습니다(51 이상이어야 함): ${worse.join(", ")}`
   );
   assert.ok(
-    spurious <= 26,
-    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(26 이하여야 함): ${worse.join(", ")}`
+    spurious <= 17,
+    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(17 이하여야 함): ${worse.join(", ")}`
   );
 });
 
@@ -404,4 +404,58 @@ test("셸로 선언된 노드는 초안에서 제외한다", () => {
   );
   assert.ok(withGuard.elements.length < withoutGuard.elements.length + 1);
   assert.ok(withGuard.elements.some((element) => element.source.nodeId === "1:5"));
+});
+
+// 하나 고르기는 **골라진 하나만 배경이 다르다**는 것으로 읽는다.
+//
+// 이 검사가 지키는 것은 규칙이 맞다는 것보다 **규칙이 넘지 않는 선**이다.
+// 행동 짝(주 버튼 + 보조)도 색이 갈리지만, 둘일 때는 '하나만 다르다'가 성립하지
+// 않아 걸리지 않는다. 조건을 '나머지와 다른 것이 있으면'으로 느슨하게 바꾸면
+// `조직 만들기`가 선택지가 된다.
+test("셋 이상이고 하나만 배경이 다르면 하나 고르기로 읽는다", async () => {
+  const shell = JSON.parse(
+    await readFile(
+      join(repoRoot, "specs", "figma", "vada-wireframe", "shell.json"),
+      "utf8"
+    )
+  );
+  const draftOf = async (screenId) => {
+    const { design } = await loadScreen(screenId);
+    return draftScreenElements(design, {
+      excludeNodeNames: shell.design?.excludeNodeNames,
+      workspaces: shell.workspaces
+    });
+  };
+
+  // 다섯 중 '전체'만 배경이 gray-800이다.
+  const documents = await draftOf("EVT-DOC-01");
+  const filter = documents.elements.find(
+    (element) => element.source.nodeId === "28:562"
+  );
+  assert.equal(filter?.spec.type, "select");
+  assert.equal(filter?.spec.presentation, "choiceGroup");
+  assert.equal(filter?.spec.initialValue, "전체");
+  // 선택지 하나하나는 요소가 아니다.
+  assert.equal(
+    documents.elements.filter((element) => element.spec.type === "button").length,
+    0
+  );
+
+  // 둘짜리 행동 짝은 건드리지 않는다 — '이전'/'조직 만들기'도 하나만 채워져 있다.
+  const org02 = await draftOf("ORG-02");
+  const footer = org02.elements.filter((element) =>
+    ["14:343", "14:348"].includes(element.source.nodeId)
+  );
+  assert.equal(footer.length, 2, "행동 짝 둘이 낱개 버튼으로 남아야 합니다");
+  assert.ok(
+    footer.every((element) => element.spec.type === "button"),
+    `행동 짝이 선택지가 됐습니다: ${JSON.stringify(footer)}`
+  );
+
+  // 저마다 색이 다른 카드 셋은 고른 것이 아니다(EVT-02의 강조 카드).
+  const overview = await draftOf("EVT-02");
+  assert.equal(
+    overview.elements.find((element) => element.source.nodeId === "20:4818"),
+    undefined
+  );
 });

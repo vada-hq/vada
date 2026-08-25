@@ -436,6 +436,49 @@ function isBareList(node) {
   );
 }
 
+// 하나를 고르는 묶음인가(select.presentation: choiceGroup).
+//
+// 나란한 버튼은 셋 중 하나다: 각각 별도 버튼(ONB-02의 시작 방식 카드), 하나
+// 고르기(EVT-DOC-01의 문서 상태 필터), 되풀이 목록. 지금까지는 셋 다 질문으로
+// 넘겼는데, **고른 것은 색으로 드러난다** — 골라진 하나만 배경이 다르다.
+//
+// **조건을 '하나만'으로 적는 것이 전부다.** 행동 짝도 하나만 채워져 있는 것처럼
+// 보인다(ORG-02의 `이전`/`조직 만들기`, INV-01의 `참여하기`/`참여하지 않기` —
+// 주 버튼이 blue-600이고 나머지가 흰색이다). 그런데 **둘일 때는 '하나만 다르다'가
+// 성립하지 않는다** — 둘은 서로 다르거나 서로 같거나이지, 하나만 튀는 상태가
+// 없다. 개수 조건을 따로 두지 않는 이유이고, 행동 짝이 걸리지 않는 이유다.
+//
+// 재 보니 이 wireframe의 나란한 버튼 묶음 스물아홉 중 이 규칙에 걸리는 것은
+// 셋이고 전부 실제로 choiceGroup이다(오검출 0).
+//
+// 못 잡는 것도 적어 둔다. 밑줄로 고른 것을 표시하는 갈피 줄(MY-01 16:422,
+// EVT-TASK-02 25:1743)은 배경이 전부 같아 걸리지 않는다. 둘짜리 고르기
+// (EVT-TASK-01의 `전체 업무`/`내 업무`, ORG-02의 조직 구성 방식)도 위의 이유로
+// 걸리지 않는다 — 여전히 질문으로 간다.
+function findChosenButton(buttons) {
+  const backgrounds = buttons.map(backgroundOf);
+  const chosen = backgrounds.filter(
+    (background, at) =>
+      backgrounds.every((other, otherAt) => otherAt === at || other !== background)
+  );
+  if (chosen.length !== 1) {
+    return null;
+  }
+  // 나머지가 서로 같아야 한다. 저마다 다른 색이면 고른 것이 아니라 값마다 색이
+  // 붙은 것이다(EVT-02의 강조 카드 셋은 red·yellow·blue다).
+  const rest = backgrounds.filter((background) => background !== chosen[0]);
+  return rest.every((background) => background === rest[0])
+    ? buttons[backgrounds.indexOf(chosen[0])]
+    : null;
+}
+
+function backgroundOf(node) {
+  return (node?.appearance?.fills ?? [])
+    .filter((fill) => fill.type === "solid")
+    .map((fill) => fill.color)
+    .join(",");
+}
+
 // 작업 공간의 갈피 줄인가.
 //
 // 갈피 줄은 화면의 요소가 아니다 — 행사 화면 일곱이 똑같이 그리므로 shell.json의
@@ -548,6 +591,33 @@ export function draftScreenElements(design, options = {}) {
         continue;
       }
       const siblingButtons = findSiblingButtonGroup(child);
+      const chosen = siblingButtons ? findChosenButton(siblingButtons) : null;
+      if (siblingButtons && chosen && !matchesWorkspaceTabs(siblingButtons, workspaces)) {
+        const at = `elements[${elements.length}]`;
+        elements.push({
+          source: toSource(child),
+          spec: {
+            type: "select",
+            // 라벨은 짐작하지 않는다. 이런 묶음은 디자인에 라벨이 없는 것이
+            // 보통이고(등록된 다섯이 전부 그렇다), 없는 라벨을 지어내면
+            // 디자인에 없는 카피가 된다.
+            placeholder: null,
+            presentation: "choiceGroup",
+            initialValue: collectText(chosen)[0]?.trim() ?? null,
+            valueType: "string",
+            required: true,
+            initiallyDisabled: false,
+            searchable: false,
+            optionsSource: { key: "" }
+          }
+        });
+        questions.push(
+          `${at}(${child.id}) — 버튼 ${siblingButtons.length}개 중 '${collectText(chosen)[0]?.trim()}'만 배경이 달라 하나 고르기로 읽었습니다(${siblingButtons
+            .map((button) => collectText(button)[0]?.trim())
+            .join(", ")}). fieldKey와 optionsSource.key를 정하세요 — initialValue는 그려진 문구라 선택지의 value로 바꿔야 합니다.`
+        );
+        continue; // 선택지 하나하나는 요소가 아니다
+      }
       if (siblingButtons && matchesWorkspaceTabs(siblingButtons, workspaces)) {
         // 이 줄은 이 화면의 것이 아니다. 요소도 질문도 내지 않고, 안쪽도 파지
         // 않는다 — 갈피 하나하나가 다시 버튼으로 잡히면 같은 일이 된다.
