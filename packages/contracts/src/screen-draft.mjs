@@ -405,11 +405,16 @@ function isBareList(node) {
   if (!isRepeatedGroup(node)) {
     return false;
   }
-  // 버튼만 든 묶음은 제외한다 — 그쪽은 '각각 버튼인지 하나 고르기인지'가 쟁점이라
-  // findSiblingButtonGroup이 이미 다르게 묻는다(ONB-02의 시작 방식 카드).
-  if (children(node).every(isButton)) {
-    return false;
-  }
+  // 겉이 버튼이어도 목록일 수 있다.
+  //
+  // 예전에는 '버튼만 든 묶음'을 통째로 제외했다. 나란한 버튼은 '각각 버튼인지
+  // 하나 고르기인지'가 쟁점이고 findSiblingButtonGroup이 그것을 다르게 묻기
+  // 때문이었다. 그런데 **눌리는 카드 목록이면 되풀이의 겉이 버튼인 것이
+  // 자연스럽다** — EVT-MEET-01의 회의 카드 셋(25:2012·25:2041·25:2070)이 그래서
+  // 목록 대신 버튼 셋으로 나왔다.
+  //
+  // 제외하지 않아도 아래의 깊이 규칙이 둘을 가른다. 갈피·필터·시작 방식 카드는
+  // 항목 안에 또 되풀이가 없고, 회의 카드는 있다(날짜·장소·참가 줄).
   // 안에 섹션(제목 + 되풀이)이 있으면 바깥은 목록이 아니라 배치다. 삼키면 섹션이
   // 통째로 보이지 않는다.
   //
@@ -429,6 +434,30 @@ function isBareList(node) {
   return children(node).every(
     (item) => findDescendant(item, isRepeatedGroup) !== null
   );
+}
+
+// 작업 공간의 갈피 줄인가.
+//
+// 갈피 줄은 화면의 요소가 아니다 — 행사 화면 일곱이 똑같이 그리므로 shell.json의
+// 작업 공간이 갖고, 화면은 어디에 그리는지(nodeId)만 적는다. 그런데 디자인만
+// 보면 그냥 나란한 버튼 일곱이라, 화면마다 없는 요소 일곱과 질문 여덟이 났다.
+//
+// **셸이 이미 답을 갖고 있다.** 갈피의 문구가 `workspaces[].tabs[].label`에
+// 적혀 있으므로, 나란한 버튼들의 문구가 그것과 그대로 맞으면 그 줄이다.
+// 이름으로 거르지 않는 이유는 갈피 줄의 겉 이름이 그냥 `Container`이기 때문이고,
+// 자리로 거르지 않는 이유는 화면마다 다르기 때문이다 — **문구만이 안 흔들린다.**
+function matchesWorkspaceTabs(buttons, workspaces) {
+  if (!Array.isArray(workspaces) || workspaces.length === 0) {
+    return false;
+  }
+  const drawn = buttons.map((button) => (collectText(button)[0] ?? "").trim());
+  return workspaces.some((workspace) => {
+    const labels = (workspace?.tabs ?? []).map((tab) => tab?.label);
+    return (
+      labels.length === drawn.length &&
+      labels.every((label, at) => label === drawn[at])
+    );
+  });
 }
 
 function readSection(node) {
@@ -456,7 +485,7 @@ function readSection(node) {
 export function draftScreenElements(design, options = {}) {
   const elements = [];
   const questions = [];
-  const { precedents, stateScopeKey, excludeNodeNames } = options;
+  const { precedents, stateScopeKey, excludeNodeNames, workspaces } = options;
   // 셸(사이드바·헤더)은 화면의 요소가 아니라 모든 화면이 공유하는 구조다.
   // 어느 노드가 셸인지는 wireframe이 아는 것이라 파이프라인이 이름을 갖지 않고
   // 호출자가 넘긴다(specs/<wireframe>/shell.json의 design.excludeNodeNames).
@@ -519,6 +548,11 @@ export function draftScreenElements(design, options = {}) {
         continue;
       }
       const siblingButtons = findSiblingButtonGroup(child);
+      if (siblingButtons && matchesWorkspaceTabs(siblingButtons, workspaces)) {
+        // 이 줄은 이 화면의 것이 아니다. 요소도 질문도 내지 않고, 안쪽도 파지
+        // 않는다 — 갈피 하나하나가 다시 버튼으로 잡히면 같은 일이 된다.
+        continue;
+      }
       if (siblingButtons) {
         // 보수적으로 각각 별도 버튼으로 뽑는다 — 합치는 것이 나누는 것보다 쉽다.
         questions.push(

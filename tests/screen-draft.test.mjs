@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
@@ -70,18 +70,32 @@ for (const { screenId, derivable, notDerivable } of EXPECTED) {
 // 곳은 부모다: 그쪽 부모(14:93)는 화면 카드 전체라 자식이 6개다.
 // 화면 전체에 대한 눈금. 화면별 표는 폼 화면 넷만 보므로 목록 화면이 나빠져도
 // 조용하다. 여기서 총합을 래칫으로 잠근다 — 규칙을 손댈 때마다 이 수치를 보고
-// 고르라는 뜻이다(2026-08-24 기준: 맞춤 36 → 41, 헛것 41 → 19).
-test("초안 재현율이 떨어지지 않는다(11개 화면 총합)", async () => {
+// 고르라는 뜻이다(2026-08-24: 맞춤 36 → 41, 헛것 41 → 19).
+//
+// **화면 목록을 손으로 적지 않는다(2026-08-25).** 열한 개를 적어 두었더니 뒤에
+// 만든 작업 공간 화면 다섯이 눈금 밖에 있었고, 그동안 그 화면들에서 헛것이
+// 28개까지 자랐는데 이 검사는 조용했다. 이제 등록된 화면 전부를 센다 —
+// 화면을 하나 더 명세하면 저절로 눈금에 든다.
+test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", async () => {
   const shell = JSON.parse(
     await readFile(
       join(repoRoot, "specs", "figma", "vada-wireframe", "shell.json"),
       "utf8"
     )
   );
-  const screenIds = [
-    "ONB-01", "ONB-02", "ORG-01", "ORG-02", "INV-01", "HOME-01K",
-    "MY-01", "OPS-00", "TASK-01", "OPS-MEET-01A", "EVT-00A"
-  ];
+  const screensDir = join(repoRoot, "specs", "figma", "vada-wireframe", "screens");
+  const screenIds = [];
+  for (const dirent of await readdir(screensDir, { withFileTypes: true })) {
+    if (!dirent.isDirectory()) {
+      continue;
+    }
+    try {
+      await readFile(join(screensDir, dirent.name, "screen.json"), "utf8");
+      screenIds.push(dirent.name);
+    } catch {
+      continue; // 아직 명세되지 않은 화면
+    }
+  }
 
   let registered = 0;
   let matched = 0;
@@ -90,23 +104,27 @@ test("초안 재현율이 떨어지지 않는다(11개 화면 총합)", async ()
   for (const screenId of screenIds) {
     const { design, spec } = await loadScreen(screenId);
     const { elements } = draftScreenElements(design, {
-      excludeNodeNames: shell.design?.excludeNodeNames
+      excludeNodeNames: shell.design?.excludeNodeNames,
+      // 갈피 줄은 화면의 요소가 아니다. 그 문구를 셸이 갖고 있다.
+      workspaces: shell.workspaces
     });
     const rows = compareWithSpec(elements, spec.elements);
     const hit = rows.filter((row) => row.matched && row.typeMatch && row.labelMatch).length;
     registered += spec.elements.length;
     matched += hit;
     spurious += rows.length - spec.elements.length;
-    worse.push(`${screenId} ${hit}/${spec.elements.length}`);
+    worse.push(`${screenId} ${hit}/${spec.elements.length}(헛것 ${rows.length - spec.elements.length})`);
   }
 
+  // 2026-08-25 기준: 등록 100개 중 맞춤 49, 헛것 26.
+  // 그 직전은 맞춤 48 · 헛것 59였다(갈피 줄 28개 + 눌리는 카드 목록).
   assert.ok(
-    matched >= 41,
-    `등록 ${registered}개 중 ${matched}개만 재현했습니다(41 이상이어야 함): ${worse.join(", ")}`
+    matched >= 49,
+    `등록 ${registered}개 중 ${matched}개만 재현했습니다(49 이상이어야 함): ${worse.join(", ")}`
   );
   assert.ok(
-    spurious <= 19,
-    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(19 이하여야 함)`
+    spurious <= 26,
+    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(26 이하여야 함): ${worse.join(", ")}`
   );
 });
 

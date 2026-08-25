@@ -65,13 +65,15 @@ async function runCli() {
 
   const precedents = collectFieldPrecedents(await loadPrecedentScreens(screensDir, screenId));
   // 셸은 화면의 요소가 아니다. 어느 노드가 셸인지는 wireframe이 안다.
-  const excludeNodeNames = await readJson(join(screensDir, "..", "shell.json"))
-    .then((shell) => shell.design?.excludeNodeNames)
-    .catch(() => undefined);
+  //
+  // 작업 공간도 같다 — 갈피 줄은 몇 화면이 나눠 쓰는 것이라 화면의 요소가
+  // 아니다. 그 문구가 shell.json에 적혀 있으므로 추출기에 함께 넘긴다.
+  const shell = await readJson(join(screensDir, "..", "shell.json")).catch(() => ({}));
   const { elements, questions } = draftScreenElements(design, {
     precedents,
     stateScopeKey,
-    excludeNodeNames
+    excludeNodeNames: shell.design?.excludeNodeNames,
+    workspaces: shell.workspaces
   });
 
   if (flags.includes("--verify")) {
