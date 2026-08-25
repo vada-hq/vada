@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { missingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const PARTICIPANTS = '/#/EVT-04?eventId=E-01'
@@ -26,7 +27,7 @@ test('EVT-04: 행사 인자로 그 행사의 참가자만 본다', async ({ page
 test('EVT-04: 인자가 없으면 아무 행사의 참가자나 보여주지 않는다', async ({ page }) => {
   await page.goto('/#/EVT-04')
 
-  await expect(page.getByRole('alert')).toContainText('eventId')
+  await expect(page.getByRole('alert')).toContainText(missingNoteOf('EVT-04', 'eventId'))
   await expect(table(page)).toBeHidden()
 })
 

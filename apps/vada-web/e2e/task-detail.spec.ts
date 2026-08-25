@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { missingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 
@@ -19,7 +20,7 @@ test('EVT-TASK-02: 인자가 없으면 아무 업무나 보여주지 않고 드�
   await page.goto('/#/EVT-TASK-02')
 
   // 조용한 대체는 명세의 구멍을 숨긴다. 미등록 화면 오류 카드와 같은 태도다.
-  await expect(page.getByRole('alert')).toContainText('taskId')
+  await expect(page.getByRole('alert')).toContainText(missingNoteOf('EVT-TASK-02', 'taskId'))
   await expect(page.getByRole('heading', { name: '현수막 디자인 수정 반영' })).toBeHidden()
 })
 

@@ -58,8 +58,7 @@ export function EVTSCHED01Screen({ screenParams, onNavigate }: EVTSCHED01ScreenP
           role="alert"
           className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700"
         >
-          {`이 화면은 ${missing.map((param) => param.key).join('·')}가 있어야 열립니다. ` +
-            `${missing.map((param) => param.description).join(' ')} 주소에 붙여 주세요 — 예: #/${evtSched01.screenId}?eventId=E-01`}
+          {missing.map((param) => param.missingNote).join(' ')}
         </p>
       </AppShell>
     )

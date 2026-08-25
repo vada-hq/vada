@@ -40,6 +40,10 @@ function scalar(row: DataRow, field: string): string {
   return String(value)
 }
 
+// 경로 조각 사이의 화살표. 명세는 조각이 무엇인지만 말하고, 그 사이에 어떤
+// 그림이 오는지는 design이 갖는다.
+const BREADCRUMB_SEPARATORS = ['30:900', '30:905', '30:910', '30:915', '30:920']
+
 const stepsSpec = specOf('steps')
 const summarySpec = specOf('summary')
 const resultListSpec = specOf('itemList', 0)
@@ -68,12 +72,21 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
         footerNote={meta.footerNote}
         onNavigate={onNavigate}
       >
-        <p role="alert">
-          {missingParam.key}: {missingParam.description}
-        </p>
+        <p role="alert">{missingParam.missingNote}</p>
       </AppShell>
     )
   }
+
+  // 경로의 조각 중 데이터에서 오는 것이 있으면 그 출처를 읽는다. 요약과 같은
+  // 출처인 것이 보통이지만 같다고 가정하지 않는다 — 명세가 따로 가리킨다.
+  const breadcrumb = finReq02.breadcrumb
+  const breadcrumbRow =
+    breadcrumb?.dataSourceKey === undefined
+      ? null
+      : readObjectSourceOrNull(
+          breadcrumb.dataSourceKey,
+          resolveParams(breadcrumb.params, { screenParams }),
+        )
 
   const stepParams = resolveParams(stepsSpec.params, { screenParams })
   const summaryParams = resolveParams(summarySpec.params, { screenParams })
@@ -132,10 +145,13 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
   const resultSource = findDataSource(resultListSpec.dataSourceKey)
   const historySource = findDataSource(historySpec.dataSourceKey)
 
-  const historyTitleField = historySource.fields.find((field) => field.key === 'action')?.key
-  const historyNoteField = historySource.fields.find((field) => field.key === 'actorNote')?.key
+  // 어느 조각이 주 문구이고 어느 것이 보조인지는 명세가 말한다. 출처의 조각
+  // 이름을 화면이 뒤져 고르면 그것은 명세가 아니라 짐작이다.
+  const [historyTitleColumn, historyNoteColumn] = historySpec.columns ?? []
+  const historyTitleField = historyTitleColumn?.fields[0]
+  const historyNoteField = historyNoteColumn?.fields[0]
   if (historyTitleField === undefined || historyNoteField === undefined) {
-    throw new Error('처리 기록 출처에 action과 actorNote 조각이 필요합니다.')
+    throw new Error('처리 기록에 그려지는 조각이 명세에 없습니다.')
   }
 
   function showPendingNote() {
@@ -154,16 +170,18 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
       description={meta.description}
       footerNote={meta.footerNote}
       breadcrumb={
-        <Breadcrumbs
-          items={[
-            '운영',
-            '행사',
-            scalar(summaryDetail, 'eventName'),
-            '재정',
-            '내 구매 요청',
-            scalar(summaryDetail, summarySpec.eyebrowField),
-          ]}
-        />
+        breadcrumb === undefined ? undefined : (
+          <Breadcrumbs
+            nodeId={breadcrumb.source}
+            screenId={finReq02.screenId}
+            separatorNodeIds={BREADCRUMB_SEPARATORS}
+            items={breadcrumb.items.map((item) =>
+              item.field === undefined
+                ? (item.value ?? '')
+                : scalar(breadcrumbRow ?? summaryDetail, item.field),
+            )}
+          />
+        )
       }
       onNavigate={onNavigate}
     >
@@ -201,7 +219,6 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
             result: 'status',
             note: 'muted',
           }}
-          statusToneFields={{ result: 'resultTone' }}
           headerAction={
             <CautionButton
               nodeId={nodeIdOf(finReq02, pendingButton)}

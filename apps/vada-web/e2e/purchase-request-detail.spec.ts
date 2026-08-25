@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { missingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const DETAIL = '/#/FIN-REQ-02?requestId=PR-2026-0031'
@@ -54,6 +55,6 @@ test('FIN-REQ-02: 보완 확인의 다음 화면이 아직 없음을 드러낸�
 test('FIN-REQ-02: 요청 id가 없으면 아무 요청이나 대신 보여주지 않는다', async ({ page }) => {
   await page.goto('/#/FIN-REQ-02')
 
-  await expect(page.getByRole('alert')).toContainText('requestId')
+  await expect(page.getByRole('alert')).toContainText(missingNoteOf('FIN-REQ-02', 'requestId'))
   await expect(page.getByText('REQ-001', { exact: true })).toHaveCount(0)
 })

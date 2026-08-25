@@ -902,7 +902,14 @@ test("개수 출처에 넘긴 인자가 그 출처에 없으면 오류다", () =
       file: "w/screens/S-01/screen.json",
       spec: {
         screenId: "S-01",
-        params: [{ key: "eventId", valueType: "string", description: "어느 행사" }],
+        params: [
+          {
+            key: "eventId",
+            valueType: "string",
+            missingNote: "어떤 행사를 볼지 정하지 않고 열렸습니다.",
+            description: "어느 행사"
+          }
+        ],
         elements: [
           element("1:2", {
             type: "select",
@@ -1105,7 +1112,14 @@ test("선택지 출처에 화면 인자를 넘길 수 있다", () => {
       file: "w/screens/S-01/screen.json",
       spec: {
         screenId: "S-01",
-        params: [{ key: "eventId", valueType: "string", description: "어느 행사" }],
+        params: [
+          {
+            key: "eventId",
+            valueType: "string",
+            missingNote: "어떤 행사를 볼지 정하지 않고 열렸습니다.",
+            description: "어느 행사"
+          }
+        ],
         elements: [
           element("1:2", {
             type: "select",
@@ -1363,13 +1377,18 @@ test("조회 인자가 없는 필드를 가리키면 고정값과 섞여 있어�
 // **이동은 성공한다** — 대상 화면만 조용히 빈다. 명세를 읽어서는 보이지 않는
 // 종류의 구멍이라 여기서 막는다.
 
-function boardScreens(itemAction, targetParams = [{ key: "taskId", description: "어느 업무" }]) {
+function boardScreens(
+  itemAction,
+  targetParams = [
+    { key: "taskId", missingNote: "어떤 업무를 볼지 정하지 않고 열렸습니다.", description: "어느 업무" }
+  ]
+) {
   return [
     {
       file: "w/screens/S-01/screen.json",
       spec: {
         screenId: "S-01",
-        params: [{ key: "eventId", description: "어느 행사" }],
+        params: [{ key: "eventId", missingNote: "어떤 행사를 볼지 정하지 않고 열렸습니다.", description: "어느 행사" }],
         elements: [
           element("1:3", {
             type: "itemList",
@@ -1495,7 +1514,7 @@ test("화면 제목의 출처와 조각을 검사한다", () => {
       file: "w/screens/S-01/screen.json",
       spec: {
         screenId: "S-01",
-        params: [{ key: "eventId", description: "어느 행사" }],
+        params: [{ key: "eventId", missingNote: "어떤 행사를 볼지 정하지 않고 열렸습니다.", description: "어느 행사" }],
         meta: {
           title: "행사 업무",
           titleFrom: {
@@ -1793,7 +1812,7 @@ test("없어도 되는 인자는 넘기지 않아도 되지만, 넘기면 받는
       spec: {
         screenId: "S-02",
         params: [
-          { key: "eventId", description: "어느 행사" },
+          { key: "eventId", missingNote: "어떤 행사를 볼지 정하지 않고 열렸습니다.", description: "어느 행사" },
           { key: "requestId", optional: true, description: "고칠 요청. 없으면 새로 쓴다" }
         ],
         elements: []
@@ -1803,4 +1822,173 @@ test("없어도 되는 인자는 넘기지 않아도 되지만, 넘기면 받는
 
   const findings = collectSpecFindings({ screens });
   assert.equal(findings.filter((f) => f.message.includes("'requestId'")).length, 0);
+});
+
+// 인자가 없을 때 뭐라고 할지를 명세가 갖지 않으면 구현이 지어낸다. 실제로 그랬다:
+// 어떤 화면은 '이 화면은 eventId가 있어야 열립니다'라고 썼고, 다른 화면은 명세의
+// 내부 설명을 그대로 사람에게 뿌렸다. 둘 다 명세에 없는 카피다.
+test("없으면 안 되는 인자는 없을 때 뭐라고 할지를 갖는다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          params: [{ key: "eventId", description: "어느 행사" }],
+          elements: []
+        }
+      }
+    ]
+  });
+
+  assert.equal(findings.filter((f) => f.message.includes("missingNote")).length, 1);
+});
+
+test("없어도 되는 인자는 없을 때의 글을 갖지 않는다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          params: [
+            {
+              key: "requestId",
+              optional: true,
+              missingNote: "그릴 일이 없는 글",
+              description: "없으면 새로 쓴다"
+            }
+          ],
+          elements: []
+        }
+      }
+    ]
+  });
+
+  assert.equal(findings.filter((f) => f.message.includes("missingNote")).length, 1);
+});
+
+// 딱지의 색 이름은 그려지는 글이 아니다. 이것을 명세가 가리키지 않던 동안
+// 화면들은 row.statusTone을 코드에 박아 썼고, 출처의 조각 이름이 바뀌어도
+// 검증기가 아무 말도 하지 못했다.
+test("열이 가리킨 색 이름 조각이 출처에 없으면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Container", figmaType: "FRAME" },
+              spec: {
+                type: "itemList",
+                dataSourceKey: "req.items",
+                columns: [{ label: "처리 결과", fields: ["result"], toneField: "resultTone" }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "req.items",
+          shape: "list",
+          fields: [{ key: "result", label: "처리 결과" }]
+        }
+      ]
+    }
+  });
+
+  assert.equal(findings.filter((f) => f.message.includes("'resultTone'")).length, 1);
+});
+
+test("색 이름 조각이 열에도 그려지면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Container", figmaType: "FRAME" },
+              spec: {
+                type: "itemList",
+                dataSourceKey: "req.items",
+                columns: [
+                  { label: "처리 결과", fields: ["result"], toneField: "resultTone" },
+                  { label: "색", fields: ["resultTone"] }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "req.items",
+          shape: "list",
+          fields: [
+            { key: "result", label: "처리 결과" },
+            { key: "resultTone", label: "색 이름" }
+          ]
+        }
+      ]
+    }
+  });
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("어느 열에도 오지 않습니다")).length,
+    1
+  );
+});
+
+// 경로의 글은 디자인이 그려 두었지만, 데이터에서 오는 조각은 명세가 가리킨다.
+test("현재 위치 경로가 출처 없이 조각을 가리키면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          breadcrumb: {
+            source: "1:9",
+            items: [{ value: "운영" }, { field: "eventName" }]
+          },
+          elements: []
+        }
+      }
+    ]
+  });
+
+  assert.equal(findings.filter((f) => f.message.includes("'eventName'")).length, 1);
+});
+
+test("현재 위치 경로가 가리킨 조각이 출처에 없으면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          breadcrumb: {
+            source: "1:9",
+            dataSourceKey: "req.detail",
+            items: [{ value: "운영" }, { field: "eventName" }]
+          },
+          elements: []
+        }
+      }
+    ],
+    dataSources: {
+      sources: [{ key: "req.detail", shape: "object", fields: [{ key: "code", label: "번호" }] }]
+    }
+  });
+
+  assert.equal(findings.filter((f) => f.message.includes("'eventName'")).length, 1);
 });

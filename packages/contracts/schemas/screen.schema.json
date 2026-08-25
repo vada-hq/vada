@@ -55,10 +55,15 @@
             "minLength": 1,
             "description": "화면 하나만 열어 볼 때 쓰는 예시 값(선택). 실제 값은 앞 화면이 정한다 — summary.items의 value와 같은 성격이다. 구현은 이 값으로 대신하지 않는다. 인자가 없으면 조용히 아무거나 보여주는 대신 드러내야 하기 때문이다. 쓰는 것은 검사뿐이다."
           },
+          "missingNote": {
+            "type": "string",
+            "minLength": 1,
+            "description": "이 인자 없이 화면이 열렸을 때 사람에게 보여 줄 글(선택, optional이 아닌 인자에만 쓴다).\n\n**description을 대신 그리면 안 된다.** 그것은 명세를 읽는 사람에게 하는 말이지 화면을 쓰는 사람에게 하는 말이 아니다 — 'PR-2026-0031 같은 요청 id. 앞 화면이 정한다'는 개발자의 문장이다. 이 자리가 없던 동안 구현은 내부 설명을 그대로 화면에 뿌렸고, 그것은 명세에 없는 카피를 지어내지 않는다는 규칙을 지키려다 생긴 일이었다 — 지어내지 않으려면 적힌 것이 있어야 한다.\n\n디자인에 이 상태의 그림이 없으면 명세가 문장을 정한다. 드러내는 것이 조용한 대체보다 낫고, 무엇을 드러낼지는 화면이 정할 일이 아니다."
+          },
           "description": {
             "type": "string",
             "minLength": 1,
-            "description": "무엇을 가리키는 값인지. 어디서 오는지도 적는다."
+            "description": "무엇을 가리키는 값인지. 어디서 오는지도 적는다. **화면에 그려지지 않는다** — 그리는 글은 missingNote다."
           }
         }
       }
@@ -79,6 +84,64 @@
         "params": {
           "$ref": "element-params.schema.json#/$defs/argument",
           "description": "무엇을 읽어 오는지. 대개 화면이 받은 인자를 그대로 넘긴다."
+        }
+      }
+    },
+    "breadcrumb": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source",
+        "items"
+      ],
+      "description": "제목 위에 그려지는 현재 위치 경로(선택).\n\n셸의 메뉴와 다르다 — 메뉴는 어디로 갈 수 있는지이고 이것은 **지금 어디에 있는지**다. 작업 공간의 갈피 줄과도 다르다: 갈피는 나란한 형제들 사이의 자리이고, 이것은 위로 거슬러 올라가는 계보다.\n\n조각의 글이 셸의 메뉴 이름과 겹치는 것을 감수한다. 겹친다고 셸을 가리키게 만들면 화면마다 계보가 다른데 셸은 하나뿐이라 표현할 수 없고, 무엇보다 **디자인이 그 글을 이미 그려 두었다.** 등록 노드이므로 대조기가 그 글을 지킨다 — 메뉴 이름이 바뀌면 디자인이 바뀌고 대조가 깨진다.\n\n이 자리가 없던 동안 구현은 디자인을 보고 '운영·행사·재정'을 코드에 적었다. 명세에 없는 카피가 화면에 생긴 것인데, 아무도 몰랐다 — 대조기는 등록되지 않은 노드를 보지 않고, 역방향 검사는 글자를 세지 않는다.",
+      "properties": {
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "경로 전체를 담은 design 노드의 id. 등록 노드이므로 그 안의 글이 대조된다."
+        },
+        "dataSourceKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "조각 중 field가 있으면 그 값이 오는 출처의 key(선택). shape가 object여야 한다."
+        },
+        "params": {
+          "$ref": "element-params.schema.json#/$defs/argument",
+          "description": "한 건을 집어 올 때 넘기는 인자(선택)."
+        },
+        "items": {
+          "type": "array",
+          "minItems": 2,
+          "description": "경로의 조각들, **위에서 아래 순서대로**. 마지막이 지금 있는 자리다. 하나짜리 경로는 경로가 아니므로 둘 이상이다.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "oneOf": [
+              {
+                "required": [
+                  "value"
+                ]
+              },
+              {
+                "required": [
+                  "field"
+                ]
+              }
+            ],
+            "properties": {
+              "value": {
+                "type": "string",
+                "minLength": 1,
+                "description": "그대로 그리는 글. 예: 운영"
+              },
+              "field": {
+                "type": "string",
+                "minLength": 1,
+                "description": "값이 데이터에서 오는 조각의 key. 그 행사의 이름이나 이 건의 번호가 여기 온다."
+              }
+            }
+          }
         }
       }
     },

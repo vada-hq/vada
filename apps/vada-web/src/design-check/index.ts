@@ -558,6 +558,7 @@ export function registeredNodeIds(screen: ComparableScreen): string[] {
     ...Object.values(screen.workspace?.source ?? {}).filter(
       (nodeId): nodeId is string => typeof nodeId === 'string',
     ),
+    ...(typeof screen.breadcrumb?.source === 'string' ? [screen.breadcrumb.source] : []),
   ]
 }
 
@@ -565,6 +566,7 @@ export interface ComparableScreen {
   screenId: string
   elements: RegisteredElement[]
   workspace?: { source: Record<string, string | undefined> }
+  breadcrumb?: { source: string }
 }
 
 export function compareScreen(

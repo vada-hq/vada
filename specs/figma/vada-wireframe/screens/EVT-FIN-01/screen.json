@@ -6,6 +6,7 @@
       "key": "eventId",
       "valueType": "string",
       "example": "E-01",
+      "missingNote": "어떤 행사를 볼지 정하지 않고 열렸습니다. 행사 목록에서 행사를 고르면 이 화면이 열립니다.",
       "description": "어느 행사의 재정인지. 작업 공간의 갈피를 옮겨 들어올 때 그 행사가 정한다."
     }
   ],

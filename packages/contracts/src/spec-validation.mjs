@@ -172,6 +172,11 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       registered.add(nodeId);
     }
   }
+  // 현재 위치 경로도 등록 노드다. 그 안의 글은 명세가 갖고 있으므로 대조기가
+  // 지켜야 한다 — 등록하지 않으면 디자인이 그린 여섯 조각이 아무의 것도 아니게 된다.
+  if (typeof spec.breadcrumb?.source === "string") {
+    registered.add(spec.breadcrumb.source);
+  }
   // 목록의 쪽 줄도 그렇다. 디자인이 표와 쪽 줄을 형제로 두어 둘을 함께 품는 노드가
   // 없으므로, 목록이 그 자리를 따로 갖는다.
   for (const element of spec.elements) {
@@ -525,6 +530,132 @@ function checkListItemFields(findings, context) {
 // 읽어 온 조각이 화면의 어느 칸에도 닿지 않으면 그 조각은 받아만 놓고 버려진다.
 // 반대로 목록의 칸이 조각에 없으면 그 칸은 고치는 화면에서도 늘 비어 있다. 둘 다
 // 조용하다 — 화면은 멀쩡히 그려지고 값만 없다.
+// 인자 없이 열렸을 때 뭐라고 할지.
+//
+// 지금까지 그 문장은 화면마다 코드에 있었다. 명세에 없는 카피이므로 대조기도
+// 준수 검사도 보지 않았고, 화면마다 다른 말을 했다 — 어떤 화면은 '이 화면은
+// eventId가 있어야 열립니다'라 했고 어떤 화면은 명세의 내부 설명을 그대로
+// 뿌렸다. 없어도 되는 인자는 없는 것이 사고가 아니므로 이 글도 없다.
+function checkParamMissingNotes(findings, file, spec) {
+  for (const param of Array.isArray(spec.params) ? spec.params : []) {
+    if (!isObject(param) || typeof param.key !== "string") {
+      continue;
+    }
+    const optional = param.optional === true;
+    const note = param.missingNote;
+    if (optional && note !== undefined) {
+      findings.push({
+        level: "error",
+        file,
+        message: `인자 '${param.key}'는 없어도 되는데 없을 때의 글(missingNote)을 갖습니다. 그 자리는 그려지지 않습니다.`
+      });
+      continue;
+    }
+    if (!optional && typeof note !== "string") {
+      findings.push({
+        level: "error",
+        file,
+        message: `인자 '${param.key}'가 없을 때 사람에게 뭐라고 할지(missingNote)가 없습니다. 적지 않으면 구현이 지어냅니다.`
+      });
+    }
+  }
+}
+
+// 제목 위의 현재 위치 경로.
+//
+// 조각의 글은 디자인이 그려 두었고 등록 노드이므로 대조기가 지킨다. 여기서
+// 보는 것은 데이터에서 오는 조각뿐이다 — 출처 없이 field를 가리키면 화면이
+// 무엇을 그려야 할지 알 수 없다.
+function checkBreadcrumb(findings, file, spec, { dataSources, dataSourceByKey, screenParams }) {
+  const breadcrumb = isObject(spec.breadcrumb) ? spec.breadcrumb : null;
+  if (!breadcrumb) {
+    return;
+  }
+
+  const items = Array.isArray(breadcrumb.items) ? breadcrumb.items : [];
+  const fields = items
+    .map((item) => (isObject(item) ? item.field : undefined))
+    .filter((field) => typeof field === "string");
+
+  const key = breadcrumb.dataSourceKey;
+  if (typeof key !== "string") {
+    if (fields.length > 0) {
+      findings.push({
+        level: "error",
+        file,
+        message: `현재 위치 경로가 dataSourceKey 없이 조각 '${fields[0]}'를 가리킵니다.`
+      });
+    }
+    return;
+  }
+  if (fields.length === 0) {
+    findings.push({
+      level: "error",
+      file,
+      message: `현재 위치 경로가 데이터 출처 '${key}'를 쓰지 않습니다. 조각을 가리키지 않을 거면 출처도 없습니다.`
+    });
+    return;
+  }
+
+  if (!isObject(dataSources)) {
+    findings.push({
+      level: "warning",
+      file,
+      message: `data-sources.json이 없어 현재 위치 경로의 출처 '${key}'를 확인하지 못했습니다.`
+    });
+    return;
+  }
+
+  const source = dataSourceByKey.get(key);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `현재 위치 경로의 데이터 출처 '${key}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+  if (source.shape !== "object") {
+    findings.push({
+      level: "error",
+      file,
+      message: `현재 위치 경로의 출처 '${key}'는 shape가 '${source.shape}'입니다. 지금 있는 자리는 한 건이므로 object여야 합니다.`
+    });
+  }
+
+  const known = new Set((source.fields ?? []).map((field) => field.key));
+  for (const field of fields) {
+    if (!known.has(field)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `현재 위치 경로가 가리킨 조각 '${field}'가 데이터 출처 '${key}'에 없습니다.`
+      });
+    }
+  }
+
+  const declared = new Set(source.params ?? []);
+  for (const [name, argument] of Object.entries(
+    isObject(breadcrumb.params) ? breadcrumb.params : {}
+  )) {
+    if (!declared.has(name)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `현재 위치 경로가 넘긴 인자 '${name}'를 데이터 출처 '${key}'가 받지 않습니다.`
+      });
+    }
+    const screenParam = isObject(argument) ? argument.screenParam : undefined;
+    if (typeof screenParam === "string" && !screenParams.has(screenParam)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `현재 위치 경로가 화면 인자 '${screenParam}'를 가리키는데 화면의 params에 없습니다.`
+      });
+    }
+  }
+}
+
 function checkDraftFrom(findings, file, spec, { dataSources, dataSourceByKey, screenParams }) {
   const draftFrom = isObject(spec.draftFrom) ? spec.draftFrom : null;
   if (!draftFrom) {
@@ -998,13 +1129,18 @@ function checkListColumns(findings, context) {
 
   const known = new Set((source.fields ?? []).map((field) => field.key));
   const seen = new Map();
-  for (const column of columns) {
+  // 머리글이 그려지지 않는 목록은 label이 없다. 그때도 어느 열인지 말할 수 있어야
+  // 오류가 쓸모 있으므로 자리로 부른다.
+  const nameOf = (column, at) =>
+    typeof column?.label === "string" ? `'${column.label}'` : `${at + 1}번째`;
+
+  columns.forEach((column, at) => {
     for (const field of column?.fields ?? []) {
       if (!known.has(field)) {
         findings.push({
           level: "error",
           file,
-          message: `${elementLabel(element, index)}의 열 '${column.label}'이 가리킨 조각 '${field}'가 데이터 출처 '${spec.dataSourceKey}'에 없습니다.`
+          message: `${elementLabel(element, index)}의 ${nameOf(column, at)} 열이 가리킨 조각 '${field}'가 데이터 출처 '${spec.dataSourceKey}'에 없습니다.`
         });
         continue;
       }
@@ -1013,13 +1149,37 @@ function checkListColumns(findings, context) {
         findings.push({
           level: "error",
           file,
-          message: `${elementLabel(element, index)}의 조각 '${field}'가 열 '${owner}'와 '${column.label}' 둘에 옵니다. 한 조각은 한 열에만 올 수 있습니다.`
+          message: `${elementLabel(element, index)}의 조각 '${field}'가 ${owner} 열과 ${nameOf(column, at)} 열 둘에 옵니다. 한 조각은 한 열에만 올 수 있습니다.`
         });
         continue;
       }
-      seen.set(field, column.label);
+      seen.set(field, nameOf(column, at));
     }
-  }
+  });
+
+  // 색 이름은 그려지는 글이 아니다. 딱지의 글은 fields가, 그 색은 toneField가
+  // 가리킨다 — 둘을 한 열에 섞으면 색 이름이 사람에게 그대로 보인다.
+  columns.forEach((column, at) => {
+    const toneField = column?.toneField;
+    if (typeof toneField !== "string") {
+      return;
+    }
+    if (!known.has(toneField)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 ${nameOf(column, at)} 열이 가리킨 색 이름 조각 '${toneField}'가 데이터 출처 '${spec.dataSourceKey}'에 없습니다.`
+      });
+      return;
+    }
+    if (seen.has(toneField)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 조각 '${toneField}'가 색 이름이면서 ${seen.get(toneField)} 열에 그려집니다. 색 이름은 어느 열에도 오지 않습니다.`
+      });
+    }
+  });
 }
 
 // 쪽으로 나뉜 목록.
@@ -1536,14 +1696,22 @@ export function collectSpecFindings({
       }
     }
 
+    const declaredScreenParams = new Set(
+      (Array.isArray(spec.params) ? spec.params : [])
+        .map((param) => param?.key)
+        .filter((key) => typeof key === "string")
+    );
+
+    checkParamMissingNotes(findings, file, spec);
+    checkBreadcrumb(findings, file, spec, {
+      dataSources,
+      dataSourceByKey,
+      screenParams: declaredScreenParams
+    });
     checkDraftFrom(findings, file, spec, {
       dataSources,
       dataSourceByKey,
-      screenParams: new Set(
-        (Array.isArray(spec.params) ? spec.params : [])
-          .map((param) => param?.key)
-          .filter((key) => typeof key === "string")
-      )
+      screenParams: declaredScreenParams
     });
 
     const flattened = allElementsOf(spec);

@@ -6,6 +6,7 @@
       "key": "taskId",
       "valueType": "string",
       "example": "T-03",
+      "missingNote": "어떤 업무를 볼지 정하지 않고 열렸습니다. 업무 목록에서 업무를 고르면 이 화면이 열립니다.",
       "description": "어느 업무의 상세인지. 행사 업무 보드(EVT-TASK-01)에서 카드를 눌러 들어올 때 그 카드가 정한다."
     }
   ],

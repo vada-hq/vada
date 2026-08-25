@@ -186,9 +186,14 @@ export interface ItemListSpec {
   // 가리키거나(fieldKey) 명세가 정한 고정값이다(value) — 칸반의 열이 후자다.
   // 받아온 것을 화면에서 거르지 않고 값이 바뀌면 다시 조회한다.
   params?: QueryParams
-  // 표로 그려지는 목록의 열 머리. 카드로 그려지는 목록은 이것이 없다. 열 머리는
-  // 그려지는 글이라 명세가 갖는다 — 화면은 design.json을 실행 중에 읽지 않는다.
-  columns?: { label: string; fields: string[] }[]
+  // 항목 하나가 어떤 조각으로 나뉘어 그려지는지, 그려지는 순서대로. 조각을 통째로
+  // 카드에 쏟는 목록은 이것이 없다. 이름은 '열'이지만 표에만 쓰는 것이 아니다 —
+  // 머리글 없이 두 줄로 그려지는 목록도 어느 것이 주 문구인지를 말해야 하고,
+  // 그 말이 없으면 화면이 출처의 조각 이름을 뒤져 고르게 된다.
+  //
+  // 어떻게 그리는지는 여전히 명세의 것이 아니다. 표인지 시간 줄인지는 design이
+  // 말하고 대조기가 지킨다. toneField는 색이 아니라 색 이름이 든 조각을 가리킨다.
+  columns?: { label?: string; fields: string[]; toneField?: string }[]
   // 목록이 쪽으로 나뉜다는 선언. 한 쪽만큼만 받아 오므로 총 몇 건인지·몇 쪽인지는
   // 목록 자신이 말할 수 없어 그것을 아는 출처를 따로 가리킨다. source가 따로 있는
   // 것은 디자인이 표와 쪽 줄을 형제로 두기 때문이다 — 한 개념이 두 자리에 그려진다.
@@ -340,6 +345,11 @@ export interface ScreenParam {
   // 화면 하나만 열어 볼 때 쓰는 예시 값. 구현은 이 값으로 대신하지 않는다 —
   // 인자가 없으면 드러내야 한다. 쓰는 것은 검사뿐이다.
   example?: string
+  // 이 인자 없이 열렸을 때 사람에게 보여 줄 글. description을 대신 그리면 안 된다
+  // — 그것은 명세를 읽는 사람에게 하는 말이다. 이 자리가 없던 동안 화면마다
+  // 다른 문장을 지어냈고, 아무도 그것이 명세에 없는 카피인 줄 몰랐다.
+  missingNote?: string
+  // 무엇을 가리키는 값인지. 화면에 그려지지 않는다.
   description: string
 }
 
@@ -355,6 +365,15 @@ export interface ScreenSpec {
   draftFrom?: {
     dataSourceKey: string
     params?: QueryParams
+  }
+  // 제목 위의 현재 위치 경로. 셸의 메뉴는 어디로 갈 수 있는지이고 이것은 지금
+  // 어디에 있는지다. 조각의 글이 메뉴 이름과 겹치는 것은 감수한다 — 디자인이
+  // 그 글을 이미 그려 두었고, 등록 노드이므로 대조기가 지킨다.
+  breadcrumb?: {
+    source: string
+    dataSourceKey?: string
+    params?: QueryParams
+    items: Array<{ value?: string; field?: string }>
   }
   // 이 화면이 속한 작업 공간. 무엇을 그리는지는 shell.json이 알고, 화면은
   // 어디에 그리는지만 갖는다.

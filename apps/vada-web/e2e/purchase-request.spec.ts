@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { missingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const EDIT = '/#/FIN-REQ-01?eventId=E-01&requestId=PR-2026-0031'
@@ -37,7 +38,7 @@ test('FIN-REQ-01: 요청 id가 없어도 열린다 — 그것이 새로 쓰는 �
 test('FIN-REQ-01: 어느 행사인지가 없으면 열리지 않는다', async ({ page }) => {
   await page.goto('/#/FIN-REQ-01')
 
-  await expect(page.getByRole('alert')).toContainText('eventId')
+  await expect(page.getByRole('alert')).toContainText(missingNoteOf('FIN-REQ-01', 'eventId'))
   await expect(page.getByRole('textbox', { name: '요청 제목*' })).toHaveCount(0)
 })
 

@@ -5,8 +5,11 @@ import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 type FieldPresentation = 'title' | 'body' | 'muted' | 'status'
 
 interface DataColumn {
-  label: string
+  label?: string
   fields: string[]
+  // 딱지의 색 이름이 든 조각. 색이 아니라 어느 조각에 이름이 들었는가를
+  // 명세가 가리킨다 — 화면이 'statusTone'을 짐작하지 않는다.
+  toneField?: string
 }
 
 interface DataTableProps {
@@ -17,7 +20,6 @@ interface DataTableProps {
   headerAction?: ReactNode
   emptyMessage: string
   fieldPresentation?: Record<string, FieldPresentation>
-  statusToneFields?: Record<string, string>
   columnWidths?: string[]
 }
 
@@ -77,7 +79,6 @@ export function DataTable({
   headerAction,
   emptyMessage,
   fieldPresentation = {},
-  statusToneFields = {},
   columnWidths,
 }: DataTableProps) {
   return (
@@ -100,9 +101,9 @@ export function DataTable({
           )}
           <thead>
             <tr className="border-b border-gray-100 bg-gray-50">
-              {columns.map((column) => (
+              {columns.map((column, columnIndex) => (
                 <th
-                  key={column.label}
+                  key={column.label ?? columnIndex}
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-bold text-gray-500"
                 >
@@ -124,8 +125,8 @@ export function DataTable({
                   key={displayValue(row.id, 'id') || rowIndex}
                   className="border-b border-gray-50 last:border-b-0"
                 >
-                  {columns.map((column) => (
-                    <td key={column.label} className="px-6 py-3 text-xs align-middle">
+                  {columns.map((column, columnIndex) => (
+                    <td key={column.label ?? columnIndex} className="px-6 py-3 text-xs align-middle">
                       <span className="flex flex-col gap-1">
                         {column.fields.map((field) => (
                           <CellValue
@@ -133,7 +134,7 @@ export function DataTable({
                             row={row}
                             field={field}
                             presentation={fieldPresentation[field] ?? 'body'}
-                            toneField={statusToneFields[field]}
+                            toneField={column.toneField}
                           />
                         ))}
                       </span>
