@@ -39,6 +39,32 @@
         "submitting": "임시 저장하는 중입니다",
         "error": "임시 저장하지 못했습니다"
       }
+    },
+    {
+      "key": "finance.purchaseRequest.resubmitSupplement",
+      "description": "보완 요청에 답해 수정한 내용을 재정부에 다시 넘긴다",
+      "request": {
+        "method": "POST",
+        "path": "/api/ops/finance/purchase-requests/supplement/resubmit"
+      },
+      "payloadScope": "purchaseRequestSupplement",
+      "messages": {
+        "submitting": "재제출하는 중입니다",
+        "error": "재제출하지 못했습니다"
+      }
+    },
+    {
+      "key": "finance.purchaseRequest.saveSupplement",
+      "description": "보완 답변을 아직 넘기지 않고 적어 둔 채로 보관한다",
+      "request": {
+        "method": "POST",
+        "path": "/api/ops/finance/purchase-requests/supplement/drafts"
+      },
+      "payloadScope": "purchaseRequestSupplement",
+      "messages": {
+        "submitting": "임시 저장하는 중입니다",
+        "error": "임시 저장하지 못했습니다"
+      }
     }
   ]
 }

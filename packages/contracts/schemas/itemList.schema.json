@@ -104,6 +104,50 @@
         }
       }
     },
+    "itemFields": {
+      "type": "array",
+      "minItems": 1,
+      "description": "서버가 준 항목 하나가 담는 요소들(선택). screen.elements와 같은 모양이며(source + spec) 같은 규칙으로 검증한다. **첫 항목의 노드만 등록한다** — 되풀이되는 것은 자리가 아니라 틀이다.\\n\\ncolumns와 다르다. columns는 항목이 조각으로 나뉘어 한 줄로 늘어서는 경우이고, 이것은 항목 하나가 통째로 묶음을 이루는 경우다 — 보완 품목 하나는 제목·사유·기존 값·고칠 칸을 다 갖는다.\\n\\nlist.itemFields와 모양이 같지만 항목이 어디서 오는지가 다르다. list는 사람이 항목을 만들고, 여기서는 **서버가 준 것마다 되풀이된다** — 늘리거나 지울 수 없다.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "source",
+          "spec"
+        ],
+        "properties": {
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "nodeId",
+              "name",
+              "figmaType"
+            ],
+            "description": "디자인이 그린 항목 **첫째**의 노드다. 둘째부터는 같은 틀을 다른 값으로 그린 것이라 등록하지 않는다.",
+            "properties": {
+              "nodeId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string"
+              },
+              "figmaType": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "spec": {
+            "type": "object",
+            "required": [
+              "type"
+            ]
+          }
+        }
+      }
+    },
     "group": {
       "type": "object",
       "additionalProperties": false,

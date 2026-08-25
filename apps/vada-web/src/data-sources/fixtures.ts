@@ -1060,6 +1060,54 @@ const MY_PURCHASE_REQUEST_SUMMARY: Record<string, DataRow> = {
   },
 }
 
+
+// 보완 요청. 재정부가 이름표 용지 하나에 보완을 걸었다(FIN-REQ-02의 표에서 그
+// 품목만 '보완 필요'다 — 두 개발용 응답이 같은 것을 말한다).
+const SUPPLEMENT_REQUESTS: Record<string, DataRow> = {
+  'PR-2026-0031': {
+    reviewerNote: '요청 담당자 김바다',
+    requestedAtNote: '보완 요청일 2026-03-03',
+    dueNote: '재제출 권장 기한 2026-03-07',
+  },
+}
+
+const SUPPLEMENT_ITEMS: Record<string, DataRow[]> = {
+  'PR-2026-0031': [
+    {
+      id: 'PRI-03',
+      title: '보완 품목 — 이름표 용지',
+      categoryNote: '제작·인쇄 · 홍보비',
+      reason:
+        '규격과 인쇄 사양이 누락되었습니다. 정확한 사이즈, 색상, 인쇄 위치를 명시하고 업체 견적서를 첨부해 주세요. 200장 기준 최소 2개 이상 업체 견적서 필요합니다.',
+      name: '이름표 용지',
+      quantityNote: '200장',
+      unitPriceNote: '300원',
+      amountNote: '60,000원',
+      budgetItem: '행사 운영비',
+    },
+  ],
+}
+
+// 무엇을 다시 묻는지는 그 품목의 구매 유형이 정한다. 제작·인쇄라서 이 넷이고,
+// 온라인 구매였다면 판매처와 상품 URL을 물었을 것이다 — 그래서 명세가 아니라
+// 여기(서버 대역)에 있다.
+const SUPPLEMENT_INPUT_FIELDS: Record<string, DataRow[]> = {
+  'PRI-03': [
+    { key: 'size', label: '사이즈·규격', placeholder: '예: A4 (210×297mm)' },
+    { key: 'color', label: '색상', placeholder: '예: 단색(검정)' },
+    { key: 'printArea', label: '인쇄 위치', placeholder: '예: 전면 단면 인쇄' },
+    { key: 'optionQuantity', label: '옵션별 수량', placeholder: '예: 기본형 200매' },
+  ],
+}
+
+const SUPPLEMENT_ATTACHMENTS: Record<string, DataRow[]> = {
+  'PRI-03': [
+    { key: 'designFile', label: '디자인 파일', placeholder: '클릭하여 파일 추가' },
+    { key: 'printFile', label: '인쇄 파일', placeholder: '클릭하여 파일 추가' },
+    { key: 'quote', label: '견적서', placeholder: '클릭하여 파일 추가' },
+  ],
+}
+
 const TASK_DETAILS: Record<string, DataRow> = {
   'T-03': {
     code: 'T-03',
@@ -1577,6 +1625,13 @@ export const FILTERED_FIXTURES: Record<
     PURCHASE_REQUEST_DETAILS[requestId] ? [PURCHASE_REQUEST_DETAILS[requestId]] : [],
   'finance.purchaseRequestItems': ({ requestId = '' }) =>
     PURCHASE_REQUEST_RESULTS[requestId] ?? [],
+  'finance.supplementRequest': ({ requestId = '' }) => {
+    const row = SUPPLEMENT_REQUESTS[requestId]
+    return row === undefined ? [] : [row]
+  },
+  'finance.supplementItems': ({ requestId = '' }) => SUPPLEMENT_ITEMS[requestId] ?? [],
+  'finance.supplementInputFields': ({ itemId = '' }) => SUPPLEMENT_INPUT_FIELDS[itemId] ?? [],
+  'finance.supplementAttachments': ({ itemId = '' }) => SUPPLEMENT_ATTACHMENTS[itemId] ?? [],
   'event.myPurchaseRequests': ({ eventId = '' }) => MY_PURCHASE_REQUESTS[eventId] ?? [],
   'event.myPurchaseRequestSummary': ({ eventId = '' }) => {
     const row = MY_PURCHASE_REQUEST_SUMMARY[eventId]

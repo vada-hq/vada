@@ -322,7 +322,8 @@
                   "list",
                   "summary",
                   "itemList",
-                  "steps"
+                  "steps",
+                  "fieldSet"
                 ]
               }
             }

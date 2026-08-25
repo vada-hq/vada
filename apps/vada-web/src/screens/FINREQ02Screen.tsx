@@ -154,11 +154,19 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
     throw new Error('처리 기록에 그려지는 조각이 명세에 없습니다.')
   }
 
-  function showPendingNote() {
-    if (pendingButton.action.type !== 'pending') {
-      throw new Error('보완 내용 확인은 아직 정해지지 않은 동작이어야 합니다.')
+  // 한때 이 버튼은 갈 곳이 없었다. 지금은 있고, 없던 자리를 남겨 둔다 — 아직
+  // 명세되지 않은 화면을 가리키는 버튼이 이 화면에 또 생길 수 있다.
+  function pressSupplement() {
+    if (pendingButton.action.type === 'pending') {
+      setNotice(pendingButton.action.note)
+      return
     }
-    setNotice(pendingButton.action.note)
+    if (pendingButton.action.type === 'navigate') {
+      onNavigate(
+        pendingButton.action.targetScreenId,
+        resolveParams(pendingButton.action.params, { screenParams }),
+      )
+    }
   }
 
   return (
@@ -225,7 +233,7 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
               nodeId={nodeIdOf(finReq02, pendingButton)}
               label={pendingButton.label}
               disabled={pendingButton.initiallyDisabled}
-              onClick={showPendingNote}
+              onClick={pressSupplement}
             />
           }
         />

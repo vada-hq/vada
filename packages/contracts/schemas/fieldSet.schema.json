@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fieldSet.schema.json",
+  "title": "Field set element",
+  "description": "칸 목록이 데이터에서 오는 편집 묶음.\\n\\n지금까지 화면의 칸은 전부 명세에 하나씩 적혀 있었다. 무엇을 묻는지가 화면의 성질이었기 때문이다. 그런데 **무엇을 묻는지가 조직의 규칙인 자리**가 있다: 보완 요청에서 다시 받아야 할 것은 그 품목의 구매 유형이 정하고, 제작·인쇄는 사이즈·색상·인쇄 위치를 묻지만 온라인 구매는 판매처와 상품 URL을 묻는다(사람이 확인했다).\\n\\n**칸 목록을 명세가 들고 있으면 유형이 하나 늘 때마다 명세가 틀린다.** 그래서 명세는 여기에 묶음이 있다는 것과 그 모양을 어디서 읽는지만 말한다 — steps가 단계는 알되 지금 어디인지는 모르는 것의 반대다.\\n\\n출처의 조각 이름은 화면마다 고르지 않고 계약으로 고정한다(key·label·placeholder). 화면마다 다른 이름을 쓰게 하면 그 이름 짝짓기가 다시 명세의 일이 되고, 그러면 칸을 데이터로 옮긴 뜻이 없다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "type",
+    "fieldKey",
+    "kind",
+    "dataSourceKey"
+  ],
+  "properties": {
+    "type": {
+      "const": "fieldSet"
+    },
+    "fieldKey": {
+      "type": "string",
+      "pattern": "^[a-z][A-Za-z0-9]*$",
+      "description": "이 묶음이 모은 값들이 담기는 이름. 칸 하나하나의 이름은 데이터가 주므로, 화면이 갖는 것은 묶음의 이름뿐이다. 값은 '묶음이름.칸이름' 꼴로 초안에 담긴다."
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "description": "묶음 위에 그려지는 글(선택). 예: 수정 내용 입력"
+    },
+    "kind": {
+      "enum": [
+        "text",
+        "file"
+      ],
+      "description": "칸을 어떤 조작으로 받는가. text는 한 줄 입력이고 file은 파일 고르기다.\\n\\n이것은 데이터가 아니라 명세의 것이다 — 무엇을 묻는지는 조직이 정하지만, 그것을 글로 받을지 파일로 받을지는 디자인이 이미 정해 두었다(파일 첨부는 따로 그려진 묶음이다)."
+    },
+    "dataSourceKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "칸 목록을 아는 출처의 key. shape가 list여야 하고, fields에 key·label·placeholder를 모두 갖춰야 한다 — 이 셋이 칸 하나를 이룬다."
+    },
+    "params": {
+      "$ref": "element-params.schema.json#/$defs/argument",
+      "description": "칸 목록을 조회할 때 넘기는 인자(선택). 되풀이되는 묶음 안에서는 그 항목의 조각을 가리킨다(itemField)."
+    },
+    "required": {
+      "type": "boolean",
+      "description": "이 묶음의 칸을 모두 채워야 하는가(기본 false). 칸마다 따로 정하지 않는 이유는 명세가 칸을 모르기 때문이다 — 칸별 필수 여부까지 데이터가 정해야 한다면 그때 출처에 조각을 하나 더 만든다."
+    }
+  }
+}

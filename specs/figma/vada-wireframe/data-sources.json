@@ -2147,6 +2147,154 @@
           "description": "상태 딱지에 배정된 색 이름. 상태가 조직 규칙에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
         }
       ]
+    },
+    {
+      "key": "finance.supplementRequest",
+      "shape": "object",
+      "description": "이 요청에 걸린 보완 요청의 머리. 누가 언제 걸었고 언제까지 다시 내야 하는지가 각각 완성된 문구로 온다 — 무엇을 무엇이라 부를지는 조직의 표기다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/supplement"
+      },
+      "messages": {
+        "loading": "보완 요청을(를) 불러오는 중입니다",
+        "empty": "보완 요청이 없습니다",
+        "error": "보완 요청을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "reviewerNote",
+          "description": "누가 걸었는지. 예: 요청 담당자 김바다"
+        },
+        {
+          "key": "requestedAtNote",
+          "description": "언제 걸렸는지. 예: 보완 요청일 2026-03-03"
+        },
+        {
+          "key": "dueNote",
+          "description": "언제까지 다시 내야 하는지. 예: 재제출 권장 기한 2026-03-07"
+        }
+      ]
+    },
+    {
+      "key": "finance.supplementItems",
+      "shape": "list",
+      "description": "보완이 걸린 품목들. 한 요청에서 여럿일 수 있다 — 재정부가 품목마다 따로 보완을 건다(사람이 확인했다). 늘리거나 지울 수 없다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/supplement/items"
+      },
+      "messages": {
+        "loading": "보완 품목을(를) 불러오는 중입니다",
+        "empty": "보완이 필요한 품목이 없습니다",
+        "error": "보완 품목을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "이 보완 품목을 가리키는 값. 그려지지 않지만 이 품목이 채워야 할 칸을 물을 때 넘어간다. 예: PRI-03"
+        },
+        {
+          "key": "title",
+          "description": "무엇의 보완인지가 머리글로 온다. 예: 보완 품목 — 이름표 용지"
+        },
+        {
+          "key": "categoryNote",
+          "description": "분류와 예산 항목이 한 줄로 온다. 예: 제작·인쇄 · 홍보비"
+        },
+        {
+          "key": "reason",
+          "description": "왜 보완이 필요한지. 재정부가 쓴 글이다."
+        },
+        {
+          "key": "name",
+          "description": "기존에 적었던 품목명. 예: 이름표 용지"
+        },
+        {
+          "key": "quantityNote",
+          "description": "기존 수량. 세는 말까지 붙어서 온다. 예: 200장"
+        },
+        {
+          "key": "unitPriceNote",
+          "description": "기존 단가. 예: 300원"
+        },
+        {
+          "key": "amountNote",
+          "description": "기존 합계. 예: 60,000원"
+        },
+        {
+          "key": "budgetItem",
+          "description": "기존 예산 항목. 예: 행사 운영비"
+        }
+      ]
+    },
+    {
+      "key": "finance.supplementInputFields",
+      "shape": "list",
+      "description": "이 보완 품목에서 다시 받아야 할 칸들. **무엇을 묻는지는 그 품목의 구매 유형이 정한다**(사람이 확인했다) — 제작·인쇄는 사이즈·색상·인쇄 위치를 묻고 온라인 구매는 판매처와 상품 URL을 묻는다. 칸 목록을 명세가 들고 있으면 유형이 하나 늘 때마다 명세가 틀린다.",
+      "params": [
+        "itemId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/supplement/fields"
+      },
+      "messages": {
+        "loading": "입력 칸을(를) 불러오는 중입니다",
+        "empty": "다시 받을 칸이 없습니다",
+        "error": "입력 칸을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "key",
+          "description": "칸의 이름. 화면에 그려지지 않고 값을 담는 자리가 된다. 예: size"
+        },
+        {
+          "key": "label",
+          "description": "칸 위에 그려지는 글. 예: 사이즈·규격"
+        },
+        {
+          "key": "placeholder",
+          "description": "빈 칸에 흐리게 보이는 예시. 예: 예: A4 (210×297mm)"
+        }
+      ]
+    },
+    {
+      "key": "finance.supplementAttachments",
+      "shape": "list",
+      "description": "이 보완 품목에서 받아야 할 파일들. 입력 칸과 같은 이유로 데이터가 정한다 — 견적서를 몇 장 받는지는 조직의 재정 규칙이다.",
+      "params": [
+        "itemId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/supplement/attachments"
+      },
+      "messages": {
+        "loading": "첨부 자리를(을) 불러오는 중입니다",
+        "empty": "받을 파일이 없습니다",
+        "error": "첨부 자리를(을) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "key",
+          "description": "첨부 자리의 이름. 그려지지 않는다. 예: designFile"
+        },
+        {
+          "key": "label",
+          "description": "무엇을 넣는 자리인지. 예: 디자인 파일"
+        },
+        {
+          "key": "placeholder",
+          "description": "아직 아무것도 넣지 않았을 때 그려지는 글. 예: 클릭하여 파일 추가"
+        }
+      ]
     }
   ]
 }

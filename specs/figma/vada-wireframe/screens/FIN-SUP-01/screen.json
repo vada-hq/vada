@@ -1,0 +1,256 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-SUP-01",
+  "stateScopeKey": "purchaseRequestSupplement",
+  "params": [
+    {
+      "key": "requestId",
+      "example": "PR-2026-0031",
+      "missingNote": "어떤 요청의 보완인지 정하지 않고 열렸습니다. 요청 상세에서 '보완 내용 확인'을 누르면 이 화면이 열립니다.",
+      "description": "어느 구매 요청의 보완인지. 앞 화면(FIN-REQ-02)이 정한다. 어느 품목인지는 받지 않는다 — 보완이 걸린 품목이 여럿일 수 있고, 그것을 아는 것은 서버다."
+    }
+  ],
+  "breadcrumb": {
+    "source": "30:1140",
+    "dataSourceKey": "finance.purchaseRequestDetail",
+    "params": {
+      "requestId": {
+        "screenParam": "requestId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "행사"
+      },
+      {
+        "field": "eventName"
+      },
+      {
+        "value": "재정"
+      },
+      {
+        "value": "내 구매 요청"
+      },
+      {
+        "field": "code"
+      },
+      {
+        "value": "보완 재제출"
+      }
+    ]
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "보완 요청 확인·재제출",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:1066",
+    "name": "운영 — 행사 · 재정 · FIN-SUP-01 · 보완 요청 확인·재제출",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:1178",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "보완 요청",
+        "description": "재정부에서 아래 품목에 대한 보완을 요청했습니다. 내용을 확인하고 수정 후 재제출하세요.",
+        "dataSourceKey": "finance.supplementRequest",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "items": [
+          {
+            "field": "reviewerNote"
+          },
+          {
+            "field": "requestedAtNote"
+          },
+          {
+            "field": "dueNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1197",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "finance.supplementItems",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:1198",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "titleField": "title",
+              "descriptionField": "categoryNote"
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1204",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "title": "보완 사유",
+              "items": [
+                {
+                  "field": "reason"
+                }
+              ]
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1209",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "title": "기존 입력 내용",
+              "items": [
+                {
+                  "label": "품목명",
+                  "field": "name"
+                },
+                {
+                  "label": "수량",
+                  "field": "quantityNote"
+                },
+                {
+                  "label": "단가(추정)",
+                  "field": "unitPriceNote"
+                },
+                {
+                  "label": "합계(추정)",
+                  "field": "amountNote"
+                },
+                {
+                  "label": "예산 항목",
+                  "field": "budgetItem"
+                }
+              ]
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1239",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "fieldSet",
+              "fieldKey": "corrections",
+              "label": "수정 내용 입력",
+              "kind": "text",
+              "dataSourceKey": "finance.supplementInputFields",
+              "params": {
+                "itemId": {
+                  "itemField": "id"
+                }
+              },
+              "required": true
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1264",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "fieldSet",
+              "fieldKey": "attachments",
+              "label": "파일 첨부",
+              "kind": "file",
+              "dataSourceKey": "finance.supplementAttachments",
+              "params": {
+                "itemId": {
+                  "itemField": "id"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1291",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "임시 저장",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "finance.purchaseRequest.saveSupplement",
+          "onSuccess": {
+            "navigate": "FIN-REQ-02",
+            "scopeEvent": "cancel"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1293",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "수정 내용 재제출",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "finance.purchaseRequest.resubmitSupplement",
+          "onSuccess": {
+            "navigate": "FIN-REQ-02",
+            "scopeEvent": "complete"
+          },
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}

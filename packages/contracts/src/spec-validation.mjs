@@ -856,7 +856,7 @@ function checkSummaryCompute(findings, context) {
 //
 // 단계는 명세가 알고 지금 어디인지는 데이터가 안다. 그 둘이 **같은 말을 쓰는지**를
 // 여기서 본다 — 어긋나면 줄은 그려지고 어느 단계도 켜지지 않는다. 조용한 어긋남이다.
-function checkSteps(findings, context) {
+// 칸 목록이 데이터에서 오는 묶음.//// 명세가 칸을 모르므로 검사할 것은 하나뿐이다: **그 출처가 칸을 말하는 출처인가.**// key·label·placeholder 셋이 칸 하나를 이루고, 하나라도 없으면 화면이 무엇을 그려야// 할지 알 수 없다. 이름을 화면마다 고르게 하지 않는 이유가 이것이다 — 짝짓기가 다시// 명세의 일이 되면 칸을 데이터로 옮긴 뜻이 없다.function checkFieldSet(findings, context) {  const { file, element, index, dataSources, dataSourceByKey } = context;  const spec = element.spec;  if (!isObject(dataSources)) {    return;  }  const source = dataSourceByKey.get(spec.dataSourceKey);  if (!source) {    return;  }  const known = new Set((source.fields ?? []).map((field) => field.key));  for (const required of ["key", "label", "placeholder"]) {    if (!known.has(required)) {      findings.push({        level: "error",        file,        message: `${elementLabel(element, index)}의 칸 목록 출처 '${spec.dataSourceKey}'에 '${required}' 조각이 없습니다. 칸 하나는 key·label·placeholder로 이루어집니다.`      });    }  }}function checkSteps(findings, context) {
   const { file, element, index, dataSources, dataSourceByKey } = context;
   const spec = element.spec;
 
@@ -976,6 +976,12 @@ function checkDataSource(findings, context) {
   const key = spec.dataSourceKey;
 
   if (typeof key !== "string") {
+    // 되풀이되는 묶음 안에서는 출처를 다시 적지 않는다. 항목 하나가 곧 그 값이고,
+    // 목록이 이미 어디서 오는지 말했다 — 안쪽마다 같은 출처를 되풀이해 적게 하면
+    // 둘이 갈릴 자리가 생긴다.
+    if (isObject(context.inList) && context.inList.type === "itemList") {
+      return;
+    }
     // 출처가 없으면 값은 명세에 담긴 예시다. field를 가리킬 수는 없다.
     const withField = (spec.items ?? []).filter((item) => item?.field !== undefined);
     if (
@@ -1011,7 +1017,7 @@ function checkDataSource(findings, context) {
     return;
   }
 
-  const expectedShape = spec.type === "itemList" ? "list" : "object";
+  const expectedShape = spec.type === "itemList" || spec.type === "fieldSet" ? "list" : "object";
   if (source.shape !== expectedShape) {
     findings.push({
       level: "error",
@@ -1100,7 +1106,10 @@ function checkArgumentValues(findings, context, params, { declared, where }) {
     }
     // 목록을 조회하는 시점에는 아직 항목이 없다. 자기가 받아 올 행을 가리켜
     // 조회할 수는 없으므로 itemField는 여기서 뜻이 없다.
-    if (isObject(argument) && typeof argument.itemField === "string") {
+    //
+    // **되풀이되는 묶음 안은 다르다.** 그 요소는 항목마다 한 번씩 그려지므로 그릴
+    // 때 이미 항목이 정해져 있다 — 보완 품목마다 채울 칸이 다른 것이 그 자리다.
+    if (isObject(argument) && typeof argument.itemField === "string" && !isObject(context.inList)) {
       findings.push({
         level: "error",
         file,
@@ -1823,7 +1832,15 @@ export function collectSpecFindings({
       if (spec_.type === "steps") {
         checkSteps(findings, context);
       }
-      if (spec_.type === "summary" || spec_.type === "itemList" || spec_.type === "steps") {
+      if (spec_.type === "fieldSet") {
+        checkFieldSet(findings, context);
+      }
+      if (
+        spec_.type === "summary" ||
+        spec_.type === "itemList" ||
+        spec_.type === "steps" ||
+        spec_.type === "fieldSet"
+      ) {
         checkDataSource(findings, context);
         // 조회 인자는 목록만의 것이 아니다 — 상세 화면의 요약도 한 건을 집어 온다.
         checkQueryParams(findings, context);

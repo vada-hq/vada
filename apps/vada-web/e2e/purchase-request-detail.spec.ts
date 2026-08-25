@@ -43,15 +43,6 @@ test('FIN-REQ-02: 품목 처리 결과와 기록을 서버 순서대로 보여�
   await expect(history.getByText('보완 요청 발송', { exact: true })).toBeVisible()
 })
 
-test('FIN-REQ-02: 보완 확인의 다음 화면이 아직 없음을 드러낸다', async ({ page }) => {
-  await page.goto(DETAIL)
-
-  await page.getByRole('button', { name: '보완 내용 확인' }).click()
-  await expect(page.getByRole('alert')).toContainText(
-    '보완 요청을 확인하고 다시 제출하는 화면이 아직 명세되지 않았습니다.',
-  )
-})
-
 test('FIN-REQ-02: 요청 id가 없으면 아무 요청이나 대신 보여주지 않는다', async ({ page }) => {
   await page.goto('/#/FIN-REQ-02')
 

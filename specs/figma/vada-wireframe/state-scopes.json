@@ -27,6 +27,15 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "purchaseRequestSupplement",
+      "description": "보완 답변 초안. 재제출과 임시 저장이 같은 이 초안을 보낸다. 칸의 이름은 명세가 모르고 데이터가 준다 — 값은 '묶음이름.칸이름' 꼴로 담긴다.",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

@@ -194,6 +194,10 @@ export interface ItemListSpec {
   // 어떻게 그리는지는 여전히 명세의 것이 아니다. 표인지 시간 줄인지는 design이
   // 말하고 대조기가 지킨다. toneField는 색이 아니라 색 이름이 든 조각을 가리킨다.
   columns?: { label?: string; fields: string[]; toneField?: string }[]
+  // 서버가 준 항목 하나가 담는 요소들. columns가 항목을 조각으로 나눠 한 줄로
+  // 늘어놓는 것이라면, 이것은 항목 하나가 통째로 묶음을 이루는 경우다.
+  // 안쪽 요소가 dataSourceKey 없이 field를 가리키면 그 항목의 조각이다.
+  itemFields?: ScreenElement[]
   // 목록이 쪽으로 나뉜다는 선언. 한 쪽만큼만 받아 오므로 총 몇 건인지·몇 쪽인지는
   // 목록 자신이 말할 수 없어 그것을 아는 출처를 따로 가리킨다. source가 따로 있는
   // 것은 디자인이 표와 쪽 줄을 형제로 두기 때문이다 — 한 개념이 두 자리에 그려진다.
@@ -214,6 +218,22 @@ export interface ItemListSpec {
 
 // 정해진 절차 중 한 건이 지금 어디에 있는지를 보여주는 단계 줄.
 // 순서는 명세가, 현재 단계는 데이터가 정한다.
+// 칸 목록이 데이터에서 오는 편집 묶음.
+//
+// 무엇을 묻는지가 조직의 규칙인 자리가 있다 — 보완 요청에서 다시 받아야 할 것은
+// 그 품목의 구매 유형이 정한다. 칸 목록을 명세가 들고 있으면 유형이 하나 늘 때마다
+// 명세가 틀린다. 출처의 조각 이름은 계약으로 고정한다(key·label·placeholder).
+export interface FieldSetSpec {
+  type: 'fieldSet'
+  fieldKey: string
+  label?: string
+  // 글로 받을지 파일로 받을지는 디자인이 이미 정해 두었다.
+  kind: 'text' | 'file'
+  dataSourceKey: string
+  params?: QueryParams
+  required?: boolean
+}
+
 export interface StepsSpec {
   type: 'steps'
   dataSourceKey: string
@@ -284,6 +304,7 @@ export type ElementSpec =
   | SummarySpec
   | ItemListSpec
   | StepsSpec
+  | FieldSetSpec
 
 export type FieldSpec = InputSpec | SelectSpec
 
