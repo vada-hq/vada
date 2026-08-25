@@ -116,15 +116,16 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
     worse.push(`${screenId} ${hit}/${spec.elements.length}(헛것 ${rows.length - spec.elements.length})`);
   }
 
-  // 2026-08-25 기준: 등록 100개 중 맞춤 51, 헛것 17.
-  // 그날 안에서 48/59 → 49/26(갈피 줄·눌리는 카드 목록) → 51/17(하나 고르기).
+  // 2026-08-25 기준: 등록 100개 중 맞춤 52, 헛것 14.
+  // 그날 안에서 48/59 → 49/26(갈피 줄·눌리는 카드 목록) → 51/17(바탕으로 고르기)
+  // → 52/14(글자 색으로 고르기).
   assert.ok(
-    matched >= 51,
-    `등록 ${registered}개 중 ${matched}개만 재현했습니다(51 이상이어야 함): ${worse.join(", ")}`
+    matched >= 52,
+    `등록 ${registered}개 중 ${matched}개만 재현했습니다(52 이상이어야 함): ${worse.join(", ")}`
   );
   assert.ok(
-    spurious <= 17,
-    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(17 이하여야 함): ${worse.join(", ")}`
+    spurious <= 14,
+    `등록되지 않은 요소를 ${spurious}개 뽑았습니다(14 이하여야 함): ${worse.join(", ")}`
   );
 });
 
@@ -457,5 +458,18 @@ test("셋 이상이고 하나만 배경이 다르면 하나 고르기로 읽는�
   assert.equal(
     overview.elements.find((element) => element.source.nodeId === "20:4818"),
     undefined
+  );
+
+  // 표시하는 자리가 바탕만은 아니다. 갈피형은 바탕을 그대로 두고 글자 색만 바꾼다.
+  const my01 = await draftOf("MY-01");
+  const tabs = my01.elements.find((element) => element.source.nodeId === "16:422");
+  assert.equal(tabs?.spec.type, "select");
+  assert.equal(tabs?.spec.initialValue, "해야 할 업무");
+  assert.equal(
+    my01.elements.filter((element) =>
+      ["16:423", "16:428", "16:433"].includes(element.source.nodeId)
+    ).length,
+    0,
+    "갈피 하나하나가 버튼으로 남았습니다"
   );
 });

@@ -456,23 +456,44 @@ function isBareList(node) {
 // (EVT-TASK-01의 `전체 업무`/`내 업무`, ORG-02의 조직 구성 방식)도 위의 이유로
 // 걸리지 않는다 — 여전히 질문으로 간다.
 function findChosenButton(buttons) {
-  const backgrounds = buttons.map(backgroundOf);
-  const chosen = backgrounds.filter(
-    (background, at) =>
-      backgrounds.every((other, otherAt) => otherAt === at || other !== background)
+  // 표시하는 자리가 둘이다. 딱지형은 골라진 것의 **바탕**을 채우고(EVT-DOC-01의
+  // 문서 상태 필터), 갈피형은 바탕을 그대로 두고 **글자 색**만 바꾼다(MY-01의
+  // 업무 탭). 재 보니 이 wireframe에서 둘 중 하나로 걸리는 묶음은 전부 실제로
+  // choiceGroup이다 — 어느 쪽이 쓰였는지는 화면이 정하므로 둘 다 본다.
+  //
+  // 두 자리를 한 지문으로 합치지 않는다. 합치면 '바탕도 글자도 각각은 안 맞는데
+  // 합치니 맞는' 자리가 걸리고, 그것은 고른 표시가 아니다.
+  const at =
+    onlyDifferent(buttons.map(backgroundOf)) ?? onlyDifferent(buttons.map(inkOf));
+  return at === null ? null : buttons[at];
+}
+
+// 나머지와 다른 것이 **정확히 하나**인 자리. 없으면 null.
+//
+// 나머지가 서로 같아야 한다는 것이 뒷조건이다 — 저마다 다른 색이면 고른 것이
+// 아니라 값마다 색이 붙은 것이다(EVT-02의 강조 카드 셋은 red·yellow·blue다).
+function onlyDifferent(marks) {
+  const odd = marks.filter((mark, at) =>
+    marks.every((other, otherAt) => otherAt === at || other !== mark)
   );
-  if (chosen.length !== 1) {
+  if (odd.length !== 1) {
     return null;
   }
-  // 나머지가 서로 같아야 한다. 저마다 다른 색이면 고른 것이 아니라 값마다 색이
-  // 붙은 것이다(EVT-02의 강조 카드 셋은 red·yellow·blue다).
-  const rest = backgrounds.filter((background) => background !== chosen[0]);
-  return rest.every((background) => background === rest[0])
-    ? buttons[backgrounds.indexOf(chosen[0])]
-    : null;
+  const rest = marks.filter((mark) => mark !== odd[0]);
+  return rest.every((mark) => mark === rest[0]) ? marks.indexOf(odd[0]) : null;
 }
 
 function backgroundOf(node) {
+  return colorOf(node);
+}
+
+// 그 버튼에 처음 나오는 글의 색. 글자가 곧 라벨이라 첫 글이 그 버튼의 색이다.
+function inkOf(node) {
+  const text = findDescendant(node, (inner) => textOf(inner) !== "" && inner.text);
+  return text ? colorOf(text) : "";
+}
+
+function colorOf(node) {
   return (node?.appearance?.fills ?? [])
     .filter((fill) => fill.type === "solid")
     .map((fill) => fill.color)
