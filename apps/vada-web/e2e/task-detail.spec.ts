@@ -24,6 +24,15 @@ test('EVT-TASK-02: 인자가 없으면 아무 업무나 보여주지 않고 드�
   await expect(page.getByRole('heading', { name: '현수막 디자인 수정 반영' })).toBeHidden()
 })
 
+test('EVT-TASK-02: 없는 업무 id는 조용히 다른 업무로 대신하지 않는다', async ({ page }) => {
+  await page.goto('/#/EVT-TASK-02?taskId=T-없는것')
+
+  // 인자가 아예 없는 것과 인자가 가리키는 것이 없는 것은 다르다. 앞은 화면이
+  // 열리지 않은 것이고, 뒤는 열렸는데 그런 업무가 없는 것이다.
+  await expect(page.getByRole('alert')).toContainText('업무를 찾지 못했습니다')
+  await expect(page.getByRole('heading', { name: '현수막 디자인 수정 반영' })).toBeHidden()
+})
+
 test('EVT-TASK-02: 갈피를 바꾸면 아직 명세되지 않았음을 알린다', async ({ page }) => {
   await page.goto(TASK)
 

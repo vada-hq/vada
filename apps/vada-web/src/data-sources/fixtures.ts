@@ -1046,6 +1046,51 @@ const TASK_DETAILS: Record<string, DataRow> = {
   },
 }
 
+// 손으로 쓴 상세가 없는 업무는 보드 카드에서 만든다.
+//
+// 보드에는 카드가 일곱인데 상세는 하나뿐이었다. 여섯 장을 누르면 '업무를 찾지
+// 못했습니다'가 뜬다 — 화면은 옳게 동작하지만 **개발용 응답 두 벌이 같은 업무에
+// 서로 다른 것을 말하고 있었다.** 재정 보드의 카드가 'PR-01'을 넘기는데 요청
+// 상세는 'PR-2026-0031'만 알던 것과 같은 계급이다.
+//
+// 여섯을 손으로 지어내는 대신 보드에서 만드는 이유: 같은 업무이므로 한쪽이
+// 다른 쪽의 근거가 되는 것이 맞고, 손으로 두 벌을 쓰면 또 어긋난다. 카드가
+// 모르는 것(설명·완료 기준)은 지어내지 않고 '아직 등록되지 않았습니다'로 둔다 —
+// 실제로 아직 아무도 적지 않은 값이다.
+const TASK_STATUS_LABEL: Record<string, { label: string; tone: string }> = {
+  planned: { label: '예정', tone: 'gray' },
+  inProgress: { label: '진행 중', tone: 'blue' },
+  review: { label: '검토 중', tone: 'violet' },
+  done: { label: '완료', tone: 'green' },
+}
+
+function taskDetailOf(taskId: string): DataRow | undefined {
+  const written = TASK_DETAILS[taskId]
+  if (written !== undefined) {
+    return written
+  }
+  const card = EVENT_TASK_BOARD.find((entry) => entry.row.id === taskId)
+  if (card === undefined) {
+    return undefined
+  }
+  const status = TASK_STATUS_LABEL[card.status] ?? { label: card.status, tone: 'gray' }
+  return {
+    code: String(card.row.id),
+    title: String(card.row.title),
+    status: status.label,
+    statusTone: status.tone,
+    priority: card.row.alert === undefined ? '보통' : '높음',
+    priorityTone: card.row.alert === undefined ? 'gray' : 'red',
+    assignee: String(card.row.assignee),
+    department: String(card.row.department),
+    dueDate: String(card.row.dueDate),
+    description: '설명이 아직 등록되지 않았습니다.',
+    completionCriteria: '완료 기준이 아직 등록되지 않았습니다.',
+    expectedOutput: '아직 정해지지 않았습니다.',
+    linkedItems: [],
+  }
+}
+
 const TASK_REFERENCE_DOCUMENTS: Record<string, DataRow[]> = {
   'T-03': [
     {
@@ -1093,6 +1138,18 @@ const TASK_REVIEW_STATUS: Record<string, DataRow> = {
     reviewComment: '메인 색상이 가이드라인과 다름. 교정 후 재제출 바랍니다.',
     nextStepNote: '수정 후 재제출이 필요합니다.',
   },
+}
+
+// 검토 상태가 따로 적히지 않은 업무는 아직 아무것도 제출하지 않은 것이다.
+// 없는 것과 아직 안 한 것은 다르다 — 상세를 열 수 있는 업무라면 검토 자리도
+// 있어야 하고, 거기 그려질 말은 '미제출'이지 '찾지 못했습니다'가 아니다.
+const TASK_REVIEW_NOT_SUBMITTED: DataRow = {
+  submission: '미제출',
+  submissionTone: 'gray',
+  officialResult: '미확정',
+  officialResultTone: 'gray',
+  reviewComment: '검토 의견이 아직 없습니다.',
+  nextStepNote: '결과물을 제출하면 검토가 시작됩니다.',
 }
 
 const VIEWER_NAME = '박해랑'
@@ -1467,11 +1524,16 @@ export const FILTERED_FIXTURES: Record<
     )
       .filter((task) => scope !== 'mine' || task.row.assignee === VIEWER_NAME)
       .map((task) => task.row),
-  'task.detail': ({ taskId = '' }) => (TASK_DETAILS[taskId] ? [TASK_DETAILS[taskId]] : []),
+  'task.detail': ({ taskId = '' }) => {
+    const detail = taskDetailOf(taskId)
+    return detail === undefined ? [] : [detail]
+  },
   'task.referenceDocuments': ({ taskId = '' }) => TASK_REFERENCE_DOCUMENTS[taskId] ?? [],
   'task.workDocuments': ({ taskId = '' }) => TASK_WORK_DOCUMENTS[taskId] ?? [],
   'task.reviewStatus': ({ taskId = '' }) =>
-    TASK_REVIEW_STATUS[taskId] ? [TASK_REVIEW_STATUS[taskId]] : [],
+    taskDetailOf(taskId) === undefined
+      ? []
+      : [TASK_REVIEW_STATUS[taskId] ?? TASK_REVIEW_NOT_SUBMITTED],
   // 요청 id가 비면 새 요청이다 — 없는 것이 아니라 아직 안 적힌 것이다.
   'finance.purchaseRequestDraft': ({ requestId = '' }) =>
     requestId === ''

@@ -55,9 +55,13 @@ test('EVT-TASK-01: 다른 카드는 다른 업무를 넘긴다', async ({ page }
   await page.getByRole('button', { name: /참가자 모집 공지 작성/ }).click()
 
   await expect(page).toHaveURL(/#\/EVT-TASK-02\?taskId=T-01/)
-  // 보드에는 일곱인데 와이어프레임이 상세로 그린 것은 T-03 하나뿐이다. 없는 것을
-  // 지어내지 않고, 카탈로그가 이미 갖고 있는 말로 답한다.
-  await expect(page.getByRole('alert')).toContainText('업무를 찾지 못했습니다')
+  // 한때 여기는 '업무를 찾지 못했습니다'를 기대했다. 와이어프레임이 상세로 그린 것이
+  // T-03 하나뿐이라 나머지 여섯 장은 눌러도 빈 화면이었고, 그것을 '없는 것을
+  // 지어내지 않는다'로 정당화했다. 그런데 개발용 응답은 디자인이 아니라 서버 대역이고
+  // 현실에서는 카드 일곱에 상세 일곱이 있다. 여섯 장이 막다른 길인 채로 두면 진짜로
+  // 끊긴 자리(재정 보드가 'PR-01'을 넘기는데 상세는 'PR-2026-0031'만 알던 것)와
+  // 구별할 수 없다 — 지금은 보드 카드에서 상세를 만든다.
+  await expect(page.getByRole('heading', { name: '참가자 모집 공지 작성' })).toBeVisible()
 })
 
 test('EVT-TASK-01: 내 업무만 보면 내가 담당인 것만 남는다', async ({ page }) => {
