@@ -241,9 +241,17 @@ export function EVTFIN01Screen({ screenParams, onNavigate }: EVTFIN01ScreenProps
                       key={String(card.id)}
                       type="button"
                       onClick={() => {
-                        if (column.itemAction?.type === 'pending') {
-                          setNote(column.itemAction.note)
+                        if (column.itemAction === undefined) return
+                        if (column.itemAction.type === 'navigate') {
+                          // 어느 요청인지는 눌린 이 카드만 안다. 명세는 어느
+                          // 조각인지만 말한다(EVT-TASK-01의 카드와 같은 규칙).
+                          onNavigate(
+                            column.itemAction.targetScreenId,
+                            resolveParams(column.itemAction.params, { row: card }),
+                          )
+                          return
                         }
+                        setNote(column.itemAction.note)
                       }}
                       aria-label={`${String(card.title)} ${column.itemAction?.label ?? ''}`}
                       className="rounded border border-gray-200 bg-white p-3 text-left hover:bg-gray-50"

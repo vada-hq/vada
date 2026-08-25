@@ -168,9 +168,14 @@
           }
         },
         "itemAction": {
-          "type": "pending",
+          "type": "navigate",
           "label": "구매 요청 열기",
-          "note": "구매 요청을 여는 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "FIN-REQ-02",
+          "params": {
+            "requestId": {
+              "itemField": "id"
+            }
+          }
         }
       }
     },
@@ -193,9 +198,14 @@
           }
         },
         "itemAction": {
-          "type": "pending",
+          "type": "navigate",
           "label": "구매 요청 열기",
-          "note": "구매 요청을 여는 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "FIN-REQ-02",
+          "params": {
+            "requestId": {
+              "itemField": "id"
+            }
+          }
         }
       }
     },
@@ -218,9 +228,14 @@
           }
         },
         "itemAction": {
-          "type": "pending",
+          "type": "navigate",
           "label": "구매 요청 열기",
-          "note": "구매 요청을 여는 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "FIN-REQ-02",
+          "params": {
+            "requestId": {
+              "itemField": "id"
+            }
+          }
         }
       }
     },
@@ -243,9 +258,14 @@
           }
         },
         "itemAction": {
-          "type": "pending",
+          "type": "navigate",
           "label": "구매 요청 열기",
-          "note": "구매 요청을 여는 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "FIN-REQ-02",
+          "params": {
+            "requestId": {
+              "itemField": "id"
+            }
+          }
         }
       }
     }

@@ -781,7 +781,7 @@ const EVENT_FINANCE_BOARD: Array<{ eventId: string; stage: string; row: DataRow 
     eventId: 'E-01',
     stage: 'review',
     row: {
-      id: 'PR-01',
+      id: 'PR-2026-0031',
       departmentLabel: '운영부',
       requestedAt: '2026-03-15',
       title: '체육대회 운영 물품 4종',

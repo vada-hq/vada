@@ -74,9 +74,13 @@ test('EVT-FIN-01: 재정 갈피 둘 중 하나는 아직 없다', async ({ page 
 })
 
 // 새 구매 요청이 이어지는 것은 purchase-request.spec.ts가 본다 — 그 화면의 일이다.
-test('EVT-FIN-01: 이미 있는 요청을 여는 화면은 아직 없다', async ({ page }) => {
+test('EVT-FIN-01: 카드를 누르면 그 요청의 상세로 간다', async ({ page }) => {
   await page.goto(FINANCE)
 
   await page.getByRole('button', { name: /체육대회 운영 물품 4종 구매 요청 열기/ }).click()
-  await expect(page.getByText(/구매 요청을 여는 화면이 아직 명세되지 않았습니다/)).toBeVisible()
+
+  // 어느 요청인지는 눌린 카드가 정한다. 아무 요청이나 열리면 안 된다.
+  await expect(page).toHaveURL(/#\/FIN-REQ-02\?requestId=PR-2026-0031/)
+  await expect(page.getByRole('heading', { name: '구매 요청 상세·진행 상태' })).toBeVisible()
+  await expect(page.getByText('REQ-001').first()).toBeVisible()
 })
