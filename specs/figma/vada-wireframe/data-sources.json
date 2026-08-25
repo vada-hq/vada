@@ -1704,6 +1704,116 @@
           "description": "쪽이 몇 개인지. 쪽 번호 버튼을 그리는 데 쓴다. 예: 1"
         }
       ]
+    },
+    {
+      "key": "event.financeSummary",
+      "shape": "object",
+      "description": "행사 재정의 금액 넉 줄. 세는 방법(무엇을 승인으로 보고 무엇을 지출로 보는지)은 조직의 재정 규칙이 정하므로 화면이 빼거나 더하지 않는다 — 네 값이 다 서버에서 온다. 자릿점까지 찍힌 글로 오는 것은 화폐 표기가 조직·지역의 것이기 때문이다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/finance/summary"
+      },
+      "messages": {
+        "loading": "재정을 불러오는 중입니다",
+        "empty": "행사를 찾지 못했습니다",
+        "error": "재정을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "budget",
+          "description": "이 행사에 배정된 예산. 예: 3,000,000"
+        },
+        {
+          "key": "committed",
+          "description": "승인됐거나 집행이 예정된 금액. 예: 1,100,000"
+        },
+        {
+          "key": "spent",
+          "description": "실제로 나간 금액. 예: 950,000"
+        },
+        {
+          "key": "available",
+          "description": "아직 쓸 수 있는 금액. 배정에서 무엇을 빼는지가 재정 규칙이라 화면이 계산하지 않는다. 예: 950,000"
+        }
+      ]
+    },
+    {
+      "key": "event.financeAlerts",
+      "shape": "object",
+      "description": "재정에서 지금 사람 손이 필요한 건수. 금액(event.financeSummary)과 다른 것이라 따로 온다 — 행사 업무의 요약과 주의 건수가 갈려 있는 것과 같다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/finance/alerts"
+      },
+      "messages": {
+        "loading": "확인할 것을 세는 중입니다",
+        "empty": "행사를 찾지 못했습니다",
+        "error": "확인할 것을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "pendingReviewCount",
+          "description": "검토를 기다리는 구매 요청 수. 예: 1"
+        }
+      ]
+    },
+    {
+      "key": "event.financeBoard",
+      "shape": "list",
+      "description": "재정 보드의 카드 하나. 처리 단계(stage)마다 따로 조회한다 — 단계는 명세에 고정이고(디자인이 네 열을 그린다) 각 열에 몇 장이 오는지가 데이터에 달렸다. 행사 업무 보드와 같은 모양이다.",
+      "params": [
+        "eventId",
+        "stage"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/event/finance/board"
+      },
+      "messages": {
+        "loading": "구매 요청을 불러오는 중입니다",
+        "empty": "항목 없음",
+        "error": "구매 요청을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "구매 요청을 가리키는 값. 카드에 그려지지 않지만, 눌러서 요청을 열 때 '어느 요청인지'로 넘어간다 — 그리지 않는 조각이다. 예: PR-01"
+        },
+        {
+          "key": "departmentLabel",
+          "description": "요청한 부서. 예: 운영부"
+        },
+        {
+          "key": "requestedAt",
+          "description": "요청한 날. 예: 2026-03-15"
+        },
+        {
+          "key": "title",
+          "description": "무엇을 사려는지. 예: 체육대회 운영 물품 4종"
+        },
+        {
+          "key": "itemsNote",
+          "description": "품목 수와 이름을 이어 붙인 완성된 문구. 몇 개까지 늘어놓을지는 서버가 정한다. 예: 품목 4개 · 박스테이프, 생수 500ml, 이름표 용지, 유성 마커"
+        },
+        {
+          "key": "amountNote",
+          "description": "요청 금액. 단위까지 붙어서 온다 — 요약의 금액과 달리 카드에서는 '원'이 값과 한 덩이로 그려진다. 예: 135,000원"
+        },
+        {
+          "key": "status",
+          "description": "이 요청이 지금 무엇을 기다리는지. 예: 검토 대기 · 보완 요청"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지에 배정된 색 이름. 재정 처리 단계가 조직 규칙에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: orange"
+        }
+      ]
     }
   ]
 }

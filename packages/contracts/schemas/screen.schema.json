@@ -73,6 +73,10 @@
           "pattern": "^[a-z][A-Za-z0-9]*$",
           "description": "shell.json의 workspaces[].key."
         },
+        "ownTitle": {
+          "type": "boolean",
+          "description": "이 화면이 공간의 제목 대신 자기 이름을 제목으로 그리는가(기본 false). 공간에 속하면 제목은 대개 그 공간의 것이다 — 행사 개요도 행사 업무도 제목이 그 행사의 이름이다. 다만 자기 아래에 다시 여러 화면을 거느리는 입구는 자기 이름을 앞세운다(EVT-FIN-01은 구매 요청·처리·증빙의 입구다). 어느 쪽인지는 디자인이 말하고, 이 값은 그것을 옮겨 적은 것이다."
+        },
         "source": {
           "type": "object",
           "additionalProperties": false,

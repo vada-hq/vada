@@ -99,7 +99,7 @@
         },
         {
           "label": "재정",
-          "note": "행사 재정 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "EVT-FIN-01"
         }
       ]
     }

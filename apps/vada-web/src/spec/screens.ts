@@ -28,6 +28,7 @@ import evtDoc01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-DOC
 import evtMeet01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-MEET-01/screen.json'
 import evtSched01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-SCHED-01/screen.json'
 import evt04Json from '../../../../specs/figma/vada-wireframe/screens/EVT-04/screen.json'
+import evtFin01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-FIN-01/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -63,6 +64,7 @@ export const evtDoc01 = asScreenSpec(evtDoc01Json)
 export const evtMeet01 = asScreenSpec(evtMeet01Json)
 export const evtSched01 = asScreenSpec(evtSched01Json)
 export const evt04 = asScreenSpec(evt04Json)
+export const evtFin01 = asScreenSpec(evtFin01Json)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
 // ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
@@ -86,6 +88,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   evtMeet01,
   evtSched01,
   evt04,
+  evtFin01,
 ]
 
 // 화면 하나만 열어 볼 때 넘길 인자.
@@ -118,7 +121,14 @@ export function drawnTitleOf(
 ): string {
   // 작업 공간에 속하면 그 공간의 이름이 곧 제목이다 — 행사 개요의 제목도 행사
   // 업무 보드의 제목도 그 행사의 이름이다. 화면이 따로 정했으면 그것이 이긴다.
+  //
+  // 다만 **자기 아래에 다시 여러 화면을 거느리는 입구는 자기 이름을 앞세운다**
+  // (EVT-FIN-01은 구매 요청·처리·증빙의 입구라 제목이 '행사 재정 — 개요'다).
+  // 어느 쪽인지는 디자인이 말하고 명세가 workspace.ownTitle로 옮겨 적는다.
   const workspace = workspaceOf(screen)
+  if (screen.workspace?.ownTitle === true) {
+    return screen.meta?.title ?? screen.screenId
+  }
   const from = screen.meta?.titleFrom ?? workspace?.titleFrom
   if (from === undefined) {
     return screen.meta?.title ?? screen.screenId
@@ -145,6 +155,10 @@ const TITLE_NOT_DRAWN = new Set(['INV-01'])
 export function drawsTitle(screen: ScreenSpec): boolean {
   if (TITLE_NOT_DRAWN.has(screen.screenId)) {
     return false
+  }
+  // 자기 이름을 앞세우는 입구는 제목이 곧 meta.title이다.
+  if (screen.workspace?.ownTitle === true) {
+    return true
   }
   return screen.meta?.titleFrom === undefined && workspaceOf(screen)?.titleFrom === undefined
 }

@@ -308,6 +308,9 @@ export interface ScreenSpec {
   // 어디에 그리는지만 갖는다.
   workspace?: {
     key: string
+    // 공간의 제목 대신 자기 이름을 쓰는가. 자기 아래에 다시 여러 화면을 거느리는
+    // 입구가 그렇다(EVT-FIN-01).
+    ownTitle?: boolean
     source: { tabs?: string; status?: string }
   }
   meta?: ScreenMeta

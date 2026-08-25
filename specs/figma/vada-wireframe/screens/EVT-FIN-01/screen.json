@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-FIN-01",
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-01",
+      "description": "어느 행사의 재정인지. 작업 공간의 갈피를 옮겨 들어올 때 그 행사가 정한다."
+    }
+  ],
+  "workspace": {
+    "key": "event",
+    "ownTitle": true,
+    "source": {
+      "tabs": "28:790",
+      "status": "28:812"
+    }
+  },
+  "meta": {
+    "eyebrow": "운영 · 행사 · 재정",
+    "title": "행사 재정 — 개요"
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "28:685",
+    "name": "운영 — 행사 · 재정 · EVT-FIN-01 · 행사 재정 — 개요",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "28:780",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "내 구매 요청",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "내 구매 요청만 모아 보는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:785",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "새 구매 요청",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "구매 요청을 작성하는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:836",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "event.financeSummary",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "label": "배정 예산",
+            "unit": "원",
+            "field": "budget"
+          },
+          {
+            "label": "승인·집행 예정액",
+            "unit": "원",
+            "field": "committed"
+          },
+          {
+            "label": "실제 지출액",
+            "unit": "원",
+            "field": "spent"
+          },
+          {
+            "label": "사용 가능액",
+            "unit": "원",
+            "field": "available"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:866",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "financeTab",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "stage",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.financeTab"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:872",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "event.financeAlerts",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "label": "검토 대기",
+            "field": "pendingReviewCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:878",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "검토 필요",
+        "dataSourceKey": "event.financeBoard",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "stage": {
+            "value": "review"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "label": "구매 요청 열기",
+          "note": "구매 요청을 여는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:914",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "구매 필요",
+        "dataSourceKey": "event.financeBoard",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "stage": {
+            "value": "purchase"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "label": "구매 요청 열기",
+          "note": "구매 요청을 여는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:920",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "증빙 필요",
+        "dataSourceKey": "event.financeBoard",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "stage": {
+            "value": "proof"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "label": "구매 요청 열기",
+          "note": "구매 요청을 여는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "28:926",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "정산 완료",
+        "dataSourceKey": "event.financeBoard",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "stage": {
+            "value": "settled"
+          }
+        },
+        "itemAction": {
+          "type": "pending",
+          "label": "구매 요청 열기",
+          "note": "구매 요청을 여는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

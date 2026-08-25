@@ -74,13 +74,3 @@ test('EVT-02: 확인해야 할 항목은 갈 곳이 있는 것만 문구를 갖�
   await page.getByRole('button', { name: '업무 보기 →' }).click()
   await expect(page.getByText(/항목마다 가는 곳이 다른데/)).toBeVisible()
 })
-
-// 갈피 일곱 중 여섯이 찼다. 남은 것은 재정 하나이고, 그것이 차면 이 검사는
-// 없어진다 — 갈피가 채워질 때마다 옮겨 다니던 사본이 EVT-TASK-01에도 있었는데,
-// 갈피 줄은 화면 여섯이 나눠 쓰는 한 부품이라 한 번만 본다.
-test('EVT-02: 아직 명세되지 않은 갈피는 그 사실을 남긴다', async ({ page }) => {
-  await page.goto(OVERVIEW)
-
-  await tabs(page).getByRole('button', { name: '재정', exact: true }).click()
-  await expect(page.getByText(/행사 재정 화면이 아직 명세되지 않았습니다/)).toBeVisible()
-})

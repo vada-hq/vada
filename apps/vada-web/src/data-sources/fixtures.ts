@@ -760,6 +760,53 @@ const EVENT_PARTICIPANTS: Array<{ eventId: string; row: DataRow }> = [
 // 하는 동안만 여기 있다. 여섯 줄뿐이라 실제로 쪽이 갈리지는 않는다.
 const PARTICIPANT_PAGE_SIZE = 20
 
+// 행사 재정. 금액은 자릿점까지 찍힌 글로 온다 — 화폐 표기는 조직·지역의 것이다.
+const EVENT_FINANCE_SUMMARY: Record<string, DataRow> = {
+  'E-01': {
+    budget: '3,000,000',
+    committed: '1,100,000',
+    spent: '950,000',
+    available: '950,000',
+  },
+}
+
+const EVENT_FINANCE_ALERTS: Record<string, DataRow> = {
+  'E-01': { pendingReviewCount: 1 },
+}
+
+// 처리 단계는 명세에 고정이고(디자인이 네 열을 그린다) 각 열에 몇 장이 오는지가
+// 데이터에 달렸다. 행사 업무 보드와 같은 모양이다.
+const EVENT_FINANCE_BOARD: Array<{ eventId: string; stage: string; row: DataRow }> = [
+  {
+    eventId: 'E-01',
+    stage: 'review',
+    row: {
+      id: 'PR-01',
+      departmentLabel: '운영부',
+      requestedAt: '2026-03-15',
+      title: '체육대회 운영 물품 4종',
+      itemsNote: '품목 4개 · 박스테이프, 생수 500ml, 이름표 용지, 유성 마커',
+      amountNote: '135,000원',
+      status: '검토 대기',
+      statusTone: 'blue',
+    },
+  },
+  {
+    eventId: 'E-01',
+    stage: 'review',
+    row: {
+      id: 'PR-02',
+      departmentLabel: '홍보부',
+      requestedAt: '2026-03-14',
+      title: '현수막 A형 제작',
+      itemsNote: '품목 1개 · 메인 현수막',
+      amountNote: '180,000원',
+      status: '보완 요청',
+      statusTone: 'orange',
+    },
+  },
+]
+
 // 거르기는 서버가 한다 — 화면은 받아온 것을 다시 자르지 않는다.
 function filterParticipants(params: Record<string, string>): DataRow[] {
   const {
@@ -1233,6 +1280,14 @@ export const FILTERED_FIXTURES: Record<
       },
     ]
   },
+  'event.financeSummary': ({ eventId = '' }) =>
+    EVENT_FINANCE_SUMMARY[eventId] ? [EVENT_FINANCE_SUMMARY[eventId]] : [],
+  'event.financeAlerts': ({ eventId = '' }) =>
+    EVENT_FINANCE_ALERTS[eventId] ? [EVENT_FINANCE_ALERTS[eventId]] : [],
+  'event.financeBoard': ({ eventId = '', stage = '' }) =>
+    EVENT_FINANCE_BOARD.filter(
+      (entry) => entry.eventId === eventId && entry.stage === stage,
+    ).map((entry) => entry.row),
   'event.meetingCounts': ({ eventId = '' }) =>
     EVENT_MEETING_COUNTS[eventId] ? [EVENT_MEETING_COUNTS[eventId]] : [],
   'event.workspace': ({ eventId = '' }) =>
