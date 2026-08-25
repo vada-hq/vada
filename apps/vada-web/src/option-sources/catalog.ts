@@ -2,7 +2,15 @@
 // 계약(요청 시점, 검색 방식, 상태 문구)은 카탈로그를 단일 원본으로 읽고,
 // 네트워크만 개발용 mock으로 대체한다(로딩 상태 확인용 인위 지연 포함).
 import catalogJson from '../../../../specs/figma/vada-wireframe/option-sources.json'
-import { COLLEGES, DEPARTMENTS, SCHOOLS } from './fixtures'
+import {
+  COLLEGES,
+  DEPARTMENTS,
+  PARTICIPANT_AFFILIATIONS,
+  PARTICIPANT_APPLY_STATUS,
+  PARTICIPANT_ATTEND_STATUS,
+  PARTICIPANT_PAY_STATUS,
+  SCHOOLS,
+} from './fixtures'
 
 export interface Option {
   value: string
@@ -124,6 +132,14 @@ export async function fetchOptions(
       return COLLEGES[params.schoolId] ?? []
     case 'education.departments':
       return DEPARTMENTS[`${params.schoolId}:${params.collegeId}`] ?? []
+    case 'event.participantAffiliations':
+      return PARTICIPANT_AFFILIATIONS[params.eventId] ?? []
+    case 'event.participantApplyStatus':
+      return PARTICIPANT_APPLY_STATUS
+    case 'event.participantPayStatus':
+      return PARTICIPANT_PAY_STATUS
+    case 'event.participantAttendStatus':
+      return PARTICIPANT_ATTEND_STATUS
     default:
       throw new Error(`'${key}'의 mock 응답이 없습니다.`)
   }

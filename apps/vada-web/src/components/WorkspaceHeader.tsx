@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { FigmaAsset } from './FigmaAsset'
 import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readObjectSource } from '../data-sources/catalog'
@@ -22,6 +23,15 @@ interface WorkspaceHeaderProps {
   /** 상태 줄의 아이콘. 자산은 화면마다 다른 노드라 화면이 지목한다. */
   statusAssets?: Partial<Record<string, string>>
   assetScreenId?: string
+  /**
+   * 상태 줄 오른쪽 끝의 행동. 셸이 아니라 화면의 요소이고 그리는 자리만 여기다 —
+   * AppShell의 headerAction과 같은 규칙이다.
+   *
+   * 이 자리에는 안내(permissionNote)가 오거나 행동이 오거나 둘 중 하나다. 그 안내가
+   * '행사 관리 행동은 담당 운영진에게 제공됩니다'라고 적혀 있는 것이 근거다 —
+   * 안내는 행동이 없다는 말이므로, 행동이 있으면 안내가 설 자리가 없다.
+   */
+  actions?: ReactNode
 }
 
 // 딱지로 그리는 조각과 오른쪽 끝으로 밀리는 안내. 어느 조각이냐는 명세의 field가
@@ -36,6 +46,7 @@ export function WorkspaceHeader({
   onPending,
   statusAssets = {},
   assetScreenId,
+  actions,
 }: WorkspaceHeaderProps) {
   const workspace = workspaceOf(screen)
   if (workspace === null || screen.workspace === undefined) {
@@ -106,6 +117,9 @@ export function WorkspaceHeader({
                 )
               }
               if (field === MUTED_FIELD) {
+                if (actions !== undefined) {
+                  return null
+                }
                 return (
                   <span key={field} className="ml-auto text-xs text-gray-400">
                     {value}
@@ -129,6 +143,7 @@ export function WorkspaceHeader({
                 </span>
               )
             })}
+          {actions}
         </div>
       )}
     </>

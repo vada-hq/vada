@@ -36,9 +36,11 @@ export interface SelectSpec {
   // 선택지마다 곁들이는 건수의 출처. 선택지는 명세가, 건수는 데이터가 정한다.
   // 건수도 걸러서 오는 것이라 인자를 받을 수 있다 — 어느 행사의 문서 수인지.
   optionCounts?: { dataSourceKey: string; params?: QueryParams }
+  // 선택지도 걸러서 온다 — 어느 학교의 단과대학인지, 어느 행사의 소속인지.
+  // 조회 인자는 어디서든 같은 물음이라 목록·요약과 같은 모양을 쓴다.
   optionsSource: {
     key: string
-    params?: Record<string, string>
+    params?: QueryParams
   }
   enabledWhen?: EnabledWhenCondition[]
   resetOnChangeOf?: string[]
@@ -163,8 +165,22 @@ export interface ItemListSpec {
   // 표로 그려지는 목록의 열 머리. 카드로 그려지는 목록은 이것이 없다. 열 머리는
   // 그려지는 글이라 명세가 갖는다 — 화면은 design.json을 실행 중에 읽지 않는다.
   columns?: { label: string; fields: string[] }[]
+  // 목록이 쪽으로 나뉜다는 선언. 한 쪽만큼만 받아 오므로 총 몇 건인지·몇 쪽인지는
+  // 목록 자신이 말할 수 없어 그것을 아는 출처를 따로 가리킨다. source가 따로 있는
+  // 것은 디자인이 표와 쪽 줄을 형제로 두기 때문이다 — 한 개념이 두 자리에 그려진다.
+  paging?: {
+    source: string
+    pageParam: string
+    dataSourceKey: string
+    params?: QueryParams
+    totalNoteField: string
+    pageCountField: string
+  }
   // 항목 하나를 눌렀을 때. 어느 항목인지는 데이터가, 어느 화면인지는 명세가 말한다.
   itemAction?: DisplayAction
+  // 항목을 여럿 고를 수 있다는 선언. 고르는 것은 화면 안의 상태라 다시 조회하지
+  // 않는다. 고른 다음 무엇을 하는지가 없으면 고르기도 없으므로 action이 필수다.
+  selection?: { action: DisplayAction }
 }
 
 // 다른 상태 스코프의 필드 값을 읽어 표시하는 파생 표시 요소.

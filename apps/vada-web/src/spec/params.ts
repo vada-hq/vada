@@ -18,7 +18,9 @@ import type { QueryParams } from './types'
 export function resolveParams(
   params: QueryParams | undefined,
   sources: {
-    fields?: Record<string, string>
+    // 값이 아직 없는 필드는 null로 남는다(스코프 초안). 가리키는 곳에 값이 없으면
+    // 빈 문자열이라는 규칙이 그대로 적용된다.
+    fields?: Record<string, string | null>
     screenParams?: Record<string, string>
     row?: DataRow
   },

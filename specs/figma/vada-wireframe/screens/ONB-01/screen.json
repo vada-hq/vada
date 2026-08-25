@@ -91,7 +91,9 @@
         "optionsSource": {
           "key": "education.colleges",
           "params": {
-            "schoolId": "school"
+            "schoolId": {
+              "fieldKey": "school"
+            }
           }
         },
         "enabledWhen": [
@@ -125,8 +127,12 @@
         "optionsSource": {
           "key": "education.departments",
           "params": {
-            "schoolId": "school",
-            "collegeId": "college"
+            "schoolId": {
+              "fieldKey": "school"
+            },
+            "collegeId": {
+              "fieldKey": "college"
+            }
           }
         },
         "enabledWhen": [

@@ -93,7 +93,9 @@
         "optionsSource": {
           "key": "education.colleges",
           "params": {
-            "schoolId": "repSchool"
+            "schoolId": {
+              "fieldKey": "repSchool"
+            }
           }
         },
         "enabledWhen": [

@@ -523,6 +523,9 @@ export function nodeSelector(nodeId: string): string {
 
 interface RegisteredElement {
   source: { nodeId: string }
+  // 목록의 쪽 줄은 표와 다른 자리에 그려진다(디자인이 둘을 형제로 둔다).
+  // 요소 유형마다 spec의 모양이 달라 여기서는 이 한 자리만 본다.
+  spec?: unknown
 }
 
 // 화면 전체를 한 자루에 넣고 글자만으로 짝지으면 엉뚱한 요소와 만난다 — "해야 할
@@ -542,6 +545,9 @@ interface RegisteredElement {
 export function registeredNodeIds(screen: ComparableScreen): string[] {
   return [
     ...screen.elements.map((element) => element.source.nodeId),
+    ...screen.elements
+      .map((element) => (element.spec as { paging?: { source?: string } })?.paging?.source)
+      .filter((nodeId): nodeId is string => typeof nodeId === 'string'),
     ...Object.values(screen.workspace?.source ?? {}).filter(
       (nodeId): nodeId is string => typeof nodeId === 'string',
     ),

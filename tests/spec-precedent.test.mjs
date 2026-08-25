@@ -32,7 +32,7 @@ test("같은 스코프의 같은 라벨은 fieldKey와 데이터 계약을 확�
   assert.equal(confirmed.fieldKey, "college");
   assert.deepEqual(confirmed.contract.optionsSource, {
     key: "education.colleges",
-    params: { schoolId: "school" }
+    params: { schoolId: { fieldKey: "school" } }
   });
   assert.deepEqual(confirmed.contract.resetOnChangeOf, ["school"]);
   assert.deepEqual(confirmed.screenIds, ["ONB-01"]);

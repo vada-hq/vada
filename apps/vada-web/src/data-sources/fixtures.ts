@@ -662,6 +662,128 @@ const EVENT_MEETING_COUNTS: Record<string, DataRow> = {
   'E-01': { countsNote: '진행 중 1건 · 예정 1건 · 정리 중 0건 · 완료 1건' },
 }
 
+// 행사 참가자. 학생회 구성원이 아닐 수 있어 조직 명단과 다른 것이다.
+const EVENT_PARTICIPANTS: Array<{ eventId: string; row: DataRow }> = [
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'P-01',
+      name: '김학생',
+      studentNo: '2022111111',
+      affiliation: '컴퓨터학부',
+      applyStatus: '신청 완료',
+      applyStatusTone: 'blue',
+      payStatus: '납부 확인',
+      payStatusTone: 'green',
+      attendStatus: '미확인',
+      attendStatusTone: 'gray',
+    },
+  },
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'P-02',
+      name: '이수강',
+      studentNo: '2023222222',
+      affiliation: 'ICT융합학부',
+      applyStatus: '신청 완료',
+      applyStatusTone: 'blue',
+      payStatus: '미납',
+      payStatusTone: 'red',
+      attendStatus: '미확인',
+      attendStatusTone: 'gray',
+    },
+  },
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'P-03',
+      name: '박참여',
+      studentNo: '2021333333',
+      affiliation: '인공지능학과',
+      applyStatus: '신청 완료',
+      applyStatusTone: 'blue',
+      payStatus: '납부 확인',
+      payStatusTone: 'green',
+      attendStatus: '참석',
+      attendStatusTone: 'green',
+    },
+  },
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'P-04',
+      name: '최대기',
+      studentNo: '2024444444',
+      affiliation: '컴퓨터학부',
+      applyStatus: '대기 중',
+      applyStatusTone: 'gray',
+      payStatus: '미확인',
+      payStatusTone: 'gray',
+      attendStatus: '미확인',
+      attendStatusTone: 'gray',
+    },
+  },
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'P-05',
+      name: '강신청',
+      studentNo: '2022555555',
+      affiliation: '컴퓨터학부',
+      applyStatus: '신청 완료',
+      applyStatusTone: 'blue',
+      payStatus: '납부 확인',
+      payStatusTone: 'green',
+      attendStatus: '불참',
+      attendStatusTone: 'red',
+    },
+  },
+  {
+    eventId: 'E-01',
+    row: {
+      id: 'P-06',
+      name: '윤확인',
+      studentNo: '2023666666',
+      affiliation: '컴퓨터학부',
+      applyStatus: '신청 완료',
+      applyStatusTone: 'blue',
+      payStatus: '미확인',
+      payStatusTone: 'gray',
+      attendStatus: '미확인',
+      attendStatusTone: 'gray',
+    },
+  },
+]
+
+// 한 쪽에 몇 줄인지. 서버가 정하는 값이라 명세에는 없고, 붙박이 값이 서버 노릇을
+// 하는 동안만 여기 있다. 여섯 줄뿐이라 실제로 쪽이 갈리지는 않는다.
+const PARTICIPANT_PAGE_SIZE = 20
+
+// 거르기는 서버가 한다 — 화면은 받아온 것을 다시 자르지 않는다.
+function filterParticipants(params: Record<string, string>): DataRow[] {
+  const {
+    eventId = '',
+    query = '',
+    affiliation = '',
+    applyStatus = '',
+    payStatus = '',
+    attendStatus = '',
+  } = params
+  return EVENT_PARTICIPANTS.filter((entry) => entry.eventId === eventId)
+    .map((entry) => entry.row)
+    .filter(
+      (row) =>
+        query === '' ||
+        String(row.name).includes(query) ||
+        String(row.studentNo).includes(query),
+    )
+    .filter((row) => affiliation === '' || row.affiliation === affiliation)
+    .filter((row) => applyStatus === '' || row.applyStatus === applyStatus)
+    .filter((row) => payStatus === '' || row.payStatus === payStatus)
+    .filter((row) => attendStatus === '' || row.attendStatus === attendStatus)
+}
+
 // 행사 일정. 원본은 여기가 아니다 — 업무·회의·행사 기본정보가 각자 원본이고 이
 // 목록은 그것이 비친 것이다. 그래서 줄마다 originNote가 어디를 고쳐야 하는지 말한다.
 //
@@ -1095,6 +1217,22 @@ export const FILTERED_FIXTURES: Record<
       (entry) =>
         entry.eventId === eventId && (filter === 'all' || entry.buckets.includes(filter)),
     ).map((entry) => entry.row),
+  'event.participants': (params) => {
+    const rows = filterParticipants(params)
+    const page = Math.max(1, Number(params.page ?? '1') || 1)
+    return rows.slice((page - 1) * PARTICIPANT_PAGE_SIZE, page * PARTICIPANT_PAGE_SIZE)
+  },
+  // 총 몇 명인지·몇 쪽인지는 목록이 말할 수 없다 — 한 쪽만큼만 받아 오기 때문이다.
+  'event.participantPaging': (params) => {
+    if ((params.eventId ?? '') === '') return []
+    const total = filterParticipants(params).length
+    return [
+      {
+        totalNote: `총 ${total}명`,
+        pageCount: Math.max(1, Math.ceil(total / PARTICIPANT_PAGE_SIZE)),
+      },
+    ]
+  },
   'event.meetingCounts': ({ eventId = '' }) =>
     EVENT_MEETING_COUNTS[eventId] ? [EVENT_MEETING_COUNTS[eventId]] : [],
   'event.workspace': ({ eventId = '' }) =>

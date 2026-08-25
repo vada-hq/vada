@@ -149,6 +149,14 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       registered.add(nodeId);
     }
   }
+  // 목록의 쪽 줄도 그렇다. 디자인이 표와 쪽 줄을 형제로 두어 둘을 함께 품는 노드가
+  // 없으므로, 목록이 그 자리를 따로 갖는다.
+  for (const element of spec.elements) {
+    const source = element?.spec?.paging?.source;
+    if (typeof source === "string") {
+      registered.add(source);
+    }
+  }
   const isInteraction = (node) =>
     DRAFT_SIGNALS.BUTTON_NAME_PATTERN.test(node.name ?? "") ||
     DRAFT_SIGNALS.CONTROL_NAMES.has(node.name ?? "");
@@ -282,22 +290,10 @@ function checkOptionsSource(findings, context) {
       });
     }
   }
-  for (const [param, fieldKey] of Object.entries(mapping)) {
-    if (!requiredParams.includes(param)) {
-      findings.push({
-        level: "error",
-        file,
-        message: `${elementLabel(element, index)}가 출처 '${optionsSource.key}'에 없는 인자 '${param}'를 매핑했습니다.`
-      });
-    }
-    if (!fieldKeys.has(fieldKey)) {
-      findings.push({
-        level: "error",
-        file,
-        message: `${elementLabel(element, index)}의 인자 '${param}'가 참조한 fieldKey '${fieldKey}'가 화면에 없습니다.`
-      });
-    }
-  }
+  checkArgumentValues(findings, context, mapping, {
+    declared: new Set(requiredParams),
+    where: `선택지 출처 '${optionsSource.key}'`
+  });
 }
 
 // 화면들이 선언한 상태 스코프별로, 그 스코프에 값을 쓰는 fieldKey 집합을 모은다.
@@ -589,25 +585,33 @@ function checkQueryParams(findings, context) {
   checkArgumentMap(findings, context, params, dataSourceKey);
 }
 
-// 조회하며 넘기는 인자 한 묶음. 목록·요약의 params와 선택지 개수의 params가 같은
-// 것이라 판정도 한 곳이다 — 인자의 출처가 늘면 두 자리가 함께 늘어야 한다.
+// 조회하며 넘기는 인자 한 묶음. 목록·요약의 params, 선택지 개수의 params, 그리고
+// 선택지 자체의 params가 같은 것이라 판정도 한 곳이다 — 인자의 출처가 늘면 세 자리가
+// 함께 늘어야 한다.
 function checkArgumentMap(findings, context, params, dataSourceKey) {
-  const { file, element, index, dataSources, dataSourceByKey, fieldKeys, screenParams } =
-    context;
+  const { dataSources, dataSourceByKey } = context;
+  const source = isObject(dataSources) ? dataSourceByKey.get(dataSourceKey) : null;
+  checkArgumentValues(findings, context, params, {
+    declared: source ? new Set(source.params ?? []) : null,
+    where: `데이터 출처 '${dataSourceKey}'`
+  });
+}
+
+// 인자 하나하나가 가리키는 곳이 실제로 있는가. 무엇이 그 인자를 받는지(declared)는
+// 부르는 쪽이 안다 — 데이터 출처일 수도 선택지 출처일 수도 있다.
+function checkArgumentValues(findings, context, params, { declared, where }) {
+  const { file, element, index, fieldKeys, screenParams } = context;
 
   if (!isObject(params)) {
     return;
   }
 
-  const source = isObject(dataSources) ? dataSourceByKey.get(dataSourceKey) : null;
-  const declared = new Set(source ? source.params ?? [] : []);
-
   for (const [paramName, argument] of Object.entries(params)) {
-    if (source && !declared.has(paramName)) {
+    if (declared && !declared.has(paramName)) {
       findings.push({
         level: "error",
         file,
-        message: `${elementLabel(element, index)}가 넘긴 조회 인자 '${paramName}'가 데이터 출처 '${dataSourceKey}'에 선언돼 있지 않습니다.`
+        message: `${elementLabel(element, index)}가 넘긴 조회 인자 '${paramName}'가 ${where}에 선언돼 있지 않습니다.`
       });
     }
     // 고정값(value)은 명세가 정한 것이라 참조할 필드가 없다.
@@ -682,6 +686,82 @@ function checkListColumns(findings, context) {
         continue;
       }
       seen.set(field, column.label);
+    }
+  }
+}
+
+// 쪽으로 나뉜 목록.
+//
+// 목록은 한 쪽만큼만 받아 오므로 총 몇 건인지·몇 쪽인지를 자기가 말할 수 없다.
+// 그 둘을 아는 출처가 따로 있고, 셋이 어긋나면 쪽 버튼이 그려지긴 하는데 늘 한
+// 쪽뿐이거나 없는 쪽으로 넘어간다 — 조용한 어긋남이라 여기서 본다.
+function checkListPaging(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey } = context;
+  const spec = element.spec;
+  const paging = spec.paging;
+
+  if (!isObject(paging)) {
+    return;
+  }
+
+  if (!isObject(dataSources)) {
+    findings.push({
+      level: "warning",
+      file,
+      message: `data-sources.json이 없어 ${elementLabel(element, index)}의 쪽 출처 '${paging.dataSourceKey}'를 확인하지 못했습니다.`
+    });
+    return;
+  }
+
+  // 쪽 번호는 목록이 스스로 넘기는 인자다. 출처가 그것을 받지 않으면 쪽을 넘겨도
+  // 같은 것이 돌아온다.
+  const listSource = dataSourceByKey.get(spec.dataSourceKey);
+  if (listSource && !(listSource.params ?? []).includes(paging.pageParam)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 쪽 인자 '${paging.pageParam}'가 데이터 출처 '${spec.dataSourceKey}'에 선언돼 있지 않습니다.`
+    });
+  }
+  if (isObject(spec.params) && paging.pageParam in spec.params) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}가 쪽 인자 '${paging.pageParam}'를 params에도 적었습니다. 쪽 번호는 목록 자신이 갖습니다.`
+    });
+  }
+
+  const source = dataSourceByKey.get(paging.dataSourceKey);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 쪽 출처 '${paging.dataSourceKey}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+  if (source.shape !== "object") {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 쪽 출처 '${paging.dataSourceKey}'는 shape가 'object'여야 하는데 '${source.shape}'입니다.`
+    });
+    return;
+  }
+
+  checkArgumentMap(findings, context, paging.params, paging.dataSourceKey);
+
+  const known = new Set((source.fields ?? []).map((field) => field.key));
+  for (const [what, field] of [
+    ["총 건수", paging.totalNoteField],
+    ["쪽 수", paging.pageCountField]
+  ]) {
+    if (typeof field === "string" && !known.has(field)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 ${what} 조각 '${field}'가 쪽 출처 '${paging.dataSourceKey}'에 없습니다.`
+      });
     }
   }
 }
@@ -1187,6 +1267,7 @@ export function collectSpecFindings({
       }
       if (spec_.type === "itemList") {
         checkListColumns(findings, context);
+        checkListPaging(findings, context);
       }
       if (spec_.type === "select") {
         checkOptionCounts(findings, context);
@@ -1198,7 +1279,8 @@ export function collectSpecFindings({
       for (const targetScreenId of [
         spec_.action?.targetScreenId,
         spec_.action?.onSuccess?.navigate,
-        spec_.itemAction?.targetScreenId
+        spec_.itemAction?.targetScreenId,
+        spec_.selection?.action?.targetScreenId
       ]) {
         if (
           typeof targetScreenId === "string" &&

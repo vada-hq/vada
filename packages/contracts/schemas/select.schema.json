@@ -88,11 +88,8 @@
           "minLength": 1
         },
         "params": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string",
-            "minLength": 1
-          }
+          "$ref": "element-params.schema.json#/$defs/argument",
+          "description": "선택지를 조회할 때 넘기는 인자(선택). key는 optionSource의 params에 선언된 이름이다. 예전에는 여기만 {인자: fieldKey}라는 다른 모양이었고, 그래서 **화면이 밖에서 받은 값(screenParam)으로 선택지를 좁힐 수 없었다** — 조회 인자는 어디서든 같은 물음이므로 같은 모양을 쓴다."
         }
       }
     },

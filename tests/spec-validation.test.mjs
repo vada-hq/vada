@@ -989,6 +989,159 @@ test("표의 열이 가리킨 조각이 데이터 출처에 없으면 오류다"
   assert.equal(findings.filter((f) => f.message.includes("'없는조각'")).length, 1);
 });
 
+// 쪽으로 나뉜 목록은 총 몇 건인지·몇 쪽인지를 자기가 말할 수 없다. 세 자리가
+// 어긋나면 쪽 버튼이 그려지긴 하는데 늘 한 쪽뿐이거나 없는 쪽으로 넘어간다.
+test("쪽 인자를 목록 출처가 받지 않으면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "itemList",
+            dataSourceKey: "p.list",
+            paging: {
+              source: "1:9",
+              pageParam: "page",
+              dataSourceKey: "p.paging",
+              totalNoteField: "totalNote",
+              pageCountField: "pageCount"
+            }
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "p.list",
+        shape: "list",
+        description: "참가자",
+        params: [],
+        fields: [{ key: "name", description: "이름" }]
+      },
+      {
+        key: "p.paging",
+        shape: "object",
+        description: "쪽",
+        params: [],
+        fields: [
+          { key: "totalNote", description: "총 몇 명" },
+          { key: "pageCount", description: "쪽 수" }
+        ]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(
+    findings.filter((f) => f.message.includes("쪽 인자 'page'")).length,
+    1
+  );
+});
+
+test("쪽 번호를 params에도 적으면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "itemList",
+            dataSourceKey: "p.list",
+            params: { page: { value: "1" } },
+            paging: {
+              source: "1:9",
+              pageParam: "page",
+              dataSourceKey: "p.paging",
+              totalNoteField: "totalNote",
+              pageCountField: "없는조각"
+            }
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "p.list",
+        shape: "list",
+        description: "참가자",
+        params: ["page"],
+        fields: [{ key: "name", description: "이름" }]
+      },
+      {
+        key: "p.paging",
+        shape: "object",
+        description: "쪽",
+        params: [],
+        fields: [{ key: "totalNote", description: "총 몇 명" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  // 쪽 번호는 목록 자신이 갖는다.
+  assert.equal(
+    findings.filter((f) => f.message.includes("params에도 적었습니다")).length,
+    1
+  );
+  // 쪽 수를 담은 조각이 출처에 없다.
+  assert.equal(
+    findings.filter((f) => f.message.includes("'없는조각'")).length,
+    1
+  );
+});
+
+// 선택지를 좁히는 인자도 조회 인자다. 예전에는 이 자리만 다른 모양이라 화면이
+// 밖에서 받은 값을 넘길 수 없었다.
+test("선택지 출처에 화면 인자를 넘길 수 있다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        params: [{ key: "eventId", valueType: "string", description: "어느 행사" }],
+        elements: [
+          element("1:2", {
+            type: "select",
+            fieldKey: "affiliation",
+            placeholder: "소속",
+            initialValue: null,
+            valueType: "string",
+            required: false,
+            initiallyDisabled: false,
+            searchable: false,
+            optionsSource: {
+              key: "p.affiliations",
+              params: { eventId: { screenParam: "eventId" } }
+            }
+          })
+        ]
+      }
+    }
+  ];
+  const optionSources = {
+    sources: [
+      {
+        key: "p.affiliations",
+        type: "remote",
+        description: "소속",
+        params: ["eventId"],
+        request: { method: "GET", path: "/x", loadOn: "open" },
+        messages: { idle: "a", loading: "b", empty: "c", error: "d" }
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, optionSources });
+  assert.deepEqual(findings, []);
+});
+
 test("한 조각이 두 열에 오면 오류다", () => {
   const screens = [
     {

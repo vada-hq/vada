@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { evaluateButtonExecution, hasFieldValue } from '../../../../packages/contracts/src/button-execution.mjs'
+import { resolveParams } from './params'
 import type { ButtonSpec, ScreenElement, SelectSpec } from './types'
 import type { ScopeDraft } from '../state/scopes'
 
@@ -17,9 +18,16 @@ interface UseFieldDraftOptions {
   elements: ScreenElement[]
   draft: ScopeDraft
   onChangeDraft: (next: ScopeDraft) => void
+  // 화면이 밖에서 받은 인자. 선택지를 그것으로 좁히는 화면에만 있다.
+  screenParams?: Record<string, string>
 }
 
-export function useFieldDraft({ elements, draft, onChangeDraft }: UseFieldDraftOptions) {
+export function useFieldDraft({
+  elements,
+  draft,
+  onChangeDraft,
+  screenParams,
+}: UseFieldDraftOptions) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const fieldRefs = useRef<Record<string, HTMLElement | null>>({})
 
@@ -67,15 +75,14 @@ export function useFieldDraft({ elements, draft, onChangeDraft }: UseFieldDraftO
     return spec.enabledWhen.every((condition) => hasFieldValue(draft.values[condition.fieldKey]))
   }
 
+  // 선택지를 조회할 때 넘기는 인자. 예전에는 여기만 {인자: fieldKey}라는 다른
+  // 모양을 손으로 풀었고, 그래서 화면이 밖에서 받은 값으로는 선택지를 좁힐 수
+  // 없었다. 이제 목록·요약과 같은 해석기를 쓴다.
   function resolveSourceParams(spec: SelectSpec): Record<string, string> {
-    const params: Record<string, string> = {}
-    for (const [param, fieldKey] of Object.entries(spec.optionsSource.params ?? {})) {
-      const value = draft.values[fieldKey]
-      if (typeof value === 'string') {
-        params[param] = value
-      }
-    }
-    return params
+    return resolveParams(spec.optionsSource.params, {
+      fields: draft.values,
+      screenParams,
+    })
   }
 
   function selectValue(fieldKey: string) {

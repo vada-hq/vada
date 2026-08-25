@@ -4,6 +4,7 @@ import { EVT02Screen } from './EVT02Screen'
 import { EVTDOC01Screen } from './EVTDOC01Screen'
 import { EVTMEET01Screen } from './EVTMEET01Screen'
 import { EVTSCHED01Screen } from './EVTSCHED01Screen'
+import { EVT04Screen } from './EVT04Screen'
 import { EVTTASK01Screen } from './EVTTASK01Screen'
 import { EVTTASK02Screen } from './EVTTASK02Screen'
 import { HOME01KScreen } from './HOME01KScreen'
@@ -98,6 +99,10 @@ export function ScreenRouter({
   if (screenId === 'EVT-SCHED-01') {
     // 행사 일정이다. 작업 공간의 다섯 번째 갈피이고, 어느 행사인지는 주소가 실어 온다.
     return <EVTSCHED01Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'EVT-04') {
+    // 행사 참가자 명단이다. 작업 공간의 여섯 번째 갈피이고, 어느 행사인지는 주소가 실어 온다.
+    return <EVT04Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'EVT-TASK-01') {
     // 행사 업무 보드다. 어느 행사인지는 화면 안에 없고 주소가 실어 온다.

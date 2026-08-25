@@ -28,8 +28,10 @@ function renderScreen(screenId: string) {
   )
 }
 
+// 라벨이 없는 필드가 있다 — 디자인에 라벨 노드가 없는 컨트롤이다. 그때 이 컨트롤을
+// 부르는 말은 안내 문구다(EVT-04의 거르기 넷은 빈 네모라 '소속'조차 그려져 있지 않다).
 function accessibleName(spec: FieldSpec) {
-  return `${spec.label}${spec.required ? '*' : ''}`
+  return `${spec.label ?? spec.placeholder ?? ''}${spec.required ? '*' : ''}`
 }
 
 function listsOf(spec: ScreenSpec): ListSpec[] {

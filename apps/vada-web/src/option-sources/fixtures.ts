@@ -55,3 +55,30 @@ export const DEPARTMENTS: Record<string, Option[]> = {
   'sch-004:col-402': [{ value: 'dep-13', label: '컴퓨터공학과' }],
   'sch-005:col-501': [{ value: 'dep-14', label: '도시행정학과' }],
 }
+
+// 행사 참가자를 거르는 선택지 넷. 디자인에는 빈 드롭다운으로만 있고, 무엇이 오는지는
+// 그 행사에 실제로 신청한 사람과 조직이 정한 상태 목록이 정한다.
+export const PARTICIPANT_AFFILIATIONS: Record<string, Option[]> = {
+  'E-01': [
+    { value: '컴퓨터학부', label: '컴퓨터학부' },
+    { value: 'ICT융합학부', label: 'ICT융합학부' },
+    { value: '인공지능학과', label: '인공지능학과' },
+  ],
+}
+
+export const PARTICIPANT_APPLY_STATUS: Option[] = [
+  { value: '신청 완료', label: '신청 완료' },
+  { value: '대기 중', label: '대기 중' },
+]
+
+export const PARTICIPANT_PAY_STATUS: Option[] = [
+  { value: '납부 확인', label: '납부 확인' },
+  { value: '미납', label: '미납' },
+  { value: '미확인', label: '미확인' },
+]
+
+export const PARTICIPANT_ATTEND_STATUS: Option[] = [
+  { value: '참석', label: '참석' },
+  { value: '불참', label: '불참' },
+  { value: '미확인', label: '미확인' },
+]

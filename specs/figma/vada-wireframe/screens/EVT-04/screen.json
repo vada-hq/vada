@@ -1,0 +1,363 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-04",
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-01",
+      "description": "어느 행사의 참가자인지. 작업 공간의 갈피를 옮겨 들어올 때 그 행사가 정한다."
+    }
+  ],
+  "workspace": {
+    "key": "event",
+    "source": {
+      "tabs": "20:7628",
+      "status": "20:7650"
+    }
+  },
+  "meta": {
+    "eyebrow": "운영 · 행사 · 인원 관리",
+    "title": "행사 참가자"
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:7510",
+    "name": "운영 — 행사 · EVT-04 · 행사 참가자 명단",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:7605",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "참여 희망 조사 생성",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "참여 설문을 만드는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7607",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "참석 확인 QR",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "참석 확인 QR 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7622",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "명단 내보내기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "명단을 내보내는 방법이 아직 정해지지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7671",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "기본정보 수정",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사 기본정보를 고치는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7673",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "행사 시작",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "행사를 시작하는 확인 절차가 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7677",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "peopleTab",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "participants",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.peopleTab"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7689",
+        "name": "Text Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "participantQuery",
+        "label": "이름, 학번 검색",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7691",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "participantAffiliation",
+        "placeholder": "소속",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.participantAffiliations",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7695",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "participantApplyStatus",
+        "placeholder": "신청 상태",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.participantApplyStatus",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7699",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "participantPayStatus",
+        "placeholder": "입금 상태",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.participantPayStatus",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7703",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "participantAttendStatus",
+        "placeholder": "참석 상태",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.participantAttendStatus",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7707",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "event.participants",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          },
+          "query": {
+            "fieldKey": "participantQuery"
+          },
+          "affiliation": {
+            "fieldKey": "participantAffiliation"
+          },
+          "applyStatus": {
+            "fieldKey": "participantApplyStatus"
+          },
+          "payStatus": {
+            "fieldKey": "participantPayStatus"
+          },
+          "attendStatus": {
+            "fieldKey": "participantAttendStatus"
+          }
+        },
+        "paging": {
+          "source": "20:7864",
+          "pageParam": "page",
+          "dataSourceKey": "event.participantPaging",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            },
+            "query": {
+              "fieldKey": "participantQuery"
+            },
+            "affiliation": {
+              "fieldKey": "participantAffiliation"
+            },
+            "applyStatus": {
+              "fieldKey": "participantApplyStatus"
+            },
+            "payStatus": {
+              "fieldKey": "participantPayStatus"
+            },
+            "attendStatus": {
+              "fieldKey": "participantAttendStatus"
+            }
+          },
+          "totalNoteField": "totalNote",
+          "pageCountField": "pageCount"
+        },
+        "columns": [
+          {
+            "label": "이름",
+            "fields": [
+              "name"
+            ]
+          },
+          {
+            "label": "학번",
+            "fields": [
+              "studentNo"
+            ]
+          },
+          {
+            "label": "소속",
+            "fields": [
+              "affiliation"
+            ]
+          },
+          {
+            "label": "신청 상태",
+            "fields": [
+              "applyStatus"
+            ]
+          },
+          {
+            "label": "입금 상태",
+            "fields": [
+              "payStatus"
+            ]
+          },
+          {
+            "label": "참석 상태",
+            "fields": [
+              "attendStatus"
+            ]
+          }
+        ],
+        "itemAction": {
+          "type": "pending",
+          "label": "참가자 메뉴 열기",
+          "note": "참가자 한 명에게 할 수 있는 일이 아직 명세되지 않았습니다."
+        },
+        "selection": {
+          "action": {
+            "type": "pending",
+            "label": "고른 참가자에게",
+            "note": "고른 참가자에게 할 수 있는 일이 아직 명세되지 않았습니다."
+          }
+        }
+      }
+    }
+  ]
+}
