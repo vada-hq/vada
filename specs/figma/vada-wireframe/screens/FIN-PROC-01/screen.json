@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "screenId": "FIN-PROC-01",
+  "activeNavigationScreenId": "OPS-00",
   "params": [
     {
       "key": "requestId",

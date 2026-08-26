@@ -65,7 +65,7 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
     return (
       <AppShell
         screenId={finReq02.screenId}
-        activeNavigationScreenId="OPS-00"
+        activeNavigationScreenId={finReq02.activeNavigationScreenId}
         title={title}
         eyebrow={meta.eyebrow}
         description={meta.description}
@@ -100,7 +100,7 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
     return (
       <AppShell
         screenId={finReq02.screenId}
-        activeNavigationScreenId="OPS-00"
+        activeNavigationScreenId={finReq02.activeNavigationScreenId}
         title={title}
         eyebrow={meta.eyebrow}
         description={meta.description}
@@ -172,7 +172,7 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
   return (
     <AppShell
       screenId={finReq02.screenId}
-      activeNavigationScreenId="OPS-00"
+      activeNavigationScreenId={finReq02.activeNavigationScreenId}
       title={title}
       eyebrow={meta.eyebrow}
       description={meta.description}

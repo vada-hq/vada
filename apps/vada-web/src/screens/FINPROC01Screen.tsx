@@ -71,8 +71,7 @@ function ScreenFrame({
   return (
     <AppShell
       screenId={finProc01.screenId}
-      // 최상위 메뉴 소속을 담는 스키마 자리가 없어 design에서 켜진 '운영'을 따른다.
-      activeNavigationScreenId="OPS-00"
+      activeNavigationScreenId={finProc01.activeNavigationScreenId}
       eyebrow={finProc01.meta.eyebrow}
       title={finProc01.meta.title}
       description={finProc01.meta.description}

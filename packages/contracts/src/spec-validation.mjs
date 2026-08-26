@@ -1778,6 +1778,29 @@ export function collectSpecFindings({
         .filter((key) => typeof key === "string")
     );
 
+    // 셸의 어느 메뉴 아래인지. 갈피의 activeTabScreenId와 같은 축이고, 가리키는
+    // 화면이 실제로 메뉴여야 켜진다.
+    if (typeof spec.activeNavigationScreenId === "string") {
+      if (spec.activeNavigationScreenId === spec.screenId) {
+        findings.push({
+          level: "error",
+          file,
+          message: `activeNavigationScreenId가 이 화면 자신을 가리킵니다. 메뉴가 가리키는 화면이면 적지 않습니다.`
+        });
+      } else if (isObject(shell) && Array.isArray(shell.navigation)) {
+        const menu = shell.navigation.filter(
+          (item) => item?.targetScreenId === spec.activeNavigationScreenId
+        );
+        if (menu.length === 0) {
+          findings.push({
+            level: "error",
+            message: `activeNavigationScreenId '${spec.activeNavigationScreenId}'를 가리키는 셸 메뉴가 없습니다. 켜질 메뉴가 없으면 적을 뜻이 없습니다.`,
+            file
+          });
+        }
+      }
+    }
+
     checkParamMissingNotes(findings, file, spec);
     checkBreadcrumb(findings, file, spec, {
       dataSources,

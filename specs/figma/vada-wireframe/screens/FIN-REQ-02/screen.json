@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "screenId": "FIN-REQ-02",
+  "activeNavigationScreenId": "OPS-00",
   "params": [
     {
       "key": "requestId",
@@ -18,12 +19,24 @@
       }
     },
     "items": [
-      { "value": "운영" },
-      { "value": "행사" },
-      { "field": "eventName" },
-      { "value": "재정" },
-      { "value": "내 구매 요청" },
-      { "field": "code" }
+      {
+        "value": "운영"
+      },
+      {
+        "value": "행사"
+      },
+      {
+        "field": "eventName"
+      },
+      {
+        "value": "재정"
+      },
+      {
+        "value": "내 구매 요청"
+      },
+      {
+        "field": "code"
+      }
     ]
   },
   "meta": {

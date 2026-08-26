@@ -402,6 +402,10 @@ export interface ScreenSpec {
   schemaVersion: number
   screenId: string
   stateScopeKey?: string
+  // 셸의 어느 최상위 메뉴 아래에 있는지. 메뉴가 가리키는 화면 자신은 갖지
+  // 않는다 - 자기 id로 찾으면 되기 때문이다. workspace.activeTabScreenId와
+  // 같은 축이고, 저것은 갈피, 이것은 셸의 메뉴다.
+  activeNavigationScreenId?: string
   // 이 화면이 밖에서 받는 인자. 상세 화면만 갖는다 — 무엇의 상세인지는 화면
   // 안에 없기 때문이다.
   params?: ScreenParam[]
