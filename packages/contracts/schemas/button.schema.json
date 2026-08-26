@@ -196,19 +196,61 @@
           "description": "pending 전용. 무엇이 정해지지 않았는지. 대상 화면 id를 지어내면 그건 추측이고, 실제 화면이 등록될 때 전부 틀린 것으로 드러난다."
         },
         "executeWhen": {
-          "description": "생략하면 버튼은 조건 없이 항상 실행됩니다(예: 필수 입력이 없는 화면의 버튼, 뒤로 가기). 명시하면 onExecutionBlocked도 함께 명시해야 합니다.",
+          "description": "생략하면 버튼은 조건 없이 항상 실행됩니다. 명시하면 onExecutionBlocked도 함께 명시해야 합니다.\n\n판정의 종류는 둘이고 **둘 다 이름 붙은 것**이다 — 식을 적을 수 있게 만들면 명세가 프로그램이 된다.\n· allRequiredFieldsHaveValue: 이 화면의 필수 칸이 다 찼는가. 화면이 안다.\n· sourceAllows: **서버가 막았는가.** 조직의 규칙이 정하는 조건은 화면이 셀 수 없다.",
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "type",
-            "scope"
+            "type"
+          ],
+          "oneOf": [
+            {
+              "properties": {
+                "type": {
+                  "const": "allRequiredFieldsHaveValue"
+                }
+              },
+              "required": [
+                "type",
+                "scope"
+              ]
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "sourceAllows"
+                }
+              },
+              "required": [
+                "type",
+                "dataSourceKey",
+                "blockedNoteField"
+              ]
+            }
           ],
           "properties": {
             "type": {
-              "const": "allRequiredFieldsHaveValue"
+              "enum": [
+                "allRequiredFieldsHaveValue",
+                "sourceAllows"
+              ]
             },
             "scope": {
-              "const": "screen"
+              "const": "screen",
+              "description": "allRequiredFieldsHaveValue 전용."
+            },
+            "dataSourceKey": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "description": "sourceAllows 전용. 막을지 말지를 아는 출처. shape가 object여야 한다."
+            },
+            "params": {
+              "$ref": "element-params.schema.json#/$defs/argument",
+              "description": "sourceAllows 전용. 한 건을 집어 올 때 넘기는 인자(선택)."
+            },
+            "blockedNoteField": {
+              "type": "string",
+              "minLength": 1,
+              "description": "sourceAllows 전용. **막은 이유가 담긴 조각**의 key. 그 조각에 글이 있으면 막히고 그 글이 이유이며, 비어 있으면 열린다.\n\n무엇이 '다 됐다'인지는 조직의 규칙이라 화면이 셀 수 없다 — 결제·증빙에서 영수증만 있으면 되는 결제도 있고 세금계산서까지 있어야 하는 결제도 있다. 화면이 그것을 세면 재정 규칙이 화면에 적히게 된다(금액을 서버가 셈하는 것과 같은 이유다).\n\n막는 글도 서버가 준다. 명세가 '증빙 2건이 비었습니다'를 지어내면 몇 건인지를 화면이 세는 셈이 된다."
             }
           }
         },
@@ -217,15 +259,19 @@
           "type": "object",
           "additionalProperties": false,
           "required": [
-            "type",
-            "focus"
+            "type"
           ],
           "properties": {
             "type": {
-              "const": "showMissingRequiredFields"
+              "enum": [
+                "showMissingRequiredFields",
+                "showBlockedNote"
+              ],
+              "description": "무엇을 드러내는가. showMissingRequiredFields=빈 필수 칸을 짚는다(화면이 아는 것). showBlockedNote=서버가 준 이유를 그대로 보여준다(화면이 모르는 것)."
             },
             "focus": {
-              "const": "firstMissingField"
+              "const": "firstMissingField",
+              "description": "showMissingRequiredFields 전용 — 서버가 막은 것에는 짚을 칸이 없다."
             }
           }
         }

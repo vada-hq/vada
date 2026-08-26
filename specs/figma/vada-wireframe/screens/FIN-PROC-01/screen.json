@@ -166,8 +166,13 @@
         "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "결제·증빙을 정리하는 화면이 아직 명세되지 않았습니다. 이 버튼이 단계를 옮기는 일까지 하는지도 정해지지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "FIN-EVID-01",
+          "params": {
+            "requestId": {
+              "screenParam": "requestId"
+            }
+          }
         }
       }
     }

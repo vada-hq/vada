@@ -100,7 +100,12 @@ export function FINREV01Screen({ screenParams, onNavigate }: FINREV01ScreenProps
   const table = elementByNodeId(finRev01, NODE.table).spec as ItemListSpec
   const rows = readListSource(table.dataSourceKey, resolveParams(table.params, { screenParams }))
   const tableSource = findDataSource(table.dataSourceKey)
-  const listKey = table.fieldKey ?? table.dataSourceKey
+  // 고칠 것이 있는 목록은 모은 값의 이름을 갖는다(itemList.fieldKey). 없으면
+  // 그 값들을 아무도 가리킬 수 없다.
+  const listKey = table.fieldKey
+  if (listKey === undefined) {
+    throw new Error('FIN-REV-01의 품목 표에 fieldKey가 없습니다. 고친 값을 담을 이름이 없습니다.')
+  }
 
   const itemFieldAt = (nodeId: string) => {
     const found = (table.itemFields ?? []).find((element) => element.source.nodeId === nodeId)
@@ -146,7 +151,9 @@ export function FINREV01Screen({ screenParams, onNavigate }: FINREV01ScreenProps
     rows.some((row) => valueOf(row, swap.fieldKey) === swap.value)
   const sendLabel = swapped && swap !== undefined ? swap.label : send.label
 
-  function setValue(row: DataRow, fieldKey: string, next: string) {
+  // 함수 선언은 끌어올려지므로 위의 판정이 미치지 않는다. listKey가 정해진 뒤의
+  // 화살표 함수라야 그 좁힌 타입을 그대로 쓴다.
+  const setValue = (row: DataRow, fieldKey: string, next: string) => {
     setValues((before) => ({ ...before, [valueKey(listKey, scalar(row, 'id'), fieldKey)]: next }))
   }
 

@@ -1,0 +1,239 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-EVID-01",
+  "activeNavigationScreenId": "OPS-00",
+  "params": [
+    {
+      "key": "requestId",
+      "example": "PR-2026-0031",
+      "missingNote": "어떤 요청의 결제·증빙인지 정하지 않고 열렸습니다. 구매·발주 처리에서 '결제·증빙 단계로 이동'을 누르면 이 화면이 열립니다.",
+      "description": "어느 구매 요청의 결제·증빙인지. 앞 화면(FIN-PROC-01)이 정한다. 어느 결제인지는 받지 않는다 - 한 요청이 여러 결제로 갈리고, 그 갈래를 아는 것은 서버다."
+    }
+  ],
+  "breadcrumb": {
+    "source": "30:1837",
+    "dataSourceKey": "finance.paymentEvidenceSummary",
+    "params": {
+      "requestId": {
+        "screenParam": "requestId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "행사"
+      },
+      {
+        "field": "eventName"
+      },
+      {
+        "value": "재정"
+      },
+      {
+        "value": "결제·증빙 정리"
+      }
+    ]
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "결제·증빙 정리",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:1763",
+    "name": "운영 — 행사 · 재정 · FIN-EVID-01 · 결제·증빙 정리",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:1865",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "eyebrowField": "code",
+        "status": {
+          "field": "status",
+          "toneField": "statusTone"
+        },
+        "titleField": "title",
+        "descriptionField": "requesterNote",
+        "dataSourceKey": "finance.paymentEvidenceSummary",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "items": [
+          {
+            "label": "승인 금액",
+            "field": "approvedAmountNote"
+          },
+          {
+            "label": "실결제 합계",
+            "field": "paidAmountNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1887",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "finance.paymentEvidences",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:1889",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "titleField": "vendor",
+              "descriptionField": "paidNote"
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1894",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "titleField": "amountNote",
+              "descriptionField": "gapNote"
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1899",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "itemList",
+              "title": "연결된 품목",
+              "itemsField": "items",
+              "columns": [
+                {
+                  "fields": [
+                    "name"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1908",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "itemList",
+              "title": "증빙 서류",
+              "itemsField": "documents",
+              "columns": [
+                {
+                  "fields": [
+                    "label"
+                  ]
+                },
+                {
+                  "fields": [
+                    "status"
+                  ],
+                  "toneField": "statusTone"
+                }
+              ]
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1922",
+              "name": "Button:margin",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "button",
+              "label": "파일 추가",
+              "emphasis": "quiet",
+              "initiallyDisabled": false,
+              "action": {
+                "type": "pending",
+                "note": "파일을 올리는 자리가 아직 명세되지 않았습니다."
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2012",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "저장",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "무엇을 저장하는지가 아직 정해지지 않았습니다. 이 화면에서 사람이 고치는 값이 없습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2014",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "처리 완료",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "finance.purchaseRequest.completeEvidence",
+          "onSuccess": {
+            "navigate": "FIN-REQ-02"
+          },
+          "executeWhen": {
+            "type": "sourceAllows",
+            "dataSourceKey": "finance.paymentEvidenceSummary",
+            "params": {
+              "requestId": {
+                "screenParam": "requestId"
+              }
+            },
+            "blockedNoteField": "completeBlockedNote"
+          },
+          "onExecutionBlocked": {
+            "type": "showBlockedNote"
+          }
+        }
+      }
+    }
+  ]
+}

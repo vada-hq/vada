@@ -35,7 +35,13 @@ interface DataSourceCatalog {
 
 const catalog = catalogJson as DataSourceCatalog
 
-export function findDataSource(key: string): DataSource {
+// 이름이 없는 채로 물으면 조용히 빈 것을 돌려주는 대신 드러낸다. 안쪽 목록은
+// 조회하지 않으므로(itemList.itemsField) dataSourceKey가 없고, 그것을 여기까지
+// 들고 오면 명세를 잘못 읽은 것이다.
+export function findDataSource(key: string | undefined): DataSource {
+  if (key === undefined) {
+    throw new Error('데이터 출처 이름이 없습니다. 조회하지 않는 목록을 조회하려 했습니다.')
+  }
   const source = catalog.sources.find((candidate) => candidate.key === key)
   if (!source) {
     // 조용한 대체는 화면을 빈 채로 두고 원인을 감춘다.
@@ -55,7 +61,7 @@ export const NOT_FOUND = Symbol('데이터 없음')
 // 개발용 mock. 실제 응답이 붙기 전까지 fixtures가 대신하며, 카탈로그가 선언한
 // fields와 어긋나면 조용히 비는 대신 오류로 드러난다.
 export function readDataSource(
-  key: string,
+  key: string | undefined,
   params: Record<string, string> = {},
 ): DataRow | DataRow[] | typeof NOT_FOUND {
   const source = findDataSource(key)
@@ -72,10 +78,11 @@ export function readDataSource(
 
   // 인자로 거르는 응답은 목록으로 만들어 두고, shape가 object면 첫 줄을 집는다.
   // 한 건을 집어 오는 것도 거르는 일이라 자리를 따로 만들지 않는다.
-  const filtered = FILTERED_FIXTURES[key]
+  // findDataSource가 이미 이름을 확인했다. 그 결과가 가진 key를 쓰면 다시 좁힐 일이 없다.
+  const filtered = FILTERED_FIXTURES[source.key]
   let fixture: DataRow | DataRow[] | undefined
   if (filtered === undefined) {
-    fixture = DASHBOARD_FIXTURES[key]
+    fixture = DASHBOARD_FIXTURES[source.key]
   } else {
     const rows = filtered(params)
     // 인자로 거른 결과가 비면 그것은 '개발용 응답이 없다'가 아니라 **찾지 못했다**다.
@@ -132,7 +139,7 @@ export function readDataSource(
 }
 
 export function readObjectSource(
-  key: string,
+  key: string | undefined,
   params: Record<string, string> = {},
 ): DataRow {
   const value = readDataSource(key, params)
@@ -149,7 +156,7 @@ export function readObjectSource(
 // 인자가 가리키는 한 건이 없을 수 있는 자리. 상세 화면이 그렇다 — 주소로 아무
 // 값이나 들어올 수 있고, 그때 화면은 터지는 대신 못 찾았다고 말해야 한다.
 export function readObjectSourceOrNull(
-  key: string,
+  key: string | undefined,
   params: Record<string, string> = {},
 ): DataRow | null {
   const value = readDataSource(key, params)
@@ -163,7 +170,7 @@ export function readObjectSourceOrNull(
 }
 
 export function readListSource(
-  key: string,
+  key: string | undefined,
   params: Record<string, string> = {},
 ): DataRow[] {
   const value = readDataSource(key, params)

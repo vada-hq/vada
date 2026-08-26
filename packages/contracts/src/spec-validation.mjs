@@ -194,6 +194,33 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       registered.add(source);
     }
   }
+  // 되풀이되는 요소는 **첫 사본의 노드만** 등록한다(itemFields 계약). 그런데 디자인이
+  // 사본을 형제로 나란히 그리면 둘째부터의 상호작용이 등록 밖이 된다 - FIN-EVID-01의
+  // 결제 묶음 셋이 각각 '파일 추가'를 갖는 자리가 그렇다.
+  //
+  // 임자 없는 형제는 사본으로 본다: 명세가 임자를 밝힌 형제는 그 임자의 것이고(등록됐거나
+  // 등록된 것을 품거나), 아무도 안 챙긴 같은 이름의 형제는 되풀이되는 틀의 다른 사본이다.
+  const repeatedSources = new Set();
+  for (const { element } of allElementsOf(spec)) {
+    if (Array.isArray(element?.spec?.itemFields) && typeof element.source?.nodeId === "string") {
+      repeatedSources.add(element.source.nodeId);
+    }
+  }
+  const copies = new Set();
+  const markCopies = (node) => {
+    const children = Array.isArray(node?.children) ? node.children : [];
+    const first = children.find((child) => repeatedSources.has(child.id));
+    if (first) {
+      for (const sibling of children) {
+        if (sibling.id === first.id) continue;
+        if (sibling.name !== first.name) continue;
+        if (registered.has(sibling.id) || holdsRegistered(sibling)) continue;
+        copies.add(sibling.id);
+      }
+    }
+    for (const child of children) markCopies(child);
+  };
+
   const isInteraction = (node) =>
     DRAFT_SIGNALS.BUTTON_NAME_PATTERN.test(node.name ?? "") ||
     DRAFT_SIGNALS.CONTROL_NAMES.has(node.name ?? "");
@@ -207,12 +234,14 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       (child) => registered.has(child.id) || holdsRegistered(child)
     );
 
+  markCopies(design.root);
+
   const walk = (node, covered) => {
     for (const child of Array.isArray(node?.children) ? node.children : []) {
       if (excluded.has(child.name) && !holdsRegistered(child)) {
         continue;
       }
-      const inside = covered || registered.has(child.id);
+      const inside = covered || registered.has(child.id) || copies.has(child.id);
       if (!inside && isInteraction(child)) {
         const drawn = collectSubtreeText(child).join("").trim();
         if (drawn) {
@@ -983,6 +1012,10 @@ function checkDataSource(findings, context) {
   const key = spec.dataSourceKey;
 
   if (typeof key !== "string") {
+    // 안쪽 목록은 조회하지 않는다. 항목이 바깥 항목의 조각에서 오므로 출처가 없다.
+    if (typeof spec.itemsField === "string") {
+      return;
+    }
     // 되풀이되는 묶음 안에서는 출처를 다시 적지 않는다. 항목 하나가 곧 그 값이고,
     // 목록이 이미 어디서 오는지 말했다 — 안쪽마다 같은 출처를 되풀이해 적게 하면
     // 둘이 갈릴 자리가 생긴다.
@@ -1137,6 +1170,39 @@ function checkListColumns(findings, context) {
   const columns = spec.columns;
 
   if (!Array.isArray(columns) || !isObject(dataSources)) {
+    return;
+  }
+
+  // 안쪽 목록은 조회하지 않는다. 항목이 바깥 항목의 조각에서 오므로, 열도 그 조각의
+  // fields로 견줘야 한다.
+  if (typeof spec.itemsField === "string") {
+    const outer = isObject(context.inList) ? dataSourceByKey.get(context.inList.dataSourceKey) : null;
+    if (!outer) {
+      return;
+    }
+    const nested = (outer.fields ?? []).find((field) => field.key === spec.itemsField);
+    if (!nested || !Array.isArray(nested.fields)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 가리킨 조각 '${spec.itemsField}'가 바깥 항목에 없거나 fields를 갖지 않습니다. 안쪽 목록의 항목은 그 조각에서 옵니다.`
+      });
+      return;
+    }
+    const knownInner = new Set(nested.fields.map((field) => field.key));
+    columns.forEach((column, at) => {
+      for (const name of [...(column?.fields ?? []), column?.toneField].filter(
+        (candidate) => typeof candidate === "string"
+      )) {
+        if (!knownInner.has(name)) {
+          findings.push({
+            level: "error",
+            file,
+            message: `${elementLabel(element, index)}의 ${at + 1}번째 열이 가리킨 조각 '${name}'가 '${spec.itemsField}'에 없습니다.`
+          });
+        }
+      }
+    });
     return;
   }
 

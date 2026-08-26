@@ -6,8 +6,7 @@
   "type": "object",
   "additionalProperties": false,
   "required": [
-    "type",
-    "dataSourceKey"
+    "type"
   ],
   "properties": {
     "type": {
@@ -27,6 +26,11 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
       "description": "data-sources.json 카탈로그의 key. shape가 list인 출처여야 한다."
+    },
+    "itemsField": {
+      "type": "string",
+      "minLength": 1,
+      "description": "이 목록의 항목이 **바깥 항목의 조각에서 온다**는 선언(선택). dataSourceKey 대신 쓴다 - 조회하지 않기 때문이다.\n\n되풀이되는 묶음 안에 목록이 또 있는 자리다. 결제·증빙에서 결제 하나는 '연결된 품목'과 '증빙 서류' 두 목록을 갖는데, 둘 다 그 결제와 함께 이미 와 있다. 따로 조회하면 결제마다 두 번씩 더 물어야 하고, 무엇보다 **그 목록은 그 결제의 일부이지 따로 있는 것이 아니다.**\n\ngroup.itemsField와 같은 말이다. 다른 것은 가리키는 자리뿐이다 - 저것은 한 요소가 묶음과 항목을 함께 그릴 때이고, 이것은 안쪽 목록이 따로 요소일 때다.\n\n**itemFields 안에서만 쓸 수 있다.** 바깥 항목이 없는 자리에서는 가리킬 조각이 없다."
     },
     "params": {
       "$ref": "element-params.schema.json#/$defs/argument",
@@ -264,5 +268,17 @@
         }
       }
     }
-  }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "dataSourceKey"
+      ]
+    },
+    {
+      "required": [
+        "itemsField"
+      ]
+    }
+  ]
 }

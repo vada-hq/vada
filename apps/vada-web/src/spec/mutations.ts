@@ -27,8 +27,8 @@ export function asMutationCatalog(json: unknown): { mutations: Mutation[] } {
     if (!mutation.request?.method || !mutation.request?.path) {
       throw new Error(`'${mutation.key}'에 request.method와 request.path가 필요합니다.`)
     }
-    if (typeof mutation.payloadScope !== 'string' || !mutation.payloadScope) {
-      throw new Error(`'${mutation.key}'에 payloadScope가 필요합니다.`)
+    if (mutation.payloadScope !== undefined && !mutation.payloadScope) {
+      throw new Error(`'${mutation.key}'의 payloadScope가 비었습니다. 없으면 아예 적지 않습니다.`)
     }
   }
   return { mutations: mutations as Mutation[] }

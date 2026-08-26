@@ -78,6 +78,18 @@
         "submitting": "검토 결과를 보내는 중입니다",
         "error": "검토 결과를 보내지 못했습니다"
       }
+    },
+    {
+      "key": "finance.purchaseRequest.completeEvidence",
+      "description": "결제·증빙 정리를 끝내고 요청을 처리 완료로 옮긴다",
+      "request": {
+        "method": "POST",
+        "path": "/api/ops/finance/purchase-requests/evidence/complete"
+      },
+      "messages": {
+        "submitting": "처리를 끝내는 중입니다",
+        "error": "처리를 끝내지 못했습니다"
+      }
     }
   ]
 }

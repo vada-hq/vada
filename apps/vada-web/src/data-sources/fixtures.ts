@@ -1260,6 +1260,71 @@ const PURCHASE_ORDERS: Record<string, DataRow[]> = {
   ],
 }
 
+
+// 결제·증빙. 묶음 하나가 결제 하나이고, 연결된 품목과 증빙 서류가 그 결제와 함께
+// 온다 - 따로 있는 것이 아니라 그 결제의 일부다.
+//
+// 실결제 합계가 승인 금액보다 2,500원 많다. 초과를 어떻게 처리할지는 조직의 재정
+// 규칙이라 이 화면은 사실만 적고 막지 않는다(사람이 확인했다).
+const PAYMENT_EVIDENCE_SUMMARIES: Record<string, DataRow> = {
+  'PR-2026-0031': {
+    eventName: '2026 소프트웨어융합대학 체육대회',
+    code: 'REQ-001',
+    status: '증빙 정리 중',
+    statusTone: 'blue',
+    title: '체육대회 운영 물품 4종',
+    requesterNote: '운영부 · 박해랑',
+    approvedAmountNote: '135,000원',
+    paidAmountNote: '137,500원',
+    // 증빙 둘이 비어 있으므로 아직 끝낼 수 없다. 무엇이 '다 됐다'인지는 서버가 안다.
+    completeBlockedNote: '증빙 서류 2건이 아직 등록되지 않았습니다.',
+  },
+}
+
+const PAYMENT_EVIDENCES: Record<string, DataRow[]> = {
+  'PR-2026-0031': [
+    {
+      id: 'PAY-01',
+      vendor: '다이소 온라인몰',
+      paidNote: '결제일 2026-03-08 · 결제자 김바다 · 법인카드',
+      amountNote: '승인 25,000원 → 실결제 24,500원',
+      gapNote: '실결제액이 승인액보다 500원 적음',
+      items: [
+        { id: 'POI-01', name: '박스테이프' },
+        { id: 'POI-02', name: '유성 마커' },
+      ],
+      documents: [
+        { id: 'DOC-01', label: '영수증', status: '등록 완료', statusTone: 'green' },
+        { id: 'DOC-02', label: '거래명세서', status: '등록 완료', statusTone: 'green' },
+      ],
+    },
+    {
+      id: 'PAY-02',
+      vendor: '마켓컬리 B2B',
+      paidNote: '결제일 2026-03-10 · 결제자 김바다 · 계좌이체',
+      amountNote: '승인 50,000원 → 실결제 50,000원',
+      items: [{ id: 'POI-03', name: '생수 500ml' }],
+      documents: [
+        { id: 'DOC-03', label: '영수증', status: '누락', statusTone: 'red' },
+        { id: 'DOC-04', label: '거래명세서', status: '등록 완료', statusTone: 'green' },
+      ],
+    },
+    {
+      id: 'PAY-03',
+      vendor: '인쇄업체 A',
+      paidNote: '결제일 2026-03-13 · 결제자 김바다 · 계좌이체',
+      amountNote: '승인 60,000원 → 실결제 63,000원',
+      gapNote: '견적서 대비 최종 납품가 3,000원 초과',
+      items: [{ id: 'POI-04', name: '이름표 용지 (제작)' }],
+      documents: [
+        { id: 'DOC-05', label: '견적서', status: '등록 완료', statusTone: 'green' },
+        { id: 'DOC-06', label: '거래명세서', status: '등록 완료', statusTone: 'green' },
+        { id: 'DOC-07', label: '세금계산서', status: '누락', statusTone: 'red' },
+      ],
+    },
+  ],
+}
+
 const TASK_DETAILS: Record<string, DataRow> = {
   'T-03': {
     code: 'T-03',
@@ -1777,6 +1842,11 @@ export const FILTERED_FIXTURES: Record<
     PURCHASE_REQUEST_DETAILS[requestId] ? [PURCHASE_REQUEST_DETAILS[requestId]] : [],
   'finance.purchaseRequestItems': ({ requestId = '' }) =>
     PURCHASE_REQUEST_RESULTS[requestId] ?? [],
+  'finance.paymentEvidenceSummary': ({ requestId = '' }) => {
+    const row = PAYMENT_EVIDENCE_SUMMARIES[requestId]
+    return row === undefined ? [] : [row]
+  },
+  'finance.paymentEvidences': ({ requestId = '' }) => PAYMENT_EVIDENCES[requestId] ?? [],
   'finance.purchaseOrderSummary': ({ requestId = '' }) => {
     const row = PURCHASE_ORDER_SUMMARIES[requestId]
     return row === undefined ? [] : [row]

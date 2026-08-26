@@ -34,6 +34,7 @@ import finReq02Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REQ
 import myReq01Json from '../../../../specs/figma/vada-wireframe/screens/MY-REQ-01/screen.json'
 import finSup01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-SUP-01/screen.json'
 import finRev01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REV-01/screen.json'
+import finEvid01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-EVID-01/screen.json'
 import finProc01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-PROC-01/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
@@ -76,6 +77,7 @@ export const finReq02 = asScreenSpec(finReq02Json)
 export const myReq01 = asScreenSpec(myReq01Json)
 export const finSup01 = asScreenSpec(finSup01Json)
 export const finRev01 = asScreenSpec(finRev01Json)
+export const finEvid01 = asScreenSpec(finEvid01Json)
 export const finProc01 = asScreenSpec(finProc01Json)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
@@ -106,6 +108,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   myReq01,
   finSup01,
   finRev01,
+  finEvid01,
   finProc01,
 ]
 

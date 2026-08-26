@@ -2533,6 +2533,137 @@
           ]
         }
       ]
+    },
+    {
+      "key": "finance.paymentEvidenceSummary",
+      "shape": "object",
+      "description": "결제·증빙 단계에 있는 요청의 머리. 승인 금액과 실결제 합계가 따로 온다 - **둘이 다를 수 있고, 그 차이가 이 단계에서 드러나는 것**이 이 화면의 일이다.\n\n끝낼 수 있는지도 서버가 안다. 무엇이 '증빙이 다 모인 것'인지는 조직의 규칙이라 화면이 셀 수 없다 - 영수증만 있으면 되는 결제도 있고 세금계산서까지 있어야 하는 결제도 있다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/evidence/summary"
+      },
+      "messages": {
+        "loading": "결제·증빙을 불러오는 중입니다",
+        "empty": "결제·증빙 중인 요청이 없습니다",
+        "error": "결제·증빙을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "eventName",
+          "description": "어느 행사의 요청인지. 빵부스러기가 그 행사를 가리킨다. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "code",
+          "description": "요청 번호. 예: REQ-001"
+        },
+        {
+          "key": "status",
+          "description": "지금 어느 단계인지. 예: 증빙 정리 중"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지의 색 이름. 예: blue"
+        },
+        {
+          "key": "title",
+          "description": "무엇을 산 요청인지. 예: 체육대회 운영 물품 4종"
+        },
+        {
+          "key": "requesterNote",
+          "description": "누가 낸 요청인지가 한 줄로 온다. 예: 운영부 · 박해랑"
+        },
+        {
+          "key": "approvedAmountNote",
+          "description": "검토에서 승인된 금액. 예: 135,000원"
+        },
+        {
+          "key": "paidAmountNote",
+          "description": "실제로 결제된 합계. 승인 금액과 다를 수 있다. 예: 137,500원"
+        },
+        {
+          "key": "completeBlockedNote",
+          "description": "처리를 끝낼 수 없으면 그 이유. 끝낼 수 있으면 빈 값으로 온다 - **무엇이 '다 됐다'인지는 조직의 재정 규칙이고 화면이 세지 않는다.** 예: 증빙 서류 2건이 아직 등록되지 않았습니다."
+        }
+      ]
+    },
+    {
+      "key": "finance.paymentEvidences",
+      "shape": "list",
+      "description": "이 요청의 결제들. **묶음 하나가 결제 하나**다 - 업체마다 언제 무엇으로 냈는지가 다르고, 그 결제에 딸린 품목과 증빙도 함께 온다.\n\n연결된 품목과 증빙 서류를 따로 조회하지 않는 이유는 그것이 그 결제의 일부이기 때문이다. 결제 셋이면 여섯 번을 더 물어야 하고, 무엇보다 그 목록은 따로 있는 것이 아니다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/evidence"
+      },
+      "messages": {
+        "loading": "결제 내역을 불러오는 중입니다",
+        "empty": "아직 결제가 없습니다",
+        "error": "결제 내역을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "결제를 가리키는 값. 그려지지 않는다. 예: PAY-01"
+        },
+        {
+          "key": "vendor",
+          "description": "어느 업체에 냈는지. 예: 다이소 온라인몰"
+        },
+        {
+          "key": "paidNote",
+          "description": "언제 누가 무엇으로 냈는지가 한 줄로 온다. 결제 수단의 이름은 조직이 정한다. 예: 결제일 2026-03-08 · 결제자 김바다 · 법인카드"
+        },
+        {
+          "key": "amountNote",
+          "description": "승인액과 실결제액을 잇는 완성된 문구. 화면이 두 수를 화살표로 잇지 않는다 - 무엇을 무엇에 견주는지가 곧 재정의 표기다. 예: 승인 25,000원 → 실결제 24,500원"
+        },
+        {
+          "key": "gapNote",
+          "description": "승인액과 다를 때 그 차이를 설명하는 글(선택). 같으면 오지 않는다. 어떻게 다른지는 서버가 세어 문장으로 준다. 예: 실결제액이 승인액보다 500원 적음",
+          "optional": true
+        },
+        {
+          "key": "items",
+          "description": "이 결제에 연결된 품목들.",
+          "fields": [
+            {
+              "key": "id",
+              "description": "품목을 가리키는 값. 그려지지 않는다. 예: POI-01"
+            },
+            {
+              "key": "name",
+              "description": "품목명. 예: 박스테이프"
+            }
+          ]
+        },
+        {
+          "key": "documents",
+          "description": "이 결제에 받아야 할 증빙 서류들. **무엇을 받아야 하는지는 결제마다 다르다** - 세금계산서가 필요한 결제도 있고 영수증만으로 되는 결제도 있다.",
+          "fields": [
+            {
+              "key": "id",
+              "description": "서류 자리를 가리키는 값. 그려지지 않는다. 예: DOC-01"
+            },
+            {
+              "key": "label",
+              "description": "무엇을 받는 자리인지. 예: 영수증 · 거래명세서 · 세금계산서"
+            },
+            {
+              "key": "status",
+              "description": "그 자리가 채워졌는지. 예: 등록 완료 · 누락"
+            },
+            {
+              "key": "statusTone",
+              "description": "상태 딱지의 색 이름. 예: green · red"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

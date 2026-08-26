@@ -55,13 +55,21 @@ export interface SelectSpec {
 }
 
 interface ExecutionGate {
-  executeWhen?: {
-    type: 'allRequiredFieldsHaveValue'
-    scope: 'screen'
-  }
+  // 판정은 둘이고 둘 다 이름 붙은 것이다. 화면이 아는 것(필수 칸이 다 찼는가)과
+  // 화면이 모르는 것(서버가 막았는가)이 갈린다 - 무엇이 '다 됐다'인지는 조직의
+  // 규칙이라 화면이 셀 수 없다.
+  executeWhen?:
+    | { type: 'allRequiredFieldsHaveValue'; scope: 'screen' }
+    | {
+        type: 'sourceAllows'
+        dataSourceKey: string
+        params?: QueryParams
+        // 이 조각에 글이 있으면 막히고 그 글이 이유다. 비어 있으면 열린다.
+        blockedNoteField: string
+      }
   onExecutionBlocked?: {
-    type: 'showMissingRequiredFields'
-    focus: 'firstMissingField'
+    type: 'showMissingRequiredFields' | 'showBlockedNote'
+    focus?: 'firstMissingField'
   }
 }
 
@@ -195,7 +203,11 @@ export interface ItemListSpec {
   // 값은 '묶음이름.항목id.칸이름' 꼴로 담긴다.
   fieldKey?: string
   title?: string
-  dataSourceKey: string
+  // 목록이 조회로 오면 dataSourceKey, 바깥 항목의 조각에서 오면 itemsField다.
+  // 되풀이되는 묶음 안에 목록이 또 있는 자리 - 그 목록은 바깥 항목의 일부이지
+  // 따로 있는 것이 아니다(group.itemsField와 같은 말이고 가리키는 자리만 다르다).
+  dataSourceKey?: string
+  itemsField?: string
   // 목록이 묶음으로 온다는 선언. 이때 항목 하나가 곧 묶음이고 itemsField가 그
   // 묶음에 든 것들을 담는다. 묶음 수도 안쪽 항목 수도 데이터에 달렸다 — 칸반의
   // 열처럼 묶음이 명세에 고정인 경우와 다르다.

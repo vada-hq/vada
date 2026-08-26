@@ -26,15 +26,6 @@ test('FIN-PROC-01: 승인된 요청과 업체별 발주 상태를 함께 보여�
   await page.screenshot({ path: `${SHOTS}/fin-proc-01.png`, fullPage: true })
 })
 
-test('FIN-PROC-01: 아직 명세되지 않은 다음 단계 동작을 명시한다', async ({ page }) => {
-  await page.goto(PROCESSING)
-
-  await page.getByRole('button', { name: '결제·증빙 단계로 이동' }).click()
-  await expect(page.getByRole('alert')).toContainText(
-    '결제·증빙을 정리하는 화면이 아직 명세되지 않았습니다. 이 버튼이 단계를 옮기는 일까지 하는지도 정해지지 않았습니다.',
-  )
-})
-
 test('FIN-PROC-01: 요청 id가 없으면 아무 요청이나 대신 보여주지 않는다', async ({ page }) => {
   await page.goto('/#/FIN-PROC-01')
 

@@ -155,10 +155,20 @@ export function FINPROC01Screen({ screenParams, onNavigate }: FINPROC01ScreenPro
     resolveParams(ordersSpec.params, { screenParams }),
   )
 
-  if (buttonSpec.action.type !== 'pending') {
-    throw new Error('FIN-PROC-01의 다음 단계 버튼은 pending 동작이어야 합니다.')
+  // 한때 이 버튼은 갈 곳이 없었다. 지금은 있고, 없던 자리를 남겨 둔다 - 아직
+  // 명세되지 않은 화면을 가리키는 버튼이 이 화면에 또 생길 수 있다.
+  const pressNextStep = () => {
+    if (buttonSpec.action.type === 'pending') {
+      setPendingNote(buttonSpec.action.note)
+      return
+    }
+    if (buttonSpec.action.type === 'navigate') {
+      onNavigate(
+        buttonSpec.action.targetScreenId,
+        resolveParams(buttonSpec.action.params, { screenParams }),
+      )
+    }
   }
-  const nextStepNote = buttonSpec.action.note
 
   return (
     <ScreenFrame
@@ -200,7 +210,7 @@ export function FINPROC01Screen({ screenParams, onNavigate }: FINPROC01ScreenPro
           <PrimaryButton
             nodeId={buttonNodeId}
             label={buttonSpec.label}
-            onClick={() => setPendingNote(nextStepNote)}
+            onClick={pressNextStep}
             fullWidth={false}
             trailingArrow={false}
             strong
