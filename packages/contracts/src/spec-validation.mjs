@@ -1145,7 +1145,32 @@ function checkListColumns(findings, context) {
     return;
   }
 
-  const known = new Set((source.fields ?? []).map((field) => field.key));
+  // 묶음으로 오는 목록에서는 열이 묶음 **안**의 항목을 말한다. 바깥 행은 묶음
+  // 자신이고, 그것을 가리키는 것은 group.headerFields다. 여기서 바깥 조각으로
+  // 견주면 열이 전부 '없는 조각'으로 보인다.
+  const itemsField =
+    isObject(spec.group) && typeof spec.group.itemsField === "string"
+      ? (source.fields ?? []).find((field) => field.key === spec.group.itemsField)
+      : null;
+  if (isObject(spec.group) && !itemsField) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 묶음 조각 '${spec.group.itemsField}'가 데이터 출처 '${spec.dataSourceKey}'에 없습니다.`
+    });
+    return;
+  }
+  if (itemsField && !Array.isArray(itemsField.fields)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 묶음 조각 '${spec.group.itemsField}'에 fields가 없습니다. 묶음에 든 항목이 무엇으로 이루어지는지 알 수 없습니다.`
+    });
+    return;
+  }
+
+  const fieldsOfItem = itemsField ? itemsField.fields : (source.fields ?? []);
+  const known = new Set(fieldsOfItem.map((field) => field.key));
   const seen = new Map();
   // 머리글이 그려지지 않는 목록은 label이 없다. 그때도 어느 열인지 말할 수 있어야
   // 오류가 쓸모 있으므로 자리로 부른다.
@@ -1195,6 +1220,30 @@ function checkListColumns(findings, context) {
         level: "error",
         file,
         message: `${elementLabel(element, index)}의 조각 '${toneField}'가 색 이름이면서 ${seen.get(toneField)} 열에 그려집니다. 색 이름은 어느 열에도 오지 않습니다.`
+      });
+    }
+  });
+
+  // 묶음의 머리는 바깥 행의 조각을 그린다. 열과 가리키는 곳이 반대다.
+  const outer = new Set((source.fields ?? []).map((field) => field.key));
+  const headerFields = isObject(spec.group) ? spec.group.headerFields : undefined;
+  (Array.isArray(headerFields) ? headerFields : []).forEach((column, at) => {
+    for (const name of [...(column?.fields ?? []), column?.toneField].filter(
+      (candidate) => typeof candidate === "string"
+    )) {
+      if (!outer.has(name)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${elementLabel(element, index)}의 묶음 머리 ${nameOf(column, at)} 조각 '${name}'가 데이터 출처 '${spec.dataSourceKey}'에 없습니다. 머리는 묶음 자신을 가리킵니다.`
+        });
+      }
+    }
+    if (typeof column?.fieldKey === "string") {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 묶음 머리에 고치는 칸(fieldKey)이 있습니다. 묶음의 머리는 읽는 자리입니다.`
       });
     }
   });

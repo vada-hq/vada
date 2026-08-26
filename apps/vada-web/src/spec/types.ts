@@ -199,7 +199,13 @@ export interface ItemListSpec {
   // 목록이 묶음으로 온다는 선언. 이때 항목 하나가 곧 묶음이고 itemsField가 그
   // 묶음에 든 것들을 담는다. 묶음 수도 안쪽 항목 수도 데이터에 달렸다 — 칸반의
   // 열처럼 묶음이 명세에 고정인 경우와 다르다.
-  group?: { itemsField: string; collapsible?: boolean }
+  // 묶음의 머리가 어느 조각을 그리는지. columns와 같은 모양이고 가리키는 것만
+  // 반대다: columns는 묶음 안의 항목을, headerFields는 묶음 자신을 말한다.
+  group?: {
+    itemsField: string
+    headerFields?: { label?: string; fields?: string[]; toneField?: string }[]
+    collapsible?: boolean
+  }
   // 목록을 거르는 값. key는 출처가 선언한 인자 이름이고, 값은 화면 필드를
   // 가리키거나(fieldKey) 명세가 정한 고정값이다(value) — 칸반의 열이 후자다.
   // 받아온 것을 화면에서 거르지 않고 값이 바뀌면 다시 조회한다.
@@ -234,8 +240,6 @@ export interface ItemListSpec {
   selection?: { action: DisplayAction }
 }
 
-// 정해진 절차 중 한 건이 지금 어디에 있는지를 보여주는 단계 줄.
-// 순서는 명세가, 현재 단계는 데이터가 정한다.
 // 칸 목록이 데이터에서 오는 편집 묶음.
 //
 // 무엇을 묻는지가 조직의 규칙인 자리가 있다 — 보완 요청에서 다시 받아야 할 것은
@@ -252,6 +256,8 @@ export interface FieldSetSpec {
   required?: boolean
 }
 
+// 정해진 절차 중 한 건이 지금 어디에 있는지를 보여주는 단계 줄.
+// 순서는 명세가, 현재 단계는 데이터가 정한다.
 export interface StepsSpec {
   type: 'steps'
   dataSourceKey: string

@@ -1172,6 +1172,94 @@ const REVIEW_ITEMS: Record<string, DataRow[]> = {
   ],
 }
 
+
+// 구매·발주. 묶음 하나가 업체 하나다 - 같은 요청의 품목 넷이 세 업체로 갈렸고,
+// 인쇄업체는 아직 주문하지 못했다(품절). 없는 것과 아직 안 한 것은 다르다.
+const PURCHASE_ORDER_SUMMARIES: Record<string, DataRow> = {
+  'PR-2026-0031': {
+    eventName: '2026 소프트웨어융합대학 체육대회',
+    code: 'REQ-001',
+    status: '구매 진행 중',
+    statusTone: 'blue',
+    title: '체육대회 운영 물품 4종',
+    requesterNote: '운영부 · 박해랑 · 필요한 날짜 2026-03-15',
+    approvedAmountNote: '135,000원',
+  },
+}
+
+const PURCHASE_ORDERS: Record<string, DataRow[]> = {
+  'PR-2026-0031': [
+    {
+      id: 'PO-01',
+      vendor: '다이소 온라인몰',
+      orderNote: '주문일 2026-03-08 · 담당 김바다',
+      amountNote: '25,000원',
+      items: [
+        {
+          id: 'POI-01',
+          name: '박스테이프',
+          quantityNote: '5개',
+          amountNote: '10,000원',
+          orderStatus: '주문 완료',
+          orderStatusTone: 'green',
+          deliveryOn: '2026-03-12',
+          deliveryStatus: '배송 중',
+          deliveryStatusTone: 'blue',
+        },
+        {
+          id: 'POI-02',
+          name: '유성 마커',
+          quantityNote: '10개',
+          amountNote: '15,000원',
+          orderStatus: '주문 완료',
+          orderStatusTone: 'green',
+          deliveryOn: '2026-03-12',
+          deliveryStatus: '배송 중',
+          deliveryStatusTone: 'blue',
+        },
+      ],
+    },
+    {
+      id: 'PO-02',
+      vendor: '마켓컬리 B2B',
+      orderNote: '주문일 2026-03-10 · 담당 김바다',
+      amountNote: '50,000원',
+      items: [
+        {
+          id: 'POI-03',
+          name: '생수 500ml',
+          quantityNote: '10박스',
+          amountNote: '50,000원',
+          orderStatus: '주문 완료',
+          orderStatusTone: 'green',
+          deliveryOn: '2026-03-15',
+          deliveryStatus: '배송 예정',
+          deliveryStatusTone: 'gray',
+        },
+      ],
+    },
+    {
+      id: 'PO-03',
+      vendor: '인쇄업체 A (제작 발주)',
+      orderNote: '주문일 — · 담당 —',
+      amountNote: '60,000원',
+      items: [
+        {
+          id: 'POI-04',
+          name: '이름표 용지 (제작)',
+          quantityNote: '200장',
+          amountNote: '60,000원',
+          orderStatus: '품절·변경 필요',
+          orderStatusTone: 'red',
+          deliveryOn: '—',
+          deliveryStatus: '—',
+          deliveryStatusTone: 'red',
+        },
+      ],
+    },
+  ],
+}
+
 const TASK_DETAILS: Record<string, DataRow> = {
   'T-03': {
     code: 'T-03',
@@ -1689,6 +1777,11 @@ export const FILTERED_FIXTURES: Record<
     PURCHASE_REQUEST_DETAILS[requestId] ? [PURCHASE_REQUEST_DETAILS[requestId]] : [],
   'finance.purchaseRequestItems': ({ requestId = '' }) =>
     PURCHASE_REQUEST_RESULTS[requestId] ?? [],
+  'finance.purchaseOrderSummary': ({ requestId = '' }) => {
+    const row = PURCHASE_ORDER_SUMMARIES[requestId]
+    return row === undefined ? [] : [row]
+  },
+  'finance.purchaseOrders': ({ requestId = '' }) => PURCHASE_ORDERS[requestId] ?? [],
   'finance.reviewSummary': ({ requestId = '' }) => {
     const row = REVIEW_SUMMARIES[requestId]
     return row === undefined ? [] : [row]

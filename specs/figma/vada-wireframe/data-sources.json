@@ -2409,6 +2409,130 @@
           "description": "이 품목에 이미 내린 판정. 검토는 한 번에 끝나지 않으므로 앞서 고른 것이 함께 온다 - 항목의 칸은 조각 이름이 같으면 그 값으로 시작한다(draftFrom과 같은 규칙이다). 아직 판정하지 않았으면 빈 값이다. 예: 보완"
         }
       ]
+    },
+    {
+      "key": "finance.purchaseOrderSummary",
+      "shape": "object",
+      "description": "구매·발주 단계에 있는 요청의 머리. 검토가 끝난 뒤라 '요청액'이 아니라 '승인된 금액'이 온다 - 무엇이 승인됐는지는 검토가 정했고 이 단계는 그것을 사서 받는 일이다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/orders/summary"
+      },
+      "messages": {
+        "loading": "구매 진행 상황을 불러오는 중입니다",
+        "empty": "구매·발주 중인 요청이 없습니다",
+        "error": "구매 진행 상황을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "eventName",
+          "description": "어느 행사의 요청인지. 빵부스러기가 그 행사를 가리킨다. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "code",
+          "description": "요청 번호. 예: REQ-001"
+        },
+        {
+          "key": "status",
+          "description": "지금 어느 단계인지. 예: 구매 진행 중"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지의 색 이름. 예: blue"
+        },
+        {
+          "key": "title",
+          "description": "무엇을 사는지. 예: 체육대회 운영 물품 4종"
+        },
+        {
+          "key": "requesterNote",
+          "description": "누가 언제까지 필요하다 했는지가 한 줄로 온다. 예: 운영부 · 박해랑 · 필요한 날짜 2026-03-15"
+        },
+        {
+          "key": "approvedAmountNote",
+          "description": "검토에서 승인된 전체 금액. 단위까지 붙어서 온다. 예: 135,000원"
+        }
+      ]
+    },
+    {
+      "key": "finance.purchaseOrders",
+      "shape": "list",
+      "description": "이 요청의 발주들. **묶음 하나가 업체 하나**다 - 품목을 어느 업체에서 사느냐로 주문이 갈리고, 주문일도 담당도 배송도 업체마다 따로 간다. 업체 수가 데이터에 달려 있어 명세가 묶음마다 조회를 미리 적을 수 없으므로 한 번에 묶어서 온다.\n\n아직 주문하지 않은 업체도 온다 - 주문일과 담당이 '—'로 오고, 그 묶음의 품목은 주문 상태가 '품절·변경 필요' 같은 것이다. 없는 것과 아직 안 한 것은 다르다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/orders"
+      },
+      "messages": {
+        "loading": "발주를 불러오는 중입니다",
+        "empty": "아직 발주가 없습니다",
+        "error": "발주를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "발주를 가리키는 값. 그려지지 않는다. 예: PO-01"
+        },
+        {
+          "key": "vendor",
+          "description": "어느 업체에 주문했는지. 무엇을 어떻게 부르는지는 조직이 정한다. 예: 다이소 온라인몰 · 인쇄업체 A (제작 발주)"
+        },
+        {
+          "key": "orderNote",
+          "description": "언제 누가 주문했는지가 한 줄로 온다. 아직 주문하지 않았으면 자리를 비운 채로 온다. 예: 주문일 2026-03-08 · 담당 김바다 · 주문일 — · 담당 —"
+        },
+        {
+          "key": "amountNote",
+          "description": "이 업체 몫의 금액. 단위까지 붙어서 온다. 예: 25,000원"
+        },
+        {
+          "key": "items",
+          "description": "이 업체에 주문한 품목들.",
+          "fields": [
+            {
+              "key": "id",
+              "description": "품목을 가리키는 값. 그려지지 않는다. 예: POI-01"
+            },
+            {
+              "key": "name",
+              "description": "품목명. 제작 발주는 그 사실이 이름에 붙는다. 예: 박스테이프 · 이름표 용지 (제작)"
+            },
+            {
+              "key": "quantityNote",
+              "description": "수량. 세는 말까지 붙어서 온다. 예: 5개"
+            },
+            {
+              "key": "amountNote",
+              "description": "검토에서 승인된 금액. 예: 10,000원"
+            },
+            {
+              "key": "orderStatus",
+              "description": "주문이 어디까지 됐는지. 예: 주문 완료 · 품절·변경 필요"
+            },
+            {
+              "key": "orderStatusTone",
+              "description": "주문 상태 딱지의 색 이름. 예: green · red"
+            },
+            {
+              "key": "deliveryOn",
+              "description": "언제 올 예정인지. 모르면 '—'로 온다. 예: 2026-03-12"
+            },
+            {
+              "key": "deliveryStatus",
+              "description": "배송이 어디까지 됐는지. 예: 배송 중 · 배송 예정 · —"
+            },
+            {
+              "key": "deliveryStatusTone",
+              "description": "배송 상태 글의 색 이름. 딱지가 아니라 글에 색이 붙는다 - 어느 쪽으로 그리는지는 design이 말한다. 예: blue · gray · red"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

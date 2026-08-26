@@ -1992,3 +1992,78 @@ test("현재 위치 경로가 가리킨 조각이 출처에 없으면 오류다"
 
   assert.equal(findings.filter((f) => f.message.includes("'eventName'")).length, 1);
 });
+
+// 묶음으로 오는 목록. 열은 묶음 **안**의 항목을 말하고, 머리는 묶음 자신을 말한다.
+// 이 둘을 가르지 않으면 열이 전부 '없는 조각'으로 보인다.
+function groupedScreen(itemList) {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Container", figmaType: "FRAME" },
+              spec: { type: "itemList", dataSourceKey: "po.list", ...itemList }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "po.list",
+          shape: "list",
+          fields: [
+            { key: "vendor", label: "업체" },
+            { key: "orderNote", label: "주문" },
+            {
+              key: "items",
+              label: "품목들",
+              fields: [
+                { key: "name", label: "품목" },
+                { key: "orderStatus", label: "주문 상태" },
+                { key: "orderStatusTone", label: "색" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  };
+}
+
+test("묶음이 있으면 열은 묶음 안의 조각을 가리킨다", () => {
+  const findings = collectSpecFindings(
+    groupedScreen({
+      group: { itemsField: "items", headerFields: [{ fields: ["vendor", "orderNote"] }] },
+      columns: [{ label: "품목", fields: ["name"] }, { label: "주문 상태", fields: ["orderStatus"], toneField: "orderStatusTone" }]
+    })
+  );
+
+  assert.deepEqual(findings, []);
+});
+
+test("묶음의 머리가 안쪽 조각을 가리키면 오류다", () => {
+  const findings = collectSpecFindings(
+    groupedScreen({
+      group: { itemsField: "items", headerFields: [{ fields: ["name"] }] },
+      columns: [{ label: "품목", fields: ["name"] }]
+    })
+  );
+
+  assert.equal(findings.filter((f) => f.message.includes("묶음 머리")).length, 1);
+});
+
+test("묶음 조각에 fields가 없으면 오류다", () => {
+  const findings = collectSpecFindings(
+    groupedScreen({
+      group: { itemsField: "vendor" },
+      columns: [{ label: "품목", fields: ["name"] }]
+    })
+  );
+
+  assert.equal(findings.filter((f) => f.message.includes("fields가 없습니다")).length, 1);
+});

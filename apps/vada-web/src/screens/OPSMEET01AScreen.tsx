@@ -116,10 +116,21 @@ function MeetingGroup({ group, spec }: MeetingGroupProps) {
   const meetings = (group[spec.group?.itemsField ?? ''] ?? []) as DataRow[]
   const collapsible = spec.group?.collapsible === true
 
+  // 묶음의 머리가 어느 조각을 그리는지는 명세가 말한다. 이 자리가 없던 동안 화면이
+  // 'title'과 'nextMeetingNote'를 코드에 박아 썼고, 출처의 조각 이름이 바뀌어도
+  // 검증기가 아무 말도 하지 못했다: 명세가 가리키지 않는 조각은 검사할 수 없다.
+  const headerAt = (at: number) => {
+    const field = spec.group?.headerFields?.[at]?.fields?.[0]
+    if (field === undefined) {
+      throw new Error(`묶음 머리의 ${at + 1}번째 조각이 명세에 없습니다.`)
+    }
+    return String(group[field] ?? '')
+  }
+
   const heading = (
     <>
       <FigmaAsset screenId={SCREEN} nodeId={ASSET.collapse} className="size-3.5 shrink-0" />
-      <span className="text-sm font-bold text-gray-800">{String(group.title)}</span>
+      <span className="text-sm font-bold text-gray-800">{headerAt(0)}</span>
       {/* 건수는 명세에 없다. 이 묶음의 항목 수가 곧 건수다. */}
       <span className="text-xs text-gray-400">총 {meetings.length}건</span>
     </>
@@ -142,7 +153,7 @@ function MeetingGroup({ group, spec }: MeetingGroupProps) {
         )}
         <span className="flex shrink-0 items-center gap-1.5">
           <FigmaAsset screenId={SCREEN} nodeId={ASSET.clock} className="size-3" />
-          <span className="text-xs text-gray-400">{String(group.nextMeetingNote)}</span>
+          <span className="text-xs text-gray-400">{headerAt(1)}</span>
         </span>
       </header>
       {open && (

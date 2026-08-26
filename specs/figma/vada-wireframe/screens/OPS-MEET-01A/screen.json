@@ -68,6 +68,18 @@
         },
         "group": {
           "itemsField": "meetings",
+          "headerFields": [
+            {
+              "fields": [
+                "title"
+              ]
+            },
+            {
+              "fields": [
+                "nextMeetingNote"
+              ]
+            }
+          ],
           "collapsible": true
         },
         "itemAction": {
