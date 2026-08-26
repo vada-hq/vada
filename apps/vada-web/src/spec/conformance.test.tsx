@@ -178,9 +178,17 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       // 아이콘의 대체 텍스트가 이름에 섞이므로 부분 일치로 본다. 그래서 짧은
       // 라벨이 긴 라벨을 함께 집는다 — EVT-TASK-01의 '업무' 갈피는 '업무 추가'
       // 버튼도 집는다. 있는지를 보지 몇 개인지를 보지 않는다(meta 카피와 같다).
+      // 상황에 따라 글이 바뀌는 버튼은 어느 쪽이든 그려지면 된다. 무엇이 그려질지는
+      // 그때의 값이 정하고, 명세가 갖는 것은 두 글과 그것을 가르는 조건이다.
+      const labels = [element.spec.label, element.spec.labelWhenAnyItemIs?.label].filter(
+        (label): label is string => typeof label === 'string',
+      )
       expect(
-        screen.getAllByRole('button', { name: new RegExp(element.spec.label) }).length,
-      ).toBeGreaterThan(0)
+        labels.some(
+          (label) => screen.queryAllByRole('button', { name: new RegExp(label) }).length > 0,
+        ),
+        `${screenId}의 버튼 '${labels.join(' 또는 ')}'`,
+      ).toBe(true)
     }
   })
 

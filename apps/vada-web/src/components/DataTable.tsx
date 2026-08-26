@@ -8,7 +8,9 @@ type FieldPresentation = 'title' | 'strong' | 'body' | 'muted' | 'faint' | 'stat
 
 interface DataColumn {
   label?: string
-  fields: string[]
+  // 읽는 열에는 조각이, 고치는 열에는 칸 이름이 온다. 둘 중 하나다.
+  fields?: string[]
+  fieldKey?: string
   // 딱지의 색 이름이 든 조각. 색이 아니라 어느 조각에 이름이 들었는가를
   // 명세가 가리킨다 — 화면이 'statusTone'을 짐작하지 않는다.
   toneField?: string
@@ -149,7 +151,7 @@ export function DataTable({
                   {columns.map((column, columnIndex) => (
                     <td key={column.label ?? columnIndex} className="px-6 py-3 text-xs align-middle">
                       <span className="flex flex-col gap-1">
-                        {column.fields.map((field) => (
+                        {(column.fields ?? []).map((field) => (
                           <CellValue
                             key={field}
                             row={row}
@@ -166,7 +168,7 @@ export function DataTable({
                       <button
                         type="button"
                         onClick={() => onItemAction?.(row)}
-                        aria-label={`${displayValue(row[columns[0]?.fields[0] ?? 'id'], 'title')} ${itemActionLabel}`}
+                        aria-label={`${displayValue(row[columns[0]?.fields?.[0] ?? 'id'], 'title')} ${itemActionLabel}`}
                         className="rounded-lg border border-gray-200 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
                       >
                         {itemActionLabel}

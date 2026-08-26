@@ -1108,6 +1108,70 @@ const SUPPLEMENT_ATTACHMENTS: Record<string, DataRow[]> = {
   ],
 }
 
+
+// 재정부가 보는 같은 요청. 요청자가 보는 것(finance.purchaseRequestDetail)과 겹치는
+// 조각이 있지만 예산 사용 가능액은 이쪽에만 온다.
+const REVIEW_SUMMARIES: Record<string, DataRow> = {
+  'PR-2026-0031': {
+    code: 'REQ-001',
+    status: '보완 요청',
+    statusTone: 'yellow',
+    amountNote: '135,000원',
+    budgetAvailableNote: '950,000원',
+    eventName: '2026 소프트웨어융합대학 체육대회',
+    department: '운영부',
+    requester: '박해랑',
+    neededOn: '2026-03-15',
+    requestedAt: '2026-03-01',
+    purpose: '행사 당일 운영 및 물품 관리',
+  },
+}
+
+const REVIEW_ITEMS: Record<string, DataRow[]> = {
+  'PR-2026-0031': [
+    {
+      id: 'PRI-01',
+      result: '승인',
+      name: '박스테이프',
+      categoryNote: '운영 물품 · 행사 운영비',
+      purchaseType: '일반 구매',
+      quantityNote: '5개',
+      amountNote: '10,000원',
+      approvedAmount: '10000',
+    },
+    {
+      id: 'PRI-02',
+      result: '승인',
+      name: '생수 500ml',
+      categoryNote: '식음료 · 식비',
+      purchaseType: '일반 구매',
+      quantityNote: '10박스',
+      amountNote: '50,000원',
+      approvedAmount: '50000',
+    },
+    {
+      id: 'PRI-03',
+      result: '보완',
+      name: '이름표 용지',
+      categoryNote: '운영 물품 · 행사 운영비',
+      purchaseType: '일반 구매',
+      quantityNote: '200장',
+      amountNote: '60,000원',
+      approvedAmount: '60000',
+    },
+    {
+      id: 'PRI-04',
+      result: '승인',
+      name: '유성 마커',
+      categoryNote: '운영 물품 · 행사 운영비',
+      purchaseType: '일반 구매',
+      quantityNote: '10개',
+      amountNote: '15,000원',
+      approvedAmount: '15000',
+    },
+  ],
+}
+
 const TASK_DETAILS: Record<string, DataRow> = {
   'T-03': {
     code: 'T-03',
@@ -1625,6 +1689,11 @@ export const FILTERED_FIXTURES: Record<
     PURCHASE_REQUEST_DETAILS[requestId] ? [PURCHASE_REQUEST_DETAILS[requestId]] : [],
   'finance.purchaseRequestItems': ({ requestId = '' }) =>
     PURCHASE_REQUEST_RESULTS[requestId] ?? [],
+  'finance.reviewSummary': ({ requestId = '' }) => {
+    const row = REVIEW_SUMMARIES[requestId]
+    return row === undefined ? [] : [row]
+  },
+  'finance.reviewItems': ({ requestId = '' }) => REVIEW_ITEMS[requestId] ?? [],
   'finance.supplementRequest': ({ requestId = '' }) => {
     const row = SUPPLEMENT_REQUESTS[requestId]
     return row === undefined ? [] : [row]

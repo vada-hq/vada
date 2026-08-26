@@ -9,6 +9,9 @@ export interface InputSpec {
   type: 'input'
   fieldKey: string
   label: string
+  // 라벨이 이 자리에 그려지지 않는가. 표의 칸이 그렇다: 열 머리가 한 번 그려지고
+  // 칸마다 다시 그려지지 않는다. 읽어 주는 이름은 여전히 필요하다.
+  labelHidden?: boolean
   placeholder: string | null
   helperText?: string
   initialValue: string | null
@@ -26,6 +29,8 @@ export interface SelectSpec {
   fieldKey: string
   // 디자인에 라벨이 없는 선택(ORG-02의 조직 구성 방식)은 key 자체가 없다.
   label?: string
+  // 라벨이 있으나 이 자리에 그려지지 않는 경우. 표의 칸이 그렇다.
+  labelHidden?: boolean
   placeholder: string | null
   disabledPlaceholder?: string
   helperText?: string
@@ -92,6 +97,16 @@ export type ButtonEmphasis = 'primary' | 'secondary' | 'quiet'
 export interface ButtonSpec {
   type: 'button'
   label: string
+  // 글 없는 조작. 그려지는 것은 그림뿐이고 label은 부르는 이름으로만 남는다.
+  labelHidden?: boolean
+  // 되풀이되는 묶음의 항목 중 하나라도 이 값을 고르면 글이 바뀐다. 조건은 이름
+  // 붙은 하나뿐이다: 식을 적을 수 있게 만들면 명세가 프로그램이 된다.
+  labelWhenAnyItemIs?: {
+    listFieldKey: string
+    fieldKey: string
+    value: string
+    label: string
+  }
   description?: string
   badge?: string
   // 화면 안에서의 상대적 강조도. 시각 형태가 아니라 역할이며, 구현이 형태로
@@ -176,6 +191,9 @@ export interface SummarySpec {
 // 있느냐 데이터에 있느냐다. 항목의 조각은 dataSource의 fields가 갖는다.
 export interface ItemListSpec {
   type: 'itemList'
+  // itemFields에 고칠 수 있는 것이 있을 때 그 값들이 담기는 이름.
+  // 값은 '묶음이름.항목id.칸이름' 꼴로 담긴다.
+  fieldKey?: string
   title?: string
   dataSourceKey: string
   // 목록이 묶음으로 온다는 선언. 이때 항목 하나가 곧 묶음이고 itemsField가 그
@@ -193,7 +211,7 @@ export interface ItemListSpec {
   //
   // 어떻게 그리는지는 여전히 명세의 것이 아니다. 표인지 시간 줄인지는 design이
   // 말하고 대조기가 지킨다. toneField는 색이 아니라 색 이름이 든 조각을 가리킨다.
-  columns?: { label?: string; fields: string[]; toneField?: string }[]
+  columns?: { label?: string; fields?: string[]; fieldKey?: string; toneField?: string }[]
   // 서버가 준 항목 하나가 담는 요소들. columns가 항목을 조각으로 나눠 한 줄로
   // 늘어놓는 것이라면, 이것은 항목 하나가 통째로 묶음을 이루는 경우다.
   // 안쪽 요소가 dataSourceKey 없이 field를 가리키면 그 항목의 조각이다.

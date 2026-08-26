@@ -199,3 +199,21 @@ export const MUTED_CHIP = 'border border-gray-100 bg-gray-100 text-gray-600'
 export const NEUTRAL_CHIP = 'border-gray-200 bg-white text-gray-700'
 export const NEUTRAL_BORDER = 'border-gray-200'
 export const NEUTRAL_VALUE = 'text-gray-900'
+
+/**
+ * 고른 선택지가 판정마다 다른 색으로 칠해지는 묶음(FIN-REV-01 30:1486).
+ *
+ * 보통의 choiceGroup은 고른 것이 파랑 하나다. 여기서는 무엇을 골랐느냐가 곧 결과라
+ * 색이 갈린다 - 승인은 초록, 보완은 노랑, 반려는 빨강. 어느 판정이 어느 색인지는
+ * design의 사실이고, 값과 색을 잇는 일은 여기 한 곳에서 한다.
+ *
+ * 안 고른 것은 판정과 무관하게 회색이다: 아직 그것이 아니기 때문이다.
+ */
+export const VERDICT_CHOICE: Record<string, string> = {
+  승인: 'bg-green-600 border-green-600 text-white',
+  보완: 'bg-yellow-500 border-yellow-500 text-white',
+  반려: 'bg-red-600 border-red-600 text-white',
+}
+
+/** 값이 분류일 뿐 상태가 아닌 딱지(FIN-REV-01의 '일반 구매'). */
+export const TYPE_CHIP = 'bg-gray-100 text-gray-500'

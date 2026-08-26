@@ -36,6 +36,15 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "purchaseRequestReview",
+      "description": "품목마다의 판정과 승인액. 값은 '묶음이름.항목id.칸이름' 꼴로 담긴다 — 판정의 단위가 품목이기 때문이다.",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

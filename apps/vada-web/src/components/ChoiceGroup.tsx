@@ -13,6 +13,11 @@ interface ChoiceGroupProps {
   sourceParams: Record<string, string>
   value: Option | null
   onSelect: (option: Option) => void
+  /**
+   * 고른 선택지의 색이 값마다 다른 경우 그 표(선택). 무엇을 골랐느냐가 곧 결과인
+   * 묶음이 그렇다(FIN-REV-01의 승인·보완·반려). 없으면 고른 것은 파랑 하나다.
+   */
+  selectedToneByValue?: Record<string, string>
   triggerRef?: (element: HTMLElement | null) => void
 }
 
@@ -30,6 +35,7 @@ export function ChoiceGroup({
   sourceParams,
   value,
   onSelect,
+  selectedToneByValue,
   triggerRef,
 }: ChoiceGroupProps) {
   const source = getOptionSource(sourceKey)
@@ -99,12 +105,17 @@ export function ChoiceGroup({
                 : // 압축형은 글자색을 버튼 자신이 갖는다. 안쪽 span에 칠하면 대조가
                   // 찾는 '가장 안쪽 칸'이 색 없는 그 span이 되어, 바탕과 글씨가
                   // 서로 다른 요소로 갈린다.
-                  `px-3 py-2 text-xs font-medium ${selected ? 'text-blue-700' : 'text-gray-600'}`
+                  `px-3 py-2 text-xs ${
+                    selectedToneByValue === undefined
+                      ? `font-medium ${selected ? 'text-blue-700' : 'text-gray-600'}`
+                      : `font-bold ${selected ? '' : 'text-gray-400'}`
+                  }`
             } ${
               selected
                 ? // 고른 테두리는 형태마다 다르다: 압축형 14:173은 blue-500,
                   // 카드형 14:259는 blue-400 — design의 사실이다.
-                  `bg-blue-50 ${hasDescriptions ? 'border-blue-400' : 'border-blue-500'}`
+                  (selectedToneByValue?.[option.value] ??
+                    `bg-blue-50 ${hasDescriptions ? 'border-blue-400' : 'border-blue-500'}`)
                 : `bg-white hover:bg-gray-50 ${hasError ? 'border-red-500' : 'border-gray-200'}`
             } ${disabled || option.disabled ? 'cursor-not-allowed opacity-50' : ''}`}
           >

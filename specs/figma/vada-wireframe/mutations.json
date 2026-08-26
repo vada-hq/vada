@@ -65,6 +65,19 @@
         "submitting": "임시 저장하는 중입니다",
         "error": "임시 저장하지 못했습니다"
       }
+    },
+    {
+      "key": "finance.purchaseRequest.sendReview",
+      "description": "품목마다의 판정과 승인액을 요청자에게 보낸다. 보완이 하나라도 있으면 나가는 것이 보완 요청이고 전부 승인이면 검토가 끝난 것인데, 보내는 일은 하나다",
+      "request": {
+        "method": "POST",
+        "path": "/api/ops/finance/purchase-requests/review"
+      },
+      "payloadScope": "purchaseRequestReview",
+      "messages": {
+        "submitting": "검토 결과를 보내는 중입니다",
+        "error": "검토 결과를 보내지 못했습니다"
+      }
     }
   ]
 }

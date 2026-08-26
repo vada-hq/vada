@@ -148,8 +148,8 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
   // 어느 조각이 주 문구이고 어느 것이 보조인지는 명세가 말한다. 출처의 조각
   // 이름을 화면이 뒤져 고르면 그것은 명세가 아니라 짐작이다.
   const [historyTitleColumn, historyNoteColumn] = historySpec.columns ?? []
-  const historyTitleField = historyTitleColumn?.fields[0]
-  const historyNoteField = historyNoteColumn?.fields[0]
+  const historyTitleField = historyTitleColumn?.fields?.[0]
+  const historyNoteField = historyNoteColumn?.fields?.[0]
   if (historyTitleField === undefined || historyNoteField === undefined) {
     throw new Error('처리 기록에 그려지는 조각이 명세에 없습니다.')
   }

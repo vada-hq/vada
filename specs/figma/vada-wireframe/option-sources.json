@@ -519,6 +519,26 @@
           "label": "수령 완료"
         }
       ]
+    },
+    {
+      "key": "finance.reviewResults",
+      "type": "static",
+      "description": "품목 하나에 대한 재정부의 판정. 값이 곧 사람이 읽는 말이다 — 이 셋은 조직의 절차라 늘지 않는다(늘면 디자인이 먼저 바뀐다).",
+      "params": [],
+      "options": [
+        {
+          "value": "승인",
+          "label": "승인"
+        },
+        {
+          "value": "보완",
+          "label": "보완"
+        },
+        {
+          "value": "반려",
+          "label": "반려"
+        }
+      ]
     }
   ]
 }

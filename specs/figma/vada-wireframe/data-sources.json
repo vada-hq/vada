@@ -2295,6 +2295,120 @@
           "description": "아직 아무것도 넣지 않았을 때 그려지는 글. 예: 클릭하여 파일 추가"
         }
       ]
+    },
+    {
+      "key": "finance.reviewSummary",
+      "shape": "object",
+      "description": "검토할 구매 요청의 머리. FIN-REQ-02의 상세와 겹치는 조각이 있지만 같은 출처를 쓰지 않는다 — 저쪽은 요청한 사람이 보는 것이고 이쪽은 재정부가 보는 것이라, 예산 사용 가능액처럼 요청자에게 보이지 않는 값이 함께 온다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/review"
+      },
+      "messages": {
+        "loading": "검토할 요청을(를) 불러오는 중입니다",
+        "empty": "검토할 요청이 없습니다",
+        "error": "검토할 요청을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "code",
+          "description": "요청 번호. 예: REQ-001"
+        },
+        {
+          "key": "status",
+          "description": "지금 무엇을 기다리는지. 예: 보완 요청"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지의 색 이름. 예: yellow"
+        },
+        {
+          "key": "amountNote",
+          "description": "전체 요청액. 단위까지 붙어서 온다. 예: 135,000원"
+        },
+        {
+          "key": "budgetAvailableNote",
+          "description": "이 요청을 승인해도 되는지를 가르는 값. 남은 예산에서 무엇을 빼야 사용 가능액이 되는지는 조직의 재정 규칙이라 서버가 셈한다. 예: 950,000원"
+        },
+        {
+          "key": "eventName",
+          "description": "어느 행사의 요청인지. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "department",
+          "description": "요청 부서. 예: 운영부"
+        },
+        {
+          "key": "requester",
+          "description": "요청자. 예: 박해랑"
+        },
+        {
+          "key": "neededOn",
+          "description": "필요한 날짜. 예: 2026-03-15"
+        },
+        {
+          "key": "requestedAt",
+          "description": "요청일. 예: 2026-03-01"
+        },
+        {
+          "key": "purpose",
+          "description": "구매 목적. 요청자가 쓴 글이다."
+        }
+      ]
+    },
+    {
+      "key": "finance.reviewItems",
+      "shape": "list",
+      "description": "검토할 품목들. 재정부는 품목마다 따로 판정하므로 목록이 곧 판정의 단위다.",
+      "params": [
+        "requestId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/finance/purchase-requests/review/items"
+      },
+      "messages": {
+        "loading": "품목을(를) 불러오는 중입니다",
+        "empty": "검토할 품목이 없습니다",
+        "error": "품목을(를) 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "품목을 가리키는 값. 그려지지 않지만 판정이 이 값에 붙는다. 예: PRI-01"
+        },
+        {
+          "key": "name",
+          "description": "품목명. 예: 박스테이프"
+        },
+        {
+          "key": "categoryNote",
+          "description": "분류와 예산 항목이 한 줄로 온다. 예: 운영 물품 · 행사 운영비"
+        },
+        {
+          "key": "purchaseType",
+          "description": "구매 유형. 무엇을 다시 물어야 하는지가 여기서 갈린다. 예: 일반 구매"
+        },
+        {
+          "key": "quantityNote",
+          "description": "수량. 세는 말까지 붙어서 온다. 예: 5개"
+        },
+        {
+          "key": "amountNote",
+          "description": "요청액. 예: 10,000원"
+        },
+        {
+          "key": "approvedAmount",
+          "description": "승인액의 처음 값. 재정부가 깎을 수 있으므로 요청액과 따로 온다 — 단위 없는 수다(사람이 고치는 값이라 자릿점도 붙지 않는다). 예: 10000"
+        },
+        {
+          "key": "result",
+          "description": "이 품목에 이미 내린 판정. 검토는 한 번에 끝나지 않으므로 앞서 고른 것이 함께 온다 - 항목의 칸은 조각 이름이 같으면 그 값으로 시작한다(draftFrom과 같은 규칙이다). 아직 판정하지 않았으면 빈 값이다. 예: 보완"
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-REV-01",
+  "stateScopeKey": "purchaseRequestReview",
+  "params": [
+    {
+      "key": "requestId",
+      "example": "PR-2026-0031",
+      "missingNote": "어떤 요청을 검토할지 정하지 않고 열렸습니다. 검토 대기 목록에서 요청을 고르면 이 화면이 열립니다.",
+      "description": "어느 구매 요청을 검토하는지. 앞 화면(재정부의 검토 대기 목록)이 정한다. 누가 검토하는지는 받지 않는다 — 보고 있는 사람이 곧 그 사람이다."
+    }
+  ],
+  "breadcrumb": {
+    "source": "30:1369",
+    "dataSourceKey": "finance.reviewSummary",
+    "params": {
+      "requestId": {
+        "screenParam": "requestId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "행사"
+      },
+      {
+        "field": "eventName"
+      },
+      {
+        "value": "재정"
+      },
+      {
+        "value": "구매 요청 검토"
+      }
+    ]
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "구매 요청 검토",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:1295",
+    "name": "운영 — 행사 · 재정 · FIN-REV-01 · 구매 요청 검토",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:1400",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "구매 요청 검토",
+        "eyebrowField": "code",
+        "status": {
+          "field": "status",
+          "toneField": "statusTone"
+        },
+        "dataSourceKey": "finance.reviewSummary",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "items": [
+          {
+            "label": "전체 요청액",
+            "field": "amountNote"
+          },
+          {
+            "label": "예산 사용 가능액",
+            "field": "budgetAvailableNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1421",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "finance.reviewSummary",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "items": [
+          {
+            "label": "행사명",
+            "field": "eventName"
+          },
+          {
+            "label": "요청 부서",
+            "field": "department"
+          },
+          {
+            "label": "요청자",
+            "field": "requester"
+          },
+          {
+            "label": "필요한 날짜",
+            "field": "neededOn"
+          },
+          {
+            "label": "요청일",
+            "field": "requestedAt"
+          },
+          {
+            "label": "구매 목적",
+            "field": "purpose"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1454",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "요청 정보",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "요청 정보만 따로 보는 갈피가 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1457",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "품목 검토",
+        "emphasis": "primary",
+        "initiallyDisabled": true,
+        "action": {
+          "type": "pending",
+          "note": "지금 보고 있는 갈피입니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1460",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "첨부파일",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "첨부파일 갈피가 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1463",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "처리 기록",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "처리 기록 갈피가 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1467",
+        "name": "Table",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "fieldKey": "reviews",
+        "dataSourceKey": "finance.reviewItems",
+        "params": {
+          "requestId": {
+            "screenParam": "requestId"
+          }
+        },
+        "columns": [
+          {
+            "label": "품목 정보",
+            "fields": [
+              "name",
+              "categoryNote",
+              "purchaseType"
+            ]
+          },
+          {
+            "label": "수량",
+            "fields": [
+              "quantityNote"
+            ]
+          },
+          {
+            "label": "요청액",
+            "fields": [
+              "amountNote"
+            ]
+          },
+          {
+            "label": "승인액",
+            "fieldKey": "approvedAmount"
+          },
+          {
+            "label": "검토 결과",
+            "fieldKey": "result"
+          }
+        ],
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:1482",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "approvedAmount",
+              "label": "승인액",
+              "labelHidden": true,
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "number",
+              "valueType": "number",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:1485",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "select",
+              "fieldKey": "result",
+              "label": "검토 결과",
+              "labelHidden": true,
+              "placeholder": null,
+              "presentation": "choiceGroup",
+              "initialValue": null,
+              "valueType": "string",
+              "required": true,
+              "initiallyDisabled": false,
+              "searchable": false,
+              "optionsSource": {
+                "key": "finance.reviewResults"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1551",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "행사 재정으로",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "검토를 마치지 않고 나가면 어떻게 되는지가 아직 정해지지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:1556",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "검토 완료",
+        "labelWhenAnyItemIs": {
+          "listFieldKey": "reviews",
+          "fieldKey": "result",
+          "value": "보완",
+          "label": "보완 요청 발송"
+        },
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "finance.purchaseRequest.sendReview",
+          "onSuccess": {
+            "navigate": "FIN-REQ-02",
+            "scopeEvent": "complete"
+          },
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}
