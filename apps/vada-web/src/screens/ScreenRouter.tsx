@@ -11,6 +11,7 @@ import { FINREQ02Screen } from './FINREQ02Screen'
 import { MYREQ01Screen } from './MYREQ01Screen'
 import { FINSUP01Screen } from './FINSUP01Screen'
 import { FINREV01Screen } from './FINREV01Screen'
+import { FINPROC01Screen } from './FINPROC01Screen'
 import { EVTTASK01Screen } from './EVTTASK01Screen'
 import { EVTTASK02Screen } from './EVTTASK02Screen'
 import { HOME01KScreen } from './HOME01KScreen'
@@ -129,6 +130,7 @@ export function ScreenRouter({
   if (screenId === 'MY-REQ-01') return <MYREQ01Screen screenParams={screenParams} onNavigate={onNavigate} />
   if (screenId === 'FIN-SUP-01') return <FINSUP01Screen screenParams={screenParams} onNavigate={onNavigate} />
   if (screenId === 'FIN-REV-01') return <FINREV01Screen screenParams={screenParams} onNavigate={onNavigate} />
+  if (screenId === 'FIN-PROC-01') return <FINPROC01Screen screenParams={screenParams} onNavigate={onNavigate} />
   if (screenId === 'EVT-TASK-01') {
     // 행사 업무 보드다. 어느 행사인지는 화면 안에 없고 주소가 실어 온다.
     return <EVTTASK01Screen screenParams={screenParams} onNavigate={onNavigate} />

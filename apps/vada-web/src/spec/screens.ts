@@ -34,6 +34,7 @@ import finReq02Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REQ
 import myReq01Json from '../../../../specs/figma/vada-wireframe/screens/MY-REQ-01/screen.json'
 import finSup01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-SUP-01/screen.json'
 import finRev01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REV-01/screen.json'
+import finProc01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-PROC-01/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -75,6 +76,7 @@ export const finReq02 = asScreenSpec(finReq02Json)
 export const myReq01 = asScreenSpec(myReq01Json)
 export const finSup01 = asScreenSpec(finSup01Json)
 export const finRev01 = asScreenSpec(finRev01Json)
+export const finProc01 = asScreenSpec(finProc01Json)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
 // ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
@@ -104,6 +106,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   myReq01,
   finSup01,
   finRev01,
+  finProc01,
 ]
 
 // 화면 하나만 열어 볼 때 넘길 인자.

@@ -10,6 +10,7 @@ interface SummaryCardProps {
   nodeId?: string
   eyebrow?: string
   title: string
+  description?: string
   items: SummaryItem[]
   status?: {
     label: string
@@ -27,6 +28,7 @@ export function SummaryCard({
   nodeId,
   eyebrow,
   title,
+  description,
   items,
   status,
   variant = 'stacked',
@@ -59,6 +61,7 @@ export function SummaryCard({
               )}
             </div>
             <h2 className="pt-2 text-lg font-bold text-gray-900">{title}</h2>
+            {description && <p className="pt-1 text-xs text-gray-500">{description}</p>}
           </div>
           <div className="shrink-0 text-right">
             <p className="text-xs font-semibold text-gray-400">{featured.label}</p>
@@ -66,14 +69,16 @@ export function SummaryCard({
           </div>
         </div>
 
-        <dl className="mt-6 grid grid-cols-1 gap-4 border-t border-gray-100 pt-5 sm:grid-cols-2 lg:grid-cols-4">
-          {details.map((item) => (
-            <div key={item.label}>
-              <dt className="text-xs font-semibold text-gray-400">{item.label}</dt>
-              <dd className="pt-0.5 text-xs font-normal text-gray-700">{item.value}</dd>
-            </div>
-          ))}
-        </dl>
+        {details.length === 0 && description !== undefined ? null : (
+          <dl className="mt-6 grid grid-cols-1 gap-4 border-t border-gray-100 pt-5 sm:grid-cols-2 lg:grid-cols-4">
+            {details.map((item) => (
+              <div key={item.label}>
+                <dt className="text-xs font-semibold text-gray-400">{item.label}</dt>
+                <dd className="pt-0.5 text-xs font-normal text-gray-700">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </section>
     )
   }

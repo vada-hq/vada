@@ -181,6 +181,26 @@ export const STATE_CHIP: Record<string, string> = {
   orange: 'border border-orange-200 bg-orange-50 text-orange-700',
 }
 
+/** 표 안의 작은 상태 딱지. FIN-PROC-01은 바탕만 있고 테두리는 그리지 않는다. */
+export const TABLE_STATE_CHIP: Record<string, string> = {
+  gray: 'bg-gray-100 text-gray-500',
+  blue: 'bg-blue-50 text-blue-700',
+  green: 'bg-green-50 text-green-700',
+  yellow: 'bg-yellow-50 text-yellow-700',
+  red: 'bg-red-50 text-red-700',
+  orange: 'bg-orange-50 text-orange-700',
+}
+
+/** 딱지 없이 글자색만 상태를 드러내는 표 값(FIN-PROC-01 배송 상태). */
+export const STATE_TEXT: Record<string, string> = {
+  gray: 'text-gray-500',
+  blue: 'text-blue-700',
+  green: 'text-green-700',
+  yellow: 'text-yellow-700',
+  red: 'text-red-500',
+  orange: 'text-orange-700',
+}
+
 /** 보완처럼 주의를 요구하지만 위험 동작은 아닌 작은 화면 행동. */
 export const CAUTION_BUTTON = 'bg-yellow-100 text-yellow-700'
 
