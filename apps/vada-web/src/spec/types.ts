@@ -244,6 +244,9 @@ export interface ItemListSpec {
   itemMove?: { poolSourceKey: string; releaseLabel: string }
   // 항목을 아주 지운다. 옮기기와 다르다 - 자리를 바꾸는 것이 아니라 없애는 것이다.
   itemRemove?: { label: string }
+  // 줄 전체의 색 이름이 든 조각. columns[].toneField가 칸 하나를 말하는 것과
+  // 달리 이것은 그 줄 자체를 말한다 - 손봐야 하는 줄만 다르게 그린다.
+  rowToneField?: string
   emptyAction?: DisplayAction
   // 항목 하나가 어떤 조각으로 나뉘어 그려지는지, 그려지는 순서대로. 조각을 통째로
   // 카드에 쏟는 목록은 이것이 없다. 이름은 '열'이지만 표에만 쓰는 것이 아니다 —

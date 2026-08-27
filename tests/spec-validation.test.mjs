@@ -2211,3 +2211,54 @@ test("미배정 출처가 목록이 아니면 오류다", () => {
     1
   );
 });
+
+// 줄 전체의 색 이름도 실제로 있는 조각이어야 한다. 없으면 아무 줄도 표시되지
+// 않고 아무도 말하지 않는다 — 학생 명단의 '확인 필요' 줄이 그 자리다.
+function rowTonedScreen(rowToneField) {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Container", figmaType: "FRAME" },
+              spec: {
+                type: "itemList",
+                dataSourceKey: "org.students",
+                rowToneField,
+                columns: [{ label: "이름", fields: ["name"] }]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "org.students",
+          shape: "list",
+          fields: [
+            { key: "name", label: "이름" },
+            { key: "rowTone", label: "줄 색" }
+          ]
+        }
+      ]
+    }
+  };
+}
+
+test("줄 색 이름이 출처에 있으면 조용하다", () => {
+  assert.deepEqual(collectSpecFindings(rowTonedScreen("rowTone")), []);
+});
+
+test("줄 색 이름이 출처에 없으면 오류다", () => {
+  const findings = collectSpecFindings(rowTonedScreen("없는조각"));
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("줄 색 이름 조각")).length,
+    1
+  );
+});

@@ -30,6 +30,7 @@ import { ORG03BScreen } from './ORG03BScreen'
 import { ORG03CScreen } from './ORG03CScreen'
 import { ORG04Screen } from './ORG04Screen'
 import { ORG04BScreen } from './ORG04BScreen'
+import { ORG07AScreen } from './ORG07AScreen'
 import { ORG02Screen } from './ORG02Screen'
 import { finReq01, finRev01, finSup01, inv01, onb01, org01, org02, org03b } from '../spec/screens'
 import { readScopeDraft } from '../state/scopes'
@@ -204,6 +205,9 @@ export function ScreenRouter({
   }
   if (screenId === 'ORG-04B') {
     return <ORG04BScreen onNavigate={onNavigate} />
+  }
+  if (screenId === 'ORG-07A') {
+    return <ORG07AScreen onNavigate={onNavigate} />
   }
   if (screenId === 'ORG-01') {
     return (

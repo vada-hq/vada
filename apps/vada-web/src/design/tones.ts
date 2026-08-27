@@ -277,3 +277,15 @@ export const ROLE_CARD: Record<string, string> = {
 export const CHIP_ON_TINT: Record<string, string> = {
   green: 'bg-green-100 text-green-700',
 }
+
+/**
+ * 줄 전체를 옅게 칠하는 색(itemList.rowToneField).
+ *
+ * 손봐야 하는 줄만 다르다 — 학생 명단에서 명단과 납부 기록이 어긋난 학생이
+ * 그 자리다. 딱지보다 옅어야 한다: 줄 전체가 칠해지므로 같은 -100이면 표가
+ * 얼룩덜룩해진다.
+ */
+export const ROW_TONE: Record<string, string> = {
+  yellow: 'bg-yellow-50',
+  red: 'bg-red-50',
+}

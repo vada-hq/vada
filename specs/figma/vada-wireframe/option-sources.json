@@ -562,6 +562,30 @@
           "description": "부서 업무에 참여하고 구매 요청 등을 제출합니다."
         }
       ]
+    },
+    {
+      "key": "org.duesStatus",
+      "type": "static",
+      "description": "학생회비 납부 상태로 명단을 거르는 선택지. 디자인이 문구를 그리지 않아 표의 딱지가 말하는 셋을 그대로 쓴다 - '확인 필요'는 명단과 납부 기록이 어긋난 학생이다.",
+      "params": [],
+      "options": [
+        {
+          "value": "all",
+          "label": "전체"
+        },
+        {
+          "value": "paid",
+          "label": "납부"
+        },
+        {
+          "value": "unpaid",
+          "label": "미납"
+        },
+        {
+          "value": "check",
+          "label": "확인 필요"
+        }
+      ]
     }
   ]
 }

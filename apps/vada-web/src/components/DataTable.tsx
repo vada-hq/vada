@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { DataRow, DataValue } from '../data-sources/catalog'
-import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
+import { NEUTRAL_CHIP, ROW_TONE, STATE_CHIP } from '../design/tones'
 
 // 한 줄 안에서도 조각마다 무게가 다르다. 이름은 뜻이고, 그 뜻을 어떤 색으로
 // 옮길지는 design/tones가 아니라 여기서 한 번에 정한다 — 표 안의 위계다.
@@ -9,6 +9,9 @@ import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 type FieldPresentation =
   | 'title'
   | 'label'
+  // 'labelStrong'은 줄의 **이름**이다 - 사람이나 건의 이름이라 범주 이름(label)보다
+  // 진하다. 학생 명단의 이름 칸이 그 자리다.
+  | 'labelStrong'
   | 'strong'
   | 'body'
   | 'muted'
@@ -43,6 +46,15 @@ interface DataTableProps {
   columnWidths?: string[]
   /** 표 아래에 붙는 덧붙임. 카드 안이라 표와 한 칸이다(ORG-04의 '—' 설명). */
   footer?: ReactNode
+  /**
+   * 줄 전체의 색 이름이 든 조각(itemList.rowToneField).
+   *
+   * 손봐야 하는 줄만 다르게 그린다 - 색 이름이 빈 줄은 아무 표시도 없다.
+   * 이름을 색으로 옮기는 일은 design/tones가 한 곳에서 한다.
+   */
+  rowToneField?: string
+  /** 색이 붙은 줄의 첫 칸에 함께 그리는 표시(ORG-07A의 주의 아이콘). */
+  rowToneMark?: ReactNode
 }
 
 function displayValue(value: DataValue | undefined, field: string): string {
@@ -86,6 +98,7 @@ function CellValue({
   const className = {
     title: 'font-semibold text-gray-800',
     label: 'font-medium text-gray-800',
+    labelStrong: 'font-medium text-gray-900',
     strong: 'font-normal text-gray-700',
     body: 'font-normal text-gray-600',
     muted: 'font-normal text-gray-500',
@@ -109,6 +122,8 @@ export function DataTable({
   fieldPresentation = {},
   columnWidths,
   footer,
+  rowToneField,
+  rowToneMark,
 }: DataTableProps) {
   return (
     <section
@@ -156,22 +171,30 @@ export function DataTable({
                 </td>
               </tr>
             ) : (
-              rows.map((row, rowIndex) => (
+              rows.map((row, rowIndex) => {
+                // 줄 전체의 색. 색 이름이 빈 줄은 아무 표시도 하지 않는다 -
+                // 대부분의 줄이 그렇다.
+                const tone =
+                  rowToneField === undefined ? '' : String(row[rowToneField] ?? '')
+                return (
                 <tr
                   key={displayValue(row.id, 'id') || rowIndex}
-                  className="border-b border-gray-50 last:border-b-0"
+                  className={`border-b border-gray-50 last:border-b-0 ${ROW_TONE[tone] ?? ''}`}
                 >
                   {columns.map((column, columnIndex) => (
                     <td key={column.label ?? columnIndex} className="px-6 py-3 text-xs align-middle">
                       <span className="flex flex-col gap-1">
                         {(column.fields ?? []).map((field) => (
-                          <CellValue
-                            key={field}
-                            row={row}
-                            field={field}
-                            presentation={fieldPresentation[field] ?? 'body'}
-                            toneField={column.toneField}
-                          />
+                          <span key={field} className="flex items-center gap-1.5">
+                            <CellValue
+                              row={row}
+                              field={field}
+                              presentation={fieldPresentation[field] ?? 'body'}
+                              toneField={column.toneField}
+                            />
+                            {/* 색이 붙은 줄의 첫 칸에만 표시가 함께 온다. */}
+                            {columnIndex === 0 && tone !== '' ? rowToneMark : null}
+                          </span>
                         ))}
                       </span>
                     </td>
@@ -189,7 +212,8 @@ export function DataTable({
                     </td>
                   )}
                 </tr>
-              ))
+                )
+              })
             )}
           </tbody>
         </table>

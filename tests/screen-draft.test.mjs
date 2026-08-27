@@ -123,6 +123,7 @@ const FLOOR = {
   // 배너·카드·표·각주가 전부 컨테이너 이름만 다른 상자라 걸리는 규칙이 없다.
   "ORG-04": { matched: 0, spurious: 0 },
   "ORG-04B": { matched: 3, spurious: 1 },
+  "ORG-07A": { matched: 3, spurious: 1 },
   "TASK-01": { matched: 5, spurious: 2 }
 };
 

@@ -1575,6 +1575,14 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   'org.chartTitle': { name: '제12대 소프트웨어융합대학 학생회' },
   'org.roleCounts': { chairCount: 1, headCount: 3, memberCount: 3 },
   'org.roleAssignmentCount': { total: '7명' },
+  'org.rosterScope': {
+    path: '한양대학교 ERICA › 소프트웨어융합대학 › 컴퓨터학부',
+    note: '컴퓨터학부 학생만 이 명단에 등록할 수 있습니다. 범위 변경은 조직 설정에서 가능합니다.',
+    rosterUpdatedAt: '2026-07-20 14:32',
+    rosterUpdatedBy: '학생 명단 업로드 · 이지원',
+    duesUpdatedAt: '2026-07-18 10:15',
+    duesUpdatedBy: '2026년 1학기 · 김민준',
+  },
   // 고른 사람. 어느 구성원을 고를지가 아직 주소로 오가지 않아 서버가 준다.
   'org.selectedRoleAssignment': {
     id: 'M-03',
@@ -1842,6 +1850,39 @@ const UNASSIGNED_MEMBERS: DataRow[] = [
   { id: 'M-10', name: '박해랑', major: '컴퓨터학부', grade: '2학년' },
 ]
 
+// 학생 명단(ORG-07A). 디자인이 그린 여덟 줄 그대로다.
+//
+// **rowTone은 대부분 비어 있다.** 손봐야 하는 줄에만 색 이름이 오고, 그 줄은
+// 명단과 납부 기록이 어긋나 사람이 확인해야 하는 학생이다.
+const STUDENT_ROSTER: DataRow[] = [
+  ['S-01', '김바다', '2022123456', '3학년', '납부', 'green', ''],
+  ['S-02', '박해랑', '2023234567', '2학년', '납부', 'green', ''],
+  ['S-03', '이윤슬', '2020345678', '4학년', '미납', 'red', ''],
+  ['S-04', '정하늘', '2022456789', '3학년', '미납', 'red', ''],
+  ['S-05', '최바람', '2021567890', '3학년', '확인 필요', 'yellow', 'yellow'],
+  ['S-06', '강별', '2024678901', '1학년', '납부', 'green', ''],
+  ['S-07', '오하늘', '2023789012', '2학년', '납부', 'green', ''],
+  ['S-08', '윤서진', '2022890123', '3학년', '미납', 'red', ''],
+].map(([id, name, studentNumber, grade, duesLabel, duesTone, rowTone]) => ({
+  id,
+  name,
+  studentNumber,
+  // 관리 범위가 컴퓨터학부 하나라 여덟 줄이 다 같다. 그래도 조각으로 온다 -
+  // 범위가 넓어지면 줄마다 갈린다.
+  college: '소프트웨어융합대학',
+  department: '컴퓨터학부',
+  grade,
+  duesLabel,
+  duesTone,
+  rowTone,
+}))
+
+const DUES_BY_STATUS: Record<string, string> = {
+  paid: '납부',
+  unpaid: '미납',
+  check: '확인 필요',
+}
+
 export const FILTERED_FIXTURES: Record<
   string,
   (params: Record<string, string>) => DataRow[]
@@ -1849,6 +1890,25 @@ export const FILTERED_FIXTURES: Record<
   // 미배정 구성원은 이름으로 거른다. 조직도를 고치는 화면(ORG-03B)의 오른쪽 칸이다.
   'org.unassignedMembers': ({ query = '' }) =>
     UNASSIGNED_MEMBERS.filter((row) => matchesQuery(row, query)),
+  // 학생 명단은 이름·학번으로 찾고 학년·납부 상태로 거른다.
+  'org.students': ({ query = '', grade = '', duesStatus = '' }) =>
+    STUDENT_ROSTER.filter((row) => matchesQuery(row, query))
+      .filter((row) => grade === '' || row.grade === grade)
+      .filter(
+        (row) =>
+          duesStatus === '' ||
+          duesStatus === 'all' ||
+          row.duesLabel === DUES_BY_STATUS[duesStatus],
+      ),
+  'org.studentPaging': ({ query = '', grade = '', duesStatus = '' }) => {
+    const rows = (FILTERED_FIXTURES['org.students'] as (p: Record<string, string>) => DataRow[])({
+      query,
+      grade,
+      duesStatus,
+    })
+    // 총 건수는 거른 뒤의 것이다 - 화면이 세지 않고 서버가 말한다.
+    return [{ totalNote: `총 ${rows.length}명`, pageCount: 1 }]
+  },
   'task.board': ({ scope = 'all', status = 'planned' }) =>
     TASK_BOARD.filter((task) => task.status === status)
       .filter((task) => scope !== 'mine' || task.row.assignee === VIEWER_NAME)

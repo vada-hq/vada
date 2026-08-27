@@ -52,8 +52,8 @@
           }
         ],
         "action": {
-          "type": "pending",
-          "note": "학생 명단 관리 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "ORG-07A"
         }
       }
     },

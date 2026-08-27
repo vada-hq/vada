@@ -375,4 +375,73 @@ export const DEVIATIONS: Deviation[] = [
     screen: '지정 없음',
     why: '표의 머리줄에는 바탕을 깔지 않는다(DataTable). ORG-04만 회색이다.',
   },
+
+  // --- ORG-07A: 표의 머리줄이 또 다르게 칠해졌다 ------------------------------
+  //
+  // 공용 표의 열 머리는 700이다. FIN-REQ-02는 700, ORG-04는 600, ORG-07A는 500 -
+  // **세 화면이 세 굵기다.** 규칙이 바뀐 것이 아니라 손으로 그린 것이 흔들린 것이라
+  // 규칙을 따르고 차이를 적는다.
+  {
+    by: 'place',
+    screenId: 'ORG-07A',
+    content: '이름',
+    kind: '굵기',
+    design: '500',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-07A만 500이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-07A',
+    content: '학번',
+    kind: '굵기',
+    design: '500',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-07A만 500이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-07A',
+    content: '단과대학',
+    kind: '굵기',
+    design: '500',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-07A만 500이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-07A',
+    content: '학부·학과',
+    kind: '굵기',
+    design: '500',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-07A만 500이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-07A',
+    content: '학년',
+    kind: '굵기',
+    design: '500',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-07A만 500이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-07A',
+    content: '학생회비',
+    kind: '굵기',
+    design: '500',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-07A만 500이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-07A',
+    content: '이름 학번 단과대학 학부·학과 학년 학생회비',
+    kind: '테두리',
+    design: 'gray-200(#E5E7EB)',
+    screen: 'gray-100(#F3F4F6)',
+    why: '표의 머리줄 아래 선은 gray-100으로 통일한다(DataTable).',
+  },
 ]

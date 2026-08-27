@@ -1167,6 +1167,27 @@ function checkArgumentValues(findings, context, params, { declared, where }) {
   }
 }
 
+// 줄 전체의 색 이름도 실제로 있는 조각이어야 한다. 없으면 아무 줄도 표시되지
+// 않고 아무도 말하지 않는다 - 열의 색 이름을 보는 것과 같은 이유다.
+function checkRowToneField(findings, context) {
+  const { file, element, index, dataSourceByKey } = context;
+  const spec = element.spec;
+  if (typeof spec?.rowToneField !== "string" || typeof spec.dataSourceKey !== "string") {
+    return;
+  }
+  const source = dataSourceByKey.get(spec.dataSourceKey);
+  if (!source) {
+    return;
+  }
+  if (!(source.fields ?? []).some((field) => field.key === spec.rowToneField)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 줄 색 이름 조각 '${spec.rowToneField}'가 '${spec.dataSourceKey}'에 없습니다.`
+    });
+  }
+}
+
 // 가져갈 수 있는 값은 실제로 있는 조각이어야 한다. 없으면 눌러도 빈 것이 복사되고
 // 아무도 말하지 않는다.
 function checkCopyAction(findings, context) {
@@ -2077,6 +2098,7 @@ export function collectSpecFindings({
         checkNestedListTitleField(findings, context);
         checkItemMovePool(findings, context);
         checkCopyAction(findings, context);
+        checkRowToneField(findings, context);
         checkListPaging(findings, context);
       }
       if (spec_.type === "select") {

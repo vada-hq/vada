@@ -1,0 +1,276 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-07A",
+  "meta": {
+    "eyebrow": "조직 관리",
+    "title": "학생 명단 관리"
+  },
+  "activeNavigationScreenId": "ORG-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:5383",
+    "name": "조직 관리 · ORG-07A · 학생 명단 관리",
+    "figmaType": "FRAME"
+  },
+  "breadcrumb": {
+    "source": "30:5457",
+    "items": [
+      {
+        "value": "조직 관리"
+      },
+      {
+        "value": "학생 명단"
+      }
+    ]
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:5468",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "학생 명단 업로드·갱신",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "학생 명단 업로드 모달이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5474",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "학생회비 납부 명단 업로드",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "학생회비 납부 명단 업로드 모달이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5480",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "명단 내보내기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "명단을 내보내는 방법이 아직 정해지지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5494",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "관리 범위",
+        "descriptionField": "note",
+        "dataSourceKey": "org.rosterScope",
+        "items": [
+          {
+            "field": "path"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5502",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "학생 명단 갱신",
+        "dataSourceKey": "org.rosterScope",
+        "items": [
+          {
+            "field": "rosterUpdatedAt",
+            "descriptionField": "rosterUpdatedBy"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5509",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "학생회비 명단 갱신",
+        "dataSourceKey": "org.rosterScope",
+        "items": [
+          {
+            "field": "duesUpdatedAt",
+            "descriptionField": "duesUpdatedBy"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5517",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "studentQuery",
+        "label": "이름, 학번 검색",
+        "labelHidden": true,
+        "placeholder": "이름, 학번 검색",
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5523",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "studentGrade",
+        "label": "학년",
+        "labelHidden": true,
+        "placeholder": "학년",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "education.currentGrades"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5527",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "studentDues",
+        "label": "학생회비 납부 상태",
+        "labelHidden": true,
+        "placeholder": "학생회비 납부 상태",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "org.duesStatus"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5531",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "org.students",
+        "params": {
+          "query": {
+            "fieldKey": "studentQuery"
+          },
+          "grade": {
+            "fieldKey": "studentGrade"
+          },
+          "duesStatus": {
+            "fieldKey": "studentDues"
+          }
+        },
+        "paging": {
+          "source": "30:5609",
+          "pageParam": "page",
+          "dataSourceKey": "org.studentPaging",
+          "params": {
+            "query": {
+              "fieldKey": "studentQuery"
+            },
+            "grade": {
+              "fieldKey": "studentGrade"
+            },
+            "duesStatus": {
+              "fieldKey": "studentDues"
+            }
+          },
+          "totalNoteField": "totalNote",
+          "pageCountField": "pageCount"
+        },
+        "columns": [
+          {
+            "label": "이름",
+            "fields": [
+              "name"
+            ]
+          },
+          {
+            "label": "학번",
+            "fields": [
+              "studentNumber"
+            ]
+          },
+          {
+            "label": "단과대학",
+            "fields": [
+              "college"
+            ]
+          },
+          {
+            "label": "학부·학과",
+            "fields": [
+              "department"
+            ]
+          },
+          {
+            "label": "학년",
+            "fields": [
+              "grade"
+            ]
+          },
+          {
+            "label": "학생회비",
+            "fields": [
+              "duesLabel"
+            ],
+            "toneField": "duesTone"
+          }
+        ],
+        "rowToneField": "rowTone"
+      }
+    }
+  ]
+}
