@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "design": {
     "excludeNodeNames": [
-      "Sidebar"
+      "DesktopShell/Sidebar"
     ]
   },
   "brand": {

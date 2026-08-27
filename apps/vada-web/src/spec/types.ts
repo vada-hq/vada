@@ -98,7 +98,16 @@ export interface PendingAction extends ExecutionGate {
   note: string
 }
 
-export type ButtonAction = NavigateAction | SubmitAction | PendingAction
+// 화면에 보이는 값을 가져간다. 보내는 것도 어디로 가는 것도 아니다 - 초대 링크와
+// 초대 코드처럼 **사람이 붙여 넣어 남에게 보내라고 그려 둔 값**이 그 자리다.
+// 어떻게 집어 가는지는 명세가 말하지 않는다(클립보드는 플랫폼의 답이다).
+export interface CopyAction extends ExecutionGate {
+  type: 'copy'
+  copySourceKey: string
+  copyField: string
+}
+
+export type ButtonAction = NavigateAction | SubmitAction | PendingAction | CopyAction
 
 export type ButtonEmphasis = 'primary' | 'secondary' | 'quiet'
 

@@ -1539,6 +1539,14 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   },
   'org.chartTitle': { name: '제12대 소프트웨어융합대학 학생회' },
   'org.unassignedHint': { hint: '2명 · 드래그해서 부서로 이동' },
+  'org.invite': {
+    stateLabel: '활성',
+    stateTone: 'green',
+    stateNote: '현재 사용할 수 있는 초대 정보입니다.',
+    regeneratedNote: '마지막 재생성: 2026.07.22 18:30',
+    url: 'https://vada.app/join/swcollege12/abc123xyz',
+    code: 'AB12CD34',
+  },
 
   // 조직도(ORG-03A). 디자인이 그린 그대로다 - 회장단 둘, 부서 셋이고
   // **기획부만 부서장이 있다.** 그 없음이 '＋ 부서장 지정'을 부르는 자리다.

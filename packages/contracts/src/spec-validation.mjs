@@ -1167,6 +1167,32 @@ function checkArgumentValues(findings, context, params, { declared, where }) {
   }
 }
 
+// 가져갈 수 있는 값은 실제로 있는 조각이어야 한다. 없으면 눌러도 빈 것이 복사되고
+// 아무도 말하지 않는다.
+function checkCopyAction(findings, context) {
+  const { file, element, index, dataSourceByKey } = context;
+  const action = element.spec?.action;
+  if (!isObject(action) || action.type !== "copy") {
+    return;
+  }
+  const source = dataSourceByKey.get(action.copySourceKey);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}가 가져가려는 출처 '${action.copySourceKey}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+  if (!(source.fields ?? []).some((field) => field.key === action.copyField)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}가 가져가려는 조각 '${action.copyField}'가 '${action.copySourceKey}'에 없습니다.`
+    });
+  }
+}
+
 // 옮길 수 있는 목록은 **자리를 잃은 사람이 어디 모이는지**를 가리킨다. 그 곳이
 // 실제로 있는 목록 출처가 아니면, 뺀 사람이 어디로 갔는지 아무도 답할 수 없다.
 function checkItemMovePool(findings, context) {
@@ -2050,6 +2076,7 @@ export function collectSpecFindings({
         checkListColumns(findings, context);
         checkNestedListTitleField(findings, context);
         checkItemMovePool(findings, context);
+        checkCopyAction(findings, context);
         checkListPaging(findings, context);
       }
       if (spec_.type === "select") {

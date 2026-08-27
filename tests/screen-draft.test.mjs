@@ -118,6 +118,7 @@ const FLOOR = {
   "ORG-02": { matched: 2, spurious: 2 },
   "ORG-03A": { matched: 1, spurious: 4 },
   "ORG-03B": { matched: 4, spurious: 6 },
+  "ORG-03C": { matched: 2, spurious: 2 },
   "TASK-01": { matched: 5, spurious: 2 }
 };
 

@@ -41,8 +41,8 @@
         "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "구성원 초대 패널이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "ORG-03C"
         }
       }
     },
@@ -137,8 +137,8 @@
         "emphasis": "quiet",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "구성원 초대 패널이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "ORG-03C"
         }
       }
     },

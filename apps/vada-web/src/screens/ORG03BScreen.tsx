@@ -212,8 +212,11 @@ export function ORG03BScreen({
   const [headSpec, leaderList, memberList] = departments.itemFields!.map((entry) => entry.spec)
   const breadcrumb = org03b.breadcrumb
 
+  // 아직 정해지지 않은 자리는 그 사실을 남기고, 정해진 자리는 그리로 간다.
+  // 구성원 초대·구성원 추가가 pending이던 시절에는 앞의 것만 있었다.
   const pressPending = (spec: ButtonSpec) => () => {
     if (spec.action.type === 'pending') setNote(spec.action.note)
+    if (spec.action.type === 'navigate') onNavigate(spec.action.targetScreenId)
   }
 
   function pressDone() {

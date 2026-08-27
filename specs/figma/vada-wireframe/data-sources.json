@@ -2884,6 +2884,47 @@
           "description": "완성된 안내. 예: 2명 · 드래그해서 부서로 이동"
         }
       ]
+    },
+    {
+      "key": "org.invite",
+      "shape": "object",
+      "description": "학생회에 들어오는 초대. 링크와 코드가 **같은 권한**이라 한 건으로 온다 - 둘을 따로 두면 하나만 되살렸을 때 어느 것이 유효한지 화면이 정하게 된다.\n\n값은 서버가 만든다. 링크의 주소도 코드의 글자도 화면이 지어낼 수 있는 것이 아니다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/invite"
+      },
+      "messages": {
+        "loading": "초대 정보를 불러오는 중입니다",
+        "empty": "사용할 수 있는 초대가 없습니다",
+        "error": "초대 정보를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "stateLabel",
+          "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성"
+        },
+        {
+          "key": "stateTone",
+          "description": "그 딱지의 색 이름"
+        },
+        {
+          "key": "stateNote",
+          "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다."
+        },
+        {
+          "key": "regeneratedNote",
+          "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30"
+        },
+        {
+          "key": "url",
+          "description": "공용 초대 링크"
+        },
+        {
+          "key": "code",
+          "description": "짧은 초대 코드. 예: AB12CD34"
+        }
+      ]
     }
   ]
 }

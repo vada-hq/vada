@@ -600,7 +600,21 @@ export function draftScreenElements(design, options = {}) {
   // 셸(사이드바·헤더)은 화면의 요소가 아니라 모든 화면이 공유하는 구조다.
   // 어느 노드가 셸인지는 wireframe이 아는 것이라 파이프라인이 이름을 갖지 않고
   // 호출자가 넘긴다(specs/<wireframe>/shell.json의 design.excludeNodeNames).
-  const excluded = new Set(excludeNodeNames ?? []);
+  // 이름만 보면 그 이름이 겹치는 날 조용히 사라진다. 실제로 ORG-03C의 구성원
+  // 초대 칸이 'Sidebar'라는 이름을 달고 있어 **패널 전체가 통째로 빠졌다** -
+  // 추출기가 조직도만 읽고 초대 링크·코드는 하나도 못 봤다.
+  //
+  // 그래서 '어미이름/이름' 꼴을 받는다. 셸의 사이드바는 DesktopShell의 것이고
+  // 초대 칸은 Main Content의 것이라 둘이 갈린다. 어미를 적지 않은 이름은
+  // 예전처럼 어디에 있든 걸러진다.
+  const excluded = new Set();
+  const excludedWithParent = new Set();
+  for (const entry of excludeNodeNames ?? []) {
+    (entry.includes("/") ? excludedWithParent : excluded).add(entry);
+  }
+  const isExcluded = (child, parent) =>
+    excluded.has(child?.name) ||
+    excludedWithParent.has(`${parent?.name ?? ""}/${child?.name ?? ""}`);
   const lookup = (label) =>
     precedents ? findPrecedent(precedents, { label, stateScopeKey }) : { confirmed: null, candidates: [] };
 
@@ -610,7 +624,7 @@ export function draftScreenElements(design, options = {}) {
 
   const visit = (node, insideGroup) => {
     for (const child of children(node)) {
-      if (excluded.has(child?.name)) {
+      if (isExcluded(child, node)) {
         continue;
       }
 

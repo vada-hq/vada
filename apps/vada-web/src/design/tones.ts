@@ -254,3 +254,13 @@ export const ROLE_CARD: Record<string, string> = {
   yellow: 'border-yellow-300 bg-yellow-50',
   blue: 'border-blue-200 bg-blue-50',
 }
+
+/**
+ * 이미 색이 깔린 상자 안에 겹쳐 놓이는 상태 딱지(ORG-03C 30:5325).
+ *
+ * STATE_CHIP과 달리 테두리가 없고 바탕이 -100이다 - 흰 카드 위가 아니라 -50이
+ * 깔린 상자 위에 놓이므로 한 단계 더 진해야 보인다(ROLE_CHIP과 같은 이유).
+ */
+export const CHIP_ON_TINT: Record<string, string> = {
+  green: 'bg-green-100 text-green-700',
+}

@@ -27,6 +27,7 @@ import { ORG00Screen } from './ORG00Screen'
 import { ORG01Screen } from './ORG01Screen'
 import { ORG03AScreen } from './ORG03AScreen'
 import { ORG03BScreen } from './ORG03BScreen'
+import { ORG03CScreen } from './ORG03CScreen'
 import { ORG02Screen } from './ORG02Screen'
 import { finReq01, finRev01, finSup01, inv01, onb01, org01, org02, org03b } from '../spec/screens'
 import { readScopeDraft } from '../state/scopes'
@@ -190,6 +191,10 @@ export function ScreenRouter({
         onNavigate={onNavigate}
       />
     )
+  }
+  if (screenId === 'ORG-03C') {
+    // 조직도 곁에 붙는 칸이다. 초대 값은 서버가 만들고 화면은 담지 않는다.
+    return <ORG03CScreen onNavigate={onNavigate} />
   }
   if (screenId === 'ORG-01') {
     return (
