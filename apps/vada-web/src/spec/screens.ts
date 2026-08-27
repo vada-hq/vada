@@ -13,6 +13,7 @@ import { workspaceOf } from './workspaces'
 import onb01Json from '../../../../specs/figma/vada-wireframe/screens/ONB-01/screen.json'
 import onb02Json from '../../../../specs/figma/vada-wireframe/screens/ONB-02/screen.json'
 import org01Json from '../../../../specs/figma/vada-wireframe/screens/ORG-01/screen.json'
+import org00Json from '../../../../specs/figma/vada-wireframe/screens/ORG-00/screen.json'
 import org02Json from '../../../../specs/figma/vada-wireframe/screens/ORG-02/screen.json'
 import inv01Json from '../../../../specs/figma/vada-wireframe/screens/INV-01/screen.json'
 import home01kJson from '../../../../specs/figma/vada-wireframe/screens/HOME-01K/screen.json'
@@ -56,6 +57,7 @@ export function asScreenSpec(json: unknown): ScreenSpec {
 export const onb01 = asScreenSpec(onb01Json)
 export const onb02 = asScreenSpec(onb02Json)
 export const org01 = asScreenSpec(org01Json)
+export const org00 = asScreenSpec(org00Json)
 export const org02 = asScreenSpec(org02Json)
 export const inv01 = asScreenSpec(inv01Json)
 export const home01k = asScreenSpec(home01kJson)
@@ -88,6 +90,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   onb02,
   inv01,
   org01,
+  org00,
   org02,
   home01k,
   my01,

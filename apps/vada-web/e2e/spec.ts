@@ -26,3 +26,29 @@ export function missingNoteOf(screenId: string, paramKey: string): string {
   }
   return note
 }
+
+interface ElementEntry {
+  spec?: {
+    title?: string
+    action?: { type?: string; note?: string }
+    itemAction?: { type?: string; note?: string }
+  }
+}
+
+/**
+ * 아직 명세되지 않은 화면으로 가는 자리의 글. 제목으로 그 요소를 찾는다.
+ *
+ * 여기 있는 이유는 missingNoteOf와 같다 — 이 글을 검사에 옮겨 적으면 명세와
+ * 두 벌이 되고, 명세를 고쳤을 때 검사가 조용히 낡는다.
+ */
+export function pendingNoteOf(screenId: string, title: string): string {
+  const spec = JSON.parse(
+    readFileSync(join(SCREENS_DIR, screenId, 'screen.json'), 'utf-8'),
+  ) as { elements?: ElementEntry[] }
+  const found = (spec.elements ?? []).find((element) => element.spec?.title === title)
+  const action = found?.spec?.action ?? found?.spec?.itemAction
+  if (action?.type !== 'pending' || action.note === undefined) {
+    throw new Error(`${screenId}의 '${title}'는 pending이 아니거나 note가 없습니다.`)
+  }
+  return action.note
+}

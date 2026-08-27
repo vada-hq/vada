@@ -1,0 +1,83 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-00",
+  "meta": {
+    "eyebrow": "조직 관리",
+    "title": "조직 관리 홈",
+    "description": "관리할 영역을 선택하세요."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:4298",
+    "name": "조직 관리 · ORG-00 · 조직 관리 홈",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:4383",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "부서 & 구성원",
+        "description": "학생회 기본 조직의 부서 구조와 구성원을 확인하고 관리합니다.",
+        "dataSourceKey": "org.areaSummaries",
+        "items": [
+          {
+            "field": "departments"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "note": "부서 & 구성원 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:4399",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "학생 명단",
+        "description": "행사 참가 확인과 학생회비 조회에 사용하는 단과대학 학생 명단을 관리합니다.",
+        "dataSourceKey": "org.areaSummaries",
+        "items": [
+          {
+            "field": "students"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "note": "학생 명단 관리 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:4413",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "역할 및 권한",
+        "description": "역할별로 사용할 수 있는 기능을 열람합니다.",
+        "dataSourceKey": "org.areaSummaries",
+        "items": [
+          {
+            "field": "roles"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "note": "역할 및 권한 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

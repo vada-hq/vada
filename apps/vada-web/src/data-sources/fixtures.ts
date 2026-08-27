@@ -1530,6 +1530,13 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     calendarThisWeek: 6,
     calendarUpcoming: 4,
   },
+  // 조직 관리 홈(ORG-00). 디자인이 그린 그대로의 한 줄이다 - 셈한 숫자가 아니라
+  // 서버가 완성해 보내는 문장이라는 것이 이 출처의 계약이다.
+  'org.areaSummaries': {
+    departments: '부서 5개 · 구성원 18명',
+    students: '학생 1,284명 · 최근 갱신 07.01',
+    roles: '기본 역할 3종 · 확정된 권한 매트릭스',
+  },
   'my.taskTabCounts': countByTab(),
   'task.alerts': taskAlerts(),
 }
