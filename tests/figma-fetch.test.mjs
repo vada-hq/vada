@@ -91,38 +91,35 @@ test("저장된 화면의 폴더 이름과 design의 이름이 말하는 screenI
   );
 });
 
-test("tests 폴더의 검사 파일은 정확히 한 앱이 돌린다", async () => {
-  // 목록이 손으로 적혀 있어, 새 파일을 넣지 않으면 **검사가 있는데 아무도 안
-  // 돌린다**(figma-fetch.test.mjs가 실제로 그랬다). 준수 검사가 세 화면만 보고
-  // 있던 것과 같은 함정이다. 플러그인이 사라져 지금은 앱이 하나지만, 둘로 나뉜
-  // 적이 있었으므로 겹침 검사도 그대로 둔다.
+test("tests 폴더의 검사 파일은 손 목록이 아니라 글로브로 돌린다", async () => {
+  // 한동안 목록이 손으로 적혀 있었고, 새 파일을 넣지 않으면 **검사가 있는데
+  // 아무도 안 돌았다**(figma-fetch.test.mjs가 실제로 그랬다). 그때는 목록이
+  // 빠짐없는지를 이 검사가 지켰다.
+  //
+  // 지금은 글로브라 **빠질 수가 없다.** 구조로 못 하게 만드는 것이 검사로 막는
+  // 것보다 낫다 - 검사는 잊을 수 있지만 구조는 잊을 수 없다. 그래서 이 검사에
+  // 남은 일은 하나다: **손 목록으로 되돌아가지 못하게 한다.**
   const { readdir, readFile } = await import("node:fs/promises");
   const { join, dirname } = await import("node:path");
   const { fileURLToPath } = await import("node:url");
   const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
+  const script = JSON.parse(
+    await readFile(join(repoRoot, "apps/spec-service/package.json"), "utf8")
+  ).scripts.test;
+
+  assert.ok(
+    script.includes("*.test.mjs"),
+    `검사를 손 목록으로 돌리고 있습니다: ${script}`
+  );
+
+  // 글로브가 실제로 이 폴더를 가리키는지. 다른 폴더를 가리키면 하나도 안 돈다.
   const files = (await readdir(join(repoRoot, "tests"))).filter((name) =>
     name.endsWith(".test.mjs")
   );
-  const scripts = await Promise.all(
-    ["apps/spec-service"].map(async (app) =>
-      JSON.parse(await readFile(join(repoRoot, app, "package.json"), "utf8")).scripts.test
-    )
+  assert.ok(files.length > 0, "tests 폴더에 검사 파일이 없습니다");
+  assert.ok(
+    script.includes("tests/"),
+    `글로브가 tests 폴더를 가리키지 않습니다: ${script}`
   );
-
-  const unclaimed = files.filter((name) => !scripts.some((script) => script.includes(name)));
-  assert.deepEqual(unclaimed, [], "어느 앱도 돌리지 않는 검사 파일이 있습니다");
-
-  const twice = files.filter(
-    (name) => scripts.filter((script) => script.includes(name)).length > 1
-  );
-  assert.deepEqual(twice, [], "두 앱이 같은 검사 파일을 겹쳐 돌립니다");
-
-  // 목록에만 있고 파일이 없는 것도 잡는다 — node --test는 조용히 넘어간다.
-  for (const script of scripts) {
-    for (const token of script.split(/\s+/).filter((part) => part.endsWith(".test.mjs"))) {
-      const name = token.replace(/^.*\//, "");
-      assert.ok(files.includes(name), `검사 목록에 없는 파일이 적혀 있습니다: ${name}`);
-    }
-  }
 });

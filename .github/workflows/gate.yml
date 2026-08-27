@@ -1,0 +1,61 @@
+# 게이트 넷을 원격에서 돌린다.
+#
+# **이 파일은 지금 한 번도 돌지 않는다.** 이 저장소에 git 원격이 없기 때문이다
+# (2026-08-27 기준). 그런데도 지금 두는 이유가 있다: 원격이 생기는 날 첫 push부터
+# 돌아야 하고, 그때 가서 만들면 이미 깨진 것을 밀어낸 뒤다.
+#
+# 로컬은 층이 둘이다(.githooks). 커밋마다 계약만(5초), 밀어내기 전에 전부.
+# 여기는 그 마지막 층을 남의 기계에서 한 번 더 확인하는 자리다 — 내 기계에만 있는
+# 것(캐시·전역 설정·다운로드해 둔 브라우저) 때문에 통과하는 것을 잡는다.
+#
+# 화면이 85개가 되면 이 작업이 10분을 넘긴다(감사 A의 계산: e2e만 12분). 그때는
+# e2e를 샤딩으로 쪼갠다 — Playwright가 공식으로 지원한다.
+
+name: gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  contracts:
+    # 계약은 빠르고 브라우저가 필요 없다. 따로 두면 실패를 먼저 안다.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --prefix apps/vada-web
+      - name: 명세 검증
+        run: npm run validate
+      - name: 계약 검사
+        run: npm run test:contracts
+
+  screens:
+    runs-on: ubuntu-latest
+    needs: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --prefix apps/vada-web
+      - name: 화면 검사 (준수·design 대조)
+        run: npm test
+      - name: 빌드
+        run: npm run build
+
+  browser:
+    runs-on: ubuntu-latest
+    needs: contracts
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --prefix apps/vada-web
+      - run: npx --prefix apps/vada-web playwright install --with-deps chromium
+      - name: 시나리오 검사
+        run: npm run e2e
