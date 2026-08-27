@@ -22,7 +22,7 @@
   - **자산의 단위를 이제 로컬에서 정한다**(`collectAssetNodes`를 받은 원본에 돌린다). 플러그인 안에서 정하던 때는 규칙을 고치려면 사람이 Figma를 열어 다시 저장해야 했다. **BACKLOG의 '자산 단위 규칙' 항목이 이제 재저장 없이 고칠 수 있는 것이 됐다.**
   - **다른 것 둘**: reference.png는 크기(2588×1492)·색 깊이·색 형식이 같고 압축만 다르다. 자산 SVG는 20개 중 13개가 다른데, 그림은 같고 **크기 기준이 다르다** — 플러그인은 와이어프레임의 0.875배를 경로 좌표에 굽고 REST는 viewBox에 맞춘다. design 대조·자산 대조 전부 통과한다(양쪽이 같은 파일을 본다).
   - **화면 신원은 이름이 말한다**: 프레임 이름에 screenId가 들어 있다(`운영 — 행사 · EVT-00A · …`). 새 화면은 이름으로 찾고, 이미 있는 폴더는 그 폴더의 노드를 다시 받는다. 이름이 여럿 맞으면 조용히 고르지 않고 목록을 보여주며 멈춘다.
-  - **화면 목록을 볼 수 있다**: `node apps/spec-service/src/list-figma-screens.mjs vada-wireframe --todo`. 와이어프레임에 **화면 85개**가 있고 그중 32개가 명세됐다. 다음 화면을 제품 순서로 고르기로 했는데(implementation-methodology.md) 그 순서를 이제 Figma를 열지 않고 본다.
+  - **화면 목록을 볼 수 있다**: `node apps/spec-service/src/list-figma-screens.mjs vada-wireframe --todo`. 와이어프레임에 **화면 85개**가 있고 그중 33개가 명세됐다. 다음 화면을 제품 순서로 고르기로 했는데(implementation-methodology.md) 그 순서를 이제 Figma를 열지 않고 본다.
   - **토큰**: 저장소 루트 `.env`의 `FIGMA_TOKEN`(git 제외). 필요한 권한은 `file_content:read` 하나뿐이고 file content에는 쓰기 권한 자체가 없다. 파일 key는 비밀이 아니므로 `specs/figma/<wireframe>/figma-file.json`에 둔다.
   - **한도**: Tier 1, 분당 10~20회. **파일이 속한 플랜이 정한다 — 토큰 주인의 좌석이 아니다.** 화면 하나에 3~4회면 된다.
 - **자산의 단위(2026-08-24 수정)**: "벡터만 품은 가장 바깥 노드"인데 그 판정이 두 곳에서 틀렸고, 둘 다 **화면에 그릴 수 없는 파일**을 만들었다.
@@ -36,7 +36,7 @@
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md).
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다.
-- **테스트**: 계약 131, vada-web(vitest) 482 + Playwright e2e 156 — 전부 통과. 게이트는 두 앱을 **함께** 돌리고, 대조 검사가 SVG 391개를 번들러 대신 디스크에서 읽는다(벽시계 34~50초). e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`).
+- **테스트**: 계약 133, vada-web(vitest) 495 + Playwright e2e 162 — 전부 통과. 게이트는 두 앱을 **함께** 돌리고, 대조 검사가 SVG 391개를 번들러 대신 디스크에서 읽는다(벽시계 34~50초). e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`).
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). 검증기 기동이 그 일치를 강제한다(플러그인이 사라지며 `element-type-registry.test.mjs`는 지웠다 — 검사하던 대상의 절반이 플러그인 쪽이었다).
 - **추출기가 화면을 보는 눈(2026-08-24)**: 초안 재현율을 **36/67 → 41/67(61%)**, 헛것(등록되지 않은 것을 뽑음)을 **41 → 19개**로 고쳤다. 막혔던 네 곳이다.
   - **이름표 없는 것을 못 봤다**: 필드는 직계 자식에 `Label` 노드를, 목록은 묶음 제목을 요구했다. 목록 화면의 검색칸(EVT-00A `20:4153`)과 카드 목록(`20:4167`)이 통째로 안 보여 초안에 버튼 4개만 나왔다. 라벨 없이 홀로 선 컨트롤과 제목 없는 되풀이를 각각 길로 냈다. 라벨은 그려진 문구에서 짐작하고 **짐작임을 질문으로 알린다.**
@@ -152,9 +152,11 @@
 `itemRemove`, `button.action`의 `copy`) **04·04B에서는 한 줄도 안 늘었다** —
 새 어휘를 만들기 전에 짝 화면을 열어 본 것이 쌌다.
 
-**다음은 ORG-07A(학생 명단 관리)다.** ORG-00의 마지막 pending 카드이고, 그 뒤가
-**ORG-07B·07C — 마지막 모달 후보 둘**(명단 업로드)이다. ORG-03C가 모달이 아니라
-곁에 붙는 칸이었으므로 모달은 아직 한 번도 안 봤다.
+**조직 관리 홈의 카드 셋이 다 이어졌다.** 남은 것은 ORG-07B·07C(명단 업로드)
+둘뿐이고, 그 둘이 **마지막 모달 후보**다 — ORG-03C가 모달이 아니라 곁에 붙는
+칸이었으므로 모달은 아직 한 번도 안 봤다.
+
+**다음은 ORG-07B(학생 명단 업로드·갱신 모달)다.**
 
 **눈금을 화면마다 잠갔다.** 총합 재현율은 회귀 탐지기가 아니었다 — 하루에 세 번
 내렸다. 이제 `tests/screen-draft.test.mjs`의 `FLOOR`에 화면마다 줄이 있고,
