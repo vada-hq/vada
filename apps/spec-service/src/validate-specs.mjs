@@ -1,3 +1,4 @@
+import { allElementsOf } from "../../../packages/contracts/src/element-walk.mjs";
 import { createHash } from "node:crypto";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { basename, dirname, join, resolve } from "node:path";
@@ -134,11 +135,15 @@ async function readOptionalCatalog({
   return catalog;
 }
 
+// 화면의 모든 요소를 유형별 스키마로 다시 본다. **안쪽 요소도 화면의 요소와 같은
+// 규칙을 받는다**(list.itemFields · itemList.itemFields).
+//
+// 한동안 최상위만 봤다. 그래서 FIN-REQ-01의 중첩 input에 없는 inputType과 불리언
+// 자리에 글을 넣어도 검증이 0건이었다 - 재현으로 확인했다. 속성 **순서**만 어긋나게
+// 하면 걸렸는데, 그건 순서 검사가 우연히 평평하게 훑기 때문이지 스키마가 본 것이
+// 아니었다.
 function validateScreenElements(findings, fileLabel, spec, validators) {
-  if (!Array.isArray(spec?.elements)) {
-    return;
-  }
-  spec.elements.forEach((element, index) => {
+  for (const { element, path } of allElementsOf(spec)) {
     const elementSpec = element?.spec;
     const validator = validators.elements[elementSpec?.type];
     if (!validator) {
@@ -146,19 +151,19 @@ function validateScreenElements(findings, fileLabel, spec, validators) {
       findings.push({
         level: "error",
         file: fileLabel,
-        message: `elements[${index}]의 유형 '${elementSpec?.type}'을 검증할 스키마가 없습니다.`
+        message: `${path}의 유형 '${elementSpec?.type}'을 검증할 스키마가 없습니다.`
       });
-      return;
+      continue;
     }
     if (!validator(elementSpec)) {
       pushSchemaFindings(
         findings,
         fileLabel,
-        `elements[${index}] ${elementSpec.type} 스키마 위반: `,
+        `${path} ${elementSpec.type} 스키마 위반: `,
         validator.errors
       );
     }
-  });
+  }
 }
 
 async function validateWireframe(wireframeDir, wireframeKey, validators, findings) {

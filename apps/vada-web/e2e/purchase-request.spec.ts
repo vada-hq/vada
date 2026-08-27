@@ -102,6 +102,21 @@ test('FIN-REQ-01: 제출하면 재정 개요로 돌아간다', async ({ page }) 
   await expect(page).toHaveURL('/#/EVT-FIN-01?eventId=E-01')
 })
 
+// 명세는 필수 칸이 다 차야 실행된다고 말한다(executeWhen). 한동안 화면이 그것을
+// 아예 구현하지 않아 빈 칸으로도 제출됐고, **게이트 넷이 다 놓쳤다** - 위의 검사는
+// 제출이 '되는' 것만 봤다. 되풀이되는 품목의 칸이 그 구멍의 중심이었다.
+test('FIN-REQ-01: 품목의 칸이 비면 제출을 막는다', async ({ page }) => {
+  await page.goto(EDIT)
+
+  // 품목을 하나 더하면 그 줄의 필수 칸이 비어 있다. 되풀이되는 칸이라 판정기가
+  // 스스로 답할 수 없고, 화면이 답해야 하는 자리다.
+  await page.getByRole('button', { name: /품목 추가/ }).click()
+  await page.getByRole('button', { name: '구매 요청 제출' }).click()
+
+  await expect(page.getByRole('alert')).toContainText('아직 채우지 않은 칸이 있습니다')
+  await expect(page).toHaveURL(/#\/FIN-REQ-01/)
+})
+
 test('FIN-REQ-01: 취소하면 어디로 가는지가 아직 없다', async ({ page }) => {
   await page.goto(EDIT)
 

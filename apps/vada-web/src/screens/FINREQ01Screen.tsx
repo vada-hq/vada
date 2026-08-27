@@ -7,6 +7,11 @@ import { SearchSelect } from '../components/SearchSelect'
 import { TextInput } from '../components/TextInput'
 import { readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
+import {
+  evaluateButtonExecution,
+  getRequiredFieldCandidates,
+  hasFieldValue,
+} from '../../../../packages/contracts/src/button-execution.mjs'
 import { computeNumber, formatComputed, itemKey, joinRowIds, rowIdsOf } from '../spec/compute'
 import { getMutation, runMutation } from '../spec/mutations'
 import { resolveParams } from '../spec/params'
@@ -146,6 +151,7 @@ export function FINREQ01Screen({
   )
   const [note, setNote] = useState<string | null>(null)
   const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'error'>('idle')
+  const [blockedKeys, setBlockedKeys] = useState<string[]>([])
   const [runningKey, setRunningKey] = useState<string | null>(null)
 
   // 인자가 없으면 못 여는 화면이 있고, 없어도 되는 인자가 있다. 이 화면은 둘 다 갖는다 —
@@ -217,11 +223,42 @@ export function FINREQ01Screen({
     }
   }
 
+  // 명세는 이 버튼이 필수 칸이 다 차야 실행된다고 말한다(executeWhen). 한동안
+  // 화면이 그것을 아예 구현하지 않아 빈 칸으로도 제출됐다 - 게이트 넷이 다 놓쳤다.
+  // 판정은 공용 판정기가 하고, **되풀이되는 품목의 값이 찼는지는 이 화면만 안다**
+  // (값이 항목마다 갈리고 몇 개인지는 사람이 정한다).
+  const isFilled = (candidate: { fieldKey: string; inList: string | null }) => {
+    if (candidate.inList === null) {
+      return hasFieldValue(draft.values[candidate.fieldKey])
+    }
+    const listKey = candidate.inList
+    return rowIds.every((rowId) =>
+      hasFieldValue(draft.values[itemKey(listKey, rowId, candidate.fieldKey)]),
+    )
+  }
+
+  // 사람에게는 fieldKey가 아니라 라벨로 말한다.
+  const labelOfField = (fieldKey: string) =>
+    getRequiredFieldCandidates(finReq01.elements).find(
+      (candidate) => candidate.fieldKey === fieldKey,
+    )?.label ?? fieldKey
+
   function pressButton(button: ButtonSpec) {
     if (button.action.type === 'pending') {
       setNote(button.action.note)
       return
     }
+    const verdict = evaluateButtonExecution({
+      action: button.action,
+      elements: finReq01.elements,
+      values: draft.values,
+      isFilled,
+    })
+    if (!verdict.allowed) {
+      setBlockedKeys(verdict.missingFieldKeys)
+      return
+    }
+    setBlockedKeys([])
     void submit(button)
   }
 
@@ -576,6 +613,16 @@ export function FINREQ01Screen({
               {getMutation(runningKey).messages.error}
             </p>
           )}
+          {/* 명세가 showMissingRequiredFields라고 말한다. 무엇이 비었는지를 짚는다 -
+              막혔다는 사실만 알리면 사람이 어디를 봐야 할지 모른다. */}
+          {blockedKeys.length === 0 ? null : (
+            <p role="alert" className="text-xs font-medium text-red-600">
+              {`아직 채우지 않은 칸이 있습니다: ${blockedKeys
+                .map((key) => labelOfField(key))
+                .join(", ")}`}
+            </p>
+          )}
+
           {note === null ? null : (
             <p role="status" className="text-xs font-medium text-gray-500">
               {note}

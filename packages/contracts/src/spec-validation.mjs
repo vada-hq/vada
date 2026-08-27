@@ -1,3 +1,5 @@
+import { allElementsOf } from "./element-walk.mjs";
+
 import { DRAFT_SIGNALS } from "./screen-draft.mjs";
 
 // fieldKey를 갖고 값을 담는 요소. 중복 검사와 참조 해석의 대상이다.
@@ -15,28 +17,6 @@ function elementLabel(element, index) {
   return name ? `elements[${index}](${name})` : `elements[${index}]`;
 }
 
-// 화면의 요소 전부 — 되풀이되는 항목의 칸까지 편다.
-//
-// list.itemFields는 화면의 요소와 **같은 모양**이고 같은 규칙을 받아야 한다.
-// 항목의 드롭다운도 선택지 출처를 가리키고, 항목의 칸도 디자인의 노드에 등록되며,
-// 항목의 fieldKey도 화면 안에서 유일해야 한다. 여기서 펴 두지 않으면 그 전부가
-// 검사 밖으로 빠지고, 빠진 것은 조용하다.
-//
-// 어느 목록에 속했는지는 함께 들고 다닌다. 항목 안에서만 뜻이 있는 것이 있기
-// 때문이다 — compute의 product는 '한 항목 안에서 곱한다'는 말이라 항목 밖에서는
-// 곱할 것이 없다.
-function allElementsOf(spec) {
-  const out = [];
-  for (const element of Array.isArray(spec?.elements) ? spec.elements : []) {
-    out.push({ element, inList: null });
-    if (isObject(element?.spec) && Array.isArray(element.spec.itemFields)) {
-      for (const nested of element.spec.itemFields) {
-        out.push({ element: nested, inList: element.spec });
-      }
-    }
-  }
-  return out;
-}
 
 export function collectDesignNodeIds(root, ids = new Set()) {
   if (!isObject(root)) {

@@ -1,3 +1,4 @@
+import { allActionsOf } from "./element-walk.mjs";
 // 화면 간 이동을 화면 명세에서 **유도한다**.
 //
 // 이동 지도를 별도 파일로 선언하지 않는 것이 핵심이다. 그래프는 이미 각
@@ -35,18 +36,16 @@ export function collectScreenFlow(screens = []) {
 
     screenIds.push(spec.screenId);
 
-    for (const element of Array.isArray(spec.elements) ? spec.elements : []) {
-      const elementSpec = element?.spec;
-      if (!isObject(elementSpec)) {
-        continue;
-      }
-
-      for (const to of collectTargets(elementSpec.action)) {
+    // 화면을 옮기는 것은 버튼만이 아니다. 목록의 항목을 누르는 것도, 고른 것들에
+    // 하는 일도, 되풀이되는 묶음 안의 버튼도 옮긴다 - 한동안 최상위 action만 봐서
+    // **실제 이동 79건 중 25건이 보고서에 없었다.**
+    for (const { action, label } of allActionsOf(spec)) {
+      for (const to of collectTargets(action)) {
         edges.push({
           from: spec.screenId,
           to,
-          label: typeof elementSpec.label === "string" ? elementSpec.label : "",
-          actionType: elementSpec.action.type
+          label,
+          actionType: action.type
         });
       }
     }
