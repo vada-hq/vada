@@ -5,7 +5,7 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { MUTED_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
-import { getMutation } from '../spec/mutations'
+import { useSubmitAction } from '../spec/useSubmitAction'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, finEvid01 } from '../spec/screens'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
@@ -80,6 +80,7 @@ function columnField(spec: ItemListSpec, at: number): string {
 
 export function FINEVID01Screen({ screenParams, onNavigate }: FINEVID01ScreenProps) {
   const [note, setNote] = useState<string | null>(null)
+  const submitAction = useSubmitAction()
 
   const missing = (finEvid01.params ?? []).filter(
     (param) => (screenParams[param.key] ?? '') === '',
@@ -156,11 +157,12 @@ export function FINEVID01Screen({ screenParams, onNavigate }: FINEVID01ScreenPro
       setNote(blockedNote)
       return
     }
-    setNote(getMutation(complete.action.mutationKey).messages.submitting)
-    const target = complete.action.onSuccess?.navigate
-    if (target !== undefined) {
-      onNavigate(target, { requestId: screenParams.requestId ?? '' })
-    }
+    setNote(null)
+    void submitAction.run(complete.action, {
+      payload: { requestId: screenParams.requestId ?? '' },
+      onNavigate,
+      navigateParams: { requestId: screenParams.requestId ?? '' },
+    })
   }
 
   const documentLabel = columnField(documentsList, 0)
@@ -321,6 +323,16 @@ export function FINEVID01Screen({ screenParams, onNavigate }: FINEVID01ScreenPro
           })
         )}
 
+        {submitAction.submittingMessage === null ? null : (
+          <p role="status" className="text-sm text-gray-600">
+            {submitAction.submittingMessage}
+          </p>
+        )}
+        {submitAction.errorMessage === null ? null : (
+          <p role="alert" className="text-sm text-red-700">
+            {submitAction.errorMessage}
+          </p>
+        )}
         {note === null ? null : (
           <p role="alert" className="text-sm text-gray-600">
             {note}

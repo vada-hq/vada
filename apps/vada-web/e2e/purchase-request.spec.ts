@@ -94,8 +94,27 @@ test('FIN-REQ-01: 요청 부서는 보여주되 고칠 수 없다', async ({ pag
   await expect(page.getByText('작성자의 소속 부서로 고정됩니다.')).toBeVisible()
 })
 
-test('FIN-REQ-01: 제출하면 재정 개요로 돌아간다', async ({ page }) => {
+// 디자인은 이 요청을 **덜 채운 채로** 그렸다 - 카테고리·예산 항목·구매 유형이
+// 품목 넷 모두 빈 드롭다운이고, 구매 목적도 비어 있다. 개발용 응답은 그 그림을
+// 그대로 옮겼으므로 열자마자 제출되지 않는 것이 맞다.
+//
+// 한동안 이 검사는 **열자마자 제출되는 것**을 단언했다. 화면이 executeWhen을
+// 구현하지 않던 시절에는 통과했고, 구현하자 깨졌다 - 깨진 쪽은 화면이 아니라
+// 이 검사였다. 사용자가 실제로 걷는 길은 '덜 찬 것을 채우고 보낸다'이다.
+test('FIN-REQ-01: 빈 필수 칸을 채우면 제출하고 재정 개요로 돌아간다', async ({ page }) => {
   await page.goto(EDIT)
+
+  await page.getByRole('textbox', { name: /구매 목적/ }).fill('체육대회 운영 물품 구매')
+
+  // 되풀이되는 품목마다 세 칸이 비어 있다. 몇 줄인지는 데이터가 정하므로 센다.
+  const rowCount = await page.getByRole('combobox', { name: /품목 카테고리/ }).count()
+  expect(rowCount).toBeGreaterThan(0)
+  for (const label of [/품목 카테고리/, /예산 항목/, /구매 유형/]) {
+    for (let row = 0; row < rowCount; row += 1) {
+      await page.getByRole('combobox', { name: label }).nth(row).click()
+      await page.getByRole('option').first().click()
+    }
+  }
 
   await page.getByRole('button', { name: '구매 요청 제출' }).click()
 

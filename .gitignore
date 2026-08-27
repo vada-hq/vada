@@ -2,8 +2,11 @@ node_modules/
 dist/
 *.tmp
 npm-debug.log*
-apps/vada-web/e2e/shots/
-apps/vada-web/test-results/
+# 어느 자리에서 돌리든 걸리게 둔다. 경로를 박아 두면 다른 자리에서 돌렸을 때
+# 그대로 커밋에 딸려 온다 - 실제로 저장소 뿌리에 e2e/shots가 생겼다.
+**/e2e/shots/
+**/test-results/
+**/playwright-report/
 apps/vada-web/playwright-report/
 .test-last.log
 .test-flakes.log

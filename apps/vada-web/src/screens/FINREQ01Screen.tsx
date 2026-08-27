@@ -13,7 +13,8 @@ import {
   hasFieldValue,
 } from '../../../../packages/contracts/src/button-execution.mjs'
 import { computeNumber, formatComputed, itemKey, joinRowIds, rowIdsOf } from '../spec/compute'
-import { getMutation, runMutation } from '../spec/mutations'
+import { getMutation } from '../spec/mutations'
+import { useSubmitAction } from '../spec/useSubmitAction'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, finReq01 } from '../spec/screens'
 import type {
@@ -128,20 +129,25 @@ function draftFromRow(row: DataRow): ScopeDraft {
 
 interface FINREQ01ScreenProps {
   screenParams: Record<string, string>
+  /** 명세가 stateScopeKey로 말한 자리. 쓰던 것은 여기 남는다. */
+  draft: ScopeDraft
+  onChangeDraft: (next: ScopeDraft) => void
   onNavigate: (screenId: string, params?: Record<string, string>) => void
   onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
 }
 
 export function FINREQ01Screen({
   screenParams,
+  draft: scopeDraft,
+  onChangeDraft,
   onNavigate,
   onScopeEvent,
 }: FINREQ01ScreenProps) {
   const listSpec = elementByNodeId(finReq01, NODE.items).spec as ListSpec
 
-  // 초안은 읽어 온 요청에서 시작한다. **새로 쓰는 것도 읽는다** — 아직 아무것도
+  // 초안은 읽어 온 요청에서 시작한다. **새로 쓰는 것도 읽는다** - 아직 아무것도
   // 적히지 않은 요청이 오고, 그 안에 서버가 이미 아는 것(작성자의 소속)이 들어 있다.
-  const [draft, setDraft] = useState<ScopeDraft>(() =>
+  const [seed] = useState<ScopeDraft>(() =>
     draftFromRow(
       readObjectSource(
         finReq01.draftFrom!.dataSourceKey,
@@ -149,10 +155,19 @@ export function FINREQ01Screen({
       ),
     ),
   )
+
+  // 그리고 그 초안은 **화면 안이 아니라 스코프에 산다**(명세: stateScopeKey,
+  // 수명 flow). 한동안 이 화면은 useState에만 담았고, 그래서 뒤로 갔다 오면
+  // 쓰던 것이 사라졌다 - 명세가 말한 수명이 거짓이었다(2026-08-27 감사).
+  // 아직 아무것도 쓰지 않았으면 읽어 온 것이 보이고, 한 자라도 쓰면 그 뒤로는
+  // 스코프가 답한다.
+  const draft = Object.keys(scopeDraft.values).length === 0 ? seed : scopeDraft
+  const setDraft = (update: (previous: ScopeDraft) => ScopeDraft) => {
+    onChangeDraft(update(draft))
+  }
   const [note, setNote] = useState<string | null>(null)
-  const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'error'>('idle')
   const [blockedKeys, setBlockedKeys] = useState<string[]>([])
-  const [runningKey, setRunningKey] = useState<string | null>(null)
+  const submitAction = useSubmitAction()
 
   // 인자가 없으면 못 여는 화면이 있고, 없어도 되는 인자가 있다. 이 화면은 둘 다 갖는다 —
   // 어느 행사인지는 있어야 하고, 어느 요청인지는 없으면 새로 쓰는 것이다.
@@ -201,26 +216,15 @@ export function FINREQ01Screen({
     })
   }
 
-  async function submit(button: ButtonSpec) {
-    const action = button.action as SubmitAction
-    const mutation = getMutation(action.mutationKey)
-    setSubmitState('submitting')
-    setRunningKey(action.mutationKey)
-    try {
-      // payloadScope의 값 전체를 보낸다. 항목의 칸도 그 안에 들어 있다 —
-      // 계약은 mutations.json이 갖고 화면은 무엇을 보내는지 정하지 않는다.
-      await runMutation(action.mutationKey, draft.values)
-      setSubmitState('idle')
-      setRunningKey(null)
-      if (action.onSuccess.scopeEvent) {
-        onScopeEvent(mutation.payloadScope, action.onSuccess.scopeEvent)
-      }
-      if (action.onSuccess.navigate) {
-        onNavigate(action.onSuccess.navigate, { eventId: screenParams.eventId })
-      }
-    } catch {
-      setSubmitState('error')
-    }
+  function submit(button: ButtonSpec) {
+    // payloadScope의 값 전체를 보낸다. 항목의 칸도 그 안에 들어 있다 -
+    // 계약은 mutations.json이 갖고 화면은 무엇을 보내는지 정하지 않는다.
+    void submitAction.run(button.action as SubmitAction, {
+      payload: draft.values,
+      onNavigate,
+      navigateParams: { eventId: screenParams.eventId },
+      onScopeEvent,
+    })
   }
 
   // 명세는 이 버튼이 필수 칸이 다 차야 실행된다고 말한다(executeWhen). 한동안
@@ -591,7 +595,8 @@ export function FINREQ01Screen({
             ).map(([nodeId, className]) => {
               const spec = buttonAt(nodeId)
               const running =
-                spec.action.type === 'submit' && runningKey === spec.action.mutationKey
+                spec.action.type === 'submit' &&
+                submitAction.runningKey === spec.action.mutationKey
               return (
                 <button
                   key={nodeId}
@@ -608,9 +613,9 @@ export function FINREQ01Screen({
             })}
           </div>
 
-          {submitState === 'error' && runningKey !== null && (
+          {submitAction.errorMessage === null ? null : (
             <p role="alert" className="text-xs text-red-500">
-              {getMutation(runningKey).messages.error}
+              {submitAction.errorMessage}
             </p>
           )}
           {/* 명세가 showMissingRequiredFields라고 말한다. 무엇이 비었는지를 짚는다 -

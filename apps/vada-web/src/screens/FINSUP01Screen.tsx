@@ -4,8 +4,9 @@ import { Breadcrumbs } from '../components/Breadcrumbs'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
-import { getMutation } from '../spec/mutations'
+import { useSubmitAction } from '../spec/useSubmitAction'
 import { resolveParams } from '../spec/params'
+import type { ScopeDraft } from '../state/scopes'
 import { elementByNodeId, finSup01 } from '../spec/screens'
 import type { ButtonSpec, FieldSetSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
@@ -42,6 +43,11 @@ const BREADCRUMB_SEPARATORS = ['30:1144', '30:1149', '30:1154', '30:1159', '30:1
 
 interface FINSUP01ScreenProps {
   screenParams: Record<string, string>
+  /** 명세가 stateScopeKey로 말한 자리. 쓰던 것은 여기 남는다. */
+  draft: ScopeDraft
+  onChangeDraft: (next: ScopeDraft) => void
+  /** 명세가 onSuccess.scopeEvent를 말하면 보낸 뒤 그 스코프를 비운다. */
+  onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
@@ -59,10 +65,22 @@ function scalar(row: DataRow, field: string): string {
   return String(value)
 }
 
-export function FINSUP01Screen({ screenParams, onNavigate }: FINSUP01ScreenProps) {
-  const [values, setValues] = useState<Record<string, string>>({})
+export function FINSUP01Screen({
+  screenParams,
+  draft,
+  onChangeDraft,
+  onScopeEvent,
+  onNavigate,
+}: FINSUP01ScreenProps) {
+  // 값은 **화면 안이 아니라 스코프에 산다**(명세: stateScopeKey, 수명 flow).
+  // 한동안 이 화면은 useState에만 담았고, 그래서 뒤로 갔다 오면 쓰던 것이
+  // 사라졌다 - 명세가 말한 수명이 거짓이었다(2026-08-27 감사).
+  const values = draft.values
+  const setValues = (update: (before: Record<string, string | null>) => Record<string, string | null>) => {
+    onChangeDraft({ values: update(draft.values), labels: draft.labels })
+  }
   const [blocked, setBlocked] = useState(false)
-  const [note, setNote] = useState<string | null>(null)
+  const submitAction = useSubmitAction()
 
   const missing = (finSup01.params ?? []).filter(
     (param) => (screenParams[param.key] ?? '') === '',
@@ -140,18 +158,19 @@ export function FINSUP01Screen({ screenParams, onNavigate }: FINSUP01ScreenProps
   function press(spec: ButtonSpec) {
     return () => {
       if (spec.action.type !== 'submit') return
-      // 막는 조건이 있는 버튼만 막는다. 임시 저장은 다 채우지 않아도 보관한다 —
+      // 막는 조건이 있는 버튼만 막는다. 임시 저장은 다 채우지 않아도 보관한다 -
       // 아직 넘기지 않았다는 것이 임시 저장의 뜻이다.
       if (spec.action.executeWhen !== undefined && firstMissing !== undefined) {
         setBlocked(true)
         return
       }
       setBlocked(false)
-      setNote(getMutation(spec.action.mutationKey).messages.submitting)
-      const target = spec.action.onSuccess?.navigate
-      if (target !== undefined) {
-        onNavigate(target, { requestId: screenParams.requestId ?? '' })
-      }
+      void submitAction.run(spec.action, {
+        payload: values,
+        onNavigate,
+        navigateParams: { requestId: screenParams.requestId ?? '' },
+        onScopeEvent,
+      })
     }
   }
 
@@ -317,9 +336,14 @@ export function FINSUP01Screen({ screenParams, onNavigate }: FINSUP01ScreenProps
           })
         )}
 
-        {note === null ? null : (
+        {submitAction.submittingMessage === null ? null : (
           <p role="status" className="text-sm text-gray-600">
-            {note}
+            {submitAction.submittingMessage}
+          </p>
+        )}
+        {submitAction.errorMessage === null ? null : (
+          <p role="alert" className="text-sm text-red-700">
+            {submitAction.errorMessage}
           </p>
         )}
         {!blocked || firstMissing === undefined ? null : (

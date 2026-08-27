@@ -6,7 +6,8 @@ import type { ListValue } from '../components/OrgTree'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { SecondaryButton } from '../components/SecondaryButton'
-import { getMutation, runMutation } from '../spec/mutations'
+import { getMutation } from '../spec/mutations'
+import { useSubmitAction } from '../spec/useSubmitAction'
 import { buttonsByEmphasis, nodeIdOf, org02, primaryButtonOf } from '../spec/screens'
 import type { ButtonSpec, ListSpec, SelectSpec, SubmitAction } from '../spec/types'
 import type { ScopeDraft } from '../state/scopes'
@@ -43,7 +44,8 @@ export function ORG02Screen({
   onNavigate,
   onScopeEvent,
 }: ORG02ScreenProps) {
-  const [submitState, setSubmitState] = useState<'idle' | 'submitting' | 'error'>('idle')
+  const submitAction = useSubmitAction()
+  const [blockedKeys, setBlockedKeys] = useState<string[]>([])
 
   const meta = org02.meta
   const elements = org02.elements
@@ -56,6 +58,20 @@ export function ORG02Screen({
     .map((element) => element.spec as ButtonSpec)
   const primaryButton = primaryButtonOf(buttons)
   const secondaryButtons = buttonsByEmphasis(buttons, 'secondary')
+
+  // 그리는 값과 판정하는 값은 같아야 한다. 명세가 initialValue를 말하면 그것이
+  // 아직 아무도 고르지 않았을 때의 값이다 - 한동안 화면은 그것을 '골라진 것처럼'
+  // 그리면서 판정기에는 빈 초안을 넘겼고, 그래서 **기본값 그대로 조직 만들기를
+  // 누르면 아무 일도 일어나지 않았다**(2026-08-27 감사). 눈에 보이는 것과 판정이
+  // 갈리는 자리를 없앤다.
+  const effectiveValues: Record<string, string | null> = { ...draft.values }
+  for (const element of elements) {
+    const spec = element.spec as { fieldKey?: string; initialValue?: string | null }
+    if (spec.fieldKey === undefined || effectiveValues[spec.fieldKey] !== undefined) continue
+    if (typeof spec.initialValue === 'string' && spec.initialValue !== '') {
+      effectiveValues[spec.fieldKey] = spec.initialValue
+    }
+  }
 
   const setupValue = effectiveValue(draft, setupSpec)
   const listValue = readListValue(draft, listSpec, setupValue)
@@ -98,27 +114,22 @@ export function ORG02Screen({
     const result = evaluateButtonExecution({
       action: primaryButton.action,
       elements,
-      values: draft.values,
+      values: effectiveValues,
     })
     if (!result.allowed) {
+      // 막았으면 무엇 때문인지 말한다. 조용히 돌아가면 사람은 버튼이 고장 난
+      // 줄 안다(명세: onExecutionBlocked.showMissingRequiredFields).
+      setBlockedKeys(result.missingFieldKeys)
       return
     }
+    setBlockedKeys([])
 
-    const action = primaryButton.action as SubmitAction
-    const mutation = getMutation(action.mutationKey)
-    setSubmitState('submitting')
-    try {
-      // payloadScope의 값 전체를 보낸다(계약은 mutations.json이 갖는다).
-      await runMutation(action.mutationKey, draft.values)
-      if (action.onSuccess.scopeEvent) {
-        onScopeEvent(mutation.payloadScope, action.onSuccess.scopeEvent)
-      }
-      if (action.onSuccess.navigate) {
-        onNavigate(action.onSuccess.navigate)
-      }
-    } catch {
-      setSubmitState('error')
-    }
+    // payloadScope의 값 전체를 보낸다(계약은 mutations.json이 갖는다).
+    await submitAction.run(primaryButton.action as SubmitAction, {
+      payload: effectiveValues,
+      onNavigate,
+      onScopeEvent,
+    })
   }
 
   const mutation = getMutation((primaryButton.action as SubmitAction).mutationKey)
@@ -151,7 +162,18 @@ export function ORG02Screen({
         <p className="pt-6 text-center text-xs text-gray-400">{meta.footerNote}</p>
       )}
 
-      {submitState === 'error' && (
+      {blockedKeys.length === 0 ? null : (
+        <p role="alert" className="text-xs font-medium text-red-600">
+          {`아직 고르지 않은 것이 있습니다: ${blockedKeys
+            .map(
+              (key) =>
+                (elements.find((element) => (element.spec as { fieldKey?: string }).fieldKey === key)
+                  ?.spec as { label?: string } | undefined)?.label ?? key,
+            )
+            .join(', ')}`}
+        </p>
+      )}
+      {submitAction.phase === 'error' && (
         <p role="alert" className="pt-2 text-center text-xs text-red-500">
           {mutation.messages.error}
         </p>
@@ -173,7 +195,7 @@ export function ORG02Screen({
           ))}
         </div>
         <PrimaryButton
-          label={submitState === 'submitting' ? mutation.messages.submitting : primaryButton.label}
+          label={submitAction.labelOf(primaryButton.action as SubmitAction, primaryButton.label)}
           nodeId={nodeIdOf(org02, primaryButton)}
           onClick={() => void handlePrimary()}
           fullWidth={false}

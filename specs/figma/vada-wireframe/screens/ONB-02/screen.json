@@ -1,7 +1,6 @@
 {
   "schemaVersion": 1,
   "screenId": "ONB-02",
-  "stateScopeKey": "onboardingDraft",
   "meta": {
     "title": "어떻게 시작하시겠어요?",
     "description": "참여할 학생회를 선택해 주세요.",

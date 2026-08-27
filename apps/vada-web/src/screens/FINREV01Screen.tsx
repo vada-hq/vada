@@ -7,8 +7,9 @@ import { NEUTRAL_CHIP, NEUTRAL_VALUE, STATE_CHIP, TYPE_CHIP, VERDICT_CHOICE } fr
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
-import { getMutation } from '../spec/mutations'
+import { useSubmitAction } from '../spec/useSubmitAction'
 import { resolveParams } from '../spec/params'
+import type { ScopeDraft } from '../state/scopes'
 import { elementByNodeId, finRev01 } from '../spec/screens'
 import type { ButtonSpec, InputSpec, ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 
@@ -47,6 +48,11 @@ const BREADCRUMB_SEPARATORS = ['30:1373', '30:1378', '30:1383', '30:1388']
 
 interface FINREV01ScreenProps {
   screenParams: Record<string, string>
+  /** 명세가 stateScopeKey로 말한 자리. 쓰던 것은 여기 남는다. */
+  draft: ScopeDraft
+  onChangeDraft: (next: ScopeDraft) => void
+  /** 명세가 onSuccess.scopeEvent를 말하면 보낸 뒤 그 스코프를 비운다. */
+  onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
@@ -63,9 +69,22 @@ function scalar(row: DataRow, field: string): string {
   return String(value)
 }
 
-export function FINREV01Screen({ screenParams, onNavigate }: FINREV01ScreenProps) {
-  const [values, setValues] = useState<Record<string, string>>({})
+export function FINREV01Screen({
+  screenParams,
+  draft,
+  onChangeDraft,
+  onScopeEvent,
+  onNavigate,
+}: FINREV01ScreenProps) {
+  // 값은 **화면 안이 아니라 스코프에 산다**(명세: stateScopeKey, 수명 flow).
+  // 한동안 이 화면은 useState에만 담았고, 그래서 뒤로 갔다 오면 쓰던 것이
+  // 사라졌다 - 명세가 말한 수명이 거짓이었다(2026-08-27 감사).
+  const values = draft.values
+  const setValues = (update: (before: Record<string, string | null>) => Record<string, string | null>) => {
+    onChangeDraft({ values: update(draft.values), labels: draft.labels })
+  }
   const [note, setNote] = useState<string | null>(null)
+  const submitAction = useSubmitAction()
   const [blocked, setBlocked] = useState(false)
 
   const missing = (finRev01.params ?? []).filter(
@@ -164,11 +183,13 @@ export function FINREV01Screen({ screenParams, onNavigate }: FINREV01ScreenProps
       return
     }
     setBlocked(false)
-    setNote(getMutation(send.action.mutationKey).messages.submitting)
-    const target = send.action.onSuccess?.navigate
-    if (target !== undefined) {
-      onNavigate(target, { requestId: screenParams.requestId ?? '' })
-    }
+    setNote(null)
+    void submitAction.run(send.action, {
+      payload: values,
+      onNavigate,
+      navigateParams: { requestId: screenParams.requestId ?? '' },
+      onScopeEvent,
+    })
   }
 
   function pressPending(spec: ButtonSpec) {
@@ -366,6 +387,16 @@ export function FINREV01Screen({ screenParams, onNavigate }: FINREV01ScreenProps
           </div>
         </section>
 
+        {submitAction.submittingMessage === null ? null : (
+          <p role="status" className="text-sm text-gray-600">
+            {submitAction.submittingMessage}
+          </p>
+        )}
+        {submitAction.errorMessage === null ? null : (
+          <p role="alert" className="text-sm text-red-700">
+            {submitAction.errorMessage}
+          </p>
+        )}
         {note === null ? null : (
           <p role="status" className="text-sm text-gray-600">
             {note}

@@ -21,7 +21,8 @@
     },
     "stateScopeKey": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "이 화면이 값을 담고 읽는 자리. state-scopes.json의 key다.\n\n여기에 담긴 값은 화면을 떠나도 남는다 - 그것이 flow 수명의 뜻이다. 그래서 **담을 것이 있는 화면만** 적는다. 버튼만 있는 화면이 흐름에 속한다는 이유로 이것을 적으면, 아무것도 담지 않는 선언이 되고 화면이 그것을 지키는지 물을 수 없다(ONB-02가 그랬다).\n\n적었으면 화면 안의 useState가 아니라 이 자리에 담아야 한다. 안에 담으면 떠났다 오는 순간 사라지고, 명세가 말한 수명이 거짓이 된다."
     },
     "activeNavigationScreenId": {
       "type": "string",

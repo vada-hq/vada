@@ -25,7 +25,7 @@ import { ONB01Screen } from './ONB01Screen'
 import { ONB02Screen } from './ONB02Screen'
 import { ORG01Screen } from './ORG01Screen'
 import { ORG02Screen } from './ORG02Screen'
-import { inv01, onb01, org01, org02 } from '../spec/screens'
+import { finReq01, finRev01, finSup01, inv01, onb01, org01, org02 } from '../spec/screens'
 import { readScopeDraft } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
@@ -122,6 +122,8 @@ export function ScreenRouter({
     return (
       <FINREQ01Screen
         screenParams={screenParams}
+        draft={readScopeDraft(scopes, finReq01.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(finReq01.stateScopeKey ?? '', next)}
         onNavigate={onNavigate}
         onScopeEvent={onScopeEvent}
       />
@@ -129,8 +131,24 @@ export function ScreenRouter({
   }
   if (screenId === 'FIN-REQ-02') return <FINREQ02Screen screenParams={screenParams} onNavigate={onNavigate} />
   if (screenId === 'MY-REQ-01') return <MYREQ01Screen screenParams={screenParams} onNavigate={onNavigate} />
-  if (screenId === 'FIN-SUP-01') return <FINSUP01Screen screenParams={screenParams} onNavigate={onNavigate} />
-  if (screenId === 'FIN-REV-01') return <FINREV01Screen screenParams={screenParams} onNavigate={onNavigate} />
+  if (screenId === 'FIN-SUP-01') return (
+    <FINSUP01Screen
+      screenParams={screenParams}
+      draft={readScopeDraft(scopes, finSup01.stateScopeKey)}
+      onChangeDraft={(next) => onChangeScope(finSup01.stateScopeKey ?? '', next)}
+      onScopeEvent={onScopeEvent}
+      onNavigate={onNavigate}
+    />
+  )
+  if (screenId === 'FIN-REV-01') return (
+    <FINREV01Screen
+      screenParams={screenParams}
+      draft={readScopeDraft(scopes, finRev01.stateScopeKey)}
+      onChangeDraft={(next) => onChangeScope(finRev01.stateScopeKey ?? '', next)}
+      onScopeEvent={onScopeEvent}
+      onNavigate={onNavigate}
+    />
+  )
   if (screenId === 'FIN-EVID-01') return <FINEVID01Screen screenParams={screenParams} onNavigate={onNavigate} />
   if (screenId === 'FIN-PROC-01') return <FINPROC01Screen screenParams={screenParams} onNavigate={onNavigate} />
   if (screenId === 'EVT-TASK-01') {
