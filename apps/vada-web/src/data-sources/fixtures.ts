@@ -1537,6 +1537,57 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     students: '학생 1,284명 · 최근 갱신 07.01',
     roles: '기본 역할 3종 · 확정된 권한 매트릭스',
   },
+  'org.chartTitle': { name: '제12대 소프트웨어융합대학 학생회' },
+
+  // 조직도(ORG-03A). 디자인이 그린 그대로다 - 회장단 둘, 부서 셋이고
+  // **기획부만 부서장이 있다.** 그 없음이 '＋ 부서장 지정'을 부르는 자리다.
+  'org.executives': [
+    {
+      id: 'M-01',
+      name: '김바다',
+      major: '컴퓨터학부',
+      grade: '3학년',
+      roleLabel: '회장',
+      roleTone: 'yellow',
+    },
+    {
+      id: 'M-02',
+      name: '이윤슬',
+      major: 'ICT융합학부',
+      grade: '4학년',
+      roleLabel: '부회장',
+      roleTone: 'blue',
+    },
+  ],
+  'org.departments': [
+    {
+      id: 'D-01',
+      name: '기획부',
+      memberCountLabel: '부원 2명',
+      leaders: [{ id: 'M-03', name: '박해랑', major: '컴퓨터학부', grade: '3학년' }],
+      members: [
+        { id: 'M-04', name: '박해랑', major: '컴퓨터학부', grade: '2학년' },
+        { id: 'M-05', name: '이윤슬', major: 'ICT융합학부', grade: '4학년' },
+      ],
+    },
+    {
+      id: 'D-02',
+      name: '홍보부',
+      memberCountLabel: '부원 2명',
+      leaders: [],
+      members: [
+        { id: 'M-06', name: '이윤슬', major: 'ICT융합학부', grade: '4학년' },
+        { id: 'M-07', name: '정하늘', major: '컴퓨터학부', grade: '3학년' },
+      ],
+    },
+    {
+      id: 'D-03',
+      name: '디자인부',
+      memberCountLabel: '부원 1명',
+      leaders: [],
+      members: [{ id: 'M-08', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
+    },
+  ],
   'my.taskTabCounts': countByTab(),
   'task.alerts': taskAlerts(),
 }

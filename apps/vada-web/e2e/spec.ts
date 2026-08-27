@@ -30,25 +30,38 @@ export function missingNoteOf(screenId: string, paramKey: string): string {
 interface ElementEntry {
   spec?: {
     title?: string
+    label?: string
+    itemFields?: ElementEntry[]
     action?: { type?: string; note?: string }
     itemAction?: { type?: string; note?: string }
+    emptyAction?: { type?: string; note?: string }
   }
 }
 
 /**
- * 아직 명세되지 않은 화면으로 가는 자리의 글. 제목으로 그 요소를 찾는다.
+ * 아직 명세되지 않은 화면으로 가는 자리의 글. 제목이나 이름으로 그 요소를 찾는다.
  *
  * 여기 있는 이유는 missingNoteOf와 같다 — 이 글을 검사에 옮겨 적으면 명세와
  * 두 벌이 되고, 명세를 고쳤을 때 검사가 조용히 낡는다.
+ *
+ * 되풀이되는 묶음 **안**도 본다. 조직도의 '＋ 부서장 지정'처럼 안쪽 목록이
+ * 자기 동작을 갖는 자리가 있기 때문이다.
  */
-export function pendingNoteOf(screenId: string, title: string): string {
+export function pendingNoteOf(screenId: string, name: string): string {
   const spec = JSON.parse(
     readFileSync(join(SCREENS_DIR, screenId, 'screen.json'), 'utf-8'),
   ) as { elements?: ElementEntry[] }
-  const found = (spec.elements ?? []).find((element) => element.spec?.title === title)
-  const action = found?.spec?.action ?? found?.spec?.itemAction
+
+  const walk = (entries: ElementEntry[]): ElementEntry[] =>
+    entries.flatMap((entry) => [entry, ...walk(entry.spec?.itemFields ?? [])])
+
+  const found = walk(spec.elements ?? []).find(
+    (entry) => entry.spec?.title === name || entry.spec?.label === name,
+  )
+  const action =
+    found?.spec?.action ?? found?.spec?.itemAction ?? found?.spec?.emptyAction
   if (action?.type !== 'pending' || action.note === undefined) {
-    throw new Error(`${screenId}의 '${title}'는 pending이 아니거나 note가 없습니다.`)
+    throw new Error(`${screenId}의 '${name}'는 pending이 아니거나 note가 없습니다.`)
   }
   return action.note
 }

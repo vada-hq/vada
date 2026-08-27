@@ -872,7 +872,35 @@ function checkSummaryCompute(findings, context) {
 //
 // 단계는 명세가 알고 지금 어디인지는 데이터가 안다. 그 둘이 **같은 말을 쓰는지**를
 // 여기서 본다 — 어긋나면 줄은 그려지고 어느 단계도 켜지지 않는다. 조용한 어긋남이다.
-// 칸 목록이 데이터에서 오는 묶음.//// 명세가 칸을 모르므로 검사할 것은 하나뿐이다: **그 출처가 칸을 말하는 출처인가.**// key·label·placeholder 셋이 칸 하나를 이루고, 하나라도 없으면 화면이 무엇을 그려야// 할지 알 수 없다. 이름을 화면마다 고르게 하지 않는 이유가 이것이다 — 짝짓기가 다시// 명세의 일이 되면 칸을 데이터로 옮긴 뜻이 없다.function checkFieldSet(findings, context) {  const { file, element, index, dataSources, dataSourceByKey } = context;  const spec = element.spec;  if (!isObject(dataSources)) {    return;  }  const source = dataSourceByKey.get(spec.dataSourceKey);  if (!source) {    return;  }  const known = new Set((source.fields ?? []).map((field) => field.key));  for (const required of ["key", "label", "placeholder"]) {    if (!known.has(required)) {      findings.push({        level: "error",        file,        message: `${elementLabel(element, index)}의 칸 목록 출처 '${spec.dataSourceKey}'에 '${required}' 조각이 없습니다. 칸 하나는 key·label·placeholder로 이루어집니다.`      });    }  }}function checkSteps(findings, context) {
+// 칸 목록이 데이터에서 오는 묶음.
+//
+// 명세가 칸을 모르므로 검사할 것은 하나뿐이다: **그 출처가 칸을 말하는 출처인가.**
+// key·label·placeholder 셋이 칸 하나를 이루고, 하나라도 없으면 화면이 무엇을 그려야
+// 할지 알 수 없다. 이름을 화면마다 고르게 하지 않는 이유가 이것이다 — 짝짓기가 다시
+// 명세의 일이 되면 칸을 데이터로 옮긴 뜻이 없다.
+function checkFieldSet(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey } = context;
+  const spec = element.spec;
+  if (!isObject(dataSources)) {
+    return;
+  }
+  const source = dataSourceByKey.get(spec.dataSourceKey);
+  if (!source) {
+    return;
+  }
+  const known = new Set((source.fields ?? []).map((field) => field.key));
+  for (const required of ["key", "label", "placeholder"]) {
+    if (!known.has(required)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}의 칸 목록 출처 '${spec.dataSourceKey}'에 '${required}' 조각이 없습니다. 칸 하나는 key·label·placeholder로 이루어집니다.`
+      });
+    }
+  }
+}
+
+function checkSteps(findings, context) {
   const { file, element, index, dataSources, dataSourceByKey } = context;
   const spec = element.spec;
 
@@ -1136,6 +1164,28 @@ function checkArgumentValues(findings, context, params, { declared, where }) {
         message: `${elementLabel(element, index)}의 조회 인자 '${paramName}'가 항목의 조각(itemField)을 가리킵니다. 조회하는 시점에는 아직 항목이 없습니다 — 항목의 조각은 눌렸을 때의 동작(action.params)에서만 쓸 수 있습니다.`
       });
     }
+  }
+}
+
+// 안쪽 목록의 섹션 제목이 바깥 항목에서 온다면(titleField), 그 조각이 실제로
+// 바깥 항목에 있어야 한다. 없으면 제목만 빈 채로 그려지고 아무도 말하지 않는다 —
+// 열이 가리킨 조각을 보는 것과 같은 이유다.
+function checkNestedListTitleField(findings, context) {
+  const { file, element, index, dataSourceByKey } = context;
+  const spec = element.spec;
+  if (typeof spec?.titleField !== "string" || typeof spec.itemsField !== "string") {
+    return;
+  }
+  const outer = isObject(context.inList) ? dataSourceByKey.get(context.inList.dataSourceKey) : null;
+  if (!outer) {
+    return;
+  }
+  if (!(outer.fields ?? []).some((field) => field.key === spec.titleField)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 제목이 가리킨 조각 '${spec.titleField}'가 바깥 항목에 없습니다.`
+    });
   }
 }
 
@@ -1972,6 +2022,7 @@ export function collectSpecFindings({
       }
       if (spec_.type === "itemList") {
         checkListColumns(findings, context);
+        checkNestedListTitleField(findings, context);
         checkListPaging(findings, context);
       }
       if (spec_.type === "select") {

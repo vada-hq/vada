@@ -2693,6 +2693,141 @@
           "description": "역할 및 권한 영역의 한 줄. 예: 기본 역할 3종 · 확정된 권한 매트릭스"
         }
       ]
+    },
+    {
+      "key": "org.chartTitle",
+      "shape": "object",
+      "description": "조직도의 제목. 몇 대 학생회인지가 제목이라 화면이 지어낼 수 없다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/chart-title"
+      },
+      "messages": {
+        "loading": "조직을 불러오는 중입니다",
+        "empty": "조직 정보가 없습니다",
+        "error": "조직을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "description": "학생회의 이름. 예: 제12대 소프트웨어융합대학 학생회"
+        }
+      ]
+    },
+    {
+      "key": "org.executives",
+      "shape": "list",
+      "description": "회장단 구성원. 회장단은 부서와 달리 **항상 있는 자리**라 목록 하나로 따로 온다(list.rootItem이 조직 구조를 만들 때 같은 것을 말한다).",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/executives"
+      },
+      "messages": {
+        "loading": "회장단을 불러오는 중입니다",
+        "empty": "회장단에 등록된 구성원이 없습니다",
+        "error": "회장단을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "구성원 id"
+        },
+        {
+          "key": "name",
+          "description": "이름"
+        },
+        {
+          "key": "major",
+          "description": "소속 학부. 예: 컴퓨터학부"
+        },
+        {
+          "key": "grade",
+          "description": "학년. 예: 3학년"
+        },
+        {
+          "key": "roleLabel",
+          "description": "이 사람의 자리. 예: 회장 · 부회장"
+        },
+        {
+          "key": "roleTone",
+          "description": "자리 딱지의 색 이름. 회장과 부회장이 다른 색으로 그려진다"
+        }
+      ]
+    },
+    {
+      "key": "org.departments",
+      "shape": "list",
+      "description": "부서와 그 안의 사람들. **부서 수는 데이터가 정한다** - 조직을 만들 때 사람이 더하고 지운다(ORG-02).\n\nleaders는 0개이거나 1개다. 부서장은 한 사람뿐이지만 **없을 수도 있어서** 값 하나가 아니라 목록이다 - 빈 문자열로 '없음'을 말하면 이름이 빈 사람과 구별되지 않는다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/departments"
+      },
+      "messages": {
+        "loading": "부서를 불러오는 중입니다",
+        "empty": "등록된 부서가 없습니다",
+        "error": "부서를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "부서 id"
+        },
+        {
+          "key": "name",
+          "description": "부서 이름. 예: 기획부"
+        },
+        {
+          "key": "memberCountLabel",
+          "description": "부원 목록 위에 그려지는 한 줄. 예: 부원 2명"
+        },
+        {
+          "key": "leaders",
+          "description": "부서장. 0개이거나 1개다.",
+          "fields": [
+            {
+              "key": "id",
+              "description": "구성원 id"
+            },
+            {
+              "key": "name",
+              "description": "이름"
+            },
+            {
+              "key": "major",
+              "description": "소속 학부. 예: 컴퓨터학부"
+            },
+            {
+              "key": "grade",
+              "description": "학년. 예: 3학년"
+            }
+          ]
+        },
+        {
+          "key": "members",
+          "description": "부원들",
+          "fields": [
+            {
+              "key": "id",
+              "description": "구성원 id"
+            },
+            {
+              "key": "name",
+              "description": "이름"
+            },
+            {
+              "key": "major",
+              "description": "소속 학부. 예: 컴퓨터학부"
+            },
+            {
+              "key": "grade",
+              "description": "학년. 예: 3학년"
+            }
+          ]
+        }
+      ]
     }
   ]
 }

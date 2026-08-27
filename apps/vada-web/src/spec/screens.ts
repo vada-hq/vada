@@ -15,6 +15,7 @@ import onb02Json from '../../../../specs/figma/vada-wireframe/screens/ONB-02/scr
 import org01Json from '../../../../specs/figma/vada-wireframe/screens/ORG-01/screen.json'
 import org00Json from '../../../../specs/figma/vada-wireframe/screens/ORG-00/screen.json'
 import org02Json from '../../../../specs/figma/vada-wireframe/screens/ORG-02/screen.json'
+import org03aJson from '../../../../specs/figma/vada-wireframe/screens/ORG-03A/screen.json'
 import inv01Json from '../../../../specs/figma/vada-wireframe/screens/INV-01/screen.json'
 import home01kJson from '../../../../specs/figma/vada-wireframe/screens/HOME-01K/screen.json'
 import my01Json from '../../../../specs/figma/vada-wireframe/screens/MY-01/screen.json'
@@ -59,6 +60,7 @@ export const onb02 = asScreenSpec(onb02Json)
 export const org01 = asScreenSpec(org01Json)
 export const org00 = asScreenSpec(org00Json)
 export const org02 = asScreenSpec(org02Json)
+export const org03a = asScreenSpec(org03aJson)
 export const inv01 = asScreenSpec(inv01Json)
 export const home01k = asScreenSpec(home01kJson)
 export const my01 = asScreenSpec(my01Json)
@@ -92,6 +94,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   org01,
   org00,
   org02,
+  org03a,
   home01k,
   my01,
   ops00,

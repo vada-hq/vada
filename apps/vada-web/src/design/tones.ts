@@ -237,3 +237,20 @@ export const VERDICT_CHOICE: Record<string, string> = {
 
 /** 값이 분류일 뿐 상태가 아닌 딱지(FIN-REV-01의 '일반 구매'). */
 export const TYPE_CHIP = 'bg-gray-100 text-gray-500'
+
+/**
+ * 조직도에서 그 사람의 자리를 말하는 딱지(ORG-03A 30:4536·30:4550).
+ *
+ * STATE_CHIP과 배합이 다르다 - 테두리 없이 -200 바탕만 쓴다. 상태 딱지는 흰
+ * 카드 위에 놓이지만 이것은 이미 색이 깔린 카드 안에 겹쳐 놓이기 때문이다.
+ */
+export const ROLE_CHIP: Record<string, string> = {
+  yellow: 'bg-yellow-200 text-yellow-800',
+  blue: 'bg-blue-200 text-blue-800',
+}
+
+/** 자리 딱지를 단 사람의 카드 자체도 그 색을 옅게 깐다(30:4525·30:4539). */
+export const ROLE_CARD: Record<string, string> = {
+  yellow: 'border-yellow-300 bg-yellow-50',
+  blue: 'border-blue-200 bg-blue-50',
+}

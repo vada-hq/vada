@@ -25,6 +25,7 @@ import { ONB01Screen } from './ONB01Screen'
 import { ONB02Screen } from './ONB02Screen'
 import { ORG00Screen } from './ORG00Screen'
 import { ORG01Screen } from './ORG01Screen'
+import { ORG03AScreen } from './ORG03AScreen'
 import { ORG02Screen } from './ORG02Screen'
 import { finReq01, finRev01, finSup01, inv01, onb01, org01, org02 } from '../spec/screens'
 import { readScopeDraft } from '../state/scopes'
@@ -174,6 +175,10 @@ export function ScreenRouter({
   if (screenId === 'ORG-00') {
     // 읽기 전용 허브다. 상태 스코프를 참조하지 않는다.
     return <ORG00Screen onNavigate={onNavigate} />
+  }
+  if (screenId === 'ORG-03A') {
+    // 저장된 조직도를 읽는 화면이다. 상태 스코프를 참조하지 않는다.
+    return <ORG03AScreen onNavigate={onNavigate} />
   }
   if (screenId === 'ORG-01') {
     return (

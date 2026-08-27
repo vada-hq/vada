@@ -2067,3 +2067,84 @@ test("묶음 조각에 fields가 없으면 오류다", () => {
 
   assert.equal(findings.filter((f) => f.message.includes("fields가 없습니다")).length, 1);
 });
+
+// 안쪽 목록의 제목이 바깥 항목에서 온다면(titleField) 그 조각이 실제로 있어야 한다.
+// 없으면 제목만 빈 채로 그려지고 아무도 말하지 않는다 — 조직도의 '부원 2명'이
+// 그 자리다.
+function nestedTitleScreen(nested) {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Container", figmaType: "FRAME" },
+              spec: {
+                type: "itemList",
+                dataSourceKey: "org.departments",
+                itemFields: [
+                  {
+                    source: { nodeId: "1:2", name: "Container", figmaType: "FRAME" },
+                    spec: { type: "itemList", itemsField: "members", ...nested }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "org.departments",
+          shape: "list",
+          fields: [
+            { key: "memberCountLabel", label: "부원 수" },
+            { key: "members", label: "부원들", fields: [{ key: "name", label: "이름" }] }
+          ]
+        }
+      ]
+    }
+  };
+}
+
+test("안쪽 목록의 제목이 바깥 항목의 조각을 가리키면 조용하다", () => {
+  const findings = collectSpecFindings(
+    nestedTitleScreen({
+      titleField: "memberCountLabel",
+      columns: [{ label: "이름", fields: ["name"] }]
+    })
+  );
+
+  assert.deepEqual(findings, []);
+});
+
+test("안쪽 목록의 제목이 없는 조각을 가리키면 오류다", () => {
+  const findings = collectSpecFindings(
+    nestedTitleScreen({
+      titleField: "없는조각",
+      columns: [{ label: "이름", fields: ["name"] }]
+    })
+  );
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("제목이 가리킨 조각")).length,
+    1
+  );
+});
+
+test("안쪽 목록의 제목이 안쪽 조각을 가리키면 오류다", () => {
+  // 제목은 목록 **위**에 붙으므로 바깥 항목의 것이다. 안쪽 항목의 조각을
+  // 가리키면 어느 항목의 값인지 정할 수 없다.
+  const findings = collectSpecFindings(
+    nestedTitleScreen({ titleField: "name", columns: [{ label: "이름", fields: ["name"] }] })
+  );
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("제목이 가리킨 조각")).length,
+    1
+  );
+});
