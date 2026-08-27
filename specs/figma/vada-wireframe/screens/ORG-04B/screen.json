@@ -1,0 +1,197 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-04B",
+  "meta": {
+    "eyebrow": "조직 관리",
+    "title": "역할 및 권한 관리"
+  },
+  "activeNavigationScreenId": "ORG-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:6429",
+    "name": "조직 관리 · ORG-04B · 역할 및 권한 관리 — 회장단",
+    "figmaType": "FRAME"
+  },
+  "breadcrumb": {
+    "source": "30:6503",
+    "items": [
+      {
+        "value": "조직 관리"
+      },
+      {
+        "value": "역할 및 권한"
+      },
+      {
+        "value": "권한 변경"
+      }
+    ]
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:6518",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회장단 전용"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6522",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "기본 역할을 변경할 수 있습니다",
+        "description": "회장단만 구성원의 기본 역할을 회장단·부서장·부원으로 변경할 수 있습니다. 회의·행사별 맥락 역할은 이 화면에서 변경되지 않습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6533",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "구성원 기본 역할",
+        "dataSourceKey": "org.roleAssignments",
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:6543",
+              "name": "Button",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "status": {
+                "field": "roleLabel",
+                "toneField": "roleTone"
+              },
+              "titleField": "name",
+              "items": [
+                {
+                  "field": "department"
+                }
+              ]
+            }
+          }
+        ],
+        "itemAction": {
+          "type": "pending",
+          "label": "이 구성원의 역할 바꾸기",
+          "note": "어느 구성원을 고를지가 아직 주소로 오가지 않습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6540",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "org.roleAssignmentCount",
+        "items": [
+          {
+            "field": "total"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6645",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "status": {
+          "field": "roleLabel",
+          "toneField": "roleTone"
+        },
+        "titleField": "name",
+        "dataSourceKey": "org.selectedRoleAssignment",
+        "items": [
+          {
+            "label": "현재",
+            "field": "department"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6642",
+        "name": "Sidebar",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "baseRole",
+        "label": "기본 역할 변경",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "org.baseRoles"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6686",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "되돌리기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ORG-04"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6688",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "권한 변경",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "org.changeRole",
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields"
+          },
+          "onSuccess": {
+            "navigate": "ORG-04"
+          }
+        }
+      }
+    }
+  ]
+}

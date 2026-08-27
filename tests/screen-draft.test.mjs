@@ -119,6 +119,10 @@ const FLOOR = {
   "ORG-03A": { matched: 1, spurious: 4 },
   "ORG-03B": { matched: 4, spurious: 6 },
   "ORG-03C": { matched: 2, spurious: 2 },
+  // 추출기가 **아무것도 못 뽑은 첫 화면**이다. 표 하나가 화면의 대부분이고
+  // 배너·카드·표·각주가 전부 컨테이너 이름만 다른 상자라 걸리는 규칙이 없다.
+  "ORG-04": { matched: 0, spurious: 0 },
+  "ORG-04B": { matched: 3, spurious: 1 },
   "TASK-01": { matched: 5, spurious: 2 }
 };
 
@@ -260,7 +264,7 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
   assert.equal(
     fell.length,
     0,
-    `추출기가 이 화면들에서 나빠졌습니다.\n${fell.join("\n")}\n\n${now}`
+    `이 화면들의 맞춤이 줄거나 헛것이 늘었습니다.\n추출기가 나빠졌거나, 명세가 다른 노드를 등록한 것입니다.\n${fell.join("\n")}\n\n${now}`
   );
 });
 

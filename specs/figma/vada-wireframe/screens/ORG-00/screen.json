@@ -74,8 +74,8 @@
           }
         ],
         "action": {
-          "type": "pending",
-          "note": "역할 및 권한 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "ORG-04"
         }
       }
     }

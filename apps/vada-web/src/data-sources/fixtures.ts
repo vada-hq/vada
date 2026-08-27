@@ -1462,6 +1462,41 @@ function taskAlerts(): DataRow {
   }
 }
 
+// 역할 및 권한(ORG-04). 디자인이 그린 열세 줄 그대로다. 칸에 오는 것은 '되는가'가
+// 아니라 '어떤 조건에서 되는가'이므로 완성된 말과 색 이름이 함께 온다.
+const PERMISSION_MATRIX: DataRow[] = [
+  ['재정 현황·사용 내역 열람', '가능', '가능', '가능'],
+  ['예산 수정·구매 승인·증빙 처리', '가능', '재정부만', '재정부만'],
+  ['회의 생성', '가능', '가능', '—'],
+  ['행사 만들기', '가능', '가능', '—'],
+  ['행사 정보 수정·종료 처리', '가능', '행사 조직만', '행사 조직만'],
+  ['행사 완료 처리', '가능', '—', '—'],
+  ['행사 운영 조직 구성·수정', '가능', '행사 조직 관리자만', '행사 조직 관리자만'],
+  ['조직 구조 수정', '가능', '—', '—'],
+  ['구성원 초대', '가능', '자기 부서만', '—'],
+  ['학생 명단 열람', '가능', '가능', '가능'],
+  ['학생 명단 업로드·갱신', '가능', '—', '—'],
+  ['학생회비 납부 명단 업로드', '가능', '재정부만', '재정부만'],
+  ['학생 명단 내보내기', '가능', '—', '—'],
+].map(([area, chair, head, member]) => ({
+  id: area,
+  area,
+  chair,
+  // '가능'은 초록, 조건이 붙으면 노랑, 못 하면 무채색이다. 색 이름을 데이터가
+  // 주는 이유는 조건이 하나 늘 때 화면이 짐작하지 않게 하기 위해서다.
+  chairTone: permissionTone(chair),
+  head,
+  headTone: permissionTone(head),
+  member,
+  memberTone: permissionTone(member),
+}))
+
+function permissionTone(label: string): string {
+  if (label === '가능') return 'green'
+  if (label === '—') return 'gray'
+  return 'yellow'
+}
+
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   'meeting.attention': { attentionCount: 2 },
   'home.briefing': { title: '박해랑님, 확인이 필요해요' },
@@ -1538,6 +1573,26 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     roles: '기본 역할 3종 · 확정된 권한 매트릭스',
   },
   'org.chartTitle': { name: '제12대 소프트웨어융합대학 학생회' },
+  'org.roleCounts': { chairCount: 1, headCount: 3, memberCount: 3 },
+  'org.roleAssignmentCount': { total: '7명' },
+  // 고른 사람. 어느 구성원을 고를지가 아직 주소로 오가지 않아 서버가 준다.
+  'org.selectedRoleAssignment': {
+    id: 'M-03',
+    name: '박해랑',
+    department: '운영부',
+    roleLabel: '부원',
+    roleTone: 'gray',
+    role: 'member',
+  },
+  'org.roleAssignments': [
+    { id: 'M-01', name: '김바다', department: '학술체육부', roleLabel: '회장단', roleTone: 'violet', role: 'chair' },
+    { id: 'M-11', name: '이수현', department: '기획부', roleLabel: '부서장', roleTone: 'blue', role: 'head' },
+    { id: 'M-02', name: '이윤슬', department: '홍보부', roleLabel: '부서장', roleTone: 'blue', role: 'head' },
+    { id: 'M-12', name: '김민준', department: '재정부', roleLabel: '부서장', roleTone: 'blue', role: 'head' },
+    { id: 'M-03', name: '박해랑', department: '운영부', roleLabel: '부원', roleTone: 'gray', role: 'member' },
+    { id: 'M-07', name: '정하늘', department: '운영부', roleLabel: '부원', roleTone: 'gray', role: 'member' },
+    { id: 'M-13', name: '박민수', department: '기획부', roleLabel: '부원', roleTone: 'gray', role: 'member' },
+  ],
   'org.unassignedHint': { hint: '2명 · 드래그해서 부서로 이동' },
   'org.invite': {
     stateLabel: '활성',
@@ -1597,6 +1652,7 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
       members: [{ id: 'M-08', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
     },
   ],
+  'org.permissionMatrix': PERMISSION_MATRIX,
   'my.taskTabCounts': countByTab(),
   'task.alerts': taskAlerts(),
 }

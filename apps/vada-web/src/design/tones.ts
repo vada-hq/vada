@@ -249,6 +249,19 @@ export const ROLE_CHIP: Record<string, string> = {
   blue: 'bg-blue-200 text-blue-800',
 }
 
+/**
+ * 기본 역할 딱지(ORG-04B). 회장단만 보라이고 부서장은 파랑, 부원은 무채색이다.
+ *
+ * ROLE_CHIP과 다르다 - 저기는 조직도의 자리 딱지라 -200 바탕에 -800 글씨이고,
+ * 여기는 목록 줄 끝의 둥근 딱지라 한 단계 옅다. 같은 '역할'이라도 그려지는
+ * 자리가 다르면 배합이 다르다.
+ */
+export const BASE_ROLE_CHIP: Record<string, string> = {
+  violet: 'border-violet-200 bg-violet-50 text-violet-700',
+  blue: 'border-blue-200 bg-blue-50 text-blue-700',
+  gray: 'border-gray-200 bg-gray-50 text-gray-600',
+}
+
 /** 자리 딱지를 단 사람의 카드 자체도 그 색을 옅게 깐다(30:4525·30:4539). */
 export const ROLE_CARD: Record<string, string> = {
   yellow: 'border-yellow-300 bg-yellow-50',

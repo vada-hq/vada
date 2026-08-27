@@ -2925,6 +2925,187 @@
           "description": "짧은 초대 코드. 예: AB12CD34"
         }
       ]
+    },
+    {
+      "key": "org.roleCounts",
+      "shape": "object",
+      "description": "기본 역할마다 지금 몇 사람인지. 역할 셋은 제품이 정한 고정 구조라 명세가 갖고(ORG-04B가 바꾸는 것은 사람의 역할이다), 수만 서버가 준다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/role-counts"
+      },
+      "messages": {
+        "loading": "역할별 인원을 불러오는 중입니다",
+        "empty": "표시할 인원이 없습니다",
+        "error": "역할별 인원을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "chairCount",
+          "description": "회장단 인원"
+        },
+        {
+          "key": "headCount",
+          "description": "부서장 인원"
+        },
+        {
+          "key": "memberCount",
+          "description": "부원 인원"
+        }
+      ]
+    },
+    {
+      "key": "org.permissionMatrix",
+      "shape": "list",
+      "description": "기능 영역마다 역할 셋이 무엇을 할 수 있는지. 한 줄이 기능 영역 하나다.\n\n칸에 그려지는 것은 '가능'·'재정부만'처럼 **완성된 말**이고 색 이름이 함께 온다 - '되는가 안 되는가'가 아니라 '어떤 조건에서 되는가'까지가 답이기 때문이다. 명세가 그 말의 목록을 들고 있으면 조건이 하나 늘 때마다 명세가 틀린다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/permission-matrix"
+      },
+      "messages": {
+        "loading": "권한을 불러오는 중입니다",
+        "empty": "표시할 권한이 없습니다",
+        "error": "권한을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "기능 영역의 id"
+        },
+        {
+          "key": "area",
+          "description": "기능 영역의 이름. 예: 재정 현황·사용 내역 열람"
+        },
+        {
+          "key": "chair",
+          "description": "회장단이 할 수 있는 정도"
+        },
+        {
+          "key": "chairTone",
+          "description": "그 딱지의 색 이름"
+        },
+        {
+          "key": "head",
+          "description": "부서장이 할 수 있는 정도"
+        },
+        {
+          "key": "headTone",
+          "description": "그 딱지의 색 이름"
+        },
+        {
+          "key": "member",
+          "description": "부원이 할 수 있는 정도"
+        },
+        {
+          "key": "memberTone",
+          "description": "그 딱지의 색 이름"
+        }
+      ]
+    },
+    {
+      "key": "org.roleAssignments",
+      "shape": "list",
+      "description": "구성원마다 지금 어떤 기본 역할인지. 이름·소속과 함께 온다 - 누구의 역할을 바꾸는지가 이름만으로는 갈리지 않기 때문이다(같은 이름이 여럿 있다).",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/role-assignments"
+      },
+      "messages": {
+        "loading": "구성원을 불러오는 중입니다",
+        "empty": "구성원이 없습니다",
+        "error": "구성원을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "구성원 id"
+        },
+        {
+          "key": "name",
+          "description": "이름"
+        },
+        {
+          "key": "department",
+          "description": "소속 부서"
+        },
+        {
+          "key": "roleLabel",
+          "description": "지금의 기본 역할 이름"
+        },
+        {
+          "key": "roleTone",
+          "description": "그 딱지의 색 이름"
+        },
+        {
+          "key": "role",
+          "description": "지금의 기본 역할 값. org.baseRoles의 value다"
+        }
+      ]
+    },
+    {
+      "key": "org.roleAssignmentCount",
+      "shape": "object",
+      "description": "기본 역할을 가진 구성원이 몇인지. 목록 곁의 한 줄이다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/role-assignments/count"
+      },
+      "messages": {
+        "loading": "불러오는 중입니다",
+        "empty": "표시할 수가 없습니다",
+        "error": "불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "total",
+          "description": "완성된 한 줄. 예: 7명"
+        }
+      ]
+    },
+    {
+      "key": "org.selectedRoleAssignment",
+      "shape": "object",
+      "description": "지금 고른 구성원 한 사람. 목록에서 고른 것이 여기 온다 - 누구를 고를지가 아직 주소로 오가지 않아(itemAction이 pending) 서버가 마지막으로 고른 사람을 준다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/role-assignments/selected"
+      },
+      "messages": {
+        "loading": "구성원을 불러오는 중입니다",
+        "empty": "고른 구성원이 없습니다",
+        "error": "구성원을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "구성원 id"
+        },
+        {
+          "key": "name",
+          "description": "이름"
+        },
+        {
+          "key": "department",
+          "description": "소속 부서"
+        },
+        {
+          "key": "roleLabel",
+          "description": "지금의 기본 역할 이름"
+        },
+        {
+          "key": "roleTone",
+          "description": "그 딱지의 색 이름"
+        },
+        {
+          "key": "role",
+          "description": "지금의 기본 역할 값"
+        }
+      ]
     }
   ]
 }

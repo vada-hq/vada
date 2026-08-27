@@ -1,0 +1,176 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-04",
+  "meta": {
+    "eyebrow": "조직 관리",
+    "title": "역할 및 권한"
+  },
+  "activeNavigationScreenId": "ORG-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:6177",
+    "name": "조직 관리 · ORG-04 · 역할 및 권한",
+    "figmaType": "FRAME"
+  },
+  "breadcrumb": {
+    "source": "30:6251",
+    "items": [
+      {
+        "value": "조직 관리"
+      },
+      {
+        "value": "역할 및 권한"
+      }
+    ]
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:6263",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "역할별로 사용할 수 있는 기능을 보여주는 열람 화면입니다",
+        "description": "확정된 권한 매트릭스를 기준으로 합니다. 역할 변경은 회장단 전용 관리 화면에서만 할 수 있습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6275",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회장단",
+        "description": "학생회 전체 운영을 총괄하고 재정 처리를 승인합니다.",
+        "dataSourceKey": "org.roleCounts",
+        "items": [
+          {
+            "unit": "명",
+            "field": "chairCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6283",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "부서장",
+        "description": "소속 부서의 업무와 구성원을 관리합니다.",
+        "dataSourceKey": "org.roleCounts",
+        "items": [
+          {
+            "unit": "명",
+            "field": "headCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6291",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "부원",
+        "description": "부서 업무에 참여하고 구매 요청 등을 제출합니다.",
+        "dataSourceKey": "org.roleCounts",
+        "items": [
+          {
+            "unit": "명",
+            "field": "memberCount"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6299",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "기능 영역별 권한",
+        "dataSourceKey": "org.permissionMatrix",
+        "columns": [
+          {
+            "label": "기능 영역",
+            "fields": [
+              "area"
+            ]
+          },
+          {
+            "label": "회장단",
+            "fields": [
+              "chair"
+            ],
+            "toneField": "chairTone"
+          },
+          {
+            "label": "부서장",
+            "fields": [
+              "head"
+            ],
+            "toneField": "headTone"
+          },
+          {
+            "label": "부원",
+            "fields": [
+              "member"
+            ],
+            "toneField": "memberTone"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6402",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "value": "‘—’는 해당 역할이 사용할 수 없는 기능입니다. 회의·행사별로 부여되는 역할은 아래 카드를 참고하세요."
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6405",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의·행사에서 별도로 부여되는 역할",
+        "items": [
+          {
+            "value": "회의 진행 권한자 — 회의별로 부여되며 회의 시작·종료와 안건 진행을 할 수 있습니다. 다른 사람의 권한은 변경할 수 없습니다."
+          },
+          {
+            "value": "회의 생성자 — 기본 진행 권한자이며, 진행 권한을 부여·해제할 수 있는 유일한 역할입니다."
+          },
+          {
+            "value": "행사 운영 조직 역할 — 행사별로 구성되며 기본 학생회 조직과 별개의 데이터입니다. 행사 조직을 수정해도 기본 조직은 변경되지 않습니다. 표의 행사 조직만은 그 행사의 운영 조직에 속한 경우, 행사 조직 관리자만은 그 조직의 관리자인 경우를 뜻합니다.",
+            "description": "행사 조직 관리자는 행사 운영 조직과 담당 업무를 관리할 수 있지만, 행사를 최종 완료 처리할 수는 없습니다. 행사 완료 처리는 회장단만 가능합니다."
+          }
+        ]
+      }
+    }
+  ]
+}

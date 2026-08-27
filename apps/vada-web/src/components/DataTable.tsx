@@ -4,7 +4,16 @@ import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 
 // 한 줄 안에서도 조각마다 무게가 다르다. 이름은 뜻이고, 그 뜻을 어떤 색으로
 // 옮길지는 design/tones가 아니라 여기서 한 번에 정한다 — 표 안의 위계다.
-type FieldPresentation = 'title' | 'strong' | 'body' | 'muted' | 'faint' | 'status'
+// 'label'은 **줄을 가리키는 이름 칸**이다. title만큼 앞세우지는 않는다 -
+// 권한 표의 '기능 영역'처럼 그 줄이 무엇에 대한 것인지를 말할 뿐 제목은 아니다.
+type FieldPresentation =
+  | 'title'
+  | 'label'
+  | 'strong'
+  | 'body'
+  | 'muted'
+  | 'faint'
+  | 'status'
 
 interface DataColumn {
   label?: string
@@ -32,6 +41,8 @@ interface DataTableProps {
   emptyMessage: string
   fieldPresentation?: Record<string, FieldPresentation>
   columnWidths?: string[]
+  /** 표 아래에 붙는 덧붙임. 카드 안이라 표와 한 칸이다(ORG-04의 '—' 설명). */
+  footer?: ReactNode
 }
 
 function displayValue(value: DataValue | undefined, field: string): string {
@@ -74,6 +85,7 @@ function CellValue({
 
   const className = {
     title: 'font-semibold text-gray-800',
+    label: 'font-medium text-gray-800',
     strong: 'font-normal text-gray-700',
     body: 'font-normal text-gray-600',
     muted: 'font-normal text-gray-500',
@@ -96,6 +108,7 @@ export function DataTable({
   emptyMessage,
   fieldPresentation = {},
   columnWidths,
+  footer,
 }: DataTableProps) {
   return (
     <section
@@ -181,6 +194,7 @@ export function DataTable({
           </tbody>
         </table>
       </div>
+      {footer}
     </section>
   )
 }

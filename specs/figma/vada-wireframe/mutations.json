@@ -139,6 +139,18 @@
         "submitting": "초대 정보를 다시 만드는 중입니다",
         "error": "초대 정보를 다시 만들지 못했습니다"
       }
+    },
+    {
+      "key": "org.changeRole",
+      "description": "고른 구성원의 기본 역할을 바꾼다. 회의·행사별 맥락 역할은 이 화면이 건드리지 않는다.",
+      "request": {
+        "method": "PUT",
+        "path": "/api/org/role-assignments"
+      },
+      "messages": {
+        "submitting": "역할을 바꾸는 중입니다",
+        "error": "역할을 바꾸지 못했습니다"
+      }
     }
   ]
 }

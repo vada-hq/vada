@@ -489,11 +489,14 @@ function normalizeLayout(node) {
     isFiniteNumber(node.gridRowAnchorIndex) ||
     isFiniteNumber(node.gridColumnAnchorIndex)
   ) {
+    // Figma는 **격자에 놓이지 않은 것**을 -1로 말한다(절대 위치로 띄운 노드가
+    // 그렇다). 그것을 자리로 적으면 '-1번째 칸'이라는 거짓이 되므로 적지 않는다.
+    // ORG-04B의 오른쪽 칸이 그랬고, 스키마가 minimum 0이라 저장이 막혔다.
     const placement = {};
-    if (isFiniteNumber(node.gridRowAnchorIndex)) {
+    if (isFiniteNumber(node.gridRowAnchorIndex) && node.gridRowAnchorIndex >= 0) {
       placement.row = node.gridRowAnchorIndex;
     }
-    if (isFiniteNumber(node.gridColumnAnchorIndex)) {
+    if (isFiniteNumber(node.gridColumnAnchorIndex) && node.gridColumnAnchorIndex >= 0) {
       placement.column = node.gridColumnAnchorIndex;
     }
     if (isFiniteNumber(node.gridRowSpan) && node.gridRowSpan !== 1) {
@@ -502,13 +505,18 @@ function normalizeLayout(node) {
     if (isFiniteNumber(node.gridColumnSpan) && node.gridColumnSpan !== 1) {
       placement.columnSpan = node.gridColumnSpan;
     }
-    if (node.gridChildHorizontalAlign !== "AUTO") {
+    // **없는 것과 AUTO는 다르다.** 'AUTO가 아니면 적는다'로만 보면 속성이 아예
+    // 없을 때도 undefined를 적게 된다(JSON으로 나갈 때 사라져 오랫동안 안 보였다).
+    if (typeof node.gridChildHorizontalAlign === "string" && node.gridChildHorizontalAlign !== "AUTO") {
       placement.horizontalAlign = lower(node.gridChildHorizontalAlign);
     }
-    if (node.gridChildVerticalAlign !== "AUTO") {
+    if (typeof node.gridChildVerticalAlign === "string" && node.gridChildVerticalAlign !== "AUTO") {
       placement.verticalAlign = lower(node.gridChildVerticalAlign);
     }
-    layout.gridPlacement = placement;
+    // 자리도 없고 붙는 방향도 없으면 격자 이야기가 아예 없는 것이다.
+    if (Object.keys(placement).length > 0) {
+      layout.gridPlacement = placement;
+    }
   }
 
   const limits = {};

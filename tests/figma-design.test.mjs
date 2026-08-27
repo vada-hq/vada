@@ -650,3 +650,47 @@ test("멀리 떨어진 아이콘 둘은 한 자산이 아니다", () => {
   };
   assert.deepEqual(collectAssetNodes(glyph).map((asset) => asset.node.id), ["1:300"]);
 });
+
+// Figma는 격자에 놓이지 않은 것을 -1로 말한다. 절대 위치로 띄운 노드가 그렇고,
+// 그것을 자리로 적으면 '-1번째 칸'이라는 거짓이 된다. ORG-04B의 오른쪽 칸이
+// 그랬고 스키마가 minimum 0이라 저장 자체가 막혔다.
+test("격자 밖에 놓인 노드는 자리를 적지 않는다", () => {
+  const raw = {
+    document: {
+      id: "3:1",
+      name: "격자",
+      type: "FRAME",
+      layoutMode: "GRID",
+      absoluteBoundingBox: { x: 0, y: 0, width: 100, height: 100 },
+      children: [
+        {
+          id: "3:2",
+          name: "격자 안",
+          type: "FRAME",
+          gridRowAnchorIndex: 1,
+          gridColumnAnchorIndex: 0,
+          absoluteBoundingBox: { x: 0, y: 0, width: 10, height: 10 }
+        },
+        {
+          id: "3:3",
+          name: "띄운 것",
+          type: "FRAME",
+          layoutPositioning: "ABSOLUTE",
+          gridRowAnchorIndex: -1,
+          gridColumnAnchorIndex: -1,
+          absoluteBoundingBox: { x: 20, y: 0, width: 10, height: 10 }
+        }
+      ]
+    }
+  };
+
+  const design = normalizeFigmaDesign(raw, { screenId: "TEST-01" });
+  const [inside, floating] = design.root.children;
+
+  assert.deepEqual(inside.layout.gridPlacement, { row: 1, column: 0 });
+  assert.equal(
+    floating.layout.gridPlacement,
+    undefined,
+    "격자 밖이면 자리를 아예 적지 않는다"
+  );
+});

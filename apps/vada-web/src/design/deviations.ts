@@ -298,4 +298,81 @@ export const DEVIATIONS: Deviation[] = [
     screen: 'data-asset-node-id를 단 그림이 없음',
     why: '끌고 있는 동안만 있는 카드의 손잡이다.',
   },
+
+  // --- ORG-04: 표의 선과 머리가 다른 화면과 다르게 칠해졌다 -------------------
+  //
+  // 공용 표(DataTable)는 줄 사이를 gray-50으로, 열 머리를 700으로 그린다.
+  // ORG-04만 gray-100·600이다. **공용 부품을 이 화면에 맞추자 FIN-REQ-02가
+  // 깨졌다** - 와이어프레임이 화면마다 다르게 칠해진 것이지 규칙이 바뀐 것이
+  // 아니다. 그래서 규칙을 따르고 차이를 여기 적는다.
+  {
+    by: 'color',
+    kind: '테두리',
+    design: 'gray-100(#F3F4F6)',
+    screen: 'gray-50(#F9FAFB)',
+    why: '표의 줄 사이 선은 gray-50으로 통일한다(DataTable). ORG-04만 gray-100이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-04',
+    content: '기능 영역',
+    kind: '굵기',
+    design: '600',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-04만 600이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-04',
+    content: '회장단',
+    kind: '굵기',
+    design: '600',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-04만 600이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-04',
+    content: '부서장',
+    kind: '굵기',
+    design: '600',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-04만 600이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-04',
+    content: '부원',
+    kind: '굵기',
+    design: '600',
+    screen: '700',
+    why: '표의 열 머리는 700으로 통일한다(DataTable). ORG-04만 600이다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-04',
+    content: '기능 영역별 권한',
+    kind: '색',
+    design: 'gray-700(#364153)',
+    screen: 'gray-800(#1E2939)',
+    why: '표의 섹션 제목은 gray-800으로 통일한다(DataTable).',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-04',
+    content: '기능 영역별 권한',
+    kind: '굵기',
+    design: '600',
+    screen: '700',
+    why: '표의 섹션 제목은 700으로 통일한다(DataTable).',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-04',
+    content: '기능 영역별 권한',
+    kind: '배경',
+    design: 'gray-50(#F9FAFB)',
+    screen: '지정 없음',
+    why: '표의 머리줄에는 바탕을 깔지 않는다(DataTable). ORG-04만 회색이다.',
+  },
 ]

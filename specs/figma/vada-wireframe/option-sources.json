@@ -539,6 +539,29 @@
           "label": "반려"
         }
       ]
+    },
+    {
+      "key": "org.baseRoles",
+      "type": "static",
+      "description": "학생회의 기본 역할 셋. 제품이 정한 고정 구조라 명세가 갖는다 - ORG-04B가 바꾸는 것은 사람의 역할이지 역할의 집합이 아니다.",
+      "params": [],
+      "options": [
+        {
+          "value": "chair",
+          "label": "회장단",
+          "description": "학생회 전체 운영을 총괄하고 재정 처리를 승인합니다."
+        },
+        {
+          "value": "head",
+          "label": "부서장",
+          "description": "소속 부서의 업무와 구성원을 관리합니다."
+        },
+        {
+          "value": "member",
+          "label": "부원",
+          "description": "부서 업무에 참여하고 구매 요청 등을 제출합니다."
+        }
+      ]
     }
   ]
 }
