@@ -90,6 +90,19 @@
         "submitting": "처리를 끝내는 중입니다",
         "error": "처리를 끝내지 못했습니다"
       }
+    },
+    {
+      "key": "org.saveChart",
+      "description": "고친 조직도를 저장한다. 사람의 자리와 부서 구성이 함께 간다.",
+      "request": {
+        "method": "PUT",
+        "path": "/api/org/chart"
+      },
+      "payloadScope": "orgEditDraft",
+      "messages": {
+        "submitting": "저장하는 중입니다",
+        "error": "조직도를 저장하지 못했습니다"
+      }
     }
   ]
 }

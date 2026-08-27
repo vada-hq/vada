@@ -76,6 +76,51 @@ for (const { screenId, derivable, notDerivable } of EXPECTED) {
 // 만든 작업 공간 화면 다섯이 눈금 밖에 있었고, 그동안 그 화면들에서 헛것이
 // 28개까지 자랐는데 이 검사는 조용했다. 이제 등록된 화면 전부를 센다 —
 // 화면을 하나 더 명세하면 저절로 눈금에 든다.
+// 화면마다의 눈금.
+//
+// **총합 재현율은 회귀 탐지기가 아니었다.** 화면이 늘고 그중 어려운 것이 섞이면
+// 저절로 내려가고, 그때마다 사람이 "이번은 괜찮다"고 판단해 내리게 된다 - 실제로
+// 2026-08-27 하루에 세 번 내렸다. 그러면 눈금이 아니라 기록이다.
+//
+// 그래서 **화면마다 잠근다.** 새 화면은 줄을 더하고, 이미 있는 화면은 내려갈 수
+// 없다. 추출기를 고쳐 어느 화면이 나아지면 그 줄을 올린다. 총합은 아래에 흐름으로
+// 남겨 두되 잠그지는 않는다 - 재는 것이 다르기 때문이다.
+//
+// 줄을 더할 때 그 수가 낮아도 괜찮다. **낮다는 사실이 기록되는 것**이 이 표의
+// 일이고, 그 화면 계급을 추출기가 못 읽는다는 증거가 된다(ORG-00·OPS-00의 허브,
+// ORG-03A·ORG-03B의 나란한 되풀이 카드).
+const FLOOR = {
+  "EVT-00A": { matched: 3, spurious: 0 },
+  "EVT-02": { matched: 3, spurious: 0 },
+  "EVT-04": { matched: 6, spurious: 3 },
+  "EVT-DOC-01": { matched: 2, spurious: 0 },
+  "EVT-FIN-01": { matched: 3, spurious: 2 },
+  "EVT-MEET-01": { matched: 2, spurious: 0 },
+  "EVT-SCHED-01": { matched: 3, spurious: 0 },
+  "EVT-TASK-01": { matched: 5, spurious: 2 },
+  "EVT-TASK-02": { matched: 4, spurious: 2 },
+  "FIN-EVID-01": { matched: 3, spurious: 2 },
+  "FIN-PROC-01": { matched: 2, spurious: 0 },
+  "FIN-REQ-01": { matched: 18, spurious: 41 },
+  "FIN-REQ-02": { matched: 3, spurious: 0 },
+  "FIN-REV-01": { matched: 1, spurious: 5 },
+  "FIN-SUP-01": { matched: 2, spurious: 4 },
+  "HOME-01K": { matched: 7, spurious: 0 },
+  "INV-01": { matched: 8, spurious: 0 },
+  "MY-01": { matched: 3, spurious: 0 },
+  "MY-REQ-01": { matched: 1, spurious: 1 },
+  "ONB-01": { matched: 7, spurious: 2 },
+  "ONB-02": { matched: 3, spurious: 0 },
+  "OPS-00": { matched: 0, spurious: 1 },
+  "OPS-MEET-01A": { matched: 2, spurious: 0 },
+  "ORG-00": { matched: 0, spurious: 1 },
+  "ORG-01": { matched: 8, spurious: 0 },
+  "ORG-02": { matched: 2, spurious: 2 },
+  "ORG-03A": { matched: 1, spurious: 4 },
+  "ORG-03B": { matched: 4, spurious: 6 },
+  "TASK-01": { matched: 5, spurious: 2 }
+};
+
 test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", async () => {
   const shell = JSON.parse(
     await readFile(
@@ -102,6 +147,8 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
   let spurious = 0;
   let topRegistered = 0;
   let topMatched = 0;
+  const missing = [];
+  const fell = [];
   const worse = [];
   for (const screenId of screenIds) {
     const { design, spec } = await loadScreen(screenId);
@@ -134,7 +181,23 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
       (row) => row.matched && row.typeMatch && row.labelMatch
     ).length;
 
-    worse.push(`${screenId} ${hit}/${declared.length}(헛것 ${rows.length - declared.length})`);
+    const noise = rows.length - declared.length;
+    worse.push(`${screenId} ${hit}/${declared.length}(헛것 ${noise})`);
+
+    // **화면마다 잠근다.** 새 화면이면 줄을 더하라고 말하고, 있던 화면이면
+    // 내려갔는지 본다. 총합만 보면 어려운 화면이 하나 들어올 때마다 내려가고
+    // 그때마다 사람이 눈금을 내리게 된다.
+    const floor = FLOOR[screenId];
+    if (floor === undefined) {
+      missing.push(`  "${screenId}": { matched: ${hit}, spurious: ${noise} }`);
+    } else {
+      if (hit < floor.matched) {
+        fell.push(`${screenId}: 맞춤 ${floor.matched} → ${hit}`);
+      }
+      if (noise > floor.spurious) {
+        fell.push(`${screenId}: 헛것 ${floor.spurious} → ${noise}`);
+      }
+    }
   }
 
   // 눈금의 흐름. **새 줄을 맨 위에 더한다.**
@@ -187,24 +250,16 @@ test("초안 재현율이 떨어지지 않는다(등록된 화면 전부)", asyn
     `| 재현율 ${(recall * 100).toFixed(1)}% 헛것/등록 ${(noise * 100).toFixed(1)}% ` +
     `| 최상위 ${topMatched}/${topRegistered} = ${(topRecall * 100).toFixed(1)}%`;
 
-  // **최상위 재현율이 이 눈금의 본체다.** 추출기가 실제로 겨룰 수 있는 것만 센다.
-  // 절대값과 비율을 함께 잠근다 - 절대값만 있으면 등록이 느는 것만으로 검사가
-  // 통과하고, 비율만 있으면 화면 하나가 통째로 빠져도 조용하다.
-  assert.ok(
-    topRecall >= 0.545,
-    `최상위 재현율이 떨어졌습니다(54.5% 이상이어야 함). ${now}\n${worse.join(", ")}`
+  // **화면마다의 눈금이 이 검사의 본체다.** 총합은 흐름을 보는 눈이지 잠금이 아니다.
+  assert.equal(
+    missing.length,
+    0,
+    `눈금에 없는 화면이 있습니다. 아래 줄을 FLOOR에 더하세요.\n${missing.join(","+"\n")}\n\n${now}`
   );
-  assert.ok(
-    topMatched >= 95,
-    `최상위 맞춤이 줄었습니다(95개 이상이어야 함). ${now}\n${worse.join(", ")}`
-  );
-  assert.ok(
-    matched >= 107,
-    `재현한 요소가 줄었습니다(107개 이상이어야 함). ${now}\n${worse.join(", ")}`
-  );
-  assert.ok(
-    spurious <= 74,
-    `등록되지 않은 요소가 늘었습니다(69개 이하여야 함). ${now}\n${worse.join(", ")}`
+  assert.equal(
+    fell.length,
+    0,
+    `추출기가 이 화면들에서 나빠졌습니다.\n${fell.join("\n")}\n\n${now}`
   );
 });
 

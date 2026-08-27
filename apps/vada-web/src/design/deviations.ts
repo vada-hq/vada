@@ -196,4 +196,106 @@ export const DEVIATIONS: Deviation[] = [
   // 같은 아이콘들이 다른 카드에서는 따로 뽑혀 있어 화면은 그것을 그린다. 추출기가
   // 고쳐지거나 이 화면을 다시 저장하면 이 예외가 쓰이지 않게 되고, 그때 검사가
   // 지우라고 알려 준다.
+
+  // --- ORG-03B: 와이어프레임 두 장이 같은 조직을 다르게 그렸다 ---------------
+  //
+  // ORG-03A와 ORG-03B는 같은 조직도를 보기·수정으로 나눠 그린 것인데, 부서에 든
+  // 사람이 서로 다르다. 개발용 응답은 하나이므로 둘 다 맞출 수 없다.
+  //
+  // **ORG-03A를 따른다.** ORG-03B가 자기 자신과 어긋나기 때문이다 - 그 화면에서
+  // 이윤슬이 네 번 나오는데 한 번만 '컴퓨터학부 3학년'이고 나머지 셋은
+  // 'ICT융합학부 4학년'이다. ORG-03A에서는 세 번 다 같다. 손으로 그리다 난
+  // 사고이지 다른 조직이 아니다.
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '기획부 부서장 이윤슬 컴퓨터학부 3학년 부원 2명 김바다 컴퓨터학부 3학년 박해랑 컴퓨터학부 2학년',
+    kind: '칸 없음',
+    design: '배경 white(#FFFFFF) / 테두리 gray-200(#E5E7EB)',
+    screen: '화면에 없음',
+    why: 'ORG-03A와 사람이 다르다. 개발용 응답은 하나이고 ORG-03A를 따른다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '홍보부 ＋ 부서장 지정 부원 2명 박해랑 컴퓨터학부 2학년 이윤슬 ICT융합학부 4학년',
+    kind: '칸 없음',
+    design: '배경 white(#FFFFFF) / 테두리 gray-200(#E5E7EB)',
+    screen: '화면에 없음',
+    why: 'ORG-03A와 사람이 다르다. 개발용 응답은 하나이고 ORG-03A를 따른다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '디자인부 ＋ 부서장 지정 부원 2명 이윤슬 ICT융합학부 4학년 정하늘 컴퓨터학부 3학년',
+    kind: '칸 없음',
+    design: '배경 white(#FFFFFF) / 테두리 gray-200(#E5E7EB)',
+    screen: '화면에 없음',
+    why: 'ORG-03A와 사람이 다르다. 개발용 응답은 하나이고 ORG-03A를 따른다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '이윤슬 컴퓨터학부 3학년',
+    kind: '칸 없음',
+    design: '배경 white(#FFFFFF) / 테두리 blue-300(#8EC5FF)',
+    screen: '화면에 없음',
+    why: '기획부의 부서장이 ORG-03A와 다르다. 게다가 이 카드의 이윤슬만 학부·학년이 같은 화면의 다른 세 곳과 어긋난다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '김바다 컴퓨터학부 3학년',
+    kind: '칸 없음',
+    design: '배경 white(#FFFFFF) / 테두리 gray-200(#E5E7EB)',
+    screen: '화면에 없음',
+    why: 'ORG-03A의 기획부에는 김바다가 없다. 개발용 응답은 ORG-03A를 따른다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '이윤슬',
+    kind: '글 없음',
+    design: 'gray-800(#1E2939)',
+    screen: '화면에 없음',
+    why: 'ORG-03A와 기획부의 사람이 다르다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '김바다',
+    kind: '글 없음',
+    design: 'gray-800(#1E2939)',
+    screen: '화면에 없음',
+    why: 'ORG-03A와 기획부의 사람이 다르다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '3학년',
+    kind: '글 없음',
+    design: 'gray-400(#99A1AF)',
+    screen: '화면에 없음',
+    why: 'ORG-03A와 기획부의 사람이 다르다.',
+  },
+  // 끌고 있는 한 순간. 디자인은 박해랑 카드가 손에 들려 있는 상태를 함께 그렸다.
+  // 가만히 있는 화면에는 그것이 없다 - 그리면 늘 떠 있는 카드가 된다.
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '30:5000 Container',
+    kind: '그림 없음',
+    design: 'assets/30-5000.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why: '끌고 있는 동안만 있는 카드다. 가만히 있는 화면에 그리면 늘 떠 있게 된다.',
+  },
+  {
+    by: 'place',
+    screenId: 'ORG-03B',
+    content: '30:5010 Icon',
+    kind: '그림 없음',
+    design: 'assets/30-5010.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why: '끌고 있는 동안만 있는 카드의 손잡이다.',
+  },
 ]

@@ -1167,6 +1167,32 @@ function checkArgumentValues(findings, context, params, { declared, where }) {
   }
 }
 
+// 옮길 수 있는 목록은 **자리를 잃은 사람이 어디 모이는지**를 가리킨다. 그 곳이
+// 실제로 있는 목록 출처가 아니면, 뺀 사람이 어디로 갔는지 아무도 답할 수 없다.
+function checkItemMovePool(findings, context) {
+  const { file, element, index, dataSourceByKey } = context;
+  const move = element.spec?.itemMove;
+  if (!isObject(move)) {
+    return;
+  }
+  const pool = dataSourceByKey.get(move.poolSourceKey);
+  if (!pool) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}가 가리킨 미배정 출처 '${move.poolSourceKey}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+  if (pool.shape !== "list") {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 미배정 출처 '${move.poolSourceKey}'는 목록이어야 합니다. 자리 없는 사람이 여럿일 수 있습니다.`
+    });
+  }
+}
+
 // 안쪽 목록의 섹션 제목이 바깥 항목에서 온다면(titleField), 그 조각이 실제로
 // 바깥 항목에 있어야 한다. 없으면 제목만 빈 채로 그려지고 아무도 말하지 않는다 —
 // 열이 가리킨 조각을 보는 것과 같은 이유다.
@@ -2023,6 +2049,7 @@ export function collectSpecFindings({
       if (spec_.type === "itemList") {
         checkListColumns(findings, context);
         checkNestedListTitleField(findings, context);
+        checkItemMovePool(findings, context);
         checkListPaging(findings, context);
       }
       if (spec_.type === "select") {

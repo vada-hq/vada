@@ -45,6 +45,15 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "orgEditDraft",
+      "description": "조직도를 고치는 동안의 초안. 사람을 옮기고 부서를 더하는 것이 여기 쌓이고, 완료를 눌러야 실제로 바뀐다.",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

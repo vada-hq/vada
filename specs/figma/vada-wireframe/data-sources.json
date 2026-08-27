@@ -2828,6 +2828,62 @@
           ]
         }
       ]
+    },
+    {
+      "key": "org.unassignedMembers",
+      "shape": "list",
+      "description": "아직 어느 자리에도 배정되지 않은 구성원. **조직에서 지운 사람이 아니다** - 가입은 했는데 부서가 정해지지 않은 상태이며, INV-01의 '참여하면 미배정 구성원으로 등록됩니다'가 그 자리를 말한다.\n\n옮길 수 있는 목록들이 전부 이 출처를 가리킨다(itemMove.poolSourceKey). 그것이 '같은 무리'라는 뜻이고, 그래서 회장단의 사람을 부서로 옮길 수 있다.",
+      "params": [
+        "query"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/unassigned-members"
+      },
+      "messages": {
+        "loading": "미배정 구성원을 불러오는 중입니다",
+        "empty": "미배정 구성원이 없습니다",
+        "error": "미배정 구성원을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "구성원 id"
+        },
+        {
+          "key": "name",
+          "description": "이름"
+        },
+        {
+          "key": "major",
+          "description": "소속 학부"
+        },
+        {
+          "key": "grade",
+          "description": "학년"
+        }
+      ]
+    },
+    {
+      "key": "org.unassignedHint",
+      "shape": "object",
+      "description": "미배정 구성원 패널의 안내 한 줄. 몇 명인지와 어떻게 옮기는지가 글자 하나로 그려져 있어 서버가 완성해 보낸다(ORG-00의 '부서 5개 · 구성원 18명'과 같은 자리다).",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/unassigned-hint"
+      },
+      "messages": {
+        "loading": "불러오는 중입니다",
+        "empty": "안내할 내용이 없습니다",
+        "error": "불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "hint",
+          "description": "완성된 안내. 예: 2명 · 드래그해서 부서로 이동"
+        }
+      ]
     }
   ]
 }

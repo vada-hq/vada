@@ -2148,3 +2148,66 @@ test("안쪽 목록의 제목이 안쪽 조각을 가리키면 오류다", () =>
     1
   );
 });
+
+// 옮길 수 있는 목록은 자리를 잃은 사람이 어디 모이는지를 가리킨다.
+function movableScreen(itemMove, extraSources = []) {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Container", figmaType: "FRAME" },
+              spec: { type: "itemList", dataSourceKey: "org.executives", itemMove }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        { key: "org.executives", shape: "list", fields: [{ key: "name", label: "이름" }] },
+        ...extraSources
+      ]
+    }
+  };
+}
+
+test("미배정 출처가 있는 목록이면 조용하다", () => {
+  const findings = collectSpecFindings(
+    movableScreen(
+      { poolSourceKey: "org.unassigned", releaseLabel: "이 자리에서 빼기" },
+      [{ key: "org.unassigned", shape: "list", fields: [{ key: "name", label: "이름" }] }]
+    )
+  );
+
+  assert.deepEqual(findings, []);
+});
+
+test("미배정 출처가 카탈로그에 없으면 오류다", () => {
+  const findings = collectSpecFindings(
+    movableScreen({ poolSourceKey: "org.없음", releaseLabel: "빼기" })
+  );
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("미배정 출처")).length,
+    1
+  );
+});
+
+test("미배정 출처가 목록이 아니면 오류다", () => {
+  // 자리 없는 사람은 여럿일 수 있다. 값 묶음 하나로는 담기지 않는다.
+  const findings = collectSpecFindings(
+    movableScreen(
+      { poolSourceKey: "org.count", releaseLabel: "빼기" },
+      [{ key: "org.count", shape: "object", fields: [{ key: "total", label: "수" }] }]
+    )
+  );
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("목록이어야 합니다")).length,
+    1
+  );
+});

@@ -229,6 +229,12 @@ export interface ItemListSpec {
   // 항목이 하나도 없을 때 그 자리에 **대신** 그리는 동작. 비었다는 것을 말하는
   // 것은 출처의 messages.empty이고, 이것은 비었으니 채우라고 권하는 자리다 -
   // 조직도에서 부서장이 없는 부서에만 '＋ 부서장 지정'이 그려진다.
+  // 이 목록의 항목을 다른 자리로 옮길 수 있다. 같은 poolSourceKey를 가리키는
+  // 목록끼리가 한 무리이고, 자리를 잃은 사람은 그 pool로 간다. **어떻게 옮기는지는
+  // 명세가 말하지 않는다** - 끌어다 놓든 골라서 보내든 design의 몫이다.
+  itemMove?: { poolSourceKey: string; releaseLabel: string }
+  // 항목을 아주 지운다. 옮기기와 다르다 - 자리를 바꾸는 것이 아니라 없애는 것이다.
+  itemRemove?: { label: string }
   emptyAction?: DisplayAction
   // 항목 하나가 어떤 조각으로 나뉘어 그려지는지, 그려지는 순서대로. 조각을 통째로
   // 카드에 쏟는 목록은 이것이 없다. 이름은 '열'이지만 표에만 쓰는 것이 아니다 —

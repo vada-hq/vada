@@ -18,6 +18,7 @@ import {
   unusedDeviations,
   usesVectorUnitAssets,
 } from '.'
+import type { DesignNode } from '.'
 import type { DesignFile, SeenDifference } from '.'
 import { DEVIATIONS } from '../design/deviations'
 
@@ -127,8 +128,24 @@ function scopesDrawnBy(screen: ScreenSpec, design: DesignFile): ScopeStore {
 // 확인하지 않으면, 여섯 번째 카드형 화면에서 조용히 틀린다.
 //
 // 카드형 화면에만 적용한다. 셸이 있는 화면은 로고가 사이드바에 있어서 머리의
-// 눈썹과 로고가 함께 나온다(MY-01·OPS-00).
-const CARD_SCREENS = ALL_SCREENS.filter((spec) => spec.stateScopeKey !== undefined)
+// 카드 화면은 셸이 없어 로고를 자기가 그린다. 셸 화면은 로고가 사이드바에 있고
+// 머리에는 눈썹이 온다.
+//
+// 한동안 이 목록을 `stateScopeKey !== undefined`로 골랐다 - 초안을 담는 화면이
+// 곧 카드 화면이던 시절의 대용이다. **ORG-03B가 그 가정을 깼다**: 조직도를 고치는
+// 화면은 초안도 담고 셸도 쓴다. 그래서 design이 실제로 사이드바를 그리는지로
+// 가른다 - 재려던 것을 그대로 재는 것이 대용보다 낫다.
+function drawsSidebar(node: DesignNode): boolean {
+  if (node.name === 'Sidebar') {
+    return true
+  }
+  return (node.children ?? []).some(drawsSidebar)
+}
+
+const CARD_SCREENS = ALL_SCREENS.filter((spec) => {
+  const design = designByScreenId.get(spec.screenId)
+  return design !== undefined && !drawsSidebar(design.root)
+})
 
 describe.each(CARD_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
   '$screenId 머리 형태',

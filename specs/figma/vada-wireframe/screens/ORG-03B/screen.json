@@ -1,0 +1,347 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-03B",
+  "meta": {
+    "eyebrow": "조직 관리",
+    "title": "조직 관리 — 수정",
+    "titleFrom": {
+      "dataSourceKey": "org.chartTitle",
+      "field": "name"
+    }
+  },
+  "stateScopeKey": "orgEditDraft",
+  "activeNavigationScreenId": "ORG-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:4684",
+    "name": "조직 관리 · ORG-03B · 조직 관리 — 수정",
+    "figmaType": "FRAME"
+  },
+  "breadcrumb": {
+    "source": "30:4758",
+    "items": [
+      {
+        "value": "조직 관리"
+      },
+      {
+        "value": "부서 및 구성원"
+      }
+    ]
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:4769",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "구성원 초대",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "구성원 초대 패널이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:4776",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "완료",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "org.saveChart",
+          "onSuccess": {
+            "navigate": "ORG-03A",
+            "scopeEvent": "complete"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:4781",
+        "name": "HQCard",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "회장단",
+        "dataSourceKey": "org.executives",
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:4792",
+              "name": "MemberCard",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "status": {
+                "field": "roleLabel",
+                "toneField": "roleTone"
+              },
+              "titleField": "name",
+              "items": [
+                {
+                  "field": "major"
+                },
+                {
+                  "field": "grade"
+                }
+              ]
+            }
+          }
+        ],
+        "itemMove": {
+          "poolSourceKey": "org.unassignedMembers",
+          "releaseLabel": "회장단에서 빼기"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:4788",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "수정",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "회장단의 자리를 고치는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:4842",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "구성원 추가",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "구성원 초대 패널이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:4848",
+        "name": "OrgBranch",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "org.departments",
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:4852",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "titleField": "name",
+              "action": {
+                "type": "pending",
+                "label": "부서 메뉴",
+                "note": "부서 이름을 고치고 지우는 메뉴가 아직 명세되지 않았습니다."
+              }
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:4861",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "itemList",
+              "title": "부서장",
+              "itemsField": "leaders",
+              "itemFields": [
+                {
+                  "source": {
+                    "nodeId": "30:4865",
+                    "name": "MemberCard",
+                    "figmaType": "FRAME"
+                  },
+                  "spec": {
+                    "type": "summary",
+                    "titleField": "name",
+                    "items": [
+                      {
+                        "field": "major"
+                      },
+                      {
+                        "field": "grade"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "itemMove": {
+                "poolSourceKey": "org.unassignedMembers",
+                "releaseLabel": "부서장 자리에서 빼기"
+              },
+              "emptyAction": {
+                "type": "pending",
+                "label": "＋ 부서장 지정",
+                "note": "부서장을 지정하는 화면이 아직 명세되지 않았습니다."
+              }
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:4886",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "itemList",
+              "titleField": "memberCountLabel",
+              "itemsField": "members",
+              "itemFields": [
+                {
+                  "source": {
+                    "nodeId": "30:4891",
+                    "name": "MemberCard",
+                    "figmaType": "FRAME"
+                  },
+                  "spec": {
+                    "type": "summary",
+                    "titleField": "name",
+                    "items": [
+                      {
+                        "field": "major"
+                      },
+                      {
+                        "field": "grade"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "itemMove": {
+                "poolSourceKey": "org.unassignedMembers",
+                "releaseLabel": "부서에서 빼기"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5079",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "부서 추가",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "부서를 더하는 자리가 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5088",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "미배정 구성원",
+        "descriptionField": "hint",
+        "dataSourceKey": "org.unassignedHint"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5095",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "memberQuery",
+        "label": "이름 검색",
+        "labelHidden": true,
+        "placeholder": "이름 검색",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5101",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "org.unassignedMembers",
+        "params": {
+          "query": {
+            "fieldKey": "memberQuery"
+          }
+        },
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:5104",
+              "name": "MemberCard",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "summary",
+              "titleField": "name",
+              "items": [
+                {
+                  "field": "major"
+                },
+                {
+                  "field": "grade"
+                }
+              ]
+            }
+          }
+        ],
+        "itemMove": {
+          "poolSourceKey": "org.unassignedMembers",
+          "releaseLabel": "부서로 보내기"
+        },
+        "itemRemove": {
+          "label": "구성원 삭제"
+        }
+      }
+    }
+  ]
+}

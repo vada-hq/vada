@@ -1538,6 +1538,7 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     roles: '기본 역할 3종 · 확정된 권한 매트릭스',
   },
   'org.chartTitle': { name: '제12대 소프트웨어융합대학 학생회' },
+  'org.unassignedHint': { hint: '2명 · 드래그해서 부서로 이동' },
 
   // 조직도(ORG-03A). 디자인이 그린 그대로다 - 회장단 둘, 부서 셋이고
   // **기획부만 부서장이 있다.** 그 없음이 '＋ 부서장 지정'을 부르는 자리다.
@@ -1768,10 +1769,22 @@ const PURCHASE_REQUEST_HISTORY: Record<string, DataRow[]> = {
   ],
 }
 
+// 아직 어느 자리에도 없는 사람들. 디자인이 둘을 그렸다.
+// **id가 겹치면 안 된다.** 한 사람은 정확히 한 자리에 있다는 것이 이 화면의
+// 규칙이고, 같은 id가 부서와 여기에 함께 있으면 옮기기가 무엇을 옮기는지
+// 말할 수 없다. 와이어프레임이 같은 이름을 예시로 되풀이해 쓸 뿐이다.
+const UNASSIGNED_MEMBERS: DataRow[] = [
+  { id: 'M-09', name: '정하늘', major: '컴퓨터학부', grade: '3학년' },
+  { id: 'M-10', name: '박해랑', major: '컴퓨터학부', grade: '2학년' },
+]
+
 export const FILTERED_FIXTURES: Record<
   string,
   (params: Record<string, string>) => DataRow[]
 > = {
+  // 미배정 구성원은 이름으로 거른다. 조직도를 고치는 화면(ORG-03B)의 오른쪽 칸이다.
+  'org.unassignedMembers': ({ query = '' }) =>
+    UNASSIGNED_MEMBERS.filter((row) => matchesQuery(row, query)),
   'task.board': ({ scope = 'all', status = 'planned' }) =>
     TASK_BOARD.filter((task) => task.status === status)
       .filter((task) => scope !== 'mine' || task.row.assignee === VIEWER_NAME)
