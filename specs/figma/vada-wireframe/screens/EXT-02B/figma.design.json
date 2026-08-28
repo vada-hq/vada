@@ -1,0 +1,1236 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EXT-02B",
+  "source": {
+    "format": "JSON_REST_V1",
+    "nodeId": "30:7230",
+    "rawFile": "figma.raw.json",
+    "hash": "eea24a25f9f2ca438b190323c57d953dd9226f7716b072f02d17f4a3d3b0d399"
+  },
+  "viewport": {
+    "width": 1288,
+    "height": 740
+  },
+  "root": {
+    "id": "30:7230",
+    "type": "frame",
+    "name": "외부 참여 · EXT-02B · 참여 신청 완료",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1288,
+      "height": 740
+    },
+    "layout": {
+      "mode": "vertical",
+      "sizing": {
+        "horizontal": "fixed",
+        "vertical": "fixed",
+        "primaryAxis": "fixed",
+        "counterAxis": "fixed"
+      },
+      "overflow": "vertical"
+    },
+    "appearance": {
+      "fills": [
+        {
+          "type": "solid",
+          "color": "#F9FAFB"
+        }
+      ],
+      "effects": [
+        {
+          "type": "drop_shadow",
+          "radius": 2,
+          "spread": -1,
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "color": "#000000",
+          "opacity": 0.1
+        },
+        {
+          "type": "drop_shadow",
+          "radius": 3,
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "color": "#000000",
+          "opacity": 0.1
+        }
+      ],
+      "clipsContent": true
+    },
+    "children": [
+      {
+        "id": "30:7231",
+        "type": "frame",
+        "name": "PhoneFrame",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "width": 1288,
+          "height": 900
+        },
+        "layout": {
+          "mode": "horizontal",
+          "sizing": {
+            "horizontal": "fill",
+            "vertical": "fixed",
+            "primaryAxis": "fixed",
+            "counterAxis": "fixed"
+          },
+          "alignment": {
+            "primaryAxis": "center",
+            "self": "stretch"
+          },
+          "padding": {
+            "top": 28,
+            "right": 0,
+            "bottom": 28,
+            "left": 0
+          }
+        },
+        "appearance": {
+          "fills": [
+            {
+              "type": "solid",
+              "color": "#F3F4F6"
+            }
+          ]
+        },
+        "children": [
+          {
+            "id": "30:7232",
+            "type": "frame",
+            "name": "Container",
+            "box": {
+              "x": 449,
+              "y": 28,
+              "width": 390,
+              "height": 844
+            },
+            "layout": {
+              "mode": "vertical",
+              "sizing": {
+                "horizontal": "fixed",
+                "vertical": "fill",
+                "primaryAxis": "fixed",
+                "counterAxis": "fixed"
+              },
+              "alignment": {
+                "self": "stretch"
+              },
+              "limits": {
+                "minHeight": 844
+              }
+            },
+            "appearance": {
+              "fills": [
+                {
+                  "type": "solid",
+                  "color": "#FFFFFF"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "drop_shadow",
+                  "radius": 50,
+                  "spread": -12,
+                  "offset": {
+                    "x": 0,
+                    "y": 25
+                  },
+                  "color": "#000000",
+                  "opacity": 0.25
+                }
+              ],
+              "clipsContent": true,
+              "cornerRadius": 21
+            },
+            "children": [
+              {
+                "id": "30:7233",
+                "type": "frame",
+                "name": "Container",
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 390,
+                  "height": 31.5
+                },
+                "layout": {
+                  "mode": "horizontal",
+                  "sizing": {
+                    "horizontal": "fill",
+                    "vertical": "hug",
+                    "primaryAxis": "fixed"
+                  },
+                  "alignment": {
+                    "primaryAxis": "space_between",
+                    "counterAxis": "center",
+                    "self": "stretch"
+                  },
+                  "padding": {
+                    "top": 8.75,
+                    "right": 21,
+                    "bottom": 8.75,
+                    "left": 21
+                  }
+                },
+                "appearance": {
+                  "fills": [
+                    {
+                      "type": "solid",
+                      "color": "#FFFFFF"
+                    }
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "30:7234",
+                    "type": "frame",
+                    "name": "Text",
+                    "box": {
+                      "x": 21,
+                      "y": 8.75,
+                      "width": 22,
+                      "height": 14
+                    },
+                    "layout": {
+                      "mode": "vertical",
+                      "sizing": {
+                        "horizontal": "hug",
+                        "vertical": "hug"
+                      }
+                    },
+                    "children": [
+                      {
+                        "id": "30:7235",
+                        "type": "text",
+                        "name": "9:41",
+                        "box": {
+                          "x": 0,
+                          "y": 0,
+                          "width": 22,
+                          "height": 14
+                        },
+                        "layout": {
+                          "sizing": {
+                            "horizontal": "hug",
+                            "vertical": "hug"
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#101828"
+                            }
+                          ]
+                        },
+                        "text": {
+                          "content": "9:41",
+                          "style": {
+                            "fontFamily": "Inter",
+                            "fontStyle": "Semi Bold",
+                            "fontWeight": 600,
+                            "fontSize": 10.5,
+                            "horizontalAlign": "left",
+                            "verticalAlign": "top",
+                            "autoResize": "width_and_height",
+                            "lineHeight": {
+                              "value": 14,
+                              "unit": "pixels"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "30:7236",
+                    "type": "frame",
+                    "name": "Container",
+                    "box": {
+                      "x": 341,
+                      "y": 12.25,
+                      "width": 28,
+                      "height": 7
+                    },
+                    "layout": {
+                      "mode": "horizontal",
+                      "sizing": {
+                        "horizontal": "hug",
+                        "vertical": "hug"
+                      },
+                      "gap": 3.5
+                    },
+                    "children": [
+                      {
+                        "id": "30:7237",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 0,
+                          "y": 0,
+                          "width": 14,
+                          "height": 7
+                        },
+                        "layout": {
+                          "sizing": {
+                            "horizontal": "fixed",
+                            "vertical": "fixed"
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#1E2939"
+                            }
+                          ],
+                          "cornerRadius": 1.25
+                        }
+                      },
+                      {
+                        "id": "30:7238",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 17.5,
+                          "y": 0,
+                          "width": 10.5,
+                          "height": 7
+                        },
+                        "layout": {
+                          "sizing": {
+                            "horizontal": "fixed",
+                            "vertical": "fixed"
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#1E2939"
+                            }
+                          ],
+                          "cornerRadius": 1.25
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "30:7239",
+                "type": "frame",
+                "name": "Container",
+                "box": {
+                  "x": 0,
+                  "y": 31.5,
+                  "width": 390,
+                  "height": 812.5
+                },
+                "layout": {
+                  "mode": "vertical",
+                  "sizing": {
+                    "horizontal": "fill",
+                    "vertical": "fill",
+                    "primaryAxis": "fixed",
+                    "counterAxis": "fixed"
+                  },
+                  "alignment": {
+                    "self": "stretch"
+                  },
+                  "grow": 1
+                },
+                "appearance": {
+                  "clipsContent": true
+                },
+                "children": [
+                  {
+                    "id": "30:7240",
+                    "type": "frame",
+                    "name": "EXT02B",
+                    "box": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 390,
+                      "height": 472.5
+                    },
+                    "layout": {
+                      "mode": "vertical",
+                      "sizing": {
+                        "horizontal": "fill",
+                        "vertical": "hug"
+                      },
+                      "alignment": {
+                        "primaryAxis": "center",
+                        "counterAxis": "center",
+                        "self": "stretch"
+                      },
+                      "gap": 17.5,
+                      "padding": {
+                        "top": 56,
+                        "right": 28,
+                        "bottom": 56,
+                        "left": 28
+                      }
+                    },
+                    "children": [
+                      {
+                        "id": "30:7241",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 160,
+                          "y": 56,
+                          "width": 70,
+                          "height": 70
+                        },
+                        "layout": {
+                          "mode": "horizontal",
+                          "sizing": {
+                            "horizontal": "fixed",
+                            "vertical": "fixed",
+                            "primaryAxis": "fixed",
+                            "counterAxis": "fixed"
+                          },
+                          "alignment": {
+                            "primaryAxis": "center",
+                            "counterAxis": "center"
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#DCFCE7"
+                            }
+                          ],
+                          "cornerRadius": 35
+                        },
+                        "assetRef": "assets/30-7241.svg",
+                        "children": [
+                          {
+                            "id": "30:7242",
+                            "type": "frame",
+                            "name": "Icon",
+                            "box": {
+                              "x": 17.5,
+                              "y": 17.5,
+                              "width": 35,
+                              "height": 35
+                            },
+                            "layout": {
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed"
+                              }
+                            },
+                            "appearance": {
+                              "clipsContent": true
+                            },
+                            "children": [
+                              {
+                                "id": "30:7243",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 5.833,
+                                  "y": 8.75,
+                                  "width": 23.333,
+                                  "height": 16.042
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#00A63E"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.917,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "30:7244",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 107.539,
+                          "y": 143.5,
+                          "width": 174.922,
+                          "height": 68
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fixed",
+                            "vertical": "hug",
+                            "counterAxis": "fixed"
+                          }
+                        },
+                        "children": [
+                          {
+                            "id": "30:7245",
+                            "type": "frame",
+                            "name": "Heading 1",
+                            "box": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 174.922,
+                              "height": 25
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fill",
+                                "vertical": "hug",
+                                "counterAxis": "fixed"
+                              },
+                              "alignment": {
+                                "counterAxis": "center",
+                                "self": "stretch"
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7246",
+                                "type": "text",
+                                "name": "참여 신청이 완료되었습니다",
+                                "box": {
+                                  "x": -3.539,
+                                  "y": 0,
+                                  "width": 182,
+                                  "height": 25
+                                },
+                                "layout": {
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  }
+                                },
+                                "appearance": {
+                                  "fills": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#101828"
+                                    }
+                                  ]
+                                },
+                                "text": {
+                                  "content": "참여 신청이 완료되었습니다",
+                                  "style": {
+                                    "fontFamily": "Inter",
+                                    "fontStyle": "Bold",
+                                    "fontWeight": 700,
+                                    "fontSize": 15.75,
+                                    "horizontalAlign": "center",
+                                    "verticalAlign": "top",
+                                    "autoResize": "width_and_height",
+                                    "lineHeight": {
+                                      "value": 24.5,
+                                      "unit": "pixels"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7247",
+                            "type": "frame",
+                            "name": "Paragraph",
+                            "box": {
+                              "x": 0,
+                              "y": 25,
+                              "width": 174.922,
+                              "height": 21.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed",
+                                "primaryAxis": "fixed",
+                                "counterAxis": "fixed"
+                              },
+                              "alignment": {
+                                "counterAxis": "center"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7248",
+                                "type": "text",
+                                "name": "2026 소프트웨어융합대학 체육대회",
+                                "box": {
+                                  "x": -4.539,
+                                  "y": 3.5,
+                                  "width": 184,
+                                  "height": 18
+                                },
+                                "layout": {
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  }
+                                },
+                                "appearance": {
+                                  "fills": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#6A7282"
+                                    }
+                                  ]
+                                },
+                                "text": {
+                                  "content": "2026 소프트웨어융합대학 체육대회",
+                                  "style": {
+                                    "fontFamily": "Inter",
+                                    "fontStyle": "Regular",
+                                    "fontWeight": 400,
+                                    "fontSize": 12.25,
+                                    "horizontalAlign": "center",
+                                    "verticalAlign": "top",
+                                    "autoResize": "width_and_height",
+                                    "lineHeight": {
+                                      "value": 17.5,
+                                      "unit": "pixels"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7249",
+                            "type": "frame",
+                            "name": "Paragraph",
+                            "box": {
+                              "x": 0,
+                              "y": 46.5,
+                              "width": 174.922,
+                              "height": 21.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed",
+                                "primaryAxis": "fixed",
+                                "counterAxis": "fixed"
+                              },
+                              "alignment": {
+                                "counterAxis": "center"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7250",
+                                "type": "text",
+                                "name": "신청자: 김바다",
+                                "box": {
+                                  "x": 49.961,
+                                  "y": 3.5,
+                                  "width": 75,
+                                  "height": 18
+                                },
+                                "layout": {
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  }
+                                },
+                                "appearance": {
+                                  "fills": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#364153"
+                                    }
+                                  ]
+                                },
+                                "text": {
+                                  "content": "신청자: 김바다",
+                                  "style": {
+                                    "fontFamily": "Inter",
+                                    "fontStyle": "Medium",
+                                    "fontWeight": 500,
+                                    "fontSize": 12.25,
+                                    "horizontalAlign": "center",
+                                    "verticalAlign": "top",
+                                    "autoResize": "width_and_height",
+                                    "lineHeight": {
+                                      "value": 17.5,
+                                      "unit": "pixels"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "30:7251",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 28,
+                          "y": 229,
+                          "width": 334,
+                          "height": 93
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fixed",
+                            "vertical": "hug",
+                            "counterAxis": "fixed"
+                          },
+                          "strokesIncludedInLayout": true,
+                          "padding": {
+                            "top": 17.5,
+                            "right": 17.5,
+                            "bottom": 17.5,
+                            "left": 17.5
+                          }
+                        },
+                        "appearance": {
+                          "strokes": [
+                            {
+                              "type": "solid",
+                              "color": "#E5E7EB"
+                            }
+                          ],
+                          "stroke": {
+                            "weight": 1,
+                            "align": "inside"
+                          },
+                          "cornerRadius": 9.25
+                        },
+                        "children": [
+                          {
+                            "id": "30:7252",
+                            "type": "frame",
+                            "name": "Paragraph",
+                            "box": {
+                              "x": 18.5,
+                              "y": 18.5,
+                              "width": 297,
+                              "height": 14
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fill",
+                                "vertical": "hug",
+                                "counterAxis": "fixed"
+                              },
+                              "alignment": {
+                                "counterAxis": "center",
+                                "self": "stretch"
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7253",
+                                "type": "text",
+                                "name": "참가비",
+                                "box": {
+                                  "x": 134,
+                                  "y": 0,
+                                  "width": 29,
+                                  "height": 14
+                                },
+                                "layout": {
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  }
+                                },
+                                "appearance": {
+                                  "fills": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#6A7282"
+                                    }
+                                  ]
+                                },
+                                "text": {
+                                  "content": "참가비",
+                                  "style": {
+                                    "fontFamily": "Inter",
+                                    "fontStyle": "Regular",
+                                    "fontWeight": 400,
+                                    "fontSize": 10.5,
+                                    "horizontalAlign": "center",
+                                    "verticalAlign": "top",
+                                    "autoResize": "width_and_height",
+                                    "lineHeight": {
+                                      "value": 14,
+                                      "unit": "pixels"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7254",
+                            "type": "frame",
+                            "name": "Paragraph",
+                            "box": {
+                              "x": 18.5,
+                              "y": 32.5,
+                              "width": 297,
+                              "height": 24.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed",
+                                "primaryAxis": "fixed",
+                                "counterAxis": "fixed"
+                              },
+                              "alignment": {
+                                "counterAxis": "center"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7255",
+                                "type": "text",
+                                "name": "관리자 확인 중",
+                                "box": {
+                                  "x": 106,
+                                  "y": 3.5,
+                                  "width": 85,
+                                  "height": 21
+                                },
+                                "layout": {
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  }
+                                },
+                                "appearance": {
+                                  "fills": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#101828"
+                                    }
+                                  ]
+                                },
+                                "text": {
+                                  "content": "관리자 확인 중",
+                                  "style": {
+                                    "fontFamily": "Inter",
+                                    "fontStyle": "Semi Bold",
+                                    "fontWeight": 600,
+                                    "fontSize": 14,
+                                    "horizontalAlign": "center",
+                                    "verticalAlign": "top",
+                                    "autoResize": "width_and_height",
+                                    "lineHeight": {
+                                      "value": 21,
+                                      "unit": "pixels"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7256",
+                            "type": "frame",
+                            "name": "Paragraph",
+                            "box": {
+                              "x": 18.5,
+                              "y": 57,
+                              "width": 297,
+                              "height": 17.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed",
+                                "primaryAxis": "fixed",
+                                "counterAxis": "fixed"
+                              },
+                              "alignment": {
+                                "counterAxis": "center"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7257",
+                                "type": "text",
+                                "name": "학생회비 납부 여부 확인 후 결정됩니다.",
+                                "box": {
+                                  "x": 62,
+                                  "y": 3.5,
+                                  "width": 173,
+                                  "height": 14
+                                },
+                                "layout": {
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  }
+                                },
+                                "appearance": {
+                                  "fills": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#99A1AF"
+                                    }
+                                  ]
+                                },
+                                "text": {
+                                  "content": "학생회비 납부 여부 확인 후 결정됩니다.",
+                                  "style": {
+                                    "fontFamily": "Inter",
+                                    "fontStyle": "Regular",
+                                    "fontWeight": 400,
+                                    "fontSize": 10.5,
+                                    "horizontalAlign": "center",
+                                    "verticalAlign": "top",
+                                    "autoResize": "width_and_height",
+                                    "lineHeight": {
+                                      "value": 14,
+                                      "unit": "pixels"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "30:7258",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 28,
+                          "y": 339.5,
+                          "width": 334,
+                          "height": 77
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fixed",
+                            "vertical": "hug",
+                            "counterAxis": "fixed"
+                          },
+                          "padding": {
+                            "top": 14,
+                            "right": 14,
+                            "bottom": 14,
+                            "left": 14
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#F9FAFB"
+                            }
+                          ],
+                          "cornerRadius": 9.25
+                        },
+                        "children": [
+                          {
+                            "id": "30:7259",
+                            "type": "frame",
+                            "name": "Paragraph",
+                            "box": {
+                              "x": 14,
+                              "y": 14,
+                              "width": 306,
+                              "height": 14
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fill",
+                                "vertical": "hug",
+                                "counterAxis": "fixed"
+                              },
+                              "alignment": {
+                                "self": "stretch"
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7260",
+                                "type": "text",
+                                "name": "안내 사항",
+                                "box": {
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 42,
+                                  "height": 14
+                                },
+                                "layout": {
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  }
+                                },
+                                "appearance": {
+                                  "fills": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#364153"
+                                    }
+                                  ]
+                                },
+                                "text": {
+                                  "content": "안내 사항",
+                                  "style": {
+                                    "fontFamily": "Inter",
+                                    "fontStyle": "Medium",
+                                    "fontWeight": 500,
+                                    "fontSize": 10.5,
+                                    "horizontalAlign": "left",
+                                    "verticalAlign": "top",
+                                    "autoResize": "width_and_height",
+                                    "lineHeight": {
+                                      "value": 14,
+                                      "unit": "pixels"
+                                    }
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7261",
+                            "type": "frame",
+                            "name": "List",
+                            "box": {
+                              "x": 14,
+                              "y": 28,
+                              "width": 306,
+                              "height": 35
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed",
+                                "primaryAxis": "fixed",
+                                "counterAxis": "fixed"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7262",
+                                "type": "frame",
+                                "name": "List Item",
+                                "box": {
+                                  "x": 0,
+                                  "y": 3.5,
+                                  "width": 306,
+                                  "height": 14
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fill",
+                                    "vertical": "hug",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "self": "stretch"
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7263",
+                                    "type": "text",
+                                    "name": "· 신청 내용은 마감 전까지 운영진에게 문의하면 수정 가능합니다.",
+                                    "box": {
+                                      "x": 0,
+                                      "y": 0,
+                                      "width": 281,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#6A7282"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "· 신청 내용은 마감 전까지 운영진에게 문의하면 수정 가능합니다.",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Regular",
+                                        "fontWeight": 400,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "left",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "30:7264",
+                                "type": "frame",
+                                "name": "List Item",
+                                "box": {
+                                  "x": 0,
+                                  "y": 17.5,
+                                  "width": 306,
+                                  "height": 17.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fixed",
+                                    "vertical": "fixed",
+                                    "primaryAxis": "fixed",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "padding": {
+                                    "top": 3.5,
+                                    "right": 0,
+                                    "bottom": 0,
+                                    "left": 0
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7265",
+                                    "type": "text",
+                                    "name": "· 문의: @sw_student_council (인스타그램)",
+                                    "box": {
+                                      "x": 0,
+                                      "y": 3.5,
+                                      "width": 197,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#6A7282"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "· 문의: @sw_student_council (인스타그램)",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Regular",
+                                        "fontWeight": 400,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "left",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "assets": [
+    {
+      "nodeId": "30:7241",
+      "format": "svg",
+      "file": "assets/30-7241.svg"
+    }
+  ]
+}

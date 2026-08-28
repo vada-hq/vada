@@ -1,0 +1,2617 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EXT-02C",
+  "source": {
+    "format": "JSON_REST_V1",
+    "nodeId": "30:7266",
+    "rawFile": "figma.raw.json",
+    "hash": "24c22312ea9abd1a332a2be5378519f47d35b19f1de4b77701898f2c2fe8f966"
+  },
+  "viewport": {
+    "width": 1288,
+    "height": 740
+  },
+  "root": {
+    "id": "30:7266",
+    "type": "frame",
+    "name": "외부 참여 · EXT-02C · 설문 예외·종료 상태",
+    "box": {
+      "x": 0,
+      "y": 0,
+      "width": 1288,
+      "height": 740
+    },
+    "layout": {
+      "mode": "vertical",
+      "sizing": {
+        "horizontal": "fixed",
+        "vertical": "fixed",
+        "primaryAxis": "fixed",
+        "counterAxis": "fixed"
+      },
+      "overflow": "vertical"
+    },
+    "appearance": {
+      "fills": [
+        {
+          "type": "solid",
+          "color": "#F9FAFB"
+        }
+      ],
+      "effects": [
+        {
+          "type": "drop_shadow",
+          "radius": 2,
+          "spread": -1,
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "color": "#000000",
+          "opacity": 0.1
+        },
+        {
+          "type": "drop_shadow",
+          "radius": 3,
+          "offset": {
+            "x": 0,
+            "y": 1
+          },
+          "color": "#000000",
+          "opacity": 0.1
+        }
+      ],
+      "clipsContent": true
+    },
+    "children": [
+      {
+        "id": "30:7267",
+        "type": "frame",
+        "name": "PhoneFrame",
+        "box": {
+          "x": 0,
+          "y": 0,
+          "width": 1288,
+          "height": 972.5
+        },
+        "layout": {
+          "mode": "horizontal",
+          "sizing": {
+            "horizontal": "fill",
+            "vertical": "fixed",
+            "primaryAxis": "fixed",
+            "counterAxis": "fixed"
+          },
+          "alignment": {
+            "primaryAxis": "center",
+            "self": "stretch"
+          },
+          "padding": {
+            "top": 28,
+            "right": 0,
+            "bottom": 28,
+            "left": 0
+          }
+        },
+        "appearance": {
+          "fills": [
+            {
+              "type": "solid",
+              "color": "#F3F4F6"
+            }
+          ]
+        },
+        "children": [
+          {
+            "id": "30:7268",
+            "type": "frame",
+            "name": "Container",
+            "box": {
+              "x": 449,
+              "y": 28,
+              "width": 390,
+              "height": 916.5
+            },
+            "layout": {
+              "mode": "vertical",
+              "sizing": {
+                "horizontal": "fixed",
+                "vertical": "fill",
+                "primaryAxis": "fixed",
+                "counterAxis": "fixed"
+              },
+              "alignment": {
+                "self": "stretch"
+              },
+              "limits": {
+                "minHeight": 844
+              }
+            },
+            "appearance": {
+              "fills": [
+                {
+                  "type": "solid",
+                  "color": "#FFFFFF"
+                }
+              ],
+              "effects": [
+                {
+                  "type": "drop_shadow",
+                  "radius": 50,
+                  "spread": -12,
+                  "offset": {
+                    "x": 0,
+                    "y": 25
+                  },
+                  "color": "#000000",
+                  "opacity": 0.25
+                }
+              ],
+              "clipsContent": true,
+              "cornerRadius": 21
+            },
+            "children": [
+              {
+                "id": "30:7269",
+                "type": "frame",
+                "name": "Container",
+                "box": {
+                  "x": 0,
+                  "y": 0,
+                  "width": 390,
+                  "height": 31.5
+                },
+                "layout": {
+                  "mode": "horizontal",
+                  "sizing": {
+                    "horizontal": "fill",
+                    "vertical": "hug",
+                    "primaryAxis": "fixed"
+                  },
+                  "alignment": {
+                    "primaryAxis": "space_between",
+                    "counterAxis": "center",
+                    "self": "stretch"
+                  },
+                  "padding": {
+                    "top": 8.75,
+                    "right": 21,
+                    "bottom": 8.75,
+                    "left": 21
+                  }
+                },
+                "appearance": {
+                  "fills": [
+                    {
+                      "type": "solid",
+                      "color": "#FFFFFF"
+                    }
+                  ]
+                },
+                "children": [
+                  {
+                    "id": "30:7270",
+                    "type": "frame",
+                    "name": "Text",
+                    "box": {
+                      "x": 21,
+                      "y": 8.75,
+                      "width": 22,
+                      "height": 14
+                    },
+                    "layout": {
+                      "mode": "vertical",
+                      "sizing": {
+                        "horizontal": "hug",
+                        "vertical": "hug"
+                      }
+                    },
+                    "children": [
+                      {
+                        "id": "30:7271",
+                        "type": "text",
+                        "name": "9:41",
+                        "box": {
+                          "x": 0,
+                          "y": 0,
+                          "width": 22,
+                          "height": 14
+                        },
+                        "layout": {
+                          "sizing": {
+                            "horizontal": "hug",
+                            "vertical": "hug"
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#101828"
+                            }
+                          ]
+                        },
+                        "text": {
+                          "content": "9:41",
+                          "style": {
+                            "fontFamily": "Inter",
+                            "fontStyle": "Semi Bold",
+                            "fontWeight": 600,
+                            "fontSize": 10.5,
+                            "horizontalAlign": "left",
+                            "verticalAlign": "top",
+                            "autoResize": "width_and_height",
+                            "lineHeight": {
+                              "value": 14,
+                              "unit": "pixels"
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "30:7272",
+                    "type": "frame",
+                    "name": "Container",
+                    "box": {
+                      "x": 341,
+                      "y": 12.25,
+                      "width": 28,
+                      "height": 7
+                    },
+                    "layout": {
+                      "mode": "horizontal",
+                      "sizing": {
+                        "horizontal": "hug",
+                        "vertical": "hug"
+                      },
+                      "gap": 3.5
+                    },
+                    "children": [
+                      {
+                        "id": "30:7273",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 0,
+                          "y": 0,
+                          "width": 14,
+                          "height": 7
+                        },
+                        "layout": {
+                          "sizing": {
+                            "horizontal": "fixed",
+                            "vertical": "fixed"
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#1E2939"
+                            }
+                          ],
+                          "cornerRadius": 1.25
+                        }
+                      },
+                      {
+                        "id": "30:7274",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 17.5,
+                          "y": 0,
+                          "width": 10.5,
+                          "height": 7
+                        },
+                        "layout": {
+                          "sizing": {
+                            "horizontal": "fixed",
+                            "vertical": "fixed"
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#1E2939"
+                            }
+                          ],
+                          "cornerRadius": 1.25
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "30:7275",
+                "type": "frame",
+                "name": "Container",
+                "box": {
+                  "x": 0,
+                  "y": 31.5,
+                  "width": 390,
+                  "height": 885
+                },
+                "layout": {
+                  "mode": "vertical",
+                  "sizing": {
+                    "horizontal": "fill",
+                    "vertical": "fill",
+                    "primaryAxis": "fixed",
+                    "counterAxis": "fixed"
+                  },
+                  "alignment": {
+                    "self": "stretch"
+                  },
+                  "grow": 1
+                },
+                "appearance": {
+                  "clipsContent": true
+                },
+                "children": [
+                  {
+                    "id": "30:7276",
+                    "type": "frame",
+                    "name": "EXT02C",
+                    "box": {
+                      "x": 0,
+                      "y": 0,
+                      "width": 390,
+                      "height": 903
+                    },
+                    "layout": {
+                      "mode": "vertical",
+                      "sizing": {
+                        "horizontal": "fill",
+                        "vertical": "hug",
+                        "counterAxis": "fixed"
+                      },
+                      "alignment": {
+                        "self": "stretch"
+                      },
+                      "gap": 14,
+                      "padding": {
+                        "top": 28,
+                        "right": 17.5,
+                        "bottom": 28,
+                        "left": 17.5
+                      }
+                    },
+                    "children": [
+                      {
+                        "id": "30:7277",
+                        "type": "frame",
+                        "name": "Paragraph",
+                        "box": {
+                          "x": 17.5,
+                          "y": 28,
+                          "width": 355,
+                          "height": 14
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fill",
+                            "vertical": "hug",
+                            "counterAxis": "fixed"
+                          },
+                          "alignment": {
+                            "self": "stretch"
+                          }
+                        },
+                        "children": [
+                          {
+                            "id": "30:7278",
+                            "type": "text",
+                            "name": "설문 예외·종료 상태",
+                            "box": {
+                              "x": 0,
+                              "y": 0,
+                              "width": 89,
+                              "height": 14
+                            },
+                            "layout": {
+                              "sizing": {
+                                "horizontal": "hug",
+                                "vertical": "hug"
+                              }
+                            },
+                            "appearance": {
+                              "fills": [
+                                {
+                                  "type": "solid",
+                                  "color": "#6A7282"
+                                }
+                              ]
+                            },
+                            "text": {
+                              "content": "설문 예외·종료 상태",
+                              "style": {
+                                "fontFamily": "Inter",
+                                "fontStyle": "Semi Bold",
+                                "fontWeight": 600,
+                                "fontSize": 10.5,
+                                "horizontalAlign": "left",
+                                "verticalAlign": "top",
+                                "autoResize": "width_and_height",
+                                "letterSpacing": 0.262,
+                                "lineHeight": {
+                                  "value": 14,
+                                  "unit": "pixels"
+                                },
+                                "textCase": "upper"
+                              }
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "id": "30:7279",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 17.5,
+                          "y": 56,
+                          "width": 355,
+                          "height": 149.5
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fill",
+                            "vertical": "hug",
+                            "counterAxis": "fixed"
+                          },
+                          "alignment": {
+                            "counterAxis": "center",
+                            "self": "stretch"
+                          },
+                          "gap": 10.5,
+                          "padding": {
+                            "top": 17.5,
+                            "right": 17.5,
+                            "bottom": 17.5,
+                            "left": 17.5
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#F3F4F6"
+                            }
+                          ],
+                          "cornerRadius": 9.25
+                        },
+                        "children": [
+                          {
+                            "id": "30:7280",
+                            "type": "frame",
+                            "name": "Icon",
+                            "box": {
+                              "x": 163.5,
+                              "y": 17.5,
+                              "width": 28,
+                              "height": 28
+                            },
+                            "layout": {
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed"
+                              }
+                            },
+                            "appearance": {
+                              "clipsContent": true
+                            },
+                            "assetRef": "assets/30-7280.svg",
+                            "children": [
+                              {
+                                "id": "30:7281",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 2.333,
+                                  "y": 2.332,
+                                  "width": 23.333,
+                                  "height": 23.333
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#4A5565"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7282",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 9.332,
+                                  "width": 0,
+                                  "height": 4.667
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#4A5565"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7283",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 18.668,
+                                  "width": 0.012,
+                                  "height": 0
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#4A5565"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7284",
+                            "type": "frame",
+                            "name": "Container",
+                            "box": {
+                              "x": 97.414,
+                              "y": 56,
+                              "width": 160.172,
+                              "height": 35.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "hug",
+                                "counterAxis": "fixed"
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7285",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 160.172,
+                                  "height": 18
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fill",
+                                    "vertical": "hug",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center",
+                                    "self": "stretch"
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7286",
+                                    "type": "text",
+                                    "name": "모집 전",
+                                    "box": {
+                                      "x": 61.586,
+                                      "y": 0,
+                                      "width": 37,
+                                      "height": 18
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#4A5565"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "모집 전",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Semi Bold",
+                                        "fontWeight": 600,
+                                        "fontSize": 12.25,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 17.5,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "30:7287",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 18,
+                                  "width": 160.172,
+                                  "height": 17.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fixed",
+                                    "vertical": "fixed",
+                                    "primaryAxis": "fixed",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center"
+                                  },
+                                  "padding": {
+                                    "top": 3.5,
+                                    "right": 0,
+                                    "bottom": 0,
+                                    "left": 0
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7288",
+                                    "type": "text",
+                                    "name": "참가 신청이 아직 시작되지 않았습니다.",
+                                    "box": {
+                                      "x": -4.914,
+                                      "y": 3.5,
+                                      "width": 170,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#6A7282"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "참가 신청이 아직 시작되지 않았습니다.",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Regular",
+                                        "fontWeight": 400,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7289",
+                            "type": "frame",
+                            "name": "Button:margin",
+                            "box": {
+                              "x": 143,
+                              "y": 102,
+                              "width": 69,
+                              "height": 30
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "hug",
+                                "vertical": "hug"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7290",
+                                "type": "frame",
+                                "name": "Button",
+                                "box": {
+                                  "x": 0,
+                                  "y": 3.5,
+                                  "width": 69,
+                                  "height": 26.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  },
+                                  "alignment": {
+                                    "primaryAxis": "center",
+                                    "counterAxis": "center"
+                                  },
+                                  "strokesIncludedInLayout": true,
+                                  "padding": {
+                                    "top": 5.25,
+                                    "right": 14,
+                                    "bottom": 5.25,
+                                    "left": 14
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#4A5565"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 1,
+                                    "align": "inside"
+                                  },
+                                  "cornerRadius": 5.25
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7291",
+                                    "type": "text",
+                                    "name": "돌아가기",
+                                    "box": {
+                                      "x": 15,
+                                      "y": 6.25,
+                                      "width": 39,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#4A5565"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "돌아가기",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Medium",
+                                        "fontWeight": 500,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "30:7292",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 17.5,
+                          "y": 219.5,
+                          "width": 355,
+                          "height": 149.5
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fill",
+                            "vertical": "hug",
+                            "counterAxis": "fixed"
+                          },
+                          "alignment": {
+                            "counterAxis": "center",
+                            "self": "stretch"
+                          },
+                          "gap": 10.5,
+                          "padding": {
+                            "top": 17.5,
+                            "right": 17.5,
+                            "bottom": 17.5,
+                            "left": 17.5
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#F3F4F6"
+                            }
+                          ],
+                          "cornerRadius": 9.25
+                        },
+                        "children": [
+                          {
+                            "id": "30:7293",
+                            "type": "frame",
+                            "name": "Icon",
+                            "box": {
+                              "x": 163.5,
+                              "y": 17.5,
+                              "width": 28,
+                              "height": 28
+                            },
+                            "layout": {
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed"
+                              }
+                            },
+                            "appearance": {
+                              "clipsContent": true
+                            },
+                            "assetRef": "assets/30-7293.svg",
+                            "children": [
+                              {
+                                "id": "30:7294",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 2.333,
+                                  "y": 2.332,
+                                  "width": 23.333,
+                                  "height": 23.333
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#4A5565"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7295",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 9.332,
+                                  "width": 0,
+                                  "height": 4.667
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#4A5565"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7296",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 18.668,
+                                  "width": 0.012,
+                                  "height": 0
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#4A5565"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7297",
+                            "type": "frame",
+                            "name": "Container",
+                            "box": {
+                              "x": 118.539,
+                              "y": 56,
+                              "width": 117.922,
+                              "height": 35.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "hug",
+                                "counterAxis": "fixed"
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7298",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 117.922,
+                                  "height": 18
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fill",
+                                    "vertical": "hug",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center",
+                                    "self": "stretch"
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7299",
+                                    "type": "text",
+                                    "name": "모집 마감",
+                                    "box": {
+                                      "x": 34.461,
+                                      "y": 0,
+                                      "width": 49,
+                                      "height": 18
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#4A5565"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "모집 마감",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Semi Bold",
+                                        "fontWeight": 600,
+                                        "fontSize": 12.25,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 17.5,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "30:7300",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 18,
+                                  "width": 117.922,
+                                  "height": 17.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fixed",
+                                    "vertical": "fixed",
+                                    "primaryAxis": "fixed",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center"
+                                  },
+                                  "padding": {
+                                    "top": 3.5,
+                                    "right": 0,
+                                    "bottom": 0,
+                                    "left": 0
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7301",
+                                    "type": "text",
+                                    "name": "참가 신청이 종료되었습니다.",
+                                    "box": {
+                                      "x": -3.539,
+                                      "y": 3.5,
+                                      "width": 125,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#6A7282"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "참가 신청이 종료되었습니다.",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Regular",
+                                        "fontWeight": 400,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7302",
+                            "type": "frame",
+                            "name": "Button:margin",
+                            "box": {
+                              "x": 143,
+                              "y": 102,
+                              "width": 69,
+                              "height": 30
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "hug",
+                                "vertical": "hug"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7303",
+                                "type": "frame",
+                                "name": "Button",
+                                "box": {
+                                  "x": 0,
+                                  "y": 3.5,
+                                  "width": 69,
+                                  "height": 26.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  },
+                                  "alignment": {
+                                    "primaryAxis": "center",
+                                    "counterAxis": "center"
+                                  },
+                                  "strokesIncludedInLayout": true,
+                                  "padding": {
+                                    "top": 5.25,
+                                    "right": 14,
+                                    "bottom": 5.25,
+                                    "left": 14
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#4A5565"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 1,
+                                    "align": "inside"
+                                  },
+                                  "cornerRadius": 5.25
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7304",
+                                    "type": "text",
+                                    "name": "돌아가기",
+                                    "box": {
+                                      "x": 15,
+                                      "y": 6.25,
+                                      "width": 39,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#4A5565"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "돌아가기",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Medium",
+                                        "fontWeight": 500,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "30:7305",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 17.5,
+                          "y": 383,
+                          "width": 355,
+                          "height": 149.5
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fill",
+                            "vertical": "hug",
+                            "counterAxis": "fixed"
+                          },
+                          "alignment": {
+                            "counterAxis": "center",
+                            "self": "stretch"
+                          },
+                          "gap": 10.5,
+                          "padding": {
+                            "top": 17.5,
+                            "right": 17.5,
+                            "bottom": 17.5,
+                            "left": 17.5
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#FFF7ED"
+                            }
+                          ],
+                          "cornerRadius": 9.25
+                        },
+                        "children": [
+                          {
+                            "id": "30:7306",
+                            "type": "frame",
+                            "name": "Icon",
+                            "box": {
+                              "x": 163.5,
+                              "y": 17.5,
+                              "width": 28,
+                              "height": 28
+                            },
+                            "layout": {
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed"
+                              }
+                            },
+                            "appearance": {
+                              "clipsContent": true
+                            },
+                            "assetRef": "assets/30-7306.svg",
+                            "children": [
+                              {
+                                "id": "30:7307",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 2.333,
+                                  "y": 2.332,
+                                  "width": 23.333,
+                                  "height": 23.333
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#F54900"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7308",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 9.332,
+                                  "width": 0,
+                                  "height": 4.667
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#F54900"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7309",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 18.668,
+                                  "width": 0.012,
+                                  "height": 0
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#F54900"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7310",
+                            "type": "frame",
+                            "name": "Container",
+                            "box": {
+                              "x": 121.602,
+                              "y": 56,
+                              "width": 111.797,
+                              "height": 35.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "hug",
+                                "counterAxis": "fixed"
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7311",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 111.797,
+                                  "height": 18
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fill",
+                                    "vertical": "hug",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center",
+                                    "self": "stretch"
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7312",
+                                    "type": "text",
+                                    "name": "정원 마감",
+                                    "box": {
+                                      "x": 31.398,
+                                      "y": 0,
+                                      "width": 49,
+                                      "height": 18
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#F54900"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "정원 마감",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Semi Bold",
+                                        "fontWeight": 600,
+                                        "fontSize": 12.25,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 17.5,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "30:7313",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 18,
+                                  "width": 111.797,
+                                  "height": 17.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fixed",
+                                    "vertical": "fixed",
+                                    "primaryAxis": "fixed",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center"
+                                  },
+                                  "padding": {
+                                    "top": 3.5,
+                                    "right": 0,
+                                    "bottom": 0,
+                                    "left": 0
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7314",
+                                    "type": "text",
+                                    "name": "신청 정원이 모두 찼습니다.",
+                                    "box": {
+                                      "x": -3.602,
+                                      "y": 3.5,
+                                      "width": 119,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#6A7282"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "신청 정원이 모두 찼습니다.",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Regular",
+                                        "fontWeight": 400,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7315",
+                            "type": "frame",
+                            "name": "Button:margin",
+                            "box": {
+                              "x": 143,
+                              "y": 102,
+                              "width": 69,
+                              "height": 30
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "hug",
+                                "vertical": "hug"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7316",
+                                "type": "frame",
+                                "name": "Button",
+                                "box": {
+                                  "x": 0,
+                                  "y": 3.5,
+                                  "width": 69,
+                                  "height": 26.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  },
+                                  "alignment": {
+                                    "primaryAxis": "center",
+                                    "counterAxis": "center"
+                                  },
+                                  "strokesIncludedInLayout": true,
+                                  "padding": {
+                                    "top": 5.25,
+                                    "right": 14,
+                                    "bottom": 5.25,
+                                    "left": 14
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#F54900"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 1,
+                                    "align": "inside"
+                                  },
+                                  "cornerRadius": 5.25
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7317",
+                                    "type": "text",
+                                    "name": "돌아가기",
+                                    "box": {
+                                      "x": 15,
+                                      "y": 6.25,
+                                      "width": 39,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#F54900"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "돌아가기",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Medium",
+                                        "fontWeight": 500,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "30:7318",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 17.5,
+                          "y": 546.5,
+                          "width": 355,
+                          "height": 149.5
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fill",
+                            "vertical": "hug",
+                            "counterAxis": "fixed"
+                          },
+                          "alignment": {
+                            "counterAxis": "center",
+                            "self": "stretch"
+                          },
+                          "gap": 10.5,
+                          "padding": {
+                            "top": 17.5,
+                            "right": 17.5,
+                            "bottom": 17.5,
+                            "left": 17.5
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#FEF2F2"
+                            }
+                          ],
+                          "cornerRadius": 9.25
+                        },
+                        "children": [
+                          {
+                            "id": "30:7319",
+                            "type": "frame",
+                            "name": "Icon",
+                            "box": {
+                              "x": 163.5,
+                              "y": 17.5,
+                              "width": 28,
+                              "height": 28
+                            },
+                            "layout": {
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed"
+                              }
+                            },
+                            "appearance": {
+                              "clipsContent": true
+                            },
+                            "assetRef": "assets/30-7319.svg",
+                            "children": [
+                              {
+                                "id": "30:7320",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 2.333,
+                                  "y": 2.332,
+                                  "width": 23.333,
+                                  "height": 23.333
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#E7000B"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7321",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 9.332,
+                                  "width": 0,
+                                  "height": 4.667
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#E7000B"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7322",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 18.668,
+                                  "width": 0.012,
+                                  "height": 0
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#E7000B"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7323",
+                            "type": "frame",
+                            "name": "Container",
+                            "box": {
+                              "x": 99.008,
+                              "y": 56,
+                              "width": 156.984,
+                              "height": 35.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "hug",
+                                "counterAxis": "fixed"
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7324",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 156.984,
+                                  "height": 18
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fill",
+                                    "vertical": "hug",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center",
+                                    "self": "stretch"
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7325",
+                                    "type": "text",
+                                    "name": "링크 비활성화",
+                                    "box": {
+                                      "x": 42.992,
+                                      "y": 0,
+                                      "width": 71,
+                                      "height": 18
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#E7000B"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "링크 비활성화",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Semi Bold",
+                                        "fontWeight": 600,
+                                        "fontSize": 12.25,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 17.5,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "30:7326",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 18,
+                                  "width": 156.984,
+                                  "height": 17.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fixed",
+                                    "vertical": "fixed",
+                                    "primaryAxis": "fixed",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center"
+                                  },
+                                  "padding": {
+                                    "top": 3.5,
+                                    "right": 0,
+                                    "bottom": 0,
+                                    "left": 0
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7327",
+                                    "type": "text",
+                                    "name": "이 링크는 더 이상 사용할 수 없습니다.",
+                                    "box": {
+                                      "x": -4.508,
+                                      "y": 3.5,
+                                      "width": 166,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#6A7282"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "이 링크는 더 이상 사용할 수 없습니다.",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Regular",
+                                        "fontWeight": 400,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7328",
+                            "type": "frame",
+                            "name": "Button:margin",
+                            "box": {
+                              "x": 143,
+                              "y": 102,
+                              "width": 69,
+                              "height": 30
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "hug",
+                                "vertical": "hug"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7329",
+                                "type": "frame",
+                                "name": "Button",
+                                "box": {
+                                  "x": 0,
+                                  "y": 3.5,
+                                  "width": 69,
+                                  "height": 26.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  },
+                                  "alignment": {
+                                    "primaryAxis": "center",
+                                    "counterAxis": "center"
+                                  },
+                                  "strokesIncludedInLayout": true,
+                                  "padding": {
+                                    "top": 5.25,
+                                    "right": 14,
+                                    "bottom": 5.25,
+                                    "left": 14
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#E7000B"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 1,
+                                    "align": "inside"
+                                  },
+                                  "cornerRadius": 5.25
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7330",
+                                    "type": "text",
+                                    "name": "돌아가기",
+                                    "box": {
+                                      "x": 15,
+                                      "y": 6.25,
+                                      "width": 39,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#E7000B"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "돌아가기",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Medium",
+                                        "fontWeight": 500,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "id": "30:7331",
+                        "type": "frame",
+                        "name": "Container",
+                        "box": {
+                          "x": 17.5,
+                          "y": 710,
+                          "width": 355,
+                          "height": 165
+                        },
+                        "layout": {
+                          "mode": "vertical",
+                          "sizing": {
+                            "horizontal": "fill",
+                            "vertical": "hug"
+                          },
+                          "alignment": {
+                            "counterAxis": "center",
+                            "self": "stretch"
+                          },
+                          "gap": 10.5,
+                          "padding": {
+                            "top": 17.5,
+                            "right": 17.5,
+                            "bottom": 17.5,
+                            "left": 17.5
+                          }
+                        },
+                        "appearance": {
+                          "fills": [
+                            {
+                              "type": "solid",
+                              "color": "#FEFCE8"
+                            }
+                          ],
+                          "cornerRadius": 9.25
+                        },
+                        "children": [
+                          {
+                            "id": "30:7332",
+                            "type": "frame",
+                            "name": "Icon",
+                            "box": {
+                              "x": 163.5,
+                              "y": 17.5,
+                              "width": 28,
+                              "height": 28
+                            },
+                            "layout": {
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "fixed"
+                              }
+                            },
+                            "appearance": {
+                              "clipsContent": true
+                            },
+                            "assetRef": "assets/30-7332.svg",
+                            "children": [
+                              {
+                                "id": "30:7333",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 2.333,
+                                  "y": 2.332,
+                                  "width": 23.333,
+                                  "height": 23.333
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#A65F00"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7334",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 9.332,
+                                  "width": 0,
+                                  "height": 4.667
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#A65F00"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              },
+                              {
+                                "id": "30:7335",
+                                "type": "vector",
+                                "name": "Vector",
+                                "box": {
+                                  "x": 14,
+                                  "y": 18.668,
+                                  "width": 0.012,
+                                  "height": 0
+                                },
+                                "layout": {
+                                  "constraints": {
+                                    "horizontal": "scale",
+                                    "vertical": "scale"
+                                  }
+                                },
+                                "appearance": {
+                                  "strokes": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#A65F00"
+                                    }
+                                  ],
+                                  "stroke": {
+                                    "weight": 2.333,
+                                    "align": "center",
+                                    "join": "round",
+                                    "cap": "round"
+                                  }
+                                }
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7336",
+                            "type": "frame",
+                            "name": "Container",
+                            "box": {
+                              "x": 17.5,
+                              "y": 56,
+                              "width": 320,
+                              "height": 49.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "fixed",
+                                "vertical": "hug",
+                                "counterAxis": "fixed"
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7337",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 0,
+                                  "width": 320,
+                                  "height": 18
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fill",
+                                    "vertical": "hug",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center",
+                                    "self": "stretch"
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7338",
+                                    "type": "text",
+                                    "name": "기존 설문 종료 · 새 설문으로 교체됨",
+                                    "box": {
+                                      "x": 70,
+                                      "y": 0,
+                                      "width": 180,
+                                      "height": 18
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#A65F00"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "기존 설문 종료 · 새 설문으로 교체됨",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Semi Bold",
+                                        "fontWeight": 600,
+                                        "fontSize": 12.25,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 17.5,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "id": "30:7339",
+                                "type": "frame",
+                                "name": "Paragraph",
+                                "box": {
+                                  "x": 0,
+                                  "y": 18,
+                                  "width": 320,
+                                  "height": 31.5
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "fill",
+                                    "vertical": "hug",
+                                    "counterAxis": "fixed"
+                                  },
+                                  "alignment": {
+                                    "counterAxis": "center",
+                                    "self": "stretch"
+                                  },
+                                  "padding": {
+                                    "top": 3.5,
+                                    "right": 0,
+                                    "bottom": 0,
+                                    "left": 0
+                                  }
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7340",
+                                    "type": "text",
+                                    "name": "이 참여 조사는 종료되었습니다. 새로 진행 중인 참여 조사에 다시 응답해 주세요.",
+                                    "box": {
+                                      "x": 0,
+                                      "y": 3.5,
+                                      "width": 320,
+                                      "height": 28
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "fixed",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#6A7282"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "이 참여 조사는 종료되었습니다. 새로 진행 중인 참여 조사에 다시 응답해 주세요.",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Regular",
+                                        "fontWeight": 400,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "id": "30:7341",
+                            "type": "frame",
+                            "name": "Button:margin",
+                            "box": {
+                              "x": 117,
+                              "y": 116,
+                              "width": 121,
+                              "height": 31.5
+                            },
+                            "layout": {
+                              "mode": "vertical",
+                              "sizing": {
+                                "horizontal": "hug",
+                                "vertical": "hug"
+                              },
+                              "padding": {
+                                "top": 3.5,
+                                "right": 0,
+                                "bottom": 0,
+                                "left": 0
+                              }
+                            },
+                            "children": [
+                              {
+                                "id": "30:7342",
+                                "type": "frame",
+                                "name": "Button",
+                                "box": {
+                                  "x": 0,
+                                  "y": 3.5,
+                                  "width": 121,
+                                  "height": 28
+                                },
+                                "layout": {
+                                  "mode": "vertical",
+                                  "sizing": {
+                                    "horizontal": "hug",
+                                    "vertical": "hug"
+                                  },
+                                  "alignment": {
+                                    "primaryAxis": "center",
+                                    "counterAxis": "center"
+                                  },
+                                  "padding": {
+                                    "top": 7,
+                                    "right": 17.5,
+                                    "bottom": 7,
+                                    "left": 17.5
+                                  }
+                                },
+                                "appearance": {
+                                  "fills": [
+                                    {
+                                      "type": "solid",
+                                      "color": "#F0B100"
+                                    }
+                                  ],
+                                  "cornerRadius": 5.25
+                                },
+                                "children": [
+                                  {
+                                    "id": "30:7343",
+                                    "type": "text",
+                                    "name": "새 설문으로 이동 →",
+                                    "box": {
+                                      "x": 17.5,
+                                      "y": 7,
+                                      "width": 86,
+                                      "height": 14
+                                    },
+                                    "layout": {
+                                      "sizing": {
+                                        "horizontal": "hug",
+                                        "vertical": "hug"
+                                      }
+                                    },
+                                    "appearance": {
+                                      "fills": [
+                                        {
+                                          "type": "solid",
+                                          "color": "#FFFFFF"
+                                        }
+                                      ]
+                                    },
+                                    "text": {
+                                      "content": "새 설문으로 이동 →",
+                                      "style": {
+                                        "fontFamily": "Inter",
+                                        "fontStyle": "Semi Bold",
+                                        "fontWeight": 600,
+                                        "fontSize": 10.5,
+                                        "horizontalAlign": "center",
+                                        "verticalAlign": "top",
+                                        "autoResize": "width_and_height",
+                                        "lineHeight": {
+                                          "value": 14,
+                                          "unit": "pixels"
+                                        }
+                                      }
+                                    }
+                                  }
+                                ]
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "assets": [
+    {
+      "nodeId": "30:7280",
+      "format": "svg",
+      "file": "assets/30-7280.svg"
+    },
+    {
+      "nodeId": "30:7293",
+      "format": "svg",
+      "file": "assets/30-7293.svg"
+    },
+    {
+      "nodeId": "30:7306",
+      "format": "svg",
+      "file": "assets/30-7306.svg"
+    },
+    {
+      "nodeId": "30:7319",
+      "format": "svg",
+      "file": "assets/30-7319.svg"
+    },
+    {
+      "nodeId": "30:7332",
+      "format": "svg",
+      "file": "assets/30-7332.svg"
+    }
+  ]
+}
