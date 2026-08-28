@@ -55,11 +55,17 @@ export function pendingNoteOf(screenId: string, name: string): string {
   const walk = (entries: ElementEntry[]): ElementEntry[] =>
     entries.flatMap((entry) => [entry, ...walk(entry.spec?.itemFields ?? [])])
 
-  const found = walk(spec.elements ?? []).find(
-    (entry) => entry.spec?.title === name || entry.spec?.label === name,
-  )
+  // **빈 상태의 단추는 이름이 emptyAction 안에 있다.** 제목 없는 목록이 비었을 때가
+  // 그 자리인데, title·label만 보면 짚지 못해 검사가 명세의 글을 옮겨 적게 된다.
+  const entries = walk(spec.elements ?? [])
+  const byEmpty = entries.find((entry) => entry.spec?.emptyAction?.label === name)
+  const found =
+    byEmpty ??
+    entries.find((entry) => entry.spec?.title === name || entry.spec?.label === name)
   const action =
-    found?.spec?.action ?? found?.spec?.itemAction ?? found?.spec?.emptyAction
+    byEmpty === undefined
+      ? (found?.spec?.action ?? found?.spec?.itemAction ?? found?.spec?.emptyAction)
+      : byEmpty.spec?.emptyAction
   if (action?.type !== 'pending' || action.note === undefined) {
     throw new Error(`${screenId}의 '${name}'는 pending이 아니거나 note가 없습니다.`)
   }

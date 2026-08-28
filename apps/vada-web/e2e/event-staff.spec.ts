@@ -1,6 +1,3 @@
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
 import { missingNoteOf, pendingNoteOf } from './spec'
 
@@ -13,26 +10,6 @@ const EMPTY_STAFF = '/#/EVT-03A?eventId=E-03'
 const tabs = (page: import('@playwright/test').Page) =>
   page.getByRole('navigation', { name: /행사를 여는 화면들/ })
 
-// 명세가 든 글을 검사에 옮겨 적으면 두 벌이 된다. spec.ts의 pendingNoteOf는
-// title·label로만 찾으므로 **이름 없는 목록의 emptyAction**은 짚지 못한다
-// (운영 조직 전체가 비었을 때가 그 자리다). 그동안은 여기서 읽는다.
-const SCREENS_DIR = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../specs/figma/vada-wireframe/screens',
-)
-
-function emptyActionOf(screenId: string, label: string): { label: string; note: string } {
-  const spec = JSON.parse(
-    readFileSync(join(SCREENS_DIR, screenId, 'screen.json'), 'utf-8'),
-  ) as { elements: Array<{ spec?: { emptyAction?: { label?: string; note?: string } } }> }
-  const found = spec.elements
-    .map((element) => element.spec?.emptyAction)
-    .find((action) => action?.label === label)
-  if (found?.label === undefined || found.note === undefined) {
-    throw new Error(`${screenId}에 '${label}'라는 emptyAction이 없습니다.`)
-  }
-  return { label: found.label, note: found.note }
-}
 
 // 운영 조직 — 보기(EVT-03A)는 행사 작업 공간의 '인원 관리' 갈피 안에서 다시
 // 한 겹 들어간 화면이다. ORG-03A(학생회의 조직도)와 모양이 같고 물건이 다르다 —
@@ -129,8 +106,8 @@ test('EVT-03A: 운영 조직이 없는 행사는 같은 화면의 빈 상태로 
 test('EVT-03A: 빈 상태의 단추는 아직 없는 화면임을 남긴다', async ({ page }) => {
   await page.goto(EMPTY_STAFF)
 
-  const emptyAction = emptyActionOf('EVT-03A', '운영 조직 구성하기')
-  await page.getByRole('button', { name: emptyAction.label }).click()
+  const label = '운영 조직 구성하기'
+  await page.getByRole('button', { name: label }).click()
 
-  await expect(page.getByRole('status')).toHaveText(emptyAction.note)
+  await expect(page.getByRole('status')).toHaveText(pendingNoteOf('EVT-03A', label))
 })
