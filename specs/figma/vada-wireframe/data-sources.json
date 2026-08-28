@@ -5740,6 +5740,11 @@
           "key": "blockedNote",
           "description": "열 것이 없을 때 그 까닭. actionLabel과 짝이라 둘 중 하나만 온다. 예: 인수인계 문서가 아직 발행되지 않았습니다",
           "optional": true
+        },
+        {
+          "key": "targetKind",
+          "description": "이 줄을 열면 어느 화면인지를 아는 열쇠. **화면 id가 아니다** — 발행된 문서는 읽는 화면으로, 아직 발행되지 않은 것은 쓰고 검토받는 화면으로 간다. 갈 곳은 명세가 든다.",
+          "optional": true
         }
       ]
     },

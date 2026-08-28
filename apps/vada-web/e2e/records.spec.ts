@@ -91,6 +91,22 @@ test('REC-01: 행사명으로 목록을 좁힌다', async ({ page }) => {
 
 // ── REC-02 · 행사 아카이브 ──────────────────────────────────────────────────
 
+// **발행 여부가 갈 곳을 정한다.** 발행된 문서는 읽는 화면으로, 아직 발행되지 않은
+// 것은 쓰고 검토받는 화면으로 간다 — 그것이 REC-02A로 들어가는 문이다.
+// 갈래를 가르는 것은 열쇠이지 딱지에 그려진 말이 아니다.
+test('REC-01: 발행된 문서와 검토 중인 문서가 서로 다른 화면으로 간다', async ({ page }) => {
+  await page.goto(COMPLETED)
+
+  const open = page.getByRole('button', { name: '상세 보기' })
+
+  await open.first().click()
+  await expect(page).toHaveURL(/#\/REC-02\?eventId=E-REC-01/)
+
+  await page.goto(COMPLETED)
+  await page.getByRole('button', { name: '상세 보기' }).nth(1).click()
+  await expect(page).toHaveURL(/#\/REC-02A\?eventId=E-REC-02/)
+})
+
 test('REC-02: 발행된 문서의 머리와 본문이 그려진다', async ({ page }) => {
   await page.goto(ARCHIVE)
 

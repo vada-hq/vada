@@ -1251,6 +1251,8 @@ const COMPLETED_EVENTS: DataRow[] = [
     ],
     completedNote: '완료 처리 2026. 06. 04',
     actionLabel: '상세 보기 →',
+    // 발행된 문서는 읽는 화면으로 간다.
+    targetKind: 'published',
   },
   {
     id: 'E-REC-02',
@@ -1267,6 +1269,9 @@ const COMPLETED_EVENTS: DataRow[] = [
     ],
     completedNote: '완료 처리 2026. 01. 07',
     actionLabel: '상세 보기 →',
+    // **아직 발행되지 않았으므로 쓰고 검토받는 화면으로 간다.** 그것이 REC-02A로
+    // 들어가는 문이다 — 그 전에는 주소로만 열렸다.
+    targetKind: 'draft',
   },
   {
     id: 'E-REC-03',

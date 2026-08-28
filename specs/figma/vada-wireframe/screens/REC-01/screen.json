@@ -118,7 +118,17 @@
         ],
         "itemAction": {
           "type": "navigate",
-          "targetScreenId": "REC-02",
+          "targetField": "targetKind",
+          "targets": [
+            {
+              "value": "published",
+              "targetScreenId": "REC-02"
+            },
+            {
+              "value": "draft",
+              "targetScreenId": "REC-02A"
+            }
+          ],
           "labelField": "actionLabel",
           "params": {
             "eventId": {
