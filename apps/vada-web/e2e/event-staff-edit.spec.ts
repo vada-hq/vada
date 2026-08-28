@@ -1,30 +1,8 @@
-import { readFileSync } from 'node:fs'
-import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { expect, test } from '@playwright/test'
-import { missingNoteOf, pendingNoteOf } from './spec'
+import { missingNoteOf, pendingNoteAt, pendingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 
-// spec.ts의 pendingNoteOf는 **이름으로** 요소를 찾는다. EVT-03B에는 같은 글을
-// 가진 요소가 둘이다 — '부서 추가'가 칸의 라벨이면서 단추의 이름이다(디자인이
-// 그렇게 그렸다). 그래서 그 자리만 등록 노드로 짚는다. 어느 쪽이든 글을 검사에
-// 옮겨 적지 않는 것이 요점이다.
-const SCREENS_DIR = join(
-  dirname(fileURLToPath(import.meta.url)),
-  '../../../specs/figma/vada-wireframe/screens',
-)
-
-function pendingNoteAt(screenId: string, nodeId: string): string {
-  const spec = JSON.parse(
-    readFileSync(join(SCREENS_DIR, screenId, 'screen.json'), 'utf-8'),
-  ) as { elements: Array<{ source: { nodeId: string }; spec?: { action?: { type?: string; note?: string } } }> }
-  const action = spec.elements.find((element) => element.source.nodeId === nodeId)?.spec?.action
-  if (action?.type !== 'pending' || action.note === undefined) {
-    throw new Error(`${screenId}의 ${nodeId}는 pending이 아니거나 note가 없습니다.`)
-  }
-  return action.note
-}
 
 // 운영 조직을 **세우는** 화면과 **고치는** 화면. EVT-03A(보기)의 형제다.
 //

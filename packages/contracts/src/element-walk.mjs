@@ -30,21 +30,26 @@ export function allElementsOf(spec) {
   const out = [];
   const elements = Array.isArray(spec?.elements) ? spec.elements : [];
 
-  elements.forEach((element, index) => {
-    out.push({ element, inList: null, path: `elements[${index}]` });
-
-    // 요소를 담는 자리는 지금 itemFields 하나다. 늘면 여기만 고친다.
+  // **깊이도 자란다.** itemFields를 한 겹만 훑던 동안, 목록 안의 목록에 담긴
+  // 요소 아홉이 스키마 재검증·출처 조각 검사·판정기 후보에서 통째로 빠져 있었다
+  // (EVT-01·EVT-03A·EVT-03B·ORG-03A·ORG-03B의 부원 카드). 그 자리는 없는 조각을
+  // 가리켜도 `npm run validate`가 오류 0건이었다.
+  //
+  // 위 주석이 "요소를 담는 자리가 늘면 여기만 고친다"고 적었는데, 는 것은 자리가
+  // 아니라 **겹**이었다. 그래서 되돌아 들어간다.
+  const visit = (element, path, inList) => {
+    out.push({ element, inList, path });
     const nested = isObject(element?.spec) ? element.spec.itemFields : undefined;
     if (!Array.isArray(nested)) {
       return;
     }
     nested.forEach((child, at) => {
-      out.push({
-        element: child,
-        inList: element.spec,
-        path: `elements[${index}].itemFields[${at}]`
-      });
+      visit(child, `${path}.itemFields[${at}]`, element.spec);
     });
+  };
+
+  elements.forEach((element, index) => {
+    visit(element, `elements[${index}]`, null);
   });
 
   return out;

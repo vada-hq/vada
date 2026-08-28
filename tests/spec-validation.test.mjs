@@ -1669,6 +1669,51 @@ test("항목의 칸도 화면의 요소와 같은 검사를 받는다", () => {
   assert.equal(findings.filter((f) => f.message.includes("'없는출처'")).length, 1);
 });
 
+// 겹이 하나 더 깊어도 같은 검사를 받는다. **깊이가 자란 것을 훑는 법이
+// 따라가지 못했다** — 목록 안의 목록에 담긴 요소 아홉(EVT-01·EVT-03A·EVT-03B·
+// ORG-03A·ORG-03B의 부원 카드)이 스키마 재검증과 출처 조각 검사에서 통째로
+// 빠져 있었고, 없는 조각을 가리켜도 오류 0건이었다.
+test("두 겹 아래의 칸도 화면의 요소와 같은 검사를 받는다", () => {
+  const findings = collectSpecFindings({
+    screens: listScreen({
+      itemTitleFieldKey: "quantity",
+      itemFields: [
+        ITEM_FIELD,
+        {
+          source: { nodeId: "1:4", name: "List", figmaType: "FRAME" },
+          spec: {
+            type: "list",
+            title: "안쪽 목록",
+            addLabel: "더하기",
+            itemTitleFieldKey: "quantity",
+            itemFields: [
+              {
+                source: { nodeId: "1:5", name: "Input", figmaType: "FRAME" },
+                spec: {
+                  type: "select",
+                  fieldKey: "deepCategory",
+                  placeholder: null,
+                  initialValue: null,
+                  valueType: "string",
+                  required: true,
+                  initiallyDisabled: false,
+                  searchable: false,
+                  optionsSource: { key: "두겹아래없는출처" }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }),
+    optionSources: { sources: [] }
+  });
+  assert.equal(
+    findings.filter((f) => f.message.includes("'두겹아래없는출처'")).length,
+    1
+  );
+});
+
 // --- 화면이 스스로 셈하는 값 -------------------------------------------------
 
 function summaryScreen(items, extra = {}) {

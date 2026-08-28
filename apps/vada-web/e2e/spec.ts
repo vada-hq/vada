@@ -47,6 +47,29 @@ interface ElementEntry {
  * 되풀이되는 묶음 **안**도 본다. 조직도의 '＋ 부서장 지정'처럼 안쪽 목록이
  * 자기 동작을 갖는 자리가 있기 때문이다.
  */
+/**
+ * 등록 노드로 짚어 '아직 정해지지 않았다'는 글을 읽는다.
+ *
+ * 이름으로 찾는 pendingNoteOf가 못 가르는 자리가 있다 — EVT-03B에서 '부서 추가'가
+ * 칸의 라벨이면서 단추의 이름이다(디자인이 그렇게 그렸다). 이름이 겹치면 첫 요소를
+ * 집고 엉뚱한 것을 던진다. 노드 id는 겹치지 않는다.
+ */
+export function pendingNoteAt(screenId: string, nodeId: string): string {
+  const spec = JSON.parse(
+    readFileSync(join(SCREENS_DIR, screenId, 'screen.json'), 'utf-8'),
+  ) as { elements?: ElementEntry[] }
+
+  const walk = (entries: ElementEntry[]): ElementEntry[] =>
+    entries.flatMap((entry) => [entry, ...walk(entry.spec?.itemFields ?? [])])
+
+  const found = walk(spec.elements ?? []).find((entry) => entry.source?.nodeId === nodeId)
+  const action = found?.spec?.action ?? found?.spec?.itemAction ?? found?.spec?.emptyAction
+  if (action?.type !== 'pending' || action.note === undefined) {
+    throw new Error(`${screenId}의 ${nodeId}는 pending이 아니거나 note가 없습니다.`)
+  }
+  return action.note
+}
+
 export function pendingNoteOf(screenId: string, name: string): string {
   const spec = JSON.parse(
     readFileSync(join(SCREENS_DIR, screenId, 'screen.json'), 'utf-8'),
