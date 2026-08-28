@@ -199,7 +199,45 @@
                 "note": {
                   "type": "string",
                   "minLength": 1
+                },
+                "targetField": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "이 갈피가 **공간의 상태에 따라 다른 화면으로** 갈 때, 그 상태를 아는 조각의 key(선택). 공간의 status가 읽는 출처의 조각이다.\n\n**그려지는 말이 아니라 열쇠다.** 상태의 이름('후속 정리 중')은 서버가 주는 글이라 명세가 들면 조직이 단계를 하나 바꿀 때마다 명세가 틀린다 — itemAction의 targetField가 같은 규칙이다."
+                },
+                "targets": {
+                  "type": "array",
+                  "minItems": 1,
+                  "uniqueItems": true,
+                  "description": "열쇠마다 갈 곳. targetField와 함께만 쓰고, **여기 없는 값이면 targetScreenId로 간다** — 갈피는 늘 갈 곳이 있어야 하므로 기본이 필요하다(요소의 targets는 기본이 없다 — 거기서는 갈 곳 없음이 뜻이 된다).",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "value",
+                      "targetScreenId"
+                    ],
+                    "properties": {
+                      "value": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "targetScreenId": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+                      }
+                    }
+                  }
                 }
+              },
+              "dependentRequired": {
+                "targetField": [
+                  "targets",
+                  "targetScreenId"
+                ],
+                "targets": [
+                  "targetField"
+                ]
               }
             }
           }

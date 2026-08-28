@@ -98,6 +98,29 @@ test('EVT-02D: 변경 사항이 없으면 카탈로그의 말로 답한다', asy
 
 // 갈피 줄은 이 화면도 행사 작업 공간의 '개요' 아래에 있다고 말한다. EVT-02D는
 // 갈피 자체가 아니라 그 갈피가 상태에 따라 다르게 그려진 자리다.
+// **상태가 갈피를 정한다.** 후속 정리 중인 행사의 '개요'는 기획 중 개요가 아니라
+// 이 화면이다. 가르는 것은 그려지는 말('후속 정리 중')이 아니라 열쇠다 — 상태의
+// 이름은 서버가 주는 글이라 명세가 들면 단계가 바뀔 때마다 명세가 틀린다.
+test('EVT-02D: 개요 갈피는 이 행사의 단계가 정한다', async ({ page }) => {
+  await page.goto(WRAP_UP)
+
+  await page
+    .getByRole('navigation', { name: /행사를 여는 화면들/ })
+    .getByRole('button', { name: '개요', exact: true })
+    .click()
+
+  await expect(page).toHaveURL(/#\/EVT-02D\?eventId=E-02/)
+
+  // 기획 중인 행사는 그대로 기획 중 개요로 간다.
+  await page.goto('/#/EVT-TASK-01?eventId=E-01')
+  await page
+    .getByRole('navigation', { name: /행사를 여는 화면들/ })
+    .getByRole('button', { name: '개요', exact: true })
+    .click()
+
+  await expect(page).toHaveURL(/#\/EVT-02\?eventId=E-01/)
+})
+
 test('EVT-02D: 갈피를 옮기면 같은 행사의 다른 화면으로 간다', async ({ page }) => {
   await page.goto(WRAP_UP)
 

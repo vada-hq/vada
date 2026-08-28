@@ -31,8 +31,10 @@ test('ORG-03A: 회장단과 부서를 각자의 사람과 함께 보여준다', 
 test('ORG-03A: 부원 수는 서버가 완성한 한 줄로 온다', async ({ page }) => {
   await page.goto(CHART)
 
+  // 부서가 다섯이다 — 조직 요약이 '부서 5개'라고 말하는 것이 사실이고, 조직도가
+  // 그린 셋은 덜 그린 것이다(docs/decisions/product-decisions.md).
   await expect(page.getByText('부원 2명')).toHaveCount(2)
-  await expect(page.getByText('부원 1명')).toHaveCount(1)
+  await expect(page.getByText('부원 1명')).toHaveCount(3)
 })
 
 // 새 어휘 둘. 부서장이 **없는 부서에만** 지정 버튼이 그려진다 — 있고 없고가
@@ -40,9 +42,9 @@ test('ORG-03A: 부원 수는 서버가 완성한 한 줄로 온다', async ({ pa
 test('ORG-03A: 부서장이 없는 부서에만 지정 버튼이 있다', async ({ page }) => {
   await page.goto(CHART)
 
-  // 기획부에는 부서장이 있고, 홍보부·디자인부에는 없다.
+  // 기획부에만 부서장이 있고 나머지 넷에는 없다.
   const assign = page.getByRole('button', { name: /부서장 지정/ })
-  await expect(assign).toHaveCount(2)
+  await expect(assign).toHaveCount(4)
 
   await assign.first().click()
   await expect(page.getByText(pendingNoteOf('ORG-03A', '부서장'))).toBeVisible()

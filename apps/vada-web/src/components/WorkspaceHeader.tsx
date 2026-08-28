@@ -3,6 +3,7 @@ import { FigmaAsset } from './FigmaAsset'
 import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readObjectSource } from '../data-sources/catalog'
 import { currentTabOf, workspaceOf } from '../spec/workspaces'
+import type { WorkspaceTabTarget } from '../spec/workspaces'
 import type { ScreenSpec } from '../spec/types'
 
 // 작업 공간의 머리 — 갈피 줄과 상태 줄.
@@ -37,6 +38,27 @@ interface WorkspaceHeaderProps {
 // 딱지로 그리는 조각과 오른쪽 끝으로 밀리는 안내. 어느 조각이냐는 명세의 field가
 // 말한다 — 이름은 화면이 아니라 데이터 출처의 것이므로 공간이 늘어도 같다.
 const CHIP_FIELDS = new Set(['status', 'alert'])
+
+/**
+ * 이 갈피가 데려갈 화면. **공간의 상태가 갈래를 정할 수 있다.**
+ *
+ * 후속 정리 중인 행사의 '개요'는 기획 중 개요가 아니라 정리 화면이다. 갈래를
+ * 가르는 것은 **열쇠**이지 그려지는 말이 아니다 — 상태의 이름은 서버가 주는
+ * 글이라 명세가 들면 단계가 하나 바뀔 때마다 명세가 틀린다.
+ *
+ * 명세가 든 갈래에 없는 열쇠면 기본으로 간다. 갈피는 늘 갈 곳이 있어야 한다.
+ */
+function tabTargetOf(
+  tab: { targetScreenId?: string; targetField?: string; targets?: WorkspaceTabTarget[] },
+  status: Record<string, unknown> | null,
+): string {
+  const fallback = tab.targetScreenId ?? ''
+  if (tab.targetField === undefined || tab.targets === undefined || status === null) {
+    return fallback
+  }
+  const key = String(status[tab.targetField] ?? '')
+  return tab.targets.find((target) => target.value === key)?.targetScreenId ?? fallback
+}
 const MUTED_FIELD = 'permissionNote'
 
 export function WorkspaceHeader({
@@ -77,7 +99,7 @@ export function WorkspaceHeader({
                   onPending(tab.note ?? '')
                   return
                 }
-                onNavigate(tab.targetScreenId, argument)
+                onNavigate(tabTargetOf(tab, status), argument)
               }}
               className={`border-b-2 py-3.5 text-sm font-medium ${
                 current

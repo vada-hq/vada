@@ -10,10 +10,24 @@ import type { ScreenSpec, SummaryItem } from './types'
 // **무엇을 그리는지는 shell.json이 알고, 어디에 그리는지는 화면이 안다.** 같은
 // 갈피 줄이라도 화면마다 다른 노드에 그려지기 때문이다.
 
+/** 열쇠 하나에 갈 곳 하나. 여기 없는 열쇠면 갈피의 기본으로 간다. */
+export interface WorkspaceTabTarget {
+  value: string
+  targetScreenId: string
+}
+
 export interface WorkspaceTab {
   label: string
   targetScreenId?: string
   note?: string
+  /**
+   * 공간의 상태가 이 갈피의 갈래를 정할 때, 그 상태를 아는 조각의 key.
+   *
+   * **그려지는 말이 아니라 열쇠다** — 상태의 이름은 서버가 주는 글이라 명세가
+   * 들면 조직이 단계를 하나 바꿀 때마다 명세가 틀린다.
+   */
+  targetField?: string
+  targets?: WorkspaceTabTarget[]
 }
 
 export interface Workspace {

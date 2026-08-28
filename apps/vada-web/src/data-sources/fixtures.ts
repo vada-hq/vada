@@ -1055,6 +1055,9 @@ const EVENT_SCHEDULE: Array<{ eventId: string; buckets: string[]; row: DataRow }
 const EVENT_WORKSPACES: Record<string, DataRow> = {
   'E-01': {
     status: '기획 중',
+    // 그려지지 않는 열쇠. 갈피가 어느 화면으로 갈지를 이 값이 정한다 —
+    // 상태의 이름은 서버가 주는 말이라 명세가 들 수 없다.
+    statusKey: 'planning',
     statusTone: 'blue',
     alert: '주의 · 지연 업무 1건',
     alertTone: 'red',
@@ -1103,7 +1106,11 @@ EVENT_DOCUMENTS.push(...carriedOver(EVENT_DOCUMENTS))
 EVENT_MEETINGS.push(...carriedOver(EVENT_MEETINGS))
 EVENT_DOCUMENT_STATS[WRAP_UP_EVENT] = EVENT_DOCUMENT_STATS['E-01']
 EVENT_MEETING_COUNTS[WRAP_UP_EVENT] = EVENT_MEETING_COUNTS['E-01']
-EVENT_WORKSPACES[WRAP_UP_EVENT] = EVENT_WORKSPACES['E-01']
+EVENT_WORKSPACES[WRAP_UP_EVENT] = {
+  ...EVENT_WORKSPACES['E-01'],
+  // **단계가 다르다.** 이 열쇠가 '개요' 갈피를 정리 화면으로 보낸다.
+  statusKey: 'wrapUp',
+}
 EVENT_SUMMARIES[WRAP_UP_EVENT] = EVENT_SUMMARIES['E-01']
 
 // 기본 정보는 EVT-02D가 그린 것만 다르다. 나머지는 같은 행사의 값이라 그대로다.
@@ -1832,6 +1839,7 @@ const UNSTAFFED_EVENT = 'E-03'
 // readObjectSource가 던진다.
 EVENT_WORKSPACES[UNSTAFFED_EVENT] = {
   status: '기획 중',
+  statusKey: 'planning',
   statusTone: 'blue',
   host: '담당 미정',
   startAt: '일시 미정',
@@ -2350,7 +2358,7 @@ const ORG_BREAKDOWN: Record<string, DataRow[]> = {
   department: [
     { id: 'D-01', name: '기획부', budget: '4,000,000원', spent: '1,500,000원', planned: '300,000원', available: '2,200,000원', executionPercent: 38 },
     { id: 'D-02', name: '홍보부', budget: '3,500,000원', spent: '2,100,000원', planned: '400,000원', available: '1,000,000원', executionPercent: 60 },
-    { id: 'D-03', name: '디자인부', budget: '2,000,000원', spent: '600,000원', planned: '0원', available: '1,400,000원', executionPercent: 30 },
+    { id: 'D-04', name: '운영부', budget: '2,000,000원', spent: '600,000원', planned: '0원', available: '1,400,000원', executionPercent: 30 },
   ],
 }
 
@@ -2387,9 +2395,9 @@ const ORG_LEDGER: Array<{
   { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: 'E-02', departmentId: 'D-02', budgetItemId: 'BI-05', row: { id: 'LG-08', date: '07.05', title: 'SNS 광고 집행', context: '신입생 환영 행사', department: '홍보부', budgetItem: '홍보비', amountNote: '90,000원', proof: '누락', proofTone: 'red' } },
   { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: '', departmentId: 'D-04', budgetItemId: 'BI-06', row: { id: 'LG-09', date: '07.03', title: '사무용품 (A4·토너)', context: '운영 (상시)', department: '운영부', budgetItem: '사무·비품', amountNote: '43,000원', proof: '완료', proofTone: 'green' } },
   { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: '', departmentId: 'D-05', budgetItemId: 'BI-06', row: { id: 'LG-10', date: '07.01', title: '회계 장부 바인더', context: '운영 (상시)', department: '재정부', budgetItem: '사무·비품', amountNote: '15,000원', proof: '완료', proofTone: 'green' } },
-  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-01', departmentId: 'D-02', budgetItemId: 'BI-02', row: { id: 'LG-11', date: '07.17', title: '현수막 제작', context: '체육대회', department: '홍보부', budgetItem: '인쇄·제작', amountNote: '180,000원', proof: '증빙 완료', proofTone: 'green' } },
-  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-01', departmentId: 'D-04', budgetItemId: 'BI-04', row: { id: 'LG-12', date: '07.16', title: '생수 구매', context: '체육대회', department: '운영부', budgetItem: '물품 구매', amountNote: '120,000원', proof: '보완 필요', proofTone: 'yellow' } },
-  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-02', departmentId: 'D-01', budgetItemId: 'BI-02', row: { id: 'LG-13', date: '07.15', title: '명찰 인쇄', context: '신입생 환영 행사', department: '기획부', budgetItem: '인쇄·제작', amountNote: '75,000원', proof: '미등록', proofTone: 'red' } },
+  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-01', departmentId: 'D-02', budgetItemId: 'BI-02', row: { id: 'LG-11', date: '07.17', title: '현수막 제작', context: '체육대회', department: '홍보부', budgetItem: '인쇄·제작', amountNote: '180,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-01', departmentId: 'D-04', budgetItemId: 'BI-04', row: { id: 'LG-12', date: '07.16', title: '생수 구매', context: '체육대회', department: '운영부', budgetItem: '물품 구매', amountNote: '120,000원', proof: '확인 중', proofTone: 'yellow' } },
+  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-02', departmentId: 'D-01', budgetItemId: 'BI-02', row: { id: 'LG-13', date: '07.15', title: '명찰 인쇄', context: '신입생 환영 행사', department: '기획부', budgetItem: '인쇄·제작', amountNote: '75,000원', proof: '누락', proofTone: 'red' } },
   // 달을 바꾸면 정말 다른 것이 오는지 보려고 둔 개발용 줄이다(그려지지 않았다).
   { month: '2026-06', drawnOn: 'FIN-LEDGER-01', eventId: '', departmentId: 'D-01', budgetItemId: 'BI-03', row: { id: 'LG-14', date: '06.28', title: '신입생 간담회 다과', context: '운영 (상시)', department: '기획부', budgetItem: '회의·운영비', amountNote: '38,000원', proof: '완료', proofTone: 'green' } },
   { month: '2026-06', drawnOn: 'FIN-LEDGER-01', eventId: 'E-02', departmentId: 'D-02', budgetItemId: 'BI-02', row: { id: 'LG-15', date: '06.20', title: '홍보 포스터 인쇄', context: '신입생 환영 행사', department: '홍보부', budgetItem: '인쇄·제작', amountNote: '52,000원', proof: '완료', proofTone: 'green' } },
@@ -2674,34 +2682,48 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
 // 가져왔다). 탭 건수는 이 목록에서 세므로 목록과 배지가 어긋날 수 없다.
 
 const ORG_DEPARTMENTS: DataRow[] = [
-    {
-      id: 'D-01',
-      name: '기획부',
-      memberCountLabel: '부원 2명',
-      leaders: [{ id: 'M-03', name: '박해랑', major: '컴퓨터학부', grade: '3학년' }],
-      members: [
-        { id: 'M-04', name: '박해랑', major: '컴퓨터학부', grade: '2학년' },
-        { id: 'M-05', name: '이윤슬', major: 'ICT융합학부', grade: '4학년' },
-      ],
-    },
-    {
-      id: 'D-02',
-      name: '홍보부',
-      memberCountLabel: '부원 2명',
-      leaders: [],
-      members: [
-        { id: 'M-06', name: '이윤슬', major: 'ICT융합학부', grade: '4학년' },
-        { id: 'M-07', name: '정하늘', major: '컴퓨터학부', grade: '3학년' },
-      ],
-    },
-    {
-      id: 'D-03',
-      name: '디자인부',
-      memberCountLabel: '부원 1명',
-      leaders: [],
-      members: [{ id: 'M-08', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
-    },
-  ]
+  {
+    id: 'D-01',
+    name: '기획부',
+    memberCountLabel: '부원 2명',
+    leaders: [{ id: 'M-03', name: '박해랑', major: '컴퓨터학부', grade: '3학년' }],
+    members: [
+      { id: 'M-04', name: '박해랑', major: '컴퓨터학부', grade: '2학년' },
+      { id: 'M-05', name: '이윤슬', major: 'ICT융합학부', grade: '4학년' },
+    ],
+  },
+  {
+    id: 'D-02',
+    name: '홍보부',
+    memberCountLabel: '부원 2명',
+    leaders: [],
+    members: [
+      { id: 'M-06', name: '이윤슬', major: 'ICT융합학부', grade: '4학년' },
+      { id: 'M-07', name: '정하늘', major: '컴퓨터학부', grade: '3학년' },
+    ],
+  },
+  {
+    id: 'D-03',
+    name: '디자인부',
+    memberCountLabel: '부원 1명',
+    leaders: [],
+    members: [{ id: 'M-08', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
+  },
+  {
+    id: 'D-04',
+    name: '운영부',
+    memberCountLabel: '부원 1명',
+    leaders: [],
+    members: [{ id: 'M-10', name: '박해랑', major: '컴퓨터학부', grade: '2학년' }],
+  },
+  {
+    id: 'D-05',
+    name: '재정부',
+    memberCountLabel: '부원 1명',
+    leaders: [],
+    members: [{ id: 'M-09', name: '김민준', major: '컴퓨터학부', grade: '4학년' }],
+  },
+]
 
 function matchesQuery(row: DataRow, query: string): boolean {
   if (query.trim() === '') {

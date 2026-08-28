@@ -106,7 +106,9 @@ test('FIN-00: 최근 지출 내역과 증빙 현황을 함께 보여준다', asy
   const recent = page.locator('[data-node-id="30:2697"]')
   await expect(recent).toContainText('현수막 제작')
   await expect(recent).toContainText('180,000원')
-  await expect(recent).toContainText('증빙 완료')
+  // 증빙 상태의 말은 하나다 — 한 지출의 증빙은 한 가지 상태이고, 그림이 두 말로
+  // 그린 것은 와이어프레임이 스스로 어긋난 자리다(deviations.ts).
+  await expect(recent).toContainText('완료')
 
   const proof = page.locator('[data-node-id="30:2735"]')
   await expect(proof).toContainText('전체 지출 건수')

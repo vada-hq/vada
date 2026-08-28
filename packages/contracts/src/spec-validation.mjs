@@ -2335,6 +2335,46 @@ export function collectSpecFindings({
             message: `작업 공간 '${workspace.key}'의 갈피 '${item.label}'이 가리키는 화면 '${targetScreenId}'의 명세 파일이 아직 없습니다.`
           });
         }
+
+        // 갈피가 공간의 상태에 따라 갈릴 때. **가르는 것은 열쇠이지 그려지는
+        // 말이 아니다** — 그 열쇠가 상태 줄이 읽는 출처에 없으면, 갈래는 늘
+        // 기본으로 떨어지고 아무도 그 사실을 모른다.
+        if (typeof item?.targetField === "string") {
+          const statusKey = workspace.status?.dataSourceKey;
+          const statusSource = statusKey ? dataSourceByKey.get(statusKey) : undefined;
+          if (!statusSource) {
+            findings.push({
+              level: "error",
+              file: shellFile,
+              message: `작업 공간 '${workspace.key}'의 갈피 '${item.label}'이 상태로 갈리는데 이 공간에는 상태 줄이 없습니다.`
+            });
+          } else if (!(statusSource.fields ?? []).some((f) => f?.key === item.targetField)) {
+            findings.push({
+              level: "error",
+              file: shellFile,
+              message: `작업 공간 '${workspace.key}'의 갈피 '${item.label}'이 가리킨 조각 '${item.targetField}'가 상태 줄의 출처 '${statusKey}'에 없습니다.`
+            });
+          }
+          if (typeof targetScreenId !== "string") {
+            findings.push({
+              level: "error",
+              file: shellFile,
+              message: `작업 공간 '${workspace.key}'의 갈피 '${item.label}'이 상태로 갈리는데 기본 화면(targetScreenId)이 없습니다. 갈피는 늘 갈 곳이 있어야 합니다.`
+            });
+          }
+          for (const target of item.targets ?? []) {
+            if (typeof target?.targetScreenId !== "string") {
+              continue;
+            }
+            if (!screenIds.has(target.targetScreenId)) {
+              findings.push({
+                level: "warning",
+                file: shellFile,
+                message: `작업 공간 '${workspace.key}'의 갈피 '${item.label}'이 '${target.value}'일 때 가리키는 화면 '${target.targetScreenId}'의 명세 파일이 아직 없습니다.`
+              });
+            }
+          }
+        }
       }
     }
 

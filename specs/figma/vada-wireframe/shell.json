@@ -75,7 +75,14 @@
       "tabs": [
         {
           "label": "개요",
-          "targetScreenId": "EVT-02"
+          "targetScreenId": "EVT-02",
+          "targetField": "statusKey",
+          "targets": [
+            {
+              "value": "wrapUp",
+              "targetScreenId": "EVT-02D"
+            }
+          ]
         },
         {
           "label": "업무",

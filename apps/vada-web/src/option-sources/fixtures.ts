@@ -170,6 +170,8 @@ export const ORG_DEPARTMENT_OPTIONS: Option[] = [
   { value: 'D-01', label: '기획부' },
   { value: 'D-02', label: '홍보부' },
   { value: 'D-03', label: '디자인부' },
+  { value: 'D-04', label: '운영부' },
+  { value: 'D-05', label: '재정부' },
 ]
 
 //

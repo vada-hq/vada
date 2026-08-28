@@ -739,6 +739,10 @@
           "description": "행사의 진행 단계를 알리는 말. 예: 기획 중"
         },
         {
+          "key": "statusKey",
+          "description": "행사가 어느 단계인지를 아는 열쇠. **그려지지 않는다** — 그려지는 것은 status이고 그것은 서버가 주는 말이다. 단계에 따라 갈피가 다른 화면으로 갈 때 그 갈래를 이 값이 정한다(shell.json의 workspaces[].tabs[].targetField)."
+        },
+        {
           "key": "statusTone",
           "description": "상태 딱지에 배정된 색 이름. 예: blue"
         },
