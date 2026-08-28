@@ -128,6 +128,7 @@ const FLOOR = {
   // overlay.source는 검증기가 보는 자리이지 추출기가 아는 것이 아니다
   // (추출기는 명세가 생기기 전에 돈다).
   "ORG-07B": { matched: 2, spurious: 5 },
+  "ORG-07C": { matched: 3, spurious: 4 },
   "TASK-01": { matched: 5, spurious: 2 }
 };
 

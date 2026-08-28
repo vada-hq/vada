@@ -138,6 +138,13 @@ export async function fetchOptions(
       return DEPARTMENTS[`${params.schoolId}:${params.collegeId}`] ?? []
     case 'event.participantAffiliations':
       return PARTICIPANT_AFFILIATIONS[params.eventId] ?? []
+    // 학기는 조직이 언제부터 있었는지에 달렸다. 지금 학기부터 거슬러 온다.
+    case 'org.duesTerms':
+      return [
+        { value: '2026-1', label: '2026년 1학기' },
+        { value: '2025-2', label: '2025년 2학기' },
+        { value: '2025-1', label: '2025년 1학기' },
+      ]
     case 'event.participantApplyStatus':
       return PARTICIPANT_APPLY_STATUS
     case 'event.participantPayStatus':

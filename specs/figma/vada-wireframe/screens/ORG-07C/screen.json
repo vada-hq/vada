@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-07C",
+  "meta": {
+    "eyebrow": "조직 관리",
+    "title": "학생회비 납부 명단 업로드"
+  },
+  "overlay": {
+    "screenId": "ORG-07A",
+    "source": "30:6127"
+  },
+  "activeNavigationScreenId": "ORG-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:5904",
+    "name": "조직 관리 · ORG-07C · 학생회비 납부 명단 업로드 모달",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:6130",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "학생회비 납부 명단 업로드",
+        "description": "학생 기본 명단과 대조해 학기별 납부 상태를 갱신합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6135",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "닫기",
+        "labelHidden": true,
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ORG-07A"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6139",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "steps",
+        "items": [
+          {
+            "key": "upload",
+            "label": "파일 업로드"
+          },
+          {
+            "key": "verify",
+            "label": "검증 결과"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6153",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "duesTerm",
+        "label": "기준 학기",
+        "placeholder": null,
+        "helperText": "선택한 학기의 전체 납부자 명단을 업로드하세요. 다른 학기 기록은 유지됩니다.",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "org.duesTerms"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6159",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "duesFile",
+        "label": "학생회비 납부자 명단 업로드",
+        "placeholder": null,
+        "helperText": "필수 열: 학번 · 이름 권장 · .xlsx · .csv",
+        "initialValue": null,
+        "inputType": "file",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6168",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "파일에 포함된 학생은 납부, 같은 학기의 학생 명단에 있지만 포함되지 않은 학생은 미납으로 반영합니다. 기준 명단에 없는 학번으로 학생을 새로 만들지 않습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6172",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "취소",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ORG-07A"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6175",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "검증하기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "올린 파일의 검증 결과 단계가 아직 그려지지 않았습니다."
+        }
+      }
+    }
+  ]
+}

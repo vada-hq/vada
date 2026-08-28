@@ -586,6 +586,23 @@
           "label": "확인 필요"
         }
       ]
+    },
+    {
+      "key": "org.duesTerms",
+      "type": "remote",
+      "description": "학생회비를 걷는 학기. 조직이 언제부터 있었는지에 달렸으므로 명세가 목록을 들 수 없다 - 학기가 하나 지날 때마다 명세가 틀린다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/dues-terms",
+        "loadOn": "open"
+      },
+      "messages": {
+        "idle": "학기를 고르세요",
+        "loading": "학기를 불러오는 중입니다",
+        "empty": "등록된 학기가 없습니다",
+        "error": "학기를 불러오지 못했습니다"
+      }
     }
   ]
 }
