@@ -95,7 +95,9 @@ export function ORG07AScreen({ onNavigate }: ORG07AScreenProps) {
         type="button"
         data-node-id={nodeId}
         onClick={() => {
+          // 아직 정해지지 않은 자리는 그 사실을 남기고, 정해진 자리는 그리로 간다.
           if (spec.action.type === 'pending') setNote(spec.action.note)
+          if (spec.action.type === 'navigate') onNavigate(spec.action.targetScreenId)
         }}
         className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
       >

@@ -115,6 +115,28 @@ describe('화면이 자기 명세를 지킨다', () => {
     },
   )
 
+  // 명세가 navigate라고 말한 자리는 화면이 **실제로 데려가야 한다.**
+  //
+  // 이것을 세 번 놓쳤다. pending이던 버튼을 실제 화면으로 이으면서 명세만 고치고
+  // 화면의 `if (action.type === 'pending')`은 그대로 두는 것이다 - 누르면 아무
+  // 일도 일어나지 않고, 게이트 중 e2e만 그것을 본다(그마저 시나리오를 적었을 때만).
+  //
+  // 여기서 보는 것은 거칠다: 그 화면의 원문이 대상 화면을 집어내는가. 직접
+  // targetScreenId를 읽거나 공용 도우미(navigateTarget)를 쓰거나 둘 중 하나다.
+  // pending만 다루는 화면은 어느 쪽도 없으므로 잡힌다.
+  const navigating = ALL_SCREENS.filter((screen) =>
+    allSpecsOf(screen).some((spec) =>
+      actionsOf(spec).some((action) => action.type === 'navigate'),
+    ),
+  )
+
+  it.each(navigating.map((screen) => screen.screenId))(
+    '%s: navigate라고 말했으면 그리로 데려간다',
+    (screenId) => {
+      expect(sourceOf(screenId)).toMatch(/targetScreenId|navigateTarget/)
+    },
+  )
+
   // pending은 '아직 정해지지 않았다'를 말한다. 그 글을 화면이 어딘가로 내보내지
   // 않으면 누르는 사람은 고장 난 버튼을 본다. 어떻게 내보내는지는 화면이 정한다
   // (귀띔 글이든 알림 줄이든) - 여기서 보는 것은 **읽기는 하는가**뿐이다.

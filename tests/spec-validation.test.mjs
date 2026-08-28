@@ -2262,3 +2262,103 @@ test("줄 색 이름이 출처에 없으면 오류다", () => {
     1
   );
 });
+
+// 모달은 아래 화면 위에 뜬다. 디자인이 그것을 화면 전체와 형제로 그리므로,
+// 이 화면이 그리는 부분 밖은 아래 화면의 것이다.
+function overlayScreen(overlay) {
+  const design = {
+    schemaVersion: 1,
+    screenId: "S-02",
+    root: {
+      id: "1:0",
+      type: "frame",
+      name: "S-02",
+      children: [
+        {
+          id: "1:1",
+          type: "frame",
+          name: "DesktopShell",
+          children: [
+            {
+              id: "1:2",
+              type: "frame",
+              name: "Btn",
+              children: [{ id: "1:3", type: "text", name: "t", text: { content: "아래 화면의 버튼" } }]
+            }
+          ]
+        },
+        {
+          id: "1:4",
+          type: "frame",
+          name: "Modal",
+          children: [
+            {
+              id: "1:5",
+              type: "frame",
+              name: "Btn",
+              children: [{ id: "1:6", type: "text", name: "t", text: { content: "닫기" } }]
+            }
+          ]
+        }
+      ]
+    },
+    assets: []
+  };
+
+  return {
+    screens: [
+      {
+        file: "screens/S-02/screen.json",
+        spec: {
+          schemaVersion: 1,
+          screenId: "S-02",
+          ...(overlay ? { overlay } : {}),
+          source: { nodeId: "1:0" },
+          elements: [
+            {
+              source: { nodeId: "1:5" },
+              spec: {
+                type: "button",
+                label: "닫기",
+                emphasis: "secondary",
+                initiallyDisabled: false,
+                action: { type: "navigate", targetScreenId: "S-01" }
+              }
+            }
+          ]
+        }
+      },
+      { file: "screens/S-01/screen.json", spec: { schemaVersion: 1, screenId: "S-01", elements: [] } }
+    ],
+    designs: {
+      "S-02": {
+        file: "screens/S-02/figma.design.json",
+        design,
+        assetFiles: [],
+        hasReference: true
+      }
+    }
+  };
+}
+
+test("겹쳐 뜨는 화면은 아래 화면의 버튼을 자기 것으로 세지 않는다", () => {
+  const findings = collectSpecFindings(
+    overlayScreen({ screenId: "S-01", source: "1:4" })
+  );
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("아래 화면의 버튼")).length,
+    0,
+    findings.map((f) => f.message).join(" | ")
+  );
+});
+
+test("겹쳐 뜬다고 말하지 않으면 아래 화면의 버튼이 빠진 것으로 보인다", () => {
+  const findings = collectSpecFindings(overlayScreen(null));
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("아래 화면의 버튼")).length,
+    1,
+    findings.map((f) => f.message).join(" | ")
+  );
+});

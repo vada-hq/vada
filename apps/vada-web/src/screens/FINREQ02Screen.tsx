@@ -197,7 +197,7 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
         <ProgressSteps
           nodeId={nodeIdOf(finReq02, stepsSpec)}
           items={stepsSpec.items}
-          currentKey={scalar(stepDetail, stepsSpec.currentField)}
+          currentKey={scalar(stepDetail, stepsSpec.currentField!)}
           completedIconNodeId="30:932"
         />
 

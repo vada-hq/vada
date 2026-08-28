@@ -146,6 +146,14 @@ function checkElementNodeCoverage(findings, context) {
 // 버튼). 문구 없는 노드도 세지 않는다 — 명세에 적을 라벨이 없다(선택지가 디자인에
 // 비어 있는 드롭다운, 항목의 '…' 메뉴).
 function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
+  // 모달은 **아래 화면 위에 뜬다.** 디자인이 그것을 화면 전체와 형제로 그리므로,
+  // 이 화면이 그리는 부분 밖은 아래 화면의 것이다 - 거기까지 세면 아래 화면의
+  // 버튼이 전부 '명세에 없는 상호작용'으로 보인다(ORG-07B의 머리 버튼 셋).
+  const overlaySource = spec.overlay?.source;
+  const root =
+    typeof overlaySource === "string"
+      ? (findDesignNode(design.root, overlaySource) ?? design.root)
+      : design.root;
   const excluded = new Set(
     Array.isArray(shell?.design?.excludeNodeNames) ? shell.design.excludeNodeNames : []
   );
@@ -214,7 +222,7 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       (child) => registered.has(child.id) || holdsRegistered(child)
     );
 
-  markCopies(design.root);
+  markCopies(root);
 
   const walk = (node, covered) => {
     for (const child of Array.isArray(node?.children) ? node.children : []) {
@@ -235,7 +243,7 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       walk(child, inside);
     }
   };
-  walk(design.root, false);
+  walk(root, false);
 }
 
 function checkScreenAgainstDesign(findings, screen, designEntry, shell) {

@@ -124,6 +124,10 @@ const FLOOR = {
   "ORG-04": { matched: 0, spurious: 0 },
   "ORG-04B": { matched: 3, spurious: 1 },
   "ORG-07A": { matched: 3, spurious: 1 },
+  // 겹쳐 뜨는 화면이다. 추출기는 뒤에 깔린 화면까지 훑으므로 헛것이 많다 -
+  // overlay.source는 검증기가 보는 자리이지 추출기가 아는 것이 아니다
+  // (추출기는 명세가 생기기 전에 돈다).
+  "ORG-07B": { matched: 2, spurious: 5 },
   "TASK-01": { matched: 5, spurious: 2 }
 };
 

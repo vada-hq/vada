@@ -52,12 +52,14 @@ test('ORG-07A: 학생회비 상태로 거른다', async ({ page }) => {
   await expect(page.getByRole('row').filter({ hasText: '김바다' })).toHaveCount(0)
 })
 
+// 업로드 버튼은 ORG-07B가 생기면서 실제로 이어졌다(org-roster-upload.spec.ts).
+// 아직 정해지지 않은 것은 내보내기 하나다.
 test('ORG-07A: 아직 없는 자리는 그 사실을 남긴다', async ({ page }) => {
   await page.goto(ROSTER)
 
-  await page.getByRole('button', { name: '학생 명단 업로드·갱신' }).click()
+  await page.getByRole('button', { name: '명단 내보내기' }).click()
 
-  await expect(page.getByText(/학생 명단 업로드 모달이 아직/)).toBeVisible()
+  await expect(page.getByText(/명단을 내보내는 방법이 아직/)).toBeVisible()
 })
 
 test('ORG-00: 학생 명단 카드가 이 화면으로 이어진다', async ({ page }) => {

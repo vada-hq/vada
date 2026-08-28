@@ -19,15 +19,87 @@
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
     },
-    "stateScopeKey": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-      "description": "이 화면이 값을 담고 읽는 자리. state-scopes.json의 key다.\n\n여기에 담긴 값은 화면을 떠나도 남는다 - 그것이 flow 수명의 뜻이다. 그래서 **담을 것이 있는 화면만** 적는다. 버튼만 있는 화면이 흐름에 속한다는 이유로 이것을 적으면, 아무것도 담지 않는 선언이 되고 화면이 그것을 지키는지 물을 수 없다(ONB-02가 그랬다).\n\n적었으면 화면 안의 useState가 아니라 이 자리에 담아야 한다. 안에 담으면 떠났다 오는 순간 사라지고, 명세가 말한 수명이 거짓이 된다."
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "title"
+      ],
+      "description": "화면 수준 카피. 구현은 이 값을 렌더하며 JSX에 하드코딩하지 않는다.",
+      "properties": {
+        "eyebrow": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "제목 위에 표시하는 소제목(선택). 예: 새 학생회 만들기"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "description": "화면의 이름. 사람이 이 화면을 부르는 말이고, 대개 그대로 제목으로 그려진다. titleFrom이 있으면 그려지는 것은 데이터이고 이 값은 이름으로만 남는다 — 둘을 가르지 않으면 데이터가 제목인 화면의 이름을 부를 말이 없어진다."
+        },
+        "titleFrom": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "dataSourceKey",
+            "field"
+          ],
+          "description": "제목이 데이터에서 오는 경우 그 출처(선택). 무엇의 화면인지가 제목인 자리가 있다 — 행사 업무 보드의 제목은 그 행사의 이름이다. 모양은 summary의 titleField와 같다.",
+          "properties": {
+            "dataSourceKey": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+              "description": "data-sources.json 카탈로그의 key. shape가 object인 출처여야 한다."
+            },
+            "field": {
+              "type": "string",
+              "minLength": 1,
+              "description": "그 출처의 fields[].key."
+            },
+            "params": {
+              "$ref": "element-params.schema.json#/$defs/argument",
+              "description": "한 건을 집어 올 때 넘기는 인자(선택). 대개 화면이 받은 인자를 그대로 넘긴다."
+            }
+          }
+        },
+        "description": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "제목 아래 붙는 안내 문장(선택). 이 화면이 무엇을 하는 자리인지, 또는 무엇을 하라는 것인지를 한 줄로 말한다.\n\n요소가 아니라 화면의 것인 이유는 **무엇 하나를 가리키지 않기 때문**이다. summary는 제목과 라벨-값 쌍의 구조를 갖고 무언가를 요약하는데, 이 줄은 요약할 대상이 없다 - ORG-00의 '관리할 영역을 선택하세요.'는 아래 카드 셋 전체에 거는 말이지 그중 하나의 것이 아니다."
+        },
+        "footerNote": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "화면 맨 아래에 붙는 덧붙임(선택). 지금 보이는 것 밖의 규칙이나 다음 단계를 일러 준다 - '제출된 요청은 재정부의 검토 후 구매가 진행됩니다'처럼 화면이 보여주는 것이 아니라 화면 뒤의 절차를 말한다."
+        }
+      }
     },
-    "activeNavigationScreenId": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-      "description": "이 화면이 셸의 **어느 최상위 메뉴 아래에 있는지**(선택). 값은 그 메뉴가 가리키는 화면의 id다.\n\n메뉴가 가리키는 화면 자신은 이것을 갖지 않는다 — 자기 id로 찾으면 되기 때문이다. 그 아래로 들어가는 화면들이 갖는다: 구매 요청 상세도 구매·발주 처리도 '운영' 아래인데 메뉴가 그 둘을 가리키지는 않는다.\n\n이 자리가 없던 동안 화면은 자기 id로 메뉴를 찾았고, 짝이 없으면 아무 메뉴도 켜지지 않았다. 구현은 그것을 코드에 박아 메웠고(`activeNavigationScreenId=\"OPS-00\"`), **두 손이 각각 그렇게 했다** — 교차 검증 1·2회차가 같은 자리를 짚었다.\n\nworkspace.activeTabScreenId와 같은 축이다. 저것은 작업 공간의 갈피, 이것은 셸의 메뉴다."
+    "overlay": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "screenId",
+        "source"
+      ],
+      "description": "이 화면이 **다른 화면 위에 뜬다**는 선언(선택). 모달이 그 자리다.\n\n모달은 화면이면서 화면이 아니다 - 주소로 열 수 있는 한 자리이지만, 뒤에는 열기 전에 보던 것이 그대로 남아 있다. 그것을 명세가 말하지 않으면 화면을 만드는 사람이 **뒤에 무엇이 있는지 지어내게 된다.**\n\n닫으면 screenId로 돌아간다 - 모달의 닫기와 취소가 가리키는 곳이 그것이다.",
+      "properties": {
+        "screenId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "뒤에 남아 있는 화면. 닫으면 여기로 돌아간다."
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "이 화면이 그리는 부분의 design 노드. **그 밖은 아래 화면의 것이다.**\n\n이것이 없으면 검증기가 아래 화면의 버튼들을 '명세에 없는 상호작용'으로 본다 - 디자인이 모달을 화면 전체와 형제로 그리기 때문이다."
+        }
+      }
     },
     "params": {
       "type": "array",
@@ -74,22 +146,55 @@
         }
       }
     },
-    "draftFrom": {
+    "stateScopeKey": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "이 화면이 값을 담고 읽는 자리. state-scopes.json의 key다.\n\n여기에 담긴 값은 화면을 떠나도 남는다 - 그것이 flow 수명의 뜻이다. 그래서 **담을 것이 있는 화면만** 적는다. 버튼만 있는 화면이 흐름에 속한다는 이유로 이것을 적으면, 아무것도 담지 않는 선언이 되고 화면이 그것을 지키는지 물을 수 없다(ONB-02가 그랬다).\n\n적었으면 화면 안의 useState가 아니라 이 자리에 담아야 한다. 안에 담으면 떠났다 오는 순간 사라지고, 명세가 말한 수명이 거짓이 된다."
+    },
+    "activeNavigationScreenId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+      "description": "이 화면이 셸의 **어느 최상위 메뉴 아래에 있는지**(선택). 값은 그 메뉴가 가리키는 화면의 id다.\n\n메뉴가 가리키는 화면 자신은 이것을 갖지 않는다 — 자기 id로 찾으면 되기 때문이다. 그 아래로 들어가는 화면들이 갖는다: 구매 요청 상세도 구매·발주 처리도 '운영' 아래인데 메뉴가 그 둘을 가리키지는 않는다.\n\n이 자리가 없던 동안 화면은 자기 id로 메뉴를 찾았고, 짝이 없으면 아무 메뉴도 켜지지 않았다. 구현은 그것을 코드에 박아 메웠고(`activeNavigationScreenId=\"OPS-00\"`), **두 손이 각각 그렇게 했다** — 교차 검증 1·2회차가 같은 자리를 짚었다.\n\nworkspace.activeTabScreenId와 같은 축이다. 저것은 작업 공간의 갈피, 이것은 셸의 메뉴다."
+    },
+    "workspace": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "dataSourceKey"
+        "key",
+        "source"
       ],
-      "description": "이 화면의 입력이 무엇을 읽어 채워지는지(선택). **고치는 화면은 고칠 것을 먼저 읽어 와야 한다** — 지금까지의 폼은 전부 빈칸에서 시작했고, 그래서 값이 서버에서 오는 길이 없었다.\n\n필드마다 출처를 따로 적지 않는 이유는 그것이 한 벌이기 때문이다: 요청 하나를 읽어 오면 제목도 부서도 품목도 그 안에 함께 온다. 출처의 조각 이름이 화면의 fieldKey와 같으면 그 값으로 시작하고, list의 fieldKey와 같은 조각은 그 조각의 fields가 항목의 칸이 된다.\n\n**새로 쓰는 것도 읽는다.** 인자가 비면 아직 아무것도 적히지 않은 요청이 오고, 그 안에는 서버가 이미 아는 것이 들어 있다(FIN-REQ-01의 요청 부서는 작성자의 소속이라 새 요청에도 이미 채워져 있다). 화면에 '읽는 경우'와 '안 읽는 경우'를 두지 않는 이유가 이것이다 — 갈래가 생기면 한쪽만 맞는 화면이 된다.",
+      "description": "이 화면이 속한 작업 공간(선택). 무엇을 그리는지는 shell.json의 workspaces가 알고, 화면은 **어디에 그리는지만** 갖는다 — 같은 갈피 줄이라도 화면마다 다른 노드에 그려지기 때문이다. 이 공간에 속하면 공간의 param을 화면의 params에 선언해야 한다.",
       "properties": {
-        "dataSourceKey": {
+        "key": {
+          "type": "string",
+          "pattern": "^[a-z][A-Za-z0-9]*$",
+          "description": "shell.json의 workspaces[].key."
+        },
+        "activeTabScreenId": {
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-          "description": "data-sources.json 카탈로그의 key. shape가 object인 출처여야 한다 — 고치는 대상은 한 건이다."
+          "description": "이 화면이 갈피 자체가 아니라 **어느 갈피 아래에 있는지**(선택). 값은 그 갈피가 가리키는 화면의 id다.\n\n지금까지 공간에 속한 화면은 전부 갈피 하나와 짝이었다. 그런데 갈피 아래로 한 겹 더 들어가는 화면이 있다 — MY-REQ-01은 재정 갈피에서 열리지만 자기가 갈피는 아니고, 디자인은 그 화면에서도 갈피 줄을 그리며 재정을 켜 둔다. 이 값이 없던 동안 화면은 자기 id로 갈피를 찾았고, 짝이 없으면 아무 갈피도 켜지지 않았다.\n\n**켜지는 갈피는 하나뿐이므로 여기 적힌 화면도 그 공간의 갈피여야 한다.**"
         },
-        "params": {
-          "$ref": "element-params.schema.json#/$defs/argument",
-          "description": "무엇을 읽어 오는지. 대개 화면이 받은 인자를 그대로 넘긴다."
+        "ownTitle": {
+          "type": "boolean",
+          "description": "이 화면이 공간의 제목 대신 자기 이름을 제목으로 그리는가(기본 false). 공간에 속하면 제목은 대개 그 공간의 것이다 — 행사 개요도 행사 업무도 제목이 그 행사의 이름이다. 다만 자기 아래에 다시 여러 화면을 거느리는 입구는 자기 이름을 앞세운다(EVT-FIN-01은 구매 요청·처리·증빙의 입구다). 어느 쪽인지는 디자인이 말하고, 이 값은 그것을 옮겨 적은 것이다."
+        },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "공간의 각 부분이 이 화면의 어느 노드에 그려지는지. 등록 노드이므로 역방향 대조가 그 안의 상호작용을 이미 명세된 것으로 본다.",
+          "properties": {
+            "tabs": {
+              "type": "string",
+              "minLength": 1,
+              "description": "갈피 줄을 담은 노드의 id."
+            },
+            "status": {
+              "type": "string",
+              "minLength": 1,
+              "description": "상태 줄을 담은 노드의 id."
+            }
+          }
         }
       }
     },
@@ -151,106 +256,22 @@
         }
       }
     },
-    "workspace": {
+    "draftFrom": {
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "key",
-        "source"
+        "dataSourceKey"
       ],
-      "description": "이 화면이 속한 작업 공간(선택). 무엇을 그리는지는 shell.json의 workspaces가 알고, 화면은 **어디에 그리는지만** 갖는다 — 같은 갈피 줄이라도 화면마다 다른 노드에 그려지기 때문이다. 이 공간에 속하면 공간의 param을 화면의 params에 선언해야 한다.",
+      "description": "이 화면의 입력이 무엇을 읽어 채워지는지(선택). **고치는 화면은 고칠 것을 먼저 읽어 와야 한다** — 지금까지의 폼은 전부 빈칸에서 시작했고, 그래서 값이 서버에서 오는 길이 없었다.\n\n필드마다 출처를 따로 적지 않는 이유는 그것이 한 벌이기 때문이다: 요청 하나를 읽어 오면 제목도 부서도 품목도 그 안에 함께 온다. 출처의 조각 이름이 화면의 fieldKey와 같으면 그 값으로 시작하고, list의 fieldKey와 같은 조각은 그 조각의 fields가 항목의 칸이 된다.\n\n**새로 쓰는 것도 읽는다.** 인자가 비면 아직 아무것도 적히지 않은 요청이 오고, 그 안에는 서버가 이미 아는 것이 들어 있다(FIN-REQ-01의 요청 부서는 작성자의 소속이라 새 요청에도 이미 채워져 있다). 화면에 '읽는 경우'와 '안 읽는 경우'를 두지 않는 이유가 이것이다 — 갈래가 생기면 한쪽만 맞는 화면이 된다.",
       "properties": {
-        "key": {
-          "type": "string",
-          "pattern": "^[a-z][A-Za-z0-9]*$",
-          "description": "shell.json의 workspaces[].key."
-        },
-        "activeTabScreenId": {
+        "dataSourceKey": {
           "type": "string",
           "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-          "description": "이 화면이 갈피 자체가 아니라 **어느 갈피 아래에 있는지**(선택). 값은 그 갈피가 가리키는 화면의 id다.\n\n지금까지 공간에 속한 화면은 전부 갈피 하나와 짝이었다. 그런데 갈피 아래로 한 겹 더 들어가는 화면이 있다 — MY-REQ-01은 재정 갈피에서 열리지만 자기가 갈피는 아니고, 디자인은 그 화면에서도 갈피 줄을 그리며 재정을 켜 둔다. 이 값이 없던 동안 화면은 자기 id로 갈피를 찾았고, 짝이 없으면 아무 갈피도 켜지지 않았다.\n\n**켜지는 갈피는 하나뿐이므로 여기 적힌 화면도 그 공간의 갈피여야 한다.**"
+          "description": "data-sources.json 카탈로그의 key. shape가 object인 출처여야 한다 — 고치는 대상은 한 건이다."
         },
-        "ownTitle": {
-          "type": "boolean",
-          "description": "이 화면이 공간의 제목 대신 자기 이름을 제목으로 그리는가(기본 false). 공간에 속하면 제목은 대개 그 공간의 것이다 — 행사 개요도 행사 업무도 제목이 그 행사의 이름이다. 다만 자기 아래에 다시 여러 화면을 거느리는 입구는 자기 이름을 앞세운다(EVT-FIN-01은 구매 요청·처리·증빙의 입구다). 어느 쪽인지는 디자인이 말하고, 이 값은 그것을 옮겨 적은 것이다."
-        },
-        "source": {
-          "type": "object",
-          "additionalProperties": false,
-          "description": "공간의 각 부분이 이 화면의 어느 노드에 그려지는지. 등록 노드이므로 역방향 대조가 그 안의 상호작용을 이미 명세된 것으로 본다.",
-          "properties": {
-            "tabs": {
-              "type": "string",
-              "minLength": 1,
-              "description": "갈피 줄을 담은 노드의 id."
-            },
-            "status": {
-              "type": "string",
-              "minLength": 1,
-              "description": "상태 줄을 담은 노드의 id."
-            }
-          }
-        }
-      }
-    },
-    "meta": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "title"
-      ],
-      "description": "화면 수준 카피. 구현은 이 값을 렌더하며 JSX에 하드코딩하지 않는다.",
-      "properties": {
-        "eyebrow": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "제목 위에 표시하는 소제목(선택). 예: 새 학생회 만들기"
-        },
-        "title": {
-          "type": "string",
-          "minLength": 1,
-          "description": "화면의 이름. 사람이 이 화면을 부르는 말이고, 대개 그대로 제목으로 그려진다. titleFrom이 있으면 그려지는 것은 데이터이고 이 값은 이름으로만 남는다 — 둘을 가르지 않으면 데이터가 제목인 화면의 이름을 부를 말이 없어진다."
-        },
-        "titleFrom": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "dataSourceKey",
-            "field"
-          ],
-          "description": "제목이 데이터에서 오는 경우 그 출처(선택). 무엇의 화면인지가 제목인 자리가 있다 — 행사 업무 보드의 제목은 그 행사의 이름이다. 모양은 summary의 titleField와 같다.",
-          "properties": {
-            "dataSourceKey": {
-              "type": "string",
-              "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-              "description": "data-sources.json 카탈로그의 key. shape가 object인 출처여야 한다."
-            },
-            "field": {
-              "type": "string",
-              "minLength": 1,
-              "description": "그 출처의 fields[].key."
-            },
-            "params": {
-              "$ref": "element-params.schema.json#/$defs/argument",
-              "description": "한 건을 집어 올 때 넘기는 인자(선택). 대개 화면이 받은 인자를 그대로 넘긴다."
-            }
-          }
-        },
-        "description": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "제목 아래 붙는 안내 문장(선택). 이 화면이 무엇을 하는 자리인지, 또는 무엇을 하라는 것인지를 한 줄로 말한다.\n\n요소가 아니라 화면의 것인 이유는 **무엇 하나를 가리키지 않기 때문**이다. summary는 제목과 라벨-값 쌍의 구조를 갖고 무언가를 요약하는데, 이 줄은 요약할 대상이 없다 - ORG-00의 '관리할 영역을 선택하세요.'는 아래 카드 셋 전체에 거는 말이지 그중 하나의 것이 아니다."
-        },
-        "footerNote": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "description": "화면 맨 아래에 붙는 덧붙임(선택). 지금 보이는 것 밖의 규칙이나 다음 단계를 일러 준다 - '제출된 요청은 재정부의 검토 후 구매가 진행됩니다'처럼 화면이 보여주는 것이 아니라 화면 뒤의 절차를 말한다."
+        "params": {
+          "$ref": "element-params.schema.json#/$defs/argument",
+          "description": "무엇을 읽어 오는지. 대개 화면이 받은 인자를 그대로 넘긴다."
         }
       }
     },

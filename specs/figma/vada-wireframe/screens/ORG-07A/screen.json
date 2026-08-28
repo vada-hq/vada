@@ -36,8 +36,8 @@
         "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "학생 명단 업로드 모달이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "ORG-07B"
         }
       }
     },

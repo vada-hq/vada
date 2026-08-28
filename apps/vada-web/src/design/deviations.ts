@@ -444,4 +444,19 @@ export const DEVIATIONS: Deviation[] = [
     screen: 'gray-100(#F3F4F6)',
     why: '표의 머리줄 아래 선은 gray-100으로 통일한다(DataTable).',
   },
+
+  // --- ORG-07B: 같은 범위를 한 화면 안에서 두 가지로 그렸다 ------------------
+  //
+  // 뒤에 깔린 ORG-07A는 '한양대학교 ERICA › 소프트웨어융합대학 › 컴퓨터학부'로,
+  // 모달의 부제는 같은 것을 '·'로 잇는다. **서버는 한 벌만 준다**(org.rosterScope의
+  // path). 구분자를 화면이 바꾸면 명세가 모르는 규칙이 하나 생기므로 그대로 쓴다.
+  {
+    by: 'place',
+    screenId: 'ORG-07B',
+    content: '한양대학교 ERICA · 소프트웨어융합대학 · 컴퓨터학부',
+    kind: '글 없음',
+    design: 'gray-400(#99A1AF)',
+    screen: '화면에 없음',
+    why: '같은 범위를 뒤의 화면은 ›로, 모달은 ·로 그렸다. 서버가 주는 한 벌을 그대로 쓴다.',
+  },
 ]

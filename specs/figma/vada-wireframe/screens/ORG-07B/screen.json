@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-07B",
+  "meta": {
+    "eyebrow": "조직 관리",
+    "title": "학생 명단 업로드·갱신"
+  },
+  "overlay": {
+    "screenId": "ORG-07A",
+    "source": "30:5855"
+  },
+  "activeNavigationScreenId": "ORG-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:5619",
+    "name": "조직 관리 · ORG-07B · 학생 명단 업로드·갱신 모달",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:5858",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "학생 명단 업로드·갱신",
+        "descriptionField": "path",
+        "dataSourceKey": "org.rosterScope"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5863",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "닫기",
+        "labelHidden": true,
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ORG-07A"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5867",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "steps",
+        "items": [
+          {
+            "key": "upload",
+            "label": "파일 업로드"
+          },
+          {
+            "key": "verify",
+            "label": "검증 결과"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5880",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "보유한 학생 명단 파일을 바로 업로드하세요.",
+        "description": "필수 열: 이름 · 학번 · 단과대학 · 학부·학과 · 학년"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5886",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "rosterFile",
+        "label": "파일을 드래그하거나 클릭하여 업로드",
+        "placeholder": null,
+        "helperText": ".xlsx · .csv 형식 지원",
+        "initialValue": null,
+        "inputType": "file",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5895",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "학생회비 열이 포함되어 있어도 이 업로드에서는 반영하지 않습니다. 학생회비 상태는 별도 납부 명단에서 갱신합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5899",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "취소",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ORG-07A"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:5902",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "검증하기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "올린 파일의 검증 결과 단계가 아직 그려지지 않았습니다."
+        }
+      }
+    }
+  ]
+}

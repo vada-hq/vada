@@ -49,7 +49,9 @@ function listsOf(spec: ScreenSpec): ListSpec[] {
 // 날짜·시간 칸에는 role이 아예 없다. 브라우저마다 다르게 그리는 컨트롤이라
 // ARIA가 이름을 정해 두지 않았다(FIN-REQ-01의 '필요한 날짜'가 처음이다).
 // 없는 역할을 지어내 붙이면 화면이 실제로 그런 척하게 되므로, 그 칸은 라벨로 찾는다.
-const ROLELESS_INPUT_TYPES = new Set(['date', 'time', 'datetime-local'])
+// 파일 칸도 그렇다. <input type="file">은 브라우저가 '고르기' 조작으로 그리는
+// 것이라 글을 적는 칸이 아니고, ARIA에도 정해진 이름이 없다(ORG-07B가 처음이다).
+const ROLELESS_INPUT_TYPES = new Set(['date', 'time', 'datetime-local', 'file'])
 
 function roleOf(spec: FieldSpec) {
   if (spec.type === 'input') return spec.inputType === 'search' ? 'searchbox' : 'textbox'
@@ -207,11 +209,19 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       for (const item of stepSpec.items) {
         expect(within(holder).getByText(item.label)).toBeInTheDocument()
       }
-      const row = readObjectSource(
-        stepSpec.dataSourceKey,
-        resolveParams(stepSpec.params, { screenParams }),
-      )
-      const current = stepSpec.items.find((item) => item.key === String(row[stepSpec.currentField]))
+      // 지금 어느 단계인지를 서버가 알 수도 있고(구매 요청의 상태) 이 화면을 여는
+      // 동안에만 있을 수도 있다(파일을 올리고 결과를 보는 두 단계). 출처가 없으면
+      // 첫 단계에서 시작한다.
+      const currentKey =
+        stepSpec.dataSourceKey === undefined || stepSpec.currentField === undefined
+          ? stepSpec.items[0].key
+          : String(
+              readObjectSource(
+                stepSpec.dataSourceKey,
+                resolveParams(stepSpec.params, { screenParams }),
+              )[stepSpec.currentField],
+            )
+      const current = stepSpec.items.find((item) => item.key === currentKey)
       expect(current, `${screenId}의 현재 단계가 items에 있어야 함`).toBeDefined()
       expect(within(holder).getByText(current?.label ?? '')).toHaveAttribute(
         'aria-current',

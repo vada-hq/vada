@@ -31,6 +31,7 @@ import { ORG03CScreen } from './ORG03CScreen'
 import { ORG04Screen } from './ORG04Screen'
 import { ORG04BScreen } from './ORG04BScreen'
 import { ORG07AScreen } from './ORG07AScreen'
+import { ORG07BScreen } from './ORG07BScreen'
 import { ORG02Screen } from './ORG02Screen'
 import { finReq01, finRev01, finSup01, inv01, onb01, org01, org02, org03b } from '../spec/screens'
 import { readScopeDraft } from '../state/scopes'
@@ -208,6 +209,10 @@ export function ScreenRouter({
   }
   if (screenId === 'ORG-07A') {
     return <ORG07AScreen onNavigate={onNavigate} />
+  }
+  if (screenId === 'ORG-07B') {
+    // 모달이다. 뒤에 ORG-07A가 그대로 남는다(명세: overlay).
+    return <ORG07BScreen onNavigate={onNavigate} />
   }
   if (screenId === 'ORG-01') {
     return (
