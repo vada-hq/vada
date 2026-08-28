@@ -36,7 +36,7 @@
 - **스펙 체계 확장(2026-08-17)**: 화면 JSON에 선택적 `meta`(title·description·footerNote), select에 선택적 `disabledPlaceholder`(placeholder는 활성 문구), button에 선택적 `description`·`badge`, wireframe 단위 `flows.json` 카탈로그(단계=배열 위치, **단계별 label**, 한 화면은 한 흐름 — 뒤로 이동 판별에도 사용), 내비게이션 정합성 계약(미등록 이동=명시적 오류, element-types.md).
 - **스펙 체계 확장(2026-08-18, ORG-02 사이클)**: 요소 유형 `list`(추가·이름 수정·삭제하는 목록, `rootItem`이 있으면 트리), `action.submit` + wireframe 단위 `mutations.json` 카탈로그(경로·payloadScope·상태 문구), `onSuccess.navigate`·`scopeEvent`, 선택지 부연 설명 `options[].description`, 라벨 없는 select(`label` 선택 사항). 검증기는 목록의 참조·개수, 제출 계약 key, payloadScope와 scopeEvent의 스코프 정합을 교차 검사한다.
 - **스펙 체계 확장(2026-08-18, ORG-01 사이클)**: 요소 유형 `note`(다른 상태 스코프의 값을 읽어 표시)와 `group`(필드 묶음 + 제목·설명), `meta.eyebrow`, input·select의 `helperText`, `select.presentation`(dropdown·choiceGroup). 검증기는 note의 스코프·fieldKey 참조와 group의 멤버 존재·단일 소속을 교차 검사한다.
-- **테스트**: 계약 136, vada-web(vitest) 546 + Playwright e2e 176 — 전부 통과. 게이트는 두 앱을 **함께** 돌리고, 대조 검사가 SVG 391개를 번들러 대신 디스크에서 읽는다(벽시계 34~50초). e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이다(`apps/vada-web`에서 `npm run e2e`).
+- **테스트**: 계약 136, vada-web(vitest) 553 + Playwright e2e 176 — 전부 통과. **게이트 전체가 약 1분 45초다**(e2e 60초). 게이트는 두 앱을 **함께** 돌리고, 대조 검사가 SVG 391개를 번들러 대신 디스크에서 읽는다. e2e는 AI가 직접 실행·스크린샷 판독하는 시각 검증 1차 수단이고, 이제 개발 서버가 아니라 **내보낼 묶음**을 친다.
 - **요소 유형 레지스트리 단일화(2026-08-18)**: 검증기의 요소 스키마 목록은 이제 `screen.schema.json`의 `spec.type` enum에서 파생된다. enum에 있는데 스키마 파일이 없으면 기동 실패, 검증기가 모르는 유형은 **오류**다(과거에는 조용히 통과했다). 검증기 기동이 그 일치를 강제한다(플러그인이 사라지며 `element-type-registry.test.mjs`는 지웠다 — 검사하던 대상의 절반이 플러그인 쪽이었다).
 - **추출기가 화면을 보는 눈(2026-08-24)**: 초안 재현율을 **36/67 → 41/67(61%)**, 헛것(등록되지 않은 것을 뽑음)을 **41 → 19개**로 고쳤다. 막혔던 네 곳이다.
   - **이름표 없는 것을 못 봤다**: 필드는 직계 자식에 `Label` 노드를, 목록은 묶음 제목을 요구했다. 목록 화면의 검색칸(EVT-00A `20:4153`)과 카드 목록(`20:4167`)이 통째로 안 보여 초안에 버튼 4개만 나왔다. 라벨 없이 홀로 선 컨트롤과 제목 없는 되풀이를 각각 길로 냈다. 라벨은 그려진 문구에서 짐작하고 **짐작임을 질문으로 알린다.**
@@ -251,20 +251,72 @@ ORG-00의 카드 셋은 지금 전부 pending이다. 각 대상이 명세되면 
   원인 미상. 반증한 것: CI 환경변수, 연속 6회 반복, 동시 실행 2개, CPU 부하,
   차가운 Vite 캐시, vitest 중복 설치, 훅 타임아웃.
 
+## 게이트가 빨라졌다 (2026-08-28)
+
+**10분 → 1분 46초.** e2e가 4.9분에서 60초가 됐다.
+
+원인은 갈라 주는 방식이 아니었다(`fullyParallel`을 켜도 4.9분 그대로였다).
+개발 서버가 화면을 열 때마다 모듈 2,700개를 따로 내주는 것이었고, 검사는
+화면을 176번 여는 일이다. 이제 **내보낼 묶음을 친다**(`E2E_PREVIEW=1`).
+
+빌드는 `scripts/run-e2e.mjs` 안에서 한다 — 부르는 쪽에 맡기면 언젠가 낡은
+묶음을 치고 초록불이 뜬다. `npm run check`는 이제 test → validate → e2e다
+(빌드가 e2e 안에 있다). 개발 서버를 치고 싶으면 `npm run e2e:dev`.
+
+화면 목록(DevScreenPicker)은 개발 빌드에만 있어 이 갈래에서 깨졌다. 지우는
+대신 반대쪽을 물었다 — **내보낼 묶음에 그것이 없다는 것**을 이제 검사가 안다.
+
+## design이 말하는 것을 그리기 전에 묻는다 (2026-08-28)
+
+```
+npm run design OPS-MEET-02
+```
+
+등록 노드마다 design이 그려 둔 글·글자 색·글자 굵기·배경색·테두리색과
+그림이 놓인 자리를 **Tailwind 유틸리티 이름 그대로** 낸다. ORG-00에 물어보니
+손으로 옮겨 적었던 것을 그대로 재현했다(아이콘 노드 id까지).
+
+지금까지 이 앎은 다 그린 뒤에 세는 데만 썼다. 그래서 화면마다 눈으로 옮겨
+적고 → 게이트가 틀린 자리를 알려주고 → 고치는 되돌이가 있었다.
+
+**자리·크기·여백은 말하지 않는다.** 대조가 보지 않는 것을 말하면 명세가 아니라
+도구가 표현을 정하게 된다.
+
+판정은 `src/design-check/expectations.ts`에 있고 노드 목록은 대조와 같은
+함수에서 온다(`registeredNodeIds`). CLI(`scripts/design-expect.mjs`)는 TS
+실행기가 따로 없어 vite의 로더를 빌려 쓴다.
+
+## 렌더러는 만들지 않기로 했다 (2026-08-28)
+
+명세를 읽어 화면을 통째로 그리는 렌더러를 재 봤다. 화면 38개에 요소 282개인데
+유형은 10개뿐이고 넷이 87%라 될 것 같았다.
+
+세어 보니 아니었다 — 화면 코드 10,718줄에 `className`이 1,015번, 서로 다른
+값이 **540개**다. 되풀이는 배선에 있고 부피는 모양에 있으며, 모양은 화면마다
+진짜로 다르다(design 대조가 그 다름을 강제한다). 렌더러가 걷어낼 수 있는 것은
+배선뿐이고 그것은 부피가 아니다.
+
+Server-Driven UI의 큰 값은 **모양이 디자인 시스템으로 고정된** 곳에서 나온다.
+여기는 와이어프레임이 화면마다 다른 모양을 그린다. 조건이 다르다.
+
 ## 확인 명령
 
 저장소 루트에 스크립트 모음이 있다(워크스페이스로 묶지는 않았다 — 각 앱이 자기 node_modules를 유지한다).
 
 ```powershell
 Set-Location 'C:\Users\82108\figma-spec-v2'
-npm run check     # test(3개 앱) + validate + e2e + build 일괄
+npm run check     # test + validate + e2e(빌드 포함) 일괄 — 약 1분 45초
 
 # 개별 실행
 npm test          # spec-service → vada-web
                   # 실패하면 전체 출력이 .test-last.log에 남는다(추적용, git 제외)
 npm run validate  # 명세 검증 CLI
-npm run e2e       # Playwright(스크린샷은 apps/vada-web/e2e/shots)
+npm run e2e       # 빌드 → Playwright가 내보낼 묶음을 친다(약 60초)
+npm run e2e:dev   # 개발 서버를 친다(느리다. 개발 전용 화면을 볼 때만)
 npm run build
+
+# 그리기 전에 design에게 묻는다 — 색·굵기·그림 자리를 Tailwind 이름으로
+npm run design OPS-MEET-02
 
 # 특정 화면만 바로 열기 — 화면의 주소는 screenId다
 #   http://localhost:5173/#/TASK-01
