@@ -219,7 +219,12 @@
           "type": "submit",
           "mutationKey": "finance.purchaseRequest.completeEvidence",
           "onSuccess": {
-            "navigate": "FIN-REQ-02"
+            "navigate": "FIN-REQ-02",
+            "params": {
+              "requestId": {
+                "screenParam": "requestId"
+              }
+            }
           },
           "executeWhen": {
             "type": "sourceAllows",

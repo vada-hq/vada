@@ -140,6 +140,29 @@ describe('화면이 자기 명세를 지킨다', () => {
     },
   )
 
+  // 보내고 이동하면서 넘기는 인자. **화면이 손으로 적으면 안 된다** — 명세만
+  // 읽고 화면을 만드는 사람은 그 인자를 넘겨야 한다는 사실을 알 수 없다.
+  // 실제로 다섯 자리가 그렇게 살고 있었다(FIN-EVID-01·REV-01·SUP-01·REQ-01).
+  const carrying = ALL_SCREENS.filter((screen) =>
+    allSpecsOf(screen).some((spec) =>
+      actionsOf(spec).some(
+        (action) =>
+          action.type === 'submit' &&
+          (action as { onSuccess?: { params?: unknown } }).onSuccess?.params !== undefined,
+      ),
+    ),
+  )
+
+  it.each(carrying.map((screen) => screen.screenId))(
+    '%s: 보내고 넘길 인자를 명세에서 읽는다',
+    (screenId) => {
+      const source = sourceOf(screenId)
+      expect(source).toMatch(/paramSources/)
+      // 손으로 적던 옛 자리가 남아 있으면 두 곳이 갈린다.
+      expect(source).not.toMatch(/navigateParams/)
+    },
+  )
+
   // onSuccess.note도 '아직 정해지지 않았다'를 말한다 — 다만 누르기 전이 아니라
   // **보내고 난 뒤**의 자리다. 적어만 두고 아무도 안 보여주면 명세에만 있는
   // 사실이 되고, 사람은 보내고 나서 아무 일도 안 일어나는 것을 본다.

@@ -538,6 +538,11 @@
           "mutationKey": "finance.purchaseRequest.submit",
           "onSuccess": {
             "navigate": "EVT-FIN-01",
+            "params": {
+              "eventId": {
+                "screenParam": "eventId"
+              }
+            },
             "scopeEvent": "complete"
           },
           "executeWhen": {

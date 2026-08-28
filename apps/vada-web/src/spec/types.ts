@@ -90,7 +90,14 @@ export interface SubmitAction extends ExecutionGate {
   mutationKey: string
   // note는 '보내고 나면 어디로 가는지 아직 안 정했다'를 적는 자리다.
   // 비어 있는 onSuccess는 '보내고 머문다'는 뜻이므로 둘이 구별된다.
-  onSuccess: { navigate?: string; note?: string; scopeEvent?: 'complete' | 'cancel' }
+  onSuccess: {
+    navigate?: string
+    // 이동하면서 넘기는 인자. 명세가 무엇을 넘길지 말하고 화면은 그 값이 어디
+    // 있는지만 알려 준다 - 화면이 직접 적으면 명세만 읽는 사람은 모른다.
+    params?: QueryParams
+    note?: string
+    scopeEvent?: 'complete' | 'cancel'
+  }
 }
 
 // 누르면 무엇이 일어나는지 아직 정해지지 않았다. 대상 화면 id를 지어내는

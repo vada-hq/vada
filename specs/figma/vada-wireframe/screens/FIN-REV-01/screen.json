@@ -323,6 +323,11 @@
           "mutationKey": "finance.purchaseRequest.sendReview",
           "onSuccess": {
             "navigate": "FIN-REQ-02",
+            "params": {
+              "requestId": {
+                "screenParam": "requestId"
+              }
+            },
             "scopeEvent": "complete"
           },
           "executeWhen": {

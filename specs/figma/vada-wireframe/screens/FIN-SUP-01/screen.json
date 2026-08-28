@@ -218,6 +218,11 @@
           "mutationKey": "finance.purchaseRequest.saveSupplement",
           "onSuccess": {
             "navigate": "FIN-REQ-02",
+            "params": {
+              "requestId": {
+                "screenParam": "requestId"
+              }
+            },
             "scopeEvent": "cancel"
           }
         }
@@ -239,6 +244,11 @@
           "mutationKey": "finance.purchaseRequest.resubmitSupplement",
           "onSuccess": {
             "navigate": "FIN-REQ-02",
+            "params": {
+              "requestId": {
+                "screenParam": "requestId"
+              }
+            },
             "scopeEvent": "complete"
           },
           "executeWhen": {

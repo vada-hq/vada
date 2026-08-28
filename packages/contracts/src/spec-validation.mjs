@@ -1237,6 +1237,33 @@ function checkCopyAction(findings, context) {
 //
 // 스키마(ajv)도 같은 것을 막지만 여기서도 본다 - 스키마는 파일을 통째로 읽을 때만
 // 돌고, 이 검사는 명세 조각만 들고도 돈다.
+// 보내고 나서 가는 화면이 인자를 필수로 받는데 아무도 주지 않으면, 그 화면은
+// 열리자마자 '무엇의 상세인지 정하지 않고 열렸습니다'만 그린다. 다섯 자리가
+// 그렇게 조용히 깨져 있었다 — onSuccess에 인자를 실을 자리가 아예 없었기 때문이다.
+function checkOnSuccessParams(findings, context) {
+  const { file, element, index, screens } = context;
+  const action = element.spec?.action;
+  const onSuccess = action?.onSuccess;
+  if (!isObject(onSuccess) || typeof onSuccess.navigate !== "string") {
+    return;
+  }
+  const target = screens.find((screen) => screen.spec?.screenId === onSuccess.navigate);
+  if (!target) {
+    return;
+  }
+  const given = new Set(Object.keys(isObject(onSuccess.params) ? onSuccess.params : {}));
+  for (const param of Array.isArray(target.spec?.params) ? target.spec.params : []) {
+    if (param?.optional === true || given.has(param?.key)) {
+      continue;
+    }
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}가 보내고 나서 '${onSuccess.navigate}'로 가는데 그 화면이 필수로 받는 인자 '${param?.key}'를 아무도 주지 않습니다.`
+    });
+  }
+}
+
 function checkOnSuccessNote(findings, context) {
   const { file, element, index } = context;
   const onSuccess = element.spec?.action?.onSuccess;
@@ -2155,6 +2182,8 @@ export function collectSpecFindings({
         clearOnByScope,
         // 갈림길이 가리킨 화면이 실제로 있는지 보려면 화면 목록이 필요하다.
         screenIds,
+        // 보내고 나서 가는 화면이 무엇을 필수로 받는지 보려면 그 명세가 필요하다.
+        screens,
         screenScopeKey: spec.stateScopeKey,
         // 이 화면이 밖에서 받는 인자. 상세 화면만 갖는다.
         screenParams: new Set(
@@ -2218,6 +2247,7 @@ export function collectSpecFindings({
       if (spec_.type === "select") {
         checkOptionCounts(findings, context);
       }
+      checkOnSuccessParams(findings, context);
       checkOnSuccessNote(findings, context);
       checkBranchingTargets(findings, context);
       checkFieldReferences(findings, context);

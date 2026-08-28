@@ -161,7 +161,9 @@ export function FINEVID01Screen({ screenParams, onNavigate }: FINEVID01ScreenPro
     void submitAction.run(complete.action, {
       payload: { requestId: screenParams.requestId ?? '' },
       onNavigate,
-      navigateParams: { requestId: screenParams.requestId ?? '' },
+      // 무엇을 넘길지는 명세가 말한다(onSuccess.params). 화면은 그 값이
+      // 어디 있는지만 알려 준다.
+      paramSources: { screenParams },
     })
   }
 

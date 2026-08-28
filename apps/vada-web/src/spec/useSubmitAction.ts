@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import type { DataRow } from '../data-sources/catalog'
+import { resolveParams } from './params'
 import { getMutation, runMutation } from './mutations'
 import type { SubmitAction } from './types'
 
@@ -22,8 +24,18 @@ export interface SubmitRunOptions {
   /** 보낼 값. 무엇을 보낼지는 화면이 안다(계약은 mutations.json이 갖는다). */
   payload: unknown
   onNavigate: (screenId: string, params?: Record<string, string>) => void
-  /** 도착 화면이 요구하는 인자. */
-  navigateParams?: Record<string, string>
+  /**
+   * 넘길 인자를 **명세에서** 읽을 때 그 값들이 어디 있는지.
+   *
+   * 예전에는 화면이 `navigateParams`로 직접 적었다 — 그러면 명세만 읽고 화면을
+   * 만드는 사람은 그 인자를 넘겨야 한다는 사실을 알 수 없다. 다섯 자리가 그렇게
+   * 명세에 없는 배선을 갖고 있었다.
+   */
+  paramSources?: {
+    screenParams?: Record<string, string>
+    fields?: Record<string, string | null>
+    row?: DataRow
+  }
   /** onSuccess.scopeEvent가 있는 명세에는 반드시 있어야 한다. */
   onScopeEvent?: (scopeKey: string, event: 'complete' | 'cancel') => void
 }
@@ -84,7 +96,10 @@ export function useSubmitAction(): SubmitActionState {
       options.onScopeEvent!(mutation.payloadScope, action.onSuccess.scopeEvent)
     }
     if (action.onSuccess.navigate !== undefined) {
-      options.onNavigate(action.onSuccess.navigate, options.navigateParams)
+      options.onNavigate(
+        action.onSuccess.navigate,
+        resolveParams(action.onSuccess.params, options.paramSources ?? {}),
+      )
       return
     }
     // 갈 곳이 아직 정해지지 않았다고 명세가 적어 두었으면 그 글을 내놓는다.

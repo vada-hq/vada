@@ -258,6 +258,10 @@
               "type": "string",
               "minLength": 1
             },
+            "params": {
+              "$ref": "element-params.schema.json#/$defs/argument",
+              "description": "이동하면서 대상 화면에 넘기는 인자. navigate와 함께만 쓴다.\n\n**이것이 없어서 다섯 자리가 조용히 깨져 있었다** — FIN-EVID-01·FIN-REV-01·FIN-SUP-01이 보내고 나서 FIN-REQ-02로 가는데 그 화면은 requestId를 필수로 받고, FIN-REQ-01은 EVT-FIN-01로 가는데 그 화면은 eventId를 필수로 받는다. 인자 없이 열리면 '무엇의 상세인지 정하지 않고 열렸습니다'만 뜬다."
+            },
             "note": {
               "type": "string",
               "minLength": 1,
