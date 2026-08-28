@@ -54,6 +54,33 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "meetingDraft",
+      "description": "회의 생성·수정 입력 초안(OPS-MEET-02). 제출과 임시 저장이 같은 이것을 보낸다 — 보내는 곳이 다를 뿐 보내는 것은 같다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "meetingCancelDraft",
+      "description": "회의 취소 사유(OPS-MEET-D04). 칸 하나짜리 스코프인 것이 과해 보이지만, 지금 어휘에서 값을 실어 보내는 길은 payloadScope뿐이다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "meetingMinutesDraft",
+      "description": "회의록 정리 입력(OPS-MEET-06B의 결정사항과 두 체크). **저장 시점을 그림이 말하지 않는다** — 저장 단추가 없다. 자동 저장인지 '정리 완료'가 한꺼번에 보내는지 모른다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

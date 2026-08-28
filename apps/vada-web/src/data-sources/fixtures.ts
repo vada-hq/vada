@@ -187,6 +187,7 @@ const MEETING_GROUPS: DataRow[] = [
     nextMeetingNote: '가장 가까운 회의: 07.22 (수) 18:00',
     meetings: [
       {
+        meetingId: 'MTG-01',
         title: '7월 예산 검토회의',
         status: '완료',
         statusTone: 'gray',
@@ -204,6 +205,7 @@ const MEETING_GROUPS: DataRow[] = [
         viewerChipTone: '',
       },
       {
+        meetingId: 'MTG-02',
         title: '학생회 정기 운영회의',
         status: '예정',
         statusTone: 'blue',
@@ -221,6 +223,7 @@ const MEETING_GROUPS: DataRow[] = [
         viewerChipTone: '',
       },
       {
+        meetingId: 'MTG-03',
         title: '회장단 비공개 안건 조율',
         status: '예정',
         statusTone: 'blue',
@@ -245,6 +248,7 @@ const MEETING_GROUPS: DataRow[] = [
     nextMeetingNote: '가장 가까운 회의: 07.18 (토) 10:00',
     meetings: [
       {
+        meetingId: 'MTG-04',
         title: '체육대회 운영 점검 회의',
         status: '진행 중',
         statusTone: 'green',
@@ -262,6 +266,7 @@ const MEETING_GROUPS: DataRow[] = [
         viewerChipTone: '',
       },
       {
+        meetingId: 'MTG-05',
         title: '안전 관리 최종 회의',
         status: '예정',
         statusTone: 'blue',
@@ -285,6 +290,7 @@ const MEETING_GROUPS: DataRow[] = [
     nextMeetingNote: '가장 가까운 회의: 07.15 (수) 16:00',
     meetings: [
       {
+        meetingId: 'MTG-06',
         title: '신입생 환영 행사 기획회의',
         status: '정리 중',
         statusTone: 'yellow',
@@ -308,6 +314,7 @@ const MEETING_GROUPS: DataRow[] = [
     nextMeetingNote: '가장 가까운 회의: 08.05 (수) 13:00',
     meetings: [
       {
+        meetingId: 'MTG-07',
         title: '가을 축제 1차 준비회의',
         status: '취소',
         statusTone: 'red',
@@ -1918,6 +1925,234 @@ const DUES_BY_STATUS: Record<string, string> = {
   check: '확인 필요',
 }
 
+// -- 회의 한 건 --------------------------------------------------------------
+//
+// 와이어프레임이 상세를 그린 회의는 셋이다: 안전 관리 최종 회의(MTG-05, 03·05·07·08),
+// 신입생 환영 행사 기획회의(MTG-06, 06A), 가을 축제 1차 준비회의(MTG-07, 09가 그린
+// 취소된 회의). 목록의 일곱과 같은 id를 쓴다 - 줄을 누르면 그 회의로 가야 한다.
+//
+// **조각이 상태마다 다르다.** 예정 회의에 startedAt이 없고 취소된 회의에만
+// cancelReason이 있다. 명세가 출처 하나로 두고 없는 것은 안 보내기로 한 그대로다.
+
+const MEETING_DETAIL: Record<string, DataRow> = {
+  'MTG-05': {
+    title: '체육대회 안전 관리 최종 회의',
+    description: '행사 전 안전 점검 결과를 공유하고 당일 대응 절차를 확정합니다.',
+    status: '예정',
+    statusTone: 'blue',
+    kindLabel: '행사 관련 회의',
+    kindTone: 'violet',
+    eventTitle: '2026 소프트웨어융합대학 체육대회',
+    eventId: 'EVT-2026-SPORTS',
+    creatorNote: '박해랑 · 운영부',
+    updatedNote: '2026.07.17 18:42 수정',
+    scheduledAt: '2026.07.25 15:00',
+    plannedDurationNote: '1시간 30분',
+    place: '학생회실 (A204)',
+    inviteeCountNote: '4명',
+    viewerTitle: '일반 참가자 화면',
+    viewerNote: '회의 정보를 확인할 수 있지만 회의를 시작하거나 설정을 변경할 수 없습니다.',
+    viewerChipLabel: '',
+    viewerChipTone: '',
+    stateBannerTitle: '아직 회의가 시작되지 않았습니다',
+    stateBannerNote:
+      '회의가 시작되면 목록과 이 화면의 버튼이 회의 참가로 변경됩니다. 이 화면을 확인한 것은 참석으로 기록되지 않습니다.',
+    stateBannerTone: 'info',
+    canStart: '',
+    canEnd: '',
+    canEdit: '',
+    canCancel: '',
+    canManageHostRole: '',
+    canEditMinutes: '',
+    agendaCountNote: '총 3개 · 예상 60분',
+    materialCountNote: '등록 자료 3개',
+    participantCountNote: '초대 4명 · 진행 권한 2명',
+  },
+  'MTG-06': {
+    title: '신입생 환영 행사 기획회의',
+    description: '환영 행사의 진행 순서와 부서별 역할을 정리합니다.',
+    status: '정리 중',
+    statusTone: 'yellow',
+    minutesStatus: '작성 중',
+    minutesStatusTone: 'yellow',
+    kindLabel: '행사 관련 회의',
+    kindTone: 'violet',
+    creatorNote: '이수현 · 기획부',
+    scheduledAt: '2026.07.15 16:00',
+    place: '온라인 (Discord)',
+    inviteeCountNote: '10명',
+    viewerTitle: '일반 참가자 화면',
+    viewerNote: '현재 내용은 진행 권한자가 수정할 수 있습니다.',
+    viewerChipLabel: '15:07 참석',
+    viewerChipTone: 'gray',
+    stateBannerTitle: '회의록을 정리하고 있습니다',
+    stateBannerNote: '정리가 끝나면 참석자에게 최종 회의록이 전달됩니다.',
+    stateBannerTone: 'warning',
+    canStart: '',
+    canEnd: '',
+    canEdit: '',
+    canCancel: '',
+    canManageHostRole: '',
+    canEditMinutes: '',
+    actualTimeNote: '2026.07.15 16:00-17:18',
+    attendanceResultNote: '8명 참석 · 2명 불참',
+    agendaCountNote: '총 5개',
+  },
+  'MTG-07': {
+    title: '가을 축제 1차 준비회의',
+    description: '축제 부스 배치와 예산 배분을 논의할 예정이었습니다.',
+    status: '취소',
+    statusTone: 'red',
+    creatorNote: '김바다 · 기획부',
+    scheduledAt: '2026.08.05 13:00',
+    place: '미정',
+    inviteeCountNote: '15명',
+    viewerTitle: '일반 참가자 화면',
+    viewerNote: '취소된 회의는 기록으로만 남습니다.',
+    viewerChipLabel: '',
+    viewerChipTone: '',
+    stateBannerTitle: '이 회의는 취소되었습니다',
+    stateBannerNote: '일정 조율이 어려워 취소되었고, 대체 회의가 만들어졌습니다.',
+    stateBannerTone: 'danger',
+    canStart: '',
+    canEnd: '',
+    canEdit: '',
+    canCancel: '',
+    canManageHostRole: '',
+    canEditMinutes: '',
+    cancelReason: '행사 주관 부서의 일정이 겹쳐 참석 가능한 인원이 절반에 못 미쳤습니다.',
+    cancelledByNote: '김바다 · 기획부',
+    cancelledAtNote: '2026.07.29 11:20',
+    replacementNote: '새로운 일정을 조율한 뒤 가을 축제 운영 방향 회의가 생성되었습니다.',
+    replacementMeetingId: 'MTG-08',
+  },
+}
+
+const MEETING_AGENDAS: Record<string, DataRow[]> = {
+  'MTG-05': [
+    {
+      agendaId: 'AG-05-1',
+      orderLabel: '안건 1',
+      title: '행사장 안전 점검 결과',
+      description: '사전 점검에서 확인한 위험 구간과 조치 계획을 공유합니다.',
+      durationNote: '20분',
+      status: '대기',
+      statusTone: 'gray',
+    },
+    {
+      agendaId: 'AG-05-2',
+      orderLabel: '안건 2',
+      title: '당일 안전 대응 절차',
+      description: '사고 발생 시 연락 체계와 대응 순서를 정합니다.',
+      durationNote: '25분',
+      status: '대기',
+      statusTone: 'gray',
+    },
+    {
+      agendaId: 'AG-05-3',
+      orderLabel: '안건 3',
+      title: '행사 당일 안전 인력 배치',
+      description: '구간별 인력 수와 교대 시간을 확정합니다.',
+      durationNote: '15분',
+      status: '대기',
+      statusTone: 'gray',
+    },
+  ],
+  'MTG-06': [
+    {
+      agendaId: 'AG-06-1',
+      orderLabel: '안건 1',
+      title: '환영 행사 진행 순서',
+      description: '식순과 각 순서의 담당을 정합니다.',
+      status: '정리됨',
+      statusTone: 'green',
+      summaryLine: '환영 인사, 학과 소개, 아이스브레이킹, 부서별 교류 순으로 진행합니다.',
+      decisionText: '식순을 네 마디로 확정하고 각 마디의 담당 부서를 정했습니다.',
+    },
+    {
+      agendaId: 'AG-06-2',
+      orderLabel: '안건 2',
+      title: '부서별 역할 분담',
+      status: '정리됨',
+      statusTone: 'green',
+      summaryLine: '기획부가 사회를, 운영부가 현장 진행을 맡습니다.',
+      decisionText: '기획부 사회 · 운영부 현장 진행으로 나눕니다.',
+    },
+    {
+      agendaId: 'AG-06-3',
+      orderLabel: '안건 3',
+      title: '예산 집행 계획',
+      status: '정리 중',
+      statusTone: 'yellow',
+      summaryLine: '다과와 현수막 비용을 나눠 잡기로 했습니다.',
+      decisionEmptyNote:
+        '아직 결정사항이 정리되지 않았습니다. 오른쪽 패널에서 작성하거나 결정사항 없음을 선택하세요.',
+    },
+  ],
+}
+
+const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
+  'MTG-05': [
+    {
+      memberId: 'M-01',
+      name: '박해랑',
+      departmentNote: '운영부 · 회의 참가자',
+      chips: [
+        { label: '회의 생성자', tone: 'violet' },
+        { label: '진행 권한', tone: 'blue' },
+      ],
+      capabilityNote: '시작·종료 가능',
+    },
+    {
+      memberId: 'M-02',
+      name: '정하늘',
+      departmentNote: '운영부 · 회의 참가자',
+      chips: [{ label: '진행 권한', tone: 'blue' }],
+      capabilityNote: '시작·종료 가능',
+      actionLabel: '권한 해제',
+      actionEmphasis: 'secondary',
+      actionEnabled: 'y',
+    },
+    {
+      memberId: 'M-03',
+      name: '이수현',
+      departmentNote: '기획부 · 회의 참가자',
+      chips: [],
+      capabilityNote: '일반 참가자',
+      actionLabel: '진행 권한 부여',
+      actionEmphasis: 'primary',
+      actionEnabled: 'y',
+    },
+    {
+      memberId: 'M-04',
+      name: '김민준',
+      departmentNote: '재정부 · 회의 참가자',
+      chips: [],
+      capabilityNote: '일반 참가자',
+      actionLabel: '진행 권한 부여',
+      actionEmphasis: 'primary',
+      actionEnabled: 'y',
+    },
+  ],
+}
+
+const MEETING_CANDIDATES: DataRow[] = [
+  { memberId: 'M-01', name: '박해랑', departmentNote: '운영부', alreadyAdded: 'y' },
+  { memberId: 'M-02', name: '정하늘', departmentNote: '운영부', alreadyAdded: 'y' },
+  { memberId: 'M-03', name: '이수현', departmentNote: '기획부', alreadyAdded: 'y' },
+  { memberId: 'M-04', name: '김민준', departmentNote: '재정부', alreadyAdded: 'y' },
+  { memberId: 'M-05', name: '이윤슬', departmentNote: '기획부' },
+  { memberId: 'M-06', name: '김바다', departmentNote: '기획부' },
+]
+
+const MEETING_DOCUMENTS: Record<string, DataRow[]> = {
+  'MTG-05': [
+    { documentId: 'DOC-1', name: '체육대회_안전점검표.pdf', agendaId: 'AG-05-1' },
+    { documentId: 'DOC-2', name: '대응절차_초안.docx', agendaId: 'AG-05-2' },
+    { documentId: 'DOC-3', name: '인력배치_안.xlsx', agendaId: 'AG-05-3' },
+  ],
+}
+
 export const FILTERED_FIXTURES: Record<
   string,
   (params: Record<string, string>) => DataRow[]
@@ -1950,6 +2185,97 @@ export const FILTERED_FIXTURES: Record<
       .map((task) => task.row),
   // 검색은 묶음이 아니라 회의를 거른다. 남는 회의가 없는 묶음은 통째로 사라진다 —
   // 빈 묶음 머리만 남으면 '총 0건'이 줄줄이 보인다.
+  // 회의 한 건. 인자가 가리킨 회의가 없으면 빈 것을 돌려준다 - 조용히 다른
+  // 회의를 대신 보여주면 사람이 남의 회의를 자기 것으로 읽는다.
+  'meeting.detail': ({ meetingId = '' }) => {
+    const row = MEETING_DETAIL[meetingId]
+    return row === undefined ? [] : [row]
+  },
+  'meeting.agendas': ({ meetingId = '' }) => MEETING_AGENDAS[meetingId] ?? [],
+  // 참가자는 03·05·07의 목록과 04B의 권한 관리가 같은 사람들이다. 검색은 04B만
+  // 쓰지만 출처가 하나이므로 여기서 함께 거른다.
+  'meeting.participants': ({ meetingId = '', query = '' }) =>
+    (MEETING_PARTICIPANTS[meetingId] ?? []).filter((row) => matchesQuery(row, query)),
+  'meeting.documents': ({ meetingId = '' }) => MEETING_DOCUMENTS[meetingId] ?? [],
+  // 후속 업무는 와이어프레임이 빈 상태만 그렸다. 지어내지 않는다.
+  'meeting.followUps': () => [],
+  'meeting.minutes': ({ meetingId = '' }) =>
+    meetingId === 'MTG-06'
+      ? [
+          {
+            statusLabel: '정리 중 · 변경될 수 있음',
+            statusTone: 'yellow',
+            aiDisclaimer:
+              'AI 초안은 안건별 논의·결정 기록만 재구성하며, 기록에 없는 결정·담당자·기한을 새로 만들지 않습니다. 요약이 없어도 정리 완료가 막히지는 않습니다.',
+          },
+        ]
+      : [],
+  'meeting.minutesProgress': ({ meetingId = '' }) =>
+    meetingId === 'MTG-06'
+      ? [
+          {
+            requiredDoneNote: '필수 2 / 4',
+            blockedNote: '안건별 필수 정리를 완료해 주세요',
+            canComplete: '',
+            conditions: [
+              { label: '안건별 논의 내용', done: 'y', optional: '' },
+              { label: '결정사항 또는 없음 표시', done: '', optional: '' },
+              { label: '후속 업무 또는 없음 표시', done: '', optional: '' },
+              { label: '참가 결과', done: 'y', optional: '' },
+              { label: '회의 전체 요약', done: '', optional: 'y' },
+            ],
+          },
+        ]
+      : [],
+  // 권한 안내는 04B의 띠와 D03의 확인 글이 나눠 쓴다.
+  'meeting.permissionNotice': ({ meetingId = '' }) =>
+    MEETING_DETAIL[meetingId] === undefined
+      ? []
+      : [
+          {
+            title: '이 회의에만 적용되는 권한입니다',
+            grantNote:
+              '진행 권한자는 회의 시작·종료, 안건 진행, 결정 기록과 회의록 정리를 할 수 있습니다.',
+            limitNote:
+              '회의 수정·취소와 다른 참가자의 권한 변경은 회의 생성자만 할 수 있습니다.',
+            ruleChipLabel: '최소 1명 유지',
+            ruleChipTone: 'gray',
+            summaryNote: '현재 진행 권한자 2명 · 일반 참가자 2명',
+          },
+        ],
+  'meeting.startConfirm': () => [
+    {
+      warningNote:
+        '예정 시간보다 7일 이른 시각입니다. 잘못 시작한 것은 아닌지 확인해 주세요.',
+    },
+  ],
+  'meeting.endConfirm': () => [
+    { warningNote: '미완료 안건 1개 · 참석 3명 · 미참가 1명' },
+  ],
+  // 제목에 사람 이름이 박혀 있으므로 서버가 완성해 준다.
+  'meeting.hostGrantConfirm': ({ meetingId = '', memberId = '' }) => {
+    const person = (MEETING_PARTICIPANTS[meetingId] ?? []).find(
+      (row) => row.memberId === memberId,
+    )
+    return person === undefined
+      ? []
+      : [
+          {
+            title: `${String(person.name)}에게 진행 권한을 부여할까요?`,
+            grantNote:
+              '이 회의에서 회의 시작·종료, 안건 진행, 의사결정 기록과 회의록 정리를 할 수 있게 됩니다.',
+            limitNote:
+              '회의 수정·취소와 다른 참가자의 권한 변경은 할 수 없습니다.',
+          },
+        ]
+  },
+  // 회의를 새로 쓸 때는 서버가 아는 것만 채워 온다.
+  'meeting.draft': ({ meetingId = '' }) =>
+    meetingId === ''
+      ? [{ hostName: '박해랑', statusLabel: '예정' }]
+      : [{ hostName: '박해랑', statusLabel: '예정', title: MEETING_DETAIL[meetingId]?.title ?? '' }],
+  'meeting.memberCandidates': ({ query = '' }) =>
+    MEETING_CANDIDATES.filter((row) => matchesQuery(row, query)),
   'meeting.groups': ({ query = '' }) =>
     MEETING_GROUPS.map((group) => ({
       ...group,

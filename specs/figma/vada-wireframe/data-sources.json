@@ -586,6 +586,10 @@
           "description": "이 묶음에 든 회의들.",
           "fields": [
             {
+              "key": "meetingId",
+              "description": "이 회의를 가리키는 값. 줄을 누르면 상세로 넘길 인자다 — 01A의 이동이 pending이던 동안에는 필요가 없었다."
+            },
+            {
               "key": "title",
               "description": "회의 이름. 예: 학생회 정기 운영회의"
             },
@@ -3252,6 +3256,886 @@
         {
           "key": "pageCount",
           "description": "쪽이 몇 개인지"
+        }
+      ]
+    },
+    {
+      "key": "meeting.detail",
+      "shape": "object",
+      "description": "회의 한 건. **03·05·06·07·08·09가 전부 이것을 읽는다.** 상태마다 출처를 가르지 않는다 — 가르면 화면이 '지금 어느 단계인가'를 알아야 하고, 그것은 명세가 상태를 아는 것이 된다. 그 단계에 없는 조각은 오지 않으면 된다(meeting.groups의 badge와 같은 규칙).\n\n와이어프레임 16장을 한꺼번에 읽고 정했다. 하나씩 열어 가며 정했으면 네 번째 화면에서 갈라졌을 자리다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}"
+      },
+      "messages": {
+        "loading": "회의를 불러오는 중입니다",
+        "empty": "회의를 찾을 수 없습니다",
+        "error": "회의를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "회의 이름. 제목·빵부스러기 마지막 마디·머리 카드가 같은 값을 쓴다. 예: 체육대회 안전 관리 최종 회의"
+        },
+        {
+          "key": "description",
+          "description": "회의 목적 한 줄. 취소된 회의에서는 과거형으로 온다 — 어느 시제로 쓸지는 서버가 상태를 보고 정한다"
+        },
+        {
+          "key": "status",
+          "description": "회의 상태를 알리는 말. **명세가 목록을 들지 않는다** — 조직 운영에 따라 는다. 예: 예정 · 진행 중 · 정리 중 · 완료 · 취소"
+        },
+        {
+          "key": "statusTone",
+          "description": "상태 딱지의 색 이름. 상태가 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+        },
+        {
+          "key": "minutesStatus",
+          "description": "**회의록**의 상태. 회의의 상태와 다른 축이다 — OPS-MEET-07의 '완료' 딱지가 매달린 문장은 '회의록 정리가 완료되었습니다'다. 예: 작성 전 · 작성 중 · 정리 완료",
+          "optional": true
+        },
+        {
+          "key": "minutesStatusTone",
+          "description": "그 딱지의 색 이름",
+          "optional": true
+        },
+        {
+          "key": "kindLabel",
+          "description": "회의 분류 딱지. 조직 운영에 따라 늘 수 있다. 예: 행사 관련 회의",
+          "optional": true
+        },
+        {
+          "key": "kindTone",
+          "description": "그 딱지의 색 이름",
+          "optional": true
+        },
+        {
+          "key": "eventTitle",
+          "description": "딸린 행사 이름. 정기·상시 회의에는 오지 않는다",
+          "optional": true
+        },
+        {
+          "key": "eventId",
+          "description": "그 행사로 갈 때 넘기는 인자",
+          "optional": true
+        },
+        {
+          "key": "creatorNote",
+          "description": "만든 사람. 이름과 소속을 이은 완성된 한 줄. 예: 박해랑 · 운영부"
+        },
+        {
+          "key": "updatedNote",
+          "description": "마지막 손댄 때. 예: 2026.07.17 18:42 수정",
+          "optional": true
+        },
+        {
+          "key": "scheduledAt",
+          "description": "예정 일시. 취소된 회의에서는 '원래 예정 일시'로 그려진다. 예: 2026.07.25 15:00"
+        },
+        {
+          "key": "plannedDurationNote",
+          "description": "예상 시간. 세는 말까지. 예: 1시간 30분",
+          "optional": true
+        },
+        {
+          "key": "place",
+          "description": "장소. 정해지지 않았으면 완성된 안내로 온다('미정') — 화면이 빈 값을 무엇으로 채울지 정하지 않는다"
+        },
+        {
+          "key": "inviteeCountNote",
+          "description": "초대 인원. 세는 말까지. 예: 4명"
+        },
+        {
+          "key": "viewerTitle",
+          "description": "**보는 사람이 어떤 자리인지.** 띠의 제목. meeting.attention의 같은 이름과 같은 계급이다. 예: 일반 참가자 화면 · 회의 생성자 화면 · 진행 권한자 화면"
+        },
+        {
+          "key": "viewerNote",
+          "description": "그 자리에서 무엇을 할 수 있는지"
+        },
+        {
+          "key": "viewerChipLabel",
+          "description": "보는 사람과 이 회의의 관계 딱지. 예: 15:07 참석 · 불참 · 참석 처리됨 · 15:07 참가",
+          "optional": true
+        },
+        {
+          "key": "viewerChipTone",
+          "description": "그 딱지의 색 이름",
+          "optional": true
+        },
+        {
+          "key": "stateBannerTitle",
+          "description": "상태 띠의 제목. 상태와 보는 사람 둘 다에 매인다. 예: 아직 회의가 시작되지 않았습니다 · 회의가 종료되어 정리 중입니다 · 이 회의는 취소되었습니다",
+          "optional": true
+        },
+        {
+          "key": "stateBannerNote",
+          "description": "그 띠의 본문",
+          "optional": true
+        },
+        {
+          "key": "stateBannerTone",
+          "description": "그 띠의 색 이름. 예: info · warning · success · danger",
+          "optional": true
+        },
+        {
+          "key": "canStart",
+          "description": "회의를 시작할 수 있는가. **변형을 가르는 값이다** — 역할 이름이 아니라 할 수 있는 일로 가른다"
+        },
+        {
+          "key": "canEnd",
+          "description": "회의를 끝낼 수 있는가"
+        },
+        {
+          "key": "canEdit",
+          "description": "회의를 고칠 수 있는가. 생성자만"
+        },
+        {
+          "key": "canCancel",
+          "description": "회의를 취소할 수 있는가. 생성자만"
+        },
+        {
+          "key": "canManageHostRole",
+          "description": "진행 권한을 주고 뺄 수 있는가. 생성자만"
+        },
+        {
+          "key": "canEditMinutes",
+          "description": "회의록을 정리할 수 있는가"
+        },
+        {
+          "key": "startedAt",
+          "description": "**실제** 시작 때. 예정 일시와 다르다. 진행 중부터 온다. 예: 15:00 시작",
+          "optional": true
+        },
+        {
+          "key": "elapsedNote",
+          "description": "얼마나 지났는지. 가만히 있어도 자란다. 예: 진행 27분",
+          "optional": true
+        },
+        {
+          "key": "presentNote",
+          "description": "지금 몇 명이 들어와 있는지. 예: 3명 참가 중",
+          "optional": true
+        },
+        {
+          "key": "actualTimeNote",
+          "description": "실제 진행 시각. 끝난 뒤 온다. 예: 15:00–16:12",
+          "optional": true
+        },
+        {
+          "key": "closedByNote",
+          "description": "누가 언제 끝냈는지. 예: 박해랑 · 16:12",
+          "optional": true
+        },
+        {
+          "key": "attendanceResultNote",
+          "description": "참석 결과를 이은 한 줄. 예: 3명 참석 · 1명 불참",
+          "optional": true
+        },
+        {
+          "key": "agendaCountNote",
+          "description": "안건 수와 예상 시간. 예: 총 3개 · 예상 60분",
+          "optional": true
+        },
+        {
+          "key": "materialCountNote",
+          "description": "등록된 자료 수. 예: 등록 자료 3개",
+          "optional": true
+        },
+        {
+          "key": "participantCountNote",
+          "description": "참가자 수와 진행 권한자 수. 예: 초대 4명 · 진행 권한 2명",
+          "optional": true
+        },
+        {
+          "key": "decisionCountNote",
+          "description": "확정된 결정 수. 예: 2건",
+          "optional": true
+        },
+        {
+          "key": "followUpCountLabel",
+          "description": "후속 업무 딱지에 그려지는 말. 없으면 '없음'까지 완성해 온다",
+          "optional": true
+        },
+        {
+          "key": "myFollowUpCountLabel",
+          "description": "나에게 배정된 후속 업무 딱지. 예: 0건",
+          "optional": true
+        },
+        {
+          "key": "exportName",
+          "description": "받아 갈 회의록 파일. 무엇을 어떤 형식으로 낼지는 서버가 정한다",
+          "optional": true
+        },
+        {
+          "key": "cancelReason",
+          "description": "취소 사유. 취소된 회의에만 온다",
+          "optional": true
+        },
+        {
+          "key": "cancelledByNote",
+          "description": "누가 취소했는지. 예: 김바다 · 기획부",
+          "optional": true
+        },
+        {
+          "key": "cancelledAtNote",
+          "description": "언제 취소했는지. 예: 2026.07.29 11:20",
+          "optional": true
+        },
+        {
+          "key": "replacementNote",
+          "description": "대체 회의를 알리는 완성된 글. 대체 회의가 없는 취소도 있으므로 안 올 수 있다",
+          "optional": true
+        },
+        {
+          "key": "replacementMeetingId",
+          "description": "그 대체 회의로 갈 때 넘기는 인자",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.agendas",
+      "shape": "list",
+      "description": "이 회의의 안건들. **단계마다 갖는 것이 다르다** — 예정일 때는 예상 소요와 사전 자료를, 진행 중에는 논의 내용과 결정을, 끝난 뒤에는 확정된 결정을 갖는다. 그래도 출처는 하나다: 넷으로 가르면 화면이 단계를 알아야 한다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/agendas"
+      },
+      "messages": {
+        "loading": "안건을 불러오는 중입니다",
+        "empty": "등록된 안건이 없습니다",
+        "error": "안건을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "agendaId",
+          "description": "이 안건을 가리키는 값"
+        },
+        {
+          "key": "orderLabel",
+          "description": "몇 번째인지. 예: 안건 1"
+        },
+        {
+          "key": "title",
+          "description": "안건 이름"
+        },
+        {
+          "key": "description",
+          "description": "안건 설명. 회의 전에 적은 것",
+          "optional": true
+        },
+        {
+          "key": "durationNote",
+          "description": "예상 소요. 예: 20분",
+          "optional": true
+        },
+        {
+          "key": "status",
+          "description": "안건의 상태를 알리는 말. **명세가 목록을 들지 않는다.** 예: 대기 · 진행 중 · 논의 완료 · 정리 필요 · 정리됨",
+          "optional": true
+        },
+        {
+          "key": "statusTone",
+          "description": "그 딱지의 색 이름",
+          "optional": true
+        },
+        {
+          "key": "isCurrent",
+          "description": "지금 진행 중인 안건인가",
+          "optional": true
+        },
+        {
+          "key": "discussionText",
+          "description": "논의 내용. 회의 중에 참가자가 함께 쓴다",
+          "optional": true
+        },
+        {
+          "key": "decisionText",
+          "description": "확정된 결정. 없으면 오지 않는다",
+          "optional": true
+        },
+        {
+          "key": "decisionEmptyNote",
+          "description": "결정이 아직 없을 때 그 자리에 그릴 말",
+          "optional": true
+        },
+        {
+          "key": "summaryLine",
+          "description": "목록에서 한 줄로 줄여 보일 때의 글",
+          "optional": true
+        },
+        {
+          "key": "decisionCountNote",
+          "description": "이 안건에서 나온 결정 수. 예: 결정 1",
+          "optional": true
+        },
+        {
+          "key": "taskCountNote",
+          "description": "이 안건에서 나온 업무 수. 예: 업무 1",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.participants",
+      "shape": "list",
+      "description": "이 회의의 사람들. **03의 참가자 목록, 05의 참가 현황, 07의 참석 결과, 04B의 권한 관리 목록이 전부 같은 사람들이다.** 그리는 자리가 다를 뿐 무엇인지는 하나다 — 16장을 한꺼번에 보고 나서야 합칠 수 있었다.\n\n딱지와 할 수 있는 일 설명은 반드시 서버가 준다. 역할 이름을 명세가 들면 역할이 하나 늘 때마다 명세가 틀린다.",
+      "params": [
+        "meetingId",
+        "query"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/participants"
+      },
+      "messages": {
+        "loading": "참가자를 불러오는 중입니다",
+        "empty": "참가자가 없습니다",
+        "error": "참가자를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "memberId",
+          "description": "이 사람을 가리키는 값"
+        },
+        {
+          "key": "name",
+          "description": "이름"
+        },
+        {
+          "key": "departmentNote",
+          "description": "소속과 이 회의에서의 자리를 이은 한 줄. 예: 운영부 · 회의 참가자"
+        },
+        {
+          "key": "chips",
+          "description": "이 사람에게 붙는 딱지들. **한 사람에 여럿일 수 있다** — 생성자는 '회의 생성자'와 '진행 권한'을 함께 단다",
+          "fields": [
+            {
+              "key": "label",
+              "description": "딱지에 그려지는 말"
+            },
+            {
+              "key": "tone",
+              "description": "딱지의 색 이름"
+            }
+          ],
+          "optional": true
+        },
+        {
+          "key": "capabilityNote",
+          "description": "이 사람이 무엇을 할 수 있는지. 예: 시작·종료 가능 · 일반 참가자",
+          "optional": true
+        },
+        {
+          "key": "attendanceLabel",
+          "description": "참석 딱지에 그려지는 완성된 말. 시각까지 붙어서 온다 — 화면이 시각과 상태를 잇게 하면 잇는 방법이 명세의 일이 된다. 예: 15:00 참석 · 불참 · 미참석",
+          "optional": true
+        },
+        {
+          "key": "attendanceTone",
+          "description": "그 딱지의 색 이름",
+          "optional": true
+        },
+        {
+          "key": "isPresent",
+          "description": "지금 들어와 있는가. 진행 중에만 온다",
+          "optional": true
+        },
+        {
+          "key": "actionLabel",
+          "description": "줄 오른쪽 단추에 그려지는 말. **명세가 들지 않는다** — '진행 권한 부여'와 '권한 해제'가 그 줄의 상태에 따라 갈리고, 생성자 줄처럼 단추가 아예 없는 자리도 있다",
+          "optional": true
+        },
+        {
+          "key": "actionEmphasis",
+          "description": "그 단추의 강조도",
+          "optional": true
+        },
+        {
+          "key": "actionEnabled",
+          "description": "그 단추를 누를 수 있는가. 진행 권한자가 하나뿐이면 뺄 수 없다",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.minutes",
+      "shape": "object",
+      "description": "회의록의 전체 요약. 안건마다의 기록은 meeting.agendas가 갖고, 여기 있는 것은 회의 전체를 한 덩이로 줄인 글이다. 없을 수 있다 — 06B가 빈 상태를 그렸고, '요약이 없어도 정리 완료가 막히지는 않습니다'라고 적어 두었다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/minutes"
+      },
+      "messages": {
+        "loading": "회의록을 불러오는 중입니다",
+        "empty": "아직 작성된 전체 요약이 없습니다",
+        "error": "회의록을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "summaryText",
+          "description": "전체 요약 글 한 덩이",
+          "optional": true
+        },
+        {
+          "key": "statusLabel",
+          "description": "이 요약이 확정된 것인지 아닌지. 예: 정리 중 · 변경될 수 있음",
+          "optional": true
+        },
+        {
+          "key": "statusTone",
+          "description": "그 딱지의 색 이름",
+          "optional": true
+        },
+        {
+          "key": "aiDisclaimer",
+          "description": "AI 초안이 무엇을 하고 무엇을 하지 않는지. **화면에 적힌 이 글이 곧 계약이다** — 06B가 '기록에 없는 결정·담당자·기한을 새로 만들지 않습니다'라고 적어 두었다. 명세가 이 문장을 들면 계약이 바뀔 때 명세가 틀린다",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.minutesProgress",
+      "shape": "object",
+      "description": "회의록 정리가 어디까지 왔는지. **조건 목록을 서버가 준다** — 06A는 넷을 세고 06B는 다섯 중 필수 넷을 세는데, 같은 회의의 같은 진행도다. 명세가 조건을 들면 둘 중 하나는 반드시 틀린다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/minutes/progress"
+      },
+      "messages": {
+        "loading": "정리 현황을 세는 중입니다",
+        "empty": "정리할 것이 없습니다",
+        "error": "정리 현황을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "requiredDoneNote",
+          "description": "필수 조건이 몇 개나 찼는지. 예: 필수 2 / 4"
+        },
+        {
+          "key": "blockedNote",
+          "description": "정리를 마칠 수 없을 때 무엇이 남았는지. 예: 안건별 필수 정리를 완료해 주세요",
+          "optional": true
+        },
+        {
+          "key": "canComplete",
+          "description": "정리 완료를 누를 수 있는가"
+        },
+        {
+          "key": "conditions",
+          "description": "조건 하나하나",
+          "fields": [
+            {
+              "key": "label",
+              "description": "무엇을 채워야 하는지"
+            },
+            {
+              "key": "done",
+              "description": "찼는가"
+            },
+            {
+              "key": "optional",
+              "description": "없어도 되는 것인가. 전체 요약이 그렇다",
+              "optional": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "meeting.documents",
+      "shape": "list",
+      "description": "이 회의에 붙은 자료. 안건의 사전 자료와 회의록의 관련 자료가 같은 물건이다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/documents"
+      },
+      "messages": {
+        "loading": "자료를 불러오는 중입니다",
+        "empty": "등록된 자료가 없습니다",
+        "error": "자료를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "documentId",
+          "description": "이 자료를 가리키는 값"
+        },
+        {
+          "key": "name",
+          "description": "파일 이름. 받아 갈 때 이 조각을 가리킨다"
+        },
+        {
+          "key": "agendaId",
+          "description": "어느 안건의 자료인지. 회의 전체에 붙은 것이면 오지 않는다",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.followUps",
+      "shape": "list",
+      "description": "이 회의에서 나온 후속 업무. **와이어프레임은 빈 상태만 그렸다** — 07·08 둘 다 0건이라 항목이 무엇으로 이루어지는지, 눌러서 어디로 가는지 그림이 말하지 않는다. 그래서 조각을 지어내지 않고 본 것만 적었다. 채워진 모습이 그려지면 는다.",
+      "params": [
+        "meetingId",
+        "onlyMine"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/follow-ups"
+      },
+      "messages": {
+        "loading": "후속 업무를 불러오는 중입니다",
+        "empty": "회의록 정리에서 생성한 후속 업무 카드가 여기에 표시됩니다",
+        "error": "후속 업무를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "taskId",
+          "description": "이 업무를 가리키는 값"
+        },
+        {
+          "key": "title",
+          "description": "업무 이름"
+        },
+        {
+          "key": "assigneeNote",
+          "description": "누가 언제까지. 예: 정하늘 · 07.23까지 · 위 결정사항에서 생성",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.permissionNotice",
+      "shape": "object",
+      "description": "진행 권한이 무엇을 주고 무엇을 안 주는지. **명세가 이 글을 들면 권한이 하나 늘 때마다 명세가 틀린다.** 04B의 안내 상자와 D03의 확인 글이 같은 것을 말하므로 둘이 나눠 쓴다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/permission-notice"
+      },
+      "messages": {
+        "loading": "권한 안내를 불러오는 중입니다",
+        "empty": "안내가 없습니다",
+        "error": "권한 안내를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "예: 이 회의에만 적용되는 권한입니다"
+        },
+        {
+          "key": "grantNote",
+          "description": "진행 권한자가 할 수 있는 것"
+        },
+        {
+          "key": "limitNote",
+          "description": "생성자만 할 수 있는 것"
+        },
+        {
+          "key": "ruleChipLabel",
+          "description": "지켜야 하는 규칙 딱지. 예: 최소 1명 유지",
+          "optional": true
+        },
+        {
+          "key": "ruleChipTone",
+          "description": "그 딱지의 색 이름",
+          "optional": true
+        },
+        {
+          "key": "summaryNote",
+          "description": "지금 몇 명인지. 예: 현재 진행 권한자 2명 · 일반 참가자 3명",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.startConfirm",
+      "shape": "object",
+      "description": "회의를 시작해도 되는지 살펴 준 것(D01). 며칠 이른지는 서버만 안다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/start-confirm"
+      },
+      "messages": {
+        "loading": "확인하는 중입니다",
+        "empty": "살펴볼 것이 없습니다",
+        "error": "확인하지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "warningNote",
+          "description": "눈여겨볼 것을 이은 완성된 한 줄. 예정 시각에 시작하면 오지 않을 수 있다. 예: 예정 시간보다 7일 이른 시각입니다. 잘못 시작한 것은 아닌지 확인해 주세요.",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.endConfirm",
+      "shape": "object",
+      "description": "회의를 끝내도 되는지 살펴 준 것(D02). **막지는 않는다** — 미완료 안건이 남아도 종료 단추는 살아 있다. 알려 줄 뿐이다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/end-confirm"
+      },
+      "messages": {
+        "loading": "확인하는 중입니다",
+        "empty": "살펴볼 것이 없습니다",
+        "error": "확인하지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "warningNote",
+          "description": "셋을 이어 서버가 완성한 한 줄. 예: 미완료 안건 1개 · 참석 3명 · 미참가 1명",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.hostGrantConfirm",
+      "shape": "object",
+      "description": "누구에게 진행 권한을 주려는지(D03). **제목에 사람 이름이 박혀 있으므로 서버가 완성해 준다** — 명세가 '{이름}에게 …'를 조립하면 그 문장이 명세의 것이 되고, '진행 권한'이라는 역할 이름이 명세에 고정된다.",
+      "params": [
+        "meetingId",
+        "memberId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/host-grant-confirm"
+      },
+      "messages": {
+        "loading": "확인하는 중입니다",
+        "empty": "확인할 것이 없습니다",
+        "error": "확인하지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "예: 이수현에게 진행 권한을 부여할까요?"
+        },
+        {
+          "key": "grantNote",
+          "description": "그 사람이 갖게 되는 것"
+        },
+        {
+          "key": "limitNote",
+          "description": "그래도 갖지 못하는 것"
+        }
+      ]
+    },
+    {
+      "key": "meeting.draft",
+      "shape": "object",
+      "description": "회의를 만들거나 고칠 때 화면이 처음 받는 값(OPS-MEET-02). meetingId가 없으면 새로 쓰는 것이다 — FIN-REQ-01이 requestId를 그렇게 쓴 선례를 따른다.\n\n**수정 상태의 그림이 없다.** 이미 진행 중이거나 끝난 회의를 열었을 때 무엇이 잠기는지 와이어프레임이 한 장도 그리지 않았다. 지어내지 않았다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/draft"
+      },
+      "messages": {
+        "loading": "회의를 불러오는 중입니다",
+        "empty": "새로 쓰는 회의입니다",
+        "error": "회의를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "meetingType",
+          "description": "정기·상시인지 행사 관련인지",
+          "optional": true
+        },
+        {
+          "key": "linkedEventId",
+          "description": "연결 행사",
+          "optional": true
+        },
+        {
+          "key": "title",
+          "description": "회의명",
+          "optional": true
+        },
+        {
+          "key": "hostName",
+          "description": "주최자. **읽기 전용 칸에 그대로 그린다** — 사람이 정하는 값이 아니다"
+        },
+        {
+          "key": "departmentId",
+          "description": "주관 부서",
+          "optional": true
+        },
+        {
+          "key": "statusLabel",
+          "description": "회의 상태 칸에 그릴 말. **'예정'을 명세에 박으면 안 된다** — 상태 이름은 는다"
+        },
+        {
+          "key": "purpose",
+          "description": "회의 목적",
+          "optional": true
+        },
+        {
+          "key": "date",
+          "description": "회의 날짜",
+          "optional": true
+        },
+        {
+          "key": "startTime",
+          "description": "시작 예정 시각",
+          "optional": true
+        },
+        {
+          "key": "endTime",
+          "description": "종료 예정 시각",
+          "optional": true
+        },
+        {
+          "key": "mode",
+          "description": "진행 방식",
+          "optional": true
+        },
+        {
+          "key": "place",
+          "description": "장소",
+          "optional": true
+        },
+        {
+          "key": "onlineLink",
+          "description": "온라인 링크",
+          "optional": true
+        },
+        {
+          "key": "isPrivate",
+          "description": "비공개 회의인가. 참/거짓이다",
+          "optional": true
+        },
+        {
+          "key": "participants",
+          "description": "고른 참가자들",
+          "fields": [
+            {
+              "key": "memberId",
+              "description": "이 사람을 가리키는 값"
+            },
+            {
+              "key": "name",
+              "description": "이름"
+            },
+            {
+              "key": "departmentNote",
+              "description": "소속"
+            },
+            {
+              "key": "chips",
+              "description": "붙는 딱지들",
+              "fields": [
+                {
+                  "key": "label",
+                  "description": "말"
+                },
+                {
+                  "key": "tone",
+                  "description": "색 이름"
+                }
+              ],
+              "optional": true
+            },
+            {
+              "key": "actionLabel",
+              "description": "줄 오른쪽 단추의 말. 명세가 들지 않는다",
+              "optional": true
+            },
+            {
+              "key": "canRemove",
+              "description": "뺄 수 있는가",
+              "optional": true
+            }
+          ],
+          "optional": true
+        },
+        {
+          "key": "agendaItems",
+          "description": "세워 둔 안건들",
+          "fields": [
+            {
+              "key": "agendaTitle",
+              "description": "안건명"
+            },
+            {
+              "key": "agendaNote",
+              "description": "안건 설명",
+              "optional": true
+            },
+            {
+              "key": "attachmentName",
+              "description": "사전 자료 파일 이름",
+              "optional": true
+            },
+            {
+              "key": "duration",
+              "description": "예상 소요 시간",
+              "optional": true
+            }
+          ],
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.memberCandidates",
+      "shape": "list",
+      "description": "참가자로 넣을 수 있는 사람들(OPS-MEET-02·04B의 검색). 검색 칸이 있으면 찾을 데가 있어야 한다.\n\n**04B의 라벨 없는 드롭다운(20:803)이 무엇을 거르는지 그림이 말하지 않는다.** 자식이 하나도 없는 빈 프레임이라 인자를 지어내지 않았다.",
+      "params": [
+        "query"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/org/members"
+      },
+      "messages": {
+        "loading": "구성원을 찾는 중입니다",
+        "empty": "찾는 구성원이 없습니다",
+        "error": "구성원을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "memberId",
+          "description": "이 사람을 가리키는 값"
+        },
+        {
+          "key": "name",
+          "description": "이름"
+        },
+        {
+          "key": "departmentNote",
+          "description": "소속"
+        },
+        {
+          "key": "alreadyAdded",
+          "description": "이미 넣은 사람인가",
+          "optional": true
         }
       ]
     }
