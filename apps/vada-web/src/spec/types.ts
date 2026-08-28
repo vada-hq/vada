@@ -473,7 +473,15 @@ export interface FlowStep {
 // 마지막 하나는 목록 항목의 동작에서만 쓴다 — 조회하는 시점에는 항목이 없다.
 export type QueryParams = Record<
   string,
-  { fieldKey?: string; value?: string; screenParam?: string; itemField?: string }
+  {
+    fieldKey?: string
+    value?: string
+    screenParam?: string
+    itemField?: string
+    // 이 요소가 읽는 출처의 조각. itemField와 갈리는 것은 '어느 줄이냐'가
+    // 있느냐다 - 저것은 눌린 항목이고 이것은 이미 집어 온 한 건이다.
+    sourceField?: string
+  }
 >
 
 export interface ScreenParam {

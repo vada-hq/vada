@@ -153,23 +153,16 @@
           "meetingId": {
             "screenParam": "meetingId"
           }
-        }
-      }
-    },
-    {
-      "source": {
-        "nodeId": "20:2777",
-        "name": "Btn",
-        "figmaType": "FRAME"
-      },
-      "spec": {
-        "type": "button",
-        "label": "새 회의 상세 보기",
-        "emphasis": "secondary",
-        "initiallyDisabled": false,
+        },
         "action": {
-          "type": "pending",
-          "note": "대체 회의로 갈 곳이 아직 정해지지 않았습니다. 대체 회의는 예정 상태이고 예정 회의 상세는 보는 사람에 따라 셋(OPS-MEET-03A·03B·03C)인데, 이 화면을 보는 사람이 그중 어디로 가는지를 그림이 말하지 않습니다."
+          "type": "navigate",
+          "label": "새 회의 상세 보기",
+          "targetScreenId": "OPS-MEET-03A",
+          "params": {
+            "meetingId": {
+              "sourceField": "replacementMeetingId"
+            }
+          }
         }
       }
     }

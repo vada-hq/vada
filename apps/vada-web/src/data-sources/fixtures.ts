@@ -1944,6 +1944,42 @@ const DUES_BY_STATUS: Record<string, string> = {
 // cancelReason이 있다. 명세가 출처 하나로 두고 없는 것은 안 보내기로 한 그대로다.
 
 const MEETING_DETAIL: Record<string, DataRow> = {
+  // 09가 가리키는 대체 회의. 취소된 회의(MTG-07)를 대신해 새로 잡힌 것이라
+  // 예정 상태다. 이 회의가 없으면 09의 '새로운 일정을 조율한 뒤 …가
+  // 생성되었습니다'가 거짓말이 되고, 눌러도 빈 화면이 열린다.
+  'MTG-08': {
+    title: '가을 축제 운영 방향 회의',
+    description: '취소된 1차 준비회의를 대신해 부스 배치와 예산 배분을 다시 논의합니다.',
+    status: '예정',
+    statusTone: 'blue',
+    kindLabel: '행사 관련 회의',
+    kindTone: 'gray',
+    eventTitle: '2026 가을 축제',
+    eventId: 'EVT-2026-FALL',
+    creatorNote: '김바다 · 기획부',
+    updatedNote: '2026.07.29 11:25 수정',
+    materialCountNote: '등록 자료 0개',
+    scheduledAt: '2026.08.12 13:00',
+    plannedDurationNote: '1시간',
+    place: '학생회실 (A204)',
+    inviteeCountNote: '15명',
+    viewerTitle: '일반 참가자 화면',
+    viewerNote: '회의 정보를 확인할 수 있지만 회의를 시작하거나 설정을 변경할 수 없습니다.',
+    viewerChipLabel: '예정 회의',
+    viewerChipTone: 'gray',
+    stateBannerTitle: '아직 회의가 시작되지 않았습니다',
+    stateBannerNote:
+      '회의가 시작되면 목록과 이 화면의 버튼이 ‘회의 참가’로 변경됩니다. 이 화면을 확인한 것은 참석으로 기록되지 않습니다.',
+    stateBannerTone: 'blue',
+    canStart: '',
+    canEnd: '',
+    canEdit: '',
+    canCancel: '',
+    canManageHostRole: '',
+    canEditMinutes: '',
+    agendaCountNote: '총 2개',
+    participantCountNote: '초대 15명',
+  },
   // 완료된 회의(OPS-MEET-07·08). 값은 figma.design.json이 그린 예시를 그대로 옮긴
   // 것이라 구현 화면과 reference.png를 눈으로 대조할 수 있다.
   //

@@ -71,7 +71,7 @@ const ARRIVALS: Arrival[] = ALL_SCREENS.flatMap((screen) =>
       // 누를 카드가 없는 빈 목록은 끊긴 것이 아니다. 재정 보드의 네 열 중 셋은
       // 개발용 응답에 카드가 없고, 그것은 '아직 그 단계인 요청이 없다'는 뜻이다.
       const needsRow = Object.values(action.params ?? {}).some(
-        (argument) => argument.itemField !== undefined,
+        (argument) => argument.itemField !== undefined || argument.sourceField !== undefined,
       )
       if (needsRow && row === undefined) {
         void listSpec

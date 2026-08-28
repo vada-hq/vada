@@ -64,6 +64,11 @@ test('OPS-MEET-09: 되돌리는 단추는 없고 대체 회의로 가는 문만 
   const main = page.getByRole('main')
   await expect(main.getByRole('button')).toHaveCount(1)
 
+  // **대체 회의로 간다.** 그 회의의 id는 화면의 입력 칸에도 주소에도 없고,
+  // 이 화면이 읽은 한 건의 조각이다(sourceField).
   await main.getByRole('button', { name: /새 회의 상세 보기/ }).click()
-  await expect(page.getByText(pendingNoteOf('OPS-MEET-09', '새 회의 상세 보기'))).toBeVisible()
+  await expect(page).toHaveURL(/#\/OPS-MEET-03A\?meetingId=MTG-08/)
+  await expect(
+    page.getByRole('heading', { name: '가을 축제 운영 방향 회의', level: 1 }),
+  ).toBeVisible()
 })

@@ -40,6 +40,12 @@ export function resolveParams(
         const value = sources.row?.[argument.itemField]
         return [name, value === undefined ? '' : String(value)]
       }
+      // 이 요소가 읽는 출처의 조각. itemField와 갈리는 것은 '어느 줄이냐'가
+      // 있느냐다 - 저것은 눌린 항목이고 이것은 이미 집어 온 한 건이다.
+      if (argument.sourceField !== undefined) {
+        const value = sources.row?.[argument.sourceField]
+        return [name, value === undefined ? '' : String(value)]
+      }
       return [name, '']
     }),
   )

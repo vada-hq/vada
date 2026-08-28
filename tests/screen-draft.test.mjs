@@ -129,7 +129,10 @@ const FLOOR = {
   "OPS-MEET-06B": { matched: 3, spurious: 6 },
   "OPS-MEET-07": { matched: 2, spurious: 1 },
   "OPS-MEET-08": { matched: 1, spurious: 2 },
-  "OPS-MEET-09": { matched: 1, spurious: 0 },
+  // 09는 단추 하나를 일부러 등록에서 뺐다 — design이 그것을 카드 **안에**
+  // 그렸고(20:2777 ⊂ 20:2771) 카드가 이미 그 회의를 읽으므로, 이동을 카드의
+  // 동작으로 두는 쪽이 맞다. 추출기는 여전히 그 단추를 뽑으므로 헛것이 하나 는다.
+  "OPS-MEET-09": { matched: 0, spurious: 1 },
   // 확인 모달. 초안이 뒤 배경의 단추를 이 화면 것으로 세어 헛것이 많다 —
   // overlay.source를 모르기 때문이다(명세에는 있고 추출기에는 없다).
   "OPS-MEET-D01": { matched: 2, spurious: 6 },

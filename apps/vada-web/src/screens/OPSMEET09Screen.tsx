@@ -13,8 +13,9 @@ import {
 import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow, DataValue } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
+import { targetScreenOf } from '../spec/types'
 import { drawnTitleOf, elementByNodeId, opsMeet09 } from '../spec/screens'
-import type { ButtonSpec, SummarySpec } from '../spec/types'
+import type { SummarySpec } from '../spec/types'
 
 // 취소된 회의 상세(OPS-MEET-09).
 //
@@ -38,7 +39,6 @@ const NODE = {
   meeting: '20:2732',
   cancellation: '20:2754',
   replacement: '20:2771',
-  openReplacement: '20:2777',
 } as const
 
 // 어느 자리에 어떤 그림이 오는지는 명세가 아니라 design이 갖는다.
@@ -70,7 +70,6 @@ export function OPSMEET09Screen({ screenParams, onNavigate }: OPSMEET09ScreenPro
   const meeting = elementByNodeId(opsMeet09, NODE.meeting).spec as SummarySpec
   const cancellation = elementByNodeId(opsMeet09, NODE.cancellation).spec as SummarySpec
   const replacement = elementByNodeId(opsMeet09, NODE.replacement).spec as SummarySpec
-  const openReplacement = elementByNodeId(opsMeet09, NODE.openReplacement).spec as ButtonSpec
 
   const meta = opsMeet09.meta
   if (meta === undefined) {
@@ -117,17 +116,22 @@ export function OPSMEET09Screen({ screenParams, onNavigate }: OPSMEET09ScreenPro
 
   const breadcrumb = opsMeet09.breadcrumb
 
+  // 대체 회의로 가는 문은 그 카드가 갖는다 — 단추가 카드 **안에** 그려져 있어
+  // 따로 등록할 자리가 아니다(design의 20:2777 ⊂ 20:2771).
+  //
+  // 어느 회의로 가는지는 이 회의가 안다. 대체 회의의 id는 화면의 입력 칸에도
+  // 주소에도 없고, 이 화면이 읽은 한 건의 조각이다(sourceField).
+  const replacementAction = replacement.action
   function pressOpenReplacement() {
-    if (openReplacement.action.type === 'pending') {
-      setNotice(openReplacement.action.note)
+    if (replacementAction === undefined) return
+    if (replacementAction.type === 'pending') {
+      setNotice(replacementAction.note)
       return
     }
-    if (openReplacement.action.type === 'navigate') {
-      onNavigate(
-        openReplacement.action.targetScreenId,
-        resolveParams(openReplacement.action.params, { screenParams }),
-      )
-    }
+    onNavigate(
+      targetScreenOf(replacementAction, detail ?? {}) ?? replacementAction.type,
+      resolveParams(replacementAction.params, { screenParams, row: detail ?? undefined }),
+    )
   }
 
   return (
@@ -264,14 +268,14 @@ export function OPSMEET09Screen({ screenParams, onNavigate }: OPSMEET09ScreenPro
               {scalar(detail, replacement.descriptionField)}
             </span>
           </span>
+          {/* 이 문은 카드의 동작이다 — design이 단추를 카드 **안에** 그렸으므로
+              따로 등록할 자리가 아니다(20:2777 ⊂ 20:2771). */}
           <button
             type="button"
-            data-node-id={NODE.openReplacement}
-            disabled={openReplacement.initiallyDisabled}
             onClick={pressOpenReplacement}
             className="flex shrink-0 items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
           >
-            {openReplacement.label}
+            {replacementAction?.label}
             <FigmaAsset
               screenId={SCREEN}
               nodeId={ASSET.openReplacement}

@@ -9,6 +9,15 @@
     "screenId": "OPS-MEET-05A",
     "when": "이 회의를 진행할 수 있는 사람이 볼 때(meeting.detail의 canEnd가 참). 머리 오른쪽의 참석 딱지 자리에 '회의 종료'가 대신 오고, 안건 카드에 '이 안건 논의 완료', 안건 목록 아래에 '다음 안건 시작', 결정사항에 '내용 수정'이 붙는다. 결정을 더하는 단추의 글도 '결정 의견 추가'에서 '결정 추가'로 바뀐다."
   },
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-04",
+      "missingNote": "어떤 회의를 볼지 정하지 않고 열렸습니다. 회의 목록에서 회의를 고르면 이 화면이 열립니다.",
+      "description": "무엇의 상세인지. 본 화면(OPS-MEET-05A)이 받은 것과 같다 — 변형은 주소가 없고 그 화면 안에서 그려진다."
+    }
+  ],
   "source": {
     "pageName": "Wireframe",
     "nodeId": "20:1179",
@@ -28,8 +37,13 @@
         "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "누르면 종료 확인 모달(OPS-MEET-D02)이 이 화면 위에 뜨는데, 그 모달이 아직 명세되지 않았습니다. meeting.end는 그 모달의 확인이 보냅니다."
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-D02",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
         }
       }
     },

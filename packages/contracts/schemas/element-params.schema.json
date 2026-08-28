@@ -6,15 +6,36 @@
   "$defs": {
     "argument": {
       "type": "object",
-      "description": "key는 받는 쪽이 선언한 이름이다 — 조회 인자면 dataSource의 params, 이동 인자면 대상 화면의 params. 값이 어디서 오는지가 넷이다.",
+      "description": "key는 받는 쪽이 선언한 이름이다 — 조회 인자면 dataSource의 params, 이동 인자면 대상 화면의 params. 값이 어디서 오는지가 다섯이다.",
       "additionalProperties": {
         "type": "object",
         "additionalProperties": false,
         "oneOf": [
-          { "required": ["fieldKey"] },
-          { "required": ["value"] },
-          { "required": ["screenParam"] },
-          { "required": ["itemField"] }
+          {
+            "required": [
+              "fieldKey"
+            ]
+          },
+          {
+            "required": [
+              "value"
+            ]
+          },
+          {
+            "required": [
+              "screenParam"
+            ]
+          },
+          {
+            "required": [
+              "itemField"
+            ]
+          },
+          {
+            "required": [
+              "sourceField"
+            ]
+          }
         ],
         "properties": {
           "fieldKey": {
@@ -36,6 +57,11 @@
             "type": "string",
             "minLength": 1,
             "description": "눌린 항목이 가진 조각의 key(그 목록의 dataSource에 선언돼 있어야 한다). 목록 항목의 동작(itemList.itemAction)에서만 쓴다 — 어느 항목인지는 명세도 화면도 모르고 눌린 그 행만 안다. 항목이 없는 자리(button.action·summary.action)에서는 가리킬 것이 없으므로 오류다."
+          },
+          "sourceField": {
+            "type": "string",
+            "minLength": 1,
+            "description": "**이 요소가 읽는 출처**의 조각 key. itemField와 갈리는 것은 '어느 줄이냐'가 있느냐다 — 저것은 눌린 항목의 조각이고, 이것은 이 요소가 이미 집어 온 한 건의 조각이다(요소의 dataSourceKey가 가리키는 그 출처).\n\n두 자리에서 같은 벽에 부딪혀 만들었다: OPS-MEET-03A의 회의 카드가 딸린 행사로 갈 때 넘길 eventId, OPS-MEET-09의 '새 회의 상세 보기'가 넘길 replacementMeetingId. 둘 다 그 요소가 읽는 meeting.detail의 조각인데 fieldKey(화면의 입력 칸)도 screenParam(주소가 실어 온 것)도 아니었다."
           }
         }
       }

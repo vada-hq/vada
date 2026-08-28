@@ -1654,6 +1654,23 @@ function checkNavigateParams(findings, context) {
           message: `${label}의 이동 인자 '${paramName}'가 화면 인자 '${argument.screenParam}'를 가리키는데 화면의 params에 없습니다.`
         });
       }
+      // 이 요소가 읽는 출처의 조각. 그 출처에 없으면 넘어가는 값이 빈 채로 간다.
+      if (typeof argument.sourceField === "string") {
+        const own = dataSourceByKey.get(spec.dataSourceKey);
+        if (!own) {
+          findings.push({
+            level: "error",
+            file,
+            message: `${label}의 이동 인자 '${paramName}'가 이 요소가 읽는 출처의 조각을 가리키는데 이 요소에는 출처가 없습니다.`
+          });
+        } else if (!(own.fields ?? []).some((f) => f?.key === argument.sourceField)) {
+          findings.push({
+            level: "error",
+            file,
+            message: `${label}의 이동 인자 '${paramName}'가 가리킨 조각 '${argument.sourceField}'가 데이터 출처 '${spec.dataSourceKey}'에 없습니다.`
+          });
+        }
+      }
       if (typeof argument.itemField === "string") {
         if (rowFields === null) {
           findings.push({
