@@ -1232,6 +1232,26 @@ function checkCopyAction(findings, context) {
 // 줄마다 가는 곳이 다른 이동. 데이터가 화면 id를 직접 주면 검증기가 확인할 수
 // 없으므로, 데이터는 열쇠만 주고 갈 곳은 명세가 든다 - 그래서 여기서 그 화면들이
 // 실제로 있는지 볼 수 있다.
+// 보내고 나면 어디로 가는지. 비어 있으면 '머문다'는 뜻이고 note가 있으면 '아직
+// 안 정했다'다. 둘을 함께 적으면 읽는 사람이 무슨 뜻인지 알 수 없다.
+//
+// 스키마(ajv)도 같은 것을 막지만 여기서도 본다 - 스키마는 파일을 통째로 읽을 때만
+// 돌고, 이 검사는 명세 조각만 들고도 돈다.
+function checkOnSuccessNote(findings, context) {
+  const { file, element, index } = context;
+  const onSuccess = element.spec?.action?.onSuccess;
+  if (!isObject(onSuccess)) {
+    return;
+  }
+  if (typeof onSuccess.navigate === "string" && typeof onSuccess.note === "string") {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}의 onSuccess가 갈 곳과 '아직 정해지지 않았다'를 함께 적었습니다. 갈 곳이 정해졌으면 적을 것이 없습니다.`
+    });
+  }
+}
+
 function checkBranchingTargets(findings, context) {
   const { file, element, index, screenIds } = context;
   for (const key of ["action", "itemAction", "emptyAction"]) {
@@ -2181,6 +2201,7 @@ export function collectSpecFindings({
       if (spec_.type === "select") {
         checkOptionCounts(findings, context);
       }
+      checkOnSuccessNote(findings, context);
       checkBranchingTargets(findings, context);
       checkFieldReferences(findings, context);
       checkNavigateParams(findings, context);

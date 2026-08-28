@@ -252,11 +252,16 @@
         "onSuccess": {
           "type": "object",
           "additionalProperties": false,
-          "description": "submit 전용. 전송이 성공했을 때의 처리. 수명 관리(스코프 제거)와 데이터 전송은 분리된 관심사이므로, 스코프 이벤트는 여기서만 발생한다.",
+          "description": "submit 전용. 전송이 성공했을 때의 처리. 수명 관리(스코프 제거)와 데이터 전송은 분리된 관심사이므로, 스코프 이벤트는 여기서만 발생한다.\n\n**비어 있는 onSuccess는 두 가지 뜻이 겹친다** — '보내고 그 자리에 머문다'와 '어디로 가는지 아직 안 정해졌다'가 구별되지 않는다. 버튼의 pending에는 note가 있어 무엇이 안 정해졌는지 적을 수 있는데 여기에는 없었다. 회의 계열에서 일곱 자리가 같은 처지였다(확인 모달 넷 · 02의 회의 만들기 · 06B의 정리 완료 · 08의 확인 완료).\n\n그래서 note를 둔다: **navigate 없이 note만 있으면 '아직 정해지지 않았다'**이고, 둘 다 없으면 '보내고 머문다'가 뜻이 된다.",
           "properties": {
             "navigate": {
               "type": "string",
               "minLength": 1
+            },
+            "note": {
+              "type": "string",
+              "minLength": 1,
+              "description": "보내고 나면 어디로 가는지가 **아직 정해지지 않았음**을 적는다. navigate와 함께 쓸 수 없다 — 갈 곳이 정해졌으면 적을 것이 없다."
             },
             "scopeEvent": {
               "enum": [
@@ -264,6 +269,12 @@
                 "cancel"
               ]
             }
+          },
+          "not": {
+            "required": [
+              "navigate",
+              "note"
+            ]
           }
         },
         "note": {

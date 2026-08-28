@@ -807,6 +807,14 @@ export function OPSMEET02Screen({
             {submitAction.errorMessage}
           </p>
         )}
+        {/* 보내고 나면 어디로 가는지가 아직 정해지지 않았다고 명세가 적어
+            두었으면 그 글을 내놓는다. 적어만 두고 안 보여주면 보내고 나서
+            아무 일도 안 일어나는 것처럼 보인다. */}
+        {submitAction.pendingNote === null ? null : (
+          <p role="status" className="text-xs text-gray-500">
+            {submitAction.pendingNote}
+          </p>
+        )}
         {/* 명세가 showMissingRequiredFields라고 말한다. 무엇이 비었는지를 짚는다. */}
         {blockedKeys.length === 0 ? null : (
           <p role="alert" className="text-xs font-medium text-red-600">

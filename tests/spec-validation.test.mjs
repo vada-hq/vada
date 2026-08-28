@@ -2374,6 +2374,68 @@ function branchingScreen(targets) {
   };
 }
 
+// 보내고 나면 어디로 가는지가 정해졌는지 아닌지. 비어 있으면 '머문다'는 뜻이고
+// note가 있으면 '아직 안 정했다'다. 둘을 함께 적으면 무슨 뜻인지 알 수 없다.
+function submittingScreen(onSuccess) {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          stateScopeKey: "draft",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Btn", figmaType: "FRAME" },
+              spec: {
+                type: "button",
+                label: "보내기",
+                initiallyDisabled: false,
+                action: { type: "submit", mutationKey: "w.send", onSuccess }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    mutations: {
+      mutations: [
+        {
+          key: "w.send",
+          description: "보낸다",
+          request: { method: "POST", path: "/api/w" },
+          payloadScope: "draft",
+          messages: { submitting: "보내는 중입니다", error: "보내지 못했습니다" }
+        }
+      ]
+    },
+    stateScopes: {
+      scopes: [
+        { key: "draft", description: "초안", lifetime: "flow", clearOn: ["complete"] }
+      ]
+    }
+  };
+}
+
+test("보내고 머문다고 말하면 조용하다", () => {
+  assert.deepEqual(collectSpecFindings(submittingScreen({})), []);
+});
+
+test("어디로 가는지 아직 안 정했다고 적어도 조용하다", () => {
+  assert.deepEqual(
+    collectSpecFindings(submittingScreen({ note: "보낸 뒤 어디로 가는지가 디자인에 없습니다." })),
+    []
+  );
+});
+
+test("갈 곳과 '아직 안 정했다'를 함께 적으면 오류다", () => {
+  const findings = collectSpecFindings(
+    submittingScreen({ navigate: "S-01", note: "아직 정해지지 않았습니다." })
+  );
+
+  assert.ok(findings.some((f) => f.level === "error"));
+});
+
 test("갈림길이 가리킨 화면이 모두 있으면 조용하다", () => {
   assert.deepEqual(
     collectSpecFindings(

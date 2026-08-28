@@ -140,6 +140,26 @@ describe('화면이 자기 명세를 지킨다', () => {
     },
   )
 
+  // onSuccess.note도 '아직 정해지지 않았다'를 말한다 — 다만 누르기 전이 아니라
+  // **보내고 난 뒤**의 자리다. 적어만 두고 아무도 안 보여주면 명세에만 있는
+  // 사실이 되고, 사람은 보내고 나서 아무 일도 안 일어나는 것을 본다.
+  const successPending = ALL_SCREENS.filter((screen) =>
+    allSpecsOf(screen).some((spec) =>
+      actionsOf(spec).some(
+        (action) =>
+          action.type === 'submit' &&
+          (action as { onSuccess?: { note?: string } }).onSuccess?.note !== undefined,
+      ),
+    ),
+  )
+
+  it.each(successPending.map((screen) => screen.screenId))(
+    '%s: 보낸 뒤가 아직 정해지지 않았다면 그 글을 내놓는다',
+    (screenId) => {
+      expect(sourceOf(screenId)).toMatch(/pendingNote/)
+    },
+  )
+
   // pending은 '아직 정해지지 않았다'를 말한다. 그 글을 화면이 어딘가로 내보내지
   // 않으면 누르는 사람은 고장 난 버튼을 본다. 어떻게 내보내는지는 화면이 정한다
   // (귀띔 글이든 알림 줄이든) - 여기서 보는 것은 **읽기는 하는가**뿐이다.

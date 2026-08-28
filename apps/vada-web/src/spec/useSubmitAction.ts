@@ -30,6 +30,8 @@ export interface SubmitRunOptions {
 
 export interface SubmitActionState {
   phase: SubmitPhase
+  /** 보내고 나면 어디로 가는지가 아직 정해지지 않았음을 알리는 글. */
+  pendingNote: string | null
   /** 지금 보내는 중인 계약. 무엇을 그릴지 고를 때 쓴다. */
   runningKey: string | null
   /** 보내는 중이면 카탈로그가 준 글. 아니면 null. */
@@ -44,6 +46,8 @@ export interface SubmitActionState {
 export function useSubmitAction(): SubmitActionState {
   const [phase, setPhase] = useState<SubmitPhase>('idle')
   const [runningKey, setRunningKey] = useState<string | null>(null)
+  // 보내고 나면 어디로 가는지가 아직 정해지지 않았을 때 명세가 적어 둔 글.
+  const [pendingNote, setPendingNote] = useState<string | null>(null)
 
   async function run(action: SubmitAction, options: SubmitRunOptions) {
     const mutation = getMutation(action.mutationKey)
@@ -81,12 +85,20 @@ export function useSubmitAction(): SubmitActionState {
     }
     if (action.onSuccess.navigate !== undefined) {
       options.onNavigate(action.onSuccess.navigate, options.navigateParams)
+      return
+    }
+    // 갈 곳이 아직 정해지지 않았다고 명세가 적어 두었으면 그 글을 내놓는다.
+    // 적어만 두고 아무도 안 보여주면 명세에만 있는 사실이 된다 — 보내고 나서
+    // 아무 일도 안 일어나는 것처럼 보이는 자리가 바로 여기다.
+    if (action.onSuccess.note !== undefined) {
+      setPendingNote(action.onSuccess.note)
     }
   }
 
   return {
     phase,
     runningKey,
+    pendingNote,
     submittingMessage:
       phase === 'submitting' && runningKey !== null
         ? getMutation(runningKey).messages.submitting

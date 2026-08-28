@@ -105,7 +105,9 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.cancel",
-          "onSuccess": {},
+          "onSuccess": {
+            "note": "회의를 취소한 뒤 어느 화면으로 가는지가 디자인에 없습니다. 취소된 회의(OPS-MEET-09)가 유력하지만 그 화면이 그린 회의는 다른 회의입니다."
+          },
           "executeWhen": {
             "type": "allRequiredFieldsHaveValue",
             "scope": "screen"

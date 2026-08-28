@@ -122,7 +122,9 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.grantHostRole",
-          "onSuccess": {}
+          "onSuccess": {
+            "note": "진행 권한을 준 뒤 어느 화면으로 가는지가 디자인에 없습니다. 권한 관리 화면(OPS-MEET-04B)으로 돌아가는 것이 유력하지만 그림에 이음이 없습니다."
+          }
         }
       }
     }

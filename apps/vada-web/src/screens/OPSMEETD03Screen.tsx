@@ -151,6 +151,14 @@ export function OPSMEETD03Screen({ screenParams, onNavigate }: OPSMEETD03ScreenP
           {submitAction.errorMessage}
         </p>
       )}
+      {/* 보내고 나면 어디로 가는지가 아직 정해지지 않았다고 명세가 적어
+          두었으면 그 글을 내놓는다. 적어만 두고 안 보여주면 보내고 나서
+          아무 일도 안 일어나는 것처럼 보인다. */}
+      {submitAction.pendingNote === null ? null : (
+        <p role="status" className="px-6 pb-4 text-xs text-gray-500">
+          {submitAction.pendingNote}
+        </p>
+      )}
     </ConfirmShell>
   )
 }

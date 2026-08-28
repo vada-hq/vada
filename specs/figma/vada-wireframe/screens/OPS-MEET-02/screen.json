@@ -608,7 +608,9 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.saveDraft",
-          "onSuccess": {}
+          "onSuccess": {
+            "note": "회의를 만든 뒤 어느 화면으로 가는지가 디자인에 없습니다. 예정 회의 상세(OPS-MEET-03A)가 유력하지만 그림에 이음이 없습니다."
+          }
         }
       }
     },
@@ -626,7 +628,9 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.create",
-          "onSuccess": {},
+          "onSuccess": {
+            "note": "회의를 만든 뒤 어느 화면으로 가는지가 디자인에 없습니다. 예정 회의 상세(OPS-MEET-03A)가 유력하지만 그림에 이음이 없습니다."
+          },
           "executeWhen": {
             "type": "allRequiredFieldsHaveValue",
             "scope": "screen"
