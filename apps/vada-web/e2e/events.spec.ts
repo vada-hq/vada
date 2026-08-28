@@ -25,8 +25,10 @@ test('EVT-00A: 머리 오른쪽의 화면 동작이 그려진다', async ({ page
   const completed = page.getByRole('button', { name: '완료된 행사 보기 →' })
   await expect(completed).toBeVisible()
 
+  // 완료된 행사 목록이 생겼다. 이 단추가 그 물음에 답한다 — 별도 화면인지조차
+  // 정해지지 않았다고 적혀 있던 자리다.
   await completed.click()
-  await expect(page.getByText(/완료된 행사 목록 화면이 아직 명세되지 않았습니다/)).toBeVisible()
+  await expect(page).toHaveURL(/#\/REC-01/)
 })
 
 test('EVT-00A: 진행 단계 버튼이 목록을 거른다', async ({ page }) => {

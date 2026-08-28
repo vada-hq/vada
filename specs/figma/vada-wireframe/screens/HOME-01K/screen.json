@@ -172,8 +172,8 @@
         "emphasis": "quiet",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "재정 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "FIN-00"
         }
       }
     },

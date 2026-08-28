@@ -1,0 +1,509 @@
+{
+  "schemaVersion": 1,
+  "screenId": "REC-02",
+  "meta": {
+    "eyebrow": null,
+    "title": "행사 아카이브",
+    "description": null,
+    "footerNote": null
+  },
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-REC-01",
+      "missingNote": "어떤 행사의 아카이브인지 정하지 않고 열렸습니다. 완료된 행사 목록에서 행사를 고르면 이 화면이 열립니다.",
+      "description": "어느 행사의 아카이브인지. 완료된 행사 목록(REC-01)에서 고른 행사가 정한다."
+    }
+  ],
+  "stateScopeKey": "archiveChecklistDraft",
+  "activeNavigationScreenId": "REC-01",
+  "breadcrumb": {
+    "source": "30:3578",
+    "dataSourceKey": "record.archive",
+    "params": {
+      "eventId": {
+        "screenParam": "eventId"
+      }
+    },
+    "items": [
+      {
+        "value": "기록"
+      },
+      {
+        "value": "완료된 행사"
+      },
+      {
+        "field": "title"
+      }
+    ]
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:3504",
+    "name": "기록 · REC-02 · 행사 아카이브 상세",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:3595",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "status": [
+          {
+            "field": "statusLabel",
+            "toneField": "statusTone"
+          }
+        ],
+        "titleField": "title",
+        "dataSourceKey": "record.archive",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "field": "scheduleNote"
+          },
+          {
+            "field": "ownerNote"
+          },
+          {
+            "field": "publishedNote"
+          },
+          {
+            "field": "authorNote"
+          },
+          {
+            "field": "reviewerNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3615",
+        "name": "Sidebar",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "목차",
+        "dataSourceKey": "record.archiveSections",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "label"
+            ]
+          }
+        ],
+        "group": {
+          "itemsField": "rows",
+          "headerFields": [
+            {
+              "fields": [
+                "label"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3649",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "개요",
+        "dataSourceKey": "record.archiveDetail",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "label": "행사 목표",
+            "field": "goal"
+          },
+          {
+            "label": "참여 대상",
+            "field": "audience"
+          },
+          {
+            "label": "일정·장소",
+            "field": "scheduleAndPlace"
+          },
+          {
+            "label": "책임 부서·책임자",
+            "field": "owner"
+          },
+          {
+            "label": "행사 규모",
+            "field": "scale"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3679",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "성과",
+        "dataSourceKey": "record.archiveDetail",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "label": "신청 대비 참석",
+            "field": "attendance"
+          },
+          {
+            "label": "만족도",
+            "field": "satisfaction"
+          },
+          {
+            "label": "예산 계획 대비 집행",
+            "field": "budget"
+          },
+          {
+            "label": "업무 완료",
+            "field": "taskCompletion"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3704",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "타임라인",
+        "dataSourceKey": "record.archiveTimeline",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "date"
+            ]
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "description"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3757",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "현장 운영",
+        "dataSourceKey": "record.archiveDetail",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "label": "실제 진행 순서",
+            "field": "runOrder"
+          },
+          {
+            "label": "인력 배치",
+            "field": "staffing"
+          },
+          {
+            "label": "돌발 상황",
+            "field": "incident"
+          },
+          {
+            "label": "운영 변경",
+            "field": "operationChange"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3782",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "근거 자료",
+        "dataSourceKey": "record.archiveEvidence",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "detail"
+            ]
+          }
+        ],
+        "itemAction": {
+          "type": "navigate",
+          "targetField": "targetKind",
+          "targets": [
+            {
+              "value": "tasks",
+              "targetScreenId": "EVT-TASK-01"
+            },
+            {
+              "value": "meetings",
+              "targetScreenId": "EVT-MEET-01"
+            },
+            {
+              "value": "documents",
+              "targetScreenId": "EVT-DOC-01"
+            },
+            {
+              "value": "finance",
+              "targetScreenId": "EVT-FIN-01"
+            }
+          ],
+          "labelField": "actionLabel",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3819",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "위 수치는 발행 시점 기준입니다. 원본이 이후 변경되어도 이 문서는 바뀌지 않습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3821",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "회고",
+        "dataSourceKey": "record.archiveRetro",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "label"
+            ]
+          },
+          {
+            "fields": [
+              "causeNote"
+            ]
+          },
+          {
+            "fields": [
+              "ownerLabel"
+            ]
+          }
+        ],
+        "group": {
+          "itemsField": "rows",
+          "headerFields": [
+            {
+              "fields": [
+                "groupLabel"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3887",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "인수인계",
+        "dataSourceKey": "record.archiveHandover",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "label"
+            ],
+            "toneField": "tone"
+          },
+          {
+            "fields": [
+              "value"
+            ]
+          }
+        ],
+        "group": {
+          "itemsField": "rows",
+          "headerFields": [
+            {
+              "fields": [
+                "groupLabel"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3921",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "record.archive",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "field": "nextOwnerNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3925",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "인수인계 체크리스트",
+        "description": "부서별 확인 항목"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3930",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "fieldKey": "checklist",
+        "dataSourceKey": "record.archiveChecklist",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "columns": [
+          {
+            "fieldKey": "done"
+          },
+          {
+            "fields": [
+              "label"
+            ]
+          }
+        ],
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:3934",
+              "name": "Label",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "done",
+              "label": "확인함",
+              "labelHidden": true,
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "checkbox",
+              "valueType": "boolean",
+              "required": false,
+              "validation": []
+            }
+          }
+        ],
+        "group": {
+          "itemsField": "rows",
+          "headerFields": [
+            {
+              "fields": [
+                "groupLabel"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

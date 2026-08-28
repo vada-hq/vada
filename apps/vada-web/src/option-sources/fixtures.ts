@@ -171,3 +171,12 @@ export const ORG_DEPARTMENT_OPTIONS: Option[] = [
   { value: 'D-02', label: '홍보부' },
   { value: 'D-03', label: '디자인부' },
 ]
+
+//
+
+// 아카이브를 검토할 수 있는 사람(REC-02A). **디자인이 펼친 목록을 그리지 않았다** —
+// 누가 검토할 수 있는지는 조직의 권한 규칙이라 명세가 목록을 들지 않는다.
+export const ARCHIVE_REVIEWER_OPTIONS: Option[] = [
+  { value: 'M-01', label: '김바다 · 회장단' },
+  { value: 'M-02', label: '이윤슬 · 대외협력부장' },
+]

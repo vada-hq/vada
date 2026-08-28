@@ -29,7 +29,7 @@
     },
     {
       "label": "기록",
-      "note": "기록 화면이 아직 명세되지 않았습니다."
+      "targetScreenId": "REC-01"
     },
     {
       "label": "조직 관리",

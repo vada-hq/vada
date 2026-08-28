@@ -5645,6 +5645,680 @@
           "optional": true
         }
       ]
+    },
+    {
+      "key": "record.completedEventAlert",
+      "shape": "object",
+      "description": "완료된 행사 목록 머리의 알림(REC-01). 인수인계 문서가 아직 발행되지 않은 행사가 몇 건인지 서버가 세어 완성된 문구로 준다 — 목록이 검색으로 걸러져도 이 수는 걸러지지 않는다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/completed-events/alert"
+      },
+      "messages": {
+        "loading": "미발행 건수를 세는 중입니다",
+        "empty": "알릴 것이 없습니다",
+        "error": "미발행 건수를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "unpublishedNote",
+          "description": "인수인계 문서가 아직 발행되지 않은 행사 수. 세는 말까지 서버가 붙인다. 한 건도 없으면 오지 않는다. 예: 인수인계 문서 미발행 2건",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "record.completedEvents",
+      "shape": "list",
+      "description": "완료 처리된 행사 목록(REC-01). event.list와 다른 물건이다 — 저쪽에는 완료된 행사가 오지 않는다. 행사명(query)으로 걸러서 서버가 준다.",
+      "params": [
+        "query"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/completed-events"
+      },
+      "messages": {
+        "loading": "완료된 행사를 불러오는 중입니다",
+        "empty": "완료된 행사가 없습니다",
+        "error": "완료된 행사를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "이 행사를 가리키는 값. 아카이브를 열 때 넘긴다."
+        },
+        {
+          "key": "statusLabel",
+          "description": "행사 자체의 상태. 이 목록에는 완료된 것만 오지만 무엇이라 부를지는 조직이 정한다. 예: 완료"
+        },
+        {
+          "key": "archiveStatus",
+          "description": "인수인계 문서가 어디까지 왔는지. 예: 발행 v1.0 · 검토 중 · 인수인계 문서 미발행"
+        },
+        {
+          "key": "archiveStatusTone",
+          "description": "그 딱지의 색 이름. 단계가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: green · blue · gray"
+        },
+        {
+          "key": "title",
+          "description": "행사 이름. 예: 봄 축제 학생회 부스"
+        },
+        {
+          "key": "date",
+          "description": "행사가 열린 날. 예: 2026. 05. 28"
+        },
+        {
+          "key": "host",
+          "description": "맡은 부서 또는 사람. 완성된 문구로 온다. 예: 대외협력부 · 홍길동"
+        },
+        {
+          "key": "highlights",
+          "description": "그 행사를 한눈에 말하는 딱지들. 완성된 문구로 오고 개수가 행사마다 다르다.",
+          "fields": [
+            {
+              "key": "label",
+              "description": "딱지에 쓰이는 완성된 문구. 예: 186명 참석 (신청 210명)"
+            }
+          ]
+        },
+        {
+          "key": "completedNote",
+          "description": "완료 처리된 때. 완성된 문구로 온다. 예: 완료 처리 2026. 06. 04"
+        },
+        {
+          "key": "actionLabel",
+          "description": "아카이브를 열러 가는 문구. 열 것이 없으면 오지 않는다(event.checklist의 actionLabel과 같은 규칙). 예: 상세 보기 →",
+          "optional": true
+        },
+        {
+          "key": "blockedNote",
+          "description": "열 것이 없을 때 그 까닭. actionLabel과 짝이라 둘 중 하나만 온다. 예: 인수인계 문서가 아직 발행되지 않았습니다",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "record.archive",
+      "shape": "object",
+      "description": "이 행사의 아카이브 문서 자체(REC-02 · REC-02A). 발행 전에도 있다 — 쓰는 화면은 이름과 상태만 읽고, 발행된 문서는 누가 언제 쓰고 검토했는지까지 읽는다. 본문은 조각마다 다른 출처가 갖는다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive"
+      },
+      "messages": {
+        "loading": "아카이브를 불러오는 중입니다",
+        "empty": "아카이브가 없습니다",
+        "error": "아카이브를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "행사 이름. 문서의 제목이자 빵부스러기의 마지막 조각이다. 예: 봄 축제 학생회 부스"
+        },
+        {
+          "key": "statusLabel",
+          "description": "이 문서의 상태. 예: 발행 v1.0"
+        },
+        {
+          "key": "statusTone",
+          "description": "그 딱지의 색 이름. 예: green"
+        },
+        {
+          "key": "scheduleNote",
+          "description": "행사가 열린 때. 완성된 문구로 온다. 발행된 문서에만 온다. 예: 2026. 05. 28 (목) 11:00–17:00",
+          "optional": true
+        },
+        {
+          "key": "ownerNote",
+          "description": "맡은 부서와 책임자. 완성된 문구로 온다. 발행된 문서에만 온다. 예: 대외협력부 · 책임자 이윤슬",
+          "optional": true
+        },
+        {
+          "key": "publishedNote",
+          "description": "발행된 때. 발행된 문서에만 온다. 예: 발행 2026. 06. 04",
+          "optional": true
+        },
+        {
+          "key": "authorNote",
+          "description": "누가 썼는지. 발행된 문서에만 온다. 예: 작성 이윤슬",
+          "optional": true
+        },
+        {
+          "key": "reviewerNote",
+          "description": "누가 검토했는지. 역할 이름까지 서버가 완성해 보낸다 — 명세는 역할의 목록을 들지 않는다. 발행된 문서에만 온다. 예: 검토 김바다 (회장단)",
+          "optional": true
+        },
+        {
+          "key": "nextOwnerNote",
+          "description": "이 일을 다음에 맡는 자리. 인수인계 절의 마지막 줄이다. 발행된 문서에만 온다. 예: 다음 담당: 대외협력부 부서장",
+          "optional": true
+        },
+        {
+          "key": "aiDisclaimer",
+          "description": "AI 초안이 무엇을 하고 무엇을 하지 않는지. 화면에 적힌 이 글이 곧 그 동작의 계약이다(meeting.minutes의 aiDisclaimer와 같은 자리) — 명세가 이 문장을 들면 계약이 바뀔 때 명세가 틀린다. 쓰는 화면에만 온다.",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "record.archiveSections",
+      "shape": "list",
+      "description": "아카이브의 목차(REC-02 · REC-02A). 절의 개수와 이름을 서버가 준다 — 발행된 문서는 회고가 세 갈래로 펴지고(rows), 쓰는 중인 문서는 절마다 어디까지 썼는지가 함께 온다(statusLabel). 두 화면이 같은 목록을 다르게 그린다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/sections"
+      },
+      "messages": {
+        "loading": "목차를 불러오는 중입니다",
+        "empty": "목차가 없습니다",
+        "error": "목차를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "key",
+          "description": "이 절을 가리키는 값. 예: overview"
+        },
+        {
+          "key": "label",
+          "description": "절의 이름. 예: 개요"
+        },
+        {
+          "key": "statusLabel",
+          "description": "이 절이 어디까지 왔는지. 쓰는 화면에만 온다. 예: 자동 · 작성 전",
+          "optional": true
+        },
+        {
+          "key": "statusTone",
+          "description": "그 글의 색 이름. 예: gray · orange",
+          "optional": true
+        },
+        {
+          "key": "rows",
+          "description": "절 안에서 다시 나뉘는 갈래. 나뉘지 않는 절에는 오지 않는다(발행된 문서의 회고만 셋으로 나뉜다).",
+          "optional": true,
+          "fields": [
+            {
+              "key": "key",
+              "description": "갈래를 가리키는 값. 예: retroGood"
+            },
+            {
+              "key": "label",
+              "description": "갈래의 이름. 예: 잘된 점"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "record.archiveDetail",
+      "shape": "object",
+      "description": "아카이브 본문 중 라벨이 고정된 열세 조각(REC-02의 개요·성과·현장 운영). 무엇을 적는 자리인지가 문서 서식으로 정해져 있어 명세가 라벨을 갖고, 값만 서버가 준다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/detail"
+      },
+      "messages": {
+        "loading": "본문을 불러오는 중입니다",
+        "empty": "본문이 없습니다",
+        "error": "본문을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "goal",
+          "description": "행사 목표. 예: 재학생 교류 확대와 학생회 활동 홍보"
+        },
+        {
+          "key": "audience",
+          "description": "참여 대상. 예: 소프트웨어융합대학 재학생 전체"
+        },
+        {
+          "key": "scheduleAndPlace",
+          "description": "일정과 장소. 완성된 문구로 온다. 예: 2026. 05. 28 11:00–17:00 · 한양대 ERICA 잔디밭"
+        },
+        {
+          "key": "owner",
+          "description": "책임 부서와 책임자. 예: 대외협력부 · 이윤슬"
+        },
+        {
+          "key": "scale",
+          "description": "행사 규모. 예: 부스 4개 · 운영 인력 12명 · 참석 186명"
+        },
+        {
+          "key": "attendance",
+          "description": "신청 대비 참석. 비율까지 서버가 셈해 보낸다. 예: 신청 210명 → 참석 186명 (88.6%)"
+        },
+        {
+          "key": "satisfaction",
+          "description": "만족도. 예: 설문 응답 142건 · 긍정 89%"
+        },
+        {
+          "key": "budget",
+          "description": "예산 계획 대비 집행. 예: 계획 1,200,000원 → 집행 1,104,000원 (92%)"
+        },
+        {
+          "key": "taskCompletion",
+          "description": "업무 완료. 예: 전체 14건 완료 · 지연 2건"
+        },
+        {
+          "key": "runOrder",
+          "description": "실제 진행 순서. 예: 09:00 설치 → 11:00 개장 → 14:00 경품 추첨 → 16:30 정리 → 17:00 종료"
+        },
+        {
+          "key": "staffing",
+          "description": "인력 배치. 예: 부스별 2명 · 안내 2명 · 물품 관리 1명 · 총괄 1명"
+        },
+        {
+          "key": "incident",
+          "description": "돌발 상황과 대응. 예: 13시경 강풍으로 배너 2개 전도. 즉시 고정 추가 후 재설치"
+        },
+        {
+          "key": "operationChange",
+          "description": "운영 변경. 예: 대기 인원이 몰려 경품 추첨을 30분 앞당김"
+        }
+      ]
+    },
+    {
+      "key": "record.archiveTimeline",
+      "shape": "list",
+      "description": "아카이브의 타임라인(REC-02). 몇 개의 마디로 이루어지는지는 그 행사가 정한다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/timeline"
+      },
+      "messages": {
+        "loading": "타임라인을 불러오는 중입니다",
+        "empty": "타임라인이 없습니다",
+        "error": "타임라인을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "이 마디를 가리키는 값."
+        },
+        {
+          "key": "date",
+          "description": "그 날. 완성된 문구로 온다. 예: 04. 12"
+        },
+        {
+          "key": "title",
+          "description": "무슨 일이 있었는지. 예: 기획 확정"
+        },
+        {
+          "key": "description",
+          "description": "그 일의 내용. 예: 부스 4종 구성과 예산 규모를 운영회의에서 승인"
+        }
+      ]
+    },
+    {
+      "key": "record.archiveEvidence",
+      "shape": "list",
+      "description": "아카이브가 근거로 삼은 원본들(REC-02). 수치는 발행 시점의 것이고, 원본은 지금도 행사 공간에 그대로 있어 눌러서 갈 수 있다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/evidence"
+      },
+      "messages": {
+        "loading": "근거 자료를 불러오는 중입니다",
+        "empty": "근거 자료가 없습니다",
+        "error": "근거 자료를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "이 줄을 가리키는 값."
+        },
+        {
+          "key": "title",
+          "description": "어떤 원본인지. 예: 행사 업무"
+        },
+        {
+          "key": "detail",
+          "description": "발행 시점의 수치. 완성된 문구로 온다. 예: 14건 (완료 12 · 지연 2)"
+        },
+        {
+          "key": "actionLabel",
+          "description": "원본을 열러 가는 문구. 갈 곳이 없으면 오지 않는다. 예: 원본 보기 →",
+          "optional": true
+        },
+        {
+          "key": "targetKind",
+          "description": "이 줄을 누르면 어느 종류의 화면으로 가는지를 아는 열쇠. 화면 id가 아니다 — 갈 곳은 명세가 이 열쇠로 정한다(itemAction.targets). 갈 곳이 없는 줄에는 오지 않는다. 예: tasks · meetings · documents · finance",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "record.archiveRetro",
+      "shape": "list",
+      "description": "아카이브의 회고(REC-02). 묶음으로 온다 — 잘된 점·미흡했던 점·다음 행사 개선안이 갈리고, 묶음마다 줄 수가 다르다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/retrospective"
+      },
+      "messages": {
+        "loading": "회고를 불러오는 중입니다",
+        "empty": "회고가 없습니다",
+        "error": "회고를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "groupLabel",
+          "description": "묶음 이름. 예: 잘된 점 · 미흡했던 점 · 다음 행사 개선안"
+        },
+        {
+          "key": "rows",
+          "description": "그 묶음의 줄들",
+          "fields": [
+            {
+              "key": "key",
+              "description": "이 줄을 가리키는 값."
+            },
+            {
+              "key": "label",
+              "description": "적힌 내용. 예: 부스별 담당자를 미리 2명씩 배치해 공백이 없었다"
+            },
+            {
+              "key": "causeNote",
+              "description": "그 까닭. 원인까지 적는 묶음에만 온다. 예: 원인 · 업체 확정을 행사 3주 전에 시작했다",
+              "optional": true
+            },
+            {
+              "key": "ownerLabel",
+              "description": "이 개선안을 맡을 부서. 맡는 곳이 정해진 줄에만 온다. 예: 홍보부",
+              "optional": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "record.archiveHandover",
+      "shape": "list",
+      "description": "아카이브의 인수인계(REC-02). 회고와 같은 모양으로 묶음이 온다 — 재사용 자산·협력처·담당자·주의사항이 갈리고, 묶음마다 줄 수가 다르다. 다음 담당자는 이 목록이 아니라 문서 전체의 것이라 record.archive가 갖는다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/handover"
+      },
+      "messages": {
+        "loading": "인수인계를 불러오는 중입니다",
+        "empty": "인수인계 내용이 없습니다",
+        "error": "인수인계를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "groupLabel",
+          "description": "묶음 이름. 예: 재사용 자산 · 협력처·담당자 · 주의사항"
+        },
+        {
+          "key": "rows",
+          "description": "그 묶음의 줄들",
+          "fields": [
+            {
+              "key": "key",
+              "description": "이 줄을 가리키는 값."
+            },
+            {
+              "key": "label",
+              "description": "줄의 앞부분. 이름만 있는 줄은 이것이 전부다. 예: 현수막 제작 · · 부스 배치도 (재사용 가능)"
+            },
+            {
+              "key": "value",
+              "description": "줄의 뒷부분. 이름과 값이 갈리는 줄에만 온다. 예: 한빛기획 · 031-000-0000",
+              "optional": true
+            },
+            {
+              "key": "tone",
+              "description": "그 줄의 색 이름. 눈에 띄어야 하는 줄에만 온다 — 주의사항이 그 자리다. 예: orange",
+              "optional": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "record.archiveChecklist",
+      "shape": "list",
+      "description": "인수인계 체크리스트(REC-02). 부서별로 묶여 오고, 무엇을 확인해야 하는지는 그 행사의 인수인계 내용이 정한다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/checklist"
+      },
+      "messages": {
+        "loading": "체크리스트를 불러오는 중입니다",
+        "empty": "확인할 항목이 없습니다",
+        "error": "체크리스트를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "groupLabel",
+          "description": "묶음 이름. 어느 부서가 확인하는지다. 예: 대외협력부"
+        },
+        {
+          "key": "rows",
+          "description": "그 부서가 확인할 항목들",
+          "fields": [
+            {
+              "key": "key",
+              "description": "이 항목을 가리키는 값."
+            },
+            {
+              "key": "label",
+              "description": "무엇을 확인하는지. 예: 장소 사용 승인 절차 확인"
+            },
+            {
+              "key": "done",
+              "description": "이미 확인된 항목인가. 화면이 고치는 값의 시작점이다."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "record.archiveAutoFilled",
+      "shape": "object",
+      "description": "쓰는 중인 아카이브에서 사람이 고칠 수 없는 부분(REC-02A). 행사 데이터에서 서버가 줄여 만든 네 줄이며, 발행하면 그 시점 값으로 굳는다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/auto-filled"
+      },
+      "messages": {
+        "loading": "자동 채움 값을 불러오는 중입니다",
+        "empty": "자동으로 채울 값이 없습니다",
+        "error": "자동 채움 값을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "overview",
+          "description": "개요를 한 줄로 줄인 것. 예: 2025 신입생 환영회 · 2025. 03. 14 · 담당 홍길동 · 책임자 홍길동 · 210명 참석 (신청 240명)"
+        },
+        {
+          "key": "outcome",
+          "description": "성과를 한 줄로 줄인 것. 예: 210명 참석 (신청 240명) · 예산 집행 95% · 완료 업무 9건"
+        },
+        {
+          "key": "timeline",
+          "description": "타임라인을 한 줄로 줄인 것. 예: 행사 2025. 03. 14 → 완료 처리 2025. 03. 28 · 참석자 210명 · 참여 설문 완료"
+        },
+        {
+          "key": "evidence",
+          "description": "근거 자료를 한 줄로 줄인 것. 이어진 데이터가 없으면 그 사실까지 서버가 적는다. 예: 완료 업무 9건 · 회의·문서·구매 연결 데이터 없음"
+        }
+      ]
+    },
+    {
+      "key": "record.archiveDraft",
+      "shape": "object",
+      "description": "쓰는 중인 아카이브에서 **사람이 직접 쓰는 칸들**(REC-02A). 이름·상태·AI 계약 문장은 문서 자체의 것이라 record.archive가 갖는다 — 여기 있는 것은 전부 화면의 칸으로 들어간다. 아직 아무것도 안 쓴 문서도 이것을 읽고 열린다(FIN-REQ-01의 draftFrom과 같은 규칙).",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/draft"
+      },
+      "messages": {
+        "loading": "작성 중인 아카이브를 불러오는 중입니다",
+        "empty": "작성 중인 아카이브가 없습니다",
+        "error": "작성 중인 아카이브를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "onSiteOperation",
+          "description": "현장 운영에 적어 둔 글. 아직 안 썼으면 빈 채로 온다.",
+          "optional": true
+        },
+        {
+          "key": "retroGood",
+          "description": "회고 · 잘된 점에 적어 둔 글.",
+          "optional": true
+        },
+        {
+          "key": "retroIssues",
+          "description": "회고 · 미흡했던 점과 원인에 적어 둔 글.",
+          "optional": true
+        },
+        {
+          "key": "retroImprovements",
+          "description": "회고 · 다음 행사 개선안에 적어 둔 글.",
+          "optional": true
+        },
+        {
+          "key": "improvementDepartment",
+          "description": "개선안을 맡을 부서로 고른 값. org.departments의 값과 같다.",
+          "optional": true
+        },
+        {
+          "key": "handover",
+          "description": "인수인계에 적어 둔 글. AI 초안을 만들면 이 자리가 채워진다.",
+          "optional": true
+        },
+        {
+          "key": "nextOwner",
+          "description": "다음 담당자로 적어 둔 글.",
+          "optional": true
+        },
+        {
+          "key": "reviewer",
+          "description": "검토자로 고른 사람. record.archiveReviewers의 값과 같다.",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "record.archiveGate",
+      "shape": "object",
+      "description": "아카이브를 다음 단계로 넘길 수 있는지(REC-02A). 단추의 실행 조건이 이것을 읽는다 — 무엇이 모자란지는 서버가 세고 화면은 막힌 까닭만 그린다(event.surveyActivation과 같은 자리).",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/gate"
+      },
+      "messages": {
+        "loading": "발행 조건을 확인하는 중입니다",
+        "empty": "확인할 것이 없습니다",
+        "error": "발행 조건을 확인하지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "metCountNote",
+          "description": "채운 조건이 몇 개인지. 세는 말까지 서버가 만든다. 예: 0 / 6"
+        },
+        {
+          "key": "blockedNote",
+          "description": "넘길 수 없을 때 그 까닭. 비어 있으면 열린다.",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "record.archiveGateConditions",
+      "shape": "list",
+      "description": "아카이브를 발행하기 위해 채워야 하는 것들(REC-02A). 조건 목록을 서버가 준다 — 명세가 조건을 들면 문서 서식이 바뀔 때마다 명세가 틀린다(meeting.minutesProgress와 같은 이유).",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/gate/conditions"
+      },
+      "messages": {
+        "loading": "발행 조건을 불러오는 중입니다",
+        "empty": "채워야 할 조건이 없습니다",
+        "error": "발행 조건을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "key",
+          "description": "이 조건을 가리키는 값."
+        },
+        {
+          "key": "label",
+          "description": "무엇을 채워야 하는지. 예: 회고 · 미흡했던 점과 원인"
+        },
+        {
+          "key": "met",
+          "description": "채워졌는가"
+        },
+        {
+          "key": "tone",
+          "description": "그 표시의 색 이름. 예: orange · green"
+        }
+      ]
+    },
+    {
+      "key": "record.archiveReview",
+      "shape": "object",
+      "description": "이 아카이브에 달린 검토 의견(REC-02A). 쓰는 사람이 아니라 검토자가 적는 값이라 초안(record.archiveDraft)과 갈린다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/review"
+      },
+      "messages": {
+        "loading": "검토 의견을 불러오는 중입니다",
+        "empty": "검토 의견이 여기에 표시됩니다.",
+        "error": "검토 의견을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "comment",
+          "description": "검토자가 적은 의견. 아직 검토되지 않았으면 오지 않는다.",
+          "optional": true
+        }
+      ]
     }
   ]
 }

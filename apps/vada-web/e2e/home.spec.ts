@@ -22,6 +22,10 @@ async function goToHome(page: import('@playwright/test').Page) {
 
   await page.getByRole('button', { name: /다음: 시작 방식 선택/ }).click()
   await page.getByRole('button', { name: /초대받은 학생회 참여하기/ }).click()
+  // 초대 코드를 넣는 칸이 한 겹 더 있다(INV-00). 그 화면이 없던 동안 ONB-02가
+  // INV-01로 바로 갔고, 이 길은 그때의 것이다.
+  await page.getByRole('textbox', { name: '초대 코드' }).fill('AB12CD34')
+  await page.getByRole('button', { name: '학생회 확인' }).click()
   await page.getByRole('button', { name: /소속 입력 후 학생회 참여하기/ }).click()
 }
 
@@ -68,11 +72,9 @@ test('HOME-01K: 데이터 출처가 선언한 값을 섹션마다 읽어 보여�
 test('HOME-01K: 대상이 미정인 링크는 무엇이 미정인지 남긴다', async ({ page }) => {
   await goToHome(page)
 
-  const pending = [
-    ['지연 업무 보기', '지연된 업무 목록 화면이 아직 명세되지 않았습니다.'],
-    ['캘린더 보기', '캘린더 화면이 아직 명세되지 않았습니다.'],
-    ['전체 재정 보기', '재정 화면이 아직 명세되지 않았습니다.'],
-  ]
+  // 셋 중 둘은 화면이 생기면서 진짜 이동이 됐다(운영 캘린더 · 전체 재정 현황).
+  // 남은 하나는 지연된 업무만 모아 보는 화면이 아직 없다.
+  const pending = [['지연 업무 보기', '지연된 업무 목록 화면이 아직 명세되지 않았습니다.']]
 
   for (const [label, note] of pending) {
     const button = page.getByRole('button', { name: new RegExp(label) })
@@ -80,6 +82,14 @@ test('HOME-01K: 대상이 미정인 링크는 무엇이 미정인지 남긴다',
   }
 
   // 눌러도 화면이 바뀌지 않는다 — 이동 대상이 없기 때문이다.
-  await page.getByRole('button', { name: /캘린더 보기/ }).click()
+  await page.getByRole('button', { name: /지연 업무 보기/ }).click()
   await expect(page.getByRole('heading', { name: '다가오는 주요 일정' })).toBeVisible()
+
+  // 반대로 이어진 둘은 실제로 데려간다.
+  await page.getByRole('button', { name: /캘린더 보기/ }).click()
+  await expect(page).toHaveURL(/#\/OPS-CAL-01/)
+
+  await goToHome(page)
+  await page.getByRole('button', { name: /전체 재정 보기/ }).click()
+  await expect(page).toHaveURL(/#\/FIN-00/)
 })

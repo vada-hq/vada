@@ -77,12 +77,15 @@ test('EVT-SCHED-01: 날짜가 없는 일정도 그 사실대로 온다', async (
   await expect(page.getByText('결과 보고·정산 자료 정리')).toBeVisible()
 })
 
-test('EVT-SCHED-01: 아직 없는 화면으로 가는 두 자리를 남긴다', async ({ page }) => {
+// 둘 중 하나는 이제 갈 곳이 있다 — 운영 캘린더가 생겼다. 나머지 하나는 일정의
+// 원본을 여는 화면이 아직 없다.
+test('EVT-SCHED-01: 전체 캘린더로 가고, 일정의 원본은 아직 없다', async ({ page }) => {
   await page.goto(SCHEDULE)
 
   await page.getByRole('button', { name: '전체 캘린더 보기' }).click()
-  await expect(page.getByText(/전체 캘린더 화면이 아직 명세되지 않았습니다/)).toBeVisible()
+  await expect(page).toHaveURL(/#\/OPS-CAL-01/)
 
+  await page.goto(SCHEDULE)
   await page.getByRole('button', { name: /참가자 모집 공지 작성 일정 원본 열기/ }).click()
   await expect(page.getByText(/일정의 원본을 여는 화면이 아직 명세되지 않았습니다/)).toBeVisible()
 })

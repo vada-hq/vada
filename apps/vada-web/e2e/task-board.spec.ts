@@ -21,6 +21,10 @@ async function goToBoard(page: import('@playwright/test').Page) {
 
   await page.getByRole('button', { name: /다음: 시작 방식 선택/ }).click()
   await page.getByRole('button', { name: /초대받은 학생회 참여하기/ }).click()
+  // 초대 코드를 넣는 칸이 한 겹 더 있다(INV-00). 그 화면이 없던 동안 ONB-02가
+  // INV-01로 바로 갔고, 이 길은 그때의 것이다.
+  await page.getByRole('textbox', { name: '초대 코드' }).fill('AB12CD34')
+  await page.getByRole('button', { name: '학생회 확인' }).click()
   await page.getByRole('button', { name: /소속 입력 후 학생회 참여하기/ }).click()
   await page.getByRole('button', { name: '운영', exact: true }).click()
   await page.getByRole('button', { name: /상시 업무/ }).click()

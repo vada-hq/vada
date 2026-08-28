@@ -2,7 +2,8 @@ import { expect, test } from '@playwright/test'
 
 const SHOTS = 'e2e/shots'
 
-// INV-01은 ONB-02의 '초대받은 학생회 참여하기'로 도달한다. ONB-01의 필수값을
+// INV-01은 ONB-02 → INV-00 → INV-01로 도달한다. **초대 코드를 넣는 칸이 한 겹 더
+// 있다** — INV-00이 없던 동안 ONB-02가 INV-01로 바로 갔다. ONB-01의 필수값을
 // 채우지 않으면 executeWhen이 이동을 막으므로 온보딩을 먼저 통과해야 한다.
 async function goToInv01(page: import('@playwright/test').Page) {
   await page.goto('/')
@@ -22,6 +23,8 @@ async function goToInv01(page: import('@playwright/test').Page) {
 
   await page.getByRole('button', { name: /다음: 시작 방식 선택/ }).click()
   await page.getByRole('button', { name: /초대받은 학생회 참여하기/ }).click()
+  await page.getByRole('textbox', { name: '초대 코드' }).fill('AB12CD34')
+  await page.getByRole('button', { name: '학생회 확인' }).click()
 }
 
 // INV-01은 flows.json의 어느 흐름에도 속하지 않는다 — 진행 표시가 없는 첫 화면이다.

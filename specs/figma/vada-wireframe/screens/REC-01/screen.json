@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "screenId": "REC-01",
+  "meta": {
+    "eyebrow": null,
+    "title": "완료된 행사",
+    "description": "완료 처리된 행사의 기록과 인수인계 문서를 열람합니다. 내용을 수정하려면 별도 권한이 필요합니다.",
+    "footerNote": null
+  },
+  "breadcrumb": {
+    "source": "30:3366",
+    "items": [
+      {
+        "value": "기록"
+      },
+      {
+        "value": "완료된 행사"
+      }
+    ]
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:3292",
+    "name": "기록 · REC-01 · 완료된 행사 목록",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:3381",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "record.completedEventAlert",
+        "items": [
+          {
+            "field": "unpublishedNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3393",
+        "name": "Text Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "eventQuery",
+        "label": "행사명 검색",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3398",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "record.completedEvents",
+        "params": {
+          "query": {
+            "fieldKey": "eventQuery"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "statusLabel"
+            ]
+          },
+          {
+            "fields": [
+              "archiveStatus"
+            ],
+            "toneField": "archiveStatusTone"
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "date"
+            ]
+          },
+          {
+            "fields": [
+              "host"
+            ]
+          },
+          {
+            "fields": [
+              "highlights"
+            ]
+          },
+          {
+            "fields": [
+              "completedNote"
+            ]
+          },
+          {
+            "fields": [
+              "blockedNote"
+            ]
+          }
+        ],
+        "itemAction": {
+          "type": "navigate",
+          "targetScreenId": "REC-02",
+          "labelField": "actionLabel",
+          "params": {
+            "eventId": {
+              "itemField": "id"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

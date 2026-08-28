@@ -21,6 +21,10 @@ async function goToOperations(page: import('@playwright/test').Page) {
 
   await page.getByRole('button', { name: /다음: 시작 방식 선택/ }).click()
   await page.getByRole('button', { name: /초대받은 학생회 참여하기/ }).click()
+  // 초대 코드를 넣는 칸이 한 겹 더 있다(INV-00). 그 화면이 없던 동안 ONB-02가
+  // INV-01로 바로 갔고, 이 길은 그때의 것이다.
+  await page.getByRole('textbox', { name: '초대 코드' }).fill('AB12CD34')
+  await page.getByRole('button', { name: '학생회 확인' }).click()
   await page.getByRole('button', { name: /소속 입력 후 학생회 참여하기/ }).click()
   await page.getByRole('button', { name: '운영', exact: true }).click()
 }
@@ -50,15 +54,13 @@ test('OPS-00: 공간 넷과 각 공간의 건수를 보여준다', async ({ page
   await page.screenshot({ path: `${SHOTS}/50-ops00.png`, fullPage: true })
 })
 
-test('OPS-00: 아직 없는 화면으로 가는 카드는 사유를 남긴다', async ({ page }) => {
+// **이 화면의 카드는 이제 전부 갈 곳이 있다.** 상시 업무·회의·행사에 이어
+// 캘린더가 마지막이었다.
+test('OPS-00: 캘린더 카드는 운영 캘린더로 데려간다', async ({ page }) => {
   await goToOperations(page)
 
-  // 상시 업무·회의·행사는 화면이 생기면서 차례로 진짜 이동이 됐다.
-  // 남은 pending은 캘린더 하나다.
   await page.getByText('캘린더', { exact: true }).click()
-  await expect(
-    page.getByText('월간 일정 화면이 아직 명세되지 않았습니다.'),
-  ).toBeVisible()
+  await expect(page).toHaveURL(/#\/OPS-CAL-01/)
 })
 
 test('OPS-00: 상시 업무 카드는 칸반 보드로 이동한다', async ({ page }) => {

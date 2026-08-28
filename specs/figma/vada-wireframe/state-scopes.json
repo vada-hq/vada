@@ -144,6 +144,24 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "archiveDraft",
+      "description": "행사 아카이브 작성 초안(REC-02A). 임시 저장과 검토 요청이 같은 이것을 보낸다 — 보내는 곳이 다를 뿐 보내는 것은 같다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "archiveChecklistDraft",
+      "description": "발행된 아카이브의 인수인계 체크(REC-02). **저장 시점을 그림이 말하지 않는다** — 저장 단추가 없다. 체크가 눌리는 순간 가는지 다른 무엇이 한꺼번에 보내는지 모른다(meetingMinutesDraft와 같은 처지다)",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

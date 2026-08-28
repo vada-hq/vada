@@ -1016,6 +1016,28 @@
           "label": "마감"
         }
       ]
+    },
+    {
+      "key": "record.archiveReviewers",
+      "type": "remote",
+      "description": "행사 아카이브를 검토할 수 있는 사람(REC-02A). **디자인이 펼친 목록을 그리지 않았다** — 누가 검토할 수 있는지는 조직의 권한 규칙이라 명세가 목록을 들지 않는다.",
+      "params": [
+        "eventId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/records/events/{eventId}/archive/reviewer-options",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 검토자 목록을 불러오세요",
+        "loading": "검토자 목록을 불러오는 중입니다",
+        "empty": "고를 수 있는 검토자가 없습니다",
+        "error": "검토자 목록을 불러오지 못했습니다"
+      }
     }
   ]
 }

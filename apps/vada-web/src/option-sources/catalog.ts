@@ -7,6 +7,7 @@ import {
   DEPARTMENTS,
   BUDGET_ITEMS,
   EVENT_STAFF_CANDIDATES,
+  ARCHIVE_REVIEWER_OPTIONS,
   LEDGER_EVENT_OPTIONS,
   LEDGER_MONTH_OPTIONS,
   MESSAGE_ROOM_CATEGORIES,
@@ -172,6 +173,8 @@ export async function fetchOptions(
     // 펼쳐 그리지 않아 한 번도 열리지 않았고, 그래서 아무도 몰랐다.
     case 'org.departments':
       return ORG_DEPARTMENT_OPTIONS
+    case 'record.archiveReviewers':
+      return ARCHIVE_REVIEWER_OPTIONS
     case 'message.roomCategories':
       return MESSAGE_ROOM_CATEGORIES
     case 'finance.requestPriorities':
