@@ -81,6 +81,60 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "eventCreateDraft",
+      "description": "새 행사 만들기 입력 초안(EVT-00B). 행사명 하나만 받고 나머지는 행사 공간에서 나중에 채운다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "eventBasicsDraft",
+      "description": "행사 기본정보 편집 초안(EVT-02B)",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "eventStaffSetupDraft",
+      "description": "행사 운영 조직을 처음 세울 때의 초안(EVT-01)",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "eventStaffEditDraft",
+      "description": "행사 운영 조직 수정 초안(EVT-03B). ORG-02의 orgEditDraft와 같은 자리다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "eventSurveyDraft",
+      "description": "참여 설문 설정 초안(EVT-05)",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "eventSurveyReplaceDraft",
+      "description": "설문 교체 초안(EVT-05B). 새 설문을 어떤 방식으로 시작할지",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }
