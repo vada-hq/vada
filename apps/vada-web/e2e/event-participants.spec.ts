@@ -86,11 +86,20 @@ test('EVT-04: 고른 참가자에게 할 일이 아직 없다는 사실을 남�
   ).toBeVisible()
 })
 
-test('EVT-04: 인원 관리 안의 갈피 둘 중 하나는 아직 없다', async ({ page }) => {
+// 하위 갈피 줄은 **고르는 값이 아니라 옮겨 가는 것이다.** 갈피마다 다른 화면이라
+// 사람이 그 사이를 오갈 수 있다 - select로 두면 이 화면이 저쪽의 조직도를 자기가
+// 그려야 하고 그것이 조용한 대체다.
+test('EVT-04: 인원 관리 안의 갈피 줄은 운영 조직 화면으로 이어진다', async ({
+  page,
+}) => {
   await page.goto(PARTICIPANTS)
 
-  await page.getByRole('tab', { name: '운영 조직' }).click()
-  await expect(page.getByText(/이 갈피의 내용은 아직 명세되지 않았습니다/)).toBeVisible()
+  await expect(
+    page.getByRole('button', { name: '행사 참가자', exact: true }),
+  ).toBeDisabled()
+
+  await page.getByRole('button', { name: '운영 조직', exact: true }).click()
+  await expect(page).toHaveURL(/#\/EVT-03A\?eventId=E-01/)
 })
 
 test('EVT-04: 머리의 행동 셋이 아직 없는 화면임을 남긴다', async ({ page }) => {

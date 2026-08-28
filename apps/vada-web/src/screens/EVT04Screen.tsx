@@ -5,7 +5,7 @@ import { FilterSelect } from '../components/FilterSelect'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
-import { getOptionSource, type Option } from '../option-sources/catalog'
+import type { Option } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt04 } from '../spec/screens'
 import type { ButtonSpec, InputSpec, ItemListSpec, SelectSpec } from '../spec/types'
@@ -33,7 +33,8 @@ const NODE = {
   export: '20:7622',
   editBasics: '20:7671',
   startEvent: '20:7673',
-  peopleTab: '20:7677',
+  staffTab: '20:7678',
+  participantsTab: '20:7681',
   search: '20:7689',
   affiliation: '20:7691',
   applyStatus: '20:7695',
@@ -75,9 +76,6 @@ interface EVT04ScreenProps {
 }
 
 export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
-  const [tab, setTab] = useState(
-    (elementByNodeId(evt04, NODE.peopleTab).spec as SelectSpec).initialValue ?? '',
-  )
   const [query, setQuery] = useState('')
   const [filters, setFilters] = useState<Record<string, Option>>({})
   const [page, setPage] = useState(1)
@@ -110,9 +108,6 @@ export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
     if (spec.action.type === 'pending') setNote(spec.action.note)
   }
 
-  const tabSpec = elementByNodeId(evt04, NODE.peopleTab).spec as SelectSpec
-  const tabSource = getOptionSource(tabSpec.optionsSource.key)
-  const tabOptions = tabSource.type === 'static' ? tabSource.options : []
   const searchSpec = elementByNodeId(evt04, NODE.search).spec as InputSpec
   const table = elementByNodeId(evt04, NODE.table).spec as ItemListSpec
   const paging = table.paging!
@@ -212,33 +207,34 @@ export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
         }
       />
 
-      {/* 인원 관리 안에서 다시 둘로 갈린다 — 작업 공간의 갈피보다 한 층 안쪽이다. */}
-      <div
-        data-node-id={NODE.peopleTab}
-        role="tablist"
-        aria-label={tabSource.description}
-        className="-mx-8 flex gap-2 border-b border-gray-200 px-8 pt-6"
-      >
-        {tabOptions.map((option) => {
-          const current = option.value === tab
+      {/* 인원 관리 안에서 다시 둘로 갈린다 — 작업 공간의 갈피보다 한 층 안쪽이다.
+          갈피마다 다른 화면이므로 고르는 것이 아니라 옮겨 가는 것이다. */}
+      <div className="-mx-8 flex gap-2 border-b border-gray-200 px-8 pt-6">
+        {([NODE.staffTab, NODE.participantsTab] as const).map((nodeId) => {
+          const spec = buttonAt(nodeId)
+          const here = spec.initiallyDisabled
           return (
             <button
-              key={option.value}
+              key={nodeId}
               type="button"
-              role="tab"
-              aria-selected={current}
+              data-node-id={nodeId}
+              disabled={here}
+              aria-current={here ? 'page' : undefined}
               onClick={() => {
-                setTab(option.value)
-                // 아직 명세되지 않은 갈피는 그 사실이 선택지에 적혀 있다.
-                setNote(option.description ?? null)
+                if (spec.action.type === 'navigate') {
+                  onNavigate(
+                    spec.action.targetScreenId,
+                    resolveParams(spec.action.params, { screenParams }),
+                  )
+                }
               }}
               className={`-mb-px border-b-2 px-3.5 py-2 text-sm font-medium ${
-                current ? 'border-blue-600' : 'border-transparent hover:text-gray-700'
+                here
+                  ? 'border-blue-600 text-blue-700'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
               }`}
             >
-              <span className={current ? 'text-blue-700' : 'text-gray-500'}>
-                {option.label}
-              </span>
+              {spec.label}
             </button>
           )
         })}

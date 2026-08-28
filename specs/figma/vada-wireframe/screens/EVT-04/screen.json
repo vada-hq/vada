@@ -115,22 +115,40 @@
     },
     {
       "source": {
-        "nodeId": "20:7677",
-        "name": "Container",
+        "nodeId": "20:7678",
+        "name": "Button:margin",
         "figmaType": "FRAME"
       },
       "spec": {
-        "type": "select",
-        "fieldKey": "peopleTab",
-        "placeholder": null,
-        "presentation": "choiceGroup",
-        "initialValue": "participants",
-        "valueType": "string",
-        "required": true,
+        "type": "button",
+        "label": "운영 조직",
+        "emphasis": "quiet",
         "initiallyDisabled": false,
-        "searchable": false,
-        "optionsSource": {
-          "key": "event.peopleTab"
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-03A",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:7681",
+        "name": "Button:margin",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "행사 참가자",
+        "emphasis": "quiet",
+        "initiallyDisabled": true,
+        "action": {
+          "type": "pending",
+          "note": "지금 보고 있는 갈피입니다."
         }
       }
     },
