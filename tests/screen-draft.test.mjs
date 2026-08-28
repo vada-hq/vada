@@ -113,6 +113,11 @@ const FLOOR = {
   "ONB-02": { matched: 3, spurious: 0 },
   "OPS-00": { matched: 0, spurious: 1 },
   "OPS-MEET-01A": { matched: 2, spurious: 0 },
+  // 변형 셋이다. 같은 화면을 다른 사람이 볼 때이므로 요소가 거의 없고,
+  // 추출기는 그림을 통째로 훑으므로 헛것만 나온다.
+  "OPS-MEET-01B": { matched: 0, spurious: 2 },
+  "OPS-MEET-01C": { matched: 1, spurious: 2 },
+  "OPS-MEET-01D": { matched: 0, spurious: 2 },
   "ORG-00": { matched: 0, spurious: 1 },
   "ORG-01": { matched: 8, spurious: 0 },
   "ORG-02": { matched: 2, spurious: 2 },

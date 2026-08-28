@@ -64,14 +64,22 @@ export function OPSMEET01AScreen({ onNavigate }: OPSMEET01AScreenProps) {
         <span className="flex items-center gap-3">
           <FigmaAsset screenId={SCREEN} nodeId={ASSET.attention} className="size-8 shrink-0" />
           <span>
-            <span className="block text-xs font-bold text-gray-800">{attention.title}</span>
-            <span className="block text-xs text-gray-500">{attention.description}</span>
+            {/* 띠는 **보는 사람에 따라 통째로 달라진다** - 와이어프레임이 넷을
+                그렸다(일반 참가자·진행 권한자·회의 생성 가능·미참가자). 누가
+                보느냐는 서버만 알므로 제목도 설명도 곁의 값도 서버가 준다. */}
+            <span className="block text-xs font-bold text-gray-800">
+              {String(attentionRow[attention.titleField ?? ''])}
+            </span>
+            <span className="block text-xs text-gray-500">
+              {String(attentionRow[attention.descriptionField ?? ''])}
+            </span>
           </span>
         </span>
-        {/* design은 이름과 건수를 한 텍스트 노드로 그린다 — 쪼개지 않는다. */}
+        {/* design은 이름과 건수를 한 텍스트 노드로 그린다 — 쪼개지 않는다.
+            회의 생성 가능·미참가자 화면에는 아예 그려지지 않아 빈 값이 온다. */}
         <span className="shrink-0 text-xs text-gray-400">
           {(attention.items ?? [])
-            .map((item) => `${item.label} ${attentionRow[item.field ?? '']}${item.unit ?? ''}`)
+            .map((item) => String(attentionRow[item.field ?? ''] ?? ''))
             .join(' ')}
         </span>
       </div>

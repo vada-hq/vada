@@ -198,6 +198,10 @@ const MEETING_GROUPS: DataRow[] = [
         minutesStatus: '정리 완료',
         actionLabel: '회의록 보기',
         actionEmphasis: 'secondary',
+        // 보는 사람과 이 회의의 관계. 지금 보는 사람은 일반 참가자라
+        // 아무 딱지도 붙지 않는다 - 진행 권한자에게는 '진행 권한'이 온다.
+        viewerChipLabel: '',
+        viewerChipTone: '',
       },
       {
         title: '학생회 정기 운영회의',
@@ -211,6 +215,10 @@ const MEETING_GROUPS: DataRow[] = [
         minutesStatus: '작성 전',
         actionLabel: '회의 상세 보기',
         actionEmphasis: 'secondary',
+        // 보는 사람과 이 회의의 관계. 지금 보는 사람은 일반 참가자라
+        // 아무 딱지도 붙지 않는다 - 진행 권한자에게는 '진행 권한'이 온다.
+        viewerChipLabel: '',
+        viewerChipTone: '',
       },
       {
         title: '회장단 비공개 안건 조율',
@@ -225,6 +233,10 @@ const MEETING_GROUPS: DataRow[] = [
         minutesStatus: '작성 전',
         actionLabel: '회의 상세 보기',
         actionEmphasis: 'secondary',
+        // 보는 사람과 이 회의의 관계. 지금 보는 사람은 일반 참가자라
+        // 아무 딱지도 붙지 않는다 - 진행 권한자에게는 '진행 권한'이 온다.
+        viewerChipLabel: '',
+        viewerChipTone: '',
       },
     ],
   },
@@ -244,6 +256,10 @@ const MEETING_GROUPS: DataRow[] = [
         minutesStatus: '작성 중',
         actionLabel: '회의로 돌아가기',
         actionEmphasis: 'primary',
+        // 보는 사람과 이 회의의 관계. 지금 보는 사람은 일반 참가자라
+        // 아무 딱지도 붙지 않는다 - 진행 권한자에게는 '진행 권한'이 온다.
+        viewerChipLabel: '',
+        viewerChipTone: '',
       },
       {
         title: '안전 관리 최종 회의',
@@ -257,6 +273,10 @@ const MEETING_GROUPS: DataRow[] = [
         minutesStatus: '작성 전',
         actionLabel: '회의 상세 보기',
         actionEmphasis: 'secondary',
+        // 보는 사람과 이 회의의 관계. 지금 보는 사람은 일반 참가자라
+        // 아무 딱지도 붙지 않는다 - 진행 권한자에게는 '진행 권한'이 온다.
+        viewerChipLabel: '',
+        viewerChipTone: '',
       },
     ],
   },
@@ -276,6 +296,10 @@ const MEETING_GROUPS: DataRow[] = [
         minutesStatus: '내용 열람 가능',
         actionLabel: '회의 내용 보기',
         actionEmphasis: 'secondary',
+        // 보는 사람과 이 회의의 관계. 지금 보는 사람은 일반 참가자라
+        // 아무 딱지도 붙지 않는다 - 진행 권한자에게는 '진행 권한'이 온다.
+        viewerChipLabel: '',
+        viewerChipTone: '',
       },
     ],
   },
@@ -295,6 +319,10 @@ const MEETING_GROUPS: DataRow[] = [
         minutesStatus: '취소 사유 등록',
         actionLabel: '취소 내용 보기',
         actionEmphasis: 'secondary',
+        // 보는 사람과 이 회의의 관계. 지금 보는 사람은 일반 참가자라
+        // 아무 딱지도 붙지 않는다 - 진행 권한자에게는 '진행 권한'이 온다.
+        viewerChipLabel: '',
+        viewerChipTone: '',
       },
     ],
   },
@@ -1498,7 +1526,14 @@ function permissionTone(label: string): string {
 }
 
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
-  'meeting.attention': { attentionCount: 2 },
+  // 회의 목록의 띠. 지금 보는 사람은 일반 참가자다 - 와이어프레임의 다른 셋
+  // (진행 권한자·회의 생성 가능·미참가자)은 같은 화면을 다른 사람이 볼 때다.
+  'meeting.attention': {
+    viewerTitle: '일반 참가자 화면',
+    viewerNote: '초대된 회의의 일정과 참가 상태를 확인합니다.',
+    attentionNote: '확인 필요한 회의 2건',
+    canCreateMeeting: '',
+  },
   'home.briefing': { title: '박해랑님, 확인이 필요해요' },
   'home.briefingNotices': [
     { message: '지연된 업무가 1건 있습니다.' },

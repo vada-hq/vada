@@ -146,6 +146,11 @@ function checkElementNodeCoverage(findings, context) {
 // 버튼). 문구 없는 노드도 세지 않는다 — 명세에 적을 라벨이 없다(선택지가 디자인에
 // 비어 있는 드롭다운, 항목의 '…' 메뉴).
 function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
+  // 변형은 **본 화면을 다르게 그린 것**이라 함께 있는 것은 본 화면이 이미 세었다.
+  // 여기서 다시 세면 회의 목록의 검색·줄마다의 단추가 네 번 '명세에 없다'고 나온다.
+  if (isObject(spec.variantOf)) {
+    return;
+  }
   // 모달은 **아래 화면 위에 뜬다.** 디자인이 그것을 화면 전체와 형제로 그리므로,
   // 이 화면이 그리는 부분 밖은 아래 화면의 것이다 - 거기까지 세면 아래 화면의
   // 버튼이 전부 '명세에 없는 상호작용'으로 보인다(ORG-07B의 머리 버튼 셋).

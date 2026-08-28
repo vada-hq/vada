@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-01B",
+  "meta": {
+    "eyebrow": "운영",
+    "title": "회의"
+  },
+  "variantOf": {
+    "screenId": "OPS-MEET-01A",
+    "when": "진행 권한을 가진 회의가 있는 사람이 볼 때. 띠가 그 자리를 말하고 그 회의의 줄에 '진행 권한' 딱지가 붙는다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "18:817",
+    "name": "운영 — 회의 · OPS-MEET-01B · 전체 회의 — 진행 권한자",
+    "figmaType": "FRAME"
+  },
+  "elements": []
+}

@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-01D",
+  "meta": {
+    "eyebrow": "운영",
+    "title": "회의"
+  },
+  "variantOf": {
+    "screenId": "OPS-MEET-01A",
+    "when": "참가자로 초대되지 않은 사람이 볼 때. 그 회의의 줄에 '미참가' 딱지가 붙고 열 수 있는 것은 상세뿐이다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "18:1801",
+    "name": "운영 — 회의 · OPS-MEET-01D · 전체 회의 — 미참가자",
+    "figmaType": "FRAME"
+  },
+  "elements": []
+}

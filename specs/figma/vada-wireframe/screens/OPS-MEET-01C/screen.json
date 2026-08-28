@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-01C",
+  "meta": {
+    "eyebrow": "운영",
+    "title": "회의"
+  },
+  "variantOf": {
+    "screenId": "OPS-MEET-01A",
+    "when": "새 회의를 만들 수 있는 사람이 볼 때(meeting.attention의 canCreateMeeting). 머리에 '새 회의 만들기'가 그려진다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "18:1308",
+    "name": "운영 — 회의 · OPS-MEET-01C · 전체 회의 — 회의 생성 가능",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "18:1392",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "새 회의 만들기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "회의 생성 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

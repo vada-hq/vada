@@ -22,14 +22,12 @@
       },
       "spec": {
         "type": "summary",
-        "title": "일반 참가자 화면",
-        "description": "초대된 회의의 일정과 참가 상태를 확인합니다.",
+        "titleField": "viewerTitle",
+        "descriptionField": "viewerNote",
         "dataSourceKey": "meeting.attention",
         "items": [
           {
-            "label": "확인 필요한 회의",
-            "unit": "건",
-            "field": "attentionCount"
+            "field": "attentionNote"
           }
         ]
       }

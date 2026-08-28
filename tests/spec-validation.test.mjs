@@ -2362,3 +2362,19 @@ test("겹쳐 뜬다고 말하지 않으면 아래 화면의 버튼이 빠진 것
     findings.map((f) => f.message).join(" | ")
   );
 });
+
+// 변형은 본 화면을 다르게 그린 것이다. 함께 있는 것을 다시 세면 회의 목록의
+// 검색·줄 단추가 네 번 '명세에 없다'고 나온다.
+test("변형은 본 화면과 함께 있는 것을 다시 세지 않는다", () => {
+  const base = overlayScreen(null);
+  base.screens[0].spec.variantOf = { screenId: "S-01", when: "진행 권한이 있는 사람이 볼 때" };
+  delete base.screens[0].spec.overlay;
+
+  const findings = collectSpecFindings(base);
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("아래 화면의 버튼")).length,
+    0,
+    findings.map((f) => f.message).join(" | "),
+  );
+});
