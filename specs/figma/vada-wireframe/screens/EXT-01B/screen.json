@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EXT-01B",
+  "meta": {
+    "title": "참석 확인 결과",
+    "titleFrom": {
+      "dataSourceKey": "attendance.checkInResult",
+      "field": "label",
+      "params": {
+        "checkInToken": {
+          "screenParam": "checkInToken"
+        }
+      }
+    }
+  },
+  "viewer": "external",
+  "params": [
+    {
+      "key": "checkInToken",
+      "valueType": "string",
+      "example": "A7K2M9",
+      "missingNote": "참석 확인 링크가 온전하지 않습니다. 행사장에 붙은 QR을 다시 찍어 주세요.",
+      "description": "어느 QR로 낸 참석 확인인지. EXT-01A가 보내고 나서 그대로 넘긴다. **행사가 아니라 QR을 가리킨다** — eventId를 인자로 두면 누구나 남의 행사의 결과 화면을 연다."
+    }
+  ],
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:7385",
+    "name": "외부 참여 · EXT-01B · 참석 확인 결과",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:7398",
+        "name": "Container",
+        "figmaType": "FRAME",
+        "alsoDrawnAt": ["30:7407", "30:7418", "30:7429", "30:7439", "30:7449"]
+      },
+      "spec": {
+        "type": "summary",
+        "toneField": "tone",
+        "titleField": "label",
+        "descriptionField": "description",
+        "dataSourceKey": "attendance.checkInResult",
+        "params": {
+          "checkInToken": {
+            "screenParam": "checkInToken"
+          }
+        }
+      }
+    }
+  ]
+}

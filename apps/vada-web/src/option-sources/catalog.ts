@@ -11,6 +11,8 @@ import {
   LEDGER_EVENT_OPTIONS,
   LEDGER_MONTH_OPTIONS,
   MESSAGE_ROOM_CATEGORIES,
+  SURVEY_COLLEGES,
+  SURVEY_DEPARTMENTS,
   ORG_BUDGET_ITEM_OPTIONS,
   ORG_DEPARTMENT_OPTIONS,
   ITEM_CATEGORIES,
@@ -175,6 +177,10 @@ export async function fetchOptions(
       return ORG_DEPARTMENT_OPTIONS
     case 'record.archiveReviewers':
       return ARCHIVE_REVIEWER_OPTIONS
+    case 'survey.colleges':
+      return SURVEY_COLLEGES[params.surveyToken] ?? []
+    case 'survey.departments':
+      return SURVEY_DEPARTMENTS[`${params.surveyToken}:${params.collegeId}`] ?? []
     case 'message.roomCategories':
       return MESSAGE_ROOM_CATEGORIES
     case 'finance.requestPriorities':

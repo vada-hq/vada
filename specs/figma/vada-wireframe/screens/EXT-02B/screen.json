@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EXT-02B",
+  "meta": {
+    "eyebrow": null,
+    "title": "참여 신청 완료",
+    "titleFrom": {
+      "dataSourceKey": "survey.applyResult",
+      "field": "title",
+      "params": {
+        "surveyToken": {
+          "screenParam": "surveyToken"
+        }
+      }
+    },
+    "description": null,
+    "footerNote": null
+  },
+  "viewer": "external",
+  "params": [
+    {
+      "key": "surveyToken",
+      "valueType": "string",
+      "example": "SVY-4f2a91c7",
+      "missingNote": "어느 설문의 신청 결과인지 정하지 않고 열렸습니다. 받으신 설문 링크로 다시 들어와 주세요.",
+      "description": "어느 설문에 낸 신청인지. 링크가 실어 온다. 행사가 아니라 설문을 가리킨다 — 설문은 교체될 수 있고 그때 링크도 갈린다."
+    }
+  ],
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:7230",
+    "name": "외부 참여 · EXT-02B · 참여 신청 완료",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:7240",
+        "name": "EXT02B",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "descriptionField": "eventTitle",
+        "dataSourceKey": "survey.applyResult",
+        "params": {
+          "surveyToken": {
+            "screenParam": "surveyToken"
+          }
+        },
+        "items": [
+          {
+            "field": "applicantNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7251",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "survey.applyResult",
+        "params": {
+          "surveyToken": {
+            "screenParam": "surveyToken"
+          }
+        },
+        "items": [
+          {
+            "label": "참가비",
+            "field": "feeStatus",
+            "descriptionField": "feeNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7258",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "안내 사항"
+      }
+    }
+  ]
+}

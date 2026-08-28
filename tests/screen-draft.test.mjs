@@ -99,6 +99,15 @@ const FLOOR = {
   "EVT-SCHED-01": { matched: 3, spurious: 0 },
   "EVT-TASK-01": { matched: 5, spurious: 2 },
   "EVT-TASK-02": { matched: 4, spurious: 2 },
+  // 밖에서 온 사람이 보는 다섯. **헛것이 되풀이 항목과 같은 계급이다** — 한 자리를
+  // 여러 값으로 그린 그림에서 명세는 첫 벌만 등록하고 나머지를 source.alsoDrawnAt에
+  // 적는데(EXT-01B의 결과 여섯, EXT-02C의 상태 다섯), 추출기는 그 사실을 모르고
+  // 사본마다 요소를 하나씩 뽑는다. list.itemFields의 헛것과 같은 까닭이다.
+  "EXT-01A": { matched: 3, spurious: 0 },
+  "EXT-01B": { matched: 0, spurious: 0 },
+  "EXT-02A": { matched: 7, spurious: 1 },
+  "EXT-02B": { matched: 0, spurious: 0 },
+  "EXT-02C": { matched: 0, spurious: 5 },
   "FIN-EVID-01": { matched: 3, spurious: 2 },
   "FIN-PROC-01": { matched: 2, spurious: 0 },
   "FIN-REQ-01": { matched: 18, spurious: 41 },

@@ -1038,6 +1038,51 @@
         "empty": "고를 수 있는 검토자가 없습니다",
         "error": "검토자 목록을 불러오지 못했습니다"
       }
+    },
+    {
+      "key": "survey.colleges",
+      "type": "remote",
+      "description": "참여 신청 폼에서 고르는 단과대학(EXT-02A). **education.colleges를 재사용할 수 없다** — 그쪽은 schoolId를 필수로 받는데 이 화면에는 학교 칸이 없고(그림에 없다) 화면 인자에도 없다. 어느 학교의 목록인지는 그 설문을 연 학생회가 이미 알고 있으므로 토큰이 곧 범위다.",
+      "params": [
+        "surveyToken"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/public/surveys/colleges",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 단과대학 목록을 불러오세요",
+        "loading": "단과대학 목록을 불러오는 중입니다",
+        "empty": "선택할 수 있는 단과대학이 없습니다",
+        "error": "단과대학 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "survey.departments",
+      "type": "remote",
+      "description": "참여 신청 폼에서 고르는 학부·학과(EXT-02A). survey.colleges와 같은 이유로 education.departments를 쓸 수 없다 — 그쪽은 schoolId와 collegeId를 함께 받는다. 여기서 학교의 자리를 토큰이 대신하고, 고른 단과대학은 그대로 넘긴다.",
+      "params": [
+        "surveyToken",
+        "collegeId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/public/surveys/departments",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 학부·학과 목록을 불러오세요",
+        "loading": "학부·학과 목록을 불러오는 중입니다",
+        "empty": "선택할 수 있는 학부·학과가 없습니다",
+        "error": "학부·학과 목록을 불러오지 못했습니다"
+      }
     }
   ]
 }

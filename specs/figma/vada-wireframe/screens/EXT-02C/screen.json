@@ -1,0 +1,72 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EXT-02C",
+  "meta": {
+    "eyebrow": null,
+    "title": "설문 예외·종료 상태",
+    "titleFrom": {
+      "dataSourceKey": "survey.linkState",
+      "field": "label",
+      "params": {
+        "surveyToken": {
+          "screenParam": "surveyToken"
+        }
+      }
+    },
+    "description": null,
+    "footerNote": null
+  },
+  "viewer": "external",
+  "params": [
+    {
+      "key": "surveyToken",
+      "valueType": "string",
+      "example": "SVY-9c15ae40",
+      "missingNote": "어느 설문의 링크인지 정하지 않고 열렸습니다. 받으신 설문 링크로 다시 들어와 주세요.",
+      "description": "어느 설문의 링크인지. 링크가 실어 온다. 행사가 아니라 설문을 가리킨다 — 설문이 교체되면 옛 토큰은 종료 상태로 남고 새 토큰이 따로 생긴다."
+    }
+  ],
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:7266",
+    "name": "외부 참여 · EXT-02C · 설문 예외·종료 상태",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:7279",
+        "name": "Container",
+        "figmaType": "FRAME",
+        "alsoDrawnAt": [
+          "30:7292",
+          "30:7305",
+          "30:7318",
+          "30:7331"
+        ]
+      },
+      "spec": {
+        "type": "summary",
+        "toneField": "tone",
+        "titleField": "label",
+        "descriptionField": "note",
+        "dataSourceKey": "survey.linkState",
+        "params": {
+          "surveyToken": {
+            "screenParam": "surveyToken"
+          }
+        },
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EXT-02A",
+          "labelField": "actionLabel",
+          "params": {
+            "surveyToken": {
+              "sourceField": "replacementToken"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

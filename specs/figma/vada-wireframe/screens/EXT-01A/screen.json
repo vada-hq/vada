@@ -1,0 +1,145 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EXT-01A",
+  "meta": {
+    "title": "참석 확인"
+  },
+  "viewer": "external",
+  "params": [
+    {
+      "key": "checkInToken",
+      "valueType": "string",
+      "example": "A7K2M9",
+      "missingNote": "참석 확인 링크가 온전하지 않습니다. 행사장에 붙은 QR을 다시 찍어 주세요.",
+      "description": "어느 QR로 왔는지. **행사가 아니라 QR을 가리킨다** — QR은 껐다 켜고 다시 만들 수 있으므로(EVT-04B의 재생성·비활성화) 같은 행사라도 토큰이 갈린다. eventId를 인자로 두면 누구나 남의 행사의 참석 화면을 연다."
+    }
+  ],
+  "stateScopeKey": "attendanceCheckInDraft",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:7344",
+    "name": "외부 참여 · EXT-01A · QR 참석 확인",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:7361",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "status": [
+          {
+            "field": "statusLabel",
+            "toneField": "statusTone"
+          }
+        ],
+        "titleField": "eventName",
+        "dataSourceKey": "attendance.checkInForm",
+        "params": {
+          "checkInToken": {
+            "screenParam": "checkInToken"
+          }
+        },
+        "items": [
+          {
+            "field": "checkInWindow"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7369",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "attendance.checkInForm",
+        "params": {
+          "checkInToken": {
+            "screenParam": "checkInToken"
+          }
+        },
+        "items": [
+          {
+            "field": "guideNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7373",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "name",
+        "label": "이름",
+        "placeholder": "김바다",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7378",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "studentNumber",
+        "label": "학번",
+        "placeholder": "2022123456",
+        "initialValue": null,
+        "inputType": "number",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7383",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "참석 확인",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "attendance.checkIn",
+          "onSuccess": {
+            "navigate": "EXT-01B",
+            "params": {
+              "checkInToken": {
+                "screenParam": "checkInToken"
+              }
+            },
+            "scopeEvent": "complete"
+          },
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}

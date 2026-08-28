@@ -408,3 +408,45 @@ export const CALENDAR_DAY: Record<string, string> = {
   red: 'text-red-400',
   today: 'bg-blue-600 text-white',
 }
+
+/**
+ * 설문 링크가 왜 막혔는지 알리는 카드(EXT-02C 30:7279). **바탕만 있고 테두리가 없다.**
+ *
+ * SOFT_BOX와 배합이 다르다 — 저기는 흰 바탕 위의 상자라 테두리로 자리를 긋는데,
+ * 이것은 화면에 카드 한 장뿐이라 바탕만으로 선다.
+ *
+ * 무채색만 -100이다. 흔들림이 아니라 이유가 있다: gray-50은 흰 뷰포트 위에서
+ * 바탕이 보이지 않는다(STATE_CHIP이 같은 이유로 gray-100을 쓴다).
+ *
+ * 톤 이름은 데이터가 준다(survey.linkState.tone). 무엇이 링크를 막는지는 모집
+ * 일정·정원·운영진의 조작이 정하므로 명세가 목록을 들 수 없다.
+ */
+export const LINK_STATE_CARD: Record<string, string> = {
+  gray: 'bg-gray-100',
+  orange: 'bg-orange-50',
+  red: 'bg-red-50',
+  yellow: 'bg-yellow-50',
+}
+
+/**
+ * 그 카드의 제목. **톤의 -600, 노랑만 -700.** yellow-600은 yellow-50 위에서
+ * 읽히지 않는다(SOFT_BOX_TEXT와 같은 까닭). 풀어 쓴 줄은 톤과 무관하게
+ * gray-500이다 — 다섯 카드가 전부 그렇다.
+ */
+export const LINK_STATE_TITLE: Record<string, string> = {
+  gray: 'text-gray-600',
+  orange: 'text-orange-600',
+  red: 'text-red-600',
+  yellow: 'text-yellow-700',
+}
+
+/**
+ * 그 카드 안의 단추(30:7342). **톤의 -500을 채우고 흰 글씨.**
+ *
+ * 지금 값이 하나뿐인 까닭은 다섯 중 하나만 갈 곳이 있기 때문이다 — 나머지 넷의
+ * '돌아가기'는 그리지 않는다(design/deviations.ts). 갈 곳이 있는 상태가 늘면
+ * 그 톤을 여기 더한다.
+ */
+export const LINK_STATE_ACTION: Record<string, string> = {
+  yellow: 'bg-yellow-500 text-white',
+}

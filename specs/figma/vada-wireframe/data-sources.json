@@ -6367,6 +6367,225 @@
           "description": "운영 연도. 예: 2026년"
         }
       ]
+    },
+    {
+      "key": "survey.applyForm",
+      "shape": "object",
+      "description": "링크로 열린 참여 신청 폼의 머리(EXT-02A). **행사의 출처를 그대로 쓸 수 없다** — event.basics는 eventId를 받고 학생회 안에서 보는 값인데, 이 화면은 로그인한 사람이 없고 가진 것이 설문 토큰뿐이다. 같은 사실의 밖에서 볼 수 있는 조각만 온다.",
+      "params": [
+        "surveyToken"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/public/surveys/apply-form"
+      },
+      "messages": {
+        "loading": "신청 폼을 불러오는 중입니다",
+        "empty": "이 링크의 참여 신청을 찾지 못했습니다",
+        "error": "신청 폼을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "startAt",
+          "description": "행사 일시. 완성된 문구로 온다. 예: 2026-08-20 10:00"
+        },
+        {
+          "key": "place",
+          "description": "장소. 예: ERICA 체육관"
+        },
+        {
+          "key": "audience",
+          "description": "참가 대상. 예: 소프트웨어융합대학 전체"
+        },
+        {
+          "key": "fee",
+          "description": "참가비. 조건까지 문장으로 온다 — 무엇이 무료인지 화면이 유도할 수 없다(event.basics.fee와 같은 사실이고, EVT-02B가 납부자·미납자 금액을 따로 받아 이 한 줄로 이어진다). 예: 납부자 무료 / 미납자 5000원"
+        }
+      ]
+    },
+    {
+      "key": "survey.applyResult",
+      "shape": "object",
+      "description": "링크로 낸 참여 신청의 결과 한 장(EXT-02B). **바깥 출처는 안쪽 출처를 재사용하지 않는다** — event.basics·event.survey는 eventId를 받고 학생회 안에서 보는 값인데, 이 화면에는 로그인한 사람이 없고 가진 것이 설문 토큰뿐이다.\n\n**'신청자: 김바다'는 로그인한 사람의 이름이 아니다.** 방금 낸 응답에서 온다. 그래도 화면의 입력 값이 아니라 서버가 답하는 조각인 까닭은 둘이다 — 이 화면은 신청 폼의 초안을 담는 자리가 아니고(그 스코프는 보내면서 비워진다), 링크를 다시 열었을 때도 같은 것이 보여야 한다.\n\n제목까지 데이터인 까닭은 운영진이 그 문구를 쓰기 때문이다(EVT-05의 '신청 완료 안내 문구').",
+      "params": [
+        "surveyToken"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/public/surveys/apply-result"
+      },
+      "messages": {
+        "loading": "신청 결과를 불러오는 중입니다",
+        "empty": "이 링크로 낸 참여 신청이 없습니다",
+        "error": "신청 결과를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "title",
+          "description": "신청이 어떻게 됐는지 알리는 제목. 운영진이 설문마다 적는다"
+        },
+        {
+          "key": "eventTitle",
+          "description": "어느 행사의 신청인지"
+        },
+        {
+          "key": "applicantNote",
+          "description": "누가 냈는지. **라벨까지 품은 완성된 한 줄이다** — 그림이 한 덩이로 그렸고, 신청자를 무엇이라 부를지는 조직의 말이다. 예: 신청자: 김바다"
+        },
+        {
+          "key": "feeStatus",
+          "description": "참가비가 지금 어떤 상태인지. **금액일 수도 상태일 수도 있다** — 학생회비 조건부 행사는 대조가 끝나야 금액이 정해진다. 예: 관리자 확인 중 · 5,000원"
+        },
+        {
+          "key": "feeNote",
+          "description": "그 아래 붙는 보조문. 금액이 이미 정해진 행사에는 오지 않는다",
+          "optional": true
+        },
+        {
+          "key": "notices",
+          "description": "안내 사항. **몇 줄인지는 데이터가 정한다** — 문의처를 적지 않은 행사는 한 줄이다. 지금 명세에 이 배열을 최상위에서 목록으로 그릴 어휘가 없어(OPS-MEET-06A·EVT-05B에 이어 세 번째) 화면이 이 자리를 그리지 않는다",
+          "fields": [
+            {
+              "key": "text",
+              "description": "한 줄. 앞머리 기호까지 붙어서 온다"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "survey.linkState",
+      "shape": "object",
+      "description": "설문 링크가 왜 막혔는지 한 장(EXT-02C). **막히지 않은 링크에는 이 답이 없다** — 서버가 상태를 보고 신청 폼이나 이 화면으로 보내므로(docs/decisions/product-decisions.md), 이 출처가 무언가를 답했다는 것 자체가 '지금은 받지 않는다'는 뜻이다.\n\n**명세가 상태의 목록을 들지 않는다.** 무엇이 링크를 막는지는 모집 일정·정원·운영진의 조작이 정하고, 명세가 목록을 들면 하나 늘 때마다 명세가 틀린다. 그림이 다섯을 나란히 그린 것은 값의 나열이고 명세는 source.alsoDrawnAt으로 그 사실을 든다.",
+      "params": [
+        "surveyToken"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/public/surveys/link-state"
+      },
+      "messages": {
+        "loading": "설문 상태를 불러오는 중입니다",
+        "empty": "이 설문 링크를 찾을 수 없습니다",
+        "error": "설문 상태를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "label",
+          "description": "왜 막혔는지의 이름. 예: 모집 전 · 정원 마감 · 링크 비활성화"
+        },
+        {
+          "key": "tone",
+          "description": "그 카드의 색 이름. 알림의 세기가 상태마다 다르다 — 아직 안 열린 것은 무채색이고 정원이 찬 것은 주황이다"
+        },
+        {
+          "key": "note",
+          "description": "그 상태를 풀어 쓴 한 줄"
+        },
+        {
+          "key": "actionLabel",
+          "description": "갈 곳이 있을 때 그 단추의 글. **갈 곳이 없는 상태에는 오지 않는다** — 다섯 중 넷은 응답자가 갈 데가 없다",
+          "optional": true
+        },
+        {
+          "key": "replacementToken",
+          "description": "이 설문을 대신하는 새 설문의 토큰. 교체된 설문에만 온다. **화면이 이 값을 지어낼 수 없다** — 옛 토큰과 새 토큰을 잇는 것은 서버뿐이다(OPS-MEET-09의 replacementMeetingId와 같은 자리)",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "attendance.checkInForm",
+      "shape": "object",
+      "description": "QR로 열린 참석 확인 폼이 읽는 한 벌(EXT-01A). **학생회 사람이 아닌 이가 본다** — 로그인한 사람이 없으므로 무엇을 볼 수 있는지는 토큰만이 정한다. 그래서 경로가 /api/public/…이고 인자가 eventId가 아니라 checkInToken이다: QR은 껐다 켜고 다시 만들 수 있으므로(EVT-04B) 가리키는 것은 QR이지 행사가 아니고, eventId를 받으면 누구나 남의 행사의 참석 화면을 연다.\n\n**지금 받을 수 있는지도 이 한 벌이 답한다.** blockedLabel·blockedTone·blockedNote 셋은 함께 오거나 함께 오지 않는다. 오면 체크인을 받지 않는 때이므로 화면은 이름·학번 칸을 아예 그리지 않고 그 자리에 그 까닭만 그린다 — 헛되이 입력하게 하지 않는다(사람이 정한 것: docs/decisions/product-decisions.md).",
+      "params": [
+        "checkInToken"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/public/attendance/check-in-form"
+      },
+      "messages": {
+        "loading": "참석 확인을 불러오는 중입니다",
+        "empty": "이 참석 확인 링크를 찾을 수 없습니다",
+        "error": "참석 확인을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "eventName",
+          "description": "어느 행사의 참석 확인인지. 예: 2026 소프트웨어융합대학 체육대회"
+        },
+        {
+          "key": "statusLabel",
+          "description": "지금 체크인을 받는지 알리는 말. **명세가 목록을 들지 않는다.** 예: 체크인 가능"
+        },
+        {
+          "key": "statusTone",
+          "description": "그 딱지의 색 이름(design/tones.ts의 톤)"
+        },
+        {
+          "key": "checkInWindow",
+          "description": "체크인을 받는 시간대. 완성된 글로 온다 — 때의 표기는 조직의 것이다. 예: 09:30 ~ 11:00"
+        },
+        {
+          "key": "guideNote",
+          "description": "무엇을 어떻게 적어야 하는지 알리는 완성된 글"
+        },
+        {
+          "key": "blockedLabel",
+          "description": "지금 받을 수 없을 때 그 까닭의 이름. 예: 비활성화된 QR",
+          "optional": true
+        },
+        {
+          "key": "blockedTone",
+          "description": "그 까닭 카드의 색 이름",
+          "optional": true
+        },
+        {
+          "key": "blockedNote",
+          "description": "그 까닭을 풀어 쓴 글. **이 조각이 오면 이름·학번 칸을 그리지 않는다.** 무엇이 막는 조건인지는 조직과 QR의 사정이라 화면이 셀 수 없다",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "attendance.checkInResult",
+      "shape": "object",
+      "description": "참석 확인을 낸 뒤의 결과 한 장(EXT-01B). **결과가 서로 배타적이라 한 사람에게 하나만 온다** — 그래서 화면도 하나이고 카드 한 장이 데이터로 그려진다(와이어프레임이 여섯을 나란히 그린 것은 값의 나열이고, 명세는 source.alsoDrawnAt으로 그 사실을 든다).\n\n**명세가 결과의 목록을 들지 않는다.** 무엇이 결과가 되는지는 조직의 참석 규칙이 정하고, 명세가 그 목록을 들면 규칙이 하나 늘 때마다 명세가 틀린다.\n\n인자가 checkInToken인 까닭은 폼과 같다 — 이 토큰으로 낸 마지막 시도의 결과를 서버가 답한다.",
+      "params": [
+        "checkInToken"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/public/attendance/check-in-result"
+      },
+      "messages": {
+        "loading": "참석 확인 결과를 불러오는 중입니다",
+        "empty": "이 링크로 낸 참석 확인이 없습니다",
+        "error": "참석 확인 결과를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "label",
+          "description": "결과의 이름. 예: 참석 완료"
+        },
+        {
+          "key": "tone",
+          "description": "그 결과의 색 이름(design/tones.ts의 톤). 예: green"
+        },
+        {
+          "key": "iconName",
+          "description": "그 결과를 나타내는 그림의 이름(check · circle-alert · info · x · clock). **톤만으로는 갈리지 않는다** — '체크인 시간 전·후'와 '비활성화된 QR'이 둘 다 회색인데 시계와 X로 다르다. 지금 명세에 이 조각을 가리킬 자리가 없어(제안: summary.iconField) 화면이 직접 읽는다"
+        },
+        {
+          "key": "description",
+          "description": "결과를 풀어 쓴 글. 때·까닭·시간대가 이미 찍혀서 온다. 예: 2026. 08. 20 09:47 체크인되었습니다."
+        }
+      ]
     }
   ]
 }

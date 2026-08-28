@@ -162,6 +162,24 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "surveyApplyDraft",
+      "description": "참여 신청 폼에 쓰던 값(EXT-02A). 링크로 온 사람의 것이라 로그인한 사람의 초안과 섞이지 않는다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
+    },
+    {
+      "key": "attendanceCheckInDraft",
+      "description": "QR 참석 확인에 적는 이름과 학번(EXT-01A). 학생회 밖에서 온 사람이 담는 자리라 로그인한 사람의 초안과 섞이지 않는다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

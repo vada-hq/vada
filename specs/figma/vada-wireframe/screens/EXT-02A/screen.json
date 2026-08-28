@@ -1,0 +1,288 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EXT-02A",
+  "meta": {
+    "eyebrow": null,
+    "title": "참여 신청",
+    "titleFrom": {
+      "dataSourceKey": "survey.applyForm",
+      "field": "title",
+      "params": {
+        "surveyToken": {
+          "screenParam": "surveyToken"
+        }
+      }
+    },
+    "description": "아래 정보를 입력하고 참여 신청을 완료해 주세요.",
+    "footerNote": null
+  },
+  "viewer": "external",
+  "params": [
+    {
+      "key": "surveyToken",
+      "valueType": "string",
+      "example": "SVY-4f2a91c7",
+      "missingNote": "설문 링크가 올바르지 않습니다. 받으신 링크를 다시 열어 주세요.",
+      "description": "어느 참여 설문의 신청 폼인지. 링크의 주소가 정한다 — 로그인한 사람이 없으므로 이 값 말고는 무엇의 폼인지 알 방법이 없다. eventId가 아니라 설문의 토큰인 까닭은 둘이다: 설문은 교체될 수 있고(EVT-05B) 링크가 가리키는 것은 설문이지 행사가 아니다. 그리고 행사 id를 인자로 두면 아무나 남의 행사의 신청 폼을 열 수 있다."
+    }
+  ],
+  "stateScopeKey": "surveyApplyDraft",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:7128",
+    "name": "외부 참여 · EXT-02A · 외부 참여 설문",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:7147",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "survey.applyForm",
+        "params": {
+          "surveyToken": {
+            "screenParam": "surveyToken"
+          }
+        },
+        "items": [
+          {
+            "field": "startAt"
+          },
+          {
+            "field": "place"
+          },
+          {
+            "field": "audience"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7173",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "survey.applyForm",
+        "params": {
+          "surveyToken": {
+            "screenParam": "surveyToken"
+          }
+        },
+        "items": [
+          {
+            "label": "참가비",
+            "field": "fee"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7179",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "name",
+        "label": "이름",
+        "placeholder": "김바다",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7184",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "studentNumber",
+        "label": "학번",
+        "placeholder": "2022123456",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7189",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "college",
+        "label": "단과대학",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "survey.colleges",
+          "params": {
+            "surveyToken": {
+              "screenParam": "surveyToken"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7196",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "department",
+        "label": "학부·학과",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "survey.departments",
+          "params": {
+            "surveyToken": {
+              "screenParam": "surveyToken"
+            },
+            "collegeId": {
+              "fieldKey": "college"
+            }
+          }
+        },
+        "resetOnChangeOf": [
+          "college"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7203",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "currentGrade",
+        "label": "학년",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "education.currentGrades"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7210",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "motivation",
+        "label": "참가 동기 (선택)",
+        "placeholder": "간단히 적어주세요",
+        "initialValue": null,
+        "inputType": "text",
+        "multiline": true,
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7215",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "개인정보 수집 동의",
+        "description": "이름, 학번 등의 정보는 행사 운영 목적으로만 사용되며, 행사 종료 후 파기됩니다.",
+        "memberFieldKeys": [
+          "privacyConsent"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7220",
+        "name": "Label",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "privacyConsent",
+        "label": "동의합니다",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "checkbox",
+        "valueType": "boolean",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7228",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "참여 신청하기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "survey.apply",
+          "onSuccess": {
+            "navigate": "EXT-02B",
+            "params": {
+              "surveyToken": {
+                "screenParam": "surveyToken"
+              }
+            },
+            "scopeEvent": "complete"
+          },
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -589,11 +589,23 @@ export function compareScreen(
   const differences: Difference[] = []
   const nodeIds = registeredNodeIds(screen)
   const registered = new Set(nodeIds)
+  // **한 자리를 여러 값으로 그린 사본은 한 번에 하나만 그려진다.** 그것이 그
+  // 어휘의 뜻이다 — 참석 확인의 결과 여섯은 서로 배타적이라 한 사람에게 하나만
+  // 온다. 그래서 사본이 화면에 없는 것은 어긋남이 아니다.
+  //
+  // 다만 **있으면 대조한다.** 지금 그려진 것이 어느 사본이든 그 자리의 글과 색은
+  // 그림과 같아야 한다. 자산 대조가 이미 같은 규칙으로 돈다.
+  const copies = new Set(
+    screen.elements.flatMap((element) => element.source.alsoDrawnAt ?? []),
+  )
   for (const nodeId of nodeIds) {
     const exclude = new Set([...registered].filter((id) => id !== nodeId))
     const node = findNode(design.root, nodeId)
     const holder = container.querySelector(nodeSelector(nodeId))
     if (holder === null) {
+      if (copies.has(nodeId)) {
+        continue
+      }
       differences.push({
         content: nodeId,
         kind: '자리 없음',

@@ -32,8 +32,19 @@ function renderScreen(screenId: string) {
 
 // 라벨이 없는 필드가 있다 — 디자인에 라벨 노드가 없는 컨트롤이다. 그때 이 컨트롤을
 // 부르는 말은 안내 문구다(EVT-04의 거르기 넷은 빈 네모라 '소속'조차 그려져 있지 않다).
+// **켜고 끄는 칸의 별표는 라벨 옆에 없다.** 그림이 그것을 묶음의 제목에 그렸다
+// (EXT-02A 30:7217 '개인정보 수집 동의*' / 30:7226 '동의합니다'). 필수인 것은
+// 동의라는 사실이지 '동의합니다'라는 말이 아니므로 그 자리가 맞다.
+//
+// 그래서 이 칸만 이름에 별을 붙이지 않는다. 대신 필수라는 사실을 aria-required로
+// 말해야 하고, 아래 검사가 그것을 강제한다 — 빠져나갈 구멍이 아니라 다른 문이다.
+function marksRequiredInName(spec: FieldSpec) {
+  return !(spec.type === 'input' && spec.inputType === 'checkbox')
+}
+
 function accessibleName(spec: FieldSpec) {
-  return `${spec.label ?? spec.placeholder ?? ''}${spec.required ? '*' : ''}`
+  const star = spec.required && marksRequiredInName(spec) ? '*' : ''
+  return `${spec.label ?? spec.placeholder ?? ''}${star}`
 }
 
 function listsOf(spec: ScreenSpec): ListSpec[] {
@@ -113,6 +124,14 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
         continue
       }
       expect(controlOf(field), `${field.fieldKey}의 라벨·필수 표시`).toBeInTheDocument()
+      // 이름에 별을 담지 않는 칸은 그 사실을 다른 곳에서 말해야 한다. 말하지
+      // 않으면 화면을 읽어 주는 기계에게 그 칸은 그냥 선택이다.
+      if (field.required && !marksRequiredInName(field)) {
+        expect(controlOf(field), `${field.fieldKey}의 필수 표시`).toHaveAttribute(
+          'aria-required',
+          'true',
+        )
+      }
     }
   })
 

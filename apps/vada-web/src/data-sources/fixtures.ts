@@ -1540,6 +1540,94 @@ const EVENT_ATTENDANCE_QR: Record<string, DataRow> = {
   },
 }
 
+// ─── QR 참석 확인(EXT-01A · EXT-01B) ────────────────────────────────────────
+//
+// **열쇠가 행사가 아니라 토큰이다.** 위의 EVENT_ATTENDANCE_QR은 학생회 사람이 행사로
+// 찾는 것이고, 이 둘은 밖에서 온 사람이 QR로 찾는 것이다. QR은 껐다 켜고 다시 만들 수
+// 있으므로(EVT-04B의 재생성·비활성화) 같은 행사라도 토큰이 갈린다.
+//
+// **토큰을 여섯 둔다.** 하나만 두면 '토큰마다 다르다'가 말뿐이 되고, 결과가 여섯인데
+// 몇만 두면 **회색 둘이 시계와 X로 갈린다**는 사실이 드러나지 않는다.
+//
+// **체크인 시간대가 EVENT_ATTENDANCE_QR과 어긋난다.** 저기는 E-01의 QR을 10:00~14:00으로
+// 그렸고 EXT-01A는 09:30~11:00으로 그렸다. 둘 다 와이어프레임이 그린 글이고 대조가 양쪽을
+// 강제하므로 그린 대로 둔다(재정 보드의 PR-01/PR-2026-0031과 같은 계급의 어긋남).
+const SPORTS_CHECK_IN: DataRow = {
+  eventName: '2026 소프트웨어융합대학 체육대회',
+  statusLabel: '체크인 가능',
+  statusTone: 'green',
+  checkInWindow: '09:30 ~ 11:00',
+  guideNote: '참가 신청 시 입력한 이름과 학번을 정확히 입력해 주세요.',
+}
+
+const ATTENDANCE_CHECK_IN_FORM: Record<string, DataRow> = {
+  // 열리는 넷. 명단에 있는지·이미 냈는지·조건을 채웠는지는 내 봐야 안다.
+  A7K2M9: { ...SPORTS_CHECK_IN },
+  B3N8P4: { ...SPORTS_CHECK_IN },
+  C5Q1R6: { ...SPORTS_CHECK_IN },
+  D8W4X2: { ...SPORTS_CHECK_IN },
+  // 열자마자 막히는 둘. blocked 셋은 함께 오고, 오면 이름·학번 칸을 그리지 않는다.
+  E2Y7Z5: {
+    ...SPORTS_CHECK_IN,
+    statusLabel: '체크인 시간 아님',
+    statusTone: 'gray',
+    blockedLabel: '체크인 시간 전·후',
+    blockedTone: 'gray',
+    blockedNote: '체크인 가능 시간이 아닙니다. (09:30 ~ 11:00)',
+  },
+  F6H1J3: {
+    eventName: '봄 축제 학생회 부스',
+    statusLabel: '비활성',
+    statusTone: 'gray',
+    checkInWindow: '2026. 05. 28 11:00 ~ 17:00',
+    guideNote: '참가 신청 시 입력한 이름과 학번을 정확히 입력해 주세요.',
+    blockedLabel: '비활성화된 QR',
+    blockedTone: 'gray',
+    blockedNote: '이 QR은 더 이상 사용할 수 없습니다.',
+  },
+}
+
+// 결과 여섯. **글은 와이어프레임이 카드마다 그린 것을 그대로 옮겼다** — 대조가 그 글을
+// 지킨다. 회색 둘(clock·x)이 이 표의 값이다.
+const ATTENDANCE_CHECK_IN_RESULT: Record<string, DataRow> = {
+  A7K2M9: {
+    label: '참석 완료',
+    tone: 'green',
+    iconName: 'check',
+    description: '2026. 08. 20 09:47 체크인되었습니다.',
+  },
+  B3N8P4: {
+    label: '참가자 명단 불일치',
+    tone: 'yellow',
+    iconName: 'circle-alert',
+    description: '입력하신 정보가 명단에 없습니다. 운영진에게 문의해 주세요.',
+  },
+  C5Q1R6: {
+    label: '이미 참석 처리됨',
+    tone: 'blue',
+    iconName: 'info',
+    description: '이미 참석 확인이 완료된 상태입니다.',
+  },
+  D8W4X2: {
+    label: '조건 미충족',
+    tone: 'red',
+    iconName: 'x',
+    description: '참가비 미납 또는 신청 미완료 상태입니다.',
+  },
+  E2Y7Z5: {
+    label: '체크인 시간 전·후',
+    tone: 'gray',
+    iconName: 'clock',
+    description: '체크인 가능 시간이 아닙니다. (09:30 ~ 11:00)',
+  },
+  F6H1J3: {
+    label: '비활성화된 QR',
+    tone: 'gray',
+    iconName: 'x',
+    description: '이 QR은 더 이상 사용할 수 없습니다.',
+  },
+}
+
 // ─── 행사 기본정보 편집 초안(EVT-02B) ───────────────────────────────────────
 //
 // event.basics와 **다른 조각이다.** 저기는 그려진 한 줄('납부자 무료 / 미납자
@@ -1707,6 +1795,75 @@ const EVENT_SURVEY_REPLACE_IMPACT: Record<string, DataRow> = {
       { text: '기존 응답자는 새 설문에 다시 응답해야 합니다.' },
       { text: '기존 링크에서는 새 설문으로 이동 버튼이 표시됩니다.' },
     ],
+  },
+}
+
+// ─── 링크로 온 설문 응답자가 보는 것(EXT-02A · 02B · 02C) ───────────────────
+//
+// **주소가 실어 오는 것은 행사가 아니라 설문의 토큰이다.** 설문은 교체될 수 있고
+// 링크가 가리키는 것은 설문이므로 한 행사에 토큰이 여럿 있다 — 교체되기 전의 것과
+// 지금 신청을 받는 것.
+//
+// 토큰을 여럿 두는 까닭은 '상태마다 다르다'가 말뿐이 되지 않게 하기 위해서다.
+// 하나만 두면 화면이 늘 같은 카드를 그리고, 그래도 아무도 모른다.
+//
+// **바깥에서 보는 값이라 안쪽 출처를 쓰지 않는다.** 그래도 같은 사실이므로 행사의
+// 기본정보에서 끌어온다 — 두 벌을 손으로 쓰면 어긋난다.
+const SURVEY_APPLY_FORM: Record<string, DataRow> = {
+  'SVY-4f2a91c7': {
+    title: String(EVENT_OVERVIEW['E-01'].basics.title),
+    // 일시만 다르다: 이 화면은 '2026-08-20 10:00'으로, 행사 개요는
+    // '08. 20. (목) 10:00'으로 그렸다. EVT-05에도 있는 같은 어긋남이라 그림대로 둔다.
+    startAt: '2026-08-20 10:00',
+    place: String(EVENT_OVERVIEW['E-01'].basics.place),
+    audience: String(EVENT_OVERVIEW['E-01'].basics.audience),
+    fee: String(EVENT_OVERVIEW['E-01'].basics.fee),
+  },
+  // 같은 학생회의 다른 행사. 참가비를 받지 않아도 그 자리는 늘 문장으로 온다.
+  'SVY-9c05b71d': {
+    title: '2026 소프트웨어융합대학 학술제',
+    startAt: '2026-11-05 13:00',
+    place: '제3공학관 대강당',
+    audience: '소프트웨어융합대학 재학생',
+    fee: '무료',
+  },
+}
+
+// 신청을 마친 사람이 보는 결과(EXT-02B). 신청 폼이 보내고 그대로 넘기는 토큰이다.
+const SURVEY_APPLY_RESULT: Record<string, DataRow> = {
+  'SVY-4f2a91c7': {
+    title: '참여 신청이 완료되었습니다',
+    eventTitle: '2026 소프트웨어융합대학 체육대회',
+    applicantNote: '신청자: 김바다',
+    feeStatus: '관리자 확인 중',
+    feeNote: '학생회비 납부 여부 확인 후 결정됩니다.',
+    notices: [
+      { text: '· 신청 내용은 마감 전까지 운영진에게 문의하면 수정 가능합니다.' },
+      { text: '· 문의: @sw_student_council (인스타그램)' },
+    ],
+  },
+}
+
+// 링크가 막힌 까닭(EXT-02C). **다섯이 서로 배타적이라 토큰 하나에 하나만 온다.**
+// 지금 신청을 받는 SVY-4f2a91c7은 여기 없다 — 막히지 않은 링크는 서버가 신청 폼으로
+// 보내므로 이 출처가 답할 것이 없다.
+const SURVEY_LINK_STATE: Record<string, DataRow> = {
+  'SVY-9c15ae40': { label: '모집 전', tone: 'gray', note: '참가 신청이 아직 시작되지 않았습니다.' },
+  'SVY-2e6b81f3': { label: '모집 마감', tone: 'gray', note: '참가 신청이 종료되었습니다.' },
+  'SVY-77d4c0a9': { label: '정원 마감', tone: 'orange', note: '신청 정원이 모두 찼습니다.' },
+  'SVY-1a58e3b6': {
+    label: '링크 비활성화',
+    tone: 'red',
+    note: '이 링크는 더 이상 사용할 수 없습니다.',
+  },
+  // 응답이 있어 교체된 옛 설문(EVT-05B가 만든 상태). 다섯 중 유일하게 갈 곳이 있고,
+  // 옛 토큰과 새 토큰을 잇는 것은 서버뿐이다.
+  'SVY-0b3d77e1': {
+    label: '기존 설문 종료 · 새 설문으로 교체됨',
+    tone: 'yellow',
+    note: '이 참여 조사는 종료되었습니다. 새로 진행 중인 참여 조사에 다시 응답해 주세요.',
+    actionLabel: '새 설문으로 이동 →',
+    replacementToken: 'SVY-4f2a91c7',
   },
 }
 
@@ -3841,6 +3998,16 @@ export const FILTERED_FIXTURES: Record<
   'event.staffUnassignedMembers': ({ eventId = '' }) => EVENT_STAFF_UNASSIGNED[eventId] ?? [],
   // 인자가 가리키는 행사에 아직 QR이 없으면 빈 목록이고, 그것은 '개발용 응답이
   // 없다'가 아니라 **아직 만들지 않았다**다(readDataSource가 NOT_FOUND로 가른다).
+  // 밖에서 온 사람이 QR로 찾는다. 토큰이 가리키는 것이 없으면 빈 목록이고, 그것은
+  // '개발용 응답이 없다'가 아니라 **찾지 못했다**다.
+  'attendance.checkInForm': ({ checkInToken = '' }) => {
+    const row = ATTENDANCE_CHECK_IN_FORM[checkInToken]
+    return row === undefined ? [] : [row]
+  },
+  'attendance.checkInResult': ({ checkInToken = '' }) => {
+    const row = ATTENDANCE_CHECK_IN_RESULT[checkInToken]
+    return row === undefined ? [] : [row]
+  },
   'event.attendanceQr': ({ eventId = '' }) => {
     const row = EVENT_ATTENDANCE_QR[eventId]
     return row === undefined ? [] : [row]
@@ -3866,6 +4033,18 @@ export const FILTERED_FIXTURES: Record<
   'event.surveyQuestions': ({ eventId = '' }) => EVENT_SURVEY_QUESTIONS[eventId] ?? [],
   'event.surveyReplaceImpact': ({ eventId = '' }) => {
     const row = EVENT_SURVEY_REPLACE_IMPACT[eventId]
+    return row === undefined ? [] : [row]
+  },
+  'survey.applyForm': ({ surveyToken = '' }) => {
+    const row = SURVEY_APPLY_FORM[surveyToken]
+    return row === undefined ? [] : [row]
+  },
+  'survey.applyResult': ({ surveyToken = '' }) => {
+    const row = SURVEY_APPLY_RESULT[surveyToken]
+    return row === undefined ? [] : [row]
+  },
+  'survey.linkState': ({ surveyToken = '' }) => {
+    const row = SURVEY_LINK_STATE[surveyToken]
     return row === undefined ? [] : [row]
   },
   // 건수는 보는 범위와 무관하게 이 행사의 보드 전체를 센다.

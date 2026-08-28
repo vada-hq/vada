@@ -77,6 +77,11 @@ import msg03Json from '../../../../specs/figma/vada-wireframe/screens/MSG-03/scr
 import rec01Json from '../../../../specs/figma/vada-wireframe/screens/REC-01/screen.json'
 import rec02Json from '../../../../specs/figma/vada-wireframe/screens/REC-02/screen.json'
 import rec02aJson from '../../../../specs/figma/vada-wireframe/screens/REC-02A/screen.json'
+import ext01aJson from '../../../../specs/figma/vada-wireframe/screens/EXT-01A/screen.json'
+import ext01bJson from '../../../../specs/figma/vada-wireframe/screens/EXT-01B/screen.json'
+import ext02aJson from '../../../../specs/figma/vada-wireframe/screens/EXT-02A/screen.json'
+import ext02bJson from '../../../../specs/figma/vada-wireframe/screens/EXT-02B/screen.json'
+import ext02cJson from '../../../../specs/figma/vada-wireframe/screens/EXT-02C/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -161,6 +166,11 @@ export const msg03 = asScreenSpec(msg03Json)
 export const rec01 = asScreenSpec(rec01Json)
 export const rec02 = asScreenSpec(rec02Json)
 export const rec02a = asScreenSpec(rec02aJson)
+export const ext01a = asScreenSpec(ext01aJson)
+export const ext01b = asScreenSpec(ext01bJson)
+export const ext02a = asScreenSpec(ext02aJson)
+export const ext02b = asScreenSpec(ext02bJson)
+export const ext02c = asScreenSpec(ext02cJson)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
 // ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
@@ -233,6 +243,11 @@ export const ALL_SCREENS: ScreenSpec[] = [
   rec01,
   rec02,
   rec02a,
+  ext01a,
+  ext01b,
+  ext02a,
+  ext02b,
+  ext02c,
 ]
 
 // 화면 하나만 열어 볼 때 넘길 인자.

@@ -48,6 +48,9 @@ function registeredIds(spec) {
   const ids = []
   for (const element of spec.elements ?? []) {
     ids.push(element.source.nodeId)
+    // 한 자리를 여러 번 그린 그림의 사본도 그 요소의 것이다. 참석 확인의 결과
+    // 여섯이 노드 대 노드로 같고 서로 배타적이다 — 한 사람에게 하나만 온다.
+    for (const copy of element.source.alsoDrawnAt ?? []) ids.push(copy)
     for (const field of element.spec?.itemFields ?? []) ids.push(field.source.nodeId)
     if (typeof element.spec?.paging?.source === 'string') {
       ids.push(element.spec.paging.source)
@@ -117,6 +120,19 @@ const FLOOR = {
   'EVT-SCHED-01': { covered: 85, total: 105 },
   'EVT-TASK-01': { covered: 64, total: 83 },
   'EVT-TASK-02': { covered: 58, total: 76 },
+  // 밖에서 온 사람이 보는 다섯. **덜 덮인 자리가 셋 다 정당하다** — 폰 겉틀의 시계
+  // '9:41', 로고 'V'·'Vada'(shell.json의 것), 그리고 화면 제목이다.
+  //
+  // 제목이 빠지는 것은 이 화면들의 흠이 아니라 **눈금의 눈먼 자리**다. meta에는
+  // source가 없어 무엇이 제목을 그린 노드인지 알 방법이 없다. 저장소 전체에서
+  // meta.title과 같은 글 64곳, eyebrow·description·footerNote 37곳이 같은 까닭으로
+  // 안 세어진다(전체의 1.5% 남짓). 셸이 있는 화면은 머리가 등록 노드 안에 들어
+  // 가려져 덜 드러날 뿐이다.
+  'EXT-01A': { covered: 9, total: 12 },
+  'EXT-01B': { covered: 12, total: 14 },
+  'EXT-02A': { covered: 17, total: 22 },
+  'EXT-02B': { covered: 9, total: 10 },
+  'EXT-02C': { covered: 15, total: 17 },
   'FIN-00': { covered: 83, total: 84 },
   'FIN-EVID-01': { covered: 28, total: 54 },
   'FIN-LEDGER-01': { covered: 94, total: 96 },

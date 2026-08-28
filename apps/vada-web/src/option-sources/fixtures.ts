@@ -182,3 +182,37 @@ export const ARCHIVE_REVIEWER_OPTIONS: Option[] = [
   { value: 'M-01', label: '김바다 · 회장단' },
   { value: 'M-02', label: '이윤슬 · 대외협력부장' },
 ]
+
+// 참여 신청 폼이 고르는 것들(EXT-02A). **education.colleges·departments와 다른
+// 물건이다** — 저쪽은 schoolId를 필수로 받는데 이 화면에는 학교 칸이 없다(그림에
+// 없다). 어느 학교의 목록인지는 그 설문을 연 학생회가 이미 알고 있으므로 토큰이
+// 곧 범위다.
+export const SURVEY_COLLEGES: Record<string, Option[]> = {
+  'SVY-4f2a91c7': [
+    { value: 'col-sw', label: '소프트웨어융합대학' },
+    { value: 'col-eng', label: '공학대학' },
+    { value: 'col-sci', label: '과학기술융합대학' },
+  ],
+  'SVY-9c05b71d': [
+    { value: 'col-sw', label: '소프트웨어융합대학' },
+    { value: 'col-eng', label: '공학대학' },
+  ],
+}
+
+export const SURVEY_DEPARTMENTS: Record<string, Option[]> = {
+  'SVY-4f2a91c7:col-sw': [
+    { value: 'dep-cs', label: '컴퓨터학부' },
+    { value: 'dep-ict', label: 'ICT융합학부' },
+    { value: 'dep-ai', label: '인공지능학과' },
+  ],
+  'SVY-4f2a91c7:col-eng': [
+    { value: 'dep-me', label: '기계공학과' },
+    { value: 'dep-ee', label: '전자공학부' },
+  ],
+  'SVY-4f2a91c7:col-sci': [{ value: 'dep-math', label: '수리데이터사이언스학과' }],
+  'SVY-9c05b71d:col-sw': [
+    { value: 'dep-cs', label: '컴퓨터학부' },
+    { value: 'dep-ict', label: 'ICT융합학부' },
+  ],
+  'SVY-9c05b71d:col-eng': [{ value: 'dep-ee', label: '전자공학부' }],
+}
