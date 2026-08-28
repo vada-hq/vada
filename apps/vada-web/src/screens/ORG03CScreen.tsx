@@ -183,7 +183,7 @@ export function ORG03CScreen({ onNavigate }: ORG03CScreenProps) {
             </p>
             <div className="flex flex-wrap gap-3 px-5 pt-4">
               {executiveRows.map((row, index) => {
-                const tone = scalar(row, executiveCard.status!.toneField)
+                const tone = scalar(row, executiveCard.status![0].toneField)
                 return (
                   <span
                     key={scalar(row, 'id')}
@@ -215,7 +215,7 @@ export function ORG03CScreen({ onNavigate }: ORG03CScreenProps) {
                         ROLE_CHIP[tone] ?? ''
                       }`}
                     >
-                      {scalar(row, executiveCard.status!.field)}
+                      {scalar(row, executiveCard.status![0].field)}
                     </span>
                   </span>
                 )
@@ -281,10 +281,10 @@ export function ORG03CScreen({ onNavigate }: ORG03CScreenProps) {
               <span className="text-xs font-semibold text-green-900">{state.title}</span>
               <span
                 className={`rounded px-2 py-0.5 text-[11px] font-semibold ${
-                  CHIP_ON_TINT[scalar(invite, state.status!.toneField)] ?? ''
+                  CHIP_ON_TINT[scalar(invite, state.status![0].toneField)] ?? ''
                 }`}
               >
-                {scalar(invite, state.status!.field)}
+                {scalar(invite, state.status![0].field)}
               </span>
             </p>
             <p className="pt-2 text-xs text-green-800">

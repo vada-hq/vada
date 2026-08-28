@@ -517,7 +517,7 @@ function PersonCard({
   variant,
   art,
 }: PersonCardProps) {
-  const tone = spec.status === undefined ? '' : scalar(row, spec.status.toneField)
+  const tone = spec.status === undefined ? '' : scalar(row, spec.status[0].toneField)
   const frame =
     variant === 'executive'
       ? `w-36 ${ROLE_CARD[tone] ?? 'border-gray-200 bg-white'}`
@@ -554,7 +554,7 @@ function PersonCard({
         <span
           className={`mt-1 w-fit rounded px-2 py-0.5 text-[11px] font-semibold ${ROLE_CHIP[tone] ?? ''}`}
         >
-          {scalar(row, spec.status.field)}
+          {scalar(row, spec.status[0].field)}
         </span>
       )}
       {/* 자리에서 빼기. 글이 없고 동그란 표시 하나뿐이라 이름은 보조기기만 읽는다. */}

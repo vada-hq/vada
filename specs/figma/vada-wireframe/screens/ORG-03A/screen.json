@@ -47,10 +47,12 @@
             },
             "spec": {
               "type": "summary",
-              "status": {
-                "field": "roleLabel",
-                "toneField": "roleTone"
-              },
+              "status": [
+                {
+                  "field": "roleLabel",
+                  "toneField": "roleTone"
+                }
+              ],
               "titleField": "name",
               "items": [
                 {

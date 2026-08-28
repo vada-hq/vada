@@ -1227,6 +1227,32 @@ function checkCopyAction(findings, context) {
   }
 }
 
+// 받아 갈 파일도 실제로 있는 조각을 가리켜야 한다. copy와 같은 검사인데 대상이
+// 다르다 - 저것은 화면에 그려진 값이고 이것은 서버가 가진 파일이다.
+function checkDownloadAction(findings, context) {
+  const { file, element, index, dataSourceByKey } = context;
+  const action = element.spec?.action;
+  if (!isObject(action) || action.type !== "download") {
+    return;
+  }
+  const source = dataSourceByKey.get(action.downloadSourceKey);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}가 받아 가려는 출처 '${action.downloadSourceKey}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+  if (!(source.fields ?? []).some((field) => field.key === action.downloadField)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${elementLabel(element, index)}가 받아 가려는 조각 '${action.downloadField}'가 '${action.downloadSourceKey}'에 없습니다.`
+    });
+  }
+}
+
 // 옮길 수 있는 목록은 **자리를 잃은 사람이 어디 모이는지**를 가리킨다. 그 곳이
 // 실제로 있는 목록 출처가 아니면, 뺀 사람이 어디로 갔는지 아무도 답할 수 없다.
 function checkItemMovePool(findings, context) {
@@ -2086,6 +2112,12 @@ export function collectSpecFindings({
       }
       if (spec_.type === "button") {
         checkSubmitAction(findings, context);
+        // 집어 가는 것과 받아 가는 것은 **button의 동작**이다. 오래 itemList
+        // 가지에 걸려 있어서 checkCopyAction은 실제 명세에서 한 번도 돈 적이
+        // 없었다 - itemList에는 action이 없다(itemAction이다). 계약 검사도
+        // 없어 아무도 몰랐다.
+        checkCopyAction(findings, context);
+        checkDownloadAction(findings, context);
       }
       if (spec_.type === "summary") {
         checkSummaryCompute(findings, context);
@@ -2110,7 +2142,6 @@ export function collectSpecFindings({
         checkListColumns(findings, context);
         checkNestedListTitleField(findings, context);
         checkItemMovePool(findings, context);
-        checkCopyAction(findings, context);
         checkRowToneField(findings, context);
         checkListPaging(findings, context);
       }

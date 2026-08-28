@@ -233,10 +233,10 @@ export function FINREV01Screen({
                 data-design-state
                 data-design-rule="state-chip"
                 className={`inline-flex rounded border px-2 py-0.5 text-xs font-medium ${
-                  STATE_CHIP[scalar(summaryRow, head.status?.toneField ?? '')] ?? NEUTRAL_CHIP
+                  STATE_CHIP[scalar(summaryRow, head.status?.[0]?.toneField ?? '')] ?? NEUTRAL_CHIP
                 }`}
               >
-                {scalar(summaryRow, head.status?.field ?? '')}
+                {scalar(summaryRow, head.status?.[0]?.field ?? '')}
               </span>
             </span>
             <span className="block pt-1 text-lg font-bold text-gray-900">{head.title}</span>

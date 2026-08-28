@@ -65,10 +65,12 @@
             },
             "spec": {
               "type": "summary",
-              "status": {
-                "field": "roleLabel",
-                "toneField": "roleTone"
-              },
+              "status": [
+                {
+                  "field": "roleLabel",
+                  "toneField": "roleTone"
+                }
+              ],
               "titleField": "name",
               "items": [
                 {
@@ -164,10 +166,12 @@
       "spec": {
         "type": "summary",
         "title": "초대 정보",
-        "status": {
-          "field": "stateLabel",
-          "toneField": "stateTone"
-        },
+        "status": [
+          {
+            "field": "stateLabel",
+            "toneField": "stateTone"
+          }
+        ],
         "descriptionField": "stateNote",
         "dataSourceKey": "org.invite",
         "items": [

@@ -59,10 +59,12 @@
         "type": "summary",
         "title": "구매 요청 검토",
         "eyebrowField": "code",
-        "status": {
-          "field": "status",
-          "toneField": "statusTone"
-        },
+        "status": [
+          {
+            "field": "status",
+            "toneField": "statusTone"
+          }
+        ],
         "dataSourceKey": "finance.reviewSummary",
         "params": {
           "requestId": {

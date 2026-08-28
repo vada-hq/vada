@@ -185,6 +185,43 @@
               ]
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "download"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "downloadField",
+              "downloadSourceKey"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "targetScreenId"
+                  ]
+                },
+                {
+                  "required": [
+                    "mutationKey"
+                  ]
+                },
+                {
+                  "required": [
+                    "note"
+                  ]
+                }
+              ]
+            }
+          }
         }
       ],
       "properties": {
@@ -193,9 +230,10 @@
             "navigate",
             "submit",
             "pending",
-            "copy"
+            "copy",
+            "download"
           ],
-          "description": "pending은 '누르면 무엇이 일어나는지 아직 정해지지 않았다'를 명시한다. 대상 화면이 아직 명세되지 않았을 때 쓴다.\n\ncopy는 '화면에 보이는 값을 가져간다'는 뜻이다. 보내는 것이 아니라 **이미 그려진 것을 집어 가는 것**이라 submit이 아니고, 어디로 가지도 않으므로 navigate도 아니다. 초대 링크와 초대 코드가 그 자리다 - 사람이 붙여 넣어 남에게 보내라고 그린 값이다."
+          "description": "pending은 '누르면 무엇이 일어나는지 아직 정해지지 않았다'를 명시한다. 대상 화면이 아직 명세되지 않았을 때 쓴다.\n\ncopy는 '화면에 보이는 값을 가져간다'는 뜻이다. 보내는 것이 아니라 **이미 그려진 것을 집어 가는 것**이라 submit이 아니고, 어디로 가지도 않으므로 navigate도 아니다. 초대 링크와 초대 코드가 그 자리다 - 사람이 붙여 넣어 남에게 보내라고 그린 값이다.\n\ndownload는 '서버가 가진 파일을 받아 간다'는 뜻이다. copy와 같은 처지다 — 보내는 것이 아니니 submit이 아니고, 어디로 가지도 않으니 navigate가 아니다. 그런데 copy와 달리 **화면에 그려진 값이 아니라 서버의 파일**이라 따로 있어야 한다.\n\npending으로 적으면 안 된다 — 그것은 '아직 정해지지 않았다'는 뜻인데 여기는 정해져 있다. **조용한 대체가 된다.** OPS-MEET-07의 '회의록 내보내기'와 관련 자료 줄의 내려받기, 05A/05B의 사전 자료 '열기'가 그 자리다(여덟 곳)."
         },
         "targetScreenId": {
           "type": "string",
@@ -322,6 +360,16 @@
           "type": "string",
           "minLength": 1,
           "description": "copy 전용. copyField가 어느 출처의 조각인지. data-sources.json의 key이며 shape가 object여야 한다."
+        },
+        "downloadField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "download 전용. 받아 갈 파일이 무엇인지 담긴 조각의 key. 명세가 아는 것은 '어느 파일인가'까지다 — 형식도 이름도 서버가 정한다."
+        },
+        "downloadSourceKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "download 전용. 그 조각이 오는 데이터 출처의 key."
         }
       }
     }

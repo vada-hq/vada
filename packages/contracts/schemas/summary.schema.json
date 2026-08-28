@@ -28,25 +28,29 @@
       "description": "소제목이 서버에서 오는 경우 dataSourceKey가 가리키는 출처의 fields[].key. eyebrow와 함께 쓰지 않는다. 한 건의 상세에서는 그 건의 번호가 그 자리에 온다(FIN-REQ-02의 'REQ-001')."
     },
     "status": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": [
-        "field",
-        "toneField"
-      ],
-      "description": "제목 곁에 붙는 상태 딱지(선택). 값도 색도 데이터가 준다 — 어떤 상태가 있는지는 조직의 절차가 정하고, 명세가 그 목록을 들고 있으면 상태가 하나 늘 때마다 명세가 틀린다. 딱지가 items의 한 줄이 아닌 이유는 그려지는 자리가 다르기 때문이다: items는 라벨-값 쌍이 늘어서는 자리이고, 이것은 무엇의 상세인지를 말하는 머리에 붙는다.",
-      "properties": {
-        "field": {
-          "type": "string",
-          "minLength": 1,
-          "description": "딱지에 그려지는 글의 key. 예: 보완 요청"
-        },
-        "toneField": {
-          "type": "string",
-          "minLength": 1,
-          "description": "딱지의 색 이름이 담긴 key. 값은 design/tones.ts의 톤 이름이다 — 색 자체가 아니라 이름이며, 이름을 색으로 옮기는 일은 화면이 한 곳에서 한다."
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "toneField"
+        ],
+        "properties": {
+          "field": {
+            "type": "string",
+            "minLength": 1,
+            "description": "딱지에 그려지는 글의 key. 예: 보완 요청"
+          },
+          "toneField": {
+            "type": "string",
+            "minLength": 1,
+            "description": "딱지의 색 이름이 담긴 key. 값은 design/tones.ts의 톤 이름이다 — 색 자체가 아니라 이름이며, 이름을 색으로 옮기는 일은 화면이 한 곳에서 한다."
+          }
         }
-      }
+      },
+      "description": "제목 곁에 붙는 상태 딱지(선택). 값도 색도 데이터가 준다 — 어떤 상태가 있는지는 조직의 절차가 정하고, 명세가 그 목록을 들고 있으면 상태가 하나 늘 때마다 명세가 틀린다. 딱지가 items의 한 줄이 아닌 이유는 그려지는 자리가 다르기 때문이다: items는 라벨-값 쌍이 늘어서는 자리이고, 이것은 무엇의 상세인지를 말하는 머리에 붙는다.\n\n**개수가 데이터에 달렸다.** 한 자리에 딱지가 둘 붙는 곳이 있다 - OPS-MEET-07의 띠는 회의록 상태와 보는 사람의 참석 기록을 나란히 달고, 04B의 생성자 줄은 '회의 생성자'와 '진행 권한'을 함께 단다. 사람마다 개수가 다르므로 하나로 못 박으면 틀린다."
     },
     "titleField": {
       "type": "string",

@@ -58,10 +58,12 @@
       "spec": {
         "type": "summary",
         "eyebrowField": "code",
-        "status": {
-          "field": "status",
-          "toneField": "statusTone"
-        },
+        "status": [
+          {
+            "field": "status",
+            "toneField": "statusTone"
+          }
+        ],
         "titleField": "title",
         "descriptionField": "requesterNote",
         "dataSourceKey": "finance.paymentEvidenceSummary",

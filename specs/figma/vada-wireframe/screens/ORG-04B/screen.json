@@ -69,10 +69,12 @@
             },
             "spec": {
               "type": "summary",
-              "status": {
-                "field": "roleLabel",
-                "toneField": "roleTone"
-              },
+              "status": [
+                {
+                  "field": "roleLabel",
+                  "toneField": "roleTone"
+                }
+              ],
               "titleField": "name",
               "items": [
                 {
@@ -113,10 +115,12 @@
       },
       "spec": {
         "type": "summary",
-        "status": {
-          "field": "roleLabel",
-          "toneField": "roleTone"
-        },
+        "status": [
+          {
+            "field": "roleLabel",
+            "toneField": "roleTone"
+          }
+        ],
         "titleField": "name",
         "dataSourceKey": "org.selectedRoleAssignment",
         "items": [

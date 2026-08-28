@@ -16,6 +16,9 @@ export interface InputSpec {
   helperText?: string
   initialValue: string | null
   inputType: string
+  // 여러 줄을 받는 칸인가. inputType은 HTML input의 type과 같은 말이라 textarea가
+  // 들어갈 자리가 없고, text로만 적으면 '긴 글'이라는 사실이 명세에서 사라진다.
+  multiline?: boolean
   valueType: string
   required: boolean
   // 값을 보여주되 사람이 고칠 수 없는 칸(FIN-REQ-01의 요청 부서). 비활성과 다르다 —
@@ -107,7 +110,21 @@ export interface CopyAction extends ExecutionGate {
   copyField: string
 }
 
-export type ButtonAction = NavigateAction | SubmitAction | PendingAction | CopyAction
+// 서버가 가진 파일을 받아 간다. copy와 같은 처지지만 대상이 다르다 - 저것은
+// 화면에 그려진 값이고 이것은 서버의 파일이다. pending으로 적으면 '아직 안
+// 정했다'는 거짓말이 된다.
+export interface DownloadAction {
+  type: 'download'
+  downloadSourceKey: string
+  downloadField: string
+}
+
+export type ButtonAction =
+  | NavigateAction
+  | SubmitAction
+  | PendingAction
+  | CopyAction
+  | DownloadAction
 
 export type ButtonEmphasis = 'primary' | 'secondary' | 'quiet'
 
@@ -188,10 +205,11 @@ export interface SummarySpec {
   // 제목이 서버에서 오는 경우(홈 브리핑의 '박해랑님, 확인이 필요해요').
   titleField?: string
   // 제목 곁의 상태 딱지. 글과 톤 이름 모두 데이터가 준다.
-  status?: {
+  // 딱지는 여럿일 수 있다 - 개수가 데이터에 달렸다(OPS-MEET-07의 띠는 둘을 단다).
+  status?: Array<{
     field: string
     toneField: string
-  }
+  }>
   description?: string
   // 설명이 서버에서 오는 경우(OPS-00의 '박해랑님이 확인할 …').
   descriptionField?: string

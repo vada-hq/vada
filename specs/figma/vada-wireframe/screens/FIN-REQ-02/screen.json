@@ -100,10 +100,12 @@
       "spec": {
         "type": "summary",
         "eyebrowField": "code",
-        "status": {
-          "field": "status",
-          "toneField": "statusTone"
-        },
+        "status": [
+          {
+            "field": "status",
+            "toneField": "statusTone"
+          }
+        ],
         "titleField": "title",
         "dataSourceKey": "finance.purchaseRequestDetail",
         "params": {

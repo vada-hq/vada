@@ -180,7 +180,7 @@ function ExecutiveCard({
   spec: SummarySpec
   nodeId?: string
 }) {
-  const tone = spec.status === undefined ? '' : scalar(row, spec.status.toneField)
+  const tone = spec.status === undefined ? '' : scalar(row, spec.status[0].toneField)
   return (
     <span
       data-node-id={nodeId}
@@ -204,7 +204,7 @@ function ExecutiveCard({
         <span
           className={`mt-1 w-fit rounded px-2 py-0.5 text-[11px] font-semibold ${ROLE_CHIP[tone] ?? ''}`}
         >
-          {scalar(row, spec.status.field)}
+          {scalar(row, spec.status[0].field)}
         </span>
       )}
     </span>

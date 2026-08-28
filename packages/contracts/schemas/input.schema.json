@@ -61,9 +61,14 @@
         "date",
         "time",
         "datetime-local",
-        "file"
+        "file",
+        "checkbox"
       ],
-      "description": "칸이 받는 값의 종류. HTML input의 type과 같은 말이며 **role까지 정한다** - search는 textbox가 아니라 searchbox다.\n\nfile은 값이 글이 아니라 고른 파일이다. 그래도 화면에 그려지는 것은 그 파일의 이름이라 valueType은 string이다 - 명세가 아는 것은 '무엇을 고르게 하는가'까지다."
+      "description": "칸이 받는 값의 종류. HTML input의 type과 같은 말이며 **role까지 정한다** - search는 textbox가 아니라 searchbox다.\n\nfile은 값이 글이 아니라 고른 파일이다. 그래도 화면에 그려지는 것은 그 파일의 이름이라 valueType은 string이다 - 명세가 아는 것은 '무엇을 고르게 하는가'까지다.\n\ncheckbox는 값이 참이냐 거짓이냐다(valueType: boolean). 스키마에 boolean이 있으면서도 저장소에서 한 번도 쓰이지 않았던 것은 **받을 조작이 없었기 때문**이다 - 반쪽만 있던 어휘였다. OPS-MEET-02의 '비공개 회의'와 06B의 '결정사항 없음'이 그 짝을 찾았다. select로 적으면 뜻이 어긋난다 - 목록에서 하나 고르는 것이 아니라 켜고 끄는 것이다."
+    },
+    "multiline": {
+      "type": "boolean",
+      "description": "여러 줄을 받는 칸인가(기본 false). inputType은 HTML input의 type과 같은 말이라 textarea가 들어갈 자리가 없고, 그렇다고 text로만 적으면 **'긴 글'이라는 사실이 명세에서 사라진다** - 명세 하나만 보고 화면을 만드는 사람이 한 줄짜리를 그린다. 디자인이 Text Area로 그린 자리다(FIN-REQ-01의 구매 목적, OPS-MEET-02의 회의 목적과 안건 설명, 05A/05B의 논의 내용, 06B의 결정사항, D04의 취소 사유)."
     },
     "valueType": {
       "type": "string",

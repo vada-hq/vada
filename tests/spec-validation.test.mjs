@@ -2263,6 +2263,124 @@ test("줄 색 이름이 출처에 없으면 오류다", () => {
   );
 });
 
+// 받아 가는 것도 실제로 있는 조각을 가리켜야 한다. pending으로 적으면 '아직
+// 안 정했다'는 뜻이 되어 조용한 대체가 되므로, 이 어휘가 생긴 김에 그 참조를
+// 아무도 안 보는 자리로 두면 안 된다.
+function downloadingScreen(downloadField, downloadSourceKey = "meeting.minutes") {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Btn", figmaType: "FRAME" },
+              spec: {
+                type: "button",
+                label: "회의록 내보내기",
+                initiallyDisabled: false,
+                action: { type: "download", downloadField, downloadSourceKey }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "meeting.minutes",
+          shape: "object",
+          fields: [{ key: "exportName", label: "내보낼 파일" }]
+        }
+      ]
+    }
+  };
+}
+
+// 집어 가는 것에는 **검사가 있는데 계약 검사가 없었다.** 그래서 그 검사가
+// itemList 가지에 걸려 실제 명세에서 한 번도 돌지 않은 것을 아무도 몰랐다
+// (진짜 copy 단추는 ORG-03C의 button 둘이다). 이제 여기서 돈다.
+function copyingScreen(copyField, copySourceKey = "org.invite") {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Btn", figmaType: "FRAME" },
+              spec: {
+                type: "button",
+                label: "링크 복사",
+                initiallyDisabled: false,
+                action: { type: "copy", copyField, copySourceKey }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "org.invite",
+          shape: "object",
+          fields: [{ key: "url", label: "초대 링크" }]
+        }
+      ]
+    }
+  };
+}
+
+test("집어 가려는 조각이 출처에 있으면 조용하다", () => {
+  assert.deepEqual(collectSpecFindings(copyingScreen("url")), []);
+});
+
+test("집어 가려는 조각이 출처에 없으면 오류다", () => {
+  const findings = collectSpecFindings(copyingScreen("없는조각"));
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("가져가려는 조각")).length,
+    1
+  );
+});
+
+test("집어 가려는 출처가 카탈로그에 없으면 오류다", () => {
+  const findings = collectSpecFindings(copyingScreen("url", "org.없는출처"));
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("가져가려는 출처")).length,
+    1
+  );
+});
+
+test("받아 가려는 조각이 출처에 있으면 조용하다", () => {
+  assert.deepEqual(collectSpecFindings(downloadingScreen("exportName")), []);
+});
+
+test("받아 가려는 조각이 출처에 없으면 오류다", () => {
+  const findings = collectSpecFindings(downloadingScreen("없는조각"));
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("받아 가려는 조각")).length,
+    1
+  );
+});
+
+test("받아 가려는 출처가 카탈로그에 없으면 오류다", () => {
+  const findings = collectSpecFindings(
+    downloadingScreen("exportName", "meeting.없는출처")
+  );
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("받아 가려는 출처")).length,
+    1
+  );
+});
+
 // 모달은 아래 화면 위에 뜬다. 디자인이 그것을 화면 전체와 형제로 그리므로,
 // 이 화면이 그리는 부분 밖은 아래 화면의 것이다.
 function overlayScreen(overlay) {

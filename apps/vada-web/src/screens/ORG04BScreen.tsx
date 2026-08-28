@@ -171,10 +171,10 @@ export function ORG04BScreen({ onNavigate }: ORG04BScreenProps) {
               </span>
               <span
                 className={`rounded-full border px-2.5 py-1 text-xs font-semibold ${
-                  BASE_ROLE_CHIP[scalar(row, memberCard.status!.toneField)] ?? ''
+                  BASE_ROLE_CHIP[scalar(row, memberCard.status![0].toneField)] ?? ''
                 }`}
               >
-                {scalar(row, memberCard.status!.field)}
+                {scalar(row, memberCard.status![0].field)}
               </span>
               <FigmaAsset
                 screenId={SCREEN}
@@ -209,10 +209,10 @@ export function ORG04BScreen({ onNavigate }: ORG04BScreenProps) {
               <span>{`${scalar(person, selected.items![0].field!)} · ${selected.items![0].label} `}</span>
               <span
                 className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${
-                  BASE_ROLE_CHIP[scalar(person, selected.status!.toneField)] ?? ''
+                  BASE_ROLE_CHIP[scalar(person, selected.status![0].toneField)] ?? ''
                 }`}
               >
-                {scalar(person, selected.status!.field)}
+                {scalar(person, selected.status![0].field)}
               </span>
             </p>
           </div>

@@ -206,8 +206,8 @@ export function FINREQ02Screen({ screenParams, onNavigate }: FINREQ02ScreenProps
           variant="detail"
           eyebrow={scalar(summaryDetail, summarySpec.eyebrowField)}
           status={{
-            label: scalar(summaryDetail, summarySpec.status.field),
-            tone: scalar(summaryDetail, summarySpec.status.toneField),
+            label: scalar(summaryDetail, summarySpec.status[0].field),
+            tone: scalar(summaryDetail, summarySpec.status[0].toneField),
           }}
           title={scalar(summaryDetail, summarySpec.titleField)}
           items={summaryItems}

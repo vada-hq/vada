@@ -54,7 +54,12 @@ function listsOf(spec: ScreenSpec): ListSpec[] {
 const ROLELESS_INPUT_TYPES = new Set(['date', 'time', 'datetime-local', 'file'])
 
 function roleOf(spec: FieldSpec) {
-  if (spec.type === 'input') return spec.inputType === 'search' ? 'searchbox' : 'textbox'
+  // inputType이 role까지 정한다 - search는 searchbox, checkbox는 checkbox다.
+  if (spec.type === 'input') {
+    if (spec.inputType === 'search') return 'searchbox'
+    if (spec.inputType === 'checkbox') return 'checkbox'
+    return 'textbox'
+  }
   return spec.presentation === 'choiceGroup' ? 'radiogroup' : 'combobox'
 }
 
@@ -253,7 +258,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
         expect(within(holder).getByText(String(row[summary.eyebrowField]))).toBeInTheDocument()
       }
       if (summary.status !== undefined) {
-        expect(within(holder).getByText(String(row[summary.status.field]))).toBeInTheDocument()
+        expect(within(holder).getByText(String(row[summary.status[0].field]))).toBeInTheDocument()
       }
     }
   })

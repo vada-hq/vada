@@ -187,8 +187,8 @@ export function FINPROC01Screen({ screenParams, onNavigate }: FINPROC01ScreenPro
           nodeId={summaryNodeId}
           eyebrow={fieldValue(summaryRow, summarySpec.eyebrowField, 'summary 소제목')}
           status={{
-            label: fieldValue(summaryRow, summarySpec.status.field, 'summary 상태'),
-            tone: fieldValue(summaryRow, summarySpec.status.toneField, 'summary 상태 톤'),
+            label: fieldValue(summaryRow, summarySpec.status[0].field, 'summary 상태'),
+            tone: fieldValue(summaryRow, summarySpec.status[0].toneField, 'summary 상태 톤'),
           }}
           title={fieldValue(summaryRow, summarySpec.titleField, 'summary 제목')}
           description={fieldValue(summaryRow, summarySpec.descriptionField, 'summary 설명')}
