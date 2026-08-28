@@ -4,10 +4,10 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
-import { elementByNodeId, opsMeet01a } from '../spec/screens'
+import { elementByNodeId, opsMeet01a, opsMeet01c } from '../spec/screens'
 import { resolveParams } from '../spec/params'
 import { targetScreenOf } from '../spec/types'
-import type { DisplayAction, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
+import type { ButtonSpec, DisplayAction, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 회의 목록(OPS-MEET-01A).
 //
@@ -38,11 +38,23 @@ const ASSET = {
   host: '18:476',
 } as const
 
+// 새 회의를 만들 수 있는 사람이 보면 머리에 단추가 온다(변형 OPS-MEET-01C).
+// **다른 화면이 아니라 다른 사람이 본 같은 화면이다** — 명세가 그렇게 말한다
+// (meeting.attention의 canCreateMeeting). 이 저장소에는 로그인한 사람이 없어 어느
+// 그림을 열었는지가 그 자리를 대신하고, 조건의 이름은 명세에 남아 있다.
+const CREATE_VARIANT = { screen: 'OPS-MEET-01C', node: '18:1392', asset: '18:1393' } as const
+
 interface OPSMEET01AScreenProps {
+  /** 어느 그림을 그리는지. 변형은 주소가 같고 보는 사람이 가른다. */
+  screenId?: string
   onNavigate: (screenId: string) => void
 }
 
-export function OPSMEET01AScreen({ onNavigate }: OPSMEET01AScreenProps) {
+export function OPSMEET01AScreen({ screenId = SCREEN, onNavigate }: OPSMEET01AScreenProps) {
+  const create =
+    screenId === CREATE_VARIANT.screen
+      ? (elementByNodeId(opsMeet01c, CREATE_VARIANT.node).spec as ButtonSpec)
+      : null
   const attention = elementByNodeId(opsMeet01a, NODE.attention).spec as SummarySpec
   const query = elementByNodeId(opsMeet01a, NODE.query).spec as InputSpec
   const list = elementByNodeId(opsMeet01a, NODE.groups).spec as ItemListSpec
@@ -58,6 +70,26 @@ export function OPSMEET01AScreen({ onNavigate }: OPSMEET01AScreenProps) {
       eyebrow={opsMeet01a.meta?.eyebrow}
       title={opsMeet01a.meta?.title ?? opsMeet01a.screenId}
       onNavigate={onNavigate}
+      headerAction={
+        create === null ? undefined : (
+          <button
+            type="button"
+            data-node-id={CREATE_VARIANT.node}
+            disabled={create.initiallyDisabled}
+            onClick={() => {
+              if (create.action.type === 'navigate') onNavigate(create.action.targetScreenId)
+            }}
+            className="flex items-center gap-1.5 rounded bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
+          >
+            <FigmaAsset
+              screenId={CREATE_VARIANT.screen}
+              nodeId={CREATE_VARIANT.asset}
+              className="size-3.5"
+            />
+            {create.label}
+          </button>
+        )
+      }
     >
       {/* 안내 18:418: 흰 카드, 좌측 아이콘+문구, 우측 건수 */}
       <div

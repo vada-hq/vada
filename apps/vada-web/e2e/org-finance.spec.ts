@@ -3,6 +3,10 @@ import { pendingNoteAt } from './spec'
 
 const SHOTS = 'e2e/shots'
 const OVERVIEW = '/#/FIN-00'
+// 예산을 편성할 수 있는 사람이 본 같은 화면(변형 FIN-00B). **다른 주소가 아니다** —
+// 실제로는 데이터가 가르고(finance.overviewViewer의 canPlanBudget), 이 저장소에는
+// 로그인한 사람이 없어 그림 이름이 그 자리를 대신한다.
+const OVERVIEW_PLANNER = '/#/FIN-00B'
 const LEDGER = '/#/FIN-LEDGER-01'
 
 // 조직 전체 재정(FIN-00 · FIN-LEDGER-01).
@@ -189,4 +193,29 @@ test('FIN-LEDGER-01: 맞는 것이 없으면 카탈로그의 말로 답한다', 
   await page.getByRole('searchbox', { name: '내역·행사 검색' }).fill('있을 리 없는 지출')
 
   await expect(page.getByText('조건에 맞는 사용 내역이 없습니다')).toBeVisible()
+})
+
+test('FIN-00: 예산을 편성할 수 없는 사람에게 총예산 카드는 눌리지 않는다', async ({ page }) => {
+  await page.goto(OVERVIEW)
+
+  const card = page.locator('[data-node-id="30:2576"]')
+  await expect(card).toBeVisible()
+  await expect(card.getByText('총예산')).toBeVisible()
+  // 눌리는 카드가 아니므로 '편성'이라는 말 자체가 없다.
+  await expect(page.getByText('편성')).toHaveCount(0)
+})
+
+test('FIN-00B: 편성할 수 있는 사람에게는 그 카드가 눌러 들어가는 자리가 된다', async ({ page }) => {
+  await page.goto(OVERVIEW_PLANNER)
+
+  // 변형이 등록한 것은 이 카드 하나뿐이다. 나머지 셋은 노드 대 노드로 같다.
+  const card = page.locator('[data-node-id="30:2863"]')
+  await expect(card).toBeVisible()
+  await expect(card.getByText('편성')).toBeVisible()
+  await expect(card.getByText('총예산')).toBeVisible()
+
+  await card.click()
+  await expect(page.getByRole('status')).toContainText(
+    pendingNoteAt('FIN-00B', '30:2863'),
+  )
 })

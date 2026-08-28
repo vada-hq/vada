@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { pendingNoteAt } from './spec'
 
 const SHOTS = 'e2e/shots'
 
@@ -77,4 +78,22 @@ test('TASK-01: 머리의 업무 추가 버튼이 그려진다', async ({ page })
 
   await add.click()
   await expect(page.getByText(/업무 추가 화면이 아직 명세되지 않았습니다/)).toBeVisible()
+})
+
+// 새 행사를 만들 수 있는 사람이 보면 머리에 단추가 하나 더 온다(변형 EVT-00A2).
+// **다른 화면이 아니다** — 명세가 조건을 든다(event.listViewer의 canCreateEvent).
+test('EVT-00A: 만들 수 없는 사람에게는 새 행사 단추가 없다', async ({ page }) => {
+  await page.goto('/#/EVT-00A')
+
+  await expect(page.getByRole('button', { name: '새 행사 만들기' })).toHaveCount(0)
+})
+
+test('EVT-00A2: 만들 수 있는 사람에게는 그 단추가 온다', async ({ page }) => {
+  await page.goto('/#/EVT-00A2')
+
+  const create = page.getByRole('button', { name: '새 행사 만들기' })
+  await expect(create).toBeVisible()
+
+  await create.click()
+  await expect(page.getByRole('status')).toContainText(pendingNoteAt('EVT-00A2', '20:4357'))
 })

@@ -26,10 +26,7 @@ const WIRING = join(repoRoot, 'apps', 'vada-web', 'src', 'spec', 'screens.ts')
 // 늘어난 적이 있는지는 이 목록의 길이가 말한다. 줄이면 지우고, 늘려야 한다면
 // 왜 늘리는지를 적는다.
 const NOT_DRAWN_YET = new Set([
-  'EVT-00A2',
-  'FIN-00B',
   'OPS-MEET-01B',
-  'OPS-MEET-01C',
   'OPS-MEET-01D',
   'OPS-MEET-03B',
   'OPS-MEET-03C',

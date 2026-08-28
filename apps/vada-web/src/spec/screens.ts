@@ -31,6 +31,7 @@ import my01Json from '../../../../specs/figma/vada-wireframe/screens/MY-01/scree
 import ops00Json from '../../../../specs/figma/vada-wireframe/screens/OPS-00/screen.json'
 import task01Json from '../../../../specs/figma/vada-wireframe/screens/TASK-01/screen.json'
 import opsMeet01aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01A/screen.json'
+import opsMeet01cJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01C/screen.json'
 import opsMeet02Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-02/screen.json'
 import opsMeet03aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03A/screen.json'
 import opsMeet04bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-04B/screen.json'
@@ -43,6 +44,7 @@ import opsMeetD02Json from '../../../../specs/figma/vada-wireframe/screens/OPS-M
 import opsMeetD03Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D03/screen.json'
 import opsMeetD04Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D04/screen.json'
 import evt00aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00A/screen.json'
+import evt00a2Json from '../../../../specs/figma/vada-wireframe/screens/EVT-00A2/screen.json'
 import evt02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-02/screen.json'
 import evt00bJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00B/screen.json'
 import evt01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-01/screen.json'
@@ -69,6 +71,7 @@ import finSup01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-SUP
 import finRev01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REV-01/screen.json'
 import finEvid01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-EVID-01/screen.json'
 import fin00Json from '../../../../specs/figma/vada-wireframe/screens/FIN-00/screen.json'
+import fin00bJson from '../../../../specs/figma/vada-wireframe/screens/FIN-00B/screen.json'
 import finLedger01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-LEDGER-01/screen.json'
 import finProc01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-PROC-01/screen.json'
 import msg01Json from '../../../../specs/figma/vada-wireframe/screens/MSG-01/screen.json'
@@ -120,6 +123,7 @@ export const my01 = asScreenSpec(my01Json)
 export const ops00 = asScreenSpec(ops00Json)
 export const task01 = asScreenSpec(task01Json)
 export const opsMeet01a = asScreenSpec(opsMeet01aJson)
+export const opsMeet01c = asScreenSpec(opsMeet01cJson)
 export const opsMeet02 = asScreenSpec(opsMeet02Json)
 export const opsMeet03a = asScreenSpec(opsMeet03aJson)
 export const opsMeet04b = asScreenSpec(opsMeet04bJson)
@@ -132,6 +136,7 @@ export const opsMeetD02 = asScreenSpec(opsMeetD02Json)
 export const opsMeetD03 = asScreenSpec(opsMeetD03Json)
 export const opsMeetD04 = asScreenSpec(opsMeetD04Json)
 export const evt00a = asScreenSpec(evt00aJson)
+export const evt00a2 = asScreenSpec(evt00a2Json)
 export const evt02 = asScreenSpec(evt02Json)
 export const evt00b = asScreenSpec(evt00bJson)
 export const evt01 = asScreenSpec(evt01Json)
@@ -158,6 +163,7 @@ export const finSup01 = asScreenSpec(finSup01Json)
 export const finRev01 = asScreenSpec(finRev01Json)
 export const finEvid01 = asScreenSpec(finEvid01Json)
 export const fin00 = asScreenSpec(fin00Json)
+export const fin00b = asScreenSpec(fin00bJson)
 export const finLedger01 = asScreenSpec(finLedger01Json)
 export const finProc01 = asScreenSpec(finProc01Json)
 export const msg01 = asScreenSpec(msg01Json)
@@ -197,6 +203,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   ops00,
   task01,
   opsMeet01a,
+  opsMeet01c,
   opsMeet02,
   opsMeet03a,
   opsMeet04b,
@@ -209,6 +216,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   opsMeetD03,
   opsMeetD04,
   evt00a,
+  evt00a2,
   evt02,
   evt00b,
   evt01,
@@ -235,6 +243,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
   finRev01,
   finEvid01,
   fin00,
+  fin00b,
   finLedger01,
   finProc01,
   msg01,

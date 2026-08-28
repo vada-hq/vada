@@ -5,7 +5,7 @@ import { CHOICE_CHIP, INFO_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tone
 import { readListSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
-import { elementByNodeId, evt00a } from '../spec/screens'
+import { elementByNodeId, evt00a, evt00a2 } from '../spec/screens'
 import type { ButtonSpec, DisplayAction, InputSpec, ItemListSpec, SelectSpec } from '../spec/types'
 //
 // 행사 목록(EVT-00A).
@@ -35,11 +35,23 @@ const ASSET = {
   alert: '20:4262',
 } as const
 
+// 새 행사를 만들 수 있는 사람이 보면 머리에 단추가 하나 더 온다(변형 EVT-00A2).
+// **다른 화면이 아니라 다른 사람이 본 같은 화면이다** — 명세가 그렇게 말한다
+// (event.listViewer의 canCreateEvent). 이 저장소에는 로그인한 사람이 없어 어느
+// 그림을 열었는지가 그 자리를 대신하고, 조건의 이름은 명세에 남아 있다.
+const CREATE_VARIANT = { screen: 'EVT-00A2', node: '20:4357', asset: '20:4358' } as const
+
 interface EVT00AScreenProps {
+  /** 어느 그림을 그리는지. 변형(EVT-00A2)은 주소가 같고 보는 사람이 가른다. */
+  screenId?: string
   onNavigate: (screenId: string) => void
 }
 
-export function EVT00AScreen({ onNavigate }: EVT00AScreenProps) {
+export function EVT00AScreen({ screenId = SCREEN, onNavigate }: EVT00AScreenProps) {
+  const canCreate = screenId === CREATE_VARIANT.screen
+  const create = canCreate
+    ? (elementByNodeId(evt00a2, CREATE_VARIANT.node).spec as ButtonSpec)
+    : null
   const completed = elementByNodeId(evt00a, NODE.completed).spec as ButtonSpec
   const query = elementByNodeId(evt00a, NODE.query).spec as InputSpec
   const status = elementByNodeId(evt00a, NODE.status).spec as SelectSpec
@@ -65,6 +77,9 @@ export function EVT00AScreen({ onNavigate }: EVT00AScreenProps) {
       description={evt00a.meta?.description}
       onNavigate={onNavigate}
       headerAction={
+        // 셸이 내주는 자리는 하나다. 변형에서 단추가 둘이 되므로 이 안에서 나란히
+        // 놓는다 — 자리를 하나 더 만들면 셸이 화면의 사정을 알게 된다.
+        <span className="flex items-center gap-2">
         <button
           type="button"
           data-node-id={NODE.completed}
@@ -82,6 +97,31 @@ export function EVT00AScreen({ onNavigate }: EVT00AScreenProps) {
         >
           {completed.label}
         </button>
+        {create === null ? null : (
+          <button
+            type="button"
+            data-node-id={CREATE_VARIANT.node}
+            disabled={create.initiallyDisabled}
+            onClick={() => {
+              if (create.action.type === 'navigate') {
+                onNavigate(create.action.targetScreenId)
+                return
+              }
+              if (create.action.type === 'pending') {
+                setNote(create.action.note)
+              }
+            }}
+            className="flex items-center gap-1.5 rounded bg-blue-600 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
+          >
+            <FigmaAsset
+              screenId={CREATE_VARIANT.screen}
+              nodeId={CREATE_VARIANT.asset}
+              className="size-3.5"
+            />
+            {create.label}
+          </button>
+        )}
+        </span>
       }
     >
       {note === null ? null : (

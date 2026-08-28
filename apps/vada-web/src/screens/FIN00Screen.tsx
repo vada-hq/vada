@@ -6,7 +6,7 @@ import { NEUTRAL_CHIP, NEUTRAL_VALUE, TABLE_STATE_CHIP, VALUE_TEXT } from '../de
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
-import { elementByNodeId, fin00, navigateTarget } from '../spec/screens'
+import { elementByNodeId, fin00, fin00b, navigateTarget } from '../spec/screens'
 import { targetScreenOf } from '../spec/types'
 import type {
   ButtonSpec,
@@ -68,6 +68,23 @@ const CARDS = [
   { node: NODE.available, asset: '30:2617', tone: 'indigo', noteWeight: 'font-normal' },
 ] as const
 
+// **예산을 편성할 수 있는 사람이 보면 총예산 카드가 눌린다**(변형 FIN-00B).
+// 나머지 셋은 노드 대 노드로 같으므로 이 한 장만 갈아 끼운다 — 변형이 '다른
+// 부분만' 등록하는 것과 같은 생각이다.
+//
+// 갈아 끼울 때 화면 이름까지 함께 바뀐다. 그림 조각은 프레임마다 다른 노드라
+// (FIN-00의 30:2577과 FIN-00B의 30:2865는 같은 그림이고 다른 자리다) 어느 그림에서
+// 꺼낼지도 함께 옮겨야 한다.
+const VARIANT_BUDGET_CARD = {
+  screen: 'FIN-00B',
+  node: '30:2863',
+  asset: '30:2865',
+  tone: 'blue',
+  // 눌리는 카드가 되면 부연이 500이 된다. 뜻이 바뀐 것이 아니라 디자이너가 카드
+  // 부품을 둘로 나눠 쓴 것이다(위의 주석).
+  noteWeight: 'font-medium',
+} as const
+
 // 증빙 갈래마다의 색. 카드와 같은 규칙이다 — 세는 갈래가 명세에 고정이므로
 // 색 이름도 데이터가 주지 않는다.
 const PROOF_TONE: Record<string, string> = {
@@ -77,10 +94,20 @@ const PROOF_TONE: Record<string, string> = {
 }
 
 interface FIN00ScreenProps {
+  /** 어느 그림을 그리는지. 변형(FIN-00B)은 주소가 같고 보는 사람이 가른다. */
+  screenId?: string
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
-export function FIN00Screen({ onNavigate }: FIN00ScreenProps) {
+export function FIN00Screen({ screenId = SCREEN, onNavigate }: FIN00ScreenProps) {
+  // **가르는 것은 데이터다** — 명세가 variantOf.when으로 그렇게 말한다
+  // (finance.overviewViewer의 canPlanBudget). 이 저장소에는 로그인한 사람이 없어
+  // 그 조각을 답할 자리가 없으므로, 개발용으로는 어느 그림을 열었는지가 그 자리를
+  // 대신한다. 조건의 이름은 명세에 남아 있고 검사가 그것이 실재하는지 본다.
+  const planning = screenId === VARIANT_BUDGET_CARD.screen
+  const cards = planning
+    ? [{ ...VARIANT_BUDGET_CARD, from: fin00b }, ...CARDS.slice(1).map((card) => ({ ...card, screen: SCREEN, from: fin00 }))]
+    : CARDS.map((card) => ({ ...card, screen: SCREEN, from: fin00 }))
   const scopeSpec = elementByNodeId(fin00, NODE.scope).spec as SelectSpec
   const [scope, setScope] = useState(scopeSpec.initialValue ?? '')
   const [note, setNote] = useState<string | null>(null)
@@ -170,13 +197,13 @@ export function FIN00Screen({ onNavigate }: FIN00ScreenProps) {
 
       {/* 금액 넷. 둘은 눌러 들어가는 카드다 — 그 사실은 명세의 action이 말한다. */}
       <div className="grid grid-cols-1 gap-4 pt-5 md:grid-cols-4">
-        {CARDS.map((card) => {
-          const spec = elementByNodeId(fin00, card.node).spec as SummarySpec
+        {cards.map((card) => {
+          const spec = elementByNodeId(card.from, card.node).spec as SummarySpec
           const item = (spec.items ?? [])[0]
           const body = (
             <>
               <span className="flex items-center justify-between">
-                <FigmaAsset screenId={SCREEN} nodeId={card.asset} className="size-8" />
+                <FigmaAsset screenId={card.screen} nodeId={card.asset} className="size-8" />
                 {spec.action === undefined ? null : (
                   <span className="text-xs font-medium text-gray-400">
                     {spec.action.label}

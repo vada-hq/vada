@@ -26,8 +26,15 @@ import type { ElementSpec, ScreenSpec } from './types'
 const SRC = join(__dirname, '..')
 
 // FIN-REQ-01 -> FINREQ01Screen.tsx
+//
+// **변형에는 제 파일이 없다.** 같은 주소를 보는 사람이 다를 때의 그림이므로 바탕
+// 화면이 함께 그린다(FIN-00B는 FIN00Screen이 그린다). 그래서 변형의 배선을 볼
+// 때도 바탕 화면의 원문을 본다 — 거기 없으면 어디에도 없다.
 function componentFileOf(screenId: string): string {
-  return join(SRC, 'screens', `${screenId.replace(/-/g, '')}Screen.tsx`)
+  const spec = ALL_SCREENS.find((screen) => screen.screenId === screenId)
+  const base = (spec as { variantOf?: { screenId: string } } | undefined)?.variantOf?.screenId
+  const name = (base ?? screenId).replace(/-/g, '')
+  return join(SRC, 'screens', `${name}Screen.tsx`)
 }
 
 function sourceOf(screenId: string): string {

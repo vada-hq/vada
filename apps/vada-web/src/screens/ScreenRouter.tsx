@@ -158,9 +158,12 @@ export function ScreenRouter({
     // 운영 허브다. 고를 것은 갈 곳뿐이라 상태 스코프를 참조하지 않는다.
     return <OPS00Screen onNavigate={onNavigate} />
   }
-  if (screenId === 'OPS-MEET-01A') {
+  if (screenId === 'OPS-MEET-01A' || screenId === 'OPS-MEET-01C') {
     // 회의 목록이다. 거르는 값(검색어)은 화면 안에서만 쓰므로 스코프에 담지 않는다.
-    return <OPSMEET01AScreen onNavigate={onNavigate} />
+    //
+    // 01C는 **새 회의를 만들 수 있는 사람이 본 같은 화면**이다
+    // (meeting.attention의 canCreateMeeting). FIN-00B·EVT-00A2와 같은 자리다.
+    return <OPSMEET01AScreen screenId={screenId} onNavigate={onNavigate} />
   }
   if (screenId === 'OPS-MEET-02') {
     // 회의를 만들거나 고친다. 회의 id가 있으면 그것을 읽어 채우고, 없으면 아직
@@ -292,10 +295,15 @@ export function ScreenRouter({
     // 갈 곳이 있다 — 새 설문의 신청 폼.
     return <EXT02CScreen screenParams={screenParams} onNavigate={onNavigate} />
   }
-  if (screenId === 'FIN-00') {
+  if (screenId === 'FIN-00' || screenId === 'FIN-00B') {
     // 조직 전체 재정이다. 사이드바의 '재정'이 가리키는 화면이라 인자를 받지 않는다.
     // **행사 아래의 재정(FIN-REQ-* 계열)과 다른 자리다** — 저쪽은 운영 아래에 있다.
-    return <FIN00Screen onNavigate={onNavigate} />
+    //
+    // **FIN-00B는 다른 화면이 아니라 다른 사람이 본 같은 화면이다.** 실제로는
+    // 주소가 하나이고 데이터가 가른다(finance.overviewViewer의 canPlanBudget).
+    // 여기 이름을 둔 것은 이 저장소에 로그인한 사람이 없어서다 — 두 그림을 다
+    // 열어 볼 수 있어야 대조가 둘 다 본다.
+    return <FIN00Screen screenId={screenId} onNavigate={onNavigate} />
   }
   if (screenId === 'FIN-LEDGER-01') {
     // 그 아래의 장부. 거르는 값은 전부 화면 안의 조회 인자다.
@@ -513,9 +521,12 @@ export function ScreenRouter({
     // 상세 화면이다. 무엇의 상세인지는 화면 안에 없고 주소가 실어 온다.
     return <EVTTASK02Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
-  if (screenId === 'EVT-00A') {
+  if (screenId === 'EVT-00A' || screenId === 'EVT-00A2') {
     // 행사 목록이다. 거르는 값(검색어·진행 단계)은 화면 안에서만 쓴다.
-    return <EVT00AScreen onNavigate={onNavigate} />
+    //
+    // EVT-00A2는 다른 화면이 아니라 **새 행사를 만들 수 있는 사람이 본 같은 화면**
+    // 이다(event.listViewer의 canCreateEvent). FIN-00B와 같은 자리다.
+    return <EVT00AScreen screenId={screenId} onNavigate={onNavigate} />
   }
   if (screenId === 'TASK-01') {
     // 칸반 보드다. 보는 범위는 목록을 거르는 화면 안의 값이라 스코프에 담지 않는다.
