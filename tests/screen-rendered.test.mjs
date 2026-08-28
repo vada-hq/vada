@@ -28,8 +28,6 @@ const WIRING = join(repoRoot, 'apps', 'vada-web', 'src', 'spec', 'screens.ts')
 const NOT_DRAWN_YET = new Set([
   'OPS-MEET-01B',
   'OPS-MEET-01D',
-  'OPS-MEET-03B',
-  'OPS-MEET-03C',
   'OPS-MEET-05B',
   'OPS-MEET-06B',
   'OPS-MEET-08',

@@ -178,10 +178,22 @@ export function ScreenRouter({
       />
     )
   }
-  if (screenId === 'OPS-MEET-03A') {
-    // 예정 회의 상세다. 어느 회의인지는 주소가 실어 온다. 보는 사람에 따라 셋으로
-    // 갈리는 그림 중 일반 참가자의 것이고, 03B·03C는 변형이라 주소가 없다.
-    return <OPSMEET03AScreen screenParams={screenParams} onNavigate={onNavigate} />
+  if (
+    screenId === 'OPS-MEET-03A' ||
+    screenId === 'OPS-MEET-03B' ||
+    screenId === 'OPS-MEET-03C'
+  ) {
+    // 예정 회의 상세다. 어느 회의인지는 주소가 실어 온다. **보는 사람에 따라 셋으로
+    // 갈린다** — 일반 참가자(03A) · 회의를 만든 사람(03B) · 진행 권한만 받은
+    // 사람(03C). 실제로는 주소가 하나이고 데이터가 가른다(meeting.detail의
+    // canEdit·canCancel·canManageHostRole·canStart).
+    return (
+      <OPSMEET03AScreen
+        screenParams={screenParams}
+        screenId={screenId}
+        onNavigate={onNavigate}
+      />
+    )
   }
   if (screenId === 'OPS-MEET-04B') {
     // 진행 권한 관리다. 모달이 아니라 화면인 것은 D03이 이 위에 뜨기 때문이고,

@@ -34,6 +34,8 @@ import opsMeet01aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-M
 import opsMeet01cJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01C/screen.json'
 import opsMeet02Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-02/screen.json'
 import opsMeet03aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03A/screen.json'
+import opsMeet03bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03B/screen.json'
+import opsMeet03cJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03C/screen.json'
 import opsMeet04bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-04B/screen.json'
 import opsMeet05aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-05A/screen.json'
 import opsMeet06aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-06A/screen.json'
@@ -126,6 +128,8 @@ export const opsMeet01a = asScreenSpec(opsMeet01aJson)
 export const opsMeet01c = asScreenSpec(opsMeet01cJson)
 export const opsMeet02 = asScreenSpec(opsMeet02Json)
 export const opsMeet03a = asScreenSpec(opsMeet03aJson)
+export const opsMeet03b = asScreenSpec(opsMeet03bJson)
+export const opsMeet03c = asScreenSpec(opsMeet03cJson)
 export const opsMeet04b = asScreenSpec(opsMeet04bJson)
 export const opsMeet05a = asScreenSpec(opsMeet05aJson)
 export const opsMeet06a = asScreenSpec(opsMeet06aJson)
@@ -206,6 +210,8 @@ export const ALL_SCREENS: ScreenSpec[] = [
   opsMeet01c,
   opsMeet02,
   opsMeet03a,
+  opsMeet03b,
+  opsMeet03c,
   opsMeet04b,
   opsMeet05a,
   opsMeet06a,

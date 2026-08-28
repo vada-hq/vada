@@ -12,8 +12,8 @@ import {
 import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
-import { drawnTitleOf, elementByNodeId, opsMeet03a } from '../spec/screens'
-import type { ItemListSpec, SummarySpec } from '../spec/types'
+import { drawnTitleOf, elementByNodeId, opsMeet03a, opsMeet03b, opsMeet03c } from '../spec/screens'
+import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 예정 회의 상세(OPS-MEET-03A).
 //
@@ -59,10 +59,47 @@ const ASSET = {
 // 경로 조각 사이의 화살표. 조각보다 하나 적다.
 const BREADCRUMB_SEPARATORS = ['18:2860', '18:2865']
 
+// 보는 사람이 이 회의와 어떤 사이인지에 따라 자리 셋이 달라진다.
+//
+// **다른 화면이 아니라 다른 사람이 본 같은 화면이다** — 명세가 그렇게 말한다
+// (meeting.detail의 canEdit·canCancel·canManageHostRole·canStart). 이 저장소에는
+// 로그인한 사람이 없어 어느 그림을 열었는지가 그 자리를 대신하고, 가르는 조건의
+// 이름은 명세에 남아 있다.
+//
+// 셋 다 **자리는 하나이고 무엇이 오는지가 다르다**. 03A는 딱지, 03C는 단추 하나,
+// 03B는 단추 둘이 머리에 온다.
+const VARIANTS = {
+  'OPS-MEET-03B': {
+    header: [
+      { node: '20:92', asset: '20:93', look: 'secondary' },
+      { node: '20:97', asset: '20:98', look: 'primary' },
+    ],
+    banner: { node: '20:187', asset: null, look: 'quiet' },
+    people: { node: '20:264', asset: '20:265', look: 'secondary' },
+  },
+  'OPS-MEET-03C': {
+    header: [{ node: '20:417', asset: '20:418', look: 'primary' }],
+    banner: null,
+    // 단추가 아니라 읽기만 한다는 표시다. 그래서 명세도 button이 아니라 summary다.
+    people: { node: '20:581', asset: '20:582', look: 'readonly' },
+  },
+} as const
+
+// 그림이 그린 세 벌. 굵기는 셋 다 500이고 크기는 10.5px(text-xs)다.
+const BUTTON_LOOK: Record<string, string> = {
+  primary: 'bg-blue-600 text-white hover:bg-blue-700',
+  secondary: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+  quiet: 'text-red-600 hover:underline',
+}
+
 interface OPSMEET03AScreenProps {
   screenParams: Record<string, string>
+  /** 어느 그림을 그리는지. 변형은 주소가 같고 보는 사람이 가른다. */
+  screenId?: string
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
+
+type VariantSlot = { node: string; asset: string | null; look: string }
 
 function summaryAt(nodeId: string): SummarySpec {
   return elementByNodeId(opsMeet03a, nodeId).spec as SummarySpec
@@ -70,6 +107,67 @@ function summaryAt(nodeId: string): SummarySpec {
 
 function listAt(nodeId: string): ItemListSpec {
   return elementByNodeId(opsMeet03a, nodeId).spec as ItemListSpec
+}
+
+// 변형이 그 자리에 두는 단추 하나. 어디로 가는지도 무슨 글인지도 명세가 말한다.
+function VariantButton({
+  screenId,
+  slot,
+  screenParams,
+  onNavigate,
+}: {
+  screenId: string
+  slot: VariantSlot
+  screenParams: Record<string, string>
+  onNavigate: (screenId: string, params?: Record<string, string>) => void
+}) {
+  const spec = elementByNodeId(specOfVariant(screenId), slot.node).spec as ButtonSpec
+  return (
+    <button
+      type="button"
+      data-node-id={slot.node}
+      disabled={spec.initiallyDisabled}
+      onClick={() => {
+        if (spec.action.type === 'navigate') {
+          onNavigate(spec.action.targetScreenId, resolveParams(spec.action.params, { screenParams }))
+        }
+      }}
+      className={`flex items-center gap-1.5 rounded px-2.5 py-1.5 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none ${
+        BUTTON_LOOK[slot.look] ?? ''
+      }`}
+    >
+      {slot.asset === null ? null : (
+        <FigmaAsset screenId={screenId} nodeId={slot.asset} className="size-3.5" />
+      )}
+      {spec.label}
+    </button>
+  )
+}
+
+// 읽기만 한다는 표시(03C). 단추가 아니라 글이므로 명세도 summary다.
+function ReadOnlyMark({
+  screenId,
+  slot,
+}: {
+  screenId: string
+  slot: VariantSlot
+}) {
+  const spec = elementByNodeId(specOfVariant(screenId), slot.node).spec as SummarySpec
+  return (
+    <span
+      data-node-id={slot.node}
+      className="flex items-center gap-1.5 text-xs font-normal text-gray-400"
+    >
+      {slot.asset === null ? null : (
+        <FigmaAsset screenId={screenId} nodeId={slot.asset} className="size-3.5" />
+      )}
+      {spec.title}
+    </span>
+  )
+}
+
+function specOfVariant(screenId: string) {
+  return screenId === 'OPS-MEET-03B' ? opsMeet03b : opsMeet03c
 }
 
 function scalar(row: DataRow, field: string | undefined): string {
@@ -97,7 +195,18 @@ function Chip({ label, tone }: { label: string; tone: string }) {
   )
 }
 
-export function OPSMEET03AScreen({ screenParams, onNavigate }: OPSMEET03AScreenProps) {
+export function OPSMEET03AScreen({
+  screenParams,
+  screenId = SCREEN,
+  onNavigate,
+}: OPSMEET03AScreenProps) {
+  // 셋 중 어느 그림인지. 03A는 변형이 아니라 바탕이므로 null이다.
+  const variant: (typeof VARIANTS)[keyof typeof VARIANTS] | null =
+    screenId === 'OPS-MEET-03B'
+      ? VARIANTS['OPS-MEET-03B']
+      : screenId === 'OPS-MEET-03C'
+        ? VARIANTS['OPS-MEET-03C']
+        : null
   const viewerChip = summaryAt(NODE.viewerChip)
   const roleNotice = summaryAt(NODE.roleNotice)
   const meeting = summaryAt(NODE.meeting)
@@ -199,16 +308,30 @@ export function OPSMEET03AScreen({ screenParams, onNavigate }: OPSMEET03AScreenP
         )
       }
       // 머리 오른쪽은 **한 자리**다. 여기서는 보는 사람과 이 회의의 관계를 말하는
-      // 딱지가 오고, 03B·03C에서는 같은 자리에 '회의 시작'이 온다 — 딱지든 단추든
-      // 무엇이 오는지는 서버가 정한다(meeting.detail의 viewerChipLabel).
+      // 딱지가 오고, 03B·03C에서는 같은 자리에 단추가 온다 — 딱지든 단추든 무엇이
+      // 오는지는 서버가 정한다(meeting.detail의 viewerChipLabel·canStart).
       headerAction={
-        <span
-          data-node-id={NODE.viewerChip}
-          className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700"
-        >
-          <FigmaAsset screenId={SCREEN} nodeId={ASSET.viewerChip} className="size-3.5" />
-          {scalar(detail, viewerChip.titleField)}
-        </span>
+        variant === null ? (
+          <span
+            data-node-id={NODE.viewerChip}
+            className="inline-flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700"
+          >
+            <FigmaAsset screenId={SCREEN} nodeId={ASSET.viewerChip} className="size-3.5" />
+            {scalar(detail, viewerChip.titleField)}
+          </span>
+        ) : (
+          <span className="flex items-center gap-2">
+            {variant.header.map((slot) => (
+              <VariantButton
+                key={slot.node}
+                screenId={screenId}
+                slot={slot}
+                screenParams={screenParams}
+                onNavigate={onNavigate}
+              />
+            ))}
+          </span>
+        )
       }
       onNavigate={onNavigate}
     >
@@ -316,6 +439,17 @@ export function OPSMEET03AScreen({ screenParams, onNavigate }: OPSMEET03AScreenP
               {scalar(detail, stateBanner.descriptionField)}
             </span>
           </span>
+          {/* 이 회의를 만든 사람에게만 띠 안에 취소가 온다(03B). */}
+          {variant?.banner === undefined || variant?.banner === null ? null : (
+            <span className="ml-auto shrink-0">
+              <VariantButton
+                screenId={screenId}
+                slot={variant.banner}
+                screenParams={screenParams}
+                onNavigate={onNavigate}
+              />
+            </span>
+          )}
         </section>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.55fr_1fr]">
@@ -399,11 +533,28 @@ export function OPSMEET03AScreen({ screenParams, onNavigate }: OPSMEET03AScreenP
           </section>
 
           <section className="rounded-xl border border-gray-200 bg-white">
-            <div data-node-id={NODE.peopleHeader} className="border-b border-gray-100 px-5 py-4">
-              <span className="block text-sm font-bold text-gray-900">{peopleHeader.title}</span>
-              <span className="block pt-1 text-xs font-normal text-gray-400">
-                {scalar(detail, (peopleHeader.items ?? [])[0]?.field)}
+            <div
+              data-node-id={NODE.peopleHeader}
+              className="flex items-start justify-between gap-3 border-b border-gray-100 px-5 py-4"
+            >
+              <span>
+                <span className="block text-sm font-bold text-gray-900">{peopleHeader.title}</span>
+                <span className="block pt-1 text-xs font-normal text-gray-400">
+                  {scalar(detail, (peopleHeader.items ?? [])[0]?.field)}
+                </span>
               </span>
+              {/* 권한을 옮길 수 있는 사람에게는 단추가, 진행만 하는 사람에게는
+                  읽기만 한다는 표시가 온다. 일반 참가자에게는 둘 다 없다. */}
+              {variant === null ? null : variant.people.look === 'readonly' ? (
+                <ReadOnlyMark screenId={screenId} slot={variant.people} />
+              ) : (
+                <VariantButton
+                  screenId={screenId}
+                  slot={variant.people}
+                  screenParams={screenParams}
+                  onNavigate={onNavigate}
+                />
+              )}
             </div>
 
             <ul data-node-id={NODE.people}>

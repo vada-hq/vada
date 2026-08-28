@@ -3,6 +3,10 @@ import { missingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const DETAIL = '/#/OPS-MEET-03A?meetingId=MTG-05'
+// 같은 회의를 다른 사람이 본 그림 둘. **다른 주소가 아니다** — 실제로는 데이터가
+// 가른다(meeting.detail의 canEdit·canCancel·canManageHostRole·canStart).
+const DETAIL_OWNER = '/#/OPS-MEET-03B?meetingId=MTG-05'
+const DETAIL_HOST = '/#/OPS-MEET-03C?meetingId=MTG-05'
 
 // 예정 회의 상세(OPS-MEET-03A).
 //
@@ -116,4 +120,38 @@ test('OPS-MEET-03A: 없는 회의를 물으면 못 찾았다고 말한다', asyn
 
   await expect(page.getByRole('alert')).toBeVisible()
   await expect(page.locator('[data-node-id="18:2889"]')).toHaveCount(0)
+})
+
+test('OPS-MEET-03A: 일반 참가자에게는 회의를 다루는 단추가 하나도 없다', async ({ page }) => {
+  await page.goto(DETAIL)
+
+  for (const name of ['회의 수정', '회의 시작', '회의 취소', '진행 권한 관리']) {
+    await expect(page.getByRole('button', { name })).toHaveCount(0)
+  }
+})
+
+test('OPS-MEET-03B: 회의를 만든 사람은 고치고 시작하고 취소하고 권한을 옮긴다', async ({
+  page,
+}) => {
+  await page.goto(DETAIL_OWNER)
+
+  await expect(page.getByRole('button', { name: '회의 수정' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '회의 취소' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '진행 권한 관리' })).toBeVisible()
+
+  await page.getByRole('button', { name: '회의 시작' }).click()
+  await expect(page).toHaveURL(/#\/OPS-MEET-D01\?meetingId=MTG-05/)
+})
+
+test('OPS-MEET-03C: 진행만 하는 사람은 시작만 하고 사람 카드는 읽기만 한다', async ({
+  page,
+}) => {
+  await page.goto(DETAIL_HOST)
+
+  await expect(page.getByRole('button', { name: '회의 시작' })).toBeVisible()
+  // 고치는 것은 만든 사람의 몫이다.
+  for (const name of ['회의 수정', '회의 취소', '진행 권한 관리']) {
+    await expect(page.getByRole('button', { name })).toHaveCount(0)
+  }
+  await expect(page.locator('[data-node-id="20:581"]')).toHaveText('읽기 전용')
 })

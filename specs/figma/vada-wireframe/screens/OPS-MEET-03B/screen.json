@@ -3,7 +3,16 @@
   "screenId": "OPS-MEET-03B",
   "meta": {
     "eyebrow": null,
-    "title": "예정 회의 관리"
+    "title": "예정 회의 관리",
+    "titleFrom": {
+      "dataSourceKey": "meeting.detail",
+      "field": "title",
+      "params": {
+        "meetingId": {
+          "screenParam": "meetingId"
+        }
+      }
+    }
   },
   "variantOf": {
     "screenId": "OPS-MEET-03A",
