@@ -13,9 +13,9 @@
     {
       "key": "meetingId",
       "valueType": "string",
-      "example": "MTG-06",
+      "example": "MTG-09",
       "missingNote": "어떤 회의의 회의록을 정리할지 정하지 않고 열렸습니다. 회의 목록에서 회의를 고르면 이 화면이 열립니다.",
-      "description": "무엇을 정리하는지. 06A와 같은 인자다 — 주소는 하나이고 보는 사람이 이 그림과 06A를 가른다."
+      "description": "무엇을 정리하는지. 06A와 같은 인자다 — 주소는 하나이고 보는 사람이 이 그림과 06A를 가른다.\n\n**보기로 든 회의가 06A와 다르다.** 와이어프레임이 두 그림을 서로 다른 회의로 그렸다(06A는 신입생 환영 행사, 여기는 체육대회). 같은 회의로 맞추면 한쪽의 대조가 통째로 어긋나므로 그림이 그린 회의를 그대로 든다."
     }
   ],
   "stateScopeKey": "meetingMinutesDraft",
@@ -487,6 +487,30 @@
         "items": [
           {
             "field": "requiredDoneNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2060",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.minutesProgress",
+        "itemsField": "conditions",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "label"
+            ]
           }
         ]
       }

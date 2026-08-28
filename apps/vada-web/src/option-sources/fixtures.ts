@@ -216,3 +216,15 @@ export const SURVEY_DEPARTMENTS: Record<string, Option[]> = {
   ],
   'SVY-9c05b71d:col-eng': [{ value: 'dep-ee', label: '전자공학부' }],
 }
+
+// 회의록을 정리할 때 어느 안건을 열지 고르는 목록(OPS-MEET-06B).
+//
+// **곁에 붙는 말도 함께 온다.** 그림은 안건 이름 아래에 '확인 필요'를 그렸는데,
+// 무엇이 남았는지는 그 안건의 정리 상태가 정하므로 화면이 셀 수 없다.
+export const MEETING_AGENDA_PICKER: Record<string, Option[]> = {
+  'MTG-09': [
+    { value: 'AG-09-1', label: '안건 1', description: '확인 필요' },
+    { value: 'AG-09-2', label: '안건 2', description: '확인 필요' },
+    { value: 'AG-09-3', label: '안건 3', description: '확인 필요' },
+  ],
+}

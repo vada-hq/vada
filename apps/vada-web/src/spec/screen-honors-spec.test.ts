@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { ALL_SCREENS } from './screens'
@@ -31,10 +31,13 @@ const SRC = join(__dirname, '..')
 // 화면이 함께 그린다(FIN-00B는 FIN00Screen이 그린다). 그래서 변형의 배선을 볼
 // 때도 바탕 화면의 원문을 본다 — 거기 없으면 어디에도 없다.
 function componentFileOf(screenId: string): string {
+  const own = join(SRC, 'screens', `${screenId.replace(/-/g, '')}Screen.tsx`)
+  if (existsSync(own)) {
+    return own
+  }
   const spec = ALL_SCREENS.find((screen) => screen.screenId === screenId)
   const base = (spec as { variantOf?: { screenId: string } } | undefined)?.variantOf?.screenId
-  const name = (base ?? screenId).replace(/-/g, '')
-  return join(SRC, 'screens', `${name}Screen.tsx`)
+  return join(SRC, 'screens', `${(base ?? screenId).replace(/-/g, '')}Screen.tsx`)
 }
 
 function sourceOf(screenId: string): string {

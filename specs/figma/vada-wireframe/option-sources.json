@@ -688,7 +688,7 @@
     {
       "key": "meeting.agendaPicker",
       "type": "remote",
-      "description": "회의록을 정리할 때 어느 안건을 열지 고르는 목록(OPS-MEET-06B). 곁에 붙는 '확인 필요' 같은 말도 함께 온다.",
+      "description": "회의록을 정리할 때 어느 안건을 열지 고르는 목록(OPS-MEET-06B). 곁에 붙는 '확인 필요' 같은 말도 함께 온다.\n\n**처음 열려 있는 것은 이 목록이 정하지 않는다.** 선택지는 늦게 오므로 화면을 처음 그릴 때 없다 — 어느 안건이 지금 정리할 것인지는 meeting.agendas의 isCurrent가 말하고, 그 값은 화면을 그릴 때 이미 와 있다.",
       "params": [
         "meetingId"
       ],

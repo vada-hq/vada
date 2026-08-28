@@ -3,6 +3,10 @@ import { missingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const MINUTES = '/#/OPS-MEET-06A?meetingId=MTG-06'
+// 같은 화면을 회의록을 정리할 수 있는 사람이 본 그림(변형 OPS-MEET-06B).
+// **다른 주소가 아니다** — 실제로는 데이터가 가른다(meeting.detail의 canEditMinutes).
+// 보기로 든 회의가 다른 것은 와이어프레임이 두 프레임을 다른 회의로 그려서다.
+const MINUTES_EDITOR = '/#/OPS-MEET-06B?meetingId=MTG-09'
 
 // 정리 중 회의(OPS-MEET-06A).
 //
@@ -122,4 +126,57 @@ test('OPS-MEET-06A: 회의 id가 없으면 아무 회의나 대신 보여주지 
     missingNoteOf('OPS-MEET-06A', 'meetingId'),
   )
   await expect(page.locator('[data-node-id="20:1592"]')).toHaveCount(0)
+})
+
+test('OPS-MEET-06B: 정리할 수 있는 사람은 안건마다 논의와 결정을 펴서 본다', async ({
+  page,
+}) => {
+  await page.goto(MINUTES_EDITOR)
+
+  await expect(page.getByRole('heading', { level: 1, name: '회의록 정리' })).toBeVisible()
+  // 06A는 한 줄 요약만 그리고, 여기는 논의 내용을 통째로 편다.
+  await expect(page.getByText('논의 내용').first()).toBeVisible()
+  await expect(
+    page.getByText('• 본부석 뒤편 전선 구간이 주요 위험 요소로 확인됨', { exact: false }),
+  ).toBeVisible()
+})
+
+test('OPS-MEET-06B: 무엇이 남았는지는 서버가 말하고 화면은 그 글을 그린다', async ({
+  page,
+}) => {
+  await page.goto(MINUTES_EDITOR)
+
+  await expect(page.getByText('안건별 필수 정리를 완료해 주세요')).toBeVisible()
+  await expect(page.getByText('필수 2 / 4')).toBeVisible()
+  // 조건의 목록도 서버가 준다 — 명세는 그것이 어느 조각인지만 안다.
+  await expect(page.getByText('결정사항 또는 없음 표시')).toBeVisible()
+  await expect(page.getByText('회의 전체 요약 (선택)')).toBeVisible()
+})
+
+test('OPS-MEET-06B: 처음 열려 있는 안건은 데이터가 정한다', async ({ page }) => {
+  await page.goto(MINUTES_EDITOR)
+
+  // 아직 결정이 없는 셋째가 열려 있다(meeting.agendas의 isCurrent).
+  const panel = page.locator('[data-node-id="20:2016"]')
+  await expect(panel).toContainText('행사 당일 안전 인력 배치')
+  await expect(panel.getByRole('textbox')).toBeVisible()
+})
+
+test('OPS-MEET-06B: 다른 안건을 고르면 그 안건이 열린다', async ({ page }) => {
+  await page.goto(MINUTES_EDITOR)
+
+  await page.getByRole('radio', { name: /안건 1/ }).click()
+
+  const panel = page.locator('[data-node-id="20:2016"]')
+  await expect(panel).toContainText('행사장 안전 점검 결과')
+})
+
+test('OPS-MEET-06B: 정리가 막혀 있으면 완료를 눌러도 보내지 않는다', async ({ page }) => {
+  await page.goto(MINUTES_EDITOR)
+
+  await page.getByRole('button', { name: '정리 완료' }).click()
+
+  // 막았다는 것은 서버가 이미 말했고 그 글이 머리에 있다. 보낸 뒤의 글은 오지 않는다.
+  await expect(page.getByText('안건별 필수 정리를 완료해 주세요')).toBeVisible()
+  await expect(page.getByRole('status')).toHaveCount(0)
 })

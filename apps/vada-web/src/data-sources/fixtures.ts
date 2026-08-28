@@ -3507,6 +3507,47 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     attendanceResultNote: '8명 참석 · 2명 불참',
     agendaCountNote: '총 5개',
   },
+  // **06B가 그린 회의다.** 06A와 06B는 같은 화면인데 와이어프레임이 서로 다른
+  // 회의를 그렸다 — 06A는 신입생 환영 행사(MTG-06)를, 06B는 체육대회를. 둘을 한
+  // 회의로 묶으면 한쪽의 대조가 통째로 어긋나므로 그림마다 그 회의를 둔다
+  // (명세의 params.example이 어느 것인지 말한다).
+  //
+  // 이 회의만 안건의 차례를 '안건 1'로 적는다. 06A는 같은 자리를 '1'로 그렸다 —
+  // 완성된 글이라 서버가 정하는 것이지만, 한 조직 안에서 두 꼴이 나온 것은 그림의
+  // 흔들림이다(보고 사항).
+  'MTG-09': {
+    title: '체육대회 안전 관리 최종 회의',
+    description: '행사 당일 안전 관리 계획을 최종 확인합니다.',
+    eventTitle: '2026 소프트웨어융합대학 체육대회',
+    status: '정리 중',
+    statusTone: 'yellow',
+    minutesStatus: '작성 중',
+    minutesStatusTone: 'yellow',
+    kindLabel: '행사 관련 회의',
+    kindTone: 'gray',
+    creatorNote: '박해랑 · 운영부',
+    scheduledAt: '15:00–16:30',
+    place: '학생회관 3층 회의실',
+    inviteeCountNote: '4명',
+    viewerTitle: '진행 권한자 화면',
+    viewerNote: '회의록을 정리하고 정리 완료를 누를 수 있습니다.',
+    viewerChipLabel: '16:12 종료 처리',
+    viewerChipTone: 'gray',
+    stateBannerTitle: '회의가 종료되어 정리 중입니다',
+    stateBannerNote:
+      '정리 완료 후 참석자에게 최종 회의록이 제공되고, 불참자에게는 회의 요약 확인이 요청됩니다.',
+    stateBannerTone: 'yellow',
+    canStart: '',
+    canEnd: '',
+    canEdit: '',
+    canCancel: '',
+    canManageHostRole: '',
+    canEditMinutes: 'y',
+    actualTimeNote: '15:00–16:12',
+    closedByNote: '박해랑 · 16:12',
+    attendanceResultNote: '3명 참석 · 1명 불참',
+    agendaCountNote: '총 3개',
+  },
   'MTG-07': {
     title: '가을 축제 1차 준비회의',
     description: '가을 축제 운영 방향과 부서별 준비 범위를 논의할 예정이었습니다.',
@@ -3665,7 +3706,63 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
         '아직 결정사항이 정리되지 않았습니다. 오른쪽 패널에서 작성하거나 결정사항 없음을 선택하세요.',
     },
   ],
+  // 06B가 그린 안건 셋. **논의 내용과 결정을 통째로 편다** — 06A는 한 줄 요약만
+  // 그리므로 discussionText·durationNote가 거기서는 오지 않는다.
+  'MTG-09': [
+    {
+      agendaId: 'AG-09-1',
+      orderLabel: '안건 1',
+      title: '행사장 안전 점검 결과',
+      description:
+        '본부석 뒤편 전선 구간에 케이블 커버를 추가하고 우천 시 실내 대기 장소를 사용하기로 했습니다.',
+      durationNote: '20분',
+      status: '정리 필요',
+      statusTone: 'yellow',
+      discussionText:
+        '• 본부석 뒤편 전선 구간이 주요 위험 요소로 확인됨 • 우천 시 실외 대기 구역 사용이 어려워 대체 공간이 필요함 • 경기장 출입구 주변에 안전 안내 표지를 추가하기로 의견을 모음',
+      decisionText:
+        '본부석 뒤편 전선 구간에 케이블 커버를 설치하고, 우천 시 학생회관 1층을 대기 장소로 사용합니다.',
+    },
+    {
+      agendaId: 'AG-09-2',
+      orderLabel: '안건 2',
+      title: '비상 연락망 및 담당자 확정',
+      description: '상황별 최초 연락 담당자와 보고 순서를 확정합니다.',
+      durationNote: '15분',
+      status: '정리 필요',
+      statusTone: 'yellow',
+      discussionText:
+        '• 응급 상황 발생 시 현장 담당자가 운영본부로 1차 연락 • 운영본부에서 학생회장과 학교 안전관리팀에 동시 보고 • 경기별 안전 담당자 연락처를 참가자 안내문에 포함',
+      decisionText:
+        '비상 연락은 현장 담당자 → 운영본부 → 학생회장·학교 안전관리팀 순으로 진행합니다.',
+    },
+    {
+      agendaId: 'AG-09-3',
+      orderLabel: '안건 3',
+      title: '행사 당일 안전 인력 배치',
+      description: '출입구, 경기장, 대기 구역별 담당 인원을 배치합니다.',
+      durationNote: '25분',
+      status: '정리 필요',
+      statusTone: 'yellow',
+      isCurrent: 'y',
+      discussionText:
+        '• 출입구와 경기장별 필요 인원을 확인하는 중 • 대기 구역 담당 인원은 참가 신청 결과를 본 뒤 확정 필요',
+      // 아직 결정이 없는 안건. **없다는 말도 서버가 준다** — 무엇을 하라고 이르는
+      // 문장이라 조직의 것이다.
+      decisionEmptyNote:
+        '아직 결정사항이 정리되지 않았습니다. 오른쪽 패널에서 작성하거나 \u2018결정사항 없음\u2019을 선택하세요.',
+    },
+  ],
 }
+
+// 06B가 그린 후속 업무 셋. **어느 안건의 것인지를 말하는 조각이 카탈로그에 없다**
+// — 그림은 안건마다 하나씩 그렸는데 출처는 회의의 것을 통째로 준다. 그래서 화면이
+// 안건별로 가르지 못하고 세 줄을 그대로 그린다(design/deviations.ts).
+const MEETING_FOLLOW_UPS_MTG09: DataRow[] = [
+  { taskId: 'TSK-09-1', title: '케이블 커버와 안전 안내 표지 구매', assigneeNote: '박해랑 · 07.22' },
+  { taskId: 'TSK-09-2', title: '비상 연락망 최종본 배포', assigneeNote: '정하늘 · 07.23' },
+  { taskId: 'TSK-09-3', title: '안전 인력 배치안 확정', assigneeNote: '박해랑 · 07.24' },
+]
 
 const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
   'MTG-01': [
@@ -3986,7 +4083,8 @@ export const FILTERED_FIXTURES: Record<
   },
   'meeting.documents': ({ meetingId = '' }) => MEETING_DOCUMENTS[meetingId] ?? [],
   // 후속 업무는 와이어프레임이 빈 상태만 그렸다. 지어내지 않는다.
-  'meeting.followUps': ({ meetingId = '' }) => MEETING_FOLLOW_UPS[meetingId] ?? [],
+  'meeting.followUps': ({ meetingId = '' }) =>
+    meetingId === 'MTG-09' ? MEETING_FOLLOW_UPS_MTG09 : (MEETING_FOLLOW_UPS[meetingId] ?? []),
   // **다른 물음이라 따로 답한다.** 위는 '이 회의가 만든 후속 업무'이고 이것은
   // '그중 내 것'이다. 그림이 둘 다 0건을 그렸으므로 여기도 빈 목록이다 — 비었을 때
   // 뭐라고 말하는지가 둘의 다름을 드러낸다.
@@ -3997,6 +4095,17 @@ export const FILTERED_FIXTURES: Record<
           {
             summaryText:
               '체육대회 안전 점검 결과를 바탕으로 위험 구간 조치 방안을 확정했습니다. 비상 연락은 현장 담당자에서 운영본부를 거쳐 학생회장과 학교 안전관리팀에 보고하며, 경기별 안전 담당자 명단은 7월 23일까지 전체 운영진에게 배포합니다.',
+          },
+        ]
+      : meetingId === 'MTG-09'
+      ? [
+          {
+            // 아직 요약이 없는 회의. **없다는 말도 서버가 준다.**
+            summaryText: '아직 작성된 전체 요약이 없습니다',
+            statusLabel: '정리 중 · 변경될 수 있음',
+            statusTone: 'yellow',
+            aiDisclaimer:
+              'AI 초안은 안건별 논의·결정 기록만 재구성하며, 기록에 없는 결정·담당자·기한을 새로 만들지 않습니다.\n요약이 없어도 정리 완료가 막히지는 않습니다.',
           },
         ]
       : meetingId === 'MTG-06'
@@ -4012,7 +4121,25 @@ export const FILTERED_FIXTURES: Record<
         ]
       : [],
   'meeting.minutesProgress': ({ meetingId = '' }) =>
-    meetingId === 'MTG-06'
+    meetingId === 'MTG-09'
+      ? [
+          {
+            requiredDoneNote: '필수 2 / 4',
+            blockedNote: '안건별 필수 정리를 완료해 주세요',
+            canComplete: '',
+            // 그림이 그린 글 그대로다. '(선택)'까지 서버가 붙여 온다 — 무엇이
+            // 없어도 되는지는 조직의 규칙이고, 화면이 optional을 보고 그 말을
+            // 지어내면 그 규칙이 화면에 적힌다.
+            conditions: [
+              { label: '안건별 논의 내용', done: 'y', optional: '' },
+              { label: '결정사항 또는 없음 표시', done: '', optional: '' },
+              { label: '후속 업무 또는 없음 표시', done: '', optional: '' },
+              { label: '참가 결과', done: 'y', optional: '' },
+              { label: '회의 전체 요약 (선택)', done: '', optional: 'y' },
+            ],
+          },
+        ]
+      : meetingId === 'MTG-06'
       ? [
           {
             requiredDoneNote: '필수 2 / 4',

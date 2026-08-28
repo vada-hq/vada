@@ -51,6 +51,7 @@ import { OPSMEET03AScreen } from './OPSMEET03AScreen'
 import { OPSMEET04BScreen } from './OPSMEET04BScreen'
 import { OPSMEET05AScreen } from './OPSMEET05AScreen'
 import { OPSMEET06AScreen } from './OPSMEET06AScreen'
+import { OPSMEET06BScreen } from './OPSMEET06BScreen'
 import { OPSMEET07Screen } from './OPSMEET07Screen'
 import { OPSMEET09Screen } from './OPSMEET09Screen'
 import { OPSMEETD01Screen } from './OPSMEETD01Screen'
@@ -90,6 +91,7 @@ import {
   inv01,
   onb01,
   opsMeet02,
+  opsMeet06b,
   opsMeetD04,
   org01,
   org02,
@@ -239,8 +241,21 @@ export function ScreenRouter({
     )
   }
   if (screenId === 'OPS-MEET-06A') {
-    // 정리 중 회의다. 06B(진행 권한자)는 변형이라 주소가 없다.
+    // 정리 중 회의다. 읽기만 하는 자리이고, 고쳐 쓰는 쪽은 06B가 갖는다.
     return <OPSMEET06AScreen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-06B') {
+    // **06A와 같은 화면이고 보는 사람이 다르다**(meeting.detail의 canEditMinutes).
+    // 다른 변형들과 달리 파일이 따로 있는 것은 겹치는 자리가 너무 적어서다 —
+    // 오른쪽 기둥이 통째로 바뀌고 안건 카드도 다르게 펴진다.
+    return (
+      <OPSMEET06BScreen
+        screenParams={screenParams}
+        draft={readScopeDraft(scopes, opsMeet06b.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(opsMeet06b.stateScopeKey ?? '', next)}
+        onNavigate={onNavigate}
+      />
+    )
   }
   if (screenId === 'OPS-MEET-07' || screenId === 'OPS-MEET-08') {
     // 완료 회의록이다. 08은 **참석하지 않은 사람이 본 같은 회의록**이고, 참석했는지

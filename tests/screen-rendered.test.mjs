@@ -25,7 +25,7 @@ const WIRING = join(repoRoot, 'apps', 'vada-web', 'src', 'spec', 'screens.ts')
 //
 // 늘어난 적이 있는지는 이 목록의 길이가 말한다. 줄이면 지우고, 늘려야 한다면
 // 왜 늘리는지를 적는다.
-const NOT_DRAWN_YET = new Set(['OPS-MEET-06B'])
+const NOT_DRAWN_YET = new Set([])
 
 // **등록한 요소가 없는 변형은 바탕이 이미 그린다.** 다른 것이 데이터뿐이라
 // (줄마다의 딱지, 띠의 글) 화면이 읽을 것이 없다 — 명세가 그 사실을 요소 0개로

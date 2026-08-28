@@ -1030,4 +1030,60 @@ export const DEVIATIONS: Deviation[] = [
     screen: '화면에 없음',
     why: '그 단추의 테두리다. 단추가 없으면 테두리도 없다.',
   },
+  // --- OPS-MEET-06B: 그림이 한 프레임 안에서 스스로 어긋났다 -------------------
+  //
+  // 같은 안건을 왼쪽과 오른쪽이 다르게 그렸다. 명세는 둘 다 같은 조각을 가리키므로
+  // (meeting.agendas의 status, meeting.followUps) 화면이 두 벌을 만들 수 없다.
+  {
+    by: 'place',
+    screenId: 'OPS-MEET-06B',
+    content: '필수 정리 필요',
+    kind: '글 없음',
+    design: 'yellow-700(#A65F00)',
+    screen: '화면에 없음',
+    why:
+      '같은 안건의 딱지를 왼쪽 카드는 \u2018정리 필요\u2019로, 오른쪽 패널은 ' +
+      '\u2018필수 정리 필요\u2019로 그렸다. 둘 다 meeting.agendas의 status이므로 ' +
+      '서버가 한 벌만 준다 — 화면이 자리마다 말을 바꾸면 그 규칙이 화면에 적힌다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-MEET-06B',
+    content: '필수 정리 필요',
+    kind: '칸 없음',
+    design: '배경 yellow-50(#FEFCE8) / 테두리 yellow-200(#FFF085)',
+    screen: '화면에 없음',
+    why: '위와 같다 — 그 말을 담던 딱지다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-MEET-06B',
+    content: '연결된 후속 업무가 없습니다.',
+    kind: '글 없음',
+    design: 'gray-400(#99A1AF)',
+    screen: '화면에 없음',
+    why:
+      '같은 안건(안건 3)을 왼쪽 카드는 후속 업무가 있다고, 오른쪽 패널은 없다고 ' +
+      '그렸다. meeting.followUps에는 **어느 안건의 것인지를 말하는 조각이 없어** ' +
+      '화면이 둘을 가를 수 없고, 회의의 것을 그대로 그린다(05A가 같은 자리에서 같은 ' +
+      '말을 남겼다).',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-MEET-06B',
+    content: '후속 업무 업무 연결 연결된 후속 업무가 없습니다. 후속 업무 없음',
+    kind: '칸 없음',
+    design: '배경 지정 없음 / 테두리 gray-100(#F3F4F6)',
+    screen: '화면에 없음',
+    why: '위와 같다 — 비었다는 말이 빠져 그 절의 글줄이 통째로 어긋난다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-MEET-06B',
+    content: '연결된 후속 업무가 없습니다. 후속 업무 없음',
+    kind: '칸 없음',
+    design: '배경 지정 없음 / 테두리 gray-300(#D1D5DC)',
+    screen: '화면에 없음',
+    why: '위와 같다 — 그 줄들을 담던 상자다.',
+  },
 ]
