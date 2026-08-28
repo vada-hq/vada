@@ -59,6 +59,24 @@ test('OPS-MEET-01A: 항목의 버튼은 문구와 강조도를 데이터에서 �
   await expect(page.getByRole('button', { name: '회의록 보기' })).toBeVisible()
   await expect(page.getByRole('button', { name: '취소 내용 보기' })).toBeVisible()
 
+  // **줄마다 가는 곳이 다르다.** 상태가 정하고(detailKind) 갈 곳은 명세가 든다 —
+  // 진행 중인 회의는 진행 중 화면으로, 완료된 회의는 회의록으로 간다.
   await back.click()
-  await expect(page.getByText(/회의 상세 화면이 아직 명세되지 않았습니다/)).toBeVisible()
+  await expect(page).toHaveURL(/#\/OPS-MEET-05A\?meetingId=MTG-04/)
+})
+
+test('OPS-MEET-01A: 완료된 회의는 회의록으로 간다', async ({ page }) => {
+  await goToMeetings(page)
+
+  await page.getByRole('button', { name: '회의록 보기' }).click()
+
+  await expect(page).toHaveURL(/#\/OPS-MEET-07\?meetingId=MTG-01/)
+})
+
+test('OPS-MEET-01A: 취소된 회의는 취소된 회의 상세로 간다', async ({ page }) => {
+  await goToMeetings(page)
+
+  await page.getByRole('button', { name: '취소 내용 보기' }).click()
+
+  await expect(page).toHaveURL(/#\/OPS-MEET-09\?meetingId=MTG-07/)
 })

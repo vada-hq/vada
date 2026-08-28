@@ -188,6 +188,7 @@ const MEETING_GROUPS: DataRow[] = [
     meetings: [
       {
         meetingId: 'MTG-01',
+        detailKind: 'done',
         title: '7월 예산 검토회의',
         status: '완료',
         statusTone: 'gray',
@@ -206,6 +207,7 @@ const MEETING_GROUPS: DataRow[] = [
       },
       {
         meetingId: 'MTG-02',
+        detailKind: 'scheduled',
         title: '학생회 정기 운영회의',
         status: '예정',
         statusTone: 'blue',
@@ -224,6 +226,7 @@ const MEETING_GROUPS: DataRow[] = [
       },
       {
         meetingId: 'MTG-03',
+        detailKind: 'scheduled',
         title: '회장단 비공개 안건 조율',
         status: '예정',
         statusTone: 'blue',
@@ -249,6 +252,7 @@ const MEETING_GROUPS: DataRow[] = [
     meetings: [
       {
         meetingId: 'MTG-04',
+        detailKind: 'live',
         title: '체육대회 운영 점검 회의',
         status: '진행 중',
         statusTone: 'green',
@@ -267,6 +271,7 @@ const MEETING_GROUPS: DataRow[] = [
       },
       {
         meetingId: 'MTG-05',
+        detailKind: 'scheduled',
         title: '안전 관리 최종 회의',
         status: '예정',
         statusTone: 'blue',
@@ -291,6 +296,7 @@ const MEETING_GROUPS: DataRow[] = [
     meetings: [
       {
         meetingId: 'MTG-06',
+        detailKind: 'tidying',
         title: '신입생 환영 행사 기획회의',
         status: '정리 중',
         statusTone: 'yellow',
@@ -315,6 +321,7 @@ const MEETING_GROUPS: DataRow[] = [
     meetings: [
       {
         meetingId: 'MTG-07',
+        detailKind: 'cancelled',
         title: '가을 축제 1차 준비회의',
         status: '취소',
         statusTone: 'red',
@@ -1935,6 +1942,52 @@ const DUES_BY_STATUS: Record<string, string> = {
 // cancelReason이 있다. 명세가 출처 하나로 두고 없는 것은 안 보내기로 한 그대로다.
 
 const MEETING_DETAIL: Record<string, DataRow> = {
+  // 완료된 회의(OPS-MEET-07·08). 값은 figma.design.json이 그린 예시를 그대로 옮긴
+  // 것이라 구현 화면과 reference.png를 눈으로 대조할 수 있다.
+  //
+  // **목록(MEETING_GROUPS)의 MTG-01과 회의 이름이 다르다.** 목록은 '7월 예산
+  // 검토회의'로 그려졌고 07/08의 상세는 '체육대회 안전 관리 최종 회의'를 그렸다.
+  // 둘 다 각자의 와이어프레임 그대로이며, 어긋난 것은 그림이지 픽스처가 아니다.
+  'MTG-01': {
+    title: '체육대회 안전 관리 최종 회의',
+    description:
+      '행사 전 안전 점검 결과를 공유하고 비상 연락망과 현장 안전 인력 배치를 최종 확정합니다.',
+    status: '완료',
+    statusTone: 'gray',
+    // 회의의 상태와 회의록의 상태는 다른 축이다 - 띠의 '완료'는 회의록의 것이다.
+    minutesStatus: '완료',
+    minutesStatusTone: 'green',
+    kindLabel: '행사 관련 회의',
+    kindTone: 'gray',
+    eventTitle: '2026 소프트웨어융합대학 체육대회',
+    eventId: 'EVT-2026-SPORTS',
+    creatorNote: '박해랑 · 운영부',
+    scheduledAt: '2026.07.25 15:00',
+    place: '학생회실 (A204)',
+    inviteeCountNote: '4명',
+    viewerTitle: '참석자 화면',
+    viewerNote: '정리된 회의록을 읽고 받아 갈 수 있습니다.',
+    viewerChipLabel: '15:07 참석',
+    viewerChipTone: 'gray',
+    stateBannerTitle: '회의록 정리가 완료되었습니다',
+    stateBannerNote: '2026.07.25 16:30 박해랑이 최종 정리했습니다.',
+    stateBannerTone: 'green',
+    canStart: '',
+    canEnd: '',
+    canEdit: '',
+    canCancel: '',
+    canManageHostRole: '',
+    canEditMinutes: '',
+    // 실제 진행 시각. 예정 일시와 다르고 끝난 뒤에만 온다. 붙임표는 en dash다.
+    actualTimeNote: '2026.07.25 15:00–16:12',
+    attendanceResultNote: '3명 참석 · 1명 불참',
+    decisionCountNote: '2건',
+    followUpCountLabel: '없음',
+    myFollowUpCountLabel: '0건',
+    // 와이어프레임이 파일 이름을 그리지 않았다. 무엇을 어떤 형식으로 낼지는
+    // 서버가 정하는 값이라 픽스처가 하나 세워 둔다.
+    exportName: '체육대회_안전관리_최종회의_회의록.pdf',
+  },
   'MTG-04': {
     title: '체육대회 안전 관리 최종 회의',
     description: '행사 전 안전 점검 결과를 공유하고 비상 연락망과 현장 안전 인력 배치를 최종 확정합니다.',
@@ -2002,12 +2055,13 @@ const MEETING_DETAIL: Record<string, DataRow> = {
   'MTG-06': {
     title: '신입생 환영 행사 기획회의',
     description: '환영 행사의 진행 순서와 부서별 역할을 정리합니다.',
+    eventTitle: '신입생 환영 행사',
     status: '정리 중',
     statusTone: 'yellow',
     minutesStatus: '작성 중',
     minutesStatusTone: 'yellow',
     kindLabel: '행사 관련 회의',
-    kindTone: 'violet',
+    kindTone: 'gray',
     creatorNote: '이수현 · 기획부',
     scheduledAt: '2026.07.15 16:00',
     place: '온라인 (Discord)',
@@ -2017,7 +2071,8 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     viewerChipLabel: '15:07 참석',
     viewerChipTone: 'gray',
     stateBannerTitle: '회의록을 정리하고 있습니다',
-    stateBannerNote: '정리가 끝나면 참석자에게 최종 회의록이 전달됩니다.',
+    stateBannerNote:
+      '현재 내용은 진행 권한자가 수정할 수 있습니다. 정리 완료 후 최종 회의록으로 제공됩니다.',
     stateBannerTone: 'yellow',
     canStart: '',
     canEnd: '',
@@ -2025,7 +2080,8 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     canCancel: '',
     canManageHostRole: '',
     canEditMinutes: '',
-    actualTimeNote: '2026.07.15 16:00-17:18',
+    // 장소는 place가 따로 갖는다. 명세가 둘을 이어 그리므로 여기 붙이면 두 번 그려진다.
+    actualTimeNote: '2026.07.15 16:00–17:18',
     attendanceResultNote: '8명 참석 · 2명 불참',
     agendaCountNote: '총 5개',
   },
@@ -2064,6 +2120,31 @@ const MEETING_DETAIL: Record<string, DataRow> = {
 }
 
 const MEETING_AGENDAS: Record<string, DataRow[]> = {
+  'MTG-01': [
+    {
+      agendaId: 'AG-01-1',
+      orderLabel: '1',
+      title: '행사장 안전 점검 결과',
+      discussionText:
+        '본부석 뒤편 전선 구간에 케이블 커버를 추가하고 우천 시 실내 대기 장소를 사용하기로 했습니다.',
+      decisionText: '본부석 뒤편 전선 구간에 케이블 커버를 설치합니다.',
+    },
+    {
+      agendaId: 'AG-01-2',
+      orderLabel: '2',
+      title: '비상 연락망 및 담당자 확정',
+      discussionText: '상황별 최초 연락 담당자와 보고 순서를 확정합니다.',
+      decisionText: '비상 연락망은 운영본부를 중심으로 단일화합니다.',
+    },
+    // 결정이 나지 않은 안건에는 그 조각이 오지 않는다. 와이어프레임도 셋째
+    // 카드에만 초록 상자를 그리지 않았다.
+    {
+      agendaId: 'AG-01-3',
+      orderLabel: '3',
+      title: '행사 당일 안전 인력 배치',
+      discussionText: '출입구, 경기장, 대기 구역별 담당 인원을 배치합니다.',
+    },
+  ],
   'MTG-04': [
     {
       agendaId: 'AG-04-1',
@@ -2135,30 +2216,29 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
   'MTG-06': [
     {
       agendaId: 'AG-06-1',
-      orderLabel: '안건 1',
-      title: '환영 행사 진행 순서',
+      orderLabel: '1',
+      title: '행사 프로그램 구성',
       description: '식순과 각 순서의 담당을 정합니다.',
       status: '정리됨',
       statusTone: 'green',
       summaryLine: '환영 인사, 학과 소개, 아이스브레이킹, 부서별 교류 순으로 진행합니다.',
-      decisionText: '식순을 네 마디로 확정하고 각 마디의 담당 부서를 정했습니다.',
+      decisionText: '프로그램 순서는 환영 인사 이후 학과 소개와 교류 프로그램 순으로 진행합니다.',
     },
     {
       agendaId: 'AG-06-2',
-      orderLabel: '안건 2',
-      title: '부서별 역할 분담',
+      orderLabel: '2',
+      title: '장소와 참가자 동선',
       status: '정리됨',
       statusTone: 'green',
-      summaryLine: '기획부가 사회를, 운영부가 현장 진행을 맡습니다.',
-      decisionText: '기획부 사회 · 운영부 현장 진행으로 나눕니다.',
+      summaryLine: '답사 결과를 반영해 입장과 퇴장 동선을 분리하는 방안을 검토합니다.',
     },
     {
       agendaId: 'AG-06-3',
-      orderLabel: '안건 3',
-      title: '예산 집행 계획',
+      orderLabel: '3',
+      title: '부서별 준비 범위',
       status: '정리 중',
       statusTone: 'yellow',
-      summaryLine: '다과와 현수막 비용을 나눠 잡기로 했습니다.',
+      summaryLine: '운영부는 현장 운영, 홍보부는 사전 안내와 행사 기록을 담당합니다.',
       decisionEmptyNote:
         '아직 결정사항이 정리되지 않았습니다. 오른쪽 패널에서 작성하거나 결정사항 없음을 선택하세요.',
     },
@@ -2166,6 +2246,44 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
 }
 
 const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
+  'MTG-01': [
+    {
+      memberId: 'M-01',
+      name: '박해랑',
+      department: '운영부',
+      departmentNote: '운영부 · 회의 참가자',
+      chips: [],
+      attendanceLabel: '15:00 참석',
+      attendanceTone: 'green',
+    },
+    {
+      memberId: 'M-02',
+      name: '정하늘',
+      department: '운영부',
+      departmentNote: '운영부 · 회의 참가자',
+      chips: [],
+      attendanceLabel: '15:02 참석',
+      attendanceTone: 'green',
+    },
+    {
+      memberId: 'M-03',
+      name: '이수현',
+      department: '기획부',
+      departmentNote: '기획부 · 회의 참가자',
+      chips: [],
+      attendanceLabel: '15:07 참석',
+      attendanceTone: 'green',
+    },
+    {
+      memberId: 'M-04',
+      name: '김민준',
+      department: '재정부',
+      departmentNote: '재정부 · 회의 참가자',
+      chips: [],
+      attendanceLabel: '불참',
+      attendanceTone: 'gray',
+    },
+  ],
   'MTG-04': [
     {
       memberId: 'M-01',
@@ -2374,6 +2492,12 @@ const MEETING_CANDIDATES: DataRow[] = [
 ]
 
 const MEETING_DOCUMENTS: Record<string, DataRow[]> = {
+  // 07의 '관련 자료'는 회의 전체에 붙은 것이라 agendaId가 없다.
+  'MTG-01': [
+    { documentId: 'DOC-1', name: '체육대회_안전점검표.pdf' },
+    { documentId: 'DOC-2', name: '비상연락망_초안.xlsx' },
+    { documentId: 'DOC-3', name: '안전인력_배치초안.xlsx' },
+  ],
   'MTG-04': [
     { documentId: 'DOC-4', name: '비상연락망_초안.xlsx', agendaId: 'AG-04-2' },
   ],
@@ -2437,9 +2561,18 @@ export const FILTERED_FIXTURES: Record<
   // 후속 업무는 와이어프레임이 빈 상태만 그렸다. 지어내지 않는다.
   'meeting.followUps': ({ meetingId = '' }) => MEETING_FOLLOW_UPS[meetingId] ?? [],
   'meeting.minutes': ({ meetingId = '' }) =>
-    meetingId === 'MTG-06'
+    meetingId === 'MTG-01'
       ? [
           {
+            summaryText:
+              '체육대회 안전 점검 결과를 바탕으로 위험 구간 조치 방안을 확정했습니다. 비상 연락은 현장 담당자에서 운영본부를 거쳐 학생회장과 학교 안전관리팀에 보고하며, 경기별 안전 담당자 명단은 7월 23일까지 전체 운영진에게 배포합니다.',
+          },
+        ]
+      : meetingId === 'MTG-06'
+      ? [
+          {
+            summaryText:
+              '신입생 환영 행사 프로그램 순서와 부서별 준비 범위를 논의했습니다. 장소 답사 후 세부 동선과 무대 운영 계획을 최종 확정할 예정입니다.',
             statusLabel: '정리 중 · 변경될 수 있음',
             statusTone: 'yellow',
             aiDisclaimer:

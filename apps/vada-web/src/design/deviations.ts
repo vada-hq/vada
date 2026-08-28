@@ -86,6 +86,62 @@ export const DEVIATIONS: Deviation[] = [
   },
   {
     by: 'rule',
+    rule: 'state-banner',
+    kind: '색',
+    design: 'green-900(#0D542B)',
+    screen: 'green-800(#016630)',
+    why:
+      '상태 띠의 제목은 톤의 -800으로 통일한다(BANNER_TEXT). 07의 초록 띠만 -900이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'state-banner',
+    kind: '색',
+    design: 'yellow-900(#733E0A)',
+    screen: 'yellow-800(#894B00)',
+    why:
+      '상태 띠의 제목은 톤의 -800으로 통일한다(BANNER_TEXT). 06A의 노란 띠만 -900이다. ' +
+      '붉은 띠(09)·초록 띠(07)와 **같은 흔들림**이라 규칙 쪽이 맞다는 것이 세 번으로 확인됐다.',
+  },
+  {
+    by: 'rule',
+    rule: 'state-banner',
+    kind: '색',
+    design: 'yellow-800(#894B00)',
+    screen: 'yellow-700(#A65F00)',
+    why: '상태 띠의 본문은 톤의 -700으로 통일한다(BANNER_TEXT). 06A의 노란 띠만 -800이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'state-banner',
+    kind: '색',
+    design: 'green-800(#016630)',
+    screen: 'green-700(#008236)',
+    why:
+      '상태 띠의 본문은 톤의 -700으로 통일한다(BANNER_TEXT). 07의 초록 띠만 -800이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'soft-box',
+    kind: '테두리',
+    design: 'green-100(#DCFCE7)',
+    screen: 'green-200(#B9F8CF)',
+    why:
+      '옅은 상자의 테두리는 톤의 -200으로 통일한다(SOFT_BOX). ' +
+      '07의 확정된 결정 상자만 -100이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'soft-box-value',
+    kind: '색',
+    design: 'green-900(#0D542B)',
+    screen: 'green-800(#016630)',
+    why:
+      '옅은 상자 안의 값은 톤의 -800으로 통일한다(SOFT_BOX_TEXT). ' +
+      '07의 결정 글만 -900이다.',
+  },
+  {
+    by: 'rule',
     rule: 'status-chip',
     kind: '색',
     design: 'red-700(#C10007)',

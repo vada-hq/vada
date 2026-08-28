@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { CONFIRM_NOTE, DANGER_BUTTON } from '../design/tones'
 import { Field } from '../components/Field'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { resolveParams } from '../spec/params'
@@ -97,7 +98,7 @@ export function OPSMEETD04Screen({
         {/* 왜 사유가 필요한지를 이 줄이 말한다. 별표만 있으면 '왜'가 사라진다. */}
         <p
           data-node-id={NODE.notice}
-          className="mt-4 rounded-md border border-red-100 bg-red-50 px-4 py-3 text-sm text-red-700"
+          className={`mt-4 rounded-md border px-4 py-3 text-sm ${CONFIRM_NOTE.red}`}
         >
           {notice.title}
         </p>
@@ -150,7 +151,7 @@ export function OPSMEETD04Screen({
               })
             })
           }
-          className="rounded bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus-visible:ring-2 focus-visible:ring-red-600/50 focus-visible:outline-none"
+          className={`rounded px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:outline-none ${DANGER_BUTTON}`}
         >
           {submitAction.labelOf(cancel.action as SubmitAction, cancel.label)}
         </button>

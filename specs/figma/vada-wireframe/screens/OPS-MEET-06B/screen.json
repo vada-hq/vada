@@ -1,0 +1,491 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-06B",
+  "meta": {
+    "eyebrow": null,
+    "title": "회의록 정리 — 진행 권한자"
+  },
+  "variantOf": {
+    "screenId": "OPS-MEET-06A",
+    "when": "이 회의의 회의록을 정리할 수 있는 사람이 볼 때(meeting.detail의 canEditMinutes가 참). 머리 오른쪽의 '읽기 전용' 자리에 '정리 완료'와 무엇이 남았는지가 대신 오고, 오른쪽 기둥이 읽기만 하는 '현재 정리 현황'에서 고쳐 쓰는 '안건별 결정 정리'로 바뀐다. 안건 카드도 한 줄 요약 대신 논의 내용과 결정을 통째로 편다."
+  },
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-06",
+      "missingNote": "어떤 회의의 회의록을 정리할지 정하지 않고 열렸습니다. 회의 목록에서 회의를 고르면 이 화면이 열립니다.",
+      "description": "무엇을 정리하는지. 06A와 같은 인자다 — 주소는 하나이고 보는 사람이 이 그림과 06A를 가른다."
+    }
+  ],
+  "stateScopeKey": "meetingMinutesDraft",
+  "breadcrumb": {
+    "source": "20:1781",
+    "dataSourceKey": "meeting.detail",
+    "params": {
+      "meetingId": {
+        "screenParam": "meetingId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "회의"
+      },
+      {
+        "field": "title"
+      },
+      {
+        "value": "회의록 정리"
+      }
+    ]
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:1707",
+    "name": "운영 — 회의 · OPS-MEET-06B · 회의록 정리 — 진행 권한자",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:1802",
+        "name": "Text",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "meeting.minutesProgress",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "blockedNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1804",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "정리 완료",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.completeMinutes",
+          "onSuccess": {},
+          "executeWhen": {
+            "type": "sourceAllows",
+            "dataSourceKey": "meeting.minutesProgress",
+            "params": {
+              "meetingId": {
+                "screenParam": "meetingId"
+              }
+            },
+            "blockedNoteField": "blockedNote"
+          },
+          "onExecutionBlocked": {
+            "type": "showBlockedNote"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1824",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "label": "예정",
+            "field": "scheduledAt"
+          },
+          {
+            "label": "실제 진행",
+            "field": "actualTimeNote"
+          },
+          {
+            "label": "참석 결과",
+            "field": "attendanceResultNote"
+          },
+          {
+            "label": "종료 처리",
+            "field": "closedByNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1849",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의 전체 요약",
+        "description": "안건별 기록을 바탕으로 불참자에게 제공할 요약을 작성합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1858",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "meeting.minutes",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "aiDisclaimer"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1861",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "AI로 전체 요약 만들기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.generateSummary",
+          "onSuccess": {}
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1869",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "직접 작성",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "누르면 전체 요약을 사람이 직접 쓰는 자리가 열리는데, 그 프레임이 와이어프레임에 없습니다. 이 카드는 요약이 없는 상태만 그려져 있어 쓰는 칸이 어디에 생기는지도 그림이 말하지 않습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1877",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.agendas",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "orderLabel"
+            ]
+          },
+          {
+            "fields": [
+              "status"
+            ],
+            "toneField": "statusTone"
+          },
+          {
+            "fields": [
+              "durationNote"
+            ]
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "description"
+            ]
+          },
+          {
+            "label": "논의 내용",
+            "fields": [
+              "discussionText"
+            ]
+          },
+          {
+            "label": "결정사항",
+            "fields": [
+              "decisionText",
+              "decisionEmptyNote"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1904",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "후속 업무",
+        "dataSourceKey": "meeting.followUps",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "assigneeNote"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1995",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "안건별 결정 정리",
+        "description": "안건을 선택해 결정과 후속 업무를 최종 확인합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2000",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "agendaId",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "meeting.agendaPicker",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2016",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "fieldKey": "agendaMinutes",
+        "dataSourceKey": "meeting.agendas",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "orderLabel"
+            ]
+          },
+          {
+            "fields": [
+              "status"
+            ],
+            "toneField": "statusTone"
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          }
+        ],
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "20:2025",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "decisionText",
+              "label": "결정사항",
+              "placeholder": "이 안건에서 확정한 내용을 입력하세요.",
+              "initialValue": null,
+              "inputType": "text",
+              "multiline": true,
+              "valueType": "string",
+              "required": false,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "20:2029",
+              "name": "Label",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "noDecision",
+              "label": "이 안건은 결정사항 없음",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "checkbox",
+              "valueType": "boolean",
+              "required": false,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "20:2035",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "itemList",
+              "title": "후속 업무",
+              "dataSourceKey": "meeting.followUps",
+              "params": {
+                "meetingId": {
+                  "screenParam": "meetingId"
+                }
+              },
+              "columns": [
+                {
+                  "fields": [
+                    "title"
+                  ]
+                },
+                {
+                  "fields": [
+                    "assigneeNote"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "source": {
+              "nodeId": "20:2039",
+              "name": "Btn",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "button",
+              "label": "업무 연결",
+              "emphasis": "quiet",
+              "initiallyDisabled": false,
+              "action": {
+                "type": "pending",
+                "note": "누르면 어느 업무를 잇는지 고르는 자리가 열리는데, 그 프레임이 와이어프레임에 없습니다. 05A의 '업무 만들기'와 같은 것인지 이미 있는 업무를 고르는 것인지도 그림이 말하지 않습니다."
+              }
+            }
+          },
+          {
+            "source": {
+              "nodeId": "20:2048",
+              "name": "Label",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "noFollowUp",
+              "label": "후속 업무 없음",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "checkbox",
+              "valueType": "boolean",
+              "required": false,
+              "validation": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2055",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "정리 완료 조건",
+        "dataSourceKey": "meeting.minutesProgress",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "requiredDoneNote"
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -5,6 +5,8 @@ import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { elementByNodeId, opsMeet01a } from '../spec/screens'
+import { resolveParams } from '../spec/params'
+import { targetScreenOf } from '../spec/types'
 import type { DisplayAction, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 회의 목록(OPS-MEET-01A).
@@ -106,7 +108,12 @@ export function OPSMEET01AScreen({ onNavigate }: OPSMEET01AScreenProps) {
 
       <div data-node-id={NODE.groups} className="flex flex-col gap-6 pt-6 pb-12">
         {groups.map((group) => (
-          <MeetingGroup key={String(group.title)} group={group} spec={list} />
+          <MeetingGroup
+            key={String(group.title)}
+            group={group}
+            spec={list}
+            onNavigate={onNavigate}
+          />
         ))}
       </div>
     </AppShell>
@@ -116,9 +123,10 @@ export function OPSMEET01AScreen({ onNavigate }: OPSMEET01AScreenProps) {
 interface MeetingGroupProps {
   group: DataRow
   spec: ItemListSpec
+  onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
-function MeetingGroup({ group, spec }: MeetingGroupProps) {
+function MeetingGroup({ group, spec, onNavigate }: MeetingGroupProps) {
   // 접힘은 화면 안의 상태다. 데이터를 다시 조회하지 않고, 처음에는 펴져 있다.
   const [open, setOpen] = useState(true)
   const meetings = (group[spec.group?.itemsField ?? ''] ?? []) as DataRow[]
@@ -168,7 +176,11 @@ function MeetingGroup({ group, spec }: MeetingGroupProps) {
         <ul className="flex flex-col gap-2">
           {meetings.map((meeting) => (
             <li key={String(meeting.title)}>
-              <MeetingCard meeting={meeting} itemAction={spec.itemAction} />
+              <MeetingCard
+                meeting={meeting}
+                itemAction={spec.itemAction}
+                onNavigate={onNavigate}
+              />
             </li>
           ))}
         </ul>
@@ -180,9 +192,10 @@ function MeetingGroup({ group, spec }: MeetingGroupProps) {
 interface MeetingCardProps {
   meeting: DataRow
   itemAction: DisplayAction | undefined
+  onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
-function MeetingCard({ meeting, itemAction }: MeetingCardProps) {
+function MeetingCard({ meeting, itemAction, onNavigate }: MeetingCardProps) {
   const [note, setNote] = useState<string | null>(null)
   // 문구와 강조도를 데이터가 준다. 회의 상태에 따라 다르기 때문이다.
   const label = itemAction?.labelField ? String(meeting[itemAction.labelField]) : itemAction?.label
@@ -237,10 +250,26 @@ function MeetingCard({ meeting, itemAction }: MeetingCardProps) {
           <button
             type="button"
             onClick={() => {
-              if (itemAction === undefined || itemAction.type === 'navigate') {
+              if (itemAction === undefined) {
                 return
               }
-              setNote(itemAction.note)
+              if (itemAction.type === 'pending') {
+                setNote(itemAction.note)
+                return
+              }
+              // 어느 상세로 가는지는 **그 회의의 상태**가 정한다. 명세가 갈래를
+              // 들고 데이터가 열쇠를 준다 — 데이터가 화면 이름을 직접 주면
+              // 없는 화면을 가리켜도 아무도 모른다.
+              const target = targetScreenOf(itemAction, meeting)
+              if (target === null) {
+                setNote(
+                  `이 회의가 어느 상세로 가는지 명세의 갈래에 없습니다: ${String(
+                    meeting[(itemAction as { targetField?: string }).targetField ?? ''] ?? '',
+                  )}`,
+                )
+                return
+              }
+              onNavigate(target, resolveParams(itemAction.params, { row: meeting }))
             }}
             className={`rounded px-3 py-1.5 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none ${
               emphasis === 'primary'

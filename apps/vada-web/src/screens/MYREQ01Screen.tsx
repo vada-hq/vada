@@ -8,6 +8,7 @@ import { NEUTRAL_VALUE, VALUE_TEXT } from '../design/tones'
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, myReq01 } from '../spec/screens'
+import { targetScreenOf } from '../spec/types'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 내 구매 요청 — 행사 재정(MY-REQ-01).
@@ -86,7 +87,10 @@ export function MYREQ01Screen({ screenParams, onNavigate }: MYREQ01ScreenProps) 
 
   const press = (spec: ButtonSpec) => () => {
     if (spec.action.type === 'navigate') {
-      onNavigate(spec.action.targetScreenId, resolveParams(spec.action.params, { screenParams }))
+      onNavigate(
+        targetScreenOf(spec.action, {}) ?? spec.action.type,
+        resolveParams(spec.action.params, { screenParams }),
+      )
     }
   }
   const buttonAt = (nodeId: string) => elementByNodeId(myReq01, nodeId).spec as ButtonSpec
@@ -231,7 +235,7 @@ export function MYREQ01Screen({ screenParams, onNavigate }: MYREQ01ScreenProps) 
           onItemAction={(row) => {
             if (table.itemAction?.type !== 'navigate') return
             onNavigate(
-              table.itemAction.targetScreenId,
+              targetScreenOf(table.itemAction, row) ?? table.itemAction.type,
               resolveParams(table.itemAction.params, { row }),
             )
           }}

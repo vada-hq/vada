@@ -1,0 +1,355 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-07",
+  "activeNavigationScreenId": "OPS-00",
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-01",
+      "missingNote": "어떤 회의의 회의록을 볼지 정하지 않고 열렸습니다. 회의 목록에서 완료된 회의를 고르면 이 화면이 열립니다.",
+      "description": "무엇의 회의록인지. 앞 화면(회의 목록 OPS-MEET-01A의 줄)이 정한다. 보는 사람이 참석자인지 불참자인지는 받지 않는다 — 그것은 서버가 알고, 불참자에게는 변형(OPS-MEET-08)이 그려진다."
+    }
+  ],
+  "breadcrumb": {
+    "source": "20:2173",
+    "dataSourceKey": "meeting.detail",
+    "params": {
+      "meetingId": {
+        "screenParam": "meetingId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "회의"
+      },
+      {
+        "field": "title"
+      }
+    ]
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "완료된 회의록",
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:2099",
+    "name": "운영 — 회의 · OPS-MEET-07 · 완료 회의록 — 참석자",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:2188",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "회의록 내보내기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "download",
+          "downloadField": "exportName",
+          "downloadSourceKey": "meeting.detail"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2197",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "status": [
+          {
+            "field": "minutesStatus",
+            "toneField": "minutesStatusTone"
+          },
+          {
+            "field": "viewerChipLabel",
+            "toneField": "viewerChipTone"
+          }
+        ],
+        "toneField": "stateBannerTone",
+        "titleField": "stateBannerTitle",
+        "descriptionField": "stateBannerNote",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2213",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "eyebrowField": "eventTitle",
+        "titleField": "title",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "actualTimeNote"
+          },
+          {
+            "field": "place"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2231",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "label": "결정",
+            "field": "decisionCountNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2236",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "label": "후속 업무",
+            "field": "followUpCountLabel"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2243",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의 핵심 요약",
+        "dataSourceKey": "meeting.minutes",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "summaryText"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2248",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.agendas",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "orderLabel"
+            ]
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "discussionText"
+            ]
+          },
+          {
+            "label": "확정된 결정",
+            "fields": [
+              "decisionText"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2286",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "후속 업무 진행 현황",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "followUpCountLabel"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2291",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.followUps",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "assigneeNote"
+            ]
+          }
+        ],
+        "itemAction": {
+          "type": "pending",
+          "note": "후속 업무 항목을 누르면 어디로 가는지 그림이 말하지 않습니다. 07·08 둘 다 0건 빈 상태만 그려서 항목이 어떻게 생겼는지도 그려진 프레임이 없습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2293",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "참석 결과",
+        "dataSourceKey": "meeting.participants",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "name"
+            ]
+          },
+          {
+            "fields": [
+              "attendanceLabel"
+            ],
+            "toneField": "attendanceTone"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2317",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "관련 자료",
+        "dataSourceKey": "meeting.documents",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "name"
+            ]
+          }
+        ],
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "20:2330",
+              "name": "Icon",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "button",
+              "label": "내려받기",
+              "labelHidden": true,
+              "emphasis": "quiet",
+              "initiallyDisabled": false,
+              "action": {
+                "type": "download",
+                "downloadField": "name",
+                "downloadSourceKey": "meeting.documents"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

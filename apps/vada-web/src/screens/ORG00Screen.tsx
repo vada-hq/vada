@@ -3,6 +3,7 @@ import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { readObjectSource } from '../data-sources/catalog'
 import { elementByNodeId, org00 } from '../spec/screens'
+import { targetScreenOf } from '../spec/types'
 import type { SummarySpec } from '../spec/types'
 
 // 조직 관리 홈(ORG-00).
@@ -83,7 +84,7 @@ function AreaCard({ card, onNavigate }: AreaCardProps) {
         onClick={() => {
           if (action === undefined) return
           if (action.type === 'navigate') {
-            onNavigate(action.targetScreenId)
+            onNavigate(targetScreenOf(action, {}) ?? action.type)
             return
           }
           setNote(action.note)

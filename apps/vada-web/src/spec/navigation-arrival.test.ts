@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
+import { targetScreenOf } from './types'
 import { resolveParams } from './params'
 import { ALL_SCREENS, exampleParamsOf } from './screens'
 import type { DisplayAction, ElementSpec, QueryParams, ScreenSpec } from './types'
@@ -77,6 +78,11 @@ const ARRIVALS: Arrival[] = ALL_SCREENS.flatMap((screen) =>
         return []
       }
 
+      // 줄마다 가는 곳이 다르면 눌린 줄이 정한다. 개발용 응답에 그 줄이 없으면
+      // 걸어 볼 길이 없는 것이지 끊긴 것이 아니다.
+      const target = targetScreenOf(action, row ?? {})
+      if (target === null) return []
+
       const params = resolveParams(action.params, {
         screenParams: exampleParamsOf(screen.screenId),
         row,
@@ -85,8 +91,8 @@ const ARRIVALS: Arrival[] = ALL_SCREENS.flatMap((screen) =>
       return [
         {
           from: screen.screenId,
-          to: action.targetScreenId,
-          label: action.label ?? label.label ?? label.title ?? action.targetScreenId,
+          to: target,
+          label: action.label ?? label.label ?? label.title ?? target,
           params,
         },
       ]

@@ -1,57 +1,62 @@
 import type { ReactNode } from 'react'
-import { CONFIRM_NOTE } from '../design/tones'
+import { CONFIRM_NOTE, DANGER_BUTTON } from '../design/tones'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
-import { elementByNodeId, opsMeetD01 } from '../spec/screens'
+import { elementByNodeId, opsMeetD02 } from '../spec/screens'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type { ButtonSpec, SubmitAction, SummarySpec } from '../spec/types'
-import { OPSMEET03AScreen } from './OPSMEET03AScreen'
+import { OPSMEET05AScreen } from './OPSMEET05AScreen'
 
-// 회의 시작 확인(OPS-MEET-D01). 회의 계열의 첫 확인 모달이다.
+// 회의 종료 확인(OPS-MEET-D02). D01과 노드 대 노드로 같은 틀이다.
 //
-// 뒤에 남는 것은 **03A**다. 그림이 그린 배경은 03B(생성자가 볼 때)이지만 03B는
-// 화면이 아니라 03A의 변형이고, overlay.screenId는 주소를 가진 화면 하나만
-// 받는다(docs/decisions/meeting-model.md). 03C에서 눌러도 뒤에 남는 것은 같은
-// 상세다 — 무엇 위에 뜨는가를 변형마다 답하지 않아도 되는 것이 그 결정의 값이다.
+// **뒤에 남는 것은 05A다.** 그림이 그린 배경은 05B(진행 권한자)이지만 05B는
+// 화면이 아니라 05A의 변형이고, overlay.screenId는 주소를 가진 화면 하나만
+// 받는다(docs/decisions/meeting-model.md). D01이 03B 배경인데 03A라 적은 것과
+// 같은 자리다.
 //
-// **살펴 준 것은 한 줄뿐이다.** 며칠 이른지는 예정 시각과 지금을 견줘야 아는
-// 것이라 화면이 셀 수 없고(meeting.startConfirm.warningNote), 예정 시각에
-// 시작하면 아예 오지 않는다. 오지 않으면 그 칸은 그려지지 않는다 — 없으면 오지
-// 않는다는 것이 optional의 뜻이다.
+// **종료는 완료가 아니다.** 이 화면의 설명이 회의 상태 축을 못 박는 자리다 —
+// 종료하면 '완료'가 아니라 '정리 중'이 되고, 회의록과 결정을 확인한 뒤에 따로
+// 정리 완료한다(meeting.end의 계약도 같은 말을 한다).
 //
-// 시작을 보낸 뒤 어디로 가는지는 **그림에 이음이 없다.** 05A가 유력하나 명세가
-// onSuccess를 비워 두었으므로 여기서도 데려가지 않는다 — 지어내면 그것이 계약이 된다.
+// **살펴 준 한 줄은 막지 않는다.** 미완료 안건이 남아 있어도 종료 단추는 살아
+// 있다(meeting.endConfirm). 알려 줄 뿐이고, 그래서 이 화면에는 executeWhen이
+// 없다. 셋을 세어 잇는 일은 화면이 못 한다 — 무엇을 '미완료'로 세는지가 회의
+// 진행의 규칙이라 서버가 완성한 한 줄로 온다. 없으면 오지 않는다(optional).
+//
+// 종료를 보낸 뒤 어디로 가는지는 **그림에 이음이 없다.** 06A(정리 중)가
+// 유력하나 명세가 onSuccess를 비워 두었으므로 여기서도 데려가지 않는다 —
+// 지어내면 그것이 계약이 된다.
 
-const SCREEN = 'OPS-MEET-D01'
+const SCREEN = 'OPS-MEET-D02'
 
 const NODE = {
-  head: '20:3109',
-  warning: '20:3119',
-  back: '20:3123',
-  start: '20:3125',
+  head: '20:3445',
+  warning: '20:3456',
+  back: '20:3460',
+  end: '20:3462',
 } as const
 
 const ASSET = {
-  head: '20:3110',
+  head: '20:3446',
 } as const
 
-interface OPSMEETD01ScreenProps {
+interface OPSMEETD02ScreenProps {
   screenParams: Record<string, string>
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
-export function OPSMEETD01Screen({ screenParams, onNavigate }: OPSMEETD01ScreenProps) {
-  const head = elementByNodeId(opsMeetD01, NODE.head).spec as SummarySpec
-  const warning = elementByNodeId(opsMeetD01, NODE.warning).spec as SummarySpec
-  const back = elementByNodeId(opsMeetD01, NODE.back).spec as ButtonSpec
-  const start = elementByNodeId(opsMeetD01, NODE.start).spec as ButtonSpec
+export function OPSMEETD02Screen({ screenParams, onNavigate }: OPSMEETD02ScreenProps) {
+  const head = elementByNodeId(opsMeetD02, NODE.head).spec as SummarySpec
+  const warning = elementByNodeId(opsMeetD02, NODE.warning).spec as SummarySpec
+  const back = elementByNodeId(opsMeetD02, NODE.back).spec as ButtonSpec
+  const end = elementByNodeId(opsMeetD02, NODE.end).spec as ButtonSpec
 
   const submitAction = useSubmitAction()
 
-  // 어느 회의를 시작할지 모르면 확인할 것이 없다. 인자가 비면 첫 회의를 대신
-  // 집어 오지 않는다 — 그러면 사람이 남의 회의를 자기 것으로 시작한다(03A와 같은 규칙).
-  const missingParam = (opsMeetD01.params ?? []).find(
+  // 어느 회의를 종료할지 모르면 종료할 것이 없다. 인자가 비면 첫 회의를 대신
+  // 집어 오지 않는다 — 그러면 사람이 남의 회의를 자기 것으로 끝낸다(D01과 같은 규칙).
+  const missingParam = (opsMeetD02.params ?? []).find(
     (param) => param.optional !== true && (screenParams[param.key] ?? '') === '',
   )
 
@@ -90,9 +95,11 @@ export function OPSMEETD01Screen({ screenParams, onNavigate }: OPSMEETD01ScreenP
             {findDataSource(warning.dataSourceKey).messages.empty}
           </p>
         ) : warningNote === undefined ? null : (
+          // D01의 같은 자리는 무채색인데 여기는 붉다. 되돌릴 수 없는 동작을
+          // 앞두고 미완료를 알리는 줄이기 때문이다(design 20:3456).
           <p
             data-node-id={NODE.warning}
-            className={`mt-4 rounded-md border px-4 py-3 text-sm ${CONFIRM_NOTE.gray}`}
+            className={`mt-4 rounded-md border px-4 py-3 text-sm ${CONFIRM_NOTE.red}`}
           >
             {String(warningNote)}
           </p>
@@ -110,17 +117,18 @@ export function OPSMEETD01Screen({ screenParams, onNavigate }: OPSMEETD01ScreenP
         </button>
         <button
           type="button"
-          data-node-id={NODE.start}
+          data-node-id={NODE.end}
           onClick={() => {
-            // 보낼 초안이 없다 — 무엇을 시작하는지는 화면이 받은 인자가 안다.
-            void submitAction.run(start.action as SubmitAction, {
+            // 보낼 초안이 없다 — 무엇을 끝내는지는 화면이 받은 인자가 안다.
+            void submitAction.run(end.action as SubmitAction, {
               payload: { meetingId: screenParams.meetingId ?? '' },
               onNavigate,
             })
           }}
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
+          // 되돌릴 수 없는 동작이라 붉다(design 20:3462). D04의 '회의 취소'와 같은 자리다.
+          className={`rounded px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:outline-none ${DANGER_BUTTON}`}
         >
-          {submitAction.labelOf(start.action as SubmitAction, start.label)}
+          {submitAction.labelOf(end.action as SubmitAction, end.label)}
         </button>
       </div>
 
@@ -145,7 +153,7 @@ function ConfirmShell({ screenParams, onClose, children }: ConfirmShellProps) {
   return (
     <>
       <div aria-hidden className="pointer-events-none">
-        <OPSMEET03AScreen screenParams={screenParams} onNavigate={() => undefined} />
+        <OPSMEET05AScreen screenParams={screenParams} onNavigate={() => undefined} />
       </div>
 
       <div
@@ -155,7 +163,7 @@ function ConfirmShell({ screenParams, onClose, children }: ConfirmShellProps) {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={opsMeetD01.meta?.title ?? opsMeetD01.screenId}
+          aria-label={opsMeetD02.meta?.title ?? opsMeetD02.screenId}
           onClick={(event) => event.stopPropagation()}
           className="w-full max-w-lg rounded-xl border border-gray-200 bg-white shadow-xl"
         >

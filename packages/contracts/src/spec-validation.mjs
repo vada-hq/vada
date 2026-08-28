@@ -1229,6 +1229,28 @@ function checkCopyAction(findings, context) {
 
 // 받아 갈 파일도 실제로 있는 조각을 가리켜야 한다. copy와 같은 검사인데 대상이
 // 다르다 - 저것은 화면에 그려진 값이고 이것은 서버가 가진 파일이다.
+// 줄마다 가는 곳이 다른 이동. 데이터가 화면 id를 직접 주면 검증기가 확인할 수
+// 없으므로, 데이터는 열쇠만 주고 갈 곳은 명세가 든다 - 그래서 여기서 그 화면들이
+// 실제로 있는지 볼 수 있다.
+function checkBranchingTargets(findings, context) {
+  const { file, element, index, screenIds } = context;
+  for (const key of ["action", "itemAction", "emptyAction"]) {
+    const action = element.spec?.[key];
+    if (!isObject(action) || !Array.isArray(action.targets)) {
+      continue;
+    }
+    for (const branch of action.targets) {
+      if (!screenIds.has(branch.targetScreenId)) {
+        findings.push({
+          level: "warning",
+          file,
+          message: `${elementLabel(element, index)}의 갈림길이 가리킨 화면 '${branch.targetScreenId}'의 명세가 없습니다.`
+        });
+      }
+    }
+  }
+}
+
 function checkDownloadAction(findings, context) {
   const { file, element, index, dataSourceByKey } = context;
   const action = element.spec?.action;
@@ -1573,9 +1595,18 @@ function checkNavigateParams(findings, context) {
     }
 
     // 항목의 조각은 눌린 행이 있는 자리에서만 가리킬 것이 있다.
+    // 눌린 줄이 무엇인지. **묶인 목록에서는 묶음이 아니라 그 안의 항목이다** —
+    // 회의 목록은 행사별 묶음으로 오고 눌리는 것은 묶음 안의 회의 한 건이다.
+    // 겉의 조각만 보면 항목의 조각을 가리켰을 때 '없다'고 잘못 말한다.
+    const listSource = dataSourceByKey.get(spec.dataSourceKey);
+    const groupedItemsField = spec.group?.itemsField;
+    const rowSourceFields =
+      typeof groupedItemsField === "string"
+        ? ((listSource?.fields ?? []).find((f) => f?.key === groupedItemsField)?.fields ?? [])
+        : (listSource?.fields ?? []);
     const rowFields =
       at === "itemAction" && spec.type === "itemList"
-        ? new Set((dataSourceByKey.get(spec.dataSourceKey)?.fields ?? []).map((f) => f?.key))
+        ? new Set(rowSourceFields.map((f) => f?.key))
         : null;
 
     for (const [paramName, argument] of Object.entries(isObject(params) ? params : {})) {
@@ -2085,6 +2116,8 @@ export function collectSpecFindings({
         mutations,
         mutationKeys,
         clearOnByScope,
+        // 갈림길이 가리킨 화면이 실제로 있는지 보려면 화면 목록이 필요하다.
+        screenIds,
         screenScopeKey: spec.stateScopeKey,
         // 이 화면이 밖에서 받는 인자. 상세 화면만 갖는다.
         screenParams: new Set(
@@ -2148,6 +2181,7 @@ export function collectSpecFindings({
       if (spec_.type === "select") {
         checkOptionCounts(findings, context);
       }
+      checkBranchingTargets(findings, context);
       checkFieldReferences(findings, context);
       checkNavigateParams(findings, context);
 

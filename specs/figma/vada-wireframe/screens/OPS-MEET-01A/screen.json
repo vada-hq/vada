@@ -81,10 +81,37 @@
           "collapsible": true
         },
         "itemAction": {
-          "type": "pending",
+          "type": "navigate",
+          "targetField": "detailKind",
+          "targets": [
+            {
+              "value": "scheduled",
+              "targetScreenId": "OPS-MEET-03A"
+            },
+            {
+              "value": "live",
+              "targetScreenId": "OPS-MEET-05A"
+            },
+            {
+              "value": "tidying",
+              "targetScreenId": "OPS-MEET-06A"
+            },
+            {
+              "value": "done",
+              "targetScreenId": "OPS-MEET-07"
+            },
+            {
+              "value": "cancelled",
+              "targetScreenId": "OPS-MEET-09"
+            }
+          ],
           "labelField": "actionLabel",
           "emphasisField": "actionEmphasis",
-          "note": "회의 상세 화면이 아직 명세되지 않았습니다. 진행 중인 회의로 돌아가는 것이 같은 화면인지도 정해지지 않았습니다."
+          "params": {
+            "meetingId": {
+              "itemField": "meetingId"
+            }
+          }
         }
       }
     }

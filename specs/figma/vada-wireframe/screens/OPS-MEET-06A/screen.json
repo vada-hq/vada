@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-06A",
+  "activeNavigationScreenId": "OPS-00",
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-06",
+      "missingNote": "어떤 회의를 볼지 정하지 않고 열렸습니다. 회의 목록에서 회의를 고르면 이 화면이 열립니다.",
+      "description": "무엇의 상세인지. 앞 화면(회의 목록의 줄)이 정한다. 회의록이 어디까지 정리됐는지는 받지 않는다 — 진행도는 데이터가 안다(meeting.minutesProgress)."
+    }
+  ],
+  "breadcrumb": {
+    "source": "20:1569",
+    "dataSourceKey": "meeting.detail",
+    "params": {
+      "meetingId": {
+        "screenParam": "meetingId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "회의"
+      },
+      {
+        "field": "title"
+      }
+    ]
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "정리 중 회의",
+    "titleFrom": {
+      "dataSourceKey": "meeting.detail",
+      "field": "title",
+      "params": {
+        "meetingId": {
+          "screenParam": "meetingId"
+        }
+      }
+    },
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:1495",
+    "name": "운영 — 회의 · OPS-MEET-06A · 정리 중 회의 — 일반 참가자",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:1584",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "value": "읽기 전용"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1592",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "status": [
+          {
+            "field": "status",
+            "toneField": "statusTone"
+          },
+          {
+            "field": "viewerChipLabel",
+            "toneField": "viewerChipTone"
+          }
+        ],
+        "toneField": "stateBannerTone",
+        "titleField": "stateBannerTitle",
+        "descriptionField": "stateBannerNote",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1609",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "eyebrowField": "eventTitle",
+        "titleField": "title",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "actualTimeNote"
+          },
+          {
+            "field": "place"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1634",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의 요약 초안",
+        "status": [
+          {
+            "field": "statusLabel",
+            "toneField": "statusTone"
+          }
+        ],
+        "dataSourceKey": "meeting.minutes",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "summaryText"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1642",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.agendas",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "orderLabel"
+            ]
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "status"
+            ],
+            "toneField": "statusTone"
+          },
+          {
+            "fields": [
+              "summaryLine"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1674",
+        "name": "Heading 3",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "현재 정리 현황"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1697",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "확정된 결정",
+        "dataSourceKey": "meeting.agendas",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "decisionText"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1704",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "value": "참석 기록은 이미 확정되어 있습니다. 이 화면을 다시 열거나 닫아도 참석 상태는 달라지지 않습니다."
+          }
+        ]
+      }
+    }
+  ]
+}

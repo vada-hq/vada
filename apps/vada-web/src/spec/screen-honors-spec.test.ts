@@ -133,7 +133,10 @@ describe('화면이 자기 명세를 지킨다', () => {
   it.each(navigating.map((screen) => screen.screenId))(
     '%s: navigate라고 말했으면 그리로 데려간다',
     (screenId) => {
-      expect(sourceOf(screenId)).toMatch(/targetScreenId|navigateTarget/)
+      // targetScreenOf도 센다. 줄마다 가는 곳이 다른 목록이 생기면서 화면이
+      // 이름을 직접 읽지 않고 그 함수를 거친다 - 갈래가 없으면 그 하나를
+      // 그대로 돌려주므로 부르는 쪽은 갈래를 아는지 모르는지 신경 쓰지 않는다.
+      expect(sourceOf(screenId)).toMatch(/targetScreenId|navigateTarget|targetScreenOf/)
     },
   )
 

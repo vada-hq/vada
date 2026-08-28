@@ -33,8 +33,12 @@ import opsMeet02Json from '../../../../specs/figma/vada-wireframe/screens/OPS-ME
 import opsMeet03aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03A/screen.json'
 import opsMeet04bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-04B/screen.json'
 import opsMeet05aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-05A/screen.json'
+import opsMeet06aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-06A/screen.json'
+import opsMeet07Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-07/screen.json'
 import opsMeet09Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-09/screen.json'
 import opsMeetD01Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D01/screen.json'
+import opsMeetD02Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D02/screen.json'
+import opsMeetD03Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D03/screen.json'
 import opsMeetD04Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D04/screen.json'
 import evt00aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00A/screen.json'
 import evt02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-02/screen.json'
@@ -92,8 +96,12 @@ export const opsMeet02 = asScreenSpec(opsMeet02Json)
 export const opsMeet03a = asScreenSpec(opsMeet03aJson)
 export const opsMeet04b = asScreenSpec(opsMeet04bJson)
 export const opsMeet05a = asScreenSpec(opsMeet05aJson)
+export const opsMeet06a = asScreenSpec(opsMeet06aJson)
+export const opsMeet07 = asScreenSpec(opsMeet07Json)
 export const opsMeet09 = asScreenSpec(opsMeet09Json)
 export const opsMeetD01 = asScreenSpec(opsMeetD01Json)
+export const opsMeetD02 = asScreenSpec(opsMeetD02Json)
+export const opsMeetD03 = asScreenSpec(opsMeetD03Json)
 export const opsMeetD04 = asScreenSpec(opsMeetD04Json)
 export const evt00a = asScreenSpec(evt00aJson)
 export const evt02 = asScreenSpec(evt02Json)
@@ -139,8 +147,12 @@ export const ALL_SCREENS: ScreenSpec[] = [
   opsMeet03a,
   opsMeet04b,
   opsMeet05a,
+  opsMeet06a,
+  opsMeet07,
   opsMeet09,
   opsMeetD01,
+  opsMeetD02,
+  opsMeetD03,
   opsMeetD04,
   evt00a,
   evt02,

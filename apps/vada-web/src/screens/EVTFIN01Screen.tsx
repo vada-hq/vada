@@ -7,6 +7,7 @@ import { findDataSource, readListSource, readObjectSource } from '../data-source
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evtFin01 } from '../spec/screens'
+import { targetScreenOf } from '../spec/types'
 import type { ButtonSpec, ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 
 // 행사 재정 — 개요(EVT-FIN-01).
@@ -83,7 +84,10 @@ export function EVTFIN01Screen({ screenParams, onNavigate }: EVTFIN01ScreenProps
       return
     }
     if (spec.action.type === 'navigate') {
-      onNavigate(spec.action.targetScreenId, resolveParams(spec.action.params, { screenParams }))
+      onNavigate(
+        targetScreenOf(spec.action, {}) ?? spec.action.type,
+        resolveParams(spec.action.params, { screenParams }),
+      )
     }
   }
 
@@ -246,7 +250,7 @@ export function EVTFIN01Screen({ screenParams, onNavigate }: EVTFIN01ScreenProps
                           // 어느 요청인지는 눌린 이 카드만 안다. 명세는 어느
                           // 조각인지만 말한다(EVT-TASK-01의 카드와 같은 규칙).
                           onNavigate(
-                            column.itemAction.targetScreenId,
+                            targetScreenOf(column.itemAction, card) ?? column.itemAction.type,
                             resolveParams(column.itemAction.params, { row: card }),
                           )
                           return

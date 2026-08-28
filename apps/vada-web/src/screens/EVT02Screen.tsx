@@ -6,6 +6,7 @@ import { NEUTRAL_BORDER, SOFT_BOX, SOFT_BOX_TEXT } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt02 } from '../spec/screens'
+import { targetScreenOf } from '../spec/types'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 행사 개요(EVT-02).
@@ -162,7 +163,7 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
               onClick={() => {
                 if (spec.action?.type === 'navigate') {
                   onNavigate(
-                    spec.action.targetScreenId,
+                    targetScreenOf(spec.action, row) ?? spec.action.type,
                     resolveParams(spec.action.params, { screenParams }),
                   )
                   return

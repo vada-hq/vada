@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-D02",
+  "meta": {
+    "eyebrow": null,
+    "title": "회의를 종료할까요?"
+  },
+  "overlay": {
+    "screenId": "OPS-MEET-05A",
+    "source": "20:3443"
+  },
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-04",
+      "missingNote": "어느 회의를 종료할지 정하지 않고 열렸습니다. 진행 중인 회의에서 ‘회의 종료’를 누르면 이 확인이 열립니다.",
+      "description": "무엇을 종료할지. 뒤에 남아 있는 진행 중 회의(OPS-MEET-05A)가 정한다. 살펴본 결과를 집어 올 때도, 종료를 보낼 때도 이 값이 쓰인다. 진행 중인 회의여야 한다 — 이 모달은 그 회의를 끝내는 자리다."
+    }
+  ],
+  "activeNavigationScreenId": "OPS-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:3127",
+    "name": "운영 — 회의 · 확인 상태 · OPS-MEET-D02 · 회의 종료 확인",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:3445",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의를 종료할까요?",
+        "description": "종료 후 상태는 ‘완료’가 아니라 ‘정리 중’으로 변경됩니다. 회의록과 결정 내용을 확인한 뒤 정리 완료할 수 있습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3456",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "warningNote",
+        "dataSourceKey": "meeting.endConfirm",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3460",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "돌아가기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-05A",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3462",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "회의 종료",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.end",
+          "onSuccess": {}
+        }
+      }
+    }
+  ]
+}

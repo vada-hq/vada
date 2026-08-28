@@ -301,6 +301,7 @@ export const ROW_TONE: Record<string, string> = {
  */
 export const BANNER_TONE: Record<string, string> = {
   blue: 'border-blue-200 bg-blue-50',
+  orange: 'border-orange-200 bg-orange-50',
   green: 'border-green-200 bg-green-50',
   yellow: 'border-yellow-200 bg-yellow-50',
   red: 'border-red-200 bg-red-50',
@@ -309,7 +310,51 @@ export const BANNER_TONE: Record<string, string> = {
 /** 그 띠 안의 글. 제목은 -800, 본문은 -700이다. */
 export const BANNER_TEXT: Record<string, { title: string; note: string }> = {
   blue: { title: 'text-blue-800', note: 'text-blue-700' },
+  orange: { title: 'text-orange-800', note: 'text-orange-700' },
   green: { title: 'text-green-800', note: 'text-green-700' },
   yellow: { title: 'text-yellow-800', note: 'text-yellow-700' },
   red: { title: 'text-red-800', note: 'text-red-700' },
 }
+
+/**
+ * 되돌릴 수 없는 동작의 으뜸 단추(OPS-MEET-D02 회의 종료 · D04 회의 취소).
+ *
+ * **색이 아니라 뜻이다.** button.emphasis는 primary·secondary·quiet 셋뿐이라
+ * '되돌릴 수 없다'를 명세가 말하지 못한다 - 그 사실은 design이 빨갛게 그린
+ * 것으로만 남아 있다. 다음 위험 단추를 만들 때 와이어프레임을 다시 열지
+ * 않으려면 여기 한 곳에 있어야 한다.
+ *
+ * CAUTION_BUTTON과 짝이다 - 저것은 스스로 "주의를 요구하지만 위험 동작은
+ * 아닌" 자리라고 못 박아 두었다.
+ */
+export const DANGER_BUTTON =
+  'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600/50'
+
+/**
+ * 확인 모달 안의 안내 상자(OPS-MEET-D01~D04). **네 자리에서 둘씩 갈린다.**
+ *
+ * 가르는 규칙은 흔들림이 아니다 - **상자 색이 으뜸 단추 색을 따라간다.**
+ * 파란 단추(D01 시작 · D03 권한 부여)면 무채색, 붉은 단추(D02 종료 ·
+ * D04 취소)면 붉다.
+ *
+ * SOFT_BOX를 넓히지 않고 새 표로 둔 까닭: 붉은 상자의 테두리가 -100이라
+ * SOFT_BOX의 규칙(-200)을 따르지 않는다. 넓히면 다음 사람이 SOFT_BOX.red를
+ * 집어 쓰고 조용히 어긋난다.
+ *
+ * 톤 이름을 데이터가 주지 않는다 - 무엇을 확인시키는지가 명세에 고정이다
+ * (CHOICE_CHIP·VERDICT_CHOICE와 같은 자리).
+ */
+export const CONFIRM_NOTE: Record<string, string> = {
+  gray: 'border-gray-200 bg-gray-50 text-gray-600',
+  red: 'border-red-100 bg-red-50 text-red-700',
+}
+
+/**
+ * 몇 건인지를 알리는 딱지(OPS-MEET-07의 '없음' · 08의 '0건').
+ *
+ * INFO_CHIP·MUTED_CHIP과 배합이 다르다 - 이것은 테두리 없이 gray-100 바탕에
+ * gray-500 글씨다. 무엇을 말하느냐가 다르기 때문이다: 저것들은 덧붙이는 설명이고
+ * 이것은 **세어 본 결과**다. 셋이 비슷해 보여도 이름이 갈려야 다음 사람이
+ * 아무거나 집지 않는다.
+ */
+export const COUNT_CHIP = 'bg-gray-100 text-gray-500'

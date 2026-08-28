@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-D03",
+  "meta": {
+    "eyebrow": null,
+    "title": "진행 권한 부여 확인",
+    "titleFrom": {
+      "dataSourceKey": "meeting.hostGrantConfirm",
+      "field": "title",
+      "params": {
+        "meetingId": {
+          "screenParam": "meetingId"
+        },
+        "memberId": {
+          "screenParam": "memberId"
+        }
+      }
+    }
+  },
+  "overlay": {
+    "screenId": "OPS-MEET-04B",
+    "source": "20:3683"
+  },
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-05",
+      "missingNote": "어느 회의의 권한인지 정하지 않고 열렸습니다. 진행 권한 관리에서 참가자 줄의 ‘진행 권한 부여’를 누르면 이 확인이 열립니다.",
+      "description": "어느 회의의 진행 권한인지. 뒤에 남아 있는 진행 권한 관리(OPS-MEET-04B)가 정한다. 권한은 이 회의에만 적용되므로 사람만으로는 무엇을 주는지 정해지지 않는다."
+    },
+    {
+      "key": "memberId",
+      "valueType": "string",
+      "example": "M-03",
+      "missingNote": "누구에게 진행 권한을 줄지 정하지 않고 열렸습니다. 진행 권한 관리에서 참가자 줄의 ‘진행 권한 부여’를 누르면 이 확인이 열립니다.",
+      "description": "누구에게 줄지. 눌린 참가자 줄이 정한다. 제목에 그 사람의 이름이 박히므로 이 값 없이는 물어볼 문장 자체가 없다."
+    }
+  ],
+  "activeNavigationScreenId": "OPS-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:3464",
+    "name": "운영 — 회의 · 확인 상태 · OPS-MEET-D03 · 진행 권한 부여 확인",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:3685",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "title",
+        "descriptionField": "grantNote",
+        "dataSourceKey": "meeting.hostGrantConfirm",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          },
+          "memberId": {
+            "screenParam": "memberId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3697",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "limitNote",
+        "dataSourceKey": "meeting.hostGrantConfirm",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          },
+          "memberId": {
+            "screenParam": "memberId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3701",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "돌아가기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-04B",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3703",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "진행 권한 부여",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.grantHostRole",
+          "onSuccess": {}
+        }
+      }
+    }
+  ]
+}

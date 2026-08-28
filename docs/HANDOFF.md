@@ -299,6 +299,50 @@ npm run design OPS-MEET-02
 Server-Driven UI의 큰 값은 **모양이 디자인 시스템으로 고정된** 곳에서 나온다.
 여기는 와이어프레임이 화면마다 다른 모양을 그린다. 조건이 다르다.
 
+## 회의 계열을 나란히 짓는다 (2026-08-28)
+
+프레임 열여섯 중 열넷이 들어왔다(02·03A+변형 둘·04B·05A+변형·09·D01·D04, 그리고
+06A/06B·07/08·D02/D03이 작업 중). **에이전트 셋씩 동시에** 지었고 규칙은 하나다 —
+자기 파일 셋(명세·화면·e2e)만 쓰고 공유 파일은 **넣을 코드를 보고서에 적어 온다.**
+`screens.ts`·`ScreenRouter.tsx`·`fixtures.ts`·카탈로그·스키마가 그 넷이고,
+잇는 일과 게이트는 한 사람이 한다. **충돌이 한 건도 없었다.**
+
+돌려도 되는 명령을 갈랐다: `npm run design`·`npm run validate`는 되고
+`npm test`·`e2e`·`build`·`tsc`는 안 된다(서로 부딪히고 8GB에서 무너진다).
+
+자세한 것은 `docs/decisions/meeting-model.md`와 방법론의 새 절 여섯.
+
+## 게이트가 다시 빨라졌다 (2026-08-28)
+
+앱 검사가 **143초 → 22.6초**. `FigmaAsset`의 eager glob이 자산 1,199개를 워커마다
+모듈로 바꾸고 있었다. 주소표를 `components/figma-asset-urls.ts`로 떼고 검사에서만
+`figma-asset-urls.test-stub.ts`로 갈아 끼운다(`vite.config.ts`의 `test.alias`).
+화면 코드는 그대로다 — 대조는 `src`가 아니라 `data-asset-node-id`로 그림을 짚는다.
+
+## 어휘가 여섯 늘었다 (2026-08-28)
+
+전부 **두 화면 이상**에서 나온 것만 만들었다(하나는 예외이고 까닭을 적었다).
+
+- `input.inputType: checkbox` — `valueType: boolean`이 있는데 받을 조작이 없어
+  저장소에서 한 번도 안 쓰인 반쪽 어휘였다
+- `input.multiline` — `text`로만 적으면 '긴 글'이 명세에서 사라진다
+- `summary.status` → **배열** (기존 여덟 화면을 옮겼다)
+- `summary.toneField` — 띠 **자체**의 색
+- `summary.statusField` — **개수가 데이터에 달린** 딱지
+- `action: download` — `pending`은 '아직 안 정했다'는 뜻이라 조용한 대체가 된다
+- `itemAction.targetField` + `targets` — **줄마다 가는 곳이 다르다.** 데이터는
+  열쇠만 주고 갈 곳은 명세가 든다(데이터가 화면 id를 주면 검증기가 확인할 수 없다)
+
+## 죽어 있던 검사를 살렸다 (2026-08-28)
+
+`checkCopyAction`이 `itemList` 가지에 걸려 있었는데 `itemList`에는 `action`이 없다
+(`itemAction`이다). 진짜 copy 단추는 `button`이다 — **실제 명세에서 한 번도 돈 적이
+없었고 계약 검사도 없었다.** 제자리로 옮기고 copy·download 양쪽에 검사를 붙였다.
+
+대조기도 하나 고쳤다: 어긋남을 알릴 때 **실제로 칠한 요소**를 고른다. 전에는 가장
+안쪽을 골라 "지정 없음"이라 알렸고, 그러면 일부러 어긋나기로 한 자리(`deviations`)가
+어긋남을 숨긴 자리처럼 보였다.
+
 ## 확인 명령
 
 저장소 루트에 스크립트 모음이 있다(워크스페이스로 묶지는 않았다 — 각 앱이 자기 node_modules를 유지한다).

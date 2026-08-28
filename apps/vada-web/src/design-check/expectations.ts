@@ -146,5 +146,13 @@ export function formatExpectations(
     out.push('')
   }
 
+  out.push('- 그릴 때 지킬 것 -')
+  out.push('· 값 하나가 **제 요소**를 가져야 대조가 짚는다. 옆의 단추와 한 덩이로')
+  out.push('  두면 그 글이 없는 것으로 보인다(실제로 겪었다: 자료 이름이 옆의')
+  out.push("  '열기'와 붙어 있어 대조가 못 찾았다). 값마다 <span>으로 감싸라.")
+  out.push('· 색은 코드에 박지 말고 design/tones.ts의 표를 쓴다. 표에 없으면')
+  out.push('  만들 자리인지 먼저 묻는다 - 화면마다 표가 늘면 규칙이 아니게 된다.')
+  out.push('· 여기 없는 것은 대조도 보지 않는다: 여백·크기·자리·글자 크기.')
+
   return out.join('\n')
 }

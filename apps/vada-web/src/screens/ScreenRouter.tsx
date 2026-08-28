@@ -24,8 +24,12 @@ import { OPSMEET02Screen } from './OPSMEET02Screen'
 import { OPSMEET03AScreen } from './OPSMEET03AScreen'
 import { OPSMEET04BScreen } from './OPSMEET04BScreen'
 import { OPSMEET05AScreen } from './OPSMEET05AScreen'
+import { OPSMEET06AScreen } from './OPSMEET06AScreen'
+import { OPSMEET07Screen } from './OPSMEET07Screen'
 import { OPSMEET09Screen } from './OPSMEET09Screen'
 import { OPSMEETD01Screen } from './OPSMEETD01Screen'
+import { OPSMEETD02Screen } from './OPSMEETD02Screen'
+import { OPSMEETD03Screen } from './OPSMEETD03Screen'
 import { OPSMEETD04Screen } from './OPSMEETD04Screen'
 import { TASK01Screen } from './TASK01Screen'
 import { ONB01Screen } from './ONB01Screen'
@@ -151,6 +155,16 @@ export function ScreenRouter({
     // 회의 시작 확인 모달이다. 뒤에 03A가 그대로 남는다(명세의 overlay).
     return <OPSMEETD01Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
+  if (screenId === 'OPS-MEET-D02') {
+    // 회의 종료 확인 모달이다. 뒤에 05A가 그대로 남는다(명세의 overlay) —
+    // 그림이 그린 배경은 05B이지만 05B는 변형이라 주소가 없다.
+    return <OPSMEETD02Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-D03') {
+    // 진행 권한 부여 확인 모달이다. 넷 중 유일하게 배경이 변형이 아니라 화면이고
+    // (04B), 누구에게 주는지까지 주소가 실어 온다.
+    return <OPSMEETD03Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
   if (screenId === 'OPS-MEET-D04') {
     // 회의 취소 확인 모달이다. 취소 사유는 화면 안의 상태가 아니라
     // meetingCancelDraft에 담긴다 — payloadScope가 가리키는 자리가 그것이다.
@@ -162,6 +176,15 @@ export function ScreenRouter({
         onNavigate={onNavigate}
       />
     )
+  }
+  if (screenId === 'OPS-MEET-06A') {
+    // 정리 중 회의다. 06B(진행 권한자)는 변형이라 주소가 없다.
+    return <OPSMEET06AScreen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-07') {
+    // 완료 회의록이다. 08(불참자)은 변형이라 주소가 없다 — 참석했는지 안 했는지는
+    // 회의가 끝난 시점에 정해진 사실이라 사람이 그 사이를 오갈 수 없다.
+    return <OPSMEET07Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'OPS-MEET-09') {
     // 취소된 회의 상세다. 무엇의 상세인지는 화면 안에 없고 주소가 실어 온다.

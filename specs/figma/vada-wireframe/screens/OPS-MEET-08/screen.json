@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-08",
+  "meta": {
+    "eyebrow": null,
+    "title": "회의 요약 확인 — 불참자"
+  },
+  "variantOf": {
+    "screenId": "OPS-MEET-07",
+    "when": "회의에 참석하지 않은 사람이 볼 때(meeting.detail의 viewerChipLabel이 불참으로 오고 minutesStatus 딱지는 오지 않는다). 머리 오른쪽의 '회의록 내보내기' 자리에 '회의 요약 확인 완료'가 대신 오고, 오른쪽 기둥의 '후속 업무 진행 현황' 아래에 '나에게 배정된 후속 업무'가 한 칸 더 붙는다. 띠는 같은 자리에 같은 조각을 그리고 글과 색만 바뀐다 — 띠 스스로 '확인해도 참석 기록으로 변경되지는 않습니다'라고 못 박으므로, 이 확인은 회의의 상태도 참석 기록도 바꾸지 않는다."
+  },
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-01",
+      "missingNote": "어떤 회의의 요약을 확인할지 정하지 않고 열렸습니다. 회의 목록에서 완료된 회의를 고르면 이 화면이 열립니다.",
+      "description": "무엇의 회의록인지. 앞 화면(회의 목록 OPS-MEET-01A의 줄)이 정한다. 불참자라는 사실은 인자로 받지 않는다 — 서버가 알고 그래서 이 변형이 그려진다."
+    }
+  ],
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:2360",
+    "name": "운영 — 회의 · OPS-MEET-08 · 회의 요약 확인 — 불참자",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:2449",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "회의 요약 확인 완료",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.acknowledgeSummary",
+          "onSuccess": {}
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2553",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "나에게 배정된 후속 업무",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "myFollowUpCountLabel"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2558",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.followUps",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          },
+          "onlyMine": {
+            "value": "y"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "assigneeNote"
+            ]
+          }
+        ],
+        "itemAction": {
+          "type": "pending",
+          "note": "나에게 배정된 후속 업무를 누르면 어디로 가는지 그림이 말하지 않습니다. 07·08 둘 다 0건 빈 상태만 그려서 항목이 어떻게 생겼는지도 그려진 프레임이 없습니다."
+        }
+      }
+    }
+  ]
+}

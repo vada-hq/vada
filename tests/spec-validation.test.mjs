@@ -2335,6 +2335,68 @@ function copyingScreen(copyField, copySourceKey = "org.invite") {
   };
 }
 
+// 줄마다 가는 곳이 다른 목록. 데이터가 화면 id를 직접 주면 검증기가 확인할 수
+// 없으므로, 데이터는 열쇠만 주고 갈 곳은 명세가 든다 - 그래서 여기서 볼 수 있다.
+function branchingScreen(targets) {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              source: { nodeId: "1:1", name: "Container", figmaType: "FRAME" },
+              spec: {
+                type: "itemList",
+                dataSourceKey: "meeting.rows",
+                columns: [{ label: "이름", fields: ["title"] }],
+                itemAction: { type: "navigate", targetField: "kind", targets }
+              }
+            }
+          ]
+        }
+      },
+      { file: "w/screens/S-02/screen.json", spec: { screenId: "S-02", elements: [] } }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "meeting.rows",
+          shape: "list",
+          fields: [
+            { key: "title", label: "이름" },
+            { key: "kind", label: "어느 상세로" }
+          ]
+        }
+      ]
+    }
+  };
+}
+
+test("갈림길이 가리킨 화면이 모두 있으면 조용하다", () => {
+  assert.deepEqual(
+    collectSpecFindings(
+      branchingScreen([
+        { value: "a", targetScreenId: "S-01" },
+        { value: "b", targetScreenId: "S-02" }
+      ])
+    ),
+    []
+  );
+});
+
+test("갈림길이 없는 화면을 가리키면 알린다", () => {
+  const findings = collectSpecFindings(
+    branchingScreen([
+      { value: "a", targetScreenId: "S-02" },
+      { value: "b", targetScreenId: "S-없음" }
+    ])
+  );
+
+  assert.equal(findings.filter((f) => f.message.includes("갈림길이 가리킨 화면")).length, 1);
+});
+
 test("집어 가려는 조각이 출처에 있으면 조용하다", () => {
   assert.deepEqual(collectSpecFindings(copyingScreen("url")), []);
 });

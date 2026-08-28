@@ -4,6 +4,7 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { NEUTRAL_BORDER, SOFT_BORDER } from '../design/tones'
 import { readObjectSource } from '../data-sources/catalog'
 import { elementByNodeId, ops00 } from '../spec/screens'
+import { targetScreenOf } from '../spec/types'
 import type { DisplayAction, SummarySpec } from '../spec/types'
 
 // 운영 허브(OPS-00).
@@ -130,7 +131,7 @@ function SpaceCard({ nodeId, onNavigate }: SpaceCardProps) {
         onClick={() => {
           if (action === undefined) return
           if (action.type === 'navigate') {
-            onNavigate(action.targetScreenId)
+            onNavigate(targetScreenOf(action, {}) ?? action.type)
             return
           }
           setNote(action.note)

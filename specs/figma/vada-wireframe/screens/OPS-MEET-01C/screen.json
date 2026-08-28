@@ -28,8 +28,8 @@
         "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "회의 생성 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-02"
         }
       }
     }

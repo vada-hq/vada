@@ -12,6 +12,7 @@ import type {
   SelectSpec,
   SummarySpec,
 } from "../spec/types";
+import { targetScreenOf } from "../spec/types";
 
 // 내 업무(MY-01).
 //
@@ -229,7 +230,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
             return;
           }
           if (itemAction.type === "navigate") {
-            onNavigate(itemAction.targetScreenId);
+            onNavigate(targetScreenOf(itemAction, row) ?? itemAction.type);
             return;
           }
           setNote(itemAction.note);

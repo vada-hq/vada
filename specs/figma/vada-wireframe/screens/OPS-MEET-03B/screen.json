@@ -9,6 +9,15 @@
     "screenId": "OPS-MEET-03A",
     "when": "이 회의를 만든 사람이 볼 때(meeting.detail의 canEdit·canCancel·canManageHostRole·canStart가 모두 참). 머리에 '회의 수정'과 '회의 시작'이 그려지고, 상태 띠에 '회의 취소'가, 참가자 카드 머리에 '진행 권한 관리'가 붙는다."
   },
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-05",
+      "missingNote": "어떤 회의를 볼지 정하지 않고 열렸습니다. 회의 목록에서 회의를 고르면 이 화면이 열립니다.",
+      "description": "무엇의 상세인지. 앞 화면(회의 목록의 줄)이 정한다."
+    }
+  ],
   "source": {
     "pageName": "Wireframe",
     "nodeId": "20:2",
@@ -28,8 +37,13 @@
         "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "회의 생성·수정 화면(OPS-MEET-02)이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-02",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
         }
       }
     },
@@ -45,8 +59,13 @@
         "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "누르면 시작 확인 모달(OPS-MEET-D01)이 이 화면 위에 뜨는데, 그 모달이 아직 명세되지 않았습니다. meeting.start는 그 모달의 확인이 보냅니다."
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-D01",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
         }
       }
     },
@@ -62,8 +81,13 @@
         "emphasis": "quiet",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "누르면 취소 확인 모달(OPS-MEET-D04)이 이 화면 위에 뜨는데, 그 모달이 아직 명세되지 않았습니다. 취소 사유는 그 모달이 받고 meeting.cancel도 거기서 보냅니다."
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-D04",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
         }
       }
     },
@@ -79,8 +103,13 @@
         "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "진행 권한 관리 화면(OPS-MEET-04B)이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-04B",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
         }
       }
     }

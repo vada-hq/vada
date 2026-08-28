@@ -12,6 +12,7 @@ import {
   STATUS_CHIP,
 } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
+import { targetScreenOf } from '../spec/types'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
@@ -336,7 +337,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
           if (itemAction.type === 'navigate') {
             // 어느 업무인지는 눌린 이 행만 안다. 명세는 어느 조각인지만 말한다.
             onNavigate(
-              itemAction.targetScreenId,
+              targetScreenOf(itemAction, row) ?? itemAction.type,
               resolveParams(itemAction.params, { row }),
             )
             return

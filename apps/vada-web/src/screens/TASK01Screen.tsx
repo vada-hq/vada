@@ -10,6 +10,7 @@ import {
   STATUS_CHIP,
 } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
+import { targetScreenOf } from '../spec/types'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import { elementByNodeId, task01 } from '../spec/screens'
@@ -231,7 +232,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
         onClick={() => {
           if (itemAction === undefined) return
           if (itemAction.type === 'navigate') {
-            onNavigate(itemAction.targetScreenId)
+            onNavigate(targetScreenOf(itemAction, row) ?? itemAction.type)
             return
           }
           setNote(itemAction.note)

@@ -162,9 +162,41 @@ interface DisplayActionCopy {
   emphasisField?: string
 }
 
+// 줄마다 가는 곳이 다른 이동. **데이터는 열쇠만 주고 갈 곳은 명세가 든다** —
+// 데이터가 화면 id를 직접 주면 검증기가 그 화면이 있는지 확인할 수 없다.
+export interface BranchingTarget {
+  value: string
+  targetScreenId: string
+}
+
 export type DisplayAction =
   | ({ type: 'navigate'; targetScreenId: string; params?: QueryParams } & DisplayActionCopy)
+  | ({
+      type: 'navigate'
+      targetField: string
+      targets: BranchingTarget[]
+      params?: QueryParams
+    } & DisplayActionCopy)
   | ({ type: 'pending'; note: string } & DisplayActionCopy)
+
+/**
+ * 이 동작이 데려갈 화면. 갈림길이면 눌린 줄이 정한다.
+ *
+ * 명세가 든 갈래에 없는 열쇠면 null이다 — 조용히 아무 데나 데려가지 않는다.
+ */
+export function targetScreenOf(
+  action: DisplayAction,
+  row: Record<string, unknown>,
+): string | null {
+  if (action.type !== 'navigate') {
+    return null
+  }
+  if ('targetScreenId' in action) {
+    return action.targetScreenId
+  }
+  const key = String(row[action.targetField] ?? '')
+  return action.targets.find((branch) => branch.value === key)?.targetScreenId ?? null
+}
 
 export interface SummaryItem {
   // 그려지지 않는 자리에서는 없다 — 서버가 '담당 학술체육부 · 김바다'처럼
