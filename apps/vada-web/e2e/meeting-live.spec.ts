@@ -3,6 +3,9 @@ import { missingNoteOf, pendingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const LIVE = '/#/OPS-MEET-05A?meetingId=MTG-04'
+// 같은 회의를 진행할 수 있는 사람이 본 그림(변형 OPS-MEET-05B). **다른 주소가
+// 아니다** — 실제로는 데이터가 가른다(meeting.detail의 canEnd).
+const LIVE_HOST = '/#/OPS-MEET-05B?meetingId=MTG-04'
 
 // 진행 중 회의(OPS-MEET-05A).
 //
@@ -148,4 +151,33 @@ test('OPS-MEET-05A: 회의 id가 없으면 아무 회의나 대신 보여주지 
     missingNoteOf('OPS-MEET-05A', 'meetingId'),
   )
   await expect(page.locator('[data-node-id="20:967"]')).toHaveCount(0)
+})
+
+test('OPS-MEET-05A: 진행할 수 없는 사람에게는 회의를 움직이는 단추가 없다', async ({
+  page,
+}) => {
+  await page.goto(LIVE)
+
+  for (const name of ['회의 종료', '이 안건 논의 완료', '다음 안건 시작', '내용 수정']) {
+    await expect(page.getByRole('button', { name })).toHaveCount(0)
+  }
+  // 결정을 더하는 단추는 있지만 글이 다르다 — 의견을 내는 것과 결정을 적는 것은
+  // 다른 일이다.
+  await expect(page.getByRole('button', { name: '결정 의견 추가' })).toBeVisible()
+})
+
+test('OPS-MEET-05B: 진행하는 사람은 안건을 닫고 다음으로 넘기고 회의를 끝낸다', async ({
+  page,
+}) => {
+  await page.goto(LIVE_HOST)
+
+  await expect(page.getByRole('button', { name: '이 안건 논의 완료' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '다음 안건 시작' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '내용 수정' })).toBeVisible()
+  // 같은 자리에 다른 글이 온다.
+  await expect(page.getByRole('button', { name: '결정 추가' })).toBeVisible()
+  await expect(page.getByRole('button', { name: '결정 의견 추가' })).toHaveCount(0)
+
+  await page.getByRole('button', { name: '회의 종료' }).click()
+  await expect(page).toHaveURL(/#\/OPS-MEET-D02\?meetingId=MTG-04/)
 })

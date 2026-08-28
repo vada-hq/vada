@@ -200,10 +200,16 @@ export function ScreenRouter({
     // 어느 회의의 권한인지는 주소가 실어 온다.
     return <OPSMEET04BScreen screenParams={screenParams} onNavigate={onNavigate} />
   }
-  if (screenId === 'OPS-MEET-05A') {
-    // 진행 중 회의다. 보는 사람에 따라 둘로 갈리는 그림 중 일반 참가자의 것이고,
-    // 05B는 변형이라 주소가 없다.
-    return <OPSMEET05AScreen screenParams={screenParams} onNavigate={onNavigate} />
+  if (screenId === 'OPS-MEET-05A' || screenId === 'OPS-MEET-05B') {
+    // 진행 중 회의다. 05B는 **이 회의를 진행할 수 있는 사람이 본 같은 화면**이고
+    // 실제로는 주소가 하나이며 데이터가 가른다(meeting.detail의 canEnd).
+    return (
+      <OPSMEET05AScreen
+        screenParams={screenParams}
+        screenId={screenId}
+        onNavigate={onNavigate}
+      />
+    )
   }
   if (screenId === 'OPS-MEET-D01') {
     // 회의 시작 확인 모달이다. 뒤에 03A가 그대로 남는다(명세의 overlay).

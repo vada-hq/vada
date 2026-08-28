@@ -3,7 +3,16 @@
   "screenId": "OPS-MEET-05B",
   "meta": {
     "eyebrow": null,
-    "title": "진행 중 회의 — 진행 권한자"
+    "title": "진행 중 회의 — 진행 권한자",
+    "titleFrom": {
+      "dataSourceKey": "meeting.detail",
+      "field": "title",
+      "params": {
+        "meetingId": {
+          "screenParam": "meetingId"
+        }
+      }
+    }
   },
   "variantOf": {
     "screenId": "OPS-MEET-05A",

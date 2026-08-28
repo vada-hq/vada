@@ -1045,6 +1045,78 @@ test("요약의 상태 딱지가 가리킨 조각이 데이터 출처에 없으�
   assert.equal(findings.filter((f) => f.message.includes("'없는톤'")).length, 1);
 });
 
+// 변형은 '다른 부분만' 적는다. 그래서 바탕이 이미 말한 것을 빠뜨리기 쉽고,
+// 실제로 제목에서 네 번 빠졌다 — 명세만 읽고 화면을 만들면 어느 프레임에도 없는
+// 글을 제목으로 그리게 된다.
+test("변형이 그리라고 한 제목이 그림에 없으면 오류다", () => {
+  const design = {
+    root: {
+      id: "1:0",
+      children: [
+        { id: "1:1", text: { content: "체육대회 안전 관리 최종 회의" } },
+        { id: "1:2", text: { content: "회의 종료" } }
+      ]
+    }
+  };
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: { screenId: "S-01", meta: { title: "진행 중 회의" }, elements: [] }
+    },
+    {
+      file: "w/screens/S-01B/screen.json",
+      spec: {
+        screenId: "S-01B",
+        // 그림은 회의 이름을 제목으로 그리는데 명세는 이 글을 그리라고 한다.
+        meta: { title: "진행 중 회의 — 진행 권한자" },
+        variantOf: { screenId: "S-01", when: "진행할 수 있는 사람이 볼 때" },
+        elements: []
+      }
+    }
+  ];
+
+  const findings = collectSpecFindings({
+    screens,
+    designs: { "S-01B": { file: "w/screens/S-01B/figma.design.json", design } }
+  });
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("그림에 그 글이 없습니다")).length,
+    1
+  );
+});
+
+test("그림에 있는 글을 제목으로 적은 변형은 오류가 아니다", () => {
+  const design = {
+    root: { id: "1:0", children: [{ id: "1:1", text: { content: "회의록 정리" } }] }
+  };
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: { screenId: "S-01", meta: { title: "정리 중 회의" }, elements: [] }
+    },
+    {
+      file: "w/screens/S-01B/screen.json",
+      spec: {
+        screenId: "S-01B",
+        meta: { title: "회의록 정리" },
+        variantOf: { screenId: "S-01", when: "정리할 수 있는 사람이 볼 때" },
+        elements: []
+      }
+    }
+  ];
+
+  const findings = collectSpecFindings({
+    screens,
+    designs: { "S-01B": { file: "w/screens/S-01B/figma.design.json", design } }
+  });
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("그림에 그 글이 없습니다")).length,
+    0
+  );
+});
+
 test("쪽 인자를 목록 출처가 받지 않으면 오류다", () => {
   const screens = [
     {

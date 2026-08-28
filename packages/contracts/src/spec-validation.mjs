@@ -11,6 +11,23 @@ function isObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+/** 이 그림 어딘가에 그 글이 그려져 있는가. 셸의 메뉴까지 함께 본다 — 제목이 어느
+ * 자리에 그려지는지는 명세가 정하지 않기 때문이다. */
+function designDrawsText(node, text) {
+  if (!isObject(node)) {
+    return false;
+  }
+  if (node.text?.content === text) {
+    return true;
+  }
+  for (const child of node.children ?? []) {
+    if (designDrawsText(child, text)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function elementLabel(element, index) {
   const spec = element?.spec;
   const name = spec?.fieldKey ?? spec?.label ?? element?.source?.nodeId;
@@ -2003,6 +2020,30 @@ export function collectSpecFindings({
         file,
         message: `screenId '${spec.screenId}'가 위치 '${locationId}'과 다릅니다.`
       });
+    }
+
+    // **명세가 그리라고 한 제목이 그림에 없으면 오류다.**
+    //
+    // 네 번 그랬다(OPS-MEET-03B·03C·05B·08). 넷 다 변형이고, 바탕은 제목을
+    // 데이터에서 받는데(meta.titleFrom) 변형은 그 말을 빠뜨렸다 — 명세만 읽고
+    // 화면을 만드는 사람은 '예정 회의 관리'라는 글을 제목으로 그리게 되고, 그
+    // 글은 어느 프레임에도 없다.
+    //
+    // 변형만 본다. 바탕 화면은 그 자리를 요소로 등록하는 일이 없어(제목은 셸의
+    // 것이다) 대조가 보지 않는 것은 같지만, 지금까지 틀린 것이 전부 변형이다 —
+    // 변형은 '다른 부분만' 적으므로 빠뜨리기 쉬운 자리다.
+    if (isObject(spec.variantOf) && !isObject(spec.meta?.titleFrom)) {
+      const title = spec.meta?.title;
+      const drawn = designs[spec.screenId];
+      if (typeof title === "string" && isObject(drawn)) {
+        if (!designDrawsText(drawn.design?.root ?? drawn.root ?? drawn, title)) {
+          findings.push({
+            level: "error",
+            file,
+            message: `제목 '${title}'을 그리라고 했는데 그림에 그 글이 없습니다. 제목이 데이터에서 오면 meta.titleFrom으로 말하고(바탕 화면이 그렇게 합니다), 그리는 글이 다르면 그림에 있는 글로 적으세요.`
+          });
+        }
+      }
     }
 
     if (typeof spec.stateScopeKey === "string") {

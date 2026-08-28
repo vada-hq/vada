@@ -6,7 +6,8 @@ import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
-import { drawnTitleOf, elementByNodeId, opsMeet05a } from '../spec/screens'
+import { drawnTitleOf, elementByNodeId, opsMeet05a, opsMeet05b } from '../spec/screens'
+import { useSubmitAction } from '../spec/useSubmitAction'
 import type { ButtonSpec, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 진행 중 회의(OPS-MEET-05A).
@@ -78,8 +79,27 @@ const PRESENCE_DOT: Record<string, string> = {
 }
 const NEUTRAL_DOT = 'bg-gray-300'
 
+// 이 회의를 진행할 수 있는 사람이 보는 같은 화면(변형 OPS-MEET-05B).
+//
+// **다른 화면이 아니라 다른 사람이 본 같은 화면이다** — 명세가 그렇게 말한다
+// (meeting.detail의 canEnd). 이 저장소에는 로그인한 사람이 없어 어느 그림을
+// 열었는지가 그 자리를 대신하고, 조건의 이름은 명세에 남아 있다.
+//
+// 자리가 다섯이다. 하나는 **바꿔 끼우고**(머리의 참석 딱지 → '회의 종료', 결정의
+// '결정 의견 추가' → '결정 추가') 셋은 **더 붙는다**.
+const HOST = {
+  screen: 'OPS-MEET-05B',
+  endMeeting: { node: '20:1268', asset: '20:1269' },
+  completeAgenda: { node: '20:1324', asset: '20:1325' },
+  addDecision: { node: '20:1372', asset: '20:1373' },
+  editDecision: { node: '20:1382', asset: null },
+  nextAgenda: { node: '20:1464', asset: null },
+} as const
+
 interface OPSMEET05AScreenProps {
   screenParams: Record<string, string>
+  /** 어느 그림을 그리는지. 변형은 주소가 같고 보는 사람이 가른다. */
+  screenId?: string
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
@@ -93,6 +113,11 @@ function listAt(nodeId: string): ItemListSpec {
 
 function buttonAt(nodeId: string): ButtonSpec {
   return elementByNodeId(opsMeet05a, nodeId).spec as ButtonSpec
+}
+
+// 진행할 수 있는 사람에게만 오는 단추들. 어느 그림의 것인지가 달라 따로 집는다.
+function hostButtonAt(nodeId: string): ButtonSpec {
+  return elementByNodeId(opsMeet05b, nodeId).spec as ButtonSpec
 }
 
 function scalar(row: DataRow, field: string | undefined): string {
@@ -124,7 +149,54 @@ function Chip({ label, tone }: { label: string; tone: string }) {
   )
 }
 
-export function OPSMEET05AScreen({ screenParams, onNavigate }: OPSMEET05AScreenProps) {
+export function OPSMEET05AScreen({
+  screenParams,
+  screenId = SCREEN,
+  onNavigate,
+}: OPSMEET05AScreenProps) {
+  const host = screenId === HOST.screen
+  const submitAction = useSubmitAction()
+
+  // 진행하는 사람에게 오는 단추 하나. 보내는 것과 옮겨 가는 것과 아직 없는 것이
+  // 섞여 있어 무엇을 하는지는 명세가 말한다.
+  const hostButton = (
+    slot: { node: string; asset: string | null },
+    className: string,
+  ) => {
+    if (!host) return null
+    const spec = hostButtonAt(slot.node)
+    return (
+      <button
+        type="button"
+        data-node-id={slot.node}
+        disabled={spec.initiallyDisabled}
+        onClick={() => {
+          if (spec.action.type === 'pending') {
+            setNote(spec.action.note)
+            return
+          }
+          if (spec.action.type === 'navigate') {
+            onNavigate(spec.action.targetScreenId, resolveParams(spec.action.params, { screenParams }))
+            return
+          }
+          if (spec.action.type === 'submit') {
+            void submitAction.run(spec.action, {
+              payload: { meetingId: screenParams.meetingId ?? '' },
+              onNavigate,
+            })
+          }
+        }}
+        className={className}
+      >
+        {slot.asset === null ? null : (
+          <FigmaAsset screenId={HOST.screen} nodeId={slot.asset} className="size-3.5" />
+        )}
+        {spec.action.type === 'submit'
+          ? submitAction.labelOf(spec.action, spec.label)
+          : spec.label}
+      </button>
+    )
+  }
   // 논의 내용은 참가자가 함께 쓰는 칸이다. 보내는 단추가 그림에 없고(자동 저장)
   // 그 계약이 아직 없으므로 값은 이 화면 안에만 머문다.
   const [discussion, setDiscussion] = useState('')
@@ -257,17 +329,26 @@ export function OPSMEET05AScreen({ screenParams, onNavigate }: OPSMEET05AScreenP
       // 머리 오른쪽은 한 자리다. 여기서는 보는 사람과 이 회의의 관계를 말하는
       // 딱지가 오고, 05B에서는 같은 자리에 '회의 종료'가 온다.
       headerAction={
-        <span
-          data-node-id={NODE.viewerChip}
-          data-design-state
-          data-design-rule="state-chip"
-          className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs ${
-            STATE_CHIP[scalar(detail, viewerChip.toneField)] ?? NEUTRAL_CHIP
-          }`}
-        >
-          <FigmaAsset screenId={SCREEN} nodeId={ASSET.viewerChip} className="size-3.5" />
-          {scalar(detail, viewerChip.titleField)}
-        </span>
+        // 머리 오른쪽은 **한 자리**다. 참가자에게는 자기 참석 상태가, 진행하는
+        // 사람에게는 회의를 끝내는 단추가 온다.
+        host ? (
+          hostButton(
+            HOST.endMeeting,
+            'flex items-center gap-1.5 rounded-md bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700',
+          )
+        ) : (
+          <span
+            data-node-id={NODE.viewerChip}
+            data-design-state
+            data-design-rule="state-chip"
+            className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs ${
+              STATE_CHIP[scalar(detail, viewerChip.toneField)] ?? NEUTRAL_CHIP
+            }`}
+          >
+            <FigmaAsset screenId={SCREEN} nodeId={ASSET.viewerChip} className="size-3.5" />
+            {scalar(detail, viewerChip.titleField)}
+          </span>
+        )
       }
       onNavigate={onNavigate}
     >
@@ -347,6 +428,16 @@ export function OPSMEET05AScreen({ screenParams, onNavigate }: OPSMEET05AScreenP
                   <span className="block pt-2 text-xs font-normal text-gray-500">
                     {scalar(current, agendaField(4))}
                   </span>
+
+                  {/* 지금 안건을 닫는 것은 진행하는 사람의 몫이다. */}
+                  {host ? (
+                    <span className="block pt-3">
+                      {hostButton(
+                        HOST.completeAgenda,
+                        'flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50',
+                      )}
+                    </span>
+                  ) : null}
 
                   {/* 사전 자료. 어느 안건의 것인지는 그 조각(agendaId)이 안다. */}
                   <span data-node-id={NODE.documents} className="block">
@@ -439,15 +530,25 @@ export function OPSMEET05AScreen({ screenParams, onNavigate }: OPSMEET05AScreenP
                     {decisionHeader.description}
                   </span>
                 </span>
-                <button
-                  type="button"
-                  data-node-id={NODE.addDecision}
-                  onClick={press(buttonAt(NODE.addDecision))}
-                  className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-                >
-                  <FigmaAsset screenId={SCREEN} nodeId={ASSET.addDecision} className="size-3.5" />
-                  {buttonAt(NODE.addDecision).label}
-                </button>
+                {/* 같은 자리인데 글이 다르다 — 참가자는 '결정 의견 추가'를,
+                    진행하는 사람은 '결정 추가'를 본다. 의견을 내는 것과 결정을
+                    적는 것이 다른 일이기 때문이다. */}
+                {host ? (
+                  hostButton(
+                    HOST.addDecision,
+                    'flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50',
+                  )
+                ) : (
+                  <button
+                    type="button"
+                    data-node-id={NODE.addDecision}
+                    onClick={press(buttonAt(NODE.addDecision))}
+                    className="flex shrink-0 items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+                  >
+                    <FigmaAsset screenId={SCREEN} nodeId={ASSET.addDecision} className="size-3.5" />
+                    {buttonAt(NODE.addDecision).label}
+                  </button>
+                )}
               </div>
 
               <div className="mt-4 rounded-lg border border-green-200 bg-green-50 px-4 py-4">
@@ -459,6 +560,11 @@ export function OPSMEET05AScreen({ screenParams, onNavigate }: OPSMEET05AScreenP
                     ? findDataSource(decision.dataSourceKey).messages.empty
                     : scalar(current, decision.columns?.[0]?.fields?.[0])}
                 </p>
+                {/* 적어 둔 결정을 고치는 것은 진행하는 사람의 몫이다. */}
+                {hostButton(
+                  HOST.editDecision,
+                  'pt-2 text-xs font-medium text-blue-600 hover:underline',
+                )}
               </div>
             </section>
 
@@ -580,6 +686,16 @@ export function OPSMEET05AScreen({ screenParams, onNavigate }: OPSMEET05AScreenP
                   })
                 )}
               </ul>
+
+              {/* 다음 안건으로 넘기는 것도 진행하는 사람의 몫이다. */}
+              {host ? (
+                <div className="px-4 pb-4">
+                  {hostButton(
+                    HOST.nextAgenda,
+                    'w-full rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white hover:bg-blue-700',
+                  )}
+                </div>
+              ) : null}
             </section>
 
             <section className="rounded-xl border border-gray-200 bg-white">
