@@ -1072,6 +1072,193 @@ const EVENT_SUMMARIES: Record<string, DataRow> = {
   },
 }
 
+// ─── 후속 정리 중인 행사(EVT-02D) ───────────────────────────────────────────
+//
+// **E-01과 같은 행사일 수 없다.** 한 행사가 두 상태일 수 없고(EVT-02는 이 행사를
+// 기획 중으로 그린다), 두 화면이 같은 조각을 다르게 그린다 - 일시가 EVT-02에서는
+// '08. 20. (목) 10:00'이고 EVT-02D에서는 '2026. 08. 20 10:00'이다. 회의 계열이
+// 상태마다 회의를 하나씩 둔 것과 같은 자리다(docs/decisions/meeting-model.md).
+//
+// 머리와 문서·회의는 E-01의 것을 그대로 쓴다. **지어내지 않는다** - 와이어프레임은
+// EVT-02C·02D·02E의 상태 딱지를 전부 '기획 중'으로 그렸고, 후속 정리 중인 행사의
+// 문서·회의를 다시 그린 프레임은 없다.
+const WRAP_UP_EVENT = 'E-02'
+
+const carriedOver = <Row extends { eventId: string }>(rows: Row[]): Row[] =>
+  rows
+    .filter((row) => row.eventId === 'E-01')
+    .map((row) => ({ ...row, eventId: WRAP_UP_EVENT }))
+
+// 끝나지 않은 업무가 곧 후속 정리의 남은 항목이다. 두 벌로 적으면 한쪽만 고쳐진다.
+//
+// **줄의 id는 E-01의 것을 그대로 쓴다.** taskDetailOf가 행사를 묻지 않고 id로만
+// 찾으므로, 이름을 바꾸면 E-02의 업무를 눌렀을 때 상세가 없다고 나온다.
+EVENT_TASK_BOARD.push(
+  ...carriedOver(EVENT_TASK_BOARD).filter((task) => task.status !== 'done'),
+)
+EVENT_DOCUMENTS.push(...carriedOver(EVENT_DOCUMENTS))
+EVENT_MEETINGS.push(...carriedOver(EVENT_MEETINGS))
+EVENT_DOCUMENT_STATS[WRAP_UP_EVENT] = EVENT_DOCUMENT_STATS['E-01']
+EVENT_MEETING_COUNTS[WRAP_UP_EVENT] = EVENT_MEETING_COUNTS['E-01']
+EVENT_WORKSPACES[WRAP_UP_EVENT] = EVENT_WORKSPACES['E-01']
+EVENT_SUMMARIES[WRAP_UP_EVENT] = EVENT_SUMMARIES['E-01']
+
+// 기본 정보는 EVT-02D가 그린 것만 다르다. 나머지는 같은 행사의 값이라 그대로다.
+EVENT_OVERVIEW[WRAP_UP_EVENT] = {
+  ...EVENT_OVERVIEW['E-01'],
+  basics: {
+    ...EVENT_OVERVIEW['E-01'].basics,
+    startAt: '2026. 08. 20 10:00',
+    // 행사가 끝나야 셀 수 있는 값이라 이 단계부터 온다. 아직 세지 않았다.
+    attendeeCount: '집계 전',
+  },
+}
+
+// 단계 줄과 띠. **상태 이름도 권한 안내도 서버가 준다** - 명세가 들면 단계가 하나
+// 늘거나 권한이 바뀔 때 명세가 틀린다.
+const EVENT_WRAP_UP_BANNER: Record<string, DataRow> = {
+  [WRAP_UP_EVENT]: {
+    stateLabel: '후속 정리 중',
+    stateTone: 'orange',
+    permissionNote: '행사 완료 처리는 회장단만 할 수 있습니다.',
+    headline: '행사는 종료되었으며 후속 정리가 진행 중입니다.',
+    note: '남은 업무와 기록을 확인한 후 행사를 완료 처리할 수 있습니다.',
+    tone: 'orange',
+  },
+}
+
+// 타일 넷. 넷이라는 것은 명세가 정하고 값과 색만 여기서 온다.
+const EVENT_WRAP_UP_COUNTS: Record<string, DataRow> = {
+  [WRAP_UP_EVENT]: {
+    unfinishedTasks: '6건',
+    unfinishedTasksTone: 'red',
+    unorganizedDocs: '0건',
+    unorganizedDocsTone: 'orange',
+    unwrittenMinutes: '0건',
+    unwrittenMinutesTone: 'yellow',
+    needsCheck: '0명',
+    needsCheckTone: 'green',
+  },
+}
+
+// 남은 항목. id는 줄에 그려지지 않지만 그 원본을 가리킨다 - 업무 보드의 업무와
+// 같은 것이므로 id를 맞춘다(재정 보드가 요청 id를 맞춘 것과 같은 규칙).
+const EVENT_WRAP_UP_REMAINING: Record<string, DataRow[]> = {
+  [WRAP_UP_EVENT]: [
+    {
+      id: 'T-01',
+      title: '참가자 모집 공지 작성',
+      detail: '홍보부 · 이윤슬 · 07. 20까지',
+      tone: 'gray',
+    },
+    {
+      id: 'T-03',
+      title: '현수막 디자인 수정 반영',
+      detail: '홍보부 · 이윤슬 · 07. 18까지 · 지연',
+      tone: 'red',
+    },
+    {
+      id: 'T-07',
+      title: '물품 구매 요청',
+      detail: '운영부 · 박해랑 · 07. 25까지',
+      tone: 'gray',
+    },
+    {
+      id: 'T-05',
+      title: '행사장 안전 점검',
+      detail: '운영부 · 담당자 배정 필요 · 08. 18까지',
+      tone: 'gray',
+    },
+    {
+      id: 'T-06',
+      title: '참가자 명단 최종 확정',
+      detail: '기획부 · 담당자 배정 필요 · 08. 10까지',
+      tone: 'gray',
+    },
+    {
+      id: 'T-08',
+      title: '행사 안전 안내문 검토',
+      detail: '기획부 · 박해랑 · 07. 22까지',
+      tone: 'gray',
+    },
+  ],
+}
+
+// ─── 행사 운영 조직(EVT-03A) ───────────────────────────────────────────────
+//
+// 디자인이 그린 그대로다 - 책임자 하나, 부서 셋이고 **홍보팀만 부서장이 없다.**
+// 그 없음이 부서장을 지정하라는 자리를 부른다.
+//
+// 학생회의 조직도(org.executives·org.departments)와 모양이 같고 물건이 다르다 -
+// 저기는 학생회가 늘 갖는 조직이고 여기는 이 행사에만 있는 조직이라 행사마다 따로 온다.
+const EVENT_STAFF_LEADERS: Record<string, DataRow[]> = {
+  'E-01': [
+    {
+      id: 'ES-01',
+      name: '김바다',
+      major: '컴퓨터학부',
+      grade: '3학년',
+      roleLabel: '책임자',
+      roleTone: 'yellow',
+    },
+  ],
+}
+
+const EVENT_STAFF_DEPARTMENTS: Record<string, DataRow[]> = {
+  'E-01': [
+    {
+      id: 'ED-01',
+      name: '운영팀',
+      memberCountLabel: '부원 2명',
+      leaders: [{ id: 'ES-02', name: '이윤슬', major: '컴퓨터학부', grade: '3학년' }],
+      members: [
+        { id: 'ES-03', name: '김바다', major: '컴퓨터학부', grade: '3학년' },
+        { id: 'ES-04', name: '박해랑', major: '컴퓨터학부', grade: '2학년' },
+      ],
+    },
+    {
+      id: 'ED-02',
+      name: '홍보팀',
+      memberCountLabel: '부원 1명',
+      leaders: [],
+      members: [{ id: 'ES-05', name: '이윤슬', major: 'ICT융합학부', grade: '4학년' }],
+    },
+    {
+      id: 'ED-03',
+      name: '현장팀',
+      memberCountLabel: '부원 1명',
+      leaders: [{ id: 'ES-06', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
+      members: [{ id: 'ES-07', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
+    },
+  ],
+  // E-03은 자리를 만들지 않는다. 아직 조직을 구성하지 않은 행사이고, 그 상태를
+  // 그린 것이 EVT-03C다 - 목록이 비는 것이지 행사가 없는 것이 아니다.
+}
+
+// 조직이 아직 없는 행사. **E-02를 쓸 수 없다** - 그쪽은 끝나고 정리 중인 행사라
+// 조직이 없을 수 없다. 값은 행사 목록(EVT-00A)이 그린 '2026 신입생 환영 행사'의
+// 줄에서 옮겼다. 그 줄이 '기본 정보 입력 필요 / 일시 미정 / 담당 미정'이다.
+const UNSTAFFED_EVENT = 'E-03'
+
+// 작업 공간의 머리가 이 둘을 한 건씩 집어 오므로, 없으면 빈 상태를 열기도 전에
+// readObjectSource가 던진다.
+EVENT_WORKSPACES[UNSTAFFED_EVENT] = {
+  status: '기획 중',
+  statusTone: 'blue',
+  host: '담당 미정',
+  startAt: '일시 미정',
+  nextSchedule: '다음 일정 · 미정',
+  permissionNote: '행사 관리 행동은 담당 운영진에게 제공됩니다.',
+}
+
+EVENT_SUMMARIES[UNSTAFFED_EVENT] = {
+  title: '2026 신입생 환영 행사',
+  schedule: '일시 미정 · 장소 미정',
+  dday: '일정 미정',
+  progressPercent: 0,
+  progressLabel: '0 / 0 완료',
+}
+
 
 // 이 행사에서 내가 낸 구매 요청. 재정 보드의 카드와 같은 요청이므로 id를 맞춘다 —
 // 두 벌이 같은 것에 다른 이름을 붙이면 눌러도 상세가 열리지 않는다.
@@ -1542,6 +1729,9 @@ function permissionTone(label: string): string {
 }
 
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
+  // 행사 목록을 보는 사람. 지금 보는 사람은 새 행사를 만들 수 없다 - 만들 수 있는
+  // 사람이 보는 그림이 EVT-00A2(변형)이고, 사람이 그 사이를 오갈 수 없다.
+  'event.listViewer': { canCreateEvent: '' },
   // 회의 목록의 띠. 지금 보는 사람은 일반 참가자다 - 와이어프레임의 다른 셋
   // (진행 권한자·회의 생성 가능·미참가자)은 같은 화면을 다른 사람이 볼 때다.
   'meeting.attention': {
@@ -2766,6 +2956,17 @@ export const FILTERED_FIXTURES: Record<
     EVENT_WORKSPACES[eventId] ? [EVENT_WORKSPACES[eventId]] : [],
   'event.summary': ({ eventId = '' }) =>
     EVENT_SUMMARIES[eventId] ? [EVENT_SUMMARIES[eventId]] : [],
+  'event.wrapUpBanner': ({ eventId = '' }) => {
+    const row = EVENT_WRAP_UP_BANNER[eventId]
+    return row === undefined ? [] : [row]
+  },
+  'event.wrapUpCounts': ({ eventId = '' }) => {
+    const row = EVENT_WRAP_UP_COUNTS[eventId]
+    return row === undefined ? [] : [row]
+  },
+  'event.wrapUpRemaining': ({ eventId = '' }) => EVENT_WRAP_UP_REMAINING[eventId] ?? [],
+  'event.staffLeaders': ({ eventId = '' }) => EVENT_STAFF_LEADERS[eventId] ?? [],
+  'event.staffDepartments': ({ eventId = '' }) => EVENT_STAFF_DEPARTMENTS[eventId] ?? [],
   // 건수는 보는 범위와 무관하게 이 행사의 보드 전체를 센다.
   'event.taskAlerts': ({ eventId = '' }) => {
     const rows = EVENT_TASK_BOARD.filter((task) => task.eventId === eventId)

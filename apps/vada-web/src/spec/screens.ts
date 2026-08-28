@@ -42,6 +42,8 @@ import opsMeetD03Json from '../../../../specs/figma/vada-wireframe/screens/OPS-M
 import opsMeetD04Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D04/screen.json'
 import evt00aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00A/screen.json'
 import evt02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-02/screen.json'
+import evt02dJson from '../../../../specs/figma/vada-wireframe/screens/EVT-02D/screen.json'
+import evt03aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-03A/screen.json'
 import evtTask01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-01/screen.json'
 import evtTask02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-02/screen.json'
 import evtDoc01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-DOC-01/screen.json'
@@ -105,6 +107,8 @@ export const opsMeetD03 = asScreenSpec(opsMeetD03Json)
 export const opsMeetD04 = asScreenSpec(opsMeetD04Json)
 export const evt00a = asScreenSpec(evt00aJson)
 export const evt02 = asScreenSpec(evt02Json)
+export const evt02d = asScreenSpec(evt02dJson)
+export const evt03a = asScreenSpec(evt03aJson)
 export const evtTask01 = asScreenSpec(evtTask01Json)
 export const evtTask02 = asScreenSpec(evtTask02Json)
 export const evtDoc01 = asScreenSpec(evtDoc01Json)
@@ -156,6 +160,8 @@ export const ALL_SCREENS: ScreenSpec[] = [
   opsMeetD04,
   evt00a,
   evt02,
+  evt02d,
+  evt03a,
   evtTask01,
   evtTask02,
   evtDoc01,

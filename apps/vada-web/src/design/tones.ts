@@ -46,6 +46,8 @@ export const SOFT_BOX: Record<string, string> = {
   green: 'border-green-200 bg-green-50',
   yellow: 'border-yellow-200 bg-yellow-50',
   red: 'border-red-200 bg-red-50',
+  // 후속 정리 현황의 '정리되지 않은 문서' 타일(EVT-02D 20:5859).
+  orange: 'border-orange-200 bg-orange-50',
 }
 
 /**

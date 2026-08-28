@@ -1,6 +1,8 @@
 import { PageCard } from '../components/PageCard'
 import { EVT00AScreen } from './EVT00AScreen'
 import { EVT02Screen } from './EVT02Screen'
+import { EVT02DScreen } from './EVT02DScreen'
+import { EVT03AScreen } from './EVT03AScreen'
 import { EVTDOC01Screen } from './EVTDOC01Screen'
 import { EVTMEET01Screen } from './EVTMEET01Screen'
 import { EVTSCHED01Screen } from './EVTSCHED01Screen'
@@ -193,6 +195,16 @@ export function ScreenRouter({
   if (screenId === 'EVT-02') {
     // 행사 개요다. 행사 작업 공간의 첫 갈피이고, 어느 행사인지는 주소가 실어 온다.
     return <EVT02Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'EVT-02D') {
+    // 후속 정리 중인 행사의 개요다. EVT-02와 같은 '개요' 갈피에서 열리지만 겹치는
+    // 것이 둘뿐이고 그 둘조차 다르다 - 상태가 화면을 가른다.
+    return <EVT02DScreen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'EVT-03A') {
+    // 행사 운영 조직이다. '인원 관리' 갈피 아래로 한 겹 더 들어간 화면이고,
+    // 어느 행사인지는 주소가 실어 온다.
+    return <EVT03AScreen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'EVT-DOC-01') {
     // 행사 문서다. 작업 공간의 세 번째 갈피이고, 어느 행사인지는 주소가 실어 온다.

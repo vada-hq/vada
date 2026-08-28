@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-00A2",
+  "meta": {
+    "eyebrow": "운영 · 행사",
+    "title": "행사",
+    "description": "기획 중이거나 운영 및 후속 정리가 진행 중인 행사를 관리합니다.",
+    "footerNote": null
+  },
+  "variantOf": {
+    "screenId": "EVT-00A",
+    "when": "새 행사를 만들 수 있는 사람이 볼 때(event.listViewer의 canCreateEvent). 머리에 '새 행사 만들기'가 하나 더 그려진다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:4270",
+    "name": "운영 — 행사 · EVT-00A2 · 행사 목록 — 운영진",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:4357",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "새 행사 만들기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "새 행사 만들기 모달(EVT-00B)이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}
