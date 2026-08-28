@@ -10,7 +10,8 @@ import {
   primaryButtonOf,
 } from '../spec/screens'
 import { useFieldDraft } from '../spec/useFieldDraft'
-import type { ButtonSpec, FieldSpec } from '../spec/types'
+import { useSubmitAction } from '../spec/useSubmitAction'
+import type { ButtonSpec, FieldSpec, SubmitAction } from '../spec/types'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
 // 초대 코드 입력(INV-00).
@@ -18,6 +19,11 @@ import type { ScopeDraft, ScopeStore } from '../state/scopes'
 // ONB-02의 '초대받은 학생회 참여하기'가 여는 칸이고, 코드가 찾아낸 학생회를
 // 보여주는 다음 칸이 INV-01이다. 코드는 화면 안의 useState가 아니라
 // onboardingDraft에 담긴다 — INV-01이 같은 스코프를 쓰므로 넘어가서도 남는다.
+//
+// **'학생회 확인'은 넘어가는 것이 아니라 보내는 것이다.** 코드가 있는 것인지,
+// 만료됐는지, 이미 다른 학생회에 속해 있는지는 전부 서버의 물음이다 — 그 전에는
+// 아무 코드나 넣어도 다음 칸이 열렸다. 확인한 코드를 그대로 실어 보내므로
+// 다음 칸은 **그 코드가 찾아낸 학생회**를 보여준다.
 //
 // **와이어프레임의 '→ 오류 예시: …' 넉 줄(14:375·14:377·14:379·14:381)은
 // 그리지 않는다.** 가리키는 프레임이 저장소에 하나도 없는 시연 장치다
@@ -55,6 +61,8 @@ export function INV00Screen({ draft, scopes, onChangeDraft, onNavigate }: INV00S
     .map((element) => element.spec)
     .filter((spec): spec is FieldSpec => spec.type === 'input' || spec.type === 'select')
 
+  const submitAction = useSubmitAction()
+
   return (
     // 머리는 로고뿐이다(meta.eyebrow가 없다). 제목·설명은 PageCard가 명세에서 읽는다.
     <PageCard screen={inv00}>
@@ -65,11 +73,19 @@ export function INV00Screen({ draft, scopes, onChangeDraft, onNavigate }: INV00S
       <div className="flex flex-col gap-2 pt-6">
         {/* design 14:384는 화살표 없이 글만 있는 채운 단추다. */}
         <PrimaryButton
-          label={primaryButton.label}
+          label={submitAction.labelOf(primaryButton.action as SubmitAction, primaryButton.label)}
           nodeId={nodeIdOf(inv00, primaryButton)}
           trailingArrow={false}
           onClick={() =>
-            field.runButton(primaryButton, () => onNavigate(navigateTarget(primaryButton.action)))
+            field.runButton(primaryButton, () => {
+              void submitAction.run(primaryButton.action as SubmitAction, {
+                payload: draft.values,
+                onNavigate,
+                // 무엇을 넘길지는 명세가 말한다(onSuccess.params). 화면은 그 값이
+                // 어디 있는지만 알려 준다.
+                paramSources: { fields: draft.values },
+              })
+            })
           }
         />
         {quietButtons.map((button) => (
@@ -85,6 +101,12 @@ export function INV00Screen({ draft, scopes, onChangeDraft, onNavigate }: INV00S
           </button>
         ))}
       </div>
+
+      {submitAction.errorMessage === null ? null : (
+        <p role="alert" className="pt-3 text-xs text-red-500">
+          {submitAction.errorMessage}
+        </p>
+      )}
     </PageCard>
   )
 }

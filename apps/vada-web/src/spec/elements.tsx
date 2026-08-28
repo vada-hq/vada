@@ -4,6 +4,8 @@ import { Field } from '../components/Field'
 import { FieldGroup } from '../components/FieldGroup'
 import { NoteBox } from '../components/NoteBox'
 import { SearchSelect } from '../components/SearchSelect'
+import { readObjectSource } from '../data-sources/catalog'
+import { resolveParams } from './params'
 import { SummaryCard } from '../components/SummaryCard'
 import { TextInput } from '../components/TextInput'
 import { nodeIdOf } from './screens'
@@ -37,6 +39,8 @@ export interface ElementContext {
   /** note가 *다른* 스코프의 값을 읽는다. 그 화면의 초안만으로는 부족하다. */
   scopes: ScopeStore
   field: ReturnType<typeof useFieldDraft>
+  /** 요약이 출처를 읽을 때 그 조회 인자가 주소에서 올 수 있다. */
+  screenParams?: Record<string, string>
 }
 
 /**
@@ -123,8 +127,11 @@ export function renderNote(context: ElementContext, spec: NoteSpec, key: string)
 }
 
 /**
- * 명세에 값이 적힌 요약 카드. 값이 데이터에서 오는 쓰임(HOME-01K의 브리핑)은
- * 이 표가 아직 다루지 않는다 — 조용히 빈 카드를 그리는 대신 알린다.
+ * 요약 카드. 값이 **명세에 적혀 있거나 데이터에서 온다.**
+ *
+ * 한동안 명세의 값만 그렸다. 그런데 INV-01의 학생회 요약이 초대 코드가 찾아낸
+ * 것으로 바뀌면서 — 그 전에는 어떤 코드를 넣어도 같은 학생회가 나왔다 — 데이터
+ * 쪽이 필요해졌다. 라벨 없는 묶음(행사 머리)은 여전히 화면이 직접 그린다.
  */
 export function renderSummary(
   context: ElementContext,
@@ -132,20 +139,37 @@ export function renderSummary(
   key: string,
 ): ReactNode {
   const screenId = context.screen.screenId
-  if (!spec.title || !spec.items) {
-    throw new Error(`${screenId}의 요약 카드에는 title과 items가 모두 필요합니다.`)
+  if (!spec.items) {
+    throw new Error(`${screenId}의 요약 카드에는 items가 필요합니다.`)
   }
+
+  const row =
+    spec.dataSourceKey === undefined
+      ? null
+      : readObjectSource(
+          spec.dataSourceKey,
+          resolveParams(spec.params, {
+            screenParams: context.screenParams,
+            fields: context.draft.values,
+          }),
+        )
+
+  const title = spec.titleField === undefined ? spec.title : String(row?.[spec.titleField] ?? '')
+  if (!title) {
+    throw new Error(`${screenId}의 요약 카드에는 title이나 titleField가 필요합니다.`)
+  }
+
   const items = spec.items.map((item) => {
-    if (item.value === undefined) {
+    const value = item.field === undefined ? item.value : String(row?.[item.field] ?? '')
+    if (value === undefined) {
       throw new Error(
-        `${screenId}의 요약 항목 '${item.label}'은 값이 데이터에서 옵니다. 이 표는 아직 명세의 값만 그립니다.`,
+        `${screenId}의 요약 항목 '${item.label}'은 값도 조각도 가리키지 않습니다.`,
       )
     }
-    // 이 표는 라벨이 그려지는 요약만 그린다. 라벨 없는 묶음(행사 머리)은
-    // 자리마다 모양이 달라 화면이 직접 그린다.
-    return { label: item.label!, value: item.value }
+    // 이 표는 라벨이 그려지는 요약만 그린다.
+    return { label: item.label!, value }
   })
-  return <SummaryCard key={key} nodeId={key} eyebrow={spec.eyebrow} title={spec.title} items={items} />
+  return <SummaryCard key={key} nodeId={key} eyebrow={spec.eyebrow} title={title} items={items} />
 }
 
 /** 묶음. 멤버 필드는 여기 안에서만 나오고 바깥 나열에서는 빠진다. */

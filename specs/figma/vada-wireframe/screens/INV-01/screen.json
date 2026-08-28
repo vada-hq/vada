@@ -7,6 +7,15 @@
     "footerNote": "참여하면 미배정 구성원으로 등록됩니다. 부서 배정은 학생회 관리자가 진행합니다."
   },
   "viewer": "joining",
+  "params": [
+    {
+      "key": "inviteCode",
+      "valueType": "string",
+      "example": "AB12CD34",
+      "missingNote": "어떤 초대 코드로 왔는지 정하지 않고 열렸습니다. 초대 코드 화면에서 코드를 확인하면 이 화면이 열립니다.",
+      "description": "어느 학생회의 초대인지. 앞 화면(INV-00)이 서버에 물어 확인한 코드를 그대로 실어 온다."
+    }
+  ],
   "source": {
     "pageName": "Wireframe",
     "nodeId": "9:2",
@@ -23,19 +32,25 @@
       "spec": {
         "type": "summary",
         "eyebrow": "초대받은 학생회",
-        "title": "제12대 소프트웨어융합대학 학생회",
+        "titleField": "name",
+        "dataSourceKey": "org.invitedOrganization",
+        "params": {
+          "inviteCode": {
+            "screenParam": "inviteCode"
+          }
+        },
         "items": [
           {
             "label": "유형",
-            "value": "단과대 학생회"
+            "field": "kind"
           },
           {
             "label": "대표 범위",
-            "value": "한양대학교 ERICA · 소프트웨어융합대학"
+            "field": "scope"
           },
           {
             "label": "운영 연도",
-            "value": "2026년"
+            "field": "term"
           }
         ]
       }

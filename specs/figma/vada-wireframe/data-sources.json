@@ -6330,6 +6330,41 @@
           "optional": true
         }
       ]
+    },
+    {
+      "key": "org.invitedOrganization",
+      "shape": "object",
+      "description": "초대 코드가 찾아낸 학생회(INV-01). **이 값은 코드가 정한다** — 그 전에는 명세가 '제12대 소프트웨어융합대학 학생회'를 고정 글로 들고 있었고, 어떤 코드를 넣어도 같은 학생회가 나왔다.",
+      "params": [
+        "inviteCode"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/organizations/by-invite-code/{inviteCode}"
+      },
+      "messages": {
+        "loading": "학생회를 불러오는 중입니다",
+        "empty": "이 코드로 찾은 학생회가 없습니다",
+        "error": "학생회를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "name",
+          "description": "학생회 이름. 예: 제12대 소프트웨어융합대학 학생회"
+        },
+        {
+          "key": "kind",
+          "description": "어떤 학생회인지. 예: 단과대 학생회"
+        },
+        {
+          "key": "scope",
+          "description": "대표하는 범위. 예: 한양대학교 ERICA · 소프트웨어융합대학"
+        },
+        {
+          "key": "term",
+          "description": "운영 연도. 예: 2026년"
+        }
+      ]
     }
   ]
 }

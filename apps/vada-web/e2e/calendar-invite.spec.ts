@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { pendingNoteAt } from './spec'
+import { missingNoteOf, pendingNoteAt } from './spec'
 
 const SHOTS = 'e2e/shots'
 const CALENDAR = '/#/OPS-CAL-01'
@@ -129,7 +129,7 @@ test('코드를 넣고 확인하면 초대받은 학생회 확인으로 간다',
   await page.getByRole('textbox', { name: '초대 코드*' }).fill('AB12CD34')
   await page.getByRole('button', { name: '학생회 확인' }).click()
 
-  await expect(page).toHaveURL(/#\/INV-01$/)
+  await expect(page).toHaveURL(/#\/INV-01\?inviteCode=AB12CD34/)
   await expect(page.getByText('초대받은 학생회')).toBeVisible()
 
   await page.screenshot({ path: `${SHOTS}/inv-00.png`, fullPage: true })
@@ -142,7 +142,7 @@ test('넣은 코드는 화면을 떠났다 와도 남는다', async ({ page }) =
 
   await page.getByRole('textbox', { name: '초대 코드*' }).fill('AB12CD34')
   await page.getByRole('button', { name: '학생회 확인' }).click()
-  await expect(page).toHaveURL(/#\/INV-01$/)
+  await expect(page).toHaveURL(/#\/INV-01\?inviteCode=AB12CD34/)
 
   await page.goBack()
 
@@ -165,4 +165,28 @@ test('오류 예시 넉 줄은 그리지 않는다', async ({ page }) => {
   await page.goto(INVITE)
 
   await expect(page.getByText('오류 예시')).toHaveCount(0)
+})
+
+// **초대 코드가 어느 학생회인지를 정한다.** 그 전에는 명세가 이름을 고정 글로
+// 들고 있어서 아무 코드나 넣어도 같은 학생회가 나왔다 — 코드가 맞는지 아는 것은
+// 서버뿐이므로 '학생회 확인'은 넘어가는 것이 아니라 보내는 것이다.
+test('INV-00: 코드마다 다른 학생회를 찾아온다', async ({ page }) => {
+  await page.goto('/#/INV-00')
+  await page.getByRole('textbox', { name: '초대 코드' }).fill('AB12CD34')
+  await page.getByRole('button', { name: /학생회 확인/ }).click()
+  await expect(page).toHaveURL(/#\/INV-01\?inviteCode=AB12CD34/)
+  await expect(page.getByText('제12대 소프트웨어융합대학 학생회')).toBeVisible()
+
+  await page.goto('/#/INV-00')
+  await page.getByRole('textbox', { name: '초대 코드' }).fill('EF56GH78')
+  await page.getByRole('button', { name: /학생회 확인/ }).click()
+  await expect(page).toHaveURL(/#\/INV-01\?inviteCode=EF56GH78/)
+  await expect(page.getByText('제9대 컴퓨터학부 학생회')).toBeVisible()
+})
+
+// 코드 없이 열면 아무 학생회나 보여주지 않는다.
+test('INV-01: 코드 없이 열면 남의 학생회를 보여주지 않는다', async ({ page }) => {
+  await page.goto('/#/INV-01')
+
+  await expect(page.getByRole('alert')).toContainText(missingNoteOf('INV-01', 'inviteCode'))
 })

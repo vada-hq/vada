@@ -130,6 +130,7 @@ export function ScreenRouter({
   if (screenId === 'INV-01') {
     return (
       <INV01Screen
+        screenParams={screenParams}
         draft={readScopeDraft(scopes, inv01.stateScopeKey)}
         scopes={scopes}
         onChangeDraft={(next) => onChangeScope(inv01.stateScopeKey ?? '', next)}

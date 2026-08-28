@@ -44,8 +44,8 @@
         "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
-          "type": "navigate",
-          "targetScreenId": "INV-01",
+          "type": "submit",
+          "mutationKey": "organization.verifyInviteCode",
           "executeWhen": {
             "type": "allRequiredFieldsHaveValue",
             "scope": "screen"
@@ -53,6 +53,14 @@
           "onExecutionBlocked": {
             "type": "showMissingRequiredFields",
             "focus": "firstMissingField"
+          },
+          "onSuccess": {
+            "navigate": "INV-01",
+            "params": {
+              "inviteCode": {
+                "fieldKey": "inviteCode"
+              }
+            }
           }
         }
       }

@@ -2527,6 +2527,24 @@ const CALENDAR_WEEK: Array<{ type: string; row: DataRow }> = [
   { type: 'deadline', row: { id: 'SCH-0722-4', typeLabel: '마감', typeTone: 'deadline', dateLabel: '07.22', title: '학생 건의 답변 문안 검토' } },
 ]
 
+// 초대 코드가 찾아낸 학생회(INV-01). **코드마다 다른 학생회가 나온다** — 그 전에는
+// 명세가 이름을 고정 글로 들고 있어서 어떤 코드를 넣어도 같은 학생회가 나왔다.
+const INVITED_ORGANIZATIONS: Record<string, DataRow> = {
+  AB12CD34: {
+    name: '제12대 소프트웨어융합대학 학생회',
+    kind: '단과대 학생회',
+    scope: '한양대학교 ERICA · 소프트웨어융합대학',
+    term: '2026년',
+  },
+  // 코드가 다르면 다른 학생회다. 이 줄이 없으면 '코드마다 다르다'가 말뿐이 된다.
+  EF56GH78: {
+    name: '제9대 컴퓨터학부 학생회',
+    kind: '학부 학생회',
+    scope: '한양대학교 ERICA · 컴퓨터학부',
+    term: '2026년',
+  },
+}
+
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   // 행사 목록을 보는 사람. 지금 보는 사람은 새 행사를 만들 수 없다 - 만들 수 있는
   // 사람이 보는 그림이 EVT-00A2(변형)이고, 사람이 그 사이를 오갈 수 없다.
@@ -3922,6 +3940,12 @@ export const FILTERED_FIXTURES: Record<
   'finance.ledger': (params) => ledgerEntriesOf(params).map((entry) => entry.row),
   // 유형으로 좁히는 것은 **일정**이지 날이 아니다. 칸은 그대로 서른넷이고
   // 그 안의 일정만 걸린다 — 격자에서 날이 사라지면 달력이 아니게 된다.
+  // 없는 코드면 빈 목록이고, 그것은 '개발용 응답이 없다'가 아니라 **그런 학생회가
+  // 없다**다(readDataSource가 NOT_FOUND로 가른다).
+  'org.invitedOrganization': ({ inviteCode = '' }) => {
+    const row = INVITED_ORGANIZATIONS[inviteCode]
+    return row === undefined ? [] : [row]
+  },
   'ops.calendarDays': ({ type = 'all' }) =>
     CALENDAR_DAYS.map((day) => ({
       id: day.id,
