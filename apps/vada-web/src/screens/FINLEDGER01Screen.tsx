@@ -61,10 +61,12 @@ const FILTERS = [
 ] as const
 
 interface FINLEDGER01ScreenProps {
+  /** 어느 결제 단계만 볼 것인가는 주소가 실어 온다(stage). 화면 안에는 그 자리가 없다. */
+  screenParams: Record<string, string>
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
-export function FINLEDGER01Screen({ onNavigate }: FINLEDGER01ScreenProps) {
+export function FINLEDGER01Screen({ screenParams, onNavigate }: FINLEDGER01ScreenProps) {
   const search = elementByNodeId(finLedger01, NODE.search).spec as InputSpec
   const ledger = elementByNodeId(finLedger01, NODE.ledger).spec as ItemListSpec
   const scope = elementByNodeId(finLedger01, NODE.scope).spec as SummarySpec
@@ -83,11 +85,13 @@ export function FINLEDGER01Screen({ onNavigate }: FINLEDGER01ScreenProps) {
     fieldValues[spec.fieldKey] = picked[spec.fieldKey]?.value ?? ''
   }
 
-  const ledgerParams = resolveParams(ledger.params, { fields: fieldValues })
+  // 어느 결제 단계만 볼 것인가는 **주소가 실어 온다** — 전체 재정의 두 '내역'이
+  // 각각 다른 값을 싣고, 화면 안에는 그것을 고르는 자리가 없다(그림에 없다).
+  const ledgerParams = resolveParams(ledger.params, { screenParams, fields: fieldValues })
   const rows = readListSource(ledger.dataSourceKey, ledgerParams)
   const scopeRow = readObjectSource(
     scope.dataSourceKey,
-    resolveParams(scope.params, { fields: fieldValues }),
+    resolveParams(scope.params, { screenParams, fields: fieldValues }),
   )
 
   const tile = (nodeId: string) => {

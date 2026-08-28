@@ -2426,12 +2426,22 @@ const LEDGER_SUMMARY: Record<string, DataRow> = {
 const LEDGER_HANDLING_NOTE =
   '증빙 처리와 정산은 재정부·회장단이 각 행사 재정의 ‘증빙 필요’ 단계(결제·증빙 정리)에서 진행합니다.'
 
+// 결제가 끝난 것과 아직 나갈 것. **증빙 상태로는 가를 수 없다** — 증빙은 돈이
+// 나간 뒤의 절차이고 이것은 돈이 나갔는지의 물음이다.
+const LEDGER_STAGE: Record<string, string> = {
+  'LG-05': 'planned',
+  'LG-08': 'planned',
+  'LG-14': 'planned',
+}
+const stageOf = (id: unknown) => LEDGER_STAGE[String(id)] ?? 'spent'
+
 function ledgerEntriesOf({
   month = '',
   eventId = '',
   departmentId = '',
   budgetItemId = '',
   query = '',
+  stage = '',
 }: Record<string, string>) {
   return ORG_LEDGER.filter(
     (entry) =>
@@ -2440,8 +2450,16 @@ function ledgerEntriesOf({
       (eventId === '' || entry.eventId === eventId) &&
       (departmentId === '' || entry.departmentId === departmentId) &&
       (budgetItemId === '' || entry.budgetItemId === budgetItemId) &&
+      (stage === '' || stageOf(entry.row.id) === stage) &&
       matchesQuery(entry.row, query),
   )
+}
+
+// 무엇을 보고 있는지는 **서버가 완성한 문장**이 말한다. 그림에 갈피가 없으므로
+// 이 줄이 유일한 단서다 — 화면이 지어내면 그 말이 화면의 것이 된다.
+const LEDGER_STAGE_NOTE: Record<string, string> = {
+  spent: '결제 완료',
+  planned: '결제 예정',
 }
 
 // ── 운영 캘린더(OPS-CAL-01) ────────────────────────────────────────────────
@@ -4006,9 +4024,13 @@ export const FILTERED_FIXTURES: Record<
   'finance.ledgerScope': (params) => {
     const known = LEDGER_MONTHS[params.month || DEFAULT_LEDGER_MONTH]
     const shown = ledgerEntriesOf(params).length
+    const stageNote = LEDGER_STAGE_NOTE[params.stage ?? '']
     return [
       {
-        rangeNote: `${known.label} · 총 ${known.total}건 중 최근 ${shown}건 표시`,
+        rangeNote:
+          stageNote === undefined
+            ? `${known.label} · 총 ${known.total}건 중 최근 ${shown}건 표시`
+            : `${known.label} · ${stageNote} ${shown}건`,
         handlingNote: LEDGER_HANDLING_NOTE,
       },
     ]

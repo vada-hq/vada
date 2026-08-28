@@ -78,17 +78,28 @@ test('FIN-00: 실제 지출의 내역은 사용 내역으로 데려간다', asyn
 
   await page.locator('[data-node-id="30:2589"]').click()
 
-  await expect(page).toHaveURL(/#\/FIN-LEDGER-01$/)
+  await expect(page).toHaveURL(/#\/FIN-LEDGER-01\?stage=spent/)
   await expect(page.getByRole('heading', { name: '사용 내역', level: 1 })).toBeVisible()
 })
 
-test('FIN-00: 지출 예정의 내역은 아직 갈 곳이 없다는 사실을 남긴다', async ({ page }) => {
+// **두 '내역'은 같은 장부를 다르게 자른다.** 결제 예정만 보는 화면을 새로 만들지
+// 않았다 — 무엇을 보고 있는지는 표 아래 범위 줄이 서버의 글로 말한다.
+test('FIN-00: 두 내역이 같은 장부를 다른 단계로 자른다', async ({ page }) => {
   await page.goto(OVERVIEW)
 
-  await page.locator('[data-node-id="30:2602"]').click()
+  const 내역 = page.getByRole('button', { name: '내역' })
+  await 내역.first().click()
+  await expect(page).toHaveURL(/#\/FIN-LEDGER-01\?stage=spent/)
+  await expect(page.locator('[data-node-id="30:3287"]')).toContainText('결제 완료')
 
-  await expect(page.getByRole('status')).toContainText(pendingNoteAt('FIN-00', '30:2602'))
-  await expect(page).toHaveURL(/#\/FIN-00$/)
+  await page.goto(OVERVIEW)
+  await 내역.nth(1).click()
+  await expect(page).toHaveURL(/#\/FIN-LEDGER-01\?stage=planned/)
+  await expect(page.locator('[data-node-id="30:3287"]')).toContainText('결제 예정')
+
+  // 거르지 않으면 장부 전부를 본다.
+  await page.goto('/#/FIN-LEDGER-01')
+  await expect(page.locator('[data-node-id="30:3287"]')).toContainText('총 42건')
 })
 
 test('FIN-00: 사용 내역 전체 보기가 장부로 데려간다', async ({ page }) => {

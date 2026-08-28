@@ -19,6 +19,14 @@
       }
     ]
   },
+  "params": [
+    {
+      "key": "stage",
+      "valueType": "string",
+      "optional": true,
+      "description": "어느 결제 단계만 볼 것인가(선택). 없으면 장부 전부를 본다. **그림에 이 갈피가 그려져 있지 않다** — 전체 재정의 두 '내역'이 각각 이 값을 실어 오고, 무엇을 보고 있는지는 표 아래 범위 줄이 서버의 글로 말한다. 예시 값을 두지 않는다 — **그림은 거르지 않은 장부를 그렸다.**"
+    }
+  ],
   "source": {
     "pageName": "Wireframe",
     "nodeId": "30:3051",
@@ -245,6 +253,9 @@
           },
           "query": {
             "fieldKey": "ledgerQuery"
+          },
+          "stage": {
+            "screenParam": "stage"
           }
         },
         "columns": [
@@ -318,6 +329,9 @@
           },
           "query": {
             "fieldKey": "ledgerQuery"
+          },
+          "stage": {
+            "screenParam": "stage"
           }
         },
         "items": [

@@ -249,7 +249,7 @@ export function ScreenRouter({
   }
   if (screenId === 'FIN-LEDGER-01') {
     // 그 아래의 장부. 거르는 값은 전부 화면 안의 조회 인자다.
-    return <FINLEDGER01Screen onNavigate={onNavigate} />
+    return <FINLEDGER01Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'REC-01') {
     // 셸의 '기록' 메뉴가 가리키는 화면 자신이다 — 그래서 activeNavigationScreenId가 없다.

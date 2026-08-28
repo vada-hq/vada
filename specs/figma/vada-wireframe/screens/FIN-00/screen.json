@@ -95,7 +95,12 @@
         "action": {
           "type": "navigate",
           "label": "내역",
-          "targetScreenId": "FIN-LEDGER-01"
+          "targetScreenId": "FIN-LEDGER-01",
+          "params": {
+            "stage": {
+              "value": "spent"
+            }
+          }
         }
       }
     },
@@ -116,9 +121,14 @@
           }
         ],
         "action": {
-          "type": "pending",
+          "type": "navigate",
           "label": "내역",
-          "note": "결제 예정인 지출만 따로 보는 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "FIN-LEDGER-01",
+          "params": {
+            "stage": {
+              "value": "planned"
+            }
+          }
         }
       }
     },
