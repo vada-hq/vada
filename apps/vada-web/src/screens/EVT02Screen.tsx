@@ -266,9 +266,25 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
                     <button
                       type="button"
                       onClick={() => {
-                        if (checklistSpec.itemAction?.type === 'pending') {
-                          setNote(checklistSpec.itemAction.note)
+                        const action = checklistSpec.itemAction
+                        if (action === undefined) return
+                        if (action.type === 'pending') {
+                          setNote(action.note)
+                          return
                         }
+                        // 항목마다 가는 곳이 다르다. 명세가 갈래를 들고 데이터가
+                        // 열쇠를 준다 — 데이터가 화면 이름을 주면 없는 화면을
+                        // 가리켜도 아무도 모른다.
+                        const target = targetScreenOf(action, row)
+                        if (target === null) {
+                          setNote(
+                            `이 항목이 어디로 가는지 명세의 갈래에 없습니다: ${String(
+                              row[(action as { targetField?: string }).targetField ?? ''] ?? '',
+                            )}`,
+                          )
+                          return
+                        }
+                        onNavigate(target, argumentsOf(action.params))
                       }}
                       className="shrink-0 text-xs font-medium text-blue-500 hover:text-blue-700"
                     >

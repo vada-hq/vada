@@ -546,6 +546,7 @@ const EVENT_CHECKLIST: Record<string, DataRow[]> = {
       title: '명단 확인이 필요한 신청자 6명',
       detail: '학번·이름 불일치 또는 명단 외 학생',
       tone: 'yellow',
+      targetKind: 'participants',
       actionLabel: '참가자 명단 보기',
     },
     {
@@ -557,6 +558,7 @@ const EVENT_CHECKLIST: Record<string, DataRow[]> = {
       title: '담당자 없는 업무 2개',
       detail: '현장 준비 · 장비 반납',
       tone: 'red',
+      targetKind: 'tasks',
       actionLabel: '업무 보기',
     },
     {

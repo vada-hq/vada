@@ -71,7 +71,16 @@ test('EVT-02: 확인해야 할 항목은 갈 곳이 있는 것만 문구를 갖�
   await expect(page.getByText('QR 참석 확인 설정 완료')).toBeVisible()
   await expect(page.getByRole('button', { name: /QR/ })).toHaveCount(0)
 
-  // 항목마다 가는 곳이 다른데 그것을 적을 자리가 아직 없다.
+  // **항목마다 가는 곳이 다르다.** 명세가 갈래를 들고 데이터가 열쇠를 준다 —
+  // 담당자 없는 업무는 업무 보드로, 명단 확인은 참가자 명단으로 간다.
   await page.getByRole('button', { name: '업무 보기 →' }).click()
-  await expect(page.getByText(/항목마다 가는 곳이 다른데/)).toBeVisible()
+  await expect(page).toHaveURL(/#\/EVT-TASK-01\?eventId=E-01/)
+})
+
+test('EVT-02: 같은 목록의 다른 항목은 다른 화면으로 간다', async ({ page }) => {
+  await page.goto(OVERVIEW)
+
+  await page.getByRole('button', { name: '참가자 명단 보기 →' }).click()
+
+  await expect(page).toHaveURL(/#\/EVT-04\?eventId=E-01/)
 })

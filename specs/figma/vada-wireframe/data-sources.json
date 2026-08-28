@@ -1141,6 +1141,11 @@
           "description": "항목의 성격에 배정된 색 이름. 급한 것과 끝난 것이 갈린다. 예: red · orange · green"
         },
         {
+          "key": "targetKind",
+          "description": "이 항목을 누르면 **어느 종류의 화면으로 가는지**를 아는 열쇠. 화면 id가 아니다 — 데이터가 화면 id를 직접 주면 검증기가 그 화면이 있는지 확인할 수 없다. 갈 곳은 명세가 이 열쇠로 정한다(itemAction.targets).\n\n갈 곳이 없는 항목에는 오지 않는다(actionLabel과 짝이다). 예: participants · tasks",
+          "optional": true
+        },
+        {
           "key": "actionLabel",
           "description": "이 항목에서 갈 수 있는 곳의 문구. 갈 곳이 없으면 오지 않는다. 예: 참가자 명단 보기",
           "optional": true

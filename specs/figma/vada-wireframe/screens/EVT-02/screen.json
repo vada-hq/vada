@@ -293,9 +293,24 @@
           }
         },
         "itemAction": {
-          "type": "pending",
+          "type": "navigate",
+          "targetField": "targetKind",
+          "targets": [
+            {
+              "value": "participants",
+              "targetScreenId": "EVT-04"
+            },
+            {
+              "value": "tasks",
+              "targetScreenId": "EVT-TASK-01"
+            }
+          ],
           "labelField": "actionLabel",
-          "note": "항목마다 가는 곳이 다른데 그것을 적을 자리가 아직 없습니다. 지금은 문구만 항목이 정합니다."
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },
