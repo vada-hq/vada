@@ -998,6 +998,53 @@ test("표의 열이 가리킨 조각이 데이터 출처에 없으면 오류다"
 
 // 쪽으로 나뉜 목록은 총 몇 건인지·몇 쪽인지를 자기가 말할 수 없다. 세 자리가
 // 어긋나면 쪽 버튼이 그려지긴 하는데 늘 한 쪽뿐이거나 없는 쪽으로 넘어간다.
+// 이 판정은 오랫동안 **한 번도 돌지 않았다.** 딱지가 하나이던 시절의 코드가
+// isObject로 물었는데 스키마는 배열이 됐고, 배열은 isObject가 아니다. 검사가
+// 초록인 채로 아무것도 안 보는 것이 가장 나쁜 상태다 — 그래서 무는 것을 적어 둔다.
+test("요약의 상태 딱지가 가리킨 조각이 데이터 출처에 없으면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [
+          element("1:2", {
+            type: "summary",
+            dataSourceKey: "req.one",
+            titleField: "title",
+            // 둘째 딱지가 없는 조각을 가리킨다. 딱지가 하나뿐이라고 여기면
+            // 첫째만 보고 지나간다.
+            status: [
+              { field: "state", toneField: "stateTone" },
+              { field: "없는딱지", toneField: "없는톤" }
+            ],
+            items: []
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      {
+        key: "req.one",
+        shape: "object",
+        description: "요청 한 건",
+        params: [],
+        fields: [
+          { key: "title", description: "이름" },
+          { key: "state", description: "상태" },
+          { key: "stateTone", description: "색 이름" }
+        ]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(findings.filter((f) => f.message.includes("'없는딱지'")).length, 1);
+  assert.equal(findings.filter((f) => f.message.includes("'없는톤'")).length, 1);
+});
+
 test("쪽 인자를 목록 출처가 받지 않으면 오류다", () => {
   const screens = [
     {

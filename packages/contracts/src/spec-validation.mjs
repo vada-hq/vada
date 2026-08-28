@@ -1105,9 +1105,13 @@ function checkDataSource(findings, context) {
     ...(spec.descriptionField === undefined ? [] : [spec.descriptionField]),
     // 상태 딱지는 글과 색 이름을 따로 가리킨다. 색만 없으면 딱지가 무채색으로
     // 그려지고 아무도 그것이 틀렸다고 말하지 않는다.
-    ...(isObject(spec.status) ? [spec.status.field, spec.status.toneField] : []).filter(
-      (field) => typeof field === "string"
-    ),
+    //
+    // **딱지는 여럿이다.** 한 자리에 둘 붙는 곳이 있어(OPS-MEET-07·04B) 스키마가
+    // 배열인데, 여기는 오랫동안 isObject로 물었다 — 배열은 isObject가 아니므로
+    // 이 판정은 **한 번도 돈 적이 없다**. 딱지가 없는 출처를 가리켜도 조용했다.
+    ...(Array.isArray(spec.status) ? spec.status : [])
+      .flatMap((badge) => [badge?.field, badge?.toneField])
+      .filter((field) => typeof field === "string"),
     ...(spec.items ?? []).map((item) => item?.field).filter((field) => field !== undefined)
   ];
   for (const field of referenced) {
