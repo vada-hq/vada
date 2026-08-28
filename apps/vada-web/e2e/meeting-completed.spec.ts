@@ -1,8 +1,11 @@
 import { expect, test } from '@playwright/test'
-import { missingNoteOf } from './spec'
+import { missingNoteOf, successNoteAt } from './spec'
 
 const SHOTS = 'e2e/shots'
 const DONE = '/#/OPS-MEET-07?meetingId=MTG-01'
+// 같은 회의록을 참석하지 않은 사람이 본 그림(변형 OPS-MEET-08). **다른 주소가
+// 아니다** — 참석했는지는 회의가 끝난 시점에 정해진 사실이고 데이터가 가른다.
+const DONE_ABSENT = '/#/OPS-MEET-08?meetingId=MTG-01'
 
 // 완료된 회의록(OPS-MEET-07).
 //
@@ -157,4 +160,32 @@ test('OPS-MEET-07: 없는 회의 id는 조용히 다른 회의로 대신하지 �
 
   await expect(page.getByRole('alert')).toContainText('회의를 찾을 수 없습니다')
   await expect(page.locator('[data-node-id="20:2197"]')).toHaveCount(0)
+})
+
+test('OPS-MEET-08: 참석하지 않은 사람은 제목부터 다르다', async ({ page }) => {
+  await page.goto(DONE_ABSENT)
+
+  await expect(page.getByRole('heading', { name: '회의 요약 확인' })).toBeVisible()
+  // 참석한 사람이 받는 단추는 오지 않는다. 자리는 하나이고 오는 것이 다르다.
+  await expect(page.getByRole('button', { name: '회의록 내보내기' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '회의 요약 확인 완료' })).toBeVisible()
+})
+
+test('OPS-MEET-08: 나에게 배정된 후속 업무가 한 칸 더 붙는다', async ({ page }) => {
+  await page.goto(DONE_ABSENT)
+
+  const mine = page.locator('[data-node-id="20:2553"]')
+  await expect(mine).toContainText('나에게 배정된 후속 업무')
+  // 비었을 때 하는 말이 07과 다르다 — 그래서 다른 물음이고 다른 출처다.
+  await expect(page.getByText('나에게 배정된 미완료 후속 업무가 없습니다.')).toBeVisible()
+})
+
+test('OPS-MEET-08: 확인을 눌러도 그 뒤가 정해지지 않았다고 남긴다', async ({ page }) => {
+  await page.goto(DONE_ABSENT)
+
+  await page.getByRole('button', { name: '회의 요약 확인 완료' }).click()
+
+  await expect(page.getByRole('status').first()).toContainText(
+    successNoteAt('OPS-MEET-08', '20:2449'),
+  )
 })

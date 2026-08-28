@@ -30,7 +30,6 @@ const NOT_DRAWN_YET = new Set([
   'OPS-MEET-01D',
   'OPS-MEET-05B',
   'OPS-MEET-06B',
-  'OPS-MEET-08',
 ])
 
 function speccedScreenIds() {

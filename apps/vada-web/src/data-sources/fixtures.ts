@@ -3987,6 +3987,10 @@ export const FILTERED_FIXTURES: Record<
   'meeting.documents': ({ meetingId = '' }) => MEETING_DOCUMENTS[meetingId] ?? [],
   // 후속 업무는 와이어프레임이 빈 상태만 그렸다. 지어내지 않는다.
   'meeting.followUps': ({ meetingId = '' }) => MEETING_FOLLOW_UPS[meetingId] ?? [],
+  // **다른 물음이라 따로 답한다.** 위는 '이 회의가 만든 후속 업무'이고 이것은
+  // '그중 내 것'이다. 그림이 둘 다 0건을 그렸으므로 여기도 빈 목록이다 — 비었을 때
+  // 뭐라고 말하는지가 둘의 다름을 드러낸다.
+  'meeting.myFollowUps': () => [],
   'meeting.minutes': ({ meetingId = '' }) =>
     meetingId === 'MTG-01'
       ? [

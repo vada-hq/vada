@@ -3856,8 +3856,7 @@
       "shape": "list",
       "description": "이 회의에서 나온 후속 업무. **와이어프레임은 빈 상태만 그렸다** — 07·08 둘 다 0건이라 항목이 무엇으로 이루어지는지, 눌러서 어디로 가는지 그림이 말하지 않는다. 그래서 조각을 지어내지 않고 본 것만 적었다. 채워진 모습이 그려지면 는다.",
       "params": [
-        "meetingId",
-        "onlyMine"
+        "meetingId"
       ],
       "request": {
         "method": "GET",
@@ -3866,6 +3865,38 @@
       "messages": {
         "loading": "후속 업무를 불러오는 중입니다",
         "empty": "회의록 정리에서 생성한 후속 업무 카드가 여기에 표시됩니다.",
+        "error": "후속 업무를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "taskId",
+          "description": "이 업무를 가리키는 값"
+        },
+        {
+          "key": "title",
+          "description": "업무 이름"
+        },
+        {
+          "key": "assigneeNote",
+          "description": "누가 언제까지. 예: 정하늘 · 07.23까지 · 위 결정사항에서 생성",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "key": "meeting.myFollowUps",
+      "shape": "list",
+      "description": "이 회의가 나에게 배정한 후속 업무(OPS-MEET-08).\n\n**meeting.followUps와 다른 물음이다.** 저것은 '이 회의가 만든 후속 업무'이고 이것은 '그중 내 것'이다. 한동안 같은 출처에 onlyMine 인자를 붙여 갈랐는데, 그러면 **비었을 때 할 말이 하나뿐이 된다** — 그림은 둘을 다르게 적었다. 07은 '회의록 정리에서 생성한 후속 업무 카드가 여기에 표시됩니다', 08은 '나에게 배정된 미완료 후속 업무가 없습니다'.\n\n비었다는 말이 다르면 묻는 것이 다른 것이다.",
+      "params": [
+        "meetingId"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/meetings/{meetingId}/follow-ups/mine"
+      },
+      "messages": {
+        "loading": "후속 업무를 불러오는 중입니다",
+        "empty": "나에게 배정된 미완료 후속 업무가 없습니다.",
         "error": "후속 업무를 불러오지 못했습니다"
       },
       "fields": [

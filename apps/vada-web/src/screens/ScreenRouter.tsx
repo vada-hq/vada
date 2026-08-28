@@ -236,10 +236,17 @@ export function ScreenRouter({
     // 정리 중 회의다. 06B(진행 권한자)는 변형이라 주소가 없다.
     return <OPSMEET06AScreen screenParams={screenParams} onNavigate={onNavigate} />
   }
-  if (screenId === 'OPS-MEET-07') {
-    // 완료 회의록이다. 08(불참자)은 변형이라 주소가 없다 — 참석했는지 안 했는지는
-    // 회의가 끝난 시점에 정해진 사실이라 사람이 그 사이를 오갈 수 없다.
-    return <OPSMEET07Screen screenParams={screenParams} onNavigate={onNavigate} />
+  if (screenId === 'OPS-MEET-07' || screenId === 'OPS-MEET-08') {
+    // 완료 회의록이다. 08은 **참석하지 않은 사람이 본 같은 회의록**이고, 참석했는지
+    // 안 했는지는 회의가 끝난 시점에 정해진 사실이라 사람이 그 사이를 오갈 수 없다.
+    // 실제로는 주소가 하나이고 데이터가 가른다(meeting.detail의 viewerChipLabel).
+    return (
+      <OPSMEET07Screen
+        screenParams={screenParams}
+        screenId={screenId}
+        onNavigate={onNavigate}
+      />
+    )
   }
   if (screenId === 'OPS-MEET-09') {
     // 취소된 회의 상세다. 무엇의 상세인지는 화면 안에 없고 주소가 실어 온다.

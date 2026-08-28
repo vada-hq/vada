@@ -15,8 +15,9 @@ import {
 import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow, DataValue } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
-import { elementByNodeId, opsMeet07 } from '../spec/screens'
-import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
+import { elementByNodeId, opsMeet07, opsMeet08 } from '../spec/screens'
+import { useSubmitAction } from '../spec/useSubmitAction'
+import type { ButtonSpec, ItemListSpec, SubmitAction, SummarySpec } from '../spec/types'
 
 // 완료된 회의록(OPS-MEET-07).
 //
@@ -70,8 +71,25 @@ const ASSET = {
 // 경로 조각 사이의 화살표. 조각보다 하나 적다.
 const BREADCRUMB_SEPARATORS = ['20:2177', '20:2182']
 
+// 회의에 참석하지 않은 사람이 보는 같은 회의록(변형 OPS-MEET-08).
+//
+// **다른 화면이 아니라 다른 사람이 본 같은 화면이다** — 명세가 그렇게 말한다
+// (meeting.detail의 viewerChipLabel이 불참으로 온다). 이 저장소에는 로그인한 사람이
+// 없어 어느 그림을 열었는지가 그 자리를 대신하고, 조건의 이름은 명세에 남아 있다.
+//
+// 자리가 둘이다. 머리의 '회의록 내보내기'가 '회의 요약 확인 완료'로 바뀌고, 오른쪽
+// 기둥에 '나에게 배정된 후속 업무'가 한 칸 더 붙는다.
+const ABSENTEE = {
+  screen: 'OPS-MEET-08',
+  acknowledge: { node: '20:2449', asset: '20:2450' },
+  myFollowUpHeader: '20:2553',
+  myFollowUps: '20:2558',
+} as const
+
 interface OPSMEET07ScreenProps {
   screenParams: Record<string, string>
+  /** 어느 그림을 그리는지. 변형은 주소가 같고 보는 사람이 가른다. */
+  screenId?: string
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
@@ -129,7 +147,13 @@ function StatCell({ nodeId, label, value }: { nodeId: string; label: string; val
   )
 }
 
-export function OPSMEET07Screen({ screenParams, onNavigate }: OPSMEET07ScreenProps) {
+export function OPSMEET07Screen({
+  screenParams,
+  screenId = SCREEN,
+  onNavigate,
+}: OPSMEET07ScreenProps) {
+  const absent = screenId === ABSENTEE.screen
+  const submitAction = useSubmitAction()
   const [note, setNote] = useState<string | null>(null)
 
   const exportButton = elementByNodeId(opsMeet07, NODE.export).spec as ButtonSpec
@@ -145,9 +169,23 @@ export function OPSMEET07Screen({ screenParams, onNavigate }: OPSMEET07ScreenPro
   const documents = listAt(NODE.documents)
   const documentDownload = documents.itemFields?.[0]?.spec as ButtonSpec | undefined
 
-  const meta = opsMeet07.meta
+  // 변형이 더하는 것들. 바탕에서는 셋 다 없다.
+  const acknowledge = absent
+    ? (elementByNodeId(opsMeet08, ABSENTEE.acknowledge.node).spec as ButtonSpec)
+    : null
+  const myFollowUpHeader = absent
+    ? (elementByNodeId(opsMeet08, ABSENTEE.myFollowUpHeader).spec as SummarySpec)
+    : null
+  const myFollowUps = absent
+    ? (elementByNodeId(opsMeet08, ABSENTEE.myFollowUps).spec as ItemListSpec)
+    : null
+
+  // **제목이 그림마다 다르다.** 참석한 사람은 '완료된 회의록'을, 참석하지 않은
+  // 사람은 '회의 요약 확인'을 본다 — 같은 회의록이지만 그 사람에게 남은 일이
+  // 다르기 때문이다. 그래서 카피도 그 그림의 것을 읽는다.
+  const meta = (absent ? opsMeet08 : opsMeet07).meta
   if (meta === undefined) {
-    throw new Error('OPS-MEET-07의 화면 카피가 없습니다.')
+    throw new Error(`${screenId}의 화면 카피가 없습니다.`)
   }
 
   // 무엇의 회의록인지 모르면 회의록이 없다. 인자가 비면 묻지도 않는다 — 인자가
@@ -193,6 +231,15 @@ export function OPSMEET07Screen({ screenParams, onNavigate }: OPSMEET07ScreenPro
     followUps.dataSourceKey ?? '',
     resolveParams(followUps.params, { screenParams }),
   )
+  // 같은 출처를 '내 것만'으로 한 번 더 묻는다 — 그 인자는 명세가 들고 있다
+  // (params의 onlyMine). 화면이 걸러 내면 무엇으로 거르는지가 화면의 것이 된다.
+  const myFollowUpRows =
+    myFollowUps === null
+      ? []
+      : readListSource(
+          myFollowUps.dataSourceKey ?? '',
+          resolveParams(myFollowUps.params, { screenParams }),
+        )
   const peopleRows = readListSource(
     people.dataSourceKey ?? '',
     resolveParams(people.params, { screenParams }),
@@ -251,19 +298,58 @@ export function OPSMEET07Screen({ screenParams, onNavigate }: OPSMEET07ScreenPro
       // 머리 오른쪽은 한 자리다. 여기서는 회의록을 받아 가는 단추가 오고,
       // 08에서는 같은 자리에 '회의 요약 확인 완료'가 온다.
       headerAction={
-        <button
-          type="button"
-          data-node-id={NODE.export}
-          onClick={download(exportButton, detail)}
-          className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
-        >
-          <FigmaAsset screenId={SCREEN} nodeId={ASSET.export} className="size-3.5" />
-          {exportButton.label}
-        </button>
+        // 머리 오른쪽은 **한 자리**다. 참석한 사람에게는 회의록을 받는 단추가,
+        // 참석하지 않은 사람에게는 요약을 확인했다고 알리는 단추가 온다.
+        acknowledge === null ? (
+          <button
+            type="button"
+            data-node-id={NODE.export}
+            onClick={download(exportButton, detail)}
+            className="flex items-center gap-1.5 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
+          >
+            <FigmaAsset screenId={SCREEN} nodeId={ASSET.export} className="size-3.5" />
+            {exportButton.label}
+          </button>
+        ) : (
+          <button
+            type="button"
+            data-node-id={ABSENTEE.acknowledge.node}
+            disabled={acknowledge.initiallyDisabled}
+            onClick={() => {
+              void submitAction.run(acknowledge.action as SubmitAction, {
+                payload: { meetingId: screenParams.meetingId ?? '' },
+                onNavigate,
+              })
+            }}
+            className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+          >
+            <FigmaAsset
+              screenId={ABSENTEE.screen}
+              nodeId={ABSENTEE.acknowledge.asset}
+              className="size-3.5"
+            />
+            {submitAction.labelOf(acknowledge.action as SubmitAction, acknowledge.label)}
+          </button>
+        )
       }
       onNavigate={onNavigate}
     >
       <div className="mx-auto flex w-full max-w-[1010px] flex-col gap-4 pb-8">
+        {/* 보내고 나면 어디로 가는지가 아직 정해지지 않았다고 명세가 적어 두었다.
+            조용히 아무 일도 안 하는 대신 그 사실을 내놓는다. */}
+        {submitAction.pendingNote === null ? null : (
+          <p
+            role="status"
+            className="rounded-xl border border-yellow-200 bg-yellow-50 px-4 py-3 text-xs text-yellow-800"
+          >
+            {submitAction.pendingNote}
+          </p>
+        )}
+        {submitAction.errorMessage === null ? null : (
+          <p role="alert" className="text-xs font-medium text-red-500">
+            {submitAction.errorMessage}
+          </p>
+        )}
         {note === null ? null : (
           <p
             role="status"
@@ -447,6 +533,38 @@ export function OPSMEET07Screen({ screenParams, onNavigate }: OPSMEET07ScreenPro
                 )}
               </ul>
             </section>
+
+            {/* 참석하지 않은 사람에게만 한 칸 더 붙는다(20:2553). 몇 건인지는
+                서버가 세고, 목록은 '내 것만'으로 걸러 온다. */}
+            {myFollowUpHeader === null || myFollowUps === null ? null : (
+              <section className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+                <div
+                  data-node-id={ABSENTEE.myFollowUpHeader}
+                  className="flex items-center justify-between gap-2"
+                >
+                  <h3 className="text-xs font-bold text-gray-900">{myFollowUpHeader.title}</h3>
+                  <CountChip label={scalar(detail, (myFollowUpHeader.items ?? [])[0]?.field)} />
+                </div>
+                <ul data-node-id={ABSENTEE.myFollowUps} className="pt-3">
+                  {myFollowUpRows.length === 0 ? (
+                    <li className="text-xs leading-5 text-gray-500">
+                      {findDataSource(myFollowUps.dataSourceKey ?? '').messages.empty}
+                    </li>
+                  ) : (
+                    myFollowUpRows.map((task) => (
+                      <li key={String(task.taskId)} className="py-1.5">
+                        <span className="block text-xs font-bold text-gray-800">
+                          {scalar(task, myFollowUps.columns?.[0]?.fields?.[0])}
+                        </span>
+                        <span className="block pt-0.5 text-xs text-gray-500">
+                          {scalar(task, myFollowUps.columns?.[1]?.fields?.[0])}
+                        </span>
+                      </li>
+                    ))
+                  )}
+                </ul>
+              </section>
+            )}
 
             {/* 참석 결과 20:2293. 딱지의 글은 시각까지 붙어서 온다 — '15:00 참석'을
                 화면이 시각과 상태로 이으면 잇는 방법이 명세의 일이 된다. */}

@@ -3,7 +3,7 @@
   "screenId": "OPS-MEET-08",
   "meta": {
     "eyebrow": null,
-    "title": "회의 요약 확인 — 불참자"
+    "title": "회의 요약 확인"
   },
   "variantOf": {
     "screenId": "OPS-MEET-07",
@@ -75,13 +75,10 @@
       },
       "spec": {
         "type": "itemList",
-        "dataSourceKey": "meeting.followUps",
+        "dataSourceKey": "meeting.myFollowUps",
         "params": {
           "meetingId": {
             "screenParam": "meetingId"
-          },
-          "onlyMine": {
-            "value": "y"
           }
         },
         "columns": [
