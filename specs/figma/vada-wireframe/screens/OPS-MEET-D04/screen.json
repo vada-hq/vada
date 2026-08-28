@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-D04",
+  "meta": {
+    "eyebrow": null,
+    "title": "회의를 취소할까요?"
+  },
+  "overlay": {
+    "screenId": "OPS-MEET-03A",
+    "source": "20:4031"
+  },
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-05",
+      "missingNote": "어느 회의를 취소할지 정하지 않고 열렸습니다. 회의 상세에서 ‘회의 취소’를 누르면 이 확인이 열립니다.",
+      "description": "무엇을 취소할지. 뒤에 남아 있는 회의 상세(OPS-MEET-03A)가 정한다. 이 화면이 서버에서 읽는 것은 없고, 취소를 보낼 때만 쓰인다."
+    }
+  ],
+  "stateScopeKey": "meetingCancelDraft",
+  "activeNavigationScreenId": "OPS-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:3705",
+    "name": "운영 — 회의 · 확인 상태 · OPS-MEET-D04 · 회의 취소 확인",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:4033",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의를 취소할까요?",
+        "description": "회의는 삭제되지 않고 취소된 기록으로 남습니다. 참가자는 더 이상 회의에 참가할 수 없습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4044",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "취소 사유를 입력해야 참가자들이 변경 내용을 이해할 수 있습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4048",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "cancelReason",
+        "label": "취소 사유",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "multiline": true,
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4054",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "돌아가기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-03A",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4056",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "회의 취소",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.cancel",
+          "onSuccess": {},
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}

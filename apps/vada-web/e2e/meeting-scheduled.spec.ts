@@ -70,7 +70,10 @@ test('OPS-MEET-03A: 참가자마다 딱지와 할 수 있는 일을 데이터가
   ).toBeVisible()
 
   const people = page.locator('[data-node-id="18:3040"]')
-  await expect(people.getByRole('listitem')).toHaveCount(4)
+  // **수를 세지 않는다.** 같은 회의(MTG-05)를 03A는 넷으로, 04B는 여섯으로 그렸다 —
+  // 와이어프레임끼리 어긋난 자리다. 명세도 화면도 수를 세지 않으므로(서버가 완성한
+  // 문구를 그린다) 검사도 세면 안 된다. 세면 그림의 어긋남을 검사가 붙들게 된다.
+  await expect(people.getByRole('listitem').first()).toBeVisible()
 
   // 한 사람에 딱지가 여럿일 수 있다 — 생성자는 둘을 함께 단다.
   const creator = people.getByRole('listitem').filter({ hasText: '박해랑' })

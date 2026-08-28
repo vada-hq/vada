@@ -122,7 +122,14 @@ const FLOOR = {
   "OPS-MEET-03A": { matched: 0, spurious: 2 },
   "OPS-MEET-03B": { matched: 4, spurious: 2 },
   "OPS-MEET-03C": { matched: 1, spurious: 1 },
+  "OPS-MEET-04B": { matched: 2, spurious: 5 },
+  "OPS-MEET-05A": { matched: 4, spurious: 2 },
+  "OPS-MEET-05B": { matched: 5, spurious: 5 },
   "OPS-MEET-09": { matched: 1, spurious: 0 },
+  // 확인 모달. 초안이 뒤 배경의 단추를 이 화면 것으로 세어 헛것이 많다 —
+  // overlay.source를 모르기 때문이다(명세에는 있고 추출기에는 없다).
+  "OPS-MEET-D01": { matched: 2, spurious: 6 },
+  "OPS-MEET-D04": { matched: 3, spurious: 6 },
   "OPS-MEET-01C": { matched: 1, spurious: 2 },
   "OPS-MEET-01D": { matched: 0, spurious: 2 },
   "ORG-00": { matched: 0, spurious: 1 },

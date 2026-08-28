@@ -22,7 +22,11 @@ import { OPS00Screen } from './OPS00Screen'
 import { OPSMEET01AScreen } from './OPSMEET01AScreen'
 import { OPSMEET02Screen } from './OPSMEET02Screen'
 import { OPSMEET03AScreen } from './OPSMEET03AScreen'
+import { OPSMEET04BScreen } from './OPSMEET04BScreen'
+import { OPSMEET05AScreen } from './OPSMEET05AScreen'
 import { OPSMEET09Screen } from './OPSMEET09Screen'
+import { OPSMEETD01Screen } from './OPSMEETD01Screen'
+import { OPSMEETD04Screen } from './OPSMEETD04Screen'
 import { TASK01Screen } from './TASK01Screen'
 import { ONB01Screen } from './ONB01Screen'
 import { ONB02Screen } from './ONB02Screen'
@@ -44,6 +48,7 @@ import {
   inv01,
   onb01,
   opsMeet02,
+  opsMeetD04,
   org01,
   org02,
   org03b,
@@ -131,6 +136,32 @@ export function ScreenRouter({
     // 예정 회의 상세다. 어느 회의인지는 주소가 실어 온다. 보는 사람에 따라 셋으로
     // 갈리는 그림 중 일반 참가자의 것이고, 03B·03C는 변형이라 주소가 없다.
     return <OPSMEET03AScreen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-04B') {
+    // 진행 권한 관리다. 모달이 아니라 화면인 것은 D03이 이 위에 뜨기 때문이고,
+    // 어느 회의의 권한인지는 주소가 실어 온다.
+    return <OPSMEET04BScreen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-05A') {
+    // 진행 중 회의다. 보는 사람에 따라 둘로 갈리는 그림 중 일반 참가자의 것이고,
+    // 05B는 변형이라 주소가 없다.
+    return <OPSMEET05AScreen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-D01') {
+    // 회의 시작 확인 모달이다. 뒤에 03A가 그대로 남는다(명세의 overlay).
+    return <OPSMEETD01Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-D04') {
+    // 회의 취소 확인 모달이다. 취소 사유는 화면 안의 상태가 아니라
+    // meetingCancelDraft에 담긴다 — payloadScope가 가리키는 자리가 그것이다.
+    return (
+      <OPSMEETD04Screen
+        screenParams={screenParams}
+        draft={readScopeDraft(scopes, opsMeetD04.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(opsMeetD04.stateScopeKey ?? '', next)}
+        onNavigate={onNavigate}
+      />
+    )
   }
   if (screenId === 'OPS-MEET-09') {
     // 취소된 회의 상세다. 무엇의 상세인지는 화면 안에 없고 주소가 실어 온다.

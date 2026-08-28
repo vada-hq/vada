@@ -1,0 +1,479 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-05A",
+  "activeNavigationScreenId": "OPS-00",
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-04",
+      "missingNote": "어떤 회의를 볼지 정하지 않고 열렸습니다. 회의 목록에서 회의를 고르면 이 화면이 열립니다.",
+      "description": "무엇의 상세인지. 앞 화면(회의 목록의 줄)이 정한다. 어느 안건을 펼쳐 볼지는 받지 않는다 — 지금 진행 중인 안건은 데이터가 안다(meeting.agendas의 isCurrent)."
+    }
+  ],
+  "breadcrumb": {
+    "source": "20:946",
+    "dataSourceKey": "meeting.detail",
+    "params": {
+      "meetingId": {
+        "screenParam": "meetingId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "회의"
+      },
+      {
+        "field": "title"
+      }
+    ]
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "진행 중 회의",
+    "titleFrom": {
+      "dataSourceKey": "meeting.detail",
+      "field": "title",
+      "params": {
+        "meetingId": {
+          "screenParam": "meetingId"
+        }
+      }
+    },
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:872",
+    "name": "운영 — 회의 · OPS-MEET-05A · 진행 중 회의 — 일반 참가자",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:961",
+        "name": "MeetingLiveScreen",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "toneField": "viewerChipTone",
+        "titleField": "viewerChipLabel",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:967",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "status": [
+          {
+            "field": "status",
+            "toneField": "statusTone"
+          }
+        ],
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "field": "startedAt"
+          },
+          {
+            "field": "elapsedNote"
+          },
+          {
+            "field": "place"
+          },
+          {
+            "field": "presentNote"
+          },
+          {
+            "field": "inviteeCountNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:995",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.agendas",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "orderLabel"
+            ]
+          },
+          {
+            "fields": [
+              "status"
+            ],
+            "toneField": "statusTone"
+          },
+          {
+            "fields": [
+              "durationNote"
+            ]
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "description"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1007",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.documents",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "name"
+            ]
+          }
+        ],
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "20:1015",
+              "name": "Button",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "button",
+              "label": "열기",
+              "emphasis": "quiet",
+              "initiallyDisabled": false,
+              "action": {
+                "type": "download",
+                "downloadField": "name",
+                "downloadSourceKey": "meeting.documents"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1019",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "논의 내용",
+        "description": "참가자가 함께 작성하는 안건별 회의 기록",
+        "items": [
+          {
+            "value": "공동 작성 중"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1043",
+        "name": "Text Area",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "discussionText",
+        "label": "논의 내용",
+        "labelHidden": true,
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "multiline": true,
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1045",
+        "name": "Text",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "value": "15:24 정하늘 수정 · 자동 저장됨"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1047",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "자료 첨부",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "누르면 무엇으로 자료를 고르는지 와이어프레임에 그려진 프레임이 없습니다. 붙인 자료가 meeting.documents로 오는 것은 알지만 고르는 자리가 없습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1056",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "결정사항",
+        "description": "이 안건에서 합의한 결과를 기록합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1061",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "결정 의견 추가",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "누르면 무엇이 열리는지 그려진 프레임이 없습니다. 05B의 '결정 추가'와 같은 것인지 다른 것인지도 그림이 말하지 않습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1071",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.agendas",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "decisionText"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1078",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "후속 업무",
+        "description": "이 안건의 결정으로 발생한 업무"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1083",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "업무 만들기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "누르면 업무를 만드는 화면이나 모달로 가는데 그 프레임이 와이어프레임에 없습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1089",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.followUps",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "assigneeNote"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1105",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "전체 안건",
+        "items": [
+          {
+            "value": "2 / 3번째 안건 선택"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1110",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.agendas",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "orderLabel"
+            ]
+          },
+          {
+            "fields": [
+              "status"
+            ],
+            "toneField": "statusTone"
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "fields": [
+              "decisionCountNote"
+            ]
+          },
+          {
+            "fields": [
+              "taskCountNote"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1151",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "참가 현황"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1154",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "meeting.participants",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "name"
+            ]
+          },
+          {
+            "fields": [
+              "attendanceLabel"
+            ],
+            "toneField": "attendanceTone"
+          }
+        ]
+      }
+    }
+  ]
+}

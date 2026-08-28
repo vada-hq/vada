@@ -16,6 +16,15 @@ export default defineConfig({
     },
   },
   test: {
+    // 자산 주소표만 갈아 끼운다. eager glob이 파일 1,199개를 모듈로 바꾸는데
+    // 워커마다 다시 하므로 앱 검사의 import가 125초였다 - 화면이 늘 때마다
+    // 커지는 자리다. 화면 코드는 그대로이고, 대조는 src가 아니라
+    // data-asset-node-id로 그림을 짚으므로 주소 문자열은 검사의 관심 밖이다.
+    alias: {
+      './figma-asset-urls': fileURLToPath(
+        new URL('./src/components/figma-asset-urls.test-stub.ts', import.meta.url),
+      ),
+    },
     // 선택 목록 mock은 관례상 450ms 지연을 둔다(vada-conventions 7번).
     // 연쇄 선택을 여러 번 밟는 화면 테스트는 debounce 300ms까지 더해져
     // 기본 5초에 근접하고 부하가 걸리면 간헐적으로 넘긴다. 지연을 줄이면

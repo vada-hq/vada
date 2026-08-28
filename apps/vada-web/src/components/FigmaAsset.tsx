@@ -1,3 +1,4 @@
+import { urlByKey } from './figma-asset-urls'
 // figma.design.json이 assetRef로 가리키는 자산(아이콘 SVG·래스터 PNG)을 그린다.
 //
 // 자산의 단위는 벡터 하나가 아니라 '벡터만 품은 가장 바깥 노드'라서, 파일 하나가
@@ -5,21 +6,6 @@
 //
 // 어떤 자리에 어떤 자산이 오는지는 명세가 아니라 design이 갖는다(시각). 그래서
 // 호출부가 nodeId로 지목한다.
-const ASSET_URLS = import.meta.glob(
-  '../../../../specs/figma/vada-wireframe/screens/*/assets/*.{svg,png}',
-  { query: '?url', import: 'default', eager: true },
-) as Record<string, string>
-
-// 파일 이름은 nodeId의 ':'를 '-'로 바꾼 것이다(packages/contracts figmaAssetFileName).
-const urlByKey = new Map(
-  Object.entries(ASSET_URLS).map(([path, url]) => {
-    const parts = path.split('/')
-    const fileName = parts[parts.length - 1]
-    const screenId = parts[parts.length - 3]
-    return [`${screenId}/${fileName.replace(/\.(svg|png)$/, '')}`, url]
-  }),
-)
-
 export function assetUrl(screenId: string, nodeId: string): string {
   const key = `${screenId}/${nodeId.replace(/[^a-zA-Z0-9._-]/g, '-')}`
   const url = urlByKey.get(key)

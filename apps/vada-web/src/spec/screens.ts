@@ -31,7 +31,11 @@ import task01Json from '../../../../specs/figma/vada-wireframe/screens/TASK-01/s
 import opsMeet01aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01A/screen.json'
 import opsMeet02Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-02/screen.json'
 import opsMeet03aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03A/screen.json'
+import opsMeet04bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-04B/screen.json'
+import opsMeet05aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-05A/screen.json'
 import opsMeet09Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-09/screen.json'
+import opsMeetD01Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D01/screen.json'
+import opsMeetD04Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D04/screen.json'
 import evt00aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00A/screen.json'
 import evt02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-02/screen.json'
 import evtTask01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-01/screen.json'
@@ -86,7 +90,11 @@ export const task01 = asScreenSpec(task01Json)
 export const opsMeet01a = asScreenSpec(opsMeet01aJson)
 export const opsMeet02 = asScreenSpec(opsMeet02Json)
 export const opsMeet03a = asScreenSpec(opsMeet03aJson)
+export const opsMeet04b = asScreenSpec(opsMeet04bJson)
+export const opsMeet05a = asScreenSpec(opsMeet05aJson)
 export const opsMeet09 = asScreenSpec(opsMeet09Json)
+export const opsMeetD01 = asScreenSpec(opsMeetD01Json)
+export const opsMeetD04 = asScreenSpec(opsMeetD04Json)
 export const evt00a = asScreenSpec(evt00aJson)
 export const evt02 = asScreenSpec(evt02Json)
 export const evtTask01 = asScreenSpec(evtTask01Json)
@@ -129,7 +137,11 @@ export const ALL_SCREENS: ScreenSpec[] = [
   opsMeet01a,
   opsMeet02,
   opsMeet03a,
+  opsMeet04b,
+  opsMeet05a,
   opsMeet09,
+  opsMeetD01,
+  opsMeetD04,
   evt00a,
   evt02,
   evtTask01,

@@ -1935,6 +1935,35 @@ const DUES_BY_STATUS: Record<string, string> = {
 // cancelReason이 있다. 명세가 출처 하나로 두고 없는 것은 안 보내기로 한 그대로다.
 
 const MEETING_DETAIL: Record<string, DataRow> = {
+  'MTG-04': {
+    title: '체육대회 안전 관리 최종 회의',
+    description: '행사 전 안전 점검 결과를 공유하고 비상 연락망과 현장 안전 인력 배치를 최종 확정합니다.',
+    status: '진행 중',
+    statusTone: 'green',
+    kindLabel: '행사 관련 회의',
+    kindTone: 'gray',
+    eventTitle: '2026 소프트웨어융합대학 체육대회',
+    eventId: 'EVT-2026-SPORTS',
+    creatorNote: '박해랑 · 운영부',
+    scheduledAt: '2026.07.25 15:00',
+    plannedDurationNote: '1시간 30분',
+    place: '학생회실 (A204)',
+    inviteeCountNote: '/ 초대 4명',
+    viewerTitle: '일반 참가자 화면',
+    viewerNote: '회의록을 함께 작성할 수 있지만 회의를 끝내거나 안건을 넘길 수 없습니다.',
+    viewerChipLabel: '참석 처리됨 · 15:07 참가',
+    viewerChipTone: 'green',
+    canStart: '',
+    canEnd: '',
+    canEdit: '',
+    canCancel: '',
+    canManageHostRole: '',
+    canEditMinutes: '',
+    // 진행 중부터 오는 조각. 가만히 있어도 자라는 값이라 서버가 준 그대로 그린다.
+    startedAt: '15:00 시작',
+    elapsedNote: '진행 27분',
+    presentNote: '3명 참가 중',
+  },
   'MTG-05': {
     title: '체육대회 안전 관리 최종 회의',
     description:
@@ -2035,6 +2064,44 @@ const MEETING_DETAIL: Record<string, DataRow> = {
 }
 
 const MEETING_AGENDAS: Record<string, DataRow[]> = {
+  'MTG-04': [
+    {
+      agendaId: 'AG-04-1',
+      orderLabel: '안건 1',
+      title: '행사장 안전 점검 결과',
+      description: '본부석 뒤편 전선 구간에 케이블 커버를 추가하고 우천 시 실내 대기 장소를 사용하기로 했습니다.',
+      durationNote: '20분',
+      status: '논의 완료',
+      statusTone: 'gray',
+      decisionCountNote: '결정 1',
+      taskCountNote: '업무 1',
+    },
+    {
+      agendaId: 'AG-04-2',
+      orderLabel: '안건 2',
+      title: '비상 연락망 및 담당자 확정',
+      description: '상황별 최초 연락 담당자와 보고 순서를 확정합니다.',
+      durationNote: '예상 15분',
+      status: '진행 중',
+      statusTone: 'green',
+      isCurrent: 'y',
+      decisionText:
+        '비상 연락은 현장 담당자 → 운영본부 → 학생회장·학교 안전관리팀 순으로 진행합니다.',
+      decisionCountNote: '결정 1',
+      taskCountNote: '업무 1',
+    },
+    {
+      agendaId: 'AG-04-3',
+      orderLabel: '안건 3',
+      title: '행사 당일 안전 인력 배치',
+      description: '출입구, 경기장, 대기 구역별 담당 인원을 배치합니다.',
+      durationNote: '25분',
+      status: '대기',
+      statusTone: 'yellow',
+      decisionCountNote: '결정 0',
+      taskCountNote: '업무 0',
+    },
+  ],
   'MTG-05': [
     {
       agendaId: 'AG-05-1',
@@ -2099,6 +2166,51 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
 }
 
 const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
+  'MTG-04': [
+    {
+      memberId: 'M-01',
+      name: '박해랑',
+      department: '운영부',
+      departmentNote: '운영부 · 회의 참가자',
+      chips: [{ label: '진행 권한', tone: 'blue' }],
+      capabilityNote: '시작·종료 가능',
+      attendanceLabel: '15:00 참가',
+      attendanceTone: 'green',
+      isPresent: 'y',
+    },
+    {
+      memberId: 'M-02',
+      name: '정하늘',
+      department: '운영부',
+      departmentNote: '운영부 · 회의 참가자',
+      chips: [{ label: '진행 권한', tone: 'blue' }],
+      capabilityNote: '시작·종료 가능',
+      attendanceLabel: '15:02 참가',
+      attendanceTone: 'green',
+      isPresent: 'y',
+    },
+    {
+      memberId: 'M-03',
+      name: '이수현',
+      department: '기획부',
+      departmentNote: '기획부 · 회의 참가자',
+      chips: [],
+      capabilityNote: '일반 참가자',
+      attendanceLabel: '15:07 참가',
+      attendanceTone: 'green',
+      isPresent: 'y',
+    },
+    {
+      memberId: 'M-04',
+      name: '김민준',
+      department: '재정부',
+      departmentNote: '재정부 · 회의 참가자',
+      chips: [],
+      capabilityNote: '일반 참가자',
+      attendanceLabel: '미참석',
+      attendanceTone: 'gray',
+    },
+  ],
   'MTG-05': [
     {
       memberId: 'M-01',
@@ -2107,7 +2219,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       departmentNote: '운영부 · 회의 참가자',
       chips: [
         { label: '회의 생성자', tone: 'gray' },
-        { label: '진행 권한', tone: 'gray' },
+        { label: '진행 권한', tone: 'blue' },
       ],
       capabilityNote: '시작·종료 가능',
     },
@@ -2116,7 +2228,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       name: '정하늘',
       department: '운영부',
       departmentNote: '운영부 · 회의 참가자',
-      chips: [{ label: '진행 권한', tone: 'gray' }],
+      chips: [{ label: '진행 권한', tone: 'blue' }],
       capabilityNote: '시작·종료 가능',
       actionLabel: '권한 해제',
       actionEmphasis: 'secondary',
@@ -2144,7 +2256,53 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       actionEmphasis: 'primary',
       actionEnabled: 'y',
     },
+    {
+      memberId: 'M-05',
+      name: '이윤슬',
+      department: '홍보부',
+      departmentNote: '홍보부 · 회의 참가자',
+      chips: [],
+      capabilityNote: '일반 참가자',
+      actionLabel: '진행 권한 부여',
+      actionEmphasis: 'primary',
+      actionEnabled: 'y',
+    },
+    {
+      memberId: 'M-06',
+      name: '김바다',
+      department: '기획부',
+      departmentNote: '기획부 · 회의 참가자',
+      chips: [],
+      capabilityNote: '일반 참가자',
+      actionLabel: '진행 권한 부여',
+      actionEmphasis: 'primary',
+      actionEnabled: 'y',
+    },
   ],
+}
+
+// 회의를 만든 사람. 목록의 같은 사람과 값이 다르다 - 04B는 '권한 변경 및 회의
+// 관리 가능'이라 적고 03A는 '시작·종료 가능'이라 적는다.
+const MEETING_FOLLOW_UPS: Record<string, DataRow[]> = {
+  'MTG-04': [
+    {
+      taskId: 'TASK-04-1',
+      title: '비상 연락망 최종본 배포',
+      assigneeNote: '정하늘 · 07.23까지 · 위 결정사항에서 생성',
+    },
+  ],
+}
+
+const MEETING_HOST_OWNER: Record<string, DataRow> = {
+  'MTG-05': {
+    name: '박해랑',
+    departmentNote: '운영부 · 권한 변경 및 회의 관리 가능',
+    chips: [
+      { label: '회의 생성자', tone: 'gray' },
+      { label: '진행 권한', tone: 'blue' },
+    ],
+    capabilityNote: '필수 권한자',
+  },
 }
 
 // 회의 생성·수정 화면이 처음 받는 값(OPS-MEET-02). 값은 figma.design.json이 그린
@@ -2216,6 +2374,9 @@ const MEETING_CANDIDATES: DataRow[] = [
 ]
 
 const MEETING_DOCUMENTS: Record<string, DataRow[]> = {
+  'MTG-04': [
+    { documentId: 'DOC-4', name: '비상연락망_초안.xlsx', agendaId: 'AG-04-2' },
+  ],
   'MTG-05': [
     { documentId: 'DOC-1', name: '체육대회_안전점검표.pdf', agendaId: 'AG-05-1' },
     { documentId: 'DOC-2', name: '비상연락망_초안.xlsx', agendaId: 'AG-05-2' },
@@ -2264,11 +2425,17 @@ export const FILTERED_FIXTURES: Record<
   'meeting.agendas': ({ meetingId = '' }) => MEETING_AGENDAS[meetingId] ?? [],
   // 참가자는 03·05·07의 목록과 04B의 권한 관리가 같은 사람들이다. 검색은 04B만
   // 쓰지만 출처가 하나이므로 여기서 함께 거른다.
-  'meeting.participants': ({ meetingId = '', query = '' }) =>
-    (MEETING_PARTICIPANTS[meetingId] ?? []).filter((row) => matchesQuery(row, query)),
+  'meeting.participants': ({ meetingId = '', query = '', excludeHostOwner = '' }) =>
+    (MEETING_PARTICIPANTS[meetingId] ?? [])
+      .filter((row) => excludeHostOwner === '' || row.memberId !== 'M-01')
+      .filter((row) => matchesQuery(row, query)),
+  'meeting.hostOwner': ({ meetingId = '' }) => {
+    const row = MEETING_HOST_OWNER[meetingId]
+    return row === undefined ? [] : [row]
+  },
   'meeting.documents': ({ meetingId = '' }) => MEETING_DOCUMENTS[meetingId] ?? [],
   // 후속 업무는 와이어프레임이 빈 상태만 그렸다. 지어내지 않는다.
-  'meeting.followUps': () => [],
+  'meeting.followUps': ({ meetingId = '' }) => MEETING_FOLLOW_UPS[meetingId] ?? [],
   'meeting.minutes': ({ meetingId = '' }) =>
     meetingId === 'MTG-06'
       ? [
@@ -2307,10 +2474,10 @@ export const FILTERED_FIXTURES: Record<
             grantNote:
               '진행 권한자는 회의 시작·종료, 안건 진행, 결정 기록과 회의록 정리를 할 수 있습니다.',
             limitNote:
-              '회의 수정·취소와 다른 참가자의 권한 변경은 회의 생성자만 할 수 있습니다.',
+              '회의 수정·취소와 다른 사람의 권한 변경은 회의 생성자만 할 수 있습니다.',
             ruleChipLabel: '최소 1명 유지',
-            ruleChipTone: 'gray',
-            summaryNote: '현재 진행 권한자 2명 · 일반 참가자 2명',
+            ruleChipTone: 'yellow',
+            summaryNote: '현재 진행 권한자 2명 · 일반 참가자 3명',
           },
         ],
   'meeting.startConfirm': () => [

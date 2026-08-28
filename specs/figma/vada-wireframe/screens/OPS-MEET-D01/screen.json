@@ -1,0 +1,99 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-D01",
+  "meta": {
+    "eyebrow": null,
+    "title": "회의를 시작할까요?"
+  },
+  "overlay": {
+    "screenId": "OPS-MEET-03A",
+    "source": "20:3107"
+  },
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-05",
+      "missingNote": "어느 회의를 시작할지 정하지 않고 열렸습니다. 회의 상세에서 ‘회의 시작’을 누르면 이 확인이 열립니다.",
+      "description": "무엇을 시작할지. 뒤에 남아 있는 회의 상세(OPS-MEET-03A)가 정한다. 살펴본 결과를 집어 올 때도, 시작을 보낼 때도 이 값이 쓰인다."
+    }
+  ],
+  "activeNavigationScreenId": "OPS-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:2781",
+    "name": "운영 — 회의 · 확인 상태 · OPS-MEET-D01 · 회의 시작 확인",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:3109",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의를 시작할까요?",
+        "description": "시작하면 회의 상태가 ‘진행 중’으로 변경되고 참가자에게 ‘회의 참가’ 버튼이 활성화됩니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3119",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "warningNote",
+        "dataSourceKey": "meeting.startConfirm",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3123",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "돌아가기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "OPS-MEET-03A",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:3125",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "회의 시작",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.start",
+          "onSuccess": {}
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-05B",
+  "meta": {
+    "eyebrow": null,
+    "title": "진행 중 회의 — 진행 권한자"
+  },
+  "variantOf": {
+    "screenId": "OPS-MEET-05A",
+    "when": "이 회의를 진행할 수 있는 사람이 볼 때(meeting.detail의 canEnd가 참). 머리 오른쪽의 참석 딱지 자리에 '회의 종료'가 대신 오고, 안건 카드에 '이 안건 논의 완료', 안건 목록 아래에 '다음 안건 시작', 결정사항에 '내용 수정'이 붙는다. 결정을 더하는 단추의 글도 '결정 의견 추가'에서 '결정 추가'로 바뀐다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:1179",
+    "name": "운영 — 회의 · OPS-MEET-05B · 진행 중 회의 — 진행 권한자",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:1268",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "회의 종료",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "누르면 종료 확인 모달(OPS-MEET-D02)이 이 화면 위에 뜨는데, 그 모달이 아직 명세되지 않았습니다. meeting.end는 그 모달의 확인이 보냅니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1324",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "이 안건 논의 완료",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.completeAgenda",
+          "onSuccess": {}
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1372",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "결정 추가",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "누르면 무엇이 열리는지 그려진 프레임이 없습니다. 05A의 '결정 의견 추가'와 같은 것인지 다른 것인지도 그림이 말하지 않습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1382",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "내용 수정",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "누르면 결정이 고쳐지는 모습이 그려진 프레임이 없습니다. 여기서 고친 것을 어디로 보내는지도 그림이 말하지 않습니다 — meeting.saveMinutes는 06B의 정리 화면이 보내는 것입니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:1464",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "다음 안건 시작",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.startNextAgenda",
+          "onSuccess": {}
+        }
+      }
+    }
+  ]
+}

@@ -210,6 +210,9 @@ export interface SummarySpec {
     field: string
     toneField: string
   }>
+  // 딱지 목록이 통째로 담긴 조각. status와 갈리는 것은 개수를 누가 정하느냐다 -
+  // status는 명세가 알고(서로 다른 사실 둘), 이것은 데이터가 안다(사람마다 다르다).
+  statusField?: string
   // 이 요약 **자체의** 색 이름이 담긴 조각. status의 toneField는 곁에 붙는 딱지의
   // 색이고 이것은 띠나 카드 통째의 색이다 - 그려지는 자리가 다르다.
   toneField?: string
