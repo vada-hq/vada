@@ -25,7 +25,15 @@ test('화면을 옮기면 주소가 따라가고 뒤로 가기가 동작한다',
   await expect(page.getByText('운영 공간', { exact: true })).toBeVisible()
 })
 
+// 화면 목록은 **개발 빌드에만** 있다(App이 import.meta.env.DEV로 가른다).
+// 그래서 이 검사는 어느 빌드를 치는지에 따라 반대의 것을 물어야 한다 —
+// 개발 빌드에는 있어야 하고, 내보낼 묶음에는 없어야 한다. 둘 다 물어야
+// 어느 쪽도 조용히 틀리지 않는다.
+const preview = process.env.E2E_PREVIEW === '1'
+
 test('개발용 화면 목록이 등록된 화면을 모두 보여준다', async ({ page }) => {
+  test.skip(preview, '내보낼 묶음에는 이 목록이 들어가지 않는다')
+
   await page.goto('/#/HOME-01K')
 
   await page.getByRole('button', { name: /화면 HOME-01K/ }).click()
@@ -49,4 +57,12 @@ test('개발용 화면 목록이 등록된 화면을 모두 보여준다', async
 
   await panel.getByText('MY-01', { exact: true }).click()
   await expect(page).toHaveURL(/#\/MY-01$/)
+})
+
+test('내보낼 묶음에는 개발용 화면 목록이 들어가지 않는다', async ({ page }) => {
+  test.skip(!preview, '개발 서버를 칠 때는 이 목록이 있는 것이 맞다')
+
+  await page.goto('/#/HOME-01K')
+
+  await expect(page.getByRole('button', { name: /화면 HOME-01K/ })).toHaveCount(0)
 })
