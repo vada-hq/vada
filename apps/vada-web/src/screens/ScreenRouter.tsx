@@ -20,6 +20,9 @@ import { INV01Screen } from './INV01Screen'
 import { MY01Screen } from './MY01Screen'
 import { OPS00Screen } from './OPS00Screen'
 import { OPSMEET01AScreen } from './OPSMEET01AScreen'
+import { OPSMEET02Screen } from './OPSMEET02Screen'
+import { OPSMEET03AScreen } from './OPSMEET03AScreen'
+import { OPSMEET09Screen } from './OPSMEET09Screen'
 import { TASK01Screen } from './TASK01Screen'
 import { ONB01Screen } from './ONB01Screen'
 import { ONB02Screen } from './ONB02Screen'
@@ -34,7 +37,17 @@ import { ORG07AScreen } from './ORG07AScreen'
 import { ORG07BScreen } from './ORG07BScreen'
 import { ORG07CScreen } from './ORG07CScreen'
 import { ORG02Screen } from './ORG02Screen'
-import { finReq01, finRev01, finSup01, inv01, onb01, org01, org02, org03b } from '../spec/screens'
+import {
+  finReq01,
+  finRev01,
+  finSup01,
+  inv01,
+  onb01,
+  opsMeet02,
+  org01,
+  org02,
+  org03b,
+} from '../spec/screens'
 import { readScopeDraft } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
@@ -100,6 +113,28 @@ export function ScreenRouter({
   if (screenId === 'OPS-MEET-01A') {
     // 회의 목록이다. 거르는 값(검색어)은 화면 안에서만 쓰므로 스코프에 담지 않는다.
     return <OPSMEET01AScreen onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-02') {
+    // 회의를 만들거나 고친다. 회의 id가 있으면 그것을 읽어 채우고, 없으면 아직
+    // 아무것도 적히지 않은 회의를 받아 새로 쓴다(FIN-REQ-01과 같은 겸용 화면).
+    return (
+      <OPSMEET02Screen
+        screenParams={screenParams}
+        draft={readScopeDraft(scopes, opsMeet02.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(opsMeet02.stateScopeKey ?? '', next)}
+        onNavigate={onNavigate}
+        onScopeEvent={onScopeEvent}
+      />
+    )
+  }
+  if (screenId === 'OPS-MEET-03A') {
+    // 예정 회의 상세다. 어느 회의인지는 주소가 실어 온다. 보는 사람에 따라 셋으로
+    // 갈리는 그림 중 일반 참가자의 것이고, 03B·03C는 변형이라 주소가 없다.
+    return <OPSMEET03AScreen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'OPS-MEET-09') {
+    // 취소된 회의 상세다. 무엇의 상세인지는 화면 안에 없고 주소가 실어 온다.
+    return <OPSMEET09Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'EVT-02') {
     // 행사 개요다. 행사 작업 공간의 첫 갈피이고, 어느 행사인지는 주소가 실어 온다.

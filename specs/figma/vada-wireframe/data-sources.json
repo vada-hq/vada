@@ -3378,7 +3378,7 @@
         },
         {
           "key": "stateBannerTone",
-          "description": "그 띠의 색 이름. 예: info · warning · success · danger",
+          "description": "그 띠의 색 이름. 다른 톤 조각과 같이 **색 이름**이다(design/tones.ts의 BANNER_TONE이 이름을 색으로 옮긴다). 예: blue · yellow · red",
           "optional": true
         },
         {
@@ -3608,6 +3608,10 @@
         {
           "key": "name",
           "description": "이름"
+        },
+        {
+          "key": "department",
+          "description": "소속만. 03 계열은 줄에 '운영부'만 그리고 할 수 있는 일은 오른쪽에 따로 그린다. 04B는 같은 줄에 '운영부 · 회의 참가자'를 한 덩이로 그리므로 조각이 둘 필요하다 — 한 조각이 두 그림을 담을 수 없다."
         },
         {
           "key": "departmentNote",
@@ -4065,6 +4069,11 @@
             {
               "key": "actionLabel",
               "description": "줄 오른쪽 단추의 말. 명세가 들지 않는다",
+              "optional": true
+            },
+            {
+              "key": "actionEmphasis",
+              "description": "그 단추의 강조도. 글만으로는 부족하다 — 권한을 빼는 것과 주는 것이 줄마다 다른 색으로 그려진다. meeting.participants가 같은 짝을 갖는다.",
               "optional": true
             },
             {

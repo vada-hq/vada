@@ -116,6 +116,13 @@ const FLOOR = {
   // 변형 셋이다. 같은 화면을 다른 사람이 볼 때이므로 요소가 거의 없고,
   // 추출기는 그림을 통째로 훑으므로 헛것만 나온다.
   "OPS-MEET-01B": { matched: 0, spurious: 2 },
+  // 회의 계열. 초안이 03A를 통째로 못 봤다(맞춤 0) — 상세 화면의 요약 카드와
+  // 목록이 전부 안 잡힌다. 02는 절 다섯짜리 폼이라 되풀이를 여러 벌로 뽑는다.
+  "OPS-MEET-02": { matched: 19, spurious: 14 },
+  "OPS-MEET-03A": { matched: 0, spurious: 2 },
+  "OPS-MEET-03B": { matched: 4, spurious: 2 },
+  "OPS-MEET-03C": { matched: 1, spurious: 1 },
+  "OPS-MEET-09": { matched: 1, spurious: 0 },
   "OPS-MEET-01C": { matched: 1, spurious: 2 },
   "OPS-MEET-01D": { matched: 0, spurious: 2 },
   "ORG-00": { matched: 0, spurious: 1 },

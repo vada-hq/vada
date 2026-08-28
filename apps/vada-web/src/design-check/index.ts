@@ -500,7 +500,14 @@ export function compareBoxes(container: Element, boxes: DesignBox[]): Difference
         continue
       }
       if (!elements.some((element) => sameColor(ownPaint(element, prefix), wanted))) {
-        const holder = innermost(holders)
+        // 어긋났다고 알릴 때는 **실제로 칠한 요소**를 고른다. 색은 바깥 칸에
+        // 있고 글은 그 안 껍데기에 있는 일이 흔한데, 가장 안쪽만 보면 '지정
+        // 없음'이라 알린다 — 화면은 칠했는데 안 칠했다고 하는 셈이고, 일부러
+        // 어긋나기로 한 자리(deviations)가 어긋남을 숨긴 자리처럼 보인다.
+        const painted = holders.find(
+          (candidate) => ownPaint(candidate.element, prefix) !== null,
+        )
+        const holder = painted ?? innermost(holders)
         differences.push({
           content: box.content,
           kind,

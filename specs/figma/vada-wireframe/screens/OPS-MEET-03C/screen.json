@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-03C",
+  "meta": {
+    "eyebrow": null,
+    "title": "예정 회의 상세"
+  },
+  "variantOf": {
+    "screenId": "OPS-MEET-03A",
+    "when": "이 회의의 진행 권한을 받은 사람이 볼 때(meeting.detail의 canStart는 참이지만 canEdit·canCancel·canManageHostRole은 거짓). 머리에 '회의 시작'만 그려지고, 참가자 카드 머리에는 단추 대신 읽기 전용 표시가 붙는다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:328",
+    "name": "운영 — 회의 · OPS-MEET-03C · 예정 회의 상세 — 진행 권한자",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:417",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "회의 시작",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "누르면 시작 확인 모달(OPS-MEET-D01)이 떠야 하는데, 그 모달이 아직 명세되지 않았고 디자인은 그 모달을 03B 위에만 그렸습니다 — 이 화면 위에 뜨는지도 그림이 답하지 않습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:581",
+        "name": "Text",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "읽기 전용"
+      }
+    }
+  ]
+}

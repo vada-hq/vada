@@ -23,6 +23,69 @@ export const DEVIATIONS: Deviation[] = [
   // --- 규칙에 건다: 화면이 몇이든 한 줄 ---------------------------------------
   {
     by: 'rule',
+    rule: 'choice-group',
+    kind: '굵기',
+    design: '700',
+    screen: '600',
+    why:
+      '고르기 묶음의 글은 semibold로 통일한다(components/ChoiceGroup.tsx). ' +
+      'ORG-01·ORG-02는 600으로 그려졌는데 OPS-MEET-02만 700이다. ' +
+      '선택지를 하나 더 만들 때 무슨 굵기를 줄지 와이어프레임을 열어 보지 않아야 한다.',
+  },
+  {
+    by: 'rule',
+    rule: 'choice-group',
+    kind: '테두리',
+    design: 'blue-500(#2B7FFF)',
+    screen: 'blue-400(#51A2FF)',
+    why:
+      '고른 선택지의 테두리는 톤의 -400으로 통일한다(components/ChoiceGroup.tsx). ' +
+      'ORG-01·ORG-02는 -400인데 OPS-MEET-02만 -500이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'choice-group',
+    kind: '색',
+    design: 'blue-700(#1447E6)',
+    screen: 'blue-800(#193CB8)',
+    why:
+      '고른 선택지의 글은 톤의 -800으로 통일한다. ORG-01·ORG-02는 -800인데 ' +
+      'OPS-MEET-02만 -700이다. 흔들림이므로 따르지 않는다.',
+  },
+  {
+    by: 'rule',
+    rule: 'state-banner',
+    kind: '테두리',
+    design: 'blue-100(#DBEAFE)',
+    screen: 'blue-200(#BEDBFF)',
+    why:
+      '상태 띠의 테두리는 톤의 -200으로 통일한다(design/tones.ts의 BANNER_TONE). ' +
+      '와이어프레임이 흔들린다 — 03A의 파란 띠만 -100이고 09의 붉은 띠는 -200이다. ' +
+      '상태가 하나 늘 때 무슨 색을 줄지 규칙만 보고 정할 수 있어야 한다.',
+  },
+  {
+    by: 'rule',
+    rule: 'state-banner',
+    kind: '색',
+    design: 'red-900(#82181A)',
+    screen: 'red-800(#9F0712)',
+    why:
+      '상태 띠의 제목은 톤의 -800으로 통일한다(design/tones.ts의 BANNER_TEXT). ' +
+      '와이어프레임이 흔들린다 — 03A의 파란 띠는 -800인데 09의 붉은 띠만 -900이다.',
+  },
+  {
+    by: 'rule',
+    rule: 'state-banner',
+    kind: '색',
+    design: 'red-800(#9F0712)',
+    screen: 'red-700(#C10007)',
+    why:
+      '상태 띠의 본문은 톤의 -700으로 통일한다(design/tones.ts의 BANNER_TEXT). ' +
+      '와이어프레임이 흔들린다 — 03A의 파란 띠는 -700인데 09의 붉은 띠만 -800이다. ' +
+      '06의 노란 띠를 만들 때 와이어프레임을 다시 열지 않으려면 규칙이 하나여야 한다.',
+  },
+  {
+    by: 'rule',
     rule: 'status-chip',
     kind: '색',
     design: 'red-700(#C10007)',
@@ -458,5 +521,29 @@ export const DEVIATIONS: Deviation[] = [
     design: 'gray-400(#99A1AF)',
     screen: '화면에 없음',
     why: '같은 범위를 뒤의 화면은 ›로, 모달은 ·로 그렸다. 서버가 주는 한 벌을 그대로 쓴다.',
+  },
+  // --- 자리에 건다: 와이어프레임의 일회성 사고 ---------------------------------
+  {
+    by: 'place',
+    screenId: 'OPS-MEET-02',
+    content: '*',
+    kind: '글 없음',
+    design: 'red-500(#FB2C36)',
+    screen: '화면에 없음',
+    why:
+      '읽기 전용 칸은 required가 될 수 없다(input.schema.json: "고칠 수 없으므로 ' +
+      'required도 될 수 없다"). 와이어프레임이 주최자에만 필수 별표를 붙였는데 그 ' +
+      '칸은 회색이고 값도 서버가 준다. FIN-REQ-01의 요청 부서는 같은 처지에 별표가 ' +
+      '없다 — 일회성 사고로 본다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-MEET-02',
+    content:
+      '2 기본 정보 회의의 목적과 책임자를 명확하게 기록합니다. 회의명 * 체육대회 안전 관리 최종 회의 주최자 * 이수현 주관 부서 * 회의 상태 예정 새 회의는 예정 상태로 생성됩니다. 회의 목적 *',
+    kind: '칸 없음',
+    design: '배경 white(#FFFFFF) / 테두리 gray-200(#E5E7EB)',
+    screen: '화면에 없음',
+    why: '위와 같은 사고다 — 별표 하나가 빠져 절의 글줄이 통째로 어긋난다.',
   },
 ]

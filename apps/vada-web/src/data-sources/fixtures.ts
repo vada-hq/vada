@@ -1937,11 +1937,12 @@ const DUES_BY_STATUS: Record<string, string> = {
 const MEETING_DETAIL: Record<string, DataRow> = {
   'MTG-05': {
     title: '체육대회 안전 관리 최종 회의',
-    description: '행사 전 안전 점검 결과를 공유하고 당일 대응 절차를 확정합니다.',
+    description:
+      '행사 전 안전 점검 결과를 공유하고 비상 연락망과 현장 안전 인력 배치를 최종 확정합니다.',
     status: '예정',
     statusTone: 'blue',
     kindLabel: '행사 관련 회의',
-    kindTone: 'violet',
+    kindTone: 'gray',
     eventTitle: '2026 소프트웨어융합대학 체육대회',
     eventId: 'EVT-2026-SPORTS',
     creatorNote: '박해랑 · 운영부',
@@ -1952,12 +1953,13 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     inviteeCountNote: '4명',
     viewerTitle: '일반 참가자 화면',
     viewerNote: '회의 정보를 확인할 수 있지만 회의를 시작하거나 설정을 변경할 수 없습니다.',
-    viewerChipLabel: '',
-    viewerChipTone: '',
+    viewerChipLabel: '예정 회의',
+    viewerChipTone: 'gray',
     stateBannerTitle: '아직 회의가 시작되지 않았습니다',
+    // 굽은 따옴표(U+2018/U+2019)다. design이 그렇게 그렸다.
     stateBannerNote:
-      '회의가 시작되면 목록과 이 화면의 버튼이 회의 참가로 변경됩니다. 이 화면을 확인한 것은 참석으로 기록되지 않습니다.',
-    stateBannerTone: 'info',
+      '회의가 시작되면 목록과 이 화면의 버튼이 ‘회의 참가’로 변경됩니다. 이 화면을 확인한 것은 참석으로 기록되지 않습니다.',
+    stateBannerTone: 'blue',
     canStart: '',
     canEnd: '',
     canEdit: '',
@@ -1987,7 +1989,7 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     viewerChipTone: 'gray',
     stateBannerTitle: '회의록을 정리하고 있습니다',
     stateBannerNote: '정리가 끝나면 참석자에게 최종 회의록이 전달됩니다.',
-    stateBannerTone: 'warning',
+    stateBannerTone: 'yellow',
     canStart: '',
     canEnd: '',
     canEdit: '',
@@ -2000,7 +2002,7 @@ const MEETING_DETAIL: Record<string, DataRow> = {
   },
   'MTG-07': {
     title: '가을 축제 1차 준비회의',
-    description: '축제 부스 배치와 예산 배분을 논의할 예정이었습니다.',
+    description: '가을 축제 운영 방향과 부서별 준비 범위를 논의할 예정이었습니다.',
     status: '취소',
     statusTone: 'red',
     creatorNote: '김바다 · 기획부',
@@ -2012,18 +2014,22 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     viewerChipLabel: '',
     viewerChipTone: '',
     stateBannerTitle: '이 회의는 취소되었습니다',
-    stateBannerNote: '일정 조율이 어려워 취소되었고, 대체 회의가 만들어졌습니다.',
-    stateBannerTone: 'danger',
+    stateBannerNote:
+      '행사 일정 확정이 지연되어 기존 회의를 취소하고 날짜를 다시 조율합니다.',
+    stateBannerTone: 'red',
     canStart: '',
     canEnd: '',
     canEdit: '',
     canCancel: '',
     canManageHostRole: '',
     canEditMinutes: '',
-    cancelReason: '행사 주관 부서의 일정이 겹쳐 참석 가능한 인원이 절반에 못 미쳤습니다.',
+    cancelReason:
+      '행사 일정 확정이 지연되어 참가자들이 참석 가능한 새로운 날짜를 조사한 뒤 회의를 다시 만들기로 했습니다.',
     cancelledByNote: '김바다 · 기획부',
     cancelledAtNote: '2026.07.29 11:20',
-    replacementNote: '새로운 일정을 조율한 뒤 가을 축제 운영 방향 회의가 생성되었습니다.',
+    // 굽은 따옴표(U+2018/U+2019)다. design이 그렇게 그렸고 대조는 글자를 그대로 견준다.
+    replacementNote:
+      '새로운 일정을 조율한 뒤 ‘가을 축제 운영 방향 회의’가 생성되었습니다.',
     replacementMeetingId: 'MTG-08',
   },
 }
@@ -2034,7 +2040,8 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
       agendaId: 'AG-05-1',
       orderLabel: '안건 1',
       title: '행사장 안전 점검 결과',
-      description: '사전 점검에서 확인한 위험 구간과 조치 계획을 공유합니다.',
+      description:
+        '본부석 뒤편 전선 구간에 케이블 커버를 추가하고 우천 시 실내 대기 장소를 사용하기로 했습니다.',
       durationNote: '20분',
       status: '대기',
       statusTone: 'gray',
@@ -2042,9 +2049,9 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
     {
       agendaId: 'AG-05-2',
       orderLabel: '안건 2',
-      title: '당일 안전 대응 절차',
-      description: '사고 발생 시 연락 체계와 대응 순서를 정합니다.',
-      durationNote: '25분',
+      title: '비상 연락망 및 담당자 확정',
+      description: '상황별 최초 연락 담당자와 보고 순서를 확정합니다.',
+      durationNote: '15분',
       status: '대기',
       statusTone: 'gray',
     },
@@ -2052,8 +2059,8 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
       agendaId: 'AG-05-3',
       orderLabel: '안건 3',
       title: '행사 당일 안전 인력 배치',
-      description: '구간별 인력 수와 교대 시간을 확정합니다.',
-      durationNote: '15분',
+      description: '출입구, 경기장, 대기 구역별 담당 인원을 배치합니다.',
+      durationNote: '25분',
       status: '대기',
       statusTone: 'gray',
     },
@@ -2096,18 +2103,20 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
     {
       memberId: 'M-01',
       name: '박해랑',
+      department: '운영부',
       departmentNote: '운영부 · 회의 참가자',
       chips: [
-        { label: '회의 생성자', tone: 'violet' },
-        { label: '진행 권한', tone: 'blue' },
+        { label: '회의 생성자', tone: 'gray' },
+        { label: '진행 권한', tone: 'gray' },
       ],
       capabilityNote: '시작·종료 가능',
     },
     {
       memberId: 'M-02',
       name: '정하늘',
+      department: '운영부',
       departmentNote: '운영부 · 회의 참가자',
-      chips: [{ label: '진행 권한', tone: 'blue' }],
+      chips: [{ label: '진행 권한', tone: 'gray' }],
       capabilityNote: '시작·종료 가능',
       actionLabel: '권한 해제',
       actionEmphasis: 'secondary',
@@ -2116,6 +2125,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
     {
       memberId: 'M-03',
       name: '이수현',
+      department: '기획부',
       departmentNote: '기획부 · 회의 참가자',
       chips: [],
       capabilityNote: '일반 참가자',
@@ -2126,6 +2136,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
     {
       memberId: 'M-04',
       name: '김민준',
+      department: '재정부',
       departmentNote: '재정부 · 회의 참가자',
       chips: [],
       capabilityNote: '일반 참가자',
@@ -2134,6 +2145,65 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       actionEnabled: 'y',
     },
   ],
+}
+
+// 회의 생성·수정 화면이 처음 받는 값(OPS-MEET-02). 값은 figma.design.json이 그린
+// 예시를 그대로 옮긴 것이라 구현 화면과 reference.png를 눈으로 대조할 수 있다.
+//
+// **MEETING_DETAIL과 사람이 다르다.** 이 그림에서 회의를 만드는 사람은 이수현이고
+// 03·05·07이 그린 회의의 생성자는 박해랑이다. 와이어프레임이 그렇게 그렸고,
+// 픽스처가 그림을 대신하는 자리이므로 그대로 옮긴다.
+const MEETING_DRAFT: Record<string, DataRow> = {
+  'MTG-05': {
+    title: '체육대회 안전 관리 최종 회의',
+    hostName: '이수현',
+    statusLabel: '예정',
+    meetingType: 'event',
+    place: '학생회실 (A204)',
+    participants: [
+      {
+        memberId: 'M-03',
+        name: '이수현',
+        departmentNote: '기획부',
+        chips: [
+          { label: '회의 생성자', tone: 'gray' },
+          { label: '진행 권한', tone: 'blue' },
+        ],
+      },
+      {
+        memberId: 'M-01',
+        name: '박해랑',
+        departmentNote: '운영부',
+        chips: [{ label: '진행 권한', tone: 'blue' }],
+        actionLabel: '권한 해제',
+        actionEmphasis: 'danger',
+        canRemove: 'y',
+      },
+      {
+        memberId: 'M-02',
+        name: '정하늘',
+        departmentNote: '운영부',
+        chips: [{ label: '진행 권한', tone: 'blue' }],
+        actionLabel: '권한 해제',
+        actionEmphasis: 'danger',
+        canRemove: 'y',
+      },
+      {
+        memberId: 'M-04',
+        name: '김민준',
+        departmentNote: '재정부',
+        chips: [],
+        actionLabel: '진행 권한 부여',
+        actionEmphasis: 'primary',
+        canRemove: 'y',
+      },
+    ],
+    agendaItems: [
+      { agendaTitle: '행사장 안전 점검 결과', attachmentName: '체육대회_안전점검표.pdf' },
+      { agendaTitle: '비상 연락망 및 담당자 확정', attachmentName: '' },
+      { agendaTitle: '행사 당일 안전 인력 배치', attachmentName: '안전인력_배치초안.xlsx' },
+    ],
+  },
 }
 
 const MEETING_CANDIDATES: DataRow[] = [
@@ -2148,8 +2218,8 @@ const MEETING_CANDIDATES: DataRow[] = [
 const MEETING_DOCUMENTS: Record<string, DataRow[]> = {
   'MTG-05': [
     { documentId: 'DOC-1', name: '체육대회_안전점검표.pdf', agendaId: 'AG-05-1' },
-    { documentId: 'DOC-2', name: '대응절차_초안.docx', agendaId: 'AG-05-2' },
-    { documentId: 'DOC-3', name: '인력배치_안.xlsx', agendaId: 'AG-05-3' },
+    { documentId: 'DOC-2', name: '비상연락망_초안.xlsx', agendaId: 'AG-05-2' },
+    { documentId: 'DOC-3', name: '안전인력_배치초안.xlsx', agendaId: 'AG-05-3' },
   ],
 }
 
@@ -2270,10 +2340,11 @@ export const FILTERED_FIXTURES: Record<
         ]
   },
   // 회의를 새로 쓸 때는 서버가 아는 것만 채워 온다.
+  // 새로 쓰면 서버가 아는 것만 채워 온다. 고치러 들어오면 그 회의를 통째로 준다.
   'meeting.draft': ({ meetingId = '' }) =>
     meetingId === ''
       ? [{ hostName: '박해랑', statusLabel: '예정' }]
-      : [{ hostName: '박해랑', statusLabel: '예정', title: MEETING_DETAIL[meetingId]?.title ?? '' }],
+      : [MEETING_DRAFT[meetingId] ?? { hostName: '박해랑', statusLabel: '예정' }],
   'meeting.memberCandidates': ({ query = '' }) =>
     MEETING_CANDIDATES.filter((row) => matchesQuery(row, query)),
   'meeting.groups': ({ query = '' }) =>

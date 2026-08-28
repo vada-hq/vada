@@ -1,0 +1,642 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-02",
+  "stateScopeKey": "meetingDraft",
+  "params": [
+    {
+      "key": "meetingId",
+      "optional": true,
+      "example": "MTG-05",
+      "description": "고치려는 회의. 없으면 새로 만드는 것이다 — 이 화면은 생성과 수정을 겸한다(FIN-REQ-01의 requestId 선례). 회의 목록·상세가 정한다."
+    }
+  ],
+  "draftFrom": {
+    "dataSourceKey": "meeting.draft",
+    "params": {
+      "meetingId": {
+        "screenParam": "meetingId"
+      }
+    }
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "새 회의 만들기",
+    "description": null,
+    "footerNote": "임시 저장한 회의는 다른 참가자에게 표시되지 않습니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "18:2245",
+    "name": "운영 — 회의 · OPS-MEET-02 · 회의 생성·수정",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "18:2338",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의 정보 입력",
+        "description": "참가자와 안건을 미리 등록하면 회의 진행과 회의록 정리를 한 공간에서 이어갈 수 있습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2343",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "회의 유형",
+        "description": "행사 연결은 선택 사항이며 행사 관련 회의일 때만 연결 행사를 지정합니다.",
+        "memberFieldKeys": [
+          "meetingType",
+          "linkedEventId"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2352",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "meetingType",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "meeting.types"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2370",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "linkedEventId",
+        "label": "연결 행사",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.linkable"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2378",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "기본 정보",
+        "description": "회의의 목적과 책임자를 명확하게 기록합니다.",
+        "memberFieldKeys": [
+          "title",
+          "hostName",
+          "departmentId",
+          "statusLabel",
+          "purpose"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2388",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "title",
+        "label": "회의명",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2394",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "hostName",
+        "label": "주최자",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "readOnly": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2400",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "departmentId",
+        "label": "주관 부서",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "org.departments"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2408",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "statusLabel",
+        "label": "회의 상태",
+        "placeholder": null,
+        "helperText": "새 회의는 예정 상태로 생성됩니다.",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "readOnly": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2415",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "purpose",
+        "label": "회의 목적",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "multiline": true,
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2420",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "일정과 장소",
+        "description": "예정 시간을 등록하고 실제 시작·종료 시각은 회의 진행 단계에서 기록합니다.",
+        "memberFieldKeys": [
+          "date",
+          "startTime",
+          "endTime",
+          "mode",
+          "place",
+          "onlineLink"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2430",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "date",
+        "label": "회의 날짜",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "date",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2435",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "startTime",
+        "label": "시작 예정 시각",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "time",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2440",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "endTime",
+        "label": "종료 예정 시각",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "time",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2445",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "mode",
+        "label": "진행 방식",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "meeting.modes"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2454",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "place",
+        "label": "장소",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2460",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "onlineLink",
+        "label": "온라인 링크",
+        "placeholder": "온라인 접속 링크를 입력",
+        "helperText": "오프라인 회의에서는 입력하지 않습니다.",
+        "initialValue": null,
+        "inputType": "url",
+        "valueType": "string",
+        "required": false,
+        "readOnly": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2467",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "참가자와 진행 권한",
+        "description": "참가자를 초대하고 회의를 시작·종료할 진행 권한자를 지정합니다.",
+        "memberFieldKeys": [
+          "isPrivate",
+          "memberQuery",
+          "participants"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2477",
+        "name": "Text",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "label": "선택됨",
+            "unit": "명",
+            "compute": {
+              "op": "count",
+              "listFieldKey": "participants"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2479",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "isPrivate",
+        "label": "비공개 회의",
+        "placeholder": null,
+        "helperText": "모든 구성원의 전체 회의 목록에 표시됩니다.",
+        "initialValue": null,
+        "inputType": "checkbox",
+        "valueType": "boolean",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2492",
+        "name": "Text Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "memberQuery",
+        "label": "이름 또는 부서로 구성원 검색",
+        "labelHidden": true,
+        "placeholder": "이름 또는 부서로 구성원 검색",
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2500",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "list",
+        "fieldKey": "participants",
+        "itemNoun": "참가자",
+        "addLabel": "참가자 추가",
+        "minItems": 1,
+        "maxItems": 50,
+        "itemActions": [
+          "remove"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2574",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "진행 권한자는 회의를 시작·종료하고 안건과 회의록을 정리할 수 있습니다. 다른 사람의 권한을 변경하거나 회의를 취소하는 작업은 회의 생성자만 할 수 있습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2582",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "회의록 작성자는 별도로 지정하지 않습니다. 회의에 참가한 구성원은 공동으로 회의록을 작성할 수 있습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2584",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "안건과 사전 자료",
+        "description": "안건 순서에 따라 회의를 진행하고 안건별 회의록과 결정사항을 기록합니다.",
+        "memberFieldKeys": [
+          "agendaItems"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2599",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "list",
+        "fieldKey": "agendaItems",
+        "itemNoun": "안건",
+        "addLabel": "안건 추가",
+        "minItems": 1,
+        "maxItems": 20,
+        "itemActions": [
+          "remove"
+        ],
+        "itemTitleFieldKey": "agendaTitle",
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "18:2619",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "agendaTitle",
+              "label": "안건명",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "18:2625",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "agendaNote",
+              "label": "안건 설명",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "text",
+              "multiline": true,
+              "valueType": "string",
+              "required": false,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "18:2629",
+              "name": "Container",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "attachmentName",
+              "label": "사전 자료",
+              "placeholder": "첨부된 자료 없음",
+              "initialValue": null,
+              "inputType": "file",
+              "valueType": "string",
+              "required": false,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "18:2649",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "select",
+              "fieldKey": "duration",
+              "label": "예상 소요 시간",
+              "placeholder": null,
+              "initialValue": null,
+              "valueType": "string",
+              "required": false,
+              "initiallyDisabled": false,
+              "searchable": false,
+              "optionsSource": {
+                "key": "meeting.agendaDurations"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2774",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "취소",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "취소하면 어디로 가는지가 디자인에 없습니다. 적어 둔 것을 버릴지 물어보는지도 그려져 있지 않습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2776",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "임시 저장",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.saveDraft",
+          "onSuccess": {}
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:2778",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "회의 만들기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "meeting.create",
+          "onSuccess": {},
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}

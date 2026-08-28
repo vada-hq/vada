@@ -210,6 +210,9 @@ export interface SummarySpec {
     field: string
     toneField: string
   }>
+  // 이 요약 **자체의** 색 이름이 담긴 조각. status의 toneField는 곁에 붙는 딱지의
+  // 색이고 이것은 띠나 카드 통째의 색이다 - 그려지는 자리가 다르다.
+  toneField?: string
   description?: string
   // 설명이 서버에서 오는 경우(OPS-00의 '박해랑님이 확인할 …').
   descriptionField?: string

@@ -618,7 +618,7 @@
         {
           "value": "event",
           "label": "행사 관련 회의",
-          "description": "특정 행사의 준비·운영을 위한 회의"
+          "description": "특정 행사 준비와 운영을 위해 진행하는 회의"
         }
       ]
     },

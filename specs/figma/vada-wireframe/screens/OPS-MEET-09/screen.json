@@ -1,0 +1,177 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-MEET-09",
+  "activeNavigationScreenId": "OPS-00",
+  "params": [
+    {
+      "key": "meetingId",
+      "valueType": "string",
+      "example": "MTG-07",
+      "missingNote": "어떤 회의를 볼지 정하지 않고 열렸습니다. 회의 목록에서 취소된 회의를 고르면 이 화면이 열립니다.",
+      "description": "어느 회의의 상세인지. 앞 화면(회의 목록 OPS-MEET-01A의 줄, 또는 행사 관련 회의 목록)이 정한다. 취소되었다는 사실은 인자로 받지 않는다 — 회의가 자기 상태를 안다."
+    }
+  ],
+  "breadcrumb": {
+    "source": "20:2701",
+    "dataSourceKey": "meeting.detail",
+    "params": {
+      "meetingId": {
+        "screenParam": "meetingId"
+      }
+    },
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "회의"
+      },
+      {
+        "field": "title"
+      }
+    ]
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "취소된 회의 상세",
+    "titleFrom": {
+      "dataSourceKey": "meeting.detail",
+      "field": "title",
+      "params": {
+        "meetingId": {
+          "screenParam": "meetingId"
+        }
+      }
+    },
+    "description": null,
+    "footerNote": null
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:2627",
+    "name": "운영 — 회의 · OPS-MEET-09 · 취소된 회의 상세",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:2719",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "status": [
+          {
+            "field": "status",
+            "toneField": "statusTone"
+          }
+        ],
+        "toneField": "stateBannerTone",
+        "titleField": "stateBannerTitle",
+        "descriptionField": "stateBannerNote",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2732",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "title",
+        "descriptionField": "description",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "label": "원래 예정 일시",
+            "field": "scheduledAt"
+          },
+          {
+            "label": "장소",
+            "field": "place"
+          },
+          {
+            "label": "초대 인원",
+            "field": "inviteeCountNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2754",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "취소 기록",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "items": [
+          {
+            "label": "취소 사유",
+            "field": "cancelReason"
+          },
+          {
+            "label": "취소 처리",
+            "field": "cancelledByNote",
+            "descriptionField": "cancelledAtNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2771",
+        "name": "Section",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "대체 회의",
+        "descriptionField": "replacementNote",
+        "dataSourceKey": "meeting.detail",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:2777",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "새 회의 상세 보기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "pending",
+          "note": "대체 회의로 갈 곳이 아직 정해지지 않았습니다. 대체 회의는 예정 상태이고 예정 회의 상세는 보는 사람에 따라 셋(OPS-MEET-03A·03B·03C)인데, 이 화면을 보는 사람이 그중 어디로 가는지를 그림이 말하지 않습니다."
+        }
+      }
+    }
+  ]
+}

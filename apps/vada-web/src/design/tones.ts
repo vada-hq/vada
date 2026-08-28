@@ -289,3 +289,27 @@ export const ROW_TONE: Record<string, string> = {
   yellow: 'bg-yellow-50',
   red: 'bg-red-50',
 }
+
+/**
+ * 상태 띠(OPS-MEET-03A 18:2955, OPS-MEET-09 20:2719). **테두리는 톤의 -200으로 통일한다.**
+ *
+ * 와이어프레임이 흔들린다 - 03A의 파란 띠는 -100이고 09의 붉은 띠는 -200이다.
+ * 같은 종류의 띠이므로 규칙을 따르고 그 차이는 design/deviations.ts에 적는다.
+ *
+ * 톤 이름은 데이터가 준다(meeting.detail.stateBannerTone). 회의 상태가 색을
+ * 정하는데 상태는 조직이 늘릴 수 있는 것이라 화면이 목록을 들고 있을 수 없다.
+ */
+export const BANNER_TONE: Record<string, string> = {
+  blue: 'border-blue-200 bg-blue-50',
+  green: 'border-green-200 bg-green-50',
+  yellow: 'border-yellow-200 bg-yellow-50',
+  red: 'border-red-200 bg-red-50',
+}
+
+/** 그 띠 안의 글. 제목은 -800, 본문은 -700이다. */
+export const BANNER_TEXT: Record<string, { title: string; note: string }> = {
+  blue: { title: 'text-blue-800', note: 'text-blue-700' },
+  green: { title: 'text-green-800', note: 'text-green-700' },
+  yellow: { title: 'text-yellow-800', note: 'text-yellow-700' },
+  red: { title: 'text-red-800', note: 'text-red-700' },
+}

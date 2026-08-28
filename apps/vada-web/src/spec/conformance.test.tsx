@@ -117,7 +117,10 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     for (const field of fieldsOf(spec)) {
       if (field.type !== 'input') continue
       const control = controlOf(field)
-      expect(control, `${field.fieldKey}의 inputType`).toHaveAttribute('type', field.inputType)
+      // 여러 줄을 받는 칸은 textarea라 type 속성이 아예 없다. 역할(textbox)은 같다.
+      if (field.multiline !== true) {
+        expect(control, `${field.fieldKey}의 inputType`).toHaveAttribute('type', field.inputType)
+      }
       if (field.placeholder !== null) {
         expect(control, `${field.fieldKey}의 placeholder`).toHaveAttribute(
           'placeholder',
