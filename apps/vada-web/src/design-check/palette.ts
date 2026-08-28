@@ -132,19 +132,36 @@ for (const [token, hex] of COLORS) {
   }
 }
 
-/** sRGB 16진수를 Tailwind 토큰 이름으로. 팔레트에 없는 색이면 16진수 그대로. */
-export function tokenOf(hex: string): string {
+/**
+ * sRGB 16진수를 Tailwind 토큰 이름(`gray-500`)으로. 팔레트에 없으면 null.
+ *
+ * 대조는 색이 같은지만 물으면 되지만, **그리는 쪽은 뭐라고 적을지**를 알아야 한다.
+ * 같은 표를 양쪽에서 쓴다 — 하나는 견주려고, 하나는 받아쓰려고.
+ */
+export function tokenNameOf(hex: string): string | null {
   const upper = hex.toUpperCase()
   const exact = TOKEN_BY_COLOR.get(upper)
   if (exact !== undefined) {
-    return `${exact}(${upper})`
+    return exact
   }
   for (const [candidate, token] of TOKEN_BY_COLOR) {
     if (sameColor(candidate, upper)) {
-      return `${token}(${upper})`
+      return token
     }
   }
-  return upper
+  return null
+}
+
+/** sRGB 16진수를 Tailwind 토큰 이름으로. 팔레트에 없는 색이면 16진수 그대로. */
+export function tokenOf(hex: string): string {
+  const upper = hex.toUpperCase()
+  const token = tokenNameOf(upper)
+  return token === null ? upper : `${token}(${upper})`
+}
+
+/** Tailwind 유틸리티에 그대로 쓸 수 있는 색 이름. 팔레트 밖이면 임의 색 표기. */
+export function utilityColorOf(hex: string): string {
+  return tokenNameOf(hex) ?? `[${hex.toUpperCase()}]`
 }
 
 /** Tailwind 굵기 유틸리티 이름 → 숫자. */
@@ -158,4 +175,13 @@ export const FONT_WEIGHTS: Record<string, number> = {
   bold: 700,
   extrabold: 800,
   black: 900,
+}
+
+/** 굵기 숫자를 Tailwind 유틸리티 이름으로. 400은 기본값이라 적지 않는다. */
+export function weightNameOf(weight: number): string | null {
+  if (weight === 400) {
+    return null
+  }
+  const entry = Object.entries(FONT_WEIGHTS).find(([, value]) => value === weight)
+  return entry === undefined ? null : entry[0]
 }

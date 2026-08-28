@@ -6,6 +6,7 @@
     "test": "node scripts/run-tests.mjs",
     "test:contracts": "npm --prefix apps/spec-service test",
     "validate": "node apps/spec-service/src/validate-specs.mjs",
+    "design": "node apps/vada-web/scripts/design-expect.mjs",
     "e2e": "node scripts/run-e2e.mjs",
     "build": "npm --prefix apps/vada-web run build",
     "check": "npm run test && npm run validate && npm run e2e",
