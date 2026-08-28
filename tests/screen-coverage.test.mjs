@@ -104,22 +104,27 @@ export function coverageOf(screenId) {
 
 // 화면마다의 바닥. 떨어지면 검사가 잡고, 새 화면은 줄을 더해야 통과한다 —
 // 그 순간이 "이 화면의 명세가 그림의 몇 할을 말하는가"를 한 번 보는 자리다.
+//
+// **바닥은 지금 자리에 붙여 둔다.** 한동안 헐거웠다 — 셸의 메뉴를 세는 것에서
+// 뺀 뒤로 분모가 화면마다 12씩 줄었는데 바닥은 옛 수로 남아 있었고, 그래서
+// EVT-00A의 바닥이 실제 87.9%인 화면에 64.4%로 걸려 있었다. 그 사이에 무엇이
+// 내려가도 검사는 울리지 않았다. 올린 값이 실제와 같아야 다음 내림이 잡힌다.
 const FLOOR = {
-  'EVT-00A': { covered: 29, total: 45 },
+  'EVT-00A': { covered: 29, total: 33 },
   'EVT-01': { covered: 41, total: 42 },
-  'EVT-02': { covered: 81, total: 97 },
-  'EVT-02D': { covered: 59, total: 75 },
-  'EVT-03A': { covered: 48, total: 65 },
+  'EVT-02': { covered: 81, total: 85 },
+  'EVT-02D': { covered: 59, total: 63 },
+  'EVT-03A': { covered: 48, total: 53 },
   'EVT-03B': { covered: 60, total: 65 },
   'EVT-05': { covered: 104, total: 105 },
-  'EVT-05B': { covered: 32, total: 41 },
-  'EVT-04': { covered: 66, total: 83 },
-  'EVT-DOC-01': { covered: 55, total: 75 },
-  'EVT-FIN-01': { covered: 50, total: 67 },
-  'EVT-MEET-01': { covered: 35, total: 52 },
-  'EVT-SCHED-01': { covered: 85, total: 105 },
-  'EVT-TASK-01': { covered: 64, total: 83 },
-  'EVT-TASK-02': { covered: 58, total: 76 },
+  'EVT-05B': { covered: 40, total: 41 },
+  'EVT-04': { covered: 66, total: 71 },
+  'EVT-DOC-01': { covered: 55, total: 63 },
+  'EVT-FIN-01': { covered: 50, total: 55 },
+  'EVT-MEET-01': { covered: 35, total: 40 },
+  'EVT-SCHED-01': { covered: 85, total: 93 },
+  'EVT-TASK-01': { covered: 64, total: 71 },
+  'EVT-TASK-02': { covered: 58, total: 64 },
   // 밖에서 온 사람이 보는 다섯. **덜 덮인 자리가 셋 다 정당하다** — 폰 겉틀의 시계
   // '9:41', 로고 'V'·'Vada'(shell.json의 것), 그리고 화면 제목이다.
   //
@@ -137,44 +142,44 @@ const FLOOR = {
   'FIN-EVID-01': { covered: 28, total: 54 },
   'FIN-LEDGER-01': { covered: 94, total: 96 },
   'FIN-PROC-01': { covered: 33, total: 64 },
-  'FIN-REQ-01': { covered: 173, total: 191 },
-  'FIN-REQ-02': { covered: 62, total: 75 },
-  'FIN-REV-01': { covered: 71, total: 84 },
-  'FIN-SUP-01': { covered: 45, total: 58 },
-  'HOME-01K': { covered: 54, total: 69 },
+  'FIN-REQ-01': { covered: 173, total: 179 },
+  'FIN-REQ-02': { covered: 62, total: 63 },
+  'FIN-REV-01': { covered: 71, total: 72 },
+  'FIN-SUP-01': { covered: 45, total: 46 },
+  'HOME-01K': { covered: 54, total: 57 },
   'INV-01': { covered: 21, total: 24 },
   'INV-00': { covered: 8, total: 13 },
   'MSG-01': { covered: 3, total: 4 },
   'MSG-03': { covered: 3, total: 5 },
-  'MY-01': { covered: 30, total: 45 },
-  'MY-REQ-01': { covered: 46, total: 59 },
+  'MY-01': { covered: 30, total: 33 },
+  'MY-REQ-01': { covered: 46, total: 47 },
   'ONB-01': { covered: 12, total: 20 },
   'ONB-02': { covered: 6, total: 12 },
-  'OPS-00': { covered: 33, total: 48 },
+  'OPS-00': { covered: 33, total: 36 },
   'OPS-CAL-01': { covered: 97, total: 100 },
-  'OPS-MEET-01A': { covered: 101, total: 116 },
-  'OPS-MEET-02': { covered: 106, total: 123 },
-  'OPS-MEET-03A': { covered: 59, total: 72 },
-  'OPS-MEET-04B': { covered: 33, total: 46 },
-  'OPS-MEET-05A': { covered: 59, total: 74 },
+  'OPS-MEET-01A': { covered: 101, total: 104 },
+  'OPS-MEET-02': { covered: 106, total: 111 },
+  'OPS-MEET-03A': { covered: 59, total: 60 },
+  'OPS-MEET-04B': { covered: 33, total: 34 },
+  'OPS-MEET-05A': { covered: 59, total: 62 },
   // 가장 낮다. object 출처 안의 배열을 목록으로 그릴 어휘가 없어 '현재 정리 현황'
   // 네 줄을 명세가 말하지 못한다(OPSMEET06AScreen.tsx 파일 머리의 주석).
-  'OPS-MEET-06A': { covered: 22, total: 45 },
+  'OPS-MEET-06A': { covered: 30, total: 45 },
   'OPS-MEET-07': { covered: 38, total: 51 },
-  'OPS-MEET-09': { covered: 23, total: 36 },
+  'OPS-MEET-09': { covered: 23, total: 24 },
   'ORG-00': { covered: 9, total: 12 },
   'ORG-01': { covered: 19, total: 23 },
   'ORG-02': { covered: 15, total: 20 },
-  'ORG-03A': { covered: 41, total: 54 },
+  'ORG-03A': { covered: 41, total: 42 },
   'ORG-03B': { covered: 60, total: 61 },
-  'ORG-03C': { covered: 31, total: 46 },
+  'ORG-03C': { covered: 31, total: 34 },
   'ORG-04': { covered: 76, total: 77 },
-  'ORG-04B': { covered: 42, total: 55 },
-  'ORG-07A': { covered: 73, total: 86 },
+  'ORG-04B': { covered: 42, total: 43 },
+  'ORG-07A': { covered: 73, total: 74 },
   'REC-01': { covered: 34, total: 36 },
   'REC-02': { covered: 122, total: 123 },
   'REC-02A': { covered: 65, total: 66 },
-  'TASK-01': { covered: 62, total: 78 },
+  'TASK-01': { covered: 62, total: 66 },
 }
 
 test('명세가 덮는 몫이 떨어지지 않는다', () => {
@@ -186,7 +191,7 @@ test('명세가 덮는 몫이 떨어지지 않는다', () => {
     if (!entry.isDirectory()) continue
     const now = coverageOf(entry.name)
     if (now === null) continue
-    measured.push([entry.name, now])
+    measured.push([entry.name, now])
 
     const floor = FLOOR[entry.name]
     if (floor === undefined) {

@@ -30,12 +30,12 @@
     "dataSourceKey": {
       "type": "string",
       "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
-      "description": "data-sources.json 카탈로그의 key. shape가 list인 출처여야 한다."
+      "description": "data-sources.json 카탈로그의 key. **shape가 list인 출처여야 한다** — itemsField를 함께 쓸 때만 object인 출처를 받는다(그때는 그 조각이 목록이다)."
     },
     "itemsField": {
       "type": "string",
       "minLength": 1,
-      "description": "이 목록의 항목이 **바깥 항목의 조각에서 온다**는 선언(선택). dataSourceKey 대신 쓴다 - 조회하지 않기 때문이다.\n\n되풀이되는 묶음 안에 목록이 또 있는 자리다. 결제·증빙에서 결제 하나는 '연결된 품목'과 '증빙 서류' 두 목록을 갖는데, 둘 다 그 결제와 함께 이미 와 있다. 따로 조회하면 결제마다 두 번씩 더 물어야 하고, 무엇보다 **그 목록은 그 결제의 일부이지 따로 있는 것이 아니다.**\n\ngroup.itemsField와 같은 말이다. 다른 것은 가리키는 자리뿐이다 - 저것은 한 요소가 묶음과 항목을 함께 그릴 때이고, 이것은 안쪽 목록이 따로 요소일 때다.\n\n**itemFields 안에서만 쓸 수 있다.** 바깥 항목이 없는 자리에서는 가리킬 조각이 없다."
+      "description": "이 목록의 항목이 **다른 곳에 이미 와 있다**는 선언. 가리키는 곳이 둘이다.\n\n**1. 바깥 항목의 조각(dataSourceKey 없이).** 되풀이되는 묶음 안에 목록이 또 있는 자리다. 결제·증빙에서 결제 하나는 '연결된 품목'과 '증빙 서류' 두 목록을 갖는데, 둘 다 그 결제와 함께 이미 와 있다. 따로 조회하면 결제마다 두 번씩 더 물어야 하고, 무엇보다 **그 목록은 그 결제의 일부이지 따로 있는 것이 아니다.** 이 꼴은 itemFields 안에서만 쓴다 — 바깥 항목이 없는 자리에서는 가리킬 조각이 없다.\n\n**2. object 출처의 조각(dataSourceKey와 함께).** 한 건을 조회했는데 그 안에 줄의 배열이 들어 있는 자리다. 세 화면이 같은 벽에 부딪혔다 — OPS-MEET-06A의 '현재 정리 현황' 네 줄(meeting.minutesProgress.conditions), EVT-05B의 점 넷(event.surveyReplaceImpact.notes), EXT-02B의 안내 사항 두 줄(survey.applyResult.notices). 셋 다 그림에는 있는데 명세가 말할 자리가 없어 화면이 그리지 못했다.\n\n**따로 조회하지 않는 것이 핵심이다.** 그 줄들은 그 한 건의 일부다 — 정리 현황은 그 회의록의 것이고, 교체 영향은 그 설문의 것이다. 목록으로 따로 두면 같은 것을 두 번 묻게 되고, 두 답이 어긋날 수 있는 자리가 생긴다.\n\n**몇 줄인지는 데이터가 정한다.** 그래서 화면이 줄 수를 못 박을 수 없다 — 문의처를 적지 않은 행사의 안내 사항은 한 줄이다.\n\ngroup.itemsField와 같은 말이다. 다른 것은 가리키는 자리뿐이다."
     },
     "params": {
       "$ref": "element-params.schema.json#/$defs/argument",
@@ -319,18 +319,6 @@
       }
     }
   },
-  "oneOf": [
-    {
-      "required": [
-        "dataSourceKey"
-      ]
-    },
-    {
-      "required": [
-        "itemsField"
-      ]
-    }
-  ],
   "dependentRequired": {
     "titleField": [
       "itemsField"
@@ -341,5 +329,17 @@
       "title",
       "titleField"
     ]
-  }
+  },
+  "anyOf": [
+    {
+      "required": [
+        "dataSourceKey"
+      ]
+    },
+    {
+      "required": [
+        "itemsField"
+      ]
+    }
+  ]
 }

@@ -82,7 +82,13 @@ test('OPS-MEET-06A: 안건마다 정리 상태와 한 줄 요약을 보여준다
 test('OPS-MEET-06A: 확정된 결정과 참석 기록 안내를 곁에 세운다', async ({ page }) => {
   await page.goto(MINUTES)
 
-  await expect(page.locator('[data-node-id="20:1674"]')).toHaveText('현재 정리 현황')
+  // 정리 현황은 제목만이 아니라 부분마다의 진행까지 그린다. **몇 부분인지도
+  // 어디까지 왔는지도 서버가 말한다** — 세는 단위가 부분마다 다르다.
+  const progress = page.locator('[data-node-id="20:1673"]')
+  await expect(progress.getByText('현재 정리 현황')).toBeVisible()
+  await expect(progress.getByText('안건 내용')).toBeVisible()
+  await expect(progress.getByText('2 / 3 정리')).toBeVisible()
+  await expect(progress.getByText('초안 작성')).toBeVisible()
 
   const decisions = page.locator('[data-node-id="20:1697"]')
   await expect(decisions.getByText('확정된 결정')).toBeVisible()

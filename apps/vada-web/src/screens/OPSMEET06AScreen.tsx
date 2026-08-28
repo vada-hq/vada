@@ -10,10 +10,16 @@ import {
   STATE_CHIP,
   STATE_TEXT,
 } from '../design/tones'
-import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import {
+  findDataSource,
+  readFieldRows,
+  readListSource,
+  readObjectSourceOrNull,
+} from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, opsMeet06a } from '../spec/screens'
+import { columnFieldOf } from '../spec/types'
 import type { ItemListSpec, SummarySpec } from '../spec/types'
 
 // 정리 중 회의(OPS-MEET-06A).
@@ -33,11 +39,14 @@ import type { ItemListSpec, SummarySpec } from '../spec/types'
 //    이것을 `attendanceResultNote`('8명 참석 · 2명 불참')와 `agendaCountNote`
 //    ('총 5개')로 **이미 이어서** 준다. 화면이 그 문장을 다시 쪼개 라벨과 값으로
 //    나누면, 잇고 쪼개는 방법이 명세가 아니라 화면의 것이 된다.
-// 2. 오른쪽 기둥의 '현재 정리 현황' 네 줄(20:1676). 그 줄들은
-//    meeting.minutesProgress의 `conditions[]`인데, **object 출처 안의 배열을
-//    목록으로 그리는 어휘가 없다** — itemList는 shape가 list인 출처만 받고
-//    itemsField는 itemFields 안에서만 쓴다. 게다가 conditions에는 06A가 그리는 값
-//    ('2 / 3 정리')을 담을 조각이 없다. 그래서 명세는 제목만 든다.
+// 2. 오른쪽 기둥의 '현재 정리 현황'(20:1676)은 이제 목록이다 — 한 건을 조회하고
+//    그 안의 조각을 항목으로 받는다(itemList의 dataSourceKey + itemsField).
+//
+//    **출처가 minutesProgress가 아니다.** 한동안 둘을 하나로 보았는데, 그러면 같은
+//    회의를 06A와 06B가 서로 다른 목록으로 그린 것이 설명되지 않는다 — 여기는
+//    '안건 내용 2 / 3 정리'를, 06B는 '안건별 논의 내용 ✓'을 그린다. 라벨도 개수도
+//    다르고, 한쪽은 세어 온 문구이고 한쪽은 참·거짓이다. 다른 사실이므로 출처도
+//    다르다(meeting.minutesStatus).
 //
 // 요약 초안 카드의 노란 테두리(border-yellow-200 · 흰 바탕)는 design/tones.ts에
 // 이름이 없어 여기 그대로 적는다 — 옅은 상자 표(SOFT_BOX)는 바탕까지 칠하고,
@@ -51,7 +60,7 @@ const NODE = {
   meeting: '20:1609',
   minutes: '20:1634',
   agendas: '20:1642',
-  progressHeader: '20:1674',
+  progress: '20:1673',
   decisions: '20:1697',
   attendanceNote: '20:1704',
 } as const
@@ -113,7 +122,8 @@ export function OPSMEET06AScreen({ screenParams, onNavigate }: OPSMEET06AScreenP
   const meeting = summaryAt(NODE.meeting)
   const minutes = summaryAt(NODE.minutes)
   const agendas = listAt(NODE.agendas)
-  const progressHeader = summaryAt(NODE.progressHeader)
+  const progress = listAt(NODE.progress)
+  const progressField = (at: number) => columnFieldOf(progress, at)
   const decisions = listAt(NODE.decisions)
   const attendanceNote = summaryAt(NODE.attendanceNote)
 
@@ -336,12 +346,30 @@ export function OPSMEET06AScreen({ screenParams, onNavigate }: OPSMEET06AScreenP
           </div>
 
           <div className="flex flex-col gap-4">
-            {/* 정리 현황. 제목만 명세에 있다 — 네 줄은 meeting.minutesProgress의
-                conditions[]인데 그것을 가리킬 어휘가 아직 없다(파일 머리의 주석). */}
-            <section className="rounded-xl border border-gray-200 bg-white px-5 py-4">
-              <span data-node-id={NODE.progressHeader} className="text-sm font-bold text-gray-800">
-                {progressHeader.title}
-              </span>
+            {/* 정리 현황. **몇 부분인지도 어디까지 왔는지도 서버가 말한다** —
+                회의록이 몇 부분으로 이루어지는지는 조직의 양식이 정하고, 세는 단위가
+                부분마다 달라(개·건·초안) 화면이 규칙을 가질 수 없다. */}
+            <section
+              data-node-id={NODE.progress}
+              className="rounded-xl border border-gray-200 bg-white px-5 py-4"
+            >
+              <span className="text-sm font-bold text-gray-800">{progress.title}</span>
+              <ul className="flex flex-col gap-2 pt-3">
+                {readFieldRows(
+                  progress.dataSourceKey,
+                  progress.itemsField,
+                  resolveParams(progress.params, { screenParams }),
+                ).map((part, at) => (
+                  <li key={at} className="flex items-center justify-between">
+                    <span className="text-xs text-gray-500">
+                      {scalar(part, progressField(0))}
+                    </span>
+                    <span className="text-xs font-semibold text-gray-800">
+                      {scalar(part, progressField(1))}
+                    </span>
+                  </li>
+                ))}
+              </ul>
             </section>
 
             {/* 확정된 결정. 회의가 아니라 안건에 붙는 것이라 안건에서 읽는다. */}

@@ -4024,6 +4024,22 @@ export const FILTERED_FIXTURES: Record<
           },
         ]
       : [],
+  // 회의록의 각 부분이 어디까지 왔는지. **위의 minutesProgress와 다른 물건이다** —
+  // 저것은 마칠 수 있는가를 조건으로 세고, 이것은 부분마다 어디까지 왔는지 말한다.
+  // 세는 단위가 부분마다 다르므로(개·건·초안) 완성된 문구로 온다.
+  'meeting.minutesStatus': ({ meetingId = '' }) =>
+    meetingId === 'MTG-06'
+      ? [
+          {
+            parts: [
+              { label: '안건 내용', stateNote: '2 / 3 정리' },
+              { label: '의사결정', stateNote: '2건 확인' },
+              { label: '후속 업무', stateNote: '1건 연결' },
+              { label: '전체 요약', stateNote: '초안 작성' },
+            ],
+          },
+        ]
+      : [],
   // 권한 안내는 04B의 띠와 D03의 확인 글이 나눠 쓴다.
   'meeting.permissionNotice': ({ meetingId = '' }) =>
     MEETING_DETAIL[meetingId] === undefined

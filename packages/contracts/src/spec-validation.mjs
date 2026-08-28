@@ -1089,13 +1089,30 @@ function checkDataSource(findings, context) {
     return;
   }
 
-  const expectedShape = spec.type === "itemList" || spec.type === "fieldSet" ? "list" : "object";
+  // 조각을 항목으로 받는 목록은 **한 건을 조회한다.** 줄들이 그 한 건 안에 이미
+  // 들어 있으므로 출처는 object이고, list를 요구하면 이 꼴이 통째로 막힌다.
+  const readsField = spec.type === "itemList" && typeof spec.itemsField === "string";
+  const expectedShape =
+    !readsField && (spec.type === "itemList" || spec.type === "fieldSet") ? "list" : "object";
   if (source.shape !== expectedShape) {
     findings.push({
       level: "error",
       file,
       message: `${elementLabel(element, index)}(${spec.type})는 shape가 '${expectedShape}'인 출처를 써야 하는데 '${key}'는 '${source.shape}'입니다.`
     });
+  }
+
+  // 조각을 항목으로 받는 목록은 그 조각이 무엇으로 이루어지는지도 말해야 한다.
+  // 없으면 열이 무엇을 가리키는지 견줄 것이 없고, 검사가 조용해진다.
+  if (readsField) {
+    const nested = (source.fields ?? []).find((field) => field.key === spec.itemsField);
+    if (!nested || !Array.isArray(nested.fields)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 가리킨 조각 '${spec.itemsField}'가 데이터 출처 '${key}'에 없거나 fields를 갖지 않습니다. 항목이 무엇으로 이루어지는지 알 수 없습니다.`
+      });
+    }
   }
 
   const fieldKeys = new Set((source.fields ?? []).map((field) => field.key));
@@ -1424,20 +1441,28 @@ function checkListColumns(findings, context) {
     return;
   }
 
-  // 안쪽 목록은 조회하지 않는다. 항목이 바깥 항목의 조각에서 오므로, 열도 그 조각의
-  // fields로 견줘야 한다.
+  // 항목이 조각에서 오면 열도 그 조각의 fields로 견줘야 한다. 조각을 어디서 찾는지가
+  // 둘로 갈린다 — 출처를 함께 적었으면 그 출처의 응답 안이고, 아니면 바깥 항목이다.
   if (typeof spec.itemsField === "string") {
-    const outer = isObject(context.inList) ? dataSourceByKey.get(context.inList.dataSourceKey) : null;
+    const outer =
+      typeof spec.dataSourceKey === "string"
+        ? dataSourceByKey.get(spec.dataSourceKey)
+        : isObject(context.inList)
+          ? dataSourceByKey.get(context.inList.dataSourceKey)
+          : null;
     if (!outer) {
       return;
     }
     const nested = (outer.fields ?? []).find((field) => field.key === spec.itemsField);
     if (!nested || !Array.isArray(nested.fields)) {
-      findings.push({
-        level: "error",
-        file,
-        message: `${elementLabel(element, index)}가 가리킨 조각 '${spec.itemsField}'가 바깥 항목에 없거나 fields를 갖지 않습니다. 안쪽 목록의 항목은 그 조각에서 옵니다.`
-      });
+      // 출처를 함께 적은 꼴은 checkDataSource가 이미 말한다 — 두 번 말하지 않는다.
+      if (typeof spec.dataSourceKey !== "string") {
+        findings.push({
+          level: "error",
+          file,
+          message: `${elementLabel(element, index)}가 가리킨 조각 '${spec.itemsField}'가 바깥 항목에 없거나 fields를 갖지 않습니다. 안쪽 목록의 항목은 그 조각에서 옵니다.`
+        });
+      }
       return;
     }
     const knownInner = new Set(nested.fields.map((field) => field.key));

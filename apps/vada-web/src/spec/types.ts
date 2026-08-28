@@ -198,6 +198,17 @@ export type DisplayAction =
  *
  * 명세가 든 갈래에 없는 열쇠면 null이다 — 조용히 아무 데나 데려가지 않는다.
  */
+/**
+ * 열 하나가 가리키는 조각의 이름.
+ *
+ * 줄의 배열을 그리는 목록은 열마다 조각이 하나뿐이다(itemList의 itemsField).
+ * 세 화면이 같은 것을 꺼내므로 꺼내는 법도 하나여야 한다 — 손으로 세 번 적으면
+ * 하나가 늦게 고쳐진다.
+ */
+export function columnFieldOf(spec: ItemListSpec, at: number): string {
+  return spec.columns?.[at]?.fields?.[0] ?? ''
+}
+
 export function targetScreenOf(
   action: DisplayAction,
   row: Record<string, unknown>,

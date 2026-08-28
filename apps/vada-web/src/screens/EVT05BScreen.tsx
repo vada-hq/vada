@@ -9,7 +9,7 @@ import {
   NEUTRAL_CHIP,
   STATE_CHIP,
 } from '../design/tones'
-import { readObjectSource } from '../data-sources/catalog'
+import { readFieldRows, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import type { Option } from '../option-sources/catalog'
@@ -17,7 +17,8 @@ import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt05b } from '../spec/screens'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import { useSubmitAction } from '../spec/useSubmitAction'
-import type { ButtonSpec, SelectSpec, SubmitAction, SummarySpec } from '../spec/types'
+import { columnFieldOf } from '../spec/types'
+import type { ButtonSpec, ItemListSpec, SelectSpec, SubmitAction, SummarySpec } from '../spec/types'
 import type { ScopeDraft } from '../state/scopes'
 
 // 설문 교체(EVT-05B). **응답이 있는 설문은 직접 고칠 수 없다** — 그래서 고치는
@@ -28,12 +29,13 @@ import type { ScopeDraft } from '../state/scopes'
 // 구조가 없다 - 셸·갈피 줄·상태 줄이 이 프레임 안에 그려져 있고 카드가 본문 자리
 // 가운데에 놓인다. 그래서 overlay가 아니라 제 셸을 그리는 화면이다(EVT-01과 같다).
 //
-// **명세가 침묵해서 이 화면이 그리지 않는 자리가 하나 있다.**
 // 카드 가운데의 점 넷('기존 설문은 교체됨 상태로 변경됩니다' 등)은
-// event.surveyReplaceImpact의 `notes[]`인데, **object 출처 안의 배열을 목록으로
-// 그리는 어휘가 없다** — itemList는 shape가 list인 출처만 받고 itemsField는
-// itemFields 안에서만 쓴다. OPS-MEET-06A의 '현재 정리 현황' 네 줄이 같은 자리이고,
-// 이것이 두 번째 사례다.
+// event.surveyReplaceImpact의 `notes[]`다. **한 건을 조회하고 그 안의 조각을 항목으로
+// 받는다**(itemList의 dataSourceKey + itemsField) — 이 꼴이 없던 동안 이 화면과
+// OPS-MEET-06A·EXT-02B가 그림에 있는 글을 못 그렸다.
+//
+// **점은 그림이다.** 그림이 기호를 글과 다른 노드로 그렸고(25:1146), 무엇으로 앞을
+// 세울지는 표현이라 명세가 정하지 않는다 — EXT-02B는 같은 자리를 글 안에 담았다.
 
 const SCREEN = 'EVT-05B'
 
@@ -43,6 +45,7 @@ const NODE = {
   startEvent: '25:1121',
   head: '25:1126',
   impact: '25:1132',
+  notes: '25:1143',
   mode: '25:1160',
   cancel: '25:1182',
   replace: '25:1184',
@@ -149,6 +152,9 @@ export function EVT05BScreen({
     impact.dataSourceKey,
     resolveParams(impact.params, { screenParams }),
   )
+
+  const notes = elementByNodeId(evt05b, NODE.notes).spec as ItemListSpec
+  const noteField = columnFieldOf(notes, 0)
 
   const cancel = buttonAt(NODE.cancel)
   const replace = buttonAt(NODE.replace)
@@ -259,6 +265,23 @@ export function EVT05BScreen({
                 </span>
               ))}
             </div>
+
+            {/* 함께 알아야 할 것들. **몇 줄인지는 데이터가 정한다** — 조직의 규칙이
+                바뀌면 줄이 늘고, 화면이 수를 못 박으면 그때 명세가 틀린다. */}
+            <ul data-node-id={NODE.notes} className="flex flex-col gap-2">
+              {readFieldRows(
+                notes.dataSourceKey,
+                notes.itemsField,
+                resolveParams(notes.params, { screenParams }),
+              ).map((note, at) => (
+                <li key={at} className="flex items-start gap-2 text-xs text-gray-600">
+                  <span aria-hidden className="pt-px text-orange-400">
+                    •
+                  </span>
+                  <span>{String(note[noteField] ?? '')}</span>
+                </li>
+              ))}
+            </ul>
 
             {/* 새 설문을 어떻게 시작할지. 선택지와 그 부연은 카탈로그가 갖는다. */}
             <div

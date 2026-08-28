@@ -164,6 +164,30 @@
     },
     {
       "source": {
+        "nodeId": "25:1143",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "event.surveyReplaceImpact",
+        "itemsField": "notes",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "text"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
         "nodeId": "25:1160",
         "name": "Container",
         "figmaType": "FRAME"

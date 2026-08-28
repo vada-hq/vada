@@ -1,10 +1,11 @@
 import { FigmaAsset } from '../components/FigmaAsset'
 import { MobileScreen } from '../components/MobileScreen'
-import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource, readFieldRows, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, ext02b } from '../spec/screens'
-import type { SummarySpec } from '../spec/types'
+import { columnFieldOf } from '../spec/types'
+import type { ItemListSpec, SummarySpec } from '../spec/types'
 
 // 참여 신청 완료(EXT-02B).
 //
@@ -20,11 +21,11 @@ import type { SummarySpec } from '../spec/types'
 // 비워지고(surveyApplyDraft의 scopeEvent: complete), 링크를 다시 열었을 때도 같은
 // 것이 보여야 한다. 그래서 서버가 답하는 조각이다(survey.applyResult.applicantNote).
 //
-// **명세가 침묵해서 이 화면이 그리지 않는 자리가 하나 있다.**
-// '안내 사항' 아래의 두 줄은 survey.applyResult의 `notices[]`인데, **object 출처가
-// 품은 배열을 최상위에서 목록으로 그릴 어휘가 없다** — itemList는 shape가 list인
-// 출처만 받고 itemsField는 itemFields 안에서만 쓴다. OPS-MEET-06A·EVT-05B에 이어
-// 세 번째 사례다.
+// '안내 사항' 아래의 줄들은 survey.applyResult의 `notices[]`다. **한 건을 조회하고
+// 그 안의 조각을 항목으로 받는다**(itemList의 dataSourceKey + itemsField) — 이 꼴이
+// 없던 동안 이 화면과 OPS-MEET-06A·EVT-05B가 그림에 있는 글을 못 그렸다.
+//
+// **몇 줄인지는 데이터가 정한다.** 문의처를 적지 않은 행사는 한 줄이다.
 
 const SCREEN = 'EXT-02B'
 
@@ -54,7 +55,7 @@ function scalar(row: DataRow, field: string | undefined): string {
 export function EXT02BScreen({ screenParams }: EXT02BScreenProps) {
   const head = elementByNodeId(ext02b, NODE.head).spec as SummarySpec
   const fee = elementByNodeId(ext02b, NODE.fee).spec as SummarySpec
-  const notices = elementByNodeId(ext02b, NODE.notices).spec as SummarySpec
+  const notices = elementByNodeId(ext02b, NODE.notices).spec as ItemListSpec
 
   // 토큰이 없으면 아무 신청 결과나 대신 보여주지 않는다. 남의 신청을 자기 것으로
   // 읽게 되는 자리다.
@@ -125,11 +126,21 @@ export function EXT02BScreen({ screenParams }: EXT02BScreenProps) {
         ))}
       </section>
 
-      {/* 안내 사항 30:7258. **제목만 그린다** — 그 아래 두 줄은 명세가 가리킬 말이
-          없어(위의 notices[]) 이 화면이 그리지 않는다. 그리면 명세가 말하지 않은
-          앎이 화면에 박힌다. */}
+      {/* 안내 사항 30:7258. 줄의 앞머리 기호('·')는 글 안에 있다 — 그림이 그렇게
+          그렸고, 무엇으로 시작하는지는 그 조직의 글이다. */}
       <section data-node-id={NODE.notices} className="mt-5 rounded-xl bg-gray-50 p-4">
         <h2 className="text-xs font-medium text-gray-700">{notices.title}</h2>
+        <ul className="flex flex-col gap-1 pt-2">
+          {readFieldRows(
+            notices.dataSourceKey,
+            notices.itemsField,
+            resolveParams(notices.params, { screenParams }),
+          ).map((line, at) => (
+            <li key={at} className="text-xs text-gray-500">
+              {String(line[columnFieldOf(notices, 0)] ?? '')}
+            </li>
+          ))}
+        </ul>
       </section>
     </MobileScreen>
   )

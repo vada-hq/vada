@@ -189,3 +189,30 @@ export function readListSource(
   }
   return value
 }
+
+/**
+ * 한 건을 조회하고 그 안의 조각을 항목으로 받는다(itemList의 dataSourceKey +
+ * itemsField).
+ *
+ * **따로 조회하지 않는 것이 이 어휘의 뜻이다.** 그 줄들은 그 한 건의 일부다 —
+ * 안내 사항은 그 신청 결과의 것이고, 정리 현황은 그 회의록의 것이다. 목록으로
+ * 따로 두면 같은 것을 두 번 묻게 되고, 두 답이 어긋날 자리가 생긴다.
+ *
+ * 화면마다 손으로 꺼내던 것을 여기로 모은다. 같은 말이 세 곳에 있으면 하나가
+ * 늦게 고쳐진다.
+ */
+export function readFieldRows(
+  key: string | undefined,
+  field: string | undefined,
+  params: Record<string, string> = {},
+): DataRow[] {
+  const row = readObjectSource(key, params)
+  if (field === undefined) {
+    throw new Error(`데이터 출처 '${key}'에서 어느 조각을 항목으로 받을지 말하지 않았습니다.`)
+  }
+  const value = row[field]
+  if (!Array.isArray(value)) {
+    throw new Error(`데이터 출처 '${key}'의 조각 '${field}'는 항목 목록이어야 합니다.`)
+  }
+  return value as DataRow[]
+}

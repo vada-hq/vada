@@ -192,13 +192,32 @@
     },
     {
       "source": {
-        "nodeId": "20:1674",
-        "name": "Heading 3",
+        "nodeId": "20:1673",
+        "name": "Section",
         "figmaType": "FRAME"
       },
       "spec": {
-        "type": "summary",
-        "title": "현재 정리 현황"
+        "type": "itemList",
+        "title": "현재 정리 현황",
+        "dataSourceKey": "meeting.minutesStatus",
+        "itemsField": "parts",
+        "params": {
+          "meetingId": {
+            "screenParam": "meetingId"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "label"
+            ]
+          },
+          {
+            "fields": [
+              "stateNote"
+            ]
+          }
+        ]
       }
     },
     {
