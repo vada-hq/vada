@@ -18,7 +18,6 @@
       "description": "무엇을 종료할지. 뒤에 남아 있는 진행 중 회의(OPS-MEET-05A)가 정한다. 살펴본 결과를 집어 올 때도, 종료를 보낼 때도 이 값이 쓰인다. 진행 중인 회의여야 한다 — 이 모달은 그 회의를 끝내는 자리다."
     }
   ],
-  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "20:3127",

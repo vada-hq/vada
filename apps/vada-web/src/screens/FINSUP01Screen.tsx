@@ -89,6 +89,7 @@ export function FINSUP01Screen({
     return (
       <AppShell
         screenId={finSup01.screenId}
+        activeNavigationScreenId={finSup01.activeNavigationScreenId}
         eyebrow={finSup01.meta?.eyebrow}
         title={finSup01.meta?.title ?? finSup01.screenId}
         onNavigate={onNavigate}
@@ -179,6 +180,7 @@ export function FINSUP01Screen({
   return (
     <AppShell
       screenId={finSup01.screenId}
+      activeNavigationScreenId={finSup01.activeNavigationScreenId}
       eyebrow={finSup01.meta?.eyebrow}
       title={finSup01.meta?.title ?? finSup01.screenId}
       onNavigate={onNavigate}

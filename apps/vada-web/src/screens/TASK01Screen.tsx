@@ -66,6 +66,7 @@ export function TASK01Screen({ onNavigate }: TASK01ScreenProps) {
   return (
     <AppShell
       screenId={task01.screenId}
+      activeNavigationScreenId={task01.activeNavigationScreenId}
       eyebrow={task01.meta?.eyebrow}
       title={task01.meta?.title ?? task01.screenId}
       description={task01.meta?.description}

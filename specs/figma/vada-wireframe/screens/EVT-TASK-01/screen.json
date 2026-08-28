@@ -23,6 +23,7 @@
     "description": "부서 색상선 · 상태 배지는 별도 표시",
     "footerNote": null
   },
+  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "25:1186",

@@ -22,6 +22,7 @@
     "eyebrow": "운영 · 행사 · 인원 관리",
     "title": "운영 조직"
   },
+  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "20:6678",

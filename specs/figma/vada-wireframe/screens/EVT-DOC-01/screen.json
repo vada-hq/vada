@@ -23,6 +23,7 @@
     "description": "행사 전체 맥락에서 참고하는 문서와 결과물입니다.",
     "footerNote": "문서의 작성·검토 권한은 연결된 업무와 행사 운영 역할에 따라 관리합니다."
   },
+  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "28:395",

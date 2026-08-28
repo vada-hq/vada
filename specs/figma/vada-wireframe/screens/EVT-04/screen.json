@@ -21,6 +21,7 @@
     "eyebrow": "운영 · 행사 · 인원 관리",
     "title": "행사 참가자"
   },
+  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "20:7510",

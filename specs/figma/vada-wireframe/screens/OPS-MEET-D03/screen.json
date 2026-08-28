@@ -37,7 +37,6 @@
       "description": "누구에게 줄지. 눌린 참가자 줄이 정한다. 제목에 그 사람의 이름이 박히므로 이 값 없이는 물어볼 문장 자체가 없다."
     }
   ],
-  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "20:3464",

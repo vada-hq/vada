@@ -108,6 +108,7 @@ export function EVT03AScreen({ screenParams, onNavigate }: EVT03AScreenProps) {
     return (
       <AppShell
         screenId={evt03a.screenId}
+        activeNavigationScreenId={evt03a.activeNavigationScreenId}
         eyebrow={evt03a.meta?.eyebrow}
         title={evt03a.meta?.title ?? evt03a.screenId}
         onNavigate={onNavigate}
@@ -145,6 +146,7 @@ export function EVT03AScreen({ screenParams, onNavigate }: EVT03AScreenProps) {
   return (
     <AppShell
       screenId={evt03a.screenId}
+      activeNavigationScreenId={evt03a.activeNavigationScreenId}
       eyebrow={evt03a.meta?.eyebrow}
       title={drawnTitleOf(evt03a, screenParams)}
       onNavigate={onNavigate}

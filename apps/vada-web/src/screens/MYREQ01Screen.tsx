@@ -71,6 +71,7 @@ export function MYREQ01Screen({ screenParams, onNavigate }: MYREQ01ScreenProps) 
     return (
       <AppShell
         screenId={myReq01.screenId}
+        activeNavigationScreenId={myReq01.activeNavigationScreenId}
         eyebrow={myReq01.meta?.eyebrow}
         title={myReq01.meta?.title ?? myReq01.screenId}
         onNavigate={onNavigate}
@@ -124,6 +125,7 @@ export function MYREQ01Screen({ screenParams, onNavigate }: MYREQ01ScreenProps) 
   return (
     <AppShell
       screenId={myReq01.screenId}
+      activeNavigationScreenId={myReq01.activeNavigationScreenId}
       eyebrow={myReq01.meta?.eyebrow}
       title={drawnTitleOf(myReq01, screenParams)}
       onNavigate={onNavigate}

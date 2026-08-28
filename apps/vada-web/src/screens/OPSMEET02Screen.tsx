@@ -597,7 +597,7 @@ export function OPSMEET02Screen({
   return (
     <AppShell
       screenId={opsMeet02.screenId}
-      activeNavigationScreenId="OPS-00"
+      activeNavigationScreenId={opsMeet02.activeNavigationScreenId}
       eyebrow={opsMeet02.meta?.eyebrow}
       title={drawnTitleOf(opsMeet02, screenParams)}
       onNavigate={onNavigate}

@@ -7,6 +7,7 @@
     "description": "기획 중이거나 운영 및 후속 정리가 진행 중인 행사를 관리합니다.",
     "footerNote": null
   },
+  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "20:4058",

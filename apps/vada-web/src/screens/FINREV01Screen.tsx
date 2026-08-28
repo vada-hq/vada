@@ -94,6 +94,7 @@ export function FINREV01Screen({
     return (
       <AppShell
         screenId={finRev01.screenId}
+        activeNavigationScreenId={finRev01.activeNavigationScreenId}
         eyebrow={finRev01.meta?.eyebrow}
         title={finRev01.meta?.title ?? finRev01.screenId}
         onNavigate={onNavigate}
@@ -203,6 +204,7 @@ export function FINREV01Screen({
   return (
     <AppShell
       screenId={finRev01.screenId}
+      activeNavigationScreenId={finRev01.activeNavigationScreenId}
       eyebrow={finRev01.meta?.eyebrow}
       title={finRev01.meta?.title ?? finRev01.screenId}
       onNavigate={onNavigate}

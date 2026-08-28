@@ -59,6 +59,7 @@ export function EVT00AScreen({ onNavigate }: EVT00AScreenProps) {
   return (
     <AppShell
       screenId={evt00a.screenId}
+      activeNavigationScreenId={evt00a.activeNavigationScreenId}
       eyebrow={evt00a.meta?.eyebrow}
       title={evt00a.meta?.title ?? evt00a.screenId}
       description={evt00a.meta?.description}

@@ -53,6 +53,7 @@ export function EVTDOC01Screen({ screenParams, onNavigate }: EVTDOC01ScreenProps
     return (
       <AppShell
         screenId={evtDoc01.screenId}
+        activeNavigationScreenId={evtDoc01.activeNavigationScreenId}
         eyebrow={evtDoc01.meta?.eyebrow}
         title={evtDoc01.meta?.title ?? evtDoc01.screenId}
         onNavigate={onNavigate}
@@ -92,6 +93,7 @@ export function EVTDOC01Screen({ screenParams, onNavigate }: EVTDOC01ScreenProps
   return (
     <AppShell
       screenId={evtDoc01.screenId}
+      activeNavigationScreenId={evtDoc01.activeNavigationScreenId}
       eyebrow={evtDoc01.meta?.eyebrow}
       title={drawnTitleOf(evtDoc01, screenParams)}
       footerNote={evtDoc01.meta?.footerNote}

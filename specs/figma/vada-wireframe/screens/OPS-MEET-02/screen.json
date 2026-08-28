@@ -24,6 +24,7 @@
     "description": null,
     "footerNote": "임시 저장한 회의는 다른 참가자에게 표시되지 않습니다."
   },
+  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "18:2245",

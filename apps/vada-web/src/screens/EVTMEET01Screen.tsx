@@ -52,6 +52,7 @@ export function EVTMEET01Screen({ screenParams, onNavigate }: EVTMEET01ScreenPro
     return (
       <AppShell
         screenId={evtMeet01.screenId}
+        activeNavigationScreenId={evtMeet01.activeNavigationScreenId}
         eyebrow={evtMeet01.meta?.eyebrow}
         title={evtMeet01.meta?.title ?? evtMeet01.screenId}
         onNavigate={onNavigate}
@@ -82,6 +83,7 @@ export function EVTMEET01Screen({ screenParams, onNavigate }: EVTMEET01ScreenPro
   return (
     <AppShell
       screenId={evtMeet01.screenId}
+      activeNavigationScreenId={evtMeet01.activeNavigationScreenId}
       eyebrow={evtMeet01.meta?.eyebrow}
       title={drawnTitleOf(evtMeet01, screenParams)}
       onNavigate={onNavigate}

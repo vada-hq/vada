@@ -92,6 +92,7 @@ export function EVTTASK01Screen({ screenParams, onNavigate }: EVTTASK01ScreenPro
     return (
       <AppShell
         screenId={evtTask01.screenId}
+        activeNavigationScreenId={evtTask01.activeNavigationScreenId}
         eyebrow={evtTask01.meta?.eyebrow}
         title={evtTask01.meta?.title ?? evtTask01.screenId}
         onNavigate={onNavigate}
@@ -118,6 +119,7 @@ export function EVTTASK01Screen({ screenParams, onNavigate }: EVTTASK01ScreenPro
   return (
     <AppShell
       screenId={evtTask01.screenId}
+      activeNavigationScreenId={evtTask01.activeNavigationScreenId}
       eyebrow={evtTask01.meta?.eyebrow}
       // 이 화면의 제목은 그 행사의 이름이다. 명세가 어디서 읽을지를 말한다.
       title={drawnTitleOf(evtTask01, screenParams)}

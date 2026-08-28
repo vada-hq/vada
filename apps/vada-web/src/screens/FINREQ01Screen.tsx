@@ -178,6 +178,7 @@ export function FINREQ01Screen({
     return (
       <AppShell
         screenId={finReq01.screenId}
+        activeNavigationScreenId={finReq01.activeNavigationScreenId}
         title={finReq01.meta?.title ?? finReq01.screenId}
         onNavigate={onNavigate}
       >
@@ -471,6 +472,7 @@ export function FINREQ01Screen({
   return (
     <AppShell
       screenId={finReq01.screenId}
+      activeNavigationScreenId={finReq01.activeNavigationScreenId}
       title={drawnTitleOf(finReq01, screenParams)}
       onNavigate={onNavigate}
     >

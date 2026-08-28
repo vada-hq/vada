@@ -75,6 +75,7 @@ export function EVTTASK02Screen({ screenParams, onNavigate }: EVTTASK02ScreenPro
     return (
       <AppShell
         screenId={evtTask02.screenId}
+        activeNavigationScreenId={evtTask02.activeNavigationScreenId}
         eyebrow={evtTask02.meta?.eyebrow}
         title={evtTask02.meta?.title ?? evtTask02.screenId}
         onNavigate={onNavigate}
@@ -99,6 +100,7 @@ export function EVTTASK02Screen({ screenParams, onNavigate }: EVTTASK02ScreenPro
     return (
       <AppShell
         screenId={evtTask02.screenId}
+        activeNavigationScreenId={evtTask02.activeNavigationScreenId}
         eyebrow={evtTask02.meta?.eyebrow}
         title={evtTask02.meta?.title ?? evtTask02.screenId}
         onNavigate={onNavigate}
@@ -125,6 +127,7 @@ export function EVTTASK02Screen({ screenParams, onNavigate }: EVTTASK02ScreenPro
   return (
     <AppShell
       screenId={evtTask02.screenId}
+      activeNavigationScreenId={evtTask02.activeNavigationScreenId}
       eyebrow={evtTask02.meta?.eyebrow}
       title={evtTask02.meta?.title ?? evtTask02.screenId}
       onNavigate={onNavigate}

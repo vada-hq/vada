@@ -179,6 +179,24 @@ describe('화면이 자기 명세를 지킨다', () => {
     },
   )
 
+  // 이 화면이 셸의 어느 메뉴 아래에 있는지. 명세가 말해 두고 화면이 안 읽으면
+  // 화면은 **자기 id로** 메뉴를 찾고, 짝이 없으면 아무 메뉴도 켜지지 않는다 -
+  // 그림은 늘 한 칸을 켜 두는데 화면만 조용히 어긋난다.
+  const underMenu = ALL_SCREENS.filter(
+    (screen) =>
+      (screen as { activeNavigationScreenId?: string }).activeNavigationScreenId !==
+      undefined,
+  )
+
+  it.each(underMenu.map((screen) => screen.screenId))(
+    '%s: 셸의 어느 메뉴 아래인지를 명세에서 읽는다',
+    (screenId) => {
+      expect(sourceOf(screenId)).toMatch(/activeNavigationScreenId=\{/)
+      // 값을 코드에 박으면 명세를 고쳐도 화면이 따라오지 않는다.
+      expect(sourceOf(screenId)).not.toMatch(/activeNavigationScreenId="/)
+    },
+  )
+
   // onSuccess.note도 '아직 정해지지 않았다'를 말한다 — 다만 누르기 전이 아니라
   // **보내고 난 뒤**의 자리다. 적어만 두고 아무도 안 보여주면 명세에만 있는
   // 사실이 되고, 사람은 보내고 나서 아무 일도 안 일어나는 것을 본다.

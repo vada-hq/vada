@@ -1252,6 +1252,19 @@ function checkOverlayViewer(findings, file, spec) {
   }
 }
 
+// 셸의 메뉴도 같다. 겹쳐 뜨는 화면은 뒤에 남는 화면을 그리게 하고, 그 화면이
+// 셸을 그린다 - 겹치는 쪽이 적어 두면 아무도 읽지 않는 값이 명세에 남는다.
+// 열 곳 모두 그렇게 살고 있었고, 둘이 갈리면 무엇이 맞는지 아무도 모른다.
+function checkOverlayNavigation(findings, file, spec) {
+  if (isObject(spec.overlay) && typeof spec.activeNavigationScreenId === "string") {
+    findings.push({
+      level: "error",
+      file,
+      message: `겹쳐 뜨는 화면은 셸의 메뉴(activeNavigationScreenId)를 따로 말하지 않습니다. 뒤에 남는 화면 '${spec.overlay.screenId}'이 이미 말합니다.`
+    });
+  }
+}
+
 function checkOnSuccessParams(findings, context) {
   const { file, element, index, screens } = context;
   const action = element.spec?.action;
@@ -2094,6 +2107,7 @@ export function collectSpecFindings({
     );
 
     checkOverlayViewer(findings, file, spec);
+    checkOverlayNavigation(findings, file, spec);
 
     // 셸의 어느 메뉴 아래인지. 갈피의 activeTabScreenId와 같은 축이고, 가리키는
     // 화면이 실제로 메뉴여야 켜진다.

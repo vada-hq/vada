@@ -2444,6 +2444,37 @@ test("겹쳐 뜨는 화면은 보는 사람을 따로 말하지 않는다", () =
   );
 });
 
+// 셸의 메뉴도 같다. 겹치는 화면은 뒤에 남는 화면을 그리게 하고 그 화면이 셸을
+// 그린다 - 겹치는 쪽이 적어 두면 아무도 읽지 않는 값이 명세에 남는다.
+test("겹쳐 뜨는 화면은 셸의 메뉴를 따로 말하지 않는다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          activeNavigationScreenId: "OPS-00",
+          elements: []
+        }
+      },
+      {
+        file: "w/screens/S-02/screen.json",
+        spec: {
+          screenId: "S-02",
+          activeNavigationScreenId: "OPS-00",
+          overlay: { screenId: "S-01", source: "1:1" },
+          elements: []
+        }
+      }
+    ]
+  });
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("activeNavigationScreenId")).length,
+    1
+  );
+});
+
 test("보내고 머문다고 말하면 조용하다", () => {
   assert.deepEqual(collectSpecFindings(submittingScreen({})), []);
 });

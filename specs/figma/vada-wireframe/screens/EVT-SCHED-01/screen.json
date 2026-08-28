@@ -23,6 +23,7 @@
     "description": "업무·회의·행사 기본정보에서 연결된 주요 일정입니다.",
     "footerNote": "일정은 여기서 중복 수정하지 않습니다. 행사 일시·장소는 기본정보, 회의 일시는 관련 회의, 업무 마감은 행사 업무가 단일 원본입니다."
   },
+  "activeNavigationScreenId": "OPS-00",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "28:2",

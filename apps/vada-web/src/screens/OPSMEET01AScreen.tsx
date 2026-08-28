@@ -54,6 +54,7 @@ export function OPSMEET01AScreen({ onNavigate }: OPSMEET01AScreenProps) {
   return (
     <AppShell
       screenId={opsMeet01a.screenId}
+      activeNavigationScreenId={opsMeet01a.activeNavigationScreenId}
       eyebrow={opsMeet01a.meta?.eyebrow}
       title={opsMeet01a.meta?.title ?? opsMeet01a.screenId}
       onNavigate={onNavigate}
