@@ -1,5 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { cleanup, render, waitFor } from '@testing-library/react'
 import { getOptionSource } from '../option-sources/catalog'
@@ -19,7 +20,6 @@ import {
   unusedDeviations,
   usesVectorUnitAssets,
 } from '.'
-import type { DesignNode } from '.'
 import type { DesignFile, SeenDifference } from '.'
 import { DEVIATIONS } from '../design/deviations'
 
@@ -136,17 +136,25 @@ function scopesDrawnBy(screen: ScreenSpec, design: DesignFile): ScopeStore {
 // 곧 카드 화면이던 시절의 대용이다. **ORG-03B가 그 가정을 깼다**: 조직도를 고치는
 // 화면은 초안도 담고 셸도 쓴다. 그래서 design이 실제로 사이드바를 그리는지로
 // 가른다 - 재려던 것을 그대로 재는 것이 대용보다 낫다.
-function drawsSidebar(node: DesignNode): boolean {
-  if (node.name === 'Sidebar') {
-    return true
-  }
-  return (node.children ?? []).some(drawsSidebar)
+
+// 이 검사가 채점하는 것은 **PageCard의 두 머리 갈래**다(로고형 · 눈썹형).
+//
+// 한동안 '사이드바를 그리지 않는 화면'으로 골랐는데, 그것은 그릇이 아니라 그림을
+// 보고 고르는 것이다. 머리가 **아예 없는** 화면이 들어오면 그림에 없는 눈썹을
+// 요구받는다 — 학생회 밖에서 보는 화면 셋이 그렇다.
+//
+// 짝 검사가 AppShell을 재는 방식 그대로, 화면이 그 그릇을 쓰는지로 고른다.
+// 화면 부품의 소스. 어느 그릇을 쓰는지는 명세가 아니라 구현의 사실이다.
+function sourceOf(screenId: string): string {
+  return readFileSync(
+    join(fileURLToPath(new URL('../screens/', import.meta.url)), `${screenId.replace(/-/g, '')}Screen.tsx`),
+    'utf-8',
+  )
 }
 
-const CARD_SCREENS = ALL_SCREENS.filter((spec) => {
-  const design = designByScreenId.get(spec.screenId)
-  return design !== undefined && !drawsSidebar(design.root)
-})
+const CARD_SCREENS = ALL_SCREENS.filter(
+  (spec) => designByScreenId.has(spec.screenId) && /PageCard/.test(sourceOf(spec.screenId)),
+)
 
 describe.each(CARD_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
   '$screenId 머리 형태',

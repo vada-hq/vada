@@ -529,7 +529,9 @@ export function nodeSelector(nodeId: string): string {
 }
 
 interface RegisteredElement {
-  source: { nodeId: string }
+  // alsoDrawnAt은 **같은 자리를 다른 값으로 그린 사본들**이다. 하나만 등록하고
+  // 나머지를 사본으로 본다(itemFields가 목록에서 하는 것과 같은 생각).
+  source: { nodeId: string; alsoDrawnAt?: string[] }
   // 목록의 쪽 줄은 표와 다른 자리에 그려진다(디자인이 둘을 형제로 둔다).
   // 요소 유형마다 spec의 모양이 달라 여기서는 이 한 자리만 본다.
   spec?: unknown
@@ -558,6 +560,9 @@ export function registeredNodeIds(screen: ComparableScreen): string[] {
   )
   return [
     ...screen.elements.map((element) => element.source.nodeId),
+    // 한 자리를 여러 번 그린 그림. 나머지 사본은 **같은 요소**가 덮는다 —
+    // 되풀이되는 묶음의 첫 벌만 등록하는 것과 같은 생각이다.
+    ...screen.elements.flatMap((element) => element.source.alsoDrawnAt ?? []),
     ...itemFields.map((element) => element.source.nodeId),
     ...screen.elements
       .map((element) => (element.spec as { paging?: { source?: string } })?.paging?.source)

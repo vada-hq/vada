@@ -447,6 +447,14 @@ export interface ScreenElement {
     nodeId: string
     name: string
     figmaType: string
+    /**
+     * 이 요소가 그림에서 **여러 번 그려져 있을 때** 나머지 자리들.
+     *
+     * 같은 자리를 다른 값으로 그린 것이다 — 참석 확인의 결과 여섯이 노드 대
+     * 노드로 같고 서로 배타적이다. 되풀이되는 묶음의 첫 벌만 등록하는 것과
+     * 같은 생각이고, 그쪽이 목록의 규칙이라면 이것은 목록이 아닌 자리의 것이다.
+     */
+    alsoDrawnAt?: string[]
   }
   spec: ElementSpec
 }

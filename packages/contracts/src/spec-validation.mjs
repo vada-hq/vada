@@ -167,6 +167,15 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       .map(({ element }) => element?.source?.nodeId)
       .filter((nodeId) => typeof nodeId === "string")
   );
+  // 한 자리를 여러 번 그린 그림. **나머지 사본도 등록된 것이다** — 하나만 세면
+  // 나머지 안의 단추가 '명세에 없는 상호작용'으로 잡힌다.
+  for (const { element } of allElementsOf(spec)) {
+    for (const nodeId of element?.source?.alsoDrawnAt ?? []) {
+      if (typeof nodeId === "string") {
+        registered.add(nodeId);
+      }
+    }
+  }
   // 작업 공간의 갈피 줄도 등록 노드다. 무엇을 그리는지는 셸이 알고 화면은 어디에
   // 그리는지만 아는데, 그 '어디'가 없으면 갈피 일곱이 명세에 없는 것으로 보인다.
   for (const nodeId of Object.values(spec.workspace?.source ?? {})) {
