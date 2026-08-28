@@ -297,7 +297,7 @@ export function ScreenRouter({
   }
   if (screenId === 'MSG-03') {
     // 대화. 메뉴가 가리키는 화면이 아니라 그 아래다(activeNavigationScreenId: MSG-01).
-    return <MSG03Screen onNavigate={onNavigate} />
+    return <MSG03Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
   if (screenId === 'EVT-00B') {
     // 새 행사 만들기 모달이다. 뒤에 EVT-00A가 그대로 남는다(명세의 overlay) —

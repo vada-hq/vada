@@ -23,6 +23,11 @@ export function resolveParams(
     fields?: Record<string, string | null>
     screenParams?: Record<string, string>
     row?: DataRow
+    /**
+     * **방금 보낸 것의 답.** 앞의 셋은 전부 보내기 전에 있는 값이라, 만든 것의
+     * id처럼 응답에만 있는 값을 가리킬 자리가 없었다.
+     */
+    result?: DataRow
   },
 ): Record<string, string> {
   return Object.fromEntries(
@@ -38,6 +43,12 @@ export function resolveParams(
       }
       if (argument.itemField !== undefined) {
         const value = sources.row?.[argument.itemField]
+        return [name, value === undefined ? '' : String(value)]
+      }
+      // 방금 보낸 것의 답. 만든 것의 상세로 가려면 그 id가 필요한데 그 값은
+      // 응답에만 있다.
+      if (argument.resultField !== undefined) {
+        const value = sources.result?.[argument.resultField]
         return [name, value === undefined ? '' : String(value)]
       }
       // 이 요소가 읽는 출처의 조각. itemField와 갈리는 것은 '어느 줄이냐'가

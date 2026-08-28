@@ -81,8 +81,10 @@ export function useSubmitAction(): SubmitActionState {
 
     setPhase('submitting')
     setRunningKey(action.mutationKey)
+    // 보내고 나서야 아는 값이 있다(만든 것의 id). 명세가 그것을 가리킬 수 있다.
+    let result: DataRow = {}
     try {
-      await runMutation(action.mutationKey, options.payload)
+      result = await runMutation(action.mutationKey, options.payload)
     } catch {
       // 실패는 머무는 것이다. 어디로도 가지 않고 runningKey를 남겨 어느 계약이
       // 실패했는지 화면이 말할 수 있게 한다.
@@ -98,7 +100,7 @@ export function useSubmitAction(): SubmitActionState {
     if (action.onSuccess.navigate !== undefined) {
       options.onNavigate(
         action.onSuccess.navigate,
-        resolveParams(action.onSuccess.params, options.paramSources ?? {}),
+        resolveParams(action.onSuccess.params, { ...(options.paramSources ?? {}), result }),
       )
       return
     }

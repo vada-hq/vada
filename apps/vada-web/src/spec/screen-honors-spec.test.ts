@@ -150,13 +150,20 @@ describe('화면이 자기 명세를 지킨다', () => {
   // 보내고 이동하면서 넘기는 인자. **화면이 손으로 적으면 안 된다** — 명세만
   // 읽고 화면을 만드는 사람은 그 인자를 넘겨야 한다는 사실을 알 수 없다.
   // 실제로 다섯 자리가 그렇게 살고 있었다(FIN-EVID-01·REV-01·SUP-01·REQ-01).
+  //
+  // 다만 **화면이 주지 않는 값도 있다** — resultField는 방금 보낸 것의 답에서
+  // 오므로 화면이 넘길 것이 없다(MSG-02가 만든 방의 id를 그렇게 집는다).
   const carrying = ALL_SCREENS.filter((screen) =>
     allSpecsOf(screen).some((spec) =>
-      actionsOf(spec).some(
-        (action) =>
-          action.type === 'submit' &&
-          (action as { onSuccess?: { params?: unknown } }).onSuccess?.params !== undefined,
-      ),
+      actionsOf(spec).some((action) => {
+        if (action.type !== 'submit') return false
+        const params = (action as { onSuccess?: { params?: Record<string, object> } }).onSuccess
+          ?.params
+        if (params === undefined) return false
+        return Object.values(params).some(
+          (argument) => !('resultField' in (argument as Record<string, unknown>)),
+        )
+      }),
     ),
   )
 

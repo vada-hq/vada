@@ -229,7 +229,12 @@
           "type": "submit",
           "mutationKey": "message.room.create",
           "onSuccess": {
-            "note": "방을 만든 뒤 어느 화면으로 가는지가 디자인에 없습니다. 만든 방의 대화(MSG-03)가 유력하지만 그림에 이음이 없고, 방금 만든 방을 무엇이 가리키는지도 그려져 있지 않습니다.",
+            "navigate": "MSG-03",
+            "params": {
+              "roomId": {
+                "resultField": "id"
+              }
+            },
             "scopeEvent": "complete"
           },
           "executeWhen": {

@@ -6,6 +6,15 @@
     "title": "대화"
   },
   "activeNavigationScreenId": "MSG-01",
+  "params": [
+    {
+      "key": "roomId",
+      "valueType": "string",
+      "example": "MR-01",
+      "missingNote": "어느 방의 대화인지 정하지 않고 열렸습니다. 메시지에서 방을 고르면 이 화면이 열립니다.",
+      "description": "어느 방의 대화인지. 방을 만든 직후에는 **방금 만든 방**이고, 목록에서 오면 눌린 줄의 방이다."
+    }
+  ],
   "source": {
     "pageName": "Wireframe",
     "nodeId": "30:7034",
@@ -22,6 +31,11 @@
       "spec": {
         "type": "itemList",
         "dataSourceKey": "message.conversation",
+        "params": {
+          "roomId": {
+            "screenParam": "roomId"
+          }
+        },
         "emptyAction": {
           "type": "navigate",
           "label": "메시지로 이동",

@@ -1,4 +1,5 @@
 // specs/figma/vada-wireframe/mutations.json 카탈로그의 소비자.
+import type { DataRow } from '../data-sources/catalog'
 // 계약(경로·payload 스코프·상태 문구)은 카탈로그를 단일 원본으로 읽고,
 // 네트워크만 개발용 mock으로 대체한다(로딩 상태 확인용 인위 지연 포함).
 import catalogJson from '../../../../specs/figma/vada-wireframe/mutations.json'
@@ -47,9 +48,20 @@ export function getMutation(key: string): Mutation {
 // vada-conventions 7번: mock에 인위 지연을 둬 로딩 상태를 실제로 확인한다.
 const MOCK_DELAY_MS = 450
 
-export async function runMutation(key: string, payload: unknown): Promise<void> {
+/**
+ * 보내고 나면 서버가 답을 준다. **만든 것의 id가 그 답에만 있다.**
+ *
+ * 개발용 응답은 mutations.json이 아니라 여기 있다 — 카탈로그는 계약(경로·상태
+ * 문구)을 갖고, 무엇이 돌아오는지는 서버 대역이 정한다.
+ */
+const MUTATION_RESULTS: Record<string, DataRow> = {
+  'message.room.create': { id: 'MR-01' },
+}
+
+export async function runMutation(key: string, payload: unknown): Promise<DataRow> {
   getMutation(key)
   await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
   // 개발 mock: 실제 전송 없이 성공으로 처리한다. 백엔드 연동 시 여기만 바꾼다.
   void payload
+  return MUTATION_RESULTS[key] ?? {}
 }

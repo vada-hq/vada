@@ -1,6 +1,7 @@
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { findDataSource, readListSource } from '../data-sources/catalog'
+import { resolveParams } from '../spec/params'
 import { elementByNodeId, msg03, nodeIdOf } from '../spec/screens'
 import { targetScreenOf } from '../spec/types'
 import type { ItemListSpec } from '../spec/types'
@@ -35,13 +36,41 @@ const ASSET = {
 } as const
 
 interface MSG03ScreenProps {
+  /** 어느 방의 대화인지. 방을 만든 직후에는 방금 만든 방이다. */
+  screenParams: Record<string, string>
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
-export function MSG03Screen({ onNavigate }: MSG03ScreenProps) {
+export function MSG03Screen({ screenParams, onNavigate }: MSG03ScreenProps) {
   const conversation = elementByNodeId(msg03, NODE.conversation).spec as ItemListSpec
   const source = findDataSource(conversation.dataSourceKey)
-  const items = readListSource(conversation.dataSourceKey)
+  // 어느 방의 대화인지 모르면 남의 대화를 보여주지 않는다.
+  const missingParam = (msg03.params ?? []).find(
+    (param) => param.optional !== true && (screenParams[param.key] ?? '') === '',
+  )
+
+  // 인자가 비었을 때 빈 목록을 그리면 **'방이 없다'고 말하게 된다.** 실제로는
+  // 어느 방인지 모르는 것이므로 그 사실을 그대로 낸다.
+  if (missingParam !== undefined) {
+    return (
+      <AppShell
+        screenId={msg03.screenId}
+        activeNavigationScreenId={msg03.activeNavigationScreenId}
+        eyebrow={msg03.meta?.eyebrow}
+        title={msg03.meta?.title ?? msg03.screenId}
+        onNavigate={onNavigate}
+      >
+        <p role="alert" className="pt-6 text-sm text-red-700">
+          {missingParam.missingNote}
+        </p>
+      </AppShell>
+    )
+  }
+
+  const items = readListSource(
+    conversation.dataSourceKey,
+    resolveParams(conversation.params, { screenParams }),
+  )
 
   return (
     <AppShell

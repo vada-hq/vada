@@ -5144,10 +5144,12 @@
       "key": "message.conversation",
       "shape": "list",
       "description": "대화 화면이 되풀이해 그리는 것(MSG-03). **줄에 무엇이 그려지는지 그림이 없다** — 와이어프레임은 빈 모습만 그렸다.\n\n**비었을 때의 글이 '방이 없다'고 말한다.** 주고받은 말이 없다는 뜻이 아니라 들어갈 방 자체가 없다는 뜻이고, 그래서 이 화면의 빈 상태는 MSG-01의 빈 상태와 같은 사실을 다른 말로 말한다. 그런데 그 글이 서로 달라 한 출처로 묶을 수 없다.",
-      "params": [],
+      "params": [
+        "roomId"
+      ],
       "request": {
         "method": "GET",
-        "path": "/api/messages/conversation"
+        "path": "/api/messages/rooms/{roomId}/conversation"
       },
       "messages": {
         "loading": "대화를 불러오는 중입니다",

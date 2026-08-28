@@ -496,6 +496,13 @@ export type QueryParams = Record<
     // 이 요소가 읽는 출처의 조각. itemField와 갈리는 것은 '어느 줄이냐'가
     // 있느냐다 - 저것은 눌린 항목이고 이것은 이미 집어 온 한 건이다.
     sourceField?: string
+  /**
+   * 방금 보낸 것의 답에서 집는다. submit의 onSuccess.params에서만 쓴다.
+   *
+   * 앞의 넷은 전부 **보내기 전에 있는 값**을 가리킨다 — 만든 것의 id는
+   * 응답에만 있다.
+   */
+  resultField?: string
   }
 >
 

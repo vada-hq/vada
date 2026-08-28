@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { pendingNoteAt } from './spec'
+import { missingNoteOf, pendingNoteAt } from './spec'
 
 const SHOTS = 'e2e/shots'
 const ROOMS = '/#/MSG-01'
@@ -129,17 +129,24 @@ test('MSG-02: 분류를 고르지 않으면 막고 그 자리를 짚는다', asy
 
 // 보내는 것까지가 이 화면의 몫이다. **만든 뒤 어디로 가는지는 그림에 이음이
 // 없어** 명세가 onSuccess를 비워 두었고, 그래서 여기 머물며 그 까닭을 내놓는다.
-test('MSG-02: 분류를 고르고 보내면 머물면서 갈 곳이 없다고 말한다', async ({ page }) => {
+// **방을 만들면 그 방의 대화가 열린다.** 방금 만든 방의 id는 응답에만 있어서
+// 한동안 가리킬 자리가 없었다 — 네 자리가 같은 벽에 부딪힌 뒤에 만든 어휘다
+// (onSuccess.params의 resultField).
+test('MSG-02: 방을 만들면 그 방의 대화가 열린다', async ({ page }) => {
   await page.goto(CREATE)
   const dialog = page.getByRole('dialog')
 
   await dialog.getByRole('radio', { name: '일반' }).click()
   await dialog.getByRole('button', { name: /방 만들기|메시지 방을 만드는 중입니다/ }).click()
 
-  await expect(page).toHaveURL(/#\/MSG-02/)
-  await expect(
-    page.getByText('방을 만든 뒤 어느 화면으로 가는지가 디자인에 없습니다', { exact: false }),
-  ).toBeVisible()
+  await expect(page).toHaveURL(/#\/MSG-03\?roomId=MR-01/)
+})
+
+// 어느 방인지 모르면 남의 대화를 보여주지 않는다.
+test('MSG-03: 방 없이 열면 아무 대화나 보여주지 않는다', async ({ page }) => {
+  await page.goto(CONVERSATION)
+
+  await expect(page.getByText(missingNoteOf('MSG-03', 'roomId'))).toBeVisible()
 })
 
 // 줄의 두 단추는 고른 대상을 담는 조작인데, **담은 것이 어느 값으로 모이는지를
@@ -163,7 +170,9 @@ test('MSG-02: 부서 줄의 두 단추는 아직 정해지지 않았다고 말�
 test('MSG-03: 방이 없으면 대화 자리에 빈 안내와 메시지로 가는 단추가 그려진다', async ({
   page,
 }) => {
-  await page.goto(CONVERSATION)
+  // 어느 방인지는 알지만 그 방에 아직 아무것도 없는 자리다 — 어느 방인지조차
+  // 모르는 것과 다르다(바로 위 검사).
+  await page.goto(`${CONVERSATION}?roomId=MR-01`)
 
   await expect(page.getByText('아직 대화할 방이 없습니다')).toBeVisible()
   await expect(page.getByRole('button', { name: '메시지로 이동' })).toBeVisible()
@@ -186,7 +195,7 @@ test('MSG-03: 셸의 메시지 메뉴가 켜져 있다', async ({ page }) => {
 })
 
 test('MSG-03: 메시지로 이동은 방 목록으로 데려간다', async ({ page }) => {
-  await page.goto(CONVERSATION)
+  await page.goto(`${CONVERSATION}?roomId=MR-01`)
 
   await page.getByRole('button', { name: '메시지로 이동' }).click()
   await expect(page).toHaveURL(/#\/MSG-01/)
