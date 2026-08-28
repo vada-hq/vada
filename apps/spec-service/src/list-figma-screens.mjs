@@ -29,9 +29,7 @@ export async function listFigmaScreens({ wireframeKey, root = repoRoot }) {
     throw new Error(`Figma 요청 실패 ${response.status}: ${(await response.text()).slice(0, 200)}`);
   }
   const file = await response.json();
-  const specified = new Set(
-    await readdir(join(wireframeDir, "screens")).catch(() => [])
-  );
+  const { fetched, specified } = await readProgress(wireframeDir);
 
   const screens = [];
   const visit = (node, section) => {
@@ -42,7 +40,8 @@ export async function listFigmaScreens({ wireframeKey, root = repoRoot }) {
         nodeId: node.id,
         name: node.name,
         section,
-        specified: specified.has(screenId)
+        specified: specified.has(screenId),
+        fetched: fetched.has(screenId)
       });
       return; // 화면 안은 파지 않는다
     }
@@ -58,6 +57,38 @@ export async function listFigmaScreens({ wireframeKey, root = repoRoot }) {
   return { fileName: file.name, lastModified: file.lastModified, screens };
 }
 
+/**
+ * 이 와이어프레임에서 **원본을 받은 화면**과 **명세를 쓴 화면**.
+ *
+ * 둘은 다른 일이다. 폴더가 있으면 명세된 것으로 세다가, 프레임을 미리 다 받아 둔
+ * 날 85개 중 84개가 끝난 것처럼 보였다 — **진도를 재는 눈금이 거짓말을 하면
+ * 무엇이 남았는지 아무도 모른다.**
+ *
+ * Figma를 부르지 않는다. 그래서 검사가 이 셈을 직접 볼 수 있다.
+ */
+export async function readProgress(wireframeDir) {
+  const folders = await readdir(join(wireframeDir, "screens")).catch(() => []);
+  const specified = new Set();
+  for (const folder of folders) {
+    const spec = await readFile(
+      join(wireframeDir, "screens", folder, "screen.json"),
+      "utf8"
+    ).catch(() => null);
+    if (spec === null) {
+      continue;
+    }
+    // 폴더 이름이 아니라 명세가 말하는 screenId로 센다 - 둘이 갈린 화면이 있다
+    // (TASK-01 폴더의 프레임 이름은 OPS-TASK-01이다).
+    try {
+      const parsed = JSON.parse(spec);
+      specified.add(typeof parsed.screenId === "string" ? parsed.screenId : folder);
+    } catch {
+      specified.add(folder);
+    }
+  }
+  return { fetched: new Set(folders), specified };
+}
+
 async function runCli() {
   const argv = process.argv.slice(2);
   const todoOnly = argv.includes("--todo");
@@ -70,8 +101,11 @@ async function runCli() {
 
   const { fileName, screens } = await listFigmaScreens({ wireframeKey });
   const done = screens.filter((screen) => screen.specified).length;
+  const got = screens.filter((screen) => screen.fetched && !screen.specified).length;
   process.stdout.write(
-    `${fileName} — 화면 ${screens.length}개 중 ${done}개 명세됨\n`
+    `${fileName} — 화면 ${screens.length}개 중 ${done}개 명세됨` +
+      (got > 0 ? ` (원본만 받아 둔 것 ${got}개)` : "") +
+      "\n"
   );
 
   let section = null;
@@ -84,7 +118,7 @@ async function runCli() {
       process.stdout.write(`\n[${section}]\n`);
     }
     process.stdout.write(
-      `  ${screen.specified ? "✔" : " "} ${screen.screenId.padEnd(14)} ${screen.nodeId.padEnd(10)} ${screen.name}\n`
+      `  ${screen.specified ? "✔" : screen.fetched ? "·" : " "} ${screen.screenId.padEnd(14)} ${screen.nodeId.padEnd(10)} ${screen.name}\n`
     );
   }
 }
