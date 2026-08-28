@@ -4540,6 +4540,16 @@
             {
               "key": "grade",
               "description": "학년"
+            },
+            {
+              "key": "roleLabel",
+              "description": "이 부서에서의 자리(부서장을 겸하는 부원에게만 온다). **명세가 들지 않는다** — leaders로는 그 글을 알 수 없다.",
+              "optional": true
+            },
+            {
+              "key": "roleTone",
+              "description": "그 글의 색 이름",
+              "optional": true
             }
           ],
           "optional": true

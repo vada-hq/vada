@@ -116,3 +116,19 @@ export const BUDGET_ITEMS: Record<string, Option[]> = {
     { value: 'bi-04', label: '대관·장비비' },
   ],
 }
+
+// 행사 운영 조직에 넣을 수 있는 사람(EVT-01·EVT-03B). **디자인이 펼친 목록을
+// 그리지 않았으므로** 무엇이 오는지는 그 학생회의 명단이 정한다. 부서의 부원과
+// 같은 id라야 고른 사람이 그 자리로 옮겨 간다.
+const EVENT_STAFF_ROSTER: Option[] = [
+  { value: 'ES-03', label: '김바다 · 컴퓨터학부 3학년' },
+  { value: 'ES-04', label: '박해랑 · 컴퓨터학부 2학년' },
+  { value: 'ES-05', label: '이윤슬 · ICT융합학부 4학년' },
+  { value: 'ES-07', label: '정하늘 · 컴퓨터학부 3학년' },
+]
+
+export const EVENT_STAFF_CANDIDATES: Record<string, Option[]> = {
+  'E-01': EVENT_STAFF_ROSTER,
+  // 조직을 아직 세우지 않은 행사도 같은 학생회의 사람 중에서 고른다.
+  'E-03': EVENT_STAFF_ROSTER,
+}

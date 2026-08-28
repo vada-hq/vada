@@ -6,6 +6,7 @@ import {
   COLLEGES,
   DEPARTMENTS,
   BUDGET_ITEMS,
+  EVENT_STAFF_CANDIDATES,
   ITEM_CATEGORIES,
   PARTICIPANT_AFFILIATIONS,
   PARTICIPANT_APPLY_STATUS,
@@ -151,6 +152,11 @@ export async function fetchOptions(
       return PARTICIPANT_PAY_STATUS
     case 'event.participantAttendStatus':
       return PARTICIPANT_ATTEND_STATUS
+    // 셋 다 같은 명단에서 고른다. 자리에 따라 걸러지는 것은 서버가 할 일이다.
+    case 'event.staffLeaderCandidates':
+    case 'event.staffDeptLeaderCandidates':
+    case 'event.staffMemberCandidates':
+      return EVENT_STAFF_CANDIDATES[params.eventId] ?? []
     case 'finance.requestPriorities':
       return REQUEST_PRIORITIES
     case 'finance.itemCategories':

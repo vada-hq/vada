@@ -197,6 +197,27 @@ describe('화면이 자기 명세를 지킨다', () => {
     },
   )
 
+  // 떠나면서 초안을 끝내는 단추. 명세가 말해 두고 화면이 안 읽으면, 취소하고
+  // 나가도 초안이 남아 다시 열었을 때 지난번에 치던 값이 그대로 있다 —
+  // 스코프는 clearOn: cancel이라 말하는데 아무도 그 말을 내지 않는 자리다.
+  const leavesScope = ALL_SCREENS.filter((screen) =>
+    allSpecsOf(screen).some((spec) =>
+      actionsOf(spec).some(
+        (action) =>
+          action.type === 'navigate' &&
+          (action as { scopeEvent?: string }).scopeEvent !== undefined,
+      ),
+    ),
+  )
+
+  it.each(leavesScope.map((screen) => screen.screenId))(
+    '%s: 떠나면서 초안을 끝내는 단추는 그 말을 명세에서 읽는다',
+    (screenId) => {
+      expect(sourceOf(screenId)).toMatch(/action\.scopeEvent/)
+      expect(sourceOf(screenId)).toMatch(/onScopeEvent\(/)
+    },
+  )
+
   // onSuccess.note도 '아직 정해지지 않았다'를 말한다 — 다만 누르기 전이 아니라
   // **보내고 난 뒤**의 자리다. 적어만 두고 아무도 안 보여주면 명세에만 있는
   // 사실이 되고, 사람은 보내고 나서 아무 일도 안 일어나는 것을 본다.

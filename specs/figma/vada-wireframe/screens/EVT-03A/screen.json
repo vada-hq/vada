@@ -212,9 +212,14 @@
           }
         ],
         "emptyAction": {
-          "type": "pending",
+          "type": "navigate",
           "label": "운영 조직 구성하기",
-          "note": "운영 조직을 구성하는 화면(EVT-01)이 아직 명세되지 않았습니다."
+          "targetScreenId": "EVT-01",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     }

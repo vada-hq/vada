@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-02C",
+  "meta": {
+    "eyebrow": null,
+    "title": "행사 종료 확인",
+    "titleFrom": {
+      "dataSourceKey": "event.endPermission",
+      "field": "title",
+      "params": {
+        "eventId": {
+          "screenParam": "eventId"
+        }
+      }
+    }
+  },
+  "overlay": {
+    "screenId": "EVT-02",
+    "source": "20:5685"
+  },
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-01",
+      "missingNote": "어느 행사를 종료할지 정하지 않고 열렸습니다. 행사 개요에서 ‘행사 종료’를 누르면 이 확인이 열립니다.",
+      "description": "무엇을 종료하려 했는지. 뒤에 남아 있는 행사 개요(EVT-02)가 정한다. 이 화면은 아무것도 보내지 않고, 누가 종료할 수 있는지를 그 행사에 대해 물어보는 데만 쓴다."
+    }
+  ],
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:5345",
+    "name": "운영 — 행사 · EVT-02C · 행사 종료 확인 모달",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:5687",
+        "name": "Heading 3",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "title",
+        "dataSourceKey": "event.endPermission",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5689",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "note",
+        "dataSourceKey": "event.endPermission",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5692",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "행사 개요로",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-02",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

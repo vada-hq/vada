@@ -1,0 +1,617 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-02B",
+  "meta": {
+    "eyebrow": null,
+    "title": "행사 기본정보 수정",
+    "description": null,
+    "footerNote": "신청 기간·승인제 설정은 참여 설문에서"
+  },
+  "overlay": {
+    "screenId": "EVT-02",
+    "source": "20:5150"
+  },
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-01",
+      "missingNote": "어떤 행사를 고칠지 정하지 않고 열렸습니다. 행사 화면에서 '기본정보 수정'을 누르면 이 화면이 열립니다.",
+      "description": "어느 행사의 기본정보를 고치는지. 뒤에 남아 있는 행사 개요(EVT-02)가 정한다."
+    }
+  ],
+  "stateScopeKey": "eventBasicsDraft",
+  "draftFrom": {
+    "dataSourceKey": "event.basicsDraft",
+    "params": {
+      "eventId": {
+        "screenParam": "eventId"
+      }
+    }
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:5012",
+    "name": "운영 — 행사 · EVT-02B · 행사 정보 편집 패널",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:5159",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "행사 기본정보 수정",
+        "description": "저장하면 일정·참여 설문에 자동 반영됩니다"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5164",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "닫기",
+        "labelHidden": true,
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-02",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5169",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "행사 정보",
+        "memberFieldKeys": [
+          "title",
+          "intro",
+          "purpose"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5172",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "title",
+        "label": "행사명",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5177",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "intro",
+        "label": "행사 소개",
+        "placeholder": "행사에 대한 간단한 소개",
+        "initialValue": null,
+        "inputType": "text",
+        "multiline": true,
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5182",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "purpose",
+        "label": "행사 목적·주요 내용",
+        "placeholder": "행사의 목적이나 프로그램 개요",
+        "initialValue": null,
+        "inputType": "text",
+        "multiline": true,
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5190",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "일시",
+        "description": "일정 및 참여 설문에 자동 반영",
+        "memberFieldKeys": [
+          "startAt",
+          "endAt",
+          "endUnset"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5195",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "startAt",
+        "label": "시작 일시",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "datetime-local",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5199",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "endAt",
+        "label": "종료 일시",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "datetime-local",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5203",
+        "name": "Label",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "endUnset",
+        "label": "종료 시간 미정",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "checkbox",
+        "valueType": "boolean",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5214",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "장소",
+        "description": "일정·참여 설문·공지에 자동 반영",
+        "memberFieldKeys": [
+          "place",
+          "placeUnset",
+          "address",
+          "placeDetail"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5218",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "place",
+        "label": "장소",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5223",
+        "name": "Label",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "placeUnset",
+        "label": "장소 미정",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "checkbox",
+        "valueType": "boolean",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5233",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "address",
+        "label": "주소",
+        "labelHidden": true,
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5236",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "placeDetail",
+        "label": "상세 위치·집합 장소",
+        "labelHidden": true,
+        "placeholder": "상세 위치·집합 장소",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5242",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "참여 정보",
+        "memberFieldKeys": [
+          "audience",
+          "feeType",
+          "paidAmount",
+          "unpaidAmount",
+          "payGuide",
+          "capacityType",
+          "capacity"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5246",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "audience",
+        "label": "참가 대상",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5251",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "feeType",
+        "label": "참가비",
+        "placeholder": null,
+        "helperText": "참여 설문에 자동 반영",
+        "presentation": "choiceGroup",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.feeTypes"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5268",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "참여 설문에서 학생회비 납부 여부 대조를 활성화하면 신청자를 자동으로 분류합니다. 명단과 불일치하는 신청자는 \"확인 필요\"로 분류됩니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5270",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "paidAmount",
+        "label": "납부자 금액 (0원 가능)",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "number",
+        "valueType": "integer",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5275",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "unpaidAmount",
+        "label": "미납자 금액",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "number",
+        "valueType": "integer",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5280",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "payGuide",
+        "label": "결제 안내",
+        "placeholder": "예: 현장 납부",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5285",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "capacityType",
+        "label": "행사 정원",
+        "placeholder": null,
+        "helperText": "신청 인원 관리에 자동 반영",
+        "presentation": "choiceGroup",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "event.capacityTypes"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5300",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "capacity",
+        "label": "정원 인원",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "number",
+        "valueType": "integer",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5308",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "담당 및 안내",
+        "description": "설문·참가자 안내에 자동 반영",
+        "memberFieldKeys": [
+          "hostDepartment",
+          "hostPerson",
+          "contact",
+          "notice"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5313",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "hostDepartment",
+        "label": "담당 부서",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5318",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "hostPerson",
+        "label": "담당자",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5323",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "contact",
+        "label": "문의 방법·연락처",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5328",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "notice",
+        "label": "참가자 유의사항",
+        "placeholder": "사전에 안내할 유의사항을 입력하세요",
+        "helperText": "참여 설문 안내 영역에 자동 반영",
+        "initialValue": null,
+        "inputType": "text",
+        "multiline": true,
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5341",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "취소",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-02",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:5343",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "저장",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "event.saveBasics",
+          "onSuccess": {
+            "navigate": "EVT-02",
+            "params": {
+              "eventId": {
+                "screenParam": "eventId"
+              }
+            },
+            "scopeEvent": "complete"
+          }
+        }
+      }
+    }
+  ]
+}

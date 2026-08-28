@@ -1,0 +1,199 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-04B",
+  "meta": {
+    "eyebrow": null,
+    "title": "참석 확인 QR",
+    "description": null,
+    "footerNote": null
+  },
+  "overlay": {
+    "screenId": "EVT-04",
+    "source": "25:366"
+  },
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-01",
+      "missingNote": "어떤 행사의 QR인지 정하지 않고 열렸습니다. 행사 참가자 명단에서 '참석 확인 QR'을 누르면 이 화면이 열립니다.",
+      "description": "어느 행사의 참석 확인 QR인지. 뒤에 남아 있는 행사 참가자 명단(EVT-04)이 정한다."
+    }
+  ],
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "25:2",
+    "name": "운영 — 행사 · EVT-04B · QR 참석 확인 모달",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "25:369",
+        "name": "Heading 3",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "참석 확인 QR"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:371",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "닫기",
+        "labelHidden": true,
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-04",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:376",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "QR 코드"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:392",
+        "name": "Chip",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "toneField": "statusTone",
+        "dataSourceKey": "event.attendanceQr",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "field": "statusLabel"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:394",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "event.attendanceQr",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "label": "시작",
+            "field": "startAt"
+          },
+          {
+            "label": "종료",
+            "field": "endAt"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:403",
+        "name": "참가자는 휴대폰 기본 카메라로 촬영합니다. 로그인이나 앱 설치가 필요 없습니다.",
+        "figmaType": "TEXT"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "event.attendanceQr",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        },
+        "items": [
+          {
+            "field": "guideNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:405",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "QR 다운로드",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "download",
+          "downloadField": "fileName",
+          "downloadSourceKey": "event.attendanceQr"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:411",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "재생성",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "event.attendanceQr.regenerate",
+          "onSuccess": {}
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "25:418",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "비활성화",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "event.attendanceQr.deactivate",
+          "onSuccess": {}
+        }
+      }
+    }
+  ]
+}

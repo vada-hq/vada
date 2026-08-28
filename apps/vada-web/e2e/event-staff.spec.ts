@@ -103,11 +103,12 @@ test('EVT-03A: 운영 조직이 없는 행사는 같은 화면의 빈 상태로 
   await page.screenshot({ path: `${SHOTS}/evt-03a-empty.png`, fullPage: true })
 })
 
-test('EVT-03A: 빈 상태의 단추는 아직 없는 화면임을 남긴다', async ({ page }) => {
+// 빈 상태의 단추도 이제 갈 곳이 있다. **어느 행사의 조직을 세우는지**를 함께
+// 넘기는 것이 요점이다 - 인자 없이 열리면 아무 행사의 조직이나 세우게 된다.
+test('EVT-03A: 빈 상태의 단추는 조직을 세우는 화면으로 데려간다', async ({ page }) => {
   await page.goto(EMPTY_STAFF)
 
-  const label = '운영 조직 구성하기'
-  await page.getByRole('button', { name: label }).click()
+  await page.getByRole('button', { name: '운영 조직 구성하기' }).click()
 
-  await expect(page.getByRole('status')).toHaveText(pendingNoteOf('EVT-03A', label))
+  await expect(page).toHaveURL(/#\/EVT-01\?eventId=E-03/)
 })

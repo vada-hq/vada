@@ -222,6 +222,27 @@
               ]
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "not": {
+                  "const": "navigate"
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "scopeEvent"
+              ]
+            }
+          }
         }
       ],
       "properties": {
@@ -280,6 +301,13 @@
               "note"
             ]
           }
+        },
+        "scopeEvent": {
+          "enum": [
+            "complete",
+            "cancel"
+          ],
+          "description": "navigate 전용. **떠나면서 이 화면의 초안을 어떻게 끝내는가**(선택).\n\n지금까지 초안의 수명은 제출만이 끝냈다(onSuccess.scopeEvent). 그런데 모달의 '취소'와 '닫기'는 제출이 아니라 이동이다 — 그래서 state-scopes.json이 `clearOn: ['complete','cancel']`이라 말해도 **cancel을 낼 방법이 없었다.** 열다섯 스코프가 그렇게 선언했고 실제로 내는 곳은 한 곳뿐이었다. 명세의 절반이 거짓이었다는 뜻이다.\n\n적지 않으면 떠나도 초안이 남는다 — 다시 열면 치던 값이 그대로 있다. 그것이 옳은 화면도 있으므로 기본값을 두지 않고 **명세가 말하게 한다.**"
         },
         "note": {
           "type": "string",

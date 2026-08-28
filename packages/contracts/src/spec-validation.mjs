@@ -979,8 +979,10 @@ function checkSubmitAction(findings, context) {
     }
   }
 
-  // 스코프 이벤트는 그 화면이 참조하는 스코프의 수명을 끝낸다.
-  const scopeEvent = action.onSuccess?.scopeEvent;
+  // 스코프 이벤트는 그 화면이 참조하는 스코프의 수명을 끝낸다. 보내고 나서
+  // 끝내거나(onSuccess.scopeEvent) 떠나면서 끝낸다(action.scopeEvent) - 모달의
+  // 취소는 제출이 아니라 이동이라 뒤쪽이 없으면 cancel을 낼 방법이 없었다.
+  const scopeEvent = action.onSuccess?.scopeEvent ?? action.scopeEvent;
   if (typeof scopeEvent === "string" && isObject(stateScopes)) {
     const screenScope = context.screenScopeKey;
     if (!screenScope) {

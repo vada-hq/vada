@@ -7,6 +7,7 @@ import type { DataRow } from '../data-sources/catalog'
 import { ROLE_CARD, ROLE_CHIP } from '../design/tones'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt03a } from '../spec/screens'
+import { targetScreenOf } from '../spec/types'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 운영 조직 — 보기(EVT-03A). 한 행사의 조직도를 읽는 화면이다.
@@ -260,8 +261,13 @@ export function EVT03AScreen({ screenParams, onNavigate }: EVT03AScreenProps) {
           <button
             type="button"
             onClick={() => {
-              if (departments.emptyAction?.type === 'pending') {
-                setNote(departments.emptyAction.note)
+              const action = departments.emptyAction
+              if (action?.type === 'pending') setNote(action.note)
+              if (action?.type === 'navigate') {
+                const target = targetScreenOf(action, {})
+                if (target !== null) {
+                  onNavigate(target, resolveParams(action.params, { screenParams }))
+                }
               }
             }}
             className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"

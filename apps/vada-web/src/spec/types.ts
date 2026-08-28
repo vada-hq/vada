@@ -81,6 +81,14 @@ export interface NavigateAction extends ExecutionGate {
   targetScreenId: string
   // 이동하면서 대상 화면에 넘기는 인자. 화면이 인자를 받으면 누군가는 그 값을 준다.
   params?: QueryParams
+  /**
+   * 떠나면서 이 화면의 초안을 어떻게 끝내는가.
+   *
+   * 모달의 '취소'는 제출이 아니라 이동이다. 이 자리가 없던 동안 스코프가
+   * `clearOn: ['complete','cancel']`이라 말해도 **cancel을 낼 방법이 없었고**,
+   * 떠났다가 다시 열면 치던 값이 그대로 있었다.
+   */
+  scopeEvent?: 'complete' | 'cancel'
 }
 
 // 데이터 전송. 경로·payload 스코프·상태 문구는 mutations.json이 갖고

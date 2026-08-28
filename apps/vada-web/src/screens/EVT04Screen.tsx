@@ -105,7 +105,12 @@ export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
   }
 
   const buttonAt = (nodeId: string) => elementByNodeId(evt04, nodeId).spec as ButtonSpec
-  const pend = (spec: { action: ButtonSpec['action'] }) => () => {
+  // 명세가 navigate라고 말한 자리는 실제로 데려간다. pending이면 그 글을 내놓는다.
+  const run = (spec: { action: ButtonSpec['action'] }) => () => {
+    if (spec.action.type === 'navigate') {
+      onNavigate(spec.action.targetScreenId, resolveParams(spec.action.params, { screenParams }))
+      return
+    }
     if (spec.action.type === 'pending') setNote(spec.action.note)
   }
 
@@ -167,7 +172,7 @@ export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
                 key={nodeId}
                 type="button"
                 data-node-id={nodeId}
-                onClick={pend(spec)}
+                onClick={run(spec)}
                 className="flex items-center gap-1.5 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
               >
                 {asset === null ? null : (
@@ -192,7 +197,7 @@ export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
             <button
               type="button"
               data-node-id={NODE.editBasics}
-              onClick={pend(buttonAt(NODE.editBasics))}
+              onClick={run(buttonAt(NODE.editBasics))}
               className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"
             >
               {buttonAt(NODE.editBasics).label}
@@ -200,7 +205,7 @@ export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
             <button
               type="button"
               data-node-id={NODE.startEvent}
-              onClick={pend(buttonAt(NODE.startEvent))}
+              onClick={run(buttonAt(NODE.startEvent))}
               className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
             >
               {buttonAt(NODE.startEvent).label}

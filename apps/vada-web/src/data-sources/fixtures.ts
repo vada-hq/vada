@@ -1184,6 +1184,106 @@ const EVENT_WRAP_UP_REMAINING: Record<string, DataRow[]> = {
   ],
 }
 
+// ─── 행사 참석 확인 QR(EVT-04B) ─────────────────────────────────────────────
+//
+// **행사 상태와 따로 켜고 끈다.** 기획 중인 E-01의 QR은 켜져 있고 후속 정리 중인
+// E-02의 것은 꺼져 있다 — 행사가 어느 단계냐로는 이 값을 유도할 수 없다.
+//
+// **아직 만들지 않은 행사가 있다.** 카탈로그가 '아직 만들어진 QR이 없습니다'를
+// 들고 있는 것이 그 자리이고, 아직 조직도 세우지 않은 E-03이 그렇다.
+const EVENT_ATTENDANCE_QR: Record<string, DataRow> = {
+  'E-01': {
+    statusLabel: '활성 중',
+    statusTone: 'green',
+    startAt: '2026. 08. 20 10:00',
+    endAt: '2026. 08. 20 14:00',
+    guideNote:
+      '참가자는 휴대폰 기본 카메라로 촬영합니다. 로그인이나 앱 설치가 필요 없습니다.',
+    fileName: '2026-체육대회-참석확인-QR.png',
+  },
+  'E-02': {
+    statusLabel: '비활성',
+    statusTone: 'gray',
+    startAt: '2026. 05. 28 11:00',
+    endAt: '2026. 05. 28 17:00',
+    guideNote:
+      '참가자는 휴대폰 기본 카메라로 촬영합니다. 로그인이나 앱 설치가 필요 없습니다.',
+    fileName: '봄축제-부스-참석확인-QR.png',
+  },
+}
+
+// ─── 행사 기본정보 편집 초안(EVT-02B) ───────────────────────────────────────
+//
+// event.basics와 **다른 조각이다.** 저기는 그려진 한 줄('납부자 무료 / 미납자
+// 5000원')을 주고 이것은 고칠 칸 하나하나를 준다. 두 벌이 어긋나지 않도록 값은
+// EVENT_OVERVIEW.basics와 EVENT_LIST에서 옮겼다.
+//
+// 비어 있는 칸은 아예 넣지 않는다 — 카탈로그가 optional로 두었고, 와이어프레임도
+// 그 칸들을 안내 문구만 있는 빈 칸으로 그렸다.
+const EVENT_BASICS_DRAFT: Record<string, DataRow> = {
+  'E-01': {
+    title: '2026 소프트웨어융합대학 체육대회',
+    startAt: '2026-08-20T10:00',
+    endAt: '2026-08-20T14:00',
+    place: 'ERICA 체육관',
+    address: '경기 안산시 상록구 한양대학로 55',
+    audience: '소프트웨어융합대학 전체',
+    feeType: 'duesConditional',
+    paidAmount: '0',
+    unpaidAmount: '5000',
+    capacityType: 'limited',
+    capacity: '200',
+    hostDepartment: '학술체육부',
+    hostPerson: '김바다',
+    contact: '카카오톡 채널 @swcollege',
+  },
+  'E-02': {
+    title: '봄 축제 학생회 부스',
+    place: '한양대 ERICA 잔디밭',
+    feeType: 'free',
+    capacityType: 'unlimited',
+    hostDepartment: '대외협력부',
+  },
+  // 아직 기본 정보를 채우지 않은 행사. 행사 목록이 그 줄에 '기본 정보 입력 필요'만
+  // 그린 것이 이 상태다 — 유형 둘은 카탈로그가 늘 온다고 했으므로 '미정'으로 온다.
+  'E-03': {
+    title: '2026 신입생 환영 행사',
+    feeType: 'undecided',
+    capacityType: 'undecided',
+  },
+}
+
+// ─── 행사를 끝내고 완료하는 자리(EVT-02C · EVT-02E) ─────────────────────────
+//
+// 둘 다 **역할 이름을 화면이 들지 않는 자리**다. 누가 종료할 수 있고 누가 완료
+// 처리할 수 있는지는 조직의 규칙이라 서버가 완성한 글로 온다 — 명세가 적으면
+// 규칙이 바뀔 때마다 명세가 틀린다(event.wrapUpBanner.permissionNote와 같다).
+
+// 종료를 누른 사람에게 권한이 없을 때(EVT-02C). 와이어프레임이 배경으로 그린 것이
+// 기획 중 개요이므로 그 행사(E-01)에 붙인다.
+const EVENT_END_PERMISSION: Record<string, DataRow> = {
+  'E-01': {
+    title: '이 행사를 종료할 권한이 없습니다',
+    note: '행사 종료는 행사 운영 조직 관리자 또는 회장단만 할 수 있습니다.',
+  },
+}
+
+// 완료 처리해도 되는지 살펴 준 것(EVT-02E). **막지 않는다** — 남은 것이 있어도
+// 알려 줄 뿐이다.
+//
+// 남은 업무 수를 여기 다시 적지 않는다. 후속 정리 현황의 타일과 같은 것이므로
+// 그 값에서 만든다 — 두 벌을 손으로 쓰면 한쪽만 고쳐지고, 그 어긋남이 재정 보드와
+// 요청 상세에서 이미 한 번 났다.
+const EVENT_COMPLETE_CONFIRM: Record<string, DataRow> = {
+  [WRAP_UP_EVENT]: {
+    warningNote: `미완료 업무 ${String(EVENT_WRAP_UP_COUNTS[WRAP_UP_EVENT].unfinishedTasks)}`,
+    // 타일은 red인데 이 상자는 orange다. 같은 사실이라도 그려지는 자리가 다르면
+    // 색이 다르고, 그래서 색 이름을 데이터가 갖는다(design 20:6339).
+    warningTone: 'orange',
+    permissionNote: EVENT_WRAP_UP_BANNER[WRAP_UP_EVENT].permissionNote,
+  },
+}
+
 // ─── 행사 운영 조직(EVT-03A) ───────────────────────────────────────────────
 //
 // 디자인이 그린 그대로다 - 책임자 하나, 부서 셋이고 **홍보팀만 부서장이 없다.**
@@ -1228,11 +1328,54 @@ const EVENT_STAFF_DEPARTMENTS: Record<string, DataRow[]> = {
       name: '현장팀',
       memberCountLabel: '부원 1명',
       leaders: [{ id: 'ES-06', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
-      members: [{ id: 'ES-07', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
+      members: [
+        // 이 사람만 부서장을 겸한다. 그 사실은 leaders로는 알 수 없다 —
+        // 부원 줄에 무엇이 그려지는지는 그 줄의 조각이 말해야 한다.
+        {
+          id: 'ES-07',
+          name: '정하늘',
+          major: '컴퓨터학부',
+          grade: '3학년',
+          roleLabel: '· 부서장',
+          roleTone: 'yellow',
+        },
+      ],
     },
   ],
   // E-03은 자리를 만들지 않는다. 아직 조직을 구성하지 않은 행사이고, 그 상태를
   // 그린 것이 EVT-03C다 - 목록이 비는 것이지 행사가 없는 것이 아니다.
+}
+
+// 운영 조직을 세울 때의 미리보기(EVT-01). event.staffDepartments가 **이미 있는**
+// 조직을 말하는 반면 이것은 고른 방식으로 **만들어질** 조직이라 조회 인자에
+// 방식이 함께 든다(setupMode).
+//
+// 행사가 아니라 방식이 정한다 - '기본 조직 불러오기'는 학생회의 기본 조직을
+// 그대로 가져오는 것이므로 어느 행사에서 열든 같은 것이 온다.
+const EVENT_STAFF_SETUP_PREVIEW: Record<string, DataRow[]> = {
+  // 두 벌로 적으면 한쪽만 고쳐진다. 만들어질 것이 곧 기본 조직이다.
+  copyBase: EVENT_STAFF_DEPARTMENTS['E-01'],
+  // 부서만 가져오고 사람은 만든 뒤에 배정한다.
+  pickDepartments: EVENT_STAFF_DEPARTMENTS['E-01'].map((row) => ({
+    ...row,
+    memberCountLabel: '부원 0명',
+    leaders: [],
+    members: [],
+  })),
+  empty: [],
+}
+
+// EVT-03B의 오른쪽 기둥. **카탈로그는 '미배정'이라 부르는데 디자인은 '기본 조직
+// 구성원'이라 적고 부서에 이미 든 사람을 그대로 그렸다**(20:7302). 그래서 부서의
+// 부원과 같은 id를 쓴다 - 다른 id를 주면 한 사람이 두 사람이 되고, 자리에서 뺀
+// 사람이 명단에 두 번 나온다.
+const EVENT_STAFF_UNASSIGNED: Record<string, DataRow[]> = {
+  'E-01': [
+    { id: 'ES-03', name: '김바다', major: '컴퓨터학부', grade: '3학년' },
+    { id: 'ES-04', name: '박해랑', major: '컴퓨터학부', grade: '2학년' },
+    { id: 'ES-05', name: '이윤슬', major: 'ICT융합학부', grade: '4학년' },
+    { id: 'ES-07', name: '정하늘', major: '컴퓨터학부', grade: '3학년' },
+  ],
 }
 
 // 조직이 아직 없는 행사. **E-02를 쓸 수 없다** - 그쪽은 끝나고 정리 중인 행사라
@@ -2965,8 +3108,32 @@ export const FILTERED_FIXTURES: Record<
     return row === undefined ? [] : [row]
   },
   'event.wrapUpRemaining': ({ eventId = '' }) => EVENT_WRAP_UP_REMAINING[eventId] ?? [],
+  // 인자가 가리키는 행사가 없으면 빈 목록이고, 그것은 '개발용 응답이 없다'가
+  // 아니라 **찾지 못했다**다(readDataSource가 NOT_FOUND로 가른다).
+  'event.endPermission': ({ eventId = '' }) => {
+    const row = EVENT_END_PERMISSION[eventId]
+    return row === undefined ? [] : [row]
+  },
+  'event.completeConfirm': ({ eventId = '' }) => {
+    const row = EVENT_COMPLETE_CONFIRM[eventId]
+    return row === undefined ? [] : [row]
+  },
   'event.staffLeaders': ({ eventId = '' }) => EVENT_STAFF_LEADERS[eventId] ?? [],
   'event.staffDepartments': ({ eventId = '' }) => EVENT_STAFF_DEPARTMENTS[eventId] ?? [],
+  // 세울 조직은 행사가 아니라 **고른 방식**이 정한다.
+  'event.staffSetupPreview': ({ setupMode = '' }) =>
+    EVENT_STAFF_SETUP_PREVIEW[setupMode] ?? [],
+  'event.staffUnassignedMembers': ({ eventId = '' }) => EVENT_STAFF_UNASSIGNED[eventId] ?? [],
+  // 인자가 가리키는 행사에 아직 QR이 없으면 빈 목록이고, 그것은 '개발용 응답이
+  // 없다'가 아니라 **아직 만들지 않았다**다(readDataSource가 NOT_FOUND로 가른다).
+  'event.attendanceQr': ({ eventId = '' }) => {
+    const row = EVENT_ATTENDANCE_QR[eventId]
+    return row === undefined ? [] : [row]
+  },
+  'event.basicsDraft': ({ eventId = '' }) => {
+    const row = EVENT_BASICS_DRAFT[eventId]
+    return row === undefined ? [] : [row]
+  },
   // 건수는 보는 범위와 무관하게 이 행사의 보드 전체를 센다.
   'event.taskAlerts': ({ eventId = '' }) => {
     const rows = EVENT_TASK_BOARD.filter((task) => task.eventId === eventId)

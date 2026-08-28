@@ -58,6 +58,10 @@ function roleOf(spec: FieldSpec) {
   if (spec.type === 'input') {
     if (spec.inputType === 'search') return 'searchbox'
     if (spec.inputType === 'checkbox') return 'checkbox'
+    // 수를 받는 칸은 글을 적는 칸이 아니다 — <input type="number">는 위아래로
+    // 올리고 내리는 조작이라 ARIA가 spinbutton이라 부른다(EVT-02B의 참가비 금액과
+    // 정원 인원이 처음이다).
+    if (spec.inputType === 'number') return 'spinbutton'
     return 'textbox'
   }
   return spec.presentation === 'choiceGroup' ? 'radiogroup' : 'combobox'

@@ -86,7 +86,8 @@
             "meetingId": {
               "screenParam": "meetingId"
             }
-          }
+          },
+          "scopeEvent": "cancel"
         }
       }
     },

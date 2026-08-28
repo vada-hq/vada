@@ -115,6 +115,13 @@ const FLOOR = {
   "OPS-MEET-01A": { matched: 2, spurious: 0 },
   // 변형 셋이다. 같은 화면을 다른 사람이 볼 때이므로 요소가 거의 없고,
   // 추출기는 그림을 통째로 훑으므로 헛것만 나온다.
+  "EVT-00B": { matched: 3, spurious: 3 },
+  "EVT-01": { matched: 4, spurious: 3 },
+  "EVT-02B": { matched: 14, spurious: 7 },
+  "EVT-02C": { matched: 1, spurious: 8 },
+  "EVT-02E": { matched: 1, spurious: 8 },
+  "EVT-03B": { matched: 10, spurious: 1 },
+  "EVT-04B": { matched: 0, spurious: 10 },
   "EVT-00A2": { matched: 1, spurious: 3 },
   "EVT-02D": { matched: 1, spurious: 2 },
   "EVT-03A": { matched: 2, spurious: 3 },

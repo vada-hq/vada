@@ -46,6 +46,7 @@ interface OPSMEETD04ScreenProps {
   screenParams: Record<string, string>
   draft: ScopeDraft
   onChangeDraft: (next: ScopeDraft) => void
+  onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
@@ -53,6 +54,7 @@ export function OPSMEETD04Screen({
   screenParams,
   draft,
   onChangeDraft,
+  onScopeEvent,
   onNavigate,
 }: OPSMEETD04ScreenProps) {
   const head = elementByNodeId(opsMeetD04, NODE.head).spec as SummarySpec
@@ -71,9 +73,13 @@ export function OPSMEETD04Screen({
   )
 
   const goBack = () => {
-    if (back.action.type === 'navigate') {
-      onNavigate(back.action.targetScreenId, resolveParams(back.action.params, { screenParams }))
+    if (back.action.type !== 'navigate') return
+    // 떠나면서 초안을 어떻게 끝내는지는 **명세가 말한다.** 적어 두지 않으면
+    // 취소 사유가 남아, 다시 열었을 때 지난번에 치던 글이 그대로 있다.
+    if (back.action.scopeEvent !== undefined) {
+      onScopeEvent(opsMeetD04.stateScopeKey ?? '', back.action.scopeEvent)
     }
+    onNavigate(back.action.targetScreenId, resolveParams(back.action.params, { screenParams }))
   }
 
   if (missingParam !== undefined) {

@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-02E",
+  "meta": {
+    "eyebrow": null,
+    "title": "아직 정리되지 않은 항목이 있습니다"
+  },
+  "overlay": {
+    "screenId": "EVT-02D",
+    "source": "20:6334"
+  },
+  "params": [
+    {
+      "key": "eventId",
+      "valueType": "string",
+      "example": "E-02",
+      "missingNote": "어느 행사를 완료 처리할지 정하지 않고 열렸습니다. 후속 정리 중인 행사 개요에서 완료 처리를 누르면 이 확인이 열립니다.",
+      "description": "무엇을 완료 처리하려 했는지. 뒤에 남아 있는 후속 정리 중 행사 개요(EVT-02D)가 정한다. 남은 것이 무엇인지도 누가 완료 처리할 수 있는지도 그 행사에 대해 물어본다."
+    }
+  ],
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:5994",
+    "name": "운영 — 행사 · EVT-02E · 행사 완료 처리 확인 모달",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:6336",
+        "name": "Heading 3",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "아직 정리되지 않은 항목이 있습니다"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:6339",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "toneField": "warningTone",
+        "titleField": "warningNote",
+        "dataSourceKey": "event.completeConfirm",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:6347",
+        "name": "Paragraph",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "완료 처리 후에도 행사 기록은 열람할 수 있습니다. 남은 항목을 확인한 뒤 완료하는 것을 권장합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:6350",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "계속 정리하기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-02D",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:6352",
+        "name": "Text",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "permissionNote",
+        "dataSourceKey": "event.completeConfirm",
+        "params": {
+          "eventId": {
+            "screenParam": "eventId"
+          }
+        }
+      }
+    }
+  ]
+}

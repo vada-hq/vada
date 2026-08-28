@@ -716,17 +716,17 @@
         {
           "value": "copyBase",
           "label": "기본 조직 불러오기",
-          "description": "학생회 기본 조직을 그대로 가져와 시작합니다."
+          "description": "학생회 기본 조직 구조를 그대로 사용합니다."
         },
         {
           "value": "pickDepartments",
           "label": "참여 부서만 선택",
-          "description": "이 행사에 참여할 부서만 골라 시작합니다."
+          "description": "참여하는 부서와 팀원만 골라 구성합니다."
         },
         {
           "value": "empty",
           "label": "빈 조직",
-          "description": "아무것도 없는 상태에서 직접 만듭니다."
+          "description": "조직을 처음부터 새로 구성합니다."
         }
       ]
     },
@@ -855,6 +855,50 @@
         "empty": "고를 수 있는 사람이 없습니다",
         "error": "사람을 불러오지 못했습니다"
       }
+    },
+    {
+      "key": "event.feeTypes",
+      "type": "static",
+      "description": "행사 참가비를 어떻게 받을지(EVT-02B). 선택지는 디자인에 고정돼 있다. '학생회비 조건부'는 납부자·미납자 금액을 따로 받는다 — event.basics는 그 둘을 '납부자 무료 / 미납자 5000원'이라는 한 줄로 잇는다.",
+      "params": [],
+      "options": [
+        {
+          "value": "free",
+          "label": "무료"
+        },
+        {
+          "value": "fixed",
+          "label": "정액 유료"
+        },
+        {
+          "value": "duesConditional",
+          "label": "학생회비 조건부"
+        },
+        {
+          "value": "undecided",
+          "label": "미정"
+        }
+      ]
+    },
+    {
+      "key": "event.capacityTypes",
+      "type": "static",
+      "description": "행사 정원을 어떻게 둘지(EVT-02B). 선택지는 디자인에 고정돼 있다. '인원제한'일 때만 정원 인원을 받는다.",
+      "params": [],
+      "options": [
+        {
+          "value": "unlimited",
+          "label": "제한없음"
+        },
+        {
+          "value": "limited",
+          "label": "인원제한"
+        },
+        {
+          "value": "undecided",
+          "label": "미정"
+        }
+      ]
     }
   ]
 }

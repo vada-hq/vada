@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-00B",
+  "meta": {
+    "eyebrow": null,
+    "title": "새 행사 만들기"
+  },
+  "overlay": {
+    "screenId": "EVT-00A",
+    "source": "20:4646"
+  },
+  "stateScopeKey": "eventCreateDraft",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:4488",
+    "name": "운영 — 행사 · EVT-00B · 새 행사 만들기 모달",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "20:4649",
+        "name": "Heading 3",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "새 행사 만들기"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4651",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "닫기",
+        "labelHidden": true,
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-00A",
+          "scopeEvent": "cancel"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4656",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "title",
+        "label": "행사명 또는 가칭",
+        "placeholder": "2026 학부 체육대회",
+        "helperText": "일시·장소·참가비·운영 조직은 행사 공간에서 나중에 입력할 수 있습니다.",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4663",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "행사 공간을 먼저 만들고, 회의와 업무를 진행하면서 정보를 점진적으로 채울 수 있습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4667",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "취소",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "EVT-00A",
+          "scopeEvent": "cancel"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "20:4669",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "행사 만들기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "event.create",
+          "onSuccess": {
+            "note": "행사를 만든 뒤 어느 화면으로 가는지가 디자인에 없습니다. 새 행사의 행사 개요(EVT-02)가 유력하지만 그림에 이음이 없고, 방금 만든 행사의 id를 무엇이 주는지도 그려져 있지 않습니다.",
+            "scopeEvent": "complete"
+          },
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}

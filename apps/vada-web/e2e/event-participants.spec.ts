@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { missingNoteOf } from './spec'
+import { missingNoteOf, pendingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const PARTICIPANTS = '/#/EVT-04?eventId=E-01'
@@ -102,9 +102,19 @@ test('EVT-04: 인원 관리 안의 갈피 줄은 운영 조직 화면으로 이�
   await expect(page).toHaveURL(/#\/EVT-03A\?eventId=E-01/)
 })
 
-test('EVT-04: 머리의 행동 셋이 아직 없는 화면임을 남긴다', async ({ page }) => {
+// 머리의 셋 중 둘은 이제 갈 곳이 있다. 남은 하나는 그 화면을 그린 그림이 없다 —
+// 행사를 시작하는 단추는 어디에도 그려지지 않았다.
+test('EVT-04: 머리의 행동은 명세가 가리키는 데로 데려간다', async ({ page }) => {
   await page.goto(PARTICIPANTS)
 
   await page.getByRole('button', { name: '참석 확인 QR' }).click()
-  await expect(page.getByText(/참석 확인 QR 화면이 아직 명세되지 않았습니다/)).toBeVisible()
+  await expect(page).toHaveURL(/#\/EVT-04B\?eventId=E-01/)
+
+  await page.goto(PARTICIPANTS)
+  await page.getByRole('button', { name: '기본정보 수정' }).click()
+  await expect(page).toHaveURL(/#\/EVT-02B\?eventId=E-01/)
+
+  await page.goto(PARTICIPANTS)
+  await page.getByRole('button', { name: '행사 시작' }).click()
+  await expect(page.getByRole('status')).toHaveText(pendingNoteOf('EVT-04', '행사 시작'))
 })
