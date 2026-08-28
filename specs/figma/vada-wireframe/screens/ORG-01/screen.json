@@ -7,6 +7,7 @@
     "title": "학생회 기본 정보",
     "footerNote": "다음 단계에서 기본 조직 또는 빈 조직을 선택하고 부서를 구성합니다."
   },
+  "viewer": "joining",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "11:2",

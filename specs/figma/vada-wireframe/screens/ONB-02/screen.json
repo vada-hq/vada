@@ -6,6 +6,7 @@
     "description": "참여할 학생회를 선택해 주세요.",
     "footerNote": "초대 링크로 직접 접속한 경우 이 화면을 건너뜁니다."
   },
+  "viewer": "joining",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "10:2",

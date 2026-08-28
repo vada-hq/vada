@@ -163,6 +163,22 @@ describe('화면이 자기 명세를 지킨다', () => {
     },
   )
 
+  // 이 화면을 누가 보는가. **표현이 아니라 사실이고, 그 사실이 셸을 정한다.**
+  // 아직 들어가는 중인 사람(joining)과 밖의 사람(external)에게는 사이드바가
+  // 있을 수 없다 — 속한 조직이 없거나 학생회 사람이 아니기 때문이다.
+  //
+  // 이 검사가 없던 동안 다섯 화면이 명세에 없는 사실로 살고 있었다.
+  const outsideApp = ALL_SCREENS.filter(
+    (screen) => (screen as { viewer?: string }).viewer !== undefined,
+  )
+
+  it.each(outsideApp.map((screen) => screen.screenId))(
+    '%s: 학생회 밖에서 보는 화면은 셸을 그리지 않는다',
+    (screenId) => {
+      expect(sourceOf(screenId)).not.toMatch(/AppShell/)
+    },
+  )
+
   // onSuccess.note도 '아직 정해지지 않았다'를 말한다 — 다만 누르기 전이 아니라
   // **보내고 난 뒤**의 자리다. 적어만 두고 아무도 안 보여주면 명세에만 있는
   // 사실이 되고, 사람은 보내고 나서 아무 일도 안 일어나는 것을 본다.

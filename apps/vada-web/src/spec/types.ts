@@ -509,6 +509,9 @@ export interface ScreenParam {
 }
 
 export interface ScreenSpec {
+  // 이 화면을 보는 사람이 조직의 어디에 있는가(기본값 member). 표현이 아니라
+  // 사실이고, 그 사실이 셸을 정한다 - joining·external에게는 사이드바가 없다.
+  viewer?: 'member' | 'joining' | 'external'
   schemaVersion: number
   screenId: string
   // 이 화면이 다른 화면 위에 뜬다는 선언. 모달이 그 자리다 - 뒤에는 열기 전에

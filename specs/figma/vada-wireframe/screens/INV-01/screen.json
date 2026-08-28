@@ -6,6 +6,7 @@
     "title": "초대받은 학생회 확인",
     "footerNote": "참여하면 미배정 구성원으로 등록됩니다. 부서 배정은 학생회 관리자가 진행합니다."
   },
+  "viewer": "joining",
   "source": {
     "pageName": "Wireframe",
     "nodeId": "9:2",

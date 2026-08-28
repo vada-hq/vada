@@ -2417,6 +2417,33 @@ function submittingScreen(onSuccess) {
   };
 }
 
+// 이 화면을 누가 보는가. 겹쳐 뜨는 화면은 이 값을 갖지 않는다 — 뒤에 남는
+// 화면이 이미 말했다.
+test("겹쳐 뜨는 화면은 보는 사람을 따로 말하지 않는다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: { screenId: "S-01", elements: [] }
+      },
+      {
+        file: "w/screens/S-02/screen.json",
+        spec: {
+          screenId: "S-02",
+          viewer: "external",
+          overlay: { screenId: "S-01", source: "1:1" },
+          elements: []
+        }
+      }
+    ]
+  });
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("겹쳐 뜨는 화면")).length,
+    1
+  );
+});
+
 test("보내고 머문다고 말하면 조용하다", () => {
   assert.deepEqual(collectSpecFindings(submittingScreen({})), []);
 });
