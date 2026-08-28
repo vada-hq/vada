@@ -3,6 +3,8 @@ import { missingNoteOf, pendingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const PARTICIPANTS = '/#/EVT-04?eventId=E-01'
+// 아무도 신청하지 않은 행사. 참가자 명단이 비는 자리다(EVT-04C).
+const NO_PARTICIPANTS = '/#/EVT-04?eventId=E-03'
 
 // 갈피 줄은 셸의 메뉴와 이름이 겹친다(재정·업무). 작업 공간 안에서만 찾는다.
 const tabs = (page: import('@playwright/test').Page) =>
@@ -117,4 +119,35 @@ test('EVT-04: 머리의 행동은 명세가 가리키는 데로 데려간다', a
   await page.goto(PARTICIPANTS)
   await page.getByRole('button', { name: '행사 시작' }).click()
   await expect(page.getByRole('status')).toHaveText(pendingNoteOf('EVT-04', '행사 시작'))
+})
+
+// 아무도 신청하지 않았을 때. **그림이 따로 있다**(EVT-04C) — 같은 화면의 다른 때라
+// 명세는 하나이고, 무엇을 그릴지는 출처의 messages와 itemList.emptyAction이 말한다.
+test('EVT-04: 신청자가 없으면 모집을 시작하라고 권한다', async ({ page }) => {
+  await page.goto(NO_PARTICIPANTS)
+
+  await expect(page.getByText('아직 참가 신청자가 없습니다')).toBeVisible()
+  // 비었다는 말 아래의 설명. 줄바꿈은 글 안에 있다.
+  await expect(page.getByText('외부 학생은 가입 없이 모바일 웹으로 신청합니다.')).toBeVisible()
+  await page.screenshot({ path: `${SHOTS}/evt-04c.png`, fullPage: true })
+})
+
+test('EVT-04: 비었을 때 권하는 단추는 참여 설문으로 데려간다', async ({ page }) => {
+  await page.goto(NO_PARTICIPANTS)
+
+  await page.getByRole('button', { name: '참여 설문 만들기' }).click()
+
+  await expect(page).toHaveURL(/#\/EVT-05\?eventId=E-03/)
+  // **데려간 곳이 실제로 서야 한다.** 주소만 보면 터지는 화면으로 보내 놓고도
+  // 초록이다 — 아무것도 안 정한 행사의 참여 설문이 개발용 응답에 없었다.
+  await expect(page.getByRole('heading', { level: 1, name: '참여 설문' })).toBeVisible()
+})
+
+// 그림은 이 자리에서 검색 칸과 거르기 넷까지 지웠는데, 명세에는 "목록이 비면 그
+// 앞의 거르개도 감춘다"를 말할 어휘가 없다. 지어내지 않았다는 것을 적어 둔다 —
+// 감추면 거르다가 0건이 된 사람이 거르개를 되돌릴 방법을 잃는다.
+test('EVT-04: 비어도 거르개는 남는다', async ({ page }) => {
+  await page.goto(NO_PARTICIPANTS)
+
+  await expect(page.locator('[data-node-id="20:7689"]')).toBeVisible()
 })

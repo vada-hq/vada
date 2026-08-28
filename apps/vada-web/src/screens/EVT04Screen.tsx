@@ -8,6 +8,7 @@ import { findDataSource, readListSource, readObjectSource } from '../data-source
 import type { Option } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt04 } from '../spec/screens'
+import { targetScreenOf } from '../spec/types'
 import type { ButtonSpec, InputSpec, ItemListSpec, SelectSpec } from '../spec/types'
 
 // 행사 참가자 명단(EVT-04).
@@ -57,6 +58,15 @@ const ASSET = {
   // 표의 두 그림. 줄마다 같은 그림이 다른 노드로 있어 첫 줄의 것만 지목한다.
   nameAlert: '20:7727',
   rowMenu: '20:7739',
+} as const
+
+// 아무도 신청하지 않았을 때의 그림 둘. **다른 프레임에 있다** — 빈 상태는 EVT-04C가
+// 그렸고 그 프레임에는 명세가 없다(같은 화면의 다른 때이므로 명세도 하나다).
+// EVT-03A가 EVT-03C의 그림을 빌려 쓰는 것과 같은 자리다.
+const EMPTY_SCREEN = 'EVT-04C'
+const EMPTY_ASSET = {
+  icon: '20:7496',
+  addIcon: '20:7506',
 } as const
 
 // 열 폭은 명세의 것이 아니다 — 명세는 무엇이 어느 열에 오는지만 말한다.
@@ -319,9 +329,12 @@ export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
         </div>
 
         {rows.length === 0 ? (
-          <p data-design-state="empty" className="px-4 py-6 text-xs text-gray-400">
-            {findDataSource(table.dataSourceKey).messages.empty}
-          </p>
+          <EmptyParticipants
+            table={table}
+            onNote={setNote}
+            onNavigate={onNavigate}
+            screenParams={screenParams}
+          />
         ) : (
           <ul>
             {rows.map((row) => {
@@ -462,5 +475,68 @@ export function EVT04Screen({ screenParams, onNavigate }: EVT04ScreenProps) {
         </div>
       </div>
     </AppShell>
+  )
+}
+
+// 아무도 신청하지 않았을 때(EVT-04C 20:7495). 비었다는 것을 말하는 것은 출처
+// (messages.empty·emptyDetail)이고, 비었으니 모집을 시작하라고 권하는 것은 명세
+// (itemList.emptyAction)다 — EVT-03A와 같은 규칙이다.
+//
+// **거르개는 그대로 둔다.** 그림은 이 자리에서 검색 칸과 거르기 넷까지 지웠는데,
+// 명세에는 "목록이 비면 그 앞의 거르개도 감춘다"를 말할 어휘가 없다. 지어내서
+// 감추면 거르다가 0건이 된 사람이 거르개를 되돌릴 방법을 잃는다 — 그림이 그리지
+// 않은 경우다. 명세가 말하는 데까지만 그린다.
+//
+// 이 어휘의 빈자리는 세 번째다(EXT-01A의 막힌 QR · EVT-03C · 여기).
+function EmptyParticipants({
+  table,
+  onNote,
+  onNavigate,
+  screenParams,
+}: {
+  table: ItemListSpec
+  onNote: (note: string) => void
+  onNavigate: (screenId: string, params: Record<string, string>) => void
+  screenParams: Record<string, string>
+}) {
+  const messages = findDataSource(table.dataSourceKey).messages
+  const action = table.emptyAction
+
+  return (
+    <div
+      data-design-state="empty"
+      className="flex flex-col items-center gap-4 py-20 text-center"
+    >
+      <FigmaAsset screenId={EMPTY_SCREEN} nodeId={EMPTY_ASSET.icon} className="size-12" />
+      <p className="text-base font-bold text-gray-900">{messages.empty}</p>
+      {messages.emptyDetail === undefined ? null : (
+        // 줄바꿈은 글 안에 있다 — 몇 줄로 그릴지는 표현이라 명세가 정하지 않는다.
+        <p className="text-xs whitespace-pre-line text-gray-500">{messages.emptyDetail}</p>
+      )}
+      {action === undefined ? null : (
+        <button
+          type="button"
+          onClick={() => {
+            if (action.type === 'pending') onNote(action.note)
+            if (action.type === 'navigate') {
+              // 갈래로 가르는 이동일 수도 있으므로 갈 곳은 한 곳에서 푼다.
+              // 이 자리는 목록이 비었을 때라 가를 줄이 없다 — 빈 행을 넘긴다.
+              const target = targetScreenOf(action, {})
+              if (target !== null) {
+                onNavigate(target, resolveParams(action.params, { screenParams }))
+              }
+            }
+          }}
+          className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
+        >
+          <FigmaAsset
+            screenId={EMPTY_SCREEN}
+            nodeId={EMPTY_ASSET.addIcon}
+            className="size-3.5"
+          />
+          {action.label}
+        </button>
+      )}
+    </div>
   )
 }

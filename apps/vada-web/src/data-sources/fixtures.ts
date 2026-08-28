@@ -541,6 +541,52 @@ const EVENT_OVERVIEW: Record<string, Record<string, DataRow>> = {
       unassignedTasksNote: '처리 필요',
     },
   },
+  // 아직 아무것도 정하지 않은 행사. **없는 것이 아니라 비어 있다** — 행사는
+  // 만들어졌고 채워지지 않았을 뿐이라, 화면이 '못 찾았다'가 아니라 '미입력'을
+  // 그린다.
+  //
+  // **비어 있다는 말도 서버가 완성해서 준다.** 화면이 빈 문자열을 보고 '미입력'을
+  // 지어내면 그 말이 코드에 박히고, 조직마다 다르게 부르는 자리가 된다.
+  'E-03': {
+    briefing: {
+      headline: '아직 기본 정보를 입력하지 않았습니다. 일시와 장소를 정하면 모집을 시작할 수 있습니다.',
+      stateNote: '현재 상태: 준비 중 · 다음 운영 단계는 기본 정보 입력입니다.',
+    },
+    highlights: {
+      unassignedTasks: '0건',
+      unassignedTasksDetail: '아직 만들어진 업무가 없습니다',
+      needsCheck: '0명',
+      needsCheckDetail: '확인할 신청자가 없습니다',
+      nextMilestone: '기본 정보 입력',
+      nextMilestoneDetail: '아직 담당자가 없습니다',
+    },
+    basics: {
+      title: '2026 신입생 환영 행사',
+      startAt: '미입력',
+      place: '미입력',
+      audience: '미입력',
+      fee: '미정',
+      capacity: '미정',
+      contact: '미입력',
+      host: '미지정',
+    },
+    recruitSettings: {
+      surveyStatus: '초안',
+      period: '미입력',
+      method: '미정',
+      applicantCount: '0명',
+    },
+    participantStats: {
+      applicants: '0명',
+      applicantsNote: '정원 미정',
+      paid: '0명',
+      paidNote: '미납 0명',
+      needsCheck: '0명',
+      needsCheckNote: '명단 불일치',
+      unassignedTasks: '0개',
+      unassignedTasksNote: '처리 필요',
+    },
+  },
 }
 
 const EVENT_CHECKLIST: Record<string, DataRow[]> = {
@@ -1679,6 +1725,14 @@ const EVENT_SURVEY: Record<string, DataRow> = {
     statusTone: 'gray',
     previewUrl: 'https://vada.app/s/2026-swcollege-sports/preview',
   },
+  // **설문은 행사와 함께 생긴다.** 아직 아무것도 안 정한 행사에도 설문의 자리가
+  // 있고, 그래서 EVT-05가 열린다 — EVT-04의 빈 참가자 명단이 권하는 곳이 여기다.
+  // 이것이 없으면 그 단추가 터지는 화면으로 데려간다.
+  'E-03': {
+    statusLabel: '초안',
+    statusTone: 'gray',
+    previewUrl: 'https://vada.app/s/2026-freshman-welcome/preview',
+  },
 }
 
 // 모집 설정 초안(EVT-05). 비어 있는 칸은 아예 넣지 않는다 — 카탈로그가 전부
@@ -1688,11 +1742,22 @@ const EVENT_SURVEY_SETTINGS_DRAFT: Record<string, DataRow> = {
     applyMethod: 'firstCome',
     duesCheck: 'y',
   },
+  // 아무것도 안 정한 새 행사. **빈 한 줄이지 없는 것이 아니다** — 초안의 자리는
+  // 있고 담긴 값이 없을 뿐이라, 화면이 '못 찾았다'가 아니라 빈 칸을 그린다.
+  'E-03': {},
 }
 
 // 링크를 켤 수 있는지. **막는 것은 서버다** — 무엇이 모자란지를 화면이 세면
 // 조직의 규칙이 화면에 적히게 된다(meeting.minutesProgress와 같은 자리).
 const EVENT_SURVEY_ACTIVATION: Record<string, DataRow> = {
+  // 새 행사는 채운 것이 거의 없다. **막는 것은 서버이므로 화면이 이 수를 세지
+  // 않는다** — 세면 조직의 규칙이 화면에 적힌다.
+  'E-03': {
+    unmetCountNote: '미충족 12개',
+    unmetCount: 12,
+    canActivate: '',
+    blockedNote: '아직 채우지 않은 활성화 조건이 12개 있습니다.',
+  },
   'E-01': {
     unmetCountNote: '미충족 2개',
     unmetCount: 2,
@@ -1747,6 +1812,125 @@ const EVENT_SURVEY_ACTIVATION_CONDITIONS: Record<string, DataRow[]> = {
         { key: 'studentNoQuestion', label: '학번 필수 문항', met: 'y', tone: 'green' },
         { key: 'privacyConsent', label: '개인정보 수집·이용 동의', met: 'y', tone: 'green' },
         { key: 'duesIdentity', label: '학생회비 대조용 식별 문항', met: 'y', tone: 'green' },
+      ],
+    },
+  ],
+  // 새 행사. 채운 것이 넷뿐이라 나머지 열둘이 빨갛다 — 위의 unmetCount 12와 같은
+  // 수다. 어디서 채우는지(locationNote·targetKind)는 조건마다 다르고 그것을 아는
+  // 것은 서버다.
+  'E-03': [
+    {
+      groupLabel: '행사 기본정보',
+      rows: [
+        { key: 'title', label: '행사명', met: 'y', tone: 'green' },
+        {
+          key: 'startAt',
+          label: '시작 일시',
+          met: '',
+          tone: 'red',
+          detail: '시작 일시가 설정되지 않았습니다',
+          locationNote: '입력 위치: 행사 기본정보 → 일시',
+          actionLabel: '기본정보에서 수정 →',
+          targetKind: 'basics',
+        },
+        {
+          key: 'endAt',
+          label: '종료 일시',
+          met: '',
+          tone: 'red',
+          detail: '종료 일시가 설정되지 않았습니다',
+          locationNote: '입력 위치: 행사 기본정보 → 일시',
+          actionLabel: '기본정보에서 수정 →',
+          targetKind: 'basics',
+        },
+        {
+          key: 'place',
+          label: '장소',
+          met: '',
+          tone: 'red',
+          detail: '장소가 입력되지 않았습니다',
+          locationNote: '입력 위치: 행사 기본정보 → 장소',
+          actionLabel: '기본정보에서 수정 →',
+          targetKind: 'basics',
+        },
+        {
+          key: 'audience',
+          label: '참가 대상',
+          met: '',
+          tone: 'red',
+          detail: '참가 대상이 입력되지 않았습니다',
+          locationNote: '입력 위치: 행사 기본정보 → 참가 대상',
+          actionLabel: '기본정보에서 수정 →',
+          targetKind: 'basics',
+        },
+        {
+          key: 'feeType',
+          label: '참가비 유형',
+          met: '',
+          tone: 'red',
+          detail: '참가비 유형이 정해지지 않았습니다',
+          locationNote: '입력 위치: 행사 기본정보 → 참가비',
+          actionLabel: '기본정보에서 수정 →',
+          targetKind: 'basics',
+        },
+        {
+          key: 'capacityType',
+          label: '행사 정원 유형',
+          met: '',
+          tone: 'red',
+          detail: '정원 유형이 정해지지 않았습니다',
+          locationNote: '입력 위치: 행사 기본정보 → 정원',
+          actionLabel: '기본정보에서 수정 →',
+          targetKind: 'basics',
+        },
+      ],
+    },
+    {
+      groupLabel: '참여 설문 설정',
+      rows: [
+        {
+          key: 'applyStart',
+          label: '신청 시작 일시',
+          met: '',
+          tone: 'red',
+          detail: '신청 시작 일시가 설정되지 않았습니다',
+          locationNote: '입력 위치: 모집 설정',
+          actionLabel: '모집 설정에서 입력 →',
+          targetKind: 'surveySettings',
+        },
+        {
+          key: 'applyEnd',
+          label: '신청 마감 일시',
+          met: '',
+          tone: 'red',
+          detail: '신청 마감 일시가 설정되지 않았습니다',
+          locationNote: '입력 위치: 모집 설정',
+          actionLabel: '모집 설정에서 입력 →',
+          targetKind: 'surveySettings',
+        },
+        {
+          key: 'applyMethod',
+          label: '신청 방식',
+          met: '',
+          tone: 'red',
+          detail: '신청 방식이 정해지지 않았습니다',
+          locationNote: '입력 위치: 모집 설정',
+          actionLabel: '모집 설정에서 입력 →',
+          targetKind: 'surveySettings',
+        },
+        { key: 'nameQuestion', label: '이름 필수 문항', met: 'y', tone: 'green' },
+        { key: 'studentNoQuestion', label: '학번 필수 문항', met: 'y', tone: 'green' },
+        { key: 'privacyConsent', label: '개인정보 수집·이용 동의', met: 'y', tone: 'green' },
+        {
+          key: 'duesIdentity',
+          label: '학생회비 대조용 식별 문항',
+          met: '',
+          tone: 'red',
+          detail: '학생회비 대조를 켜면 식별 문항이 필요합니다',
+          locationNote: '입력 위치: 설문 문항',
+          actionLabel: '문항에서 추가 →',
+          targetKind: 'surveySettings',
+        },
       ],
     },
   ],

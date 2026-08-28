@@ -385,6 +385,16 @@
           "label": "참가자 메뉴 열기",
           "note": "참가자 한 명에게 할 수 있는 일이 아직 명세되지 않았습니다."
         },
+        "emptyAction": {
+          "type": "navigate",
+          "label": "참여 설문 만들기",
+          "targetScreenId": "EVT-05",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
+        },
         "selection": {
           "action": {
             "type": "pending",
