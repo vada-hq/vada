@@ -73,14 +73,18 @@ test("저장된 화면의 폴더 이름과 design의 이름이 말하는 screenI
     "screens"
   );
 
+  // **원본을 본다. 명세가 아니다.** 이 물음은 명세가 없어도 답할 수 있고,
+  // 그래야 **받자마자** 잡힌다. 회의 프레임 16개를 미리 받아 두면서 명세 없는
+  // 폴더가 처음 생겼고, 그때 이 검사가 screen.json을 찾다 터졌다 — 검사가
+  // 묻던 것보다 좁은 것에 매여 있었다.
   const drifted = [];
   for (const entry of await readdir(screensDir)) {
-    const spec = JSON.parse(
-      await readFile(join(screensDir, entry, "screen.json"), "utf8")
+    const design = JSON.parse(
+      await readFile(join(screensDir, entry, "figma.design.json"), "utf8")
     );
-    const fromName = screenIdFromFrameName(spec.source?.name);
-    if (fromName !== null && fromName !== spec.screenId) {
-      drifted.push(`${spec.screenId} ← design은 ${fromName}`);
+    const fromName = screenIdFromFrameName(design.root?.name);
+    if (fromName !== null && fromName !== entry) {
+      drifted.push(`${entry} ← design은 ${fromName}`);
     }
   }
 
