@@ -1649,7 +1649,10 @@ function checkNavigateParams(findings, context) {
 
   const actions = [
     { at: "action", action: spec.action },
-    { at: "itemAction", action: spec.itemAction }
+    { at: "itemAction", action: spec.itemAction },
+    // 비었을 때 권하는 단추도 인자를 넘긴다. 그 자리에는 **눌린 줄이 없으므로**
+    // itemField를 가리키면 아래에서 오류가 난다(rowFields === null).
+    { at: "emptyAction", action: spec.emptyAction }
   ].filter(({ action }) => isObject(action));
 
   for (const { at, action } of actions) {

@@ -1714,6 +1714,33 @@ test("두 겹 아래의 칸도 화면의 요소와 같은 검사를 받는다", 
   );
 });
 
+// 비었을 때 권하는 단추도 화면을 옮긴다. 세 자리(action·itemAction·
+// selection.action)만 보던 동안 EVT-03A의 '운영 조직 구성하기'는 어느 게이트도
+// 확인하지 않았다 - 넘기는 인자가 대상 화면이 받는 것인지조차.
+test("빈 상태의 단추가 넘기는 인자도 대상 화면이 받아야 한다", () => {
+  const findings = collectSpecFindings({
+    screens: listScreen({
+      itemTitleFieldKey: "quantity",
+      itemFields: [ITEM_FIELD],
+      emptyAction: {
+        type: "navigate",
+        label: "만들러 가기",
+        targetScreenId: "S-02",
+        params: { 없는인자: { value: "x" } }
+      }
+    }).concat([
+      {
+        file: "w/screens/S-02/screen.json",
+        spec: { screenId: "S-02", elements: [] }
+      }
+    ])
+  });
+  assert.equal(
+    findings.filter((f) => f.message.includes("'없는인자'")).length,
+    1
+  );
+});
+
 // --- 화면이 스스로 셈하는 값 -------------------------------------------------
 
 function summaryScreen(items, extra = {}) {

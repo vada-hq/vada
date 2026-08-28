@@ -54,8 +54,15 @@ function actionsOf(spec: ElementSpec): { type: string }[] {
     action?: { type: string }
     itemAction?: { type: string }
     selection?: { action: { type: string } }
+    // 비었을 때 권하는 단추도 동작이다.
+    emptyAction?: { type: string }
   }
-  return [candidate.action, candidate.itemAction, candidate.selection?.action].filter(
+  return [
+    candidate.action,
+    candidate.itemAction,
+    candidate.selection?.action,
+    candidate.emptyAction,
+  ].filter(
     (action): action is { type: string } => action !== undefined,
   )
 }

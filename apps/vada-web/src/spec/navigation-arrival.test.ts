@@ -31,12 +31,17 @@ function actionsOf(spec: ElementSpec): DisplayAction[] {
     action?: { type: string }
     itemAction?: DisplayAction
     selection?: { action: DisplayAction }
+    // 비었을 때 권하는 단추도 화면을 옮긴다.
+    emptyAction?: DisplayAction
   }
   if (candidate.action?.type === 'navigate') {
     out.push(candidate.action as DisplayAction)
   }
   if (candidate.itemAction !== undefined) {
     out.push(candidate.itemAction)
+  }
+  if (candidate.emptyAction !== undefined) {
+    out.push(candidate.emptyAction)
   }
   if (candidate.selection !== undefined) {
     out.push(candidate.selection.action)

@@ -80,7 +80,11 @@ export function allActionsOf(spec) {
     const candidates = [
       ["action", elementSpec.action],
       ["itemAction", elementSpec.itemAction],
-      ["selection.action", elementSpec.selection?.action]
+      ["selection.action", elementSpec.selection?.action],
+      // 비었을 때 권하는 단추도 화면을 옮긴다. 셋만 보던 동안 EVT-03A의
+      // '운영 조직 구성하기'는 어느 게이트도 확인하지 않았다 — 넘기는 인자가
+      // 맞는지도, 도착이 무언가를 집어 오는지도.
+      ["emptyAction", elementSpec.emptyAction]
     ];
     for (const [at, action] of candidates) {
       if (isObject(action)) {
