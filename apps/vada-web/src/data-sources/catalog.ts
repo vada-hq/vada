@@ -7,6 +7,13 @@ import { DASHBOARD_FIXTURES, FILTERED_FIXTURES } from './fixtures'
 export interface DataSourceMessages {
   loading: string
   empty: string
+  /**
+   * 비었다는 말 아래에 붙는 설명 문단.
+   *
+   * 빈 상태를 그린 프레임 셋이 제목 한 줄과 설명 한 문단을 함께 그렸는데 담을
+   * 자리가 없어, 첫 화면(EVT-03A)은 **그 글을 아예 그리지 않았다.**
+   */
+  emptyDetail?: string
   error: string
 }
 
