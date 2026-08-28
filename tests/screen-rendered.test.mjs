@@ -25,11 +25,18 @@ const WIRING = join(repoRoot, 'apps', 'vada-web', 'src', 'spec', 'screens.ts')
 //
 // 늘어난 적이 있는지는 이 목록의 길이가 말한다. 줄이면 지우고, 늘려야 한다면
 // 왜 늘리는지를 적는다.
-const NOT_DRAWN_YET = new Set([
-  'OPS-MEET-01B',
-  'OPS-MEET-01D',
-  'OPS-MEET-06B',
-])
+const NOT_DRAWN_YET = new Set(['OPS-MEET-06B'])
+
+// **등록한 요소가 없는 변형은 바탕이 이미 그린다.** 다른 것이 데이터뿐이라
+// (줄마다의 딱지, 띠의 글) 화면이 읽을 것이 없다 — 명세가 그 사실을 요소 0개로
+// 말한다. 여기에 요소가 하나라도 생기면 그리는 화면이 있어야 하고, 아래 검사가
+// 그때 울린다.
+function readsNothing(screenId) {
+  const spec = JSON.parse(
+    readFileSync(join(SCREENS, screenId, 'screen.json'), 'utf8'),
+  )
+  return spec.variantOf !== undefined && (spec.elements ?? []).length === 0
+}
 
 function speccedScreenIds() {
   const ids = []
@@ -55,7 +62,7 @@ function wiredScreenIds() {
 test('명세된 화면은 그리는 화면이 있거나, 없다고 적혀 있다', () => {
   const wired = wiredScreenIds()
   const unlisted = speccedScreenIds().filter(
-    (id) => !wired.has(id) && !NOT_DRAWN_YET.has(id),
+    (id) => !wired.has(id) && !NOT_DRAWN_YET.has(id) && !readsNothing(id),
   )
 
   assert.deepEqual(
@@ -86,13 +93,15 @@ test('세어 둔다 — 명세 몇 개 중 몇 개가 그려지는가', () => {
   const specced = speccedScreenIds()
   const wired = wiredScreenIds()
   const drawn = specced.filter((id) => wired.has(id))
+  const byBase = specced.filter((id) => !wired.has(id) && readsNothing(id))
 
   console.log(
-    `\n  명세 ${specced.length}개 / 그리는 화면 ${drawn.length}개 = ` +
-      `${((drawn.length / specced.length) * 100).toFixed(1)}%  ` +
-      `(아직 없는 것 ${NOT_DRAWN_YET.size}개는 전부 변형)\n`,
+    `\n  명세 ${specced.length}개 / 그려지는 것 ${drawn.length + byBase.length}개 = ` +
+      `${(((drawn.length + byBase.length) / specced.length) * 100).toFixed(1)}%` +
+      `  (읽는 화면 ${drawn.length} · 바탕이 그리는 변형 ${byBase.length} · ` +
+      `아직 없는 것 ${NOT_DRAWN_YET.size})\n`,
   )
 
   // 세는 것만으로는 잠기지 않는다. 잠그는 것은 위의 세 검사다.
-  assert.equal(drawn.length + NOT_DRAWN_YET.size, specced.length)
+  assert.equal(drawn.length + byBase.length + NOT_DRAWN_YET.size, specced.length)
 })
