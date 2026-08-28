@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "screenId": "MSG-03",
+  "meta": {
+    "eyebrow": "메시지",
+    "title": "대화"
+  },
+  "activeNavigationScreenId": "MSG-01",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:7034",
+    "name": "메시지 · MSG-03 · 대화 화면",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:7116",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "message.conversation",
+        "emptyAction": {
+          "type": "navigate",
+          "label": "메시지로 이동",
+          "targetScreenId": "MSG-01"
+        }
+      }
+    }
+  ]
+}

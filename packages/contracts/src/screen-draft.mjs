@@ -609,12 +609,30 @@ export function draftScreenElements(design, options = {}) {
   // 예전처럼 어디에 있든 걸러진다.
   const excluded = new Set();
   const excludedWithParent = new Set();
+  // '*/이름'은 **자리로** 가른다 - 화면 바로 아래(깊이 2)에 있는 그 이름의 노드.
+  //
+  // 어미 이름으로만 가르던 동안 셸의 사이드바 아홉이 새어 나갔다. 와이어프레임이
+  // 셸 프레임을 화면마다 다르게 이름 붙였기 때문이다(DesktopShell이 63개인데
+  // EventListScreen · EVT04WithQR · MessageRoomsScreen · ORG07WithModal · Container도
+  // 있다). 그렇다고 그 이름들을 다 적을 수도 없다 - Container는 안쪽 기둥의
+  // 어미이기도 해서, 적으면 화면의 내용이 통째로 사라진다.
+  //
+  // **자리가 가른다.** 셸의 사이드바는 화면 바로 아래에 있고, 안쪽 기둥은 늘
+  // 더 깊다(깊이 4~7). 이름이 겹쳐도 자리는 겹치지 않는다.
+  const excludedAtTop = new Set();
   for (const entry of excludeNodeNames ?? []) {
-    (entry.includes("/") ? excludedWithParent : excluded).add(entry);
+    if (entry.startsWith("*/")) {
+      excludedAtTop.add(entry.slice(2));
+    } else if (entry.includes("/")) {
+      excludedWithParent.add(entry);
+    } else {
+      excluded.add(entry);
+    }
   }
-  const isExcluded = (child, parent) =>
+  const isExcluded = (child, parent, depth) =>
     excluded.has(child?.name) ||
-    excludedWithParent.has(`${parent?.name ?? ""}/${child?.name ?? ""}`);
+    excludedWithParent.has(`${parent?.name ?? ""}/${child?.name ?? ""}`) ||
+    (depth === 2 && excludedAtTop.has(child?.name));
   const lookup = (label) =>
     precedents ? findPrecedent(precedents, { label, stateScopeKey }) : { confirmed: null, candidates: [] };
 
@@ -622,9 +640,9 @@ export function draftScreenElements(design, options = {}) {
     questions.push(`선례가 서로 어긋납니다 — ${conflict} 어느 쪽이 맞는지 정하세요.`);
   }
 
-  const visit = (node, insideGroup) => {
+  const visit = (node, insideGroup, depth = 1) => {
     for (const child of children(node)) {
-      if (isExcluded(child, node)) {
+      if (isExcluded(child, node, depth)) {
         continue;
       }
 
@@ -669,7 +687,7 @@ export function draftScreenElements(design, options = {}) {
         );
         // 본문은 데이터의 되풀이라 파지 않는다. 헤더는 링크 버튼을 품을 수
         // 있으므로 계속 훑는다.
-        visit(section.header, insideGroup);
+        visit(section.header, insideGroup, depth + 1);
         continue;
       }
       const siblingButtons = findSiblingButtonGroup(child);
@@ -736,7 +754,7 @@ export function draftScreenElements(design, options = {}) {
           source: toSource(child),
           spec: { type: "group", title: group.title, description: group.description }
         });
-        visit(child, true);
+        visit(child, true, depth + 1);
         // 묶음 뒤에 등록된 필드가 멤버다.
         const members = elements
           .slice(marker + 1)
@@ -752,7 +770,7 @@ export function draftScreenElements(design, options = {}) {
         continue;
       }
 
-      visit(child, insideGroup);
+      visit(child, insideGroup, depth + 1);
     }
   };
 

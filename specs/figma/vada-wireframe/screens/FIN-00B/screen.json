@@ -1,0 +1,45 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-00B",
+  "meta": {
+    "eyebrow": null,
+    "title": "전체 재정 현황",
+    "description": null,
+    "footerNote": null
+  },
+  "variantOf": {
+    "screenId": "FIN-00",
+    "when": "예산을 편성할 수 있는 사람이 볼 때(finance.overviewViewer의 canPlanBudget). 총예산 카드가 '편성'으로 눌러 들어가는 카드가 된다. 나머지는 FIN-00과 노드 대 노드로 같다 — 사이드바에 다른 사람이 그려진 것은 셸이 shell.viewer로 그리는 자리라 이 화면의 것이 아니다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:2762",
+    "name": "재정 · FIN-00B · 전체 재정 현황 — 재정부·회장단",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:2863",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "총예산",
+        "dataSourceKey": "finance.orgOverview",
+        "items": [
+          {
+            "field": "totalBudget",
+            "descriptionField": "totalBudgetNote"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "label": "편성",
+          "note": "예산 편성 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    }
+  ]
+}

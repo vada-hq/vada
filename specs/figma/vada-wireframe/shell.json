@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "design": {
     "excludeNodeNames": [
-      "DesktopShell/Sidebar"
+      "*/Sidebar"
     ]
   },
   "brand": {
@@ -25,7 +25,7 @@
     },
     {
       "label": "재정",
-      "note": "재정 화면이 아직 명세되지 않았습니다."
+      "targetScreenId": "FIN-00"
     },
     {
       "label": "기록",
@@ -37,7 +37,7 @@
     },
     {
       "label": "메시지",
-      "note": "메시지 화면이 아직 명세되지 않았습니다."
+      "targetScreenId": "MSG-01"
     }
   ],
   "workspaces": [

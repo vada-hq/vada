@@ -1,5 +1,10 @@
 import { PageCard } from '../components/PageCard'
 import { EVT00AScreen } from './EVT00AScreen'
+import { FIN00Screen } from './FIN00Screen'
+import { FINLEDGER01Screen } from './FINLEDGER01Screen'
+import { MSG01Screen } from './MSG01Screen'
+import { MSG02Screen } from './MSG02Screen'
+import { MSG03Screen } from './MSG03Screen'
 import { EVT02Screen } from './EVT02Screen'
 import { EVT00BScreen } from './EVT00BScreen'
 import { EVT01Screen } from './EVT01Screen'
@@ -14,6 +19,8 @@ import { EVTDOC01Screen } from './EVTDOC01Screen'
 import { EVTMEET01Screen } from './EVTMEET01Screen'
 import { EVTSCHED01Screen } from './EVTSCHED01Screen'
 import { EVT04Screen } from './EVT04Screen'
+import { EVT05Screen } from './EVT05Screen'
+import { EVT05BScreen } from './EVT05BScreen'
 import { EVTFIN01Screen } from './EVTFIN01Screen'
 import { FINREQ01Screen } from './FINREQ01Screen'
 import { FINREQ02Screen } from './FINREQ02Screen'
@@ -56,6 +63,9 @@ import { ORG07CScreen } from './ORG07CScreen'
 import { ORG02Screen } from './ORG02Screen'
 import {
   evt00b,
+  evt05,
+  evt05b,
+  msg02,
   evt01,
   evt02b,
   evt03b,
@@ -208,6 +218,34 @@ export function ScreenRouter({
     // 행사 개요다. 행사 작업 공간의 첫 갈피이고, 어느 행사인지는 주소가 실어 온다.
     return <EVT02Screen screenParams={screenParams} onNavigate={onNavigate} />
   }
+  if (screenId === 'FIN-00') {
+    // 조직 전체 재정이다. 사이드바의 '재정'이 가리키는 화면이라 인자를 받지 않는다.
+    // **행사 아래의 재정(FIN-REQ-* 계열)과 다른 자리다** — 저쪽은 운영 아래에 있다.
+    return <FIN00Screen onNavigate={onNavigate} />
+  }
+  if (screenId === 'FIN-LEDGER-01') {
+    // 그 아래의 장부. 거르는 값은 전부 화면 안의 조회 인자다.
+    return <FINLEDGER01Screen onNavigate={onNavigate} />
+  }
+  if (screenId === 'MSG-01') {
+    // 셸의 '메시지' 메뉴가 가리키는 화면 자신이다 — 그래서 activeNavigationScreenId가 없다.
+    return <MSG01Screen onNavigate={onNavigate} />
+  }
+  if (screenId === 'MSG-02') {
+    // 새 메시지 방 만들기 모달이다. 뒤에 MSG-01이 그대로 남는다(명세의 overlay).
+    return (
+      <MSG02Screen
+        draft={readScopeDraft(scopes, msg02.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(msg02.stateScopeKey ?? '', next)}
+        onScopeEvent={onScopeEvent}
+        onNavigate={onNavigate}
+      />
+    )
+  }
+  if (screenId === 'MSG-03') {
+    // 대화. 메뉴가 가리키는 화면이 아니라 그 아래다(activeNavigationScreenId: MSG-01).
+    return <MSG03Screen onNavigate={onNavigate} />
+  }
   if (screenId === 'EVT-00B') {
     // 새 행사 만들기 모달이다. 뒤에 EVT-00A가 그대로 남는다(명세의 overlay) —
     // 그림이 그린 배경은 EVT-00A2이지만 그것은 변형이라 주소가 없다.
@@ -300,6 +338,31 @@ export function ScreenRouter({
   if (screenId === 'EVT-04') {
     // 행사 참가자 명단이다. 작업 공간의 여섯 번째 갈피이고, 어느 행사인지는 주소가 실어 온다.
     return <EVT04Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'EVT-05') {
+    // 참여 설문 생성·관리다. 인원 관리 갈피 아래로 한 겹 더 들어간 화면이고,
+    // 모집 설정 초안은 화면 안이 아니라 eventSurveyDraft에 산다.
+    return (
+      <EVT05Screen
+        screenParams={screenParams}
+        draft={readScopeDraft(scopes, evt05.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(evt05.stateScopeKey ?? '', next)}
+        onNavigate={onNavigate}
+      />
+    )
+  }
+  if (screenId === 'EVT-05B') {
+    // 설문 교체다. 카드 한 장이지만 겹쳐 뜨는 화면이 아니다 — 뒤에 아무것도 남지
+    // 않고 제 셸을 그린다(EVT-01과 같다).
+    return (
+      <EVT05BScreen
+        screenParams={screenParams}
+        draft={readScopeDraft(scopes, evt05b.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(evt05b.stateScopeKey ?? '', next)}
+        onScopeEvent={onScopeEvent}
+        onNavigate={onNavigate}
+      />
+    )
   }
   if (screenId === 'EVT-FIN-01') {
     // 행사 재정이다. 작업 공간의 일곱 번째이자 마지막 갈피다.

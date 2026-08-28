@@ -168,7 +168,13 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       // meta.title이 늘 그려지는 것은 아니다. 판정은 구현과 같은 함수가 한다 —
       // 두 곳에 적으면 언젠가 갈린다.
       if (drawsTitle(spec)) {
-        expect(screen.getByRole('heading', { name: spec.meta.title })).toBeInTheDocument()
+        // 같은 글이 안쪽 섹션의 머리로 또 나올 수 있다 — FIN-00은 화면 이름도
+        // '전체 재정 현황'이고 그 안의 첫 칸 이름도 같다. 깊이로 가르려 해 봤지만
+        // 겹쳐 뜨는 화면의 제목은 h1이 아니다(모달의 머리다). **있는지를 보지
+        // 몇 개인지를 보지 않는다** — 아래 카피와 같은 규칙이다.
+        expect(
+          screen.getAllByRole('heading', { name: spec.meta.title }).length,
+        ).toBeGreaterThan(0)
       }
       // 같은 카피가 여러 자리에 놓일 수 있다 — MY-01은 눈썹과 제목이 같은 글이고
       // 옆 메뉴에도 같은 이름이 있다. 있는지를 보지 몇 개인지를 보지 않는다.

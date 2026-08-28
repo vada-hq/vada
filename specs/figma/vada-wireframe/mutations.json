@@ -461,6 +461,19 @@
         "submitting": "새 설문을 만드는 중입니다",
         "error": "새 설문을 만들지 못했습니다"
       }
+    },
+    {
+      "key": "message.room.create",
+      "description": "고른 대상으로 메시지 방을 만든다",
+      "request": {
+        "method": "POST",
+        "path": "/api/messages/rooms"
+      },
+      "payloadScope": "messageRoomDraft",
+      "messages": {
+        "submitting": "메시지 방을 만드는 중입니다",
+        "error": "메시지 방을 만들지 못했습니다"
+      }
     }
   ]
 }

@@ -1,0 +1,334 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-LEDGER-01",
+  "meta": {
+    "eyebrow": null,
+    "title": "사용 내역",
+    "description": "학생회 예산이 언제, 어디에 사용되었는지 열람합니다. 모든 구성원이 볼 수 있습니다.",
+    "footerNote": null
+  },
+  "activeNavigationScreenId": "FIN-00",
+  "breadcrumb": {
+    "source": "30:3125",
+    "items": [
+      {
+        "value": "재정"
+      },
+      {
+        "value": "사용 내역"
+      }
+    ]
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:3051",
+    "name": "재정 · FIN-LEDGER-01 · 사용 내역",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:3140",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "이번 학기 총 지출",
+        "dataSourceKey": "finance.ledgerSummary",
+        "params": {
+          "month": {
+            "fieldKey": "ledgerMonth"
+          }
+        },
+        "items": [
+          {
+            "field": "termTotal"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3145",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "monthLabel",
+        "dataSourceKey": "finance.ledgerSummary",
+        "params": {
+          "month": {
+            "fieldKey": "ledgerMonth"
+          }
+        },
+        "items": [
+          {
+            "field": "monthTotal"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3150",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "증빙 완료",
+        "dataSourceKey": "finance.ledgerSummary",
+        "params": {
+          "month": {
+            "fieldKey": "ledgerMonth"
+          }
+        },
+        "items": [
+          {
+            "field": "proofDone"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3155",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "증빙 누락",
+        "dataSourceKey": "finance.ledgerSummary",
+        "params": {
+          "month": {
+            "fieldKey": "ledgerMonth"
+          }
+        },
+        "items": [
+          {
+            "field": "proofMissing"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3161",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "ledgerQuery",
+        "label": "내역·행사 검색",
+        "labelHidden": true,
+        "placeholder": "내역·행사 검색",
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3167",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "ledgerMonth",
+        "label": "조회할 달",
+        "labelHidden": true,
+        "placeholder": "2026년 7월",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "finance.ledgerMonths"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3172",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "ledgerEvent",
+        "label": "행사",
+        "labelHidden": true,
+        "placeholder": "전체 행사",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "finance.ledgerEvents"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3177",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "ledgerDepartment",
+        "label": "부서",
+        "labelHidden": true,
+        "placeholder": "전체 부서",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "org.departments"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3182",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "ledgerBudgetItem",
+        "label": "예산 항목",
+        "labelHidden": true,
+        "placeholder": "전체 예산 항목",
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "finance.orgBudgetItems"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3188",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "finance.ledger",
+        "params": {
+          "month": {
+            "fieldKey": "ledgerMonth"
+          },
+          "eventId": {
+            "fieldKey": "ledgerEvent"
+          },
+          "departmentId": {
+            "fieldKey": "ledgerDepartment"
+          },
+          "budgetItemId": {
+            "fieldKey": "ledgerBudgetItem"
+          },
+          "query": {
+            "fieldKey": "ledgerQuery"
+          }
+        },
+        "columns": [
+          {
+            "label": "일자",
+            "fields": [
+              "date"
+            ]
+          },
+          {
+            "label": "내역",
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "label": "행사·사용처",
+            "fields": [
+              "context"
+            ]
+          },
+          {
+            "label": "부서",
+            "fields": [
+              "department"
+            ]
+          },
+          {
+            "label": "예산 항목",
+            "fields": [
+              "budgetItem"
+            ]
+          },
+          {
+            "label": "금액",
+            "fields": [
+              "amountNote"
+            ]
+          },
+          {
+            "label": "증빙",
+            "fields": [
+              "proof"
+            ],
+            "toneField": "proofTone"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:3287",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "finance.ledgerScope",
+        "params": {
+          "month": {
+            "fieldKey": "ledgerMonth"
+          },
+          "eventId": {
+            "fieldKey": "ledgerEvent"
+          },
+          "departmentId": {
+            "fieldKey": "ledgerDepartment"
+          },
+          "budgetItemId": {
+            "fieldKey": "ledgerBudgetItem"
+          },
+          "query": {
+            "fieldKey": "ledgerQuery"
+          }
+        },
+        "items": [
+          {
+            "field": "rangeNote"
+          },
+          {
+            "field": "handlingNote"
+          }
+        ]
+      }
+    }
+  ]
+}

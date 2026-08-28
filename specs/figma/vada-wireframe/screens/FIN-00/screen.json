@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-00",
+  "meta": {
+    "eyebrow": null,
+    "title": "전체 재정 현황",
+    "description": null,
+    "footerNote": null
+  },
+  "breadcrumb": {
+    "source": "30:2549",
+    "items": [
+      {
+        "value": "재정"
+      },
+      {
+        "value": "전체 재정 현황"
+      }
+    ]
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:2475",
+    "name": "재정 · FIN-00 · 전체 재정 현황",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:2559",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "finance.orgOverview",
+        "items": [
+          {
+            "label": "회계 기간",
+            "field": "termNote"
+          },
+          {
+            "label": "기준일",
+            "field": "asOfNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2570",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "전체 재정 현황",
+        "description": "학생회 전체 예산과 지출 현황을 확인합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2576",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "총예산",
+        "dataSourceKey": "finance.orgOverview",
+        "items": [
+          {
+            "field": "totalBudget",
+            "descriptionField": "totalBudgetNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2589",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "실제 지출",
+        "dataSourceKey": "finance.orgOverview",
+        "items": [
+          {
+            "field": "spent",
+            "descriptionField": "spentNote"
+          }
+        ],
+        "action": {
+          "type": "navigate",
+          "label": "내역",
+          "targetScreenId": "FIN-LEDGER-01"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2602",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "지출 예정",
+        "dataSourceKey": "finance.orgOverview",
+        "items": [
+          {
+            "field": "planned",
+            "descriptionField": "plannedNote"
+          }
+        ],
+        "action": {
+          "type": "pending",
+          "label": "내역",
+          "note": "결제 예정인 지출만 따로 보는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2616",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "사용 가능",
+        "dataSourceKey": "finance.orgOverview",
+        "items": [
+          {
+            "field": "available",
+            "descriptionField": "availableNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2629",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "dataSourceKey": "finance.orgOverview",
+        "items": [
+          {
+            "field": "executionNote"
+          },
+          {
+            "field": "plannedIncludedNote"
+          },
+          {
+            "label": "실제 지출",
+            "field": "spentPercent"
+          },
+          {
+            "label": "지출 예정",
+            "field": "plannedPercent"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2650",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "breakdownScope",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "event",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "finance.breakdownScope"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2655",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "finance.orgBreakdown",
+        "params": {
+          "scope": {
+            "fieldKey": "breakdownScope"
+          }
+        },
+        "columns": [
+          {
+            "label": "구분",
+            "fields": [
+              "name"
+            ]
+          },
+          {
+            "label": "배정 예산",
+            "fields": [
+              "budget"
+            ]
+          },
+          {
+            "label": "실제 지출",
+            "fields": [
+              "spent"
+            ]
+          },
+          {
+            "label": "지출 예정",
+            "fields": [
+              "planned"
+            ]
+          },
+          {
+            "label": "사용 가능",
+            "fields": [
+              "available"
+            ]
+          },
+          {
+            "label": "집행률",
+            "fields": [
+              "executionPercent"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2697",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "title": "최근 지출 내역",
+        "dataSourceKey": "finance.recentExpenses",
+        "columns": [
+          {
+            "label": "날짜",
+            "fields": [
+              "date"
+            ]
+          },
+          {
+            "label": "지출 내용",
+            "fields": [
+              "title"
+            ]
+          },
+          {
+            "label": "행사 또는 사용처",
+            "fields": [
+              "context"
+            ]
+          },
+          {
+            "label": "금액",
+            "fields": [
+              "amountNote"
+            ]
+          },
+          {
+            "label": "증빙 상태",
+            "fields": [
+              "proof"
+            ],
+            "toneField": "proofTone"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2701",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "사용 내역 전체 보기",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "FIN-LEDGER-01"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2735",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "증빙 현황",
+        "dataSourceKey": "finance.proofSummary",
+        "items": [
+          {
+            "label": "증빙 완료",
+            "field": "completed"
+          },
+          {
+            "label": "보완 필요",
+            "field": "supplement"
+          },
+          {
+            "label": "미등록",
+            "field": "unregistered"
+          },
+          {
+            "label": "전체 지출 건수",
+            "field": "totalNote"
+          }
+        ]
+      }
+    }
+  ]
+}

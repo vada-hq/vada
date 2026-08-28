@@ -135,6 +135,15 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "messageRoomDraft",
+      "description": "새 메시지 방 만들기 입력 초안(MSG-02). 분류와 방 이름이 담긴다 — 고른 대상은 담을 어휘가 아직 없다",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

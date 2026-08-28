@@ -520,6 +520,9 @@ const EVENT_OVERVIEW: Record<string, Record<string, DataRow>> = {
       fee: '납부자 무료 / 미납자 5000원',
       capacity: '200명',
       contact: '카카오톡 채널 @swcollege',
+      // EVT-05가 '담당자 김바다'를 그린다. event.workspace.host는
+      // '담당 학술체육부 · 김바다'로 이어 오므로 다른 조각이다.
+      host: '김바다',
     },
     recruitSettings: {
       surveyStatus: '초안',
@@ -1253,6 +1256,135 @@ const EVENT_BASICS_DRAFT: Record<string, DataRow> = {
   },
 }
 
+// ─── 참여 설문(EVT-05 · EVT-05B) ───────────────────────────────────────────
+//
+// 설문의 상태는 **행사의 상태와 다른 축이다.** E-01은 기획 중인데 그 설문은
+// 초안이고, 신청자 142명은 event.recruitSettings가 이미 세고 있던 수다.
+const EVENT_SURVEY: Record<string, DataRow> = {
+  'E-01': {
+    statusLabel: '초안',
+    statusTone: 'gray',
+    previewUrl: 'https://vada.app/s/2026-swcollege-sports/preview',
+  },
+}
+
+// 모집 설정 초안(EVT-05). 비어 있는 칸은 아예 넣지 않는다 — 카탈로그가 전부
+// optional로 두었고, 와이어프레임도 신청 기간과 완료 안내를 빈 칸으로 그렸다.
+const EVENT_SURVEY_SETTINGS_DRAFT: Record<string, DataRow> = {
+  'E-01': {
+    applyMethod: 'firstCome',
+    duesCheck: 'y',
+  },
+}
+
+// 링크를 켤 수 있는지. **막는 것은 서버다** — 무엇이 모자란지를 화면이 세면
+// 조직의 규칙이 화면에 적히게 된다(meeting.minutesProgress와 같은 자리).
+const EVENT_SURVEY_ACTIVATION: Record<string, DataRow> = {
+  'E-01': {
+    unmetCountNote: '미충족 2개',
+    unmetCount: 2,
+    canActivate: '',
+    blockedNote: '아직 채우지 않은 활성화 조건이 2개 있습니다.',
+  },
+}
+
+// 채워야 하는 것들. 행사 기본정보에서 채울 것과 참여 설문에서 채울 것이 갈린다.
+// 못 채운 둘의 수가 곧 위의 unmetCount이므로 여기서 세어도 같다.
+const EVENT_SURVEY_ACTIVATION_CONDITIONS: Record<string, DataRow[]> = {
+  'E-01': [
+    {
+      groupLabel: '행사 기본정보',
+      rows: [
+        { key: 'title', label: '행사명', met: 'y', tone: 'green' },
+        { key: 'startAt', label: '시작 일시', met: 'y', tone: 'green' },
+        { key: 'endAt', label: '종료 일시', met: 'y', tone: 'green' },
+        { key: 'place', label: '장소', met: 'y', tone: 'green' },
+        { key: 'audience', label: '참가 대상', met: 'y', tone: 'green' },
+        { key: 'feeType', label: '참가비 유형', met: 'y', tone: 'green' },
+        {
+          key: 'feeAmounts',
+          label: '납부자·미납자 금액·결제 안내',
+          met: '',
+          tone: 'red',
+          detail: '금액과 결제 안내를 입력하세요',
+          locationNote: '입력 위치: 행사 기본정보 → 참가비(학생회비 조건부)',
+          actionLabel: '기본정보에서 수정 →',
+          targetKind: 'basics',
+        },
+        { key: 'capacityType', label: '행사 정원 유형', met: 'y', tone: 'green' },
+        { key: 'capacity', label: '정원 인원', met: 'y', tone: 'green' },
+      ],
+    },
+    {
+      groupLabel: '참여 설문 설정',
+      rows: [
+        {
+          key: 'applyEnd',
+          label: '신청 마감 일시',
+          met: '',
+          tone: 'red',
+          detail: '신청 마감 일시가 설정되지 않았습니다',
+          locationNote: '입력 위치: 모집 설정',
+          actionLabel: '모집 설정에서 입력 →',
+          targetKind: 'surveySettings',
+        },
+        { key: 'applyOrder', label: '신청 시작·마감 순서', met: 'y', tone: 'green' },
+        { key: 'applyMethod', label: '신청 방식', met: 'y', tone: 'green' },
+        { key: 'nameQuestion', label: '이름 필수 문항', met: 'y', tone: 'green' },
+        { key: 'studentNoQuestion', label: '학번 필수 문항', met: 'y', tone: 'green' },
+        { key: 'privacyConsent', label: '개인정보 수집·이용 동의', met: 'y', tone: 'green' },
+        { key: 'duesIdentity', label: '학생회비 대조용 식별 문항', met: 'y', tone: 'green' },
+      ],
+    },
+  ],
+}
+
+// 설문 문항. **응답이 있는 문항은 잠긴다**(locked) — 이름·학번이 그 자리다.
+const EVENT_SURVEY_QUESTIONS: Record<string, DataRow[]> = {
+  'E-01': [
+    {
+      id: 'SQ-01',
+      title: '이름',
+      typeLabel: '단답형',
+      badges: [{ label: '필수 · 삭제 불가', tone: 'gray' }],
+      locked: 'y',
+    },
+    {
+      id: 'SQ-02',
+      title: '학번',
+      typeLabel: '단답형',
+      badges: [{ label: '필수 · 삭제 불가', tone: 'gray' }],
+      locked: 'y',
+    },
+    { id: 'SQ-03', title: '단과대학', typeLabel: '단답형', badges: [{ label: '필수', tone: 'blue' }] },
+    { id: 'SQ-04', title: '학부·학과', typeLabel: '단답형', badges: [{ label: '필수', tone: 'blue' }] },
+    { id: 'SQ-05', title: '학년', typeLabel: '객관식', badges: [{ label: '필수', tone: 'blue' }] },
+    {
+      id: 'SQ-06',
+      title: '개인정보 동의',
+      typeLabel: '개인정보 동의',
+      badges: [{ label: '필수', tone: 'blue' }],
+    },
+  ],
+}
+
+// 갈아 끼우면 무엇이 어떻게 되는지(EVT-05B). 응답자 수는 신청자 수와 같은 사실이라
+// event.recruitSettings의 '142명'에서 왔다 — 두 벌을 손으로 쓰면 어긋난다.
+const EVENT_SURVEY_REPLACE_IMPACT: Record<string, DataRow> = {
+  'E-01': {
+    title: '새 설문으로 교체하시겠어요?',
+    warning: '응답이 존재하는 설문은 직접 수정할 수 없습니다.',
+    currentRespondents: '142명',
+    affectedRespondents: '142명 (재응답 필요)',
+    notes: [
+      { text: "기존 설문은 '교체됨' 상태로 변경됩니다." },
+      { text: '기존 응답자 데이터는 삭제되지 않고 보관됩니다.' },
+      { text: '기존 응답자는 새 설문에 다시 응답해야 합니다.' },
+      { text: '기존 링크에서는 새 설문으로 이동 버튼이 표시됩니다.' },
+    ],
+  },
+}
+
 // ─── 행사를 끝내고 완료하는 자리(EVT-02C · EVT-02E) ─────────────────────────
 //
 // 둘 다 **역할 이름을 화면이 들지 않는 자리**다. 누가 종료할 수 있고 누가 완료
@@ -1871,10 +2003,128 @@ function permissionTone(label: string): string {
   return 'yellow'
 }
 
+// ── 조직 전체 재정(FIN-00 · FIN-00B · FIN-LEDGER-01) ────────────────────────
+//
+// **행사 하나의 재정과 다른 물건이다.** event.financeSummary는 eventId를 받아 그
+// 행사만 세고, 이쪽은 학생회 전체를 센다.
+
+const ORG_FINANCE_OVERVIEW: DataRow = {
+  termNote: '2026년 1학기',
+  asOfNote: '2026.07.18 기준',
+  totalBudget: '30,000,000원',
+  totalBudgetNote: '학생회비 외 1건',
+  spent: '12,400,000원',
+  spentNote: '결제가 완료된 9건',
+  planned: '3,100,000원',
+  plannedNote: '결제 예정 3건',
+  available: '14,500,000원',
+  availableNote: '새로 사용할 수 있는 금액',
+  executionNote: '전체 예산 집행률 41.3%',
+  plannedIncludedNote: '지출 예정 포함 51.7%',
+  // 막대의 두 마디. 이어 붙는 몫이라 41.3 + 10.4 = 51.7이다.
+  spentPercent: 41.3,
+  plannedPercent: 10.4,
+}
+
+// 나누는 축이 줄의 뜻을 통째로 바꾼다. 행사별은 디자인이 그린 그대로이고,
+// 부서별은 그려지지 않았으므로 조직도의 부서로 서버 대역을 만든다.
+const ORG_BREAKDOWN: Record<string, DataRow[]> = {
+  event: [
+    { id: 'E-01', name: '체육대회', budget: '5,000,000원', spent: '2,100,000원', planned: '600,000원', available: '2,300,000원', executionPercent: 54 },
+    { id: 'E-02', name: '신입생 환영 행사', budget: '3,000,000원', spent: '1,800,000원', planned: '200,000원', available: '1,000,000원', executionPercent: 67 },
+    { id: 'E-03', name: '가을 축제', budget: '8,000,000원', spent: '0원', planned: '0원', available: '8,000,000원', executionPercent: 0 },
+  ],
+  department: [
+    { id: 'D-01', name: '기획부', budget: '4,000,000원', spent: '1,500,000원', planned: '300,000원', available: '2,200,000원', executionPercent: 38 },
+    { id: 'D-02', name: '홍보부', budget: '3,500,000원', spent: '2,100,000원', planned: '400,000원', available: '1,000,000원', executionPercent: 60 },
+    { id: 'D-03', name: '디자인부', budget: '2,000,000원', spent: '600,000원', planned: '0원', available: '1,400,000원', executionPercent: 30 },
+  ],
+}
+
+const ORG_PROOF_SUMMARY: DataRow = {
+  completed: '6건',
+  supplement: '1건',
+  unregistered: '2건',
+  totalNote: '26건',
+}
+
+// 장부 한 벌. FIN-00의 '최근 지출 내역'과 FIN-LEDGER-01의 '사용 내역'이 **같은
+// 장부**를 다르게 자른 것이다 — 두 벌로 적으면 같은 지출에 다른 이름이 붙는다
+// (재정 보드가 PR-01과 PR-2026-0031로 갈렸던 그 자리다).
+//
+// **와이어프레임이 두 화면에 서로 다른 줄을 그렸다.** 같은 07.17을 FIN-00은
+// '현수막 제작 180,000원'으로, LEDGER-01은 '케이블 커버 6m 외 1건 84,000원'으로
+// 그린다. 대조기는 그린 글을 그대로 요구하므로 둘 다 이 한 벌에 담고, 어느 줄이
+// 어느 그림의 것인지만 drawnOn에 적는다.
+const ORG_LEDGER: Array<{
+  month: string
+  drawnOn: 'FIN-00' | 'FIN-LEDGER-01'
+  eventId: string
+  departmentId: string
+  budgetItemId: string
+  row: DataRow
+}> = [
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: 'E-01', departmentId: 'D-04', budgetItemId: 'BI-01', row: { id: 'LG-01', date: '07.17', title: '케이블 커버 6m 외 1건', context: '2026 체육대회', department: '운영부', budgetItem: '안전·설비', amountNote: '84,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: 'E-01', departmentId: 'D-04', budgetItemId: 'BI-02', row: { id: 'LG-02', date: '07.16', title: '안전 안내 표지 제작', context: '2026 체육대회', department: '운영부', budgetItem: '인쇄·제작', amountNote: '45,000원', proof: '누락', proofTone: 'red' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: 'E-01', departmentId: 'D-02', budgetItemId: 'BI-02', row: { id: 'LG-03', date: '07.15', title: '현수막 제작 (본부석)', context: '2026 체육대회', department: '홍보부', budgetItem: '인쇄·제작', amountNote: '120,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: 'E-01', departmentId: 'D-04', budgetItemId: 'BI-03', row: { id: 'LG-04', date: '07.14', title: '진행요원 교육 다과', context: '2026 체육대회', department: '운영부', budgetItem: '회의·운영비', amountNote: '32,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: 'E-02', departmentId: 'D-01', budgetItemId: 'BI-04', row: { id: 'LG-05', date: '07.11', title: '웰컴 키트 견본 구매', context: '신입생 환영 행사', department: '기획부', budgetItem: '물품 구매', amountNote: '58,000원', proof: '확인 중', proofTone: 'yellow' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: 'E-01', departmentId: 'D-04', budgetItemId: 'BI-01', row: { id: 'LG-06', date: '07.10', title: '구급약품 세트', context: '2026 체육대회', department: '운영부', budgetItem: '안전·설비', amountNote: '67,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: '', departmentId: 'D-04', budgetItemId: 'BI-03', row: { id: 'LG-07', date: '07.08', title: '정기 운영회의 간식', context: '운영 (상시)', department: '운영부', budgetItem: '회의·운영비', amountNote: '21,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: 'E-02', departmentId: 'D-02', budgetItemId: 'BI-05', row: { id: 'LG-08', date: '07.05', title: 'SNS 광고 집행', context: '신입생 환영 행사', department: '홍보부', budgetItem: '홍보비', amountNote: '90,000원', proof: '누락', proofTone: 'red' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: '', departmentId: 'D-04', budgetItemId: 'BI-06', row: { id: 'LG-09', date: '07.03', title: '사무용품 (A4·토너)', context: '운영 (상시)', department: '운영부', budgetItem: '사무·비품', amountNote: '43,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-LEDGER-01', eventId: '', departmentId: 'D-05', budgetItemId: 'BI-06', row: { id: 'LG-10', date: '07.01', title: '회계 장부 바인더', context: '운영 (상시)', department: '재정부', budgetItem: '사무·비품', amountNote: '15,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-01', departmentId: 'D-02', budgetItemId: 'BI-02', row: { id: 'LG-11', date: '07.17', title: '현수막 제작', context: '체육대회', department: '홍보부', budgetItem: '인쇄·제작', amountNote: '180,000원', proof: '증빙 완료', proofTone: 'green' } },
+  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-01', departmentId: 'D-04', budgetItemId: 'BI-04', row: { id: 'LG-12', date: '07.16', title: '생수 구매', context: '체육대회', department: '운영부', budgetItem: '물품 구매', amountNote: '120,000원', proof: '보완 필요', proofTone: 'yellow' } },
+  { month: '2026-07', drawnOn: 'FIN-00', eventId: 'E-02', departmentId: 'D-01', budgetItemId: 'BI-02', row: { id: 'LG-13', date: '07.15', title: '명찰 인쇄', context: '신입생 환영 행사', department: '기획부', budgetItem: '인쇄·제작', amountNote: '75,000원', proof: '미등록', proofTone: 'red' } },
+  // 달을 바꾸면 정말 다른 것이 오는지 보려고 둔 개발용 줄이다(그려지지 않았다).
+  { month: '2026-06', drawnOn: 'FIN-LEDGER-01', eventId: '', departmentId: 'D-01', budgetItemId: 'BI-03', row: { id: 'LG-14', date: '06.28', title: '신입생 간담회 다과', context: '운영 (상시)', department: '기획부', budgetItem: '회의·운영비', amountNote: '38,000원', proof: '완료', proofTone: 'green' } },
+  { month: '2026-06', drawnOn: 'FIN-LEDGER-01', eventId: 'E-02', departmentId: 'D-02', budgetItemId: 'BI-02', row: { id: 'LG-15', date: '06.20', title: '홍보 포스터 인쇄', context: '신입생 환영 행사', department: '홍보부', budgetItem: '인쇄·제작', amountNote: '52,000원', proof: '완료', proofTone: 'green' } },
+]
+
+// 고르지 않았으면 이번 달이다 — 그 판단은 서버가 한다(명세가 '이번 달'을 말할
+// 어휘가 없다. 백로그에 적었다).
+const DEFAULT_LEDGER_MONTH = '2026-07'
+
+const LEDGER_MONTHS: Record<string, { label: string; total: number }> = {
+  '2026-07': { label: '2026년 7월', total: 42 },
+  '2026-06': { label: '2026년 6월', total: 31 },
+}
+
+const LEDGER_SUMMARY: Record<string, DataRow> = {
+  '2026-07': { termTotal: '3,842,000원', monthLabel: '7월 지출', monthTotal: '1,286,000원', proofDone: '42건 중 37건', proofMissing: '5건' },
+  '2026-06': { termTotal: '3,842,000원', monthLabel: '6월 지출', monthTotal: '968,000원', proofDone: '31건 중 31건', proofMissing: '0건' },
+}
+
+// **역할 이름이 여기 있다.** 명세도 화면도 이 문장을 들지 않는다.
+const LEDGER_HANDLING_NOTE =
+  '증빙 처리와 정산은 재정부·회장단이 각 행사 재정의 ‘증빙 필요’ 단계(결제·증빙 정리)에서 진행합니다.'
+
+function ledgerEntriesOf({
+  month = '',
+  eventId = '',
+  departmentId = '',
+  budgetItemId = '',
+  query = '',
+}: Record<string, string>) {
+  return ORG_LEDGER.filter(
+    (entry) =>
+      entry.drawnOn === 'FIN-LEDGER-01' &&
+      entry.month === (month || DEFAULT_LEDGER_MONTH) &&
+      (eventId === '' || entry.eventId === eventId) &&
+      (departmentId === '' || entry.departmentId === departmentId) &&
+      (budgetItemId === '' || entry.budgetItemId === budgetItemId) &&
+      matchesQuery(entry.row, query),
+  )
+}
+
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   // 행사 목록을 보는 사람. 지금 보는 사람은 새 행사를 만들 수 없다 - 만들 수 있는
   // 사람이 보는 그림이 EVT-00A2(변형)이고, 사람이 그 사이를 오갈 수 없다.
   'event.listViewer': { canCreateEvent: '' },
+  // 전체 재정 현황을 보는 사람. 지금 보는 사람은 예산을 편성할 수 없다 - 편성할
+  // 수 있는 사람이 보는 그림이 FIN-00B(변형)이고, 사람이 그 사이를 오갈 수 없다.
+  'finance.overviewViewer': { canPlanBudget: '' },
   // 회의 목록의 띠. 지금 보는 사람은 일반 참가자다 - 와이어프레임의 다른 셋
   // (진행 권한자·회의 생성 가능·미참가자)은 같은 화면을 다른 사람이 볼 때다.
   'meeting.attention': {
@@ -2015,7 +2265,32 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
       roleTone: 'blue',
     },
   ],
-  'org.departments': [
+  // 메시지 방 목록(MSG-01). **비어 있는 것이 이 저장소가 아는 전부다** —
+  // 와이어프레임이 그린 것은 방이 하나도 없는 모습뿐이고, 줄에 무엇이 그려지는지는
+  // 어느 프레임에도 없다. 여기에 방을 하나 넣으면 그 줄의 모양을 개발용 응답이
+  // 지어내게 되고, 그것은 서버 대역이 아니라 디자인을 만드는 일이다.
+  'message.rooms': [],
+  // 대화(MSG-03). 같은 이유로 비었다. 빈 상태의 글이 '주고받은 말이 없다'가 아니라
+  // **'들어갈 방이 없다'**고 말하므로, message.rooms가 빈 동안 이쪽도 비는 것이 앞뒤가 맞는다.
+  'message.conversation': [],
+  'org.permissionMatrix': PERMISSION_MATRIX,
+  'my.taskTabCounts': countByTab(),
+  'finance.orgOverview': ORG_FINANCE_OVERVIEW,
+  'finance.proofSummary': ORG_PROOF_SUMMARY,
+  'finance.recentExpenses': ORG_LEDGER.filter((entry) => entry.drawnOn === 'FIN-00').map(
+    (entry) => entry.row,
+  ),
+  'task.alerts': taskAlerts(),
+}
+
+// 인자를 받는 출처. 실제로는 서버가 걸러 주므로 mock도 여기서 거른다 —
+// 받아온 것을 화면에서 거르면 명세(itemList.params)와 다른 것을 구현하게 된다.
+//
+// MY-01 디자인이 그린 것은 '해야 할 업무' 탭 2건뿐이다. 다른 탭의 행은
+// 탭이 실제로 무언가를 바꾸는지 보려고 둔 개발용 값이다(HOME-01K의 일정에서
+// 가져왔다). 탭 건수는 이 목록에서 세므로 목록과 배지가 어긋날 수 없다.
+
+const ORG_DEPARTMENTS: DataRow[] = [
     {
       id: 'D-01',
       name: '기획부',
@@ -2043,18 +2318,7 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
       leaders: [],
       members: [{ id: 'M-08', name: '정하늘', major: '컴퓨터학부', grade: '3학년' }],
     },
-  ],
-  'org.permissionMatrix': PERMISSION_MATRIX,
-  'my.taskTabCounts': countByTab(),
-  'task.alerts': taskAlerts(),
-}
-
-// 인자를 받는 출처. 실제로는 서버가 걸러 주므로 mock도 여기서 거른다 —
-// 받아온 것을 화면에서 거르면 명세(itemList.params)와 다른 것을 구현하게 된다.
-//
-// MY-01 디자인이 그린 것은 '해야 할 업무' 탭 2건뿐이다. 다른 탭의 행은
-// 탭이 실제로 무언가를 바꾸는지 보려고 둔 개발용 값이다(HOME-01K의 일정에서
-// 가져왔다). 탭 건수는 이 목록에서 세므로 목록과 배지가 어긋날 수 없다.
+  ]
 
 function matchesQuery(row: DataRow, query: string): boolean {
   if (query.trim() === '') {
@@ -2884,6 +3148,11 @@ export const FILTERED_FIXTURES: Record<
   (params: Record<string, string>) => DataRow[]
 > = {
   // 미배정 구성원은 이름으로 거른다. 조직도를 고치는 화면(ORG-03B)의 오른쪽 칸이다.
+  // 부서는 이름으로 좁혀 볼 수 있다(MSG-02의 '이름 검색'). 부서 이름을 찾는 것인지
+  // 그 안의 사람 이름을 찾는 것인지 그림이 말하지 않아 서버가 정한다 — 개발용
+  // 응답은 부서 이름만 본다(matchesQuery가 중첩 목록을 들여다보지 않는다).
+  'org.departments': ({ query = '' }) =>
+    ORG_DEPARTMENTS.filter((row) => matchesQuery(row, query)),
   'org.unassignedMembers': ({ query = '' }) =>
     UNASSIGNED_MEMBERS.filter((row) => matchesQuery(row, query)),
   // 학생 명단은 이름·학번으로 찾고 학년·납부 상태로 거른다.
@@ -3134,6 +3403,25 @@ export const FILTERED_FIXTURES: Record<
     const row = EVENT_BASICS_DRAFT[eventId]
     return row === undefined ? [] : [row]
   },
+  'event.survey': ({ eventId = '' }) => {
+    const row = EVENT_SURVEY[eventId]
+    return row === undefined ? [] : [row]
+  },
+  'event.surveySettingsDraft': ({ eventId = '' }) => {
+    const row = EVENT_SURVEY_SETTINGS_DRAFT[eventId]
+    return row === undefined ? [] : [row]
+  },
+  'event.surveyActivation': ({ eventId = '' }) => {
+    const row = EVENT_SURVEY_ACTIVATION[eventId]
+    return row === undefined ? [] : [row]
+  },
+  'event.surveyActivationConditions': ({ eventId = '' }) =>
+    EVENT_SURVEY_ACTIVATION_CONDITIONS[eventId] ?? [],
+  'event.surveyQuestions': ({ eventId = '' }) => EVENT_SURVEY_QUESTIONS[eventId] ?? [],
+  'event.surveyReplaceImpact': ({ eventId = '' }) => {
+    const row = EVENT_SURVEY_REPLACE_IMPACT[eventId]
+    return row === undefined ? [] : [row]
+  },
   // 건수는 보는 범위와 무관하게 이 행사의 보드 전체를 센다.
   'event.taskAlerts': ({ eventId = '' }) => {
     const rows = EVENT_TASK_BOARD.filter((task) => task.eventId === eventId)
@@ -3201,6 +3489,23 @@ export const FILTERED_FIXTURES: Record<
   'event.myPurchaseRequestSummary': ({ eventId = '' }) => {
     const row = MY_PURCHASE_REQUEST_SUMMARY[eventId]
     return row === undefined ? [] : [row]
+  },
+  'finance.orgBreakdown': ({ scope = 'event' }) => ORG_BREAKDOWN[scope] ?? [],
+  'finance.ledger': (params) => ledgerEntriesOf(params).map((entry) => entry.row),
+  'finance.ledgerSummary': ({ month = '' }) => [
+    LEDGER_SUMMARY[month || DEFAULT_LEDGER_MONTH] ?? LEDGER_SUMMARY[DEFAULT_LEDGER_MONTH],
+  ],
+  // '총 42건 중 최근 10건'을 손으로 적지 않는다 — 보여 준 줄에서 센다. 총 건수만
+  // 서버가 아는 값이라 달마다 적어 둔다(목록은 잘려서 오므로 자기가 못 센다).
+  'finance.ledgerScope': (params) => {
+    const known = LEDGER_MONTHS[params.month || DEFAULT_LEDGER_MONTH]
+    const shown = ledgerEntriesOf(params).length
+    return [
+      {
+        rangeNote: `${known.label} · 총 ${known.total}건 중 최근 ${shown}건 표시`,
+        handlingNote: LEDGER_HANDLING_NOTE,
+      },
+    ]
   },
   'finance.purchaseRequestHistory': ({ requestId = '' }) =>
     PURCHASE_REQUEST_HISTORY[requestId] ?? [],

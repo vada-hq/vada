@@ -7,6 +7,11 @@ import {
   DEPARTMENTS,
   BUDGET_ITEMS,
   EVENT_STAFF_CANDIDATES,
+  LEDGER_EVENT_OPTIONS,
+  LEDGER_MONTH_OPTIONS,
+  MESSAGE_ROOM_CATEGORIES,
+  ORG_BUDGET_ITEM_OPTIONS,
+  ORG_DEPARTMENT_OPTIONS,
   ITEM_CATEGORIES,
   PARTICIPANT_AFFILIATIONS,
   PARTICIPANT_APPLY_STATUS,
@@ -157,6 +162,18 @@ export async function fetchOptions(
     case 'event.staffDeptLeaderCandidates':
     case 'event.staffMemberCandidates':
       return EVENT_STAFF_CANDIDATES[params.eventId] ?? []
+    case 'finance.ledgerMonths':
+      return LEDGER_MONTH_OPTIONS
+    case 'finance.ledgerEvents':
+      return LEDGER_EVENT_OPTIONS
+    case 'finance.orgBudgetItems':
+      return ORG_BUDGET_ITEM_OPTIONS
+    // **이 출처는 카탈로그에 있는데 개발용 응답이 없었다.** OPS-MEET-02가 이 select를
+    // 펼쳐 그리지 않아 한 번도 열리지 않았고, 그래서 아무도 몰랐다.
+    case 'org.departments':
+      return ORG_DEPARTMENT_OPTIONS
+    case 'message.roomCategories':
+      return MESSAGE_ROOM_CATEGORIES
     case 'finance.requestPriorities':
       return REQUEST_PRIORITIES
     case 'finance.itemCategories':

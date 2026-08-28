@@ -2802,8 +2802,10 @@
     {
       "key": "org.departments",
       "shape": "list",
-      "description": "부서와 그 안의 사람들. **부서 수는 데이터가 정한다** - 조직을 만들 때 사람이 더하고 지운다(ORG-02).\n\nleaders는 0개이거나 1개다. 부서장은 한 사람뿐이지만 **없을 수도 있어서** 값 하나가 아니라 목록이다 - 빈 문자열로 '없음'을 말하면 이름이 빈 사람과 구별되지 않는다.",
-      "params": [],
+      "description": "부서와 그 안의 사람들. **부서 수는 데이터가 정한다** - 조직을 만들 때 사람이 더하고 지운다(ORG-02).\n\nleaders는 0개이거나 1개다. 부서장은 한 사람뿐이지만 **없을 수도 있어서** 값 하나가 아니라 목록이다 - 빈 문자열로 '없음'을 말하면 이름이 빈 사람과 구별되지 않는다.\n\n이름으로 좁혀 볼 수 있다(MSG-02의 '이름 검색'). **부서 이름을 찾는 것인지 그 안의 사람 이름을 찾는 것인지 그림이 말하지 않는다** — 찾은 뒤의 목록이 그려져 있지 않아 명세가 정하지 않고 서버에 맡긴다.",
+      "params": [
+        "query"
+      ],
       "request": {
         "method": "GET",
         "path": "/api/org/departments"
@@ -4483,6 +4485,7 @@
       "messages": {
         "loading": "운영 조직을 불러오는 중입니다",
         "empty": "아직 운영 조직이 구성되지 않았습니다",
+        "emptyDetail": "기본 학생회 조직을 불러오거나 참여 부서만 선택해 시작할 수 있습니다.\n행사 운영 조직은 기본 조직과 별개의 데이터입니다.",
         "error": "운영 조직을 불러오지 못했습니다"
       },
       "fields": [
@@ -5108,6 +5111,398 @@
               "description": "한 줄"
             }
           ]
+        }
+      ]
+    },
+    {
+      "key": "message.rooms",
+      "shape": "list",
+      "description": "메시지 방 목록(MSG-01). **줄에 무엇이 그려지는지 그림이 없다** — 와이어프레임은 방이 하나도 없는 모습만 그렸고 채워진 목록은 어느 화면에도 없다. 그래서 조각은 방 하나를 가리키는 값 하나뿐이다: 지어낸 조각을 적으면 그림에 없는 계약이 생기고 그것은 서버가 지켜야 할 약속이 된다.\n\n**MSG-02가 만드는 값에서 유추하지 않았다.** 만들 때 받는 것(분류·방 이름·대상)과 목록에 그려지는 것은 다른 물음이다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/messages/rooms"
+      },
+      "messages": {
+        "loading": "메시지 방을 불러오는 중입니다",
+        "empty": "아직 만들어진 메시지 방이 없습니다",
+        "emptyDetail": "학생회 조직도를 그대로 사용해 방을 만들 수 있습니다.\n부서를 통째로 고르거나, 부서를 펼쳐 필요한 사람만 고르세요.",
+        "error": "메시지 방을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "방 하나를 가리키는 값. **그려지는 조각이 아니다** — 무엇이 그려지는지는 그림이 말하지 않는다."
+        }
+      ]
+    },
+    {
+      "key": "message.conversation",
+      "shape": "list",
+      "description": "대화 화면이 되풀이해 그리는 것(MSG-03). **줄에 무엇이 그려지는지 그림이 없다** — 와이어프레임은 빈 모습만 그렸다.\n\n**비었을 때의 글이 '방이 없다'고 말한다.** 주고받은 말이 없다는 뜻이 아니라 들어갈 방 자체가 없다는 뜻이고, 그래서 이 화면의 빈 상태는 MSG-01의 빈 상태와 같은 사실을 다른 말로 말한다. 그런데 그 글이 서로 달라 한 출처로 묶을 수 없다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/messages/conversation"
+      },
+      "messages": {
+        "loading": "대화를 불러오는 중입니다",
+        "empty": "아직 대화할 방이 없습니다",
+        "emptyDetail": "메시지에서 먼저 방을 만들어 주세요.",
+        "error": "대화를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "이 줄 하나를 가리키는 값. **그려지는 조각이 아니다** — 무엇이 그려지는지는 그림이 말하지 않는다."
+        }
+      ]
+    },
+    {
+      "key": "finance.orgOverview",
+      "shape": "object",
+      "description": "조직 전체 재정의 겉면(FIN-00). 회계 기간·기준일부터 금액 넷과 집행률까지 한 벌로 온다 — 무엇을 실제 지출로 보고 무엇을 예정으로 보는지가 조직의 재정 규칙이라 화면이 더하거나 빼지 않는다. **행사 하나의 재정(event.financeSummary)과 다른 물건이다** — 저것은 eventId를 받고 이것은 학생회 전체를 센다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/overview"
+      },
+      "messages": {
+        "loading": "재정 현황을 불러오는 중입니다",
+        "empty": "재정 현황이 없습니다",
+        "error": "재정 현황을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "termNote",
+          "description": "회계 기간. 예: 2026년 1학기"
+        },
+        {
+          "key": "asOfNote",
+          "description": "언제를 기준으로 센 값인지. 예: 2026.07.18 기준"
+        },
+        {
+          "key": "totalBudget",
+          "description": "총예산. 자릿점까지 찍힌 글로 온다 — 화폐 표기가 조직·지역의 것이기 때문이다. 예: 30,000,000원"
+        },
+        {
+          "key": "totalBudgetNote",
+          "description": "그 예산이 어디서 왔는지. 예: 학생회비 외 1건"
+        },
+        {
+          "key": "spent",
+          "description": "실제 지출. 예: 12,400,000원"
+        },
+        {
+          "key": "spentNote",
+          "description": "무엇을 실제 지출로 셌는지. 예: 결제가 완료된 9건"
+        },
+        {
+          "key": "planned",
+          "description": "지출 예정. 예: 3,100,000원"
+        },
+        {
+          "key": "plannedNote",
+          "description": "무엇을 예정으로 셌는지. 예: 결제 예정 3건"
+        },
+        {
+          "key": "available",
+          "description": "사용 가능. 총예산에서 무엇을 빼는지가 재정 규칙이라 화면이 계산하지 않는다. 예: 14,500,000원"
+        },
+        {
+          "key": "availableNote",
+          "description": "그 금액이 무엇인지 알리는 문구. 예: 새로 사용할 수 있는 금액"
+        },
+        {
+          "key": "executionNote",
+          "description": "집행률을 말한 완성된 문구. 예: 전체 예산 집행률 41.3%"
+        },
+        {
+          "key": "plannedIncludedNote",
+          "description": "지출 예정까지 더한 집행률의 완성된 문구. 예: 지출 예정 포함 51.7%"
+        },
+        {
+          "key": "spentPercent",
+          "description": "실제 지출이 총예산에서 차지하는 비율(0-100). 막대의 첫 마디다 — 수는 데이터이고 막대는 디자인이다"
+        },
+        {
+          "key": "plannedPercent",
+          "description": "지출 예정이 차지하는 비율(0-100). 첫 마디에 이어 붙는 몫이라 둘을 더하면 '지출 예정 포함' 비율이 된다"
+        }
+      ]
+    },
+    {
+      "key": "finance.overviewViewer",
+      "shape": "object",
+      "description": "전체 재정 현황을 보는 사람이 무엇을 할 수 있는가. **변형을 가르는 값이다**(event.listViewer·meeting.attention의 canCreateMeeting 선례) — 예산을 편성할 수 있는 사람이 보는 그림이 FIN-00B이고 사람이 그 사이를 오갈 수 없다. 역할 이름은 여기 오지 않는다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/overview/viewer"
+      },
+      "messages": {
+        "loading": "권한을 확인하는 중입니다",
+        "empty": "확인할 것이 없습니다",
+        "error": "권한을 확인하지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "canPlanBudget",
+          "description": "예산을 편성할 수 있는가. 있으면 총예산 카드가 '편성'으로 눌러 들어가는 카드가 된다"
+        }
+      ]
+    },
+    {
+      "key": "finance.orgBreakdown",
+      "shape": "list",
+      "description": "총예산을 무엇 단위로 나눠 본 표의 한 줄(FIN-00). 나누는 축(scope)이 행사별이냐 부서별이냐로 줄의 뜻이 통째로 바뀌므로 서버가 걸러서 준다 — 받아온 것을 화면에서 다시 나누지 않는다.",
+      "params": [
+        "scope"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/overview/breakdown"
+      },
+      "messages": {
+        "loading": "예산 현황을 불러오는 중입니다",
+        "empty": "표시할 예산 현황이 없습니다",
+        "error": "예산 현황을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "그 행사 또는 부서의 id"
+        },
+        {
+          "key": "name",
+          "description": "구분의 이름. 행사별이면 행사명, 부서별이면 부서명"
+        },
+        {
+          "key": "budget",
+          "description": "배정 예산. 예: 5,000,000원"
+        },
+        {
+          "key": "spent",
+          "description": "실제 지출. 예: 2,100,000원"
+        },
+        {
+          "key": "planned",
+          "description": "지출 예정. 예: 600,000원"
+        },
+        {
+          "key": "available",
+          "description": "사용 가능. 예: 2,300,000원"
+        },
+        {
+          "key": "executionPercent",
+          "description": "집행률(0-100). 수는 데이터이고 막대는 디자인이다(home.events의 progressPercent 선례)"
+        }
+      ]
+    },
+    {
+      "key": "finance.recentExpenses",
+      "shape": "list",
+      "description": "최근 지출 내역(FIN-00). **finance.ledger와 같은 장부다** — 저쪽은 전부를 걸러 볼 수 있게 주는 자리이고 이쪽은 겉면에 몇 줄만 얹는 자리다. 몇 줄을 얹을지는 서버가 정한다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/overview/recent-expenses"
+      },
+      "messages": {
+        "loading": "지출 내역을 불러오는 중입니다",
+        "empty": "최근 지출 내역이 없습니다",
+        "error": "지출 내역을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "장부 줄의 id"
+        },
+        {
+          "key": "date",
+          "description": "쓴 날. 예: 07.17"
+        },
+        {
+          "key": "title",
+          "description": "지출 내용. 예: 현수막 제작"
+        },
+        {
+          "key": "context",
+          "description": "어느 행사 또는 어디에 썼는지. 예: 체육대회"
+        },
+        {
+          "key": "amountNote",
+          "description": "금액. 예: 180,000원"
+        },
+        {
+          "key": "proof",
+          "description": "증빙 상태. 조직의 절차가 정하는 말이라 명세가 목록을 들지 않는다"
+        },
+        {
+          "key": "proofTone",
+          "description": "그 딱지의 색 이름"
+        }
+      ]
+    },
+    {
+      "key": "finance.proofSummary",
+      "shape": "object",
+      "description": "증빙이 어디까지 됐는지(FIN-00의 오른쪽 칸). 세는 갈래 셋은 디자인이 고정으로 그렸고 값만 서버가 준다(event.wrapUpCounts와 같은 자리다).",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/overview/proof-summary"
+      },
+      "messages": {
+        "loading": "증빙 현황을 세는 중입니다",
+        "empty": "셀 것이 없습니다",
+        "error": "증빙 현황을 세지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "completed",
+          "description": "증빙이 끝난 건수. 단위까지 붙어서 온다. 예: 6건"
+        },
+        {
+          "key": "supplement",
+          "description": "보완이 필요한 건수. 예: 1건"
+        },
+        {
+          "key": "unregistered",
+          "description": "아직 증빙이 등록되지 않은 건수. 예: 2건"
+        },
+        {
+          "key": "totalNote",
+          "description": "전체 지출 건수. 예: 26건"
+        }
+      ]
+    },
+    {
+      "key": "finance.ledgerSummary",
+      "shape": "object",
+      "description": "사용 내역 머리의 값 넷(FIN-LEDGER-01). 고른 달이 값을 바꾸므로 인자를 받는다. **달의 이름도 서버가 준다** — '7월 지출'의 '7월'은 고른 달이 정하는 것이라 명세가 고정 카피로 가질 수 없다.",
+      "params": [
+        "month"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/ledger/summary"
+      },
+      "messages": {
+        "loading": "지출 현황을 불러오는 중입니다",
+        "empty": "표시할 지출 현황이 없습니다",
+        "error": "지출 현황을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "termTotal",
+          "description": "이번 학기에 쓴 돈 전부. 예: 3,842,000원"
+        },
+        {
+          "key": "monthLabel",
+          "description": "고른 달의 지출을 부르는 말. 예: 7월 지출"
+        },
+        {
+          "key": "monthTotal",
+          "description": "그 달에 쓴 돈. 예: 1,286,000원"
+        },
+        {
+          "key": "proofDone",
+          "description": "증빙이 끝난 건수를 전체와 함께 말한 문구. 예: 42건 중 37건"
+        },
+        {
+          "key": "proofMissing",
+          "description": "증빙이 빠진 건수. 예: 5건"
+        }
+      ]
+    },
+    {
+      "key": "finance.ledger",
+      "shape": "list",
+      "description": "학생회 장부의 한 줄(FIN-LEDGER-01). 달·행사·부서·예산 항목·검색어로 걸러서 서버가 준다 — 받아온 것을 화면에서 거르지도 자르지도 않는다. FIN-00의 최근 지출 내역(finance.recentExpenses)과 **같은 장부**다.",
+      "params": [
+        "month",
+        "eventId",
+        "departmentId",
+        "budgetItemId",
+        "query"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/ledger"
+      },
+      "messages": {
+        "loading": "사용 내역을 불러오는 중입니다",
+        "empty": "조건에 맞는 사용 내역이 없습니다",
+        "error": "사용 내역을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "장부 줄의 id"
+        },
+        {
+          "key": "date",
+          "description": "쓴 날. 예: 07.17"
+        },
+        {
+          "key": "title",
+          "description": "무엇에 썼는지. 예: 케이블 커버 6m 외 1건"
+        },
+        {
+          "key": "context",
+          "description": "어느 행사 또는 어디에 썼는지. 행사에 속하지 않는 지출은 '운영 (상시)'처럼 온다"
+        },
+        {
+          "key": "department",
+          "description": "쓴 부서. 예: 운영부"
+        },
+        {
+          "key": "budgetItem",
+          "description": "어느 예산 항목에서 나갔는지. 예: 안전·설비"
+        },
+        {
+          "key": "amountNote",
+          "description": "금액. 예: 84,000원"
+        },
+        {
+          "key": "proof",
+          "description": "증빙 상태. 조직의 절차가 정하는 말이라 명세가 목록을 들지 않는다"
+        },
+        {
+          "key": "proofTone",
+          "description": "그 딱지의 색 이름"
+        }
+      ]
+    },
+    {
+      "key": "finance.ledgerScope",
+      "shape": "object",
+      "description": "지금 보고 있는 장부가 무엇의 몇 줄인지, 그리고 증빙을 어디서 처리하는지(FIN-LEDGER-01의 표 아래 줄). 목록은 잘려서 오므로 **몇 건 중 몇 건인지는 목록 자신이 말할 수 없다**(itemList의 paging이 총 건수를 따로 가리키는 것과 같은 이유다). 거르는 조건이 같아야 같은 것을 센다.",
+      "params": [
+        "month",
+        "eventId",
+        "departmentId",
+        "budgetItemId",
+        "query"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/ledger/scope"
+      },
+      "messages": {
+        "loading": "범위를 세는 중입니다",
+        "empty": "셀 것이 없습니다",
+        "error": "범위를 세지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "rangeNote",
+          "description": "무엇의 몇 줄을 보고 있는지. 예: 2026년 7월 · 총 42건 중 최근 10건 표시"
+        },
+        {
+          "key": "handlingNote",
+          "description": "증빙과 정산을 누가 어디서 하는지 알리는 완성된 문구. **역할 이름이 여기 들어간다**(event.endPermission 선례) — 조직 규칙이 바뀌면 명세가 아니라 이 값이 바뀐다"
         }
       ]
     }

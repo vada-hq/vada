@@ -1,7 +1,8 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { cleanup, render } from '@testing-library/react'
+import { cleanup, render, waitFor } from '@testing-library/react'
+import { getOptionSource } from '../option-sources/catalog'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
 import type { ScreenSpec } from '../spec/types'
@@ -168,10 +169,41 @@ describe.each(CARD_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
   },
 )
 
+/**
+ * 이 화면이 **펼쳐 그리는 원격 선택지**를 갖는가.
+ *
+ * choiceGroup은 선택지를 접어 두지 않고 전부 그린다. 그 목록이 원격이면 값이
+ * 늦게 오는데, 대조는 render() 직후 동기로 돈다 — 그래서 MSG-02의 분류 셋이
+ * '화면에 없음'으로 잡혔다. **화면이 틀린 것이 아니라 견주는 순간이 이른 것이다.**
+ *
+ * choiceGroup 열여섯이 전부 static이던 동안은 드러나지 않았다. 예외로 덮으면
+ * 다음 화면에서 또 여섯 줄을 적게 되므로 여기서 기다린다.
+ */
+function drawsRemoteChoices(spec: ScreenSpec): boolean {
+  const walk = (entries: readonly { spec?: unknown }[]): unknown[] =>
+    entries.flatMap((entry) => [
+      entry.spec,
+      ...walk((entry.spec as { itemFields?: { spec?: unknown }[] })?.itemFields ?? []),
+    ])
+
+  return walk(spec.elements).some((element) => {
+    const candidate = element as {
+      type?: string
+      presentation?: string
+      optionsSource?: { key?: string }
+    }
+    if (candidate.type !== 'select' || candidate.presentation !== 'choiceGroup') {
+      return false
+    }
+    const key = candidate.optionsSource?.key
+    return key !== undefined && getOptionSource(key).type === 'remote'
+  })
+}
+
 describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
   '$screenId design 대조',
   ({ screenId, spec }) => {
-    it('등록 노드의 글과 칸을 design과 같은 색·굵기로 그린다', () => {
+    it('등록 노드의 글과 칸을 design과 같은 색·굵기로 그린다', async () => {
       const design = designByScreenId.get(screenId)
       if (design === undefined) {
         throw new Error(`design 파일이 없습니다: ${screenId}`)
@@ -186,6 +218,14 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
           onNavigate={() => {}}
         />,
       )
+
+      // 원격 선택지는 늦게 온다. 그것을 그리는 화면만 기다린다 — 나머지는
+      // 이 자리를 스치고 지나간다.
+      if (drawsRemoteChoices(spec)) {
+        await waitFor(() => {
+          expect(document.querySelectorAll('[role="radio"]').length).toBeGreaterThan(0)
+        })
+      }
 
       // 일부러 다르게 하기로 한 자리는 덜어낸다. 그 목록이 썩지 않는지는 화면
       // 하나로 판정할 수 없다(규칙에 건 예외는 여러 화면에 걸쳐 쓰인다) — 아래에

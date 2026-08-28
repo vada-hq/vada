@@ -28,11 +28,12 @@ export function missingNoteOf(screenId: string, paramKey: string): string {
 }
 
 interface ElementEntry {
+  source?: { nodeId?: string }
   spec?: {
     title?: string
     label?: string
     itemFields?: ElementEntry[]
-    action?: { type?: string; note?: string }
+    action?: { type?: string; note?: string; onSuccess?: { note?: string } }
     itemAction?: { type?: string; note?: string }
     emptyAction?: { type?: string; note?: string }
   }
@@ -68,6 +69,29 @@ export function pendingNoteAt(screenId: string, nodeId: string): string {
     throw new Error(`${screenId}의 ${nodeId}는 pending이 아니거나 note가 없습니다.`)
   }
   return action.note
+}
+
+/**
+ * **보내고 난 뒤**가 아직 정해지지 않았다는 글(action.onSuccess.note).
+ *
+ * pendingNoteOf가 읽는 것은 누르기 전의 pending이고 이것은 보낸 뒤의 자리다.
+ * 검사가 그 글을 옮겨 적으면 두 벌이 되고, 명세를 고쳐도 초록이면 그 검사는
+ * 아무것도 지키지 않는다.
+ */
+export function successNoteAt(screenId: string, nodeId: string): string {
+  const spec = JSON.parse(
+    readFileSync(join(SCREENS_DIR, screenId, 'screen.json'), 'utf-8'),
+  ) as { elements?: ElementEntry[] }
+
+  const walk = (entries: ElementEntry[]): ElementEntry[] =>
+    entries.flatMap((entry) => [entry, ...walk(entry.spec?.itemFields ?? [])])
+
+  const found = walk(spec.elements ?? []).find((entry) => entry.source?.nodeId === nodeId)
+  const note = found?.spec?.action?.onSuccess?.note
+  if (note === undefined) {
+    throw new Error(`${screenId}의 ${nodeId}에는 onSuccess.note가 없습니다.`)
+  }
+  return note
 }
 
 export function pendingNoteOf(screenId: string, name: string): string {

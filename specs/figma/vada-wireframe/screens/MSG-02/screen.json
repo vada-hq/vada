@@ -1,0 +1,247 @@
+{
+  "schemaVersion": 1,
+  "screenId": "MSG-02",
+  "meta": {
+    "eyebrow": null,
+    "title": "새 메시지 방 만들기",
+    "footerNote": "부서 또는 구성원을 한 명 이상 선택해 주세요."
+  },
+  "overlay": {
+    "screenId": "MSG-01",
+    "source": "30:6876"
+  },
+  "stateScopeKey": "messageRoomDraft",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:6783",
+    "name": "메시지 · MSG-02 · 새 메시지 방 만들기",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:6879",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "새 메시지 방 만들기",
+        "description": "부서를 통째로 고르거나, 부서를 펼쳐 필요한 사람만 고를 수 있습니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6884",
+        "name": "Button",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "닫기",
+        "labelHidden": true,
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "MSG-01",
+          "scopeEvent": "cancel"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6889",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "category",
+        "label": "분류",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "message.roomCategories"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6901",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "roomName",
+        "label": "방 이름",
+        "placeholder": "예: 체육대회 운영 논의",
+        "helperText": "비워두면 선택한 구성원으로 자동 생성됩니다.",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6912",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "구성원"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6921",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "대상 선택"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6924",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "memberQuery",
+        "label": "이름 검색",
+        "labelHidden": true,
+        "placeholder": "이름 검색",
+        "initialValue": null,
+        "inputType": "search",
+        "valueType": "string",
+        "required": false,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:6932",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "org.departments",
+        "params": {
+          "query": {
+            "fieldKey": "memberQuery"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "name"
+            ]
+          },
+          {
+            "fields": [
+              "memberCountLabel"
+            ]
+          }
+        ],
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "30:6945",
+              "name": "Button",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "button",
+              "label": "부서 전체",
+              "emphasis": "secondary",
+              "initiallyDisabled": false,
+              "action": {
+                "type": "pending",
+                "note": "이 부서를 통째로 구성원에 담는 조작입니다. 담은 것이 어느 값으로 모이는지를 말할 어휘가 아직 없습니다."
+              }
+            }
+          },
+          {
+            "source": {
+              "nodeId": "30:6947",
+              "name": "Button",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "button",
+              "label": "부서 펼치기",
+              "labelHidden": true,
+              "emphasis": "quiet",
+              "initiallyDisabled": false,
+              "action": {
+                "type": "pending",
+                "note": "부서를 펼쳐 사람을 하나씩 고르는 상태가 그려지지 않았습니다."
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7030",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "취소",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "MSG-01",
+          "scopeEvent": "cancel"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:7032",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "방 만들기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "message.room.create",
+          "onSuccess": {
+            "note": "방을 만든 뒤 어느 화면으로 가는지가 디자인에 없습니다. 만든 방의 대화(MSG-03)가 유력하지만 그림에 이음이 없고, 방금 만든 방을 무엇이 가리키는지도 그려져 있지 않습니다.",
+            "scopeEvent": "complete"
+          },
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    }
+  ]
+}

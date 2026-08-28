@@ -41,8 +41,13 @@
         "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "참여 설문을 만드는 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "EVT-05",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },

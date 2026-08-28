@@ -132,3 +132,42 @@ export const EVENT_STAFF_CANDIDATES: Record<string, Option[]> = {
   // 조직을 아직 세우지 않은 행사도 같은 학생회의 사람 중에서 고른다.
   'E-03': EVENT_STAFF_ROSTER,
 }
+
+// 메시지 방의 분류(MSG-02). **'일반'과 행사가 한 줄에 섞여 온다** — 행사는 조직이
+// 만드는 것이라 명세가 목록을 들 수 없다. 값은 행사 id와 같아야 방이 어느 행사에
+// 딸린 것인지가 이어진다.
+export const MESSAGE_ROOM_CATEGORIES: Option[] = [
+  { value: 'general', label: '일반' },
+  { value: 'E-01', label: '2026 소프트웨어융합대학 체육대회' },
+  { value: 'E-03', label: '2026 신입생 환영 행사' },
+]
+
+// 조직 전체 재정의 좁혀 보기(FIN-LEDGER-01). 달·행사·예산 항목은 조직이 언제부터
+// 있었는지와 무엇을 벌였는지에 달렸으므로 명세가 목록을 들 수 없다.
+export const LEDGER_MONTH_OPTIONS: Option[] = [
+  { value: '2026-07', label: '2026년 7월' },
+  { value: '2026-06', label: '2026년 6월' },
+]
+
+export const LEDGER_EVENT_OPTIONS: Option[] = [
+  { value: 'E-01', label: '2026 체육대회' },
+  { value: 'E-02', label: '신입생 환영 행사' },
+  { value: 'E-03', label: '가을 축제' },
+]
+
+export const ORG_BUDGET_ITEM_OPTIONS: Option[] = [
+  { value: 'BI-01', label: '안전·설비' },
+  { value: 'BI-02', label: '인쇄·제작' },
+  { value: 'BI-03', label: '회의·운영비' },
+  { value: 'BI-04', label: '물품 구매' },
+  { value: 'BI-05', label: '홍보비' },
+  { value: 'BI-06', label: '사무·비품' },
+]
+
+// 학생회의 부서. 조직도(data-sources의 org.departments)와 **같은 목록이어야 한다** —
+// 두 벌로 적으면 부서를 하나 만들 때 한쪽만 는다.
+export const ORG_DEPARTMENT_OPTIONS: Option[] = [
+  { value: 'D-01', label: '기획부' },
+  { value: 'D-02', label: '홍보부' },
+  { value: 'D-03', label: '디자인부' },
+]

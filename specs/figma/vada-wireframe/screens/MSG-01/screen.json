@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "screenId": "MSG-01",
+  "meta": {
+    "eyebrow": null,
+    "title": "메시지"
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:6690",
+    "name": "메시지 · MSG-01 · 메시지 — 방 목록·시작 전",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:6768",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "message.rooms",
+        "emptyAction": {
+          "type": "navigate",
+          "label": "새 메시지 방 만들기",
+          "targetScreenId": "MSG-02"
+        }
+      }
+    }
+  ]
+}

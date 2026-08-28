@@ -57,6 +57,8 @@ import evtDoc01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-DOC
 import evtMeet01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-MEET-01/screen.json'
 import evtSched01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-SCHED-01/screen.json'
 import evt04Json from '../../../../specs/figma/vada-wireframe/screens/EVT-04/screen.json'
+import evt05Json from '../../../../specs/figma/vada-wireframe/screens/EVT-05/screen.json'
+import evt05bJson from '../../../../specs/figma/vada-wireframe/screens/EVT-05B/screen.json'
 import evtFin01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-FIN-01/screen.json'
 import finReq01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REQ-01/screen.json'
 import finReq02Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REQ-02/screen.json'
@@ -64,7 +66,12 @@ import myReq01Json from '../../../../specs/figma/vada-wireframe/screens/MY-REQ-0
 import finSup01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-SUP-01/screen.json'
 import finRev01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REV-01/screen.json'
 import finEvid01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-EVID-01/screen.json'
+import fin00Json from '../../../../specs/figma/vada-wireframe/screens/FIN-00/screen.json'
+import finLedger01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-LEDGER-01/screen.json'
 import finProc01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-PROC-01/screen.json'
+import msg01Json from '../../../../specs/figma/vada-wireframe/screens/MSG-01/screen.json'
+import msg02Json from '../../../../specs/figma/vada-wireframe/screens/MSG-02/screen.json'
+import msg03Json from '../../../../specs/figma/vada-wireframe/screens/MSG-03/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -129,6 +136,8 @@ export const evtDoc01 = asScreenSpec(evtDoc01Json)
 export const evtMeet01 = asScreenSpec(evtMeet01Json)
 export const evtSched01 = asScreenSpec(evtSched01Json)
 export const evt04 = asScreenSpec(evt04Json)
+export const evt05 = asScreenSpec(evt05Json)
+export const evt05b = asScreenSpec(evt05bJson)
 export const evtFin01 = asScreenSpec(evtFin01Json)
 export const finReq01 = asScreenSpec(finReq01Json)
 export const finReq02 = asScreenSpec(finReq02Json)
@@ -136,7 +145,12 @@ export const myReq01 = asScreenSpec(myReq01Json)
 export const finSup01 = asScreenSpec(finSup01Json)
 export const finRev01 = asScreenSpec(finRev01Json)
 export const finEvid01 = asScreenSpec(finEvid01Json)
+export const fin00 = asScreenSpec(fin00Json)
+export const finLedger01 = asScreenSpec(finLedger01Json)
 export const finProc01 = asScreenSpec(finProc01Json)
+export const msg01 = asScreenSpec(msg01Json)
+export const msg02 = asScreenSpec(msg02Json)
+export const msg03 = asScreenSpec(msg03Json)
 
 // 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
 // ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
@@ -189,6 +203,8 @@ export const ALL_SCREENS: ScreenSpec[] = [
   evtMeet01,
   evtSched01,
   evt04,
+  evt05,
+  evt05b,
   evtFin01,
   finReq01,
   finReq02,
@@ -196,7 +212,12 @@ export const ALL_SCREENS: ScreenSpec[] = [
   finSup01,
   finRev01,
   finEvid01,
+  fin00,
+  finLedger01,
   finProc01,
+  msg01,
+  msg02,
+  msg03,
 ]
 
 // 화면 하나만 열어 볼 때 넘길 인자.

@@ -23,17 +23,23 @@ const WIREFRAME = fileURLToPath(
 const SCREENS = join(WIREFRAME, 'screens')
 const shell = JSON.parse(readFileSync(join(WIREFRAME, 'shell.json'), 'utf-8'))
 
-// 셸은 모든 화면이 나눠 쓰는 구조라 화면의 요소가 아니다. '어미이름/이름' 꼴을
-// 쓴다 — 이름만 보면 그 이름이 겹치는 자리가 통째로 사라진다(screen-draft.mjs와
-// 같은 규칙이고, 실제로 ORG-03C의 초대 칸이 'Sidebar'라는 이름을 달고 있었다).
+// 셸은 모든 화면이 나눠 쓰는 구조라 화면의 요소가 아니다. screen-draft.mjs와
+// **같은 규칙**을 쓴다 — '*/이름'은 화면 바로 아래(깊이 2)에 있는 그 이름의
+// 노드다. 이름만 보면 그 이름이 겹치는 자리가 통째로 사라지고(ORG-03C의 초대
+// 칸이 'Sidebar'다), 어미 이름으로 보면 셸 프레임의 이름이 화면마다 달라 새어
+// 나간다(DesktopShell 63개 · 다른 이름 아홉).
 const EXCLUDED = new Set(shell.design?.excludeNodeNames ?? [])
+const EXCLUDED_AT_TOP = new Set(
+  [...EXCLUDED].filter((entry) => entry.startsWith('*/')).map((entry) => entry.slice(2)),
+)
 
 /** 셸 밖에 그려지는 글자 노드 전부. */
-function drawnTexts(node, parent = null, out = []) {
+function drawnTexts(node, parent = null, out = [], depth = 0) {
   if (EXCLUDED.has(node.name)) return out
   if (EXCLUDED.has(`${parent?.name ?? ''}/${node.name}`)) return out
+  if (depth === 2 && EXCLUDED_AT_TOP.has(node.name)) return out
   if (node.text?.content) out.push(node)
-  for (const child of node.children ?? []) drawnTexts(child, node, out)
+  for (const child of node.children ?? []) drawnTexts(child, node, out, depth + 1)
   return out
 }
 
@@ -102,6 +108,8 @@ const FLOOR = {
   'EVT-02D': { covered: 59, total: 75 },
   'EVT-03A': { covered: 48, total: 65 },
   'EVT-03B': { covered: 60, total: 65 },
+  'EVT-05': { covered: 104, total: 105 },
+  'EVT-05B': { covered: 32, total: 41 },
   'EVT-04': { covered: 66, total: 83 },
   'EVT-DOC-01': { covered: 55, total: 75 },
   'EVT-FIN-01': { covered: 50, total: 67 },
@@ -109,7 +117,9 @@ const FLOOR = {
   'EVT-SCHED-01': { covered: 85, total: 105 },
   'EVT-TASK-01': { covered: 64, total: 83 },
   'EVT-TASK-02': { covered: 58, total: 76 },
+  'FIN-00': { covered: 83, total: 84 },
   'FIN-EVID-01': { covered: 28, total: 54 },
+  'FIN-LEDGER-01': { covered: 94, total: 96 },
   'FIN-PROC-01': { covered: 33, total: 64 },
   'FIN-REQ-01': { covered: 173, total: 191 },
   'FIN-REQ-02': { covered: 62, total: 75 },
@@ -117,6 +127,8 @@ const FLOOR = {
   'FIN-SUP-01': { covered: 45, total: 58 },
   'HOME-01K': { covered: 54, total: 69 },
   'INV-01': { covered: 21, total: 24 },
+  'MSG-01': { covered: 3, total: 4 },
+  'MSG-03': { covered: 3, total: 5 },
   'MY-01': { covered: 30, total: 45 },
   'MY-REQ-01': { covered: 46, total: 59 },
   'ONB-01': { covered: 12, total: 20 },

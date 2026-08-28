@@ -247,9 +247,9 @@ export function EVT03AScreen({ screenParams, onNavigate }: EVT03AScreenProps) {
         // 비었다는 것을 말하는 것은 출처(messages.empty)이고, 비었으니 채우라고
         // 권하는 것은 명세(emptyAction)다. 화면은 둘을 그리기만 한다.
         //
-        // design(EVT-03C 20:6512)은 그 아래에 설명 한 문단을 더 그렸다. 그 글이
-        // 앉을 자리가 명세에도 카탈로그에도 없어 여기서는 그리지 않는다 -
-        // 화면이 지어내면 아무도 그것이 명세 밖의 카피인 줄 모른다.
+        // design(EVT-03C 20:6512)이 그 아래에 그린 설명 문단은 이제 앉을 자리가
+        // 있다 - messages.emptyDetail이다. 세 프레임이 같은 자리에 부딪혀 만든
+        // 말이고, 그 전에는 화면이 그림에 있는 글을 그리지 못했다.
         <div
           data-design-state="empty"
           className="flex flex-col items-center gap-4 py-20 text-center"
@@ -258,6 +258,13 @@ export function EVT03AScreen({ screenParams, onNavigate }: EVT03AScreenProps) {
           <p className="text-base font-bold text-gray-900">
             {findDataSource(departments.dataSourceKey).messages.empty}
           </p>
+          {findDataSource(departments.dataSourceKey).messages.emptyDetail === undefined ? null : (
+            // 비었다는 말 아래의 설명(EVT-03C 20:6512). **줄바꿈은 글 안에 있다** —
+            // 몇 줄로 그릴지는 표현이라 명세가 정하지 않는다.
+            <p className="text-xs whitespace-pre-line text-gray-500">
+              {findDataSource(departments.dataSourceKey).messages.emptyDetail}
+            </p>
+          )}
           <button
             type="button"
             onClick={() => {
