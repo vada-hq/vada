@@ -127,6 +127,7 @@ const FLOOR = {
   'FIN-SUP-01': { covered: 45, total: 58 },
   'HOME-01K': { covered: 54, total: 69 },
   'INV-01': { covered: 21, total: 24 },
+  'INV-00': { covered: 8, total: 13 },
   'MSG-01': { covered: 3, total: 4 },
   'MSG-03': { covered: 3, total: 5 },
   'MY-01': { covered: 30, total: 45 },
@@ -134,6 +135,7 @@ const FLOOR = {
   'ONB-01': { covered: 12, total: 20 },
   'ONB-02': { covered: 6, total: 12 },
   'OPS-00': { covered: 33, total: 48 },
+  'OPS-CAL-01': { covered: 97, total: 100 },
   'OPS-MEET-01A': { covered: 101, total: 116 },
   'OPS-MEET-02': { covered: 106, total: 123 },
   'OPS-MEET-03A': { covered: 59, total: 72 },
@@ -153,6 +155,9 @@ const FLOOR = {
   'ORG-04': { covered: 76, total: 77 },
   'ORG-04B': { covered: 42, total: 55 },
   'ORG-07A': { covered: 73, total: 86 },
+  'REC-01': { covered: 34, total: 36 },
+  'REC-02': { covered: 122, total: 123 },
+  'REC-02A': { covered: 65, total: 66 },
   'TASK-01': { covered: 62, total: 78 },
 }
 

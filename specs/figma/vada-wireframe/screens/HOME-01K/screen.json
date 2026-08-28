@@ -113,8 +113,8 @@
         "emphasis": "quiet",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "캘린더 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "OPS-CAL-01"
         }
       }
     },

@@ -3,6 +3,7 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from './ScreenRouter'
 import { ops00 } from '../spec/screens'
+import { targetScreenOf } from '../spec/types'
 import type { SummarySpec } from '../spec/types'
 import { readObjectSource } from '../data-sources/catalog'
 
@@ -66,7 +67,8 @@ describe('OPS-00 스펙 준수', () => {
 
   it('action의 문구를 그리고, 눌리면 선언한 대로 동작한다', async () => {
     const user = userEvent.setup()
-    renderOPS00()
+    const navigated: string[] = []
+    renderOPS00((screenId) => navigated.push(screenId))
     const withAction = summariesOf().filter((spec) => spec.action !== undefined)
     expect(withAction.length).toBeGreaterThan(0)
 
@@ -76,13 +78,24 @@ describe('OPS-00 스펙 준수', () => {
       }
     }
 
-    // 상시 업무 카드는 TASK-01이 생기면서 진짜 이동이 됐다. pending인 것을 고른다.
-    const pending = withAction.find((spec) => spec.action?.type === 'pending')
-    if (pending?.action?.type !== 'pending') throw new Error('pending 카드가 없다')
     // 카드 제목이 다른 카드의 설명에도 나온다(캘린더 설명에 '회의'). 제목 노드로 찾는다.
-    const card = screen.getByText(pending.title ?? '', { exact: true }).closest('button')
-    await user.click(card as HTMLElement)
-    expect(screen.getByText(pending.action.note)).toBeInTheDocument()
+    const cardOf = (spec: SummarySpec) =>
+      screen.getByText(spec.title ?? '', { exact: true }).closest('button') as HTMLElement
+
+    // **이 화면의 카드는 이제 전부 갈 곳이 있다.** TASK-01이 상시 업무를 이었고
+    // OPS-CAL-01이 캘린더를 이었다. 그래도 두 갈래를 다 지킨다 - 하나가 다시
+    // pending이 되면 그때도 눌러서 사유가 나와야 한다.
+    for (const spec of withAction) {
+      if (spec.action?.type === 'navigate') {
+        await user.click(cardOf(spec))
+        expect(navigated).toContain(targetScreenOf(spec.action, {}))
+        continue
+      }
+      if (spec.action?.type === 'pending') {
+        await user.click(cardOf(spec))
+        expect(screen.getByText(spec.action.note)).toBeInTheDocument()
+      }
+    }
   })
 
   it('meta.footerNote를 그린다', () => {

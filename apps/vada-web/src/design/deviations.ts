@@ -299,6 +299,120 @@ export const DEVIATIONS: Deviation[] = [
   // --- 자리에 건다: 규칙이 아니라 와이어프레임의 일회성 사고 --------------------
   //
   // 와이어프레임이 '기획 중' 딱지를 첫 줄은 파랗게, 다음 줄은 회색으로 그렸다.
+  // --- INV-00: 와이어프레임의 시연 장치 ---------------------------------------
+  {
+    by: 'place',
+    screenId: 'INV-00',
+    content: '→ 오류 예시: 존재하지 않는 코드',
+    kind: '글 없음',
+    design: 'gray-400(#99A1AF)',
+    screen: '화면에 없음',
+    why:
+      '와이어프레임이 오류 화면을 보여 주려고 둔 시연 장치다. 가리키는 프레임이 저장소에 하나도 없고, 그리면 명세에 없는 기능이 화면에 생긴다(OPS-MEET-06B의 실패 상태 미리보기와 같은 판정).',
+  },
+  {
+    by: 'place',
+    screenId: 'INV-00',
+    content: '→ 오류 예시: 만료된 코드',
+    kind: '글 없음',
+    design: 'gray-400(#99A1AF)',
+    screen: '화면에 없음',
+    why:
+      '와이어프레임이 오류 화면을 보여 주려고 둔 시연 장치다. 가리키는 프레임이 저장소에 하나도 없고, 그리면 명세에 없는 기능이 화면에 생긴다(OPS-MEET-06B의 실패 상태 미리보기와 같은 판정).',
+  },
+  {
+    by: 'place',
+    screenId: 'INV-00',
+    content: '→ 오류 예시: 다른 학생회 참여 중',
+    kind: '글 없음',
+    design: 'gray-400(#99A1AF)',
+    screen: '화면에 없음',
+    why:
+      '와이어프레임이 오류 화면을 보여 주려고 둔 시연 장치다. 가리키는 프레임이 저장소에 하나도 없고, 그리면 명세에 없는 기능이 화면에 생긴다(OPS-MEET-06B의 실패 상태 미리보기와 같은 판정).',
+  },
+  {
+    by: 'place',
+    screenId: 'INV-00',
+    content: '→ 오류 예시: 네트워크 오류',
+    kind: '글 없음',
+    design: 'gray-400(#99A1AF)',
+    screen: '화면에 없음',
+    why:
+      '와이어프레임이 오류 화면을 보여 주려고 둔 시연 장치다. 가리키는 프레임이 저장소에 하나도 없고, 그리면 명세에 없는 기능이 화면에 생긴다(OPS-MEET-06B의 실패 상태 미리보기와 같은 판정).',
+  },
+
+  // --- OPS-CAL-01: 한 항목에 동작이 둘이라 담지 못한 자리 ----------------------
+  {
+    by: 'place',
+    screenId: 'OPS-CAL-01',
+    content: '30:2236 Button - 현수막 디자인 수정 반영 행사 일정 보기',
+    kind: '그림 없음',
+    design: 'assets/30-2236.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why:
+      '딱지 하나에 동작이 둘인데 itemList.itemAction은 하나다. 제목 단추만 명세했고 이 아이콘 단추는 담을 자리가 없다 — 그림만 그리면 눌러도 아무 일이 없는 단추가 된다. 백로그에 적었다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-CAL-01',
+    content: '30:2255 Button - 체육대회 참가 신청 마감 행사 일정 보기',
+    kind: '그림 없음',
+    design: 'assets/30-2255.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why:
+      '딱지 하나에 동작이 둘인데 itemList.itemAction은 하나다. 제목 단추만 명세했고 이 아이콘 단추는 담을 자리가 없다 — 그림만 그리면 눌러도 아무 일이 없는 단추가 된다. 백로그에 적었다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-CAL-01',
+    content: '30:2263 Button - 참가자 모집 공지 작성 행사 일정 보기',
+    kind: '그림 없음',
+    design: 'assets/30-2263.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why:
+      '딱지 하나에 동작이 둘인데 itemList.itemAction은 하나다. 제목 단추만 명세했고 이 아이콘 단추는 담을 자리가 없다 — 그림만 그리면 눌러도 아무 일이 없는 단추가 된다. 백로그에 적었다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-CAL-01',
+    content: '30:2285 Button - 행사 안전 안내문 검토 행사 일정 보기',
+    kind: '그림 없음',
+    design: 'assets/30-2285.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why:
+      '딱지 하나에 동작이 둘인데 itemList.itemAction은 하나다. 제목 단추만 명세했고 이 아이콘 단추는 담을 자리가 없다 — 그림만 그리면 눌러도 아무 일이 없는 단추가 된다. 백로그에 적었다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-CAL-01',
+    content: '30:2314 Button - 물품 구매 요청 행사 일정 보기',
+    kind: '그림 없음',
+    design: 'assets/30-2314.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why:
+      '딱지 하나에 동작이 둘인데 itemList.itemAction은 하나다. 제목 단추만 명세했고 이 아이콘 단추는 담을 자리가 없다 — 그림만 그리면 눌러도 아무 일이 없는 단추가 된다. 백로그에 적었다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-CAL-01',
+    content: '30:2334 Button - 신입생 환영 기획회의 2차 행사 일정 보기',
+    kind: '그림 없음',
+    design: 'assets/30-2334.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why:
+      '딱지 하나에 동작이 둘인데 itemList.itemAction은 하나다. 제목 단추만 명세했고 이 아이콘 단추는 담을 자리가 없다 — 그림만 그리면 눌러도 아무 일이 없는 단추가 된다. 백로그에 적었다.',
+  },
+  {
+    by: 'place',
+    screenId: 'OPS-CAL-01',
+    content: '30:2354 Button - 행사장 사전 답사 행사 일정 보기',
+    kind: '그림 없음',
+    design: 'assets/30-2354.svg',
+    screen: 'data-asset-node-id를 단 그림이 없음',
+    why:
+      '딱지 하나에 동작이 둘인데 itemList.itemAction은 하나다. 제목 단추만 명세했고 이 아이콘 단추는 담을 자리가 없다 — 그림만 그리면 눌러도 아무 일이 없는 단추가 된다. 백로그에 적었다.',
+  },
+
   // --- 참여 설문: 와이어프레임이 스스로 어긋난 자리 --------------------------
   {
     by: 'place',

@@ -12,7 +12,9 @@ interface ONB02ScreenProps {
 // 14:127 ExternalLink)에서 유추해 targetScreenId로 매핑한다(마찰 로그 참조).
 const CARD_ICON_BY_TARGET: Record<string, LucideIcon> = {
   'ORG-01': Plus,
-  'INV-01': ExternalLink,
+  // 초대 코드를 넣는 화면이 생겼다. 이 표는 **대상 화면 id로** 아이콘을
+  // 고르므로, 대상이 바뀌면 키도 함께 바뀌어야 그림이 사라지지 않는다.
+  'INV-00': ExternalLink,
 }
 
 export function ONB02Screen({ onNavigate }: ONB02ScreenProps) {

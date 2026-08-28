@@ -1,6 +1,8 @@
 import { PageCard } from '../components/PageCard'
 import { EVT00AScreen } from './EVT00AScreen'
 import { FIN00Screen } from './FIN00Screen'
+import { INV00Screen } from './INV00Screen'
+import { OPSCAL01Screen } from './OPSCAL01Screen'
 import { FINLEDGER01Screen } from './FINLEDGER01Screen'
 import { MSG01Screen } from './MSG01Screen'
 import { MSG02Screen } from './MSG02Screen'
@@ -63,6 +65,7 @@ import { ORG07CScreen } from './ORG07CScreen'
 import { ORG02Screen } from './ORG02Screen'
 import {
   evt00b,
+  inv00,
   evt05,
   evt05b,
   msg02,
@@ -217,6 +220,22 @@ export function ScreenRouter({
   if (screenId === 'EVT-02') {
     // 행사 개요다. 행사 작업 공간의 첫 갈피이고, 어느 행사인지는 주소가 실어 온다.
     return <EVT02Screen screenParams={screenParams} onNavigate={onNavigate} />
+  }
+  if (screenId === 'INV-00') {
+    // 초대 코드는 화면 안이 아니라 onboardingDraft에 담긴다 — INV-01이 같은
+    // 스코프를 쓰므로 넘어가서도 남는다.
+    return (
+      <INV00Screen
+        draft={readScopeDraft(scopes, inv00.stateScopeKey)}
+        scopes={scopes}
+        onChangeDraft={(next) => onChangeScope(inv00.stateScopeKey ?? '', next)}
+        onNavigate={onNavigate}
+      />
+    )
+  }
+  if (screenId === 'OPS-CAL-01') {
+    // 읽기 전용 캘린더다. 좁혀 보는 값은 화면 안의 조회 인자라 스코프에 담지 않는다.
+    return <OPSCAL01Screen onNavigate={onNavigate} />
   }
   if (screenId === 'FIN-00') {
     // 조직 전체 재정이다. 사이드바의 '재정'이 가리키는 화면이라 인자를 받지 않는다.

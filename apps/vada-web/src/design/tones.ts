@@ -360,3 +360,51 @@ export const CONFIRM_NOTE: Record<string, string> = {
  * 아무거나 집지 않는다.
  */
 export const COUNT_CHIP = 'bg-gray-100 text-gray-500'
+
+/**
+ * 캘린더 일정 딱지(OPS-CAL-01 30:2233 격자 · 30:2381 이번 주).
+ * **바탕 -50, 테두리는 톤의 -500, 글씨 -800.**
+ *
+ * STATE_CHIP과 배합이 다르다 — 저기는 테두리가 -200이라 딱지가 조용한데, 이것은
+ * 격자 칸 안에서 색만으로 유형을 가르는 자리라 테두리가 진하다.
+ *
+ * 톤 이름이 곧 **유형의 이름**이다(event·meeting·deadline). 유형은 조직 운영에
+ * 따라 늘 수 있으므로 색 이름을 데이터가 준다.
+ */
+export const CALENDAR_CHIP: Record<string, string> = {
+  event: 'border-green-500 bg-green-50 text-green-800',
+  meeting: 'border-violet-500 bg-violet-50 text-violet-800',
+  deadline: 'border-orange-500 bg-orange-50 text-orange-800',
+}
+
+/**
+ * 유형 필터 칩(30:2120~30:2125)과 범례의 점(30:2130·30:2133·30:2136).
+ * 딱지보다 한 단계 옅다 — 테두리 -200, 글씨 -700.
+ *
+ * CHOICE_CHIP과 다르다: 저기는 **고른 것이 무엇이냐**만 말하므로 색이 하나인데,
+ * 여기는 안 고른 칩도 제 유형의 색을 지니고 있다(범례와 같은 색이라야 읽힌다).
+ */
+export const CALENDAR_TYPE_FILTER: Record<string, string> = {
+  event: 'border-green-200 bg-green-50 text-green-700',
+  meeting: 'border-violet-200 bg-violet-50 text-violet-700',
+  deadline: 'border-orange-200 bg-orange-50 text-orange-700',
+}
+export const CALENDAR_TYPE_DOT: Record<string, string> = {
+  event: 'bg-green-500',
+  meeting: 'bg-violet-400',
+  deadline: 'bg-orange-500',
+}
+
+/** 고른 필터는 유형과 무관하게 무채색으로 채운다(30:2118). */
+export const CALENDAR_FILTER_ON = 'border-gray-700 bg-gray-700 text-white'
+
+/**
+ * 월 격자의 날짜 수(30:2164 등). 토는 blue-400, 일은 red-400, 나머지는 gray-500.
+ * **오늘만 채워진 동그라미다**(30:2246) — 그것이 언제인지는 서버만 안다.
+ */
+export const CALENDAR_DAY: Record<string, string> = {
+  gray: 'text-gray-500',
+  blue: 'text-blue-400',
+  red: 'text-red-400',
+  today: 'bg-blue-600 text-white',
+}

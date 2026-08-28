@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "screenId": "INV-00",
+  "meta": {
+    "title": "초대 코드를 입력해 주세요",
+    "description": "학생회 관리자에게 전달받은 초대 코드를 입력하면 학생회 정보를 확인할 수 있습니다."
+  },
+  "viewer": "joining",
+  "stateScopeKey": "onboardingDraft",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "13:2",
+    "name": "학생회 참여 · INV-00 · 초대 코드 입력",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "14:369",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "inviteCode",
+        "label": "초대 코드",
+        "placeholder": "AB12CD34",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:384",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "학생회 확인",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "INV-01",
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "14:388",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "이전으로",
+        "emphasis": "quiet",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ONB-02"
+        }
+      }
+    }
+  ]
+}

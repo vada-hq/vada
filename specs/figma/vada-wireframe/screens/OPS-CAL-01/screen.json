@@ -1,0 +1,187 @@
+{
+  "schemaVersion": 1,
+  "screenId": "OPS-CAL-01",
+  "meta": {
+    "eyebrow": null,
+    "title": "캘린더",
+    "description": "학생회의 행사·회의·마감 일정을 한 화면에서 확인합니다.",
+    "footerNote": "회의 생성은 운영 > 회의, 행사 일정은 각 행사의 일정 탭에서 관리합니다."
+  },
+  "activeNavigationScreenId": "OPS-00",
+  "breadcrumb": {
+    "source": "30:2090",
+    "items": [
+      {
+        "value": "운영"
+      },
+      {
+        "value": "캘린더"
+      }
+    ]
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "30:2016",
+    "name": "운영 — 캘린더 · OPS-CAL-01 · 캘린더 — 월간 일정",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "30:2110",
+        "name": "Text",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "monthLabel",
+        "dataSourceKey": "ops.calendarMonth"
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2117",
+        "name": "일정 유형 필터",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "calendarType",
+        "placeholder": null,
+        "presentation": "choiceGroup",
+        "initialValue": "all",
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "ops.calendarTypes"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2126",
+        "name": "일정 유형 색상 범례",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "유형별 표시",
+        "description": "마감은 완료되지 않은 업무 기준",
+        "items": [
+          {
+            "value": "행사"
+          },
+          {
+            "value": "회의"
+          },
+          {
+            "value": "마감"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2141",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "ops.calendarDays",
+        "params": {
+          "type": {
+            "fieldKey": "calendarType"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "title"
+            ],
+            "toneField": "typeTone"
+          }
+        ],
+        "group": {
+          "itemsField": "schedules",
+          "headerFields": [
+            {
+              "fields": [
+                "dayLabel"
+              ],
+              "toneField": "dayTone"
+            }
+          ]
+        },
+        "itemAction": {
+          "type": "pending",
+          "label": "일정 열기",
+          "note": "이 일정의 원본을 여는 화면이 아직 명세되지 않았습니다."
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2363",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "이번 주 일정",
+        "dataSourceKey": "ops.calendarWeekRange",
+        "items": [
+          {
+            "field": "rangeNote"
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "30:2368",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "itemList",
+        "dataSourceKey": "ops.calendarWeek",
+        "params": {
+          "type": {
+            "fieldKey": "calendarType"
+          }
+        },
+        "columns": [
+          {
+            "fields": [
+              "typeLabel"
+            ],
+            "toneField": "typeTone"
+          },
+          {
+            "fields": [
+              "dateLabel"
+            ]
+          },
+          {
+            "fields": [
+              "title"
+            ]
+          }
+        ],
+        "itemAction": {
+          "type": "navigate",
+          "targetScreenId": "EVT-SCHED-01",
+          "labelField": "actionLabel",
+          "params": {
+            "eventId": {
+              "itemField": "eventId"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

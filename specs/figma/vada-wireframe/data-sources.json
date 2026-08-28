@@ -5505,6 +5505,146 @@
           "description": "증빙과 정산을 누가 어디서 하는지 알리는 완성된 문구. **역할 이름이 여기 들어간다**(event.endPermission 선례) — 조직 규칙이 바뀌면 명세가 아니라 이 값이 바뀐다"
         }
       ]
+    },
+    {
+      "key": "ops.calendarMonth",
+      "shape": "object",
+      "description": "월간 캘린더가 지금 보여주는 달. **어느 달인지는 서버가 정한다** — 달을 앞뒤로 옮기는 조작을 명세가 담을 어휘가 아직 없어(OPS-CAL-01의 30:2106·30:2112) 화면이 넘길 값이 없다. 그 어휘가 생기면 여기에 month 인자가 붙는다.",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/calendar/month"
+      },
+      "messages": {
+        "loading": "달을 불러오는 중입니다",
+        "empty": "표시할 달이 없습니다",
+        "error": "달을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "monthLabel",
+          "description": "지금 보고 있는 달의 이름. 예: 2026년 7월"
+        }
+      ]
+    },
+    {
+      "key": "ops.calendarDays",
+      "shape": "list",
+      "description": "월 격자의 칸들. **항목 하나가 하루**이고 그 안의 schedules가 그날의 일정이다. 달에 들지 않는 앞뒤 빈칸도 항목으로 온다 — 몇 칸이 비는지는 그 달 1일의 요일이 정하고, 그것을 화면이 셈하면 달력의 규칙이 화면에 적힌다.",
+      "params": [
+        "type"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/calendar/days"
+      },
+      "messages": {
+        "loading": "일정을 불러오는 중입니다",
+        "empty": "이 조건에 해당하는 일정이 없습니다",
+        "error": "일정을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "그 칸이 어느 날인지. 그려지지 않는다. 예: 2026-07-19"
+        },
+        {
+          "key": "dayLabel",
+          "description": "칸에 그려지는 날짜 수. 달에 들지 않는 빈칸은 빈 글이다. 예: 19"
+        },
+        {
+          "key": "dayTone",
+          "description": "날짜 수의 색 이름. 토·일이 갈리고 오늘이 따로 있다 — **오늘이 언제인지는 서버만 안다.** 예: gray · blue · red · today"
+        },
+        {
+          "key": "schedules",
+          "description": "그날에 걸린 일정들. 없는 날은 빈 목록이다.",
+          "fields": [
+            {
+              "key": "id",
+              "description": "일정 하나를 가리키는 값. 그려지지 않는다. 예: SCH-0720-1"
+            },
+            {
+              "key": "title",
+              "description": "딱지에 그려지는 일정의 이름. 예: 체육대회 참가 신청 마감"
+            },
+            {
+              "key": "typeTone",
+              "description": "일정 유형에 배정된 색 이름. **유형의 이름이 곧 톤 이름이다** — 유형이 하나 늘면 색도 하나 는다. 예: event · meeting · deadline"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "ops.calendarWeekRange",
+      "shape": "object",
+      "description": "이번 주 일정 패널의 머리. 어느 주이고 오늘이 언제인지를 **서버가 완성한 문장으로** 준다 — 화면이 날짜를 셈해 문장을 만들면 그 셈이 화면에 적힌다(finance.ledgerScope의 rangeNote와 같은 자리).",
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/calendar/week-range"
+      },
+      "messages": {
+        "loading": "이번 주를 불러오는 중입니다",
+        "empty": "표시할 주가 없습니다",
+        "error": "이번 주를 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "rangeNote",
+          "description": "이번 주의 범위와 오늘. 예: 07.19 (일) – 07.25 (토) · 오늘 07.19"
+        }
+      ]
+    },
+    {
+      "key": "ops.calendarWeek",
+      "shape": "list",
+      "description": "이번 주에 걸린 일정 줄. 월 격자와 같은 일정을 이번 주만 잘라 세로로 세운 것이다. **보고 있는 달과 무관하다** — '이번 주'는 오늘이 정한다.",
+      "params": [
+        "type"
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/ops/calendar/week"
+      },
+      "messages": {
+        "loading": "이번 주 일정을 불러오는 중입니다",
+        "empty": "이번 주에 해당하는 일정이 없습니다",
+        "error": "이번 주 일정을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "id",
+          "description": "일정 하나를 가리키는 값. 그려지지 않는다. 예: SCH-0720-1"
+        },
+        {
+          "key": "typeLabel",
+          "description": "유형 딱지의 글. 예: 마감 · 회의 · 행사"
+        },
+        {
+          "key": "typeTone",
+          "description": "그 딱지의 색 이름. 예: deadline · meeting · event"
+        },
+        {
+          "key": "dateLabel",
+          "description": "일정이 걸린 날. 예: 07.20"
+        },
+        {
+          "key": "title",
+          "description": "일정의 이름. 예: 체육대회 참가 신청 마감"
+        },
+        {
+          "key": "actionLabel",
+          "description": "그 줄에서 열 수 있는 것의 이름. 예: 행사 일정 보기. **행사에 딸리지 않은 줄에는 오지 않는다** — 상시 업무의 마감과 운영 회의가 그렇다.",
+          "optional": true
+        },
+        {
+          "key": "eventId",
+          "description": "행사에 딸린 줄이면 그 행사의 id. actionLabel과 함께 오거나 함께 오지 않는다. 예: E-01",
+          "optional": true
+        }
+      ]
     }
   ]
 }

@@ -105,6 +105,12 @@ export function EVTSCHED01Screen({ screenParams, onNavigate }: EVTSCHED01ScreenP
           type="button"
           data-node-id={NODE.calendar}
           onClick={() => {
+            // 명세가 navigate라고 말한 자리는 실제로 데려간다. 명세만 고치고
+            // 화면을 안 고치면 조용히 어긋난다.
+            if (calendar.action.type === 'navigate') {
+              onNavigate(calendar.action.targetScreenId)
+              return
+            }
             if (calendar.action.type === 'pending') setNote(calendar.action.note)
           }}
           className="shrink-0 rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50"

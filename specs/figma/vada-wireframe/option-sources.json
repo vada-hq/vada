@@ -992,6 +992,30 @@
         "empty": "고를 수 있는 예산 항목이 없습니다",
         "error": "예산 항목 목록을 불러오지 못했습니다"
       }
+    },
+    {
+      "key": "ops.calendarTypes",
+      "type": "static",
+      "description": "월간 캘린더를 유형으로 좁혀 보는 버튼 묶음. 선택지는 디자인에 고정돼 있고 범례가 말하는 세 유형과 같다. **event.scheduleFilter와 다른 것이다** — 저기는 한 행사의 일정을 '이번 주'라는 때와 '행사 당일'이라는 종류가 한 줄에 섞인 채로 자르고, 여기는 조직 전체의 일정을 유형으로만 자른다.",
+      "params": [],
+      "options": [
+        {
+          "value": "all",
+          "label": "전체"
+        },
+        {
+          "value": "event",
+          "label": "행사"
+        },
+        {
+          "value": "meeting",
+          "label": "회의"
+        },
+        {
+          "value": "deadline",
+          "label": "마감"
+        }
+      ]
     }
   ]
 }
