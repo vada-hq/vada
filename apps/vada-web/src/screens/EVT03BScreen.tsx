@@ -354,7 +354,8 @@ export function EVT03BScreen({
       <div className="-mx-8 flex gap-2 border-b border-gray-200 px-8 pt-6">
         {([NODE.staffTab, NODE.participantsTab] as const).map((nodeId) => {
           const spec = buttonAt(nodeId)
-          const here = spec.initiallyDisabled
+          // 지금 이 화면인지는 명세가 말한다. 눌러도 안 된다는 것과 다른 사실이다.
+          const here = spec.action.type === 'current'
           return (
             <button
               key={nodeId}

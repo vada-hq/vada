@@ -133,10 +133,21 @@ export interface DownloadAction {
   downloadField: string
 }
 
+// **지금 보고 있는 것이라 갈 곳이 없다.** 갈피 줄에서 지금 화면을 가리키는 칸이다.
+//
+// 그동안 이 자리는 pending을 빌려 쓰면서 note에 '지금 보고 있는 갈피입니다'라고
+// 적었는데, pending은 '아직 명세되지 않았다'로 못 박은 말이다 — 정반대의 뜻을
+// 빌린 것이라 명세를 읽는 사람은 '이 갈피는 아직 안 만들었구나'로 읽는다.
+// 네 자리가 그랬다(EVT-03A · EVT-03B · EVT-04 · FIN-REV-01).
+export interface CurrentAction {
+  type: 'current'
+}
+
 export type ButtonAction =
   | NavigateAction
   | SubmitAction
   | PendingAction
+  | CurrentAction
   | CopyAction
   | DownloadAction
 

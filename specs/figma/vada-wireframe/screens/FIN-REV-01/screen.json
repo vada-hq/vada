@@ -155,8 +155,7 @@
         "emphasis": "primary",
         "initiallyDisabled": true,
         "action": {
-          "type": "pending",
-          "note": "지금 보고 있는 갈피입니다."
+          "type": "current"
         }
       }
     },

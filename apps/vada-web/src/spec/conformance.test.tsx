@@ -308,6 +308,31 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
+  // **'지금 여기'는 보여야 한다.** 명세가 current라고 말했는데 화면이 다른 갈피와
+  // 똑같이 그리면 그 말은 아무 데도 닿지 않는다 — 눈으로도 읽어 주는 기계로도
+  // 어디에 있는지 알 수 없다.
+  //
+  // 이 어휘가 생기기 전에는 네 자리가 pending을 빌려 쓰면서 note에 '지금 보고
+  // 있는 갈피입니다'라고 적었다. pending은 '아직 명세되지 않았다'로 못 박은
+  // 말이라 **정반대의 뜻**이었다.
+  it("current라고 말한 단추는 '지금 여기'로 표시된다", () => {
+    const here = spec.elements.filter((element) => {
+      const button = element.spec as { type?: string; action?: { type?: string } }
+      return button.type === 'button' && button.action?.type === 'current'
+    })
+    if (here.length === 0) return
+
+    renderScreen(screenId)
+    for (const element of here) {
+      const label = (element.spec as { label: string }).label
+      const found = screen.getAllByRole('button', { name: new RegExp(label) })
+      expect(
+        found.some((node) => node.getAttribute('aria-current') === 'page'),
+        `${screenId}의 '${label}'는 지금 보고 있는 자리인데 그렇게 표시되지 않습니다`,
+      ).toBe(true)
+    }
+  })
+
   it('steps의 모든 단계와 데이터가 가리킨 현재 단계를 렌더한다', () => {
     renderScreen(screenId)
     const screenParams = exampleParamsOf(screenId)

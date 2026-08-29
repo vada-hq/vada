@@ -287,10 +287,12 @@ export function FINREV01Screen({
                 type="button"
                 data-node-id={nodeId}
                 disabled={spec.initiallyDisabled}
-                aria-current={spec.initiallyDisabled ? 'page' : undefined}
+                // 지금 이 화면인지는 명세가 말한다(action.type === 'current').
+                // 눌러도 안 된다는 것과는 다른 사실이다.
+                aria-current={spec.action.type === 'current' ? 'page' : undefined}
                 onClick={pressPending(spec)}
                 className={
-                  spec.initiallyDisabled
+                  spec.action.type === 'current'
                     ? 'rounded-lg border border-blue-600 px-3 py-2 text-xs font-semibold text-blue-700'
                     : 'rounded-lg px-3 py-2 text-xs font-semibold text-gray-400 hover:bg-gray-100'
                 }

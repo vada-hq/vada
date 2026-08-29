@@ -166,7 +166,9 @@ export function EVT03AScreen({ screenParams, onNavigate }: EVT03AScreenProps) {
       <div className="-mx-8 flex gap-2 border-b border-gray-200 px-8 pt-6">
         {([NODE.staffTab, NODE.participantsTab] as const).map((nodeId) => {
           const spec = buttonAt(nodeId)
-          const here = spec.initiallyDisabled
+          // **명세가 말한다.** 눌러도 안 된다는 것(initiallyDisabled)과 지금 이
+          // 화면이라는 것은 다른 사실인데, 한동안 앞의 것으로 뒤의 것을 짐작했다.
+          const here = spec.action.type === 'current'
           return (
             <button
               key={nodeId}

@@ -2976,3 +2976,70 @@ test("source와 addedByDecision을 함께 적으면 스키마가 막는다", asy
     await rm(root, { recursive: true, force: true });
   }
 });
+
+// 지금 보고 있는 자리(action.type: current). **갈 곳도 보낼 것도 note도 없다.**
+//
+// 이 어휘가 생기기 전에는 네 자리가 pending을 빌려 쓰면서 note에 '지금 보고 있는
+// 갈피입니다'라고 적었다 — pending은 '아직 명세되지 않았다'로 못 박은 말이라
+// 정반대의 뜻이었고, 명세를 읽는 사람은 '아직 안 만들었구나'로 읽었다.
+function currentTabScreen(extra) {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          schemaVersion: 1,
+          screenId: "S-01",
+          source: { pageName: "P", nodeId: "1:1", name: "S", figmaType: "FRAME" },
+          elements: [
+            {
+              source: { nodeId: "9:1", name: "Btn", figmaType: "FRAME" },
+              spec: {
+                type: "button",
+                label: "운영 조직",
+                emphasis: "quiet",
+                initiallyDisabled: true,
+                action: { type: "current", ...extra }
+              }
+            }
+          ]
+        }
+      }
+    ]
+  };
+}
+
+test("지금 보고 있는 자리는 갈 곳을 갖지 않는다", async () => {
+  const root = await mkdtemp(join(tmpdir(), "figma-spec-current-"));
+  try {
+    const wireframe = join(root, "test-wireframe");
+    await mkdir(join(wireframe, "screens", "S-01"), { recursive: true });
+    const write = (extra) =>
+      writeFile(
+        join(wireframe, "screens", "S-01", "screen.json"),
+        JSON.stringify(currentTabScreen(extra).screens[0].spec),
+        "utf8"
+      );
+
+    await write({});
+    const clean = await validateSpecsRoot(root);
+    assert.equal(
+      clean.filter((f) => f.level === "error" && f.message.includes("스키마 위반")).length,
+      0,
+      "아무 조각도 없는 current는 조용해야 한다"
+    );
+
+    for (const extra of [{ targetScreenId: "S-01" }, { note: "아직" }]) {
+      await write(extra);
+      const findings = await validateSpecsRoot(root);
+      assert.ok(
+        findings.some(
+          (f) => f.level === "error" && f.message.includes("스키마 위반")
+        ),
+        `current에 ${Object.keys(extra)[0]}를 붙이면 오류여야 한다`
+      );
+    }
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
