@@ -388,8 +388,10 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
             />
             {String(row.dueDate)}
           </span>
-          {/* 딸린 문서가 있을 때만 표시가 붙는다. 개수는 오지 않는다. */}
-          {row.hasDocuments === undefined ? null : (
+          {/* 딸린 문서가 있을 때만 표시가 붙는다. 개수는 오지 않는다.
+              **조각이 있는지로 읽지 않는다** — 그러면 '없다'와 '서버가 아직 모른다'가
+              같은 모양이 된다. 참거짓은 참거짓으로 온다. */}
+          {row.hasDocuments !== true ? null : (
             <FigmaAsset
               screenId={SCREEN}
               nodeId={ASSET.cardDocument}

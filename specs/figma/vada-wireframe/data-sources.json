@@ -615,8 +615,8 @@
         },
         {
           "key": "canCreateMeeting",
-          "description": "새 회의를 만들 수 있는가. 만들 수 있는 사람에게만 머리에 그 단추가 그려진다 - ORG-04의 권한 표가 '회의 생성'을 회장단·부서장에게만 주는 것과 같은 사실이다",
-          "valueType": "string"
+          "description": "새 회의를 만들 수 있는가. 만들 수 있는 사람에게만 머리에 그 단추가 그려진다 - ORG-04의 권한 표가 '회의 생성'을 회장단·부서장에게만 주는 것과 같은 사실이다\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         }
       ]
     },
@@ -1025,9 +1025,8 @@
         },
         {
           "key": "hasDocuments",
-          "description": "이 업무에 딸린 문서가 있는가. 있을 때만 오고, 카드에 문서 표시가 붙는다. 예: 예",
-          "valueType": "string",
-          "optional": true
+          "description": "이 업무에 딸린 문서가 있는가. 카드에 문서 표시가 붙는다.\n\n**있을 때만 오던 것을 늘 오게 했다**(2026-08-30). 없을 때 오지 않으면 '없다'와 '서버가 아직 모른다'가 같은 모양이 되고, 화면은 조각이 있는지로 참거짓을 읽게 된다 — 참거짓은 참거짓으로 온다.",
+          "valueType": "boolean"
         }
       ]
     },
@@ -3882,33 +3881,33 @@
         },
         {
           "key": "canStart",
-          "description": "회의를 시작할 수 있는가. **변형을 가르는 값이다** — 역할 이름이 아니라 할 수 있는 일로 가른다",
-          "valueType": "string"
+          "description": "회의를 시작할 수 있는가. **변형을 가르는 값이다** — 역할 이름이 아니라 할 수 있는 일로 가른다\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         },
         {
           "key": "canEnd",
-          "description": "회의를 끝낼 수 있는가",
-          "valueType": "string"
+          "description": "회의를 끝낼 수 있는가\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         },
         {
           "key": "canEdit",
-          "description": "회의를 고칠 수 있는가. 생성자만",
-          "valueType": "string"
+          "description": "회의를 고칠 수 있는가. 생성자만\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         },
         {
           "key": "canCancel",
-          "description": "회의를 취소할 수 있는가. 생성자만",
-          "valueType": "string"
+          "description": "회의를 취소할 수 있는가. 생성자만\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         },
         {
           "key": "canManageHostRole",
-          "description": "진행 권한을 주고 뺄 수 있는가. 생성자만",
-          "valueType": "string"
+          "description": "진행 권한을 주고 뺄 수 있는가. 생성자만\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         },
         {
           "key": "canEditMinutes",
-          "description": "회의록을 정리할 수 있는가",
-          "valueType": "string"
+          "description": "회의록을 정리할 수 있는가\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         },
         {
           "key": "startedAt",
@@ -4078,8 +4077,8 @@
         },
         {
           "key": "isCurrent",
-          "description": "지금 진행 중인 안건인가",
-          "valueType": "string",
+          "description": "지금 진행 중인 안건인가\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean",
           "optional": true
         },
         {
@@ -4196,8 +4195,8 @@
         },
         {
           "key": "isPresent",
-          "description": "지금 들어와 있는가. 진행 중에만 온다",
-          "valueType": "string",
+          "description": "지금 들어와 있는가. 진행 중에만 온다\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean",
           "optional": true
         },
         {
@@ -4293,8 +4292,8 @@
         },
         {
           "key": "canComplete",
-          "description": "정리 완료를 누를 수 있는가",
-          "valueType": "string"
+          "description": "정리 완료를 누를 수 있는가\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         },
         {
           "key": "conditions",
@@ -4746,8 +4745,8 @@
             },
             {
               "key": "canRemove",
-              "description": "뺄 수 있는가",
-              "valueType": "string",
+              "description": "뺄 수 있는가\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+              "valueType": "boolean",
               "optional": true
             }
           ],
@@ -4893,8 +4892,8 @@
       "fields": [
         {
           "key": "canCreateEvent",
-          "description": "새 행사를 만들 수 있는가. 만들 수 있는 사람에게만 머리에 그 단추가 그려진다",
-          "valueType": "string"
+          "description": "새 행사를 만들 수 있는가. 만들 수 있는 사람에게만 머리에 그 단추가 그려진다\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         }
       ]
     },
@@ -5700,8 +5699,8 @@
         },
         {
           "key": "canActivate",
-          "description": "지금 켤 수 있는가",
-          "valueType": "string"
+          "description": "지금 켤 수 있는가\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         },
         {
           "key": "blockedNote",
@@ -6044,8 +6043,8 @@
       "fields": [
         {
           "key": "canPlanBudget",
-          "description": "예산을 편성할 수 있는가. 있으면 총예산 카드가 '편성'으로 눌러 들어가는 카드가 된다",
-          "valueType": "string"
+          "description": "예산을 편성할 수 있는가. 있으면 총예산 카드가 '편성'으로 눌러 들어가는 카드가 된다\n\n**참거짓으로 온다.** 빈 글과 'y'로 쓰던 것을 고쳤다(2026-08-30) — 권한 판정이 글로 API를 건너면 받는 쪽이 무엇이 참인지 규칙을 따로 알아야 한다.",
+          "valueType": "boolean"
         }
       ]
     },

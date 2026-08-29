@@ -265,7 +265,9 @@ export function OPSMEET02Screen({
         ),
         // 딱지와 줄 단추의 글은 서버가 준다. 없는 것을 지어내지 않는다.
         [itemKey(participantList.fieldKey, rowId, 'chips')]: '',
-        [itemKey(participantList.fieldKey, rowId, 'canRemove')]: 'y',
+        // 초안의 칸도 출처와 같은 모양으로 담는다 — 둘이 갈리면 같은 이름이
+        // 자리마다 다른 뜻이 된다.
+        [itemKey(participantList.fieldKey, rowId, 'canRemove')]: 'true',
         [participantList.fieldKey]: joinRowIds([...participantRowIds, rowId]),
       },
       labels: previous.labels,
@@ -493,7 +495,7 @@ export function OPSMEET02Screen({
             {actionLabel}
           </button>
         )}
-        {at('canRemove') === '' ? null : (
+        {at('canRemove') !== 'true' ? null : (
           <button
             type="button"
             aria-label={`${at('name')} ${participantList.itemNoun}에서 빼기`}

@@ -283,7 +283,9 @@ export function OPSMEET05AScreen({
   )
 
   // 본문이 그리는 것은 지금 진행 중인 안건 하나다. 어느 것인지는 데이터가 안다.
-  const current = agendaRows.find((row) => String(row.isCurrent ?? '') !== '')
+  // 참거짓은 참거짓으로 온다. 빈 글로 견주던 것을 고쳤다 — String(false)는 ''가
+  // 아니므로 그 비교는 참거짓이 바뀌는 날 조용히 뒤집힌다.
+  const current = agendaRows.find((row) => row.isCurrent === true)
   const agendaField = (at: number) => agenda.columns?.[at]?.fields?.[0]
   const cardField = (at: number) => agendaList.columns?.[at]?.fields?.[0]
   const personField = (at: number) => people.columns?.[at]?.fields?.[0]
@@ -649,7 +651,7 @@ export function OPSMEET05AScreen({
                   </li>
                 ) : (
                   agendaRows.map((row) => {
-                    const isCurrent = String(row.isCurrent ?? '') !== ''
+                    const isCurrent = row.isCurrent === true
                     return (
                       <li
                         key={String(row.agendaId)}

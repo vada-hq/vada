@@ -406,6 +406,7 @@ const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }>
       tone: 'red',
       assignee: '담당자 없음 · 배정 필요',
       dueDate: '2026-08-18',
+      hasDocuments: false,
     },
   },
   {
@@ -419,6 +420,7 @@ const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }>
       tone: 'red',
       assignee: '담당자 없음 · 배정 필요',
       dueDate: '2026-08-10',
+      hasDocuments: false,
     },
   },
   {
@@ -432,7 +434,7 @@ const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }>
       tone: 'pink',
       assignee: '이윤슬',
       dueDate: '2026-07-20',
-      hasDocuments: '예',
+      hasDocuments: true,
     },
   },
   {
@@ -448,7 +450,7 @@ const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }>
       dueDate: '2026-07-18 · 지연',
       alert: '지연',
       alertTone: 'red',
-      hasDocuments: '예',
+      hasDocuments: true,
     },
   },
   {
@@ -462,6 +464,7 @@ const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }>
       tone: 'teal',
       assignee: '박해랑',
       dueDate: '2026-07-25',
+      hasDocuments: false,
     },
   },
   {
@@ -477,7 +480,7 @@ const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }>
       dueDate: '2026-07-22',
       alert: '검토 필요',
       alertTone: 'yellow',
-      hasDocuments: '예',
+      hasDocuments: true,
     },
   },
   {
@@ -491,7 +494,7 @@ const EVENT_TASK_BOARD: Array<{ eventId: string; status: string; row: DataRow }>
       tone: 'violet',
       assignee: '이수현',
       dueDate: '2026-07-10',
-      hasDocuments: '예',
+      hasDocuments: true,
     },
   },
 ]
@@ -1775,13 +1778,13 @@ const EVENT_SURVEY_ACTIVATION: Record<string, DataRow> = {
   'E-03': {
     unmetCountNote: '미충족 12개',
     unmetCount: 12,
-    canActivate: '',
+    canActivate: false,
     blockedNote: '아직 채우지 않은 활성화 조건이 12개 있습니다.',
   },
   'E-01': {
     unmetCountNote: '미충족 2개',
     unmetCount: 2,
-    canActivate: '',
+    canActivate: false,
     blockedNote: '아직 채우지 않은 활성화 조건이 2개 있습니다.',
   },
 }
@@ -2909,10 +2912,10 @@ const INVITED_ORGANIZATIONS: Record<string, DataRow> = {
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   // 행사 목록을 보는 사람. 지금 보는 사람은 새 행사를 만들 수 없다 - 만들 수 있는
   // 사람이 보는 그림이 EVT-00A2(변형)이고, 사람이 그 사이를 오갈 수 없다.
-  'event.listViewer': { canCreateEvent: '' },
+  'event.listViewer': { canCreateEvent: false },
   // 전체 재정 현황을 보는 사람. 지금 보는 사람은 예산을 편성할 수 없다 - 편성할
   // 수 있는 사람이 보는 그림이 FIN-00B(변형)이고, 사람이 그 사이를 오갈 수 없다.
-  'finance.overviewViewer': { canPlanBudget: '' },
+  'finance.overviewViewer': { canPlanBudget: false },
   // 캘린더가 지금 보여주는 달과 이번 주. 둘 다 오늘이 정하므로 서버의 것이다.
 //   'record.completedEventAlert': COMPLETED_EVENT_ALERT,
   'record.completedEventAlert': COMPLETED_EVENT_ALERT,
@@ -2924,7 +2927,7 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     viewerTitle: '일반 참가자 화면',
     viewerNote: '초대된 회의의 일정과 참가 상태를 확인합니다.',
     attentionNote: '확인 필요한 회의 2건',
-    canCreateMeeting: '',
+    canCreateMeeting: false,
   },
   'home.briefing': { title: '박해랑님, 확인이 필요해요' },
   'home.briefingNotices': [
@@ -3376,12 +3379,12 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     stateBannerNote:
       '회의가 시작되면 목록과 이 화면의 버튼이 ‘회의 참가’로 변경됩니다. 이 화면을 확인한 것은 참석으로 기록되지 않습니다.',
     stateBannerTone: 'blue',
-    canStart: '',
-    canEnd: '',
-    canEdit: '',
-    canCancel: '',
-    canManageHostRole: '',
-    canEditMinutes: '',
+    canStart: false,
+    canEnd: false,
+    canEdit: false,
+    canCancel: false,
+    canManageHostRole: false,
+    canEditMinutes: false,
     agendaCountNote: '총 2개',
     participantCountNote: '초대 15명',
   },
@@ -3415,12 +3418,12 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     stateBannerTitle: '회의록 정리가 완료되었습니다',
     stateBannerNote: '2026.07.25 16:30 박해랑이 최종 정리했습니다.',
     stateBannerTone: 'green',
-    canStart: '',
-    canEnd: '',
-    canEdit: '',
-    canCancel: '',
-    canManageHostRole: '',
-    canEditMinutes: '',
+    canStart: false,
+    canEnd: false,
+    canEdit: false,
+    canCancel: false,
+    canManageHostRole: false,
+    canEditMinutes: false,
     // 실제 진행 시각. 예정 일시와 다르고 끝난 뒤에만 온다. 붙임표는 en dash다.
     actualTimeNote: '2026.07.25 15:00–16:12',
     attendanceResultNote: '3명 참석 · 1명 불참',
@@ -3449,12 +3452,12 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     viewerNote: '회의록을 함께 작성할 수 있지만 회의를 끝내거나 안건을 넘길 수 없습니다.',
     viewerChipLabel: '참석 처리됨 · 15:07 참가',
     viewerChipTone: 'green',
-    canStart: '',
-    canEnd: '',
-    canEdit: '',
-    canCancel: '',
-    canManageHostRole: '',
-    canEditMinutes: '',
+    canStart: false,
+    canEnd: false,
+    canEdit: false,
+    canCancel: false,
+    canManageHostRole: false,
+    canEditMinutes: false,
     // 진행 중부터 오는 조각. 가만히 있어도 자라는 값이라 서버가 준 그대로 그린다.
     startedAt: '15:00 시작',
     elapsedNote: '진행 27분',
@@ -3485,12 +3488,12 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     stateBannerNote:
       '회의가 시작되면 목록과 이 화면의 버튼이 ‘회의 참가’로 변경됩니다. 이 화면을 확인한 것은 참석으로 기록되지 않습니다.',
     stateBannerTone: 'blue',
-    canStart: '',
-    canEnd: '',
-    canEdit: '',
-    canCancel: '',
-    canManageHostRole: '',
-    canEditMinutes: '',
+    canStart: false,
+    canEnd: false,
+    canEdit: false,
+    canCancel: false,
+    canManageHostRole: false,
+    canEditMinutes: false,
     agendaCountNote: '총 3개 · 예상 60분',
     materialCountNote: '등록 자료 3개',
     participantCountNote: '초대 4명 · 진행 권한 2명',
@@ -3517,12 +3520,12 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     stateBannerNote:
       '현재 내용은 진행 권한자가 수정할 수 있습니다. 정리 완료 후 최종 회의록으로 제공됩니다.',
     stateBannerTone: 'yellow',
-    canStart: '',
-    canEnd: '',
-    canEdit: '',
-    canCancel: '',
-    canManageHostRole: '',
-    canEditMinutes: '',
+    canStart: false,
+    canEnd: false,
+    canEdit: false,
+    canCancel: false,
+    canManageHostRole: false,
+    canEditMinutes: false,
     // 장소는 place가 따로 갖는다. 명세가 둘을 이어 그리므로 여기 붙이면 두 번 그려진다.
     actualTimeNote: '2026.07.15 16:00–17:18',
     attendanceResultNote: '8명 참석 · 2명 불참',
@@ -3558,12 +3561,12 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     stateBannerNote:
       '정리 완료 후 참석자에게 최종 회의록이 제공되고, 불참자에게는 회의 요약 확인이 요청됩니다.',
     stateBannerTone: 'yellow',
-    canStart: '',
-    canEnd: '',
-    canEdit: '',
-    canCancel: '',
-    canManageHostRole: '',
-    canEditMinutes: 'y',
+    canStart: false,
+    canEnd: false,
+    canEdit: false,
+    canCancel: false,
+    canManageHostRole: false,
+    canEditMinutes: true,
     actualTimeNote: '15:00–16:12',
     closedByNote: '박해랑 · 16:12',
     attendanceResultNote: '3명 참석 · 1명 불참',
@@ -3586,12 +3589,12 @@ const MEETING_DETAIL: Record<string, DataRow> = {
     stateBannerNote:
       '행사 일정 확정이 지연되어 기존 회의를 취소하고 날짜를 다시 조율합니다.',
     stateBannerTone: 'red',
-    canStart: '',
-    canEnd: '',
-    canEdit: '',
-    canCancel: '',
-    canManageHostRole: '',
-    canEditMinutes: '',
+    canStart: false,
+    canEnd: false,
+    canEdit: false,
+    canCancel: false,
+    canManageHostRole: false,
+    canEditMinutes: false,
     cancelReason:
       '행사 일정 확정이 지연되어 참가자들이 참석 가능한 새로운 날짜를 조사한 뒤 회의를 다시 만들기로 했습니다.',
     cancelledByNote: '김바다 · 기획부',
@@ -3649,7 +3652,7 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
       durationNote: '예상 15분',
       status: '진행 중',
       statusTone: 'green',
-      isCurrent: 'y',
+      isCurrent: true,
       decisionText:
         '비상 연락은 현장 담당자 → 운영본부 → 학생회장·학교 안전관리팀 순으로 진행합니다.',
       decisionCountNote: '결정 1',
@@ -3765,7 +3768,7 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
       durationNote: '25분',
       status: '정리 필요',
       statusTone: 'yellow',
-      isCurrent: 'y',
+      isCurrent: true,
       discussionText:
         '• 출입구와 경기장별 필요 인원을 확인하는 중 • 대기 구역 담당 인원은 참가 신청 결과를 본 뒤 확정 필요',
       // 아직 결정이 없는 안건. **없다는 말도 서버가 준다** — 무엇을 하라고 이르는
@@ -3834,7 +3837,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       capabilityNote: '시작·종료 가능',
       attendanceLabel: '15:00 참가',
       attendanceTone: 'green',
-      isPresent: 'y',
+      isPresent: true,
     },
     {
       memberId: 'M-02',
@@ -3845,7 +3848,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       capabilityNote: '시작·종료 가능',
       attendanceLabel: '15:02 참가',
       attendanceTone: 'green',
-      isPresent: 'y',
+      isPresent: true,
     },
     {
       memberId: 'M-03',
@@ -3856,7 +3859,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       capabilityNote: '일반 참가자',
       attendanceLabel: '15:07 참가',
       attendanceTone: 'green',
-      isPresent: 'y',
+      isPresent: true,
     },
     {
       memberId: 'M-04',
@@ -3993,7 +3996,7 @@ const MEETING_DRAFT: Record<string, DataRow> = {
         chips: [{ label: '진행 권한', tone: 'blue' }],
         actionLabel: '권한 해제',
         actionEmphasis: 'danger',
-        canRemove: 'y',
+        canRemove: true,
       },
       {
         memberId: 'M-02',
@@ -4002,7 +4005,7 @@ const MEETING_DRAFT: Record<string, DataRow> = {
         chips: [{ label: '진행 권한', tone: 'blue' }],
         actionLabel: '권한 해제',
         actionEmphasis: 'danger',
-        canRemove: 'y',
+        canRemove: true,
       },
       {
         memberId: 'M-04',
@@ -4011,7 +4014,7 @@ const MEETING_DRAFT: Record<string, DataRow> = {
         chips: [],
         actionLabel: '진행 권한 부여',
         actionEmphasis: 'primary',
-        canRemove: 'y',
+        canRemove: true,
       },
     ],
     agendaItems: [
@@ -4147,7 +4150,7 @@ export const FILTERED_FIXTURES: Record<
           {
             requiredDoneNote: '필수 2 / 4',
             blockedNote: '안건별 필수 정리를 완료해 주세요',
-            canComplete: '',
+            canComplete: false,
             // 그림이 그린 글 그대로다. '(선택)'까지 서버가 붙여 온다 — 무엇이
             // 없어도 되는지는 조직의 규칙이고, 화면이 optional을 보고 그 말을
             // 지어내면 그 규칙이 화면에 적힌다.
@@ -4165,7 +4168,7 @@ export const FILTERED_FIXTURES: Record<
           {
             requiredDoneNote: '필수 2 / 4',
             blockedNote: '안건별 필수 정리를 완료해 주세요',
-            canComplete: '',
+            canComplete: false,
             conditions: [
               { label: '안건별 논의 내용', done: 'y', optional: '' },
               { label: '결정사항 또는 없음 표시', done: '', optional: '' },
