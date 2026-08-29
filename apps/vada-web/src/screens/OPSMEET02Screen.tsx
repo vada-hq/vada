@@ -229,10 +229,20 @@ export function OPSMEET02Screen({
   // 참가자는 쓰는 것이 아니라 고르는 것이다. 검색어에 맞는 사람 중 아직 넣지 않은
   // 첫 사람을 넣는다 - **고른 뒤 무엇이 그려지는지를 design이 그리지 않았으므로**
   // 후보 목록을 지어내 그리지 않는다.
+  //
+  // **어디서 고르는지는 명세가 말한다**(list.candidatesSource). 한동안 이 자리에
+  // 출처 이름이 박혀 있었고, 그래서 명세만 읽는 사람은 이 화면이 그 출처를 쓴다는
+  // 것을 알 길이 없었다 - 카탈로그의 그 항목은 아무도 안 가리키는 죽은 선언처럼
+  // 보였다. 저장소에서 그런 자리가 이것 하나였다.
   function addParticipant() {
-    const chosen = readListSource('meeting.memberCandidates', {
-      query: valueOf('memberQuery'),
-    }).find(
+    const candidates = participantList.candidatesSource
+    if (candidates === undefined) {
+      throw new Error('참가자 후보를 어디서 고르는지 명세가 말하지 않습니다.')
+    }
+    const chosen = readListSource(
+      candidates.dataSourceKey,
+      resolveParams(candidates.params, { fields: draft.values }),
+    ).find(
       (candidate) =>
         !participantRowIds.some(
           (rowId) =>

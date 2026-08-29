@@ -437,6 +437,14 @@
         "fieldKey": "participants",
         "itemNoun": "참가자",
         "addLabel": "참가자 추가",
+        "candidatesSource": {
+          "dataSourceKey": "meeting.memberCandidates",
+          "params": {
+            "query": {
+              "fieldKey": "memberQuery"
+            }
+          }
+        },
         "minItems": 1,
         "maxItems": 50,
         "itemActions": [

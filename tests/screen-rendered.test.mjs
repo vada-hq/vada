@@ -158,3 +158,66 @@ test('pending이 이름 댄 화면이 이미 있으면 안 된다', () => {
     '명세가 없다고 말한 화면이 이미 있습니다. 이으세요.\n' + lies.join('\n'),
   )
 })
+
+// 화면이 **명세에 없는 출처**를 읽고 있는가.
+//
+// 지금까지 대조는 늘 명세 → 화면 한 방향이었다. 명세가 가리킨 것을 화면이
+// 그렸는지는 봤지만, **화면이 명세 밖에서 무언가를 읽는 것**은 아무도 보지
+// 않았다. OPS-MEET-02가 그렇게 `meeting.memberCandidates`를 코드에 박아 읽고
+// 있었고 — 카탈로그의 그 항목은 아무 명세도 가리키지 않는 죽은 선언처럼
+// 보였는데, 죽은 것이 아니라 **명세가 모르는 채로 살아 있었다.**
+//
+// 명세만 읽는 사람은 그 화면이 그 출처를 필요로 한다는 것을 알 길이 없다.
+// 이것이 "명세 하나면 된다"가 새는 자리다.
+test('화면이 명세에 없는 데이터 출처를 읽지 않는다', () => {
+  const screenSource = join(repoRoot, 'apps', 'vada-web', 'src', 'screens')
+  const declaredOf = (screenId) => {
+    const keys = new Set()
+    const walk = (node) => {
+      if (Array.isArray(node)) {
+        for (const item of node) walk(item)
+        return
+      }
+      if (node === null || typeof node !== 'object') return
+      for (const [name, value] of Object.entries(node)) {
+        if (name === 'dataSourceKey' && typeof value === 'string') {
+          keys.add(value)
+          continue
+        }
+        if (name === 'optionsSource') continue
+        walk(value)
+      }
+    }
+    walk(JSON.parse(readFileSync(join(SCREENS, screenId, 'screen.json'), 'utf8')))
+    return keys
+  }
+
+  const folders = readdirSync(SCREENS, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+
+  const undeclared = []
+  for (const file of readdirSync(screenSource).filter((name) => name.endsWith('Screen.tsx'))) {
+    const flat = file.replace('Screen.tsx', '')
+    const screenId = folders.find((name) => name.replace(/-/g, '') === flat)
+    if (screenId === undefined) continue
+    if (!existsSync(join(SCREENS, screenId, 'screen.json'))) continue
+
+    const code = readFileSync(join(screenSource, file), 'utf8')
+    const read = new Set(
+      [...code.matchAll(/read[A-Za-z]*Source[A-Za-z]*\(\s*'([^']+)'/g)].map((match) => match[1]),
+    )
+    const declared = declaredOf(screenId)
+    for (const key of read) {
+      if (!declared.has(key)) {
+        undeclared.push(`  ${screenId}: '${key}'를 읽는데 명세가 말하지 않습니다.`)
+      }
+    }
+  }
+
+  assert.equal(
+    undeclared.length,
+    0,
+    '화면이 명세 밖의 출처를 읽습니다. 명세가 말하게 하세요.' + String.fromCharCode(10) + undeclared.join(String.fromCharCode(10)),
+  )
+})

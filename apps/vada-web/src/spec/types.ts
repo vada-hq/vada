@@ -420,6 +420,16 @@ export interface ListSpec {
   itemNoun: string
   addLabel: string
   itemNote?: string
+  /**
+   * **더할 항목을 어디서 고르는가**(선택).
+   *
+   * 안건은 쓰는 것이라 출처가 없고, 참가자는 이미 있는 구성원 중에서 고르는
+   * 것이라 출처가 있다. 이 자리가 없던 동안 화면이 출처 이름을 코드에 박았다.
+   */
+  candidatesSource?: {
+    dataSourceKey: string
+    params?: QueryParams
+  }
   minItems: number
   maxItems: number
   itemActions: Array<'rename' | 'remove'>

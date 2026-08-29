@@ -1276,6 +1276,49 @@ function checkDrawnWhen(findings, context) {
   });
 }
 
+/**
+ * 더할 항목을 고르는 출처(list.candidatesSource).
+ *
+ * 이 자리가 없던 동안 화면이 출처 이름을 코드에 박아 읽었다 — 명세만 읽는 사람은
+ * 그 화면이 그 출처를 쓴다는 것을 알 길이 없었다.
+ */
+function checkCandidatesSource(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey } = context;
+  const candidates = element?.spec?.candidatesSource;
+  if (!isObject(candidates)) {
+    return;
+  }
+  const where = `${elementLabel(element, index)}의 candidatesSource`;
+  if (!dataSources) {
+    findings.push({
+      level: "warning",
+      file,
+      message: `data-sources.json이 없어 ${where}의 출처 '${candidates.dataSourceKey}'를 확인하지 못했습니다.`
+    });
+    return;
+  }
+  const source = dataSourceByKey.get(candidates.dataSourceKey);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${where}의 데이터 출처 '${candidates.dataSourceKey}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+  if (source.shape !== "list") {
+    findings.push({
+      level: "error",
+      file,
+      message: `${where}의 데이터 출처 '${candidates.dataSourceKey}'는 shape가 '${source.shape}'입니다. 고를 후보이므로 list여야 합니다.`
+    });
+  }
+  checkArgumentValues(findings, context, candidates.params, {
+    declared: new Set(source.params ?? []),
+    where: `데이터 출처 '${candidates.dataSourceKey}'`
+  });
+}
+
 function checkRowToneField(findings, context) {
   const { file, element, index, dataSourceByKey } = context;
   const spec = element.spec;
@@ -2367,6 +2410,7 @@ export function collectSpecFindings({
       if (spec_.type === "list") {
         checkListReferences(findings, context);
         checkListItemFields(findings, context);
+        checkCandidatesSource(findings, context);
       }
       if (spec_.type === "button") {
         checkSubmitAction(findings, context);

@@ -97,6 +97,9 @@ import {
   org02,
   org03b,
 } from '../spec/screens'
+import { ALL_SCREENS } from '../spec/screens'
+import { dataSourceKeysOf } from '../spec/screen-sources'
+import { useSourceLoading } from '../data-sources/loading'
 import { readScopeDraft } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
@@ -118,7 +121,40 @@ interface ScreenRouterProps {
 // 화면은 scopes 전체도 받는다 — note가 *다른* 스코프의 값을 읽기 때문이다.
 // 지금 note가 없는 화면에도 넘긴다: 화면이 정하는 것은 자리뿐이어야 하고,
 // note가 하나 생겼다고 배선을 다시 손볼 자리가 있으면 안 된다.
-export function ScreenRouter({
+/**
+ * 받아 오는 동안과 실패했을 때를 **그릇이 그린다.**
+ *
+ * 카탈로그가 출처마다 `loading`·`error`를 갖는데 화면은 `empty`만 읽고 있었다.
+ * 까닭은 문구를 빠뜨린 것이 아니라 읽기가 전부 동기라서였다 — 기다리는 시간도
+ * 실패할 통신도 없으면 그 두 문구가 그려질 순간이 없다(data-sources/loading.ts).
+ *
+ * 무엇을 기다리는지는 **명세가 안다.** 화면 코드를 읽지 않고 `dataSourceKeysOf`가
+ * 답한다. 개발용 응답은 기본적으로 즉시 답하므로 평소에는 이 자리를 스치고
+ * 지나간다 — 늦음과 실패는 그것을 시험하는 검사가 켠다.
+ */
+export function ScreenRouter(props: ScreenRouterProps) {
+  const spec = ALL_SCREENS.find((entry) => entry.screenId === props.screenId)
+  const loading = useSourceLoading(spec === undefined ? [] : dataSourceKeysOf(spec))
+
+  if (loading.status !== 'ready') {
+    const isError = loading.status === 'error'
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-gray-50 px-6">
+        <div
+          role={isError ? 'alert' : 'status'}
+          className={`max-w-md text-center text-sm ${isError ? 'text-red-700' : 'text-gray-600'}`}
+        >
+          {loading.messages.map((message) => (
+            <p key={message}>{message}</p>
+          ))}
+        </div>
+      </div>
+    )
+  }
+  return <ScreenBody {...props} />
+}
+
+function ScreenBody({
   screenId,
   screenParams = {},
   scopes,

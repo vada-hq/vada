@@ -37,6 +37,25 @@
       "minLength": 1,
       "description": "항목 추가 조작의 문구. 예: 부서 추가"
     },
+    "candidatesSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dataSourceKey"
+      ],
+      "description": "**더할 항목을 어디서 고르는가**(선택).\n\n`list`는 사람이 항목을 더하는 목록인데, 더할 것을 **쓰는** 목록과 **고르는** 목록이 있다. 안건은 쓰는 것이라 출처가 없고, 참가자는 이미 있는 구성원 중에서 고르는 것이라 출처가 있다(OPS-MEET-02의 `meeting.memberCandidates`).\n\n이 자리가 없던 동안 **화면이 출처 이름을 코드에 박아 읽었다.** 명세만 읽는 사람은 그 화면이 그 출처를 필요로 한다는 것을 알 길이 없었고, 카탈로그의 그 항목은 아무 명세도 가리키지 않는 죽은 선언처럼 보였다 — 저장소에서 그런 자리가 이것 하나였다.\n\n**고른 뒤에 무엇이 그려지는지는 여기서 말하지 않는다.** 후보를 펼쳐 보이는지 검색으로 좁히는지는 그림이 정하고, 그림이 그리지 않았으면 화면도 지어내지 않는다.",
+      "properties": {
+        "dataSourceKey": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "data-sources.json 카탈로그의 key. 후보 목록이므로 shape가 list여야 한다."
+        },
+        "params": {
+          "$ref": "element-params.schema.json#/$defs/argument",
+          "description": "후보를 좁힐 때 넘기는 인자(선택). itemList.params와 같은 모양이다."
+        }
+      }
+    },
     "itemNote": {
       "type": "string",
       "minLength": 1,
