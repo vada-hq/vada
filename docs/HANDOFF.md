@@ -18,7 +18,7 @@
 | 명세된 화면 | **82개**(변형 10 포함) |
 | 그리는 화면 | **82 / 82 = 100%** |
 | 명세가 말하지 않는 글 | **0자** (`tests/screen-coverage.test.mjs`) |
-| 검사 | 계약 172 · 앱 1533 · e2e 425(+1 skip) |
+| 검사 | 계약 177 · 앱 1535 · e2e 425(+1 skip) |
 | 검증 | 오류 0건 · 경고 3건 |
 
 명세가 없는 프레임 셋은 전부 까닭이 있다. **EVT-03C·EVT-04C**는 화면이 아니라
@@ -50,6 +50,13 @@ steps · fieldSet.
   견주지 못하는 자리라 `tests/screen-coverage.test.mjs`가 그 수를 못 박는다.
 
 ## 다음 한 단계
+
+**2026-08-30부터 백엔드로 넘어왔다.** 설계와 까닭은 `docs/decisions/backend-architecture.md`에
+있다 — Hono + Drizzle + PostgreSQL, Lambda(서울), Better Auth, 그리고 이 저장소 안.
+`specs/figma/vada-wireframe/openapi.json`이 자리 207개·동작 216개를 들고 있고
+`npm run openapi`가 카탈로그에서 만든다. 다음은 `apps/api` 뼈대다.
+
+아래는 프론트 쪽에 남은 것이다.
 
 와이어프레임의 화면은 다 그렸다. 목표는 **"명세 하나만 보면 개발자가 화면을 만들 수
 있다"**이고, 남은 일은 화면이 아니라 **그 주장을 검사가 뒷받침하게 만드는 것**이다.

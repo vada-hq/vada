@@ -628,11 +628,11 @@
     {
       "key": "org.departments",
       "type": "remote",
-      "description": "학생회의 부서. **education.departments와 다른 물건이다** — 저것은 학교의 학부·학과이고 이것은 이 학생회가 스스로 나눈 부서다(ORG-03A의 조직도가 그리는 그것).",
+      "description": "학생회의 부서. **education.departments와 다른 물건이다** — 저것은 학교의 학부·학과이고 이것은 이 학생회가 스스로 나눈 부서다(ORG-03A의 조직도가 그리는 그것).\n\n**고르는 목록은 제 자리를 갖는다.** 조직도가 읽는 /api/org/departments와 같은 자리를 가리키고 있었는데, 한 자리가 두 모양을 줄 수는 없다 — 저기는 부서장과 부원까지 실은 나무를 주고 여기는 값과 글만 있으면 된다. OpenAPI를 뽑다가 드러났다(generate-openapi.mjs가 같은 자리를 두 번 적기를 거부한다).",
       "params": [],
       "request": {
         "method": "GET",
-        "path": "/api/org/departments",
+        "path": "/api/org/departments/options",
         "loadOn": "open",
         "search": {
           "mode": "client"
