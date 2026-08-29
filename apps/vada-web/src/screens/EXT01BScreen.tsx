@@ -21,11 +21,13 @@ import type { ButtonSpec, SummarySpec } from '../spec/types'
 //
 // ── 명세가 말하지 않아 여기가 알고 있는 것 ────────────────────────────────
 //
-// **아이콘이 결과마다 다르다.** 명세가 가리킬 수 있는 것은 톤까지이고
-// (summary.toneField), 그림의 이름을 가리킬 자리가 없다 — 톤으로는 못 푼다:
-// '체크인 시간 전·후'와 '비활성화된 QR'이 **둘 다 회색인데 시계와 X로 다르다.**
-// 그래서 화면이 attendance.checkInResult의 iconName을 직접 읽는다. 제안된 어휘는
-// summary.iconField이고, 두 번째 화면(EXT-02C)이 확인하기 전에는 만들지 않는다.
+// **아이콘이 결과마다 다르다.** 톤으로는 못 푼다 — '체크인 시간 전·후'와
+// '비활성화된 QR'이 **둘 다 회색인데 시계와 X로 다르다.**
+//
+// 한동안 화면이 attendance.checkInResult의 iconName을 **이름으로 박아** 읽었고,
+// 명세만 읽는 사람은 그 조각이 쓰인다는 것을 알 길이 없었다. 이제 명세가
+// 말한다(summary.iconField). 그 이름이 **어느 그림인지**는 여전히 design의
+// 것이다 — 명세는 무엇이 정하는가만 말하고 표현을 정하지 않는다.
 //
 // 어느 그림인지는 톤과 이름을 **함께** 봐야 정해진다. 뽑아 둔 그림이 동그란
 // 바탕색까지 품고 있어서 같은 X가 붉은 것과 회색인 것으로 둘이기 때문이다.
@@ -116,7 +118,7 @@ export function EXT01BScreen({ screenParams, onNavigate }: EXT01BScreenProps) {
     )
   }
 
-  const drawing = `${scalar(result, 'iconName')}|${scalar(result, card.toneField)}`
+  const drawing = `${scalar(result, card.iconField)}|${scalar(result, card.toneField)}`
   const iconNodeId = ICON[drawing]
   if (iconNodeId === undefined) {
     // 조용히 그림 없는 카드를 그리지 않는다. 결과가 하나 늘면 여기서 드러난다.

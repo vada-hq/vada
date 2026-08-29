@@ -46,6 +46,7 @@
       "spec": {
         "type": "summary",
         "toneField": "tone",
+        "iconField": "iconName",
         "titleField": "label",
         "descriptionField": "description",
         "dataSourceKey": "attendance.checkInResult",

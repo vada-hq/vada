@@ -282,6 +282,12 @@ export interface SummarySpec {
   // status는 명세가 알고(서로 다른 사실 둘), 이것은 데이터가 안다(사람마다 다르다).
   statusField?: string
   // 이 요약 **자체의** 색 이름이 담긴 조각. status의 toneField는 곁에 붙는 딱지의
+  // 어느 **그림**이 오는지를 데이터가 정할 때 그 이름을 담은 조각.
+  //
+  // toneField와 같은 모양이고, 톤으로 못 푸는 자리가 있어서 따로 있다 —
+  // EXT-01B의 '시간 전·후'와 '비활성 QR'은 둘 다 회색인데 시계와 X로 다르다.
+  // 그 이름이 어느 그림인지는 design이 안다(FigmaAsset).
+  iconField?: string
   // 색이고 이것은 띠나 카드 통째의 색이다 - 그려지는 자리가 다르다.
   toneField?: string
   description?: string

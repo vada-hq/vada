@@ -1137,6 +1137,11 @@ function checkDataSource(findings, context) {
     ...(spec.eyebrowField === undefined ? [] : [spec.eyebrowField]),
     ...(spec.titleField === undefined ? [] : [spec.titleField]),
     ...(spec.descriptionField === undefined ? [] : [spec.descriptionField]),
+    // **요약 자체의 색과 그림도 조각을 가리킨다.** 딱지의 것(status[])만 보고
+    // 있어서 이 둘은 없는 조각을 가리켜도 조용했다 — 색이 무채색으로 그려지거나
+    // 그림이 안 나와도 아무도 그것이 틀렸다고 말하지 않는다.
+    ...(spec.toneField === undefined ? [] : [spec.toneField]),
+    ...(spec.iconField === undefined ? [] : [spec.iconField]),
     // 상태 딱지는 글과 색 이름을 따로 가리킨다. 색만 없으면 딱지가 무채색으로
     // 그려지고 아무도 그것이 틀렸다고 말하지 않는다.
     //
