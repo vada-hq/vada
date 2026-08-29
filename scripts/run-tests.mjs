@@ -15,7 +15,9 @@ const logPath = join(repoRoot, ".test-last.log");
 // 이쪽은 덮어쓰지 않는다. 드물게 나는 일은 쌓여야 보인다.
 const flakePath = join(repoRoot, ".test-flakes.log");
 
-const APPS = ["apps/spec-service", "apps/vada-web"];
+// **셋이 됐다(2026-08-30).** apps/api가 붙으면서 느린 쪽이 바뀔 수 있다 —
+// 나란히 도므로 벽시계는 가장 느린 하나가 정한다. 지금은 여전히 vada-web이다.
+const APPS = ["apps/spec-service", "apps/vada-web", "apps/api"];
 
 // 검사 전체에 허용하는 시간. 넘기면 전부 통과했더라도 실패로 끝낸다.
 //
