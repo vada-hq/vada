@@ -137,7 +137,9 @@ export const EVENT_STAFF_CANDIDATES: Record<string, Option[]> = {
 // 만드는 것이라 명세가 목록을 들 수 없다. 값은 행사 id와 같아야 방이 어느 행사에
 // 딸린 것인지가 이어진다.
 export const MESSAGE_ROOM_CATEGORIES: Option[] = [
-  { value: 'general', label: '일반' },
+  // 그림이 '일반'을 골라진 채로 그렸다. 목록이 원격이라 명세가 그 값을 부를 수
+  // 없으므로 **서버가 표시해서 온다**(options[].initiallySelected).
+  { value: 'general', label: '일반', initiallySelected: true },
   { value: 'E-01', label: '2026 소프트웨어융합대학 체육대회' },
   { value: 'E-03', label: '2026 신입생 환영 행사' },
 ]
@@ -225,6 +227,8 @@ export const MEETING_AGENDA_PICKER: Record<string, Option[]> = {
   'MTG-09': [
     { value: 'AG-09-1', label: '안건 1', description: '확인 필요' },
     { value: 'AG-09-2', label: '안건 2', description: '확인 필요' },
-    { value: 'AG-09-3', label: '안건 3', description: '확인 필요' },
+    // 그림이 이 안건을 연 채로 그렸다. 셋 중 아직 결정이 없는 것이 이것이다 —
+    // 어느 것인지는 그 회의의 정리 상태가 정하므로 서버가 표시해서 온다.
+    { value: 'AG-09-3', label: '안건 3', description: '확인 필요', initiallySelected: true },
   ],
 }

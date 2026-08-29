@@ -220,13 +220,29 @@ export function OPSMEET06BScreen({
     }
   }, [picker.optionsSource.key, pickerParamsKey, pickerSource.type])
 
-  // **아직 아무것도 고르지 않았으면 지금 정리할 안건이 열려 있다.** 그것이 몇 번째
-  // 인지는 그 회의의 정리 상태가 정하므로 데이터가 말한다(meeting.agendas의
-  // isCurrent — 05A가 '지금 이것'을 가리키는 데 쓰는 같은 조각이다). 명세가 값을
-  // 못 박으면(select.initialValue) 데이터가 바뀔 때마다 틀리고, 화면이 첫째를 열면
-  // 이미 끝난 안건이 열린다.
-  const current = agendaRows.find((row) => scalar(row, 'isCurrent') !== '')
-  const openValue = chosen ?? (current === undefined ? null : scalar(current, 'agendaId'))
+  // **아직 아무것도 고르지 않았으면 서버가 표시한 안건이 열린다.**
+  //
+  // 무엇이 열려 있어야 하는지는 그 회의의 정리 상태가 정한다. 한동안 화면이
+  // meeting.agendas의 isCurrent를 **이름으로 박아** 읽었는데, 그것은 명세가
+  // 가리키지 않은 조각이었다 — 05A는 그 조각을 명세에 적었지만 여기는 아니었다.
+  //
+  // 이제 고르는 목록이 표시해서 온다(options[].initiallySelected). 이 화면은
+  // ChoiceGroup을 쓰지 않으므로(선택지마다 곁말을 함께 그려야 한다) 같은 규칙을
+  // 여기서 한 번 더 적는다 — 그 두 자리가 갈리면 화면마다 다르게 열린다.
+  useEffect(() => {
+    if (chosen !== null) {
+      return
+    }
+    const marked = pickerOptions.find((option) => option.initiallySelected === true)
+    if (marked !== undefined) {
+      field.setFieldValue(picker.fieldKey, marked.value, marked.label)
+    }
+    // field는 그릴 때마다 새로 만들어진다. 보는 사실은 '목록이 왔는가'와
+    // '아직 안 골랐는가' 둘뿐이다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickerOptions, chosen, picker.fieldKey])
+
+  const openValue = chosen
   const chosenAgenda = agendaRows.find((row) => scalar(row, 'agendaId') === openValue)
 
   const bannerTone = scalar(detail, banner.toneField)

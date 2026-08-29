@@ -2,11 +2,14 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
+import { useState } from 'react'
 import { render, waitFor } from '@testing-library/react'
-import { getOptionSource } from '../option-sources/catalog'
+import { fetchOptions, getOptionSource } from '../option-sources/catalog'
+import type { Option } from '../option-sources/catalog'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
-import type { ScreenSpec } from '../spec/types'
+import type { QueryParams, ScreenSpec } from '../spec/types'
+import { resolveParams } from '../spec/params'
 import type { ScopeStore } from '../state/scopes'
 import {
   applyDeviations,
@@ -187,24 +190,34 @@ describe.each(CARD_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
  * choiceGroup 열여섯이 전부 static이던 동안은 드러나지 않았다. 예외로 덮으면
  * 다음 화면에서 또 여섯 줄을 적게 되므로 여기서 기다린다.
  */
-function drawsRemoteChoices(spec: ScreenSpec): boolean {
+interface RemoteChoice {
+  key: string
+  params: QueryParams | undefined
+}
+
+function remoteChoiceKeys(spec: ScreenSpec): RemoteChoice[] {
   const walk = (entries: readonly { spec?: unknown }[]): unknown[] =>
     entries.flatMap((entry) => [
       entry.spec,
       ...walk((entry.spec as { itemFields?: { spec?: unknown }[] })?.itemFields ?? []),
     ])
 
-  return walk(spec.elements).some((element) => {
+  return walk(spec.elements).flatMap((element) => {
     const candidate = element as {
       type?: string
       presentation?: string
-      optionsSource?: { key?: string }
+      optionsSource?: { key?: string; params?: QueryParams }
     }
     if (candidate.type !== 'select' || candidate.presentation !== 'choiceGroup') {
-      return false
+      return [] as RemoteChoice[]
     }
     const key = candidate.optionsSource?.key
-    return key !== undefined && getOptionSource(key).type === 'remote'
+    if (key === undefined || getOptionSource(key).type !== 'remote') {
+      return []
+    }
+    // **인자를 함께 들고 간다.** 빈 인자로 부르면 한 건을 집어 오는 목록이 빈손으로
+    // 오고(06B의 안건 고르기가 meetingId를 받는다), 표시된 것이 없다고 잘못 읽는다.
+    return [{ key, params: candidate.optionsSource?.params }]
   })
 }
 
@@ -230,6 +243,36 @@ interface AssetOutcome {
 }
 const ASSETS = new Map<string, AssetOutcome>()
 
+// 대조기의 그릇이 **스코프를 실제로 담는다.**
+//
+// 여태 onChangeScope가 아무 일도 안 했다. 화면이 값을 써도 되돌아오지 않으므로,
+// 스코프에 담기는 화면에서는 **쓴 값이 그려지는 자리가 통째로 비어 있었다.**
+// 서버가 처음 열릴 것을 표시해 보내는 자리(options[].initiallySelected)에서
+// 그것이 드러났다 — MSG-02의 분류가 골라지지 않았다.
+//
+// 실제 앱은 App이 스코프를 들고 있다. 그릇이 그것을 흉내 내지 않으면 대조는
+// 실제와 다른 화면을 재게 된다.
+function ScopedScreen({
+  screenId,
+  spec,
+  design,
+}: {
+  screenId: string
+  spec: ScreenSpec
+  design: DesignFile
+}) {
+  const [scopes, setScopes] = useState<ScopeStore>(() => scopesDrawnBy(spec, design))
+  return (
+    <ScreenRouter
+      screenParams={exampleParamsOf(screenId)}
+      screenId={screenId}
+      scopes={scopes}
+      onChangeScope={(key, next) => setScopes((before) => ({ ...before, [key]: next }))}
+      onNavigate={() => {}}
+    />
+  )
+}
+
 describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
   '$screenId design 대조',
   ({ screenId, spec }) => {
@@ -239,22 +282,39 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
         throw new Error(`design 파일이 없습니다: ${screenId}`)
       }
 
-      render(
-        <ScreenRouter
-          screenParams={exampleParamsOf(screenId)}
-          screenId={screenId}
-          scopes={scopesDrawnBy(spec, design)}
-          onChangeScope={() => {}}
-          onNavigate={() => {}}
-        />,
-      )
+      render(<ScopedScreen screenId={screenId} spec={spec} design={design} />)
 
       // 원격 선택지는 늦게 온다. 그것을 그리는 화면만 기다린다 — 나머지는
       // 이 자리를 스치고 지나간다.
-      if (drawsRemoteChoices(spec)) {
+      const remoteChoices = remoteChoiceKeys(spec)
+      if (remoteChoices.length > 0) {
         await waitFor(() => {
           expect(document.querySelectorAll('[role="radio"]').length).toBeGreaterThan(0)
         })
+
+        // **목록이 온 것과 골라진 것은 다른 순간이다.**
+        //
+        // 서버가 처음 열릴 것을 표시해 오면(options[].initiallySelected) 그 고름은
+        // 목록이 온 **다음 틱**에 걸린다. 라디오가 나타난 것만 보고 견주면 아직
+        // 아무것도 안 골라진 화면을 재게 되고, 골라야 그려지는 자리가 통째로
+        // '화면에 없음'으로 잡힌다 — OPS-MEET-06B의 안건 패널이 그랬다.
+        const marked = (
+          await Promise.all(
+            remoteChoices.map((choice) =>
+              fetchOptions(
+                choice.key,
+                resolveParams(choice.params, { screenParams: exampleParamsOf(screenId) }),
+              ).catch(() => [] as Option[]),
+            ),
+          )
+        ).some((options) => options.some((option) => option.initiallySelected === true))
+        if (marked) {
+          await waitFor(() => {
+            expect(
+              document.querySelectorAll('[role="radio"][aria-checked="true"]').length,
+            ).toBeGreaterThan(0)
+          })
+        }
       }
 
       // 일부러 다르게 하기로 한 자리는 덜어낸다. 그 목록이 썩지 않는지는 화면
@@ -351,7 +411,11 @@ describe('design/deviations.ts', () => {
   // 늘어난다는 것은 둘 중 하나다 — 그림이 또 어긋났거나(그러면 잣대에 비추어
   // 골라야 한다), 규칙에 걸 수 있는 것을 자리에 걸었거나. 어느 쪽이든 사람이
   // 봐야 하므로 수를 못 박는다.
-  const PLACE_DEVIATIONS = 71
+  // 71 → 72 (2026-08-30). 늘어난 하나는 **여덟 번째 갈래가 아니다** — 와이어프레임이
+  // 스스로 어긋난 자리가 아니라 같은 뜻에 색 셋을 쓴 표현의 불규칙이다(MSG-02의
+  // 골라진 칩). 목록이 원격이라 여태 아무것도 골라지지 않은 채로 견주었고, 서버가
+  // 처음 열릴 것을 표시해 오면서 비로소 재어졌다.
+  const PLACE_DEVIATIONS = 72
 
   it('자리에 건 예외가 조용히 늘지 않는다', () => {
     const atPlace = DEVIATIONS.filter((deviation) => deviation.by === 'place')

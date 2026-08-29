@@ -32,6 +32,14 @@ export interface Option {
   // 라디오 카드처럼 선택지마다 설명이 붙는 표현에서 쓴다.
   description?: string
   disabled?: boolean
+  /**
+   * 아무것도 고르지 않았을 때 열려 있는 것.
+   *
+   * **판정은 서버가 한다.** 화면이 '아직 안 끝난 첫째'를 골라 열면 그 규칙이
+   * 화면에 박히고, 규칙이 바뀔 때마다 화면을 고쳐야 한다. select.initialValue는
+   * 명세가 아는 값일 때의 자리이고, 이것은 그 값이 데이터일 때의 자리다.
+   */
+  initiallySelected?: boolean
 }
 
 export interface SourceMessages {

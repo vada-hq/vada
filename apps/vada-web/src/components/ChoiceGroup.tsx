@@ -66,6 +66,26 @@ export function ChoiceGroup({
     }
   }, [source.type, sourceKey, paramsKey])
 
+  // **아무것도 고르지 않았으면 서버가 표시한 것을 연다.**
+  //
+  // 무엇이 열려 있어야 하는지는 서버가 안다(options[].initiallySelected). 화면이
+  // '첫째를 연다'거나 '아직 안 끝난 것을 연다' 같은 규칙을 들면 그 규칙이 화면에
+  // 박히고, 규칙이 바뀔 때마다 화면을 고쳐야 한다.
+  //
+  // 사람이 한 번 고르고 나면 다시 끼어들지 않는다 — value가 있으면 그것이 답이다.
+  useEffect(() => {
+    if (value !== null) {
+      return
+    }
+    const marked = options.find((option) => option.initiallySelected === true)
+    if (marked !== undefined) {
+      onSelect(marked)
+    }
+    // onSelect는 그릴 때마다 새로 만들어지는 일이 많아 의존성에 두면 끝없이 돈다.
+    // 여기서 보는 사실은 '목록이 왔는가'와 '아직 안 골랐는가' 둘뿐이다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options, value])
+
   const hasDescriptions = options.some((option) => Boolean(option.description))
 
   return (

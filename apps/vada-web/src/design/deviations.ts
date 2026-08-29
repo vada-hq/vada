@@ -1091,4 +1091,20 @@ export const DEVIATIONS: Deviation[] = [
     screen: '화면에 없음',
     why: '위와 같다 — 그 줄들을 담던 상자다.',
   },
+  {
+    by: 'place',
+    screenId: 'MSG-02',
+    content: '일반',
+    kind: '테두리',
+    design: 'blue-300(#8EC5FF)',
+    screen: 'blue-500(#2B7FFF)',
+    why:
+      '**골라진 칩이 이제야 대조된다.** 목록이 원격이라 그 전에는 아무것도 골라지지 ' +
+      '않은 채로 견주었고, 골라야 나오는 색은 한 번도 재어진 적이 없었다 — ' +
+      '서버가 처음 열릴 것을 표시해 오면서(options[].initiallySelected) 드러났다. ' +
+      '드러나 보니 와이어프레임이 같은 뜻에 색 셋을 썼다 — 압축형 14:173은 blue-500, ' +
+      '카드형 14:259는 blue-400, 여기는 blue-300이다. 규칙(components/ChoiceGroup)을 ' +
+      '따르고 그래서 생긴 차이를 여기 적는다. 선택지를 하나 더 만들 때 무슨 색을 줄지 ' +
+      '와이어프레임을 열어 보지 않아야 한다.',
+  },
 ]
