@@ -96,8 +96,20 @@ function fieldsOf(spec: ScreenSpec): FieldSpec[] {
 }
 
 describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
-  it('목록(list)의 초기 항목·루트·추가 조작을 렌더한다', () => {
-    renderScreen(screenId)
+  // **화면 하나를 한 번만 그린다.**
+  //
+  // 읽기만 하는 검사가 열둘인데 저마다 render()를 불렀다 — 화면 82개면 984번이고,
+  // 그 값이 앱 검사의 절반이었다(58.6초). 견주는 것은 저마다 다르지만 그리는 것은
+  // 같은 화면 같은 값이다.
+  //
+  // 그래서 검사를 모아 두고 한 번 그린 위에서 차례로 돌린다. 어느 것이 깨졌는지는
+  // 이름을 붙여 던지므로 그대로 남는다.
+  const checks: Array<[string, () => void]> = []
+  const check = (name: string, body: () => void) => {
+    checks.push([name, body])
+  }
+
+  check('목록(list)의 초기 항목·루트·추가 조작을 렌더한다', () => {
     for (const list of listsOf(spec)) {
       if (list.rootItem) {
         expect(screen.getByText(list.rootItem.initialName)).toBeInTheDocument()
@@ -118,8 +130,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  it('모든 필드의 label과 required를 렌더한다', () => {
-    renderScreen(screenId)
+  check('모든 필드의 label과 required를 렌더한다', () => {
     for (const field of fieldsOf(spec)) {
       // 라벨이 없는 필드(ORG-02의 조직 구성 방식)는 접근성 이름을 만들 근거가 없다.
       if (field.label === undefined) {
@@ -137,8 +148,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  it('input의 placeholder와 inputType을 소비한다', () => {
-    renderScreen(screenId)
+  check('input의 placeholder와 inputType을 소비한다', () => {
     for (const field of fieldsOf(spec)) {
       if (field.type !== 'input') continue
       const control = controlOf(field)
@@ -155,8 +165,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  it('활성 select의 placeholder를 소비한다', () => {
-    renderScreen(screenId)
+  check('활성 select의 placeholder를 소비한다', () => {
     for (const field of fieldsOf(spec)) {
       // 비활성(enabledWhen 미충족) 필드는 disabledPlaceholder를 쓰므로 제외한다.
       if (field.type !== 'select' || field.presentation === 'choiceGroup') continue
@@ -175,16 +184,14 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  it('helperText를 렌더한다', () => {
-    renderScreen(screenId)
+  check('helperText를 렌더한다', () => {
     for (const field of fieldsOf(spec)) {
       if (!field.helperText) continue
       expect(screen.getByText(field.helperText), `${field.fieldKey}의 helperText`).toBeInTheDocument()
     }
   })
 
-  it('화면 카피(meta)와 묶음(group)을 렌더한다', () => {
-    renderScreen(screenId)
+  check('화면 카피(meta)와 묶음(group)을 렌더한다', () => {
     if (spec.meta) {
       // meta.title이 늘 그려지는 것은 아니다. 판정은 구현과 같은 함수가 한다 —
       // 두 곳에 적으면 언젠가 갈린다.
@@ -212,8 +219,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  it('모든 버튼의 label을 렌더한다', () => {
-    renderScreen(screenId)
+  check('모든 버튼의 label을 렌더한다', () => {
     for (const element of spec.elements) {
       if (element.spec.type !== 'button') continue
       // 데이터가 허락할 때만 그려지는 자리는 아래 검사가 **양쪽으로** 본다.
@@ -238,8 +244,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
 
   // **양쪽으로 본다.** 허락하면 그려지고 막으면 안 그려져야 한다 — 한쪽만 보면
   // '늘 안 그린다'도 통과한다. 예시 인자가 어느 쪽을 주든 검사가 성립한다.
-  it('데이터가 허락할 때만 그리는 요소는 그 답을 따른다', () => {
-    renderScreen(screenId)
+  check('데이터가 허락할 때만 그리는 요소는 그 답을 따른다', () => {
     const screenParams = exampleParamsOf(screenId)
     for (const element of spec.elements) {
       if (element.drawnWhen === undefined) continue
@@ -315,14 +320,13 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
   // 이 어휘가 생기기 전에는 네 자리가 pending을 빌려 쓰면서 note에 '지금 보고
   // 있는 갈피입니다'라고 적었다. pending은 '아직 명세되지 않았다'로 못 박은
   // 말이라 **정반대의 뜻**이었다.
-  it("current라고 말한 단추는 '지금 여기'로 표시된다", () => {
+  check("current라고 말한 단추는 '지금 여기'로 표시된다", () => {
     const here = spec.elements.filter((element) => {
       const button = element.spec as { type?: string; action?: { type?: string } }
       return button.type === 'button' && button.action?.type === 'current'
     })
     if (here.length === 0) return
 
-    renderScreen(screenId)
     for (const element of here) {
       const label = (element.spec as { label: string }).label
       const found = screen.getAllByRole('button', { name: new RegExp(label) })
@@ -341,14 +345,13 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
   //
   // 여기서는 **줄마다 다른 그림이 나오는지**를 본다. 그 조각의 값이 줄마다 다른데
   // 그림이 하나뿐이면 화면이 그 조각을 안 보고 있는 것이다.
-  it('줄 앞의 표시는 명세가 가리킨 조각을 따라간다', () => {
+  check('줄 앞의 표시는 명세가 가리킨 조각을 따라간다', () => {
     const lists = spec.elements.filter((element) => {
       const list = element.spec as { type?: string; iconField?: string }
       return list.type === 'itemList' && typeof list.iconField === 'string'
     })
     if (lists.length === 0) return
 
-    renderScreen(screenId)
     for (const element of lists) {
       const list = element.spec as { iconField: string; dataSourceKey?: string }
       const rows = readListSource(list.dataSourceKey, resolveParams(
@@ -374,8 +377,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  it('steps의 모든 단계와 데이터가 가리킨 현재 단계를 렌더한다', () => {
-    renderScreen(screenId)
+  check('steps의 모든 단계와 데이터가 가리킨 현재 단계를 렌더한다', () => {
     const screenParams = exampleParamsOf(screenId)
     for (const element of spec.elements) {
       if (element.spec.type !== 'steps') continue
@@ -410,8 +412,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  it('summary의 데이터 소제목과 상태 딱지를 렌더한다', () => {
-    renderScreen(screenId)
+  check('summary의 데이터 소제목과 상태 딱지를 렌더한다', () => {
     const screenParams = exampleParamsOf(screenId)
     for (const element of spec.elements) {
       if (element.spec.type !== 'summary') continue
@@ -434,6 +435,18 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       }
       if (summary.status !== undefined) {
         expect(within(holder).getByText(String(row[summary.status[0].field]))).toBeInTheDocument()
+      }
+    }
+  })
+
+  it('명세를 지킨다', () => {
+    renderScreen(screenId)
+    for (const [name, run] of checks) {
+      try {
+        run()
+      } catch (error) {
+        throw new Error(`${name}
+${(error as Error).message}`)
       }
     }
   })
