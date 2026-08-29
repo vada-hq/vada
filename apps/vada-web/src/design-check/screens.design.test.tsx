@@ -20,7 +20,7 @@ import {
   unusedDeviations,
   usesVectorUnitAssets,
 } from '.'
-import type { DesignFile, SeenDifference } from '.'
+import type { Difference, DesignFile, SeenDifference } from '.'
 import { DEVIATIONS } from '../design/deviations'
 
 // 모든 화면이 design과 같은 모습인지 대조한다.
@@ -217,6 +217,19 @@ function drawsRemoteChoices(spec: ScreenSpec): boolean {
 const SEEN: SeenDifference[] = []
 const SEEN_SCREENS = new Set<string>()
 
+// 화면 하나가 **한 번만 그려진다.**
+//
+// 글·칸을 견주는 검사와 그림을 견주는 검사가 저마다 render()를 부르고 있었다.
+// 같은 화면을 같은 값으로 두 번 그리는 것이고, 82개면 82번이 헛되다. 먼저 도는
+// 검사가 그린 것에서 그림까지 함께 재고, 뒤 검사는 그 결과를 센다.
+//
+// **없으면 던진다.** 조용히 넘어가면 그림 대조가 통째로 사라진 것을 아무도 모른다.
+interface AssetOutcome {
+  drawn: number
+  differences: Difference[]
+}
+const ASSETS = new Map<string, AssetOutcome>()
+
 describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
   '$screenId design 대조',
   ({ screenId, spec }) => {
@@ -253,6 +266,18 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
       }
       SEEN_SCREENS.add(screenId)
 
+      // 그림도 **이 한 벌에서** 잰다. 아래 검사가 다시 그리지 않도록 남긴다.
+      const assetDifferences = usesVectorUnitAssets(design)
+        ? []
+        : compareScreenAssets(document.body, spec, design, drawingOfScreen(screenId))
+      ASSETS.set(screenId, {
+        drawn: document.body.querySelectorAll('[data-asset-node-id]').length,
+        differences: assetDifferences,
+      })
+      for (const difference of assetDifferences) {
+        SEEN.push({ ...difference, screenId })
+      }
+
       const remaining = applyDeviations(screenId, found, DEVIATIONS)
 
       expect(remaining, report(screenId, remaining)).toEqual([])
@@ -266,16 +291,15 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
         throw new Error(`design 파일이 없습니다: ${screenId}`)
       }
 
-      const { container } = render(
-        <ScreenRouter
-          screenParams={exampleParamsOf(screenId)}
-          screenId={screenId}
-          scopes={scopesDrawnBy(spec, design)}
-          onChangeScope={() => {}}
-          onNavigate={() => {}}
-        />,
-      )
-      const drawn = container.querySelectorAll('[data-asset-node-id]').length
+      // 위 검사가 그린 한 벌에서 이미 쟀다. 여기서 다시 그리지 않는다 —
+      // 없으면 그 검사가 돌지 않은 것이고, 그때는 이 검사도 판정할 수 없다.
+      const outcome = ASSETS.get(screenId)
+      if (outcome === undefined) {
+        throw new Error(
+          `${screenId}: 글·칸 대조가 돌지 않아 그림을 잴 수 없습니다. 파일을 통째로 돌리세요.`,
+        )
+      }
+      const drawn = outcome.drawn
 
       if (usesVectorUnitAssets(design)) {
         // 이 화면의 자산은 벡터 조각 단위라 아이콘 하나로 그릴 수 없다(옛 추출기).
@@ -288,12 +312,7 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
         return
       }
 
-      const found = compareScreenAssets(container, spec, design, drawingOfScreen(screenId))
-      for (const difference of found) {
-        SEEN.push({ ...difference, screenId })
-      }
-
-      const missing = applyDeviations(screenId, found, DEVIATIONS)
+      const missing = applyDeviations(screenId, outcome.differences, DEVIATIONS)
       expect(missing, report(screenId, missing)).toEqual([])
     })
   },
