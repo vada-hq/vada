@@ -258,8 +258,20 @@ export function EVT03BScreen({
     })
   }
 
+  // **갈 곳이 생기면 가야 한다.** 이 함수가 pending만 보던 동안 '기본정보 수정'은
+  // 명세가 EVT-02B로 가라고 말한 뒤에도 안내만 내놓고 있었다 — 명세와 화면이
+  // 갈린 것을 정규식 검사가 못 잡았다(원문에 그 이름이 없었으니 당연하다).
   const pressPending = (spec: ButtonSpec) => () => {
-    if (spec.action.type === 'pending') setNote(spec.action.note)
+    if (spec.action.type === 'pending') {
+      setNote(spec.action.note)
+      return
+    }
+    if (spec.action.type === 'navigate' && 'targetScreenId' in spec.action) {
+      onNavigate(
+        spec.action.targetScreenId,
+        resolveParams(spec.action.params, { screenParams }),
+      )
+    }
   }
 
   // 취소는 제출이 아니라 이동이다. 그래도 초안은 끝나야 하므로 명세가 떠나면서

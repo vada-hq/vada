@@ -30,8 +30,8 @@
           }
         ],
         "action": {
-          "type": "pending",
-          "note": "부서 & 구성원 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "ORG-03A"
         }
       }
     },

@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test'
-import { pendingNoteAt } from './spec'
 
 const SHOTS = 'e2e/shots'
 
@@ -94,6 +93,9 @@ test('EVT-00A2: 만들 수 있는 사람에게는 그 단추가 온다', async (
   const create = page.getByRole('button', { name: '새 행사 만들기' })
   await expect(create).toBeVisible()
 
+  // 명세가 이름까지 적어 두고도(EVT-00B) '아직 명세되지 않았다'로 남아 있던
+  // 자리다. 그 모달은 그 뒤에 만들어졌고, 아무도 돌아와 잇지 않았다.
   await create.click()
-  await expect(page.getByRole('status')).toContainText(pendingNoteAt('EVT-00A2', '20:4357'))
+  await expect(page).toHaveURL(/#\/EVT-00B/)
+  await expect(page.getByRole('dialog', { name: '새 행사 만들기' })).toBeVisible()
 })

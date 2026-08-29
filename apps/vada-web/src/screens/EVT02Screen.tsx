@@ -205,7 +205,19 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
                 type="button"
                 data-node-id={NODE.recruitEdit}
                 onClick={() => {
-                  if (recruitEdit.action.type === 'pending') setNote(recruitEdit.action.note)
+                  // 설문 화면(EVT-05)이 그 뒤에 만들어졌다. 갈 곳이 생겼는데
+                  // 안내만 내놓고 있던 자리다.
+                  if (recruitEdit.action.type === 'pending') {
+                    setNote(recruitEdit.action.note)
+                  } else if (
+                    recruitEdit.action.type === 'navigate' &&
+                    'targetScreenId' in recruitEdit.action
+                  ) {
+                    onNavigate(
+                      recruitEdit.action.targetScreenId,
+                      resolveParams(recruitEdit.action.params, { screenParams }),
+                    )
+                  }
                 }}
                 className="text-xs font-medium text-blue-500 hover:text-blue-700"
               >

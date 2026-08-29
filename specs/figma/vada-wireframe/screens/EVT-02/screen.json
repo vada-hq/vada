@@ -109,8 +109,13 @@
           }
         ],
         "action": {
-          "type": "pending",
-          "note": "행사 참가자 명단 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "EVT-04",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },
@@ -136,8 +141,13 @@
           }
         ],
         "action": {
-          "type": "pending",
-          "note": "행사 일정 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "EVT-SCHED-01",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },
@@ -235,8 +245,13 @@
         "emphasis": "quiet",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "참여 설문 생성·관리 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "EVT-05",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },

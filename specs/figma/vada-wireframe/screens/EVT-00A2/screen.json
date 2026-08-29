@@ -30,8 +30,8 @@
         "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "새 행사 만들기 모달(EVT-00B)이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "EVT-00B"
         }
       }
     }

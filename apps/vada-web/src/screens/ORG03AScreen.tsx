@@ -134,7 +134,11 @@ export function ORG03AScreen({ onNavigate }: ORG03AScreenProps) {
             type="button"
             data-node-id={NODE.addMember}
             onClick={() => {
-              if (addMember.action.type === 'pending') setNote(addMember.action.note)
+              // 초대 패널(ORG-03C)이 이 화면 위에 열린다. 한동안 '아직 명세되지
+              // 않았습니다'로 남아 있었는데 그 화면은 그 뒤에 만들어졌다.
+              if (addMember.action.type === 'navigate') {
+                onNavigate(addMember.action.targetScreenId)
+              }
             }}
             className="flex items-center gap-1 px-5 py-3 text-xs font-medium text-blue-500 hover:text-blue-600 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
           >

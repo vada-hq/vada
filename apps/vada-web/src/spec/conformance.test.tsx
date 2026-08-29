@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, drawsTitle, exampleParamsOf } from './screens'
 import type { FieldSpec, ListSpec, ScreenSpec } from './types'
@@ -19,14 +20,14 @@ const SCREENS: Array<{ screenId: string; spec: ScreenSpec }> = ALL_SCREENS.map((
   spec,
 }))
 
-function renderScreen(screenId: string) {
+function renderScreen(screenId: string, onNavigate: (to: string) => void = () => {}) {
   render(
     <ScreenRouter
       screenId={screenId}
       screenParams={exampleParamsOf(screenId)}
       scopes={{}}
       onChangeScope={() => {}}
-      onNavigate={() => {}}
+      onNavigate={onNavigate}
     />,
   )
 }
@@ -250,6 +251,60 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
         drawn,
         `${screenId}의 '${label}' — ${element.drawnWhen.dataSourceKey}.${element.drawnWhen.field}가 ${allowed ? '허락했다' : '막았다'}`,
       ).toBe(allowed)
+    }
+  })
+
+  // **눌러서 실제로 가는가.**
+  //
+  // 명세가 'navigate'라고 말한 자리를 화면이 배선하지 않아도 지금까지는
+  // `screen-honors-spec.test.ts`의 **정규식**이 원문에 그 화면 이름이 있는지만
+  // 봤다. 그 파일이 스스로 "있는데 틀리게 쓴 것은 못 잡는다"고 적어 두었고,
+  // 실제로 ORG-03A가 명세를 navigate로 고친 뒤에도 pending 가지를 보고 있었다.
+  //
+  // 여기서는 누른다. 인자가 맞는지는 navigation-arrival이 따로 보므로 **갈 곳만**
+  // 본다 — 여기서 인자까지 보면 두 검사가 같은 것을 두 번 말한다.
+  //
+  // 조건이 붙은 단추는 빼고 본다. 필수 칸이 빈 채로 누르면 막히는 것이 옳고
+  // (executeWhen), 그 막힘은 button-execution이 이미 시험한다.
+  //
+  // **안 보는 것을 적어 둔다** — 요약 카드(summary.action)와 목록 줄(itemAction)의
+  // 이동은 여기서 세지 않는다. 부르는 이름이 라벨 하나가 아니라 카드/줄의 글
+  // 전체라 짝짓는 법이 다르다. 같은 계급의 결함이 그쪽에서 나오면 넓힌다.
+  it('navigate라고 말한 단추는 누르면 그리로 간다', async () => {
+    const plain = spec.elements.filter((element) => {
+      const button = element.spec as {
+        type?: string
+        label?: string
+        action?: { type?: string; targetScreenId?: string; executeWhen?: unknown }
+      }
+      return (
+        button.type === 'button' &&
+        button.action?.type === 'navigate' &&
+        typeof button.action.targetScreenId === 'string' &&
+        button.action.executeWhen === undefined &&
+        typeof button.label === 'string' &&
+        element.drawnWhen === undefined
+      )
+    })
+    if (plain.length === 0) return
+
+    for (const element of plain) {
+      const button = element.spec as {
+        label: string
+        action: { targetScreenId: string }
+      }
+      const went: string[] = []
+      renderScreen(screenId, (to) => went.push(to))
+      const found = screen.queryAllByRole('button', { name: new RegExp(button.label) })
+      // 그려지지 않는 단추는 다른 검사가 잡는다. 여기서는 눌리는 것만 본다.
+      if (found[0] !== undefined) {
+        await userEvent.click(found[0])
+        expect(
+          went,
+          `${screenId}의 '${button.label}'는 ${button.action.targetScreenId}로 가야 합니다`,
+        ).toContain(button.action.targetScreenId)
+      }
+      cleanup()
     }
   })
 

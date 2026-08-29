@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test'
-import { pendingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 const HOME = '/#/ORG-00'
@@ -35,13 +34,13 @@ test('ORG-00: 왼쪽 메뉴의 조직 관리가 이 화면으로 이어진다', 
   await expect(page.getByRole('heading', { name: '조직 관리 홈' })).toBeVisible()
 })
 
-// 셋 다 아직 명세되지 않은 화면으로 간다. **어디로 가는지를 지어내지 않고**
-// 무엇이 미정인지를 남긴다 — 눌렀을 때 아무 일도 안 일어나면 고장으로 보인다.
-test('ORG-00: 카드를 누르면 아직 없는 화면임을 남긴다', async ({ page }) => {
+// '부서 & 구성원'은 이제 조직도(ORG-03A)로 간다. 나머지 둘은 아직 갈 곳이 없고,
+// 그때는 **어디로 가는지를 지어내지 않고** 무엇이 미정인지를 남긴다 — 눌렀을 때
+// 아무 일도 안 일어나면 고장으로 보인다.
+test('ORG-00: 부서 & 구성원은 조직도로 간다', async ({ page }) => {
   await page.goto(HOME)
 
   await page.getByRole('button', { name: /부서 & 구성원/ }).click()
 
-  await expect(page.getByText(pendingNoteOf('ORG-00', '부서 & 구성원'))).toBeVisible()
-  await expect(page).toHaveURL(/#\/ORG-00/)
+  await expect(page).toHaveURL(/#\/ORG-03A/)
 })

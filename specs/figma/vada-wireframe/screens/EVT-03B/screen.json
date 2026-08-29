@@ -100,8 +100,13 @@
         "emphasis": "secondary",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "행사 기본정보를 고치는 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "EVT-02B",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },

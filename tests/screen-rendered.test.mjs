@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync, readdirSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import test from 'node:test'
 import { fileURLToPath } from 'node:url'
@@ -104,4 +104,57 @@ test('세어 둔다 — 명세 몇 개 중 몇 개가 그려지는가', () => {
 
   // 세는 것만으로는 잠기지 않는다. 잠그는 것은 위의 세 검사다.
   assert.equal(drawn.length + byBase.length + NOT_DRAWN_YET.size, specced.length)
+})
+
+// "아직 명세되지 않았습니다"가 **거짓이 되는 날**이 온다.
+//
+// pending의 note는 그때의 사실을 적은 글이고, 그 화면이 나중에 만들어져도 아무도
+// 돌아가 잇지 않는다. 2026-08-29에 훑어 보니 일곱 자리가 그랬다 — EVT-00A2가
+// 이름까지 적어 둔 EVT-00B, ORG-03A의 구성원 초대(ORG-03C), EVT-03B의 기본정보
+// 수정(EVT-02B), EVT-02의 설문·참가자·일정, ORG-00의 부서 & 구성원.
+//
+// **화면 이름을 적은 것만은 기계가 볼 수 있다.** 문구로 짐작하는 것은 흔들리지만
+// 'EVT-00B' 같은 이름은 흔들리지 않는다. 그것만 본다 — 보는 것이 좁아도 조용한
+// 거짓말 하나는 확실히 막는다.
+test('pending이 이름 댄 화면이 이미 있으면 안 된다', () => {
+  const specced = new Set(
+    readdirSync(SCREENS, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory())
+      .filter((entry) => existsSync(join(SCREENS, entry.name, 'screen.json')))
+      .map((entry) => entry.name),
+  )
+
+  const lies = []
+  for (const screenId of specced) {
+    const spec = JSON.parse(readFileSync(join(SCREENS, screenId, 'screen.json'), 'utf8'))
+    const walk = (node) => {
+      if (Array.isArray(node)) {
+        for (const item of node) walk(item)
+        return
+      }
+      if (node === null || typeof node !== 'object') return
+      if (node.type === 'pending' && typeof node.note === 'string') {
+        for (const match of node.note.matchAll(
+          /(?<![A-Z0-9-])([A-Z]{2,4}(?:-[A-Z0-9]{1,6}){1,3})(?![A-Z0-9-])/g,
+        )) {
+          const named = match[0]
+          if (named === screenId || !specced.has(named)) continue
+          // **이름이 나온 것만으로는 모자란다.** 그 이름 곁에서 '없다'고 말해야
+          // 거짓말이다 — 있다고 적으면서 이름을 대는 글도 있다(OPS-MEET-04B가
+          // '주는 쪽은 D03이 있는데'라고 적는다).
+          const after = node.note.slice(match.index + named.length, match.index + named.length + 25)
+          if (!/명세되지 않았|아직 없|아직 만들/.test(after)) continue
+          lies.push(`  ${screenId}: '${named}이 없다'는데 그 화면은 이미 있습니다.`)
+        }
+      }
+      for (const value of Object.values(node)) walk(value)
+    }
+    walk(spec)
+  }
+
+  assert.equal(
+    lies.length,
+    0,
+    '명세가 없다고 말한 화면이 이미 있습니다. 이으세요.\n' + lies.join('\n'),
+  )
 })

@@ -79,8 +79,8 @@
         "emphasis": "quiet",
         "initiallyDisabled": false,
         "action": {
-          "type": "pending",
-          "note": "구성원 초대 화면이 아직 명세되지 않았습니다."
+          "type": "navigate",
+          "targetScreenId": "ORG-03C"
         }
       }
     },

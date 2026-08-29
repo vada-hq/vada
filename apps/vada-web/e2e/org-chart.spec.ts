@@ -50,10 +50,12 @@ test('ORG-03A: 부서장이 없는 부서에만 지정 버튼이 있다', async 
   await expect(page.getByText(pendingNoteOf('ORG-03A', '부서장'))).toBeVisible()
 })
 
-test('ORG-03A: 구성원 추가는 아직 없는 화면임을 남긴다', async ({ page }) => {
+// 초대 패널(ORG-03C)이 이 화면 위에 열린다. 한동안 '아직 명세되지 않았습니다'로
+// 남아 있었는데 그 화면은 그 뒤에 만들어졌다.
+test('ORG-03A: 구성원 추가는 초대 패널을 연다', async ({ page }) => {
   await page.goto(CHART)
 
   await page.getByRole('button', { name: '구성원 추가' }).click()
 
-  await expect(page.getByText(pendingNoteOf('ORG-03A', '구성원 추가'))).toBeVisible()
+  await expect(page).toHaveURL(/#\/ORG-03C/)
 })
