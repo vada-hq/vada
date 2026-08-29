@@ -18,7 +18,8 @@
       "fields": [
         {
           "key": "title",
-          "description": "인사 제목. 예: 박해랑님, 확인이 필요해요"
+          "description": "인사 제목. 예: 박해랑님, 확인이 필요해요",
+          "valueType": "string"
         }
       ]
     },
@@ -39,7 +40,8 @@
       "fields": [
         {
           "key": "message",
-          "description": "완성된 문장. 예: 지연된 업무가 1건 있습니다."
+          "description": "완성된 문장. 예: 지연된 업무가 1건 있습니다.",
+          "valueType": "string"
         }
       ]
     },
@@ -60,15 +62,18 @@
       "fields": [
         {
           "key": "activeEvents",
-          "description": "진행 중 행사 수"
+          "description": "진행 중 행사 수",
+          "valueType": "number"
         },
         {
           "key": "upcomingEvents",
-          "description": "예정 행사 수"
+          "description": "예정 행사 수",
+          "valueType": "number"
         },
         {
           "key": "weeklySchedules",
-          "description": "이번 주 주요 일정 수"
+          "description": "이번 주 주요 일정 수",
+          "valueType": "number"
         }
       ]
     },
@@ -89,31 +94,38 @@
       "fields": [
         {
           "key": "status",
-          "description": "진행 상태. 예: 기획 중"
+          "description": "진행 상태. 예: 기획 중",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "행사 이름"
+          "description": "행사 이름",
+          "valueType": "string"
         },
         {
           "key": "date",
-          "description": "행사 날짜. 정해지지 않았으면 '미정'"
+          "description": "행사 날짜. 정해지지 않았으면 '미정'",
+          "valueType": "string"
         },
         {
           "key": "place",
-          "description": "장소. 정해지지 않았으면 '미정'"
+          "description": "장소. 정해지지 않았으면 '미정'",
+          "valueType": "string"
         },
         {
           "key": "team",
-          "description": "주관 부서"
+          "description": "주관 부서",
+          "valueType": "string"
         },
         {
           "key": "progressPercent",
-          "description": "준비 진행률(0-100)"
+          "description": "준비 진행률(0-100)",
+          "valueType": "number"
         },
         {
           "key": "delayedTaskCount",
           "description": "지연된 업무 수. 없으면 오지 않는다.",
+          "valueType": "number",
           "optional": true
         }
       ]
@@ -135,15 +147,18 @@
       "fields": [
         {
           "key": "date",
-          "description": "월.일. 예: 07.20"
+          "description": "월.일. 예: 07.20",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "일정 이름"
+          "description": "일정 이름",
+          "valueType": "string"
         },
         {
           "key": "badge",
-          "description": "일정의 성격. 예: 마감"
+          "description": "일정의 성격. 예: 마감",
+          "valueType": "string"
         }
       ]
     },
@@ -164,15 +179,18 @@
       "fields": [
         {
           "key": "kind",
-          "description": "알림의 종류. 화면은 종류마다 다른 아이콘을 그린다(디자인에 문서형·인원형 둘이 있다)."
+          "description": "알림의 종류. 화면은 종류마다 다른 아이콘을 그린다(디자인에 문서형·인원형 둘이 있다).",
+          "valueType": "string"
         },
         {
           "key": "label",
-          "description": "알림 이름. 예: 증빙 서류 누락"
+          "description": "알림 이름. 예: 증빙 서류 누락",
+          "valueType": "string"
         },
         {
           "key": "count",
-          "description": "해당 건수"
+          "description": "해당 건수",
+          "valueType": "number"
         }
       ]
     },
@@ -193,19 +211,23 @@
       "fields": [
         {
           "key": "budgetUsedPercent",
-          "description": "전체 예산 사용률(0-100)"
+          "description": "전체 예산 사용률(0-100)",
+          "valueType": "number"
         },
         {
           "key": "availableBudgetPercent",
-          "description": "사용 가능 예산 비율(0-100)"
+          "description": "사용 가능 예산 비율(0-100)",
+          "valueType": "number"
         },
         {
           "key": "plannedCount",
-          "description": "승인·집행 예정 건수"
+          "description": "승인·집행 예정 건수",
+          "valueType": "number"
         },
         {
           "key": "missingProofCount",
-          "description": "증빙 누락 건수"
+          "description": "증빙 누락 건수",
+          "valueType": "number"
         }
       ]
     },
@@ -226,7 +248,8 @@
       "fields": [
         {
           "key": "name",
-          "description": "조직 이름. 예: 소프트웨어융합대학"
+          "description": "조직 이름. 예: 소프트웨어융합대학",
+          "valueType": "string"
         }
       ]
     },
@@ -247,11 +270,13 @@
       "fields": [
         {
           "key": "name",
-          "description": "이름. 예: 박해랑"
+          "description": "이름. 예: 박해랑",
+          "valueType": "string"
         },
         {
           "key": "role",
-          "description": "소속과 직책. 예: 운영부 · 부원"
+          "description": "소속과 직책. 예: 운영부 · 부원",
+          "valueType": "string"
         }
       ]
     },
@@ -272,15 +297,18 @@
       "fields": [
         {
           "key": "delayedCount",
-          "description": "지연된 업무 수"
+          "description": "지연된 업무 수",
+          "valueType": "number"
         },
         {
           "key": "todoCount",
-          "description": "해야 할 업무 수"
+          "description": "해야 할 업무 수",
+          "valueType": "number"
         },
         {
           "key": "reviewCount",
-          "description": "검토가 필요한 업무 수"
+          "description": "검토가 필요한 업무 수",
+          "valueType": "number"
         }
       ]
     },
@@ -301,15 +329,18 @@
       "fields": [
         {
           "key": "todo",
-          "description": "해야 할 업무 수"
+          "description": "해야 할 업무 수",
+          "valueType": "number"
         },
         {
           "key": "inProgress",
-          "description": "진행 중인 업무 수"
+          "description": "진행 중인 업무 수",
+          "valueType": "number"
         },
         {
           "key": "done",
-          "description": "완료된 업무 수"
+          "description": "완료된 업무 수",
+          "valueType": "number"
         }
       ]
     },
@@ -333,31 +364,38 @@
       "fields": [
         {
           "key": "title",
-          "description": "업무 이름. 예: 행사 안전 안내문 검토"
+          "description": "업무 이름. 예: 행사 안전 안내문 검토",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "담당 부서. 예: 기획부"
+          "description": "담당 부서. 예: 기획부",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "업무 상태. 예: 검토 필요"
+          "description": "업무 상태. 예: 검토 필요",
+          "valueType": "string"
         },
         {
           "key": "nextAction",
-          "description": "다음에 할 일. 예: 검토 의견을 확인하고 처리 내용을 기록"
+          "description": "다음에 할 일. 예: 검토 의견을 확인하고 처리 내용을 기록",
+          "valueType": "string"
         },
         {
           "key": "context",
-          "description": "업무가 속한 맥락. 행사 이름이거나 상시 업무 표시. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "업무가 속한 맥락. 행사 이름이거나 상시 업무 표시. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "date",
-          "description": "기한. 월.일. 예: 07.22"
+          "description": "기한. 월.일. 예: 07.22",
+          "valueType": "string"
         },
         {
           "key": "linkedDocument",
           "description": "연결된 문서 이름. 없으면 오지 않는다.",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -379,7 +417,8 @@
       "fields": [
         {
           "key": "description",
-          "description": "완성된 안내 문장. 예: 박해랑님이 확인할 업무·회의·행사·일정을 선택하세요. …"
+          "description": "완성된 안내 문장. 예: 박해랑님이 확인할 업무·회의·행사·일정을 선택하세요. …",
+          "valueType": "string"
         }
       ]
     },
@@ -400,35 +439,43 @@
       "fields": [
         {
           "key": "taskInProgress",
-          "description": "상시 업무 중 진행 중인 수"
+          "description": "상시 업무 중 진행 중인 수",
+          "valueType": "number"
         },
         {
           "key": "taskReview",
-          "description": "상시 업무 중 검토가 필요한 수"
+          "description": "상시 업무 중 검토가 필요한 수",
+          "valueType": "number"
         },
         {
           "key": "meetingToday",
-          "description": "오늘 예정된 회의 수"
+          "description": "오늘 예정된 회의 수",
+          "valueType": "number"
         },
         {
           "key": "meetingCleanup",
-          "description": "정리가 필요한 회의 수"
+          "description": "정리가 필요한 회의 수",
+          "valueType": "number"
         },
         {
           "key": "eventInProgress",
-          "description": "진행 중인 행사 수"
+          "description": "진행 중인 행사 수",
+          "valueType": "number"
         },
         {
           "key": "eventPlanning",
-          "description": "기획 중인 행사 수"
+          "description": "기획 중인 행사 수",
+          "valueType": "number"
         },
         {
           "key": "calendarThisWeek",
-          "description": "이번 주 마감 수"
+          "description": "이번 주 마감 수",
+          "valueType": "number"
         },
         {
           "key": "calendarUpcoming",
-          "description": "다가오는 마감 수"
+          "description": "다가오는 마감 수",
+          "valueType": "number"
         }
       ]
     },
@@ -449,19 +496,23 @@
       "fields": [
         {
           "key": "delayedCount",
-          "description": "기한이 지난 업무 수"
+          "description": "기한이 지난 업무 수",
+          "valueType": "number"
         },
         {
           "key": "reviewCount",
-          "description": "검토가 필요한 업무 수"
+          "description": "검토가 필요한 업무 수",
+          "valueType": "number"
         },
         {
           "key": "mineCount",
-          "description": "내가 담당인 업무 수"
+          "description": "내가 담당인 업무 수",
+          "valueType": "number"
         },
         {
           "key": "unassignedCount",
-          "description": "담당자가 없는 업무 수"
+          "description": "담당자가 없는 업무 수",
+          "valueType": "number"
         }
       ]
     },
@@ -485,40 +536,49 @@
       "fields": [
         {
           "key": "title",
-          "description": "업무 이름. 예: 주간 운영회의 자료 준비"
+          "description": "업무 이름. 예: 주간 운영회의 자료 준비",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "담당 부서. 예: 운영부"
+          "description": "담당 부서. 예: 운영부",
+          "valueType": "string"
         },
         {
           "key": "departmentTone",
-          "description": "부서에 배정된 색 이름. 부서는 조직이 만드는 것이므로 색도 조직 데이터가 갖는다. 예: teal"
+          "description": "부서에 배정된 색 이름. 부서는 조직이 만드는 것이므로 색도 조직 데이터가 갖는다. 예: teal",
+          "valueType": "string"
         },
         {
           "key": "cycle",
-          "description": "되풀이 주기. 예: 매주 · 매월 · 상시"
+          "description": "되풀이 주기. 예: 매주 · 매월 · 상시",
+          "valueType": "string"
         },
         {
           "key": "assignee",
-          "description": "담당자 이름. 없으면 완성된 안내로 온다. 예: 담당자 없음 · 배정 필요"
+          "description": "담당자 이름. 없으면 완성된 안내로 온다. 예: 담당자 없음 · 배정 필요",
+          "valueType": "string"
         },
         {
           "key": "dueDate",
-          "description": "기한. 되풀이가 상시면 그대로 상시. 예: 2026-07-21"
+          "description": "기한. 되풀이가 상시면 그대로 상시. 예: 2026-07-21",
+          "valueType": "string"
         },
         {
           "key": "alert",
           "description": "주의 표시. 없으면 오지 않는다. 예: 지연",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "tone",
-          "description": "업무 카드를 두르는 강조 색 이름. 기본은 부서 색이고, 담당자가 없는 업무처럼 먼저 봐야 하는 것은 경고 색으로 온다. 예: red"
+          "description": "업무 카드를 두르는 강조 색 이름. 기본은 부서 색이고, 담당자가 없는 업무처럼 먼저 봐야 하는 것은 경고 색으로 온다. 예: red",
+          "valueType": "string"
         },
         {
           "key": "alertTone",
           "description": "주의 표시에 딸린 색 이름. 주의 표시가 없으면 오지 않는다. 예: red",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -540,19 +600,23 @@
       "fields": [
         {
           "key": "viewerTitle",
-          "description": "보는 사람이 어떤 자리인지. 예: 일반 참가자 화면 · 진행 권한자 화면 · 미참가자 화면 · 박민수 (기획부 부원)"
+          "description": "보는 사람이 어떤 자리인지. 예: 일반 참가자 화면 · 진행 권한자 화면 · 미참가자 화면 · 박민수 (기획부 부원)",
+          "valueType": "string"
         },
         {
           "key": "viewerNote",
-          "description": "그 자리에서 무엇을 할 수 있는지. 예: 초대된 회의의 일정과 참가 상태를 확인합니다."
+          "description": "그 자리에서 무엇을 할 수 있는지. 예: 초대된 회의의 일정과 참가 상태를 확인합니다.",
+          "valueType": "string"
         },
         {
           "key": "attentionNote",
-          "description": "곁에 붙는 완성된 한 줄. 없을 수도 있다 - 회의 생성 가능·미참가자 화면에는 그려지지 않는다. 예: 확인 필요한 회의 2건 · 진행 권한 3건"
+          "description": "곁에 붙는 완성된 한 줄. 없을 수도 있다 - 회의 생성 가능·미참가자 화면에는 그려지지 않는다. 예: 확인 필요한 회의 2건 · 진행 권한 3건",
+          "valueType": "string"
         },
         {
           "key": "canCreateMeeting",
-          "description": "새 회의를 만들 수 있는가. 만들 수 있는 사람에게만 머리에 그 단추가 그려진다 - ORG-04의 권한 표가 '회의 생성'을 회장단·부서장에게만 주는 것과 같은 사실이다"
+          "description": "새 회의를 만들 수 있는가. 만들 수 있는 사람에게만 머리에 그 단추가 그려진다 - ORG-04의 권한 표가 '회의 생성'을 회장단·부서장에게만 주는 것과 같은 사실이다",
+          "valueType": "string"
         }
       ]
     },
@@ -575,11 +639,13 @@
       "fields": [
         {
           "key": "title",
-          "description": "묶음 이름. 행사 이름이거나 '정기·상시 회의'다. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "묶음 이름. 행사 이름이거나 '정기·상시 회의'다. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "nextMeetingNote",
-          "description": "이 묶음에서 가장 가까운 회의를 알리는 완성된 문구. 무엇을 '가장 가까운'으로 세는지는 화면이 유도할 수 없어 서버가 정한다 — 그려진 것을 보면 완료는 빼고 취소는 넣는다. 예: 가장 가까운 회의: 07.22 (수) 18:00"
+          "description": "이 묶음에서 가장 가까운 회의를 알리는 완성된 문구. 무엇을 '가장 가까운'으로 세는지는 화면이 유도할 수 없어 서버가 정한다 — 그려진 것을 보면 완료는 빼고 취소는 넣는다. 예: 가장 가까운 회의: 07.22 (수) 18:00",
+          "valueType": "string"
         },
         {
           "key": "meetings",
@@ -587,68 +653,84 @@
           "fields": [
             {
               "key": "meetingId",
-              "description": "이 회의를 가리키는 값. 줄을 누르면 상세로 넘길 인자다 — 01A의 이동이 pending이던 동안에는 필요가 없었다."
+              "description": "이 회의를 가리키는 값. 줄을 누르면 상세로 넘길 인자다 — 01A의 이동이 pending이던 동안에는 필요가 없었다.",
+              "valueType": "string"
             },
             {
               "key": "title",
-              "description": "회의 이름. 예: 학생회 정기 운영회의"
+              "description": "회의 이름. 예: 학생회 정기 운영회의",
+              "valueType": "string"
             },
             {
               "key": "status",
-              "description": "회의 상태를 알리는 말. 예: 예정 · 진행 중 · 정리 중 · 완료 · 취소"
+              "description": "회의 상태를 알리는 말. 예: 예정 · 진행 중 · 정리 중 · 완료 · 취소",
+              "valueType": "string"
             },
             {
               "key": "statusTone",
-              "description": "상태 딱지에 배정된 색 이름. 상태 목록이 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+              "description": "상태 딱지에 배정된 색 이름. 상태 목록이 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue",
+              "valueType": "string"
             },
             {
               "key": "badge",
               "description": "회의 이름 옆에 덧붙는 표시. 없으면 오지 않는다. 예: 비공개",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "startAt",
-              "description": "회의 시작 때. 예: 2026.07.22 18:00"
+              "description": "회의 시작 때. 예: 2026.07.22 18:00",
+              "valueType": "string"
             },
             {
               "key": "place",
-              "description": "회의 장소. 정해지지 않았으면 완성된 안내로 온다. 예: 학생회실 (A204) · 미정"
+              "description": "회의 장소. 정해지지 않았으면 완성된 안내로 온다. 예: 학생회실 (A204) · 미정",
+              "valueType": "string"
             },
             {
               "key": "host",
-              "description": "회의를 여는 사람 이름. 예: 이수현"
+              "description": "회의를 여는 사람 이름. 예: 이수현",
+              "valueType": "string"
             },
             {
               "key": "attendees",
-              "description": "참가자 수. 세는 말까지 붙어서 온다. 예: 12명"
+              "description": "참가자 수. 세는 말까지 붙어서 온다. 예: 12명",
+              "valueType": "string"
             },
             {
               "key": "agenda",
-              "description": "안건 수. 세는 말까지 붙어서 온다. 예: 4개"
+              "description": "안건 수. 세는 말까지 붙어서 온다. 예: 4개",
+              "valueType": "string"
             },
             {
               "key": "minutesStatus",
-              "description": "회의록이 어디까지 됐는지. 예: 작성 전 · 작성 중 · 정리 완료 · 내용 열람 가능 · 취소 사유 등록"
+              "description": "회의록이 어디까지 됐는지. 예: 작성 전 · 작성 중 · 정리 완료 · 내용 열람 가능 · 취소 사유 등록",
+              "valueType": "string"
             },
             {
               "key": "detailKind",
-              "description": "이 줄을 누르면 **어느 종류의 상세로 가는지**를 아는 열쇠. 화면 id가 아니다 — 데이터가 화면 id를 직접 주면 검증기가 그 화면이 있는지 확인할 수 없다. 갈 곳은 명세가 이 열쇠로 정한다(itemAction.targets).\n\n회의의 상태가 정한다: 예정이면 예정 상세, 진행 중이면 진행 중 회의, 정리 중이면 회의록 정리, 완료면 완료 회의록, 취소면 취소된 회의. actionLabel이 '회의 상세 보기'·'회의로 돌아가기'·'회의록 보기'로 갈리는 것과 같은 사실이다. 예: scheduled · live · tidying · done · cancelled"
+              "description": "이 줄을 누르면 **어느 종류의 상세로 가는지**를 아는 열쇠. 화면 id가 아니다 — 데이터가 화면 id를 직접 주면 검증기가 그 화면이 있는지 확인할 수 없다. 갈 곳은 명세가 이 열쇠로 정한다(itemAction.targets).\n\n회의의 상태가 정한다: 예정이면 예정 상세, 진행 중이면 진행 중 회의, 정리 중이면 회의록 정리, 완료면 완료 회의록, 취소면 취소된 회의. actionLabel이 '회의 상세 보기'·'회의로 돌아가기'·'회의록 보기'로 갈리는 것과 같은 사실이다. 예: scheduled · live · tidying · done · cancelled",
+              "valueType": "string"
             },
             {
               "key": "actionLabel",
-              "description": "이 회의로 들어가는 문구. 회의 상태에 따라 다르다. 예: 회의 상세 보기 · 회의로 돌아가기 · 회의록 보기"
+              "description": "이 회의로 들어가는 문구. 회의 상태에 따라 다르다. 예: 회의 상세 보기 · 회의로 돌아가기 · 회의록 보기",
+              "valueType": "string"
             },
             {
               "key": "actionEmphasis",
-              "description": "그 문구를 얼마나 앞세우는지(primary·secondary·quiet). 지금 진행 중인 회의만 앞세운다. 예: secondary"
+              "description": "그 문구를 얼마나 앞세우는지(primary·secondary·quiet). 지금 진행 중인 회의만 앞세운다. 예: secondary",
+              "valueType": "string"
             },
             {
               "key": "viewerChipLabel",
-              "description": "보는 사람과 이 회의의 관계를 말하는 딱지. 없을 수도 있다 - 진행 권한자에게는 '진행 권한', 미참가자에게는 '미참가'가 붙고 일반 참가자에게는 아무것도 안 붙는다"
+              "description": "보는 사람과 이 회의의 관계를 말하는 딱지. 없을 수도 있다 - 진행 권한자에게는 '진행 권한', 미참가자에게는 '미참가'가 붙고 일반 참가자에게는 아무것도 안 붙는다",
+              "valueType": "string"
             },
             {
               "key": "viewerChipTone",
-              "description": "그 딱지의 색 이름"
+              "description": "그 딱지의 색 이름",
+              "valueType": "string"
             }
           ]
         }
@@ -674,27 +756,33 @@
       "fields": [
         {
           "key": "title",
-          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "진행 단계를 알리는 말. 예: 기획 중 · 진행 중 · 후속 정리 중"
+          "description": "진행 단계를 알리는 말. 예: 기획 중 · 진행 중 · 후속 정리 중",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 단계가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+          "description": "상태 딱지에 배정된 색 이름. 단계가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "startAt",
-          "description": "행사가 열리는 때. 정해지지 않았으면 완성된 안내로 온다. 예: 2026. 08. 20 10:00 · 일시 미정"
+          "description": "행사가 열리는 때. 정해지지 않았으면 완성된 안내로 온다. 예: 2026. 08. 20 10:00 · 일시 미정",
+          "valueType": "string"
         },
         {
           "key": "place",
-          "description": "행사 장소. 정해지지 않았으면 완성된 안내로 온다. 예: ERICA 체육관 · 장소 미정"
+          "description": "행사 장소. 정해지지 않았으면 완성된 안내로 온다. 예: ERICA 체육관 · 장소 미정",
+          "valueType": "string"
         },
         {
           "key": "host",
-          "description": "맡은 부서. 정해지지 않았으면 완성된 안내로 온다. 예: 학술체육부 · 담당 미정"
+          "description": "맡은 부서. 정해지지 않았으면 완성된 안내로 온다. 예: 학술체육부 · 담당 미정",
+          "valueType": "string"
         },
         {
           "key": "highlights",
@@ -702,18 +790,21 @@
           "fields": [
             {
               "key": "label",
-              "description": "딱지에 쓰이는 완성된 문구. 예: 신청자 142/200명 · 기본 정보 입력 필요"
+              "description": "딱지에 쓰이는 완성된 문구. 예: 신청자 142/200명 · 기본 정보 입력 필요",
+              "valueType": "string"
             }
           ]
         },
         {
           "key": "alert",
           "description": "아직 닫히지 않은 것을 알리는 완성된 문구. 없으면 오지 않는다. 예: 미완료 업무 3건 · 미정리 문서 2건",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "lastModifiedNote",
-          "description": "마지막으로 손댄 때를 알리는 완성된 문구. 오늘·어제 같은 상대적인 말이 섞이므로 화면이 유도할 수 없다. 예: 마지막 수정 오늘 10:30"
+          "description": "마지막으로 손댄 때를 알리는 완성된 문구. 오늘·어제 같은 상대적인 말이 섞이므로 화면이 유도할 수 없다. 예: 마지막 수정 오늘 10:30",
+          "valueType": "string"
         }
       ]
     },
@@ -736,41 +827,50 @@
       "fields": [
         {
           "key": "status",
-          "description": "행사의 진행 단계를 알리는 말. 예: 기획 중"
+          "description": "행사의 진행 단계를 알리는 말. 예: 기획 중",
+          "valueType": "string"
         },
         {
           "key": "statusKey",
-          "description": "행사가 어느 단계인지를 아는 열쇠. **그려지지 않는다** — 그려지는 것은 status이고 그것은 서버가 주는 말이다. 단계에 따라 갈피가 다른 화면으로 갈 때 그 갈래를 이 값이 정한다(shell.json의 workspaces[].tabs[].targetField)."
+          "description": "행사가 어느 단계인지를 아는 열쇠. **그려지지 않는다** — 그려지는 것은 status이고 그것은 서버가 주는 말이다. 단계에 따라 갈피가 다른 화면으로 갈 때 그 갈래를 이 값이 정한다(shell.json의 workspaces[].tabs[].targetField).",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 예: blue"
+          "description": "상태 딱지에 배정된 색 이름. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "alert",
           "description": "지금 눈에 띄어야 하는 것을 알리는 완성된 문구. 없으면 오지 않는다. 예: 주의 · 지연 업무 1건",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "alertTone",
           "description": "주의 문구에 딸린 색 이름. 주의 문구가 없으면 오지 않는다. 예: red",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "host",
-          "description": "이 행사를 맡은 곳과 사람. 완성된 문구로 온다. 예: 담당 학술체육부 · 김바다"
+          "description": "이 행사를 맡은 곳과 사람. 완성된 문구로 온다. 예: 담당 학술체육부 · 김바다",
+          "valueType": "string"
         },
         {
           "key": "startAt",
-          "description": "행사가 열리는 때. 완성된 문구로 온다. 예: 08.20 10:00"
+          "description": "행사가 열리는 때. 완성된 문구로 온다. 예: 08.20 10:00",
+          "valueType": "string"
         },
         {
           "key": "nextSchedule",
-          "description": "다음에 무엇이 있는지 알리는 완성된 문구. 예: 다음 일정 · 07.20 참가자 모집 공지 작성"
+          "description": "다음에 무엇이 있는지 알리는 완성된 문구. 예: 다음 일정 · 07.20 참가자 모집 공지 작성",
+          "valueType": "string"
         },
         {
           "key": "permissionNote",
-          "description": "이 행사에서 무엇을 할 수 있는지 알리는 완성된 문구. 보는 사람에 따라 다르므로 화면이 유도할 수 없다. 예: 행사 관리 행동은 담당 운영진에게 제공됩니다."
+          "description": "이 행사에서 무엇을 할 수 있는지 알리는 완성된 문구. 보는 사람에 따라 다르므로 화면이 유도할 수 없다. 예: 행사 관리 행동은 담당 운영진에게 제공됩니다.",
+          "valueType": "string"
         }
       ]
     },
@@ -793,23 +893,28 @@
       "fields": [
         {
           "key": "title",
-          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "schedule",
-          "description": "언제 어디서 여는지. 완성된 문구로 온다. 예: 행사일 2026-08-20 · ERICA 체육관"
+          "description": "언제 어디서 여는지. 완성된 문구로 온다. 예: 행사일 2026-08-20 · ERICA 체육관",
+          "valueType": "string"
         },
         {
           "key": "dday",
-          "description": "행사까지 남은 날. 지났으면 그 사실까지 붙어서 온다 — 오늘이 언제인지 화면이 알 수 없다. 예: D-33"
+          "description": "행사까지 남은 날. 지났으면 그 사실까지 붙어서 온다 — 오늘이 언제인지 화면이 알 수 없다. 예: D-33",
+          "valueType": "string"
         },
         {
           "key": "progressPercent",
-          "description": "업무 진행률(0-100). 예: 14"
+          "description": "업무 진행률(0-100). 예: 14",
+          "valueType": "number"
         },
         {
           "key": "progressLabel",
-          "description": "진행률을 세어 말한 완성된 문구. 무엇을 완료로 세는지 화면이 정하지 않는다. 예: 1 / 7 완료"
+          "description": "진행률을 세어 말한 완성된 문구. 무엇을 완료로 세는지 화면이 정하지 않는다. 예: 1 / 7 완료",
+          "valueType": "string"
         }
       ]
     },
@@ -832,19 +937,23 @@
       "fields": [
         {
           "key": "delayedCount",
-          "description": "기한이 지난 업무 수"
+          "description": "기한이 지난 업무 수",
+          "valueType": "number"
         },
         {
           "key": "reviewCount",
-          "description": "검토가 필요한 업무 수"
+          "description": "검토가 필요한 업무 수",
+          "valueType": "number"
         },
         {
           "key": "mineCount",
-          "description": "내가 담당인 업무 수"
+          "description": "내가 담당인 업무 수",
+          "valueType": "number"
         },
         {
           "key": "unassignedCount",
-          "description": "담당자가 없는 업무 수"
+          "description": "담당자가 없는 업무 수",
+          "valueType": "number"
         }
       ]
     },
@@ -869,45 +978,55 @@
       "fields": [
         {
           "key": "id",
-          "description": "업무를 가리키는 값. 카드에 그려지지 않지만, 눌러서 상세로 갈 때 '어느 업무인지'로 넘어간다 — 그리지 않는 조각이다. 예: T-03"
+          "description": "업무를 가리키는 값. 카드에 그려지지 않지만, 눌러서 상세로 갈 때 '어느 업무인지'로 넘어간다 — 그리지 않는 조각이다. 예: T-03",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "업무 이름. 예: 현수막 디자인 수정 반영"
+          "description": "업무 이름. 예: 현수막 디자인 수정 반영",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "담당 부서. 예: 홍보부"
+          "description": "담당 부서. 예: 홍보부",
+          "valueType": "string"
         },
         {
           "key": "departmentTone",
-          "description": "부서에 배정된 색 이름. 부서는 조직이 만드는 것이므로 색도 조직 데이터가 갖는다. 예: pink"
+          "description": "부서에 배정된 색 이름. 부서는 조직이 만드는 것이므로 색도 조직 데이터가 갖는다. 예: pink",
+          "valueType": "string"
         },
         {
           "key": "assignee",
-          "description": "담당자 이름. 없으면 완성된 안내로 온다. 예: 담당자 없음 · 배정 필요"
+          "description": "담당자 이름. 없으면 완성된 안내로 온다. 예: 담당자 없음 · 배정 필요",
+          "valueType": "string"
         },
         {
           "key": "dueDate",
-          "description": "기한. 늦었으면 그 사실까지 붙어서 온다. 예: 2026-07-18 · 지연"
+          "description": "기한. 늦었으면 그 사실까지 붙어서 온다. 예: 2026-07-18 · 지연",
+          "valueType": "string"
         },
         {
           "key": "alert",
           "description": "주의 표시. 없으면 오지 않는다. 예: 지연 · 검토 필요",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "alertTone",
           "description": "주의 표시에 딸린 색 이름. 주의 표시가 없으면 오지 않는다. 예: red",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "tone",
-          "description": "업무 카드를 두르는 강조 색 이름. 기본은 부서 색이고, 담당자가 없는 업무처럼 먼저 봐야 하는 것은 경고 색으로 온다. 예: red"
+          "description": "업무 카드를 두르는 강조 색 이름. 기본은 부서 색이고, 담당자가 없는 업무처럼 먼저 봐야 하는 것은 경고 색으로 온다. 예: red",
+          "valueType": "string"
         },
         {
           "key": "hasDocuments",
           "description": "이 업무에 딸린 문서가 있는가. 있을 때만 오고, 카드에 문서 표시가 붙는다. 예: 예",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -931,11 +1050,13 @@
       "fields": [
         {
           "key": "headline",
-          "description": "지금 눈에 띄어야 하는 것. 완성된 문장으로 온다. 예: 모집 마감까지 3일 남았습니다. 정원 200명 중 142명이 신청했고, 명단 확인이 필요한 신청자가 6명 있습니다."
+          "description": "지금 눈에 띄어야 하는 것. 완성된 문장으로 온다. 예: 모집 마감까지 3일 남았습니다. 정원 200명 중 142명이 신청했고, 명단 확인이 필요한 신청자가 6명 있습니다.",
+          "valueType": "string"
         },
         {
           "key": "stateNote",
-          "description": "현재 단계와 다음 단계를 알리는 완성된 문장. 예: 현재 상태: 기획 중 · 다음 운영 단계는 모집 마감 확인입니다."
+          "description": "현재 단계와 다음 단계를 알리는 완성된 문장. 예: 현재 상태: 기획 중 · 다음 운영 단계는 모집 마감 확인입니다.",
+          "valueType": "string"
         }
       ]
     },
@@ -958,27 +1079,33 @@
       "fields": [
         {
           "key": "unassignedTasks",
-          "description": "담당자 없는 업무 수. 단위까지 붙어서 온다. 예: 2건"
+          "description": "담당자 없는 업무 수. 단위까지 붙어서 온다. 예: 2건",
+          "valueType": "string"
         },
         {
           "key": "unassignedTasksDetail",
-          "description": "그 업무들이 무엇인지 알리는 완성된 문구. 예: 행사장 안전 점검 · 참가자 명단 최종 확정"
+          "description": "그 업무들이 무엇인지 알리는 완성된 문구. 예: 행사장 안전 점검 · 참가자 명단 최종 확정",
+          "valueType": "string"
         },
         {
           "key": "needsCheck",
-          "description": "확인이 필요한 참가자 수. 단위까지 붙어서 온다. 예: 6명"
+          "description": "확인이 필요한 참가자 수. 단위까지 붙어서 온다. 예: 6명",
+          "valueType": "string"
         },
         {
           "key": "needsCheckDetail",
-          "description": "무엇을 확인해야 하는지. 예: 학번·이름 또는 납부 확인"
+          "description": "무엇을 확인해야 하는지. 예: 학번·이름 또는 납부 확인",
+          "valueType": "string"
         },
         {
           "key": "nextMilestone",
-          "description": "다음 핵심 일정의 이름. 예: 참가자 모집 공지 작성"
+          "description": "다음 핵심 일정의 이름. 예: 참가자 모집 공지 작성",
+          "valueType": "string"
         },
         {
           "key": "nextMilestoneDetail",
-          "description": "그 일정의 때와 담당. 예: 07.20 · 이윤슬"
+          "description": "그 일정의 때와 담당. 예: 07.20 · 이윤슬",
+          "valueType": "string"
         }
       ]
     },
@@ -1001,40 +1128,49 @@
       "fields": [
         {
           "key": "title",
-          "description": "행사명. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "행사명. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "startAt",
-          "description": "일시. 정해지지 않았으면 완성된 안내로 온다. 예: 08. 20. (목) 10:00"
+          "description": "일시. 정해지지 않았으면 완성된 안내로 온다. 예: 08. 20. (목) 10:00",
+          "valueType": "string"
         },
         {
           "key": "place",
-          "description": "장소. 예: ERICA 체육관"
+          "description": "장소. 예: ERICA 체육관",
+          "valueType": "string"
         },
         {
           "key": "audience",
-          "description": "참여 대상. 예: 소프트웨어융합대학 전체"
+          "description": "참여 대상. 예: 소프트웨어융합대학 전체",
+          "valueType": "string"
         },
         {
           "key": "fee",
-          "description": "참가비. 조건까지 문장으로 온다 — 무엇이 무료인지 화면이 유도할 수 없다. 예: 납부자 무료 / 미납자 5000원"
+          "description": "참가비. 조건까지 문장으로 온다 — 무엇이 무료인지 화면이 유도할 수 없다. 예: 납부자 무료 / 미납자 5000원",
+          "valueType": "string"
         },
         {
           "key": "capacity",
-          "description": "모집 정원. 예: 200명"
+          "description": "모집 정원. 예: 200명",
+          "valueType": "string"
         },
         {
           "key": "contact",
-          "description": "문의처. 예: 카카오톡 채널 @swcollege"
+          "description": "문의처. 예: 카카오톡 채널 @swcollege",
+          "valueType": "string"
         },
         {
           "key": "attendeeCount",
           "description": "참석자 수. 후속 정리 중부터 온다. 아직 세지 않았으면 완성된 안내로 온다. 예: 집계 전",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "host",
           "description": "담당자 한 사람. event.workspace.host는 '담당 학술체육부 · 김바다'로 이어 오므로 다른 조각이다. 예: 김바다",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -1058,19 +1194,23 @@
       "fields": [
         {
           "key": "surveyStatus",
-          "description": "설문 상태. 예: 초안"
+          "description": "설문 상태. 예: 초안",
+          "valueType": "string"
         },
         {
           "key": "period",
-          "description": "신청 기간. 정해지지 않았으면 완성된 안내로 온다. 예: 마감일 미입력"
+          "description": "신청 기간. 정해지지 않았으면 완성된 안내로 온다. 예: 마감일 미입력",
+          "valueType": "string"
         },
         {
           "key": "method",
-          "description": "신청 방식. 예: 선착순"
+          "description": "신청 방식. 예: 선착순",
+          "valueType": "string"
         },
         {
           "key": "applicantCount",
-          "description": "신청자 수. 단위까지 붙어서 온다. 예: 142명"
+          "description": "신청자 수. 단위까지 붙어서 온다. 예: 142명",
+          "valueType": "string"
         }
       ]
     },
@@ -1093,35 +1233,43 @@
       "fields": [
         {
           "key": "applicants",
-          "description": "신청자 수. 예: 142명"
+          "description": "신청자 수. 예: 142명",
+          "valueType": "string"
         },
         {
           "key": "applicantsNote",
-          "description": "정원 대비. 예: 정원 200명"
+          "description": "정원 대비. 예: 정원 200명",
+          "valueType": "string"
         },
         {
           "key": "paid",
-          "description": "납부가 확인된 수. 예: 129명"
+          "description": "납부가 확인된 수. 예: 129명",
+          "valueType": "string"
         },
         {
           "key": "paidNote",
-          "description": "남은 것. 예: 미납 13명"
+          "description": "남은 것. 예: 미납 13명",
+          "valueType": "string"
         },
         {
           "key": "needsCheck",
-          "description": "확인이 필요한 수. 예: 6명"
+          "description": "확인이 필요한 수. 예: 6명",
+          "valueType": "string"
         },
         {
           "key": "needsCheckNote",
-          "description": "왜 확인이 필요한지. 예: 명단 불일치"
+          "description": "왜 확인이 필요한지. 예: 명단 불일치",
+          "valueType": "string"
         },
         {
           "key": "unassignedTasks",
-          "description": "담당자 없는 업무 수. 예: 2개"
+          "description": "담당자 없는 업무 수. 예: 2개",
+          "valueType": "string"
         },
         {
           "key": "unassignedTasksNote",
-          "description": "무엇을 해야 하는지. 예: 처리 필요"
+          "description": "무엇을 해야 하는지. 예: 처리 필요",
+          "valueType": "string"
         }
       ]
     },
@@ -1144,24 +1292,29 @@
       "fields": [
         {
           "key": "title",
-          "description": "무엇을 확인해야 하는지. 완성된 문구로 온다. 예: 명단 확인이 필요한 신청자 6명"
+          "description": "무엇을 확인해야 하는지. 완성된 문구로 온다. 예: 명단 확인이 필요한 신청자 6명",
+          "valueType": "string"
         },
         {
           "key": "detail",
-          "description": "그 까닭이나 때. 예: 학번·이름 불일치 또는 명단 외 학생"
+          "description": "그 까닭이나 때. 예: 학번·이름 불일치 또는 명단 외 학생",
+          "valueType": "string"
         },
         {
           "key": "tone",
-          "description": "항목의 성격에 배정된 색 이름. 급한 것과 끝난 것이 갈린다. 예: red · orange · green"
+          "description": "항목의 성격에 배정된 색 이름. 급한 것과 끝난 것이 갈린다. 예: red · orange · green",
+          "valueType": "string"
         },
         {
           "key": "targetKind",
           "description": "이 항목을 누르면 **어느 종류의 화면으로 가는지**를 아는 열쇠. 화면 id가 아니다 — 데이터가 화면 id를 직접 주면 검증기가 그 화면이 있는지 확인할 수 없다. 갈 곳은 명세가 이 열쇠로 정한다(itemAction.targets).\n\n갈 곳이 없는 항목에는 오지 않는다(actionLabel과 짝이다). 예: participants · tasks",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "actionLabel",
           "description": "이 항목에서 갈 수 있는 곳의 문구. 갈 곳이 없으면 오지 않는다. 예: 참가자 명단 보기",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -1185,11 +1338,13 @@
       "fields": [
         {
           "key": "at",
-          "description": "언제. 완성된 문구로 온다. 예: 오늘 10:30 · 07. 14"
+          "description": "언제. 완성된 문구로 온다. 예: 오늘 10:30 · 07. 14",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무엇이 바뀌었는지. 예: 신규 신청자 5명 추가"
+          "description": "무엇이 바뀌었는지. 예: 신규 신청자 5명 추가",
+          "valueType": "string"
         }
       ]
     },
@@ -1212,51 +1367,63 @@
       "fields": [
         {
           "key": "code",
-          "description": "업무 번호. 예: T-03"
+          "description": "업무 번호. 예: T-03",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "업무 이름. 예: 현수막 디자인 수정 반영"
+          "description": "업무 이름. 예: 현수막 디자인 수정 반영",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "진행 단계를 알리는 말. 예: 진행 중"
+          "description": "진행 단계를 알리는 말. 예: 진행 중",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 예: blue"
+          "description": "상태 딱지에 배정된 색 이름. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "priority",
-          "description": "우선순위를 알리는 말. 예: 높음"
+          "description": "우선순위를 알리는 말. 예: 높음",
+          "valueType": "string"
         },
         {
           "key": "priorityTone",
-          "description": "우선순위 딱지에 배정된 색 이름. 예: red"
+          "description": "우선순위 딱지에 배정된 색 이름. 예: red",
+          "valueType": "string"
         },
         {
           "key": "assignee",
-          "description": "담당자 이름. 정해지지 않았으면 완성된 안내로 온다. 예: 이윤슬"
+          "description": "담당자 이름. 정해지지 않았으면 완성된 안내로 온다. 예: 이윤슬",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "담당 부서. 예: 홍보부"
+          "description": "담당 부서. 예: 홍보부",
+          "valueType": "string"
         },
         {
           "key": "dueDate",
-          "description": "마감일. 늦었으면 그 사실까지 붙어서 온다 — 무엇을 지연으로 세는지 화면이 유도할 수 없다. 예: 2026-07-18 · 지연"
+          "description": "마감일. 늦었으면 그 사실까지 붙어서 온다 — 무엇을 지연으로 세는지 화면이 유도할 수 없다. 예: 2026-07-18 · 지연",
+          "valueType": "string"
         },
         {
           "key": "description",
-          "description": "업무 설명. 예: 검토 의견을 반영해 현수막 디자인을 수정하고…"
+          "description": "업무 설명. 예: 검토 의견을 반영해 현수막 디자인을 수정하고…",
+          "valueType": "string"
         },
         {
           "key": "completionCriteria",
-          "description": "완료 기준. 등록되지 않았으면 완성된 안내로 온다. 예: 완료 기준이 아직 등록되지 않았습니다."
+          "description": "완료 기준. 등록되지 않았으면 완성된 안내로 온다. 예: 완료 기준이 아직 등록되지 않았습니다.",
+          "valueType": "string"
         },
         {
           "key": "expectedOutput",
-          "description": "예상 결과물의 종류. 예: 문서·파일"
+          "description": "예상 결과물의 종류. 예: 문서·파일",
+          "valueType": "string"
         },
         {
           "key": "linkedItems",
@@ -1264,7 +1431,8 @@
           "fields": [
             {
               "key": "label",
-              "description": "항목 이름. 예: 현수막 제작 사양서"
+              "description": "항목 이름. 예: 현수막 제작 사양서",
+              "valueType": "string"
             }
           ]
         }
@@ -1289,23 +1457,28 @@
       "fields": [
         {
           "key": "title",
-          "description": "문서 이름. 예: 2026 체육대회 홍보 가이드라인"
+          "description": "문서 이름. 예: 2026 체육대회 홍보 가이드라인",
+          "valueType": "string"
         },
         {
           "key": "description",
-          "description": "문서가 무엇을 정하는지. 예: 행사 전반의 시각 언어, 색상 코드…"
+          "description": "문서가 무엇을 정하는지. 예: 행사 전반의 시각 언어, 색상 코드…",
+          "valueType": "string"
         },
         {
           "key": "lastModifiedNote",
-          "description": "마지막으로 손댄 때를 알리는 완성된 문구. 예: 최종 수정일 2026-07-12"
+          "description": "마지막으로 손댄 때를 알리는 완성된 문구. 예: 최종 수정일 2026-07-12",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "검토 단계를 알리는 말. 예: 확정 · 검토 중"
+          "description": "검토 단계를 알리는 말. 예: 확정 · 검토 중",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 예: green"
+          "description": "상태 딱지에 배정된 색 이름. 예: green",
+          "valueType": "string"
         }
       ]
     },
@@ -1328,23 +1501,28 @@
       "fields": [
         {
           "key": "title",
-          "description": "파일이나 문서 이름. 예: 현수막 시안 v2.png"
+          "description": "파일이나 문서 이름. 예: 현수막 시안 v2.png",
+          "valueType": "string"
         },
         {
           "key": "kind",
-          "description": "파일인지 문서인지. 예: 파일 · 문서"
+          "description": "파일인지 문서인지. 예: 파일 · 문서",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "검토 단계를 알리는 말. 예: 검토 중 · 작성 중"
+          "description": "검토 단계를 알리는 말. 예: 검토 중 · 작성 중",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 예: yellow"
+          "description": "상태 딱지에 배정된 색 이름. 예: yellow",
+          "valueType": "string"
         },
         {
           "key": "officialReflection",
-          "description": "공식 문서에 반영됐는지를 알리는 말. 예: 미반영"
+          "description": "공식 문서에 반영됐는지를 알리는 말. 예: 미반영",
+          "valueType": "string"
         }
       ]
     },
@@ -1367,27 +1545,33 @@
       "fields": [
         {
           "key": "submission",
-          "description": "제출 상태를 알리는 말. 예: 제출 완료"
+          "description": "제출 상태를 알리는 말. 예: 제출 완료",
+          "valueType": "string"
         },
         {
           "key": "submissionTone",
-          "description": "제출 상태 딱지의 색 이름. 예: green"
+          "description": "제출 상태 딱지의 색 이름. 예: green",
+          "valueType": "string"
         },
         {
           "key": "officialResult",
-          "description": "공식 결과가 확정됐는지. 예: 미확정"
+          "description": "공식 결과가 확정됐는지. 예: 미확정",
+          "valueType": "string"
         },
         {
           "key": "officialResultTone",
-          "description": "그 딱지의 색 이름. 예: gray"
+          "description": "그 딱지의 색 이름. 예: gray",
+          "valueType": "string"
         },
         {
           "key": "reviewComment",
-          "description": "검토 의견. 없으면 완성된 안내로 온다. 예: 메인 색상이 가이드라인과 다름…"
+          "description": "검토 의견. 없으면 완성된 안내로 온다. 예: 메인 색상이 가이드라인과 다름…",
+          "valueType": "string"
         },
         {
           "key": "nextStepNote",
-          "description": "다음에 무엇을 해야 하는지 알리는 완성된 문구. 예: 수정 후 재제출이 필요합니다."
+          "description": "다음에 무엇을 해야 하는지 알리는 완성된 문구. 예: 수정 후 재제출이 필요합니다.",
+          "valueType": "string"
         }
       ]
     },
@@ -1410,27 +1594,33 @@
       "fields": [
         {
           "key": "total",
-          "description": "이 행사에 딸린 문서 수. 예: 4개"
+          "description": "이 행사에 딸린 문서 수. 예: 4개",
+          "valueType": "string"
         },
         {
           "key": "totalNote",
-          "description": "전체 문서가 어떤 것인지 말하는 완성된 문구. 예: 행사 공용 문서"
+          "description": "전체 문서가 어떤 것인지 말하는 완성된 문구. 예: 행사 공용 문서",
+          "valueType": "string"
         },
         {
           "key": "drafting",
-          "description": "작성 중인 문서 수. 예: 1개"
+          "description": "작성 중인 문서 수. 예: 1개",
+          "valueType": "string"
         },
         {
           "key": "draftingNote",
-          "description": "작성 중인 문서에 무엇이 필요한지 말하는 완성된 문구. 예: 계속 확인이 필요해요"
+          "description": "작성 중인 문서에 무엇이 필요한지 말하는 완성된 문구. 예: 계속 확인이 필요해요",
+          "valueType": "string"
         },
         {
           "key": "reviewing",
-          "description": "검토 중인 문서 수. 예: 1개"
+          "description": "검토 중인 문서 수. 예: 1개",
+          "valueType": "string"
         },
         {
           "key": "reviewingNote",
-          "description": "검토 중인 문서에 무엇이 필요한지 말하는 완성된 문구. 예: 의견 확인이 필요해요"
+          "description": "검토 중인 문서에 무엇이 필요한지 말하는 완성된 문구. 예: 의견 확인이 필요해요",
+          "valueType": "string"
         }
       ]
     },
@@ -1453,23 +1643,28 @@
       "fields": [
         {
           "key": "all",
-          "description": "이 행사의 문서 전체 수. 예: 4"
+          "description": "이 행사의 문서 전체 수. 예: 4",
+          "valueType": "number"
         },
         {
           "key": "drafting",
-          "description": "작성 중인 문서 수. 예: 1"
+          "description": "작성 중인 문서 수. 예: 1",
+          "valueType": "number"
         },
         {
           "key": "reviewing",
-          "description": "검토 중인 문서 수. 예: 1"
+          "description": "검토 중인 문서 수. 예: 1",
+          "valueType": "number"
         },
         {
           "key": "confirmed",
-          "description": "확정된 문서 수. 예: 1"
+          "description": "확정된 문서 수. 예: 1",
+          "valueType": "number"
         },
         {
           "key": "notStarted",
-          "description": "아직 시작하지 않은 문서 수. 예: 1"
+          "description": "아직 시작하지 않은 문서 수. 예: 1",
+          "valueType": "number"
         }
       ]
     },
@@ -1493,35 +1688,43 @@
       "fields": [
         {
           "key": "id",
-          "description": "문서를 가리키는 값. 표에 그려지지 않지만, 눌러서 문서를 열 때 '어느 문서인지'로 넘어간다 — 그리지 않는 조각이다. 예: DOC-01"
+          "description": "문서를 가리키는 값. 표에 그려지지 않지만, 눌러서 문서를 열 때 '어느 문서인지'로 넘어간다 — 그리지 않는 조각이다. 예: DOC-01",
+          "valueType": "string"
         },
         {
           "key": "category",
-          "description": "문서가 행사의 어느 국면에 속하는지. 예: 기획 · 운영 · 참가자 · 후속 정리"
+          "description": "문서가 행사의 어느 국면에 속하는지. 예: 기획 · 운영 · 참가자 · 후속 정리",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "문서 이름. 예: 행사 운영 계획서"
+          "description": "문서 이름. 예: 행사 운영 계획서",
+          "valueType": "string"
         },
         {
           "key": "description",
-          "description": "문서에 무엇이 담기는지 한 줄로. 예: 운영 목표, 역할 분담, 당일 진행 순서"
+          "description": "문서에 무엇이 담기는지 한 줄로. 예: 운영 목표, 역할 분담, 당일 진행 순서",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "문서의 상태를 알리는 말. 예: 확정 · 검토 중 · 작성 중 · 작성 전"
+          "description": "문서의 상태를 알리는 말. 예: 확정 · 검토 중 · 작성 중 · 작성 전",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 상태가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: green"
+          "description": "상태 딱지에 배정된 색 이름. 상태가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: green",
+          "valueType": "string"
         },
         {
           "key": "tone",
-          "description": "줄 왼쪽 강조선의 색 이름. 문서가 속한 국면이 정한다 — 국면은 조직이 늘릴 수 있으므로 색도 데이터가 갖는다. 예: blue"
+          "description": "줄 왼쪽 강조선의 색 이름. 문서가 속한 국면이 정한다 — 국면은 조직이 늘릴 수 있으므로 색도 데이터가 갖는다. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "updatedNote",
-          "description": "마지막으로 손댄 때와 사람. 아직 시작하지 않은 문서는 언제 쓸 것인지로 온다 — 오늘이 언제인지 화면이 알 수 없다. 예: 07. 12 · 이수현 · 행사 종료 후"
+          "description": "마지막으로 손댄 때와 사람. 아직 시작하지 않은 문서는 언제 쓸 것인지로 온다 — 오늘이 언제인지 화면이 알 수 없다. 예: 07. 12 · 이수현 · 행사 종료 후",
+          "valueType": "string"
         }
       ]
     },
@@ -1544,7 +1747,8 @@
       "fields": [
         {
           "key": "countsNote",
-          "description": "단계별 건수를 세어 말한 완성된 문구. 예: 진행 중 1건 · 예정 1건 · 정리 중 0건 · 완료 1건"
+          "description": "단계별 건수를 세어 말한 완성된 문구. 예: 진행 중 1건 · 예정 1건 · 정리 중 0건 · 완료 1건",
+          "valueType": "string"
         }
       ]
     },
@@ -1567,35 +1771,43 @@
       "fields": [
         {
           "key": "id",
-          "description": "회의를 가리키는 값. 카드에 그려지지 않지만, 눌러서 회의를 열 때 '어느 회의인지'로 넘어간다 — 그리지 않는 조각이다. 예: M-01"
+          "description": "회의를 가리키는 값. 카드에 그려지지 않지만, 눌러서 회의를 열 때 '어느 회의인지'로 넘어간다 — 그리지 않는 조각이다. 예: M-01",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "회의 상태를 알리는 말. 예: 예정 · 진행 중 · 정리 중 · 완료"
+          "description": "회의 상태를 알리는 말. 예: 예정 · 진행 중 · 정리 중 · 완료",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 상태 목록이 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+          "description": "상태 딱지에 배정된 색 이름. 상태 목록이 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "kindLabel",
-          "description": "이 회의가 무엇에 매인 회의인지. 지금은 전부 행사에 매여 있지만 화면이 지어낼 말이 아니다. 예: 행사 연결 회의"
+          "description": "이 회의가 무엇에 매인 회의인지. 지금은 전부 행사에 매여 있지만 화면이 지어낼 말이 아니다. 예: 행사 연결 회의",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "회의 이름. 예: 체육대회 운영 점검 회의"
+          "description": "회의 이름. 예: 체육대회 운영 점검 회의",
+          "valueType": "string"
         },
         {
           "key": "startAt",
-          "description": "회의 시작 때. 요일까지 붙어서 온다. 예: 2026. 07. 18 (토) 10:00"
+          "description": "회의 시작 때. 요일까지 붙어서 온다. 예: 2026. 07. 18 (토) 10:00",
+          "valueType": "string"
         },
         {
           "key": "place",
-          "description": "회의 장소. 온라인이면 그 사실로 온다. 예: 제1회의실 · 온라인 (Discord)"
+          "description": "회의 장소. 온라인이면 그 사실로 온다. 예: 제1회의실 · 온라인 (Discord)",
+          "valueType": "string"
         },
         {
           "key": "attendanceNote",
-          "description": "참가 인원을 세어 말한 완성된 문구. 회의가 끝났는지에 따라 세는 말이 달라 화면이 유도할 수 없다. 예: 참가 8명 · 참가 예정 4명 · 참석 6명"
+          "description": "참가 인원을 세어 말한 완성된 문구. 회의가 끝났는지에 따라 세는 말이 달라 화면이 유도할 수 없다. 예: 참가 8명 · 참가 예정 4명 · 참석 6명",
+          "valueType": "string"
         }
       ]
     },
@@ -1619,39 +1831,48 @@
       "fields": [
         {
           "key": "id",
-          "description": "일정을 가리키는 값. 줄에 그려지지 않지만, 눌러서 원본을 열 때 '어느 일정인지'로 넘어간다 — 그리지 않는 조각이다. 예: SCH-01"
+          "description": "일정을 가리키는 값. 줄에 그려지지 않지만, 눌러서 원본을 열 때 '어느 일정인지'로 넘어간다 — 그리지 않는 조각이다. 예: SCH-01",
+          "valueType": "string"
         },
         {
           "key": "dateLabel",
-          "description": "언제인지. 날짜로 못 박히지 않는 일정이 있어 완성된 말로 온다 — 화면이 날짜를 꾸미지 않는다. 예: 07. 10 · 행사 후"
+          "description": "언제인지. 날짜로 못 박히지 않는 일정이 있어 완성된 말로 온다 — 화면이 날짜를 꾸미지 않는다. 예: 07. 10 · 행사 후",
+          "valueType": "string"
         },
         {
           "key": "tone",
-          "description": "줄 왼쪽 점의 색 이름. 행사 당일처럼 기준이 되는 일정만 도드라진다. 무엇이 기준인지는 조직 운영이 정하므로 색도 데이터가 갖는다. 예: blue"
+          "description": "줄 왼쪽 점의 색 이름. 행사 당일처럼 기준이 되는 일정만 도드라진다. 무엇이 기준인지는 조직 운영이 정하므로 색도 데이터가 갖는다. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "일정의 이름. 원본에 적힌 그대로다. 예: 참가자 모집 공지 작성"
+          "description": "일정의 이름. 원본에 적힌 그대로다. 예: 참가자 모집 공지 작성",
+          "valueType": "string"
         },
         {
           "key": "kindLabel",
-          "description": "이 일정이 어떤 종류인지 알리는 딱지 글. 예: 업무 · 마감 · 회의 · 행사 · 후속"
+          "description": "이 일정이 어떤 종류인지 알리는 딱지 글. 예: 업무 · 마감 · 회의 · 행사 · 후속",
+          "valueType": "string"
         },
         {
           "key": "kindTone",
-          "description": "종류 딱지에 배정된 색 이름. 종류가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: yellow"
+          "description": "종류 딱지에 배정된 색 이름. 종류가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: yellow",
+          "valueType": "string"
         },
         {
           "key": "description",
-          "description": "일정이 어떤 상태이고 무엇을 하는지 한 줄로. 상태 말이 앞에 붙어 오는 것이 있고 안 붙는 것이 있어 화면이 조립하지 않는다. 예: 진행 중 · 지연 · 검토 의견을 반영해 현수막 디자인을 수정합니다."
+          "description": "일정이 어떤 상태이고 무엇을 하는지 한 줄로. 상태 말이 앞에 붙어 오는 것이 있고 안 붙는 것이 있어 화면이 조립하지 않는다. 예: 진행 중 · 지연 · 검토 의견을 반영해 현수막 디자인을 수정합니다.",
+          "valueType": "string"
         },
         {
           "key": "ownerNote",
-          "description": "누가 맡았는지. 아직 정해지지 않은 것은 그 사실로 온다. 예: 담당 · 이수현 · 담당 · 미지정 · 배정 필요"
+          "description": "누가 맡았는지. 아직 정해지지 않은 것은 그 사실로 온다. 예: 담당 · 이수현 · 담당 · 미지정 · 배정 필요",
+          "valueType": "string"
         },
         {
           "key": "originNote",
-          "description": "이 일정의 단일 원본이 어디인지. 여기서 고치지 않는다는 것을 줄마다 말한다. 예: 원본 · 행사 업무"
+          "description": "이 일정의 단일 원본이 어디인지. 여기서 고치지 않는다는 것을 줄마다 말한다. 예: 원본 · 행사 업무",
+          "valueType": "string"
         }
       ]
     },
@@ -1681,43 +1902,53 @@
       "fields": [
         {
           "key": "id",
-          "description": "참가자를 가리키는 값. 표에 그려지지 않지만, 골라서 무엇을 할 때 '누구인지'로 넘어간다 — 그리지 않는 조각이다. 예: P-01"
+          "description": "참가자를 가리키는 값. 표에 그려지지 않지만, 골라서 무엇을 할 때 '누구인지'로 넘어간다 — 그리지 않는 조각이다. 예: P-01",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "참가자 이름. 예: 김학생"
+          "description": "참가자 이름. 예: 김학생",
+          "valueType": "string"
         },
         {
           "key": "studentNo",
-          "description": "학번. 자릿수가 학교마다 다르므로 수가 아니라 글로 온다. 예: 2022111111"
+          "description": "학번. 자릿수가 학교마다 다르므로 수가 아니라 글로 온다. 예: 2022111111",
+          "valueType": "string"
         },
         {
           "key": "affiliation",
-          "description": "참가자가 속한 학부·학과. 예: 컴퓨터학부"
+          "description": "참가자가 속한 학부·학과. 예: 컴퓨터학부",
+          "valueType": "string"
         },
         {
           "key": "applyStatus",
-          "description": "신청이 어디까지 됐는지 알리는 말. 예: 신청 완료 · 대기 중"
+          "description": "신청이 어디까지 됐는지 알리는 말. 예: 신청 완료 · 대기 중",
+          "valueType": "string"
         },
         {
           "key": "applyStatusTone",
-          "description": "신청 상태 딱지에 배정된 색 이름. 상태가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+          "description": "신청 상태 딱지에 배정된 색 이름. 상태가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "payStatus",
-          "description": "참가비가 들어왔는지 알리는 말. 예: 납부 확인 · 미납 · 미확인"
+          "description": "참가비가 들어왔는지 알리는 말. 예: 납부 확인 · 미납 · 미확인",
+          "valueType": "string"
         },
         {
           "key": "payStatusTone",
-          "description": "입금 상태 딱지의 색 이름. 예: green"
+          "description": "입금 상태 딱지의 색 이름. 예: green",
+          "valueType": "string"
         },
         {
           "key": "attendStatus",
-          "description": "당일 참석 여부를 알리는 말. 행사 전에는 미확인이다. 예: 참석 · 불참 · 미확인"
+          "description": "당일 참석 여부를 알리는 말. 행사 전에는 미확인이다. 예: 참석 · 불참 · 미확인",
+          "valueType": "string"
         },
         {
           "key": "attendStatusTone",
-          "description": "참석 상태 딱지의 색 이름. 예: red"
+          "description": "참석 상태 딱지의 색 이름. 예: red",
+          "valueType": "string"
         }
       ]
     },
@@ -1745,11 +1976,13 @@
       "fields": [
         {
           "key": "totalNote",
-          "description": "모두 몇 명인지를 말한 완성된 문구. 무엇을 세어 뭐라 부르는지는 서버가 안다 — 화면이 수에 '명'을 붙이지 않는다. 예: 총 6명"
+          "description": "모두 몇 명인지를 말한 완성된 문구. 무엇을 세어 뭐라 부르는지는 서버가 안다 — 화면이 수에 '명'을 붙이지 않는다. 예: 총 6명",
+          "valueType": "string"
         },
         {
           "key": "pageCount",
-          "description": "쪽이 몇 개인지. 쪽 번호 버튼을 그리는 데 쓴다. 예: 1"
+          "description": "쪽이 몇 개인지. 쪽 번호 버튼을 그리는 데 쓴다. 예: 1",
+          "valueType": "number"
         }
       ]
     },
@@ -1772,19 +2005,23 @@
       "fields": [
         {
           "key": "budget",
-          "description": "이 행사에 배정된 예산. 예: 3,000,000"
+          "description": "이 행사에 배정된 예산. 예: 3,000,000",
+          "valueType": "string"
         },
         {
           "key": "committed",
-          "description": "승인됐거나 집행이 예정된 금액. 예: 1,100,000"
+          "description": "승인됐거나 집행이 예정된 금액. 예: 1,100,000",
+          "valueType": "string"
         },
         {
           "key": "spent",
-          "description": "실제로 나간 금액. 예: 950,000"
+          "description": "실제로 나간 금액. 예: 950,000",
+          "valueType": "string"
         },
         {
           "key": "available",
-          "description": "아직 쓸 수 있는 금액. 배정에서 무엇을 빼는지가 재정 규칙이라 화면이 계산하지 않는다. 예: 950,000"
+          "description": "아직 쓸 수 있는 금액. 배정에서 무엇을 빼는지가 재정 규칙이라 화면이 계산하지 않는다. 예: 950,000",
+          "valueType": "string"
         }
       ]
     },
@@ -1807,7 +2044,8 @@
       "fields": [
         {
           "key": "pendingReviewCount",
-          "description": "검토를 기다리는 구매 요청 수. 예: 1"
+          "description": "검토를 기다리는 구매 요청 수. 예: 1",
+          "valueType": "number"
         }
       ]
     },
@@ -1831,35 +2069,43 @@
       "fields": [
         {
           "key": "id",
-          "description": "구매 요청을 가리키는 값. 카드에 그려지지 않지만, 눌러서 요청을 열 때 '어느 요청인지'로 넘어간다 — 그리지 않는 조각이다. 예: PR-01"
+          "description": "구매 요청을 가리키는 값. 카드에 그려지지 않지만, 눌러서 요청을 열 때 '어느 요청인지'로 넘어간다 — 그리지 않는 조각이다. 예: PR-01",
+          "valueType": "string"
         },
         {
           "key": "departmentLabel",
-          "description": "요청한 부서. 예: 운영부"
+          "description": "요청한 부서. 예: 운영부",
+          "valueType": "string"
         },
         {
           "key": "requestedAt",
-          "description": "요청한 날. 예: 2026-03-15"
+          "description": "요청한 날. 예: 2026-03-15",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무엇을 사려는지. 예: 체육대회 운영 물품 4종"
+          "description": "무엇을 사려는지. 예: 체육대회 운영 물품 4종",
+          "valueType": "string"
         },
         {
           "key": "itemsNote",
-          "description": "품목 수와 이름을 이어 붙인 완성된 문구. 몇 개까지 늘어놓을지는 서버가 정한다. 예: 품목 4개 · 박스테이프, 생수 500ml, 이름표 용지, 유성 마커"
+          "description": "품목 수와 이름을 이어 붙인 완성된 문구. 몇 개까지 늘어놓을지는 서버가 정한다. 예: 품목 4개 · 박스테이프, 생수 500ml, 이름표 용지, 유성 마커",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "요청 금액. 단위까지 붙어서 온다 — 요약의 금액과 달리 카드에서는 '원'이 값과 한 덩이로 그려진다. 예: 135,000원"
+          "description": "요청 금액. 단위까지 붙어서 온다 — 요약의 금액과 달리 카드에서는 '원'이 값과 한 덩이로 그려진다. 예: 135,000원",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "이 요청이 지금 무엇을 기다리는지. 예: 검토 대기 · 보완 요청"
+          "description": "이 요청이 지금 무엇을 기다리는지. 예: 검토 대기 · 보완 요청",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 재정 처리 단계가 조직 규칙에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: orange"
+          "description": "상태 딱지에 배정된 색 이름. 재정 처리 단계가 조직 규칙에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: orange",
+          "valueType": "string"
         }
       ]
     },
@@ -1883,23 +2129,28 @@
       "fields": [
         {
           "key": "title",
-          "description": "요청 제목. 예: 체육대회 운영 물품"
+          "description": "요청 제목. 예: 체육대회 운영 물품",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "요청 부서. 작성자의 소속이라 이 화면에서 고르지 않는다. 예: 운영부"
+          "description": "요청 부서. 작성자의 소속이라 이 화면에서 고르지 않는다. 예: 운영부",
+          "valueType": "string"
         },
         {
           "key": "neededOn",
-          "description": "필요한 날짜. YYYY-MM-DD. 예: 2026-08-12"
+          "description": "필요한 날짜. YYYY-MM-DD. 예: 2026-08-12",
+          "valueType": "string"
         },
         {
           "key": "priority",
-          "description": "우선순위. finance.requestPriorities의 값. 예: 보통"
+          "description": "우선순위. finance.requestPriorities의 값. 예: 보통",
+          "valueType": "string"
         },
         {
           "key": "purpose",
-          "description": "구매 목적. 예산을 쓰는 이유와 용도."
+          "description": "구매 목적. 예산을 쓰는 이유와 용도.",
+          "valueType": "string"
         },
         {
           "key": "items",
@@ -1907,55 +2158,69 @@
           "fields": [
             {
               "key": "itemName",
-              "description": "품목명. 예: 박스테이프"
+              "description": "품목명. 예: 박스테이프",
+              "valueType": "string"
             },
             {
               "key": "itemCategory",
-              "description": "품목 카테고리. finance.itemCategories의 값."
+              "description": "품목 카테고리. finance.itemCategories의 값.",
+              "valueType": "string"
             },
             {
               "key": "budgetItem",
-              "description": "어느 예산 항목에서 쓰는지. finance.budgetItems의 값."
+              "description": "어느 예산 항목에서 쓰는지. finance.budgetItems의 값.",
+              "valueType": "string"
             },
             {
               "key": "purchaseType",
-              "description": "구매 유형. finance.purchaseTypes의 값."
+              "description": "구매 유형. finance.purchaseTypes의 값.",
+              "valueType": "string"
             },
             {
               "key": "quantity",
-              "description": "수량. 수로 읽힌다. 예: 5"
+              "description": "수량. 수로 읽힌다. 예: 5. **아직 안 적었으면 오지 않는다** — 빈 글로 오지 않는다. 0은 값이므로(0개·0원) 빈 것과 0을 글로 섞으면 갈린다.",
+              "valueType": "number",
+              "optional": true
             },
             {
               "key": "unit",
-              "description": "세는 말. 예: 개"
+              "description": "세는 말. 예: 개",
+              "valueType": "string"
             },
             {
               "key": "unitPrice",
-              "description": "예상 단가. 수로 읽힌다. 자릿점 없이 온다 — 곱해야 하는 수이지 읽으라고 준 글이 아니다. 예: 2000"
+              "description": "예상 단가. 수로 읽힌다. 자릿점 없이 온다 — 곱해야 하는 수이지 읽으라고 준 글이 아니다. 예: 2000. **아직 안 적었으면 오지 않는다** — 빈 글로 오지 않는다. 0은 값이므로(0개·0원) 빈 것과 0을 글로 섞으면 갈린다.",
+              "valueType": "number",
+              "optional": true
             },
             {
               "key": "vendor",
               "description": "판매처 또는 쇼핑몰. 없으면 오지 않는다.",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "productUrl",
               "description": "상품 URL. 없으면 오지 않는다.",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "option",
               "description": "상품 옵션 또는 규격. 없으면 오지 않는다.",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "deliveryNote",
               "description": "배송 요청사항. 없으면 오지 않는다.",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "quoteStatus",
-              "description": "견적서 확보 상태. finance.quoteStatus의 값."
+              "description": "견적서 확보 상태. finance.quoteStatus의 값.",
+              "valueType": "string"
             }
           ]
         }
@@ -1980,43 +2245,53 @@
       "fields": [
         {
           "key": "code",
-          "description": "요청 번호. 사람이 이 요청을 부르는 말이다. 예: REQ-001"
+          "description": "요청 번호. 사람이 이 요청을 부르는 말이다. 예: REQ-001",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "지금 상태. 딱지에 그려진다. 예: 보완 요청"
+          "description": "지금 상태. 딱지에 그려진다. 예: 보완 요청",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지의 색 이름(design/tones.ts의 톤). 예: yellow"
+          "description": "상태 딱지의 색 이름(design/tones.ts의 톤). 예: yellow",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "요청 제목. 예: 체육대회 운영 물품 4종"
+          "description": "요청 제목. 예: 체육대회 운영 물품 4종",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "전체 요청액. 자릿점과 단위까지 찍혀서 온다 — 화폐 표기는 조직의 것이다. 예: 135,000원"
+          "description": "전체 요청액. 자릿점과 단위까지 찍혀서 온다 — 화폐 표기는 조직의 것이다. 예: 135,000원",
+          "valueType": "string"
         },
         {
           "key": "eventName",
-          "description": "어느 행사의 요청인지. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "어느 행사의 요청인지. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "요청 부서. 예: 운영부"
+          "description": "요청 부서. 예: 운영부",
+          "valueType": "string"
         },
         {
           "key": "requester",
-          "description": "요청자. 예: 박해랑"
+          "description": "요청자. 예: 박해랑",
+          "valueType": "string"
         },
         {
           "key": "neededOn",
-          "description": "필요한 날짜. YYYY-MM-DD. 예: 2026-03-15"
+          "description": "필요한 날짜. YYYY-MM-DD. 예: 2026-03-15",
+          "valueType": "string"
         },
         {
           "key": "stage",
-          "description": "지금 어느 단계인지. steps 요소의 items[].key와 같은 말이어야 한다. 예: review"
+          "description": "지금 어느 단계인지. steps 요소의 items[].key와 같은 말이어야 한다. 예: review",
+          "valueType": "string"
         }
       ]
     },
@@ -2039,31 +2314,38 @@
       "fields": [
         {
           "key": "id",
-          "description": "항목 식별자. 그려지지 않는다."
+          "description": "항목 식별자. 그려지지 않는다.",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "품목명. 예: 박스테이프"
+          "description": "품목명. 예: 박스테이프",
+          "valueType": "string"
         },
         {
           "key": "quantityNote",
-          "description": "수량과 세는 말이 함께 온다 — 세는 말이 품목마다 다르다. 예: 10박스"
+          "description": "수량과 세는 말이 함께 온다 — 세는 말이 품목마다 다르다. 예: 10박스",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "이 품목의 요청액. 자릿점과 단위까지 찍혀서 온다. 예: 10,000원"
+          "description": "이 품목의 요청액. 자릿점과 단위까지 찍혀서 온다. 예: 10,000원",
+          "valueType": "string"
         },
         {
           "key": "result",
-          "description": "재정부의 처리 결과. 딱지에 그려진다. 예: 승인"
+          "description": "재정부의 처리 결과. 딱지에 그려진다. 예: 승인",
+          "valueType": "string"
         },
         {
           "key": "resultTone",
-          "description": "처리 결과 딱지의 색 이름. 예: green"
+          "description": "처리 결과 딱지의 색 이름. 예: green",
+          "valueType": "string"
         },
         {
           "key": "note",
-          "description": "재정부가 남긴 말. 없으면 줄표가 온다 — 빈 칸과 할 말이 없다는 것은 다르다. 예: 규격·수량 확인 후 견적서 재첨부 요망"
+          "description": "재정부가 남긴 말. 없으면 줄표가 온다 — 빈 칸과 할 말이 없다는 것은 다르다. 예: 규격·수량 확인 후 견적서 재첨부 요망",
+          "valueType": "string"
         }
       ]
     },
@@ -2086,15 +2368,18 @@
       "fields": [
         {
           "key": "id",
-          "description": "항목 식별자. 그려지지 않는다."
+          "description": "항목 식별자. 그려지지 않는다.",
+          "valueType": "string"
         },
         {
           "key": "action",
-          "description": "무슨 일이 있었는지. 예: 재정부 검토 시작"
+          "description": "무슨 일이 있었는지. 예: 재정부 검토 시작",
+          "valueType": "string"
         },
         {
           "key": "actorNote",
-          "description": "누가 언제 했는지가 한 줄로 온다 — 사람과 시각을 잇는 방식은 조직의 표기다. 예: 김바다 · 2026-03-02 09:30"
+          "description": "누가 언제 했는지가 한 줄로 온다 — 사람과 시각을 잇는 방식은 조직의 표기다. 예: 김바다 · 2026-03-02 09:30",
+          "valueType": "string"
         }
       ]
     },
@@ -2117,27 +2402,33 @@
       "fields": [
         {
           "key": "scopeNote",
-          "description": "무엇을 모아 보고 있는지가 한 줄로 온다. 예: 이 행사에서 내가 제출한 구매 요청 · 박해랑 · 운영부 · 부원"
+          "description": "무엇을 모아 보고 있는지가 한 줄로 온다. 예: 이 행사에서 내가 제출한 구매 요청 · 박해랑 · 운영부 · 부원",
+          "valueType": "string"
         },
         {
           "key": "reviewCount",
-          "description": "검토를 기다리는 요청 수. 예: 1"
+          "description": "검토를 기다리는 요청 수. 예: 1",
+          "valueType": "string"
         },
         {
           "key": "supplementCount",
-          "description": "보완이 필요한 요청 수. 예: 0"
+          "description": "보완이 필요한 요청 수. 예: 0",
+          "valueType": "string"
         },
         {
           "key": "approvedCount",
-          "description": "승인이 끝난 요청 수. 예: 0"
+          "description": "승인이 끝난 요청 수. 예: 0",
+          "valueType": "string"
         },
         {
           "key": "purchasingCount",
-          "description": "구매가 진행 중인 요청 수. 예: 0"
+          "description": "구매가 진행 중인 요청 수. 예: 0",
+          "valueType": "string"
         },
         {
           "key": "doneCount",
-          "description": "처리가 끝난 요청 수. 예: 0"
+          "description": "처리가 끝난 요청 수. 예: 0",
+          "valueType": "string"
         }
       ]
     },
@@ -2160,39 +2451,48 @@
       "fields": [
         {
           "key": "id",
-          "description": "구매 요청을 가리키는 값. 표에 그려지지 않지만, 눌러서 상세를 열 때 '어느 요청인지'로 넘어간다. 예: PR-2026-0031"
+          "description": "구매 요청을 가리키는 값. 표에 그려지지 않지만, 눌러서 상세를 열 때 '어느 요청인지'로 넘어간다. 예: PR-2026-0031",
+          "valueType": "string"
         },
         {
           "key": "code",
-          "description": "사람이 부르는 요청 번호. 예: REQ-001"
+          "description": "사람이 부르는 요청 번호. 예: REQ-001",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무엇을 사려는지. 예: 체육대회 운영 물품 4종"
+          "description": "무엇을 사려는지. 예: 체육대회 운영 물품 4종",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "요청 금액. 단위까지 붙어서 온다. 예: 135,000원"
+          "description": "요청 금액. 단위까지 붙어서 온다. 예: 135,000원",
+          "valueType": "string"
         },
         {
           "key": "itemCountNote",
-          "description": "품목이 몇인지가 세는 말까지 붙어서 온다 — 무엇을 무엇으로 세는지는 조직의 표기다. 예: 4종"
+          "description": "품목이 몇인지가 세는 말까지 붙어서 온다 — 무엇을 무엇으로 세는지는 조직의 표기다. 예: 4종",
+          "valueType": "string"
         },
         {
           "key": "requestedAt",
-          "description": "요청한 날. 예: 2026-03-01"
+          "description": "요청한 날. 예: 2026-03-01",
+          "valueType": "string"
         },
         {
           "key": "neededOn",
-          "description": "필요한 날짜. 예: 2026-03-15"
+          "description": "필요한 날짜. 예: 2026-03-15",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "이 요청이 지금 무엇을 기다리는지. 예: 검토 대기"
+          "description": "이 요청이 지금 무엇을 기다리는지. 예: 검토 대기",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지에 배정된 색 이름. 상태가 조직 규칙에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+          "description": "상태 딱지에 배정된 색 이름. 상태가 조직 규칙에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: blue",
+          "valueType": "string"
         }
       ]
     },
@@ -2215,15 +2515,18 @@
       "fields": [
         {
           "key": "reviewerNote",
-          "description": "누가 걸었는지. 예: 요청 담당자 김바다"
+          "description": "누가 걸었는지. 예: 요청 담당자 김바다",
+          "valueType": "string"
         },
         {
           "key": "requestedAtNote",
-          "description": "언제 걸렸는지. 예: 보완 요청일 2026-03-03"
+          "description": "언제 걸렸는지. 예: 보완 요청일 2026-03-03",
+          "valueType": "string"
         },
         {
           "key": "dueNote",
-          "description": "언제까지 다시 내야 하는지. 예: 재제출 권장 기한 2026-03-07"
+          "description": "언제까지 다시 내야 하는지. 예: 재제출 권장 기한 2026-03-07",
+          "valueType": "string"
         }
       ]
     },
@@ -2246,39 +2549,48 @@
       "fields": [
         {
           "key": "id",
-          "description": "이 보완 품목을 가리키는 값. 그려지지 않지만 이 품목이 채워야 할 칸을 물을 때 넘어간다. 예: PRI-03"
+          "description": "이 보완 품목을 가리키는 값. 그려지지 않지만 이 품목이 채워야 할 칸을 물을 때 넘어간다. 예: PRI-03",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무엇의 보완인지가 머리글로 온다. 예: 보완 품목 — 이름표 용지"
+          "description": "무엇의 보완인지가 머리글로 온다. 예: 보완 품목 — 이름표 용지",
+          "valueType": "string"
         },
         {
           "key": "categoryNote",
-          "description": "분류와 예산 항목이 한 줄로 온다. 예: 제작·인쇄 · 홍보비"
+          "description": "분류와 예산 항목이 한 줄로 온다. 예: 제작·인쇄 · 홍보비",
+          "valueType": "string"
         },
         {
           "key": "reason",
-          "description": "왜 보완이 필요한지. 재정부가 쓴 글이다."
+          "description": "왜 보완이 필요한지. 재정부가 쓴 글이다.",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "기존에 적었던 품목명. 예: 이름표 용지"
+          "description": "기존에 적었던 품목명. 예: 이름표 용지",
+          "valueType": "string"
         },
         {
           "key": "quantityNote",
-          "description": "기존 수량. 세는 말까지 붙어서 온다. 예: 200장"
+          "description": "기존 수량. 세는 말까지 붙어서 온다. 예: 200장",
+          "valueType": "string"
         },
         {
           "key": "unitPriceNote",
-          "description": "기존 단가. 예: 300원"
+          "description": "기존 단가. 예: 300원",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "기존 합계. 예: 60,000원"
+          "description": "기존 합계. 예: 60,000원",
+          "valueType": "string"
         },
         {
           "key": "budgetItem",
-          "description": "기존 예산 항목. 예: 행사 운영비"
+          "description": "기존 예산 항목. 예: 행사 운영비",
+          "valueType": "string"
         }
       ]
     },
@@ -2301,15 +2613,18 @@
       "fields": [
         {
           "key": "key",
-          "description": "칸의 이름. 화면에 그려지지 않고 값을 담는 자리가 된다. 예: size"
+          "description": "칸의 이름. 화면에 그려지지 않고 값을 담는 자리가 된다. 예: size",
+          "valueType": "string"
         },
         {
           "key": "label",
-          "description": "칸 위에 그려지는 글. 예: 사이즈·규격"
+          "description": "칸 위에 그려지는 글. 예: 사이즈·규격",
+          "valueType": "string"
         },
         {
           "key": "placeholder",
-          "description": "빈 칸에 흐리게 보이는 예시. 예: 예: A4 (210×297mm)"
+          "description": "빈 칸에 흐리게 보이는 예시. 예: 예: A4 (210×297mm)",
+          "valueType": "string"
         }
       ]
     },
@@ -2332,15 +2647,18 @@
       "fields": [
         {
           "key": "key",
-          "description": "첨부 자리의 이름. 그려지지 않는다. 예: designFile"
+          "description": "첨부 자리의 이름. 그려지지 않는다. 예: designFile",
+          "valueType": "string"
         },
         {
           "key": "label",
-          "description": "무엇을 넣는 자리인지. 예: 디자인 파일"
+          "description": "무엇을 넣는 자리인지. 예: 디자인 파일",
+          "valueType": "string"
         },
         {
           "key": "placeholder",
-          "description": "아직 아무것도 넣지 않았을 때 그려지는 글. 예: 클릭하여 파일 추가"
+          "description": "아직 아무것도 넣지 않았을 때 그려지는 글. 예: 클릭하여 파일 추가",
+          "valueType": "string"
         }
       ]
     },
@@ -2363,47 +2681,58 @@
       "fields": [
         {
           "key": "code",
-          "description": "요청 번호. 예: REQ-001"
+          "description": "요청 번호. 예: REQ-001",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "지금 무엇을 기다리는지. 예: 보완 요청"
+          "description": "지금 무엇을 기다리는지. 예: 보완 요청",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지의 색 이름. 예: yellow"
+          "description": "상태 딱지의 색 이름. 예: yellow",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "전체 요청액. 단위까지 붙어서 온다. 예: 135,000원"
+          "description": "전체 요청액. 단위까지 붙어서 온다. 예: 135,000원",
+          "valueType": "string"
         },
         {
           "key": "budgetAvailableNote",
-          "description": "이 요청을 승인해도 되는지를 가르는 값. 남은 예산에서 무엇을 빼야 사용 가능액이 되는지는 조직의 재정 규칙이라 서버가 셈한다. 예: 950,000원"
+          "description": "이 요청을 승인해도 되는지를 가르는 값. 남은 예산에서 무엇을 빼야 사용 가능액이 되는지는 조직의 재정 규칙이라 서버가 셈한다. 예: 950,000원",
+          "valueType": "string"
         },
         {
           "key": "eventName",
-          "description": "어느 행사의 요청인지. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "어느 행사의 요청인지. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "요청 부서. 예: 운영부"
+          "description": "요청 부서. 예: 운영부",
+          "valueType": "string"
         },
         {
           "key": "requester",
-          "description": "요청자. 예: 박해랑"
+          "description": "요청자. 예: 박해랑",
+          "valueType": "string"
         },
         {
           "key": "neededOn",
-          "description": "필요한 날짜. 예: 2026-03-15"
+          "description": "필요한 날짜. 예: 2026-03-15",
+          "valueType": "string"
         },
         {
           "key": "requestedAt",
-          "description": "요청일. 예: 2026-03-01"
+          "description": "요청일. 예: 2026-03-01",
+          "valueType": "string"
         },
         {
           "key": "purpose",
-          "description": "구매 목적. 요청자가 쓴 글이다."
+          "description": "구매 목적. 요청자가 쓴 글이다.",
+          "valueType": "string"
         }
       ]
     },
@@ -2426,35 +2755,43 @@
       "fields": [
         {
           "key": "id",
-          "description": "품목을 가리키는 값. 그려지지 않지만 판정이 이 값에 붙는다. 예: PRI-01"
+          "description": "품목을 가리키는 값. 그려지지 않지만 판정이 이 값에 붙는다. 예: PRI-01",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "품목명. 예: 박스테이프"
+          "description": "품목명. 예: 박스테이프",
+          "valueType": "string"
         },
         {
           "key": "categoryNote",
-          "description": "분류와 예산 항목이 한 줄로 온다. 예: 운영 물품 · 행사 운영비"
+          "description": "분류와 예산 항목이 한 줄로 온다. 예: 운영 물품 · 행사 운영비",
+          "valueType": "string"
         },
         {
           "key": "purchaseType",
-          "description": "구매 유형. 무엇을 다시 물어야 하는지가 여기서 갈린다. 예: 일반 구매"
+          "description": "구매 유형. 무엇을 다시 물어야 하는지가 여기서 갈린다. 예: 일반 구매",
+          "valueType": "string"
         },
         {
           "key": "quantityNote",
-          "description": "수량. 세는 말까지 붙어서 온다. 예: 5개"
+          "description": "수량. 세는 말까지 붙어서 온다. 예: 5개",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "요청액. 예: 10,000원"
+          "description": "요청액. 예: 10,000원",
+          "valueType": "string"
         },
         {
           "key": "approvedAmount",
-          "description": "승인액의 처음 값. 재정부가 깎을 수 있으므로 요청액과 따로 온다 — 단위 없는 수다(사람이 고치는 값이라 자릿점도 붙지 않는다). 예: 10000"
+          "description": "승인액의 처음 값. 재정부가 깎을 수 있으므로 요청액과 따로 온다 — 단위 없는 수다(사람이 고치는 값이라 자릿점도 붙지 않는다). 예: 10000",
+          "valueType": "string"
         },
         {
           "key": "result",
-          "description": "이 품목에 이미 내린 판정. 검토는 한 번에 끝나지 않으므로 앞서 고른 것이 함께 온다 - 항목의 칸은 조각 이름이 같으면 그 값으로 시작한다(draftFrom과 같은 규칙이다). 아직 판정하지 않았으면 빈 값이다. 예: 보완"
+          "description": "이 품목에 이미 내린 판정. 검토는 한 번에 끝나지 않으므로 앞서 고른 것이 함께 온다 - 항목의 칸은 조각 이름이 같으면 그 값으로 시작한다(draftFrom과 같은 규칙이다). 아직 판정하지 않았으면 빈 값이다. 예: 보완",
+          "valueType": "string"
         }
       ]
     },
@@ -2477,31 +2814,38 @@
       "fields": [
         {
           "key": "eventName",
-          "description": "어느 행사의 요청인지. 빵부스러기가 그 행사를 가리킨다. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "어느 행사의 요청인지. 빵부스러기가 그 행사를 가리킨다. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "code",
-          "description": "요청 번호. 예: REQ-001"
+          "description": "요청 번호. 예: REQ-001",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "지금 어느 단계인지. 예: 구매 진행 중"
+          "description": "지금 어느 단계인지. 예: 구매 진행 중",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지의 색 이름. 예: blue"
+          "description": "상태 딱지의 색 이름. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무엇을 사는지. 예: 체육대회 운영 물품 4종"
+          "description": "무엇을 사는지. 예: 체육대회 운영 물품 4종",
+          "valueType": "string"
         },
         {
           "key": "requesterNote",
-          "description": "누가 언제까지 필요하다 했는지가 한 줄로 온다. 예: 운영부 · 박해랑 · 필요한 날짜 2026-03-15"
+          "description": "누가 언제까지 필요하다 했는지가 한 줄로 온다. 예: 운영부 · 박해랑 · 필요한 날짜 2026-03-15",
+          "valueType": "string"
         },
         {
           "key": "approvedAmountNote",
-          "description": "검토에서 승인된 전체 금액. 단위까지 붙어서 온다. 예: 135,000원"
+          "description": "검토에서 승인된 전체 금액. 단위까지 붙어서 온다. 예: 135,000원",
+          "valueType": "string"
         }
       ]
     },
@@ -2524,19 +2868,23 @@
       "fields": [
         {
           "key": "id",
-          "description": "발주를 가리키는 값. 그려지지 않는다. 예: PO-01"
+          "description": "발주를 가리키는 값. 그려지지 않는다. 예: PO-01",
+          "valueType": "string"
         },
         {
           "key": "vendor",
-          "description": "어느 업체에 주문했는지. 무엇을 어떻게 부르는지는 조직이 정한다. 예: 다이소 온라인몰 · 인쇄업체 A (제작 발주)"
+          "description": "어느 업체에 주문했는지. 무엇을 어떻게 부르는지는 조직이 정한다. 예: 다이소 온라인몰 · 인쇄업체 A (제작 발주)",
+          "valueType": "string"
         },
         {
           "key": "orderNote",
-          "description": "언제 누가 주문했는지가 한 줄로 온다. 아직 주문하지 않았으면 자리를 비운 채로 온다. 예: 주문일 2026-03-08 · 담당 김바다 · 주문일 — · 담당 —"
+          "description": "언제 누가 주문했는지가 한 줄로 온다. 아직 주문하지 않았으면 자리를 비운 채로 온다. 예: 주문일 2026-03-08 · 담당 김바다 · 주문일 — · 담당 —",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "이 업체 몫의 금액. 단위까지 붙어서 온다. 예: 25,000원"
+          "description": "이 업체 몫의 금액. 단위까지 붙어서 온다. 예: 25,000원",
+          "valueType": "string"
         },
         {
           "key": "items",
@@ -2544,39 +2892,48 @@
           "fields": [
             {
               "key": "id",
-              "description": "품목을 가리키는 값. 그려지지 않는다. 예: POI-01"
+              "description": "품목을 가리키는 값. 그려지지 않는다. 예: POI-01",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "품목명. 제작 발주는 그 사실이 이름에 붙는다. 예: 박스테이프 · 이름표 용지 (제작)"
+              "description": "품목명. 제작 발주는 그 사실이 이름에 붙는다. 예: 박스테이프 · 이름표 용지 (제작)",
+              "valueType": "string"
             },
             {
               "key": "quantityNote",
-              "description": "수량. 세는 말까지 붙어서 온다. 예: 5개"
+              "description": "수량. 세는 말까지 붙어서 온다. 예: 5개",
+              "valueType": "string"
             },
             {
               "key": "amountNote",
-              "description": "검토에서 승인된 금액. 예: 10,000원"
+              "description": "검토에서 승인된 금액. 예: 10,000원",
+              "valueType": "string"
             },
             {
               "key": "orderStatus",
-              "description": "주문이 어디까지 됐는지. 예: 주문 완료 · 품절·변경 필요"
+              "description": "주문이 어디까지 됐는지. 예: 주문 완료 · 품절·변경 필요",
+              "valueType": "string"
             },
             {
               "key": "orderStatusTone",
-              "description": "주문 상태 딱지의 색 이름. 예: green · red"
+              "description": "주문 상태 딱지의 색 이름. 예: green · red",
+              "valueType": "string"
             },
             {
               "key": "deliveryOn",
-              "description": "언제 올 예정인지. 모르면 '—'로 온다. 예: 2026-03-12"
+              "description": "언제 올 예정인지. 모르면 '—'로 온다. 예: 2026-03-12",
+              "valueType": "string"
             },
             {
               "key": "deliveryStatus",
-              "description": "배송이 어디까지 됐는지. 예: 배송 중 · 배송 예정 · —"
+              "description": "배송이 어디까지 됐는지. 예: 배송 중 · 배송 예정 · —",
+              "valueType": "string"
             },
             {
               "key": "deliveryStatusTone",
-              "description": "배송 상태 글의 색 이름. 딱지가 아니라 글에 색이 붙는다 - 어느 쪽으로 그리는지는 design이 말한다. 예: blue · gray · red"
+              "description": "배송 상태 글의 색 이름. 딱지가 아니라 글에 색이 붙는다 - 어느 쪽으로 그리는지는 design이 말한다. 예: blue · gray · red",
+              "valueType": "string"
             }
           ]
         }
@@ -2601,39 +2958,48 @@
       "fields": [
         {
           "key": "eventName",
-          "description": "어느 행사의 요청인지. 빵부스러기가 그 행사를 가리킨다. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "어느 행사의 요청인지. 빵부스러기가 그 행사를 가리킨다. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "code",
-          "description": "요청 번호. 예: REQ-001"
+          "description": "요청 번호. 예: REQ-001",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "지금 어느 단계인지. 예: 증빙 정리 중"
+          "description": "지금 어느 단계인지. 예: 증빙 정리 중",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지의 색 이름. 예: blue"
+          "description": "상태 딱지의 색 이름. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무엇을 산 요청인지. 예: 체육대회 운영 물품 4종"
+          "description": "무엇을 산 요청인지. 예: 체육대회 운영 물품 4종",
+          "valueType": "string"
         },
         {
           "key": "requesterNote",
-          "description": "누가 낸 요청인지가 한 줄로 온다. 예: 운영부 · 박해랑"
+          "description": "누가 낸 요청인지가 한 줄로 온다. 예: 운영부 · 박해랑",
+          "valueType": "string"
         },
         {
           "key": "approvedAmountNote",
-          "description": "검토에서 승인된 금액. 예: 135,000원"
+          "description": "검토에서 승인된 금액. 예: 135,000원",
+          "valueType": "string"
         },
         {
           "key": "paidAmountNote",
-          "description": "실제로 결제된 합계. 승인 금액과 다를 수 있다. 예: 137,500원"
+          "description": "실제로 결제된 합계. 승인 금액과 다를 수 있다. 예: 137,500원",
+          "valueType": "string"
         },
         {
           "key": "completeBlockedNote",
-          "description": "처리를 끝낼 수 없으면 그 이유. 끝낼 수 있으면 빈 값으로 온다 - **무엇이 '다 됐다'인지는 조직의 재정 규칙이고 화면이 세지 않는다.** 예: 증빙 서류 2건이 아직 등록되지 않았습니다."
+          "description": "처리를 끝낼 수 없으면 그 이유. 끝낼 수 있으면 빈 값으로 온다 - **무엇이 '다 됐다'인지는 조직의 재정 규칙이고 화면이 세지 않는다.** 예: 증빙 서류 2건이 아직 등록되지 않았습니다.",
+          "valueType": "string"
         }
       ]
     },
@@ -2656,23 +3022,28 @@
       "fields": [
         {
           "key": "id",
-          "description": "결제를 가리키는 값. 그려지지 않는다. 예: PAY-01"
+          "description": "결제를 가리키는 값. 그려지지 않는다. 예: PAY-01",
+          "valueType": "string"
         },
         {
           "key": "vendor",
-          "description": "어느 업체에 냈는지. 예: 다이소 온라인몰"
+          "description": "어느 업체에 냈는지. 예: 다이소 온라인몰",
+          "valueType": "string"
         },
         {
           "key": "paidNote",
-          "description": "언제 누가 무엇으로 냈는지가 한 줄로 온다. 결제 수단의 이름은 조직이 정한다. 예: 결제일 2026-03-08 · 결제자 김바다 · 법인카드"
+          "description": "언제 누가 무엇으로 냈는지가 한 줄로 온다. 결제 수단의 이름은 조직이 정한다. 예: 결제일 2026-03-08 · 결제자 김바다 · 법인카드",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "승인액과 실결제액을 잇는 완성된 문구. 화면이 두 수를 화살표로 잇지 않는다 - 무엇을 무엇에 견주는지가 곧 재정의 표기다. 예: 승인 25,000원 → 실결제 24,500원"
+          "description": "승인액과 실결제액을 잇는 완성된 문구. 화면이 두 수를 화살표로 잇지 않는다 - 무엇을 무엇에 견주는지가 곧 재정의 표기다. 예: 승인 25,000원 → 실결제 24,500원",
+          "valueType": "string"
         },
         {
           "key": "gapNote",
           "description": "승인액과 다를 때 그 차이를 설명하는 글(선택). 같으면 오지 않는다. 어떻게 다른지는 서버가 세어 문장으로 준다. 예: 실결제액이 승인액보다 500원 적음",
+          "valueType": "string",
           "optional": true
         },
         {
@@ -2681,11 +3052,13 @@
           "fields": [
             {
               "key": "id",
-              "description": "품목을 가리키는 값. 그려지지 않는다. 예: POI-01"
+              "description": "품목을 가리키는 값. 그려지지 않는다. 예: POI-01",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "품목명. 예: 박스테이프"
+              "description": "품목명. 예: 박스테이프",
+              "valueType": "string"
             }
           ]
         },
@@ -2695,19 +3068,23 @@
           "fields": [
             {
               "key": "id",
-              "description": "서류 자리를 가리키는 값. 그려지지 않는다. 예: DOC-01"
+              "description": "서류 자리를 가리키는 값. 그려지지 않는다. 예: DOC-01",
+              "valueType": "string"
             },
             {
               "key": "label",
-              "description": "무엇을 받는 자리인지. 예: 영수증 · 거래명세서 · 세금계산서"
+              "description": "무엇을 받는 자리인지. 예: 영수증 · 거래명세서 · 세금계산서",
+              "valueType": "string"
             },
             {
               "key": "status",
-              "description": "그 자리가 채워졌는지. 예: 등록 완료 · 누락"
+              "description": "그 자리가 채워졌는지. 예: 등록 완료 · 누락",
+              "valueType": "string"
             },
             {
               "key": "statusTone",
-              "description": "상태 딱지의 색 이름. 예: green · red"
+              "description": "상태 딱지의 색 이름. 예: green · red",
+              "valueType": "string"
             }
           ]
         }
@@ -2730,15 +3107,18 @@
       "fields": [
         {
           "key": "departments",
-          "description": "부서 & 구성원 영역의 한 줄. 예: 부서 5개 · 구성원 18명"
+          "description": "부서 & 구성원 영역의 한 줄. 예: 부서 5개 · 구성원 18명",
+          "valueType": "string"
         },
         {
           "key": "students",
-          "description": "학생 명단 영역의 한 줄. 예: 학생 1,284명 · 최근 갱신 07.01"
+          "description": "학생 명단 영역의 한 줄. 예: 학생 1,284명 · 최근 갱신 07.01",
+          "valueType": "string"
         },
         {
           "key": "roles",
-          "description": "역할 및 권한 영역의 한 줄. 예: 기본 역할 3종 · 확정된 권한 매트릭스"
+          "description": "역할 및 권한 영역의 한 줄. 예: 기본 역할 3종 · 확정된 권한 매트릭스",
+          "valueType": "string"
         }
       ]
     },
@@ -2759,7 +3139,8 @@
       "fields": [
         {
           "key": "name",
-          "description": "학생회의 이름. 예: 제12대 소프트웨어융합대학 학생회"
+          "description": "학생회의 이름. 예: 제12대 소프트웨어융합대학 학생회",
+          "valueType": "string"
         }
       ]
     },
@@ -2780,27 +3161,33 @@
       "fields": [
         {
           "key": "id",
-          "description": "구성원 id"
+          "description": "구성원 id",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "major",
-          "description": "소속 학부. 예: 컴퓨터학부"
+          "description": "소속 학부. 예: 컴퓨터학부",
+          "valueType": "string"
         },
         {
           "key": "grade",
-          "description": "학년. 예: 3학년"
+          "description": "학년. 예: 3학년",
+          "valueType": "string"
         },
         {
           "key": "roleLabel",
-          "description": "이 사람의 자리. 예: 회장 · 부회장"
+          "description": "이 사람의 자리. 예: 회장 · 부회장",
+          "valueType": "string"
         },
         {
           "key": "roleTone",
-          "description": "자리 딱지의 색 이름. 회장과 부회장이 다른 색으로 그려진다"
+          "description": "자리 딱지의 색 이름. 회장과 부회장이 다른 색으로 그려진다",
+          "valueType": "string"
         }
       ]
     },
@@ -2823,15 +3210,18 @@
       "fields": [
         {
           "key": "id",
-          "description": "부서 id"
+          "description": "부서 id",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "부서 이름. 예: 기획부"
+          "description": "부서 이름. 예: 기획부",
+          "valueType": "string"
         },
         {
           "key": "memberCountLabel",
-          "description": "부원 목록 위에 그려지는 한 줄. 예: 부원 2명"
+          "description": "부원 목록 위에 그려지는 한 줄. 예: 부원 2명",
+          "valueType": "string"
         },
         {
           "key": "leaders",
@@ -2839,19 +3229,23 @@
           "fields": [
             {
               "key": "id",
-              "description": "구성원 id"
+              "description": "구성원 id",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "이름"
+              "description": "이름",
+              "valueType": "string"
             },
             {
               "key": "major",
-              "description": "소속 학부. 예: 컴퓨터학부"
+              "description": "소속 학부. 예: 컴퓨터학부",
+              "valueType": "string"
             },
             {
               "key": "grade",
-              "description": "학년. 예: 3학년"
+              "description": "학년. 예: 3학년",
+              "valueType": "string"
             }
           ]
         },
@@ -2861,19 +3255,23 @@
           "fields": [
             {
               "key": "id",
-              "description": "구성원 id"
+              "description": "구성원 id",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "이름"
+              "description": "이름",
+              "valueType": "string"
             },
             {
               "key": "major",
-              "description": "소속 학부. 예: 컴퓨터학부"
+              "description": "소속 학부. 예: 컴퓨터학부",
+              "valueType": "string"
             },
             {
               "key": "grade",
-              "description": "학년. 예: 3학년"
+              "description": "학년. 예: 3학년",
+              "valueType": "string"
             }
           ]
         }
@@ -2898,19 +3296,23 @@
       "fields": [
         {
           "key": "id",
-          "description": "구성원 id"
+          "description": "구성원 id",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "major",
-          "description": "소속 학부"
+          "description": "소속 학부",
+          "valueType": "string"
         },
         {
           "key": "grade",
-          "description": "학년"
+          "description": "학년",
+          "valueType": "string"
         }
       ]
     },
@@ -2931,7 +3333,8 @@
       "fields": [
         {
           "key": "hint",
-          "description": "완성된 안내. 예: 2명 · 드래그해서 부서로 이동"
+          "description": "완성된 안내. 예: 2명 · 드래그해서 부서로 이동",
+          "valueType": "string"
         }
       ]
     },
@@ -2952,27 +3355,33 @@
       "fields": [
         {
           "key": "stateLabel",
-          "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성"
+          "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성",
+          "valueType": "string"
         },
         {
           "key": "stateTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "stateNote",
-          "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다."
+          "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다.",
+          "valueType": "string"
         },
         {
           "key": "regeneratedNote",
-          "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30"
+          "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30",
+          "valueType": "string"
         },
         {
           "key": "url",
-          "description": "공용 초대 링크"
+          "description": "공용 초대 링크",
+          "valueType": "string"
         },
         {
           "key": "code",
-          "description": "짧은 초대 코드. 예: AB12CD34"
+          "description": "짧은 초대 코드. 예: AB12CD34",
+          "valueType": "string"
         }
       ]
     },
@@ -2993,15 +3402,18 @@
       "fields": [
         {
           "key": "chairCount",
-          "description": "회장단 인원"
+          "description": "회장단 인원",
+          "valueType": "number"
         },
         {
           "key": "headCount",
-          "description": "부서장 인원"
+          "description": "부서장 인원",
+          "valueType": "number"
         },
         {
           "key": "memberCount",
-          "description": "부원 인원"
+          "description": "부원 인원",
+          "valueType": "number"
         }
       ]
     },
@@ -3022,35 +3434,43 @@
       "fields": [
         {
           "key": "id",
-          "description": "기능 영역의 id"
+          "description": "기능 영역의 id",
+          "valueType": "string"
         },
         {
           "key": "area",
-          "description": "기능 영역의 이름. 예: 재정 현황·사용 내역 열람"
+          "description": "기능 영역의 이름. 예: 재정 현황·사용 내역 열람",
+          "valueType": "string"
         },
         {
           "key": "chair",
-          "description": "회장단이 할 수 있는 정도"
+          "description": "회장단이 할 수 있는 정도",
+          "valueType": "string"
         },
         {
           "key": "chairTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "head",
-          "description": "부서장이 할 수 있는 정도"
+          "description": "부서장이 할 수 있는 정도",
+          "valueType": "string"
         },
         {
           "key": "headTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "member",
-          "description": "부원이 할 수 있는 정도"
+          "description": "부원이 할 수 있는 정도",
+          "valueType": "string"
         },
         {
           "key": "memberTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         }
       ]
     },
@@ -3071,27 +3491,33 @@
       "fields": [
         {
           "key": "id",
-          "description": "구성원 id"
+          "description": "구성원 id",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "소속 부서"
+          "description": "소속 부서",
+          "valueType": "string"
         },
         {
           "key": "roleLabel",
-          "description": "지금의 기본 역할 이름"
+          "description": "지금의 기본 역할 이름",
+          "valueType": "string"
         },
         {
           "key": "roleTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "role",
-          "description": "지금의 기본 역할 값. org.baseRoles의 value다"
+          "description": "지금의 기본 역할 값. org.baseRoles의 value다",
+          "valueType": "string"
         }
       ]
     },
@@ -3112,7 +3538,8 @@
       "fields": [
         {
           "key": "total",
-          "description": "완성된 한 줄. 예: 7명"
+          "description": "완성된 한 줄. 예: 7명",
+          "valueType": "string"
         }
       ]
     },
@@ -3133,27 +3560,33 @@
       "fields": [
         {
           "key": "id",
-          "description": "구성원 id"
+          "description": "구성원 id",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "소속 부서"
+          "description": "소속 부서",
+          "valueType": "string"
         },
         {
           "key": "roleLabel",
-          "description": "지금의 기본 역할 이름"
+          "description": "지금의 기본 역할 이름",
+          "valueType": "string"
         },
         {
           "key": "roleTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "role",
-          "description": "지금의 기본 역할 값"
+          "description": "지금의 기본 역할 값",
+          "valueType": "string"
         }
       ]
     },
@@ -3174,27 +3607,33 @@
       "fields": [
         {
           "key": "path",
-          "description": "범위의 경로. 예: 한양대학교 ERICA › 소프트웨어융합대학 › 컴퓨터학부"
+          "description": "범위의 경로. 예: 한양대학교 ERICA › 소프트웨어융합대학 › 컴퓨터학부",
+          "valueType": "string"
         },
         {
           "key": "note",
-          "description": "완성된 안내. 예: 컴퓨터학부 학생만 이 명단에 등록할 수 있습니다. …"
+          "description": "완성된 안내. 예: 컴퓨터학부 학생만 이 명단에 등록할 수 있습니다. …",
+          "valueType": "string"
         },
         {
           "key": "rosterUpdatedAt",
-          "description": "학생 명단이 갱신된 때"
+          "description": "학생 명단이 갱신된 때",
+          "valueType": "string"
         },
         {
           "key": "rosterUpdatedBy",
-          "description": "누가 어떻게 갱신했는지. 예: 학생 명단 업로드 · 이지원"
+          "description": "누가 어떻게 갱신했는지. 예: 학생 명단 업로드 · 이지원",
+          "valueType": "string"
         },
         {
           "key": "duesUpdatedAt",
-          "description": "학생회비 명단이 갱신된 때"
+          "description": "학생회비 명단이 갱신된 때",
+          "valueType": "string"
         },
         {
           "key": "duesUpdatedBy",
-          "description": "어느 학기의 것을 누가 올렸는지. 예: 2026년 1학기 · 김민준"
+          "description": "어느 학기의 것을 누가 올렸는지. 예: 2026년 1학기 · 김민준",
+          "valueType": "string"
         }
       ]
     },
@@ -3220,39 +3659,48 @@
       "fields": [
         {
           "key": "id",
-          "description": "학생 id"
+          "description": "학생 id",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "studentNumber",
-          "description": "학번"
+          "description": "학번",
+          "valueType": "string"
         },
         {
           "key": "college",
-          "description": "단과대학"
+          "description": "단과대학",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "학부·학과"
+          "description": "학부·학과",
+          "valueType": "string"
         },
         {
           "key": "grade",
-          "description": "학년"
+          "description": "학년",
+          "valueType": "string"
         },
         {
           "key": "duesLabel",
-          "description": "학생회비 상태. 예: 납부 · 미납 · 확인 필요"
+          "description": "학생회비 상태. 예: 납부 · 미납 · 확인 필요",
+          "valueType": "string"
         },
         {
           "key": "duesTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "rowTone",
-          "description": "줄 전체의 색 이름. 손봐야 하는 줄에만 있다 - 대부분은 비어 있다"
+          "description": "줄 전체의 색 이름. 손봐야 하는 줄에만 있다 - 대부분은 비어 있다",
+          "valueType": "string"
         }
       ]
     },
@@ -3277,11 +3725,13 @@
       "fields": [
         {
           "key": "totalNote",
-          "description": "모두 몇 명인지를 말한 완성된 문구. 예: 총 8명"
+          "description": "모두 몇 명인지를 말한 완성된 문구. 예: 총 8명",
+          "valueType": "string"
         },
         {
           "key": "pageCount",
-          "description": "쪽이 몇 개인지"
+          "description": "쪽이 몇 개인지",
+          "valueType": "number"
         }
       ]
     },
@@ -3304,221 +3754,268 @@
       "fields": [
         {
           "key": "title",
-          "description": "회의 이름. 제목·빵부스러기 마지막 마디·머리 카드가 같은 값을 쓴다. 예: 체육대회 안전 관리 최종 회의"
+          "description": "회의 이름. 제목·빵부스러기 마지막 마디·머리 카드가 같은 값을 쓴다. 예: 체육대회 안전 관리 최종 회의",
+          "valueType": "string"
         },
         {
           "key": "description",
-          "description": "회의 목적 한 줄. 취소된 회의에서는 과거형으로 온다 — 어느 시제로 쓸지는 서버가 상태를 보고 정한다"
+          "description": "회의 목적 한 줄. 취소된 회의에서는 과거형으로 온다 — 어느 시제로 쓸지는 서버가 상태를 보고 정한다",
+          "valueType": "string"
         },
         {
           "key": "status",
-          "description": "회의 상태를 알리는 말. **명세가 목록을 들지 않는다** — 조직 운영에 따라 는다. 예: 예정 · 진행 중 · 정리 중 · 완료 · 취소"
+          "description": "회의 상태를 알리는 말. **명세가 목록을 들지 않는다** — 조직 운영에 따라 는다. 예: 예정 · 진행 중 · 정리 중 · 완료 · 취소",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "상태 딱지의 색 이름. 상태가 늘 수 있으므로 색도 데이터가 갖는다. 예: blue"
+          "description": "상태 딱지의 색 이름. 상태가 늘 수 있으므로 색도 데이터가 갖는다. 예: blue",
+          "valueType": "string"
         },
         {
           "key": "minutesStatus",
           "description": "**회의록**의 상태. 회의의 상태와 다른 축이다 — OPS-MEET-07의 '완료' 딱지가 매달린 문장은 '회의록 정리가 완료되었습니다'다. 예: 작성 전 · 작성 중 · 정리 완료",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "minutesStatusTone",
           "description": "그 딱지의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "kindLabel",
           "description": "회의 분류 딱지. 조직 운영에 따라 늘 수 있다. 예: 행사 관련 회의",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "kindTone",
           "description": "그 딱지의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "eventTitle",
           "description": "딸린 행사 이름. 정기·상시 회의에는 오지 않는다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "eventId",
           "description": "그 행사로 갈 때 넘기는 인자",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "creatorNote",
-          "description": "만든 사람. 이름과 소속을 이은 완성된 한 줄. 예: 박해랑 · 운영부"
+          "description": "만든 사람. 이름과 소속을 이은 완성된 한 줄. 예: 박해랑 · 운영부",
+          "valueType": "string"
         },
         {
           "key": "updatedNote",
           "description": "마지막 손댄 때. 예: 2026.07.17 18:42 수정",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "scheduledAt",
-          "description": "예정 일시. 취소된 회의에서는 '원래 예정 일시'로 그려진다. 예: 2026.07.25 15:00"
+          "description": "예정 일시. 취소된 회의에서는 '원래 예정 일시'로 그려진다. 예: 2026.07.25 15:00",
+          "valueType": "string"
         },
         {
           "key": "plannedDurationNote",
           "description": "예상 시간. 세는 말까지. 예: 1시간 30분",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "place",
-          "description": "장소. 정해지지 않았으면 완성된 안내로 온다('미정') — 화면이 빈 값을 무엇으로 채울지 정하지 않는다"
+          "description": "장소. 정해지지 않았으면 완성된 안내로 온다('미정') — 화면이 빈 값을 무엇으로 채울지 정하지 않는다",
+          "valueType": "string"
         },
         {
           "key": "inviteeCountNote",
-          "description": "초대 인원. 세는 말까지. 예: 4명"
+          "description": "초대 인원. 세는 말까지. 예: 4명",
+          "valueType": "string"
         },
         {
           "key": "viewerTitle",
-          "description": "**보는 사람이 어떤 자리인지.** 띠의 제목. meeting.attention의 같은 이름과 같은 계급이다. 예: 일반 참가자 화면 · 회의 생성자 화면 · 진행 권한자 화면"
+          "description": "**보는 사람이 어떤 자리인지.** 띠의 제목. meeting.attention의 같은 이름과 같은 계급이다. 예: 일반 참가자 화면 · 회의 생성자 화면 · 진행 권한자 화면",
+          "valueType": "string"
         },
         {
           "key": "viewerNote",
-          "description": "그 자리에서 무엇을 할 수 있는지"
+          "description": "그 자리에서 무엇을 할 수 있는지",
+          "valueType": "string"
         },
         {
           "key": "viewerChipLabel",
           "description": "보는 사람과 이 회의의 관계 딱지. 예: 15:07 참석 · 불참 · 참석 처리됨 · 15:07 참가",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "viewerChipTone",
           "description": "그 딱지의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "stateBannerTitle",
           "description": "상태 띠의 제목. 상태와 보는 사람 둘 다에 매인다. 예: 아직 회의가 시작되지 않았습니다 · 회의가 종료되어 정리 중입니다 · 이 회의는 취소되었습니다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "stateBannerNote",
           "description": "그 띠의 본문",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "stateBannerTone",
           "description": "그 띠의 색 이름. 다른 톤 조각과 같이 **색 이름**이다(design/tones.ts의 BANNER_TONE이 이름을 색으로 옮긴다). 예: blue · yellow · red",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "canStart",
-          "description": "회의를 시작할 수 있는가. **변형을 가르는 값이다** — 역할 이름이 아니라 할 수 있는 일로 가른다"
+          "description": "회의를 시작할 수 있는가. **변형을 가르는 값이다** — 역할 이름이 아니라 할 수 있는 일로 가른다",
+          "valueType": "string"
         },
         {
           "key": "canEnd",
-          "description": "회의를 끝낼 수 있는가"
+          "description": "회의를 끝낼 수 있는가",
+          "valueType": "string"
         },
         {
           "key": "canEdit",
-          "description": "회의를 고칠 수 있는가. 생성자만"
+          "description": "회의를 고칠 수 있는가. 생성자만",
+          "valueType": "string"
         },
         {
           "key": "canCancel",
-          "description": "회의를 취소할 수 있는가. 생성자만"
+          "description": "회의를 취소할 수 있는가. 생성자만",
+          "valueType": "string"
         },
         {
           "key": "canManageHostRole",
-          "description": "진행 권한을 주고 뺄 수 있는가. 생성자만"
+          "description": "진행 권한을 주고 뺄 수 있는가. 생성자만",
+          "valueType": "string"
         },
         {
           "key": "canEditMinutes",
-          "description": "회의록을 정리할 수 있는가"
+          "description": "회의록을 정리할 수 있는가",
+          "valueType": "string"
         },
         {
           "key": "startedAt",
           "description": "**실제** 시작 때. 예정 일시와 다르다. 진행 중부터 온다. 예: 15:00 시작",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "elapsedNote",
           "description": "얼마나 지났는지. 가만히 있어도 자란다. 예: 진행 27분",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "presentNote",
           "description": "지금 몇 명이 들어와 있는지. 예: 3명 참가 중",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "actualTimeNote",
           "description": "실제 진행 시각. 끝난 뒤 온다. 예: 15:00–16:12",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "closedByNote",
           "description": "누가 언제 끝냈는지. 예: 박해랑 · 16:12",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "attendanceResultNote",
           "description": "참석 결과를 이은 한 줄. 예: 3명 참석 · 1명 불참",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "agendaCountNote",
           "description": "안건 수와 예상 시간. 예: 총 3개 · 예상 60분",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "materialCountNote",
           "description": "등록된 자료 수. 예: 등록 자료 3개",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "participantCountNote",
           "description": "참가자 수와 진행 권한자 수. 예: 초대 4명 · 진행 권한 2명",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "decisionCountNote",
           "description": "확정된 결정 수. 예: 2건",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "followUpCountLabel",
           "description": "후속 업무 딱지에 그려지는 말. 없으면 '없음'까지 완성해 온다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "myFollowUpCountLabel",
           "description": "나에게 배정된 후속 업무 딱지. 예: 0건",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "exportName",
           "description": "받아 갈 회의록 파일. 무엇을 어떤 형식으로 낼지는 서버가 정한다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "cancelReason",
           "description": "취소 사유. 취소된 회의에만 온다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "cancelledByNote",
           "description": "누가 취소했는지. 예: 김바다 · 기획부",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "cancelledAtNote",
           "description": "언제 취소했는지. 예: 2026.07.29 11:20",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "replacementNote",
           "description": "대체 회의를 알리는 완성된 글. 대체 회의가 없는 취소도 있으므로 안 올 수 있다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "replacementMeetingId",
           "description": "그 대체 회의로 갈 때 넘기는 인자",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -3542,69 +4039,83 @@
       "fields": [
         {
           "key": "agendaId",
-          "description": "이 안건을 가리키는 값"
+          "description": "이 안건을 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "orderLabel",
-          "description": "몇 번째인지. 예: 안건 1"
+          "description": "몇 번째인지. 예: 안건 1",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "안건 이름"
+          "description": "안건 이름",
+          "valueType": "string"
         },
         {
           "key": "description",
           "description": "안건 설명. 회의 전에 적은 것",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "durationNote",
           "description": "예상 소요. 예: 20분",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "status",
           "description": "안건의 상태를 알리는 말. **명세가 목록을 들지 않는다.** 예: 대기 · 진행 중 · 논의 완료 · 정리 필요 · 정리됨",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "statusTone",
           "description": "그 딱지의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "isCurrent",
           "description": "지금 진행 중인 안건인가",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "discussionText",
           "description": "논의 내용. 회의 중에 참가자가 함께 쓴다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "decisionText",
           "description": "확정된 결정. 없으면 오지 않는다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "decisionEmptyNote",
           "description": "결정이 아직 없을 때 그 자리에 그릴 말",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "summaryLine",
           "description": "목록에서 한 줄로 줄여 보일 때의 글",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "decisionCountNote",
           "description": "이 안건에서 나온 결정 수. 예: 결정 1",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "taskCountNote",
           "description": "이 안건에서 나온 업무 수. 예: 업무 1",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -3630,19 +4141,23 @@
       "fields": [
         {
           "key": "memberId",
-          "description": "이 사람을 가리키는 값"
+          "description": "이 사람을 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "소속만. 03 계열은 줄에 '운영부'만 그리고 할 수 있는 일은 오른쪽에 따로 그린다. 04B는 같은 줄에 '운영부 · 회의 참가자'를 한 덩이로 그리므로 조각이 둘 필요하다 — 한 조각이 두 그림을 담을 수 없다."
+          "description": "소속만. 03 계열은 줄에 '운영부'만 그리고 할 수 있는 일은 오른쪽에 따로 그린다. 04B는 같은 줄에 '운영부 · 회의 참가자'를 한 덩이로 그리므로 조각이 둘 필요하다 — 한 조각이 두 그림을 담을 수 없다.",
+          "valueType": "string"
         },
         {
           "key": "departmentNote",
-          "description": "소속과 이 회의에서의 자리를 이은 한 줄. 예: 운영부 · 회의 참가자"
+          "description": "소속과 이 회의에서의 자리를 이은 한 줄. 예: 운영부 · 회의 참가자",
+          "valueType": "string"
         },
         {
           "key": "chips",
@@ -3650,11 +4165,13 @@
           "fields": [
             {
               "key": "label",
-              "description": "딱지에 그려지는 말"
+              "description": "딱지에 그려지는 말",
+              "valueType": "string"
             },
             {
               "key": "tone",
-              "description": "딱지의 색 이름"
+              "description": "딱지의 색 이름",
+              "valueType": "string"
             }
           ],
           "optional": true
@@ -3662,36 +4179,43 @@
         {
           "key": "capabilityNote",
           "description": "이 사람이 무엇을 할 수 있는지. 예: 시작·종료 가능 · 일반 참가자",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "attendanceLabel",
           "description": "참석 딱지에 그려지는 완성된 말. 시각까지 붙어서 온다 — 화면이 시각과 상태를 잇게 하면 잇는 방법이 명세의 일이 된다. 예: 15:00 참석 · 불참 · 미참석",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "attendanceTone",
           "description": "그 딱지의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "isPresent",
           "description": "지금 들어와 있는가. 진행 중에만 온다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "actionLabel",
           "description": "줄 오른쪽 단추에 그려지는 말. **명세가 들지 않는다** — '진행 권한 부여'와 '권한 해제'가 그 줄의 상태에 따라 갈리고, 생성자 줄처럼 단추가 아예 없는 자리도 있다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "actionEmphasis",
           "description": "그 단추의 강조도",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "actionEnabled",
           "description": "그 단추를 누를 수 있는가. 진행 권한자가 하나뿐이면 뺄 수 없다",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -3716,21 +4240,25 @@
         {
           "key": "summaryText",
           "description": "전체 요약 글 한 덩이",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "statusLabel",
           "description": "이 요약이 확정된 것인지 아닌지. 예: 정리 중 · 변경될 수 있음",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "statusTone",
           "description": "그 딱지의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "aiDisclaimer",
           "description": "AI 초안이 무엇을 하고 무엇을 하지 않는지. **화면에 적힌 이 글이 곧 계약이다** — 06B가 '기록에 없는 결정·담당자·기한을 새로 만들지 않습니다'라고 적어 두었다. 명세가 이 문장을 들면 계약이 바뀔 때 명세가 틀린다",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -3754,16 +4282,19 @@
       "fields": [
         {
           "key": "requiredDoneNote",
-          "description": "필수 조건이 몇 개나 찼는지. 예: 필수 2 / 4"
+          "description": "필수 조건이 몇 개나 찼는지. 예: 필수 2 / 4",
+          "valueType": "string"
         },
         {
           "key": "blockedNote",
           "description": "정리를 마칠 수 없을 때 무엇이 남았는지. 예: 안건별 필수 정리를 완료해 주세요",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "canComplete",
-          "description": "정리 완료를 누를 수 있는가"
+          "description": "정리 완료를 누를 수 있는가",
+          "valueType": "string"
         },
         {
           "key": "conditions",
@@ -3771,15 +4302,18 @@
           "fields": [
             {
               "key": "label",
-              "description": "무엇을 채워야 하는지"
+              "description": "무엇을 채워야 하는지",
+              "valueType": "string"
             },
             {
               "key": "done",
-              "description": "찼는가"
+              "description": "찼는가",
+              "valueType": "string"
             },
             {
               "key": "optional",
               "description": "없어도 되는 것인가. 전체 요약이 그렇다",
+              "valueType": "string",
               "optional": true
             }
           ]
@@ -3809,11 +4343,13 @@
           "fields": [
             {
               "key": "label",
-              "description": "어느 부분인지. 예: 안건 내용 · 의사결정"
+              "description": "어느 부분인지. 예: 안건 내용 · 의사결정",
+              "valueType": "string"
             },
             {
               "key": "stateNote",
-              "description": "그 부분이 지금 어디까지 왔는지. **세는 것도 잇는 것도 서버다** — 부분마다 세는 단위가 달라서(안건은 몇 개 중 몇, 결정은 몇 건, 요약은 초안인지) 화면이 규칙을 가질 수 없다. 예: 2 / 3 정리 · 2건 확인 · 초안 작성"
+              "description": "그 부분이 지금 어디까지 왔는지. **세는 것도 잇는 것도 서버다** — 부분마다 세는 단위가 달라서(안건은 몇 개 중 몇, 결정은 몇 건, 요약은 초안인지) 화면이 규칙을 가질 수 없다. 예: 2 / 3 정리 · 2건 확인 · 초안 작성",
+              "valueType": "string"
             }
           ]
         }
@@ -3838,15 +4374,18 @@
       "fields": [
         {
           "key": "documentId",
-          "description": "이 자료를 가리키는 값"
+          "description": "이 자료를 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "파일 이름. 받아 갈 때 이 조각을 가리킨다"
+          "description": "파일 이름. 받아 갈 때 이 조각을 가리킨다",
+          "valueType": "string"
         },
         {
           "key": "agendaId",
           "description": "어느 안건의 자료인지. 회의 전체에 붙은 것이면 오지 않는다",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -3870,15 +4409,18 @@
       "fields": [
         {
           "key": "taskId",
-          "description": "이 업무를 가리키는 값"
+          "description": "이 업무를 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "업무 이름"
+          "description": "업무 이름",
+          "valueType": "string"
         },
         {
           "key": "assigneeNote",
           "description": "누가 언제까지. 예: 정하늘 · 07.23까지 · 위 결정사항에서 생성",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -3902,15 +4444,18 @@
       "fields": [
         {
           "key": "taskId",
-          "description": "이 업무를 가리키는 값"
+          "description": "이 업무를 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "업무 이름"
+          "description": "업무 이름",
+          "valueType": "string"
         },
         {
           "key": "assigneeNote",
           "description": "누가 언제까지. 예: 정하늘 · 07.23까지 · 위 결정사항에서 생성",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -3934,29 +4479,35 @@
       "fields": [
         {
           "key": "title",
-          "description": "예: 이 회의에만 적용되는 권한입니다"
+          "description": "예: 이 회의에만 적용되는 권한입니다",
+          "valueType": "string"
         },
         {
           "key": "grantNote",
-          "description": "진행 권한자가 할 수 있는 것"
+          "description": "진행 권한자가 할 수 있는 것",
+          "valueType": "string"
         },
         {
           "key": "limitNote",
-          "description": "생성자만 할 수 있는 것"
+          "description": "생성자만 할 수 있는 것",
+          "valueType": "string"
         },
         {
           "key": "ruleChipLabel",
           "description": "지켜야 하는 규칙 딱지. 예: 최소 1명 유지",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "ruleChipTone",
           "description": "그 딱지의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "summaryNote",
           "description": "지금 몇 명인지. 예: 현재 진행 권한자 2명 · 일반 참가자 3명",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -3981,6 +4532,7 @@
         {
           "key": "warningNote",
           "description": "눈여겨볼 것을 이은 완성된 한 줄. 예정 시각에 시작하면 오지 않을 수 있다. 예: 예정 시간보다 7일 이른 시각입니다. 잘못 시작한 것은 아닌지 확인해 주세요.",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -4005,6 +4557,7 @@
         {
           "key": "warningNote",
           "description": "셋을 이어 서버가 완성한 한 줄. 예: 미완료 안건 1개 · 참석 3명 · 미참가 1명",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -4029,15 +4582,18 @@
       "fields": [
         {
           "key": "title",
-          "description": "예: 이수현에게 진행 권한을 부여할까요?"
+          "description": "예: 이수현에게 진행 권한을 부여할까요?",
+          "valueType": "string"
         },
         {
           "key": "grantNote",
-          "description": "그 사람이 갖게 되는 것"
+          "description": "그 사람이 갖게 되는 것",
+          "valueType": "string"
         },
         {
           "key": "limitNote",
-          "description": "그래도 갖지 못하는 것"
+          "description": "그래도 갖지 못하는 것",
+          "valueType": "string"
         }
       ]
     },
@@ -4061,69 +4617,83 @@
         {
           "key": "meetingType",
           "description": "정기·상시인지 행사 관련인지",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "linkedEventId",
           "description": "연결 행사",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "title",
           "description": "회의명",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "hostName",
-          "description": "주최자. **읽기 전용 칸에 그대로 그린다** — 사람이 정하는 값이 아니다"
+          "description": "주최자. **읽기 전용 칸에 그대로 그린다** — 사람이 정하는 값이 아니다",
+          "valueType": "string"
         },
         {
           "key": "departmentId",
           "description": "주관 부서",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "statusLabel",
-          "description": "회의 상태 칸에 그릴 말. **'예정'을 명세에 박으면 안 된다** — 상태 이름은 는다"
+          "description": "회의 상태 칸에 그릴 말. **'예정'을 명세에 박으면 안 된다** — 상태 이름은 는다",
+          "valueType": "string"
         },
         {
           "key": "purpose",
           "description": "회의 목적",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "date",
           "description": "회의 날짜",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "startTime",
           "description": "시작 예정 시각",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "endTime",
           "description": "종료 예정 시각",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "mode",
           "description": "진행 방식",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "place",
           "description": "장소",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "onlineLink",
           "description": "온라인 링크",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "isPrivate",
           "description": "비공개 회의인가. 참/거짓이다",
+          "valueType": "boolean",
           "optional": true
         },
         {
@@ -4132,15 +4702,18 @@
           "fields": [
             {
               "key": "memberId",
-              "description": "이 사람을 가리키는 값"
+              "description": "이 사람을 가리키는 값",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "이름"
+              "description": "이름",
+              "valueType": "string"
             },
             {
               "key": "departmentNote",
-              "description": "소속"
+              "description": "소속",
+              "valueType": "string"
             },
             {
               "key": "chips",
@@ -4148,11 +4721,13 @@
               "fields": [
                 {
                   "key": "label",
-                  "description": "말"
+                  "description": "말",
+                  "valueType": "string"
                 },
                 {
                   "key": "tone",
-                  "description": "색 이름"
+                  "description": "색 이름",
+                  "valueType": "string"
                 }
               ],
               "optional": true
@@ -4160,16 +4735,19 @@
             {
               "key": "actionLabel",
               "description": "줄 오른쪽 단추의 말. 명세가 들지 않는다",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "actionEmphasis",
               "description": "그 단추의 강조도. 글만으로는 부족하다 — 권한을 빼는 것과 주는 것이 줄마다 다른 색으로 그려진다. meeting.participants가 같은 짝을 갖는다.",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "canRemove",
               "description": "뺄 수 있는가",
+              "valueType": "string",
               "optional": true
             }
           ],
@@ -4181,21 +4759,25 @@
           "fields": [
             {
               "key": "agendaTitle",
-              "description": "안건명"
+              "description": "안건명",
+              "valueType": "string"
             },
             {
               "key": "agendaNote",
               "description": "안건 설명",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "attachmentName",
               "description": "사전 자료 파일 이름",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "duration",
               "description": "예상 소요 시간",
+              "valueType": "string",
               "optional": true
             }
           ],
@@ -4222,19 +4804,23 @@
       "fields": [
         {
           "key": "memberId",
-          "description": "이 사람을 가리키는 값"
+          "description": "이 사람을 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "departmentNote",
-          "description": "소속"
+          "description": "소속",
+          "valueType": "string"
         },
         {
           "key": "alreadyAdded",
           "description": "이미 넣은 사람인가",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -4258,11 +4844,13 @@
       "fields": [
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "departmentNote",
-          "description": "소속과 이 사람이 무엇을 할 수 있는지를 이은 한 줄. 예: 운영부 · 권한 변경 및 회의 관리 가능"
+          "description": "소속과 이 사람이 무엇을 할 수 있는지를 이은 한 줄. 예: 운영부 · 권한 변경 및 회의 관리 가능",
+          "valueType": "string"
         },
         {
           "key": "chips",
@@ -4270,17 +4858,20 @@
           "fields": [
             {
               "key": "label",
-              "description": "딱지에 그려지는 말"
+              "description": "딱지에 그려지는 말",
+              "valueType": "string"
             },
             {
               "key": "tone",
-              "description": "딱지의 색 이름"
+              "description": "딱지의 색 이름",
+              "valueType": "string"
             }
           ]
         },
         {
           "key": "capabilityNote",
           "description": "이 사람을 뺄 수 없다는 표시. 예: 필수 권한자",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -4302,7 +4893,8 @@
       "fields": [
         {
           "key": "canCreateEvent",
-          "description": "새 행사를 만들 수 있는가. 만들 수 있는 사람에게만 머리에 그 단추가 그려진다"
+          "description": "새 행사를 만들 수 있는가. 만들 수 있는 사람에게만 머리에 그 단추가 그려진다",
+          "valueType": "string"
         }
       ]
     },
@@ -4325,27 +4917,33 @@
       "fields": [
         {
           "key": "stateLabel",
-          "description": "상태 딱지에 그려지는 말. 예: 후속 정리 중"
+          "description": "상태 딱지에 그려지는 말. 예: 후속 정리 중",
+          "valueType": "string"
         },
         {
           "key": "stateTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "permissionNote",
-          "description": "누가 다음 단계로 넘길 수 있는지. 예: 행사 완료 처리는 회장단만 할 수 있습니다."
+          "description": "누가 다음 단계로 넘길 수 있는지. 예: 행사 완료 처리는 회장단만 할 수 있습니다.",
+          "valueType": "string"
         },
         {
           "key": "headline",
-          "description": "띠의 제목. 예: 행사가 종료되었습니다"
+          "description": "띠의 제목. 예: 행사가 종료되었습니다",
+          "valueType": "string"
         },
         {
           "key": "note",
-          "description": "띠의 본문"
+          "description": "띠의 본문",
+          "valueType": "string"
         },
         {
           "key": "tone",
-          "description": "띠 자체의 색 이름"
+          "description": "띠 자체의 색 이름",
+          "valueType": "string"
         }
       ]
     },
@@ -4368,35 +4966,43 @@
       "fields": [
         {
           "key": "unfinishedTasks",
-          "description": "미완료 업무 수"
+          "description": "미완료 업무 수",
+          "valueType": "string"
         },
         {
           "key": "unfinishedTasksTone",
-          "description": "그 색 이름"
+          "description": "그 색 이름",
+          "valueType": "string"
         },
         {
           "key": "unorganizedDocs",
-          "description": "정리되지 않은 문서 수"
+          "description": "정리되지 않은 문서 수",
+          "valueType": "string"
         },
         {
           "key": "unorganizedDocsTone",
-          "description": "그 색 이름"
+          "description": "그 색 이름",
+          "valueType": "string"
         },
         {
           "key": "unwrittenMinutes",
-          "description": "작성되지 않은 회의록 수"
+          "description": "작성되지 않은 회의록 수",
+          "valueType": "string"
         },
         {
           "key": "unwrittenMinutesTone",
-          "description": "그 색 이름"
+          "description": "그 색 이름",
+          "valueType": "string"
         },
         {
           "key": "needsCheck",
-          "description": "확인이 필요한 것의 수"
+          "description": "확인이 필요한 것의 수",
+          "valueType": "string"
         },
         {
           "key": "needsCheckTone",
-          "description": "그 색 이름"
+          "description": "그 색 이름",
+          "valueType": "string"
         }
       ]
     },
@@ -4419,19 +5025,23 @@
       "fields": [
         {
           "key": "id",
-          "description": "그 원본을 가리키는 값"
+          "description": "그 원본을 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무엇이 남았는지"
+          "description": "무엇이 남았는지",
+          "valueType": "string"
         },
         {
           "key": "detail",
-          "description": "그 까닭이나 때"
+          "description": "그 까닭이나 때",
+          "valueType": "string"
         },
         {
           "key": "tone",
-          "description": "급한 정도에 배정된 색 이름"
+          "description": "급한 정도에 배정된 색 이름",
+          "valueType": "string"
         }
       ]
     },
@@ -4454,11 +5064,13 @@
       "fields": [
         {
           "key": "title",
-          "description": "예: 행사를 종료할 권한이 없습니다"
+          "description": "예: 행사를 종료할 권한이 없습니다",
+          "valueType": "string"
         },
         {
           "key": "note",
-          "description": "누가 할 수 있는지를 적은 완성된 글"
+          "description": "누가 할 수 있는지를 적은 완성된 글",
+          "valueType": "string"
         }
       ]
     },
@@ -4482,16 +5094,19 @@
         {
           "key": "warningNote",
           "description": "눈여겨볼 것. 예: 미완료 업무 6건",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "warningTone",
           "description": "그 상자의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "permissionNote",
-          "description": "누가 완료 처리할 수 있는지. 예: 행사 완료 처리는 회장단만 할 수 있습니다."
+          "description": "누가 완료 처리할 수 있는지. 예: 행사 완료 처리는 회장단만 할 수 있습니다.",
+          "valueType": "string"
         }
       ]
     },
@@ -4514,28 +5129,34 @@
       "fields": [
         {
           "key": "id",
-          "description": "이 사람을 가리키는 값"
+          "description": "이 사람을 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "major",
-          "description": "학부·학과"
+          "description": "학부·학과",
+          "valueType": "string"
         },
         {
           "key": "grade",
-          "description": "학년"
+          "description": "학년",
+          "valueType": "string"
         },
         {
           "key": "roleLabel",
           "description": "이 행사에서의 자리. **명세가 들지 않는다**",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "roleTone",
           "description": "그 딱지의 색 이름",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -4560,15 +5181,18 @@
       "fields": [
         {
           "key": "id",
-          "description": "이 부서를 가리키는 값"
+          "description": "이 부서를 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "부서 이름"
+          "description": "부서 이름",
+          "valueType": "string"
         },
         {
           "key": "memberCountLabel",
-          "description": "부원 수. 세는 말까지. 예: 부원 4명"
+          "description": "부원 수. 세는 말까지. 예: 부원 4명",
+          "valueType": "string"
         },
         {
           "key": "leaders",
@@ -4576,19 +5200,23 @@
           "fields": [
             {
               "key": "id",
-              "description": "가리키는 값"
+              "description": "가리키는 값",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "이름"
+              "description": "이름",
+              "valueType": "string"
             },
             {
               "key": "major",
-              "description": "학부·학과"
+              "description": "학부·학과",
+              "valueType": "string"
             },
             {
               "key": "grade",
-              "description": "학년"
+              "description": "학년",
+              "valueType": "string"
             }
           ],
           "optional": true
@@ -4599,28 +5227,34 @@
           "fields": [
             {
               "key": "id",
-              "description": "가리키는 값"
+              "description": "가리키는 값",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "이름"
+              "description": "이름",
+              "valueType": "string"
             },
             {
               "key": "major",
-              "description": "학부·학과"
+              "description": "학부·학과",
+              "valueType": "string"
             },
             {
               "key": "grade",
-              "description": "학년"
+              "description": "학년",
+              "valueType": "string"
             },
             {
               "key": "roleLabel",
               "description": "이 부서에서의 자리(부서장을 겸하는 부원에게만 온다). **명세가 들지 않는다** — leaders로는 그 글을 알 수 없다.",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "roleTone",
               "description": "그 글의 색 이름",
+              "valueType": "string",
               "optional": true
             }
           ],
@@ -4647,19 +5281,23 @@
       "fields": [
         {
           "key": "id",
-          "description": "가리키는 값"
+          "description": "가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "이름"
+          "description": "이름",
+          "valueType": "string"
         },
         {
           "key": "major",
-          "description": "학부·학과"
+          "description": "학부·학과",
+          "valueType": "string"
         },
         {
           "key": "grade",
-          "description": "학년"
+          "description": "학년",
+          "valueType": "string"
         }
       ]
     },
@@ -4683,15 +5321,18 @@
       "fields": [
         {
           "key": "id",
-          "description": "가리키는 값"
+          "description": "가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "부서 이름"
+          "description": "부서 이름",
+          "valueType": "string"
         },
         {
           "key": "memberCountLabel",
-          "description": "부원 수. 세는 말까지"
+          "description": "부원 수. 세는 말까지",
+          "valueType": "string"
         },
         {
           "key": "leaders",
@@ -4699,19 +5340,23 @@
           "fields": [
             {
               "key": "id",
-              "description": "가리키는 값"
+              "description": "가리키는 값",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "이름"
+              "description": "이름",
+              "valueType": "string"
             },
             {
               "key": "major",
-              "description": "학부·학과"
+              "description": "학부·학과",
+              "valueType": "string"
             },
             {
               "key": "grade",
-              "description": "학년"
+              "description": "학년",
+              "valueType": "string"
             }
           ],
           "optional": true
@@ -4722,19 +5367,23 @@
           "fields": [
             {
               "key": "id",
-              "description": "가리키는 값"
+              "description": "가리키는 값",
+              "valueType": "string"
             },
             {
               "key": "name",
-              "description": "이름"
+              "description": "이름",
+              "valueType": "string"
             },
             {
               "key": "major",
-              "description": "학부·학과"
+              "description": "학부·학과",
+              "valueType": "string"
             },
             {
               "key": "grade",
-              "description": "학년"
+              "description": "학년",
+              "valueType": "string"
             }
           ],
           "optional": true
@@ -4760,104 +5409,125 @@
       "fields": [
         {
           "key": "title",
-          "description": "행사명"
+          "description": "행사명",
+          "valueType": "string"
         },
         {
           "key": "intro",
           "description": "행사 소개",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "purpose",
           "description": "행사 목적·주요 내용",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "startAt",
           "description": "시작 일시",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "endAt",
           "description": "종료 일시",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "endUnset",
           "description": "종료 시간이 아직 정해지지 않았는가",
+          "valueType": "boolean",
           "optional": true
         },
         {
           "key": "place",
           "description": "장소",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "placeUnset",
           "description": "장소가 아직 정해지지 않았는가",
+          "valueType": "boolean",
           "optional": true
         },
         {
           "key": "address",
           "description": "주소",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "placeDetail",
           "description": "상세 위치·집합 장소",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "audience",
           "description": "참가 대상",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "feeType",
-          "description": "참가비 유형"
+          "description": "참가비 유형",
+          "valueType": "string"
         },
         {
           "key": "paidAmount",
           "description": "납부자 금액",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "unpaidAmount",
           "description": "미납자 금액",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "payGuide",
           "description": "결제 안내",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "capacityType",
-          "description": "정원 유형"
+          "description": "정원 유형",
+          "valueType": "string"
         },
         {
           "key": "capacity",
           "description": "정원 인원",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "hostDepartment",
           "description": "담당 부서",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "hostPerson",
           "description": "담당자",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "contact",
           "description": "문의 방법·연락처",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "notice",
           "description": "참가자 유의사항",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -4881,27 +5551,33 @@
       "fields": [
         {
           "key": "statusLabel",
-          "description": "QR의 상태를 알리는 말. **명세가 목록을 들지 않는다.** 예: 활성 중"
+          "description": "QR의 상태를 알리는 말. **명세가 목록을 들지 않는다.** 예: 활성 중",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "startAt",
-          "description": "체크인을 받기 시작하는 때"
+          "description": "체크인을 받기 시작하는 때",
+          "valueType": "string"
         },
         {
           "key": "endAt",
-          "description": "체크인을 그만 받는 때"
+          "description": "체크인을 그만 받는 때",
+          "valueType": "string"
         },
         {
           "key": "guideNote",
-          "description": "참가자가 어떻게 쓰는지 알리는 완성된 글"
+          "description": "참가자가 어떻게 쓰는지 알리는 완성된 글",
+          "valueType": "string"
         },
         {
           "key": "fileName",
-          "description": "받아 갈 QR 그림 파일. 무엇을 어떤 형식으로 낼지는 서버가 정한다"
+          "description": "받아 갈 QR 그림 파일. 무엇을 어떤 형식으로 낼지는 서버가 정한다",
+          "valueType": "string"
         }
       ]
     },
@@ -4924,15 +5600,18 @@
       "fields": [
         {
           "key": "statusLabel",
-          "description": "설문의 상태를 알리는 말. 예: 초안 · 활성"
+          "description": "설문의 상태를 알리는 말. 예: 초안 · 활성",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         },
         {
           "key": "previewUrl",
           "description": "미리 볼 수 있는 주소. 아직 없으면 오지 않는다",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -4957,31 +5636,37 @@
         {
           "key": "applyStart",
           "description": "신청 시작",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "applyEnd",
           "description": "신청 마감",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "applyMethod",
           "description": "신청 방식",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "waitlist",
           "description": "정원 초과 시 대기 신청을 받는가",
+          "valueType": "boolean",
           "optional": true
         },
         {
           "key": "duesCheck",
           "description": "학생회비 납부 여부를 대조하는가",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "completionNote",
           "description": "신청 완료 안내 문구",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -5005,19 +5690,23 @@
       "fields": [
         {
           "key": "unmetCountNote",
-          "description": "못 채운 조건 수. 세는 말까지. 예: 미충족 2개"
+          "description": "못 채운 조건 수. 세는 말까지. 예: 미충족 2개",
+          "valueType": "string"
         },
         {
           "key": "unmetCount",
-          "description": "그 수"
+          "description": "그 수",
+          "valueType": "number"
         },
         {
           "key": "canActivate",
-          "description": "지금 켤 수 있는가"
+          "description": "지금 켤 수 있는가",
+          "valueType": "string"
         },
         {
           "key": "blockedNote",
           "description": "켤 수 없을 때 그 까닭",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -5041,7 +5730,8 @@
       "fields": [
         {
           "key": "groupLabel",
-          "description": "묶음 이름. 예: 행사 기본정보"
+          "description": "묶음 이름. 예: 행사 기본정보",
+          "valueType": "string"
         },
         {
           "key": "rows",
@@ -5049,38 +5739,46 @@
           "fields": [
             {
               "key": "key",
-              "description": "이 조건을 가리키는 값"
+              "description": "이 조건을 가리키는 값",
+              "valueType": "string"
             },
             {
               "key": "label",
-              "description": "무엇을 채워야 하는지"
+              "description": "무엇을 채워야 하는지",
+              "valueType": "string"
             },
             {
               "key": "met",
-              "description": "채워졌는가"
+              "description": "채워졌는가",
+              "valueType": "string"
             },
             {
               "key": "tone",
-              "description": "그 표시의 색 이름"
+              "description": "그 표시의 색 이름",
+              "valueType": "string"
             },
             {
               "key": "detail",
               "description": "지금 무엇이 들어 있는지",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "locationNote",
               "description": "어디서 채우는지",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "actionLabel",
               "description": "채우러 가는 문구. 갈 곳이 없으면 오지 않는다",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "targetKind",
               "description": "어느 화면으로 가는지를 아는 열쇠. 화면 id가 아니다 — 갈 곳은 명세가 든다",
+              "valueType": "string",
               "optional": true
             }
           ]
@@ -5106,15 +5804,18 @@
       "fields": [
         {
           "key": "id",
-          "description": "이 문항을 가리키는 값"
+          "description": "이 문항을 가리키는 값",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "질문 글"
+          "description": "질문 글",
+          "valueType": "string"
         },
         {
           "key": "typeLabel",
-          "description": "문항의 종류를 알리는 말. **명세가 목록을 들지 않는다**"
+          "description": "문항의 종류를 알리는 말. **명세가 목록을 들지 않는다**",
+          "valueType": "string"
         },
         {
           "key": "badges",
@@ -5122,11 +5823,13 @@
           "fields": [
             {
               "key": "label",
-              "description": "딱지의 말"
+              "description": "딱지의 말",
+              "valueType": "string"
             },
             {
               "key": "tone",
-              "description": "그 색 이름"
+              "description": "그 색 이름",
+              "valueType": "string"
             }
           ],
           "optional": true
@@ -5134,6 +5837,7 @@
         {
           "key": "locked",
           "description": "고칠 수 없는 문항인가. 응답이 있으면 잠긴다",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -5157,19 +5861,23 @@
       "fields": [
         {
           "key": "title",
-          "description": "무엇을 하려는지"
+          "description": "무엇을 하려는지",
+          "valueType": "string"
         },
         {
           "key": "warning",
-          "description": "되돌릴 수 없다는 것을 알리는 글"
+          "description": "되돌릴 수 없다는 것을 알리는 글",
+          "valueType": "string"
         },
         {
           "key": "currentRespondents",
-          "description": "지금 설문의 응답자 수"
+          "description": "지금 설문의 응답자 수",
+          "valueType": "string"
         },
         {
           "key": "affectedRespondents",
-          "description": "영향을 받는 응답자 수"
+          "description": "영향을 받는 응답자 수",
+          "valueType": "string"
         },
         {
           "key": "notes",
@@ -5177,7 +5885,8 @@
           "fields": [
             {
               "key": "text",
-              "description": "한 줄"
+              "description": "한 줄",
+              "valueType": "string"
             }
           ]
         }
@@ -5201,7 +5910,8 @@
       "fields": [
         {
           "key": "id",
-          "description": "방 하나를 가리키는 값. **그려지는 조각이 아니다** — 무엇이 그려지는지는 그림이 말하지 않는다."
+          "description": "방 하나를 가리키는 값. **그려지는 조각이 아니다** — 무엇이 그려지는지는 그림이 말하지 않는다.",
+          "valueType": "string"
         }
       ]
     },
@@ -5225,7 +5935,8 @@
       "fields": [
         {
           "key": "id",
-          "description": "이 줄 하나를 가리키는 값. **그려지는 조각이 아니다** — 무엇이 그려지는지는 그림이 말하지 않는다."
+          "description": "이 줄 하나를 가리키는 값. **그려지는 조각이 아니다** — 무엇이 그려지는지는 그림이 말하지 않는다.",
+          "valueType": "string"
         }
       ]
     },
@@ -5246,59 +5957,73 @@
       "fields": [
         {
           "key": "termNote",
-          "description": "회계 기간. 예: 2026년 1학기"
+          "description": "회계 기간. 예: 2026년 1학기",
+          "valueType": "string"
         },
         {
           "key": "asOfNote",
-          "description": "언제를 기준으로 센 값인지. 예: 2026.07.18 기준"
+          "description": "언제를 기준으로 센 값인지. 예: 2026.07.18 기준",
+          "valueType": "string"
         },
         {
           "key": "totalBudget",
-          "description": "총예산. 자릿점까지 찍힌 글로 온다 — 화폐 표기가 조직·지역의 것이기 때문이다. 예: 30,000,000원"
+          "description": "총예산. 자릿점까지 찍힌 글로 온다 — 화폐 표기가 조직·지역의 것이기 때문이다. 예: 30,000,000원",
+          "valueType": "string"
         },
         {
           "key": "totalBudgetNote",
-          "description": "그 예산이 어디서 왔는지. 예: 학생회비 외 1건"
+          "description": "그 예산이 어디서 왔는지. 예: 학생회비 외 1건",
+          "valueType": "string"
         },
         {
           "key": "spent",
-          "description": "실제 지출. 예: 12,400,000원"
+          "description": "실제 지출. 예: 12,400,000원",
+          "valueType": "string"
         },
         {
           "key": "spentNote",
-          "description": "무엇을 실제 지출로 셌는지. 예: 결제가 완료된 9건"
+          "description": "무엇을 실제 지출로 셌는지. 예: 결제가 완료된 9건",
+          "valueType": "string"
         },
         {
           "key": "planned",
-          "description": "지출 예정. 예: 3,100,000원"
+          "description": "지출 예정. 예: 3,100,000원",
+          "valueType": "string"
         },
         {
           "key": "plannedNote",
-          "description": "무엇을 예정으로 셌는지. 예: 결제 예정 3건"
+          "description": "무엇을 예정으로 셌는지. 예: 결제 예정 3건",
+          "valueType": "string"
         },
         {
           "key": "available",
-          "description": "사용 가능. 총예산에서 무엇을 빼는지가 재정 규칙이라 화면이 계산하지 않는다. 예: 14,500,000원"
+          "description": "사용 가능. 총예산에서 무엇을 빼는지가 재정 규칙이라 화면이 계산하지 않는다. 예: 14,500,000원",
+          "valueType": "string"
         },
         {
           "key": "availableNote",
-          "description": "그 금액이 무엇인지 알리는 문구. 예: 새로 사용할 수 있는 금액"
+          "description": "그 금액이 무엇인지 알리는 문구. 예: 새로 사용할 수 있는 금액",
+          "valueType": "string"
         },
         {
           "key": "executionNote",
-          "description": "집행률을 말한 완성된 문구. 예: 전체 예산 집행률 41.3%"
+          "description": "집행률을 말한 완성된 문구. 예: 전체 예산 집행률 41.3%",
+          "valueType": "string"
         },
         {
           "key": "plannedIncludedNote",
-          "description": "지출 예정까지 더한 집행률의 완성된 문구. 예: 지출 예정 포함 51.7%"
+          "description": "지출 예정까지 더한 집행률의 완성된 문구. 예: 지출 예정 포함 51.7%",
+          "valueType": "string"
         },
         {
           "key": "spentPercent",
-          "description": "실제 지출이 총예산에서 차지하는 비율(0-100). 막대의 첫 마디다 — 수는 데이터이고 막대는 디자인이다"
+          "description": "실제 지출이 총예산에서 차지하는 비율(0-100). 막대의 첫 마디다 — 수는 데이터이고 막대는 디자인이다",
+          "valueType": "number"
         },
         {
           "key": "plannedPercent",
-          "description": "지출 예정이 차지하는 비율(0-100). 첫 마디에 이어 붙는 몫이라 둘을 더하면 '지출 예정 포함' 비율이 된다"
+          "description": "지출 예정이 차지하는 비율(0-100). 첫 마디에 이어 붙는 몫이라 둘을 더하면 '지출 예정 포함' 비율이 된다",
+          "valueType": "number"
         }
       ]
     },
@@ -5319,7 +6044,8 @@
       "fields": [
         {
           "key": "canPlanBudget",
-          "description": "예산을 편성할 수 있는가. 있으면 총예산 카드가 '편성'으로 눌러 들어가는 카드가 된다"
+          "description": "예산을 편성할 수 있는가. 있으면 총예산 카드가 '편성'으로 눌러 들어가는 카드가 된다",
+          "valueType": "string"
         }
       ]
     },
@@ -5342,31 +6068,38 @@
       "fields": [
         {
           "key": "id",
-          "description": "그 행사 또는 부서의 id"
+          "description": "그 행사 또는 부서의 id",
+          "valueType": "string"
         },
         {
           "key": "name",
-          "description": "구분의 이름. 행사별이면 행사명, 부서별이면 부서명"
+          "description": "구분의 이름. 행사별이면 행사명, 부서별이면 부서명",
+          "valueType": "string"
         },
         {
           "key": "budget",
-          "description": "배정 예산. 예: 5,000,000원"
+          "description": "배정 예산. 예: 5,000,000원",
+          "valueType": "string"
         },
         {
           "key": "spent",
-          "description": "실제 지출. 예: 2,100,000원"
+          "description": "실제 지출. 예: 2,100,000원",
+          "valueType": "string"
         },
         {
           "key": "planned",
-          "description": "지출 예정. 예: 600,000원"
+          "description": "지출 예정. 예: 600,000원",
+          "valueType": "string"
         },
         {
           "key": "available",
-          "description": "사용 가능. 예: 2,300,000원"
+          "description": "사용 가능. 예: 2,300,000원",
+          "valueType": "string"
         },
         {
           "key": "executionPercent",
-          "description": "집행률(0-100). 수는 데이터이고 막대는 디자인이다(home.events의 progressPercent 선례)"
+          "description": "집행률(0-100). 수는 데이터이고 막대는 디자인이다(home.events의 progressPercent 선례)",
+          "valueType": "number"
         }
       ]
     },
@@ -5387,31 +6120,38 @@
       "fields": [
         {
           "key": "id",
-          "description": "장부 줄의 id"
+          "description": "장부 줄의 id",
+          "valueType": "string"
         },
         {
           "key": "date",
-          "description": "쓴 날. 예: 07.17"
+          "description": "쓴 날. 예: 07.17",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "지출 내용. 예: 현수막 제작"
+          "description": "지출 내용. 예: 현수막 제작",
+          "valueType": "string"
         },
         {
           "key": "context",
-          "description": "어느 행사 또는 어디에 썼는지. 예: 체육대회"
+          "description": "어느 행사 또는 어디에 썼는지. 예: 체육대회",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "금액. 예: 180,000원"
+          "description": "금액. 예: 180,000원",
+          "valueType": "string"
         },
         {
           "key": "proof",
-          "description": "증빙 상태. 조직의 절차가 정하는 말이라 명세가 목록을 들지 않는다"
+          "description": "증빙 상태. 조직의 절차가 정하는 말이라 명세가 목록을 들지 않는다",
+          "valueType": "string"
         },
         {
           "key": "proofTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         }
       ]
     },
@@ -5432,19 +6172,23 @@
       "fields": [
         {
           "key": "completed",
-          "description": "증빙이 끝난 건수. 단위까지 붙어서 온다. 예: 6건"
+          "description": "증빙이 끝난 건수. 단위까지 붙어서 온다. 예: 6건",
+          "valueType": "string"
         },
         {
           "key": "supplement",
-          "description": "보완이 필요한 건수. 예: 1건"
+          "description": "보완이 필요한 건수. 예: 1건",
+          "valueType": "string"
         },
         {
           "key": "unregistered",
-          "description": "아직 증빙이 등록되지 않은 건수. 예: 2건"
+          "description": "아직 증빙이 등록되지 않은 건수. 예: 2건",
+          "valueType": "string"
         },
         {
           "key": "totalNote",
-          "description": "전체 지출 건수. 예: 26건"
+          "description": "전체 지출 건수. 예: 26건",
+          "valueType": "string"
         }
       ]
     },
@@ -5467,23 +6211,28 @@
       "fields": [
         {
           "key": "termTotal",
-          "description": "이번 학기에 쓴 돈 전부. 예: 3,842,000원"
+          "description": "이번 학기에 쓴 돈 전부. 예: 3,842,000원",
+          "valueType": "string"
         },
         {
           "key": "monthLabel",
-          "description": "고른 달의 지출을 부르는 말. 예: 7월 지출"
+          "description": "고른 달의 지출을 부르는 말. 예: 7월 지출",
+          "valueType": "string"
         },
         {
           "key": "monthTotal",
-          "description": "그 달에 쓴 돈. 예: 1,286,000원"
+          "description": "그 달에 쓴 돈. 예: 1,286,000원",
+          "valueType": "string"
         },
         {
           "key": "proofDone",
-          "description": "증빙이 끝난 건수를 전체와 함께 말한 문구. 예: 42건 중 37건"
+          "description": "증빙이 끝난 건수를 전체와 함께 말한 문구. 예: 42건 중 37건",
+          "valueType": "string"
         },
         {
           "key": "proofMissing",
-          "description": "증빙이 빠진 건수. 예: 5건"
+          "description": "증빙이 빠진 건수. 예: 5건",
+          "valueType": "string"
         }
       ]
     },
@@ -5511,39 +6260,48 @@
       "fields": [
         {
           "key": "id",
-          "description": "장부 줄의 id"
+          "description": "장부 줄의 id",
+          "valueType": "string"
         },
         {
           "key": "date",
-          "description": "쓴 날. 예: 07.17"
+          "description": "쓴 날. 예: 07.17",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무엇에 썼는지. 예: 케이블 커버 6m 외 1건"
+          "description": "무엇에 썼는지. 예: 케이블 커버 6m 외 1건",
+          "valueType": "string"
         },
         {
           "key": "context",
-          "description": "어느 행사 또는 어디에 썼는지. 행사에 속하지 않는 지출은 '운영 (상시)'처럼 온다"
+          "description": "어느 행사 또는 어디에 썼는지. 행사에 속하지 않는 지출은 '운영 (상시)'처럼 온다",
+          "valueType": "string"
         },
         {
           "key": "department",
-          "description": "쓴 부서. 예: 운영부"
+          "description": "쓴 부서. 예: 운영부",
+          "valueType": "string"
         },
         {
           "key": "budgetItem",
-          "description": "어느 예산 항목에서 나갔는지. 예: 안전·설비"
+          "description": "어느 예산 항목에서 나갔는지. 예: 안전·설비",
+          "valueType": "string"
         },
         {
           "key": "amountNote",
-          "description": "금액. 예: 84,000원"
+          "description": "금액. 예: 84,000원",
+          "valueType": "string"
         },
         {
           "key": "proof",
-          "description": "증빙 상태. 조직의 절차가 정하는 말이라 명세가 목록을 들지 않는다"
+          "description": "증빙 상태. 조직의 절차가 정하는 말이라 명세가 목록을 들지 않는다",
+          "valueType": "string"
         },
         {
           "key": "proofTone",
-          "description": "그 딱지의 색 이름"
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
         }
       ]
     },
@@ -5571,11 +6329,13 @@
       "fields": [
         {
           "key": "rangeNote",
-          "description": "무엇의 몇 줄을 보고 있는지. 예: 2026년 7월 · 총 42건 중 최근 10건 표시"
+          "description": "무엇의 몇 줄을 보고 있는지. 예: 2026년 7월 · 총 42건 중 최근 10건 표시",
+          "valueType": "string"
         },
         {
           "key": "handlingNote",
-          "description": "증빙과 정산을 누가 어디서 하는지 알리는 완성된 문구. **역할 이름이 여기 들어간다**(event.endPermission 선례) — 조직 규칙이 바뀌면 명세가 아니라 이 값이 바뀐다"
+          "description": "증빙과 정산을 누가 어디서 하는지 알리는 완성된 문구. **역할 이름이 여기 들어간다**(event.endPermission 선례) — 조직 규칙이 바뀌면 명세가 아니라 이 값이 바뀐다",
+          "valueType": "string"
         }
       ]
     },
@@ -5596,7 +6356,8 @@
       "fields": [
         {
           "key": "monthLabel",
-          "description": "지금 보고 있는 달의 이름. 예: 2026년 7월"
+          "description": "지금 보고 있는 달의 이름. 예: 2026년 7월",
+          "valueType": "string"
         }
       ]
     },
@@ -5619,15 +6380,18 @@
       "fields": [
         {
           "key": "id",
-          "description": "그 칸이 어느 날인지. 그려지지 않는다. 예: 2026-07-19"
+          "description": "그 칸이 어느 날인지. 그려지지 않는다. 예: 2026-07-19",
+          "valueType": "string"
         },
         {
           "key": "dayLabel",
-          "description": "칸에 그려지는 날짜 수. 달에 들지 않는 빈칸은 빈 글이다. 예: 19"
+          "description": "칸에 그려지는 날짜 수. 달에 들지 않는 빈칸은 빈 글이다. 예: 19",
+          "valueType": "string"
         },
         {
           "key": "dayTone",
-          "description": "날짜 수의 색 이름. 토·일이 갈리고 오늘이 따로 있다 — **오늘이 언제인지는 서버만 안다.** 예: gray · blue · red · today"
+          "description": "날짜 수의 색 이름. 토·일이 갈리고 오늘이 따로 있다 — **오늘이 언제인지는 서버만 안다.** 예: gray · blue · red · today",
+          "valueType": "string"
         },
         {
           "key": "schedules",
@@ -5635,15 +6399,18 @@
           "fields": [
             {
               "key": "id",
-              "description": "일정 하나를 가리키는 값. 그려지지 않는다. 예: SCH-0720-1"
+              "description": "일정 하나를 가리키는 값. 그려지지 않는다. 예: SCH-0720-1",
+              "valueType": "string"
             },
             {
               "key": "title",
-              "description": "딱지에 그려지는 일정의 이름. 예: 체육대회 참가 신청 마감"
+              "description": "딱지에 그려지는 일정의 이름. 예: 체육대회 참가 신청 마감",
+              "valueType": "string"
             },
             {
               "key": "typeTone",
-              "description": "일정 유형에 배정된 색 이름. **유형의 이름이 곧 톤 이름이다** — 유형이 하나 늘면 색도 하나 는다. 예: event · meeting · deadline"
+              "description": "일정 유형에 배정된 색 이름. **유형의 이름이 곧 톤 이름이다** — 유형이 하나 늘면 색도 하나 는다. 예: event · meeting · deadline",
+              "valueType": "string"
             }
           ]
         }
@@ -5666,7 +6433,8 @@
       "fields": [
         {
           "key": "rangeNote",
-          "description": "이번 주의 범위와 오늘. 예: 07.19 (일) – 07.25 (토) · 오늘 07.19"
+          "description": "이번 주의 범위와 오늘. 예: 07.19 (일) – 07.25 (토) · 오늘 07.19",
+          "valueType": "string"
         }
       ]
     },
@@ -5689,32 +6457,39 @@
       "fields": [
         {
           "key": "id",
-          "description": "일정 하나를 가리키는 값. 그려지지 않는다. 예: SCH-0720-1"
+          "description": "일정 하나를 가리키는 값. 그려지지 않는다. 예: SCH-0720-1",
+          "valueType": "string"
         },
         {
           "key": "typeLabel",
-          "description": "유형 딱지의 글. 예: 마감 · 회의 · 행사"
+          "description": "유형 딱지의 글. 예: 마감 · 회의 · 행사",
+          "valueType": "string"
         },
         {
           "key": "typeTone",
-          "description": "그 딱지의 색 이름. 예: deadline · meeting · event"
+          "description": "그 딱지의 색 이름. 예: deadline · meeting · event",
+          "valueType": "string"
         },
         {
           "key": "dateLabel",
-          "description": "일정이 걸린 날. 예: 07.20"
+          "description": "일정이 걸린 날. 예: 07.20",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "일정의 이름. 예: 체육대회 참가 신청 마감"
+          "description": "일정의 이름. 예: 체육대회 참가 신청 마감",
+          "valueType": "string"
         },
         {
           "key": "actionLabel",
           "description": "그 줄에서 열 수 있는 것의 이름. 예: 행사 일정 보기. **행사에 딸리지 않은 줄에는 오지 않는다** — 상시 업무의 마감과 운영 회의가 그렇다.",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "eventId",
           "description": "행사에 딸린 줄이면 그 행사의 id. actionLabel과 함께 오거나 함께 오지 않는다. 예: E-01",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -5737,6 +6512,7 @@
         {
           "key": "unpublishedNote",
           "description": "인수인계 문서가 아직 발행되지 않은 행사 수. 세는 말까지 서버가 붙인다. 한 건도 없으면 오지 않는다. 예: 인수인계 문서 미발행 2건",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -5760,31 +6536,38 @@
       "fields": [
         {
           "key": "id",
-          "description": "이 행사를 가리키는 값. 아카이브를 열 때 넘긴다."
+          "description": "이 행사를 가리키는 값. 아카이브를 열 때 넘긴다.",
+          "valueType": "string"
         },
         {
           "key": "statusLabel",
-          "description": "행사 자체의 상태. 이 목록에는 완료된 것만 오지만 무엇이라 부를지는 조직이 정한다. 예: 완료"
+          "description": "행사 자체의 상태. 이 목록에는 완료된 것만 오지만 무엇이라 부를지는 조직이 정한다. 예: 완료",
+          "valueType": "string"
         },
         {
           "key": "archiveStatus",
-          "description": "인수인계 문서가 어디까지 왔는지. 예: 발행 v1.0 · 검토 중 · 인수인계 문서 미발행"
+          "description": "인수인계 문서가 어디까지 왔는지. 예: 발행 v1.0 · 검토 중 · 인수인계 문서 미발행",
+          "valueType": "string"
         },
         {
           "key": "archiveStatusTone",
-          "description": "그 딱지의 색 이름. 단계가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: green · blue · gray"
+          "description": "그 딱지의 색 이름. 단계가 조직 운영에 따라 늘 수 있으므로 색도 데이터가 갖는다. 예: green · blue · gray",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "행사 이름. 예: 봄 축제 학생회 부스"
+          "description": "행사 이름. 예: 봄 축제 학생회 부스",
+          "valueType": "string"
         },
         {
           "key": "date",
-          "description": "행사가 열린 날. 예: 2026. 05. 28"
+          "description": "행사가 열린 날. 예: 2026. 05. 28",
+          "valueType": "string"
         },
         {
           "key": "host",
-          "description": "맡은 부서 또는 사람. 완성된 문구로 온다. 예: 대외협력부 · 홍길동"
+          "description": "맡은 부서 또는 사람. 완성된 문구로 온다. 예: 대외협력부 · 홍길동",
+          "valueType": "string"
         },
         {
           "key": "highlights",
@@ -5792,27 +6575,32 @@
           "fields": [
             {
               "key": "label",
-              "description": "딱지에 쓰이는 완성된 문구. 예: 186명 참석 (신청 210명)"
+              "description": "딱지에 쓰이는 완성된 문구. 예: 186명 참석 (신청 210명)",
+              "valueType": "string"
             }
           ]
         },
         {
           "key": "completedNote",
-          "description": "완료 처리된 때. 완성된 문구로 온다. 예: 완료 처리 2026. 06. 04"
+          "description": "완료 처리된 때. 완성된 문구로 온다. 예: 완료 처리 2026. 06. 04",
+          "valueType": "string"
         },
         {
           "key": "actionLabel",
           "description": "아카이브를 열러 가는 문구. 열 것이 없으면 오지 않는다(event.checklist의 actionLabel과 같은 규칙). 예: 상세 보기 →",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "blockedNote",
           "description": "열 것이 없을 때 그 까닭. actionLabel과 짝이라 둘 중 하나만 온다. 예: 인수인계 문서가 아직 발행되지 않았습니다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "targetKind",
           "description": "이 줄을 열면 어느 화면인지를 아는 열쇠. **화면 id가 아니다** — 발행된 문서는 읽는 화면으로, 아직 발행되지 않은 것은 쓰고 검토받는 화면으로 간다. 갈 곳은 명세가 든다.",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -5836,49 +6624,59 @@
       "fields": [
         {
           "key": "title",
-          "description": "행사 이름. 문서의 제목이자 빵부스러기의 마지막 조각이다. 예: 봄 축제 학생회 부스"
+          "description": "행사 이름. 문서의 제목이자 빵부스러기의 마지막 조각이다. 예: 봄 축제 학생회 부스",
+          "valueType": "string"
         },
         {
           "key": "statusLabel",
-          "description": "이 문서의 상태. 예: 발행 v1.0"
+          "description": "이 문서의 상태. 예: 발행 v1.0",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "그 딱지의 색 이름. 예: green"
+          "description": "그 딱지의 색 이름. 예: green",
+          "valueType": "string"
         },
         {
           "key": "scheduleNote",
           "description": "행사가 열린 때. 완성된 문구로 온다. 발행된 문서에만 온다. 예: 2026. 05. 28 (목) 11:00–17:00",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "ownerNote",
           "description": "맡은 부서와 책임자. 완성된 문구로 온다. 발행된 문서에만 온다. 예: 대외협력부 · 책임자 이윤슬",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "publishedNote",
           "description": "발행된 때. 발행된 문서에만 온다. 예: 발행 2026. 06. 04",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "authorNote",
           "description": "누가 썼는지. 발행된 문서에만 온다. 예: 작성 이윤슬",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "reviewerNote",
           "description": "누가 검토했는지. 역할 이름까지 서버가 완성해 보낸다 — 명세는 역할의 목록을 들지 않는다. 발행된 문서에만 온다. 예: 검토 김바다 (회장단)",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "nextOwnerNote",
           "description": "이 일을 다음에 맡는 자리. 인수인계 절의 마지막 줄이다. 발행된 문서에만 온다. 예: 다음 담당: 대외협력부 부서장",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "aiDisclaimer",
           "description": "AI 초안이 무엇을 하고 무엇을 하지 않는지. 화면에 적힌 이 글이 곧 그 동작의 계약이다(meeting.minutes의 aiDisclaimer와 같은 자리) — 명세가 이 문장을 들면 계약이 바뀔 때 명세가 틀린다. 쓰는 화면에만 온다.",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -5902,20 +6700,24 @@
       "fields": [
         {
           "key": "key",
-          "description": "이 절을 가리키는 값. 예: overview"
+          "description": "이 절을 가리키는 값. 예: overview",
+          "valueType": "string"
         },
         {
           "key": "label",
-          "description": "절의 이름. 예: 개요"
+          "description": "절의 이름. 예: 개요",
+          "valueType": "string"
         },
         {
           "key": "statusLabel",
           "description": "이 절이 어디까지 왔는지. 쓰는 화면에만 온다. 예: 자동 · 작성 전",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "statusTone",
           "description": "그 글의 색 이름. 예: gray · orange",
+          "valueType": "string",
           "optional": true
         },
         {
@@ -5925,11 +6727,13 @@
           "fields": [
             {
               "key": "key",
-              "description": "갈래를 가리키는 값. 예: retroGood"
+              "description": "갈래를 가리키는 값. 예: retroGood",
+              "valueType": "string"
             },
             {
               "key": "label",
-              "description": "갈래의 이름. 예: 잘된 점"
+              "description": "갈래의 이름. 예: 잘된 점",
+              "valueType": "string"
             }
           ]
         }
@@ -5954,55 +6758,68 @@
       "fields": [
         {
           "key": "goal",
-          "description": "행사 목표. 예: 재학생 교류 확대와 학생회 활동 홍보"
+          "description": "행사 목표. 예: 재학생 교류 확대와 학생회 활동 홍보",
+          "valueType": "string"
         },
         {
           "key": "audience",
-          "description": "참여 대상. 예: 소프트웨어융합대학 재학생 전체"
+          "description": "참여 대상. 예: 소프트웨어융합대학 재학생 전체",
+          "valueType": "string"
         },
         {
           "key": "scheduleAndPlace",
-          "description": "일정과 장소. 완성된 문구로 온다. 예: 2026. 05. 28 11:00–17:00 · 한양대 ERICA 잔디밭"
+          "description": "일정과 장소. 완성된 문구로 온다. 예: 2026. 05. 28 11:00–17:00 · 한양대 ERICA 잔디밭",
+          "valueType": "string"
         },
         {
           "key": "owner",
-          "description": "책임 부서와 책임자. 예: 대외협력부 · 이윤슬"
+          "description": "책임 부서와 책임자. 예: 대외협력부 · 이윤슬",
+          "valueType": "string"
         },
         {
           "key": "scale",
-          "description": "행사 규모. 예: 부스 4개 · 운영 인력 12명 · 참석 186명"
+          "description": "행사 규모. 예: 부스 4개 · 운영 인력 12명 · 참석 186명",
+          "valueType": "string"
         },
         {
           "key": "attendance",
-          "description": "신청 대비 참석. 비율까지 서버가 셈해 보낸다. 예: 신청 210명 → 참석 186명 (88.6%)"
+          "description": "신청 대비 참석. 비율까지 서버가 셈해 보낸다. 예: 신청 210명 → 참석 186명 (88.6%)",
+          "valueType": "string"
         },
         {
           "key": "satisfaction",
-          "description": "만족도. 예: 설문 응답 142건 · 긍정 89%"
+          "description": "만족도. 예: 설문 응답 142건 · 긍정 89%",
+          "valueType": "string"
         },
         {
           "key": "budget",
-          "description": "예산 계획 대비 집행. 예: 계획 1,200,000원 → 집행 1,104,000원 (92%)"
+          "description": "예산 계획 대비 집행. 예: 계획 1,200,000원 → 집행 1,104,000원 (92%)",
+          "valueType": "string"
         },
         {
           "key": "taskCompletion",
-          "description": "업무 완료. 예: 전체 14건 완료 · 지연 2건"
+          "description": "업무 완료. 예: 전체 14건 완료 · 지연 2건",
+          "valueType": "string"
         },
         {
           "key": "runOrder",
-          "description": "실제 진행 순서. 예: 09:00 설치 → 11:00 개장 → 14:00 경품 추첨 → 16:30 정리 → 17:00 종료"
+          "description": "실제 진행 순서. 예: 09:00 설치 → 11:00 개장 → 14:00 경품 추첨 → 16:30 정리 → 17:00 종료",
+          "valueType": "string"
         },
         {
           "key": "staffing",
-          "description": "인력 배치. 예: 부스별 2명 · 안내 2명 · 물품 관리 1명 · 총괄 1명"
+          "description": "인력 배치. 예: 부스별 2명 · 안내 2명 · 물품 관리 1명 · 총괄 1명",
+          "valueType": "string"
         },
         {
           "key": "incident",
-          "description": "돌발 상황과 대응. 예: 13시경 강풍으로 배너 2개 전도. 즉시 고정 추가 후 재설치"
+          "description": "돌발 상황과 대응. 예: 13시경 강풍으로 배너 2개 전도. 즉시 고정 추가 후 재설치",
+          "valueType": "string"
         },
         {
           "key": "operationChange",
-          "description": "운영 변경. 예: 대기 인원이 몰려 경품 추첨을 30분 앞당김"
+          "description": "운영 변경. 예: 대기 인원이 몰려 경품 추첨을 30분 앞당김",
+          "valueType": "string"
         }
       ]
     },
@@ -6025,19 +6842,23 @@
       "fields": [
         {
           "key": "id",
-          "description": "이 마디를 가리키는 값."
+          "description": "이 마디를 가리키는 값.",
+          "valueType": "string"
         },
         {
           "key": "date",
-          "description": "그 날. 완성된 문구로 온다. 예: 04. 12"
+          "description": "그 날. 완성된 문구로 온다. 예: 04. 12",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "무슨 일이 있었는지. 예: 기획 확정"
+          "description": "무슨 일이 있었는지. 예: 기획 확정",
+          "valueType": "string"
         },
         {
           "key": "description",
-          "description": "그 일의 내용. 예: 부스 4종 구성과 예산 규모를 운영회의에서 승인"
+          "description": "그 일의 내용. 예: 부스 4종 구성과 예산 규모를 운영회의에서 승인",
+          "valueType": "string"
         }
       ]
     },
@@ -6060,24 +6881,29 @@
       "fields": [
         {
           "key": "id",
-          "description": "이 줄을 가리키는 값."
+          "description": "이 줄을 가리키는 값.",
+          "valueType": "string"
         },
         {
           "key": "title",
-          "description": "어떤 원본인지. 예: 행사 업무"
+          "description": "어떤 원본인지. 예: 행사 업무",
+          "valueType": "string"
         },
         {
           "key": "detail",
-          "description": "발행 시점의 수치. 완성된 문구로 온다. 예: 14건 (완료 12 · 지연 2)"
+          "description": "발행 시점의 수치. 완성된 문구로 온다. 예: 14건 (완료 12 · 지연 2)",
+          "valueType": "string"
         },
         {
           "key": "actionLabel",
           "description": "원본을 열러 가는 문구. 갈 곳이 없으면 오지 않는다. 예: 원본 보기 →",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "targetKind",
           "description": "이 줄을 누르면 어느 종류의 화면으로 가는지를 아는 열쇠. 화면 id가 아니다 — 갈 곳은 명세가 이 열쇠로 정한다(itemAction.targets). 갈 곳이 없는 줄에는 오지 않는다. 예: tasks · meetings · documents · finance",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -6101,7 +6927,8 @@
       "fields": [
         {
           "key": "groupLabel",
-          "description": "묶음 이름. 예: 잘된 점 · 미흡했던 점 · 다음 행사 개선안"
+          "description": "묶음 이름. 예: 잘된 점 · 미흡했던 점 · 다음 행사 개선안",
+          "valueType": "string"
         },
         {
           "key": "rows",
@@ -6109,20 +6936,24 @@
           "fields": [
             {
               "key": "key",
-              "description": "이 줄을 가리키는 값."
+              "description": "이 줄을 가리키는 값.",
+              "valueType": "string"
             },
             {
               "key": "label",
-              "description": "적힌 내용. 예: 부스별 담당자를 미리 2명씩 배치해 공백이 없었다"
+              "description": "적힌 내용. 예: 부스별 담당자를 미리 2명씩 배치해 공백이 없었다",
+              "valueType": "string"
             },
             {
               "key": "causeNote",
               "description": "그 까닭. 원인까지 적는 묶음에만 온다. 예: 원인 · 업체 확정을 행사 3주 전에 시작했다",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "ownerLabel",
               "description": "이 개선안을 맡을 부서. 맡는 곳이 정해진 줄에만 온다. 예: 홍보부",
+              "valueType": "string",
               "optional": true
             }
           ]
@@ -6148,7 +6979,8 @@
       "fields": [
         {
           "key": "groupLabel",
-          "description": "묶음 이름. 예: 재사용 자산 · 협력처·담당자 · 주의사항"
+          "description": "묶음 이름. 예: 재사용 자산 · 협력처·담당자 · 주의사항",
+          "valueType": "string"
         },
         {
           "key": "rows",
@@ -6156,20 +6988,24 @@
           "fields": [
             {
               "key": "key",
-              "description": "이 줄을 가리키는 값."
+              "description": "이 줄을 가리키는 값.",
+              "valueType": "string"
             },
             {
               "key": "label",
-              "description": "줄의 앞부분. 이름만 있는 줄은 이것이 전부다. 예: 현수막 제작 · · 부스 배치도 (재사용 가능)"
+              "description": "줄의 앞부분. 이름만 있는 줄은 이것이 전부다. 예: 현수막 제작 · · 부스 배치도 (재사용 가능)",
+              "valueType": "string"
             },
             {
               "key": "value",
               "description": "줄의 뒷부분. 이름과 값이 갈리는 줄에만 온다. 예: 한빛기획 · 031-000-0000",
+              "valueType": "string",
               "optional": true
             },
             {
               "key": "tone",
               "description": "그 줄의 색 이름. 눈에 띄어야 하는 줄에만 온다 — 주의사항이 그 자리다. 예: orange",
+              "valueType": "string",
               "optional": true
             }
           ]
@@ -6195,7 +7031,8 @@
       "fields": [
         {
           "key": "groupLabel",
-          "description": "묶음 이름. 어느 부서가 확인하는지다. 예: 대외협력부"
+          "description": "묶음 이름. 어느 부서가 확인하는지다. 예: 대외협력부",
+          "valueType": "string"
         },
         {
           "key": "rows",
@@ -6203,15 +7040,18 @@
           "fields": [
             {
               "key": "key",
-              "description": "이 항목을 가리키는 값."
+              "description": "이 항목을 가리키는 값.",
+              "valueType": "string"
             },
             {
               "key": "label",
-              "description": "무엇을 확인하는지. 예: 장소 사용 승인 절차 확인"
+              "description": "무엇을 확인하는지. 예: 장소 사용 승인 절차 확인",
+              "valueType": "string"
             },
             {
               "key": "done",
-              "description": "이미 확인된 항목인가. 화면이 고치는 값의 시작점이다."
+              "description": "이미 확인된 항목인가. 화면이 고치는 값의 시작점이다.",
+              "valueType": "string"
             }
           ]
         }
@@ -6236,19 +7076,23 @@
       "fields": [
         {
           "key": "overview",
-          "description": "개요를 한 줄로 줄인 것. 예: 2025 신입생 환영회 · 2025. 03. 14 · 담당 홍길동 · 책임자 홍길동 · 210명 참석 (신청 240명)"
+          "description": "개요를 한 줄로 줄인 것. 예: 2025 신입생 환영회 · 2025. 03. 14 · 담당 홍길동 · 책임자 홍길동 · 210명 참석 (신청 240명)",
+          "valueType": "string"
         },
         {
           "key": "outcome",
-          "description": "성과를 한 줄로 줄인 것. 예: 210명 참석 (신청 240명) · 예산 집행 95% · 완료 업무 9건"
+          "description": "성과를 한 줄로 줄인 것. 예: 210명 참석 (신청 240명) · 예산 집행 95% · 완료 업무 9건",
+          "valueType": "string"
         },
         {
           "key": "timeline",
-          "description": "타임라인을 한 줄로 줄인 것. 예: 행사 2025. 03. 14 → 완료 처리 2025. 03. 28 · 참석자 210명 · 참여 설문 완료"
+          "description": "타임라인을 한 줄로 줄인 것. 예: 행사 2025. 03. 14 → 완료 처리 2025. 03. 28 · 참석자 210명 · 참여 설문 완료",
+          "valueType": "string"
         },
         {
           "key": "evidence",
-          "description": "근거 자료를 한 줄로 줄인 것. 이어진 데이터가 없으면 그 사실까지 서버가 적는다. 예: 완료 업무 9건 · 회의·문서·구매 연결 데이터 없음"
+          "description": "근거 자료를 한 줄로 줄인 것. 이어진 데이터가 없으면 그 사실까지 서버가 적는다. 예: 완료 업무 9건 · 회의·문서·구매 연결 데이터 없음",
+          "valueType": "string"
         }
       ]
     },
@@ -6272,41 +7116,49 @@
         {
           "key": "onSiteOperation",
           "description": "현장 운영에 적어 둔 글. 아직 안 썼으면 빈 채로 온다.",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "retroGood",
           "description": "회고 · 잘된 점에 적어 둔 글.",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "retroIssues",
           "description": "회고 · 미흡했던 점과 원인에 적어 둔 글.",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "retroImprovements",
           "description": "회고 · 다음 행사 개선안에 적어 둔 글.",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "improvementDepartment",
           "description": "개선안을 맡을 부서로 고른 값. org.departments의 값과 같다.",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "handover",
           "description": "인수인계에 적어 둔 글. AI 초안을 만들면 이 자리가 채워진다.",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "nextOwner",
           "description": "다음 담당자로 적어 둔 글.",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "reviewer",
           "description": "검토자로 고른 사람. record.archiveReviewers의 값과 같다.",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -6330,11 +7182,13 @@
       "fields": [
         {
           "key": "metCountNote",
-          "description": "채운 조건이 몇 개인지. 세는 말까지 서버가 만든다. 예: 0 / 6"
+          "description": "채운 조건이 몇 개인지. 세는 말까지 서버가 만든다. 예: 0 / 6",
+          "valueType": "string"
         },
         {
           "key": "blockedNote",
           "description": "넘길 수 없을 때 그 까닭. 비어 있으면 열린다.",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -6358,19 +7212,23 @@
       "fields": [
         {
           "key": "key",
-          "description": "이 조건을 가리키는 값."
+          "description": "이 조건을 가리키는 값.",
+          "valueType": "string"
         },
         {
           "key": "label",
-          "description": "무엇을 채워야 하는지. 예: 회고 · 미흡했던 점과 원인"
+          "description": "무엇을 채워야 하는지. 예: 회고 · 미흡했던 점과 원인",
+          "valueType": "string"
         },
         {
           "key": "met",
-          "description": "채워졌는가"
+          "description": "채워졌는가",
+          "valueType": "string"
         },
         {
           "key": "tone",
-          "description": "그 표시의 색 이름. 예: orange · green"
+          "description": "그 표시의 색 이름. 예: orange · green",
+          "valueType": "string"
         }
       ]
     },
@@ -6394,6 +7252,7 @@
         {
           "key": "comment",
           "description": "검토자가 적은 의견. 아직 검토되지 않았으면 오지 않는다.",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -6417,19 +7276,23 @@
       "fields": [
         {
           "key": "name",
-          "description": "학생회 이름. 예: 제12대 소프트웨어융합대학 학생회"
+          "description": "학생회 이름. 예: 제12대 소프트웨어융합대학 학생회",
+          "valueType": "string"
         },
         {
           "key": "kind",
-          "description": "어떤 학생회인지. 예: 단과대 학생회"
+          "description": "어떤 학생회인지. 예: 단과대 학생회",
+          "valueType": "string"
         },
         {
           "key": "scope",
-          "description": "대표하는 범위. 예: 한양대학교 ERICA · 소프트웨어융합대학"
+          "description": "대표하는 범위. 예: 한양대학교 ERICA · 소프트웨어융합대학",
+          "valueType": "string"
         },
         {
           "key": "term",
-          "description": "운영 연도. 예: 2026년"
+          "description": "운영 연도. 예: 2026년",
+          "valueType": "string"
         }
       ]
     },
@@ -6452,23 +7315,28 @@
       "fields": [
         {
           "key": "title",
-          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "행사 이름. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "startAt",
-          "description": "행사 일시. 완성된 문구로 온다. 예: 2026-08-20 10:00"
+          "description": "행사 일시. 완성된 문구로 온다. 예: 2026-08-20 10:00",
+          "valueType": "string"
         },
         {
           "key": "place",
-          "description": "장소. 예: ERICA 체육관"
+          "description": "장소. 예: ERICA 체육관",
+          "valueType": "string"
         },
         {
           "key": "audience",
-          "description": "참가 대상. 예: 소프트웨어융합대학 전체"
+          "description": "참가 대상. 예: 소프트웨어융합대학 전체",
+          "valueType": "string"
         },
         {
           "key": "fee",
-          "description": "참가비. 조건까지 문장으로 온다 — 무엇이 무료인지 화면이 유도할 수 없다(event.basics.fee와 같은 사실이고, EVT-02B가 납부자·미납자 금액을 따로 받아 이 한 줄로 이어진다). 예: 납부자 무료 / 미납자 5000원"
+          "description": "참가비. 조건까지 문장으로 온다 — 무엇이 무료인지 화면이 유도할 수 없다(event.basics.fee와 같은 사실이고, EVT-02B가 납부자·미납자 금액을 따로 받아 이 한 줄로 이어진다). 예: 납부자 무료 / 미납자 5000원",
+          "valueType": "string"
         }
       ]
     },
@@ -6491,23 +7359,28 @@
       "fields": [
         {
           "key": "title",
-          "description": "신청이 어떻게 됐는지 알리는 제목. 운영진이 설문마다 적는다"
+          "description": "신청이 어떻게 됐는지 알리는 제목. 운영진이 설문마다 적는다",
+          "valueType": "string"
         },
         {
           "key": "eventTitle",
-          "description": "어느 행사의 신청인지"
+          "description": "어느 행사의 신청인지",
+          "valueType": "string"
         },
         {
           "key": "applicantNote",
-          "description": "누가 냈는지. **라벨까지 품은 완성된 한 줄이다** — 그림이 한 덩이로 그렸고, 신청자를 무엇이라 부를지는 조직의 말이다. 예: 신청자: 김바다"
+          "description": "누가 냈는지. **라벨까지 품은 완성된 한 줄이다** — 그림이 한 덩이로 그렸고, 신청자를 무엇이라 부를지는 조직의 말이다. 예: 신청자: 김바다",
+          "valueType": "string"
         },
         {
           "key": "feeStatus",
-          "description": "참가비가 지금 어떤 상태인지. **금액일 수도 상태일 수도 있다** — 학생회비 조건부 행사는 대조가 끝나야 금액이 정해진다. 예: 관리자 확인 중 · 5,000원"
+          "description": "참가비가 지금 어떤 상태인지. **금액일 수도 상태일 수도 있다** — 학생회비 조건부 행사는 대조가 끝나야 금액이 정해진다. 예: 관리자 확인 중 · 5,000원",
+          "valueType": "string"
         },
         {
           "key": "feeNote",
           "description": "그 아래 붙는 보조문. 금액이 이미 정해진 행사에는 오지 않는다",
+          "valueType": "string",
           "optional": true
         },
         {
@@ -6516,7 +7389,8 @@
           "fields": [
             {
               "key": "text",
-              "description": "한 줄. 앞머리 기호까지 붙어서 온다"
+              "description": "한 줄. 앞머리 기호까지 붙어서 온다",
+              "valueType": "string"
             }
           ]
         }
@@ -6541,24 +7415,29 @@
       "fields": [
         {
           "key": "label",
-          "description": "왜 막혔는지의 이름. 예: 모집 전 · 정원 마감 · 링크 비활성화"
+          "description": "왜 막혔는지의 이름. 예: 모집 전 · 정원 마감 · 링크 비활성화",
+          "valueType": "string"
         },
         {
           "key": "tone",
-          "description": "그 카드의 색 이름. 알림의 세기가 상태마다 다르다 — 아직 안 열린 것은 무채색이고 정원이 찬 것은 주황이다"
+          "description": "그 카드의 색 이름. 알림의 세기가 상태마다 다르다 — 아직 안 열린 것은 무채색이고 정원이 찬 것은 주황이다",
+          "valueType": "string"
         },
         {
           "key": "note",
-          "description": "그 상태를 풀어 쓴 한 줄"
+          "description": "그 상태를 풀어 쓴 한 줄",
+          "valueType": "string"
         },
         {
           "key": "actionLabel",
           "description": "갈 곳이 있을 때 그 단추의 글. **갈 곳이 없는 상태에는 오지 않는다** — 다섯 중 넷은 응답자가 갈 데가 없다",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "replacementToken",
           "description": "이 설문을 대신하는 새 설문의 토큰. 교체된 설문에만 온다. **화면이 이 값을 지어낼 수 없다** — 옛 토큰과 새 토큰을 잇는 것은 서버뿐이다(OPS-MEET-09의 replacementMeetingId와 같은 자리)",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -6582,37 +7461,45 @@
       "fields": [
         {
           "key": "eventName",
-          "description": "어느 행사의 참석 확인인지. 예: 2026 소프트웨어융합대학 체육대회"
+          "description": "어느 행사의 참석 확인인지. 예: 2026 소프트웨어융합대학 체육대회",
+          "valueType": "string"
         },
         {
           "key": "statusLabel",
-          "description": "지금 체크인을 받는지 알리는 말. **명세가 목록을 들지 않는다.** 예: 체크인 가능"
+          "description": "지금 체크인을 받는지 알리는 말. **명세가 목록을 들지 않는다.** 예: 체크인 가능",
+          "valueType": "string"
         },
         {
           "key": "statusTone",
-          "description": "그 딱지의 색 이름(design/tones.ts의 톤)"
+          "description": "그 딱지의 색 이름(design/tones.ts의 톤)",
+          "valueType": "string"
         },
         {
           "key": "checkInWindow",
-          "description": "체크인을 받는 시간대. 완성된 글로 온다 — 때의 표기는 조직의 것이다. 예: 09:30 ~ 11:00"
+          "description": "체크인을 받는 시간대. 완성된 글로 온다 — 때의 표기는 조직의 것이다. 예: 09:30 ~ 11:00",
+          "valueType": "string"
         },
         {
           "key": "guideNote",
-          "description": "무엇을 어떻게 적어야 하는지 알리는 완성된 글"
+          "description": "무엇을 어떻게 적어야 하는지 알리는 완성된 글",
+          "valueType": "string"
         },
         {
           "key": "blockedLabel",
           "description": "지금 받을 수 없을 때 그 까닭의 이름. 예: 비활성화된 QR",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "blockedTone",
           "description": "그 까닭 카드의 색 이름",
+          "valueType": "string",
           "optional": true
         },
         {
           "key": "blockedNote",
           "description": "그 까닭을 풀어 쓴 글. **이 조각이 오면 이름·학번 칸을 그리지 않는다.** 무엇이 막는 조건인지는 조직과 QR의 사정이라 화면이 셀 수 없다",
+          "valueType": "string",
           "optional": true
         }
       ]
@@ -6636,23 +7523,28 @@
       "fields": [
         {
           "key": "label",
-          "description": "결과의 이름. 예: 참석 완료"
+          "description": "결과의 이름. 예: 참석 완료",
+          "valueType": "string"
         },
         {
           "key": "tone",
-          "description": "그 결과의 색 이름(design/tones.ts의 톤). 예: green"
+          "description": "그 결과의 색 이름(design/tones.ts의 톤). 예: green",
+          "valueType": "string"
         },
         {
           "key": "iconName",
-          "description": "그 결과를 나타내는 그림의 이름(check · circle-alert · info · x · clock). **톤만으로는 갈리지 않는다** — '체크인 시간 전·후'와 '비활성화된 QR'이 둘 다 회색인데 시계와 X로 다르다. 지금 명세에 이 조각을 가리킬 자리가 없어(제안: summary.iconField) 화면이 직접 읽는다"
+          "description": "그 결과를 나타내는 그림의 이름(check · circle-alert · info · x · clock). **톤만으로는 갈리지 않는다** — '체크인 시간 전·후'와 '비활성화된 QR'이 둘 다 회색인데 시계와 X로 다르다. 지금 명세에 이 조각을 가리킬 자리가 없어(제안: summary.iconField) 화면이 직접 읽는다",
+          "valueType": "string"
         },
         {
           "key": "description",
-          "description": "결과를 풀어 쓴 글. 때·까닭·시간대가 이미 찍혀서 온다. 예: 2026. 08. 20 09:47 체크인되었습니다."
+          "description": "결과를 풀어 쓴 글. 때·까닭·시간대가 이미 찍혀서 온다. 예: 2026. 08. 20 09:47 체크인되었습니다.",
+          "valueType": "string"
         },
         {
           "key": "canRetry",
-          "description": "이 결과에서 이름·학번을 **다시 낼 수 있는가**(참·거짓). 판정은 서버가 한다 — 명세가 '명단 불일치일 때만'이라고 적으면 그 규칙이 명세에 박히고, 규칙이 바뀔 때마다 명세를 고쳐야 한다. 지금은 이름이 명단과 다를 때만 참이다(사람이 정한 것: docs/decisions/product-decisions.md). 참석이 이미 끝났거나 QR이 꺼진 결과에서는 다시 내도 같은 답이 온다."
+          "description": "이 결과에서 이름·학번을 **다시 낼 수 있는가**(참·거짓). 판정은 서버가 한다 — 명세가 '명단 불일치일 때만'이라고 적으면 그 규칙이 명세에 박히고, 규칙이 바뀔 때마다 명세를 고쳐야 한다. 지금은 이름이 명단과 다를 때만 참이다(사람이 정한 것: docs/decisions/product-decisions.md). 참석이 이미 끝났거나 QR이 꺼진 결과에서는 다시 내도 같은 답이 온다.",
+          "valueType": "boolean"
         }
       ]
     }

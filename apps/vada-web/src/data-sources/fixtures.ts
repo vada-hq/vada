@@ -3191,14 +3191,15 @@ const PURCHASE_REQUEST_ITEMS: DataRow[] = [
 
 // 아직 아무것도 적히지 않은 요청. 비어 있지 않은 것이 둘 있다 — 작성자의 소속
 // 부서와 품목 한 줄이다. 부서는 서버가 이미 알고, 품목 한 줄은 minItems가 정한다.
+// **아직 안 적은 수는 오지 않는다.** 빈 글('')로 주면 같은 조각이 때로 수, 때로
+// 글이 되고 — 값의 종류를 도출해 보니 저장소에서 그런 조각이 이 둘뿐이었다.
+// 0은 값이므로(0개·0원) 빈 것과 0을 글로 섞으면 둘을 가를 수 없다.
 const EMPTY_PURCHASE_REQUEST_ITEM: DataRow = {
   itemName: '',
   itemCategory: '',
   budgetItem: '',
   purchaseType: '',
-  quantity: '',
   unit: '',
-  unitPrice: '',
   quoteStatus: 'none',
 }
 

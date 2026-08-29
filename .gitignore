@@ -13,3 +13,8 @@ apps/vada-web/playwright-report/
 
 # Figma 개인 액세스 토큰. 절대 커밋하지 않는다.
 .env
+
+# 값의 종류를 개발용 응답에서 읽어 낸 중간 산출물. 한 번 쓰고 카탈로그로 옮긴다 —
+# 남겨 두면 개발용 응답이 바뀔 때 조용히 낡는다. 다시 필요하면
+# DERIVE_TYPES=1 vitest run src/data-sources/derive-types.test.ts 로 만든다.
+apps/vada-web/src/data-sources/derived-types.json

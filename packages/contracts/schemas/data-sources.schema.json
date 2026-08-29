@@ -127,6 +127,15 @@
           "type": "string",
           "minLength": 1
         },
+        "valueType": {
+          "type": "string",
+          "enum": [
+            "string",
+            "number",
+            "boolean"
+          ],
+          "description": "**이 조각이 어떤 값으로 오는가.** 다시 목록인 조각(`fields`를 갖는 것)은 적지 않는다 — 모양이 이미 말한다.\n\n오랫동안 이 자리가 없었다. 조각 920개가 이름과 설명만 갖고 있었고, 그 상태로는 **OpenAPI를 뽑을 수 없고 백엔드를 만드는 사람이 응답을 만들 수 없다** — `amount`를 수로 줄지 '180,000원'으로 줄지 명세가 말하지 않았다.\n\n값은 지어내지 않고 **개발용 응답에서 읽어 냈다**(`apps/vada-web/src/data-sources/derive-types.test.ts`). 그 값들은 화면이 그리는 것과 design 대조로 묶여 있으므로 짐작보다 정확한 근거다. 읽어 보니 832개 중 **글 753 · 수 50 · 참거짓 1 · 목록 28**이었다 — 이 저장소가 '서버가 완성된 글을 준다'로 정해 온 것이 숫자로 확인된다.\n\n**흔들리는 조각이 둘 있었다.** 구매 요청 초안의 수량과 단가가 때로 수, 때로 빈 글로 왔다. 아직 안 적은 수는 빈 글이 아니라 오지 않는 것이므로 (0은 값이다) optional로 고쳤다 — 값의 종류를 재는 일이 계약의 모호함을 드러낸 자리다."
+        },
         "optional": {
           "type": "boolean",
           "description": "생략하면 항상 온다는 뜻이다."
@@ -139,7 +148,28 @@
             "$ref": "#/$defs/field"
           }
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": [
+              "fields"
+            ]
+          },
+          "then": {
+            "not": {
+              "required": [
+                "valueType"
+              ]
+            }
+          },
+          "else": {
+            "required": [
+              "valueType"
+            ]
+          }
+        }
+      ]
     }
   }
 }
