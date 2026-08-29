@@ -88,10 +88,10 @@ export function MSG02Screen({
   const create = elementByNodeId(msg02, NODE.create).spec as ButtonSpec
 
   const wholeDepartment = (departments.itemFields ?? []).find(
-    (field) => field.source.nodeId === NODE_FIRST.wholeDepartment,
+    (field) => field.source?.nodeId === NODE_FIRST.wholeDepartment,
   )?.spec as ButtonSpec
   const expandDepartment = (departments.itemFields ?? []).find(
-    (field) => field.source.nodeId === NODE_FIRST.expandDepartment,
+    (field) => field.source?.nodeId === NODE_FIRST.expandDepartment,
   )?.spec as ButtonSpec
 
   const field = useFieldDraft({ elements: msg02.elements, draft, onChangeDraft })

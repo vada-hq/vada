@@ -454,7 +454,10 @@ export type ElementSpec =
 export type FieldSpec = InputSpec | SelectSpec
 
 export interface ScreenElement {
-  source: {
+  /**
+   * 그림에 있는 요소의 자리. **그림에 없는 요소는 이것 대신 addedByDecision을 갖는다.**
+   */
+  source?: {
     nodeId: string
     name: string
     figmaType: string
@@ -466,6 +469,27 @@ export interface ScreenElement {
      * 같은 생각이고, 그쪽이 목록의 규칙이라면 이것은 목록이 아닌 자리의 것이다.
      */
     alsoDrawnAt?: string[]
+  }
+  /**
+   * 그림에 없는데 사람이 두기로 정한 요소. `source` 대신 온다.
+   *
+   * design 대조는 이 요소를 견주지 않는다 — 견줄 그림이 없다. 그래서 이것이
+   * 늘면 검사가 지키는 몫이 준다.
+   */
+  addedByDecision?: {
+    decision: string
+    why: string
+  }
+  /**
+   * **데이터가 허락할 때만 그린다**(선택). 없으면 늘 그린다.
+   *
+   * 그 출처의 그 조각이 참일 때만 그린다. 판정은 데이터가 하고 명세는 규칙을
+   * 적지 않는다 — 서버가 이미 답을 아는 자리다.
+   */
+  drawnWhen?: {
+    dataSourceKey: string
+    field: string
+    params?: Record<string, { screenParam?: string; fieldKey?: string; value?: string }>
   }
   spec: ElementSpec
 }

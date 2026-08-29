@@ -48,11 +48,16 @@ function drawnTexts(node, parent = null, out = [], depth = 0) {
 function registeredIds(spec) {
   const ids = []
   for (const element of spec.elements ?? []) {
+    // 그림에 없는데 사람이 두기로 정한 요소는 등록할 노드가 없다. 세지 않는다 —
+    // 덮을 그림이 없으므로 분자에도 분모에도 들지 않는다.
+    if (element.source === undefined) continue
     ids.push(element.source.nodeId)
     // 한 자리를 여러 번 그린 그림의 사본도 그 요소의 것이다. 참석 확인의 결과
     // 여섯이 노드 대 노드로 같고 서로 배타적이다 — 한 사람에게 하나만 온다.
     for (const copy of element.source.alsoDrawnAt ?? []) ids.push(copy)
-    for (const field of element.spec?.itemFields ?? []) ids.push(field.source.nodeId)
+    for (const field of element.spec?.itemFields ?? []) {
+      if (field?.source?.nodeId !== undefined) ids.push(field.source.nodeId)
+    }
     if (typeof element.spec?.paging?.source === 'string') {
       ids.push(element.spec.paging.source)
     }
@@ -352,4 +357,37 @@ test('세어 둔다 — 명세가 그림의 몇 할을 말하는가', () => {
       `  분모에서 뺀 것 — 그릇이 그리는 머리·제목 ${byFrame} · 되풀이 둘째 사본부터 ${byCopy}\n`,
   )
   assert.equal(hole, 0)
+})
+
+// 그림에 없는데 사람이 두기로 정한 요소. **design 대조가 견주지 않는다** — 견줄
+// 그림이 없다. 그래서 여기 적힌 것이 늘수록 검사가 지키는 몫이 준다.
+//
+// 지금은 하나다: EXT-01B의 '다시 입력'. 이름이 명단과 다를 때 QR을 다시 찍지 않고
+// 폼으로 돌아갈 수 있어야 한다고 사람이 정했는데 어느 프레임에도 그려져 있지 않다.
+// 그 단추는 한동안 화면 코드에만 있었고 명세만 읽는 사람은 존재를 몰랐다 —
+// 명세가 드러내어 적는 것이 숨는 것보다 낫다. 다만 **싸지 않다는 것을 세어 둔다.**
+const ADDED_BY_DECISION = 1
+
+test('사람이 더한 요소가 조용히 늘지 않는다', () => {
+  const added = []
+  for (const entry of readdirSync(SCREENS, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    let spec
+    try {
+      spec = JSON.parse(readFileSync(join(SCREENS, entry.name, 'screen.json'), 'utf-8'))
+    } catch {
+      continue
+    }
+    for (const element of spec.elements ?? []) {
+      if (element?.addedByDecision === undefined) continue
+      added.push(`  ${entry.name}: ${element.addedByDecision.decision}`)
+    }
+  }
+  assert.equal(
+    added.length,
+    ADDED_BY_DECISION,
+    `그림에 없는 요소의 수가 ${ADDED_BY_DECISION}개에서 ${added.length}개로 바뀌었습니다.\n` +
+      `대조가 견주지 않는 자리이므로 늘리려면 까닭을 여기 적으세요.\n` +
+      added.join(`\n`),
+  )
 })

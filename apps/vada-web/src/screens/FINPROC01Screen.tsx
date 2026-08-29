@@ -13,7 +13,7 @@ import {
   type DataValue,
 } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
-import { finProc01 } from '../spec/screens'
+import { drawnNodeIdOf, finProc01 } from '../spec/screens'
 
 interface FINPROC01ScreenProps {
   screenParams: Record<string, string>
@@ -37,9 +37,9 @@ if (buttonElement?.spec.type !== 'button') {
 const summarySpec = summaryElement.spec
 const ordersSpec = ordersElement.spec
 const buttonSpec = buttonElement.spec
-const summaryNodeId = summaryElement.source.nodeId
-const ordersNodeId = ordersElement.source.nodeId
-const buttonNodeId = buttonElement.source.nodeId
+const summaryNodeId = drawnNodeIdOf(summaryElement, finProc01.screenId)
+const ordersNodeId = drawnNodeIdOf(ordersElement, finProc01.screenId)
+const buttonNodeId = drawnNodeIdOf(buttonElement, finProc01.screenId)
 
 function scalar(value: DataValue | undefined, field: string): string {
   if (value === undefined || Array.isArray(value)) {

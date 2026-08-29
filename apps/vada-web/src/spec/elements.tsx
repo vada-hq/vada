@@ -223,7 +223,7 @@ export function renderBody(context: ElementContext, options: BodyOptions = {}): 
 
   return screen.elements.map((element, index) => {
     const spec = element.spec
-    const key = element.source.nodeId ?? String(index)
+    const key = element.source?.nodeId ?? String(index)
 
     switch (spec.type) {
       case 'button':

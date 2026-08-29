@@ -531,7 +531,11 @@ export function nodeSelector(nodeId: string): string {
 interface RegisteredElement {
   // alsoDrawnAt은 **같은 자리를 다른 값으로 그린 사본들**이다. 하나만 등록하고
   // 나머지를 사본으로 본다(itemFields가 목록에서 하는 것과 같은 생각).
-  source: { nodeId: string; alsoDrawnAt?: string[] }
+  //
+  // **없을 수 있다.** 그림에 없는데 사람이 두기로 정한 요소는 source 대신
+  // addedByDecision을 갖는다(EXT-01B의 '다시 입력'). 견줄 그림이 없으므로
+  // 대조는 그런 요소를 통째로 건너뛴다 — 여기서 빠지면 그 뒤가 전부 빠진다.
+  source?: { nodeId: string; alsoDrawnAt?: string[] }
   // 목록의 쪽 줄은 표와 다른 자리에 그려진다(디자인이 둘을 형제로 둔다).
   // 요소 유형마다 spec의 모양이 달라 여기서는 이 한 자리만 본다.
   spec?: unknown
@@ -555,16 +559,22 @@ export function registeredNodeIds(screen: ComparableScreen): string[] {
   // 되풀이되는 항목의 칸도 등록 노드다. design은 항목을 넷 그렸지만 명세가 적은
   // 것은 첫째 하나이고, 화면도 그 자리에만 끈을 단다 — 둘째부터는 같은 틀이라
   // 대조할 새 사실이 없다.
-  const itemFields = screen.elements.flatMap(
+  const drawn = screen.elements.filter(
+    (element): element is RegisteredElement & { source: { nodeId: string } } =>
+      element.source !== undefined,
+  )
+  const itemFields = drawn.flatMap(
     (element) => (element.spec as { itemFields?: RegisteredElement[] })?.itemFields ?? [],
   )
   return [
-    ...screen.elements.map((element) => element.source.nodeId),
+    ...drawn.map((element) => element.source.nodeId),
     // 한 자리를 여러 번 그린 그림. 나머지 사본은 **같은 요소**가 덮는다 —
     // 되풀이되는 묶음의 첫 벌만 등록하는 것과 같은 생각이다.
-    ...screen.elements.flatMap((element) => element.source.alsoDrawnAt ?? []),
-    ...itemFields.map((element) => element.source.nodeId),
-    ...screen.elements
+    ...drawn.flatMap((element) => element.source.alsoDrawnAt ?? []),
+    ...itemFields
+      .map((element) => element.source?.nodeId)
+      .filter((nodeId): nodeId is string => typeof nodeId === 'string'),
+    ...drawn
       .map((element) => (element.spec as { paging?: { source?: string } })?.paging?.source)
       .filter((nodeId): nodeId is string => typeof nodeId === 'string'),
     ...Object.values(screen.workspace?.source ?? {}).filter(
@@ -596,7 +606,7 @@ export function compareScreen(
   // 다만 **있으면 대조한다.** 지금 그려진 것이 어느 사본이든 그 자리의 글과 색은
   // 그림과 같아야 한다. 자산 대조가 이미 같은 규칙으로 돈다.
   const copies = new Set(
-    screen.elements.flatMap((element) => element.source.alsoDrawnAt ?? []),
+    screen.elements.flatMap((element) => element.source?.alsoDrawnAt ?? []),
   )
   for (const nodeId of nodeIds) {
     const exclude = new Set([...registered].filter((id) => id !== nodeId))

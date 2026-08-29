@@ -58,7 +58,12 @@ export function findDataSource(key: string | undefined): DataSource {
 }
 
 // 묶인 목록은 조각 하나가 다시 항목 목록이다(회의 목록의 행사별 묶음).
-export type DataValue = string | number | DataRow[]
+//
+// **참·거짓도 값이다.** 서버가 판정을 답하는 자리가 있다 — attendance.checkInResult의
+// canRetry가 그렇고, 화면은 그 값만 보고 '다시 입력'을 그릴지 정한다(drawnWhen).
+// 판정을 글로 주면('예'/'아니오') 화면이 그 글을 견주게 되고, 말이 바뀌는 날
+// 조용히 틀린다.
+export type DataValue = string | number | boolean | DataRow[]
 export type DataRow = Record<string, DataValue>
 
 // 인자로 집어 온 한 건이 없을 때. 오류가 아니라 답이다 — 카탈로그의

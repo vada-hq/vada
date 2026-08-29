@@ -341,7 +341,7 @@ export function OPSMEET02Screen({
   // 항목 안의 칸도 명세의 요소다. elementByNodeId는 최상위만 보므로 안건의 틀은
   // 여기서 함께 찾는다 — 되풀이되는 칸의 라벨·필수 여부도 명세가 갖는다.
   const specOf = (nodeId: string) => {
-    const inItem = agendaFields.find((entry) => entry.source.nodeId === nodeId)
+    const inItem = agendaFields.find((entry) => entry.source?.nodeId === nodeId)
     return inItem === undefined ? elementByNodeId(opsMeet02, nodeId).spec : inItem.spec
   }
 

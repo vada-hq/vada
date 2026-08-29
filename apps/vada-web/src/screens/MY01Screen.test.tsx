@@ -24,7 +24,7 @@ function renderMY01(onNavigate: (screenId: string) => void = () => {}) {
 }
 
 function specOf<T>(nodeId: string): T {
-  const found = my01.elements.find((element) => element.source.nodeId === nodeId)
+  const found = my01.elements.find((element) => element.source?.nodeId === nodeId)
   if (!found) throw new Error(`nodeId ${nodeId} 없음`)
   return found.spec as T
 }

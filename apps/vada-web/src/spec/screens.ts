@@ -349,7 +349,7 @@ export function drawsTitle(screen: ScreenSpec): boolean {
 // 배치가 명세에 없는 화면(대시보드)은 구현이 design의 자리마다 요소를 끼운다.
 // nodeId로 찾는다 — 라벨은 화면 안에서 유일하지 않을 수 있지만 nodeId는 유일하다.
 export function elementByNodeId(screen: ScreenSpec, nodeId: string): ScreenElement {
-  const found = screen.elements.find((element) => element.source.nodeId === nodeId)
+  const found = screen.elements.find((element) => element.source?.nodeId === nodeId)
   if (!found) {
     throw new Error(`화면 ${screen.screenId}에 nodeId ${nodeId}인 요소가 없습니다.`)
   }
@@ -366,7 +366,26 @@ export function nodeIdOf(screen: ScreenSpec, spec: ScreenElement['spec']): strin
   if (!found) {
     throw new Error(`화면 ${screen.screenId}에 등록되지 않은 요소입니다.`)
   }
-  return found.source.nodeId
+  return drawnNodeIdOf(found, screen.screenId)
+}
+
+/**
+ * 이 요소를 그린 노드. **그림에 없는 요소에 물으면 던진다.**
+ *
+ * 조용히 빈 문자열을 주면 data-node-id가 빈 채로 붙고, 대조는 "끈이 없다"고만
+ * 말한다 — 어느 요소가 왜 그런지는 안 나온다. 사람이 두기로 정한 요소
+ * (addedByDecision)는 그린 노드가 없는 것이 정상이므로, 그 요소에 노드를 묻는
+ * 코드가 잘못이다.
+ */
+export function drawnNodeIdOf(element: ScreenElement, screenId: string): string {
+  if (element.source === undefined) {
+    const decision = element.addedByDecision?.decision ?? '까닭이 적혀 있지 않음'
+    throw new Error(
+      `화면 ${screenId}: 그림에 없는 요소의 노드를 물었습니다(${decision}). ` +
+        `사람이 두기로 정한 요소는 그린 노드가 없습니다.`,
+    )
+  }
+  return element.source.nodeId
 }
 
 export function findInputSpec(screen: ScreenSpec, fieldKey: string): InputSpec {

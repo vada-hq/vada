@@ -74,13 +74,13 @@ export function expectationsOf(
   for (const element of screen.elements) {
     const type = (element.spec as { type?: unknown })?.type
     if (typeof type === 'string') {
-      typeByNodeId.set(element.source.nodeId, type)
+      if (element.source !== undefined) typeByNodeId.set(element.source.nodeId, type)
     }
     for (const field of (element.spec as { itemFields?: typeof screen.elements })?.itemFields ??
       []) {
       const fieldType = (field.spec as { type?: unknown })?.type
       if (typeof fieldType === 'string') {
-        typeByNodeId.set(field.source.nodeId, fieldType)
+        if (field.source !== undefined) typeByNodeId.set(field.source.nodeId, fieldType)
       }
     }
   }

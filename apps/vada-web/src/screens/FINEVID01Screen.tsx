@@ -119,7 +119,7 @@ export function FINEVID01Screen({ screenParams, onNavigate }: FINEVID01ScreenPro
   const listSource = findDataSource(list.dataSourceKey)
 
   const itemFieldAt = (nodeId: string) => {
-    const found = (list.itemFields ?? []).find((element) => element.source.nodeId === nodeId)
+    const found = (list.itemFields ?? []).find((element) => element.source?.nodeId === nodeId)
     if (found === undefined) {
       throw new Error(`FIN-EVID-01의 결제에 노드 ${nodeId}가 등록되지 않았습니다.`)
     }

@@ -793,7 +793,10 @@ export function compareWithSpec(draftElements, specElements) {
     element ? `${element.source.nodeId} ${element.spec.type} ${identity(element) ?? ""}`.trim() : "—";
 
   const draftByNode = new Map(draftElements.map((element) => [element.source.nodeId, element]));
-  const rows = specElements.map((actual) => {
+  // 그림에 없는데 사람이 두기로 정한 요소는 **추출기가 뽑을 수 없다** — 뽑아 올
+  // 노드가 없다. 재현율의 분모에 넣으면 추출기가 못 한 일로 세어져, 사람이 그런
+  // 요소를 하나 더할 때마다 눈금이 까닭 없이 내려간다.
+  const rows = specElements.filter((actual) => actual?.source !== undefined).map((actual) => {
     const draft = draftByNode.get(actual.source.nodeId) ?? null;
     return {
       nodeId: actual.source.nodeId,
@@ -805,7 +808,11 @@ export function compareWithSpec(draftElements, specElements) {
     };
   });
 
-  const specNodeIds = new Set(specElements.map((element) => element.source.nodeId));
+  const specNodeIds = new Set(
+    specElements
+      .map((element) => element?.source?.nodeId)
+      .filter((nodeId) => typeof nodeId === "string")
+  );
   for (const draft of draftElements) {
     if (!specNodeIds.has(draft.source.nodeId)) {
       rows.push({

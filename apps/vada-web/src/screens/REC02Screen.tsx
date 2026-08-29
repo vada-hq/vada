@@ -460,7 +460,7 @@ export function REC02Screen({
                         // 되풀이되는 칸은 **첫 벌만** 등록 노드를 갖는다.
                         data-node-id={
                           groupIndex === 0 && rowIndex === 0
-                            ? checklistField?.source.nodeId
+                            ? checklistField?.source?.nodeId
                             : undefined
                         }
                         className="flex items-center gap-2 pt-2"

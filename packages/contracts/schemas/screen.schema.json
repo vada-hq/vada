@@ -339,7 +339,6 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "source",
           "spec"
         ],
         "properties": {
@@ -375,6 +374,52 @@
               }
             }
           },
+          "addedByDecision": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "decision",
+              "why"
+            ],
+            "description": "**그림에 없는데 사람이 두기로 정한 요소.** `source` 대신 쓴다.\n\n이 저장소의 규칙은 '지어내지 않는다'이고 요소는 자기를 그린 노드를 갖는다(등록 노드 계약). 그런데 사람이 그림에 없는 것을 두기로 정하는 일이 실제로 있었다 — EXT-01B의 '다시 입력'이 그렇다. 이름이 명단과 다를 때 QR을 다시 찍지 않고 폼으로 돌아갈 수 있어야 한다고 정했는데, 그 단추는 어느 프레임에도 그려져 있지 않다.\n\n**그 자리를 명세가 못 담으면 화면 코드에만 남는다.** 실제로 그랬고, 그동안 명세만 읽는 사람은 그 단추의 존재를 알 길이 없었다 — '명세 하나면 된다'가 새는 자리다. 그림에 없다는 사실을 숨기는 것이 아니라 **드러내어 적는다.**\n\ndesign 대조는 이 요소를 견주지 않는다(견줄 그림이 없다). 그래서 여기 적힌 것이 늘어나면 검사가 지키는 몫이 줄어든다 — 검사가 그 수를 세고 못 박는다.",
+            "properties": {
+              "decision": {
+                "type": "string",
+                "minLength": 1,
+                "description": "이 요소를 두기로 한 결정. docs/decisions/product-decisions.md의 절 제목이다."
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1,
+                "description": "왜 그림에 없는 것을 두는가. 결정 문서를 열지 않고도 까닭이 보여야 한다."
+              }
+            }
+          },
+          "drawnWhen": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "dataSourceKey",
+              "field"
+            ],
+            "description": "**데이터가 허락할 때만 그린다**(선택). 생략하면 늘 그린다.\n\n그 출처의 그 조각이 참일 때만 이 요소를 그린다. 거짓이거나 없으면 그리지 않는다.\n\n**판정은 데이터가 한다.** 명세는 '언제 그리는가'의 규칙을 적지 않는다 — '명단과 이름이 다를 때만'을 명세가 적으면 그 규칙이 명세에 박히고, 규칙이 바뀌면 명세를 고쳐야 한다. 서버가 이미 답을 아는 자리다(역할 이름·권한 규칙을 명세가 들지 않는 것과 같은 까닭).\n\n같은 벽에 세 번 부딪혔다 — EXT-01A의 막힌 QR(칸을 아예 안 그린다) · EVT-04의 빈 명단(거르개를 감춘다) · EXT-01B의 '다시 입력'.",
+            "properties": {
+              "dataSourceKey": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "description": "data-sources.json 카탈로그의 key."
+              },
+              "field": {
+                "type": "string",
+                "minLength": 1,
+                "description": "참·거짓을 답하는 조각의 이름. 그 출처의 fields에 선언돼 있어야 한다."
+              },
+              "params": {
+                "$ref": "element-params.schema.json#/$defs/argument",
+                "description": "조회할 때 넘기는 인자(선택). itemList.params와 같은 모양이다."
+              }
+            }
+          },
           "spec": {
             "type": "object",
             "required": [
@@ -397,7 +442,25 @@
               }
             }
           }
-        }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "addedByDecision": false
+            }
+          },
+          {
+            "required": [
+              "addedByDecision"
+            ],
+            "properties": {
+              "source": false
+            }
+          }
+        ]
       }
     }
   }

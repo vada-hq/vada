@@ -2869,3 +2869,110 @@ test("변형은 본 화면과 함께 있는 것을 다시 세지 않는다", () 
     findings.map((f) => f.message).join(" | "),
   );
 });
+
+// 데이터가 허락할 때만 그리는 자리(drawnWhen). **검사가 실제로 도는지**를 여기서
+// 못 박는다 — 이 저장소에서 한 번도 돈 적 없는 검사가 둘 있었고, 둘 다 계약
+// 검사가 없어 아무도 몰랐다.
+function conditionalScreen(field, dataSourceKey = "attendance.checkInResult") {
+  return {
+    screens: [
+      {
+        file: "w/screens/S-01/screen.json",
+        spec: {
+          screenId: "S-01",
+          elements: [
+            {
+              addedByDecision: {
+                decision: "사람이 두기로 정했다",
+                why: "그림에 없다"
+              },
+              drawnWhen: { dataSourceKey, field },
+              spec: {
+                type: "button",
+                label: "다시 입력",
+                initiallyDisabled: false,
+                action: { type: "navigate", targetScreenId: "S-01" }
+              }
+            }
+          ]
+        }
+      }
+    ],
+    dataSources: {
+      sources: [
+        {
+          key: "attendance.checkInResult",
+          shape: "object",
+          fields: [{ key: "canRetry", label: "다시 낼 수 있는가" }]
+        }
+      ]
+    }
+  };
+}
+
+test("데이터가 허락하는 조각이 출처에 있으면 조용하다", () => {
+  assert.deepEqual(collectSpecFindings(conditionalScreen("canRetry")), []);
+});
+
+test("데이터가 허락하는 조각이 출처에 없으면 오류다", () => {
+  const findings = collectSpecFindings(conditionalScreen("없는조각"));
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("drawnWhen이 가리킨 조각")).length,
+    1
+  );
+});
+
+test("데이터가 허락하는 출처가 카탈로그에 없으면 오류다", () => {
+  const findings = collectSpecFindings(
+    conditionalScreen("canRetry", "attendance.없는출처")
+  );
+
+  assert.equal(
+    findings.filter((f) => f.message.includes("데이터 출처")).length,
+    1
+  );
+});
+
+// 그림에 없는 요소는 source를 갖지 않는다. **둘 다 적으면 어느 쪽이 참인지 모른다.**
+// 교차 참조가 아니라 모양의 문제라 스키마 층에서 막는다 — 그래서 여기서도 파일을
+// 통째로 읽는 validateSpecsRoot로 본다.
+test("source와 addedByDecision을 함께 적으면 스키마가 막는다", async () => {
+  const root = await mkdtemp(join(tmpdir(), "figma-spec-drawnwhen-"));
+  try {
+    const wireframe = join(root, "test-wireframe");
+    await mkdir(join(wireframe, "screens", "S-01"), { recursive: true });
+    await writeFile(
+      join(wireframe, "screens", "S-01", "screen.json"),
+      JSON.stringify({
+        schemaVersion: 1,
+        screenId: "S-01",
+        source: { pageName: "P", nodeId: "1:1", name: "S", figmaType: "FRAME" },
+        elements: [
+          {
+            source: { nodeId: "9:1", name: "Btn", figmaType: "FRAME" },
+            addedByDecision: { decision: "d", why: "w" },
+            spec: {
+              type: "button",
+              label: "다시 입력",
+              initiallyDisabled: false,
+              action: { type: "navigate", targetScreenId: "S-01" }
+            }
+          }
+        ]
+      }),
+      "utf8"
+    );
+
+    const findings = await validateSpecsRoot(root);
+    assert.ok(
+      findings.some(
+        (finding) =>
+          finding.level === "error" && finding.message.includes("스키마 위반")
+      ),
+      "source와 addedByDecision을 함께 적은 것이 오류여야 한다"
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

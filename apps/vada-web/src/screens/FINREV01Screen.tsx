@@ -128,7 +128,7 @@ export function FINREV01Screen({
   }
 
   const itemFieldAt = (nodeId: string) => {
-    const found = (table.itemFields ?? []).find((element) => element.source.nodeId === nodeId)
+    const found = (table.itemFields ?? []).find((element) => element.source?.nodeId === nodeId)
     if (found === undefined) {
       throw new Error(`FIN-REV-01의 항목에 노드 ${nodeId}가 등록되지 않았습니다.`)
     }

@@ -4,6 +4,7 @@ import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, drawsTitle, exampleParamsOf } from './screens'
 import type { FieldSpec, ListSpec, ScreenSpec } from './types'
 import { readObjectSource } from '../data-sources/catalog'
+import { drawsElement } from './drawn-when'
 import { resolveParams } from './params'
 
 // 스펙 필드 소비 커버리지: 기대값을 스펙 JSON에서 읽어 화면과 대조한다.
@@ -214,6 +215,9 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     renderScreen(screenId)
     for (const element of spec.elements) {
       if (element.spec.type !== 'button') continue
+      // 데이터가 허락할 때만 그려지는 자리는 아래 검사가 **양쪽으로** 본다.
+      // 여기서 그려지기를 요구하면 막힌 값에서 거짓 경보가 난다.
+      if (element.drawnWhen !== undefined) continue
       // 아이콘의 대체 텍스트가 이름에 섞이므로 부분 일치로 본다. 그래서 짧은
       // 라벨이 긴 라벨을 함께 집는다 — EVT-TASK-01의 '업무' 갈피는 '업무 추가'
       // 버튼도 집는다. 있는지를 보지 몇 개인지를 보지 않는다(meta 카피와 같다).
@@ -231,6 +235,24 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
+  // **양쪽으로 본다.** 허락하면 그려지고 막으면 안 그려져야 한다 — 한쪽만 보면
+  // '늘 안 그린다'도 통과한다. 예시 인자가 어느 쪽을 주든 검사가 성립한다.
+  it('데이터가 허락할 때만 그리는 요소는 그 답을 따른다', () => {
+    renderScreen(screenId)
+    const screenParams = exampleParamsOf(screenId)
+    for (const element of spec.elements) {
+      if (element.drawnWhen === undefined) continue
+      const label = (element.spec as { label?: string }).label
+      if (typeof label !== 'string') continue
+      const allowed = drawsElement(element, { screenParams })
+      const drawn = screen.queryAllByRole('button', { name: new RegExp(label) }).length > 0
+      expect(
+        drawn,
+        `${screenId}의 '${label}' — ${element.drawnWhen.dataSourceKey}.${element.drawnWhen.field}가 ${allowed ? '허락했다' : '막았다'}`,
+      ).toBe(allowed)
+    }
+  })
+
   it('steps의 모든 단계와 데이터가 가리킨 현재 단계를 렌더한다', () => {
     renderScreen(screenId)
     const screenParams = exampleParamsOf(screenId)
@@ -238,7 +260,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       if (element.spec.type !== 'steps') continue
       const stepSpec = element.spec
       const holder = document.querySelector<HTMLElement>(
-        `[data-node-id="${element.source.nodeId}"]`,
+        `[data-node-id="${element.source?.nodeId ?? ""}"]`,
       )
       expect(holder, `${screenId}의 steps 등록 자리`).not.toBeNull()
       if (holder === null) continue
@@ -278,7 +300,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
         throw new Error(`${screenId}의 데이터 요약에 dataSourceKey가 없습니다.`)
       }
       const holder = document.querySelector<HTMLElement>(
-        `[data-node-id="${element.source.nodeId}"]`,
+        `[data-node-id="${element.source?.nodeId ?? ""}"]`,
       )
       expect(holder, `${screenId}의 summary 등록 자리`).not.toBeNull()
       if (holder === null) continue

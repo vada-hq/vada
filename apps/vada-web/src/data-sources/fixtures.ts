@@ -1569,8 +1569,15 @@ const EVENT_ATTENDANCE_QR: Record<string, DataRow> = {
   'E-01': {
     statusLabel: '활성 중',
     statusTone: 'green',
-    startAt: '2026. 08. 20 10:00',
-    endAt: '2026. 08. 20 14:00',
+    // 체크인 시간대는 **09:30 ~ 11:00**이다(사람이 정한 것). 행사 자체는 10:00~14:00
+    // 이고 체크인은 그 앞 한 시간 반이다 — 두 값은 다른 것이며 어긋난 것이 아니다.
+    //
+    // 와이어프레임은 이 자리를 **빈 DateTime Picker 둘**로 그렸다(25:398·25:402).
+    // 그린 값이 없으므로 대조가 강제하는 것도 없고, 여기 적힌 것은 처음부터
+    // 개발용으로 지어낸 값이었다. 한동안 '그림 둘이 어긋난다'로 적혀 있었는데
+    // 어긋난 것은 그림이 아니라 **그림과 이 파일**이었다.
+    startAt: '2026. 08. 20 09:30',
+    endAt: '2026. 08. 20 11:00',
     guideNote:
       '참가자는 휴대폰 기본 카메라로 촬영합니다. 로그인이나 앱 설치가 필요 없습니다.',
     fileName: '2026-체육대회-참석확인-QR.png',
@@ -1595,9 +1602,9 @@ const EVENT_ATTENDANCE_QR: Record<string, DataRow> = {
 // **토큰을 여섯 둔다.** 하나만 두면 '토큰마다 다르다'가 말뿐이 되고, 결과가 여섯인데
 // 몇만 두면 **회색 둘이 시계와 X로 갈린다**는 사실이 드러나지 않는다.
 //
-// **체크인 시간대가 EVENT_ATTENDANCE_QR과 어긋난다.** 저기는 E-01의 QR을 10:00~14:00으로
-// 그렸고 EXT-01A는 09:30~11:00으로 그렸다. 둘 다 와이어프레임이 그린 글이고 대조가 양쪽을
-// 강제하므로 그린 대로 둔다(재정 보드의 PR-01/PR-2026-0031과 같은 계급의 어긋남).
+// **체크인 시간대는 09:30 ~ 11:00이다.** 이 글은 EXT-01A가 실제로 그린 것이고,
+// EVENT_ATTENDANCE_QR의 시각도 이제 여기에 맞췄다 — 저쪽은 그림이 빈 DateTime
+// Picker라 그린 값이 없었고, 어긋나 보이던 10:00~14:00은 지어낸 개발용 값이었다.
 const SPORTS_CHECK_IN: DataRow = {
   eventName: '2026 소프트웨어융합대학 체육대회',
   statusLabel: '체크인 가능',
@@ -1635,42 +1642,51 @@ const ATTENDANCE_CHECK_IN_FORM: Record<string, DataRow> = {
 
 // 결과 여섯. **글은 와이어프레임이 카드마다 그린 것을 그대로 옮겼다** — 대조가 그 글을
 // 지킨다. 회색 둘(clock·x)이 이 표의 값이다.
+// canRetry는 **서버의 판정**이다. 이름이 명단과 다를 때만 다시 내는 것이 뜻이
+// 있다 — 참석이 이미 끝났거나 QR이 꺼진 결과에서는 다시 내도 같은 답이 온다.
+// 화면은 이 값만 보고 '다시 입력'을 그릴지 정한다(EXT-01B의 drawnWhen).
 const ATTENDANCE_CHECK_IN_RESULT: Record<string, DataRow> = {
   A7K2M9: {
     label: '참석 완료',
     tone: 'green',
     iconName: 'check',
     description: '2026. 08. 20 09:47 체크인되었습니다.',
+    canRetry: false,
   },
   B3N8P4: {
     label: '참가자 명단 불일치',
     tone: 'yellow',
     iconName: 'circle-alert',
     description: '입력하신 정보가 명단에 없습니다. 운영진에게 문의해 주세요.',
+    canRetry: true,
   },
   C5Q1R6: {
     label: '이미 참석 처리됨',
     tone: 'blue',
     iconName: 'info',
     description: '이미 참석 확인이 완료된 상태입니다.',
+    canRetry: false,
   },
   D8W4X2: {
     label: '조건 미충족',
     tone: 'red',
     iconName: 'x',
     description: '참가비 미납 또는 신청 미완료 상태입니다.',
+    canRetry: false,
   },
   E2Y7Z5: {
     label: '체크인 시간 전·후',
     tone: 'gray',
     iconName: 'clock',
     description: '체크인 가능 시간이 아닙니다. (09:30 ~ 11:00)',
+    canRetry: false,
   },
   F6H1J3: {
     label: '비활성화된 QR',
     tone: 'gray',
     iconName: 'x',
     description: '이 QR은 더 이상 사용할 수 없습니다.',
+    canRetry: false,
   },
 }
 

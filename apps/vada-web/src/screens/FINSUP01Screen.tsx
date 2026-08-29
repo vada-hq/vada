@@ -124,7 +124,7 @@ export function FINSUP01Screen({
   const listSource = findDataSource(list.dataSourceKey)
 
   const fieldOf = (nodeId: string) => {
-    const found = (list.itemFields ?? []).find((element) => element.source.nodeId === nodeId)
+    const found = (list.itemFields ?? []).find((element) => element.source?.nodeId === nodeId)
     if (found === undefined) {
       throw new Error(`FIN-SUP-01의 항목에 노드 ${nodeId}가 등록되지 않았습니다.`)
     }

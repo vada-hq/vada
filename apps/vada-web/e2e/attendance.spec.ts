@@ -151,6 +151,20 @@ test('EXT-01B: 같은 회색이어도 시계와 X로 그림이 갈린다', async
 
 // **그림에 없는 단추다.** 이름이 명단과 다를 때 QR을 다시 찍지 않고 폼으로
 // 돌아갈 수 있어야 한다고 사람이 정했다(docs/decisions/product-decisions.md).
+// 이제 명세가 그 사실을 든다 — addedByDecision이 '그림에 없다'를 적고,
+// drawnWhen이 '데이터가 허락할 때만'을 적는다.
+test('EXT-01B: 다시 입력은 명단 불일치에만 보인다', async ({ page }) => {
+  await page.goto(result(MISMATCH))
+  await expect(page.getByRole('button', { name: '다시 입력' })).toBeVisible()
+
+  // 나머지 다섯에서는 다시 내도 같은 답이 온다. 판정은 화면이 아니라 서버가
+  // 한다 — attendance.checkInResult의 canRetry다.
+  for (const token of [OPEN, ALREADY, UNMET, OUT_OF_WINDOW, DEACTIVATED]) {
+    await page.goto(result(token))
+    await expect(page.getByRole('button', { name: '다시 입력' })).toHaveCount(0)
+  }
+})
+
 test('EXT-01B: 다시 입력은 같은 토큰의 폼으로 돌려보낸다', async ({ page }) => {
   await page.goto(result(MISMATCH))
 

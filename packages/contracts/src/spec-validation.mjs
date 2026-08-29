@@ -1231,6 +1231,51 @@ function checkArgumentValues(findings, context, params, { declared, where }) {
 
 // 줄 전체의 색 이름도 실제로 있는 조각이어야 한다. 없으면 아무 줄도 표시되지
 // 않고 아무도 말하지 않는다 - 열의 색 이름을 보는 것과 같은 이유다.
+/**
+ * 데이터가 허락할 때만 그리는 자리(drawnWhen).
+ *
+ * 그리는 조건을 명세가 적지 않고 **데이터가 답한다**. 그래서 검사할 것은 셋뿐이다 —
+ * 그 출처가 카탈로그에 있는가, 그 조각이 그 출처에 있는가, 넘긴 인자가 선언돼 있는가.
+ * '언제 참인가'는 서버의 것이라 여기서 묻지 않는다.
+ */
+function checkDrawnWhen(findings, context) {
+  const { file, element, index, dataSources, dataSourceByKey } = context;
+  const drawnWhen = element?.drawnWhen;
+  if (!isObject(drawnWhen)) {
+    return;
+  }
+  const where = `${elementLabel(element, index)}의 drawnWhen`;
+  if (!dataSources) {
+    findings.push({
+      level: "warning",
+      file,
+      message: `data-sources.json이 없어 ${where}의 출처 '${drawnWhen.dataSourceKey}'를 확인하지 못했습니다.`
+    });
+    return;
+  }
+  const source = dataSourceByKey.get(drawnWhen.dataSourceKey);
+  if (!source) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${where}의 데이터 출처 '${drawnWhen.dataSourceKey}'가 카탈로그에 없습니다.`
+    });
+    return;
+  }
+  const sourceFields = new Set((source.fields ?? []).map((field) => field?.key));
+  if (!sourceFields.has(drawnWhen.field)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `${where}이 가리킨 조각 '${drawnWhen.field}'가 데이터 출처 '${drawnWhen.dataSourceKey}'에 없습니다.`
+    });
+  }
+  checkArgumentValues(findings, context, drawnWhen.params, {
+    declared: new Set(source.params ?? []),
+    where: `데이터 출처 '${drawnWhen.dataSourceKey}'`
+  });
+}
+
 function checkRowToneField(findings, context) {
   const { file, element, index, dataSourceByKey } = context;
   const spec = element.spec;
@@ -2308,6 +2353,8 @@ export function collectSpecFindings({
         propertyOrderByType
       };
       checkPropertyOrder(findings, context);
+      // 유형과 무관하다 — 어느 요소든 데이터가 허락할 때만 그려질 수 있다.
+      checkDrawnWhen(findings, context);
       if (spec_.type === "select") {
         checkOptionsSource(findings, context);
       }
