@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "permissions.schema.json",
+  "title": "Permission areas and conditions",
+  "description": "누가 무엇을 할 수 있는가. ORG-04이 그리는 표와 그 아래 문단이 글로만 갖고 있던 규칙을 기계가 읽을 수 있게 옮긴 것이다.\n\n**표는 여기서 나온다.** 개발용 응답이 열세 줄을 따로 들고 있으면 언젠가 갈리고, 갈린 쪽이 어느 쪽인지 아무도 모른다.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "description",
+    "conditions",
+    "areas"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "conditions": {
+      "type": "array",
+      "minItems": 1,
+      "description": "할 수 있는지를 가르는 조건. 코드가 이 이름으로 판정 함수를 찾는다.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "description"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][A-Za-z0-9]*$"
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "needs": {
+            "enum": [
+              "viewer",
+              "event",
+              "meeting",
+              "department"
+            ],
+            "description": "**무엇을 알아야 판정할 수 있는가.** `viewer`는 보는 사람만 보면 되고, 나머지는 대상이 필요하다 — 그 대상을 어느 인자가 가리키는지는 자리마다 `authorize.object`가 말한다."
+          }
+        }
+      }
+    },
+    "areas": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "name",
+          "drawnInMatrix",
+          "rules"
+        ],
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][A-Za-z0-9.]*$",
+            "description": "자리마다 `authorize.area`가 이 이름을 든다."
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "drawnInMatrix": {
+            "type": "boolean",
+            "description": "ORG-04이 그리는 표에 줄로 나오는가. 나오면 칸마다 `label`이 있어야 한다 — 그 말이 곧 화면에 그려지는 글이다."
+          },
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "description": "이 규칙이 명세의 어디서 왔는가."
+          },
+          "note": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rules": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "chair",
+              "head",
+              "member"
+            ],
+            "description": "역할 셋이 저마다 어떤 조건에서 되는가. **역할은 셋으로 고정이다** — 역할을 새로 만드는 화면이 명세에 없다.",
+            "properties": {
+              "chair": {
+                "$ref": "#/$defs/rule"
+              },
+              "head": {
+                "$ref": "#/$defs/rule"
+              },
+              "member": {
+                "$ref": "#/$defs/rule"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "rule": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "when"
+      ],
+      "properties": {
+        "when": {
+          "type": "string",
+          "minLength": 1,
+          "description": "conditions의 key 하나."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "표의 칸에 그려지는 완성된 말. 예: '재정부만'. 색은 이 말에서 나오므로 여기 두지 않는다."
+        }
+      }
+    }
+  }
+}

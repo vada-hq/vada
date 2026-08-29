@@ -79,6 +79,44 @@ test('선언하지 않은 경로 자리는 만들다가 멈춘다', () => {
   }
 })
 
+// **자리마다 누가 열 수 있는지 문서가 들고 간다.**
+//
+// 권한 규칙은 오랫동안 ORG-04이 그리는 표에 글로만 있었고, 그 표와 216개 자리를
+// 잇는 것이 아무 데도 없었다 — 서버를 만드는 사람이 자리마다 스스로 판단해야 했고,
+// 판단을 빠뜨린 자리는 조용히 열린다. 하나라도 비면 여기서 빨간불이다.
+test('모든 동작이 권한 영역을 든다', () => {
+  const built = buildOpenApi()
+  const permissions = JSON.parse(
+    readFileSync(join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'permissions.json'), 'utf-8'),
+  )
+  const areas = new Set(permissions.areas.map((area) => area.key))
+
+  for (const [path, item] of Object.entries(built.paths)) {
+    for (const [method, operation] of Object.entries(item)) {
+      const at = `${method} ${path}`
+      const authorize = operation['x-authorize']
+      assert.ok(authorize, `${at}에 권한이 없습니다`)
+      assert.ok(areas.has(authorize.area), `${at}의 권한 영역 '${authorize.area}'가 없습니다`)
+    }
+  }
+})
+
+// 밖에서 열리는 자리와 권한이 어긋나면 둘 중 하나가 거짓말이다 — 세션을 안 거는데
+// 구성원이어야 한다고 적혀 있거나, 세션을 거는데 아무나 된다고 적혀 있거나.
+test('세션을 걸지 않는 자리와 public이 같다', () => {
+  const built = buildOpenApi()
+  const open = []
+  const publicArea = []
+  for (const [path, item] of Object.entries(built.paths)) {
+    for (const [method, operation] of Object.entries(item)) {
+      const at = `${method} ${path}`
+      if (Array.isArray(operation.security) && operation.security.length === 0) open.push(at)
+      if (operation['x-authorize'].area === 'public') publicArea.push(at)
+    }
+  }
+  assert.deepEqual(publicArea.sort(), open.sort())
+})
+
 // 같은 자리를 두 번 적으면 생성기가 던진다. 실제로 한 번 잡았다 —
 // org.departments가 데이터 카탈로그와 선택지 카탈로그에 같은 경로로 있었고,
 // 조직도가 읽는 나무와 고르는 목록이라 **한 자리가 두 모양을 줄 수 없었다.**

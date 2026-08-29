@@ -1,6 +1,7 @@
 // 개발용 응답. 값은 figma.design.json이 그린 예시를 그대로 옮긴 것이라
 // 구현 화면과 reference.png를 눈으로 대조할 수 있다. 백엔드가 붙으면
 // catalog.ts의 request.path로 대체된다.
+import permissionsJson from '../../../../specs/figma/vada-wireframe/permissions.json'
 import type { DataRow } from './catalog'
 
 const MY_TASKS: Array<{ tab: string; row: DataRow }> = [
@@ -2658,40 +2659,33 @@ function taskAlerts(): DataRow {
   }
 }
 
-// 역할 및 권한(ORG-04). 디자인이 그린 열세 줄 그대로다. 칸에 오는 것은 '되는가'가
+// 역할 및 권한(ORG-04). **표를 여기 두지 않는다** — 열세 줄이 여기에도 있고
+// 명세에도 있으면 언젠가 갈리고, 갈린 쪽이 어느 쪽인지 아무도 모른다.
+//
+// 규칙은 `specs/figma/vada-wireframe/permissions.json`에 있다. 여기서는 그중
+// 표에 그리는 줄만 꺼내 칸에 들어갈 말로 옮긴다. 칸에 오는 것은 '되는가'가
 // 아니라 '어떤 조건에서 되는가'이므로 완성된 말과 색 이름이 함께 온다.
-const PERMISSION_MATRIX: DataRow[] = [
-  ['재정 현황·사용 내역 열람', '가능', '가능', '가능'],
-  ['예산 수정·구매 승인·증빙 처리', '가능', '재정부만', '재정부만'],
-  ['회의 생성', '가능', '가능', '—'],
-  ['행사 만들기', '가능', '가능', '—'],
-  ['행사 정보 수정·종료 처리', '가능', '행사 조직만', '행사 조직만'],
-  ['행사 완료 처리', '가능', '—', '—'],
-  ['행사 운영 조직 구성·수정', '가능', '행사 조직 관리자만', '행사 조직 관리자만'],
-  ['조직 구조 수정', '가능', '—', '—'],
-  ['구성원 초대', '가능', '자기 부서만', '—'],
-  ['학생 명단 열람', '가능', '가능', '가능'],
-  ['학생 명단 업로드·갱신', '가능', '—', '—'],
-  ['학생회비 납부 명단 업로드', '가능', '재정부만', '재정부만'],
-  ['학생 명단 내보내기', '가능', '—', '—'],
-].map(([area, chair, head, member]) => ({
-  id: area,
-  area,
-  chair,
-  // '가능'은 초록, 조건이 붙으면 노랑, 못 하면 무채색이다. 색 이름을 데이터가
-  // 주는 이유는 조건이 하나 늘 때 화면이 짐작하지 않게 하기 위해서다.
-  chairTone: permissionTone(chair),
-  head,
-  headTone: permissionTone(head),
-  member,
-  memberTone: permissionTone(member),
-}))
+const PERMISSION_MATRIX: DataRow[] = permissionsJson.areas
+  .filter((area) => area.drawnInMatrix)
+  .map((area) => ({
+    id: area.key,
+    area: area.name,
+    chair: area.rules.chair.label!,
+    // '가능'은 초록, 조건이 붙으면 노랑, 못 하면 무채색이다. 색 이름을 데이터가
+    // 주는 이유는 조건이 하나 늘 때 화면이 짐작하지 않게 하기 위해서다.
+    chairTone: permissionTone(area.rules.chair.label!),
+    head: area.rules.head.label!,
+    headTone: permissionTone(area.rules.head.label!),
+    member: area.rules.member.label!,
+    memberTone: permissionTone(area.rules.member.label!),
+  }))
 
 function permissionTone(label: string): string {
   if (label === '가능') return 'green'
   if (label === '—') return 'gray'
   return 'yellow'
 }
+
 
 // ── 조직 전체 재정(FIN-00 · FIN-00B · FIN-LEDGER-01) ────────────────────────
 //

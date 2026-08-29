@@ -5,6 +5,9 @@
       "key": "home.briefing",
       "shape": "object",
       "description": "홈 브리핑의 인사 제목. 사용자 이름이 들어가므로 서버가 완성해서 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -27,6 +30,9 @@
       "key": "home.briefingNotices",
       "shape": "list",
       "description": "브리핑이 짚어 주는 문장들. 짚을 것이 없으면 빈 목록이므로 개수가 데이터에 달렸다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -49,6 +55,9 @@
       "key": "home.eventCounts",
       "shape": "object",
       "description": "홈 상단에 나열하는 행사·일정 건수.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -81,6 +90,9 @@
       "key": "home.events",
       "shape": "list",
       "description": "진행 중이거나 예정된 행사.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -134,6 +146,9 @@
       "key": "home.schedules",
       "shape": "list",
       "description": "다가오는 주요 일정.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -166,6 +181,9 @@
       "key": "home.orgAlerts",
       "shape": "list",
       "description": "조직 운영에서 확인이 필요한 항목. 종류가 상황에 따라 달라지므로 개수가 데이터에 달렸다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -198,6 +216,9 @@
       "key": "home.financeSummary",
       "shape": "object",
       "description": "조직 전체의 재정 현황 요약.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -235,6 +256,9 @@
       "key": "shell.organization",
       "shape": "object",
       "description": "사이드바에 표시하는 조직 이름. 보는 사람의 소속에 따라 달라진다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -257,6 +281,9 @@
       "key": "shell.viewer",
       "shape": "object",
       "description": "사이드바 아래에 표시하는 보는 사람의 이름과 소속·직책.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -284,6 +311,9 @@
       "key": "my.taskAlerts",
       "shape": "object",
       "description": "내 업무 화면 상단에 나열하는 상태별 건수. 항목이 명세에 고정이라 summary가 읽는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -316,6 +346,9 @@
       "key": "my.taskTabCounts",
       "shape": "object",
       "description": "업무 탭마다 곁들이는 건수. fields의 key가 탭 선택지의 value와 같다 — 선택지는 명세가, 건수는 데이터가 정한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -348,6 +381,9 @@
       "key": "my.tasks",
       "shape": "list",
       "description": "내가 처리할 업무. 고른 탭과 검색어로 걸러서 서버가 준다 — 받아온 것을 화면에서 거르지 않는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "tab",
@@ -414,6 +450,9 @@
       "key": "ops.intro",
       "shape": "object",
       "description": "운영 허브의 안내 문장. 보는 사람의 이름이 들어가므로 서버가 완성해서 준다(home.briefing과 같은 이유).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -436,6 +475,9 @@
       "key": "ops.spaceStats",
       "shape": "object",
       "description": "운영 공간 4개가 각각 곁들이는 건수. 공간 자체는 제품이 정한 고정 구조라 명세가 갖고, 건수만 서버가 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -493,6 +535,9 @@
       "key": "task.alerts",
       "shape": "object",
       "description": "상시 업무 보드 위에 나열하는 상태별 건수. 보는 범위와 무관하게 보드 전체를 센다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -530,6 +575,9 @@
       "key": "task.board",
       "shape": "list",
       "description": "칸반 열 하나에 담기는 상시 업무. 보는 범위(scope)와 열의 단계(status)로 걸러서 서버가 준다 — 열마다 따로 조회한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "scope",
@@ -607,6 +655,9 @@
       "key": "meeting.attention",
       "shape": "object",
       "description": "회의 목록 위의 띠. **보는 사람에 따라 통째로 달라진다** - 와이어프레임이 넷을 그렸다(일반 참가자·진행 권한자·회의 생성 가능·미참가자). 누가 보느냐는 서버만 알므로 제목도 설명도 곁의 값도 서버가 준다.\n\n명세가 넷을 들고 있으면 역할이 하나 늘 때마다 명세가 틀린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -644,6 +695,9 @@
       "key": "meeting.groups",
       "shape": "list",
       "description": "묶음으로 오는 회의 목록. 묶음 하나가 행사 하나이고, 어느 행사에도 속하지 않는 회의는 '정기·상시 회의' 묶음으로 온다. 묶음 수가 데이터에 달려 있어 명세가 묶음마다 조회를 미리 적을 수 없으므로 한 번에 묶어서 온다 — 칸반의 열(명세에 고정)과 다른 점이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "query",
@@ -765,6 +819,9 @@
       "key": "event.list",
       "shape": "list",
       "description": "진행 중인 행사 목록. 완료된 행사는 오지 않는다 — 머리의 별도 이동이 그것을 본다. 행사명(query)과 진행 단계(status)로 걸러서 서버가 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "query",
@@ -847,6 +904,9 @@
       "key": "event.workspace",
       "shape": "object",
       "description": "행사 작업 공간의 머리에 늘 붙는 한 줄. 어느 행사인지는 화면이 받은 eventId가 정한다. 이 줄은 행사의 갈피(개요·업무·문서…)를 옮겨 다녀도 그대로이므로 화면이 아니라 행사에 딸린 값이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -918,6 +978,9 @@
       "key": "event.summary",
       "shape": "object",
       "description": "행사 업무 보드 위에 놓이는 행사 카드. 어느 행사인지는 화면이 받은 eventId가 정한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -967,6 +1030,9 @@
       "key": "event.taskAlerts",
       "shape": "object",
       "description": "행사 업무 보드 위에 나열하는 상태별 건수. 보는 범위와 무관하게 이 행사의 보드 전체를 센다 — 상시 업무의 task.alerts와 세는 대상이 다르다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1011,6 +1077,9 @@
       "key": "event.taskBoard",
       "shape": "list",
       "description": "행사 칸반 열 하나에 담기는 업무. 어느 행사인지(eventId)와 보는 범위(scope), 열의 단계(status)로 걸러서 서버가 준다 — 열마다 따로 조회한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1099,6 +1168,9 @@
       "key": "event.overviewBriefing",
       "shape": "object",
       "description": "행사 개요 맨 위의 안내. 지금 무엇을 봐야 하는지를 서버가 문장으로 완성해 준다 — 무엇을 급한 것으로 셀지는 화면이 정할 수 없다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1133,6 +1205,9 @@
       "key": "event.overviewHighlights",
       "shape": "object",
       "description": "행사 개요의 강조 카드 셋. 카드는 명세에 고정이고 값과 부연만 서버가 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1187,6 +1262,9 @@
       "key": "event.basics",
       "shape": "object",
       "description": "행사의 기본 정보. 사람이 입력한 값이고, 비어 있으면 완성된 안내로 온다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1258,6 +1336,9 @@
       "key": "event.recruitSettings",
       "shape": "object",
       "description": "모집(참여 설문) 설정. 이 화면은 보여주기만 하고 고치는 것은 참여 설문 화면이 한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1302,6 +1383,9 @@
       "key": "event.participantStats",
       "shape": "object",
       "description": "참가 현황 타일 넷. 타일은 명세에 고정이고, 값과 그 아래 보조 문구를 서버가 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1366,6 +1450,9 @@
       "key": "event.checklist",
       "shape": "list",
       "description": "지금 확인해야 할 항목. 개수도 내용도 행사의 상태가 정한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1417,6 +1504,9 @@
       "key": "event.recentChanges",
       "shape": "list",
       "description": "최근 변경 사항. 때는 오늘·어제 같은 상대적인 말이 섞이므로 화면이 유도할 수 없다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1451,6 +1541,9 @@
       "key": "task.detail",
       "shape": "object",
       "description": "업무 하나의 값. 어느 업무인지는 화면이 받은 taskId가 정한다 — 이 화면은 목록이 아니라 한 건의 상세다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "taskId",
@@ -1546,6 +1639,9 @@
       "key": "task.referenceDocuments",
       "shape": "list",
       "description": "이 업무가 따르는 공식 문서. 업무의 것이 아니라 행사의 공용 원본이라 여러 업무가 같은 것을 본다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "taskId",
@@ -1595,6 +1691,9 @@
       "key": "task.workDocuments",
       "shape": "list",
       "description": "이 업무에서 만들고 있는 파일과 문서. 표로 그린다 — 열은 design이 정한 카피다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "taskId",
@@ -1644,6 +1743,9 @@
       "key": "task.reviewStatus",
       "shape": "object",
       "description": "이 업무의 검토가 어디까지 왔는지. 딱지 둘과 검토 의견, 그리고 다음에 할 일을 알리는 문구다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "taskId",
@@ -1698,6 +1800,9 @@
       "key": "event.documentStats",
       "shape": "object",
       "description": "행사 문서 화면 머리의 타일 셋. 어느 행사인지는 화면이 받은 eventId가 정한다. 값은 단위까지 붙어서 온다 — 화면이 숫자에 '개'를 붙이지 않는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1752,6 +1857,9 @@
       "key": "event.documentStatusCounts",
       "shape": "object",
       "description": "문서 상태 필터의 선택지마다 곁들이는 개수. 조각의 key가 선택지의 value와 같다(event.documentStatus) — 선택지는 명세에 고정이고 개수만 데이터가 준다. 어느 행사인지는 화면이 받은 eventId가 정한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1801,6 +1909,9 @@
       "key": "event.documents",
       "shape": "list",
       "description": "행사 문서 표의 한 줄. 어느 행사인지(eventId)와 고른 상태(status)로 걸러서 서버가 준다 — 받아온 것을 화면에서 거르지 않는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1871,6 +1982,9 @@
       "key": "event.meetingCounts",
       "shape": "object",
       "description": "관련 회의 묶음의 머리에 붙는 건수. 어느 행사인지는 화면이 받은 eventId가 정한다. 무엇을 어떤 단계로 세는지는 화면이 알 수 없어 완성된 문구로 온다 — 상태 목록이 조직 운영에 따라 늘 수 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1900,6 +2014,9 @@
       "key": "event.meetings",
       "shape": "list",
       "description": "이 행사에 연결된 회의. 어느 행사인지는 화면이 받은 eventId가 정한다. 회의 전체 목록(meeting.groups)과 다른 것이다 — 저쪽은 행사별로 묶어 오고 카드에 담기는 조각도 더 많다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1964,6 +2081,9 @@
       "key": "event.schedule",
       "shape": "list",
       "description": "행사 일정 줄 하나. 어느 행사인지(eventId)와 좁혀 보기(filter)로 걸러서 서버가 준다 — 받아온 것을 화면에서 거르지 않는다. 여기 오는 것은 원본이 아니라 비친 것이다: 업무 마감·회의 일시·행사 기본정보가 각자 원본이고 이 목록은 그것을 한 줄로 모아 온다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2039,6 +2159,9 @@
       "key": "event.participants",
       "shape": "list",
       "description": "행사 참가자 명단의 한 줄. 검색어와 거르기 넷, 그리고 쪽 번호로 걸러서 서버가 준다 — 받아온 것을 화면에서 거르지도 자르지도 않는다. 참가자는 학생회 구성원이 아닐 수 있어 조직 명단(org.members)과 다른 것이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2150,6 +2273,9 @@
       "key": "event.participantPaging",
       "shape": "object",
       "description": "참가자 명단이 몇 쪽이고 모두 몇 명인지. 목록은 한 쪽만큼만 받아 오므로 자기가 말할 수 없다. 거르는 조건이 같아야 같은 수가 나오므로 쪽 번호만 빼고 목록과 같은 인자를 받는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2214,6 +2340,9 @@
       "key": "event.financeSummary",
       "shape": "object",
       "description": "행사 재정의 금액 넉 줄. 세는 방법(무엇을 승인으로 보고 무엇을 지출로 보는지)은 조직의 재정 규칙이 정하므로 화면이 빼거나 더하지 않는다 — 네 값이 다 서버에서 온다. 자릿점까지 찍힌 글로 오는 것은 화폐 표기가 조직·지역의 것이기 때문이다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2258,6 +2387,9 @@
       "key": "event.financeAlerts",
       "shape": "object",
       "description": "재정에서 지금 사람 손이 필요한 건수. 금액(event.financeSummary)과 다른 것이라 따로 온다 — 행사 업무의 요약과 주의 건수가 갈려 있는 것과 같다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2287,6 +2419,9 @@
       "key": "event.financeBoard",
       "shape": "list",
       "description": "재정 보드의 카드 하나. 처리 단계(stage)마다 따로 조회한다 — 단계는 명세에 고정이고(디자인이 네 열을 그린다) 각 열에 몇 장이 오는지가 데이터에 달렸다. 행사 업무 보드와 같은 모양이다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2357,6 +2492,9 @@
       "key": "finance.purchaseRequestDraft",
       "shape": "object",
       "description": "작성하거나 고치는 구매 요청 한 건. 이 화면의 입력을 채운다. requestId가 비면 아직 아무것도 적히지 않은 요청이 오며, 그때도 서버가 이미 아는 것(작성자의 소속 부서)은 채워져 온다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2484,6 +2622,9 @@
       "key": "finance.purchaseRequestDetail",
       "shape": "object",
       "description": "구매 요청 한 건의 겉면과 지금 어느 단계인지. 화면 머리의 요약 카드와 진행 단계 줄이 함께 읽는다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -2558,6 +2699,9 @@
       "key": "finance.purchaseRequestItems",
       "shape": "list",
       "description": "요청에 담긴 품목마다의 처리 결과. 개수는 요청이 정한다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -2617,6 +2761,9 @@
       "key": "finance.purchaseRequestHistory",
       "shape": "list",
       "description": "이 요청에 무슨 일이 있었는지. 시간순으로 온다 — 화면이 다시 정렬하지 않는다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -2656,6 +2803,9 @@
       "key": "event.myPurchaseRequestSummary",
       "shape": "object",
       "description": "이 행사에서 내가 낸 구매 요청의 머리. 누가 보고 있는지는 셸도 알지만, 그 이름을 화면이 문장으로 잇지 않는다 — 무엇을 어떻게 부를지는 서버가 정한다(EVT-FIN-01의 itemsNote와 같은 계열).\n\n상태별 개수는 진행 단계와 다른 축이다. '보완 필요'는 어느 단계에서도 생길 수 있는 상태이지 단계가 아니다 — 요청 하나는 단계 하나와 상태 하나를 함께 갖는다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2710,6 +2860,9 @@
       "key": "event.myPurchaseRequests",
       "shape": "list",
       "description": "이 행사에서 내가 낸 구매 요청들. 누가 냈는지로 거르는 것은 서버가 한다 — 화면은 받아온 것을 다시 자르지 않는다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "eventId",
@@ -2779,6 +2932,9 @@
       "key": "finance.supplementRequest",
       "shape": "object",
       "description": "이 요청에 걸린 보완 요청의 머리. 누가 언제 걸었고 언제까지 다시 내야 하는지가 각각 완성된 문구로 온다 — 무엇을 무엇이라 부를지는 조직의 표기다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -2818,6 +2974,9 @@
       "key": "finance.supplementItems",
       "shape": "list",
       "description": "보완이 걸린 품목들. 한 요청에서 여럿일 수 있다 — 재정부가 품목마다 따로 보완을 건다(사람이 확인했다). 늘리거나 지울 수 없다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -2887,6 +3046,9 @@
       "key": "finance.supplementInputFields",
       "shape": "list",
       "description": "이 보완 품목에서 다시 받아야 할 칸들. **무엇을 묻는지는 그 품목의 구매 유형이 정한다**(사람이 확인했다) — 제작·인쇄는 사이즈·색상·인쇄 위치를 묻고 온라인 구매는 판매처와 상품 URL을 묻는다. 칸 목록을 명세가 들고 있으면 유형이 하나 늘 때마다 명세가 틀린다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "itemId",
@@ -2926,6 +3088,9 @@
       "key": "finance.supplementAttachments",
       "shape": "list",
       "description": "이 보완 품목에서 받아야 할 파일들. 입력 칸과 같은 이유로 데이터가 정한다 — 견적서를 몇 장 받는지는 조직의 재정 규칙이다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "itemId",
@@ -2965,6 +3130,9 @@
       "key": "finance.reviewSummary",
       "shape": "object",
       "description": "검토할 구매 요청의 머리. FIN-REQ-02의 상세와 겹치는 조각이 있지만 같은 출처를 쓰지 않는다 — 저쪽은 요청한 사람이 보는 것이고 이쪽은 재정부가 보는 것이라, 예산 사용 가능액처럼 요청자에게 보이지 않는 값이 함께 온다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -3044,6 +3212,9 @@
       "key": "finance.reviewItems",
       "shape": "list",
       "description": "검토할 품목들. 재정부는 품목마다 따로 판정하므로 목록이 곧 판정의 단위다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -3108,6 +3279,9 @@
       "key": "finance.purchaseOrderSummary",
       "shape": "object",
       "description": "구매·발주 단계에 있는 요청의 머리. 검토가 끝난 뒤라 '요청액'이 아니라 '승인된 금액'이 온다 - 무엇이 승인됐는지는 검토가 정했고 이 단계는 그것을 사서 받는 일이다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -3167,6 +3341,9 @@
       "key": "finance.purchaseOrders",
       "shape": "list",
       "description": "이 요청의 발주들. **묶음 하나가 업체 하나**다 - 품목을 어느 업체에서 사느냐로 주문이 갈리고, 주문일도 담당도 배송도 업체마다 따로 간다. 업체 수가 데이터에 달려 있어 명세가 묶음마다 조회를 미리 적을 수 없으므로 한 번에 묶어서 온다.\n\n아직 주문하지 않은 업체도 온다 - 주문일과 담당이 '—'로 오고, 그 묶음의 품목은 주문 상태가 '품절·변경 필요' 같은 것이다. 없는 것과 아직 안 한 것은 다르다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -3262,6 +3439,9 @@
       "key": "finance.paymentEvidenceSummary",
       "shape": "object",
       "description": "결제·증빙 단계에 있는 요청의 머리. 승인 금액과 실결제 합계가 따로 온다 - **둘이 다를 수 있고, 그 차이가 이 단계에서 드러나는 것**이 이 화면의 일이다.\n\n끝낼 수 있는지도 서버가 안다. 무엇이 '증빙이 다 모인 것'인지는 조직의 규칙이라 화면이 셀 수 없다 - 영수증만 있으면 되는 결제도 있고 세금계산서까지 있어야 하는 결제도 있다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -3331,6 +3511,9 @@
       "key": "finance.paymentEvidences",
       "shape": "list",
       "description": "이 요청의 결제들. **묶음 하나가 결제 하나**다 - 업체마다 언제 무엇으로 냈는지가 다르고, 그 결제에 딸린 품목과 증빙도 함께 온다.\n\n연결된 품목과 증빙 서류를 따로 조회하지 않는 이유는 그것이 그 결제의 일부이기 때문이다. 결제 셋이면 여섯 번을 더 물어야 하고, 무엇보다 그 목록은 따로 있는 것이 아니다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "requestId",
@@ -3423,6 +3606,9 @@
       "key": "org.areaSummaries",
       "shape": "object",
       "description": "조직 관리 영역 셋이 각각 곁들이는 한 줄. 영역 자체는 제품이 정한 고정 구조라 명세가 갖고(ops.spaceStats와 같은 이유), 그 곁의 한 줄만 서버가 준다.\n\n**셈한 숫자가 아니라 완성된 문장을 받는다.** 디자인이 '부서 5개 · 구성원 18명'을 글자 하나로 그렸기 때문이다 - 라벨과 값이 따로 그려지는 OPS-00의 타일과 다르다. 쪼개서 다시 이으려면 어디를 어떻게 잇는지를 명세가 정해야 하는데 그것은 표현이고, 표현은 design의 몫이다. 게다가 셋째 줄의 '확정된 권한 매트릭스'는 라벨-값 쌍이 아예 아니다 - 쪼갤 수 있다는 가정 자체가 틀렸다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3455,6 +3641,9 @@
       "key": "org.chartTitle",
       "shape": "object",
       "description": "조직도의 제목. 몇 대 학생회인지가 제목이라 화면이 지어낼 수 없다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3477,6 +3666,9 @@
       "key": "org.executives",
       "shape": "list",
       "description": "회장단 구성원. 회장단은 부서와 달리 **항상 있는 자리**라 목록 하나로 따로 온다(list.rootItem이 조직 구조를 만들 때 같은 것을 말한다).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3524,6 +3716,9 @@
       "key": "org.departments",
       "shape": "list",
       "description": "부서와 그 안의 사람들. **부서 수는 데이터가 정한다** - 조직을 만들 때 사람이 더하고 지운다(ORG-02).\n\nleaders는 0개이거나 1개다. 부서장은 한 사람뿐이지만 **없을 수도 있어서** 값 하나가 아니라 목록이다 - 빈 문자열로 '없음'을 말하면 이름이 빈 사람과 구별되지 않는다.\n\n이름으로 좁혀 볼 수 있다(MSG-02의 '이름 검색'). **부서 이름을 찾는 것인지 그 안의 사람 이름을 찾는 것인지 그림이 말하지 않는다** — 찾은 뒤의 목록이 그려져 있지 않아 명세가 정하지 않고 서버에 맡긴다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "query",
@@ -3615,6 +3810,9 @@
       "key": "org.unassignedMembers",
       "shape": "list",
       "description": "아직 어느 자리에도 배정되지 않은 구성원. **조직에서 지운 사람이 아니다** - 가입은 했는데 부서가 정해지지 않은 상태이며, INV-01의 '참여하면 미배정 구성원으로 등록됩니다'가 그 자리를 말한다.\n\n옮길 수 있는 목록들이 전부 이 출처를 가리킨다(itemMove.poolSourceKey). 그것이 '같은 무리'라는 뜻이고, 그래서 회장단의 사람을 부서로 옮길 수 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "query",
@@ -3659,6 +3857,9 @@
       "key": "org.unassignedHint",
       "shape": "object",
       "description": "미배정 구성원 패널의 안내 한 줄. 몇 명인지와 어떻게 옮기는지가 글자 하나로 그려져 있어 서버가 완성해 보낸다(ORG-00의 '부서 5개 · 구성원 18명'과 같은 자리다).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3681,6 +3882,9 @@
       "key": "org.invite",
       "shape": "object",
       "description": "학생회에 들어오는 초대. 링크와 코드가 **같은 권한**이라 한 건으로 온다 - 둘을 따로 두면 하나만 되살렸을 때 어느 것이 유효한지 화면이 정하게 된다.\n\n값은 서버가 만든다. 링크의 주소도 코드의 글자도 화면이 지어낼 수 있는 것이 아니다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3728,6 +3932,9 @@
       "key": "org.roleCounts",
       "shape": "object",
       "description": "기본 역할마다 지금 몇 사람인지. 역할 셋은 제품이 정한 고정 구조라 명세가 갖고(ORG-04B가 바꾸는 것은 사람의 역할이다), 수만 서버가 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3760,6 +3967,9 @@
       "key": "org.permissionMatrix",
       "shape": "list",
       "description": "기능 영역마다 역할 셋이 무엇을 할 수 있는지. 한 줄이 기능 영역 하나다.\n\n칸에 그려지는 것은 '가능'·'재정부만'처럼 **완성된 말**이고 색 이름이 함께 온다 - '되는가 안 되는가'가 아니라 '어떤 조건에서 되는가'까지가 답이기 때문이다. 명세가 그 말의 목록을 들고 있으면 조건이 하나 늘 때마다 명세가 틀린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3817,6 +4027,9 @@
       "key": "org.roleAssignments",
       "shape": "list",
       "description": "구성원마다 지금 어떤 기본 역할인지. 이름·소속과 함께 온다 - 누구의 역할을 바꾸는지가 이름만으로는 갈리지 않기 때문이다(같은 이름이 여럿 있다).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3864,6 +4077,9 @@
       "key": "org.roleAssignmentCount",
       "shape": "object",
       "description": "기본 역할을 가진 구성원이 몇인지. 목록 곁의 한 줄이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3886,6 +4102,9 @@
       "key": "org.selectedRoleAssignment",
       "shape": "object",
       "description": "지금 고른 구성원 한 사람. 목록에서 고른 것이 여기 온다 - 누구를 고를지가 아직 주소로 오가지 않아(itemAction이 pending) 서버가 마지막으로 고른 사람을 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3933,6 +4152,9 @@
       "key": "org.rosterScope",
       "shape": "object",
       "description": "이 명단이 다루는 범위와 마지막으로 갱신된 때. 범위는 조직 설정이 정하므로 이 화면이 지어낼 수 없다.",
+      "authorize": {
+        "area": "students.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -3980,6 +4202,9 @@
       "key": "org.students",
       "shape": "list",
       "description": "명단에 등록된 학생. 학생회 구성원과 다르다 - 이 명단은 단과대학 학생 전체이고 행사 참가 확인과 학생회비 조회에 쓴다(ORG-00의 카드가 그렇게 말한다).",
+      "authorize": {
+        "area": "students.read"
+      },
       "params": [
         {
           "key": "query",
@@ -4067,6 +4292,9 @@
       "key": "org.studentPaging",
       "shape": "object",
       "description": "학생 명단의 총 건수와 쪽 수. 한 쪽만 받아 오므로 목록 자신이 말할 수 없다.",
+      "authorize": {
+        "area": "students.read"
+      },
       "params": [
         {
           "key": "query",
@@ -4113,6 +4341,9 @@
       "key": "meeting.detail",
       "shape": "object",
       "description": "회의 한 건. **03·05·06·07·08·09가 전부 이것을 읽는다.** 상태마다 출처를 가르지 않는다 — 가르면 화면이 '지금 어느 단계인가'를 알아야 하고, 그것은 명세가 상태를 아는 것이 된다. 그 단계에 없는 조각은 오지 않으면 된다(meeting.groups의 badge와 같은 규칙).\n\n와이어프레임 16장을 한꺼번에 읽고 정했다. 하나씩 열어 가며 정했으면 네 번째 화면에서 갈라졌을 자리다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4403,6 +4634,9 @@
       "key": "meeting.agendas",
       "shape": "list",
       "description": "이 회의의 안건들. **단계마다 갖는 것이 다르다** — 예정일 때는 예상 소요와 사전 자료를, 진행 중에는 논의 내용과 결정을, 끝난 뒤에는 확정된 결정을 갖는다. 그래도 출처는 하나다: 넷으로 가르면 화면이 단계를 알아야 한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4508,6 +4742,9 @@
       "key": "meeting.participants",
       "shape": "list",
       "description": "이 회의의 사람들. **03의 참가자 목록, 05의 참가 현황, 07의 참석 결과, 04B의 권한 관리 목록이 전부 같은 사람들이다.** 그리는 자리가 다를 뿐 무엇인지는 하나다 — 16장을 한꺼번에 보고 나서야 합칠 수 있었다.\n\n딱지와 할 수 있는 일 설명은 반드시 서버가 준다. 역할 이름을 명세가 들면 역할이 하나 늘 때마다 명세가 틀린다.\n\n04B는 생성자를 위 칸에 따로 그리므로 목록에서 뺀다(excludeHostOwner). 화면이 받아 온 것을 걸러 내지 않는다 — 거르는 것은 조회의 일이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4623,6 +4860,9 @@
       "key": "meeting.minutes",
       "shape": "object",
       "description": "회의록의 전체 요약. 안건마다의 기록은 meeting.agendas가 갖고, 여기 있는 것은 회의 전체를 한 덩이로 줄인 글이다. 없을 수 있다 — 06B가 빈 상태를 그렸고, '요약이 없어도 정리 완료가 막히지는 않습니다'라고 적어 두었다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4671,6 +4911,9 @@
       "key": "meeting.minutesProgress",
       "shape": "object",
       "description": "회의록 정리가 어디까지 왔는지. **조건 목록을 서버가 준다** — 06A는 넷을 세고 06B는 다섯 중 필수 넷을 세는데, 같은 회의의 같은 진행도다. 명세가 조건을 들면 둘 중 하나는 반드시 틀린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4733,6 +4976,9 @@
       "key": "meeting.minutesStatus",
       "shape": "object",
       "description": "회의록의 각 부분이 지금 어디까지 왔는지(OPS-MEET-06A의 '현재 정리 현황').\n\n**meeting.minutesProgress와 다른 사실이다.** 저것은 '정리를 마칠 수 있는가'를 조건으로 세고(06B의 '정리 완료 조건'), 이것은 '지금 어디까지 왔는가'를 부분마다 말한다. 한동안 둘을 하나로 보았는데, 그러면 같은 회의를 두 화면이 서로 다른 목록으로 그린 것이 설명되지 않는다 — 06A는 '안건 내용 2 / 3 정리'를 그리고 06B는 '안건별 논의 내용 ✓'을 그린다. 라벨도 개수도 다르고, 한쪽은 세어 온 문구이고 한쪽은 참·거짓이다.\n\n**부분 목록을 서버가 준다.** 회의록이 몇 부분으로 이루어지는지는 조직의 양식이 정하고, 명세가 그 목록을 들면 양식이 바뀔 때마다 명세가 틀린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4773,6 +5019,9 @@
       "key": "meeting.documents",
       "shape": "list",
       "description": "이 회의에 붙은 자료. 안건의 사전 자료와 회의록의 관련 자료가 같은 물건이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4813,6 +5062,9 @@
       "key": "meeting.followUps",
       "shape": "list",
       "description": "이 회의에서 나온 후속 업무. **와이어프레임은 빈 상태만 그렸다** — 07·08 둘 다 0건이라 항목이 무엇으로 이루어지는지, 눌러서 어디로 가는지 그림이 말하지 않는다. 그래서 조각을 지어내지 않고 본 것만 적었다. 채워진 모습이 그려지면 는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4853,6 +5105,9 @@
       "key": "meeting.myFollowUps",
       "shape": "list",
       "description": "이 회의가 나에게 배정한 후속 업무(OPS-MEET-08).\n\n**meeting.followUps와 다른 물음이다.** 저것은 '이 회의가 만든 후속 업무'이고 이것은 '그중 내 것'이다. 한동안 같은 출처에 onlyMine 인자를 붙여 갈랐는데, 그러면 **비었을 때 할 말이 하나뿐이 된다** — 그림은 둘을 다르게 적었다. 07은 '회의록 정리에서 생성한 후속 업무 카드가 여기에 표시됩니다', 08은 '나에게 배정된 미완료 후속 업무가 없습니다'.\n\n비었다는 말이 다르면 묻는 것이 다른 것이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4893,6 +5148,9 @@
       "key": "meeting.permissionNotice",
       "shape": "object",
       "description": "진행 권한이 무엇을 주고 무엇을 안 주는지. **명세가 이 글을 들면 권한이 하나 늘 때마다 명세가 틀린다.** 04B의 안내 상자와 D03의 확인 글이 같은 것을 말하므로 둘이 나눠 쓴다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4950,6 +5208,9 @@
       "key": "meeting.startConfirm",
       "shape": "object",
       "description": "회의를 시작해도 되는지 살펴 준 것(D01). 며칠 이른지는 서버만 안다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -4980,6 +5241,9 @@
       "key": "meeting.endConfirm",
       "shape": "object",
       "description": "회의를 끝내도 되는지 살펴 준 것(D02). **막지는 않는다** — 미완료 안건이 남아도 종료 단추는 살아 있다. 알려 줄 뿐이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -5010,6 +5274,9 @@
       "key": "meeting.hostGrantConfirm",
       "shape": "object",
       "description": "누구에게 진행 권한을 주려는지(D03). **제목에 사람 이름이 박혀 있으므로 서버가 완성해 준다** — 명세가 '{이름}에게 …'를 조립하면 그 문장이 명세의 것이 되고, '진행 권한'이라는 역할 이름이 명세에 고정된다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -5055,6 +5322,9 @@
       "key": "meeting.draft",
       "shape": "object",
       "description": "회의를 만들거나 고칠 때 화면이 처음 받는 값(OPS-MEET-02). meetingId가 없으면 새로 쓰는 것이다 — FIN-REQ-01이 requestId를 그렇게 쓴 선례를 따른다.\n\n**수정 상태의 그림이 없다.** 이미 진행 중이거나 끝난 회의를 열었을 때 무엇이 잠기는지 와이어프레임이 한 장도 그리지 않았다. 지어내지 않았다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -5248,6 +5518,9 @@
       "key": "meeting.memberCandidates",
       "shape": "list",
       "description": "참가자로 넣을 수 있는 사람들(OPS-MEET-02·04B의 검색). 검색 칸이 있으면 찾을 데가 있어야 한다.\n\n**04B의 라벨 없는 드롭다운(20:803)이 무엇을 거르는지 그림이 말하지 않는다.** 자식이 하나도 없는 빈 프레임이라 인자를 지어내지 않았다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "query",
@@ -5293,6 +5566,9 @@
       "key": "meeting.hostOwner",
       "shape": "object",
       "description": "회의를 만든 사람 한 명(OPS-MEET-04B의 맨 위 칸). meeting.participants의 한 줄과 조각이 겹치지만 **목록에서 한 줄을 집는 어휘가 없다** — summary는 값 묶음 하나만 받는다. ORG-04B가 같은 벽에서 org.selectedRoleAssignment를 따로 만들어 넘어갔고, 이것이 두 번째 자리다.\n\n값도 목록의 그 줄과 다르다. 04B는 생성자를 '권한 변경 및 회의 관리 가능'이라 적고 03A는 같은 사람을 '시작·종료 가능'이라 적는다 — 무엇을 보여주는 자리냐가 다르기 때문이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -5349,6 +5625,9 @@
       "key": "event.listViewer",
       "shape": "object",
       "description": "행사 목록을 보는 사람이 무엇을 할 수 있는가. **변형을 가르는 값이다** — meeting.attention.canCreateMeeting과 같은 계급이고, 역할 이름이 아니라 할 수 있는 일로 가른다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -5371,6 +5650,9 @@
       "key": "event.wrapUpBanner",
       "shape": "object",
       "description": "후속 정리 중인 행사의 상태 줄과 띠(EVT-02D). **행사의 상태와 그것을 누가 바꿀 수 있는지를 서버가 함께 준다** — '행사 완료 처리는 회장단만 할 수 있습니다'를 명세가 들면 권한이 바뀔 때마다 명세가 틀린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5425,6 +5707,9 @@
       "key": "event.wrapUpCounts",
       "shape": "object",
       "description": "후속 정리 현황 타일 넷(EVT-02D). 타일이 넷이라는 것은 명세가 정하고 (모든 행사가 같다) 값과 색만 서버가 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5489,6 +5774,9 @@
       "key": "event.wrapUpRemaining",
       "shape": "list",
       "description": "아직 남은 항목 하나하나(EVT-02D). 줄마다 그 원본으로 간다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5533,6 +5821,9 @@
       "key": "event.endPermission",
       "shape": "object",
       "description": "행사를 끝내려 할 때 누가 할 수 있는지(EVT-02C). **역할 이름이 여기 들어간다** — '행사 운영 조직 관리자 또는 회장단'을 명세가 들면 조직 규칙이 바뀔 때마다 명세가 틀린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5567,6 +5858,9 @@
       "key": "event.completeConfirm",
       "shape": "object",
       "description": "행사를 완료 처리해도 되는지 살펴 준 것(EVT-02E). **막지는 않는다** — 남은 것이 있어도 알려 줄 뿐이다(meeting.endConfirm과 같은 자리).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5608,6 +5902,9 @@
       "key": "event.staffLeaders",
       "shape": "list",
       "description": "행사 운영 조직의 책임자(EVT-01·03A·03B). org.executives와 같은 모양이지만 **다른 물건이다** — 학생회의 기본 조직이 아니라 이 행사에만 있는 조직이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5664,6 +5961,9 @@
       "key": "event.staffDepartments",
       "shape": "list",
       "description": "행사 운영 조직의 부서들(EVT-01·03A·03B). 부서마다 부서장과 부원이 안쪽 목록으로 함께 온다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5770,6 +6070,9 @@
       "key": "event.staffUnassignedMembers",
       "shape": "list",
       "description": "아직 어느 부서에도 배정되지 않은 사람(EVT-03B의 오른쪽 기둥). org.unassignedMembers와 같은 자리다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5814,6 +6117,9 @@
       "key": "event.staffSetupPreview",
       "shape": "list",
       "description": "고른 방식으로 만들어질 운영 조직의 미리보기(EVT-01). event.staffDepartments와 같은 조각이지만 **아직 만들어지지 않은 것**이라 조회 인자에 방식이 함께 든다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -5913,6 +6219,9 @@
       "key": "event.basicsDraft",
       "shape": "object",
       "description": "행사 기본정보 편집 패널이 처음 받는 값(EVT-02B). event.basics는 **그려진 한 줄**을 주고(예: '참가비 납부자 무료 / 미납자 5000원') 이것은 **고칠 칸 하나하나**를 준다 — 같은 사실의 다른 모습이라 조각이 갈린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -6060,6 +6369,9 @@
       "key": "event.attendanceQr",
       "shape": "object",
       "description": "행사 참석 확인 QR(EVT-04B). **QR은 행사 상태와 따로 켜고 끈다** — 기획 중인 행사도 QR을 미리 만들 수 있고, 진행 중인 행사의 QR을 끌 수도 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -6114,6 +6426,9 @@
       "key": "event.survey",
       "shape": "object",
       "description": "행사의 참여 설문 한 건(EVT-05·05B). **행사의 상태와 다른 축이다** — 초안·활성·교체됨은 설문의 상태이고 기획 중·진행 중은 행사의 상태다 (회의의 status와 minutesStatus가 갈린 것과 같다).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -6154,6 +6469,9 @@
       "key": "event.surveySettingsDraft",
       "shape": "object",
       "description": "참여 설문의 모집 설정(EVT-05). 고칠 칸 하나하나를 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -6214,6 +6532,9 @@
       "key": "event.surveyActivation",
       "shape": "object",
       "description": "설문 링크를 켤 수 있는지. **단추의 실행 조건이 이것을 읽는다** — 무엇이 모자란지는 서버가 세고, 화면은 막힌 까닭만 그린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -6259,6 +6580,9 @@
       "key": "event.surveyActivationConditions",
       "shape": "list",
       "description": "설문 링크를 켜기 위해 채워야 하는 것들(EVT-05). 묶음으로 온다 — 행사 기본정보에서 채울 것과 설문 설정에서 채울 것이 갈린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -6338,6 +6662,9 @@
       "key": "event.surveyQuestions",
       "shape": "list",
       "description": "참여 설문의 문항들(EVT-05).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -6400,6 +6727,9 @@
       "key": "event.surveyReplaceImpact",
       "shape": "object",
       "description": "설문을 갈아 끼우면 무엇이 어떻게 되는지(EVT-05B). **응답이 있는 설문은 직접 고칠 수 없다** — 그 사실과 여파를 서버가 세어 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -6455,6 +6785,9 @@
       "key": "message.rooms",
       "shape": "list",
       "description": "메시지 방 목록(MSG-01). **줄에 무엇이 그려지는지 그림이 없다** — 와이어프레임은 방이 하나도 없는 모습만 그렸고 채워진 목록은 어느 화면에도 없다. 그래서 조각은 방 하나를 가리키는 값 하나뿐이다: 지어낸 조각을 적으면 그림에 없는 계약이 생기고 그것은 서버가 지켜야 할 약속이 된다.\n\n**MSG-02가 만드는 값에서 유추하지 않았다.** 만들 때 받는 것(분류·방 이름·대상)과 목록에 그려지는 것은 다른 물음이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -6478,6 +6811,9 @@
       "key": "message.conversation",
       "shape": "list",
       "description": "대화 화면이 되풀이해 그리는 것(MSG-03). **줄에 무엇이 그려지는지 그림이 없다** — 와이어프레임은 빈 모습만 그렸다.\n\n**비었을 때의 글이 '방이 없다'고 말한다.** 주고받은 말이 없다는 뜻이 아니라 들어갈 방 자체가 없다는 뜻이고, 그래서 이 화면의 빈 상태는 MSG-01의 빈 상태와 같은 사실을 다른 말로 말한다. 그런데 그 글이 서로 달라 한 출처로 묶을 수 없다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "roomId",
@@ -6508,6 +6844,9 @@
       "key": "finance.orgOverview",
       "shape": "object",
       "description": "조직 전체 재정의 겉면(FIN-00). 회계 기간·기준일부터 금액 넷과 집행률까지 한 벌로 온다 — 무엇을 실제 지출로 보고 무엇을 예정으로 보는지가 조직의 재정 규칙이라 화면이 더하거나 빼지 않는다. **행사 하나의 재정(event.financeSummary)과 다른 물건이다** — 저것은 eventId를 받고 이것은 학생회 전체를 센다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -6595,6 +6934,9 @@
       "key": "finance.overviewViewer",
       "shape": "object",
       "description": "전체 재정 현황을 보는 사람이 무엇을 할 수 있는가. **변형을 가르는 값이다**(event.listViewer·meeting.attention의 canCreateMeeting 선례) — 예산을 편성할 수 있는 사람이 보는 그림이 FIN-00B이고 사람이 그 사이를 오갈 수 없다. 역할 이름은 여기 오지 않는다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -6617,6 +6959,9 @@
       "key": "finance.orgBreakdown",
       "shape": "list",
       "description": "총예산을 무엇 단위로 나눠 본 표의 한 줄(FIN-00). 나누는 축(scope)이 행사별이냐 부서별이냐로 줄의 뜻이 통째로 바뀌므로 서버가 걸러서 준다 — 받아온 것을 화면에서 다시 나누지 않는다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "scope",
@@ -6676,6 +7021,9 @@
       "key": "finance.recentExpenses",
       "shape": "list",
       "description": "최근 지출 내역(FIN-00). **finance.ledger와 같은 장부다** — 저쪽은 전부를 걸러 볼 수 있게 주는 자리이고 이쪽은 겉면에 몇 줄만 얹는 자리다. 몇 줄을 얹을지는 서버가 정한다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -6728,6 +7076,9 @@
       "key": "finance.proofSummary",
       "shape": "object",
       "description": "증빙이 어디까지 됐는지(FIN-00의 오른쪽 칸). 세는 갈래 셋은 디자인이 고정으로 그렸고 값만 서버가 준다(event.wrapUpCounts와 같은 자리다).",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -6765,6 +7116,9 @@
       "key": "finance.ledgerSummary",
       "shape": "object",
       "description": "사용 내역 머리의 값 넷(FIN-LEDGER-01). 고른 달이 값을 바꾸므로 인자를 받는다. **달의 이름도 서버가 준다** — '7월 지출'의 '7월'은 고른 달이 정하는 것이라 명세가 고정 카피로 가질 수 없다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "month",
@@ -6814,6 +7168,9 @@
       "key": "finance.ledger",
       "shape": "list",
       "description": "학생회 장부의 한 줄(FIN-LEDGER-01). 달·행사·부서·예산 항목·검색어로 걸러서 서버가 준다 — 받아온 것을 화면에서 거르지도 자르지도 않는다. FIN-00의 최근 지출 내역(finance.recentExpenses)과 **같은 장부**다.\n\n**결제 단계로도 걸린다**(stage). 전체 재정의 '실제 지출'과 '지출 예정'이 각각 그 단계만 보여 달라고 이 장부에 오기 때문이다 — 화면을 새로 만들지 않고 같은 장부를 다르게 자른다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "month",
@@ -6913,6 +7270,9 @@
       "key": "finance.ledgerScope",
       "shape": "object",
       "description": "지금 보고 있는 장부가 무엇의 몇 줄인지, 그리고 증빙을 어디서 처리하는지(FIN-LEDGER-01의 표 아래 줄). 목록은 잘려서 오므로 **몇 건 중 몇 건인지는 목록 자신이 말할 수 없다**(itemList의 paging이 총 건수를 따로 가리키는 것과 같은 이유다). 거르는 조건이 같아야 같은 것을 센다.\n\n**결제 단계로도 걸린다**(stage). 전체 재정의 '실제 지출'과 '지출 예정'이 각각 그 단계만 보여 달라고 이 장부에 오기 때문이다 — 화면을 새로 만들지 않고 같은 장부를 다르게 자른다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "month",
@@ -6977,6 +7337,9 @@
       "key": "ops.calendarMonth",
       "shape": "object",
       "description": "월간 캘린더가 지금 보여주는 달. **어느 달인지는 서버가 정한다** — 달을 앞뒤로 옮기는 조작을 명세가 담을 어휘가 아직 없어(OPS-CAL-01의 30:2106·30:2112) 화면이 넘길 값이 없다. 그 어휘가 생기면 여기에 month 인자가 붙는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -6999,6 +7362,9 @@
       "key": "ops.calendarDays",
       "shape": "list",
       "description": "월 격자의 칸들. **항목 하나가 하루**이고 그 안의 schedules가 그날의 일정이다. 달에 들지 않는 앞뒤 빈칸도 항목으로 온다 — 몇 칸이 비는지는 그 달 1일의 요일이 정하고, 그것을 화면이 셈하면 달력의 규칙이 화면에 적힌다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "type",
@@ -7059,6 +7425,9 @@
       "key": "ops.calendarWeekRange",
       "shape": "object",
       "description": "이번 주 일정 패널의 머리. 어느 주이고 오늘이 언제인지를 **서버가 완성한 문장으로** 준다 — 화면이 날짜를 셈해 문장을 만들면 그 셈이 화면에 적힌다(finance.ledgerScope의 rangeNote와 같은 자리).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -7081,6 +7450,9 @@
       "key": "ops.calendarWeek",
       "shape": "list",
       "description": "이번 주에 걸린 일정 줄. 월 격자와 같은 일정을 이번 주만 잘라 세로로 세운 것이다. **보고 있는 달과 무관하다** — '이번 주'는 오늘이 정한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "type",
@@ -7142,6 +7514,9 @@
       "key": "record.completedEventAlert",
       "shape": "object",
       "description": "완료된 행사 목록 머리의 알림(REC-01). 인수인계 문서가 아직 발행되지 않은 행사가 몇 건인지 서버가 세어 완성된 문구로 준다 — 목록이 검색으로 걸러져도 이 수는 걸러지지 않는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -7165,6 +7540,9 @@
       "key": "record.completedEvents",
       "shape": "list",
       "description": "완료 처리된 행사 목록(REC-01). event.list와 다른 물건이다 — 저쪽에는 완료된 행사가 오지 않는다. 행사명(query)으로 걸러서 서버가 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "query",
@@ -7258,6 +7636,9 @@
       "key": "record.archive",
       "shape": "object",
       "description": "이 행사의 아카이브 문서 자체(REC-02 · REC-02A). 발행 전에도 있다 — 쓰는 화면은 이름과 상태만 읽고, 발행된 문서는 누가 언제 쓰고 검토했는지까지 읽는다. 본문은 조각마다 다른 출처가 갖는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7339,6 +7720,9 @@
       "key": "record.archiveSections",
       "shape": "list",
       "description": "아카이브의 목차(REC-02 · REC-02A). 절의 개수와 이름을 서버가 준다 — 발행된 문서는 회고가 세 갈래로 펴지고(rows), 쓰는 중인 문서는 절마다 어디까지 썼는지가 함께 온다(statusLabel). 두 화면이 같은 목록을 다르게 그린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7402,6 +7786,9 @@
       "key": "record.archiveDetail",
       "shape": "object",
       "description": "아카이브 본문 중 라벨이 고정된 열세 조각(REC-02의 개요·성과·현장 운영). 무엇을 적는 자리인지가 문서 서식으로 정해져 있어 명세가 라벨을 갖고, 값만 서버가 준다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7491,6 +7878,9 @@
       "key": "record.archiveTimeline",
       "shape": "list",
       "description": "아카이브의 타임라인(REC-02). 몇 개의 마디로 이루어지는지는 그 행사가 정한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7535,6 +7925,9 @@
       "key": "record.archiveEvidence",
       "shape": "list",
       "description": "아카이브가 근거로 삼은 원본들(REC-02). 수치는 발행 시점의 것이고, 원본은 지금도 행사 공간에 그대로 있어 눌러서 갈 수 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7586,6 +7979,9 @@
       "key": "record.archiveRetro",
       "shape": "list",
       "description": "아카이브의 회고(REC-02). 묶음으로 온다 — 잘된 점·미흡했던 점·다음 행사 개선안이 갈리고, 묶음마다 줄 수가 다르다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7643,6 +8039,9 @@
       "key": "record.archiveHandover",
       "shape": "list",
       "description": "아카이브의 인수인계(REC-02). 회고와 같은 모양으로 묶음이 온다 — 재사용 자산·협력처·담당자·주의사항이 갈리고, 묶음마다 줄 수가 다르다. 다음 담당자는 이 목록이 아니라 문서 전체의 것이라 record.archive가 갖는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7700,6 +8099,9 @@
       "key": "record.archiveChecklist",
       "shape": "list",
       "description": "인수인계 체크리스트(REC-02). 부서별로 묶여 오고, 무엇을 확인해야 하는지는 그 행사의 인수인계 내용이 정한다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7750,6 +8152,9 @@
       "key": "record.archiveAutoFilled",
       "shape": "object",
       "description": "쓰는 중인 아카이브에서 사람이 고칠 수 없는 부분(REC-02A). 행사 데이터에서 서버가 줄여 만든 네 줄이며, 발행하면 그 시점 값으로 굳는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7794,6 +8199,9 @@
       "key": "record.archiveDraft",
       "shape": "object",
       "description": "쓰는 중인 아카이브에서 **사람이 직접 쓰는 칸들**(REC-02A). 이름·상태·AI 계약 문장은 문서 자체의 것이라 record.archive가 갖는다 — 여기 있는 것은 전부 화면의 칸으로 들어간다. 아직 아무것도 안 쓴 문서도 이것을 읽고 열린다(FIN-REQ-01의 draftFrom과 같은 규칙).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7866,6 +8274,9 @@
       "key": "record.archiveGate",
       "shape": "object",
       "description": "아카이브를 다음 단계로 넘길 수 있는지(REC-02A). 단추의 실행 조건이 이것을 읽는다 — 무엇이 모자란지는 서버가 세고 화면은 막힌 까닭만 그린다(event.surveyActivation과 같은 자리).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7901,6 +8312,9 @@
       "key": "record.archiveGateConditions",
       "shape": "list",
       "description": "아카이브를 발행하기 위해 채워야 하는 것들(REC-02A). 조건 목록을 서버가 준다 — 명세가 조건을 들면 문서 서식이 바뀔 때마다 명세가 틀린다(meeting.minutesProgress와 같은 이유).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7945,6 +8359,9 @@
       "key": "record.archiveReview",
       "shape": "object",
       "description": "이 아카이브에 달린 검토 의견(REC-02A). 쓰는 사람이 아니라 검토자가 적는 값이라 초안(record.archiveDraft)과 갈린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -7975,6 +8392,9 @@
       "key": "org.invitedOrganization",
       "shape": "object",
       "description": "초대 코드가 찾아낸 학생회(INV-01). **이 값은 코드가 정한다** — 그 전에는 명세가 '제12대 소프트웨어융합대학 학생회'를 고정 글로 들고 있었고, 어떤 코드를 넣어도 같은 학생회가 나왔다.",
+      "authorize": {
+        "area": "signedIn"
+      },
       "params": [
         {
           "key": "inviteCode",
@@ -8019,6 +8439,9 @@
       "key": "survey.applyForm",
       "shape": "object",
       "description": "링크로 열린 참여 신청 폼의 머리(EXT-02A). **행사의 출처를 그대로 쓸 수 없다** — event.basics는 eventId를 받고 학생회 안에서 보는 값인데, 이 화면은 로그인한 사람이 없고 가진 것이 설문 토큰뿐이다. 같은 사실의 밖에서 볼 수 있는 조각만 온다.",
+      "authorize": {
+        "area": "public"
+      },
       "params": [
         {
           "key": "surveyToken",
@@ -8068,6 +8491,9 @@
       "key": "survey.applyResult",
       "shape": "object",
       "description": "링크로 낸 참여 신청의 결과 한 장(EXT-02B). **바깥 출처는 안쪽 출처를 재사용하지 않는다** — event.basics·event.survey는 eventId를 받고 학생회 안에서 보는 값인데, 이 화면에는 로그인한 사람이 없고 가진 것이 설문 토큰뿐이다.\n\n**'신청자: 김바다'는 로그인한 사람의 이름이 아니다.** 방금 낸 응답에서 온다. 그래도 화면의 입력 값이 아니라 서버가 답하는 조각인 까닭은 둘이다 — 이 화면은 신청 폼의 초안을 담는 자리가 아니고(그 스코프는 보내면서 비워진다), 링크를 다시 열었을 때도 같은 것이 보여야 한다.\n\n제목까지 데이터인 까닭은 운영진이 그 문구를 쓰기 때문이다(EVT-05의 '신청 완료 안내 문구').\n\n**이 사람의 이것 하나**를 가리키는 값. 낼 때 서버가 돌려준 영수증이다.\n\n여기에 링크·QR의 토큰을 쓰면 안 된다 — **같은 링크와 같은 QR을 여러 사람이 쓴다.** 그것으로 조회하면 '이 토큰으로 낸 마지막 것'이 오고, 뒤에 낸 사람이 앞사람의 이름과 결과를 본다.",
+      "authorize": {
+        "area": "public"
+      },
       "params": [
         {
           "key": "receiptToken",
@@ -8129,6 +8555,9 @@
       "key": "survey.linkState",
       "shape": "object",
       "description": "설문 링크가 왜 막혔는지 한 장(EXT-02C). **막히지 않은 링크에는 이 답이 없다** — 서버가 상태를 보고 신청 폼이나 이 화면으로 보내므로(docs/decisions/product-decisions.md), 이 출처가 무언가를 답했다는 것 자체가 '지금은 받지 않는다'는 뜻이다.\n\n**명세가 상태의 목록을 들지 않는다.** 무엇이 링크를 막는지는 모집 일정·정원·운영진의 조작이 정하고, 명세가 목록을 들면 하나 늘 때마다 명세가 틀린다. 그림이 다섯을 나란히 그린 것은 값의 나열이고 명세는 source.alsoDrawnAt으로 그 사실을 든다.",
+      "authorize": {
+        "area": "public"
+      },
       "params": [
         {
           "key": "surveyToken",
@@ -8180,6 +8609,9 @@
       "key": "attendance.checkInForm",
       "shape": "object",
       "description": "QR로 열린 참석 확인 폼이 읽는 한 벌(EXT-01A). **학생회 사람이 아닌 이가 본다** — 로그인한 사람이 없으므로 무엇을 볼 수 있는지는 토큰만이 정한다. 그래서 경로가 /api/public/…이고 인자가 eventId가 아니라 checkInToken이다: QR은 껐다 켜고 다시 만들 수 있으므로(EVT-04B) 가리키는 것은 QR이지 행사가 아니고, eventId를 받으면 누구나 남의 행사의 참석 화면을 연다.\n\n**지금 받을 수 있는지도 이 한 벌이 답한다.** blockedLabel·blockedTone·blockedNote 셋은 함께 오거나 함께 오지 않는다. 오면 체크인을 받지 않는 때이므로 화면은 이름·학번 칸을 아예 그리지 않고 그 자리에 그 까닭만 그린다 — 헛되이 입력하게 하지 않는다(사람이 정한 것: docs/decisions/product-decisions.md).",
+      "authorize": {
+        "area": "public"
+      },
       "params": [
         {
           "key": "checkInToken",
@@ -8247,6 +8679,9 @@
       "key": "attendance.checkInResult",
       "shape": "object",
       "description": "참석 확인을 낸 뒤의 결과 한 장(EXT-01B). **결과가 서로 배타적이라 한 사람에게 하나만 온다** — 그래서 화면도 하나이고 카드 한 장이 데이터로 그려진다(와이어프레임이 여섯을 나란히 그린 것은 값의 나열이고, 명세는 source.alsoDrawnAt으로 그 사실을 든다).\n\n**명세가 결과의 목록을 들지 않는다.** 무엇이 결과가 되는지는 조직의 참석 규칙이 정하고, 명세가 그 목록을 들면 규칙이 하나 늘 때마다 명세가 틀린다.\n\n인자가 checkInToken인 까닭은 폼과 같다 — 이 토큰으로 낸 마지막 시도의 결과를 서버가 답한다.\n\n**이 사람의 이것 하나**를 가리키는 값. 낼 때 서버가 돌려준 영수증이다.\n\n여기에 링크·QR의 토큰을 쓰면 안 된다 — **같은 링크와 같은 QR을 여러 사람이 쓴다.** 그것으로 조회하면 '이 토큰으로 낸 마지막 것'이 오고, 뒤에 낸 사람이 앞사람의 이름과 결과를 본다.",
+      "authorize": {
+        "area": "public"
+      },
       "params": [
         {
           "key": "receiptToken",

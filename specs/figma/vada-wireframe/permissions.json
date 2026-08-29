@@ -1,0 +1,426 @@
+{
+  "schemaVersion": 1,
+  "description": "**누가 무엇을 할 수 있는가.** 오랫동안 이 규칙은 두 곳에 글로만 있었다 — ORG-04이 그리는 표 열세 줄과, 그 아래 '회의·행사에서 별도로 부여되는 역할' 문단 셋. 개발용 응답이 그 표를 문자열로 들고 있었고, 145개 출처와 44개 변이 중 자기가 어느 영역인지 말하는 것은 **하나도 없었다**.\n\n여기 옮긴 것은 새 사실이 아니라 그 글을 기계가 읽을 수 있게 적은 것이다. ORG-04이 그리는 표도 여기서 나온다 — 두 벌을 들면 갈린다.\n\n**행렬은 학생회마다 다르지 않다**(2026-08-30 결정). 학생회가 자기 표를 고치는 화면도 변이도 명세에 없다.",
+  "conditions": [
+    {
+      "key": "always",
+      "description": "언제나 된다."
+    },
+    {
+      "key": "never",
+      "description": "안 된다."
+    },
+    {
+      "key": "orgMember",
+      "description": "그 학생회의 구성원이면 된다. 행렬이 따로 제한하지 않는 자리다."
+    },
+    {
+      "key": "anyone",
+      "description": "로그인이 필요 없다. QR로 온 참석자와 링크로 온 설문 응답자가 여는 자리다."
+    },
+    {
+      "key": "financeDepartment",
+      "needs": "viewer",
+      "description": "재정을 맡는 부서에 속해야 한다. **부서 이름으로 보지 않는다** — 학생회마다 이름이 다르고(재무부·회계국) 이름을 바꾸면 권한이 조용히 사라진다. 부서에 단 표시가 정한다."
+    },
+    {
+      "key": "eventStaff",
+      "needs": "event",
+      "description": "그 행사의 운영 조직에 속해야 한다. ORG-04가 '표의 행사 조직만은 그 행사의 운영 조직에 속한 경우'라고 적었다."
+    },
+    {
+      "key": "eventStaffManager",
+      "needs": "event",
+      "description": "그 행사 운영 조직의 관리자여야 한다. ORG-04가 '행사 조직 관리자만은 그 조직의 관리자인 경우'라고 적었다."
+    },
+    {
+      "key": "ownDepartment",
+      "needs": "department",
+      "description": "주체의 부서와 대상의 부서가 같아야 한다."
+    },
+    {
+      "key": "meetingHost",
+      "needs": "meeting",
+      "description": "그 회의의 진행 권한자여야 한다. **회의별로 부여된다** — 조직 역할과 무관하다. ORG-04: '회의 진행 권한자 — 회의별로 부여되며 회의 시작·종료와 안건 진행을 할 수 있습니다.'"
+    },
+    {
+      "key": "meetingCreator",
+      "needs": "meeting",
+      "description": "그 회의를 만든 사람이어야 한다. ORG-04: '회의 생성자 — 기본 진행 권한자이며, 진행 권한을 부여·해제할 수 있는 유일한 역할입니다.' 카탈로그도 canEdit·canCancel·canManageHostRole에 '생성자만'이라 적었다."
+    },
+    {
+      "key": "unstated",
+      "description": "**아직 정하지 않았다.** 명세가 이 자리의 규칙을 말하지 않는다. 지어내지 않고 그 사실을 적어 둔다 — 이 값을 가진 자리의 수가 남은 일이다."
+    },
+    {
+      "key": "signedIn",
+      "description": "로그인만 하면 된다. **어느 학생회의 구성원도 아닌 사람이 여는 자리다** — 학생회를 새로 만들거나(ONB-02), 초대 코드를 확인해 들어오는 길(INV-00 → INV-01)이 그렇다. 구성원인지 묻는 순간 이 길이 막힌다."
+    }
+  ],
+  "areas": [
+    {
+      "key": "finance.read",
+      "name": "재정 현황·사용 내역 열람",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "always",
+          "label": "가능"
+        },
+        "member": {
+          "when": "always",
+          "label": "가능"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "finance.manage",
+      "name": "예산 수정·구매 승인·증빙 처리",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "financeDepartment",
+          "label": "재정부만"
+        },
+        "member": {
+          "when": "financeDepartment",
+          "label": "재정부만"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "meeting.create",
+      "name": "회의 생성",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "always",
+          "label": "가능"
+        },
+        "member": {
+          "when": "never",
+          "label": "—"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "event.create",
+      "name": "행사 만들기",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "always",
+          "label": "가능"
+        },
+        "member": {
+          "when": "never",
+          "label": "—"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "event.manage",
+      "name": "행사 정보 수정·종료 처리",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "eventStaff",
+          "label": "행사 조직만"
+        },
+        "member": {
+          "when": "eventStaff",
+          "label": "행사 조직만"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "event.complete",
+      "name": "행사 완료 처리",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "never",
+          "label": "—"
+        },
+        "member": {
+          "when": "never",
+          "label": "—"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄.",
+      "note": "ORG-04이 따로 못 박았다 — '행사 조직 관리자는 행사 운영 조직과 담당 업무를 관리할 수 있지만, 행사를 최종 완료 처리할 수는 없습니다.'"
+    },
+    {
+      "key": "event.staff",
+      "name": "행사 운영 조직 구성·수정",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "eventStaffManager",
+          "label": "행사 조직 관리자만"
+        },
+        "member": {
+          "when": "eventStaffManager",
+          "label": "행사 조직 관리자만"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "org.structure",
+      "name": "조직 구조 수정",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "never",
+          "label": "—"
+        },
+        "member": {
+          "when": "never",
+          "label": "—"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "org.invite",
+      "name": "구성원 초대",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "ownDepartment",
+          "label": "자기 부서만"
+        },
+        "member": {
+          "when": "never",
+          "label": "—"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "students.read",
+      "name": "학생 명단 열람",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "always",
+          "label": "가능"
+        },
+        "member": {
+          "when": "always",
+          "label": "가능"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "students.upload",
+      "name": "학생 명단 업로드·갱신",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "never",
+          "label": "—"
+        },
+        "member": {
+          "when": "never",
+          "label": "—"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "students.dues",
+      "name": "학생회비 납부 명단 업로드",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "financeDepartment",
+          "label": "재정부만"
+        },
+        "member": {
+          "when": "financeDepartment",
+          "label": "재정부만"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "students.export",
+      "name": "학생 명단 내보내기",
+      "drawnInMatrix": true,
+      "rules": {
+        "chair": {
+          "when": "always",
+          "label": "가능"
+        },
+        "head": {
+          "when": "never",
+          "label": "—"
+        },
+        "member": {
+          "when": "never",
+          "label": "—"
+        }
+      },
+      "source": "ORG-04이 그리는 권한 표의 한 줄."
+    },
+    {
+      "key": "meeting.run",
+      "name": "회의 시작·종료·안건 진행",
+      "drawnInMatrix": false,
+      "rules": {
+        "chair": {
+          "when": "meetingHost"
+        },
+        "head": {
+          "when": "meetingHost"
+        },
+        "member": {
+          "when": "meetingHost"
+        }
+      },
+      "source": "ORG-04의 '회의·행사에서 별도로 부여되는 역할'.",
+      "note": "**조직 역할이 답하지 않는다.** 회장단이라도 그 회의의 진행 권한자가 아니면 못 한다 — 명세가 회장단이 덮어쓴다고 적은 곳이 없다."
+    },
+    {
+      "key": "meeting.own",
+      "name": "회의 수정·취소·진행 권한 부여·해제",
+      "drawnInMatrix": false,
+      "rules": {
+        "chair": {
+          "when": "meetingCreator"
+        },
+        "head": {
+          "when": "meetingCreator"
+        },
+        "member": {
+          "when": "meetingCreator"
+        }
+      },
+      "source": "ORG-04의 '회의 생성자'와 카탈로그의 canEdit·canCancel·canManageHostRole('생성자만')."
+    },
+    {
+      "key": "member",
+      "name": "그 학생회의 구성원이면 된다",
+      "drawnInMatrix": false,
+      "rules": {
+        "chair": {
+          "when": "orgMember"
+        },
+        "head": {
+          "when": "orgMember"
+        },
+        "member": {
+          "when": "orgMember"
+        }
+      },
+      "note": "행렬이 제한하지 않는 자리다. 216동작의 절반이 넘는 읽기가 여기 든다 — 행렬의 두 열람 행(재정·학생 명단)이 세 역할 모두 '가능'인 것과 같은 결이다."
+    },
+    {
+      "key": "signedIn",
+      "name": "로그인만 하면 된다",
+      "drawnInMatrix": false,
+      "rules": {
+        "chair": {
+          "when": "signedIn"
+        },
+        "head": {
+          "when": "signedIn"
+        },
+        "member": {
+          "when": "signedIn"
+        }
+      },
+      "note": "행렬이 다루지 않는다. 행렬은 **이미 어느 학생회의 구성원인 사람**을 셋으로 가르는 표이고, 이 자리는 그 앞에 있다."
+    },
+    {
+      "key": "public",
+      "name": "로그인 없이 열린다",
+      "drawnInMatrix": false,
+      "rules": {
+        "chair": {
+          "when": "anyone"
+        },
+        "head": {
+          "when": "anyone"
+        },
+        "member": {
+          "when": "anyone"
+        }
+      },
+      "note": "`/api/public/*`. 주소가 실어 온 토큰이 무엇을 볼 수 있는지 정한다."
+    },
+    {
+      "key": "unstated",
+      "name": "아직 정하지 않았다",
+      "drawnInMatrix": false,
+      "rules": {
+        "chair": {
+          "when": "unstated"
+        },
+        "head": {
+          "when": "unstated"
+        },
+        "member": {
+          "when": "unstated"
+        }
+      },
+      "note": "**지어내지 않는다.** 회의록을 누가 정리할 수 있는지(canEditMinutes·canComplete), 기록을 누가 쓰는지, 대화방을 누가 만드는지 명세가 말하지 않는다. 이 값을 가진 자리의 수가 곧 남은 일이다."
+    }
+  ]
+}

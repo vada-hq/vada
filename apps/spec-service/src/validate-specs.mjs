@@ -21,6 +21,7 @@ const CATALOG_SCHEMA_FILES = [
   "state-scopes.schema.json",
   "flows.schema.json",
   "mutations.schema.json",
+  "permissions.schema.json",
   "shell.schema.json",
   "element-action.schema.json",
   "element-params.schema.json",
@@ -67,6 +68,7 @@ async function createValidators() {
     stateScopes: ajv.getSchema("state-scopes.schema.json"),
     flows: ajv.getSchema("flows.schema.json"),
     mutations: ajv.getSchema("mutations.schema.json"),
+    permissions: ajv.getSchema("permissions.schema.json"),
     shell: ajv.getSchema("shell.schema.json"),
     figmaFile: ajv.getSchema("figma-file.schema.json"),
     figmaDesign: ajv.getSchema("figma-design.schema.json"),
@@ -217,6 +219,7 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
   const flowsCatalog = await readOptionalOwnCatalog("flows.json", validators.flows);
   const shellCatalog = await readOptionalOwnCatalog("shell.json", validators.shell);
   const mutations = await readOptionalOwnCatalog("mutations.json", validators.mutations);
+  const permissions = await readOptionalOwnCatalog("permissions.json", validators.permissions);
   // Figma 문서 신원. 없어도 되지만(플러그인으로만 저장해 온 wireframe) 있으면 검사한다.
   await readOptionalOwnCatalog("figma-file.json", validators.figmaFile);
 
@@ -366,6 +369,8 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
       shellFile: label("shell.json"),
       mutations,
       mutationsFile: label("mutations.json"),
+      permissions,
+      permissionsFile: label("permissions.json"),
       propertyOrderByType: validators.elementPropertyOrder
     })
   );

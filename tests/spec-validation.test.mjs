@@ -773,6 +773,129 @@ test("itemList가 카탈로그에 없는 조회 인자를 넘기면 오류다", 
   );
 });
 
+// 권한 규칙이 스스로 어긋나면 판정할 수가 없다. 스키마는 모양만 보므로 여기서 이름을 본다.
+function permissionsFixture(overrides = {}) {
+  return {
+    schemaVersion: 1,
+    description: "권한",
+    conditions: [
+      { key: "always", description: "언제나" },
+      { key: "eventStaff", description: "그 행사의 운영 조직", needs: "event" }
+    ],
+    areas: [
+      {
+        key: "event.manage",
+        name: "행사 정보 수정",
+        drawnInMatrix: true,
+        rules: {
+          chair: { when: "always", label: "가능" },
+          head: { when: "eventStaff", label: "행사 조직만" },
+          member: { when: "eventStaff", label: "행사 조직만" }
+        }
+      }
+    ],
+    ...overrides
+  };
+}
+
+test("없는 조건을 가리키는 권한 규칙은 오류다", () => {
+  const permissions = permissionsFixture();
+  permissions.areas[0].rules.chair.when = "없는조건";
+
+  const findings = collectSpecFindings({ screens: [], permissions });
+  assert.equal(
+    findings.filter((f) => f.message.includes("없는 조건 '없는조건'")).length,
+    1
+  );
+});
+
+test("표에 그리는 줄인데 칸에 그려질 말이 없으면 오류다", () => {
+  const permissions = permissionsFixture();
+  delete permissions.areas[0].rules.head.label;
+
+  const findings = collectSpecFindings({ screens: [], permissions });
+  assert.equal(
+    findings.filter((f) => f.message.includes("head 칸에 그려질 말이 없습니다")).length,
+    1
+  );
+});
+
+// **판정할 수 없는 자리는 짐작으로 열리거나 짐작으로 막힌다.**
+// '행사 조직만'은 어느 행사인지 모르면 답할 수 없다.
+test("조건이 대상을 요구하는데 그 인자가 없으면 경고다", () => {
+  const dataSources = {
+    sources: [
+      {
+        key: "event.basics",
+        shape: "object",
+        description: "행사 기본정보",
+        authorize: { area: "event.manage" },
+        params: [],
+        fields: [{ key: "title", description: "이름" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({
+    screens: [],
+    dataSources,
+    permissions: permissionsFixture()
+  });
+  const warned = findings.filter((f) => f.message.includes("조건을 판정할 수 없습니다"));
+  assert.equal(warned.length, 1);
+  assert.equal(warned[0].level, "warning");
+});
+
+test("권한 대상으로 가리킨 인자가 선언돼 있지 않으면 오류다", () => {
+  const dataSources = {
+    sources: [
+      {
+        key: "event.basics",
+        shape: "object",
+        description: "행사 기본정보",
+        authorize: { area: "event.manage", object: "eventId" },
+        params: [],
+        fields: [{ key: "title", description: "이름" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({
+    screens: [],
+    dataSources,
+    permissions: permissionsFixture()
+  });
+  assert.equal(
+    findings.filter((f) => f.message.includes("권한 대상으로 가리킨 인자 'eventId'")).length,
+    1
+  );
+});
+
+test("없는 권한 영역을 가리키면 오류다", () => {
+  const dataSources = {
+    sources: [
+      {
+        key: "event.basics",
+        shape: "object",
+        description: "행사 기본정보",
+        authorize: { area: "없는영역" },
+        params: [],
+        fields: [{ key: "title", description: "이름" }]
+      }
+    ]
+  };
+
+  const findings = collectSpecFindings({
+    screens: [],
+    dataSources,
+    permissions: permissionsFixture()
+  });
+  assert.equal(
+    findings.filter((f) => f.message.includes("없는 권한 영역 '없는영역'")).length,
+    1
+  );
+});
+
 // **열쇠를 빠뜨리면 전부가 온다.**
 //
 // 인자 이름이 틀린 것은 이미 잡고 있었다. 그런데 아예 안 넘긴 것은 조용했다 —

@@ -5,6 +5,9 @@
       "key": "education.schools",
       "type": "remote",
       "description": "학교명 검색 결과",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -28,6 +31,9 @@
       "key": "education.colleges",
       "type": "remote",
       "description": "선택한 학교의 단과대학 목록",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "schoolId",
@@ -55,6 +61,9 @@
       "key": "education.departments",
       "type": "remote",
       "description": "선택한 학교와 단과대학의 학부·학과 목록",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "schoolId",
@@ -88,6 +97,9 @@
       "key": "org.types",
       "type": "static",
       "description": "학생회 유형",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -112,6 +124,9 @@
       "key": "org.setupModes",
       "type": "static",
       "description": "조직 구조 생성 방식",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -130,6 +145,9 @@
       "key": "org.operatingYears",
       "type": "static",
       "description": "학생회 운영 연도(기록·구분 기준)",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -150,6 +168,9 @@
       "key": "education.currentGrades",
       "type": "static",
       "description": "현재 학년 목록",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -182,6 +203,9 @@
       "key": "my.taskTab",
       "type": "static",
       "description": "내 업무 목록을 진행 단계로 거르는 탭. 선택지는 디자인에 고정돼 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -202,6 +226,9 @@
       "key": "task.scope",
       "type": "static",
       "description": "상시 업무 보드를 조직 전체로 볼지 내 담당만 볼지 고르는 범위. 선택지는 디자인에 고정돼 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -218,6 +245,9 @@
       "key": "event.status",
       "type": "static",
       "description": "행사 목록을 진행 단계로 거르는 버튼 묶음. 선택지는 디자인에 고정돼 있다. 완료된 행사는 이 목록에 오지 않으므로 선택지에도 없다 — 머리의 별도 이동으로 본다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -242,6 +272,9 @@
       "key": "task.detailTab",
       "type": "static",
       "description": "업무 상세를 보는 갈피. 선택지는 디자인에 고정돼 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -259,6 +292,9 @@
       "key": "event.documentStatus",
       "type": "static",
       "description": "행사 문서를 상태로 거르는 버튼 묶음. 선택지는 디자인에 고정돼 있다. 곁들이는 개수는 선택지가 아니라 데이터에서 온다(optionCounts).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -287,6 +323,9 @@
       "key": "event.scheduleFilter",
       "type": "static",
       "description": "행사 일정을 좁혀 보는 버튼 묶음. 선택지는 디자인에 고정돼 있다. 한 축이 아니다 — '이번 주'는 때로 자르고 나머지는 무엇이냐로 자른다. 그래서 여러 개를 겹쳐 고르지 못하고 하나만 고른다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -315,6 +354,9 @@
       "key": "event.participantAffiliations",
       "type": "remote",
       "description": "행사 참가자를 소속으로 거르는 선택지. 어느 학부·학과가 오는지는 그 행사에 실제로 신청한 사람이 정하므로 명세가 목록을 들고 있을 수 없다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -342,6 +384,9 @@
       "key": "event.participantApplyStatus",
       "type": "remote",
       "description": "행사 참가자를 신청 상태로 거르는 선택지. 상태 목록은 조직 운영에 따라 늘 수 있어 서버가 준다 — 표의 딱지에 그려지는 말과 같은 목록이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -369,6 +414,9 @@
       "key": "event.participantPayStatus",
       "type": "remote",
       "description": "행사 참가자를 입금 상태로 거르는 선택지. 참가비를 받지 않는 행사도 있어 목록이 비어 올 수 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -396,6 +444,9 @@
       "key": "event.participantAttendStatus",
       "type": "remote",
       "description": "행사 참가자를 참석 상태로 거르는 선택지. 행사 전에는 미확인뿐이고 당일에 늘어난다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -423,6 +474,9 @@
       "key": "event.financeTab",
       "type": "static",
       "description": "행사 재정을 보는 갈피. 선택지는 디자인에 고정돼 있다. 같은 것을 처리 단계로 나눠 보느냐 한 목록으로 보느냐가 갈린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -440,6 +494,9 @@
       "key": "finance.requestPriorities",
       "type": "remote",
       "description": "구매 요청의 우선순위. 디자인이 펼친 목록을 그리지 않아 명세가 지어내지 않는다 — 아는 쪽은 서버다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -460,6 +517,9 @@
       "key": "finance.itemCategories",
       "type": "remote",
       "description": "품목 카테고리. 조직이 정하는 분류라 화면이 목록을 갖지 않는다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -480,6 +540,9 @@
       "key": "finance.budgetItems",
       "type": "remote",
       "description": "어느 예산 항목에서 쓰는지. 그 행사의 예산이라 행사마다 다르다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [
         {
           "key": "eventId",
@@ -507,6 +570,9 @@
       "key": "finance.purchaseTypes",
       "type": "remote",
       "description": "구매 유형. 유형에 따라 처리 방식이 달라지므로 조직의 규칙이다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -527,6 +593,9 @@
       "key": "finance.quoteStatus",
       "type": "static",
       "description": "견적서를 어디까지 받았는지. 셋 다 디자인에 펼쳐져 있어 명세가 그대로 갖는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -547,6 +616,9 @@
       "key": "finance.reviewResults",
       "type": "static",
       "description": "품목 하나에 대한 재정부의 판정. 값이 곧 사람이 읽는 말이다 — 이 셋은 조직의 절차라 늘지 않는다(늘면 디자인이 먼저 바뀐다).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -567,6 +639,9 @@
       "key": "org.baseRoles",
       "type": "static",
       "description": "학생회의 기본 역할 셋. 제품이 정한 고정 구조라 명세가 갖는다 - ORG-04B가 바꾸는 것은 사람의 역할이지 역할의 집합이 아니다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -590,6 +665,9 @@
       "key": "org.duesStatus",
       "type": "static",
       "description": "학생회비 납부 상태로 명단을 거르는 선택지. 디자인이 문구를 그리지 않아 표의 딱지가 말하는 셋을 그대로 쓴다 - '확인 필요'는 명단과 납부 기록이 어긋난 학생이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -614,6 +692,9 @@
       "key": "org.duesTerms",
       "type": "remote",
       "description": "학생회비를 걷는 학기. 조직이 언제부터 있었는지에 달렸으므로 명세가 목록을 들 수 없다 - 학기가 하나 지날 때마다 명세가 틀린다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -631,6 +712,9 @@
       "key": "meeting.types",
       "type": "static",
       "description": "회의의 종류. 와이어프레임이 둘을 부연 설명까지 그려 두었으므로 명세가 갖는다 — org.setupModes와 같은 자리다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -649,6 +733,9 @@
       "key": "event.linkable",
       "type": "remote",
       "description": "회의를 걸 수 있는 행사. 어느 행사가 있는지는 조직이 정하므로 명세가 들 수 없다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -669,6 +756,9 @@
       "key": "org.departments",
       "type": "remote",
       "description": "학생회의 부서. **education.departments와 다른 물건이다** — 저것은 학교의 학부·학과이고 이것은 이 학생회가 스스로 나눈 부서다(ORG-03A의 조직도가 그리는 그것).\n\n**고르는 목록은 제 자리를 갖는다.** 조직도가 읽는 /api/org/departments와 같은 자리를 가리키고 있었는데, 한 자리가 두 모양을 줄 수는 없다 — 저기는 부서장과 부원까지 실은 나무를 주고 여기는 값과 글만 있으면 된다. OpenAPI를 뽑다가 드러났다(generate-openapi.mjs가 같은 자리를 두 번 적기를 거부한다).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -689,6 +779,9 @@
       "key": "meeting.modes",
       "type": "remote",
       "description": "회의를 어떻게 진행하는지. **디자인이 펼친 목록을 그리지 않았다** — 명세가 지어내지 않는다(finance.requestPriorities와 같은 판단).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -709,6 +802,9 @@
       "key": "meeting.agendaDurations",
       "type": "remote",
       "description": "안건 하나에 잡는 예상 소요 시간. 디자인이 목록을 그리지 않았다. 제품이 정한 고정값일 수도 있으나 **그림이 말하지 않으므로 서버에 묻는다.**",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -729,6 +825,9 @@
       "key": "meeting.agendaPicker",
       "type": "remote",
       "description": "회의록을 정리할 때 어느 안건을 열지 고르는 목록(OPS-MEET-06B). 곁에 붙는 '확인 필요' 같은 말도 함께 온다.\n\n**처음 열려 있는 것은 이 목록이 정하지 않는다.** 선택지는 늦게 오므로 화면을 처음 그릴 때 없다 — 어느 안건이 지금 정리할 것인지는 meeting.agendas의 isCurrent가 말하고, 그 값은 화면을 그릴 때 이미 와 있다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "meetingId",
@@ -756,6 +855,9 @@
       "key": "event.staffSetupModes",
       "type": "static",
       "description": "행사 운영 조직을 어떻게 세울지. 와이어프레임이 셋을 부연 설명까지 그려 두었으므로 명세가 갖는다(org.setupModes와 같은 자리).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -779,6 +881,9 @@
       "key": "event.surveyApplyMethods",
       "type": "static",
       "description": "참여 신청을 어떻게 받을지.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -795,6 +900,9 @@
       "key": "event.surveyReplaceModes",
       "type": "static",
       "description": "새 설문 초안을 어떻게 시작할지(EVT-05B).",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -813,6 +921,9 @@
       "key": "event.surveyQuestionTypes",
       "type": "static",
       "description": "설문에 더할 수 있는 문항의 종류.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -837,6 +948,9 @@
       "key": "event.staffLeaderCandidates",
       "type": "remote",
       "description": "행사 책임자가 될 수 있는 사람. **디자인이 펼친 목록을 그리지 않았다** — 명세가 지어내지 않는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -864,6 +978,9 @@
       "key": "event.staffDeptLeaderCandidates",
       "type": "remote",
       "description": "그 부서의 부서장이 될 수 있는 사람. 디자인이 목록을 그리지 않았다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -897,6 +1014,9 @@
       "key": "event.staffMemberCandidates",
       "type": "remote",
       "description": "그 부서에 넣을 수 있는 사람. 디자인이 목록을 그리지 않았다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -930,6 +1050,9 @@
       "key": "event.feeTypes",
       "type": "static",
       "description": "행사 참가비를 어떻게 받을지(EVT-02B). 선택지는 디자인에 고정돼 있다. '학생회비 조건부'는 납부자·미납자 금액을 따로 받는다 — event.basics는 그 둘을 '납부자 무료 / 미납자 5000원'이라는 한 줄로 잇는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -954,6 +1077,9 @@
       "key": "event.capacityTypes",
       "type": "static",
       "description": "행사 정원을 어떻게 둘지(EVT-02B). 선택지는 디자인에 고정돼 있다. '인원제한'일 때만 정원 인원을 받는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -974,6 +1100,9 @@
       "key": "message.roomCategories",
       "type": "remote",
       "description": "메시지 방의 분류(MSG-02). **'일반'과 행사들이 한 줄에 섞여 있어 명세가 목록을 들 수 없다** — 행사는 조직이 만드는 것이라 늘고 준다. event.linkable과 같은 사정이며 다른 점은 행사가 아닌 값 하나가 함께 온다는 것이다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -991,6 +1120,9 @@
       "key": "finance.breakdownScope",
       "type": "static",
       "description": "전체 재정 현황의 표를 무엇 단위로 나눠 볼지(FIN-00). 선택지 둘 다 디자인에 펼쳐져 있으므로 명세가 그대로 갖는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -1007,6 +1139,9 @@
       "key": "finance.ledgerMonths",
       "type": "remote",
       "description": "사용 내역을 볼 달. 조직이 언제부터 있었는지에 달렸으므로 명세가 목록을 들 수 없다 — 달이 하나 지날 때마다 명세가 틀린다(org.duesTerms와 같은 자리다).",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -1027,6 +1162,9 @@
       "key": "finance.ledgerEvents",
       "type": "remote",
       "description": "사용 내역을 행사로 거르는 선택지. 어느 행사가 있는지는 조직이 정하므로 명세가 들 수 없다(event.linkable과 같은 자리다). 행사에 속하지 않는 지출도 있으므로 이 목록이 장부를 다 덮지는 않는다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -1047,6 +1185,9 @@
       "key": "finance.orgBudgetItems",
       "type": "remote",
       "description": "학생회 전체의 예산 항목. **finance.budgetItems와 다른 물건이다** — 저것은 한 행사의 예산이라 eventId를 받고, 이것은 행사에 속하지 않는 상시 지출까지 덮는 조직의 항목 체계다.",
+      "authorize": {
+        "area": "finance.read"
+      },
       "params": [],
       "request": {
         "method": "GET",
@@ -1067,6 +1208,9 @@
       "key": "ops.calendarTypes",
       "type": "static",
       "description": "월간 캘린더를 유형으로 좁혀 보는 버튼 묶음. 선택지는 디자인에 고정돼 있고 범례가 말하는 세 유형과 같다. **event.scheduleFilter와 다른 것이다** — 저기는 한 행사의 일정을 '이번 주'라는 때와 '행사 당일'이라는 종류가 한 줄에 섞인 채로 자르고, 여기는 조직 전체의 일정을 유형으로만 자른다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [],
       "options": [
         {
@@ -1091,6 +1235,9 @@
       "key": "record.archiveReviewers",
       "type": "remote",
       "description": "행사 아카이브를 검토할 수 있는 사람(REC-02A). **디자인이 펼친 목록을 그리지 않았다** — 누가 검토할 수 있는지는 조직의 권한 규칙이라 명세가 목록을 들지 않는다.",
+      "authorize": {
+        "area": "member"
+      },
       "params": [
         {
           "key": "eventId",
@@ -1118,6 +1265,9 @@
       "key": "survey.colleges",
       "type": "remote",
       "description": "참여 신청 폼에서 고르는 단과대학(EXT-02A). **education.colleges를 재사용할 수 없다** — 그쪽은 schoolId를 필수로 받는데 이 화면에는 학교 칸이 없고(그림에 없다) 화면 인자에도 없다. 어느 학교의 목록인지는 그 설문을 연 학생회가 이미 알고 있으므로 토큰이 곧 범위다.",
+      "authorize": {
+        "area": "public"
+      },
       "params": [
         {
           "key": "surveyToken",
@@ -1145,6 +1295,9 @@
       "key": "survey.departments",
       "type": "remote",
       "description": "참여 신청 폼에서 고르는 학부·학과(EXT-02A). survey.colleges와 같은 이유로 education.departments를 쓸 수 없다 — 그쪽은 schoolId와 collegeId를 함께 받는다. 여기서 학교의 자리를 토큰이 대신하고, 고른 단과대학은 그대로 넘긴다.",
+      "authorize": {
+        "area": "public"
+      },
       "params": [
         {
           "key": "surveyToken",

@@ -59,6 +59,20 @@ function objectSchema(fields) {
 // 오랫동안 조회 인자를 전부 `required: false`로 냈다. 그러면 '어느 행사인가'를
 // 빼고 부르는 것이 계약상 허용되고, 그 답은 **거르지 않은 전부**다 — 화면은 그것을
 // 걸러진 것인 줄 알고 그린다. 명세가 인자마다 required를 갖게 되어 여기서 옮긴다.
+// 이 자리를 누가 열 수 있는가. **표준에 자리가 없어 확장으로 낸다** — OpenAPI의
+// security는 '어떻게 인증하는가'를 말하지 벽 안에서 '누가 되는가'를 말하지 않는다.
+//
+// 받아 가는 쪽이 이것을 읽어야 하는 까닭: 자리마다 사람이 스스로 판단하면 판단을
+// 빠뜨린 자리가 조용히 열린다. 규칙은 permissions.json 하나에 있고 여기는 그것을
+// 가리키기만 한다.
+function authorizeOf(item) {
+  const authorize = item.authorize;
+  if (authorize === undefined) return undefined;
+  return authorize.object === undefined
+    ? { area: authorize.area }
+    : { area: authorize.area, object: authorize.object };
+}
+
 function parametersOf(path, declared) {
   const inPath = new Set(pathParams(path));
   const byName = new Map((declared ?? []).map((param) => [param.key, param]));
@@ -210,6 +224,7 @@ export function buildOpenApi() {
     put(path, method.toLowerCase(), {
       operationId: source.key,
       summary: source.description,
+      "x-authorize": authorizeOf(source),
       parameters: parametersOf(path, source.params),
       responses: responses(source.shape === "list" ? { type: "array", items: item } : item)
     });
@@ -247,6 +262,7 @@ export function buildOpenApi() {
       // 무엇의 목록인지를 붙인다.
       operationId: `${source.key}.options`,
       summary: source.description,
+      "x-authorize": authorizeOf(source),
       parameters,
       responses: responses({ type: "array", items: option })
     });
@@ -257,6 +273,7 @@ export function buildOpenApi() {
     const operation = {
       operationId: mutation.key,
       summary: mutation.description,
+      "x-authorize": authorizeOf(mutation),
       parameters: parametersOf(path, mutation.params),
       responses: responses({ type: "object", description: "보낸 뒤의 답" })
     };

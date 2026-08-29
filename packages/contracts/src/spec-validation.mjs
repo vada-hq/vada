@@ -88,6 +88,131 @@ function checkFixedValueType(findings, file, param, argument, where) {
   });
 }
 
+/**
+ * 권한 규칙이 스스로 어긋나지 않는가.
+ *
+ * 스키마는 모양만 본다. **이름이 실제로 있는가**는 여기서 본다 — 없는 조건을 가리키는
+ * 규칙은 판정할 수가 없고, 판정할 수 없는 자리는 조용히 통과하거나 조용히 막힌다.
+ */
+function checkPermissions(findings, permissions, file) {
+  if (!isObject(permissions)) return;
+  const conditions = Array.isArray(permissions.conditions) ? permissions.conditions : [];
+  const known = new Set(conditions.map((condition) => condition?.key));
+  const areas = Array.isArray(permissions.areas) ? permissions.areas : [];
+
+  const seen = new Set();
+  for (const area of areas) {
+    if (seen.has(area?.key)) {
+      findings.push({ level: "error", file, message: `권한 영역 '${area.key}'가 두 번 있습니다.` });
+    }
+    seen.add(area?.key);
+    for (const [role, rule] of Object.entries(isObject(area?.rules) ? area.rules : {})) {
+      if (!known.has(rule?.when)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `권한 영역 '${area?.key}'의 ${role} 규칙이 없는 조건 '${rule?.when}'을 가리킵니다.`
+        });
+      }
+      // 표에 그리는 줄은 칸마다 그려질 말이 있어야 한다. 없으면 화면이 짐작한다.
+      if (area?.drawnInMatrix === true && typeof rule?.label !== "string") {
+        findings.push({
+          level: "error",
+          file,
+          message: `권한 영역 '${area?.key}'는 표에 그리는데 ${role} 칸에 그려질 말이 없습니다.`
+        });
+      }
+      if (area?.drawnInMatrix !== true && typeof rule?.label === "string") {
+        findings.push({
+          level: "error",
+          file,
+          message: `권한 영역 '${area?.key}'는 표에 그리지 않는데 ${role} 칸에 말이 적혀 있습니다.`
+        });
+      }
+    }
+  }
+
+  // 쓰지 않는 조건은 죽은 이름이다. 남아 있으면 다음 사람이 그것을 쓸 수 있는 줄 안다.
+  const used = new Set(
+    areas.flatMap((area) => Object.values(isObject(area?.rules) ? area.rules : {}).map((rule) => rule?.when))
+  );
+  for (const condition of conditions) {
+    if (!used.has(condition?.key)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `조건 '${condition?.key}'를 쓰는 권한 영역이 없습니다.`
+      });
+    }
+  }
+}
+
+/**
+ * 자리마다 매단 권한 영역이 실제로 있는가, 그리고 **판정할 수 있는가.**
+ *
+ * 조건이 대상을 요구하는데 그 대상을 가리키는 인자가 자리에 없으면, 그 조건은
+ * 판정할 수가 없다 — 그러면 서버는 막거나 열거나 둘 중 하나를 **짐작으로** 하게 된다.
+ */
+function checkAuthorize(findings, permissions, groups) {
+  if (!isObject(permissions)) return;
+  const areas = new Map(
+    (Array.isArray(permissions.areas) ? permissions.areas : []).map((area) => [area?.key, area])
+  );
+  const needsOf = new Map(
+    (Array.isArray(permissions.conditions) ? permissions.conditions : [])
+      .map((condition) => [condition?.key, condition?.needs])
+  );
+
+  for (const [items, what, file] of groups) {
+    for (const item of Array.isArray(items) ? items : []) {
+      const authorize = item?.authorize;
+      if (!isObject(authorize)) continue;
+      const area = areas.get(authorize.area);
+      if (area === undefined) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${what} '${item.key}'가 없는 권한 영역 '${authorize.area}'를 가리킵니다.`
+        });
+        continue;
+      }
+      const needs = [
+        ...new Set(
+          Object.values(isObject(area.rules) ? area.rules : {})
+            .map((rule) => needsOf.get(rule?.when))
+            .filter((need) => typeof need === "string" && need !== "viewer")
+        )
+      ];
+      if (needs.length === 0) {
+        if (typeof authorize.object === "string") {
+          findings.push({
+            level: "error",
+            file,
+            message: `${what} '${item.key}'의 권한 영역 '${area.key}'는 대상이 필요 없는데 object를 적었습니다.`
+          });
+        }
+        continue;
+      }
+      if (typeof authorize.object !== "string") {
+        findings.push({
+          level: "warning",
+          file,
+          message: `${what} '${item.key}'의 권한 영역 '${area.key}'는 ${needs.join("·")}을 보고 판정하는데, 그 대상을 가리키는 인자가 이 자리에 없습니다 — 조건을 판정할 수 없습니다.`
+        });
+        continue;
+      }
+      const declared = paramKeys(item);
+      if (!declared.has(authorize.object)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${what} '${item.key}'가 권한 대상으로 가리킨 인자 '${authorize.object}'가 이 자리에 선언돼 있지 않습니다.`
+        });
+      }
+    }
+  }
+}
+
 function elementLabel(element, index) {
   const spec = element?.spec;
   const name = spec?.fieldKey ?? spec?.label ?? element?.source?.nodeId;
@@ -2147,9 +2272,17 @@ export function collectSpecFindings({
   mutationsFile = "mutations.json",
   shell = null,
   shellFile = "shell.json",
+  permissions = null,
+  permissionsFile = "permissions.json",
   propertyOrderByType = null
 } = {}) {
   const findings = [];
+  checkPermissions(findings, permissions, permissionsFile);
+  checkAuthorize(findings, permissions, [
+    [dataSources?.sources, "데이터 출처", "data-sources.json"],
+    [optionSources?.sources, "선택지 출처", "option-sources.json"],
+    [mutations?.mutations, "변이", mutationsFile]
+  ]);
   const screenIds = new Set(
     screens
       .map((screen) => screen?.spec?.screenId)
