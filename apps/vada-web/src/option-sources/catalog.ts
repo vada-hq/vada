@@ -53,11 +53,19 @@ export type SearchContract =
   | { mode: 'remote'; queryParam: string; minLength: number; debounceMs: number }
   | { mode: 'client' }
 
+export interface OptionSourceParam {
+  key: string
+  /** 부르는 쪽이 늘 넘기는가. 카탈로그가 명세를 세어 정한 것이다. */
+  required: boolean
+  valueType: 'string' | 'number' | 'boolean'
+  description: string
+}
+
 interface RemoteSource {
   key: string
   type: 'remote'
   description: string
-  params: string[]
+  params: OptionSourceParam[]
   request: {
     method: 'GET'
     path: string
@@ -71,7 +79,7 @@ interface StaticSource {
   key: string
   type: 'static'
   description: string
-  params: string[]
+  params: OptionSourceParam[]
   options: Option[]
 }
 
@@ -139,6 +147,17 @@ export async function fetchOptions(
   query?: string,
 ): Promise<Option[]> {
   const source = getOptionSource(key)
+
+  // 열쇠 없이 물으면 무엇의 선택지인지 알 수 없다. '선택한 학교의 단과대학'을
+  // 학교 없이 부르면 어느 학교의 것도 아닌 목록이 온다.
+  for (const param of source.params) {
+    if (param.required && params[param.key] === undefined) {
+      throw new Error(
+        `선택지 출처 '${key}'는 조회 인자 '${param.key}'를 반드시 받습니다(${param.description}).`,
+      )
+    }
+  }
+
   if (source.type === 'static') {
     return source.options
   }

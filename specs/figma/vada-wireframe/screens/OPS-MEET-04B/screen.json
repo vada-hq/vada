@@ -191,7 +191,7 @@
             "fieldKey": "memberQuery"
           },
           "excludeHostOwner": {
-            "value": "y"
+            "value": "true"
           }
         },
         "columns": [

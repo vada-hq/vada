@@ -28,6 +28,66 @@ function designDrawsText(node, text) {
   return false;
 }
 
+// 인자의 이름들. 카탈로그의 인자는 이름·필수·값의 종류·설명을 갖는 묶음이고,
+// 여기서 보는 것은 그중 이름뿐이다 — 꺼내는 자리를 흩으면 모양이 또 바뀔 때 갈린다.
+function paramKeys(source) {
+  const params = Array.isArray(source?.params) ? source.params : [];
+  return new Set(params.map((param) => param?.key));
+}
+
+/**
+ * **열쇠를 빠뜨리고 부르지 않았는가.**
+ *
+ * 카탈로그가 인자마다 '부르는 쪽이 늘 넘기는가'를 갖고 있다. 빠뜨리면 서버는
+ * 거르지 않은 전부를 주고, 화면은 그것이 걸러진 것인 줄 알고 그린다 — 남의 것이
+ * 섞여 그려지는데 아무도 말하지 않는다.
+ *
+ * 이 판정을 짐작으로 세우지 않았다. 값이 어디서 오는지가 답한다 — 경로에 박힌 것,
+ * 주소가 실어 온 것, 명세가 박은 값, 눌린 항목은 빌 수가 없고, 화면의 칸에서
+ * 오는 것은 그 칸이 반드시 채우는 칸일 때만 늘 채워진다.
+ */
+function checkRequiredParams(findings, file, source, params, where) {
+  const given = isObject(params) ? params : {};
+  for (const param of Array.isArray(source?.params) ? source.params : []) {
+    checkFixedValueType(findings, file, param, given[param?.key], where);
+    if (param?.required !== true) continue;
+    // 경로에 박힌 것은 주소가 들고 있다. 넘기는 인자로 셀 것이 아니다.
+    if (typeof source?.request?.path === "string" &&
+        source.request.path.includes(`{${param.key}}`)) continue;
+    if (param.key in given) continue;
+    findings.push({
+      level: "error",
+      file,
+      message: `${where}가 반드시 넘겨야 하는 인자 '${param.key}'를 넘기지 않았습니다(${param.description}).`
+    });
+  }
+}
+
+/**
+ * **명세가 박은 값이 선언한 종류와 맞는가.**
+ *
+ * 인자가 값의 종류를 갖게 됐는데 보는 곳이 없으면 그 선언은 장식이다. 실제로 하나가
+ * 걸렸다 — 참거짓 인자에 `"y"`를 넘기고 있었다. 응답 쪽의 `''`/`'y'`는 참거짓으로
+ * 고쳤는데 **요청 쪽에 그대로 남아 있었고**, 받는 쪽은 그 글자를 어떻게 읽을지
+ * 명세 어디서도 알 수 없었다.
+ *
+ * 조회 문자열은 글로 실려 가므로 여기서 보는 것은 **그 글이 선언한 종류로 읽히는가**다.
+ */
+function checkFixedValueType(findings, file, param, argument, where) {
+  const value = isObject(argument) ? argument.value : undefined;
+  if (typeof value !== "string" || typeof param?.valueType !== "string") return;
+  const readable =
+    param.valueType === "string" ||
+    (param.valueType === "boolean" && (value === "true" || value === "false")) ||
+    (param.valueType === "number" && value.trim() !== "" && Number.isFinite(Number(value)));
+  if (readable) return;
+  findings.push({
+    level: "error",
+    file,
+    message: `${where}의 인자 '${param.key}'는 ${param.valueType}인데 명세가 박은 값이 '${value}'입니다.`
+  });
+}
+
 function elementLabel(element, index) {
   const spec = element?.spec;
   const name = spec?.fieldKey ?? spec?.label ?? element?.source?.nodeId;
@@ -370,12 +430,10 @@ function checkOptionsSource(findings, context) {
     return;
   }
 
-  const requiredParams = Array.isArray(catalogSource.params)
-    ? catalogSource.params
-    : [];
+  const declaredParams = [...paramKeys(catalogSource)];
   const mapping = isObject(optionsSource.params) ? optionsSource.params : {};
 
-  for (const param of requiredParams) {
+  for (const param of declaredParams) {
     if (!(param in mapping)) {
       findings.push({
         level: "error",
@@ -385,9 +443,13 @@ function checkOptionsSource(findings, context) {
     }
   }
   checkArgumentValues(findings, context, mapping, {
-    declared: new Set(requiredParams),
+    declared: new Set(declaredParams),
     where: `선택지 출처 '${optionsSource.key}'`
   });
+  checkRequiredParams(
+    findings, file, catalogSource, mapping,
+    `${elementLabel(element, index)}의 선택지 출처 '${optionsSource.key}' 조회`
+  );
 }
 
 // 화면들이 선언한 상태 스코프별로, 그 스코프에 값을 쓰는 fieldKey 집합을 모은다.
@@ -691,7 +753,8 @@ function checkBreadcrumb(findings, file, spec, { dataSources, dataSourceByKey, s
     }
   }
 
-  const declared = new Set(source.params ?? []);
+  const declared = paramKeys(source);
+  checkRequiredParams(findings, file, source, breadcrumb.params, "현재 위치 경로");
   for (const [name, argument] of Object.entries(
     isObject(breadcrumb.params) ? breadcrumb.params : {}
   )) {
@@ -745,7 +808,8 @@ function checkDraftFrom(findings, file, spec, { dataSources, dataSourceByKey, sc
     });
   }
 
-  const declared = new Set(source.params ?? []);
+  const declared = paramKeys(source);
+  checkRequiredParams(findings, file, source, draftFrom.params, "초안 출처");
   for (const [paramName, argument] of Object.entries(draftFrom.params ?? {})) {
     if (!declared.has(paramName)) {
       findings.push({
@@ -1178,9 +1242,15 @@ function checkArgumentMap(findings, context, params, dataSourceKey) {
   const { dataSources, dataSourceByKey } = context;
   const source = isObject(dataSources) ? dataSourceByKey.get(dataSourceKey) : null;
   checkArgumentValues(findings, context, params, {
-    declared: source ? new Set(source.params ?? []) : null,
+    declared: source ? paramKeys(source) : null,
     where: `데이터 출처 '${dataSourceKey}'`
   });
+  if (source) {
+    checkRequiredParams(
+      findings, context.file, source, params,
+      `${elementLabel(context.element, context.index)}의 데이터 출처 '${dataSourceKey}' 조회`
+    );
+  }
 }
 
 // 인자 하나하나가 가리키는 곳이 실제로 있는가. 무엇이 그 인자를 받는지(declared)는
@@ -1275,8 +1345,12 @@ function checkDrawnWhen(findings, context) {
       message: `${where}이 가리킨 조각 '${drawnWhen.field}'가 데이터 출처 '${drawnWhen.dataSourceKey}'에 없습니다.`
     });
   }
+  checkRequiredParams(
+    findings, context.file, source, drawnWhen.params,
+    `그릴지 정하는 조회 '${drawnWhen.dataSourceKey}'`
+  );
   checkArgumentValues(findings, context, drawnWhen.params, {
-    declared: new Set(source.params ?? []),
+    declared: paramKeys(source),
     where: `데이터 출처 '${drawnWhen.dataSourceKey}'`
   });
 }
@@ -1318,8 +1392,12 @@ function checkCandidatesSource(findings, context) {
       message: `${where}의 데이터 출처 '${candidates.dataSourceKey}'는 shape가 '${source.shape}'입니다. 고를 후보이므로 list여야 합니다.`
     });
   }
+  checkRequiredParams(
+    findings, context.file, source, candidates.params,
+    `고를 것을 가져오는 조회 '${candidates.dataSourceKey}'`
+  );
   checkArgumentValues(findings, context, candidates.params, {
-    declared: new Set(source.params ?? []),
+    declared: paramKeys(source),
     where: `데이터 출처 '${candidates.dataSourceKey}'`
   });
 }
@@ -1773,7 +1851,7 @@ function checkListPaging(findings, context) {
   // 쪽 번호는 목록이 스스로 넘기는 인자다. 출처가 그것을 받지 않으면 쪽을 넘겨도
   // 같은 것이 돌아온다.
   const listSource = dataSourceByKey.get(spec.dataSourceKey);
-  if (listSource && !(listSource.params ?? []).includes(paging.pageParam)) {
+  if (listSource && !paramKeys(listSource).has(paging.pageParam)) {
     findings.push({
       level: "error",
       file,
@@ -2302,7 +2380,8 @@ export function collectSpecFindings({
             message: `화면 제목이 가리킨 조각 '${titleFrom.field}'가 데이터 출처 '${titleFrom.dataSourceKey}'에 없습니다.`
           });
         }
-        const declared = new Set(source.params ?? []);
+        const declared = paramKeys(source);
+        checkRequiredParams(findings, file, source, titleFrom.params, "화면 제목");
         for (const [paramName, argument] of Object.entries(titleFrom.params ?? {})) {
           if (!declared.has(paramName)) {
             findings.push({

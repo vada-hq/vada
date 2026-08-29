@@ -554,7 +554,8 @@
           {
             "name": "tab",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "고른 갈피가 어느 업무를 뜻하는가",
             "schema": {
               "type": "string"
             }
@@ -563,6 +564,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -805,7 +807,8 @@
           {
             "name": "scope",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "내 것만 볼지 전부 볼지",
             "schema": {
               "type": "string"
             }
@@ -813,7 +816,8 @@
           {
             "name": "status",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "칸반 열 하나의 단계. 열마다 따로 조회한다",
             "schema": {
               "type": "string"
             }
@@ -955,6 +959,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -1244,6 +1249,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -1251,7 +1257,8 @@
           {
             "name": "status",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "행사 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -1399,7 +1406,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -1484,7 +1492,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -1551,7 +1560,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -1613,7 +1623,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -1621,7 +1632,8 @@
           {
             "name": "scope",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "내 것만 볼지 전부 볼지",
             "schema": {
               "type": "string"
             }
@@ -1629,7 +1641,8 @@
           {
             "name": "status",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "칸반 열 하나의 단계. 열마다 따로 조회한다",
             "schema": {
               "type": "string"
             }
@@ -1722,7 +1735,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -1774,7 +1788,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -1846,7 +1861,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -1931,7 +1947,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -1993,7 +2010,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2075,7 +2093,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2143,7 +2162,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2198,7 +2218,8 @@
           {
             "name": "taskId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 업무인가",
             "schema": {
               "type": "string"
             }
@@ -2317,7 +2338,8 @@
           {
             "name": "taskId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 업무인가",
             "schema": {
               "type": "string"
             }
@@ -2387,7 +2409,8 @@
           {
             "name": "taskId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 업무인가",
             "schema": {
               "type": "string"
             }
@@ -2457,7 +2480,8 @@
           {
             "name": "taskId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 업무인가",
             "schema": {
               "type": "string"
             }
@@ -2529,7 +2553,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2601,7 +2626,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2668,7 +2694,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2676,7 +2703,8 @@
           {
             "name": "status",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "문서 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -2761,7 +2789,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2808,7 +2837,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2893,7 +2923,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -2901,7 +2932,8 @@
           {
             "name": "filter",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "일정 중 무엇만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -2991,7 +3023,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -3000,6 +3033,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -3008,6 +3042,7 @@
             "name": "affiliation",
             "in": "query",
             "required": false,
+            "description": "소속으로 거른다",
             "schema": {
               "type": "string"
             }
@@ -3016,6 +3051,7 @@
             "name": "applyStatus",
             "in": "query",
             "required": false,
+            "description": "신청 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -3024,6 +3060,7 @@
             "name": "payStatus",
             "in": "query",
             "required": false,
+            "description": "납부 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -3032,6 +3069,7 @@
             "name": "attendStatus",
             "in": "query",
             "required": false,
+            "description": "출석 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -3040,8 +3078,9 @@
             "name": "page",
             "in": "query",
             "required": false,
+            "description": "몇 쪽인가. 넘기지 않으면 첫 쪽이다",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -3134,7 +3173,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -3143,6 +3183,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -3151,6 +3192,7 @@
             "name": "affiliation",
             "in": "query",
             "required": false,
+            "description": "소속으로 거른다",
             "schema": {
               "type": "string"
             }
@@ -3159,6 +3201,7 @@
             "name": "applyStatus",
             "in": "query",
             "required": false,
+            "description": "신청 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -3167,6 +3210,7 @@
             "name": "payStatus",
             "in": "query",
             "required": false,
+            "description": "납부 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -3175,6 +3219,7 @@
             "name": "attendStatus",
             "in": "query",
             "required": false,
+            "description": "출석 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -3226,7 +3271,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -3288,7 +3334,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -3335,7 +3382,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -3343,7 +3391,8 @@
           {
             "name": "stage",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "칸반 열 하나의 단계. 열마다 따로 조회한다",
             "schema": {
               "type": "string"
             }
@@ -3428,7 +3477,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -3437,6 +3487,7 @@
             "name": "requestId",
             "in": "query",
             "required": false,
+            "description": "어느 구매 요청의 초안인가. **없으면 새로 쓰는 것**이다",
             "schema": {
               "type": "string"
             }
@@ -3569,7 +3620,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -3661,7 +3713,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -3741,7 +3794,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -3801,7 +3855,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -3873,7 +3928,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -3963,7 +4019,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -4020,7 +4077,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -4110,7 +4168,8 @@
           {
             "name": "itemId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "요청 안의 어느 품목인가",
             "schema": {
               "type": "string"
             }
@@ -4170,7 +4229,8 @@
           {
             "name": "itemId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "요청 안의 어느 품목인가",
             "schema": {
               "type": "string"
             }
@@ -4230,7 +4290,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -4379,7 +4440,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -4464,7 +4526,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -4541,7 +4604,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -4663,7 +4727,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -4750,7 +4815,8 @@
           {
             "name": "requestId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구매 요청인가",
             "schema": {
               "type": "string"
             }
@@ -5026,6 +5092,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -5150,6 +5217,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -5726,6 +5794,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -5734,6 +5803,7 @@
             "name": "grade",
             "in": "query",
             "required": false,
+            "description": "학년으로 거른다",
             "schema": {
               "type": "string"
             }
@@ -5742,6 +5812,7 @@
             "name": "duesStatus",
             "in": "query",
             "required": false,
+            "description": "학생회비 납부 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -5750,8 +5821,9 @@
             "name": "page",
             "in": "query",
             "required": false,
+            "description": "몇 쪽인가. 넘기지 않으면 첫 쪽이다",
             "schema": {
-              "type": "string"
+              "type": "number"
             }
           }
         ],
@@ -5840,6 +5912,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -5848,6 +5921,7 @@
             "name": "grade",
             "in": "query",
             "required": false,
+            "description": "학년으로 거른다",
             "schema": {
               "type": "string"
             }
@@ -5856,6 +5930,7 @@
             "name": "duesStatus",
             "in": "query",
             "required": false,
+            "description": "학생회비 납부 상태로 거른다",
             "schema": {
               "type": "string"
             }
@@ -5908,6 +5983,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6154,6 +6230,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6258,6 +6335,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6266,6 +6344,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -6274,8 +6353,9 @@
             "name": "excludeHostOwner",
             "in": "query",
             "required": false,
+            "description": "지금 사회를 맡은 사람을 빼고 줄 것인가",
             "schema": {
-              "type": "string"
+              "type": "boolean"
             }
           }
         ],
@@ -6388,6 +6468,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6442,6 +6523,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6512,6 +6594,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6594,6 +6677,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6658,6 +6742,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6717,6 +6802,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6776,6 +6862,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6835,6 +6922,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6904,6 +6992,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6948,6 +7037,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6992,6 +7082,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -6999,7 +7090,8 @@
           {
             "name": "memberId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 구성원인가",
             "schema": {
               "type": "string"
             }
@@ -7057,6 +7149,7 @@
             "name": "meetingId",
             "in": "query",
             "required": false,
+            "description": "어느 회의의 초안인가. **없으면 새로 만드는 것**이다",
             "schema": {
               "type": "string"
             }
@@ -7244,6 +7337,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -7308,6 +7402,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -7424,6 +7519,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -7496,6 +7592,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -7578,6 +7675,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -7643,6 +7741,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -7695,6 +7794,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -7750,6 +7850,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -7823,6 +7924,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -7953,6 +8055,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8018,6 +8121,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8025,7 +8129,8 @@
           {
             "name": "setupMode",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 방식으로 만들 것인가. 아직 만들어지지 않은 것의 미리보기이므로 방식이 조회에 든다",
             "schema": {
               "type": "string"
             }
@@ -8148,6 +8253,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8277,6 +8383,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8349,6 +8456,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8405,6 +8513,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8467,6 +8576,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8549,6 +8659,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8610,6 +8721,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8708,6 +8820,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8793,6 +8906,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -8968,6 +9082,7 @@
             "name": "roomId",
             "in": "path",
             "required": true,
+            "description": "어느 대화방인가",
             "schema": {
               "type": "string"
             }
@@ -9158,7 +9273,8 @@
           {
             "name": "scope",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "총예산을 무엇 단위로 나눠 볼 것인가(행사별·부서별). **줄의 뜻이 통째로 바뀐다**",
             "schema": {
               "type": "string"
             }
@@ -9363,6 +9479,7 @@
             "name": "month",
             "in": "query",
             "required": false,
+            "description": "어느 달인가. **달의 이름도 서버가 준다** — 이것이 없으면 낼 글이 없다",
             "schema": {
               "type": "string"
             }
@@ -9430,6 +9547,7 @@
             "name": "month",
             "in": "query",
             "required": false,
+            "description": "어느 달의 내역만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -9438,6 +9556,7 @@
             "name": "eventId",
             "in": "query",
             "required": false,
+            "description": "어느 행사가 쓴 것만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -9446,6 +9565,7 @@
             "name": "departmentId",
             "in": "query",
             "required": false,
+            "description": "어느 부서가 쓴 것만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -9454,6 +9574,7 @@
             "name": "budgetItemId",
             "in": "query",
             "required": false,
+            "description": "어느 예산 항목의 것만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -9462,6 +9583,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -9470,6 +9592,7 @@
             "name": "stage",
             "in": "query",
             "required": false,
+            "description": "어느 결재 단계의 내역만 볼 것인가. 주소가 실어 오는데 화면이 **없어도 열린다**고 말하므로, 없이 오면 전부다",
             "schema": {
               "type": "string"
             }
@@ -9560,6 +9683,7 @@
             "name": "month",
             "in": "query",
             "required": false,
+            "description": "어느 달의 내역만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -9568,6 +9692,7 @@
             "name": "eventId",
             "in": "query",
             "required": false,
+            "description": "어느 행사가 쓴 것만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -9576,6 +9701,7 @@
             "name": "departmentId",
             "in": "query",
             "required": false,
+            "description": "어느 부서가 쓴 것만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -9584,6 +9710,7 @@
             "name": "budgetItemId",
             "in": "query",
             "required": false,
+            "description": "어느 예산 항목의 것만 볼 것인가",
             "schema": {
               "type": "string"
             }
@@ -9592,6 +9719,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -9600,6 +9728,7 @@
             "name": "stage",
             "in": "query",
             "required": false,
+            "description": "어느 결재 단계의 내역만 볼 것인가. 주소가 실어 오는데 화면이 **없어도 열린다**고 말하므로, 없이 오면 전부다",
             "schema": {
               "type": "string"
             }
@@ -9689,7 +9818,8 @@
           {
             "name": "type",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "달력이 무엇을 그리는가",
             "schema": {
               "type": "string"
             }
@@ -9814,7 +9944,8 @@
           {
             "name": "type",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "달력이 무엇을 그리는가",
             "schema": {
               "type": "string"
             }
@@ -9928,6 +10059,7 @@
             "name": "query",
             "in": "query",
             "required": false,
+            "description": "검색어. 거르지 않으려면 넘기지 않는다",
             "schema": {
               "type": "string"
             }
@@ -10042,6 +10174,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10127,6 +10260,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10211,6 +10345,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10318,6 +10453,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10383,6 +10519,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10451,6 +10588,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10531,6 +10669,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10611,6 +10750,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10688,6 +10828,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10750,6 +10891,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10822,6 +10964,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10873,6 +11016,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10938,6 +11082,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -10982,6 +11127,7 @@
             "name": "inviteCode",
             "in": "path",
             "required": true,
+            "description": "초대 링크가 실어 온 코드. 어느 학생회의 초대인지를 이것이 정한다",
             "schema": {
               "type": "string"
             }
@@ -11043,7 +11189,8 @@
           {
             "name": "surveyToken",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다",
             "schema": {
               "type": "string"
             }
@@ -11111,7 +11258,8 @@
           {
             "name": "receiptToken",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "보내고 받은 영수증. **사람마다 다르다** — 같은 QR로 온 다른 사람의 결과를 열 수 없게 하는 것이 이 값이다",
             "schema": {
               "type": "string"
             }
@@ -11195,7 +11343,8 @@
           {
             "name": "surveyToken",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다",
             "schema": {
               "type": "string"
             }
@@ -11261,7 +11410,8 @@
           {
             "name": "checkInToken",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "QR이 실어 온 토큰. 어느 행사의 출석인지를 이것이 정한다",
             "schema": {
               "type": "string"
             }
@@ -11341,7 +11491,8 @@
           {
             "name": "receiptToken",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "보내고 받은 영수증. **사람마다 다르다** — 같은 QR로 온 다른 사람의 결과를 열 수 없게 하는 것이 이 값이다",
             "schema": {
               "type": "string"
             }
@@ -11473,7 +11624,8 @@
           {
             "name": "schoolId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 학교의 단과대학인가",
             "schema": {
               "type": "string"
             }
@@ -11536,7 +11688,8 @@
           {
             "name": "schoolId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 학교인가",
             "schema": {
               "type": "string"
             }
@@ -11544,7 +11697,8 @@
           {
             "name": "collegeId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 단과대학의 학부·학과인가",
             "schema": {
               "type": "string"
             }
@@ -11607,7 +11761,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -11670,7 +11825,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -11733,7 +11889,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -11796,7 +11953,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -11967,7 +12125,8 @@
           {
             "name": "eventId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -12355,6 +12514,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -12418,6 +12578,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -12481,6 +12642,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -12489,6 +12651,7 @@
             "name": "departmentId",
             "in": "path",
             "required": true,
+            "description": "어느 부서인가",
             "schema": {
               "type": "string"
             }
@@ -12552,6 +12715,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -12560,6 +12724,7 @@
             "name": "departmentId",
             "in": "path",
             "required": true,
+            "description": "어느 부서인가",
             "schema": {
               "type": "string"
             }
@@ -12839,6 +13004,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -12901,7 +13067,8 @@
           {
             "name": "surveyToken",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다",
             "schema": {
               "type": "string"
             }
@@ -12965,7 +13132,8 @@
           {
             "name": "surveyToken",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다",
             "schema": {
               "type": "string"
             }
@@ -12973,7 +13141,8 @@
           {
             "name": "collegeId",
             "in": "query",
-            "required": false,
+            "required": true,
+            "description": "어느 단과대학의 학부·학과인가",
             "schema": {
               "type": "string"
             }
@@ -13742,6 +13911,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -13781,6 +13951,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -13820,6 +13991,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -13878,6 +14050,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -13917,6 +14090,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -13925,6 +14099,7 @@
             "name": "memberId",
             "in": "path",
             "required": true,
+            "description": "어느 구성원인가",
             "schema": {
               "type": "string"
             }
@@ -13964,6 +14139,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -13972,6 +14148,7 @@
             "name": "agendaId",
             "in": "path",
             "required": true,
+            "description": "어느 안건인가",
             "schema": {
               "type": "string"
             }
@@ -14011,6 +14188,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -14050,6 +14228,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -14089,6 +14268,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -14128,6 +14308,7 @@
             "name": "meetingId",
             "in": "path",
             "required": true,
+            "description": "어느 회의인가",
             "schema": {
               "type": "string"
             }
@@ -14167,6 +14348,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14302,6 +14484,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14341,6 +14524,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14380,6 +14564,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14419,6 +14604,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14480,6 +14666,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14550,6 +14737,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14589,6 +14777,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14628,6 +14817,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14667,6 +14857,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14722,6 +14913,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14805,6 +14997,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -14888,6 +15081,7 @@
             "name": "eventId",
             "in": "path",
             "required": true,
+            "description": "어느 행사인가",
             "schema": {
               "type": "string"
             }
@@ -15006,6 +15200,7 @@
             "name": "surveyToken",
             "in": "path",
             "required": true,
+            "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다",
             "schema": {
               "type": "string"
             }
@@ -15094,6 +15289,7 @@
             "name": "checkInToken",
             "in": "path",
             "required": true,
+            "description": "QR이 실어 온 토큰. 어느 행사의 출석인지를 이것이 정한다",
             "schema": {
               "type": "string"
             }

@@ -25,11 +25,19 @@ export interface DataSourceField {
   fields?: DataSourceField[]
 }
 
+export interface DataSourceParam {
+  key: string
+  /** 부르는 쪽이 늘 넘기는가. 카탈로그가 명세를 세어 정한 것이다. */
+  required: boolean
+  valueType: 'string' | 'number' | 'boolean'
+  description: string
+}
+
 export interface DataSource {
   key: string
   shape: 'object' | 'list'
   description: string
-  params: string[]
+  params: DataSourceParam[]
   request: { method: 'GET'; path: string }
   messages: DataSourceMessages
   fields: DataSourceField[]
@@ -81,9 +89,22 @@ export function readDataSource(
   // 넘긴 인자는 카탈로그가 선언한 것이어야 한다. 이름이 틀리면 조용히
   // 안 걸러지는 대신 여기서 드러난다.
   for (const name of Object.keys(params)) {
-    if (!source.params.includes(name)) {
+    if (!source.params.some((param) => param.key === name)) {
       throw new Error(
         `데이터 출처 '${key}'에 선언되지 않은 조회 인자 '${name}'을 넘겼습니다.`,
+      )
+    }
+  }
+
+  // **없이 부르면 전부가 온다.** 열쇠를 빠뜨린 조회는 거르지 않은 목록을 받고,
+  // 화면은 그것이 걸러진 것인 줄 안다 — 남의 것이 섞여 그려진다.
+  //
+  // 카탈로그가 어느 인자가 열쇠인지 알고 있으므로 여기서 막는다. 서버가 붙기 전에
+  // 이 자리가 유일하게 그 계약을 지키는 곳이다.
+  for (const param of source.params) {
+    if (param.required && params[param.key] === undefined) {
+      throw new Error(
+        `데이터 출처 '${key}'는 조회 인자 '${param.key}'를 반드시 받습니다(${param.description}).`,
       )
     }
   }

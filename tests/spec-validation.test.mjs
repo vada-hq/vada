@@ -95,7 +95,7 @@ test("collectSpecFindings는 교차 참조 오류를 모두 찾는다", () => {
         key: "real.key",
         type: "static",
         description: "테스트",
-        params: ["schoolId"],
+        params: [{ key: "schoolId", required: false, valueType: "string", description: "schoolId" }],
         options: [{ value: "1", label: "하나" }]
       }
     ]
@@ -741,7 +741,7 @@ function myTasksSource(overrides = {}) {
     key: "my.tasks",
     shape: "list",
     description: "내 업무",
-    params: ["tab", "query"],
+    params: [{ key: "tab", required: false, valueType: "string", description: "tab" }, { key: "query", required: false, valueType: "string", description: "query" }],
     fields: [{ key: "title", description: "업무 이름" }],
     ...overrides
   };
@@ -764,13 +764,68 @@ test("itemList가 카탈로그에 없는 조회 인자를 넘기면 오류다", 
       }
     }
   ];
-  const dataSources = { sources: [myTasksSource({ params: ["query"] })] };
+  const dataSources = { sources: [myTasksSource({ params: [{ key: "query", required: false, valueType: "string", description: "query" }] })] };
 
   const findings = collectSpecFindings({ screens, dataSources });
   assert.equal(
     findings.filter((f) => f.message.includes("조회 인자 'tab'")).length,
     1
   );
+});
+
+// **열쇠를 빠뜨리면 전부가 온다.**
+//
+// 인자 이름이 틀린 것은 이미 잡고 있었다. 그런데 아예 안 넘긴 것은 조용했다 —
+// 서버는 거르지 않은 목록을 주고 화면은 그것이 걸러진 것인 줄 알고 그린다.
+// 남의 것이 섞여 그려지는데 빨간불이 없다.
+test("반드시 넘겨야 하는 조회 인자를 빠뜨리면 오류다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        params: [{ key: "eventId", missingNote: "행사를 정하지 않고 열렸습니다.", description: "어느 행사" }],
+        elements: [
+          element("1:3", {
+            type: "itemList",
+            dataSourceKey: "my.tasks",
+            params: {}
+          })
+        ]
+      }
+    }
+  ];
+  const dataSources = {
+    sources: [
+      myTasksSource({
+        params: [{ key: "eventId", required: true, valueType: "string", description: "어느 행사인가" }]
+      })
+    ]
+  };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.equal(
+    findings.filter((f) => f.message.includes("반드시 넘겨야 하는 인자 'eventId'")).length,
+    1
+  );
+});
+
+// 없어도 되는 인자는 안 넘겨도 조용해야 한다. 그러지 않으면 거르개를 쓸 때마다
+// 빨간불이 뜨고, 뜨는 빨간불은 곧 무시된다.
+test("없어도 되는 조회 인자는 빠뜨려도 조용하다", () => {
+  const screens = [
+    {
+      file: "w/screens/S-01/screen.json",
+      spec: {
+        screenId: "S-01",
+        elements: [element("1:3", { type: "itemList", dataSourceKey: "my.tasks", params: {} })]
+      }
+    }
+  ];
+  const dataSources = { sources: [myTasksSource()] };
+
+  const findings = collectSpecFindings({ screens, dataSources });
+  assert.deepEqual(findings, []);
 });
 
 test("itemList의 조회 인자가 없는 필드를 가리키면 오류다", () => {
@@ -789,7 +844,7 @@ test("itemList의 조회 인자가 없는 필드를 가리키면 오류다", () 
       }
     }
   ];
-  const dataSources = { sources: [myTasksSource({ params: ["tab"] })] };
+  const dataSources = { sources: [myTasksSource({ params: [{ key: "tab", required: false, valueType: "string", description: "tab" }] })] };
 
   const findings = collectSpecFindings({ screens, dataSources });
   assert.equal(
@@ -948,7 +1003,7 @@ test("개수 출처에 넘긴 인자가 그 출처에 없으면 오류다", () =
         key: "doc.counts",
         shape: "object",
         description: "문서 수",
-        params: ["eventId"],
+        params: [{ key: "eventId", required: false, valueType: "string", description: "eventId" }],
         fields: [{ key: "all", description: "전체 수" }]
       }
     ]
@@ -1197,7 +1252,7 @@ test("쪽 번호를 params에도 적으면 오류다", () => {
         key: "p.list",
         shape: "list",
         description: "참가자",
-        params: ["page"],
+        params: [{ key: "page", required: false, valueType: "string", description: "page" }],
         fields: [{ key: "name", description: "이름" }]
       },
       {
@@ -1264,7 +1319,7 @@ test("선택지 출처에 화면 인자를 넘길 수 있다", () => {
         key: "p.affiliations",
         type: "remote",
         description: "소속",
-        params: ["eventId"],
+        params: [{ key: "eventId", required: false, valueType: "string", description: "eventId" }],
         request: { method: "GET", path: "/x", loadOn: "open" },
         messages: { idle: "a", loading: "b", empty: "c", error: "d" }
       }
@@ -1451,7 +1506,7 @@ test("조회 인자의 고정값은 필드 참조로 검사하지 않는다", ()
         key: "task.board",
         shape: "list",
         description: "칸반",
-        params: ["scope", "status"],
+        params: [{ key: "scope", required: false, valueType: "string", description: "scope" }, { key: "status", required: false, valueType: "string", description: "status" }],
         fields: [{ key: "title", description: "제목" }]
       }
     ]
@@ -1482,7 +1537,7 @@ test("조회 인자가 없는 필드를 가리키면 고정값과 섞여 있어�
         key: "task.board",
         shape: "list",
         description: "칸반",
-        params: ["scope", "status"],
+        params: [{ key: "scope", required: false, valueType: "string", description: "scope" }, { key: "status", required: false, valueType: "string", description: "status" }],
         fields: [{ key: "title", description: "제목" }]
       }
     ]
@@ -1528,7 +1583,7 @@ const boardSources = {
       key: "event.taskBoard",
       shape: "list",
       description: "행사 칸반",
-      params: ["eventId"],
+      params: [{ key: "eventId", required: false, valueType: "string", description: "eventId" }],
       fields: [
         { key: "id", description: "업무를 가리키는 값" },
         { key: "title", description: "제목" }
@@ -1652,7 +1707,7 @@ test("화면 제목의 출처와 조각을 검사한다", () => {
         key: "event.summary",
         shape: "object",
         description: "행사 카드",
-        params: ["eventId"],
+        params: [{ key: "eventId", required: false, valueType: "string", description: "eventId" }],
         fields: [{ key: "title", description: "행사 이름" }]
       }
     ]

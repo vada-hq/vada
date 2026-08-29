@@ -4,6 +4,7 @@
     {
       "key": "org.create",
       "description": "학생회와 초기 조직 구조를 생성한다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/orgs"
@@ -17,6 +18,7 @@
     {
       "key": "finance.purchaseRequest.submit",
       "description": "구매 요청을 재정부 검토로 넘긴다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests"
@@ -30,6 +32,7 @@
     {
       "key": "finance.purchaseRequest.saveDraft",
       "description": "구매 요청을 아직 넘기지 않고 적어 둔 채로 보관한다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-request-drafts"
@@ -43,6 +46,7 @@
     {
       "key": "finance.purchaseRequest.resubmitSupplement",
       "description": "보완 요청에 답해 수정한 내용을 재정부에 다시 넘긴다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests/supplement/resubmit"
@@ -56,6 +60,7 @@
     {
       "key": "finance.purchaseRequest.saveSupplement",
       "description": "보완 답변을 아직 넘기지 않고 적어 둔 채로 보관한다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests/supplement/drafts"
@@ -69,6 +74,7 @@
     {
       "key": "finance.purchaseRequest.sendReview",
       "description": "품목마다의 판정과 승인액을 요청자에게 보낸다. 보완이 하나라도 있으면 나가는 것이 보완 요청이고 전부 승인이면 검토가 끝난 것인데, 보내는 일은 하나다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests/review"
@@ -82,6 +88,7 @@
     {
       "key": "finance.purchaseRequest.completeEvidence",
       "description": "결제·증빙 정리를 끝내고 요청을 처리 완료로 옮긴다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests/evidence/complete"
@@ -94,6 +101,7 @@
     {
       "key": "org.saveChart",
       "description": "고친 조직도를 저장한다. 사람의 자리와 부서 구성이 함께 간다.",
+      "params": [],
       "request": {
         "method": "PUT",
         "path": "/api/org/chart"
@@ -107,6 +115,7 @@
     {
       "key": "org.regenerateInviteLink",
       "description": "공용 초대 링크를 다시 만든다. 전에 나눠 준 링크는 그때부터 듣지 않는다.",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/org/invite/link"
@@ -119,6 +128,7 @@
     {
       "key": "org.regenerateInviteCode",
       "description": "짧은 초대 코드를 다시 만든다.",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/org/invite/code"
@@ -131,6 +141,7 @@
     {
       "key": "org.regenerateInvite",
       "description": "링크와 코드를 함께 다시 만든다. 전에 나눠 준 것이 전부 듣지 않게 된다.",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/org/invite"
@@ -143,6 +154,7 @@
     {
       "key": "org.changeRole",
       "description": "고른 구성원의 기본 역할을 바꾼다. 회의·행사별 맥락 역할은 이 화면이 건드리지 않는다.",
+      "params": [],
       "request": {
         "method": "PUT",
         "path": "/api/org/role-assignments"
@@ -155,6 +167,7 @@
     {
       "key": "meeting.create",
       "description": "회의를 만든다. 유형·기본 정보·일정·참가자와 권한·안건을 한 번에 보낸다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings"
@@ -168,6 +181,7 @@
     {
       "key": "meeting.saveDraft",
       "description": "회의를 임시 저장한다. 제출과 **같은 것**을 보내되 보내는 곳이 다르다. 임시 저장한 회의는 다른 참가자에게 표시되지 않는다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/drafts"
@@ -181,6 +195,14 @@
     {
       "key": "meeting.start",
       "description": "회의를 시작한다. 상태가 '진행 중'으로 바뀌고 참가자에게 '회의 참가'가 열린다(D01). 보낼 초안이 없다 — 무엇의 것인지는 화면이 받은 인자가 안다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/start"
@@ -193,6 +215,14 @@
     {
       "key": "meeting.end",
       "description": "회의를 끝낸다. **상태는 '완료'가 아니라 '정리 중'이 된다**(D02). 회의록과 결정을 확인한 뒤에 따로 정리 완료한다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/end"
@@ -205,6 +235,14 @@
     {
       "key": "meeting.cancel",
       "description": "회의를 취소한다(D04). 회의는 지워지지 않고 취소된 기록으로 남는다. 취소 사유가 필수다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/cancel"
@@ -218,6 +256,14 @@
     {
       "key": "meeting.grantHostRole",
       "description": "한 사람에게 이 회의의 진행 권한을 준다(D03). 옮기는 것이 아니라 더하는 것이다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/hosts"
@@ -230,6 +276,20 @@
     {
       "key": "meeting.revokeHostRole",
       "description": "한 사람의 진행 권한을 뺀다. **확인 모달이 그려지지 않았다** — 부여(D03)에만 있다. 뺏는 쪽이 더 위험한데 그림에 없다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        },
+        {
+          "key": "memberId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 구성원인가"
+        }
+      ],
       "request": {
         "method": "DELETE",
         "path": "/api/ops/meetings/{meetingId}/hosts/{memberId}"
@@ -242,6 +302,20 @@
     {
       "key": "meeting.completeAgenda",
       "description": "이 안건의 논의를 마친다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        },
+        {
+          "key": "agendaId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 안건인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/agendas/{agendaId}/complete"
@@ -254,6 +328,14 @@
     {
       "key": "meeting.startNextAgenda",
       "description": "다음 안건을 진행 중으로 넘긴다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/agendas/next"
@@ -266,6 +348,14 @@
     {
       "key": "meeting.saveMinutes",
       "description": "안건 하나의 정리 내용을 보낸다(06B의 결정사항과 두 체크)",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "PUT",
         "path": "/api/ops/meetings/{meetingId}/minutes"
@@ -279,6 +369,14 @@
     {
       "key": "meeting.generateSummary",
       "description": "안건별 논의·결정 기록에서 전체 요약 초안을 만든다. **기록에 없는 결정·담당자·기한을 새로 만들지 않는 것이 이 동작의 계약이다**(06B에 그 문장이 적혀 있다)",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/minutes/summary"
@@ -291,6 +389,14 @@
     {
       "key": "meeting.completeMinutes",
       "description": "회의록 정리를 마친다. 참석자에게 최종 회의록이, 불참자에게 요약 확인 요청이 간다. **확인 모달이 그려지지 않았다** — 되돌릴 수 없고 알림이 나가는 동작인데 D01~D04에 짝이 없다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/minutes/complete"
@@ -303,6 +409,14 @@
     {
       "key": "meeting.acknowledgeSummary",
       "description": "이 사람이 회의 요약을 확인했다고 기록한다(OPS-MEET-08). **회의의 상태가 아니라 그 사람의 확인 상태**를 바꾼다",
+      "params": [
+        {
+          "key": "meetingId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 회의인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/meetings/{meetingId}/acknowledge"
@@ -315,6 +429,7 @@
     {
       "key": "event.create",
       "description": "행사를 만든다. 행사명 하나만 받고 나머지는 행사 공간에서 채운다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/ops/events"
@@ -328,6 +443,14 @@
     {
       "key": "event.saveBasics",
       "description": "행사 기본정보를 고친다. 저장하면 일정·참여 설문에 자동 반영된다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "PUT",
         "path": "/api/ops/events/{eventId}/basics"
@@ -341,6 +464,14 @@
     {
       "key": "event.start",
       "description": "행사를 시작한다. 상태가 '진행 중'이 된다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/events/{eventId}/start"
@@ -353,6 +484,14 @@
     {
       "key": "event.end",
       "description": "행사를 끝낸다. **상태는 '완료'가 아니라 '후속 정리 중'이 된다** — 남은 업무와 기록을 확인한 뒤에 완료 처리한다(회의의 meeting.end와 같은 규칙)",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/events/{eventId}/end"
@@ -365,6 +504,14 @@
     {
       "key": "event.complete",
       "description": "행사를 완료 처리한다. 회장단만 할 수 있다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/events/{eventId}/complete"
@@ -377,6 +524,14 @@
     {
       "key": "event.staff.setup",
       "description": "행사 운영 조직을 처음 세운다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/events/{eventId}/staff"
@@ -390,6 +545,14 @@
     {
       "key": "event.staff.save",
       "description": "행사 운영 조직을 고친다. **기본 학생회 조직에는 영향을 주지 않는다**",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "PUT",
         "path": "/api/ops/events/{eventId}/staff"
@@ -403,6 +566,14 @@
     {
       "key": "event.attendanceQr.regenerate",
       "description": "참석 확인 QR을 다시 만든다. 앞의 QR은 더 이상 쓸 수 없다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/events/{eventId}/attendance-qr/regenerate"
@@ -415,6 +586,14 @@
     {
       "key": "event.attendanceQr.deactivate",
       "description": "참석 확인 QR을 끈다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/events/{eventId}/attendance-qr/deactivate"
@@ -427,6 +606,14 @@
     {
       "key": "event.survey.saveSettings",
       "description": "참여 설문의 모집 설정을 저장한다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "PUT",
         "path": "/api/ops/events/{eventId}/survey/settings"
@@ -440,6 +627,14 @@
     {
       "key": "event.survey.activate",
       "description": "참여 설문 링크를 켠다. 조건을 다 채워야 켤 수 있다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/events/{eventId}/survey/activate"
@@ -452,6 +647,14 @@
     {
       "key": "event.survey.replace",
       "description": "기존 설문을 끝내고 새 설문 초안을 만든다. **응답 데이터는 보관된다**",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/events/{eventId}/survey/replace"
@@ -465,6 +668,7 @@
     {
       "key": "message.room.create",
       "description": "고른 대상으로 메시지 방을 만든다",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/messages/rooms"
@@ -485,6 +689,14 @@
     {
       "key": "record.archive.saveDraft",
       "description": "아카이브를 아직 넘기지 않고 적어 둔 채로 보관한다. 검토 요청과 **같은 것**을 보내되 보내는 곳이 다르다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/records/events/{eventId}/archive/drafts"
@@ -498,6 +710,14 @@
     {
       "key": "record.archive.requestReview",
       "description": "쓴 아카이브를 고른 검토자에게 넘긴다. **발행이 아니다** — 발행 단추는 와이어프레임에 그려지지 않았다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/records/events/{eventId}/archive/review-requests"
@@ -511,6 +731,14 @@
     {
       "key": "record.archive.generateHandoverDraft",
       "description": "이 행사의 업무·회의·문서·정산 기록에서 인수인계 초안을 만든다. **기록에 없는 자산·연락처·담당자를 새로 만들지 않는 것이 이 동작의 계약이다**(REC-02A에 그 문장이 적혀 있고, 그 글은 record.archiveDraft의 aiDisclaimer가 갖는다). meeting.generateSummary와 같은 자리다",
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/records/events/{eventId}/archive/handover-draft"
@@ -523,6 +751,7 @@
     {
       "key": "organization.verifyInviteCode",
       "description": "초대 코드가 어느 학생회의 것인지 서버에 묻는다. **화면은 코드가 맞는지 알 수 없다** — 있는 코드인지, 만료됐는지, 이미 다른 학생회에 속해 있는지는 전부 서버의 물음이다.",
+      "params": [],
       "request": {
         "method": "POST",
         "path": "/api/organizations/invite-code/verify"
@@ -536,6 +765,14 @@
     {
       "key": "survey.apply",
       "description": "참여 신청을 보낸다(EXT-02A). 로그인한 사람이 없으므로 누가 냈는지는 폼에 적은 이름·학번이 말하고, 어느 설문에 내는지는 링크의 토큰이 말한다.",
+      "params": [
+        {
+          "key": "surveyToken",
+          "required": true,
+          "valueType": "string",
+          "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/public/surveys/{surveyToken}/applications"
@@ -556,6 +793,14 @@
     {
       "key": "attendance.checkIn",
       "description": "QR로 온 참석자가 이름과 학번으로 참석을 확인한다. 로그인이 없으므로 누가 냈는지는 보낸 값이 말하고 어느 QR인지는 링크의 토큰이 말한다",
+      "params": [
+        {
+          "key": "checkInToken",
+          "required": true,
+          "valueType": "string",
+          "description": "QR이 실어 온 토큰. 어느 행사의 출석인지를 이것이 정한다"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/public/attendance/{checkInToken}/check-in"

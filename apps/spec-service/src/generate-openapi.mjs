@@ -54,22 +54,42 @@ function objectSchema(fields) {
   return schema;
 }
 
+// 인자를 OpenAPI의 parameter로. **없어도 되는지는 카탈로그가 안다.**
+//
+// 오랫동안 조회 인자를 전부 `required: false`로 냈다. 그러면 '어느 행사인가'를
+// 빼고 부르는 것이 계약상 허용되고, 그 답은 **거르지 않은 전부**다 — 화면은 그것을
+// 걸러진 것인 줄 알고 그린다. 명세가 인자마다 required를 갖게 되어 여기서 옮긴다.
 function parametersOf(path, declared) {
   const inPath = new Set(pathParams(path));
+  const byName = new Map((declared ?? []).map((param) => [param.key, param]));
   const out = [];
   for (const name of inPath) {
+    const param = byName.get(name);
+    // **지어내지 않는다.** 선언되지 않은 자리를 만나면 설명 없는 문자열로 채우는
+    // 대신 멈춘다 — 변이 27개의 경로 인자 29자리가 그렇게 조용히 채워지고 있었다.
+    if (param === undefined) {
+      throw new Error(
+        `경로 '${path}'에 '{${name}}' 자리가 있는데 명세가 그 인자를 선언하지 않았습니다.`
+      );
+    }
+    // 경로에 박힌 것은 뺄 수가 없다. 카탈로그가 뭐라 적었든 required다.
     out.push({
       name,
       in: "path",
       required: true,
-      schema: { type: "string" }
+      description: param.description,
+      schema: { type: param.valueType }
     });
   }
-  for (const name of declared ?? []) {
-    if (inPath.has(name)) continue;
-    // 조회 인자는 없어도 된다 — 거르지 않으면 전부를 준다는 것이 이 저장소의
-    // 규칙이고, 개발용 응답이 그렇게 답한다.
-    out.push({ name, in: "query", required: false, schema: { type: "string" } });
+  for (const param of declared ?? []) {
+    if (inPath.has(param.key)) continue;
+    out.push({
+      name: param.key,
+      in: "query",
+      required: param.required,
+      description: param.description,
+      schema: { type: param.valueType }
+    });
   }
   return out;
 }

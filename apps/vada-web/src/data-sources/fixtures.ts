@@ -4097,9 +4097,9 @@ export const FILTERED_FIXTURES: Record<
   'meeting.agendas': ({ meetingId = '' }) => MEETING_AGENDAS[meetingId] ?? [],
   // 참가자는 03·05·07의 목록과 04B의 권한 관리가 같은 사람들이다. 검색은 04B만
   // 쓰지만 출처가 하나이므로 여기서 함께 거른다.
-  'meeting.participants': ({ meetingId = '', query = '', excludeHostOwner = '' }) =>
+  'meeting.participants': ({ meetingId = '', query = '', excludeHostOwner = 'false' }) =>
     (MEETING_PARTICIPANTS[meetingId] ?? [])
-      .filter((row) => excludeHostOwner === '' || row.memberId !== 'M-01')
+      .filter((row) => excludeHostOwner !== 'true' || row.memberId !== 'M-01')
       .filter((row) => matchesQuery(row, query)),
   'meeting.hostOwner': ({ meetingId = '' }) => {
     const row = MEETING_HOST_OWNER[meetingId]
