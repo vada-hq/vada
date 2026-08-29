@@ -1325,20 +1325,32 @@ function checkCandidatesSource(findings, context) {
 }
 
 function checkRowToneField(findings, context) {
+  checkRowField(findings, context, "rowToneField", "줄 색 이름 조각");
+  // 줄 앞의 표시를 정하는 조각. 없는 것을 가리키면 그림이 안 나오는데, 그림이
+  // 없는 것과 조각이 없는 것은 화면에서 똑같이 보인다.
+  checkRowField(findings, context, "iconField", "줄 앞 표시를 정하는 조각");
+}
+
+function checkRowField(findings, context, prop, what) {
   const { file, element, index, dataSourceByKey } = context;
   const spec = element.spec;
-  if (typeof spec?.rowToneField !== "string" || typeof spec.dataSourceKey !== "string") {
+  if (typeof spec?.[prop] !== "string" || typeof spec.dataSourceKey !== "string") {
     return;
   }
   const source = dataSourceByKey.get(spec.dataSourceKey);
   if (!source) {
     return;
   }
-  if (!(source.fields ?? []).some((field) => field.key === spec.rowToneField)) {
+  // 되풀이되는 묶음은 항목의 조각이 안쪽에 있다. 바깥에서 찾으면 늘 없다고 한다.
+  const fields =
+    typeof spec.itemsField === "string"
+      ? ((source.fields ?? []).find((field) => field.key === spec.itemsField)?.fields ?? [])
+      : (source.fields ?? []);
+  if (!fields.some((field) => field.key === spec[prop])) {
     findings.push({
       level: "error",
       file,
-      message: `${elementLabel(element, index)}의 줄 색 이름 조각 '${spec.rowToneField}'가 '${spec.dataSourceKey}'에 없습니다.`
+      message: `${elementLabel(element, index)}의 ${what} '${spec[prop]}'가 '${spec.dataSourceKey}'에 없습니다.`
     });
   }
 }

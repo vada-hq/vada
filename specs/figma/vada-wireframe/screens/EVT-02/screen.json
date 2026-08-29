@@ -308,6 +308,7 @@
             "screenParam": "eventId"
           }
         },
+        "iconField": "tone",
         "itemAction": {
           "type": "navigate",
           "targetField": "targetKind",

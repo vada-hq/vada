@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, drawsTitle, exampleParamsOf } from './screens'
 import type { FieldSpec, ListSpec, ScreenSpec } from './types'
-import { readObjectSource } from '../data-sources/catalog'
+import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { drawsElement } from './drawn-when'
 import { resolveParams } from './params'
 
@@ -330,6 +330,47 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
         found.some((node) => node.getAttribute('aria-current') === 'page'),
         `${screenId}의 '${label}'는 지금 보고 있는 자리인데 그렇게 표시되지 않습니다`,
       ).toBe(true)
+    }
+  })
+
+  // **줄 앞의 표시가 데이터를 따라가는가.**
+  //
+  // 명세가 '이 조각이 표시를 정한다'고 말했는데 화면이 다른 조각을 보거나 아예
+  // 고정된 그림을 그리면, 급한 항목과 끝난 항목이 같은 표시로 그려진다 — 글은
+  // 맞으므로 design 대조도 조용하다.
+  //
+  // 여기서는 **줄마다 다른 그림이 나오는지**를 본다. 그 조각의 값이 줄마다 다른데
+  // 그림이 하나뿐이면 화면이 그 조각을 안 보고 있는 것이다.
+  it('줄 앞의 표시는 명세가 가리킨 조각을 따라간다', () => {
+    const lists = spec.elements.filter((element) => {
+      const list = element.spec as { type?: string; iconField?: string }
+      return list.type === 'itemList' && typeof list.iconField === 'string'
+    })
+    if (lists.length === 0) return
+
+    renderScreen(screenId)
+    for (const element of lists) {
+      const list = element.spec as { iconField: string; dataSourceKey?: string }
+      const rows = readListSource(list.dataSourceKey, resolveParams(
+        (element.spec as { params?: never }).params,
+        { screenParams: exampleParamsOf(screenId) },
+      ))
+      const values = new Set(rows.map((row) => String(row[list.iconField] ?? '')))
+      if (values.size < 2) continue
+
+      // **그 목록 안에서만 센다.** 화면 전체를 세면 다른 자리의 그림에 묻혀
+      // 언제나 통과한다 — 처음 쓴 검사가 그래서 아무것도 잡지 못했다.
+      const holder = document.querySelector(`[data-node-id="${element.source?.nodeId ?? ''}"]`)
+      expect(holder, `${screenId}: 그 목록의 끈이 없습니다`).not.toBeNull()
+      const drawn = new Set(
+        [...(holder?.querySelectorAll('[data-asset-node-id]') ?? [])].map((node) =>
+          node.getAttribute('data-asset-node-id'),
+        ),
+      )
+      expect(
+        drawn.size,
+        `${screenId}: '${list.iconField}'가 ${values.size}가지인데 그 목록에 그려진 그림은 ${drawn.size}가지입니다`,
+      ).toBeGreaterThan(1)
     }
   })
 

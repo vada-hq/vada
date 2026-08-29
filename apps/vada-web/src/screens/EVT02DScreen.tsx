@@ -290,7 +290,9 @@ export function EVT02DScreen({ screenParams, onNavigate }: EVT02DScreenProps) {
                     <FigmaAsset
                       screenId={SCREEN}
                       nodeId={
-                        ASSET.remainingByTone[String(row.tone)] ?? ASSET.remainingByTone.gray
+                        // 어느 조각이 정하는지는 명세가 말한다(itemList.iconField).
+                        ASSET.remainingByTone[String(row[remainingSpec.iconField ?? ""])] ??
+                        ASSET.remainingByTone.gray
                       }
                       className="mt-0.5 size-3"
                     />

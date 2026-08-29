@@ -36,6 +36,10 @@ const ASSET = {
   workspaceStatus: { startAt: '20:4793' } as Record<string, string>,
   // 확인해야 할 항목의 아이콘은 그 항목의 성격이 정한다. 순서에 기대지 않는다 —
   // 개수도 순서도 데이터가 정하기 때문이다.
+  //
+  // **어느 조각이 정하는지는 명세가 말한다**(itemList.iconField). 한동안 화면이
+  // 'tone이 그림을 정한다'는 사실까지 들고 있었고, 명세만 읽는 사람은 줄 앞에
+  // 표시가 있다는 것조차 알 수 없었다. 값과 그림의 짝은 design의 것이라 여기 남는다.
   checklistByTone: {
     yellow: '20:4944',
     orange: '20:4957',
@@ -264,7 +268,10 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
                 <li key={String(row.title)} className="flex items-start gap-3 rounded border border-gray-50 py-2.5">
                   <FigmaAsset
                     screenId={SCREEN}
-                    nodeId={ASSET.checklistByTone[String(row.tone)] ?? ASSET.checklistByTone.red}
+                    nodeId={
+                      ASSET.checklistByTone[String(row[checklistSpec.iconField ?? ''])] ??
+                      ASSET.checklistByTone.red
+                    }
                     className="mt-0.5 size-3"
                   />
                   <span className="min-w-0 flex-1">

@@ -273,6 +273,7 @@
             ]
           }
         ],
+        "iconField": "tone",
         "itemAction": {
           "type": "navigate",
           "label": "업무 보기",
