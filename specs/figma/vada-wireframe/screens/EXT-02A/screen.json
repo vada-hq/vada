@@ -267,8 +267,8 @@
           "onSuccess": {
             "navigate": "EXT-02B",
             "params": {
-              "surveyToken": {
-                "screenParam": "surveyToken"
+              "receiptToken": {
+                "resultField": "receiptToken"
               }
             },
             "scopeEvent": "complete"

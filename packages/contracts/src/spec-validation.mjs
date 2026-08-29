@@ -1419,6 +1419,40 @@ function checkOverlayNavigation(findings, file, spec) {
   }
 }
 
+/**
+ * 보낸 것의 답에서 집는 조각(resultField)이 실제로 오는가.
+ *
+ * **이 검사가 없던 동안 resultField는 아무 데도 가리키지 않는 이름이었다** — 오타를
+ * 내도 조용했고, 그 자리는 열리지 않는 화면으로 데려간다.
+ */
+function checkResultFields(findings, context) {
+  const { file, element, index, mutations } = context;
+  const action = element?.spec?.action;
+  if (action?.type !== "submit" || !isObject(action.onSuccess?.params)) {
+    return;
+  }
+  const mutation = (mutations?.mutations ?? []).find(
+    (entry) => entry.key === action.mutationKey
+  );
+  if (!mutation) {
+    return;
+  }
+  const known = new Set((mutation.result ?? []).map((field) => field.key));
+  for (const [name, argument] of Object.entries(action.onSuccess.params)) {
+    const wanted = isObject(argument) ? argument.resultField : undefined;
+    if (typeof wanted !== "string") {
+      continue;
+    }
+    if (!known.has(wanted)) {
+      findings.push({
+        level: "error",
+        file,
+        message: `${elementLabel(element, index)}가 '${name}'에 넣으려는 '${wanted}'를 변이 '${action.mutationKey}'가 돌려주지 않습니다. mutations.json의 result에 적으세요.`
+      });
+    }
+  }
+}
+
 function checkOnSuccessParams(findings, context) {
   const { file, element, index, screens } = context;
   const action = element.spec?.action;
@@ -2431,6 +2465,7 @@ export function collectSpecFindings({
       }
       if (spec_.type === "button") {
         checkSubmitAction(findings, context);
+        checkResultFields(findings, context);
         // 집어 가는 것과 받아 가는 것은 **button의 동작**이다. 오래 itemList
         // 가지에 걸려 있어서 checkCopyAction은 실제 명세에서 한 번도 돈 적이
         // 없었다 - itemList에는 action이 없다(itemAction이다). 계약 검사도

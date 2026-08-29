@@ -83,10 +83,12 @@ test('EXT-02A: 동의를 안 하면 보내지 않는다', async ({ page }) => {
   await expect(page.getByRole('checkbox', { name: '동의합니다' })).not.toBeChecked()
   await expect(page).toHaveURL(new RegExp(`#/EXT-02A\\?surveyToken=${TOKEN}`))
 
-  // 켜면 보내지고 신청 완료로 간다. 토큰은 그대로 따라간다.
+  // 켜면 보내진다. **따라가는 것은 설문의 토큰이 아니라 영수증이다** — 같은 링크로
+  // 낸 여러 사람이 서로의 결과를 보지 않으려면 사람마다 다른 값이어야 한다.
   await page.getByRole('checkbox', { name: '동의합니다' }).check()
   await page.getByRole('button', { name: '참여 신청하기' }).click()
-  await expect(page).toHaveURL(new RegExp(`#/EXT-02B\\?surveyToken=${TOKEN}`))
+  await expect(page).toHaveURL(/#\/EXT-02B\?receiptToken=RCPT-/)
+  await expect(page).not.toHaveURL(/surveyToken=/)
 })
 
 // 학부·학과의 선택지는 고른 단과대학이 좁힌다. 학교 칸이 없으므로 학교의 자리를

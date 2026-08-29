@@ -188,12 +188,16 @@ $4 비싸다 — **그 차이는 국외 이전 절차 하나보다 훨씬 싸다
 
 ```
 완성된 글 — 서버가 만든다   195 (21.9%)   viewerNote · lastModifiedNote · actionLabel
-색 이름 — 표현               69 ( 7.8%)   statusTone · departmentTone
+색 이름 — 표현               85 ( 9.6%)   statusTone · departmentTone · tone
 센 값 — 서버가 센다          40 ( 4.5%)   progressPercent · delayedTaskCount
 판정 — 서버가 한다           17 ( 1.9%)   canStart · hasDocuments
 열쇠                         62 ( 7.0%)
 그 밖 — 저장된 값일 수 있다 507 (57.0%)
 ```
+
+**이 수는 이름으로 가른 것이지 뜻을 잰 것이 아니다.** 처음 적을 때 색 이름을 69로
+셌는데 `/Tone$/`로만 물어서 **이름이 그냥 `tone`인 16개를 놓쳤다**(2026-08-30 교차검토).
+완성된 글 195도 `survey.linkState.note` 같은 것이 빠져 있으므로 21.9%는 아래끝이다.
 
 `memberCountLabel`('부원 2명')은 저장하는 값이 아니라 세어서 말로 만든 것이고
 `roleTone`('violet')은 표현이다. **그래서 읽는 자리 145개와 테이블 수는 아무 상관이

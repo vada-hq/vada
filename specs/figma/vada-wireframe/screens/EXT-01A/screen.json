@@ -124,8 +124,8 @@
           "onSuccess": {
             "navigate": "EXT-01B",
             "params": {
-              "checkInToken": {
-                "screenParam": "checkInToken"
+              "receiptToken": {
+                "resultField": "receiptToken"
               }
             },
             "scopeEvent": "complete"

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { createApp, type Deps } from './app.ts'
+import { maskSecrets } from './audit.ts'
 import type { AuditEntry } from './audit.ts'
 
 // 서버가 명세대로 답하는가, 그리고 **명세 밖으로 새지 않는가.**
@@ -107,6 +108,62 @@ describe('법이 요구하는 기록', () => {
 
     expect(written[0]?.action).toBe('GET /api/shell/organization → 401')
     expect(written[0]?.userId).toBeNull()
+  })
+
+  // **누구의 정보를 다뤘는가.** 기준이 요구하는 것은 '누가 접속했나'만이 아니다 —
+  // 이 자리가 비면 새어 나간 뒤에 누구의 것이 새었는지 알 수 없다.
+  it('처리한 정보주체를 남긴다', async () => {
+    const { app, written } = harness()
+    await app.request('/api/shell/viewer')
+
+    expect(written[0]).toMatchObject({ subjectType: 'user', subjectId: 'U-01' })
+  })
+
+  // 처음 쓴 미들웨어는 `await next()` **뒤에** 썼다. 터진 요청은 흔적 없이
+  // 사라졌고, 그 사실은 아무도 몰랐다.
+  //
+  // 여기서 보는 것은 **기록이 남는가**이지 오류가 어디서 잡히는가가 아니다 —
+  // Hono가 안에서 잡아 500으로 답하든 위로 던지든, 남지 않으면 없는 것과 같다.
+  it('터져도 기록이 남는다', async () => {
+    const { app, written } = harness({
+      read: {
+        async organization() {
+          throw new Error('DB가 죽었다')
+        },
+        async viewer() {
+          return null
+        },
+      },
+    })
+
+    const res = await app.request('/api/shell/organization')
+
+    expect(res.status).toBe(500)
+    expect(written, '터진 요청이 흔적 없이 사라지면 안 된다').toHaveLength(1)
+    expect(written[0]?.action).toContain('/api/shell/organization')
+  })
+})
+
+// **주소에 실린 비밀은 오래 남기지 않는다.**
+//
+// 공개 자리는 경로에 토큰을 싣고 그 값이 곧 열쇠다. 1년을 남기면 감사 기록이
+// 새는 순간 그 토큰으로 남의 결과를 열 수 있다 — 무엇을 했는지는 남기고 무엇으로
+// 했는지는 지운다.
+describe('주소의 비밀 가리기', () => {
+  it('공개 자리의 토큰을 지운다', () => {
+    expect(maskSecrets('/api/public/attendance/A7K2M9/check-in')).toBe(
+      '/api/public/attendance/*/check-in',
+    )
+    expect(maskSecrets('/api/public/surveys/SVY-4f2a91c7/applications')).toBe(
+      '/api/public/surveys/*/applications',
+    )
+  })
+
+  it('안쪽 자리는 건드리지 않는다', () => {
+    // 로그인한 사람의 자리는 경로에 비밀이 실리지 않는다 — 무엇을 만졌는지가
+    // 남아야 하므로 그대로 둔다.
+    expect(maskSecrets('/api/ops/meetings/MTG-09/agendas')).toBe('/api/ops/meetings/MTG-09/agendas')
+    expect(maskSecrets('/api/shell/viewer')).toBe('/api/shell/viewer')
   })
 })
 

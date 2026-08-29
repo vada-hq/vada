@@ -15,6 +15,13 @@ declare module 'hono' {
   interface ContextVariableMap {
     userId: string | undefined
     orgId: string | undefined
+    /**
+     * 이 요청이 **누구의 정보를 다뤘는가.** 핸들러가 알려 주고 감사 기록이 남긴다.
+     *
+     * 기준이 요구하는 것은 '누가 접속했나'만이 아니라 '누구의 것을 다뤘나'다 —
+     * 그 자리가 비면 새어 나간 뒤에 누구의 것이 새었는지 알 수 없다.
+     */
+    auditSubject: { type: string; id: string } | undefined
   }
 }
 
@@ -78,6 +85,7 @@ export function createApp(deps: Deps) {
 
   app.openapi(organization, async (c) => {
     const orgId = c.get('orgId')!
+    c.set('auditSubject', { type: 'organization', id: orgId })
     const row = await deps.read.organization(orgId)
     // 없는 것을 빈 이름으로 대신하지 않는다. 조용한 대체를 하지 않는 것이
     // 이 저장소의 규칙이고, 서버도 같은 규칙을 따른다.
@@ -114,6 +122,8 @@ export function createApp(deps: Deps) {
   app.openapi(viewer, async (c) => {
     const orgId = c.get('orgId')!
     const userId = c.get('userId')!
+    // 보는 사람 자신의 학적 정보를 읽는다 — 그 사람이 정보주체다.
+    c.set('auditSubject', { type: 'user', id: userId })
     const row = await deps.read.viewer(orgId, userId)
     if (row === null) {
       return c.json(fail('이 학생회의 구성원이 아닙니다'), 403)

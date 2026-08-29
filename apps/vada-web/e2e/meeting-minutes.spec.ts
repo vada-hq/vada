@@ -153,10 +153,17 @@ test('OPS-MEET-06B: 무엇이 남았는지는 서버가 말하고 화면은 그 
   await expect(page.getByText('회의 전체 요약 (선택)')).toBeVisible()
 })
 
-test('OPS-MEET-06B: 처음 열려 있는 안건은 데이터가 정한다', async ({ page }) => {
+test('OPS-MEET-06B: 처음 열려 있는 안건은 서버가 정한다', async ({ page }) => {
   await page.goto(MINUTES_EDITOR)
 
-  // 아직 결정이 없는 셋째가 열려 있다(meeting.agendas의 isCurrent).
+  // **골라진 것을 먼저 기다린다.** 목록이 원격이라 늦게 오고, 그것이 온 뒤에야
+  // 패널이 찬다 — 패널의 글부터 보면 아직 아무것도 안 골라진 순간을 재게 되고,
+  // 부하가 걸린 날에만 빨간불이 된다(실제로 그렇게 한 번 흔들렸다).
+  //
+  // 그리고 이것이 이 검사가 정말 말하려는 것이다: 아직 결정이 없는 셋째가
+  // 열려 있다(options[].initiallySelected).
+  await expect(page.getByRole('radio', { name: /안건 3/ })).toBeChecked()
+
   const panel = page.locator('[data-node-id="20:2016"]')
   await expect(panel).toContainText('행사 당일 안전 인력 배치')
   await expect(panel.getByRole('textbox')).toBeVisible()

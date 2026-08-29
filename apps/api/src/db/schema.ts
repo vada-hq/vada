@@ -219,8 +219,12 @@ export const auditLogs = pgTable(
     // 로그인하지 않은 사람도 남는다 — QR로 온 참석자가 그렇다.
     userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
     action: text('action').notNull(),
-    targetType: text('target_type'),
-    targetId: text('target_id'),
+    // **누구의 정보를 다뤘는가.** 기준이 요구하는 것은 '누가 접속했나'만이 아니다 —
+    // 이 자리가 비면 새어 나간 뒤에 누구의 것이 새었는지 알 수 없다.
+    subjectType: text('subject_type'),
+    subjectId: text('subject_id'),
+    // 터진 요청도 남는다. 막힌 시도가 오히려 봐야 할 것이다.
+    failed: boolean('failed').notNull().default(false),
     ip: text('ip'),
     userAgent: text('user_agent'),
   },
@@ -239,13 +243,15 @@ export const permissionChanges = pgTable(
   {
     id: text('id').primaryKey(),
     at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
-    orgId: text('org_id')
-      .notNull()
-      .references(() => organizations.id, { onDelete: 'cascade' }),
+    // **조직과 함께 지워지지 않는다.** cascade로 두었더니 조직을 지우는 순간
+    // 3년치가 함께 사라졌다 — 보관 기간을 지키라는 요구가 삭제 한 번에 무너진다.
+    // 조직이 없어져도 '누가 언제 누구의 권한을 바꿨는가'는 남아야 한다.
+    orgId: text('org_id').notNull(),
     actorUserId: text('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
-    subjectMemberId: text('subject_member_id').references(() => members.id, {
-      onDelete: 'set null',
-    }),
+    // 같은 까닭으로 구성원이 지워져도 남는다. 누구였는지는 이름을 함께 적어 둔다 —
+    // 가리키는 줄이 사라지면 기록이 '누구인지 모르는 변경'이 된다.
+    subjectMemberId: text('subject_member_id'),
+    subjectName: text('subject_name'),
     change: text('change').notNull(),
     before: text('before'),
     after: text('after'),

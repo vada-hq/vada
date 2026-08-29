@@ -1645,43 +1645,47 @@ const ATTENDANCE_CHECK_IN_FORM: Record<string, DataRow> = {
 // canRetry는 **서버의 판정**이다. 이름이 명단과 다를 때만 다시 내는 것이 뜻이
 // 있다 — 참석이 이미 끝났거나 QR이 꺼진 결과에서는 다시 내도 같은 답이 온다.
 // 화면은 이 값만 보고 '다시 입력'을 그릴지 정한다(EXT-01B의 drawnWhen).
+// **열쇠가 영수증이다.** 낼 때 서버가 사람마다 다른 값을 돌려주고 결과는 그것으로
+// 찾는다 — QR의 토큰으로 찾으면 같은 QR을 찍은 여러 사람이 서로의 이름과 결과를
+// 본다. 여기 여섯은 여섯 가지 결과를 보여 주려고 둔 것이고, 진짜 서버라면
+// 낸 횟수만큼 있다.
 const ATTENDANCE_CHECK_IN_RESULT: Record<string, DataRow> = {
-  A7K2M9: {
+  'RCPT-A7K2M9': {
     label: '참석 완료',
     tone: 'green',
     iconName: 'check',
     description: '2026. 08. 20 09:47 체크인되었습니다.',
     canRetry: false,
   },
-  B3N8P4: {
+  'RCPT-B3N8P4': {
     label: '참가자 명단 불일치',
     tone: 'yellow',
     iconName: 'circle-alert',
     description: '입력하신 정보가 명단에 없습니다. 운영진에게 문의해 주세요.',
     canRetry: true,
   },
-  C5Q1R6: {
+  'RCPT-C5Q1R6': {
     label: '이미 참석 처리됨',
     tone: 'blue',
     iconName: 'info',
     description: '이미 참석 확인이 완료된 상태입니다.',
     canRetry: false,
   },
-  D8W4X2: {
+  'RCPT-D8W4X2': {
     label: '조건 미충족',
     tone: 'red',
     iconName: 'x',
     description: '참가비 미납 또는 신청 미완료 상태입니다.',
     canRetry: false,
   },
-  E2Y7Z5: {
+  'RCPT-E2Y7Z5': {
     label: '체크인 시간 전·후',
     tone: 'gray',
     iconName: 'clock',
     description: '체크인 가능 시간이 아닙니다. (09:30 ~ 11:00)',
     canRetry: false,
   },
-  F6H1J3: {
+  'RCPT-F6H1J3': {
     label: '비활성화된 QR',
     tone: 'gray',
     iconName: 'x',
@@ -2031,7 +2035,7 @@ const SURVEY_APPLY_FORM: Record<string, DataRow> = {
 
 // 신청을 마친 사람이 보는 결과(EXT-02B). 신청 폼이 보내고 그대로 넘기는 토큰이다.
 const SURVEY_APPLY_RESULT: Record<string, DataRow> = {
-  'SVY-4f2a91c7': {
+  'RCPT-SVY-4f2a91c7': {
     title: '참여 신청이 완료되었습니다',
     eventTitle: '2026 소프트웨어융합대학 체육대회',
     applicantNote: '신청자: 김바다',
@@ -4352,8 +4356,10 @@ export const FILTERED_FIXTURES: Record<
     const row = ATTENDANCE_CHECK_IN_FORM[checkInToken]
     return row === undefined ? [] : [row]
   },
-  'attendance.checkInResult': ({ checkInToken = '' }) => {
-    const row = ATTENDANCE_CHECK_IN_RESULT[checkInToken]
+  // **영수증으로 찾는다.** QR의 토큰으로 찾으면 같은 QR을 찍은 여러 사람이 서로의
+  // 이름과 결과를 본다 — 열쇠가 사람마다 달라야 한다.
+  'attendance.checkInResult': ({ receiptToken = '' }) => {
+    const row = ATTENDANCE_CHECK_IN_RESULT[receiptToken]
     return row === undefined ? [] : [row]
   },
   'event.attendanceQr': ({ eventId = '' }) => {
@@ -4387,8 +4393,9 @@ export const FILTERED_FIXTURES: Record<
     const row = SURVEY_APPLY_FORM[surveyToken]
     return row === undefined ? [] : [row]
   },
-  'survey.applyResult': ({ surveyToken = '' }) => {
-    const row = SURVEY_APPLY_RESULT[surveyToken]
+  // 영수증으로 찾는다(attendance.checkInResult와 같은 까닭).
+  'survey.applyResult': ({ receiptToken = '' }) => {
+    const row = SURVEY_APPLY_RESULT[receiptToken]
     return row === undefined ? [] : [row]
   },
   'survey.linkState': ({ surveyToken = '' }) => {

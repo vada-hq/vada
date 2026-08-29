@@ -19,7 +19,13 @@ const OUT_OF_WINDOW = 'E2Y7Z5' // 체크인 시간이 아니라 폼이 열리지
 const DEACTIVATED = 'F6H1J3' // 꺼진 QR이라 폼이 열리지 않는다
 
 const form = (token: string) => `/#/EXT-01A?checkInToken=${token}`
-const result = (token: string) => `/#/EXT-01B?checkInToken=${token}`
+
+// **결과는 QR이 아니라 영수증으로 연다.**
+//
+// 같은 QR을 여러 사람이 찍는다. QR의 토큰으로 결과를 조회하면 '이 QR로 낸 마지막
+// 결과'가 오고, 뒤에 찍은 사람이 앞사람의 이름과 결과를 본다 — 앞사람의 것은 덮인다.
+// 그래서 낼 때 서버가 사람마다 다른 값을 돌려주고 결과는 그것으로 찾는다.
+const result = (receipt: string) => `/#/EXT-01B?receiptToken=RCPT-${receipt}`
 
 // ── EXT-01A · 참석 확인 폼 ──────────────────────────────────────────────────
 
@@ -59,15 +65,19 @@ test('EXT-01A: 이름과 학번이 비면 막고 첫 빈 칸을 짚는다', asyn
   await expect(page).toHaveURL(new RegExp(`EXT-01A`))
 })
 
-test('EXT-01A: 이름과 학번을 내면 같은 토큰의 결과 화면으로 간다', async ({ page }) => {
+// **낸 것이 영수증을 준다.** 결과 화면으로 갈 때 넘기는 것은 QR의 토큰이 아니라
+// 서버가 돌려준 영수증이다 — 같은 QR을 찍은 다른 사람의 결과와 갈리는 자리가 그것뿐이다.
+test('EXT-01A: 이름과 학번을 내면 영수증을 받아 결과 화면으로 간다', async ({ page }) => {
   await page.goto(form(OPEN))
 
   await page.getByRole('textbox', { name: '이름*' }).fill('김바다')
   await page.getByRole('spinbutton', { name: '학번*' }).fill('2022123456')
   await page.getByRole('button', { name: '참석 확인' }).click()
 
-  await expect(page).toHaveURL(new RegExp(`EXT-01B\\?checkInToken=${OPEN}`))
-  await expect(page.locator('[data-node-id="30:7398"]')).toContainText('참석 완료')
+  await expect(page).toHaveURL(/EXT-01B\?receiptToken=RCPT-/)
+  // 주소에 QR의 토큰이 실려 가지 않는다.
+  await expect(page).not.toHaveURL(/checkInToken=/)
+  await expect(page.locator('[data-node-id="30:7398"]')).toContainText('참가자 명단 불일치')
 })
 
 // **열자마자 막는다**(사람이 정한 것: docs/decisions/product-decisions.md).
@@ -166,7 +176,8 @@ test('EXT-01B: 다시 입력은 명단 불일치에만 보인다', async ({ page
 })
 
 test('EXT-01B: 다시 입력은 같은 토큰의 폼으로 돌려보낸다', async ({ page }) => {
-  await page.goto(result(MISMATCH))
+  // 폼으로 돌아가려면 어느 QR인지가 필요하다 — 영수증은 결과를 가리킬 뿐이다.
+  await page.goto(`/#/EXT-01B?receiptToken=RCPT-${MISMATCH}&checkInToken=${MISMATCH}`)
 
   await page.getByRole('button', { name: '다시 입력' }).click()
 
@@ -177,5 +188,27 @@ test('EXT-01B: 다시 입력은 같은 토큰의 폼으로 돌려보낸다', asy
 test('EXT-01B: 토큰 없이 열면 그 사실을 드러낸다', async ({ page }) => {
   await page.goto('/#/EXT-01B')
 
-  await expect(page.getByRole('alert')).toContainText(missingNoteOf('EXT-01B', 'checkInToken'))
+  await expect(page.getByRole('alert')).toContainText(missingNoteOf('EXT-01B', 'receiptToken'))
+})
+
+// **남의 결과가 보이면 안 된다.**
+//
+// 이것이 영수증을 만든 까닭이다. 검토에서 드러난 자리이고, 여기서 못 박지 않으면
+// 다음에 누가 '토큰 하나면 되지 않나' 하고 되돌린다.
+test('EXT-01B: 다른 사람의 영수증으로는 내 결과가 열리지 않는다', async ({ page }) => {
+  await page.goto(result(OPEN))
+  await expect(page.getByText('참석 완료')).toBeVisible()
+
+  await page.goto(result(MISMATCH))
+  await expect(page.getByText('참가자 명단 불일치')).toBeVisible()
+  // 앞사람의 결과가 남아 있지 않다.
+  await expect(page.getByText('참석 완료')).toHaveCount(0)
+})
+
+test('EXT-01B: QR의 토큰으로는 결과를 열 수 없다', async ({ page }) => {
+  // 같은 QR을 찍은 사람이 여럿이므로 QR만으로는 누구의 결과인지 정할 수 없다.
+  await page.goto(`/#/EXT-01B?checkInToken=${OPEN}`)
+
+  await expect(page.getByRole('alert')).toBeVisible()
+  await expect(page.getByText('참석 완료')).toHaveCount(0)
 })

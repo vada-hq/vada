@@ -3,8 +3,13 @@ import { missingNoteOf } from './spec'
 
 // 링크로 온 설문 응답자가 보는 두 화면(EXT-02B · EXT-02C).
 //
-// 둘 다 **로그인한 사람이 없다.** 그래서 무엇을 보여줄지는 주소의 설문 토큰만이
-// 정하고, 토큰이 없거나 모르는 것이면 아무거나 대신 보여주지 않는다.
+// 둘 다 **로그인한 사람이 없다.** 그래서 무엇을 보여줄지는 주소가 실어 온 것만이
+// 정하고, 없거나 모르는 것이면 아무거나 대신 보여주지 않는다.
+//
+// **둘이 서로 다른 것을 받는다.** 신청 결과(EXT-02B)는 낼 때 서버가 돌려준 영수증을
+// 받고, 링크 상태(EXT-02C)는 설문의 토큰을 받는다 — 앞엣것은 '이 사람의 이 신청'이고
+// 뒤엣것은 '이 링크가 왜 막혔는가'라 가리키는 것이 다르다. 신청 결과를 설문 토큰으로
+// 열면 같은 링크로 낸 여러 사람이 서로의 이름과 참가비 상태를 본다.
 
 const SHOTS = 'e2e/shots'
 
@@ -18,7 +23,7 @@ const FULL = 'SVY-77d4c0a9'
 const REPLACED = 'SVY-0b3d77e1'
 
 test('EXT-02B: 신청 결과와 참가비 상태를 함께 보여준다', async ({ page }) => {
-  await page.goto(`/#/EXT-02B?surveyToken=${LIVE}`)
+  await page.goto(`/#/EXT-02B?receiptToken=RCPT-${LIVE}`)
 
   await expect(
     page.getByRole('heading', { level: 1, name: '참여 신청이 완료되었습니다' }),
@@ -40,7 +45,7 @@ test('EXT-02B: 신청 결과와 참가비 상태를 함께 보여준다', async 
 })
 
 test('EXT-02B: 나가는 단추가 없다', async ({ page }) => {
-  await page.goto(`/#/EXT-02B?surveyToken=${LIVE}`)
+  await page.goto(`/#/EXT-02B?receiptToken=RCPT-${LIVE}`)
 
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
   // 막다른 화면이다 — 외부인에게 열린 다른 화면이 없으므로 갈 곳이 없다.
@@ -51,7 +56,7 @@ test('EXT-02B: 나가는 단추가 없다', async ({ page }) => {
 test('EXT-02B: 토큰이 없으면 아무 신청 결과나 대신 보여주지 않는다', async ({ page }) => {
   await page.goto('/#/EXT-02B')
 
-  await expect(page.getByRole('alert')).toContainText(missingNoteOf('EXT-02B', 'surveyToken'))
+  await expect(page.getByRole('alert')).toContainText(missingNoteOf('EXT-02B', 'receiptToken'))
   await expect(page.getByText('신청자: 김바다', { exact: true })).toHaveCount(0)
 })
 
@@ -96,4 +101,12 @@ test('EXT-02C: 토큰이 없으면 아무 설문의 상태나 대신 보여주�
 
   await expect(page.getByRole('alert')).toContainText(missingNoteOf('EXT-02C', 'surveyToken'))
   await expect(page.getByText('모집 전', { exact: true })).toHaveCount(0)
+})
+
+// **남의 결과가 보이면 안 된다.** 설문 링크는 여럿이 나눠 쓴다.
+test('EXT-02B: 설문의 토큰으로는 신청 결과를 열 수 없다', async ({ page }) => {
+  await page.goto(`/#/EXT-02B?surveyToken=${LIVE}`)
+
+  await expect(page.getByRole('alert')).toBeVisible()
+  await expect(page.getByText('참여 신청이 완료되었습니다')).toHaveCount(0)
 })
