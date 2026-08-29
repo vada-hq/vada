@@ -1,16 +1,17 @@
-// 명세가 화면의 몇 할을 덮는가.
+// 그림에 있는데 **명세가 말하지 않는 글**이 있는가.
 //
 // design 대조는 **등록 노드 안에서만** 돈다. 그 밖에 그려지는 글은 아무도 견주지
 // 않는다 — 화면이 무엇을 그리든 초록이다. 그래서 "대조가 통과했다"는 말은 "덮은
-// 만큼은 맞다"는 뜻이고, 얼마나 덮었는지를 세지 않으면 그 말이 얼마짜리인지 모른다.
+// 만큼은 맞다"는 뜻이고, 덮지 못한 자리를 세지 않으면 그 말이 얼마짜리인지 모른다.
 //
 // 이 눈금이 실제로 무언가를 찾았다: OPS-MEET-06A가 가장 낮았고, 그 까닭이
 // **object 출처 안의 배열을 목록으로 그릴 어휘가 없다**는 것이었다. 화면이 그
 // 자리를 일부러 비워 두고 있었고 주석이 그렇게 적혀 있었다. 눈금이 그 주석을
 // 읽지 않고 같은 곳을 짚었다.
 //
-// 되풀이되는 묶음의 둘째부터는 등록하지 않는 것이 규칙이라(첫 벌만 등록한다)
-// 100%가 목표가 아니다. **떨어지지 않는 것**이 목표다.
+// 빠진 글은 세 갈래이고 **셋을 섞으면 아무것도 재지 않는다.** 그릇이 그리는
+// 머리·제목은 명세가 값으로 말한 것이고, 되풀이의 둘째 사본은 첫 벌이 말한 것이며,
+// 남는 것만이 구멍이다. 아래 ALLOWED의 주석이 그 셋을 왜 가르는지 적어 두었다.
 import assert from 'node:assert/strict'
 import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
@@ -75,7 +76,72 @@ function textIdsIn(node, out = new Set()) {
   return out
 }
 
-/** 이 화면에서 (등록 노드가 덮은 글자, 셸 밖 글자 전체). null이면 셀 것이 없다. */
+/** 노드 id → 부모 노드. 빠진 글이 어디에 속하는지를 위로 올라가며 묻는 데 쓴다. */
+function parentsOf(node, out = new Map(), parent = null) {
+  out.set(node.id, parent)
+  for (const child of node.children ?? []) parentsOf(child, out, node)
+  return out
+}
+
+function ancestorsOf(node, parents) {
+  const chain = []
+  let at = parents.get(node.id)
+  while (at !== null && at !== undefined) {
+    chain.push(at)
+    at = parents.get(at.id)
+  }
+  return chain
+}
+
+function containsRegistered(node, registered) {
+  if (registered.has(node.id)) return true
+  return (node.children ?? []).some((child) => containsRegistered(child, registered))
+}
+
+/**
+ * 화면 명세가 아니라 **그릇이 그리는 글**인가.
+ *
+ * 두 가지다. (1) `Header` 안의 글 — 빵부스러기와 제목은 셸이 그린다(그 안의 버튼은
+ * 화면의 요소이고, 등록되므로 이미 덮인 것으로 세어진다). (2) `meta`의 넷과 같은
+ * 글 — 셸이 없는 화면(EXT-*)에서 제목을 그리는 것은 PageCard·MobileScreen이다.
+ *
+ * **둘 다 명세가 말하지 않은 것이 아니다.** 값은 명세(meta·shell.json)에 있고 그것을
+ * 어느 노드에 그리는지만 그릇이 안다. 그래서 분모에서 뺀다 — 여기 남겨 두면 눈금이
+ * 영원히 100%에 닿지 못하고, 닿지 못하는 눈금은 무엇이 모자란지 말하지 못한다.
+ */
+function drawnByFrame(text, parents, metaTexts) {
+  if (ancestorsOf(text, parents).some((node) => node.name === 'Header')) return true
+  return metaTexts.has(text.text.content.trim())
+}
+
+/**
+ * 되풀이의 **둘째 사본부터**인가.
+ *
+ * 규칙이 "첫 벌만 등록한다"이므로 나머지 사본은 명세가 이미 말한 것이다. 조상 중
+ * 하나가 같은 이름의 형제를 갖고 그 형제가 등록된 노드를 품으면 이 글은 사본이다.
+ */
+function isRepeatCopy(text, parents, registered) {
+  for (const at of ancestorsOf(text, parents)) {
+    const above = parents.get(at.id)
+    if (above === null || above === undefined) continue
+    for (const sibling of above.children ?? []) {
+      if (sibling === at) continue
+      if (sibling.name !== at.name) continue
+      if (containsRegistered(sibling, registered)) return true
+    }
+  }
+  return false
+}
+
+/**
+ * 이 화면의 글자 셈. null이면 셀 것이 없다.
+ *
+ * - `covered` 등록 노드가 덮은 글자
+ * - `byFrame` 그릇이 그리는 글자(머리·제목) — 분모에서 뺀다
+ * - `byCopy` 되풀이의 둘째 사본부터 — 분모에서 뺀다
+ * - `hole` **아무도 말하지 않는 글자.** 이것만이 명세의 구멍이다.
+ * - `total` 셸 밖 글자 전체(위 넷의 합)
+ */
 export function coverageOf(screenId) {
   let spec
   let design
@@ -95,132 +161,195 @@ export function coverageOf(screenId) {
   const all = drawnTexts(root)
   if (all.length === 0) return null
 
+  const registered = registeredIds(spec)
   const covered = new Set()
-  for (const holder of collect(root, registeredIds(spec))) {
+  for (const holder of collect(root, registered)) {
     for (const id of textIdsIn(holder)) covered.add(id)
   }
-  return { covered: all.filter((t) => covered.has(t.id)).length, total: all.length }
+
+  const parents = parentsOf(root)
+  const metaTexts = new Set(
+    [spec.meta?.title, spec.meta?.eyebrow, spec.meta?.description, spec.meta?.footerNote]
+      .filter((text) => typeof text === 'string')
+      .map((text) => text.trim()),
+  )
+
+  let byFrame = 0
+  let byCopy = 0
+  const holes = []
+  for (const text of all) {
+    if (covered.has(text.id)) continue
+    if (drawnByFrame(text, parents, metaTexts)) {
+      byFrame += 1
+    } else if (isRepeatCopy(text, parents, registered)) {
+      byCopy += 1
+    } else {
+      holes.push(text.text.content.replace(/\s+/g, ' ').trim())
+    }
+  }
+
+  return {
+    covered: all.length - byFrame - byCopy - holes.length,
+    byFrame,
+    byCopy,
+    hole: holes.length,
+    holes,
+    total: all.length,
+    /** 명세가 말해야 하는 글자. 그릇의 몫과 되풀이 사본을 뺀 나머지다. */
+    countable: all.length - byFrame - byCopy,
+  }
 }
 
-// 화면마다의 바닥. 떨어지면 검사가 잡고, 새 화면은 줄을 더해야 통과한다 —
-// 그 순간이 "이 화면의 명세가 그림의 몇 할을 말하는가"를 한 번 보는 자리다.
+// 화면마다 **봐준 글자의 수**. 구멍이 0이라는 말이 값싸지 않으려면 이 둘이 묶여
+// 있어야 한다 — 그릇의 몫도 되풀이 사본도 "명세가 말하지 않았는데 넘어간 것"으로
+// 둔갑할 수 있는 자리이기 때문이다.
 //
-// **바닥은 지금 자리에 붙여 둔다.** 한동안 헐거웠다 — 셸의 메뉴를 세는 것에서
-// 뺀 뒤로 분모가 화면마다 12씩 줄었는데 바닥은 옛 수로 남아 있었고, 그래서
-// EVT-00A의 바닥이 실제 87.9%인 화면에 64.4%로 걸려 있었다. 그 사이에 무엇이
-// 내려가도 검사는 울리지 않았다. 올린 값이 실제와 같아야 다음 내림이 잡힌다.
-const FLOOR = {
-  'EVT-00A': { covered: 29, total: 33 },
-  'EVT-01': { covered: 41, total: 42 },
-  'EVT-02': { covered: 81, total: 85 },
-  'EVT-02D': { covered: 59, total: 63 },
-  'EVT-03A': { covered: 48, total: 53 },
-  'EVT-03B': { covered: 60, total: 65 },
-  'EVT-05': { covered: 104, total: 105 },
-  'EVT-05B': { covered: 40, total: 41 },
-  'EVT-04': { covered: 66, total: 71 },
-  'EVT-DOC-01': { covered: 55, total: 63 },
-  'EVT-FIN-01': { covered: 50, total: 55 },
-  'EVT-MEET-01': { covered: 35, total: 40 },
-  'EVT-SCHED-01': { covered: 85, total: 93 },
-  'EVT-TASK-01': { covered: 64, total: 71 },
-  'EVT-TASK-02': { covered: 58, total: 64 },
-  // 밖에서 온 사람이 보는 다섯. **덜 덮인 자리가 셋 다 정당하다** — 폰 겉틀의 시계
-  // '9:41', 로고 'V'·'Vada'(shell.json의 것), 그리고 화면 제목이다.
-  //
-  // 제목이 빠지는 것은 이 화면들의 흠이 아니라 **눈금의 눈먼 자리**다. meta에는
-  // source가 없어 무엇이 제목을 그린 노드인지 알 방법이 없다. 저장소 전체에서
-  // meta.title과 같은 글 64곳, eyebrow·description·footerNote 37곳이 같은 까닭으로
-  // 안 세어진다(전체의 1.5% 남짓). 셸이 있는 화면은 머리가 등록 노드 안에 들어
-  // 가려져 덜 드러날 뿐이다.
-  'EXT-01A': { covered: 9, total: 12 },
-  'EXT-01B': { covered: 12, total: 14 },
-  'EXT-02A': { covered: 17, total: 22 },
-  'EXT-02B': { covered: 9, total: 10 },
-  'EXT-02C': { covered: 15, total: 17 },
-  'FIN-00': { covered: 83, total: 84 },
-  'FIN-EVID-01': { covered: 28, total: 54 },
-  'FIN-LEDGER-01': { covered: 94, total: 96 },
-  'FIN-PROC-01': { covered: 33, total: 64 },
-  'FIN-REQ-01': { covered: 173, total: 179 },
-  'FIN-REQ-02': { covered: 62, total: 63 },
-  'FIN-REV-01': { covered: 71, total: 72 },
-  'FIN-SUP-01': { covered: 45, total: 46 },
-  'HOME-01K': { covered: 54, total: 57 },
-  'INV-01': { covered: 21, total: 24 },
-  'INV-00': { covered: 8, total: 13 },
-  'MSG-01': { covered: 3, total: 4 },
-  'MSG-03': { covered: 3, total: 5 },
-  'MY-01': { covered: 30, total: 33 },
-  'MY-REQ-01': { covered: 46, total: 47 },
-  'ONB-01': { covered: 12, total: 20 },
-  'ONB-02': { covered: 6, total: 12 },
-  'OPS-00': { covered: 33, total: 36 },
-  'OPS-CAL-01': { covered: 97, total: 100 },
-  'OPS-MEET-01A': { covered: 101, total: 104 },
-  'OPS-MEET-02': { covered: 106, total: 111 },
-  'OPS-MEET-03A': { covered: 59, total: 60 },
-  'OPS-MEET-04B': { covered: 33, total: 34 },
-  'OPS-MEET-05A': { covered: 59, total: 62 },
-  // 가장 낮다. object 출처 안의 배열을 목록으로 그릴 어휘가 없어 '현재 정리 현황'
-  // 네 줄을 명세가 말하지 못한다(OPSMEET06AScreen.tsx 파일 머리의 주석).
-  'OPS-MEET-06A': { covered: 30, total: 45 },
-  'OPS-MEET-07': { covered: 38, total: 51 },
-  'OPS-MEET-09': { covered: 23, total: 24 },
-  'ORG-00': { covered: 9, total: 12 },
-  'ORG-01': { covered: 19, total: 23 },
-  'ORG-02': { covered: 15, total: 20 },
-  'ORG-03A': { covered: 41, total: 42 },
-  'ORG-03B': { covered: 60, total: 61 },
-  'ORG-03C': { covered: 31, total: 34 },
-  'ORG-04': { covered: 76, total: 77 },
-  'ORG-04B': { covered: 42, total: 43 },
-  'ORG-07A': { covered: 73, total: 74 },
-  'REC-01': { covered: 34, total: 36 },
-  'REC-02': { covered: 122, total: 123 },
-  'REC-02A': { covered: 65, total: 66 },
-  'TASK-01': { covered: 62, total: 66 },
+// **이 눈금은 한 번 거짓말을 했다.** 그전에는 덮는 몫을 백분율로 재고 화면마다
+// 바닥을 두었는데, 빠진 259자를 갈라 보니 **전부가 눈금이 셀 수 없던 것**이었다
+// (그릇이 그리는 머리·제목 151 · 되풀이 둘째 사본부터 108). 명세의 구멍은 0개였다.
+// 91.9%라는 숫자는 아무것도 재지 않으면서 "아직 8% 모자라다"고 말하고 있었다.
+//
+// 그래서 재는 것을 바꿨다. **구멍은 0이어야 한다**가 본 검사이고, 봐준 수가 늘면
+// 그것도 실패다 — 새로 그려진 글은 등록 노드가 덮거나, 아니면 사람이 이 표를 보고
+// 늘리는 까닭을 적어야 한다. 조용히 넘어갈 길을 남기지 않는다.
+const ALLOWED = {
+  'EVT-00A': { byFrame: 4, byCopy: 0 },
+  'EVT-01': { byFrame: 1, byCopy: 0 },
+  'EVT-02': { byFrame: 4, byCopy: 0 },
+  'EVT-02D': { byFrame: 4, byCopy: 0 },
+  'EVT-03A': { byFrame: 5, byCopy: 0 },
+  'EVT-03B': { byFrame: 5, byCopy: 0 },
+  'EVT-04': { byFrame: 5, byCopy: 0 },
+  'EVT-05': { byFrame: 1, byCopy: 0 },
+  'EVT-05B': { byFrame: 1, byCopy: 0 },
+  'EVT-DOC-01': { byFrame: 8, byCopy: 0 },
+  'EVT-FIN-01': { byFrame: 5, byCopy: 0 },
+  'EVT-MEET-01': { byFrame: 5, byCopy: 0 },
+  'EVT-SCHED-01': { byFrame: 8, byCopy: 0 },
+  'EVT-TASK-01': { byFrame: 7, byCopy: 0 },
+  'EVT-TASK-02': { byFrame: 6, byCopy: 0 },
+  'EXT-01A': { byFrame: 1, byCopy: 2 },
+  'EXT-01B': { byFrame: 1, byCopy: 1 },
+  'EXT-02A': { byFrame: 1, byCopy: 4 },
+  'EXT-02B': { byFrame: 0, byCopy: 1 },
+  'EXT-02C': { byFrame: 1, byCopy: 1 },
+  'FIN-00': { byFrame: 1, byCopy: 0 },
+  'FIN-EVID-01': { byFrame: 1, byCopy: 25 },
+  'FIN-LEDGER-01': { byFrame: 2, byCopy: 0 },
+  'FIN-PROC-01': { byFrame: 1, byCopy: 30 },
+  'FIN-REQ-01': { byFrame: 6, byCopy: 0 },
+  'FIN-REQ-02': { byFrame: 1, byCopy: 0 },
+  'FIN-REV-01': { byFrame: 1, byCopy: 0 },
+  'FIN-SUP-01': { byFrame: 1, byCopy: 0 },
+  'HOME-01K': { byFrame: 3, byCopy: 0 },
+  'INV-00': { byFrame: 2, byCopy: 3 },
+  'INV-01': { byFrame: 1, byCopy: 2 },
+  'MSG-01': { byFrame: 1, byCopy: 0 },
+  'MSG-03': { byFrame: 2, byCopy: 0 },
+  'MY-01': { byFrame: 3, byCopy: 0 },
+  'MY-REQ-01': { byFrame: 1, byCopy: 0 },
+  'ONB-01': { byFrame: 3, byCopy: 5 },
+  'ONB-02': { byFrame: 3, byCopy: 3 },
+  'OPS-00': { byFrame: 3, byCopy: 0 },
+  'OPS-CAL-01': { byFrame: 3, byCopy: 0 },
+  'OPS-MEET-01A': { byFrame: 3, byCopy: 0 },
+  'OPS-MEET-02': { byFrame: 5, byCopy: 0 },
+  'OPS-MEET-03A': { byFrame: 1, byCopy: 0 },
+  'OPS-MEET-04B': { byFrame: 1, byCopy: 0 },
+  'OPS-MEET-05A': { byFrame: 1, byCopy: 2 },
+  'OPS-MEET-06A': { byFrame: 1, byCopy: 14 },
+  'OPS-MEET-07': { byFrame: 1, byCopy: 12 },
+  'OPS-MEET-09': { byFrame: 1, byCopy: 0 },
+  'ORG-00': { byFrame: 3, byCopy: 0 },
+  'ORG-01': { byFrame: 3, byCopy: 1 },
+  'ORG-02': { byFrame: 4, byCopy: 1 },
+  'ORG-03A': { byFrame: 1, byCopy: 0 },
+  'ORG-03B': { byFrame: 1, byCopy: 0 },
+  'ORG-03C': { byFrame: 2, byCopy: 1 },
+  'ORG-04': { byFrame: 1, byCopy: 0 },
+  'ORG-04B': { byFrame: 1, byCopy: 0 },
+  'ORG-07A': { byFrame: 1, byCopy: 0 },
+  'REC-01': { byFrame: 2, byCopy: 0 },
+  'REC-02': { byFrame: 1, byCopy: 0 },
+  'REC-02A': { byFrame: 1, byCopy: 0 },
+  'TASK-01': { byFrame: 4, byCopy: 0 },
 }
 
-test('명세가 덮는 몫이 떨어지지 않는다', () => {
-  const measured = []
-  const missing = []
-  const dropped = []
+test('명세가 말하지 않는 글이 없다', () => {
+  const holes = []
+  const unlisted = []
 
   for (const entry of readdirSync(SCREENS, { withFileTypes: true })) {
     if (!entry.isDirectory()) continue
     const now = coverageOf(entry.name)
     if (now === null) continue
-    measured.push([entry.name, now])
-
-    const floor = FLOOR[entry.name]
-    if (floor === undefined) {
-      missing.push(
-        `      "${entry.name}": { covered: ${now.covered}, total: ${now.total} },` +
-          `   // ${((now.covered / now.total) * 100).toFixed(1)}%`,
+    if (ALLOWED[entry.name] === undefined) {
+      unlisted.push(
+        `      "${entry.name}": { byFrame: ${now.byFrame}, byCopy: ${now.byCopy} },`,
       )
-      continue
     }
-    if (now.covered / now.total < floor.covered / floor.total - 1e-9) {
-      dropped.push(
-        `  ${entry.name}: ${now.covered}/${now.total} < 바닥 ${floor.covered}/${floor.total}`,
+    if (now.hole > 0) {
+      holes.push(
+        `  ${entry.name}: ${now.hole}개 — ${now.holes.slice(0, 6).map((text) => `'${text}'`).join(' · ')}`,
       )
     }
   }
 
-  const covered = measured.reduce((sum, [, m]) => sum + m.covered, 0)
-  const total = measured.reduce((sum, [, m]) => sum + m.total, 0)
-  console.log(
-    `\n  명세가 덮는 글자 ${covered} / 그려지는 글자 ${total} = ` +
-      `${((covered / total) * 100).toFixed(1)}%  (화면 ${measured.length}개)\n`,
-  )
-
   assert.equal(
-    missing.length,
+    unlisted.length,
     0,
-    '눈금에 없는 화면이 있습니다. 아래 줄을 FLOOR에 더하세요.\n' +
-      '더하기 전에 한 번 보세요 — 낮으면 그 화면의 명세가 그림의 무언가를 말하지 않고 있습니다.\n' +
-      missing.join('\n'),
+    '눈금에 없는 화면이 있습니다. 아래 줄을 ALLOWED에 더하세요.\n' + unlisted.join('\n'),
   )
-  assert.equal(dropped.length, 0, `덮는 몫이 떨어졌습니다.\n${dropped.join('\n')}`)
+  assert.equal(
+    holes.length,
+    0,
+    '그림에 있는데 명세가 말하지 않는 글이 있습니다.\n' +
+      '등록 노드로 덮거나, 봐줄 까닭이 있으면 ALLOWED를 늘리고 왜인지 적으세요.\n' +
+      holes.join('\n'),
+  )
+})
+
+test('봐준 글자가 늘지 않는다', () => {
+  const grown = []
+  for (const [screenId, allowed] of Object.entries(ALLOWED)) {
+    const now = coverageOf(screenId)
+    if (now === null) continue
+    if (now.byFrame > allowed.byFrame) {
+      grown.push(`  ${screenId}: 그릇의 몫 ${now.byFrame} > 적어 둔 ${allowed.byFrame}`)
+    }
+    if (now.byCopy > allowed.byCopy) {
+      grown.push(`  ${screenId}: 되풀이 사본 ${now.byCopy} > 적어 둔 ${allowed.byCopy}`)
+    }
+  }
+  assert.equal(
+    grown.length,
+    0,
+    '눈금이 봐주는 글자가 늘었습니다 — 명세가 말하지 않은 것이 그리로 새고 있는지 보세요.\n' +
+      grown.join('\n'),
+  )
+})
+
+test('세어 둔다 — 명세가 그림의 몇 할을 말하는가', () => {
+  let covered = 0
+  let byFrame = 0
+  let byCopy = 0
+  let hole = 0
+  let screens = 0
+  for (const entry of readdirSync(SCREENS, { withFileTypes: true })) {
+    if (!entry.isDirectory()) continue
+    const now = coverageOf(entry.name)
+    if (now === null) continue
+    covered += now.covered
+    byFrame += now.byFrame
+    byCopy += now.byCopy
+    hole += now.hole
+    screens += 1
+  }
+  const countable = covered + hole
+  console.log(
+    `\n  명세가 말하는 글자 ${covered} / 말해야 하는 글자 ${countable} = ` +
+      `${((covered / countable) * 100).toFixed(1)}퍼센트  (화면 ${screens}개)\n` +
+      `  분모에서 뺀 것 — 그릇이 그리는 머리·제목 ${byFrame} · 되풀이 둘째 사본부터 ${byCopy}\n`,
+  )
+  assert.equal(hole, 0)
 })
