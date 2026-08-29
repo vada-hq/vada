@@ -2,7 +2,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { cleanup, render, waitFor } from '@testing-library/react'
+import { render, waitFor } from '@testing-library/react'
 import { getOptionSource } from '../option-sources/catalog'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
@@ -105,7 +105,7 @@ function scopesDrawnBy(screen: ScreenSpec, design: DesignFile): ScopeStore {
     if (spec.type !== 'note') {
       continue
     }
-    const drawn = textsIn(findNode(design.root, element.source.nodeId))
+    const drawn = textsIn(findNode(design.root, element.source?.nodeId ?? ""))
       .map((text) => text.content)
       .join('')
     const prefix = spec.prefix ?? ''
@@ -208,6 +208,15 @@ function drawsRemoteChoices(spec: ScreenSpec): boolean {
   })
 }
 
+// 화면마다의 검사가 **이미 견준 것**을 여기 모은다. 예외 목록이 썩지 않는지는
+// 화면 전부를 모아야 판정할 수 있는데(규칙에 건 예외는 여러 화면에 걸쳐 쓰인다),
+// 그것을 위해 82개를 **다시 그리고 있었다.** 한 화면이 세 번 그려졌고 그 한
+// 검사가 25초였다.
+//
+// 견주는 일은 이미 위에서 다 한다. 결과만 흘려보내면 아래 검사는 셈만 하면 된다.
+const SEEN: SeenDifference[] = []
+const SEEN_SCREENS = new Set<string>()
+
 describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
   '$screenId design 대조',
   ({ screenId, spec }) => {
@@ -238,11 +247,13 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
       // 일부러 다르게 하기로 한 자리는 덜어낸다. 그 목록이 썩지 않는지는 화면
       // 하나로 판정할 수 없다(규칙에 건 예외는 여러 화면에 걸쳐 쓰인다) — 아래에
       // 화면 전부를 모아 보는 검사가 따로 있다.
-      const remaining = applyDeviations(
-        screenId,
-        compareScreen(document.body, spec, design),
-        DEVIATIONS,
-      )
+      const found = compareScreen(document.body, spec, design)
+      for (const difference of found) {
+        SEEN.push({ ...difference, screenId })
+      }
+      SEEN_SCREENS.add(screenId)
+
+      const remaining = applyDeviations(screenId, found, DEVIATIONS)
 
       expect(remaining, report(screenId, remaining)).toEqual([])
     })
@@ -277,11 +288,12 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
         return
       }
 
-      const missing = applyDeviations(
-        screenId,
-        compareScreenAssets(container, spec, design, drawingOfScreen(screenId)),
-        DEVIATIONS,
-      )
+      const found = compareScreenAssets(container, spec, design, drawingOfScreen(screenId))
+      for (const difference of found) {
+        SEEN.push({ ...difference, screenId })
+      }
+
+      const missing = applyDeviations(screenId, found, DEVIATIONS)
       expect(missing, report(screenId, missing)).toEqual([])
     })
   },
@@ -290,37 +302,25 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
 // 예외 목록이 썩지 않는지는 화면 전부를 모아야 판정할 수 있다. 규칙에 건 예외는
 // 여러 화면에 걸쳐 쓰이므로, 화면마다 따로 물으면 안 쓰인 화면에서 거짓 경보가 난다.
 describe('design/deviations.ts', () => {
+  // **다시 그리지 않는다.** 위의 화면별 검사가 견준 것을 그대로 센다 — 예전에는
+  // 여기서 82개를 통째로 다시 그렸고, 한 화면이 세 번 그려졌다. 그 한 검사가
+  // 25초라 기본 제한 20초에 걸려 있었고, 그 빨간불은 **시계의 것이지 논리의
+  // 것이 아니었다** — 기계가 빠른 날은 초록이었다.
+  //
+  // 대신 **부분 실행에서는 판정하지 않는다.** 화면 몇 개만 돌린 뒤 "예외가 안
+  // 쓰인다"고 말하면 멀쩡한 예외를 지우게 된다.
   it('쓰이지 않는 예외가 없다', () => {
-    const seen: SeenDifference[] = []
-    for (const spec of ALL_SCREENS) {
-      const design = designByScreenId.get(spec.screenId)
-      if (design === undefined) {
-        throw new Error(`design 파일이 없습니다: ${spec.screenId}`)
-      }
-      const { container } = render(
-        <ScreenRouter
-          screenParams={exampleParamsOf(spec.screenId)}
-          screenId={spec.screenId}
-          scopes={scopesDrawnBy(spec, design)}
-          onChangeScope={() => {}}
-          onNavigate={() => {}}
-        />,
+    const missing = ALL_SCREENS.map((spec) => spec.screenId).filter(
+      (screenId) => !SEEN_SCREENS.has(screenId),
+    )
+    if (missing.length > 0) {
+      throw new Error(
+        '화면 전부를 견주지 않았으므로 예외가 썩었는지 판정할 수 없습니다. ' +
+          `안 본 화면 ${missing.length}개: ${missing.slice(0, 5).join(' · ')}`,
       )
-      const found = [
-        ...compareScreen(container, spec, design),
-        // 그림 대조도 예외를 쓴다. 여기서 빠뜨리면 그림에 건 예외가 늘 '쓰이지 않는
-        // 예외'로 잡힌다.
-        ...(usesVectorUnitAssets(design)
-          ? []
-          : compareScreenAssets(container, spec, design, drawingOfScreen(spec.screenId))),
-      ]
-      for (const difference of found) {
-        seen.push({ ...difference, screenId: spec.screenId })
-      }
-      cleanup()
     }
 
-    const unused = unusedDeviations(seen, DEVIATIONS)
+    const unused = unusedDeviations(SEEN, DEVIATIONS)
     expect(unused, staleReport(unused)).toEqual([])
   })
 })
