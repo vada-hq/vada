@@ -323,4 +323,25 @@ describe('design/deviations.ts', () => {
     const unused = unusedDeviations(SEEN, DEVIATIONS)
     expect(unused, staleReport(unused)).toEqual([])
   })
+
+  // **자리에 건 예외는 조용히 늘면 안 된다.** 규칙에 건 것(by: 'rule')은 화면이
+  // 몇이든 한 줄이라 늘어도 뜻이 없지만, by: 'place'는 **와이어프레임의 일회성
+  // 사고**에만 쓰기로 한 것이다. 그중 41곳은 두 장이 같은 것을 다르게 그려 사람이
+  // 한쪽을 골라야 했던 자리이고, 고르는 잣대는 product-decisions.md에 있다.
+  //
+  // 늘어난다는 것은 둘 중 하나다 — 그림이 또 어긋났거나(그러면 잣대에 비추어
+  // 골라야 한다), 규칙에 걸 수 있는 것을 자리에 걸었거나. 어느 쪽이든 사람이
+  // 봐야 하므로 수를 못 박는다.
+  const PLACE_DEVIATIONS = 71
+
+  it('자리에 건 예외가 조용히 늘지 않는다', () => {
+    const atPlace = DEVIATIONS.filter((deviation) => deviation.by === 'place')
+
+    expect(
+      atPlace.length,
+      `자리에 건 예외가 ${PLACE_DEVIATIONS}개에서 ${atPlace.length}개로 바뀌었습니다.`
+        + `\n늘었다면 docs/decisions/product-decisions.md의 "한쪽을 고른다" 표를 보고,`
+        + `\n이미 있는 갈래인지 여덟 번째 갈래인지 판단한 뒤 이 수를 고치세요.`,
+    ).toBe(PLACE_DEVIATIONS)
+  })
 })
