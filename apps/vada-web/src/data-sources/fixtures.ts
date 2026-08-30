@@ -3878,7 +3878,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       capabilityNote: '시작·종료 가능',
       actionLabel: '권한 해제',
       actionEmphasis: 'secondary',
-      actionEnabled: 'y',
+      actionEnabled: true,
     },
     {
       memberId: 'M-03',
@@ -3889,7 +3889,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       capabilityNote: '일반 참가자',
       actionLabel: '진행 권한 부여',
       actionEmphasis: 'primary',
-      actionEnabled: 'y',
+      actionEnabled: true,
     },
     {
       memberId: 'M-04',
@@ -3900,7 +3900,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       capabilityNote: '일반 참가자',
       actionLabel: '진행 권한 부여',
       actionEmphasis: 'primary',
-      actionEnabled: 'y',
+      actionEnabled: true,
     },
     {
       memberId: 'M-05',
@@ -3911,7 +3911,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       capabilityNote: '일반 참가자',
       actionLabel: '진행 권한 부여',
       actionEmphasis: 'primary',
-      actionEnabled: 'y',
+      actionEnabled: true,
     },
     {
       memberId: 'M-06',
@@ -3922,7 +3922,7 @@ const MEETING_PARTICIPANTS: Record<string, DataRow[]> = {
       capabilityNote: '일반 참가자',
       actionLabel: '진행 권한 부여',
       actionEmphasis: 'primary',
-      actionEnabled: 'y',
+      actionEnabled: true,
     },
   ],
 }
@@ -4011,10 +4011,10 @@ const MEETING_DRAFT: Record<string, DataRow> = {
 }
 
 const MEETING_CANDIDATES: DataRow[] = [
-  { memberId: 'M-01', name: '박해랑', departmentNote: '운영부', alreadyAdded: 'y' },
-  { memberId: 'M-02', name: '정하늘', departmentNote: '운영부', alreadyAdded: 'y' },
-  { memberId: 'M-03', name: '이수현', departmentNote: '기획부', alreadyAdded: 'y' },
-  { memberId: 'M-04', name: '김민준', departmentNote: '재정부', alreadyAdded: 'y' },
+  { memberId: 'M-01', name: '박해랑', departmentNote: '운영부', alreadyAdded: true },
+  { memberId: 'M-02', name: '정하늘', departmentNote: '운영부', alreadyAdded: true },
+  { memberId: 'M-03', name: '이수현', departmentNote: '기획부', alreadyAdded: true },
+  { memberId: 'M-04', name: '김민준', departmentNote: '재정부', alreadyAdded: true },
   { memberId: 'M-05', name: '이윤슬', departmentNote: '기획부' },
   { memberId: 'M-06', name: '김바다', departmentNote: '기획부' },
 ]

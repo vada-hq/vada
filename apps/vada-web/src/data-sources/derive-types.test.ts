@@ -234,3 +234,86 @@ it('개발용 응답이 명세가 적은 값의 종류를 지킨다', () => {
     '개발용 응답이 명세가 적은 값의 종류를 어깁니다',
   ).toEqual([])
 })
+
+// **글로 선언됐는데 실제로는 참거짓만 담는 조각.**
+//
+// 앞의 검사는 선언과 값이 **맞는지**만 본다. 그래서 `actionEnabled: 'y'`는 글로
+// 선언됐으니 통과했다 — 선언이 틀렸다는 것을 그 방향으로는 볼 수 없다.
+//
+// 실제로 그 하나를 놓쳤다. 판정 조각 열다섯을 참거짓으로 고칠 때 훑개가 `can`으로
+// 시작하는 이름만 봤고, `actionEnabled`는 그 규칙 밖이라 조용히 남았다. **이름으로
+// 훑으면 이름이 규칙을 벗어나는 순간 놓친다.** 값으로 훑으면 그러지 않는다.
+//
+// 참거짓으로 쓰이던 인코딩은 이 저장소가 실제로 쓴 것들이다 — 빈 글과 'y'(52곳),
+// '예'(4곳). 늘어나면 여기 더한다.
+it('참거짓만 담는 조각을 글로 선언하지 않는다', () => {
+  const BOOLEAN_LOOKING = new Set(['', 'y', 'n', '예', '아니오', 'true', 'false'])
+  const catalog = JSON.parse(readFileSync(CATALOG, 'utf8'))
+  const sources: Array<{ key: string; fields?: Array<Record<string, unknown>> }> =
+    catalog.sources ?? catalog.dataSources
+
+  const asString = new Set<string>()
+  const collect = (fields: Array<Record<string, unknown>>, key: string, prefix = '') => {
+    for (const field of fields) {
+      const path = prefix === '' ? String(field.key) : `${prefix}.${String(field.key)}`
+      if (Array.isArray(field.fields)) {
+        collect(field.fields as Array<Record<string, unknown>>, key, path)
+        continue
+      }
+      if (field.valueType === 'string') asString.add(`${key}|${path}`)
+    }
+  }
+  for (const source of sources) collect(source.fields ?? [], source.key)
+
+  const seen = new Map<string, Set<string>>()
+  const watch = (rows: DataRow[], key: string, prefix = '') => {
+    for (const row of rows) {
+      for (const [name, value] of Object.entries(row)) {
+        const path = prefix === '' ? name : `${prefix}.${name}`
+        if (Array.isArray(value)) {
+          watch(value as DataRow[], key, path)
+          continue
+        }
+        if (typeof value !== 'string') continue
+        const at = `${key}|${path}`
+        if (!asString.has(at)) continue
+        const values = seen.get(at) ?? new Set<string>()
+        values.add(value)
+        seen.set(at, values)
+      }
+    }
+  }
+  for (const source of sources) {
+    const filtered = FILTERED_FIXTURES[source.key] as
+      | ((params: Record<string, string>) => DataRow[])
+      | undefined
+    if (filtered === undefined) {
+      const fixture = DASHBOARD_FIXTURES[source.key]
+      if (fixture !== undefined) watch(Array.isArray(fixture) ? fixture : [fixture], source.key)
+      continue
+    }
+    try {
+      watch(filtered({}), source.key)
+    } catch {
+      // 인자가 있어야 답하는 자리는 위의 도출이 훑는다.
+    }
+  }
+
+  // **빈 글만 담긴 것은 참거짓이 아니다.** 아직 안 채운 초안이 그렇다 — 그것까지
+  // 세면 열두 자리가 잘못 걸린다(실제로 걸렸다). 참·거짓을 실어 나르는 표시가
+  // 하나라도 있어야 그 조각이 참거짓을 입고 있는 것이다.
+  const MARKS = new Set(['y', 'n', '예', '아니오', 'true', 'false'])
+  const wearing = [...seen.entries()]
+    .filter(
+      ([, values]) =>
+        [...values].every((value) => BOOLEAN_LOOKING.has(value)) &&
+        [...values].some((value) => MARKS.has(value)),
+    )
+    .map(([at]) => at)
+    .sort()
+
+  expect(
+    wearing,
+    '이 조각들은 참거짓만 담는데 글로 선언돼 있습니다. 받는 쪽은 무엇이 참인지 규칙을 따로 알아야 합니다',
+  ).toEqual([])
+})
