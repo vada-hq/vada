@@ -346,6 +346,8 @@ export const events = pgTable(
   },
   (table) => [
     index('events_org_status').on(table.orgId, table.status),
+    // 다른 표가 '이 조직의 그 행사'를 가리킬 수 있게. QR과 설문이 그것을 가리킨다.
+    unique('events_org_id').on(table.orgId, table.id),
     foreignKey({
       columns: [table.orgId, table.hostDepartmentId],
       foreignColumns: [departments.orgId, departments.id],
@@ -357,6 +359,122 @@ export const events = pgTable(
       name: 'events_host_member_same_org',
     }).onDelete('set null'),
   ],
+)
+
+// ─── 밖에서 오는 사람 ───────────────────────────────────────────────────────
+//
+// **로그인이 없는 자리다.** QR로 온 참석자와 링크로 온 설문 응답자가 여기 남는다.
+// 주소가 실어 온 토큰이 유일한 열쇠이므로 표가 세 가지를 지켜야 한다.
+//
+// 1. **토큰을 그대로 저장하지 않는다.** 해시로 둔다 — 표가 새면 그 값으로 남의 것을
+//    열 수 있다. 로그나 백업으로 새는 길이 표보다 넓다.
+// 2. **같은 사람이 두 번 내는 것을 표가 막는다.** 손으로 세면 두 요청이 동시에 올 때
+//    둘 다 통과한다.
+// 3. **영수증은 사람마다 다르다.** 공유 토큰으로 결과를 열면 뒤에 낸 사람이 앞사람의
+//    이름과 납부 상태를 본다(첫 교차검토가 찾은 구멍이다).
+
+/** QR 하나. 다시 만들면 옛 것이 죽는다(event.attendanceQr.regenerate). */
+export const attendanceQrs = pgTable(
+  'attendance_qrs',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    eventId: text('event_id').notNull(),
+    /** **토큰 자체가 아니라 그 해시다.** 표가 새도 QR이 열리지 않는다. */
+    tokenHash: text('token_hash').notNull().unique(),
+    active: boolean('active').notNull().default(true),
+    opensAt: timestamp('opens_at', { withTimezone: true }),
+    closesAt: timestamp('closes_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('attendance_qrs_event').on(table.eventId),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'attendance_qrs_event_same_org',
+    }).onDelete('cascade'),
+  ],
+)
+
+/**
+ * 찍힌 참석 하나.
+ *
+ * **한 사람이 한 번이다.** `(qrId, studentNumber)`를 표가 유일하게 지킨다 —
+ * 두 요청이 동시에 와도 하나만 남는다. 막혔을 때 **영수증을 돌려주지 않는다**:
+ * 학번은 아무나 적을 수 있는 값이고 영수증은 그 사람만 가져야 하는 값이라,
+ * 앞의 것으로 뒤의 것을 가리면 남의 것을 여는 열쇠가 된다(2026-08-31 교차검토).
+ */
+export const attendanceCheckIns = pgTable(
+  'attendance_check_ins',
+  {
+    id: text('id').primaryKey(),
+    qrId: text('qr_id')
+      .notNull()
+      .references(() => attendanceQrs.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    studentNumber: text('student_number').notNull(),
+    /** 이 사람의 결과를 여는 열쇠. **해시로 둔다.** */
+    receiptHash: text('receipt_hash').notNull().unique(),
+    /** 영수증이 언제까지 듣는가. 오래 사는 열쇠는 오래 새는 열쇠다. */
+    receiptExpiresAt: timestamp('receipt_expires_at', { withTimezone: true }).notNull(),
+    /** 명단에 있는 사람인가. 없으면 다시 낼 수 있다(canRetry). */
+    matched: boolean('matched').notNull().default(false),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [unique('attendance_once_per_student').on(table.qrId, table.studentNumber)],
+)
+
+/** 설문 하나. 교체하면 옛 것이 죽고 새 것을 가리킨다. */
+export const surveys = pgTable(
+  'surveys',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    eventId: text('event_id').notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    active: boolean('active').notNull().default(false),
+    opensAt: timestamp('opens_at', { withTimezone: true }),
+    closesAt: timestamp('closes_at', { withTimezone: true }),
+    capacity: integer('capacity'),
+    /**
+     * 이 설문을 대신하는 새 설문. 교체된 설문에만 있다.
+     *
+     * **가리키는 것이 곧 폐기는 아니다.** 옛 링크를 가진 사람이 새 설문으로 갈 수
+     * 있게 하는 것이 이 값의 뜻이고, 옛 설문 자체는 `active`가 거짓이 되어 닫힌다.
+     */
+    replacedById: text('replaced_by_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('surveys_event').on(table.eventId),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'surveys_event_same_org',
+    }).onDelete('cascade'),
+  ],
+)
+
+/** 낸 신청 하나. 참석과 같은 규칙을 따른다. */
+export const surveyApplications = pgTable(
+  'survey_applications',
+  {
+    id: text('id').primaryKey(),
+    surveyId: text('survey_id')
+      .notNull()
+      .references(() => surveys.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    studentNumber: text('student_number').notNull(),
+    college: text('college'),
+    department: text('department'),
+    grade: text('grade'),
+    motivation: text('motivation'),
+    receiptHash: text('receipt_hash').notNull().unique(),
+    receiptExpiresAt: timestamp('receipt_expires_at', { withTimezone: true }).notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [unique('survey_once_per_student').on(table.surveyId, table.studentNumber)],
 )
 
 // ─── 법이 요구하는 기록 ─────────────────────────────────────────────────────

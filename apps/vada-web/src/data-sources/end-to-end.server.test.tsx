@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { createApp } from '../../../api/src/app.ts'
 import { freshDb } from '../../../api/src/db/testing.ts'
+import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
 import { inMemoryAttempts } from '../../../api/src/idempotency.ts'
 import { departments, members, organizations } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
@@ -56,6 +57,7 @@ beforeAll(async () => {
       isMeetingCreator: async () => false,
     },
     attempts: inMemoryAttempts(),
+    counter: inMemoryCounter(),
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => new Date('2026-07-22T18:30:00+09:00'),

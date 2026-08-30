@@ -19,6 +19,8 @@ import {
 } from './org/chart.ts'
 import { currentInvite, regenerateInvite, type InviteSettings } from './org/invite.ts'
 import { changeRole, roleAssignmentOf } from './org/role-change.ts'
+import { checkIn, checkInForm, checkInResult } from './public/attendance.ts'
+import { publicRateLimit, type Counter } from './public/rate-limit.ts'
 import {
   createEvent,
   eventBasics,
@@ -77,6 +79,8 @@ export interface Deps {
   invite: InviteSettings
   /** 새로 만드는 것의 이름표. 밖에서 받으므로 검사가 정할 수 있다. */
   newId: () => string
+  /** 밖에서 열리는 자리를 두드리는 것을 세는 곳. */
+  counter: Counter
 }
 
 /** 이 사람이 어느 학생회의 것을 보고 있는가. 구성원이 아니면 여기까지 오지 않는다. */
@@ -119,6 +123,11 @@ export function createApp(deps: Deps) {
   // **가장 먼저 돈다.** 막힌 요청도 남아야 하고, 누가 보냈는지는 여기서 한 번
   // 확정해 문맥에 담는다 — 구성원이 아니어도 누구인지는 남는다.
   app.use('*', auditMiddleware(deps.audit, { who: (c) => deps.who(c) }))
+  // **밖에서 열리는 자리는 세션이 벽이 아니다.** 토큰이 유일한 벽이므로 마구 넣어
+  // 보는 것을 막지 않으면 그 벽이 벽이 아니다. 권한보다 앞에 둔다 — 막을 것은
+  // 판정에 닿기 전에 막는다.
+  app.use('*', publicRateLimit({ counter: deps.counter, now: () => deps.invite.now().getTime() }))
+
   app.use('*', authorizeMiddleware({ lookups: deps.lookups }))
 
   // **두 번 눌린 것을 여기서 가린다.** 계약이 어느 자리에 키가 필요한지 알고 있으므로
@@ -166,6 +175,32 @@ export function createApp(deps: Deps) {
       const row = await viewerLine(d.db, orgId, who.userId)
       if (row === null) throw new NotFound('이 학생회의 구성원이 아닙니다')
       return row
+    },
+
+    // ── 밖에서 오는 사람 (EXT-01A · EXT-01B) ───────────────────────────────
+    //
+    // 로그인이 없다. 어느 QR인지는 주소가, 누가 냈는지는 폼이 말한다.
+    'attendance.checkInForm': async (c, d) =>
+      checkInForm(d.db, c.req.query('checkInToken') ?? '', d.invite),
+    // **영수증으로만 연다.** QR 토큰으로 열면 같은 QR을 찍은 남의 결과가 열린다.
+    'attendance.checkInResult': async (c, d) => {
+      c.header('Cache-Control', 'no-store')
+      return checkInResult(d.db, c.req.query('receiptToken') ?? '', d.invite)
+    },
+    'attendance.checkIn': async (c, d) => {
+      const draft = (await c.req.json().catch(() => ({}))) as {
+        name?: unknown
+        studentNumber?: unknown
+      }
+      const made = await checkIn(d.db, c.req.param('checkInToken')!, draft, {
+        newId: d.newId,
+        now: d.invite.now,
+      })
+      // **영수증을 기록에 남기지 않는다.** 감사 기록이 새면 그것으로 결과가 열린다.
+      c.set('auditSubject', { type: 'studentNumber', id: String(draft.studentNumber ?? '') })
+      // 열쇠를 담은 답은 어디에도 쌓이면 안 된다.
+      c.header('Cache-Control', 'no-store')
+      return made
     },
 
     // ── 행사 (EVT-00A · EVT-00B · EVT-02) ──────────────────────────────────

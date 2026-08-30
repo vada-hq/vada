@@ -7,6 +7,7 @@ import type { Db } from './db/client.ts'
 import { freshDb } from './db/testing.ts'
 import { departments, members, organizations } from './db/schema.ts'
 import { allOperationIds, answeredOperationIds, routeOf } from './routes.ts'
+import { inMemoryCounter } from './public/rate-limit.ts'
 import { inMemoryAttempts } from './idempotency.ts'
 import type { Viewer } from './permissions.ts'
 
@@ -47,6 +48,7 @@ function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
     who: async () => who,
     lookups: NO_LOOKUPS,
     attempts: inMemoryAttempts(),
+    counter: inMemoryCounter(),
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => new Date('2026-07-22T18:30:00+09:00'),
@@ -217,7 +219,7 @@ describe('명세 밖으로 새지 않는다', () => {
     // 것으로 세었는데, 진짜로 404를 내는 자리(없는 구성원을 물었을 때)와 아직
     // 안 만든 자리가 같은 모양이라 **만든 것을 안 만든 것으로 세고 있었다.**
     harness()
-    expect(answeredOperationIds()).toHaveLength(23)
+    expect(answeredOperationIds()).toHaveLength(26)
     expect(allOperationIds()).toHaveLength(216)
   })
 })

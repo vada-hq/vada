@@ -5,6 +5,7 @@ import { createApp, type Deps } from '../app.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import { departments, invites, members, organizations, permissionChanges, users } from '../db/schema.ts'
+import { inMemoryCounter } from '../public/rate-limit.ts'
 import { inMemoryAttempts } from '../idempotency.ts'
 import { routeOf } from '../routes.ts'
 import type { AuditEntry } from '../audit.ts'
@@ -46,6 +47,7 @@ function harness(who: Viewer | null = viewer('chair')) {
       isMeetingCreator: async () => false,
     },
     attempts: inMemoryAttempts(),
+    counter: inMemoryCounter(),
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => new Date('2026-07-22T18:30:00+09:00'),

@@ -28,6 +28,13 @@ for (const [path, item] of Object.entries(openapi.paths as Record<string, Record
 
 export class NotFound extends Error {}
 export class Blocked extends Error {}
+/**
+ * 같은 사실이 이미 있다.
+ *
+ * **돌려주는 것은 없다.** 이미 있는 것을 함께 주면 그것이 남의 것을 여는 열쇠가
+ * 된다 — 공유 QR과 남의 학번으로 그 사람의 영수증을 받아 갔다(2026-08-31 교차검토).
+ */
+export class AlreadyExists extends Error {}
 
 /** 답을 내는 자리. 계약이 정한 모양을 돌려주면 된다. */
 export type Handler<D> = (c: Context, deps: D) => Promise<unknown>
@@ -65,6 +72,9 @@ export function attach<D>(app: Hono, deps: D, handlers: Record<string, Handler<D
         }
         if (error instanceof Blocked) {
           return c.json({ message: error.message }, 422)
+        }
+        if (error instanceof AlreadyExists) {
+          return c.json({ message: error.message }, 409)
         }
         throw error
       }

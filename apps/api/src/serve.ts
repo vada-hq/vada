@@ -8,6 +8,7 @@ import { databaseAudit } from './audit-sink.ts'
 import { readConfig } from './config.ts'
 import { connect } from './db/client.ts'
 import { inMemoryAttempts } from './idempotency.ts'
+import { inMemoryCounter } from './public/rate-limit.ts'
 
 // 서버를 세운다.
 //
@@ -67,6 +68,8 @@ root.route(
       newCode: () => randomBytes(9).toString('base64url'),
     },
     newId: () => randomUUID(),
+    // 계산이 하나인 동안은 프로세스 안에 센다. 늘리면 캐시로 옮겨야 한다.
+    counter: inMemoryCounter(),
   }),
 )
 
