@@ -32,7 +32,12 @@ function member(role: 'chair' | 'head' | 'member'): Viewer {
 
 function harness(viewer: Viewer | null, lookups: Lookups = NO) {
   const app = new Hono()
-  app.use('*', authorizeMiddleware({ viewer: () => viewer, lookups }))
+  // 보낸 사람은 요청마다 한 번 정해진다 — 실제 서버가 그렇게 한다.
+  app.use('*', async (c, next) => {
+    c.set('sender', viewer)
+    await next()
+  })
+  app.use('*', authorizeMiddleware({ lookups }))
   app.get('/api/org/chart-title', (c) => c.json({ ok: true }))
   app.put('/api/org/chart', (c) => c.json({ ok: true }))
   app.post('/api/ops/events/:eventId/start', (c) => c.json({ ok: true }))

@@ -247,7 +247,11 @@
         "inputType": "checkbox",
         "valueType": "boolean",
         "required": true,
-        "validation": []
+        "validation": [
+          {
+            "rule": "mustBeTrue"
+          }
+        ]
       }
     },
     {

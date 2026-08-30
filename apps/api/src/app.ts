@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { Hono, type Context } from 'hono'
 import { auditMiddleware, type AuditSink } from './audit.ts'
 import { authorizeMiddleware } from './authorize.ts'
 import type { Db } from './db/client.ts'
@@ -54,6 +54,8 @@ declare module 'hono' {
      * 기준이 요구하는 것은 '누가 접속했나'만이 아니라 '누구의 것을 다뤘나'다.
      */
     auditSubject: { type: string; id: string } | undefined
+    /** 이 요청을 보낸 사람. **요청마다 한 번만 정해진다.** */
+    sender: Viewer | null
   }
 }
 
@@ -73,8 +75,8 @@ export interface Deps {
 }
 
 /** 이 사람이 어느 학생회의 것을 보고 있는가. 구성원이 아니면 여기까지 오지 않는다. */
-function orgOf(deps: Deps): string {
-  const membership = deps.who()?.membership
+function orgOf(c: Context): string {
+  const membership = c.get('sender')?.membership
   if (membership === null || membership === undefined) {
     throw new NotFound('학생회를 찾지 못했습니다')
   }
@@ -88,7 +90,7 @@ function orgOf(deps: Deps): string {
  * 링크의 뒤쪽도 함께 바뀐다. 셋이 같은 일을 하는 것을 숨기지 않는다.
  */
 function regenerate(c: import('hono').Context, d: Deps) {
-  const orgId = orgOf(d)
+  const orgId = orgOf(c)
   c.set('auditSubject', { type: 'organization', id: orgId })
   return regenerateInvite(d.db, orgId, d.invite)
 }
@@ -97,20 +99,44 @@ function regenerate(c: import('hono').Context, d: Deps) {
  * 화면에 내려보내는 판정. **막는 검사와 같은 함수에서 나온다** — 두 곳에서 나오면
  * 언젠가 갈리고, 갈리는 쪽은 늘 화면이다(단추를 그렸는데 눌리면 막힌다).
  */
-function canDo(deps: Deps, area: string, object: string | null = null): Promise<boolean> {
-  return can(deps.who(), area, object, deps.lookups)
+function canDo(
+  c: Context,
+  deps: Deps,
+  area: string,
+  object: string | null = null,
+): Promise<boolean> {
+  return can(c.get('sender'), area, object, deps.lookups)
 }
 
 export function createApp(deps: Deps) {
   const app = new Hono()
 
-  app.use('*', auditMiddleware(deps.audit))
-  app.use('*', authorizeMiddleware({ viewer: () => deps.who(), lookups: deps.lookups }))
+  app.use(
+    '*',
+    auditMiddleware(deps.audit, {
+      who: () => {
+        const sender = deps.who()
+        // 구성원이 아니어도 누구인지는 남는다 — 학생회를 만들려는 사람도 사람이다.
+        return sender === null
+          ? null
+          : { userId: sender.userId, orgId: sender.membership?.orgId ?? null }
+      },
+    }),
+  )
+  // **누구인지는 요청마다 한 번만 묻는다.** 감사·권한·멱등이 저마다 물으면 값이
+  // 요청 안에서 갈릴 수 있고, 인증이 붙으면 같은 세션을 여러 번 확인하게 된다.
+  // 공개 자리 한 번에 두 번 부르고 있었다(2026-08-31 교차검토).
+  app.use('*', async (c, next) => {
+    c.set('sender', deps.who())
+    await next()
+  })
+
+  app.use('*', authorizeMiddleware({ lookups: deps.lookups }))
 
   // **두 번 눌린 것을 여기서 가린다.** 계약이 어느 자리에 키가 필요한지 알고 있으므로
   // 자리마다 손으로 부르지 않는다 — 부르면 잊는 자리가 생기고, 잊은 자리는 두 번 돈다.
   app.use('*', async (c, next) => {
-    const membership = deps.who()?.membership
+    const membership = c.get('sender')?.membership
     if (membership === null || membership === undefined) return next()
     let checked
     try {
@@ -138,15 +164,15 @@ export function createApp(deps: Deps) {
   attach(app, deps, {
     // ── 셸 ────────────────────────────────────────────────────────────────
     'shell.organization': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       c.set('auditSubject', { type: 'organization', id: orgId })
       const row = await organizationName(d.db, orgId)
       if (row === null) throw new NotFound('학생회를 찾지 못했습니다')
       return row
     },
     'shell.viewer': async (c, d) => {
-      const who = d.who()!
-      const orgId = orgOf(d)
+      const who = c.get('sender')!
+      const orgId = orgOf(c)
       // 보는 사람 자신의 학적 정보를 읽는다 — 그 사람이 정보주체다.
       c.set('auditSubject', { type: 'user', id: who.userId })
       const row = await viewerLine(d.db, orgId, who.userId)
@@ -156,7 +182,7 @@ export function createApp(deps: Deps) {
 
     // ── 행사 (EVT-00A · EVT-00B · EVT-02) ──────────────────────────────────
     'event.list': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       c.set('auditSubject', { type: 'organization', id: orgId })
       return eventList(
         d.db,
@@ -167,20 +193,20 @@ export function createApp(deps: Deps) {
     },
     // 만들 수 있는 사람에게만 머리에 그 단추가 그려진다. **역할 이름이 아니라
     // 할 수 있는 일로 가른다** — 판정은 정책 하나에서 나온다.
-    'event.listViewer': async (_c, d) =>
-      canDo(d, 'event.create').then((canCreateEvent) => ({ canCreateEvent })),
+    'event.listViewer': async (c, d) =>
+      canDo(c, d, 'event.create').then((canCreateEvent) => ({ canCreateEvent })),
     'event.summary': async (c, d) => {
       const eventId = c.req.query('eventId')!
       c.set('auditSubject', { type: 'event', id: eventId })
-      const row = await eventSummary(d.db, orgOf(d), eventId, d.invite)
+      const row = await eventSummary(d.db, orgOf(c), eventId, d.invite)
       if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
       return row
     },
     'event.workspace': async (c, d) => {
       const eventId = c.req.query('eventId')!
       c.set('auditSubject', { type: 'event', id: eventId })
-      const row = await eventWorkspace(d.db, orgOf(d), eventId, {
-        canManage: await canDo(d, 'event.manage', eventId),
+      const row = await eventWorkspace(d.db, orgOf(c), eventId, {
+        canManage: await canDo(c, d, 'event.manage', eventId),
       })
       if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
       return row
@@ -188,12 +214,12 @@ export function createApp(deps: Deps) {
     'event.basics': async (c, d) => {
       const eventId = c.req.query('eventId')!
       c.set('auditSubject', { type: 'event', id: eventId })
-      const row = await eventBasics(d.db, orgOf(d), eventId)
+      const row = await eventBasics(d.db, orgOf(c), eventId)
       if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
       return row
     },
     'event.create': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       const draft = (await c.req.json().catch(() => ({}))) as { title?: unknown }
       const made = await createEvent(d.db, orgId, draft, { id: d.newId, now: d.invite.now })
       c.set('auditSubject', { type: 'event', id: made.id })
@@ -201,32 +227,32 @@ export function createApp(deps: Deps) {
     },
 
     // ── 조직도 (ORG-03A · ORG-03B) ─────────────────────────────────────────
-    'org.chartTitle': async (_c, d) => {
-      const orgId = orgOf(d)
+    'org.chartTitle': async (c, d) => {
+      const orgId = orgOf(c)
       const row = await chartTitle(d.db, orgId)
       if (row === null) throw new NotFound('학생회를 찾지 못했습니다')
       return row
     },
     'org.executives': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       c.set('auditSubject', { type: 'organization', id: orgId })
       return executives(d.db, orgId)
     },
     'org.departments': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       c.set('auditSubject', { type: 'organization', id: orgId })
       return departmentTree(d.db, orgId, c.req.query('query'))
     },
     'org.unassignedMembers': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       c.set('auditSubject', { type: 'organization', id: orgId })
       return unassignedMembers(d.db, orgId, c.req.query('query'))
     },
-    'org.unassignedHint': async (_c, d) => unassignedHint(d.db, orgOf(d)),
+    'org.unassignedHint': async (c, d) => unassignedHint(d.db, orgOf(c)),
 
     // ── 초대 (ORG-03C) ─────────────────────────────────────────────────────
-    'org.invite': async (_c, d) => {
-      const orgId = orgOf(d)
+    'org.invite': async (c, d) => {
+      const orgId = orgOf(c)
       const row = await currentInvite(d.db, orgId, d.invite)
       if (row === null) throw new NotFound('초대를 찾지 못했습니다')
       return row
@@ -238,7 +264,7 @@ export function createApp(deps: Deps) {
 
     // ── 역할 및 권한 (ORG-04) ──────────────────────────────────────────────
     'org.roleCounts': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       c.set('auditSubject', { type: 'organization', id: orgId })
       return roleCounts(d.db, orgId)
     },
@@ -247,14 +273,14 @@ export function createApp(deps: Deps) {
 
     // ── 역할 바꾸기가 읽는 것 (ORG-04B) ────────────────────────────────────
     'org.roleAssignments': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       // 남의 학적 정보를 다루는 자리다. 누구의 것을 다뤘는지 남긴다.
       c.set('auditSubject', { type: 'organization', id: orgId })
       return roleAssignments(d.db, orgId)
     },
     // 고른 사람 한 건. **누구인지는 자리가 말한다** — 서버가 기억하지 않는다.
     'org.selectedRoleAssignment': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       const memberId = c.req.param('memberId')!
       c.set('auditSubject', { type: 'member', id: memberId })
       const row = await roleAssignmentOf(d.db, orgId, memberId)
@@ -263,20 +289,20 @@ export function createApp(deps: Deps) {
     },
     // **법이 이 자리를 3년 본다.** 권한을 바꾼 기록은 따로 남는다.
     'org.changeRole': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       const memberId = c.req.param('memberId')!
       c.set('auditSubject', { type: 'member', id: memberId })
       const body = (await c.req.json().catch(() => ({}))) as { baseRole?: unknown }
       await changeRole(d.db, orgId, {
         memberId,
         baseRole: body.baseRole,
-        actorUserId: d.who()?.userId ?? null,
+        actorUserId: c.get('sender')?.userId ?? null,
         now: d.invite.now,
       })
       return {}
     },
     'org.roleAssignmentCount': async (c, d) => {
-      const orgId = orgOf(d)
+      const orgId = orgOf(c)
       c.set('auditSubject', { type: 'organization', id: orgId })
       return roleAssignmentCount(d.db, orgId)
     },

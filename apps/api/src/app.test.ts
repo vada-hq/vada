@@ -169,16 +169,32 @@ describe('누가 무엇을 만졌는지 남는다', () => {
     await app.request('/api/org/role-assignments')
     expect(written).toHaveLength(1)
     expect(written[0]!.action).toContain('/api/org/role-assignments')
-    expect(written[0]!.orgId).toBe(null)
+    // **누가 보냈는지가 남는다.** 한동안 이 자리가 null이었고 검사가 그것을
+    // 승인하고 있었다 — 기준이 요구하는 식별자가 빈 기록은 기록이 아니다.
+    expect(written[0]!.userId).toBe('U-01')
+    expect(written[0]!.orgId).toBe('ORG-01')
     expect(written[0]!.subjectType).toBe('organization')
+    expect(written[0]!.failed).toBe(false)
   })
 
   // 막힌 요청이 오히려 봐야 할 것이다.
-  it('막힌 요청도 남는다', async () => {
+  it('막힌 요청도 남고 실패로 표시된다', async () => {
     const { app, written } = harness(null)
     const res = await app.request('/api/org/role-counts')
     expect(res.status).toBe(401)
     expect(written).toHaveLength(1)
+    // **막힌 것도 실패다.** 터진 것만 실패로 세었더니 401·403·404가 전부
+    // '성공'으로 남았다.
+    expect(written[0]!.failed).toBe(true)
+  })
+
+  // 구성원이 아니어도 누구인지는 남는다 — 학생회를 만들려는 사람도 사람이다.
+  it('구성원이 아닌 사람도 누구인지 남는다', async () => {
+    const { app, written } = harness({ userId: 'U-99', membership: null })
+    await app.request('/api/org/role-counts')
+    expect(written[0]!.userId).toBe('U-99')
+    expect(written[0]!.orgId).toBe(null)
+    expect(written[0]!.failed).toBe(true)
   })
 
   it('밖에서 열리는 자리의 주소에서 토큰을 지운다', () => {

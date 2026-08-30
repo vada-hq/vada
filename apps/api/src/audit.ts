@@ -62,12 +62,34 @@ export interface AuditContext {
   subject?: { type: string; id: string }
 }
 
+/**
+ * 누가 이 요청을 보냈는가. **요청 시작에 한 번 확정한다.**
+ *
+ * 오랫동안 `c.get('userId')`를 읽었는데 **아무도 그것을 채우지 않았다.** 셸 자리에
+ * 있던 미들웨어가 채우고 있었는데 자리를 계약이 만드는 층으로 옮기면서 함께
+ * 사라졌고, 그 뒤로 모든 기록이 `userId: null`이었다 — 법이 요구하는 '식별자'가
+ * 빈 접속 기록은 기록이 아니다(2026-08-31 교차검토).
+ *
+ * 핸들러가 채우기를 기다리지 않는다. 막힌 요청은 핸들러에 닿지도 못하는데,
+ * **막힌 시도가 오히려 봐야 할 것이다.**
+ */
+export interface AuditWho {
+  who(): { userId: string; orgId: string | null } | null
+}
+
 export function auditMiddleware(
   sink: AuditSink,
+  deps: AuditWho,
   now: () => Date = () => new Date(),
 ): MiddlewareHandler {
   return async (c, next) => {
     let failed = false
+    // 답하기 전에 확정한다 — 핸들러가 무엇을 하든 누가 보냈는지는 그 전에 정해진다.
+    const sender = deps.who()
+    if (sender !== null) {
+      c.set('userId', sender.userId)
+      if (sender.orgId !== null) c.set('orgId', sender.orgId)
+    }
     try {
       await next()
     } catch (error) {
@@ -90,7 +112,9 @@ export function auditMiddleware(
         }`,
         subjectType: subject?.type ?? null,
         subjectId: subject?.id ?? null,
-        failed,
+        // **막힌 것도 실패다.** 터진 것만 실패로 세었더니 401·403·404가 전부
+        // '성공'으로 남았다 — 봐야 할 것이 바로 그쪽이다.
+        failed: failed || (error === null && c.res.status >= 400),
         // 프록시 뒤에 있으므로 원래 주소는 헤더가 들고 온다. 없으면 없다고 적는다 —
         // 지어내지 않는다.
         ip: c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? null,

@@ -221,6 +221,30 @@
                 "minLength": 1
               }
             }
+          },
+          "conflict": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "naturalKey",
+              "why"
+            ],
+            "description": "**같은 것을 두 번 만들 수 없게 하는 자연 열쇠.** 멱등 키와 다른 일을 한다 — 멱등 키는 '같은 요청이 두 번 왔는가'를 가리고, 이것은 '같은 사실이 이미 있는가'를 가린다.\n\n둘을 한 갈래로 묶었다가 구멍이 났다. `(토큰, 학번)`이 같으면 첫 영수증을 준다고 했더니 **남의 학번으로 남의 영수증을 받는 길**이 됐다(2026-08-31 교차검토). 막는 것은 표가 하고, 막혔을 때 **돌려주는 것은 없다** — 409로 이미 있다는 사실만 알린다.",
+            "properties": {
+              "naturalKey": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "같은 것인지 가리는 조각들. 이 자리의 인자이거나 보내는 값의 칸이어야 한다."
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
           }
         }
       }

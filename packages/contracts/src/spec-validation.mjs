@@ -247,7 +247,22 @@ function checkRepeat(findings, file, mutation, fieldKeysByScope) {
         message: `제출 계약 '${mutation.key}'의 자연 열쇠 '${key}'가 이 자리의 인자에도 보내는 값에도 없습니다 — 가릴 것이 없습니다.`
       });
     }
-  } else if (Array.isArray(repeat.naturalKey)) {
+  }
+
+  // 같은 사실이 이미 있는지 가리는 열쇠도 실제로 오는 값이어야 한다.
+  const conflict = mutation?.conflict;
+  if (isObject(conflict)) {
+    for (const key of Array.isArray(conflict.naturalKey) ? conflict.naturalKey : []) {
+      if (declared.has(key) || inPayload.has(key)) continue;
+      findings.push({
+        level: "error",
+        file,
+        message: `제출 계약 '${mutation.key}'의 자연 열쇠 '${key}'가 이 자리의 인자에도 보내는 값에도 없습니다 — 가릴 것이 없습니다.`
+      });
+    }
+  }
+
+  if (repeat.kind !== "naturalKey" && Array.isArray(repeat.naturalKey)) {
     findings.push({
       level: "error",
       file,

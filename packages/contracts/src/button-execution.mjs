@@ -138,6 +138,10 @@ export function evaluateButtonExecution({
         }
         return !isFilled(candidate);
       }
+      // 참이어야만 하는 칸은 값이 있는 것으로 모자란다.
+      if (candidate.mustBeTrue === true) {
+        return values[candidate.fieldKey] !== true;
+      }
       return typeof isFilled === "function"
         ? !isFilled(candidate)
         : !hasFieldValue(values[candidate.fieldKey]);

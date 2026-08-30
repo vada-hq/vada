@@ -1,11 +1,13 @@
 import {
   boolean,
+  foreignKey,
   index,
   integer,
   pgEnum,
   pgTable,
   text,
   timestamp,
+  unique,
   uniqueIndex,
 } from 'drizzle-orm/pg-core'
 
@@ -82,7 +84,15 @@ export const departments = pgTable(
      */
     handlesFinance: boolean('handles_finance').notNull().default(false),
   },
-  (table) => [uniqueIndex('departments_org_name').on(table.orgId, table.name)],
+  (table) => [
+    uniqueIndex('departments_org_name').on(table.orgId, table.name),
+    // **다른 표가 '같은 조직의 그 부서'를 가리킬 수 있게 한다.**
+    // id만 가리키면 남의 조직 부서를 가리키는 것을 아무것도 막지 못한다.
+    //
+    // 인덱스가 아니라 **제약**이다 — 인덱스로 두면 표를 만든 뒤에 생기는데
+    // 그것을 가리키는 외래 키가 먼저 나와 깨진다.
+    unique('departments_org_id').on(table.orgId, table.id),
+  ],
 )
 
 /**
@@ -119,9 +129,12 @@ export const members = pgTable(
      */
     executiveTitle: text('executive_title'),
     // 부서에 아직 안 든 사람이 있다(org.unassignedMembers). 그래서 비워 둘 수 있다.
-    departmentId: text('department_id').references(() => departments.id, {
-      onDelete: 'set null',
-    }),
+    //
+    // **가리키는 것은 부서가 아니라 '이 조직의 그 부서'다.** id만 가리켰더니 남의
+    // 조직 부서를 가리킬 수 있었고, 그러면 조직도가 남의 사람을 그렸다 —
+    // 이어 붙인 표가 자기 조직을 확인하지 않았기 때문이다(2026-08-31 교차검토).
+    // 손으로 거르는 것은 자리마다 잊을 수 있으므로 표가 막는다.
+    departmentId: text('department_id'),
     // 부서장인가. 부서마다 여럿일 수 있다(org.departments의 leaders가 배열이다).
     isDepartmentLeader: boolean('is_department_leader').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -129,6 +142,13 @@ export const members = pgTable(
   (table) => [
     index('members_org').on(table.orgId),
     index('members_department').on(table.departmentId),
+    foreignKey({
+      columns: [table.orgId, table.departmentId],
+      foreignColumns: [departments.orgId, departments.id],
+      name: 'members_department_same_org',
+    }).onDelete('set null'),
+    // 다른 표가 '이 조직의 그 사람'을 가리킬 수 있게.
+    unique('members_org_id').on(table.orgId, table.id),
   ],
 )
 
@@ -251,14 +271,26 @@ export const events = pgTable(
     capacity: text('capacity'),
     contact: text('contact'),
     // 맡은 부서와 사람. 둘 다 없을 수 있다(담당 미정).
-    hostDepartmentId: text('host_department_id').references(() => departments.id, {
-      onDelete: 'set null',
-    }),
-    hostMemberId: text('host_member_id').references(() => members.id, { onDelete: 'set null' }),
+    //
+    // 구성원과 같은 까닭으로 **'이 조직의' 부서와 사람**을 가리킨다.
+    hostDepartmentId: text('host_department_id'),
+    hostMemberId: text('host_member_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index('events_org_status').on(table.orgId, table.status)],
+  (table) => [
+    index('events_org_status').on(table.orgId, table.status),
+    foreignKey({
+      columns: [table.orgId, table.hostDepartmentId],
+      foreignColumns: [departments.orgId, departments.id],
+      name: 'events_host_department_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.hostMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'events_host_member_same_org',
+    }).onDelete('set null'),
+  ],
 )
 
 // ─── 법이 요구하는 기록 ─────────────────────────────────────────────────────
@@ -277,9 +309,12 @@ export const auditLogs = pgTable(
   {
     id: text('id').primaryKey(),
     at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
-    orgId: text('org_id').references(() => organizations.id, { onDelete: 'set null' }),
+    // **가리키지 않는다.** 조직이나 사람이 지워져도 남아야 한다 — 보관 기간이
+    // 1년인데 삭제 한 번에 '누가'가 사라지면 기준이 요구하는 식별자가 없는 기록이
+    // 된다(2026-08-31 교차검토). 권한 변경 기록에 먼저 쓴 방식과 같다.
+    orgId: text('org_id'),
     // 로그인하지 않은 사람도 남는다 — QR로 온 참석자가 그렇다.
-    userId: text('user_id').references(() => users.id, { onDelete: 'set null' }),
+    userId: text('user_id'),
     action: text('action').notNull(),
     // **누구의 정보를 다뤘는가.** 기준이 요구하는 것은 '누가 접속했나'만이 아니다 —
     // 이 자리가 비면 새어 나간 뒤에 누구의 것이 새었는지 알 수 없다.
@@ -309,7 +344,11 @@ export const permissionChanges = pgTable(
     // 3년치가 함께 사라졌다 — 보관 기간을 지키라는 요구가 삭제 한 번에 무너진다.
     // 조직이 없어져도 '누가 언제 누구의 권한을 바꿨는가'는 남아야 한다.
     orgId: text('org_id').notNull(),
-    actorUserId: text('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+    // 같은 까닭으로 가리키지 않는다. 3년을 지키라는 요구가 사용자 삭제 한 번에
+    // 무너지면 안 된다.
+    actorUserId: text('actor_user_id'),
+    /** 그때 그 사람이 누구였는지. 가리키는 줄이 사라져도 남는다. */
+    actorName: text('actor_name'),
     // 같은 까닭으로 구성원이 지워져도 남는다. 누구였는지는 이름을 함께 적어 둔다 —
     // 가리키는 줄이 사라지면 기록이 '누구인지 모르는 변경'이 된다.
     subjectMemberId: text('subject_member_id'),

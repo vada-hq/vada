@@ -79,7 +79,16 @@ export async function departmentTree(db: Db, orgId: string, query?: string) {
       isLeader: members.isDepartmentLeader,
     })
     .from(departments)
-    .leftJoin(members, eq(members.departmentId, departments.id))
+    // **이어 붙인 표도 자기 조직을 확인한다.** 부서만 거르고 사람은 안 걸렀더니
+    // 남의 조직 사람이 우리 부서를 가리킬 때 그 이름과 학부와 학년이 우리
+    // 조직도에 그려졌다(2026-08-31 교차검토가 짚었고 재현됐다).
+    //
+    // 표가 그것을 막게 고쳤지만(복합 외래 키) 여기도 함께 건다 — 벽은 두 겹이
+    // 낫다. 표의 제약이 언젠가 느슨해져도 조회가 새지 않는다.
+    .leftJoin(
+      members,
+      and(eq(members.departmentId, departments.id), eq(members.orgId, orgId)),
+    )
     .where(eq(departments.orgId, orgId))
     .orderBy(asc(departments.sortOrder), asc(departments.name), asc(members.name))
 

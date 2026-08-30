@@ -93,8 +93,7 @@
         "type": "object",
         "additionalProperties": false,
         "required": [
-          "rule",
-          "value"
+          "rule"
         ],
         "properties": {
           "rule": {
@@ -104,8 +103,10 @@
               "maxLength",
               "minimum",
               "maximum",
-              "pattern"
-            ]
+              "pattern",
+              "mustBeTrue"
+            ],
+            "description": "무엇을 지켜야 하는가.\n\n`mustBeTrue`가 오래 없었다. `required`는 '이 칸에 값이 있는가'만 묻고 **켜고 끄는 칸에서는 꺼짐도 값이다** — 필수 예/아니오에서 '아니오'는 정당한 답이기 때문이다. 그런데 개인정보 수집 동의는 **참이어야만** 낼 수 있다. 그 자리를 `required`로만 적어 두었더니 체크를 안 해도 '참여 신청하기'가 눌렸다(2026-08-31 교차검토가 계약에서 확인했다)."
           },
           "value": {
             "type": [
@@ -114,7 +115,33 @@
               "integer"
             ]
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "rule": {
+                  "const": "mustBeTrue"
+                }
+              },
+              "required": [
+                "rule"
+              ]
+            },
+            "then": {
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            },
+            "else": {
+              "required": [
+                "value"
+              ]
+            }
+          }
+        ]
       }
     }
   }

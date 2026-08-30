@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from 'hono'
 import openapi from '../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
-import { can, type Lookups, type Viewer } from './permissions.ts'
+import { can, type Lookups } from './permissions.ts'
 
 // 자리마다 매단 권한을 **실제로 강제한다.**
 //
@@ -53,6 +53,11 @@ for (const [path, item] of Object.entries(openapi.paths as Record<string, Record
  *
  * 글자로 적힌 자리가 인자 자리를 이긴다 — `/api/ops/meetings/drafts`와
  * `/api/ops/meetings/{meetingId}`가 함께 있을 때 앞의 것이 답이다.
+ *
+ * **자리별로 이긴다.** 처음에는 글자 자리의 **총 개수**만 견줬는데, 그러면
+ * `/a/{x}/c`와 `/a/b/{y}`처럼 개수가 같을 때 계약에 적힌 차례가 권한을 정한다 —
+ * 설명과 구현이 다른 것이고, 그런 자리가 언제 생길지는 알 수 없다.
+ * 앞에서부터 글자 자리인지를 견주면 차례가 뜻을 갖지 않는다(2026-08-31 교차검토).
  */
 export function matchRoute(
   method: string,
@@ -60,27 +65,39 @@ export function matchRoute(
 ): { authorize: Authorize; params: Record<string, string>; operation: Operation } | undefined {
   const parts = path.split('/')
   const upper = method.toUpperCase()
-  let best: { route: Route; params: Record<string, string>; literals: number } | undefined
+  let best: { route: Route; params: Record<string, string>; shape: string } | undefined
 
   for (const route of ROUTES) {
     if (route.method !== upper || route.segments.length !== parts.length) continue
     const params: Record<string, string> = {}
-    let literals = 0
+    // 자리마다 '글자였는가(0)'와 '인자였는가(1)'를 앞에서부터 적는다. 그 글을
+    // 견주면 앞자리가 먼저 갈린다 — 개수를 세면 앞뒤가 뒤바뀐 둘이 비긴다.
+    let shape = ''
     let ok = true
     for (const [at, segment] of route.segments.entries()) {
       const actual = parts[at]!
       if (segment.startsWith('{') && segment.endsWith('}')) {
-        if (actual === '') { ok = false; break }
-        params[segment.slice(1, -1)] = decodeURIComponent(actual)
+        if (actual === '') {
+          ok = false
+          break
+        }
+        // 잘못된 % 인코딩이 터지지 않게 한다 — 터지면 500이 되고, 500은
+        // 안쪽 사정을 밖으로 흘린다.
+        try {
+          params[segment.slice(1, -1)] = decodeURIComponent(actual)
+        } catch {
+          params[segment.slice(1, -1)] = actual
+        }
+        shape += '1'
       } else if (segment === actual) {
-        literals += 1
+        shape += '0'
       } else {
         ok = false
         break
       }
     }
-    if (ok && (best === undefined || literals > best.literals)) {
-      best = { route, params, literals }
+    if (ok && (best === undefined || shape < best.shape)) {
+      best = { route, params, shape }
     }
   }
   return best === undefined
@@ -89,7 +106,6 @@ export function matchRoute(
 }
 
 export interface AuthorizeDeps {
-  viewer(): Viewer | null
   lookups: Lookups
 }
 
@@ -115,7 +131,8 @@ export function authorizeMiddleware(deps: AuthorizeDeps): MiddlewareHandler {
         ? null
         : (params[authorize.object] ?? c.req.query(authorize.object) ?? null)
 
-    const viewer = deps.viewer()
+    // **요청마다 한 번 정해진 그 사람.** 여기서 다시 묻지 않는다.
+    const viewer = c.get('sender')
     if (!(await can(viewer, authorize.area, object, deps.lookups))) {
       return viewer === null
         ? c.json({ message: '로그인이 필요합니다' }, 401)

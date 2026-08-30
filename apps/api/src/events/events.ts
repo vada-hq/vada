@@ -53,12 +53,22 @@ const ROW = {
   hostName: members.name,
 }
 
-async function base(db: Db, where: ReturnType<typeof and>) {
+/**
+ * 행사 한 줄.
+ *
+ * **이어 붙인 표도 자기 조직을 확인한다.** 담당 부서와 담당자만 id로 이었더니
+ * 남의 조직의 이름이 우리 행사에 그려졌다(2026-08-31 교차검토). 표가 그것을 막게
+ * 고쳤지만 여기도 함께 건다 — 벽은 두 겹이 낫다.
+ */
+async function base(db: Db, orgId: string, where: ReturnType<typeof and>) {
   return db
     .select(ROW)
     .from(events)
-    .leftJoin(departments, eq(events.hostDepartmentId, departments.id))
-    .leftJoin(members, eq(events.hostMemberId, members.id))
+    .leftJoin(
+      departments,
+      and(eq(events.hostDepartmentId, departments.id), eq(departments.orgId, orgId)),
+    )
+    .leftJoin(members, and(eq(events.hostMemberId, members.id), eq(members.orgId, orgId)))
     .where(where)
 }
 
@@ -110,16 +120,19 @@ export async function eventList(
   clock: Now,
 ): Promise<EventListRow[]> {
   const wanted = (filters.query ?? '').trim()
+  const wantedStatus = readStatus(filters.status)
   const rows = (
     await base(
       db,
+      orgId,
       and(
         eq(events.orgId, orgId),
         sql`${events.status} <> 'done'`,
         wanted === '' ? undefined : ilike(events.title, `%${wanted}%`),
-        filters.status === undefined || filters.status === ''
-          ? undefined
-          : eq(events.status, filters.status as Status),
+        // **명세가 든 단계가 아니면 막는다.** 그대로 넘겼더니 PostgreSQL이
+        // 던지고 500이 됐다 — 500은 안쪽 사정을 밖으로 흘리고, 받는 쪽은
+        // '내가 잘못 물었다'와 '서버가 고장났다'를 가릴 수 없다.
+        wantedStatus === undefined ? undefined : eq(events.status, wantedStatus),
       ),
     )
   ).sort((left, right) => order(left).localeCompare(order(right)))
@@ -137,6 +150,13 @@ export async function eventList(
     highlights: missingParts(row).map((label) => ({ label })),
     lastModifiedNote: lastModified(row.updatedAt, now),
   }))
+}
+
+/** 걸러 달라는 단계가 명세가 든 것인가. 아니면 던진다. */
+function readStatus(value: string | undefined): Status | undefined {
+  if (value === undefined || value === '') return undefined
+  if (value in STATUS) return value as Status
+  throw new Blocked('그런 진행 단계는 없습니다')
 }
 
 /** 아직 안 채운 것들. 기획 중인 행사에서 눈에 띄어야 하는 것이 이것이다. */
@@ -167,7 +187,7 @@ export async function eventSummary(
   eventId: string,
   clock: Now,
 ): Promise<EventSummary | null> {
-  const rows = await base(db, and(eq(events.orgId, orgId), eq(events.id, eventId)))
+  const rows = await base(db, orgId, and(eq(events.orgId, orgId), eq(events.id, eventId)))
   const row = rows[0]
   if (row === undefined) return null
 
@@ -217,7 +237,7 @@ export async function eventWorkspace(
   eventId: string,
   viewer: { canManage: boolean },
 ): Promise<EventWorkspace | null> {
-  const rows = await base(db, and(eq(events.orgId, orgId), eq(events.id, eventId)))
+  const rows = await base(db, orgId, and(eq(events.orgId, orgId), eq(events.id, eventId)))
   const row = rows[0]
   if (row === undefined) return null
 
@@ -255,7 +275,7 @@ export async function eventBasics(
   orgId: string,
   eventId: string,
 ): Promise<EventBasics | null> {
-  const rows = await base(db, and(eq(events.orgId, orgId), eq(events.id, eventId)))
+  const rows = await base(db, orgId, and(eq(events.orgId, orgId), eq(events.id, eventId)))
   const row = rows[0]
   if (row === undefined) return null
 
