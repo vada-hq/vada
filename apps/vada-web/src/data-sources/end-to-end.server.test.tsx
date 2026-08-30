@@ -61,6 +61,7 @@ beforeAll(async () => {
       now: () => new Date('2026-07-22T18:30:00+09:00'),
       newCode: () => 'AB12CD34',
     },
+    newId: () => 'E-01',
   })
 
   restore = useServer({

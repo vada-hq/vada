@@ -208,6 +208,59 @@ export const rosterUpdates = pgTable(
   (table) => [index('roster_updates_org_kind').on(table.orgId, table.kind)],
 )
 
+// ─── 행사 ───────────────────────────────────────────────────────────────────
+
+/**
+ * 행사의 진행 단계.
+ *
+ * **화면에 그려지는 것은 이 값이 아니다.** 서버가 '기획 중' 같은 말과 색으로 바꿔
+ * 준다 — 단계 이름과 색의 규칙이 화면에 박히면 규칙이 바뀔 때마다 화면을 고쳐야 한다.
+ * 화면이 이 열쇠를 받는 자리가 하나 있는데(작업공간 갈피의 갈림), 그것은 **그려지지
+ * 않고 어디로 갈지만 정한다**(event.workspace.statusKey).
+ */
+export const eventStatus = pgEnum('event_status', [
+  'planning',
+  'inProgress',
+  'wrapUp',
+  'done',
+])
+
+/**
+ * 행사.
+ *
+ * **행사명 하나로 만들어진다**(EVT-00B). 나머지는 행사 공간에서 나중에 채우므로
+ * 거의 전부 비어 있을 수 있고, 비어 있을 때 무엇을 보일지는 **서버가 완성한 글**로
+ * 준다('일시 미정'·'장소 미정'). 여기 빈 글을 저장해 두지 않는다 — 저장하면
+ * '아직 안 정했다'와 '비워 두기로 했다'가 같은 모양이 된다.
+ */
+export const events = pgTable(
+  'events',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    title: text('title').notNull(),
+    status: eventStatus('status').notNull().default('planning'),
+    startAt: timestamp('start_at', { withTimezone: true }),
+    place: text('place'),
+    audience: text('audience'),
+    // 참가비는 조건까지 문장이다('납부자 무료 / 미납자 500원') — 값 하나로 쪼갤 수
+    // 있는지 그림이 말하지 않으므로 사람이 적은 그대로 둔다.
+    fee: text('fee'),
+    capacity: text('capacity'),
+    contact: text('contact'),
+    // 맡은 부서와 사람. 둘 다 없을 수 있다(담당 미정).
+    hostDepartmentId: text('host_department_id').references(() => departments.id, {
+      onDelete: 'set null',
+    }),
+    hostMemberId: text('host_member_id').references(() => members.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('events_org_status').on(table.orgId, table.status)],
+)
+
 // ─── 법이 요구하는 기록 ─────────────────────────────────────────────────────
 
 /**

@@ -51,6 +51,7 @@ function harness(who: Viewer | null = viewer('chair')) {
       now: () => new Date('2026-07-22T18:30:00+09:00'),
       newCode: () => 'CODE-' + codes++,
     },
+    newId: () => 'E-' + codes++,
   }
   return { app: createApp(deps), written }
 }

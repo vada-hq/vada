@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import { auditMiddleware, type AuditSink } from './audit.ts'
 import { authorizeMiddleware } from './authorize.ts'
 import type { Db } from './db/client.ts'
-import type { Lookups, Viewer } from './permissions.ts'
+import { can, type Lookups, type Viewer } from './permissions.ts'
 import { attach, NotFound } from './routes.ts'
 import {
   checkKey,
@@ -19,6 +19,13 @@ import {
 } from './org/chart.ts'
 import { currentInvite, regenerateInvite, type InviteSettings } from './org/invite.ts'
 import { changeRole, roleAssignmentOf } from './org/role-change.ts'
+import {
+  createEvent,
+  eventBasics,
+  eventList,
+  eventSummary,
+  eventWorkspace,
+} from './events/events.ts'
 import {
   permissionMatrix,
   roleAssignmentCount,
@@ -61,6 +68,8 @@ export interface Deps {
   attempts: Attempts
   /** 초대 링크가 어디에 놓이는지와 때. 배포가 정하므로 밖에서 받는다. */
   invite: InviteSettings
+  /** 새로 만드는 것의 이름표. 밖에서 받으므로 검사가 정할 수 있다. */
+  newId: () => string
 }
 
 /** 이 사람이 어느 학생회의 것을 보고 있는가. 구성원이 아니면 여기까지 오지 않는다. */
@@ -82,6 +91,14 @@ function regenerate(c: import('hono').Context, d: Deps) {
   const orgId = orgOf(d)
   c.set('auditSubject', { type: 'organization', id: orgId })
   return regenerateInvite(d.db, orgId, d.invite)
+}
+
+/**
+ * 화면에 내려보내는 판정. **막는 검사와 같은 함수에서 나온다** — 두 곳에서 나오면
+ * 언젠가 갈리고, 갈리는 쪽은 늘 화면이다(단추를 그렸는데 눌리면 막힌다).
+ */
+function canDo(deps: Deps, area: string, object: string | null = null): Promise<boolean> {
+  return can(deps.who(), area, object, deps.lookups)
 }
 
 export function createApp(deps: Deps) {
@@ -135,6 +152,52 @@ export function createApp(deps: Deps) {
       const row = await viewerLine(d.db, orgId, who.userId)
       if (row === null) throw new NotFound('이 학생회의 구성원이 아닙니다')
       return row
+    },
+
+    // ── 행사 (EVT-00A · EVT-00B · EVT-02) ──────────────────────────────────
+    'event.list': async (c, d) => {
+      const orgId = orgOf(d)
+      c.set('auditSubject', { type: 'organization', id: orgId })
+      return eventList(
+        d.db,
+        orgId,
+        { query: c.req.query('query'), status: c.req.query('status') },
+        d.invite,
+      )
+    },
+    // 만들 수 있는 사람에게만 머리에 그 단추가 그려진다. **역할 이름이 아니라
+    // 할 수 있는 일로 가른다** — 판정은 정책 하나에서 나온다.
+    'event.listViewer': async (_c, d) =>
+      canDo(d, 'event.create').then((canCreateEvent) => ({ canCreateEvent })),
+    'event.summary': async (c, d) => {
+      const eventId = c.req.query('eventId')!
+      c.set('auditSubject', { type: 'event', id: eventId })
+      const row = await eventSummary(d.db, orgOf(d), eventId, d.invite)
+      if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
+      return row
+    },
+    'event.workspace': async (c, d) => {
+      const eventId = c.req.query('eventId')!
+      c.set('auditSubject', { type: 'event', id: eventId })
+      const row = await eventWorkspace(d.db, orgOf(d), eventId, {
+        canManage: await canDo(d, 'event.manage', eventId),
+      })
+      if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
+      return row
+    },
+    'event.basics': async (c, d) => {
+      const eventId = c.req.query('eventId')!
+      c.set('auditSubject', { type: 'event', id: eventId })
+      const row = await eventBasics(d.db, orgOf(d), eventId)
+      if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
+      return row
+    },
+    'event.create': async (c, d) => {
+      const orgId = orgOf(d)
+      const draft = (await c.req.json().catch(() => ({}))) as { title?: unknown }
+      const made = await createEvent(d.db, orgId, draft, { id: d.newId, now: d.invite.now })
+      c.set('auditSubject', { type: 'event', id: made.id })
+      return made
     },
 
     // ── 조직도 (ORG-03A · ORG-03B) ─────────────────────────────────────────

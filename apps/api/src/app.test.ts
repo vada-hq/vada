@@ -52,6 +52,7 @@ function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
       now: () => new Date('2026-07-22T18:30:00+09:00'),
       newCode: () => 'AB12CD34',
     },
+    newId: () => 'E-01',
     ...over,
   }
   return { app: createApp(deps), written }
@@ -200,7 +201,7 @@ describe('명세 밖으로 새지 않는다', () => {
     // 것으로 세었는데, 진짜로 404를 내는 자리(없는 구성원을 물었을 때)와 아직
     // 안 만든 자리가 같은 모양이라 **만든 것을 안 만든 것으로 세고 있었다.**
     harness()
-    expect(answeredOperationIds()).toHaveLength(17)
+    expect(answeredOperationIds()).toHaveLength(23)
     expect(allOperationIds()).toHaveLength(216)
   })
 })
