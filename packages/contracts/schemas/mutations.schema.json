@@ -24,7 +24,8 @@
           "request",
           "messages",
           "params",
-          "authorize"
+          "authorize",
+          "repeat"
         ],
         "properties": {
           "key": {
@@ -170,6 +171,54 @@
                 "type": "string",
                 "minLength": 1,
                 "description": "조건이 대상을 필요로 할 때 **어느 인자가 그 대상을 가리키는가.**\n\n'행사 조직만'은 주체가 **그 행사의** 운영 조직에 속해야 한다는 뜻이라, 어느 행사인지 모르면 판정할 수 없다. 그 값은 이미 조회 인자로 와 있으므로 새로 받지 않고 어느 것인지만 가리킨다."
+              }
+            }
+          },
+          "repeat": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "kind",
+              "why"
+            ],
+            "description": "**두 번 보내지면 어떻게 되는가.**\n\n보내는 쪽은 두 번 보낼 수 있고, 그것을 막을 방법이 없다 — 사람이 두 번 누르고, 화면이 느려 또 누르고, 네트워크가 끊겨 다시 보낸다. 그런데 44개 변이 중 이것을 말하는 것이 **하나도 없었다.** 받는 쪽은 자리마다 스스로 판단해야 했고, 판단을 빠뜨리면 **행사가 둘 생기고 출석이 두 번 세어진다.**\n\n갈래는 자리의 성질이 정하지 취향이 아니다 — 자연 열쇠가 있으면 그것을 쓰고, 없으면 보내는 쪽이 키를 붙이고, 상태를 옮기는 것이면 이미 그 상태임을 알린다.",
+            "properties": {
+              "kind": {
+                "enum": [
+                  "overwrite",
+                  "naturalKey",
+                  "idempotencyKey",
+                  "conflict"
+                ],
+                "description": "`overwrite` — 같은 것을 다시 보내면 같은 상태가 된다. 아무 장치도 필요 없다.\n\n`naturalKey` — 이미 있는지 **데이터가 답한다**. 두 번째는 첫 번째의 답을 그대로 준다. 무엇이 열쇠인지 `naturalKey`가 말한다.\n\n`idempotencyKey` — 자연 열쇠가 없다(같은 이름의 행사를 둘 만드는 것이 정당할 수 있다). 보내는 쪽이 `Idempotency-Key`를 붙이고 서버가 그 키로 첫 답을 되돌려 준다.\n\n`conflict` — 상태를 옮긴다. 이미 그 상태면 **409**로 답한다. 조용히 성공으로 답하면 '남이 먼저 했다'와 '내가 두 번 눌렀다'가 같은 모양이 된다."
+              },
+              "naturalKey": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "이미 있는지 가리는 조각들. 보내는 값(payloadScope)의 fieldKey이거나 이 자리의 인자여야 한다."
+              },
+              "why": {
+                "type": "string",
+                "minLength": 1,
+                "description": "왜 그 갈래인가."
+              }
+            }
+          },
+          "irreversible": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "why"
+            ],
+            "description": "**되돌릴 수 없다.** 있으면 화면이 보내기 전에 확인을 받아야 한다.\n\n카탈로그가 스스로 두 번 짚은 것이다 — 회의록 정리 완료와 진행 권한 빼기에 '확인 모달이 그려지지 않았다'고 적혀 있었다. 그림에 없다고 위험이 없는 것이 아니므로 계약이 그 사실을 든다.",
+            "properties": {
+              "why": {
+                "type": "string",
+                "minLength": 1
               }
             }
           }

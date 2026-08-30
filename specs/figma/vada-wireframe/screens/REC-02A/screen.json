@@ -92,6 +92,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "record.archive.saveDraft",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          },
           "onSuccess": {}
         }
       }
@@ -110,6 +115,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "record.archive.requestReview",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          },
           "onSuccess": {
             "note": "검토를 요청한 뒤 어느 화면으로 가는지가 디자인에 없습니다. 이 화면에 머무는지 완료된 행사 목록으로 돌아가는지 그림이 말하지 않습니다."
           },
@@ -373,6 +383,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "record.archive.generateHandoverDraft",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          },
           "onSuccess": {}
         }
       }

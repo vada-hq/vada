@@ -117,6 +117,95 @@ test('세션을 걸지 않는 자리와 public이 같다', () => {
   assert.deepEqual(publicArea.sort(), open.sort())
 })
 
+// **216자리가 성공 하나만 들고 있었다.**
+//
+// 그러면 받는 쪽은 실패를 다룰 수 없고, 다룰 수 없는 실패는 화면에 '알 수 없는 오류'로
+// 나온다. 이제 코드는 손으로 적지 않고 명세에서 끌어낸다 — 파생이라 갈릴 수가 없다.
+test('실패가 명세에서 끌어낸 대로 실린다', () => {
+  const built = buildOpenApi()
+  const mutations = new Map(
+    JSON.parse(
+      readFileSync(join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'mutations.json'), 'utf-8'),
+    ).mutations.map((mutation) => [mutation.key, mutation]),
+  )
+
+  let checkedPublic = 0
+  let checkedConflict = 0
+  for (const item of Object.values(built.paths)) {
+    for (const operation of Object.values(item)) {
+      const codes = operation.responses
+      const area = operation['x-authorize'].area
+      const at = operation.operationId
+
+      if (area === 'public') {
+        // 로그인이 없으므로 막을 것이 없다. 대신 토큰을 마구 넣어 보는 것을 막아야 한다.
+        assert.ok(!codes[401] && !codes[403], `${at}가 밖에서 열리는데 권한 실패를 답합니다`)
+        assert.ok(codes[429], `${at}가 밖에서 열리는데 너무 자주 눌린 것을 막지 않습니다`)
+        checkedPublic += 1
+      } else {
+        assert.ok(codes[401], `${at}에 401이 없습니다`)
+      }
+
+      const mutation = mutations.get(at)
+      if (mutation?.repeat.kind === 'conflict') {
+        assert.ok(codes[409], `${at}는 상태를 옮기는데 409가 없습니다`)
+        checkedConflict += 1
+      }
+      if (mutation?.repeat.kind !== 'conflict' && mutation !== undefined) {
+        assert.ok(!codes[409], `${at}는 상태를 옮기지 않는데 409를 답합니다`)
+      }
+    }
+  }
+  assert.equal(checkedPublic, 9)
+  assert.equal(checkedConflict, 15)
+})
+
+// **두 번 보내지는 것을 막을 방법이 없다.** 사람이 두 번 누르고, 화면이 느려 또 누르고,
+// 네트워크가 끊겨 다시 보낸다. 자연 열쇠가 없는 자리는 보내는 쪽이 키를 붙여야 한다.
+test('자연 열쇠가 없는 자리는 멱등 키를 요구한다', () => {
+  const built = buildOpenApi()
+  const mutations = JSON.parse(
+    readFileSync(join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'mutations.json'), 'utf-8'),
+  ).mutations
+  const wanted = new Set(
+    mutations.filter((m) => m.repeat.kind === 'idempotencyKey').map((m) => m.key),
+  )
+  assert.ok(wanted.size > 0)
+
+  const asked = new Set()
+  for (const item of Object.values(built.paths)) {
+    for (const operation of Object.values(item)) {
+      const header = (operation.parameters ?? []).find((p) => p.name === 'Idempotency-Key')
+      if (header === undefined) continue
+      assert.equal(header.in, 'header')
+      assert.equal(header.required, true)
+      asked.add(operation.operationId)
+    }
+  }
+  assert.deepEqual([...asked].sort(), [...wanted].sort())
+})
+
+// 카탈로그가 result로 말하는데 문서로 이어진 적이 없었다 — 성공 응답이 줄곧 빈 객체였고,
+// 출석 확인이 영수증을 준다는 사실이 문서 어디에도 없었다.
+test('보낸 뒤에 오는 것이 문서에 실린다', () => {
+  const built = buildOpenApi()
+  const mutations = JSON.parse(
+    readFileSync(join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'mutations.json'), 'utf-8'),
+  ).mutations
+  let checked = 0
+  for (const mutation of mutations) {
+    if (!Array.isArray(mutation.result) || mutation.result.length === 0) continue
+    const operation = built.paths[mutation.request.path][mutation.request.method.toLowerCase()]
+    const schema = operation.responses[200].content['application/json'].schema
+    for (const field of mutation.result) {
+      assert.ok(schema.properties[field.key], `${mutation.key}의 '${field.key}'가 문서에 없습니다`)
+      assert.equal(schema.properties[field.key].type, field.valueType)
+    }
+    checked += 1
+  }
+  assert.ok(checked >= 3, `견준 것이 ${checked}개뿐입니다`)
+})
+
 // 같은 자리를 두 번 적으면 생성기가 던진다. 실제로 한 번 잡았다 —
 // org.departments가 데이터 카탈로그와 선택지 카탈로그에 같은 경로로 있었고,
 // 조직도가 읽는 나무와 고르는 목록이라 **한 자리가 두 모양을 줄 수 없었다.**

@@ -601,6 +601,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "event.saveBasics",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          },
           "onSuccess": {
             "navigate": "EVT-02",
             "params": {

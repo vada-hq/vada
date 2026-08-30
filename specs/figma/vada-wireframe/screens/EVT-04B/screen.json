@@ -173,6 +173,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "event.attendanceQr.regenerate",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          },
           "onSuccess": {}
         }
       }
@@ -191,6 +196,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "event.attendanceQr.deactivate",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          },
           "onSuccess": {}
         }
       }

@@ -39,6 +39,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.acknowledgeSummary",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          },
           "onSuccess": {
             "note": "확인을 기록한 뒤 무엇이 달라지는지가 디자인에 없습니다. 띠가 바뀌는지 화면이 옮겨가는지 그림이 말하지 않습니다."
           }

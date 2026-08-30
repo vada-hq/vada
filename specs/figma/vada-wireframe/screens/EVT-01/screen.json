@@ -228,6 +228,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "event.staff.setup",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          },
           "onSuccess": {
             "navigate": "EVT-03A",
             "params": {

@@ -90,6 +90,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.start",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          },
           "onSuccess": {
             "note": "회의를 시작한 뒤 어느 화면으로 가는지가 디자인에 없습니다. 진행 중 회의(OPS-MEET-05A)가 유력하지만 그림에 이음이 없습니다."
           }

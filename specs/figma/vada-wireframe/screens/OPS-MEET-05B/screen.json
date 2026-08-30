@@ -70,6 +70,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.completeAgenda",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          },
           "onSuccess": {}
         }
       }
@@ -122,6 +127,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.startNextAgenda",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          },
           "onSuccess": {}
         }
       }

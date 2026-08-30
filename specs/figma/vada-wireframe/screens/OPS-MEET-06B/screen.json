@@ -84,6 +84,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.completeMinutes",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          },
           "onSuccess": {
             "note": "정리를 마친 뒤 어느 화면으로 가는지가 디자인에 없습니다. 완료 회의록(OPS-MEET-07)이 유력하지만 그림에 이음이 없습니다."
           },
@@ -184,6 +189,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "meeting.generateSummary",
+          "params": {
+            "meetingId": {
+              "screenParam": "meetingId"
+            }
+          },
           "onSuccess": {
             "note": "정리를 마친 뒤 어느 화면으로 가는지가 디자인에 없습니다. 완료 회의록(OPS-MEET-07)이 유력하지만 그림에 이음이 없습니다."
           }

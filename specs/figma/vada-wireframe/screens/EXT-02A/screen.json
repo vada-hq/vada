@@ -264,6 +264,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "survey.apply",
+          "params": {
+            "surveyToken": {
+              "screenParam": "surveyToken"
+            }
+          },
           "onSuccess": {
             "navigate": "EXT-02B",
             "params": {

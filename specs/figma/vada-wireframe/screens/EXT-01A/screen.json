@@ -121,6 +121,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "attendance.checkIn",
+          "params": {
+            "checkInToken": {
+              "screenParam": "checkInToken"
+            }
+          },
           "onSuccess": {
             "navigate": "EXT-01B",
             "params": {

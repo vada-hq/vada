@@ -118,6 +118,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "event.survey.activate",
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          },
           "onSuccess": {},
           "executeWhen": {
             "type": "sourceAllows",

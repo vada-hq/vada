@@ -51,9 +51,10 @@ function checkRequiredParams(findings, file, source, params, where) {
   for (const param of Array.isArray(source?.params) ? source.params : []) {
     checkFixedValueType(findings, file, param, given[param?.key], where);
     if (param?.required !== true) continue;
-    // 경로에 박힌 것은 주소가 들고 있다. 넘기는 인자로 셀 것이 아니다.
-    if (typeof source?.request?.path === "string" &&
-        source.request.path.includes(`{${param.key}}`)) continue;
+    // **경로에 박힌 것도 넘기는 쪽이 준다.** 한동안 여기서 건너뛰었는데, 그것은
+    // 주소를 서버가 만든다는 착각이었다 — 주소를 만드는 것은 부르는 쪽이고,
+    // `{meetingId}`에 무엇을 넣을지는 이 params가 말한다. 건너뛰는 동안 **130자리가
+    // 검사 없이 지나갔고**, 그 자리가 하필 가장 중요한 인자들이다.
     if (param.key in given) continue;
     findings.push({
       level: "error",
@@ -211,6 +212,68 @@ function checkAuthorize(findings, permissions, groups) {
       }
     }
   }
+}
+
+/**
+ * **두 번 보내지면 어떻게 되는가**를 적어 둔 것이 실제로 판정 가능한가.
+ *
+ * `naturalKey`는 '이미 있는지 데이터가 답한다'는 뜻이다. 그런데 그 열쇠가 실제로 오는
+ * 값이 아니면 받는 쪽은 가릴 것이 없다 — 적어만 두고 판정할 수 없는 계약이 된다.
+ *
+ * 열쇠는 둘 중 하나에서 온다. **이 자리의 인자**(경로가 실어 온 토큰)이거나
+ * **보내는 값의 칸**(폼에 적은 학번)이다.
+ */
+function checkRepeat(findings, file, mutation, screens) {
+  const repeat = mutation?.repeat;
+  if (!isObject(repeat)) return;
+
+  const declared = new Set([...paramKeys(mutation)]);
+  const inPayload = payloadFieldKeys(mutation.payloadScope, screens);
+
+  if (repeat.kind === "naturalKey") {
+    const keys = Array.isArray(repeat.naturalKey) ? repeat.naturalKey : [];
+    if (keys.length === 0) {
+      findings.push({
+        level: "error",
+        file,
+        message: `제출 계약 '${mutation.key}'가 자연 열쇠로 가린다고 적었는데 무엇이 열쇠인지 말하지 않습니다.`
+      });
+    }
+    for (const key of keys) {
+      if (declared.has(key) || inPayload.has(key)) continue;
+      findings.push({
+        level: "error",
+        file,
+        message: `제출 계약 '${mutation.key}'의 자연 열쇠 '${key}'가 이 자리의 인자에도 보내는 값에도 없습니다 — 가릴 것이 없습니다.`
+      });
+    }
+  } else if (Array.isArray(repeat.naturalKey)) {
+    findings.push({
+      level: "error",
+      file,
+      message: `제출 계약 '${mutation.key}'는 '${repeat.kind}'인데 자연 열쇠를 적었습니다.`
+    });
+  }
+}
+
+/** 그 스코프에 값을 쓰는 화면의 칸들. 보내는 값이 무엇인지는 화면이 안다. */
+function payloadFieldKeys(scopeKey, screens) {
+  const keys = new Set();
+  if (typeof scopeKey !== "string") return keys;
+  for (const screen of screens) {
+    if (screen?.spec?.stateScopeKey !== scopeKey) continue;
+    const walk = (node) => {
+      if (Array.isArray(node)) {
+        for (const item of node) walk(item);
+        return;
+      }
+      if (!isObject(node)) return;
+      if (typeof node.fieldKey === "string") keys.add(node.fieldKey);
+      for (const value of Object.values(node)) walk(value);
+    };
+    walk(screen.spec);
+  }
+  return keys;
 }
 
 function elementLabel(element, index) {
@@ -2040,7 +2103,8 @@ function checkNavigateParams(findings, context) {
     fieldKeys,
     screenParams,
     screenParamsById,
-    requiredParamsById
+    requiredParamsById,
+    mutationByKey
   } = context;
   const spec = element.spec;
 
@@ -2058,6 +2122,25 @@ function checkNavigateParams(findings, context) {
     const targetParams = screenParamsById?.get(target) ?? null;
     const targetRequired = requiredParamsById?.get(target) ?? null;
     const label = elementLabel(element, index);
+
+    // **보내는 자리도 인자를 받는다.** 오랫동안 인자는 '다음 화면에 넘기는 것'뿐인 줄
+    // 알고 제출에는 막아 두었는데, 변이도 자리에 인자가 박혀 있다
+    // (`/api/ops/meetings/{meetingId}/hosts/{memberId}`). 막아 둔 탓에 **누구에게 주는지
+    // 말할 길이 없었고**, 21곳 중 20곳은 화면 인자와 이름이 우연히 같아 도는 중이었다.
+    // **없는 것도 본다.** 처음에는 params가 있을 때만 봤는데, 그러면 아예 안 적은
+    // 자리가 조용하다 — 그것이 바로 이 검사가 잡으려던 모양이다(누구에게 주는지
+    // 말하지 않던 진행 권한 부여가 그랬다).
+    if (action.type === "submit") {
+      const mutation = mutationByKey?.get(action.mutationKey) ?? null;
+      if (mutation) {
+        checkArgumentValues(findings, context, params, {
+          declared: paramKeys(mutation),
+          where: `제출 계약 '${action.mutationKey}'`
+        });
+        checkRequiredParams(findings, file, mutation, params, `${label}의 제출 '${action.mutationKey}'`);
+      }
+      continue;
+    }
 
     if (isObject(params) && action.type !== "navigate") {
       findings.push({
@@ -2334,6 +2417,7 @@ export function collectSpecFindings({
   const mutationList =
     isObject(mutations) && Array.isArray(mutations.mutations) ? mutations.mutations : [];
   const mutationKeys = new Set(mutationList.map((mutation) => mutation.key));
+  const mutationByKey = new Map(mutationList.map((mutation) => [mutation.key, mutation]));
 
   // 제출 계약이 참조하는 payload 스코프는 카탈로그에 있어야 한다.
   for (const mutation of mutationList) {
@@ -2344,6 +2428,7 @@ export function collectSpecFindings({
         message: `제출 계약 '${mutation.key}'의 payloadScope '${mutation.payloadScope}'가 상태 스코프 카탈로그에 없습니다.`
       });
     }
+    checkRepeat(findings, mutationsFile, mutation, screens);
   }
 
   for (const screen of screens) {
@@ -2642,6 +2727,7 @@ export function collectSpecFindings({
         groupedFieldKeys,
         mutations,
         mutationKeys,
+        mutationByKey,
         clearOnByScope,
         // 갈림길이 가리킨 화면이 실제로 있는지 보려면 화면 목록이 필요하다.
         screenIds,

@@ -177,24 +177,119 @@ function bodySchema(scopeKey, byScope) {
 const ERROR_SCHEMA = {
   type: "object",
   description:
-    "**아직 정하지 않았다.** 카탈로그는 실패했을 때 사람에게 보일 글(messages.error)만 " +
-    "갖고 있고, 기계가 읽을 코드는 정한 적이 없다. 지어내지 않고 자리만 둔다.",
+    "실패했을 때 오는 것. **무엇이 잘못됐는지는 상태 코드가 말하고, 사람에게 보일 글은 " +
+    "여기 담긴다.** 한동안 '아직 정하지 않았다'로 자리만 비워 두었는데 이제 정해졌다 — " +
+    "코드는 자리마다 손으로 적지 않고 **명세에서 끌어낸다.** 권한 영역이 401·403을, 자리에 " +
+    "박힌 인자가 404를, 되풀이될 때의 성질이 409를, 보내는 값이 있으면 422를, 로그인 없이 " +
+    "열리는 자리가 429를 말한다. **조각을 더 두지 않는다** — 어느 칸이 틀렸는지를 담을 " +
+    "어휘가 아직 없고, 지어내면 그 거짓이 서버까지 간다(화면은 보내기 전에 이미 필수 칸을 본다).",
   properties: {
     message: { type: "string", description: "사람에게 보일 글" }
   },
   required: ["message"]
 };
 
-function responses(schema) {
+const ERROR_BODY = {
+  content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
+};
+
+/**
+ * 이 자리가 무엇으로 실패하는가. **짐작하지 않고 명세에서 끌어낸다.**
+ *
+ * 216자리가 오랫동안 `200` 하나만 들고 있었다. 그러면 받는 쪽은 실패를 다룰 수 없고,
+ * 다룰 수 없는 실패는 화면에 '알 수 없는 오류'로 나온다.
+ *
+ * 여기서 새로 정하는 것은 없다. 권한 영역이 401·403을 말하고, 자리에 박힌 인자가
+ * 404를 말하고, 되풀이될 때의 성질이 409를 말하고, 보내는 값이 있으면 422가 있다.
+ * **파생이라 갈릴 수가 없다** — 자리마다 손으로 적으면 언젠가 하나가 빠진다.
+ */
+function failures({ area, path, params, hasBody, repeatKind, shape }) {
+  const out = {};
+  const isPublic = area === "public";
+
+  if (!isPublic) {
+    out[401] = { description: "로그인이 필요하다", ...ERROR_BODY };
+  }
+  if (!isPublic && area !== "signedIn") {
+    out[403] = { description: "이 자리를 열 권한이 없다", ...ERROR_BODY };
+  }
+  // 자리에 박힌 것을 가리켜 부르면 그것이 없을 수 있다. 한 건을 집어 오는 조회도
+  // 같다 — 없는 것을 빈 값으로 대신하지 않는 것이 이 저장소의 규칙이다.
+  const keyed = pathParams(path).length > 0 ||
+    (shape === "object" && (params ?? []).some((param) => param.required));
+  if (keyed) {
+    out[404] = { description: "가리킨 것이 없다", ...ERROR_BODY };
+  }
+  if (repeatKind === "conflict") {
+    out[409] = {
+      description: "이미 그 상태다. 남이 먼저 했거나 두 번 눌렸다",
+      ...ERROR_BODY
+    };
+  }
+  if (hasBody) {
+    out[422] = { description: "보낸 값이 받을 수 없는 것이다", ...ERROR_BODY };
+  }
+  // **열쇠가 주소에 실려 있다.** 로그인이 없으므로 토큰을 마구 넣어 보면 남의 것을
+  // 열 수 있다 — 막지 않으면 그것이 유일한 벽이 된다.
+  if (isPublic) {
+    out[429] = { description: "너무 자주 눌렀다", ...ERROR_BODY };
+  }
+  return out;
+}
+
+/**
+ * 보낸 뒤에 무엇이 오는가.
+ *
+ * 카탈로그가 `result`로 이미 말하고 있었는데 **여기로 이어진 적이 없었다** — 계약의
+ * 성공 응답이 줄곧 빈 객체였다. 그래서 출석 확인이 영수증을 준다는 사실이 문서에
+ * 없었고, 받는 쪽은 그것을 알 길이 없었다.
+ */
+function resultSchema(mutation) {
+  const result = Array.isArray(mutation.result) ? mutation.result : [];
+  if (result.length === 0) {
+    return { type: "object", description: "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다" };
+  }
+  const properties = {};
+  for (const field of result) {
+    properties[field.key] = { type: field.valueType, description: field.description };
+  }
+  return {
+    type: "object",
+    description: "보낸 뒤의 답",
+    properties,
+    required: result.map((field) => field.key)
+  };
+}
+
+function responses(schema, failure = {}) {
   return {
     200: {
       description: "성공",
       content: { "application/json": { schema } }
     },
+    ...failure,
     default: {
-      description: "실패",
+      description: "그 밖의 실패",
       content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } }
     }
+  };
+}
+
+/**
+ * 두 번 보내진 것을 첫 번째와 같은 것으로 여기게 하는 열쇠.
+ *
+ * 자연 열쇠가 없는 자리에만 붙는다 — 같은 이름의 행사를 둘 만드는 것이 정당할 수
+ * 있으므로 내용으로는 가릴 수 없고, 두 번 눌린 것과 두 번 의도한 것은 **보내는 쪽만**
+ * 안다.
+ */
+function idempotencyHeader() {
+  return {
+    name: "Idempotency-Key",
+    in: "header",
+    required: true,
+    description:
+      "보내는 쪽이 만드는 한 번뿐인 값. 같은 키로 다시 오면 서버는 새로 만들지 않고 첫 번째의 답을 그대로 준다.",
+    schema: { type: "string" }
   };
 }
 
@@ -226,7 +321,15 @@ export function buildOpenApi() {
       summary: source.description,
       "x-authorize": authorizeOf(source),
       parameters: parametersOf(path, source.params),
-      responses: responses(source.shape === "list" ? { type: "array", items: item } : item)
+      responses: responses(
+        source.shape === "list" ? { type: "array", items: item } : item,
+        failures({
+          area: source.authorize?.area,
+          path,
+          params: source.params,
+          shape: source.shape
+        })
+      )
     });
   }
 
@@ -264,7 +367,10 @@ export function buildOpenApi() {
       summary: source.description,
       "x-authorize": authorizeOf(source),
       parameters,
-      responses: responses({ type: "array", items: option })
+      responses: responses(
+        { type: "array", items: option },
+        failures({ area: source.authorize?.area, path, params: source.params, shape: "list" })
+      )
     });
   }
 
@@ -274,8 +380,20 @@ export function buildOpenApi() {
       operationId: mutation.key,
       summary: mutation.description,
       "x-authorize": authorizeOf(mutation),
-      parameters: parametersOf(path, mutation.params),
-      responses: responses({ type: "object", description: "보낸 뒤의 답" })
+      parameters: [
+        ...parametersOf(path, mutation.params),
+        ...(mutation.repeat?.kind === "idempotencyKey" ? [idempotencyHeader()] : [])
+      ],
+      responses: responses(
+        resultSchema(mutation),
+        failures({
+          area: mutation.authorize?.area,
+          path,
+          params: mutation.params,
+          hasBody: typeof mutation.payloadScope === "string",
+          repeatKind: mutation.repeat?.kind
+        })
+      )
     };
     if (typeof mutation.payloadScope === "string") {
       operation.requestBody = {
