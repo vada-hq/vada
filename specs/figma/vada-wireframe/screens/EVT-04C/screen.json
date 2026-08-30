@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-04C",
+  "meta": {
+    "eyebrow": "운영 · 행사 · 인원 관리",
+    "title": "행사 참가자"
+  },
+  "variantOf": {
+    "screenId": "EVT-04",
+    "when": "참가 신청자가 아직 하나도 없을 때(event.participants가 빈 목록으로 온다). 명단 자리에 비었다는 말과 그 까닭, 그리고 설문을 만들러 가는 단추가 대신 그려진다 — 본 화면의 itemList가 이미 그 셋을 갖고 있다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:7347",
+    "name": "운영 — 행사 · EVT-04C · 행사 참가자 — 빈 상태",
+    "figmaType": "FRAME"
+  },
+  "elements": []
+}

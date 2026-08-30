@@ -26,7 +26,8 @@ const CATALOG_SCHEMA_FILES = [
   "element-action.schema.json",
   "element-params.schema.json",
   "figma-design.schema.json",
-  "figma-file.schema.json"
+  "figma-file.schema.json",
+  "not-screens.schema.json"
 ];
 
 async function createValidators() {
@@ -71,6 +72,7 @@ async function createValidators() {
     permissions: ajv.getSchema("permissions.schema.json"),
     shell: ajv.getSchema("shell.schema.json"),
     figmaFile: ajv.getSchema("figma-file.schema.json"),
+    notScreens: ajv.getSchema("not-screens.schema.json"),
     figmaDesign: ajv.getSchema("figma-design.schema.json"),
     elementPropertyOrder,
     elements
@@ -222,6 +224,8 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
   const permissions = await readOptionalOwnCatalog("permissions.json", validators.permissions);
   // Figma 문서 신원. 없어도 되지만(플러그인으로만 저장해 온 wireframe) 있으면 검사한다.
   await readOptionalOwnCatalog("figma-file.json", validators.figmaFile);
+  // 화면으로 만들지 않기로 **정한** 프레임들. 잊은 것과 갈라 놓는 자리다.
+  const notScreens = await readOptionalOwnCatalog("not-screens.json", validators.notScreens);
 
   const screensDir = join(wireframeDir, "screens");
   const entries = await readdir(screensDir, { withFileTypes: true });
@@ -346,12 +350,41 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     };
   }
 
+  // 화면으로 만들지 않기로 정한 프레임. 까닭이 여기 있으므로 조용하다.
+  const decidedNotScreens = new Map(
+    (notScreens?.frames ?? []).map((frame) => [frame.screenId, frame.why])
+  );
   for (const screenId of Object.keys(designs)) {
-    if (!screens.some((screen) => screen.spec?.screenId === screenId)) {
+    const hasSpec = screens.some((screen) => screen.spec?.screenId === screenId);
+    const decided = decidedNotScreens.get(screenId);
+    if (hasSpec) {
+      // **둘 다일 수는 없다.** 만들지 않기로 정해 놓고 만들면 그 결정은 죽은 글이고,
+      // 다음 사람은 그 글을 믿는다.
+      if (decided !== undefined) {
+        findings.push({
+          level: "error",
+          file: label("not-screens.json"),
+          message: `'${screenId}'는 화면으로 만들지 않기로 적혀 있는데 screen.json이 있습니다. 결정을 지우거나 화면을 지우세요.`
+        });
+      }
+      continue;
+    }
+    if (decided !== undefined) {
+      continue;
+    }
+    findings.push({
+      level: "warning",
+      file: designs[screenId].file,
+      message: `figma.design.json은 있으나 동작 명세 screens/${screenId}/screen.json이 없습니다. 만들지 않기로 정한 것이라면 not-screens.json에 까닭과 함께 적으세요.`
+    });
+  }
+  // 적어 둔 프레임이 사라지면 그 결정도 사라져야 한다 — 남으면 없는 그림을 가리킨다.
+  for (const [screenId] of decidedNotScreens) {
+    if (designs[screenId] === undefined) {
       findings.push({
-        level: "warning",
-        file: designs[screenId].file,
-        message: `figma.design.json은 있으나 동작 명세 screens/${screenId}/screen.json이 없습니다.`
+        level: "error",
+        file: label("not-screens.json"),
+        message: `'${screenId}'를 만들지 않기로 적었는데 screens/${screenId}/figma.design.json이 없습니다.`
       });
     }
   }

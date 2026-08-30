@@ -155,6 +155,12 @@ const FLOOR = {
   // 보이는 쪽이 낫다 — 안 보이면 명세가 빠뜨려도 아무도 모른다.
   "REC-02A": { matched: 5, spurious: 2 },
   "EVT-00A2": { matched: 1, spurious: 3 },
+  // 빈 상태를 그린 변형 둘이다. 요소를 하나도 담지 않는다 — 비었다는 말도, 그 까닭도,
+  // 채우러 가는 단추도 본 화면의 itemList가 이미 갖고 있다(messages.empty ·
+  // messages.emptyDetail · emptyAction). 추출기는 그 사정을 모르고 그림에 그려진
+  // 단추 셋을 그대로 내므로 전부 헛것이 된다.
+  "EVT-03C": { matched: 0, spurious: 3 },
+  "EVT-04C": { matched: 0, spurious: 3 },
   "EVT-02D": { matched: 1, spurious: 2 },
   "EVT-03A": { matched: 2, spurious: 3 },
   "OPS-MEET-01B": { matched: 0, spurious: 2 },

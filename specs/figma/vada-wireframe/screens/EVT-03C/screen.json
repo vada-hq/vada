@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "screenId": "EVT-03C",
+  "meta": {
+    "eyebrow": "운영 · 행사 · 인원 관리",
+    "title": "운영 조직"
+  },
+  "variantOf": {
+    "screenId": "EVT-03A",
+    "when": "운영 조직이 아직 하나도 없을 때(event.staffDepartments가 빈 목록으로 온다). 목록 자리에 비었다는 말과 그 까닭, 그리고 구성하러 가는 단추가 대신 그려진다 — 본 화면의 itemList가 이미 그 셋을 갖고 있으므로(messages.empty · messages.emptyDetail · emptyAction) 이 그림이 더하는 요소는 없다."
+  },
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "20:6354",
+    "name": "운영 — 행사 · EVT-03C · 운영 조직 — 빈 상태",
+    "figmaType": "FRAME"
+  },
+  "elements": []
+}
