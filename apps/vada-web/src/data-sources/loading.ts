@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { findDataSource } from './catalog'
+import { loadSources, servingFromServer } from './server'
 
 /**
  * 받아 오는 동안과 실패했을 때.
@@ -75,9 +76,28 @@ export function useSourceLoading(keys: readonly string[]): LoadingState {
   const signature = keys.join('|')
   const failing = keys.filter((key) => behaviour.failing.includes(key))
   const delayMs = behaviour.delayMs
-  const [arrived, setArrived] = useState(() => delayMs === 0)
+  const fromServer = servingFromServer()
+  const [arrived, setArrived] = useState(() => delayMs === 0 && !fromServer)
+  const [broken, setBroken] = useState<string[]>([])
 
   useEffect(() => {
+    // **서버가 켜져 있으면 진짜로 받아 온다.** 늦음을 흉내 내는 것과 실제로
+    // 늦는 것은 다르다 — 흉내만 있으면 계약이 틀렸을 때 그것이 드러날 자리가 없다.
+    if (fromServer) {
+      let live = true
+      setArrived(false)
+      setBroken([])
+      loadSources(signature === '' ? [] : signature.split('|'))
+        .then(() => {
+          if (live) setArrived(true)
+        })
+        .catch(() => {
+          if (live) setBroken(signature === '' ? [] : signature.split('|'))
+        })
+      return () => {
+        live = false
+      }
+    }
     if (delayMs === 0) {
       setArrived(true)
       return
@@ -87,8 +107,11 @@ export function useSourceLoading(keys: readonly string[]): LoadingState {
     return () => clearTimeout(timer)
     // signature가 바뀌면 다시 받는다. keys 배열 자체는 매번 새로 만들어지므로
     // 그것을 의존성으로 두면 끝없이 다시 받는다.
-  }, [signature, delayMs])
+  }, [signature, delayMs, fromServer])
 
+  if (broken.length > 0) {
+    return { status: 'error', messages: messagesOf(broken, 'error') }
+  }
   if (failing.length > 0) {
     return { status: 'error', messages: messagesOf(failing, 'error') }
   }

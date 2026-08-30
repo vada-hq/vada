@@ -1,6 +1,7 @@
 // specs/figma/vada-wireframe/data-sources.json 카탈로그의 소비자.
 // option-sources/catalog.ts와 같은 방식이다: 계약(요청 경로·상태 문구·응답
 // 조각)은 카탈로그를 단일 원본으로 읽고, 네트워크만 개발용 mock으로 대체한다.
+import { fromServer } from './server'
 import catalogJson from '../../../../specs/figma/vada-wireframe/data-sources.json'
 import { DASHBOARD_FIXTURES, FILTERED_FIXTURES } from './fixtures'
 
@@ -107,6 +108,13 @@ export function readDataSource(
         `데이터 출처 '${key}'는 조회 인자 '${param.key}'를 반드시 받습니다(${param.description}).`,
       )
     }
+  }
+
+  // **서버가 켜져 있으면 서버가 답한다.** 개발용 응답은 서버가 없을 때의 대역이지
+  // 서버 대신이 아니다 — 켜졌는데도 개발용 응답을 주면 계약이 틀린 것을 못 본다.
+  const served = fromServer(source.key)
+  if (served !== undefined) {
+    return served as DataRow | DataRow[]
   }
 
   // 인자로 거르는 응답은 목록으로 만들어 두고, shape가 object면 첫 줄을 집는다.

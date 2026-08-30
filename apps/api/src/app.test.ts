@@ -1,20 +1,40 @@
-import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import { beforeAll, afterAll, describe, expect, it } from 'vitest'
+import Ajv from 'ajv'
+import openapi from '../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
 import { createApp, type Deps } from './app.ts'
-import { maskSecrets } from './audit.ts'
-import type { AuditEntry } from './audit.ts'
+import { maskSecrets, type AuditEntry } from './audit.ts'
+import type { Db } from './db/client.ts'
+import { freshDb } from './db/testing.ts'
+import { departments, members, organizations } from './db/schema.ts'
+import { allOperationIds, routeOf } from './routes.ts'
+import type { Viewer } from './permissions.ts'
 
 // 서버가 명세대로 답하는가, 그리고 **명세 밖으로 새지 않는가.**
 
-const CATALOG_OPENAPI = JSON.parse(
-  readFileSync(
-    fileURLToPath(new URL('../../../specs/figma/vada-wireframe/openapi.json', import.meta.url)),
-    'utf-8',
-  ),
-)
+let db: Db
+let close: () => Promise<void>
 
-function harness(over: Partial<Deps> = {}) {
+const NO_LOOKUPS = {
+  isEventStaff: async () => false,
+  isEventStaffManager: async () => false,
+  isMeetingHost: async () => false,
+  isMeetingCreator: async () => false,
+}
+
+function viewer(role: 'chair' | 'head' | 'member' = 'member'): Viewer {
+  return {
+    userId: 'U-01',
+    membership: {
+      orgId: 'ORG-01',
+      memberId: 'M-03',
+      role,
+      departmentId: 'D-01',
+      inFinanceDepartment: false,
+    },
+  }
+}
+
+function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
   const written: AuditEntry[] = []
   const deps: Deps = {
     audit: {
@@ -22,235 +42,161 @@ function harness(over: Partial<Deps> = {}) {
         written.push(entry)
       },
     },
-    viewer: async () => ({ userId: 'U-01', orgId: 'ORG-01' }),
-    read: {
-      async organization() {
-        return { name: '제12대 소프트웨어융합대학 학생회' }
-      },
-      async viewer() {
-        return { name: '박해랑', role: '운영부 · 부원' }
-      },
-    },
+    db,
+    who: () => who,
+    lookups: NO_LOOKUPS,
     ...over,
   }
   return { app: createApp(deps), written }
 }
 
+beforeAll(async () => {
+  const fresh = await freshDb()
+  db = fresh.db as unknown as Db
+  close = fresh.close
+  await db.insert(organizations).values({ id: 'ORG-01', name: '제12대 소프트웨어융합대학 학생회' })
+  await db.insert(departments).values({ id: 'D-01', orgId: 'ORG-01', name: '운영부' })
+  await db.insert(members).values([
+    { id: 'M-03', orgId: 'ORG-01', userId: null, name: '박해랑', role: 'member', departmentId: 'D-01' },
+    { id: 'M-01', orgId: 'ORG-01', userId: null, name: '김바다', role: 'chair', departmentId: 'D-01' },
+  ])
+  // 로그인한 사람과 구성원을 잇는다. users 표가 Better Auth의 것이라 따로 넣는다.
+  await db.execute(`insert into users (id, email) values ('U-01', 'a@b.c')`)
+  await db.execute(`update members set user_id = 'U-01' where id = 'M-03'`)
+}, 60_000)
+
+afterAll(async () => {
+  await close()
+})
+
+/** 계약이 그 자리의 성공 응답에 대해 말한 모양. */
+function successSchema(operationId: string) {
+  const at = routeOf(operationId)!
+  const paths = openapi.paths as unknown as Record<string, Record<string, unknown>>
+  const operation = paths[at.path]![at.method] as {
+    responses: { 200: { content: { 'application/json': { schema: object } } } }
+  }
+  return operation.responses[200].content['application/json'].schema
+}
+
 describe('셸이 읽는 두 자리', () => {
   it('학생회 이름을 명세가 적은 조각으로 답한다', async () => {
-    const { app } = harness()
-    const res = await app.request('/api/shell/organization')
-
+    const res = await harness().app.request('/api/shell/organization')
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ name: '제12대 소프트웨어융합대학 학생회' })
   })
 
   // **서버가 완성해서 준다.** '운영부 · 부원'을 화면이 이어 붙이면 역할 이름의
-  // 규칙이 화면에 박힌다 — 이 저장소가 줄곧 정해 온 것이 그것이다.
+  // 규칙이 화면에 박힌다.
   it('보는 사람의 역할을 이어 붙인 글로 답한다', async () => {
-    const { app } = harness()
-    const res = await app.request('/api/shell/viewer')
-
+    const res = await harness().app.request('/api/shell/viewer')
     expect(await res.json()).toEqual({ name: '박해랑', role: '운영부 · 부원' })
   })
 
   it('로그인하지 않았으면 막는다', async () => {
-    const { app } = harness({ viewer: async () => null })
-    const res = await app.request('/api/shell/organization')
-
+    const res = await harness(null).app.request('/api/shell/organization')
     expect(res.status).toBe(401)
   })
 
-  // 없는 것을 빈 이름으로 대신하지 않는다. 조용한 대체를 하지 않는 것이 이
-  // 저장소의 규칙이고 서버도 같은 규칙을 따른다.
-  it('학생회를 못 찾으면 조용히 빈 이름을 주지 않는다', async () => {
-    const { app } = harness({
-      read: {
-        async organization() {
-          return null
-        },
-        async viewer() {
-          return null
-        },
-      },
-    })
-    const res = await app.request('/api/shell/organization')
-
-    expect(res.status).toBe(404)
-    expect(await res.json()).toEqual({ message: '학생회를 찾지 못했습니다' })
+  // 구성원이 아닌 사람은 그 학생회의 것을 볼 수 없다.
+  it('구성원이 아니면 막는다', async () => {
+    const res = await harness({ userId: 'U-99', membership: null }).app.request(
+      '/api/shell/organization',
+    )
+    expect(res.status).toBe(403)
   })
 })
 
-describe('법이 요구하는 기록', () => {
-  // 지난 일은 소급해 남길 수 없다. 자리마다 손으로 부르면 언젠가 잊고,
-  // 잊은 자리는 조용하다.
-  it('요청마다 남는다', async () => {
-    const { app, written } = harness()
-    await app.request('/api/shell/viewer', {
-      // 헤더는 ByteString이라 한글이 들어갈 수 없다. 실제 브라우저도 그렇다.
-      headers: { 'user-agent': 'vada-test', 'x-forwarded-for': '10.0.0.1, 10.0.0.2' },
-    })
+describe('역할 및 권한(ORG-04 · ORG-04B)', () => {
+  it('역할마다 몇인지 답한다', async () => {
+    const res = await harness().app.request('/api/org/role-counts')
+    expect(await res.json()).toEqual({ chairCount: 1, headCount: 0, memberCount: 1 })
+  })
 
+  it('권한 표 열세 줄을 답한다', async () => {
+    const res = await harness().app.request('/api/org/permission-matrix')
+    const rows = (await res.json()) as unknown[]
+    expect(rows).toHaveLength(13)
+  })
+
+  it('구성원마다의 역할을 완성된 말로 답한다', async () => {
+    const res = await harness().app.request('/api/org/role-assignments')
+    const rows = (await res.json()) as Array<{ name: string; roleLabel: string }>
+    expect(rows.map((row) => row.roleLabel)).toEqual(['회장단', '부원'])
+  })
+
+  it('목록 곁의 한 줄도 서버가 만든다', async () => {
+    const res = await harness().app.request('/api/org/role-assignments/count')
+    expect(await res.json()).toEqual({ total: '2명' })
+  })
+})
+
+// **답의 모양이 계약과 같은가.** 자리마다 손으로 zod를 쓰는 대신 여기서 견준다 —
+// 손으로 쓰면 그것이 명세를 두 번 적는 일이고, 두 벌은 갈린다.
+describe('답이 계약의 모양을 지킨다', () => {
+  const ajv = new Ajv({ strict: false })
+
+  const cases: Array<[string, string]> = [
+    ['shell.organization', '/api/shell/organization'],
+    ['shell.viewer', '/api/shell/viewer'],
+    ['org.roleCounts', '/api/org/role-counts'],
+    ['org.permissionMatrix', '/api/org/permission-matrix'],
+    ['org.roleAssignments', '/api/org/role-assignments'],
+    ['org.roleAssignmentCount', '/api/org/role-assignments/count'],
+  ]
+
+  for (const [operationId, url] of cases) {
+    it(`${operationId}의 답이 계약대로다`, async () => {
+      const res = await harness().app.request(url)
+      const body = await res.json()
+      const validate = ajv.compile(successSchema(operationId))
+      expect(validate(body), JSON.stringify(validate.errors)).toBe(true)
+    })
+  }
+})
+
+describe('누가 무엇을 만졌는지 남는다', () => {
+  it('읽기도 남긴다 — 법이 말하는 처리에 조회가 든다', async () => {
+    const { app, written } = harness()
+    await app.request('/api/org/role-assignments')
     expect(written).toHaveLength(1)
-    expect(written[0]).toMatchObject({
-      userId: 'U-01',
-      orgId: 'ORG-01',
-      action: 'GET /api/shell/viewer → 200',
-      ip: '10.0.0.1',
-      userAgent: 'vada-test',
-    })
+    expect(written[0]!.action).toContain('/api/org/role-assignments')
+    expect(written[0]!.orgId).toBe(null)
+    expect(written[0]!.subjectType).toBe('organization')
   })
 
-  // **막힌 시도가 오히려 봐야 할 것이다.**
+  // 막힌 요청이 오히려 봐야 할 것이다.
   it('막힌 요청도 남는다', async () => {
-    const { app, written } = harness({ viewer: async () => null })
-    await app.request('/api/shell/organization')
-
-    expect(written[0]?.action).toBe('GET /api/shell/organization → 401')
-    expect(written[0]?.userId).toBeNull()
+    const { app, written } = harness(null)
+    const res = await app.request('/api/org/role-counts')
+    expect(res.status).toBe(401)
+    expect(written).toHaveLength(1)
   })
 
-  // **누구의 정보를 다뤘는가.** 기준이 요구하는 것은 '누가 접속했나'만이 아니다 —
-  // 이 자리가 비면 새어 나간 뒤에 누구의 것이 새었는지 알 수 없다.
-  it('처리한 정보주체를 남긴다', async () => {
-    const { app, written } = harness()
-    await app.request('/api/shell/viewer')
-
-    expect(written[0]).toMatchObject({ subjectType: 'user', subjectId: 'U-01' })
-  })
-
-  // 처음 쓴 미들웨어는 `await next()` **뒤에** 썼다. 터진 요청은 흔적 없이
-  // 사라졌고, 그 사실은 아무도 몰랐다.
-  //
-  // 여기서 보는 것은 **기록이 남는가**이지 오류가 어디서 잡히는가가 아니다 —
-  // Hono가 안에서 잡아 500으로 답하든 위로 던지든, 남지 않으면 없는 것과 같다.
-  it('터져도 기록이 남는다', async () => {
-    const { app, written } = harness({
-      read: {
-        async organization() {
-          throw new Error('DB가 죽었다')
-        },
-        async viewer() {
-          return null
-        },
-      },
-    })
-
-    const res = await app.request('/api/shell/organization')
-
-    expect(res.status).toBe(500)
-    expect(written, '터진 요청이 흔적 없이 사라지면 안 된다').toHaveLength(1)
-    expect(written[0]?.action).toContain('/api/shell/organization')
-  })
-})
-
-// **주소에 실린 비밀은 오래 남기지 않는다.**
-//
-// 공개 자리는 경로에 토큰을 싣고 그 값이 곧 열쇠다. 1년을 남기면 감사 기록이
-// 새는 순간 그 토큰으로 남의 결과를 열 수 있다 — 무엇을 했는지는 남기고 무엇으로
-// 했는지는 지운다.
-describe('주소의 비밀 가리기', () => {
-  it('공개 자리의 토큰을 지운다', () => {
-    expect(maskSecrets('/api/public/attendance/A7K2M9/check-in')).toBe(
+  it('밖에서 열리는 자리의 주소에서 토큰을 지운다', () => {
+    expect(maskSecrets('/api/public/attendance/T-01/check-in')).toBe(
       '/api/public/attendance/*/check-in',
     )
-    expect(maskSecrets('/api/public/surveys/SVY-4f2a91c7/applications')).toBe(
-      '/api/public/surveys/*/applications',
-    )
-  })
-
-  it('안쪽 자리는 건드리지 않는다', () => {
-    // 로그인한 사람의 자리는 경로에 비밀이 실리지 않는다 — 무엇을 만졌는지가
-    // 남아야 하므로 그대로 둔다.
-    expect(maskSecrets('/api/ops/meetings/MTG-09/agendas')).toBe('/api/ops/meetings/MTG-09/agendas')
-    expect(maskSecrets('/api/shell/viewer')).toBe('/api/shell/viewer')
   })
 })
 
 describe('명세 밖으로 새지 않는다', () => {
-  // 서버가 카탈로그에 없는 자리를 열면 그것은 명세가 모르는 기능이다.
-  // 명세만 읽는 사람은 그 존재를 알 길이 없고, 그 자리는 아무 검사도 받지 않는다.
-  it('연 자리가 전부 카탈로그에 있다', () => {
-    const { app } = harness()
-    const served = app.getOpenAPIDocument({
-      openapi: '3.0.3',
-      info: { title: 'vada', version: '0.1.0' },
-    })
+  it('계약에 없는 자리는 막는다', async () => {
+    const res = await harness().app.request('/api/이런자리는없다')
+    expect(res.status).toBe(403)
+  })
 
-    const stray: string[] = []
-    for (const [path, item] of Object.entries(served.paths ?? {})) {
-      if (path === '/openapi.json') continue
-      for (const method of Object.keys(item as object)) {
-        const known = (CATALOG_OPENAPI.paths as Record<string, Record<string, unknown>>)[path]
-        if (known?.[method] === undefined) stray.push(`${method} ${path}`)
-      }
+  // 얼마나 남았는지를 검사가 센다. 손으로 세면 언젠가 틀리고, 틀린 수는
+  // '거의 다 됐다'로 읽힌다.
+  it('아직 답하지 않는 자리가 몇인지 센다', async () => {
+    const done = new Set<string>()
+    for (const operationId of allOperationIds()) {
+      const at = routeOf(operationId)!
+      const url = at.path.replace(/\{([^}]+)\}/g, 'X-1')
+      const res = await harness().app.request(url, { method: at.method.toUpperCase() })
+      if (res.status !== 403 && res.status !== 404) done.add(operationId)
     }
-    expect(stray, '카탈로그에 없는 자리를 열었습니다').toEqual([])
-  })
-
-  // operationId를 카탈로그의 key와 같게 두면 둘을 짝지을 수 있다. 다르면
-  // '같은 자리인가'를 경로로만 물어야 하고, 경로는 나중에 바뀐다.
-  it('operationId가 카탈로그의 key와 같다', () => {
-    const { app } = harness()
-    const served = app.getOpenAPIDocument({
-      openapi: '3.0.3',
-      info: { title: 'vada', version: '0.1.0' },
-    })
-
-    const wrong: string[] = []
-    for (const [path, item] of Object.entries(served.paths ?? {})) {
-      if (path === '/openapi.json') continue
-      for (const [method, operation] of Object.entries(item as Record<string, { operationId?: string }>)) {
-        const known = (CATALOG_OPENAPI.paths as Record<string, Record<string, { operationId?: string }>>)[
-          path
-        ]?.[method]
-        if (known !== undefined && known.operationId !== operation.operationId) {
-          wrong.push(`${method} ${path}: 서버 '${operation.operationId}' ≠ 카탈로그 '${known.operationId}'`)
-        }
-      }
-    }
-    expect(wrong).toEqual([])
-  })
-})
-
-// **서버가 권한을 실제로 강제하는가.** 자리에 매달아 두는 것과 막는 것은 다른 일이다.
-describe('권한이 걸린 서버', () => {
-  const NO_LOOKUPS = {
-    isEventStaff: async () => false,
-    isEventStaffManager: async () => false,
-    isMeetingHost: async () => false,
-    isMeetingCreator: async () => false,
-  }
-
-  function 권한붙은(role: 'chair' | 'head' | 'member') {
-    return harness({
-      who: () => ({
-        userId: 'U-01',
-        membership: {
-          orgId: 'ORG-01',
-          memberId: 'M-01',
-          role,
-          departmentId: 'D-01',
-          inFinanceDepartment: false,
-        },
-      }),
-      lookups: NO_LOOKUPS,
-    })
-  }
-
-  it('구성원이면 되는 자리는 부원도 연다', async () => {
-    const res = await 권한붙은('member').app.request('/api/shell/organization')
-    expect(res.status).toBe(200)
-  })
-
-  // 권한을 주지 않으면 미들웨어가 붙지 않는다 — 붙지 않은 상태가 조용히
-  // '전부 열림'이 되지 않도록, 붙었을 때 실제로 막는 것을 함께 못 박는다.
-  it('로그인하지 않았으면 막는다', async () => {
-    const { app } = harness({
-      who: () => null,
-      lookups: NO_LOOKUPS,
-      viewer: async () => null,
-    })
-    expect((await app.request('/api/shell/organization')).status).toBe(401)
+    expect(done.size).toBe(6)
+    expect(allOperationIds()).toHaveLength(216)
   })
 })

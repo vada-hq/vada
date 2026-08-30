@@ -1,17 +1,26 @@
-import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
+import { Hono } from 'hono'
 import { auditMiddleware, type AuditSink } from './audit.ts'
 import { authorizeMiddleware } from './authorize.ts'
+import type { Db } from './db/client.ts'
 import type { Lookups, Viewer } from './permissions.ts'
+import { attach, NotFound } from './routes.ts'
+import {
+  permissionMatrix,
+  roleAssignmentCount,
+  roleAssignments,
+  roleCounts,
+} from './org/roles.ts'
+import { organizationName, viewerLine } from './org/shell.ts'
 
 // 서버의 얼개.
 //
 // **자리와 모양은 명세가 정한다.** `specs/figma/vada-wireframe/`의 카탈로그가
-// method·path·인자·조각·값의 종류를 이미 갖고 있고, `npm run openapi`가 그것을
+// method·path·인자·조각·값의 종류·권한·실패까지 갖고 있고, `npm run openapi`가 그것을
 // OpenAPI로 옮긴다. 여기서 하는 일은 그 자리에 답을 놓는 것뿐이다.
 //
-// 그래서 **여기서 만든 OpenAPI와 카탈로그에서 만든 OpenAPI가 같아야 한다.**
-// Hono가 라우트에서 문서를 뽑아 주므로 둘을 견줄 수 있고, 견주는 검사가 있으면
-// 서버가 명세 밖으로 새는 순간 빨간불이 된다.
+// 지나가는 순서가 셋이다. **기록 → 권한 → 답.** 기록이 맨 앞인 까닭은 막힌 요청도
+// 남아야 하기 때문이고(오히려 봐야 할 것이 그쪽이다), 권한이 답보다 앞인 까닭은
+// 자리마다 손으로 검사하면 잊은 자리가 조용히 열리기 때문이다.
 
 declare module 'hono' {
   interface ContextVariableMap {
@@ -20,8 +29,7 @@ declare module 'hono' {
     /**
      * 이 요청이 **누구의 정보를 다뤘는가.** 핸들러가 알려 주고 감사 기록이 남긴다.
      *
-     * 기준이 요구하는 것은 '누가 접속했나'만이 아니라 '누구의 것을 다뤘나'다 —
-     * 그 자리가 비면 새어 나간 뒤에 누구의 것이 새었는지 알 수 없다.
+     * 기준이 요구하는 것은 '누가 접속했나'만이 아니라 '누구의 것을 다뤘나'다.
      */
     auditSubject: { type: string; id: string } | undefined
   }
@@ -29,129 +37,68 @@ declare module 'hono' {
 
 export interface Deps {
   audit: AuditSink
-  /** 지금 이 요청이 누구의 것인가. 인증이 붙기 전에는 밖에서 준다. */
-  viewer: () => Promise<{ userId: string; orgId: string } | null>
-  /**
-   * 권한 판정에 쓰는 그 사람. 위의 viewer가 '누구인가'라면 이쪽은 '무엇인가'다 —
-   * 어느 학생회의 어느 역할이고 재정을 맡는 부서인지.
-   */
-  who?: () => Viewer | null
+  db: Db
+  /** 지금 묻는 사람. 인증이 붙기 전에는 밖에서 준다. */
+  who: () => Viewer | null
   /** '그 행사의 조직원인가' 같은 것. 저장소가 답한다. */
-  lookups?: Lookups
-  read: {
-    organization(orgId: string): Promise<{ name: string } | null>
-    viewer(orgId: string, userId: string): Promise<{ name: string; role: string } | null>
-  }
+  lookups: Lookups
 }
 
-const ErrorBody = z
-  .object({ message: z.string() })
-  .openapi('Error', { description: '사람에게 보일 글' })
-
-/** 카탈로그의 messages.error가 그 출처의 실패를 무엇이라 말할지 이미 갖고 있다. */
-function fail(message: string) {
-  return { message }
+/** 이 사람이 어느 학생회의 것을 보고 있는가. 구성원이 아니면 여기까지 오지 않는다. */
+function orgOf(deps: Deps): string {
+  const membership = deps.who()?.membership
+  if (membership === null || membership === undefined) {
+    throw new NotFound('학생회를 찾지 못했습니다')
+  }
+  return membership.orgId
 }
 
 export function createApp(deps: Deps) {
-  const app = new OpenAPIHono()
+  const app = new Hono()
 
   app.use('*', auditMiddleware(deps.audit))
+  app.use('*', authorizeMiddleware({ viewer: () => deps.who(), lookups: deps.lookups }))
 
-  // **매달아 놓기만 하면 아무것도 막지 않는다.** 명세가 216자리에 저마다 권한
-  // 영역을 달았고, 여기서 그것을 강제한다. 자리마다 손으로 부르지 않는 까닭은
-  // 216번 부르면 그중 몇은 잊고 잊은 자리는 조용히 열리기 때문이다.
-  if (deps.who !== undefined && deps.lookups !== undefined) {
-    const who = deps.who
-    const lookups = deps.lookups
-    app.use('*', authorizeMiddleware({ viewer: () => who(), lookups }))
-  }
-
-  // 누구의 요청인지를 먼저 정한다. 밖에서 열리는 자리(/api/public/*)는 세션이
-  // 없어도 되지만, 지금 만든 둘은 안쪽이라 없으면 막는다.
-  app.use('/api/shell/*', async (c, next) => {
-    const who = await deps.viewer()
-    if (who === null) {
-      return c.json(fail('로그인이 필요합니다'), 401)
-    }
-    c.set('userId', who.userId)
-    c.set('orgId', who.orgId)
-    await next()
-  })
-
-  const organization = createRoute({
-    method: 'get',
-    path: '/api/shell/organization',
-    operationId: 'shell.organization',
-    summary: '셸의 맨 위에 그려지는 학생회 이름',
-    responses: {
-      200: {
-        description: '성공',
-        content: {
-          'application/json': {
-            schema: z.object({ name: z.string().openapi({ description: '학생회 이름' }) }),
-          },
-        },
-      },
-      // **답할 수 있는 상태를 전부 적는다.** 안 적은 것으로 답하려 하면 타입이
-      // 막는다 — 실제로 여기서 404를 빠뜨린 채 쓰다가 잡혔다. 문서에 없는 답을
-      // 내놓으면 받는 쪽이 그것을 다룰 수 없다.
-      401: { description: '로그인이 필요하다', content: { 'application/json': { schema: ErrorBody } } },
-      404: { description: '그 학생회가 없다', content: { 'application/json': { schema: ErrorBody } } },
+  attach(app, deps, {
+    // ── 셸 ────────────────────────────────────────────────────────────────
+    'shell.organization': async (c, d) => {
+      const orgId = orgOf(d)
+      c.set('auditSubject', { type: 'organization', id: orgId })
+      const row = await organizationName(d.db, orgId)
+      if (row === null) throw new NotFound('학생회를 찾지 못했습니다')
+      return row
     },
-  })
-
-  app.openapi(organization, async (c) => {
-    const orgId = c.get('orgId')!
-    c.set('auditSubject', { type: 'organization', id: orgId })
-    const row = await deps.read.organization(orgId)
-    // 없는 것을 빈 이름으로 대신하지 않는다. 조용한 대체를 하지 않는 것이
-    // 이 저장소의 규칙이고, 서버도 같은 규칙을 따른다.
-    if (row === null) {
-      return c.json(fail('학생회를 찾지 못했습니다'), 404)
-    }
-    return c.json({ name: row.name }, 200)
-  })
-
-  const viewer = createRoute({
-    method: 'get',
-    path: '/api/shell/viewer',
-    operationId: 'shell.viewer',
-    summary: '셸의 아래에 그려지는 지금 보는 사람',
-    responses: {
-      200: {
-        description: '성공',
-        content: {
-          'application/json': {
-            schema: z.object({
-              name: z.string().openapi({ description: '이름' }),
-              // **서버가 완성해서 준다.** '운영부 · 부원'처럼 부서와 역할을 이미
-              // 이어 붙인 글이다 — 화면이 역할 이름을 알면 그 규칙이 화면에 박힌다.
-              role: z.string().openapi({ description: '부서와 역할을 이어 붙인 글' }),
-            }),
-          },
-        },
-      },
-      401: { description: '로그인이 필요하다', content: { 'application/json': { schema: ErrorBody } } },
-      403: { description: '이 학생회의 구성원이 아니다', content: { 'application/json': { schema: ErrorBody } } },
+    'shell.viewer': async (c, d) => {
+      const who = d.who()!
+      const orgId = orgOf(d)
+      // 보는 사람 자신의 학적 정보를 읽는다 — 그 사람이 정보주체다.
+      c.set('auditSubject', { type: 'user', id: who.userId })
+      const row = await viewerLine(d.db, orgId, who.userId)
+      if (row === null) throw new NotFound('이 학생회의 구성원이 아닙니다')
+      return row
     },
-  })
 
-  app.openapi(viewer, async (c) => {
-    const orgId = c.get('orgId')!
-    const userId = c.get('userId')!
-    // 보는 사람 자신의 학적 정보를 읽는다 — 그 사람이 정보주체다.
-    c.set('auditSubject', { type: 'user', id: userId })
-    const row = await deps.read.viewer(orgId, userId)
-    if (row === null) {
-      return c.json(fail('이 학생회의 구성원이 아닙니다'), 403)
-    }
-    return c.json(row, 200)
-  })
+    // ── 역할 및 권한 (ORG-04) ──────────────────────────────────────────────
+    'org.roleCounts': async (c, d) => {
+      const orgId = orgOf(d)
+      c.set('auditSubject', { type: 'organization', id: orgId })
+      return roleCounts(d.db, orgId)
+    },
+    // **저장소를 열지 않는다.** 행렬은 모든 학생회가 같으므로 정책이 곧 답이다.
+    'org.permissionMatrix': async () => permissionMatrix(),
 
-  app.doc('/openapi.json', {
-    openapi: '3.0.3',
-    info: { title: 'vada', version: '0.1.0' },
+    // ── 역할 바꾸기가 읽는 것 (ORG-04B) ────────────────────────────────────
+    'org.roleAssignments': async (c, d) => {
+      const orgId = orgOf(d)
+      // 남의 학적 정보를 다루는 자리다. 누구의 것을 다뤘는지 남긴다.
+      c.set('auditSubject', { type: 'organization', id: orgId })
+      return roleAssignments(d.db, orgId)
+    },
+    'org.roleAssignmentCount': async (c, d) => {
+      const orgId = orgOf(d)
+      c.set('auditSubject', { type: 'organization', id: orgId })
+      return roleAssignmentCount(d.db, orgId)
+    },
   })
 
   return app

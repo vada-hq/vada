@@ -223,12 +223,12 @@ function checkAuthorize(findings, permissions, groups) {
  * 열쇠는 둘 중 하나에서 온다. **이 자리의 인자**(경로가 실어 온 토큰)이거나
  * **보내는 값의 칸**(폼에 적은 학번)이다.
  */
-function checkRepeat(findings, file, mutation, screens) {
+function checkRepeat(findings, file, mutation, fieldKeysByScope) {
   const repeat = mutation?.repeat;
   if (!isObject(repeat)) return;
 
   const declared = new Set([...paramKeys(mutation)]);
-  const inPayload = payloadFieldKeys(mutation.payloadScope, screens);
+  const inPayload = fieldKeysByScope.get(mutation.payloadScope) ?? new Set();
 
   if (repeat.kind === "naturalKey") {
     const keys = Array.isArray(repeat.naturalKey) ? repeat.naturalKey : [];
@@ -256,12 +256,19 @@ function checkRepeat(findings, file, mutation, screens) {
   }
 }
 
-/** 그 스코프에 값을 쓰는 화면의 칸들. 보내는 값이 무엇인지는 화면이 안다. */
-function payloadFieldKeys(scopeKey, screens) {
-  const keys = new Set();
-  if (typeof scopeKey !== "string") return keys;
+/**
+ * 그 스코프에 값을 쓰는 화면의 칸들. 보내는 값이 무엇인지는 화면이 안다.
+ *
+ * **한 번만 걷는다.** 처음에는 변이마다 화면 전부를 걸었는데, 변이 44개 × 화면 82개면
+ * 3,608번 걷는 일이 되고 검증이 14초에서 41초로 늘었다. 재는 저울이 느려지면 사람이
+ * 덜 재게 된다 — 그것이 검사를 없애는 가장 흔한 길이다.
+ */
+function payloadFieldKeysByScope(screens) {
+  const byScope = new Map();
   for (const screen of screens) {
-    if (screen?.spec?.stateScopeKey !== scopeKey) continue;
+    const scopeKey = screen?.spec?.stateScopeKey;
+    if (typeof scopeKey !== "string") continue;
+    const keys = byScope.get(scopeKey) ?? new Set();
     const walk = (node) => {
       if (Array.isArray(node)) {
         for (const item of node) walk(item);
@@ -272,8 +279,9 @@ function payloadFieldKeys(scopeKey, screens) {
       for (const value of Object.values(node)) walk(value);
     };
     walk(screen.spec);
+    byScope.set(scopeKey, keys);
   }
-  return keys;
+  return byScope;
 }
 
 function elementLabel(element, index) {
@@ -2419,6 +2427,8 @@ export function collectSpecFindings({
   const mutationKeys = new Set(mutationList.map((mutation) => mutation.key));
   const mutationByKey = new Map(mutationList.map((mutation) => [mutation.key, mutation]));
 
+  const payloadFieldKeys = payloadFieldKeysByScope(screens);
+
   // 제출 계약이 참조하는 payload 스코프는 카탈로그에 있어야 한다.
   for (const mutation of mutationList) {
     if (typeof mutation?.payloadScope === "string" && !scopeKeys.has(mutation.payloadScope)) {
@@ -2428,7 +2438,7 @@ export function collectSpecFindings({
         message: `제출 계약 '${mutation.key}'의 payloadScope '${mutation.payloadScope}'가 상태 스코프 카탈로그에 없습니다.`
       });
     }
-    checkRepeat(findings, mutationsFile, mutation, screens);
+    checkRepeat(findings, mutationsFile, mutation, payloadFieldKeys);
   }
 
   for (const screen of screens) {
