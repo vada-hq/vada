@@ -52,6 +52,72 @@ export const users = pgTable('users', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
+/**
+ * 지금 열려 있는 로그인. **Better Auth가 이 표를 쓴다.**
+ *
+ * 세션을 표에 두는 까닭은 **끊을 수 있어야** 하기 때문이다 — 쿠키에만 있으면 잃어버린
+ * 기기에서 로그아웃시킬 방법이 없다. 개인정보를 다루는 서비스에서 그것은 요구사항이다.
+ */
+export const sessions = pgTable(
+  'sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('sessions_user').on(table.userId)],
+)
+
+/**
+ * 어느 길로 들어왔는가(구글·카카오).
+ *
+ * **비밀번호를 다루지 않기로 했으므로** `password`는 늘 비어 있다. 저장할 것이 없으면
+ * 샐 것도 없다 — 그 자리는 Better Auth가 요구해서 있을 뿐이다.
+ */
+export const accounts = pgTable(
+  'accounts',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    providerId: text('provider_id').notNull(),
+    issuer: text('issuer'),
+    accountId: text('account_id').notNull(),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+    scope: text('scope'),
+    password: text('password'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('accounts_user').on(table.userId),
+    // 같은 길로 같은 사람이 두 번 들어오지 않는다.
+    unique('accounts_provider_account').on(table.providerId, table.accountId),
+  ],
+)
+
+/** 확인 중인 것. Better Auth가 쓴다. */
+export const verifications = pgTable('verifications', {
+  id: text('id').primaryKey(),
+  identifier: text('identifier').notNull(),
+  value: text('value').notNull(),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const organizations = pgTable('organizations', {
   id: text('id').primaryKey(),
   // org.invitedOrganization이 초대장에서 보여 주는 넷.

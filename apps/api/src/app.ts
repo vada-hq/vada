@@ -63,7 +63,12 @@ export interface Deps {
   audit: AuditSink
   db: Db
   /** 지금 묻는 사람. 인증이 붙기 전에는 밖에서 준다. */
-  who: () => Viewer | null
+  /**
+   * 세션을 읽어 이 요청을 보낸 사람을 알아낸다.
+   *
+   * 검사는 곧바로 답하고 서버는 표를 읽는다 — 이 자리가 갈리는 곳이다.
+   */
+  who: (c: Context) => Promise<Viewer | null>
   /** '그 행사의 조직원인가' 같은 것. 저장소가 답한다. */
   lookups: Lookups
   /** 두 번 보내진 것을 가리는 자리. */
@@ -111,26 +116,9 @@ function canDo(
 export function createApp(deps: Deps) {
   const app = new Hono()
 
-  app.use(
-    '*',
-    auditMiddleware(deps.audit, {
-      who: () => {
-        const sender = deps.who()
-        // 구성원이 아니어도 누구인지는 남는다 — 학생회를 만들려는 사람도 사람이다.
-        return sender === null
-          ? null
-          : { userId: sender.userId, orgId: sender.membership?.orgId ?? null }
-      },
-    }),
-  )
-  // **누구인지는 요청마다 한 번만 묻는다.** 감사·권한·멱등이 저마다 물으면 값이
-  // 요청 안에서 갈릴 수 있고, 인증이 붙으면 같은 세션을 여러 번 확인하게 된다.
-  // 공개 자리 한 번에 두 번 부르고 있었다(2026-08-31 교차검토).
-  app.use('*', async (c, next) => {
-    c.set('sender', deps.who())
-    await next()
-  })
-
+  // **가장 먼저 돈다.** 막힌 요청도 남아야 하고, 누가 보냈는지는 여기서 한 번
+  // 확정해 문맥에 담는다 — 구성원이 아니어도 누구인지는 남는다.
+  app.use('*', auditMiddleware(deps.audit, { who: (c) => deps.who(c) }))
   app.use('*', authorizeMiddleware({ lookups: deps.lookups }))
 
   // **두 번 눌린 것을 여기서 가린다.** 계약이 어느 자리에 키가 필요한지 알고 있으므로

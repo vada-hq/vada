@@ -1,4 +1,5 @@
-import type { MiddlewareHandler } from 'hono'
+import type { Context, MiddlewareHandler } from 'hono'
+import type { Viewer } from './permissions.ts'
 
 // 누가 무엇을 언제 만졌는가.
 //
@@ -74,7 +75,13 @@ export interface AuditContext {
  * **막힌 시도가 오히려 봐야 할 것이다.**
  */
 export interface AuditWho {
-  who(): { userId: string; orgId: string | null } | null
+  /**
+   * 세션을 읽어 그 사람을 알아낸다. **비동기다** — 세션은 표에 있다.
+   *
+   * 이 층이 가장 먼저 도는 까닭에 여기서 한 번 확정하고 문맥에 담는다. 뒤의 층들이
+   * 저마다 물으면 값이 요청 안에서 갈릴 수 있고, 세션을 여러 번 읽게 된다.
+   */
+  who(c: Context): Promise<Viewer | null>
 }
 
 export function auditMiddleware(
@@ -85,10 +92,12 @@ export function auditMiddleware(
   return async (c, next) => {
     let failed = false
     // 답하기 전에 확정한다 — 핸들러가 무엇을 하든 누가 보냈는지는 그 전에 정해진다.
-    const sender = deps.who()
+    const sender = await deps.who(c)
+    c.set('sender', sender)
     if (sender !== null) {
       c.set('userId', sender.userId)
-      if (sender.orgId !== null) c.set('orgId', sender.orgId)
+      const orgId = sender.membership?.orgId
+      if (orgId !== undefined) c.set('orgId', orgId)
     }
     try {
       await next()

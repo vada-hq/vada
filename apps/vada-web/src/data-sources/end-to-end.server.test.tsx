@@ -39,7 +39,7 @@ beforeAll(async () => {
   const app = createApp({
     audit: { async write() {} },
     db,
-    who: () => ({
+    who: async () => ({
       userId: 'U-01',
       membership: {
         orgId: 'ORG-01',

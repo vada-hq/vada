@@ -5,13 +5,17 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc -b",
-    "db:schema": "node scripts/build-schema-sql.mjs"
+    "db:schema": "node scripts/build-schema-sql.mjs",
+    "dev": "node --experimental-strip-types --env-file=../../.env src/serve.ts",
+    "start": "node --experimental-strip-types src/serve.ts"
   },
   "engines": {
     "node": ">=22"
   },
   "dependencies": {
+    "@hono/node-server": "^2.1.1",
     "@hono/zod-openapi": "^1.1.4",
+    "better-auth": "^1.7.2",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.9.11",
     "postgres": "^3.4.7",

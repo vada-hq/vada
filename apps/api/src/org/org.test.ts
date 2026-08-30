@@ -38,7 +38,7 @@ function harness(who: Viewer | null = viewer('chair')) {
       },
     },
     db,
-    who: () => who,
+    who: async () => who,
     lookups: {
       isEventStaff: async () => false,
       isEventStaffManager: async () => false,

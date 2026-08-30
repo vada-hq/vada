@@ -44,7 +44,7 @@ function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
       },
     },
     db,
-    who: () => who,
+    who: async () => who,
     lookups: NO_LOOKUPS,
     attempts: inMemoryAttempts(),
     invite: {
