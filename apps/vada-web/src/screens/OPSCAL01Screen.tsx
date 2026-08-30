@@ -17,7 +17,7 @@ import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, opsCal01 } from '../spec/screens'
 import { targetScreenOf, paramsOf } from '../spec/types'
-import type { ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
+import type { ButtonSpec, ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 
 // 운영 캘린더(OPS-CAL-01).
 //
@@ -49,7 +49,9 @@ const SCREEN = 'OPS-CAL-01'
 
 const NODE = {
   breadcrumb: '30:2090',
+  previousMonth: '30:2106',
   month: '30:2110',
+  nextMonth: '30:2112',
   filter: '30:2117',
   legend: '30:2126',
   grid: '30:2141',
@@ -86,6 +88,8 @@ export function OPSCAL01Screen({ onNavigate }: OPSCAL01ScreenProps) {
   const [note, setNote] = useState<string | null>(null)
 
   const monthSpec = elementByNodeId(opsCal01, NODE.month).spec as SummarySpec
+  const previousMonth = elementByNodeId(opsCal01, NODE.previousMonth).spec as ButtonSpec
+  const nextMonth = elementByNodeId(opsCal01, NODE.nextMonth).spec as ButtonSpec
   const legendSpec = elementByNodeId(opsCal01, NODE.legend).spec as SummarySpec
   const gridSpec = elementByNodeId(opsCal01, NODE.grid).spec as ItemListSpec
   const weekHeaderSpec = elementByNodeId(opsCal01, NODE.weekHeader).spec as SummarySpec
@@ -139,10 +143,15 @@ export function OPSCAL01Screen({ onNavigate }: OPSCAL01ScreenProps) {
       }
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        {/* 지금 보고 있는 달. 앞뒤로 옮기는 단추는 위 주석의 이유로 없다. */}
-        <p data-node-id={NODE.month} className="text-sm font-bold text-gray-900">
-          {String(monthRow[monthSpec.titleField ?? ''])}
-        </p>
+        <div className="flex items-center gap-2">
+          {/* 글 없이 화살표만 있는 단추다. 읽어 주는 이름은 명세가 든다(labelHidden). */}
+          <MonthStep nodeId={NODE.previousMonth} spec={previousMonth} onPress={setNote} />
+          {/* 지금 보고 있는 달. */}
+          <p data-node-id={NODE.month} className="text-sm font-bold text-gray-900">
+            {String(monthRow[monthSpec.titleField ?? ''])}
+          </p>
+          <MonthStep nodeId={NODE.nextMonth} spec={nextMonth} onPress={setNote} />
+        </div>
 
         <div
           data-node-id={NODE.filter}
@@ -336,5 +345,37 @@ export function OPSCAL01Screen({ onNavigate }: OPSCAL01ScreenProps) {
         </aside>
       </div>
     </AppShell>
+  )
+}
+
+/**
+ * 달을 앞뒤로 옮기는 단추.
+ *
+ * **눌러도 아무 일이 없다.** 어느 달을 보고 있는지를 담을 자리가 명세에 없기
+ * 때문이고, 그 사실을 명세가 `action.type: 'pending'`으로 들고 있다. 그리지 않는
+ * 쪽을 오래 골랐는데, 그러면 **그림에 있는 조작이 화면에서 사라지고 아무도 모른다** —
+ * 대신 그리고 왜 안 되는지를 말한다.
+ */
+function MonthStep({
+  nodeId,
+  spec,
+  onPress,
+}: {
+  nodeId: string
+  spec: ButtonSpec
+  onPress: (note: string) => void
+}) {
+  return (
+    <button
+      type="button"
+      data-node-id={nodeId}
+      aria-label={spec.label}
+      onClick={() => {
+        if (spec.action.type === 'pending') onPress(spec.action.note)
+      }}
+      className="flex size-7 items-center justify-center rounded border border-gray-200 text-gray-600"
+    >
+      <FigmaAsset screenId={SCREEN} nodeId={nodeId} className="size-3.5" />
+    </button>
   )
 }

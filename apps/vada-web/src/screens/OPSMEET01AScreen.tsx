@@ -4,10 +4,18 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
+import { PendingBox } from '../components/PendingBox'
 import { elementByNodeId, opsMeet01a, opsMeet01c } from '../spec/screens'
 import { resolveParams } from '../spec/params'
 import { targetScreenOf, paramsOf } from '../spec/types'
-import type { ButtonSpec, DisplayAction, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
+import type {
+  ButtonSpec,
+  DisplayAction,
+  InputSpec,
+  ItemListSpec,
+  PendingSpec,
+  SummarySpec,
+} from '../spec/types'
 
 // 회의 목록(OPS-MEET-01A).
 //
@@ -24,6 +32,8 @@ const SCREEN = 'OPS-MEET-01A'
 const NODE = {
   attention: '18:418',
   query: '18:432',
+  filterA: '18:435',
+  filterB: '18:436',
   groups: '18:437',
 } as const
 
@@ -57,6 +67,8 @@ export function OPSMEET01AScreen({ screenId = SCREEN, onNavigate }: OPSMEET01ASc
       : null
   const attention = elementByNodeId(opsMeet01a, NODE.attention).spec as SummarySpec
   const query = elementByNodeId(opsMeet01a, NODE.query).spec as InputSpec
+  const filterA = elementByNodeId(opsMeet01a, NODE.filterA).spec as PendingSpec
+  const filterB = elementByNodeId(opsMeet01a, NODE.filterB).spec as PendingSpec
   const list = elementByNodeId(opsMeet01a, NODE.groups).spec as ItemListSpec
 
   const [queryValue, setQueryValue] = useState(query.initialValue ?? '')
@@ -137,6 +149,18 @@ export function OPSMEET01AScreen({ screenId = SCREEN, onNavigate }: OPSMEET01ASc
             className="min-w-0 flex-1 text-sm text-gray-700 placeholder:text-gray-400 focus:outline-none"
           />
         </label>
+
+        {/* 그림이 검색칸 옆에 거르개 둘을 그렸는데 둘 다 안이 비어 있다. */}
+        <PendingBox
+          nodeId={NODE.filterA}
+          spec={filterA}
+          className="h-9 w-28 shrink-0 rounded-[5px] border border-gray-200 bg-white"
+        />
+        <PendingBox
+          nodeId={NODE.filterB}
+          spec={filterB}
+          className="h-9 w-28 shrink-0 rounded-[5px] border border-gray-200 bg-white"
+        />
       </div>
 
       <div data-node-id={NODE.groups} className="flex flex-col gap-6 pt-6 pb-12">

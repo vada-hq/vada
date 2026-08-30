@@ -53,6 +53,28 @@
     },
     {
       "source": {
+        "nodeId": "18:435",
+        "name": "Dropdown",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "pending",
+        "note": "그림이 회의명 검색칸 옆에 고르는 칸 둘을 그렸는데(18:435 · 18:436) 둘 다 안이 비어 있다. meeting.groups가 받는 인자는 query뿐이다 — 무엇으로 좁히는 칸인지 그림도 출처도 말하지 않는다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "18:436",
+        "name": "Dropdown",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "pending",
+        "note": "그림이 회의명 검색칸 옆에 고르는 칸 둘을 그렸는데(18:435 · 18:436) 둘 다 안이 비어 있다. meeting.groups가 받는 인자는 query뿐이다 — 무엇으로 좁히는 칸인지 그림도 출처도 말하지 않는다."
+      }
+    },
+    {
+      "source": {
         "nodeId": "18:437",
         "name": "Container",
         "figmaType": "FRAME"

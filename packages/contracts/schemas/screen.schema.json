@@ -437,7 +437,8 @@
                   "summary",
                   "itemList",
                   "steps",
-                  "fieldSet"
+                  "fieldSet",
+                  "pending"
                 ]
               }
             }

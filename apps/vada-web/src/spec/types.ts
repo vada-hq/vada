@@ -446,6 +446,18 @@ export interface StepsSpec {
 // 다른 상태 스코프의 필드 값을 읽어 표시하는 파생 표시 요소.
 // 구현은 fieldRefs의 표시 라벨을 separator로 이어 prefix 뒤에 렌더하고,
 // 값이 없는 참조는 생략한다.
+/**
+ * **그림이 그렸지만 무엇인지 아직 정하지 않은 자리.**
+ *
+ * 버튼에는 오래전부터 `action.type: 'pending'`이 있었는데, 조작이 아니라 **칸 자체**가
+ * 그런 경우에는 적을 자리가 없었고 그런 칸은 명세에서 통째로 빠진 채 조용했다.
+ * 값을 담지 않으므로 fieldKey가 없고 필수 판정에도 들어가지 않는다.
+ */
+export interface PendingSpec {
+  type: 'pending'
+  note: string
+}
+
 export interface NoteSpec {
   type: 'note'
   prefix?: string
@@ -513,6 +525,7 @@ export type ElementSpec =
   | ItemListSpec
   | StepsSpec
   | FieldSetSpec
+  | PendingSpec
 
 export type FieldSpec = InputSpec | SelectSpec
 

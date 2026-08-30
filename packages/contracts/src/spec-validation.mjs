@@ -568,13 +568,14 @@ function checkDesignInteractionCoverage(findings, file, spec, design, shell) {
       const inside = covered || registered.has(child.id) || copies.has(child.id);
       if (!inside && isInteraction(child)) {
         const drawn = collectSubtreeText(child).join("").trim();
-        if (drawn) {
-          findings.push({
-            level: "error",
-            file,
-            message: `design의 '${drawn}'(${child.id} ${child.name})이 명세에 없습니다. 등록된 어느 요소 안에도 들어 있지 않습니다 — 화면의 동작이라면 요소로 등록하고, 다른 요소의 내부 조작이라면 그 요소의 nodeId가 이것을 품어야 합니다.`
-          });
-        }
+        // **글이 없다고 넘기지 않는다.** 켜고 끄는 칸은 제 안에 글을 담지 않는다 —
+        // 체크 상자의 '동의합니다'는 형제고, 스위치와 빈 드롭다운은 아예 글이 없다.
+        // 글이 있을 때만 알리면 그런 칸이 명세에서 통째로 빠져도 조용하다.
+        findings.push({
+          level: "error",
+          file,
+          message: `design의 ${drawn ? `'${drawn}'` : "글 없는 칸"}(${child.id} ${child.name})이 명세에 없습니다. 등록된 어느 요소 안에도 들어 있지 않습니다 — 화면의 동작이라면 요소로 등록하고, 다른 요소의 내부 조작이라면 그 요소의 nodeId가 이것을 품어야 합니다.`
+        });
       }
       walk(child, inside);
     }

@@ -52,6 +52,17 @@
     },
     {
       "source": {
+        "nodeId": "20:4166",
+        "name": "Dropdown",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "pending",
+        "note": "그림이 상태 거르개(20:4155) 옆에 고르는 칸을 하나 더 그렸는데 그 안에 선택지도 문구도 없다. event.list가 받는 인자는 query와 status뿐이라 이 칸이 무엇을 좁히는지 명세가 알 길이 없다. 무엇으로 좁힐지 정해지면 그때 select로 바꾼다."
+      }
+    },
+    {
+      "source": {
         "nodeId": "20:4155",
         "name": "Container",
         "figmaType": "FRAME"

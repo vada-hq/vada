@@ -6,8 +6,16 @@ import { CHOICE_CHIP, INFO_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tone
 import { readListSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
+import { PendingBox } from '../components/PendingBox'
 import { elementByNodeId, evt00a, evt00a2 } from '../spec/screens'
-import type { ButtonSpec, DisplayAction, InputSpec, ItemListSpec, SelectSpec } from '../spec/types'
+import type {
+  ButtonSpec,
+  DisplayAction,
+  InputSpec,
+  ItemListSpec,
+  PendingSpec,
+  SelectSpec,
+} from '../spec/types'
 //
 // 행사 목록(EVT-00A).
 //
@@ -24,6 +32,7 @@ const NODE = {
   completed: '20:4142',
   query: '20:4153',
   status: '20:4155',
+  unnamedFilter: '20:4166',
   list: '20:4167',
 } as const
 
@@ -57,6 +66,7 @@ export function EVT00AScreen({ screenId = SCREEN, onNavigate }: EVT00AScreenProp
   const query = elementByNodeId(evt00a, NODE.query).spec as InputSpec
   const status = elementByNodeId(evt00a, NODE.status).spec as SelectSpec
   const list = elementByNodeId(evt00a, NODE.list).spec as ItemListSpec
+  const unnamedFilter = elementByNodeId(evt00a, NODE.unnamedFilter).spec as PendingSpec
 
   const [queryValue, setQueryValue] = useState(query.initialValue ?? '')
   const [statusValue, setStatusValue] = useState(status.initialValue ?? '')
@@ -178,6 +188,13 @@ export function EVT00AScreen({ screenId = SCREEN, onNavigate }: EVT00AScreenProp
             )
           })}
         </div>
+
+        {/* 그림이 거르개를 하나 더 그렸는데 안이 비어 있다. 명세가 그 사실을 든다. */}
+        <PendingBox
+          nodeId={NODE.unnamedFilter}
+          spec={unnamedFilter}
+          className="h-9 w-28 shrink-0 rounded border border-gray-200"
+        />
       </div>
 
       <div data-node-id={NODE.list} className="flex flex-col gap-3 pb-12">

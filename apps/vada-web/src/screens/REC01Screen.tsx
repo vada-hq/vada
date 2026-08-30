@@ -6,9 +6,16 @@ import { INFO_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
+import { PendingBox } from '../components/PendingBox'
 import { elementByNodeId, rec01 } from '../spec/screens'
 import { targetScreenOf, paramsOf } from '../spec/types'
-import type { DisplayAction, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
+import type {
+  DisplayAction,
+  InputSpec,
+  ItemListSpec,
+  PendingSpec,
+  SummarySpec,
+} from '../spec/types'
 
 // 완료된 행사(REC-01).
 //
@@ -31,6 +38,7 @@ const SCREEN = 'REC-01'
 const NODE = {
   alert: '30:3381',
   query: '30:3393',
+  filter: '30:3397',
   list: '30:3398',
 } as const
 
@@ -68,6 +76,7 @@ interface REC01ScreenProps {
 export function REC01Screen({ onNavigate }: REC01ScreenProps) {
   const alert = elementByNodeId(rec01, NODE.alert).spec as SummarySpec
   const query = elementByNodeId(rec01, NODE.query).spec as InputSpec
+  const filter = elementByNodeId(rec01, NODE.filter).spec as PendingSpec
   const list = elementByNodeId(rec01, NODE.list).spec as ItemListSpec
 
   const [queryValue, setQueryValue] = useState(query.initialValue ?? '')
@@ -146,6 +155,13 @@ export function REC01Screen({ onNavigate }: REC01ScreenProps) {
             className="min-w-0 flex-1 text-sm text-gray-700 placeholder:text-gray-700 focus:outline-none"
           />
         </label>
+
+        {/* 그림이 검색칸 옆에 거르개를 그렸는데 안이 비어 있다. */}
+        <PendingBox
+          nodeId={NODE.filter}
+          spec={filter}
+          className="h-9 w-28 shrink-0 rounded border border-gray-200"
+        />
       </div>
 
       <div data-node-id={NODE.list} className="flex flex-col gap-3 pb-12">

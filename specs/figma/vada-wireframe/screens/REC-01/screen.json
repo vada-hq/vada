@@ -61,6 +61,17 @@
     },
     {
       "source": {
+        "nodeId": "30:3397",
+        "name": "Dropdown",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "pending",
+        "note": "그림이 행사명 검색칸 옆에 고르는 칸을 그렸는데 안이 비어 있다. record.completedEvents가 받는 인자는 query뿐이다."
+      }
+    },
+    {
+      "source": {
         "nodeId": "30:3398",
         "name": "Container",
         "figmaType": "FRAME"

@@ -6,8 +6,15 @@ import { BANNER_TEXT, BANNER_TONE, NEUTRAL_CHIP, STATE_CHIP } from '../design/to
 import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
+import { PendingBox } from '../components/PendingBox'
 import { elementByNodeId, opsMeet04b } from '../spec/screens'
-import type { ButtonSpec, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
+import type {
+  ButtonSpec,
+  InputSpec,
+  ItemListSpec,
+  PendingSpec,
+  SummarySpec,
+} from '../spec/types'
 
 // 회의 진행 권한 관리(OPS-MEET-04B).
 //
@@ -44,6 +51,7 @@ const NODE = {
   owner: '20:769',
   peopleHeader: '20:788',
   query: '20:801',
+  filter: '20:803',
   people: '20:804',
 } as const
 
@@ -101,6 +109,7 @@ export function OPSMEET04BScreen({ screenParams, onNavigate }: OPSMEET04BScreenP
   const owner = summaryAt(NODE.owner)
   const peopleHeader = summaryAt(NODE.peopleHeader)
   const query = elementByNodeId(opsMeet04b, NODE.query).spec as InputSpec
+  const filter = elementByNodeId(opsMeet04b, NODE.filter).spec as PendingSpec
   const people = elementByNodeId(opsMeet04b, NODE.people).spec as ItemListSpec
 
   const [queryValue, setQueryValue] = useState(query.initialValue ?? '')
@@ -324,6 +333,13 @@ export function OPSMEET04BScreen({ screenParams, onNavigate }: OPSMEET04BScreenP
                 className="min-w-0 flex-1 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
               />
             </label>
+
+            {/* 그림이 검색칸 옆에 거르개를 그렸는데 안이 비어 있다. */}
+            <PendingBox
+              nodeId={NODE.filter}
+              spec={filter}
+              className="h-9 w-28 shrink-0 rounded-[5px] border border-gray-300 bg-white"
+            />
           </div>
 
           <ul data-node-id={NODE.people} className="border-t border-gray-100">

@@ -112,7 +112,12 @@ const FLOOR = {
   "FIN-PROC-01": { matched: 2, spurious: 0 },
   "FIN-REQ-01": { matched: 18, spurious: 41 },
   "FIN-REQ-02": { matched: 3, spurious: 0 },
-  "FIN-REV-01": { matched: 1, spurious: 5 },
+  // 헛것이 5에서 9로 늘었다. **추출기가 나빠진 것이 아니라 눈을 떴다** —
+  // `Number Input`을 칸 이름 목록에 넣기 전에는 표 넉 줄의 금액 칸 넷이 아예
+  // 안 보였고, 안 보이는 것은 헛것으로도 세어지지 않는다. 지금 그 넷이 나오는데
+  // 명세는 그것을 itemList의 itemFields 한 벌로 적으므로 나머지가 헛것이 된다
+  // (이 표 위의 설명이 말하는 되풀이 문제 그대로다).
+  "FIN-REV-01": { matched: 1, spurious: 9 },
   "FIN-SUP-01": { matched: 2, spurious: 4 },
   "HOME-01K": { matched: 7, spurious: 0 },
   "INV-01": { matched: 8, spurious: 0 },
@@ -143,7 +148,12 @@ const FLOOR = {
   "OPS-CAL-01": { matched: 1, spurious: 18 },
   "REC-01": { matched: 2, spurious: 0 },
   "REC-02": { matched: 3, spurious: 8 },
-  "REC-02A": { matched: 5, spurious: 0 },
+  // 같은 까닭이다. `Text Area` 셋이 보이기 시작했고, 그중 둘은 명세가 **바깥
+  // 감싸개**를 등록한 자리다(30:4173 Section · 30:4294 Container). 추출기는 'Label'이라는
+  // 이름의 자식이 있어야 감싸개로 보는데 이 화면은 Section 안에 제목을 다르게
+  // 담아서, 감싸개를 못 찾고 칸 자신을 낸다. 안 보이던 것이 조금 깊은 자리에서
+  // 보이는 쪽이 낫다 — 안 보이면 명세가 빠뜨려도 아무도 모른다.
+  "REC-02A": { matched: 5, spurious: 2 },
   "EVT-00A2": { matched: 1, spurious: 3 },
   "EVT-02D": { matched: 1, spurious: 2 },
   "EVT-03A": { matched: 2, spurious: 3 },
