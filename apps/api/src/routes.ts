@@ -38,6 +38,13 @@ export type Handler<D> = (c: Context, deps: D) => Promise<unknown>
  * 계약에 없는 이름을 붙이면 **여기서 멈춘다** — 오타 하나가 조용히 안 열리는 자리가
  * 되는 대신 시작할 때 드러난다.
  */
+const ATTACHED = new Set<string>()
+
+/** 답이 붙은 자리들. **찔러 보지 않고 센다** — 실제 404와 안 만든 자리는 구분되지 않는다. */
+export function answeredOperationIds(): string[] {
+  return [...ATTACHED]
+}
+
 export function attach<D>(app: Hono, deps: D, handlers: Record<string, Handler<D>>): void {
   for (const [operationId, handler] of Object.entries(handlers)) {
     const at = BY_ID.get(operationId)
@@ -45,6 +52,7 @@ export function attach<D>(app: Hono, deps: D, handlers: Record<string, Handler<D
       throw new Error(`계약에 '${operationId}'라는 자리가 없습니다.`)
     }
     // 계약의 `{eventId}`를 Hono가 아는 `:eventId`로. 뜻이 같은 두 표기다.
+    ATTACHED.add(operationId)
     const honoPath = at.path.replace(/\{([^}]+)\}/g, ':$1')
     app.on(at.method.toUpperCase(), honoPath, async (c) => {
       try {

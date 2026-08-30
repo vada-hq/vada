@@ -7616,57 +7616,6 @@
             }
           }
         }
-      },
-      "put": {
-        "operationId": "org.changeRole",
-        "summary": "고른 구성원의 기본 역할을 바꾼다. 회의·행사별 맥락 역할은 이 화면이 건드리지 않는다.",
-        "x-authorize": {
-          "area": "org.structure"
-        },
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "성공",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "로그인이 필요하다",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "이 자리를 열 권한이 없다",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "default": {
-            "description": "그 밖의 실패",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
       }
     },
     "/api/org/role-assignments/count": {
@@ -7730,14 +7679,24 @@
         }
       }
     },
-    "/api/org/role-assignments/selected": {
+    "/api/org/members/{memberId}/role-assignment": {
       "get": {
         "operationId": "org.selectedRoleAssignment",
-        "summary": "지금 고른 구성원 한 사람. 목록에서 고른 것이 여기 온다 - 누구를 고를지가 아직 주소로 오가지 않아(itemAction이 pending) 서버가 마지막으로 고른 사람을 준다.",
+        "summary": "목록에서 고른 구성원 한 사람(ORG-04B).\n\n**한동안 서버가 '마지막으로 고른 사람'을 기억해 주고 있었다** — 누구를 고를지 화면이 넘길 어휘가 없었기 때문이다. 그것은 사람마다 다른 서버 상태라 두 사람이 같은 화면을 열면 서로의 고른 것을 본다. 이제 화면이 고른 사람을 인자로 넘긴다.",
         "x-authorize": {
           "area": "member"
         },
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "description": "어느 구성원인가",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "성공",
@@ -7795,6 +7754,16 @@
           },
           "403": {
             "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "가리킨 것이 없다",
             "content": {
               "application/json": {
                 "schema": {
@@ -19058,6 +19027,108 @@
                 "schema": {
                   "$ref": "#/components/schemas/Error"
                 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/org/members/{memberId}/role": {
+      "put": {
+        "operationId": "org.changeRole",
+        "summary": "고른 구성원의 기본 역할을 바꾼다. 회의·행사별 맥락 역할은 이 화면이 건드리지 않는다.\n\n**누구의 역할인지가 계약에 없었다.** 자리도 인자도 없어서 서버가 알 길이 없었고, 화면도 고른 사람을 넘길 어휘가 없어 서버가 '마지막으로 고른 사람'을 기억해 대신하고 있었다 — 두 사람이 같은 화면을 열면 서로의 고른 것을 본다. 자리에 사람을 박아 그 자리를 없앤다.",
+        "x-authorize": {
+          "area": "org.structure"
+        },
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "description": "누구의 역할을 바꾸는가",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "가리킨 것이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "보낸 값이 받을 수 없는 것이다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "baseRole": {
+                    "type": "string",
+                    "description": "기본 역할 변경"
+                  }
+                },
+                "required": [
+                  "baseRole"
+                ]
               }
             }
           }

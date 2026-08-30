@@ -7,6 +7,7 @@ import type { DataRow } from '../data-sources/catalog'
 import { BASE_ROLE_CHIP } from '../design/tones'
 import { getOptionSource } from '../option-sources/catalog'
 import { elementByNodeId, org04b } from '../spec/screens'
+import { initialChosen } from '../spec/chosen'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type {
   ButtonSpec,
@@ -15,6 +16,7 @@ import type {
   SubmitAction,
   SummarySpec,
 } from '../spec/types'
+import type { ScopeDraft } from '../state/scopes'
 
 // 역할 및 권한 관리 — 회장단(ORG-04B). ORG-04가 읽는 것을 여기서 바꾼다.
 //
@@ -23,7 +25,11 @@ import type {
 // 그래서 ORG-04의 권한 표는 열이 고정이고, 여기 고르는 것도 고정된 셋이다
 // (option-sources의 org.baseRoles).
 //
-// 어느 구성원을 고를지가 아직 주소로 오가지 않는다 - 목록의 itemAction이
+// **고른 구성원이 화면의 값이 된다**(명세의 itemAction.choose). 한동안 여기가
+// pending이었고 서버가 '마지막으로 고른 사람'을 기억해 대신했는데, 그것은 사람마다
+// 다른 서버 상태라 두 사람이 같은 화면을 열면 서로의 고른 것을 본다.
+//
+// 옛 주석: 어느 구성원을 고를지가 아직 주소로 오가지 않는다 - 목록의 itemAction이
 // pending인 이유이고, 오른쪽 칸은 서버가 '마지막으로 고른 사람'을 준다.
 
 const SCREEN = 'ORG-04B'
@@ -62,10 +68,19 @@ function scalar(row: DataRow, field: string): string {
 }
 
 interface ORG04BScreenProps {
+  /** 바꿀 역할이 사는 자리(roleChangeDraft). 화면 안의 useState에 담으면 떠났다 오면 사라진다. */
+  draft: ScopeDraft
+  onChangeDraft: (next: ScopeDraft) => void
+  onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
   onNavigate: (screenId: string, params?: Record<string, string>) => void
 }
 
-export function ORG04BScreen({ onNavigate }: ORG04BScreenProps) {
+export function ORG04BScreen({
+  draft,
+  onChangeDraft,
+  onScopeEvent,
+  onNavigate,
+}: ORG04BScreenProps) {
   const scopeBadge = elementByNodeId(org04b, NODE.scopeBadge).spec as SummarySpec
   const banner = elementByNodeId(org04b, NODE.banner).spec as SummarySpec
   const members = elementByNodeId(org04b, NODE.members).spec as ItemListSpec
@@ -77,10 +92,34 @@ export function ORG04BScreen({ onNavigate }: ORG04BScreenProps) {
 
   const rows = readListSource(members.dataSourceKey)
   const counts = readObjectSource(memberCount.dataSourceKey)
-  const person = readObjectSource(selected.dataSourceKey)
+
+  // **고른 사람이 화면의 값이다.** 한동안 서버가 '마지막으로 고른 사람'을 기억해
+  // 주고 있었는데, 그것은 사람마다 다른 서버 상태라 두 사람이 같은 화면을 열면
+  // 서로의 고른 것을 본다. 명세의 itemAction이 이제 choose이므로 여기 담는다.
+  const choose = members.itemAction
+  if (choose?.type !== 'choose') {
+    // 명세가 고르기라고 말하지 않으면 이 화면은 무엇을 고른 것인지 알 수 없다.
+    // 조용히 첫 줄로 대신하지 않는다.
+    throw new Error("ORG-04B의 목록이 'choose'가 아닙니다. 고른 사람을 담을 자리가 없습니다.")
+  }
+  // 누가 처음 골라져 있는지는 명세가 말하지 않는다. 그 판단은 한 곳에 있다.
+  const [chosenId, setChosenId] = useState<string>(() => initialChosen(org04b)[choose.fieldKey] ?? '')
+  const person = readObjectSource(selected.dataSourceKey, {
+    [Object.keys(selected.params!)[0]!]: chosenId,
+  })
 
   // 처음 보이는 것은 그 사람의 지금 역할이다. 고르지 않고 눌러도 바뀌지 않는다.
-  const [role, setRole] = useState<string>(scalar(person, 'role'))
+  const roleChoiceKey = roleChoice.fieldKey
+  const role = draft.values[roleChoiceKey] ?? scalar(person, 'role')
+  const setRole = (next: string) =>
+    onChangeDraft({
+      ...draft,
+      values: { ...draft.values, [roleChoiceKey]: next },
+      labels: {
+        ...draft.labels,
+        [roleChoiceKey]: options.find((option) => option.value === next)?.label ?? next,
+      },
+    })
   const [note, setNote] = useState<string | null>(null)
   const submitAction = useSubmitAction()
 
@@ -92,7 +131,10 @@ export function ORG04BScreen({ onNavigate }: ORG04BScreenProps) {
   function pressApply() {
     void submitAction.run(apply.action as SubmitAction, {
       payload: { [roleChoice.fieldKey]: role },
+      // 누구의 역할인지는 자리가 실어 간다. 명세의 제출 인자가 그것을 말한다.
+      params: { memberId: chosenId },
       onNavigate,
+      onScopeEvent,
     })
   }
 
@@ -153,8 +195,12 @@ export function ORG04BScreen({ onNavigate }: ORG04BScreenProps) {
               type="button"
               data-node-id={index === 0 ? NODE_FIRST.memberCard : undefined}
               onClick={() => {
-                const action = members.itemAction
-                if (action?.type === 'pending') setNote(action.note)
+                // 고르면 화면을 떠나지 않는다 — 목록은 그대로 있고 곁의 요소들이
+                // 고른 것을 읽는다. 역할 고르기도 그 사람의 지금 역할로 돌아간다.
+                const next = scalar(row, choose.itemField)
+                setChosenId(next)
+                setRole(scalar(row, 'role'))
+                setNote(null)
               }}
               className={`flex w-full items-center gap-3 border-b border-gray-100 px-5 py-4 text-left last:border-b-0 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none ${
                 scalar(row, 'id') === scalar(person, 'id') ? 'bg-blue-50' : 'hover:bg-gray-50'

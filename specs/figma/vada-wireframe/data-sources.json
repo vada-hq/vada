@@ -4101,14 +4101,21 @@
     {
       "key": "org.selectedRoleAssignment",
       "shape": "object",
-      "description": "지금 고른 구성원 한 사람. 목록에서 고른 것이 여기 온다 - 누구를 고를지가 아직 주소로 오가지 않아(itemAction이 pending) 서버가 마지막으로 고른 사람을 준다.",
+      "description": "목록에서 고른 구성원 한 사람(ORG-04B).\n\n**한동안 서버가 '마지막으로 고른 사람'을 기억해 주고 있었다** — 누구를 고를지 화면이 넘길 어휘가 없었기 때문이다. 그것은 사람마다 다른 서버 상태라 두 사람이 같은 화면을 열면 서로의 고른 것을 본다. 이제 화면이 고른 사람을 인자로 넘긴다.",
       "authorize": {
         "area": "member"
       },
-      "params": [],
+      "params": [
+        {
+          "key": "memberId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 구성원인가"
+        }
+      ],
       "request": {
         "method": "GET",
-        "path": "/api/org/role-assignments/selected"
+        "path": "/api/org/members/{memberId}/role-assignment"
       },
       "messages": {
         "loading": "구성원을 불러오는 중입니다",

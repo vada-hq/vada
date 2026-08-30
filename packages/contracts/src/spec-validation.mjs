@@ -2706,6 +2706,16 @@ export function collectSpecFindings({
           fieldKeys.add(fieldKey);
         }
       }
+
+      // **고른 것도 화면의 값이다.** 누르면 그 항목이 칸에 담기므로(`choose`)
+      // 그 칸은 입력 칸과 똑같이 다른 요소가 가리킬 수 있어야 한다. 여기 없으면
+      // 가리키는 자리마다 '화면에 없는 칸'이라고 잘못 말한다.
+      for (const at of ['action', 'itemAction', 'emptyAction']) {
+        const action = isObject(spec_) ? spec_[at] : undefined;
+        if (isObject(action) && action.type === 'choose' && typeof action.fieldKey === 'string') {
+          fieldKeys.add(action.fieldKey);
+        }
+      }
     });
 
     const listsByFieldKey = new Map(

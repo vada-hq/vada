@@ -3007,15 +3007,6 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     duesUpdatedAt: '2026-07-18 10:15',
     duesUpdatedBy: '2026년 1학기 · 김민준',
   },
-  // 고른 사람. 어느 구성원을 고를지가 아직 주소로 오가지 않아 서버가 준다.
-  'org.selectedRoleAssignment': {
-    id: 'M-03',
-    name: '박해랑',
-    department: '운영부',
-    roleLabel: '부원',
-    roleTone: 'gray',
-    role: 'member',
-  },
   'org.roleAssignments': [
     { id: 'M-01', name: '김바다', department: '학술체육부', roleLabel: '회장단', roleTone: 'violet', role: 'chair' },
     { id: 'M-11', name: '이수현', department: '기획부', roleLabel: '부서장', roleTone: 'blue', role: 'head' },
@@ -4057,6 +4048,13 @@ export const FILTERED_FIXTURES: Record<
     ORG_DEPARTMENTS.filter((row) => matchesQuery(row, query)),
   'org.unassignedMembers': ({ query = '' }) =>
     UNASSIGNED_MEMBERS.filter((row) => matchesQuery(row, query)),
+  // **고른 사람은 자리가 말한다.** 한동안 서버가 '마지막으로 고른 사람'을 기억해
+  // 주고 있었는데, 그것은 사람마다 다른 서버 상태라 두 사람이 같은 화면을 열면
+  // 서로의 고른 것을 본다. 이제 인자로 집어 온다.
+  'org.selectedRoleAssignment': ({ memberId = '' }) =>
+    (DASHBOARD_FIXTURES['org.roleAssignments'] as DataRow[]).filter(
+      (row) => row.id === memberId,
+    ),
   // 학생 명단은 이름·학번으로 찾고 학년·납부 상태로 거른다.
   'org.students': ({ query = '', grade = '', duesStatus = '' }) =>
     STUDENT_ROSTER.filter((row) => matchesQuery(row, query))

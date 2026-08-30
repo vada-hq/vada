@@ -1,3 +1,4 @@
+import { noteOf } from '../spec/types'
 import { useState } from "react";
 import { AppShell } from "../components/AppShell";
 import { FigmaAsset } from "../components/FigmaAsset";
@@ -233,7 +234,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
             onNavigate(targetScreenOf(itemAction, row) ?? itemAction.type);
             return;
           }
-          setNote(itemAction.note);
+          setNote(noteOf(itemAction));
         }}
         className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
       >

@@ -415,7 +415,7 @@ describe('design/deviations.ts', () => {
   // 스스로 어긋난 자리가 아니라 같은 뜻에 색 셋을 쓴 표현의 불규칙이다(MSG-02의
   // 골라진 칩). 목록이 원격이라 여태 아무것도 골라지지 않은 채로 견주었고, 서버가
   // 처음 열릴 것을 표시해 오면서 비로소 재어졌다.
-  const PLACE_DEVIATIONS = 76
+  const PLACE_DEVIATIONS = 86
 
   it('자리에 건 예외가 조용히 늘지 않는다', () => {
     const atPlace = DEVIATIONS.filter((deviation) => deviation.by === 'place')

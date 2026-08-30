@@ -6,7 +6,7 @@ import { maskSecrets, type AuditEntry } from './audit.ts'
 import type { Db } from './db/client.ts'
 import { freshDb } from './db/testing.ts'
 import { departments, members, organizations } from './db/schema.ts'
-import { allOperationIds, routeOf } from './routes.ts'
+import { allOperationIds, answeredOperationIds, routeOf } from './routes.ts'
 import { inMemoryAttempts } from './idempotency.ts'
 import type { Viewer } from './permissions.ts'
 
@@ -195,15 +195,12 @@ describe('명세 밖으로 새지 않는다', () => {
 
   // 얼마나 남았는지를 검사가 센다. 손으로 세면 언젠가 틀리고, 틀린 수는
   // '거의 다 됐다'로 읽힌다.
-  it('아직 답하지 않는 자리가 몇인지 센다', async () => {
-    const done = new Set<string>()
-    for (const operationId of allOperationIds()) {
-      const at = routeOf(operationId)!
-      const url = at.path.replace(/\{([^}]+)\}/g, 'X-1')
-      const res = await harness().app.request(url, { method: at.method.toUpperCase() })
-      if (res.status !== 403 && res.status !== 404) done.add(operationId)
-    }
-    expect(done.size).toBe(14)
+  it('아직 답하지 않는 자리가 몇인지 센다', () => {
+    // **찔러 보지 않고 센다.** 한동안 자리마다 불러 보고 403·404가 아니면 답한
+    // 것으로 세었는데, 진짜로 404를 내는 자리(없는 구성원을 물었을 때)와 아직
+    // 안 만든 자리가 같은 모양이라 **만든 것을 안 만든 것으로 세고 있었다.**
+    harness()
+    expect(answeredOperationIds()).toHaveLength(17)
     expect(allOperationIds()).toHaveLength(216)
   })
 })

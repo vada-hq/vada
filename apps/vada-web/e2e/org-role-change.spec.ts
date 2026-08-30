@@ -29,8 +29,10 @@ test('ORG-04B: 고를 수 있는 역할은 셋뿐이다', async ({ page }) => {
     await expect(choices.filter({ hasText: name })).toHaveCount(1)
   }
 
-  // 처음 골라져 있는 것은 그 사람의 지금 역할이다.
-  await expect(choices.filter({ hasText: '부원' })).toHaveAttribute('aria-checked', 'true')
+  // 처음 골라져 있는 것은 **첫 줄 사람의 지금 역할**이다. 누가 처음 골라져 있는지는
+  // 명세가 말하지 않는다 — 서버가 '마지막으로 고른 사람'을 기억하던 자리를 없앴기
+  // 때문이다. 목록의 첫 줄로 두는 것은 그리는 쪽의 판단이다.
+  await expect(choices.filter({ hasText: '회장단' })).toHaveAttribute('aria-checked', 'true')
 })
 
 test('ORG-04B: 다른 역할을 고르면 그것이 골라진다', async ({ page }) => {
@@ -57,11 +59,26 @@ test('ORG-04B: 권한을 바꾸면 역할 및 권한으로 돌아간다', async 
   await expect(page.getByRole('table', { name: '기능 영역별 권한' })).toBeVisible()
 })
 
-// 어느 구성원을 고를지가 아직 주소로 오가지 않는다. 지어내지 않고 남긴다.
-test('ORG-04B: 구성원을 누르면 아직 정해지지 않았음을 남긴다', async ({ page }) => {
+// **고른 사람이 화면의 값이 된다**(명세의 itemAction.choose).
+//
+// 이 자리는 오래 'pending'이었고, 서버가 '마지막으로 고른 사람'을 기억해 대신하고
+// 있었다 — 사람마다 다른 서버 상태라 두 사람이 같은 화면을 열면 서로의 고른 것을
+// 본다. 이제 고른 것이 화면에 남고 곁의 요소들이 그것을 읽는다.
+test('ORG-04B: 구성원을 고르면 그 사람이 아래에 그려진다', async ({ page }) => {
   await page.goto(MANAGE)
 
   await page.getByRole('button').filter({ hasText: '이수현' }).click()
 
-  await expect(page.getByText(/아직 주소로 오가지 않습니다/)).toBeVisible()
+  // 고른 사람이 아래 칸에 온다 — 이수현은 기획부 부서장이다. 목록에도 '기획부'가
+  // 있으므로 아래 칸의 것으로 좁힌다(그쪽만 '현재'를 달고 있다).
+  await expect(page.getByText('기획부 · 현재')).toBeVisible()
+
+  // 고르면 역할 고르기도 그 사람의 지금 역할로 돌아간다.
+  await expect(page.getByRole('radio').filter({ hasText: '부서장' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
+
+  // 화면을 떠나지 않는다 — 목록이 그대로 있다.
+  await expect(page.getByRole('button').filter({ hasText: '김바다' })).toBeVisible()
 })

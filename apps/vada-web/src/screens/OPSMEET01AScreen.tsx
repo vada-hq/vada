@@ -6,7 +6,7 @@ import { readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { elementByNodeId, opsMeet01a, opsMeet01c } from '../spec/screens'
 import { resolveParams } from '../spec/params'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import type { ButtonSpec, DisplayAction, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 회의 목록(OPS-MEET-01A).
@@ -302,7 +302,7 @@ function MeetingCard({ meeting, itemAction, onNavigate }: MeetingCardProps) {
                 )
                 return
               }
-              onNavigate(target, resolveParams(itemAction.params, { row: meeting }))
+              onNavigate(target, resolveParams(paramsOf(itemAction), { row: meeting }))
             }}
             className={`rounded px-3 py-1.5 text-xs font-medium focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none ${
               emphasis === 'primary'

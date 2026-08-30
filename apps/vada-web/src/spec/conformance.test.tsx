@@ -7,6 +7,7 @@ import type { FieldSpec, ListSpec, ScreenSpec } from './types'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { drawsElement } from './drawn-when'
 import { resolveParams } from './params'
+import { initialChosen } from './chosen'
 
 // 스펙 필드 소비 커버리지: 기대값을 스펙 JSON에서 읽어 화면과 대조한다.
 // 하드코딩한 단언이 아니라서, 스펙을 고치면 이 검사가 자동으로 따라간다.
@@ -428,7 +429,10 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       if (holder === null) continue
       const row = readObjectSource(
         summary.dataSourceKey,
-        resolveParams(summary.params, { screenParams }),
+        // 고른 것도 화면의 값이다. 처음 무엇이 골라져 있는지는 그리는 쪽이 정하고,
+        // 그 규칙은 한 곳에만 있다(initialChosen) — 두 곳이면 검사가 화면이 그리지
+        // 않는 것을 재게 된다.
+        resolveParams(summary.params, { screenParams, fields: initialChosen(spec) }),
       )
       if (summary.eyebrowField !== undefined) {
         expect(within(holder).getByText(String(row[summary.eyebrowField]))).toBeInTheDocument()

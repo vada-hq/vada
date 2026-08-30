@@ -6,7 +6,7 @@ import { NEUTRAL_BORDER, SOFT_BOX, SOFT_BOX_TEXT } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt02 } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 행사 개요(EVT-02).
@@ -305,7 +305,7 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
                           )
                           return
                         }
-                        onNavigate(target, argumentsOf(action.params))
+                        onNavigate(target, argumentsOf(paramsOf(action)))
                       }}
                       className="shrink-0 text-xs font-medium text-blue-500 hover:text-blue-700"
                     >

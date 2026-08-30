@@ -239,15 +239,23 @@
     },
     {
       "key": "org.changeRole",
-      "description": "고른 구성원의 기본 역할을 바꾼다. 회의·행사별 맥락 역할은 이 화면이 건드리지 않는다.",
+      "description": "고른 구성원의 기본 역할을 바꾼다. 회의·행사별 맥락 역할은 이 화면이 건드리지 않는다.\n\n**누구의 역할인지가 계약에 없었다.** 자리도 인자도 없어서 서버가 알 길이 없었고, 화면도 고른 사람을 넘길 어휘가 없어 서버가 '마지막으로 고른 사람'을 기억해 대신하고 있었다 — 두 사람이 같은 화면을 열면 서로의 고른 것을 본다. 자리에 사람을 박아 그 자리를 없앤다.",
       "authorize": {
         "area": "org.structure"
       },
-      "params": [],
+      "params": [
+        {
+          "key": "memberId",
+          "required": true,
+          "valueType": "string",
+          "description": "누구의 역할을 바꾸는가"
+        }
+      ],
       "request": {
         "method": "PUT",
-        "path": "/api/org/role-assignments"
+        "path": "/api/org/members/{memberId}/role"
       },
+      "payloadScope": "roleChangeDraft",
       "repeat": {
         "kind": "overwrite",
         "why": "그 사람의 역할을 정한다. 두 번 정해도 같은 역할이다."

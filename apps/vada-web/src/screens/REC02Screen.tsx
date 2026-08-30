@@ -8,7 +8,7 @@ import { findDataSource, readListSource, readObjectSource } from '../data-source
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, rec02 } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import type { DisplayAction, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
 import type { ScopeDraft } from '../state/scopes'
 
@@ -158,7 +158,7 @@ export function REC02Screen({
     }
     const target = targetScreenOf(action, row)
     if (target === null) return
-    onNavigate(target, resolveParams(action.params, { screenParams, row }))
+    onNavigate(target, resolveParams(paramsOf(action), { screenParams, row }))
   }
 
   // 체크 값은 '목록이름.항목id.칸이름' 꼴로 담긴다 — 판정의 단위가 항목이다.

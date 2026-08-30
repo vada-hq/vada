@@ -15,8 +15,10 @@
           "type": "string",
           "enum": [
             "navigate",
-            "pending"
-          ]
+            "pending",
+            "choose"
+          ],
+          "description": "`navigate` 다음 화면으로 간다 · `pending` 아직 무엇을 하는지 그림에 없다 · `choose` **눌린 항목이 이 화면의 값이 된다.**\n\n`choose`가 오래 없었다. 그동안 ORG-04B는 '어느 구성원을 고를지가 아직 주소로 오가지 않는다'며 `pending`으로 두었고, 서버가 **마지막으로 고른 사람**을 기억해 대신했다 — 사람마다 다른 서버 상태이고 두 사람이 같은 화면을 열면 서로의 고른 것을 본다.\n\n이동과 다른 점은 **화면을 떠나지 않는다**는 것이다. 고른 뒤에도 목록이 그대로 있고, 고른 것을 곁의 요소들이 읽는다."
         },
         "label": {
           "type": "string",
@@ -75,6 +77,16 @@
         "params": {
           "$ref": "element-params.schema.json#/$defs/argument",
           "description": "이동하면서 대상 화면에 넘기는 인자(선택). key는 대상 화면의 params에 선언된 이름이다. 화면이 인자를 받는다면 누군가는 그 값을 줘야 하고, 그 자리가 여기다 — 칸반 카드가 '어느 업무의 상세인지'를 넘기는 것이 첫 사례다. 값의 출처는 조회 인자와 같은 넷이며, 목록 항목의 동작에서는 눌린 그 항목의 조각(itemField)을 쓴다."
+        },
+        "fieldKey": {
+          "type": "string",
+          "minLength": 1,
+          "description": "고른 것이 담기는 화면의 칸. 다른 요소들이 이 칸을 조회 인자로 가리켜 '고른 그것'을 읽는다."
+        },
+        "itemField": {
+          "type": "string",
+          "minLength": 1,
+          "description": "눌린 항목의 어느 조각을 담는가. 그 목록의 데이터 출처에 선언돼 있어야 한다."
         }
       },
       "allOf": [
@@ -167,6 +179,73 @@
             "targets": [
               "targetField"
             ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "choose"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "fieldKey",
+              "itemField"
+            ],
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "targetScreenId"
+                  ]
+                },
+                {
+                  "required": [
+                    "note"
+                  ]
+                },
+                {
+                  "required": [
+                    "params"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "not": {
+                  "const": "choose"
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "fieldKey"
+                  ]
+                },
+                {
+                  "required": [
+                    "itemField"
+                  ]
+                }
+              ]
+            }
           }
         }
       ]

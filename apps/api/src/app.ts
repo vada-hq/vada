@@ -18,6 +18,7 @@ import {
   unassignedMembers,
 } from './org/chart.ts'
 import { currentInvite, regenerateInvite, type InviteSettings } from './org/invite.ts'
+import { changeRole, roleAssignmentOf } from './org/role-change.ts'
 import {
   permissionMatrix,
   roleAssignmentCount,
@@ -187,6 +188,29 @@ export function createApp(deps: Deps) {
       // 남의 학적 정보를 다루는 자리다. 누구의 것을 다뤘는지 남긴다.
       c.set('auditSubject', { type: 'organization', id: orgId })
       return roleAssignments(d.db, orgId)
+    },
+    // 고른 사람 한 건. **누구인지는 자리가 말한다** — 서버가 기억하지 않는다.
+    'org.selectedRoleAssignment': async (c, d) => {
+      const orgId = orgOf(d)
+      const memberId = c.req.param('memberId')!
+      c.set('auditSubject', { type: 'member', id: memberId })
+      const row = await roleAssignmentOf(d.db, orgId, memberId)
+      if (row === null) throw new NotFound('그 구성원을 찾지 못했습니다')
+      return row
+    },
+    // **법이 이 자리를 3년 본다.** 권한을 바꾼 기록은 따로 남는다.
+    'org.changeRole': async (c, d) => {
+      const orgId = orgOf(d)
+      const memberId = c.req.param('memberId')!
+      c.set('auditSubject', { type: 'member', id: memberId })
+      const body = (await c.req.json().catch(() => ({}))) as { baseRole?: unknown }
+      await changeRole(d.db, orgId, {
+        memberId,
+        baseRole: body.baseRole,
+        actorUserId: d.who()?.userId ?? null,
+        now: d.invite.now,
+      })
+      return {}
     },
     'org.roleAssignmentCount': async (c, d) => {
       const orgId = orgOf(d)

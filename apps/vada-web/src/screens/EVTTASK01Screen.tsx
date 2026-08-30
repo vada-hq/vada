@@ -12,7 +12,7 @@ import {
   STATUS_CHIP,
 } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, noteOf } from '../spec/types'
 import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
@@ -344,7 +344,7 @@ function TaskCard({ row, itemAction, onNavigate }: TaskCardProps) {
             )
             return
           }
-          setNote(itemAction.note)
+          setNote(noteOf(itemAction))
         }}
         className="w-full px-3 py-2.5 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
       >

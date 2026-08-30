@@ -96,6 +96,14 @@ export interface NavigateAction extends ExecutionGate {
 export interface SubmitAction extends ExecutionGate {
   type: 'submit'
   mutationKey: string
+  /**
+   * **보내는 자리가 실어 가는 인자.** 무엇의 것인지를 이것이 말한다.
+   *
+   * 오랫동안 없었다 — 인자는 '다음 화면에 넘기는 것'뿐인 줄 알았는데 변이도 자리에
+   * 인자가 박혀 있다. 없던 탓에 진행 권한 부여는 누구에게 주는지 말할 길이 없었고,
+   * 스물한 자리 중 스무 자리는 화면 인자와 이름이 우연히 같아 돌고 있었다.
+   */
+  params?: QueryParams
   // note는 '보내고 나면 어디로 가는지 아직 안 정했다'를 적는 자리다.
   // 비어 있는 onSuccess는 '보내고 머문다'는 뜻이므로 둘이 구별된다.
   onSuccess: {
@@ -203,6 +211,27 @@ export type DisplayAction =
       params?: QueryParams
     } & DisplayActionCopy)
   | ({ type: 'pending'; note: string } & DisplayActionCopy)
+  /**
+   * **눌린 항목이 이 화면의 값이 된다.** 이동과 다른 점은 화면을 떠나지 않는다는
+   * 것이다 — 고른 뒤에도 목록이 그대로 있고 곁의 요소들이 그 칸을 조회 인자로 읽는다.
+   */
+  | ({ type: 'choose'; fieldKey: string; itemField: string } & DisplayActionCopy)
+
+/**
+ * 아직 정해지지 않았음을 알리는 글. 그런 동작이 아니면 null이다.
+ *
+ * 갈래가 늘 때마다 `action.type !== 'navigate'`로 좁히던 자리 열넷이 한꺼번에
+ * 틀렸다 — 좁힌 뒤에 남는 것이 하나뿐이라는 가정이 갈래가 늘면 깨진다.
+ * 여기 하나만 두면 갈래가 또 늘어도 부르는 쪽은 그대로다.
+ */
+export function noteOf(action: DisplayAction): string | null {
+  return action.type === 'pending' ? action.note : null
+}
+
+/** 이동하며 넘기는 인자. 이동이 아니면 없다. */
+export function paramsOf(action: DisplayAction): QueryParams | undefined {
+  return action.type === 'navigate' ? action.params : undefined
+}
 
 /**
  * 이 동작이 데려갈 화면. 갈림길이면 눌린 줄이 정한다.

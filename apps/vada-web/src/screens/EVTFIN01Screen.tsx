@@ -7,7 +7,7 @@ import { findDataSource, readListSource, readObjectSource } from '../data-source
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evtFin01 } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, noteOf } from '../spec/types'
 import type { ButtonSpec, ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 
 // 행사 재정 — 개요(EVT-FIN-01).
@@ -257,7 +257,7 @@ export function EVTFIN01Screen({ screenParams, onNavigate }: EVTFIN01ScreenProps
                           )
                           return
                         }
-                        setNote(column.itemAction.note)
+                        setNote(noteOf(column.itemAction))
                       }}
                       aria-label={`${String(card.title)} ${column.itemAction?.label ?? ''}`}
                       className="rounded border border-gray-200 bg-white p-3 text-left hover:bg-gray-50"

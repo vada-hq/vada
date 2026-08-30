@@ -3,7 +3,7 @@ import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { readObjectSource } from '../data-sources/catalog'
 import { elementByNodeId, org00 } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, noteOf } from '../spec/types'
 import type { SummarySpec } from '../spec/types'
 
 // 조직 관리 홈(ORG-00).
@@ -87,7 +87,7 @@ function AreaCard({ card, onNavigate }: AreaCardProps) {
             onNavigate(targetScreenOf(action, {}) ?? action.type)
             return
           }
-          setNote(action.note)
+          setNote(noteOf(action))
         }}
         className="flex w-full items-center gap-5 rounded-xl px-6 py-6 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
       >

@@ -13,7 +13,7 @@ import {
 import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow, DataValue } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import { drawnTitleOf, elementByNodeId, opsMeet09 } from '../spec/screens'
 import type { SummarySpec } from '../spec/types'
 
@@ -130,7 +130,7 @@ export function OPSMEET09Screen({ screenParams, onNavigate }: OPSMEET09ScreenPro
     }
     onNavigate(
       targetScreenOf(replacementAction, detail ?? {}) ?? replacementAction.type,
-      resolveParams(replacementAction.params, { screenParams, row: detail ?? undefined }),
+      resolveParams(paramsOf(replacementAction), { screenParams, row: detail ?? undefined }),
     )
   }
 

@@ -8,6 +8,8 @@ export interface Mutation {
   key: string
   description: string
   request: { method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'; path: string }
+  /** 자리가 실어 가는 인자. 무엇의 것인지를 이것이 말한다. */
+  params: Array<{ key: string; required: boolean; valueType: string; description: string }>
   payloadScope: string
   messages: { submitting: string; error: string }
 }
@@ -65,8 +67,21 @@ const MUTATION_RESULTS: Record<string, DataRow> = {
   'survey.apply': { receiptToken: 'RCPT-SVY-4f2a91c7' },
 }
 
-export async function runMutation(key: string, payload: unknown): Promise<DataRow> {
-  getMutation(key)
+export async function runMutation(
+  key: string,
+  payload: unknown,
+  params: Record<string, string> = {},
+): Promise<DataRow> {
+  const mutation = getMutation(key)
+
+  // **자리가 실어 가는 것을 빠뜨리지 않는다.** 계약이 인자를 필수라 했는데 넘기지
+  // 않으면 서버는 누구의 것인지 모른다 — 개발용 대역이라도 그 사실이 드러나야 한다.
+  for (const param of mutation.params ?? []) {
+    if (param.required && params[param.key] === undefined) {
+      throw new Error(`제출 계약 '${key}'는 인자 '${param.key}'를 반드시 받습니다(${param.description}).`)
+    }
+  }
+
   await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
   // 개발 mock: 실제 전송 없이 성공으로 처리한다. 백엔드 연동 시 여기만 바꾼다.
   void payload

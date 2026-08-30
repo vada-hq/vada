@@ -180,6 +180,15 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "roleChangeDraft",
+      "description": "구성원의 기본 역할을 바꾸며 고르는 값(ORG-04B). 누구의 역할인지는 자리가 실어 가므로 여기 담기지 않는다 — 담기는 것은 무엇으로 바꾸는가 하나다.",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

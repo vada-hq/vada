@@ -7,7 +7,7 @@ import { findDataSource, readListSource, readObjectSource } from '../data-source
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, rec01 } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import type { DisplayAction, InputSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 완료된 행사(REC-01).
@@ -92,7 +92,7 @@ export function REC01Screen({ onNavigate }: REC01ScreenProps) {
     }
     const target = targetScreenOf(action, row)
     if (target === null) return
-    onNavigate(target, resolveParams(action.params, { row }))
+    onNavigate(target, resolveParams(paramsOf(action), { row }))
   }
 
   const breadcrumb = rec01.breadcrumb

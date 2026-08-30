@@ -12,7 +12,7 @@ import {
 } from '../design/tones'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, ext02c } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import type { SummarySpec } from '../spec/types'
 
 // 설문 예외·종료 상태(EXT-02C).
@@ -115,7 +115,7 @@ export function EXT02CScreen({ screenParams, onNavigate }: EXT02CScreenProps) {
     // 서버가 이은 것이다(sourceField — OPS-MEET-09의 replacementMeetingId와 같다).
     onNavigate(
       targetScreenOf(action, link ?? {}) ?? action.type,
-      resolveParams(action.params, { screenParams, row: link ?? undefined }),
+      resolveParams(paramsOf(action), { screenParams, row: link ?? undefined }),
     )
   }
 

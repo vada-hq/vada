@@ -10,6 +10,10 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     pool: 'forks',
-    poolOptions: { forks: { singleFork: true } },
+    // Vitest 4에서 poolOptions가 없어졌다 — 최상위로 올라왔다. 옛 모양으로 두면
+    // **경고만 뜨고 조용히 안 걸린다.**
+    isolate: false,
+    maxWorkers: 1,
+    minWorkers: 1,
   },
 })

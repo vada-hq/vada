@@ -15,7 +15,7 @@ import {
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt02d } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import type { ItemListSpec, SummarySpec } from '../spec/types'
 
 // 행사 개요 — 후속 정리 중(EVT-02D).
@@ -237,7 +237,7 @@ export function EVT02DScreen({ screenParams, onNavigate }: EVT02DScreenProps) {
                           }
                           onNavigate(
                             targetScreenOf(action, row) ?? action.type,
-                            resolveParams(action.params, { screenParams }),
+                            resolveParams(paramsOf(action), { screenParams }),
                           )
                         }}
                         className="shrink-0 text-xs font-medium text-blue-500 hover:text-blue-700"
@@ -316,7 +316,7 @@ export function EVT02DScreen({ screenParams, onNavigate }: EVT02DScreenProps) {
                           }
                           onNavigate(
                             targetScreenOf(action, row) ?? action.type,
-                            resolveParams(action.params, { screenParams, row }),
+                            resolveParams(paramsOf(action), { screenParams, row }),
                           )
                         }}
                         className="shrink-0 text-xs font-medium text-blue-500 hover:text-blue-700"

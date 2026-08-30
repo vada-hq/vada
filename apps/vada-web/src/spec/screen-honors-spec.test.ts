@@ -272,7 +272,9 @@ describe('화면이 자기 명세를 지킨다', () => {
   it.each(pending.map((screen) => screen.screenId))(
     '%s: pending이라고 말했으면 그 글을 화면이 읽는다',
     (screenId) => {
-      expect(sourceOf(screenId)).toMatch(/\.note\b/)
+      // `noteOf(action)`도 읽는 것이다 — 동작의 갈래가 늘면서 좁히던 자리 열넷이
+      // 한꺼번에 틀렸고, 그래서 읽는 함수를 하나 두었다.
+      expect(sourceOf(screenId)).toMatch(/(\.note\b|noteOf\()/)
     },
   )
 })

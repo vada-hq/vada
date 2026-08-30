@@ -74,6 +74,7 @@ import { ORG07CScreen } from './ORG07CScreen'
 import { ORG02Screen } from './ORG02Screen'
 import {
   evt00b,
+  org04b,
   ext01a,
   ext02a,
   rec02,
@@ -638,7 +639,16 @@ function ScreenBody({
     return <ORG04Screen onNavigate={onNavigate} />
   }
   if (screenId === 'ORG-04B') {
-    return <ORG04BScreen onNavigate={onNavigate} />
+    // 바꿀 역할은 화면 안이 아니라 roleChangeDraft에 담긴다(org.changeRole의
+    // payloadScope). 누구의 역할인지는 자리가 실어 가므로 초안에 담기지 않는다.
+    return (
+      <ORG04BScreen
+        draft={readScopeDraft(scopes, org04b.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(org04b.stateScopeKey ?? '', next)}
+        onScopeEvent={onScopeEvent}
+        onNavigate={onNavigate}
+      />
+    )
   }
   if (screenId === 'ORG-07A') {
     return <ORG07AScreen onNavigate={onNavigate} />

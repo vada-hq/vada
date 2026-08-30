@@ -36,6 +36,13 @@ export interface SubmitRunOptions {
     fields?: Record<string, string | null>
     row?: DataRow
   }
+  /**
+   * 명세에서 읽어 낼 수 없는 인자만 여기 적는다.
+   *
+   * 자리가 실어 가는 인자는 `action.params`가 이미 말하므로 여기가 비는 것이
+   * 정상이다 — 화면이 적으면 명세만 읽고 만드는 사람은 그 인자를 알 수 없다.
+   */
+  params?: Record<string, string>
   /** onSuccess.scopeEvent가 있는 명세에는 반드시 있어야 한다. */
   onScopeEvent?: (scopeKey: string, event: 'complete' | 'cancel') => void
 }
@@ -84,7 +91,14 @@ export function useSubmitAction(): SubmitActionState {
     // 보내고 나서야 아는 값이 있다(만든 것의 id). 명세가 그것을 가리킬 수 있다.
     let result: DataRow = {}
     try {
-      result = await runMutation(action.mutationKey, options.payload)
+      // **자리가 실어 가는 인자는 명세에서 읽는다.** 화면마다 손으로 넘기게 하면
+      // 스물한 자리 중 몇은 잊고, 잊은 자리는 서버가 누구의 것인지 모른 채 돈다 —
+      // 이 갈고리가 생긴 까닭이 바로 그 옮겨 적기였다.
+      const carried = {
+        ...resolveParams(action.params, options.paramSources ?? {}),
+        ...(options.params ?? {}),
+      }
+      result = await runMutation(action.mutationKey, options.payload, carried)
     } catch {
       // 실패는 머무는 것이다. 어디로도 가지 않고 runningKey를 남겨 어느 계약이
       // 실패했는지 화면이 말할 수 있게 한다.

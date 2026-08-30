@@ -16,7 +16,7 @@ import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, opsCal01 } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import type { ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 
 // 운영 캘린더(OPS-CAL-01).
@@ -295,7 +295,7 @@ export function OPSCAL01Screen({ onNavigate }: OPSCAL01ScreenProps) {
                       }
                       const target = targetScreenOf(action, row)
                       if (target === null) return
-                      onNavigate(target, resolveParams(action.params, { row }))
+                      onNavigate(target, resolveParams(paramsOf(action), { row }))
                     }}
                     className="order-last flex items-center gap-1.5 pt-2 text-left text-xs font-semibold text-blue-600 hover:text-blue-700"
                   >

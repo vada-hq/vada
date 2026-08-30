@@ -1,6 +1,7 @@
 {
-  "schemaVersion": 1,
   "screenId": "ORG-04B",
+  "stateScopeKey": "roleChangeDraft",
+  "schemaVersion": 1,
   "meta": {
     "eyebrow": "조직 관리",
     "title": "역할 및 권한 관리"
@@ -85,9 +86,10 @@
           }
         ],
         "itemAction": {
-          "type": "pending",
+          "type": "choose",
           "label": "이 구성원의 역할 바꾸기",
-          "note": "어느 구성원을 고를지가 아직 주소로 오가지 않습니다."
+          "fieldKey": "selectedMemberId",
+          "itemField": "id"
         }
       }
     },
@@ -123,6 +125,11 @@
         ],
         "titleField": "name",
         "dataSourceKey": "org.selectedRoleAssignment",
+        "params": {
+          "memberId": {
+            "fieldKey": "selectedMemberId"
+          }
+        },
         "items": [
           {
             "label": "현재",
@@ -184,6 +191,11 @@
         "action": {
           "type": "submit",
           "mutationKey": "org.changeRole",
+          "params": {
+            "memberId": {
+              "fieldKey": "selectedMemberId"
+            }
+          },
           "executeWhen": {
             "type": "allRequiredFieldsHaveValue",
             "scope": "screen"
@@ -192,7 +204,8 @@
             "type": "showMissingRequiredFields"
           },
           "onSuccess": {
-            "navigate": "ORG-04"
+            "navigate": "ORG-04",
+            "scopeEvent": "complete"
           }
         }
       }

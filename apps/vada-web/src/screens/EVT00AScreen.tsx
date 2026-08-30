@@ -1,3 +1,4 @@
+import { noteOf } from '../spec/types'
 import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
@@ -208,7 +209,7 @@ function EventCard({ event, itemAction }: EventCardProps) {
           if (itemAction === undefined || itemAction.type === 'navigate') {
             return
           }
-          setNote(itemAction.note)
+          setNote(noteOf(itemAction))
         }}
         className="block w-full px-5 py-4 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
       >

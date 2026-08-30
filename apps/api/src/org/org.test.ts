@@ -4,7 +4,7 @@ import openapi from '../../../../specs/figma/vada-wireframe/openapi.json' with {
 import { createApp, type Deps } from '../app.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
-import { departments, invites, members, organizations } from '../db/schema.ts'
+import { departments, invites, members, organizations, permissionChanges, users } from '../db/schema.ts'
 import { inMemoryAttempts } from '../idempotency.ts'
 import { routeOf } from '../routes.ts'
 import type { AuditEntry } from '../audit.ts'
@@ -61,6 +61,23 @@ beforeAll(async () => {
   const fresh = await freshDb()
   db = fresh.db as unknown as Db
   close = fresh.close
+}, 60_000)
+
+// **매번 처음부터 심는다.** 앞의 검사가 남긴 것이 새면 '이 검사만 돌리면 통과하는데
+// 같이 돌리면 깨진다'로 나타나고, 그때 보이는 것은 원인이 아니라 증상이다.
+// 심는 값은 싸다 — 비싼 것은 띄우는 것이고 그건 한 번뿐이다.
+beforeEach(async () => {
+  codes = 1
+  await db.delete(permissionChanges)
+  await db.delete(invites)
+  await db.delete(members)
+  await db.delete(departments)
+  await db.delete(organizations)
+  await db.delete(users)
+
+  // 권한을 바꾼 기록이 **누가 바꿨는지**를 가리킨다. 그 사람이 없으면 외래 키가
+  // 막는다 — 막는 것이 옳다. 누구인지 모르는 권한 변경 기록은 기록이 아니다.
+  await db.insert(users).values({ id: 'U-01', email: 'chair@example.ac.kr' })
   await db.insert(organizations).values({ id: 'ORG-01', name: '제12대 학생회' })
   await db.insert(departments).values([
     { id: 'D-01', orgId: 'ORG-01', name: '기획부', sortOrder: 0 },
@@ -73,18 +90,6 @@ beforeAll(async () => {
     { id: 'M-13', orgId: 'ORG-01', name: '박민수', role: 'member', departmentId: 'D-01', major: '컴퓨터학부', grade: '2학년' },
     { id: 'M-99', orgId: 'ORG-01', name: '한겨울', role: 'member', major: '수학과', grade: '1학년' },
   ])
-  await db.insert(invites).values({
-    code: 'AB12CD34',
-    orgId: 'ORG-01',
-    active: true,
-    createdAt: new Date('2026-07-01T10:00:00+09:00'),
-  })
-}, 60_000)
-
-// 바뀌는 표는 초대 하나뿐이다. 그것만 되돌린다.
-beforeEach(async () => {
-  codes = 1
-  await db.delete(invites)
   await db.insert(invites).values({
     code: 'AB12CD34',
     orgId: 'ORG-01',
@@ -175,6 +180,87 @@ describe('초대', () => {
 
     const now = (await (await app.request('/api/org/invite')).json()) as { code: string }
     expect(now.code).toBe('CODE-1')
+  })
+})
+
+describe('역할 바꾸기', () => {
+  const put = (memberId: string, baseRole: unknown, who = viewer('chair')) =>
+    harness(who).app.request(`/api/org/members/${memberId}/role`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ baseRole }),
+    })
+
+  // **누구인지는 자리가 말한다.** 서버가 '마지막으로 고른 사람'을 기억하던 시절에는
+  // 두 사람이 같은 화면을 열면 서로의 고른 것을 봤다.
+  it('고른 사람 한 건을 자리로 집어 온다', async () => {
+    const res = await harness().app.request('/api/org/members/M-11/role-assignment')
+    expect(await res.json()).toMatchObject({ id: 'M-11', name: '이수현', roleLabel: '부서장' })
+  })
+
+  it('없는 구성원을 물으면 없다고 한다', async () => {
+    const res = await harness().app.request('/api/org/members/M-없음/role-assignment')
+    expect(res.status).toBe(404)
+  })
+
+  it('역할을 바꾼다', async () => {
+    expect((await put('M-13', 'head')).status).toBe(200)
+    const after = await (await harness().app.request('/api/org/members/M-13/role-assignment')).json()
+    expect(after).toMatchObject({ role: 'head', roleLabel: '부서장' })
+  })
+
+  // 조직 구조 수정은 회장단만이다.
+  it('회장단이 아니면 막는다', async () => {
+    expect((await put('M-13', 'head', viewer('head'))).status).toBe(403)
+    expect((await put('M-13', 'head', viewer('member'))).status).toBe(403)
+  })
+
+  // 명세가 든 셋 밖의 값을 받아 두면 그 값으로 권한을 판정할 수 없고,
+  // 판정할 수 없는 역할은 조용히 아무것도 못 하는 사람이 된다.
+  it('명세가 들지 않은 역할은 받지 않는다', async () => {
+    expect((await put('M-13', 'superuser')).status).toBe(422)
+    expect((await put('M-13', 42)).status).toBe(422)
+  })
+})
+
+describe('권한을 바꾼 기록은 3년 남는다', () => {
+  const put = (memberId: string, baseRole: string) =>
+    harness().app.request(`/api/org/members/${memberId}/role`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ baseRole }),
+    })
+
+  it('바꾼 사실을 접속 기록과 따로 남긴다', async () => {
+    await put('M-13', 'head')
+    const rows = await db.select().from(permissionChanges)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({
+      orgId: 'ORG-01',
+      subjectMemberId: 'M-13',
+      // 구성원이 지워져도 누구였는지는 남아야 한다.
+      subjectName: '박민수',
+      change: '기본 역할 변경',
+      before: 'member',
+      after: 'head',
+    })
+  })
+
+  // 같은 역할로 다시 눌린 것은 변경이 아니다. 변경이 아닌 것을 적으면
+  // 3년치 기록이 눌린 횟수가 된다.
+  it('안 바뀌었으면 남기지 않는다', async () => {
+    await put('M-13', 'member')
+    expect(await db.select().from(permissionChanges)).toHaveLength(0)
+  })
+
+  // 조직이 없어져도 남아야 한다 — 보관 기간을 지키라는 요구가 삭제 한 번에
+  // 무너지면 안 된다. 그래서 조직을 가리키지 않는다.
+  it('조직을 가리키지 않아 함께 지워지지 않는다', async () => {
+    await put('M-13', 'chair')
+    await db.delete(members)
+    await db.delete(departments)
+    await db.delete(organizations)
+    expect(await db.select().from(permissionChanges)).toHaveLength(1)
   })
 })
 

@@ -7,7 +7,7 @@ import { findDataSource, readListSource, readObjectSource } from '../data-source
 import { getOptionSource } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, fin00, fin00b, navigateTarget } from '../spec/screens'
-import { targetScreenOf } from '../spec/types'
+import { targetScreenOf, paramsOf } from '../spec/types'
 import type {
   ButtonSpec,
   DisplayAction,
@@ -123,7 +123,7 @@ export function FIN00Screen({ screenId = SCREEN, onNavigate }: FIN00ScreenProps)
       setNote(action.note)
       return
     }
-    onNavigate(targetScreenOf(action, {}) ?? action.type, resolveParams(action.params, {}))
+    onNavigate(targetScreenOf(action, {}) ?? action.type, resolveParams(paramsOf(action), {}))
   }
 
   const pressButton = (spec: ButtonSpec) => () => {
