@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { createApp, type Deps } from '../app.ts'
 import type { Db } from '../db/client.ts'
@@ -91,10 +92,17 @@ afterAll(async () => {
   await close()
 })
 
-const send = (app: ReturnType<typeof harness>['app'], body: unknown, token = QR) =>
+// **계약이 이 자리에 Idempotency-Key를 요구한다.** 한동안 아무도 확인하지 않아서
+// 키 없이도 지나갔다 — 밖에서 오는 자리는 구성원이 아니라 미들웨어가 건너뛰었다.
+const send = (
+  app: ReturnType<typeof harness>['app'],
+  body: unknown,
+  token = QR,
+  key = randomUUID(),
+) =>
   app.request(`/api/public/attendance/${token}/check-in`, {
     method: 'POST',
-    headers: { 'content-type': 'application/json' },
+    headers: { 'content-type': 'application/json', 'Idempotency-Key': key },
     body: JSON.stringify(body),
   })
 

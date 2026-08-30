@@ -26,4 +26,12 @@ const server = run('npm', ['run', 'test:server'])
 if (server.status !== 0) process.exit(server.status ?? 1)
 
 const test = run('npm', ['run', 'e2e'], { env: { ...process.env, E2E_PREVIEW: '1' } })
-process.exit(test.status ?? 1)
+const status = test.status ?? 1
+
+// **판정을 글로도 낸다.** 종료 코드만으로 말하면 `| tail`에 물린 순간 그것이
+// 사라지고, 붉은 검사가 초록으로 읽힌다 — 그렇게 MSG-02가 하루를 붉은 채로 지났다.
+// 코드는 가려져도 마지막 줄은 남는다.
+process.stdout.write(
+  status === 0 ? '\n[run-e2e] 통과했습니다.\n' : `\n[run-e2e] **실패했습니다**(코드 ${status}).\n`,
+)
+process.exit(status)

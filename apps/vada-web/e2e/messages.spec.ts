@@ -115,16 +115,26 @@ test('MSG-02: 취소하고 나가면 치던 방 이름이 남지 않는다', asy
   ).toHaveValue('')
 })
 
-// 필수 판정은 화면이 다시 세지 않는다 — 명세의 executeWhen이 말하고 판정은
-// 한 곳에서만 돈다. **다만 '한 명 이상 고르라'는 조건은 여기 들어 있지 않다:
-// 고른 대상을 담는 값이 명세에 없어 판정기가 볼 것이 없다.**
-test('MSG-02: 분류를 고르지 않으면 막고 그 자리를 짚는다', async ({ page }) => {
+// **이 화면에는 막히는 순간이 없다.**
+//
+// 한동안 이 자리가 '분류를 고르지 않으면 막는다'를 쟀다. 그런데 서버가 처음 열릴
+// 것을 표시해 보내기 시작하면서(option의 initiallySelected, 그림이 '일반'을 골라진
+// 채로 그렸다) **고르지 않은 순간 자체가 사라졌다** — 방 이름은 선택이고, '한 명
+// 이상 고르라'는 조건은 고른 대상을 담는 값이 명세에 없어 판정기가 볼 것이 없다.
+//
+// 검사는 그 뒤로 붉은 채였고 아무도 몰랐다(e2e를 파이프에 물려 종료 코드를
+// 가렸다 — docs/BACKLOG.md에 적어 둔 바로 그 덫이다). 지우는 대신 **왜 안 막히는지**
+// 를 재게 바꾼다. 서버가 표시를 떼면 여기가 먼저 알려 준다.
+test('MSG-02: 분류는 서버가 연 것으로 이미 차 있다', async ({ page }) => {
   await page.goto(CREATE)
 
   const dialog = page.getByRole('dialog')
-  await dialog.getByRole('button', { name: /방 만들기|메시지 방을 만드는 중입니다/ }).click()
+  await expect(dialog.getByRole('radio', { name: '일반' })).toBeChecked()
 
-  await expect(page.getByText('필수 항목입니다')).toBeVisible()
+  await dialog.getByRole('button', { name: /방 만들기|메시지 방을 만드는 중입니다/ }).click()
+  // 짚지 않고 그대로 보낸다.
+  await expect(page.getByText('필수 항목입니다')).toHaveCount(0)
+  await expect(page).toHaveURL(/#\/MSG-03\?roomId=MR-01/)
 })
 
 // 보내는 것까지가 이 화면의 몫이다. **만든 뒤 어디로 가는지는 그림에 이음이

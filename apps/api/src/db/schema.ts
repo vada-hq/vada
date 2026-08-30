@@ -432,11 +432,29 @@ export const surveys = pgTable(
     id: text('id').primaryKey(),
     orgId: text('org_id').notNull(),
     eventId: text('event_id').notNull(),
-    tokenHash: text('token_hash').notNull().unique(),
+    /**
+     * 링크가 실어 오는 값. **여기만 그대로 둔다.**
+     *
+     * 다른 열쇠는 해시로 두는데(영수증·QR) 이것만 원문인 까닭이 둘이다.
+     *
+     * 1. **뿌리는 값이다.** 단톡방과 포스터에 붙는 링크이고, 표가 새기 전에 이미
+     *    공개다. 이것으로 할 수 있는 일은 신청을 내는 것뿐이며 남의 것을 읽는 것은
+     *    영수증만 한다.
+     * 2. **계약이 되돌리기를 요구한다.** 설문을 교체하면 옛 링크가 새 설문의 토큰을
+     *    답해야 하는데(`survey.linkState.replacementToken`), 해시는 되돌릴 수 없다.
+     *
+     * 그러니 이 자리가 느슨한 것이 아니라 **성격이 다른 값**이다. 영수증을 여기에
+     * 섞으면 안 된다.
+     */
+    linkToken: text('link_token').notNull().unique(),
     active: boolean('active').notNull().default(false),
     opensAt: timestamp('opens_at', { withTimezone: true }),
     closesAt: timestamp('closes_at', { withTimezone: true }),
     capacity: integer('capacity'),
+    /** 신청 완료 화면의 제목. 운영진이 설문마다 적는다(EVT-05). */
+    completionTitle: text('completion_title'),
+    /** 학생회비 납부 여부를 대조하는가. 대조가 끝나야 금액이 정해지는 행사가 있다. */
+    duesCheck: boolean('dues_check').notNull().default(false),
     /**
      * 이 설문을 대신하는 새 설문. 교체된 설문에만 있다.
      *
@@ -472,6 +490,13 @@ export const surveyApplications = pgTable(
     motivation: text('motivation'),
     receiptHash: text('receipt_hash').notNull().unique(),
     receiptExpiresAt: timestamp('receipt_expires_at', { withTimezone: true }).notNull(),
+    /**
+     * 동의를 **언제** 했는가. 참거짓이 아니라 시각을 남긴다.
+     *
+     * 법이 요구하는 것은 '동의를 받았다'가 아니라 '언제 받았는지 증명할 수 있는가'다.
+     * 참거짓만 두면 나중에 그것이 언제 켜졌는지 아무도 모른다.
+     */
+    privacyConsentAt: timestamp('privacy_consent_at', { withTimezone: true }).notNull(),
     at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [unique('survey_once_per_student').on(table.surveyId, table.studentNumber)],

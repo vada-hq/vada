@@ -16,24 +16,53 @@ export interface Attempt {
 }
 
 export interface Attempts {
-  find(orgId: string, operationId: string, key: string): Promise<Attempt | null>
-  remember(orgId: string, operationId: string, key: string, answered: unknown): Promise<void>
+  find(scope: string, operationId: string, key: string): Promise<Attempt | null>
+  remember(scope: string, operationId: string, key: string, answered: unknown): Promise<void>
 }
 
 /** 프로세스 안에만 두는 것. 늘 켜진 계산 하나가 받는 동안은 이것으로 충분하다. */
 export function inMemoryAttempts(): Attempts {
   const seen = new Map<string, unknown>()
-  const at = (orgId: string, operationId: string, key: string) => `${orgId}|${operationId}|${key}`
+  const at = (scope: string, operationId: string, key: string) => `${scope}|${operationId}|${key}`
   return {
-    async find(orgId, operationId, key) {
-      const found = seen.get(at(orgId, operationId, key))
+    async find(scope, operationId, key) {
+      const found = seen.get(at(scope, operationId, key))
       return found === undefined ? null : { answered: found }
     },
-    async remember(orgId, operationId, key, answered) {
-      seen.set(at(orgId, operationId, key), answered)
+    async remember(scope, operationId, key, answered) {
+      seen.set(at(scope, operationId, key), answered)
     },
   }
 }
+
+/**
+ * 시도를 담는 칸.
+ *
+ * **누구의 칸인지가 곧 벽이다.** 안쪽은 학생회가 칸을 가르므로 남의 답이 섞이지
+ * 않지만, 밖에서 오는 자리에는 가를 것이 없다 — 같은 링크를 모두가 연다.
+ */
+export interface Scope {
+  /** 담는 칸의 이름. */
+  name: string
+  /**
+   * 밖에서 온 요청인가.
+   *
+   * **그렇다면 키 자체가 열쇠다.** 담아 둔 답에 영수증이 들어 있고, 키만 맞히면
+   * 그 답이 그대로 나온다. 안쪽에서는 세션이 앞을 막지만 여기서는 아무것도 없다.
+   */
+  fromOutside: boolean
+}
+
+/**
+ * 밖에서 오는 자리의 키는 **기기가 만든 난수여야 한다.**
+ *
+ * `${토큰}-${학번}` 같은 키를 만드는 클라이언트가 있으면 그 키는 남이 만들 수 있는
+ * 값이고, 그러면 영수증을 남에게 주지 않으려고 세운 벽이 그대로 무너진다
+ * (2026-08-31 교차검토가 짚은 것과 같은 구멍이다).
+ *
+ * 그래서 모양을 좁힌다 — 이 모양은 무엇에서 유도해서 우연히 나오지 않는다.
+ */
+const UNGUESSABLE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 /** 이 자리가 멱등 키를 요구하는가. 계약이 답한다. */
 export function needsKey(method: string, path: string): string | null {
@@ -63,7 +92,7 @@ export class Replayed {
  */
 export async function checkKey(
   c: Context,
-  orgId: string,
+  scope: Scope,
   attempts: Attempts,
 ): Promise<Replayed | { key: string; operationId: string } | null> {
   const operationId = needsKey(c.req.method, c.req.path)
@@ -73,7 +102,12 @@ export async function checkKey(
   if (key === undefined || key.trim() === '') {
     throw new MissingKey('같은 요청이 두 번 오는 것을 가릴 수 없습니다. Idempotency-Key가 필요합니다.')
   }
-  const found = await attempts.find(orgId, operationId, key)
+  if (scope.fromOutside && !UNGUESSABLE.test(key.trim())) {
+    throw new MissingKey(
+      'Idempotency-Key는 기기가 만든 난수(UUID)여야 합니다. 주소나 입력에서 만들어 낸 값은 남도 만들 수 있습니다.',
+    )
+  }
+  const found = await attempts.find(scope.name, operationId, key)
   return found === null ? { key, operationId } : new Replayed(found.answered)
 }
 

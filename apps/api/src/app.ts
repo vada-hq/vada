@@ -9,6 +9,7 @@ import {
   MissingKey,
   Replayed,
   type Attempts,
+  type Scope,
 } from './idempotency.ts'
 import {
   chartTitle,
@@ -21,6 +22,15 @@ import { currentInvite, regenerateInvite, type InviteSettings } from './org/invi
 import { changeRole, roleAssignmentOf } from './org/role-change.ts'
 import { checkIn, checkInForm, checkInResult } from './public/attendance.ts'
 import { publicRateLimit, type Counter } from './public/rate-limit.ts'
+import {
+  apply,
+  applyForm,
+  applyResult,
+  collegeOptions,
+  departmentOptions,
+  linkState,
+} from './public/survey.ts'
+import { hashToken, tokenOfRequest } from './public/tokens.ts'
 import {
   createEvent,
   eventBasics,
@@ -117,6 +127,28 @@ function canDo(
   return can(c.get('sender'), area, object, deps.lookups)
 }
 
+/**
+ * 이 요청의 시도를 **어느 칸에** 담는가.
+ *
+ * 안쪽은 학생회가 칸을 가른다. 밖에서 오는 자리에는 가를 것이 없으므로 **그 링크가
+ * 칸이 된다** — 한 설문의 키가 다른 설문의 답을 열지 못하게 하는 최소한이다.
+ *
+ * **밖에서는 이 미들웨어가 유일한 문지기다.** 오랫동안 여기서 구성원이 아니면
+ * 그냥 지나갔는데, 그러면 계약이 `Idempotency-Key`를 요구한다고 적어 둔 두 자리
+ * (참석·신청)가 그 요구를 아무도 지키지 않은 채 돌았다.
+ */
+function scopeOf(c: Context): Scope | null {
+  const membership = c.get('sender')?.membership
+  if (membership !== null && membership !== undefined) {
+    return { name: `org:${membership.orgId}`, fromOutside: false }
+  }
+  if (!c.req.path.startsWith('/api/public/')) return null
+  const token = tokenOfRequest(c)
+  if (token === null) return null
+  // 세는 자리에 열쇠를 그대로 두지 않는다.
+  return { name: `public:${hashToken(token)}`, fromOutside: true }
+}
+
 export function createApp(deps: Deps) {
   const app = new Hono()
 
@@ -133,11 +165,11 @@ export function createApp(deps: Deps) {
   // **두 번 눌린 것을 여기서 가린다.** 계약이 어느 자리에 키가 필요한지 알고 있으므로
   // 자리마다 손으로 부르지 않는다 — 부르면 잊는 자리가 생기고, 잊은 자리는 두 번 돈다.
   app.use('*', async (c, next) => {
-    const membership = c.get('sender')?.membership
-    if (membership === null || membership === undefined) return next()
+    const scope = scopeOf(c)
+    if (scope === null) return next()
     let checked
     try {
-      checked = await checkKey(c, membership.orgId, deps.attempts)
+      checked = await checkKey(c, scope, deps.attempts)
     } catch (error) {
       if (error instanceof MissingKey) return c.json({ message: error.message }, 422)
       throw error
@@ -145,12 +177,16 @@ export function createApp(deps: Deps) {
     if (checked instanceof Replayed) {
       // 처음의 답을 그대로 준다. 두 번째가 다른 답을 받으면 두 번 눌린 것이
       // 두 가지 사실이 된다.
+      //
+      // **밖에서 온 답에는 영수증이 들어 있다.** 처음 답과 같은 조건으로 준다 —
+      // 한쪽만 쌓이지 않게 하면 그 답이 어딘가에 남는다.
+      if (scope.fromOutside) c.header('Cache-Control', 'no-store')
       return c.json(checked.answered as never, 200)
     }
     await next()
     if (checked !== null && c.res.status === 200) {
       await deps.attempts.remember(
-        membership.orgId,
+        scope.name,
         checked.operationId,
         checked.key,
         await c.res.clone().json(),
@@ -202,6 +238,34 @@ export function createApp(deps: Deps) {
       c.header('Cache-Control', 'no-store')
       return made
     },
+
+    // ── 링크로 온 신청자 (EXT-02A · EXT-02B · EXT-02C) ─────────────────────
+    //
+    // **막힌 링크와 열린 링크가 서로 다른 자리로 간다.** 판정은 한 곳에 있고
+    // 두 자리가 그것을 뒤집어 쓴다 — 갈림이 두 곳에 적히면 둘 다 답하는 때가 온다.
+    'survey.applyForm': async (c, d) =>
+      applyForm(d.db, c.req.query('surveyToken') ?? '', d.invite),
+    'survey.linkState': async (c, d) => linkState(d.db, c.req.query('surveyToken') ?? '', d.invite),
+    // **영수증으로만 연다.** 같은 링크를 여럿이 연다.
+    'survey.applyResult': async (c, d) => {
+      c.header('Cache-Control', 'no-store')
+      return applyResult(d.db, c.req.query('receiptToken') ?? '', d.invite)
+    },
+    'survey.apply': async (c, d) => {
+      const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+      const made = await apply(d.db, c.req.param('surveyToken')!, draft, {
+        newId: d.newId,
+        now: d.invite.now,
+      })
+      // 누구의 것을 다뤘는지는 남기고 영수증은 남기지 않는다.
+      c.set('auditSubject', { type: 'studentNumber', id: String(draft.studentNumber ?? '') })
+      c.header('Cache-Control', 'no-store')
+      return made
+    },
+    'survey.colleges.options': async (c, d) =>
+      collegeOptions(d.db, c.req.query('surveyToken') ?? ''),
+    'survey.departments.options': async (c, d) =>
+      departmentOptions(d.db, c.req.query('surveyToken') ?? '', c.req.query('collegeId') ?? ''),
 
     // ── 행사 (EVT-00A · EVT-00B · EVT-02) ──────────────────────────────────
     'event.list': async (c, d) => {

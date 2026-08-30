@@ -1,5 +1,5 @@
 import type { MiddlewareHandler } from 'hono'
-import { hashToken } from './tokens.ts'
+import { hashToken, tokenOfRequest } from './tokens.ts'
 
 // 마구 넣어 보는 것을 막는다.
 //
@@ -99,7 +99,7 @@ export function publicRateLimit(deps: RateLimitDeps): MiddlewareHandler {
     const now = clock()
     const address = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
     // **토큰을 그대로 세지 않는다.** 세는 자리에 남으면 그것도 새는 길이다.
-    const token = tokenOf(c.req.path)
+    const token = tokenOfRequest(c)
     const keys: Array<[string, Window]> = [[`ip:${address}`, limits.perAddress]]
     if (token !== null) keys.push([`token:${hashToken(token)}`, limits.perToken])
 
@@ -121,15 +121,4 @@ export function publicRateLimit(deps: RateLimitDeps): MiddlewareHandler {
       }
     }
   }
-}
-
-/** 주소에 실린 토큰. 없으면 null. */
-function tokenOf(path: string): string | null {
-  const parts = path.split('/')
-  // ['', 'api', 'public', <무엇>, <토큰>, ...] — 넷째부터 한 칸 걸러 토큰이다.
-  for (let at = 4; at < parts.length; at += 2) {
-    const part = parts[at]
-    if (part !== undefined && part !== '') return part
-  }
-  return null
 }
