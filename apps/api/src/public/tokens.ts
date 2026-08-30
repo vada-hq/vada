@@ -52,21 +52,23 @@ export function looksLikeToken(value: unknown): value is string {
 /**
  * 이 요청이 실어 온 열쇠.
  *
- * **어느 자리가 무엇을 싣는지는 계약이 안다.** 주소의 몇 번째 칸이라고 세면 자리마다
- * 모양이 달라 틀린다 — `check-in-form`처럼 토큰이 아닌 글자가 토큰 자리에 앉으면
- * 그 행사의 요청이 전부 한 칸에 몰린다.
+ * **어느 인자가 열쇠인지는 계약이 안다**(`x-secret`). 주소의 몇 번째 칸이라고 세면
+ * 자리마다 모양이 달라 틀렸고 — `check-in-form`처럼 열쇠가 아닌 글자가 열쇠 자리에
+ * 앉아 그 행사의 요청이 전부 한 칸에 몰렸다 — 이름 끝을 보는 것도 결국 규칙이
+ * 코드에 박히는 일이다. 감사 층이 지우는 자리와 여기서 세는 자리가 **같은 곳에서**
+ * 온다.
  *
  * 모양이 아닌 값은 없는 것으로 본다. 그것을 세어 봐야 마구 넣어 보는 쪽이 칸만
  * 늘릴 뿐이고, 주소마다 세는 쪽이 그것을 막는다.
  */
 export function tokenOfRequest(c: Context): string | null {
-  for (const [name, value] of Object.entries(c.req.query())) {
-    if (name.endsWith('Token') && looksLikeToken(value)) return value
-  }
   const matched = matchRoute(c.req.method, c.req.path)
   if (matched === undefined) return null
-  for (const [name, value] of Object.entries(matched.params)) {
-    if (name.endsWith('Token') && looksLikeToken(value)) return value
+  const query = c.req.query()
+  for (const parameter of matched.operation.parameters ?? []) {
+    if (parameter['x-secret'] !== true) continue
+    const value = parameter.in === 'path' ? matched.params[parameter.name] : query[parameter.name]
+    if (looksLikeToken(value)) return value
   }
   return null
 }

@@ -200,9 +200,42 @@ describe('누가 무엇을 만졌는지 남는다', () => {
   })
 
   it('밖에서 열리는 자리의 주소에서 토큰을 지운다', () => {
-    expect(maskSecrets('/api/public/attendance/T-01/check-in')).toBe(
+    expect(maskSecrets('POST', '/api/public/attendance/T-01/check-in')).toBe(
       '/api/public/attendance/*/check-in',
     )
+  })
+
+  // **지우는 자리를 계약이 정한다.** 자리 규칙으로 지우던 동안 이 셋이 틀렸다.
+  it('정적 경로 이름은 지우지 않는다', () => {
+    // 넷째 자리가 토큰이 아니라 자리 이름이다. 지우면 기록이 '무엇을 했는가'를
+    // 말하지 못한다 — 그러면 접속 기록이 아니다.
+    expect(maskSecrets('GET', '/api/public/attendance/check-in-form')).toBe(
+      '/api/public/attendance/check-in-form',
+    )
+  })
+
+  it('열쇠가 홀수 자리에 있어도 지운다', () => {
+    // `{surveyToken}`이 다섯째다. 한 칸 걸러 세던 규칙은 이 자리를 그냥 지나갔다.
+    expect(maskSecrets('POST', '/api/public/surveys/S-01/applications')).toBe(
+      '/api/public/surveys/*/applications',
+    )
+  })
+
+  it('밖이 아닌 자리의 초대 코드도 지운다', () => {
+    // 학생회에 들어오는 열쇠다. `/api/public/` 밖이라 한동안 원문으로 남았다.
+    expect(maskSecrets('GET', '/api/organizations/by-invite-code/ABCD1234')).toBe(
+      '/api/organizations/by-invite-code/*',
+    )
+  })
+
+  it('열쇠가 없는 자리는 그대로 남긴다', () => {
+    expect(maskSecrets('GET', '/api/org/role-counts')).toBe('/api/org/role-counts')
+  })
+
+  // 계약이 모르는 자리에 진짜 열쇠가 실려 올 수 있다. 모르면 남기지 않는 쪽으로 기운다.
+  it('계약이 모르는 밖의 자리는 통째로 지운다', () => {
+    expect(maskSecrets('GET', '/api/public/surveys/오타/AAAA')).toBe('/api/public/*')
+    expect(maskSecrets('GET', '/api/이런자리는없다')).toBe('/api/이런자리는없다')
   })
 })
 

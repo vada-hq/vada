@@ -1114,7 +1114,8 @@
           "key": "surveyToken",
           "required": true,
           "valueType": "string",
-          "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다"
+          "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다",
+          "secret": true
         }
       ],
       "request": {
@@ -1156,7 +1157,8 @@
           "key": "checkInToken",
           "required": true,
           "valueType": "string",
-          "description": "QR이 실어 온 토큰. 어느 행사의 출석인지를 이것이 정한다"
+          "description": "QR이 실어 온 토큰. 어느 행사의 출석인지를 이것이 정한다",
+          "secret": true
         }
       ],
       "request": {

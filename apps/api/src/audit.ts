@@ -1,4 +1,5 @@
 import type { Context, MiddlewareHandler } from 'hono'
+import { matchRoute } from './authorize.ts'
 import type { Viewer } from './permissions.ts'
 
 // 누가 무엇을 언제 만졌는가.
@@ -42,20 +43,44 @@ export interface AuditSink {
 /**
  * 주소에서 **비밀을 지운다.**
  *
- * 공개 자리는 경로에 토큰을 싣는다. 그 값이 곧 열쇠이므로 오래 남기면 안 된다 —
- * 무엇을 했는지는 남기고 무엇으로 했는지는 지운다.
+ * 그 값이 곧 열쇠인 자리가 있다 — 참석 QR·설문 링크·영수증, 그리고 학생회에
+ * 들어오는 초대 코드. 접속 기록을 1년 보관하는데 그 안에 열쇠가 들어 있으면
+ * **기록이 새는 순간 그것으로 문이 열린다.** 무엇을 했는지는 남기고 무엇으로
+ * 했는지는 지운다.
  *
- * 지우는 자리를 목록으로 들지 않는다. 목록은 새 자리가 생길 때 뒤처지고, 뒤처진
- * 목록은 조용하다 — `/api/public/` 아래의 경로 조각은 전부 지운다.
+ * **어느 인자가 열쇠인지는 계약이 안다**(`x-secret`). 한동안 자리 규칙으로 지웠는데
+ * (`/api/public/` 아래 넷째부터 한 칸 걸러) 그것이 셋을 틀렸다.
+ *
+ * 1. `check-in-form` 같은 **정적 경로 이름까지 지워** 무슨 일이 있었는지가 기록에서
+ *    사라졌다. 접속 기록이 '무엇을 했는가'를 못 말하면 기록이 아니다.
+ * 2. 열쇠가 홀수 자리에 오면 **그대로 남는다.** 지금은 그런 자리가 없을 뿐이다.
+ * 3. `/api/public/` 밖은 아예 보지 않아 **초대 코드가 원문으로 남고 있었다.**
+ *
+ * 규칙이 코드에 박히면 새 자리가 생길 때마다 뒤처지고, 뒤처진 규칙은 조용하다.
  */
-export function maskSecrets(path: string): string {
-  if (!path.startsWith('/api/public/')) {
-    return path
+export function maskSecrets(method: string, path: string): string {
+  const matched = matchRoute(method, path)
+  if (matched === undefined) {
+    // 계약이 모르는 자리다. 무엇이 실려 있는지 알 수 없으므로 **밖에서 열리는
+    // 갈래는 통째로 지운다** — 잘못 친 주소에도 진짜 열쇠가 실려 온다.
+    return path.startsWith('/api/public/') ? '/api/public/*' : path
   }
-  const parts = path.split('/')
-  // ['', 'api', 'public', <무엇>, <토큰>, <무엇>, <토큰>...] — 넷째부터 한 칸 걸러
-  // 토큰이다. 그 자리만 지운다.
-  return parts.map((part, at) => (at >= 4 && at % 2 === 0 ? '*' : part)).join('/')
+  const secrets = new Set(
+    (matched.operation.parameters ?? [])
+      .filter((parameter) => parameter['x-secret'] === true)
+      .map((parameter) => parameter.name),
+  )
+  if (secrets.size === 0) return path
+  // 계약의 **틀**에 대고 지운다. 값으로 찾아 바꾸면 같은 글자가 다른 자리에 있을 때
+  // 함께 지워진다.
+  return path
+    .split('/')
+    .map((part, at) => {
+      const segment = matched.segments[at]
+      if (segment === undefined || !segment.startsWith('{') || !segment.endsWith('}')) return part
+      return secrets.has(segment.slice(1, -1)) ? '*' : part
+    })
+    .join('/')
 }
 
 export interface AuditContext {
@@ -116,7 +141,7 @@ export function auditMiddleware(
         orgId: c.get('orgId') ?? null,
         userId: c.get('userId') ?? null,
         // **읽기도 남긴다.** 법이 말하는 것은 '처리'이고 조회도 처리다.
-        action: `${c.req.method} ${maskSecrets(c.req.path)} → ${
+        action: `${c.req.method} ${maskSecrets(c.req.method, c.req.path)} → ${
           error === null ? c.res.status : '터짐'
         }`,
         subjectType: subject?.type ?? null,

@@ -92,6 +92,8 @@ function parametersOf(path, declared) {
       in: "path",
       required: true,
       description: param.description,
+      // **이 값이 곧 열쇠인가.** 서버가 기록에서 지울 자리를 이것으로 찾는다.
+      ...(param.secret === true ? { "x-secret": true } : {}),
       schema: { type: param.valueType }
     });
   }
@@ -102,6 +104,7 @@ function parametersOf(path, declared) {
       in: "query",
       required: param.required,
       description: param.description,
+      ...(param.secret === true ? { "x-secret": true } : {}),
       schema: { type: param.valueType }
     });
   }

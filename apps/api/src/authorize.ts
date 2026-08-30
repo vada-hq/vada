@@ -27,7 +27,12 @@ interface Route {
 /** 계약이 그 자리에 대해 적은 것 전부. 멱등 키를 보려면 parameters가 필요하다. */
 export interface Operation {
   operationId: string
-  parameters?: Array<{ name: string; in: string }>
+  parameters?: Array<{
+    name: string
+    in: string
+    /** **이 값이 곧 열쇠인가.** 기록에서 지울 자리를 감사 층이 이것으로 찾는다. */
+    'x-secret'?: boolean
+  }>
 }
 
 const ROUTES: Route[] = []
@@ -62,7 +67,15 @@ for (const [path, item] of Object.entries(openapi.paths as Record<string, Record
 export function matchRoute(
   method: string,
   path: string,
-): { authorize: Authorize; params: Record<string, string>; operation: Operation } | undefined {
+): 
+  | {
+      authorize: Authorize
+      params: Record<string, string>
+      operation: Operation
+      /** 맞은 자리의 **틀**. `{eventId}` 같은 자리를 품은 채로 온다. */
+      segments: string[]
+    }
+  | undefined {
   const parts = path.split('/')
   const upper = method.toUpperCase()
   let best: { route: Route; params: Record<string, string>; shape: string } | undefined
@@ -102,7 +115,12 @@ export function matchRoute(
   }
   return best === undefined
     ? undefined
-    : { authorize: best.route.authorize, params: best.params, operation: best.route.operation }
+    : {
+        authorize: best.route.authorize,
+        params: best.params,
+        operation: best.route.operation,
+        segments: best.route.segments,
+      }
 }
 
 export interface AuthorizeDeps {

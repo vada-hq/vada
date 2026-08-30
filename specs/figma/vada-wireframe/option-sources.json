@@ -1273,7 +1273,8 @@
           "key": "surveyToken",
           "required": true,
           "valueType": "string",
-          "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다"
+          "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다",
+          "secret": true
         }
       ],
       "request": {
@@ -1303,13 +1304,15 @@
           "key": "surveyToken",
           "required": true,
           "valueType": "string",
-          "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다"
+          "description": "설문 링크가 실어 온 토큰. 어느 설문인지를 이것이 정한다",
+          "secret": true
         },
         {
           "key": "collegeId",
           "required": true,
           "valueType": "string",
-          "description": "어느 단과대학의 학부·학과인가"
+          "description": "어느 단과대학의 학부·학과인가",
+          "secret": false
         }
       ],
       "request": {

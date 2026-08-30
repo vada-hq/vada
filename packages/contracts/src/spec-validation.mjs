@@ -154,6 +154,40 @@ function checkPermissions(findings, permissions, file) {
  * 조건이 대상을 요구하는데 그 대상을 가리키는 인자가 자리에 없으면, 그 조건은
  * 판정할 수가 없다 — 그러면 서버는 막거나 열거나 둘 중 하나를 **짐작으로** 하게 된다.
  */
+/**
+ * 밖에서 열리는 자리의 인자는 **열쇠인지 아닌지를 말해야 한다.**
+ *
+ * 로그인이 없거나(공개) 아직 구성원이 아닌 사람이 여는 자리에서는 **그 인자 하나가
+ * 유일한 벽인 경우가 있다** — 참석 QR·설문 링크·영수증, 그리고 학생회에 들어오는
+ * 초대 코드. 서버는 그런 값을 접속 기록에서 지우는데, 지울 자리를 계약이 말해야
+ * 한다(`secret`).
+ *
+ * **적기를 잊는 쪽이 조용하다.** 표시를 안 하면 아무 일도 안 일어나고 열쇠가 1년
+ * 남는다 — 초대 코드가 실제로 그랬다. 그래서 참·거짓 어느 쪽이든 **정하기를**
+ * 요구한다. 안 정하면 여기서 멈춘다.
+ *
+ * 안쪽 자리는 묻지 않는다. `eventId`를 알아도 세션과 소속이 없으면 아무것도 못 여니
+ * 그 값은 열쇠가 아니다.
+ */
+function checkSecretDeclared(findings, permissions, groups) {
+  const OPEN = new Set(["public", "signedIn"]);
+  for (const [items, what, file] of groups) {
+    for (const item of Array.isArray(items) ? items : []) {
+      if (!OPEN.has(item?.authorize?.area)) continue;
+      for (const param of Array.isArray(item.params) ? item.params : []) {
+        if (typeof param?.secret === "boolean") continue;
+        findings.push({
+          level: "error",
+          file,
+          message:
+            `${what} '${item.key}'의 인자 '${param?.key}'가 밖에서 열리는 자리에 있는데 ` +
+            "열쇠인지(secret) 정하지 않았습니다. 참이면 서버가 기록에서 지웁니다."
+        });
+      }
+    }
+  }
+}
+
 function checkAuthorize(findings, permissions, groups) {
   if (!isObject(permissions)) return;
   const areas = new Map(
@@ -2384,11 +2418,13 @@ export function collectSpecFindings({
 } = {}) {
   const findings = [];
   checkPermissions(findings, permissions, permissionsFile);
-  checkAuthorize(findings, permissions, [
+  const authorizeGroups = [
     [dataSources?.sources, "데이터 출처", "data-sources.json"],
     [optionSources?.sources, "선택지 출처", "option-sources.json"],
     [mutations?.mutations, "변이", mutationsFile]
-  ]);
+  ];
+  checkAuthorize(findings, permissions, authorizeGroups);
+  checkSecretDeclared(findings, permissions, authorizeGroups);
   const screenIds = new Set(
     screens
       .map((screen) => screen?.spec?.screenId)
