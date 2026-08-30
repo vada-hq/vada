@@ -18,5 +18,12 @@ const run = (command, args, options = {}) =>
 const build = run('npm', ['run', 'build'])
 if (build.status !== 0) process.exit(build.status ?? 1)
 
+// **서버에 대고 화면을 그리는 검사는 여기서 돈다.**
+//
+// 진짜 Postgres를 띄우므로 빠른 게이트의 시간 예산을 먹는데, 성질을 보면 그것은
+// 단위 검사가 아니라 통합이다. 지우는 것이 아니라 옮긴 것이라 재는 것은 그대로다.
+const server = run('npm', ['run', 'test:server'])
+if (server.status !== 0) process.exit(server.status ?? 1)
+
 const test = run('npm', ['run', 'e2e'], { env: { ...process.env, E2E_PREVIEW: '1' } })
 process.exit(test.status ?? 1)

@@ -6,10 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "test": "vitest run",
+    "test": "vitest run --exclude '**/*.server.test.tsx'",
     "e2e": "playwright test",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test:server": "vitest run src/data-sources/end-to-end.server.test.tsx"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

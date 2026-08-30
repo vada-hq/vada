@@ -2,11 +2,13 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { createApp } from '../../../api/src/app.ts'
 import { freshDb } from '../../../api/src/db/testing.ts'
+import { inMemoryAttempts } from '../../../api/src/idempotency.ts'
 import { departments, members, organizations } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { useServer } from './server'
 
 // **한 화면을 끝까지 뚫는다.**
+
 //
 // 화면 여든둘이 개발용 응답으로 돌고 있었다. 그 상태로는 명세가 말하는 모양과
 // 서버가 내는 모양이 같은지 아무도 재 본 적이 없다 — 계약이 실제로 쓸 만한지
@@ -52,6 +54,12 @@ beforeAll(async () => {
       isEventStaffManager: async () => false,
       isMeetingHost: async () => false,
       isMeetingCreator: async () => false,
+    },
+    attempts: inMemoryAttempts(),
+    invite: {
+      linkBase: 'https://vada.app/join',
+      now: () => new Date('2026-07-22T18:30:00+09:00'),
+      newCode: () => 'AB12CD34',
     },
   })
 

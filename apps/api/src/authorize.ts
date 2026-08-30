@@ -21,6 +21,13 @@ interface Route {
   method: string
   segments: string[]
   authorize: Authorize
+  operation: Operation
+}
+
+/** 계약이 그 자리에 대해 적은 것 전부. 멱등 키를 보려면 parameters가 필요하다. */
+export interface Operation {
+  operationId: string
+  parameters?: Array<{ name: string; in: string }>
 }
 
 const ROUTES: Route[] = []
@@ -28,7 +35,12 @@ for (const [path, item] of Object.entries(openapi.paths as Record<string, Record
   for (const [method, operation] of Object.entries(item)) {
     const authorize = (operation as { 'x-authorize'?: Authorize })['x-authorize']
     if (authorize === undefined) continue
-    ROUTES.push({ method: method.toUpperCase(), segments: path.split('/'), authorize })
+    ROUTES.push({
+      method: method.toUpperCase(),
+      segments: path.split('/'),
+      authorize,
+      operation: operation as Operation,
+    })
   }
 }
 
@@ -45,7 +57,7 @@ for (const [path, item] of Object.entries(openapi.paths as Record<string, Record
 export function matchRoute(
   method: string,
   path: string,
-): { authorize: Authorize; params: Record<string, string> } | undefined {
+): { authorize: Authorize; params: Record<string, string>; operation: Operation } | undefined {
   const parts = path.split('/')
   const upper = method.toUpperCase()
   let best: { route: Route; params: Record<string, string>; literals: number } | undefined
@@ -71,7 +83,9 @@ export function matchRoute(
       best = { route, params, literals }
     }
   }
-  return best === undefined ? undefined : { authorize: best.route.authorize, params: best.params }
+  return best === undefined
+    ? undefined
+    : { authorize: best.route.authorize, params: best.params, operation: best.route.operation }
 }
 
 export interface AuthorizeDeps {

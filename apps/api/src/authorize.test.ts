@@ -46,10 +46,10 @@ function harness(viewer: Viewer | null, lookups: Lookups = NO) {
 describe('계약이 매단 권한을 서버가 강제한다', () => {
   it('계약에서 자리마다 권한을 읽어 온다', () => {
     expect(matchRoute('PUT', '/api/org/chart')?.authorize).toEqual({ area: 'org.structure' })
-    expect(matchRoute('POST', '/api/ops/meetings/MT-01/start')).toEqual({
-      authorize: { area: 'meeting.run', object: 'meetingId' },
-      params: { meetingId: 'MT-01' },
-    })
+    const matched = matchRoute('POST', '/api/ops/meetings/MT-01/start')!
+    expect(matched.authorize).toEqual({ area: 'meeting.run', object: 'meetingId' })
+    expect(matched.params).toEqual({ meetingId: 'MT-01' })
+    expect(matched.operation.operationId).toBe('meeting.start')
   })
 
   it('구성원이면 되는 자리는 부원도 연다', async () => {

@@ -108,6 +108,16 @@ export const members = pgTable(
     major: text('major'),
     grade: text('grade'),
     role: memberRole('role').notNull().default('member'),
+    /**
+     * 회장단 안에서의 자리. **'회장'·'부회장'처럼 그림이 그린 말이다.**
+     *
+     * 역할(role)이 chair 하나인데 조직도(ORG-03A)는 회장과 부회장을 다른 색으로
+     * 갈라 그린다 — 권한은 같고 자리 이름만 다르다. 권한 행렬에 넣으면 역할이
+     * 넷이 되어 '역할은 셋으로 고정'이 깨지므로 여기 따로 둔다.
+     *
+     * 회장단이 아닌 사람에게는 없다.
+     */
+    executiveTitle: text('executive_title'),
     // 부서에 아직 안 든 사람이 있다(org.unassignedMembers). 그래서 비워 둘 수 있다.
     departmentId: text('department_id').references(() => departments.id, {
       onDelete: 'set null',

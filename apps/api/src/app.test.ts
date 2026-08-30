@@ -7,6 +7,7 @@ import type { Db } from './db/client.ts'
 import { freshDb } from './db/testing.ts'
 import { departments, members, organizations } from './db/schema.ts'
 import { allOperationIds, routeOf } from './routes.ts'
+import { inMemoryAttempts } from './idempotency.ts'
 import type { Viewer } from './permissions.ts'
 
 // 서버가 명세대로 답하는가, 그리고 **명세 밖으로 새지 않는가.**
@@ -45,6 +46,12 @@ function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
     db,
     who: () => who,
     lookups: NO_LOOKUPS,
+    attempts: inMemoryAttempts(),
+    invite: {
+      linkBase: 'https://vada.app/join',
+      now: () => new Date('2026-07-22T18:30:00+09:00'),
+      newCode: () => 'AB12CD34',
+    },
     ...over,
   }
   return { app: createApp(deps), written }
@@ -196,7 +203,7 @@ describe('명세 밖으로 새지 않는다', () => {
       const res = await harness().app.request(url, { method: at.method.toUpperCase() })
       if (res.status !== 403 && res.status !== 404) done.add(operationId)
     }
-    expect(done.size).toBe(6)
+    expect(done.size).toBe(14)
     expect(allOperationIds()).toHaveLength(216)
   })
 })

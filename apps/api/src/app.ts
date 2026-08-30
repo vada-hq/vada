@@ -5,6 +5,20 @@ import type { Db } from './db/client.ts'
 import type { Lookups, Viewer } from './permissions.ts'
 import { attach, NotFound } from './routes.ts'
 import {
+  checkKey,
+  MissingKey,
+  Replayed,
+  type Attempts,
+} from './idempotency.ts'
+import {
+  chartTitle,
+  departmentTree,
+  executives,
+  unassignedHint,
+  unassignedMembers,
+} from './org/chart.ts'
+import { currentInvite, regenerateInvite, type InviteSettings } from './org/invite.ts'
+import {
   permissionMatrix,
   roleAssignmentCount,
   roleAssignments,
@@ -42,6 +56,10 @@ export interface Deps {
   who: () => Viewer | null
   /** '그 행사의 조직원인가' 같은 것. 저장소가 답한다. */
   lookups: Lookups
+  /** 두 번 보내진 것을 가리는 자리. */
+  attempts: Attempts
+  /** 초대 링크가 어디에 놓이는지와 때. 배포가 정하므로 밖에서 받는다. */
+  invite: InviteSettings
 }
 
 /** 이 사람이 어느 학생회의 것을 보고 있는가. 구성원이 아니면 여기까지 오지 않는다. */
@@ -53,11 +71,51 @@ function orgOf(deps: Deps): string {
   return membership.orgId
 }
 
+/**
+ * 초대를 다시 만드는 셋.
+ *
+ * 링크만·코드만·둘 다로 자리가 셋인데 **한 건이 둘을 함께 갖는다** — 코드를 바꾸면
+ * 링크의 뒤쪽도 함께 바뀐다. 셋이 같은 일을 하는 것을 숨기지 않는다.
+ */
+function regenerate(c: import('hono').Context, d: Deps) {
+  const orgId = orgOf(d)
+  c.set('auditSubject', { type: 'organization', id: orgId })
+  return regenerateInvite(d.db, orgId, d.invite)
+}
+
 export function createApp(deps: Deps) {
   const app = new Hono()
 
   app.use('*', auditMiddleware(deps.audit))
   app.use('*', authorizeMiddleware({ viewer: () => deps.who(), lookups: deps.lookups }))
+
+  // **두 번 눌린 것을 여기서 가린다.** 계약이 어느 자리에 키가 필요한지 알고 있으므로
+  // 자리마다 손으로 부르지 않는다 — 부르면 잊는 자리가 생기고, 잊은 자리는 두 번 돈다.
+  app.use('*', async (c, next) => {
+    const membership = deps.who()?.membership
+    if (membership === null || membership === undefined) return next()
+    let checked
+    try {
+      checked = await checkKey(c, membership.orgId, deps.attempts)
+    } catch (error) {
+      if (error instanceof MissingKey) return c.json({ message: error.message }, 422)
+      throw error
+    }
+    if (checked instanceof Replayed) {
+      // 처음의 답을 그대로 준다. 두 번째가 다른 답을 받으면 두 번 눌린 것이
+      // 두 가지 사실이 된다.
+      return c.json(checked.answered as never, 200)
+    }
+    await next()
+    if (checked !== null && c.res.status === 200) {
+      await deps.attempts.remember(
+        membership.orgId,
+        checked.operationId,
+        checked.key,
+        await c.res.clone().json(),
+      )
+    }
+  })
 
   attach(app, deps, {
     // ── 셸 ────────────────────────────────────────────────────────────────
@@ -77,6 +135,42 @@ export function createApp(deps: Deps) {
       if (row === null) throw new NotFound('이 학생회의 구성원이 아닙니다')
       return row
     },
+
+    // ── 조직도 (ORG-03A · ORG-03B) ─────────────────────────────────────────
+    'org.chartTitle': async (_c, d) => {
+      const orgId = orgOf(d)
+      const row = await chartTitle(d.db, orgId)
+      if (row === null) throw new NotFound('학생회를 찾지 못했습니다')
+      return row
+    },
+    'org.executives': async (c, d) => {
+      const orgId = orgOf(d)
+      c.set('auditSubject', { type: 'organization', id: orgId })
+      return executives(d.db, orgId)
+    },
+    'org.departments': async (c, d) => {
+      const orgId = orgOf(d)
+      c.set('auditSubject', { type: 'organization', id: orgId })
+      return departmentTree(d.db, orgId, c.req.query('query'))
+    },
+    'org.unassignedMembers': async (c, d) => {
+      const orgId = orgOf(d)
+      c.set('auditSubject', { type: 'organization', id: orgId })
+      return unassignedMembers(d.db, orgId, c.req.query('query'))
+    },
+    'org.unassignedHint': async (_c, d) => unassignedHint(d.db, orgOf(d)),
+
+    // ── 초대 (ORG-03C) ─────────────────────────────────────────────────────
+    'org.invite': async (_c, d) => {
+      const orgId = orgOf(d)
+      const row = await currentInvite(d.db, orgId, d.invite)
+      if (row === null) throw new NotFound('초대를 찾지 못했습니다')
+      return row
+    },
+    // 셋 다 되돌릴 수 없고 셋 다 멱등 키를 받는다.
+    'org.regenerateInvite': regenerate,
+    'org.regenerateInviteCode': regenerate,
+    'org.regenerateInviteLink': regenerate,
 
     // ── 역할 및 권한 (ORG-04) ──────────────────────────────────────────────
     'org.roleCounts': async (c, d) => {
