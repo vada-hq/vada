@@ -1,5 +1,7 @@
 import { OpenAPIHono, createRoute, z } from '@hono/zod-openapi'
 import { auditMiddleware, type AuditSink } from './audit.ts'
+import { authorizeMiddleware } from './authorize.ts'
+import type { Lookups, Viewer } from './permissions.ts'
 
 // 서버의 얼개.
 //
@@ -29,6 +31,13 @@ export interface Deps {
   audit: AuditSink
   /** 지금 이 요청이 누구의 것인가. 인증이 붙기 전에는 밖에서 준다. */
   viewer: () => Promise<{ userId: string; orgId: string } | null>
+  /**
+   * 권한 판정에 쓰는 그 사람. 위의 viewer가 '누구인가'라면 이쪽은 '무엇인가'다 —
+   * 어느 학생회의 어느 역할이고 재정을 맡는 부서인지.
+   */
+  who?: () => Viewer | null
+  /** '그 행사의 조직원인가' 같은 것. 저장소가 답한다. */
+  lookups?: Lookups
   read: {
     organization(orgId: string): Promise<{ name: string } | null>
     viewer(orgId: string, userId: string): Promise<{ name: string; role: string } | null>
@@ -48,6 +57,15 @@ export function createApp(deps: Deps) {
   const app = new OpenAPIHono()
 
   app.use('*', auditMiddleware(deps.audit))
+
+  // **매달아 놓기만 하면 아무것도 막지 않는다.** 명세가 216자리에 저마다 권한
+  // 영역을 달았고, 여기서 그것을 강제한다. 자리마다 손으로 부르지 않는 까닭은
+  // 216번 부르면 그중 몇은 잊고 잊은 자리는 조용히 열리기 때문이다.
+  if (deps.who !== undefined && deps.lookups !== undefined) {
+    const who = deps.who
+    const lookups = deps.lookups
+    app.use('*', authorizeMiddleware({ viewer: () => who(), lookups }))
+  }
 
   // 누구의 요청인지를 먼저 정한다. 밖에서 열리는 자리(/api/public/*)는 세션이
   // 없어도 되지만, 지금 만든 둘은 안쪽이라 없으면 막는다.

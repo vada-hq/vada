@@ -4,7 +4,6 @@ import {
   integer,
   pgEnum,
   pgTable,
-  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -31,9 +30,6 @@ export const memberRole = pgEnum('member_role', ['chair', 'head', 'member'])
 
 // 학생회비 납부 상태. 개발용 응답의 DUES_BY_STATUS가 그대로 이 셋이다.
 export const duesStatus = pgEnum('dues_status', ['paid', 'unpaid', 'check'])
-
-// 권한 행렬의 한 칸. 화면은 이것을 글과 색으로 바꿔 그린다.
-export const permissionLevel = pgEnum('permission_level', ['full', 'partial', 'none'])
 
 // ─── 사람과 조직 ────────────────────────────────────────────────────────────
 
@@ -75,6 +71,16 @@ export const departments = pgTable(
     // 조직도가 그리는 차례. 이름순이 아니다 — 사람이 정한 순서가 있다(ORG-03B가
     // 부서를 끌어 옮긴다).
     sortOrder: integer('sort_order').notNull().default(0),
+    /**
+     * 이 부서가 재정을 맡는가.
+     *
+     * 권한 행렬의 '재정부만'을 판정하는 유일한 근거다. **부서 이름으로 보지 않는다** —
+     * 학생회마다 이름이 다르고(재무부·회계국) 이름을 바꾸면 권한이 조용히 사라진다.
+     *
+     * **명세에 이것을 켜는 자리가 아직 없다.** 조직을 만들거나 고치는 화면에 그 자리를
+     * 새로 만들어야 한다(2026-08-30 결정).
+     */
+    handlesFinance: boolean('handles_finance').notNull().default(false),
   },
   (table) => [uniqueIndex('departments_org_name').on(table.orgId, table.name)],
 )
@@ -116,23 +122,16 @@ export const members = pgTable(
   ],
 )
 
-/**
- * 권한 행렬의 한 줄. 기능 영역 하나가 역할 셋에 대해 각각 어디까지 되는가.
- *
- * 화면(ORG-04)은 이것을 표로 그리고 색을 입힌다 — 색은 여기 없다.
- */
-export const permissions = pgTable(
-  'permissions',
-  {
-    orgId: text('org_id')
-      .notNull()
-      .references(() => organizations.id, { onDelete: 'cascade' }),
-    area: text('area').notNull(),
-    role: memberRole('role').notNull(),
-    level: permissionLevel('level').notNull(),
-  },
-  (table) => [primaryKey({ columns: [table.orgId, table.area, table.role] })],
-)
+// **권한 행렬 표가 있었는데 없앴다.** 조직마다 한 벌씩 저장하고 있었다.
+//
+// 그런데 그 표를 바꾸는 화면도 변이도 명세에 없다 — ORG-04은 보여주기만 한다.
+// 2026-08-30에 사람이 '모든 학생회가 같은 표를 쓴다'로 정했다. 고정인 것을 조직마다
+// 저장하면 조직이 늘 때마다 같은 열세 줄이 늘고, 규칙을 고칠 때 이미 만들어진
+// 조직들은 옛 규칙을 든 채 남는다.
+//
+// 규칙은 `specs/figma/vada-wireframe/permissions.json`에 있고 `src/permissions.ts`가
+// 판정한다. ORG-04이 그리는 표도 거기서 나온다 — **표는 정책의 그림이다.**
+// 나중에 학생회마다 다르게 하려면 그때 표를 데이터로 옮기면 되고, 그 방향은 싸다.
 
 /**
  * 초대 코드. 코드 하나가 학생회 하나를 가리킨다(INV-00 → INV-01).

@@ -212,3 +212,45 @@ describe('명세 밖으로 새지 않는다', () => {
     expect(wrong).toEqual([])
   })
 })
+
+// **서버가 권한을 실제로 강제하는가.** 자리에 매달아 두는 것과 막는 것은 다른 일이다.
+describe('권한이 걸린 서버', () => {
+  const NO_LOOKUPS = {
+    isEventStaff: async () => false,
+    isEventStaffManager: async () => false,
+    isMeetingHost: async () => false,
+    isMeetingCreator: async () => false,
+  }
+
+  function 권한붙은(role: 'chair' | 'head' | 'member') {
+    return harness({
+      who: () => ({
+        userId: 'U-01',
+        membership: {
+          orgId: 'ORG-01',
+          memberId: 'M-01',
+          role,
+          departmentId: 'D-01',
+          inFinanceDepartment: false,
+        },
+      }),
+      lookups: NO_LOOKUPS,
+    })
+  }
+
+  it('구성원이면 되는 자리는 부원도 연다', async () => {
+    const res = await 권한붙은('member').app.request('/api/shell/organization')
+    expect(res.status).toBe(200)
+  })
+
+  // 권한을 주지 않으면 미들웨어가 붙지 않는다 — 붙지 않은 상태가 조용히
+  // '전부 열림'이 되지 않도록, 붙었을 때 실제로 막는 것을 함께 못 박는다.
+  it('로그인하지 않았으면 막는다', async () => {
+    const { app } = harness({
+      who: () => null,
+      lookups: NO_LOOKUPS,
+      viewer: async () => null,
+    })
+    expect((await app.request('/api/shell/organization')).status).toBe(401)
+  })
+})
