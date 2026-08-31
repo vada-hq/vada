@@ -112,7 +112,9 @@ export function readDataSource(
 
   // **서버가 켜져 있으면 서버가 답한다.** 개발용 응답은 서버가 없을 때의 대역이지
   // 서버 대신이 아니다 — 켜졌는데도 개발용 응답을 주면 계약이 틀린 것을 못 본다.
-  const served = fromServer(source.key)
+  // **인자까지 넘긴다.** 같은 출처를 다른 인자로 두 번 부르면 다른 답이 온다 —
+  // key로만 찾으면 뒤엣것이 앞엣것을 덮고 화면은 남의 행사를 그린다.
+  const served = fromServer(source.key, params)
   if (served !== undefined) {
     return served as DataRow | DataRow[]
   }

@@ -99,7 +99,7 @@ import {
   org03b,
 } from '../spec/screens'
 import { ALL_SCREENS } from '../spec/screens'
-import { dataSourceKeysOf } from '../spec/screen-sources'
+import { dataSourceCallsOf } from '../spec/screen-sources'
 import { useSourceLoading } from '../data-sources/loading'
 import { readScopeDraft } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
@@ -129,13 +129,26 @@ interface ScreenRouterProps {
  * 까닭은 문구를 빠뜨린 것이 아니라 읽기가 전부 동기라서였다 — 기다리는 시간도
  * 실패할 통신도 없으면 그 두 문구가 그려질 순간이 없다(data-sources/loading.ts).
  *
- * 무엇을 기다리는지는 **명세가 안다.** 화면 코드를 읽지 않고 `dataSourceKeysOf`가
- * 답한다. 개발용 응답은 기본적으로 즉시 답하므로 평소에는 이 자리를 스치고
- * 지나간다 — 늦음과 실패는 그것을 시험하는 검사가 켠다.
+ * 무엇을 기다리는지는 **명세가 안다.** 화면 코드를 읽지 않고 `dataSourceCallsOf`가
+ * 답한다 — 무엇을 부르는지뿐 아니라 **어떤 인자로** 부르는지까지. 개발용 응답은
+ * 기본적으로 즉시 답하므로 평소에는 이 자리를 스치고 지나간다 — 늦음과 실패는
+ * 그것을 시험하는 검사가 켠다.
+ *
+ * 인자는 두 곳에서 온다. 주소가 실어 온 것(`screenParams`)과 이 화면의 스코프 초안이다.
+ * **화면 컴포넌트 안의 `useState`는 여기서 안 보인다** — 검색어와 거르개가 그렇고,
+ * 그 자리는 아직 서버로 못 부른다(`fromServer`가 터뜨린다).
  */
 export function ScreenRouter(props: ScreenRouterProps) {
   const spec = ALL_SCREENS.find((entry) => entry.screenId === props.screenId)
-  const loading = useSourceLoading(spec === undefined ? [] : dataSourceKeysOf(spec))
+  const draft = spec?.stateScopeKey === undefined ? undefined : props.scopes[spec.stateScopeKey]
+  const loading = useSourceLoading(
+    spec === undefined
+      ? []
+      : dataSourceCallsOf(spec, {
+          screenParams: props.screenParams ?? {},
+          ...(draft === undefined ? {} : { fields: draft.values }),
+        }),
+  )
 
   if (loading.status !== 'ready') {
     const isError = loading.status === 'error'

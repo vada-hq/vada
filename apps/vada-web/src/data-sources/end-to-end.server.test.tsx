@@ -4,9 +4,12 @@ import { createApp } from '../../../api/src/app.ts'
 import { freshDb } from '../../../api/src/db/testing.ts'
 import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
 import { inMemoryAttempts } from '../../../api/src/idempotency.ts'
-import { departments, members, organizations } from '../../../api/src/db/schema.ts'
+import { departments, events, members, organizations, users } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { useServer } from './server'
+import { loadSources, useServer } from './server'
+import { readObjectSource } from './catalog'
+import { dataSourceCallsOf } from '../spec/screen-sources'
+import { evt02 } from '../spec/screens'
 
 // **한 화면을 끝까지 뚫는다.**
 
@@ -31,10 +34,20 @@ beforeAll(async () => {
     { id: 'D-01', orgId: 'ORG-01', name: '학술체육부' },
     { id: 'D-02', orgId: 'ORG-01', name: '기획부' },
   ])
+  // **보는 사람도 저장소에 있어야 한다.** 한동안 없어도 검사가 통과했는데, 그때
+  // 셸은 서버가 아니라 개발용 응답을 그리고 있었다 — `fromServer`가 못 받아 둔 것을
+  // 조용히 넘겼기 때문이다. 이제 그 자리가 터지므로 여기에 진짜 사람을 둔다.
+  await fresh.db.insert(users).values({ id: 'U-01', email: 'haerang@example.ac.kr' })
   await fresh.db.insert(members).values([
     { id: 'M-01', orgId: 'ORG-01', name: '김바다', role: 'chair', departmentId: 'D-01' },
     { id: 'M-11', orgId: 'ORG-01', name: '이수현', role: 'head', departmentId: 'D-02' },
-    { id: 'M-03', orgId: 'ORG-01', name: '박해랑', role: 'member', departmentId: 'D-01' },
+    { id: 'M-03', orgId: 'ORG-01', name: '박해랑', role: 'member', departmentId: 'D-01', userId: 'U-01' },
+  ])
+
+  // 인자를 넘기는 부름을 재려면 인자가 가리키는 것이 있어야 한다.
+  await fresh.db.insert(events).values([
+    { id: 'E-01', orgId: 'ORG-01', title: '2026 소프트웨어융합대학 체육대회', updatedAt: new Date('2026-07-22T18:30:00+09:00') },
+    { id: 'E-02', orgId: 'ORG-01', title: '2026 신입생 환영 행사', updatedAt: new Date('2026-07-22T18:30:00+09:00') },
   ])
 
   const app = createApp({
@@ -118,3 +131,45 @@ describe('ORG-04을 서버에서 그린다', () => {
     }
   })
 })
+
+// **인자를 넘기는 길이 열렸는지 잰다.**
+//
+// 오랫동안 인자 없는 출처만 서버로 부를 수 있었다. 145개 중 30개다 — 나머지가
+// 못 붙으면 자리를 아무리 만들어도 화면이 못 쓴다.
+describe('인자를 넘겨 부른다', () => {
+  it('명세를 걸으면 어떤 인자로 부르는지가 나온다', () => {
+    const calls = dataSourceCallsOf(evt02, { screenParams: { eventId: 'E-01' } })
+    // 화면 코드를 읽지 않았다. 요소마다 붙은 params가 어디서 오는지 적어 두었고
+    // (`screenParam: eventId`) 그것을 그대로 채웠다.
+    expect(calls).toContainEqual({ key: 'event.summary', params: { eventId: 'E-01' } })
+  })
+
+  it('인자가 가리키는 것을 서버가 답한다', async () => {
+    await loadSources([{ key: 'event.summary', params: { eventId: 'E-01' } }])
+    expect(readObjectSource('event.summary', { eventId: 'E-01' })).toMatchObject({
+      title: '2026 소프트웨어융합대학 체육대회',
+    })
+  })
+
+  // **담아 두는 칸이 인자까지 품는지가 여기서 갈린다.** key로만 담으면 뒤엣것이
+  // 앞엣것을 덮고, 화면은 남의 행사를 그린다.
+  it('같은 출처를 다른 인자로 부르면 서로 덮지 않는다', async () => {
+    await loadSources([
+      { key: 'event.summary', params: { eventId: 'E-01' } },
+      { key: 'event.summary', params: { eventId: 'E-02' } },
+    ])
+    expect(readObjectSource('event.summary', { eventId: 'E-01' })).toMatchObject({
+      title: '2026 소프트웨어융합대학 체육대회',
+    })
+    expect(readObjectSource('event.summary', { eventId: 'E-02' })).toMatchObject({
+      title: '2026 신입생 환영 행사',
+    })
+  })
+
+  // **조용히 개발용 응답으로 돌아가지 않는다.** 그러면 화면은 그려지는데 그 값이
+  // 어디서 왔는지 아무도 모른다.
+  it('받아 두지 않은 부름은 터뜨린다', () => {
+    expect(() => readObjectSource('event.summary', { eventId: 'E-99' })).toThrow(/받아 두지 않았습니다/)
+  })
+})
+

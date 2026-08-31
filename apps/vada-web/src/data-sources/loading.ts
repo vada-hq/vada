@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { findDataSource } from './catalog'
-import { loadSources, servingFromServer } from './server'
+import { loadSources, servingFromServer, type SourceCall } from './server'
 
 /**
  * 받아 오는 동안과 실패했을 때.
@@ -68,13 +68,25 @@ function messagesOf(keys: readonly string[], which: 'loading' | 'error'): string
 }
 
 /**
- * 이 출처들이 올 때까지의 상태.
+ * 이 부름들이 올 때까지의 상태.
  *
- * key가 바뀌면 다시 기다린다 — 화면을 옮기면 그 화면의 것을 새로 받는다.
+ * 부름이 바뀌면 다시 기다린다 — 화면을 옮기거나 인자가 달라지면 그것을 새로 받는다.
+ * **key가 아니라 부름**인 까닭은 같은 출처를 다른 인자로 두 번 부를 수 있기 때문이다.
  */
-export function useSourceLoading(keys: readonly string[]): LoadingState {
-  const signature = keys.join('|')
+export function useSourceLoading(calls: readonly SourceCall[]): LoadingState {
+  const keys = calls.map((call) => call.key)
+  // 인자까지 넣어야 인자가 바뀔 때 다시 받는다. 이름순으로 세워 차례가 뜻을 갖지
+  // 않게 한다 — 안 그러면 같은 부름이 적힌 차례에 따라 다른 것으로 보인다.
+  const signature = calls
+    .map((call) =>
+      [call.key, ...Object.keys(call.params).sort().map((name) => `${name}=${call.params[name]}`)].join(''),
+    )
+    .join('')
   const failing = keys.filter((key) => behaviour.failing.includes(key))
+  // 효과 안에서 읽는 값은 signature가 정한다. 배열을 그대로 의존성에 두면
+  // 매번 새 배열이라 끝없이 다시 받는다.
+  const callsRef = useRef(calls)
+  callsRef.current = calls
   const delayMs = behaviour.delayMs
   const fromServer = servingFromServer()
   const [arrived, setArrived] = useState(() => delayMs === 0 && !fromServer)
@@ -87,12 +99,12 @@ export function useSourceLoading(keys: readonly string[]): LoadingState {
       let live = true
       setArrived(false)
       setBroken([])
-      loadSources(signature === '' ? [] : signature.split('|'))
+      loadSources(callsRef.current)
         .then(() => {
           if (live) setArrived(true)
         })
         .catch(() => {
-          if (live) setBroken(signature === '' ? [] : signature.split('|'))
+          if (live) setBroken(callsRef.current.map((call) => call.key))
         })
       return () => {
         live = false
@@ -105,8 +117,9 @@ export function useSourceLoading(keys: readonly string[]): LoadingState {
     setArrived(false)
     const timer = setTimeout(() => setArrived(true), delayMs)
     return () => clearTimeout(timer)
-    // signature가 바뀌면 다시 받는다. keys 배열 자체는 매번 새로 만들어지므로
+    // signature가 바뀌면 다시 받는다. 부름 배열 자체는 매번 새로 만들어지므로
     // 그것을 의존성으로 두면 끝없이 다시 받는다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, delayMs, fromServer])
 
   if (broken.length > 0) {
