@@ -440,6 +440,7 @@ MVP 원칙: 이 단계는 정식 문서 발행 워크플로가 아니라, 다음
 ## 13. 참고 문서
 
 - [VADA 로드맵](./VADA_ROADMAP.md) — 마일스톤과 제품화 42화면 목록
+- [VADA 파일럿 시연 스크립트](./VADA_PILOT_DEMO_SCRIPT.md) — M1 유인 가설 검증
 - [VADA 메뉴 구조](./VADA_MENU_STRUCTURE.md)
 - [VADA 권한 매트릭스](./VADA_PERMISSION_MATRIX.md)
 - [VADA 행사 아카이브 정의](./VADA_EVENT_ARCHIVE_SPEC.md)
