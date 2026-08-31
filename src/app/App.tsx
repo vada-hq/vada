@@ -1534,6 +1534,30 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
       { date: "2026-03-15 09:30", action: "승인 · 집행 유형 정기 결제 구독 판정", user: "김민준" },
       { date: "2026-06-16 10:00", action: "6월분 결제 완료", user: "김민준" },
     ]
+  },
+  {
+    // 반려 표본. 종결된 요청이 화면에서 어떻게 보이는지 확인한다.
+    // `FIN-REQ-02`는 진행 단계 막대 대신 종결 안내를 그리고, `FIN-PROC-01` 단계 보드의 어느 영역에도 올라가지 않는다.
+    // 예산 예약은 승인 계열 상태에서만 잡으므로 이 요청은 예약액에 포함되지 않는다.
+    id: "REQ-008",
+    eventId: SPORTS_EVENT_ID,
+    title: "무선 마이크 세트 구매",
+    event: "2026 소프트웨어융합대학 체육대회",
+    dept: "운영부",
+    requester: "박해랑",
+    purpose: "행사 진행 안내와 시상식 사회용 무선 마이크",
+    neededDate: "2026-03-14",
+    priority: "보통",
+    totalEstimatedAmount: 160000,
+    status: "반려",
+    items: [
+      { id: 21, name: "무선 마이크 세트", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 2, unit: "대", estimatedUnitPrice: 80000, estimatedTotalPrice: 160000, status: "반려", priceEvidence: "https://www.coupang.com/vp/products/812204", rejectionReason: "같은 행사에서 앰프·스피커 세트를 대여하며 마이크가 포함됩니다(REQ-006). 중복 집행이므로 대여 품목에 추가해 주세요.", details: { 판매처: "쿠팡", 상품URL: "https://www.coupang.com/vp/products/812204", 옵션규격: "2채널 무선 핸드 마이크" } },
+    ],
+    history: [
+      { date: "2026-03-06 09:00", action: "요청 생성", user: "박해랑" },
+      { date: "2026-03-06 09:10", action: "제출", user: "박해랑" },
+      { date: "2026-03-07 10:30", action: "반려", user: "김민준" },
+    ]
   }
 ];
 

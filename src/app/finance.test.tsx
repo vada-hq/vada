@@ -204,6 +204,14 @@ describe("FIN-REQ-02 진행 단계", () => {
     expect(container.textContent).not.toContain("수령·이행");
   });
 
+  // 앞의 두 건은 상태를 주입해 검증한다. 샘플에도 반려 요청이 실제로 있어야 브라우저에서 종결 안내를 볼 수 있다.
+  it("샘플의 반려 요청(REQ-008)이 종결 안내와 반려 사유를 보여준다", () => {
+    const { container } = renderWith(() => ({ selectedPurchaseRequestId: "REQ-008" }));
+    expect(container.textContent).toContain("반려되어 종결된 요청입니다");
+    expect(container.textContent).toContain("중복 집행이므로");
+    expect(container.textContent).not.toContain("수령·이행");
+  });
+
   it("요청 취소도 종결로 표시한다", () => {
     const { container } = renderWith(v => ({
       purchaseRequests: [{ ...v.purchaseRequests[0], id: "REQ-Y", status: "요청 취소" }],
