@@ -7,8 +7,11 @@
 // 남기는 것은 `.test-last.log` 하나뿐이다. 매번 덮어쓰므로 쌓이지 않는다.
 import { spawn } from "node:child_process";
 import { appendFileSync, writeFileSync } from "node:fs";
+import { freemem, totalmem } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { ranNothing, selfMeasuredSec } from "./test-output.mjs";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const logPath = join(repoRoot, ".test-last.log");
@@ -105,33 +108,15 @@ function reportOne(app, { code, output, seconds }) {
 
 // 검사가 실패한 것과 검사를 돌리지 못한 것은 다른 일이다.
 //
-// 실제로 겪은 실패의 지문: 열네 파일이 전부 "0 test"로 죽고, 그 안에서 vitest가
-// 러너를 찾지 못한다("Vitest failed to find the current suite", "Cannot read
-// properties of undefined (reading 'config')"). jsdom을 쓰지 않는 node 검사까지
-// 같이 죽고, tests 0ms다 — 단언이 틀린 게 아니라 아무것도 시작되지 못한 것이다.
-//
-// 원인은 못 찾았다. CI 환경·반복·동시 실행·CPU 부하·찬 캐시·중복 설치를 하나씩
-// 지웠지만 재현되지 않는다. 그래서 진단하는 대신 두 가지를 가른다.
-//
-// 가르는 근거: 진짜 실패는 검사가 돌다가 난다. 하나도 돌지 않았는데 실패했다면
-// 그건 검사의 판정이 아니다. 이 경우에만 한 번 다시 돌린다 — setup 파일이 깨진
-// 것처럼 진짜로 못 도는 상태라면 두 번째도 똑같이 죽으므로 걸러지지 않는다.
-function ranNothing(output) {
-  return /Tests\s+no tests/.test(output);
-}
+// 진짜 실패는 검사가 돌다가 난다. 하나도 돌지 않았는데 실패했다면 그건 검사의
+// 판정이 아니다 — 이 경우에만 한 번 다시 돌린다. 판정 자체는 `test-output.mjs`에
+// 있고 **거기서 검사한다**. 이 파일 안에 두었을 때는 그 판정을 아무도 못 쟀고,
+// 2026-08-31에 대가를 치렀다 — 워커가 시작하다 죽어 요약조차 없는 출력을
+// '검사 실패'로 읽고 초록 코드를 떨어뜨렸다.
 
-/**
- * 그 앱의 검사가 **스스로 잰** 값(초).
- *
- * vitest는 `Duration  56.61s`, node --test는 `# duration_ms 30393`으로 적는다.
- * 못 읽으면 null이다 — 못 읽은 것을 0으로 세면 저울이 조용히 헐거워진다.
- */
-function selfMeasuredSec(output) {
-  const vitest = output.match(/Duration\s+([\d.]+)s/);
-  if (vitest !== null) return Number(vitest[1]);
-  const node = output.match(/# duration_ms\s+([\d.]+)/);
-  if (node !== null) return Number(node[1]) / 1000;
-  return null;
+/** 바이트를 사람이 읽는 GB로. */
+function gb(bytes) {
+  return (bytes / 1024 ** 3).toFixed(2);
 }
 
 writeFileSync(logPath, `테스트 실행 ${stamp()}\n`);
@@ -156,19 +141,31 @@ for (const [at, app] of APPS.entries()) {
   if (code !== 0 && ranNothing(output)) {
     // 다시 돌리기 전에, 이번 일이 있었다는 사실부터 남긴다. 다시 돌려서 통과하면
     // 아무 일도 없던 것처럼 보이는데, 그러면 이 문제는 영영 잡히지 않는다.
-    // `.test-flakes.log`는 덮어쓰지 않고 쌓인다 — 언젠가 이 기록이 원인을 말해준다.
+    // `.test-flakes.log`는 덮어쓰지 않고 쌓인다.
+    //
+    // **기계 사정을 함께 남긴다.** 출력만으로는 "워커가 죽었다"까지밖에 못 말한다 —
+    // 왜 죽었는지는 그 순간의 기계가 안다. 재 보니 이 기계는 **쉴 때도 남은 메모리가
+    // 0.4GB**이고 게이트가 도는 동안 0.04GB까지 떨어졌다. node 전부가 쓴 것은
+    // 1.08GB뿐이니, 넘치게 한 것은 검사가 아니라 이미 꽉 찬 기계다.
     appendFileSync(
       flakePath,
-      `\n===== ${stamp()} ${app}: 검사가 하나도 돌지 못했습니다 =====\n${output}`
+      `\n===== ${stamp()} ${app}: 검사가 하나도 돌지 못했습니다 =====\n` +
+        `기계: 메모리 ${gb(totalmem())}GB 중 ${gb(freemem())}GB 남음\n${output}`
     );
     record(`\n>>> ${app}이(가) 하나도 돌지 못했습니다. 한 번 다시 돌립니다.\n`);
     process.stdout.write(
       `\n[run-tests] ${app}: 검사가 하나도 돌지 못했습니다(검사 실패가 아닙니다).\n` +
+        `           기계: 메모리 ${gb(totalmem())}GB 중 ${gb(freemem())}GB 남음.\n` +
         `           한 번 다시 돌립니다. 기록은 .test-flakes.log에 쌓입니다.\n`
     );
     const again = await runOne(app);
     reportOne(app, again);
     ({ code, output } = again);
+    // **다시 돌린 결과로 갈아 끼운다.** 아래에서 저울을 읽는 것은 `results`인데,
+    // 갈아 끼우지 않으면 죽은 출력을 읽는다 — 거기엔 시간이 없으므로 다시 돌려
+    // 통과해 놓고도 "저울을 읽지 못했습니다"로 떨어진다. 흔들림을 걸러 놓고
+    // 그 자리에서 다시 떨어뜨리는 셈이라, 걸러 준 값이 0이 된다.
+    results[at] = again;
   }
 
   if (code !== 0) {
