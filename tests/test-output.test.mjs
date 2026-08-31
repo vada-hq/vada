@@ -83,3 +83,19 @@ test("스스로 잰 값을 두 모양에서 읽는다", () => {
 test("읽지 못하면 0이 아니라 null이다", () => {
   assert.equal(selfMeasuredSec("아무 말도 없다"), null);
 });
+
+// **터미널에 붙어 돌면 색이 섞인다.** 파일로 받아 돌리면 안 섞이므로, 이 자리는
+// 사람이 처음 푸시할 때 처음 드러났다 — 검사 744개가 통과했는데 저울이 값을 못
+// 읽어 푸시가 막혔다(2026-08-31).
+const ESC = String.fromCharCode(27)
+
+test("색이 섞인 출력에서도 잰 값을 읽는다", () => {
+  const coloured = `   ${ESC}[2mDuration${ESC}[22m  ${ESC}[2m39.87s${ESC}[22m (transform 6.37s)`
+  assert.equal(selfMeasuredSec(coloured), 39.87)
+})
+
+test("색이 섞여도 돈 것은 돈 것이다", () => {
+  const coloured = `      ${ESC}[2mTests${ESC}[22m  ${ESC}[1m${ESC}[32m744 passed${ESC}[39m${ESC}[22m (744)`
+  assert.equal(ranNothing(coloured), false)
+})
+

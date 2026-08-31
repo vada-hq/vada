@@ -210,6 +210,25 @@ if (totalSec > selfSec * 1.5 + 20) {
 // 값을 못 읽으면 **조용히 통과시키지 않는다.** 읽는 규칙이 바뀌면 저울이 헐거워지고,
 // 헐거워진 저울은 아무 말도 하지 않는다.
 if (unknown.length > 0) {
+  // **왜 못 읽었는지를 함께 보인다.** 한 번 이 자리에서 초록 코드의 푸시가 막혔는데
+  // 출력이 "못 읽었다"뿐이라 원인을 추측해야 했다 — 이 파일이 존재하는 까닭이 바로
+  // 그 추측을 없애는 것이었다. 보이지 않는 글자는 보이게 적는다.
+  for (const app of unknown) {
+    const output = results[APPS.indexOf(app)].output;
+    const tail = output
+      .slice(-400)
+      .replace(/[ -	-]/g, (ch) => `<${ch.charCodeAt(0)}>`);
+    record(`
+>>> ${app}의 마지막 400자(보이지 않는 글자는 <번호>로):
+${tail}
+`);
+    process.stdout.write(
+      `
+[run-tests] ${app}의 마지막 400자(보이지 않는 글자는 <번호>로):
+${tail}
+`
+    );
+  }
   const reason =
     `${unknown.join(", ")}의 출력에서 검사가 스스로 잰 값을 읽지 못했습니다.
 ` +
