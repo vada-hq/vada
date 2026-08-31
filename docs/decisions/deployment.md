@@ -23,11 +23,27 @@
 | | 무엇 | 까닭 |
 | --- | --- | --- |
 | 웹 | Cloudflare Pages | 대역이 무제한이고 무료다. 정적 파일이라 값이 오르지 않는다 |
-| api | Fly.io | 늘 켜진 계산이 필요하다(연결 풀을 상시로 둔 까닭과 같다). 아무도 안 볼 때 재우면 월 0~5달러 |
+| api | **Render(무료)** | 카드를 요구하지 않는다. 15분 놀면 잠들고 첫 요청이 30~60초 느리다 — 지금은 상관없다 |
 | 저장소 | Neon | Postgres 실물이고 무료 등급이 있다. 잠들었다 깨는 데 몇 백 ms |
 
-동시 규모를 아직 모르므로 **가장 작은 것으로 잡았다.** 셋 다 재장전이 쉽다 —
-Fly는 기계 크기만 올리면 되고, Neon은 등급만 올리면 된다.
+동시 규모를 아직 모르므로 **가장 작은 것으로 잡았다.** 셋 다 재장전이 쉽다.
+
+### api를 Fly에서 Render로 바꿨다 (2026-08-31)
+
+처음에 Fly를 골랐는데 **카드를 등록해야 시작된다.** 옛 무료 등급을 근거로 골랐던
+것이고, 확인하지 않은 값으로 고른 것이 틀렸다.
+
+값을 먼저 보되 **유지보수성을 잃지 않는 쪽**으로 옮겼다 — Render는 같은 Dockerfile을
+그대로 쓴다. `apps/api/fly.toml`은 지우지 않았다. 나중에 Fly로 옮길 때 **코드는 한
+줄도 바뀌지 않는다.**
+
+Cloudflare Workers가 더 싸지만 고르지 않았다. 서버리스라 서버를 다시 짜야 하고,
+그것은 이 저장소가 연결 풀을 상시로 두려고 **일부러 피한** 모양이다.
+
+**무료 등급에는 배포 전 명령이 없다.** Fly는 `release_command`가 표를 맞춰 주지만
+Render 무료에는 그 자리가 없다. 그래서 표는 **사람이 한 번 맞춘다** — 스키마를
+고칠 때마다 `DATABASE_URL`을 걸고 `npm run db:migrate`를 돌린다. 서버가 켜질 때
+스스로 맞추게 하지 않는 까닭은 앞과 같다: 여러 대가 켜지면 서로를 밟는다.
 
 ## 브라우저가 막는 자리 — 가장 위험한 것
 
@@ -85,22 +101,30 @@ Fly는 기계 크기만 올리면 되고, Neon은 등급만 올리면 된다.
 1. **Neon**에서 Postgres를 만들고 연결 문자열을 받는다.
 2. **구글·카카오**에서 OAuth 자격증명을 받는다. 돌아올 주소(redirect URI)는
    `<api 주소>/api/auth/callback/<제공자>`다.
-3. **Fly**와 **Cloudflare** 계정을 만든다.
-4. 비밀을 넣는다 — Fly에 `DATABASE_URL` · `AUTH_SECRET`(32자 이상) · `BASE_URL` ·
+3. **Render**와 **Cloudflare** 계정을 만든다(둘 다 카드가 필요 없다).
+4. 비밀을 넣는다 — Render 대시보드에 `DATABASE_URL` · `AUTH_SECRET`(32자 이상) · `BASE_URL` ·
    `APP_URL` · `INVITE_LINK_BASE` · 제공자 열쇠. **서버는 이것들 없이 서지 않는다**
    (`config.ts`) — 없는 채로 도는 것이 가장 나쁘기 때문이다.
 
 ## 올리는 명령
 
 ```
-# api — 빌드 문맥이 저장소 뿌리다(specs/를 함께 담아야 한다)
-fly deploy --config apps/api/fly.toml --dockerfile apps/api/Dockerfile .
+# api — Render. render.yaml이 Dockerfile과 문맥을 들고 있다.
+#   dashboard → Blueprints → 저장소 연결 → 비밀은 대시보드에서 넣는다
+
+# 표를 맞춘다 — 무료 등급에는 배포 전 명령이 없으므로 사람이 한 번 한다
+cd apps/api
+$env:DATABASE_URL="postgresql://..."   # PowerShell
+npm run db:migrate
 
 # 웹 — Cloudflare Pages 설정
 #   루트 디렉터리      apps/vada-web
 #   빌드 명령          npm run build
 #   출력 디렉터리      dist
-#   환경 변수          API_ORIGIN = https://<fly 앱>.fly.dev   (프록시가 읽는다)
+#   환경 변수          API_ORIGIN = https://<render 앱>.onrender.com   (프록시가 읽는다)
+
+# 나중에 Fly로 옮길 때 — 코드는 그대로다
+fly deploy --config apps/api/fly.toml --dockerfile apps/api/Dockerfile .
 ```
 
 ## 인자를 넘기는 길 (M3, 2026-08-31)

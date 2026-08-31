@@ -18,5 +18,7 @@ COPY apps/api ./apps/api
 
 WORKDIR /app/apps/api
 ENV NODE_ENV=production
+# **어느 문으로 들을지는 올리는 곳이 정한다.** 여기 박아 두면 Render처럼 제 값을
+# 넣어 주는 곳에서 둘이 어긋난다 — 없으면 `config.ts`가 8787로 간다.
 EXPOSE 8787
 CMD ["npm", "run", "start"]
