@@ -1,6 +1,8 @@
-import { spawnSync } from 'node:child_process'
+import { spawn, spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { dirname, resolve } from 'node:path'
+
+import { onlyNetworkBroke } from './test-output.mjs'
 
 // e2e는 **내보낼 묶음**을 친다. 개발 서버는 화면을 열 때마다 모듈 2,700개를 따로
 // 내주고, 검사는 화면을 176번 여는 일이라 그 값이 통째로 곱해진다. 재 보니
@@ -15,6 +17,28 @@ const app = resolve(root, 'apps/vada-web')
 const run = (command, args, options = {}) =>
   spawnSync(command, args, { cwd: app, stdio: 'inherit', shell: true, ...options })
 
+/**
+ * 흘려보내면서 **동시에 담아 둔다.**
+ *
+ * 담기만 하면 5분 동안 아무것도 안 보이고, 흘리기만 하면 무엇이 왜 죽었는지 뒤에서
+ * 읽을 수 없다. 둘 다 필요해서 `spawnSync`를 버렸다 — 실패했다고 한 번 더 돌려
+ * 출력을 얻는 것은 5분을 두 번 쓰는 일이다.
+ */
+function runCapturing(command, args, options = {}) {
+  return new Promise((done) => {
+    const child = spawn(command, args, { cwd: app, shell: true, ...options })
+    let output = ''
+    for (const stream of [child.stdout, child.stderr]) {
+      stream.on('data', (chunk) => {
+        const text = chunk.toString()
+        output += text
+        process.stdout.write(text)
+      })
+    }
+    child.on('close', (code) => done({ status: code ?? 1, output }))
+  })
+}
+
 const build = run('npm', ['run', 'build'])
 if (build.status !== 0) process.exit(build.status ?? 1)
 
@@ -25,8 +49,25 @@ if (build.status !== 0) process.exit(build.status ?? 1)
 const server = run('npm', ['run', 'test:server'])
 if (server.status !== 0) process.exit(server.status ?? 1)
 
-const test = run('npm', ['run', 'e2e'], { env: { ...process.env, E2E_PREVIEW: '1' } })
-const status = test.status ?? 1
+// **연결이 끊긴 것은 검사의 판정이 아니다.**
+//
+// 2026-08-31에 `net::ERR_NETWORK_CHANGED`로 하나가 죽어 초록 코드의 푸시가 막혔다 —
+// 427개는 통과했고 그 하나는 단언이 틀린 게 아니라 **페이지를 열지 못한** 것이다.
+// 검사가 실패한 것과 검사를 돌리지 못한 것은 다른 일이라는, `run-tests.mjs`가
+// 이미 쓰는 규칙을 여기에도 둔다.
+//
+// **좁게 본다.** 브라우저가 그물을 못 탄 것만 고르고 나머지는 그대로 실패다 —
+// 넓히면 진짜 실패가 흔들림으로 읽힌다. 그리고 한 번만 다시 돌린다: 그물이 정말
+// 끊겨 있으면 두 번째도 같은 자리에서 죽으므로 걸러지지 않는다.
+const e2e = { env: { ...process.env, E2E_PREVIEW: '1' } }
+let test = await runCapturing('npm', ['run', 'e2e'], e2e)
+if (test.status !== 0 && onlyNetworkBroke(test.output)) {
+  process.stdout.write(
+    '\n[run-e2e] 그물이 끊겨 실패했습니다(검사의 판정이 아닙니다). 한 번 더 돌립니다.\n',
+  )
+  test = await runCapturing('npm', ['run', 'e2e'], e2e)
+}
+const status = test.status
 
 // **판정을 글로도 낸다.** 종료 코드만으로 말하면 `| tail`에 물린 순간 그것이
 // 사라지고, 붉은 검사가 초록으로 읽힌다 — 그렇게 MSG-02가 하루를 붉은 채로 지났다.

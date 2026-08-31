@@ -62,3 +62,24 @@ export function selfMeasuredSec(output) {
   if (node !== null) return Number(node[1]) / 1000
   return null
 }
+
+/**
+ * e2e가 **그물이 끊겨서만** 죽었는가.
+ *
+ * 2026-08-31에 `net::ERR_NETWORK_CHANGED`로 하나가 죽어 초록 코드의 푸시가 막혔다 —
+ * 427개는 통과했고 그 하나는 단언이 틀린 게 아니라 **페이지를 열지 못한** 것이다.
+ *
+ * **좁게 본다.** 브라우저가 그물을 못 탄 것만 고르고 나머지는 그대로 실패다 —
+ * 넓히면 진짜 실패가 흔들림으로 읽힌다. 실패가 몇이든 그 까닭이 전부 그물이어야 한다.
+ */
+const NETWORK =
+  /net::ERR_(NETWORK_CHANGED|INTERNET_DISCONNECTED|NAME_NOT_RESOLVED|CONNECTION_(RESET|REFUSED|CLOSED))/
+
+export function onlyNetworkBroke(output) {
+  const text = plain(output)
+  const failed = text.match(/^ {2}\d+\) /gm) ?? []
+  if (failed.length === 0) return false
+  const broke = text.match(new RegExp(NETWORK.source, 'g')) ?? []
+  return broke.length >= failed.length
+}
+
