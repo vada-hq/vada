@@ -41,6 +41,7 @@ pnpm run build
 - `src/app/App.tsx`: 화면 목록, 공통 컴포넌트와 주요 와이어프레임
 - `src/styles/index.css`: 공통 스타일과 Tailwind 진입점
 - `docs/VADA_HANDOFF.md`: 확정된 서비스 구조와 회의 흐름
+- `docs/VADA_ROADMAP.md`: 마일스톤(M0~M5)과 제품화 대상 42화면 목록
 
 현재 별도 백엔드는 없다. 버튼과 일부 화면 전환, 안건 선택은 와이어프레임 검증용 로컬 상태다.
 
