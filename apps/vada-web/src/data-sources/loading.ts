@@ -73,22 +73,30 @@ function messagesOf(keys: readonly string[], which: 'loading' | 'error'): string
  * 부름이 바뀌면 다시 기다린다 — 화면을 옮기거나 인자가 달라지면 그것을 새로 받는다.
  * **key가 아니라 부름**인 까닭은 같은 출처를 다른 인자로 두 번 부를 수 있기 때문이다.
  */
-export function useSourceLoading(calls: readonly SourceCall[]): LoadingState {
-  const keys = calls.map((call) => call.key)
+export function useSourceLoading(
+  keys: readonly string[],
+  makeCalls: () => readonly SourceCall[],
+): LoadingState {
   // 인자까지 넣어야 인자가 바뀔 때 다시 받는다. 이름순으로 세워 차례가 뜻을 갖지
   // 않게 한다 — 안 그러면 같은 부름이 적힌 차례에 따라 다른 것으로 보인다.
-  const signature = calls
-    .map((call) =>
-      [call.key, ...Object.keys(call.params).sort().map((name) => `${name}=${call.params[name]}`)].join(''),
-    )
-    .join('')
+  //
+  // **서버를 안 쓰면 부름을 세지 않는다.** 개발용 응답으로 도는 동안에는 이 값이
+  // 쓰이지 않는데, 화면 여든둘을 여러 번 그리는 검사에서는 그 헛일이 곱해진다.
+  const fromServer = servingFromServer()
+  const calls = fromServer ? makeCalls() : []
+  const signature = fromServer
+    ? calls
+        .map((call) =>
+          [call.key, ...Object.keys(call.params).sort().map((name) => `${name}=${call.params[name]}`)].join(''),
+        )
+        .join('')
+    : keys.join('|')
   const failing = keys.filter((key) => behaviour.failing.includes(key))
   // 효과 안에서 읽는 값은 signature가 정한다. 배열을 그대로 의존성에 두면
   // 매번 새 배열이라 끝없이 다시 받는다.
   const callsRef = useRef(calls)
   callsRef.current = calls
   const delayMs = behaviour.delayMs
-  const fromServer = servingFromServer()
   const [arrived, setArrived] = useState(() => delayMs === 0 && !fromServer)
   const [broken, setBroken] = useState<string[]>([])
 

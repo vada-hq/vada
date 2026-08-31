@@ -32,6 +32,11 @@ import {
 } from './public/survey.ts'
 import { hashToken, tokenOfRequest } from './public/tokens.ts'
 import {
+  attendanceQr,
+  deactivateAttendanceQr,
+  regenerateAttendanceQr,
+} from './events/attendance-qr.ts'
+import {
   createEvent,
   eventBasics,
   eventList,
@@ -304,6 +309,28 @@ export function createApp(deps: Deps) {
       const row = await eventBasics(d.db, orgOf(c), eventId)
       if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
       return row
+    },
+    // ── 참석 확인 QR (EVT-04B) ─────────────────────────────────────────────
+    //
+    // 밖에서 오는 사람 쪽은 이미 지었다. 여기는 그 QR을 **만들고 죽이는** 쪽이다.
+    'event.attendanceQr': async (c, d) => {
+      const eventId = c.req.param('eventId')!
+      c.set('auditSubject', { type: 'event', id: eventId })
+      return attendanceQr(d.db, orgOf(c), eventId, d.invite)
+    },
+    // **되돌릴 수 없다.** 뿌린 포스터의 QR이 전부 죽는다.
+    'event.attendanceQr.regenerate': async (c, d) => {
+      const eventId = c.req.param('eventId')!
+      c.set('auditSubject', { type: 'event', id: eventId })
+      return regenerateAttendanceQr(d.db, orgOf(c), eventId, {
+        newId: d.newId,
+        now: d.invite.now,
+      })
+    },
+    'event.attendanceQr.deactivate': async (c, d) => {
+      const eventId = c.req.param('eventId')!
+      c.set('auditSubject', { type: 'event', id: eventId })
+      return deactivateAttendanceQr(d.db, orgOf(c), eventId)
     },
     'event.create': async (c, d) => {
       const orgId = orgOf(c)

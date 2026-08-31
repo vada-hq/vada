@@ -99,7 +99,7 @@ import {
   org03b,
 } from '../spec/screens'
 import { ALL_SCREENS } from '../spec/screens'
-import { dataSourceCallsOf } from '../spec/screen-sources'
+import { dataSourceCallsOf, dataSourceKeysOf } from '../spec/screen-sources'
 import { useSourceLoading } from '../data-sources/loading'
 import { readScopeDraft } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
@@ -141,13 +141,17 @@ interface ScreenRouterProps {
 export function ScreenRouter(props: ScreenRouterProps) {
   const spec = ALL_SCREENS.find((entry) => entry.screenId === props.screenId)
   const draft = spec?.stateScopeKey === undefined ? undefined : props.scopes[spec.stateScopeKey]
+  // 기다리는 동안 그릴 글은 key가 정하고, **어떤 인자로 부를지는 서버를 쓸 때만**
+  // 센다 — 개발용 응답으로 도는 동안에는 쓰이지 않는 값이다.
   const loading = useSourceLoading(
-    spec === undefined
-      ? []
-      : dataSourceCallsOf(spec, {
-          screenParams: props.screenParams ?? {},
-          ...(draft === undefined ? {} : { fields: draft.values }),
-        }),
+    spec === undefined ? [] : dataSourceKeysOf(spec),
+    () =>
+      spec === undefined
+        ? []
+        : dataSourceCallsOf(spec, {
+            screenParams: props.screenParams ?? {},
+            ...(draft === undefined ? {} : { fields: draft.values }),
+          }),
   )
 
   if (loading.status !== 'ready') {
