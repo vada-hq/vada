@@ -6,6 +6,8 @@
     "test": "vitest run",
     "typecheck": "tsc -b",
     "db:schema": "node scripts/build-schema-sql.mjs",
+    "db:generate": "drizzle-kit generate --out ./migrations --schema ./src/db/schema.ts --dialect postgresql",
+    "db:migrate": "node --experimental-strip-types src/db/migrate.ts",
     "dev": "node --experimental-strip-types --env-file=../../.env src/serve.ts",
     "start": "node --experimental-strip-types src/serve.ts"
   },

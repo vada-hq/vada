@@ -1,0 +1,16 @@
+# Docker가 상자에 담지 않는 것. **빌드 문맥이 저장소 뿌리다** — api가 specs/를
+# 읽으므로 apps/api만으로는 담을 수 없다.
+node_modules
+**/node_modules
+apps/vada-web
+apps/spec-service
+packages
+docs
+tests
+.git
+.test-last.log
+.test-flakes.log
+**/*.test.ts
+**/*.test.tsx
+**/test-results
+**/playwright-report

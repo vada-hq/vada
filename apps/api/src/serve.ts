@@ -1,5 +1,6 @@
 import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { randomBytes, randomUUID } from 'node:crypto'
 import { createApp } from './app.ts'
 import { createAuth, openWays } from './auth/auth.ts'
@@ -30,6 +31,25 @@ const auth = createAuth(db, {
 const viewers = viewerLookup(db)
 
 const root = new Hono()
+
+// **화면이 다른 주소에 있으면 브라우저가 막는다.**
+//
+// 웹과 api를 한 주소에 올리면 이 층이 필요 없다. 나눠 올리면 브라우저가 먼저
+// 물어보고(preflight), 답이 없으면 요청이 서버에 닿지도 못한다 — 서버 로그에는
+// 아무것도 안 남으므로 원인을 찾기 어렵다.
+//
+// **`*`를 쓰지 않는다.** 쿠키를 함께 보내는 요청에는 브라우저가 `*`를 거절하고,
+// 무엇보다 아무 곳에서나 이 api를 부를 수 있게 된다. 화면이 어디 있는지는 설정이
+// 이미 알고 있다(APP_URL).
+root.use(
+  '*',
+  cors({
+    origin: config.appUrl,
+    credentials: true,
+    allowHeaders: ['content-type', 'idempotency-key'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  }),
+)
 
 // **로그인 자리는 계약 밖이다.** 명세에 로그인 화면이 없으므로 이 자리들은
 // `openapi.json`에 없고, 그래서 권한 미들웨어보다 앞에 둔다 — 뒤에 두면
@@ -74,5 +94,5 @@ root.route(
 )
 
 serve({ fetch: root.fetch, port: config.port }, (info) => {
-  process.stdout.write(`vada api ${info.port}번에서 듣습니다. 들어올 길: ${openWays(config as never).join(', ')}\n`)
+  process.stdout.write(`vada api ${info.port}번에서 듣습니다. 들어올 길: ${openWays(config as never).map((way) => way.provider).join(', ')}\n`)
 })

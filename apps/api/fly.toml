@@ -1,0 +1,27 @@
+# api를 올리는 곳. 실제 이름은 `fly launch`가 정하고 여기에 적힌다.
+app = "vada-api"
+primary_region = "nrt"
+
+[build]
+  dockerfile = "Dockerfile"
+
+# **표를 맞추는 것은 배포가 한 번 한다.** 서버가 켜질 때마다 하면 여러 대가
+# 서로를 밟고, 실패해도 그것이 배포 실패로 드러나지 않는다.
+[deploy]
+  release_command = "npm run db:migrate"
+
+[env]
+  PORT = "8787"
+
+[http_service]
+  internal_port = 8787
+  force_https = true
+  # 학생회 도구는 며칠에 한 번 열린다. 아무도 안 볼 때 재우면 값이 크게 준다 —
+  # 대신 첫 요청이 느리다(몇 초). 참석 QR처럼 순간 부하가 있는 날은 min 1로 올린다.
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

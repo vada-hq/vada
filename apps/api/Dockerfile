@@ -1,0 +1,22 @@
+# api를 담는 상자.
+#
+# **표를 먼저 맞추고 선다.** 배포가 `npm run db:migrate`를 한 번 부르고 그다음
+# 서버가 뜬다(fly.toml의 release_command) — 여러 대가 함께 켜지면서 저마다 표를
+# 고치면 서로를 밟는다.
+FROM node:22-slim
+
+WORKDIR /app
+
+# 의존만 먼저 넣는다. 코드가 바뀌어도 이 층은 다시 받지 않는다.
+COPY apps/api/package.json apps/api/package-lock.json ./apps/api/
+RUN cd apps/api && npm ci --omit=dev
+
+# 명세가 계약의 원본이다. api가 `openapi.json`을 읽어 자리를 만든다 —
+# 이것이 없으면 서버가 아무 자리도 열지 못한다.
+COPY specs ./specs
+COPY apps/api ./apps/api
+
+WORKDIR /app/apps/api
+ENV NODE_ENV=production
+EXPOSE 8787
+CMD ["npm", "run", "start"]

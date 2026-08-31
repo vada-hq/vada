@@ -67,3 +67,28 @@ export async function loadSources(keys: readonly string[]): Promise<void> {
 export function fromServer(key: string): unknown {
   return server === null ? undefined : cache.get(key)
 }
+
+/**
+ * api가 어디에 있는가.
+ *
+ * **비면 같은 곳이다**(상대 경로). 웹과 api를 한 주소에 올리면 그대로 두면 되고,
+ * 나눠 올리면 `VITE_API_BASE_URL`이 그 자리를 말한다 — 그때는 쿠키가 사이트를
+ * 건너므로 서버 쪽 설정도 함께 갈린다(`serve.ts`의 CORS).
+ *
+ * 화면이 주소를 지어내지 않게 여기 하나만 둔다.
+ */
+export function apiBaseUrl(): string {
+  const base = import.meta.env.VITE_API_BASE_URL
+  return typeof base === 'string' ? base.replace(/\/$/, '') : ''
+}
+
+/**
+ * 이 브라우저에서 api를 부르는 길.
+ *
+ * **쿠키를 함께 보낸다.** 세션이 쿠키에 있으므로 이것이 없으면 로그인해도 다음
+ * 요청은 로그인하지 않은 것과 같다 — 다른 주소로 부를 때 특히 그렇다.
+ */
+export function browserFetch(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+  return fetch(input, { ...init, credentials: 'include' })
+}
+

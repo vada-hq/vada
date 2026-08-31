@@ -1,5 +1,5 @@
 // **만들어진 파일이다.** `npm run db:schema`가 낸다 — 손으로 고치면 다음 생성에서
-// 지워진다. 원본은 `src/db/schema.ts`다.
+// 지워진다. 원본은 `migrations/`이고 그것은 `src/db/schema.ts`에서 나온다.
 //
 // 파일이 아니라 모듈인 까닭: 읽는 쪽마다 경로 규칙이 다르다. Node에서는 되는데
 // Vite 아래서는 import.meta.url이 다른 곳을 가리켜 못 읽었다.
