@@ -1,6 +1,7 @@
 import { and, desc, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { invites } from '../db/schema.ts'
+import { dottedStamp as stamp } from '../time.ts'
 
 // 학생회에 들어오는 초대(ORG-03C).
 //
@@ -22,11 +23,6 @@ export interface InviteSettings {
   now: () => Date
   /** 새 코드를 만든다. 추측할 수 없어야 한다. */
   newCode: () => string
-}
-
-function stamp(at: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${at.getFullYear()}.${pad(at.getMonth() + 1)}.${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
 function draw(row: { code: string; active: boolean; regeneratedAt: Date | null; createdAt: Date }, settings: InviteSettings): Invite {

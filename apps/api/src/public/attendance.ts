@@ -3,6 +3,7 @@ import type { Db } from '../db/client.ts'
 import { attendanceCheckIns, attendanceQrs, events, students } from '../db/schema.ts'
 import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
 import { hashToken, looksLikeToken, newToken } from './tokens.ts'
+import { clock, stamp } from '../time.ts'
 
 // QR로 온 참석자(EXT-01A · EXT-01B).
 //
@@ -40,16 +41,6 @@ async function qrOf(db: Db, token: string) {
   const row = rows[0]
   if (row === undefined) throw new NotFound('그 QR을 찾지 못했습니다')
   return row
-}
-
-function stamp(at: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${at.getFullYear()}. ${pad(at.getMonth() + 1)}. ${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
-}
-
-function clock(at: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
 export interface CheckInForm {

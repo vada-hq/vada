@@ -2,6 +2,7 @@ import { and, eq, ilike, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { departments, events, members } from '../db/schema.ts'
 import { Blocked } from '../routes.ts'
+import { daysBetween, shortStamp, stamp } from '../time.ts'
 
 // 행사(EVT-00A · EVT-02 …)가 읽는 것.
 //
@@ -22,16 +23,6 @@ const STATUS: Record<Status, { label: string; tone: string }> = {
 /** 정해지지 않은 것은 **그 사실을 말로** 준다. 빈 글을 주면 화면이 그 자리에 무엇이든 그린다. */
 function orNote(value: string | null, note: string): string {
   return value === null || value.trim() === '' ? note : value
-}
-
-function stamp(at: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${at.getFullYear()}. ${pad(at.getMonth() + 1)}. ${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
-}
-
-function shortStamp(at: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${pad(at.getMonth() + 1)}.${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
 export interface Now {
@@ -82,7 +73,7 @@ function hostLine(row: Row): string {
 
 /** 마지막으로 손댄 때. **오늘·어제 같은 상대적인 말은 오늘이 언제인지 아는 쪽이 만든다.** */
 function lastModified(at: Date, now: Date): string {
-  const days = Math.floor((startOfDay(now).getTime() - startOfDay(at).getTime()) / 86_400_000)
+  const days = daysBetween(at, now)
   if (days <= 0) return `오늘 ${shortStamp(at).split(' ')[1]} 수정`
   if (days === 1) return '어제 수정'
   return `${days}일 전 수정`
@@ -91,10 +82,6 @@ function lastModified(at: Date, now: Date): string {
 /** 목록의 차례: 이른 행사가 먼저, 일시가 없으면 뒤로. 그림이 그린 차례다. */
 function order(row: Row): string {
   return `${row.startAt === null ? '9' : '0'}${row.startAt?.toISOString() ?? ''}${row.title}`
-}
-
-function startOfDay(at: Date): Date {
-  return new Date(at.getFullYear(), at.getMonth(), at.getDate())
 }
 
 export interface EventListRow {
@@ -208,7 +195,7 @@ export async function eventSummary(
 /** 남은 날. 지났으면 그 사실까지 붙는다. */
 function dday(startAt: Date | null, now: Date): string {
   if (startAt === null) return '일시 미정'
-  const days = Math.floor((startOfDay(startAt).getTime() - startOfDay(now).getTime()) / 86_400_000)
+  const days = daysBetween(now, startAt)
   if (days === 0) return 'D-DAY'
   return days > 0 ? `D-${days}` : `D+${-days}`
 }

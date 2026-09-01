@@ -4,6 +4,7 @@ import { events, students, surveyApplications, surveys } from '../db/schema.ts'
 import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
 import type { Clock, Ids } from './attendance.ts'
 import { hashToken, looksLikeToken, newToken } from './tokens.ts'
+import { moment } from '../time.ts'
 
 // 링크로 온 신청자(EXT-02A · EXT-02B · EXT-02C).
 //
@@ -126,11 +127,6 @@ async function blockOf(db: Db, survey: SurveyRow, now: Date): Promise<LinkState 
     }
   }
   return null
-}
-
-function moment(at: Date): string {
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
 }
 
 export interface ApplyForm {

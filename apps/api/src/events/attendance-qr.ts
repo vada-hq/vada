@@ -3,6 +3,7 @@ import type { Db } from '../db/client.ts'
 import { attendanceQrs, events } from '../db/schema.ts'
 import { NotFound } from '../routes.ts'
 import { hashToken, newToken } from '../public/tokens.ts'
+import { stamp } from '../time.ts'
 
 // 운영진이 보는 참석 확인 QR(EVT-04B).
 //
@@ -19,12 +20,6 @@ export interface Clock {
 
 /** 참가자에게 어떻게 쓰는지 알린다. **완성된 글로 준다** — 화면이 이어 붙이지 않는다. */
 const GUIDE = '참가자는 휴대폰 기본 카메라로 촬영합니다. 로그인이나 앱 설치가 필요 없습니다.'
-
-function stamp(at: Date | null, note: string): string {
-  if (at === null) return note
-  const pad = (value: number) => String(value).padStart(2, '0')
-  return `${at.getFullYear()}. ${pad(at.getMonth() + 1)}. ${pad(at.getDate())} ${pad(at.getHours())}:${pad(at.getMinutes())}`
-}
 
 /**
  * 파일 이름은 **서버가 정한다.**
@@ -79,8 +74,8 @@ export async function attendanceQr(
   const now = time.now()
   return {
     ...status(row, now),
-    startAt: stamp(row.opensAt, '시작 시간 미정'),
-    endAt: stamp(row.closesAt, '종료 시간 미정'),
+    startAt: row.opensAt === null ? '시작 시간 미정' : stamp(row.opensAt),
+    endAt: row.closesAt === null ? '종료 시간 미정' : stamp(row.closesAt),
     guideNote: GUIDE,
     fileName: fileNameOf(row.title),
   }
