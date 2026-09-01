@@ -7,6 +7,11 @@
 #
 # 돌지 않는 검사는 검사가 아니다. 그 상태로 몇 주가 지났다.
 #
+# **`--prefix`를 쓰지 않는다.** `npm ci --prefix apps/api`가 리눅스에서 "Missing:
+# @esbuild/linux-x64@0.28.2 from lock file"로 죽었다 — npm이 어느 자리에서 트리를
+# 맞추는지가 `--prefix`와 `working-directory`에서 달랐다. 그 앱 안에서 도는 것이
+# 사람이 손으로 하는 것과 같고, 같아야 이 검사가 사람의 기계를 흉내 낸다.
+#
 # ## 여기가 브라우저 검사의 유일한 자리다 (2026-08-31)
 #
 # 밀어내기 훅에서 e2e를 뺐다. 훅과 여기가 같은 일을 두 번 하고 있었고, 그 두 번 중
@@ -30,7 +35,8 @@ jobs:
         with:
           node-version: 22
       # 명세 검증은 spec-service의 ajv를 쓴다.
-      - run: npm ci --prefix apps/spec-service
+      - run: npm ci
+        working-directory: apps/spec-service
       - name: 명세 검증
         run: npm run validate
       - name: 계약 검사
@@ -45,9 +51,12 @@ jobs:
         with:
           node-version: 22
       # `npm test`는 앱 셋을 나란히 돌린다. 하나라도 빠지면 그 앱이 통째로 죽는다.
-      - run: npm ci --prefix apps/spec-service
-      - run: npm ci --prefix apps/vada-web
-      - run: npm ci --prefix apps/api
+      - run: npm ci
+        working-directory: apps/spec-service
+      - run: npm ci
+        working-directory: apps/vada-web
+      - run: npm ci
+        working-directory: apps/api
       - name: 화면·계약·서버 검사
         run: npm test
       - name: 빌드
@@ -61,9 +70,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci --prefix apps/vada-web
+      - run: npm ci
+        working-directory: apps/vada-web
       # 서버에 대고 화면을 그리는 검사가 api를 직접 가져다 쓴다(진짜 Postgres).
-      - run: npm ci --prefix apps/api
-      - run: npx --prefix apps/vada-web playwright install --with-deps chromium
+      - run: npm ci
+        working-directory: apps/api
+      - run: npx playwright install --with-deps chromium
+        working-directory: apps/vada-web
       - name: 시나리오 검사
         run: npm run e2e
