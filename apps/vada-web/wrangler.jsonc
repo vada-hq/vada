@@ -8,7 +8,9 @@
 // 서드파티 쿠키도 없다 — 그 고장이 이 배포에서 가장 위험한 자리였다.
 {
   "name": "vada",
-  "compatibility_date": "2026-09-02",
+  // **UTC로 적는다.** 한국이 9월 2일일 때 Cloudflare는 아직 9월 1일이고, 앞선
+  // 날짜는 "미래 날짜는 쓸 수 없다"로 거부된다. 오늘 하루 차이가 아홉 시간이다.
+  "compatibility_date": "2026-09-01",
   "main": "./worker/index.ts",
   "assets": {
     "directory": "./dist/",
