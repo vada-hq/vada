@@ -133,6 +133,23 @@ describe("처리 단계 보드 — 증빙 영역이 완료 영역으로 대체�
   });
 });
 
+// 시연 허브의 마지막 단계가 `증빙`으로 남아 있었다. 제품화에서 뺀 기능을 시연 단계로 노출하면
+// 파일럿 시연에서 없는 제품을 보여주게 된다(docs/VADA_PILOT_DEMO_SCRIPT.md 1장).
+describe("재정 시연 허브 — 마지막 단계가 증빙 스위치를 따른다", () => {
+  it("증빙 대신 완료 확인으로 끝난다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-DEMO"];
+    const { container } = render(<Comp />);
+    expect(container.textContent).toContain("완료 확인");
+    expect(container.textContent).not.toContain("증빙");
+  });
+
+  it("안내 문구가 단계 목록에서 파생돼 서로 어긋나지 않는다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-DEMO"];
+    const { container } = render(<Comp />);
+    expect(container.textContent).toContain("예산 편성→요청 생성→검토→구매→완료 확인");
+  });
+});
+
 // 구매 이유 기록은 pain point 정면인데 요청자 본인이 볼 곳이 없었다(VADA_MVP_SPEC.md 6.1).
 // purpose는 저장돼 있고 FIN-REV-01·FIN-LEDGER-01에서만 보이던 상태였다.
 describe("구매 목적이 요청자에게 보인다", () => {

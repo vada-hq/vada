@@ -2284,13 +2284,13 @@ const SPEC_DATA: Record<string, SpecDef> = {
   },
   "EVT-FIN-DEMO": {
     id: "EVT-FIN-DEMO", name: "재정 시연 — 빈 행사 흐름", stateChip: "시연",
-    purpose: "빈 행사에서 재정부가 요청 생성→검토→구매→증빙을 직접 조작해 실제 사용 흐름을 라이브로 시연하는 진입점. 예시(체육대회)와 분리된 빈 행사 위에서 기존 재정 화면이 그대로 동작한다.",
+    purpose: "빈 행사에서 재정부가 예산 편성→요청 생성→검토→구매→완료 확인을 직접 조작해 실제 사용 흐름을 라이브로 시연하는 진입점. 예시(체육대회)와 분리된 빈 행사 위에서 기존 재정 화면이 그대로 동작한다.",
     users: "검토·시연용 (재정부 시점 진입)",
     entryPath: "좌측 목록 → 운영 — 행사 · 재정(빈 상태·시연) → 재정 시연",
     functions: [
-      { num: "01", element: "흐름 안내", description: "요청 생성→검토→구매→증빙 4단계를 스텝으로 설명한다.", constraint: "정적 안내이며 화면을 이동시키지 않는다" },
+      { num: "01", element: "흐름 안내", description: "예산 편성→요청 생성→검토→구매→완료 확인 5단계를 스텝으로 설명한다. 마지막 단계는 증빙 스위치(EVIDENCE_STAGE_ENABLED)를 따라 증빙 제품화 시 `증빙`으로 바뀐다.", constraint: "정적 안내이며 화면을 이동시키지 않는다. 제품화 제외 기능을 단계로 노출하지 않는다" },
       { num: "02", element: "시연 시작하기", description: "빈 행사(EVT-WELCOME)를 선택하고 재정부 보드(EVT-FIN-01B)로 이동한다. 이후 새 요청은 빈 행사에 쌓여 같은 화면이 단계마다 채워진다." },
-      { num: "03", element: "시연 초기화", description: "빈 행사에 쌓인 구매 요청·증빙 묶음만 제거해 다시 빈 상태로 되돌린다.", constraint: "예시 행사 데이터는 건드리지 않는다" },
+      { num: "03", element: "시연 초기화", description: "빈 행사에 쌓인 구매 요청·증빙 묶음만 제거해 다시 빈 상태로 되돌린다.", constraint: "예시 행사 데이터는 건드리지 않는다. 시연 시작 전에 눌러 앞 참여자의 데이터를 비운다" },
     ],
     exceptions: ["시연 데이터는 로컬 상태이며 새로고침 시 초기화된다", "예시 행사(체육대회) 데이터·흐름을 변경하지 않는다", "요청자↔재정부 사용자 전환은 제공하지 않는다(재정부 단일 시점)"],
     nextScreens: ["EVT-FIN-01B 행사 재정 — 재정부"],
@@ -11824,13 +11824,18 @@ function EVTFINDEMO() {
     setPurchaseRequests(prev => withoutEventData(prev, EMPTY_FINANCE_EVENT_ID));
     setEvidenceBundles(prev => withoutEventData(prev, EMPTY_FINANCE_EVENT_ID));
   };
+  // 마지막 단계는 증빙 스위치를 따른다(EVIDENCE_STAGE_ENABLED). 증빙은 MVP 제품화 제외라
+  // 기본값에서는 `완료 확인`으로 끝난다. 제외한 기능을 제품인 것처럼 시연하면 시연 전체의 신뢰가 깨진다.
   const steps = [
     ["예산 편성", "재정부 보드에서 이 행사의 예산 항목·배정액을 먼저 편성한다."],
     ["요청 생성", "편성한 예산 항목으로 새 구매 요청을 작성·제출한다."],
     ["검토", "제출된 요청을 검토·승인한다."],
     ["구매", "승인 품목을 주문·수령/이행 처리한다."],
-    ["증빙", "실행분을 구매처·영수증 기준 증빙 묶음으로 정산한다."],
+    EVIDENCE_STAGE_ENABLED
+      ? ["증빙", "실행분을 구매처·영수증 기준 증빙 묶음으로 정산한다."]
+      : ["완료 확인", "처리가 끝난 구매를 처리 단계 보드의 `완료` 영역에서 확인한다."],
   ];
+  const flowLabel = steps.map(([title]) => title).join("→");
   return (
     <DesktopShell activeSidebar="운영" breadcrumb={["운영", "행사", "재정 시연"]} title="재정 시연 — 빈 행사에서 실제 흐름">
       <div className="p-6 overflow-auto h-full">
@@ -11839,7 +11844,7 @@ function EVTFINDEMO() {
             <p className="text-sm font-bold text-gray-900">빈 행사에서 재정부 흐름을 직접 조작해 봅니다</p>
             <p className="text-xs text-gray-600 mt-2 leading-5">
               예시(체육대회)는 이미 채워진 참고본입니다. 여기서는 빈 행사에서 시작해
-              요청→검토→구매→증빙을 직접 눌러 데이터가 채워지는 실제 사용 모습을 확인합니다.
+              {flowLabel}을 직접 눌러 데이터가 채워지는 실제 사용 모습을 확인합니다.
             </p>
           </div>
           <ol className="flex flex-col gap-3">
