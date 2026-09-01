@@ -87,3 +87,58 @@ export function daysBetween(from: Date, to: Date): number {
   return Math.round((dayKey(to) - dayKey(from)) / 86_400_000)
 }
 
+/**
+ * `2026-08-20T10:00` — 브라우저의 `datetime-local` 칸이 읽고 쓰는 꼴.
+ *
+ * 다른 꼴들과 달리 **사람에게 보이는 글이 아니라 칸에 들어가는 값**이다. 그래서
+ * 여기만 'T'가 있고 여기만 되돌릴 수 있어야 한다(`momentOf`).
+ */
+export function fieldMoment(when: Date): string {
+  const it = at(when)
+  return `${it.year}-${it.month}-${it.day}T${it.hour}:${it.minute}`
+}
+
+/** 그 시간대가 그 순간에 UTC보다 얼마나 앞서는가(밀리초). */
+function offsetAt(when: Date): number {
+  const it = at(when)
+  const seen = Date.UTC(
+    Number(it.year),
+    Number(it.month) - 1,
+    Number(it.day),
+    Number(it.hour),
+    Number(it.minute),
+  )
+  // `at`은 분까지만 본다. 같은 자리끼리 견주려고 이쪽도 분으로 자른다.
+  return seen - Math.floor(when.getTime() / 60_000) * 60_000
+}
+
+/**
+ * 칸에 적힌 벽시계 글을 **그 순간**으로 되돌린다. 읽지 못하면 null이다.
+ *
+ * **`new Date('2026-08-20T10:00')`을 쓰지 않는다.** 그것은 시간대가 없는 글을
+ * **기계의 시간대**로 읽는다 — UTC에서 도는 서버는 한국 사람이 적은 10시를 19시로
+ * 저장한다. 시각을 글로 만들 때 못 박은 시간대를 되읽을 때도 똑같이 못 박는다.
+ *
+ * 두 번 셈하는 까닭: 첫 셈에 쓴 순간과 답이 서로 다른 시간대 규칙에 들 수 있다
+ * (서머타임이 있는 곳이면). 한국은 지금 그런 규칙이 없지만, 이 함수가 ZONE 하나에만
+ * 매여 있으므로 그 날이 와도 조용히 틀리지 않게 해 둔다.
+ *
+ * 마지막에 되돌려 찍어 견주는 까닭: **없는 날과 없는 시각을 걸러낸다.** `2026-02-31`은
+ * 3월 3일로 굴러가고, 서머타임이 건너뛴 한 시간은 아예 존재하지 않는다 — 둘 다
+ * 조용히 다른 때가 되는 대신 '읽지 못했다'가 되어야 한다.
+ */
+export function momentOf(text: string): Date | null {
+  const found = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})/.exec(text.trim())
+  if (found === null) return null
+  const [, year, month, dayOfMonth, hour, minute] = found as unknown as string[]
+  const wall = Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(dayOfMonth),
+    Number(hour),
+    Number(minute),
+  )
+  let guess = new Date(wall - offsetAt(new Date(wall)))
+  guess = new Date(wall - offsetAt(guess))
+  return fieldMoment(guess) === `${year}-${month}-${dayOfMonth}T${hour}:${minute}` ? guess : null
+}

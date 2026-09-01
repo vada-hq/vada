@@ -312,6 +312,28 @@ export const eventStatus = pgEnum('event_status', [
 ])
 
 /**
+ * 참가비를 어떻게 받는가(EVT-02B).
+ *
+ * **목록은 `specs/figma/vada-wireframe/option-sources.json`의 `event.feeTypes`가 정한다.**
+ * 그림에 고정된 넷이고 학생회가 늘리는 자리가 없다 — 그래서 값이지 표가 아니다.
+ * 여기 다시 적는 까닭은 옮김 파일이 글자 그대로를 필요로 하기 때문이고, 두 벌이
+ * 갈리지 않게 검사가 명세와 견준다(`basics.test.ts`).
+ */
+export const eventFeeType = pgEnum('event_fee_type', [
+  'free',
+  'fixed',
+  'duesConditional',
+  'undecided',
+])
+
+/** 정원을 어떻게 두는가(EVT-02B). `event.capacityTypes`가 정한 셋. */
+export const eventCapacityType = pgEnum('event_capacity_type', [
+  'unlimited',
+  'limited',
+  'undecided',
+])
+
+/**
  * 행사.
  *
  * **행사명 하나로 만들어진다**(EVT-00B). 나머지는 행사 공간에서 나중에 채우므로
@@ -328,14 +350,51 @@ export const events = pgTable(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
     status: eventStatus('status').notNull().default('planning'),
+    // 행사 소개와 목적·주요 내용. 여러 줄이다(EVT-02B가 둘 다 multiline으로 받는다).
+    intro: text('intro'),
+    purpose: text('purpose'),
     startAt: timestamp('start_at', { withTimezone: true }),
+    endAt: timestamp('end_at', { withTimezone: true }),
+    /**
+     * 종료 시간을 **정하지 않기로 했는가.**
+     *
+     * `endAt`이 비어 있는 것과 다른 사실이다 — 비어 있는 것은 '아직 안 적었다'이고
+     * 이것은 '안 정하기로 했다'다. 표 머리가 적어 둔 것과 같은 갈림이고, EVT-02B가
+     * 그 둘을 **다른 칸**으로 받으므로(체크상자) 여기서도 갈라 둔다.
+     */
+    endUnset: boolean('end_unset').notNull().default(false),
     place: text('place'),
+    /** 장소를 정하지 않기로 했는가. `endUnset`과 같은 까닭. */
+    placeUnset: boolean('place_unset').notNull().default(false),
+    address: text('address'),
+    placeDetail: text('place_detail'),
     audience: text('audience'),
     // 참가비는 조건까지 문장이다('납부자 무료 / 미납자 500원') — 값 하나로 쪼갤 수
     // 있는지 그림이 말하지 않으므로 사람이 적은 그대로 둔다.
     fee: text('fee'),
+    /**
+     * 참가비를 **칸으로 쪼갠 것**(EVT-02B). 위의 `fee`와 같은 사실의 다른 모습이다.
+     *
+     * 두 벌이 함께 있는 까닭: `fee`는 사람이 적은 **한 줄**이고 EVT-02와 밖의 신청
+     * 폼이 그것을 읽는다. 여기는 **고칠 칸 하나하나**다. 칸에서 한 줄을 만드는 규칙을
+     * 명세가 끝까지 말하지 않는다 — `duesConditional`은 '납부자 무료 / 미납자 5000원'으로
+     * 잇는다고 적혀 있지만 `fixed`가 어느 금액을 쓰는지는 어디에도 없다. 지어내지 않고
+     * 갈라 둔다. **잇는 일은 그 규칙이 명세에 생기는 날 한 자리에서 한다.**
+     */
+    feeType: eventFeeType('fee_type').notNull().default('undecided'),
+    paidAmount: integer('paid_amount'),
+    unpaidAmount: integer('unpaid_amount'),
+    payGuide: text('pay_guide'),
     capacity: text('capacity'),
+    capacityType: eventCapacityType('capacity_type').notNull().default('undecided'),
+    /**
+     * 정원 **인원 수**. 위의 `capacity`가 사람이 적은 한 줄('200명')이라 따로 둔다 —
+     * 그 줄을 수 칸에 되돌려 줄 수 없다('제한 없음'이라고 적혀 있을 수도 있다).
+     */
+    capacityCount: integer('capacity_count'),
     contact: text('contact'),
+    /** 참가자에게 미리 알릴 것(EVT-02B). 참여 설문 안내에 반영된다고 그림이 적었다. */
+    notice: text('notice'),
     // 맡은 부서와 사람. 둘 다 없을 수 있다(담당 미정).
     //
     // 구성원과 같은 까닭으로 **'이 조직의' 부서와 사람**을 가리킨다.

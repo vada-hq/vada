@@ -36,6 +36,7 @@ import {
   deactivateAttendanceQr,
   regenerateAttendanceQr,
 } from './events/attendance-qr.ts'
+import { eventBasicsDraft, saveEventBasics } from './events/basics.ts'
 import {
   createEvent,
   eventBasics,
@@ -310,6 +311,22 @@ export function createApp(deps: Deps) {
       if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
       return row
     },
+    // ── 기본정보 고치기 (EVT-02B) ──────────────────────────────────────────
+    //
+    // **읽는 자리와 고치는 자리의 권한이 다르다.** 초안은 구성원이면 열리고 저장은
+    // 그 행사를 맡은 사람만 한다 — 계약이 자리마다 적어 두었고 미들웨어가 그대로 건다.
+    'event.basicsDraft': async (c, d) => {
+      const eventId = c.req.param('eventId')!
+      c.set('auditSubject', { type: 'event', id: eventId })
+      return eventBasicsDraft(d.db, orgOf(c), eventId)
+    },
+    'event.saveBasics': async (c, d) => {
+      const eventId = c.req.param('eventId')!
+      c.set('auditSubject', { type: 'event', id: eventId })
+      const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+      return saveEventBasics(d.db, orgOf(c), eventId, draft, d.invite)
+    },
+
     // ── 참석 확인 QR (EVT-04B) ─────────────────────────────────────────────
     //
     // 밖에서 오는 사람 쪽은 이미 지었다. 여기는 그 QR을 **만들고 죽이는** 쪽이다.
