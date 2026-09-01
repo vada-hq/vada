@@ -7,6 +7,12 @@ FROM node:22-slim
 
 WORKDIR /app
 
+# **npm을 못 박는다.** 상자에 딸려 오는 npm(10.9.x)과 잠금 파일을 쓴 npm(11)이
+# 다르면 같은 잠금에서 다른 트리가 나오고, `npm ci`는 그것을 "잠금이 package.json과
+# 어긋난다"고 읽는다 — CI에서 먼저 겪고 고쳤는데 여기를 빠뜨렸다(2026-09-02).
+# 잠금은 npm이 쓴 것이므로 읽는 npm도 같아야 한다.
+RUN npm i -g npm@11
+
 # 의존만 먼저 넣는다. 코드가 바뀌어도 이 층은 다시 받지 않는다.
 COPY apps/api/package.json apps/api/package-lock.json ./apps/api/
 RUN cd apps/api && npm ci --omit=dev
