@@ -22,11 +22,21 @@
 
 | | 무엇 | 까닭 |
 | --- | --- | --- |
-| 웹 | Cloudflare Pages | 대역이 무제한이고 무료다. 정적 파일이라 값이 오르지 않는다 |
+| 웹 | **Cloudflare Workers**(정적 자산) | 대역이 무제한이고 무료다. Pages가 아닌 까닭은 아래 |
 | api | **Render(무료)** | 카드를 요구하지 않는다. 15분 놀면 잠들고 첫 요청이 30~60초 느리다 — 지금은 상관없다 |
 | 저장소 | Neon | Postgres 실물이고 무료 등급이 있다. 잠들었다 깨는 데 몇 백 ms |
 
 동시 규모를 아직 모르므로 **가장 작은 것으로 잡았다.** 셋 다 재장전이 쉽다.
+
+### 웹을 Pages가 아니라 Workers에 올린다 (2026-09-02)
+
+Pages로 잡아 두었는데, 만들려고 보니 Cloudflare가 **새 프로젝트에 Workers를 권한다**.
+Pages도 여전히 돌지만 UI에서 뒤로 물러났고, 정적 파일 제공이 Workers에서 무료가
+되면서 Pages에 남을 값의 이유가 사라졌다.
+
+바꾼 대가는 작다 — Pages Functions의 `functions/api/[[path]].ts`가 `worker/index.ts`
+하나가 되고, `wrangler.jsonc`가 `assets.run_worker_first`로 `/api/*`만 Worker에
+보낸다. SPA 되돌림도 `not_found_handling`이 맡아 `_redirects`가 필요 없다.
 
 ### api를 Fly에서 Render로 바꿨다 (2026-08-31)
 
@@ -56,9 +66,14 @@ Render 무료에는 그 자리가 없다. 그래서 표는 **사람이 한 번 �
 `SameSite=None`으로 풀 수는 있지만 그것은 서드파티 쿠키이고 브라우저가 막는
 중이다(Safari는 이미, Chrome도 줄이는 중). 그래서 길을 둘 두었다.
 
-1. **한 주소로 만든다(권장).** `apps/vada-web/functions/api/[[path]].ts`가
-   `/api/*`를 Fly로 넘긴다. 브라우저가 보기에 api는 웹과 같은 주소이므로 CORS도
-   서드파티 쿠키도 없다. `VITE_API_BASE_URL`을 비워 두면 이 길이다.
+1. **한 주소로 만든다(권장).** `apps/vada-web/worker/index.ts`가 `/api/*`를 api로
+   넘긴다. 브라우저가 보기에 api는 웹과 같은 주소이므로 CORS도 서드파티 쿠키도
+   없다. `VITE_API_BASE_URL`을 비워 두면 이 길이다.
+
+   그 Worker는 **보낸 사람의 주소도 함께 넘긴다**(`cf-connecting-ip` → `x-forwarded-for`).
+   안 넘기면 서버가 보는 주소가 전부 Cloudflare의 것이 되고, 밖에서 열리는 자리의
+   속도 세기가 **행사장 전체를 한 사람으로 센다** — 캠퍼스 NAT을 걱정해 축을 둘로
+   나눠 둔 것이 통째로 무의미해진다.
 2. **나눠 둔다.** `VITE_API_BASE_URL`을 api 주소로 두면 화면이 그리로 직접 부른다.
    서버가 CORS를 열고(`APP_URL`만), 쿠키를 `None`으로 푼다. **Safari에서 안 될 수 있다.**
 
@@ -117,11 +132,15 @@ cd apps/api
 $env:DATABASE_URL="postgresql://..."   # PowerShell
 npm run db:migrate
 
-# 웹 — Cloudflare Pages 설정
-#   루트 디렉터리      apps/vada-web
-#   빌드 명령          npm run build
-#   출력 디렉터리      dist
-#   환경 변수          API_ORIGIN = https://<render 앱>.onrender.com   (프록시가 읽는다)
+# 웹 — Cloudflare Workers 설정
+#   Path(작업 디렉터리)  apps/vada-web
+#   빌드 명령            npx vite build      ← `npm run build`가 아니다(아래)
+#   배포 명령            npx wrangler deploy
+#   환경 변수            API_ORIGIN = https://<render 앱>.onrender.com
+#
+# **`npm run build`를 쓰지 않는다.** 그것은 `tsc -b`를 먼저 도는데, 그 프로그램에
+# `apps/api`를 가져다 쓰는 검사 파일이 들어 있다. Cloudflare는 `apps/vada-web`만
+# 설치하므로 거기서 깨진다. 타입 검사는 CI의 `screens` 작업이 이미 한다.
 
 # 나중에 Fly로 옮길 때 — 코드는 그대로다
 fly deploy --config apps/api/fly.toml --dockerfile apps/api/Dockerfile .
