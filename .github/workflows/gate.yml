@@ -1,15 +1,17 @@
-# 게이트 넷을 원격에서 돌린다.
+# 게이트를 원격에서 돈다.
 #
-# **이 파일은 지금 한 번도 돌지 않는다.** 이 저장소에 git 원격이 없기 때문이다
-# (2026-08-27 기준). 그런데도 지금 두는 이유가 있다: 원격이 생기는 날 첫 push부터
-# 돌아야 하고, 그때 가서 만들면 이미 깨진 것을 밀어낸 뒤다.
+# **이 파일은 오랫동안 한 번도 돌지 않았다.** 저장소에 git 원격이 없었기 때문이다
+# (2026-08-27에 그렇게 적어 두었다). 그리고 2026-08-31에 원격이 생겨 처음 돌기 직전에
+# 보니 **틀려 있었다** — `apps/vada-web`만 설치하는데 게이트는 앱 셋을 전부 돌린다.
+# `validate`는 spec-service의 ajv가, `test`는 api의 PGlite·Drizzle이 필요하다.
 #
-# 로컬은 층이 둘이다(.githooks). 커밋마다 계약만(5초), 밀어내기 전에 전부.
-# 여기는 그 마지막 층을 남의 기계에서 한 번 더 확인하는 자리다 — 내 기계에만 있는
-# 것(캐시·전역 설정·다운로드해 둔 브라우저) 때문에 통과하는 것을 잡는다.
+# 돌지 않는 검사는 검사가 아니다. 그 상태로 몇 주가 지났다.
 #
-# 화면이 85개가 되면 이 작업이 10분을 넘긴다(감사 A의 계산: e2e만 12분). 그때는
-# e2e를 샤딩으로 쪼갠다 — Playwright가 공식으로 지원한다.
+# ## 여기가 브라우저 검사의 유일한 자리다 (2026-08-31)
+#
+# 밀어내기 훅에서 e2e를 뺐다. 훅과 여기가 같은 일을 두 번 하고 있었고, 그 두 번 중
+# 느린 쪽이 남은 메모리 0.4GB인 사람의 기계였다(5.4분). 이제 브라우저는 여기서만
+# 돈다 — **이 파일이 깨지면 아무도 e2e를 돌리지 않는다.**
 
 name: gate
 
@@ -27,7 +29,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm ci --prefix apps/vada-web
+      # 명세 검증은 spec-service의 ajv를 쓴다.
+      - run: npm ci --prefix apps/spec-service
       - name: 명세 검증
         run: npm run validate
       - name: 계약 검사
@@ -41,8 +44,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # `npm test`는 앱 셋을 나란히 돌린다. 하나라도 빠지면 그 앱이 통째로 죽는다.
+      - run: npm ci --prefix apps/spec-service
       - run: npm ci --prefix apps/vada-web
-      - name: 화면 검사 (준수·design 대조)
+      - run: npm ci --prefix apps/api
+      - name: 화면·계약·서버 검사
         run: npm test
       - name: 빌드
         run: npm run build
@@ -56,6 +62,8 @@ jobs:
         with:
           node-version: 22
       - run: npm ci --prefix apps/vada-web
+      # 서버에 대고 화면을 그리는 검사가 api를 직접 가져다 쓴다(진짜 Postgres).
+      - run: npm ci --prefix apps/api
       - run: npx --prefix apps/vada-web playwright install --with-deps chromium
       - name: 시나리오 검사
         run: npm run e2e
