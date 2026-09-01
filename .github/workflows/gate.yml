@@ -34,6 +34,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # **npm도 못 박는다.** 러너에 딸려 오는 npm과 사람의 npm이 다르면 같은 잠금
+      # 파일에서 다른 트리가 나오고, `npm ci`는 그것을 "잠금이 package.json과 어긋난다"고
+      # 읽는다 — `esbuild@0.28.2`이 잠금에 있는데도 없다고 했다. 잠금은 npm이 쓴 것이므로
+      # 읽는 npm도 같아야 한다.
+      - run: npm i -g npm@11
       # 명세 검증은 spec-service의 ajv를 쓴다.
       - run: npm ci
         working-directory: apps/spec-service
@@ -50,6 +55,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # **npm도 못 박는다.** 러너에 딸려 오는 npm과 사람의 npm이 다르면 같은 잠금
+      # 파일에서 다른 트리가 나오고, `npm ci`는 그것을 "잠금이 package.json과 어긋난다"고
+      # 읽는다 — `esbuild@0.28.2`이 잠금에 있는데도 없다고 했다. 잠금은 npm이 쓴 것이므로
+      # 읽는 npm도 같아야 한다.
+      - run: npm i -g npm@11
       # `npm test`는 앱 셋을 나란히 돌린다. 하나라도 빠지면 그 앱이 통째로 죽는다.
       - run: npm ci
         working-directory: apps/spec-service
@@ -70,6 +80,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # **npm도 못 박는다.** 러너에 딸려 오는 npm과 사람의 npm이 다르면 같은 잠금
+      # 파일에서 다른 트리가 나오고, `npm ci`는 그것을 "잠금이 package.json과 어긋난다"고
+      # 읽는다 — `esbuild@0.28.2`이 잠금에 있는데도 없다고 했다. 잠금은 npm이 쓴 것이므로
+      # 읽는 npm도 같아야 한다.
+      - run: npm i -g npm@11
       - run: npm ci
         working-directory: apps/vada-web
       # 서버에 대고 화면을 그리는 검사가 api를 직접 가져다 쓴다(진짜 Postgres).
