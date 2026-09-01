@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import React from "react";
-import { SCREEN_COMPONENTS, AppContext } from "./App";
+import { SCREEN_COMPONENTS, AppContext, EVIDENCE_STAGE_ENABLED } from "./App";
 
 afterEach(cleanup);
 
@@ -130,6 +130,128 @@ describe("처리 단계 보드 — 증빙 영역이 완료 영역으로 대체�
     expect(done, "완료 영역 탭이 있어야 함").toBeTruthy();
     fireEvent.click(done!);
     expect(container.textContent).toContain("정산 완료");
+  });
+});
+
+// 처리 단계는 `정산 완료`라고 하는데 예산은 같은 품목을 `승인·집행 예정액`으로 잡던 모순이 있었다.
+// 종결 판정 축이 증빙(EVIDENCE_STAGE_ENABLED=false에서는 아무도 만들 수 없는 상태)에 묶여 있어서,
+// 실제 지출액이 영원히 늘지 않고 집행 예정액이 영원히 줄지 않았다. 사용 가능액만 우연히 맞아 눈에 띄지 않았다.
+describe("금액 확인 — 실지출 확정이 예산 실제 지출액으로 이어진다", () => {
+  // 표본 REQ-004 배너 거치대: 수령 완료, 승인액 4개 × 20,000원 = 80,000원, 예산 항목 `행사 운영비`.
+  const SETTLE_LABEL = "승인액과 동일 · 80,000원";
+
+  // 기본 컨텍스트의 setter는 no-op이라 상태 전이를 볼 수 없다. 실제 useState를 물려 구매 요청을 살아 있게 한다.
+  const Harness = ({ children }: { children: React.ReactNode }) => {
+    const base = React.useContext(AppContext);
+    const [purchaseRequests, setPurchaseRequests] = React.useState(base.purchaseRequests);
+    return <AppContext.Provider value={{ ...base, purchaseRequests, setPurchaseRequests }}>{children}</AppContext.Provider>;
+  };
+
+  const openCompletionArea = () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"];
+    const view = render(<Harness><Comp /></Harness>);
+    const step = Array.from(view.container.querySelectorAll("button"))
+      .find(b => (b.textContent ?? "").trim() === "처리 단계");
+    fireEvent.click(step!);
+    const done = Array.from(view.container.querySelectorAll("button"))
+      .find(b => (b.textContent ?? "").replace(/\d+$/, "").trim() === "완료");
+    fireEvent.click(done!);
+    return view;
+  };
+
+  it("완료 영역이 금액 확인과 정산 완료 두 열로 나뉜다", () => {
+    const { container } = openCompletionArea();
+    expect(container.textContent).toContain("금액 확인");
+    expect(container.textContent).toContain("정산 완료");
+  });
+
+  it("수령 완료 카드는 금액 확인 열에서 대기한다 — 금액 없이 종결시키지 않는다", () => {
+    openCompletionArea();
+    expect(screen.queryByText("배너 거치대"), "수령 완료 실행분이 완료 영역에 있어야 함").not.toBeNull();
+  });
+
+  it("승인액과 동일로 확정하면 실제 지출액이 늘고 승인·집행 예정액이 그만큼 준다", () => {
+    const { container } = openCompletionArea();
+    // 확정 전: 실지출 950,000원(편성 시점 보정치), 집행 예정 868,000원(승인액 예약, REQ-004 80,000원 포함)
+    expect(container.textContent).toContain("950,000");
+    expect(container.textContent).toContain("868,000");
+
+    fireEvent.click(screen.getByText("배너 거치대"));
+    const settle = screen.getByText(SETTLE_LABEL);
+    fireEvent.click(settle);
+
+    // 확정 후: 예약에서 실지출로 80,000원 전환
+    expect(container.textContent, "실제 지출액이 80,000원 늘어야 함").toContain("1,030,000");
+    expect(container.textContent, "집행 예정액이 80,000원 줄어야 함").toContain("788,000");
+  });
+
+  it("확정한 카드는 정산 완료 열로 옮겨간다", () => {
+    const { container } = openCompletionArea();
+    fireEvent.click(screen.getByText("배너 거치대"));
+    fireEvent.click(screen.getByText(SETTLE_LABEL));
+    // 금액 확인 열은 비고, 카드는 보드에 남는다(사라지지 않는다).
+    expect(screen.queryByText("배너 거치대"), "종결 카드가 보드에서 사라지면 안 됨").not.toBeNull();
+    expect(container.textContent).not.toContain(SETTLE_LABEL);
+  });
+});
+
+// 증빙을 제품화에서 뺐는데 기록 탭과 상단 액션 바에는 증빙 진입점이 그대로 남아 있었다.
+describe("증빙 진입점이 스위치를 따른다", () => {
+  it("기록 그룹에 증빙 묶음 탭이 없다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"];
+    const { container } = render(<Comp />);
+    const names = Array.from(container.querySelectorAll("button")).map(b => (b.textContent ?? "").trim());
+    expect(names.some(n => n.startsWith("승인 묶음")), "승인 묶음 탭은 남아 있어야 함").toBe(true);
+    expect(names.some(n => n.startsWith("증빙 묶음"))).toBe(false);
+  });
+
+  it("상단 액션 바에 증빙 정리 버튼이 없다", () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"];
+    const { container } = render(<Comp />);
+    const names = Array.from(container.querySelectorAll("button")).map(b => (b.textContent ?? "").trim());
+    expect(names).not.toContain("증빙 정리");
+  });
+});
+
+// 증빙을 제품화에서 뺐는데 MVP 화면 곳곳에 진입점·열·문구가 남아 있었다.
+// `FIN-PROC-01`은 주 액션 버튼이 `증빙 정리로 이동`이라, 칸반에서 상세보기로 온 카드의
+// 종결 경로가 제품화하지 않는 화면을 가리키고 있었다.
+describe.skipIf(EVIDENCE_STAGE_ENABLED)("MVP 재정 화면에 증빙 문구가 남지 않는다", () => {
+  // FIN-REV-01은 제외한다 — 집행 유형 17종 판정 UI가 증빙 요건을 설명하는데,
+  // 그것은 증빙과 별개 축의 보류 자산이라 별도 작업으로 다룬다(FINANCE_DEFERRED ③).
+  const MVP_FINANCE_SCREENS = [
+    "EVT-FIN-01", "EVT-FIN-01B", "EVT-FIN-01C", "EVT-FIN-01C-B",
+    "MY-REQ-01", "FIN-REQ-01B", "FIN-REQ-01C", "FIN-REQ-02",
+    "FIN-SUP-01B", "FIN-PROC-01", "FIN-00", "FIN-LEDGER-01",
+  ];
+  for (const id of MVP_FINANCE_SCREENS) {
+    it(`${id} 첫 화면에 '증빙'이 없다`, () => {
+      const Comp = SCREEN_COMPONENTS[id];
+      const { container } = render(<Comp />);
+      expect(container.textContent, `${id}에 증빙 문구가 남아 있음`).not.toContain("증빙");
+    });
+  }
+});
+
+// 칸반 팝오버에는 금액 확정이 있는데 그 상세 뷰인 FIN-PROC-01에는 없어서,
+// 상세보기로 넘어온 카드를 종결시킬 방법이 화면 안에 없었다.
+describe.skipIf(EVIDENCE_STAGE_ENABLED)("FIN-PROC-01도 실지출 금액을 확정할 수 있다", () => {
+  const Harness = ({ children }: { children: React.ReactNode }) => {
+    const base = React.useContext(AppContext);
+    const [purchaseRequests, setPurchaseRequests] = React.useState(base.purchaseRequests);
+    return <AppContext.Provider value={{ ...base, purchaseRequests, setPurchaseRequests, selectedPurchaseRequestId: "REQ-004" }}>{children}</AppContext.Provider>;
+  };
+
+  it("금액 확인 실행분에 확정 액션이 있고, 확정하면 실지출 금액이 표에 찍힌다", () => {
+    const Comp = SCREEN_COMPONENTS["FIN-PROC-01"];
+    const { container } = render(<Harness><Comp /></Harness>);
+    expect(container.textContent, "실지출 열이 있어야 함").toContain("실지출");
+    expect(container.textContent, "확정 전에는 미확정").toContain("미확정");
+
+    fireEvent.click(screen.getByText("승인액과 동일 · 80,000원"));
+
+    expect(container.textContent).toContain("80,000원");
+    expect(container.textContent, "확정 후에는 미확정이 사라져야 함").not.toContain("미확정");
   });
 });
 

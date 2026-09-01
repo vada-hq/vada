@@ -3,6 +3,7 @@ import {
   getGeneralPurchaseProgress,
   getGeneralProgressForExecution,
   getFinanceStageForExecution,
+  getRequestListStatus,
   withoutEventData,
   budgetLineOverages,
   EVIDENCE_STAGE_ENABLED,
@@ -100,16 +101,28 @@ describe("budgetLineOverages — 예산 항목별 승인액이 항목 사용 가
 
 // MVP 제품화 범위에서 증빙 단계를 제외했다(VADA_MVP_SPEC.md 6.1, 2026-08-19).
 // 증빙을 다시 켜면(EVIDENCE_STAGE_ENABLED = true) 이 describe는 통째로 건너뛴다.
-describe.skipIf(EVIDENCE_STAGE_ENABLED)("증빙 제외 — 수령·이행 완료가 곧 종결이다", () => {
-  it("수령 완료 → 정산 완료 (증빙 필요로 가지 않는다)", () => {
-    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료" }), [])).toBe("정산 완료");
+describe.skipIf(EVIDENCE_STAGE_ENABLED)("증빙 제외 — 수령·이행 완료 다음은 금액 확인이고, 금액이 확정돼야 종결이다", () => {
+  it("수령 완료 → 금액 확인 (증빙 필요로 가지 않는다)", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료" }), [])).toBe("금액 확인");
   });
-  it("이행 완료 → 정산 완료", () => {
-    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "해당 없음", serviceStatus: "이행 완료" }), [])).toBe("정산 완료");
+  it("이행 완료 → 금액 확인", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "해당 없음", serviceStatus: "이행 완료" }), [])).toBe("금액 확인");
   });
-  it("증빙 상태가 이미 붙은 실행분도 종결로 본다 — 어느 영역에도 안 잡혀 사라지는 것을 막는다", () => {
-    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", evidenceStatus: "증빙 필요" }), [])).toBe("정산 완료");
-    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", evidenceStatus: "증빙 정리 중" }), [])).toBe("정산 완료");
+  it("실지출 금액을 확정하면 정산 완료로 종결한다", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", actualAmount: 80000 }), [])).toBe("정산 완료");
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "해당 없음", serviceStatus: "이행 완료", actualAmount: 105600 }), [])).toBe("정산 완료");
+  });
+  it("0원도 확정으로 본다 — 무상·전액 할인 실행분이 금액 확인에 영원히 남지 않게 한다", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", actualAmount: 0 }), [])).toBe("정산 완료");
+  });
+  it("증빙 상태가 이미 붙은 실행분도 같은 규칙을 탄다 — 어느 영역에도 안 잡혀 사라지는 것을 막는다", () => {
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", evidenceStatus: "증빙 필요" }), [])).toBe("금액 확인");
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", evidenceStatus: "증빙 정리 중" }), [])).toBe("금액 확인");
+    expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", evidenceStatus: "증빙 필요", actualAmount: 80000 }), [])).toBe("정산 완료");
+  });
+  it("요청자에게는 금액 확인이 보이지 않고, 금액이 확정되면 처리 완료가 된다", () => {
+    expect(getGeneralProgressForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료" }))).toBe("수령 완료");
+    expect(getGeneralProgressForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 완료", actualAmount: 80000 }))).toBe("처리 완료");
   });
   it("수령 확인 필요는 아직 종결이 아니다", () => {
     expect(getFinanceStageForExecution(exe({ orderStatus: "주문 완료", receiptStatus: "수령 확인 필요" }), [])).toBe("수령 확인 필요");
@@ -127,5 +140,36 @@ describe.skipIf(EVIDENCE_STAGE_ENABLED)("증빙 제외 — 수령·이행 완료
   it("취소 실행분은 환불 확정 후 증빙을 거치지 않고 재주문 판단으로 간다", () => {
     const ex = exe({ id: "1-EX1", orderStatus: "주문 취소", paid: true, refundResult: "전액 환불", evidenceStatus: "증빙 필요" });
     expect(getFinanceStageForExecution(ex, [ex])).toBe("재주문 판단");
+  });
+});
+
+// `내 구매 요청` 목록이 요청 상태만 보고 있어 승인 이후의 진행이 전부 `승인 완료`로 뭉쳤다.
+// 이미 수령한 요청이 승인 단계로 보이면 요청자가 "내 요청 어떻게 됐지"에 답을 얻지 못한다(MVP 가설 3).
+describe("요청 목록 대표 상태 — 실행분 진행에서 계산한다", () => {
+  const withExec = (over: any = {}) => req({
+    status: "승인",
+    items: [item({ id: 1, status: "승인", executions: [exe({ ...over })] })],
+  });
+
+  it("승인만 되고 주문 전이면 승인 완료", () => {
+    expect(getRequestListStatus(withExec({ orderStatus: "주문 대기" }))).toBe("승인 완료");
+  });
+  it("주문 이후는 구매 진행", () => {
+    expect(getRequestListStatus(withExec({ orderStatus: "주문 완료", receiptStatus: "배송 중" }))).toBe("구매 진행");
+  });
+  it("수령 완료도 구매 진행 — 승인 완료로 되돌아가지 않는다", () => {
+    expect(getRequestListStatus(withExec({ orderStatus: "주문 완료", receiptStatus: "수령 완료" }))).toBe("구매 진행");
+  });
+  it("실지출 금액이 확정되면 처리 완료", () => {
+    expect(getRequestListStatus(withExec({ orderStatus: "주문 완료", receiptStatus: "수령 완료", actualAmount: 80000 }))).toBe("처리 완료");
+  });
+  it("검토 전·보완·종결은 요청 상태를 그대로 따른다", () => {
+    expect(getRequestListStatus(req({ status: "검토 대기", items: [] }))).toBe("검토 대기");
+    expect(getRequestListStatus(req({ status: "보완 요청", items: [] }))).toBe("보완 필요");
+    expect(getRequestListStatus(req({ status: "반려", items: [] }))).toBe("반려");
+    expect(getRequestListStatus(req({ status: "요청 취소", items: [] }))).toBe("요청 취소");
+  });
+  it("승인된 품목이 아직 없으면 검토 대기", () => {
+    expect(getRequestListStatus(req({ status: "승인", items: [item({ status: "검토 대기" })] }))).toBe("검토 대기");
   });
 });
