@@ -21,5 +21,13 @@
     // 이 자리만 Worker가 먼저 받는다. 나머지는 Worker를 거치지도 않는다.
     "run_worker_first": ["/api/*"]
   },
+  // **api가 어디 있는지는 비밀이 아니다.** 누구나 여는 주소이므로 저장소에 둔다 —
+  // 그러면 배포가 스스로를 설명하고, 대시보드에만 적어 두었다가 다음 배포에서
+  // 지워지는 일도 없다(`wrangler deploy`는 설정 파일이 든 것으로 맞춘다).
+  //
+  // 비밀은 여기 두지 않는다. 그런 것이 생기면 `wrangler secret`으로 넣는다.
+  "vars": {
+    "API_ORIGIN": "https://vada-api-amd7.onrender.com"
+  },
   "observability": { "enabled": true }
 }
