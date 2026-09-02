@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { FIRST_SCREEN, SIGN_IN } from './routes'
+import { navigationsOf } from './outside-spec'
+import { SIGN_IN } from './routes'
 import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
 import { apiBaseUrl } from '../data-sources/server'
@@ -41,7 +42,10 @@ function callbackUrl(): string {
   const here = new URL(window.location.href)
   const screenId = here.hash.replace(/^#\/?/, '').split('?')[0]
   if (screenId !== SIGN_IN) return here.href
-  here.hash = `#/${FIRST_SCREEN}`
+  // **어디로 갈지는 이 화면이 정하지 않는다.** 명세 있는 화면이 `action.targetScreenId`를
+  // 읽듯, 명세 밖인 이 화면은 `outside-spec.ts`에 적힌 것을 읽는다. 코드와 검사가 같은
+  // 곳에서 나와야 둘이 조용히 갈라지지 않는다.
+  here.hash = `#/${navigationsOf(SIGN_IN)[0]!.to}`
   return here.href
 }
 

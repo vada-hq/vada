@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { navigationsOf } from './outside-spec'
+import { SIGN_IN } from './routes'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SignInScreen } from './SignInScreen'
@@ -93,14 +95,21 @@ describe('들어오는 자리', () => {
     return JSON.parse(String((call[1] as RequestInit).body)).callbackURL as string
   }
 
-  it('로그인 화면에서 왔으면 첫 화면으로 돌려보낸다', async () => {
-    expect(await callbackFor('http://localhost/#/SIGN-IN')).toBe('http://localhost/#/ONB-01')
+  // **가는 곳을 여기서 정하지 않는다.** 명세 있는 화면이 `action.targetScreenId`를
+  // 읽듯, 이 화면은 명세 밖 목록에 적힌 것을 읽는다 — 검사가 사람의 기억에서 나오면
+  // 기억이 틀린 날 조용히 통과한다. 실제로 그랬다.
+  const goesTo = navigationsOf(SIGN_IN)[0]!
+
+  it(`${goesTo.when} ${goesTo.to}으로 보낸다`, async () => {
+    expect(await callbackFor('http://localhost/#/SIGN-IN')).toBe(
+      `http://localhost/#/${goesTo.to}`,
+    )
   })
 
   // 인자를 달고 온 것도 로그인 화면이다. 앞에 붙은 것만 보면 놓친다.
-  it('인자가 붙어 있어도 로그인 화면이면 첫 화면으로 보낸다', async () => {
+  it('인자가 붙어 있어도 로그인 화면이면 그리로 보낸다', async () => {
     expect(await callbackFor('http://localhost/#/SIGN-IN?from=x')).toBe(
-      'http://localhost/#/ONB-01',
+      `http://localhost/#/${goesTo.to}`,
     )
   })
 
