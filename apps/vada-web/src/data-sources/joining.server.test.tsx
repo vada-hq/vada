@@ -8,6 +8,7 @@ import { users } from '../../../api/src/db/schema.ts'
 import { viewerLookup } from '../../../api/src/auth/viewer.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { fetchOptions } from '../option-sources/catalog'
+import { runMutation } from '../spec/mutations'
 import { useServer } from './server'
 
 // **학생회에 들어오는 길을 끝까지 뚫는다.**
@@ -77,7 +78,12 @@ beforeAll(async () => {
 
   // **학교 목록도 로그인이 필요하다**(`signedIn`). 부르는 사람을 먼저 정한다.
   signedInAs = CHAIR
-  restore = useServer({ baseUrl: 'http://server', fetch: async (input) => request(String(input)) })
+  // **인자를 그대로 넘긴다.** 한동안 주소만 넘겼는데, 그러면 쓰기가 전부 GET이 되어
+  // '그 자리는 명세에 없다'로 막힌다 — 검사 쪽 그물이 성기면 진짜 결함이 안 보인다.
+  restore = useServer({
+    baseUrl: 'http://server',
+    fetch: async (input, init) => request(String(input), init),
+  })
 }, 60_000)
 
 afterAll(async () => {
@@ -118,14 +124,14 @@ describe('학교의 편제가 저장소에서 온다', () => {
 describe('만든 학생회를 다른 사람이 초대로 본다', () => {
   let code: string
 
-  it('회장이 학생회를 만든다', async () => {
+  // **화면이 쓰는 그 길로 만든다.** 오랫동안 `runMutation`이 아무 데도 안 보내고
+  // 무조건 성공을 돌려줬다 — '조직 만들기'를 누르면 학생회가 안 생겼는데 다음 화면으로
+  // 넘어갔고, 그다음 화면이 403 벽을 만나서야 드러났다. 배포하고 사람이 눌러 본 뒤였다.
+  it('화면이 누르는 길로 학생회가 만들어진다', async () => {
     signedInAs = CHAIR
-    const created = await request('/api/orgs', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'Idempotency-Key': 'KEY-01' },
-      body: JSON.stringify(DRAFT),
-    })
-    expect(created.status).toBe(200)
+    const answer = await runMutation('org.create', DRAFT)
+    // 계약이 '돌려주는 값이 없다'고 적었다. 빈 것이 정상이고, 던지지 않은 것이 성공이다.
+    expect(answer).toEqual({})
 
     // **만든 사람에게 소속이 생겼다.** 다음 줄이 회장 권한을 요구하므로, 여기가
     // 통과하는 것 자체가 '만드는 사람이 첫 구성원(회장)'이 지켜졌다는 증거다.
@@ -163,6 +169,15 @@ describe('만든 학생회를 다른 사람이 초대로 본다', () => {
     expect(drawn).toContain('한양대학교 ERICA · 소프트웨어융합대학')
     expect(drawn).toContain('단과대 학생회')
     expect(drawn).toContain('2026년')
+  })
+
+  // **만든 사람이 곧바로 집을 연다.** 조직 만들기가 끝나면 HOME-01K로 가는데,
+  // 그 화면이 읽는 셸 둘이 여기서 답해야 한다. 한동안 여기가 403이었다 — 학생회가
+  // 만들어지지 않았기 때문인데, 화면은 다음으로 넘어갔다.
+  it('만든 사람이 곧바로 셸을 읽는다', async () => {
+    signedInAs = CHAIR
+    expect((await request('/api/shell/organization')).status).toBe(200)
+    expect((await request('/api/shell/viewer')).status).toBe(200)
   })
 
   it('없는 코드면 카탈로그의 글을 그린다', async () => {

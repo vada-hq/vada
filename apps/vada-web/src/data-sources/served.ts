@@ -1,5 +1,6 @@
 import { findDataSource } from './catalog'
 import { getOptionSource } from '../option-sources/catalog'
+import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json'
 
 /**
  * **진짜 서버에서 오는 출처.**
@@ -80,4 +81,38 @@ export function unknownServedKeys(): string[] {
       }
     }
   })
+}
+
+/**
+ * **진짜 서버로 보내는 변이(쓰기).**
+ *
+ * 오랫동안 쓰기가 통째로 가짜였다 — `runMutation`이 아무 데도 안 보내고 무조건
+ * 성공을 돌려줬다. 그래서 **'조직 만들기'를 누르면 학생회가 안 생겼는데 다음
+ * 화면으로 넘어갔다.** 배포된 앱에서 사람이 눌러 보고 나서야 드러났다.
+ *
+ * 위의 `SERVED`는 읽기만 셌다. 그래서 "출처 아홉이 진짜"라는 수가 **절반만 참**이었고,
+ * 그 절반이 보이지 않았다. 세는 자리가 없으면 없는 것도 없어 보인다.
+ *
+ * 목록에 없는 변이는 개발용 대역이 성공으로 처리한다 — 그것이 조용한 대체가 아닌
+ * 까닭은 어느 것이 진짜인지 여기 적혀 있기 때문이다.
+ */
+export const SERVED_MUTATIONS: readonly string[] = [
+  // **들어오기 흐름의 쓰기 둘.** 학생회를 만드는 것과, 초대 코드가 맞는지 묻는 것.
+  'org.create',
+  'organization.verifyInviteCode',
+]
+
+const servedMutations = new Set(SERVED_MUTATIONS)
+
+/** 이 변이는 진짜 서버로 가는가. */
+export function isServedMutation(key: string): boolean {
+  return servedMutations.has(key)
+}
+
+/** 목록에 적힌 이름이 실제로 있는 변이인가. 오타는 영영 가짜로 남고 그것은 조용하다. */
+export function unknownServedMutations(): string[] {
+  const known = new Set(
+    (mutationsJson as { mutations: Array<{ key: string }> }).mutations.map((one) => one.key),
+  )
+  return SERVED_MUTATIONS.filter((key) => !known.has(key))
 }

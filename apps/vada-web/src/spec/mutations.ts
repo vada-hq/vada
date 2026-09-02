@@ -3,6 +3,8 @@ import type { DataRow } from '../data-sources/catalog'
 // 계약(경로·payload 스코프·상태 문구)은 카탈로그를 단일 원본으로 읽고,
 // 네트워크만 개발용 mock으로 대체한다(로딩 상태 확인용 인위 지연 포함).
 import catalogJson from '../../../../specs/figma/vada-wireframe/mutations.json'
+import { currentServer, urlOf } from '../data-sources/server'
+import { isServedMutation } from '../data-sources/served'
 
 export interface Mutation {
   key: string
@@ -11,6 +13,8 @@ export interface Mutation {
   /** 자리가 실어 가는 인자. 무엇의 것인지를 이것이 말한다. */
   params: Array<{ key: string; required: boolean; valueType: string; description: string }>
   payloadScope: string
+  /** 두 번 보내면 어떻게 되는가. 계약이 정한다 — 화면이 짐작하지 않는다. */
+  repeat?: { kind: string; why: string }
   messages: { submitting: string; error: string }
 }
 
@@ -82,8 +86,55 @@ export async function runMutation(
     }
   }
 
+  // **목록에 오른 것은 진짜로 보낸다.** 어느 것이 진짜인지는 `served.ts`가 든다.
+  if (isServedMutation(key) && currentServer() !== null) {
+    return sendMutation(mutation, payload, params)
+  }
+
   await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
-  // 개발 mock: 실제 전송 없이 성공으로 처리한다. 백엔드 연동 시 여기만 바꾼다.
+  // 개발 대역: 실제 전송 없이 성공으로 처리한다. 무엇이 진짜로 나가는지는 SERVED_MUTATIONS가 든다.
   void payload
   return MUTATION_RESULTS[key] ?? {}
+}
+
+/**
+ * 계약이 되풀이를 막으라 한 자리에 다는 열쇠.
+ *
+ * **부를 때마다 새것이다.** 같은 값을 다시 쓰면 서버가 '아까 그 요청'으로 보고 아무
+ * 일도 안 한다 — 사람이 학생회를 둘째로 만들려 할 때 조용히 안 만들어진다. 다시
+ * 보내기(재시도)는 아직 없으므로 한 번 누름이 곧 한 번 보냄이다.
+ */
+function newIdempotencyKey(): string {
+  return crypto.randomUUID()
+}
+
+/**
+ * 서버로 보낸다.
+ *
+ * **실패하면 던진다.** 개발용 대역으로 슬쩍 돌아가면 아무 일도 안 일어났는데 다음
+ * 화면으로 넘어간다 — 실제로 그랬다. 부르는 쪽(`useSubmitAction`)이 이 오류를 받아
+ * 카탈로그의 글을 그리고 **이동하지 않는다.**
+ */
+async function sendMutation(
+  mutation: Mutation,
+  payload: unknown,
+  params: Record<string, string>,
+): Promise<DataRow> {
+  const at = currentServer()!
+  const headers: Record<string, string> = { 'content-type': 'application/json' }
+  // 계약이 되풀이를 어떻게 다루는지 적어 두었다. 키를 요구하는 자리에 안 달면 422다.
+  if (mutation.repeat?.kind === 'idempotencyKey') {
+    headers['Idempotency-Key'] = newIdempotencyKey()
+  }
+  const res = await at.fetch(`${at.baseUrl ?? ''}${urlOf(mutation.request.path, params)}`, {
+    method: mutation.request.method,
+    headers,
+    body: JSON.stringify(payload ?? {}),
+  })
+  if (!res.ok) {
+    throw new Error(`제출 '${mutation.key}'가 실패했습니다(${res.status}).`)
+  }
+  // 답이 없는 자리도 있다(계약이 '돌려주는 값이 없다'고 적은 것).
+  const text = await res.text()
+  return text === '' ? {} : (JSON.parse(text) as DataRow)
 }
