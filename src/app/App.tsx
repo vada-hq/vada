@@ -15529,31 +15529,33 @@ function MYREQ01() {
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 font-medium">
-                <th className="px-5 py-3">요청 번호</th>
-                <th className="px-5 py-3">요청 제목</th>
-                <th className="px-5 py-3 text-right">요청액</th>
-                <th className="px-5 py-3 text-center">품목 수</th>
-                <th className="px-5 py-3">요청일</th>
-                <th className="px-5 py-3">필요한 날짜</th>
-                <th className="px-5 py-3">상태</th>
+                {/* 요청 제목만 남는 폭을 쓰고(w-full) 나머지 열은 내용 길이대로 한 줄에 둔다.
+                    nowrap이 없으면 좁은 폭에서 `REQ-001`·`135,000원`·`2026-03-01`이 단어 중간에서 잘린다. */}
+                <th className="px-5 py-3 whitespace-nowrap">요청 번호</th>
+                <th className="px-5 py-3 w-full">요청 제목</th>
+                <th className="px-5 py-3 text-right whitespace-nowrap">요청액</th>
+                <th className="px-5 py-3 text-center whitespace-nowrap">품목 수</th>
+                <th className="px-5 py-3 whitespace-nowrap">요청일</th>
+                <th className="px-5 py-3 whitespace-nowrap">필요한 날짜</th>
+                <th className="px-5 py-3 whitespace-nowrap">상태</th>
                 <th className="px-5 py-3"></th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
               {myRequests.map(r => (
                 <tr key={r.id} className="hover:bg-gray-50/50">
-                  <td className="px-5 py-3 font-mono text-gray-400">{r.id}</td>
+                  <td className="px-5 py-3 font-mono text-gray-400 whitespace-nowrap">{r.id}</td>
                   <td className="px-5 py-3">
                     <p className="font-semibold text-gray-800">{r.title}</p>
                     {/* 제목만으로는 "이게 뭐였지"가 된다. 목적 한 줄을 붙여 목록에서 바로 알아보게 한다. */}
                     {r.purpose && <p className="text-[10px] text-gray-400 mt-0.5 max-w-[22rem] truncate" title={r.purpose}>{r.purpose}</p>}
                   </td>
-                  <td className="px-5 py-3 text-right font-mono text-gray-700">{r.totalEstimatedAmount.toLocaleString()}원</td>
-                  <td className="px-5 py-3 text-center text-gray-600">{r.items.length}종</td>
-                  <td className="px-5 py-3 text-gray-500">{r.history[0]?.date.slice(0, 10) ?? "—"}</td>
-                  <td className="px-5 py-3 text-gray-500">{r.neededDate}</td>
-                  <td className="px-5 py-3"><Chip label={displayStatus(r)} variant={statusVariant(displayStatus(r))} /></td>
-                  <td className="px-5 py-3">
+                  <td className="px-5 py-3 text-right font-mono text-gray-700 whitespace-nowrap">{r.totalEstimatedAmount.toLocaleString()}원</td>
+                  <td className="px-5 py-3 text-center text-gray-600 whitespace-nowrap">{r.items.length}종</td>
+                  <td className="px-5 py-3 text-gray-500 whitespace-nowrap">{r.history[0]?.date.slice(0, 10) ?? "—"}</td>
+                  <td className="px-5 py-3 text-gray-500 whitespace-nowrap">{r.neededDate}</td>
+                  <td className="px-5 py-3 whitespace-nowrap"><Chip label={displayStatus(r)} variant={statusVariant(displayStatus(r))} /></td>
+                  <td className="px-5 py-3 whitespace-nowrap">
                     <button type="button" onClick={() => { setSelectedPurchaseRequestId(r.id); navigateTo(r.status === "보완 요청" && canCreateRequest ? "FIN-SUP-01B" : "FIN-REQ-02"); }} className={btnStyle(r.status)}>{r.status === "보완 요청" && !canCreateRequest ? "상태 확인" : btnLabel(r.status)}</button>
                   </td>
                 </tr>
