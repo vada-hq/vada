@@ -109,6 +109,64 @@
           }
         }
       }
+    },
+    "viewerReach": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "description",
+        "viewers"
+      ],
+      "description": "화면을 보는 사람이 어느 권한 영역에 닿는가. 화면의 `viewer`와 출처의 `authorize.area`는 다른 파일에 따로 적히므로 어긋나도 아무 데서도 안 드러난다 — 배포한 뒤 진짜 사람이 열어야 403이 온다. 이 표가 그 둘을 맞대는 규칙이다.",
+      "properties": {
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "viewers": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "key",
+              "name",
+              "reaches",
+              "note"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "enum": [
+                  "external",
+                  "joining",
+                  "member"
+                ],
+                "description": "화면의 `viewer`가 쓰는 말. 적지 않은 화면은 `member`다."
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "reaches": {
+                "type": "array",
+                "uniqueItems": true,
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": "닿을 수 있는 권한 영역의 key. **비어 있으면 전부에 닿는다** — 무엇에 닿는지는 행렬이 정하고 그 판정은 서버가 한다. 구성원이 그 자리다."
+              },
+              "note": {
+                "type": "string",
+                "minLength": 1,
+                "description": "누가 그 자리인지. 지어낸 구분이 아니라는 것을 여기서 말한다."
+              }
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {

@@ -28,6 +28,8 @@ let request: (path: string, init?: RequestInit) => Promise<Response>
 // 만든 뒤 그 사람에게 소속이 실제로 생겼는지까지 이 검사가 재게 된다.
 let signedInAs: string | null = null
 let made = 0
+/** 로그인 층이 어느 제공자로 불렸나. 검사가 그것을 본다. */
+const started: string[] = []
 
 /** ORG-01과 ORG-02가 함께 채운 `orgCreationDraft`. */
 const DRAFT = {
@@ -64,9 +66,15 @@ beforeAll(async () => {
       isMeetingHost: async () => false,
       isMeetingCreator: async () => false,
     },
+    // **밖으로 나가지는 않는다.** Better Auth가 구글을 부르는 자리이고 검사가 그리로
+    // 갈 수는 없다. 여기서 재는 것은 그 앞까지다 — 화면이 누른 것이 계약의 자리에
+    // 닿아 권한을 지나 이 층을 부르는가.
     signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}` }),
+      open: () => ({ google: true, kakao: true }),
+      start: async (provider: string) => {
+        started.push(provider)
+        return { url: `https://example.test/${provider}` }
+      },
     },
     attempts: inMemoryAttempts(),
     counter: inMemoryCounter(),
@@ -184,6 +192,38 @@ describe('만든 학생회를 다른 사람이 초대로 본다', () => {
     expect((await request('/api/shell/viewer')).status).toBe(200)
   })
 
+  // **초대 코드를 확인하는 길.** 진짜로 보낸다고 목록에 올려 두고 이 길로 보내 본 적이
+  // 없었다 — 화면이 부르는 그 함수로 서버에 닿는지 아무도 재지 않았다.
+  it('화면이 누르는 길로 초대 코드를 확인한다', async () => {
+    signedInAs = NEWCOMER
+    const answer = await runMutation('organization.verifyInviteCode', {
+      inviteCode: code,
+      school: 'SCH-HYU-ERICA',
+      college: 'COL-HYU-ERICA-SW',
+      department: 'DEP-HYU-ERICA-SW-CS',
+      currentGrade: '3',
+      studentNumber: '2022123456',
+      name: '박해랑',
+    })
+    // 계약이 '돌려주는 값이 없다'고 적었다. 던지지 않은 것이 성공이다.
+    expect(answer).toEqual({})
+  })
+
+  it('없는 코드는 던진다 — 화면이 맞는지 스스로 알 수 없다', async () => {
+    signedInAs = NEWCOMER
+    await expect(
+      runMutation('organization.verifyInviteCode', {
+        inviteCode: 'NOPE0000',
+        school: 'SCH-HYU-ERICA',
+        college: 'COL-HYU-ERICA-SW',
+        department: 'DEP-HYU-ERICA-SW-CS',
+        currentGrade: '3',
+        studentNumber: '2022123456',
+        name: '박해랑',
+      }),
+    ).rejects.toThrow()
+  })
+
   it('없는 코드면 카탈로그의 글을 그린다', async () => {
     signedInAs = NEWCOMER
     render(
@@ -198,5 +238,36 @@ describe('만든 학생회를 다른 사람이 초대로 본다', () => {
     await waitFor(() =>
       expect(screen.getByText('학생회를 불러오지 못했습니다')).toBeInTheDocument(),
     )
+  })
+})
+
+// **들어오는 길.** 로그인 자리는 로그인이 필요 없다(계약의 `public`) — 아직 아무도
+// 아닌 사람이 부른다. 그 사실이 실제로 서버에서도 참인지 여기서 잰다.
+//
+// 진짜로 보낸다고 목록에 올려 두고 이 길로 보내 본 적이 없었다. 그동안 화면이 서버의
+// 답을 버리고 있었고, 사람이 눌러 보고서야 알았다(2026-09-02).
+describe('들어오는 길이 열려 있다', () => {
+  it('로그인하지 않은 사람이 구글로 가는 주소를 받는다', async () => {
+    signedInAs = null
+    started.length = 0
+    const answer = await runMutation('auth.signInGoogle', {})
+    expect(started).toEqual(['google'])
+    // **주소를 돌려줘야 한다.** 이 값을 버리면 눌러도 아무 일이 안 일어난다.
+    expect(answer.url).toBe('https://example.test/google')
+  })
+
+  it('카카오도 같은 길이다', async () => {
+    signedInAs = null
+    started.length = 0
+    const answer = await runMutation('auth.signInKakao', {})
+    expect(started).toEqual(['kakao'])
+    expect(answer.url).toBe('https://example.test/kakao')
+  })
+
+  it('어느 길이 열려 있는지 서버가 답한다', async () => {
+    signedInAs = null
+    const res = await request('/api/sign-in/ways')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({ google: true, kakao: true })
   })
 })

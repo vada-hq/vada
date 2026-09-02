@@ -204,10 +204,27 @@ function checkSecretDeclared(findings, permissions, groups) {
  * (`joining`)은 `public`과 `signedIn`에만 닿는다. 그 밖의 화면은 구성원이 보므로
  * 무엇에든 닿는다 — 여기서 재지 않는다.
  */
-const REACHABLE_AREAS = new Map([
-  ["external", new Set(["public"])],
-  ["joining", new Set(["public", "signedIn"])]
-]);
+/**
+ * 보는 사람이 닿는 영역. **명세가 든다**(`permissions.json`의 `viewerReach`).
+ *
+ * 한동안 이 표가 여기 상수로 있었다. 규칙이 코드에만 있으면 명세만 읽는 사람은 그
+ * 관계를 알 길이 없고, 고칠 때 두 곳을 봐야 한다 — 이 저장소가 역할 이름도 권한 규칙도
+ * 명세에 두는 것과 같은 까닭이다.
+ *
+ * 비어 있는 `reaches`는 **전부에 닿는다**는 뜻이다(구성원). 무엇에 닿는지는 행렬이
+ * 정하고 그 판정은 서버가 한다.
+ */
+function reachableAreas(permissions) {
+  const viewers = permissions?.viewerReach?.viewers;
+  if (!Array.isArray(viewers)) return new Map();
+  const found = new Map();
+  for (const viewer of viewers) {
+    if (typeof viewer?.key !== "string" || !Array.isArray(viewer.reaches)) continue;
+    if (viewer.reaches.length === 0) continue; // 전부에 닿는다 — 여기서 재지 않는다
+    found.set(viewer.key, new Set(viewer.reaches));
+  }
+  return found;
+}
 
 /** 화면이 이름을 불러 쓰는 출처·변이. 어디에 적히든 찾는다. */
 const NAMED_SOURCE_PROPS = new Set([
@@ -235,7 +252,8 @@ function namedSourcesOf(node, found = new Set()) {
   return found;
 }
 
-function checkViewerReach(findings, screens, groups) {
+function checkViewerReach(findings, screens, groups, permissions) {
+  const reachableByViewer = reachableAreas(permissions);
   const areaOf = new Map();
   for (const [items] of groups) {
     for (const item of Array.isArray(items) ? items : []) {
@@ -244,7 +262,7 @@ function checkViewerReach(findings, screens, groups) {
   }
   for (const screen of Array.isArray(screens) ? screens : []) {
     const viewer = screen?.spec?.viewer;
-    const reachable = REACHABLE_AREAS.get(viewer);
+    const reachable = reachableByViewer.get(viewer);
     if (reachable === undefined) continue;
     for (const key of [...namedSourcesOf(screen.spec)].sort()) {
       const area = areaOf.get(key);
@@ -2528,7 +2546,7 @@ export function collectSpecFindings({
   ];
   checkAuthorize(findings, permissions, authorizeGroups);
   checkSecretDeclared(findings, permissions, authorizeGroups);
-  checkViewerReach(findings, screens, authorizeGroups);
+  checkViewerReach(findings, screens, authorizeGroups, permissions);
   checkCatalogKeysUnique(findings, [
     ...authorizeGroups,
     [stateScopes?.scopes, "상태 스코프", "state-scopes.json"],

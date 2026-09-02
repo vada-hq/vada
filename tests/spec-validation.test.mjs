@@ -3229,6 +3229,33 @@ test("지금 보고 있는 자리는 갈 곳을 갖지 않는다", async () => {
 // 실제로 그랬다: 학생회에 들어오려는 사람이 보는 화면 다섯이 학교 목록을 읽는데
 // 그 목록이 `member`를 요구했다 — 학교를 골라야 구성원이 되는데 구성원이라야 학교를
 // 고를 수 있었다.
+/**
+ * 닿는 관계는 **명세가 든다**(`permissions.json`의 `viewerReach`). 검사도 그것을 준다 —
+ * 여기서 따로 적으면 명세를 고쳐도 이 검사가 옛 규칙을 재게 된다.
+ */
+const REACH = {
+  // 닿는 관계만으로는 모자란다 — 가리키는 영역이 실재해야 다른 검사가 걸리지 않는다.
+  conditions: [],
+  areas: [
+    { key: "public", name: "로그인 없이 열린다", rules: {} },
+    { key: "signedIn", name: "로그인만 하면 된다", rules: {} },
+    { key: "member", name: "그 학생회의 구성원이면 된다", rules: {} },
+  ],
+  viewerReach: {
+    description: "보는 사람이 어느 권한 영역에 닿는가.",
+    viewers: [
+      { key: "external", name: "로그인 없이 보는 사람", reaches: ["public"], note: "세션이 없다." },
+      {
+        key: "joining",
+        name: "로그인만 한 사람",
+        reaches: ["public", "signedIn"],
+        note: "소속이 없다.",
+      },
+      { key: "member", name: "구성원", reaches: [], note: "전부에 닿는다." },
+    ],
+  },
+}
+
 function joiningScreen(area) {
   return {
     screens: [
@@ -3241,7 +3268,8 @@ function joiningScreen(area) {
         }
       }
     ],
-    optionSources: { sources: [{ key: "education.schools", authorize: { area } }] }
+    optionSources: { sources: [{ key: "education.schools", authorize: { area } }] },
+    permissions: REACH
   };
 }
 
@@ -3298,7 +3326,8 @@ test("들어오려는 사람이 보는 화면이 구성원 전용 변이를 매�
         }
       }
     ],
-    mutations: { mutations: [{ key: "org.create", authorize: { area: "member" } }] }
+    mutations: { mutations: [{ key: "org.create", authorize: { area: "member" } }] },
+    permissions: REACH
   }).filter((finding) => finding.message.includes("org.create"));
   assert.equal(findings.length, 1);
 });
