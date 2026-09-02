@@ -16,7 +16,12 @@ services:
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
     # 로그인 길을 묻는 자리다. 아무것도 없어도 200이라 살아 있는지 보기에 알맞다.
-    healthCheckPath: /api/auth-ways
+    #
+    # **이 주소가 계약과 갈리면 배포가 스스로를 죽인다.** 서버는 계약에 없는 자리를
+    # 403으로 막으므로 Render가 그것을 "안 건강하다"로 읽는다 — 코드는 초록인데 배포만
+    # 죽는다. 실제로 그랬다(2026-09-02, 로그인 자리를 계약 안으로 옮기면서).
+    # `tests/deploy-health.test.mjs`가 이 줄과 계약을 맞대 본다.
+    healthCheckPath: /api/sign-in/ways
     envVars:
       # `sync: false`는 **값을 여기 적지 않는다**는 뜻이다. 대시보드에서 넣는다 —
       # 비밀을 저장소에 두지 않는다.
