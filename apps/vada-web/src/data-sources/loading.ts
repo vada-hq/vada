@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { findDataSource } from './catalog'
-import { loadSources, servingFromServer, type SourceCall } from './server'
+import { SourcesFailed, loadSources, servingFromServer, type SourceCall } from './server'
 
 /**
  * 받아 오는 동안과 실패했을 때.
@@ -111,8 +111,18 @@ export function useSourceLoading(
         .then(() => {
           if (live) setArrived(true)
         })
-        .catch(() => {
-          if (live) setBroken(callsRef.current.map((call) => call.key))
+        .catch((thrown: unknown) => {
+          if (!live) return
+          // **실패한 것만 실패했다고 말한다.** 부름 전부를 깨진 것으로 적으면
+          // 요청조차 나가지 않은 개발용 응답까지 빨갛게 나오고, 사람은 없는 자리를
+          // 뒤진다. 어느 것이 막혔는지는 `SourcesFailed`가 싣고 온다.
+          setBroken(
+            thrown instanceof SourcesFailed
+              ? [...thrown.keys]
+              : // 받아 오다 난 것이 아니면 어느 것 때문인지 알 수 없다. 그때는
+                // 숨기지 않고 기다리던 것을 전부 든다.
+                callsRef.current.map((call) => call.key),
+          )
         })
       return () => {
         live = false

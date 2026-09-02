@@ -2,7 +2,15 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { fetchOptions } from '../option-sources/catalog'
-import { currentServer, servingFromServer, startServing, urlOf, useServer } from './server'
+import {
+  SourcesFailed,
+  currentServer,
+  loadSources,
+  servingFromServer,
+  startServing,
+  urlOf,
+  useServer,
+} from './server'
 
 // **앱이 진짜로 서버에 붙는가.**
 //
@@ -128,5 +136,46 @@ describe('주소를 짓는 규칙이 한 벌이다', () => {
     expect(urlOf('/api/education/colleges', { schoolId: 'S-1' })).toBe(
       '/api/education/colleges?schoolId=S-1',
     )
+  })
+})
+
+describe('실패한 것만 실패했다고 말한다', () => {
+  // **한 출처가 실패하면 그 화면이 기다리는 전부를 못 불러왔다고 적고 있었다.**
+  //
+  // HOME-01K이 읽는 아홉 중 진짜로 서버에서 오는 것은 둘뿐인데, 그 둘이 막히자
+  // 요청조차 나가지 않은 일곱까지 빨갛게 나왔다 — 사람은 아홉 군데가 고장 난 줄
+  // 알고 없는 자리를 뒤진다. 다음 흐름마다 디버깅을 헷갈리게 할 자리다.
+  it('받지 못한 부름의 이름만 알린다', async () => {
+    back = useServer({
+      baseUrl: '',
+      fetch: async (input) =>
+        String(input).includes('/api/shell/viewer')
+          ? new Response('nope', { status: 500 })
+          : Response.json({ name: '테스트학생회' }),
+    })
+
+    const failed = await loadSources([
+      { key: 'shell.organization', params: {} },
+      { key: 'shell.viewer', params: {} },
+      // 진짜가 아닌 것은 부르지도 않는다. 실패했다고 말해서도 안 된다.
+      { key: 'home.briefing', params: {} },
+    ]).then(
+      () => [],
+      (thrown: unknown) => (thrown instanceof SourcesFailed ? thrown.keys : ['던진 것이 SourcesFailed가 아니다']),
+    )
+
+    expect(failed).toEqual(['shell.viewer'])
+  })
+
+  it('둘이 막히면 둘 다 말한다', async () => {
+    back = useServer({ baseUrl: '', fetch: async () => new Response('nope', { status: 500 }) })
+    const failed = await loadSources([
+      { key: 'shell.organization', params: {} },
+      { key: 'shell.viewer', params: {} },
+    ]).then(
+      () => [],
+      (thrown: unknown) => (thrown instanceof SourcesFailed ? [...thrown.keys].sort() : ['아니다']),
+    )
+    expect(failed).toEqual(['shell.organization', 'shell.viewer'])
   })
 })

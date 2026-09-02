@@ -102,26 +102,58 @@ export function urlOf(path: string, params: Record<string, string>): string {
   return query === '' ? filled : `${filled}?${query}`
 }
 
-/** 이 부름들을 받아 온다. 하나라도 실패하면 던진다 — 조용히 반만 그리지 않는다. */
+/**
+ * **무엇을 못 받았는지 실은 실패.**
+ *
+ * 한동안 실패가 이름을 달고 있지 않아, 부르는 쪽이 그 화면이 기다리는 **전부**를
+ * 못 받았다고 적었다 — HOME-01K이 읽는 아홉 중 진짜로 서버에서 오는 것은 둘뿐인데
+ * 그 둘이 막히자 **요청조차 나가지 않은 일곱까지** 빨갛게 나왔다. 사람은 아홉 군데가
+ * 고장 난 줄 알고 없는 자리를 뒤진다.
+ */
+export class SourcesFailed extends Error {
+  readonly keys: readonly string[]
+
+  constructor(keys: readonly string[]) {
+    super(`데이터 출처를 받지 못했습니다: ${keys.join(', ')}`)
+    this.name = 'SourcesFailed'
+    this.keys = keys
+  }
+}
+
+/**
+ * 이 부름들을 받아 온다.
+ *
+ * **하나라도 실패하면 던진다** — 조용히 반만 그리지 않는다. 다만 **어느 것이**
+ * 실패했는지를 실어 던진다.
+ *
+ * 먼저 죽은 하나 때문에 나머지를 안 부르지도 않는다. 둘이 막혔으면 둘 다 알아야
+ * 사람이 한 번에 본다.
+ */
 export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
   const at = server
   if (at === null) return
+  const failed: string[] = []
   await Promise.all(
     calls.map(async (call) => {
       // **아직 서버에 안 붙은 출처는 부르지 않는다.** 계약에 자리가 있어도 서버가
       // 답하지 않으면 404가 오고, 그러면 화면 하나가 통째로 오류가 된다.
       // 무엇이 붙었는지는 `served.ts`가 든다 — 그 목록이 진도표다.
+      //
+      // 부르지 않았으므로 **실패한 것으로도 세지 않는다.**
       if (!isServed(call.key)) return
       const slot = slotOf(call)
       if (cache.has(slot)) return
-      const source = findDataSource(call.key)
-      const res = await at.fetch(`${at.baseUrl ?? ''}${urlOf(source.request.path, call.params)}`)
-      if (!res.ok) {
-        throw new Error(`데이터 출처 '${call.key}'를 받지 못했습니다(${res.status}).`)
+      try {
+        const source = findDataSource(call.key)
+        const res = await at.fetch(`${at.baseUrl ?? ''}${urlOf(source.request.path, call.params)}`)
+        if (!res.ok) throw new Error(String(res.status))
+        cache.set(slot, await res.json())
+      } catch {
+        failed.push(call.key)
       }
-      cache.set(slot, await res.json())
     }),
   )
+  if (failed.length > 0) throw new SourcesFailed(failed)
 }
 
 /**
