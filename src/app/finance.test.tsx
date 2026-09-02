@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, fireEvent, cleanup } from "@testing-library/react";
 import React from "react";
-import { SCREEN_COMPONENTS, AppContext, EVIDENCE_STAGE_ENABLED } from "./App";
+import { SCREEN_COMPONENTS, AppContext, EVIDENCE_STAGE_ENABLED, ADVANCE_CLAIM_ENABLED } from "./App";
 
 afterEach(cleanup);
 
@@ -139,6 +139,8 @@ describe("처리 단계 보드 — 증빙 영역이 완료 영역으로 대체�
 describe("금액 확인 — 실지출 확정이 예산 실제 지출액으로 이어진다", () => {
   // 표본 REQ-004 배너 거치대: 수령 완료, 승인액 4개 × 20,000원 = 80,000원, 예산 항목 `행사 운영비`.
   const SETTLE_LABEL = "승인액과 동일 · 80,000원";
+  // 2026-09-02부터 실지출 확정은 결제 수단 선택이 선행한다. 기본값을 두지 않는 이유는 SettleAmountPanel 주석 참조.
+  const pickCard = () => fireEvent.click(screen.getByText("학생회 카드"));
 
   // 기본 컨텍스트의 setter는 no-op이라 상태 전이를 볼 수 없다. 실제 useState를 물려 구매 요청을 살아 있게 한다.
   const Harness = ({ children }: { children: React.ReactNode }) => {
@@ -177,6 +179,7 @@ describe("금액 확인 — 실지출 확정이 예산 실제 지출액으로 �
     expect(container.textContent).toContain("868,000");
 
     fireEvent.click(screen.getByText("배너 거치대"));
+    pickCard();
     const settle = screen.getByText(SETTLE_LABEL);
     fireEvent.click(settle);
 
@@ -188,6 +191,7 @@ describe("금액 확인 — 실지출 확정이 예산 실제 지출액으로 �
   it("확정한 카드는 정산 완료 열로 옮겨간다", () => {
     const { container } = openCompletionArea();
     fireEvent.click(screen.getByText("배너 거치대"));
+    pickCard();
     fireEvent.click(screen.getByText(SETTLE_LABEL));
     // 금액 확인 열은 비고, 카드는 보드에 남는다(사라지지 않는다).
     expect(screen.queryByText("배너 거치대"), "종결 카드가 보드에서 사라지면 안 됨").not.toBeNull();
@@ -248,10 +252,12 @@ describe.skipIf(EVIDENCE_STAGE_ENABLED)("FIN-PROC-01도 실지출 금액을 확�
     expect(container.textContent, "실지출 열이 있어야 함").toContain("실지출");
     expect(container.textContent, "확정 전에는 미확정").toContain("미확정");
 
+    fireEvent.click(screen.getByText("사비 선지출"));
     fireEvent.click(screen.getByText("승인액과 동일 · 80,000원"));
 
     expect(container.textContent).toContain("80,000원");
     expect(container.textContent, "확정 후에는 미확정이 사라져야 함").not.toContain("미확정");
+    expect(container.textContent, "기록한 결제 수단이 표에 남아야 함").toContain("사비 선지출");
   });
 });
 
@@ -358,4 +364,82 @@ describe("FIN-REQ-02 진행 단계", () => {
     }));
     expect(container.textContent).toContain("취소해 종결된 요청입니다");
   });
+});
+
+// 실지출을 확정할 때 결제 수단을 함께 남긴다(2026-09-02). 사비 선지출 화면을 MVP에 넣는 대신
+// "누구 돈이 먼저 나갔나"만 기록해 두는 관측 필드다. 예산·종결 계산에는 들어가지 않는다.
+describe.skipIf(EVIDENCE_STAGE_ENABLED)("금액 확인 — 결제 수단을 함께 기록한다", () => {
+  const Harness = ({ children }: { children: React.ReactNode }) => {
+    const base = React.useContext(AppContext);
+    const [purchaseRequests, setPurchaseRequests] = React.useState(base.purchaseRequests);
+    return <AppContext.Provider value={{ ...base, purchaseRequests, setPurchaseRequests }}>{children}</AppContext.Provider>;
+  };
+
+  const openCard = () => {
+    const Comp = SCREEN_COMPONENTS["EVT-FIN-01B"];
+    const view = render(<Harness><Comp /></Harness>);
+    const step = Array.from(view.container.querySelectorAll("button"))
+      .find(b => (b.textContent ?? "").trim() === "처리 단계");
+    fireEvent.click(step!);
+    const done = Array.from(view.container.querySelectorAll("button"))
+      .find(b => (b.textContent ?? "").replace(/\d+$/, "").trim() === "완료");
+    fireEvent.click(done!);
+    fireEvent.click(screen.getByText("배너 거치대"));
+    return view;
+  };
+
+  const settleButton = () => screen.getByText("승인액과 동일 · 80,000원") as HTMLButtonElement;
+
+  it("세 가지 결제 수단을 고를 수 있다", () => {
+    openCard();
+    for (const label of ["학생회 카드", "계좌 이체", "사비 선지출"]) {
+      expect(screen.queryByText(label), `${label} 선택지가 있어야 함`).not.toBeNull();
+    }
+  });
+
+  // 기본값을 두면 대부분이 그 값으로 확정돼 빈도 관측이라는 목적 자체가 무너진다.
+  it("결제 수단을 고르기 전에는 확정할 수 없다", () => {
+    const { container } = openCard();
+    expect(settleButton().disabled, "결제 수단 선택 전에는 비활성").toBe(true);
+    expect(container.textContent).toContain("결제 수단을 골라야 확정할 수 있습니다");
+  });
+
+  it("결제 수단을 고르면 확정할 수 있고, 고른 값이 카드에 남는다", () => {
+    const { container } = openCard();
+    fireEvent.click(screen.getByText("사비 선지출"));
+    expect(settleButton().disabled).toBe(false);
+    fireEvent.click(settleButton());
+
+    expect(container.textContent, "확정 후 종결 카드에 결제 수단이 남아야 함").toContain("사비 선지출");
+    expect(container.textContent, "실지출 확정은 그대로 예산에 반영돼야 함").toContain("1,030,000");
+  });
+
+  // 결제 수단은 기록 전용이다. 여기서 예산·종결이 갈리기 시작하면 AdvanceClaim을 이름만 바꿔 재발명하게 된다.
+  it("어떤 결제 수단을 골라도 예산 반영은 같다", () => {
+    const view1 = openCard();
+    fireEvent.click(screen.getByText("학생회 카드"));
+    fireEvent.click(settleButton());
+    const withCard = view1.container.textContent?.includes("1,030,000");
+    cleanup();
+
+    const view2 = openCard();
+    fireEvent.click(screen.getByText("사비 선지출"));
+    fireEvent.click(settleButton());
+    expect(view2.container.textContent?.includes("1,030,000")).toBe(withCard);
+  });
+});
+
+// 증빙과 같은 종류의 진입점 누수가 사비 선지출에도 있었다. `EVT-FIN-01` 상단 액션 바의 `사비 선지출` 버튼이
+// 스위치 없이 MVP 화면에서 보류 화면(FIN-ADV-01)으로 바로 보내고 있었다.
+describe.skipIf(ADVANCE_CLAIM_ENABLED)("사비 선지출 진입점이 스위치를 따른다", () => {
+  // 팝오버를 열지 않은 기본 상태에서 검사한다. 열면 결제 수단 선택지로 같은 문자열이 정당하게 나타난다.
+  for (const id of ["EVT-FIN-01", "EVT-FIN-01B"]) {
+    it(`${id} 액션 바에 사비 선지출 진입 버튼이 없다`, () => {
+      const Comp = SCREEN_COMPONENTS[id];
+      const { container } = render(<Comp />);
+      const entry = Array.from(container.querySelectorAll("button"))
+        .filter(b => (b.textContent ?? "").trim() === "사비 선지출");
+      expect(entry.length, `${id}에 사비 선지출 진입점이 남아 있음`).toBe(0);
+    });
+  }
 });

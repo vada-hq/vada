@@ -173,6 +173,15 @@ type EvidenceDraft = {
   savedAt: string;
 };
 
+// 결제 수단 — 실지출을 확정할 때 "누구 돈이 먼저 나갔나"를 함께 남기는 관측 필드다(2026-09-02).
+// 예산 집계·종결 판정·검증에는 일절 쓰지 않는다. 종결은 `actualAmount` 하나가 판정한다.
+// 목적은 두 가지다. ① 기록·가시화 — "그거 누구 돈으로 샀지"는 `완료` 영역을 남긴 근거와 같은 종류의 사후 질문이다.
+// ② 빈도 관측 — 사비 선지출 자산(`FIN-ADV-01`)의 재개 신호가 결제수단 선택 빈도인데, 증빙을 MVP에서 빼면서
+//    그 센서가 사라졌다. 이 필드가 더 싼 자리에 센서를 복구한다(`docs/VADA_FINANCE_DEFERRED.md` 5장).
+// 세칙 4번째 수단인 `개인 카드(대표 카드 사고)`는 예외 사유 필수 입력이 따라오므로 MVP에서 제외한다.
+type PaymentSource = "학생회 카드" | "계좌 이체" | "사비 선지출";
+const PAYMENT_SOURCES: PaymentSource[] = ["학생회 카드", "계좌 이체", "사비 선지출"];
+
 type PurchaseExecution = {
   id: string;
   itemId: number;
@@ -195,6 +204,7 @@ type PurchaseExecution = {
   cancelRequestedQty?: number;    // 요청자가 취소를 요청한 수량. 실행분 전체 수량보다 작으면 부분 취소(§8.6)
   actualAmount?: number;          // 확정된 이 실행분의 실제 지출액(예산 실지출 집계 원본).
                                   // 증빙 단계를 쓰면 증빙 완료 시, 쓰지 않으면 `금액 확인` 단계에서 확정한다. 없으면 예상액으로 대체
+  paymentSource?: PaymentSource;  // 실지출 확정 시 함께 기록하는 결제 수단. 기록 전용이며 어떤 계산에도 들어가지 않는다
 };
 
 type PurchaseItem = {
@@ -304,6 +314,13 @@ export function getGeneralPurchaseProgress(request: PurchaseRequest, item: Purch
 // 증빙을 다시 꺼낼 때는 이 상수만 true로 바꾼다. 재개 절차와 회귀 확인은 `docs/VADA_FINANCE_DEFERRED.md`.
 // `FIN-EVID-01` 화면과 `evidenceStatus` 원본 필드는 그대로 살아 있다. 이 스위치는 처리 단계 계산과 보드 영역만 바꾼다.
 export const EVIDENCE_STAGE_ENABLED = false;
+
+// 사비 선지출 스위치 — MVP 제품화 범위에서 사비 선지출·환급을 제외한다(`docs/VADA_MVP_SPEC.md` 6.1, 2026-09-02).
+// false면 `EVT-FIN-01`을 비롯한 MVP 재정 화면에서 `FIN-ADV-01`·`FIN-ADV-01B`로 가는 진입점이 사라진다.
+// 증빙과 독립된 자산이므로 EVIDENCE_STAGE_ENABLED를 재사용하지 않고 별도 상수를 둔다.
+// 대신 실지출 확정 시 `paymentSource`로 `사비 선지출` 여부만 기록한다. 청구·환급 흐름은 담지 않는다.
+// 화면과 `AdvanceClaim` 모델은 보류 자산으로 그대로 살아 있다(`docs/VADA_FINANCE_DEFERRED.md` 4장 ④).
+export const ADVANCE_CLAIM_ENABLED = false;
 
 function getFinancePurchaseProgress(request: PurchaseRequest, item: PurchaseItem): FinancePurchaseProgress {
   if (request.status === "요청 취소" || item.status === "요청 취소") return "요청 취소";
@@ -483,21 +500,30 @@ function execOrderQty(setPR: SetPurchaseRequests, requestId: string, item: Purch
     };
   }));
 }
-// `금액 확인` 단계의 빠른 처리 패널. 승인액 그대로 확정하거나 실제 결제액을 직접 넣는다.
+// `금액 확인` 단계의 빠른 처리 패널. 결제 수단을 고르고 승인액 그대로 확정하거나 실제 결제액을 직접 넣는다.
 // 영수증 파일·영수증 번호·구매처 묶음은 제품화 제외라 받지 않는다(docs/VADA_MVP_SPEC.md 6.1).
-function SettleAmountPanel({ expected, onSettle }: { expected: number; onSettle: (amount: number) => void }) {
+// 결제 수단은 기본값을 두지 않는다. 기본값을 두면 대부분이 그 값으로 확정돼 빈도 관측이라는 목적 자체가 무너진다.
+function SettleAmountPanel({ expected, onSettle }: { expected: number; onSettle: (amount: number, source: PaymentSource) => void }) {
   const [draft, setDraft] = useState("");
+  const [source, setSource] = useState<PaymentSource | null>(null);
   const digits = draft.replace(/[^0-9]/g, "");
   const parsed = Number(digits);
   const valid = digits !== "" && Number.isFinite(parsed);
   return (
     <div className="px-1 pb-0.5">
       <p className="text-[9px] font-bold text-blue-500 mb-1">실지출 금액 · 확정하면 예산 ‘실제 지출액’에 반영됩니다</p>
-      <button type="button" onClick={() => onSettle(expected)} className="w-full text-[11px] text-left font-semibold text-green-700 border border-green-200 rounded px-2 py-1.5 hover:bg-green-50">승인액과 동일 · {expected.toLocaleString()}원</button>
+      <p className="text-[9px] font-semibold text-gray-500 mb-1">결제 수단 · 누구 돈이 먼저 나갔는지 남깁니다</p>
+      <div className="flex gap-1 mb-1.5">
+        {PAYMENT_SOURCES.map(opt => (
+          <button key={opt} type="button" onClick={() => setSource(opt)} aria-pressed={source === opt} className={`flex-1 min-w-0 text-[10px] font-semibold rounded px-1 py-1 border ${source === opt ? "bg-blue-600 border-blue-600 text-white" : "bg-white border-gray-200 text-gray-600 hover:border-blue-300"}`}>{opt}</button>
+        ))}
+      </div>
+      <button type="button" disabled={!source} onClick={() => source && onSettle(expected, source)} className="w-full text-[11px] text-left font-semibold text-green-700 border border-green-200 rounded px-2 py-1.5 hover:bg-green-50 disabled:text-gray-400 disabled:border-gray-200 disabled:hover:bg-white">승인액과 동일 · {expected.toLocaleString()}원</button>
       <div className="flex items-center gap-1 mt-1">
         <input value={draft} onChange={event => setDraft(event.target.value)} inputMode="numeric" placeholder="실제 결제액이 다르면 입력" className="flex-1 min-w-0 text-[11px] border border-gray-200 rounded px-2 py-1.5 focus:outline-none focus:border-blue-400" />
-        <button type="button" disabled={!valid} onClick={() => onSettle(parsed)} className="shrink-0 text-[11px] font-semibold text-white bg-blue-600 rounded px-2.5 py-1.5 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400">확정</button>
+        <button type="button" disabled={!valid || !source} onClick={() => source && onSettle(parsed, source)} className="shrink-0 text-[11px] font-semibold text-white bg-blue-600 rounded px-2.5 py-1.5 hover:bg-blue-700 disabled:bg-gray-200 disabled:text-gray-400">확정</button>
       </div>
+      {!source && <p className="text-[9px] text-gray-400 mt-1">결제 수단을 골라야 확정할 수 있습니다</p>}
     </div>
   );
 }
@@ -506,9 +532,10 @@ function execMarkOutOfStock(setPR: SetPurchaseRequests, requestId: string, item:
 }
 // 실지출 금액 확정 — 증빙 단계를 쓰지 않을 때(EVIDENCE_STAGE_ENABLED=false) 구매를 종결시키는 유일한 행동이다.
 // 이 값이 예산 화면 `실제 지출액`의 집계 원본이라, 확정 전까지는 승인액이 `승인·집행 예정액`에 잡혀 있다.
-function execSettleAmount(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string, amount: number) {
+function execSettleAmount(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string, amount: number, source: PaymentSource) {
   const settled = Math.max(0, Math.round(amount || 0));
-  mutateExecution(setPR, requestId, item.id, execId, `실지출 금액 확정 · ${item.name} ${settled.toLocaleString()}원`, ex => ({ ...ex, actualAmount: settled }));
+  // 결제 수단은 처리 이력에 함께 남긴다. 금액과 같은 사건에서 확정되므로 별도 액션으로 나누지 않는다.
+  mutateExecution(setPR, requestId, item.id, execId, `실지출 금액 확정 · ${item.name} ${settled.toLocaleString()}원 · ${source}`, ex => ({ ...ex, actualAmount: settled, paymentSource: source }));
 }
 function execAdvanceFulfillment(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string) {
   const isRental = item.purchaseType === "대여"; // 용역은 반납 단계를 건너뛴다
@@ -2235,8 +2262,8 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "재정부",
     entryPath: "행사 > 재정 → 구매 필요 건",
     functions: [
-      { num: "01", element: "구매 실행분 목록", description: "이 요청의 품목을 구매 실행분 단위로 표로 표시하고, 실행분별 주문·수령/이행 상태와 실지출 금액을 함께 보여준다. 증빙 단계를 쓰면 마지막 열이 실지출 대신 증빙 상태다. 재주문 실행분은 재주문 배지로 구분한다.", constraint: "주문/수령/이행은 실행분의 원본 상태에서 표시한다. 실지출은 확정 전 `미확정`으로 둔다" },
-      { num: "01B", element: "실지출 금액 확정", description: "`금액 확인` 단계 실행분의 처리 열에서 ‘승인액과 동일’ 한 번 또는 실제 결제액 직접 입력으로 실지출 금액을 확정한다. 확정하면 정산 완료로 종결되고 예산의 실제 지출액에 반영된다.", constraint: "처리 단계 칸반 팝오버와 같은 액션을 상세 뷰에도 둔다. 여기에만 없으면 상세보기로 온 카드를 종결시킬 방법이 화면 안에 없다. 증빙 단계를 쓰면 대신 결제·증빙 정리로 이동한다" },
+      { num: "01", element: "구매 실행분 목록", description: "이 요청의 품목을 구매 실행분 단위로 표로 표시하고, 실행분별 주문·수령/이행 상태와 실지출 금액·결제 수단을 함께 보여준다. 증빙 단계를 쓰면 마지막 열이 실지출 대신 증빙 상태다. 재주문 실행분은 재주문 배지로 구분한다.", constraint: "주문/수령/이행은 실행분의 원본 상태에서 표시한다. 실지출은 확정 전 `미확정`으로 둔다" },
+      { num: "01B", element: "실지출 금액 확정", description: "`금액 확인` 단계 실행분의 처리 열에서 결제 수단(학생회 카드·계좌 이체·사비 선지출)을 고른 뒤 ‘승인액과 동일’ 한 번 또는 실제 결제액 직접 입력으로 실지출 금액을 확정한다. 확정하면 정산 완료로 종결되고 예산의 실제 지출액에 반영되며, 실지출 열에 확정 금액과 결제 수단이 함께 찍힌다.", constraint: "처리 단계 칸반 팝오버와 같은 액션을 상세 뷰에도 둔다. 여기에만 없으면 상세보기로 온 카드를 종결시킬 방법이 화면 안에 없다. 결제 수단은 기본값 없이 선택해야 확정 버튼이 열리며, 기록 전용이라 금액·예산 계산에는 들어가지 않는다. 영수증 파일·번호·구매처 묶음은 받지 않는다. 증빙 단계를 쓰면 대신 결제·증빙 정리로 이동한다" },
       { num: "02", element: "주문·수령·이행 상태", description: "주문 대기·주문 완료·구매 불가·주문 취소의 주문 상태와, 물품의 배송 대기·배송 중·수령 확인 필요·수령 완료, 대여·용역의 이행 대기·이행 중·반납 확인 필요·이행 완료 상태를 실행분 단위로 관리한다. 대여는 이행 중에서 반납 확인 요청으로 반납 확인 필요로 넘기고, 반납이 없는 용역은 반납 없이 이행 완료로 바로 처리한다.", constraint: "주문 시 수량을 나눠 부분 주문하면 주문 완료 실행분과 남은 주문 대기 실행분으로 분할된다(실행분 quantity)" },
       { num: "02B", element: "부분 주문 수량 분할", description: "주문 대기 실행분의 ‘주문’ 버튼에서 주문 수량을 입력한다. 전체보다 적게 주문하면 지정 수량만 주문 완료로 전환되고 남은 수량은 새 주문 대기 실행분으로 자동 분할된다. 실행분별 수량과 승인액(수량×단가)을 함께 표시한다.", constraint: "부분 수령·부분 반환에 따른 분할은 현재 범위에서 제외(15장)" },
       { num: "02C", element: "주문 시 구매 정보 표시", description: "주문 처리 모달과 처리 단계 보드의 주문 대기 카드 팝오버에 검토 단계와 같은 구매 정보(판매처·상품 옵션·배송 요청·업체 견적서 등)를 표시하고, 상품 URL 등 http(s) 값은 클릭 가능한 하이퍼링크로 연다. 재정부가 이 정보로 실제 구매를 진행한다.", constraint: "검토(FIN-REV-01)·상세(FIN-REQ-02)와 같은 공용 컴포넌트(PurchaseInfoPanel)를 재사용해 표현을 일치시킨다" },
@@ -2249,7 +2276,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     id: "FIN-ADV-01", name: "사비 선지출·환급", stateChip: "기본",
     purpose: "개인이 먼저 지출한 실비를 청구하고 재정부가 확인해 환급한다.",
     users: "청구는 전 구성원 · 확인과 환급은 재정부",
-    entryPath: "행사 재정(EVT-FIN-01) → 사비 선지출. 상시 지출 컨테이너에서도 같은 경로를 쓴다",
+    entryPath: "MVP 제외·보류 화면이라 현재 진입점이 없다(ADVANCE_CLAIM_ENABLED=false). 스위치를 켜면 행사 재정(EVT-FIN-01) → 사비 선지출로 돌아오며, 상시 지출 컨테이너에서도 같은 경로를 쓴다. 그동안 사비 결제 사실은 금액 확인의 결제 수단으로만 기록한다",
     functions: [
       { num: "01", element: "청구 작성", description: "집행 유형을 고르면 위원회 소정 양식이 요구하는 항목이 나타난다. 대중교통은 탑승 수단·승하차역, 택시는 승하차 시각·이용 사유, 주유비는 주행 거리·리터당 단가, 식대는 업무 시각·내용·인원을 입력한다.", constraint: "소정 양식 4종(식대·대중교통·택시·주유비)이 사비 선지출을 전제하는 유형만 대상이다" },
       { num: "02", element: "청구 목록·상세", description: "청구별 상태와 선지출액을 보여주고, 펼치면 근거 조항·집행 조건·필수 자료·양식 입력값·처리 이력을 표시한다." },
@@ -2328,7 +2355,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "예산 편성·요약·조정", description: "배정 예산, 승인 예약액, 실제 지출액, 사용 가능액을 표시한다. 재정부는 ‘예산 편성’으로 행사별 예산 항목·배정액을 편성하고(미편성 행사는 편성 안내와 진입점 표시), 편성 후에는 항목 간 예산 조정 이력을 남긴다.", constraint: "예산은 행사 레코드에 저장되어 행사별로 분리된다. 편성 전 행사는 배정 예산을 임의 생성하지 않고 미편성으로 표시한다" },
       { num: "02", element: "하위 메뉴 그룹(작업 보드·기록)", description: "재정부에게만 탭을 두 묶음으로 나눈다. [작업 보드]는 진행 중 업무 칸반(품목 현황·처리 단계), [기록]은 요청·묶음 단위 아카이브(구매 요청·승인 묶음, 증빙 단계를 쓸 때만 증빙 묶음)다. 일반 구성원·부서장에게는 처리 단계와 기록 그룹을 노출하지 않고 품목 현황만 보이며, 본인 요청 열람은 내 구매 요청(MY-REQ-01)으로 한다.", constraint: "기록·처리 단계는 재정부 전용. ‘아카이브’ 명칭은 행사 아카이브와 겹치지 않도록 ‘기록’으로 묶고, 묶음(📦)과 개별(▪)의 경계를 시각적으로 구분한다" },
       { num: "03", element: "품목 현황 칸반보드", description: "일반 구성원과 부서장에게 기본으로 표시한다. 품목 카드를 확인 필요, 검토 중, 동의 대기, 구매 준비, 주문 완료, 진행 중, 수령·이행 완료, 처리 완료 열로 나누어 보여준다. 증빙 단계를 쓰면 수령·이행 완료와 처리 완료 사이에 `정산 중` 열이 하나 더 있고, 쓰지 않으면 수령·이행 완료가 곧 실지출 금액 확인 대기라 두 상태를 한 열로 합친다(나누면 둘 중 하나는 반드시 빈다). 부분 승인으로 요청자의 선진행 동의가 필요한 승인 품목은 ‘동의 대기’ 열에 표시한다. 카드의 대표 상태는 구매 유형에 따라 물품은 배송 중·수령 완료, 대여·용역은 이행 중·이행 완료로 표시한다. ‘전체 요청 / 내 요청’ 필터로 내가 요청한 구매 품목만 볼 수 있다. 한 열에서 같은 구매 요청(REQ)의 카드가 2개 이상이면 반쯤 겹친 스택(📦 N)으로 묶고, 마우스를 올리면 개별 카드로 펼쳐지고 묶음 밖으로 커서가 나가면(또는 바깥 클릭 시) 다시 접힌다.", constraint: "대표 진행 상태는 검토·주문·수령·이행·증빙 상태의 단일 원본에서 계산하며 별도로 저장하지 않는다. 내 요청 필터는 요청자 기준으로만 거른다. 같은 요청 카드 스택은 표시 방식일 뿐 상태·집계를 바꾸지 않는다" },
-      { num: "04", element: "재정부 처리 단계", description: "재정부에만 기본으로 표시한다. 요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·완료의 7개 업무 영역으로 나누고, 각 영역 안에서 다음 처리해야 할 실행분을 처리 단계 열별로 보여준다. 수령 완료·이행 완료 다음은 실지출 금액 확정 하나이며, 금액이 확정된 실행분만 정산 완료로 종결해 완료 영역에 모은다. 반려·요청 취소는 활성 처리에서 제외한다.", constraint: "일반 구성원에게는 재정부 내부 처리 대기열을 노출하지 않는다. 처리 단계는 실행분 원본 상태에서 계산하며 별도 저장하지 않는다" },
+      { num: "04", element: "재정부 처리 단계", description: "재정부에만 기본으로 표시한다. 요청 검토·구매 준비·물품 배송·수령·대여 이행·용역 이행·환불·완료의 7개 업무 영역으로 나누고, 각 영역 안에서 다음 처리해야 할 실행분을 처리 단계 열별로 보여준다. 수령 완료·이행 완료 다음은 실지출 금액 확정 하나이며, 금액이 확정된 실행분만 정산 완료로 종결해 완료 영역에 모은다. 금액 확인 카드의 팝오버에서 결제 수단(학생회 카드·계좌 이체·사비 선지출)을 고르고 금액을 확정하며, 종결 카드에는 확정 금액과 결제 수단이 함께 남는다. 반려·요청 취소는 활성 처리에서 제외한다.", constraint: "일반 구성원에게는 재정부 내부 처리 대기열을 노출하지 않는다. 처리 단계는 실행분 원본 상태에서 계산하며 별도 저장하지 않는다. 결제 수단은 기록 전용이라 예산 집계·종결 판정에 쓰지 않으며 기본값을 두지 않는다(기본값을 두면 빈도 관측이 무너진다). 사비 선지출 청구·환급 흐름(FIN-ADV-01)은 MVP 제외라 진입점을 두지 않는다" },
       { num: "05", element: "기록 · 구매 요청 (재정부 전용)", description: "이 행사의 구매 요청을 요청 단위(▪)로 표시한다. 취소된 품목도 요청 기록에 남는다. 행을 누르면 품목별 상세로 이동한다.", constraint: "재정부 전용. 일반 구성원·부서장은 내 구매 요청(MY-REQ-01)에서 본인 요청만 열람한다" },
       { num: "06", element: "기록 · 승인 묶음 (재정부 전용)", description: "선진행 동의된 승인 품목을 요청별 묶음(📦)으로 보여준다. 각 묶음 안에 개별 품목(▪)과 진행 상태가 들어간다. 요청 취소·미동의 품목은 묶음에서 자동 제외된다. 파생 표시이며 별도 저장하지 않는다.", constraint: "재정부 전용" },
       { num: "07", element: "기록 · 증빙 묶음 (재정부 전용·증빙 스위치)", description: "제품화 제외 기능이라 EVIDENCE_STAGE_ENABLED가 켜져 있을 때만 탭을 노출한다. 완료되어 저장된 증빙 묶음(📦)을 행사 기준으로 열람한다. 구매처·결제·영수증·실제 지출과 담긴 개별 실행분(▪)을 보여준다. 서로 다른 요청·승인 묶음의 실행분도 같은 거래면 한 묶음에 담긴다.", constraint: "재정부 전용(기준 문서: 증빙 아카이브 원본은 재정부 열람). 증빙 묶음은 완료 시 레코드로 저장되어 다시 열람할 수 있다" },
@@ -13359,8 +13386,9 @@ function EVTFIN01() {
       actions={
         <>
           <Btn variant="secondary" size="sm" onClick={() => navigateTo("MY-REQ-01")}><User className="w-3.5 h-3.5" /> 내 구매 요청</Btn>
-          {/* 사비 선지출은 구매 요청과 다른 흐름이다. 청구는 전 구성원이 할 수 있어 권한 조건을 걸지 않는다. */}
-          <Btn variant="secondary" size="sm" onClick={() => navigateTo(canReviewPurchase ? "FIN-ADV-01B" : "FIN-ADV-01")}><BarChart2 className="w-3.5 h-3.5" /> 사비 선지출</Btn>
+          {/* 사비 선지출은 구매 요청과 다른 흐름이다. 청구는 전 구성원이 할 수 있어 권한 조건을 걸지 않는다.
+              MVP 제외 자산이라 스위치가 켜져 있을 때만 노출한다. 사비 결제 사실은 `금액 확인`의 결제 수단으로 남는다. */}
+          {ADVANCE_CLAIM_ENABLED && <Btn variant="secondary" size="sm" onClick={() => navigateTo(canReviewPurchase ? "FIN-ADV-01B" : "FIN-ADV-01")}><BarChart2 className="w-3.5 h-3.5" /> 사비 선지출</Btn>}
           {canReviewPurchase && EVIDENCE_STAGE_ENABLED && <Btn variant="secondary" size="sm" onClick={() => navigateTo("FIN-EVID-01")}><Clipboard className="w-3.5 h-3.5" /> 증빙 정리</Btn>}
           {canCreateRequest && <Btn variant="primary" size="sm" onClick={() => navigateTo("FIN-REQ-01B")}><Plus className="w-3.5 h-3.5" /> 새 구매 요청</Btn>}
         </>
@@ -13557,7 +13585,7 @@ function EVTFIN01() {
             if (fp === "주문 취소 요청 확인") return [qbtn("취소 확정 · 결제 후", () => execConfirmCancel(setPurchaseRequests, request.id, item, execution.id, true), "red"), qbtn("취소 확정 · 결제 전", () => execConfirmCancel(setPurchaseRequests, request.id, item, execution.id, false), "gray"), qbtn("취소 불성립", () => execRejectCancel(setPurchaseRequests, request.id, item, execution.id), "gray")];
             if (fp === "환불 대기") return [qbtn("환불 자료 확보", () => execMarkRefundDocsReady(setPurchaseRequests, request.id, item, execution.id), "gray")];
             if (fp === "환불 확인") return (["전액 환불", "일부 환불", "환불 없음"] as RefundResult[]).map(res => qbtn(`환불 확정 · ${res}`, () => execConfirmRefund(setPurchaseRequests, request.id, item, execution.id, res), "gray"));
-            if (fp === "금액 확인") return [<SettleAmountPanel key="settle" expected={execAmountOf(item, execution)} onSettle={amount => { setQuickCard(null); execSettleAmount(setPurchaseRequests, request.id, item, execution.id, amount); }} />];
+            if (fp === "금액 확인") return [<SettleAmountPanel key="settle" expected={execAmountOf(item, execution)} onSettle={(amount, source) => { setQuickCard(null); execSettleAmount(setPurchaseRequests, request.id, item, execution.id, amount, source); }} />];
             if (EVIDENCE_STAGE_ENABLED && (fp === "증빙 필요" || fp === "증빙 정리 중")) return [qbtn("증빙 처리하기", () => { setSelectedPurchaseRequestId(request.id); navigateTo("FIN-EVID-01"); })];
             if (fp === "재주문 판단") return [qbtn("재주문", () => execReorder(setPurchaseRequests, request.id, item, execution.id)), qbtn("재주문 안 함", () => execDeclineReorder(setPurchaseRequests, request.id, item, execution.id), "gray")];
             return [];
@@ -13584,6 +13612,8 @@ function EVTFIN01() {
                   </div>
                   <p className="text-xs font-bold text-gray-800 leading-tight">{item.name}{execution && execSeq(item, execution) && <span className="ml-1 inline-flex items-center justify-center w-4 h-4 rounded-full bg-slate-200 text-slate-600 text-[9px] font-bold align-middle">{execSeq(item, execution)}</span>}{execution?.quantity != null && execution.quantity !== item.quantity && <span className="ml-1 text-[10px] font-semibold text-blue-600">{execution.quantity}{item.unit}</span>}{execution?.reorderOfExecutionId && <span className="ml-1.5 text-[9px] font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded px-1 py-0.5 align-middle">재주문</span>}</p>
                   {!inStack && <p className="text-[10px] text-gray-400 mt-0.5 line-clamp-1"><span className="text-indigo-500 font-semibold">📦 {request.id}</span> · {request.title}</p>}
+                  {/* 확정된 실지출과 결제 수단. 종결 카드가 "얼마를 누구 돈으로 썼나"를 보드에서 바로 답한다. */}
+                  {execution?.paymentSource && <p className="text-[10px] text-gray-500 mt-1">{execution.actualAmount != null && <span className="font-mono font-semibold text-gray-700">{execution.actualAmount.toLocaleString()}원</span>} <span className="text-gray-400">·</span> {execution.paymentSource}</p>}
                   {showBottom && (
                     <div className="mt-2 pt-2 border-t border-gray-50 flex items-center justify-between gap-2">
                       {showStatus ? <Chip label={generalProgress} variant={progressVariant(generalProgress)} /> : <span />}
@@ -16163,7 +16193,7 @@ function FINPROC01() {
                       <td className="px-6 py-3 text-gray-500 text-[11px]">{EVIDENCE_STAGE_ENABLED
                         ? ex.evidenceStatus
                         : ex.actualAmount != null
-                          ? <span className="font-mono text-gray-700">{ex.actualAmount.toLocaleString()}원</span>
+                          ? <span className="flex flex-col"><span className="font-mono text-gray-700">{ex.actualAmount.toLocaleString()}원</span>{ex.paymentSource && <span className="text-[9px] text-gray-400">{ex.paymentSource}</span>}</span>
                           : <span className="text-gray-400">미확정</span>}</td>
                       <td className="px-6 py-3 text-right">
                         <div className="flex items-center justify-end gap-1.5 flex-wrap">
@@ -16194,7 +16224,7 @@ function FINPROC01() {
                           {ex.receiptIssue && <span className="text-[10px] text-amber-600 font-semibold">수령 문제</span>}
                           {ex.returned && <span className="text-[10px] text-purple-600 font-semibold">반환</span>}
                           {/* 칸반 팝오버와 같은 액션을 상세 뷰에도 둔다. 여기에만 없으면 상세보기로 온 카드가 종결되지 않는다. */}
-                          {stage === "금액 확인" && <SettleAmountPanel expected={execAmountOf(it, ex)} onSettle={amount => execSettleAmount(setPurchaseRequests, request.id, it, ex.id, amount)} />}
+                          {stage === "금액 확인" && <SettleAmountPanel expected={execAmountOf(it, ex)} onSettle={(amount, source) => execSettleAmount(setPurchaseRequests, request.id, it, ex.id, amount, source)} />}
                           {EVIDENCE_STAGE_ENABLED && ex.evidenceStatus === "증빙 필요" && <span className="text-[10px] text-green-600 font-semibold">증빙 필요</span>}
                         </div>
                       </td>
