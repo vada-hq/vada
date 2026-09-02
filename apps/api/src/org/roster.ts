@@ -9,7 +9,7 @@ import {
   rosterUpdates,
   students,
 } from '../db/schema.ts'
-import { moment } from '../time.ts'
+import { day, moment } from '../time.ts'
 
 // 학생 명단(ORG-07A)과 그 곁의 셋.
 //
@@ -275,4 +275,47 @@ export async function orgDepartmentOptions(
     .where(eq(departments.orgId, orgId))
     .orderBy(asc(departments.sortOrder), asc(departments.name))
   return rows.map((row) => ({ value: row.id, label: row.name }))
+}
+
+/**
+ * 학생회비를 걷는 학기.
+ *
+ * **운영 연도가 정한다.** 명세가 목록을 들 수 없다고 적은 자리다 — 학기는 하나씩
+ * 지나가고, 지나갈 때마다 명세에 박아 둔 목록이 틀린다. 그래서 표가 답한다.
+ *
+ * **표를 새로 만들지 않았다.** 학기는 학생회가 등록하는 물건이 아니라 운영 연도에서
+ * 나오는 것이다(한 해에 두 학기다). 표를 두면 그 표를 채우는 화면이 또 있어야 하고,
+ * 그 화면은 명세에 없다 — 없는 화면을 전제한 표는 지어낸 것이다.
+ *
+ * **남의 대의 학기는 없다.** 지난 대가 걷은 학기를 이 대가 올릴 수 있게 두면 같은
+ * 학기의 납부자가 두 대에 걸쳐 두 벌이 된다. 골라야 할 것은 늘 이 대의 두 학기다.
+ *
+ * 값과 글을 가른다(`2026-1` · `2026년 1학기`). 글을 값으로 쓰면 말을 다듬는 날 이미
+ * 올라간 명단들이 어느 학기의 것인지 모르게 된다 — 부서 목록이 이름 대신 id를 주는
+ * 것과 같은 까닭이다.
+ */
+export async function duesTermOptions(
+  db: Db,
+  orgId: string,
+): Promise<Array<{ value: string; label: string }>> {
+  const rows = await db
+    .select({ term: organizations.term, createdAt: organizations.createdAt })
+    .from(organizations)
+    .where(eq(organizations.id, orgId))
+    .limit(1)
+  const row = rows[0]
+  if (row === undefined) return []
+
+  // 운영 연도 열이 생기기 전에 만들어진 학생회가 있다. 빈 목록을 주면 그 학생회는
+  // 명단을 영영 못 올린다 — 만들어진 해로 대신한다.
+  //
+  // **해는 시간대가 정한다.** `getFullYear()`는 그 기계의 시간대라, 한국 1월 1일 새벽에
+  // 만들어진 학생회가 UTC로 도는 서버에서는 지난해 것이 된다.
+  const named = (row.term ?? '').trim()
+  const year = /^\d{4}$/.test(named) ? named : day(row.createdAt).slice(0, 4)
+
+  return [
+    { value: `${year}-1`, label: `${year}년 1학기` },
+    { value: `${year}-2`, label: `${year}년 2학기` },
+  ]
 }

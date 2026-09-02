@@ -26,6 +26,7 @@ import {
 import { currentInvite, regenerateInvite, type InviteSettings } from './org/invite.ts'
 import {
   areaSummaries,
+  duesTermOptions,
   orgDepartmentOptions,
   roster,
   rosterPaging,
@@ -278,6 +279,9 @@ export function createApp(deps: Deps) {
     'org.areaSummaries': async (c, d) => areaSummaries(d.db, orgOf(c)),
     // **조직도가 읽는 자리와 다른 자리다.** 저기는 나무를 주고 여기는 값과 글만 준다.
     'org.departments.options': async (c, d) => orgDepartmentOptions(d.db, orgOf(c)),
+    // **학기 표는 없다.** 운영 연도에서 나오는 것이라, 표를 두면 그 표를 채우는
+    // 화면이 또 있어야 하는데 그 화면이 명세에 없다.
+    'org.duesTerms.options': async (c, d) => duesTermOptions(d.db, orgOf(c)),
 
     // ── 들어오는 자리 (SIGN-IN) ────────────────────────────────────────────
     //

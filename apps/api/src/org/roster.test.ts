@@ -78,9 +78,12 @@ beforeAll(async () => {
   close = fresh.close
 
   await db.insert(organizations).values([
-    { id: 'ORG-01', name: '제12대 학생회', repSchoolId: 'SCH-HYU-ERICA', repCollegeId: 'COL-HYU-ERICA-SW' },
+    { id: 'ORG-01', name: '제12대 학생회', term: '2026', repSchoolId: 'SCH-HYU-ERICA', repCollegeId: 'COL-HYU-ERICA-SW' },
     // **옆 학생회를 하나 더 둔다.** 울타리를 재려면 넘어갈 담이 있어야 한다.
-    { id: 'ORG-02', name: '옆 학생회' },
+    //
+    // 운영 연도를 안 적어 둔 학생회이기도 하다 — 그 열이 생기기 전에 만들어진
+    // 학생회가 실제로 있고, 그때 학기 목록이 무엇을 답하는지를 이 줄이 잰다.
+    { id: 'ORG-02', name: '옆 학생회', createdAt: new Date('2024-03-02T09:00:00+09:00') },
   ])
   await db.insert(departments).values([
     { id: 'D-01', orgId: 'ORG-01', name: '기획부' },
@@ -228,5 +231,39 @@ describe('고르는 부서 목록', () => {
       await harness().request('/api/org/departments/options')
     ).json()) as Array<{ value: string; label: string }>
     expect(found.find((row) => row.label === '기획부')!.value).toBe('D-01')
+  })
+})
+
+describe('학생회비를 걷는 학기', () => {
+  const terms = async (who = viewer()) =>
+    (await (await harness(who).request('/api/org/dues-terms')).json()) as Array<{
+      value: string
+      label: string
+    }>
+
+  // **운영 연도가 정한다.** 명세가 목록을 들 수 없다고 적은 까닭이 이것이다 —
+  // 학기는 하나씩 지나가고, 지나갈 때마다 명세에 적힌 목록이 틀린다.
+  it('운영 연도의 두 학기를 준다', async () => {
+    expect((await terms()).map((row) => row.label)).toEqual(['2026년 1학기', '2026년 2학기'])
+  })
+
+  // 값은 글이 아니다. '2026년 1학기'를 값으로 두면 글을 다듬는 날 이미 올라간
+  // 명단들이 어느 학기의 것인지 모르게 된다.
+  it('값은 글이 아니라 학기다', async () => {
+    expect((await terms()).map((row) => row.value)).toEqual(['2026-1', '2026-2'])
+  })
+
+  // **남의 대의 학기는 없다.** 지난 대의 명단을 이 대의 이름으로 올리게 두면
+  // 그 학기의 납부자가 두 대에 걸쳐 두 벌이 된다.
+  it('운영 연도 밖의 학기는 고를 수 없다', async () => {
+    const found = await terms()
+    expect(found.some((row) => row.value.startsWith('2025'))).toBe(false)
+    expect(found.some((row) => row.value.startsWith('2027'))).toBe(false)
+  })
+
+  // 운영 연도 열이 생기기 전에 만들어진 학생회가 있다. 빈 목록을 주면 그 학생회는
+  // 명단을 영영 못 올린다 — 만들어진 해로 대신한다.
+  it('운영 연도가 없으면 만들어진 해로 대신한다', async () => {
+    expect((await terms(viewer('ORG-02'))).map((row) => row.value)).toEqual(['2024-1', '2024-2'])
   })
 })

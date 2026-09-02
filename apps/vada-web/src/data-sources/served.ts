@@ -53,6 +53,9 @@ export const SERVED: readonly string[] = [
   'org.studentPaging',
   'org.rosterScope',
   'org.areaSummaries',
+  // 학생회비 명단을 올릴 때 고르는 학기(ORG-07C). **표가 아니라 운영 연도에서 온다** —
+  // 명세가 목록을 들 수 없다고 적어 둔 자리다.
+  'org.duesTerms',
 
   // **조직 보기(ORG-03A · ORG-04 · ORG-04B · ORG-07A).** 같은 저장소를 보는 이웃들이
   // 개발용 응답을 그리고 있었다 — 역할 표만 진짜였다. 서버는 이 자리들을 이미 답한다.
