@@ -1,0 +1,183 @@
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { render, screen, waitFor } from '@testing-library/react'
+import { createApp } from '../../../api/src/app.ts'
+import { freshDb } from '../../../api/src/db/testing.ts'
+import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
+import { inMemoryAttempts } from '../../../api/src/idempotency.ts'
+import { users } from '../../../api/src/db/schema.ts'
+import { viewerLookup } from '../../../api/src/auth/viewer.ts'
+import { ScreenRouter } from '../screens/ScreenRouter'
+import { fetchOptions } from '../option-sources/catalog'
+import { useServer } from './server'
+
+// **학생회에 들어오는 길을 끝까지 뚫는다.**
+//
+// 한 사람이 학생회를 만들고, **다른 사람이 그 초대 코드로 그 학생회를 본다.**
+// 그림 → 명세 → 계약 → 서버 → 저장소가 한 줄로 이어지는지가 이 검사의 전부다.
+//
+// 앞선 검사(ORG-04)는 이미 저장소에 든 것을 읽기만 했다. 여기서는 **쓰고 나서 읽는다** —
+// 만든 값이 그대로 다른 사람에게 보이지 않으면 흐름이 이어진 것이 아니다.
+
+let restore: () => void
+let close: () => Promise<void>
+let request: (path: string, init?: RequestInit) => Promise<Response>
+// 누가 부르는가는 검사가 갈아 끼운다. 한 사람이 만들고 다른 사람이 본다.
+//
+// **소속은 손으로 짜지 않는다.** 진짜 조회(`viewerLookup`)를 그대로 쓰므로, 학생회를
+// 만든 뒤 그 사람에게 소속이 실제로 생겼는지까지 이 검사가 재게 된다.
+let signedInAs: string | null = null
+let made = 0
+
+/** ORG-01과 ORG-02가 함께 채운 `orgCreationDraft`. */
+const DRAFT = {
+  orgType: 'college',
+  repSchool: 'SCH-HYU-ERICA',
+  repCollege: 'COL-HYU-ERICA-SW',
+  orgName: '제12대 소프트웨어융합대학 학생회',
+  operatingYear: '2026',
+  setupMode: 'basic',
+  departments: [{ name: '기획부' }, { name: '홍보부' }],
+}
+
+const CHAIR = 'U-01'
+const NEWCOMER = 'U-02'
+
+beforeAll(async () => {
+  const fresh = await freshDb()
+  close = fresh.close
+
+  // 만드는 사람이 첫 구성원(회장)이 되므로 그 사람이 저장소에 있어야 한다.
+  await fresh.db.insert(users).values([
+    { id: 'U-01', email: 'chair@example.ac.kr', name: '김바다' },
+    { id: 'U-02', email: 'new@example.ac.kr', name: '박해랑' },
+  ])
+
+  const lookup = viewerLookup(fresh.db as never)
+  const app = createApp({
+    audit: { async write() {} },
+    db: fresh.db as never,
+    who: async () => (signedInAs === null ? null : lookup.who({ userId: signedInAs })),
+    lookups: {
+      isEventStaff: async () => false,
+      isEventStaffManager: async () => false,
+      isMeetingHost: async () => false,
+      isMeetingCreator: async () => false,
+    },
+    attempts: inMemoryAttempts(),
+    counter: inMemoryCounter(),
+    invite: {
+      linkBase: 'https://vada.app/join',
+      now: () => new Date('2026-09-01T18:30:00+09:00'),
+      newCode: () => 'AB12CD34',
+    },
+    // **부를 때마다 다른 것을 준다.** 하나로 고정하면 부서 둘이 같은 열쇠로 들어간다.
+    newId: () => `X-${(made += 1)}`,
+  })
+  request = async (path, init) => app.request(path, init)
+
+  // **학교 목록도 로그인이 필요하다**(`signedIn`). 부르는 사람을 먼저 정한다.
+  signedInAs = CHAIR
+  restore = useServer({ baseUrl: 'http://server', fetch: async (input) => request(String(input)) })
+}, 60_000)
+
+afterAll(async () => {
+  restore()
+  await close()
+})
+
+describe('학교의 편제가 저장소에서 온다', () => {
+  // **옮김 파일이 심은 씨앗이다.** 여기서 한양대가 나오면 `npm run db:migrate`만 도는
+  // 실서비스에서도 나온다 — 검사용 SQL과 실서비스 옮김 파일이 같은 것이기 때문이다.
+  it('학교를 검색하면 저장소가 답한다', async () => {
+    expect(await fetchOptions('education.schools', {}, '한양')).toEqual([
+      { value: 'SCH-HYU-ERICA', label: '한양대학교 ERICA' },
+    ])
+  })
+
+  it('고른 학교의 단과대학만 온다', async () => {
+    expect(await fetchOptions('education.colleges', { schoolId: 'SCH-HYU-ERICA' })).toEqual([
+      { value: 'COL-HYU-ERICA-SW', label: '소프트웨어융합대학' },
+    ])
+  })
+
+  it('고른 단과대학의 학부·학과가 온다', async () => {
+    const found = await fetchOptions('education.departments', {
+      schoolId: 'SCH-HYU-ERICA',
+      collegeId: 'COL-HYU-ERICA-SW',
+    })
+    expect(found.length).toBeGreaterThan(0)
+    expect(found.map((option) => option.label)).toContain('ICT융합학부')
+  })
+
+  // 개발용 응답에는 없는 학교가 있었다. 그것이 나오면 서버를 안 거친 것이다.
+  it('개발용 응답의 학교는 나오지 않는다', async () => {
+    expect(await fetchOptions('education.schools', {}, '서울')).toEqual([])
+  })
+})
+
+describe('만든 학생회를 다른 사람이 초대로 본다', () => {
+  let code: string
+
+  it('회장이 학생회를 만든다', async () => {
+    signedInAs = CHAIR
+    const created = await request('/api/orgs', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'Idempotency-Key': 'KEY-01' },
+      body: JSON.stringify(DRAFT),
+    })
+    expect(created.status).toBe(200)
+
+    // **만든 사람에게 소속이 생겼다.** 다음 줄이 회장 권한을 요구하므로, 여기가
+    // 통과하는 것 자체가 '만드는 사람이 첫 구성원(회장)'이 지켜졌다는 증거다.
+    // 되돌릴 수 없는 자리라 계약이 멱등 키를 요구한다 — 두 번 눌러 이미 나눠 준
+    // 코드를 두 번 죽이지 않게 한다.
+    const mine = await request('/api/org/invite', {
+      method: 'POST',
+      headers: { 'Idempotency-Key': 'KEY-INVITE' },
+    })
+    expect(mine.status).toBe(200)
+    const current = await (await request('/api/org/invite')).json()
+    code = current.code as string
+    expect(code).toBe('AB12CD34')
+  })
+
+  // **여기가 고리가 닫히는 자리다.** 아직 아무 학생회에도 없는 다른 사람이,
+  // 코드만 들고 와서 그 학생회를 본다.
+  it('INV-01이 그 학생회를 그린다', async () => {
+    signedInAs = NEWCOMER
+    render(
+      <ScreenRouter
+        screenId="INV-01"
+        screenParams={{ inviteCode: code }}
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={() => {}}
+      />,
+    )
+
+    await waitFor(() =>
+      expect(screen.getByText('제12대 소프트웨어융합대학 학생회')).toBeInTheDocument(),
+    )
+    // **서버가 완성된 글을 준다.** 화면이 학교와 단과대를 이어 붙이지 않는다.
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).toContain('한양대학교 ERICA · 소프트웨어융합대학')
+    expect(drawn).toContain('단과대 학생회')
+    expect(drawn).toContain('2026년')
+  })
+
+  it('없는 코드면 카탈로그의 글을 그린다', async () => {
+    signedInAs = NEWCOMER
+    render(
+      <ScreenRouter
+        screenId="INV-01"
+        screenParams={{ inviteCode: 'NOPE0000' }}
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={() => {}}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByText('학생회를 불러오지 못했습니다')).toBeInTheDocument(),
+    )
+  })
+})

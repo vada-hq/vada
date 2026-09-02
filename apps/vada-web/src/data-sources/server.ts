@@ -48,6 +48,16 @@ export function servingFromServer(): boolean {
   return server !== null
 }
 
+/**
+ * 지금 붙어 있는 서버.
+ *
+ * **선택지 출처도 같은 서버를 쓴다.** 두 벌을 두면 하나만 켜진 상태가 생기고,
+ * 그러면 같은 화면의 표는 진짜인데 고르는 목록은 개발용 응답인 채로 그려진다.
+ */
+export function currentServer(): Server | null {
+  return server
+}
+
 export class NeedsParams extends Error {}
 
 /** 어느 출처를 어떤 인자로 부르는가. */
@@ -78,7 +88,7 @@ function slotOf(call: SourceCall): string {
  * 경로에 `{이름}`으로 박힌 인자는 그 자리에 넣고, 나머지는 조회 인자로 붙인다 —
  * 계약을 뽑아낼 때 서버가 나눈 것과 같은 규칙이다(`parametersOf`).
  */
-function urlOf(path: string, params: Record<string, string>): string {
+export function urlOf(path: string, params: Record<string, string>): string {
   const left = { ...params }
   const filled = path.replace(/\{([^}]+)\}/g, (_, name: string) => {
     const value = left[name] ?? ''
@@ -160,3 +170,17 @@ export function browserFetch(input: RequestInfo | URL, init?: RequestInit): Prom
   return fetch(input, { ...init, credentials: 'include' })
 }
 
+/**
+ * 이 브라우저를 서버에 붙인다. **앱이 켜질 때 한 번 부른다**(`main.tsx`).
+ *
+ * 오랫동안 이 자리가 없었다. `useServer`를 부르는 곳이 검사뿐이어서, 서버를 짓고
+ * 배포하고 로그인까지 되는데도 **화면이 그리는 값은 전부 개발용 응답이었다** —
+ * 서버가 답하는 자리가 늘어도 사람이 보는 것은 그대로였고, 화면이 멀쩡히 그려지니
+ * 아무도 몰랐다.
+ *
+ * 무엇이 진짜로 서버에서 오는지는 `served.ts`가 든다. 여기서 켜는 것은 길뿐이고,
+ * 그 길로 갈 출처는 그 목록이 정한다.
+ */
+export function startServing(): () => void {
+  return useServer({ baseUrl: apiBaseUrl(), fetch: browserFetch })
+}

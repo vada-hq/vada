@@ -10,7 +10,7 @@
     "e2e": "playwright test",
     "lint": "oxlint",
     "preview": "vite preview",
-    "test:server": "vitest run src/data-sources/end-to-end.server.test.tsx"
+    "test:server": "vitest run server.test"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",

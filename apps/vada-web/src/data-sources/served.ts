@@ -38,6 +38,18 @@ export const SERVED: readonly string[] = [
 
   // 인자를 넘겨 부르는 길이 열린 것을 재는 자리(M3).
   'event.summary',
+
+  // **들어오기 흐름(ONB-01 · ORG-01 · ORG-02 · INV-00 · INV-01).** 학생회에 들어오는
+  // 길이 통째로 서버에서 온다 — 학교를 검색하고, 단과대와 학부를 좁히고, 초대 코드가
+  // 어느 학생회를 가리키는지 확인하는 데까지.
+  //
+  // 앞의 셋은 선택지 출처다. 그전까지 이 목록에는 데이터 출처만 있었는데, 그동안
+  // **고르는 목록은 전부 개발용 응답이었다** — 표가 진짜여도 고를 것이 가짜면
+  // 사람은 없는 학교를 고르고 저장할 때 터진다.
+  'education.schools',
+  'education.colleges',
+  'education.departments',
+  'org.invitedOrganization',
 ]
 
 const served = new Set(SERVED)

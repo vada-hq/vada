@@ -46,6 +46,10 @@ if (build.status !== 0) process.exit(build.status ?? 1)
 //
 // 진짜 Postgres를 띄우므로 빠른 게이트의 시간 예산을 먹는데, 성질을 보면 그것은
 // 단위 검사가 아니라 통합이다. 지우는 것이 아니라 옮긴 것이라 재는 것은 그대로다.
+//
+// **파일 이름이 아니라 이름 조각으로 집는다**(`vitest run server.test`). 한동안
+// 파일 하나를 이름으로 박아 두었는데, 그러면 새로 쓴 서버 검사는 초록도 붉음도
+// 아닌 채로 아무 데서도 안 돈다 — 그것이 가장 조용한 실패다.
 const server = run('npm', ['run', 'test:server'])
 if (server.status !== 0) process.exit(server.status ?? 1)
 
