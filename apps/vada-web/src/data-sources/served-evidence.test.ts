@@ -32,11 +32,16 @@ function integrationSource(): string {
     .join('\n')
 }
 
+/** 정규식에서 점은 아무 글자나 뜻한다. 열쇠의 점은 진짜 점이다. */
+const escaped = (key: string) => key.replace(/[.]/g, String.raw`\.`)
+
 describe('진짜로 보내는 자리마다 보내 본 증거가 있다', () => {
   it('목록에 오른 변이는 통합 검사가 그 길로 보낸다', () => {
     const source = integrationSource()
+    // **줄바꿈을 넘어서 본다.** 인자가 길면 열쇠가 다음 줄로 내려간다 — 붙어 있는
+    // 것만 찾으면 증거가 있는데 없다고 말한다(처음에 그랬다).
     const unproven = SERVED_MUTATIONS.filter(
-      (key) => !source.includes(`runMutation('${key}'`),
+      (key) => !new RegExp(String.raw`runMutation\(\s*'` + escaped(key) + `'`).test(source),
     )
     expect(unproven).toEqual([])
   })

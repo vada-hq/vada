@@ -31,6 +31,21 @@ export const SERVED: readonly string[] = [
   // 안 넣은 배포에서 카카오 단추를 그리면 눌러도 안 된다.
   'auth.ways',
 
+  // **밖에서 오는 사람(EXT-01A · EXT-01B · EXT-02A · EXT-02B · EXT-02C).**
+  //
+  // 로그인이 없는 흐름이다. 참석 QR을 찍거나 설문 링크를 받은 학생이 여는 자리이고,
+  // **링크가 실어 온 토큰 하나가 유일한 벽이다** — 세션이 한 번도 없다.
+  //
+  // 고르는 목록이 그 학생회가 올린 명단에서 온다. 화면이 지어내면 명단에 없는 학과를
+  // 고른 사람이 생기고, 그 사람은 참가 자격 판정에서 걸린다.
+  'attendance.checkInForm',
+  'attendance.checkInResult',
+  'survey.applyForm',
+  'survey.applyResult',
+  'survey.linkState',
+  'survey.colleges',
+  'survey.departments',
+
   // **셸이 읽는 둘.** 학생회 이름과 보는 사람은 화면의 요소가 아니라 셸의 것이고,
   // 서버가 이미 답한다. 이 둘이 가짜인 동안은 로그인해도 남의 학생회 이름이 보인다.
   'shell.organization',
@@ -102,6 +117,9 @@ export function unknownServedKeys(): string[] {
  */
 export const SERVED_MUTATIONS: readonly string[] = [
   // **들어오기 흐름의 쓰기 둘.** 학생회를 만드는 것과, 초대 코드가 맞는지 묻는 것.
+  // 밖에서 오는 사람이 내는 둘. 참석은 QR이, 신청은 설문 링크가 자리를 정한다.
+  'attendance.checkIn',
+  'survey.apply',
   // 들어오는 길 둘. 누르면 제공자로 떠나고, 돌아올 자리는 서버가 붙인다.
   'auth.signInGoogle',
   'auth.signInKakao',
