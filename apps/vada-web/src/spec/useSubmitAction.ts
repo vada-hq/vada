@@ -70,7 +70,15 @@ export interface SubmitActionState {
   errorMessage: string | null
   /** 보내는 중이면 카탈로그의 submitting 문구, 아니면 원래 이름. */
   labelOf: (action: SubmitAction, label: string) => string
-  run: (action: SubmitAction, options: SubmitRunOptions) => Promise<void>
+  /**
+   * 보낸다. **서버의 답을 돌려준다** — 실패했으면 `undefined`다.
+   *
+   * 보내고 나서야 아는 값이 있고(만든 것의 id), 명세가 가리키지 못하는 자리도 있다.
+   * 로그인이 그렇다: 서버가 제공자로 가는 주소를 주는데 그 주소로 **브라우저가 떠나는**
+   * 것은 화면 이동이 아니라서 `onSuccess.navigate`가 담지 못한다. 그 답을 버리면
+   * 아무 일도 안 일어나고 화면은 조용하다 — 실제로 그랬다.
+   */
+  run: (action: SubmitAction, options: SubmitRunOptions) => Promise<DataRow | undefined>
 }
 
 export function useSubmitAction(): SubmitActionState {
@@ -121,7 +129,7 @@ export function useSubmitAction(): SubmitActionState {
       // 뜻하는데, 이것은 아직 만들지 않은 것이다 — 사람이 새로고침하며 기다리게 하지 않는다.
       setNotServed(thrown instanceof NotServedYet)
       setPhase('error')
-      return
+      return undefined
     }
 
     setPhase('idle')
@@ -134,7 +142,7 @@ export function useSubmitAction(): SubmitActionState {
         action.onSuccess.navigate,
         resolveParams(action.onSuccess.params, { ...(options.paramSources ?? {}), result }),
       )
-      return
+      return result
     }
     // 갈 곳이 아직 정해지지 않았다고 명세가 적어 두었으면 그 글을 내놓는다.
     // 적어만 두고 아무도 안 보여주면 명세에만 있는 사실이 된다 — 보내고 나서
@@ -142,6 +150,7 @@ export function useSubmitAction(): SubmitActionState {
     if (action.onSuccess.note !== undefined) {
       setPendingNote(action.onSuccess.note)
     }
+    return result
   }
 
   return {

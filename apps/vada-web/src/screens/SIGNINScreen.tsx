@@ -38,7 +38,15 @@ export function SIGNINScreen() {
               onClick={() => {
                 // **보내는 것이 없다.** 어느 길인지는 자리가 정하고(계약의 path),
                 // 돌아올 자리는 서버가 붙인다 — 화면이 만들면 자기 자신을 넘긴다.
-                void submitAction.run(action, { payload: {}, onNavigate: () => {} })
+                void submitAction
+                  .run(action, { payload: {}, onNavigate: () => {} })
+                  .then((answer) => {
+                    // **그리고 떠난다.** 이 앱의 화면으로 가는 것이 아니라 제공자에게
+                    // 가는 것이라 `onSuccess.navigate`가 담지 못한다. 답을 버리면 아무
+                    // 일도 안 일어나고 화면은 조용하다 — 실제로 그랬다(2026-09-02).
+                    const url = answer?.url
+                    if (typeof url === 'string') window.location.href = url
+                  })
               }}
               className="flex w-full items-center gap-4 rounded-md border border-gray-200 bg-white p-4 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none disabled:opacity-60"
             >
