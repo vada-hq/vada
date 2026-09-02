@@ -46,6 +46,13 @@ export const SERVED: readonly string[] = [
   'survey.colleges',
   'survey.departments',
 
+  // **학생 명단(ORG-07A · ORG-00).** 거르는 것도 세는 것도 서버가 한다 — 천 명짜리
+  // 명단을 화면이 들고 거르면 '몇 명인가'의 답이 화면마다 갈린다.
+  'org.students',
+  'org.studentPaging',
+  'org.rosterScope',
+  'org.areaSummaries',
+
   // **조직 보기(ORG-03A · ORG-04 · ORG-04B · ORG-07A).** 같은 저장소를 보는 이웃들이
   // 개발용 응답을 그리고 있었다 — 역할 표만 진짜였다. 서버는 이 자리들을 이미 답한다.
   //

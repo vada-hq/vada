@@ -10,6 +10,7 @@ import {
   invites,
   members,
   organizations,
+  students,
   users,
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
@@ -55,6 +56,12 @@ beforeAll(async () => {
     { id: 'M-01', orgId: 'ORG-01', name: '김바다', role: 'chair', departmentId: 'D-01' },
     { id: 'M-11', orgId: 'ORG-01', name: '이수현', role: 'head', departmentId: 'D-02' },
     { id: 'M-03', orgId: 'ORG-01', name: '박해랑', role: 'member', departmentId: 'D-01', userId: 'U-01' },
+  ])
+
+  // 학생 명단은 구성원과 다른 표다 — 단과대학 학생 전체이고 행사 참가 확인에 쓴다.
+  await fresh.db.insert(students).values([
+    { id: 'S-01', orgId: 'ORG-01', name: '최바람', studentNumber: '2021567890', college: '소프트웨어융합대학', department: '컴퓨터학부', grade: '3학년', duesStatus: 'check' },
+    { id: 'S-02', orgId: 'ORG-01', name: '강별', studentNumber: '2024678901', college: '소프트웨어융합대학', department: '컴퓨터학부', grade: '1학년', duesStatus: 'paid' },
   ])
 
   // **초대는 서버가 만든 값이다.** 화면이 지어내면 그 코드로는 아무도 못 들어온다.
@@ -297,5 +304,35 @@ describe('조직 보기의 이웃 화면들', () => {
     await expect(
       runMutation('org.changeRole', { baseRole: 'head' }, { memberId: 'M-11' }),
     ).rejects.toThrow()
+  })
+})
+
+// **학생 명단이 저장소에서 온다.** 거르는 것도 세는 것도 서버가 한다.
+describe('학생 명단', () => {
+  it('명단이 저장소에서 오고 상태가 완성된 글이다', async () => {
+    seenAs = 'member'
+    await loadSources([{ key: 'org.students', params: {} }])
+    const rows = readListSource('org.students')
+    const drawn = JSON.stringify(rows)
+    // 개발용 응답의 학번(2022123456)이 아니라 씨앗의 학번이 온다.
+    expect(drawn).toContain('2021567890')
+    expect(drawn).toContain('확인 필요')
+  })
+
+  // **총 건수는 거른 뒤의 것이다.** 화면이 세지 않고 서버가 말한다.
+  it('총 건수를 서버가 완성된 문구로 준다', async () => {
+    await loadSources([{ key: 'org.studentPaging', params: {} }])
+    expect(readObjectSource('org.studentPaging').totalNote).toBe('총 2명')
+  })
+
+  // **범위는 조직 설정이 정한다.** 이 학생회는 대표 범위를 안 정했으므로 그렇게 말한다.
+  it('명단의 범위를 서버가 말한다', async () => {
+    await loadSources([{ key: 'org.rosterScope', params: {} }])
+    expect(readObjectSource('org.rosterScope').path).toBe('대표 범위 미등록')
+  })
+
+  it('조직 관리 영역의 한 줄이 셈에서 온다', async () => {
+    await loadSources([{ key: 'org.areaSummaries', params: {} }])
+    expect(readObjectSource('org.areaSummaries').students).toContain('학생 2명')
   })
 })

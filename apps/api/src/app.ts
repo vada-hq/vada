@@ -24,6 +24,7 @@ import {
   schoolOptions,
 } from './org/education.ts'
 import { currentInvite, regenerateInvite, type InviteSettings } from './org/invite.ts'
+import { areaSummaries, roster, rosterPaging, rosterScope } from './org/roster.ts'
 import { createOrg, invitedOrganization, verifyInviteCode } from './org/joining.ts'
 import { changeRole, roleAssignmentOf } from './org/role-change.ts'
 import { checkIn, checkInForm, checkInResult } from './public/attendance.ts'
@@ -249,6 +250,26 @@ export function createApp(deps: Deps) {
       if (row === null) throw new NotFound('이 학생회의 구성원이 아닙니다')
       return row
     },
+
+    // ── 학생 명단 (ORG-07A · ORG-00) ───────────────────────────────────────
+    //
+    // **거르는 것도 세는 것도 서버가 한다.** 천 명짜리 명단을 통째로 보내면 화면이
+    // 그것을 들고 거르게 되고, 그때부터 '몇 명인가'의 답이 화면마다 갈린다.
+    'org.students': async (c, d) =>
+      roster(d.db, orgOf(c), {
+        query: c.req.query('query'),
+        grade: c.req.query('grade'),
+        duesStatus: c.req.query('duesStatus'),
+        page: c.req.query('page'),
+      }),
+    'org.studentPaging': async (c, d) =>
+      rosterPaging(d.db, orgOf(c), {
+        query: c.req.query('query'),
+        grade: c.req.query('grade'),
+        duesStatus: c.req.query('duesStatus'),
+      }),
+    'org.rosterScope': async (c, d) => rosterScope(d.db, orgOf(c)),
+    'org.areaSummaries': async (c, d) => areaSummaries(d.db, orgOf(c)),
 
     // ── 들어오는 자리 (SIGN-IN) ────────────────────────────────────────────
     //
