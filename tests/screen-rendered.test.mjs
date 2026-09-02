@@ -11,17 +11,25 @@ import { fileURLToPath } from 'node:url'
 // 것만 돈다. 그래서 "명세는 있는데 그리는 화면이 없다"가 어느 검사에도 걸리지
 // 않았다 — 검사가 초록인 채로 아무것도 안 보는 자리가 하나 더 있었다.
 //
-// 무엇을 '그린다'고 볼 것인가. **spec/screens.ts가 그 명세를 읽는 것**이다.
-// 주소로 가는 화면은 라우터가 그 이름으로 가르고, 변형은 주소가 같아서 라우터가
-// 가르지 않는다 — 보는 사람이 가른다. 그래서 라우터의 갈래를 세면 변형이 전부
-// 빠지고, 명세를 읽는지를 세면 둘 다 잡힌다.
+// 무엇을 '그린다'고 볼 것인가. **명세가 요소를 갖는 것**이다.
+//
+// 오랫동안 'spec/screens.ts가 그 명세를 읽는가'로 셌다. 그때는 그 파일이 화면을 손으로
+// 여든 줄 적고 있어서 읽는 것이 곧 그리는 것이었다. 이제 그 파일은 폴더를 걸어 **전부**
+// 읽으므로 그 신호가 죽었다 — 읽는다는 사실이 아무것도 가르지 않는다.
+//
+// 대신 명세 자신이 답한다. **요소를 가지면 그릴 것이 있고, 없으면 바탕이 데이터로 그린다**
+// (목록이 비었을 때, 다른 사람이 볼 때). 이 규칙은 옛 여든 줄을 한 줄도 틀리지 않고 다시
+// 만들어 냈다.
+//
+// **그 화면을 실제로 그리는 코드가 있는지는 여기서 세지 않는다.** 준수 검사가 화면 여든을
+// 전부 라우터로 그려 보므로(`spec/conformance.test.tsx`), 컴포넌트가 없으면 거기서
+// 붉어진다 — 글자를 훑는 것보다 그쪽이 참말이다.
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SCREENS = join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'screens')
-const WIRING = join(repoRoot, 'apps', 'vada-web', 'src', 'spec', 'screens.ts')
 
-// 아직 그리는 화면이 없는 명세. **전부 변형이다** — 같은 주소를 보는 사람이 다를
-// 때의 그림이고, 바탕 화면이 그 갈래를 아직 갖지 않는다. 줄이 늘면 그때 봐야 한다.
+// 아직 그리는 화면이 없는 명세. **비어 있어야 한다** — 요소를 가진 화면은 준수 검사가
+// 라우터로 그려 보므로, 여기 무언가 적힌다는 것은 그 검사에서 빼 두었다는 뜻이다.
 //
 // 늘어난 적이 있는지는 이 목록의 길이가 말한다. 줄이면 지우고, 늘려야 한다면
 // 왜 늘리는지를 적는다.
@@ -52,17 +60,20 @@ function speccedScreenIds() {
   return ids
 }
 
-function wiredScreenIds() {
-  const source = readFileSync(WIRING, 'utf8')
+/** 그릴 것을 가진 화면. 준수 검사가 이것들을 라우터로 그려 본다. */
+function drawableScreenIds() {
   return new Set(
-    [...source.matchAll(/screens\/([A-Z0-9-]+)\/screen\.json/g)].map((match) => match[1]),
+    speccedScreenIds().filter((id) => {
+      const spec = JSON.parse(readFileSync(join(SCREENS, id, 'screen.json'), 'utf8'))
+      return (spec.elements ?? []).length > 0
+    }),
   )
 }
 
-test('명세된 화면은 그리는 화면이 있거나, 없다고 적혀 있다', () => {
-  const wired = wiredScreenIds()
+test('명세된 화면은 그릴 것을 갖거나, 바탕이 그리거나, 없다고 적혀 있다', () => {
+  const drawable = drawableScreenIds()
   const unlisted = speccedScreenIds().filter(
-    (id) => !wired.has(id) && !NOT_DRAWN_YET.has(id) && !readsNothing(id),
+    (id) => !drawable.has(id) && !NOT_DRAWN_YET.has(id) && !readsNothing(id),
   )
 
   assert.deepEqual(
@@ -83,22 +94,22 @@ test('그리지 않기로 적어 둔 화면은 실제로 명세가 있다', () =
 
 test('그리지 않기로 적어 둔 화면은 아직 그려지지 않는다', () => {
   // 만들고 나서 목록에서 지우지 않으면, 다음 사람이 "아직 안 만들었다"고 읽는다.
-  const wired = wiredScreenIds()
-  const done = [...NOT_DRAWN_YET].filter((id) => wired.has(id))
+  const drawable = drawableScreenIds()
+  const done = [...NOT_DRAWN_YET].filter((id) => drawable.has(id))
 
   assert.deepEqual(done, [], `이미 그리는 화면입니다. 목록에서 지우세요: ${done.join(', ')}`)
 })
 
 test('세어 둔다 — 명세 몇 개 중 몇 개가 그려지는가', () => {
   const specced = speccedScreenIds()
-  const wired = wiredScreenIds()
-  const drawn = specced.filter((id) => wired.has(id))
-  const byBase = specced.filter((id) => !wired.has(id) && readsNothing(id))
+  const drawable = drawableScreenIds()
+  const drawn = specced.filter((id) => drawable.has(id))
+  const byBase = specced.filter((id) => !drawable.has(id) && readsNothing(id))
 
   console.log(
     `\n  명세 ${specced.length}개 / 그려지는 것 ${drawn.length + byBase.length}개 = ` +
       `${(((drawn.length + byBase.length) / specced.length) * 100).toFixed(1)}%` +
-      `  (읽는 화면 ${drawn.length} · 바탕이 그리는 변형 ${byBase.length} · ` +
+      `  (그릴 것을 가진 화면 ${drawn.length} · 바탕이 그리는 변형 ${byBase.length} · ` +
       `아직 없는 것 ${NOT_DRAWN_YET.size})\n`,
   )
 

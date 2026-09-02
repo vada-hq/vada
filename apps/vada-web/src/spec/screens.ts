@@ -10,86 +10,6 @@ import type {
 import { readObjectSource } from '../data-sources/catalog'
 import { resolveParams } from './params'
 import { workspaceOf } from './workspaces'
-import onb01Json from '../../../../specs/figma/vada-wireframe/screens/ONB-01/screen.json'
-import onb02Json from '../../../../specs/figma/vada-wireframe/screens/ONB-02/screen.json'
-import org01Json from '../../../../specs/figma/vada-wireframe/screens/ORG-01/screen.json'
-import org00Json from '../../../../specs/figma/vada-wireframe/screens/ORG-00/screen.json'
-import org02Json from '../../../../specs/figma/vada-wireframe/screens/ORG-02/screen.json'
-import org03aJson from '../../../../specs/figma/vada-wireframe/screens/ORG-03A/screen.json'
-import org03bJson from '../../../../specs/figma/vada-wireframe/screens/ORG-03B/screen.json'
-import org03cJson from '../../../../specs/figma/vada-wireframe/screens/ORG-03C/screen.json'
-import org04Json from '../../../../specs/figma/vada-wireframe/screens/ORG-04/screen.json'
-import org04bJson from '../../../../specs/figma/vada-wireframe/screens/ORG-04B/screen.json'
-import org07aJson from '../../../../specs/figma/vada-wireframe/screens/ORG-07A/screen.json'
-import org07bJson from '../../../../specs/figma/vada-wireframe/screens/ORG-07B/screen.json'
-import org07cJson from '../../../../specs/figma/vada-wireframe/screens/ORG-07C/screen.json'
-import inv00Json from '../../../../specs/figma/vada-wireframe/screens/INV-00/screen.json'
-import inv01Json from '../../../../specs/figma/vada-wireframe/screens/INV-01/screen.json'
-import opsCal01Json from '../../../../specs/figma/vada-wireframe/screens/OPS-CAL-01/screen.json'
-import home01kJson from '../../../../specs/figma/vada-wireframe/screens/HOME-01K/screen.json'
-import my01Json from '../../../../specs/figma/vada-wireframe/screens/MY-01/screen.json'
-import ops00Json from '../../../../specs/figma/vada-wireframe/screens/OPS-00/screen.json'
-import task01Json from '../../../../specs/figma/vada-wireframe/screens/TASK-01/screen.json'
-import opsMeet01aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01A/screen.json'
-import opsMeet01cJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-01C/screen.json'
-import opsMeet02Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-02/screen.json'
-import opsMeet03aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03A/screen.json'
-import opsMeet03bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03B/screen.json'
-import opsMeet03cJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-03C/screen.json'
-import opsMeet04bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-04B/screen.json'
-import opsMeet05aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-05A/screen.json'
-import opsMeet05bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-05B/screen.json'
-import opsMeet06aJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-06A/screen.json'
-import opsMeet06bJson from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-06B/screen.json'
-import opsMeet07Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-07/screen.json'
-import opsMeet08Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-08/screen.json'
-import opsMeet09Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-09/screen.json'
-import opsMeetD01Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D01/screen.json'
-import opsMeetD02Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D02/screen.json'
-import opsMeetD03Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D03/screen.json'
-import opsMeetD04Json from '../../../../specs/figma/vada-wireframe/screens/OPS-MEET-D04/screen.json'
-import evt00aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00A/screen.json'
-import evt00a2Json from '../../../../specs/figma/vada-wireframe/screens/EVT-00A2/screen.json'
-import evt02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-02/screen.json'
-import evt00bJson from '../../../../specs/figma/vada-wireframe/screens/EVT-00B/screen.json'
-import evt01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-01/screen.json'
-import evt02bJson from '../../../../specs/figma/vada-wireframe/screens/EVT-02B/screen.json'
-import evt02cJson from '../../../../specs/figma/vada-wireframe/screens/EVT-02C/screen.json'
-import evt02dJson from '../../../../specs/figma/vada-wireframe/screens/EVT-02D/screen.json'
-import evt02eJson from '../../../../specs/figma/vada-wireframe/screens/EVT-02E/screen.json'
-import evt03aJson from '../../../../specs/figma/vada-wireframe/screens/EVT-03A/screen.json'
-import evt03bJson from '../../../../specs/figma/vada-wireframe/screens/EVT-03B/screen.json'
-import evt04bJson from '../../../../specs/figma/vada-wireframe/screens/EVT-04B/screen.json'
-import evtTask01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-01/screen.json'
-import evtTask02Json from '../../../../specs/figma/vada-wireframe/screens/EVT-TASK-02/screen.json'
-import evtDoc01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-DOC-01/screen.json'
-import evtMeet01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-MEET-01/screen.json'
-import evtSched01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-SCHED-01/screen.json'
-import evt04Json from '../../../../specs/figma/vada-wireframe/screens/EVT-04/screen.json'
-import evt05Json from '../../../../specs/figma/vada-wireframe/screens/EVT-05/screen.json'
-import evt05bJson from '../../../../specs/figma/vada-wireframe/screens/EVT-05B/screen.json'
-import evtFin01Json from '../../../../specs/figma/vada-wireframe/screens/EVT-FIN-01/screen.json'
-import finReq01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REQ-01/screen.json'
-import finReq02Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REQ-02/screen.json'
-import myReq01Json from '../../../../specs/figma/vada-wireframe/screens/MY-REQ-01/screen.json'
-import finSup01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-SUP-01/screen.json'
-import finRev01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-REV-01/screen.json'
-import finEvid01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-EVID-01/screen.json'
-import fin00Json from '../../../../specs/figma/vada-wireframe/screens/FIN-00/screen.json'
-import fin00bJson from '../../../../specs/figma/vada-wireframe/screens/FIN-00B/screen.json'
-import finLedger01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-LEDGER-01/screen.json'
-import finProc01Json from '../../../../specs/figma/vada-wireframe/screens/FIN-PROC-01/screen.json'
-import msg01Json from '../../../../specs/figma/vada-wireframe/screens/MSG-01/screen.json'
-import msg02Json from '../../../../specs/figma/vada-wireframe/screens/MSG-02/screen.json'
-import msg03Json from '../../../../specs/figma/vada-wireframe/screens/MSG-03/screen.json'
-import rec01Json from '../../../../specs/figma/vada-wireframe/screens/REC-01/screen.json'
-import rec02Json from '../../../../specs/figma/vada-wireframe/screens/REC-02/screen.json'
-import rec02aJson from '../../../../specs/figma/vada-wireframe/screens/REC-02A/screen.json'
-import ext01aJson from '../../../../specs/figma/vada-wireframe/screens/EXT-01A/screen.json'
-import ext01bJson from '../../../../specs/figma/vada-wireframe/screens/EXT-01B/screen.json'
-import ext02aJson from '../../../../specs/figma/vada-wireframe/screens/EXT-02A/screen.json'
-import ext02bJson from '../../../../specs/figma/vada-wireframe/screens/EXT-02B/screen.json'
-import ext02cJson from '../../../../specs/figma/vada-wireframe/screens/EXT-02C/screen.json'
 
 // 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
 // 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
@@ -107,172 +27,162 @@ export function asScreenSpec(json: unknown): ScreenSpec {
   return json as ScreenSpec
 }
 
-export const onb01 = asScreenSpec(onb01Json)
-export const onb02 = asScreenSpec(onb02Json)
-export const org01 = asScreenSpec(org01Json)
-export const org00 = asScreenSpec(org00Json)
-export const org02 = asScreenSpec(org02Json)
-export const org03a = asScreenSpec(org03aJson)
-export const org03b = asScreenSpec(org03bJson)
-export const org03c = asScreenSpec(org03cJson)
-export const org04 = asScreenSpec(org04Json)
-export const org04b = asScreenSpec(org04bJson)
-export const org07a = asScreenSpec(org07aJson)
-export const org07b = asScreenSpec(org07bJson)
-export const org07c = asScreenSpec(org07cJson)
-export const inv00 = asScreenSpec(inv00Json)
-export const inv01 = asScreenSpec(inv01Json)
-export const opsCal01 = asScreenSpec(opsCal01Json)
-export const home01k = asScreenSpec(home01kJson)
-export const my01 = asScreenSpec(my01Json)
-export const ops00 = asScreenSpec(ops00Json)
-export const task01 = asScreenSpec(task01Json)
-export const opsMeet01a = asScreenSpec(opsMeet01aJson)
-export const opsMeet01c = asScreenSpec(opsMeet01cJson)
-export const opsMeet02 = asScreenSpec(opsMeet02Json)
-export const opsMeet03a = asScreenSpec(opsMeet03aJson)
-export const opsMeet03b = asScreenSpec(opsMeet03bJson)
-export const opsMeet03c = asScreenSpec(opsMeet03cJson)
-export const opsMeet04b = asScreenSpec(opsMeet04bJson)
-export const opsMeet05a = asScreenSpec(opsMeet05aJson)
-export const opsMeet05b = asScreenSpec(opsMeet05bJson)
-export const opsMeet06a = asScreenSpec(opsMeet06aJson)
-export const opsMeet06b = asScreenSpec(opsMeet06bJson)
-export const opsMeet07 = asScreenSpec(opsMeet07Json)
-export const opsMeet08 = asScreenSpec(opsMeet08Json)
-export const opsMeet09 = asScreenSpec(opsMeet09Json)
-export const opsMeetD01 = asScreenSpec(opsMeetD01Json)
-export const opsMeetD02 = asScreenSpec(opsMeetD02Json)
-export const opsMeetD03 = asScreenSpec(opsMeetD03Json)
-export const opsMeetD04 = asScreenSpec(opsMeetD04Json)
-export const evt00a = asScreenSpec(evt00aJson)
-export const evt00a2 = asScreenSpec(evt00a2Json)
-export const evt02 = asScreenSpec(evt02Json)
-export const evt00b = asScreenSpec(evt00bJson)
-export const evt01 = asScreenSpec(evt01Json)
-export const evt02b = asScreenSpec(evt02bJson)
-export const evt02c = asScreenSpec(evt02cJson)
-export const evt02d = asScreenSpec(evt02dJson)
-export const evt02e = asScreenSpec(evt02eJson)
-export const evt03a = asScreenSpec(evt03aJson)
-export const evt03b = asScreenSpec(evt03bJson)
-export const evt04b = asScreenSpec(evt04bJson)
-export const evtTask01 = asScreenSpec(evtTask01Json)
-export const evtTask02 = asScreenSpec(evtTask02Json)
-export const evtDoc01 = asScreenSpec(evtDoc01Json)
-export const evtMeet01 = asScreenSpec(evtMeet01Json)
-export const evtSched01 = asScreenSpec(evtSched01Json)
-export const evt04 = asScreenSpec(evt04Json)
-export const evt05 = asScreenSpec(evt05Json)
-export const evt05b = asScreenSpec(evt05bJson)
-export const evtFin01 = asScreenSpec(evtFin01Json)
-export const finReq01 = asScreenSpec(finReq01Json)
-export const finReq02 = asScreenSpec(finReq02Json)
-export const myReq01 = asScreenSpec(myReq01Json)
-export const finSup01 = asScreenSpec(finSup01Json)
-export const finRev01 = asScreenSpec(finRev01Json)
-export const finEvid01 = asScreenSpec(finEvid01Json)
-export const fin00 = asScreenSpec(fin00Json)
-export const fin00b = asScreenSpec(fin00bJson)
-export const finLedger01 = asScreenSpec(finLedger01Json)
-export const finProc01 = asScreenSpec(finProc01Json)
-export const msg01 = asScreenSpec(msg01Json)
-export const msg02 = asScreenSpec(msg02Json)
-export const msg03 = asScreenSpec(msg03Json)
-export const rec01 = asScreenSpec(rec01Json)
-export const rec02 = asScreenSpec(rec02Json)
-export const rec02a = asScreenSpec(rec02aJson)
-export const ext01a = asScreenSpec(ext01aJson)
-export const ext01b = asScreenSpec(ext01bJson)
-export const ext02a = asScreenSpec(ext02aJson)
-export const ext02b = asScreenSpec(ext02bJson)
-export const ext02c = asScreenSpec(ext02cJson)
+/**
+ * 명세 폴더에 있는 화면 전부. **빌드가 폴더를 걸어 모은다.**
+ *
+ * 손으로 적으면 빠뜨리고, 빠뜨린 것은 조용하다 — 화면이 안 그려지는 것이 아니라
+ * 검사가 그 화면을 안 도는 것이라 아무 데서도 붉어지지 않는다.
+ */
+const SCREEN_JSON = import.meta.glob<{ default: unknown }>(
+  '../../../../specs/figma/vada-wireframe/screens/*/screen.json',
+  { eager: true },
+)
 
-// 구현에 등록된 화면 전부. 화면 목록을 따로 선언하지 않고 이미 등록된 것을 모은다.
-// ScreenRouter가 아는 것과 어긋나면 element-type-registry처럼 검사로 막아야 하지만,
-// 지금은 이 배열과 라우터가 같은 파일 묶음 안에 있어 한눈에 보인다.
-export const ALL_SCREENS: ScreenSpec[] = [
-  onb01,
-  onb02,
-  inv00,
-  inv01,
-  opsCal01,
-  org01,
-  org00,
-  org02,
-  org03a,
-  org03b,
-  org03c,
-  org04,
-  org04b,
-  org07a,
-  org07b,
-  org07c,
-  home01k,
-  my01,
-  ops00,
-  task01,
-  opsMeet01a,
-  opsMeet01c,
-  opsMeet02,
-  opsMeet03a,
-  opsMeet03b,
-  opsMeet03c,
-  opsMeet04b,
-  opsMeet05a,
-  opsMeet05b,
-  opsMeet06a,
-  opsMeet06b,
-  opsMeet07,
-  opsMeet08,
-  opsMeet09,
-  opsMeetD01,
-  opsMeetD02,
-  opsMeetD03,
-  opsMeetD04,
-  evt00a,
-  evt00a2,
-  evt02,
-  evt00b,
-  evt01,
-  evt02b,
-  evt02c,
-  evt02d,
-  evt02e,
-  evt03a,
-  evt03b,
-  evt04b,
-  evtTask01,
-  evtTask02,
-  evtDoc01,
-  evtMeet01,
-  evtSched01,
-  evt04,
-  evt05,
-  evt05b,
-  evtFin01,
-  finReq01,
-  finReq02,
-  myReq01,
-  finSup01,
-  finRev01,
-  finEvid01,
-  fin00,
-  fin00b,
-  finLedger01,
-  finProc01,
-  msg01,
-  msg02,
-  msg03,
-  rec01,
-  rec02,
-  rec02a,
-  ext01a,
-  ext01b,
-  ext02a,
-  ext02b,
-  ext02c,
-]
+const BY_ID = new Map<string, ScreenSpec>(
+  Object.entries(SCREEN_JSON).map(([path, module]) => {
+    const spec = asScreenSpec(module.default)
+    // 폴더 이름과 screenId가 갈리면 어느 쪽이 참인지 알 수 없다. 검증기도 보지만
+    // 여기서 먼저 멈춘다 — 이 지도가 틀리면 아래 전부가 틀린다.
+    const folder = path.split('/').at(-2)
+    if (folder !== spec.screenId) {
+      throw new Error(`화면 폴더 '${folder}'와 screenId '${spec.screenId}'가 다릅니다.`)
+    }
+    return [spec.screenId, spec]
+  }),
+)
+
+/** 그 화면의 명세. **없으면 던진다** — 없는 화면을 조용히 지나가면 빈 것이 그려진다. */
+export function screenOf(screenId: string): ScreenSpec {
+  const spec = BY_ID.get(screenId)
+  if (spec === undefined) {
+    throw new Error(`화면 '${screenId}'의 명세가 없습니다.`)
+  }
+  return spec
+}
+
+export const onb01 = screenOf('ONB-01')
+export const onb02 = screenOf('ONB-02')
+export const org01 = screenOf('ORG-01')
+export const org00 = screenOf('ORG-00')
+export const org02 = screenOf('ORG-02')
+export const org03a = screenOf('ORG-03A')
+export const org03b = screenOf('ORG-03B')
+export const org03c = screenOf('ORG-03C')
+export const org04 = screenOf('ORG-04')
+export const org04b = screenOf('ORG-04B')
+export const org07a = screenOf('ORG-07A')
+export const org07b = screenOf('ORG-07B')
+export const org07c = screenOf('ORG-07C')
+export const inv00 = screenOf('INV-00')
+export const inv01 = screenOf('INV-01')
+export const opsCal01 = screenOf('OPS-CAL-01')
+export const home01k = screenOf('HOME-01K')
+export const my01 = screenOf('MY-01')
+export const ops00 = screenOf('OPS-00')
+export const task01 = screenOf('TASK-01')
+export const opsMeet01a = screenOf('OPS-MEET-01A')
+export const opsMeet01c = screenOf('OPS-MEET-01C')
+export const opsMeet02 = screenOf('OPS-MEET-02')
+export const opsMeet03a = screenOf('OPS-MEET-03A')
+export const opsMeet03b = screenOf('OPS-MEET-03B')
+export const opsMeet03c = screenOf('OPS-MEET-03C')
+export const opsMeet04b = screenOf('OPS-MEET-04B')
+export const opsMeet05a = screenOf('OPS-MEET-05A')
+export const opsMeet05b = screenOf('OPS-MEET-05B')
+export const opsMeet06a = screenOf('OPS-MEET-06A')
+export const opsMeet06b = screenOf('OPS-MEET-06B')
+export const opsMeet07 = screenOf('OPS-MEET-07')
+export const opsMeet08 = screenOf('OPS-MEET-08')
+export const opsMeet09 = screenOf('OPS-MEET-09')
+export const opsMeetD01 = screenOf('OPS-MEET-D01')
+export const opsMeetD02 = screenOf('OPS-MEET-D02')
+export const opsMeetD03 = screenOf('OPS-MEET-D03')
+export const opsMeetD04 = screenOf('OPS-MEET-D04')
+export const evt00a = screenOf('EVT-00A')
+export const evt00a2 = screenOf('EVT-00A2')
+export const evt02 = screenOf('EVT-02')
+export const evt00b = screenOf('EVT-00B')
+export const evt01 = screenOf('EVT-01')
+export const evt02b = screenOf('EVT-02B')
+export const evt02c = screenOf('EVT-02C')
+export const evt02d = screenOf('EVT-02D')
+export const evt02e = screenOf('EVT-02E')
+export const evt03a = screenOf('EVT-03A')
+export const evt03b = screenOf('EVT-03B')
+export const evt04b = screenOf('EVT-04B')
+export const evtTask01 = screenOf('EVT-TASK-01')
+export const evtTask02 = screenOf('EVT-TASK-02')
+export const evtDoc01 = screenOf('EVT-DOC-01')
+export const evtMeet01 = screenOf('EVT-MEET-01')
+export const evtSched01 = screenOf('EVT-SCHED-01')
+export const evt04 = screenOf('EVT-04')
+export const evt05 = screenOf('EVT-05')
+export const evt05b = screenOf('EVT-05B')
+export const evtFin01 = screenOf('EVT-FIN-01')
+export const finReq01 = screenOf('FIN-REQ-01')
+export const finReq02 = screenOf('FIN-REQ-02')
+export const myReq01 = screenOf('MY-REQ-01')
+export const finSup01 = screenOf('FIN-SUP-01')
+export const finRev01 = screenOf('FIN-REV-01')
+export const finEvid01 = screenOf('FIN-EVID-01')
+export const fin00 = screenOf('FIN-00')
+export const fin00b = screenOf('FIN-00B')
+export const finLedger01 = screenOf('FIN-LEDGER-01')
+export const finProc01 = screenOf('FIN-PROC-01')
+export const msg01 = screenOf('MSG-01')
+export const msg02 = screenOf('MSG-02')
+export const msg03 = screenOf('MSG-03')
+export const rec01 = screenOf('REC-01')
+export const rec02 = screenOf('REC-02')
+export const rec02a = screenOf('REC-02A')
+export const ext01a = screenOf('EXT-01A')
+export const ext01b = screenOf('EXT-01B')
+export const ext02a = screenOf('EXT-02A')
+export const ext02b = screenOf('EXT-02B')
+export const ext02c = screenOf('EXT-02C')
+
+/**
+ * **화면 목록을 손으로 적지 않는다.**
+ *
+ * 오랫동안 여든 줄짜리 배열이었다. 주석은 "따로 선언하지 않고 이미 등록된 것을 모은다"고
+ * 적혀 있었지만 바로 아래가 손으로 적은 배열이었고, **명세 여든넷 중 넷이 그 배열에서 빠진
+ * 채 아무 검사에도 안 걸렸다**(EVT-03C · EVT-04C · OPS-MEET-01B · OPS-MEET-01D).
+ * 준수 검사도 디자인 대조도 이 배열만 돌기 때문이다.
+ *
+ * ## 무엇이 제 주소를 갖는가는 명세가 이미 안다
+ *
+ * 손 목록을 지우면서 물었다 — 여든과 넷을 무엇으로 가르나. `variantOf`가 답이 아니었다:
+ * 변형 열둘 중 여덟은 **원본과 다른 것을 그리므로** 제 화면이 있고 그 배열에 들어 있었다.
+ *
+ * 가르는 것은 **요소를 갖는가**다. 요소가 없으면 그릴 것이 없고, 그 모습은 원본이 데이터에
+ * 따라 그린다(목록이 비었을 때, 다른 사람이 볼 때). 이 규칙이 옛 배열 여든을 **한 줄도
+ * 틀리지 않고** 다시 만들어 낸다 — 사람이 적어 온 것을 명세가 이미 알고 있었다는 뜻이다.
+ */
+
+/** 명세에 있는 화면 전부. 변형까지 센다. */
+export const ALL_SPEC_SCREENS: ScreenSpec[] = [...BY_ID.values()].sort((left, right) =>
+  left.screenId.localeCompare(right.screenId),
+)
+
+/** 다른 화면의 한 때로 적힌 그림. 여덟은 제 것을 그리고 넷은 그리지 않는다. */
+export const VARIANT_SCREENS: ScreenSpec[] = ALL_SPEC_SCREENS.filter(
+  (screen) => screen.variantOf !== undefined,
+)
+
+/**
+ * **원본이 데이터로 그리는 때.** 제 주소가 없다.
+ *
+ * 요소가 없으므로 더할 것이 없다 — 목록이 비었다는 말도, 그때 보이는 단추도 원본 화면의
+ * `itemList`가 이미 갖고 있다. 주소를 따로 주면 같은 화면이 둘로 보인다.
+ */
+export const STATE_ONLY_SCREENS: ScreenSpec[] = ALL_SPEC_SCREENS.filter(
+  (screen) => screen.elements.length === 0,
+)
+
+/** 제 주소를 갖는 화면. 준수 검사와 디자인 대조가 이것을 돈다. */
+export const ALL_SCREENS: ScreenSpec[] = ALL_SPEC_SCREENS.filter(
+  (screen) => screen.elements.length > 0,
+)
 
 // 화면 하나만 열어 볼 때 넘길 인자.
 //
@@ -282,7 +192,7 @@ export const ALL_SCREENS: ScreenSpec[] = [
 // 검사는 그것을 읽기만 한다. 구현은 이 값을 쓰지 않는다 — 인자가 없으면
 // 조용히 아무거나 보여주는 대신 드러내야 한다.
 export function exampleParamsOf(screenId: string): Record<string, string> {
-  const screen = ALL_SCREENS.find((candidate) => candidate.screenId === screenId)
+  const screen = ALL_SPEC_SCREENS.find((candidate) => candidate.screenId === screenId)
   return Object.fromEntries(
     (screen?.params ?? [])
       .filter((param) => param.example !== undefined)

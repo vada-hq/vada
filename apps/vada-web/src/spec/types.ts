@@ -651,6 +651,13 @@ export interface ScreenSpec {
   // 이 화면이 다른 화면 위에 뜬다는 선언. 모달이 그 자리다 - 뒤에는 열기 전에
   // 보던 것이 그대로 남아 있고, 닫으면 screenId로 돌아간다.
   overlay?: { screenId: string; source: string }
+  // **이 그림은 화면이 아니라 다른 화면의 한 때다.** 요소를 갖지 않고(elements: [])
+  // 언제 그 모습이 되는지만 적는다 — 목록이 비었을 때, 다른 사람이 볼 때.
+  //
+  // 이 자리가 타입에 없던 동안 화면 목록이 손으로 적힌 배열이었고, 변형 넷이
+  // 그 배열에서 빠진 채 **아무 검사에도 안 걸렸다**. 명세는 처음부터 이것을
+  // 갖고 있었는데 코드가 읽지 않았다.
+  variantOf?: { screenId: string; when: string }
   stateScopeKey?: string
   // 셸의 어느 최상위 메뉴 아래에 있는지. 메뉴가 가리키는 화면 자신은 갖지
   // 않는다 - 자기 id로 찾으면 되기 때문이다. workspace.activeTabScreenId와
