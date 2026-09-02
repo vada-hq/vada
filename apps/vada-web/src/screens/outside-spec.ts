@@ -1,5 +1,3 @@
-import { FIRST_SCREEN, SIGN_IN } from './routes'
-
 /**
  * **명세 없이 손으로 그린 화면.**
  *
@@ -42,14 +40,11 @@ export interface OutsideSpecScreen {
 }
 
 export const OUTSIDE_SPEC: readonly OutsideSpecScreen[] = [
-  {
-    screenId: SIGN_IN,
-    why: '와이어프레임이 **이미 들어온 사람만** 그렸다 — 로그인 그림 자체가 없다',
-    navigations: [
-      // 돌아갈 곳이 로그인 화면이면 첫 화면으로 보낸다. 그러지 않으면 제자리로 온다.
-      { when: '로그인에 성공하면', to: FIRST_SCREEN },
-    ],
-  },
+  // **비어 있다.** 로그인 화면이 여기 유일하게 올라 있었고, 그림을 그려 명세로 옮겼다
+  // (2026-09-02). 등록부가 스스로 닫힌 셈이다 — "명세가 생겼으니 빼라"고 검사가 멈췄다.
+  //
+  // 다시 채워질 자리이긴 하다. 그림 없는 화면이 또 생기면 여기 오르고, 그때도 같은 검사가
+  // 그 화면을 붙잡는다. 비어 있는 동안은 **명세만 보면 만든다가 문자 그대로 참이다.**
 ]
 
 /** 이 화면은 명세 밖인가. */

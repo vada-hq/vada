@@ -106,17 +106,22 @@ export function sameSiteHosts(left: string, right: string): boolean {
 export type Auth = ReturnType<typeof createAuth>
 
 /** 들어오는 길 하나. */
-export interface Way {
-  /** Better Auth에 넘길 이름. */
-  provider: string
-  /** 단추에 그려지는 글. **서버가 완성해 준다** — 길이 늘 때 화면을 고치지 않는다. */
-  label: string
+/**
+ * 어느 길이 열려 있는가.
+ *
+ * **글은 여기서 오지 않는다.** 한동안 서버가 단추의 글까지 주었다 — "길이 늘 때 화면을
+ * 고치지 않는다"는 뜻이었는데, 이 저장소에서 **단추의 글은 그림에서 온다**(백쉰아홉 개가
+ * 전부 그렇다). 로그인 단추만 예외로 두면 그 글이 어디서 오는지 사람마다 다르게 안다.
+ *
+ * 그리고 길이 느는 것은 배포 설정이 아니라 **제품이 바뀌는 일**이다 — 새 길은 그림에
+ * 그려지고 명세를 거쳐 온다. 서버가 답하는 것은 '그 길이 지금 열려 있는가'뿐이다.
+ */
+export interface OpenWays {
+  google: boolean
+  kakao: boolean
 }
 
-const LABELS: Record<string, string> = {
-  google: '구글로 계속하기',
-  kakao: '카카오로 계속하기',
-}
+
 
 /**
  * 어느 길로 들어올 수 있는가.
@@ -125,9 +130,10 @@ const LABELS: Record<string, string> = {
  * 화면을 고쳐야 한다 — 이 저장소가 명세와 화면 사이에서 줄곧 피해 온 모양이다.
  * 자격증명이 없는 길은 오지 않으므로 화면은 온 것만 그리면 된다.
  */
-export function openWays(settings: AuthSettings): Way[] {
-  const ways: Way[] = []
-  if (settings.google !== undefined) ways.push({ provider: 'google', label: LABELS.google! })
-  if (settings.kakao !== undefined) ways.push({ provider: 'kakao', label: LABELS.kakao! })
-  return ways
+export function openWays(settings: AuthSettings): OpenWays {
+  return {
+    google: settings.google !== undefined,
+    kakao: settings.kakao !== undefined,
+  }
 }
+

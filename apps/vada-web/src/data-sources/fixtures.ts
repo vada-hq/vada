@@ -2969,6 +2969,8 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   },
 
   // 셸 — 모든 데스크톱 화면이 공유한다.
+  // 어느 길이 열려 있는가(SIGN-IN). 배포가 정하므로 진짜는 서버가 답한다.
+  'auth.ways': { google: true, kakao: true },
   'shell.organization': { name: '소프트웨어융합대학' },
   'shell.viewer': { name: '박해랑', role: '운영부 · 부원' },
 

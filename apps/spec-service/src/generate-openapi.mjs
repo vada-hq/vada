@@ -310,7 +310,12 @@ export function buildOpenApi() {
     }
     // 밖에서 열리는 자리는 로그인이 없다. 비어 있는 security가 '이 자리는 뿌리의
     // 규칙을 따르지 않는다'는 뜻이다 — 안 적으면 뿌리의 세션이 걸린다.
-    if (path.startsWith("/api/public/")) {
+    //
+    // **판별은 권한 영역이 한다.** 한동안 주소 앞자리(`/api/public/`)로 갈랐는데,
+    // 그러면 그 밖에 열린 자리가 생길 때 이 규칙이 뒤처진다 — 로그인 자리가 바로
+    // 그랬다(SIGN-IN은 `/api/sign-in/*`이면서 아무나 연다). 규칙은 permissions.json
+    // 하나에 있고 주소는 그것을 따라올 뿐이다.
+    if (operation["x-authorize"] && operation["x-authorize"].area === "public") {
       operation.security = [];
     }
     paths[path][method] = operation;

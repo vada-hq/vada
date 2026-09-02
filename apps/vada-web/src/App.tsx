@@ -2,16 +2,15 @@ import { useEffect, useState } from 'react'
 import { DevScreenPicker } from './components/DevScreenPicker'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScreenRouter } from './screens/ScreenRouter'
-import { SignInScreen } from './screens/SignInScreen'
-import { FIRST_SCREEN, SIGN_IN } from './screens/routes'
+import { FIRST_SCREEN } from './screens/routes'
 import type { ScopeDraft, ScopeStore } from './state/scopes'
 
 // 화면의 주소는 screenId다 — 이미 명세가 갖고 있으므로 따로 정하지 않는다.
 // 주소로 화면을 열 수 있으면 흐름 중간 화면을 앞 단계 없이 바로 볼 수 있고,
 // 브라우저의 뒤로/앞으로가 그대로 동작한다.
 //
-// **계약 밖의 이름 둘은 `routes.ts`에 있다.** 로그인 화면이 같은 이름을 알아야 하고,
-// 각자 들고 있으면 한쪽만 고쳐도 아무 오류가 안 난다.
+// **앱을 열면 어디부터인가는 `routes.ts`가 든다.** 그림이 답하지 않는 자리라
+// 명세에서 오지 않는다 — 로그인 화면과 달리 이것은 그릴 것이 없는 결정이다.
 
 // 주소는 `#/<screenId>`이고, 상세 화면은 뒤에 인자가 붙는다(`#/EVT-TASK-02?taskId=T-03`).
 // 인자를 주소에 두는 이유는 화면의 주소로 여는 성질을 지키기 위해서다 — 상세를
@@ -71,9 +70,6 @@ function App() {
           조용히 넘기지 않고 던지므로, 받는 자리가 없으면 그 던짐이 가장 안
           보이는 모양이 된다. 화면을 옮기면 경계가 다시 그려 본다. */}
       <ErrorBoundary screenId={screenId}>
-        {screenId === SIGN_IN ? (
-          <SignInScreen />
-        ) : (
         <ScreenRouter
           screenId={screenId}
           screenParams={screenParams}
@@ -82,7 +78,6 @@ function App() {
           onNavigate={navigate}
           onScopeEvent={handleScopeEvent}
         />
-        )}
       </ErrorBoundary>
       {import.meta.env.DEV ? (
         <DevScreenPicker screenId={screenId} onNavigate={navigate} />

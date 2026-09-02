@@ -69,6 +69,10 @@ beforeAll(async () => {
       isMeetingHost: async () => false,
       isMeetingCreator: async () => false,
     },
+    signIn: {
+      open: () => ({ google: true, kakao: false }),
+      start: async (provider: string) => ({ url: `https://example.test/${provider}` }),
+    },
     attempts: inMemoryAttempts(),
     counter: inMemoryCounter(),
     invite: {

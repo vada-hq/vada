@@ -30,6 +30,15 @@ const auth = createAuth(db, {
 })
 const viewers = viewerLookup(db)
 
+/**
+ * 로그인하고 나서 여는 화면.
+ *
+ * **명세가 정한 것을 서버가 든다.** SIGN-IN의 단추가 '보내고 나면 어디로 가는지'를
+ * 적어 두었고(`screens/SIGN-IN/screen.json`), 제공자에게 돌아올 자리를 붙이는 것은
+ * 서버뿐이므로 그 값이 여기 온다. 화면이 스스로 만들면 자기 자신을 넘기는 일이 난다.
+ */
+const FIRST_SCREEN = 'ONB-01'
+
 const root = new Hono()
 
 // **화면이 다른 주소에 있으면 브라우저가 막는다.**
@@ -51,13 +60,12 @@ root.use(
   }),
 )
 
-// **로그인 자리는 계약 밖이다.** 명세에 로그인 화면이 없으므로 이 자리들은
-// `openapi.json`에 없고, 그래서 권한 미들웨어보다 앞에 둔다 — 뒤에 두면
-// '계약에 없는 자리'로 막힌다.
+// **제공자가 되돌려 보내는 자리만 계약 밖이다.** 구글이 부르는 주소이고 우리 화면이
+// 부르는 자리가 아니라 그림에도 명세에도 없다 — 계약은 화면이 부르는 것을 담는다.
+//
+// 들어오는 자리 셋(어느 길이 열렸나 · 구글로 · 카카오로)은 계약 안으로 옮겼다.
+// SIGN-IN에 그림이 생겼기 때문이다.
 root.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
-
-// 어느 길로 들어올 수 있는가. 화면이 단추를 그릴지 정한다.
-root.get('/api/auth-ways', (c) => c.json({ ways: openWays(config as never) }))
 
 root.route(
   '/',
@@ -81,6 +89,20 @@ root.route(
     // 계산이 하나뿐인 동안은 프로세스 안에 둔다. 늘리면 표로 옮겨야 한다 —
     // 그 사실을 문서가 들고 있다.
     attempts: inMemoryAttempts(),
+    // **돌아올 자리를 여기서 붙인다.** 화면이 정하던 동안 로그인 화면이 자기 자신을
+    // 넘겼고, 구글을 다녀온 사람이 제자리로 왔다. 이제 화면은 그 값을 만들지 않는다.
+    signIn: {
+      open: () => openWays(config as never),
+      async start(provider) {
+        const made = await auth.api.signInSocial({
+          body: { provider, callbackURL: `${config.appUrl}/#/${FIRST_SCREEN}` },
+        })
+        if (typeof made.url !== 'string') {
+          throw new Error(`'${provider}'로 가는 주소를 받지 못했습니다.`)
+        }
+        return { url: made.url }
+      },
+    },
     invite: {
       linkBase: config.inviteLinkBase,
       now: () => new Date(),
@@ -94,5 +116,8 @@ root.route(
 )
 
 serve({ fetch: root.fetch, port: config.port }, (info) => {
-  process.stdout.write(`vada api ${info.port}번에서 듣습니다. 들어올 길: ${openWays(config as never).map((way) => way.provider).join(', ')}\n`)
+  process.stdout.write(`vada api ${info.port}번에서 듣습니다. 들어올 길: ${Object.entries(openWays(config as never))
+      .filter(([, open]) => open)
+      .map(([name]) => name)
+      .join(', ') || '없음'}\n`)
 })

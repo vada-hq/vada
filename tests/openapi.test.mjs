@@ -156,7 +156,7 @@ test('실패가 명세에서 끌어낸 대로 실린다', () => {
       }
     }
   }
-  assert.equal(checkedPublic, 9)
+  assert.equal(checkedPublic, 12)
   assert.equal(checkedConflict, 15)
 })
 
@@ -234,21 +234,24 @@ test('operationId가 겹치지 않는다', () => {
   assert.deepEqual([...new Set(dup)], [], 'operationId가 겹칩니다')
 })
 
-// 밖에서 열리는 자리는 로그인이 없다. 뿌리의 세션 규칙이 걸리면 QR로 온 사람이
-// 자기 참석 결과를 못 본다.
-test('밖에서 열리는 자리에는 세션을 걸지 않는다', () => {
+// `/api/public/` 아래는 전부 아무나 여는 자리다. **거꾸로는 아니다** — 로그인 자리도
+// 아무나 열지만 그 주소를 쓰지 않는다. 이름이 뜻과 어긋나면 읽는 사람이 잘못 안다.
+//
+// 세션을 거는가 마는가는 권한 영역이 정하고, 그것은 '세션을 걸지 않는 자리와 public이
+// 같다'가 잰다. 한동안 이 검사가 주소로 그것까지 판정했고, 그래서 밖에 새로 열린 자리
+// (로그인)가 '안의 자리인데 열려 있다'로 잘못 걸렸다.
+test('public 주소 아래는 전부 아무나 여는 자리다', () => {
   const built = buildOpenApi()
   const wrong = []
   for (const [path, item] of Object.entries(built.paths)) {
-    const isPublic = path.startsWith('/api/public/')
+    if (!path.startsWith('/api/public/')) continue
     for (const [method, operation] of Object.entries(item)) {
-      const open = Array.isArray(operation.security) && operation.security.length === 0
-      if (isPublic !== open) {
-        wrong.push(`  ${method} ${path}: ${isPublic ? '밖의 자리인데 세션이 걸렸다' : '안의 자리인데 열려 있다'}`)
+      if (operation['x-authorize'].area !== 'public') {
+        wrong.push(`  ${method} ${path}: public 주소인데 '${operation['x-authorize'].area}'다`)
       }
     }
   }
-  assert.deepEqual(wrong, [], `세션 경계가 어긋났습니다.\n${wrong.join('\n')}`)
+  assert.deepEqual(wrong, [], `이름과 뜻이 어긋났습니다.\n${wrong.join('\n')}`)
 })
 
 // 값의 종류가 빠진 조각이 있으면 스키마에 type 없는 자리가 생기고, 거기서 나온

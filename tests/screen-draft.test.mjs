@@ -90,6 +90,9 @@ for (const { screenId, derivable, notDerivable } of EXPECTED) {
 // 일이고, 그 화면 계급을 추출기가 못 읽는다는 증거가 된다(ORG-00·OPS-00의 허브,
 // ORG-03A·ORG-03B의 나란한 되풀이 카드).
 const FLOOR = {
+  // 로그인 화면. 요소 둘을 그대로 뽑아냈고 헛것이 없다 — 그림을 이 저장소의 어휘로
+  // 그렸기 때문이다(ONB-02를 복제해 고쳤다). 지어낸 모양이 없으면 추출기가 헤매지 않는다.
+  "SIGN-IN": { matched: 2, spurious: 0 },
   "EVT-00A": { matched: 3, spurious: 0 },
   "EVT-02": { matched: 3, spurious: 0 },
   "EVT-04": { matched: 6, spurious: 3 },

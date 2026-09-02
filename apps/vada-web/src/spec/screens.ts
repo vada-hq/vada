@@ -60,6 +60,7 @@ export function screenOf(screenId: string): ScreenSpec {
   return spec
 }
 
+export const signIn = screenOf('SIGN-IN')
 export const onb01 = screenOf('ONB-01')
 export const onb02 = screenOf('ONB-02')
 export const org01 = screenOf('ORG-01')

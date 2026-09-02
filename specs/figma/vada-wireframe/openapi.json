@@ -15866,6 +15866,63 @@
         "security": []
       }
     },
+    "/api/sign-in/ways": {
+      "get": {
+        "operationId": "auth.ways",
+        "summary": "어느 길로 들어올 수 있는가(SIGN-IN). **배포가 정한다** — 제공자의 열쇠를 넣어 둔 것만 열린다. 길이 하나도 없는 배포는 아무도 못 들어오므로 그 사실이 화면에 드러나야 한다.\n\n**로그인 자리는 로그인이 필요 없다.** 아직 아무도 아닌 사람이 읽는다.",
+        "x-authorize": {
+          "area": "public"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "google": {
+                      "type": "boolean",
+                      "description": "구글로 들어오는 길이 열려 있는가"
+                    },
+                    "kakao": {
+                      "type": "boolean",
+                      "description": "카카오로 들어오는 길이 열려 있는가"
+                    }
+                  },
+                  "required": [
+                    "google",
+                    "kakao"
+                  ]
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "너무 자주 눌렀다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
     "/api/education/schools": {
       "get": {
         "operationId": "education.schools.options",
@@ -21836,6 +21893,94 @@
                   "name",
                   "studentNumber"
                 ]
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/sign-in/google": {
+      "post": {
+        "operationId": "auth.signInGoogle",
+        "summary": "구글로 들어온다. 서버가 그 제공자의 주소를 만들어 주고 **브라우저가 그리로 떠난다** — 돌아오는 자리는 서버가 함께 정한다(로그인 화면으로 돌아오면 제자리이므로 첫 화면으로 보낸다).\n\n**아직 계정이 없으면 이때 만들어진다.** 들어오는 것과 처음 오는 것을 가르지 않는다 — 사람은 그 둘을 구분해 누르지 않는다.",
+        "x-authorize": {
+          "area": "public"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "너무 자주 눌렀다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      }
+    },
+    "/api/sign-in/kakao": {
+      "post": {
+        "operationId": "auth.signInKakao",
+        "summary": "카카오로 들어온다. 서버가 그 제공자의 주소를 만들어 주고 **브라우저가 그리로 떠난다** — 돌아오는 자리는 서버가 함께 정한다(로그인 화면으로 돌아오면 제자리이므로 첫 화면으로 보낸다).\n\n**아직 계정이 없으면 이때 만들어진다.** 들어오는 것과 처음 오는 것을 가르지 않는다 — 사람은 그 둘을 구분해 누르지 않는다.",
+        "x-authorize": {
+          "area": "public"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "너무 자주 눌렀다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }

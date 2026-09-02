@@ -1,5 +1,5 @@
 import type { Context, MiddlewareHandler } from 'hono'
-import { carriesSecret, hashToken, tokenOfRequest } from './tokens.ts'
+import { carriesSecret, hashToken, opensToAnyone, tokenOfRequest } from './tokens.ts'
 
 // 마구 넣어 보는 것을 막는다.
 //
@@ -86,7 +86,8 @@ function retryAfter(ms: number): string {
 /**
  * 여기서 세는 자리.
  *
- * **열쇠 하나가 벽인 곳이다.** 밖에서 열리는 자리가 그렇고(로그인이 없다), 로그인이
+ * **열쇠 하나가 벽인 곳이다.** 밖에서 열리는 자리가 그렇고(로그인이 없다 — 계약의
+ * `public`이 그것을 말한다. 주소 앞자리로 갈랐던 동안 `/api/sign-in/*`이 새어 있었다), 로그인이
  * 있어도 **주소에 실린 값이 곧 열쇠인 자리**가 그렇다 — 학생회에 들어오는 초대 코드가
  * 그것이다(`GET /api/organizations/by-invite-code/{inviteCode}`). 로그인은 '누가
  * 두드리는지'만 정하고 코드를 못 맞히게 하지는 않는다.
@@ -101,7 +102,7 @@ function retryAfter(ms: number): string {
  * 싣는데 계약에는 본문 칸에 `x-secret`을 달 자리가 없다. 숨기지 않고 적어 둔다.
  */
 function guarded(c: Context): boolean {
-  return c.req.path.startsWith('/api/public/') || carriesSecret(c)
+  return opensToAnyone(c) || carriesSecret(c)
 }
 
 export function guessRateLimit(deps: RateLimitDeps): MiddlewareHandler {

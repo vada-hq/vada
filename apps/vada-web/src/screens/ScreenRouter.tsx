@@ -60,6 +60,7 @@ import { OPSMEETD03Screen } from './OPSMEETD03Screen'
 import { OPSMEETD04Screen } from './OPSMEETD04Screen'
 import { TASK01Screen } from './TASK01Screen'
 import { ONB01Screen } from './ONB01Screen'
+import { SIGNINScreen } from './SIGNINScreen'
 import { ONB02Screen } from './ONB02Screen'
 import { ORG00Screen } from './ORG00Screen'
 import { ORG01Screen } from './ORG01Screen'
@@ -625,6 +626,11 @@ function ScreenBody({
   if (screenId === 'TASK-01') {
     // 칸반 보드다. 보는 범위는 목록을 거르는 화면 안의 값이라 스코프에 담지 않는다.
     return <TASK01Screen onNavigate={onNavigate} />
+  }
+  // 들어오는 자리. 한동안 App이 라우터보다 앞에서 따로 갈랐다 — 명세가 없어
+  // 라우터가 그 이름을 몰랐기 때문이다. 그림을 그려 명세가 생기자 나머지와 같아졌다.
+  if (screenId === 'SIGN-IN') {
+    return <SIGNINScreen />
   }
   if (screenId === 'ONB-02') {
     return <ONB02Screen onNavigate={onNavigate} />

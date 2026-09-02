@@ -27,6 +27,10 @@ import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json
  * 검사가 이 수를 세어 보여 준다.
  */
 export const SERVED: readonly string[] = [
+  // **들어오는 자리(SIGN-IN).** 어느 길이 열려 있는가는 배포가 정한다 — 카카오 열쇠를
+  // 안 넣은 배포에서 카카오 단추를 그리면 눌러도 안 된다.
+  'auth.ways',
+
   // **셸이 읽는 둘.** 학생회 이름과 보는 사람은 화면의 요소가 아니라 셸의 것이고,
   // 서버가 이미 답한다. 이 둘이 가짜인 동안은 로그인해도 남의 학생회 이름이 보인다.
   'shell.organization',
@@ -98,6 +102,9 @@ export function unknownServedKeys(): string[] {
  */
 export const SERVED_MUTATIONS: readonly string[] = [
   // **들어오기 흐름의 쓰기 둘.** 학생회를 만드는 것과, 초대 코드가 맞는지 묻는 것.
+  // 들어오는 길 둘. 누르면 제공자로 떠나고, 돌아올 자리는 서버가 붙인다.
+  'auth.signInGoogle',
+  'auth.signInKakao',
   'org.create',
   'organization.verifyInviteCode',
 ]

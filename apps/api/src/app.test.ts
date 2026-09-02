@@ -47,6 +47,11 @@ function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
     db,
     who: async () => who,
     lookups: NO_LOOKUPS,
+    // 검사는 밖으로 나가지 않는다. 열려 있다고만 답하고, 부르면 어디로 갈지 말해 준다.
+    signIn: {
+      open: () => ({ google: true, kakao: false }),
+      start: async (provider: string) => ({ url: `https://example.test/${provider}` }),
+    },
     attempts: inMemoryAttempts(),
     counter: inMemoryCounter(),
     invite: {
@@ -252,7 +257,7 @@ describe('명세 밖으로 새지 않는다', () => {
     // 것으로 세었는데, 진짜로 404를 내는 자리(없는 구성원을 물었을 때)와 아직
     // 안 만든 자리가 같은 모양이라 **만든 것을 안 만든 것으로 세고 있었다.**
     harness()
-    expect(answeredOperationIds()).toHaveLength(43)
-    expect(allOperationIds()).toHaveLength(216)
+    expect(answeredOperationIds()).toHaveLength(46)
+    expect(allOperationIds()).toHaveLength(219)
   })
 })

@@ -76,6 +76,18 @@ export function carriesSecret(c: Context): boolean {
   )
 }
 
+/**
+ * 이 자리가 **로그인 없이 열리는가.**
+ *
+ * 주소 앞자리로 갈랐던 자리다(`/api/public/`). 그러면 그 밖에 열린 자리가 생길 때
+ * 규칙이 뒤처진다 — 로그인 자리가 바로 그랬다(`/api/sign-in/*`이면서 아무나 연다).
+ * 계약이 이미 답을 갖고 있으므로 그것을 읽는다.
+ */
+export function opensToAnyone(c: Context): boolean {
+  const matched = matchRoute(c.req.method, c.req.path)
+  return matched?.authorize.area === 'public'
+}
+
 export function tokenOfRequest(c: Context): string | null {
   const matched = matchRoute(c.req.method, c.req.path)
   if (matched === undefined) return null

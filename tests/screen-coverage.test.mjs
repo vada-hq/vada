@@ -265,6 +265,9 @@ const ALLOWED = {
   'OPS-MEET-06A': { byFrame: 1, byCopy: 14 },
   'OPS-MEET-07': { byFrame: 1, byCopy: 12 },
   'OPS-MEET-09': { byFrame: 1, byCopy: 0 },
+  // 로그인 화면. 그릇이 그리는 셋(로고·제목·부제)과 길 둘의 화살표가 사본이다 —
+  // ONB-01·ONB-02와 같은 수다. 이 화면만 다르게 봐준 것이 없다.
+  'SIGN-IN': { byFrame: 3, byCopy: 2 },
   'ORG-00': { byFrame: 3, byCopy: 0 },
   'ORG-01': { byFrame: 3, byCopy: 1 },
   'ORG-02': { byFrame: 4, byCopy: 1 },
