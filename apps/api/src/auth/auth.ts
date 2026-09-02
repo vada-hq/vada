@@ -34,7 +34,17 @@ export function createAuth(db: Db, settings: AuthSettings) {
   if (settings.kakao !== undefined) social.kakao = settings.kakao
 
   return betterAuth({
-    database: drizzleAdapter(db, { provider: 'pg', schema }),
+    database: drizzleAdapter(db, {
+      provider: 'pg',
+      schema,
+      // **표 이름이 복수다.** Better Auth는 `user`·`session`·`account`·`verification`을
+      // 찾는데 이 저장소의 표는 `users`·`sessions`·`accounts`·`verifications`다 —
+      // 다른 표들과 같은 규칙을 로그인 표에만 깨고 싶지 않았다.
+      //
+      // 이 한 줄이 없으면 **켤 때가 아니라 사람이 로그인 단추를 눌렀을 때** 터진다.
+      // 실제로 그랬다(2026-09-02, 배포 첫 로그인에서 500).
+      usePlural: true,
+    }),
     secret: settings.secret,
     baseURL: settings.baseUrl,
     trustedOrigins: [settings.appUrl],
@@ -48,6 +58,16 @@ export function createAuth(db: Db, settings: AuthSettings) {
       updateAge: 60 * 60 * 24,
     },
     advanced: {
+      // **보낸 사람의 주소를 어디서 읽는가.**
+      //
+      // 앞에 Cloudflare Worker가 있어 서버가 직접 보는 주소는 늘 같다. 말해 주지
+      // 않으면 Better Auth가 속도 제한을 **모두에게 한 칸**으로 세고, 그 사실을
+      // 로그로만 알린다 — 켜 두고 안 듣는 경보다.
+      //
+      // 이 헤더를 그대로 믿는 것은 완전하지 않다. Render 주소가 밖에서도 열려 있어
+      // 누군가 Worker를 거치지 않고 직접 부르며 이 값을 지어낼 수 있다. 우리 쪽
+      // 속도 세기도 같은 헤더를 믿는다 — 그 구멍은 BACKLOG에 적었다.
+      ipAddress: { ipAddressHeaders: ['x-forwarded-for'] },
       // **화면과 api가 다른 사이트면 쿠키가 따라가지 않는다.**
       //
       // 기본값(`SameSite=Lax`)은 다른 사이트에서 온 요청에 쿠키를 붙이지 않는다.

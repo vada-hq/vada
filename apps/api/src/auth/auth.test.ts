@@ -1,7 +1,9 @@
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { freshDb } from '../db/testing.ts'
+import * as schema from '../db/schema.ts'
 import { departments, members, organizations, users } from '../db/schema.ts'
 import { MissingConfig, readConfig } from '../config.ts'
+import { createAuth } from './auth.ts'
 import { viewerLookup } from './viewer.ts'
 import type { Db } from '../db/client.ts'
 
@@ -133,3 +135,39 @@ describe('없는 채로 서지 않는다', () => {
     expect(() => readConfig(env)).toThrow(MissingConfig)
   })
 })
+
+// **로그인 층이 실제로 표에 닿는지 잰다.**
+//
+// 이 파일에 검사가 열셋 있었는데 **하나도 Better Auth를 세우지 않았다** — 설정을
+// 읽는 것과 세션에서 사람을 찾는 것만 봤다. 그래서 어댑터가 표를 못 찾는 것이
+// 검사를 전부 통과하고 **배포 첫 로그인에서 500**으로 드러났다(2026-09-02).
+//
+// 무엇이 터졌나: Better Auth는 `verification`을 찾는데 이 저장소의 표는
+// `verifications`다. 켤 때가 아니라 **사람이 단추를 누를 때** 나는 고장이라,
+// 서버가 서는 것만 봐서는 알 수 없다.
+describe('로그인 층이 표에 닿는다', () => {
+  const auth = () =>
+    createAuth(db as never, {
+      secret: 'x'.repeat(32),
+      baseUrl: 'https://vada.example',
+      appUrl: 'https://vada.example',
+      google: { clientId: 'id', clientSecret: 'secret' },
+    })
+
+  // 구글로 가는 주소를 만들려면 **`verification` 표에 state를 적어야 한다.**
+  // 거기서 어댑터가 표를 못 찾으면 이 자리가 터진다 — 구글을 부르지는 않는다.
+  it('구글로 가는 길을 만들면서 state를 표에 적는다', async () => {
+    const made = await auth().api.signInSocial({
+      body: { provider: 'google', callbackURL: 'https://vada.example/#/SIGN-IN' },
+    })
+    expect(made.url).toContain('accounts.google.com')
+  })
+
+  // 표 이름이 갈리면 위 검사가 먼저 터지지만, 무엇이 갈렸는지는 이쪽이 말해 준다.
+  it('찾는 이름과 표의 이름이 같다', () => {
+    for (const model of ['users', 'sessions', 'accounts', 'verifications']) {
+      expect(schema).toHaveProperty(model)
+    }
+  })
+})
+
