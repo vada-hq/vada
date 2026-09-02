@@ -14,7 +14,7 @@ import {
   users,
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { loadSources, useServer } from './server'
+import { SourcesFailed, forgetSources, loadSources, useServer } from './server'
 import { readListSource, readObjectSource } from './catalog'
 import { dataSourceCallsOf } from '../spec/screen-sources'
 import { runMutation } from '../spec/mutations'
@@ -205,8 +205,37 @@ describe('인자를 넘겨 부른다', () => {
 
   // **조용히 개발용 응답으로 돌아가지 않는다.** 그러면 화면은 그려지는데 그 값이
   // 어디서 왔는지 아무도 모른다.
-  it('받아 두지 않은 부름은 터뜨린다', () => {
-    expect(() => readObjectSource('event.summary', { eventId: 'E-99' })).toThrow(/받아 두지 않았습니다/)
+  //
+  // 한동안 여기서 그냥 오류를 던졌다. 이제는 **받아 오기 시작하고 약속을 던진다** —
+  // 그리기를 멈추는 신호다(`SourceGate`가 받아 카탈로그의 글을 그린다). 개발용
+  // 응답이 아닌 것은 그대로다: 던지는 것이 값이 아니다.
+  it('받아 두지 않은 부름은 값을 주지 않고 받아 오기 시작한다', async () => {
+    // 앞 검사가 담아 둔 것을 놓는다 — 담겨 있으면 받아 올 일이 없다.
+    forgetSources()
+    let thrown: unknown
+    try {
+      readObjectSource('event.summary', { eventId: 'E-02' })
+    } catch (error) {
+      thrown = error
+    }
+    expect(thrown).toBeInstanceOf(Promise)
+    // 약속이 끝나면 그 자리에 값이 있다 — 다시 그리면 그려진다.
+    await thrown
+    expect(readObjectSource('event.summary', { eventId: 'E-02' })).toMatchObject({
+      title: '2026 신입생 환영 행사',
+    })
+  })
+
+  // **깨진 것은 깨졌다고 말한다.** 약속을 다시 던지면 화면이 영영 도는 것처럼 보인다.
+  it('없는 것을 부르면 깨진 것으로 남는다', async () => {
+    let thrown: unknown
+    try {
+      readObjectSource('event.summary', { eventId: 'E-99' })
+    } catch (error) {
+      thrown = error
+    }
+    await thrown
+    expect(() => readObjectSource('event.summary', { eventId: 'E-99' })).toThrow(SourcesFailed)
   })
 })
 
@@ -259,6 +288,34 @@ describe('조직 보기의 이웃 화면들', () => {
     } finally {
       again()
     }
+  })
+
+  // **거르개가 달린 화면이 서버에 붙는 순간 터지는가.** 검색어와 거르개는 화면 안의
+  // 칸에 살고, 그릇은 그 값을 보지 못한다 — 목록에 올려 두고도 이 자리를 아무도
+  // 그려 본 적이 없었다.
+  it('ORG-07A가 서버에 붙은 채로 그려진다', async () => {
+    seenAs = 'chair'
+    render(<ScreenRouter screenId="ORG-07A" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />)
+    await waitFor(() => expect(screen.getByText('최바람')).toBeInTheDocument())
+  })
+
+  // **쓰고 나면 읽은 것이 낡는다.**
+  //
+  // 그릇은 한 번 받아 둔 부름을 다시 부르지 않는다. 그래서 초대 코드를 다시 만들면
+  // 저장소는 바뀌는데 **화면은 옛 코드를 그대로 그린다** — 그 코드를 받은 사람은
+  // 못 들어온다. 위의 '구성원은 초대 코드를 볼 수 없다'가 이 성질 때문에 서버를
+  // 갈아 끼워 그릇을 비우고 있었고, 그때 이것이 검사 사정이 아니라 **화면의 결함**
+  // 이라는 것이 이미 적혀 있었다.
+  it('다시 만든 초대 코드가 곧바로 읽힌다', async () => {
+    seenAs = 'chair'
+    await loadSources([{ key: 'org.invite', params: {} }])
+    const before = readObjectSource('org.invite').code
+
+    // 화면이 누르는 그 길로 다시 만든다.
+    await runMutation('org.regenerateInvite', {}, {})
+
+    await loadSources([{ key: 'org.invite', params: {} }])
+    expect(readObjectSource('org.invite').code).not.toBe(before)
   })
 
   it('고를 수 있는 사람이 저장소에서 온다', async () => {

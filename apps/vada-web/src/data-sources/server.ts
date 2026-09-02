@@ -32,16 +32,42 @@ export interface Server {
 
 let server: Server | null = null
 const cache = new Map<string, unknown>()
+/** 지금 받아 오는 중인 부름. **칸마다 하나다** — 같은 것을 두 번 부르지 않는다. */
+const coming = new Map<string, Promise<void>>()
+/** 받아 오다 깨진 부름. 어느 출처였는지를 든다 — 그 출처의 글을 그려야 한다. */
+const broken = new Map<string, string>()
+
+function empty(): void {
+  cache.clear()
+  coming.clear()
+  broken.clear()
+}
 
 /** 서버에서 받아 오게 한다. 되돌리는 함수를 준다. */
 export function useServer(next: Server | null): () => void {
   const before = server
   server = next
-  cache.clear()
+  empty()
   return () => {
     server = before
-    cache.clear()
+    empty()
   }
+}
+
+/**
+ * 받아 둔 것을 통째로 잊는다.
+ *
+ * **쓰고 나면 읽은 것이 낡는다.** 그릇은 한 번 받아 둔 부름을 다시 부르지 않으므로,
+ * 비우지 않으면 초대 코드를 다시 만들어도 화면은 옛 코드를 그린다 — 그 코드를 받은
+ * 사람은 못 들어온다. 검사가 서버를 갈아 끼워 이 자리를 대신하고 있었고, 그동안
+ * **배포된 화면에는 비우는 자리가 아예 없었다.**
+ *
+ * **어느 것이 낡았는지 고르지 않는다.** 무엇을 쓰면 무엇이 바뀌는지는 명세가 적어
+ * 두지 않았고, 짐작해서 고르면 고르지 않은 자리가 조용히 낡는다 — 조용한 것이 이
+ * 결함을 오래 살렸다. 쓰고 나면 우리가 든 어느 것도 여전히 참인지 알 수 없다.
+ */
+export function forgetSources(): void {
+  empty()
 }
 
 export function servingFromServer(): boolean {
@@ -57,8 +83,6 @@ export function servingFromServer(): boolean {
 export function currentServer(): Server | null {
   return server
 }
-
-export class NeedsParams extends Error {}
 
 /** 어느 출처를 어떤 인자로 부르는가. */
 export interface SourceCall {
@@ -121,6 +145,33 @@ export class SourcesFailed extends Error {
 }
 
 /**
+ * 한 칸을 받아 온다. **칸마다 한 번이다.**
+ *
+ * 성공하면 담고, 깨지면 깨진 것으로 적는다 — 둘 다 다음 그리기가 읽는다.
+ */
+function bring(call: SourceCall): Promise<void> {
+  const slot = slotOf(call)
+  const already = coming.get(slot)
+  if (already !== undefined) return already
+  const at = server!
+  const run = (async () => {
+    try {
+      const source = findDataSource(call.key)
+      const res = await at.fetch(`${at.baseUrl ?? ''}${urlOf(source.request.path, call.params)}`)
+      if (!res.ok) throw new Error(String(res.status))
+      cache.set(slot, await res.json())
+      broken.delete(slot)
+    } catch {
+      broken.set(slot, call.key)
+    } finally {
+      coming.delete(slot)
+    }
+  })()
+  coming.set(slot, run)
+  return run
+}
+
+/**
  * 이 부름들을 받아 온다.
  *
  * **하나라도 실패하면 던진다** — 조용히 반만 그리지 않는다. 다만 **어느 것이**
@@ -130,8 +181,7 @@ export class SourcesFailed extends Error {
  * 사람이 한 번에 본다.
  */
 export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
-  const at = server
-  if (at === null) return
+  if (server === null) return
   const failed: string[] = []
   await Promise.all(
     calls.map(async (call) => {
@@ -143,14 +193,8 @@ export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
       if (!isServed(call.key)) return
       const slot = slotOf(call)
       if (cache.has(slot)) return
-      try {
-        const source = findDataSource(call.key)
-        const res = await at.fetch(`${at.baseUrl ?? ''}${urlOf(source.request.path, call.params)}`)
-        if (!res.ok) throw new Error(String(res.status))
-        cache.set(slot, await res.json())
-      } catch {
-        failed.push(call.key)
-      }
+      await bring(call)
+      if (broken.has(slot)) failed.push(call.key)
     }),
   )
   if (failed.length > 0) throw new SourcesFailed(failed)
@@ -159,9 +203,23 @@ export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
 /**
  * 받아 둔 것.
  *
- * **서버를 쓰는데 안 받아 둔 부름이면 터뜨린다.** 개발용 응답으로 슬쩍 돌아가면
- * 화면은 그려지는데 그 값이 어디서 왔는지 아무도 모른다 — 이 저장소가 줄곧
+ * **서버를 쓰는데 안 받아 둔 부름이면 개발용 응답으로 돌아가지 않는다.** 화면은
+ * 그려지는데 그 값이 어디서 왔는지 아무도 모르게 되기 때문이다 — 이 저장소가 줄곧
  * 피해 온 조용한 대체다.
+ *
+ * ## 없으면 받아 온다
+ *
+ * 한동안 없으면 그냥 터뜨렸다. 그릇이 화면을 그리기 전에 미리 받아 두는데, **화면
+ * 안의 칸에서 오는 인자는 그릇이 보지 못하기** 때문이다 — 검색어와 거르개가 그렇다.
+ * 그래서 거르개가 달린 화면은 서버에 붙는 순간 통째로 터졌다. 열아홉 중 열넷이
+ * 그런 화면이고, 학생 명단(ORG-07A)은 이미 붙여 둔 채였다(2026-09-02).
+ *
+ * 이제 없으면 **받아 오기 시작하고 그동안 그리기를 멈춘다**(약속을 던진다). 멈춘
+ * 자리는 `ScreenBody`를 감싼 자리가 받아 카탈로그의 '불러오는 중'을 그리고, 받아
+ * 오면 그대로 다시 그려진다. 화면은 여전히 동기로 읽는다 — 한 줄도 안 고쳤다.
+ *
+ * 미리 받아 두는 일을 없애지는 않았다. 그것이 있어야 한 화면의 여러 부름이 **함께**
+ * 나간다 — 없으면 하나씩 줄지어 기다린다.
  */
 export function fromServer(key: string, params: Record<string, string> = {}): unknown {
   if (server === null) return undefined
@@ -169,13 +227,11 @@ export function fromServer(key: string, params: Record<string, string> = {}): un
   // 어느 것이 붙었는지를 `served.ts`가 코드로 들고 있기 때문이다 — 둘 다 적힌 상태다.
   if (!isServed(key)) return undefined
   const slot = slotOf({ key, params })
-  if (!cache.has(slot)) {
-    throw new NeedsParams(
-      `데이터 출처 '${key}'를 인자 ${JSON.stringify(params)}로 받아 두지 않았습니다. ` +
-        '그릇이 미리 받는 목록에 이 부름이 없습니다 — 화면 안의 칸에서 오는 인자는 아직 그릇이 보지 못합니다.',
-    )
-  }
-  return cache.get(slot)
+  if (cache.has(slot)) return cache.get(slot)
+  // 깨진 것은 그 사실을 던진다. 어느 출처였는지를 실어야 그 출처의 글이 그려진다.
+  const failed = broken.get(slot)
+  if (failed !== undefined) throw new SourcesFailed([failed])
+  throw bring({ key, params })
 }
 
 /**

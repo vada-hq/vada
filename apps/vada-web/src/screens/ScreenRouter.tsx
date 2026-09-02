@@ -102,6 +102,7 @@ import {
 import { ALL_SCREENS } from '../spec/screens'
 import { dataSourceCallsOf, dataSourceKeysOf } from '../spec/screen-sources'
 import { useSourceLoading } from '../data-sources/loading'
+import { SourceGate } from '../components/SourceGate'
 import { readScopeDraft } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
@@ -170,7 +171,14 @@ export function ScreenRouter(props: ScreenRouterProps) {
       </div>
     )
   }
-  return <ScreenBody {...props} />
+  // **읽는 순간에야 정해지는 부름이 있다.** 검색어와 거르개는 화면 안의 칸에
+  // 살아서 위의 미리 받기가 보지 못한다 — 그 부름은 그릇이 읽힐 때 받아 오고,
+  // 그동안 여기가 카탈로그의 글을 그린다.
+  return (
+    <SourceGate screenId={props.screenId} sourceKeys={spec === undefined ? [] : dataSourceKeysOf(spec)}>
+      <ScreenBody {...props} />
+    </SourceGate>
+  )
 }
 
 function ScreenBody({

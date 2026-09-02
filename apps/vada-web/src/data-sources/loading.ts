@@ -56,7 +56,7 @@ export type LoadingState =
   | { status: 'loading'; messages: string[] }
   | { status: 'error'; messages: string[] }
 
-function messagesOf(keys: readonly string[], which: 'loading' | 'error'): string[] {
+export function messagesOf(keys: readonly string[], which: 'loading' | 'error'): string[] {
   const seen = new Set<string>()
   for (const key of keys) {
     const message = findDataSource(key).messages[which]

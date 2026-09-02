@@ -3,7 +3,7 @@ import type { DataRow } from '../data-sources/catalog'
 // 계약(경로·payload 스코프·상태 문구)은 카탈로그를 단일 원본으로 읽고,
 // 네트워크만 개발용 mock으로 대체한다(로딩 상태 확인용 인위 지연 포함).
 import catalogJson from '../../../../specs/figma/vada-wireframe/mutations.json'
-import { currentServer, urlOf } from '../data-sources/server'
+import { currentServer, forgetSources, urlOf } from '../data-sources/server'
 import { isServedMutation } from '../data-sources/served'
 
 export interface Mutation {
@@ -161,6 +161,10 @@ async function sendMutation(
   if (!res.ok) {
     throw new Error(`제출 '${mutation.key}'가 실패했습니다(${res.status}).`)
   }
+  // **쓰고 나면 받아 둔 것을 잊는다.** 그러지 않으면 저장소는 바뀌었는데 화면은
+  // 앞서 받아 둔 것을 그대로 그린다 — 초대 코드를 다시 만들고도 옛 코드를 보여
+  // 주는 자리가 실제로 그랬다. 실패한 쓰기에는 잊을 것이 없다.
+  forgetSources()
   // 답이 없는 자리도 있다(계약이 '돌려주는 값이 없다'고 적은 것).
   const text = await res.text()
   return text === '' ? {} : (JSON.parse(text) as DataRow)
