@@ -1,4 +1,5 @@
 import { findDataSource } from './catalog'
+import { isServed } from './served'
 
 /**
  * 서버에서 받아 오는 길.
@@ -97,6 +98,10 @@ export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
   if (at === null) return
   await Promise.all(
     calls.map(async (call) => {
+      // **아직 서버에 안 붙은 출처는 부르지 않는다.** 계약에 자리가 있어도 서버가
+      // 답하지 않으면 404가 오고, 그러면 화면 하나가 통째로 오류가 된다.
+      // 무엇이 붙었는지는 `served.ts`가 든다 — 그 목록이 진도표다.
+      if (!isServed(call.key)) return
       const slot = slotOf(call)
       if (cache.has(slot)) return
       const source = findDataSource(call.key)
@@ -118,6 +123,9 @@ export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
  */
 export function fromServer(key: string, params: Record<string, string> = {}): unknown {
   if (server === null) return undefined
+  // **아직 안 붙은 출처는 개발용 응답으로 간다.** 그것이 조용한 대체가 아닌 까닭은
+  // 어느 것이 붙었는지를 `served.ts`가 코드로 들고 있기 때문이다 — 둘 다 적힌 상태다.
+  if (!isServed(key)) return undefined
   const slot = slotOf({ key, params })
   if (!cache.has(slot)) {
     throw new NeedsParams(
