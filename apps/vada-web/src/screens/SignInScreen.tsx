@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { FIRST_SCREEN, SIGN_IN } from './routes'
 import { AppHeader } from '../components/AppHeader'
 import { PageCard } from '../components/PageCard'
 import { apiBaseUrl } from '../data-sources/server'
@@ -26,9 +27,22 @@ type State =
   | { at: 'ready'; ways: Way[] }
   | { at: 'error'; message: string }
 
-/** 로그인 뒤 돌아올 자리. 지금 보고 있던 곳으로 돌아온다. */
+/**
+ * 로그인 뒤 돌아올 자리.
+ *
+ * 보고 있던 곳으로 돌아온다 — **로그인 화면만 빼고.** 오랫동안 `window.location.href`를
+ * 그대로 넘겼는데, 이 화면에서 누르면 보고 있던 곳이 이 화면이라 구글을 다녀온 사람이
+ * 다시 로그인 화면을 봤다. **로그인은 실제로 됐으므로 아무 오류도 안 났다** — 사람은
+ * 실패한 줄 알고 다시 누른다.
+ *
+ * 앞에 붙은 것만 보면 인자를 달고 온 것(`#/SIGN-IN?from=x`)을 놓친다.
+ */
 function callbackUrl(): string {
-  return window.location.href
+  const here = new URL(window.location.href)
+  const screenId = here.hash.replace(/^#\/?/, '').split('?')[0]
+  if (screenId !== SIGN_IN) return here.href
+  here.hash = `#/${FIRST_SCREEN}`
+  return here.href
 }
 
 export function SignInScreen() {
