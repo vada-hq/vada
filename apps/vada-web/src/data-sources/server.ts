@@ -182,5 +182,15 @@ export function browserFetch(input: RequestInfo | URL, init?: RequestInit): Prom
  * 그 길로 갈 출처는 그 목록이 정한다.
  */
 export function startServing(): () => void {
+  // **시나리오 검사는 개발용 응답으로 돈다.** 그 검사 사백스물아홉은 '명세가 말한 것을
+  // 화면이 그리는가'를 보고, 개발용 응답이 바로 그 명세가 든 예시 값이다. 진짜 서버로
+  // 돌리면 그 검사들은 명세가 아니라 저장소에 든 것을 재게 된다.
+  //
+  // **서버가 이어지는지는 다른 곳에서 잰다** — `*.server.test.tsx`가 진짜 Postgres에
+  // 대고 화면을 그린다. 거기가 통합이고 여기는 적합성이다.
+  //
+  // 이 빌드는 `dist-e2e/`로만 나간다(`run-e2e.mjs`). 실서비스가 나가는 `dist/`가
+  // 개발용 응답을 물고 배포되는 일이 **구조적으로 생길 수 없게** 자리를 갈라 두었다.
+  if (import.meta.env.VITE_FIXTURES === '1') return () => {}
   return useServer({ baseUrl: apiBaseUrl(), fetch: browserFetch })
 }

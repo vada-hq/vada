@@ -21,7 +21,9 @@ export default defineConfig({
     viewport: { width: 1472, height: 846 },
   },
   webServer: {
-    command: preview ? 'npm run preview -- --port 4173 --strictPort' : 'npm run dev',
+    command: preview
+      ? 'npm run preview -- --outDir dist-e2e --port 4173 --strictPort'
+      : 'npm run dev',
     url: baseURL,
     reuseExistingServer: true,
     timeout: 60_000,

@@ -39,7 +39,14 @@ function runCapturing(command, args, options = {}) {
   })
 }
 
-const build = run('npm', ['run', 'build'])
+// **검사용 빌드는 다른 자리에 둔다.**
+//
+// 이 빌드는 서버에 붙지 않는다(`VITE_FIXTURES`). 같은 `dist/`에 쓰면 검사를 돌린
+// 다음 손으로 배포하는 사람이 **개발용 응답을 물고 있는 묶음을 실서비스에 올린다** —
+// 화면은 멀쩡히 그려지므로 아무도 모른다. 자리를 갈라 그 일이 못 생기게 한다.
+const build = run('npm', ['run', 'build', '--', '--outDir', 'dist-e2e'], {
+  env: { ...process.env, VITE_FIXTURES: '1' },
+})
 if (build.status !== 0) process.exit(build.status ?? 1)
 
 // **서버에 대고 화면을 그리는 검사는 여기서 돈다.**

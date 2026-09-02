@@ -27,6 +27,31 @@ describe('앱이 켜질 때 서버에 붙는다', () => {
     expect(currentServer()?.fetch).not.toBe(globalThis.fetch)
   })
 
+  // **시나리오 검사용 빌드만 안 붙는다.** 그 빌드는 `dist-e2e/`로만 나가므로
+  // 실서비스가 나가는 `dist/`는 늘 서버에 붙는다.
+  it('개발용 응답으로 도는 빌드에서는 안 붙는다', () => {
+    const before = import.meta.env.VITE_FIXTURES
+    import.meta.env.VITE_FIXTURES = '1'
+    try {
+      const undo = startServing()
+      expect(servingFromServer()).toBe(false)
+      undo()
+    } finally {
+      import.meta.env.VITE_FIXTURES = before
+    }
+  })
+
+  // **실서비스로 나가는 빌드가 그 표시를 달면 화면이 통째로 가짜가 된다.**
+  // 자리를 가른 것이 그것을 막는데, 가른 자리를 여기서도 붙잡아 둔다.
+  it('검사용 빌드는 실서비스와 다른 자리로 나간다', () => {
+    const runner = readFileSync(
+      fileURLToPath(new URL('../../../../scripts/run-e2e.mjs', import.meta.url)),
+      'utf8',
+    )
+    expect(runner).toContain("VITE_FIXTURES: '1'")
+    expect(runner).toContain('dist-e2e')
+  })
+
   // **부르는 곳이 없으면 위의 검사는 아무것도 지키지 못한다.** 함수가 있고 동작해도
   // 앱이 안 부르면 사람이 보는 것은 그대로 개발용 응답이다 — 그것이 실제로 일어난 일이라
   // 여기서 그 한 줄을 직접 확인한다.
