@@ -83,6 +83,14 @@ export const SERVED: readonly string[] = [
   // 인자를 넘겨 부르는 길이 열린 것을 재는 자리(M3).
   'event.summary',
 
+  // **행사의 앞자락(EVT-00A · EVT-02 · EVT-02B · EVT-04B).** 서버는 이 넷을 이미
+  // 답하고 있었는데 화면은 개발용 응답을 그렸다 — 조직 보기에서 겪은 것과 같다.
+  // **자리를 만든 것과 그 자리가 쓰이는 것은 다른 일이다.**
+  'event.list',
+  'event.basics',
+  'event.basicsDraft',
+  'event.attendanceQr',
+
   // **들어오기 흐름(ONB-01 · ORG-01 · ORG-02 · INV-00 · INV-01).** 학생회에 들어오는
   // 길이 통째로 서버에서 온다 — 학교를 검색하고, 단과대와 학부를 좁히고, 초대 코드가
   // 어느 학생회를 가리키는지 확인하는 데까지.
@@ -154,6 +162,13 @@ export const SERVED_MUTATIONS: readonly string[] = [
   'auth.signInKakao',
   'org.create',
   'organization.verifyInviteCode',
+
+  // **행사를 만들고 고치고, QR을 다시 만들고 끈다(EVT-00B · EVT-02B · EVT-04B).**
+  // QR 다시 만들기는 되돌릴 수 없다 — 뿌려 둔 포스터의 QR이 전부 죽는다.
+  'event.create',
+  'event.saveBasics',
+  'event.attendanceQr.regenerate',
+  'event.attendanceQr.deactivate',
 ]
 
 const servedMutations = new Set(SERVED_MUTATIONS)

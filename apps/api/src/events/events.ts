@@ -139,9 +139,15 @@ export async function eventList(
   }))
 }
 
-/** 걸러 달라는 단계가 명세가 든 것인가. 아니면 던진다. */
+/**
+ * 걸러 달라는 단계가 명세가 든 것인가. 아니면 던진다.
+ *
+ * **'전체'는 거르지 않는다는 뜻이다.** 명세의 거르개가 그 값을 보내고(`event.status`의
+ * 첫 선택지), 그것을 상태로 읽으면 아무도 안 나온다 — 화면을 열자마자 그 값이라
+ * 목록이 통째로 비어 보인다. 학생 명단이 같은 자리에서 같은 것을 겪었다.
+ */
 function readStatus(value: string | undefined): Status | undefined {
-  if (value === undefined || value === '') return undefined
+  if (value === undefined || value === '' || value === 'all') return undefined
   if (value in STATUS) return value as Status
   throw new Blocked('그런 진행 단계는 없습니다')
 }

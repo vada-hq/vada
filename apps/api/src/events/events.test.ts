@@ -1,6 +1,7 @@
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
 import Ajv from 'ajv'
 import openapi from '../../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
+import optionSources from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import { createApp, type Deps } from '../app.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
@@ -284,4 +285,31 @@ describe('답이 계약의 모양을 지킨다', () => {
       expect(validate(body), JSON.stringify(validate.errors)).toBe(true)
     })
   }
+})
+
+// **명세가 든 값을 서버가 전부 받는다.**
+//
+// 화면의 거르개는 `event.status`가 든 값을 그대로 보낸다. 그 목록에 서버가 모르는
+// 값이 하나라도 있으면 그 단추는 눌리는 순간 터진다 — '진행 중'이 실제로 그랬다
+// (명세는 `running`, 표는 `inProgress`). 개발용 응답도 표를 따라가고 있어서
+// **개발 빌드에서조차 그 단추는 아무것도 못 찾았고**, 아무 검사도 안 터졌다.
+describe('거르개가 보내는 값을 서버가 안다', () => {
+  const statuses = (
+    optionSources as { sources: Array<{ key: string; options?: Array<{ value: string }> }> }
+  ).sources.find((source) => source.key === 'event.status')!.options!
+
+  it('명세가 든 진행 단계를 하나도 빠짐없이 받는다', async () => {
+    for (const option of statuses) {
+      const res = await harness().app.request(`/api/ops/events?status=${option.value}`)
+      expect([option.value, res.status]).toEqual([option.value, 200])
+    }
+  })
+
+  // '전체'는 거르지 않는다는 뜻이다. 상태로 읽으면 아무도 안 나온다.
+  it("'전체'는 거르지 않는다", async () => {
+    const all = (await (await harness().app.request('/api/ops/events?status=all')).json()) as unknown[]
+    const none = (await (await harness().app.request('/api/ops/events')).json()) as unknown[]
+    expect(all.length).toBe(none.length)
+    expect(all.length).toBeGreaterThan(1)
+  })
 })
