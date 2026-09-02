@@ -3302,3 +3302,90 @@ test("들어오려는 사람이 보는 화면이 구성원 전용 변이를 매�
   }).filter((finding) => finding.message.includes("org.create"));
   assert.equal(findings.length, 1);
 });
+
+// **배포로 나가는 검증은 잠겨 있어야 한다.**
+//
+// 네 자리가 조용히 통과하고 있었다(2026-09-02 교차 검증).
+//   · 검증할 폴더가 하나도 없어도 경고 하나에 종료 0 — `validate docs`가 초록이었다
+//   · 흐름·셸·변이·권한 카탈로그가 없으면 그냥 null — 그 검사들이 통째로 안 돈다
+//   · Figma 그림이 명세에도 not-screens에도 없으면 경고 — 그림 하나가 조용히 빠진다
+//   · 카탈로그에 같은 열쇠가 둘이면 아무 말도 없다 — 읽는 쪽은 첫 것, 검증기는 마지막 것
+//
+// 넷 다 **없는 것을 없다고 말하지 않는 자리**다. 초안을 쓰는 동안에는 경고가 맞지만,
+// 배포로 나가는 길에서는 오류여야 한다. 기본이 엄격이고 `draft`가 그것을 푼다.
+
+async function wireframeRoot(files = {}) {
+  const root = await mkdtemp(join(tmpdir(), "figma-spec-strict-"));
+  await mkdir(join(root, "wf", "screens"), { recursive: true });
+  for (const [name, body] of Object.entries(files)) {
+    await writeFile(join(root, "wf", name), JSON.stringify(body), "utf8");
+  }
+  return root;
+}
+
+const FULL_CATALOGS = {
+  "data-sources.json": { schemaVersion: 1, sources: [] },
+  "option-sources.json": { schemaVersion: 1, sources: [] },
+  "state-scopes.json": { schemaVersion: 1, scopes: [] },
+  "mutations.json": { schemaVersion: 1, mutations: [] },
+  "permissions.json": { schemaVersion: 1, conditions: [], areas: [] },
+  "shell.json": { schemaVersion: 1, navigation: [], workspaces: [] },
+  "flows.json": { schemaVersion: 1, flows: [] },
+};
+
+const errorsOf = (findings) => findings.filter((finding) => finding.level === "error");
+
+test("검증할 폴더가 하나도 없으면 오류다", async () => {
+  const root = await mkdtemp(join(tmpdir(), "figma-spec-empty-"));
+  try {
+    assert.equal(errorsOf(await validateSpecsRoot(root)).length, 1);
+    // 초안을 쓰는 동안에는 아직 폴더가 없을 수 있다.
+    assert.equal(errorsOf(await validateSpecsRoot(root, { draft: true })).length, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("계약을 지닌 카탈로그가 없으면 오류다", async () => {
+  const root = await wireframeRoot({ "data-sources.json": FULL_CATALOGS["data-sources.json"] });
+  try {
+    // 없는 것마다 어느 파일인지 대야 한다 — 뭉뚱그리면 무엇을 만들지 알 수 없다.
+    const missing = errorsOf(await validateSpecsRoot(root)).map((finding) => finding.file);
+    for (const name of ["option-sources", "mutations", "permissions", "shell", "flows", "state-scopes"]) {
+      assert.ok(
+        missing.some((file) => file.includes(name)),
+        `'${name}'이 없다는 말이 없습니다: ${missing.join(" / ")}`,
+      );
+    }
+    assert.equal(errorsOf(await validateSpecsRoot(root, { draft: true })).length, 0);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("카탈로그에 같은 열쇠가 둘이면 오류다 — 초안에서도", async () => {
+  const twice = {
+    ...FULL_CATALOGS,
+    "data-sources.json": {
+      schemaVersion: 1,
+      sources: [
+        { key: "org.thing", shape: "object", description: "먼저", fields: [] },
+        { key: "org.thing", shape: "object", description: "나중", fields: [] },
+      ],
+    },
+  };
+  const root = await wireframeRoot(twice);
+  try {
+    // 읽는 쪽은 첫 것을 고르고 검증기는 마지막 것을 고른다. 어느 쪽도 참이 아니다.
+    const said = errorsOf(await validateSpecsRoot(root)).map((finding) => finding.message);
+    assert.ok(
+      said.some((message) => message.includes("org.thing")),
+      `중복을 말하지 않았습니다: ${said.join(" / ")}`,
+    );
+    // 초안에서도 오류다 — 같은 열쇠가 둘인 것이 옳은 때는 없다.
+    const drafted = errorsOf(await validateSpecsRoot(root, { draft: true })).map((f) => f.message);
+    assert.ok(drafted.some((message) => message.includes("org.thing")));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

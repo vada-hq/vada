@@ -261,6 +261,35 @@ function checkViewerReach(findings, screens, groups) {
   }
 }
 
+/**
+ * **한 이름이 두 벌을 가리키면 어느 쪽도 참이 아니다.**
+ *
+ * 읽는 쪽과 검사하는 쪽이 서로 다른 것을 고른다 — 데이터 출처는 `.find`로 **첫 것**을,
+ * 검증기는 `Map`으로 **마지막 것**을 고르고, 선택지와 변이는 또 마지막 것이다. 그러면
+ * 명세가 말하는 모양과 화면이 그리는 값이 조용히 갈린다.
+ *
+ * **초안에서도 오류다.** 같은 열쇠가 둘인 것이 옳은 때는 없다 — 아직 안 정한 것은
+ * 열쇠를 둘로 만드는 것이 아니라 하나를 안 만드는 것이다.
+ */
+function checkCatalogKeysUnique(findings, groups) {
+  for (const [items, what, file] of groups) {
+    const seen = new Set();
+    for (const item of Array.isArray(items) ? items : []) {
+      const key = item?.key;
+      if (typeof key !== "string") continue;
+      if (seen.has(key)) {
+        findings.push({
+          level: "error",
+          file,
+          message: `${what} '${key}'가 두 번 적혀 있습니다. 읽는 쪽은 첫 것을, 검사하는 쪽은 마지막 것을 고릅니다.`
+        });
+        continue;
+      }
+      seen.add(key);
+    }
+  }
+}
+
 function checkAuthorize(findings, permissions, groups) {
   if (!isObject(permissions)) return;
   const areas = new Map(
@@ -2500,6 +2529,12 @@ export function collectSpecFindings({
   checkAuthorize(findings, permissions, authorizeGroups);
   checkSecretDeclared(findings, permissions, authorizeGroups);
   checkViewerReach(findings, screens, authorizeGroups);
+  checkCatalogKeysUnique(findings, [
+    ...authorizeGroups,
+    [stateScopes?.scopes, "상태 스코프", "state-scopes.json"],
+    [permissions?.areas, "권한 영역", permissionsFile],
+    [permissions?.conditions, "권한 조건", permissionsFile]
+  ]);
   const screenIds = new Set(
     screens
       .map((screen) => screen?.spec?.screenId)

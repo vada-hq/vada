@@ -116,10 +116,12 @@ async function readOptionalCatalog({
   filePath,
   fileLabel,
   validator,
-  missingMessage
+  missingMessage,
+  draft = false
 }) {
   if (!(await pathExists(filePath))) {
-    findings.push({ level: "warning", file: fileLabel, message: missingMessage });
+    // 없으면 이것을 근거로 하는 검사가 통째로 안 돈다. 초안일 때만 경고다.
+    findings.push({ level: draft ? "warning" : "error", file: fileLabel, message: missingMessage });
     return null;
   }
   let catalog;
@@ -170,7 +172,7 @@ function validateScreenElements(findings, fileLabel, spec, validators) {
   }
 }
 
-async function validateWireframe(wireframeDir, wireframeKey, validators, findings) {
+async function validateWireframe(wireframeDir, wireframeKey, validators, findings, draft) {
   const label = (...parts) => [wireframeKey, ...parts].join("/");
 
   const optionSources = await readOptionalCatalog({
@@ -178,27 +180,39 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     filePath: join(wireframeDir, "option-sources.json"),
     fileLabel: label("option-sources.json"),
     validator: validators.optionSources,
-    missingMessage: "선택지 출처 카탈로그가 없습니다."
+    missingMessage: "선택지 출처 카탈로그가 없습니다.",
+    draft
   });
   const dataSources = await readOptionalCatalog({
     findings,
     filePath: join(wireframeDir, "data-sources.json"),
     fileLabel: label("data-sources.json"),
     validator: validators.dataSources,
-    missingMessage: "데이터 출처 카탈로그가 없습니다."
+    missingMessage: "데이터 출처 카탈로그가 없습니다.",
+    draft
   });
   const stateScopes = await readOptionalCatalog({
     findings,
     filePath: join(wireframeDir, "state-scopes.json"),
     fileLabel: label("state-scopes.json"),
     validator: validators.stateScopes,
-    missingMessage: "상태 스코프 카탈로그가 없습니다."
+    missingMessage: "상태 스코프 카탈로그가 없습니다.",
+    draft
   });
 
-  // 흐름·제출 카탈로그는 선택 사항이다: 없으면 조용히 지나가고, 있으면 검증한다.
-  const readOptionalOwnCatalog = async (fileName, validator) => {
+  // **없으면 그 검사가 통째로 안 돈다.** 카탈로그 하나가 사라지면 그것을 근거로 하던
+  // 규칙이 전부 조용히 지나간다 — 명세가 줄어든 것이 아니라 보는 눈이 감긴 것이다.
+  // 그래서 계약을 지닌 것은 없으면 오류다. 초안을 쓰는 동안에만 경고로 내린다.
+  const readOptionalOwnCatalog = async (fileName, validator, { required = false } = {}) => {
     const filePath = join(wireframeDir, fileName);
     if (!(await pathExists(filePath))) {
+      if (required) {
+        findings.push({
+          level: draft ? "warning" : "error",
+          file: label(fileName),
+          message: `${fileName}이 없습니다. 이것이 없으면 그것을 근거로 하는 검사가 통째로 돌지 않습니다.`
+        });
+      }
       return null;
     }
     let catalog;
@@ -218,10 +232,10 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     return catalog;
   };
 
-  const flowsCatalog = await readOptionalOwnCatalog("flows.json", validators.flows);
-  const shellCatalog = await readOptionalOwnCatalog("shell.json", validators.shell);
-  const mutations = await readOptionalOwnCatalog("mutations.json", validators.mutations);
-  const permissions = await readOptionalOwnCatalog("permissions.json", validators.permissions);
+  const flowsCatalog = await readOptionalOwnCatalog("flows.json", validators.flows, { required: true });
+  const shellCatalog = await readOptionalOwnCatalog("shell.json", validators.shell, { required: true });
+  const mutations = await readOptionalOwnCatalog("mutations.json", validators.mutations, { required: true });
+  const permissions = await readOptionalOwnCatalog("permissions.json", validators.permissions, { required: true });
   // Figma 문서 신원. 없어도 되지만(플러그인으로만 저장해 온 wireframe) 있으면 검사한다.
   await readOptionalOwnCatalog("figma-file.json", validators.figmaFile);
   // 화면으로 만들지 않기로 **정한** 프레임들. 잊은 것과 갈라 놓는 자리다.
@@ -372,8 +386,10 @@ async function validateWireframe(wireframeDir, wireframeKey, validators, finding
     if (decided !== undefined) {
       continue;
     }
+    // **그림 하나가 어느 쪽에도 안 들면 조용히 빠진다.** 명세를 만들 것인지 안 만들
+    // 것인지를 정하지 않은 상태이고, 정하지 않은 것은 잊은 것과 구분되지 않는다.
     findings.push({
-      level: "warning",
+      level: draft ? "warning" : "error",
       file: designs[screenId].file,
       message: `figma.design.json은 있으나 동작 명세 screens/${screenId}/screen.json이 없습니다. 만들지 않기로 정한 것이라면 not-screens.json에 까닭과 함께 적으세요.`
     });
@@ -418,7 +434,16 @@ async function isWireframeDir(path) {
   }
 }
 
-export async function validateSpecsRoot(rootDir) {
+/**
+ * 명세를 통째로 검증한다.
+ *
+ * **기본이 엄격이다.** 없는 카탈로그·미분류 그림·빈 대상은 오류다 — 셋 다 '없는 것을
+ * 없다고 말하지 않는' 자리이고, 그런 초록은 아무것도 지키지 않는다.
+ *
+ * `draft`는 그것을 경고로 내린다. 그림을 막 받아 왔고 아직 명세를 안 쓴 동안이 그 자리다.
+ * 커밋과 CI는 기본으로 돈다.
+ */
+export async function validateSpecsRoot(rootDir, { draft = false } = {}) {
   const resolvedRoot = resolve(rootDir);
   const validators = await createValidators();
   const findings = [];
@@ -436,25 +461,28 @@ export async function validateSpecsRoot(rootDir) {
   }
 
   if (wireframes.length === 0) {
+    // **아무것도 안 본 것과 다 통과한 것은 다른 일이다.** 잘못된 자리를 겨눠도
+    // 초록이 나오면, 그 초록은 아무것도 지키지 않는다.
     findings.push({
-      level: "warning",
+      level: draft ? "warning" : "error",
       file: resolvedRoot,
-      message: "검증할 wireframe 폴더(screens/ 포함)를 찾지 못했습니다."
+      message: "검증할 wireframe 폴더(screens/ 포함)를 찾지 못했습니다. 겨눈 자리가 맞습니까?"
     });
     return findings;
   }
 
   for (const wireframe of wireframes) {
-    await validateWireframe(wireframe.dir, wireframe.key, validators, findings);
+    await validateWireframe(wireframe.dir, wireframe.key, validators, findings, draft);
   }
   return findings;
 }
 
 async function runCli() {
-  const target = process.argv[2]
-    ? resolve(process.argv[2])
-    : join(repoRoot, "specs", "figma");
-  const findings = await validateSpecsRoot(target);
+  // `--draft`는 아직 명세를 안 쓴 그림이 있는 동안 쓴다. 커밋과 CI는 붙이지 않는다.
+  const draft = process.argv.includes("--draft");
+  const positional = process.argv.slice(2).find((one) => !one.startsWith("--"));
+  const target = positional ? resolve(positional) : join(repoRoot, "specs", "figma");
+  const findings = await validateSpecsRoot(target, { draft });
 
   for (const finding of findings) {
     const tag = finding.level === "error" ? "[오류]" : "[경고]";
