@@ -3,6 +3,7 @@ import { createApp, type Deps } from '../app.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
+  departments,
   educationColleges,
   educationSchools,
   members,
@@ -80,6 +81,12 @@ beforeAll(async () => {
     { id: 'ORG-01', name: '제12대 학생회', repSchoolId: 'SCH-HYU-ERICA', repCollegeId: 'COL-HYU-ERICA-SW' },
     // **옆 학생회를 하나 더 둔다.** 울타리를 재려면 넘어갈 담이 있어야 한다.
     { id: 'ORG-02', name: '옆 학생회' },
+  ])
+  await db.insert(departments).values([
+    { id: 'D-01', orgId: 'ORG-01', name: '기획부' },
+    { id: 'D-02', orgId: 'ORG-01', name: '재정부', handlesFinance: true },
+    // 옆 학생회의 부서. 이 목록에 나오면 안 된다.
+    { id: 'D-99', orgId: 'ORG-02', name: '남의 부서' },
   ])
   await db.insert(members).values({ id: 'M-01', orgId: 'ORG-01', name: '이지원', role: 'chair' })
 
@@ -201,5 +208,25 @@ describe('조직 관리 영역의 한 줄', () => {
     expect(row.departments).toContain('구성원 1명')
     expect(row.students).toContain('학생 4명')
     expect(row.roles).toContain('기본 역할 3종')
+  })
+})
+
+describe('고르는 부서 목록', () => {
+  // **학생회의 부서다.** 학교의 학부·학과(education.departments)와 다른 물건이고,
+  // 조직도가 읽는 자리와도 다르다 — 저기는 부서장과 부원까지 실은 나무를 주고
+  // 여기는 값과 글만 있으면 된다.
+  it('내 학생회의 부서만 고를 수 있다', async () => {
+    const found = (await (
+      await harness().request('/api/org/departments/options')
+    ).json()) as Array<{ value: string; label: string }>
+    expect(found.map((row) => row.label)).toEqual(['기획부', '재정부'])
+  })
+
+  // 값은 부서의 id다 — 이름으로 고르면 이름을 바꾼 순간 고른 것이 사라진다.
+  it('값은 이름이 아니라 부서의 id다', async () => {
+    const found = (await (
+      await harness().request('/api/org/departments/options')
+    ).json()) as Array<{ value: string; label: string }>
+    expect(found.find((row) => row.label === '기획부')!.value).toBe('D-01')
   })
 })

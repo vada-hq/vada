@@ -48,6 +48,7 @@ export const SERVED: readonly string[] = [
 
   // **학생 명단(ORG-07A · ORG-00).** 거르는 것도 세는 것도 서버가 한다 — 천 명짜리
   // 명단을 화면이 들고 거르면 '몇 명인가'의 답이 화면마다 갈린다.
+  'org.departments',
   'org.students',
   'org.studentPaging',
   'org.rosterScope',

@@ -1,6 +1,7 @@
 import { and, asc, count, desc, eq, ilike, or, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import {
+  departments,
   educationColleges,
   educationSchools,
   members,
@@ -250,4 +251,28 @@ export async function areaSummaries(db: Db, orgId: string): Promise<AreaSummarie
     // **역할 셋은 제품이 정한 것이다.** 행렬이 학생회마다 다르지 않으므로 세지 않는다.
     roles: '기본 역할 3종 · 확정된 권한 매트릭스',
   }
+}
+
+/**
+ * 고르는 부서 목록.
+ *
+ * **조직도가 읽는 자리와 다른 자리다.** 저기는 부서장과 부원까지 실은 나무를 주고
+ * 여기는 값과 글만 있으면 된다 — 한 자리가 두 모양을 줄 수는 없다.
+ *
+ * **값은 이름이 아니라 id다.** 이름으로 고르면 부서 이름을 바꾼 순간 고른 것이 사라진다.
+ *
+ * 이름에 `org`를 붙인 까닭: 설문의 학부·학과 목록도 `departmentOptions`다. **다른
+ * 물건이다** — 저것은 학교의 학부이고 이것은 학생회가 스스로 나눈 부서다. 같은 이름을
+ * 두면 둘 중 하나를 부르려다 다른 것을 부른다.
+ */
+export async function orgDepartmentOptions(
+  db: Db,
+  orgId: string,
+): Promise<Array<{ value: string; label: string }>> {
+  const rows = await db
+    .select({ id: departments.id, name: departments.name })
+    .from(departments)
+    .where(eq(departments.orgId, orgId))
+    .orderBy(asc(departments.sortOrder), asc(departments.name))
+  return rows.map((row) => ({ value: row.id, label: row.name }))
 }

@@ -24,7 +24,13 @@ import {
   schoolOptions,
 } from './org/education.ts'
 import { currentInvite, regenerateInvite, type InviteSettings } from './org/invite.ts'
-import { areaSummaries, roster, rosterPaging, rosterScope } from './org/roster.ts'
+import {
+  areaSummaries,
+  orgDepartmentOptions,
+  roster,
+  rosterPaging,
+  rosterScope,
+} from './org/roster.ts'
 import { createOrg, invitedOrganization, verifyInviteCode } from './org/joining.ts'
 import { changeRole, roleAssignmentOf } from './org/role-change.ts'
 import { checkIn, checkInForm, checkInResult } from './public/attendance.ts'
@@ -270,6 +276,8 @@ export function createApp(deps: Deps) {
       }),
     'org.rosterScope': async (c, d) => rosterScope(d.db, orgOf(c)),
     'org.areaSummaries': async (c, d) => areaSummaries(d.db, orgOf(c)),
+    // **조직도가 읽는 자리와 다른 자리다.** 저기는 나무를 주고 여기는 값과 글만 준다.
+    'org.departments.options': async (c, d) => orgDepartmentOptions(d.db, orgOf(c)),
 
     // ── 들어오는 자리 (SIGN-IN) ────────────────────────────────────────────
     //
