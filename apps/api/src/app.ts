@@ -18,10 +18,16 @@ import {
   unassignedHint,
   unassignedMembers,
 } from './org/chart.ts'
+import {
+  collegeOptions as educationCollegeOptions,
+  departmentOptions as educationDepartmentOptions,
+  schoolOptions,
+} from './org/education.ts'
 import { currentInvite, regenerateInvite, type InviteSettings } from './org/invite.ts'
+import { createOrg, invitedOrganization, verifyInviteCode } from './org/joining.ts'
 import { changeRole, roleAssignmentOf } from './org/role-change.ts'
 import { checkIn, checkInForm, checkInResult } from './public/attendance.ts'
-import { publicRateLimit, type Counter } from './public/rate-limit.ts'
+import { guessRateLimit, type Counter } from './public/rate-limit.ts'
 import {
   apply,
   applyForm,
@@ -142,11 +148,19 @@ function canDo(
  * **밖에서는 이 미들웨어가 유일한 문지기다.** 오랫동안 여기서 구성원이 아니면
  * 그냥 지나갔는데, 그러면 계약이 `Idempotency-Key`를 요구한다고 적어 둔 두 자리
  * (참석·신청)가 그 요구를 아무도 지키지 않은 채 돌았다.
+ *
+ * **로그인은 했는데 아직 아무 학생회에도 없는 사람이 있다.** 학생회를 만들려는
+ * 사람이 그렇고, 그 자리(`org.create`)가 바로 키를 요구하는 자리다 — 소속으로만
+ * 칸을 가르던 동안 이 사람은 칸이 없어 그냥 지나갔고, '조직 만들기'를 두 번 누르면
+ * 학생회가 둘 생겼다. 그 사람에게는 **자기 자신이 칸**이다.
  */
 function scopeOf(c: Context): Scope | null {
-  const membership = c.get('sender')?.membership
-  if (membership !== null && membership !== undefined) {
-    return { name: `org:${membership.orgId}`, fromOutside: false }
+  const sender = c.get('sender')
+  if (sender !== null && sender !== undefined) {
+    const membership = sender.membership
+    return membership === null
+      ? { name: `user:${sender.userId}`, fromOutside: false }
+      : { name: `org:${membership.orgId}`, fromOutside: false }
   }
   if (!c.req.path.startsWith('/api/public/')) return null
   const token = tokenOfRequest(c)
@@ -161,10 +175,11 @@ export function createApp(deps: Deps) {
   // **가장 먼저 돈다.** 막힌 요청도 남아야 하고, 누가 보냈는지는 여기서 한 번
   // 확정해 문맥에 담는다 — 구성원이 아니어도 누구인지는 남는다.
   app.use('*', auditMiddleware(deps.audit, { who: (c) => deps.who(c) }))
-  // **밖에서 열리는 자리는 세션이 벽이 아니다.** 토큰이 유일한 벽이므로 마구 넣어
-  // 보는 것을 막지 않으면 그 벽이 벽이 아니다. 권한보다 앞에 둔다 — 막을 것은
-  // 판정에 닿기 전에 막는다.
-  app.use('*', publicRateLimit({ counter: deps.counter, now: () => deps.invite.now().getTime() }))
+  // **열쇠 하나가 벽인 자리는 세션이 벽이 아니다.** 마구 넣어 보는 것을 막지 않으면
+  // 그 벽이 벽이 아니다 — 밖에서 열리는 자리가 그렇고, 로그인이 있어도 주소에 실린
+  // 값이 곧 열쇠인 자리(초대 코드)가 그렇다. 권한보다 앞에 둔다 — 막을 것은 판정에
+  // 닿기 전에 막는다.
+  app.use('*', guessRateLimit({ counter: deps.counter, now: () => deps.invite.now().getTime() }))
 
   app.use('*', authorizeMiddleware({ lookups: deps.lookups }))
 
@@ -217,6 +232,59 @@ export function createApp(deps: Deps) {
       const row = await viewerLine(d.db, orgId, who.userId)
       if (row === null) throw new NotFound('이 학생회의 구성원이 아닙니다')
       return row
+    },
+
+    // ── 학교의 편제 (ONB-01 · ORG-01 · INV-01) ─────────────────────────────
+    //
+    // **여기 '학부·학과'는 학생회의 부서가 아니다.** 아래 `org.departments`가 그리는
+    // 것은 이 학생회가 스스로 나눈 부서(재정부·기획부)이고 이 셋은 학교의 편제다.
+    //
+    // 셋이 서로에게 걸려 있다 — 단과대는 학교에, 학부·학과는 그 학교의 그 단과대에.
+    // 받은 인자를 전부 넘기는 까닭이 그것이다.
+    'education.schools.options': async (c, d) => schoolOptions(d.db, c.req.query('q') ?? ''),
+    'education.colleges.options': async (c, d) =>
+      educationCollegeOptions(d.db, c.req.query('schoolId') ?? ''),
+    'education.departments.options': async (c, d) =>
+      educationDepartmentOptions(
+        d.db,
+        c.req.query('schoolId') ?? '',
+        c.req.query('collegeId') ?? '',
+      ),
+
+    // ── 들어오기 (ORG-01 · ORG-02 · INV-00 · INV-01) ───────────────────────
+    //
+    // 여기 셋만 **아직 어느 학생회의 것도 아닌 사람**이 부른다(계약의 `signedIn`).
+    // 그래서 `orgOf(c)`를 쓰지 않는다 — 그것은 소속이 이미 있는 사람의 자리다.
+    'org.create': async (c, d) => {
+      const who = c.get('sender')!
+      const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+      const made = await createOrg(d.db, who.userId, draft, {
+        newId: d.newId,
+        now: d.invite.now,
+      })
+      // **누구의 것을 다뤘나**: 이 요청이 만든 것은 이 사람의 구성원 줄이다.
+      c.set('auditSubject', { type: 'user', id: who.userId })
+      // 어느 학생회를 만들었는지도 남긴다. 보낸 사람에게 아직 소속이 없어 기록 층이
+      // 이 칸을 채우지 못한다 — 비워 두면 '학생회가 언제 생겼나'를 기록으로 못 찾는다.
+      c.set('orgId', made.orgId)
+      // 계약이 '돌려주는 값이 없다'고 적었다.
+      return {}
+    },
+    'organization.verifyInviteCode': async (c, d) => {
+      const who = c.get('sender')!
+      const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+      const checked = await verifyInviteCode(d.db, who.userId, draft)
+      c.set('auditSubject', { type: 'organization', id: checked.orgId })
+      // 계약이 '돌려주는 값이 없다'고 적었다. 어느 학생회인지는 다음 자리가 답한다.
+      return {}
+    },
+    'org.invitedOrganization': async (c, d) => {
+      const found = await invitedOrganization(d.db, c.req.param('inviteCode')!)
+      c.set('auditSubject', { type: 'organization', id: found.orgId })
+      // **코드를 어디에도 쌓지 않는다.** 감사 기록은 이미 지우고(x-secret), 답이
+      // 캐시에 남으면 그 자리로 학생회 이름이 새어 나간다.
+      c.header('Cache-Control', 'no-store')
+      return found.card
     },
 
     // ── 밖에서 오는 사람 (EXT-01A · EXT-01B) ───────────────────────────────

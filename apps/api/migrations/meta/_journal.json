@@ -15,6 +15,20 @@
       "when": 1788290786444,
       "tag": "0001_absent_nightcrawler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1788310546124,
+      "tag": "0002_typical_whirlwind",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788310559213,
+      "tag": "0003_sticky_gamora",
+      "breakpoints": true
     }
   ]
 }

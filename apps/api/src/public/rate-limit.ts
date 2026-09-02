@@ -1,5 +1,5 @@
-import type { MiddlewareHandler } from 'hono'
-import { hashToken, tokenOfRequest } from './tokens.ts'
+import type { Context, MiddlewareHandler } from 'hono'
+import { carriesSecret, hashToken, tokenOfRequest } from './tokens.ts'
 
 // 마구 넣어 보는 것을 막는다.
 //
@@ -84,17 +84,32 @@ function retryAfter(ms: number): string {
 }
 
 /**
- * 밖에서 열리는 자리에만 건다.
+ * 여기서 세는 자리.
  *
- * 안쪽 자리는 세션이 벽이므로 여기서 세지 않는다 — 세면 한 사람이 많이 쓰는 것과
+ * **열쇠 하나가 벽인 곳이다.** 밖에서 열리는 자리가 그렇고(로그인이 없다), 로그인이
+ * 있어도 **주소에 실린 값이 곧 열쇠인 자리**가 그렇다 — 학생회에 들어오는 초대 코드가
+ * 그것이다(`GET /api/organizations/by-invite-code/{inviteCode}`). 로그인은 '누가
+ * 두드리는지'만 정하고 코드를 못 맞히게 하지는 않는다.
+ *
+ * **어느 자리가 그런지는 계약이 안다**(`x-secret`). 주소로 판별하면 새 자리가 생길
+ * 때마다 여기가 뒤처지고, 뒤처진 규칙은 조용하다.
+ *
+ * 그 밖의 안쪽 자리는 세션이 벽이므로 세지 않는다 — 세면 한 사람이 많이 쓰는 것과
  * 여럿이 두드리는 것을 가릴 수 없다.
+ *
+ * **아직 못 세는 자리가 하나 있다.** `organization.verifyInviteCode`는 코드를 본문에
+ * 싣는데 계약에는 본문 칸에 `x-secret`을 달 자리가 없다. 숨기지 않고 적어 둔다.
  */
-export function publicRateLimit(deps: RateLimitDeps): MiddlewareHandler {
+function guarded(c: Context): boolean {
+  return c.req.path.startsWith('/api/public/') || carriesSecret(c)
+}
+
+export function guessRateLimit(deps: RateLimitDeps): MiddlewareHandler {
   const limits = deps.limits ?? DEFAULT_LIMITS
   const clock = deps.now ?? (() => Date.now())
 
   return async (c, next) => {
-    if (!c.req.path.startsWith('/api/public/')) return next()
+    if (!guarded(c)) return next()
 
     const now = clock()
     const address = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'

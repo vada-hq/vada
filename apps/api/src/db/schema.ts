@@ -118,15 +118,109 @@ export const verifications = pgTable('verifications', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
-export const organizations = pgTable('organizations', {
-  id: text('id').primaryKey(),
-  // org.invitedOrganization이 초대장에서 보여 주는 넷.
-  name: text('name').notNull(),
-  kind: text('kind'),
-  scope: text('scope'),
-  term: text('term'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-})
+// ─── 학교의 편제 ────────────────────────────────────────────────────────────
+//
+// **`departments`라는 이름은 이미 쓰였다.** 그것은 학생회가 스스로 나눈 부서
+// (재정부·기획부)이고 여기 있는 것은 **학교의 학부·학과**다. 카탈로그가 그 둘을
+// `org.departments`와 `education.departments`로 갈라 부르며 "다른 물건이다"라고
+// 적어 두었으므로, 표 이름도 **카탈로그의 그 이름을 그대로** 쓴다 —
+// `education_schools` · `education_colleges` · `education_departments`.
+//
+// `majors`나 `academic_departments` 같은 새 이름을 짓지 않는 까닭: 명세가 그렇게
+// 부르지 않는다. 이름을 새로 지으면 명세와 표 사이에 옮겨 적는 자리가 하나 더
+// 생기고, 옮겨 적는 자리는 언젠가 갈린다.
+//
+// **지금 든 것은 한 학교뿐이다**(옮김 파일이 넣는다). 전국의 편제를 지어내 채우지
+// 않는다 — 그것은 학교알리미 같은 공시 자료에서 와야 하고, 지어낸 목록은 사람이
+// 자기 학과를 못 찾는 순간 거짓으로 드러난다.
+
+export const educationSchools = pgTable(
+  'education_schools',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+  },
+  (table) => [uniqueIndex('education_schools_name').on(table.name)],
+)
+
+export const educationColleges = pgTable(
+  'education_colleges',
+  {
+    id: text('id').primaryKey(),
+    schoolId: text('school_id')
+      .notNull()
+      .references(() => educationSchools.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+  },
+  (table) => [
+    uniqueIndex('education_colleges_school_name').on(table.schoolId, table.name),
+    // **다른 표가 '그 학교의 그 단과대'를 가리킬 수 있게 한다.** id만 가리키면
+    // 남의 학교의 단과대가 붙는 것을 아무것도 막지 못한다 — `members`가 부서를
+    // 가리킬 때와 같은 길이다(2026-08-31에 그 구멍이 실제로 났다).
+    unique('education_colleges_school_id').on(table.schoolId, table.id),
+  ],
+)
+
+export const educationDepartments = pgTable(
+  'education_departments',
+  {
+    id: text('id').primaryKey(),
+    // 학교를 함께 든다. 아래 복합 외래 키가 이 둘을 함께 봐야 하기 때문이다 —
+    // 단과대만 가리키면 '어느 학교의 단과대인가'를 표가 다시 확인할 수 없다.
+    schoolId: text('school_id').notNull(),
+    collegeId: text('college_id').notNull(),
+    name: text('name').notNull(),
+  },
+  (table) => [
+    uniqueIndex('education_departments_college_name').on(table.collegeId, table.name),
+    foreignKey({
+      columns: [table.schoolId, table.collegeId],
+      foreignColumns: [educationColleges.schoolId, educationColleges.id],
+      name: 'education_departments_college_same_school',
+    }).onDelete('cascade'),
+  ],
+)
+
+export const organizations = pgTable(
+  'organizations',
+  {
+    id: text('id').primaryKey(),
+    name: text('name').notNull(),
+    /**
+     * 어떤 학생회인가. **그려지는 글이 아니라 `org.types`의 값이다**('college').
+     *
+     * 딱지('단과대 학생회')를 저장하면 명세가 그 말을 다듬을 때 이미 만들어진
+     * 학생회들만 옛 말을 든 채 남는다. 값에서 말을 만드는 일은 읽을 때 한다.
+     */
+    kind: text('kind'),
+    /** 운영 연도. 같은 까닭으로 `org.operatingYears`의 값이다('2026'). */
+    term: text('term'),
+    /**
+     * 대표 범위. **글이 아니라 가리킴이다.**
+     *
+     * 한동안 `scope` 열 하나에 '한양대학교 ERICA · 소프트웨어융합대학'을 담기로 되어
+     * 있었는데, 그것은 **세어서 이어 붙인 글**이라 표에 둘 것이 아니다(이 파일 머리가
+     * 말하는 그것이다). 학교 이름이 바뀌면 그 글만 옛것으로 굳고, 이어 붙이는 규칙도
+     * 표에 박힌다. 그래서 가리키고 읽을 때 잇는다.
+     *
+     * 비어 있을 수 있다 — 이 두 열이 생기기 전에 만들어진 학생회가 있다.
+     */
+    repSchoolId: text('rep_school_id').references(() => educationSchools.id, {
+      onDelete: 'set null',
+    }),
+    repCollegeId: text('rep_college_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // **그 학교의 그 단과대여야 한다.** 둘을 따로 가리키면 한양대 아래에 옆 학교의
+    // 단과대가 붙고, 초대장이 있지도 않은 범위를 대표한다고 말한다.
+    foreignKey({
+      columns: [table.repSchoolId, table.repCollegeId],
+      foreignColumns: [educationColleges.schoolId, educationColleges.id],
+      name: 'organizations_rep_college_same_school',
+    }).onDelete('set null'),
+  ],
+)
 
 export const departments = pgTable(
   'departments',

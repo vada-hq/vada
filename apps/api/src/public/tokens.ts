@@ -61,6 +61,21 @@ export function looksLikeToken(value: unknown): value is string {
  * 모양이 아닌 값은 없는 것으로 본다. 그것을 세어 봐야 마구 넣어 보는 쪽이 칸만
  * 늘릴 뿐이고, 주소마다 세는 쪽이 그것을 막는다.
  */
+/**
+ * 이 자리가 **주소에 열쇠를 싣고 오는가.**
+ *
+ * 값의 모양을 보지 않고 **계약의 표시**(`x-secret`)를 본다 — 그것이 이 저장소가
+ * '어느 인자가 열쇠인가'를 아는 유일한 길이고, 지우는 자리(감사)와 세는 자리(속도)가
+ * 같은 곳에서 나오게 하는 것이 그 표시의 목적이다.
+ */
+export function carriesSecret(c: Context): boolean {
+  const matched = matchRoute(c.req.method, c.req.path)
+  if (matched === undefined) return false
+  return (matched.operation.parameters ?? []).some(
+    (parameter) => parameter['x-secret'] === true,
+  )
+}
+
 export function tokenOfRequest(c: Context): string | null {
   const matched = matchRoute(c.req.method, c.req.path)
   if (matched === undefined) return null
