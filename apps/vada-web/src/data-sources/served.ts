@@ -46,6 +46,19 @@ export const SERVED: readonly string[] = [
   'survey.colleges',
   'survey.departments',
 
+  // **조직 보기(ORG-03A · ORG-04 · ORG-04B · ORG-07A).** 같은 저장소를 보는 이웃들이
+  // 개발용 응답을 그리고 있었다 — 역할 표만 진짜였다. 서버는 이 자리들을 이미 답한다.
+  //
+  // 초대 코드가 특히 그렇다. 화면이 지어내면 **그 코드로는 아무도 못 들어온다.**
+  'org.chartTitle',
+  'org.executives',
+  'org.invite',
+  'org.roleAssignments',
+  'org.roleAssignmentCount',
+  'org.selectedRoleAssignment',
+  'org.unassignedHint',
+  'org.unassignedMembers',
+
   // **셸이 읽는 둘.** 학생회 이름과 보는 사람은 화면의 요소가 아니라 셸의 것이고,
   // 서버가 이미 답한다. 이 둘이 가짜인 동안은 로그인해도 남의 학생회 이름이 보인다.
   'shell.organization',
@@ -117,6 +130,11 @@ export function unknownServedKeys(): string[] {
  */
 export const SERVED_MUTATIONS: readonly string[] = [
   // **들어오기 흐름의 쓰기 둘.** 학생회를 만드는 것과, 초대 코드가 맞는지 묻는 것.
+  // 조직을 고치는 넷. 역할을 바꾸고 초대를 다시 만든다 — 되돌릴 수 없는 자리들이다.
+  'org.changeRole',
+  'org.regenerateInvite',
+  'org.regenerateInviteCode',
+  'org.regenerateInviteLink',
   // 밖에서 오는 사람이 내는 둘. 참석은 QR이, 신청은 설문 링크가 자리를 정한다.
   'attendance.checkIn',
   'survey.apply',

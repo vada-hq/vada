@@ -4,11 +4,19 @@ import { createApp } from '../../../api/src/app.ts'
 import { freshDb } from '../../../api/src/db/testing.ts'
 import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
 import { inMemoryAttempts } from '../../../api/src/idempotency.ts'
-import { departments, events, members, organizations, users } from '../../../api/src/db/schema.ts'
+import {
+  departments,
+  events,
+  invites,
+  members,
+  organizations,
+  users,
+} from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { loadSources, useServer } from './server'
-import { readObjectSource } from './catalog'
+import { readListSource, readObjectSource } from './catalog'
 import { dataSourceCallsOf } from '../spec/screen-sources'
+import { runMutation } from '../spec/mutations'
 import { evt02 } from '../spec/screens'
 
 // **한 화면을 끝까지 뚫는다.**
@@ -21,6 +29,11 @@ import { evt02 } from '../spec/screens'
 // 여기서는 **진짜 서버와 진짜 Postgres**에 대고 ORG-04을 그린다. 그림 → 명세 →
 // 계약 → 서버 → 저장소가 한 줄로 이어지는지가 이 검사의 전부다.
 
+/** 지금 보는 사람의 자리. 조직을 고치는 검사만 회장으로 올린다. */
+let seenAs: 'member' | 'head' | 'chair' = 'member'
+let codes = 0
+
+let app: ReturnType<typeof createApp>
 let restore: () => void
 let close: () => Promise<void>
 
@@ -44,21 +57,30 @@ beforeAll(async () => {
     { id: 'M-03', orgId: 'ORG-01', name: '박해랑', role: 'member', departmentId: 'D-01', userId: 'U-01' },
   ])
 
+  // **초대는 서버가 만든 값이다.** 화면이 지어내면 그 코드로는 아무도 못 들어온다.
+  await fresh.db.insert(invites).values({
+    orgId: 'ORG-01',
+    code: 'AB12CD34',
+    active: true,
+  })
+
   // 인자를 넘기는 부름을 재려면 인자가 가리키는 것이 있어야 한다.
   await fresh.db.insert(events).values([
     { id: 'E-01', orgId: 'ORG-01', title: '2026 소프트웨어융합대학 체육대회', updatedAt: new Date('2026-07-22T18:30:00+09:00') },
     { id: 'E-02', orgId: 'ORG-01', title: '2026 신입생 환영 행사', updatedAt: new Date('2026-07-22T18:30:00+09:00') },
   ])
 
-  const app = createApp({
+  app = createApp({
     audit: { async write() {} },
     db,
+    // **누가 보는가는 검사가 갈아 끼운다.** 조직을 고치는 자리는 회장만 열 수 있다 —
+    // 그 벽이 진짜로 서 있는지도 이 검사가 재는 것 중 하나다.
     who: async () => ({
       userId: 'U-01',
       membership: {
         orgId: 'ORG-01',
         memberId: 'M-03',
-        role: 'member',
+        role: seenAs,
         departmentId: 'D-01',
         inFinanceDepartment: false,
       },
@@ -78,14 +100,18 @@ beforeAll(async () => {
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => new Date('2026-07-22T18:30:00+09:00'),
-      newCode: () => 'AB12CD34',
+      // **부를 때마다 다른 것을 준다.** 씨앗과 같은 값을 주면 코드가 유일하지 않아
+      // 다시 만들기가 터진다 — 실서비스에서는 무작위라 날 수 없는 일이다.
+      newCode: () => `NEW${(codes += 1)}CODE`,
     },
     newId: () => 'E-01',
   })
 
+  // **인자를 그대로 넘긴다.** 주소만 넘기면 쓰기가 전부 GET이 되어 '그 자리는 명세에
+  // 없다'로 막힌다 — 검사 쪽 그물이 성기면 진짜 결함이 안 보인다. 두 번째 겪는다.
   restore = useServer({
     baseUrl: 'http://server',
-    fetch: async (input) => app.request(String(input)),
+    fetch: async (input, init) => app.request(String(input), init),
   })
 }, 60_000)
 
@@ -177,3 +203,99 @@ describe('인자를 넘겨 부른다', () => {
   })
 })
 
+// **조직 보기의 나머지를 잇는다.**
+//
+// ORG-04(역할 표)만 서버에서 그려지고 있었다. 같은 저장소를 보는 이웃 화면들 —
+// 조직도·초대·역할 바꾸기 — 은 개발용 응답을 그렸다. 서버는 그 자리들을 이미
+// 답하고 있었고 화면이 그리로 가지 않았을 뿐이다.
+//
+// **화면마다 다른 값을 확인한다.** 개발용 응답과 저장소가 다른 값을 갖게 씨앗을
+// 두었으므로, 저장소의 값이 나오면 서버를 거친 것이다.
+describe('조직 보기의 이웃 화면들', () => {
+  // **조직도의 머리와 회장단이 저장소에서 온다.** 부서 목록은 아직 서버를 안 지었으므로
+  // 그 자리는 개발용 응답이다 — 한 화면 안에서 둘이 섞이는 것이 지금의 진도다.
+  it('ORG-03A의 회장단이 저장소에서 온다', async () => {
+    await loadSources([{ key: 'org.chartTitle', params: {} }])
+    const row = readObjectSource('org.chartTitle')
+    // 개발용 응답이 아니라 씨앗의 학생회 이름이 온다.
+    expect(row.name).toBe('제12대 학생회')
+  })
+
+  it('회장단 줄이 저장소의 사람들이다', async () => {
+    await loadSources([{ key: 'org.executives', params: {} }])
+    const drawn = JSON.stringify(readListSource('org.executives'))
+    // 회장은 김바다, 부서장은 이수현이다. 개발용 응답에는 없는 짝이다.
+    expect(drawn).toContain('김바다')
+  })
+
+  // **초대 코드는 서버가 만든다.** 화면이 지어내면 그 코드로는 아무도 못 들어온다.
+  //
+  // 읽는 것도 회장만 된다(행렬의 `org.invite`). 구성원이 코드를 볼 수 있으면 누구나
+  // 사람을 들일 수 있다 — 그 벽이 실제로 서 있는지도 여기서 함께 잰다.
+  it('지금의 초대가 저장소에서 온다', async () => {
+    seenAs = 'chair'
+    await loadSources([{ key: 'org.invite', params: {} }])
+    const invite = readObjectSource('org.invite')
+    expect(invite.code).toBe('AB12CD34')
+  })
+
+  it('구성원은 초대 코드를 볼 수 없다', async () => {
+    seenAs = 'member'
+    // **담아 둔 것을 비운다.** 한 번 받아 둔 것은 다시 부르지 않으므로, 비우지 않으면
+    // 앞 검사가 회장으로 받아 둔 것을 그대로 읽고 벽이 없는 것처럼 보인다.
+    const again = useServer({
+      baseUrl: 'http://server',
+      fetch: async (input, init) => app.request(String(input), init),
+    })
+    try {
+      await expect(loadSources([{ key: 'org.invite', params: {} }])).rejects.toThrow()
+    } finally {
+      again()
+    }
+  })
+
+  it('고를 수 있는 사람이 저장소에서 온다', async () => {
+    seenAs = 'member'
+    await loadSources([{ key: 'org.roleAssignments', params: {} }])
+    const drawn = JSON.stringify(readListSource('org.roleAssignments'))
+    expect(drawn).toContain('이수현')
+  })
+
+  // **화면이 누르는 그 길로 바꾼다.** 서버를 직접 부르면 그 사이의 코드가 빠진다.
+  it('화면이 누르는 길로 역할이 바뀐다', async () => {
+    seenAs = 'chair'
+    const answer = await runMutation('org.changeRole', { baseRole: 'head' }, { memberId: 'M-11' })
+    // 계약이 '돌려주는 값이 없다'고 적었다. 던지지 않은 것이 성공이다.
+    expect(answer).toEqual({})
+  })
+
+  it('화면이 누르는 길로 초대를 다시 만든다', async () => {
+    seenAs = 'chair'
+    const answer = await runMutation('org.regenerateInvite', {}, {})
+    // **새 초대가 돌아온다.** 옛 코드는 그 순간 죽으므로 화면이 새 것을 그려야 한다.
+    expect(answer.code).not.toBe('AB12CD34')
+    expect(String(answer.code).length).toBeGreaterThan(0)
+  })
+
+  // **코드만·링크만 다시 만드는 자리가 따로 있다.** 한 건이 둘을 함께 가지므로 셋이
+  // 같은 일을 한다 — 그 사실을 숨기지 않고 셋 다 열어 두었고, 셋 다 재 둔다.
+  it('코드만 다시 만드는 길도 열려 있다', async () => {
+    seenAs = 'chair'
+    const answer = await runMutation('org.regenerateInviteCode', {}, {})
+    expect(String(answer.code).length).toBeGreaterThan(0)
+  })
+
+  it('링크만 다시 만드는 길도 열려 있다', async () => {
+    seenAs = 'chair'
+    const answer = await runMutation('org.regenerateInviteLink', {}, {})
+    expect(String(answer.url).length).toBeGreaterThan(0)
+  })
+
+  // **구성원은 조직을 고치지 못한다.** 행렬이 그렇게 적었고, 그 벽이 실제로 선다.
+  it('구성원이 역할을 바꾸려 하면 막힌다', async () => {
+    seenAs = 'member'
+    await expect(
+      runMutation('org.changeRole', { baseRole: 'head' }, { memberId: 'M-11' }),
+    ).rejects.toThrow()
+  })
+})
