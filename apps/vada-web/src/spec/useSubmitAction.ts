@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from './params'
-import { getMutation, runMutation } from './mutations'
+import { NotServedYet, getMutation, runMutation } from './mutations'
 import type { SubmitAction } from './types'
 
 /**
@@ -19,6 +19,15 @@ import type { SubmitAction } from './types'
  * 받는다. 언제 보내고 무엇을 그리고 실패하면 어떻게 되는지는 여기가 정한다.
  */
 export type SubmitPhase = 'idle' | 'submitting' | 'error'
+
+/**
+ * 아직 서버에 붙지 않은 자리에서 그리는 글.
+ *
+ * **카탈로그가 들 수 없는 글이다.** 명세는 이 자리가 무엇을 하는지 말하지 이 저장소가
+ * 어디까지 지었는지는 모른다 — 그것은 만드는 쪽의 사정이고, 다 지으면 사라진다.
+ * `ScreenRouter`가 아직 등록되지 않은 화면에 쓰는 글과 같은 자리다.
+ */
+const NOT_SERVED_NOTE = '이 자리는 아직 서버에 붙지 않았습니다. 눌러도 아무것도 저장되지 않습니다.'
 
 export interface SubmitRunOptions {
   /** 보낼 값. 무엇을 보낼지는 화면이 안다(계약은 mutations.json이 갖는다). */
@@ -51,6 +60,8 @@ export interface SubmitActionState {
   phase: SubmitPhase
   /** 보내고 나면 어디로 가는지가 아직 정해지지 않았음을 알리는 글. */
   pendingNote: string | null
+  /** 실패한 까닭이 '고장'이 아니라 '아직 안 지음'인가. */
+  notServed: boolean
   /** 지금 보내는 중인 계약. 무엇을 그릴지 고를 때 쓴다. */
   runningKey: string | null
   /** 보내는 중이면 카탈로그가 준 글. 아니면 null. */
@@ -67,6 +78,9 @@ export function useSubmitAction(): SubmitActionState {
   const [runningKey, setRunningKey] = useState<string | null>(null)
   // 보내고 나면 어디로 가는지가 아직 정해지지 않았을 때 명세가 적어 둔 글.
   const [pendingNote, setPendingNote] = useState<string | null>(null)
+  // 실패한 까닭이 '고장'인지 '아직 안 지음'인지. 둘을 같은 글로 말하면 사람이
+  // 고쳐질 것을 기다리며 새로고침한다.
+  const [notServed, setNotServed] = useState(false)
 
   async function run(action: SubmitAction, options: SubmitRunOptions) {
     const mutation = getMutation(action.mutationKey)
@@ -99,9 +113,13 @@ export function useSubmitAction(): SubmitActionState {
         ...(options.params ?? {}),
       }
       result = await runMutation(action.mutationKey, options.payload, carried)
-    } catch {
+    } catch (thrown) {
       // 실패는 머무는 것이다. 어디로도 가지 않고 runningKey를 남겨 어느 계약이
       // 실패했는지 화면이 말할 수 있게 한다.
+      //
+      // **아직 안 붙은 자리는 따로 말한다.** 카탈로그의 error 문구는 '고쳐질 고장'을
+      // 뜻하는데, 이것은 아직 만들지 않은 것이다 — 사람이 새로고침하며 기다리게 하지 않는다.
+      setNotServed(thrown instanceof NotServedYet)
       setPhase('error')
       return
     }
@@ -130,12 +148,17 @@ export function useSubmitAction(): SubmitActionState {
     phase,
     runningKey,
     pendingNote,
+    notServed,
     submittingMessage:
       phase === 'submitting' && runningKey !== null
         ? getMutation(runningKey).messages.submitting
         : null,
     errorMessage:
-      phase === 'error' && runningKey !== null ? getMutation(runningKey).messages.error : null,
+      phase !== 'error' || runningKey === null
+        ? null
+        : notServed
+          ? NOT_SERVED_NOTE
+          : getMutation(runningKey).messages.error,
     labelOf: (action, label) =>
       runningKey === action.mutationKey && phase === 'submitting'
         ? getMutation(action.mutationKey).messages.submitting

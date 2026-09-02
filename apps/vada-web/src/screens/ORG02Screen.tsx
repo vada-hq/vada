@@ -6,7 +6,6 @@ import type { ListValue } from '../components/OrgTree'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { SecondaryButton } from '../components/SecondaryButton'
-import { getMutation } from '../spec/mutations'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import { buttonsByEmphasis, nodeIdOf, org02, primaryButtonOf } from '../spec/screens'
 import type { ButtonSpec, ListSpec, SelectSpec, SubmitAction } from '../spec/types'
@@ -132,7 +131,6 @@ export function ORG02Screen({
     })
   }
 
-  const mutation = getMutation((primaryButton.action as SubmitAction).mutationKey)
 
   return (
     // 카드 14:242: 총폭 860 → ÷0.875 = 982 (콘텐츠 900 + padding 40×2 + border 1×2)
@@ -173,9 +171,11 @@ export function ORG02Screen({
             .join(', ')}`}
         </p>
       )}
-      {submitAction.phase === 'error' && (
+      {/* **글은 갈고리가 고른다.** 카탈로그를 직접 읽으면 '아직 서버에 붙지 않았다'처럼
+          갈고리만 아는 글이 사라진다 — 그러면 안 지은 것과 고장 난 것이 같아 보인다. */}
+      {submitAction.errorMessage === null ? null : (
         <p role="alert" className="pt-2 text-center text-xs text-red-500">
-          {mutation.messages.error}
+          {submitAction.errorMessage}
         </p>
       )}
 

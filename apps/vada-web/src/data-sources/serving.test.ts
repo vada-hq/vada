@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { fetchOptions } from '../option-sources/catalog'
+import { NotServedYet, runMutation } from '../spec/mutations'
 import {
   SourcesFailed,
   currentServer,
@@ -177,5 +178,35 @@ describe('실패한 것만 실패했다고 말한다', () => {
       (thrown: unknown) => (thrown instanceof SourcesFailed ? [...thrown.keys].sort() : ['아니다']),
     )
     expect(failed).toEqual(['shell.organization', 'shell.viewer'])
+  })
+})
+
+describe('아직 안 붙은 쓰기는 성공한 척하지 않는다', () => {
+  // **이것이 오늘 가장 비쌌던 결함이다.**
+  //
+  // `runMutation`이 아무 데도 안 보내고 무조건 성공을 돌려줬다. '조직 만들기'를
+  // 누르면 학생회가 안 생기는데 다음 화면으로 넘어갔고, 배포하고 사람이 눌러 본
+  // 뒤에야 드러났다. 목록에 한 줄을 빠뜨리기만 해도 같은 일이 다시 난다.
+  //
+  // 그래서 **서버가 켜져 있는데 목록에 없으면 던진다.** 아무 일도 안 일어났다는
+  // 사실이 사람에게 보여야 한다.
+  it('서버가 켜져 있는데 목록에 없으면 던진다', async () => {
+    back = useServer({ baseUrl: '', fetch: async () => Response.json({}) })
+    await expect(runMutation('meeting.create', {})).rejects.toBeInstanceOf(NotServedYet)
+  })
+
+  // **'서버가 고장 난 것'과 '아직 안 붙은 것'은 다른 일이다.** 같은 글로 말하면
+  // 남은 흐름 여섯을 붙이는 동안 어느 쪽인지 매번 코드를 읽어야 한다.
+  it('고장과 다른 것으로 구분된다', async () => {
+    back = useServer({ baseUrl: '', fetch: async () => new Response('nope', { status: 500 }) })
+    const broken = await runMutation('org.create', {}).catch((thrown: unknown) => thrown)
+    expect(broken).toBeInstanceOf(Error)
+    expect(broken).not.toBeInstanceOf(NotServedYet)
+  })
+
+  // 서버를 안 켠 동안(검사·개발용 대역)은 그대로 대역이 답한다. 그 자리까지 막으면
+  // 화면 여든이 통째로 안 그려진다.
+  it('서버를 안 켰으면 대역이 그대로 답한다', async () => {
+    await expect(runMutation('meeting.create', {})).resolves.toEqual({})
   })
 })

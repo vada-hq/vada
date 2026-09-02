@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>명세에서 화면까지</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&family=IBM+Plex+Serif:ital,wght@0,400;0,500;1,400&display=swap">
+
+<style>
+  :root {
+    --ground: #F5F6F3;
+    --surface: #FFFFFF;
+    --surface-2: #EDEFEA;
+    --ink: #141A17;
+    --ink-2: #3A4640;
+    --muted: #5F6B64;
+    --line: #DCE1DA;
+    --line-strong: #B9C2BA;
+    --origin: #0A6B63;
+    --origin-soft: #DCEDEA;
+    --pending: #8A6A0F;
+    --pending-soft: #F3EBD4;
+    --alarm: #A3341F;
+    --alarm-soft: #F6E2DD;
+    --shadow: 0 1px 2px rgba(20, 26, 23, .05), 0 8px 24px -16px rgba(20, 26, 23, .25);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0D1211;
+      --surface: #151C1A;
+      --surface-2: #1C2523;
+      --ink: #E7EBE7;
+      --ink-2: #C2CCC6;
+      --muted: #8F9C95;
+      --line: #26302C;
+      --line-strong: #3A4741;
+      --origin: #57CFC2;
+      --origin-soft: #10302D;
+      --pending: #D6AE52;
+      --pending-soft: #2C2617;
+      --alarm: #E88870;
+      --alarm-soft: #331C17;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --ground: #0D1211;
+    --surface: #151C1A;
+    --surface-2: #1C2523;
+    --ink: #E7EBE7;
+    --ink-2: #C2CCC6;
+    --muted: #8F9C95;
+    --line: #26302C;
+    --line-strong: #3A4741;
+    --origin: #57CFC2;
+    --origin-soft: #10302D;
+    --pending: #D6AE52;
+    --pending-soft: #2C2617;
+    --alarm: #E88870;
+    --alarm-soft: #331C17;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: "IBM Plex Sans KR", system-ui, -apple-system, sans-serif;
+    font-weight: 400;
+    line-height: 1.75;
+    font-size: 16px;
+    margin: 0;
+    padding: 0 1.5rem 8rem;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 44rem;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3.5rem;
+  }
+
+  /* ---------- 머리 ---------- */
+
+  header.top {
+    padding: 5rem 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--origin);
+    margin: 0;
+  }
+
+  h1 {
+    font-size: clamp(2.1rem, 6vw, 3rem);
+    font-weight: 600;
+    line-height: 1.18;
+    letter-spacing: -.022em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  .standfirst {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 1.125rem;
+    line-height: 1.7;
+    color: var(--ink-2);
+    margin: 0;
+    max-width: 34rem;
+  }
+
+  /* ---------- 절 ---------- */
+
+  section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+    scroll-margin-top: 2rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -.015em;
+    line-height: 1.35;
+    text-wrap: balance;
+    margin: 0;
+    padding-top: 1.75rem;
+    border-top: 1px solid var(--line);
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: -.005em;
+    margin: .75rem 0 0;
+  }
+
+  p { margin: 0; max-width: 38rem; }
+
+  strong { font-weight: 600; }
+
+  code {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .875em;
+    background: var(--surface-2);
+    border-radius: 3px;
+    padding: .1em .35em;
+    color: var(--ink-2);
+  }
+
+  a { color: var(--origin); }
+
+  /* ---------- 원칙 (교리는 세리프로) ---------- */
+
+  .doctrine {
+    font-family: "IBM Plex Serif", Georgia, serif;
+    font-size: 1.0625rem;
+    font-style: italic;
+    line-height: 1.65;
+    color: var(--ink);
+    border-left: 2px solid var(--origin);
+    padding: .1rem 0 .1rem 1.25rem;
+    margin: .5rem 0;
+    max-width: 34rem;
+  }
+
+  /* ---------- 파이프라인 ---------- */
+
+  .band {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow-x: auto;
+    padding: 1.75rem 1.5rem;
+  }
+
+  .pipeline {
+    display: flex;
+    align-items: stretch;
+    gap: .5rem;
+    min-width: 40rem;
+  }
+
+  .stage {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    gap: .45rem;
+    padding: .9rem .85rem;
+    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+  }
+
+  .stage.is-origin {
+    background: var(--origin-soft);
+    border-color: var(--origin);
+  }
+
+  .stage-role {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .6875rem;
+    font-weight: 500;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .stage.is-origin .stage-role { color: var(--origin); }
+
+  .stage-name {
+    font-size: .9375rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .stage-note {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .75rem;
+    line-height: 1.55;
+    color: var(--muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .arrow {
+    align-self: center;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: 1rem;
+    color: var(--line-strong);
+    flex: 0 0 auto;
+    padding: 0 .1rem;
+  }
+
+  .band-caption {
+    font-size: .8125rem;
+    line-height: 1.6;
+    color: var(--muted);
+    margin: .85rem 0 0;
+    max-width: none;
+  }
+
+  /* ---------- 층 그림 ---------- */
+
+  .layers {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    min-width: 34rem;
+  }
+
+  .layer {
+    display: grid;
+    grid-template-columns: 9.5rem 1fr;
+    gap: 1rem;
+    align-items: start;
+    padding: .9rem 1rem;
+    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+  }
+
+  .layer.is-origin {
+    background: var(--origin-soft);
+    border-color: var(--origin);
+  }
+
+  .layer-path {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8125rem;
+    font-weight: 500;
+    color: var(--ink);
+    word-break: break-all;
+  }
+
+  .layer.is-origin .layer-path { color: var(--origin); }
+
+  .layer-what {
+    font-size: .875rem;
+    line-height: 1.65;
+    color: var(--ink-2);
+  }
+
+  .layer-what em {
+    font-style: normal;
+    color: var(--muted);
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8125rem;
+  }
+
+  /* ---------- 표 ---------- */
+
+  .table-scroll { overflow-x: auto; }
+
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 26rem;
+    font-size: .9375rem;
+  }
+
+  caption {
+    text-align: left;
+    font-size: .8125rem;
+    color: var(--muted);
+    padding-bottom: .6rem;
+  }
+
+  th, td {
+    text-align: left;
+    padding: .55rem .75rem .55rem 0;
+    border-bottom: 1px solid var(--line);
+    vertical-align: baseline;
+  }
+
+  th {
+    font-size: .75rem;
+    font-weight: 500;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border-bottom-color: var(--line-strong);
+  }
+
+  td.num, th.num {
+    text-align: right;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-variant-numeric: tabular-nums;
+    padding-right: 0;
+  }
+
+  td.path {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8125rem;
+  }
+
+  /* ---------- 상태 칩 ---------- */
+
+  .chip {
+    display: inline-block;
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .6875rem;
+    font-weight: 500;
+    letter-spacing: .04em;
+    padding: .12rem .45rem;
+    border-radius: 4px;
+    white-space: nowrap;
+  }
+
+  .chip.real { background: var(--origin-soft); color: var(--origin); }
+  .chip.fake { background: var(--pending-soft); color: var(--pending); }
+  .chip.gap { background: var(--alarm-soft); color: var(--alarm); }
+
+  /* ---------- 진도 막대 ---------- */
+
+  .gauges {
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+  }
+
+  .gauge-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 1rem;
+    font-size: .875rem;
+  }
+
+  .gauge-label { font-weight: 500; }
+
+  .gauge-count {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8125rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--muted);
+  }
+
+  .gauge-track {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    overflow: hidden;
+    margin-top: .4rem;
+  }
+
+  .gauge-fill {
+    height: 100%;
+    background: var(--origin);
+  }
+
+  /* ---------- 목록 ---------- */
+
+  ul.plain {
+    margin: 0;
+    padding-left: 1.15rem;
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    max-width: 38rem;
+  }
+
+  ul.plain li { line-height: 1.7; }
+
+  /* ---------- 문 (registry) 카드 ---------- */
+
+  .registries {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+    gap: .75rem;
+  }
+
+  .registry {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    display: flex;
+    flex-direction: column;
+    gap: .4rem;
+  }
+
+  .registry-file {
+    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-size: .8125rem;
+    font-weight: 500;
+    color: var(--origin);
+    word-break: break-all;
+  }
+
+  .registry-holds {
+    font-size: .875rem;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  /* ---------- 꼬리 ---------- */
+
+  footer.end {
+    border-top: 1px solid var(--line);
+    padding-top: 1.5rem;
+    font-size: .8125rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  @media (max-width: 560px) {
+    body { padding: 0 1.1rem 5rem; }
+    header.top { padding-top: 3rem; }
+    .layer { grid-template-columns: 1fr; gap: .35rem; }
+    .layers { min-width: 0; }
+  }
+</style>
+
+<style>
+  /* 최소 초기화 — 아티팩트가 대신 넣어 주던 것을 여기 둔다. */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body, h1, h2, h3, p, figure, blockquote, dl, dd { margin: 0; }
+  ul[class] { list-style: none; margin: 0; padding: 0; }
+  img, picture, svg { max-width: 100%; display: block; }
+  table { border-collapse: collapse; }
+  button, input, select, textarea { font: inherit; }
+  :focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <p class="eyebrow">figma-spec-v2 · 아키텍처</p>
+    <h1>명세에서 화면까지</h1>
+    <p class="standfirst">
+      이 저장소가 걸고 있는 주장은 하나다 — 명세 하나만 보면 개발자가 화면을 만들 수 있다.
+      아키텍처는 그 주장을 지키기 위한 배치다. 무엇이 원본이고, 무엇이 거기서 파생되며,
+      어긋나면 어디서 멈추는가.
+    </p>
+  </header>
+
+  <section>
+    <h2>원본은 하나다</h2>
+    <p>
+      그림에서 명세가 나오고, 명세에서 계약이 나오고, 계약에서 서버와 화면이 나온다.
+      <strong>거꾸로 흐르는 화살표가 없다.</strong> 서버가 자기 자리를 스스로 정하지 않고,
+      화면이 어떤 값을 부를지 스스로 정하지 않는다.
+    </p>
+
+    <div class="band">
+      <div class="pipeline">
+        <div class="stage">
+          <span class="stage-role">그림</span>
+          <span class="stage-name">Figma</span>
+          <span class="stage-note">figma.raw.json<br>figma.design.json</span>
+        </div>
+        <span class="arrow">→</span>
+        <div class="stage is-origin">
+          <span class="stage-role">원본</span>
+          <span class="stage-name">명세</span>
+          <span class="stage-note">screens/ 84<br>+ 카탈로그 7벌</span>
+        </div>
+        <span class="arrow">→</span>
+        <div class="stage">
+          <span class="stage-role">계약</span>
+          <span class="stage-name">openapi.json</span>
+          <span class="stage-note">자리 207<br>동작 216</span>
+        </div>
+        <span class="arrow">→</span>
+        <div class="stage">
+          <span class="stage-role">서버</span>
+          <span class="stage-name">apps/api</span>
+          <span class="stage-note">계약을 읽어<br>자리를 연다</span>
+        </div>
+        <div class="arrow">·</div>
+        <div class="stage">
+          <span class="stage-role">화면</span>
+          <span class="stage-name">apps/vada-web</span>
+          <span class="stage-note">명세를 읽어<br>화면을 그린다</span>
+        </div>
+      </div>
+      <p class="band-caption">
+        서버와 화면은 나란히 선다. 둘 다 원본을 읽을 뿐 서로를 읽지 않는다 —
+        그래서 한쪽을 고쳐도 다른 쪽이 조용히 어긋나지 않는다.
+      </p>
+    </div>
+
+    <p class="doctrine">
+      명세가 표현을 정하지 않는다. 조용한 대체를 하지 않는다. 지어내지 않는다.
+      두 화면 이상에서 나온 것만 어휘로 만든다. 서버가 완성된 글을 준다.
+      눈금을 만들고 심어서 터뜨려 증명한다.
+    </p>
+  </section>
+
+  <section>
+    <h2>일터 넷</h2>
+    <p>
+      네 자리가 있고, 각자 원본과 맺는 관계가 다르다.
+      <strong><code>specs/</code>만 사람이 직접 쓰고 나머지 셋은 전부 소비자다.</strong>
+    </p>
+
+    <div class="band">
+      <div class="layers">
+        <div class="layer is-origin">
+          <span class="layer-path">specs/figma/vada-wireframe/</span>
+          <span class="layer-what">
+            원본. 화면 84벌과 카탈로그가 여기 있다.
+            <em>screen.json · data-sources · option-sources · mutations · permissions · shell · state-scopes · flows</em>
+          </span>
+        </div>
+        <div class="layer">
+          <span class="layer-path">packages/contracts/</span>
+          <span class="layer-what">
+            명세를 읽는 규칙. 검증기가 여기 산다 — 화면끼리, 화면과 카탈로그, 카탈로그와 그림이 맞는지 본다.
+            <em>spec-validation.mjs 외 9</em>
+          </span>
+        </div>
+        <div class="layer">
+          <span class="layer-path">apps/spec-service/</span>
+          <span class="layer-what">
+            명세를 만들고 검사하는 손. Figma에서 받아 오고, 초안을 뽑고, 계약을 생성하고, 검증을 돌린다.
+            <em>스크립트 7</em>
+          </span>
+        </div>
+        <div class="layer">
+          <span class="layer-path">apps/api/</span>
+          <span class="layer-what">
+            <code>openapi.json</code>을 읽어 자리를 연다. 계약에 없는 이름은 거부한다.
+            <em>Hono · Drizzle · PostgreSQL</em>
+          </span>
+        </div>
+        <div class="layer">
+          <span class="layer-path">apps/vada-web/</span>
+          <span class="layer-what">
+            <code>screen.json</code>과 카탈로그를 읽어 화면을 그린다.
+            <em>React · Vite · Tailwind</em>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>명세가 담는 것</h2>
+    <p>
+      화면 폴더 하나에 다섯이 들어 있다 — 그림 원본, 정규화한 그림, 명세, 참조 이미지, 자산.
+      나머지는 여러 화면이 나눠 쓰는 어휘라 카탈로그로 뺐다.
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <caption>2026-09-02 기준</caption>
+        <thead>
+          <tr>
+            <th>카탈로그</th>
+            <th class="num">개수</th>
+            <th>무엇을 정하나</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td class="path">screens/</td><td class="num">84</td><td>화면 하나가 무엇을 그리고 어디로 가는가</td></tr>
+          <tr><td class="path">data-sources.json</td><td class="num">145</td><td>읽어 오는 값과 그 모양</td></tr>
+          <tr><td class="path">option-sources.json</td><td class="num">51</td><td>고르는 목록</td></tr>
+          <tr><td class="path">mutations.json</td><td class="num">44</td><td>보내는 것</td></tr>
+          <tr><td class="path">permissions.json</td><td class="num">30</td><td>누가 무엇을 열 수 있나</td></tr>
+          <tr><td class="path">state-scopes.json</td><td class="num">21</td><td>화면을 넘나드는 초안</td></tr>
+          <tr><td class="path">shell.json</td><td class="num">8</td><td>모든 화면이 두르는 껍데기</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      단추는 명세가 전부 들고 있다. <strong>159개 전부 <code>action</code>을 갖고</strong>, 그중 72개가
+      <code>navigate</code>이며 이동 대상 화면 id까지 적혀 있다. 그래서 화면을 만드는 사람이
+      "이 단추를 누르면 어디로 가나"를 기억할 필요가 없다.
+    </p>
+  </section>
+
+  <section>
+    <h2>어긋나면 어디서 멈추나</h2>
+    <p>
+      네 겹의 그물이 있다. 위로 갈수록 싸고 아래로 갈수록 비싸다 —
+      <strong>비싼 데서 잡히는 결함은 설계가 진 것이다.</strong>
+    </p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>그물</th>
+            <th class="num">검사</th>
+            <th>무엇을 보나</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>명세 검증기</td><td class="num">209</td>
+            <td>명세끼리 맞는가. 그림에 없는 것을 명세가 말하는가</td>
+          </tr>
+          <tr>
+            <td>화면 검사</td><td class="num">767</td>
+            <td>명세대로 그리는가. 대부분 화면 80벌에서 <em>생성된다</em></td>
+          </tr>
+          <tr>
+            <td>서버 검사</td><td class="num">255</td>
+            <td>계약대로 답하는가. 진짜 Postgres(PGlite)를 쓴다</td>
+          </tr>
+          <tr>
+            <td>시나리오 검사</td><td class="num">429</td>
+            <td>브라우저에서 화면이 명세를 지키는가</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>
+      여기에 <strong>통합 검사 둘</strong>이 따로 있다(<code>*.server.test.tsx</code>). 진짜 서버와 진짜
+      Postgres에 대고 화면을 그린다 — 브라우저가 지나는 코드를 그대로 지난다는 점에서 나머지와 다르다.
+      쓰기가 서버로 안 가고 있던 사고가 이 검사가 없어서 배포 후에야 드러났다.
+    </p>
+  </section>
+
+  <section>
+    <h2>진짜와 가짜를 가르는 자리</h2>
+    <p>
+      화면 여든이 다 그려지지만 그 값은 대부분 개발용 응답에서 온다. 계약이 216자리인데 서버가
+      답하는 것은 그 일부라, 전부 켜면 없는 자리마다 화면이 깨진다. 그렇다고 켜지지 않은 것을
+      조용히 가짜로 되돌리면 그것이 이 저장소가 줄곧 피해 온 <strong>조용한 대체</strong>다.
+    </p>
+    <p class="doctrine">
+      그래서 어느 것이 진짜인지 코드가 든다. 목록에 있으면 서버에서 오고, 없으면 가짜에서 온다.
+      둘 다 명시된 상태다.
+    </p>
+
+    <div class="band">
+      <div class="gauges">
+        <div>
+          <div class="gauge-head">
+            <span class="gauge-label">읽기 — 출처가 서버에서 오는가</span>
+            <span class="gauge-count">9 / 172</span>
+          </div>
+          <div class="gauge-track"><div class="gauge-fill" style="width: 5.2%"></div></div>
+        </div>
+        <div>
+          <div class="gauge-head">
+            <span class="gauge-label">쓰기 — 변이가 서버로 가는가</span>
+            <span class="gauge-count">2 / 44</span>
+          </div>
+          <div class="gauge-track"><div class="gauge-fill" style="width: 4.5%"></div></div>
+        </div>
+        <div>
+          <div class="gauge-head">
+            <span class="gauge-label">답하는 자리 — 계약 대비</span>
+            <span class="gauge-count">43 / 216</span>
+          </div>
+          <div class="gauge-track"><div class="gauge-fill" style="width: 19.9%"></div></div>
+        </div>
+      </div>
+      <p class="band-caption">
+        이 수를 검사가 소리 내어 적는다. 흐름을 하나 붙일 때마다 앞의 수가 늘고 뒤의 수가 준다.
+        <strong>세는 자리가 없으면 없는 것도 없어 보인다</strong> — 쓰기 눈금이 없던 동안 쓰기가 통째로
+        가짜인 것을 아무도 몰랐다.
+        선택지 24개는 명세가 값을 들고 있어 서버 자리가 없다(<code>static</code>). 분모가 아니다 —
+        한동안 분모에 넣어 세어 172를 196으로 적고 있었다.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>밖에 있는 것을 코드가 든다</h2>
+    <p>
+      원본에서 벗어난 것은 반드시 어딘가에 적혀 있어야 하고, 그 적힌 것을 기계가 읽어야 한다.
+      주석은 게이트를 붉히지 못한다.
+    </p>
+
+    <div class="registries">
+      <div class="registry">
+        <span class="registry-file">not-screens.json</span>
+        <span class="registry-holds">안 만들기로 정한 그림. 그 프레임이 사라지면 검증기가 멈춘다.</span>
+      </div>
+      <div class="registry">
+        <span class="registry-file">served.ts</span>
+        <span class="registry-holds">진짜 서버에서 오는 출처와, 진짜 서버로 가는 변이.</span>
+      </div>
+      <div class="registry">
+        <span class="registry-file">deviations.ts</span>
+        <span class="registry-holds">그림과 다르게 그린 것과 그 까닭.</span>
+      </div>
+      <div class="registry">
+        <span class="registry-file">outside-spec.ts</span>
+        <span class="registry-holds">명세 없이 손으로 그린 화면. 지금은 로그인 화면 하나뿐이다.</span>
+      </div>
+    </div>
+
+    <p>
+      마지막 칸은 오늘 생겼다. 로그인 화면은 그림이 없어서 — 와이어프레임이 <em>이미 들어온 사람만</em>
+      그렸다 — 명세도 없고, 그래서 이동을 재는 생성 검사도 없었다. 사람의 기억이 유일한 검사였고
+      기억이 틀렸다.
+    </p>
+  </section>
+
+  <section>
+    <h2>한 화면이 그려지기까지</h2>
+    <p>주소를 열면 이 차례로 일어난다.</p>
+
+    <ul class="plain">
+      <li><code>#/ONB-01</code> — 주소가 곧 화면 id다. 명세가 이미 갖고 있으므로 따로 정하지 않는다.</li>
+      <li>그릇이 <code>screen.json</code>을 걸어 <strong>무엇을 미리 받아야 하는지</strong> 뽑는다.</li>
+      <li>그중 <span class="chip real">진짜</span>인 것만 서버를 부르고, 나머지는 개발용 응답에서 온다.</li>
+      <li>기다리는 동안 카탈로그가 든 <em>불러오는 중</em> 글을 그리고, 실패하면 <em>못 불러왔다</em> 글을 그린다.</li>
+      <li>화면이 요소를 그린다. 단추의 이동 대상은 <code>action.targetScreenId</code>에서 온다.</li>
+      <li>보내는 단추는 <code>mutations.json</code>의 자리로 간다 — <span class="chip real">진짜</span>면 서버로, 아니면 대역이 성공으로 처리한다.</li>
+      <li>실패하면 <strong>이동하지 않고 그 자리에 선다.</strong></li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>지금 열려 있는 구멍</h2>
+    <p>숨기지 않고 적는다.</p>
+
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>구멍</th><th>무엇이 문제인가</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="chip gap">세지 않음</span></td>
+            <td>
+              <code>EVT-03C</code> · <code>EVT-04C</code> · <code>OPS-MEET-01B</code> · <code>OPS-MEET-01D</code>.
+              <strong>명세는 정확하다</strong> — 넷 다 <code>variantOf</code>와 그 조건을 적어 두었고
+              요소는 비어 있다. 문제는 화면 목록(<code>ALL_SCREENS</code>)이 손으로 적은 배열이라
+              이 넷을 세지 않는다는 것이다. 생성 검사가 80벌만 돈다.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="chip gap">과장된 실패</span></td>
+            <td>
+              한 출처가 실패하면 그 화면이 기다리는 <em>전부</em>를 못 불러왔다고 적는다.
+              요청조차 안 나간 개발용 응답까지 빨갛게 나온다.
+            </td>
+          </tr>
+          <tr>
+            <td><span class="chip fake">흐름별 눈금 없음</span></td>
+            <td>
+              진도를 전체 수로만 센다. 흐름 하나가 다 붙었는지는 손으로 세어야 안다.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>왜 이렇게 배치했나</h2>
+    <p>
+      이 구조가 지키려는 것은 하나다 — <strong>사람이 기억해야 할 것을 줄인다.</strong>
+      단추가 어디로 가는지, 어떤 인자를 넘기는지, 누가 그 자리를 열 수 있는지를
+      명세가 갖고 있으면 화면을 만드는 사람은 그것을 읽기만 하면 된다.
+    </p>
+    <p>
+      그리고 <strong>기억이 유일한 검사가 되는 자리를 없앤다.</strong> 오늘 난 사고 둘이 정확히 그 자리에서
+      났다 — 명세 밖에 있던 로그인 화면과, 세는 눈금이 없던 쓰기. 둘 다 이제 코드가 든다.
+    </p>
+    <p class="doctrine">
+      비싼 데서 잡히는 결함은 설계가 진 것이다. 사람이 배포된 화면을 눌러 보고서야
+      알게 되는 것이 있다면, 그것을 싼 데서 잡을 눈금이 없다는 뜻이다.
+    </p>
+  </section>
+
+  <footer class="end">
+    2026-09-02 기준. 수는 전부 저장소에서 직접 세었다 —
+    <code>npm run check:fast</code>가 검사 수를,
+    <code>served.test.ts</code>가 진짜·가짜 수를,
+    <code>outside-spec.test.ts</code>가 명세 밖 화면 수를 소리 내어 적는다.
+  </footer>
+
+</div>
+</body>
+</html>

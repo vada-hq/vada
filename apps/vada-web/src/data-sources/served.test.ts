@@ -18,9 +18,18 @@ import {
 // 그 수가 늘지 않으면 아무리 자리를 만들어도 **사람이 보는 것은 그대로 가짜다.**
 
 const dataSources = (catalogJson as { sources: Array<{ key: string }> }).sources
-const optionSources = (optionsJson as { sources: Array<{ key: string }> }).sources
-const all = dataSources.length + optionSources.length
+const optionSources = (optionsJson as { sources: Array<{ key: string; type: string }> }).sources
 const mutations = (mutationsJson as { mutations: Array<{ key: string }> }).mutations
+
+// **명세가 값을 들고 있는 목록은 분모가 아니다.**
+//
+// 선택지 쉰하나 중 스물넷은 `static`이라 값이 계약 안에 박혀 있고, OpenAPI에 자리조차
+// 생기지 않는다(학년·학생회 유형·운영 연도·조직 구조 방식). 서버로 갈 일이 없는 것을
+// '아직 안 붙었다'로 세면 **눈금이 거짓말을 한다** — 한동안 172를 196으로 세고 있었고,
+// 그래서 진도가 실제보다 나빠 보였다.
+const staticOptions = optionSources.filter((source) => source.type === 'static')
+const remoteOptions = optionSources.filter((source) => source.type !== 'static')
+const all = dataSources.length + remoteOptions.length
 
 describe('무엇이 진짜에서 오는가', () => {
   // 오타 하나면 그 출처는 영영 가짜로 남는데, **가짜로 남는 것은 조용하다** —
@@ -44,14 +53,25 @@ describe('무엇이 진짜에서 오는가', () => {
     expect(isServedMutation('있을 리 없는 변이')).toBe(false)
   })
 
+  // **분모를 붙잡아 둔다.** `static`을 분모에 넣으면 영영 못 채우는 수가 되고,
+  // 그 수를 보고 진도를 판단하면 판단이 틀린다.
+  it('명세가 값을 들고 있는 목록은 분모에 없다', () => {
+    for (const source of staticOptions) {
+      expect(isServed(source.key)).toBe(false)
+    }
+    expect(all).toBe(dataSources.length + remoteOptions.length)
+    expect(all + staticOptions.length).toBe(dataSources.length + optionSources.length)
+  })
+
   // 이 수를 소리 내어 적는다. 진도가 안 나가면 그것이 눈에 보여야 한다.
   it('세어 둔다 — 몇이 진짜이고 몇이 가짜인가', () => {
     const real = SERVED.length
     const wrote = SERVED_MUTATIONS.length
     // eslint-disable-next-line no-console
     console.log(
-      `\n  읽기: 출처 ${all}개 중 서버에서 오는 것 ${real}개 · 개발용 응답 ${all - real}개\n` +
+      `\n  읽기: 그물을 타는 출처 ${all}개 중 서버에서 오는 것 ${real}개 · 개발용 응답 ${all - real}개\n` +
         `  쓰기: 변이 ${mutations.length}개 중 서버로 가는 것 ${wrote}개 · 안 보내는 것 ${mutations.length - wrote}개\n` +
+        `  (선택지 ${staticOptions.length}개는 명세가 값을 들고 있어 서버 자리가 없다 — 분모가 아니다)\n` +
         `  → 흐름을 하나 붙일 때마다 앞의 수가 늘고 뒤의 수가 준다\n`,
     )
     expect(real).toBeLessThanOrEqual(all)

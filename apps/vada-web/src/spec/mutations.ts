@@ -71,6 +71,25 @@ const MUTATION_RESULTS: Record<string, DataRow> = {
   'survey.apply': { receiptToken: 'RCPT-SVY-4f2a91c7' },
 }
 
+/**
+ * **아직 서버에 붙지 않은 자리.**
+ *
+ * 서버가 고장 난 것과 **아직 안 만든 것**은 다른 일이다. 같은 글로 말하면 남은 흐름을
+ * 붙이는 동안 어느 쪽인지 매번 코드를 읽어야 하고, 사람에게도 '고쳐질 것'과 '아직 없는 것'이
+ * 구분되지 않는다.
+ *
+ * 어느 것이 붙었는지는 `served.ts`가 든다 — 그 목록이 진도표다.
+ */
+export class NotServedYet extends Error {
+  readonly key: string
+
+  constructor(key: string) {
+    super(`'${key}'는 아직 서버에 붙지 않았습니다.`)
+    this.name = 'NotServedYet'
+    this.key = key
+  }
+}
+
 export async function runMutation(
   key: string,
   payload: unknown,
@@ -86,8 +105,16 @@ export async function runMutation(
     }
   }
 
-  // **목록에 오른 것은 진짜로 보낸다.** 어느 것이 진짜인지는 `served.ts`가 든다.
-  if (isServedMutation(key) && currentServer() !== null) {
+  // **서버에 붙어 있는 동안은 성공한 척하지 않는다.**
+  //
+  // 오늘 가장 비쌌던 결함이 여기 있었다 — 아무 데도 안 보내고 무조건 성공을 돌려줘서,
+  // '조직 만들기'를 누르면 학생회가 안 생기는데 다음 화면으로 넘어갔다. 목록에서 한 줄만
+  // 빠져도 같은 일이 다시 난다.
+  //
+  // 그래서 켜져 있으면 둘 중 하나다: **보내거나, 못 보낸다고 말하거나.**
+  // 대역이 답하는 것은 서버를 아예 안 켠 동안(검사·개발)뿐이다.
+  if (currentServer() !== null) {
+    if (!isServedMutation(key)) throw new NotServedYet(key)
     return sendMutation(mutation, payload, params)
   }
 

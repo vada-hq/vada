@@ -317,6 +317,13 @@ export function OPSMEET06BScreen({
       onNavigate={onNavigate}
     >
       <div className="mx-auto flex w-full max-w-[1180px] flex-col gap-4 pb-8">
+        {/* **보냈는데 실패하면 말한다.** 아무 말도 안 하면 눌린 것인지 아닌지 사람이
+            모른다 — 오늘 배포에서 겪은 '가짜 성공'의 다른 얼굴이다. 글은 갈고리가 고른다. */}
+        {submitAction.errorMessage === null ? null : (
+          <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
+            {submitAction.errorMessage}
+          </p>
+        )}
         {submitAction.pendingNote === null ? null : (
           <p
             role="status"
