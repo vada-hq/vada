@@ -4,9 +4,9 @@
     {
       "key": "education.schools",
       "type": "remote",
-      "description": "학교명 검색 결과",
+      "description": "학교명 검색 결과\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 INV-01·ONB-01·ORG-01뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
       "authorize": {
-        "area": "member"
+        "area": "signedIn"
       },
       "params": [],
       "request": {
@@ -30,16 +30,17 @@
     {
       "key": "education.colleges",
       "type": "remote",
-      "description": "선택한 학교의 단과대학 목록",
+      "description": "선택한 학교의 단과대학 목록\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 INV-01·ONB-01·ORG-01뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
       "authorize": {
-        "area": "member"
+        "area": "signedIn"
       },
       "params": [
         {
           "key": "schoolId",
           "required": true,
           "valueType": "string",
-          "description": "어느 학교의 단과대학인가"
+          "description": "어느 학교의 단과대학인가",
+          "secret": false
         }
       ],
       "request": {
@@ -60,22 +61,24 @@
     {
       "key": "education.departments",
       "type": "remote",
-      "description": "선택한 학교와 단과대학의 학부·학과 목록",
+      "description": "선택한 학교와 단과대학의 학부·학과 목록\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 INV-01·ONB-01뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
       "authorize": {
-        "area": "member"
+        "area": "signedIn"
       },
       "params": [
         {
           "key": "schoolId",
           "required": true,
           "valueType": "string",
-          "description": "어느 학교인가"
+          "description": "어느 학교인가",
+          "secret": false
         },
         {
           "key": "collegeId",
           "required": true,
           "valueType": "string",
-          "description": "어느 단과대학의 학부·학과인가"
+          "description": "어느 단과대학의 학부·학과인가",
+          "secret": false
         }
       ],
       "request": {
@@ -96,9 +99,9 @@
     {
       "key": "org.types",
       "type": "static",
-      "description": "학생회 유형",
+      "description": "학생회 유형\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 ORG-01뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
       "authorize": {
-        "area": "member"
+        "area": "signedIn"
       },
       "params": [],
       "options": [
@@ -123,9 +126,9 @@
     {
       "key": "org.setupModes",
       "type": "static",
-      "description": "조직 구조 생성 방식",
+      "description": "조직 구조 생성 방식\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 ORG-02뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
       "authorize": {
-        "area": "member"
+        "area": "signedIn"
       },
       "params": [],
       "options": [
@@ -144,9 +147,9 @@
     {
       "key": "org.operatingYears",
       "type": "static",
-      "description": "학생회 운영 연도(기록·구분 기준)",
+      "description": "학생회 운영 연도(기록·구분 기준)\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 ORG-01뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
       "authorize": {
-        "area": "member"
+        "area": "signedIn"
       },
       "params": [],
       "options": [
@@ -167,9 +170,9 @@
     {
       "key": "education.currentGrades",
       "type": "static",
-      "description": "현재 학년 목록",
+      "description": "현재 학년 목록\n\n**가장 밖에 있는 독자가 정한다.** 넷이 읽는데(EXT-02A·INV-01·ONB-01·ORG-07A) 그중 EXT-02A는 참여 신청 폼이라 **로그인이 아예 없다**. 권한은 가장 열린 독자에 맞춰야 하고, 학년 여섯은 감출 것이 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
       "authorize": {
-        "area": "member"
+        "area": "public"
       },
       "params": [],
       "options": [

@@ -188,6 +188,79 @@ function checkSecretDeclared(findings, permissions, groups) {
   }
 }
 
+/**
+ * **화면을 보는 사람이 그 화면의 출처에 닿을 수 있는가.**
+ *
+ * 화면마다 누가 보는지가 적혀 있고(`viewer`), 출처마다 누가 열 수 있는지가 적혀
+ * 있다(`authorize.area`). 둘은 따로 적히므로 **어긋나도 아무 데서도 안 드러난다** —
+ * 명세는 정합하고 화면도 그려지는데, 배포한 뒤 진짜 사람이 열면 그때 403이 온다.
+ *
+ * 실제로 그랬다: 학생회에 들어오려는 사람이 보는 화면 다섯이 학교·단과대·학부
+ * 목록을 읽는데 그 목록들이 `member`를 요구했다. **학교를 골라야 구성원이 되는데
+ * 구성원이라야 학교를 고를 수 있었다.** 서버를 지어 붙이다가 사람이 눈으로 찾았고,
+ * 눈으로 찾은 것은 다음에 또 놓친다.
+ *
+ * 규칙은 하나다. 로그인이 없는 화면(`external`)은 `public`에만, 로그인만 한 화면
+ * (`joining`)은 `public`과 `signedIn`에만 닿는다. 그 밖의 화면은 구성원이 보므로
+ * 무엇에든 닿는다 — 여기서 재지 않는다.
+ */
+const REACHABLE_AREAS = new Map([
+  ["external", new Set(["public"])],
+  ["joining", new Set(["public", "signedIn"])]
+]);
+
+/** 화면이 이름을 불러 쓰는 출처·변이. 어디에 적히든 찾는다. */
+const NAMED_SOURCE_PROPS = new Set([
+  "dataSourceKey",
+  "poolSourceKey",
+  "downloadSourceKey",
+  "copySourceKey",
+  "mutationKey"
+]);
+
+function namedSourcesOf(node, found = new Set()) {
+  if (Array.isArray(node)) {
+    for (const item of node) namedSourcesOf(item, found);
+    return found;
+  }
+  if (!isObject(node)) return found;
+  for (const [property, value] of Object.entries(node)) {
+    if (NAMED_SOURCE_PROPS.has(property) && typeof value === "string") found.add(value);
+    // 선택지는 이름만이 아니라 인자까지 실어서 한 덩어리로 적힌다.
+    if (property === "optionsSource" && isObject(value) && typeof value.key === "string") {
+      found.add(value.key);
+    }
+    namedSourcesOf(value, found);
+  }
+  return found;
+}
+
+function checkViewerReach(findings, screens, groups) {
+  const areaOf = new Map();
+  for (const [items] of groups) {
+    for (const item of Array.isArray(items) ? items : []) {
+      if (typeof item?.key === "string") areaOf.set(item.key, item?.authorize?.area);
+    }
+  }
+  for (const screen of Array.isArray(screens) ? screens : []) {
+    const viewer = screen?.spec?.viewer;
+    const reachable = REACHABLE_AREAS.get(viewer);
+    if (reachable === undefined) continue;
+    for (const key of [...namedSourcesOf(screen.spec)].sort()) {
+      const area = areaOf.get(key);
+      // 카탈로그에 없는 이름은 다른 검사가 잡는다. 여기서 두 번 말하지 않는다.
+      if (area === undefined || reachable.has(area)) continue;
+      findings.push({
+        level: "error",
+        file: screen.file,
+        message:
+          `'${viewer}'가 보는 화면인데 '${key}'가 '${area}'를 요구합니다. ` +
+          `이 화면을 여는 사람은 [${[...reachable].join(", ")}]에만 닿습니다.`
+      });
+    }
+  }
+}
+
 function checkAuthorize(findings, permissions, groups) {
   if (!isObject(permissions)) return;
   const areas = new Map(
@@ -2426,6 +2499,7 @@ export function collectSpecFindings({
   ];
   checkAuthorize(findings, permissions, authorizeGroups);
   checkSecretDeclared(findings, permissions, authorizeGroups);
+  checkViewerReach(findings, screens, authorizeGroups);
   const screenIds = new Set(
     screens
       .map((screen) => screen?.spec?.screenId)

@@ -3221,3 +3221,84 @@ test("지금 보고 있는 자리는 갈 곳을 갖지 않는다", async () => {
     await rm(root, { recursive: true, force: true });
   }
 });
+
+// **화면을 보는 사람이 그 화면의 출처에 닿는가.**
+//
+// 화면의 `viewer`와 출처의 `authorize.area`는 서로 다른 파일에 따로 적힌다. 어긋나도
+// 명세는 정합하고 화면도 그려지므로 **배포한 뒤 진짜 사람이 열어야 403이 온다.**
+// 실제로 그랬다: 학생회에 들어오려는 사람이 보는 화면 다섯이 학교 목록을 읽는데
+// 그 목록이 `member`를 요구했다 — 학교를 골라야 구성원이 되는데 구성원이라야 학교를
+// 고를 수 있었다.
+function joiningScreen(area) {
+  return {
+    screens: [
+      {
+        file: "w/screens/ONB-01/screen.json",
+        spec: {
+          screenId: "ONB-01",
+          viewer: "joining",
+          elements: [{ type: "Dropdown", optionsSource: { key: "education.schools" } }]
+        }
+      }
+    ],
+    optionSources: { sources: [{ key: "education.schools", authorize: { area } }] }
+  };
+}
+
+const reachFindings = (area) =>
+  collectSpecFindings(joiningScreen(area)).filter((finding) =>
+    finding.message.includes("education.schools")
+  );
+
+test("들어오려는 사람이 보는 화면이 구성원 전용 출처를 읽으면 오류다", () => {
+  const findings = reachFindings("member");
+  assert.equal(findings.length, 1);
+  assert.equal(findings[0].file, "w/screens/ONB-01/screen.json");
+  assert.match(findings[0].message, /'joining'가 보는 화면인데/);
+});
+
+test("로그인만 하면 되는 출처는 들어오려는 사람이 읽어도 된다", () => {
+  assert.deepEqual(reachFindings("signedIn"), []);
+});
+
+// 로그인이 아예 없는 화면은 `signedIn`에도 닿지 못한다. 한 칸 더 밖이다.
+test("로그인 없는 화면은 로그인이 필요한 출처를 읽을 수 없다", () => {
+  const spec = joiningScreen("signedIn");
+  spec.screens[0].spec.viewer = "external";
+  const findings = collectSpecFindings(spec).filter((finding) =>
+    finding.message.includes("education.schools")
+  );
+  assert.equal(findings.length, 1);
+  assert.match(findings[0].message, /\[public\]에만 닿습니다/);
+});
+
+// 구성원이 보는 화면(viewer를 적지 않은 화면)은 여기서 재지 않는다.
+test("구성원이 보는 화면은 무엇에든 닿는다", () => {
+  const spec = joiningScreen("member");
+  delete spec.screens[0].spec.viewer;
+  assert.deepEqual(
+    collectSpecFindings(spec).filter((finding) =>
+      finding.message.includes("education.schools")
+    ),
+    []
+  );
+});
+
+// **쓰는 쪽도 같은 벽이다.** 읽기만 재면 들어오려는 사람이 못 부를 변이를 매단 화면이
+// 그대로 지나간다.
+test("들어오려는 사람이 보는 화면이 구성원 전용 변이를 매달면 오류다", () => {
+  const findings = collectSpecFindings({
+    screens: [
+      {
+        file: "w/screens/ORG-02/screen.json",
+        spec: {
+          screenId: "ORG-02",
+          viewer: "joining",
+          elements: [{ type: "Button", submitAction: { mutationKey: "org.create" } }]
+        }
+      }
+    ],
+    mutations: { mutations: [{ key: "org.create", authorize: { area: "member" } }] }
+  }).filter((finding) => finding.message.includes("org.create"));
+  assert.equal(findings.length, 1);
+});

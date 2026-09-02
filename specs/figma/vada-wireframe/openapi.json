@@ -15869,9 +15869,9 @@
     "/api/education/schools": {
       "get": {
         "operationId": "education.schools.options",
-        "summary": "학교명 검색 결과",
+        "summary": "학교명 검색 결과\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 INV-01·ONB-01·ORG-01뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
         "x-authorize": {
-          "area": "member"
+          "area": "signedIn"
         },
         "parameters": [
           {
@@ -15930,16 +15930,6 @@
               }
             }
           },
-          "403": {
-            "description": "이 자리를 열 권한이 없다",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "default": {
             "description": "그 밖의 실패",
             "content": {
@@ -15956,9 +15946,9 @@
     "/api/education/colleges": {
       "get": {
         "operationId": "education.colleges.options",
-        "summary": "선택한 학교의 단과대학 목록",
+        "summary": "선택한 학교의 단과대학 목록\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 INV-01·ONB-01·ORG-01뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
         "x-authorize": {
-          "area": "member"
+          "area": "signedIn"
         },
         "parameters": [
           {
@@ -16017,16 +16007,6 @@
               }
             }
           },
-          "403": {
-            "description": "이 자리를 열 권한이 없다",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
           "default": {
             "description": "그 밖의 실패",
             "content": {
@@ -16043,9 +16023,9 @@
     "/api/education/departments": {
       "get": {
         "operationId": "education.departments.options",
-        "summary": "선택한 학교와 단과대학의 학부·학과 목록",
+        "summary": "선택한 학교와 단과대학의 학부·학과 목록\n\n**들어오려는 사람이 읽는다.** 이것을 읽는 화면은 INV-01·ONB-01뿐이고 그 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도 아니다. `member`로 적어 두었던 동안은 **학교를 골라야 구성원이 되는데 구성원이라야 학교를 고를 수 있었다** — 명세끼리 어긋났고 아무 데서도 안 드러났다.",
         "x-authorize": {
-          "area": "member"
+          "area": "signedIn"
         },
         "parameters": [
           {
@@ -16105,16 +16085,6 @@
           },
           "401": {
             "description": "로그인이 필요하다",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "이 자리를 열 권한이 없다",
             "content": {
               "application/json": {
                 "schema": {

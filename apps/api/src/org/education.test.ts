@@ -19,7 +19,8 @@ import { routeOf } from '../routes.ts'
 //    `npm run db:migrate`만 도는 실서비스에서도 보인다.
 // 2. **너무 짧은 검색어는 찾지 않는다.** 최소 길이는 명세가 갖고 있다.
 // 3. **울타리가 이음매마다 서 있다.** 남의 학교에서 온 단과대 id로 학과가 나오면 안 된다.
-// 4. **아직 들어오는 사람에게 닫혀 있다.** 명세가 이 자리를 `member`로 적어 두었다.
+// 4. **들어오려는 사람에게 열려 있다.** 로그인만 하면 되고(`signedIn`), 구성원일
+//    필요는 없다 — 한때 그 반대였고 그래서 아무도 학생회를 만들 수 없었다.
 
 let db: Db
 let close: () => Promise<void>
@@ -58,7 +59,7 @@ function harness(who: Viewer | null = viewer()) {
   return createApp(deps)
 }
 
-/** 구성원으로 그 자리를 연다. 계약이 이 셋을 `member`로 적었다. */
+/** 구성원으로 그 자리를 연다. 구성원도 물론 연다 — `signedIn`은 구성원을 포함한다. */
 const options = (url: string) => harness().request(url)
 
 beforeAll(async () => {
@@ -136,21 +137,28 @@ describe('단과대학과 학부·학과는 위에 걸려 있다', () => {
   })
 })
 
-describe('아직 들어오는 사람에게 닫혀 있다', () => {
-  // **명세가 이 셋의 `authorize.area`를 `member`로 적어 두었다.** 그런데 이것을 부르는
-  // 화면(ONB-01 · ORG-01 · INV-01)의 viewer는 `joining`이다 — 아직 어느 학생회의
-  // 구성원도 아닌 사람이 학교를 고르는 자리다. 그래서 지금은 403이 난다.
+describe('들어오려는 사람에게 열려 있다', () => {
+  // **한때 닫혀 있었다.** 명세가 이 셋을 `member`로 적었는데 이것을 부르는 화면
+  // (ONB-01 · ORG-01 · INV-01)의 viewer는 `joining`이다 — 아직 어느 학생회의 구성원도
+  // 아닌 사람이 학교를 고르는 자리다. **학교를 골라야 구성원이 되는데 구성원이라야
+  // 학교를 고를 수 있었다.**
   //
-  // **여기서 뚫지 않는다.** 고칠 자리는 `option-sources.json`의 그 한 줄(→ `signedIn`)이고
-  // 그것은 `specs/` 안이다. 이 검사는 그 어긋남이 잊히지 않게 붙잡아 둔다 — 명세가
-  // 고쳐지면 이 검사가 붉어지고, 그때 지우면 된다.
-  it('구성원이 아니면 학교 목록이 열리지 않는다', async () => {
+  // 명세끼리 어긋났는데 두 파일에 따로 적혀 있어 아무 데서도 안 드러났고, 서버를
+  // 지어 붙이다가 사람이 눈으로 찾았다. 눈으로 찾은 것은 다음에 또 놓치므로 검사를
+  // 심었다(`checkViewerReach`) — 화면을 보는 사람이 그 화면의 출처에 닿는지 잰다.
+  //
+  // 여기 둘은 그 반대편이다. 명세를 다시 조이면 이 검사가 붉어진다.
+  it('구성원이 아니어도 학교 목록이 열린다', async () => {
     const res = await harness({ userId: 'U-99', membership: null }).request(
       '/api/education/schools?q=한양',
     )
-    expect(res.status).toBe(403)
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual([
+      { value: 'SCH-HYU-ERICA', label: '한양대학교 ERICA' },
+    ])
   })
 
+  // **열린 것과 아무나 여는 것은 다르다.** `signedIn`이지 `public`이 아니다.
   it('로그인하지 않았으면 막는다', async () => {
     expect((await harness(null).request('/api/education/schools?q=한양')).status).toBe(401)
   })
