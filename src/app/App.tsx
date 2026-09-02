@@ -943,6 +943,49 @@ function formatFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
 
+// 업체 견적서 첨부. 예전에는 파일명을 손으로 타이핑하게 했는데, 견적서는 글이 아니라 파일이라
+// 요청자가 이름을 옮겨 적어야 했다. 백엔드가 없으므로 메시지 첨부와 같은 규칙으로 파일명만 기록한다
+// (실제 업로드·보관은 하지 않는다). 표시·검증은 기존 `priceEvidence` 문자열을 그대로 쓴다.
+function QuoteFileField({ inputId, value, onPick, onClear, required, error, hint }: {
+  inputId: string;
+  value: string;
+  onPick: (fileName: string) => void;
+  onClear: () => void;
+  required?: boolean;
+  error?: string;
+  hint?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-[11px] font-medium text-gray-700">업체 견적서{required && <span className="text-red-500 ml-0.5">*</span>}</label>
+      {value ? (
+        <div className={`flex items-center gap-2 bg-white border ${error ? "border-red-400" : "border-gray-300"} rounded px-3 py-1.5`}>
+          <FileText className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+          <span className="text-xs text-gray-700 truncate flex-1" title={value}>{value}</span>
+          <button type="button" onClick={onClear} className="text-[10px] font-semibold text-gray-400 hover:text-red-500 shrink-0">지우기</button>
+        </div>
+      ) : (
+        <label htmlFor={inputId} className={`flex items-center gap-1.5 bg-white border border-dashed ${error ? "border-red-400" : "border-gray-300"} rounded px-3 py-1.5 text-xs text-gray-500 cursor-pointer hover:border-blue-400 hover:text-blue-600`}>
+          <Upload className="w-3.5 h-3.5" /> 견적서 파일 선택
+        </label>
+      )}
+      <input
+        id={inputId}
+        type="file"
+        className="hidden"
+        accept=".pdf,.png,.jpg,.jpeg,.gif,.xlsx,.xls,.hwp,.hwpx,.docx"
+        onChange={event => {
+          const file = event.target.files?.[0];
+          if (file) onPick(file.name);
+          event.target.value = "";   // 같은 파일을 다시 골라도 onChange가 뜨게 한다
+        }}
+      />
+      {error && <p className="text-[10px] text-red-500">{error}</p>}
+      {!error && hint && <p className="text-[10px] text-gray-400">{hint}</p>}
+    </div>
+  );
+}
+
 function formatClockTime(date: Date) {
   const hours = date.getHours();
   const period = hours < 12 ? "오전" : "오후";
@@ -1166,6 +1209,11 @@ const PURCHASE_TYPE_FIELDS: Record<string, { key: string; label: string }[]> = {
     { key: "배송요청", label: "배송 요청사항" },
   ],
   "제작·인쇄": [
+    // 업체 정보는 대여(대여처)·용역(용역제공자)에는 있는데 제작·인쇄에만 없었다(2026-09-02 추가).
+    // 없으면 재정부가 발주할 때 요청자에게 업체를 되물어야 한다.
+    { key: "업체명", label: "제작 업체" },
+    { key: "업체사이트URL", label: "업체 사이트 URL" },
+    { key: "담당자연락처", label: "담당자 연락처" },
     { key: "제작물종류", label: "제작물 종류" },
     { key: "규격", label: "사이즈 또는 규격" },
     { key: "재질제작조건", label: "재질·제작 조건" },
@@ -1457,7 +1505,7 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     items: [
       { id: 1, name: "박스테이프", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 5, unit: "개", estimatedUnitPrice: 2000, estimatedTotalPrice: 10000, status: "검토 대기", priceEvidence: "https://www.daisomall.co.kr/goods/1002345", details: { 판매처: "다이소몰", 상품URL: "https://www.daisomall.co.kr/goods/1002345", 옵션규격: "50mm 투명 · 대용량", 배송요청: "행사 3일 전까지 도착 요청" } },
       { id: 2, name: "생수 500ml", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, status: "검토 대기", priceEvidence: "https://www.kurly.com/goods/5009912", details: { 판매처: "마켓컬리 B2B", 상품URL: "https://www.kurly.com/goods/5009912", 옵션규격: "500ml x 20입", 배송요청: "냉장 보관 · 당일 배송" } },
-      { id: 3, name: "이름표 용지", budgetLine: "행사 운영비", purchaseType: "제작·인쇄", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, status: "검토 대기", priceEvidence: "인쇄업체 A 견적서.pdf", details: { 제작물종류: "이름표 용지", 규격: "A6 / 화이트", 재질제작조건: "무광 코팅지 200g", 인쇄방식: "컬러 양면", 납품희망일: "2026-09-08", 디자인상태: "준비됨" } },
+      { id: 3, name: "이름표 용지", budgetLine: "행사 운영비", purchaseType: "제작·인쇄", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, status: "검토 대기", priceEvidence: "인쇄업체 A 견적서.pdf", details: { 업체명: "한양인쇄", 업체사이트URL: "https://example-print.co.kr/nametag", 담당자연락처: "02-1234-5678", 제작물종류: "이름표 용지", 규격: "A6 / 화이트", 재질제작조건: "무광 코팅지 200g", 인쇄방식: "컬러 양면", 납품희망일: "2026-09-08", 디자인상태: "준비됨" } },
       { id: 4, name: "유성 마커", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 10, unit: "개", estimatedUnitPrice: 1500, estimatedTotalPrice: 15000, status: "검토 대기", priceEvidence: "https://www.daisomall.co.kr/goods/1007788", details: { 판매처: "다이소몰", 상품URL: "https://www.daisomall.co.kr/goods/1007788", 옵션규격: "검정 / 중간 굵기", 배송요청: "묶음 배송 가능" } },
     ],
     history: [
@@ -1478,7 +1526,7 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
     totalEstimatedAmount: 180000,
     status: "보완 요청",
     items: [
-      { id: 5, name: "메인 현수막", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 1, unit: "개", estimatedUnitPrice: 180000, estimatedTotalPrice: 180000, status: "보완 요청", priceEvidence: "현수막 견적서.pdf", supplementReason: "규격과 인쇄 사양을 보완하고 업체 견적서를 다시 확인해 주세요.", details: { 규격: "500*90", 소재: "부직포" } },
+      { id: 5, name: "메인 현수막", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 1, unit: "개", estimatedUnitPrice: 180000, estimatedTotalPrice: 180000, status: "보완 요청", priceEvidence: "현수막 견적서.pdf", supplementReason: "규격과 인쇄 사양을 보완하고 업체 견적서를 다시 확인해 주세요.", details: { 업체명: "바다배너", 담당자연락처: "010-3333-4444", 규격: "500*90", 소재: "부직포" } },
     ],
     history: [
       { date: "2026-03-02 14:00", action: "요청 생성", user: "김민석" },
@@ -3122,8 +3170,8 @@ const SPEC_DATA: Record<string, SpecDef> = {
     functions: [
       { num: "01", element: "요청 정보", description: "제목, 구매 목적, 필요일, 우선순위를 입력하고 요청 부서는 작성자 소속으로 고정한다. 우선순위를 긴급으로 선택하면 긴급 사유를 조건부 필수로 입력받는다.", constraint: "긴급 사유가 비어 있으면 제출할 수 없다" },
       { num: "02", element: "품목 추가·삭제", description: "여러 품목을 한 요청에 담을 수 있으며 새 품목은 목록 맨 위에 추가된다." },
-      { num: "03", element: "구매 유형별 필드 전환·필수 검증", description: "일반 구매·제작·인쇄·대여·용역에 따라 유형별 상세 입력 필드를 전환한다(details 저장). 재정 스펙 5.1 표의 유형별 필수·조건부 필수 정보를 금액과 무관하게 강제한다(스펙 729·752). 일반 구매=상품 URL(가격 근거 링크)·상품 옵션·규격, 제작·인쇄=제작물 종류·규격·재질·제작 조건·납품 희망일·디자인 파일 상태(미확정이면 사유), 대여=수령·설치 장소·대여/반납 일시·반납 장소·방법·설치·철거 포함 여부, 용역=수행 일시·이행 범위·결과물·완료 기준을 필수로 받는다. 계약서·제안서 등은 선택·조건부다.", constraint: "필수 누락 시 항목별 오류를 표시하고 제출을 막는다(PURCHASE_TYPE_REQUIRED_FIELDS). 작성·상세 보기가 같은 유형별 필드 정의(PURCHASE_TYPE_FIELDS)를 공유한다. 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(스펙 708·709·727)" },
-      { num: "04", element: "가격 근거", description: "일반 구매는 상품 URL(구매·가격 확인 링크)을 가격 근거로 필수 입력하며 별도 견적서를 받지 않는다(링크로 가격 비교·현장 판단이 가능). 제작·인쇄·대여·용역은 살 수 있는 링크가 없어 링크로 대체할 수 없고 업체 견적서를 필수로 등록한다(재정 스펙 713·716)." },
+      { num: "03", element: "구매 유형별 필드 전환·필수 검증", description: "일반 구매·제작·인쇄·대여·용역에 따라 유형별 상세 입력 필드를 전환한다(details 저장). 재정 스펙 5.1 표의 유형별 필수·조건부 필수 정보를 금액과 무관하게 강제한다(스펙 729·752). 일반 구매=상품 URL(가격 근거 링크)·상품 옵션·규격, 제작·인쇄=제작물 종류·규격·재질·제작 조건·납품 희망일·디자인 파일 상태(미확정이면 사유), 대여=수령·설치 장소·대여/반납 일시·반납 장소·방법·설치·철거 포함 여부, 용역=수행 일시·이행 범위·결과물·완료 기준을 필수로 받는다. 계약서·제안서 등은 선택·조건부다. 제작·인쇄에는 제작 업체·업체 사이트 URL·담당자 연락처를 선택으로 받는다(2026-09-02) — 대여의 대여처, 용역의 용역제공자와 같은 자리이며, 없으면 재정부가 발주 시 요청자에게 업체를 되물어야 한다.", constraint: "필수 누락 시 항목별 오류를 표시하고 제출을 막는다(PURCHASE_TYPE_REQUIRED_FIELDS). 작성·상세 보기가 같은 유형별 필드 정의(PURCHASE_TYPE_FIELDS)를 공유한다. 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(스펙 708·709·727)" },
+      { num: "04", element: "가격 근거", description: "가격 근거는 `가격 설명·URL·견적서 중 하나 이상`이다(재정 스펙 716). 일반 구매는 상품 URL(구매·가격 확인 링크)을 가격 근거로 필수 입력한다. 대여·용역은 살 수 있는 링크가 없어 업체 견적서를 필수로 등록한다. 제작·인쇄는 업체 사이트에서 사양별 가격이 나오는 경우가 많아 견적서 파일 또는 업체 사이트 URL 중 하나로 충족한다(2026-09-02 완화 — 유형별 표(스펙 725)가 제작·인쇄에 견적서를 못 박지 않는데 구현만 필수로 좁혀 두고 있었다).", constraint: "견적서는 파일 첨부로 받는다. 예전에는 파일명을 손으로 입력하게 해 요청자가 이름을 옮겨 적어야 했다. 백엔드가 없으므로 메시지 첨부와 같은 규칙으로 파일명만 기록하고 실제 업로드·보관은 하지 않는다" },
       { num: "05", element: "작성 액션", description: "구매 요청 제출(검토 대기 요청 생성) / 임시 저장.", constraint: "작성 화면은 editingRequestId가 없을 때 렌더된다(단일 컴포넌트 2모드)" },
       { num: "06", element: "예산 항목 선택", description: "품목마다 이 행사에 편성된 예산 항목 중에서 선택한다(재정 스펙 712·757).", constraint: "예산 항목 옵션은 행사 편성 예산(eventBudget)에서 파생하며 고정 목록을 하드코딩하지 않는다" },
     ],
@@ -13927,7 +13975,7 @@ function FINREQ01() {
     { id: 2, name: "생수 500ml", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, details: { 판매처: "마켓컬리 B2B", 상품URL: "https://www.kurly.com/goods/5009912", 옵션규격: "500ml x 20입" }, quoteStatus: "미요청" },
     { id: 3, name: "이름표 용지", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 200, unit: "장", estimatedUnitPrice: 300, estimatedTotalPrice: 60000, details: { 판매처: "오피스디포", 상품URL: "https://www.officedepot.co.kr/goods/33120", 옵션규격: "A6 / 화이트" }, quoteStatus: "미요청" },
     { id: 4, name: "유성 마커", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 10, unit: "개", estimatedUnitPrice: 1500, estimatedTotalPrice: 15000, details: { 판매처: "다이소몰", 상품URL: "https://www.daisomall.co.kr/goods/1007788", 옵션규격: "검정 / 중간 굵기" }, quoteStatus: "미요청" },
-    { id: 5, name: "홍보 현수막", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 2, unit: "개", estimatedUnitPrice: 90000, estimatedTotalPrice: 180000, priceEvidence: "현수막 견적서.pdf", details: { 제작물종류: "현수막", 규격: "500x90cm", 재질제작조건: "부직포 / 양면 인쇄", 색상: "배경 블루 / 흰색 글자", 인쇄방식: "실사출력 · 무광 코팅", 납품희망일: "2026-09-05", 디자인상태: "준비됨", 제작요청: "로고 고해상도 사용, 오탈자 확인" }, quoteStatus: "수령 완료" },
+    { id: 5, name: "홍보 현수막", budgetLine: "홍보비", purchaseType: "제작·인쇄", quantity: 2, unit: "개", estimatedUnitPrice: 90000, estimatedTotalPrice: 180000, priceEvidence: "현수막 견적서.pdf", details: { 업체명: "바다배너", 업체사이트URL: "https://example-banner.co.kr/order", 담당자연락처: "010-3333-4444", 제작물종류: "현수막", 규격: "500x90cm", 재질제작조건: "부직포 / 양면 인쇄", 색상: "배경 블루 / 흰색 글자", 인쇄방식: "실사출력 · 무광 코팅", 납품희망일: "2026-09-05", 디자인상태: "준비됨", 제작요청: "로고 고해상도 사용, 오탈자 확인" }, quoteStatus: "수령 완료" },
     { id: 6, name: "앰프·스피커 세트 대여", budgetLine: "행사 운영비", purchaseType: "대여", quantity: 1, unit: "세트", estimatedUnitPrice: 150000, estimatedTotalPrice: 150000, priceEvidence: "음향 대여 견적.pdf", details: { 대여처: "바다렌탈", 수령장소: "대운동장 무대 뒤", 대여시작: "2026-09-10T08:00", 반납예정: "2026-09-10T20:00", 반납장소방법: "행사 종료 후 대여처 직접 회수", 설치철거: "포함", 담당자연락처: "010-1234-5678", 보증금: "50,000원 · 반납 시 환입", 대여조건: "파손·분실 시 실비 배상" }, quoteStatus: "수령 완료" },
     { id: 7, name: "무대 설치·철거 용역", budgetLine: "행사 운영비", purchaseType: "용역", quantity: 1, unit: "건", estimatedUnitPrice: 300000, estimatedTotalPrice: 300000, priceEvidence: "무대 설치 견적.pdf", details: { 용역제공자: "무대설치 전문업체", 수행장소: "대운동장", 수행시작: "2026-09-10T06:00", 수행종료: "2026-09-10T22:00", 담당자연락처: "010-2222-3333", 계약제안: "표준 용역 계약서.pdf", 용역포함: "설치·철거·현장 안전관리 포함", 완료기준: "행사 종료 후 원상복구 완료 확인" }, quoteStatus: "수령 완료" },
   ])));
@@ -13982,8 +14030,16 @@ function FINREQ01() {
       if (!item.quantity || item.quantity <= 0) newErrors[`item_${item.id}_qty`] = "수량을 입력해 주세요.";
       if (!item.unit) newErrors[`item_${item.id}_unit`] = "단위를 입력해 주세요.";
       if (!item.estimatedUnitPrice || item.estimatedUnitPrice <= 0) newErrors[`item_${item.id}_price`] = "단가를 입력해 주세요.";
-      // 일반 구매는 상품 URL(링크)을 가격 근거로 쓰므로 별도 견적서를 요구하지 않는다(상품URL 필수는 유형별 필수 검사에서 처리). 제작·대여·용역만 업체 견적서 필수.
-      if (item.purchaseType !== "일반 구매" && !item.priceEvidence?.trim()) newErrors[`item_${item.id}_evidence`] = "업체 견적서를 등록해 주세요.";
+      // 가격 근거는 `가격 설명·URL·견적서 중 하나 이상`이다(재정 스펙 716행). 유형별 표(725행)도 제작·인쇄에
+      // 견적서를 못 박지 않는다. 일반 구매는 상품 URL이 그 역할을 하고(상품URL 필수는 유형별 필수 검사에서 처리),
+      // 제작·인쇄는 업체 사이트에서 사양별 가격이 나오는 경우가 많아 업체 사이트 URL로 대체할 수 있게 열어 둔다.
+      // 대여·용역은 살 수 있는 링크가 없어 견적서를 그대로 필수로 둔다.
+      if (item.purchaseType !== "일반 구매" && !item.priceEvidence?.trim()) {
+        const urlAlternative = item.purchaseType === "제작·인쇄" && item.details?.["업체사이트URL"]?.trim();
+        if (!urlAlternative) newErrors[`item_${item.id}_evidence`] = item.purchaseType === "제작·인쇄"
+          ? "업체 견적서를 첨부하거나 업체 사이트 URL을 입력해 주세요."
+          : "업체 견적서를 등록해 주세요.";
+      }
       // 구매 유형별 필수·조건부 필수 상세 정보 누락(재정 스펙 5.1, 729·752행) — 금액과 무관하게 적용
       (PURCHASE_TYPE_REQUIRED_FIELDS[item.purchaseType] ?? []).forEach(rule => {
         if (rule.when && !rule.when(item.details ?? {})) return;
@@ -14184,14 +14240,16 @@ function FINREQ01() {
 
                       {item.purchaseType !== "일반 구매" && (
                         <div id={`item_${item.id}_evidence`} className="bg-blue-50 border border-blue-100 rounded-lg p-4">
-                          <Input
-                            label="업체 견적서"
+                          <QuoteFileField
+                            inputId={`item_${item.id}_quote_file`}
                             value={item.priceEvidence ?? ""}
-                            onChange={e => updateItem(item.id, "priceEvidence", e.target.value)}
-                            placeholder="견적서 파일명 또는 등록 정보"
-                            required
+                            onPick={fileName => updateItem(item.id, "priceEvidence", fileName)}
+                            onClear={() => updateItem(item.id, "priceEvidence", "")}
+                            required={item.purchaseType !== "제작·인쇄"}
                             error={errors[`item_${item.id}_evidence`]}
-                            hint="제작·인쇄·대여·용역은 가격 근거로 업체 견적서가 필요합니다."
+                            hint={item.purchaseType === "제작·인쇄"
+                              ? "가격 근거로 견적서 파일 또는 아래 업체 사이트 URL 중 하나가 필요합니다."
+                              : "대여·용역은 가격 근거로 업체 견적서가 필요합니다."}
                           />
                         </div>
                       )}
@@ -14211,6 +14269,12 @@ function FINREQ01() {
 
                         {item.purchaseType === "제작·인쇄" && (
                           <div className="flex flex-col gap-4">
+                            {/* 누가 만드나 — 재정부가 발주할 때 필요하다. 업체 사이트 URL은 가격 근거를 겸할 수 있다. */}
+                            <div className="grid grid-cols-3 gap-4">
+                              <Input label="제작 업체" placeholder="예: 한양인쇄" value={item.details?.["업체명"] ?? ""} onChange={e => updateDetail(item.id, "업체명", e.target.value)} />
+                              <Input label="업체 사이트 URL" placeholder="https://" value={item.details?.["업체사이트URL"] ?? ""} onChange={e => updateDetail(item.id, "업체사이트URL", e.target.value)} hint="견적서가 없으면 가격 근거로 씁니다." />
+                              <Input label="담당자 연락처" placeholder="예: 010-1234-5678" value={item.details?.["담당자연락처"] ?? ""} onChange={e => updateDetail(item.id, "담당자연락처", e.target.value)} />
+                            </div>
                             <div className="grid grid-cols-3 gap-4">
                               <Input label="제작물 종류" required error={errors[`item_${item.id}_detail_제작물종류`]} placeholder="예: 현수막, 굿즈 등" value={item.details?.["제작물종류"] ?? ""} onChange={e => updateDetail(item.id, "제작물종류", e.target.value)} />
                               <Input label="사이즈 또는 규격" required error={errors[`item_${item.id}_detail_규격`]} placeholder="예: 500x90cm" value={item.details?.["규격"] ?? ""} onChange={e => updateDetail(item.id, "규격", e.target.value)} />
@@ -14325,15 +14389,11 @@ function FINREQ01() {
                                 ))}
                               </div>
                             </div>
+                            {/* `견적 업체`·`견적 금액`·`견적서 파일 업로드` 3개를 걷어냈다(2026-09-02).
+                                value·onChange·onClick이 하나도 없는 장식이었고, 위쪽 `업체 견적서` 첨부와
+                                제작·인쇄의 `제작 업체`가 같은 것을 실제로 받고 있어 죽은 쪽이 오해만 만든다. */}
                             {item.quoteStatus === "수령 완료" && (
-                              <div className="grid grid-cols-3 gap-3 flex-[2]">
-                                <Input label="견적 업체" placeholder="업체명" />
-                                <Input label="견적 금액" type="number" placeholder="0" />
-                                <div className="flex flex-col gap-1">
-                                  <label className="text-[11px] font-medium text-gray-700">견적서 파일</label>
-                                  <Btn variant="secondary" className="bg-white"><Upload className="w-3 h-3" /> 파일 업로드</Btn>
-                                </div>
-                              </div>
+                              <p className="text-[10px] text-gray-400 flex-[2]">받은 견적서는 위 `업체 견적서`에 첨부해 주세요.</p>
                             )}
                           </div>
                         </div>

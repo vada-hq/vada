@@ -443,3 +443,53 @@ describe.skipIf(ADVANCE_CLAIM_ENABLED)("사비 선지출 진입점이 스위치�
     });
   }
 });
+
+// 제작·인쇄만 "누가 만드나"가 통째로 빠져 있었다. 대여에는 대여처, 용역에는 용역제공자가 있는데
+// 제작·인쇄의 10개 필드는 전부 "무엇을 어떻게 만드나"였다. 재정부가 발주할 때 요청자에게 되물어야 했다.
+describe("구매 요청 작성 — 제작·인쇄 업체 정보와 견적서 첨부", () => {
+  const renderForm = () => {
+    const Comp = SCREEN_COMPONENTS["FIN-REQ-01B"];
+    return render(<Comp />);
+  };
+
+  const selectMakePrint = (container: HTMLElement) => {
+    const typeSelect = Array.from(container.querySelectorAll("select"))
+      .find(sel => Array.from(sel.options).some(o => o.value === "제작·인쇄"));
+    expect(typeSelect, "구매 유형 선택이 있어야 함").toBeTruthy();
+    fireEvent.change(typeSelect!, { target: { value: "제작·인쇄" } });
+  };
+
+  it("제작·인쇄를 고르면 업체 정보 3개가 나타난다", () => {
+    const { container } = renderForm();
+    selectMakePrint(container);
+    for (const label of ["제작 업체", "업체 사이트 URL", "담당자 연락처"]) {
+      expect(container.textContent, `${label} 입력이 있어야 함`).toContain(label);
+    }
+  });
+
+  // 견적서는 글이 아니라 파일이다. 예전에는 파일명을 손으로 옮겨 적게 했다.
+  it("업체 견적서는 텍스트 입력이 아니라 파일 첨부다", () => {
+    const { container } = renderForm();
+    selectMakePrint(container);
+    const fileInputs = container.querySelectorAll('input[type="file"]');
+    expect(fileInputs.length, "견적서 파일 입력이 있어야 함").toBeGreaterThan(0);
+    expect(container.textContent).toContain("견적서 파일 선택");
+    expect(container.textContent, "파일명을 손으로 적게 하던 안내가 남아 있으면 안 됨").not.toContain("견적서 파일명 또는 등록 정보");
+  });
+
+  // 가격 근거는 스펙 716행이 "설명·URL·견적서 중 하나 이상"으로 열어 뒀는데 구현만 견적서로 좁혀 뒀었다.
+  it("제작·인쇄는 견적서와 업체 사이트 URL 중 하나면 된다고 안내한다", () => {
+    const { container } = renderForm();
+    selectMakePrint(container);
+    expect(container.textContent).toContain("견적서 파일 또는 아래 업체 사이트 URL 중 하나가 필요합니다");
+    expect(container.textContent, "업체 사이트 URL이 가격 근거를 겸한다는 안내").toContain("견적서가 없으면 가격 근거로 씁니다");
+  });
+
+  it("대여는 견적서가 그대로 필수다 — 살 수 있는 링크가 없다", () => {
+    const { container } = renderForm();
+    const typeSelect = Array.from(container.querySelectorAll("select"))
+      .find(sel => Array.from(sel.options).some(o => o.value === "대여"));
+    fireEvent.change(typeSelect!, { target: { value: "대여" } });
+    expect(container.textContent).toContain("대여·용역은 가격 근거로 업체 견적서가 필요합니다");
+  });
+});
