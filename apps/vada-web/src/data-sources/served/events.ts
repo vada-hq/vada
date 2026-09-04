@@ -10,6 +10,10 @@ export const events: Served = {
   reads: [
     // 인자를 넘겨 부르는 길이 열린 것을 재는 자리였다.
     'event.summary',
+    // **행사 작업공간의 셸.** 화면의 요소가 아니라 화면을 감싼 것이 읽는다 —
+    // 서버는 처음부터 답하고 있었는데 이 목록에 없어서, 행사 안쪽 화면들이
+    // 전부 개발용 응답으로 그 머리를 그렸다.
+    'event.workspace',
     'event.list',
     'event.basics',
     'event.basicsDraft',

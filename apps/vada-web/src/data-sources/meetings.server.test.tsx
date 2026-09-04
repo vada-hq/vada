@@ -448,7 +448,11 @@ describe('회의 상세가 저장소에서 온다', () => {
     expect(row.canEnd).toBe(false)
   })
 
-  it('OPS-MEET-05A가 진행 중인 회의를 그린다', async () => {
+  // **OPS-MEET-05A는 아직 못 연다** — 이 화면이 읽는 `meeting.followUps`가 안 지어졌다.
+  //
+  // 한동안 이 검사가 화면을 그려서 통과했는데, 그 자리를 개발용 응답이 채우고
+  // 있었다 — 검사도 배포와 같은 거짓말을 하고 있었다(2026-09-05).
+  it('OPS-MEET-05A는 후속 업무가 아직이라 준비 중을 그린다', async () => {
     render(
       <ScreenRouter
         screenId="OPS-MEET-05A"
@@ -458,14 +462,26 @@ describe('회의 상세가 저장소에서 온다', () => {
         onNavigate={() => {}}
       />,
     )
-    await waitFor(() => expect(screen.getByText('진행 27분')).toBeInTheDocument())
-    const drawn = document.body.textContent ?? ''
+    await waitFor(() =>
+      expect(screen.getByText('이 화면은 아직 준비 중입니다.')).toBeInTheDocument(),
+    )
+  })
+
+  // 화면은 아직이지만 **상세가 주는 값은 이미 진짜다.** 그 자리를 계속 잰다 —
+  // 화면이 열리는 날 그리는 것이 이 값들이다.
+  it('진행 중인 회의의 값이 저장소에서 온다', async () => {
+    const params = { meetingId: 'MTG-C' }
+    await loadSources([{ key: 'meeting.detail', params }])
+    const row = readObjectSource('meeting.detail', params)
     // 가만히 있어도 자라는 값이라 서버가 잰다.
-    expect(drawn).toContain('09:33 시작')
-    expect(drawn).toContain('2명 참가 중')
-    // 지금 하고 있는 안건이 무엇인지도 데이터가 안다(isCurrent).
-    expect(drawn).toContain('비상 연락망 확정')
-    expect(drawn).toContain('진행 중')
+    expect(row.elapsedNote).toContain('27분')
+    expect(row.startedAt).toContain('09:33')
+    expect(row.presentNote).toContain('2명')
+
+    await loadSources([{ key: 'meeting.agendas', params }])
+    const agendas = readListSource('meeting.agendas', params)
+    // 지금 하고 있는 안건이 무엇인지도 데이터가 안다.
+    expect(agendas.find((one) => one.isCurrent === true)?.title).toBe('비상 연락망 확정')
   })
 
   it('안건이 단계마다 다른 것을 갖는다', async () => {

@@ -3,13 +3,16 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import { fixturesOut } from './vite-fixtures-out.js'
 
 // specs/figma의 명세 번들과 packages/contracts를 저장소 루트 기준으로 import한다.
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
 
 // https://vite.dev/config/
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
+export default defineConfig(({ command }) => ({
+  // **실서비스 번들에 개발용 응답을 싣지 않는다.** e2e 빌드(VITE_FIXTURES=1)와
+  // 검사·개발 서버는 그대로 쓴다 — 그림 대조가 그 값으로 돈다.
+  plugins: [react(), tailwindcss(), fixturesOut(command === 'build' && process.env.VITE_FIXTURES !== '1')],
   server: {
     fs: {
       allow: [repoRoot],
@@ -113,4 +116,4 @@ export default defineConfig({
       },
     ],
   },
-})
+}))

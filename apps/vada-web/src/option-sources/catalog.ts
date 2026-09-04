@@ -3,6 +3,7 @@
 // 네트워크만 개발용 mock으로 대체한다(로딩 상태 확인용 인위 지연 포함).
 import catalogJson from '../../../../specs/figma/vada-wireframe/option-sources.json'
 import { currentServer, urlOf } from '../data-sources/server'
+import { NotBuiltYet } from '../data-sources/server'
 import { isServed } from '../data-sources/served'
 import {
   COLLEGES,
@@ -198,7 +199,10 @@ export async function fetchOptions(
   // **진짜 서버에 붙은 목록은 서버에서 온다.** 데이터 출처와 같은 서버, 같은
   // 주소 규칙을 쓴다 — 두 벌을 두면 하나만 켜진 상태가 생기고, 그러면 같은 화면의
   // 표는 진짜인데 고르는 목록은 개발용 응답인 채로 그려진다.
-  if (isServed(key) && currentServer() !== null) {
+  if (currentServer() !== null) {
+    // **안 붙은 목록도 개발용 응답으로 돌아가지 않는다.** 표는 진짜인데 고를 것이
+    // 가짜면 사람은 없는 학교를 고르고 저장할 때 터진다 — 읽는 자리와 같은 규칙이다.
+    if (!isServed(key)) throw new NotBuiltYet(key)
     return fromServerOptions(source, params, query)
   }
 

@@ -6,6 +6,7 @@ import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json
 import { NotServedYet, runMutation } from '../spec/mutations'
 import { isServedMutation } from './served'
 import {
+  NotBuiltYet,
   SourcesFailed,
   currentServer,
   loadSources,
@@ -116,8 +117,15 @@ describe('고르는 목록도 서버에서 온다', () => {
     )
   })
 
-  // 아직 안 붙은 목록은 서버를 켜도 개발용 응답이다. 둘 다 적힌 상태다(`served.ts`).
-  it('진짜에 없는 목록은 서버를 부르지 않는다', async () => {
+  // **아직 안 붙은 목록은 개발용 응답을 주지 않는다.**
+  //
+  // 한동안 주었다 — 서버를 켜도 안 붙은 목록은 가짜로 돌아갔고, 어느 것이 붙었는지는
+  // `served.ts`가 코드로 들고 있으니 조용한 대체가 아니라고 적어 두었다. **사람은
+  // 그 파일을 읽지 않는다**: 배포된 앱에서 새로 만든 빈 학생회가 남의 값을 골랐다
+  // (2026-09-05). 표가 진짜인데 고를 것이 가짜면 없는 것을 고르고 저장할 때 터진다.
+  //
+  // 서버를 부르지도 않는다 — 계약에 자리는 있어도 답할 것이 없다.
+  it('진짜에 없는 목록은 가짜를 주지 않고 아직 안 지었다고 말한다', async () => {
     let called = false
     back = useServer({
       baseUrl: '',
@@ -126,8 +134,14 @@ describe('고르는 목록도 서버에서 온다', () => {
         return Response.json([])
       },
     })
-    expect(await fetchOptions('finance.purchaseTypes', {})).not.toEqual([])
+    await expect(fetchOptions('finance.purchaseTypes', {})).rejects.toBeInstanceOf(NotBuiltYet)
     expect(called).toBe(false)
+  })
+
+  // 서버를 안 켠 동안(검사·그림 대조)은 그대로 개발용 응답이다. 그 자리까지 막으면
+  // 화면을 그림과 견줄 수 없다 — 견주려면 그림이 그린 그 값이 화면에 있어야 한다.
+  it('서버를 안 켜면 그대로 개발용 응답이다', async () => {
+    expect(await fetchOptions('finance.purchaseTypes', {})).not.toEqual([])
   })
 })
 

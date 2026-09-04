@@ -316,16 +316,27 @@ describe('행사 문서 표가 저장소에서 온다(EVT-DOC-01)', () => {
 })
 
 describe('회의 자료가 저장소에서 온다(OPS-MEET-07)', () => {
-  it('이 회의에 붙은 자료를 그린다', async () => {
+  // **OPS-MEET-07은 아직 못 연다** — 이 화면이 읽는 `meeting.minutes`와
+  // `meeting.followUps`가 안 지어졌다. 자료 목록 자체는 이미 진짜라 출처로 잰다.
+  //
+  // 한동안 이 검사가 화면을 그려서 통과했는데, 그 둘을 개발용 응답이 채우고
+  // 있었다 — 검사도 배포와 같은 거짓말을 하고 있었다(2026-09-05).
+  it('OPS-MEET-07은 회의록이 아직이라 준비 중을 그린다', async () => {
     draw('OPS-MEET-07', { meetingId: 'MTG-01' })
     await waitFor(() =>
-      expect(screen.getByText('한마당_지난회의요약.docx')).toBeInTheDocument(),
+      expect(screen.getByText('이 화면은 아직 준비 중입니다.')).toBeInTheDocument(),
     )
-    const page = drawn()
-    expect(page).toContain('한마당_안전인력배치.xlsx')
+  })
+
+  it('이 회의에 붙은 자료가 저장소에서 온다', async () => {
+    const params = { meetingId: 'MTG-01' }
+    await loadSources([{ key: 'meeting.documents', params }])
+    const names = readListSource('meeting.documents', params).map((row) => row.name)
+    expect(names).toContain('한마당_지난회의요약.docx')
+    expect(names).toContain('한마당_안전인력배치.xlsx')
     // 개발용 응답의 자료가 아니라는 증거이자, 남의 학생회 자료가 없다는 증거다.
-    expect(page).not.toContain('체육대회_안전점검표.pdf')
-    expect(page).not.toContain('남의 회의 자료.pdf')
+    expect(names).not.toContain('체육대회_안전점검표.pdf')
+    expect(names).not.toContain('남의 회의 자료.pdf')
   })
 
   // **안건의 사전 자료와 회의록의 관련 자료가 같은 물건이다.** 어느 안건의 것인지는

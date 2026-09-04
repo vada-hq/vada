@@ -15,7 +15,9 @@ import {
 import { hashToken } from '../../../api/src/public/tokens.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
+import { draftValueOf, payloadOf } from '../spec/draft-values'
 import { runMutation } from '../spec/mutations'
+import { evt02b } from '../spec/screens'
 import { loadSources, useServer } from './server'
 
 // **행사의 앞자락을 끝까지 뚫는다.**
@@ -212,7 +214,15 @@ describe('행사를 만든다', () => {
 })
 
 describe('기본정보를 읽고 고친다', () => {
-  it('EVT-02B가 저장소의 초안을 그린다', async () => {
+  // **EVT-02B는 아직 못 연다 — 뒤에 남는 화면이 안 지어졌다.**
+  //
+  // 이 패널 자신의 자리는 다 붙었다(`event.basicsDraft`·`event.saveBasics`). 그런데
+  // 명세가 이것을 EVT-02 위에 겹쳐 뜨는 것으로 적었고(`overlay.screenId`), 그 뒤
+  // 화면이 읽는 여섯이 아직 없다. 사람도 EVT-02를 지나지 않고는 여기 못 온다.
+  //
+  // **한동안 이 검사가 통과했다.** 개발용 응답이 그 여섯을 채워 주고 있었기 때문이다 —
+  // 검사도 배포와 같은 거짓말을 하고 있었다(2026-09-05).
+  it('EVT-02B는 뒤 화면이 아직이라 준비 중을 그린다', async () => {
     render(
       <ScreenRouter
         screenId="EVT-02B"
@@ -223,7 +233,7 @@ describe('기본정보를 읽고 고친다', () => {
       />,
     )
     await waitFor(() =>
-      expect(screen.getByDisplayValue('2026 소프트웨어융합대학 체육대회')).toBeInTheDocument(),
+      expect(screen.getByText('이 화면은 아직 준비 중입니다.')).toBeInTheDocument(),
     )
   })
 
@@ -233,18 +243,24 @@ describe('기본정보를 읽고 고친다', () => {
   // `'y'`를 보므로 **꺼져 보인다** — 그리고 그대로 저장하면 켜져 있던 것이 꺼진다.
   // 회의 쪽에서 같은 자리가 드러났고(비공개 회의가 공개가 된다) 이 화면이 이미
   // 그러고 있었다(2026-09-04).
-  it('저장소가 켜 둔 칸이 켜져 보인다', async () => {
-    render(
-      <ScreenRouter
-        screenId="EVT-02B"
-        screenParams={{ eventId: 'E-01' }}
-        scopes={{}}
-        onChangeScope={() => {}}
-        onNavigate={() => {}}
-      />,
-    )
-    await waitFor(() => expect(screen.getByLabelText('종료 시간 미정')).toBeInTheDocument())
-    expect(screen.getByLabelText('종료 시간 미정')).toBeChecked()
+  //
+  // 화면을 그려서 재던 자리인데 위의 까닭으로 못 그린다. 그래서 **화면이 쓰는 그
+  // 두 함수**를 진짜 서버의 답에 대고 잰다 — 읽을 때 옮기는 것과 보낼 때 되돌리는 것.
+  it('서버의 참거짓이 체크 상자가 읽는 꼴로 오간다', async () => {
+    await loadSources([{ key: 'event.basicsDraft', params: { eventId: 'E-01' } }])
+    const fromDb = readObjectSource('event.basicsDraft', { eventId: 'E-01' })
+    // 서버는 참거짓을 준다.
+    expect(fromDb.endUnset).toBe(true)
+    // 초안은 체크 상자가 아는 꼴로 담는다. `String(true)`였다면 'true'다.
+    expect(draftValueOf(fromDb.endUnset)).toBe('y')
+
+    // 보낼 때 되돌린다. 'y'를 그대로 보내면 서버가 422로 막는다.
+    const body = payloadOf(evt02b, { title: '체크 확인용', endUnset: 'y', placeUnset: '' })
+    expect(body).toMatchObject({ endUnset: true, placeUnset: false })
+    await runMutation('event.saveBasics', body, { eventId: 'E-01' })
+
+    await loadSources([{ key: 'event.basicsDraft', params: { eventId: 'E-01' } }])
+    expect(readObjectSource('event.basicsDraft', { eventId: 'E-01' }).endUnset).toBe(true)
   })
 
   // **화면이 누르는 그 길로 저장한다.**

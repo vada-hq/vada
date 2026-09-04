@@ -1,6 +1,6 @@
 import { Component, Suspense, type ReactNode } from 'react'
 import { messagesOf } from '../data-sources/loading'
-import { SourcesFailed } from '../data-sources/server'
+import { NotBuiltYet, SourcesFailed } from '../data-sources/server'
 
 /**
  * 화면이 읽다 멈춘 자리.
@@ -41,28 +41,43 @@ function Note({ messages, isError }: { messages: string[]; isError: boolean }) {
 
 interface GateState {
   failedKeys: readonly string[] | null
+  /** 아직 안 지은 자리를 읽었을 때. **실패와 다른 상태다.** */
+  notBuilt: boolean
   screenId: string
 }
 
 export class SourceGate extends Component<SourceGateProps, GateState> {
-  state: GateState = { failedKeys: null, screenId: this.props.screenId }
+  state: GateState = { failedKeys: null, notBuilt: false, screenId: this.props.screenId }
 
   /**
    * **받지 못한 것만 여기서 멈춘다.** 나머지 오류는 그대로 올려보낸다 — 화면의
    * 진짜 고장을 '불러오지 못했습니다'로 덮으면 그 고장을 아무도 못 본다.
    */
   static getDerivedStateFromError(error: Error): Partial<GateState> | null {
+    if (error instanceof NotBuiltYet) return { notBuilt: true }
     return error instanceof SourcesFailed ? { failedKeys: error.keys } : null
   }
 
   static getDerivedStateFromProps(props: SourceGateProps, state: GateState): Partial<GateState> | null {
     return props.screenId === state.screenId
       ? null
-      : { failedKeys: null, screenId: props.screenId }
+      : { failedKeys: null, notBuilt: false, screenId: props.screenId }
   }
 
   render() {
-    const { failedKeys } = this.state
+    const { failedKeys, notBuilt } = this.state
+    // **아직 안 지은 자리는 실패도 비었음도 아니다.**
+    //
+    // 이 글은 명세가 갖지 않는다 — 데이터에 대한 말이 아니라 **이 앱이 어디까지
+    // 만들어졌는가**에 대한 말이고, 그것은 저장소가 아는 사실이다.
+    if (notBuilt) {
+      return (
+        <Note
+          messages={['이 화면은 아직 준비 중입니다.', '만들어지는 대로 열립니다.']}
+          isError={false}
+        />
+      )
+    }
     if (failedKeys !== null) {
       return <Note messages={messagesOf(failedKeys, 'error')} isError />
     }

@@ -134,6 +134,23 @@ export function urlOf(path: string, params: Record<string, string>): string {
  * 그 둘이 막히자 **요청조차 나가지 않은 일곱까지** 빨갛게 나왔다. 사람은 아홉 군데가
  * 고장 난 줄 알고 없는 자리를 뒤진다.
  */
+/**
+ * 아직 만들지 않은 자리.
+ *
+ * **실패가 아니다.** 서버가 고장 난 것도, 데이터가 없는 것도 아니고, 우리가 그
+ * 자리를 아직 안 지은 것이다. 셋을 같은 글로 말하면 사람이 기다려야 하는지
+ * 다시 눌러야 하는지 우리를 불러야 하는지 가릴 수 없다.
+ */
+export class NotBuiltYet extends Error {
+  readonly key: string
+
+  constructor(key: string) {
+    super(`데이터 출처 '${key}'는 아직 서버에 붙지 않았습니다.`)
+    this.name = 'NotBuiltYet'
+    this.key = key
+  }
+}
+
 export class SourcesFailed extends Error {
   readonly keys: readonly string[]
 
@@ -223,9 +240,20 @@ export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
  */
 export function fromServer(key: string, params: Record<string, string> = {}): unknown {
   if (server === null) return undefined
-  // **아직 안 붙은 출처는 개발용 응답으로 간다.** 그것이 조용한 대체가 아닌 까닭은
-  // 어느 것이 붙었는지를 `served.ts`가 코드로 들고 있기 때문이다 — 둘 다 적힌 상태다.
-  if (!isServed(key)) return undefined
+  // **아직 안 붙은 출처는 개발용 응답으로 돌아가지 않는다.**
+  //
+  // 한동안 여기서 `undefined`를 돌려주었고 그러면 카탈로그가 개발용 응답을 그렸다.
+  // 개발할 때는 그것이 맞았다 — 서버가 한 줄도 없는 동안 화면 여든다섯을 지어야 했고,
+  // 어느 것이 진짜인지는 `served.ts`가 코드로 들고 있었다.
+  //
+  // **배포된 앱에서는 그것이 거짓말이다.** 2026-09-05에 값을 치렀다: 방금 만든
+  // 빈 학생회의 홈에 남의 행사와 남의 예산이 그려졌다. 값을 읽는 화면 일흔넷 중
+  // **마흔**이 그 상태였다. 사람은 `served.ts`를 읽지 않는다.
+  //
+  // 이제 없으면 없다고 말한다. **'비었다'와는 다른 말이다** — 행사가 하나도 없는
+  // 것과 우리가 아직 그 자리를 안 만든 것은 다른 사실이고, `empty`를 그리면 사람은
+  // 앞엣것으로 읽는다.
+  if (!isServed(key)) throw new NotBuiltYet(key)
   const slot = slotOf({ key, params })
   if (cache.has(slot)) return cache.get(slot)
   // 깨진 것은 그 사실을 던진다. 어느 출처였는지를 실어야 그 출처의 글이 그려진다.
