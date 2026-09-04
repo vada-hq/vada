@@ -1,0 +1,542 @@
+{
+  "words": [
+    "0 / 0 완료",
+    "16:12 종료 처리",
+    "2025. 12. 19 (금) 18:00–21:00",
+    "2026 가을 축제",
+    "2026 소프트웨어융합대학 학술제",
+    "2026-체육대회-참석확인-QR.png",
+    "2026.07.29 11:25 수정",
+    "2026년 6월",
+    "검토 의견이 아직 없습니다.",
+    "결과물을 제출하면 검토가 시작됩니다.",
+    "공지 문안을 작성하고 검토를 요청",
+    "과학기술융합대학",
+    "그림 둘이 어긋난다",
+    "기계시스템디자인공학과",
+    "기본 정보 입력 필요 / 일시 미정 / 담당 미정",
+    "다음 담당: 학술체육부 부서장",
+    "다음 일정 · 미정",
+    "도시과학대학",
+    "도시행정학과",
+    "들어갈 방이 없다",
+    "로 그려졌고 07/08의 상세는 ",
+    "로 적는다. 06A는 같은 자리를 ",
+    "문항에서 추가 →",
+    "바다시립대학교",
+    "봄축제-부스-참석확인-QR.png",
+    "부산바다대학교",
+    "서울과학기술대학교",
+    "설명이 아직 등록되지 않았습니다.",
+    "수리데이터사이언스학과",
+    "시작 일시가 설정되지 않았습니다",
+    "식순과 각 순서의 담당을 정합니다.",
+    "신소재공학과",
+    "신청 방식이 정해지지 않았습니다",
+    "신청 시작 일시",
+    "신청 시작 일시가 설정되지 않았습니다",
+    "아직 담당자가 없습니다",
+    "아직 만들어진 업무가 없습니다",
+    "이라 부르는데 디자인은 ",
+    "이수현 · 기획부",
+    "인문사회대학",
+    "일시 미정 · 장소 미정",
+    "입력 위치: 설문 문항",
+    "입력 위치: 행사 기본정보 → 일시",
+    "입력 위치: 행사 기본정보 → 장소",
+    "입력 위치: 행사 기본정보 → 정원",
+    "입력 위치: 행사 기본정보 → 참가 대상",
+    "자연과학대학",
+    "장소가 입력되지 않았습니다",
+    "정리된 회의록을 읽고 받아 갈 수 있습니다.",
+    "정보통신대학",
+    "정원 유형이 정해지지 않았습니다",
+    "제3공학관 대강당",
+    "제9대 컴퓨터학부 학생회",
+    "종료 일시가 설정되지 않았습니다",
+    "지난 회의 결정 사항을 정리",
+    "참가 대상이 입력되지 않았습니다",
+    "참가비 유형이 정해지지 않았습니다",
+    "참석자 화면",
+    "체육대회_안전관리_최종회의_회의록.pdf",
+    "체크인 시간 아님",
+    "취소된 1차 준비회의를 대신해 부스 배치와 예산 배분을 다시 논의합니다.",
+    "취소된 회의는 기록으로만 남습니다.",
+    "컴퓨터공학과",
+    "코드마다 다르다",
+    "토큰마다 다르다",
+    "학부 학생회",
+    "학생회관 3층 회의실",
+    "학생회비 대조를 켜면 식별 문항이 필요합니다",
+    "학술체육부 · 책임자 김바다",
+    "한국해양대학교",
+    "한양대학교 ERICA · 컴퓨터학부",
+    "해양과학대학",
+    "해양인문사회대학",
+    "행사 당일 안전 관리 계획을 최종 확인합니다.",
+    "현재 상태: 준비 중 · 다음 운영 단계는 기본 정보 입력입니다.",
+    "확인할 신청자가 없습니다",
+    "환영 행사의 진행 순서와 부서별 역할을 정리합니다.",
+    "회의록을 정리하고 정리 완료를 누를 수 있습니다."
+  ],
+  "screens": {
+    "EVT-00A": {
+      "ready": true,
+      "missing": []
+    },
+    "EVT-01": {
+      "ready": false,
+      "missing": [
+        "event.staffLeaderCandidates",
+        "event.staffSetupPreview"
+      ]
+    },
+    "EVT-02": {
+      "ready": false,
+      "missing": [
+        "event.checklist",
+        "event.overviewBriefing",
+        "event.overviewHighlights",
+        "event.participantStats",
+        "event.recentChanges",
+        "event.recruitSettings"
+      ]
+    },
+    "EVT-02B": {
+      "ready": true,
+      "missing": []
+    },
+    "EVT-02C": {
+      "ready": false,
+      "missing": [
+        "event.endPermission"
+      ]
+    },
+    "EVT-02D": {
+      "ready": false,
+      "missing": [
+        "event.recentChanges",
+        "event.wrapUpBanner",
+        "event.wrapUpCounts",
+        "event.wrapUpRemaining"
+      ]
+    },
+    "EVT-02E": {
+      "ready": false,
+      "missing": [
+        "event.completeConfirm"
+      ]
+    },
+    "EVT-03A": {
+      "ready": false,
+      "missing": [
+        "event.staffDepartments",
+        "event.staffLeaders"
+      ]
+    },
+    "EVT-03B": {
+      "ready": false,
+      "missing": [
+        "event.staffDepartments",
+        "event.staffDeptLeaderCandidates",
+        "event.staffLeaderCandidates",
+        "event.staffLeaders",
+        "event.staffMemberCandidates",
+        "event.staffUnassignedMembers"
+      ]
+    },
+    "EVT-04": {
+      "ready": false,
+      "missing": [
+        "event.participantAffiliations",
+        "event.participantApplyStatus",
+        "event.participantAttendStatus",
+        "event.participantPaging",
+        "event.participantPayStatus",
+        "event.participants"
+      ]
+    },
+    "EVT-04B": {
+      "ready": true,
+      "missing": []
+    },
+    "EVT-05": {
+      "ready": false,
+      "missing": [
+        "event.survey",
+        "event.surveyActivation",
+        "event.surveyActivationConditions",
+        "event.surveyQuestions",
+        "event.surveySettingsDraft"
+      ]
+    },
+    "EVT-05B": {
+      "ready": false,
+      "missing": [
+        "event.survey",
+        "event.surveyReplaceImpact"
+      ]
+    },
+    "EVT-DOC-01": {
+      "ready": true,
+      "missing": []
+    },
+    "EVT-FIN-01": {
+      "ready": false,
+      "missing": [
+        "event.financeAlerts",
+        "event.financeBoard",
+        "event.financeSummary"
+      ]
+    },
+    "EVT-MEET-01": {
+      "ready": false,
+      "missing": [
+        "event.meetingCounts",
+        "event.meetings"
+      ]
+    },
+    "EVT-SCHED-01": {
+      "ready": false,
+      "missing": [
+        "event.schedule"
+      ]
+    },
+    "EVT-TASK-01": {
+      "ready": true,
+      "missing": []
+    },
+    "EVT-TASK-02": {
+      "ready": true,
+      "missing": []
+    },
+    "EXT-01A": {
+      "ready": true,
+      "missing": []
+    },
+    "EXT-01B": {
+      "ready": true,
+      "missing": []
+    },
+    "EXT-02A": {
+      "ready": true,
+      "missing": []
+    },
+    "EXT-02B": {
+      "ready": true,
+      "missing": []
+    },
+    "EXT-02C": {
+      "ready": true,
+      "missing": []
+    },
+    "FIN-00": {
+      "ready": false,
+      "missing": [
+        "finance.orgBreakdown",
+        "finance.orgOverview",
+        "finance.proofSummary",
+        "finance.recentExpenses"
+      ]
+    },
+    "FIN-00B": {
+      "ready": false,
+      "missing": [
+        "finance.orgOverview"
+      ]
+    },
+    "FIN-EVID-01": {
+      "ready": false,
+      "missing": [
+        "finance.paymentEvidenceSummary",
+        "finance.paymentEvidences"
+      ]
+    },
+    "FIN-LEDGER-01": {
+      "ready": false,
+      "missing": [
+        "finance.ledger",
+        "finance.ledgerEvents",
+        "finance.ledgerMonths",
+        "finance.ledgerScope",
+        "finance.ledgerSummary",
+        "finance.orgBudgetItems"
+      ]
+    },
+    "FIN-PROC-01": {
+      "ready": false,
+      "missing": [
+        "finance.purchaseOrderSummary",
+        "finance.purchaseOrders"
+      ]
+    },
+    "FIN-REQ-01": {
+      "ready": false,
+      "missing": [
+        "finance.budgetItems",
+        "finance.itemCategories",
+        "finance.purchaseRequestDraft",
+        "finance.purchaseTypes",
+        "finance.requestPriorities"
+      ]
+    },
+    "FIN-REQ-02": {
+      "ready": false,
+      "missing": [
+        "finance.purchaseRequestDetail",
+        "finance.purchaseRequestHistory",
+        "finance.purchaseRequestItems"
+      ]
+    },
+    "FIN-REV-01": {
+      "ready": false,
+      "missing": [
+        "finance.reviewItems",
+        "finance.reviewSummary"
+      ]
+    },
+    "FIN-SUP-01": {
+      "ready": false,
+      "missing": [
+        "finance.purchaseRequestDetail",
+        "finance.supplementAttachments",
+        "finance.supplementInputFields",
+        "finance.supplementItems",
+        "finance.supplementRequest"
+      ]
+    },
+    "HOME-01K": {
+      "ready": false,
+      "missing": [
+        "home.briefing",
+        "home.briefingNotices",
+        "home.eventCounts",
+        "home.events",
+        "home.financeSummary",
+        "home.orgAlerts",
+        "home.schedules"
+      ]
+    },
+    "INV-01": {
+      "ready": true,
+      "missing": []
+    },
+    "MSG-01": {
+      "ready": false,
+      "missing": [
+        "message.rooms"
+      ]
+    },
+    "MSG-02": {
+      "ready": false,
+      "missing": [
+        "message.roomCategories"
+      ]
+    },
+    "MSG-03": {
+      "ready": false,
+      "missing": [
+        "message.conversation"
+      ]
+    },
+    "MY-01": {
+      "ready": true,
+      "missing": []
+    },
+    "MY-REQ-01": {
+      "ready": false,
+      "missing": [
+        "event.myPurchaseRequestSummary",
+        "event.myPurchaseRequests"
+      ]
+    },
+    "ONB-01": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-00": {
+      "ready": false,
+      "missing": [
+        "ops.intro",
+        "ops.spaceStats"
+      ]
+    },
+    "OPS-CAL-01": {
+      "ready": false,
+      "missing": [
+        "ops.calendarDays",
+        "ops.calendarMonth",
+        "ops.calendarWeek",
+        "ops.calendarWeekRange"
+      ]
+    },
+    "OPS-MEET-01A": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-MEET-02": {
+      "ready": false,
+      "missing": [
+        "meeting.agendaDurations",
+        "meeting.modes"
+      ]
+    },
+    "OPS-MEET-03A": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-MEET-03B": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-MEET-03C": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-MEET-04B": {
+      "ready": false,
+      "missing": [
+        "meeting.hostOwner",
+        "meeting.permissionNotice"
+      ]
+    },
+    "OPS-MEET-05A": {
+      "ready": false,
+      "missing": [
+        "meeting.followUps"
+      ]
+    },
+    "OPS-MEET-05B": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-MEET-06A": {
+      "ready": false,
+      "missing": [
+        "meeting.minutes",
+        "meeting.minutesStatus"
+      ]
+    },
+    "OPS-MEET-06B": {
+      "ready": false,
+      "missing": [
+        "meeting.agendaPicker",
+        "meeting.followUps",
+        "meeting.minutes",
+        "meeting.minutesProgress"
+      ]
+    },
+    "OPS-MEET-07": {
+      "ready": false,
+      "missing": [
+        "meeting.followUps",
+        "meeting.minutes"
+      ]
+    },
+    "OPS-MEET-08": {
+      "ready": false,
+      "missing": [
+        "meeting.myFollowUps"
+      ]
+    },
+    "OPS-MEET-09": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-MEET-D01": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-MEET-D02": {
+      "ready": true,
+      "missing": []
+    },
+    "OPS-MEET-D03": {
+      "ready": false,
+      "missing": [
+        "meeting.hostGrantConfirm"
+      ]
+    },
+    "ORG-00": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-01": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-03A": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-03B": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-03C": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-04": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-04B": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-07A": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-07B": {
+      "ready": true,
+      "missing": []
+    },
+    "ORG-07C": {
+      "ready": true,
+      "missing": []
+    },
+    "REC-01": {
+      "ready": false,
+      "missing": [
+        "record.completedEventAlert",
+        "record.completedEvents"
+      ]
+    },
+    "REC-02": {
+      "ready": false,
+      "missing": [
+        "record.archive",
+        "record.archiveChecklist",
+        "record.archiveDetail",
+        "record.archiveEvidence",
+        "record.archiveHandover",
+        "record.archiveRetro",
+        "record.archiveSections",
+        "record.archiveTimeline"
+      ]
+    },
+    "REC-02A": {
+      "ready": false,
+      "missing": [
+        "record.archive",
+        "record.archiveAutoFilled",
+        "record.archiveDraft",
+        "record.archiveGate",
+        "record.archiveGateConditions",
+        "record.archiveReview",
+        "record.archiveReviewers",
+        "record.archiveSections"
+      ]
+    },
+    "SIGN-IN": {
+      "ready": true,
+      "missing": []
+    },
+    "TASK-01": {
+      "ready": true,
+      "missing": []
+    }
+  }
+}

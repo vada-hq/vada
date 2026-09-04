@@ -94,3 +94,8 @@ jobs:
         working-directory: apps/vada-web
       - name: 시나리오 검사
         run: npm run e2e
+      # **나가는 묶음을 사람이 여는 그대로 연다.** 위의 시나리오 검사는 개발용
+      # 응답으로 만든 묶음을 보므로, 실서비스로 나가는 것은 여기서만 열린다 —
+      # 2026-09-05에 사람이 배포된 화면에서 남의 값을 보고서야 그 구멍을 알았다.
+      - name: 출하 카나리
+        run: npm run canary

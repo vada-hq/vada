@@ -10,8 +10,9 @@
     "design": "node apps/vada-web/scripts/design-expect.mjs",
     "e2e": "node scripts/run-e2e.mjs",
     "build": "npm --prefix apps/vada-web run build && node scripts/no-fixtures-in-ship.mjs",
-    "check": "npm run test && npm run validate && npm run e2e",
+    "check": "npm run test && npm run validate && npm run e2e && npm run canary",
     "check:fast": "npm run test && npm run validate",
-    "e2e:dev": "npm --prefix apps/vada-web run e2e"
+    "e2e:dev": "npm --prefix apps/vada-web run e2e",
+    "canary": "node scripts/run-canary.mjs"
   }
 }
