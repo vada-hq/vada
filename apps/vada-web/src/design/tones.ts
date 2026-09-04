@@ -230,11 +230,16 @@ export const NEUTRAL_VALUE = 'text-gray-900'
  * design의 사실이고, 값과 색을 잇는 일은 여기 한 곳에서 한다.
  *
  * 안 고른 것은 판정과 무관하게 회색이다: 아직 그것이 아니기 때문이다.
+ *
+ * **열쇠는 그려지는 말이 아니라 저장되는 값이다.** 한동안 '승인'·'보완'을 열쇠로
+ * 삼았는데, 그것은 명세의 선택지 값이 그려지는 말 그대로였기 때문이다 — 값을
+ * 기계의 것으로 바로잡자 이 표가 통째로 빗나갔고 판정 색이 파랑으로 떨어졌다.
+ * design 대조가 열한 곳을 짚어 그것을 잡았다(2026-09-04).
  */
 export const VERDICT_CHOICE: Record<string, string> = {
-  승인: 'bg-green-600 border-green-600 text-white',
-  보완: 'bg-yellow-500 border-yellow-500 text-white',
-  반려: 'bg-red-600 border-red-600 text-white',
+  approved: 'bg-green-600 border-green-600 text-white',
+  supplement: 'bg-yellow-500 border-yellow-500 text-white',
+  rejected: 'bg-red-600 border-red-600 text-white',
 }
 
 /** 값이 분류일 뿐 상태가 아닌 딱지(FIN-REV-01의 '일반 구매'). */

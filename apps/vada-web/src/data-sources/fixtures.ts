@@ -2328,7 +2328,7 @@ const REVIEW_ITEMS: Record<string, DataRow[]> = {
   'PR-2026-0031': [
     {
       id: 'PRI-01',
-      result: '승인',
+      result: 'approved',
       name: '박스테이프',
       categoryNote: '운영 물품 · 행사 운영비',
       purchaseType: '일반 구매',
@@ -2338,7 +2338,7 @@ const REVIEW_ITEMS: Record<string, DataRow[]> = {
     },
     {
       id: 'PRI-02',
-      result: '승인',
+      result: 'approved',
       name: '생수 500ml',
       categoryNote: '식음료 · 식비',
       purchaseType: '일반 구매',
@@ -2348,7 +2348,7 @@ const REVIEW_ITEMS: Record<string, DataRow[]> = {
     },
     {
       id: 'PRI-03',
-      result: '보완',
+      result: 'supplement',
       name: '이름표 용지',
       categoryNote: '운영 물품 · 행사 운영비',
       purchaseType: '일반 구매',
@@ -2358,7 +2358,7 @@ const REVIEW_ITEMS: Record<string, DataRow[]> = {
     },
     {
       id: 'PRI-04',
-      result: '승인',
+      result: 'approved',
       name: '유성 마커',
       categoryNote: '운영 물품 · 행사 운영비',
       purchaseType: '일반 구매',

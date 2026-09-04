@@ -618,22 +618,22 @@
     {
       "key": "finance.reviewResults",
       "type": "static",
-      "description": "품목 하나에 대한 재정부의 판정. 값이 곧 사람이 읽는 말이다 — 이 셋은 조직의 절차라 늘지 않는다(늘면 디자인이 먼저 바뀐다).",
+      "description": "품목 하나에 대한 재정부의 판정. 값이 곧 사람이 읽는 말이다 — 이 셋은 조직의 절차라 늘지 않는다(늘면 디자인이 먼저 바뀐다).\n\n**값은 글이 아니다.** 셋의 값이 한동안 그려지는 말 그대로였는데(승인·보완·반려), 그 판정은 표에 담기는 것이라 말을 다듬는 순간 이미 내려진 판정들이 옛 말을 든 채 굳는다. 행사 진행 단계가 명세와 표에서 서로 다른 글자였던 것과 같은 종류의 함정이다.",
       "authorize": {
         "area": "member"
       },
       "params": [],
       "options": [
         {
-          "value": "승인",
+          "value": "approved",
           "label": "승인"
         },
         {
-          "value": "보완",
+          "value": "supplement",
           "label": "보완"
         },
         {
-          "value": "반려",
+          "value": "rejected",
           "label": "반려"
         }
       ]

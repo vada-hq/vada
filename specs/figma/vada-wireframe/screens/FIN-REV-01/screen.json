@@ -313,7 +313,7 @@
         "labelWhenAnyItemIs": {
           "listFieldKey": "reviews",
           "fieldKey": "result",
-          "value": "보완",
+          "value": "supplement",
           "label": "보완 요청 발송"
         },
         "emphasis": "primary",
