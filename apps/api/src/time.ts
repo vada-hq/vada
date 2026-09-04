@@ -58,6 +58,20 @@ export function clock(when: Date): string {
   return `${it.hour}:${it.minute}`
 }
 
+/**
+ * 그 시간대에서 본 **요일**. 말도 시간대도 `Intl`만 안다.
+ *
+ * 여기 둔 까닭은 위의 것들과 같다 — 시간대 이름이 이 파일 밖으로 나가면 두 벌이
+ * 되고, 두 벌은 갈린다.
+ */
+const weekdays = new Intl.DateTimeFormat('ko-KR', { timeZone: ZONE, weekday: 'short' })
+
+/** `07.22 (수) 18:00` — 회의 묶음이 가장 가까운 회의를 알릴 때(OPS-MEET-01A). */
+export function weekdayStamp(when: Date): string {
+  const it = at(when)
+  return `${it.month}.${it.day} (${weekdays.format(when)}) ${it.hour}:${it.minute}`
+}
+
 /** `2026. 08. 20` — 날짜만. */
 export function day(when: Date): string {
   const it = at(when)
