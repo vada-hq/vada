@@ -47,6 +47,7 @@ function empty(): void {
 export function useServer(next: Server | null): () => void {
   const before = server
   server = next
+  who = ''
   empty()
   return () => {
     server = before
@@ -103,7 +104,44 @@ function slotOf(call: SourceCall): string {
   const parts = Object.keys(call.params)
     .sort()
     .map((name) => `${name}=${call.params[name]}`)
-  return parts.length === 0 ? call.key : `${call.key}?${parts.join('&')}`
+  const named = parts.length === 0 ? call.key : `${call.key}?${parts.join('&')}`
+  // **누가 보고 있는지가 칸 이름에 든다.** 아래를 보라.
+  return `${who}|${named}`
+}
+
+/**
+ * 지금 보고 있는 사람.
+ *
+ * **칸 이름에 신원이 없었다.** 출처와 인자만으로 담아 두었으니, 신원이 바뀌어도
+ * 앞사람의 값이 그대로 읽혔다 — 조직을 바꾸면 남의 학생회 것이 화면에 남는다.
+ *
+ * 지금은 일어날 수 없다. 나가는 자리도 조직을 바꾸는 자리도 아직 명세에 없어서
+ * 신원이 바뀔 길이 없고, 들어오는 길은 구글을 다녀오는 통째 이동이라 그릇이
+ * 새로 선다. **그래서 이것은 고침이 아니라 자물쇠다** — 그 화면이 생기는 날
+ * 조용히 새지 않게.
+ *
+ * 교차검토가 짚었다(2026-09-05).
+ */
+let who = ''
+
+/**
+ * 보고 있는 사람이 바뀌었다고 알린다. **바뀌면 담아 둔 것을 통째로 놓는다.**
+ *
+ * 이름을 지어내지 않는다 — 서버가 답한 학생회의 id를 그대로 쓴다. 짐작한 이름은
+ * 두 사람이 같은 이름을 갖는 날 조용히 섞인다.
+ *
+ * **아직 아무도 부르지 않는다.** 셸이 서버에서 받는 것은 학생회의 *이름*뿐이고
+ * (`shell.organization`의 조각이 `name` 하나다) 사람 쪽도 `name`·`role`뿐이라,
+ * 화면에는 신원이라 부를 값이 없다. 이름으로 대신하면 같은 이름의 학생회가
+ * 생기는 날 조용히 섞이므로 그러지 않는다.
+ *
+ * 그래서 지금은 **자물쇠만 있고 열쇠가 없다.** 조직을 바꾸는 화면이나 나가는
+ * 자리를 만들 때, 셸이 id를 함께 받게 하고 여기를 부르면 된다.
+ */
+export function servingAs(identity: string): void {
+  if (identity === who) return
+  who = identity
+  empty()
 }
 
 /**

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
+import { readObjectSource } from './catalog'
 import { fetchOptions } from '../option-sources/catalog'
 import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json'
 import { NotServedYet, runMutation } from '../spec/mutations'
@@ -8,6 +9,7 @@ import { isServedMutation } from './served'
 import {
   NotBuiltYet,
   SourcesFailed,
+  servingAs,
   currentServer,
   loadSources,
   servingFromServer,
@@ -233,5 +235,50 @@ describe('아직 안 붙은 쓰기는 성공한 척하지 않는다', () => {
   // 화면 여든이 통째로 안 그려진다.
   it('서버를 안 켰으면 대역이 그대로 답한다', async () => {
     await expect(runMutation('meeting.create', {})).resolves.toEqual({})
+  })
+})
+
+describe('보는 사람이 바뀌면 담아 둔 것을 놓는다', () => {
+  // **칸 이름에 신원이 없었다.** 출처와 인자만으로 담았으니 신원이 바뀌어도
+  // 앞사람의 값이 그대로 읽혔다 — 조직을 바꾸면 남의 학생회 것이 화면에 남는다.
+  //
+  // 지금은 일어날 수 없다(나가는 자리도 조직을 바꾸는 자리도 명세에 없다).
+  // **그래서 이것은 고침이 아니라 자물쇠다** — 그 화면이 생기는 날 조용히 새지
+  // 않게. 교차검토가 짚었다(2026-09-05).
+  it('앞사람의 값이 다음 사람에게 안 남는다', async () => {
+    let answers = 0
+    back = useServer({
+      baseUrl: '',
+      fetch: async () => {
+        answers += 1
+        return Response.json({ name: `학생회 ${answers}` })
+      },
+    })
+
+    servingAs('ORG-A')
+    await loadSources([{ key: 'shell.organization', params: {} }])
+    const first = readObjectSource('shell.organization')
+
+    servingAs('ORG-B')
+    // **다시 물어야 한다.** 안 물으면 앞사람의 답이 그대로 온다.
+    await loadSources([{ key: 'shell.organization', params: {} }])
+    expect(readObjectSource('shell.organization')).not.toEqual(first)
+    expect(answers).toBe(2)
+  })
+
+  it('같은 사람이면 다시 묻지 않는다', async () => {
+    let answers = 0
+    back = useServer({
+      baseUrl: '',
+      fetch: async () => {
+        answers += 1
+        return Response.json({ name: `학생회 ${answers}` })
+      },
+    })
+    servingAs('ORG-A')
+    await loadSources([{ key: 'shell.organization', params: {} }])
+    servingAs('ORG-A')
+    await loadSources([{ key: 'shell.organization', params: {} }])
+    expect(answers).toBe(1)
   })
 })
