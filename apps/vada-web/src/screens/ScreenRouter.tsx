@@ -175,7 +175,12 @@ export function ScreenRouter(props: ScreenRouterProps) {
   // 살아서 위의 미리 받기가 보지 못한다 — 그 부름은 그릇이 읽힐 때 받아 오고,
   // 그동안 여기가 카탈로그의 글을 그린다.
   return (
-    <SourceGate screenId={props.screenId} sourceKeys={spec === undefined ? [] : dataSourceKeysOf(spec)}>
+    <SourceGate
+      screenId={props.screenId}
+      sourceKeys={spec === undefined ? [] : dataSourceKeysOf(spec)}
+      meta={spec?.meta}
+      onNavigate={props.onNavigate}
+    >
       <ScreenBody {...props} />
     </SourceGate>
   )

@@ -100,11 +100,15 @@ for (const { id, params = '', what, shows } of SCREENS) {
         `${id}는 ${state.missing.length}자리를 안 지었는데 그 사실을 말하지 않는다 ` +
           `(모자란 것: ${state.missing.join(' · ')})`,
       ).toContain('아직 준비 중')
+      // **갇히지 않는다.** 한동안 준비 중이 화면을 통째로 덮어 왼쪽 메뉴까지
+      // 사라졌다 — 사람이 그 화면에서 나갈 단추가 하나도 없었다. 마흔 장이
+      // 그 상태였고 이 카나리를 만들다 드러났다(2026-09-05).
+      expect(drawn, `${id}에서 나갈 길이 없다 — 셸이 사라졌다`).toContain(MINE.org)
     }
 
     // ── 내 것
     if (shows !== undefined) {
-      expect(drawn, `내 것이 안 보인다: ${shows}`).toContain(shows)
+      expect(drawn, `내 것이 안 보인다: ${shows}. 그려진 것: ${drawn.slice(0, 220)}`).toContain(shows)
     }
   })
 }
