@@ -4,6 +4,7 @@ import { createApp } from '../../../api/src/app.ts'
 import { freshDb } from '../../../api/src/db/testing.ts'
 import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
 import { inMemoryAttempts } from '../../../api/src/idempotency.ts'
+import { meetingLookups } from '../../../api/src/meetings/lookups.ts'
 import {
   departments,
   events,
@@ -27,15 +28,19 @@ import { loadSources, useServer } from './server'
 // 아무도 재 보지 않았다.** 특히 두 자리가 그랬다: 묶음을 짓는 일과 '누가 보느냐'로
 // 값이 갈리는 일 — 둘 다 가짜에서는 그냥 적어 두면 되는 것이다.
 //
-// 여기서 재는 일곱:
+// 여기서 재는 열넷:
 //
 // | 읽기 | 쓰기 |
 // | --- | --- |
 // | `meeting.groups`(OPS-MEET-01A) | `meeting.create`(OPS-MEET-02) |
 // | `meeting.attention`(OPS-MEET-01A) | `meeting.saveDraft`(OPS-MEET-02) |
-// | `meeting.draft`(OPS-MEET-02) | |
-// | `meeting.memberCandidates`(OPS-MEET-02) | |
-// | `event.linkable`(OPS-MEET-02의 고르는 목록) | |
+// | `meeting.draft`(OPS-MEET-02) | `meeting.start`(D01) |
+// | `meeting.memberCandidates`(OPS-MEET-02) | `meeting.end`(D02) |
+// | `event.linkable`(OPS-MEET-02의 고르는 목록) | `meeting.completeAgenda`(05B) |
+// | `meeting.detail`(03A~03C · 05A) | `meeting.startNextAgenda`(05B) |
+// | `meeting.agendas`(03A · 05A) | |
+// | `meeting.participants`(03A · 05A) | |
+// | `meeting.startConfirm`(D01) · `meeting.endConfirm`(D02) | |
 //
 // **쓰기는 화면이 누르는 그 길로 보낸다**(`runMutation`). 그리고 화면이 실제로
 // 보내는 꼴로 보낸다 — 초안은 배열이 아니라 줄 이름을 열쇠에 박은 평평한 맵이다
@@ -138,20 +143,74 @@ beforeAll(async () => {
       scheduledAt: new Date('2026-08-18T10:00:00+09:00'),
       creatorMemberId: 'M-01',
     },
+    // 진행 중인 회의(OPS-MEET-05A). 시작한 지 27분이 지났다.
+    {
+      id: 'MTG-C',
+      orgId: 'ORG-01',
+      title: '9월 안전 점검 진행 회의',
+      status: 'inProgress',
+      minutesStatus: 'drafting',
+      purpose: '점검 결과를 함께 확인합니다.',
+      scheduledAt: new Date('2026-07-20T09:30:00+09:00'),
+      startedAt: new Date('2026-07-20T09:33:00+09:00'),
+      place: '학생회관 3층 회의실',
+      creatorMemberId: 'M-01',
+    },
+    // 시작을 기다리는 회의(OPS-MEET-D01). 예정까지 7일 남았다.
+    {
+      id: 'MTG-D',
+      orgId: 'ORG-01',
+      title: '9월 예산 심의 준비회의',
+      status: 'scheduled',
+      scheduledAt: new Date('2026-07-27T15:00:00+09:00'),
+      creatorMemberId: 'M-01',
+    },
+    // 안건을 넘기고 끝낼 회의(OPS-MEET-05B · D02).
+    {
+      id: 'MTG-E',
+      orgId: 'ORG-01',
+      title: '9월 회계 마감 회의',
+      status: 'inProgress',
+      startedAt: new Date('2026-07-20T09:00:00+09:00'),
+      creatorMemberId: 'M-01',
+    },
     // 옆 학생회의 회의. 이 목록에 나오면 안 된다.
     { id: 'MTG-99', orgId: 'ORG-02', title: '남의 회의', creatorMemberId: 'M-99' },
   ])
   await fresh.db.insert(meetingParticipants).values([
     { id: 'MP-01', orgId: 'ORG-01', meetingId: 'MTG-A', memberId: 'M-01', isHost: true },
     { id: 'MP-02', orgId: 'ORG-01', meetingId: 'MTG-A', memberId: 'M-02' },
+    // 진행 중인 회의에는 둘 다 들어와 있다 — '2명 참가 중'이 여기서 나온다.
+    { id: 'MP-03', orgId: 'ORG-01', meetingId: 'MTG-C', memberId: 'M-01', attendance: 'present' },
+    { id: 'MP-04', orgId: 'ORG-01', meetingId: 'MTG-C', memberId: 'M-02', attendance: 'present' },
+    { id: 'MP-05', orgId: 'ORG-01', meetingId: 'MTG-E', memberId: 'M-01', attendance: 'present' },
+    { id: 'MP-06', orgId: 'ORG-01', meetingId: 'MTG-E', memberId: 'M-02' },
   ])
-  await fresh.db.insert(meetingAgendas).values({
-    id: 'AG-A-1',
-    orgId: 'ORG-01',
-    meetingId: 'MTG-A',
-    sortOrder: 0,
-    title: '9월 예산 집행 계획',
-  })
+  await fresh.db.insert(meetingAgendas).values([
+    { id: 'AG-A-1', orgId: 'ORG-01', meetingId: 'MTG-A', sortOrder: 0, title: '9월 예산 집행 계획' },
+    // 진행 중인 회의의 안건 둘: 하나는 마쳤고 하나는 지금 하고 있다.
+    {
+      id: 'AG-C-1',
+      orgId: 'ORG-01',
+      meetingId: 'MTG-C',
+      sortOrder: 0,
+      title: '점검 결과 공유',
+      plannedMinutes: 20,
+      status: 'done',
+      decisionText: '케이블 커버를 설치합니다.',
+    },
+    {
+      id: 'AG-C-2',
+      orgId: 'ORG-01',
+      meetingId: 'MTG-C',
+      sortOrder: 1,
+      title: '비상 연락망 확정',
+      plannedMinutes: 15,
+      status: 'current',
+    },
+    { id: 'AG-E-1', orgId: 'ORG-01', meetingId: 'MTG-E', sortOrder: 0, title: '집행 잔액 확인', status: 'current' },
+    { id: 'AG-E-2', orgId: 'ORG-01', meetingId: 'MTG-E', sortOrder: 1, title: '다음 달 예산 배정' },
+  ])
 
   app = createApp({
     audit: { async write() {} },
@@ -169,8 +228,9 @@ beforeAll(async () => {
     lookups: {
       isEventStaff: async () => false,
       isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
+      // **회의 권한은 표가 답한다.** '늘 거짓'으로 두면 시작·종료가 아예 안 열리고,
+      // '늘 참'으로 두면 진행 권한이 없는 사람이 보는 화면을 아무도 못 본다.
+      ...meetingLookups(fresh.db as never),
     },
     signIn: {
       open: () => ({ google: true, kakao: false }),
@@ -340,5 +400,150 @@ describe('회의를 만들고 임시 저장한다', () => {
     expect((draft.agendaItems as Array<Record<string, unknown>>)[0]!.agendaTitle).toBe(
       '준비물 최종 확인',
     )
+  })
+})
+
+describe('회의 상세가 저장소에서 온다', () => {
+  // **화면을 그려서 잰다.** 그릇에 손으로 값을 먹이면 거르개가 달린 화면이 서버에
+  // 붙는 순간 터지는 것을 못 본다.
+  it('OPS-MEET-03A가 예정 회의 한 건을 그린다', async () => {
+    render(
+      <ScreenRouter
+        screenId="OPS-MEET-03A"
+        screenParams={{ meetingId: 'MTG-A' }}
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={() => {}}
+      />,
+    )
+    await waitFor(() =>
+      expect(screen.getByText('9월 운영 계획을 함께 확인합니다.')).toBeInTheDocument(),
+    )
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).toContain('2026.09.02 18:00')
+    expect(drawn).toContain('학생회실 (A204)')
+    // **세는 말은 서버가 붙인다.** 만든 사람은 기본 진행 권한자라 하나로 센다.
+    expect(drawn).toContain('초대 2명 · 진행 권한 1명')
+    expect(drawn).toContain('총 1개')
+    // 안건과 참가자도 같은 서버에서 온다.
+    expect(drawn).toContain('9월 예산 집행 계획')
+    expect(drawn).toContain('박해랑')
+    // 개발용 응답의 회의가 아니라는 증거다.
+    expect(drawn).not.toContain('체육대회 안전 관리 최종 회의')
+  })
+
+  // **띠는 상태와 보는 사람 둘 다에 매인다.** 시작할 수 있는 사람에게만 오는 말이다.
+  it('시작할 수 있는 사람에게 며칠 남았는지를 알린다', async () => {
+    const params = { meetingId: 'MTG-A' }
+    await loadSources([{ key: 'meeting.detail', params }])
+    const row = readObjectSource('meeting.detail', params)
+    expect(row.viewerTitle).toBe('회의 생성자 화면')
+    expect(row.stateBannerTitle).toBe('시작 전 확인')
+    expect(row.stateBannerNote).toBe(
+      '현재 예정 시각까지 44일 남았습니다. 안건과 참가자를 확인한 뒤 회의를 시작하세요.',
+    )
+    // **판정이 막는 검사와 같은 곳에서 나온다.** 만든 사람이므로 넷 다 참이다.
+    expect(row.canStart).toBe(true)
+    expect(row.canEdit).toBe(true)
+    expect(row.canEnd).toBe(false)
+  })
+
+  it('OPS-MEET-05A가 진행 중인 회의를 그린다', async () => {
+    render(
+      <ScreenRouter
+        screenId="OPS-MEET-05A"
+        screenParams={{ meetingId: 'MTG-C' }}
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={() => {}}
+      />,
+    )
+    await waitFor(() => expect(screen.getByText('진행 27분')).toBeInTheDocument())
+    const drawn = document.body.textContent ?? ''
+    // 가만히 있어도 자라는 값이라 서버가 잰다.
+    expect(drawn).toContain('09:33 시작')
+    expect(drawn).toContain('2명 참가 중')
+    // 지금 하고 있는 안건이 무엇인지도 데이터가 안다(isCurrent).
+    expect(drawn).toContain('비상 연락망 확정')
+    expect(drawn).toContain('진행 중')
+  })
+
+  it('안건이 단계마다 다른 것을 갖는다', async () => {
+    const params = { meetingId: 'MTG-C' }
+    await loadSources([{ key: 'meeting.agendas', params }])
+    const rows = readListSource('meeting.agendas', params)
+    expect(rows.map((row) => row.orderLabel)).toEqual(['안건 1', '안건 2'])
+    expect(rows[0]!.status).toBe('논의 완료')
+    expect(rows[1]!.isCurrent).toBe(true)
+    // 지금 하고 있는 안건의 소요만 '예상'이 붙는다.
+    expect(rows[1]!.durationNote).toBe('예상 15분')
+  })
+
+  it('참가 현황이 같은 사람들에서 온다', async () => {
+    const params = { meetingId: 'MTG-C' }
+    await loadSources([{ key: 'meeting.participants', params }])
+    const rows = readListSource('meeting.participants', params)
+    expect(rows.map((row) => row.name)).toEqual(['김바다', '박해랑'])
+    expect(rows[0]!.chips).toEqual([
+      { label: '회의 생성자', tone: 'gray' },
+      { label: '진행 권한', tone: 'blue' },
+    ])
+    expect(rows[1]!.attendanceLabel).toBe('참가')
+    expect(rows[1]!.attendanceTone).toBe('green')
+  })
+})
+
+describe('회의를 시작하고 끝내고 안건을 넘긴다', () => {
+  const detailOf = async (meetingId: string) => {
+    const params = { meetingId }
+    await loadSources([{ key: 'meeting.detail', params }])
+    return readObjectSource('meeting.detail', params)
+  }
+
+  // **며칠 이른지는 서버만 안다.** D01이 그 한 줄을 그린다.
+  it('OPS-MEET-D01이 살펴 준 것을 받고 회의를 시작한다', async () => {
+    const params = { meetingId: 'MTG-D' }
+    await loadSources([{ key: 'meeting.startConfirm', params }])
+    expect(readObjectSource('meeting.startConfirm', params).warningNote).toBe(
+      '예정 시간보다 7일 이른 시각입니다. 잘못 시작한 것은 아닌지 확인해 주세요.',
+    )
+
+    // **화면이 누르는 그 길로 보낸다.** 서버를 직접 부르면 그 사이가 통째로 빠진다.
+    await runMutation('meeting.start', {}, { meetingId: 'MTG-D' })
+    const row = await detailOf('MTG-D')
+    expect(row.status).toBe('진행 중')
+    // 시작한 뒤에는 끝낼 수 있다. 판정이 단계를 함께 본다.
+    expect(row.canStart).toBe(false)
+    expect(row.canEnd).toBe(true)
+  })
+
+  // **조용히 넘어가지 않는다.** 남이 먼저 시작한 것을 아무도 모르게 된다.
+  it('이미 진행 중인 회의를 또 시작하면 막힌다', async () => {
+    await expect(runMutation('meeting.start', {}, { meetingId: 'MTG-D' })).rejects.toThrow(
+      '(409)',
+    )
+  })
+
+  it('OPS-MEET-05B가 이 안건을 마치고 다음 안건을 연다', async () => {
+    await runMutation('meeting.completeAgenda', {}, { meetingId: 'MTG-E' })
+    await runMutation('meeting.startNextAgenda', {}, { meetingId: 'MTG-E' })
+    const params = { meetingId: 'MTG-E' }
+    await loadSources([{ key: 'meeting.agendas', params }])
+    const rows = readListSource('meeting.agendas', params)
+    expect(rows.map((row) => row.status)).toEqual(['논의 완료', '진행 중'])
+    expect(rows[1]!.isCurrent).toBe(true)
+  })
+
+  // **막지는 않는다.** 미완료 안건이 남아도 종료 단추는 살아 있다.
+  it('OPS-MEET-D02가 남은 것을 알리고 회의를 끝낸다', async () => {
+    const params = { meetingId: 'MTG-E' }
+    await loadSources([{ key: 'meeting.endConfirm', params }])
+    expect(readObjectSource('meeting.endConfirm', params).warningNote).toBe(
+      '미완료 안건 0개 · 참석 1명 · 미참가 1명',
+    )
+
+    await runMutation('meeting.end', {}, { meetingId: 'MTG-E' })
+    // **'완료'가 아니라 '정리 중'이다.** 회의록을 확인한 뒤에 따로 정리 완료한다.
+    expect((await detailOf('MTG-E')).status).toBe('정리 중')
   })
 })

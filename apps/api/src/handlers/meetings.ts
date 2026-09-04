@@ -1,6 +1,14 @@
 import type { Context } from 'hono'
-import { canDo, orgOf, type Handlers } from '../deps.ts'
+import { canDo, orgOf, type Deps, type Handlers } from '../deps.ts'
 import { createMeeting, saveMeetingDraft } from '../meetings/create.ts'
+import {
+  endConfirm,
+  meetingAgendaList,
+  meetingDetail,
+  meetingPeople,
+  startConfirm,
+  type MeetingPowers,
+} from '../meetings/detail.ts'
 import {
   linkableEventOptions,
   meetingAttention,
@@ -9,6 +17,12 @@ import {
   memberCandidates,
   type MeetingViewer,
 } from '../meetings/meetings.ts'
+import {
+  completeCurrentAgenda,
+  endMeeting,
+  startMeeting,
+  startNextAgenda,
+} from '../meetings/run.ts'
 import { NotFound } from '../routes.ts'
 
 // 회의(OPS-MEET-*).
@@ -30,6 +44,32 @@ function memberOf(c: Context): MeetingViewer {
     throw new NotFound('학생회를 찾지 못했습니다')
   }
   return { memberId: membership.memberId }
+}
+
+/** 어느 회의의 것인가. 계약이 주소에 박아 둔 인자다. */
+function meetingIdOf(c: Context): string {
+  const meetingId = c.req.param('meetingId')
+  if (meetingId === undefined || meetingId === '') {
+    throw new NotFound('그 회의를 찾지 못했습니다')
+  }
+  c.set('auditSubject', { type: 'meeting', id: meetingId })
+  return meetingId
+}
+
+/**
+ * 이 사람이 이 회의에서 무엇을 할 수 있는가.
+ *
+ * **막는 검사를 그대로 부른다.** 화면에 내려보내는 판정과 요청을 막는 판정이 같은
+ * 함수에서 나와야 갈리지 않는다 — 갈리는 쪽은 늘 화면이다.
+ */
+async function powersOf(c: Context, d: Deps, meetingId: string): Promise<MeetingPowers> {
+  return {
+    canRun: await canDo(c, d, 'meeting.run', meetingId),
+    canOwn: await canDo(c, d, 'meeting.own', meetingId),
+    // 회의록을 누가 정리할 수 있는지 명세가 아직 말하지 않았다('unstated'). 지어내지
+    // 않고 그 자리의 판정을 그대로 묻는다 — 명세가 정해지면 여기도 함께 열린다.
+    canEditMinutes: await canDo(c, d, 'unstated', meetingId),
+  }
 }
 
 export const meetingHandlers: Handlers = {
@@ -85,4 +125,55 @@ export const meetingHandlers: Handlers = {
     c.set('auditSubject', { type: 'meeting', id: made.id })
     return made
   },
+
+  // ── 회의 상세 (OPS-MEET-03A~03C · 05A · 05B) ──────────────────────────
+  //
+  // **셋이 한 회의를 본다.** 상세·안건·참가자가 저마다 다른 자리지만 무엇을 그릴지는
+  // 회의의 단계와 보는 사람이 함께 정한다 — 그래서 셋 다 보낸 사람을 함께 넘긴다.
+  'meeting.detail': async (c, d) => {
+    const orgId = orgOf(c)
+    const meetingId = meetingIdOf(c)
+    return meetingDetail(
+      d.db,
+      orgId,
+      memberOf(c),
+      meetingId,
+      await powersOf(c, d, meetingId),
+      d.invite.now(),
+    )
+  },
+  'meeting.agendas': async (c, d) => meetingAgendaList(d.db, orgOf(c), meetingIdOf(c)),
+  // 줄 단추는 **진행 권한을 바꿀 수 있는 사람에게만** 온다. 04B가 그 화면이고,
+  // 판정은 그 동작을 막는 자리(meeting.own)와 같은 곳에서 나온다.
+  'meeting.participants': async (c, d) => {
+    const orgId = orgOf(c)
+    const meetingId = meetingIdOf(c)
+    return meetingPeople(
+      d.db,
+      orgId,
+      meetingId,
+      {
+        query: c.req.query('query'),
+        excludeHostOwner: c.req.query('excludeHostOwner') === 'true',
+      },
+      { canManageHostRole: await canDo(c, d, 'meeting.own', meetingId) },
+    )
+  },
+
+  // ── 시작·종료 확인 (OPS-MEET-D01 · D02) ───────────────────────────────
+  'meeting.startConfirm': async (c, d) =>
+    startConfirm(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
+  'meeting.endConfirm': async (c, d) => endConfirm(d.db, orgOf(c), meetingIdOf(c)),
+
+  // ── 회의를 진행한다 (OPS-MEET-D01 · D02 · 05B) ────────────────────────
+  //
+  // **넷 다 인자가 회의 하나뿐이다.** 어느 안건인지는 보내지 않는다 — '이 안건'은
+  // 지금 진행 중인 것이고 그것은 서버가 안다.
+  'meeting.start': async (c, d) =>
+    startMeeting(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
+  'meeting.end': async (c, d) => endMeeting(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
+  'meeting.completeAgenda': async (c, d) =>
+    completeCurrentAgenda(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
+  'meeting.startNextAgenda': async (c, d) =>
+    startNextAgenda(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
 }

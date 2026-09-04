@@ -38,7 +38,7 @@ export interface MeetingViewer {
  * 참가자에게 표시되지 않는다'고 적었다), 명세가 그 단계에 줄 이름도 갈 곳(detailKind)도
  * 주지 않았다 — 지어내지 않고 목록에서 뺀다.
  */
-const STATUS = {
+export const STATUS = {
   scheduled: {
     label: '예정',
     tone: 'blue',
@@ -61,15 +61,15 @@ const STATUS = {
   cancelled: { label: '취소', tone: 'red', detailKind: 'cancelled', actionLabel: '취소 내용 보기' },
 } as const
 
-type Listed = keyof typeof STATUS
+export type Listed = keyof typeof STATUS
 
 /** 목록에 그려지는 단계인가. 초안은 아니다. */
-function listed(status: string): status is Listed {
+export function listed(status: string): status is Listed {
   return status in STATUS
 }
 
 /** 회의록이 어디까지 왔는가. 표의 세 값 그대로다. */
-const MINUTES = {
+export const MINUTES = {
   notStarted: '작성 전',
   drafting: '작성 중',
   done: '정리 완료',
@@ -90,12 +90,12 @@ function minutesNote(status: Listed, minutes: keyof typeof MINUTES): string {
 }
 
 /** 정해지지 않은 것은 **그 사실을 말로** 준다. 빈 글을 주면 화면이 빈 자리를 그린다. */
-function orNote(value: string | null, note: string): string {
+export function orNote(value: string | null, note: string): string {
   return value === null || value.trim() === '' ? note : value
 }
 
 /** 적히지 않은 칸. 고치는 화면에는 **안내가 아니라 빈 자리**가 가야 한다. */
-function word(value: string | null): string | null {
+export function word(value: string | null): string | null {
   return value === null || value.trim() === '' ? null : value
 }
 
