@@ -1,9 +1,11 @@
 import type { Handlers } from '../deps.ts'
 import { eventHandlers } from './events.ts'
 import { joiningHandlers } from './joining.ts'
+import { meetingHandlers } from './meetings.ts'
 import { orgHandlers } from './org.ts'
 import { outsideHandlers } from './outside.ts'
 import { shellHandlers } from './shell.ts'
+import { taskHandlers } from './tasks.ts'
 
 /**
  * 계약이 든 자리에 놓는 답 전부.
@@ -20,6 +22,8 @@ export const HANDLERS: Handlers = {
   ...joiningHandlers,
   ...outsideHandlers,
   ...eventHandlers,
+  ...meetingHandlers,
+  ...taskHandlers,
 }
 
 /** 영역마다 따로. 겹치는 이름이 없는지 재는 검사가 이것을 쓴다. */
@@ -29,4 +33,6 @@ export const BY_AREA: Record<string, Handlers> = {
   joining: joiningHandlers,
   outside: outsideHandlers,
   events: eventHandlers,
+  meetings: meetingHandlers,
+  tasks: taskHandlers,
 }
