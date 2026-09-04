@@ -1,6 +1,11 @@
 import { findDataSource } from './catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json'
+import { events } from './served/events'
+import { joining } from './served/joining'
+import { org } from './served/org'
+import { outside } from './served/outside'
+import { shell } from './served/shell'
 
 /**
  * **진짜 서버에서 오는 출처.**
@@ -26,83 +31,18 @@ import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json
  * 그 줄이 지워진다. **비어 있으면 배포된 앱에서 진짜인 것은 로그인뿐이다.**
  * 검사가 이 수를 세어 보여 준다.
  */
-export const SERVED: readonly string[] = [
-  // **들어오는 자리(SIGN-IN).** 어느 길이 열려 있는가는 배포가 정한다 — 카카오 열쇠를
-  // 안 넣은 배포에서 카카오 단추를 그리면 눌러도 안 된다.
-  'auth.ways',
+/**
+ * 영역마다 따로 든다.
+ *
+ * **한 배열에 다 있는 동안은 흐름을 하나 붙일 때마다 같은 줄을 고쳐야 했다.** 둘을
+ * 나란히 붙이면 그 자리에서 부딪힌다 — 서버 쪽 `handlers/`를 가른 것과 같은 까닭이고
+ * 같은 가름이다.
+ *
+ * 영역을 더할 때 고치는 줄이 둘이다: 가져오는 줄과 여기 한 줄.
+ */
+const AREAS = [shell, org, joining, outside, events] as const
 
-  // **밖에서 오는 사람(EXT-01A · EXT-01B · EXT-02A · EXT-02B · EXT-02C).**
-  //
-  // 로그인이 없는 흐름이다. 참석 QR을 찍거나 설문 링크를 받은 학생이 여는 자리이고,
-  // **링크가 실어 온 토큰 하나가 유일한 벽이다** — 세션이 한 번도 없다.
-  //
-  // 고르는 목록이 그 학생회가 올린 명단에서 온다. 화면이 지어내면 명단에 없는 학과를
-  // 고른 사람이 생기고, 그 사람은 참가 자격 판정에서 걸린다.
-  'attendance.checkInForm',
-  'attendance.checkInResult',
-  'survey.applyForm',
-  'survey.applyResult',
-  'survey.linkState',
-  'survey.colleges',
-  'survey.departments',
-
-  // **학생 명단(ORG-07A · ORG-00).** 거르는 것도 세는 것도 서버가 한다 — 천 명짜리
-  // 명단을 화면이 들고 거르면 '몇 명인가'의 답이 화면마다 갈린다.
-  'org.departments',
-  'org.students',
-  'org.studentPaging',
-  'org.rosterScope',
-  'org.areaSummaries',
-  // 학생회비 명단을 올릴 때 고르는 학기(ORG-07C). **표가 아니라 운영 연도에서 온다** —
-  // 명세가 목록을 들 수 없다고 적어 둔 자리다.
-  'org.duesTerms',
-
-  // **조직 보기(ORG-03A · ORG-04 · ORG-04B · ORG-07A).** 같은 저장소를 보는 이웃들이
-  // 개발용 응답을 그리고 있었다 — 역할 표만 진짜였다. 서버는 이 자리들을 이미 답한다.
-  //
-  // 초대 코드가 특히 그렇다. 화면이 지어내면 **그 코드로는 아무도 못 들어온다.**
-  'org.chartTitle',
-  'org.executives',
-  'org.invite',
-  'org.roleAssignments',
-  'org.roleAssignmentCount',
-  'org.selectedRoleAssignment',
-  'org.unassignedHint',
-  'org.unassignedMembers',
-
-  // **셸이 읽는 둘.** 학생회 이름과 보는 사람은 화면의 요소가 아니라 셸의 것이고,
-  // 서버가 이미 답한다. 이 둘이 가짜인 동안은 로그인해도 남의 학생회 이름이 보인다.
-  'shell.organization',
-  'shell.viewer',
-
-  // **조직 보기(ORG-04).** 진짜 서버와 진짜 Postgres로 그려지는 것이 검사로
-  // 증명된 첫 화면이다(`end-to-end.server.test.tsx`).
-  'org.roleCounts',
-  'org.permissionMatrix',
-
-  // 인자를 넘겨 부르는 길이 열린 것을 재는 자리(M3).
-  'event.summary',
-
-  // **행사의 앞자락(EVT-00A · EVT-02 · EVT-02B · EVT-04B).** 서버는 이 넷을 이미
-  // 답하고 있었는데 화면은 개발용 응답을 그렸다 — 조직 보기에서 겪은 것과 같다.
-  // **자리를 만든 것과 그 자리가 쓰이는 것은 다른 일이다.**
-  'event.list',
-  'event.basics',
-  'event.basicsDraft',
-  'event.attendanceQr',
-
-  // **들어오기 흐름(ONB-01 · ORG-01 · ORG-02 · INV-00 · INV-01).** 학생회에 들어오는
-  // 길이 통째로 서버에서 온다 — 학교를 검색하고, 단과대와 학부를 좁히고, 초대 코드가
-  // 어느 학생회를 가리키는지 확인하는 데까지.
-  //
-  // 앞의 셋은 선택지 출처다. 그전까지 이 목록에는 데이터 출처만 있었는데, 그동안
-  // **고르는 목록은 전부 개발용 응답이었다** — 표가 진짜여도 고를 것이 가짜면
-  // 사람은 없는 학교를 고르고 저장할 때 터진다.
-  'education.schools',
-  'education.colleges',
-  'education.departments',
-  'org.invitedOrganization',
-]
+export const SERVED: readonly string[] = AREAS.flatMap((area) => area.reads)
 
 const served = new Set(SERVED)
 
@@ -147,29 +87,7 @@ export function unknownServedKeys(): string[] {
  * 목록에 없는 변이는 개발용 대역이 성공으로 처리한다 — 그것이 조용한 대체가 아닌
  * 까닭은 어느 것이 진짜인지 여기 적혀 있기 때문이다.
  */
-export const SERVED_MUTATIONS: readonly string[] = [
-  // **들어오기 흐름의 쓰기 둘.** 학생회를 만드는 것과, 초대 코드가 맞는지 묻는 것.
-  // 조직을 고치는 넷. 역할을 바꾸고 초대를 다시 만든다 — 되돌릴 수 없는 자리들이다.
-  'org.changeRole',
-  'org.regenerateInvite',
-  'org.regenerateInviteCode',
-  'org.regenerateInviteLink',
-  // 밖에서 오는 사람이 내는 둘. 참석은 QR이, 신청은 설문 링크가 자리를 정한다.
-  'attendance.checkIn',
-  'survey.apply',
-  // 들어오는 길 둘. 누르면 제공자로 떠나고, 돌아올 자리는 서버가 붙인다.
-  'auth.signInGoogle',
-  'auth.signInKakao',
-  'org.create',
-  'organization.verifyInviteCode',
-
-  // **행사를 만들고 고치고, QR을 다시 만들고 끈다(EVT-00B · EVT-02B · EVT-04B).**
-  // QR 다시 만들기는 되돌릴 수 없다 — 뿌려 둔 포스터의 QR이 전부 죽는다.
-  'event.create',
-  'event.saveBasics',
-  'event.attendanceQr.regenerate',
-  'event.attendanceQr.deactivate',
-]
+export const SERVED_MUTATIONS: readonly string[] = AREAS.flatMap((area) => area.writes)
 
 const servedMutations = new Set(SERVED_MUTATIONS)
 

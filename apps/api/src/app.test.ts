@@ -257,7 +257,19 @@ describe('명세 밖으로 새지 않는다', () => {
     // 것으로 세었는데, 진짜로 404를 내는 자리(없는 구성원을 물었을 때)와 아직
     // 안 만든 자리가 같은 모양이라 **만든 것을 안 만든 것으로 세고 있었다.**
     harness()
-    expect(answeredOperationIds()).toHaveLength(52)
-    expect(allOperationIds()).toHaveLength(219)
+    const answered = answeredOperationIds().length
+    const all = allOperationIds().length
+    // eslint-disable-next-line no-console
+    console.log(`
+  계약 ${all}자리 중 답하는 것 ${answered}개 · 남은 것 ${all - answered}개
+`)
+    // **래칫이다.** 정확한 수를 박아 두면 자리를 하나 열 때마다 이 줄을 고쳐야 하고,
+    // 영역 둘을 나란히 열면 **이 한 줄에서 부딪힌다** — 답을 영역별로 가른 뜻이
+    // 여기서 무너진다. 지키려는 것은 '지금 몇인가'가 아니라 '줄지 않는가'다.
+    //
+    // 바닥은 사람이 올린다. 여유가 많이 벌어지면 그때 올리라는 뜻이고, 그 판단은
+    // 흐름 하나를 끝낸 사람이 한다.
+    expect(answered).toBeGreaterThanOrEqual(52)
+    expect(all).toBe(219)
   })
 })

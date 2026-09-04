@@ -27,6 +27,7 @@ figma-spec-v2/
 - wireframe 원본을 읽는 법과 화면별 특이사항: `specs/figma/<wireframeKey>/interpretation.md`
 - 진행 상태와 다음 단계: `docs/HANDOFF.md`
 - 미착수 백로그(스코프 태그·트리거 포함): `docs/BACKLOG.md`
+- 흐름 하나를 서버에 붙이는 차례(여럿이 나란히 갈 때의 규칙 포함): `docs/adding-a-flow.md`
 
 ## 화면별 산출물
 
