@@ -186,6 +186,9 @@ beforeAll(async () => {
     { id: 'AG-D-3', orgId: 'ORG-01', meetingId: 'MTG-D', sortOrder: 2, title: '그다음 안건' },
     // MTG-B: 끝낼 때 안건이 남아 있어도 막지 않는다.
     { id: 'AG-B-1', orgId: 'ORG-01', meetingId: 'MTG-B', sortOrder: 0, title: '남은 안건' },
+    // MTG-A: 아직 시작 전이고 안건 둘이 대기다. **시작이 첫 안건을 여는지** 잰다.
+    { id: 'AG-A-1', orgId: 'ORG-01', meetingId: 'MTG-A', sortOrder: 0, title: '첫 안건' },
+    { id: 'AG-A-2', orgId: 'ORG-01', meetingId: 'MTG-A', sortOrder: 1, title: '둘째 안건' },
   ])
 }, 60_000)
 
@@ -211,6 +214,24 @@ describe('회의를 시작한다', () => {
     expect(row.status).toBe('inProgress')
     // **예정 일시와 다른 사실이다.** 그 차이가 곧 '진행 27분'을 만든다.
     expect(row.startedAt?.toISOString()).toBe(NOW.toISOString())
+  })
+
+  // **시작하면 첫 안건이 함께 열린다.**
+  //
+  // 명세는 '상태가 진행 중으로 바뀌고 참가자에게 회의 참가가 열린다'까지만 적었다 —
+  // 첫 안건을 여는 것이 그 안에 드는지를 말하지 않는다. 사람이 정했다(2026-09-05):
+  // **회의를 시작하면 첫 안건부터 한다.** 진행자가 시작을 누르고 다시 '다음 안건
+  // 시작'을 눌러야 하는 것은 같은 뜻의 몸짓을 두 번 시키는 일이다.
+  //
+  // '첫'은 차례가 가장 앞인 대기 안건이고, 그 규칙은 '다음 안건'과 같은 곳에서 나온다 —
+  // 두 곳에서 나오면 시작이 여는 것과 넘겨서 여는 것이 갈린다.
+  it('시작하면 첫 안건이 함께 열린다', async () => {
+    const opened = await db
+      .select({ id: meetingAgendas.id, status: meetingAgendas.status, startedAt: meetingAgendas.startedAt })
+      .from(meetingAgendas)
+      .where(and(eq(meetingAgendas.meetingId, 'MTG-A'), eq(meetingAgendas.status, 'current')))
+    expect(opened.map((row) => row.id)).toEqual(['AG-A-1'])
+    expect(opened[0]!.startedAt?.toISOString()).toBe(NOW.toISOString())
   })
 
   // **조용히 넘어가지 않는다.** 남이 먼저 시작한 것을 아무도 모르게 된다.

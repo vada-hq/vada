@@ -46,9 +46,16 @@ async function meetingOf(db: Db, orgId: string, meetingId: string) {
  * **예정 일시와 다른 사실을 남긴다.** 실제로 시작한 때가 있어야 '진행 27분'을 셀 수
  * 있고, 끝난 뒤의 '15:00–16:12'도 이 값과 짝이다.
  *
- * **안건은 건드리지 않는다.** 명세가 시작하면 무엇이 바뀌는지를 '상태가 진행 중으로
- * 바뀌고 참가자에게 회의 참가가 열린다'로 못 박았다 — 첫 안건까지 여는 것은 그림에
- * 없는 일이고, 여는 자리는 따로 있다(`startNextAgenda`).
+ * **첫 안건이 함께 열린다.** 명세는 '상태가 진행 중으로 바뀌고 참가자에게 회의
+ * 참가가 열린다'까지만 적어 첫 안건이 그 안에 드는지를 말하지 않았다. 사람이
+ * 정했다(2026-09-05): **회의를 시작하면 첫 안건부터 한다.** 시작을 누르고 다시
+ * '다음 안건 시작'을 눌러야 하는 것은 같은 뜻의 몸짓을 두 번 시키는 일이다.
+ *
+ * '첫'을 여기서 따로 고르지 않는다 — `openNextAgenda`가 그 규칙 하나를 든다.
+ * 두 곳에서 고르면 시작이 여는 안건과 넘겨서 여는 안건이 언젠가 갈린다.
+ *
+ * **안건이 없어도 시작은 막히지 않는다.** 안건 없이 여는 회의가 있고, 그때 막으면
+ * 그 회의는 영영 못 연다.
  */
 export async function startMeeting(
   db: Db,
@@ -65,6 +72,7 @@ export async function startMeeting(
     .set({ status: 'inProgress', startedAt: now, updatedAt: now })
     // 고칠 때도 학생회를 다시 건다. 위에서 찾았다고 빼면 울타리가 한 겹이 된다.
     .where(and(eq(meetings.orgId, orgId), eq(meetings.id, meetingId)))
+  await openNextAgenda(db, orgId, meetingId, now)
   return {}
 }
 
@@ -159,7 +167,27 @@ export async function startNextAgenda(
   if ((await currentAgendaOf(db, orgId, meetingId)) !== undefined) {
     throw new AlreadyExists('아직 진행 중인 안건이 있습니다')
   }
+  if (!(await openNextAgenda(db, orgId, meetingId, now))) {
+    throw new AlreadyExists('넘길 안건이 남지 않았습니다')
+  }
+  return {}
+}
 
+/**
+ * 대기 중 **차례가 가장 앞인** 안건 하나를 연다. 열 것이 없으면 아무 일도 안 한다.
+ *
+ * **'다음'의 규칙이 여기 하나뿐이다.** 회의를 시작할 때와 안건을 넘길 때가 같은
+ * 안건을 골라야 하고, 두 곳에서 고르면 언젠가 갈린다.
+ *
+ * **막지 않고 열었는지만 답한다.** 열 것이 없는 것이 잘못인지는 부르는 쪽이 안다 —
+ * 넘기는 자리에서는 잘못이고(409) 시작하는 자리에서는 아니다(안건 없는 회의).
+ */
+async function openNextAgenda(
+  db: Db,
+  orgId: string,
+  meetingId: string,
+  now: Date,
+): Promise<boolean> {
   const waiting = await db
     .select({ id: meetingAgendas.id })
     .from(meetingAgendas)
@@ -174,11 +202,11 @@ export async function startNextAgenda(
     .orderBy(asc(meetingAgendas.sortOrder), asc(meetingAgendas.id))
     .limit(1)
   const next = waiting[0]
-  if (next === undefined) throw new AlreadyExists('넘길 안건이 남지 않았습니다')
+  if (next === undefined) return false
 
   await db
     .update(meetingAgendas)
     .set({ status: 'current', startedAt: now })
     .where(and(eq(meetingAgendas.orgId, orgId), eq(meetingAgendas.id, next.id)))
-  return {}
+  return true
 }
