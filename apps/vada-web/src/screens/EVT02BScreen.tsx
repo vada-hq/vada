@@ -10,6 +10,7 @@ import { getOptionSource } from '../option-sources/catalog'
 import type { Option } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, evt02b } from '../spec/screens'
+import { draftValueOf, payloadOf } from '../spec/draft-values'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type {
@@ -106,7 +107,7 @@ interface EVT02BScreenProps {
 function draftFromRow(row: DataRow): ScopeDraft {
   const values: Record<string, string | null> = {}
   for (const [key, value] of Object.entries(row)) {
-    values[key] = String(value)
+    values[key] = draftValueOf(value)
   }
   return { values, labels: {} }
 }
@@ -475,7 +476,7 @@ export function EVT02BScreen({
               // 없지만, 판정은 그래도 한 곳에서만 돈다.
               field.runButton(save, () => {
                 void submitAction.run(save.action as SubmitAction, {
-                  payload: draft.values,
+                  payload: payloadOf(evt02b, draft.values),
                   onNavigate,
                   // 무엇을 넘길지는 명세가 말한다(onSuccess.params). 화면은 그
                   // 값이 어디 있는지만 알려 준다.

@@ -11,6 +11,7 @@ import { getOptionSource } from '../option-sources/catalog'
 import type { Option } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt05 } from '../spec/screens'
+import { draftValueOf, payloadOf } from '../spec/draft-values'
 import { targetScreenOf } from '../spec/types'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import { useSubmitAction } from '../spec/useSubmitAction'
@@ -146,7 +147,7 @@ function rowsOf(row: DataRow, field: string): DataRow[] {
 function draftFromRow(row: DataRow): ScopeDraft {
   const values: Record<string, string | null> = {}
   for (const [key, value] of Object.entries(row)) {
-    values[key] = String(value)
+    values[key] = draftValueOf(value)
   }
   return { values, labels: {} }
 }
@@ -281,7 +282,7 @@ export function EVT05Screen({
     }
     setNote(null)
     void submitAction.run(activate.action as SubmitAction, {
-      payload: draft.values,
+      payload: payloadOf(evt05, draft.values),
       onNavigate,
       paramSources: { screenParams },
     })

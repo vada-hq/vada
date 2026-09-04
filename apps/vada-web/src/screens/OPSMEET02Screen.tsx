@@ -18,6 +18,7 @@ import { computeNumber, formatComputed, itemKey, joinRowIds, rowIdsOf } from '..
 import { getMutation } from '../spec/mutations'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, opsMeet02 } from '../spec/screens'
+import { draftValueOf, payloadOf } from '../spec/draft-values'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type {
   ButtonSpec,
@@ -144,7 +145,7 @@ function draftFromRow(row: DataRow): ScopeDraft {
 
   for (const [key, value] of Object.entries(row)) {
     if (!Array.isArray(value)) {
-      values[key] = String(value)
+      values[key] = draftValueOf(value)
       continue
     }
     const rowIds: string[] = []
@@ -154,7 +155,7 @@ function draftFromRow(row: DataRow): ScopeDraft {
       for (const [field, fieldValue] of Object.entries(item as DataRow)) {
         values[itemKey(key, rowId, field)] = Array.isArray(fieldValue)
           ? encodeChips(fieldValue)
-          : String(fieldValue)
+          : draftValueOf(fieldValue)
       }
     })
     values[key] = joinRowIds(rowIds)
@@ -339,7 +340,7 @@ export function OPSMEET02Screen({
     setBlockedKeys([])
     setNote(null)
     void submitAction.run(button.action as SubmitAction, {
-      payload: draft.values,
+      payload: payloadOf(opsMeet02, draft.values),
       onNavigate,
       onScopeEvent,
     })

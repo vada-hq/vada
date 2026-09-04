@@ -2,7 +2,9 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { fetchOptions } from '../option-sources/catalog'
+import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json'
 import { NotServedYet, runMutation } from '../spec/mutations'
+import { isServedMutation } from './served'
 import {
   SourcesFailed,
   currentServer,
@@ -190,9 +192,18 @@ describe('아직 안 붙은 쓰기는 성공한 척하지 않는다', () => {
   //
   // 그래서 **서버가 켜져 있는데 목록에 없으면 던진다.** 아무 일도 안 일어났다는
   // 사실이 사람에게 보여야 한다.
+  //
+  // **어느 쓰기로 잴지는 카탈로그에서 고른다.** 한동안 이름을 손으로 박아 두었는데
+  // (meeting.create), 그것이 붙는 날 이 검사가 빨개졌다 — 재려는 것은 '그 자리'가
+  // 아니라 '아직 안 붙은 자리'다. 아직 안 붙은 것 중 첫째를 쓰면 낡지 않는다.
   it('서버가 켜져 있는데 목록에 없으면 던진다', async () => {
+    const notYet = (mutationsJson as { mutations: Array<{ key: string }> }).mutations
+      .map((one) => one.key)
+      .find((key) => !isServedMutation(key))
+    // 전부 붙은 날에는 이 검사가 잴 것이 없다. 조용히 통과하지 않고 그 사실을 말한다.
+    expect(notYet, '쓰기가 전부 붙었습니다 — 이 검사는 이제 잴 것이 없습니다').toBeDefined()
     back = useServer({ baseUrl: '', fetch: async () => Response.json({}) })
-    await expect(runMutation('meeting.create', {})).rejects.toBeInstanceOf(NotServedYet)
+    await expect(runMutation(notYet!, {})).rejects.toBeInstanceOf(NotServedYet)
   })
 
   // **'서버가 고장 난 것'과 '아직 안 붙은 것'은 다른 일이다.** 같은 글로 말하면

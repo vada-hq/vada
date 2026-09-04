@@ -76,6 +76,9 @@ beforeAll(async () => {
       status: 'inProgress',
       startAt: new Date('2026-08-20T10:00:00+09:00'),
       place: 'ERICA 체육관',
+      // **참거짓 칸을 켜 둔다.** 서버는 참거짓을 주고 화면의 체크 상자는 글을
+      // 다루므로 그 사이가 어긋날 수 있는 자리다 — 켜 두지 않으면 어긋나도 안 보인다.
+      endUnset: true,
       hostDepartmentId: 'D-01',
       updatedAt: new Date('2026-08-15T09:30:00+09:00'),
     },
@@ -222,6 +225,26 @@ describe('기본정보를 읽고 고친다', () => {
     await waitFor(() =>
       expect(screen.getByDisplayValue('2026 소프트웨어융합대학 체육대회')).toBeInTheDocument(),
     )
+  })
+
+  // **켜져 있는 것이 켜져 보여야 한다.**
+  //
+  // 아무도 옮겨 주지 않으면 서버의 `true`가 초안에서 `'true'`가 되고 체크 상자는
+  // `'y'`를 보므로 **꺼져 보인다** — 그리고 그대로 저장하면 켜져 있던 것이 꺼진다.
+  // 회의 쪽에서 같은 자리가 드러났고(비공개 회의가 공개가 된다) 이 화면이 이미
+  // 그러고 있었다(2026-09-04).
+  it('저장소가 켜 둔 칸이 켜져 보인다', async () => {
+    render(
+      <ScreenRouter
+        screenId="EVT-02B"
+        screenParams={{ eventId: 'E-01' }}
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={() => {}}
+      />,
+    )
+    await waitFor(() => expect(screen.getByLabelText('종료 시간 미정')).toBeInTheDocument())
+    expect(screen.getByLabelText('종료 시간 미정')).toBeChecked()
   })
 
   // **화면이 누르는 그 길로 저장한다.**
