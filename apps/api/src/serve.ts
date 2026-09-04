@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { randomBytes, randomUUID } from 'node:crypto'
+import { meetingLookups } from './meetings/lookups.ts'
 import { createApp } from './app.ts'
 import { createAuth, openWays } from './auth/auth.ts'
 import { viewerLookup } from './auth/viewer.ts'
@@ -79,12 +80,17 @@ root.route(
       return viewers.who(session === null ? null : { userId: session.user.id })
     },
     lookups: {
-      // 행사 운영 조직·회의 진행 권한자 표가 아직 없다. **없다고 답한다** —
-      // 있다고 지어내면 조건부 권한이 전부 열린다.
+      // 행사 운영 조직 표는 생겼지만 그것을 채우는 자리(EVT-01·03B)를 아직 안 지었다.
+      // **없다고 답한다** — 있다고 지어내면 조건부 권한이 전부 열린다.
       isEventStaff: async () => false,
       isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
+      // **회의 둘은 이제 표가 답한다.**
+      //
+      // 한동안 여기가 거짓이었다. 표가 없던 동안은 그것이 맞았는데, 표가 생기고
+      // 회의 진행을 붙인 뒤에도 그대로였다면 **배포된 서버에서 시작·종료·안건
+      // 넘기기가 전부 403**이고 화면은 그 단추를 회색으로 그린다 — 검사는 전부
+      // 초록인 채로. 붙이는 자리와 여는 자리가 다른 파일이라 생기는 구멍이다.
+      ...meetingLookups(db),
     },
     // 계산이 하나뿐인 동안은 프로세스 안에 둔다. 늘리면 표로 옮겨야 한다 —
     // 그 사실을 문서가 들고 있다.
