@@ -3,6 +3,7 @@ import {
   foreignKey,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
@@ -20,8 +21,22 @@ import {
 // 그래서 읽는 자리 145개와 테이블 수는 아무 상관이 없다. 여기 있는 것은 **저장해야
 // 없어지지 않는 것**뿐이고, 나머지는 읽을 때 만든다.
 //
-// 이 파일은 조직 층까지다. 행사·회의·업무·재정·기록·메시지는 같은 방식으로 이어
-// 붙인다 — 근거 없이 컬럼을 지어내지 않는 것이 규칙이다.
+// 조직 층 위에 행사·회의·업무·재정·기록을 같은 방식으로 이어 붙였다 —
+// **근거 없이 컬럼을 지어내지 않는 것이 규칙이다.** 그래서 안 지은 것이 있다:
+//
+// - **메시지 방과 대화**(MSG-01·02·03). 명세가 조각을 하나도 주지 않는다 —
+//   와이어프레임이 방이 하나도 없는 모습만 그렸고 채워진 목록은 어느 화면에도
+//   없다. `message.rooms`의 조각은 `id` 하나뿐이다. 표를 지으면 전부 지어낸 것이다.
+// - **발행된 아카이브의 본문**(REC-02의 열세 조각·회고·인수인계 줄·체크리스트).
+//   **발행하는 동작이 명세에 없다** — `record.archive.requestReview`가 '발행이
+//   아니다'라고 못 박고 있고 발행 단추는 그려지지 않았다. 없는 동작을 전제한
+//   표는 지어낸 것이다(`org.duesTerms`에서 표를 안 만든 것과 같은 근거다).
+// - **달력과 행사 일정**(OPS-CAL-01·EVT-SCHED-01). 명세가 '원본이 아니라 비친
+//   것'이라고 적었다 — 업무 마감·회의 일시·행사 기본정보가 각자 원본이고 이
+//   목록은 그것을 모아 온다. 담을 사실이 없다.
+// - **품목 카테고리·구매 유형·우선순위·회의 진행 방식**. 명세가 '조직이 정한다'고
+//   적었지만 그것을 관리하는 화면이 어디에도 없다. 조직마다 갈리는 것이 실제로
+//   드러나는 날 표가 된다.
 
 // ─── 값의 갈래 ──────────────────────────────────────────────────────────────
 //
@@ -381,11 +396,24 @@ export const rosterUpdates = pgTable(
       .references(() => organizations.id, { onDelete: 'cascade' }),
     kind: text('kind').notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedByMemberId: text('updated_by_member_id').references(() => members.id, {
-      onDelete: 'set null',
-    }),
+    /**
+     * 누가 갈아 끼웠는가.
+     *
+     * **그 학생회의 구성원이어야 한다.** 사람만 따로 가리켰더니 남의 학생회 사람이
+     * 우리 명단의 갱신자로 붙을 수 있었다 — 화면은 그 이름을 '학생 명단 업로드 ·
+     * 아무개'로 그대로 그린다. 표 열다섯 개를 한꺼번에 지으면서 이음매 검사를
+     * 세웠고, 그때 이 한 자리가 걸렸다(2026-09-04).
+     */
+    updatedByMemberId: text('updated_by_member_id'),
   },
-  (table) => [index('roster_updates_org_kind').on(table.orgId, table.kind)],
+  (table) => [
+    index('roster_updates_org_kind').on(table.orgId, table.kind),
+    foreignKey({
+      columns: [table.orgId, table.updatedByMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'roster_updates_member_same_org',
+    }).onDelete('set null'),
+  ],
 )
 
 // ─── 행사 ───────────────────────────────────────────────────────────────────
@@ -404,6 +432,23 @@ export const eventStatus = pgEnum('event_status', [
   'wrapUp',
   'done',
 ])
+
+/**
+ * 참여 설문을 선착순으로 받는가 승인제로 받는가. `event.surveyApplyMethods`가 정한 둘.
+ */
+export const surveyApplyMethod = pgEnum('survey_apply_method', ['firstCome', 'approval'])
+
+/**
+ * 신청이 받아들여졌는가.
+ *
+ * **디자인이 그린 딱지가 둘이다**(EVT-04: '신청 완료'·'대기 중'). 승인제에서 승인
+ * 전은 '대기 중'이고 선착순에서 정원 초과도 '대기 중'이다 — 무엇을 뜻하는지는
+ * 설문의 신청 방식이 정하므로 값이 둘로 족하다.
+ */
+export const applyStatus = pgEnum('apply_status', ['applied', 'waitlisted'])
+
+/** 참가비를 냈는가. 디자인이 그린 셋('납부 확인'·'미납'·'미확인'). */
+export const payStatus = pgEnum('pay_status', ['unknown', 'paid', 'unpaid'])
 
 /**
  * 참가비를 어떻게 받는가(EVT-02B).
@@ -609,6 +654,16 @@ export const surveys = pgTable(
     /** 학생회비 납부 여부를 대조하는가. 대조가 끝나야 금액이 정해지는 행사가 있다. */
     duesCheck: boolean('dues_check').notNull().default(false),
     /**
+     * 선착순인가 승인제인가(`event.surveyApplyMethods`).
+     *
+     * **신청 상태의 뜻이 이것에 달렸다** — 선착순에서 '대기 중'은 정원이 찼다는
+     * 뜻이고 승인제에서는 아직 승인 전이라는 뜻이다. 같은 값이 다른 사실을
+     * 가리키므로 어느 쪽인지를 설문이 들고 있어야 한다.
+     */
+    applyMethod: surveyApplyMethod('apply_method').notNull().default('firstCome'),
+    /** 정원이 넘치면 대기 신청을 받는가. 안 받으면 정원에서 끊긴다. */
+    waitlist: boolean('waitlist').notNull().default(false),
+    /**
      * 이 설문을 대신하는 새 설문. 교체된 설문에만 있다.
      *
      * **가리키는 것이 곧 폐기는 아니다.** 옛 링크를 가진 사람이 새 설문으로 갈 수
@@ -619,6 +674,8 @@ export const surveys = pgTable(
   },
   (table) => [
     index('surveys_event').on(table.eventId),
+    // 문항이 (조직, 설문)으로 이어 붙을 수 있게 한다 — 이음매마다 울타리를 다시 세운다.
+    unique('surveys_org_id').on(table.orgId, table.id),
     foreignKey({
       columns: [table.orgId, table.eventId],
       foreignColumns: [events.orgId, events.id],
@@ -650,6 +707,19 @@ export const surveyApplications = pgTable(
      * 참거짓만 두면 나중에 그것이 언제 켜졌는지 아무도 모른다.
      */
     privacyConsentAt: timestamp('privacy_consent_at', { withTimezone: true }).notNull(),
+    /**
+     * 신청이 받아들여졌는가(EVT-04의 첫 딱지).
+     *
+     * 뜻은 설문의 신청 방식이 정한다 — 위의 `applyMethod`를 보라.
+     */
+    applyStatus: applyStatus('apply_status').notNull().default('applied'),
+    /**
+     * 참가비를 냈는가(EVT-04의 둘째 딱지).
+     *
+     * **'모름'이 기본이다.** 안 냈다는 것과 아직 확인 안 했다는 것은 다른 사실이고,
+     * 참가비를 안 받는 행사도 있다 — 셋을 둘로 줄이면 그 행사의 모든 줄이 '미납'이 된다.
+     */
+    payStatus: payStatus('pay_status').notNull().default('unknown'),
     at: timestamp('at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [unique('survey_once_per_student').on(table.surveyId, table.studentNumber)],
@@ -720,4 +790,979 @@ export const permissionChanges = pgTable(
     after: text('after'),
   },
   (table) => [index('permission_changes_org_at').on(table.orgId, table.at)],
+)
+
+// ─── 회의 ────────────────────────────────────────────────────────────────────
+
+/** 정기·상시 회의인가, 행사에 걸린 회의인가. `meeting.types`가 정한 둘. */
+export const meetingKind = pgEnum('meeting_kind', ['regular', 'event'])
+
+/**
+ * 회의가 지금 어느 단계인가.
+ *
+ * **끝내면 '완료'가 아니라 '정리 중'이 된다**(OPS-MEET-D02). 회의록과 결정을 확인한
+ * 뒤에 따로 정리 완료한다 — 두 단계를 하나로 합치면 '끝났는데 회의록이 없는 회의'를
+ * 담을 자리가 없어진다.
+ *
+ * **임시 저장한 회의는 다른 참가자에게 보이지 않는다**(meeting.saveDraft). 그것도
+ * 회의이므로 표를 따로 두지 않고 단계로 둔다.
+ *
+ * **취소는 지우는 것이 아니다**(meeting.cancel). 취소된 기록으로 남고 사유를 갖는다.
+ */
+export const meetingStatus = pgEnum('meeting_status', [
+  'draft',
+  'scheduled',
+  'inProgress',
+  'wrapUp',
+  'done',
+  'cancelled',
+])
+
+/**
+ * 회의록이 어디까지 왔는가.
+ *
+ * **회의의 단계와 다른 축이다** — 명세가 그렇게 적었다(`meeting.detail`의 status와
+ * minutesStatus가 나란히 있다). 한 열로 합치면 '진행 중인데 회의록은 정리 끝'이
+ * 담기지 않는다.
+ */
+export const minutesStatus = pgEnum('minutes_status', ['notStarted', 'drafting', 'done'])
+
+/** 안건 하나가 지금 어느 단계인가. 진행 중인 것은 회의마다 하나다. */
+export const agendaStatus = pgEnum('agenda_status', ['pending', 'current', 'done'])
+
+/**
+ * 참석했는가.
+ *
+ * **'모름'이 기본이다.** 안 왔다는 것과 아직 확인 안 했다는 것은 다른 사실이고,
+ * 둘을 같은 값으로 두면 회의 중에 세는 참석 인원이 틀린다.
+ */
+export const attendance = pgEnum('attendance', ['unknown', 'present', 'absent'])
+
+/**
+ * 회의.
+ *
+ * **화면 열한 장이 이 한 표를 읽는다**(OPS-MEET-03·05·06·07·08·09). 명세가 단계마다
+ * 출처를 가르지 않았고, 가르면 화면이 '지금 어느 단계인가'를 알아야 한다.
+ *
+ * 그려지는 것 대부분은 여기 없다 — `elapsedNote`('진행 27분')는 `startedAt`과 지금이
+ * 만드는 말이고, `inviteeCountNote`('참가자 8명')는 세어서 만든 말이다.
+ */
+export const meetings = pgTable(
+  'meetings',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    kind: meetingKind('kind').notNull().default('regular'),
+    /**
+     * 어느 행사의 회의인가. **비어 있을 수 있다** — 어느 행사에도 속하지 않는 회의는
+     * '정기·상시 회의' 묶음으로 온다(`meeting.groups`).
+     */
+    eventId: text('event_id'),
+    title: text('title').notNull(),
+    /** 회의의 목적. OPS-MEET-02의 칸 하나이고 상세의 description이 이것이다. */
+    purpose: text('purpose'),
+    status: meetingStatus('status').notNull().default('scheduled'),
+    minutesStatus: minutesStatus('minutes_status').notNull().default('notStarted'),
+    scheduledAt: timestamp('scheduled_at', { withTimezone: true }),
+    /** 끝나기로 한 때. 실제로 끝난 때(`endedAt`)와 다른 사실이다. */
+    plannedEndAt: timestamp('planned_end_at', { withTimezone: true }),
+    /**
+     * 어떻게 진행하는가(대면·온라인 같은 것).
+     *
+     * **값의 목록이 아직 없다.** 명세가 `meeting.modes`를 서버에 묻게 두었는데
+     * 디자인이 펼친 목록을 그리지 않았다 — 갈래를 지어내지 않으려고 글로 둔다.
+     * 목록이 정해지면 그때 값의 갈래가 된다.
+     */
+    mode: text('mode'),
+    place: text('place'),
+    onlineLink: text('online_link'),
+    /** 비공개 회의인가. OPS-MEET-02의 켜고 끄는 칸. */
+    isPrivate: boolean('is_private').notNull().default(false),
+    /** 만든 사람. OPS-MEET-04B의 맨 위 칸(`meeting.hostOwner`)이 이 사람이다. */
+    creatorMemberId: text('creator_member_id'),
+    departmentId: text('department_id'),
+    /** 실제로 시작하고 끝난 때. 예정과 다르고, 그 차이가 '실제 진행 시간'이다. */
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+    /**
+     * 회의 전체를 한 덩이로 줄인 글(`meeting.minutes`).
+     *
+     * **없어도 정리 완료가 막히지 않는다** — 06B가 그렇게 적어 두었다.
+     */
+    minutesSummary: text('minutes_summary'),
+    /** 그 요약을 기계가 만들어 준 때. 사람이 쓴 것과 갈라야 안내 문장을 붙일 수 있다. */
+    minutesSummaryDraftedAt: timestamp('minutes_summary_drafted_at', { withTimezone: true }),
+    /** 취소한 기록. 사유가 필수다(OPS-MEET-D04). */
+    cancelReason: text('cancel_reason'),
+    cancelledByMemberId: text('cancelled_by_member_id'),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    /** 이 회의를 대신하는 회의. 취소하면서 다시 잡은 것이 있으면 가리킨다. */
+    replacementMeetingId: text('replacement_meeting_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    // 자식 표들이 (조직, 회의)로 이어 붙일 수 있게 한다 — 이음매마다 울타리를 다시 세운다.
+    unique('meetings_org_id').on(table.orgId, table.id),
+    // **그 학생회의 그 행사여야 한다.** 행사만 따로 가리키면 남의 행사에 우리 회의가 걸린다.
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'meetings_event_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.creatorMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'meetings_creator_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.departmentId],
+      foreignColumns: [departments.orgId, departments.id],
+      name: 'meetings_department_same_org',
+    }).onDelete('set null'),
+    index('meetings_org_status').on(table.orgId, table.status),
+    index('meetings_event').on(table.eventId),
+  ],
+)
+
+/**
+ * 안건.
+ *
+ * **단계마다 갖는 것이 다르다**(`meeting.agendas`) — 예정일 때는 예상 소요를, 진행
+ * 중에는 논의 내용을, 끝난 뒤에는 확정된 결정을 갖는다. 그래도 표는 하나다: 넷으로
+ * 가르면 화면이 단계를 알아야 한다.
+ */
+export const meetingAgendas = pgTable(
+  'meeting_agendas',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    meetingId: text('meeting_id').notNull(),
+    /** 몇 번째 안건인가. '다음 안건'이 무엇인지를 이 차례가 정한다. */
+    sortOrder: integer('sort_order').notNull().default(0),
+    title: text('title').notNull(),
+    description: text('description'),
+    /**
+     * 잡아 둔 예상 소요(분).
+     *
+     * 명세가 `meeting.agendaDurations`를 서버에 묻게 두었다 — 고를 수 있는 값의
+     * 목록은 서버가 만들고, 표는 고른 수를 담는다.
+     */
+    plannedMinutes: integer('planned_minutes'),
+    status: agendaStatus('status').notNull().default('pending'),
+    /** 진행 중에 적히는 것과 그 끝에 확정되는 것. 둘은 다른 사실이다. */
+    discussionText: text('discussion_text'),
+    decisionText: text('decision_text'),
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+  },
+  (table) => [
+    unique('meeting_agendas_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.meetingId],
+      foreignColumns: [meetings.orgId, meetings.id],
+      name: 'meeting_agendas_meeting_same_org',
+    }).onDelete('cascade'),
+    index('meeting_agendas_meeting').on(table.meetingId, table.sortOrder),
+  ],
+)
+
+/**
+ * 회의의 사람들.
+ *
+ * **03의 참가자 목록, 05의 참가 현황, 07의 참석 결과, 04B의 권한 관리 목록이 전부
+ * 같은 사람들이다** — 명세가 그렇게 합쳤고(16장을 한꺼번에 보고 나서야 합칠 수
+ * 있었다고 적혀 있다), 표도 하나다.
+ */
+export const meetingParticipants = pgTable(
+  'meeting_participants',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    meetingId: text('meeting_id').notNull(),
+    memberId: text('member_id').notNull(),
+    /**
+     * 진행 권한을 가졌는가.
+     *
+     * **옮기는 것이 아니라 더하는 것이다**(OPS-MEET-D03의 '권한 부여'). 만든 사람은
+     * 여기 없어도 진행할 수 있다 — 그것은 `meetings.creatorMemberId`가 말한다.
+     */
+    isHost: boolean('is_host').notNull().default(false),
+    attendance: attendance('attendance').notNull().default('unknown'),
+    /**
+     * 회의 요약을 확인한 때(OPS-MEET-08).
+     *
+     * **회의의 상태가 아니라 이 사람의 확인 상태다** — 명세가 그렇게 못 박았다.
+     */
+    acknowledgedAt: timestamp('acknowledged_at', { withTimezone: true }),
+  },
+  (table) => [
+    // 한 사람이 한 회의에 두 번 들어가지 않는다.
+    unique('meeting_participants_once').on(table.meetingId, table.memberId),
+    foreignKey({
+      columns: [table.orgId, table.meetingId],
+      foreignColumns: [meetings.orgId, meetings.id],
+      name: 'meeting_participants_meeting_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.memberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'meeting_participants_member_same_org',
+    }).onDelete('cascade'),
+    index('meeting_participants_member').on(table.memberId),
+  ],
+)
+
+// ─── 업무 ────────────────────────────────────────────────────────────────────
+
+/**
+ * 칸반의 열.
+ *
+ * **명세가 넷을 고정했다** — TASK-01과 EVT-TASK-01이 열마다 이 값을 인자로 박아
+ * 조회한다(`planned`·`inProgress`·`review`·`done`).
+ *
+ * MY-01의 갈피는 셋(`my.taskTab`: todo·inProgress·done)인데 **다른 축이 아니라 묶어
+ * 본 것**이다. 검토 중인 업무는 아직 안 끝났으므로 '진행 중'에 든다 — 묶는 규칙은
+ * 서버가 갖는다. 표에 셋을 담으면 칸반의 넷을 못 그린다.
+ */
+export const taskStatus = pgEnum('task_status', ['planned', 'inProgress', 'review', 'done'])
+
+/**
+ * 업무.
+ *
+ * **상시 업무와 행사 업무가 같은 표다.** TASK-01은 학생회 전체를 보고 EVT-TASK-01은
+ * 한 행사를 보는데, 카드에 담기는 것이 같다 — 다른 점은 무엇으로 거르느냐뿐이다.
+ * 회의에서 나온 후속 업무도 여기 온다(`meeting.followUps`의 조각이 `taskId`다).
+ */
+export const tasks = pgTable(
+  'tasks',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    /** 어느 행사의 업무인가. 비어 있으면 상시 업무다(TASK-01이 그것을 본다). */
+    eventId: text('event_id'),
+    /** 어느 회의에서 나온 업무인가(`meeting.followUps`). 비어 있는 것이 보통이다. */
+    fromMeetingId: text('from_meeting_id'),
+    /** 사람이 부르는 번호(EVT-TASK-02의 `code`). 서버가 만든다. */
+    code: text('code'),
+    title: text('title').notNull(),
+    description: text('description'),
+    /** 무엇이 되면 끝인가와 무엇을 내놓아야 하는가. EVT-TASK-02가 나란히 그린다. */
+    completionCriteria: text('completion_criteria'),
+    expectedOutput: text('expected_output'),
+    status: taskStatus('status').notNull().default('planned'),
+    /**
+     * 얼마나 급한가.
+     *
+     * **값의 목록이 아직 없다** — 디자인이 펼친 목록을 그리지 않았다. 회의의 `mode`와
+     * 같은 사정이라 같은 모양으로 둔다.
+     */
+    priority: text('priority'),
+    departmentId: text('department_id'),
+    assigneeMemberId: text('assignee_member_id'),
+    dueDate: timestamp('due_date', { withTimezone: true }),
+    /** 상시 업무의 주기(TASK-01의 카드가 그린다). 행사 업무에는 없다. */
+    cycle: text('cycle'),
+    /**
+     * 검토(EVT-TASK-02의 `task.reviewStatus`).
+     *
+     * **낸 것과 공식 판정이 다른 사실이다** — 화면이 딱지 둘을 나란히 그린다.
+     */
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    officialResult: text('official_result'),
+    reviewComment: text('review_comment'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('tasks_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'tasks_event_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.fromMeetingId],
+      foreignColumns: [meetings.orgId, meetings.id],
+      name: 'tasks_meeting_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.departmentId],
+      foreignColumns: [departments.orgId, departments.id],
+      name: 'tasks_department_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.assigneeMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'tasks_assignee_same_org',
+    }).onDelete('set null'),
+    index('tasks_org_status').on(table.orgId, table.status),
+    index('tasks_event_status').on(table.eventId, table.status),
+    index('tasks_assignee').on(table.assigneeMemberId),
+  ],
+)
+
+// ─── 문서 ────────────────────────────────────────────────────────────────────
+
+/** 문서가 어디까지 왔는가. `event.documentStatus`가 정한 넷('전체'는 거르개의 말이다). */
+export const documentStatus = pgEnum('document_status', [
+  'notStarted',
+  'drafting',
+  'reviewing',
+  'confirmed',
+])
+
+/**
+ * 문서.
+ *
+ * **행사 문서·회의 자료·업무 문서가 한 표다.** 명세가 그렇게 말한다: 회의 쪽은
+ * '안건의 사전 자료와 회의록의 관련 자료가 같은 물건'이라 적었고, 업무 쪽은 참고
+ * 문서가 '업무의 것이 아니라 행사의 공용 원본이라 여러 업무가 같은 것을 본다'고
+ * 적었다 — 갈라 두면 같은 문서가 두 표에 두 벌 생긴다.
+ *
+ * **파일은 아직 담지 않는다.** 명세의 어느 조각도 파일이 어디 있는지를 묻지 않는다
+ * (이름과 상태뿐이다) — 저장할 곳을 정하는 것은 배포의 일이고 그 자리가 아직 없다.
+ */
+export const documents = pgTable(
+  'documents',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    /** 무엇에 딸린 문서인가. 셋 다 비어 있을 수 있다(학생회의 공용 문서). */
+    eventId: text('event_id'),
+    meetingId: text('meeting_id'),
+    /** 안건의 사전 자료면 그 안건을 가리킨다(`meeting.documents`의 agendaId). */
+    agendaId: text('agenda_id'),
+    /** 업무가 내놓은 작업 문서면 그 업무를 가리킨다(`task.workDocuments`). */
+    taskId: text('task_id'),
+    /** 무슨 갈래의 문서인가(EVT-DOC-01의 표 첫 열). 조직이 부르는 말이다. */
+    category: text('category'),
+    title: text('title').notNull(),
+    description: text('description'),
+    status: documentStatus('status').notNull().default('notStarted'),
+    updatedByMemberId: text('updated_by_member_id'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('documents_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'documents_event_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.meetingId],
+      foreignColumns: [meetings.orgId, meetings.id],
+      name: 'documents_meeting_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.agendaId],
+      foreignColumns: [meetingAgendas.orgId, meetingAgendas.id],
+      name: 'documents_agenda_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.taskId],
+      foreignColumns: [tasks.orgId, tasks.id],
+      name: 'documents_task_same_org',
+    }).onDelete('cascade'),
+    index('documents_event_status').on(table.eventId, table.status),
+    index('documents_meeting').on(table.meetingId),
+    index('documents_task').on(table.taskId),
+  ],
+)
+
+// ─── 재정 ────────────────────────────────────────────────────────────────────
+
+/**
+ * 구매 요청이 지금 어느 단계인가.
+ *
+ * **행사 재정 보드의 네 열이 이 값이다** — EVT-FIN-01이 열마다 `review`·`purchase`·
+ * `proof`·`settled`를 인자로 박아 조회한다. 아직 안 낸 요청(`draft`)은 보드에
+ * 오지 않지만 어딘가에는 있어야 하므로 여기 함께 둔다.
+ *
+ * **보완은 단계가 아니다.** 보완이 걸린 요청도 검토 중이고, 걸렸다는 사실은
+ * `supplementRequestedAt`이 말한다 — 단계로 두면 보드에 다섯째 열이 생긴다.
+ */
+export const purchaseStage = pgEnum('purchase_stage', [
+  'draft',
+  'review',
+  'purchase',
+  'proof',
+  'settled',
+])
+
+/**
+ * 재정부가 품목마다 내리는 판정. `finance.reviewResults`가 정한 셋.
+ *
+ * **판정의 단위가 품목이다** — 명세가 그렇게 적었고(FIN-REV-01), 그래서 요청이
+ * 아니라 품목이 이 값을 갖는다. 하나라도 보완이면 나가는 것이 보완 요청이고
+ * 전부 승인이면 검토가 끝난다.
+ */
+export const reviewResult = pgEnum('review_result', ['approved', 'supplement', 'rejected'])
+
+/** 견적을 받았는가. `finance.quoteStatus`가 정한 셋. */
+export const quoteStatus = pgEnum('quote_status', ['none', 'requested', 'received'])
+
+/**
+ * 예산 항목.
+ *
+ * **행사의 예산과 조직의 예산이 한 표다.** 명세가 둘을 갈라 두었지만(`finance.budgetItems`는
+ * eventId를 받고 `finance.orgBudgetItems`는 안 받는다) 다른 것은 **무엇에 딸렸느냐**뿐이다 —
+ * 행사에 속하지 않는 상시 지출도 항목을 갖는다고 명세가 적었다.
+ *
+ * **여기에 예산을 넣는 화면이 명세에 없다.** 재정 화면 전부가 이 금액 위에 서 있는데
+ * (`finance.orgOverview`의 총예산, `finance.orgBreakdown`의 배정액) 그것을 정하는
+ * 자리가 어디에도 그려지지 않았다. 표는 자리를 비워 두고 기다린다 — 채우는 길이
+ * 정해지면 그때 쓰기가 붙는다.
+ */
+export const budgetItems = pgTable(
+  'budget_items',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    /** 어느 행사의 예산인가. 비어 있으면 학생회의 상시 항목이다. */
+    eventId: text('event_id'),
+    name: text('name').notNull(),
+    /** 배정된 금액(원). 화폐 표기는 읽을 때 붙인다 — 자릿점은 값이 아니라 글이다. */
+    amount: integer('amount').notNull().default(0),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => [
+    unique('budget_items_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'budget_items_event_same_org',
+    }).onDelete('cascade'),
+    index('budget_items_org_event').on(table.orgId, table.eventId),
+  ],
+)
+
+/**
+ * 구매 요청 한 건.
+ *
+ * 요청하고 → 검토받고 → 사고 → 증빙을 붙이는 한 흐름이 이 한 줄을 따라간다
+ * (FIN-REQ-01 · FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01). 화면마다 표를 두면 같은
+ * 요청이 넷으로 갈라지고, '지금 어디까지 왔나'를 아무도 한 줄로 못 말한다.
+ */
+export const purchaseRequests = pgTable(
+  'purchase_requests',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    /** 어느 행사의 지출인가. 비어 있으면 학생회의 상시 지출이다. */
+    eventId: text('event_id'),
+    /** 사람이 부르는 번호('PR-2026-0031'). 서버가 만든다. */
+    code: text('code'),
+    title: text('title').notNull(),
+    /** 왜 사는가. FIN-REQ-01의 칸이고 FIN-REV-01이 그대로 읽는다. */
+    purpose: text('purpose'),
+    departmentId: text('department_id'),
+    requesterMemberId: text('requester_member_id'),
+    /** 얼마나 급한가. 값의 목록이 아직 없다(`finance.requestPriorities`). */
+    priority: text('priority'),
+    /** 언제까지 필요한가. */
+    neededOn: timestamp('needed_on', { withTimezone: true }),
+    stage: purchaseStage('stage').notNull().default('draft'),
+    /** 재정부로 넘긴 때. 임시 저장만 한 요청에는 없다. */
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    reviewedByMemberId: text('reviewed_by_member_id'),
+    reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+    /**
+     * 보완이 걸린 때와 언제까지 다시 내야 하는가(FIN-SUP-01의 머리).
+     *
+     * 요청 하나에 보완은 한 번 걸린다 — 품목마다 걸리는 것은 사유이고, 언제까지
+     * 다시 내라는 것은 요청 전체의 기한이다.
+     */
+    supplementRequestedAt: timestamp('supplement_requested_at', { withTimezone: true }),
+    supplementDueOn: timestamp('supplement_due_on', { withTimezone: true }),
+    /** 결제·증빙 정리를 끝낸 때(`finance.purchaseRequest.completeEvidence`). */
+    evidenceCompletedAt: timestamp('evidence_completed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('purchase_requests_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'purchase_requests_event_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.departmentId],
+      foreignColumns: [departments.orgId, departments.id],
+      name: 'purchase_requests_department_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.requesterMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'purchase_requests_requester_same_org',
+    }).onDelete('set null'),
+    index('purchase_requests_org_stage').on(table.orgId, table.stage),
+    index('purchase_requests_event_stage').on(table.eventId, table.stage),
+  ],
+)
+
+/**
+ * 발주. **묶음 하나가 업체 하나다** — 명세가 그렇게 적었다(FIN-PROC-01).
+ *
+ * 품목을 어느 업체에서 사느냐로 주문이 갈리고, 주문일도 담당도 업체마다 따로 간다.
+ */
+export const purchaseOrders = pgTable(
+  'purchase_orders',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    requestId: text('request_id').notNull(),
+    vendor: text('vendor').notNull(),
+    orderedOn: timestamp('ordered_on', { withTimezone: true }),
+    ordererMemberId: text('orderer_member_id'),
+  },
+  (table) => [
+    unique('purchase_orders_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.requestId],
+      foreignColumns: [purchaseRequests.orgId, purchaseRequests.id],
+      name: 'purchase_orders_request_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.ordererMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'purchase_orders_orderer_same_org',
+    }).onDelete('set null'),
+    index('purchase_orders_request').on(table.requestId),
+  ],
+)
+
+/**
+ * 결제. **묶음 하나가 결제 하나다** — 명세가 그렇게 적었다(FIN-EVID-01).
+ *
+ * **승인액과 실결제액이 다를 수 있고, 그 차이가 이 단계에서 드러나는 것이 이 화면의
+ * 일이다.** 승인액은 품목이 갖고(`purchaseRequestItems.approvedAmount`) 실제로 낸
+ * 돈은 여기 있다 — 한 자리에 담으면 차이를 볼 수 없다.
+ */
+export const payments = pgTable(
+  'payments',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    requestId: text('request_id').notNull(),
+    vendor: text('vendor').notNull(),
+    paidOn: timestamp('paid_on', { withTimezone: true }),
+    payerMemberId: text('payer_member_id'),
+    /** 무엇으로 냈는가(법인카드·계좌이체 같은 것). 값의 목록이 명세에 없다. */
+    method: text('method'),
+    /** 실제로 낸 돈(원). */
+    paidAmount: integer('paid_amount').notNull().default(0),
+  },
+  (table) => [
+    unique('payments_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.requestId],
+      foreignColumns: [purchaseRequests.orgId, purchaseRequests.id],
+      name: 'payments_request_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.payerMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'payments_payer_same_org',
+    }).onDelete('set null'),
+    index('payments_request').on(table.requestId),
+  ],
+)
+
+/**
+ * 결제에 붙는 증빙 서류(영수증·거래명세서 같은 것).
+ *
+ * **행사 문서(`documents`)와 다른 물건이다.** 저것은 사람이 쓰는 문서라 작성 단계를
+ * 갖고, 이것은 받아서 붙이는 종이라 **붙었는가 안 붙었는가**뿐이다 — 화면이 그린
+ * 딱지도 '등록 완료'와 '누락' 둘이다.
+ *
+ * 붙어야 하는 서류가 무엇인지는 조직의 재정 규칙이고 그것을 정하는 화면이 아직
+ * 없다. 그래서 필요한 줄을 서버가 만들어 두고, 붙으면 `registeredAt`이 찍힌다.
+ */
+export const paymentDocuments = pgTable(
+  'payment_documents',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    paymentId: text('payment_id').notNull(),
+    label: text('label').notNull(),
+    /** 붙은 때. 비어 있으면 '누락'이다. */
+    registeredAt: timestamp('registered_at', { withTimezone: true }),
+  },
+  (table) => [
+    unique('payment_documents_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.paymentId],
+      foreignColumns: [payments.orgId, payments.id],
+      name: 'payment_documents_payment_same_org',
+    }).onDelete('cascade'),
+    index('payment_documents_payment').on(table.paymentId),
+  ],
+)
+
+/**
+ * 요청에 담긴 품목.
+ *
+ * **한 줄이 요청의 처음부터 끝까지 따라간다** — 적을 때의 값(이름·수량·단가), 검토가
+ * 내린 판정과 승인액, 어느 발주에 실렸고 언제 오는지, 어느 결제에 딸렸는지가 전부
+ * 이 한 줄에 쌓인다. 단계마다 표를 두면 같은 품목이 넷으로 갈라지고, 그때부터
+ * '승인 25,000원 → 실결제 24,500원' 같은 견줌을 아무도 할 수 없다.
+ *
+ * **주문 상태와 배송 상태를 값으로 두지 않는다.** 화면이 그리는 '주문 완료'는 발주에
+ * 실렸다는 뜻이고 '배송 중'은 올 날이 잡혔는데 아직 안 왔다는 뜻이다 — 둘 다 여기
+ * 있는 사실에서 나오는 말이라, 값으로 또 두면 사실과 말이 갈릴 자리가 생긴다.
+ */
+export const purchaseRequestItems = pgTable(
+  'purchase_request_items',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    requestId: text('request_id').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    name: text('name').notNull(),
+    /** 품목 카테고리·구매 유형. 명세가 '조직이 정한다'고 했으나 정하는 화면이 없다. */
+    category: text('category'),
+    purchaseType: text('purchase_type'),
+    budgetItemId: text('budget_item_id'),
+    quantity: integer('quantity'),
+    unit: text('unit'),
+    unitPrice: integer('unit_price'),
+    vendor: text('vendor'),
+    productUrl: text('product_url'),
+    /** 색상·사이즈 같은 것. 무엇을 묻는지는 구매 유형이 정한다. */
+    option: text('option'),
+    deliveryNote: text('delivery_note'),
+    quoteStatus: quoteStatus('quote_status').notNull().default('none'),
+    /** 재정부의 판정과 승인액. 검토 전에는 비어 있다. */
+    reviewResult: reviewResult('review_result'),
+    approvedAmount: integer('approved_amount'),
+    /** 보완이면 그 사유. FIN-SUP-01이 품목마다 그린다. */
+    reviewNote: text('review_note'),
+    /**
+     * 보완 답변.
+     *
+     * **칸의 이름을 열로 둘 수 없다.** 무엇을 다시 묻는지는 그 품목의 구매 유형이
+     * 정하고, 명세가 '칸 목록을 명세가 들고 있으면 유형이 하나 늘 때마다 명세가
+     * 틀린다'고 적었다 — 열로 두면 표가 같은 이유로 틀린다.
+     */
+    supplementAnswers: jsonb('supplement_answers'),
+    /** 어느 발주에 실렸는가. 실리면 화면이 '주문 완료'로 그린다. */
+    orderId: text('order_id'),
+    expectedDeliveryOn: timestamp('expected_delivery_on', { withTimezone: true }),
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+    /** 어느 결제에 딸렸는가(FIN-EVID-01이 결제마다 품목을 묶어 그린다). */
+    paymentId: text('payment_id'),
+  },
+  (table) => [
+    unique('purchase_request_items_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.requestId],
+      foreignColumns: [purchaseRequests.orgId, purchaseRequests.id],
+      name: 'purchase_request_items_request_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.budgetItemId],
+      foreignColumns: [budgetItems.orgId, budgetItems.id],
+      name: 'purchase_request_items_budget_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.orderId],
+      foreignColumns: [purchaseOrders.orgId, purchaseOrders.id],
+      name: 'purchase_request_items_order_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.paymentId],
+      foreignColumns: [payments.orgId, payments.id],
+      name: 'purchase_request_items_payment_same_org',
+    }).onDelete('set null'),
+    index('purchase_request_items_request').on(table.requestId, table.sortOrder),
+  ],
+)
+
+/**
+ * 장부 한 줄.
+ *
+ * **`finance.ledger`와 `finance.recentExpenses`가 같은 장부다** — 명세가 그렇게
+ * 적었다. 한쪽은 전부를 걸러 볼 수 있게 주는 자리이고 다른 쪽은 겉면에 몇 줄만
+ * 얹는 자리다.
+ *
+ * **결제와 다른 표다.** 결제는 구매 요청에 딸린 것이고 장부는 학생회가 쓴 돈 전부다 —
+ * 요청을 거치지 않은 상시 지출도 장부에는 있어야 한다고 명세가 적었다
+ * (`finance.orgBudgetItems`가 '행사에 속하지 않는 상시 지출까지 덮는다'고 말한다).
+ * 요청에서 온 줄은 그 요청을 가리킨다.
+ *
+ * **장부에 줄을 넣는 쓰기가 명세에 없다.** 예산과 같은 사정이다 — 표는 자리를
+ * 비워 두고 기다린다.
+ */
+export const ledgerEntries = pgTable(
+  'ledger_entries',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    eventId: text('event_id'),
+    departmentId: text('department_id'),
+    budgetItemId: text('budget_item_id'),
+    /** 이 줄이 어느 구매 요청에서 왔는가. 상시 지출에는 없다. */
+    purchaseRequestId: text('purchase_request_id'),
+    spentOn: timestamp('spent_on', { withTimezone: true }).notNull(),
+    title: text('title').notNull(),
+    /** 무엇 때문에 쓴 돈인가(행사 이름 같은 것). 화면이 제목 아래 곁들인다. */
+    context: text('context'),
+    amount: integer('amount').notNull().default(0),
+    /** 증빙이 다 붙었는가. 화면의 딱지가 이것을 그린다. */
+    proofDone: boolean('proof_done').notNull().default(false),
+  },
+  (table) => [
+    unique('ledger_entries_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'ledger_entries_event_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.departmentId],
+      foreignColumns: [departments.orgId, departments.id],
+      name: 'ledger_entries_department_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.budgetItemId],
+      foreignColumns: [budgetItems.orgId, budgetItems.id],
+      name: 'ledger_entries_budget_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.purchaseRequestId],
+      foreignColumns: [purchaseRequests.orgId, purchaseRequests.id],
+      name: 'ledger_entries_request_same_org',
+    }).onDelete('set null'),
+    index('ledger_entries_org_spent').on(table.orgId, table.spentOn),
+    index('ledger_entries_event').on(table.eventId),
+  ],
+)
+
+// ─── 행사 운영 조직 ──────────────────────────────────────────────────────────
+
+/**
+ * 행사에만 있는 부서.
+ *
+ * **학생회의 부서(`departments`)와 다른 물건이다** — 명세가 그렇게 못 박았다
+ * (`event.staffLeaders`가 'org.executives와 같은 모양이지만 다른 물건'이라고 적었다).
+ * 학생회의 기본 조직은 한 대를 가고, 이것은 행사 하나에만 있다가 사라진다.
+ */
+export const eventStaffDepartments = pgTable(
+  'event_staff_departments',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    eventId: text('event_id').notNull(),
+    name: text('name').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => [
+    unique('event_staff_departments_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'event_staff_departments_event_same_org',
+    }).onDelete('cascade'),
+    index('event_staff_departments_event').on(table.eventId, table.sortOrder),
+  ],
+)
+
+/**
+ * 행사 운영 조직에 든 사람.
+ *
+ * **책임자·부서장·부원·미배정이 한 표다.** 넷을 갈라 두면 사람을 옮길 때마다 표
+ * 사이를 오가게 되고, 그때 두 표에 동시에 있거나 어디에도 없는 순간이 생긴다 —
+ * 학생회의 `members`가 부서를 열 하나로 들고 있는 것과 같은 까닭이다.
+ *
+ * - 행사 책임자: `isEventLeader`
+ * - 부서장: 부서를 가리키고 `isDepartmentLeader`
+ * - 부원: 부서를 가리킨다
+ * - 미배정: 부서가 비어 있고 책임자도 아니다(`event.staffUnassignedMembers`)
+ *
+ * 이름·학과·학년은 여기 없다 — 그것은 학생회 구성원의 사실이라 `members`가 든다.
+ */
+export const eventStaffMembers = pgTable(
+  'event_staff_members',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    eventId: text('event_id').notNull(),
+    memberId: text('member_id').notNull(),
+    /** 어느 부서인가. 비어 있으면 아직 배정되지 않았거나 행사 책임자다. */
+    staffDepartmentId: text('staff_department_id'),
+    isEventLeader: boolean('is_event_leader').notNull().default(false),
+    isDepartmentLeader: boolean('is_department_leader').notNull().default(false),
+    /** 이 행사에서 부르는 직함. 없으면 화면이 딱지를 안 그린다. */
+    roleTitle: text('role_title'),
+  },
+  (table) => [
+    unique('event_staff_members_org_id').on(table.orgId, table.id),
+    // 한 사람이 한 행사의 운영 조직에 두 번 들어가지 않는다.
+    unique('event_staff_members_once').on(table.eventId, table.memberId),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'event_staff_members_event_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.memberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'event_staff_members_member_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.staffDepartmentId],
+      foreignColumns: [eventStaffDepartments.orgId, eventStaffDepartments.id],
+      name: 'event_staff_members_department_same_org',
+    }).onDelete('set null'),
+    index('event_staff_members_department').on(table.staffDepartmentId),
+  ],
+)
+
+// ─── 참여 설문의 문항 ────────────────────────────────────────────────────────
+
+/** 문항의 갈래. `event.surveyQuestionTypes`가 정한 넷. */
+export const surveyQuestionType = pgEnum('survey_question_type', [
+  'short',
+  'choice',
+  'checkbox',
+  'privacy',
+])
+
+/**
+ * 참여 설문의 문항(EVT-05).
+ *
+ * **고를 값의 목록은 아직 없다.** 명세의 어느 조각도 보기(선택지)를 묻지 않는다 —
+ * EVT-05가 그리는 것은 제목·갈래·딱지뿐이고, 보기를 적는 자리가 그려지지 않았다.
+ * 없는 화면을 전제한 열은 지어낸 것이라 두지 않는다.
+ */
+export const surveyQuestions = pgTable(
+  'survey_questions',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    surveyId: text('survey_id').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    title: text('title').notNull(),
+    type: surveyQuestionType('type').notNull(),
+    required: boolean('required').notNull().default(false),
+    /**
+     * 지울 수 없는 문항인가(EVT-05의 잠금 표시).
+     *
+     * 개인정보 동의처럼 빼면 안 되는 것이 있다 — 무엇이 그런지는 제품이 정하고,
+     * 표는 그 판정을 담는다.
+     */
+    locked: boolean('locked').notNull().default(false),
+  },
+  (table) => [
+    unique('survey_questions_org_id').on(table.orgId, table.id),
+    foreignKey({
+      columns: [table.orgId, table.surveyId],
+      foreignColumns: [surveys.orgId, surveys.id],
+      name: 'survey_questions_survey_same_org',
+    }).onDelete('cascade'),
+    index('survey_questions_survey').on(table.surveyId, table.sortOrder),
+  ],
+)
+
+// ─── 행사 아카이브 ───────────────────────────────────────────────────────────
+
+/**
+ * 아카이브가 어디까지 왔는가.
+ *
+ * **`published`가 있는데 발행하는 동작이 명세에 없다.** REC-02가 발행된 문서를
+ * 그리므로 그런 상태가 있다는 것은 확실한데, 무엇을 누르면 그렇게 되는지는 어느
+ * 화면에도 그려지지 않았다 — `record.archive.requestReview`가 '발행이 아니다'라고
+ * 못 박고 있다. 값은 두되 그 자리로 옮기는 길은 아직 없다.
+ */
+export const archiveStatus = pgEnum('archive_status', ['draft', 'inReview', 'published'])
+
+/**
+ * 행사 아카이브(REC-02A).
+ *
+ * **행사 하나에 하나다.** 인수인계 문서라 다음 대가 읽는 것이고, 여러 벌이 있으면
+ * 어느 것이 그 행사의 기록인지가 갈린다.
+ *
+ * 여기 있는 것은 **사람이 직접 쓰는 칸**뿐이다(`record.archiveDraft`가 그 목록이다).
+ * 개요·성과·타임라인·근거 넷은 행사 데이터에서 서버가 줄여 만드는 것이라 저장하지
+ * 않는다 — 명세가 '발행하면 그 시점 값으로 굳는다'고 적었으니 굳힐 자리는 발행하는
+ * 동작이 생길 때 함께 만든다. 지금 열을 두면 채울 길이 없는 열이 열세 개 남는다.
+ */
+export const eventArchives = pgTable(
+  'event_archives',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id').notNull(),
+    /** 행사 하나에 하나. 아래 unique가 그것을 지킨다. */
+    eventId: text('event_id').notNull(),
+    status: archiveStatus('status').notNull().default('draft'),
+    /** 문서의 이름. 비어 있으면 서버가 행사 이름으로 만든 글을 준다. */
+    title: text('title'),
+    /** 사람이 쓰는 칸 여섯(REC-02A). 아직 아무것도 안 쓴 문서도 이 표에 있다. */
+    onSiteOperation: text('on_site_operation'),
+    retroGood: text('retro_good'),
+    retroIssues: text('retro_issues'),
+    retroImprovements: text('retro_improvements'),
+    handover: text('handover'),
+    /** 다음 담당자. 학생회 구성원이 아닐 수 있어 글로 받는다(REC-02A의 칸이 입력이다). */
+    nextOwner: text('next_owner'),
+    /** 개선안을 맡을 부서. REC-02A가 `org.departments`에서 고르게 한다. */
+    improvementDepartmentId: text('improvement_department_id'),
+    /** 쓴 사람과 검토자. 검토자는 `record.archiveReviewers`에서 고른다. */
+    authorMemberId: text('author_member_id'),
+    reviewerMemberId: text('reviewer_member_id'),
+    /**
+     * 검토 의견.
+     *
+     * **쓰는 사람이 아니라 검토자가 적는 값이라 초안과 갈린다** — 명세가 그렇게
+     * 적었고(`record.archiveReview`), 그래서 한 칸이 아니라 다른 사람의 칸이다.
+     */
+    reviewComment: text('review_comment'),
+    /** 검토로 넘긴 때. `record.archive.requestReview`가 찍는다. */
+    reviewRequestedAt: timestamp('review_requested_at', { withTimezone: true }),
+    /** 인수인계 초안을 기계가 만들어 준 때. 사람이 쓴 것과 갈라야 안내를 붙일 수 있다. */
+    handoverDraftedAt: timestamp('handover_drafted_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    unique('event_archives_org_id').on(table.orgId, table.id),
+    unique('event_archives_once').on(table.eventId),
+    foreignKey({
+      columns: [table.orgId, table.eventId],
+      foreignColumns: [events.orgId, events.id],
+      name: 'event_archives_event_same_org',
+    }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.improvementDepartmentId],
+      foreignColumns: [departments.orgId, departments.id],
+      name: 'event_archives_department_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.authorMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'event_archives_author_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.reviewerMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'event_archives_reviewer_same_org',
+    }).onDelete('set null'),
+    index('event_archives_org_status').on(table.orgId, table.status),
+  ],
 )
