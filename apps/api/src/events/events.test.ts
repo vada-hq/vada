@@ -1,6 +1,4 @@
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
-import Ajv from 'ajv'
-import openapi from '../../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
 import optionSources from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import { createApp, type Deps } from '../app.ts'
 import type { Db } from '../db/client.ts'
@@ -8,7 +6,6 @@ import { freshDb } from '../db/testing.ts'
 import { departments, events, members, organizations, users } from '../db/schema.ts'
 import { inMemoryCounter } from '../public/rate-limit.ts'
 import { inMemoryAttempts } from '../idempotency.ts'
-import { routeOf } from '../routes.ts'
 import type { AuditEntry } from '../audit.ts'
 import type { Viewer } from '../permissions.ts'
 
@@ -263,36 +260,12 @@ describe('행사 만들기', () => {
   })
 })
 
-describe('답이 계약의 모양을 지킨다', () => {
-  const ajv = new Ajv({ strict: false })
-  const cases: Array<[string, string]> = [
-    ['event.list', '/api/ops/events'],
-    ['event.listViewer', '/api/ops/events/viewer'],
-    ['event.summary', '/api/ops/event/summary?eventId=E-01'],
-    ['event.workspace', '/api/ops/event/workspace?eventId=E-01'],
-    ['event.basics', '/api/ops/event/basics?eventId=E-01'],
-  ]
-  for (const [operationId, url] of cases) {
-    it(operationId + '의 답이 계약대로다', async () => {
-      const res = await harness().app.request(url)
-      const at = routeOf(operationId)!
-      const paths = openapi.paths as unknown as Record<string, Record<string, unknown>>
-      const operation = paths[at.path]![at.method] as {
-        responses: { 200: { content: { 'application/json': { schema: object } } } }
-      }
-      const validate = ajv.compile(operation.responses[200].content['application/json'].schema)
-      const body = await res.json()
-      expect(validate(body), JSON.stringify(validate.errors)).toBe(true)
-    })
-  }
-})
-
-// **명세가 든 값을 서버가 전부 받는다.**
+// 답의 모양을 재던 자리가 여기 있었다 — **손으로 고른 다섯 자리**뿐이었다.
 //
-// 화면의 거르개는 `event.status`가 든 값을 그대로 보낸다. 그 목록에 서버가 모르는
-// 값이 하나라도 있으면 그 단추는 눌리는 순간 터진다 — '진행 중'이 실제로 그랬다
-// (명세는 `running`, 표는 `inProgress`). 개발용 응답도 표를 따라가고 있어서
-// **개발 빌드에서조차 그 단추는 아무것도 못 찾았고**, 아무 검사도 안 터졌다.
+// 고르는 사람이 안 보는 자리는 목록에도 없다(교차검토가 짚었다, 2026-09-05).
+// 이제 `src/contract-shape.test.ts`가 **답하는 읽기 자리 전부**를 걷는다. 두 벌을
+// 두면 갈리므로 이쪽을 걷어낸다.
+
 describe('거르개가 보내는 값을 서버가 안다', () => {
   const statuses = (
     optionSources as { sources: Array<{ key: string; options?: Array<{ value: string }> }> }
