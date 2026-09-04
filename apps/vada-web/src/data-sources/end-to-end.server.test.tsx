@@ -247,6 +247,40 @@ describe('인자를 넘겨 부른다', () => {
 //
 // **화면마다 다른 값을 확인한다.** 개발용 응답과 저장소가 다른 값을 갖게 씨앗을
 // 두었으므로, 저장소의 값이 나오면 서버를 거친 것이다.
+describe('안 지은 자리 하나가 화면을 통째로 닫지 않는다', () => {
+  // **자리 단위로 가린다.**
+  //
+  // 홈은 일곱을 읽는다. 여섯은 표가 있어 지을 수 있고 하나(`home.financeSummary`)는
+  // 예산을 정해야 지을 수 있다 — 그 하나 때문에 화면이 통째로 닫히면 지어 놓은
+  // 여섯을 아무도 못 본다. 사람이 그것을 보고 물었다(2026-09-05).
+  //
+  // 지금은 일곱이 다 안 지어졌으므로 **일곱 자리가 다 빈 자리로** 그려진다. 재는
+  // 것은 값이 아니라 **모양**이다: 화면이 열리고, 안 지은 자리가 그 자리에서만
+  // 가려지고, 가짜는 한 글자도 안 나온다.
+  it('홈이 열리고 안 지은 자리만 그 자리에서 가려진다', async () => {
+    render(<ScreenRouter screenId="HOME-01K" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />)
+
+    // 화면 전체가 닫히지 않는다 — 바깥 그물의 글이 아니다.
+    await waitFor(() => expect(screen.getAllByText('아직 준비 중입니다').length).toBeGreaterThan(0))
+    expect(screen.queryByText('이 화면은 아직 준비 중입니다.')).not.toBeInTheDocument()
+
+    // 무엇이 빠졌는지를 자리마다 말한다.
+    expect(screen.getByText('전체 재정 요약')).toBeInTheDocument()
+    expect(screen.getByText('진행 중·예정 행사')).toBeInTheDocument()
+
+    // **가짜는 한 글자도 없다.**
+    //
+    // 고르는 말이 까다롭다 — 이 검사의 저장소에도 '박해랑'과 '2026 소프트웨어융합대학
+    // 체육대회'가 들어 있고, 그것은 셸과 행사 목록이 주는 **진짜**다. 개발용 응답에만
+    // 있는 말을 골라야 가짜가 샜는지를 잰다.
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).not.toContain('2026 소프트웨어융합대학 학술제')
+    expect(drawn).not.toContain('기계시스템디자인공학과')
+    // 홈이 그리던 재정 값. 개발용 응답에만 있다.
+    expect(drawn).not.toContain('34%')
+  })
+})
+
 describe('조직 보기의 이웃 화면들', () => {
   // **조직도의 머리와 회장단이 저장소에서 온다.** 부서 목록은 아직 서버를 안 지었으므로
   // 그 자리는 개발용 응답이다 — 한 화면 안에서 둘이 섞이는 것이 지금의 진도다.

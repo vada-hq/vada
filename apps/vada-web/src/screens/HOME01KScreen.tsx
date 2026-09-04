@@ -6,6 +6,7 @@ import { NEUTRAL_VALUE, VALUE_TEXT } from "../design/tones";
 import { ProgressBar } from "../components/ProgressBar";
 import { StatTile } from "../components/StatTile";
 import { readListSource, readObjectSource } from "../data-sources/catalog";
+import { Built } from "../components/Built";
 import { elementByNodeId, home01k, nodeIdOf } from "../spec/screens";
 import type { ButtonSpec, ItemListSpec, SummarySpec } from "../spec/types";
 
@@ -413,17 +414,34 @@ export function HOME01KScreen({ onNavigate }: HOME01KScreenProps): ReactNode {
         description={home01k.meta?.description}
         onNavigate={onNavigate}
       >
+        {/*
+          **자리마다 따로 가린다.** 이 화면은 일곱을 읽는데 그 하나가 예산이고,
+          예산은 아직 정하지 않았다 — 그 하나 때문에 화면이 통째로 닫히면 나머지
+          여섯을 아무도 못 본다. 블록이 이미 저마다 읽으므로 감싸기만 하면 된다.
+        */}
         <div className="mx-auto flex max-w-[1152px] flex-col gap-6">
-          <BriefingCard />
-          <EventCountTiles />
+          <Built what="오늘의 브리핑">
+            <BriefingCard />
+          </Built>
+          <Built what="행사·일정 건수">
+            <EventCountTiles />
+          </Built>
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[728fr_352fr]">
             <div className="flex flex-col gap-6">
-              <EventList />
-              <ScheduleList />
+              <Built what="진행 중·예정 행사">
+                <EventList />
+              </Built>
+              <Built what="다가오는 주요 일정">
+                <ScheduleList />
+              </Built>
             </div>
             <div className="flex flex-col gap-6">
-              <OrgAlertList />
-              <FinanceSummary />
+              <Built what="조직 주요 알림">
+                <OrgAlertList />
+              </Built>
+              <Built what="전체 재정 요약">
+                <FinanceSummary />
+              </Built>
               <MyTasksCard />
             </div>
           </div>
