@@ -1,4 +1,5 @@
 import type { Handlers } from '../deps.ts'
+import { documentHandlers } from './documents.ts'
 import { eventHandlers } from './events.ts'
 import { joiningHandlers } from './joining.ts'
 import { meetingHandlers } from './meetings.ts'
@@ -24,6 +25,7 @@ export const HANDLERS: Handlers = {
   ...eventHandlers,
   ...meetingHandlers,
   ...taskHandlers,
+  ...documentHandlers,
 }
 
 /** 영역마다 따로. 겹치는 이름이 없는지 재는 검사가 이것을 쓴다. */
@@ -35,4 +37,5 @@ export const BY_AREA: Record<string, Handlers> = {
   events: eventHandlers,
   meetings: meetingHandlers,
   tasks: taskHandlers,
+  documents: documentHandlers,
 }
