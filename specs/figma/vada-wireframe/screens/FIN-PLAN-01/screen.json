@@ -253,7 +253,7 @@
               "type": "select",
               "fieldKey": "itemDepartment",
               "label": "담당 부서(선택)",
-              "placeholder": null,
+              "placeholder": "선택 안 함",
               "initialValue": null,
               "valueType": "string",
               "required": false,

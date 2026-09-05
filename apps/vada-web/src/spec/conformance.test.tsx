@@ -9,6 +9,14 @@ import { drawsElement } from './drawn-when'
 import { resolveParams } from './params'
 import { initialChosen } from './chosen'
 
+/**
+ * 그려진 글로 단추를 찾는 정규식. **글자는 글자다** — 라벨을 그대로 정규식으로 만들면
+ * '+ 수입원 추가'(FIN-PLAN-01)에서 'Nothing to repeat'로 터진다. 특수문자를 벗겨서 찾는다.
+ */
+function labelPattern(label: string): RegExp {
+  return new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+}
+
 // 스펙 필드 소비 커버리지: 기대값을 스펙 JSON에서 읽어 화면과 대조한다.
 // 하드코딩한 단언이 아니라서, 스펙을 고치면 이 검사가 자동으로 따라간다.
 // 스키마에 필드를 추가하면 여기에 단언을 한 줄 늘리는 것이 완료 조건이다.
@@ -115,7 +123,9 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       if (list.rootItem) {
         expect(screen.getByText(list.rootItem.initialName)).toBeInTheDocument()
       }
-      expect(screen.getByRole('button', { name: new RegExp(list.addLabel) })).toBeInTheDocument()
+      // **한 화면에 목록이 둘 이상이면 같은 추가 라벨이 둘일 수 있다**(FIN-PLAN-01의 '+ 항목 추가').
+      // 재는 것은 '추가 조작이 그려졌는가'이지 하나뿐인가가 아니다.
+      expect(screen.getAllByRole('button', { name: labelPattern(list.addLabel) }).length).toBeGreaterThan(0)
       // 초기 항목은 다른 필드의 초기값이 정하므로 그 값 기준으로 확인한다.
       const trigger = spec.elements
         .map((element) => element.spec)
@@ -236,7 +246,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       )
       expect(
         labels.some(
-          (label) => screen.queryAllByRole('button', { name: new RegExp(label) }).length > 0,
+          (label) => screen.queryAllByRole('button', { name: labelPattern(label) }).length > 0,
         ),
         `${screenId}의 버튼 '${labels.join(' 또는 ')}'`,
       ).toBe(true)
@@ -252,7 +262,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       const label = (element.spec as { label?: string }).label
       if (typeof label !== 'string') continue
       const allowed = drawsElement(element, { screenParams })
-      const drawn = screen.queryAllByRole('button', { name: new RegExp(label) }).length > 0
+      const drawn = screen.queryAllByRole('button', { name: labelPattern(label) }).length > 0
       expect(
         drawn,
         `${screenId}의 '${label}' — ${element.drawnWhen.dataSourceKey}.${element.drawnWhen.field}가 ${allowed ? '허락했다' : '막았다'}`,
@@ -301,7 +311,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
       }
       const went: string[] = []
       renderScreen(screenId, (to) => went.push(to))
-      const found = screen.queryAllByRole('button', { name: new RegExp(button.label) })
+      const found = screen.queryAllByRole('button', { name: labelPattern(button.label) })
       // 그려지지 않는 단추는 다른 검사가 잡는다. 여기서는 눌리는 것만 본다.
       if (found[0] !== undefined) {
         await userEvent.click(found[0])
@@ -330,7 +340,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
 
     for (const element of here) {
       const label = (element.spec as { label: string }).label
-      const found = screen.getAllByRole('button', { name: new RegExp(label) })
+      const found = screen.getAllByRole('button', { name: labelPattern(label) })
       expect(
         found.some((node) => node.getAttribute('aria-current') === 'page'),
         `${screenId}의 '${label}'는 지금 보고 있는 자리인데 그렇게 표시되지 않습니다`,

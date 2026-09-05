@@ -419,7 +419,11 @@ describe('design/deviations.ts', () => {
   // 스스로 어긋난 자리가 아니라 같은 뜻에 색 셋을 쓴 표현의 불규칙이다(MSG-02의
   // 골라진 칩). 목록이 원격이라 여태 아무것도 골라지지 않은 채로 견주었고, 서버가
   // 처음 열릴 것을 표시해 오면서 비로소 재어졌다.
-  const PLACE_DEVIATIONS = 86
+  // 86 → 99 (2026-09-06). 늘어난 열셋은 전부 FIN-PLAN-01 한 화면이고 **MSG-02와 같은 계열**이다 —
+  // select의 값은 부서·행사의 id이고 이름은 원격 목록에서 첫 그림 뒤에 오므로, 대조가 그
+  // 이름과 그것이 든 칸을 못 본다. 여덟 번째 갈래가 아니다. 초안이 이름을 함께 실어 오면
+  // 열셋이 한꺼번에 사라진다(백로그 '지금').
+  const PLACE_DEVIATIONS = 99
 
   it('자리에 건 예외가 조용히 늘지 않는다', () => {
     const atPlace = DEVIATIONS.filter((deviation) => deviation.by === 'place')

@@ -2903,7 +2903,33 @@ const INVITED_ORGANIZATIONS: Record<string, DataRow> = {
   },
 }
 
+// 예산 편성 한 벌(FIN-PLAN-01). 값은 design(600:2)이 그린 그대로다 — 수입 둘, 상시
+// 항목 넷, 행사 하나의 항목 둘. **금액은 수다** — 자릿점은 화면이 붙인다(합계를 화면이
+// 다시 셈하는 자리라 글로 줄 수 없다). 부서는 org.departments의 값이고 행사는
+// finance.budgetEvents의 값이다. 갓 만든 학생회는 기간도 줄도 없이 온다 — 그 모습은
+// 서버 검사가 잰다(apps/api/src/finance/budget-plan.test.ts).
+const BUDGET_PLAN_DRAFT: DataRow = {
+  periodStart: '2026-03-01',
+  periodEnd: '2026-08-31',
+  sources: [
+    { id: 'BS-01', sourceName: '학생회비', sourceAmount: 24_000_000 },
+    { id: 'BS-02', sourceName: '학교 지원금', sourceAmount: 6_000_000 },
+  ],
+  items: [
+    { id: 'BI-11', itemName: '운영비', itemAmount: 3_000_000, itemDepartment: 'D-01' },
+    { id: 'BI-12', itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02' },
+    { id: 'BI-13', itemName: '안전·설비', itemAmount: 1_800_000, itemDepartment: 'D-01' },
+    { id: 'BI-14', itemName: '비품', itemAmount: 1_200_000 },
+  ],
+  eventItems: [
+    { id: 'BI-21', eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000 },
+    { id: 'BI-22', eventItemEvent: 'E-01', eventItemName: '홍보비', eventItemAmount: 800_000 },
+  ],
+}
+
 export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
+  // 예산 편성(FIN-PLAN-01). 화면 하나가 이 한 벌을 초안으로 삼는다.
+  'finance.budgetPlanDraft': BUDGET_PLAN_DRAFT,
   // 행사 목록을 보는 사람. 지금 보는 사람은 새 행사를 만들 수 없다 - 만들 수 있는
   // 사람이 보는 그림이 EVT-00A2(변형)이고, 사람이 그 사이를 오갈 수 없다.
   'event.listViewer': { canCreateEvent: false },

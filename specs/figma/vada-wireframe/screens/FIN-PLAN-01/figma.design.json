@@ -5,7 +5,7 @@
     "format": "JSON_REST_V1",
     "nodeId": "600:2",
     "rawFile": "figma.raw.json",
-    "hash": "08196f831c1384c1d85e6a22d57fc2b2a207319a306157b6406e08a917557417"
+    "hash": "b73572c3ddf8028c3ce2e19a82fb5d6d6d6ae509c2d66f8296aace8d33625d25"
   },
   "viewport": {
     "width": 1288,
@@ -3334,11 +3334,11 @@
                                           {
                                             "id": "602:9",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -3350,7 +3350,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -3421,7 +3421,7 @@
                                           {
                                             "id": "602:11",
                                             "type": "text",
-                                            "name": "2026. 03. 01",
+                                            "name": "2026-03-01",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -3446,7 +3446,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "2026. 03. 01",
+                                              "content": "2026-03-01",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -3547,11 +3547,11 @@
                                           {
                                             "id": "602:15",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -3563,7 +3563,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -3634,7 +3634,7 @@
                                           {
                                             "id": "602:17",
                                             "type": "text",
-                                            "name": "2026. 08. 31",
+                                            "name": "2026-08-31",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -3659,7 +3659,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "2026. 08. 31",
+                                              "content": "2026-08-31",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -3885,11 +3885,11 @@
                                           {
                                             "id": "602:25",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -3901,7 +3901,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -4096,11 +4096,11 @@
                                           {
                                             "id": "602:31",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -4112,7 +4112,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -4183,7 +4183,7 @@
                                           {
                                             "id": "602:33",
                                             "type": "text",
-                                            "name": "24,000,000",
+                                            "name": "24000000",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -4208,7 +4208,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "24,000,000",
+                                              "content": "24000000",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -4433,11 +4433,11 @@
                                           {
                                             "id": "602:43",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -4449,7 +4449,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -4644,11 +4644,11 @@
                                           {
                                             "id": "602:49",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -4660,7 +4660,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -4731,7 +4731,7 @@
                                           {
                                             "id": "602:51",
                                             "type": "text",
-                                            "name": "6,000,000",
+                                            "name": "6000000",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -4756,7 +4756,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "6,000,000",
+                                              "content": "6000000",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -5164,11 +5164,11 @@
                                           {
                                             "id": "603:9",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -5180,7 +5180,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -5375,11 +5375,11 @@
                                           {
                                             "id": "603:15",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -5391,7 +5391,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -5462,7 +5462,7 @@
                                           {
                                             "id": "603:17",
                                             "type": "text",
-                                            "name": "3,000,000",
+                                            "name": "3000000",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -5487,7 +5487,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "3,000,000",
+                                              "content": "3000000",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -5937,11 +5937,11 @@
                                           {
                                             "id": "603:34",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -5953,7 +5953,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -6148,11 +6148,11 @@
                                           {
                                             "id": "603:40",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -6164,7 +6164,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -6235,7 +6235,7 @@
                                           {
                                             "id": "603:42",
                                             "type": "text",
-                                            "name": "2,500,000",
+                                            "name": "2500000",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -6260,7 +6260,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "2,500,000",
+                                              "content": "2500000",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -6710,11 +6710,11 @@
                                           {
                                             "id": "603:59",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -6726,7 +6726,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -6921,11 +6921,11 @@
                                           {
                                             "id": "603:65",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -6937,7 +6937,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -7008,7 +7008,7 @@
                                           {
                                             "id": "603:67",
                                             "type": "text",
-                                            "name": "1,800,000",
+                                            "name": "1800000",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -7033,7 +7033,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "1,800,000",
+                                              "content": "1800000",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -7483,11 +7483,11 @@
                                           {
                                             "id": "603:84",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -7499,7 +7499,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -7694,11 +7694,11 @@
                                           {
                                             "id": "603:90",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -7710,7 +7710,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -7781,7 +7781,7 @@
                                           {
                                             "id": "603:92",
                                             "type": "text",
-                                            "name": "1,200,000",
+                                            "name": "1200000",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -7806,7 +7806,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "1,200,000",
+                                              "content": "1200000",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -8664,11 +8664,11 @@
                                           {
                                             "id": "603:124",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -8680,7 +8680,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -8875,11 +8875,11 @@
                                           {
                                             "id": "603:130",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -8891,7 +8891,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -8962,7 +8962,7 @@
                                           {
                                             "id": "603:132",
                                             "type": "text",
-                                            "name": "1,200,000",
+                                            "name": "1200000",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -8987,7 +8987,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "1,200,000",
+                                              "content": "1200000",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",
@@ -9212,11 +9212,11 @@
                                           {
                                             "id": "603:142",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -9228,7 +9228,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -9423,11 +9423,11 @@
                                           {
                                             "id": "603:148",
                                             "type": "text",
-                                            "name": "Text",
+                                            "name": "*",
                                             "box": {
                                               "x": 40.878,
                                               "y": -1,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "appearance": {
@@ -9439,7 +9439,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "",
+                                              "content": "*",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Medium",
@@ -9510,7 +9510,7 @@
                                           {
                                             "id": "603:150",
                                             "type": "text",
-                                            "name": "800,000",
+                                            "name": "800000",
                                             "box": {
                                               "x": 11.5,
                                               "y": 7.75,
@@ -9535,7 +9535,7 @@
                                               ]
                                             },
                                             "text": {
-                                              "content": "800,000",
+                                              "content": "800000",
                                               "style": {
                                                 "fontFamily": "Inter",
                                                 "fontStyle": "Regular",

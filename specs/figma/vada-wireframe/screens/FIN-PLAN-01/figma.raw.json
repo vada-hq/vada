@@ -5381,7 +5381,7 @@
                                           },
                                           {
                                             "id": "602:9",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -5403,15 +5403,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 27664.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1643.5491943359375,
+                                              "y": 27667.86328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -5490,7 +5495,7 @@
                                         "children": [
                                           {
                                             "id": "602:11",
-                                            "name": "2026. 03. 01",
+                                            "name": "2026-03-01",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -5518,7 +5523,7 @@
                                             "absoluteRenderBounds": {
                                               "x": 1614.4222412109375,
                                               "y": 27693.71875,
-                                              "width": 69.32275390625,
+                                              "width": 67.64794921875,
                                               "height": 9.162109375
                                             },
                                             "constraints": {
@@ -5529,7 +5534,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "2026. 03. 01",
+                                            "characters": "2026-03-01",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -5772,7 +5777,7 @@
                                           },
                                           {
                                             "id": "602:15",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -5794,15 +5799,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.3780517578125,
                                               "y": 27664.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1998.0491943359375,
+                                              "y": 27667.86328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -5881,7 +5891,7 @@
                                         "children": [
                                           {
                                             "id": "602:17",
-                                            "name": "2026. 08. 31",
+                                            "name": "2026-08-31",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -5909,7 +5919,7 @@
                                             "absoluteRenderBounds": {
                                               "x": 1968.9222412109375,
                                               "y": 27693.71875,
-                                              "width": 69.215087890625,
+                                              "width": 67.396728515625,
                                               "height": 9.162109375
                                             },
                                             "constraints": {
@@ -5920,7 +5930,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "2026. 08. 31",
+                                            "characters": "2026-08-31",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -6395,7 +6405,7 @@
                                           },
                                           {
                                             "id": "602:25",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -6417,15 +6427,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 27812.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1643.5491943359375,
+                                              "y": 27815.86328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -6786,7 +6801,7 @@
                                           },
                                           {
                                             "id": "602:31",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -6808,15 +6823,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.378173828125,
                                               "y": 27812.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1998.04931640625,
+                                              "y": 27815.86328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -6895,7 +6915,7 @@
                                         "children": [
                                           {
                                             "id": "602:33",
-                                            "name": "24,000,000",
+                                            "name": "24000000",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -6923,8 +6943,8 @@
                                             "absoluteRenderBounds": {
                                               "x": 1968.9222412109375,
                                               "y": 27841.71875,
-                                              "width": 64.884521484375,
-                                              "height": 11.20703125
+                                              "width": 59.36962890625,
+                                              "height": 9.15234375
                                             },
                                             "constraints": {
                                               "vertical": "TOP",
@@ -6934,7 +6954,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "24,000,000",
+                                            "characters": "24000000",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -7412,7 +7432,7 @@
                                           },
                                           {
                                             "id": "602:43",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -7434,15 +7454,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 27874.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1643.5491943359375,
+                                              "y": 27877.86328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -7803,7 +7828,7 @@
                                           },
                                           {
                                             "id": "602:49",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -7825,15 +7850,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.378173828125,
                                               "y": 27874.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1998.04931640625,
+                                              "y": 27877.86328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -7912,7 +7942,7 @@
                                         "children": [
                                           {
                                             "id": "602:51",
-                                            "name": "6,000,000",
+                                            "name": "6000000",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -7940,8 +7970,8 @@
                                             "absoluteRenderBounds": {
                                               "x": 1968.7830810546875,
                                               "y": 27903.71875,
-                                              "width": 57.582763671875,
-                                              "height": 11.20703125
+                                              "width": 52.06787109375,
+                                              "height": 9.162109375
                                             },
                                             "constraints": {
                                               "vertical": "TOP",
@@ -7951,7 +7981,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "6,000,000",
+                                            "characters": "6000000",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -8752,7 +8782,7 @@
                                           },
                                           {
                                             "id": "603:9",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -8774,15 +8804,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 28061,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1643.5491943359375,
+                                              "y": 28064.36328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -9143,7 +9178,7 @@
                                           },
                                           {
                                             "id": "603:15",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -9165,15 +9200,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.378173828125,
                                               "y": 28061,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1998.04931640625,
+                                              "y": 28064.36328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -9252,7 +9292,7 @@
                                         "children": [
                                           {
                                             "id": "603:17",
-                                            "name": "3,000,000",
+                                            "name": "3000000",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -9280,8 +9320,8 @@
                                             "absoluteRenderBounds": {
                                               "x": 1968.90478515625,
                                               "y": 28090.21875,
-                                              "width": 57.7601318359375,
-                                              "height": 11.20703125
+                                              "width": 52.1016845703125,
+                                              "height": 9.15234375
                                             },
                                             "constraints": {
                                               "vertical": "TOP",
@@ -9291,7 +9331,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "3,000,000",
+                                            "characters": "3000000",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -10220,7 +10260,7 @@
                                           },
                                           {
                                             "id": "603:34",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -10242,15 +10282,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 28123,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1643.5491943359375,
+                                              "y": 28126.36328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -10611,7 +10656,7 @@
                                           },
                                           {
                                             "id": "603:40",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -10633,15 +10678,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.378173828125,
                                               "y": 28123,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1998.04931640625,
+                                              "y": 28126.36328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -10720,7 +10770,7 @@
                                         "children": [
                                           {
                                             "id": "603:42",
-                                            "name": "2,500,000",
+                                            "name": "2500000",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -10748,8 +10798,8 @@
                                             "absoluteRenderBounds": {
                                               "x": 1968.9222412109375,
                                               "y": 28152.21875,
-                                              "width": 57.563232421875,
-                                              "height": 11.20703125
+                                              "width": 51.498046875,
+                                              "height": 9.15234375
                                             },
                                             "constraints": {
                                               "vertical": "TOP",
@@ -10759,7 +10809,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "2,500,000",
+                                            "characters": "2500000",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -11688,7 +11738,7 @@
                                           },
                                           {
                                             "id": "603:59",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -11710,15 +11760,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 28185,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1643.5491943359375,
+                                              "y": 28188.36328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -12074,7 +12129,7 @@
                                           },
                                           {
                                             "id": "603:65",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -12096,15 +12151,20 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.378173828125,
                                               "y": 28185,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
-                                            "absoluteRenderBounds": null,
+                                            "absoluteRenderBounds": {
+                                              "x": 1998.04931640625,
+                                              "y": 28188.36328125,
+                                              "width": 4.1351318359375,
+                                              "height": 4.294921875
+                                            },
                                             "constraints": {
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -12183,7 +12243,7 @@
                                         "children": [
                                           {
                                             "id": "603:67",
-                                            "name": "1,800,000",
+                                            "name": "1800000",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -12217,7 +12277,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "1,800,000",
+                                            "characters": "1800000",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -13116,7 +13176,7 @@
                                           },
                                           {
                                             "id": "603:84",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -13138,7 +13198,7 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 28247,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "absoluteRenderBounds": null,
@@ -13146,7 +13206,7 @@
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -13482,7 +13542,7 @@
                                           },
                                           {
                                             "id": "603:90",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -13504,7 +13564,7 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.378173828125,
                                               "y": 28247,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "absoluteRenderBounds": null,
@@ -13512,7 +13572,7 @@
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -13586,7 +13646,7 @@
                                         "children": [
                                           {
                                             "id": "603:92",
-                                            "name": "1,200,000",
+                                            "name": "1200000",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -13620,7 +13680,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "1,200,000",
+                                            "characters": "1200000",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -15198,7 +15258,7 @@
                                           },
                                           {
                                             "id": "603:124",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -15220,7 +15280,7 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 28495.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "absoluteRenderBounds": null,
@@ -15228,7 +15288,7 @@
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -15564,7 +15624,7 @@
                                           },
                                           {
                                             "id": "603:130",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -15586,7 +15646,7 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.378173828125,
                                               "y": 28495.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "absoluteRenderBounds": null,
@@ -15594,7 +15654,7 @@
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -15668,7 +15728,7 @@
                                         "children": [
                                           {
                                             "id": "603:132",
-                                            "name": "1,200,000",
+                                            "name": "1200000",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -15702,7 +15762,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "1,200,000",
+                                            "characters": "1200000",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -16150,7 +16210,7 @@
                                           },
                                           {
                                             "id": "603:142",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -16172,7 +16232,7 @@
                                             "absoluteBoundingBox": {
                                               "x": 1642.8780517578125,
                                               "y": 28557.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "absoluteRenderBounds": null,
@@ -16180,7 +16240,7 @@
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -16516,7 +16576,7 @@
                                           },
                                           {
                                             "id": "603:148",
-                                            "name": "Text",
+                                            "name": "*",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -16538,7 +16598,7 @@
                                             "absoluteBoundingBox": {
                                               "x": 1997.378173828125,
                                               "y": 28557.5,
-                                              "width": 0,
+                                              "width": 6,
                                               "height": 14
                                             },
                                             "absoluteRenderBounds": null,
@@ -16546,7 +16606,7 @@
                                               "vertical": "TOP",
                                               "horizontal": "LEFT"
                                             },
-                                            "characters": "",
+                                            "characters": "*",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [
@@ -16620,7 +16680,7 @@
                                         "children": [
                                           {
                                             "id": "603:150",
-                                            "name": "800,000",
+                                            "name": "800000",
                                             "type": "TEXT",
                                             "scrollBehavior": "SCROLLS",
                                             "blendMode": "PASS_THROUGH",
@@ -16654,7 +16714,7 @@
                                             "layoutGrow": 0,
                                             "layoutSizingHorizontal": "FILL",
                                             "layoutSizingVertical": "HUG",
-                                            "characters": "800,000",
+                                            "characters": "800000",
                                             "characterStyleOverrides": [],
                                             "styleOverrideTable": {},
                                             "lineTypes": [

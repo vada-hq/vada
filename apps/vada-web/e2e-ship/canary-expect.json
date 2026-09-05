@@ -132,12 +132,8 @@
       "over": null
     },
     "EVT-03B": {
-      "ready": false,
-      "missing": [
-        "event.staffDeptLeaderCandidates",
-        "event.staffMemberCandidates",
-        "event.staffUnassignedMembers"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "departmentId",
         "eventId"
@@ -332,6 +328,13 @@
         "finance.ledgerSummary",
         "finance.orgBudgetItems"
       ],
+      "needs": [],
+      "shell": true,
+      "over": null
+    },
+    "FIN-PLAN-01": {
+      "ready": true,
+      "missing": [],
       "needs": [],
       "shell": true,
       "over": null
@@ -573,11 +576,8 @@
       "over": null
     },
     "OPS-MEET-06B": {
-      "ready": false,
-      "missing": [
-        "meeting.agendaPicker",
-        "meeting.minutesProgress"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "meetingId"
       ],

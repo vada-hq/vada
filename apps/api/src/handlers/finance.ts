@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import { orgOf, type Handlers } from '../deps.ts'
+import { budgetEventOptions, budgetPlanDraft, saveBudgetPlan } from '../finance/budget-plan.ts'
 import { paymentEvidences, paymentEvidenceSummary } from '../finance/evidence.ts'
 import { eventExists, myPurchaseRequests, myPurchaseRequestSummary } from '../finance/mine.ts'
 import { purchaseOrderList, purchaseOrderSummary } from '../finance/orders.ts'
@@ -16,9 +17,12 @@ import { NotFound } from '../routes.ts'
 // 요청 표를 읽으므로 한 사람이 든다 — 자리가 겹치지만 않으면 이름의 머리와 파일
 // 이름이 달라도 된다(`handlers/index.test.ts`가 겹침만 본다).
 //
-// **쓰기가 없다.** 요청을 내고 판정을 보내는 동작이 명세에 있지만 이 회차는 읽는
-// 자리만 붙인다 — 그래서 지금 이 표들은 비어 있고, 화면은 빈 상태로 그려진다.
-// 그것이 맞는 결과다. 없는 것을 지어내 채우지 않는다.
+// **구매 요청 쪽에는 쓰기가 없다.** 요청을 내고 판정을 보내는 동작이 명세에 있지만
+// 이 회차는 읽는 자리만 붙인다 — 그래서 지금 이 표들은 비어 있고, 화면은 빈 상태로
+// 그려진다. 그것이 맞는 결과다. 없는 것을 지어내 채우지 않는다.
+//
+// **예산 편성(FIN-PLAN-01)은 쓴다.** 재정 28자리가 전부 이 화면이 넣는 금액 위에
+// 선다 — 기간·수입원·항목 한 벌을 통째로 읽고 통째로 덮어쓴다(`finance/budget-plan.ts`).
 
 /** 지금 보는 사람이 이 학생회에서 누구인가. **'내 구매 요청'을 이 값이 가른다.** */
 function memberOf(c: Context): string {
@@ -103,5 +107,22 @@ export const financeHandlers: Handlers = {
       throw new NotFound('그 행사를 찾지 못했습니다')
     }
     return myPurchaseRequestSummary(d.db, orgId, eventId, memberOf(c))
+  },
+
+  // ── 예산 편성 (FIN-PLAN-01) ────────────────────────────────────────────
+  //
+  // 학생회에 한 벌이라 인자가 없다. 누가 여는지는 미들웨어가 본다(`finance.manage`).
+  'finance.budgetPlanDraft': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return budgetPlanDraft(d.db, orgId)
+  },
+  'finance.budgetEvents.options': async (c, d) => budgetEventOptions(d.db, orgOf(c)),
+  // **덮어쓰기다.** 화면이 초안 한 벌을 그대로 보내고 안 보낸 줄은 지운 것이다.
+  'finance.budgetPlan.save': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    const body = await c.req.json().catch(() => null)
+    return saveBudgetPlan(d.db, orgId, body, d.newId, d.invite.now())
   },
 }

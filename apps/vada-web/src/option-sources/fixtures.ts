@@ -168,6 +168,12 @@ export const ORG_BUDGET_ITEM_OPTIONS: Option[] = [
 
 // 학생회의 부서. 조직도(data-sources의 org.departments)와 **같은 목록이어야 한다** —
 // 두 벌로 적으면 부서를 하나 만들 때 한쪽만 는다.
+/** 예산을 배정할 행사(FIN-PLAN-01). 끝난 행사는 오지 않는다. */
+export const BUDGET_EVENT_OPTIONS: Option[] = [
+  { value: 'E-01', label: '2026 봄 축제', description: '기획 중' },
+  { value: 'E-02', label: '2026 신입생 환영 행사', description: '진행 중' },
+]
+
 export const ORG_DEPARTMENT_OPTIONS: Option[] = [
   { value: 'D-01', label: '기획부' },
   { value: 'D-02', label: '홍보부' },

@@ -32,6 +32,7 @@ import { EVT04Screen } from './EVT04Screen'
 import { EVT05Screen } from './EVT05Screen'
 import { EVT05BScreen } from './EVT05BScreen'
 import { EVTFIN01Screen } from './EVTFIN01Screen'
+import { FINPLAN01Screen } from './FINPLAN01Screen'
 import { FINREQ01Screen } from './FINREQ01Screen'
 import { FINREQ02Screen } from './FINREQ02Screen'
 import { MYREQ01Screen } from './MYREQ01Screen'
@@ -87,6 +88,7 @@ import {
   evt01,
   evt02b,
   evt03b,
+  finPlan01,
   finReq01,
   finRev01,
   finSup01,
@@ -594,6 +596,17 @@ function ScreenBody({
         screenParams={screenParams}
         draft={readScopeDraft(scopes, finReq01.stateScopeKey)}
         onChangeDraft={(next) => onChangeScope(finReq01.stateScopeKey ?? '', next)}
+        onNavigate={onNavigate}
+        onScopeEvent={onScopeEvent}
+      />
+    )
+  }
+  if (screenId === 'FIN-PLAN-01') {
+    // 예산 편성이다. 학생회에 한 벌이라 인자가 없고, 초안은 저장된 편성에서 시작한다.
+    return (
+      <FINPLAN01Screen
+        draft={readScopeDraft(scopes, finPlan01.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(finPlan01.stateScopeKey ?? '', next)}
         onNavigate={onNavigate}
         onScopeEvent={onScopeEvent}
       />
