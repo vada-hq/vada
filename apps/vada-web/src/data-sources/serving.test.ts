@@ -136,7 +136,9 @@ describe('고르는 목록도 서버에서 온다', () => {
         return Response.json([])
       },
     })
-    await expect(fetchOptions('finance.purchaseTypes', {})).rejects.toBeInstanceOf(NotBuiltYet)
+    // 본보기는 **아직 서버에 안 붙은 원격 목록**이어야 한다. 한동안 구매 유형을 썼는데
+    // 2026-09-06에 명세가 그 값을 들게 되어(static) 서버 자리 자체가 없어졌다.
+    await expect(fetchOptions('meeting.modes', {})).rejects.toBeInstanceOf(NotBuiltYet)
     expect(called).toBe(false)
   })
 
