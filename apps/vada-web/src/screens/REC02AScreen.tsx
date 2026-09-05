@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
+import { Built } from '../components/Built'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { SearchSelect } from '../components/SearchSelect'
 import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
@@ -217,7 +218,6 @@ export function REC02AScreen({
   const [conditionLabel] = conditions.columns ?? []
 
   const reviewComment = summaryAt(NODE.reviewComment)
-  const reviewCommentRow = objectOf(reviewComment)
   const reviewCommentItem = (reviewComment.items ?? [])[0]
 
   const valueOf = (fieldKey: string) => draft.values[fieldKey] ?? ''
@@ -539,11 +539,16 @@ export function REC02AScreen({
               <span className="block pb-1.5 text-xs font-medium text-gray-500">
                 {reviewCommentItem?.label}
               </span>
-              <p className="min-h-24 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500">
-                {scalar(reviewCommentRow, reviewCommentItem?.field) === ''
-                  ? findDataSource(reviewComment.dataSourceKey).messages.empty
-                  : scalar(reviewCommentRow, reviewCommentItem?.field)}
-              </p>
+              {/* **이 자리만 따로 가린다.** 검토 단계가 명세에서 빠지므로 서버가 이 자리를
+                  짓지 않는다 — 그 하나 때문에 쓰는 화면이 통째로 닫히면 지어 놓은 나머지를
+                  아무도 못 본다(components/Built.tsx가 그 까닭을 적어 두었다). */}
+              <Built what="검토 의견">
+                <ReviewCommentBox
+                  load={() => objectOf(reviewComment)}
+                  field={reviewCommentItem?.field}
+                  emptyNote={findDataSource(reviewComment.dataSourceKey).messages.empty}
+                />
+              </Built>
             </div>
           </section>
         </aside>
@@ -572,6 +577,23 @@ export function REC02AScreen({
         </p>
       )}
     </AppShell>
+  )
+}
+
+interface ReviewCommentBoxProps {
+  /** 읽는 순간에 부른다 — 안 지은 자리의 신호가 이 안에서 나야 `Built`가 받는다. */
+  load: () => DataRow
+  field: string | undefined
+  emptyNote: string
+}
+
+// 검토자가 적은 의견. 아직 없으면 출처의 messages.empty가 그 자리를 말한다.
+function ReviewCommentBox({ load, field, emptyNote }: ReviewCommentBoxProps) {
+  const comment = scalar(load(), field)
+  return (
+    <p className="min-h-24 rounded border border-gray-200 bg-gray-50 px-3 py-2 text-xs text-gray-500">
+      {comment === '' ? emptyNote : comment}
+    </p>
   )
 }
 

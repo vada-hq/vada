@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
+import { Built } from '../components/Built'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { NEUTRAL_CHIP, STATE_CHIP, STATE_TEXT } from '../design/tones'
 import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
@@ -142,7 +143,6 @@ export function REC02Screen({
   const [handoverLabel, handoverValue] = handover.columns ?? []
 
   const checklist = listAt(NODE.checklist)
-  const checklistGroups = listOf(checklist)
   // 어느 열이 고치는 칸인지도 명세가 말한다(columns[].fieldKey). 그 이름으로
   // itemFields의 요소를 찾는다 — 자리로 집으면 열이 하나 늘 때 조용히 어긋난다.
   const [checkColumn, checkLabel] = checklist.columns ?? []
@@ -437,50 +437,25 @@ export function REC02Screen({
             </p>
           </div>
           <div data-node-id={NODE.checklist} className="px-5 py-4">
-            {checklistGroups.length === 0 ? (
-              <p className="py-6 text-center text-xs text-gray-500">
-                {findDataSource(checklist.dataSourceKey).messages.empty}
-              </p>
-            ) : (
-              checklistGroups.map((group, groupIndex) => (
-                <div key={scalar(group, 'groupLabel')} className="pb-4 last:pb-0">
-                  <span className="block text-xs font-bold text-blue-600">
-                    {scalar(group, ((checklist.group?.headerFields ?? [])[0]?.fields ?? [])[0])}
-                  </span>
-                  {rowsOf(group, checklist.group?.itemsField).map((row, rowIndex) => {
-                    const rowKey = scalar(row, 'key')
-                    const stored = draft.values[checkKey(rowKey)]
-                    const checked =
-                      stored === undefined || stored === null
-                        ? scalar(row, 'done') === 'true'
-                        : stored === 'true'
-                    return (
-                      <label
-                        key={rowKey}
-                        // 되풀이되는 칸은 **첫 벌만** 등록 노드를 갖는다.
-                        data-node-id={
-                          groupIndex === 0 && rowIndex === 0
-                            ? checklistField?.source?.nodeId
-                            : undefined
-                        }
-                        className="flex items-center gap-2 pt-2"
-                      >
-                        <input
-                          type={checklistBox.inputType}
-                          checked={checked}
-                          aria-label={scalar(row, (checkLabel?.fields ?? [])[0])}
-                          onChange={(event) => toggleCheck(rowKey, event.target.checked)}
-                          className="size-3.5 shrink-0 rounded border-gray-300"
-                        />
-                        <span className="text-xs font-medium text-gray-600">
-                          {scalar(row, (checkLabel?.fields ?? [])[0])}
-                        </span>
-                      </label>
-                    )
-                  })}
-                </div>
-              ))
-            )}
+            {/* **이 자리만 따로 가린다.** 항목이 어디서 오는지 명세가 말하지 않아 서버가
+                아직 답하지 않는다 — 그 하나 때문에 발행된 문서가 통째로 닫히면 지어 놓은
+                나머지를 아무도 못 본다(components/Built.tsx가 그 까닭을 적어 두었다). */}
+            <Built what="인수인계 체크리스트">
+              <ChecklistRows
+                checklist={checklist}
+                load={() => listOf(checklist)}
+                registeredNodeId={checklistField?.source?.nodeId}
+                inputType={checklistBox.inputType}
+                labelField={(checkLabel?.fields ?? [])[0]}
+                checkedOf={(rowKey, row) => {
+                  const stored = draft.values[checkKey(rowKey)]
+                  return stored === undefined || stored === null
+                    ? scalar(row, 'done') === 'true'
+                    : stored === 'true'
+                }}
+                onToggle={toggleCheck}
+              />
+            </Built>
           </div>
         </aside>
       </div>
@@ -491,6 +466,70 @@ export function REC02Screen({
         </p>
       )}
     </AppShell>
+  )
+}
+
+interface ChecklistRowsProps {
+  checklist: ItemListSpec
+  /** 읽는 순간에 부른다 — 안 지은 자리의 신호가 이 안에서 나야 `Built`가 받는다. */
+  load: () => DataRow[]
+  registeredNodeId: string | undefined
+  inputType: string | undefined
+  labelField: string | undefined
+  checkedOf: (rowKey: string, row: DataRow) => boolean
+  onToggle: (rowKey: string, next: boolean) => void
+}
+
+// 인수인계 체크리스트의 줄들. 부서별로 묶여 오고, 체크 값은 명세가 말한 자리에 산다.
+function ChecklistRows({
+  checklist,
+  load,
+  registeredNodeId,
+  inputType,
+  labelField,
+  checkedOf,
+  onToggle,
+}: ChecklistRowsProps) {
+  const checklistGroups = load()
+  if (checklistGroups.length === 0) {
+    return (
+      <p className="py-6 text-center text-xs text-gray-500">
+        {findDataSource(checklist.dataSourceKey).messages.empty}
+      </p>
+    )
+  }
+  return (
+    <>
+      {checklistGroups.map((group, groupIndex) => (
+        <div key={scalar(group, 'groupLabel')} className="pb-4 last:pb-0">
+          <span className="block text-xs font-bold text-blue-600">
+            {scalar(group, ((checklist.group?.headerFields ?? [])[0]?.fields ?? [])[0])}
+          </span>
+          {rowsOf(group, checklist.group?.itemsField).map((row, rowIndex) => {
+            const rowKey = scalar(row, 'key')
+            return (
+              <label
+                key={rowKey}
+                // 되풀이되는 칸은 **첫 벌만** 등록 노드를 갖는다.
+                data-node-id={groupIndex === 0 && rowIndex === 0 ? registeredNodeId : undefined}
+                className="flex items-center gap-2 pt-2"
+              >
+                <input
+                  type={inputType}
+                  checked={checkedOf(rowKey, row)}
+                  aria-label={scalar(row, labelField)}
+                  onChange={(event) => onToggle(rowKey, event.target.checked)}
+                  className="size-3.5 shrink-0 rounded border-gray-300"
+                />
+                <span className="text-xs font-medium text-gray-600">
+                  {scalar(row, labelField)}
+                </span>
+              </label>
+            )
+          })}
+        </div>
+      ))}
+    </>
   )
 }
 

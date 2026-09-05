@@ -25,15 +25,18 @@ import { day } from '../time.ts'
 // (`record.archive.requestReview`가 '발행이 아니다'라고 못 박았다) 이 자리는
 // 발행이 아니라 **완료된 행사를 세는 자리**다.
 
-type ArchiveStatus = 'draft' | 'inReview' | 'published'
+export type ArchiveStatus = 'draft' | 'inReview' | 'published'
 
 /**
  * 인수인계 문서가 어디까지 왔는가. **표에 있는 것은 갈래이고 말과 색은 여기서 붙는다.**
  *
  * 문서가 아예 없는 것과 쓰다 만 것은 다른 사실이지만, 화면이 묻는 것은 '발행됐는가'라
  * 둘 다 미발행으로 그린다 — 명세가 딱지를 셋만 그렸다(발행 · 검토 중 · 미발행).
+ *
+ * 아카이브 화면 둘(REC-02 · REC-02A)도 이 표를 쓴다 — 목록이 '인수인계 문서 미발행'이라
+ * 부른 문서를 열었을 때 같은 말이어야 한다.
  */
-const ARCHIVE: Record<ArchiveStatus, { label: string; tone: string }> = {
+export const ARCHIVE: Record<ArchiveStatus, { label: string; tone: string }> = {
   draft: { label: '인수인계 문서 미발행', tone: 'gray' },
   inReview: { label: '검토 중', tone: 'blue' },
   published: { label: '발행 완료', tone: 'green' },
