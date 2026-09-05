@@ -100,8 +100,7 @@ const SHOWS: Record<string, string> = {
  * 통과했다'**고 말하고, 그때 이 줄을 지우면 된다.
  */
 const BROKEN: Record<string, string> = {
-  'EVT-04B': '안 지은 자리를 여는 순간에만 읽어서 화면은 그려진다. 눈금이 첫 그림에 안 읽는 자리까지 센다',
-  'OPS-MEET-02': '같다',
+  'OPS-MEET-02': '안 지은 자리를 여는 순간에만 읽어서 화면은 그려진다. 눈금이 첫 그림에 안 읽는 자리까지 센다',
 }
 
 const SCREENS = Object.entries(READY)

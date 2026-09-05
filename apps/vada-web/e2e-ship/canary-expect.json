@@ -19,37 +19,24 @@
     "들어갈 방이 없다",
     "로 그려졌고 07/08의 상세는 ",
     "로 적는다. 06A는 같은 자리를 ",
-    "문항에서 추가 →",
     "바다시립대학교",
     "봄축제-부스-참석확인-QR.png",
     "부산바다대학교",
     "서울과학기술대학교",
     "수리데이터사이언스학과",
-    "시작 일시가 설정되지 않았습니다",
     "식순과 각 순서의 담당을 정합니다.",
     "신소재공학과",
-    "신청 방식이 정해지지 않았습니다",
     "신청 시작 일시",
     "신청 시작 일시가 설정되지 않았습니다",
     "아직 담당자가 없습니다",
     "아직 만들어진 업무가 없습니다",
     "이라 부르는데 디자인은 ",
     "인문사회대학",
-    "입력 위치: 설문 문항",
-    "입력 위치: 행사 기본정보 → 일시",
-    "입력 위치: 행사 기본정보 → 장소",
-    "입력 위치: 행사 기본정보 → 정원",
-    "입력 위치: 행사 기본정보 → 참가 대상",
     "자연과학대학",
-    "장소가 입력되지 않았습니다",
     "정보통신대학",
-    "정원 유형이 정해지지 않았습니다",
     "제3공학관 대강당",
     "제9대 컴퓨터학부 학생회",
-    "종료 일시가 설정되지 않았습니다",
     "지난 회의 결정 사항을 정리",
-    "참가 대상이 입력되지 않았습니다",
-    "참가비 유형이 정해지지 않았습니다",
     "참석자 화면",
     "체육대회_안전관리_최종회의_회의록.pdf",
     "체크인 시간 아님",
@@ -91,15 +78,8 @@
       "over": null
     },
     "EVT-02": {
-      "ready": false,
-      "missing": [
-        "event.checklist",
-        "event.overviewBriefing",
-        "event.overviewHighlights",
-        "event.participantStats",
-        "event.recentChanges",
-        "event.recruitSettings"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -107,15 +87,8 @@
       "over": null
     },
     "EVT-02B": {
-      "ready": false,
-      "missing": [
-        "event.checklist",
-        "event.overviewBriefing",
-        "event.overviewHighlights",
-        "event.participantStats",
-        "event.recentChanges",
-        "event.recruitSettings"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -123,15 +96,8 @@
       "over": "EVT-02"
     },
     "EVT-02C": {
-      "ready": false,
-      "missing": [
-        "event.checklist",
-        "event.overviewBriefing",
-        "event.overviewHighlights",
-        "event.participantStats",
-        "event.recentChanges",
-        "event.recruitSettings"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -139,13 +105,8 @@
       "over": "EVT-02"
     },
     "EVT-02D": {
-      "ready": false,
-      "missing": [
-        "event.recentChanges",
-        "event.wrapUpBanner",
-        "event.wrapUpCounts",
-        "event.wrapUpRemaining"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -153,13 +114,8 @@
       "over": null
     },
     "EVT-02E": {
-      "ready": false,
-      "missing": [
-        "event.recentChanges",
-        "event.wrapUpBanner",
-        "event.wrapUpCounts",
-        "event.wrapUpRemaining"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -190,15 +146,8 @@
       "over": null
     },
     "EVT-04": {
-      "ready": false,
-      "missing": [
-        "event.participantAffiliations",
-        "event.participantApplyStatus",
-        "event.participantAttendStatus",
-        "event.participantPaging",
-        "event.participantPayStatus",
-        "event.participants"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -206,15 +155,8 @@
       "over": null
     },
     "EVT-04B": {
-      "ready": false,
-      "missing": [
-        "event.participantAffiliations",
-        "event.participantApplyStatus",
-        "event.participantAttendStatus",
-        "event.participantPaging",
-        "event.participantPayStatus",
-        "event.participants"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -222,13 +164,8 @@
       "over": "EVT-04"
     },
     "EVT-05": {
-      "ready": false,
-      "missing": [
-        "event.surveyActivation",
-        "event.surveyActivationConditions",
-        "event.surveyQuestions",
-        "event.surveySettingsDraft"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -464,13 +401,7 @@
     "HOME-01K": {
       "ready": false,
       "missing": [
-        "home.briefing",
-        "home.briefingNotices",
-        "home.eventCounts",
-        "home.events",
-        "home.financeSummary",
-        "home.orgAlerts",
-        "home.schedules"
+        "home.financeSummary"
       ],
       "needs": [],
       "shell": true,
@@ -553,13 +484,8 @@
       "over": null
     },
     "OPS-CAL-01": {
-      "ready": false,
-      "missing": [
-        "ops.calendarDays",
-        "ops.calendarMonth",
-        "ops.calendarWeek",
-        "ops.calendarWeekRange"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "type"
       ],
