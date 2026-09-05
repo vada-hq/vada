@@ -12544,6 +12544,301 @@
         }
       }
     },
+    "/api/finance/budget-plan": {
+      "get": {
+        "operationId": "finance.budgetPlanDraft",
+        "summary": "학생회의 예산 편성 한 벌(FIN-PLAN-01). 이 화면의 입력을 채운다. 아직 아무것도 안 정한 학생회는 기간도 줄도 없이 온다 — 그것이 갓 만든 학생회의 첫 모습이다. 총예산은 수입의 합이고, 배정의 합은 그것을 넘지 못한다(넘으면 저장이 422다). 행사별 항목은 행사 id를 저마다 들고 오며, 화면의 '행사' 고르기는 그중 어느 행사의 줄을 보고 고칠지를 정한다.",
+        "x-authorize": {
+          "area": "finance.manage"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "periodStart": {
+                      "type": "string",
+                      "description": "회계 기간 시작. YYYY-MM-DD. **아직 안 정했으면 오지 않는다.** 예: 2026-03-01"
+                    },
+                    "periodEnd": {
+                      "type": "string",
+                      "description": "회계 기간 끝. YYYY-MM-DD. 아직 안 정했으면 오지 않는다. 예: 2026-08-31"
+                    },
+                    "sources": {
+                      "type": "array",
+                      "description": "수입원들. 총예산은 이것의 합이다. 없으면 빈 목록이다.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "이 줄을 가리키는 값. 새 줄은 비어 있다."
+                          },
+                          "sourceName": {
+                            "type": "string",
+                            "description": "어디서 온 돈인가. 예: 학생회비"
+                          },
+                          "sourceAmount": {
+                            "type": "number",
+                            "description": "금액(원). 수로 온다 — 자릿점은 화면이 붙인다. 예: 24000000"
+                          }
+                        },
+                        "required": [
+                          "sourceName",
+                          "sourceAmount"
+                        ]
+                      }
+                    },
+                    "items": {
+                      "type": "array",
+                      "description": "행사에 속하지 않는 상시 예산 항목들. 없으면 빈 목록이다.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "이 줄을 가리키는 값. 새 줄은 비어 있다."
+                          },
+                          "itemName": {
+                            "type": "string",
+                            "description": "항목 이름. 예: 운영비"
+                          },
+                          "itemAmount": {
+                            "type": "number",
+                            "description": "배정액(원). 수로 온다. 예: 3000000"
+                          },
+                          "itemDepartment": {
+                            "type": "string",
+                            "description": "담당 부서. org.departments의 값. 부서별 집행률이 이것으로 선다. 없으면 오지 않는다."
+                          }
+                        },
+                        "required": [
+                          "itemName",
+                          "itemAmount"
+                        ]
+                      }
+                    },
+                    "eventItems": {
+                      "type": "array",
+                      "description": "행사별 예산 항목들. 줄마다 어느 행사의 것인지를 든다. 없으면 빈 목록이다.",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "description": "이 줄을 가리키는 값. 새 줄은 비어 있다."
+                          },
+                          "eventItemEvent": {
+                            "type": "string",
+                            "description": "어느 행사의 항목인가. finance.budgetEvents의 값."
+                          },
+                          "eventItemName": {
+                            "type": "string",
+                            "description": "항목 이름. 예: 물품비"
+                          },
+                          "eventItemAmount": {
+                            "type": "number",
+                            "description": "배정액(원). 수로 온다. 예: 1200000"
+                          }
+                        },
+                        "required": [
+                          "eventItemEvent",
+                          "eventItemName",
+                          "eventItemAmount"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "sources",
+                    "items",
+                    "eventItems"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "finance.budgetPlan.save",
+        "summary": "예산 편성을 저장한다 — 기간·수입원·상시 항목·행사별 항목 전부를 한 번에. **덮어쓰기다**: 화면이 전부를 보내므로 안 보낸 줄은 지운 것이다. 배정의 합이 수입의 합을 넘으면 서버가 막는다(422). 사람이 정했다(2026-09-05): 행사 예산도 이 한 화면에서만 배정한다.",
+        "x-authorize": {
+          "area": "finance.manage"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "보낸 값이 받을 수 없는 것이다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "periodStart": {
+                    "type": "string",
+                    "description": "시작일"
+                  },
+                  "periodEnd": {
+                    "type": "string",
+                    "description": "끝일"
+                  },
+                  "sources": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "수입원"
+                  },
+                  "sourceName": {
+                    "type": "string",
+                    "description": "이름"
+                  },
+                  "sourceAmount": {
+                    "type": "number",
+                    "description": "금액(원)"
+                  },
+                  "items": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "상시 예산 항목"
+                  },
+                  "itemName": {
+                    "type": "string",
+                    "description": "이름"
+                  },
+                  "itemAmount": {
+                    "type": "number",
+                    "description": "배정액(원)"
+                  },
+                  "itemDepartment": {
+                    "type": "string",
+                    "description": "담당 부서(선택)"
+                  },
+                  "event": {
+                    "type": "string",
+                    "description": "행사"
+                  },
+                  "eventItems": {
+                    "type": "array",
+                    "items": {
+                      "type": "object"
+                    },
+                    "description": "행사별 예산 항목"
+                  },
+                  "eventItemName": {
+                    "type": "string",
+                    "description": "이름"
+                  },
+                  "eventItemAmount": {
+                    "type": "number",
+                    "description": "배정액(원)"
+                  }
+                },
+                "required": [
+                  "periodStart",
+                  "periodEnd",
+                  "sourceName",
+                  "sourceAmount",
+                  "itemName",
+                  "itemAmount",
+                  "eventItemName",
+                  "eventItemAmount"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/finance/overview": {
       "get": {
         "operationId": "finance.orgOverview",
@@ -18191,6 +18486,83 @@
           }
         },
         "security": []
+      }
+    },
+    "/api/finance/budget-plan/events": {
+      "get": {
+        "operationId": "finance.budgetEvents.options",
+        "summary": "예산을 배정할 수 있는 행사(FIN-PLAN-01). 어느 행사가 있는지는 조직이 정하므로 명세가 들 수 없다. 완료·취소된 행사는 오지 않는다 — 끝난 행사에 예산을 새로 배정할 일이 없다.",
+        "x-authorize": {
+          "area": "finance.manage"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "string",
+                        "description": "고른 값"
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "그려지는 글"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "곁에 붙는 설명(선택)"
+                      },
+                      "disabled": {
+                        "type": "boolean",
+                        "description": "고를 수 없는가(선택)"
+                      }
+                    },
+                    "required": [
+                      "value",
+                      "label"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/orgs": {

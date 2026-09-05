@@ -93,6 +93,10 @@ const FLOOR = {
   // 로그인 화면. 요소 둘을 그대로 뽑아냈고 헛것이 없다 — 그림을 이 저장소의 어휘로
   // 그렸기 때문이다(ONB-02를 복제해 고쳤다). 지어낸 모양이 없으면 추출기가 헤매지 않는다.
   "SIGN-IN": { matched: 2, spurious: 0 },
+  // 예산 편성(2026-09-05). FIN-REQ-01의 입력칸·드롭다운·단추를 복제해 그렸는데도 헛것이
+  // 스물넷이다 — 목록의 되풀이 줄(수입원 2·상시 4·행사 2)마다 추출기가 요소를 다시 낸다.
+  // FIN-REQ-01(18/41)과 같은 모양의 한계다.
+  "FIN-PLAN-01": { matched: 13, spurious: 24 },
   "EVT-00A": { matched: 3, spurious: 0 },
   "EVT-02": { matched: 3, spurious: 0 },
   "EVT-04": { matched: 6, spurious: 3 },

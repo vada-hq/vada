@@ -1232,6 +1232,27 @@
         "submitting": "카카오로 이동하는 중입니다",
         "error": "카카오로 들어가지 못했습니다"
       }
+    },
+    {
+      "key": "finance.budgetPlan.save",
+      "description": "예산 편성을 저장한다 — 기간·수입원·상시 항목·행사별 항목 전부를 한 번에. **덮어쓰기다**: 화면이 전부를 보내므로 안 보낸 줄은 지운 것이다. 배정의 합이 수입의 합을 넘으면 서버가 막는다(422). 사람이 정했다(2026-09-05): 행사 예산도 이 한 화면에서만 배정한다.",
+      "authorize": {
+        "area": "finance.manage"
+      },
+      "params": [],
+      "request": {
+        "method": "PUT",
+        "path": "/api/finance/budget-plan"
+      },
+      "payloadScope": "budgetPlanDraft",
+      "repeat": {
+        "kind": "overwrite",
+        "why": "편성은 한 벌이다. 다시 저장하면 그 한 벌이 바뀐다."
+      },
+      "messages": {
+        "submitting": "예산 편성을 저장하는 중입니다",
+        "error": "예산 편성을 저장하지 못했습니다"
+      }
     }
   ]
 }

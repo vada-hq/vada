@@ -1332,6 +1332,29 @@
         "empty": "선택할 수 있는 학부·학과가 없습니다",
         "error": "학부·학과 목록을 불러오지 못했습니다"
       }
+    },
+    {
+      "key": "finance.budgetEvents",
+      "type": "remote",
+      "description": "예산을 배정할 수 있는 행사(FIN-PLAN-01). 어느 행사가 있는지는 조직이 정하므로 명세가 들 수 없다. 완료·취소된 행사는 오지 않는다 — 끝난 행사에 예산을 새로 배정할 일이 없다.",
+      "authorize": {
+        "area": "finance.manage"
+      },
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/budget-plan/events",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 행사를 불러오세요",
+        "loading": "행사를 불러오는 중입니다",
+        "empty": "예산을 배정할 행사가 없습니다",
+        "error": "행사를 불러오지 못했습니다"
+      }
     }
   ]
 }

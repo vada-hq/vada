@@ -1,0 +1,419 @@
+{
+  "schemaVersion": 1,
+  "screenId": "FIN-PLAN-01",
+  "stateScopeKey": "budgetPlanDraft",
+  "params": [],
+  "draftFrom": {
+    "dataSourceKey": "finance.budgetPlanDraft",
+    "params": {}
+  },
+  "meta": {
+    "eyebrow": null,
+    "title": "예산 편성",
+    "description": null,
+    "footerNote": null
+  },
+  "activeNavigationScreenId": "FIN-00",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "600:2",
+    "name": "재정 · FIN-PLAN-01 · 예산 편성",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "601:2",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "취소",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "FIN-00"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "601:7",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "저장",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "finance.budgetPlan.save",
+          "onSuccess": {
+            "navigate": "FIN-00",
+            "scopeEvent": "complete"
+          },
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "600:97",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "예산 편성",
+        "description": "수입원과 예산 항목을 정합니다. 사용 가능액은 배정에서 실결제와 미납 승인액을 뺀 값입니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "602:2",
+        "name": "Section · 회계 기간",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "group",
+        "title": "회계 기간",
+        "memberFieldKeys": [
+          "periodStart",
+          "periodEnd"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "602:6",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "periodStart",
+        "label": "시작일",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "date",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "602:12",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "periodEnd",
+        "label": "끝일",
+        "placeholder": null,
+        "initialValue": null,
+        "inputType": "date",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "602:18",
+        "name": "Section · 수입원",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "list",
+        "fieldKey": "sources",
+        "label": "수입원",
+        "itemNoun": "수입원",
+        "addLabel": "+ 수입원 추가",
+        "minItems": 0,
+        "maxItems": 20,
+        "itemActions": [
+          "remove"
+        ],
+        "itemTitleFieldKey": "sourceName",
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "602:22",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "sourceName",
+              "label": "이름",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "602:28",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "sourceAmount",
+              "label": "금액(원)",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "number",
+              "valueType": "number",
+              "required": true,
+              "validation": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "603:2",
+        "name": "Section · 상시 예산 항목",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "list",
+        "fieldKey": "items",
+        "label": "상시 예산 항목",
+        "itemNoun": "항목",
+        "addLabel": "+ 항목 추가",
+        "minItems": 0,
+        "maxItems": 50,
+        "itemActions": [
+          "remove"
+        ],
+        "itemTitleFieldKey": "itemName",
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "603:6",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "itemName",
+              "label": "이름",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "603:12",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "itemAmount",
+              "label": "배정액(원)",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "number",
+              "valueType": "number",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "603:18",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "select",
+              "fieldKey": "itemDepartment",
+              "label": "담당 부서(선택)",
+              "placeholder": null,
+              "initialValue": null,
+              "valueType": "string",
+              "required": false,
+              "initiallyDisabled": false,
+              "searchable": false,
+              "optionsSource": {
+                "key": "org.departments"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "603:113",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "event",
+        "label": "행사",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": false,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "finance.budgetEvents"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "603:110",
+        "name": "Section · 행사별 예산 항목",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "list",
+        "fieldKey": "eventItems",
+        "label": "행사별 예산 항목",
+        "itemNoun": "항목",
+        "addLabel": "+ 항목 추가",
+        "minItems": 0,
+        "maxItems": 50,
+        "itemActions": [
+          "remove"
+        ],
+        "itemTitleFieldKey": "eventItemName",
+        "itemFields": [
+          {
+            "source": {
+              "nodeId": "603:121",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "eventItemName",
+              "label": "이름",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": true,
+              "validation": []
+            }
+          },
+          {
+            "source": {
+              "nodeId": "603:127",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "eventItemAmount",
+              "label": "배정액(원)",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "number",
+              "valueType": "number",
+              "required": true,
+              "validation": []
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "603:161",
+        "name": "수입 합계",
+        "figmaType": "TEXT"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "label": "수입 합계",
+            "unit": "원",
+            "compute": {
+              "op": "sum",
+              "listFieldKey": "sources",
+              "fieldKeys": [
+                "sourceAmount"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "606:2",
+        "name": "상시 배정 합계",
+        "figmaType": "TEXT"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "label": "상시 배정 합계",
+            "unit": "원",
+            "compute": {
+              "op": "sum",
+              "listFieldKey": "items",
+              "fieldKeys": [
+                "itemAmount"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "608:2",
+        "name": "행사 배정 합계",
+        "figmaType": "TEXT"
+      },
+      "spec": {
+        "type": "summary",
+        "items": [
+          {
+            "label": "행사 배정 합계",
+            "unit": "원",
+            "compute": {
+              "op": "sum",
+              "listFieldKey": "eventItems",
+              "fieldKeys": [
+                "eventItemAmount"
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import {
   boolean,
   foreignKey,
   index,
+  date,
   integer,
   jsonb,
   pgEnum,
@@ -1217,10 +1218,9 @@ export const quoteStatus = pgEnum('quote_status', ['none', 'requested', 'receive
  * eventId를 받고 `finance.orgBudgetItems`는 안 받는다) 다른 것은 **무엇에 딸렸느냐**뿐이다 —
  * 행사에 속하지 않는 상시 지출도 항목을 갖는다고 명세가 적었다.
  *
- * **여기에 예산을 넣는 화면이 명세에 없다.** 재정 화면 전부가 이 금액 위에 서 있는데
- * (`finance.orgOverview`의 총예산, `finance.orgBreakdown`의 배정액) 그것을 정하는
- * 자리가 어디에도 그려지지 않았다. 표는 자리를 비워 두고 기다린다 — 채우는 길이
- * 정해지면 그때 쓰기가 붙는다.
+ * **예산 편성 화면(FIN-PLAN-01)이 채운다**(2026-09-05에 그렸다). 한동안 그 화면이
+ * 명세에 없어 이 표가 비어 있었다. 이제 기간·수입원·항목이 한 벌로 저장된다 —
+ * `budget_periods`·`budget_sources`가 그 벌의 나머지다.
  */
 export const budgetItems = pgTable(
   'budget_items',
@@ -1234,6 +1234,11 @@ export const budgetItems = pgTable(
     name: text('name').notNull(),
     /** 배정된 금액(원). 화폐 표기는 읽을 때 붙인다 — 자릿점은 값이 아니라 글이다. */
     amount: integer('amount').notNull().default(0),
+    /**
+     * 담당 부서(선택). **부서별 집행률이 이것으로 선다**(FIN-00의 '부서별' 축).
+     * 사람이 정했다(2026-09-05): 상시 항목에 한 칸. 행사 항목은 행사가 곧 축이라 비운다.
+     */
+    departmentId: text('department_id'),
     sortOrder: integer('sort_order').notNull().default(0),
   },
   (table) => [
@@ -1243,8 +1248,52 @@ export const budgetItems = pgTable(
       foreignColumns: [events.orgId, events.id],
       name: 'budget_items_event_same_org',
     }).onDelete('cascade'),
+    foreignKey({
+      columns: [table.orgId, table.departmentId],
+      foreignColumns: [departments.orgId, departments.id],
+      name: 'budget_items_department_same_org',
+    }).onDelete('set null'),
     index('budget_items_org_event').on(table.orgId, table.eventId),
   ],
+)
+
+/**
+ * 회계 기간(FIN-PLAN-01의 첫 덩이). **학생회에 하나다** — 시작일과 끝일로 받는다.
+ * 학기든 연도든 단위를 못 박지 않는다(사람이 정함, 2026-09-05). `finance.orgOverview`의
+ * '회계 기간·기준일' 첫 줄이 여기서 나온다. 없으면 아직 편성 전이다.
+ */
+export const budgetPeriods = pgTable(
+  'budget_periods',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    startsOn: date('starts_on').notNull(),
+    endsOn: date('ends_on').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [unique('budget_periods_once').on(table.orgId)],
+)
+
+/**
+ * 수입원(FIN-PLAN-01의 둘째 덩이). **총예산은 이것의 합이다** — `finance.orgOverview`의
+ * `totalBudget`과 '학생회비 외 1건'(`totalBudgetNote`)이 여기서 나온다. 배정의 합은 이
+ * 합을 넘지 못한다(저장할 때 서버가 막는다).
+ */
+export const budgetSources = pgTable(
+  'budget_sources',
+  {
+    id: text('id').primaryKey(),
+    orgId: text('org_id')
+      .notNull()
+      .references(() => organizations.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    /** 금액(원). 자릿점은 읽을 때 붙인다. */
+    amount: integer('amount').notNull().default(0),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (table) => [unique('budget_sources_org_id').on(table.orgId, table.id), index('budget_sources_org').on(table.orgId)],
 )
 
 /**

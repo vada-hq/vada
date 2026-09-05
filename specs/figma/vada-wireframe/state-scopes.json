@@ -189,6 +189,15 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "budgetPlanDraft",
+      "description": "예산 편성 입력 초안(FIN-PLAN-01). 기간·수입원·상시 항목·행사별 항목이 한 벌이고 저장이 그 한 벌을 통째로 보낸다.",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete",
+        "cancel"
+      ]
     }
   ]
 }

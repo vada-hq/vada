@@ -35,9 +35,9 @@
           }
         ],
         "action": {
-          "type": "pending",
+          "type": "navigate",
           "label": "편성",
-          "note": "예산 편성 화면이 아직 명세되지 않았습니다."
+          "targetScreenId": "FIN-PLAN-01"
         }
       }
     }

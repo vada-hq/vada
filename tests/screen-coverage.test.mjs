@@ -218,6 +218,8 @@ export function coverageOf(screenId) {
 // 그것도 실패다 — 새로 그려진 글은 등록 노드가 덮거나, 아니면 사람이 이 표를 보고
 // 늘리는 까닭을 적어야 한다. 조용히 넘어갈 길을 남기지 않는다.
 const ALLOWED = {
+  // 예산 편성. FIN-00을 복제해 그렸으므로 그릇이 그리는 머리 셋만 남는다 — 구멍은 0이다.
+  'FIN-PLAN-01': { byFrame: 3, byCopy: 0 },
   'EVT-00A': { byFrame: 4, byCopy: 0 },
   'EVT-01': { byFrame: 1, byCopy: 0 },
   'EVT-02': { byFrame: 4, byCopy: 0 },

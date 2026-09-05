@@ -6848,6 +6848,115 @@
       ]
     },
     {
+      "key": "finance.budgetPlanDraft",
+      "shape": "object",
+      "description": "학생회의 예산 편성 한 벌(FIN-PLAN-01). 이 화면의 입력을 채운다. 아직 아무것도 안 정한 학생회는 기간도 줄도 없이 온다 — 그것이 갓 만든 학생회의 첫 모습이다. 총예산은 수입의 합이고, 배정의 합은 그것을 넘지 못한다(넘으면 저장이 422다). 행사별 항목은 행사 id를 저마다 들고 오며, 화면의 '행사' 고르기는 그중 어느 행사의 줄을 보고 고칠지를 정한다.",
+      "authorize": {
+        "area": "finance.manage"
+      },
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/finance/budget-plan"
+      },
+      "messages": {
+        "loading": "예산 편성을 불러오는 중입니다",
+        "empty": "예산 편성을 찾지 못했습니다",
+        "error": "예산 편성을 불러오지 못했습니다"
+      },
+      "fields": [
+        {
+          "key": "periodStart",
+          "description": "회계 기간 시작. YYYY-MM-DD. **아직 안 정했으면 오지 않는다.** 예: 2026-03-01",
+          "valueType": "string",
+          "optional": true
+        },
+        {
+          "key": "periodEnd",
+          "description": "회계 기간 끝. YYYY-MM-DD. 아직 안 정했으면 오지 않는다. 예: 2026-08-31",
+          "valueType": "string",
+          "optional": true
+        },
+        {
+          "key": "sources",
+          "description": "수입원들. 총예산은 이것의 합이다. 없으면 빈 목록이다.",
+          "fields": [
+            {
+              "key": "id",
+              "description": "이 줄을 가리키는 값. 새 줄은 비어 있다.",
+              "valueType": "string",
+              "optional": true
+            },
+            {
+              "key": "sourceName",
+              "description": "어디서 온 돈인가. 예: 학생회비",
+              "valueType": "string"
+            },
+            {
+              "key": "sourceAmount",
+              "description": "금액(원). 수로 온다 — 자릿점은 화면이 붙인다. 예: 24000000",
+              "valueType": "number"
+            }
+          ]
+        },
+        {
+          "key": "items",
+          "description": "행사에 속하지 않는 상시 예산 항목들. 없으면 빈 목록이다.",
+          "fields": [
+            {
+              "key": "id",
+              "description": "이 줄을 가리키는 값. 새 줄은 비어 있다.",
+              "valueType": "string",
+              "optional": true
+            },
+            {
+              "key": "itemName",
+              "description": "항목 이름. 예: 운영비",
+              "valueType": "string"
+            },
+            {
+              "key": "itemAmount",
+              "description": "배정액(원). 수로 온다. 예: 3000000",
+              "valueType": "number"
+            },
+            {
+              "key": "itemDepartment",
+              "description": "담당 부서. org.departments의 값. 부서별 집행률이 이것으로 선다. 없으면 오지 않는다.",
+              "valueType": "string",
+              "optional": true
+            }
+          ]
+        },
+        {
+          "key": "eventItems",
+          "description": "행사별 예산 항목들. 줄마다 어느 행사의 것인지를 든다. 없으면 빈 목록이다.",
+          "fields": [
+            {
+              "key": "id",
+              "description": "이 줄을 가리키는 값. 새 줄은 비어 있다.",
+              "valueType": "string",
+              "optional": true
+            },
+            {
+              "key": "eventItemEvent",
+              "description": "어느 행사의 항목인가. finance.budgetEvents의 값.",
+              "valueType": "string"
+            },
+            {
+              "key": "eventItemName",
+              "description": "항목 이름. 예: 물품비",
+              "valueType": "string"
+            },
+            {
+              "key": "eventItemAmount",
+              "description": "배정액(원). 수로 온다. 예: 1200000",
+              "valueType": "number"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "key": "finance.orgOverview",
       "shape": "object",
       "description": "조직 전체 재정의 겉면(FIN-00). 회계 기간·기준일부터 금액 넷과 집행률까지 한 벌로 온다 — 무엇을 실제 지출로 보고 무엇을 예정으로 보는지가 조직의 재정 규칙이라 화면이 더하거나 빼지 않는다. **행사 하나의 재정(event.financeSummary)과 다른 물건이다** — 저것은 eventId를 받고 이것은 학생회 전체를 센다.",
