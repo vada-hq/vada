@@ -1,5 +1,4 @@
 import { expect, test } from '@playwright/test'
-import { pendingNoteAt } from './spec'
 
 const SHOTS = 'e2e/shots'
 const OVERVIEW = '/#/FIN-00'
@@ -214,8 +213,9 @@ test('FIN-00B: 편성할 수 있는 사람에게는 그 카드가 눌러 들어�
   await expect(card.getByText('편성')).toBeVisible()
   await expect(card.getByText('총예산')).toBeVisible()
 
+  // 한동안 '예산 편성 화면이 아직 명세되지 않았습니다'라는 준비 중 안내로 끝났다.
+  // 2026-09-05 밤에 그 화면(FIN-PLAN-01)이 그림에서 들어왔고, 카드는 이제 거기로 간다.
   await card.click()
-  await expect(page.getByRole('status')).toContainText(
-    pendingNoteAt('FIN-00B', '30:2863'),
-  )
+  await expect(page).toHaveURL(/#\/FIN-PLAN-01$/)
+  await expect(page.getByRole('heading', { name: '예산 편성' }).first()).toBeVisible()
 })
