@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchOptions, getOptionSource } from '../option-sources/catalog'
+import { NotBuiltYet } from '../data-sources/server'
 import type { Option } from '../option-sources/catalog'
 
 interface ChoiceGroupProps {
@@ -42,6 +43,15 @@ export function ChoiceGroup({
   const [options, setOptions] = useState<Option[]>(
     source.type === 'static' ? source.options : [],
   )
+  // **못 받은 것을 빈 목록으로 대신하지 않는다.**
+  //
+  // 한동안 여기서 무슨 일이 나든 빈 목록을 두었다. 그러면 '고를 것이 없다'와
+  // '못 받았다'와 '아직 안 지었다' 셋이 화면에서 똑같이 보인다 — 사람은 고를 것이
+  // 없는 줄 알고 그냥 넘어간다. 카탈로그가 셋에 저마다 다른 말을 갖고 있는데도
+  // 그중 하나도 안 쓰고 있었다(FilterSelect는 쓴다).
+  const [failed, setFailed] = useState(false)
+  const [notBuilt, setNotBuilt] = useState<NotBuiltYet | null>(null)
+  const messages = source.type === 'remote' ? source.messages : null
   const paramsKey = JSON.stringify(sourceParams)
 
   // 펼친 형태라 목록이 화면에 처음부터 있어야 한다. 원격 출처는 즉시 불러온다.
@@ -50,21 +60,29 @@ export function ChoiceGroup({
       return
     }
     let cancelled = false
+    setFailed(false)
+    setNotBuilt(null)
     fetchOptions(sourceKey, JSON.parse(paramsKey) as Record<string, string>)
       .then((loaded) => {
         if (!cancelled) {
           setOptions(loaded)
         }
       })
-      .catch(() => {
-        if (!cancelled) {
-          setOptions([])
-        }
+      .catch((thrown: unknown) => {
+        if (cancelled) return
+        setOptions([])
+        // **아직 안 지은 것은 실패가 아니다.** 그 말은 화면을 감싼 그물이 한다 —
+        // 여기서 '못 받았다'로 바꿔 말하면 서버가 죽은 것과 구분이 안 된다.
+        if (thrown instanceof NotBuiltYet) setNotBuilt(thrown)
+        else setFailed(true)
       })
     return () => {
       cancelled = true
     }
   }, [source.type, sourceKey, paramsKey])
+
+  // 그물이 받을 수 있는 자리는 그리는 중이다. 효과 안에서 던지면 아무 데도 안 닿는다.
+  if (notBuilt !== null) throw notBuilt
 
   // **아무것도 고르지 않았으면 서버가 표시한 것을 연다.**
   //
@@ -87,6 +105,15 @@ export function ChoiceGroup({
   }, [options, value])
 
   const hasDescriptions = options.some((option) => Boolean(option.description))
+
+  // 못 받았으면 못 받았다고 한다. 카탈로그가 그 말을 갖고 있다.
+  if (failed) {
+    return (
+      <div id={id} data-node-id={nodeId} data-design-state="error" className="text-xs text-red-600">
+        {messages?.error}
+      </div>
+    )
+  }
 
   return (
     <div
