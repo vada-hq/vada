@@ -119,7 +119,7 @@
       "needs": [
         "eventId"
       ],
-      "shell": true,
+      "shell": false,
       "over": "EVT-02"
     },
     "EVT-02C": {
@@ -135,7 +135,7 @@
       "needs": [
         "eventId"
       ],
-      "shell": true,
+      "shell": false,
       "over": "EVT-02"
     },
     "EVT-02D": {
@@ -163,7 +163,7 @@
       "needs": [
         "eventId"
       ],
-      "shell": true,
+      "shell": false,
       "over": "EVT-02D"
     },
     "EVT-03A": {
@@ -218,7 +218,7 @@
       "needs": [
         "eventId"
       ],
-      "shell": true,
+      "shell": false,
       "over": "EVT-04"
     },
     "EVT-05": {
@@ -503,7 +503,7 @@
         "message.rooms"
       ],
       "needs": [],
-      "shell": true,
+      "shell": false,
       "over": "MSG-01"
     },
     "MSG-03": {
@@ -691,7 +691,7 @@
       "needs": [
         "meetingId"
       ],
-      "shell": true,
+      "shell": false,
       "over": "OPS-MEET-03A"
     },
     "OPS-MEET-D02": {
@@ -700,7 +700,7 @@
       "needs": [
         "meetingId"
       ],
-      "shell": true,
+      "shell": false,
       "over": "OPS-MEET-05A"
     },
     "OPS-MEET-D03": {
@@ -710,7 +710,7 @@
         "meetingId",
         "memberId"
       ],
-      "shell": true,
+      "shell": false,
       "over": "OPS-MEET-04B"
     },
     "ORG-00": {
@@ -777,14 +777,14 @@
       "ready": true,
       "missing": [],
       "needs": [],
-      "shell": true,
+      "shell": false,
       "over": "ORG-07A"
     },
     "ORG-07C": {
       "ready": true,
       "missing": [],
       "needs": [],
-      "shell": true,
+      "shell": false,
       "over": "ORG-07A"
     },
     "REC-01": {

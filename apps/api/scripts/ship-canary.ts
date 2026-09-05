@@ -8,10 +8,13 @@ import { createApp } from '../src/app.ts'
 import {
   departments,
   events,
+  invites,
+  meetingParticipants,
   meetings,
   members,
   organizations,
   students,
+  surveys,
   tasks,
   users,
 } from '../src/db/schema.ts'
@@ -78,6 +81,22 @@ async function seed() {
   await db.insert(meetings).values([
     { id: 'MTG-A', orgId: 'ORG-A', title: MINE.meeting, status: 'scheduled', scheduledAt: NOW, creatorMemberId: 'M-A' },
     { id: 'MTG-B', orgId: 'ORG-B', title: THEIRS.meeting, status: 'scheduled', scheduledAt: NOW, creatorMemberId: 'M-B' },
+  ])
+  // **초대는 학생회와 함께 생긴다.** 만드는 흐름(`createOrg`)이 그렇게 하므로 씨앗도
+  // 그 모양이어야 한다 — 없으면 아무도 못 들어오고 조직도 화면이 초대를 읽다 죽는다.
+  await db.insert(invites).values([
+    { code: 'CANARY-A', orgId: 'ORG-A', active: true, createdAt: NOW },
+    { code: 'CANARY-B', orgId: 'ORG-B', active: true, createdAt: NOW },
+  ])
+  // 회의의 참가자. **없으면 그 사람의 자리를 묻는 화면이 404다**(OPS-MEET-D03).
+  await db.insert(meetingParticipants).values([
+    { id: 'MP-A', orgId: 'ORG-A', meetingId: 'MTG-A', memberId: 'M-A', isHost: true },
+    { id: 'MP-B', orgId: 'ORG-B', meetingId: 'MTG-B', memberId: 'M-B', isHost: true },
+  ])
+  // 행사의 참여 설문. 행사마다 하나다.
+  await db.insert(surveys).values([
+    { id: 'SVY-A', orgId: 'ORG-A', eventId: 'E-A', linkToken: 'CANARY-SVY-A', active: false },
+    { id: 'SVY-B', orgId: 'ORG-B', eventId: 'E-B', linkToken: 'CANARY-SVY-B', active: false },
   ])
   await db.insert(tasks).values([
     { id: 'T-A', orgId: 'ORG-A', title: MINE.task, status: 'planned', departmentId: 'D-A', assigneeMemberId: 'M-A' },

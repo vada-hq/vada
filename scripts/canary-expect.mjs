@@ -167,8 +167,10 @@ for (const [id, one] of Object.entries(screens)) {
     seen.add(at)
     for (const key of screens[at].missing) if (!one.missing.includes(key)) one.missing.push(key)
     for (const name of screens[at].needs) if (!one.needs.includes(name)) one.needs.push(name)
-    // 셸도 뒤엣것의 것이다 — 창 자신은 두르지 않는다.
-    one.shell = one.shell || screens[at].shell
+    // **셸은 업지 않는다.** 뒤엣것을 그리기는 하지만 그 자리가 아직이면 자리 단위로
+    // 가려지고(`Built`), 그러면 셸도 함께 가려진다. 그래도 창 자신은 멀쩡히 뜨고
+    // 나갈 단추를 갖는다 — EVT-02C가 그 모양이다. 셸을 물려받는다고 적으면 눈금이
+    // 없는 것을 없다고 한다.
     at = screens[at].over
   }
   one.missing.sort()

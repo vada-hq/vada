@@ -100,15 +100,7 @@ const SHOWS: Record<string, string> = {
  * 통과했다'**고 말하고, 그때 이 줄을 지우면 된다.
  */
 const BROKEN: Record<string, string> = {
-  'ORG-03B': "서버가 'roleTone'을 안 준다 — 화면이 예외로 죽는다",
-  'ORG-03C': '같다',
-  'ORG-04B': '구성원 목록이 403이다 — 회장단인데도 못 받는다',
-  'EVT-02C': '준비 중인데 셸이 사라진다 — 창은 뒤엣것의 셸을 못 업는다. 사람이 갇힌다',
-  'EVT-02E': '같다',
-  'EVT-05B': '이 행사에 설문이 없어 404다. 카나리가 설문을 안 심는다',
-  'OPS-MEET-D03': '카나리김이 이 회의의 참가자가 아니라 404다. 참가자를 안 심는다',
   'EVT-04B': '안 지은 자리를 여는 순간에만 읽어서 화면은 그려진다. 눈금이 첫 그림에 안 읽는 자리까지 센다',
-  'EVT-05': '같다',
   'OPS-MEET-02': '같다',
 }
 
@@ -140,6 +132,13 @@ for (const { id, params, shows } of SCREENS) {
       if (one.type() === 'error') said.push(one.text())
     })
     page.on('pageerror', (one) => said.push(one.message))
+    // **무엇을 못 받았는지가 자리를 가리킨다.** '403이 났다'만으로는 어느 자리인지
+    // 알 수 없어 손으로 찾아야 한다.
+    page.on('response', (one) => {
+      if (!one.ok() && new URL(one.url()).pathname.startsWith('/api/')) {
+        said.push(`${one.status()} ${new URL(one.url()).pathname}${new URL(one.url()).search}`)
+      }
+    })
     const 말 = () => (said.length === 0 ? '' : `
   브라우저가 한 말: ${said.join(' | ')}`)
 
@@ -151,16 +150,20 @@ for (const { id, params, shows } of SCREENS) {
     //
     // '글자가 조금이라도 있으면 됐다'로 기다렸더니 **불러오는 중이라는 글에 걸려
     // 너무 일찍 읽었다**(2026-09-05). 기다릴 것은 글의 길이가 아니라 자리 잡음이다.
-    await page
-      .waitForFunction(
-        () => {
+    // **준비 중이라는 글이 먼저 온다.**
+    //
+    // 안 지은 자리를 알리는 글은 셸을 두르는데, 셸도 서버를 읽으므로 그동안은 맨
+    // 글로 먼저 그려진다. '준비 중'만 보고 멈추면 **셸이 오기 전에 읽는다** — 그러면
+    // 나갈 길이 없다고 잘못 말한다(EVT-02C·02E가 그렇게 붉었다, 2026-09-05).
+    //
+    // 셸을 두르는 화면은 셸을 기다린다. 안 두르는 화면만 둘 중 하나로 멈춘다.
+    const settled = READY[id]?.shell === true
+      ? () => (document.body.innerText ?? '').includes('카나리 학생회')
+      : () => {
           const text = document.body.innerText ?? ''
           return text.includes('카나리 학생회') || text.includes('아직 준비 중')
-        },
-        null,
-        { timeout: 20_000 },
-      )
-      .catch(() => {})
+        }
+    await page.waitForFunction(settled, null, { timeout: 20_000 }).catch(() => {})
     const drawn = (await page.locator('body').innerText()).replace(/\s+/g, ' ')
 
     // ── 남의 것
