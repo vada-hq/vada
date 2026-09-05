@@ -104,6 +104,7 @@ import {
 import { ALL_SCREENS } from '../spec/screens'
 import { dataSourceCallsOf, dataSourceKeysOf } from '../spec/screen-sources'
 import { useSourceLoading } from '../data-sources/loading'
+import { ScreenSkeleton } from '../components/Skeleton'
 import { SourceGate } from '../components/SourceGate'
 import { readScopeDraft } from '../state/scopes'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
@@ -158,14 +159,22 @@ export function ScreenRouter(props: ScreenRouterProps) {
           }),
   )
 
-  if (loading.status !== 'ready') {
-    const isError = loading.status === 'error'
+  // **기다림이 두 번 보이지 않게 한다.**
+  //
+  // 여기서 미리 받는 동안과, 그 뒤 화면 안에서 읽는 동안(`SourceGate`) — 기다림은
+  // 두 마디다. 한동안 앞마디는 맨 글이고 뒷마디는 회색 블록이라, 사람이 화면을 열면
+  // **글이 떴다가 블록이 떴다.** 배포된 것을 보고 사람이 물었다(2026-09-06).
+  //
+  // 두 마디가 같은 것을 그리면 한 번 기다린 것으로 보인다. 글은 `aria-label`로 남는다.
+  if (loading.status === 'loading') {
+    return <ScreenSkeleton label={loading.messages.join(' · ')} />
+  }
+  // **실패는 글이다.** 회색 블록은 '오는 중'이라는 뜻이라 안 오는 것을 그것으로 그리면
+  // 사람이 영영 기다린다.
+  if (loading.status === 'error') {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-gray-50 px-6">
-        <div
-          role={isError ? 'alert' : 'status'}
-          className={`max-w-md text-center text-sm ${isError ? 'text-red-700' : 'text-gray-600'}`}
-        >
+        <div role="alert" className="max-w-md text-center text-sm text-red-700">
           {loading.messages.map((message) => (
             <p key={message}>{message}</p>
           ))}

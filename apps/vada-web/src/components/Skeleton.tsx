@@ -13,14 +13,13 @@
 // **글을 버리지는 않는다.** 명세가 적어 둔 문구는 `aria-label`로 남는다 — 눈으로
 // 읽는 사람에게는 모양이, 읽어 주는 기계에게는 그 글이 간다.
 
-/** 한 자리가 채워질 동안. 블록 몇 줄이 뜬다. */
-export function Skeleton({ label, rows = 3 }: { label: string; rows?: number }) {
+/**
+ * 회색 줄 몇 개. **알리는 자리가 아니다** — 기다린다는 말은 감싼 쪽이 한 번만 한다.
+ * 겹쳐 두면 읽어 주는 기계가 같은 말을 여러 번 하고, 검사도 어느 것을 볼지 못 고른다.
+ */
+function Bars({ rows }: { rows: number }) {
   return (
-    <div
-      role="status"
-      aria-label={label}
-      className="flex flex-col gap-2 rounded-lg border border-gray-100 bg-white p-4"
-    >
+    <div className="flex flex-col gap-2 rounded-lg border border-gray-100 bg-white p-4">
       {Array.from({ length: rows }, (_, index) => (
         <div
           key={index}
@@ -29,6 +28,15 @@ export function Skeleton({ label, rows = 3 }: { label: string; rows?: number }) 
           style={{ width: index === rows - 1 ? '55%' : index === 0 ? '35%' : '100%' }}
         />
       ))}
+    </div>
+  )
+}
+
+/** 한 자리가 채워질 동안. 블록 몇 줄이 뜬다. */
+export function Skeleton({ label, rows = 3 }: { label: string; rows?: number }) {
+  return (
+    <div role="status" aria-label={label}>
+      <Bars rows={rows} />
     </div>
   )
 }
@@ -55,10 +63,10 @@ export function ScreenSkeleton({ label }: { label: string }) {
       <div className="flex min-w-0 flex-1 flex-col gap-4 p-6">
         <div className="h-5 w-48 animate-pulse rounded bg-gray-200" />
         <div className="grid grid-cols-2 gap-4">
-          <Skeleton label={label} rows={4} />
-          <Skeleton label={label} rows={4} />
+          <Bars rows={4} />
+          <Bars rows={4} />
         </div>
-        <Skeleton label={label} rows={5} />
+        <Bars rows={5} />
       </div>
     </div>
   )

@@ -44,13 +44,18 @@ function show(screenId: string) {
 const SAMPLES = ['HOME-01K', 'EVT-00A', 'FIN-00', 'OPS-MEET-01A', 'MY-01']
 
 describe('받아 오는 동안', () => {
-  it.each(SAMPLES)('%s: 카탈로그의 loading 문구를 그린다', async (screenId) => {
+  // **글은 이름으로 닿는다.** 기다리는 동안 눈에 보이는 것은 채워질 자리의 모양이고
+  // (사람이 정했다, 2026-09-06), 명세가 적어 둔 문구는 읽어 주는 기계에게 간다.
+  // 재는 것은 그대로다 — 카탈로그의 그 글이 사람에게 닿는가.
+  it.each(SAMPLES)('%s: 카탈로그의 loading 문구가 닿는다', async (screenId) => {
     restore.push(setLoadingBehaviour({ delayMs: 10_000 }))
     show(screenId)
 
     const spec = ALL_SCREENS.find((entry) => entry.screenId === screenId)
     const first = findDataSource(dataSourceKeysOf(spec!)[0]).messages.loading
-    expect(await screen.findByRole('status')).toHaveTextContent(first)
+    expect(await screen.findByRole('status')).toHaveAccessibleName(
+      expect.stringContaining(first) as unknown as string,
+    )
   })
 
   it('시간이 지나면 화면이 나온다', async () => {
