@@ -1,4 +1,5 @@
 import shellJson from '../../../../specs/figma/vada-wireframe/shell.json'
+import { findDataSource } from '../data-sources/catalog'
 import { resolveParams } from './params'
 import type { QueryParams, ScreenSpec } from './types'
 
@@ -58,6 +59,30 @@ export interface SourceCall {
   params: Record<string, string>
 }
 
+/**
+ * **빈 열쇠는 없는 열쇠다.**
+ *
+ * 화면이 아직 아무것도 안 고른 채로 열리면 그 자리의 인자가 빈 줄로 풀린다. 그
+ * 상태로 미리 받으면 `/api/org/members//role-assignment` 같은 주소가 나가고,
+ * 서버는 그것을 남의 것을 묻는 것으로 보아 막는다 — 그러면 **화면이 통째로 죽는다.**
+ * ORG-04B가 열자마자 그랬고, 배포 모양으로 걷는 카나리가 찾았다(2026-09-05).
+ *
+ * 위의 '그리기 전에는 값이 없는 인자'와 같은 사정이다: 아직 모르는 것은 **묻지
+ * 않는다.** 값이 생기면 그리는 자리에서 그때 묻는다.
+ */
+function missingKey(key: string, params: Record<string, string>): boolean {
+  let source
+  try {
+    source = findDataSource(key)
+  } catch {
+    // 카탈로그에 없는 이름은 여기서 가리지 않는다. 그 잘못은 다른 자리가 든다.
+    return false
+  }
+  return source.params.some(
+    (param) => param.required && (params[param.key] ?? '').trim() === '',
+  )
+}
+
 /** 그리기 전에는 값이 없는 인자. 이런 것이 섞인 부름은 미리 받지 않는다. */
 function needsDrawnRow(params: QueryParams | undefined): boolean {
   return Object.values(params ?? {}).some(
@@ -86,9 +111,11 @@ export function dataSourceCallsOf(
           ...(from.screenParams === undefined ? {} : { screenParams: from.screenParams }),
           ...(from.fields === undefined ? {} : { fields: from.fields }),
         })
-        const call = { key: holder.dataSourceKey, params }
-        const slot = `${call.key}?${Object.keys(params).sort().map((name) => `${name}=${params[name]}`).join('&')}`
-        calls.set(slot, call)
+        if (!missingKey(holder.dataSourceKey, params)) {
+          const call = { key: holder.dataSourceKey, params }
+          const slot = `${call.key}?${Object.keys(params).sort().map((name) => `${name}=${params[name]}`).join('&')}`
+          calls.set(slot, call)
+        }
       }
     }
     for (const [name, value] of Object.entries(node)) {
