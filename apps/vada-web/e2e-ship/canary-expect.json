@@ -188,12 +188,8 @@
       "over": null
     },
     "EVT-FIN-01": {
-      "ready": false,
-      "missing": [
-        "event.financeAlerts",
-        "event.financeBoard",
-        "event.financeSummary"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId",
         "stage"
@@ -287,13 +283,8 @@
       "over": null
     },
     "FIN-00": {
-      "ready": false,
-      "missing": [
-        "finance.orgBreakdown",
-        "finance.orgOverview",
-        "finance.proofSummary",
-        "finance.recentExpenses"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "scope"
       ],
@@ -301,10 +292,8 @@
       "over": null
     },
     "FIN-00B": {
-      "ready": false,
-      "missing": [
-        "finance.orgOverview"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [],
       "shell": false,
       "over": null
@@ -319,15 +308,8 @@
       "over": null
     },
     "FIN-LEDGER-01": {
-      "ready": false,
-      "missing": [
-        "finance.ledger",
-        "finance.ledgerEvents",
-        "finance.ledgerMonths",
-        "finance.ledgerScope",
-        "finance.ledgerSummary",
-        "finance.orgBudgetItems"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [],
       "shell": true,
       "over": null
@@ -349,14 +331,8 @@
       "over": null
     },
     "FIN-REQ-01": {
-      "ready": false,
-      "missing": [
-        "finance.budgetItems",
-        "finance.itemCategories",
-        "finance.purchaseRequestDraft",
-        "finance.purchaseTypes",
-        "finance.requestPriorities"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],
@@ -364,12 +340,8 @@
       "over": null
     },
     "FIN-REQ-02": {
-      "ready": false,
-      "missing": [
-        "finance.purchaseRequestDetail",
-        "finance.purchaseRequestHistory",
-        "finance.purchaseRequestItems"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "requestId"
       ],
@@ -386,14 +358,8 @@
       "over": null
     },
     "FIN-SUP-01": {
-      "ready": false,
-      "missing": [
-        "finance.purchaseRequestDetail",
-        "finance.supplementAttachments",
-        "finance.supplementInputFields",
-        "finance.supplementItems",
-        "finance.supplementRequest"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "itemId",
         "requestId"
@@ -402,10 +368,8 @@
       "over": null
     },
     "HOME-01K": {
-      "ready": false,
-      "missing": [
-        "home.financeSummary"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [],
       "shell": true,
       "over": null
