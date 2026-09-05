@@ -3228,7 +3228,7 @@ export const PURCHASE_REQUEST_DRAFTS: Record<string, DataRow> = {
     title: '체육대회 운영 물품',
     department: '운영부',
     neededOn: '2026-08-12',
-    priority: '보통',
+    priority: 'normal',
     purpose: '',
     items: PURCHASE_REQUEST_ITEMS,
   },

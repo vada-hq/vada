@@ -2536,7 +2536,7 @@
         },
         {
           "key": "priority",
-          "description": "우선순위. finance.requestPriorities의 값. 예: 보통",
+          "description": "우선순위. finance.requestPriorities의 값. 예: normal",
           "valueType": "string"
         },
         {

@@ -495,49 +495,57 @@
     },
     {
       "key": "finance.requestPriorities",
-      "type": "remote",
-      "description": "구매 요청의 우선순위. 디자인이 펼친 목록을 그리지 않아 명세가 지어내지 않는다 — 아는 쪽은 서버다.",
+      "type": "static",
+      "description": "구매 요청의 우선순위. 디자인이 펼친 목록을 그리지 않아 명세가 지어내지 않는다 — 아는 쪽은 서버다. **2026-09-06에 사람이 정했다: 기본 목록을 명세에 박는다.** 조직이 정하는 화면이 명세에 없어 한동안 서버에 미뤄 두었는데(remote), 그 사이 구매 요청을 아무도 못 썼다. 학생회마다 같다. 고치는 화면이 그려지는 날 다시 remote로 돌린다.",
       "authorize": {
         "area": "finance.read"
       },
       "params": [],
-      "request": {
-        "method": "GET",
-        "path": "/api/ops/finance/request-priorities",
-        "loadOn": "open",
-        "search": {
-          "mode": "client"
+      "options": [
+        {
+          "value": "urgent",
+          "label": "긴급"
+        },
+        {
+          "value": "normal",
+          "label": "보통"
+        },
+        {
+          "value": "low",
+          "label": "낮음"
         }
-      },
-      "messages": {
-        "idle": "메뉴를 열어 우선순위 목록을 불러오세요",
-        "loading": "우선순위 목록을 불러오는 중입니다",
-        "empty": "고를 수 있는 우선순위이(가) 없습니다",
-        "error": "우선순위 목록을 불러오지 못했습니다"
-      }
+      ]
     },
     {
       "key": "finance.itemCategories",
-      "type": "remote",
-      "description": "품목 카테고리. 조직이 정하는 분류라 화면이 목록을 갖지 않는다.",
+      "type": "static",
+      "description": "품목 카테고리. 조직이 정하는 분류라 화면이 목록을 갖지 않는다. **2026-09-06에 사람이 정했다: 기본 목록을 명세에 박는다.** 조직이 정하는 화면이 명세에 없어 한동안 서버에 미뤄 두었는데(remote), 그 사이 구매 요청을 아무도 못 썼다. 학생회마다 같다. 고치는 화면이 그려지는 날 다시 remote로 돌린다.",
       "authorize": {
         "area": "finance.read"
       },
       "params": [],
-      "request": {
-        "method": "GET",
-        "path": "/api/ops/finance/item-categories",
-        "loadOn": "open",
-        "search": {
-          "mode": "client"
+      "options": [
+        {
+          "value": "supplies",
+          "label": "소모품"
+        },
+        {
+          "value": "equipment",
+          "label": "장비"
+        },
+        {
+          "value": "print",
+          "label": "인쇄물"
+        },
+        {
+          "value": "food",
+          "label": "식음료"
+        },
+        {
+          "value": "service",
+          "label": "용역"
         }
-      },
-      "messages": {
-        "idle": "메뉴를 열어 품목 카테고리 목록을 불러오세요",
-        "loading": "품목 카테고리 목록을 불러오는 중입니다",
-        "empty": "고를 수 있는 품목 카테고리이(가) 없습니다",
-        "error": "품목 카테고리 목록을 불러오지 못했습니다"
-      }
+      ]
     },
     {
       "key": "finance.budgetItems",
@@ -571,26 +579,26 @@
     },
     {
       "key": "finance.purchaseTypes",
-      "type": "remote",
-      "description": "구매 유형. 유형에 따라 처리 방식이 달라지므로 조직의 규칙이다.",
+      "type": "static",
+      "description": "구매 유형. 유형에 따라 처리 방식이 달라지므로 조직의 규칙이다. **2026-09-06에 사람이 정했다: 기본 목록을 명세에 박는다.** 조직이 정하는 화면이 명세에 없어 한동안 서버에 미뤄 두었는데(remote), 그 사이 구매 요청을 아무도 못 썼다. 학생회마다 같다. 고치는 화면이 그려지는 날 다시 remote로 돌린다.",
       "authorize": {
         "area": "finance.read"
       },
       "params": [],
-      "request": {
-        "method": "GET",
-        "path": "/api/ops/finance/purchase-types",
-        "loadOn": "open",
-        "search": {
-          "mode": "client"
+      "options": [
+        {
+          "value": "online",
+          "label": "온라인 구매"
+        },
+        {
+          "value": "offline",
+          "label": "현장 구매"
+        },
+        {
+          "value": "contract",
+          "label": "계약·발주"
         }
-      },
-      "messages": {
-        "idle": "메뉴를 열어 구매 유형 목록을 불러오세요",
-        "loading": "구매 유형 목록을 불러오는 중입니다",
-        "empty": "고를 수 있는 구매 유형이(가) 없습니다",
-        "error": "구매 유형 목록을 불러오지 못했습니다"
-      }
+      ]
     },
     {
       "key": "finance.quoteStatus",

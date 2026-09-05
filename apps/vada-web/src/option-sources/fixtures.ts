@@ -87,26 +87,6 @@ export const PARTICIPANT_ATTEND_STATUS: Option[] = [
 // 오는지는 조직의 재정 규칙과 그 행사의 예산이 정한다.
 // 값이 곧 사람이 읽는 말이다. 닫힌 말 목록 자체가 그 값이라, 코드를 따로 두면
 // 화면이 그 코드를 무슨 말로 부를지 다시 물어야 한다(EVT-04의 상태 선택지와 같다).
-export const REQUEST_PRIORITIES: Option[] = [
-  { value: '긴급', label: '긴급' },
-  { value: '보통', label: '보통' },
-  { value: '낮음', label: '낮음' },
-]
-
-export const ITEM_CATEGORIES: Option[] = [
-  { value: 'supplies', label: '소모품' },
-  { value: 'equipment', label: '장비' },
-  { value: 'print', label: '인쇄물' },
-  { value: 'food', label: '식음료' },
-  { value: 'service', label: '용역' },
-]
-
-export const PURCHASE_TYPES: Option[] = [
-  { value: 'online', label: '온라인 구매' },
-  { value: 'offline', label: '현장 구매' },
-  { value: 'contract', label: '계약·발주' },
-]
-
 // 예산 항목은 그 행사의 예산이라 행사마다 다르다.
 export const BUDGET_ITEMS: Record<string, Option[]> = {
   'E-01': [
