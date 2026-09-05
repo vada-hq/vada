@@ -83,9 +83,7 @@ describe('표에 줄이 들어가기 시작하면 배포도 그 표를 읽는다
   // 한동안 진짜 `serve.ts`의 `isEventStaff`를 반증의 본보기로 썼다 — 2026-09-05에 그
   // 거짓이 표로 바뀌면서 본보기가 사라졌다. 반증은 본보기가 있어야 하므로 글로 심는다.
   it('박아 둔 거짓을 알아본다', () => {
-    const planted = 'lookups: {
-  isEventStaff: async () => false,
-}'
+    const planted = 'lookups: {' + String.fromCharCode(10) + '  isEventStaff: async () => false,' + String.fromCharCode(10) + '}'
     expect(hardcodedFalse('isEventStaff', planted)).toBe(true)
     expect(hardcodedFalse('isEventStaff', 'lookups: { ...eventStaffLookups(db) }')).toBe(false)
     expect(hardcodedFalse('있을 리 없는 물음')).toBe(false)
