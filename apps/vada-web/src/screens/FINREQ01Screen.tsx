@@ -13,6 +13,7 @@ import {
   hasFieldValue,
 } from '../../../../packages/contracts/src/button-execution.mjs'
 import { computeNumber, formatComputed, itemKey, joinRowIds, rowIdsOf } from '../spec/compute'
+import { getOptionSource } from '../option-sources/catalog'
 import { getMutation } from '../spec/mutations'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import { resolveParams } from '../spec/params'
@@ -438,7 +439,21 @@ export function FINREQ01Screen({
   // 요약이 되비추는 값. 서버가 보낸 것이 아니라 방금 이 화면에서 고른 것이다.
   function reflected(fieldKey: string): string {
     const value = draft.values[fieldKey] ?? ''
-    return draft.labels[fieldKey] ?? value
+    const label = draft.labels[fieldKey]
+    if (label !== undefined) return label
+    // **서버에서 온 초안은 값만 들고 온다.** 사람이 고르면 글도 함께 남지만 처음 열린
+    // 초안에는 코드뿐이다. 명세가 목록을 든 select면 그 글로 푼다 — 값을 그대로 찍으면
+    // 사람은 'normal'을 읽는다(2026-09-06, 우선순위 값을 코드로 바꾸며 드러남).
+    const element = finReq01.elements.find(
+      (one) => one.spec.type === 'select' && one.spec.fieldKey === fieldKey,
+    )
+    if (element?.spec.type === 'select') {
+      const source = getOptionSource(element.spec.optionsSource.key)
+      if (source.type === 'static') {
+        return source.options.find((option) => option.value === value)?.label ?? value
+      }
+    }
+    return value
   }
 
   function screenField(nodeId: string) {
