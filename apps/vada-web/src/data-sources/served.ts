@@ -4,11 +4,13 @@ import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json
 import { documents } from './served/documents'
 import { events } from './served/events'
 import { finance } from './served/finance'
+import { home } from './served/home'
 import { joining } from './served/joining'
 import { meetings } from './served/meetings'
 import { ops } from './served/ops'
 import { org } from './served/org'
 import { outside } from './served/outside'
+import { participants } from './served/participants'
 import { record } from './served/record'
 import { shell } from './served/shell'
 import { tasks } from './served/tasks'
@@ -58,6 +60,8 @@ const AREAS = [
   ops,
   finance,
   record,
+  participants,
+  home,
 ] as const
 
 export const SERVED: readonly string[] = AREAS.flatMap((area) => area.reads)
