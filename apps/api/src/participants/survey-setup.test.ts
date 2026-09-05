@@ -202,6 +202,9 @@ describe('활성화 조건(event.surveyActivationConditions)', () => {
       'applyOrder',
       'applyMethod',
       'privacyConsent',
+      'nameField',
+      'studentNumberField',
+      'duesMatchField',
     ])
   })
 
@@ -256,6 +259,18 @@ describe('활성화 조건(event.surveyActivationConditions)', () => {
     expect(
       matchesContract('event.surveyActivationConditions', await (await conditions()).json()),
     ).toBe(true)
+  })
+
+  // **그림이 그린 열여섯 줄이 다 온다.** 이름·학번·대조 문항 셋은 검사할 것이 없이
+  // 참이다 — 이름과 학번은 문항이 아니라 고정 칸이라고 사람이 정했다(2026-09-05).
+  // 줄을 빼면 사람은 열여섯을 기대하다 열셋만 보고 무엇이 빠졌는지 찾는다.
+  it('조건이 열여섯이고 고정 칸 셋은 늘 참이다', async () => {
+    const rows = allRows((await (await conditions('E-03')).json()) as Row[])
+    expect(rows).toHaveLength(16)
+    for (const key of ['nameField', 'studentNumberField', 'duesMatchField']) {
+      const row = rows.find((one) => one.key === key)
+      expect(row?.tone, key).toBe('green')
+    }
   })
 })
 
