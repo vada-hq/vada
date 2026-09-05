@@ -372,29 +372,39 @@ function FinanceSummary() {
   );
 }
 
+/**
+ * 내 담당 업무.
+ *
+ * **눌리지만 단추가 아니다.** 부제가 그리는 것은 고정 글이 아니라 지금 내가 붙들고
+ * 있는 업무의 수다. 한동안 그림에 그려진 예시가 명세의 `button.description`으로
+ * 굳어 있었고, 업무가 하나도 없는 학생회의 홈이 **진행 중·검토 필요 4건**이라고
+ * 말했다(2026-09-06, 배포된 것을 사람이 보고 물었다).
+ *
+ * 데이터를 말하는 카드는 `summary`이고 누르는 것은 그 카드의 `action`이다 —
+ * FIN-00B의 총예산 카드가 이미 그 모양이다. 세는 규칙은 조직의 것이라 서버가
+ * 완성된 글로 준다.
+ */
 function MyTasksCard() {
-  const spec = specOf<ButtonSpec>(NODE.myTasksButton);
-  const { onClick, title } = useAction(spec);
+  const spec = specOf<SummarySpec>(NODE.myTasksButton);
+  const onNavigate = useContext(NavigateContext);
+  const action = spec.action!;
+  // 카드의 이동은 갈래가 둘이다 — 한 화면으로 가는 것과 값에 따라 갈리는 것.
+  // 이 카드는 앞엣것이고, 그 사실을 짐작이 아니라 모양으로 가른다.
+  const goesTo = action.type === 'navigate' && 'targetScreenId' in action ? action.targetScreenId : null;
+  const note = readObjectSource(spec.dataSourceKey!)[spec.items![0]!.field!];
 
   return (
     <button
       type="button"
       data-node-id={NODE.myTasksButton}
-      title={title}
-      onClick={onClick}
+      onClick={goesTo === null ? undefined : () => onNavigate(goesTo)}
       className="flex w-full items-center justify-between gap-3 rounded-xl border border-gray-200 bg-gray-50 px-5 py-4 text-left hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
     >
       <span className="min-w-0">
-        <span className="block text-sm font-medium text-gray-400">{spec.label}</span>
-        {spec.description && (
-          <span className="block pt-0.5 text-xs font-bold text-gray-700">
-            {spec.description}
-          </span>
-        )}
+        <span className="block text-sm font-medium text-gray-400">{spec.title}</span>
+        <span className="block pt-0.5 text-xs font-bold text-gray-700">{String(note)}</span>
       </span>
-      {spec.badge && (
-        <span className="shrink-0 text-xs font-medium text-gray-400">{spec.badge}</span>
-      )}
+      <span className="shrink-0 text-xs font-medium text-gray-400">{action.label}</span>
     </button>
   );
 }

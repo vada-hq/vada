@@ -153,6 +153,8 @@ export interface MyTaskAlerts {
   delayedCount: number
   todoCount: number
   reviewCount: number
+  /** 홈의 '내 담당 업무' 카드가 그리는 한 줄. 완성된 글로 나간다. */
+  myWorkNote: string
 }
 
 /**
@@ -173,11 +175,24 @@ export async function myTaskAlerts(
     .where(mine(orgId, memberId))
 
   const todo = statusesOfTab('todo')
+  const reviewCount = rows.filter((row) => row.status === 'review').length
+  // **홈이 그리는 한 줄.** 무엇을 '지금 붙들고 있다'로 볼지가 조직의 규칙이라 서버가
+  // 세고 서버가 글을 만든다 — 화면이 두 수를 더하면 그 규칙이 화면에 박힌다.
+  //
+  // 한동안 이 글이 명세에 '진행 중·검토 필요 4건'으로 박혀 있었다. 업무가 하나도 없는
+  // 학생회의 홈이 4건이라고 말했고, 배포된 것을 사람이 보고 물었다(2026-09-06).
+  //
+  // **묶는 규칙을 다시 적지 않는다.** '검토 중인 업무는 아직 안 끝났으므로 진행 중에
+  // 든다'는 것을 `labels.ts`의 갈피 표가 이미 정했다 — 여기서 따로 더하면 같은 업무가
+  // 홈과 MY-01에서 다른 수로 세어진다. 갈피의 셈을 그대로 쓴다.
+  const holding = statusesOfTab('inProgress')
+  const holdingCount = rows.filter((row) => holding.includes(row.status)).length
   return {
     delayedCount: rows.filter((row) => isOverdue(row.dueDate, row.status, now)).length,
     // '해야 할 업무'는 갈피 이름 그대로다 — 갈피와 다른 수를 세면 칩과 갈피가 어긋난다.
     todoCount: rows.filter((row) => todo.includes(row.status)).length,
-    reviewCount: rows.filter((row) => row.status === 'review').length,
+    reviewCount,
+    myWorkNote: `진행 중·검토 필요 ${holdingCount}건`,
   }
 }
 

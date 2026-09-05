@@ -684,12 +684,17 @@
                     "reviewCount": {
                       "type": "number",
                       "description": "검토가 필요한 업무 수"
+                    },
+                    "myWorkNote": {
+                      "type": "string",
+                      "description": "지금 내가 붙들고 있는 업무를 한 줄로. **완성된 글로 온다** — 무엇을 '붙들고 있다'로 볼지(진행 중과 검토 필요를 합친다)가 조직의 규칙이라 화면이 더하지 않는다. 홈의 '내 담당 업무' 카드가 이것을 그린다. 예: 진행 중·검토 필요 4건"
                     }
                   },
                   "required": [
                     "delayedCount",
                     "todoCount",
-                    "reviewCount"
+                    "reviewCount",
+                    "myWorkNote"
                   ]
                 }
               }

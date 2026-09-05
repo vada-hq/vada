@@ -184,14 +184,17 @@
         "figmaType": "FRAME"
       },
       "spec": {
-        "type": "button",
-        "label": "내 담당 업무",
-        "description": "진행 중·검토 필요 4건",
-        "badge": "내 업무 보기",
-        "emphasis": "secondary",
-        "initiallyDisabled": false,
+        "type": "summary",
+        "title": "내 담당 업무",
+        "dataSourceKey": "my.taskAlerts",
+        "items": [
+          {
+            "field": "myWorkNote"
+          }
+        ],
         "action": {
           "type": "navigate",
+          "label": "내 업무 보기",
           "targetScreenId": "MY-01"
         }
       }

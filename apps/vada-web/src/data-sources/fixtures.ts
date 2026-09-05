@@ -3001,7 +3001,7 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   'shell.viewer': { name: '박해랑', role: '운영부 · 부원' },
 
   // 내 업무(MY-01).
-  'my.taskAlerts': { delayedCount: 0, todoCount: 2, reviewCount: 2 },
+  'my.taskAlerts': { delayedCount: 0, todoCount: 2, reviewCount: 2, myWorkNote: '진행 중·검토 필요 4건' },
   // 운영 허브(OPS-00).
   'ops.intro': {
     description:
