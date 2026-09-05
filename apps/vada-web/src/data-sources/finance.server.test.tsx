@@ -18,13 +18,14 @@ import {
   users,
 } from '../../../api/src/db/schema.ts'
 import type { Viewer } from '../../../api/src/permissions.ts'
+import { fetchOptions } from '../option-sources/catalog'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { runMutation } from '../spec/mutations'
 import { readListSource, readObjectSource } from './catalog'
 import { forgetSources, loadSources, useServer } from './server'
 
-// **재정 화면 다섯을 끝까지 뚫는다**(FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01 · MY-REQ-01 ·
-// FIN-PLAN-01).
+// **재정 화면 여덟을 끝까지 뚫는다**(FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01 · MY-REQ-01 ·
+// FIN-PLAN-01 · FIN-00 · FIN-00B · FIN-LEDGER-01).
 //
 // 화면 넷이 한 요청을 단계별로 본다 — 검토하고 → 사고 → 증빙을 붙이는 흐름이
 // `purchase_requests`의 한 줄을 따라간다. 그래서 여기서 재는 것도 화면마다의 값이
@@ -36,7 +37,13 @@ import { forgetSources, loadSources, useServer } from './server'
 // | FIN-PROC-01 | `finance.purchaseOrderSummary` · `finance.purchaseOrders` |
 // | FIN-EVID-01 | `finance.paymentEvidenceSummary` · `finance.paymentEvidences` |
 // | MY-REQ-01 | `event.myPurchaseRequestSummary` · `event.myPurchaseRequests` |
+// | FIN-00 · 00B | `finance.orgOverview` · `finance.orgBreakdown` · `finance.proofSummary` · `finance.recentExpenses` |
+// | FIN-LEDGER-01 | `finance.ledgerSummary` · `finance.ledger` · `finance.ledgerScope` · 고르기 셋 |
 // | FIN-PLAN-01 | `finance.budgetPlanDraft` · `finance.budgetEvents` → 쓰기 `finance.budgetPlan.save` |
+//
+// **재정의 겉면은 편성 전과 후를 둘 다 본다.** 편성 화면이 저장하기 전에는 총예산이
+// '편성 전'이고, 저장한 뒤에는 그 벌에서 총예산·미배정·사용 가능이 선다 — 같은 저장소를
+// 같은 검사 안에서 앞뒤로 읽는다.
 //
 // **읽기는 `<ScreenRouter>`를 그려서 잰다.** 그릇에 손으로 값을 먹이면 화면이 서버에
 // 붙는 순간 터지는 것을 못 본다.
@@ -411,6 +418,125 @@ describe('내 구매 요청이 저장소에서 온다(MY-REQ-01)', () => {
   })
 })
 
+describe('전체 재정 현황이 저장소에서 온다 — 편성 전(FIN-00 · FIN-00B)', () => {
+  // **편성 전이면 화면이 편성 전임을 참으로 그린다.** 0원을 지어내지 않는다. 쓴 돈은
+  // 예산과 무관한 사실이라 그대로 센다 — 결제 하나(24,500원)와 아직 안 낸 승인 하나(25,000원).
+  it('총예산은 편성 전이고 쓴 돈과 쓸 돈은 센다', async () => {
+    draw('FIN-00')
+    await waitFor(() => expect(screen.getByText('결제가 완료된 1건')).toBeInTheDocument())
+    const page = drawn()
+    expect(page).toContain('편성 전')
+    expect(page).toContain('24,500원')
+    expect(page).toContain('결제 예정 1건')
+    // 최근 지출은 장부와 같은 결제다.
+    expect(page).toContain('한마당 초콜릿')
+    expect(page).toContain('누락')
+    // 화면 어디도 준비 중이 아니다.
+    expect(page).not.toContain('아직 준비 중입니다')
+    // 개발용 응답의 값이 아니라는 증거.
+    expect(page).not.toContain('2026년 1학기')
+    expect(page).not.toContain('14,500,000원')
+    expect(page).not.toContain('현수막 제작')
+  })
+
+  it('나눠 본 표의 행사 줄이 배정 없이 쓴 돈만 든다', async () => {
+    await loadSources([
+      { key: 'finance.orgOverview', params: {} },
+      { key: 'finance.orgBreakdown', params: { scope: 'event' } },
+      { key: 'finance.proofSummary', params: {} },
+    ])
+    expect(readObjectSource('finance.orgOverview')).toMatchObject({
+      termNote: '편성 전',
+      totalBudget: '편성 전',
+      spent: '24,500원',
+      planned: '25,000원',
+      available: '편성 전',
+      spentPercent: 0,
+      plannedPercent: 0,
+    })
+    expect(readListSource('finance.orgBreakdown', { scope: 'event' })).toEqual([
+      {
+        id: 'E-01',
+        name: '2026 소프트웨어융합대학 가을 한마당',
+        budget: '편성 전',
+        spent: '24,500원',
+        planned: '25,000원',
+        available: '편성 전',
+        executionPercent: 0,
+      },
+    ])
+    // 결제 하나에 서류 하나가 안 붙었다.
+    expect(readObjectSource('finance.proofSummary')).toEqual({
+      completed: '0건',
+      supplement: '0건',
+      unregistered: '1건',
+      totalNote: '1건',
+    })
+  })
+
+  // 예산을 편성할 수 있는 사람이 보는 그림. 총예산 카드가 '편성'으로 눌러 들어가는
+  // 카드가 되고 값은 같은 서버에서 온다.
+  it('편성할 수 있는 사람의 그림도 같은 값으로 선다', async () => {
+    draw('FIN-00B')
+    await waitFor(() => expect(screen.getByText('결제가 완료된 1건')).toBeInTheDocument())
+    expect(screen.getByRole('button', { name: /총예산/ })).toHaveTextContent('편성 전')
+    expect(screen.getByRole('button', { name: /총예산/ })).toHaveTextContent('편성')
+  })
+})
+
+describe('사용 내역이 저장소에서 온다(FIN-LEDGER-01)', () => {
+  it('예정 한 줄과 결제 한 줄을 표로 그리고 범위 줄이 센다', async () => {
+    draw('FIN-LEDGER-01')
+    await waitFor(() => expect(screen.getByText('한마당 초콜릿')).toBeInTheDocument())
+    const page = drawn()
+    // 아직 안 낸 승인 — 쓴 날이 없고 결제 전이다.
+    expect(page).toContain('한마당 현수막')
+    expect(page).toContain('결제 전')
+    // 결제 — 쓴 날과 증빙 상태.
+    expect(page).toContain('03.08')
+    expect(page).toContain('누락')
+    // 몇 건 중 몇 건인지는 범위 줄이 말한다. 역할 이름도 서버가 넣는다.
+    expect(page).toContain('전체 기간 · 총 2건')
+    expect(page).toContain('재정부만')
+    // 개발용 응답의 장부가 아니라는 증거.
+    expect(page).not.toContain('케이블 커버')
+    expect(page).not.toContain('2026년 7월 · 총 42건')
+  })
+
+  // **고르지 않았으면 이번 달이다.** 검사가 못 박은 지금은 2026년 3월이다.
+  it('머리 넷이 이번 달로 온다', async () => {
+    await loadSources([{ key: 'finance.ledgerSummary', params: {} }])
+    expect(readObjectSource('finance.ledgerSummary')).toEqual({
+      termTotal: '24,500원',
+      monthLabel: '3월 지출',
+      monthTotal: '24,500원',
+      proofDone: '1건 중 0건',
+      proofMissing: '1건',
+    })
+  })
+
+  // 전체 재정의 '지출 예정' 카드가 이 값을 싣고 온다 — 같은 장부를 다르게 자른다.
+  it('주소가 실어 온 결제 단계로 잘라 본다', async () => {
+    draw('FIN-LEDGER-01', { stage: 'planned' })
+    await waitFor(() => expect(screen.getByText('한마당 현수막')).toBeInTheDocument())
+    const page = drawn()
+    expect(page).not.toContain('한마당 초콜릿')
+    expect(page).toContain('전체 기간 · 결제 예정 · 총 1건')
+  })
+
+  // 고르는 목록도 같은 서버에서 온다 — 표는 진짜인데 고를 것이 가짜면 없는 달을 고른다.
+  it('달과 예산 항목 고르기가 저장소에서 온다', async () => {
+    expect(await fetchOptions('finance.ledgerMonths', {})).toEqual([{ value: '2026-03', label: '2026년 3월' }])
+    expect(await fetchOptions('finance.ledgerEvents', {})).toEqual([
+      { value: 'E-01', label: '2026 소프트웨어융합대학 가을 한마당' },
+    ])
+    // 아직 편성 전이라 씨앗의 행사 항목 하나뿐이다. 어느 행사의 것인지가 곁에 붙는다.
+    expect(await fetchOptions('finance.orgBudgetItems', {})).toEqual([
+      { value: 'B-01', label: '행사 운영비', description: '2026 소프트웨어융합대학 가을 한마당' },
+    ])
+  })
+})
+
 describe('예산 편성이 저장소로 가고 저장소에서 온다(FIN-PLAN-01)', () => {
   // 편성은 회장단(또는 재정부)만 연다. 앞의 화면 넷을 본 부원은 이 자리를 못 연다.
   beforeAll(() => {
@@ -527,5 +653,46 @@ describe('예산 편성이 저장소로 가고 저장소에서 온다(FIN-PLAN-0
     expect((readObjectSource('finance.budgetPlanDraft').sources as Array<Record<string, unknown>>)[0]).toMatchObject({
       sourceAmount: 24_000_000,
     })
+  })
+})
+
+describe('편성하고 나면 총예산 카드가 선다(FIN-00)', () => {
+  // 앞 묶음이 저장한 그 벌 위에서 읽는다 — 수입 30,000,000 · 배정 5,300,000. 보는 사람은
+  // 다시 부원이다(편성 전을 본 그 사람).
+  it('총예산·미배정·사용 가능이 저장한 편성에서 나온다', async () => {
+    draw('FIN-00')
+    await waitFor(() => expect(screen.getByText('2026. 03. 01 – 2026. 08. 31')).toBeInTheDocument())
+    const page = drawn()
+    expect(page).toContain('30,000,000원')
+    expect(page).toContain('한마당 학생회비 외 1건 · 미배정 24,700,000원')
+    // 30,000,000 − 24,500 − 25,000.
+    expect(page).toContain('29,950,500원')
+    expect(page).toContain('전체 예산 집행률 0.1%')
+    expect(page).toContain('지출 예정 포함 0.2%')
+    expect(page).not.toContain('편성 전')
+  })
+
+  // **검토 화면이 드는 셈과 같은 셈이다.** 행사 줄의 사용 가능액은 배정 − 실결제 − 아직 안 낸 승인액.
+  it('행사별과 부서별 줄이 같은 돈을 다른 축으로 나눈다', async () => {
+    await loadSources([
+      { key: 'finance.orgBreakdown', params: { scope: 'event' } },
+      { key: 'finance.orgBreakdown', params: { scope: 'department' } },
+    ])
+    expect(readListSource('finance.orgBreakdown', { scope: 'event' })).toEqual([
+      // 행사 운영비 1,500,000 + 한마당 홍보비 800,000. (24,500 + 25,000) / 2,300,000 ≈ 2%.
+      { id: 'E-01', name: '2026 소프트웨어융합대학 가을 한마당', budget: '2,300,000원', spent: '24,500원', planned: '25,000원', available: '2,250,500원', executionPercent: 2 },
+      { id: 'ongoing', name: '운영 (상시)', budget: '3,000,000원', spent: '0원', planned: '0원', available: '3,000,000원', executionPercent: 0 },
+    ])
+    expect(readListSource('finance.orgBreakdown', { scope: 'department' })).toEqual([
+      { id: 'D-01', name: '운영부', budget: '3,000,000원', spent: '0원', planned: '0원', available: '3,000,000원', executionPercent: 0 },
+      // 행사 항목은 담당 부서가 없고, 씨앗의 품목은 예산 항목을 가리키지 않는다 — 전부 여기 모인다.
+      { id: 'unassigned', name: '부서 미지정', budget: '2,300,000원', spent: '24,500원', planned: '25,000원', available: '2,250,500원', executionPercent: 2 },
+    ])
+  })
+
+  it('예산 항목 고르기가 편성한 세 항목이 된다', async () => {
+    const options = await fetchOptions('finance.orgBudgetItems', {})
+    expect(options.map((option) => option.label)).toEqual(['한마당 운영비', '행사 운영비', '한마당 홍보비'])
+    expect(options[1]).toMatchObject({ value: 'B-01', description: '2026 소프트웨어융합대학 가을 한마당' })
   })
 })

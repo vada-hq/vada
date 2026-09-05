@@ -2,12 +2,23 @@ import type { Context } from 'hono'
 import { orgOf, type Handlers } from '../deps.ts'
 import { budgetEventOptions, budgetPlanDraft, saveBudgetPlan } from '../finance/budget-plan.ts'
 import { paymentEvidences, paymentEvidenceSummary } from '../finance/evidence.ts'
+import {
+  ledger,
+  ledgerEventOptions,
+  ledgerMonthOptions,
+  ledgerScope,
+  ledgerSummary,
+  orgBudgetItemOptions,
+  proofSummary,
+  recentExpenses,
+} from '../finance/ledger.ts'
 import { eventExists, myPurchaseRequests, myPurchaseRequestSummary } from '../finance/mine.ts'
 import { purchaseOrderList, purchaseOrderSummary } from '../finance/orders.ts'
+import { orgBreakdown, orgOverview } from '../finance/overview.ts'
 import { reviewItems, reviewSummary } from '../finance/review.ts'
 import { NotFound } from '../routes.ts'
 
-// 재정(FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01 · MY-REQ-01).
+// 재정(FIN-00 · FIN-00B · FIN-LEDGER-01 · FIN-PLAN-01 · FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01 · MY-REQ-01).
 //
 // **화면 넷이 한 표를 본다.** 요청하고 → 검토받고 → 사고 → 증빙을 붙이는 흐름이
 // `purchase_requests`의 한 줄을 따라가고, 화면마다 다른 것은 그 줄의 어느 곁가지를
@@ -23,6 +34,11 @@ import { NotFound } from '../routes.ts'
 //
 // **예산 편성(FIN-PLAN-01)은 쓴다.** 재정 28자리가 전부 이 화면이 넣는 금액 위에
 // 선다 — 기간·수입원·항목 한 벌을 통째로 읽고 통째로 덮어쓴다(`finance/budget-plan.ts`).
+//
+// **재정의 겉면(FIN-00 · FIN-00B)과 장부(FIN-LEDGER-01)는 그 위에 선다.** 총예산은
+// 수입원의 합이고, 실제 지출은 결제, 지출 예정은 아직 안 낸 승인액이다 — 검토 화면이
+// 드는 셈과 같은 셈이다(`finance/money.ts` · `finance/overview.ts` · `finance/ledger.ts`).
+// 편성 전인 학생회는 '편성 전'이라 답한다. 0원은 다른 사실이다.
 
 /** 지금 보는 사람이 이 학생회에서 누구인가. **'내 구매 요청'을 이 값이 가른다.** */
 function memberOf(c: Context): string {
@@ -125,4 +141,67 @@ export const financeHandlers: Handlers = {
     const body = await c.req.json().catch(() => null)
     return saveBudgetPlan(d.db, orgId, body, d.newId, d.invite.now())
   },
+
+  // ── 전체 재정 현황 (FIN-00 · FIN-00B) ──────────────────────────────────
+  //
+  // 학생회 전체를 센다 — 행사 하나의 재정(`event.financeSummary`)과 다른 물건이다.
+  // 기준일은 오늘이라 때를 함께 넘긴다.
+  'finance.orgOverview': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return orgOverview(d.db, orgId, d.invite.now())
+  },
+  // 나누는 축(scope)이 줄의 뜻을 통째로 바꾼다 — 서버가 걸러서 준다.
+  'finance.orgBreakdown': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return orgBreakdown(d.db, orgId, c.req.query('scope'))
+  },
+  'finance.proofSummary': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return proofSummary(d.db, orgId)
+  },
+  // 장부와 같은 결제다 — 겉면에 몇 줄만 얹는다.
+  'finance.recentExpenses': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return recentExpenses(d.db, orgId)
+  },
+
+  // ── 사용 내역 (FIN-LEDGER-01) ──────────────────────────────────────────
+  //
+  // **거르는 것도 자르는 것도 세는 것도 서버가 한다.** 목록과 범위 줄이 같은 조건을
+  // 받아야 같은 것을 센다.
+  'finance.ledger': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return ledger(d.db, orgId, ledgerFilters(c))
+  },
+  'finance.ledgerScope': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return ledgerScope(d.db, orgId, ledgerFilters(c))
+  },
+  // 고르지 않은 달은 이번 달이다 — 그 판단을 서버가 오늘로 한다.
+  'finance.ledgerSummary': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return ledgerSummary(d.db, orgId, c.req.query('month'), d.invite.now())
+  },
+  'finance.ledgerMonths.options': async (c, d) => ledgerMonthOptions(d.db, orgOf(c)),
+  'finance.ledgerEvents.options': async (c, d) => ledgerEventOptions(d.db, orgOf(c)),
+  'finance.orgBudgetItems.options': async (c, d) => orgBudgetItemOptions(d.db, orgOf(c)),
+}
+
+/** 장부를 거르는 조건 여섯. 목록과 범위 줄이 **같은 것**을 읽어야 같은 것을 센다. */
+function ledgerFilters(c: Context) {
+  return {
+    month: c.req.query('month'),
+    eventId: c.req.query('eventId'),
+    departmentId: c.req.query('departmentId'),
+    budgetItemId: c.req.query('budgetItemId'),
+    query: c.req.query('query'),
+    stage: c.req.query('stage'),
+  }
 }

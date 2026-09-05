@@ -215,13 +215,19 @@ describe('아직 안 붙은 쓰기는 성공한 척하지 않는다', () => {
   // (meeting.create), 그것이 붙는 날 이 검사가 빨개졌다 — 재려는 것은 '그 자리'가
   // 아니라 '아직 안 붙은 자리'다. 아직 안 붙은 것 중 첫째를 쓰면 낡지 않는다.
   it('서버가 켜져 있는데 목록에 없으면 던진다', async () => {
-    const notYet = (mutationsJson as { mutations: Array<{ key: string }> }).mutations
-      .map((one) => one.key)
-      .find((key) => !isServedMutation(key))
+    // **열쇠가 필요한 자리는 열쇠를 채워 준다.** 첫째가 행사 시작(eventId를 받는다)이 되던 날
+    // 인자가 없다는 오류가 먼저 나서 재려던 것에 닿지 못했다(2026-09-06).
+    const mutation = (
+      mutationsJson as { mutations: Array<{ key: string; params?: Array<{ key: string; required?: boolean }> }> }
+    ).mutations.find((one) => !isServedMutation(one.key))
+    const notYet = mutation?.key
+    const keys = Object.fromEntries(
+      (mutation?.params ?? []).filter((one) => one.required).map((one) => [one.key, 'X-1']),
+    )
     // 전부 붙은 날에는 이 검사가 잴 것이 없다. 조용히 통과하지 않고 그 사실을 말한다.
     expect(notYet, '쓰기가 전부 붙었습니다 — 이 검사는 이제 잴 것이 없습니다').toBeDefined()
     back = useServer({ baseUrl: '', fetch: async () => Response.json({}) })
-    await expect(runMutation(notYet!, {})).rejects.toBeInstanceOf(NotServedYet)
+    await expect(runMutation(notYet!, {}, keys)).rejects.toBeInstanceOf(NotServedYet)
   })
 
   // **'서버가 고장 난 것'과 '아직 안 붙은 것'은 다른 일이다.** 같은 글로 말하면
