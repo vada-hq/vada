@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Built } from '../components/Built'
 import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, evt02c } from '../spec/screens'
@@ -109,8 +110,13 @@ interface PermissionShellProps {
 function PermissionShell({ screenParams, onClose, children }: PermissionShellProps) {
   return (
     <>
+      {/* **뒤에 남는 화면만 따로 가린다.** 행사 개요가 읽는 여섯이 아직 안 지어졌는데,
+          그 하나 때문에 이 모달까지 통째로 준비 중이 되면 지어 놓은 자리를 아무도
+          못 본다 — 홈이 그랬다(components/Built.tsx가 그 까닭을 적어 두었다). */}
       <div aria-hidden className="pointer-events-none">
-        <EVT02Screen screenParams={screenParams} onNavigate={() => undefined} />
+        <Built what="행사 개요">
+          <EVT02Screen screenParams={screenParams} onNavigate={() => undefined} />
+        </Built>
       </div>
 
       <div

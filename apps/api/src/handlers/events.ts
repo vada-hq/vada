@@ -5,6 +5,7 @@ import {
   regenerateAttendanceQr,
 } from '../events/attendance-qr.ts'
 import { eventBasicsDraft, saveEventBasics } from '../events/basics.ts'
+import { completeConfirm, endPermission } from '../events/ending.ts'
 import {
   createEvent,
   eventBasics,
@@ -12,9 +13,18 @@ import {
   eventSummary,
   eventWorkspace,
 } from '../events/events.ts'
+import { eventMeetingCounts, eventMeetings } from '../events/related-meetings.ts'
+import { eventSchedule } from '../events/schedule.ts'
+import {
+  eventStaffDepartmentTree,
+  eventStaffLeaders,
+  staffLeaderCandidates,
+  staffSetupPreview,
+} from '../events/staff.ts'
+import { eventSurvey, surveyReplaceImpact } from '../events/survey.ts'
 import { NotFound } from '../routes.ts'
 
-// 행사 — 목록과 기본정보, 그리고 참석 확인 QR.
+// 행사 — 목록과 기본정보, 참석 확인 QR, 그리고 행사 공간의 갈피들.
 
 export const eventHandlers: Handlers = {
   // ── 행사 (EVT-00A · EVT-00B · EVT-02) ──────────────────────────────────
@@ -72,6 +82,77 @@ export const eventHandlers: Handlers = {
     return saveEventBasics(d.db, orgOf(c), eventId, draft, d.invite)
   },
 
+  // ── 행사를 끝내는 두 모달 (EVT-02C · EVT-02E) ──────────────────────────
+  //
+  // **여기서 판정하지 않는다.** 두 자리 모두 구성원이면 열리고(계약이 그렇게 적었다),
+  // 무엇을 하는 자리가 아니라 **누가 할 수 있는지를 말해 주는** 자리다. 막는 일은
+  // 실제로 종료·완료하는 변이가 한다.
+  'event.endPermission': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return endPermission(d.db, orgOf(c), eventId)
+  },
+  'event.completeConfirm': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return completeConfirm(d.db, orgOf(c), eventId)
+  },
+
+  // ── 행사 운영 조직 (EVT-01 · EVT-03A) ──────────────────────────────────
+  //
+  // **학생회의 기본 조직과 다른 물건이다.** 미리보기만 반대로 기본 조직을 본다 —
+  // 아직 만들어지지 않은 것을 미리 보는 자리이기 때문이다.
+  'event.staffLeaders': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return eventStaffLeaders(d.db, orgOf(c), eventId)
+  },
+  'event.staffDepartments': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return eventStaffDepartmentTree(d.db, orgOf(c), eventId)
+  },
+  'event.staffSetupPreview': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return staffSetupPreview(d.db, orgOf(c), eventId, c.req.query('setupMode'))
+  },
+  'event.staffLeaderCandidates.options': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return staffLeaderCandidates(d.db, orgOf(c), eventId)
+  },
+
+  // ── 참여 설문 (EVT-05 · EVT-05B) ───────────────────────────────────────
+  'event.survey': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return eventSurvey(d.db, orgOf(c), eventId)
+  },
+  'event.surveyReplaceImpact': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return surveyReplaceImpact(d.db, orgOf(c), eventId)
+  },
+
+  // ── 행사에 걸린 회의와 일정 (EVT-MEET-01 · EVT-SCHED-01) ───────────────
+  //
+  // **어느 행사인지가 인자로 온다** — 이 둘만 주소가 아니라 조회 인자로 받는다.
+  'event.meetingCounts': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return eventMeetingCounts(d.db, orgOf(c), eventId)
+  },
+  'event.meetings': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return eventMeetings(d.db, orgOf(c), eventId)
+  },
+  'event.schedule': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return eventSchedule(d.db, orgOf(c), eventId, c.req.query('filter'), d.invite)
+  },
 
   // ── 참석 확인 QR (EVT-04B) ─────────────────────────────────────────────
   //

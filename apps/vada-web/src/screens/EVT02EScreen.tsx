@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Built } from '../components/Built'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { NEUTRAL_BORDER, SOFT_BOX } from '../design/tones'
 import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
@@ -154,8 +155,13 @@ interface ConfirmShellProps {
 function ConfirmShell({ screenParams, onClose, children }: ConfirmShellProps) {
   return (
     <>
+      {/* **뒤에 남는 화면만 따로 가린다.** 후속 정리 개요가 읽는 넷이 아직 안
+          지어졌는데, 그 하나 때문에 이 모달까지 통째로 준비 중이 되면 지어 놓은
+          자리를 아무도 못 본다(components/Built.tsx가 그 까닭을 적어 두었다). */}
       <div aria-hidden className="pointer-events-none">
-        <EVT02DScreen screenParams={screenParams} onNavigate={() => undefined} />
+        <Built what="후속 정리 개요">
+          <EVT02DScreen screenParams={screenParams} onNavigate={() => undefined} />
+        </Built>
       </div>
 
       <div
