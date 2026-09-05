@@ -3,10 +3,13 @@ import { getOptionSource } from '../option-sources/catalog'
 import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json'
 import { documents } from './served/documents'
 import { events } from './served/events'
+import { finance } from './served/finance'
 import { joining } from './served/joining'
 import { meetings } from './served/meetings'
+import { ops } from './served/ops'
 import { org } from './served/org'
 import { outside } from './served/outside'
+import { record } from './served/record'
 import { shell } from './served/shell'
 import { tasks } from './served/tasks'
 
@@ -43,7 +46,19 @@ import { tasks } from './served/tasks'
  *
  * 영역을 더할 때 고치는 줄이 둘이다: 가져오는 줄과 여기 한 줄.
  */
-const AREAS = [shell, org, joining, outside, events, meetings, tasks, documents] as const
+const AREAS = [
+  shell,
+  org,
+  joining,
+  outside,
+  events,
+  meetings,
+  tasks,
+  documents,
+  ops,
+  finance,
+  record,
+] as const
 
 export const SERVED: readonly string[] = AREAS.flatMap((area) => area.reads)
 
