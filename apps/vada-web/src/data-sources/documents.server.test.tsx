@@ -316,16 +316,15 @@ describe('행사 문서 표가 저장소에서 온다(EVT-DOC-01)', () => {
 })
 
 describe('회의 자료가 저장소에서 온다(OPS-MEET-07)', () => {
-  // **OPS-MEET-07은 아직 못 연다** — 이 화면이 읽는 `meeting.minutes`와
-  // `meeting.followUps`가 안 지어졌다. 자료 목록 자체는 이미 진짜라 출처로 잰다.
-  //
-  // 한동안 이 검사가 화면을 그려서 통과했는데, 그 둘을 개발용 응답이 채우고
-  // 있었다 — 검사도 배포와 같은 거짓말을 하고 있었다(2026-09-05).
-  it('OPS-MEET-07은 회의록이 아직이라 준비 중을 그린다', async () => {
+  // **회의록과 후속 업무가 붙으면서 07이 열렸다.** 한동안 이 화면이 통째로 준비
+  // 중이었고, 그전에는 그 자리를 개발용 응답이 채운 채로 검사가 통과했다 — 검사도
+  // 배포와 같은 거짓말을 하고 있었다(2026-09-05). 자료 목록은 이 파일의 것이다.
+  it('OPS-MEET-07이 이 회의의 자료를 함께 그린다', async () => {
     draw('OPS-MEET-07', { meetingId: 'MTG-01' })
     await waitFor(() =>
-      expect(screen.getByText('이 화면은 아직 준비 중입니다.')).toBeInTheDocument(),
+      expect(screen.getByText('한마당_지난회의요약.docx')).toBeInTheDocument(),
     )
+    expect(document.body.textContent ?? '').not.toContain('이 화면은 아직 준비 중입니다.')
   })
 
   it('이 회의에 붙은 자료가 저장소에서 온다', async () => {

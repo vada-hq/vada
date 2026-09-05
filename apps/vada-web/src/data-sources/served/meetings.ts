@@ -12,13 +12,16 @@ import type { Served } from './area'
  *
  * **`meeting.detail` 하나를 화면 열한 장이 읽는다.** 명세가 단계마다 출처를 가르지
  * 않았고, 가르면 화면이 '지금 어느 단계인가'를 알아야 한다 — 그 단계에 없는 조각은
- * 오지 않는다. 여기 올린 뒤부터 06·07·08·09도 이 서버의 답을 받는다: 그 화면들이
- * 그리는 조각 중 아직 안 오는 것이 있고(회의록 요약·후속 업무·대체 회의) 그 자리는
- * 다음 회차의 몫이다.
+ * 오지 않는다.
  *
- * 아직 안 올린 것 셋: `meeting.modes`·`meeting.agendaDurations`는 **고를 수 있는
+ * **회의록과 후속 업무와 진행 권한이 여기 올라오면서 06A·06B·07·08·04B·D03이
+ * 열린다.** 회의록의 요약과 정리 현황은 `meetings` 표에서, 후속 업무는 `tasks`
+ * 표에서 온다 — 회의가 만든 업무도 업무 표에 살고, 회의가 제 표에 따로 담지 않는다.
+ *
+ * 아직 안 올린 것 넷: `meeting.modes`·`meeting.agendaDurations`는 **고를 수 있는
  * 값의 목록이 명세에 없고**(디자인이 그 목록을 그리지 않았다), `meeting.documents`는
- * `documents` 표를 맡은 자리가 따로 붙인다.
+ * `documents` 표를 맡은 자리가 따로 붙이며, `meeting.minutesProgress`는 '정리를
+ * 마칠 수 있는가'를 조건으로 세는 다른 자리다.
  */
 export const meetings: Served = {
   reads: [
@@ -35,6 +38,18 @@ export const meetings: Served = {
     // 시작·종료 전에 살펴 준 것. 며칠 이른지도 무엇이 남았는지도 서버만 안다.
     'meeting.startConfirm',
     'meeting.endConfirm',
+    // 진행 권한(04B · D03). 안내 글도 확인 글도 서버가 든다 — 명세가 들면 권한이
+    // 하나 늘 때마다 명세가 틀린다.
+    'meeting.hostOwner',
+    'meeting.permissionNotice',
+    'meeting.hostGrantConfirm',
+    // 회의록(06A · 06B · 07). 요약은 없을 수 있고 그때도 **없다는 말이** 온다.
+    'meeting.minutes',
+    'meeting.minutesStatus',
+    // 후속 업무(05A · 06B · 07 · 08). **둘은 다른 물음이다** — 비었을 때 07과 08이
+    // 다르게 말하므로 자리도 둘이다.
+    'meeting.followUps',
+    'meeting.myFollowUps',
   ],
   writes: [
     // 둘이 **같은 것**을 보낸다. 다른 것은 보내는 곳과 그 결과의 단계뿐이다.

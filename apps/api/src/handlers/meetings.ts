@@ -9,6 +9,12 @@ import {
   startConfirm,
   type MeetingPowers,
 } from '../meetings/detail.ts'
+import { meetingFollowUps, myMeetingFollowUps } from '../meetings/follow-ups.ts'
+import {
+  meetingHostGrantConfirm,
+  meetingHostOwner,
+  meetingPermissionNotice,
+} from '../meetings/host-role.ts'
 import {
   linkableEventOptions,
   meetingAttention,
@@ -17,6 +23,7 @@ import {
   memberCandidates,
   type MeetingViewer,
 } from '../meetings/meetings.ts'
+import { meetingMinutes, meetingMinutesStatus } from '../meetings/minutes.ts'
 import {
   completeCurrentAgenda,
   endMeeting,
@@ -159,6 +166,32 @@ export const meetingHandlers: Handlers = {
       { canManageHostRole: await canDo(c, d, 'meeting.own', meetingId) },
     )
   },
+
+  // ── 진행 권한 (OPS-MEET-04B · D03) ────────────────────────────────────
+  //
+  // **만든 사람은 목록의 한 줄이 아니라 제 자리를 갖는다.** 04B가 맨 위 칸에 따로
+  // 그리고 목록에서는 뺀다 — 같은 사람을 03A와 다른 말로 적는 자리이기도 하다.
+  'meeting.hostOwner': async (c, d) => meetingHostOwner(d.db, orgOf(c), meetingIdOf(c)),
+  // 안내 글은 **서버가 든다.** 명세가 들면 권한이 하나 늘 때마다 명세가 틀린다.
+  'meeting.permissionNotice': async (c, d) =>
+    meetingPermissionNotice(d.db, orgOf(c), meetingIdOf(c)),
+  'meeting.hostGrantConfirm': async (c, d) =>
+    meetingHostGrantConfirm(d.db, orgOf(c), meetingIdOf(c), c.req.query('memberId') ?? ''),
+
+  // ── 회의록 (OPS-MEET-06A · 06B · 07) ──────────────────────────────────
+  //
+  // **안건마다의 기록과 다른 물건이다.** 안건의 논의·결정은 `meeting.agendas`가 갖고
+  // 여기 있는 것은 회의 전체를 한 덩이로 줄인 글과 그 정리 현황이다.
+  'meeting.minutes': async (c, d) => meetingMinutes(d.db, orgOf(c), meetingIdOf(c)),
+  'meeting.minutesStatus': async (c, d) => meetingMinutesStatus(d.db, orgOf(c), meetingIdOf(c)),
+
+  // ── 후속 업무 (OPS-MEET-05A · 06B · 07 · 08) ──────────────────────────
+  //
+  // **둘은 다른 물음이다.** 위는 '이 회의가 만든 후속 업무'이고 아래는 '그중 내
+  // 것'이다 — 비었을 때 07과 08이 다르게 말하므로 자리도 둘이다.
+  'meeting.followUps': async (c, d) => meetingFollowUps(d.db, orgOf(c), meetingIdOf(c)),
+  'meeting.myFollowUps': async (c, d) =>
+    myMeetingFollowUps(d.db, orgOf(c), meetingIdOf(c), memberOf(c)),
 
   // ── 시작·종료 확인 (OPS-MEET-D01 · D02) ───────────────────────────────
   'meeting.startConfirm': async (c, d) =>

@@ -13,6 +13,7 @@ import {
   meetings,
   members,
   organizations,
+  tasks,
   users,
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
@@ -174,6 +175,33 @@ beforeAll(async () => {
       startedAt: new Date('2026-07-20T09:00:00+09:00'),
       creatorMemberId: 'M-01',
     },
+    // 회의록을 정리하는 중인 회의(OPS-MEET-06A · 06B). 요약이 초안으로 들어 있다.
+    {
+      id: 'MTG-F',
+      orgId: 'ORG-01',
+      title: '9월 신입생 환영 기획회의',
+      status: 'wrapUp',
+      minutesStatus: 'drafting',
+      scheduledAt: new Date('2026-07-15T16:00:00+09:00'),
+      startedAt: new Date('2026-07-15T16:00:00+09:00'),
+      endedAt: new Date('2026-07-15T17:18:00+09:00'),
+      creatorMemberId: 'M-01',
+      minutesSummary: '신입생 환영 행사의 프로그램 순서와 부서별 준비 범위를 정했습니다.',
+      minutesSummaryDraftedAt: new Date('2026-07-15T17:20:00+09:00'),
+    },
+    // 정리가 끝난 회의(OPS-MEET-07 · 08). 요약이 확정됐다.
+    {
+      id: 'MTG-G',
+      orgId: 'ORG-01',
+      title: '9월 안전 관리 최종 회의',
+      status: 'done',
+      minutesStatus: 'done',
+      scheduledAt: new Date('2026-07-14T15:00:00+09:00'),
+      startedAt: new Date('2026-07-14T15:00:00+09:00'),
+      endedAt: new Date('2026-07-14T16:12:00+09:00'),
+      creatorMemberId: 'M-01',
+      minutesSummary: '위험 구간 조치 방안과 비상 연락 순서를 확정했습니다.',
+    },
     // 옆 학생회의 회의. 이 목록에 나오면 안 된다.
     { id: 'MTG-99', orgId: 'ORG-02', title: '남의 회의', creatorMemberId: 'M-99' },
   ])
@@ -185,6 +213,18 @@ beforeAll(async () => {
     { id: 'MP-04', orgId: 'ORG-01', meetingId: 'MTG-C', memberId: 'M-02', attendance: 'present' },
     { id: 'MP-05', orgId: 'ORG-01', meetingId: 'MTG-E', memberId: 'M-01', attendance: 'present' },
     { id: 'MP-06', orgId: 'ORG-01', meetingId: 'MTG-E', memberId: 'M-02' },
+    { id: 'MP-07', orgId: 'ORG-01', meetingId: 'MTG-F', memberId: 'M-01', attendance: 'present' },
+    { id: 'MP-08', orgId: 'ORG-01', meetingId: 'MTG-F', memberId: 'M-02', attendance: 'absent' },
+    // 요약을 이미 확인한 사람. 확인 여부는 회의의 상태가 아니라 **이 사람의 상태**다.
+    {
+      id: 'MP-09',
+      orgId: 'ORG-01',
+      meetingId: 'MTG-G',
+      memberId: 'M-01',
+      attendance: 'present',
+      acknowledgedAt: new Date('2026-07-14T17:00:00+09:00'),
+    },
+    { id: 'MP-10', orgId: 'ORG-01', meetingId: 'MTG-G', memberId: 'M-02', attendance: 'absent' },
   ])
   await fresh.db.insert(meetingAgendas).values([
     { id: 'AG-A-1', orgId: 'ORG-01', meetingId: 'MTG-A', sortOrder: 0, title: '9월 예산 집행 계획' },
@@ -210,6 +250,66 @@ beforeAll(async () => {
     },
     { id: 'AG-E-1', orgId: 'ORG-01', meetingId: 'MTG-E', sortOrder: 0, title: '집행 잔액 확인', status: 'current' },
     { id: 'AG-E-2', orgId: 'ORG-01', meetingId: 'MTG-E', sortOrder: 1, title: '다음 달 예산 배정' },
+    // 정리 중인 회의의 안건 셋: 둘은 정리됐고 하나는 아직이다 — '2 / 3 정리'가 여기서 나온다.
+    {
+      id: 'AG-F-1',
+      orgId: 'ORG-01',
+      meetingId: 'MTG-F',
+      sortOrder: 0,
+      title: '행사 프로그램 구성',
+      status: 'done',
+      discussionText: '환영 인사와 학과 소개를 먼저 두기로 했습니다.',
+      decisionText: '프로그램은 환영 인사 이후 학과 소개 순으로 진행합니다.',
+    },
+    {
+      id: 'AG-F-2',
+      orgId: 'ORG-01',
+      meetingId: 'MTG-F',
+      sortOrder: 1,
+      title: '장소와 참가자 동선',
+      status: 'done',
+      decisionText: '입장과 퇴장 동선을 분리합니다.',
+    },
+    { id: 'AG-F-3', orgId: 'ORG-01', meetingId: 'MTG-F', sortOrder: 2, title: '부서별 준비 범위' },
+    {
+      id: 'AG-G-1',
+      orgId: 'ORG-01',
+      meetingId: 'MTG-G',
+      sortOrder: 0,
+      title: '행사장 안전 점검 결과',
+      status: 'done',
+      decisionText: '본부석 뒤편에 케이블 커버를 설치합니다.',
+    },
+  ])
+  // **회의가 만든 업무도 업무 표에 산다.** `from_meeting_id`가 그 이음이다.
+  await fresh.db.insert(tasks).values([
+    {
+      id: 'TSK-C1',
+      orgId: 'ORG-01',
+      fromMeetingId: 'MTG-C',
+      title: '점검 결과 공유 자료 정리',
+      status: 'planned',
+      assigneeMemberId: 'M-02',
+      dueDate: new Date('2026-07-23T18:00:00+09:00'),
+    },
+    {
+      id: 'TSK-G1',
+      orgId: 'ORG-01',
+      fromMeetingId: 'MTG-G',
+      title: '비상 연락망 최종본 배포',
+      status: 'planned',
+      assigneeMemberId: 'M-01',
+      dueDate: new Date('2026-07-24T18:00:00+09:00'),
+    },
+    // 이미 끝난 업무. **'내 것'에는 오지 않는다** — 08이 '미완료'라 적었다.
+    {
+      id: 'TSK-G2',
+      orgId: 'ORG-01',
+      fromMeetingId: 'MTG-G',
+      title: '케이블 커버 구매',
+      status: 'done',
+      assigneeMemberId: 'M-01',
+    },
   ])
 
   app = createApp({
@@ -448,11 +548,9 @@ describe('회의 상세가 저장소에서 온다', () => {
     expect(row.canEnd).toBe(false)
   })
 
-  // **OPS-MEET-05A는 아직 못 연다** — 이 화면이 읽는 `meeting.followUps`가 안 지어졌다.
-  //
-  // 한동안 이 검사가 화면을 그려서 통과했는데, 그 자리를 개발용 응답이 채우고
-  // 있었다 — 검사도 배포와 같은 거짓말을 하고 있었다(2026-09-05).
-  it('OPS-MEET-05A는 후속 업무가 아직이라 준비 중을 그린다', async () => {
+  // **후속 업무가 붙으면서 05A가 열렸다.** 한동안 이 화면이 통째로 준비 중이었다 —
+  // 읽는 자리 다섯 중 하나(`meeting.followUps`)가 안 지어졌기 때문이다.
+  it('OPS-MEET-05A가 진행 중인 회의를 통째로 그린다', async () => {
     render(
       <ScreenRouter
         screenId="OPS-MEET-05A"
@@ -463,8 +561,16 @@ describe('회의 상세가 저장소에서 온다', () => {
       />,
     )
     await waitFor(() =>
-      expect(screen.getByText('이 화면은 아직 준비 중입니다.')).toBeInTheDocument(),
+      expect(screen.getByText('점검 결과 공유 자료 정리')).toBeInTheDocument(),
     )
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).not.toContain('이 화면은 아직 준비 중입니다.')
+    // 지금 하고 있는 안건과 이 회의가 만든 후속 업무가 한 화면에 함께 온다.
+    expect(drawn).toContain('비상 연락망 확정')
+    // **누가 언제까지를 서버가 이어 준다.**
+    expect(drawn).toContain('박해랑 · 07.23까지')
+    // 개발용 응답의 후속 업무가 아니라는 증거다.
+    expect(drawn).not.toContain('현수막 시안 최종 확정')
   })
 
   // 화면은 아직이지만 **상세가 주는 값은 이미 진짜다.** 그 자리를 계속 잰다 —
@@ -506,6 +612,142 @@ describe('회의 상세가 저장소에서 온다', () => {
     ])
     expect(rows[1]!.attendanceLabel).toBe('참가')
     expect(rows[1]!.attendanceTone).toBe('green')
+  })
+})
+
+/** 화면을 그리는 자리. 인자는 화면마다 다르고 나머지는 같다. */
+function draw(screenId: string, screenParams: Record<string, string> = {}) {
+  render(
+    <ScreenRouter
+      screenId={screenId}
+      screenParams={screenParams}
+      scopes={{}}
+      onChangeScope={() => {}}
+      onNavigate={() => {}}
+    />,
+  )
+}
+
+describe('진행 권한 관리가 저장소에서 온다', () => {
+  // **만든 사람은 목록의 한 줄이 아니라 제 자리를 갖는다.** 04B가 맨 위 칸에 따로
+  // 그리고 목록에서는 뺀다.
+  it('OPS-MEET-04B가 만든 사람과 권한 안내를 함께 그린다', async () => {
+    draw('OPS-MEET-04B', { meetingId: 'MTG-A' })
+    await waitFor(() =>
+      expect(screen.getByText('이 회의에만 적용되는 권한입니다')).toBeInTheDocument(),
+    )
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).not.toContain('이 화면은 아직 준비 중입니다.')
+    // 04B는 만든 사람을 '권한 변경 및 회의 관리 가능'이라 적는다 — 03A와 다른 말이다.
+    expect(drawn).toContain('학술체육부 · 권한 변경 및 회의 관리 가능')
+    expect(drawn).toContain('필수 권한자')
+    // **세는 것은 서버가 한다.** 만든 사람은 isHost가 아니어도 진행 권한자다.
+    expect(drawn).toContain('현재 진행 권한자 1명 · 일반 참가자 1명')
+    expect(drawn).toContain('최소 1명 유지')
+    // 목록에는 만든 사람이 없다(excludeHostOwner). 개발용 응답의 사람도 없다.
+    expect(drawn).toContain('박해랑')
+    expect(drawn).not.toContain('이수현')
+  })
+
+  // **제목에 사람 이름이 박힌다.** 그 문장을 서버가 완성해 준다.
+  it('OPS-MEET-D03이 누구에게 주는지를 완성된 문장으로 그린다', async () => {
+    draw('OPS-MEET-D03', { meetingId: 'MTG-A', memberId: 'M-02' })
+    await waitFor(() =>
+      expect(screen.getByText('박해랑에게 진행 권한을 부여할까요?')).toBeInTheDocument(),
+    )
+    expect(document.body.textContent ?? '').not.toContain('이 화면은 아직 준비 중입니다.')
+  })
+})
+
+describe('회의록이 저장소에서 온다', () => {
+  it('OPS-MEET-06A가 요약과 정리 현황을 함께 그린다', async () => {
+    draw('OPS-MEET-06A', { meetingId: 'MTG-F' })
+    await waitFor(() =>
+      expect(
+        screen.getByText('신입생 환영 행사의 프로그램 순서와 부서별 준비 범위를 정했습니다.'),
+      ).toBeInTheDocument(),
+    )
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).not.toContain('이 화면은 아직 준비 중입니다.')
+    // 아직 확정되지 않은 요약이라 딱지가 붙는다.
+    expect(drawn).toContain('정리 중 · 변경될 수 있음')
+    // **부분마다 세는 단위가 다르다.** 안건은 몇 개 중 몇, 결정은 몇 건이다.
+    expect(drawn).toContain('2 / 3 정리')
+    expect(drawn).toContain('2건 확인')
+    expect(drawn).toContain('0건 연결')
+    expect(drawn).toContain('초안 작성')
+  })
+
+  it('정리 현황의 부분 목록을 서버가 든다', async () => {
+    const params = { meetingId: 'MTG-F' }
+    await loadSources([{ key: 'meeting.minutesStatus', params }])
+    expect(readObjectSource('meeting.minutesStatus', params).parts).toEqual([
+      { label: '안건 내용', stateNote: '2 / 3 정리' },
+      { label: '의사결정', stateNote: '2건 확인' },
+      { label: '후속 업무', stateNote: '0건 연결' },
+      { label: '전체 요약', stateNote: '초안 작성' },
+    ])
+  })
+
+  // **정리가 끝나면 요약은 확정된 것이다.** 그 자리에 딱지가 붙지 않는다.
+  it('OPS-MEET-07이 완료된 회의록과 후속 업무를 그린다', async () => {
+    draw('OPS-MEET-07', { meetingId: 'MTG-G' })
+    await waitFor(() =>
+      expect(screen.getByText('비상 연락망 최종본 배포')).toBeInTheDocument(),
+    )
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).not.toContain('이 화면은 아직 준비 중입니다.')
+    expect(drawn).toContain('위험 구간 조치 방안과 비상 연락 순서를 확정했습니다.')
+    expect(drawn).toContain('김바다 · 07.24까지')
+    expect(drawn).not.toContain('정리 중 · 변경될 수 있음')
+  })
+
+  // **'이 회의가 만든 것'과 '그중 내 것'은 다른 물음이다.** 끝난 업무는 내 것이 아니다.
+  it('OPS-MEET-08이 나에게 배정된 미완료 업무만 따로 그린다', async () => {
+    draw('OPS-MEET-08', { meetingId: 'MTG-G' })
+    await waitFor(() =>
+      expect(screen.getAllByText('비상 연락망 최종본 배포').length).toBeGreaterThan(1),
+    )
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).not.toContain('이 화면은 아직 준비 중입니다.')
+    // 이미 끝낸 업무는 '이 회의가 만든 것'에는 있고 '내 것'에는 없다.
+    expect(drawn).toContain('케이블 커버 구매')
+  })
+
+  it('내 것만 묻는 자리는 끝난 업무를 빼고 답한다', async () => {
+    const params = { meetingId: 'MTG-G' }
+    await loadSources([
+      { key: 'meeting.followUps', params },
+      { key: 'meeting.myFollowUps', params },
+    ])
+    expect(readListSource('meeting.followUps', params).map((row) => row.title)).toEqual([
+      '비상 연락망 최종본 배포',
+      '케이블 커버 구매',
+    ])
+    expect(readListSource('meeting.myFollowUps', params).map((row) => row.title)).toEqual([
+      '비상 연락망 최종본 배포',
+    ])
+  })
+
+  // **안 지은 자리 하나가 화면을 통째로 닫지 않는다.** 06B가 읽는 다섯 중 넷은
+  // 지어졌고 `meeting.minutesProgress`만 아직이다 — 그 자리만 가린다.
+  it('OPS-MEET-06B가 회의록을 그리고 정리 완료 조건만 가린다', async () => {
+    draw('OPS-MEET-06B', { meetingId: 'MTG-F' })
+    await waitFor(() =>
+      expect(
+        screen.getByText('신입생 환영 행사의 프로그램 순서와 부서별 준비 범위를 정했습니다.'),
+      ).toBeInTheDocument(),
+    )
+    const drawn = document.body.textContent ?? ''
+    // 화면이 통째로 닫히지는 않았다.
+    expect(drawn).not.toContain('이 화면은 아직 준비 중입니다.')
+    expect(drawn).toContain('행사 프로그램 구성')
+    expect(drawn).toContain('입장과 퇴장 동선을 분리합니다.')
+    // AI 초안이 무엇을 하지 않는지도 서버가 준다.
+    expect(drawn).toContain('기록에 없는 결정·담당자·기한을 새로 만들지 않습니다')
+    // 아직 안 지은 자리 둘만 그 사실을 말한다.
+    expect(screen.getAllByText('아직 준비 중입니다')).toHaveLength(2)
+    expect(drawn).toContain('정리 완료 조건')
   })
 })
 

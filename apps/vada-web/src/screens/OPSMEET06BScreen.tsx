@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { AppShell } from '../components/AppShell'
+import { Built } from '../components/Built'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { BANNER_TEXT, BANNER_TONE, NEUTRAL_BORDER, NEUTRAL_CHIP, NEUTRAL_VALUE, STATE_CHIP } from '../design/tones'
@@ -106,6 +107,132 @@ function scalar(row: DataRow, field: string | undefined): string {
   return String(value)
 }
 
+// **정리 완료 조건만 아직 서버에 안 붙었다**(`meeting.minutesProgress`). 그 하나
+// 때문에 화면이 통째로 닫히면 지어 놓은 나머지 넷(띠·회의록 요약·안건·후속 업무)을
+// 아무도 못 본다 — 그래서 그 자리를 읽는 곳을 두 부품으로 갈라 `Built`로 두른다.
+//
+// **화면 안에서 읽어야 두를 수 있다.** 부모가 읽으면 그리기 전에 터지고, 그때는
+// 바깥 그물(`SourceGate`)이 화면을 통째로 가린다.
+
+/**
+ * 머리 오른쪽의 '무엇이 남았는지'와 '정리 완료'.
+ *
+ * **무엇이 막는지는 서버가 말한다** — 화면이 세면 조직의 규칙이 화면에 적힌다.
+ * 그래서 막혔는지를 모르는 동안에는 단추도 함께 가린다: 보낼 수 있는지 모르는 채로
+ * 보내면 조용히 실패하거나 조용히 지나간다.
+ */
+function CompleteMinutesAction({
+  screenParams,
+  submitAction,
+  onNavigate,
+}: {
+  screenParams: Record<string, string>
+  submitAction: ReturnType<typeof useSubmitAction>
+  onNavigate: (screenId: string, params?: Record<string, string>) => void
+}) {
+  const blockedNote = summaryAt(NODE.blockedNote)
+  const complete = buttonAt(NODE.complete)
+  const progress = readObjectSourceOrNull(
+    blockedNote.dataSourceKey ?? '',
+    resolveParams(blockedNote.params, { screenParams }),
+  )
+
+  return (
+    <span className="flex items-center gap-3">
+      <span data-node-id={NODE.blockedNote} className="text-xs text-orange-600">
+        {progress === null ? '' : scalar(progress, (blockedNote.items ?? [])[0]?.field)}
+      </span>
+      <button
+        type="button"
+        data-node-id={NODE.complete}
+        onClick={() => {
+          const action = complete.action as SubmitAction
+          if (
+            action.executeWhen?.type === 'sourceAllows' &&
+            progress !== null &&
+            scalar(progress, action.executeWhen.blockedNoteField) !== ''
+          ) {
+            // 막혔다는 것을 서버가 이미 말했다. 그 글이 머리에 그려져 있으므로
+            // 화면은 보내지 않기만 한다(onExecutionBlocked: showBlockedNote).
+            return
+          }
+          void submitAction.run(action, {
+            payload: { meetingId: screenParams.meetingId ?? '' },
+            onNavigate,
+          })
+        }}
+        className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
+      >
+        <FigmaAsset screenId={SCREEN} nodeId={ASSET.complete} className="size-3.5" />
+        {submitAction.labelOf(complete.action as SubmitAction, complete.label)}
+      </button>
+    </span>
+  )
+}
+
+/**
+ * 무엇이 남았는지.
+ *
+ * **명세가 조건의 목록을 들지 않는다** — 무엇이 정리를 막는지는 조직의 규칙이
+ * 정하고, 명세가 목록을 들면 규칙이 하나 늘 때마다 명세가 틀린다.
+ */
+function MinutesCompletionConditions({
+  screenParams,
+}: {
+  screenParams: Record<string, string>
+}) {
+  const progressHeader = summaryAt(NODE.progressHeader)
+  const conditions = listAt(NODE.conditions)
+  const progress = readObjectSourceOrNull(
+    progressHeader.dataSourceKey ?? '',
+    resolveParams(progressHeader.params, { screenParams }),
+  )
+  const conditionRows = readFieldRows(
+    conditions.dataSourceKey,
+    conditions.itemsField,
+    resolveParams(conditions.params, { screenParams }),
+  )
+
+  return (
+    <section className="rounded-xl border border-gray-200 bg-white px-5 py-4">
+      <div
+        data-node-id={NODE.progressHeader}
+        className="flex items-center justify-between gap-2"
+      >
+        <h3 className="text-xs font-bold text-gray-800">{progressHeader.title}</h3>
+        <span className="text-xs font-semibold text-orange-600">
+          {progress === null ? '' : scalar(progress, (progressHeader.items ?? [])[0]?.field)}
+        </span>
+      </div>
+      <ul data-node-id={NODE.conditions} className="flex flex-col gap-2 pt-3">
+        {conditionRows.map((row, at) => (
+          <li
+            key={at}
+            className={`flex items-center gap-2 ${
+              scalar(row, 'optional') === '' ? '' : 'rounded-lg border border-gray-100 px-2 py-1'
+            }`}
+          >
+            <FigmaAsset
+              screenId={SCREEN}
+              nodeId={
+                scalar(row, 'done') !== ''
+                  ? ASSET.conditionDone
+                  : scalar(row, 'optional') !== ''
+                    ? ASSET.conditionOptional
+                    : ASSET.conditionTodo
+              }
+              className="size-4"
+            />
+            <span className="text-xs font-normal text-gray-600">
+              {scalar(row, columnFieldOf(conditions, 0))}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
 export function OPSMEET06BScreen({
   screenParams,
   draft,
@@ -124,8 +251,6 @@ export function OPSMEET06BScreen({
   })
 
   const banner = elementByNodeId(opsMeet06a, BASE_NODE.banner).spec as SummarySpec
-  const blockedNote = summaryAt(NODE.blockedNote)
-  const complete = buttonAt(NODE.complete)
   const facts = summaryAt(NODE.facts)
   const summaryHeader = summaryAt(NODE.summaryHeader)
   const aiDisclaimer = summaryAt(NODE.aiDisclaimer)
@@ -136,8 +261,6 @@ export function OPSMEET06BScreen({
   const panelHeader = summaryAt(NODE.panelHeader)
   const picker = elementByNodeId(opsMeet06b, NODE.picker).spec as SelectSpec
   const panel = listAt(NODE.panel)
-  const progressHeader = summaryAt(NODE.progressHeader)
-  const conditions = listAt(NODE.conditions)
 
   const meta = opsMeet06b.meta
   if (meta === undefined) {
@@ -178,15 +301,6 @@ export function OPSMEET06BScreen({
     agendaFollowUps.dataSourceKey,
     resolveParams(agendaFollowUps.params, { screenParams }),
   )
-  const progress = readObjectSourceOrNull(
-    progressHeader.dataSourceKey ?? '',
-    resolveParams(progressHeader.params, { screenParams }),
-  )
-  const conditionRows = readFieldRows(
-    conditions.dataSourceKey,
-    conditions.itemsField,
-    resolveParams(conditions.params, { screenParams }),
-  )
   const minutesRow = readObjectSourceOrNull(
     aiDisclaimer.dataSourceKey ?? '',
     resolveParams(aiDisclaimer.params, { screenParams }),
@@ -207,14 +321,21 @@ export function OPSMEET06BScreen({
       return
     }
     let cancelled = false
-    void fetchOptions(
-      picker.optionsSource.key,
-      JSON.parse(pickerParamsKey) as Record<string, string>,
-    ).then((loaded) => {
-      if (!cancelled) {
-        setPickerOptions(loaded)
-      }
-    })
+    fetchOptions(picker.optionsSource.key, JSON.parse(pickerParamsKey) as Record<string, string>)
+      .then((loaded) => {
+        if (!cancelled) {
+          setPickerOptions(loaded)
+        }
+      })
+      // **못 받아 오면 고를 것이 없다.** ChoiceGroup이 같은 자리에서 같은 일을 한다 —
+      // 이 화면은 그 부품을 쓰지 않으므로(선택지마다 곁말을 함께 그린다) 여기서도
+      // 같은 규칙을 적는다. 이 목록은 아직 서버에 안 붙었고(`meeting.agendaPicker`),
+      // 안 잡아 두면 그리기 밖에서 터진 약속이 아무 데도 안 닿는다.
+      .catch(() => {
+        if (!cancelled) {
+          setPickerOptions([])
+        }
+      })
     return () => {
       cancelled = true
     }
@@ -282,37 +403,16 @@ export function OPSMEET06BScreen({
       }
       // 머리 오른쪽은 한 자리다. 06A에서는 '읽기 전용'이 오고 여기서는 무엇이
       // 남았는지와 '정리 완료'가 온다. **무엇이 막는지는 서버가 말한다** —
-      // 화면이 세면 조직의 규칙이 화면에 적힌다.
+      // 화면이 세면 조직의 규칙이 화면에 적힌다. 그 자리가 아직 안 지어졌으므로
+      // **그 자리만** 가린다.
       headerAction={
-        <span className="flex items-center gap-3">
-          <span data-node-id={NODE.blockedNote} className="text-xs text-orange-600">
-            {progress === null ? '' : scalar(progress, (blockedNote.items ?? [])[0]?.field)}
-          </span>
-          <button
-            type="button"
-            data-node-id={NODE.complete}
-            onClick={() => {
-              const action = complete.action as SubmitAction
-              if (
-                action.executeWhen?.type === 'sourceAllows' &&
-                progress !== null &&
-                scalar(progress, action.executeWhen.blockedNoteField) !== ''
-              ) {
-                // 막혔다는 것을 서버가 이미 말했다. 그 글이 머리에 그려져 있으므로
-                // 화면은 보내지 않기만 한다(onExecutionBlocked: showBlockedNote).
-                return
-              }
-              void submitAction.run(action, {
-                payload: { meetingId: screenParams.meetingId ?? '' },
-                onNavigate,
-              })
-            }}
-            className="flex items-center gap-1.5 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700"
-          >
-            <FigmaAsset screenId={SCREEN} nodeId={ASSET.complete} className="size-3.5" />
-            {submitAction.labelOf(complete.action as SubmitAction, complete.label)}
-          </button>
-        </span>
+        <Built what="정리 완료">
+          <CompleteMinutesAction
+            screenParams={screenParams}
+            submitAction={submitAction}
+            onNavigate={onNavigate}
+          />
+        </Built>
       }
       onNavigate={onNavigate}
     >
@@ -746,45 +846,10 @@ export function OPSMEET06BScreen({
               </div>
             </section>
 
-            {/* 무엇이 남았는지. **명세가 조건의 목록을 들지 않는다** — 무엇이 정리를
-                막는지는 조직의 규칙이 정하고, 명세가 목록을 들면 규칙이 하나 늘 때마다
-                명세가 틀린다. */}
-            <section className="rounded-xl border border-gray-200 bg-white px-5 py-4">
-              <div
-                data-node-id={NODE.progressHeader}
-                className="flex items-center justify-between gap-2"
-              >
-                <h3 className="text-xs font-bold text-gray-800">{progressHeader.title}</h3>
-                <span className="text-xs font-semibold text-orange-600">
-                  {progress === null ? '' : scalar(progress, (progressHeader.items ?? [])[0]?.field)}
-                </span>
-              </div>
-              <ul data-node-id={NODE.conditions} className="flex flex-col gap-2 pt-3">
-                {conditionRows.map((row, at) => (
-                  <li
-                    key={at}
-                    className={`flex items-center gap-2 ${
-                      scalar(row, 'optional') === '' ? '' : 'rounded-lg border border-gray-100 px-2 py-1'
-                    }`}
-                  >
-                    <FigmaAsset
-                      screenId={SCREEN}
-                      nodeId={
-                        scalar(row, 'done') !== ''
-                          ? ASSET.conditionDone
-                          : scalar(row, 'optional') !== ''
-                            ? ASSET.conditionOptional
-                            : ASSET.conditionTodo
-                      }
-                      className="size-4"
-                    />
-                    <span className="text-xs font-normal text-gray-600">
-                      {scalar(row, columnFieldOf(conditions, 0))}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </section>
+            {/* 무엇이 남았는지. **아직 서버에 안 붙은 자리라 여기만 가린다.** */}
+            <Built what="정리 완료 조건">
+              <MinutesCompletionConditions screenParams={screenParams} />
+            </Built>
           </div>
         </div>
       </div>
