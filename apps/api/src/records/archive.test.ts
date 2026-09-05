@@ -26,6 +26,7 @@ import {
 import { harness, matchesContract, NOW, viewer } from '../events/testing.ts'
 import { hashToken } from '../public/tokens.ts'
 import { freezeArchive } from './archive-body.ts'
+import { archiveReview, archiveReviewers } from './archive.ts'
 
 // 행사 아카이브를 읽는 열한 자리(REC-02 · REC-02A).
 //
@@ -693,4 +694,22 @@ describe('답이 계약의 모양을 지킨다', () => {
       expect(matchesContract(operationId, await res.json())).toBe(true)
     })
   }
+})
+
+// ── 검토 — 그림에 있는 둘. 의견을 적는 자리는 승인 단추와 함께 나중에 온다.
+describe('검토자 후보와 검토 의견', () => {
+  it('검토자 후보는 회장단과 부서장뿐이다', async () => {
+    const options = await archiveReviewers(db, 'ORG-01', 'E-A1')
+    const ids = options.map((one) => one.value)
+    expect(ids).toContain('M-01')
+    expect(ids).toContain('M-02')
+    expect(ids).not.toContain('M-03')
+    // 고르는 사람이 누가 누군지 알아야 한다 — 자리가 곁말로 붙는다.
+    expect(options.find((one) => one.value === 'M-01')?.description).toBe('회장단')
+    expect(options.find((one) => one.value === 'M-02')?.description).toMatch(/^부서장/)
+  })
+
+  it('아직 검토되지 않았으면 의견 조각이 오지 않는다', async () => {
+    expect(await archiveReview(db, 'ORG-01', 'E-A1')).toEqual({})
+  })
 })

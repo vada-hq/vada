@@ -723,14 +723,7 @@
     "REC-02": {
       "ready": false,
       "missing": [
-        "record.archive",
-        "record.archiveChecklist",
-        "record.archiveDetail",
-        "record.archiveEvidence",
-        "record.archiveHandover",
-        "record.archiveRetro",
-        "record.archiveSections",
-        "record.archiveTimeline"
+        "record.archiveChecklist"
       ],
       "needs": [
         "eventId"
@@ -739,17 +732,8 @@
       "over": null
     },
     "REC-02A": {
-      "ready": false,
-      "missing": [
-        "record.archive",
-        "record.archiveAutoFilled",
-        "record.archiveDraft",
-        "record.archiveGate",
-        "record.archiveGateConditions",
-        "record.archiveReview",
-        "record.archiveReviewers",
-        "record.archiveSections"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [
         "eventId"
       ],

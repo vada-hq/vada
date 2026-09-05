@@ -69,6 +69,8 @@ beforeAll(async () => {
   await fresh.db.insert(users).values({ id: 'U-01', email: 'haerang@example.ac.kr' })
   await fresh.db.insert(members).values({
     id: 'M-01',
+    // 보는 사람과 같은 사람이다 — 회장단이어야 검토자로 골라지고 쓰기가 열린다.
+    role: 'chair',
     orgId: 'ORG-01',
     name: '박해랑',
     departmentId: 'D-01',
@@ -355,11 +357,12 @@ describe('쓰는 중인 아카이브가 저장소에서 온다(REC-02A)', () => 
   })
 
   // 검토 단계는 명세에서 빠진다 — 검토 의견 자리만 준비 중이고 나머지는 위에서 그려졌다.
-  it('검토 의견 자리만 준비 중이다', async () => {
+  // 검토는 그림에 있다 — 검토자 고르기와 검토 의견까지 서버에서 온다. 없는 것은
+  // 승인 단추 하나이고 그것은 이 화면의 자리가 아니다. 그래서 가려진 자리가 없다.
+  it('검토 의견 자리까지 서버에서 와서 가려진 자리가 없다', async () => {
     draw('REC-02A', { eventId: 'E-R4' })
-    // 칸의 이름과 준비 중 표시가 같은 이름을 든다 — 그래서 둘이다.
-    await waitFor(() => expect(screen.getAllByText('검토 의견')).toHaveLength(2))
-    expect(screen.getAllByText(BLOCK_NOT_BUILT)).toHaveLength(1)
+    await waitFor(() => expect(screen.getAllByText('검토 의견').length).toBeGreaterThan(0))
+    expect(drawn()).not.toContain(BLOCK_NOT_BUILT)
     expect(drawn()).not.toContain(SCREEN_NOT_BUILT)
   })
 })
@@ -380,6 +383,26 @@ describe('아카이브를 쓰는 길이 저장소까지 닿는다(REC-02A)', () 
     const draft = readObjectSource('record.archiveDraft', { eventId: 'E-R4' })
     expect(draft.retroGood).toBe('부스 배치가 좋았다')
     expect(draft.nextOwner).toBe('다음 대 대외협력부')
+  })
+
+  it('검토 요청이 문서를 검토 중으로 옮기고 두 번은 못 넘긴다', async () => {
+    // 검토자는 회장단·부서장 중에서 고른다. M-01은 회장단이다.
+    await runMutation(
+      'record.archive.requestReview',
+      { retroGood: '넘긴다', reviewer: 'M-01' },
+      { eventId: 'E-R4' },
+    )
+    forgetSources()
+    await loadSources([
+      { key: 'record.archive', params: { eventId: 'E-R4' } },
+      { key: 'record.archiveDraft', params: { eventId: 'E-R4' } },
+    ])
+    expect(readObjectSource('record.archive', { eventId: 'E-R4' }).statusLabel).toBe('검토 중')
+    expect(readObjectSource('record.archiveDraft', { eventId: 'E-R4' }).reviewer).toBe('M-01')
+    // 이미 넘어간 문서는 또 못 넘긴다 — 서버가 409로 막고 화면 쪽 길이 그것을 던진다.
+    await expect(
+      runMutation('record.archive.requestReview', { reviewer: 'M-01' }, { eventId: 'E-R4' }),
+    ).rejects.toThrow()
   })
 
   it('인수인계 초안이 기록에서 만들어진다', async () => {

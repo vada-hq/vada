@@ -6,6 +6,8 @@ import {
   archiveGateConditions,
   archiveHandover,
   archiveRetro,
+  archiveReview,
+  archiveReviewers,
   archiveSections,
   recordArchive,
 } from '../records/archive.ts'
@@ -15,7 +17,12 @@ import {
   archiveEvidence,
   archiveTimeline,
 } from '../records/archive-body.ts'
-import { generateHandoverDraft, saveArchiveDraft, type ArchiveWriter } from '../records/archive-write.ts'
+import {
+  generateHandoverDraft,
+  requestArchiveReview,
+  saveArchiveDraft,
+  type ArchiveWriter,
+} from '../records/archive-write.ts'
 import { completedEventAlert, completedEvents } from '../records/completed.ts'
 import { NotFound } from '../routes.ts'
 
@@ -112,4 +119,19 @@ export const recordHandlers: Handlers = {
   },
   'record.archive.generateHandoverDraft': async (c, d) =>
     generateHandoverDraft(d.db, orgOf(c), eventIdOf(c), writerOf(c), d.invite.now(), d.newId),
+
+  // ── 검토 (REC-02A) ─────────────────────────────────────────────────────
+  //
+  // 검토는 그림에 있다 — 검토자 고르기·검토 요청·검토 의견. 없는 것은 검토자가 승인을
+  // 누르는 단추 하나이고, 그것이 발행이다(사람이 정함, 2026-09-05). 그때까지 문서는
+  // '검토 중'에 머문다.
+  'record.archiveReview': async (c, d) => archiveReview(d.db, orgOf(c), eventIdOf(c)),
+  'record.archiveReviewers.options': async (c, d) =>
+    archiveReviewers(d.db, orgOf(c), eventIdOf(c)),
+  'record.archive.requestReview': async (c, d) => {
+    const orgId = orgOf(c)
+    const eventId = eventIdOf(c)
+    const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+    return requestArchiveReview(d.db, orgId, eventId, draft, writerOf(c), d.invite.now(), d.newId)
+  },
 }

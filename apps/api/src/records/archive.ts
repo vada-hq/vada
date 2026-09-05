@@ -1,4 +1,6 @@
+import { and, eq, inArray } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
+import { departments, members } from '../db/schema.ts'
 import { joinParts } from '../finance/labels.ts'
 import { clock, day, weekdayStamp } from '../time.ts'
 import {
@@ -77,7 +79,7 @@ function scheduleNoteOf(event: ArchiveEvent): string {
  *
  * 쓰는 화면은 이름과 상태만 읽고(그리고 AI 계약 문장), 발행된 문서는 누가 언제 쓰고
  * 발행했는지까지 읽는다 — '발행된 문서에만 온다'는 조각은 발행 전에는 오지 않는다.
- * 검토자 조각(`reviewerNote`)은 검토 단계가 명세에서 빠지므로 내지 않는다.
+ * 검토자 조각(`reviewerNote`)도 그중 하나라 발행이 생기는 날 함께 온다.
  */
 export async function recordArchive(db: Db, orgId: string, eventId: string): Promise<RecordArchive> {
   const { event, row } = await archiveOf(db, orgId, eventId)
@@ -256,6 +258,7 @@ export interface ArchiveDraft {
   improvementDepartment?: string
   handover?: string
   nextOwner?: string
+  reviewer?: string
 }
 
 /**
@@ -263,7 +266,7 @@ export interface ArchiveDraft {
  *
  * **칸은 칸으로 준다.** 안 적은 칸은 아예 오지 않는다 — 빈 글이나 '미정' 같은 말을
  * 넣으면 사람이 그것을 지우지 않고 저장한다. 줄이 없는 문서는 빈 초안이라 아무것도 없다.
- * 검토자 칸은 검토 단계가 빠지므로 내지 않는다.
+ * 고른 검토자도 칸이다 — 저장했다 다시 열면 그 사람이 골라져 있어야 한다.
  */
 export async function archiveDraft(db: Db, orgId: string, eventId: string): Promise<ArchiveDraft> {
   const { row } = await archiveOf(db, orgId, eventId)
@@ -280,7 +283,52 @@ export async function archiveDraft(db: Db, orgId: string, eventId: string): Prom
   put('improvementDepartment', row?.improvementDepartmentId)
   put('handover', row?.handover)
   put('nextOwner', row?.nextOwner)
+  put('reviewer', row?.reviewerMemberId)
   return draft
+}
+
+/**
+ * 검토 의견(`record.archiveReview`). **쓰는 사람이 아니라 검토자가 적는 값**이라
+ * 초안과 갈린다(명세). 아직 검토되지 않았으면 조각이 오지 않는다 — 검토자가 의견을
+ * 적는 자리는 승인 단추와 함께 그림에 더해질 것이고, 그때까지 이 자리는 늘 빈 채다.
+ */
+export async function archiveReview(
+  db: Db,
+  orgId: string,
+  eventId: string,
+): Promise<{ comment?: string }> {
+  const { row } = await archiveOf(db, orgId, eventId)
+  const comment = word(row?.reviewComment)
+  return comment === null ? {} : { comment }
+}
+
+/**
+ * 검토자 후보(`record.archiveReviewers`). **회장단과 부서장.** 명세는 '조직의 권한
+ * 규칙'이라고만 적었고, 기록을 쓰는 권한(`record.write`)이 그 둘이므로 검토도 그
+ * 둘이 한다 — 쓸 수 없는 사람이 검토하는 것은 이상하다. 사람이 다른 규칙을 정하면
+ * 여기 한 곳만 바뀐다.
+ */
+export async function archiveReviewers(
+  db: Db,
+  orgId: string,
+  eventId: string,
+): Promise<Array<{ value: string; label: string; description: string }>> {
+  await archiveOf(db, orgId, eventId)
+  const rows = await db
+    .select({ id: members.id, name: members.name, role: members.role, department: departments.name })
+    .from(members)
+    .leftJoin(
+      departments,
+      and(eq(members.departmentId, departments.id), eq(departments.orgId, orgId)),
+    )
+    .where(and(eq(members.orgId, orgId), inArray(members.role, ['chair', 'head'])))
+  return rows
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map((row) => ({
+      value: row.id,
+      label: row.name,
+      description: row.role === 'chair' ? '회장단' : `부서장 · ${row.department ?? '부서 미배정'}`,
+    }))
 }
 
 /**

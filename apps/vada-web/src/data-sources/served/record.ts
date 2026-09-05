@@ -10,7 +10,6 @@ import type { Served } from './area'
  * 아직 안 올린 것 셋과 그 까닭:
  * - `record.archiveChecklist` — 무엇을 확인해야 하는지가 '그 행사의 인수인계 내용'에서
  *   나온다는데 항목이 어디서 오는지 명세가 말하지 않는다. 멈추는 자리다.
- * - `record.archiveReview` · `record.archiveReviewers` — **검토 단계가 명세에서 빠진다**
  *   (2026-09-05 밤). 짓지 않는다.
  * - 쓰기 둘(`record.archive.saveDraft` · `generateHandoverDraft`) — 서버에 답은 있지만
  *   계약이 권한을 `unstated`로 적어 두어 미들웨어가 아무에게도 열지 않는다. 여기 올리면
@@ -36,7 +35,14 @@ export const record: Served = {
     // 발행 조건. 목록과 채운 수가 서버의 한 셈에서 나온다.
     'record.archiveGate',
     'record.archiveGateConditions',
+    // 검토는 그림에 있다. 승인 단추만 아직이다.
+    'record.archiveReview',
+    'record.archiveReviewers',
   ],
   // 회장단·부서장만 쓴다(`record.write`, 사람이 정함 2026-09-05). 발행은 명세를 고친 뒤 온다.
-  writes: ['record.archive.saveDraft', 'record.archive.generateHandoverDraft'],
+  writes: [
+    'record.archive.saveDraft',
+    'record.archive.generateHandoverDraft',
+    'record.archive.requestReview',
+  ],
 }

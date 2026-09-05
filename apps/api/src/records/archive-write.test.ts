@@ -124,7 +124,8 @@ describe('임시 저장(record.archive.saveDraft)', () => {
         improvementDepartment: 'D-01',
         nextOwner: ' 기획부 부서장 ',
         // 검토 단계가 없어지므로 검토자는 읽지 않는다.
-        reviewer: 'M-03',
+        // 검토자는 회장단·부서장 중에서 고른다. M-01은 회장단이다.
+        reviewer: 'M-01',
       },
       who,
       NOW,
@@ -139,13 +140,15 @@ describe('임시 저장(record.archive.saveDraft)', () => {
       improvementDepartmentId: 'D-01',
       nextOwner: '기획부 부서장',
       authorMemberId: 'M-01',
-      reviewerMemberId: null,
+      reviewerMemberId: 'M-01',
     })
     // 읽는 자리가 곧바로 같은 것을 준다.
     expect(await archiveDraft(db, 'ORG-01', 'E-W2')).toEqual({
       onSiteOperation: '12:00 준비',
       improvementDepartment: 'D-01',
       nextOwner: '기획부 부서장',
+      // 고른 검토자도 칸으로 되돌아온다.
+      reviewer: 'M-01',
     })
   })
 
@@ -270,5 +273,59 @@ describe('회장단과 부서장만 쓴다', () => {
       body: JSON.stringify({ retroGood: '막힌다' }),
     })
     expect(saved.status).toBe(403)
+  })
+})
+
+// ── 검토 요청 — 그림에 있는 것까지. 승인 단추는 아직 없다.
+describe('검토 요청은 문서를 검토 중으로 옮긴다', () => {
+  it('회장단이 검토자를 골라 넘기면 검토 중이 되고 글도 함께 남는다', async () => {
+    const app = harness(db, { who: viewer('chair') })
+    const res = await app.request('/api/records/events/E-W1/archive/review-requests', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ retroGood: '넘기며 적은 글', reviewer: 'M-01' }),
+    })
+    expect(res.status).toBe(200)
+    const row = await rowOf('E-W1')
+    expect(row!.status).toBe('inReview')
+    expect(row!.reviewerMemberId).toBe('M-01')
+    expect(row!.retroGood).toBe('넘기며 적은 글')
+    expect(row!.reviewRequestedAt).toEqual(NOW)
+  })
+
+  it('이미 넘어간 문서는 또 못 넘긴다 — 409', async () => {
+    const app = harness(db, { who: viewer('chair') })
+    const res = await app.request('/api/records/events/E-W1/archive/review-requests', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ reviewer: 'M-01' }),
+    })
+    expect(res.status).toBe(409)
+  })
+
+  it('검토자 없이는 넘길 수 없고, 평부원은 검토자가 못 된다 — 422', async () => {
+    const app = harness(db, { who: viewer('chair') })
+    const none = await app.request('/api/records/events/E-W2/archive/review-requests', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ retroGood: '검토자 없음' }),
+    })
+    expect(none.status).toBe(422)
+    const member = await app.request('/api/records/events/E-W2/archive/review-requests', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ reviewer: 'M-03' }),
+    })
+    expect(member.status).toBe(422)
+  })
+
+  it('구성원은 넘길 수 없다 — 403', async () => {
+    const app = harness(db, { who: viewer('member') })
+    const res = await app.request('/api/records/events/E-W2/archive/review-requests', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ reviewer: 'M-01' }),
+    })
+    expect(res.status).toBe(403)
   })
 })
