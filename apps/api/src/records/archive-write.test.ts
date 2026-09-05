@@ -245,21 +245,30 @@ describe('인수인계 초안(record.archive.generateHandoverDraft)', () => {
   })
 })
 
-describe('길은 아직 막혀 있다', () => {
-  // **계약이 권한을 `unstated`로 적었다.** 누가 기록을 쓰는지 명세가 말하지 않으므로
-  // 미들웨어가 아무에게도 열지 않는다 — 회장단에게도. 권한이 정해지는 날 이 검사가
-  // 먼저 빨개지고, 그때 화면 쪽 목록(`served/record.ts`)에 올리면 된다.
-  it('권한이 정해지기 전에는 회장단도 403이다', async () => {
+describe('회장단과 부서장만 쓴다', () => {
+  // **사람이 정했다**(2026-09-05): 기록은 회장단·부서장이 쓰고 구성원은 읽는다.
+  // 한동안 계약이 `unstated`라 회장단도 403이었다 — 그 검사가 여기 있었다.
+  it('회장단은 임시 저장과 초안 생성이 열린다', async () => {
     const app = harness(db, { who: viewer('chair') })
+    const saved = await app.request('/api/records/events/E-W2/archive/drafts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ retroGood: '열린다' }),
+    })
+    expect(saved.status).toBe(200)
+    const drafted = await app.request('/api/records/events/E-W2/archive/handover-draft', {
+      method: 'POST',
+    })
+    expect(drafted.status).toBe(200)
+  })
+
+  it('구성원은 403이다', async () => {
+    const app = harness(db, { who: viewer('member') })
     const saved = await app.request('/api/records/events/E-W2/archive/drafts', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ retroGood: '막힌다' }),
     })
     expect(saved.status).toBe(403)
-    const drafted = await app.request('/api/records/events/E-W2/archive/handover-draft', {
-      method: 'POST',
-    })
-    expect(drafted.status).toBe(403)
   })
 })

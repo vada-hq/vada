@@ -43,6 +43,8 @@ export interface Lookups {
   isEventStaffManager(memberId: string, eventId: string): Promise<boolean>
   isMeetingHost(memberId: string, meetingId: string): Promise<boolean>
   isMeetingCreator(memberId: string, meetingId: string): Promise<boolean>
+  /** 그 회의의 참가자인가. 만든 사람과 진행 권한자도 참가자다 — 회의록은 참가자가 함께 쓴다. */
+  isMeetingParticipant(memberId: string, meetingId: string): Promise<boolean>
 }
 
 interface Rule {
@@ -137,6 +139,8 @@ async function evaluate(
       return lookups.isMeetingHost(membership.memberId, object!)
     case 'meetingCreator':
       return lookups.isMeetingCreator(membership.memberId, object!)
+    case 'meetingParticipant':
+      return lookups.isMeetingParticipant(membership.memberId, object!)
     // **명세가 아직 말하지 않은 자리는 막는다.** 지어내서 열어 두면 그 자리는
     // 규칙이 없는 채로 열려 있고, 아무도 그 사실을 모른다.
     case 'unstated':

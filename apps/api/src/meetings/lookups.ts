@@ -20,7 +20,9 @@ import type { Lookups } from '../permissions.ts'
  * `serve.ts`가 아직 `async () => false`를 주고 있다 — 그 자리를 이것으로 바꾸면
  * 배포된 서버에서도 회의 시작·종료가 열린다. 검사는 이미 이것을 쓴다.
  */
-export function meetingLookups(db: Db): Pick<Lookups, 'isMeetingHost' | 'isMeetingCreator'> {
+export function meetingLookups(
+  db: Db,
+): Pick<Lookups, 'isMeetingHost' | 'isMeetingCreator' | 'isMeetingParticipant'> {
   return {
     /**
      * 그 회의를 진행할 수 있는 사람인가.
@@ -46,6 +48,31 @@ export function meetingLookups(db: Db): Pick<Lookups, 'isMeetingHost' | 'isMeeti
               eq(meetings.creatorMemberId, memberId),
               eq(meetingParticipants.isHost, true),
             ),
+          ),
+        )
+        .limit(1)
+      return rows.length > 0
+    },
+
+    /**
+     * 그 회의의 참가자인가. **회의록은 참가자가 함께 쓴다**(OPS-MEET-02의 문장, 사람이
+     * 정함 2026-09-05). 만든 사람은 참가자 줄이 없어도 참가자다 — 진행 권한자와 같은 까닭.
+     */
+    async isMeetingParticipant(memberId, meetingId) {
+      const rows = await db
+        .select({ id: meetings.id })
+        .from(meetings)
+        .leftJoin(
+          meetingParticipants,
+          and(
+            eq(meetingParticipants.meetingId, meetings.id),
+            eq(meetingParticipants.memberId, memberId),
+          ),
+        )
+        .where(
+          and(
+            eq(meetings.id, meetingId),
+            or(eq(meetings.creatorMemberId, memberId), eq(meetingParticipants.memberId, memberId)),
           ),
         )
         .limit(1)

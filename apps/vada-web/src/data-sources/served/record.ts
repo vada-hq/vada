@@ -37,5 +37,6 @@ export const record: Served = {
     'record.archiveGate',
     'record.archiveGateConditions',
   ],
-  writes: [],
+  // 회장단·부서장만 쓴다(`record.write`, 사람이 정함 2026-09-05). 발행은 명세를 고친 뒤 온다.
+  writes: ['record.archive.saveDraft', 'record.archive.generateHandoverDraft'],
 }

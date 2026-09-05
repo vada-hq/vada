@@ -111,6 +111,7 @@ beforeAll(async () => {
       isEventStaffManager: async () => false,
       isMeetingHost: async () => false,
       isMeetingCreator: async () => false,
+      isMeetingParticipant: async () => false,
     },
     signIn: {
       open: () => ({ google: true, kakao: false }),

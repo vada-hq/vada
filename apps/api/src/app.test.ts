@@ -21,6 +21,7 @@ const NO_LOOKUPS = {
   isEventStaffManager: async () => false,
   isMeetingHost: async () => false,
   isMeetingCreator: async () => false,
+  isMeetingParticipant: async () => false,
 }
 
 function viewer(role: 'chair' | 'head' | 'member' = 'member'): Viewer {

@@ -15,7 +15,8 @@ import {
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
-import { loadSources, useServer } from './server'
+import { forgetSources, loadSources, useServer } from './server'
+import { runMutation } from '../spec/mutations'
 
 // **기록 화면 셋을 끝까지 뚫는다**(REC-01 · REC-02 · REC-02A).
 //
@@ -169,7 +170,9 @@ beforeAll(async () => {
       membership: {
         orgId: 'ORG-01',
         memberId: 'M-01',
-        role: 'member',
+        // **회장단으로 본다.** 읽기는 구성원 누구나지만 쓰기는 회장단·부서장만이다
+        // (`record.write`, 사람이 정함 2026-09-05). 아래 쓰기 검사가 그 길을 탄다.
+        role: 'chair',
         departmentId: 'D-01',
         inFinanceDepartment: false,
       },
@@ -179,6 +182,7 @@ beforeAll(async () => {
       isEventStaffManager: async () => false,
       isMeetingHost: async () => false,
       isMeetingCreator: async () => false,
+      isMeetingParticipant: async () => false,
     },
     signIn: {
       open: () => ({ google: true, kakao: false }),
@@ -357,5 +361,34 @@ describe('쓰는 중인 아카이브가 저장소에서 온다(REC-02A)', () => 
     await waitFor(() => expect(screen.getAllByText('검토 의견')).toHaveLength(2))
     expect(screen.getAllByText(BLOCK_NOT_BUILT)).toHaveLength(1)
     expect(drawn()).not.toContain(SCREEN_NOT_BUILT)
+  })
+})
+
+// **쓰기는 화면이 쓰는 그 길로 보낸다.** 서버를 직접 부르면 그 사이의 코드가 통째로
+// 빠지고, 이 저장소에서 두 번 값을 치른 결함이 정확히 그 사이에 있었다.
+describe('아카이브를 쓰는 길이 저장소까지 닿는다(REC-02A)', () => {
+  it('임시 저장이 남고 다시 읽힌다', async () => {
+    const answer = await runMutation(
+      'record.archive.saveDraft',
+      { retroGood: '부스 배치가 좋았다', nextOwner: '다음 대 대외협력부' },
+      { eventId: 'E-R4' },
+    )
+    expect(answer).toEqual({})
+    // 쓰고 나면 읽은 것이 낡는다 — 화면과 같은 규칙으로 비운다.
+    forgetSources()
+    await loadSources([{ key: 'record.archiveDraft', params: { eventId: 'E-R4' } }])
+    const draft = readObjectSource('record.archiveDraft', { eventId: 'E-R4' })
+    expect(draft.retroGood).toBe('부스 배치가 좋았다')
+    expect(draft.nextOwner).toBe('다음 대 대외협력부')
+  })
+
+  it('인수인계 초안이 기록에서 만들어진다', async () => {
+    await runMutation('record.archive.generateHandoverDraft', {}, { eventId: 'E-R4' })
+    forgetSources()
+    await loadSources([{ key: 'record.archiveDraft', params: { eventId: 'E-R4' } }])
+    const draft = readObjectSource('record.archiveDraft', { eventId: 'E-R4' })
+    // 기록에 없는 것을 지어내지 않는다 — 다만 초안은 비어 오지 않는다.
+    expect(typeof draft.handover).toBe('string')
+    expect((draft.handover as string).length).toBeGreaterThan(0)
   })
 })

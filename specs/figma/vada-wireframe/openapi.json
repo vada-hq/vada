@@ -8783,7 +8783,8 @@
         "operationId": "meeting.saveMinutes",
         "summary": "안건 하나의 정리 내용을 보낸다(06B의 결정사항과 두 체크)",
         "x-authorize": {
-          "area": "unstated"
+          "area": "meeting.minutes",
+          "object": "meetingId"
         },
         "parameters": [
           {
@@ -19966,7 +19967,8 @@
         "operationId": "meeting.generateSummary",
         "summary": "안건별 논의·결정 기록에서 전체 요약 초안을 만든다. **기록에 없는 결정·담당자·기한을 새로 만들지 않는 것이 이 동작의 계약이다**(06B에 그 문장이 적혀 있다)",
         "x-authorize": {
-          "area": "unstated"
+          "area": "meeting.minutes",
+          "object": "meetingId"
         },
         "parameters": [
           {
@@ -20039,7 +20041,8 @@
         "operationId": "meeting.completeMinutes",
         "summary": "회의록 정리를 마친다. 참석자에게 최종 회의록이, 불참자에게 요약 확인 요청이 간다. **확인 모달이 그려지지 않았다** — 되돌릴 수 없고 알림이 나가는 동작인데 D01~D04에 짝이 없다",
         "x-authorize": {
-          "area": "unstated"
+          "area": "meeting.minutes",
+          "object": "meetingId"
         },
         "parameters": [
           {
@@ -20122,7 +20125,8 @@
         "operationId": "meeting.acknowledgeSummary",
         "summary": "이 사람이 회의 요약을 확인했다고 기록한다(OPS-MEET-08). **회의의 상태가 아니라 그 사람의 확인 상태**를 바꾼다",
         "x-authorize": {
-          "area": "unstated"
+          "area": "meeting.minutes",
+          "object": "meetingId"
         },
         "parameters": [
           {
@@ -21208,7 +21212,7 @@
         "operationId": "record.archive.saveDraft",
         "summary": "아카이브를 아직 넘기지 않고 적어 둔 채로 보관한다. 검토 요청과 **같은 것**을 보내되 보내는 곳이 다르다",
         "x-authorize": {
-          "area": "unstated"
+          "area": "record.write"
         },
         "parameters": [
           {
@@ -21335,7 +21339,7 @@
         "operationId": "record.archive.requestReview",
         "summary": "쓴 아카이브를 고른 검토자에게 넘긴다. **발행이 아니다** — 발행 단추는 와이어프레임에 그려지지 않았다",
         "x-authorize": {
-          "area": "unstated"
+          "area": "record.write"
         },
         "parameters": [
           {
@@ -21472,7 +21476,7 @@
         "operationId": "record.archive.generateHandoverDraft",
         "summary": "이 행사의 업무·회의·문서·정산 기록에서 인수인계 초안을 만든다. **기록에 없는 자산·연락처·담당자를 새로 만들지 않는 것이 이 동작의 계약이다**(REC-02A에 그 문장이 적혀 있고, 그 글은 record.archiveDraft의 aiDisclaimer가 갖는다). meeting.generateSummary와 같은 자리다",
         "x-authorize": {
-          "area": "unstated"
+          "area": "record.write"
         },
         "parameters": [
           {

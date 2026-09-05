@@ -66,6 +66,7 @@ function harness(
       isEventStaffManager: async () => false,
       isMeetingHost: async () => false,
       isMeetingCreator: async () => false,
+      isMeetingParticipant: async () => false,
     },
     attempts,
     counter: inMemoryCounter(),

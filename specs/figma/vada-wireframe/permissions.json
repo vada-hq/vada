@@ -44,6 +44,11 @@
       "description": "그 회의를 만든 사람이어야 한다. ORG-04: '회의 생성자 — 기본 진행 권한자이며, 진행 권한을 부여·해제할 수 있는 유일한 역할입니다.' 카탈로그도 canEdit·canCancel·canManageHostRole에 '생성자만'이라 적었다."
     },
     {
+      "key": "meetingParticipant",
+      "needs": "meeting",
+      "description": "그 회의의 참가자여야 한다. 만든 사람과 진행 권한자도 참가자다. OPS-MEET-02: '회의록 작성자는 별도로 지정하지 않습니다. 회의에 참가한 구성원은 공동으로 회의록을 작성할 수 있습니다.' 사람이 정했다(2026-09-05) — 회의록 저장·요약·정리 완료·요약 확인이 이 조건이다."
+    },
+    {
       "key": "unstated",
       "description": "**아직 정하지 않았다.** 명세가 이 자리의 규칙을 말하지 않는다. 지어내지 않고 그 사실을 적어 둔다 — 이 값을 가진 자리의 수가 남은 일이다."
     },
@@ -351,6 +356,40 @@
       "source": "ORG-04의 '회의 생성자'와 카탈로그의 canEdit·canCancel·canManageHostRole('생성자만')."
     },
     {
+      "key": "meeting.minutes",
+      "name": "회의록 저장·요약·정리 완료",
+      "drawnInMatrix": false,
+      "rules": {
+        "chair": {
+          "when": "meetingParticipant"
+        },
+        "head": {
+          "when": "meetingParticipant"
+        },
+        "member": {
+          "when": "meetingParticipant"
+        }
+      },
+      "source": "OPS-MEET-02의 '회의에 참가한 구성원은 공동으로 회의록을 작성할 수 있습니다'. 사람이 정했다(2026-09-05)."
+    },
+    {
+      "key": "record.write",
+      "name": "행사 아카이브 작성·발행",
+      "drawnInMatrix": false,
+      "rules": {
+        "chair": {
+          "when": "always"
+        },
+        "head": {
+          "when": "always"
+        },
+        "member": {
+          "when": "never"
+        }
+      },
+      "source": "사람이 정했다(2026-09-05): 회장단과 부서장만 쓴다. 읽기는 구성원 누구나(member). ORG-04의 표에는 아직 그려지지 않았다."
+    },
+    {
       "key": "member",
       "name": "그 학생회의 구성원이면 된다",
       "drawnInMatrix": false,
@@ -416,7 +455,7 @@
           "when": "unstated"
         }
       },
-      "note": "**지어내지 않는다.** 회의록을 누가 정리할 수 있는지(canEditMinutes·canComplete), 기록을 누가 쓰는지, 대화방을 누가 만드는지 명세가 말하지 않는다. 이 값을 가진 자리의 수가 곧 남은 일이다."
+      "note": "**지어내지 않는다.** 대화방을 누가 만드는지 명세가 말하지 않는다. 이 값을 가진 자리의 수가 곧 남은 일이다. (회의록과 기록은 2026-09-05에 정해져 `meeting.minutes`·`record.write`로 갔다.)"
     }
   ],
   "viewerReach": {

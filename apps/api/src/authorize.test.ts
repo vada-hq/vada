@@ -9,12 +9,14 @@ const NO: Lookups = {
   isEventStaffManager: async () => false,
   isMeetingHost: async () => false,
   isMeetingCreator: async () => false,
+  isMeetingParticipant: async () => false,
 }
 const YES: Lookups = {
   isEventStaff: async () => true,
   isEventStaffManager: async () => true,
   isMeetingHost: async () => true,
   isMeetingCreator: async () => true,
+  isMeetingParticipant: async () => true,
 }
 
 function member(role: 'chair' | 'head' | 'member'): Viewer {
@@ -86,10 +88,24 @@ describe('계약이 매단 권한을 서버가 강제한다', () => {
 
   // 명세가 아직 말하지 않은 자리는 열지 않는다. 지어내서 열어 두면 규칙 없이
   // 열려 있고 아무도 그 사실을 모른다.
+  //
+  // **자리를 손으로 고르지 않는다.** 한동안 회의록 저장 자리를 박아 두었는데, 그
+  // 자리의 권한이 정해지자(참가자, 2026-09-05) 이 검사가 그 결정을 틀렸다고 말했다.
+  // 계약에서 `unstated`인 자리를 전부 걷는다 — 하나도 없는 날이 오면 이 검사는 할
+  // 일이 끝난 것이고, 그때 지운다.
   it('명세가 말하지 않은 자리는 아무도 못 연다', async () => {
-    const url = '/api/ops/meetings/MT-01/minutes'
-    for (const role of ['chair', 'head', 'member'] as const) {
-      expect((await harness(member(role), YES).request(url, { method: 'PUT' })).status).toBe(403)
+    const unstated: Array<{ method: string; path: string }> = []
+    for (const [path, item] of Object.entries(openapi.paths as Record<string, Record<string, { 'x-authorize'?: { area: string } }>>)) {
+      for (const [method, operation] of Object.entries(item)) {
+        if (operation['x-authorize']?.area === 'unstated') unstated.push({ method: method.toUpperCase(), path })
+      }
+    }
+    expect(unstated.length).toBeGreaterThan(0)
+    for (const { method, path } of unstated) {
+      const url = path.replace(/\{[^}]+\}/g, 'X-1')
+      for (const role of ['chair', 'head', 'member'] as const) {
+        expect((await harness(member(role), YES).request(url, { method })).status, `${method} ${url} · ${role}`).toBe(403)
+      }
     }
   })
 

@@ -8,12 +8,14 @@ const NO: Lookups = {
   isEventStaffManager: async () => false,
   isMeetingHost: async () => false,
   isMeetingCreator: async () => false,
+  isMeetingParticipant: async () => false,
 }
 const YES: Lookups = {
   isEventStaff: async () => true,
   isEventStaffManager: async () => true,
   isMeetingHost: async () => true,
   isMeetingCreator: async () => true,
+  isMeetingParticipant: async () => true,
 }
 
 function viewer(role: Role, extra: { finance?: boolean } = {}): Viewer {

@@ -66,6 +66,7 @@ beforeAll(async () => {
       isEventStaffManager: async () => false,
       isMeetingHost: async () => false,
       isMeetingCreator: async () => false,
+      isMeetingParticipant: async () => false,
     },
     // **밖으로 나가지는 않는다.** Better Auth가 구글을 부르는 자리이고 검사가 그리로
     // 갈 수는 없다. 여기서 재는 것은 그 앞까지다 — 화면이 누른 것이 계약의 자리에

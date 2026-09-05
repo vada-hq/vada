@@ -53,6 +53,7 @@ function harness(who: Viewer | null = viewer('chair')) {
       isEventStaffManager: async () => false,
       isMeetingHost: async () => false,
       isMeetingCreator: async () => false,
+      isMeetingParticipant: async () => false,
     },
     // 검사는 밖으로 나가지 않는다. 열려 있다고만 답하고, 부르면 어디로 갈지 말해 준다.
     signIn: {
