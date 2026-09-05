@@ -7,6 +7,7 @@ import {
   unassignedHint,
   unassignedMembers,
 } from '../org/chart.ts'
+import { saveChart } from '../org/chart-save.ts'
 import { currentInvite, regenerateInvite } from '../org/invite.ts'
 import { changeRole, roleAssignmentOf } from '../org/role-change.ts'
 import {
@@ -92,6 +93,21 @@ export const orgHandlers: Handlers = {
     return unassignedMembers(d.db, orgId, c.req.query('query'))
   },
   'org.unassignedHint': async (c, d) => unassignedHint(d.db, orgOf(c)),
+  // **배치 전부를 받아 덮어쓴다**(계약의 `repeat: overwrite`). 자리가 곧 역할이라
+  // 역할이 바뀐 사람은 3년 남는 기록에도 적힌다 — ORG-04B의 역할 바꾸기와 같은 줄이다.
+  'org.saveChart': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    // `orgOf`가 구성원임을 확인했으므로 보낸 사람과 소속이 있다.
+    const sender = c.get('sender')!
+    await saveChart(d.db, orgId, {
+      chart: await c.req.json().catch(() => null),
+      actorMemberId: sender.membership!.memberId,
+      actorUserId: sender.userId,
+      now: d.invite.now,
+    })
+    return {}
+  },
 
 
   // ── 초대 (ORG-03C) ─────────────────────────────────────────────────────

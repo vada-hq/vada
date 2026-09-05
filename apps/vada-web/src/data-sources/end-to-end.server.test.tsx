@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createApp } from '../../../api/src/app.ts'
 import { freshDb } from '../../../api/src/db/testing.ts'
 import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
@@ -461,5 +461,87 @@ describe('학생 명단', () => {
   it('조직 관리 영역의 한 줄이 셈에서 온다', async () => {
     await loadSources([{ key: 'org.areaSummaries', params: {} }])
     expect(readObjectSource('org.areaSummaries').students).toContain('학생 2명')
+  })
+})
+
+// **조직도를 고친 것이 저장소에 닿는다.**
+//
+// ORG-03B는 사람을 끌어 옮긴 것을 초안에 쌓고 완료를 눌러야 보낸다. 보내는 것은
+// 초안 그대로다 — 자리 이름(`executives`·`unassigned`·`<부서>.leaders`·`<부서>.members`)
+// 마다 줄바꿈으로 이은 사람 id. 그 이름은 화면이 정했고 서버가 같은 이름을 읽으므로,
+// **화면에서 완료를 눌러 저장되는지**가 두 벌이 갈리지 않았다는 유일한 증거다.
+//
+// 저장하는 사람(M-03)이 회장단에 있어야 한다 — 자기 자신을 회장단에서 빼는 배치는
+// 서버가 막는다(회장이 없는 학생회가 생긴다). 이 검사의 씨앗에서 M-03은 부원이므로
+// 먼저 회장단에 올려 두고 시작한다.
+describe('조직도를 저장한다(ORG-03B)', () => {
+  const chart = {
+    executives: 'M-01\nM-03',
+    'D-01.leaders': '',
+    // 회장이 부서에도 있다 — 씨앗의 김바다가 그렇고 읽는 자리가 둘 다 그린다.
+    'D-01.members': 'M-01',
+    'D-02.leaders': 'M-11',
+    'D-02.members': '',
+    unassigned: '',
+    memberQuery: '',
+  }
+
+  // 조직 구조 수정은 회장단만이다. 그 벽이 화면이 누르는 길에서도 선다.
+  it('구성원은 조직도를 저장하지 못한다', async () => {
+    seenAs = 'member'
+    await expect(runMutation('org.saveChart', chart, {})).rejects.toThrow()
+  })
+
+  it('화면이 누르는 길로 저장하면 저장소가 그 배치를 되돌려 준다', async () => {
+    seenAs = 'chair'
+    // 계약이 '돌려주는 값이 없다'고 적었다. 던지지 않은 것이 성공이다.
+    expect(await runMutation('org.saveChart', chart, {})).toEqual({})
+
+    await loadSources([
+      { key: 'org.executives', params: {} },
+      { key: 'org.departments', params: {} },
+      { key: 'org.unassignedMembers', params: {} },
+    ])
+    expect(readListSource('org.executives').map((row) => row.name)).toEqual(['김바다', '박해랑'])
+    const tree = readListSource('org.departments') as Array<{
+      name: string
+      leaders: Array<{ name: string }>
+      members: Array<{ name: string }>
+    }>
+    // 차례는 서버가 정한다(sortOrder, 그다음 이름). 이 씨앗은 차례가 같아 이름순이다.
+    expect(
+      tree.map((row) => [
+        row.name,
+        row.leaders.map((who) => who.name),
+        row.members.map((who) => who.name),
+      ]),
+    ).toEqual([
+      ['기획부', ['이수현'], []],
+      ['학술체육부', [], ['김바다']],
+    ])
+    expect(readListSource('org.unassignedMembers')).toEqual([])
+  })
+
+  // **화면에서 완료를 누른다.** 그리는 것과 보내는 것 사이의 코드 — 초안을 읽어 payload로
+  // 만드는 자리 — 가 여기서만 지나간다. 서버를 직접 부르는 검사는 그것을 건너뛴다.
+  it('ORG-03B에서 완료를 누르면 저장되고 조직도 보기로 간다', async () => {
+    seenAs = 'chair'
+    const went: string[] = []
+    render(
+      <ScreenRouter
+        screenId="ORG-03B"
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={(screenId) => {
+          went.push(screenId)
+        }}
+      />,
+    )
+    await waitFor(() => expect(screen.getAllByText('박해랑').length).toBeGreaterThan(0))
+
+    fireEvent.click(screen.getByRole('button', { name: '완료' }))
+
+    await waitFor(() => expect(went).toEqual(['ORG-03A']))
+    expect(screen.queryByText('조직도를 저장하지 못했습니다')).not.toBeInTheDocument()
   })
 })

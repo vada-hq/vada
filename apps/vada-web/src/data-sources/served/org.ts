@@ -29,11 +29,14 @@ export const org: Served = {
     'org.roleCounts',
     'org.permissionMatrix',
   ],
-  // 되돌릴 수 없는 넷. 역할을 바꾸고 초대를 다시 만든다.
+  // 역할을 바꾸고 초대를 다시 만들고 조직도를 저장한다.
   writes: [
     'org.changeRole',
     'org.regenerateInvite',
     'org.regenerateInviteCode',
     'org.regenerateInviteLink',
+    // 조직도 편집(ORG-03B)의 완료. **초안 전부를 보내 덮어쓴다** — 자리 이름마다
+    // 줄바꿈으로 이은 사람 id가 그대로 간다.
+    'org.saveChart',
   ],
 }

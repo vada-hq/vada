@@ -93,17 +93,49 @@ export async function changeRole(db: Db, orgId: string, change: RoleChange): Pro
     .set({ role: role as 'chair' | 'head' | 'member' })
     .where(and(eq(members.orgId, orgId), eq(members.id, change.memberId)))
 
-  await db.insert(permissionChanges).values({
-    id: `${change.memberId}:${change.now().toISOString()}`,
-    at: change.now(),
-    orgId,
-    actorUserId: change.actorUserId,
-    subjectMemberId: change.memberId,
-    // 구성원이 지워져도 누구였는지는 남는다 — 가리키는 줄이 사라지면 기록이
-    // '누구인지 모르는 변경'이 된다.
-    subjectName: before.name,
-    change: '기본 역할 변경',
+  await recordRoleChange(db, orgId, {
+    memberId: change.memberId,
+    name: before.name,
     before: before.role,
     after: role,
+    actorUserId: change.actorUserId,
+    at: change.now(),
+  })
+}
+
+export interface RoleChangeRecord {
+  memberId: string
+  /** 그때 그 사람의 이름. 구성원이 지워져도 남는다. */
+  name: string
+  before: string
+  after: string
+  actorUserId: string | null
+  at: Date
+}
+
+/**
+ * 기본 역할이 바뀐 사실을 3년 남는 표에 적는다.
+ *
+ * **길이 둘이다.** ORG-04B가 역할을 바로 바꾸고, 조직도(ORG-03B)가 자리를 옮기면서
+ * 바꾼다 — 자리가 곧 역할이기 때문이다. 두 길이 같은 줄을 쓰지 않으면 한쪽의
+ * 기록만 남고, 남지 않은 쪽은 조용하다.
+ */
+export async function recordRoleChange(
+  db: Pick<Db, 'insert'>,
+  orgId: string,
+  record: RoleChangeRecord,
+): Promise<void> {
+  await db.insert(permissionChanges).values({
+    id: `${record.memberId}:${record.at.toISOString()}`,
+    at: record.at,
+    orgId,
+    actorUserId: record.actorUserId,
+    subjectMemberId: record.memberId,
+    // 구성원이 지워져도 누구였는지는 남는다 — 가리키는 줄이 사라지면 기록이
+    // '누구인지 모르는 변경'이 된다.
+    subjectName: record.name,
+    change: '기본 역할 변경',
+    before: record.before,
+    after: record.after,
   })
 }
