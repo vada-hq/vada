@@ -28,6 +28,7 @@ let request: (path: string, init?: RequestInit) => Promise<Response>
 // 만든 뒤 그 사람에게 소속이 실제로 생겼는지까지 이 검사가 재게 된다.
 let signedInAs: string | null = null
 let made = 0
+let codes = 0
 /** 로그인 층이 어느 제공자로 불렸나. 검사가 그것을 본다. */
 const started: string[] = []
 
@@ -81,7 +82,10 @@ beforeAll(async () => {
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => new Date('2026-09-01T18:30:00+09:00'),
-      newCode: () => 'AB12CD34',
+      // **부를 때마다 다른 것을 준다.** 학생회를 만들면 첫 초대가 함께 생기고, 곧
+      // 다시 만들기를 누르면 또 하나가 생긴다 — 하나로 고정하면 둘이 같은 코드로
+      // 부딪힌다. 진짜 서버는 임의의 아홉 바이트를 쓰므로 겹치지 않는다.
+      newCode: () => `CODE${(codes += 1)}`,
     },
     // **부를 때마다 다른 것을 준다.** 하나로 고정하면 부서 둘이 같은 열쇠로 들어간다.
     newId: () => `X-${(made += 1)}`,
@@ -156,7 +160,9 @@ describe('만든 학생회를 다른 사람이 초대로 본다', () => {
     expect(mine.status).toBe(200)
     const current = await (await request('/api/org/invite')).json()
     code = current.code as string
-    expect(code).toBe('AB12CD34')
+    // **첫 초대가 아니라 다시 만든 것이다.** 학생회를 만들 때 하나가 생겼고 위에서
+    // 다시 만들었으므로 두 번째다 — 그 사실이 코드에 그대로 보인다.
+    expect(code).toBe('CODE2')
   })
 
   // **여기가 고리가 닫히는 자리다.** 아직 아무 학생회에도 없는 다른 사람이,

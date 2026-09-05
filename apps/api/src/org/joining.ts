@@ -12,6 +12,7 @@ import {
 } from '../db/schema.ts'
 import { Blocked, NotFound } from '../routes.ts'
 import { collegeIn, departmentIn } from './education.ts'
+import { firstInvite } from './invite.ts'
 
 // 들어오는 길(ONB-01 → ONB-02 → ORG-01 · ORG-02 또는 INV-00 · INV-01).
 //
@@ -129,6 +130,8 @@ function readDepartments(draft: Record<string, unknown>): string[] {
 export interface OrgIds {
   newId: () => string
   now: () => Date
+  /** 첫 초대의 코드. 추측할 수 없어야 한다 — 학생회에 들어오는 열쇠다. */
+  newCode: () => string
 }
 
 /**
@@ -208,6 +211,10 @@ export async function createOrg(
     executiveTitle: '회장',
     createdAt: at,
   })
+
+  // **초대를 함께 만든다.** 없으면 아무도 이 학생회에 못 들어오고, 조직도 화면이
+  // 초대를 읽다 죽는다 — 다시 만드는 단추가 그 죽은 화면 안에 있어 빠져나올 길도 없다.
+  await firstInvite(db, orgId, make)
 
   // 계약이 '돌려주는 값이 없다'고 적었으므로 이 값은 **밖으로 나가지 않는다** —
   // 부르는 쪽이 기록에 '어느 학생회를 만들었나'를 적는 데만 쓴다.

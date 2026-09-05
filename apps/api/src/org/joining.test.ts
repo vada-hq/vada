@@ -179,6 +179,21 @@ describe('학생회를 만든다(ORG-01 · ORG-02)', () => {
     expect(chair.major).toBe(null)
   })
 
+  // **초대가 함께 생긴다.**
+  //
+  // 한동안 안 생겼다. 그러면 아무도 그 학생회에 못 들어오고, 조직도 화면(ORG-03C)이
+  // 초대를 읽다 통째로 죽는다 — 다시 만드는 단추가 그 죽은 화면 안에 있으므로 스스로
+  // 빠져나올 길도 없었다. 배포 모양으로 걷는 카나리가 찾았다(2026-09-05).
+  it('학생회가 생기면 들어올 초대도 함께 생긴다', async () => {
+    await create(harness())
+    const org = (await db.select().from(organizations))[0]!
+    const rows = await db.select().from(invites).where(eq(invites.orgId, org.id))
+    expect(rows).toHaveLength(1)
+    expect(rows[0]!.active).toBe(true)
+    // 처음 만든 것이지 다시 만든 것이 아니다.
+    expect(rows[0]!.regeneratedAt).toBe(null)
+  })
+
   it('사람이 늘어놓은 부서 차례를 지킨다', async () => {
     await create(harness())
     const rows = await db.select().from(departments).orderBy(asc(departments.sortOrder))

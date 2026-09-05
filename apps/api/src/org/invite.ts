@@ -71,6 +71,31 @@ export async function currentInvite(
  * 링크와 코드를 따로 되살리는 자리가 있지만 **한 건이 둘을 함께 갖는다** — 코드만
  * 바꾸면 링크의 뒤쪽도 함께 바뀐다. 그 사실을 숨기지 않고 셋이 같은 일을 한다.
  */
+/**
+ * 학생회가 생길 때 첫 초대를 함께 만든다.
+ *
+ * **초대가 없으면 아무도 못 들어온다.** 그리고 조직도 화면(ORG-03C)이 초대를 읽으므로
+ * 그 화면이 통째로 죽는다 — 갓 만든 학생회가 그랬다. 다시 만드는 단추는 그 죽은
+ * 화면 안에 있어서 스스로 빠져나올 길도 없었다(2026-09-05, 배포 모양 카나리가 찾음).
+ *
+ * **다시 만들기와 같은 줄을 쓰지 않는다.** 저쪽은 '전에 나눠 준 것을 끄는 일'이
+ * 몫이고 여기는 끌 것이 없다. 합치면 만들 때마다 없는 것을 끄는 갱신이 한 번 돈다.
+ */
+export async function firstInvite(
+  db: Db,
+  orgId: string,
+  settings: { now: () => Date; newCode: () => string },
+): Promise<void> {
+  const at = settings.now()
+  await db.insert(invites).values({
+    code: settings.newCode(),
+    orgId,
+    active: true,
+    createdAt: at,
+    regeneratedAt: null,
+  })
+}
+
 export async function regenerateInvite(
   db: Db,
   orgId: string,

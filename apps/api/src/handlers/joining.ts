@@ -52,6 +52,8 @@ export const joiningHandlers: Handlers = {
     const made = await createOrg(d.db, who.userId, draft, {
       newId: d.newId,
       now: d.invite.now,
+      // 첫 초대의 코드도 여기서 받는다. 만드는 자리가 정하면 검사가 못 정한다.
+      newCode: d.invite.newCode,
     })
     // **누구의 것을 다뤘나**: 이 요청이 만든 것은 이 사람의 구성원 줄이다.
     c.set('auditSubject', { type: 'user', id: who.userId })
