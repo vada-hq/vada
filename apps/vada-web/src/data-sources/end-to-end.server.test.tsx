@@ -281,6 +281,41 @@ describe('안 지은 자리 하나가 화면을 통째로 닫지 않는다', () 
   })
 })
 
+// **한 사람이 두 자리에 나온다.**
+//
+// 회장이 부서에도 속한 것은 흔한 일이고 씨앗의 김바다가 그렇다(회장이면서 학술체육부).
+// 조직도는 사람을 id로 한 번만 모으는데, 뒤에 오는 부서 행이 앞의 회장단 행을
+// **덮어썼다** — 부서의 부원 행에는 자리 딱지의 색이 없으므로 그 조각이 사라지고
+// 화면이 예외로 죽었다.
+//
+// 개발용 응답에서는 아무도 두 자리에 없어서 한 번도 안 났다. 배포 모양으로 걷는
+// 카나리가 찾았다(2026-09-05).
+describe('회장이 부서에도 있으면 조직도가 죽지 않는다', () => {
+  it('ORG-04B가 아무도 안 고른 채로 열려도 죽지 않는다', async () => {
+    render(<ScreenRouter screenId="ORG-04B" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />)
+    await waitFor(() => expect(screen.getAllByText('김바다').length).toBeGreaterThan(0))
+    expect(screen.queryByText('화면을 그리지 못했습니다')).not.toBeInTheDocument()
+    expect(document.body.textContent ?? '').not.toContain('불러오지 못했습니다')
+  })
+
+  // **ORG-03C는 여기서 재지 않는다.** 이 검사의 보는 사람은 평부원이고, 초대는
+  // 회장단·부서장만 읽는다(계약의 `x-authorize`) — 403이 나는 것이 맞다. 회장단으로
+  // 걷는 자리는 배포 모양 카나리다.
+  //
+  // 다만 그때 화면이 통째로 죽는 것은 따로 볼 일이다: 막힌 것과 서버가 죽은 것을
+  // 화면이 같은 말로 그린다(백로그 '지금').
+
+  it('ORG-03B가 회장단 딱지를 그린다', async () => {
+    render(<ScreenRouter screenId="ORG-03B" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />)
+
+    await waitFor(() => expect(screen.getAllByText('김바다').length).toBeGreaterThan(0))
+    // 화면이 죽지 않았다 — 예외 화면의 글이 아니다.
+    expect(screen.queryByText('화면을 그리지 못했습니다')).not.toBeInTheDocument()
+    // 회장단 자리 딱지가 그려진다. 이 조각이 사라진 것이 예외의 까닭이었다.
+    expect(screen.getAllByText('회장단').length).toBeGreaterThan(0)
+  })
+})
+
 describe('조직 보기의 이웃 화면들', () => {
   // **조직도의 머리와 회장단이 저장소에서 온다.** 부서 목록은 아직 서버를 안 지었으므로
   // 그 자리는 개발용 응답이다 — 한 화면 안에서 둘이 섞이는 것이 지금의 진도다.

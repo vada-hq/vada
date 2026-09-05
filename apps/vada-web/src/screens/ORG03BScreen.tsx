@@ -137,14 +137,22 @@ export function ORG03BScreen({
   const hint = readObjectSource(panelHead.dataSourceKey)
 
   // 사람은 어느 자리에 있든 같은 사람이다. id로 한 번만 모은다.
+  //
+  // **덮어쓰지 않고 합친다.** 회장이 부서에도 속한 것은 흔한 일인데, 그러면 같은
+  // 사람이 회장단 목록과 부서의 부원 목록에 둘 다 나온다. 뒤엣것으로 덮으면 앞엣것에만
+  // 있던 조각이 사라지고 — 자리 딱지의 색이 그렇다 — 그 자리를 그릴 때 화면이 죽는다.
+  // 개발용 응답에는 두 자리에 있는 사람이 없어 한 번도 안 났고, 배포 모양으로 걷는
+  // 카나리가 찾았다(2026-09-05).
   const people = new Map<string, DataRow>()
-  for (const row of executiveRows) people.set(scalar(row, 'id'), row)
-  for (const row of departmentRows) {
-    for (const person of [...rowsOf(row, 'leaders'), ...rowsOf(row, 'members')]) {
-      people.set(scalar(person, 'id'), person)
-    }
+  const remember = (row: DataRow) => {
+    const id = scalar(row, 'id')
+    people.set(id, { ...people.get(id), ...row })
   }
-  for (const row of pooledRows) people.set(scalar(row, 'id'), row)
+  for (const row of executiveRows) remember(row)
+  for (const row of departmentRows) {
+    for (const person of [...rowsOf(row, 'leaders'), ...rowsOf(row, 'members')]) remember(person)
+  }
+  for (const row of pooledRows) remember(row)
 
   const seeded: Record<string, string> = {
     [HQ]: executiveRows.map((row) => scalar(row, 'id')).join(SEPARATOR),
