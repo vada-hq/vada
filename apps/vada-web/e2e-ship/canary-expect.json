@@ -467,11 +467,8 @@
       "over": null
     },
     "OPS-MEET-02": {
-      "ready": false,
-      "missing": [
-        "meeting.agendaDurations",
-        "meeting.modes"
-      ],
+      "ready": true,
+      "missing": [],
       "needs": [],
       "shell": true,
       "over": null

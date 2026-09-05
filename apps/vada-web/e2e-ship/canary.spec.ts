@@ -98,10 +98,12 @@ const SHOWS: Record<string, string> = {
  * **건너뛰지 않고 '터질 것'으로 잰다.** 건너뛰면 고쳐도 아무도 모르고, 새로 터지는
  * 것과 원래 터지던 것이 섞인다. 이렇게 두면 고치는 순간 카나리가 **'터질 줄 알았는데
  * 통과했다'**고 말하고, 그때 이 줄을 지우면 된다.
+ *
+ * **2026-09-06: 비었다.** 마지막까지 남아 있던 OPS-MEET-02가 회의 진행 방식과 안건
+ * 소요 시간을 명세가 들면서 통과했고, 카나리가 먼저 '터질 줄 알았는데 통과했다'고
+ * 말해 주었다. 이 표는 비어 있는 것이 맞는 상태다 — 채우는 것은 새로 터졌다는 뜻이다.
  */
-const BROKEN: Record<string, string> = {
-  'OPS-MEET-02': '안 지은 자리를 여는 순간에만 읽어서 화면은 그려진다. 눈금이 첫 그림에 안 읽는 자리까지 센다',
-}
+const BROKEN: Record<string, string> = {}
 
 const SCREENS = Object.entries(READY)
   .filter(([id, state]) => CANT[id] === undefined && state.needs.every((n) => SEED[n] !== undefined || INSIDE.has(n)))

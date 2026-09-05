@@ -50,6 +50,13 @@
       "when": 1788616899399,
       "tag": "0006_amazing_justice",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1788640667677,
+      "tag": "0007_lean_havok",
+      "breakpoints": true
     }
   ]
 }

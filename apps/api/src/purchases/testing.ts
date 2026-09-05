@@ -231,6 +231,18 @@ export async function seedPurchases(db: Db): Promise<void> {
       stage: 'review',
       submittedAt: at('2026-03-08'),
     },
+    // 전부 반려되는 요청. **끝나는 자리를 재려면 끝낼 것이 있어야 한다.**
+    {
+      id: 'PR-11',
+      orgId: 'ORG-01',
+      eventId: 'E-01',
+      code: 'REQ-011',
+      title: '쓸모없는 물품',
+      departmentId: 'D-01',
+      requesterMemberId: 'M-03',
+      stage: 'review',
+      submittedAt: at('2026-03-08'),
+    },
     // 검토를 기다리는 남의 요청 하나 더. 승인·반려가 섞이는 판정을 이것에 보낸다.
     {
       id: 'PR-10',
@@ -423,6 +435,7 @@ export async function seedPurchases(db: Db): Promise<void> {
       unit: '개',
     },
     { id: 'PRI-10', orgId: 'ORG-01', requestId: 'PR-09', sortOrder: 0, name: '봄 축제 현수막', quantity: 1, unit: '장', unitPrice: 40_000 },
+    { id: 'PRI-13', orgId: 'ORG-01', requestId: 'PR-11', sortOrder: 0, name: '안 쓰는 것', quantity: 1, unit: '개', unitPrice: 5_000 },
     { id: 'PRI-11', orgId: 'ORG-01', requestId: 'PR-10', sortOrder: 0, name: '풍선', quantity: 100, unit: '개', unitPrice: 100 },
     { id: 'PRI-12', orgId: 'ORG-01', requestId: 'PR-10', sortOrder: 1, name: '가랜드', quantity: 10, unit: '개', unitPrice: 3_000 },
   ])

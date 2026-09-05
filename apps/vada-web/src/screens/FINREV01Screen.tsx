@@ -34,6 +34,7 @@ const NODE = {
   table: '30:1467',
   approvedAmount: '30:1482',
   result: '30:1485',
+  reviewNote: '615:2',
   back: '30:1551',
   send: '30:1556',
 } as const
@@ -136,6 +137,7 @@ export function FINREV01Screen({
   }
   const approvedAmount = itemFieldAt(NODE.approvedAmount) as InputSpec
   const result = itemFieldAt(NODE.result) as SelectSpec
+  const reviewNote = itemFieldAt(NODE.reviewNote) as InputSpec
   const resultSource = getOptionSource(result.optionsSource.key)
   const resultOptions = resultSource.type === 'static' ? resultSource.options : []
 
@@ -324,8 +326,8 @@ export function FINREV01Screen({
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                {rows.length === 0 ? (
+              {rows.length === 0 ? (
+                <tbody>
                   <tr>
                     <td
                       colSpan={(table.columns ?? []).length}
@@ -334,9 +336,15 @@ export function FINREV01Screen({
                       {tableSource.messages.empty}
                     </td>
                   </tr>
-                ) : (
-                  rows.map((row) => (
-                    <tr key={scalar(row, 'id')} className="border-b border-gray-50 last:border-b-0">
+                </tbody>
+              ) : (
+                // **줄 하나가 그리는 것이 둘이 될 수 있다** — 보완이면 사유 줄이 따라온다.
+                // 그림에서 그 둘은 테두리 하나를 두른 한 덩이라, 화면에서도 한 덩이여야
+                // 한다. `<tr>` 둘은 덩이가 아니므로 줄마다 몸통(`<tbody>`)을 하나 준다 —
+                // 그래야 대조가 그림의 줄과 화면의 줄을 짝지어 볼 수 있다.
+                rows.map((row) => (
+                  <tbody key={scalar(row, 'id')} className="border-b border-gray-50 last:border-b-0">
+                    <tr>
                       <td className="px-6 py-3 align-middle">
                         <span className="flex flex-col gap-1">
                           <span className="text-xs font-bold text-gray-800">
@@ -388,9 +396,36 @@ export function FINREV01Screen({
                         />
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
+                    {// **보완일 때만 그린다.** 승인·반려에는 적을 것이 없고, 늘 그리면
+                    // 표가 그리지 않은 줄이 화면에 생긴다. 그림도 보완으로 고른 줄에만
+                    // 이 칸을 그렸다.
+                    valueOf(row, result.fieldKey) === 'supplement' ? (
+                      <tr>
+                        <td colSpan={5} className="px-6 pb-3">
+                          <label
+                            data-node-id={NODE.reviewNote}
+                            className="block"
+                            htmlFor={`${scalar(row, 'id')}-${reviewNote.fieldKey}`}
+                          >
+                            <span className="block pb-1 text-xs font-medium text-gray-700">
+                              {reviewNote.label}
+                            </span>
+                            <input
+                              id={`${scalar(row, 'id')}-${reviewNote.fieldKey}`}
+                              type="text"
+                              value={valueOf(row, reviewNote.fieldKey)}
+                              onChange={(event) =>
+                                setValue(row, reviewNote.fieldKey, event.target.value)
+                              }
+                              className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-normal text-gray-800 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none"
+                            />
+                          </label>
+                        </td>
+                      </tr>
+                    ) : null}
+                  </tbody>
+                ))
+              )}
             </table>
           </div>
         </section>

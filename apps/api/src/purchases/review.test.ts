@@ -88,7 +88,14 @@ describe('검토 결과 보내기(finance.purchaseRequest.sendReview)', () => {
   })
 
   it('보완이 하나라도 있으면 보완 요청이다 — 단계는 검토 그대로이고 걸린 때가 찍힌다', async () => {
-    const res = await send({ requestId: 'PR-09', 'reviews.PRI-10.result': 'supplement', 'reviews.PRI-10.approvedAmount': '40000' })
+    // **보완에는 사유를 함께 보낸다**(사람이 정했다, 2026-09-06). 없으면 서버가 막는다 —
+    // 요청자는 무엇을 고쳐야 하는지 그 글로만 안다.
+    const res = await send({
+      requestId: 'PR-09',
+      'reviews.PRI-10.result': 'supplement',
+      'reviews.PRI-10.approvedAmount': '40000',
+      'reviews.PRI-10.reviewNote': '수량이 실제 필요량과 맞는지 확인해 주세요',
+    })
     expect(res.status, await res.text()).toBe(200)
     expect(await requestRow('PR-09')).toMatchObject({
       stage: 'review',
@@ -100,7 +107,11 @@ describe('검토 결과 보내기(finance.purchaseRequest.sendReview)', () => {
       supplementDueOn: null,
     })
     // 보완이 걸린 품목의 승인액은 없다 — 아직 승인된 돈이 아니다.
-    expect(await itemRow('PRI-10')).toMatchObject({ reviewResult: 'supplement', approvedAmount: null })
+    expect(await itemRow('PRI-10')).toMatchObject({
+      reviewResult: 'supplement',
+      approvedAmount: null,
+      reviewNote: '수량이 실제 필요량과 맞는지 확인해 주세요',
+    })
   })
 
   it('계약이 적은 모양(줄 배열)으로 보내도 같고, 반려된 품목에는 승인액이 없다', async () => {
@@ -133,5 +144,21 @@ describe('검토 결과 보내기(finance.purchaseRequest.sendReview)', () => {
     expect((await send({ requestId: 'PR-99' })).status).toBe(404)
     expect((await send({})).status).toBe(404)
     expect((await send({ requestId: 'PR-99', 'reviews.x.result': 'approved' }, STRANGER)).status).toBe(422)
+  })
+})
+
+// **반려된 요청은 거기서 끝난다**(사람이 정했다, 2026-09-06).
+//
+// 한동안 전부 반려된 요청이 승인액 0원으로 구매 단계에 섰다 — 계약이 반려의 뒤를
+// 말하지 않아 '보완 없음 = 검토 끝'으로 읽었기 때문이다. 끝난 것이 진행 중인 것
+// 사이에 남아 있으면 사람이 그것을 아직 살 것으로 읽는다.
+describe('전부 반려되면 요청이 끝난다', () => {
+  it('반려만 있으면 단계가 rejected가 된다', async () => {
+    const res = await send({
+      requestId: 'PR-11',
+      reviews: [{ id: 'PRI-13', result: 'rejected' }],
+    })
+    expect(res.status).toBe(200)
+    expect(await requestRow('PR-11')).toMatchObject({ stage: 'rejected' })
   })
 })

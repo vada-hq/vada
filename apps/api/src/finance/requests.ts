@@ -90,6 +90,8 @@ export interface ItemRow {
   unitPrice: number | null
   reviewResult: 'approved' | 'supplement' | 'rejected' | null
   approvedAmount: number | null
+  /** 보완이면 그 사유. 재정부가 적고 요청자가 읽는다. */
+  reviewNote: string | null
   orderId: string | null
   expectedDeliveryOn: Date | null
   deliveredAt: Date | null
@@ -111,6 +113,7 @@ export async function itemRows(db: Db, orgId: string, requestId: string): Promis
       unitPrice: purchaseRequestItems.unitPrice,
       reviewResult: purchaseRequestItems.reviewResult,
       approvedAmount: purchaseRequestItems.approvedAmount,
+      reviewNote: purchaseRequestItems.reviewNote,
       orderId: purchaseRequestItems.orderId,
       expectedDeliveryOn: purchaseRequestItems.expectedDeliveryOn,
       deliveredAt: purchaseRequestItems.deliveredAt,

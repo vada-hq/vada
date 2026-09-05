@@ -2355,6 +2355,8 @@ const REVIEW_ITEMS: Record<string, DataRow[]> = {
       quantityNote: '200장',
       amountNote: '60,000원',
       approvedAmount: '60000',
+      // 그림이 이 줄을 보완으로 골라 그렸고 사유도 함께 적혀 있다.
+      reviewNote: '수량이 실제 필요량과 맞는지 확인해 주세요',
     },
     {
       id: 'PRI-04',

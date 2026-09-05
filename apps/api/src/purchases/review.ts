@@ -23,6 +23,7 @@ export interface Reviewer {
 interface Verdict {
   result: string | null
   approvedAmount: number | null
+  reviewNote: string | null
 }
 
 /** 판정 목록의 이름(FIN-REV-01의 itemList.fieldKey). 화면은 `reviews.<품목>.<칸>`으로 담는다. */
@@ -37,6 +38,8 @@ function verdictsOf(body: Body): Map<string, Verdict> {
   const readOne = (row: Body): Verdict => ({
     result: readWord(row, 'result', '검토 결과'),
     approvedAmount: readCount(row, 'approvedAmount', '승인액'),
+    // 보완일 때만 적는 글. 요청자가 FIN-SUP-01에서 이것을 읽고 답한다.
+    reviewNote: readWord(row, 'reviewNote', '보완 사유'),
   })
 
   const raw = body[LIST]
@@ -118,15 +121,28 @@ export async function sendReview(
     if (result === 'approved' && approvedAmount === null) {
       throw new Blocked(`승인액이 비어 있습니다: ${item.name}`)
     }
-    return { id: item.id, result, approvedAmount }
+    // **보완이면 왜인지 적어야 한다.** 사람이 정했다(2026-09-06): 재정부가 사유를
+    // 적고 요청자가 그것에 답한다. 사유 없이 걸면 요청자는 무엇을 고쳐야 하는지
+    // 모른 채 화면만 본다 — 그 화면이 한동안 빈 채로 서 있었다.
+    const reviewNote = result === 'supplement' ? (given?.reviewNote ?? item.reviewNote) : null
+    if (result === 'supplement' && (reviewNote === null || reviewNote.trim() === '')) {
+      throw new Blocked(`보완 사유를 적어 주세요: ${item.name}`)
+    }
+    return { id: item.id, result, approvedAmount, reviewNote }
   })
   const supplementing = decided.some((one) => one.result === 'supplement')
+  // **전부 반려면 요청이 끝난다.** 하나라도 승인된 것이 있으면 그것을 사러 간다.
+  const allRejected = decided.every((one) => one.result === 'rejected')
 
   await db.transaction(async (tx) => {
     for (const one of decided) {
       await tx
         .update(purchaseRequestItems)
-        .set({ reviewResult: one.result, approvedAmount: one.approvedAmount })
+        .set({
+          reviewResult: one.result,
+          approvedAmount: one.approvedAmount,
+          reviewNote: one.reviewNote,
+        })
         .where(and(eq(purchaseRequestItems.orgId, orgId), eq(purchaseRequestItems.id, one.id)))
     }
     await tx
@@ -136,8 +152,11 @@ export async function sendReview(
           ? // 보완 요청. 단계는 검토 그대로이고 걸린 때가 찍힌다. 언제까지 다시 내라는지는
             // FIN-REV-01에 적는 자리가 없어 비워 둔다 — 지어내지 않는다.
             { supplementRequestedAt: now, reviewedByMemberId: who.memberId, updatedAt: now }
-          : // 검토 끝. 승인된 것을 사러 간다.
-            { stage: 'purchase', reviewedAt: now, reviewedByMemberId: who.memberId, updatedAt: now },
+          : allRejected
+            ? // 전부 반려. 여기서 끝난다 — 다시 사려면 새로 쓴다.
+              { stage: 'rejected', reviewedAt: now, reviewedByMemberId: who.memberId, updatedAt: now }
+            : // 검토 끝. 승인된 것을 사러 간다.
+              { stage: 'purchase', reviewedAt: now, reviewedByMemberId: who.memberId, updatedAt: now },
       )
       .where(and(eq(purchaseRequests.orgId, orgId), eq(purchaseRequests.id, row.id)))
   })

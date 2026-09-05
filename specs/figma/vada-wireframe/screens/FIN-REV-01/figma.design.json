@@ -5,7 +5,7 @@
     "format": "JSON_REST_V1",
     "nodeId": "30:1295",
     "rawFile": "figma.raw.json",
-    "hash": "c61c4dea15e19693286401fb3a65cbe652ad49371fc6428bb1b763799c81b650"
+    "hash": "609f64db31e436a40f27e550238ef6429370175d27482b208765b1121b7043d1"
   },
   "viewport": {
     "width": 1288,
@@ -5625,7 +5625,7 @@
                                               "x": 0,
                                               "y": 0,
                                               "width": 894,
-                                              "height": 323
+                                              "height": 369
                                             },
                                             "layout": {
                                               "sizing": {
@@ -7198,7 +7198,7 @@
                                                   "x": 0,
                                                   "y": 179,
                                                   "width": 894,
-                                                  "height": 72.25
+                                                  "height": 118.25
                                                 },
                                                 "appearance": {
                                                   "strokes": [
@@ -7862,6 +7862,181 @@
                                                         ]
                                                       }
                                                     ]
+                                                  },
+                                                  {
+                                                    "id": "615:2",
+                                                    "type": "frame",
+                                                    "name": "Input",
+                                                    "box": {
+                                                      "x": 21,
+                                                      "y": 68,
+                                                      "width": 850,
+                                                      "height": 50
+                                                    },
+                                                    "layout": {
+                                                      "mode": "vertical",
+                                                      "sizing": {
+                                                        "horizontal": "fixed",
+                                                        "vertical": "hug",
+                                                        "counterAxis": "fixed"
+                                                      },
+                                                      "gap": 3.5
+                                                    },
+                                                    "children": [
+                                                      {
+                                                        "id": "615:3",
+                                                        "type": "frame",
+                                                        "name": "Label",
+                                                        "box": {
+                                                          "x": 0,
+                                                          "y": 0,
+                                                          "width": 850,
+                                                          "height": 13
+                                                        },
+                                                        "layout": {
+                                                          "sizing": {
+                                                            "horizontal": "fill",
+                                                            "vertical": "fixed"
+                                                          },
+                                                          "alignment": {
+                                                            "self": "stretch"
+                                                          }
+                                                        },
+                                                        "children": [
+                                                          {
+                                                            "id": "615:4",
+                                                            "type": "text",
+                                                            "name": "보완 사유",
+                                                            "box": {
+                                                              "x": 0,
+                                                              "y": -1,
+                                                              "width": 42,
+                                                              "height": 14
+                                                            },
+                                                            "appearance": {
+                                                              "fills": [
+                                                                {
+                                                                  "type": "solid",
+                                                                  "color": "#364153"
+                                                                }
+                                                              ]
+                                                            },
+                                                            "text": {
+                                                              "content": "보완 사유",
+                                                              "style": {
+                                                                "fontFamily": "Inter",
+                                                                "fontStyle": "Medium",
+                                                                "fontWeight": 500,
+                                                                "fontSize": 10.5,
+                                                                "horizontalAlign": "left",
+                                                                "verticalAlign": "top",
+                                                                "autoResize": "width_and_height",
+                                                                "lineHeight": {
+                                                                  "value": 14,
+                                                                  "unit": "pixels"
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        ]
+                                                      },
+                                                      {
+                                                        "id": "615:6",
+                                                        "type": "frame",
+                                                        "name": "Text Input",
+                                                        "box": {
+                                                          "x": 0,
+                                                          "y": 16.5,
+                                                          "width": 850,
+                                                          "height": 33.5
+                                                        },
+                                                        "layout": {
+                                                          "mode": "vertical",
+                                                          "sizing": {
+                                                            "horizontal": "fill",
+                                                            "vertical": "fixed",
+                                                            "primaryAxis": "fixed",
+                                                            "counterAxis": "fixed"
+                                                          },
+                                                          "alignment": {
+                                                            "primaryAxis": "center",
+                                                            "self": "stretch"
+                                                          },
+                                                          "strokesIncludedInLayout": true,
+                                                          "padding": {
+                                                            "top": 7,
+                                                            "right": 10.5,
+                                                            "bottom": 7,
+                                                            "left": 10.5
+                                                          }
+                                                        },
+                                                        "appearance": {
+                                                          "fills": [
+                                                            {
+                                                              "type": "solid",
+                                                              "color": "#FFFFFF"
+                                                            }
+                                                          ],
+                                                          "strokes": [
+                                                            {
+                                                              "type": "solid",
+                                                              "color": "#D1D5DC"
+                                                            }
+                                                          ],
+                                                          "stroke": {
+                                                            "weight": 1,
+                                                            "align": "inside"
+                                                          },
+                                                          "cornerRadius": 3.5
+                                                        },
+                                                        "children": [
+                                                          {
+                                                            "id": "615:7",
+                                                            "type": "text",
+                                                            "name": "수량이 실제 필요량과 맞는지 확인해 주세요",
+                                                            "box": {
+                                                              "x": 11.5,
+                                                              "y": 7.75,
+                                                              "width": 827,
+                                                              "height": 18
+                                                            },
+                                                            "layout": {
+                                                              "sizing": {
+                                                                "horizontal": "fill",
+                                                                "vertical": "hug"
+                                                              },
+                                                              "alignment": {
+                                                                "self": "stretch"
+                                                              }
+                                                            },
+                                                            "appearance": {
+                                                              "fills": [
+                                                                {
+                                                                  "type": "solid",
+                                                                  "color": "#1E2939"
+                                                                }
+                                                              ]
+                                                            },
+                                                            "text": {
+                                                              "content": "수량이 실제 필요량과 맞는지 확인해 주세요",
+                                                              "style": {
+                                                                "fontFamily": "Inter",
+                                                                "fontStyle": "Regular",
+                                                                "fontWeight": 400,
+                                                                "fontSize": 12.25,
+                                                                "horizontalAlign": "left",
+                                                                "verticalAlign": "top",
+                                                                "autoResize": "height",
+                                                                "lineHeight": {
+                                                                  "value": 17.5,
+                                                                  "unit": "pixels"
+                                                                }
+                                                              }
+                                                            }
+                                                          }
+                                                        ]
+                                                      }
+                                                    ]
                                                   }
                                                 ]
                                               },
@@ -7871,7 +8046,7 @@
                                                 "name": "Table Row",
                                                 "box": {
                                                   "x": 0,
-                                                  "y": 251.25,
+                                                  "y": 297.25,
                                                   "width": 894,
                                                   "height": 71.75
                                                 },

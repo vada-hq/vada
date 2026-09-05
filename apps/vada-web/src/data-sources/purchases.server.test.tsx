@@ -352,6 +352,7 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
       requestId: asked,
       [`reviews.${first}.result`]: 'approved',
       [`reviews.${second}.result`]: 'supplement',
+      [`reviews.${second}.reviewNote`]: '용지 규격이 적혀 있지 않습니다. 알려 주세요',
     })
     // 이미 보완을 요청한 요청에는 또 보낼 수 없다.
     await expect(
@@ -368,8 +369,8 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
     expect(page).toContain('보완 품목 — 이름표 용지')
     expect(page).toContain('인쇄물 · 한마당 홍보비')
     expect(page).toContain('60,000원')
-    // 사유를 적는 자리도 FIN-REV-01에 없다.
-    expect(page).toContain('보완 사유가 적혀 있지 않습니다')
+    // 재정부가 FIN-REV-01에서 적은 사유가 그대로 요청자에게 온다.
+    expect(page).toContain('용지 규격이 적혀 있지 않습니다. 알려 주세요')
     // 다시 받을 칸은 아직 정해진 것이 없다 — 개발용 응답의 칸이 새어 나오지 않는다.
     expect(page).not.toContain('사이즈·규격')
     expect(page).not.toContain('디자인 파일')

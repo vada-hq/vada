@@ -280,6 +280,24 @@
                 "key": "finance.reviewResults"
               }
             }
+          },
+          {
+            "source": {
+              "nodeId": "615:2",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "input",
+              "fieldKey": "reviewNote",
+              "label": "보완 사유",
+              "placeholder": null,
+              "initialValue": null,
+              "inputType": "text",
+              "valueType": "string",
+              "required": false,
+              "validation": []
+            }
           }
         ]
       }

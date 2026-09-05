@@ -70,6 +70,8 @@ export interface ReviewItem {
   amountNote: string
   approvedAmount: string
   result: string
+  /** 앞서 적어 둔 보완 사유. 적은 적이 없으면 오지 않는다. */
+  reviewNote?: string
 }
 
 /**
@@ -104,6 +106,10 @@ export async function reviewItems(
       approvedAmount: approved === null ? '' : String(approved),
       // 아직 판정하지 않았으면 빈 값이다. **값은 글이 아니다** — 표에 담기는 것이다.
       result: item.reviewResult ?? '',
+      // **앞서 적어 둔 보완 사유가 칸으로 되돌아온다.** 검토는 한 번에 끝나지 않으므로
+      // 다시 열었을 때 적었던 글이 사라지면 사람은 그것을 다시 쓴다(`result`와 같은 까닭).
+      // 적은 적이 없으면 조각이 오지 않는다 — 계약이 optional로 적었다.
+      ...(item.reviewNote === null ? {} : { reviewNote: item.reviewNote }),
     }
   })
 }

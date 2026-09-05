@@ -1,0 +1,1 @@
+ALTER TYPE "public"."purchase_stage" ADD VALUE 'rejected';
