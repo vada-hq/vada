@@ -1685,10 +1685,11 @@ export const surveyQuestions = pgTable(
 /**
  * 아카이브가 어디까지 왔는가.
  *
- * **`published`가 있는데 발행하는 동작이 명세에 없다.** REC-02가 발행된 문서를
- * 그리므로 그런 상태가 있다는 것은 확실한데, 무엇을 누르면 그렇게 되는지는 어느
- * 화면에도 그려지지 않았다 — `record.archive.requestReview`가 '발행이 아니다'라고
- * 못 박고 있다. 값은 두되 그 자리로 옮기는 길은 아직 없다.
+ * **검토를 통과하면 발행이다**(2026-09-05에 사람이 정했다). 한동안 `published`가
+ * 있는데 거기로 가는 길이 없었다 — `record.archive.requestReview`가 '발행이 아니다'라고
+ * 못 박고, 발행 단추는 어느 화면에도 없었다. 이제 검토자가 승인하는 순간이 발행이다.
+ * 그 승인을 누르는 자리는 그림에 아직 없어 그리는 중이다 — 표는 먼저 그 순간을
+ * 담을 자리를 갖는다(`publishedAt`·`frozen`).
  */
 export const archiveStatus = pgEnum('archive_status', ['draft', 'inReview', 'published'])
 
@@ -1698,10 +1699,16 @@ export const archiveStatus = pgEnum('archive_status', ['draft', 'inReview', 'pub
  * **행사 하나에 하나다.** 인수인계 문서라 다음 대가 읽는 것이고, 여러 벌이 있으면
  * 어느 것이 그 행사의 기록인지가 갈린다.
  *
- * 여기 있는 것은 **사람이 직접 쓰는 칸**뿐이다(`record.archiveDraft`가 그 목록이다).
- * 개요·성과·타임라인·근거 넷은 행사 데이터에서 서버가 줄여 만드는 것이라 저장하지
- * 않는다 — 명세가 '발행하면 그 시점 값으로 굳는다'고 적었으니 굳힐 자리는 발행하는
- * 동작이 생길 때 함께 만든다. 지금 열을 두면 채울 길이 없는 열이 열세 개 남는다.
+ * 여기 있는 것은 **사람이 직접 쓰는 칸**과 **발행 시점에 굳은 값**이다.
+ *
+ * 개요·성과·타임라인·근거는 행사 데이터에서 서버가 줄여 만든다. 발행 전에는 읽을
+ * 때마다 지금 값으로 만들고, **발행하는 순간 그때 값으로 굳는다**(`frozen`) — 명세가
+ * 그렇게 적었고('위 수치는 발행 시점 기준입니다. 원본이 이후 변경되어도 이 문서는
+ * 바뀌지 않습니다'), 원본은 계속 바뀌므로 그 값은 나중에 다시 셈할 수 없는 **사실**이다.
+ *
+ * 열세 개 열이 아니라 jsonb 하나인 까닭: 한 번 쓰고 통째로만 읽는 값이고, 모양이
+ * 곧 계약의 응답 모양이다. 갈라 두면 열이 서른 개 넘게 늘고 어느 하나도 따로 읽히지
+ * 않는다(구매요청의 `supplementAnswers`와 같은 사정).
  */
 export const eventArchives = pgTable(
   'event_archives',
@@ -1737,6 +1744,18 @@ export const eventArchives = pgTable(
     reviewRequestedAt: timestamp('review_requested_at', { withTimezone: true }),
     /** 인수인계 초안을 기계가 만들어 준 때. 사람이 쓴 것과 갈라야 안내를 붙일 수 있다. */
     handoverDraftedAt: timestamp('handover_drafted_at', { withTimezone: true }),
+    /**
+     * 발행된 때와 발행한 사람. **검토를 통과한 순간이다** — 검토자가 승인하면 찍힌다.
+     * 비어 있으면 아직 발행 전이고, 그때 REC-02는 지금 값으로 그린다.
+     */
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    publishedByMemberId: text('published_by_member_id'),
+    /**
+     * 발행 시점에 굳은 값. 개요·성과·현장 운영의 열세 조각, 타임라인, 근거 자료,
+     * 자동 채움 네 줄 — `record.archiveDetail`·`archiveTimeline`·`archiveEvidence`·
+     * `archiveAutoFilled`의 응답 모양 그대로다. 발행 전에는 비어 있다.
+     */
+    frozen: jsonb('frozen'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -1762,6 +1781,11 @@ export const eventArchives = pgTable(
       columns: [table.orgId, table.reviewerMemberId],
       foreignColumns: [members.orgId, members.id],
       name: 'event_archives_reviewer_same_org',
+    }).onDelete('set null'),
+    foreignKey({
+      columns: [table.orgId, table.publishedByMemberId],
+      foreignColumns: [members.orgId, members.id],
+      name: 'event_archives_publisher_same_org',
     }).onDelete('set null'),
     index('event_archives_org_status').on(table.orgId, table.status),
   ],
