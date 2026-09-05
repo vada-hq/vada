@@ -11,6 +11,7 @@ import { ops } from './served/ops'
 import { org } from './served/org'
 import { outside } from './served/outside'
 import { participants } from './served/participants'
+import { purchases } from './served/purchases'
 import { record } from './served/record'
 import { shell } from './served/shell'
 import { tasks } from './served/tasks'
@@ -62,6 +63,7 @@ const AREAS = [
   record,
   participants,
   home,
+  purchases,
 ] as const
 
 export const SERVED: readonly string[] = AREAS.flatMap((area) => area.reads)

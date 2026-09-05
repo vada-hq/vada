@@ -8,6 +8,7 @@ import { meetingHandlers } from './meetings.ts'
 import { opsHandlers } from './ops.ts'
 import { orgHandlers } from './org.ts'
 import { participantHandlers } from './participants.ts'
+import { purchaseHandlers } from './purchases.ts'
 import { outsideHandlers } from './outside.ts'
 import { recordHandlers } from './record.ts'
 import { shellHandlers } from './shell.ts'
@@ -36,6 +37,7 @@ export const HANDLERS: Handlers = {
   ...recordHandlers,
   ...participantHandlers,
   ...homeHandlers,
+  ...purchaseHandlers,
 }
 
 /** 영역마다 따로. 겹치는 이름이 없는지 재는 검사가 이것을 쓴다. */
@@ -53,4 +55,5 @@ export const BY_AREA: Record<string, Handlers> = {
   record: recordHandlers,
   participants: participantHandlers,
   home: homeHandlers,
+  purchases: purchaseHandlers,
 }
