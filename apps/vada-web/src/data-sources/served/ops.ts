@@ -6,9 +6,8 @@ import type { Served } from './area'
  * **회의와 가른다.** 회의는 `meetings.ts`가 든다. 여기 오는 것은 업무·회의·행사·마감을
  * 가로질러 세는 것이다 — 어느 한 영역에 두면 그 영역이 남의 표를 읽게 된다.
  *
- * 아직 안 올린 것 넷: 달력의 `ops.calendarMonth`·`ops.calendarDays`·
- * `ops.calendarWeekRange`·`ops.calendarWeek`. 달력이 모으는 셋(행사·회의·마감) 중
- * 마감의 규칙만 그림에 있고(`마감은 완료되지 않은 업무 기준`) 나머지는 다음 회차다.
+ * **달력은 원본이 아니라 비친 것이다.** 표가 없고, 그려지는 것은 행사의 일시·회의의
+ * 일시·업무의 기한이다 — 서버가 그 셋을 모아 한 격자에 세운다.
  */
 export const ops: Served = {
   reads: [
@@ -16,6 +15,12 @@ export const ops: Served = {
     'ops.intro',
     // 공간 넷은 제품이 정한 고정 구조라 명세가 갖고, 건수만 서버가 준다.
     'ops.spaceStats',
+    // 보고 있는 달도 이번 주도 **오늘이 정한다** — 화면이 넘길 값이 없다.
+    'ops.calendarMonth',
+    'ops.calendarWeekRange',
+    // 앞의 빈칸과 오늘 표시를 서버가 센다. 거르는 일도 서버가 한다.
+    'ops.calendarDays',
+    'ops.calendarWeek',
   ],
   writes: [],
 }

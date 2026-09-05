@@ -15,15 +15,15 @@ import {
   users,
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { readObjectSource } from './catalog'
+import { readListSource, readObjectSource } from './catalog'
 import { loadSources, useServer } from './server'
 
-// **운영 허브(OPS-00)가 서버에 붙었다.**
+// **운영 공간 둘이 서버에 붙었다**(OPS-00 · OPS-CAL-01).
 //
-// 이 화면이 읽는 둘은 회의의 것이 아니다 — 업무·회의·행사·마감을 **가로질러** 센다.
+// 이 둘이 읽는 것은 회의의 것이 아니다 — 업무·회의·행사·마감을 **가로질러** 센다.
 // 그래서 서버 쪽도 `handlers/ops.ts`가 답하고, 여기서 그 자리를 잰다.
 //
-// 재는 것 넷:
+// 재는 것 여섯:
 //
 // 1. **안내 문장에 보는 사람의 이름이 들어간다.** 개발용 응답은 늘 '박해랑님'이었고
 //    그것이 정말 저장소에서 오는지는 아무도 재 보지 않았다.
@@ -31,6 +31,9 @@ import { loadSources, useServer } from './server'
 // 3. **'상시 업무'는 행사에 안 걸린 업무다.** 행사 업무를 함께 세면 두 공간이 같은
 //    수를 그린다.
 // 4. **'마감'은 완료되지 않은 업무의 기한이다**(OPS-CAL-01이 그 규칙을 적었다).
+// 5. **달력은 원본이 아니라 비친 것이다.** 격자에 그려지는 것은 행사의 일시·회의의
+//    일시·업무의 기한이고, 셋이 각자 다른 표에서 온다.
+// 6. **어느 달인지도 오늘이 언제인지도 서버만 안다.** 화면이 넘길 값이 없다.
 
 /** 2026.07.20은 월요일. 이번 주는 07.19(일)~07.25(토)다. */
 const NOW = new Date('2026-07-20T10:00:00+09:00')
@@ -64,7 +67,14 @@ beforeAll(async () => {
   ])
 
   await fresh.db.insert(events).values([
-    { id: 'E-01', orgId: 'ORG-01', title: '체육대회', status: 'inProgress' },
+    // 일시가 잡힌 행사만 달력에 걸릴 날이 있다.
+    {
+      id: 'E-01',
+      orgId: 'ORG-01',
+      title: '체육대회',
+      status: 'inProgress',
+      startAt: new Date('2026-07-24T10:00:00+09:00'),
+    },
     { id: 'E-02', orgId: 'ORG-01', title: '신입생 환영회', status: 'planning' },
     { id: 'E-03', orgId: 'ORG-01', title: '지난 행사', status: 'done' },
     { id: 'E-99', orgId: 'ORG-02', title: '남의 행사', status: 'inProgress' },
@@ -188,5 +198,78 @@ describe('운영 허브가 저장소에서 온다', () => {
       calendarThisWeek: 2,
       calendarUpcoming: 1,
     })
+  })
+})
+
+describe('캘린더가 저장소에서 온다(OPS-CAL-01)', () => {
+  // **표가 없는 화면이다.** 격자에 그려지는 것은 행사·회의·업무의 날짜이고,
+  // 개발용 응답은 그 셋을 이미 합쳐 둔 한 벌을 손으로 적어 두면 됐다.
+  it('행사·회의·마감이 한 격자에 모인다', async () => {
+    render(
+      <ScreenRouter screenId="OPS-CAL-01" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />,
+    )
+    await waitFor(() => expect(screen.getByText('2026년 7월')).toBeInTheDocument())
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).not.toContain('이 화면은 아직 준비 중입니다.')
+    // 셋이 각자 다른 표에서 왔다.
+    expect(drawn).toContain('체육대회')
+    expect(drawn).toContain('오늘 운영회의')
+    expect(drawn).toContain('학생 건의함 확인')
+    // **이번 주의 범위와 오늘을 서버가 문장으로 완성한다.**
+    expect(drawn).toContain('07.19 (일) – 07.25 (토) · 오늘 07.20')
+    // 개발용 응답의 일정이 아니라는 증거다.
+    expect(drawn).not.toContain('체육대회 참가 신청 마감')
+    expect(drawn).not.toContain('비상 연락망 최종본 배포')
+  })
+
+  // **앞의 빈칸을 서버가 센다.** 몇 칸이 비는지는 그 달 1일의 요일이 정하고,
+  // 화면이 그것을 셈하면 달력의 규칙이 화면에 적힌다.
+  it('월 격자의 칸과 오늘 표시가 저장소에서 온다', async () => {
+    const params = { type: 'all' }
+    await loadSources([{ key: 'ops.calendarDays', params }])
+    const days = readListSource('ops.calendarDays', params)
+    // 2026년 7월 1일은 수요일이라 앞이 셋 빈다.
+    expect(days).toHaveLength(3 + 31)
+    expect(days[0]).toEqual({ id: '2026-06-28', dayLabel: '', dayTone: 'gray', schedules: [] })
+    expect(days.find((day) => day.id === '2026-07-20')?.dayTone).toBe('today')
+    expect(days.find((day) => day.id === '2026-07-24')?.schedules).toEqual([
+      { id: 'event:E-01', title: '체육대회', typeTone: 'event' },
+    ])
+  })
+
+  // **거르는 일은 서버가 한다.** 받아온 것을 화면이 다시 거르면 그린 것과 걸러진
+  // 것이 갈린다.
+  it('이번 주 줄이 유형으로 좁혀 온다', async () => {
+    const params = { type: 'meeting' }
+    await loadSources([{ key: 'ops.calendarWeek', params }])
+    expect(readListSource('ops.calendarWeek', params)).toEqual([
+      {
+        id: 'meeting:MTG-A',
+        typeLabel: '회의',
+        typeTone: 'meeting',
+        dateLabel: '07.20',
+        title: '오늘 운영회의',
+      },
+      {
+        id: 'meeting:MTG-B',
+        typeLabel: '회의',
+        typeTone: 'meeting',
+        dateLabel: '07.21',
+        title: '내일 회의',
+      },
+    ])
+  })
+
+  // **행사에 딸린 줄만 그 행사의 일정으로 간다** — 명세가 그렇게 적었다.
+  it('열 행사가 있는 줄에만 갈 곳이 온다', async () => {
+    const params = { type: 'all' }
+    await loadSources([{ key: 'ops.calendarWeek', params }])
+    const rows = readListSource('ops.calendarWeek', params)
+    expect(rows.find((row) => row.id === 'deadline:T-03')).toMatchObject({
+      title: '현수막 디자인 수정 반영',
+      actionLabel: '행사 일정 보기',
+      eventId: 'E-01',
+    })
+    expect(rows.find((row) => row.id === 'deadline:T-01')).not.toHaveProperty('actionLabel')
   })
 })

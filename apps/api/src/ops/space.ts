@@ -4,6 +4,9 @@ import type { Db } from '../db/client.ts'
 import { events, meetings, members, tasks } from '../db/schema.ts'
 import { NotFound } from '../routes.ts'
 import { daysBetween } from '../time.ts'
+// **이번 주가 어디서 시작하는지는 달력이 안다**(OPS-CAL-01의 머리가 '일 월 화 수 목
+// 금 토'다). 여기 한 벌을 더 두면 한쪽만 고쳐지는 날 같은 주가 두 주가 된다.
+import { sinceSunday } from './calendar.ts'
 
 // 운영 공간의 첫 화면(OPS-00).
 //
@@ -12,21 +15,6 @@ import { daysBetween } from '../time.ts'
 //
 // **공간 넷은 제품이 정한 고정 구조라 명세가 갖는다**(OPS-00의 카드 넷). 서버가
 // 주는 것은 그 카드에 곁들이는 **건수**뿐이다.
-
-/**
- * 어느 주의 일요일부터 세는가.
- *
- * 달력이 일요일에서 시작한다(OPS-CAL-01의 머리가 '일 월 화 수 목 금 토'이고 이번
- * 주 패널이 '07.19 (일) – 07.25 (토)'라 적었다). 요일을 구하는 어휘가 `time.ts`에
- * 없어 **아는 일요일 하나**에서 센다 — 날 수를 세는 일은 시간대를 아는 그 파일이
- * 하고, 여기서는 나머지만 본다.
- */
-const A_SUNDAY = new Date('2026-01-04T12:00:00+09:00')
-
-/** 오늘이 이번 주의 몇째 날인가(일요일이 0). */
-function sinceSunday(now: Date): number {
-  return ((daysBetween(A_SUNDAY, now) % 7) + 7) % 7
-}
 
 export interface OpsIntro {
   description: string

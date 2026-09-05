@@ -1,11 +1,26 @@
 import type { Served } from './area'
 
 /**
- * 홈(HOME-01K). **아직 비어 있다** — 자리를 미리 열어 둔 것이다.
+ * 홈(HOME-01K).
  *
- * 재정 요약은 여기 안 온다 — 예산을 아직 안 정했다. 그 자리만 따로 가려진다.
+ * **일곱 중 여섯이다.** 재정 요약(`home.financeSummary`)만 안 온다 — 예산을 정하는
+ * 화면이 명세에 없어 붙여도 0원 위에 선다. 그 자리만 화면에서 따로 가려지고
+ * (`Built`), 나머지 여섯은 여기서 진짜가 된다.
  */
 export const home: Served = {
-  reads: [],
+  reads: [
+    // 보는 사람의 이름이 들어가는 인사라 서버가 완성해서 준다.
+    'home.briefing',
+    // 짚을 것이 없으면 빈 목록이다 — 개수가 데이터에 달렸다.
+    'home.briefingNotices',
+    // 행사 단계와 캘린더의 흐름을 가로질러 센다.
+    'home.eventCounts',
+    // 준비율과 지연은 그 행사의 업무에서 나온다.
+    'home.events',
+    // 캘린더와 같은 흐름을 오늘부터 자른 것이다.
+    'home.schedules',
+    // 셀 수 있는 사실만 온다 — 0건인 종류는 아예 오지 않는다.
+    'home.orgAlerts',
+  ],
   writes: [],
 }
