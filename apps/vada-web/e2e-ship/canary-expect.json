@@ -85,11 +85,8 @@
       "missing": []
     },
     "EVT-01": {
-      "ready": false,
-      "missing": [
-        "event.staffLeaderCandidates",
-        "event.staffSetupPreview"
-      ]
+      "ready": true,
+      "missing": []
     },
     "EVT-02": {
       "ready": false,
@@ -107,10 +104,8 @@
       "missing": []
     },
     "EVT-02C": {
-      "ready": false,
-      "missing": [
-        "event.endPermission"
-      ]
+      "ready": true,
+      "missing": []
     },
     "EVT-02D": {
       "ready": false,
@@ -122,25 +117,17 @@
       ]
     },
     "EVT-02E": {
-      "ready": false,
-      "missing": [
-        "event.completeConfirm"
-      ]
+      "ready": true,
+      "missing": []
     },
     "EVT-03A": {
-      "ready": false,
-      "missing": [
-        "event.staffDepartments",
-        "event.staffLeaders"
-      ]
+      "ready": true,
+      "missing": []
     },
     "EVT-03B": {
       "ready": false,
       "missing": [
-        "event.staffDepartments",
         "event.staffDeptLeaderCandidates",
-        "event.staffLeaderCandidates",
-        "event.staffLeaders",
         "event.staffMemberCandidates",
         "event.staffUnassignedMembers"
       ]
@@ -163,7 +150,6 @@
     "EVT-05": {
       "ready": false,
       "missing": [
-        "event.survey",
         "event.surveyActivation",
         "event.surveyActivationConditions",
         "event.surveyQuestions",
@@ -171,11 +157,8 @@
       ]
     },
     "EVT-05B": {
-      "ready": false,
-      "missing": [
-        "event.survey",
-        "event.surveyReplaceImpact"
-      ]
+      "ready": true,
+      "missing": []
     },
     "EVT-DOC-01": {
       "ready": true,
@@ -190,17 +173,12 @@
       ]
     },
     "EVT-MEET-01": {
-      "ready": false,
-      "missing": [
-        "event.meetingCounts",
-        "event.meetings"
-      ]
+      "ready": true,
+      "missing": []
     },
     "EVT-SCHED-01": {
-      "ready": false,
-      "missing": [
-        "event.schedule"
-      ]
+      "ready": true,
+      "missing": []
     },
     "EVT-TASK-01": {
       "ready": true,
@@ -246,11 +224,8 @@
       ]
     },
     "FIN-EVID-01": {
-      "ready": false,
-      "missing": [
-        "finance.paymentEvidenceSummary",
-        "finance.paymentEvidences"
-      ]
+      "ready": true,
+      "missing": []
     },
     "FIN-LEDGER-01": {
       "ready": false,
@@ -264,11 +239,8 @@
       ]
     },
     "FIN-PROC-01": {
-      "ready": false,
-      "missing": [
-        "finance.purchaseOrderSummary",
-        "finance.purchaseOrders"
-      ]
+      "ready": true,
+      "missing": []
     },
     "FIN-REQ-01": {
       "ready": false,
@@ -289,11 +261,8 @@
       ]
     },
     "FIN-REV-01": {
-      "ready": false,
-      "missing": [
-        "finance.reviewItems",
-        "finance.reviewSummary"
-      ]
+      "ready": true,
+      "missing": []
     },
     "FIN-SUP-01": {
       "ready": false,
@@ -344,22 +313,16 @@
       "missing": []
     },
     "MY-REQ-01": {
-      "ready": false,
-      "missing": [
-        "event.myPurchaseRequestSummary",
-        "event.myPurchaseRequests"
-      ]
+      "ready": true,
+      "missing": []
     },
     "ONB-01": {
       "ready": true,
       "missing": []
     },
     "OPS-00": {
-      "ready": false,
-      "missing": [
-        "ops.intro",
-        "ops.spaceStats"
-      ]
+      "ready": true,
+      "missing": []
     },
     "OPS-CAL-01": {
       "ready": false,
@@ -394,50 +357,35 @@
       "missing": []
     },
     "OPS-MEET-04B": {
-      "ready": false,
-      "missing": [
-        "meeting.hostOwner",
-        "meeting.permissionNotice"
-      ]
+      "ready": true,
+      "missing": []
     },
     "OPS-MEET-05A": {
-      "ready": false,
-      "missing": [
-        "meeting.followUps"
-      ]
+      "ready": true,
+      "missing": []
     },
     "OPS-MEET-05B": {
       "ready": true,
       "missing": []
     },
     "OPS-MEET-06A": {
-      "ready": false,
-      "missing": [
-        "meeting.minutes",
-        "meeting.minutesStatus"
-      ]
+      "ready": true,
+      "missing": []
     },
     "OPS-MEET-06B": {
       "ready": false,
       "missing": [
         "meeting.agendaPicker",
-        "meeting.followUps",
-        "meeting.minutes",
         "meeting.minutesProgress"
       ]
     },
     "OPS-MEET-07": {
-      "ready": false,
-      "missing": [
-        "meeting.followUps",
-        "meeting.minutes"
-      ]
+      "ready": true,
+      "missing": []
     },
     "OPS-MEET-08": {
-      "ready": false,
-      "missing": [
-        "meeting.myFollowUps"
-      ]
+      "ready": true,
+      "missing": []
     },
     "OPS-MEET-09": {
       "ready": true,
@@ -452,10 +400,8 @@
       "missing": []
     },
     "OPS-MEET-D03": {
-      "ready": false,
-      "missing": [
-        "meeting.hostGrantConfirm"
-      ]
+      "ready": true,
+      "missing": []
     },
     "ORG-00": {
       "ready": true,
@@ -498,11 +444,8 @@
       "missing": []
     },
     "REC-01": {
-      "ready": false,
-      "missing": [
-        "record.completedEventAlert",
-        "record.completedEvents"
-      ]
+      "ready": true,
+      "missing": []
     },
     "REC-02": {
       "ready": false,

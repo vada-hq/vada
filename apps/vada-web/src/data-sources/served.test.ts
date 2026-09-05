@@ -80,7 +80,7 @@ describe('무엇이 진짜에서 오는가', () => {
     // **줄어드는 것을 막는다.** 세기만 하던 동안은 목록에서 한 줄을 빼도 이 검사가
     // 조용했다 — 그러면 눈금이 아니라 기록이다. 붙인 것을 되돌리려면 이 수부터
     // 내려야 하고, 내리는 일은 눈에 띈다(교차검토가 짚었다, 2026-09-05).
-    expect(real).toBeGreaterThanOrEqual(61)
+    expect(real).toBeGreaterThanOrEqual(91)
     expect(wrote).toBeGreaterThanOrEqual(20)
   })
 })
