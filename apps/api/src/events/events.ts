@@ -10,10 +10,15 @@ import { daysBetween, shortStamp, stamp } from '../time.ts'
 // 화면은 '2026. 08. 20 10:00'이나 '일시 미정'을 받는다 — 어느 쪽인지 고르는 것도,
 // 형식을 만드는 것도 서버의 일이다. 화면이 하면 그 규칙이 화면마다 흩어진다.
 
-type Status = 'planning' | 'inProgress' | 'wrapUp' | 'done'
+export type Status = 'planning' | 'inProgress' | 'wrapUp' | 'done'
 
-/** 단계를 사람이 읽는 말과 색으로. **화면이 이 규칙을 알면 단계가 늘 때마다 화면을 고친다.** */
-const STATUS: Record<Status, { label: string; tone: string }> = {
+/**
+ * 단계를 사람이 읽는 말과 색으로. **화면이 이 규칙을 알면 단계가 늘 때마다 화면을 고친다.**
+ *
+ * 개요와 후속 정리 개요도 이것을 든다 — 같은 행사가 목록에서는 '후속 정리 중'이고
+ * 개요에서는 다른 말이면, 같은 사실이 화면마다 다르게 읽힌다.
+ */
+export const STATUS: Record<Status, { label: string; tone: string }> = {
   planning: { label: '기획 중', tone: 'blue' },
   inProgress: { label: '진행 중', tone: 'green' },
   wrapUp: { label: '후속 정리 중', tone: 'yellow' },

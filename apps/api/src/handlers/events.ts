@@ -13,6 +13,14 @@ import {
   eventSummary,
   eventWorkspace,
 } from '../events/events.ts'
+import {
+  checklist,
+  overviewBriefing,
+  overviewHighlights,
+  participantStats,
+  recentChanges,
+  recruitSettings,
+} from '../events/overview.ts'
 import { eventMeetingCounts, eventMeetings } from '../events/related-meetings.ts'
 import { eventSchedule } from '../events/schedule.ts'
 import {
@@ -22,6 +30,7 @@ import {
   staffSetupPreview,
 } from '../events/staff.ts'
 import { eventSurvey, surveyReplaceImpact } from '../events/survey.ts'
+import { wrapUpBanner, wrapUpCounts, wrapUpRemaining } from '../events/wrap-up.ts'
 import { NotFound } from '../routes.ts'
 
 // 행사 — 목록과 기본정보, 참석 확인 QR, 그리고 행사 공간의 갈피들.
@@ -64,6 +73,63 @@ export const eventHandlers: Handlers = {
     const row = await eventBasics(d.db, orgOf(c), eventId)
     if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
     return row
+  },
+
+  // ── 행사 개요 (EVT-02) ─────────────────────────────────────────────────
+  //
+  // **여섯 자리가 한 화면을 세운다.** 전부 세어서 만든 말이고 표에 그런 열은 없다 —
+  // '모집 마감까지 3일'은 설문의 마감 시각과 지금이 만드는 문장이다.
+  //
+  // 목록 둘(확인 항목·최근 변경)에는 **계약이 404를 두지 않았다.** 남의 학생회
+  // 행사를 물으면 거르고 남은 것이 없다고 답한다.
+  'event.overviewBriefing': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return overviewBriefing(d.db, orgOf(c), eventId, d.invite)
+  },
+  'event.overviewHighlights': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return overviewHighlights(d.db, orgOf(c), eventId, d.invite)
+  },
+  'event.participantStats': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return participantStats(d.db, orgOf(c), eventId)
+  },
+  'event.recruitSettings': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return recruitSettings(d.db, orgOf(c), eventId)
+  },
+  'event.checklist': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return checklist(d.db, orgOf(c), eventId, d.invite)
+  },
+  'event.recentChanges': async (c, d) => {
+    const eventId = c.req.query('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return recentChanges(d.db, orgOf(c), eventId, d.invite)
+  },
+
+  // ── 행사 개요 — 후속 정리 중 (EVT-02D) ─────────────────────────────────
+  //
+  // **어느 행사인지가 주소로 온다** — 개요의 여섯과 갈리는 자리다.
+  'event.wrapUpBanner': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return wrapUpBanner(d.db, orgOf(c), eventId)
+  },
+  'event.wrapUpCounts': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return wrapUpCounts(d.db, orgOf(c), eventId)
+  },
+  'event.wrapUpRemaining': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return wrapUpRemaining(d.db, orgOf(c), eventId, d.invite)
   },
 
   // ── 기본정보 고치기 (EVT-02B) ──────────────────────────────────────────

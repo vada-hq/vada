@@ -14,6 +14,7 @@ import {
   meetings,
   members,
   organizations,
+  students,
   surveyApplications,
   surveys,
   tasks,
@@ -144,9 +145,31 @@ beforeAll(async () => {
       hostMemberId: 'M-02',
       updatedAt: NOW,
     },
+    // **후속 정리 중인 행사.** 개요가 EVT-02가 아니라 EVT-02D로 갈리는 자리다 —
+    // 같은 갈피에서 열리지만 다른 화면이고, 무엇이 남았는지를 센다.
+    {
+      id: 'E-05',
+      orgId: 'ORG-01',
+      title: '2026 여름 문화제',
+      status: 'wrapUp',
+      startAt: new Date('2026-08-08T18:00:00+09:00'),
+      place: '학생회관 대강당',
+      hostDepartmentId: 'D-01',
+      hostMemberId: 'M-01',
+      updatedAt: NOW,
+    },
     // 옆 학생회의 행사. 이 목록에 나오면 안 된다.
     { id: 'E-99', orgId: 'ORG-02', title: '남의 행사', updatedAt: NOW },
   ])
+
+  // **학생 명단.** '확인이 필요한 신청자'가 무엇인지를 이 표가 정한다 — 명단과
+  // 어긋난 신청만 센다. 하나만 넣어 두어야 맞는 것과 어긋난 것이 갈려 보인다.
+  await fresh.db.insert(students).values({
+    id: 'ST-01',
+    orgId: 'ORG-01',
+    name: '신청자0',
+    studentNumber: '202600',
+  })
 
   // 행사 운영 조직. **학생회의 기본 조직과 다른 물건이다.**
   await fresh.db.insert(eventStaffDepartments).values({
@@ -217,6 +240,18 @@ beforeAll(async () => {
       status: 'done',
       dueDate: new Date('2026-07-10T18:00:00+09:00'),
       assigneeMemberId: 'M-01',
+    },
+    // 후속 정리 중인 행사에 **기한이 지난 채로 남은 업무.** 남은 항목 상세가
+    // 이것을 줄로 만들고, 지났다는 사실이 색을 정한다.
+    {
+      id: 'T-21',
+      orgId: 'ORG-01',
+      eventId: 'E-05',
+      title: '현수막 반납',
+      status: 'planned',
+      departmentId: 'D-01',
+      assigneeMemberId: 'M-01',
+      dueDate: new Date('2026-08-10T18:00:00+09:00'),
     },
   ])
 
@@ -330,15 +365,13 @@ describe('행사를 만든다', () => {
 })
 
 describe('기본정보를 읽고 고친다', () => {
-  // **EVT-02B는 아직 못 연다 — 뒤에 남는 화면이 안 지어졌다.**
+  // **이제 열린다 — 뒤에 남는 화면이 서버에 붙었다.**
   //
-  // 이 패널 자신의 자리는 다 붙었다(`event.basicsDraft`·`event.saveBasics`). 그런데
+  // 이 패널 자신의 자리는 진작 붙었는데(`event.basicsDraft`·`event.saveBasics`)
   // 명세가 이것을 EVT-02 위에 겹쳐 뜨는 것으로 적었고(`overlay.screenId`), 그 뒤
-  // 화면이 읽는 여섯이 아직 없다. 사람도 EVT-02를 지나지 않고는 여기 못 온다.
-  //
-  // **한동안 이 검사가 통과했다.** 개발용 응답이 그 여섯을 채워 주고 있었기 때문이다 —
-  // 검사도 배포와 같은 거짓말을 하고 있었다(2026-09-05).
-  it('EVT-02B는 뒤 화면이 아직이라 준비 중을 그린다', async () => {
+  // 화면이 읽는 여섯이 없어 통째로 준비 중이었다. 여섯을 붙이자 패널도 함께 섰다 —
+  // **겹쳐 뜨는 화면은 뒤엣것이 서야 선다.**
+  it('EVT-02B가 뒤의 개요와 함께 열린다', async () => {
     render(
       <ScreenRouter
         screenId="EVT-02B"
@@ -349,8 +382,13 @@ describe('기본정보를 읽고 고친다', () => {
       />,
     )
     await waitFor(() =>
-      expect(screen.getByText('이 화면은 아직 준비 중입니다.')).toBeInTheDocument(),
+      expect(screen.getByText('저장하면 일정·참여 설문에 자동 반영됩니다')).toBeInTheDocument(),
     )
+    // 뒤엣것이 진짜 서버에서 온다 — 단계와 다음 단계를 서버가 문장으로 완성한다.
+    expect(document.body.textContent).toContain(
+      '현재 상태: 진행 중 · 다음 운영 단계는 후속 정리입니다.',
+    )
+    expect(document.body.textContent).not.toContain(NOT_BUILT)
   })
 
   // **켜져 있는 것이 켜져 보여야 한다.**
@@ -430,17 +468,85 @@ describe('참석 확인 QR을 만들고 끈다', () => {
 
 const NOT_BUILT = '이 화면은 아직 준비 중입니다.'
 
-function draw(screenId: string) {
+function draw(screenId: string, eventId = 'E-04') {
   render(
     <ScreenRouter
       screenId={screenId}
-      screenParams={{ eventId: 'E-04' }}
+      screenParams={{ eventId }}
       scopes={{}}
       onChangeScope={() => {}}
       onNavigate={() => {}}
     />,
   )
 }
+
+describe('행사 개요가 저장소에서 온다', () => {
+  // **여섯 자리가 한 화면을 세운다.** 전부 세어서 만든 말이라 표에 그런 열은 없다 —
+  // 개발용 응답에 없는 수(신청 2명 · 확인 필요 1명)로 고르면 서버를 거친 증거가 된다.
+  it('EVT-02가 세어서 만든 문장을 그린다', async () => {
+    draw('EVT-02')
+    await waitFor(() =>
+      expect(
+        screen.getByText('현재 상태: 진행 중 · 다음 운영 단계는 후속 정리입니다.'),
+      ).toBeInTheDocument(),
+    )
+    const drawn = document.body.textContent ?? ''
+    // 안내는 참인 문장만 잇는다. 설문에 마감이 없으므로 마감 문장이 아예 없다.
+    expect(drawn).toContain('2명이 신청했습니다. 명단 확인이 필요한 신청자가 1명 있습니다.')
+    // **명단과 대조해서 센다.** 둘 중 하나만 명단에 있으므로 하나가 남는다.
+    expect(drawn).toContain('명단 확인이 필요한 신청자 1명')
+    expect(drawn).toContain('학번·이름 불일치 또는 명단 외 학생')
+    expect(drawn).not.toContain(NOT_BUILT)
+  })
+
+  // **다음 핵심 일정은 일정 화면과 같은 세 원본에서 온다** — 업무 마감·회의 일시·
+  // 행사 당일. 여기 없는 것을 말하면 눌러 보고서야 안다.
+  it('강조 카드와 모집 설정이 저장소에서 온다', async () => {
+    draw('EVT-02')
+    await waitFor(() => expect(screen.getByText('참가자 모집 공지 작성')).toBeInTheDocument())
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).toContain('08.28 · 이윤슬')
+    // 담당자 없는 업무가 없다는 것도 말로 온다. 빈 글을 주면 화면이 빈 자리를 그린다.
+    expect(drawn).toContain('담당자 없는 업무가 없습니다')
+    // 모집 설정은 설문이 든 사실 그대로다. 신청 방식의 말은 명세가 갖는다.
+    expect(drawn).toContain('활성')
+    expect(drawn).toContain('마감일 미입력')
+    expect(drawn).toContain('선착순')
+  })
+
+  // **표는 무엇이 바뀌었는지가 아니라 언제 바뀌었는지를 안다.** 그래서 줄은 무엇이
+  // 손대졌는지까지만 말한다. 신청은 하루치를 묶는다.
+  it('최근 변경 사항이 저장소의 때에서 온다', async () => {
+    draw('EVT-02')
+    await waitFor(() => expect(screen.getByText('신규 신청자 2명 추가')).toBeInTheDocument())
+    expect(document.body.textContent).toContain('행사 기본정보 수정')
+  })
+})
+
+describe('후속 정리 개요가 저장소에서 온다', () => {
+  // **EVT-02와 다른 화면이다.** 같은 갈피에서 열리지만 무엇이 남았는지를 센다.
+  //
+  // 상태의 말도 누가 완료 처리할 수 있는지도 서버가 준다 — 화면이 들면 단계가
+  // 늘거나 권한이 바뀔 때 조용히 틀린다.
+  it('EVT-02D가 남은 것을 세어 그린다', async () => {
+    draw('EVT-02D', 'E-05')
+    await waitFor(() => expect(screen.getByText('행사가 종료되었습니다')).toBeInTheDocument())
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).toContain('후속 정리 중')
+    expect(drawn).toContain('행사 완료 처리는 회장단만 할 수 있습니다.')
+    // 타일 넷. 남은 것이 없는 셋은 0으로 오고 색으로 갈린다.
+    expect(drawn).toContain('1건')
+    expect(drawn).toContain('0명')
+    expect(drawn).not.toContain(NOT_BUILT)
+  })
+
+  // **줄마다 그 원본으로 간다.** 비어 있는 것은 업무 보드가 쓰는 그 말로 온다.
+  it('남은 항목이 업무에서 오고 지연을 말한다', async () => {
+    draw('EVT-02D', 'E-05')
+    await waitFor(() => expect(screen.getByText('현수막 반납')).toBeInTheDocument())
+    expect(document.body.textContent).toContain('학술체육부 · 김바다 · 08. 10까지 · 지연')
+  })
+})
 
 describe('행사 운영 조직이 저장소에서 온다', () => {
   // **기본 조직에서 온다.** 아직 만들어지지 않은 것을 미리 보는 자리다.
@@ -495,7 +601,9 @@ describe('행사를 끝내는 두 모달이 권한 행렬에서 온다', () => {
   it('EVT-02E가 남은 업무를 세어 알린다', async () => {
     draw('EVT-02E')
     await waitFor(() => expect(screen.getByText('미완료 업무 1건')).toBeInTheDocument())
-    expect(screen.getByText('행사 완료 처리는 회장단만 할 수 있습니다.')).toBeInTheDocument()
+    // **뒤에 남는 화면도 같은 글을 그린다.** 둘 다 권한 행렬에서 만들어진 한 문장이라
+    // 같은 것이 두 번 보이는 것이 맞다 — 갈리면 그때가 틀린 것이다.
+    expect(screen.getAllByText('행사 완료 처리는 회장단만 할 수 있습니다.').length).toBe(2)
     expect(document.body.textContent).not.toContain(NOT_BUILT)
   })
 })
