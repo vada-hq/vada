@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Built } from '../components/Built'
+import { NotBuiltYet } from '../data-sources/server'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { BANNER_TEXT, BANNER_TONE, NEUTRAL_BORDER, NEUTRAL_CHIP, NEUTRAL_VALUE, STATE_CHIP } from '../design/tones'
@@ -107,9 +108,10 @@ function scalar(row: DataRow, field: string | undefined): string {
   return String(value)
 }
 
-// **정리 완료 조건만 아직 서버에 안 붙었다**(`meeting.minutesProgress`). 그 하나
-// 때문에 화면이 통째로 닫히면 지어 놓은 나머지 넷(띠·회의록 요약·안건·후속 업무)을
-// 아무도 못 본다 — 그래서 그 자리를 읽는 곳을 두 부품으로 갈라 `Built`로 두른다.
+// **자리마다 따로 두른다.** 정리 완료 조건(`meeting.minutesProgress`)과 안건 고르기
+// (`meeting.agendaPicker`)는 저마다 제 부품으로 갈라 `Built`로 둘렀다 — 하나가 서버에서
+// 안 오는 날 그 자리만 닫히고 나머지(띠·회의록 요약·안건·후속 업무)는 그대로 보인다.
+// 지금은 다 붙어 있어 전부 열려 있다.
 //
 // **화면 안에서 읽어야 두를 수 있다.** 부모가 읽으면 그리기 전에 터지고, 그때는
 // 바깥 그물(`SourceGate`)이 화면을 통째로 가린다.
@@ -233,6 +235,132 @@ function MinutesCompletionConditions({
   )
 }
 
+/**
+ * 어느 안건을 열지 고르는 묶음.
+ *
+ * `ChoiceGroup`과 같은 규칙으로 받아 오되 그 부품을 쓰지 않는다 — 선택지마다 곁에
+ * 붙는 말('확인 필요')을 함께 그려야 해서다. 그래서 그 부품이 하는 셋을 여기서 한 번
+ * 더 한다. **못 받은 것을 빈 목록으로 대신하지 않는다**: '고를 것이 없다'와 '못
+ * 받았다'와 '아직 안 지었다'가 화면에서 똑같이 보이면 사람은 고를 것이 없는 줄 알고
+ * 넘어간다. 아직 안 지은 것은 그물(`Built`)이 말하고 못 받은 것은 카탈로그의 글이
+ * 말한다. 그리고 아무것도 안 골랐으면 **서버가 표시한 것을 연다**(initiallySelected).
+ */
+function AgendaPicker({
+  picker,
+  label,
+  sourceParams,
+  chosen,
+  onSelect,
+}: {
+  picker: SelectSpec
+  label: string | undefined
+  sourceParams: Record<string, string>
+  chosen: string | null
+  onSelect: (option: Option) => void
+}) {
+  const source = getOptionSource(picker.optionsSource.key)
+  const [options, setOptions] = useState<Option[]>(
+    source.type === 'static' ? source.options : [],
+  )
+  const [failed, setFailed] = useState(false)
+  const [notBuilt, setNotBuilt] = useState<NotBuiltYet | null>(null)
+  const messages = source.type === 'remote' ? source.messages : null
+  const paramsKey = JSON.stringify(sourceParams)
+
+  // 펼친 형태라 목록이 처음부터 화면에 있어야 한다. 원격 출처는 즉시 불러온다.
+  useEffect(() => {
+    if (source.type === 'static') {
+      return
+    }
+    let cancelled = false
+    setFailed(false)
+    setNotBuilt(null)
+    fetchOptions(picker.optionsSource.key, JSON.parse(paramsKey) as Record<string, string>)
+      .then((loaded) => {
+        if (!cancelled) {
+          setOptions(loaded)
+        }
+      })
+      .catch((thrown: unknown) => {
+        if (cancelled) return
+        setOptions([])
+        // **아직 안 지은 것은 실패가 아니다.** 그 말은 그물이 한다 — 여기서 '못 받았다'로
+        // 바꿔 말하면 서버가 죽은 것과 구분이 안 된다.
+        if (thrown instanceof NotBuiltYet) setNotBuilt(thrown)
+        else setFailed(true)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [source.type, picker.optionsSource.key, paramsKey])
+
+  // **아직 아무것도 고르지 않았으면 서버가 표시한 안건이 열린다.** 무엇이 열려
+  // 있어야 하는지는 그 회의의 정리 상태가 정하고 그것은 서버만 안다. 사람이 한 번
+  // 고르고 나면 다시 끼어들지 않는다.
+  useEffect(() => {
+    if (chosen !== null) {
+      return
+    }
+    const marked = options.find((option) => option.initiallySelected === true)
+    if (marked !== undefined) {
+      onSelect(marked)
+    }
+    // onSelect는 그릴 때마다 새로 만들어진다. 보는 사실은 '목록이 왔는가'와
+    // '아직 안 골랐는가' 둘뿐이다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options, chosen])
+
+  // 그물이 받을 수 있는 자리는 그리는 중이다. 효과 안에서 던지면 아무 데도 안 닿는다.
+  if (notBuilt !== null) throw notBuilt
+
+  // 못 받았으면 못 받았다고 한다. 카탈로그가 그 말을 갖고 있다.
+  if (failed) {
+    return (
+      <div
+        id={picker.fieldKey}
+        data-node-id={NODE.picker}
+        data-design-state="error"
+        className="border-b border-gray-100 px-5 py-4 text-xs text-red-600"
+      >
+        {messages?.error}
+      </div>
+    )
+  }
+
+  return (
+    <div
+      id={picker.fieldKey}
+      role="radiogroup"
+      aria-label={label}
+      data-node-id={NODE.picker}
+      className="flex flex-col gap-2 border-b border-gray-100 px-5 py-4"
+    >
+      {options.map((option) => {
+        const selected = option.value === chosen
+        return (
+          <button
+            key={option.value}
+            type="button"
+            role="radio"
+            aria-checked={selected}
+            onClick={() => onSelect(option)}
+            className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left ${
+              selected ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
+            }`}
+          >
+            <span
+              className={`text-xs font-bold ${selected ? 'text-blue-600' : 'text-gray-500'}`}
+            >
+              {option.label}
+            </span>
+            <span className="text-xs font-medium text-orange-600">{option.description}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 export function OPSMEET06BScreen({
   screenParams,
   draft,
@@ -307,62 +435,9 @@ export function OPSMEET06BScreen({
   )
 
   const chosen = draft.values[picker.fieldKey] ?? null
-
-  // 펼친 형태라 목록이 처음부터 화면에 있어야 한다. 원격 출처는 즉시 불러온다
-  // (components/ChoiceGroup과 같은 규칙이다 — 그 부품을 쓰지 않는 것은 선택지마다
-  // 곁에 붙는 말을 함께 그려야 하기 때문이다).
-  const pickerParamsKey = JSON.stringify(field.resolveSourceParams(picker))
-  const pickerSource = getOptionSource(picker.optionsSource.key)
-  const [pickerOptions, setPickerOptions] = useState<Option[]>(
-    pickerSource.type === 'static' ? pickerSource.options : [],
-  )
-  useEffect(() => {
-    if (pickerSource.type === 'static') {
-      return
-    }
-    let cancelled = false
-    fetchOptions(picker.optionsSource.key, JSON.parse(pickerParamsKey) as Record<string, string>)
-      .then((loaded) => {
-        if (!cancelled) {
-          setPickerOptions(loaded)
-        }
-      })
-      // **못 받아 오면 고를 것이 없다.** ChoiceGroup이 같은 자리에서 같은 일을 한다 —
-      // 이 화면은 그 부품을 쓰지 않으므로(선택지마다 곁말을 함께 그린다) 여기서도
-      // 같은 규칙을 적는다. 이 목록은 아직 서버에 안 붙었고(`meeting.agendaPicker`),
-      // 안 잡아 두면 그리기 밖에서 터진 약속이 아무 데도 안 닿는다.
-      .catch(() => {
-        if (!cancelled) {
-          setPickerOptions([])
-        }
-      })
-    return () => {
-      cancelled = true
-    }
-  }, [picker.optionsSource.key, pickerParamsKey, pickerSource.type])
-
-  // **아직 아무것도 고르지 않았으면 서버가 표시한 안건이 열린다.**
-  //
-  // 무엇이 열려 있어야 하는지는 그 회의의 정리 상태가 정한다. 한동안 화면이
-  // meeting.agendas의 isCurrent를 **이름으로 박아** 읽었는데, 그것은 명세가
-  // 가리키지 않은 조각이었다 — 05A는 그 조각을 명세에 적었지만 여기는 아니었다.
-  //
-  // 이제 고르는 목록이 표시해서 온다(options[].initiallySelected). 이 화면은
-  // ChoiceGroup을 쓰지 않으므로(선택지마다 곁말을 함께 그려야 한다) 같은 규칙을
-  // 여기서 한 번 더 적는다 — 그 두 자리가 갈리면 화면마다 다르게 열린다.
-  useEffect(() => {
-    if (chosen !== null) {
-      return
-    }
-    const marked = pickerOptions.find((option) => option.initiallySelected === true)
-    if (marked !== undefined) {
-      field.setFieldValue(picker.fieldKey, marked.value, marked.label)
-    }
-    // field는 그릴 때마다 새로 만들어진다. 보는 사실은 '목록이 왔는가'와
-    // '아직 안 골랐는가' 둘뿐이다.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickerOptions, chosen, picker.fieldKey])
-
+  // 목록을 받아 오고 처음 열 것을 여는 일은 `AgendaPicker`가 한다. 여기는 무엇을
+  // 골랐는지만 안다 — 오른쪽 아래가 그 값으로 그려진다.
+  const pickerParams = field.resolveSourceParams(picker)
   const openValue = chosen
   const chosenAgenda = agendaRows.find((row) => scalar(row, 'agendaId') === openValue)
 
@@ -403,8 +478,7 @@ export function OPSMEET06BScreen({
       }
       // 머리 오른쪽은 한 자리다. 06A에서는 '읽기 전용'이 오고 여기서는 무엇이
       // 남았는지와 '정리 완료'가 온다. **무엇이 막는지는 서버가 말한다** —
-      // 화면이 세면 조직의 규칙이 화면에 적힌다. 그 자리가 아직 안 지어졌으므로
-      // **그 자리만** 가린다.
+      // 화면이 세면 조직의 규칙이 화면에 적힌다. 그 자리가 안 오면 **그 자리만** 가린다.
       headerAction={
         <Built what="정리 완료">
           <CompleteMinutesAction
@@ -654,41 +728,19 @@ export function OPSMEET06BScreen({
                 <p className="pt-1 text-xs font-normal text-gray-400">{panelHeader.description}</p>
               </div>
 
-              {/* 어느 안건을 여는지. 곁에 붙는 '확인 필요'도 선택지가 갖고 온다. */}
-              <div
-                id={picker.fieldKey}
-                role="radiogroup"
-                aria-label={panelHeader.title}
-                data-node-id={NODE.picker}
-                className="flex flex-col gap-2 border-b border-gray-100 px-5 py-4"
-              >
-                {pickerOptions.map((option) => {
-                  const selected = option.value === openValue
-                  return (
-                    <button
-                      key={option.value}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => field.setFieldValue(picker.fieldKey, option.value, option.label)}
-                      className={`flex items-center justify-between rounded-lg border px-3 py-2 text-left ${
-                        selected ? 'border-blue-400 bg-blue-50' : 'border-gray-200'
-                      }`}
-                    >
-                      <span
-                        className={`text-xs font-bold ${
-                          selected ? 'text-blue-600' : 'text-gray-500'
-                        }`}
-                      >
-                        {option.label}
-                      </span>
-                      <span className="text-xs font-medium text-orange-600">
-                        {option.description}
-                      </span>
-                    </button>
-                  )
-                })}
-              </div>
+              {/* 어느 안건을 여는지. 곁에 붙는 '확인 필요'도 처음 열려 있을 것도 선택지가
+                  갖고 온다. 안 오면 **이 자리만** 가린다. */}
+              <Built what="안건 목록">
+                <AgendaPicker
+                  picker={picker}
+                  label={panelHeader.title}
+                  sourceParams={pickerParams}
+                  chosen={chosen}
+                  onSelect={(option) =>
+                    field.setFieldValue(picker.fieldKey, option.value, option.label)
+                  }
+                />
+              </Built>
 
               {/* 고른 안건의 정리. **아무것도 고르지 않았을 때가 그림에 없다** —
                   그래서 그 자리에 무엇을 그릴지도 명세에 없다. */}
@@ -846,7 +898,7 @@ export function OPSMEET06BScreen({
               </div>
             </section>
 
-            {/* 무엇이 남았는지. **아직 서버에 안 붙은 자리라 여기만 가린다.** */}
+            {/* 무엇이 남았는지. 안 오면 **여기만** 가린다. */}
             <Built what="정리 완료 조건">
               <MinutesCompletionConditions screenParams={screenParams} />
             </Built>

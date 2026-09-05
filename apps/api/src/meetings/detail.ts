@@ -12,6 +12,7 @@ import {
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import { NotFound } from '../routes.ts'
 import { clock, daysBetween, dottedStamp } from '../time.ts'
+import { cancellableStage } from './manage.ts'
 import { listed, MINUTES, orNote, STATUS, word, type Listed, type MeetingViewer } from './meetings.ts'
 import { endableStage, startableStage } from './run.ts'
 
@@ -435,10 +436,11 @@ export async function meetingDetail(
     stateBannerTone: banner.tone,
     canStart,
     canEnd,
-    // **단계를 함께 보지 않는다.** 고치기·취소·권한 관리를 단계로 막는 자리가 아직
+    // **고치기·권한 관리는 단계를 함께 보지 않는다.** 그 둘을 단계로 막는 자리가 아직
     // 없어서, 여기서만 막으면 그 판정이 막는 검사와 갈린다.
     canEdit: allowed.canOwn,
-    canCancel: allowed.canOwn,
+    // 취소는 예정에서만 간다 — 막는 자리(`cancelMeeting`)와 같은 함수가 답한다.
+    canCancel: allowed.canOwn && cancellableStage(row.status),
     canManageHostRole: allowed.canOwn,
     canEditMinutes: allowed.canEditMinutes,
     // **진행 중부터 오는 조각들.** 가만히 있어도 자라는 값이라 서버가 잰다.

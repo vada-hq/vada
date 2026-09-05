@@ -487,10 +487,19 @@ describe('판정이 막는 검사와 같은 곳에서 나온다', () => {
     expect(ended.canEnd).toBe(false)
   })
 
-  // **명세가 아직 말하지 않은 자리는 막는다.** 회의록을 누가 정리할 수 있는지
-  // permissions.json이 'unstated'로 두었고, 그 자리의 판정도 같은 답이어야 한다.
-  it('회의록 정리 권한은 아직 아무에게도 없다', async () => {
-    expect((await detail('MTG-06', CREATOR)).canEditMinutes).toBe(false)
+  // **회의록은 그 회의의 참가자가 정리한다**(사람이 정함 2026-09-05, meeting.minutes).
+  // 만든 사람과 진행 권한자도 참가자다. 초대받지 않은 사람은 회장이라도 아니다.
+  it('회의록 정리 권한은 그 회의의 참가자에게 있다', async () => {
+    expect((await detail('MTG-06', CREATOR)).canEditMinutes).toBe(true)
+    expect((await detail('MTG-06', GUEST)).canEditMinutes).toBe(true)
+    expect((await detail('MTG-06', OUTSIDER)).canEditMinutes).toBe(false)
+  })
+
+  // **취소는 예정에서만 간다**(D04가 03B 위에만 뜬다). 권한만 보면 진행 중인 회의에도
+  // '회의 취소'가 그려지고, 누르면 막힌다(그 자리가 422를 낸다).
+  it('취소는 단계가 함께 정한다', async () => {
+    expect((await detail('MTG-04', CREATOR)).canCancel).toBe(false)
+    expect((await detail('MTG-06', CREATOR)).canCancel).toBe(false)
   })
 })
 

@@ -20,7 +20,7 @@ import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
 import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
-import { loadSources, useServer } from './server'
+import { forgetSources, loadSources, useServer } from './server'
 
 // **회의의 앞자락을 끝까지 뚫는다.**
 //
@@ -43,6 +43,10 @@ import { loadSources, useServer } from './server'
 // | `meeting.participants`(03A · 05A) | |
 // | `meeting.startConfirm`(D01) · `meeting.endConfirm`(D02) | |
 //
+// 그리고 **뒷자락**(2026-09-05): 회의록 정리(06B)의 읽기 둘(`meeting.minutesProgress` ·
+// `meeting.agendaPicker`)과 쓰기 넷(`saveMinutes` · `generateSummary` · `completeMinutes` ·
+// `acknowledgeSummary`), 회의 관리의 쓰기 셋(`cancel` · `grantHostRole` · `revokeHostRole`).
+//
 // **쓰기는 화면이 누르는 그 길로 보낸다**(`runMutation`). 그리고 화면이 실제로
 // 보내는 꼴로 보낸다 — 초안은 배열이 아니라 줄 이름을 열쇠에 박은 평평한 맵이다
 // (`spec/compute.ts`의 itemKey). 계약이 적은 배열 꼴로만 재면 화면과 서버 사이가
@@ -54,6 +58,8 @@ let made = 0
 let app: ReturnType<typeof createApp>
 let restore: () => void
 let close: () => Promise<void>
+/** 검사 도중 사실을 하나 더 심을 때 쓴다(후속 업무 하나). 쓰기는 `runMutation`으로 간다. */
+let db: Awaited<ReturnType<typeof freshDb>>['db']
 
 /** 화면이 초안에 담는 꼴 그대로. 되풀이되는 묶음은 줄 이름을 이어 담는다. */
 const DRAFT = {
@@ -92,6 +98,7 @@ const groupsNow = async () => {
 beforeAll(async () => {
   const fresh = await freshDb()
   close = fresh.close
+  db = fresh.db
 
   await fresh.db.insert(organizations).values([
     { id: 'ORG-01', name: '제12대 학생회' },
@@ -729,25 +736,41 @@ describe('회의록이 저장소에서 온다', () => {
     ])
   })
 
-  // **안 지은 자리 하나가 화면을 통째로 닫지 않는다.** 06B가 읽는 다섯 중 넷은
-  // 지어졌고 `meeting.minutesProgress`만 아직이다 — 그 자리만 가린다.
-  it('OPS-MEET-06B가 회의록을 그리고 정리 완료 조건만 가린다', async () => {
+  // **06B가 통째로 열렸다.** 정리 완료 조건과 안건 고르기까지 서버에서 온다 — 조건
+  // 줄은 그림이 그린 다섯이고, 딱지의 수와 목록과 머리의 막는 말이 한 셈이다.
+  it('OPS-MEET-06B가 회의록과 정리 완료 조건을 통째로 그린다', async () => {
     draw('OPS-MEET-06B', { meetingId: 'MTG-F' })
     await waitFor(() =>
       expect(
         screen.getByText('신입생 환영 행사의 프로그램 순서와 부서별 준비 범위를 정했습니다.'),
       ).toBeInTheDocument(),
     )
+    await waitFor(() => expect(screen.getByText('필수 2 / 4')).toBeInTheDocument())
+    // 고르는 목록도 서버에서 온다 — 결정이 없는 셋째에만 '확인 필요'가 붙는다.
+    await waitFor(() =>
+      expect(screen.getByRole('radio', { name: /안건 3/ })).toBeInTheDocument(),
+    )
     const drawn = document.body.textContent ?? ''
-    // 화면이 통째로 닫히지는 않았다.
+    // 아무 자리도 가려지지 않았다.
     expect(drawn).not.toContain('이 화면은 아직 준비 중입니다.')
+    expect(drawn).not.toContain('아직 준비 중입니다')
     expect(drawn).toContain('행사 프로그램 구성')
     expect(drawn).toContain('입장과 퇴장 동선을 분리합니다.')
     // AI 초안이 무엇을 하지 않는지도 서버가 준다.
     expect(drawn).toContain('기록에 없는 결정·담당자·기한을 새로 만들지 않습니다')
-    // 아직 안 지은 자리 둘만 그 사실을 말한다.
-    expect(screen.getAllByText('아직 준비 중입니다')).toHaveLength(2)
-    expect(drawn).toContain('정리 완료 조건')
+    // 그림이 그린 다섯 줄. 셋째 안건에 결정이 없고 후속 업무가 없어 필수 둘이 비었다.
+    for (const label of [
+      '안건별 논의 내용',
+      '결정사항 또는 없음 표시',
+      '후속 업무 또는 없음 표시',
+      '참가 결과',
+      '회의 전체 요약 (선택)',
+    ]) {
+      expect(drawn).toContain(label)
+    }
+    // 머리의 막는 말은 그림이 그린 그 문장이다.
+    expect(drawn).toContain('안건별 필수 정리를 완료해 주세요')
+    expect(screen.getAllByText('확인 필요')).toHaveLength(1)
   })
 })
 
@@ -803,5 +826,178 @@ describe('회의를 시작하고 끝내고 안건을 넘긴다', () => {
     await runMutation('meeting.end', {}, { meetingId: 'MTG-E' })
     // **'완료'가 아니라 '정리 중'이다.** 회의록을 확인한 뒤에 따로 정리 완료한다.
     expect((await detailOf('MTG-E')).status).toBe('정리 중')
+  })
+})
+
+describe('회의록을 정리하고 마친다', () => {
+  const params = { meetingId: 'MTG-F' }
+  const progressNow = async () => {
+    await loadSources([{ key: 'meeting.minutesProgress', params }])
+    return readObjectSource('meeting.minutesProgress', params)
+  }
+
+  // **곁말도 열려 있을 것도 서버가 표시한다.** 결정이 없는 셋째가 '확인 필요'이고 그것이 열린다.
+  it('정리할 안건을 고르는 목록이 표시해서 온다', async () => {
+    expect(await fetchOptions('meeting.agendaPicker', params)).toEqual([
+      { value: 'AG-F-1', label: '안건 1' },
+      { value: 'AG-F-2', label: '안건 2' },
+      { value: 'AG-F-3', label: '안건 3', description: '확인 필요', initiallySelected: true },
+    ])
+  })
+
+  // **기록에 없는 결정을 만들지 않는다.** 안건별 논의·결정을 옮겨 적고, 없으면 없다고 적는다.
+  it('OPS-MEET-06B가 누르는 길로 요약 초안이 기록에서 만들어진다', async () => {
+    await runMutation('meeting.generateSummary', {}, params)
+    await loadSources([{ key: 'meeting.minutes', params }])
+    expect(readObjectSource('meeting.minutes', params).summaryText).toBe(
+      "안건 1 '행사 프로그램 구성' — 논의: 환영 인사와 학과 소개를 먼저 두기로 했습니다. / 결정: 프로그램은 환영 인사 이후 학과 소개 순으로 진행합니다.\n" +
+        "안건 2 '장소와 참가자 동선' — 논의: 기록 없음 / 결정: 입장과 퇴장 동선을 분리합니다.\n" +
+        "안건 3 '부서별 준비 범위' — 논의: 기록 없음 / 결정: 기록 없음",
+    )
+  })
+
+  // **조건이 남았으면 서버가 막는다.** 화면이 세지 않는다 — 세면 조직의 규칙이 화면에 적힌다.
+  it('조건이 남은 동안은 마칠 수 없다', async () => {
+    await expect(runMutation('meeting.completeMinutes', {}, params)).rejects.toThrow('(422)')
+    expect((await progressNow()).canComplete).toBe(false)
+  })
+
+  // 결정을 적으면 둘째 줄이 차고 곁말이 떨어진다 — 조건과 곁말이 한 셈에서 나온다.
+  it('결정사항을 저장하면 조건과 곁말이 함께 움직인다', async () => {
+    await runMutation(
+      'meeting.saveMinutes',
+      { agendaId: 'AG-F-3', decisionText: '부서별 준비 범위는 다음 회의에서 확정합니다.' },
+      params,
+    )
+    await loadSources([{ key: 'meeting.agendas', params }])
+    expect(readListSource('meeting.agendas', params)[2]!.decisionText).toBe(
+      '부서별 준비 범위는 다음 회의에서 확정합니다.',
+    )
+    const progress = await progressNow()
+    expect(progress.requiredDoneNote).toBe('필수 3 / 4')
+    expect(
+      (progress.conditions as Array<Record<string, unknown>>).map((one) => one.done),
+    ).toEqual(['y', 'y', '', 'y', 'y'])
+    expect(await fetchOptions('meeting.agendaPicker', params)).toEqual([
+      { value: 'AG-F-1', label: '안건 1', initiallySelected: true },
+      { value: 'AG-F-2', label: '안건 2' },
+      { value: 'AG-F-3', label: '안건 3' },
+    ])
+  })
+
+  // **후속 업무는 업무 표의 것이다.** 하나 걸리면 셋째 줄이 찬다 — 06B의 '업무 연결'은
+  // 아직 갈 곳이 없어(pending) 여기서는 사실을 심는다.
+  it('후속 업무가 걸리면 마칠 수 있고, 마치면 회의도 완료가 된다', async () => {
+    await db.insert(tasks).values({
+      id: 'TSK-F1',
+      orgId: 'ORG-01',
+      fromMeetingId: 'MTG-F',
+      title: '부서별 준비 범위 정리',
+      status: 'planned',
+      assigneeMemberId: 'M-02',
+    })
+    forgetSources()
+    const before = await progressNow()
+    expect(before.requiredDoneNote).toBe('필수 4 / 4')
+    expect(before.canComplete).toBe(true)
+    expect(Object.hasOwn(before, 'blockedNote')).toBe(false)
+
+    await runMutation('meeting.completeMinutes', {}, params)
+    await loadSources([
+      { key: 'meeting.detail', params },
+      { key: 'meeting.minutes', params },
+    ])
+    const detail = readObjectSource('meeting.detail', params)
+    // **종료는 '정리 중'이었고 정리를 마쳐야 '완료'다.** 두 축이 함께 닫힌다.
+    expect(detail.status).toBe('완료')
+    expect(detail.minutesStatus).toBe('정리 완료')
+    // 확정된 요약이라 '변경될 수 있음'이 떨어진다.
+    expect(readObjectSource('meeting.minutes', params).statusLabel).toBe('')
+  })
+
+  // **되풀이는 조용히 넘어가지 않는다**(계약의 repeat: conflict).
+  it('이미 마친 회의록을 또 마치면 막힌다', async () => {
+    await expect(runMutation('meeting.completeMinutes', {}, params)).rejects.toThrow('(409)')
+  })
+
+  // **회의의 상태가 아니라 그 사람의 확인 상태다.** 목록 위의 띠가 세는 수가 그 증거다.
+  it('OPS-MEET-08이 누르는 길로 요약 확인이 기록된다', async () => {
+    await loadSources([{ key: 'meeting.attention', params: {} }])
+    expect(readObjectSource('meeting.attention').attentionNote).toContain('확인 필요한 회의 1건')
+
+    await runMutation('meeting.acknowledgeSummary', {}, params)
+    await loadSources([{ key: 'meeting.attention', params: {} }])
+    expect(readObjectSource('meeting.attention').attentionNote).not.toContain('확인 필요한 회의')
+  })
+})
+
+describe('진행 권한을 주고 뺀다', () => {
+  const params = { meetingId: 'MTG-A' }
+  const noticeNow = async () => {
+    await loadSources([{ key: 'meeting.permissionNotice', params }])
+    return readObjectSource('meeting.permissionNotice', params)
+  }
+  const personNow = async (name: string) => {
+    await loadSources([{ key: 'meeting.participants', params }])
+    return readListSource('meeting.participants', params).find((row) => row.name === name)!
+  }
+
+  // **옮기는 것이 아니라 더하는 것이다**(D03). 세는 말과 줄의 딱지·단추가 함께 바뀐다.
+  it('OPS-MEET-D03이 누르는 길로 진행 권한이 더해진다', async () => {
+    await runMutation('meeting.grantHostRole', {}, { meetingId: 'MTG-A', memberId: 'M-02' })
+    expect((await noticeNow()).summaryNote).toBe('현재 진행 권한자 2명 · 일반 참가자 0명')
+    const person = await personNow('박해랑')
+    expect(person.chips).toEqual([{ label: '진행 권한', tone: 'blue' }])
+    expect(person.actionLabel).toBe('권한 해제')
+
+    draw('OPS-MEET-04B', params)
+    await waitFor(() =>
+      expect(screen.getByText('현재 진행 권한자 2명 · 일반 참가자 0명')).toBeInTheDocument(),
+    )
+  })
+
+  it('빼면 일반 참가자로 돌아간다', async () => {
+    await runMutation('meeting.revokeHostRole', {}, { meetingId: 'MTG-A', memberId: 'M-02' })
+    expect((await noticeNow()).summaryNote).toBe('현재 진행 권한자 1명 · 일반 참가자 1명')
+    expect((await personNow('박해랑')).actionLabel).toBe('진행 권한 부여')
+  })
+
+  // **만든 사람은 늘 진행 권한자다.** 뺄 자리가 없다.
+  it('만든 사람의 진행 권한은 뺄 수 없다', async () => {
+    await expect(
+      runMutation('meeting.revokeHostRole', {}, { meetingId: 'MTG-A', memberId: 'M-01' }),
+    ).rejects.toThrow('(422)')
+  })
+})
+
+describe('회의를 취소한다', () => {
+  const params = { meetingId: 'MTG-A' }
+
+  // **지우는 것이 아니다.** 취소된 기록으로 남고 09가 그것을 그린다 — 사유도 누가 언제도.
+  it('OPS-MEET-D04가 누르는 길로 취소되고 OPS-MEET-09가 그 기록을 그린다', async () => {
+    await runMutation('meeting.cancel', { cancelReason: '행사 일정이 바뀌어 다시 잡습니다.' }, params)
+
+    draw('OPS-MEET-09', params)
+    await waitFor(() => expect(screen.getByText('이 회의는 취소되었습니다')).toBeInTheDocument())
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).toContain('9월 운영 점검회의')
+    expect(drawn).toContain('행사 일정이 바뀌어 다시 잡습니다.')
+    // 누가 취소했는지는 서버가 안다 — 보낸 사람이다.
+    expect(drawn).toContain('김바다 · 학술체육부')
+    expect(drawn).toContain('2026.07.20 10:00')
+    // 안건은 지워지지 않았다.
+    await loadSources([{ key: 'meeting.agendas', params }])
+    expect(readListSource('meeting.agendas', params).map((row) => row.title)).toEqual([
+      '9월 예산 집행 계획',
+    ])
+  })
+
+  // **되풀이는 409다.** 취소된 회의는 더 취소할 것도, 취소 단추를 그릴 자리도 없다.
+  it('이미 취소된 회의는 또 취소할 수 없다', async () => {
+    await expect(
+      runMutation('meeting.cancel', { cancelReason: '다시' }, params),
+    ).rejects.toThrow('(409)')
+    await loadSources([{ key: 'meeting.detail', params }])
+    expect(readObjectSource('meeting.detail', params).canCancel).toBe(false)
   })
 })

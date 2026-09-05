@@ -15,6 +15,7 @@ import {
   meetingHostOwner,
   meetingPermissionNotice,
 } from '../meetings/host-role.ts'
+import { cancelMeeting, grantHostRole, revokeHostRole } from '../meetings/manage.ts'
 import {
   linkableEventOptions,
   meetingAttention,
@@ -23,7 +24,18 @@ import {
   memberCandidates,
   type MeetingViewer,
 } from '../meetings/meetings.ts'
-import { meetingMinutes, meetingMinutesStatus } from '../meetings/minutes.ts'
+import {
+  agendaPickerOptions,
+  meetingMinutes,
+  meetingMinutesStatus,
+  minutesProgress,
+} from '../meetings/minutes.ts'
+import {
+  acknowledgeSummary,
+  completeMinutes,
+  generateSummary,
+  saveMinutes,
+} from '../meetings/minutes-write.ts'
 import {
   completeCurrentAgenda,
   endMeeting,
@@ -35,6 +47,9 @@ import { NotFound } from '../routes.ts'
 // 회의(OPS-MEET-*).
 //
 // 표는 `meetings`·`meeting_agendas`·`meeting_participants` 셋이다.
+//
+// **남은 것은 둘이다** — `meeting.modes`·`meeting.agendaDurations`. 고를 수 있는 값의
+// 목록을 디자인이 그리지 않아 사람이 정할 자리다(docs/adding-a-flow.md의 '멈추는 자리').
 //
 // **회의는 '누가 보느냐'가 값을 바꾼다.** 목록 위의 띠도 줄마다의 딱지도 보는 사람과
 // 그 회의의 관계가 정한다 — 그래서 읽는 자리마다 보낸 사람을 함께 넘긴다.
@@ -63,6 +78,20 @@ function meetingIdOf(c: Context): string {
   return meetingId
 }
 
+/** 누구의 진행 권한인가. 주는 쪽도 빼는 쪽도 자리에 사람이 박혀 있다(계약이 맞췄다). */
+function memberParamOf(c: Context): string {
+  const memberId = c.req.param('memberId')
+  if (memberId === undefined || memberId === '') {
+    throw new NotFound('그 참가자를 찾지 못했습니다')
+  }
+  return memberId
+}
+
+/** 화면이 보낸 몸통. 못 읽으면 빈 것이다 — 무엇이 비었는지는 받는 쪽이 말한다. */
+async function bodyOf(c: Context): Promise<Record<string, unknown>> {
+  return (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+}
+
 /**
  * 이 사람이 이 회의에서 무엇을 할 수 있는가.
  *
@@ -73,9 +102,9 @@ async function powersOf(c: Context, d: Deps, meetingId: string): Promise<Meeting
   return {
     canRun: await canDo(c, d, 'meeting.run', meetingId),
     canOwn: await canDo(c, d, 'meeting.own', meetingId),
-    // 회의록을 누가 정리할 수 있는지 명세가 아직 말하지 않았다('unstated'). 지어내지
-    // 않고 그 자리의 판정을 그대로 묻는다 — 명세가 정해지면 여기도 함께 열린다.
-    canEditMinutes: await canDo(c, d, 'unstated', meetingId),
+    // **회의록은 그 회의의 참가자가 정리한다**(사람이 정함 2026-09-05). 회의록 넷을
+    // 막는 자리(meeting.minutes)와 같은 판정이다.
+    canEditMinutes: await canDo(c, d, 'meeting.minutes', meetingId),
   }
 }
 
@@ -177,6 +206,18 @@ export const meetingHandlers: Handlers = {
     meetingPermissionNotice(d.db, orgOf(c), meetingIdOf(c)),
   'meeting.hostGrantConfirm': async (c, d) =>
     meetingHostGrantConfirm(d.db, orgOf(c), meetingIdOf(c), c.req.query('memberId') ?? ''),
+  // **만든 사람만 준다·뺀다**(meeting.own). 주는 것은 더하는 것이고 빼는 것은 만든
+  // 사람에게는 안 된다 — 그 규칙은 `manage.ts`가 든다.
+  'meeting.grantHostRole': async (c, d) =>
+    grantHostRole(d.db, orgOf(c), meetingIdOf(c), memberParamOf(c)),
+  'meeting.revokeHostRole': async (c, d) =>
+    revokeHostRole(d.db, orgOf(c), meetingIdOf(c), memberParamOf(c)),
+
+  // ── 회의 취소 (OPS-MEET-D04) ──────────────────────────────────────────
+  //
+  // **지우는 것이 아니다.** 취소된 기록으로 남고, 누가 취소했는지는 서버가 안다.
+  'meeting.cancel': async (c, d) =>
+    cancelMeeting(d.db, orgOf(c), meetingIdOf(c), memberOf(c), await bodyOf(c), d.invite.now()),
 
   // ── 회의록 (OPS-MEET-06A · 06B · 07) ──────────────────────────────────
   //
@@ -184,6 +225,24 @@ export const meetingHandlers: Handlers = {
   // 여기 있는 것은 회의 전체를 한 덩이로 줄인 글과 그 정리 현황이다.
   'meeting.minutes': async (c, d) => meetingMinutes(d.db, orgOf(c), meetingIdOf(c)),
   'meeting.minutesStatus': async (c, d) => meetingMinutesStatus(d.db, orgOf(c), meetingIdOf(c)),
+  // **마칠 수 있는가는 조건 목록과 한 셈이다.** 딱지의 수·목록·막는 말이 여기서 나오고
+  // 마치는 자리도 이 답으로 막는다.
+  'meeting.minutesProgress': async (c, d) => minutesProgress(d.db, orgOf(c), meetingIdOf(c)),
+  'meeting.agendaPicker.options': async (c, d) =>
+    agendaPickerOptions(d.db, orgOf(c), meetingIdOf(c)),
+
+  // ── 회의록을 쓴다 (OPS-MEET-06B · 08) ─────────────────────────────────
+  //
+  // **넷 다 그 회의의 참가자가 한다**(meeting.minutes). 요약 초안은 기록에서만 나오고,
+  // 마치는 것은 조건이 다 찼을 때만이며, 확인은 회의가 아니라 그 사람의 상태다.
+  'meeting.saveMinutes': async (c, d) =>
+    saveMinutes(d.db, orgOf(c), meetingIdOf(c), await bodyOf(c), d.invite.now()),
+  'meeting.generateSummary': async (c, d) =>
+    generateSummary(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
+  'meeting.completeMinutes': async (c, d) =>
+    completeMinutes(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
+  'meeting.acknowledgeSummary': async (c, d) =>
+    acknowledgeSummary(d.db, orgOf(c), meetingIdOf(c), memberOf(c), d.invite.now()),
 
   // ── 후속 업무 (OPS-MEET-05A · 06B · 07 · 08) ──────────────────────────
   //
