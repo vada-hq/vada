@@ -72,6 +72,8 @@ const GIVEN: Record<string, string> = {
   status: 'planned',
   scope: 'all',
   tab: 'todo',
+  // 재정 보드의 열(`event.financeBoard`). 구매 요청의 단계 그대로다.
+  stage: 'review',
 }
 
 /**
@@ -84,6 +86,11 @@ const GIVEN: Record<string, string> = {
 const INSTEAD: Record<string, Record<string, string>> = {
   'event.list': { status: 'all' },
   'event.documents': { status: 'all' },
+  // 총예산을 나누는 축은 행사별·부서별 둘뿐이라 'all'을 서버가 422로 막는다.
+  'finance.orgBreakdown': { scope: 'event' },
+  // 장부의 결제 단계는 spent·planned 둘뿐이다 — 구매 요청의 단계(review)와 다른 목록이다.
+  'finance.ledger': { stage: 'spent' },
+  'finance.ledgerScope': { stage: 'spent' },
 }
 
 function harness() {

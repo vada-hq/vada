@@ -3,9 +3,9 @@ import type { Served } from './area'
 /**
  * 홈(HOME-01K).
  *
- * **일곱 중 여섯이다.** 재정 요약(`home.financeSummary`)만 안 온다 — 예산을 정하는
- * 화면이 명세에 없어 붙여도 0원 위에 선다. 그 자리만 화면에서 따로 가려지고
- * (`Built`), 나머지 여섯은 여기서 진짜가 된다.
+ * **일곱 다 온다.** 한동안 재정 요약(`home.financeSummary`)만 안 왔다 — 예산을 정하는
+ * 화면이 명세에 없어 붙여도 0원 위에 섰고, 그 자리만 화면에서 따로 가려졌다(`Built`).
+ * 예산 편성 화면(FIN-PLAN-01)이 수입원과 배정을 넣게 되어 셀 바탕이 생겼다.
  */
 export const home: Served = {
   reads: [
@@ -21,6 +21,8 @@ export const home: Served = {
     'home.schedules',
     // 셀 수 있는 사실만 온다 — 0건인 종류는 아예 오지 않는다.
     'home.orgAlerts',
+    // 총예산은 수입원의 합이고 사용 가능은 정해진 셈이다 — 화면은 나누지 않는다.
+    'home.financeSummary',
   ],
   writes: [],
 }

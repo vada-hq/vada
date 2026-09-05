@@ -6,6 +6,7 @@ import {
 } from '../events/attendance-qr.ts'
 import { eventBasicsDraft, saveEventBasics } from '../events/basics.ts'
 import { completeConfirm, endPermission } from '../events/ending.ts'
+import { eventFinanceAlerts, eventFinanceBoard, eventFinanceSummary } from '../events/finance.ts'
 import {
   createEvent,
   eventBasics,
@@ -267,6 +268,31 @@ export const eventHandlers: Handlers = {
     const eventId = c.req.query('eventId')!
     c.set('auditSubject', { type: 'event', id: eventId })
     return eventSchedule(d.db, orgOf(c), eventId, c.req.query('filter'), d.invite)
+  },
+
+  // ── 행사 재정 — 개요 (EVT-FIN-01) ──────────────────────────────────────
+  //
+  // **재정 화면들과 같은 표를 같은 셈으로 본다**(`events/finance.ts`). 어느 행사인지가
+  // 조회 인자로 온다. 요약과 건수에는 404가 있고 보드에는 없다 — 남의 학생회 행사의
+  // 보드를 물으면 거르고 남은 것이 없다고 답한다(행사 업무 보드와 같다).
+  'event.financeSummary': async (c, d) => {
+    const eventId = c.req.query('eventId') ?? ''
+    c.set('auditSubject', { type: 'event', id: eventId })
+    const row = await eventFinanceSummary(d.db, orgOf(c), eventId)
+    if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
+    return row
+  },
+  'event.financeAlerts': async (c, d) => {
+    const eventId = c.req.query('eventId') ?? ''
+    c.set('auditSubject', { type: 'event', id: eventId })
+    const row = await eventFinanceAlerts(d.db, orgOf(c), eventId)
+    if (row === null) throw new NotFound('그 행사를 찾지 못했습니다')
+    return row
+  },
+  'event.financeBoard': async (c, d) => {
+    const eventId = c.req.query('eventId') ?? ''
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return eventFinanceBoard(d.db, orgOf(c), eventId, c.req.query('stage'))
   },
 
   // ── 참석 확인 QR (EVT-04B) ─────────────────────────────────────────────

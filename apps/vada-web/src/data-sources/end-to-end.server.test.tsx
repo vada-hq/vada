@@ -255,18 +255,19 @@ describe('안 지은 자리 하나가 화면을 통째로 닫지 않는다', () 
   // 예산을 정해야 지을 수 있다 — 그 하나 때문에 화면이 통째로 닫히면 지어 놓은
   // 여섯을 아무도 못 본다. 사람이 그것을 보고 물었다(2026-09-05).
   //
-  // 지금은 일곱이 다 안 지어졌으므로 **일곱 자리가 다 빈 자리로** 그려진다. 재는
-  // 것은 값이 아니라 **모양**이다: 화면이 열리고, 안 지은 자리가 그 자리에서만
-  // 가려지고, 가짜는 한 글자도 안 나온다.
-  it('홈이 열리고 안 지은 자리만 그 자리에서 가려진다', async () => {
+  // 재정 요약도 붙어(2026-09-06, 예산 편성 화면이 선 뒤) 이제 일곱이 다 서버에서
+  // 온다. 자리마다 두른 그물(`Built`)은 그대로다 — 하나가 다시 빠지는 날 그 자리만
+  // 가린다. 재는 것은 값이 아니라 **모양**이다: 화면이 열리고, 빈 자리가 없고, 가짜는
+  // 한 글자도 안 나온다.
+  it('홈이 열리고 빈 자리 없이 그려진다', async () => {
     render(<ScreenRouter screenId="HOME-01K" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />)
 
     // 화면 전체가 닫히지 않는다 — 바깥 그물의 글이 아니다.
-    await waitFor(() => expect(screen.getAllByText('아직 준비 중입니다').length).toBeGreaterThan(0))
+    await waitFor(() => expect(screen.getByText('전체 재정 요약')).toBeInTheDocument())
     expect(screen.queryByText('이 화면은 아직 준비 중입니다.')).not.toBeInTheDocument()
 
-    // 무엇이 빠졌는지를 자리마다 말한다.
-    expect(screen.getByText('전체 재정 요약')).toBeInTheDocument()
+    // 일곱이 다 서버에서 오므로 자리 하나도 가려지지 않는다.
+    expect(screen.queryByText('아직 준비 중입니다')).not.toBeInTheDocument()
     expect(screen.getByText('진행 중·예정 행사')).toBeInTheDocument()
 
     // **가짜는 한 글자도 없다.**

@@ -69,6 +69,13 @@ export const events: Served = {
     'event.meetingCounts',
     'event.meetings',
     'event.schedule',
+    // **행사 재정 — 개요의 셋**(EVT-FIN-01). 예산 편성 화면(FIN-PLAN-01)이 행사별
+    // 배정을 넣게 되어 지을 수 있게 됐다. 재정 화면들과 같은 표를 같은 셈으로 본다 —
+    // 금액 넷은 배정에서 무엇을 빼는지가 재정 규칙이라 서버가 셈하고, 카드의 말과
+    // 색은 `finance/labels.ts`가 든다. 배정이 없는 행사는 0원이 아니라 '예산 미정'이다.
+    'event.financeSummary',
+    'event.financeAlerts',
+    'event.financeBoard',
   ],
   // QR 다시 만들기는 되돌릴 수 없다 — 뿌려 둔 포스터의 QR이 전부 죽는다.
   writes: [

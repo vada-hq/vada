@@ -1,10 +1,13 @@
 import { and, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import {
+  budgetSources,
   departments,
   events,
   members,
   paymentDocuments,
+  payments,
+  purchaseRequestItems,
   students,
   surveyApplications,
   surveys,
@@ -24,8 +27,9 @@ import { daysBetween, moment } from '../time.ts'
 // '캘린더 보기'라 OPS-CAL-01로 간다 — 두 벌을 만들면 같은 날의 같은 일정이 두 화면에서
 // 갈린다. 그래서 흐름은 `ops/calendar.ts`가 만들고 여기서는 홈의 꼴로 옮기기만 한다.
 //
-// **재정 요약은 여기 없다**(`home.financeSummary`). 예산을 정하는 화면이 명세에 없어
-// 붙여도 0원 위에 선다 — 백로그의 '결정 대기'이고, 그 자리만 화면에서 따로 가려진다.
+// **재정 요약도 여기 있다**(`home.financeSummary`). 한동안 예산을 정하는 화면이 명세에
+// 없어 붙여도 0원 위에 섰는데, 예산 편성 화면(FIN-PLAN-01)이 수입원과 배정을 넣게 되어
+// 셀 바탕이 생겼다. 셈은 재정 화면들과 같다(`finance/requests.ts`의 사용 가능액).
 
 /** 이 학생회에서 보는 사람의 이름. 인사에 들어가므로 서버가 완성해서 준다. */
 async function nameOf(db: Db, orgId: string, memberId: string): Promise<string> {
@@ -325,6 +329,99 @@ async function missingProofCount(db: Db, orgId: string): Promise<number> {
     .from(paymentDocuments)
     .where(and(eq(paymentDocuments.orgId, orgId), isNull(paymentDocuments.registeredAt)))
   return Number(rows[0]?.total ?? 0)
+}
+
+export interface FinanceSummary {
+  budgetUsedPercent: number
+  availableBudgetPercent: number
+  plannedCount: number
+  missingProofCount: number
+}
+
+/**
+ * 전체 재정 요약(`home.financeSummary`).
+ *
+ * **총예산은 수입원의 합이다**(`budget_sources`) — 예산 편성 화면(FIN-PLAN-01)이 넣는다.
+ * 사용 가능액의 셈은 정해진 것이다(docs/decisions/budget-screen.md): 배정 − 실결제 −
+ * 아직 안 낸 승인액. 학생회 전체에서는 배정 자리에 총예산이 선다 — 전체 재정 현황
+ * (FIN-00)의 예시가 같은 셈이다(30,000,000 − 12,400,000 − 3,100,000 = 14,500,000).
+ *
+ * **사용률은 실제로 나간 돈의 몫이다.** FIN-00이 '전체 예산 집행률'을 실제 지출로만 세고
+ * '지출 예정 포함'을 따로 말한다 — 같은 학생회의 두 화면이 거의 같은 이름의 수를 다르게
+ * 세면 사람이 어느 쪽을 믿을지 모른다. 사용률과 사용 가능 비율 사이의 빈 몫이 곧
+ * 승인·집행 예정이고, 그 건수가 곁의 칸에 온다.
+ *
+ * **승인·집행 예정 건수는 돈이 걸린 요청의 수다** — 승인액이 있는데 아직 결제에 딸리지
+ * 않은 품목을 하나라도 가진 요청. 금액을 더하는 그 품목들을 세므로 둘이 갈리지 않는다.
+ *
+ * **편성 전(수입 0)이면 비율이 없다.** 그런데 계약이 네 조각을 전부 수로 요구하고 선택으로
+ * 둔 조각이 없어 그 사실을 말로 낼 자리가 없다. 나눌 바탕이 없으면 지어낸 비율 대신
+ * 0을 준다 — 셈한 값이 아니라 자리를 비울 수 없어 둔 값이고, 그 상태를 말로 낼 조각은
+ * 계약에 더해야 한다.
+ */
+export async function homeFinanceSummary(db: Db, orgId: string): Promise<FinanceSummary> {
+  const [total, spent, committed, missingProof] = await Promise.all([
+    totalBudget(db, orgId),
+    spentTotal(db, orgId),
+    committedTotal(db, orgId),
+    missingProofCount(db, orgId),
+  ])
+  // 넘게 썼으면 쓸 수 있는 것이 없다 — 음수 비율은 뜻이 없다.
+  const available = Math.max(0, total - spent - committed.amount)
+  return {
+    budgetUsedPercent: percentOf(spent, total),
+    availableBudgetPercent: percentOf(available, total),
+    plannedCount: committed.requests,
+    missingProofCount: missingProof,
+  }
+}
+
+/** 0-100의 정수. 계약이 그 범위라 적었고, 준비율(`home.events`)도 정수로 둥글린다. */
+function percentOf(part: number, total: number): number {
+  if (total <= 0) return 0
+  return Math.min(100, Math.max(0, Math.round((part / total) * 100)))
+}
+
+/** 총예산 — 수입원의 합. 편성 전이면 0이다. */
+async function totalBudget(db: Db, orgId: string): Promise<number> {
+  const rows = await db
+    .select({ total: sql<number>`coalesce(sum(${budgetSources.amount}), 0)::int` })
+    .from(budgetSources)
+    .where(eq(budgetSources.orgId, orgId))
+  return Number(rows[0]?.total ?? 0)
+}
+
+/** 실제로 나간 돈 — 이 학생회의 결제 전부. 행사 지출과 상시 지출을 가르지 않는다. */
+async function spentTotal(db: Db, orgId: string): Promise<number> {
+  const rows = await db
+    .select({ total: sql<number>`coalesce(sum(${payments.paidAmount}), 0)::int` })
+    .from(payments)
+    .where(eq(payments.orgId, orgId))
+  return Number(rows[0]?.total ?? 0)
+}
+
+/**
+ * 승인됐는데 아직 안 낸 돈과, 그 돈이 걸린 요청의 수.
+ *
+ * **결제에 딸린 승인액은 더하지 않는다** — 그것은 실결제로 이미 셌고, 둘 다 더하면 같은
+ * 돈을 두 번 뺀다(`finance/requests.ts`와 같다). 승인액이 0인 품목은 돈이 걸린 것이
+ * 아니므로 건수에도 들지 않는다.
+ */
+async function committedTotal(
+  db: Db,
+  orgId: string,
+): Promise<{ amount: number; requests: number }> {
+  const rows = await db
+    .select({
+      amount: sql<number>`coalesce(sum(${purchaseRequestItems.approvedAmount}), 0)::int`,
+      requests: sql<number>`count(distinct case when coalesce(${purchaseRequestItems.approvedAmount}, 0) > 0 then ${purchaseRequestItems.requestId} end)::int`,
+    })
+    .from(purchaseRequestItems)
+    .where(and(eq(purchaseRequestItems.orgId, orgId), isNull(purchaseRequestItems.paymentId)))
+  return {
+    amount: Number(rows[0]?.amount ?? 0),
+    requests: Number(rows[0]?.requests ?? 0),
+  }
 }
 
 /**

@@ -6,6 +6,7 @@ import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
 import { inMemoryAttempts } from '../../../api/src/idempotency.ts'
 import {
   attendanceQrs,
+  budgetItems,
   departments,
   events,
   eventStaffDepartments,
@@ -14,6 +15,9 @@ import {
   meetings,
   members,
   organizations,
+  payments,
+  purchaseRequestItems,
+  purchaseRequests,
   students,
   surveyApplications,
   surveys,
@@ -275,6 +279,53 @@ beforeAll(async () => {
     opensAt: new Date('2026-08-20T09:00:00+09:00'),
     closesAt: new Date('2026-08-20T18:00:00+09:00'),
   })
+
+  // 행사 재정(EVT-FIN-01). 배정 2,000,000 · 승인·집행 예정 300,000 · 실결제 150,000 →
+  // 사용 가능 1,550,000. **E-02에는 배정이 없다** — 예산이 없다는 사실이 그려져야 한다.
+  await fresh.db.insert(budgetItems).values([
+    { id: 'B-01', orgId: 'ORG-01', eventId: 'E-04', name: '물품비', amount: 1_200_000 },
+    { id: 'B-02', orgId: 'ORG-01', eventId: 'E-04', name: '홍보비', amount: 800_000 },
+  ])
+  await fresh.db.insert(purchaseRequests).values([
+    {
+      id: 'PR-01',
+      orgId: 'ORG-01',
+      eventId: 'E-04',
+      title: '한마당 부스 물품 3종',
+      departmentId: 'D-02',
+      requesterMemberId: 'M-02',
+      stage: 'review',
+      submittedAt: new Date('2026-08-10T10:00:00+09:00'),
+    },
+    {
+      id: 'PR-02',
+      orgId: 'ORG-01',
+      eventId: 'E-04',
+      title: '한마당 현수막 제작',
+      departmentId: 'D-02',
+      stage: 'purchase',
+      submittedAt: new Date('2026-08-05T10:00:00+09:00'),
+    },
+    {
+      id: 'PR-03',
+      orgId: 'ORG-01',
+      eventId: 'E-04',
+      title: '사전 답사 교통비',
+      departmentId: 'D-01',
+      stage: 'proof',
+      submittedAt: new Date('2026-08-01T10:00:00+09:00'),
+    },
+  ])
+  await fresh.db
+    .insert(payments)
+    .values({ id: 'PAY-01', orgId: 'ORG-01', requestId: 'PR-03', vendor: '코레일', paidAmount: 150_000 })
+  await fresh.db.insert(purchaseRequestItems).values([
+    { id: 'PRI-01', orgId: 'ORG-01', requestId: 'PR-01', sortOrder: 0, name: '박스테이프', quantity: 10, unitPrice: 2_000 },
+    { id: 'PRI-02', orgId: 'ORG-01', requestId: 'PR-01', sortOrder: 1, name: '생수 500ml', quantity: 4, unitPrice: 12_500 },
+    { id: 'PRI-03', orgId: 'ORG-01', requestId: 'PR-01', sortOrder: 2, name: '유성 마커', quantity: 20, unitPrice: 1_500 },
+    { id: 'PRI-04', orgId: 'ORG-01', requestId: 'PR-02', sortOrder: 0, name: '현수막', quantity: 2, unitPrice: 160_000, approvedAmount: 300_000 },
+    { id: 'PRI-05', orgId: 'ORG-01', requestId: 'PR-03', sortOrder: 0, name: '왕복 승차권', quantity: 6, unitPrice: 25_000, approvedAmount: 150_000, paymentId: 'PAY-01' },
+  ])
 
   app = createApp({
     audit: { async write() {} },
@@ -654,6 +705,48 @@ describe('행사에 걸린 회의와 일정이 저장소에서 온다', () => {
       expect(drawn).toContain(origin)
     }
     expect(drawn).not.toContain(NOT_BUILT)
+  })
+})
+
+describe('행사 재정이 저장소에서 온다(EVT-FIN-01)', () => {
+  // **금액을 화면이 계산하지 않는다.** 배정에서 무엇을 빼는지가 재정 규칙이라 넷이 다
+  // 서버에서 온다 — 2,000,000 − 150,000 − 300,000 = 1,550,000. 카드의 말과 색은 다른
+  // 재정 화면과 같은 규칙에서 온다.
+  it('EVT-FIN-01이 금액 넷과 단계별 카드를 그린다', async () => {
+    draw('EVT-FIN-01')
+    await waitFor(() => expect(screen.getByText('한마당 부스 물품 3종')).toBeInTheDocument())
+    const drawn = document.body.textContent ?? ''
+    for (const amount of ['2,000,000', '300,000', '150,000', '1,550,000']) {
+      expect(drawn).toContain(amount)
+    }
+    expect(drawn).toContain('품목 3개 · 박스테이프, 생수 500ml, 유성 마커')
+    expect(drawn).toContain('100,000원')
+    // '검토 대기'는 둘이다 — 갈피 곁의 건수 딱지(명세의 label)와 카드의 상태 딱지.
+    expect(screen.getAllByText('검토 대기')).toHaveLength(2)
+    expect(screen.getByText('구매 진행 중')).toBeInTheDocument()
+    expect(screen.getByText('증빙 정리 중')).toBeInTheDocument()
+    // 정산 열만 비어 있다 — 빈 열은 카탈로그의 글로 말한다.
+    expect(screen.getAllByText('항목 없음')).toHaveLength(1)
+    // 개발용 응답의 카드가 아니다.
+    expect(drawn).not.toContain('현수막 A형 제작')
+    expect(drawn).not.toContain(NOT_BUILT)
+  })
+
+  // **배정이 없는 행사는 예산이 없다.** 0원이 아니라 그 사실이 오고, 그 글 뒤에는
+  // '원'이 붙지 않는다.
+  it('배정이 없는 행사는 예산이 없다고 말한다', async () => {
+    draw('EVT-FIN-01', 'E-02')
+    await waitFor(() => expect(screen.getAllByText('예산 미정')).toHaveLength(2))
+    const drawn = document.body.textContent ?? ''
+    expect(drawn).not.toContain('예산 미정원')
+    expect(drawn).not.toContain(NOT_BUILT)
+  })
+
+  // 보완이 걸린 것은 요청자를 기다리는 것이라 세지 않는다 — 여기는 그런 요청이 없어 하나다.
+  it('검토 대기 건수가 서버에서 온다', async () => {
+    const params = { eventId: 'E-04' }
+    await loadSources([{ key: 'event.financeAlerts', params }])
+    expect(readObjectSource('event.financeAlerts', params)).toEqual({ pendingReviewCount: 1 })
   })
 })
 

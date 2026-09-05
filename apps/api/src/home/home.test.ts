@@ -3,6 +3,7 @@ import { createApp, type Deps } from '../app.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
+  budgetSources,
   departments,
   events,
   meetings,
@@ -10,6 +11,7 @@ import {
   organizations,
   paymentDocuments,
   payments,
+  purchaseRequestItems,
   purchaseRequests,
   students,
   surveyApplications,
@@ -17,6 +19,7 @@ import {
   tasks,
   users,
 } from '../db/schema.ts'
+import { matchesContract } from '../events/testing.ts'
 import { inMemoryAttempts } from '../idempotency.ts'
 import { meetingLookups } from '../meetings/lookups.ts'
 import type { Viewer } from '../permissions.ts'
@@ -26,7 +29,7 @@ import { hashToken } from '../public/tokens.ts'
 // 홈(HOME-01K).
 //
 // **홈은 어느 영역도 아니다.** 행사도 회의도 업무도 아닌 그 전부의 요약이라, 세는
-// 자리마다 표가 갈린다. 이 파일이 재는 것이 여섯이다.
+// 자리마다 표가 갈린다. 이 파일이 재는 것이 일곱이다.
 //
 // 1. **인사에 보는 사람의 이름이 들어간다.** 서버가 완성해서 준다.
 // 2. **짚을 것이 없으면 짚지 않는다.** 브리핑 문장의 개수가 데이터에 달렸고,
@@ -35,6 +38,8 @@ import { hashToken } from '../public/tokens.ts'
 // 4. **행사 카드의 준비율과 지연은 그 행사의 업무에서 나온다.**
 // 5. **다가오는 일정은 캘린더와 같은 흐름이다** — 행사·회의·마감 셋을 모은다.
 // 6. **조직 알림은 셀 수 있는 사실만 온다.** 없으면 그 줄이 아예 오지 않는다.
+// 7. **재정 요약은 수입원과 결제·승인에서 온다.** 총예산은 수입원의 합이고, 사용
+//    가능은 정해진 셈(배정 − 실결제 − 아직 안 낸 승인액)이다. 편성 전이면 비율이 없다.
 
 let db: Db
 let close: () => Promise<void>
@@ -221,6 +226,10 @@ beforeAll(async () => {
   // 증빙 — 붙어야 하는데 안 붙은 서류가 '누락'이다(`registeredAt`이 비어 있다).
   await db.insert(purchaseRequests).values([
     { id: 'PR-01', orgId: 'ORG-01', title: '현수막 제작', stage: 'proof' },
+    // 승인됐고 아직 안 낸 요청 — 재정 요약의 '승인·집행 예정'이다.
+    { id: 'PR-02', orgId: 'ORG-01', title: '현수막 거치대 대여', stage: 'purchase' },
+    // 검토 중인데 품목 하나에 승인액이 적혔다. 검토 화면의 사용 가능액이 이것도 뺀다.
+    { id: 'PR-03', orgId: 'ORG-01', title: '간식 구매', stage: 'review' },
     { id: 'PR-99', orgId: 'ORG-02', title: '남의 요청', stage: 'proof' },
   ])
   await db.insert(payments).values([
@@ -239,6 +248,23 @@ beforeAll(async () => {
     { id: 'PD-03', orgId: 'ORG-01', paymentId: 'PAY-01', label: '견적서' },
     // 옆 학생회의 것은 붙어 있다 — 저쪽 홈에는 알림이 없어야 한다.
     { id: 'PD-99', orgId: 'ORG-02', paymentId: 'PAY-99', label: '영수증', registeredAt: NOW },
+  ])
+
+  // 재정 — 총예산은 수입원의 합이다(1,000,000). **옆 학생회는 아직 편성 전이다.**
+  await db.insert(budgetSources).values([
+    { id: 'BS-01', orgId: 'ORG-01', name: '학생회비', amount: 800_000, sortOrder: 0 },
+    { id: 'BS-02', orgId: 'ORG-01', name: '학교 지원금', amount: 200_000, sortOrder: 1 },
+  ])
+  await db.insert(purchaseRequestItems).values([
+    // 결제에 딸린 승인액은 이미 실결제로 셌다 — 예정이 아니다.
+    { id: 'PRI-01', orgId: 'ORG-01', requestId: 'PR-01', name: '현수막', approvedAmount: 120_000, paymentId: 'PAY-01' },
+    { id: 'PRI-02', orgId: 'ORG-01', requestId: 'PR-02', name: '거치대', approvedAmount: 80_000 },
+    // 승인액이 0이면 돈이 걸린 것이 아니다 — 금액에도 건수에도 들지 않는다.
+    { id: 'PRI-03', orgId: 'ORG-01', requestId: 'PR-02', name: '케이블 타이', approvedAmount: 0 },
+    { id: 'PRI-04', orgId: 'ORG-01', requestId: 'PR-03', name: '초콜릿', approvedAmount: 50_000 },
+    // 아직 판정 전인 품목은 더할 것이 없다.
+    { id: 'PRI-05', orgId: 'ORG-01', requestId: 'PR-03', name: '생수', quantity: 10, unitPrice: 1_000 },
+    { id: 'PRI-99', orgId: 'ORG-02', requestId: 'PR-99', name: '남의 품목', approvedAmount: 1_000, paymentId: 'PAY-99' },
   ])
 
   // 명단 — 신청자가 학생 명단에 없거나 학번·이름이 어긋나면 확인이 필요하다.
@@ -380,5 +406,37 @@ describe('조직 알림이 셀 수 있는 사실만 든다', () => {
   // 확인할 것이 있다는 말이 된다.
   it('셀 것이 없으면 그 줄이 아예 오지 않는다', async () => {
     expect(await many('/api/home/org-alerts', NEIGHBOUR)).toEqual([])
+  })
+})
+
+describe('재정 요약이 수입원과 결제·승인에서 온다', () => {
+  // 총예산 1,000,000 · 실결제 120,000 · 아직 안 낸 승인액 130,000(80,000 + 50,000).
+  // 사용률은 실제로 나간 돈의 몫(12%)이고, 사용 가능은 정해진 셈으로 750,000(75%)이다.
+  // 승인·집행 예정은 **돈이 걸린 요청**의 수다 — 둘(PR-02 · PR-03).
+  it('비율 둘과 건수 둘을 서버가 센다', async () => {
+    expect(await one('/api/home/finance-summary')).toEqual({
+      budgetUsedPercent: 12,
+      availableBudgetPercent: 75,
+      plannedCount: 2,
+      missingProofCount: 2,
+    })
+  })
+
+  // **편성 전이면 비율이 없다.** 계약이 네 조각을 전부 수로 요구해 그 사실을 말로
+  // 낼 자리가 없으므로, 나눌 바탕이 없을 때는 지어낸 비율 대신 0을 준다 — 옆 학생회는
+  // 1,000원을 냈지만 수입원이 없다.
+  it('수입원이 없으면 비율을 지어내지 않는다', async () => {
+    expect(await one('/api/home/finance-summary', NEIGHBOUR)).toEqual({
+      budgetUsedPercent: 0,
+      availableBudgetPercent: 0,
+      plannedCount: 0,
+      missingProofCount: 0,
+    })
+  })
+
+  it('답이 계약의 모양을 지킨다', async () => {
+    expect(matchesContract('home.financeSummary', await one('/api/home/finance-summary'))).toBe(
+      true,
+    )
   })
 })

@@ -5,6 +5,7 @@ import {
   homeBriefingNotices,
   homeEventCounts,
   homeEvents,
+  homeFinanceSummary,
   homeOrgAlerts,
   homeSchedules,
 } from '../home/home.ts'
@@ -15,9 +16,9 @@ import { NotFound } from '../routes.ts'
 // **홈은 여러 표를 가로질러 센다.** 행사도 회의도 업무도 아닌, 그 전부의 요약이다.
 // 그래서 어느 영역에도 넣지 않는다.
 //
-// **재정 요약은 여기 안 온다**(`home.financeSummary`). 예산을 정하는 화면이 명세에
-// 없어 붙여도 0원 위에 선다 — 백로그의 '결정 대기'다. 그 자리만 화면에서 따로
-// 가려진다(`Built`).
+// **재정 요약도 여기 온다**(`home.financeSummary`). 한동안 예산을 정하는 화면이 명세에
+// 없어 그 자리만 화면에서 따로 가려졌는데(`Built`), 예산 편성 화면(FIN-PLAN-01)이
+// 수입원과 배정을 넣게 되어 셀 바탕이 생겼다.
 
 /** 지금 보는 사람이 이 학생회에서 누구인가. **인사에 그 사람의 이름이 들어간다.** */
 function memberOf(c: Context): string {
@@ -63,5 +64,14 @@ export const homeHandlers: Handlers = {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeOrgAlerts(d.db, orgId)
+  },
+
+  // ── 전체 재정 요약 ─────────────────────────────────────────────────────
+  //
+  // 학생회 전체를 센다 — 행사 하나의 재정(`event.financeSummary`)과 다른 물건이다.
+  'home.financeSummary': async (c, d) => {
+    const orgId = orgOf(c)
+    c.set('auditSubject', { type: 'organization', id: orgId })
+    return homeFinanceSummary(d.db, orgId)
   },
 }

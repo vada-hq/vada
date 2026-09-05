@@ -156,25 +156,31 @@ export function EVTFIN01Screen({ screenParams, onNavigate }: EVTFIN01ScreenProps
         data-node-id={NODE.totals}
         className="grid grid-cols-1 gap-4 pt-6 md:grid-cols-4"
       >
-        {(totals.items ?? []).map((item) => (
-          <div
-            key={item.label}
-            className="rounded-xl border border-gray-200 bg-white p-4"
-          >
-            <p className="text-xs font-medium text-gray-500">{item.label}</p>
-            <p className="flex items-baseline gap-0.5 pt-1">
-              <span
-                data-design-rule="value-text"
-                className={`text-base font-bold ${
-                  VALUE_TEXT[TILE_TONE[item.field ?? ''] ?? ''] ?? NEUTRAL_VALUE
-                }`}
-              >
-                {String(totalRow[item.field ?? ''])}
-              </span>
-              <span className="text-xs text-gray-400">{item.unit}</span>
-            </p>
-          </div>
-        ))}
+        {(totals.items ?? []).map((item) => {
+          const value = String(totalRow[item.field ?? ''])
+          // 단위는 수 옆에 붙는 것이다. 배정이 없는 행사는 금액 대신 그 사실이 글로
+          // 온다('예산 미정') — 그 글 뒤에 '원'을 붙이면 없는 금액을 말하게 된다.
+          const isAmount = /^-?[\d,]+$/.test(value)
+          return (
+            <div
+              key={item.label}
+              className="rounded-xl border border-gray-200 bg-white p-4"
+            >
+              <p className="text-xs font-medium text-gray-500">{item.label}</p>
+              <p className="flex items-baseline gap-0.5 pt-1">
+                <span
+                  data-design-rule="value-text"
+                  className={`text-base font-bold ${
+                    VALUE_TEXT[TILE_TONE[item.field ?? ''] ?? ''] ?? NEUTRAL_VALUE
+                  }`}
+                >
+                  {value}
+                </span>
+                {isAmount ? <span className="text-xs text-gray-400">{item.unit}</span> : null}
+              </p>
+            </div>
+          )
+        })}
       </div>
 
       <div className="flex items-center justify-between gap-4 border-b border-gray-200 pt-6">

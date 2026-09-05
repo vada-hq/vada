@@ -7,6 +7,7 @@ import { inMemoryAttempts } from '../../../api/src/idempotency.ts'
 import { meetingLookups } from '../../../api/src/meetings/lookups.ts'
 import { hashToken } from '../../../api/src/public/tokens.ts'
 import {
+  budgetSources,
   departments,
   events,
   meetings,
@@ -14,6 +15,7 @@ import {
   organizations,
   paymentDocuments,
   payments,
+  purchaseRequestItems,
   purchaseRequests,
   students,
   surveyApplications,
@@ -25,11 +27,12 @@ import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
 import { loadSources, useServer } from './server'
 
-// **홈(HOME-01K)의 여섯 자리가 서버에 붙었다.**
+// **홈(HOME-01K)의 일곱 자리가 서버에 붙었다.**
 //
 // 이 화면은 사람이 로그인하면 가장 먼저 보는 자리인데 일곱을 읽는 동안 하나도
 // 지어지지 않아 여섯 칸이 '아직 준비 중'으로 그려졌다. 실제로 사람이 그것을 보고
-// 물었다.
+// 물었다. 여섯이 먼저 붙었고, 재정 요약은 예산 편성 화면(FIN-PLAN-01)이 수입원과
+// 배정을 넣게 된 뒤에 붙었다.
 //
 // 재는 것 다섯:
 //
@@ -37,9 +40,9 @@ import { loadSources, useServer } from './server'
 // 2. **브리핑이 짚는 문장의 개수가 데이터에 달렸다.**
 // 3. **행사 카드의 준비율과 지연이 그 행사의 업무에서 나온다.**
 // 4. **다가오는 일정은 캘린더와 같은 흐름이다** — 행사·회의·마감 셋을 모은다.
-// 5. **예산 자리는 그대로 가려져 있다.** `home.financeSummary`는 예산을 정하는
-//    화면이 명세에 없어 붙지 않았고, 그 자리만 `Built`가 가린다 — 화면이 통째로
-//    닫히지 않는다는 것이 이 회차에서 확인해야 하는 것이다.
+// 5. **재정 요약이 수입원과 결제·승인에서 온다.** 총예산은 수입원의 합이고 사용
+//    가능은 정해진 셈(배정 − 실결제 − 아직 안 낸 승인액)이다 — 개발용 응답의
+//    34%·66%는 어디에도 없다.
 
 /** 2026.07.20은 월요일. 이번 주는 07.19(일)~07.25(토)다. */
 const NOW = new Date('2026-07-20T10:00:00+09:00')
@@ -133,15 +136,28 @@ beforeAll(async () => {
   ])
 
   // 증빙 — 붙어야 하는데 안 붙은 서류가 '누락'이다.
-  await fresh.db
-    .insert(purchaseRequests)
-    .values({ id: 'PR-01', orgId: 'ORG-01', title: '현수막 제작', stage: 'proof' })
+  await fresh.db.insert(purchaseRequests).values([
+    { id: 'PR-01', orgId: 'ORG-01', title: '현수막 제작', stage: 'proof' },
+    // 승인됐고 아직 안 낸 요청 — 재정 요약의 '승인·집행 예정'이다.
+    { id: 'PR-02', orgId: 'ORG-01', title: '현수막 거치대 대여', stage: 'purchase' },
+  ])
   await fresh.db
     .insert(payments)
     .values({ id: 'PAY-01', orgId: 'ORG-01', requestId: 'PR-01', vendor: '인쇄소', paidAmount: 120_000 })
   await fresh.db.insert(paymentDocuments).values([
     { id: 'PD-01', orgId: 'ORG-01', paymentId: 'PAY-01', label: '영수증' },
     { id: 'PD-02', orgId: 'ORG-01', paymentId: 'PAY-01', label: '거래명세서', registeredAt: NOW },
+  ])
+  await fresh.db.insert(purchaseRequestItems).values([
+    // 결제에 딸린 승인액은 실결제로 센다 — 예정이 아니다.
+    { id: 'PRI-01', orgId: 'ORG-01', requestId: 'PR-01', name: '현수막', approvedAmount: 120_000, paymentId: 'PAY-01' },
+    { id: 'PRI-02', orgId: 'ORG-01', requestId: 'PR-02', name: '거치대', approvedAmount: 30_000 },
+  ])
+
+  // 재정 — 총예산은 수입원의 합이다(500,000). 실결제 120,000 · 아직 안 낸 승인액 30,000.
+  await fresh.db.insert(budgetSources).values([
+    { id: 'BS-01', orgId: 'ORG-01', name: '학생회비', amount: 400_000, sortOrder: 0 },
+    { id: 'BS-02', orgId: 'ORG-01', name: '학교 지원금', amount: 100_000, sortOrder: 1 },
   ])
 
   // 명단 — 학생 명단에서 찾지 못한 신청자가 확인 대상이다.
@@ -212,7 +228,7 @@ afterAll(async () => {
 })
 
 describe('홈이 저장소에서 온다(HOME-01K)', () => {
-  it('여섯 자리가 그려지고 예산 자리만 가려진다', async () => {
+  it('일곱 자리가 다 그려지고 빈 자리가 없다', async () => {
     render(<ScreenRouter screenId="HOME-01K" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />)
     await waitFor(() =>
       expect(screen.getByText('한마루님, 확인이 필요해요')).toBeInTheDocument(),
@@ -223,12 +239,15 @@ describe('홈이 저장소에서 온다(HOME-01K)', () => {
     expect(page).toContain('가을 체육대회')
     expect(page).toContain('주간 운영회의')
     expect(page).toContain('증빙 서류 누락')
-    // **아직 안 지은 자리 하나만 가린다.** 예산을 정하는 화면이 명세에 없다.
+    // **재정 요약도 진짜다.** 사용률 24%(120,000 / 500,000) · 사용 가능 70%(350,000).
     expect(screen.getByText('전체 재정 요약')).toBeInTheDocument()
-    expect(page).toContain('아직 준비 중입니다')
+    expect(page).toContain('24%')
+    expect(page).toContain('70%')
+    expect(page).not.toContain('아직 준비 중입니다')
     // 개발용 응답의 값이 아니라는 증거다.
     expect(page).not.toContain('박해랑님')
     expect(page).not.toContain('2026 소프트웨어융합대학 체육대회')
+    expect(page).not.toContain('34%')
     expect(page).not.toContain('남의')
   })
 
@@ -301,5 +320,17 @@ describe('홈이 저장소에서 온다(HOME-01K)', () => {
       { kind: 'document', label: '증빙 서류 누락', count: 1 },
       { kind: 'members', label: '참가자 명단 확인 필요', count: 1 },
     ])
+  })
+
+  // **화면은 나누지 않는다.** 총예산에서 무엇을 빼는지가 재정 규칙이라 서버가 센다 —
+  // 사용 가능 = 500,000 − 120,000 − 30,000 = 350,000(70%), 사용률은 실제로 나간 돈의 몫이다.
+  it('재정 요약이 수입원과 결제·승인에서 온다', async () => {
+    await loadSources([{ key: 'home.financeSummary', params: {} }])
+    expect(readObjectSource('home.financeSummary')).toEqual({
+      budgetUsedPercent: 24,
+      availableBudgetPercent: 70,
+      plannedCount: 1,
+      missingProofCount: 1,
+    })
   })
 })
