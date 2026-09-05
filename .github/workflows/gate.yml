@@ -99,3 +99,29 @@ jobs:
       # 2026-09-05에 사람이 배포된 화면에서 남의 값을 보고서야 그 구멍을 알았다.
       - name: 출하 카나리
         run: npm run canary
+
+  # **배포된 사슬을 두드린다.**
+  #
+  # 위의 셋은 전부 이 기계 안을 잰다 — 카나리조차 로컬 PGlite에 나가는 묶음을 붙여
+  # 놓고 본다. 사람이 여는 것은 Worker와 Render와 Neon이 이어진 것이고, 그 자리에서
+  # 난 일은 오늘까지 전부 사람이 눈으로 찾았다.
+  #
+  # **main에 밀었을 때만 돈다.** 배포는 밀어야 일어난다. Cloudflare와 Render가 저마다
+  # 도는 동안 기다렸다가 두드린다(scripts/smoke.mjs가 여섯 번까지 기다린다).
+  #
+  # **막지 않고 알린다**(continue-on-error). 배포가 늦거나 Render가 잠들었을 뿐인데
+  # 초록을 빨갛게 만들면 사람이 이 줄을 곧 무시하게 된다 — 판정이 아니라 알림이다.
+  # 이것이 두 번 헛되이 울면 그때 기다림을 늘리고, 진짜를 잡으면 그때 막는 자리로 옮긴다.
+  연기:
+    name: 배포된 것 두드리기
+    runs-on: ubuntu-latest
+    needs: browser
+    if: github.ref == 'refs/heads/main'
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: 배포를 기다렸다 두드린다
+        run: npm run smoke

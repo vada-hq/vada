@@ -61,6 +61,7 @@ npm --prefix apps/api test -- src/app.test.ts    # 계약 219자리 중 몇 개�
 ```
 npm run check:fast     # 계약 · 앱 · api · 명세
 npm run e2e            # 브라우저. 미는 것은 CI가 다시 본다
+npm run smoke          # 배포된 사슬. 민 뒤에 CI가 알린다(막지는 않는다)
 ```
 
 커밋은 **생각 하나에 하나**. 제목 50자 이내, 본문은 **왜**를 적는다.

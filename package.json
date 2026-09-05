@@ -13,6 +13,7 @@
     "check": "npm run test && npm run validate && npm run e2e && npm run canary",
     "check:fast": "npm run test && npm run validate",
     "e2e:dev": "npm --prefix apps/vada-web run e2e",
-    "canary": "node scripts/run-canary.mjs"
+    "canary": "node scripts/run-canary.mjs",
+    "smoke": "node scripts/smoke.mjs"
   }
 }
