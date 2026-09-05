@@ -1,8 +1,10 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import { events, organizations, surveyQuestions, surveys } from '../db/schema.ts'
-import { harness, matchesContract } from '../events/testing.ts'
+import { harness, matchesContract, viewer } from '../events/testing.ts'
+import type { Viewer } from '../permissions.ts'
 
 // 참여 설문을 세우는 자리(EVT-05)가 읽는 넷.
 //
@@ -351,5 +353,60 @@ describe('설문 문항(event.surveyQuestions)', () => {
 
   it('답이 계약의 모양을 지킨다', async () => {
     expect(matchesContract('event.surveyQuestions', await (await questions()).json())).toBe(true)
+  })
+})
+
+// ─── 링크를 켠다(event.survey.activate) ────────────────────────────────────────
+//
+// **막는 것은 서버다.** 화면의 단추는 `event.surveyActivation`의 `canActivate`를 보고
+// 눌리지만, 눌리지 않는 것과 안 켜지는 것은 다른 벽이다 — 화면을 우회한 요청도 같은
+// 셈으로 막혀야 한다. 그래서 여기서 재는 것은 **막힌 까닭이 딱지의 것과 같은 글**이라는
+// 것이다. 다른 셈에서 나오면 언젠가 딱지는 0개인데 켜지지 않는 날이 온다.
+
+const activate = (eventId: string, who?: Viewer) =>
+  harness(db, who === undefined ? {} : { who }).request(
+    `/api/ops/events/${eventId}/survey/activate`,
+    { method: 'POST' },
+  )
+
+describe('설문 링크를 켠다(event.survey.activate)', () => {
+  it('못 채운 것이 있으면 막고, 그 까닭이 딱지의 것과 같다', async () => {
+    const res = await activate('E-03')
+    expect(res.status).toBe(422)
+    const badge = (await (await activation('E-03')).json()) as Row
+    expect(((await res.json()) as Row).message).toBe(badge.blockedNote)
+    const [row] = await db
+      .select({ active: surveys.active })
+      .from(surveys)
+      .where(eq(surveys.id, 'S-03'))
+    expect(row).toEqual({ active: false })
+  })
+
+  it('다 채웠으면 켜지고 설문이 활성이 된다', async () => {
+    const res = await activate('E-01')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({})
+    // 설문 한 건의 딱지도 같은 표를 읽으므로 함께 바뀐다.
+    const survey = (await (await harness(db).request('/api/ops/events/E-01/survey')).json()) as Row
+    expect(survey).toMatchObject({ statusLabel: '활성', statusTone: 'green' })
+  })
+
+  // 계약이 conflict라 적었다 — 남이 먼저 켰을 수 있고 그때 조용히 넘어가면 모른다.
+  it('이미 켜진 설문은 또 켤 수 없다', async () => {
+    expect((await activate('E-01')).status).toBe(409)
+  })
+
+  it('설문이 없으면 없다고 한다', async () => {
+    expect((await activate('E-02')).status).toBe(404)
+  })
+
+  it('울타리를 넘지 않는다', async () => {
+    expect((await activate('E-99')).status).toBe(404)
+  })
+
+  // 권한 행렬의 event.manage — 회장단이 아니면 그 행사의 조직원이어야 한다. 이 발판은
+  // 그 물음에 '아니다'라고 답하므로 부원은 막힌다.
+  it('행사를 맡은 사람이 아니면 막는다', async () => {
+    expect((await activate('E-01', viewer('member'))).status).toBe(403)
   })
 })

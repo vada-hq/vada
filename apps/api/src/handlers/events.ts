@@ -26,11 +26,17 @@ import { eventSchedule } from '../events/schedule.ts'
 import {
   eventStaffDepartmentTree,
   eventStaffLeaders,
+  saveEventStaff,
+  setupEventStaff,
+  staffDeptLeaderCandidates,
   staffLeaderCandidates,
+  staffMemberCandidates,
   staffSetupPreview,
+  staffUnassignedMembers,
 } from '../events/staff.ts'
-import { eventSurvey, surveyReplaceImpact } from '../events/survey.ts'
+import { eventSurvey, replaceSurvey, surveyReplaceImpact } from '../events/survey.ts'
 import { wrapUpBanner, wrapUpCounts, wrapUpRemaining } from '../events/wrap-up.ts'
+import { newToken } from '../public/tokens.ts'
 import { NotFound } from '../routes.ts'
 
 // 행사 — 목록과 기본정보, 참석 확인 QR, 그리고 행사 공간의 갈피들.
@@ -189,6 +195,41 @@ export const eventHandlers: Handlers = {
     return staffLeaderCandidates(d.db, orgOf(c), eventId)
   },
 
+  // ── 행사 운영 조직 — 수정 (EVT-03B) ────────────────────────────────────
+  //
+  // 오른쪽 기둥은 **이 학생회 구성원 중 이 행사 조직에 자리가 없는 사람**이고, 부서
+  // 카드의 두 고르는 칸은 어느 부서인지를 주소에 함께 싣고 온다.
+  'event.staffUnassignedMembers': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return staffUnassignedMembers(d.db, orgOf(c), eventId)
+  },
+  'event.staffDeptLeaderCandidates.options': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return staffDeptLeaderCandidates(d.db, orgOf(c), eventId, c.req.param('departmentId')!)
+  },
+  'event.staffMemberCandidates.options': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    return staffMemberCandidates(d.db, orgOf(c), eventId, c.req.param('departmentId')!)
+  },
+  // **세우는 것과 고치는 것은 다른 자리다.** 세우기는 처음 한 번(conflict)이고 고치기는
+  // 조직 전부를 덮어쓴다(overwrite). 둘 다 event.staff 영역이라 회장단이 아니면 그 행사
+  // 조직의 관리자여야 한다 — 미들웨어가 계약을 읽어 건다.
+  'event.staff.setup': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown> | null
+    return setupEventStaff(d.db, orgOf(c), eventId, draft ?? {}, { newId: d.newId })
+  },
+  'event.staff.save': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown> | null
+    return saveEventStaff(d.db, orgOf(c), eventId, draft ?? {}, { newId: d.newId })
+  },
+
   // ── 참여 설문 (EVT-05 · EVT-05B) ───────────────────────────────────────
   'event.survey': async (c, d) => {
     const eventId = c.req.param('eventId')!
@@ -199,6 +240,14 @@ export const eventHandlers: Handlers = {
     const eventId = c.req.param('eventId')!
     c.set('auditSubject', { type: 'event', id: eventId })
     return surveyReplaceImpact(d.db, orgOf(c), eventId)
+  },
+  // **여파에 적힌 대로 일어난다.** 새 링크의 열쇠는 밖에서 받는다 — 추측할 수 없어야
+  // 하고, 밖에서 열리는 모양(22자)이어야 한다(`public/tokens.ts`가 그것을 만든다).
+  'event.survey.replace': async (c, d) => {
+    const eventId = c.req.param('eventId')!
+    c.set('auditSubject', { type: 'event', id: eventId })
+    const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown> | null
+    return replaceSurvey(d.db, orgOf(c), eventId, draft ?? {}, { newId: d.newId, newToken })
   },
 
   // ── 행사에 걸린 회의와 일정 (EVT-MEET-01 · EVT-SCHED-01) ───────────────

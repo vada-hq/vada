@@ -54,8 +54,8 @@ const GUARDS: readonly Guard[] = [
 ]
 
 /** 배포가 쓰는 딸림이 이 물음에 **박아 둔 거짓**을 주는가. */
-function hardcodedFalse(lookup: string): boolean {
-  return new RegExp(lookup + String.raw`\s*:\s*async\s*\(\)\s*=>\s*false`).test(SERVE)
+function hardcodedFalse(lookup: string, source: string = SERVE): boolean {
+  return new RegExp(lookup + String.raw`\s*:\s*async\s*\(\)\s*=>\s*false`).test(source)
 }
 
 describe('표에 줄이 들어가기 시작하면 배포도 그 표를 읽는다', () => {
@@ -79,8 +79,20 @@ describe('표에 줄이 들어가기 시작하면 배포도 그 표를 읽는다
   })
 
   // 규칙이 살아 있는지 반증한다. 박아 둔 거짓을 못 알아보면 이 검사는 늘 통과한다.
+  //
+  // 한동안 진짜 `serve.ts`의 `isEventStaff`를 반증의 본보기로 썼다 — 2026-09-05에 그
+  // 거짓이 표로 바뀌면서 본보기가 사라졌다. 반증은 본보기가 있어야 하므로 글로 심는다.
   it('박아 둔 거짓을 알아본다', () => {
-    expect(hardcodedFalse('isEventStaff')).toBe(true)
+    const planted = 'lookups: {
+  isEventStaff: async () => false,
+}'
+    expect(hardcodedFalse('isEventStaff', planted)).toBe(true)
+    expect(hardcodedFalse('isEventStaff', 'lookups: { ...eventStaffLookups(db) }')).toBe(false)
     expect(hardcodedFalse('있을 리 없는 물음')).toBe(false)
+  })
+
+  // 넷 다 표가 답한다 — 배포에 박아 둔 거짓이 하나도 남아 있지 않다.
+  it('배포에 박아 둔 거짓이 없다', () => {
+    for (const { lookup } of GUARDS) expect(hardcodedFalse(lookup), lookup).toBe(false)
   })
 })

@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { randomBytes, randomUUID } from 'node:crypto'
+import { eventStaffLookups } from './events/staff-lookups.ts'
 import { meetingLookups } from './meetings/lookups.ts'
 import { createApp } from './app.ts'
 import { createAuth, openWays } from './auth/auth.ts'
@@ -80,10 +81,11 @@ root.route(
       return viewers.who(session === null ? null : { userId: session.user.id })
     },
     lookups: {
-      // 행사 운영 조직 표는 생겼지만 그것을 채우는 자리(EVT-01·03B)를 아직 안 지었다.
-      // **없다고 답한다** — 있다고 지어내면 조건부 권한이 전부 열린다.
-      isEventStaff: async () => false,
-      isEventStaffManager: async () => false,
+      // **행사 운영 조직도 표가 답한다**(2026-09-05). 한동안 `async () => false`였다 —
+      // 채우는 자리(EVT-01·03B)가 없던 동안은 그것이 참이었고, 붙은 뒤에 그대로 두면
+      // 배포된 서버에서 운영 조직의 모든 조건부 권한이 403이다. `serve-lookups.test.ts`가
+      // 그 구멍을 잰다.
+      ...eventStaffLookups(db),
       // **회의 둘은 이제 표가 답한다.**
       //
       // 한동안 여기가 거짓이었다. 표가 없던 동안은 그것이 맞았는데, 표가 생기고

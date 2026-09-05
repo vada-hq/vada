@@ -28,7 +28,8 @@ export const participants: Served = {
     'event.surveyActivationConditions',
     'event.surveyQuestions',
   ],
-  // 아직 없다. 설문을 켜는 것(`event.survey.activate`)도 문항을 고치는 것도 이 회차의
-  // 것이 아니다 — 읽는 자리를 먼저 세운다.
-  writes: [],
+  // 설문 링크 켜기(EVT-05). **막는 것은 서버다** — 조건이 하나라도 비면 422이고 그 까닭은
+  // 딱지 옆의 글과 같은 셈에서 나온다. 문항을 고치는 자리는 아직 없다 — 그림에 저장
+  // 단추가 없다.
+  writes: ['event.survey.activate'],
 }

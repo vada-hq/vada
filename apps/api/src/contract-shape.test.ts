@@ -60,6 +60,7 @@ let close: () => Promise<void>
 const GIVEN: Record<string, string> = {
   eventId: 'E-01',
   meetingId: 'MTG-01',
+  departmentId: 'ED-01',
   memberId: 'M-01',
   taskId: 'T-01',
   schoolId: 'SCH-HYU-ERICA',

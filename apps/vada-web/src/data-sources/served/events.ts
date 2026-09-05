@@ -2,7 +2,7 @@ import type { Served } from './area'
 
 /**
  * 행사 — 앞자락(EVT-00A · EVT-00B · EVT-02 · EVT-02B · EVT-04B)과 행사 공간의
- * 갈피들(EVT-01 · EVT-02C · EVT-02D · EVT-02E · EVT-03A · EVT-05B ·
+ * 갈피들(EVT-01 · EVT-02C · EVT-02D · EVT-02E · EVT-03A · EVT-03B · EVT-05B ·
  * EVT-MEET-01 · EVT-SCHED-01).
  *
  * 앞자락의 자리들은 서버가 이미 답하고 있었는데 화면은 개발용 응답을 그렸다 —
@@ -56,6 +56,11 @@ export const events: Served = {
     // 고르는 목록도 같은 서버에서 온다 — 표는 진짜인데 고를 것이 가짜면
     // 사람은 없는 사람을 고르고 저장할 때 터진다.
     'event.staffLeaderCandidates',
+    // 운영 조직 수정(EVT-03B). 오른쪽 기둥은 **이 학생회 구성원 중 이 행사 조직에 자리가
+    // 없는 사람**이고, 부서 카드의 두 고르는 칸은 어느 부서인지를 함께 싣고 간다.
+    'event.staffUnassignedMembers',
+    'event.staffDeptLeaderCandidates',
+    'event.staffMemberCandidates',
     // 참여 설문(EVT-05B).
     'event.survey',
     'event.surveyReplaceImpact',
@@ -71,5 +76,11 @@ export const events: Served = {
     'event.saveBasics',
     'event.attendanceQr.regenerate',
     'event.attendanceQr.deactivate',
+    // 행사 운영 조직 — 처음 세우기(EVT-01)와 고치기(EVT-03B). **기본 조직에는 손대지
+    // 않는다.** 세우기는 처음 한 번이고 고치기는 조직 전부를 덮어쓴다(계약의 repeat).
+    'event.staff.setup',
+    'event.staff.save',
+    // 설문 교체(EVT-05B). 옛 설문은 '교체됨'이 되고 응답은 남는다 — 되돌릴 수 없다.
+    'event.survey.replace',
   ],
 }

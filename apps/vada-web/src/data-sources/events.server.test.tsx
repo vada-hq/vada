@@ -98,6 +98,15 @@ beforeAll(async () => {
       departmentId: 'D-02',
       isDepartmentLeader: true,
     },
+    // 어느 부서에도 안 든 사람. 운영 조직 수정 화면의 오른쪽 기둥이 이 사람을 그린다.
+    {
+      id: 'M-03',
+      orgId: 'ORG-01',
+      name: '박해랑',
+      role: 'member',
+      major: '컴퓨터학부',
+      grade: '2학년',
+    },
   ])
 
   await fresh.db.insert(events).values([
@@ -188,7 +197,8 @@ beforeAll(async () => {
     id: 'S-01',
     orgId: 'ORG-01',
     eventId: 'E-04',
-    linkToken: 'SURVEY-TOKEN',
+    // 밖에서 열리는 모양(22자)이라야 갈아 끼운 뒤 옛 링크의 안내를 잴 수 있다.
+    linkToken: 'SSSSSSSSSSSSSSSSSSSSSS',
     active: true,
   })
   await fresh.db.insert(surveyApplications).values(
@@ -567,6 +577,7 @@ describe('행사 운영 조직이 저장소에서 온다', () => {
   it('책임자 후보가 저장소에서 온다', async () => {
     expect(await fetchOptions('event.staffLeaderCandidates', { eventId: 'E-04' })).toEqual([
       { value: 'M-01', label: '김바다', description: '학술체육부' },
+      { value: 'M-03', label: '박해랑', description: '부서 미배정' },
       { value: 'M-02', label: '이윤슬', description: '기획부' },
     ])
   })
@@ -643,5 +654,119 @@ describe('행사에 걸린 회의와 일정이 저장소에서 온다', () => {
       expect(drawn).toContain(origin)
     }
     expect(drawn).not.toContain(NOT_BUILT)
+  })
+})
+
+// **운영 조직 수정(EVT-03B)과 세우기(EVT-01)의 쓰기, 그리고 설문 교체(EVT-05B).**
+// 여기부터가 이번에 붙인 자리다.
+//
+// 쓰기는 화면이 누르는 그 길로 보낸다(`runMutation`). 보내는 몸통은 화면이 초안에 담는
+// 그 모양 그대로다 — 계약의 칸은 마지막 조각이고, 되풀이되는 부서의 칸은
+// `departments.<부서>.<칸>`이다(`payloadOf`의 규칙).
+
+describe('운영 조직 수정 화면이 저장소에서 온다', () => {
+  // 나무(책임자·부서)와 오른쪽 기둥이 한 화면에 선다. 기둥은 **이 학생회 구성원 중 이
+  // 행사 조직에 자리가 없는 사람**이다 — 박해랑은 어느 부서에도 없다.
+  it('EVT-03B가 행사 조직과 자리 없는 구성원을 그린다', async () => {
+    draw('EVT-03B')
+    await waitFor(() => expect(screen.getByText('운영팀')).toBeInTheDocument())
+    expect(screen.getByText('기본 조직 구성원')).toBeInTheDocument()
+    expect(screen.getByText('박해랑')).toBeInTheDocument()
+    expect(document.body.textContent).not.toContain(NOT_BUILT)
+  })
+
+  // 부서 카드의 두 고르는 칸. 메뉴를 열어야 부르므로(`loadOn: open`) 그 길을 따로 지난다.
+  // **이미 그 자리인 사람은 고를 수 없다고 표시되어 온다** — 김바다는 이미 운영팀 부원이다.
+  it('부서장·부원 후보가 저장소에서 온다', async () => {
+    const at = { eventId: 'E-04', departmentId: 'ED-01' }
+    expect(await fetchOptions('event.staffDeptLeaderCandidates', at)).toEqual([
+      { value: 'M-01', label: '김바다', description: '학술체육부' },
+      { value: 'M-03', label: '박해랑', description: '부서 미배정' },
+      { value: 'M-02', label: '이윤슬', description: '기획부' },
+    ])
+    expect(await fetchOptions('event.staffMemberCandidates', at)).toEqual([
+      { value: 'M-01', label: '김바다', description: '학술체육부', disabled: true },
+      { value: 'M-03', label: '박해랑', description: '부서 미배정' },
+      { value: 'M-02', label: '이윤슬', description: '기획부' },
+    ])
+  })
+})
+
+describe('운영 조직을 세우고 고친다', () => {
+  // **화면이 누르는 그 길로 세운다.** 기본 조직을 베끼면 학생회의 부서가 행사 조직이
+  // 되고 고른 사람이 뿌리에 선다 — 기획부장 이윤슬은 부서장으로 따라오고, 학술체육부의
+  // 김바다는 책임자가 되어 그 부서에서 빠진다.
+  it('EVT-01이 누르는 길로 조직이 선다', async () => {
+    await runMutation(
+      'event.staff.setup',
+      { setupMode: 'copyBase', leaderId: 'M-01' },
+      { eventId: 'E-02' },
+    )
+    await loadSources([
+      { key: 'event.staffDepartments', params: { eventId: 'E-02' } },
+      { key: 'event.staffLeaders', params: { eventId: 'E-02' } },
+    ])
+    const rows = readListSource('event.staffDepartments', { eventId: 'E-02' })
+    expect(rows.map((row) => row.name)).toEqual(['기획부', '학술체육부'])
+    expect((rows[0]!.leaders as Array<{ name: string }>).map((one) => one.name)).toEqual([
+      '이윤슬',
+    ])
+    expect(rows[1]!.memberCountLabel).toBe('부원 0명')
+    expect(
+      readListSource('event.staffLeaders', { eventId: 'E-02' }).map((row) => row.name),
+    ).toEqual(['김바다'])
+  })
+
+  // **화면이 누르는 그 길로 고친다.** 몸통은 EVT-03B가 초안에 담는 모양 그대로다 —
+  // 부서마다의 부원 목록과 고른 부서장, 그리고 화면 안의 자리 이름까지.
+  it('EVT-03B가 누르는 길로 배치가 바뀐다', async () => {
+    await runMutation(
+      'event.staff.save',
+      {
+        leaderId: 'M-02',
+        newDepartmentName: '',
+        'departments.ED-01.members': 'M-01\nM-03',
+        'departments.ED-01.departmentLeaderId': 'M-01',
+        leaders: 'M-02',
+        unassigned: '',
+      },
+      { eventId: 'E-04' },
+    )
+    await loadSources([
+      { key: 'event.staffDepartments', params: { eventId: 'E-04' } },
+      { key: 'event.staffUnassignedMembers', params: { eventId: 'E-04' } },
+    ])
+    const [team] = readListSource('event.staffDepartments', { eventId: 'E-04' })
+    expect((team!.leaders as Array<{ name: string }>).map((one) => one.name)).toEqual(['김바다'])
+    expect((team!.members as Array<{ name: string }>).map((one) => one.name)).toEqual(['박해랑'])
+    expect(team!.memberCountLabel).toBe('부원 1명')
+    // 모두 자리를 얻었으므로 오른쪽 기둥은 비어 있다.
+    expect(readListSource('event.staffUnassignedMembers', { eventId: 'E-04' })).toEqual([])
+  })
+})
+
+describe('설문을 갈아 끼운다', () => {
+  // **여파에 적힌 대로 일어난다.** 옛 설문은 닫히고 새 초안이 지금의 설문이 되며, 옛
+  // 링크를 연 사람은 새 설문으로 안내받는다 — 낸 응답은 옛 설문에 남는다.
+  it('EVT-05B가 누르는 길로 새 초안이 선다', async () => {
+    await runMutation(
+      'event.survey.replace',
+      { replaceMode: 'copyQuestions' },
+      { eventId: 'E-04' },
+    )
+    draw('EVT-05B')
+    await waitFor(() =>
+      expect(screen.getByText('새 설문으로 교체하시겠어요?')).toBeInTheDocument(),
+    )
+    // 지금의 설문은 새 초안이다 — 아직 열리지 않았고 응답이 없다.
+    expect(screen.getByText('초안')).toBeInTheDocument()
+    expect(screen.getByText('0명')).toBeInTheDocument()
+    expect(screen.getByText('0명 (재응답 필요)')).toBeInTheDocument()
+    // 옛 링크는 밖에서 오는 사람에게 '여기로 가세요'를 말한다.
+    const old = await app.request(
+      '/api/public/surveys/link-state?surveyToken=SSSSSSSSSSSSSSSSSSSSSS',
+    )
+    expect(old.status).toBe(200)
+    expect(((await old.json()) as { label: string }).label).toBe('설문이 교체되었습니다')
   })
 })

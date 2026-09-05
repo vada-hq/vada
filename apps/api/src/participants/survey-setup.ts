@@ -2,17 +2,18 @@ import { and, asc, desc, eq } from 'drizzle-orm'
 import optionSources from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { events, surveyQuestions, surveys } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
 import { fieldMoment } from '../time.ts'
 
-// 참여 설문을 세우는 자리(EVT-05).
+// 참여 설문을 세우고 켜는 자리(EVT-05).
 //
 // **막는 것은 서버다.** 화면에 '설문 링크 활성화'가 그려지지만 무엇이 모자란지는
 // 화면이 세지 않는다 — 세면 조직의 규칙이 화면에 적히고, 규칙이 바뀔 때마다 화면을
 // 고쳐야 한다. 화면이 하는 일은 서버가 준 까닭을 그대로 내놓는 것뿐이다.
 //
-// 그래서 **딱지의 수와 목록의 빨간 줄이 한 셈에서 나온다**(`conditionsOf`). 두 곳에서
-// 세면 언젠가 목록에는 빨간 줄이 둘인데 딱지는 '미충족 3개'라고 말하는 날이 온다.
+// 그래서 **딱지의 수와 목록의 빨간 줄과 켤 때의 막힘이 한 셈에서 나온다**(`activationOf`).
+// 두 곳에서 세면 언젠가 목록에는 빨간 줄이 둘인데 딱지는 '미충족 3개'라고 말하고,
+// 단추는 눌리는데 서버는 막는 날이 온다.
 //
 // ## 조건 목록은 그림이 든다 — 열여섯 줄
 //
@@ -60,6 +61,8 @@ interface EventRow {
 
 interface SurveyRow {
   id: string
+  active: boolean
+  replacedById: string | null
   opensAt: Date | null
   closesAt: Date | null
   applyMethod: string
@@ -107,6 +110,8 @@ async function setupOf(
   const surveyRows = await db
     .select({
       id: surveys.id,
+      active: surveys.active,
+      replacedById: surveys.replacedById,
       opensAt: surveys.opensAt,
       closesAt: surveys.closesAt,
       applyMethod: surveys.applyMethod,
@@ -342,13 +347,31 @@ async function questionTypesOf(db: Db, orgId: string, surveyId: string): Promise
   return rows.map((row) => row.type)
 }
 
+/**
+ * 조건 목록과 못 채운 수와 지금의 설문을 **한 셈**으로.
+ *
+ * 딱지(`surveyActivation`)·목록(`surveyActivationConditions`)·막힘(`activateSurvey`)이
+ * 전부 여기서 나온다. 셋 중 하나가 따로 세면 언젠가 목록에는 빨간 줄이 둘인데 딱지는
+ * '미충족 3개'이고, 단추는 눌리는데 서버는 막는 날이 온다.
+ */
+async function activationOf(db: Db, orgId: string, eventId: string) {
+  const { event, survey } = await setupOf(db, orgId, eventId)
+  const groups = conditionsOf(event, survey, await questionTypesOf(db, orgId, survey.id))
+  const unmet = groups.flatMap((group) => group.rows).filter((row) => row.met === '').length
+  return { survey, groups, unmet }
+}
+
+/** 못 채운 채로 켜려 할 때의 까닭. 딱지 옆의 글과 막힐 때의 글이 **같은 글**이다. */
+function blockedNoteOf(unmet: number): string {
+  return `아직 채우지 않은 활성화 조건이 ${unmet}개 있습니다.`
+}
+
 export async function surveyActivationConditions(
   db: Db,
   orgId: string,
   eventId: string,
 ): Promise<ConditionGroup[]> {
-  const { event, survey } = await setupOf(db, orgId, eventId)
-  return conditionsOf(event, survey, await questionTypesOf(db, orgId, survey.id))
+  return (await activationOf(db, orgId, eventId)).groups
 }
 
 export interface SurveyActivation {
@@ -368,16 +391,43 @@ export async function surveyActivation(
   orgId: string,
   eventId: string,
 ): Promise<SurveyActivation> {
-  const groups = await surveyActivationConditions(db, orgId, eventId)
-  const unmet = groups.flatMap((group) => group.rows).filter((row) => row.met === '').length
+  const { unmet } = await activationOf(db, orgId, eventId)
   const answer: SurveyActivation = {
     unmetCountNote: `미충족 ${unmet}개`,
     unmetCount: unmet,
     canActivate: unmet === 0,
   }
   // 계약이 optional로 적었다 — 막히지 않았으면 까닭도 없다.
-  if (unmet > 0) answer.blockedNote = `아직 채우지 않은 활성화 조건이 ${unmet}개 있습니다.`
+  if (unmet > 0) answer.blockedNote = blockedNoteOf(unmet)
   return answer
+}
+
+/**
+ * 참여 설문 링크를 켠다(EVT-05 · event.survey.activate).
+ *
+ * **막는 것은 서버다.** 화면의 단추는 `canActivate`를 보고 눌리지만 그것은 그림이고,
+ * 화면을 우회한 요청도 같은 셈으로 막혀야 한다 — 못 채운 것이 하나라도 있으면 422이고
+ * 그 까닭은 딱지 옆의 글과 같다.
+ *
+ * 계약이 conflict라 적었다: 이미 켜진 설문을 또 켤 수 없다(409). 갈아 끼워진 설문도
+ * 다시 켜지 않는다 — 그 링크는 새 설문을 가리키고 있다.
+ */
+export async function activateSurvey(
+  db: Db,
+  orgId: string,
+  eventId: string,
+): Promise<Record<string, never>> {
+  const { survey, unmet } = await activationOf(db, orgId, eventId)
+  if (survey.replacedById !== null) throw new AlreadyExists('교체된 설문은 다시 켤 수 없습니다')
+  if (survey.active) throw new AlreadyExists('이미 켜진 설문입니다')
+  if (unmet > 0) throw new Blocked(blockedNoteOf(unmet))
+  await db
+    .update(surveys)
+    .set({ active: true })
+    // 고칠 때도 학생회를 다시 건다. 위에서 찾았다고 빼면 울타리가 한 겹이 된다.
+    .where(and(eq(surveys.orgId, orgId), eq(surveys.id, survey.id)))
+  // 계약이 '돌려주는 값이 없다'고 적었다.
+  return {}
 }
 
 export interface SurveyQuestion {

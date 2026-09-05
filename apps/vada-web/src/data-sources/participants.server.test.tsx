@@ -18,7 +18,9 @@ import {
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { fetchOptions } from '../option-sources/catalog'
-import { useServer } from './server'
+import { runMutation } from '../spec/mutations'
+import { readObjectSource } from './catalog'
+import { loadSources, useServer } from './server'
 
 // **행사 참여자와 참여 설문을 서버에 붙인다**(EVT-04 · EVT-04B · EVT-05).
 //
@@ -79,6 +81,20 @@ beforeAll(async () => {
       contact: '카카오톡 채널 @swcollege',
       updatedAt: NOW,
     },
+    // **다 채운 행사.** 켜는 자리가 성공하는 쪽을 재려면 못 채운 것이 하나도 없어야 한다.
+    {
+      id: 'E-02',
+      orgId: 'ORG-01',
+      title: '2026 신입생 환영회',
+      status: 'planning',
+      startAt: new Date('2026-09-10T10:00:00+09:00'),
+      endAt: new Date('2026-09-10T17:00:00+09:00'),
+      place: '학생회관 대강당',
+      audience: '신입생 전체',
+      feeType: 'free',
+      capacityType: 'unlimited',
+      updatedAt: NOW,
+    },
     { id: 'E-99', orgId: 'ORG-02', title: '남의 행사', updatedAt: NOW },
   ])
 
@@ -94,6 +110,15 @@ beforeAll(async () => {
       applyMethod: 'approval',
       duesCheck: true,
       completionTitle: '신청이 완료되었습니다. 행사 당일 QR을 준비해 주세요.',
+    },
+    // 마감까지 적어 둔 설문. 켜는 자리가 이것을 켠다.
+    {
+      id: 'S-02',
+      orgId: 'ORG-01',
+      eventId: 'E-02',
+      linkToken: 'SURVEY-TOKEN-2',
+      active: false,
+      closesAt: new Date('2026-09-05T18:00:00+09:00'),
     },
     { id: 'S-99', orgId: 'ORG-02', eventId: 'E-99', linkToken: 'OTHER-TOKEN' },
   ])
@@ -113,6 +138,16 @@ beforeAll(async () => {
       orgId: 'ORG-01',
       surveyId: 'S-01',
       sortOrder: 1,
+      title: '개인정보 수집·이용 동의',
+      type: 'privacy',
+      required: true,
+      locked: true,
+    },
+    {
+      id: 'SQ-21',
+      orgId: 'ORG-01',
+      surveyId: 'S-02',
+      sortOrder: 0,
       title: '개인정보 수집·이용 동의',
       type: 'privacy',
       required: true,
@@ -219,11 +254,11 @@ afterAll(async () => {
 
 const NOT_BUILT = '이 화면은 아직 준비 중입니다.'
 
-function draw(screenId: string) {
+function draw(screenId: string, eventId = 'E-01') {
   render(
     <ScreenRouter
       screenId={screenId}
-      screenParams={{ eventId: 'E-01' }}
+      screenParams={{ eventId }}
       scopes={{}}
       onChangeScope={() => {}}
       onNavigate={() => {}}
@@ -331,5 +366,30 @@ describe('참여 설문을 세우는 자리가 저장소에서 온다', () => {
     // 딱지의 개수가 데이터에 달렸다 — 잠긴 문항에만 '삭제 불가'가 붙는다.
     expect(screen.getByText('필수 · 삭제 불가')).toBeInTheDocument()
     expect(drawn).not.toContain(NOT_BUILT)
+  })
+})
+
+// **설문 링크를 켠다(EVT-05 · event.survey.activate).** 여기부터가 이번에 붙인 자리다.
+//
+// 쓰기는 화면이 누르는 그 길로 보낸다(`runMutation`). **막는 것은 서버다** — 화면의 단추는
+// `canActivate`를 보고 눌리지만, 화면을 우회해 보내도 같은 셈으로 막혀야 한다.
+
+describe('설문 링크를 켠다', () => {
+  // 마감을 안 적은 E-01은 '미충족 1개'다 — 보내도 막히고 설문은 초안으로 남는다.
+  it('못 채운 설문은 화면이 누르는 길로 보내도 막힌다', async () => {
+    await expect(
+      runMutation('event.survey.activate', {}, { eventId: 'E-01' }),
+    ).rejects.toThrow('422')
+    await loadSources([{ key: 'event.survey', params: { eventId: 'E-01' } }])
+    expect(readObjectSource('event.survey', { eventId: 'E-01' }).statusLabel).toBe('초안')
+  })
+
+  // 다 채운 E-02는 켜지고, 같은 표를 읽는 딱지가 함께 바뀐다.
+  it('다 채운 설문은 켜지고 딱지가 활성이 된다', async () => {
+    await runMutation('event.survey.activate', {}, { eventId: 'E-02' })
+    draw('EVT-05', 'E-02')
+    await waitFor(() => expect(screen.getByText('활성')).toBeInTheDocument())
+    expect(screen.getByText('미충족 0개')).toBeInTheDocument()
+    expect(document.body.textContent).not.toContain(NOT_BUILT)
   })
 })

@@ -1,9 +1,10 @@
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, sql } from 'drizzle-orm'
+import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
-import { surveyApplications, surveys } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { surveyApplications, surveyQuestions, surveys } from '../db/schema.ts'
+import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
 
-// 참여 설문 한 건과 그것을 갈아 끼울 때의 여파(EVT-05 · EVT-05B).
+// 참여 설문 한 건과 그것을 갈아 끼울 때의 여파, 그리고 갈아 끼우기(EVT-05 · EVT-05B).
 //
 // **설문의 상태는 행사의 상태와 다른 축이다.** 명세가 그렇게 못 박았다 — 초안·활성·
 // 교체됨은 설문의 것이고 기획 중·진행 중은 행사의 것이다(회의의 status와
@@ -104,4 +105,84 @@ export async function surveyReplaceImpact(
     affectedRespondents: `${total}명 (재응답 필요)`,
     notes: NOTES.map((text) => ({ text })),
   }
+}
+
+/** 새 초안을 어떻게 시작할지 — **명세가 갖고 있다**(event.surveyReplaceModes). 두 벌을 들면 갈린다. */
+const REPLACE_MODES: readonly string[] =
+  (
+    optionSourcesJson.sources.find((source) => source.key === 'event.surveyReplaceModes') as
+      | { options: Array<{ value: string }> }
+      | undefined
+  )?.options.map((option) => option.value) ?? []
+
+export interface SurveyMakers {
+  newId: () => string
+  /** 새 링크의 열쇠. **밖에서 받는다** — 추측할 수 없어야 하고 검사는 정해 줄 수 있어야 한다. */
+  newToken: () => string
+}
+
+/**
+ * 기존 설문을 끝내고 새 설문 초안을 만든다(EVT-05B · event.survey.replace).
+ *
+ * `surveyReplaceImpact`가 말한 넷이 여기서 그대로 일어난다: 옛 설문은 `replacedById`를
+ * 갖고 닫히고(그래서 '교체됨'), 낸 신청은 그대로 남고, 새 설문은 신청을 하나도 안 가진
+ * 채로 서며, 옛 링크는 새 설문의 열쇠를 안내한다(`survey.linkState`가 그 자리를 답한다).
+ *
+ * - `copyQuestions` — 문항 구조만 따라온다. 명세가 '질문 구조만 복사. 응답 데이터는
+ *   복사하지 않습니다'라고 적었다. 모집 설정(기간·방식·정원·안내 문구)은 새 초안이
+ *   비운 채로 시작한다 — 명세가 문항만 말했고, 옛 마감을 물려받으면 켜기 조건이 말없이
+ *   채워진 채 선다. 비어 있는 것은 EVT-05의 칸에 그대로 보이므로 조용하지 않다.
+ * - `blank` — 문항이 없다. 이름·학번은 문항이 아니라 고정 칸이라(2026-09-05에 정함)
+ *   만들 줄이 없다.
+ *
+ * **열지 않은 설문은 끝낼 것이 없다.** 계약이 conflict라 적었다 — 두 번 누르면 방금
+ * 만든 초안이 또 갈리는데, 그 초안은 아직 열리지 않았으므로 여기서 막힌다(409).
+ *
+ * **새 열쇠는 밖에서 온다.** 옛 것에서 유도하면 옛 링크를 가진 사람이 새 것을 만든다.
+ * 만든 때는 표가 찍는다 — 지금의 설문은 '마지막에 만들어진 것'이므로 새 것이 그 자리에
+ * 선다. 새 것을 먼저 만들고 옛 것을 닫는다: 그 사이에 멈춰도 옛 링크가 없는 곳을
+ * 가리키지는 않는다.
+ */
+export async function replaceSurvey(
+  db: Db,
+  orgId: string,
+  eventId: string,
+  draft: Record<string, unknown>,
+  make: SurveyMakers,
+): Promise<Record<string, never>> {
+  const current = await currentSurvey(db, orgId, eventId)
+  const mode = typeof draft.replaceMode === 'string' ? draft.replaceMode.trim() : ''
+  if (mode === '') throw new Blocked('새 설문 초안 생성 방식을 골라 주세요')
+  if (!REPLACE_MODES.includes(mode)) throw new Blocked('명세에 없는 설문 초안 생성 방식입니다')
+  if (current.replacedById !== null) throw new AlreadyExists('이미 교체된 설문입니다')
+  if (!current.active) throw new AlreadyExists('아직 열지 않은 설문은 끝낼 것이 없습니다')
+
+  const id = make.newId()
+  await db
+    .insert(surveys)
+    .values({ id, orgId, eventId, linkToken: make.newToken(), active: false })
+  if (mode === 'copyQuestions') {
+    const questions = await db
+      .select({
+        sortOrder: surveyQuestions.sortOrder,
+        title: surveyQuestions.title,
+        type: surveyQuestions.type,
+        required: surveyQuestions.required,
+        locked: surveyQuestions.locked,
+      })
+      .from(surveyQuestions)
+      .where(and(eq(surveyQuestions.orgId, orgId), eq(surveyQuestions.surveyId, current.id)))
+      .orderBy(asc(surveyQuestions.sortOrder), asc(surveyQuestions.id))
+    if (questions.length > 0) {
+      await db
+        .insert(surveyQuestions)
+        .values(questions.map((question) => ({ id: make.newId(), orgId, surveyId: id, ...question })))
+    }
+  }
+  await db
+    .update(surveys)
+    .set({ active: false, replacedById: id })
+    .where(and(eq(surveys.orgId, orgId), eq(surveys.id, current.id)))
+  // 계약이 '돌려주는 값이 없다'고 적었다.
+  return {}
 }
