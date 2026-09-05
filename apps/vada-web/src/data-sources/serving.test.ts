@@ -5,7 +5,8 @@ import { readObjectSource } from './catalog'
 import { fetchOptions } from '../option-sources/catalog'
 import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json'
 import { NotServedYet, runMutation } from '../spec/mutations'
-import { isServedMutation } from './served'
+import optionsJson from '../../../../specs/figma/vada-wireframe/option-sources.json'
+import { isServed, isServedMutation } from './served'
 import {
   NotBuiltYet,
   SourcesFailed,
@@ -136,9 +137,16 @@ describe('고르는 목록도 서버에서 온다', () => {
         return Response.json([])
       },
     })
-    // 본보기는 **아직 서버에 안 붙은 원격 목록**이어야 한다. 한동안 구매 유형을 썼는데
-    // 2026-09-06에 명세가 그 값을 들게 되어(static) 서버 자리 자체가 없어졌다.
-    await expect(fetchOptions('meeting.modes', {})).rejects.toBeInstanceOf(NotBuiltYet)
+    // **본보기를 손으로 고르지 않는다.** 구매 유형을 썼다가, 회의 진행 방식을 썼다가,
+    // 둘 다 명세가 값을 들게 되면서(static) 서버 자리 자체가 사라졌다 — 두 번 다 이
+    // 검사가 낡아서 빨개졌다(2026-09-06). 재려는 것은 '그 자리'가 아니라 **아직 안 붙은
+    // 원격 목록**이다. 카탈로그에서 고르면 낡지 않는다.
+    const notYet = (optionsJson as { sources: Array<{ key: string; type: string }> }).sources
+      .filter((one) => one.type !== 'static')
+      .map((one) => one.key)
+      .find((key) => !isServed(key))
+    expect(notYet, '안 붙은 원격 목록이 하나도 없습니다 — 이 검사는 할 일이 끝났습니다').toBeTypeOf('string')
+    await expect(fetchOptions(notYet!, {})).rejects.toBeInstanceOf(NotBuiltYet)
     expect(called).toBe(false)
   })
 
