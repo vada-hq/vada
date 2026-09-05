@@ -38,23 +38,111 @@ const MINE = {
  */
 const THEIRS = ['옆집 학생회', '옆집 봄 축제', '옆집 정기회의', '옆집 포스터 시안', '옆집김']
 
-const READY = expected.screens as Record<string, { ready: boolean; missing: string[] }>
+const READY = expected.screens as Record<
+  string,
+  { ready: boolean; missing: string[]; needs: string[]; shell: boolean }
+>
 
-/** 영역마다 하나씩. 인자가 필요한 것은 카나리가 심어 둔 것을 가리킨다. */
-const SCREENS = [
-  { id: 'HOME-01K', what: '홈' },
-  { id: 'EVT-00A', what: '행사 목록', shows: MINE.event },
-  { id: 'OPS-MEET-01A', what: '회의 목록', shows: MINE.meeting },
-  { id: 'TASK-01', what: '상시 업무 보드', shows: MINE.task },
-  { id: 'ORG-07A', what: '학생 명단', shows: MINE.member },
-  { id: 'ORG-04', what: '역할과 권한' },
-  { id: 'ORG-03A', what: '조직도' },
-  { id: 'EVT-02', params: '?eventId=E-A', what: '행사 개요' },
-  { id: 'OPS-MEET-03A', params: '?meetingId=MTG-A', what: '회의 상세' },
-]
+/**
+ * **걸을 화면을 손으로 고르지 않는다.**
+ *
+ * 아홉 장을 손으로 적어 두었었다. 이 파일이 바로 위에서 '손으로 고르면 고르는
+ * 사람이 안 보는 화면은 목록도 안 본다'고 적어 놓고 **한 층 위에서 같은 잘못을
+ * 하고 있었다** — 글은 훑어서 냈지만 화면은 아홉 장뿐이었다. 그 아홉에 든 것만
+ * 배포 모양으로 열려 봤고, 방금 열아홉 장이 새로 섰는데 그중 하나도 안 걸렸다.
+ *
+ * 이제 기대값이 화면마다 '무엇을 줘야 열리는지'(`needs`)를 함께 낸다. 그것을
+ * 채울 수 있으면 걷는다.
+ */
 
-for (const { id, params = '', what, shows } of SCREENS) {
-  test(`${what}(${id})`, async ({ page }) => {
+/** 카나리가 심어 둔 것. 밖에서 주는 열쇠는 이 표로 채운다. */
+const SEED: Record<string, string> = {
+  eventId: 'E-A',
+  meetingId: 'MTG-A',
+  taskId: 'T-A',
+  memberId: 'M-A',
+}
+
+/**
+ * 화면이 스스로 고르는 것. **주소에 싣지 않는다** — 거르개와 갈피는 사람이 화면
+ * 안에서 고르고, 아무것도 안 골랐을 때 무엇을 보여줄지는 화면이 안다.
+ */
+const INSIDE = new Set(['status', 'scope', 'filter', 'tab', 'type', 'page', 'stage', 'setupMode'])
+
+/**
+ * 아직 못 걷는 화면과 그 까닭. **비워 두지 않는다** — 빠진 것이 왜 빠졌는지
+ * 보이지 않으면 손으로 고르던 때와 같아진다.
+ */
+const CANT: Record<string, string> = {
+  'ONB-01': '로그인 전 화면이라 셸이 없다. 로그인한 카나리로는 이 화면을 재지 못한다',
+  'SIGN-IN': '같다',
+  'ORG-00': '같다 — 아직 학생회에 안 든 사람이 보는 화면이다',
+  'ORG-01': '같다 — 학생회를 만드는 첫 화면이다',
+}
+
+/** 이 화면에는 이것이 보여야 한다. 적힌 것만 잰다. */
+const SHOWS: Record<string, string> = {
+  'EVT-00A': MINE.event,
+  'OPS-MEET-01A': MINE.meeting,
+  'TASK-01': MINE.task,
+  'ORG-07A': MINE.member,
+}
+
+/**
+ * **오늘 터지는 자리와 그 까닭.**
+ *
+ * 아홉 장만 걷던 카나리를 쉰아홉 장으로 넓히자 열 장이 터졌다. 하나같이 **아무도
+ * 배포 모양으로 열어 본 적 없는 화면**이고, 브라우저 검사 428개는 전부 초록이었다 —
+ * 그 검사들은 개발용 응답을 보기 때문이다.
+ *
+ * **건너뛰지 않고 '터질 것'으로 잰다.** 건너뛰면 고쳐도 아무도 모르고, 새로 터지는
+ * 것과 원래 터지던 것이 섞인다. 이렇게 두면 고치는 순간 카나리가 **'터질 줄 알았는데
+ * 통과했다'**고 말하고, 그때 이 줄을 지우면 된다.
+ */
+const BROKEN: Record<string, string> = {
+  'ORG-03B': "서버가 'roleTone'을 안 준다 — 화면이 예외로 죽는다",
+  'ORG-03C': '같다',
+  'ORG-04B': '구성원 목록이 403이다 — 회장단인데도 못 받는다',
+  'EVT-02C': '준비 중인데 셸이 사라진다 — 창은 뒤엣것의 셸을 못 업는다. 사람이 갇힌다',
+  'EVT-02E': '같다',
+  'EVT-05B': '이 행사에 설문이 없어 404다. 카나리가 설문을 안 심는다',
+  'OPS-MEET-D03': '카나리김이 이 회의의 참가자가 아니라 404다. 참가자를 안 심는다',
+  'EVT-04B': '안 지은 자리를 여는 순간에만 읽어서 화면은 그려진다. 눈금이 첫 그림에 안 읽는 자리까지 센다',
+  'EVT-05': '같다',
+  'OPS-MEET-02': '같다',
+}
+
+const SCREENS = Object.entries(READY)
+  .filter(([id, state]) => CANT[id] === undefined && state.needs.every((n) => SEED[n] !== undefined || INSIDE.has(n)))
+  .map(([id, state]) => ({
+    id,
+    params: state.needs
+      .filter((n) => SEED[n] !== undefined)
+      .map((n, i) => `${i === 0 ? '?' : '&'}${n}=${SEED[n]}`)
+      .join(''),
+    shows: SHOWS[id],
+  }))
+
+// 몇 장을 걷는지 소리 내어 잰다. 줄어들면 눈에 띄어야 한다.
+test('걸을 것이 있다', () => {
+  expect(SCREENS.length).toBeGreaterThanOrEqual(50)
+})
+
+for (const { id, params, shows } of SCREENS) {
+  test(`${id}`, async ({ page }) => {
+    // 오늘 터지는 자리다. 고치면 이 검사가 '터질 줄 알았는데 통과했다'고 말한다.
+    if (BROKEN[id] !== undefined) test.fail(true, BROKEN[id])
+
+    // **브라우저가 한 말을 함께 싣는다.** 화면이 준비 중이라고만 하면 어느 자리가
+    // 없어서인지 알 수 없어, 그때부터는 손으로 찾아야 한다.
+    const said: string[] = []
+    page.on('console', (one) => {
+      if (one.type() === 'error') said.push(one.text())
+    })
+    page.on('pageerror', (one) => said.push(one.message))
+    const 말 = () => (said.length === 0 ? '' : `
+  브라우저가 한 말: ${said.join(' | ')}`)
+
     await page.goto(`/#/${id}${params}`)
 
     // 화면이 자리 잡을 때까지 기다린다. **기다림 자체로 판정하지 않는다**(`catch`) —
@@ -92,8 +180,10 @@ for (const { id, params = '', what, shows } of SCREENS) {
     const state = READY[id]
     expect(state, `${id}의 기대값이 없다`).toBeDefined()
     if (state.ready) {
-      expect(drawn, `${id}는 다 지었는데 준비 중이라고 한다`).not.toContain('아직 준비 중')
-      expect(drawn, `${id}에 셸이 없다`).toContain(MINE.org)
+      expect(drawn, `${id}는 다 지었는데 준비 중이라고 한다${말()}`).not.toContain('아직 준비 중')
+      // **셸을 두르는 화면만 셸을 잰다.** 창으로 뜨는 화면과 전체를 차지하는 폼은
+      // 애초에 왼쪽 메뉴를 안 두른다 — 그것까지 재면 눈금이 없는 것을 없다고 한다.
+      if (state.shell) expect(drawn, `${id}에 셸이 없다${말()}`).toContain(MINE.org)
     } else {
       expect(
         drawn,
@@ -103,7 +193,7 @@ for (const { id, params = '', what, shows } of SCREENS) {
       // **갇히지 않는다.** 한동안 준비 중이 화면을 통째로 덮어 왼쪽 메뉴까지
       // 사라졌다 — 사람이 그 화면에서 나갈 단추가 하나도 없었다. 마흔 장이
       // 그 상태였고 이 카나리를 만들다 드러났다(2026-09-05).
-      expect(drawn, `${id}에서 나갈 길이 없다 — 셸이 사라졌다`).toContain(MINE.org)
+      if (state.shell) expect(drawn, `${id}에서 나갈 길이 없다 — 셸이 사라졌다`).toContain(MINE.org)
     }
 
     // ── 내 것
