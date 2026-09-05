@@ -186,7 +186,9 @@ export function FINREV01Screen({
     setBlocked(false)
     setNote(null)
     void submitAction.run(send.action, {
-      payload: values,
+      // 어느 요청의 판정인지를 함께 싣는다 — 계약의 자리에 인자가 없다(FIN-EVID-01의
+      // '처리 완료'가 requestId를 몸통에 싣는 것과 같은 길).
+      payload: { ...values, requestId: screenParams.requestId ?? '' },
       onNavigate,
       // 무엇을 넘길지는 명세가 말한다(onSuccess.params). 화면은 그 값이
       // 어디 있는지만 알려 준다.

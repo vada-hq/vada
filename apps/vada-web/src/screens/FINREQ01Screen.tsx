@@ -218,17 +218,37 @@ export function FINREQ01Screen({
     })
   }
 
-  function submit(button: ButtonSpec) {
+  async function submit(button: ButtonSpec) {
+    const action = button.action as SubmitAction
+    // 고치는 요청이면 주소가 이름표를 들고 있다. 새로 쓰는 것이면 처음 임시 저장이 돌려준
+    // 이름표가 초안에 남아 있다(아래). 둘 다 없으면 새 줄이 된다.
+    const fromScreen = screenParams.requestId ?? ''
+    const requestId = fromScreen !== '' ? fromScreen : (draft.values.requestId ?? '')
     // payloadScope의 값 전체를 보낸다. 항목의 칸도 그 안에 들어 있다 -
     // 계약은 mutations.json이 갖고 화면은 무엇을 보내는지 정하지 않는다.
-    void submitAction.run(button.action as SubmitAction, {
-      payload: draft.values,
+    //
+    // **어느 행사·어느 요청인지를 함께 싣는다.** 계약의 두 자리에는 인자가 없는데 요청은
+    // 행사에 딸리고, 고치는 요청에는 이름표가 있어야 덮어쓰기가 선다 — FIN-EVID-01의
+    // '처리 완료'가 requestId를 몸통에 싣는 것과 같은 길이다.
+    const result = await submitAction.run(action, {
+      payload: { ...draft.values, eventId: screenParams.eventId ?? '', requestId },
       onNavigate,
       // 무엇을 넘길지는 명세가 말한다(onSuccess.params). 화면은 그 값이
       // 어디 있는지만 알려 준다.
       paramSources: { screenParams },
       onScopeEvent,
     })
+    // 처음 임시 저장하면 서버가 새 줄의 이름표를 돌려준다. 초안에 남겨 두어야 다음 저장이
+    // 같은 줄을 덮어쓴다 — 안 남기면 누를 때마다 초안이 하나씩 쌓인다. 제출은 초안을
+    // 비우고 떠나므로(scopeEvent) 남길 것이 없다.
+    if (
+      result !== undefined &&
+      action.onSuccess.scopeEvent === undefined &&
+      requestId === '' &&
+      typeof result.id === 'string'
+    ) {
+      setValue('requestId', result.id)
+    }
   }
 
   // 명세는 이 버튼이 필수 칸이 다 차야 실행된다고 말한다(executeWhen). 한동안
