@@ -44,6 +44,7 @@ vada 제품의 wireframe 원본을 제품 코드로 옮길 때 적용하는 **�
 ## 7. 공통 UI 상태
 
 - 선택 목록의 상태(idle/loading/empty/error)는 **목록 패널 안**에 카탈로그 `messages` 문구를 그대로 텍스트로 표시한다. loading에는 lucide `Loader2` 회전 아이콘을 병기한다.
+- **화면과 블록의 loading은 글이 아니라 회색 블록(스켈레톤)이다**(2026-09-06 사람이 정함). 와이어프레임에 로딩 화면이 없어 표현을 구현이 정한다. 채워질 자리의 모양대로 `animate-pulse` 블록을 띄우고, 카탈로그의 `loading` 문구는 `aria-label`로 남긴다 — 눈에는 모양이, 읽어 주는 기계에는 그 글이 간다. 기다리는 자리는 **블록 단위**다(`Built`); 자리마다 두르지 않은 화면만 셸 모양의 전체 스켈레톤으로 기다린다.
 - 목록 패널은 흰 배경, border gray-200, rounded-md, shadow-md로 그리고, 항목 hover는 gray-50, 선택된 항목은 blue-600 medium으로 표시한다(와이어프레임에 열린 상태가 없어 관례로 정함).
 - 필드 오류는 **필드 아래 인라인**으로 red-500 텍스트를 표시하고 해당 필드 테두리를 red-500으로 바꾼다. 필수 누락 문구는 `"필수 항목입니다"`로 통일한다.
 - 버튼 차단(`showMissingRequiredFields`)의 구현 형태: 판정기의 `missingFieldKeys` 전부에 인라인 오류를 표시하고, `firstMissingField`(화면 순서상 첫 누락)로 포커스와 스크롤을 이동한다.

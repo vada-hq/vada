@@ -1,4 +1,5 @@
-import { Component, type ReactNode } from 'react'
+import { Component, Suspense, type ReactNode } from 'react'
+import { Skeleton } from './Skeleton'
 import { NotBuiltYet } from '../data-sources/server'
 
 // **아직 안 지은 자리 하나만 가린다.**
@@ -55,15 +56,28 @@ export class Built extends Component<BuiltProps, BuiltState> {
   /**
    * **안 지은 것만 여기서 멈춘다.** 나머지 오류는 그대로 올려보낸다 — 화면의 진짜
    * 고장을 '준비 중'으로 덮으면 그 고장을 아무도 못 본다.
-   *
-   * 받아 오는 중이라는 신호(약속)도 올려보낸다. 그것은 오류가 아니라 기다림이고,
-   * 기다리는 자리는 바깥의 `Suspense`가 든다.
    */
   static getDerivedStateFromError(error: Error): BuiltState | null {
     return error instanceof NotBuiltYet ? { notBuilt: true } : null
   }
 
+  /**
+   * **기다리는 것도 이 자리에서 기다린다.**
+   *
+   * 한동안 기다림을 바깥으로 올려보냈다. 그러면 화면 하나가 통째로 멈추고, 읽는
+   * 자리가 일곱인 홈은 문구가 일곱 줄로 쌓였다 — 배포된 것을 사람이 보고 물었다
+   * (2026-09-06). 자리마다 두른 경계가 이미 있으니 기다림도 여기서 받는다:
+   * 셸과 이미 온 자리는 그대로 있고, 안 온 자리에만 회색 블록이 뜬다.
+   *
+   * `loading.ts` 머리가 '자리마다 따로 기다리는 것이 결국 옳은 모양'이라 적어 둔
+   * 그 모양이다.
+   */
   render() {
-    return this.state.notBuilt ? <Placeholder what={this.props.what} /> : this.props.children
+    if (this.state.notBuilt) return <Placeholder what={this.props.what} />
+    return (
+      <Suspense fallback={<Skeleton label={`${this.props.what}을(를) 불러오는 중입니다`} />}>
+        {this.props.children}
+      </Suspense>
+    )
   }
 }

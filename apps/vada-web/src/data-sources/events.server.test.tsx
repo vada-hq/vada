@@ -666,7 +666,12 @@ describe('행사를 끝내는 두 모달이 권한 행렬에서 온다', () => {
     await waitFor(() => expect(screen.getByText('미완료 업무 1건')).toBeInTheDocument())
     // **뒤에 남는 화면도 같은 글을 그린다.** 둘 다 권한 행렬에서 만들어진 한 문장이라
     // 같은 것이 두 번 보이는 것이 맞다 — 갈리면 그때가 틀린 것이다.
-    expect(screen.getAllByText('행사 완료 처리는 회장단만 할 수 있습니다.').length).toBe(2)
+    //
+    // 뒤엣것은 자기 자리에서 따로 기다리므로 창보다 늦게 온다(2026-09-06에 로딩을
+    // 자리 단위로 옮겼다). 기다렸다 센다.
+    await waitFor(() =>
+      expect(screen.getAllByText('행사 완료 처리는 회장단만 할 수 있습니다.').length).toBe(2),
+    )
     expect(document.body.textContent).not.toContain(NOT_BUILT)
   })
 })

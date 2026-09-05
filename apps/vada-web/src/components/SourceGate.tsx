@@ -2,6 +2,7 @@ import { Component, Suspense, type ReactNode } from 'react'
 import { AppShell } from './AppShell'
 import { messagesOf } from '../data-sources/loading'
 import { NotBuiltYet, SourcesFailed } from '../data-sources/server'
+import { ScreenSkeleton } from './Skeleton'
 
 /**
  * 화면이 읽다 멈춘 자리.
@@ -139,13 +140,20 @@ export class SourceGate extends Component<SourceGateProps, GateState> {
       )
     }
     return (
-      // **기다리는 동안은 맨 글이다.** 여기에 셸을 그리면 셸도 서버를 읽으므로
-      // 대신 그리는 자리에서 또 멈추고, 그러면 본문이 와도 다시 그려지지 않는다 —
-      // 화면이 영영 '불러오는 중'에 머문다(2026-09-05, 카나리가 잡았다).
+      // **기다리는 동안은 채워질 자리를 회색으로 그린다**(사람이 정했다, 2026-09-06).
       //
-      // 갇히는 것은 기다림이 아니라 **준비 중과 실패**다. 그 둘은 안 끝나므로
-      // 나갈 길이 있어야 하고, 기다림은 곧 끝난다.
-      <Suspense fallback={<Lines messages={messagesOf(this.props.sourceKeys, 'loading')} isError={false} />}>
+      // 여기에 진짜 셸을 그리면 셸도 서버를 읽으므로 대신 그리는 자리에서 또 멈추고,
+      // 그러면 본문이 와도 다시 그려지지 않는다 — 화면이 영영 '불러오는 중'에 머문다
+      // (2026-09-05, 카나리가 잡았다). 그래서 셸의 **모양만** 그린다: 읽는 것이 없으니
+      // 멈출 일이 없다.
+      //
+      // **여기까지 오는 것은 자리마다 두르지 않은 화면뿐이다.** 두른 화면은 `Built`가
+      // 자리마다 기다리므로 셸과 이미 온 자리가 그대로 남는다.
+      //
+      // 명세가 적어 둔 문구는 버리지 않는다 — 읽어 주는 기계에게 간다.
+      <Suspense
+        fallback={<ScreenSkeleton label={messagesOf(this.props.sourceKeys, 'loading').join(' · ')} />}
+      >
         {this.props.children}
       </Suspense>
     )
