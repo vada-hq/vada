@@ -97,6 +97,12 @@ function isFieldWrapper(node) {
   return directChildNamed(node, "Label") !== null;
 }
 
+/**
+ * 세는 말의 모양. `tests/spec-counted-copy.test.mjs`가 계약에서 막는 그 규칙과 같다 —
+ * 두 벌을 두면 한쪽만 넓어진다.
+ */
+const COUNTED = /\d[\d,]*\s*(건|개|명|원|장|회|번|%|시간|분)/;
+
 function isButton(node) {
   return BUTTON_NAME_PATTERN.test(node?.name ?? "");
 }
@@ -785,6 +791,18 @@ export function draftScreenElements(design, options = {}) {
             `${child.id}(${child.name}) — 텍스트 없는 조작입니다. 어떤 요소의 내부 조작인지 알려주세요.`
           );
           continue;
+        }
+        // **세는 수가 든 단추는 단추가 아닐 수 있다.**
+        //
+        // `button`의 어휘는 `label`·`description`·`badge`가 다 고정 글이다. 그림에
+        // '데이터가 든 눌리는 카드'가 있으면 그 수가 **조용히 고정 글로 굳는다** —
+        // 홈의 '진행 중·검토 필요 4건'이 그렇게 굳어 있었고, 아무도 안 물었다.
+        // 추출기는 그림만 보므로 가릴 수 없다. 그래서 묻는다.
+        const said = collectText(child).join(" ");
+        if (COUNTED.test(said)) {
+          questions.push(
+            `${child.id}(${said.trim().slice(0, 40)}) — 세는 수가 든 단추입니다. 그 수가 데이터에서 오면 button으로 두면 **고정 글로 굳습니다**(button의 어휘에는 데이터를 담을 자리가 없습니다). 데이터라면 summary + action으로 등록하세요. 그림에 박힌 예시 수일 뿐이면 그대로 두어도 됩니다.`
+          );
         }
         elements.push(
           describeButton(child, questions, elements.length, getButtonEmphasis(child))
