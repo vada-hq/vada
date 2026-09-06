@@ -9,7 +9,8 @@ import {
   primaryButtonOf,
 } from '../spec/screens'
 import { useFieldDraft } from '../spec/useFieldDraft'
-import type { ButtonSpec } from '../spec/types'
+import { useSubmitAction } from '../spec/useSubmitAction'
+import type { ButtonSpec, SubmitAction } from '../spec/types'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
 interface INV01ScreenProps {
@@ -19,6 +20,7 @@ interface INV01ScreenProps {
   scopes: ScopeStore
   onChangeDraft: (next: ScopeDraft) => void
   onNavigate: (screenId: string) => void
+  onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
 }
 
 export function INV01Screen({
@@ -27,10 +29,12 @@ export function INV01Screen({
   scopes,
   onChangeDraft,
   onNavigate,
+  onScopeEvent,
 }: INV01ScreenProps) {
   const meta = inv01.meta
   const elements = inv01.elements
   const field = useFieldDraft({ elements, draft, onChangeDraft })
+  const submitAction = useSubmitAction()
 
   const buttons = elements
     .filter((element) => element.spec.type === 'button')
@@ -71,12 +75,27 @@ export function INV01Screen({
 
       {meta?.footerNote && <p className="pt-5 text-xs text-gray-400">{meta.footerNote}</p>}
 
+      {submitAction.errorMessage === null ? null : (
+        <p role="alert" className="pt-4 text-xs text-red-500">
+          {submitAction.errorMessage}
+        </p>
+      )}
+
       <div className="flex flex-col gap-2 pt-4">
+        {/* **누르면 서버로 간다.** 오랫동안 이 단추는 홈으로 넘어가기만 했고, 그래서
+            코드를 확인하고 소속을 적어도 아무도 구성원이 되지 않았다(2026-09-06). */}
         <PrimaryButton
-          label={primaryButton.label}
+          label={submitAction.labelOf(primaryButton.action as SubmitAction, primaryButton.label)}
           nodeId={nodeIdOf(inv01, primaryButton)}
           onClick={() =>
-            field.runButton(primaryButton, () => onNavigate(navigateTarget(primaryButton.action)))
+            field.runButton(primaryButton, () => {
+              void submitAction.run(primaryButton.action as SubmitAction, {
+                // 초안 전부를 보낸다 — 이름은 앞 화면이, 소속은 이 화면이 담았다.
+                payload: draft.values,
+                onNavigate,
+                onScopeEvent,
+              })
+            })
           }
         />
         {quietButtons.map((button) => (

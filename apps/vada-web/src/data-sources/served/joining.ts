@@ -26,5 +26,8 @@ export const joining: Served = {
     'auth.signInKakao',
     'org.create',
     'organization.verifyInviteCode',
+    // **여기서 사람이 구성원이 된다.** 확인은 묻기만 하므로 이것이 없으면
+    // 코드를 넣고 소속을 적어도 아무 일도 안 일어난다.
+    'org.join',
   ],
 }

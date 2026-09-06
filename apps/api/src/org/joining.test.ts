@@ -13,8 +13,10 @@ import {
   invites,
   members,
   organizations,
+  permissionChanges,
   users,
 } from '../db/schema.ts'
+import { unassignedMembers } from './chart.ts'
 import { inMemoryAttempts, type Attempts } from '../idempotency.ts'
 import type { Viewer } from '../permissions.ts'
 import { inMemoryCounter } from '../public/rate-limit.ts'
@@ -124,6 +126,15 @@ function verify(app: ReturnType<typeof harness>, over: Record<string, unknown> =
   })
 }
 
+/** INV-01의 마지막 단추. **여기서 사람이 구성원이 된다.** */
+function join(app: ReturnType<typeof harness>, over: Record<string, unknown> = {}) {
+  return app.request('/api/organizations/join', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ ...ONBOARDING, ...over }),
+  })
+}
+
 const message = async (res: Response) => ((await res.json()) as { message: string }).message
 
 beforeAll(async () => {
@@ -138,6 +149,7 @@ beforeAll(async () => {
 
 beforeEach(async () => {
   made = 0
+  await db.delete(permissionChanges)
   await db.delete(members)
   await db.delete(departments)
   await db.delete(invites)
@@ -318,7 +330,7 @@ describe('초대 코드를 확인한다(INV-00)', () => {
     expect(res.status).toBe(200)
     // 계약이 돌려주는 값을 두지 않았다.
     expect(await res.json()).toEqual({})
-    // **묻기만 하고 아무것도 바꾸지 않는다.** 들어가는 자리는 명세에 없다.
+    // **묻기만 하고 아무것도 바꾸지 않는다.** 들어가는 것은 다음 자리다.
     expect(await db.select().from(members)).toHaveLength(0)
   })
 
@@ -363,6 +375,81 @@ describe('초대 코드를 확인한다(INV-00)', () => {
 
   it('로그인하지 않으면 막는다', async () => {
     expect((await verify(harness(null))).status).toBe(401)
+  })
+})
+
+// 이 자리가 없던 동안 코드를 확인하고 소속을 적고 눌러도 아무도 구성원이 되지
+// 않았고, **어느 학생회든 구성원은 만든 사람 하나뿐이었다** — 조직도에 옮길 사람도,
+// 회의에 부를 사람도, 내보낼 사람도 없었다. 그림이 그 단추를 이동으로 그렸고
+// 명세가 그림 그대로 적었기 때문이다(2026-09-06에 사람이 정해 고쳤다).
+describe('학생회에 들어간다(INV-01)', () => {
+  it('누르면 구성원 줄이 생긴다', async () => {
+    await invitedOrg()
+    const res = await join(harness())
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({})
+
+    const rows = await db.select().from(members)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({
+      orgId: 'ORG-INV',
+      userId: 'U-01',
+      // **이름은 서버가 이미 아는 것으로 짓는다.** 초안의 이름을 그대로 믿으면
+      // 남의 이름으로 들어올 수 있다 — 학생회를 만드는 자리와 같은 규칙이다.
+      name: '김바다',
+      studentNumber: '2022123456',
+      // 초대로 들어오는 사람에게 회장단을 줄 근거가 아무 데도 없다.
+      role: 'member',
+      departmentId: null,
+      leftAt: null,
+    })
+  })
+
+  it('들어온 뒤에는 조직도가 그 사람을 그린다', async () => {
+    await invitedOrg()
+    await join(harness())
+    expect((await unassignedMembers(db, 'ORG-INV')).map((row) => row.name)).toEqual(['김바다'])
+  })
+
+  it('권한을 준 기록이 3년 남는 표에 적힌다', async () => {
+    await invitedOrg()
+    await join(harness())
+    const rows = await db.select().from(permissionChanges)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]).toMatchObject({ change: '학생회에 참여', before: null, after: 'member' })
+  })
+
+  // 확인은 묻기만 하므로 그 사이에 코드가 죽을 수 있고, 확인을 건너뛰고 여기로
+  // 곧장 보낼 수도 있다. 판정 한 벌을 나눠 쓰므로 같은 벽이 선다.
+  it('확인이 막는 것은 여기서도 막힌다', async () => {
+    await invitedOrg('OFF12345', false)
+    expect((await join(harness(), { inviteCode: 'OFF12345' })).status).toBe(422)
+    expect((await join(harness(), { department: 'DEP-없음' })).status).toBe(422)
+    expect((await join(harness(), { studentNumber: '' })).status).toBe(422)
+    expect((await join(harness(null))).status).toBe(401)
+    expect(await db.select().from(members)).toHaveLength(0)
+  })
+
+  // 느린 화면에서 두 번 눌린 것이다. 줄을 둘 만들면 그 사람이 조직도에 두 번 선다.
+  it('두 번 눌려도 줄은 하나다', async () => {
+    await invitedOrg()
+    await join(harness())
+    expect((await join(harness())).status).toBe(422)
+    expect(await db.select().from(members)).toHaveLength(1)
+  })
+
+  // 새 줄을 만들면 그 사람이 예전에 쓴 문서와 올린 요청이 다른 사람의 것처럼 갈린다.
+  it('나갔던 사람은 그 줄로 돌아온다', async () => {
+    await invitedOrg()
+    await join(harness())
+    const before = (await db.select().from(members))[0]!
+    await db.update(members).set({ leftAt: NOW }).where(eq(members.id, before.id))
+
+    expect((await join(harness())).status).toBe(200)
+    const rows = await db.select().from(members)
+    expect(rows).toHaveLength(1)
+    expect(rows[0]!.id).toBe(before.id)
+    expect(rows[0]!.leftAt).toBeNull()
   })
 })
 

@@ -21815,6 +21815,108 @@
         }
       }
     },
+    "/api/organizations/join": {
+      "post": {
+        "operationId": "org.join",
+        "summary": "초대 코드로 확인한 학생회에 **실제로 들어간다**(INV-01의 마지막 단추).\n\n**한동안 이 자리가 없었다.** 와이어프레임이 그 단추를 홈으로 가는 이동으로 그렸고, 명세는 그림 그대로 적었다. 그래서 코드를 확인하고 소속을 적고 눌러도 `members`에 줄이 생기지 않았고, **어느 학생회든 구성원은 만든 사람 하나뿐이었다** — 조직도에 옮길 사람도, 회의에 부를 사람도, 내보낼 사람도 없었다. 사람이 정했다(2026-09-06): 그 단추가 보내게 한다. 그림은 그대로 두고 눌렀을 때 일어나는 일만 바꾼다.\n\n**앞 자리(`organization.verifyInviteCode`)와 같은 것을 본다.** 확인은 묻기만 하고 바꾸지 않으므로, 확인과 들어가기 사이에 코드가 죽거나 소속이 바뀔 수 있다 — 여기서 다시 본다. 확인을 건너뛰고 이 자리로 곧장 보내도 같은 벽이 선다.",
+        "x-authorize": {
+          "area": "signedIn"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "보낸 값이 받을 수 없는 것이다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "inviteCode": {
+                    "type": "string",
+                    "description": "초대 코드"
+                  },
+                  "school": {
+                    "type": "string",
+                    "description": "학교"
+                  },
+                  "college": {
+                    "type": "string",
+                    "description": "단과대학"
+                  },
+                  "department": {
+                    "type": "string",
+                    "description": "학부·학과"
+                  },
+                  "currentGrade": {
+                    "type": "string",
+                    "description": "현재 학년"
+                  },
+                  "studentNumber": {
+                    "type": "string",
+                    "description": "학번"
+                  },
+                  "name": {
+                    "type": "string",
+                    "description": "이름"
+                  }
+                },
+                "required": [
+                  "inviteCode",
+                  "school",
+                  "college",
+                  "department",
+                  "currentGrade",
+                  "studentNumber",
+                  "name"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/public/surveys/{surveyToken}/applications": {
       "post": {
         "operationId": "survey.apply",

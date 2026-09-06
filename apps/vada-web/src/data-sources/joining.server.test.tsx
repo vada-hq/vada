@@ -9,7 +9,8 @@ import { viewerLookup } from '../../../api/src/auth/viewer.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
-import { useServer } from './server'
+import { readListSource } from './catalog'
+import { loadSources, useServer } from './server'
 
 // **학생회에 들어오는 길을 끝까지 뚫는다.**
 //
@@ -214,6 +215,31 @@ describe('만든 학생회를 다른 사람이 초대로 본다', () => {
     })
     // 계약이 '돌려주는 값이 없다'고 적었다. 던지지 않은 것이 성공이다.
     expect(answer).toEqual({})
+  })
+
+  // **여기서 사람이 구성원이 된다.** 이 자리가 없던 동안 코드를 확인하고 소속을 적고
+  // 눌러도 아무 일도 일어나지 않았고, 어느 학생회든 구성원은 만든 사람 하나뿐이었다.
+  it('화면이 누르는 길로 학생회에 들어간다', async () => {
+    signedInAs = NEWCOMER
+    const draft = {
+      inviteCode: code,
+      school: 'SCH-HYU-ERICA',
+      college: 'COL-HYU-ERICA-SW',
+      department: 'DEP-HYU-ERICA-SW-CS',
+      currentGrade: '3',
+      studentNumber: '2022123456',
+      name: '박해랑',
+    }
+    expect(await runMutation('org.join', draft)).toEqual({})
+
+    // 들어온 사람이 조직도에 선다 — 그 전에는 아무도 여기 오지 않았다.
+    signedInAs = CHAIR
+    await loadSources([{ key: 'org.unassignedMembers', params: {} }])
+    expect(readListSource('org.unassignedMembers').map((row) => row.name)).toContain('박해랑')
+
+    // 두 번 눌려도 줄은 하나다(계약의 `repeat: naturalKey`).
+    signedInAs = NEWCOMER
+    await expect(runMutation('org.join', draft)).rejects.toThrow()
   })
 
   it('없는 코드는 던진다 — 화면이 맞는지 스스로 알 수 없다', async () => {

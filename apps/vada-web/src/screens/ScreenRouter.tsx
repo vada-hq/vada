@@ -225,6 +225,7 @@ function ScreenBody({
         scopes={scopes}
         onChangeDraft={(next) => onChangeScope(inv01.stateScopeKey ?? '', next)}
         onNavigate={onNavigate}
+        onScopeEvent={onScopeEvent}
       />
     )
   }

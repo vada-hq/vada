@@ -119,7 +119,8 @@ export interface RoleChangeRecord {
   change: string
   /** 그때 그 사람의 이름. 구성원이 지워져도 남는다. */
   name: string
-  before: string
+  /** 그 전의 상태. **처음 들어오는 사람에게는 그 전이 없다.** */
+  before: string | null
   after: string
   actorUserId: string | null
   at: Date
@@ -137,17 +138,25 @@ export async function recordRoleChange(
   orgId: string,
   record: RoleChangeRecord,
 ): Promise<void> {
-  await db.insert(permissionChanges).values({
-    id: `${record.memberId}:${record.change}:${record.at.toISOString()}`,
-    at: record.at,
-    orgId,
-    actorUserId: record.actorUserId,
-    subjectMemberId: record.memberId,
-    // 구성원이 지워져도 누구였는지는 남는다 — 가리키는 줄이 사라지면 기록이
-    // '누구인지 모르는 변경'이 된다.
-    subjectName: record.name,
-    change: record.change,
-    before: record.before,
-    after: record.after,
-  })
+  await db
+    .insert(permissionChanges)
+    .values({
+      // **한 사건에 열쇠 하나.** 사람과 시각뿐이던 동안 같은 순간의 두 변경이 서로를
+      // 지웠고(역할을 바꾸고 곧바로 내보낸다), 그러면 3년 남겨야 하는 기록이 조용히
+      // 하나 사라진다. 무엇이 무엇으로 바뀌었는지까지 열쇠에 넣는다.
+      id: `${record.memberId}:${record.change}:${record.before ?? ''}>${record.after}:${record.at.toISOString()}`,
+      at: record.at,
+      orgId,
+      actorUserId: record.actorUserId,
+      subjectMemberId: record.memberId,
+      // 구성원이 지워져도 누구였는지는 남는다 — 가리키는 줄이 사라지면 기록이
+      // '누구인지 모르는 변경'이 된다.
+      subjectName: record.name,
+      change: record.change,
+      before: record.before,
+      after: record.after,
+    })
+    // 열쇠까지 같으면 **같은 사건**이다 — 두 번 보내진 것이지 두 번 일어난 것이
+    // 아니다. 그때 500을 내면 두 번 눌린 사람이 아무것도 못 한다.
+    .onConflictDoNothing()
 }

@@ -14,6 +14,7 @@ import { Blocked, NotFound } from '../routes.ts'
 import { collegeIn, departmentIn } from './education.ts'
 import { firstInvite } from './invite.ts'
 import { stillHere } from './membership.ts'
+import { recordRoleChange } from './role-change.ts'
 
 // 들어오는 길(ONB-01 → ONB-02 → ORG-01 · ORG-02 또는 INV-00 · INV-01).
 //
@@ -260,8 +261,8 @@ async function orgOfCode(db: Db, code: string): Promise<string | null> {
  * 초대 코드가 쓸 수 있는 것인지 서버에 묻는다(INV-00).
  *
  * **묻기만 하고 아무것도 바꾸지 않는다**(mutations.json의 `repeat: overwrite`). 실제로
- * 들어가는 자리는 명세에 없다 — INV-01의 마지막 단추는 `submit`이 아니라 HOME-01K로
- * 가는 `navigate`다. 그래서 여기서 구성원 줄을 만들지 않는다. 지어내지 않는다.
+ * 들어가는 것은 다음 화면의 마지막 단추이고 그 자리가 `joinOrg`다 — 2026-09-06까지
+ * 그 자리가 없어서, 코드를 확인하고 소속을 적고 눌러도 아무도 구성원이 되지 않았다.
  *
  * **'이미 다른 학생회에 속해 있는지'를 이 학생회 안에서 본다.** 명세의 그 문장을
  * '어느 학생회에든 속해 있으면 안 된다'로 읽으면 다른 자리와 어긋난다 — 한 사람이
@@ -300,6 +301,68 @@ export async function verifyInviteCode(
     .where(and(eq(members.orgId, orgId), eq(members.userId, userId), stillHere))
     .limit(1)
   if (already.length > 0) throw new Blocked('이미 이 학생회의 구성원입니다')
+
+  return { orgId }
+}
+
+/**
+ * 확인한 학생회에 **실제로 들어간다**(INV-01의 마지막 단추).
+ *
+ * **확인과 같은 벽을 다시 세운다.** 확인은 묻기만 하므로 그 사이에 코드가 죽거나
+ * 소속이 바뀔 수 있고, 확인을 건너뛰고 여기로 곧장 보낼 수도 있다. 그래서 판정은
+ * `verifyInviteCode`가 한 벌만 들고 여기가 그것을 다시 부른다 — 두 벌을 두면 갈린다.
+ *
+ * **나갔던 사람은 그 줄로 돌아온다.** 새 줄을 만들면 그 사람이 예전에 쓴 문서와 올린
+ * 요청이 다른 사람의 것처럼 갈린다. 한 사람에게는 이 학생회의 줄이 하나다.
+ *
+ * **역할은 부원이고 부서는 없다.** 초대로 들어오는 사람에게 회장단을 줄 근거가
+ * 아무 데도 없고, 어느 부서인지는 조직도(ORG-03B)가 정한다.
+ */
+export async function joinOrg(
+  db: Db,
+  userId: string,
+  draft: Record<string, unknown>,
+  // 초대 코드는 만들지 않는다 — 이미 있는 초대로 들어오는 자리다.
+  make: Pick<OrgIds, 'newId' | 'now'>,
+): Promise<{ orgId: string }> {
+  const { orgId } = await verifyInviteCode(db, userId, draft)
+  const at = make.now()
+
+  // 나갔던 줄이 있으면 그것을 되살린다. 없으면 새로 만든다.
+  const left = await db
+    .select({ id: members.id })
+    .from(members)
+    .where(and(eq(members.orgId, orgId), eq(members.userId, userId)))
+    .limit(1)
+
+  const name = await founderName(db, userId)
+  const student = {
+    name,
+    studentNumber: readWord(draft, 'studentNumber', '학번'),
+    college: readWord(draft, 'college', '단과대학'),
+    major: readWord(draft, 'department', '학부·학과'),
+    grade: readChoice(draft, 'currentGrade', CURRENT_GRADES, '학년'),
+  }
+
+  const memberId = left[0]?.id ?? make.newId()
+  if (left[0] === undefined) {
+    await db.insert(members).values({ id: memberId, orgId, userId, role: 'member', createdAt: at, ...student })
+  } else {
+    // 다시 들어오는 사람이다. 자리는 비운 채로 두고(조직도가 정한다) 학적만 새로 받는다.
+    await db.update(members).set({ leftAt: null, ...student }).where(eq(members.id, memberId))
+  }
+
+  // **법이 이 자리를 3년 본다.** 권한을 준 기록이고, 내보낸 기록과 같은 표에 같은
+  // 모양으로 남는다 — 한쪽만 남기면 '언제 들어왔는지 모르는 사람이 나갔다'가 된다.
+  await recordRoleChange(db, orgId, {
+    memberId,
+    change: '학생회에 참여',
+    name,
+    before: left[0] === undefined ? null : '나감',
+    after: 'member',
+    actorUserId: userId,
+    at,
+  })
 
   return { orgId }
 }

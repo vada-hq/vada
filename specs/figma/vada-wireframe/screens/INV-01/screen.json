@@ -226,8 +226,12 @@
         "emphasis": "primary",
         "initiallyDisabled": false,
         "action": {
-          "type": "navigate",
-          "targetScreenId": "HOME-01K",
+          "type": "submit",
+          "mutationKey": "org.join",
+          "onSuccess": {
+            "navigate": "HOME-01K",
+            "scopeEvent": "complete"
+          },
           "executeWhen": {
             "type": "allRequiredFieldsHaveValue",
             "scope": "screen"

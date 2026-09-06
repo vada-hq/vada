@@ -4,7 +4,7 @@ import {
   departmentOptions as educationDepartmentOptions,
   schoolOptions,
 } from '../org/education.ts'
-import { createOrg, invitedOrganization, verifyInviteCode } from '../org/joining.ts'
+import { createOrg, invitedOrganization, joinOrg, verifyInviteCode } from '../org/joining.ts'
 
 // 들어오는 길 — 로그인하고, 학교를 고르고, 학생회를 만들거나 초대를 확인한다.
 //
@@ -69,6 +69,18 @@ export const joiningHandlers: Handlers = {
     const checked = await verifyInviteCode(d.db, who.userId, draft)
     c.set('auditSubject', { type: 'organization', id: checked.orgId })
     // 계약이 '돌려주는 값이 없다'고 적었다. 어느 학생회인지는 다음 자리가 답한다.
+    return {}
+  },
+  // **여기서 사람이 구성원이 된다.** 앞의 확인은 묻기만 한다.
+  'org.join': async (c, d) => {
+    const who = c.get('sender')!
+    const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
+    const joined = await joinOrg(d.db, who.userId, draft, { newId: d.newId, now: d.invite.now })
+    c.set('auditSubject', { type: 'user', id: who.userId })
+    // 보낸 사람에게 아직 소속이 없어 기록 층이 이 칸을 못 채운다 — 비워 두면
+    // '누가 언제 어느 학생회에 들어왔나'를 기록으로 찾을 수 없다.
+    c.set('orgId', joined.orgId)
+    // 계약이 '돌려주는 값이 없다'고 적었다.
     return {}
   },
   'org.invitedOrganization': async (c, d) => {
