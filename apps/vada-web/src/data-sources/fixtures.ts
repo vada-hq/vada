@@ -2918,14 +2918,14 @@ const BUDGET_PLAN_DRAFT: DataRow = {
     { id: 'BS-02', sourceName: '학교 지원금', sourceAmount: 6_000_000 },
   ],
   items: [
-    { id: 'BI-11', itemName: '운영비', itemAmount: 3_000_000, itemDepartment: 'D-01' },
-    { id: 'BI-12', itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02' },
-    { id: 'BI-13', itemName: '안전·설비', itemAmount: 1_800_000, itemDepartment: 'D-01' },
+    { id: 'BI-11', itemName: '운영비', itemAmount: 3_000_000, itemDepartment: 'D-01', itemDepartmentName: '기획부' },
+    { id: 'BI-12', itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02', itemDepartmentName: '홍보부' },
+    { id: 'BI-13', itemName: '안전·설비', itemAmount: 1_800_000, itemDepartment: 'D-01', itemDepartmentName: '기획부' },
     { id: 'BI-14', itemName: '비품', itemAmount: 1_200_000 },
   ],
   eventItems: [
-    { id: 'BI-21', eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000, eventItemDepartment: 'D-01' },
-    { id: 'BI-22', eventItemEvent: 'E-01', eventItemName: '홍보비', eventItemAmount: 800_000, eventItemDepartment: 'D-01' },
+    { id: 'BI-21', eventItemEvent: 'E-01', eventItemEventName: '2026 봄 축제', eventItemName: '물품비', eventItemAmount: 1_200_000, eventItemDepartment: 'D-01', eventItemDepartmentName: '기획부' },
+    { id: 'BI-22', eventItemEvent: 'E-01', eventItemEventName: '2026 봄 축제', eventItemName: '홍보비', eventItemAmount: 800_000, eventItemDepartment: 'D-01', eventItemDepartmentName: '기획부' },
   ],
 }
 

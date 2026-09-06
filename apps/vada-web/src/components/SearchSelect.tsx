@@ -268,7 +268,9 @@ export function SearchSelect({
               구분해 그리지 못한다(design-check/index.ts). */}
           <span
             data-design-state={value ? undefined : ''}
-            className={`block min-h-5 truncate ${value ? '' : 'text-gray-400'}`}
+            // **고른 값은 더 짙다**(design). 안 고른 자리의 안내 글과 같은 색이면 고른
+            // 것과 안 고른 것이 한눈에 안 갈린다.
+            className={`block min-h-5 truncate ${value ? 'text-gray-900' : 'text-gray-400'}`}
           >
             {value?.label ?? placeholder ?? ''}
           </span>

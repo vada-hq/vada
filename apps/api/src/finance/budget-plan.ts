@@ -41,14 +41,19 @@ export interface BudgetItemDraft {
   itemName: string
   itemAmount: number
   itemDepartment?: string
+  /** 담당 부서의 이름. 값 곁에 함께 온다. */
+  itemDepartmentName?: string
 }
 
 export interface BudgetEventItemDraft {
   id: string
   eventItemEvent: string
+  /** 그 행사의 이름. **값 곁에 함께 온다** — 값은 id라 그것만으로는 그릴 말이 없다. */
+  eventItemEventName: string
   eventItemName: string
   eventItemAmount: number
   eventItemDepartment?: string
+  eventItemDepartmentName?: string
 }
 
 export interface BudgetPlanDraft {
@@ -77,6 +82,8 @@ export async function budgetPlanDraft(db: Db, orgId: string): Promise<BudgetPlan
     .from(budgetSources)
     .where(eq(budgetSources.orgId, orgId))
     .orderBy(asc(budgetSources.sortOrder), asc(budgetSources.id))
+  // **값 곁에 이름을 함께 싣는다.** 값은 id라 그것만 주면 첫 그림에 사람이 읽을 말이
+  // 없고, 이름은 고르는 목록이 열릴 때에야 온다 — 그동안 화면은 빈 칸이었다.
   const items = await db
     .select({
       id: budgetItems.id,
@@ -84,8 +91,15 @@ export async function budgetPlanDraft(db: Db, orgId: string): Promise<BudgetPlan
       name: budgetItems.name,
       amount: budgetItems.amount,
       departmentId: budgetItems.departmentId,
+      departmentName: departments.name,
+      eventName: events.title,
     })
     .from(budgetItems)
+    .leftJoin(
+      departments,
+      and(eq(budgetItems.departmentId, departments.id), eq(departments.orgId, orgId)),
+    )
+    .leftJoin(events, and(eq(budgetItems.eventId, events.id), eq(events.orgId, orgId)))
     .where(eq(budgetItems.orgId, orgId))
     .orderBy(asc(budgetItems.sortOrder), asc(budgetItems.id))
 
@@ -98,16 +112,28 @@ export async function budgetPlanDraft(db: Db, orgId: string): Promise<BudgetPlan
         id: row.id,
         itemName: row.name,
         itemAmount: row.amount,
-        ...(row.departmentId === null ? {} : { itemDepartment: row.departmentId }),
+        ...(row.departmentId === null
+          ? {}
+          : {
+              itemDepartment: row.departmentId,
+              ...(row.departmentName === null ? {} : { itemDepartmentName: row.departmentName }),
+            }),
       })),
     eventItems: items
       .filter((row): row is typeof row & { eventId: string } => row.eventId !== null)
       .map((row) => ({
         id: row.id,
         eventItemEvent: row.eventId,
+        // 행사가 지워지면 이름이 없다 — 지어내지 않고 값을 그대로 보여 준다.
+        eventItemEventName: row.eventName ?? row.eventId,
         eventItemName: row.name,
         eventItemAmount: row.amount,
-        ...(row.departmentId === null ? {} : { eventItemDepartment: row.departmentId }),
+        ...(row.departmentId === null
+          ? {}
+          : {
+              eventItemDepartment: row.departmentId,
+              ...(row.departmentName === null ? {} : { eventItemDepartmentName: row.departmentName }),
+            }),
       })),
   }
 }

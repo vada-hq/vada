@@ -639,11 +639,32 @@ describe('예산 편성이 저장소로 가고 저장소에서 온다(FIN-PLAN-0
       { id: expect.any(String), sourceName: '학교 지원금', sourceAmount: 6_000_000 },
     ])
     expect(stored.items).toEqual([
-      { id: expect.any(String), itemName: '한마당 운영비', itemAmount: 3_000_000, itemDepartment: 'D-01' },
+      // **값 곁에 이름이 함께 온다** — 첫 그림부터 사람이 읽을 말이 있어야 한다.
+      {
+        id: expect.any(String),
+        itemName: '한마당 운영비',
+        itemAmount: 3_000_000,
+        itemDepartment: 'D-01',
+        itemDepartmentName: '운영부',
+      },
     ])
     expect(stored.eventItems).toEqual([
-      { id: 'B-01', eventItemEvent: 'E-01', eventItemName: '행사 운영비', eventItemAmount: 1_500_000, eventItemDepartment: 'D-02' },
-      { id: expect.any(String), eventItemEvent: 'E-01', eventItemName: '한마당 홍보비', eventItemAmount: 800_000 },
+      {
+        id: 'B-01',
+        eventItemEvent: 'E-01',
+        eventItemEventName: '2026 소프트웨어융합대학 가을 한마당',
+        eventItemName: '행사 운영비',
+        eventItemAmount: 1_500_000,
+        eventItemDepartment: 'D-02',
+        eventItemDepartmentName: '재정부',
+      },
+      {
+        id: expect.any(String),
+        eventItemEvent: 'E-01',
+        eventItemEventName: '2026 소프트웨어융합대학 가을 한마당',
+        eventItemName: '한마당 홍보비',
+        eventItemAmount: 800_000,
+      },
     ])
   })
 

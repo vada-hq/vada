@@ -99,8 +99,8 @@ const FILLED = {
     { sourceName: '학교 지원금', sourceAmount: 6_000_000 },
   ],
   items: [
-    { itemName: '운영비', itemAmount: 3_000_000, itemDepartment: 'D-01' },
-    { itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02' },
+    { itemName: '운영비', itemAmount: 3_000_000, itemDepartment: 'D-01', itemDepartmentName: '기획부' },
+    { itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02', itemDepartmentName: '홍보부' },
     { itemName: '비품', itemAmount: 1_200_000 },
   ],
   eventItems: [
@@ -206,14 +206,14 @@ describe('저장(finance.budgetPlan.save)', () => {
     ])
     // 담당 부서가 없는 줄은 그 조각을 내지 않는다.
     expect(plan.items).toEqual([
-      { id: expect.any(String), itemName: '운영비', itemAmount: 3_000_000, itemDepartment: 'D-01' },
-      { id: expect.any(String), itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02' },
+      { id: expect.any(String), itemName: '운영비', itemAmount: 3_000_000, itemDepartment: 'D-01', itemDepartmentName: '기획부' },
+      { id: expect.any(String), itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02', itemDepartmentName: '홍보부' },
       { id: expect.any(String), itemName: '비품', itemAmount: 1_200_000 },
     ])
     expect(plan.eventItems).toEqual([
-      { id: expect.any(String), eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000, eventItemDepartment: 'D-01' },
-      { id: expect.any(String), eventItemEvent: 'E-01', eventItemName: '홍보비', eventItemAmount: 800_000 },
-      { id: expect.any(String), eventItemEvent: 'E-02', eventItemName: '경품', eventItemAmount: 500_000 },
+      { id: expect.any(String), eventItemEvent: 'E-01', eventItemEventName: '2026 봄 축제', eventItemName: '물품비', eventItemAmount: 1_200_000, eventItemDepartment: 'D-01', eventItemDepartmentName: '기획부' },
+      { id: expect.any(String), eventItemEvent: 'E-01', eventItemEventName: '2026 봄 축제', eventItemName: '홍보비', eventItemAmount: 800_000 },
+      { id: expect.any(String), eventItemEvent: 'E-02', eventItemEventName: '2026 체육대회', eventItemName: '경품', eventItemAmount: 500_000 },
     ])
   })
 
@@ -232,11 +232,11 @@ describe('저장(finance.budgetPlan.save)', () => {
         // 운영비의 부서를 뗀다. 홍보비는 그대로, 비품은 지우고, 새 줄 하나.
         items: [
           { id: items[0]!.id, itemName: '운영비', itemAmount: 3_000_000 },
-          { id: items[1]!.id, itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02' },
+          { id: items[1]!.id, itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02', itemDepartmentName: '홍보부' },
           { itemName: '안전·설비', itemAmount: 1_800_000, itemDepartment: 'D-01' },
         ],
         // 체육대회의 줄만 남기고 봄 축제의 두 줄은 지운다.
-        eventItems: [{ id: eventItems[2]!.id, eventItemEvent: 'E-02', eventItemName: '경품', eventItemAmount: 700_000 }],
+        eventItems: [{ id: eventItems[2]!.id, eventItemEvent: 'E-02', eventItemEventName: '2026 체육대회', eventItemName: '경품', eventItemAmount: 700_000 }],
       }),
     )
     expect(res.status, await res.text()).toBe(200)
@@ -246,12 +246,12 @@ describe('저장(finance.budgetPlan.save)', () => {
     expect(after.sources).toEqual([{ id: sources[0]!.id, sourceName: '학생회비', sourceAmount: 25_000_000 }])
     expect(after.items).toEqual([
       { id: items[0]!.id, itemName: '운영비', itemAmount: 3_000_000 },
-      { id: items[1]!.id, itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02' },
-      { id: expect.any(String), itemName: '안전·설비', itemAmount: 1_800_000, itemDepartment: 'D-01' },
+      { id: items[1]!.id, itemName: '홍보비', itemAmount: 2_500_000, itemDepartment: 'D-02', itemDepartmentName: '홍보부' },
+      { id: expect.any(String), itemName: '안전·설비', itemAmount: 1_800_000, itemDepartment: 'D-01', itemDepartmentName: '기획부' },
     ])
     expect((after.items as Row[])[2]!.id).not.toBe(items[2]!.id)
     expect(after.eventItems).toEqual([
-      { id: eventItems[2]!.id, eventItemEvent: 'E-02', eventItemName: '경품', eventItemAmount: 700_000 },
+      { id: eventItems[2]!.id, eventItemEvent: 'E-02', eventItemEventName: '2026 체육대회', eventItemName: '경품', eventItemAmount: 700_000 },
     ])
     // 기간은 학생회에 하나다 — 다시 저장해도 줄이 늘지 않는다.
     expect(await db.select().from(budgetPeriods).where(eq(budgetPeriods.orgId, 'ORG-01'))).toHaveLength(1)

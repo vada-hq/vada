@@ -6940,6 +6940,12 @@
               "description": "담당 부서. org.departments의 값. 부서별 집행률이 이것으로 선다. 없으면 오지 않는다.",
               "valueType": "string",
               "optional": true
+            },
+            {
+              "key": "itemDepartmentName",
+              "description": "담당 부서의 이름. 값(`itemDepartment`) 곁에 함께 온다 — 고르는 목록이 열리기 전에도 화면이 그 말을 그린다. 안 고른 줄에는 오지 않는다.\n\n**값 곁에 이름이 함께 온다**(2026-09-06). 값은 id라 첫 그림에 사람이 읽을 말이 없었고, 이름은 고르는 목록이 열릴 때에야 왔다 — 그림 대조가 그 이름과 그것이 든 칸을 못 보아 자리 예외 열셋이 걸려 있었다. 예외로 버티는 것은 눈금이 아니라 기록이다.",
+              "valueType": "string",
+              "optional": true
             }
           ]
         },
@@ -6973,6 +6979,17 @@
               "description": "담당 부서. `org.departments`의 값. 부서별 집행률이 이것으로 선다. 없으면 오지 않는다.\n\n**2026-09-06에 사람이 정했다: 행사 항목도 부서를 고른다.** 이 칸이 없던 동안 행사에 쓴 돈이 전부 재정 겉면의 '부서 미지정' 한 줄에 모였고, 부서별로 본다는 축이 뜻을 거의 잃었다. 안 고를 수 있다 — 학생회 전체가 함께 쓰는 항목이 있고, 그런 것만 '부서 미지정'에 남는다.",
               "valueType": "string",
               "optional": true
+            },
+            {
+              "key": "eventItemDepartmentName",
+              "description": "담당 부서의 이름. 값 곁에 함께 온다. 안 고른 줄에는 오지 않는다.",
+              "valueType": "string",
+              "optional": true
+            },
+            {
+              "key": "eventItemEventName",
+              "description": "그 행사의 이름. 값 곁에 함께 온다 — 행사 고르기가 첫 그림부터 그 말을 그린다.",
+              "valueType": "string"
             }
           ]
         }

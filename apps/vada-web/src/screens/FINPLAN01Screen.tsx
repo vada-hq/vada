@@ -117,12 +117,37 @@ function nextRowId(rowIds: string[]): string {
 // **행사 고르기는 첫 행사 줄의 행사로 시작한다.** 명세의 initialValue는 비어
 // 있지만, 비운 채로 열면 있는 행사 예산이 하나도 안 보인다 — 사람은 없는 줄 안다.
 // 줄이 하나도 없으면 고른 것도 없다.
+/**
+ * **값 곁에 온 이름은 값이 아니라 이름표다.**
+ *
+ * 부서·행사처럼 값이 id인 칸은 그것만으로 그릴 말이 없고, 이름은 고르는 목록이 열릴
+ * 때에야 온다 — 첫 그림에 빈 칸이 남았다(자리 예외 열셋이 그 자리였다). 이제 초안이
+ * 이름을 함께 실어 오므로 그것을 이름표 칸에 담는다.
+ *
+ * **값에 담지 않는다.** 저장은 값만 보내므로, 값에 담으면 서버가 모르는 칸이 함께 간다.
+ */
 function draftFromRow(row: DataRow, eventListKey: string, eventFieldKey: string): ScopeDraft {
   const values: Record<string, string | null> = {}
+  const labels: Record<string, string> = {}
+
+  /**
+   * `itemDepartmentName`이면 `itemDepartment`의 이름표다.
+   *
+   * **곁에 그 값이 있어야 이름표다.** 이름이 그냥 값인 칸도 있다 — `itemName`·
+   * `sourceName`이 그렇고, 그것을 이름표로 오해하면 그 칸이 통째로 빈다(실제로 그랬다).
+   */
+  const put = (holder: Record<string, unknown>, key: string, field: string, value: unknown) => {
+    const owner = field.endsWith('Name') ? field.slice(0, -'Name'.length) : ''
+    if (owner !== '' && owner in holder) {
+      labels[key.slice(0, key.length - 'Name'.length)] = String(value)
+      return
+    }
+    values[key] = String(value)
+  }
 
   for (const [key, value] of Object.entries(row)) {
     if (!Array.isArray(value)) {
-      values[key] = String(value)
+      put(row, key, key, value)
       continue
     }
     const rowIds: string[] = []
@@ -130,20 +155,23 @@ function draftFromRow(row: DataRow, eventListKey: string, eventFieldKey: string)
       const rowId = `r${index}`
       rowIds.push(rowId)
       for (const [field, fieldValue] of Object.entries(item)) {
-        values[itemKey(key, rowId, field)] = String(fieldValue)
+        put(item as Record<string, unknown>, itemKey(key, rowId, field), field, fieldValue)
       }
     })
     values[key] = joinRowIds(rowIds)
   }
 
-  const firstEventRow = rowIdsOf({ values, labels: {} }, eventListKey)[0]
+  const firstEventRow = rowIdsOf({ values, labels }, eventListKey)[0]
   const firstEvent =
     firstEventRow === undefined ? null : values[itemKey(eventListKey, firstEventRow, EVENT_OF_ROW)]
   if (firstEvent !== null && firstEvent !== undefined && firstEvent !== '') {
     values[eventFieldKey] = firstEvent
+    // 행사 고르기의 이름표도 그 줄의 것으로 시작한다.
+    const said = labels[itemKey(eventListKey, firstEventRow!, EVENT_OF_ROW)]
+    if (said !== undefined) labels[eventFieldKey] = said
   }
 
-  return { values, labels: {} }
+  return { values, labels }
 }
 
 /** 줄 안의 칸 하나가 어떻게 그려지는지. 명세의 itemFields에서 이름으로 찾는다. */
