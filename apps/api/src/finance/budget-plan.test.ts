@@ -104,7 +104,7 @@ const FILLED = {
     { itemName: '비품', itemAmount: 1_200_000 },
   ],
   eventItems: [
-    { eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000 },
+    { eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000, eventItemDepartment: 'D-01' },
     { eventItemEvent: 'E-01', eventItemName: '홍보비', eventItemAmount: 800_000 },
     { eventItemEvent: 'E-02', eventItemName: '경품', eventItemAmount: 500_000 },
   ],
@@ -211,7 +211,7 @@ describe('저장(finance.budgetPlan.save)', () => {
       { id: expect.any(String), itemName: '비품', itemAmount: 1_200_000 },
     ])
     expect(plan.eventItems).toEqual([
-      { id: expect.any(String), eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000 },
+      { id: expect.any(String), eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000, eventItemDepartment: 'D-01' },
       { id: expect.any(String), eventItemEvent: 'E-01', eventItemName: '홍보비', eventItemAmount: 800_000 },
       { id: expect.any(String), eventItemEvent: 'E-02', eventItemName: '경품', eventItemAmount: 500_000 },
     ])

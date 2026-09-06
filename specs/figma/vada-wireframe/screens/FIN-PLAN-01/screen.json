@@ -342,6 +342,27 @@
               "required": true,
               "validation": []
             }
+          },
+          {
+            "source": {
+              "nodeId": "619:2",
+              "name": "Input",
+              "figmaType": "FRAME"
+            },
+            "spec": {
+              "type": "select",
+              "fieldKey": "eventItemDepartment",
+              "label": "담당 부서(선택)",
+              "placeholder": "선택 안 함",
+              "initialValue": null,
+              "valueType": "string",
+              "required": false,
+              "initiallyDisabled": false,
+              "searchable": false,
+              "optionsSource": {
+                "key": "org.departments"
+              }
+            }
           }
         ]
       }

@@ -78,6 +78,7 @@ const ITEM_NODE = {
   itemName: '603:6',
   itemAmount: '603:12',
   itemDepartment: '603:18',
+  eventItemDepartment: '619:2',
   eventItemName: '603:121',
   eventItemAmount: '603:127',
 } as const
@@ -178,6 +179,7 @@ export function FINPLAN01Screen({
   const eventItemsList = elementByNodeId(finPlan01, NODE.eventItems).spec as ListSpec
   const eventSpec = elementByNodeId(finPlan01, NODE.event).spec as SelectSpec
   const departmentSpec = itemFieldOf(itemsList, 'itemDepartment') as SelectSpec
+  const eventDepartmentSpec = itemFieldOf(eventItemsList, 'eventItemDepartment') as SelectSpec
   const buttonAt = (nodeId: string) => elementByNodeId(finPlan01, nodeId).spec as ButtonSpec
 
   // 초안은 저장된 편성에서 시작한다. **아직 아무것도 없는 학생회도 읽는다** — 기간도
@@ -434,50 +436,69 @@ export function FINPLAN01Screen({
     )
   }
 
+  /**
+   * 담당 부서 한 칸. **두 목록이 같은 칸을 갖는다** — 상시 항목과 행사 항목이다.
+   *
+   * 손으로 옮겨 적으면 한쪽만 고쳐지는 날이 온다. 이 저장소가 이미 그렇게 잃은
+   * 자리가 있다(보내는 중이라는 글을 화면마다 적던 시절).
+   */
+  function departmentCell(list: ListSpec, rowId: string, spec: SelectSpec, nodeId: string | undefined) {
+    const key = itemKey(list.fieldKey, rowId, spec.fieldKey)
+    const id = `${list.fieldKey}-${rowId}-${spec.fieldKey}`
+    const stored = draft.values[key] ?? ''
+    return (
+      <div className="w-64 shrink-0">
+        <Field htmlFor={id} nodeId={nodeId} label={spec.label} required={spec.required}>
+          <SearchSelect
+            id={id}
+            placeholder={spec.placeholder}
+            searchable={spec.searchable}
+            disabled={false}
+            sourceKey={departmentSourceKey}
+            sourceParams={{}}
+            value={stored === '' ? null : { value: stored, label: labelOf(departmentOptions, key, stored) }}
+            onSelect={(option) => setValue(key, option.value, option.label)}
+            chevron={
+              <FigmaAsset screenId={SCREEN} nodeId={ASSET.departmentChevron} className="size-4" />
+            }
+          />
+        </Field>
+      </div>
+    )
+  }
+
   /** 상시 항목 한 줄: 이름 · 배정액 · 담당 부서(선택) · 지우기. */
   function renderItemRow(rowId: string, index: number) {
     const first = index === 0
-    const key = itemKey(itemsList.fieldKey, rowId, departmentSpec.fieldKey)
-    const id = `${itemsList.fieldKey}-${rowId}-${departmentSpec.fieldKey}`
-    const stored = draft.values[key] ?? ''
     return (
       <div key={rowId} className={ROW}>
         <div className="min-w-0 flex-1">{rowInput(itemsList, rowId, 'itemName', first)}</div>
         <div className="w-56 shrink-0">{rowInput(itemsList, rowId, 'itemAmount', first)}</div>
-        <div className="w-64 shrink-0">
-          <Field
-            htmlFor={id}
-            nodeId={first ? ITEM_NODE.itemDepartment : undefined}
-            label={departmentSpec.label}
-            required={departmentSpec.required}
-          >
-            <SearchSelect
-              id={id}
-              placeholder={departmentSpec.placeholder}
-              searchable={departmentSpec.searchable}
-              disabled={false}
-              sourceKey={departmentSourceKey}
-              sourceParams={{}}
-              value={stored === '' ? null : { value: stored, label: labelOf(departmentOptions, key, stored) }}
-              onSelect={(option) => setValue(key, option.value, option.label)}
-              chevron={
-                <FigmaAsset screenId={SCREEN} nodeId={ASSET.departmentChevron} className="size-4" />
-              }
-            />
-          </Field>
-        </div>
+        {departmentCell(itemsList, rowId, departmentSpec, first ? ITEM_NODE.itemDepartment : undefined)}
         {removeButton(itemsList, itemRowIds, rowId)}
       </div>
     )
   }
 
-  /** 행사별 항목 한 줄: 이름 · 배정액 · 지우기. 어느 행사의 줄인지는 칸 밖에 있다. */
+  /**
+   * 행사별 항목 한 줄: 이름 · 배정액 · 담당 부서(선택) · 지우기. 어느 행사의 줄인지는
+   * 칸 밖에 있다.
+   *
+   * **부서 칸이 없던 동안** 행사에 쓴 돈이 전부 재정 겉면의 '부서 미지정' 한 줄에
+   * 모였고, 부서별로 본다는 축이 뜻을 거의 잃었다(사람이 정했다, 2026-09-06).
+   */
   function renderEventItemRow(rowId: string, index: number) {
     const first = index === 0
     return (
       <div key={rowId} className={ROW}>
         <div className="min-w-0 flex-1">{rowInput(eventItemsList, rowId, 'eventItemName', first)}</div>
         <div className="w-56 shrink-0">{rowInput(eventItemsList, rowId, 'eventItemAmount', first)}</div>
+        {departmentCell(
+          eventItemsList,
+          rowId,
+          eventDepartmentSpec,
+          first ? ITEM_NODE.eventItemDepartment : undefined,
+        )}
         {removeButton(eventItemsList, eventRowIds, rowId)}
       </div>
     )

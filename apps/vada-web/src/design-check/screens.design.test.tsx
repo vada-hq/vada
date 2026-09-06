@@ -423,7 +423,9 @@ describe('design/deviations.ts', () => {
   // select의 값은 부서·행사의 id이고 이름은 원격 목록에서 첫 그림 뒤에 오므로, 대조가 그
   // 이름과 그것이 든 칸을 못 본다. 여덟 번째 갈래가 아니다. 초안이 이름을 함께 실어 오면
   // 열셋이 한꺼번에 사라진다(백로그 '지금').
-  const PLACE_DEVIATIONS = 99
+  // 99 → 101 (2026-09-06, 같은 날 뒤). 행사별 예산 항목에 담당 부서 칸이 붙으면서
+  // 그 두 줄이 같은 계열로 들어왔다(사람이 정했다: 행사 항목도 부서를 고른다).
+  const PLACE_DEVIATIONS = 101
 
   it('자리에 건 예외가 조용히 늘지 않는다', () => {
     const atPlace = DEVIATIONS.filter((deviation) => deviation.by === 'place')

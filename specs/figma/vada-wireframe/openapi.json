@@ -12656,6 +12656,10 @@
                           "eventItemAmount": {
                             "type": "number",
                             "description": "배정액(원). 수로 온다. 예: 1200000"
+                          },
+                          "eventItemDepartment": {
+                            "type": "string",
+                            "description": "담당 부서. `org.departments`의 값. 부서별 집행률이 이것으로 선다. 없으면 오지 않는다.\n\n**2026-09-06에 사람이 정했다: 행사 항목도 부서를 고른다.** 이 칸이 없던 동안 행사에 쓴 돈이 전부 재정 겉면의 '부서 미지정' 한 줄에 모였고, 부서별로 본다는 축이 뜻을 거의 잃었다. 안 고를 수 있다 — 학생회 전체가 함께 쓰는 항목이 있고, 그런 것만 '부서 미지정'에 남는다."
                           }
                         },
                         "required": [
@@ -12834,6 +12838,10 @@
                   "eventItemAmount": {
                     "type": "number",
                     "description": "배정액(원)"
+                  },
+                  "eventItemDepartment": {
+                    "type": "string",
+                    "description": "담당 부서(선택)"
                   }
                 },
                 "required": [

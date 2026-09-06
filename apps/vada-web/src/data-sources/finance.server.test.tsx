@@ -570,6 +570,9 @@ describe('예산 편성이 저장소로 가고 저장소에서 온다(FIN-PLAN-0
     'eventItems.r0.eventItemEvent': 'E-01',
     'eventItems.r0.eventItemName': '행사 운영비',
     'eventItems.r0.eventItemAmount': '1500000',
+    // **행사 항목도 부서를 든다**(사람이 정했다, 2026-09-06). 없던 동안 행사에 쓴
+    // 돈이 전부 재정 겉면의 '부서 미지정'에 모였다.
+    'eventItems.r0.eventItemDepartment': 'D-02',
     'eventItems.r1.eventItemEvent': 'E-01',
     'eventItems.r1.eventItemName': '한마당 홍보비',
     'eventItems.r1.eventItemAmount': '800000',
@@ -617,9 +620,14 @@ describe('예산 편성이 저장소로 가고 저장소에서 온다(FIN-PLAN-0
     expect(page).toContain('수입 합계 30,000,000원')
     expect(page).toContain('상시 배정 합계 3,000,000원')
     expect(page).toContain('행사 배정 합계 2,300,000원')
-    // 부서 이름도 선택지 출처에서 온다.
+    // 부서 이름도 선택지 출처에서 온다. **줄마다 하나씩 있으므로 자리로 집는다** —
+    // 이름으로 집으면 상시 한 줄과 행사 두 줄이 함께 잡힌다.
     await waitFor(() =>
-      expect(screen.getByRole('combobox', { name: '담당 부서(선택)' })).toHaveTextContent('운영부'),
+      expect(document.getElementById('items-r0-itemDepartment')).toHaveTextContent('운영부'),
+    )
+    // 행사 줄의 부서도 저장되고 돌아온다.
+    await waitFor(() =>
+      expect(document.getElementById('eventItems-r0-eventItemDepartment')).toHaveTextContent('재정부'),
     )
 
     // 줄마다 이름표가 붙어 돌아온다 — B-01은 그대로 고쳐졌고 나머지는 새 이름이다.
@@ -634,7 +642,7 @@ describe('예산 편성이 저장소로 가고 저장소에서 온다(FIN-PLAN-0
       { id: expect.any(String), itemName: '한마당 운영비', itemAmount: 3_000_000, itemDepartment: 'D-01' },
     ])
     expect(stored.eventItems).toEqual([
-      { id: 'B-01', eventItemEvent: 'E-01', eventItemName: '행사 운영비', eventItemAmount: 1_500_000 },
+      { id: 'B-01', eventItemEvent: 'E-01', eventItemName: '행사 운영비', eventItemAmount: 1_500_000, eventItemDepartment: 'D-02' },
       { id: expect.any(String), eventItemEvent: 'E-01', eventItemName: '한마당 홍보비', eventItemAmount: 800_000 },
     ])
   })

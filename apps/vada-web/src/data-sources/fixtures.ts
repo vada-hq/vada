@@ -2924,8 +2924,8 @@ const BUDGET_PLAN_DRAFT: DataRow = {
     { id: 'BI-14', itemName: '비품', itemAmount: 1_200_000 },
   ],
   eventItems: [
-    { id: 'BI-21', eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000 },
-    { id: 'BI-22', eventItemEvent: 'E-01', eventItemName: '홍보비', eventItemAmount: 800_000 },
+    { id: 'BI-21', eventItemEvent: 'E-01', eventItemName: '물품비', eventItemAmount: 1_200_000, eventItemDepartment: 'D-01' },
+    { id: 'BI-22', eventItemEvent: 'E-01', eventItemName: '홍보비', eventItemAmount: 800_000, eventItemDepartment: 'D-01' },
   ],
 }
 

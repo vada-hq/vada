@@ -48,6 +48,7 @@ export interface BudgetEventItemDraft {
   eventItemEvent: string
   eventItemName: string
   eventItemAmount: number
+  eventItemDepartment?: string
 }
 
 export interface BudgetPlanDraft {
@@ -106,6 +107,7 @@ export async function budgetPlanDraft(db: Db, orgId: string): Promise<BudgetPlan
         eventItemEvent: row.eventId,
         eventItemName: row.name,
         eventItemAmount: row.amount,
+        ...(row.departmentId === null ? {} : { eventItemDepartment: row.departmentId }),
       })),
   }
 }
@@ -291,7 +293,10 @@ export async function saveBudgetPlan(
     eventId: requiredWord(row, 'eventItemEvent', '행사'),
     name: requiredWord(row, 'eventItemName', '행사 항목 이름'),
     amount: readAmount(row, 'eventItemAmount', '행사 항목 배정액'),
-    departmentId: null,
+    // **행사 항목도 부서를 든다**(사람이 정했다, 2026-09-06). 이 자리가 늘 null이던
+    // 동안 행사에 쓴 돈이 전부 재정 겉면의 '부서 미지정' 한 줄에 모였고, 부서별로
+    // 본다는 축이 뜻을 거의 잃었다.
+    departmentId: readWord(row, 'eventItemDepartment', '행사 항목 담당 부서'),
   }))
   noDuplicateIds(sources, '수입원')
   noDuplicateIds([...items, ...eventItems], '예산 항목')
@@ -305,7 +310,11 @@ export async function saveBudgetPlan(
 
   // **남의 학생회 부서·행사에 우리 예산을 걸지 못한다.** 표도 막지만(복합 외래 키)
   // 여기서 먼저 막아야 '받을 수 없는 값'(422)이지 서버의 고장이 아니다.
-  const wantedDepartments = [...new Set(items.map((row) => row.departmentId).filter((id): id is string => id !== null))]
+  const wantedDepartments = [
+    ...new Set(
+      [...items, ...eventItems].map((row) => row.departmentId).filter((id): id is string => id !== null),
+    ),
+  ]
   if (wantedDepartments.length > 0) {
     const ours = await db
       .select({ id: departments.id })

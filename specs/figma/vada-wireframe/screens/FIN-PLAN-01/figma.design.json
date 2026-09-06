@@ -5,7 +5,7 @@
     "format": "JSON_REST_V1",
     "nodeId": "600:2",
     "rawFile": "figma.raw.json",
-    "hash": "b73572c3ddf8028c3ce2e19a82fb5d6d6d6ae509c2d66f8296aace8d33625d25"
+    "hash": "7eef0917eb5e641ba8063c7116fdf80004133116d62eacd40e996c46168a439d"
   },
   "viewport": {
     "width": 1288,
@@ -8559,14 +8559,15 @@
                                 "box": {
                                   "x": 20,
                                   "y": 119,
-                                  "width": 642.5,
+                                  "width": 919,
                                   "height": 50
                                 },
                                 "layout": {
                                   "mode": "horizontal",
                                   "sizing": {
-                                    "horizontal": "hug",
-                                    "vertical": "hug"
+                                    "horizontal": "fixed",
+                                    "vertical": "hug",
+                                    "primaryAxis": "fixed"
                                   },
                                   "alignment": {
                                     "counterAxis": "max"
@@ -9008,11 +9009,236 @@
                                     ]
                                   },
                                   {
+                                    "id": "619:2",
+                                    "type": "frame",
+                                    "name": "Input",
+                                    "box": {
+                                      "x": 590.5,
+                                      "y": 0,
+                                      "width": 260,
+                                      "height": 50
+                                    },
+                                    "layout": {
+                                      "mode": "vertical",
+                                      "sizing": {
+                                        "horizontal": "fixed",
+                                        "vertical": "fixed",
+                                        "primaryAxis": "fixed",
+                                        "counterAxis": "fixed"
+                                      },
+                                      "gap": 3.5
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "619:3",
+                                        "type": "frame",
+                                        "name": "Label",
+                                        "box": {
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 260,
+                                          "height": 14
+                                        },
+                                        "layout": {
+                                          "mode": "vertical",
+                                          "sizing": {
+                                            "horizontal": "fill",
+                                            "vertical": "hug",
+                                            "counterAxis": "fixed"
+                                          },
+                                          "alignment": {
+                                            "self": "stretch"
+                                          }
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "619:4",
+                                            "type": "text",
+                                            "name": "담당 부서(선택)",
+                                            "box": {
+                                              "x": 0,
+                                              "y": 0,
+                                              "width": 69,
+                                              "height": 14
+                                            },
+                                            "layout": {
+                                              "sizing": {
+                                                "horizontal": "hug",
+                                                "vertical": "hug"
+                                              }
+                                            },
+                                            "appearance": {
+                                              "fills": [
+                                                {
+                                                  "type": "solid",
+                                                  "color": "#364153"
+                                                }
+                                              ]
+                                            },
+                                            "text": {
+                                              "content": "담당 부서(선택)",
+                                              "style": {
+                                                "fontFamily": "Inter",
+                                                "fontStyle": "Medium",
+                                                "fontWeight": 500,
+                                                "fontSize": 10.5,
+                                                "horizontalAlign": "left",
+                                                "verticalAlign": "top",
+                                                "autoResize": "width_and_height",
+                                                "lineHeight": {
+                                                  "value": 14,
+                                                  "unit": "pixels"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "id": "619:5",
+                                        "type": "frame",
+                                        "name": "Container",
+                                        "box": {
+                                          "x": 0,
+                                          "y": 17.5,
+                                          "width": 260,
+                                          "height": 33.5
+                                        },
+                                        "layout": {
+                                          "sizing": {
+                                            "horizontal": "fill",
+                                            "vertical": "fixed"
+                                          },
+                                          "alignment": {
+                                            "self": "stretch"
+                                          }
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "619:6",
+                                            "type": "frame",
+                                            "name": "Dropdown",
+                                            "box": {
+                                              "x": 0,
+                                              "y": 0,
+                                              "width": 338.5,
+                                              "height": 33.5
+                                            },
+                                            "appearance": {
+                                              "fills": [
+                                                {
+                                                  "type": "solid",
+                                                  "color": "#FFFFFF"
+                                                }
+                                              ],
+                                              "strokes": [
+                                                {
+                                                  "type": "solid",
+                                                  "color": "#D1D5DC"
+                                                }
+                                              ],
+                                              "stroke": {
+                                                "weight": 1,
+                                                "align": "inside"
+                                              },
+                                              "cornerRadius": 3.5
+                                            },
+                                            "children": [
+                                              {
+                                                "id": "619:7",
+                                                "type": "text",
+                                                "name": "기획부",
+                                                "box": {
+                                                  "x": 12,
+                                                  "y": 9,
+                                                  "width": 34,
+                                                  "height": 15
+                                                },
+                                                "appearance": {
+                                                  "fills": [
+                                                    {
+                                                      "type": "solid",
+                                                      "color": "#111827"
+                                                    }
+                                                  ]
+                                                },
+                                                "text": {
+                                                  "content": "기획부",
+                                                  "style": {
+                                                    "fontFamily": "Inter",
+                                                    "fontStyle": "Regular",
+                                                    "fontWeight": 400,
+                                                    "fontSize": 12,
+                                                    "horizontalAlign": "left",
+                                                    "verticalAlign": "top",
+                                                    "autoResize": "width_and_height",
+                                                    "lineHeight": {
+                                                      "value": 14.523,
+                                                      "unit": "intrinsic_%"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "id": "619:8",
+                                            "type": "frame",
+                                            "name": "Icon",
+                                            "box": {
+                                              "x": 317.5,
+                                              "y": 8.75,
+                                              "width": 14,
+                                              "height": 14
+                                            },
+                                            "appearance": {
+                                              "clipsContent": true
+                                            },
+                                            "assetRef": "assets/619-8.svg",
+                                            "children": [
+                                              {
+                                                "id": "619:9",
+                                                "type": "vector",
+                                                "name": "Vector",
+                                                "box": {
+                                                  "x": 3.5,
+                                                  "y": 5.25,
+                                                  "width": 7,
+                                                  "height": 3.5
+                                                },
+                                                "layout": {
+                                                  "constraints": {
+                                                    "horizontal": "scale",
+                                                    "vertical": "scale"
+                                                  }
+                                                },
+                                                "appearance": {
+                                                  "strokes": [
+                                                    {
+                                                      "type": "solid",
+                                                      "color": "#99A1AF"
+                                                    }
+                                                  ],
+                                                  "stroke": {
+                                                    "weight": 1.167,
+                                                    "align": "center",
+                                                    "join": "round",
+                                                    "cap": "round"
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
                                     "id": "603:133",
                                     "type": "frame",
                                     "name": "Btn",
                                     "box": {
-                                      "x": 590.5,
+                                      "x": 866.5,
                                       "y": 23.5,
                                       "width": 52,
                                       "height": 26.5
@@ -9107,14 +9333,15 @@
                                 "box": {
                                   "x": 20,
                                   "y": 181,
-                                  "width": 642.5,
+                                  "width": 919,
                                   "height": 50
                                 },
                                 "layout": {
                                   "mode": "horizontal",
                                   "sizing": {
-                                    "horizontal": "hug",
-                                    "vertical": "hug"
+                                    "horizontal": "fixed",
+                                    "vertical": "hug",
+                                    "primaryAxis": "fixed"
                                   },
                                   "alignment": {
                                     "counterAxis": "max"
@@ -9556,11 +9783,236 @@
                                     ]
                                   },
                                   {
+                                    "id": "619:10",
+                                    "type": "frame",
+                                    "name": "Input",
+                                    "box": {
+                                      "x": 590.5,
+                                      "y": 0,
+                                      "width": 260,
+                                      "height": 50
+                                    },
+                                    "layout": {
+                                      "mode": "vertical",
+                                      "sizing": {
+                                        "horizontal": "fixed",
+                                        "vertical": "fixed",
+                                        "primaryAxis": "fixed",
+                                        "counterAxis": "fixed"
+                                      },
+                                      "gap": 3.5
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "619:11",
+                                        "type": "frame",
+                                        "name": "Label",
+                                        "box": {
+                                          "x": 0,
+                                          "y": 0,
+                                          "width": 260,
+                                          "height": 14
+                                        },
+                                        "layout": {
+                                          "mode": "vertical",
+                                          "sizing": {
+                                            "horizontal": "fill",
+                                            "vertical": "hug",
+                                            "counterAxis": "fixed"
+                                          },
+                                          "alignment": {
+                                            "self": "stretch"
+                                          }
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "619:12",
+                                            "type": "text",
+                                            "name": "담당 부서(선택)",
+                                            "box": {
+                                              "x": 0,
+                                              "y": 0,
+                                              "width": 69,
+                                              "height": 14
+                                            },
+                                            "layout": {
+                                              "sizing": {
+                                                "horizontal": "hug",
+                                                "vertical": "hug"
+                                              }
+                                            },
+                                            "appearance": {
+                                              "fills": [
+                                                {
+                                                  "type": "solid",
+                                                  "color": "#364153"
+                                                }
+                                              ]
+                                            },
+                                            "text": {
+                                              "content": "담당 부서(선택)",
+                                              "style": {
+                                                "fontFamily": "Inter",
+                                                "fontStyle": "Medium",
+                                                "fontWeight": 500,
+                                                "fontSize": 10.5,
+                                                "horizontalAlign": "left",
+                                                "verticalAlign": "top",
+                                                "autoResize": "width_and_height",
+                                                "lineHeight": {
+                                                  "value": 14,
+                                                  "unit": "pixels"
+                                                }
+                                              }
+                                            }
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "id": "619:13",
+                                        "type": "frame",
+                                        "name": "Container",
+                                        "box": {
+                                          "x": 0,
+                                          "y": 17.5,
+                                          "width": 260,
+                                          "height": 33.5
+                                        },
+                                        "layout": {
+                                          "sizing": {
+                                            "horizontal": "fill",
+                                            "vertical": "fixed"
+                                          },
+                                          "alignment": {
+                                            "self": "stretch"
+                                          }
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "619:14",
+                                            "type": "frame",
+                                            "name": "Dropdown",
+                                            "box": {
+                                              "x": 0,
+                                              "y": 0,
+                                              "width": 338.5,
+                                              "height": 33.5
+                                            },
+                                            "appearance": {
+                                              "fills": [
+                                                {
+                                                  "type": "solid",
+                                                  "color": "#FFFFFF"
+                                                }
+                                              ],
+                                              "strokes": [
+                                                {
+                                                  "type": "solid",
+                                                  "color": "#D1D5DC"
+                                                }
+                                              ],
+                                              "stroke": {
+                                                "weight": 1,
+                                                "align": "inside"
+                                              },
+                                              "cornerRadius": 3.5
+                                            },
+                                            "children": [
+                                              {
+                                                "id": "619:15",
+                                                "type": "text",
+                                                "name": "기획부",
+                                                "box": {
+                                                  "x": 12,
+                                                  "y": 9,
+                                                  "width": 34,
+                                                  "height": 15
+                                                },
+                                                "appearance": {
+                                                  "fills": [
+                                                    {
+                                                      "type": "solid",
+                                                      "color": "#111827"
+                                                    }
+                                                  ]
+                                                },
+                                                "text": {
+                                                  "content": "기획부",
+                                                  "style": {
+                                                    "fontFamily": "Inter",
+                                                    "fontStyle": "Regular",
+                                                    "fontWeight": 400,
+                                                    "fontSize": 12,
+                                                    "horizontalAlign": "left",
+                                                    "verticalAlign": "top",
+                                                    "autoResize": "width_and_height",
+                                                    "lineHeight": {
+                                                      "value": 14.523,
+                                                      "unit": "intrinsic_%"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "id": "619:16",
+                                            "type": "frame",
+                                            "name": "Icon",
+                                            "box": {
+                                              "x": 317.5,
+                                              "y": 8.75,
+                                              "width": 14,
+                                              "height": 14
+                                            },
+                                            "appearance": {
+                                              "clipsContent": true
+                                            },
+                                            "assetRef": "assets/619-16.svg",
+                                            "children": [
+                                              {
+                                                "id": "619:17",
+                                                "type": "vector",
+                                                "name": "Vector",
+                                                "box": {
+                                                  "x": 3.5,
+                                                  "y": 5.25,
+                                                  "width": 7,
+                                                  "height": 3.5
+                                                },
+                                                "layout": {
+                                                  "constraints": {
+                                                    "horizontal": "scale",
+                                                    "vertical": "scale"
+                                                  }
+                                                },
+                                                "appearance": {
+                                                  "strokes": [
+                                                    {
+                                                      "type": "solid",
+                                                      "color": "#99A1AF"
+                                                    }
+                                                  ],
+                                                  "stroke": {
+                                                    "weight": 1.167,
+                                                    "align": "center",
+                                                    "join": "round",
+                                                    "cap": "round"
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
                                     "id": "603:151",
                                     "type": "frame",
                                     "name": "Btn",
                                     "box": {
-                                      "x": 590.5,
+                                      "x": 866.5,
                                       "y": 23.5,
                                       "width": 52,
                                       "height": 26.5
@@ -9946,6 +10398,16 @@
       "nodeId": "603:118",
       "format": "svg",
       "file": "assets/603-118.svg"
+    },
+    {
+      "nodeId": "619:8",
+      "format": "svg",
+      "file": "assets/619-8.svg"
+    },
+    {
+      "nodeId": "619:16",
+      "format": "svg",
+      "file": "assets/619-16.svg"
     }
   ]
 }
