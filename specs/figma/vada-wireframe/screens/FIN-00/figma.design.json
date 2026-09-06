@@ -5,7 +5,7 @@
     "format": "JSON_REST_V1",
     "nodeId": "30:2475",
     "rawFile": "figma.raw.json",
-    "hash": "23060e2874745a0a88bd3558f4bda6ffa29e5d6ebb6477ba955cbfdb7d4b94e4"
+    "hash": "ef5abc285493d5d5b8927f3b56902d256b68c8b826662a093d28228f7699c78b"
   },
   "viewport": {
     "width": 1288,
@@ -5994,7 +5994,7 @@
                                   "x": 1,
                                   "y": 42,
                                   "width": 964,
-                                  "height": 172
+                                  "height": 217.5
                                 },
                                 "layout": {
                                   "sizing": {
@@ -7237,6 +7237,342 @@
                                             "children": [
                                               {
                                                 "id": "30:2695",
+                                                "type": "text",
+                                                "name": "0%",
+                                                "box": {
+                                                  "x": 12,
+                                                  "y": 0,
+                                                  "width": 16,
+                                                  "height": 14
+                                                },
+                                                "layout": {
+                                                  "sizing": {
+                                                    "horizontal": "hug",
+                                                    "vertical": "hug"
+                                                  }
+                                                },
+                                                "appearance": {
+                                                  "fills": [
+                                                    {
+                                                      "type": "solid",
+                                                      "color": "#364153"
+                                                    }
+                                                  ]
+                                                },
+                                                "text": {
+                                                  "content": "0%",
+                                                  "style": {
+                                                    "fontFamily": "Inter",
+                                                    "fontStyle": "Semi Bold",
+                                                    "fontWeight": 600,
+                                                    "fontSize": 10.5,
+                                                    "horizontalAlign": "right",
+                                                    "verticalAlign": "top",
+                                                    "autoResize": "width_and_height",
+                                                    "lineHeight": {
+                                                      "value": 14,
+                                                      "unit": "pixels"
+                                                    }
+                                                  }
+                                                }
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "id": "622:2",
+                                    "type": "frame",
+                                    "name": "Table Row",
+                                    "box": {
+                                      "x": 0,
+                                      "y": 172,
+                                      "width": 964,
+                                      "height": 45.5
+                                    },
+                                    "children": [
+                                      {
+                                        "id": "622:3",
+                                        "type": "text",
+                                        "name": "운영 (상시)",
+                                        "box": {
+                                          "x": 17.5,
+                                          "y": 14.5,
+                                          "width": 58,
+                                          "height": 18
+                                        },
+                                        "appearance": {
+                                          "fills": [
+                                            {
+                                              "type": "solid",
+                                              "color": "#101828"
+                                            }
+                                          ]
+                                        },
+                                        "text": {
+                                          "content": "운영 (상시)",
+                                          "style": {
+                                            "fontFamily": "Inter",
+                                            "fontStyle": "Medium",
+                                            "fontWeight": 500,
+                                            "fontSize": 12.25,
+                                            "horizontalAlign": "left",
+                                            "verticalAlign": "top",
+                                            "autoResize": "width_and_height",
+                                            "lineHeight": {
+                                              "value": 17.5,
+                                              "unit": "pixels"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "id": "622:4",
+                                        "type": "text",
+                                        "name": "4,000,000원",
+                                        "box": {
+                                          "x": 229.298,
+                                          "y": 13.5,
+                                          "width": 78,
+                                          "height": 18
+                                        },
+                                        "appearance": {
+                                          "fills": [
+                                            {
+                                              "type": "solid",
+                                              "color": "#4A5565"
+                                            }
+                                          ]
+                                        },
+                                        "text": {
+                                          "content": "4,000,000원",
+                                          "style": {
+                                            "fontFamily": "Cousine",
+                                            "fontStyle": "Regular",
+                                            "fontWeight": 400,
+                                            "fontSize": 12.25,
+                                            "horizontalAlign": "right",
+                                            "verticalAlign": "top",
+                                            "autoResize": "width_and_height",
+                                            "lineHeight": {
+                                              "value": 17.5,
+                                              "unit": "pixels"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "id": "622:5",
+                                        "type": "text",
+                                        "name": "1,200,000원",
+                                        "box": {
+                                          "x": 390.769,
+                                          "y": 13.5,
+                                          "width": 78,
+                                          "height": 18
+                                        },
+                                        "appearance": {
+                                          "fills": [
+                                            {
+                                              "type": "solid",
+                                              "color": "#4A5565"
+                                            }
+                                          ]
+                                        },
+                                        "text": {
+                                          "content": "1,200,000원",
+                                          "style": {
+                                            "fontFamily": "Cousine",
+                                            "fontStyle": "Regular",
+                                            "fontWeight": 400,
+                                            "fontSize": 12.25,
+                                            "horizontalAlign": "right",
+                                            "verticalAlign": "top",
+                                            "autoResize": "width_and_height",
+                                            "lineHeight": {
+                                              "value": 17.5,
+                                              "unit": "pixels"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "id": "622:6",
+                                        "type": "text",
+                                        "name": "300,000원",
+                                        "box": {
+                                          "x": 545.253,
+                                          "y": 13.5,
+                                          "width": 63,
+                                          "height": 18
+                                        },
+                                        "appearance": {
+                                          "fills": [
+                                            {
+                                              "type": "solid",
+                                              "color": "#4A5565"
+                                            }
+                                          ]
+                                        },
+                                        "text": {
+                                          "content": "300,000원",
+                                          "style": {
+                                            "fontFamily": "Cousine",
+                                            "fontStyle": "Regular",
+                                            "fontWeight": 400,
+                                            "fontSize": 12.25,
+                                            "horizontalAlign": "right",
+                                            "verticalAlign": "top",
+                                            "autoResize": "width_and_height",
+                                            "lineHeight": {
+                                              "value": 17.5,
+                                              "unit": "pixels"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "id": "622:7",
+                                        "type": "text",
+                                        "name": "2,500,000원",
+                                        "box": {
+                                          "x": 690.564,
+                                          "y": 13.5,
+                                          "width": 78,
+                                          "height": 18
+                                        },
+                                        "appearance": {
+                                          "fills": [
+                                            {
+                                              "type": "solid",
+                                              "color": "#155DFC"
+                                            }
+                                          ]
+                                        },
+                                        "text": {
+                                          "content": "2,500,000원",
+                                          "style": {
+                                            "fontFamily": "Cousine",
+                                            "fontStyle": "Bold",
+                                            "fontWeight": 700,
+                                            "fontSize": 12.25,
+                                            "horizontalAlign": "right",
+                                            "verticalAlign": "top",
+                                            "autoResize": "width_and_height",
+                                            "lineHeight": {
+                                              "value": 17.5,
+                                              "unit": "pixels"
+                                            }
+                                          }
+                                        }
+                                      },
+                                      {
+                                        "id": "622:8",
+                                        "type": "frame",
+                                        "name": "Container",
+                                        "box": {
+                                          "x": 803.313,
+                                          "y": 16.5,
+                                          "width": 143.219,
+                                          "height": 14
+                                        },
+                                        "layout": {
+                                          "mode": "horizontal",
+                                          "sizing": {
+                                            "horizontal": "fixed",
+                                            "vertical": "hug",
+                                            "primaryAxis": "fixed"
+                                          },
+                                          "alignment": {
+                                            "primaryAxis": "max",
+                                            "counterAxis": "center"
+                                          },
+                                          "gap": 7
+                                        },
+                                        "children": [
+                                          {
+                                            "id": "622:9",
+                                            "type": "frame",
+                                            "name": "Container",
+                                            "box": {
+                                              "x": 52.219,
+                                              "y": 4.375,
+                                              "width": 56,
+                                              "height": 5.25
+                                            },
+                                            "layout": {
+                                              "mode": "vertical",
+                                              "sizing": {
+                                                "horizontal": "fixed",
+                                                "vertical": "fixed",
+                                                "primaryAxis": "fixed",
+                                                "counterAxis": "fixed"
+                                              }
+                                            },
+                                            "appearance": {
+                                              "fills": [
+                                                {
+                                                  "type": "solid",
+                                                  "color": "#F3F4F6"
+                                                }
+                                              ],
+                                              "clipsContent": true,
+                                              "cornerRadius": 2.625
+                                            },
+                                            "children": [
+                                              {
+                                                "id": "622:10",
+                                                "type": "frame",
+                                                "name": "Container",
+                                                "box": {
+                                                  "x": 0,
+                                                  "y": 0,
+                                                  "width": 0,
+                                                  "height": 5.25
+                                                },
+                                                "layout": {
+                                                  "sizing": {
+                                                    "horizontal": "fixed",
+                                                    "vertical": "fixed"
+                                                  }
+                                                },
+                                                "appearance": {
+                                                  "fills": [
+                                                    {
+                                                      "type": "solid",
+                                                      "color": "#2B7FFF"
+                                                    }
+                                                  ]
+                                                }
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "id": "622:11",
+                                            "type": "frame",
+                                            "name": "Text",
+                                            "box": {
+                                              "x": 115.219,
+                                              "y": 0,
+                                              "width": 28,
+                                              "height": 14
+                                            },
+                                            "layout": {
+                                              "mode": "vertical",
+                                              "sizing": {
+                                                "horizontal": "fixed",
+                                                "vertical": "hug",
+                                                "counterAxis": "fixed"
+                                              },
+                                              "alignment": {
+                                                "counterAxis": "max"
+                                              }
+                                            },
+                                            "children": [
+                                              {
+                                                "id": "622:12",
                                                 "type": "text",
                                                 "name": "0%",
                                                 "box": {

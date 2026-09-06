@@ -431,7 +431,9 @@ describe('design/deviations.ts', () => {
   // 102 → 87 (2026-09-06, 같은 날 뒤). **열다섯이 사라졌다.** 초안이 값 곁에 이름을
   // 실어 오게 하자 첫 그림부터 그 말이 그려졌다 — 예외로 버티던 것이 고쳐진 것이다.
   // 예외가 주는 것은 늘 이렇게 뿌리를 고친 값이라야 한다.
-  const PLACE_DEVIATIONS = 87
+  // 87 → 91 (2026-09-07). 늘어난 넷은 MY-01의 '검토 필요' 딱지다 — 사람이 그림과
+  // 서버 중 서버 쪽을 골랐다. 일곱 갈래 안의 '그림과 서버가 어긋난다'이다.
+  const PLACE_DEVIATIONS = 91
 
   it('자리에 건 예외가 조용히 늘지 않는다', () => {
     const atPlace = DEVIATIONS.filter((deviation) => deviation.by === 'place')

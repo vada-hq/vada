@@ -4,13 +4,17 @@
 import permissionsJson from '../../../../specs/figma/vada-wireframe/permissions.json'
 import type { DataRow } from './catalog'
 
+// **갈피와 단계 말은 서버가 정한다**(`tasks/labels.ts`). 사람이 정했다(2026-09-07):
+// 그림이 '검토 필요'를 '해야 할 업무'에 놓았지만 서버의 규칙을 따른다 — 검토 중인
+// 업무는 아직 안 끝난 것이다. 그림의 갈피 수(2/2/0)는 지키려고 앞의 두 줄을 '예정'으로
+// 둔다. 남는 차이는 딱지의 말뿐이고 그것은 자리 예외로 적었다.
 const MY_TASKS: Array<{ tab: string; row: DataRow }> = [
   {
     tab: 'todo',
     row: {
       title: '행사 안전 안내문 검토',
       department: '기획부',
-      status: '검토 필요',
+      status: '예정',
       nextAction: '검토 의견을 확인하고 처리 내용을 기록',
       context: '2026 소프트웨어융합대학 체육대회',
       date: '07.22',
@@ -22,7 +26,7 @@ const MY_TASKS: Array<{ tab: string; row: DataRow }> = [
     row: {
       title: '학생 건의 답변 문안 검토',
       department: '기획부',
-      status: '검토 필요',
+      status: '예정',
       nextAction: '검토 의견을 확인하고 처리 내용을 기록',
       context: '상시 업무',
       date: '07.22',
@@ -2719,6 +2723,9 @@ const ORG_BREAKDOWN: Record<string, DataRow[]> = {
     { id: 'E-01', name: '체육대회', budget: '5,000,000원', spent: '2,100,000원', planned: '600,000원', available: '2,300,000원', executionPercent: 54 },
     { id: 'E-02', name: '신입생 환영 행사', budget: '3,000,000원', spent: '1,800,000원', planned: '200,000원', available: '1,000,000원', executionPercent: 67 },
     { id: 'E-03', name: '가을 축제', budget: '8,000,000원', spent: '0원', planned: '0원', available: '8,000,000원', executionPercent: 0 },
+    // **행사에 안 딸린 돈이 모이는 줄.** 사람이 정했다(2026-09-07): 그림에 그렸다 —
+    // 빼면 그 돈이 축에서 사라져 사람이 어디로 갔는지 물을 자리가 생긴다.
+    { id: 'ongoing', name: '운영 (상시)', budget: '4,000,000원', spent: '1,200,000원', planned: '300,000원', available: '2,500,000원', executionPercent: 0 },
   ],
   department: [
     { id: 'D-01', name: '기획부', budget: '4,000,000원', spent: '1,500,000원', planned: '300,000원', available: '2,200,000원', executionPercent: 38 },

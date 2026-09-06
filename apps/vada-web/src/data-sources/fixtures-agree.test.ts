@@ -20,6 +20,10 @@ import { isServed } from './served'
 //
 // **주인을 자리마다 적는다.** 같은 딱지 말이 영역마다 다른 색일 수 있어(문서의
 // '검토 중'은 노랑, 업무의 '검토 중'은 보라) 통째로 견주면 없는 갈림을 만들어 낸다.
+//
+// **봐주는 자리는 없다**(2026-09-07). 하나 있던 갈림(내 업무의 딱지 말과 갈피)은
+// 사람이 서버 쪽으로 정했고, 그림과 남은 차이는 그림 대조의 자리 예외로 옮겼다 —
+// 봐주는 표를 여기 두면 그 표가 자라고, 자란 표는 눈금이 아니라 기록이 된다.
 
 const source = readFileSync(fileURLToPath(new URL('./fixtures.ts', import.meta.url)), 'utf8')
 
@@ -72,26 +76,6 @@ const OWNED: Array<{ record: string; table: Record<string, { label: string; tone
   },
 ]
 
-/**
- * **아직 안 정해진 갈림.** 여기 적힌 것만 봐준다.
- *
- * 개발용 응답이 그림을 옮긴 것이고 **그림과 서버가 진짜로 어긋난** 자리다. 고르는
- * 것은 사람의 일이라 여기 적어 두고, 정해지면 한쪽을 고쳐 이 줄을 지운다. 조용히
- * 넘기지 않는 것이 이 표의 뜻이다.
- */
-const UNSETTLED: Array<{ what: string; why: string }> = [
-  {
-    what: "my.tasks의 '검토 필요'",
-    why:
-      "MY-01이 그린 것: 줄의 딱지가 '검토 필요'이고 그 두 줄이 '해야 할 업무' 갈피에 " +
-      "있으며 갈피 수도 2/2/0으로 그것과 맞는다. 서버가 정한 것: 단계 `review`의 말은 " +
-      "'검토 중'이고 갈피는 '진행 중'이다(검토 중인 업무는 아직 안 끝났다). " +
-      '그림 안에서는 앞뒤가 맞으므로 그림이 스스로 어긋난 것이 아니라 **그림과 서버가 ' +
-      '어긋난 것**이다. 어느 쪽이 맞는지는 사람이 정한다 — 정해지기 전에 한쪽으로 ' +
-      '옮기면 그림 대조가 그 자리에서 예외를 하나 더 갖게 된다.',
-  },
-]
-
 const rowsOf = (key: string, params: Record<string, string>): DataRow[] => {
   const filtered = FILTERED_FIXTURES[key]
   return filtered === undefined ? [] : filtered(params)
@@ -112,7 +96,7 @@ describe('개발용 응답이 서버와 다른 말을 하지 않는다', () => {
       }
     }
     expect(
-      [...unknown].filter((said) => !UNSETTLED.some((one) => one.what.includes(said))),
+      [...unknown],
       `서버가 내놓지 않는 말입니다. 서버가 주는 것은 ${known.join('·')}입니다`,
     ).toEqual([])
   })
@@ -123,19 +107,12 @@ describe('개발용 응답이 서버와 다른 말을 하지 않는다', () => {
       const allowed = statusesOfTab(tab).map((status) => TASK_STATUS[status].label)
       for (const row of rowsOf('my.tasks', { tab })) {
         const said = String(row.status ?? '')
-        const settled = !UNSETTLED.some((one) => one.what.includes(said))
-        if (said !== '' && settled && !allowed.includes(said)) {
+        if (said !== '' && !allowed.includes(said)) {
           wrong.push(`${tab}에 '${said}' — 이 갈피는 ${allowed.join('·')}뿐입니다`)
         }
       }
     }
     expect(wrong, wrong.join('\n')).toEqual([])
-  })
-
-  // **봐주는 것이 늘면 재는 것이 준다.** 수를 못 박아 조용히 늘지 않게 한다.
-  it('아직 안 정해진 갈림이 조용히 늘지 않는다', () => {
-    expect(UNSETTLED).toHaveLength(1)
-    for (const one of UNSETTLED) expect(one.why.length).toBeGreaterThan(60)
   })
 
   it('주인이 있는 덩이의 색이 그 규칙의 색과 같다', () => {
