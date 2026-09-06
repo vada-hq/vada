@@ -135,9 +135,17 @@ export function REC02AScreen({
     (param) => (screenParams[param.key] ?? '') === '',
   )
 
-  // 인자가 없는데 초안을 읽으러 가면 readObjectSource가 먼저 던진다. 갈고리는
-  // 조건 없이 불러야 하므로 판정을 여기 안에서 한다(EVT-05와 같은 자리).
-  const [seed] = useState<ScopeDraft>(() =>
+  // **서버의 초안을 매번 다시 읽는다.**
+  //
+  // 한동안 `useState`로 한 번만 잡아 두었다. 그러면 'AI 초안 생성'이 새 초안을 만들어도
+  // 칸에 옛 값이 그대로 있었고, 이어서 '임시 저장'을 누르면 **만든 초안이 옛 값으로
+  // 덮였다** — 조용히 사라지는 길이었다(2026-09-05에 재현했다).
+  //
+  // 읽기는 그릇의 담아 둔 것에서 오므로 매번 읽어도 부름이 늘지 않는다. 보내고 나면
+  // 그릇이 담아 둔 것을 비우므로(`runMutation`) 그다음 그리기가 새것을 읽는다.
+  //
+  // 인자가 없는데 읽으러 가면 `readObjectSource`가 먼저 던진다. 그래서 여기서 가른다.
+  const fromServer: ScopeDraft =
     missing.length > 0
       ? { values: {}, labels: {} }
       : draftFromRow(
@@ -145,9 +153,9 @@ export function REC02AScreen({
             rec02a.draftFrom!.dataSourceKey,
             resolveParams(rec02a.draftFrom!.params, { screenParams }),
           ),
-        ),
-  )
-  const draft = Object.keys(scopeDraft.values).length === 0 ? seed : scopeDraft
+        )
+  // 사람이 고친 것이 있으면 그것이 이긴다 — 서버의 초안으로 덮으면 쓰던 글이 사라진다.
+  const draft = Object.keys(scopeDraft.values).length === 0 ? fromServer : scopeDraft
   const field = useFieldDraft({
     elements: rec02a.elements,
     draft,

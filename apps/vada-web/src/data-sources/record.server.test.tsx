@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createApp } from '../../../api/src/app.ts'
 import { freshDb } from '../../../api/src/db/testing.ts'
 import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
@@ -60,9 +60,13 @@ const draw = (screenId: string, screenParams: Record<string, string> = {}) =>
 
 const drawn = () => document.body.textContent ?? ''
 
+/** 씨앗을 심는 표. 검사가 상태를 만들어 두어야 할 때 쓴다. */
+let db: Awaited<ReturnType<typeof freshDb>>['db']
+
 beforeAll(async () => {
   const fresh = await freshDb()
   close = fresh.close
+  db = fresh.db
 
   await fresh.db.insert(organizations).values({ id: 'ORG-01', name: '제12대 학생회' })
   await fresh.db.insert(departments).values({ id: 'D-01', orgId: 'ORG-01', name: '대외협력부' })
@@ -413,5 +417,31 @@ describe('아카이브를 쓰는 길이 저장소까지 닿는다(REC-02A)', () 
     // 기록에 없는 것을 지어내지 않는다 — 다만 초안은 비어 오지 않는다.
     expect(typeof draft.handover).toBe('string')
     expect((draft.handover as string).length).toBeGreaterThan(0)
+  })
+
+  // **만든 초안이 칸에 보여야 한다.**
+  //
+  // 한동안 화면이 서버의 초안을 `useState`로 한 번만 잡아 두었다. 그래서 'AI 초안
+  // 생성'을 눌러도 칸에 옛 값이 그대로 있었고, 이어서 '임시 저장'을 누르면 만든 초안이
+  // 옛 값으로 덮였다 — 조용히 사라지는 길이었다(2026-09-05에 재현했다).
+  it('AI 초안 생성을 누르면 그 초안이 칸에 보인다', async () => {
+    // 먼저 눈에 띄는 글을 담아 둔다 — 그래야 새로 온 것과 얼어붙은 것을 가릴 수 있다.
+    const OLD = '손으로 적어 둔 옛 인수인계'
+    // 표를 바로 고친다. drizzle의 조각은 api의 것이라 여기서 못 들여온다.
+    await db.execute(`update event_archives set handover = '${OLD}' where event_id = 'E-R4'`)
+    forgetSources()
+
+    // 발행된 행사는 초안을 못 만든다(서버가 막는다). 아직 검토 중인 것을 쓴다.
+    const { unmount } = draw('REC-02A', { eventId: 'E-R4' })
+    const box = () => screen.getByRole('textbox', { name: '인수인계' }) as HTMLTextAreaElement
+    await waitFor(() => expect(box().value).toBe(OLD))
+
+    fireEvent.click(screen.getByRole('button', { name: /AI 초안 생성/ }))
+    // 새로 만든 초안이 칸에 온다. 얼어붙어 있으면 옛 글이 그대로 남는다.
+    await waitFor(() => {
+      expect(box().value).not.toBe(OLD)
+      expect(box().value.length).toBeGreaterThan(0)
+    })
+    unmount()
   })
 })
