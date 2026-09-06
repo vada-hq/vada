@@ -1,6 +1,6 @@
 import { Component, Suspense, type ReactNode } from 'react'
 import { Skeleton } from './Skeleton'
-import { NotBuiltYet } from '../data-sources/server'
+import { NotBuiltYet, SourcesFailed } from '../data-sources/server'
 
 // **아직 안 지은 자리 하나만 가린다.**
 //
@@ -30,6 +30,8 @@ interface BuiltProps {
 
 interface BuiltState {
   notBuilt: boolean
+  /** 볼 수 없는 자리였을 때 서버가 준 말. **고장이 아니라 벽이다.** */
+  forbidden: string | null
 }
 
 /**
@@ -50,15 +52,44 @@ function Placeholder({ what }: { what: string }) {
   )
 }
 
+/**
+ * 볼 수 없는 자리를 대신하는 표시.
+ *
+ * **고장이 아니라 벽이다.** 붉게 그리면 사람은 서버가 죽은 줄 알고 새로고침을
+ * 되풀이한다. 무엇이라 말할지는 서버가 정한다 — 누가 볼 수 있는지는 권한 행렬이
+ * 알고 그것은 서버에 있다.
+ */
+function Wall({ said }: { said: string }) {
+  return (
+    <div
+      role="status"
+      className="flex flex-col items-center justify-center gap-1 rounded-lg border border-dashed border-gray-300 bg-gray-50/60 px-4 py-8 text-center"
+    >
+      <p className="text-sm text-gray-600">{said}</p>
+    </div>
+  )
+}
+
 export class Built extends Component<BuiltProps, BuiltState> {
-  state: BuiltState = { notBuilt: false }
+  state: BuiltState = { notBuilt: false, forbidden: null }
 
   /**
-   * **안 지은 것만 여기서 멈춘다.** 나머지 오류는 그대로 올려보낸다 — 화면의 진짜
-   * 고장을 '준비 중'으로 덮으면 그 고장을 아무도 못 본다.
+   * **안 지은 것과 볼 수 없는 것만 여기서 멈춘다.** 나머지 오류는 그대로
+   * 올려보낸다 — 화면의 진짜 고장을 '준비 중'으로 덮으면 그 고장을 아무도 못 본다.
+   *
+   * **볼 수 없는 자리를 여기서 받는 것이 이 자리의 값이다.** 올려보내면 바깥이
+   * 화면을 통째로 대신 그리고, 그러면 못 볼 조각 하나 때문에 **볼 수 있는 나머지가
+   * 함께 사라진다** — 평부원이 ORG-03C를 열면 조직도까지 없어지던 자리다.
    */
-  static getDerivedStateFromError(error: Error): BuiltState | null {
-    return error instanceof NotBuiltYet ? { notBuilt: true } : null
+  static getDerivedStateFromError(error: Error): Partial<BuiltState> | null {
+    if (error instanceof NotBuiltYet) return { notBuilt: true }
+    if (error instanceof SourcesFailed && error.onlyForbidden) {
+      return {
+        forbidden:
+          error.failures[0]?.message ?? '이 자리는 지금 신원으로 볼 수 없습니다',
+      }
+    }
+    return null
   }
 
   /**
@@ -74,6 +105,7 @@ export class Built extends Component<BuiltProps, BuiltState> {
    */
   render() {
     if (this.state.notBuilt) return <Placeholder what={this.props.what} />
+    if (this.state.forbidden !== null) return <Wall said={this.state.forbidden} />
     return (
       <Suspense fallback={<Skeleton label={`${this.props.what}을(를) 불러오는 중입니다`} />}>
         {this.props.children}

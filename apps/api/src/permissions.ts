@@ -1,4 +1,6 @@
 import permissionsJson from '../../../specs/figma/vada-wireframe/permissions.json' with { type: 'json' }
+import optionSourcesJson from '../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
+import { topic } from './korean.ts'
 
 // 누가 무엇을 할 수 있는가. **한 곳에서만 답한다.**
 //
@@ -49,9 +51,13 @@ export interface Lookups {
 
 interface Rule {
   when: string
+  /** 권한 표에 그려진 말. '가능' · '—' · '자기 부서만'. */
+  label?: string
 }
 interface Area {
   key: string
+  /** 사람이 읽는 영역 이름. ORG-04이 그리는 표의 첫 칸이다. */
+  name?: string
   rules: Record<string, Rule>
 }
 
@@ -99,6 +105,54 @@ export async function can(
   const rule = area.rules[membership.role]
   if (rule === undefined) return false
   return evaluate(rule.when, membership, object, lookups)
+}
+
+/** 역할의 사람 읽는 이름. 권한 표가 그리는 말과 같아야 한다. */
+const ROLE_NAME = new Map<string, string>(
+  (
+    (optionSourcesJson.sources.find((source) => source.key === 'org.baseRoles') as
+      | { options: Array<{ value: string; label: string }> }
+      | undefined)?.options ?? []
+  ).map((option) => [option.value, option.label]),
+)
+
+/**
+ * **막혔을 때 무엇이라 말하는가.**
+ *
+ * 한동안 '이 자리를 열 권한이 없습니다' 하나였고, 화면은 그것을 다른 실패와 같은
+ * 말('불러오지 못했습니다')로 그렸다 — 사람은 **자기가 못 볼 것을 본 것인지 서버가
+ * 죽은 것인지** 알 수 없었다.
+ *
+ * **아는 쪽이 말한다.** 누가 무엇을 볼 수 있는지는 권한 행렬이 알고, 그것은 서버에
+ * 있다. 화면이 조립하면 화면마다 다른 말이 나온다.
+ *
+ * 두 갈래다.
+ *
+ * - **이 역할은 아예 안 된다** — 될 수 있는 역할들을 말한다. '구성원 초대는 회장단만
+ *   볼 수 있습니다.'
+ * - **역할은 되는데 조건이 안 맞는다** — 그 조건을 말한다(행렬이 그린 말 그대로).
+ *   '행사 조직 관리는 자기 부서만 볼 수 있습니다.'
+ */
+export function refusalNote(areaKey: string, viewer: Viewer | null, method: string): string {
+  const area = AREAS.get(areaKey)
+  const name = area?.name
+  // 이름이 없으면 지어내지 않는다 — 아는 만큼만 말한다.
+  if (area === undefined || name === undefined) return '이 자리를 열 권한이 없습니다'
+
+  const verb = method.toUpperCase() === 'GET' ? '볼' : '할'
+  const role = viewer?.membership?.role
+  const mine = role === undefined ? undefined : area.rules[role]
+
+  // 내 역할이 되긴 되는데 조건이 안 맞았다. 행렬이 그 조건에 붙인 말이 있다.
+  if (mine !== undefined && mine.when !== 'never' && mine.label !== undefined && mine.label !== '가능') {
+    return `${topic(name)} ${mine.label} ${verb} 수 있습니다`
+  }
+
+  const allowed = Object.entries(area.rules)
+    .filter(([, rule]) => rule.when !== 'never')
+    .map(([key]) => ROLE_NAME.get(key) ?? key)
+  if (allowed.length === 0) return `${topic(name)} 열 수 없는 자리입니다`
+  return `${topic(name)} ${allowed.join('·')}만 ${verb} 수 있습니다`
 }
 
 function isEveryRoleWhen(area: Area, when: string): boolean {

@@ -5,6 +5,7 @@ import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
 import { dataSourceKeysOf } from '../spec/screen-sources'
 import { findDataSource } from './catalog'
 import { setLoadingBehaviour } from './loading'
+import { SourcesFailed } from './server'
 
 // 받아 오는 동안과 실패했을 때를 화면이 말하는가.
 //
@@ -87,6 +88,30 @@ describe('받아 오지 못했을 때', () => {
     show('HOME-01K')
 
     expect(screen.queryByRole('heading', { name: /운영 현황/ })).not.toBeInTheDocument()
+  })
+})
+
+// **막힌 것과 죽은 것을 가르는 규칙.**
+//
+// 전부 '볼 수 없는 자리'면 벽이고, 하나라도 진짜 고장이면 고장이다 — 벽 뒤에
+// 고장을 숨기면 그 고장을 아무도 못 본다.
+describe('막힌 것과 죽은 것을 가른다', () => {
+  it('전부 403이면 벽이다', () => {
+    expect(new SourcesFailed([{ key: 'org.invite', status: 403 }]).onlyForbidden).toBe(true)
+  })
+
+  it('하나라도 다른 것이 섞이면 고장이다', () => {
+    expect(
+      new SourcesFailed([
+        { key: 'org.invite', status: 403 },
+        { key: 'org.chartTitle', status: 500 },
+      ]).onlyForbidden,
+    ).toBe(false)
+  })
+
+  // 닿지도 못한 것은 번호가 없다. 벽이라고 말할 근거가 없으므로 고장이다.
+  it('닿지 못한 것은 벽이 아니다', () => {
+    expect(new SourcesFailed([{ key: 'org.invite' }]).onlyForbidden).toBe(false)
   })
 })
 

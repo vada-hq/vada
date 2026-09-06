@@ -30,6 +30,35 @@ interface SourceGateProps {
 }
 
 /**
+ * 이 자리가 무엇을 말하는가.
+ *
+ * - `waiting` — 오는 중이거나 아직 안 지은 것. 회색이다.
+ * - `forbidden` — **볼 수 없는 자리다.** 고장이 아니라 벽이라 붉지 않다. 붉게
+ *   그리면 사람은 서버가 죽은 줄 알고 새로고침을 되풀이한다.
+ * - `broken` — 진짜 못 받았다. 붉다.
+ */
+type NoteKind = 'waiting' | 'forbidden' | 'broken'
+
+const TONE: Record<NoteKind, string> = {
+  waiting: 'border-gray-300 bg-gray-50/60 text-gray-500',
+  forbidden: 'border-gray-300 bg-gray-50/60 text-gray-600',
+  broken: 'border-red-200 bg-red-50/60 text-red-700',
+}
+
+function Lines({ messages, kind }: { messages: string[]; kind: NoteKind }) {
+  return (
+    <div
+      role={kind === 'broken' ? 'alert' : 'status'}
+      className={`flex flex-col items-center gap-1 rounded-lg border border-dashed px-6 py-16 text-center text-sm ${TONE[kind]}`}
+    >
+      {messages.map((message) => (
+        <p key={message}>{message}</p>
+      ))}
+    </div>
+  )
+}
+
+/**
  * 기다리는 동안과 깨졌을 때 그리는 자리. 본문 하나를 대신한다.
  *
  * **셸 안에 그린다.** 한동안 화면을 통째로 덮었는데, 그러면 왼쪽 메뉴까지 사라져
@@ -39,30 +68,15 @@ interface SourceGateProps {
  * 셸은 자기 값을 서버에서 읽는다(학생회 이름). 그것마저 못 읽으면 이 자리가 다시
  * 던지고 바깥의 `ErrorBoundary`가 받는다 — 거기가 마지막 그물이다.
  */
-function Lines({ messages, isError }: { messages: string[]; isError: boolean }) {
-  return (
-    <div
-      role={isError ? 'alert' : 'status'}
-      className={`flex flex-col items-center gap-1 rounded-lg border border-dashed px-6 py-16 text-center text-sm ${
-        isError ? 'border-red-200 bg-red-50/60 text-red-700' : 'border-gray-300 bg-gray-50/60 text-gray-500'
-      }`}
-    >
-      {messages.map((message) => (
-        <p key={message}>{message}</p>
-      ))}
-    </div>
-  )
-}
-
 function Note({
   messages,
-  isError,
+  kind,
   screenId,
   meta,
   onNavigate,
 }: {
   messages: string[]
-  isError: boolean
+  kind: NoteKind
   screenId: string
   meta?: { eyebrow?: string | null; title?: string | null }
   onNavigate: (screenId: string) => void
@@ -72,28 +86,28 @@ function Note({
   // 실제로 그랬다(2026-09-05, 카나리가 잡았다). 그래서 여기에 자기 그물을 둔다:
   // 셸을 못 그리는 동안은 맨 글이고, 오면 셸 안으로 들어간다.
   return (
-    <Suspense fallback={<Lines messages={messages} isError={isError} />}>
+    <Suspense fallback={<Lines messages={messages} kind={kind} />}>
       <AppShell
         screenId={screenId}
         eyebrow={meta?.eyebrow ?? null}
         title={meta?.title ?? screenId}
         onNavigate={onNavigate}
       >
-        <Lines messages={messages} isError={isError} />
+        <Lines messages={messages} kind={kind} />
       </AppShell>
     </Suspense>
   )
 }
 
 interface GateState {
-  failedKeys: readonly string[] | null
+  failed: SourcesFailed | null
   /** 아직 안 지은 자리를 읽었을 때. **실패와 다른 상태다.** */
   notBuilt: boolean
   screenId: string
 }
 
 export class SourceGate extends Component<SourceGateProps, GateState> {
-  state: GateState = { failedKeys: null, notBuilt: false, screenId: this.props.screenId }
+  state: GateState = { failed: null, notBuilt: false, screenId: this.props.screenId }
 
   /**
    * **받지 못한 것만 여기서 멈춘다.** 나머지 오류는 그대로 올려보낸다 — 화면의
@@ -101,17 +115,17 @@ export class SourceGate extends Component<SourceGateProps, GateState> {
    */
   static getDerivedStateFromError(error: Error): Partial<GateState> | null {
     if (error instanceof NotBuiltYet) return { notBuilt: true }
-    return error instanceof SourcesFailed ? { failedKeys: error.keys } : null
+    return error instanceof SourcesFailed ? { failed: error } : null
   }
 
   static getDerivedStateFromProps(props: SourceGateProps, state: GateState): Partial<GateState> | null {
     return props.screenId === state.screenId
       ? null
-      : { failedKeys: null, notBuilt: false, screenId: props.screenId }
+      : { failed: null, notBuilt: false, screenId: props.screenId }
   }
 
   render() {
-    const { failedKeys, notBuilt } = this.state
+    const { failed, notBuilt } = this.state
     // **아직 안 지은 자리는 실패도 비었음도 아니다.**
     //
     // 이 글은 명세가 갖지 않는다 — 데이터에 대한 말이 아니라 **이 앱이 어디까지
@@ -121,18 +135,32 @@ export class SourceGate extends Component<SourceGateProps, GateState> {
       return (
         <Note
           messages={['이 화면은 아직 준비 중입니다.', '만들어지는 대로 열립니다.']}
-          isError={false}
+          kind="waiting"
           screenId={screenId}
           meta={meta}
           onNavigate={onNavigate}
         />
       )
     }
-    if (failedKeys !== null) {
+    if (failed !== null) {
+      // **막힌 것과 죽은 것은 다른 일이다.**
+      //
+      // 못 받은 것이 전부 '볼 수 없는 자리'면 그것은 고장이 아니라 벽이다. 서버가
+      // 누가 볼 수 있는지까지 적어 보내므로(`refusalNote`) 그 글을 그대로 그린다 —
+      // 화면이 조립하면 화면마다 다른 말이 나온다.
+      //
+      // 하나라도 진짜 고장이면 고장으로 그린다. 벽 뒤에 고장을 숨기지 않는다.
+      const forbidden = failed.onlyForbidden
       return (
         <Note
-          messages={messagesOf(failedKeys, 'error')}
-          isError
+          messages={
+            forbidden
+              ? failed.failures.map(
+                  (one) => one.message ?? '이 자리는 지금 신원으로 볼 수 없습니다',
+                )
+              : messagesOf(failed.keys, 'error')
+          }
+          kind={forbidden ? 'forbidden' : 'broken'}
           screenId={screenId}
           meta={meta}
           onNavigate={onNavigate}

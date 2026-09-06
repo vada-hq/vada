@@ -1,6 +1,6 @@
 import type { MiddlewareHandler } from 'hono'
 import openapi from '../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
-import { can, type Lookups } from './permissions.ts'
+import { can, refusalNote, type Lookups } from './permissions.ts'
 
 // 자리마다 매단 권한을 **실제로 강제한다.**
 //
@@ -154,7 +154,10 @@ export function authorizeMiddleware(deps: AuthorizeDeps): MiddlewareHandler {
     if (!(await can(viewer, authorize.area, object, deps.lookups))) {
       return viewer === null
         ? c.json({ message: '로그인이 필요합니다' }, 401)
-        : c.json({ message: '이 자리를 열 권한이 없습니다' }, 403)
+        : // **막힌 까닭을 아는 쪽이 말한다.** 누가 무엇을 볼 수 있는지는 권한 행렬이
+          // 알고 그것은 여기 있다. 한 마디로 뭉뚱그리면 화면은 그것을 다른 실패와
+          // 같은 말로 그리고, 사람은 못 볼 것을 본 것인지 서버가 죽은 것인지 모른다.
+          c.json({ message: refusalNote(authorize.area, viewer, c.req.method) }, 403)
     }
     await next()
   }

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import permissionsJson from '../../../specs/figma/vada-wireframe/permissions.json' with { type: 'json' }
 import openapi from '../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
-import { can, UnknownArea, type Lookups, type Role, type Viewer } from './permissions.ts'
+import { can, refusalNote, UnknownArea, type Lookups, type Role, type Viewer } from './permissions.ts'
 
 const NO: Lookups = {
   isEventStaff: async () => false,
@@ -125,5 +125,42 @@ describe('누가 무엇을 할 수 있는가', () => {
     }
     expect(used.size).toBeGreaterThan(10)
     expect([...used].filter((area) => !known.has(area))).toEqual([])
+  })
+})
+
+// **막힌 것과 죽은 것이 같은 말이면 사람은 자기가 못 볼 것을 본 것인지 모른다.**
+//
+// 한동안 403의 몸통이 '이 자리를 열 권한이 없습니다' 하나였고, 화면은 그것을 다른
+// 실패와 같은 말('불러오지 못했습니다')로 그렸다. 누가 무엇을 볼 수 있는지는 권한
+// 행렬이 알고 그것은 서버에 있으므로, 아는 쪽이 말한다.
+describe('막힌 까닭을 서버가 말한다', () => {
+  const member = (role: Role): Viewer => ({
+    userId: 'U-1',
+    membership: { orgId: 'ORG-1', memberId: 'M-1', role, departmentId: 'D-1', inFinanceDepartment: false },
+  })
+
+  it('될 수 있는 역할을 이름과 함께 말한다', () => {
+    expect(refusalNote('org.invite', member('member'), 'GET')).toBe(
+      '구성원 초대는 회장단만 볼 수 있습니다',
+    )
+  })
+
+  it('보내는 자리는 보는 것이 아니라 하는 것이다', () => {
+    expect(refusalNote('org.structure', member('head'), 'PUT')).toBe(
+      '조직 구조 수정은 회장단만 할 수 있습니다',
+    )
+  })
+
+  // 조사는 끝소리가 정한다 — 한쪽으로 고정하면 문장 절반이 틀린 말이 된다.
+  it('이름의 끝소리가 조사를 정한다', () => {
+    expect(refusalNote('org.invite', member('member'), 'GET')).toContain('초대는')
+    expect(refusalNote('org.structure', member('member'), 'GET')).toContain('수정은')
+  })
+
+  // **이름이 없으면 지어내지 않는다.** 아는 만큼만 말한다.
+  it('모르는 영역에는 뭉뚱그린 말을 준다', () => {
+    expect(refusalNote('이런영역은없다', member('member'), 'GET')).toBe(
+      '이 자리를 열 권한이 없습니다',
+    )
   })
 })

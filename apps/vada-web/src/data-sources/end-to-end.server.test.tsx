@@ -300,12 +300,26 @@ describe('회장이 부서에도 있으면 조직도가 죽지 않는다', () =>
     expect(document.body.textContent ?? '').not.toContain('불러오지 못했습니다')
   })
 
-  // **ORG-03C는 여기서 재지 않는다.** 이 검사의 보는 사람은 평부원이고, 초대는
-  // 회장단·부서장만 읽는다(계약의 `x-authorize`) — 403이 나는 것이 맞다. 회장단으로
-  // 걷는 자리는 배포 모양 카나리다.
+  // **막힌 것과 죽은 것을 화면이 갈라 그리는가.**
   //
-  // 다만 그때 화면이 통째로 죽는 것은 따로 볼 일이다: 막힌 것과 서버가 죽은 것을
-  // 화면이 같은 말로 그린다(백로그 '지금').
+  // 이 검사의 보는 사람은 평부원이고 초대는 회장단만 읽는다 — 403이 나는 것이 맞다.
+  // 그런데 한동안 화면은 그것을 다른 실패와 같은 말('초대를 불러오지 못했습니다')로
+  // 그렸고, 사람은 자기가 못 볼 것을 본 것인지 서버가 죽은 것인지 알 수 없었다.
+  //
+  // 이제 **누가 볼 수 있는지를 서버가 말하고** 화면은 그 글을 그대로 그린다.
+  it('ORG-03C가 평부원에게 누가 볼 수 있는지를 말한다', async () => {
+    seenAs = 'member'
+    render(<ScreenRouter screenId="ORG-03C" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />)
+
+    await waitFor(() =>
+      expect(screen.getByText('구성원 초대는 회장단만 볼 수 있습니다')).toBeInTheDocument(),
+    )
+    // 고장이 아니라 벽이다 — 붉게 그리면 사람은 새로고침을 되풀이한다.
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(document.body.textContent ?? '').not.toContain('불러오지 못했습니다')
+    // 갇히지 않는다 — 나갈 메뉴가 살아 있다.
+    expect(screen.getByRole('navigation', { name: '주요 메뉴' })).toBeInTheDocument()
+  })
 
   it('ORG-03B가 회장단 딱지를 그린다', async () => {
     render(<ScreenRouter screenId="ORG-03B" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />)

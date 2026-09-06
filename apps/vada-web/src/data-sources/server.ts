@@ -34,8 +34,12 @@ let server: Server | null = null
 const cache = new Map<string, unknown>()
 /** 지금 받아 오는 중인 부름. **칸마다 하나다** — 같은 것을 두 번 부르지 않는다. */
 const coming = new Map<string, Promise<void>>()
-/** 받아 오다 깨진 부름. 어느 출처였는지를 든다 — 그 출처의 글을 그려야 한다. */
-const broken = new Map<string, string>()
+/**
+ * 받아 오다 깨진 부름. 어느 출처였는지와 **왜 못 받았는지**를 든다.
+ *
+ * 번호를 버리면 막힌 것과 죽은 것이 화면에서 같은 말이 된다.
+ */
+const broken = new Map<string, SourceFailure>()
 
 function empty(): void {
   cache.clear()
@@ -189,13 +193,36 @@ export class NotBuiltYet extends Error {
   }
 }
 
+/**
+ * 못 받은 자리 하나.
+ *
+ * **막힌 것과 죽은 것은 다른 일이다.** 한동안 여기에 열쇠만 있었고, 화면은 둘을
+ * 같은 말('불러오지 못했습니다')로 그렸다 — 사람은 자기가 못 볼 것을 본 것인지
+ * 서버가 죽은 것인지 알 수 없었다. 평부원이 ORG-03C를 열면 조직도까지 함께
+ * 사라졌다(초대는 회장단만 읽는다).
+ */
+export interface SourceFailure {
+  key: string
+  /** 서버가 답한 번호. 닿지도 못했으면 없다. */
+  status?: number
+  /** 서버가 준 완성된 글. 403이 무엇이라 말하는지는 권한 행렬을 든 쪽이 안다. */
+  message?: string
+}
+
 export class SourcesFailed extends Error {
   readonly keys: readonly string[]
+  readonly failures: readonly SourceFailure[]
 
-  constructor(keys: readonly string[]) {
-    super(`데이터 출처를 받지 못했습니다: ${keys.join(', ')}`)
+  constructor(failures: readonly SourceFailure[]) {
+    super(`데이터 출처를 받지 못했습니다: ${failures.map((one) => one.key).join(', ')}`)
     this.name = 'SourcesFailed'
-    this.keys = keys
+    this.failures = failures
+    this.keys = failures.map((one) => one.key)
+  }
+
+  /** 못 받은 것이 전부 '볼 수 없는 자리'인가. 하나라도 진짜 고장이면 아니다. */
+  get onlyForbidden(): boolean {
+    return this.failures.length > 0 && this.failures.every((one) => one.status === 403)
   }
 }
 
@@ -213,11 +240,22 @@ function bring(call: SourceCall): Promise<void> {
     try {
       const source = findDataSource(call.key)
       const res = await at.fetch(`${at.baseUrl ?? ''}${urlOf(source.request.path, call.params)}`)
-      if (!res.ok) throw new Error(String(res.status))
+      if (!res.ok) {
+        // **왜 못 받았는지를 잃지 않는다.** 번호를 버리면 막힌 것과 죽은 것이
+        // 화면에서 같은 말이 된다. 서버가 준 글도 함께 든다 — 403이 무엇이라
+        // 말하는지는 권한 행렬을 든 쪽이 안다.
+        const said = (await res.json().catch(() => null)) as { message?: unknown } | null
+        broken.set(slot, {
+          key: call.key,
+          status: res.status,
+          ...(typeof said?.message === 'string' ? { message: said.message } : {}),
+        })
+        return
+      }
       cache.set(slot, await res.json())
       broken.delete(slot)
     } catch {
-      broken.set(slot, call.key)
+      broken.set(slot, { key: call.key })
     } finally {
       coming.delete(slot)
     }
@@ -237,7 +275,7 @@ function bring(call: SourceCall): Promise<void> {
  */
 export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
   if (server === null) return
-  const failed: string[] = []
+  const failed: SourceFailure[] = []
   await Promise.all(
     calls.map(async (call) => {
       // **아직 서버에 안 붙은 출처는 부르지 않는다.** 계약에 자리가 있어도 서버가
@@ -249,7 +287,8 @@ export async function loadSources(calls: readonly SourceCall[]): Promise<void> {
       const slot = slotOf(call)
       if (cache.has(slot)) return
       await bring(call)
-      if (broken.has(slot)) failed.push(call.key)
+      const why = broken.get(slot)
+      if (why !== undefined) failed.push(why)
     }),
   )
   if (failed.length > 0) throw new SourcesFailed(failed)

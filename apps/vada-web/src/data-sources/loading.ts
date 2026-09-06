@@ -54,6 +54,14 @@ export function setLoadingBehaviour(next: Partial<LoadingBehaviour>): () => void
 export type LoadingState =
   | { status: 'ready' }
   | { status: 'loading'; messages: string[] }
+  /**
+   * **볼 수 없는 자리다.** 고장이 아니라 벽이라 따로 든다 — 같은 말로 그리면 사람은
+   * 자기가 못 볼 것을 본 것인지 서버가 죽은 것인지 알 수 없다.
+   *
+   * 무엇이라 말할지는 서버가 정한다: 누가 볼 수 있는지는 권한 행렬이 알고 그것은
+   * 서버에 있다(`permissions.ts`의 `refusalNote`).
+   */
+  | { status: 'forbidden'; messages: string[] }
   | { status: 'error'; messages: string[] }
 
 export function messagesOf(keys: readonly string[], which: 'loading' | 'error'): string[] {
@@ -99,6 +107,8 @@ export function useSourceLoading(
   const delayMs = behaviour.delayMs
   const [arrived, setArrived] = useState(() => delayMs === 0 && !fromServer)
   const [broken, setBroken] = useState<string[]>([])
+  /** 막힌 것이 전부였을 때 서버가 준 말. 비면 막힌 것이 아니다. */
+  const [walls, setWalls] = useState<string[]>([])
 
   useEffect(() => {
     // **서버가 켜져 있으면 진짜로 받아 온다.** 늦음을 흉내 내는 것과 실제로
@@ -107,6 +117,7 @@ export function useSourceLoading(
       let live = true
       setArrived(false)
       setBroken([])
+      setWalls([])
       loadSources(callsRef.current)
         .then(() => {
           if (live) setArrived(true)
@@ -116,6 +127,17 @@ export function useSourceLoading(
           // **실패한 것만 실패했다고 말한다.** 부름 전부를 깨진 것으로 적으면
           // 요청조차 나가지 않은 개발용 응답까지 빨갛게 나오고, 사람은 없는 자리를
           // 뒤진다. 어느 것이 막혔는지는 `SourcesFailed`가 싣고 온다.
+          // **막힌 것과 죽은 것을 갈라 든다.** 전부 '볼 수 없는 자리'면 그것은
+          // 고장이 아니라 벽이고, 서버가 누가 볼 수 있는지까지 적어 보낸다.
+          // 하나라도 진짜 고장이면 고장으로 든다 — 벽 뒤에 고장을 숨기지 않는다.
+          if (thrown instanceof SourcesFailed && thrown.onlyForbidden) {
+            setWalls(
+              thrown.failures.map(
+                (one) => one.message ?? '이 자리는 지금 신원으로 볼 수 없습니다',
+              ),
+            )
+            return
+          }
           setBroken(
             thrown instanceof SourcesFailed
               ? [...thrown.keys]
@@ -140,6 +162,10 @@ export function useSourceLoading(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, delayMs, fromServer])
 
+  if (walls.length > 0) {
+    // 같은 말을 여러 자리가 쓰면 한 번만 그린다.
+    return { status: 'forbidden', messages: [...new Set(walls)] }
+  }
   if (broken.length > 0) {
     return { status: 'error', messages: messagesOf(broken, 'error') }
   }
