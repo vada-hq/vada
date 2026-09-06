@@ -413,24 +413,28 @@ describe('재정 요약이 수입원과 결제·승인에서 온다', () => {
   // 총예산 1,000,000 · 실결제 120,000 · 아직 안 낸 승인액 130,000(80,000 + 50,000).
   // 사용률은 실제로 나간 돈의 몫(12%)이고, 사용 가능은 정해진 셈으로 750,000(75%)이다.
   // 승인·집행 예정은 **돈이 걸린 요청**의 수다 — 둘(PR-02 · PR-03).
-  it('비율 둘과 건수 둘을 서버가 센다', async () => {
+  // **세는 말도 서버가 만든다.** 한동안 넷이 전부 수였고 화면이 조각 이름의 끝을 보아
+  // '%'와 '건'을 붙였다 — 규칙이 화면에 있으면 화면마다 갈린다(2026-09-06).
+  it('비율 둘과 건수 둘을 완성된 말로 준다', async () => {
     expect(await one('/api/home/finance-summary')).toEqual({
+      // 막대가 그릴 길이는 수라야 한다. 그 하나만 수로 온다.
       budgetUsedPercent: 12,
-      availableBudgetPercent: 75,
-      plannedCount: 2,
-      missingProofCount: 2,
+      budgetUsedNote: '12%',
+      availableBudgetNote: '75%',
+      plannedNote: '2건',
+      missingProofNote: '2건',
     })
   })
 
-  // **편성 전이면 비율이 없다.** 계약이 네 조각을 전부 수로 요구해 그 사실을 말로
-  // 낼 자리가 없으므로, 나눌 바탕이 없을 때는 지어낸 비율 대신 0을 준다 — 옆 학생회는
-  // 1,000원을 냈지만 수입원이 없다.
-  it('수입원이 없으면 비율을 지어내지 않는다', async () => {
+  // **편성 전과 하나도 안 쓴 것은 다른 사실이다.** 나눌 바탕이 없는데 0%를 주면
+  // '다 남았다'로 읽힌다 — 옆 학생회는 1,000원을 냈지만 수입원이 없다.
+  it('수입원이 없으면 비율 대신 편성 전이라 말한다', async () => {
     expect(await one('/api/home/finance-summary', NEIGHBOUR)).toEqual({
       budgetUsedPercent: 0,
-      availableBudgetPercent: 0,
-      plannedCount: 0,
-      missingProofCount: 0,
+      budgetUsedNote: '편성 전',
+      availableBudgetNote: '편성 전',
+      plannedNote: '0건',
+      missingProofNote: '0건',
     })
   })
 

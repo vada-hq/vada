@@ -59,8 +59,8 @@ const NODE = {
 // 색으로 옮기는 일은 design/tones가 한 곳에서 한다.
 const COUNT_TILE_TONE = ["blue", "indigo", "orange"];
 const FINANCE_TILE_TONE: Record<string, string> = {
-  availableBudgetPercent: "blue",
-  missingProofCount: "red",
+  availableBudgetNote: "blue",
+  missingProofNote: "red",
 };
 
 function specOf<T>(nodeId: string): T {
@@ -338,7 +338,6 @@ function FinanceSummary() {
   const finance = readObjectSource(summary.dataSourceKey!);
 
   const [usage, ...tiles] = summary.items!;
-  const suffix = (field: string) => (field.endsWith("Percent") ? "%" : "건");
 
   return (
     <DashboardSection
@@ -349,19 +348,23 @@ function FinanceSummary() {
       <div className="px-5 py-4">
         <div className="flex items-center justify-between gap-3">
           <span className="text-xs text-gray-400">{usage.label}</span>
+          {/* **세는 말은 서버가 만든다.** 한동안 여기서 조각 이름의 끝을 보아 '%'와
+              '건'을 붙였고, 그래서 편성 전인 학생회가 '0%'를 봤다 — 나눌 바탕이 없는
+              것과 하나도 안 쓴 것은 다른 사실이다(2026-09-06). */}
           <span className="text-sm font-bold text-gray-900">
-            {String(finance[usage.field!])}%
+            {String(finance[usage.field!])}
           </span>
         </div>
         <div className="pt-2">
-          <ProgressBar percent={Number(finance[usage.field!])} fill />
+          {/* 막대가 그릴 길이는 수라야 한다. 그 하나만 수로 온다. */}
+          <ProgressBar percent={Number(finance.budgetUsedPercent)} fill />
         </div>
         <div className="grid grid-cols-2 gap-3 pt-4">
           {tiles.map((tile) => (
             <StatTile
               key={tile.label}
               label={tile.label!}
-              value={`${finance[tile.field!]}${suffix(tile.field!)}`}
+              value={String(finance[tile.field!])}
               tone="inset"
               valueClass={VALUE_TEXT[FINANCE_TILE_TONE[tile.field!]] ?? NEUTRAL_VALUE}
             />

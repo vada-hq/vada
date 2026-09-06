@@ -9,6 +9,7 @@ import {
   won,
 } from './labels.ts'
 import { budgetAvailable, itemRows, requestRow, totalRequested } from './requests.ts'
+import { ITEM_CATEGORIES, PURCHASE_TYPES, labelOf } from '../purchases/options.ts'
 
 // 구매 요청 검토(FIN-REV-01).
 //
@@ -97,10 +98,17 @@ export async function reviewItems(
     return {
       id: item.id,
       name: item.name,
-      // 분류와 예산 항목이 한 줄로 온다. 무엇이 분류인지는 조직이 정하는 값이라
-      // 표에 담긴 그대로 읽는다.
-      categoryNote: orNote(joinParts([item.category, item.budgetItemName]), '분류 미정'),
-      purchaseType: orNote(item.purchaseType, '유형 미정'),
+      // 분류와 예산 항목이 한 줄로 온다.
+      //
+      // **표에 담긴 것은 코드다**(`supplies`). 사람이 읽는 말은 명세에만 있으므로
+      // 여기서 펴서 준다 — 한동안 코드가 그대로 화면에 나왔다(보완 요청 화면은
+      // 처음부터 펴고 있었고, 이 자리만 빠져 있었다).
+      categoryNote: orNote(
+        joinParts([labelOf(ITEM_CATEGORIES, item.category), item.budgetItemName]),
+        '분류 미정',
+      ),
+      // 구매 유형도 코드다(`online`·`contract`). 같은 까닭으로 펴서 준다.
+      purchaseType: orNote(labelOf(PURCHASE_TYPES, item.purchaseType), '유형 미정'),
       quantityNote: quantityNote(item.quantity, item.unit),
       amountNote: asked === null ? '금액 미정' : won(asked),
       approvedAmount: approved === null ? '' : String(approved),

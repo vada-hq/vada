@@ -332,10 +332,12 @@ async function missingProofCount(db: Db, orgId: string): Promise<number> {
 }
 
 export interface FinanceSummary {
+  /** 막대가 쓰는 수. 사람이 읽는 말은 아래의 글이 든다. */
   budgetUsedPercent: number
-  availableBudgetPercent: number
-  plannedCount: number
-  missingProofCount: number
+  budgetUsedNote: string
+  availableBudgetNote: string
+  plannedNote: string
+  missingProofNote: string
 }
 
 /**
@@ -354,10 +356,12 @@ export interface FinanceSummary {
  * **승인·집행 예정 건수는 돈이 걸린 요청의 수다** — 승인액이 있는데 아직 결제에 딸리지
  * 않은 품목을 하나라도 가진 요청. 금액을 더하는 그 품목들을 세므로 둘이 갈리지 않는다.
  *
- * **편성 전(수입 0)이면 비율이 없다.** 그런데 계약이 네 조각을 전부 수로 요구하고 선택으로
- * 둔 조각이 없어 그 사실을 말로 낼 자리가 없다. 나눌 바탕이 없으면 지어낸 비율 대신
- * 0을 준다 — 셈한 값이 아니라 자리를 비울 수 없어 둔 값이고, 그 상태를 말로 낼 조각은
- * 계약에 더해야 한다.
+ * **편성 전(수입 0)이면 비율이 없다.** 나눌 바탕이 없는데 0%를 주면 '하나도 안 썼다'로
+ * 읽힌다 — 그 둘은 다른 사실이다. 그래서 비율 자리에 '편성 전'이라 적어 보낸다
+ * (2026-09-06). 막대가 쓰는 수만 0으로 둔다 — 그리는 길이는 있어야 한다.
+ *
+ * **세는 말도 여기서 만든다.** 한동안 네 조각이 전부 수였고 화면이 조각 이름의 끝을
+ * 보아 '%'와 '건'을 붙였다. 규칙이 화면에 있으면 화면마다 갈린다.
  */
 export async function homeFinanceSummary(db: Db, orgId: string): Promise<FinanceSummary> {
   const [total, spent, committed, missingProof] = await Promise.all([
@@ -368,13 +372,18 @@ export async function homeFinanceSummary(db: Db, orgId: string): Promise<Finance
   ])
   // 넘게 썼으면 쓸 수 있는 것이 없다 — 음수 비율은 뜻이 없다.
   const available = Math.max(0, total - spent - committed.amount)
+  const planned = total > 0
   return {
     budgetUsedPercent: percentOf(spent, total),
-    availableBudgetPercent: percentOf(available, total),
-    plannedCount: committed.requests,
-    missingProofCount: missingProof,
+    budgetUsedNote: planned ? `${percentOf(spent, total)}%` : BEFORE_PLAN,
+    availableBudgetNote: planned ? `${percentOf(available, total)}%` : BEFORE_PLAN,
+    plannedNote: `${committed.requests}건`,
+    missingProofNote: `${missingProof}건`,
   }
 }
+
+/** 예산을 아직 안 짰다는 말. **0%와 다른 사실이다.** */
+const BEFORE_PLAN = '편성 전'
 
 /** 0-100의 정수. 계약이 그 범위라 적었고, 준비율(`home.events`)도 정수로 둥글린다. */
 function percentOf(part: number, total: number): number {

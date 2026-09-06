@@ -143,19 +143,19 @@
         "items": [
           {
             "label": "전체 예산 사용률",
-            "field": "budgetUsedPercent"
+            "field": "budgetUsedNote"
           },
           {
             "label": "사용 가능 예산",
-            "field": "availableBudgetPercent"
+            "field": "availableBudgetNote"
           },
           {
             "label": "승인·집행 예정",
-            "field": "plannedCount"
+            "field": "plannedNote"
           },
           {
             "label": "증빙 누락",
-            "field": "missingProofCount"
+            "field": "missingProofNote"
           }
         ]
       }

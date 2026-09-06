@@ -327,10 +327,12 @@ describe('홈이 저장소에서 온다(HOME-01K)', () => {
   it('재정 요약이 수입원과 결제·승인에서 온다', async () => {
     await loadSources([{ key: 'home.financeSummary', params: {} }])
     expect(readObjectSource('home.financeSummary')).toEqual({
+      // 막대가 그릴 길이만 수다. 나머지는 완성된 말로 온다(2026-09-06).
       budgetUsedPercent: 24,
-      availableBudgetPercent: 70,
-      plannedCount: 1,
-      missingProofCount: 1,
+      budgetUsedNote: '24%',
+      availableBudgetNote: '70%',
+      plannedNote: '1건',
+      missingProofNote: '1건',
     })
   })
 })

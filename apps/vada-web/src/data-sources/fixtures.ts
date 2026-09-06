@@ -2991,9 +2991,10 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   ],
   'home.financeSummary': {
     budgetUsedPercent: 34,
-    availableBudgetPercent: 66,
-    plannedCount: 4,
-    missingProofCount: 5,
+    budgetUsedNote: '34%',
+    availableBudgetNote: '66%',
+    plannedNote: '4건',
+    missingProofNote: '5건',
   },
 
   // 셸 — 모든 데스크톱 화면이 공유한다.

@@ -311,6 +311,19 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
     return readListSource('finance.reviewItems', { requestId: id }).map((row) => String(row.id))
   }
 
+  // **표에 담기는 것은 코드다**(`supplies`·`online`). 사람이 읽는 말은 명세에만 있으므로
+  // 서버가 펴서 준다 — 한동안 이 자리만 코드를 그대로 내보냈다(보완 화면은 폈다).
+  it('분류와 유형이 코드가 아니라 사람이 읽는 말로 온다', async () => {
+    forgetSources()
+    await loadSources([{ key: 'finance.reviewItems', params: { requestId } }])
+    const rows = readListSource('finance.reviewItems', { requestId })
+    const said = JSON.stringify(rows)
+    expect(said).not.toContain('supplies')
+    expect(said).not.toContain('online')
+    expect(rows.map((row) => row.categoryNote).join(' ')).toContain('소모품')
+    expect(rows.map((row) => row.purchaseType).join(' ')).toContain('온라인')
+  })
+
   it('전부 승인하면 검토가 끝나 구매로 간다 — 부원은 판정을 보낼 수 없다', async () => {
     const [itemId] = await itemIdsOf(requestId)
     const verdict = { requestId, [`reviews.${itemId}.result`]: 'approved', [`reviews.${itemId}.approvedAmount`]: '9000' }
