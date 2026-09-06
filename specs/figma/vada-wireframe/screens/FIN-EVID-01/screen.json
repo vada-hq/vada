@@ -238,6 +238,11 @@
           },
           "onExecutionBlocked": {
             "type": "showBlockedNote"
+          },
+          "params": {
+            "requestId": {
+              "screenParam": "requestId"
+            }
           }
         }
       }

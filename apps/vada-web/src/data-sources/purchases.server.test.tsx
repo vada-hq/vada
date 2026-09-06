@@ -49,6 +49,9 @@ const MEMBER: Viewer = {
 }
 
 /** 판정을 보내고 증빙을 끝내는 사람 — 회장. `finance.manage`는 회장단이 늘 갖는다. */
+/** 이 검사의 행사. 어느 행사의 요청인지는 자리가 말한다(계약의 인자). */
+const EVENT = 'E-01'
+
 const CHAIR: Viewer = {
   userId: 'U-02',
   membership: { orgId: 'ORG-01', memberId: 'M-02', role: 'chair', departmentId: 'D-02', inFinanceDepartment: true },
@@ -244,7 +247,7 @@ describe('구매 요청을 쓴다(FIN-REQ-01)', () => {
   })
 
   it('임시 저장하면 줄이 생기고, 그 요청을 열면 적어 둔 것이 그대로 온다', async () => {
-    const answer = await runMutation('finance.purchaseRequest.saveDraft', draftOf())
+    const answer = await runMutation('finance.purchaseRequest.saveDraft', draftOf(), { eventId: EVENT })
     expect(typeof answer.id).toBe('string')
     requestId = String(answer.id)
 
@@ -267,7 +270,7 @@ describe('구매 요청을 쓴다(FIN-REQ-01)', () => {
 
   it('이름표를 들고 다시 저장하면 같은 줄을 덮어쓴다', async () => {
     const before = await db.select({ id: purchaseRequests.id }).from(purchaseRequests)
-    await runMutation('finance.purchaseRequest.saveDraft', draftOf({ requestId, title: '한마당 안내 팻말 구매(수정)' }))
+    await runMutation('finance.purchaseRequest.saveDraft', draftOf({ requestId, title: '한마당 안내 팻말 구매(수정)' }), { eventId: EVENT })
     expect(await db.select({ id: purchaseRequests.id }).from(purchaseRequests)).toHaveLength(before.length)
     await loadSources([{ key: 'finance.purchaseRequestDraft', params: { eventId: 'E-01', requestId } }])
     expect(readObjectSource('finance.purchaseRequestDraft', { eventId: 'E-01', requestId }).title).toBe(
@@ -276,12 +279,12 @@ describe('구매 요청을 쓴다(FIN-REQ-01)', () => {
   })
 
   it('필수 칸이 비면 제출은 서버가 막는다(422)', async () => {
-    await expect(runMutation('finance.purchaseRequest.submit', draftOf({ requestId, title: '' }))).rejects.toThrow('422')
+    await expect(runMutation('finance.purchaseRequest.submit', draftOf({ requestId, title: '' }), { eventId: EVENT })).rejects.toThrow('422')
     expect((await db.select().from(purchaseRequests)).find((row) => row.id === requestId)!.stage).toBe('draft')
   })
 
   it('제출하면 검토로 넘어가고 번호가 붙는다 — 상세가 그것을 그린다', async () => {
-    await runMutation('finance.purchaseRequest.submit', draftOf({ requestId }))
+    await runMutation('finance.purchaseRequest.submit', draftOf({ requestId }), { eventId: EVENT })
 
     draw('FIN-REQ-02', { requestId })
     // 요청 번호는 서버가 만든다. 그 해의 첫 번째다.
@@ -327,10 +330,10 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
   it('전부 승인하면 검토가 끝나 구매로 간다 — 부원은 판정을 보낼 수 없다', async () => {
     const [itemId] = await itemIdsOf(requestId)
     const verdict = { requestId, [`reviews.${itemId}.result`]: 'approved', [`reviews.${itemId}.approvedAmount`]: '9000' }
-    await expect(runMutation('finance.purchaseRequest.sendReview', verdict)).rejects.toThrow('403')
+    await expect(runMutation('finance.purchaseRequest.sendReview', verdict, { requestId })).rejects.toThrow('403')
 
     seeAs(CHAIR)
-    await runMutation('finance.purchaseRequest.sendReview', verdict)
+    await runMutation('finance.purchaseRequest.sendReview', verdict, { requestId })
 
     seeAs(MEMBER)
     draw('FIN-REQ-02', { requestId })
@@ -355,21 +358,25 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
           { itemName: '이름표 용지', itemCategory: 'print', budgetItem: 'B-02', purchaseType: 'contract', quantity: '200', unit: '장', unitPrice: '300', quoteStatus: 'requested' },
         ],
       }),
+      { eventId: EVENT },
     )
     asked = String(answer.id)
     const [first, second] = await itemIdsOf(asked)
     askedItem = second!
 
     seeAs(CHAIR)
-    await runMutation('finance.purchaseRequest.sendReview', {
-      requestId: asked,
-      [`reviews.${first}.result`]: 'approved',
-      [`reviews.${second}.result`]: 'supplement',
-      [`reviews.${second}.reviewNote`]: '용지 규격이 적혀 있지 않습니다. 알려 주세요',
-    })
+    await runMutation(
+      'finance.purchaseRequest.sendReview',
+      {
+        [`reviews.${first}.result`]: 'approved',
+        [`reviews.${second}.result`]: 'supplement',
+        [`reviews.${second}.reviewNote`]: '용지 규격이 적혀 있지 않습니다. 알려 주세요',
+      },
+      { requestId: asked },
+    )
     // 이미 보완을 요청한 요청에는 또 보낼 수 없다.
     await expect(
-      runMutation('finance.purchaseRequest.sendReview', { requestId: asked, [`reviews.${second}.result`]: 'approved' }),
+      runMutation('finance.purchaseRequest.sendReview', { [`reviews.${second}.result`]: 'approved' }, { requestId: asked }),
     ).rejects.toThrow('409')
 
     seeAs(MEMBER)
@@ -393,12 +400,12 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
 
   it('보완 답을 적어 두고 다시 내면 검토 대기로 돌아간다', async () => {
     const answers = { requestId: asked, [`${askedItem}.corrections.size`]: 'A4 (210×297mm)' }
-    await runMutation('finance.purchaseRequest.saveSupplement', answers)
+    await runMutation('finance.purchaseRequest.saveSupplement', answers, { requestId: asked })
     expect(
       (await db.select().from(purchaseRequestItems)).find((row) => row.id === askedItem)!.supplementAnswers,
     ).toEqual({ corrections: { size: 'A4 (210×297mm)' }, attachments: {} })
 
-    await runMutation('finance.purchaseRequest.resubmitSupplement', answers)
+    await runMutation('finance.purchaseRequest.resubmitSupplement', answers, { requestId: asked })
 
     const { unmount } = draw('FIN-REQ-02', { requestId: asked })
     await waitFor(() => expect(screen.getAllByText('검토 대기').length).toBeGreaterThan(0))
@@ -414,11 +421,14 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
   it('다시 검토해 전부 승인하면 구매로 간다', async () => {
     const [first, second] = await itemIdsOf(asked)
     seeAs(CHAIR)
-    await runMutation('finance.purchaseRequest.sendReview', {
-      requestId: asked,
-      [`reviews.${first}.result`]: 'approved',
-      [`reviews.${second}.result`]: 'approved',
-    })
+    await runMutation(
+      'finance.purchaseRequest.sendReview',
+      {
+        [`reviews.${first}.result`]: 'approved',
+        [`reviews.${second}.result`]: 'approved',
+      },
+      { requestId: asked },
+    )
     seeAs(MEMBER)
     await loadSources([{ key: 'finance.purchaseRequestDetail', params: { requestId: asked } }])
     expect(readObjectSource('finance.purchaseRequestDetail', { requestId: asked })).toMatchObject({
@@ -436,9 +446,9 @@ describe('증빙을 끝낸다(FIN-EVID-01)', () => {
     draw('FIN-EVID-01', { requestId: 'PR-21' })
     await waitFor(() => expect(screen.getByText('한마당 마트')).toBeInTheDocument())
 
-    await runMutation('finance.purchaseRequest.completeEvidence', { requestId: 'PR-21' })
+    await runMutation('finance.purchaseRequest.completeEvidence', {}, { requestId: 'PR-21' })
     // 이미 끝난 요청을 또 끝낼 수 없다(계약의 repeat: conflict).
-    await expect(runMutation('finance.purchaseRequest.completeEvidence', { requestId: 'PR-21' })).rejects.toThrow('409')
+    await expect(runMutation('finance.purchaseRequest.completeEvidence', {}, { requestId: 'PR-21' })).rejects.toThrow('409')
 
     seeAs(MEMBER)
     draw('FIN-REQ-02', { requestId: 'PR-21' })

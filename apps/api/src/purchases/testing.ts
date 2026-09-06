@@ -447,6 +447,23 @@ export function ask(db: Db, path: string, who: Viewer | null = MEMBER, options: 
 }
 
 /** 쓰는 자리를 부른다. 몸통은 JSON으로 실린다 — 글을 주면 그대로 실린다(깨진 JSON을 보낼 때). */
+/**
+ * **무엇을 가리키는지는 자리로 간다**(계약의 인자, 2026-09-06). 검사는 초안을 한 덩이로
+ * 적고, 그 안의 `eventId`·`requestId`가 어디로 실려 가는지는 계약의 일이다 — 여기서
+ * 옮겨 준다. 검사마다 주소를 손으로 이어 붙이면 그 이음이 스물여덟 곳에 생긴다.
+ */
+function withIds(path: string, body: unknown): string {
+  if (typeof body !== 'object' || body === null) return path
+  const holder = body as Record<string, unknown>
+  const query = new URLSearchParams()
+  for (const key of ['eventId', 'requestId']) {
+    const value = holder[key]
+    if (typeof value === 'string' && value !== '') query.set(key, value)
+  }
+  const said = query.toString()
+  return said === '' ? path : `${path}?${said}`
+}
+
 export function post(
   db: Db,
   path: string,
@@ -455,7 +472,7 @@ export function post(
   headers: Record<string, string> = {},
   options: HarnessOptions = {},
 ) {
-  return harness(db, { who, ...options }).request(path, {
+  return harness(db, { who, ...options }).request(withIds(path, body), {
     method: 'POST',
     headers: { 'content-type': 'application/json', ...headers },
     body: typeof body === 'string' ? body : JSON.stringify(body),

@@ -24,11 +24,18 @@
     },
     {
       "key": "finance.purchaseRequest.submit",
-      "description": "구매 요청을 재정부 검토로 넘긴다",
+      "description": "구매 요청을 재정부 검토로 넘긴다\n\n**어느 요청인지가 계약에 있다**(2026-09-06). 한동안 `params: []`였고 서버는 그것을 몸통에서 읽었다 — 계약만 읽고 만드는 사람은 그 값을 실어야 한다는 것을 알 길이 없었고, 몸통이 아예 없다고 적힌 자리도 몸통을 읽고 있었다.",
       "authorize": {
         "area": "member"
       },
-      "params": [],
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사의 구매 요청인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests"
@@ -45,11 +52,18 @@
     },
     {
       "key": "finance.purchaseRequest.saveDraft",
-      "description": "구매 요청을 아직 넘기지 않고 적어 둔 채로 보관한다",
+      "description": "구매 요청을 아직 넘기지 않고 적어 둔 채로 보관한다\n\n**어느 요청인지가 계약에 있다**(2026-09-06). 한동안 `params: []`였고 서버는 그것을 몸통에서 읽었다 — 계약만 읽고 만드는 사람은 그 값을 실어야 한다는 것을 알 길이 없었고, 몸통이 아예 없다고 적힌 자리도 몸통을 읽고 있었다.",
       "authorize": {
         "area": "member"
       },
-      "params": [],
+      "params": [
+        {
+          "key": "eventId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 행사의 구매 요청인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-request-drafts"
@@ -66,11 +80,18 @@
     },
     {
       "key": "finance.purchaseRequest.resubmitSupplement",
-      "description": "보완 요청에 답해 수정한 내용을 재정부에 다시 넘긴다",
+      "description": "보완 요청에 답해 수정한 내용을 재정부에 다시 넘긴다\n\n**어느 요청인지가 계약에 있다**(2026-09-06). 한동안 `params: []`였고 서버는 그것을 몸통에서 읽었다 — 계약만 읽고 만드는 사람은 그 값을 실어야 한다는 것을 알 길이 없었고, 몸통이 아예 없다고 적힌 자리도 몸통을 읽고 있었다.",
       "authorize": {
         "area": "member"
       },
-      "params": [],
+      "params": [
+        {
+          "key": "requestId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 구매 요청인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests/supplement/resubmit"
@@ -87,11 +108,18 @@
     },
     {
       "key": "finance.purchaseRequest.saveSupplement",
-      "description": "보완 답변을 아직 넘기지 않고 적어 둔 채로 보관한다",
+      "description": "보완 답변을 아직 넘기지 않고 적어 둔 채로 보관한다\n\n**어느 요청인지가 계약에 있다**(2026-09-06). 한동안 `params: []`였고 서버는 그것을 몸통에서 읽었다 — 계약만 읽고 만드는 사람은 그 값을 실어야 한다는 것을 알 길이 없었고, 몸통이 아예 없다고 적힌 자리도 몸통을 읽고 있었다.",
       "authorize": {
         "area": "member"
       },
-      "params": [],
+      "params": [
+        {
+          "key": "requestId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 구매 요청인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests/supplement/drafts"
@@ -108,11 +136,18 @@
     },
     {
       "key": "finance.purchaseRequest.sendReview",
-      "description": "품목마다의 판정과 승인액을 요청자에게 보낸다. 보완이 하나라도 있으면 나가는 것이 보완 요청이고 전부 승인이면 검토가 끝난 것인데, 보내는 일은 하나다",
+      "description": "품목마다의 판정과 승인액을 요청자에게 보낸다. 보완이 하나라도 있으면 나가는 것이 보완 요청이고 전부 승인이면 검토가 끝난 것인데, 보내는 일은 하나다\n\n**어느 요청인지가 계약에 있다**(2026-09-06). 한동안 `params: []`였고 서버는 그것을 몸통에서 읽었다 — 계약만 읽고 만드는 사람은 그 값을 실어야 한다는 것을 알 길이 없었고, 몸통이 아예 없다고 적힌 자리도 몸통을 읽고 있었다.",
       "authorize": {
         "area": "finance.manage"
       },
-      "params": [],
+      "params": [
+        {
+          "key": "requestId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 구매 요청인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests/review"
@@ -129,11 +164,18 @@
     },
     {
       "key": "finance.purchaseRequest.completeEvidence",
-      "description": "결제·증빙 정리를 끝내고 요청을 처리 완료로 옮긴다",
+      "description": "결제·증빙 정리를 끝내고 요청을 처리 완료로 옮긴다\n\n**어느 요청인지가 계약에 있다**(2026-09-06). 한동안 `params: []`였고 서버는 그것을 몸통에서 읽었다 — 계약만 읽고 만드는 사람은 그 값을 실어야 한다는 것을 알 길이 없었고, 몸통이 아예 없다고 적힌 자리도 몸통을 읽고 있었다.",
       "authorize": {
         "area": "finance.manage"
       },
-      "params": [],
+      "params": [
+        {
+          "key": "requestId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 구매 요청인가"
+        }
+      ],
       "request": {
         "method": "POST",
         "path": "/api/ops/finance/purchase-requests/evidence/complete"

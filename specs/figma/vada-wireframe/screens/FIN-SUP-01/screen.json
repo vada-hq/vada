@@ -225,6 +225,11 @@
               }
             },
             "scopeEvent": "cancel"
+          },
+          "params": {
+            "requestId": {
+              "screenParam": "requestId"
+            }
           }
         }
       }
@@ -259,6 +264,11 @@
           "onExecutionBlocked": {
             "type": "showMissingRequiredFields",
             "focus": "firstMissingField"
+          },
+          "params": {
+            "requestId": {
+              "screenParam": "requestId"
+            }
           }
         }
       }

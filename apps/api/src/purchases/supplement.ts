@@ -3,7 +3,7 @@ import type { Db } from '../db/client.ts'
 import { purchaseRequestItems, purchaseRequests } from '../db/schema.ts'
 import { dayOf, joinParts, orNote, quantityNote, requestedAmount, won } from '../finance/labels.ts'
 import { Blocked, NotFound } from '../routes.ts'
-import { objectOf, readWord, type Body } from './body.ts'
+import { objectOf, type Body } from './body.ts'
 import { ITEM_CATEGORIES, labelOf } from './options.ts'
 import { itemOf, itemsOf, requestOf, type ItemRow, type RequestRow } from './rows.ts'
 
@@ -35,7 +35,7 @@ export interface SupplementRequestHead {
  * '재제출 권장 기한 …'). 기한은 FIN-REV-01에 적는 자리가 없어 비어 있을 수 있고, 그때는 그 사실을 말한다.
  */
 export async function supplementRequest(db: Db, orgId: string, requestId: string): Promise<SupplementRequestHead> {
-  const row = await requestOf(db, orgId, requestId)
+  const row = await requestOf(db, orgId, requestId.trim())
   if (row === null) throw new NotFound('그 구매 요청을 찾지 못했습니다')
   if (row.supplementRequestedAt === null) throw new NotFound('이 요청에 걸린 보완 요청이 없습니다')
   const due = dayOf(row.supplementDueOn)
@@ -140,8 +140,13 @@ function answersOf(body: Body, itemId: string): Answers | null {
  * 답을 적을 요청. **요청자만 적는다** — 보완은 그 사람에게 걸린 것이다. 보완이 걸려 있지 않으면
  * 적을 것이 없다.
  */
-async function pendingOf(db: Db, orgId: string, who: Requester, body: Body): Promise<{ row: RequestRow; asked: ItemRow[] }> {
-  const requestId = readWord(body, 'requestId', '요청') ?? ''
+async function pendingOf(
+  db: Db,
+  orgId: string,
+  who: Requester,
+  // **어느 요청인지는 자리가 말한다**(계약의 인자). 한동안 몸통에서 읽었다.
+  requestId: string,
+): Promise<{ row: RequestRow; asked: ItemRow[] }> {
   const row = await requestOf(db, orgId, requestId)
   if (row === null) throw new NotFound('그 구매 요청을 찾지 못했습니다')
   if (row.requesterMemberId !== who.memberId) throw new Blocked('내가 쓴 요청의 보완만 답할 수 있습니다')
@@ -167,10 +172,11 @@ export async function saveSupplement(
   db: Db,
   orgId: string,
   who: Requester,
+  requestId: string,
   body: unknown,
 ): Promise<Record<string, never>> {
   const draft = objectOf(body, '보완 답변')
-  const { asked } = await pendingOf(db, orgId, who, draft)
+  const { asked } = await pendingOf(db, orgId, who, requestId)
   await db.transaction((tx) => storeAnswers(tx as unknown as Db, orgId, draft, asked))
   return {}
 }
@@ -184,11 +190,12 @@ export async function resubmitSupplement(
   db: Db,
   orgId: string,
   who: Requester,
+  requestId: string,
   body: unknown,
   now: Date,
 ): Promise<Record<string, never>> {
   const draft = objectOf(body, '보완 답변')
-  const { row, asked } = await pendingOf(db, orgId, who, draft)
+  const { row, asked } = await pendingOf(db, orgId, who, requestId)
   await db.transaction(async (tx) => {
     const writer = tx as unknown as Db
     await storeAnswers(writer, orgId, draft, asked)

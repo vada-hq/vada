@@ -373,8 +373,9 @@ describe('제출(finance.purchaseRequest.submit)', () => {
     const before = (await db.select({ id: purchaseRequests.id }).from(purchaseRequests)).length
     // **같은 서버라야 같은 키를 기억한다.** 앱을 새로 세우면 시도의 칸도 새것이다.
     const app = harness(db, { who: MEMBER, newId })
+    // 어느 행사인지는 자리가 말한다(계약의 인자).
     const send = () =>
-      app.request(SUBMIT, {
+      app.request(`${SUBMIT}?eventId=${FULL_DRAFT.eventId}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'Idempotency-Key': 'same-key' },
         body: JSON.stringify(flatDraft(FULL_DRAFT)),

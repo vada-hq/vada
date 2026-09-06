@@ -2,7 +2,6 @@ import { and, eq, isNull, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { paymentDocuments, payments, purchaseRequests } from '../db/schema.ts'
 import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
-import { objectOf, readWord } from './body.ts'
 import { requestOf } from './rows.ts'
 
 // 결제·증빙 정리 끝내기(FIN-EVID-01의 `finance.purchaseRequest.completeEvidence`).
@@ -18,11 +17,12 @@ import { requestOf } from './rows.ts'
 export async function completeEvidence(
   db: Db,
   orgId: string,
-  body: unknown,
+  // **몸통이 없는 자리다**(계약이 그렇게 적었다). 무엇의 증빙인지는 자리가 말한다 —
+  // 한동안 계약에 없는 몸통을 읽고 있었다.
+  requestId: string,
   now: Date,
 ): Promise<Record<string, never>> {
-  const asked = objectOf(body, '처리 완료')
-  const row = await requestOf(db, orgId, readWord(asked, 'requestId', '요청') ?? '')
+  const row = await requestOf(db, orgId, requestId.trim())
   if (row === null) throw new NotFound('그 구매 요청을 찾지 못했습니다')
   if (row.stage === 'settled') throw new AlreadyExists('이미 처리가 완료된 요청입니다.')
   if (row.stage !== 'proof') throw new Blocked('결제·증빙 단계의 요청만 처리를 끝낼 수 있습니다')

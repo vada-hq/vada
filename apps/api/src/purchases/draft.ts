@@ -168,9 +168,15 @@ interface ReadDraft {
  * 임시 저장은 다 채우지 않아도 되므로 비어 있는 것은 막지 않는다 — 다만 적힌 값은 받을 수 있는
  * 값이어야 한다. 조용히 비우면 사람은 고른 줄 알고 지나간다.
  */
-async function readDraftBody(db: Db, orgId: string, body: unknown): Promise<ReadDraft> {
+async function readDraftBody(
+  db: Db,
+  orgId: string,
+  // **어느 행사인지는 자리가 말한다**(계약의 인자). 한동안 몸통에서 읽었다.
+  asked: string,
+  body: unknown,
+): Promise<ReadDraft> {
   const draft = objectOf(body, '구매 요청')
-  const eventId = readWord(draft, 'eventId', '행사')
+  const eventId = asked.trim() === '' ? null : asked.trim()
   if (eventId === null) throw new Blocked('어느 행사의 요청인지가 없습니다')
   if (!(await eventExists(db, orgId, eventId))) throw new Blocked('이 학생회에 그런 행사가 없습니다')
 
@@ -370,11 +376,12 @@ export async function savePurchaseDraft(
   db: Db,
   orgId: string,
   who: Requester,
+  eventId: string,
   body: unknown,
   newId: () => string,
   now: Date,
 ): Promise<{ id: string }> {
-  const read = await readDraftBody(db, orgId, body)
+  const read = await readDraftBody(db, orgId, eventId, body)
   const row = await targetOf(db, orgId, who, read)
   if (row !== null && row.stage !== 'draft') throw new Blocked('이미 제출한 요청은 임시 저장할 수 없습니다')
   const department = row === null ? (await departmentOfMember(db, orgId, who.memberId)).id : null
@@ -391,11 +398,12 @@ export async function submitPurchaseRequest(
   db: Db,
   orgId: string,
   who: Requester,
+  eventId: string,
   body: unknown,
   newId: () => string,
   now: Date,
 ): Promise<{ id: string }> {
-  const read = await readDraftBody(db, orgId, body)
+  const read = await readDraftBody(db, orgId, eventId, body)
   mustBeComplete(read)
   const row = await targetOf(db, orgId, who, read)
   if (row !== null && row.stage !== 'draft') throw new Blocked('이미 제출된 요청입니다')

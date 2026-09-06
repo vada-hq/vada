@@ -90,11 +90,13 @@ export async function sendReview(
   db: Db,
   orgId: string,
   who: Reviewer,
+  // **어느 요청인지는 자리가 말한다**(계약의 인자). 한동안 몸통에서 읽었다.
+  requestId: string,
   body: unknown,
   now: Date,
 ): Promise<Record<string, never>> {
   const draft = objectOf(body, '검토 결과')
-  const row = await requestOf(db, orgId, readWord(draft, 'requestId', '요청') ?? '')
+  const row = await requestOf(db, orgId, requestId.trim())
   if (row === null) throw new NotFound('그 구매 요청을 찾지 못했습니다')
   if (row.stage === 'draft') throw new Blocked('아직 제출되지 않은 요청입니다')
   if (row.stage !== 'review') throw new AlreadyExists('이미 판정을 보낸 요청입니다')

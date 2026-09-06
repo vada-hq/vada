@@ -553,6 +553,11 @@
           "onExecutionBlocked": {
             "type": "showMissingRequiredFields",
             "focus": "firstMissingField"
+          },
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
           }
         }
       }
@@ -571,7 +576,12 @@
         "action": {
           "type": "submit",
           "mutationKey": "finance.purchaseRequest.saveDraft",
-          "onSuccess": {}
+          "onSuccess": {},
+          "params": {
+            "eventId": {
+              "screenParam": "eventId"
+            }
+          }
         }
       }
     },

@@ -55,11 +55,21 @@ function orMissing<T>(found: T | null): T {
 const bodyOf = (c: Context) => c.req.json().catch(() => null)
 
 /** 쓰기가 다룬 요청. 몸통에서 읽되 기록에는 남긴다. */
+/**
+ * 무엇에 대한 요청인지는 **자리가 말한다**.
+ *
+ * 한동안 몸통에서 읽었다. 계약은 `params: []`라 적어 두었으므로 계약만 읽고 만드는
+ * 사람은 그 값을 실어야 한다는 것을 알 길이 없었고, 몸통이 아예 없다고 적힌 자리
+ * (증빙 정리)도 몸통을 읽고 있었다. 이제 계약이 그것을 인자로 적는다(2026-09-06).
+ */
+function askedId(c: Context, key: 'requestId' | 'eventId'): string {
+  return c.req.query(key) ?? ''
+}
+
+/** 보낸 몸통과, 누구의 것을 다뤘는지. 가리키는 것은 자리가 말한다. */
 async function bodyWithSubject(c: Context): Promise<unknown> {
-  const body = await bodyOf(c)
-  const requestId = body !== null && typeof body === 'object' ? (body as { requestId?: unknown }).requestId : undefined
-  c.set('auditSubject', { type: 'purchaseRequest', id: typeof requestId === 'string' ? requestId : '' })
-  return body
+  c.set('auditSubject', { type: 'purchaseRequest', id: askedId(c, 'requestId') })
+  return bodyOf(c)
 }
 
 export const purchaseHandlers: Handlers = {
@@ -80,12 +90,12 @@ export const purchaseHandlers: Handlers = {
   },
   // 임시 저장은 덮어쓰기이고 새 줄의 이름표를 돌려준다. 제출은 같은 것을 보내되 검토로 넘긴다.
   'finance.purchaseRequest.saveDraft': async (c, d) => {
-    const made = await savePurchaseDraft(d.db, orgOf(c), memberOf(c), await bodyWithSubject(c), d.newId, d.invite.now())
+    const made = await savePurchaseDraft(d.db, orgOf(c), memberOf(c), askedId(c, 'eventId'), await bodyWithSubject(c), d.newId, d.invite.now())
     c.set('auditSubject', { type: 'purchaseRequest', id: made.id })
     return made
   },
   'finance.purchaseRequest.submit': async (c, d) => {
-    const made = await submitPurchaseRequest(d.db, orgOf(c), memberOf(c), await bodyWithSubject(c), d.newId, d.invite.now())
+    const made = await submitPurchaseRequest(d.db, orgOf(c), memberOf(c), askedId(c, 'eventId'), await bodyWithSubject(c), d.newId, d.invite.now())
     c.set('auditSubject', { type: 'purchaseRequest', id: made.id })
     return made
   },
@@ -112,17 +122,21 @@ export const purchaseHandlers: Handlers = {
     return found
   },
   'finance.purchaseRequest.saveSupplement': async (c, d) =>
-    saveSupplement(d.db, orgOf(c), memberOf(c), await bodyWithSubject(c)),
+    saveSupplement(d.db, orgOf(c), memberOf(c), askedId(c, 'requestId'), await bodyWithSubject(c)),
   'finance.purchaseRequest.resubmitSupplement': async (c, d) =>
-    resubmitSupplement(d.db, orgOf(c), memberOf(c), await bodyWithSubject(c), d.invite.now()),
+    resubmitSupplement(d.db, orgOf(c), memberOf(c), askedId(c, 'requestId'), await bodyWithSubject(c), d.invite.now()),
 
   // ── 구매 요청 검토 (FIN-REV-01) ────────────────────────────────────────
   //
   // 누가 여는지는 미들웨어가 본다(`finance.manage`). 보내는 사람이 곧 검토자다.
   'finance.purchaseRequest.sendReview': async (c, d) =>
-    sendReview(d.db, orgOf(c), memberOf(c), await bodyWithSubject(c), d.invite.now()),
+    sendReview(d.db, orgOf(c), memberOf(c), askedId(c, 'requestId'), await bodyWithSubject(c), d.invite.now()),
 
   // ── 결제·증빙 정리 (FIN-EVID-01) ───────────────────────────────────────
-  'finance.purchaseRequest.completeEvidence': async (c, d) =>
-    completeEvidence(d.db, orgOf(c), await bodyWithSubject(c), d.invite.now()),
+  // **몸통이 없는 자리다**(계약이 그렇게 적었다). 무엇의 증빙인지는 자리가 말한다.
+  'finance.purchaseRequest.completeEvidence': async (c, d) => {
+    const requestId = askedId(c, 'requestId')
+    c.set('auditSubject', { type: 'purchaseRequest', id: requestId })
+    return completeEvidence(d.db, orgOf(c), requestId, d.invite.now())
+  },
 }
