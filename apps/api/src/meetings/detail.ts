@@ -554,7 +554,7 @@ export interface MeetingAgenda {
  * 색은 05A가 그린 그대로다 — 아직 안 한 것은 노랑, 지금 하는 것은 초록, 마친 것은
  * 회색. 03 계열은 이 딱지를 아예 그리지 않는다.
  */
-const AGENDA_STATUS: Record<string, { label: string; tone: string }> = {
+export const AGENDA_STATUS: Record<string, { label: string; tone: string }> = {
   pending: { label: '대기', tone: 'yellow' },
   current: { label: '진행 중', tone: 'green' },
   done: { label: '논의 완료', tone: 'gray' },

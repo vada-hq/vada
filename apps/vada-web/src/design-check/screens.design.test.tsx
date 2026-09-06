@@ -425,7 +425,10 @@ describe('design/deviations.ts', () => {
   // 열셋이 한꺼번에 사라진다(백로그 '지금').
   // 99 → 101 (2026-09-06, 같은 날 뒤). 행사별 예산 항목에 담당 부서 칸이 붙으면서
   // 그 두 줄이 같은 계열로 들어왔다(사람이 정했다: 행사 항목도 부서를 고른다).
-  const PLACE_DEVIATIONS = 101
+  // 101 → 102 (2026-09-06). 늘어난 하나는 EVT-TASK-02의 '작성 중' 색이다 —
+  // 와이어프레임 두 장이 문서의 같은 단계를 다르게 그렸고, 그 색은 서버가 정하므로
+  // 한 화면만 달리 그릴 수 없다. 일곱 갈래 안의 '두 장이 어긋난다'이다.
+  const PLACE_DEVIATIONS = 102
 
   it('자리에 건 예외가 조용히 늘지 않는다', () => {
     const atPlace = DEVIATIONS.filter((deviation) => deviation.by === 'place')

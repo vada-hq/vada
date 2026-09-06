@@ -27,6 +27,20 @@ import type { Deviation } from '../design-check'
 export const DEVIATIONS: Deviation[] = [
   // --- 규칙에 건다: 화면이 몇이든 한 줄 ---------------------------------------
   {
+    by: 'place',
+    screenId: 'EVT-TASK-02',
+    content: '작성 중',
+    kind: '색',
+    design: 'gray-500(#6A7282)',
+    screen: 'blue-700(#1447E6)',
+    why:
+      '**와이어프레임 두 장이 같은 것을 다르게 그렸다.** 행사 문서 표(EVT-DOC-01)는 ' +
+      "문서의 '작성 중'을 파랑으로 그리고 여기는 회색으로 그렸다. 문서 단계의 말과 색은 " +
+      '서버가 함께 정하므로(`documents/labels.ts`의 STATUS) 한 화면만 달리 그릴 수가 ' +
+      '없다 — 같은 문서가 화면마다 다른 색이 된다. 서버가 든 파랑을 고른다. ' +
+      '(2026-09-06, 개발용 응답이 서버와 갈리는 것을 재다가 드러났다.)',
+  },
+  {
     by: 'rule',
     rule: 'choice-group',
     kind: '굵기',

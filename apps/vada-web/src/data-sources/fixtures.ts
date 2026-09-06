@@ -2619,7 +2619,7 @@ const TASK_WORK_DOCUMENTS: Record<string, DataRow[]> = {
       title: '현수막 디자인 작업 노트',
       kind: '문서',
       status: '작성 중',
-      statusTone: 'gray',
+      statusTone: 'blue',
       officialReflection: '미반영',
     },
   ],
@@ -3697,7 +3697,7 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
         '본부석 뒤편 전선 구간에 케이블 커버를 추가하고 우천 시 실내 대기 장소를 사용하기로 했습니다.',
       durationNote: '20분',
       status: '대기',
-      statusTone: 'gray',
+      statusTone: 'yellow',
     },
     {
       agendaId: 'AG-05-2',
@@ -3706,7 +3706,7 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
       description: '상황별 최초 연락 담당자와 보고 순서를 확정합니다.',
       durationNote: '15분',
       status: '대기',
-      statusTone: 'gray',
+      statusTone: 'yellow',
     },
     {
       agendaId: 'AG-05-3',
@@ -3715,7 +3715,7 @@ const MEETING_AGENDAS: Record<string, DataRow[]> = {
       description: '출입구, 경기장, 대기 구역별 담당 인원을 배치합니다.',
       durationNote: '25분',
       status: '대기',
-      statusTone: 'gray',
+      statusTone: 'yellow',
     },
   ],
   'MTG-06': [
