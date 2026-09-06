@@ -21,8 +21,17 @@ import { NotBuiltYet, SourcesFailed } from '../data-sources/server'
 // 두를 자리는 화면이 안다. 이 저장소의 화면들은 이미 블록마다 따로 읽으므로
 // (`BriefingCard`·`FinanceSummary`처럼 작은 컴포넌트로 갈려 있다) 그 부름을 감싸면 된다.
 
-interface BuiltProps {
-  children: ReactNode
+interface BuiltProps<T> {
+  /**
+   * 이 자리가 읽는 것(선택).
+   *
+   * **읽기를 경계 안으로 들이는 자리다.** 없이 쓰면 부모가 먼저 읽고, 그러면 부모가
+   * 멈춰 화면이 통째로 회색 블록이 된다 — 자리마다 두른 뜻이 사라진다. 자리를
+   * 쪼개려면 화면마다 컴포넌트를 갈라야 하는데, 여기 함수 하나를 받으면 **부르는
+   * 자리 한 줄**로 끝난다.
+   */
+  read?: () => T
+  children: ReactNode | ((value: T) => ReactNode)
   /** 무엇이 들어올 자리인지. 사람이 빈 자리를 보고 무엇이 빠졌는지 알게 한다. */
   what: string
   children_?: never
@@ -70,7 +79,16 @@ function Wall({ said }: { said: string }) {
   )
 }
 
-export class Built extends Component<BuiltProps, BuiltState> {
+/**
+ * 읽기를 경계 **안에서** 한다.
+ *
+ * 부모가 읽으면 부모가 멈춘다. 여기까지 내려와야 이 자리만 기다린다.
+ */
+function Reads<T>({ read, children }: { read: () => T; children: (value: T) => ReactNode }) {
+  return <>{children(read())}</>
+}
+
+export class Built<T = void> extends Component<BuiltProps<T>, BuiltState> {
   state: BuiltState = { notBuilt: false, forbidden: null }
 
   /**
@@ -106,9 +124,14 @@ export class Built extends Component<BuiltProps, BuiltState> {
   render() {
     if (this.state.notBuilt) return <Placeholder what={this.props.what} />
     if (this.state.forbidden !== null) return <Wall said={this.state.forbidden} />
+    const { read, children } = this.props
     return (
       <Suspense fallback={<Skeleton label={`${this.props.what}을(를) 불러오는 중입니다`} />}>
-        {this.props.children}
+        {read === undefined ? (
+          (children as ReactNode)
+        ) : (
+          <Reads read={read}>{children as (value: T) => ReactNode}</Reads>
+        )}
       </Suspense>
     )
   }
