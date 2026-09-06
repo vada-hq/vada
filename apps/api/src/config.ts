@@ -18,6 +18,18 @@ export interface Config {
   inviteLinkBase: string
   google?: { clientId: string; clientSecret: string }
   kakao?: { clientId: string; clientSecret: string }
+  /**
+   * Worker가 '내가 넘겼다'고 증명하는 비밀(선택).
+   *
+   * **없으면 보낸 쪽이 적은 주소를 그대로 믿는다.** 그러면 api가 도는 곳을 곧장
+   * 두드리며 매번 다른 주소를 적는 것으로 속도 세기를 통째로 지나갈 수 있다 —
+   * 밖에서 열리는 자리의 유일한 벽이 그 세기다.
+   *
+   * **여기서 막지는 않는다.** 서지 않게 하면 값을 넣기 전까지 배포가 죽고, 한 칸에
+   * 몰아 버리면 행사장에서 줄 서서 찍는 사람들이 다 막힌다. 대신 설 때 소리 내어
+   * 말한다. 까닭은 `public/client-address.ts`에 있다.
+   */
+  edgeSecret?: string
 }
 
 export class MissingConfig extends Error {}
@@ -62,6 +74,12 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): Config {
     baseUrl: required(env, 'BASE_URL'),
     appUrl: required(env, 'APP_URL'),
     inviteLinkBase: required(env, 'INVITE_LINK_BASE'),
+  }
+  // **짧은 비밀은 있는 것과 없는 것 사이라 더 나쁘다** — AUTH_SECRET과 같은 규칙이다.
+  const edge = env.EDGE_SECRET
+  if (edge !== undefined && edge.trim() !== '') {
+    if (edge.length < 32) throw new MissingConfig('EDGE_SECRET이 너무 짧습니다(32자 이상).')
+    config.edgeSecret = edge
   }
   const google = pair(env, 'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET')
   const kakao = pair(env, 'KAKAO_CLIENT_ID', 'KAKAO_CLIENT_SECRET')

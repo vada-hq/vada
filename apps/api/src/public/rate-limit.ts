@@ -1,4 +1,5 @@
 import type { Context, MiddlewareHandler } from 'hono'
+import { addressKey } from './client-address.ts'
 import { carriesSecret, hashToken, opensToAnyone, tokenOfRequest } from './tokens.ts'
 
 // 마구 넣어 보는 것을 막는다.
@@ -76,6 +77,13 @@ export interface RateLimitDeps {
   counter: Counter
   limits?: Limits
   now?: () => number
+  /**
+   * Worker가 '내가 넘겼다'고 증명하는 비밀(선택).
+   *
+   * **있으면 증명된 요청의 주소만 주소로 센다.** 없으면 헤더를 그대로 믿는다 —
+   * 그 상태가 무엇을 뜻하는지는 `client-address.ts`가 적었다.
+   */
+  edgeSecret?: string | null
 }
 
 /** 몇 초 뒤에 다시 오라고 말한다. 말하지 않으면 상대는 계속 두드린다. */
@@ -113,7 +121,9 @@ export function guessRateLimit(deps: RateLimitDeps): MiddlewareHandler {
     if (!guarded(c)) return next()
 
     const now = clock()
-    const address = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown'
+    // **보낸 쪽이 적은 글자를 그대로 믿지 않는다.** 곧장 두드리며 매번 다른 주소를
+    // 적으면 셀 때마다 새 칸이 열려, 세는 일이 아무것도 막지 못한다.
+    const address = addressKey(c, deps.edgeSecret)
     // **토큰을 그대로 세지 않는다.** 세는 자리에 남으면 그것도 새는 길이다.
     const token = tokenOfRequest(c)
     const keys: Array<[string, Window]> = [[`ip:${address}`, limits.perAddress]]

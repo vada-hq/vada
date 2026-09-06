@@ -25,9 +25,10 @@ let made = 1
 const NOW = new Date('2026-08-20T10:00:00+09:00')
 const QR = 'AAAAAAAAAAAAAAAAAAAAAA'
 
-function harness() {
+function harness(edgeSecret: string | null = null) {
   const written: AuditEntry[] = []
   const deps: Deps = {
+    edgeSecret,
     audit: {
       async write(entry) {
         written.push(entry)
@@ -289,6 +290,79 @@ describe('마구 넣어 보는 것을 막는다', () => {
       )
       expect(res.status).toBe(200)
     }
+  })
+
+  // **보낸 쪽이 적은 주소를 그대로 믿으면 세는 일이 아무것도 막지 못한다.**
+  //
+  // 이 헤더는 보내는 쪽이 쓰는 글자이고, api가 도는 곳은 밖에서도 열려 있다. 매번
+  // 다른 값을 적으면 셀 때마다 새 칸이 열려 22자 난수 토큰을 막던 벽이 통째로
+  // 사라진다. 여기서 그 구멍을 먼저 재현하고, 증거를 요구하면 닫히는 것을 잰다.
+  const guess = (app: ReturnType<typeof harness>['app'], headers: Record<string, string>) =>
+    app.request(`/api/public/attendance/check-in-form?checkInToken=${'C'.repeat(22)}`, { headers })
+
+  it('증거를 안 두면 주소만 바꿔 가며 얼마든지 넣어 볼 수 있다', async () => {
+    const { app } = harness()
+    for (let at = 0; at < 60; at += 1) {
+      const res = await guess(app, { 'x-forwarded-for': `10.0.0.${at}` })
+      expect(res.status).toBe(404)
+    }
+  })
+
+  it('증거를 두면 주소를 바꿔도 한 칸에 모여 막힌다', async () => {
+    const { app } = harness('E'.repeat(32))
+    let blocked = false
+    for (let at = 0; at < 60; at += 1) {
+      const res = await guess(app, { 'x-forwarded-for': `10.0.0.${at}` })
+      if (res.status === 429) {
+        blocked = true
+        break
+      }
+    }
+    expect(blocked).toBe(true)
+  })
+
+  // 증거가 맞으면 주소가 다시 뜻을 갖는다 — 행사장에서 줄 서서 찍는 사람들이
+  // 서로의 한도를 태우지 않는다.
+  it('증거가 맞으면 주소마다 따로 센다', async () => {
+    const secret = 'E'.repeat(32)
+    const { app } = harness(secret)
+    for (let at = 0; at < 60; at += 1) {
+      const res = await app.request(
+        `/api/public/attendance/check-in-form?checkInToken=${QR}`,
+        { headers: { 'x-forwarded-for': `10.0.1.${at}`, 'x-vada-edge': secret } },
+      )
+      expect(res.status).toBe(200)
+    }
+  })
+
+  // 곧장 두드리는 쪽이 이 헤더를 스스로 적어 넣는다. 값이 다르면 증거가 아니다.
+  it('틀린 증거는 증거가 아니다', async () => {
+    const { app } = harness('E'.repeat(32))
+    let blocked = false
+    for (let at = 0; at < 60; at += 1) {
+      const res = await guess(app, { 'x-forwarded-for': `10.0.2.${at}`, 'x-vada-edge': 'not-the-secret' })
+      if (res.status === 429) {
+        blocked = true
+        break
+      }
+    }
+    expect(blocked).toBe(true)
+  })
+
+  // **3년 남는 기록에 보낸 쪽이 적은 글자를 사실로 적지 않는다.**
+  it('증거가 없으면 기록에 주소를 남기지 않는다', async () => {
+    const secret = 'E'.repeat(32)
+    const spoofed = harness(secret)
+    await spoofed.app.request(`/api/public/attendance/check-in-form?checkInToken=${QR}`, {
+      headers: { 'x-forwarded-for': '9.9.9.9' },
+    })
+    expect(spoofed.written.at(-1)?.ip).toBeNull()
+
+    const proven = harness(secret)
+    await proven.app.request(`/api/public/attendance/check-in-form?checkInToken=${QR}`, {
+      headers: { 'x-forwarded-for': '9.9.9.9', 'x-vada-edge': secret },
+    })
+    expect(proven.written.at(-1)?.ip).toBe('9.9.9.9')
   })
 
   // 안쪽 자리는 세션이 벽이므로 여기서 세지 않는다.

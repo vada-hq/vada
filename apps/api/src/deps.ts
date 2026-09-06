@@ -64,6 +64,14 @@ export interface Deps {
   newId: () => string
   /** 밖에서 열리는 자리를 두드리는 것을 세는 곳. */
   counter: Counter
+  /**
+   * Worker가 '내가 넘겼다'고 증명하는 비밀(선택).
+   *
+   * **보낸 쪽이 적은 주소를 그대로 믿지 않으려는 것이다.** 있으면 증명된 요청의
+   * 주소만 세고 기록한다. 없으면 오늘처럼 헤더를 믿는다 — 그 상태가 무엇을 뜻하고
+   * 왜 그렇게 두었는지는 `public/client-address.ts`가 적었다.
+   */
+  edgeSecret?: string | null
 }
 
 /**

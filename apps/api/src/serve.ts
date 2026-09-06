@@ -120,6 +120,9 @@ root.route(
     newId: () => randomUUID(),
     // 계산이 하나인 동안은 프로세스 안에 센다. 늘리면 캐시로 옮겨야 한다.
     counter: inMemoryCounter(),
+    // **Worker를 거쳤다는 증거.** 없으면 보낸 쪽이 적은 주소를 그대로 믿는다 —
+    // 그 뜻은 아래 설 때의 말과 `public/client-address.ts`에 있다.
+    edgeSecret: config.edgeSecret ?? null,
   }),
 )
 
@@ -128,4 +131,12 @@ serve({ fetch: root.fetch, port: config.port }, (info) => {
       .filter(([, open]) => open)
       .map(([name]) => name)
       .join(', ') || '없음'}\n`)
+  // **소리 내어 말한다.** 이 값이 없으면 밖에서 열리는 자리의 속도 세기를 아무나
+  // 지나갈 수 있다(`public/client-address.ts`). 조용히 두면 켜 둔 줄 알고 지낸다.
+  if (config.edgeSecret === undefined) {
+    process.stdout.write(
+      'EDGE_SECRET이 없습니다. 보낸 쪽이 적은 주소를 그대로 믿습니다 — ' +
+        'api 주소를 곧장 두드리면 속도 세기를 지나갈 수 있습니다.\n',
+    )
+  }
 })

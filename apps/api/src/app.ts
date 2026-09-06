@@ -62,12 +62,19 @@ export function createApp(deps: Deps) {
 
   // **가장 먼저 돈다.** 막힌 요청도 남아야 하고, 누가 보냈는지는 여기서 한 번
   // 확정해 문맥에 담는다 — 구성원이 아니어도 누구인지는 남는다.
-  app.use('*', auditMiddleware(deps.audit, { who: (c) => deps.who(c) }))
+  app.use('*', auditMiddleware(deps.audit, { who: (c) => deps.who(c), edgeSecret: deps.edgeSecret }))
   // **열쇠 하나가 벽인 자리는 세션이 벽이 아니다.** 마구 넣어 보는 것을 막지 않으면
   // 그 벽이 벽이 아니다 — 밖에서 열리는 자리가 그렇고, 로그인이 있어도 주소에 실린
   // 값이 곧 열쇠인 자리(초대 코드)가 그렇다. 권한보다 앞에 둔다 — 막을 것은 판정에
   // 닿기 전에 막는다.
-  app.use('*', guessRateLimit({ counter: deps.counter, now: () => deps.invite.now().getTime() }))
+  app.use(
+    '*',
+    guessRateLimit({
+      counter: deps.counter,
+      now: () => deps.invite.now().getTime(),
+      edgeSecret: deps.edgeSecret,
+    }),
+  )
 
   app.use('*', authorizeMiddleware({ lookups: deps.lookups }))
 

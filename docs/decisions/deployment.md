@@ -120,6 +120,17 @@ Render 무료에는 그 자리가 없다. 그래서 표는 **사람이 한 번 �
 4. 비밀을 넣는다 — Render 대시보드에 `DATABASE_URL` · `AUTH_SECRET`(32자 이상) · `BASE_URL` ·
    `APP_URL` · `INVITE_LINK_BASE` · 제공자 열쇠. **서버는 이것들 없이 서지 않는다**
    (`config.ts`) — 없는 채로 도는 것이 가장 나쁘기 때문이다.
+5. **`EDGE_SECRET`을 양쪽에 같은 값으로 넣는다**(32자 이상). Cloudflare는
+   `wrangler secret put EDGE_SECRET`, Render는 대시보드다.
+
+   이것만 서지 않는 것에 넣지 않았다. **Worker가 '내가 넘겼다'를 증명하는 값**이고,
+   api는 그 증거가 맞을 때만 `x-forwarded-for`를 믿는다 — 그 헤더는 보내는 쪽이 쓰는
+   글자이고 api 주소는 밖에서도 열려 있어서, 곧장 두드리며 매번 다른 주소를 적으면
+   밖에서 열리는 자리(참석 QR·설문)의 속도 세기를 통째로 지나갈 수 있다.
+
+   없다고 서지 않게 하면 값을 넣기 전까지 배포가 죽고, 증거 없는 요청을 한 칸에
+   몰아 버리면 행사장에서 줄 서서 찍는 사람들이 다 막힌다. 그래서 **없으면 오늘처럼
+   헤더를 믿고, 대신 설 때 소리 내어 말한다.** 넣는 순간 닫힌다.
 
 ## 올리는 명령
 
@@ -137,6 +148,7 @@ npm run db:migrate
 #   빌드 명령            npx vite build      ← `npm run build`가 아니다(아래)
 #   배포 명령            npx wrangler deploy
 #   환경 변수            API_ORIGIN = https://<render 앱>.onrender.com
+#   비밀                 wrangler secret put EDGE_SECRET   ← Render의 같은 값
 #
 # **`npm run build`를 쓰지 않는다.** 그것은 `tsc -b`를 먼저 도는데, 그 프로그램에
 # `apps/api`를 가져다 쓰는 검사 파일이 들어 있다. Cloudflare는 `apps/vada-web`만

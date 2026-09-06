@@ -29,6 +29,11 @@ services:
         sync: false
       - key: AUTH_SECRET
         sync: false
+      # **Worker를 거쳤다는 증거.** Cloudflare 쪽 `wrangler secret put EDGE_SECRET`과
+      # 같은 값이어야 한다. 없으면 서지 않는 것은 아니지만, 없는 동안은 이 주소를
+      # 곧장 두드리며 아무 주소나 적는 것으로 속도 세기를 지나갈 수 있다.
+      - key: EDGE_SECRET
+        sync: false
       - key: BASE_URL
         sync: false
       - key: APP_URL

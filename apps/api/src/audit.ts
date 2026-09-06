@@ -1,6 +1,7 @@
 import type { Context, MiddlewareHandler } from 'hono'
 import { matchRoute } from './authorize.ts'
 import type { Viewer } from './permissions.ts'
+import { recordedAddress } from './public/client-address.ts'
 
 // 누가 무엇을 언제 만졌는가.
 //
@@ -107,6 +108,13 @@ export interface AuditWho {
    * 저마다 물으면 값이 요청 안에서 갈릴 수 있고, 세션을 여러 번 읽게 된다.
    */
   who(c: Context): Promise<Viewer | null>
+  /**
+   * Worker가 '내가 넘겼다'고 증명하는 비밀(선택).
+   *
+   * 있으면 증명된 요청의 주소만 기록에 남는다. 없으면 헤더를 그대로 적는다 —
+   * 그 상태가 무엇을 뜻하는지는 `public/client-address.ts`가 적었다.
+   */
+  edgeSecret?: string | null
 }
 
 export function auditMiddleware(
@@ -149,9 +157,10 @@ export function auditMiddleware(
         // **막힌 것도 실패다.** 터진 것만 실패로 세었더니 401·403·404가 전부
         // '성공'으로 남았다 — 봐야 할 것이 바로 그쪽이다.
         failed: failed || (error === null && c.res.status >= 400),
-        // 프록시 뒤에 있으므로 원래 주소는 헤더가 들고 온다. 없으면 없다고 적는다 —
-        // 지어내지 않는다.
-        ip: c.req.header('x-forwarded-for')?.split(',')[0]?.trim() ?? null,
+        // 프록시 뒤에 있으므로 원래 주소는 헤더가 들고 온다. 없거나 **믿을 수 없으면**
+        // 없다고 적는다 — 보낸 쪽이 적은 글자를 3년 남는 기록에 사실로 적으면, 그
+        // 기록으로 '누가 했나'를 찾는 날 엉뚱한 사람을 가리킨다.
+        ip: recordedAddress(c, deps.edgeSecret),
         userAgent: c.req.header('user-agent') ?? null,
       })
     }
