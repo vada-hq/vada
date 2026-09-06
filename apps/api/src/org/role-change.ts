@@ -3,6 +3,7 @@ import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sou
 import type { Db } from '../db/client.ts'
 import { departments, members, permissionChanges } from '../db/schema.ts'
 import { NotFound, Blocked } from '../routes.ts'
+import type { Role } from '../permissions.ts'
 import { stillHere } from './membership.ts'
 
 // 구성원의 기본 역할을 바꾼다(ORG-04B).
@@ -91,9 +92,34 @@ export async function changeRole(db: Db, orgId: string, change: RoleChange): Pro
   }
   if (before.role === role) return
 
+  // **자리가 곧 역할이다.** 조직도(ORG-03B)가 그 규칙으로 쓰는데 이 자리는 오랫동안
+  // `role`만 바꿨다. 그래서 여기서 부서장으로 만들어도 조직도에는 부서원으로 남았고,
+  // 두 화면이 한 표를 다른 규칙으로 쓰고 있었다. 조직도의 규칙으로 모은다.
+  const seat = await seatOf(db, orgId, change.memberId)
+  const next = {
+    role: role as Role,
+    // 회장단은 부서에 들지 않는다. 조직도가 자리를 따로 두고 그린다.
+    departmentId: role === 'chair' ? null : seat.departmentId,
+    isDepartmentLeader: role === 'head',
+    // 회장단 안의 자리 이름은 회장단이 아닌 사람에게는 없다. 새로 든 사람의 것은
+    // 아직 정할 수 없다 — 그것을 고치는 화면이 명세에 없다(조직도와 같은 규칙).
+    executiveTitle: role === 'chair' ? seat.executiveTitle : null,
+  }
+  // **부서장은 부서가 있어야 한다.** 없는 채로 두면 조직도의 어느 부서에도 안 서고,
+  // '부서장'이라는 말만 남는다.
+  if (role === 'head' && next.departmentId === null) {
+    throw new Blocked('부서를 정한 뒤에 부서장으로 바꿀 수 있습니다')
+  }
+  // **회장이 없는 학생회가 생기지 않게 한다.** 조직 구조를 고치는 것은 회장단뿐이라
+  // 마지막 회장이 스스로 내려오면 다음 순간 아무도 그 화면을 못 연다. 조직도 저장과
+  // 내보내기가 같은 까닭으로 같은 것을 막는다.
+  if (before.role === 'chair' && role !== 'chair' && (await chairCount(db, orgId)) <= 1) {
+    throw new Blocked('마지막 회장의 역할은 바꿀 수 없습니다')
+  }
+
   await db
     .update(members)
-    .set({ role: role as 'chair' | 'head' | 'member' })
+    .set(next)
     .where(and(eq(members.orgId, orgId), eq(members.id, change.memberId)))
 
   await recordRoleChange(db, orgId, {
@@ -105,6 +131,29 @@ export async function changeRole(db: Db, orgId: string, change: RoleChange): Pro
     actorUserId: change.actorUserId,
     at: change.now(),
   })
+}
+
+/** 지금 그 사람이 앉은 자리. 역할을 바꿔도 부서는 그대로 따라간다. */
+async function seatOf(
+  db: Db,
+  orgId: string,
+  memberId: string,
+): Promise<{ departmentId: string | null; executiveTitle: string | null }> {
+  const rows = await db
+    .select({ departmentId: members.departmentId, executiveTitle: members.executiveTitle })
+    .from(members)
+    .where(and(eq(members.orgId, orgId), eq(members.id, memberId), stillHere))
+    .limit(1)
+  return rows[0] ?? { departmentId: null, executiveTitle: null }
+}
+
+/** 지금 남아 있는 회장이 몇인가. */
+async function chairCount(db: Db, orgId: string): Promise<number> {
+  const rows = await db
+    .select({ id: members.id })
+    .from(members)
+    .where(and(eq(members.orgId, orgId), stillHere, eq(members.role, 'chair')))
+  return rows.length
 }
 
 export interface RoleChangeRecord {

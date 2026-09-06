@@ -1,4 +1,5 @@
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
+import { eq } from 'drizzle-orm'
 import Ajv from 'ajv'
 import openapi from '../../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
 import { createApp, type Deps } from '../app.ts'
@@ -229,6 +230,49 @@ describe('역할 바꾸기', () => {
   it('명세가 들지 않은 역할은 받지 않는다', async () => {
     expect((await put('M-13', 'superuser')).status).toBe(422)
     expect((await put('M-13', 42)).status).toBe(422)
+  })
+
+  // **자리가 곧 역할이다.** 조직도(ORG-03B)가 그 규칙으로 쓰는데 이 자리는 오랫동안
+  // `role`만 바꿨다 — 여기서 부서장으로 만들어도 조직도에는 부서원으로 남았다.
+  it('부서장으로 바꾸면 조직도에도 부서장으로 선다', async () => {
+    expect((await put('M-13', 'head')).status).toBe(200)
+    const row = (await db.select().from(members).where(eq(members.id, 'M-13')))[0]!
+    expect(row.role).toBe('head')
+    expect(row.isDepartmentLeader).toBe(true)
+    expect(row.departmentId).toBe('D-01')
+  })
+
+  it('부원으로 내리면 부서장 표시가 함께 내려온다', async () => {
+    expect((await put('M-11', 'member')).status).toBe(200)
+    const row = (await db.select().from(members).where(eq(members.id, 'M-11')))[0]!
+    expect(row.isDepartmentLeader).toBe(false)
+    // 부서는 그대로 따라간다 — 부서에서 뺀 것이 아니다.
+    expect(row.departmentId).toBe('D-01')
+  })
+
+  it('회장단으로 올리면 부서에서 나온다', async () => {
+    expect((await put('M-13', 'chair')).status).toBe(200)
+    const row = (await db.select().from(members).where(eq(members.id, 'M-13')))[0]!
+    expect(row.departmentId).toBeNull()
+    expect(row.isDepartmentLeader).toBe(false)
+  })
+
+  it('회장단에서 내려오면 자리 이름이 없어진다', async () => {
+    expect((await put('M-02', 'member')).status).toBe(200)
+    const row = (await db.select().from(members).where(eq(members.id, 'M-02')))[0]!
+    expect(row.executiveTitle).toBeNull()
+  })
+
+  // 부서 없이 부서장이 되면 조직도의 어느 부서에도 안 서고 말만 남는다.
+  it('부서가 없으면 부서장으로 못 바꾼다', async () => {
+    expect((await put('M-99', 'head')).status).toBe(422)
+  })
+
+  // 조직 구조를 고치는 것은 회장단뿐이라, 마지막 회장이 내려오면 아무도 그 화면을
+  // 못 연다. 조직도 저장과 내보내기가 같은 까닭으로 같은 것을 막는다.
+  it('마지막 회장의 역할은 바꿀 수 없다', async () => {
+    expect((await put('M-02', 'member')).status).toBe(200)
+    expect((await put('M-01', 'member')).status).toBe(422)
   })
 })
 
