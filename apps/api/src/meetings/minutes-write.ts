@@ -69,12 +69,14 @@ export async function saveMinutes(
 
   const agendaId = readWord(draft, 'agendaId', '안건')
   if (agendaId === null) throw new Blocked('어느 안건의 정리인지 골라 주세요')
-  if (readFlag(draft, 'noDecision', '결정사항 없음')) {
-    throw new Blocked("'결정사항 없음' 표시는 아직 저장할 수 없습니다")
+  // **켠 것과 적은 것이 함께 오면 막는다.** 어느 쪽이 참인지 아무도 모르고, 한쪽을
+  // 조용히 지우면 사람이 적은 글이 사라진다.
+  const noDecision = readFlag(draft, 'noDecision', '결정사항 없음')
+  const decisionText = readWord(draft, 'decisionText', '결정사항')
+  if (noDecision && decisionText !== null) {
+    throw new Blocked("'결정사항 없음'을 켠 채로 결정사항을 적을 수 없습니다")
   }
-  if (readFlag(draft, 'noFollowUp', '후속 업무 없음')) {
-    throw new Blocked("'후속 업무 없음' 표시는 아직 저장할 수 없습니다")
-  }
+  const noFollowUp = readFlag(draft, 'noFollowUp', '후속 업무 없음')
 
   // **이 회의의 안건이어야 한다.** 다른 회의의 안건 id를 보내면 남의 결정을 고치게 된다.
   const agendas = await db
@@ -92,7 +94,7 @@ export async function saveMinutes(
 
   await db
     .update(meetingAgendas)
-    .set({ decisionText: readWord(draft, 'decisionText', '결정사항') })
+    .set({ decisionText, noDecision, noFollowUp })
     // 고칠 때도 학생회를 다시 건다. 위에서 찾았다고 빼면 울타리가 한 겹이 된다.
     .where(and(eq(meetingAgendas.orgId, orgId), eq(meetingAgendas.id, agendaId)))
   await db

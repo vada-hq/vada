@@ -973,6 +973,17 @@ export const meetingAgendas = pgTable(
     /** 진행 중에 적히는 것과 그 끝에 확정되는 것. 둘은 다른 사실이다. */
     discussionText: text('discussion_text'),
     decisionText: text('decision_text'),
+    /**
+     * '이 안건은 결정사항 없음' 표시(OPS-MEET-06B, 20:2029).
+     *
+     * **그림이 그린 것을 담을 자리가 없었다.** 켜서 보내면 422였고, 그래서 결정할 것이
+     * 없던 안건은 정리 완료 조건의 둘째 줄을 영영 채우지 못했다 — 회의가 안 끝났다.
+     *
+     * 결정 글과 함께 켤 수 없다. 둘 다 오면 어느 쪽이 참인지 아무도 모른다.
+     */
+    noDecision: boolean('no_decision').notNull().default(false),
+    /** '후속 업무 없음' 표시(20:2048). 위와 같은 까닭으로 생겼다. */
+    noFollowUp: boolean('no_follow_up').notNull().default(false),
     startedAt: timestamp('started_at', { withTimezone: true }),
     endedAt: timestamp('ended_at', { withTimezone: true }),
   },

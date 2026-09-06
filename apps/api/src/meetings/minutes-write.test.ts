@@ -12,6 +12,7 @@ import {
   tasks,
 } from '../db/schema.ts'
 import { inMemoryAttempts } from '../idempotency.ts'
+import { decided } from './minutes.ts'
 import type { Viewer } from '../permissions.ts'
 import { inMemoryCounter } from '../public/rate-limit.ts'
 import { meetingLookups } from './lookups.ts'
@@ -332,13 +333,28 @@ describe('안건 하나의 정리 내용을 저장한다', () => {
     expect((await agendaRow('AG-W1-2')).decisionText).toBe('홍보는 학과 단체방으로 합니다.')
   })
 
-  // **담을 자리가 없는 것은 조용히 버리지 않는다.** 표에 '없음' 표시를 담는 열이
-  // 아직 없다 — 받았다고 답하고 잊으면 사람은 표시했다고 믿는다.
-  it("'없음' 표시는 아직 담을 자리가 없어 막는다", async () => {
-    expect((await save('MTG-W1', { agendaId: 'AG-W1-2', noDecision: true })).status).toBe(422)
-    expect((await save('MTG-W1', { agendaId: 'AG-W1-2', noFollowUp: 'y' })).status).toBe(422)
-    // 표시하지 않은 것은 막을 것이 없다 — 화면은 체크가 꺼져 있으면 그렇게 보낸다.
-    // **덮어쓰기라 결정도 함께 보낸다.** 안 보낸 칸은 비운 것이다.
+  // **결정할 것이 없는 안건이 있다.** 담을 열이 없던 동안 이 표시가 422였고, 그래서
+  // 그런 안건은 정리 완료 조건의 둘째 줄을 영영 못 채웠다 — 회의가 안 끝났다.
+  it("'없음' 표시가 저장되고 그 안건은 정리된 것으로 센다", async () => {
+    expect((await save('MTG-W1', { agendaId: 'AG-W1-2', noDecision: true })).status).toBe(200)
+    const row = await agendaRow('AG-W1-2')
+    expect(row.noDecision).toBe(true)
+    // 켠 쪽이 참이므로 적힌 글은 비워진다 — 덮어쓰기라 안 보낸 칸은 비운 것이다.
+    expect(row.decisionText).toBeNull()
+    expect(decided(row)).toBe(true)
+
+    expect((await save('MTG-W1', { agendaId: 'AG-W1-2', noFollowUp: 'y' })).status).toBe(200)
+    expect((await agendaRow('AG-W1-2')).noFollowUp).toBe(true)
+  })
+
+  // 어느 쪽이 참인지 아무도 모른다. 한쪽을 조용히 지우면 사람이 적은 글이 사라진다.
+  it("'없음'을 켠 채로 결정을 적으면 막는다", async () => {
+    expect(
+      (await save('MTG-W1', { agendaId: 'AG-W1-2', noDecision: true, decisionText: '뭔가' })).status,
+    ).toBe(422)
+  })
+
+  it('표시를 끄고 결정을 적으면 그대로 남는다', async () => {
     expect(
       (
         await save('MTG-W1', {
@@ -349,7 +365,9 @@ describe('안건 하나의 정리 내용을 저장한다', () => {
         })
       ).status,
     ).toBe(200)
-    expect((await agendaRow('AG-W1-2')).decisionText).toBe('홍보는 학과 단체방으로 합니다.')
+    const row = await agendaRow('AG-W1-2')
+    expect(row.decisionText).toBe('홍보는 학과 단체방으로 합니다.')
+    expect(row.noDecision).toBe(false)
   })
 })
 

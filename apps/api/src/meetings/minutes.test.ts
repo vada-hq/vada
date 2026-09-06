@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { and, eq, isNull } from 'drizzle-orm'
 import { createApp, type Deps } from '../app.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
@@ -361,6 +362,29 @@ describe('정리 완료 조건이 한 셈에서 온다', () => {
     expect(row.requiredDoneNote).toBe('필수 0 / 4')
     expect(row.canComplete).toBe(false)
     expect(row.blockedNote).toBe('회의가 끝난 뒤에 정리를 마칠 수 있습니다')
+  })
+
+  // **결정할 것이 없는 안건이 있다.** 이 표시를 담을 열이 없던 동안 켜서 보내면
+  // 422였고, 그래서 그런 회의는 둘째 줄을 영영 못 채웠다(2026-09-06에 고침).
+  it("'결정사항 없음'을 켠 안건은 정리된 것으로 센다", async () => {
+    const before = await progress('MTG-06')
+    expect(before.conditions[1]!.done).toBe('')
+
+    await db
+      .update(meetingAgendas)
+      .set({ noDecision: true })
+      .where(and(eq(meetingAgendas.meetingId, 'MTG-06'), isNull(meetingAgendas.decisionText)))
+
+    const after = await progress('MTG-06')
+    expect(after.conditions[1]!.done).toBe('y')
+    expect(after.requiredDoneNote).toBe('필수 4 / 4')
+    expect(after.canComplete).toBe(true)
+
+    // 씨앗을 한 번만 심으므로 되돌려 놓는다 — 뒤 검사가 이 회의의 '확인 필요'를 센다.
+    await db
+      .update(meetingAgendas)
+      .set({ noDecision: false })
+      .where(eq(meetingAgendas.meetingId, 'MTG-06'))
   })
 
   // 안건이 없으면 결정할 것도 없다. 후속 업무는 회의 단위라 하나도 없으면 안 찬다.

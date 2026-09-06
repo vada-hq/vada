@@ -162,6 +162,8 @@ export async function agendaRecordsOf(db: Db, orgId: string, meetingId: string) 
       status: meetingAgendas.status,
       discussionText: meetingAgendas.discussionText,
       decisionText: meetingAgendas.decisionText,
+      noDecision: meetingAgendas.noDecision,
+      noFollowUp: meetingAgendas.noFollowUp,
     })
     .from(meetingAgendas)
     .where(and(eq(meetingAgendas.orgId, orgId), eq(meetingAgendas.meetingId, meetingId)))
@@ -171,13 +173,29 @@ export async function agendaRecordsOf(db: Db, orgId: string, meetingId: string) 
 /**
  * 이 안건의 결정 정리가 끝났는가.
  *
- * **결정이 적혀 있으면 끝난 것이다.** 그림의 조건은 '결정사항 또는 없음 표시'인데
- * '없음' 표시를 담는 열이 아직 `meeting_agendas`에 없다(보고했다) — 그래서 지금은 앞의
- * 절반만 셀 수 있다. 열이 생기면 **여기 한 곳만** 넓히면 된다: 고르는 목록의 '확인
- * 필요'와 정리 완료 조건의 둘째 줄과 06A의 '의사결정 n건'이 이 답 하나를 나눠 쓴다.
+ * **결정이 적혔거나 '없음'이 표시되었으면 끝난 것이다.** 그림의 조건이 그 둘을 함께
+ * 적었다('결정사항 또는 없음 표시'). 담을 열이 없던 동안은 앞의 절반만 셀 수 있었고,
+ * 결정할 것이 없던 안건은 이 줄을 영영 못 채웠다 — 회의가 안 끝났다(2026-09-06에 고침).
+ *
+ * **한 곳이다.** 고르는 목록의 '확인 필요'와 정리 완료 조건의 둘째 줄과 06A의
+ * '의사결정 n건'이 이 답 하나를 나눠 쓴다.
  */
-export function decided(agenda: { decisionText: string | null }): boolean {
-  return word(agenda.decisionText) !== null
+export function decided(agenda: { decisionText: string | null; noDecision?: boolean }): boolean {
+  return word(agenda.decisionText) !== null || agenda.noDecision === true
+}
+
+/**
+ * 이 안건의 후속 업무 정리가 끝났는가.
+ *
+ * **업무는 어느 안건의 것인지 모른다**(`tasks`에 그 열이 없다) — 그래서 '있는가'는
+ * 회의 단위로 세고, '없음' 표시만 안건 단위다. 회의에 걸린 업무가 하나라도 있거나,
+ * 안건마다 '없음'이 표시되었으면 끝난 것이다.
+ */
+export function followedUp(
+  agendas: ReadonlyArray<{ noFollowUp?: boolean }>,
+  linkedTasks: number,
+): boolean {
+  return linkedTasks > 0 || (agendas.length > 0 && agendas.every((one) => one.noFollowUp === true))
 }
 
 /** 끝난 회의인가. 논의 내용과 참가 결과는 회의가 끝나야 닫히는 사실이다. */
@@ -224,10 +242,11 @@ export interface MinutesProgress {
  *   미완료 안건이 남은 채 끝내는 길을 D02가 열어 두었으므로 그 회의도 마칠 수 있어야
  *   한다. 참가 결과도 같다: 끝나는 순간 굳고(07이 그때부터 '참석·불참'을 그린다) 그
  *   뒤에 고치는 자리가 없다.
- * - **결정사항 또는 없음 표시**: 안건마다 결정이 적혔는가(`decided`). '없음' 표시는
- *   담을 열이 없어 아직 못 센다. 안건이 없으면 결정할 것도 없다.
- * - **후속 업무 또는 없음 표시**: 이 회의가 만든 업무가 하나라도 있는가. 업무는 어느
- *   안건의 것인지를 모르므로 회의 단위다. '없음' 표시는 위와 같다.
+ * - **결정사항 또는 없음 표시**: 안건마다 결정이 적혔거나 '없음'이 표시되었는가
+ *   (`decided`). 안건이 없으면 결정할 것도 없다.
+ * - **후속 업무 또는 없음 표시**: 이 회의가 만든 업무가 하나라도 있거나, 안건마다
+ *   '없음'이 표시되었는가(`followedUp`). 업무는 어느 안건의 것인지를 모르므로
+ *   '있는가'는 회의 단위이고 '없음' 표시만 안건 단위다.
  * - **회의 전체 요약 (선택)**: 요약이 있는가. 없어도 마칠 수 있다(06B가 그렇게 적었다).
  */
 export async function minutesProgress(
@@ -243,7 +262,7 @@ export async function minutesProgress(
   const conditions: MinutesCondition[] = [
     { label: '안건별 논의 내용', done: flag(closed) },
     { label: '결정사항 또는 없음 표시', done: flag(agendas.every(decided)) },
-    { label: '후속 업무 또는 없음 표시', done: flag(linked > 0) },
+    { label: '후속 업무 또는 없음 표시', done: flag(followedUp(agendas, linked)) },
     { label: '참가 결과', done: flag(closed) },
     { label: '회의 전체 요약 (선택)', done: flag(word(row.minutesSummary) !== null), optional: 'y' },
   ]
