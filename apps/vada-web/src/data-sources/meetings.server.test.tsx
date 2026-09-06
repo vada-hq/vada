@@ -858,7 +858,7 @@ describe('회의록을 정리하고 마친다', () => {
 
   // **조건이 남았으면 서버가 막는다.** 화면이 세지 않는다 — 세면 조직의 규칙이 화면에 적힌다.
   it('조건이 남은 동안은 마칠 수 없다', async () => {
-    await expect(runMutation('meeting.completeMinutes', {}, params)).rejects.toThrow('(422)')
+    await expect(runMutation('meeting.completeMinutes', {}, params)).rejects.toThrow('(409)')
     expect((await progressNow()).canComplete).toBe(false)
   })
 

@@ -274,18 +274,20 @@ describe('전체 요약 초안을 기록에서 만든다', () => {
   })
 })
 
+// **조건을 못 채운 것은 409다.** 이 자리는 몸통이 없어 계약에 422가 없고, 422는
+// '보낸 값이 틀렸다'는 뜻이라 화면이 없는 칸을 짚는다(2026-09-06에 고쳤다).
 describe('조건이 남았으면 마칠 수 없다', () => {
   // 둘째 안건에 결정이 없다. 막는 말은 진행도가 주는 그 말이다.
   it('안건 정리가 남았으면 막는다', async () => {
     const res = await complete('MTG-W1')
-    expect(res.status).toBe(422)
+    expect(res.status).toBe(409)
     expect(await message(res)).toBe('안건별 필수 정리를 완료해 주세요')
     expect((await meetingRow('MTG-W1')).minutesStatus).toBe('drafting')
   })
 
   it('끝나지 않은 회의는 막는다', async () => {
     const res = await complete('MTG-W3')
-    expect(res.status).toBe(422)
+    expect(res.status).toBe(409)
     expect(await message(res)).toBe('회의가 끝난 뒤에 정리를 마칠 수 있습니다')
   })
 

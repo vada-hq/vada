@@ -36,6 +36,20 @@ export class Blocked extends Error {}
  */
 export class AlreadyExists extends Error {}
 
+/**
+ * 아직 그럴 수 없다. **지금 상태가 이 일을 받을 수 없다.**
+ *
+ * `Blocked`(422)와 다르다. 422는 **보낸 값**이 받을 수 없는 것이라는 뜻이고, 그래서
+ * 화면은 그것을 '내가 적은 것이 틀렸다'로 읽어 칸을 짚는다. 그런데 조건을 못 채운
+ * 켜기·마치기는 **보낸 값이 아예 없다** — 몸통 없는 요청이고, 계약도 그 자리에 422를
+ * 두지 않았다. 틀린 번호를 내면 화면이 없는 칸을 짚는다.
+ *
+ * `AlreadyExists`와도 다르다. 그것은 '이미 그 상태다'이고 이것은 '아직 아니다'인데,
+ * 밖에서 보면 둘 다 **지금 상태와 어긋난 요청**이라 같은 409다. 계약이 `conflict`로
+ * 적어 둔 자리가 그 자리다.
+ */
+export class NotReady extends Error {}
+
 /** 답을 내는 자리. 계약이 정한 모양을 돌려주면 된다. */
 export type Handler<D> = (c: Context, deps: D) => Promise<unknown>
 
@@ -73,7 +87,7 @@ export function attach<D>(app: Hono, deps: D, handlers: Record<string, Handler<D
         if (error instanceof Blocked) {
           return c.json({ message: error.message }, 422)
         }
-        if (error instanceof AlreadyExists) {
+        if (error instanceof AlreadyExists || error instanceof NotReady) {
           return c.json({ message: error.message }, 409)
         }
         throw error

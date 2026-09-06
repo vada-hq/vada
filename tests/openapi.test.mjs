@@ -160,6 +160,41 @@ test('실패가 명세에서 끌어낸 대로 실린다', () => {
   assert.equal(checkedConflict, 16)
 })
 
+// **몸통이 없는 자리는 422를 낼 수 없다.**
+//
+// 422는 '보낸 값이 받을 수 없는 것이다'라는 뜻이고, 화면은 그것을 '내가 적은 것이
+// 틀렸다'로 읽어 칸을 짚는다. 그런데 보낸 값이 아예 없는 자리가 있다 — 설문 켜기와
+// 회의록 마치기가 그렇고, 생성기도 그 자리에 422를 두지 않는다.
+//
+// 그 자리도 막힐 수는 있다(조건을 못 채웠다). 그때 낼 번호가 있어야 하고, 그것이
+// 409다 — '지금 상태가 이 일을 못 받는다'는 뜻이라 '이미 그 상태다'와 같은 계급이다.
+// 서버는 `NotReady`로 그것을 낸다. 여기서는 **낼 번호가 있는지**를 잰다.
+test('몸통 없는 자리에는 422가 없고, 막힐 수 있으면 409가 있다', () => {
+  const built = buildOpenApi()
+  const mutations = JSON.parse(
+    readFileSync(join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'mutations.json'), 'utf-8'),
+  ).mutations
+
+  let checked = 0
+  for (const mutation of mutations) {
+    if (mutation.payloadScope !== undefined) continue
+    const at = routeOf(built, mutation.request.method, mutation.request.path)
+    assert.ok(at !== undefined, `${mutation.key}의 자리를 계약에서 못 찾았습니다`)
+    assert.ok(
+      !at.responses[422],
+      `${mutation.key}는 보낼 몸통이 없는데 422를 답합니다 — 화면이 없는 칸을 짚습니다`,
+    )
+    checked += 1
+  }
+  // 빈 것에 대고 재면 늘 통과한다.
+  assert.ok(checked >= 10, `몸통 없는 자리가 ${checked}개뿐입니다`)
+})
+
+/** 계약에서 그 자리를 찾는다. 경로의 틀이 그대로 열쇠다. */
+function routeOf(built, method, path) {
+  return built.paths[path]?.[method.toLowerCase()]
+}
+
 // **두 번 보내지는 것을 막을 방법이 없다.** 사람이 두 번 누르고, 화면이 느려 또 누르고,
 // 네트워크가 끊겨 다시 보낸다. 자연 열쇠가 없는 자리는 보내는 쪽이 키를 붙여야 한다.
 test('자연 열쇠가 없는 자리는 멱등 키를 요구한다', () => {

@@ -379,7 +379,7 @@ describe('설문 링크를 켠다', () => {
   it('못 채운 설문은 화면이 누르는 길로 보내도 막힌다', async () => {
     await expect(
       runMutation('event.survey.activate', {}, { eventId: 'E-01' }),
-    ).rejects.toThrow('422')
+    ).rejects.toThrow('409')
     await loadSources([{ key: 'event.survey', params: { eventId: 'E-01' } }])
     expect(readObjectSource('event.survey', { eventId: 'E-01' }).statusLabel).toBe('초안')
   })

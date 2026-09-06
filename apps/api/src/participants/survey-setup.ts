@@ -2,7 +2,7 @@ import { and, asc, desc, eq } from 'drizzle-orm'
 import optionSources from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { events, surveyQuestions, surveys } from '../db/schema.ts'
-import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
+import { AlreadyExists, NotFound, NotReady } from '../routes.ts'
 import { fieldMoment } from '../time.ts'
 
 // 참여 설문을 세우고 켜는 자리(EVT-05).
@@ -406,8 +406,12 @@ export async function surveyActivation(
  * 참여 설문 링크를 켠다(EVT-05 · event.survey.activate).
  *
  * **막는 것은 서버다.** 화면의 단추는 `canActivate`를 보고 눌리지만 그것은 그림이고,
- * 화면을 우회한 요청도 같은 셈으로 막혀야 한다 — 못 채운 것이 하나라도 있으면 422이고
+ * 화면을 우회한 요청도 같은 셈으로 막혀야 한다 — 못 채운 것이 하나라도 있으면 막히고
  * 그 까닭은 딱지 옆의 글과 같다.
+ *
+ * **못 채운 것은 409다.** 한동안 422였는데 이 자리는 몸통이 없어 계약에 422가 없고,
+ * 422는 '보낸 값이 틀렸다'는 뜻이라 화면이 없는 칸을 짚는다. 조건을 못 채운 것은
+ * 지금 상태가 이 일을 못 받는다는 뜻이고, 그것은 '이미 켜져 있다'와 같은 계급이다.
  *
  * 계약이 conflict라 적었다: 이미 켜진 설문을 또 켤 수 없다(409). 갈아 끼워진 설문도
  * 다시 켜지 않는다 — 그 링크는 새 설문을 가리키고 있다.
@@ -420,7 +424,7 @@ export async function activateSurvey(
   const { survey, unmet } = await activationOf(db, orgId, eventId)
   if (survey.replacedById !== null) throw new AlreadyExists('교체된 설문은 다시 켤 수 없습니다')
   if (survey.active) throw new AlreadyExists('이미 켜진 설문입니다')
-  if (unmet > 0) throw new Blocked(blockedNoteOf(unmet))
+  if (unmet > 0) throw new NotReady(blockedNoteOf(unmet))
   await db
     .update(surveys)
     .set({ active: true })

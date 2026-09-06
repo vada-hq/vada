@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { meetingAgendas, meetingParticipants, meetings } from '../db/schema.ts'
-import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
+import { AlreadyExists, Blocked, NotFound, NotReady } from '../routes.ts'
 import { readFlag, readWord } from './fields.ts'
 import { word, type MeetingViewer } from './meetings.ts'
 import { agendaRecordsOf, minutesProgress } from './minutes.ts'
@@ -178,7 +178,9 @@ export async function completeMinutes(
   if (row.minutesStatus === 'done') throw new AlreadyExists('이미 정리가 끝난 회의록입니다')
   const progress = await minutesProgress(db, orgId, meetingId)
   if (!progress.canComplete) {
-    throw new Blocked(progress.blockedNote ?? '아직 정리를 마칠 수 없습니다')
+    // **조건을 못 채운 것은 409다.** 이 자리는 몸통이 없어 계약에 422가 없고, 422는
+    // '보낸 값이 틀렸다'는 뜻이라 화면이 없는 칸을 짚는다.
+    throw new NotReady(progress.blockedNote ?? '아직 정리를 마칠 수 없습니다')
   }
   await db
     .update(meetings)

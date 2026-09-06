@@ -370,9 +370,11 @@ const activate = (eventId: string, who?: Viewer) =>
   )
 
 describe('설문 링크를 켠다(event.survey.activate)', () => {
+  // **못 채운 것은 409다.** 이 자리는 몸통이 없어 계약에 422가 없고, 422는 '보낸 값이
+  // 틀렸다'는 뜻이라 화면이 없는 칸을 짚는다(2026-09-06에 고쳤다).
   it('못 채운 것이 있으면 막고, 그 까닭이 딱지의 것과 같다', async () => {
     const res = await activate('E-03')
-    expect(res.status).toBe(422)
+    expect(res.status).toBe(409)
     const badge = (await (await activation('E-03')).json()) as Row
     expect(((await res.json()) as Row).message).toBe(badge.blockedNote)
     const [row] = await db
