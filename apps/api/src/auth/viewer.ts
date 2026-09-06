@@ -2,6 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { departments, members } from '../db/schema.ts'
 import type { Viewer } from '../permissions.ts'
+import { stillHere } from '../org/membership.ts'
 
 // 로그인한 사람이 **이 학생회에서 누구인가.**
 //
@@ -36,7 +37,9 @@ export function viewerLookup(db: Db): ViewerLookup {
         })
         .from(members)
         .leftJoin(departments, and(eq(members.departmentId, departments.id), eq(departments.orgId, members.orgId)))
-        .where(eq(members.userId, session.userId))
+                // **내보낸 사람은 들어오지 못한다.** 안 걸면 나간 사람이 어제와 똑같이
+        // 들어와 어제와 똑같은 권한을 쓴다 — 내보내기가 아무 일도 안 한 것이 된다.
+        .where(and(eq(members.userId, session.userId), stillHere))
         .limit(2)
 
       const row = rows[0]

@@ -3,6 +3,7 @@ import type { Db } from '../db/client.ts'
 import { departments, members } from '../db/schema.ts'
 import { Blocked } from '../routes.ts'
 import { recordRoleChange } from './role-change.ts'
+import { stillHere } from './membership.ts'
 
 // 조직도를 저장한다(ORG-03B · org.saveChart).
 //
@@ -80,7 +81,9 @@ export async function saveChart(db: Db, orgId: string, save: ChartSave): Promise
       executiveTitle: members.executiveTitle,
     })
     .from(members)
-    .where(eq(members.orgId, orgId))
+    // 내보낸 사람은 조직도의 사람이 아니다. 안 걸면 초안에 없다고 422가 나고,
+    // 화면은 이미 없는 사람 때문에 저장을 못 한다.
+    .where(and(eq(members.orgId, orgId), stillHere))
   const current = new Map(rows.map((row) => [row.id, row]))
   const nameOf = (id: string) => current.get(id)?.name ?? id
 
@@ -176,6 +179,7 @@ export async function saveChart(db: Db, orgId: string, save: ChartSave): Promise
       // 자리가 곧 역할이므로 옮긴 것이 곧 권한을 준 것이다. 그 기록은 3년 남는다.
       if (row.role !== next.role) {
         await recordRoleChange(tx, orgId, {
+          change: '기본 역할 변경',
           memberId: row.id,
           name: row.name,
           before: row.role,

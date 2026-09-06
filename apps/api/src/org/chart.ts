@@ -1,6 +1,7 @@
 import { and, asc, eq, ilike, isNull, or } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { departments, members, organizations } from '../db/schema.ts'
+import { stillHere } from './membership.ts'
 
 // 조직도(ORG-03A · ORG-03B)가 읽는 것.
 //
@@ -49,7 +50,7 @@ export async function executives(db: Db, orgId: string) {
       title: members.executiveTitle,
     })
     .from(members)
-    .where(and(eq(members.orgId, orgId), eq(members.role, 'chair')))
+    .where(and(eq(members.orgId, orgId), stillHere, eq(members.role, 'chair')))
     .orderBy(asc(members.name))
 
   // **자리 이름이 유일한 신호다.** 명세가 회장단 안의 차례를 따로 갖고 있지 않고,
@@ -87,7 +88,7 @@ export async function departmentTree(db: Db, orgId: string, query?: string) {
     // 낫다. 표의 제약이 언젠가 느슨해져도 조회가 새지 않는다.
     .leftJoin(
       members,
-      and(eq(members.departmentId, departments.id), eq(members.orgId, orgId)),
+      and(eq(members.departmentId, departments.id), eq(members.orgId, orgId), stillHere),
     )
     .where(eq(departments.orgId, orgId))
     .orderBy(asc(departments.sortOrder), asc(departments.name), asc(members.name))
@@ -142,6 +143,7 @@ export async function unassignedMembers(db: Db, orgId: string, query?: string) {
     .where(
       and(
         eq(members.orgId, orgId),
+        stillHere,
         isNull(members.departmentId),
         // 회장단은 부서에 들지 않아도 배정된 것이다. 자리가 따로 있다.
         or(eq(members.role, 'head'), eq(members.role, 'member')),

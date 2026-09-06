@@ -16232,6 +16232,92 @@
         "security": []
       }
     },
+    "/api/org/members/{memberId}/removal-target": {
+      "get": {
+        "operationId": "org.memberToRemove",
+        "summary": "내보내려는 사람이 누구인가(ORG-03D). **되돌릴 수 없는 일이라 누구인지 확인 화면이 말해야 한다** — 이름 없이 '구성원을 내보낼까요?'만 물으면 사람이 무엇을 지우는지 모르고 누른다. 묻는 말까지 서버가 만든다: 이름을 화면이 문장에 끼워 넣으면 화면마다 다른 말이 된다.\n\n**이미 나간 사람을 물으면 없다고 한다**(404). 두 사람이 같은 화면을 열어 둔 채 한쪽이 먼저 내보내면 다른 쪽은 없는 사람에게 확인을 묻게 된다.",
+        "x-authorize": {
+          "area": "org.structure"
+        },
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "description": "누구를 내보내는가",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "question": {
+                      "type": "string",
+                      "description": "확인 화면이 묻는 말. '김바다 님을 내보낼까요?'처럼 이름이 든 완성된 글이다."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "그 사람의 이름. 되돌아간 화면이 무엇을 했는지 알릴 때 쓴다."
+                    }
+                  },
+                  "required": [
+                    "question",
+                    "name"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "가리킨 것이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/education/schools": {
       "get": {
         "operationId": "education.schools.options",
@@ -19165,6 +19251,89 @@
                 "required": [
                   "baseRole"
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/org/members/{memberId}/removal": {
+      "post": {
+        "operationId": "org.removeMember",
+        "summary": "고른 구성원을 학생회에서 내보낸다.\n\n**사람이 정했다(2026-09-06): 내보내면 학생회에서 나간다.** 되돌릴 수 없으니 확인을 받고 회장단만 한다.\n\n**줄을 지우지 않는다.** 이 사람은 문서를 쓰고 요청을 올리고 회의에 앉았던 사람이고, 줄을 지우면 그 기록들이 이름을 잃는다. 나간 때를 적어 두고 명단·조직도·고르는 목록·권한에서만 뺀다.\n\n**조직도 저장과 다른 일이다.** 조직도 저장은 자리를 옮기는 것이고 덮어쓴다. 이것은 사람을 내보내는 것이고 되돌릴 수 없다 — 한 자리에 두면 자리를 옮기다 손이 미끄러진 것과 사람을 내보내는 것이 같은 저장이 된다.",
+        "x-authorize": {
+          "area": "org.structure"
+        },
+        "parameters": [
+          {
+            "name": "memberId",
+            "in": "path",
+            "required": true,
+            "description": "누구를 내보내는가",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "가리킨 것이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "이미 그 상태다. 남이 먼저 했거나 두 번 눌렸다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
               }
             }
           }

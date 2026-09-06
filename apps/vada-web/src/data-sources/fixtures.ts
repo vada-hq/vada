@@ -3027,6 +3027,9 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
     roles: '기본 역할 3종 · 확정된 권한 매트릭스',
   },
   'org.chartTitle': { name: '제12대 소프트웨어융합대학 학생회' },
+  // 그림이 그린 이름이다(ORG-03D). 묻는 말은 서버가 만든다 — 화면이
+  // '{이름} 님을'을 잇지 않는다.
+  'org.memberToRemove': { question: '김바다 님을 내보낼까요?', name: '김바다' },
   'org.roleCounts': { chairCount: 1, headCount: 3, memberCount: 3 },
   'org.roleAssignmentCount': { total: '7명' },
   'org.rosterScope': {

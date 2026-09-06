@@ -35,7 +35,12 @@ test('ORG-03B: 자리에서 빼면 미배정으로 간다', async ({ page }) => 
 })
 
 // 미배정에서만 아주 지울 수 있다. 배정된 사람에게는 이 조작이 없다.
-test('ORG-03B: 미배정 구성원은 조직에서 지운다', async ({ page }) => {
+//
+// **여기서 지우지 않는다.** 한동안 이 단추가 초안에서 줄을 빼기만 했고, 그 초안을
+// '완료'로 저장하면 서버가 받을 수 없어 422가 났다 — 자리를 옮기다 손이 미끄러진
+// 것과 사람을 내보내는 것이 같은 저장으로 나가고 있었다. 되돌릴 수 없는 일은 그
+// 일만 하는 자리로 간다.
+test('ORG-03B: 미배정 구성원의 삭제는 확인 화면으로 간다', async ({ page }) => {
   await page.goto(EDIT)
 
   // 사이드바도 complementary라 이름으로 집으면 왼쪽의 사람까지 센다.
@@ -44,7 +49,22 @@ test('ORG-03B: 미배정 구성원은 조직에서 지운다', async ({ page }) 
 
   await pool.getByRole('button', { name: '구성원 삭제' }).first().click()
 
-  await expect(pool.getByText('정하늘', { exact: true })).toHaveCount(0)
+  // 누구를 내보내는지 주소가 실어 간다 — 서버가 기억하지 않는다.
+  await expect(page).toHaveURL(/#\/ORG-03D\?memberId=/)
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByRole('heading', { name: '김바다 님을 내보낼까요?' })).toBeVisible()
+})
+
+// 확인 화면에서 물러서면 고치던 조직도가 그대로 있다. 같은 스코프를 쓰는 까닭이다.
+test('ORG-03D: 돌아가기를 누르면 고치던 자리가 그대로다', async ({ page }) => {
+  await page.goto(EDIT)
+
+  const pool = page.locator('[data-node-id="30:5101"]')
+  await pool.getByRole('button', { name: '구성원 삭제' }).first().click()
+  await page.getByRole('dialog').getByRole('button', { name: '돌아가기' }).click()
+
+  await expect(page).toHaveURL(/#\/ORG-03B/)
+  await expect(pool.getByText('정하늘', { exact: true })).toHaveCount(1)
 })
 
 // 거르는 일은 출처가 한다. 화면은 그 결과와 초안이 말하는 자리를 겹쳐 볼 뿐이다.

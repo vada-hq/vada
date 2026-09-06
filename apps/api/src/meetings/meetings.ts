@@ -12,6 +12,7 @@ import {
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import { NotFound } from '../routes.ts'
 import { dottedStamp, fieldMoment, weekdayStamp } from '../time.ts'
+import { stillHere } from '../org/membership.ts'
 
 // 회의 목록(OPS-MEET-01A)과 회의 만들기(OPS-MEET-02)가 **읽는** 것.
 //
@@ -719,6 +720,7 @@ export async function memberCandidates(
     .where(
       and(
         eq(members.orgId, orgId),
+        stillHere,
         wanted === ''
           ? undefined
           : or(ilike(members.name, `%${wanted}%`), ilike(departments.name, `%${wanted}%`)),

@@ -1,0 +1,1 @@
+ALTER TABLE "members" ADD COLUMN "left_at" timestamp with time zone;

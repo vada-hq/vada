@@ -545,4 +545,65 @@ describe('조직도를 저장한다(ORG-03B)', () => {
     await waitFor(() => expect(went).toEqual(['ORG-03A']))
     expect(screen.queryByText('조직도를 저장하지 못했습니다')).not.toBeInTheDocument()
   })
+
+  // **되돌릴 수 없는 일이 저장에 섞여 있었다.** '구성원 삭제'가 초안에서 줄을 빼기만
+  // 했고, 그 초안을 완료로 저장하면 서버가 받을 수 없어 422가 났다 — 자리를 옮기다
+  // 손이 미끄러진 것과 사람을 내보내는 것이 같은 저장으로 나가고 있었다.
+  //
+  // 이제 그 단추는 확인 화면(ORG-03D)으로 가고, 내보내는 것은 그 자리만 한다.
+  // **화면이 누르는 길로 끝까지 간다** — 확인 화면을 그리고, 내보내고, 명단에서
+  // 사라지는 것까지가 한 줄이다.
+  it('ORG-03D에서 내보내면 미배정에서 사라진다', async () => {
+    seenAs = 'chair'
+    // 배정된 사람에게는 이 조작이 없다 — 먼저 자리에서 빼 두어야 미배정에 선다.
+    await runMutation(
+      'org.saveChart',
+      { ...chart, 'D-01.leaders': '', 'D-01.members': '', 'D-02.leaders': '', unassigned: 'M-11' },
+      {},
+    )
+    const went: Array<[string, Record<string, string> | undefined]> = []
+    const { unmount } = render(
+      <ScreenRouter
+        screenId="ORG-03B"
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={(screenId, params) => {
+          went.push([screenId, params])
+        }}
+      />,
+    )
+    await waitFor(() => expect(screen.getAllByText('이수현').length).toBeGreaterThan(0))
+
+    fireEvent.click(screen.getAllByRole('button', { name: /구성원 삭제/ })[0]!)
+    // 누구를 내보내는지 주소가 실어 간다 — 서버가 기억하지 않는다.
+    await waitFor(() => expect(went[0]?.[0]).toBe('ORG-03D'))
+    const memberId = went[0]![1]!.memberId!
+    expect(memberId).not.toBe('')
+
+    unmount()
+
+    render(
+      <ScreenRouter
+        screenId="ORG-03D"
+        screenParams={{ memberId }}
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={(screenId) => {
+          went.push([screenId, undefined])
+        }}
+      />,
+    )
+    // 묻는 말이 서버에서 온다 — 화면이 이름을 문장에 끼워 넣지 않는다.
+    await waitFor(() => expect(screen.getByRole('heading', { name: /님을 내보낼까요/ })).toBeInTheDocument())
+
+    fireEvent.click(screen.getByRole('dialog').querySelector('[data-node-id="617:496"]')!)
+    await waitFor(() => expect(went.at(-1)?.[0]).toBe('ORG-03B'))
+
+    await loadSources([{ key: 'org.unassignedMembers', params: {} }])
+    expect(readListSource('org.unassignedMembers').map((row) => row.id)).not.toContain(memberId)
+
+    // **두 번째는 409다**(계약의 `repeat: conflict`). 회장 둘이 같은 화면을 열어 둔
+    // 자리에서 '남이 먼저 내보냈다'와 '내가 두 번 눌렀다'는 다른 일이다.
+    await expect(runMutation('org.removeMember', {}, { memberId })).rejects.toThrow('409')
+  })
 })

@@ -1,8 +1,9 @@
-import { eq, sql } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import permissionsJson from '../../../../specs/figma/vada-wireframe/permissions.json' with { type: 'json' }
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { departments, members } from '../db/schema.ts'
+import { stillHere } from './membership.ts'
 
 // 역할 및 권한(ORG-04 · ORG-04B)이 읽는 것.
 //
@@ -40,7 +41,7 @@ export async function roleCounts(db: Db, orgId: string): Promise<RoleCounts> {
   const rows = await db
     .select({ role: members.role, count: sql<number>`count(*)::int` })
     .from(members)
-    .where(eq(members.orgId, orgId))
+    .where(and(eq(members.orgId, orgId), stillHere))
     .groupBy(members.role)
 
   const by = new Map(rows.map((row) => [row.role, row.count]))
@@ -70,7 +71,7 @@ export async function roleAssignments(db: Db, orgId: string): Promise<RoleAssign
     })
     .from(members)
     .leftJoin(departments, eq(members.departmentId, departments.id))
-    .where(eq(members.orgId, orgId))
+    .where(and(eq(members.orgId, orgId), stillHere))
     // 회장단이 먼저, 그다음 부서장, 부원. 그림이 그린 차례다 — 이름순이 아니다.
     .orderBy(
       sql`case ${members.role} when 'chair' then 0 when 'head' then 1 else 2 end`,

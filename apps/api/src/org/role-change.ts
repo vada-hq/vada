@@ -3,6 +3,7 @@ import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sou
 import type { Db } from '../db/client.ts'
 import { departments, members, permissionChanges } from '../db/schema.ts'
 import { NotFound, Blocked } from '../routes.ts'
+import { stillHere } from './membership.ts'
 
 // 구성원의 기본 역할을 바꾼다(ORG-04B).
 //
@@ -44,7 +45,9 @@ export async function roleAssignmentOf(
     })
     .from(members)
     .leftJoin(departments, eq(members.departmentId, departments.id))
-    .where(and(eq(members.orgId, orgId), eq(members.id, memberId)))
+    // 나간 사람의 역할은 바꿀 것이 없다. 안 걸면 ORG-04B가 나간 사람을 골라
+    // 권한을 주고, 그 권한은 아무도 못 쓰지만 표에는 남는다.
+    .where(and(eq(members.orgId, orgId), eq(members.id, memberId), stillHere))
     .limit(1)
 
   const row = rows[0]
@@ -95,6 +98,7 @@ export async function changeRole(db: Db, orgId: string, change: RoleChange): Pro
 
   await recordRoleChange(db, orgId, {
     memberId: change.memberId,
+    change: '기본 역할 변경',
     name: before.name,
     before: before.role,
     after: role,
@@ -105,6 +109,14 @@ export async function changeRole(db: Db, orgId: string, change: RoleChange): Pro
 
 export interface RoleChangeRecord {
   memberId: string
+  /**
+   * 무슨 변경인가. 표의 `change` 칸이자 **줄을 가르는 조각**이다.
+   *
+   * 한동안 열쇠가 `사람:시각`뿐이었다. 같은 순간에 한 사람에게 두 가지 일이
+   * 일어나면(역할을 바꾸고 곧바로 내보낸다) 두 줄이 같은 열쇠를 갖고, 뒤엣것이
+   * 500으로 죽었다 — 3년 남겨야 하는 기록이 조용히 하나 사라지는 자리다.
+   */
+  change: string
   /** 그때 그 사람의 이름. 구성원이 지워져도 남는다. */
   name: string
   before: string
@@ -126,7 +138,7 @@ export async function recordRoleChange(
   record: RoleChangeRecord,
 ): Promise<void> {
   await db.insert(permissionChanges).values({
-    id: `${record.memberId}:${record.at.toISOString()}`,
+    id: `${record.memberId}:${record.change}:${record.at.toISOString()}`,
     at: record.at,
     orgId,
     actorUserId: record.actorUserId,
@@ -134,7 +146,7 @@ export async function recordRoleChange(
     // 구성원이 지워져도 누구였는지는 남는다 — 가리키는 줄이 사라지면 기록이
     // '누구인지 모르는 변경'이 된다.
     subjectName: record.name,
-    change: '기본 역할 변경',
+    change: record.change,
     before: record.before,
     after: record.after,
   })

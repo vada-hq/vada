@@ -5,6 +5,7 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/catalog'
 import { ROLE_CARD, ROLE_CHIP } from '../design/tones'
+import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, org03b } from '../spec/screens'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type {
@@ -195,9 +196,18 @@ export function ORG03BScreen({
     setDragging(null)
   }
 
-  /** 지우기. 옮기기와 다르다 — 조직에서 아주 없앤다. */
+  /**
+   * 내보내기. 옮기기와 다르다 — 조직에서 아주 없앤다.
+   *
+   * **여기서 지우지 않는다.** 한동안 이 함수가 초안에서 줄을 빼기만 했고, 그
+   * 초안을 '완료'로 저장하면 서버가 받을 수 없어 422가 났다 — 자리를 옮기다 손이
+   * 미끄러진 것과 사람을 내보내는 것이 같은 저장으로 나가고 있었다. 되돌릴 수
+   * 없는 일은 그 일만 하는 자리로 간다(ORG-03D). 어디로 가는지는 명세가 말한다.
+   */
   function removeMember(memberId: string) {
-    writeHolders({ [POOL]: idsAt(POOL).filter((id) => id !== memberId).join(SEPARATOR) })
+    const action = panelList.itemRemove?.action
+    if (action?.type !== 'navigate' || !('targetScreenId' in action)) return
+    onNavigate(action.targetScreenId, resolveParams(action.params, { row: people.get(memberId) }))
   }
 
   function setQuery(next: string) {

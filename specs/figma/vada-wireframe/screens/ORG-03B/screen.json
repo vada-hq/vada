@@ -341,7 +341,16 @@
           "releaseLabel": "부서로 보내기"
         },
         "itemRemove": {
-          "label": "구성원 삭제"
+          "label": "구성원 삭제",
+          "action": {
+            "type": "navigate",
+            "targetScreenId": "ORG-03D",
+            "params": {
+              "memberId": {
+                "itemField": "id"
+              }
+            }
+          }
         }
       }
     }

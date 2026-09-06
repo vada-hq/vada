@@ -210,6 +210,9 @@ const FLOOR = {
   "ORG-02": { matched: 2, spurious: 2 },
   "ORG-03A": { matched: 1, spurious: 4 },
   "ORG-03B": { matched: 4, spurious: 6 },
+  // 확인 모달. 위의 D01~D04와 같은 까닭으로 뒤 배경(조직 관리 — 수정)의 단추가
+  // 통째로 헛것이 된다.
+  "ORG-03D": { matched: 2, spurious: 10 },
   "ORG-03C": { matched: 2, spurious: 2 },
   // 추출기가 **아무것도 못 뽑은 첫 화면**이다. 표 하나가 화면의 대부분이고
   // 배너·카드·표·각주가 전부 컨테이너 이름만 다른 상자라 걸리는 규칙이 없다.

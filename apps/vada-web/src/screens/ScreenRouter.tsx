@@ -67,6 +67,7 @@ import { ORG00Screen } from './ORG00Screen'
 import { ORG01Screen } from './ORG01Screen'
 import { ORG03AScreen } from './ORG03AScreen'
 import { ORG03BScreen } from './ORG03BScreen'
+import { ORG03DScreen } from './ORG03DScreen'
 import { ORG03CScreen } from './ORG03CScreen'
 import { ORG04Screen } from './ORG04Screen'
 import { ORG04BScreen } from './ORG04BScreen'
@@ -100,6 +101,7 @@ import {
   org01,
   org02,
   org03b,
+  org03d,
 } from '../spec/screens'
 import { ALL_SCREENS } from '../spec/screens'
 import { dataSourceCallsOf, dataSourceKeysOf } from '../spec/screen-sources'
@@ -673,6 +675,20 @@ function ScreenBody({
   if (screenId === 'ORG-00') {
     // 읽기 전용 허브다. 상태 스코프를 참조하지 않는다.
     return <ORG00Screen onNavigate={onNavigate} />
+  }
+  if (screenId === 'ORG-03D') {
+    // 구성원 내보내기 확인 모달이다. 뒤에 ORG-03B가 그대로 남고 **그 초안까지
+    // 그대로 남는다** — 같은 스코프를 쓰므로 확인을 열었다 돌아와도 사람이
+    // 옮겨 놓은 자리가 사라지지 않는다.
+    return (
+      <ORG03DScreen
+        screenParams={screenParams}
+        draft={readScopeDraft(scopes, org03d.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(org03d.stateScopeKey ?? '', next)}
+        onScopeEvent={onScopeEvent}
+        onNavigate={onNavigate}
+      />
+    )
   }
   if (screenId === 'ORG-03A') {
     // 저장된 조직도를 읽는 화면이다. 상태 스코프를 참조하지 않는다.

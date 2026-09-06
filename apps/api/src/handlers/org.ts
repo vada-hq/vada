@@ -8,6 +8,7 @@ import {
   unassignedMembers,
 } from '../org/chart.ts'
 import { saveChart } from '../org/chart-save.ts'
+import { memberToRemove, removeMember } from '../org/removal.ts'
 import { currentInvite, regenerateInvite } from '../org/invite.ts'
 import { changeRole, roleAssignmentOf } from '../org/role-change.ts'
 import {
@@ -167,5 +168,31 @@ export const orgHandlers: Handlers = {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
     return roleAssignmentCount(d.db, orgId)
+  },
+
+
+  // ── 내보내기 (ORG-03B → ORG-03D) ───────────────────────────────────────
+  'org.memberToRemove': async (c, d) => {
+    const orgId = orgOf(c)
+    const memberId = c.req.param('memberId')!
+    c.set('auditSubject', { type: 'member', id: memberId })
+    const row = await memberToRemove(d.db, orgId, memberId)
+    if (row === null) throw new NotFound('그 구성원을 찾지 못했습니다')
+    return row
+  },
+  // **되돌릴 수 없다.** 확인 화면(ORG-03D)을 지나야 여기에 닿는다.
+  'org.removeMember': async (c, d) => {
+    const orgId = orgOf(c)
+    const memberId = c.req.param('memberId')!
+    c.set('auditSubject', { type: 'member', id: memberId })
+    // `orgOf`가 구성원임을 확인했으므로 보낸 사람과 소속이 있다.
+    const sender = c.get('sender')!
+    await removeMember(d.db, orgId, {
+      memberId,
+      actorMemberId: sender.membership!.memberId,
+      actorUserId: sender.userId,
+      now: d.invite.now,
+    })
+    return {}
   },
 }

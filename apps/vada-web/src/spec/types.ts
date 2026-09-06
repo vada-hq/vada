@@ -370,7 +370,11 @@ export interface ItemListSpec {
   // 명세가 말하지 않는다** - 끌어다 놓든 골라서 보내든 design의 몫이다.
   itemMove?: { poolSourceKey: string; releaseLabel: string }
   // 항목을 아주 지운다. 옮기기와 다르다 - 자리를 바꾸는 것이 아니라 없애는 것이다.
-  itemRemove?: { label: string }
+  //
+  // **어디로 가는지도 말한다.** 없으면 화면이 지우는 방법을 스스로 정하고, 되돌릴
+  // 수 없는 자리에서는 그것이 위험하다 - 구성원 삭제가 조직도 저장에 섞여 422를
+  // 내던 자리가 그것이다.
+  itemRemove?: { label: string; action?: DisplayAction }
   // 줄 전체의 색 이름이 든 조각. columns[].toneField가 칸 하나를 말하는 것과
   // 달리 이것은 그 줄 자체를 말한다 - 손봐야 하는 줄만 다르게 그린다.
   rowToneField?: string

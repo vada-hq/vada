@@ -1,0 +1,110 @@
+{
+  "schemaVersion": 1,
+  "screenId": "ORG-03D",
+  "meta": {
+    "eyebrow": null,
+    "title": "구성원 내보내기 확인",
+    "titleFrom": {
+      "dataSourceKey": "org.memberToRemove",
+      "field": "question",
+      "params": {
+        "memberId": {
+          "screenParam": "memberId"
+        }
+      }
+    }
+  },
+  "overlay": {
+    "screenId": "ORG-03B",
+    "source": "617:471"
+  },
+  "params": [
+    {
+      "key": "memberId",
+      "valueType": "string",
+      "example": "M-01",
+      "missingNote": "누구를 내보낼지 정하지 않고 열렸습니다. 조직 관리 — 수정에서 미배정 구성원의 ‘구성원 삭제’를 누르면 이 확인이 열립니다.",
+      "description": "누구를 내보내는가. 뒤에 남아 있는 조직 관리 — 수정(ORG-03B)의 그 줄이 정한다."
+    }
+  ],
+  "stateScopeKey": "orgEditDraft",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "617:2",
+    "name": "조직 관리 · ORG-03D · 구성원 내보내기 확인",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "617:473",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "titleField": "question",
+        "description": "내보낸 사람은 명단·조직도·고르는 목록에서 빠지고, 다시 들어오지 못합니다.",
+        "dataSourceKey": "org.memberToRemove",
+        "params": {
+          "memberId": {
+            "screenParam": "memberId"
+          }
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "617:484",
+        "name": "Container",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "이 사람이 쓴 문서와 올린 요청은 그대로 남습니다. 되돌리려면 다시 초대해야 합니다."
+      }
+    },
+    {
+      "source": {
+        "nodeId": "617:494",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "돌아가기",
+        "emphasis": "secondary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "navigate",
+          "targetScreenId": "ORG-03B"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "617:496",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "내보내기",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "org.removeMember",
+          "params": {
+            "memberId": {
+              "screenParam": "memberId"
+            }
+          },
+          "onSuccess": {
+            "navigate": "ORG-03B"
+          }
+        }
+      }
+    }
+  ]
+}

@@ -313,6 +313,23 @@ export const members = pgTable(
     departmentId: text('department_id'),
     // 부서장인가. 부서마다 여럿일 수 있다(org.departments의 leaders가 배열이다).
     isDepartmentLeader: boolean('is_department_leader').notNull().default(false),
+    /**
+     * 학생회에서 나간 때. 있으면 **지금 이 학생회의 사람이 아니다.**
+     *
+     * **사람이 정했다(2026-09-06): 내보내면 학생회에서 나간다.** 되돌릴 수 없는 일이라
+     * 확인을 받고 회장단만 한다.
+     *
+     * **줄을 지우지 않는다.** 이 사람은 문서를 쓰고 요청을 올리고 회의에 앉았던
+     * 사람이고, 줄을 지우면 그 기록들이 이름을 잃는다('알 수 없음'이 된다). 그래서
+     * 표에는 남고 **명단·조직도·고르는 목록·권한에서만 빠진다.**
+     *
+     * **거르는 것을 잊기 쉬운 자리다.** 이 열을 안 보는 조회는 나간 사람을 그대로
+     * 그린다. 조건을 `stillHere` 하나로 두고(`org/membership.ts`), 나간 사람을 심어
+     * 두고 진짜 조회를 불러 보는 눈금이 자리마다 그것을 잰다(`org/left-member.test.ts`).
+     * 이름을 붙이려고 id로 이어 붙이는 자리는 **거르면 안 된다** — 거기서 거르면
+     * 기록이 이름을 잃는다.
+     */
+    leftAt: timestamp('left_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [

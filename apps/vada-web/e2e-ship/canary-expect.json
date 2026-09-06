@@ -637,6 +637,15 @@
       "shell": true,
       "over": null
     },
+    "ORG-03D": {
+      "ready": true,
+      "missing": [],
+      "needs": [
+        "memberId"
+      ],
+      "shell": false,
+      "over": "ORG-03B"
+    },
     "ORG-04": {
       "ready": true,
       "missing": [],

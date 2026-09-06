@@ -13,6 +13,7 @@ import {
 import { Blocked, NotFound } from '../routes.ts'
 import { collegeIn, departmentIn } from './education.ts'
 import { firstInvite } from './invite.ts'
+import { stillHere } from './membership.ts'
 
 // 들어오는 길(ONB-01 → ONB-02 → ORG-01 · ORG-02 또는 INV-00 · INV-01).
 //
@@ -294,7 +295,9 @@ export async function verifyInviteCode(
   const already = await db
     .select({ id: members.id })
     .from(members)
-    .where(and(eq(members.orgId, orgId), eq(members.userId, userId)))
+    // 내보낸 사람은 구성원이 아니다. 안 걸면 나갔던 사람이 다시 초대를 받고도
+    // '이미 구성원입니다'에 막혀 영영 못 들어온다.
+    .where(and(eq(members.orgId, orgId), eq(members.userId, userId), stillHere))
     .limit(1)
   if (already.length > 0) throw new Blocked('이미 이 학생회의 구성원입니다')
 

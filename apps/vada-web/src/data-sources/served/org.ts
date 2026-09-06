@@ -28,6 +28,9 @@ export const org: Served = {
     'org.unassignedMembers',
     'org.roleCounts',
     'org.permissionMatrix',
+    // 내보내려는 사람이 누구인가(ORG-03D). **묻는 말까지 서버가 만든다** —
+    // 화면이 이름을 문장에 끼워 넣으면 화면마다 다른 말이 나온다.
+    'org.memberToRemove',
   ],
   // 역할을 바꾸고 초대를 다시 만들고 조직도를 저장한다.
   writes: [
@@ -38,5 +41,8 @@ export const org: Served = {
     // 조직도 편집(ORG-03B)의 완료. **초안 전부를 보내 덮어쓴다** — 자리 이름마다
     // 줄바꿈으로 이은 사람 id가 그대로 간다.
     'org.saveChart',
+    // 구성원을 학생회에서 내보낸다(ORG-03D). **저장과 다른 길이다** — 저장은
+    // 자리를 옮기는 것이고 덮어쓰지만, 이것은 되돌릴 수 없다.
+    'org.removeMember',
   ],
 }

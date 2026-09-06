@@ -10,6 +10,7 @@ import {
 } from '../db/schema.ts'
 import { departmentTree } from '../org/chart.ts'
 import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
+import { stillHere } from '../org/membership.ts'
 
 // 행사 운영 조직(EVT-01 · EVT-03A · EVT-03B)이 읽고 쓰는 것.
 //
@@ -226,7 +227,7 @@ async function memberChoices(db: Db, orgId: string): Promise<LeaderCandidate[]> 
       departments,
       and(eq(members.departmentId, departments.id), eq(departments.orgId, orgId)),
     )
-    .where(eq(members.orgId, orgId))
+    .where(and(eq(members.orgId, orgId), stillHere))
 
   return rows
     .sort((left, right) => left.name.localeCompare(right.name))
@@ -350,7 +351,7 @@ export async function staffUnassignedMembers(
   const rows = await db
     .select({ id: members.id, name: members.name, major: members.major, grade: members.grade })
     .from(members)
-    .where(eq(members.orgId, orgId))
+    .where(and(eq(members.orgId, orgId), stillHere))
   return rows
     .filter((row) => !placed.has(row.id))
     .sort((left, right) => left.name.localeCompare(right.name))
@@ -381,7 +382,7 @@ async function assertMembers(db: Db, orgId: string, ids: readonly string[]): Pro
   const rows = await db
     .select({ id: members.id })
     .from(members)
-    .where(and(eq(members.orgId, orgId), inArray(members.id, wanted)))
+    .where(and(eq(members.orgId, orgId), stillHere, inArray(members.id, wanted)))
   const known = new Set(rows.map((row) => row.id))
   if (wanted.some((id) => !known.has(id))) {
     throw new Blocked('이 학생회의 구성원이 아닌 사람이 있습니다')
@@ -471,7 +472,7 @@ export async function setupEventStaff(
         isLeader: members.isDepartmentLeader,
       })
       .from(members)
-      .where(eq(members.orgId, orgId))
+      .where(and(eq(members.orgId, orgId), stillHere))
     const seated = people
       .filter(
         (one) =>

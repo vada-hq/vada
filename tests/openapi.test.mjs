@@ -157,7 +157,7 @@ test('실패가 명세에서 끌어낸 대로 실린다', () => {
     }
   }
   assert.equal(checkedPublic, 12)
-  assert.equal(checkedConflict, 15)
+  assert.equal(checkedConflict, 16)
 })
 
 // **두 번 보내지는 것을 막을 방법이 없다.** 사람이 두 번 누르고, 화면이 느려 또 누르고,
