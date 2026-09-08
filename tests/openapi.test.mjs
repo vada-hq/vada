@@ -10,10 +10,11 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import test from 'node:test'
-import { buildOpenApi } from '../apps/spec-service/src/generate-openapi.mjs'
+import { buildOpenApi, requestBodies } from '../apps/spec-service/src/generate-openapi.mjs'
 
 const repoRoot = fileURLToPath(new URL('../', import.meta.url))
 const OUT = join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'openapi.json')
+const BODIES = join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'request-bodies.json')
 
 test('openapi.json이 카탈로그에서 다시 만든 것과 같다', () => {
   const built = buildOpenApi()
@@ -25,6 +26,27 @@ test('openapi.json이 카탈로그에서 다시 만든 것과 같다', () => {
     'openapi.json이 카탈로그와 갈렸습니다. ' +
       'node apps/spec-service/src/generate-openapi.mjs 로 다시 만드세요.',
   )
+})
+
+/**
+ * **화면이 들고 다니는 계약도 갈리면 안 된다.**
+ *
+ * 계약 전체는 780KB라 앱에 실을 수 없어 요청 몸통만 뽑아 둔다. 그런데 뽑아 두고
+ * 계약만 고치면 그 순간 둘이 갈리고, **갈린 쪽으로 몸통을 재게 된다** — 재는 자리가
+ * 틀리면 아무것도 안 재는 것보다 나쁘다.
+ */
+test('request-bodies.json이 계약에서 다시 뽑은 것과 같다', () => {
+  const built = requestBodies()
+  const saved = JSON.parse(readFileSync(BODIES, 'utf-8'))
+
+  assert.deepEqual(
+    saved,
+    built,
+    'request-bodies.json이 계약과 갈렸습니다. ' +
+      'node apps/spec-service/src/generate-openapi.mjs 로 다시 만드세요.',
+  )
+  // **빈 것에 대고 재면 늘 통과한다.** 뽑힌 것이 하나도 없으면 위가 그냥 통과한다.
+  assert.ok(Object.keys(saved).length > 0, '요청 몸통이 하나도 뽑히지 않았습니다.')
 })
 
 // **열쇠 없이 부를 수 있는 계약이었다.**

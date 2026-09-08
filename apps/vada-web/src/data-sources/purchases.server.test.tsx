@@ -279,7 +279,7 @@ describe('구매 요청을 쓴다(FIN-REQ-01)', () => {
   })
 
   it('필수 칸이 비면 제출은 서버가 막는다(422)', async () => {
-    await expect(runMutation('finance.purchaseRequest.submit', draftOf({ requestId, title: '' }), { eventId: EVENT })).rejects.toThrow('422')
+    await expect(runMutation('finance.purchaseRequest.submit', draftOf({ requestId, title: '' }), { eventId: EVENT })).rejects.toMatchObject({ status: 422 })
     expect((await db.select().from(purchaseRequests)).find((row) => row.id === requestId)!.stage).toBe('draft')
   })
 
@@ -330,7 +330,7 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
   it('전부 승인하면 검토가 끝나 구매로 간다 — 부원은 판정을 보낼 수 없다', async () => {
     const [itemId] = await itemIdsOf(requestId)
     const verdict = { requestId, [`reviews.${itemId}.result`]: 'approved', [`reviews.${itemId}.approvedAmount`]: '9000' }
-    await expect(runMutation('finance.purchaseRequest.sendReview', verdict, { requestId })).rejects.toThrow('403')
+    await expect(runMutation('finance.purchaseRequest.sendReview', verdict, { requestId })).rejects.toMatchObject({ status: 403 })
 
     seeAs(CHAIR)
     await runMutation('finance.purchaseRequest.sendReview', verdict, { requestId })
@@ -377,7 +377,7 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
     // 이미 보완을 요청한 요청에는 또 보낼 수 없다.
     await expect(
       runMutation('finance.purchaseRequest.sendReview', { [`reviews.${second}.result`]: 'approved' }, { requestId: asked }),
-    ).rejects.toThrow('409')
+    ).rejects.toMatchObject({ status: 409 })
 
     seeAs(MEMBER)
     draw('FIN-SUP-01', { requestId: asked })
@@ -448,7 +448,7 @@ describe('증빙을 끝낸다(FIN-EVID-01)', () => {
 
     await runMutation('finance.purchaseRequest.completeEvidence', {}, { requestId: 'PR-21' })
     // 이미 끝난 요청을 또 끝낼 수 없다(계약의 repeat: conflict).
-    await expect(runMutation('finance.purchaseRequest.completeEvidence', {}, { requestId: 'PR-21' })).rejects.toThrow('409')
+    await expect(runMutation('finance.purchaseRequest.completeEvidence', {}, { requestId: 'PR-21' })).rejects.toMatchObject({ status: 409 })
 
     // **앞 화면을 걷고 연다.** 두 화면이 겹쳐 있으면 뒤 화면이 아직 안 왔는데도
     // 앞 화면의 '처리 완료' 단추가 기다림을 끝내 버린다.

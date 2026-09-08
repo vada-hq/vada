@@ -126,7 +126,12 @@ export function ORG02Screen({
     }
     setBlockedKeys([])
 
-    // payloadScope의 값 전체를 보낸다(계약은 mutations.json이 갖는다).
+    // **초안을 그대로 보낸다.** 계약의 꼴로 옮기는 것은 `runMutation`이 한다.
+    //
+    // 한동안 이 화면이 부서를 줄바꿈으로 이은 글 하나로 보냈다. 계약은 처음부터 줄의
+    // 배열이라 적고 있었고 서버도 그렇게 읽었으므로, 누르면 422가 오고 학생회는 안
+    // 만들어졌다 — **배포된 것을 사람이 눌러 보고 알았다**(2026-09-09). 옮기는 자리를
+    // 화면마다 두었더니 열일곱 중 셋만 옮기고 있었다.
     await submitAction.run(primaryButton.action as SubmitAction, {
       // **앞 화면의 초안도 함께 간다.** 학적 정보(이름·학번·학교·학부·학년)는
       // ONB-01이 받아 `onboardingDraft`에 담고, 만드는 사람도 학생회의 일원이므로

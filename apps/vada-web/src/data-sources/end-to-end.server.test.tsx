@@ -618,6 +618,6 @@ describe('조직도를 저장한다(ORG-03B)', () => {
 
     // **두 번째는 409다**(계약의 `repeat: conflict`). 회장 둘이 같은 화면을 열어 둔
     // 자리에서 '남이 먼저 내보냈다'와 '내가 두 번 눌렀다'는 다른 일이다.
-    await expect(runMutation('org.removeMember', {}, { memberId })).rejects.toThrow('409')
+    await expect(runMutation('org.removeMember', {}, { memberId })).rejects.toMatchObject({ status: 409 })
   })
 })

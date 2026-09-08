@@ -1660,14 +1660,44 @@
                   "participants": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "memberId": {
+                          "type": "string",
+                          "description": "참가자"
+                        }
+                      },
+                      "required": [
+                        "memberId"
+                      ]
                     },
                     "description": "참가자"
                   },
                   "agendaItems": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "agendaTitle": {
+                          "type": "string",
+                          "description": "안건명"
+                        },
+                        "agendaNote": {
+                          "type": "string",
+                          "description": "안건 설명"
+                        },
+                        "attachmentName": {
+                          "type": "string",
+                          "description": "사전 자료"
+                        },
+                        "duration": {
+                          "type": "string",
+                          "description": "예상 소요 시간"
+                        }
+                      },
+                      "required": [
+                        "agendaTitle"
+                      ]
                     },
                     "description": "안건"
                   },
@@ -12817,7 +12847,21 @@
                   "sources": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "sourceName": {
+                          "type": "string",
+                          "description": "이름"
+                        },
+                        "sourceAmount": {
+                          "type": "number",
+                          "description": "금액(원)"
+                        }
+                      },
+                      "required": [
+                        "sourceName",
+                        "sourceAmount"
+                      ]
                     },
                     "description": "수입원"
                   },
@@ -12832,7 +12876,25 @@
                   "items": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "itemName": {
+                          "type": "string",
+                          "description": "이름"
+                        },
+                        "itemAmount": {
+                          "type": "number",
+                          "description": "배정액(원)"
+                        },
+                        "itemDepartment": {
+                          "type": "string",
+                          "description": "담당 부서(선택)"
+                        }
+                      },
+                      "required": [
+                        "itemName",
+                        "itemAmount"
+                      ]
                     },
                     "description": "상시 예산 항목"
                   },
@@ -12855,7 +12917,25 @@
                   "eventItems": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "eventItemName": {
+                          "type": "string",
+                          "description": "이름"
+                        },
+                        "eventItemAmount": {
+                          "type": "number",
+                          "description": "배정액(원)"
+                        },
+                        "eventItemDepartment": {
+                          "type": "string",
+                          "description": "담당 부서(선택)"
+                        }
+                      },
+                      "required": [
+                        "eventItemName",
+                        "eventItemAmount"
+                      ]
                     },
                     "description": "행사별 예산 항목"
                   },
@@ -18462,7 +18542,16 @@
                   "departments": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "name": {
+                          "type": "string",
+                          "description": "부서"
+                        }
+                      },
+                      "required": [
+                        "name"
+                      ]
                     },
                     "description": "부서"
                   }
@@ -18591,7 +18680,66 @@
                   "items": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "itemName": {
+                          "type": "string",
+                          "description": "품목명"
+                        },
+                        "itemCategory": {
+                          "type": "string",
+                          "description": "품목 카테고리"
+                        },
+                        "budgetItem": {
+                          "type": "string",
+                          "description": "예산 항목"
+                        },
+                        "purchaseType": {
+                          "type": "string",
+                          "description": "구매 유형"
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "description": "수량"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "description": "단위"
+                        },
+                        "unitPrice": {
+                          "type": "integer",
+                          "description": "예상 단가"
+                        },
+                        "vendor": {
+                          "type": "string",
+                          "description": "판매처 또는 쇼핑몰"
+                        },
+                        "productUrl": {
+                          "type": "string",
+                          "description": "상품 URL"
+                        },
+                        "option": {
+                          "type": "string",
+                          "description": "상품 옵션 또는 규격"
+                        },
+                        "deliveryNote": {
+                          "type": "string",
+                          "description": "배송 요청사항"
+                        },
+                        "quoteStatus": {
+                          "type": "string",
+                          "description": "견적서 확보 상태"
+                        }
+                      },
+                      "required": [
+                        "itemName",
+                        "itemCategory",
+                        "budgetItem",
+                        "purchaseType",
+                        "quantity",
+                        "unit",
+                        "unitPrice"
+                      ]
                     },
                     "description": "품목 리스트"
                   },
@@ -18763,7 +18911,66 @@
                   "items": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "itemName": {
+                          "type": "string",
+                          "description": "품목명"
+                        },
+                        "itemCategory": {
+                          "type": "string",
+                          "description": "품목 카테고리"
+                        },
+                        "budgetItem": {
+                          "type": "string",
+                          "description": "예산 항목"
+                        },
+                        "purchaseType": {
+                          "type": "string",
+                          "description": "구매 유형"
+                        },
+                        "quantity": {
+                          "type": "integer",
+                          "description": "수량"
+                        },
+                        "unit": {
+                          "type": "string",
+                          "description": "단위"
+                        },
+                        "unitPrice": {
+                          "type": "integer",
+                          "description": "예상 단가"
+                        },
+                        "vendor": {
+                          "type": "string",
+                          "description": "판매처 또는 쇼핑몰"
+                        },
+                        "productUrl": {
+                          "type": "string",
+                          "description": "상품 URL"
+                        },
+                        "option": {
+                          "type": "string",
+                          "description": "상품 옵션 또는 규격"
+                        },
+                        "deliveryNote": {
+                          "type": "string",
+                          "description": "배송 요청사항"
+                        },
+                        "quoteStatus": {
+                          "type": "string",
+                          "description": "견적서 확보 상태"
+                        }
+                      },
+                      "required": [
+                        "itemName",
+                        "itemCategory",
+                        "budgetItem",
+                        "purchaseType",
+                        "quantity",
+                        "unit",
+                        "unitPrice"
+                      ]
                     },
                     "description": "품목 리스트"
                   },
@@ -19607,14 +19814,44 @@
                   "participants": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "memberId": {
+                          "type": "string",
+                          "description": "참가자"
+                        }
+                      },
+                      "required": [
+                        "memberId"
+                      ]
                     },
                     "description": "참가자"
                   },
                   "agendaItems": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "type": "object",
+                      "properties": {
+                        "agendaTitle": {
+                          "type": "string",
+                          "description": "안건명"
+                        },
+                        "agendaNote": {
+                          "type": "string",
+                          "description": "안건 설명"
+                        },
+                        "attachmentName": {
+                          "type": "string",
+                          "description": "사전 자료"
+                        },
+                        "duration": {
+                          "type": "string",
+                          "description": "예상 소요 시간"
+                        }
+                      },
+                      "required": [
+                        "agendaTitle"
+                      ]
                     },
                     "description": "안건"
                   },

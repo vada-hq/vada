@@ -1,0 +1,1274 @@
+{
+  "POST /api/ops/meetings": {
+    "type": "object",
+    "properties": {
+      "meetingType": {
+        "type": "string",
+        "description": "meetingType"
+      },
+      "linkedEventId": {
+        "type": "string",
+        "description": "연결 행사"
+      },
+      "title": {
+        "type": "string",
+        "description": "회의명"
+      },
+      "hostName": {
+        "type": "string",
+        "description": "주최자"
+      },
+      "departmentId": {
+        "type": "string",
+        "description": "주관 부서"
+      },
+      "statusLabel": {
+        "type": "string",
+        "description": "회의 상태"
+      },
+      "purpose": {
+        "type": "string",
+        "description": "회의 목적"
+      },
+      "date": {
+        "type": "string",
+        "description": "회의 날짜"
+      },
+      "startTime": {
+        "type": "string",
+        "description": "시작 예정 시각"
+      },
+      "endTime": {
+        "type": "string",
+        "description": "종료 예정 시각"
+      },
+      "mode": {
+        "type": "string",
+        "description": "진행 방식"
+      },
+      "place": {
+        "type": "string",
+        "description": "장소"
+      },
+      "onlineLink": {
+        "type": "string",
+        "description": "온라인 링크"
+      },
+      "isPrivate": {
+        "type": "boolean",
+        "description": "비공개 회의"
+      },
+      "memberQuery": {
+        "type": "string",
+        "description": "이름 또는 부서로 구성원 검색"
+      },
+      "participants": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "memberId": {
+              "type": "string",
+              "description": "참가자"
+            }
+          },
+          "required": [
+            "memberId"
+          ]
+        },
+        "description": "참가자"
+      },
+      "agendaItems": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "agendaTitle": {
+              "type": "string",
+              "description": "안건명"
+            },
+            "agendaNote": {
+              "type": "string",
+              "description": "안건 설명"
+            },
+            "attachmentName": {
+              "type": "string",
+              "description": "사전 자료"
+            },
+            "duration": {
+              "type": "string",
+              "description": "예상 소요 시간"
+            }
+          },
+          "required": [
+            "agendaTitle"
+          ]
+        },
+        "description": "안건"
+      },
+      "agendaTitle": {
+        "type": "string",
+        "description": "안건명"
+      },
+      "agendaNote": {
+        "type": "string",
+        "description": "안건 설명"
+      },
+      "attachmentName": {
+        "type": "string",
+        "description": "사전 자료"
+      },
+      "duration": {
+        "type": "string",
+        "description": "예상 소요 시간"
+      }
+    },
+    "required": [
+      "meetingType",
+      "linkedEventId",
+      "title",
+      "departmentId",
+      "purpose",
+      "date",
+      "startTime",
+      "endTime",
+      "mode",
+      "place",
+      "agendaTitle"
+    ]
+  },
+  "POST /api/ops/events": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "행사명 또는 가칭"
+      }
+    },
+    "required": [
+      "title"
+    ]
+  },
+  "POST /api/ops/finance/purchase-requests/review": {
+    "type": "object",
+    "properties": {
+      "approvedAmount": {
+        "type": "number",
+        "description": "승인액"
+      },
+      "result": {
+        "type": "string",
+        "description": "검토 결과"
+      },
+      "reviewNote": {
+        "type": "string",
+        "description": "보완 사유"
+      }
+    },
+    "required": [
+      "approvedAmount",
+      "result"
+    ]
+  },
+  "PUT /api/ops/meetings/{meetingId}/minutes": {
+    "type": "object",
+    "properties": {
+      "agendaId": {
+        "type": "string",
+        "description": "agendaId"
+      },
+      "decisionText": {
+        "type": "string",
+        "description": "결정사항"
+      },
+      "noDecision": {
+        "type": "boolean",
+        "description": "이 안건은 결정사항 없음"
+      },
+      "noFollowUp": {
+        "type": "boolean",
+        "description": "후속 업무 없음"
+      }
+    },
+    "required": [
+      "agendaId"
+    ]
+  },
+  "PUT /api/ops/events/{eventId}/survey/settings": {
+    "type": "object",
+    "properties": {
+      "applyStart": {
+        "type": "string",
+        "description": "신청 기간"
+      },
+      "applyEnd": {
+        "type": "string",
+        "description": "신청 마감 일시"
+      },
+      "applyMethod": {
+        "type": "string",
+        "description": "신청 방식"
+      },
+      "waitlist": {
+        "type": "boolean",
+        "description": "정원 초과 시 대기 신청 운영"
+      },
+      "duesCheck": {
+        "type": "boolean",
+        "description": "학생회비 납부 여부 대조"
+      },
+      "completionNote": {
+        "type": "string",
+        "description": "신청 완료 안내 문구"
+      },
+      "newQuestionType": {
+        "type": "string",
+        "description": "질문 추가"
+      }
+    },
+    "required": [
+      "applyStart"
+    ]
+  },
+  "POST /api/messages/rooms": {
+    "type": "object",
+    "properties": {
+      "category": {
+        "type": "string",
+        "description": "분류"
+      },
+      "roomName": {
+        "type": "string",
+        "description": "방 이름"
+      },
+      "memberQuery": {
+        "type": "string",
+        "description": "이름 검색"
+      }
+    },
+    "required": [
+      "category"
+    ]
+  },
+  "PUT /api/finance/budget-plan": {
+    "type": "object",
+    "properties": {
+      "periodStart": {
+        "type": "string",
+        "description": "시작일"
+      },
+      "periodEnd": {
+        "type": "string",
+        "description": "끝일"
+      },
+      "sources": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "sourceName": {
+              "type": "string",
+              "description": "이름"
+            },
+            "sourceAmount": {
+              "type": "number",
+              "description": "금액(원)"
+            }
+          },
+          "required": [
+            "sourceName",
+            "sourceAmount"
+          ]
+        },
+        "description": "수입원"
+      },
+      "sourceName": {
+        "type": "string",
+        "description": "이름"
+      },
+      "sourceAmount": {
+        "type": "number",
+        "description": "금액(원)"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "itemName": {
+              "type": "string",
+              "description": "이름"
+            },
+            "itemAmount": {
+              "type": "number",
+              "description": "배정액(원)"
+            },
+            "itemDepartment": {
+              "type": "string",
+              "description": "담당 부서(선택)"
+            }
+          },
+          "required": [
+            "itemName",
+            "itemAmount"
+          ]
+        },
+        "description": "상시 예산 항목"
+      },
+      "itemName": {
+        "type": "string",
+        "description": "이름"
+      },
+      "itemAmount": {
+        "type": "number",
+        "description": "배정액(원)"
+      },
+      "itemDepartment": {
+        "type": "string",
+        "description": "담당 부서(선택)"
+      },
+      "event": {
+        "type": "string",
+        "description": "행사"
+      },
+      "eventItems": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "eventItemName": {
+              "type": "string",
+              "description": "이름"
+            },
+            "eventItemAmount": {
+              "type": "number",
+              "description": "배정액(원)"
+            },
+            "eventItemDepartment": {
+              "type": "string",
+              "description": "담당 부서(선택)"
+            }
+          },
+          "required": [
+            "eventItemName",
+            "eventItemAmount"
+          ]
+        },
+        "description": "행사별 예산 항목"
+      },
+      "eventItemName": {
+        "type": "string",
+        "description": "이름"
+      },
+      "eventItemAmount": {
+        "type": "number",
+        "description": "배정액(원)"
+      },
+      "eventItemDepartment": {
+        "type": "string",
+        "description": "담당 부서(선택)"
+      }
+    },
+    "required": [
+      "periodStart",
+      "periodEnd",
+      "sourceName",
+      "sourceAmount",
+      "itemName",
+      "itemAmount",
+      "eventItemName",
+      "eventItemAmount"
+    ]
+  },
+  "POST /api/orgs": {
+    "type": "object",
+    "properties": {
+      "orgType": {
+        "type": "string",
+        "description": "학생회 유형"
+      },
+      "repSchool": {
+        "type": "string",
+        "description": "학교"
+      },
+      "repCollege": {
+        "type": "string",
+        "description": "단과대학"
+      },
+      "orgName": {
+        "type": "string",
+        "description": "학생회명"
+      },
+      "operatingYear": {
+        "type": "string",
+        "description": "운영 연도"
+      },
+      "setupMode": {
+        "type": "string",
+        "description": "setupMode"
+      },
+      "departments": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "부서"
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "description": "부서"
+      }
+    },
+    "required": [
+      "orgType",
+      "repSchool",
+      "repCollege",
+      "orgName",
+      "operatingYear",
+      "setupMode"
+    ]
+  },
+  "POST /api/ops/finance/purchase-requests": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "요청 제목"
+      },
+      "department": {
+        "type": "string",
+        "description": "요청 부서"
+      },
+      "neededOn": {
+        "type": "string",
+        "description": "필요한 날짜"
+      },
+      "priority": {
+        "type": "string",
+        "description": "우선순위"
+      },
+      "purpose": {
+        "type": "string",
+        "description": "구매 목적"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "itemName": {
+              "type": "string",
+              "description": "품목명"
+            },
+            "itemCategory": {
+              "type": "string",
+              "description": "품목 카테고리"
+            },
+            "budgetItem": {
+              "type": "string",
+              "description": "예산 항목"
+            },
+            "purchaseType": {
+              "type": "string",
+              "description": "구매 유형"
+            },
+            "quantity": {
+              "type": "integer",
+              "description": "수량"
+            },
+            "unit": {
+              "type": "string",
+              "description": "단위"
+            },
+            "unitPrice": {
+              "type": "integer",
+              "description": "예상 단가"
+            },
+            "vendor": {
+              "type": "string",
+              "description": "판매처 또는 쇼핑몰"
+            },
+            "productUrl": {
+              "type": "string",
+              "description": "상품 URL"
+            },
+            "option": {
+              "type": "string",
+              "description": "상품 옵션 또는 규격"
+            },
+            "deliveryNote": {
+              "type": "string",
+              "description": "배송 요청사항"
+            },
+            "quoteStatus": {
+              "type": "string",
+              "description": "견적서 확보 상태"
+            }
+          },
+          "required": [
+            "itemName",
+            "itemCategory",
+            "budgetItem",
+            "purchaseType",
+            "quantity",
+            "unit",
+            "unitPrice"
+          ]
+        },
+        "description": "품목 리스트"
+      },
+      "itemName": {
+        "type": "string",
+        "description": "품목명"
+      },
+      "itemCategory": {
+        "type": "string",
+        "description": "품목 카테고리"
+      },
+      "budgetItem": {
+        "type": "string",
+        "description": "예산 항목"
+      },
+      "purchaseType": {
+        "type": "string",
+        "description": "구매 유형"
+      },
+      "quantity": {
+        "type": "integer",
+        "description": "수량"
+      },
+      "unit": {
+        "type": "string",
+        "description": "단위"
+      },
+      "unitPrice": {
+        "type": "integer",
+        "description": "예상 단가"
+      },
+      "vendor": {
+        "type": "string",
+        "description": "판매처 또는 쇼핑몰"
+      },
+      "productUrl": {
+        "type": "string",
+        "description": "상품 URL"
+      },
+      "option": {
+        "type": "string",
+        "description": "상품 옵션 또는 규격"
+      },
+      "deliveryNote": {
+        "type": "string",
+        "description": "배송 요청사항"
+      },
+      "quoteStatus": {
+        "type": "string",
+        "description": "견적서 확보 상태"
+      }
+    },
+    "required": [
+      "title",
+      "neededOn",
+      "purpose",
+      "itemName",
+      "itemCategory",
+      "budgetItem",
+      "purchaseType",
+      "quantity",
+      "unit",
+      "unitPrice"
+    ]
+  },
+  "POST /api/ops/finance/purchase-request-drafts": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "요청 제목"
+      },
+      "department": {
+        "type": "string",
+        "description": "요청 부서"
+      },
+      "neededOn": {
+        "type": "string",
+        "description": "필요한 날짜"
+      },
+      "priority": {
+        "type": "string",
+        "description": "우선순위"
+      },
+      "purpose": {
+        "type": "string",
+        "description": "구매 목적"
+      },
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "itemName": {
+              "type": "string",
+              "description": "품목명"
+            },
+            "itemCategory": {
+              "type": "string",
+              "description": "품목 카테고리"
+            },
+            "budgetItem": {
+              "type": "string",
+              "description": "예산 항목"
+            },
+            "purchaseType": {
+              "type": "string",
+              "description": "구매 유형"
+            },
+            "quantity": {
+              "type": "integer",
+              "description": "수량"
+            },
+            "unit": {
+              "type": "string",
+              "description": "단위"
+            },
+            "unitPrice": {
+              "type": "integer",
+              "description": "예상 단가"
+            },
+            "vendor": {
+              "type": "string",
+              "description": "판매처 또는 쇼핑몰"
+            },
+            "productUrl": {
+              "type": "string",
+              "description": "상품 URL"
+            },
+            "option": {
+              "type": "string",
+              "description": "상품 옵션 또는 규격"
+            },
+            "deliveryNote": {
+              "type": "string",
+              "description": "배송 요청사항"
+            },
+            "quoteStatus": {
+              "type": "string",
+              "description": "견적서 확보 상태"
+            }
+          },
+          "required": [
+            "itemName",
+            "itemCategory",
+            "budgetItem",
+            "purchaseType",
+            "quantity",
+            "unit",
+            "unitPrice"
+          ]
+        },
+        "description": "품목 리스트"
+      },
+      "itemName": {
+        "type": "string",
+        "description": "품목명"
+      },
+      "itemCategory": {
+        "type": "string",
+        "description": "품목 카테고리"
+      },
+      "budgetItem": {
+        "type": "string",
+        "description": "예산 항목"
+      },
+      "purchaseType": {
+        "type": "string",
+        "description": "구매 유형"
+      },
+      "quantity": {
+        "type": "integer",
+        "description": "수량"
+      },
+      "unit": {
+        "type": "string",
+        "description": "단위"
+      },
+      "unitPrice": {
+        "type": "integer",
+        "description": "예상 단가"
+      },
+      "vendor": {
+        "type": "string",
+        "description": "판매처 또는 쇼핑몰"
+      },
+      "productUrl": {
+        "type": "string",
+        "description": "상품 URL"
+      },
+      "option": {
+        "type": "string",
+        "description": "상품 옵션 또는 규격"
+      },
+      "deliveryNote": {
+        "type": "string",
+        "description": "배송 요청사항"
+      },
+      "quoteStatus": {
+        "type": "string",
+        "description": "견적서 확보 상태"
+      }
+    },
+    "required": [
+      "title",
+      "neededOn",
+      "purpose",
+      "itemName",
+      "itemCategory",
+      "budgetItem",
+      "purchaseType",
+      "quantity",
+      "unit",
+      "unitPrice"
+    ]
+  },
+  "POST /api/ops/finance/purchase-requests/supplement/resubmit": {
+    "type": "object",
+    "additionalProperties": true,
+    "description": "상태 스코프 'purchaseRequestSupplement'에 담긴 값. **칸의 목록을 명세가 모른다** — 서버가 무엇을 받을지 정해 내려보내고 화면은 그대로 그린다."
+  },
+  "POST /api/ops/finance/purchase-requests/supplement/drafts": {
+    "type": "object",
+    "additionalProperties": true,
+    "description": "상태 스코프 'purchaseRequestSupplement'에 담긴 값. **칸의 목록을 명세가 모른다** — 서버가 무엇을 받을지 정해 내려보내고 화면은 그대로 그린다."
+  },
+  "PUT /api/org/chart": {
+    "type": "object",
+    "properties": {
+      "memberQuery": {
+        "type": "string",
+        "description": "이름 검색"
+      }
+    }
+  },
+  "PUT /api/org/members/{memberId}/role": {
+    "type": "object",
+    "properties": {
+      "baseRole": {
+        "type": "string",
+        "description": "기본 역할 변경"
+      }
+    },
+    "required": [
+      "baseRole"
+    ]
+  },
+  "POST /api/ops/meetings/drafts": {
+    "type": "object",
+    "properties": {
+      "meetingType": {
+        "type": "string",
+        "description": "meetingType"
+      },
+      "linkedEventId": {
+        "type": "string",
+        "description": "연결 행사"
+      },
+      "title": {
+        "type": "string",
+        "description": "회의명"
+      },
+      "hostName": {
+        "type": "string",
+        "description": "주최자"
+      },
+      "departmentId": {
+        "type": "string",
+        "description": "주관 부서"
+      },
+      "statusLabel": {
+        "type": "string",
+        "description": "회의 상태"
+      },
+      "purpose": {
+        "type": "string",
+        "description": "회의 목적"
+      },
+      "date": {
+        "type": "string",
+        "description": "회의 날짜"
+      },
+      "startTime": {
+        "type": "string",
+        "description": "시작 예정 시각"
+      },
+      "endTime": {
+        "type": "string",
+        "description": "종료 예정 시각"
+      },
+      "mode": {
+        "type": "string",
+        "description": "진행 방식"
+      },
+      "place": {
+        "type": "string",
+        "description": "장소"
+      },
+      "onlineLink": {
+        "type": "string",
+        "description": "온라인 링크"
+      },
+      "isPrivate": {
+        "type": "boolean",
+        "description": "비공개 회의"
+      },
+      "memberQuery": {
+        "type": "string",
+        "description": "이름 또는 부서로 구성원 검색"
+      },
+      "participants": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "memberId": {
+              "type": "string",
+              "description": "참가자"
+            }
+          },
+          "required": [
+            "memberId"
+          ]
+        },
+        "description": "참가자"
+      },
+      "agendaItems": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "agendaTitle": {
+              "type": "string",
+              "description": "안건명"
+            },
+            "agendaNote": {
+              "type": "string",
+              "description": "안건 설명"
+            },
+            "attachmentName": {
+              "type": "string",
+              "description": "사전 자료"
+            },
+            "duration": {
+              "type": "string",
+              "description": "예상 소요 시간"
+            }
+          },
+          "required": [
+            "agendaTitle"
+          ]
+        },
+        "description": "안건"
+      },
+      "agendaTitle": {
+        "type": "string",
+        "description": "안건명"
+      },
+      "agendaNote": {
+        "type": "string",
+        "description": "안건 설명"
+      },
+      "attachmentName": {
+        "type": "string",
+        "description": "사전 자료"
+      },
+      "duration": {
+        "type": "string",
+        "description": "예상 소요 시간"
+      }
+    },
+    "required": [
+      "meetingType",
+      "linkedEventId",
+      "title",
+      "departmentId",
+      "purpose",
+      "date",
+      "startTime",
+      "endTime",
+      "mode",
+      "place",
+      "agendaTitle"
+    ]
+  },
+  "POST /api/ops/meetings/{meetingId}/cancel": {
+    "type": "object",
+    "properties": {
+      "cancelReason": {
+        "type": "string",
+        "description": "취소 사유"
+      }
+    },
+    "required": [
+      "cancelReason"
+    ]
+  },
+  "PUT /api/ops/events/{eventId}/basics": {
+    "type": "object",
+    "properties": {
+      "title": {
+        "type": "string",
+        "description": "행사명"
+      },
+      "intro": {
+        "type": "string",
+        "description": "행사 소개"
+      },
+      "purpose": {
+        "type": "string",
+        "description": "행사 목적·주요 내용"
+      },
+      "startAt": {
+        "type": "string",
+        "description": "시작 일시"
+      },
+      "endAt": {
+        "type": "string",
+        "description": "종료 일시"
+      },
+      "endUnset": {
+        "type": "boolean",
+        "description": "종료 시간 미정"
+      },
+      "place": {
+        "type": "string",
+        "description": "장소"
+      },
+      "placeUnset": {
+        "type": "boolean",
+        "description": "장소 미정"
+      },
+      "address": {
+        "type": "string",
+        "description": "주소"
+      },
+      "placeDetail": {
+        "type": "string",
+        "description": "상세 위치·집합 장소"
+      },
+      "audience": {
+        "type": "string",
+        "description": "참가 대상"
+      },
+      "feeType": {
+        "type": "string",
+        "description": "참가비"
+      },
+      "paidAmount": {
+        "type": "integer",
+        "description": "납부자 금액 (0원 가능)"
+      },
+      "unpaidAmount": {
+        "type": "integer",
+        "description": "미납자 금액"
+      },
+      "payGuide": {
+        "type": "string",
+        "description": "결제 안내"
+      },
+      "capacityType": {
+        "type": "string",
+        "description": "행사 정원"
+      },
+      "capacity": {
+        "type": "integer",
+        "description": "정원 인원"
+      },
+      "hostDepartment": {
+        "type": "string",
+        "description": "담당 부서"
+      },
+      "hostPerson": {
+        "type": "string",
+        "description": "담당자"
+      },
+      "contact": {
+        "type": "string",
+        "description": "문의 방법·연락처"
+      },
+      "notice": {
+        "type": "string",
+        "description": "참가자 유의사항"
+      }
+    }
+  },
+  "POST /api/ops/events/{eventId}/staff": {
+    "type": "object",
+    "properties": {
+      "setupMode": {
+        "type": "string",
+        "description": "setupMode"
+      },
+      "leaderId": {
+        "type": "string",
+        "description": "행사 책임자"
+      }
+    },
+    "required": [
+      "setupMode",
+      "leaderId"
+    ]
+  },
+  "PUT /api/ops/events/{eventId}/staff": {
+    "type": "object",
+    "properties": {
+      "leaderId": {
+        "type": "string",
+        "description": "행사 책임자"
+      },
+      "newDepartmentName": {
+        "type": "string",
+        "description": "부서 추가"
+      },
+      "departmentLeaderId": {
+        "type": "string",
+        "description": "부서장"
+      },
+      "departmentMemberId": {
+        "type": "string",
+        "description": "구성원 추가"
+      }
+    },
+    "required": [
+      "leaderId"
+    ]
+  },
+  "POST /api/ops/events/{eventId}/survey/replace": {
+    "type": "object",
+    "properties": {
+      "replaceMode": {
+        "type": "string",
+        "description": "새 설문 초안 생성 방식"
+      }
+    }
+  },
+  "POST /api/records/events/{eventId}/archive/drafts": {
+    "type": "object",
+    "properties": {
+      "onSiteOperation": {
+        "type": "string",
+        "description": "현장 운영"
+      },
+      "retroGood": {
+        "type": "string",
+        "description": "잘된 점"
+      },
+      "retroIssues": {
+        "type": "string",
+        "description": "미흡했던 점과 원인"
+      },
+      "retroImprovements": {
+        "type": "string",
+        "description": "다음 행사 개선안"
+      },
+      "improvementDepartment": {
+        "type": "string",
+        "description": "담당 부서"
+      },
+      "handover": {
+        "type": "string",
+        "description": "인수인계"
+      },
+      "nextOwner": {
+        "type": "string",
+        "description": "다음 담당자"
+      },
+      "reviewer": {
+        "type": "string",
+        "description": "검토자"
+      }
+    }
+  },
+  "POST /api/records/events/{eventId}/archive/review-requests": {
+    "type": "object",
+    "properties": {
+      "onSiteOperation": {
+        "type": "string",
+        "description": "현장 운영"
+      },
+      "retroGood": {
+        "type": "string",
+        "description": "잘된 점"
+      },
+      "retroIssues": {
+        "type": "string",
+        "description": "미흡했던 점과 원인"
+      },
+      "retroImprovements": {
+        "type": "string",
+        "description": "다음 행사 개선안"
+      },
+      "improvementDepartment": {
+        "type": "string",
+        "description": "담당 부서"
+      },
+      "handover": {
+        "type": "string",
+        "description": "인수인계"
+      },
+      "nextOwner": {
+        "type": "string",
+        "description": "다음 담당자"
+      },
+      "reviewer": {
+        "type": "string",
+        "description": "검토자"
+      }
+    }
+  },
+  "POST /api/organizations/invite-code/verify": {
+    "type": "object",
+    "properties": {
+      "inviteCode": {
+        "type": "string",
+        "description": "초대 코드"
+      },
+      "school": {
+        "type": "string",
+        "description": "학교"
+      },
+      "college": {
+        "type": "string",
+        "description": "단과대학"
+      },
+      "department": {
+        "type": "string",
+        "description": "학부·학과"
+      },
+      "currentGrade": {
+        "type": "string",
+        "description": "현재 학년"
+      },
+      "studentNumber": {
+        "type": "string",
+        "description": "학번"
+      },
+      "name": {
+        "type": "string",
+        "description": "이름"
+      }
+    },
+    "required": [
+      "inviteCode",
+      "school",
+      "college",
+      "department",
+      "currentGrade",
+      "studentNumber",
+      "name"
+    ]
+  },
+  "POST /api/organizations/join": {
+    "type": "object",
+    "properties": {
+      "inviteCode": {
+        "type": "string",
+        "description": "초대 코드"
+      },
+      "school": {
+        "type": "string",
+        "description": "학교"
+      },
+      "college": {
+        "type": "string",
+        "description": "단과대학"
+      },
+      "department": {
+        "type": "string",
+        "description": "학부·학과"
+      },
+      "currentGrade": {
+        "type": "string",
+        "description": "현재 학년"
+      },
+      "studentNumber": {
+        "type": "string",
+        "description": "학번"
+      },
+      "name": {
+        "type": "string",
+        "description": "이름"
+      }
+    },
+    "required": [
+      "inviteCode",
+      "school",
+      "college",
+      "department",
+      "currentGrade",
+      "studentNumber",
+      "name"
+    ]
+  },
+  "POST /api/public/surveys/{surveyToken}/applications": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "이름"
+      },
+      "studentNumber": {
+        "type": "string",
+        "description": "학번"
+      },
+      "college": {
+        "type": "string",
+        "description": "단과대학"
+      },
+      "department": {
+        "type": "string",
+        "description": "학부·학과"
+      },
+      "currentGrade": {
+        "type": "string",
+        "description": "학년"
+      },
+      "motivation": {
+        "type": "string",
+        "description": "참가 동기 (선택)"
+      },
+      "privacyConsent": {
+        "type": "boolean",
+        "description": "동의합니다"
+      }
+    },
+    "required": [
+      "name",
+      "studentNumber",
+      "college",
+      "department",
+      "currentGrade",
+      "privacyConsent"
+    ]
+  },
+  "POST /api/public/attendance/{checkInToken}/check-in": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "이름"
+      },
+      "studentNumber": {
+        "type": "string",
+        "description": "학번"
+      }
+    },
+    "required": [
+      "name",
+      "studentNumber"
+    ]
+  }
+}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { DataRow } from '../data-sources/catalog'
 import { resolveParams } from './params'
-import { NotServedYet, getMutation, runMutation } from './mutations'
+import { NotServedYet, Refused, getMutation, runMutation } from './mutations'
 import type { SubmitAction } from './types'
 
 /**
@@ -66,7 +66,11 @@ export interface SubmitActionState {
   runningKey: string | null
   /** 보내는 중이면 카탈로그가 준 글. 아니면 null. */
   submittingMessage: string | null
-  /** 실패했을 때 카탈로그가 준 글. 실패한 적 없으면 null. */
+  /**
+   * 실패했을 때 사람에게 보일 글. 실패한 적 없으면 null.
+   *
+   * **서버가 한 말이 먼저다** — 카탈로그의 글은 서버가 말이 없을 때 그린다.
+   */
   errorMessage: string | null
   /** 보내는 중이면 카탈로그의 submitting 문구, 아니면 원래 이름. */
   labelOf: (action: SubmitAction, label: string) => string
@@ -89,6 +93,16 @@ export function useSubmitAction(): SubmitActionState {
   // 실패한 까닭이 '고장'인지 '아직 안 지음'인지. 둘을 같은 글로 말하면 사람이
   // 고쳐질 것을 기다리며 새로고침한다.
   const [notServed, setNotServed] = useState(false)
+  /**
+   * **서버가 물리치며 한 말.**
+   *
+   * 카탈로그의 글은 '무엇을 하려다 실패했나'를 말한다(학생회를 만들지 못했습니다).
+   * 서버의 글은 **왜**를 말한다(부서는 목록으로 보내 주세요). 앞엣것만 그리면 사람은
+   * 무엇을 고쳐야 할지 알 수 없고, 실제로 그래서 한 사람이 ORG-02에서 막혔다.
+   *
+   * 서버가 말이 없으면 null이고, 그때는 카탈로그의 글이 그려진다.
+   */
+  const [refusal, setRefusal] = useState<string | null>(null)
 
   async function run(action: SubmitAction, options: SubmitRunOptions) {
     const mutation = getMutation(action.mutationKey)
@@ -128,14 +142,17 @@ export function useSubmitAction(): SubmitActionState {
       // **아직 안 붙은 자리는 따로 말한다.** 카탈로그의 error 문구는 '고쳐질 고장'을
       // 뜻하는데, 이것은 아직 만들지 않은 것이다 — 사람이 새로고침하며 기다리게 하지 않는다.
       setNotServed(thrown instanceof NotServedYet)
+      setRefusal(thrown instanceof Refused ? thrown.said : null)
       setPhase('error')
       return undefined
     }
 
     setPhase('idle')
     setRunningKey(null)
+    setRefusal(null)
     if (action.onSuccess.scopeEvent !== undefined) {
-      options.onScopeEvent!(mutation.payloadScope, action.onSuccess.scopeEvent)
+      // 위에서 이미 막았다 — scopeEvent를 말하는 계약에는 payloadScope가 있어야 한다.
+      options.onScopeEvent!(mutation.payloadScope!, action.onSuccess.scopeEvent)
     }
     if (action.onSuccess.navigate !== undefined) {
       options.onNavigate(
@@ -167,7 +184,9 @@ export function useSubmitAction(): SubmitActionState {
         ? null
         : notServed
           ? NOT_SERVED_NOTE
-          : getMutation(runningKey).messages.error,
+          : // **서버가 한 말이 먼저다.** 카탈로그의 글은 무엇을 하려다 실패했는지를
+            // 말할 뿐이고, 왜인지는 서버만 안다. 서버가 말이 없을 때만 카탈로그가 그린다.
+            (refusal ?? getMutation(runningKey).messages.error),
     labelOf: (action, label) =>
       runningKey === action.mutationKey && phase === 'submitting'
         ? getMutation(action.mutationKey).messages.submitting

@@ -139,7 +139,11 @@ function fieldsByScope() {
         fields.set(key, {
           type: node.type === "list" ? "array" : (node.valueType ?? "string"),
           required: node.required === true,
-          label: node.label ?? node.itemNoun ?? key
+          label: node.label ?? node.itemNoun ?? key,
+          // **줄의 속도 계약이 든다.** 한동안 `array of object`까지만 적었고, 그래서
+          // 화면과 서버가 줄의 칸 이름을 각자 골랐다 — 부서에서 둘이 갈려 '조직
+          // 만들기'가 422로 막혔다(2026-09-09). 명세가 아는 것을 계약이 버리지 않는다.
+          row: node.type === "list" ? rowShapeOf(node) : undefined
         });
       }
       for (const value of Object.values(node)) walk(value);
@@ -148,6 +152,48 @@ function fieldsByScope() {
     byScope.set(scope, fields);
   }
   return byScope;
+}
+
+/**
+ * 줄 하나가 담는 칸들. **명세가 말하지 않으면 여기서도 모른다.**
+ *
+ * 칸이 여럿이면 `itemFields`가 들고, 값 하나뿐인 목록(부서·참가자)은 `itemValueKey`가
+ * 그 하나의 이름을 든다. 둘 다 없으면 계약도 모른다고 적는다 — 지어내지 않는다.
+ */
+function rowShapeOf(node) {
+  if (Array.isArray(node.itemFields)) {
+    const properties = {};
+    const required = [];
+    const walk = (item) => {
+      if (Array.isArray(item)) {
+        for (const one of item) walk(one);
+        return;
+      }
+      if (item === null || typeof item !== "object") return;
+      if (typeof item.fieldKey === "string") {
+        properties[item.fieldKey] = {
+          type: item.valueType ?? "string",
+          description: item.label ?? item.fieldKey
+        };
+        if (item.required === true) required.push(item.fieldKey);
+      }
+      for (const value of Object.values(item)) walk(value);
+    };
+    walk(node.itemFields);
+    const shape = { type: "object", properties };
+    if (required.length > 0) shape.required = required;
+    return shape;
+  }
+  if (typeof node.itemValueKey === "string") {
+    return {
+      type: "object",
+      properties: {
+        [node.itemValueKey]: { type: "string", description: node.itemNoun ?? node.itemValueKey }
+      },
+      required: [node.itemValueKey]
+    };
+  }
+  return { type: "object" };
 }
 
 function bodySchema(scopeKey, byScope) {
@@ -168,7 +214,11 @@ function bodySchema(scopeKey, byScope) {
   for (const [key, field] of fields) {
     properties[key] =
       field.type === "array"
-        ? { type: "array", items: { type: "object" }, description: field.label }
+        ? {
+            type: "array",
+            items: field.row ?? { type: "object" },
+            description: field.label
+          }
         : { type: field.type, description: field.label };
     if (field.required) required.push(key);
   }
@@ -456,10 +506,36 @@ export function buildOpenApi() {
 }
 
 const OUT = join(repoRoot, "specs", "figma", "vada-wireframe", "openapi.json");
+const BODIES = join(repoRoot, "specs", "figma", "vada-wireframe", "request-bodies.json");
+
+/**
+ * 계약이 적은 **요청 몸통만** 뽑아 둔 것. `'POST /api/orgs'` -> 스키마.
+ *
+ * **화면이 들고 다니려고 만든다.** 계약 전체는 780KB라 앱에 실을 수 없는데, 나가는
+ * 몸통을 계약에 대고 재려면 그 계약이 앱 안에 있어야 한다 — 뽑아 놓으면 15KB다.
+ *
+ * 재는 자리가 없던 동안 무슨 일이 있었나: ORG-02가 부서를 글 하나로 보냈고 서버는
+ * 배열을 요구했다. 어긋남이 **배포된 뒤 사람의 손끝에서** 드러났다(2026-09-09).
+ * 계약은 처음부터 배열이라 적고 있었다 — 그 말을 아무도 안 들었을 뿐이다.
+ */
+export function requestBodies(document = buildOpenApi()) {
+  const bodies = {};
+  for (const [path, operations] of Object.entries(document.paths)) {
+    for (const [method, operation] of Object.entries(operations)) {
+      const body = operation.requestBody;
+      if (body === undefined) continue;
+      bodies[`${method.toUpperCase()} ${path}`] =
+        body.content["application/json"].schema;
+    }
+  }
+  return bodies;
+}
 
 if (process.argv[1] && process.argv[1].endsWith("generate-openapi.mjs")) {
   const document = buildOpenApi();
   writeFileSync(OUT, `${JSON.stringify(document, null, 2)}\n`, "utf-8");
+  writeFileSync(BODIES, `${JSON.stringify(requestBodies(document), null, 2)}
+`, "utf-8");
   const count = Object.values(document.paths).reduce(
     (sum, item) => sum + Object.keys(item).length,
     0

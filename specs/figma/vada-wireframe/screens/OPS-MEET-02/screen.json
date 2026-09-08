@@ -449,7 +449,8 @@
         "maxItems": 50,
         "itemActions": [
           "remove"
-        ]
+        ],
+        "itemValueKey": "memberId"
       }
     },
     {

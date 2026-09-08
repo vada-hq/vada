@@ -74,7 +74,8 @@
         },
         "resetOnChangeOf": [
           "setupMode"
-        ]
+        ],
+        "itemValueKey": "name"
       }
     },
     {

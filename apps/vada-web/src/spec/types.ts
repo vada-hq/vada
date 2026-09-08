@@ -507,6 +507,14 @@ export interface ListSpec {
   // 항목 하나가 담는 요소들. 화면의 요소와 같은 모양이다 — 되풀이되는 묶음의 칸은
   // 화면의 것이 아니라 항목의 것이기 때문이다(품목이 넷이면 수량도 넷이다).
   itemFields?: ScreenElement[]
+  /**
+   * **칸이 없는 줄은 무엇으로 불리는가**(itemFields가 없을 때).
+   *
+   * 부서는 이름 하나이고 참가자는 고른 사람 하나다. 그 하나가 서버로 갈 때 다는
+   * 이름을 오랫동안 아무 데도 안 적어, 화면과 서버가 각자 골랐다 — 부서에서 두
+   * 이름이 갈려 '조직 만들기'가 422로 막혔다(2026-09-09).
+   */
+  itemValueKey?: string
   rootItem?: {
     initialName: string
     actions: Array<'rename'>

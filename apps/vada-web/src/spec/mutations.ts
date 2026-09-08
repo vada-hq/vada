@@ -5,6 +5,8 @@ import type { DataRow } from '../data-sources/catalog'
 import catalogJson from '../../../../specs/figma/vada-wireframe/mutations.json'
 import { currentServer, forgetSources, urlOf } from '../data-sources/server'
 import { isServedMutation } from '../data-sources/served'
+import { checkBody } from './request-shape'
+import { fieldsOfScope, shapeBody } from './draft-values'
 
 export interface Mutation {
   key: string
@@ -12,7 +14,7 @@ export interface Mutation {
   request: { method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'; path: string }
   /** 자리가 실어 가는 인자. 무엇의 것인지를 이것이 말한다. */
   params: Array<{ key: string; required: boolean; valueType: string; description: string }>
-  payloadScope: string
+  payloadScope?: string
   /** 두 번 보내면 어떻게 되는가. 계약이 정한다 — 화면이 짐작하지 않는다. */
   repeat?: { kind: string; why: string }
   messages: { submitting: string; error: string }
@@ -90,6 +92,40 @@ export class NotServedYet extends Error {
   }
 }
 
+/**
+ * 서버가 물리쳤다. **서버가 한 말을 들고 온다.**
+ *
+ * 한동안 상태 코드만 들고 왔다. 그래서 ORG-02가 422를 받고도 화면에는 카탈로그의
+ * 고정 글 '학생회를 만들지 못했습니다'만 떴다 — 서버는 `부서는 목록으로 보내 주세요`
+ * 라고 **정확히 말하고 있었는데** 그 말이 화면에 닿지 않았다(2026-09-09).
+ *
+ * 읽는 쪽은 이미 이 값을 치르고 고쳤다(`data-sources/server.ts`의 `SourceFailure`).
+ * 쓰는 쪽만 안 고쳐져 있었다 — 같은 결함이 반대쪽에 그대로 남아 있던 것이다.
+ *
+ * **카탈로그의 글을 버리지는 않는다.** 서버가 말이 없을 때(500·네트워크) 그릴 것이
+ * 있어야 하고, 그 글은 명세가 갖는다.
+ */
+export class Refused extends Error {
+  readonly key: string
+  readonly status: number
+  /** 서버가 사람에게 보이라고 준 글. 안 주었으면 null이다 — 지어내지 않는다. */
+  readonly said: string | null
+
+  constructor(key: string, status: number, said: string | null) {
+    super(said ?? `제출 '${key}'가 실패했습니다(${status}).`)
+    this.name = 'Refused'
+    this.key = key
+    this.status = status
+    this.said = said
+  }
+}
+
+/** 물리친 답에서 사람에게 보일 글을 꺼낸다. 없으면 null — 상태 코드를 글로 꾸미지 않는다. */
+async function refusalOf(res: Response): Promise<string | null> {
+  const said = (await res.json().catch(() => null)) as { message?: unknown } | null
+  return typeof said?.message === 'string' && said.message !== '' ? said.message : null
+}
+
 export async function runMutation(
   key: string,
   payload: unknown,
@@ -105,6 +141,43 @@ export async function runMutation(
     }
   }
 
+  // **초안을 계약의 꼴로 옮기는 것은 여기서 한다.**
+  //
+  // 한동안 이것을 화면이 했다. 그런데 초안을 보내는 화면 열일곱 중 **셋만** 옮기고
+  // 열넷은 초안을 날것으로 보냈다 — 규칙이 아니라 관습이었다. 서버 대부분이 두 꼴을
+  // 다 받아 주어(`api/src/purchases/body.ts`) 열넷 중 열셋은 우연히 돌았고, 배열만
+  // 받는 서버 하나에서 터졌다(ORG-02, 2026-09-09).
+  //
+  // 그래서 화면이 부를 필요가 없는 자리로 옮긴다. **옮기는 것을 잊을 자리가 없다.**
+  //
+  // 무엇을 옮길지는 계약의 `payloadScope`가 말하고, 그 스코프가 어떤 칸을 담는지는
+  // 명세가 안다 — 계약의 요청 몸통을 만드는 것과 **같은 자리를 읽는다.**
+  //
+  // **몸통을 갖는지도 계약이 정한다.** `payloadScope`가 없는 변이 스물셋은 누르는 것
+  // 자체가 뜻이고(회의 시작, 인수인계 초안 만들기) 실어 갈 값이 없다 — 서버도 몸통을
+  // 읽지 않는다. 그런데 화면은 단추마다 같은 함수로 보내므로 초안을 통째로 실어
+  // 보내고 있었다. 아무 데도 안 닿는 값이었다.
+  const body =
+    mutation.payloadScope === undefined
+      ? {}
+      : shapeBody(
+          fieldsOfScope(mutation.payloadScope),
+          payload === null || typeof payload !== 'object' || Array.isArray(payload)
+            ? {}
+            : (payload as Record<string, unknown>),
+        )
+
+  // **계약과 갈린 몸통은 나가지 못한다.**
+  //
+  // 계약이 몸통의 꼴을 적어 두었는데 그것을 재는 자리가 없었다. 그래서 ORG-02가
+  // 부서를 글 하나로 보내고 서버가 422로 막는 일이 **배포된 뒤 사람의 손끝에서**
+  // 드러났다(2026-09-09). 여기서 재면 그 어긋남이 검사에서 터진다 — 이미 있는
+  // 검사·e2e·카나리가 전부 이 눈금을 지나가므로, 재는 자리 하나로 전부가 눈금이 된다.
+  //
+  // 대역으로 도는 동안에도 잰다. 서버를 안 켠 검사가 훨씬 많고, 거기서 안 재면
+  // 어긋남은 서버를 켜는 자리에서만 드러난다.
+  checkBody(key, mutation.request.method, mutation.request.path, body)
+
   // **서버에 붙어 있는 동안은 성공한 척하지 않는다.**
   //
   // 오늘 가장 비쌌던 결함이 여기 있었다 — 아무 데도 안 보내고 무조건 성공을 돌려줘서,
@@ -115,7 +188,7 @@ export async function runMutation(
   // 대역이 답하는 것은 서버를 아예 안 켠 동안(검사·개발)뿐이다.
   if (currentServer() !== null) {
     if (!isServedMutation(key)) throw new NotServedYet(key)
-    return sendMutation(mutation, payload, params)
+    return sendMutation(mutation, body, params)
   }
 
   await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
@@ -159,7 +232,7 @@ async function sendMutation(
     body: JSON.stringify(payload ?? {}),
   })
   if (!res.ok) {
-    throw new Error(`제출 '${mutation.key}'가 실패했습니다(${res.status}).`)
+    throw new Refused(mutation.key, res.status, await refusalOf(res))
   }
   // **쓰고 나면 받아 둔 것을 잊는다.** 그러지 않으면 저장소는 바뀌었는데 화면은
   // 앞서 받아 둔 것을 그대로 그린다 — 초대 코드를 다시 만들고도 옛 코드를 보여

@@ -676,7 +676,7 @@ describe('예산 편성이 저장소로 가고 저장소에서 온다(FIN-PLAN-0
         'sources.r0.sourceAmount': '1000',
         'sources.r1.sourceAmount': '1000',
       }),
-    ).rejects.toThrow('422')
+    ).rejects.toMatchObject({ status: 422 })
     // 막힌 저장은 아무것도 바꾸지 않는다.
     await loadSources([{ key: 'finance.budgetPlanDraft', params: {} }])
     expect((readObjectSource('finance.budgetPlanDraft').sources as Array<Record<string, unknown>>)[0]).toMatchObject({

@@ -18,7 +18,7 @@ import { computeNumber, formatComputed, itemKey, joinRowIds, rowIdsOf } from '..
 import { getMutation } from '../spec/mutations'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, opsMeet02 } from '../spec/screens'
-import { draftValueOf, payloadOf } from '../spec/draft-values'
+import { draftValueOf } from '../spec/draft-values'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type {
   ButtonSpec,
@@ -340,7 +340,7 @@ export function OPSMEET02Screen({
     setBlockedKeys([])
     setNote(null)
     void submitAction.run(button.action as SubmitAction, {
-      payload: payloadOf(opsMeet02, draft.values),
+      payload: draft.values,
       onNavigate,
       onScopeEvent,
     })

@@ -800,9 +800,9 @@ describe('회의를 시작하고 끝내고 안건을 넘긴다', () => {
 
   // **조용히 넘어가지 않는다.** 남이 먼저 시작한 것을 아무도 모르게 된다.
   it('이미 진행 중인 회의를 또 시작하면 막힌다', async () => {
-    await expect(runMutation('meeting.start', {}, { meetingId: 'MTG-D' })).rejects.toThrow(
-      '(409)',
-    )
+    await expect(
+      runMutation('meeting.start', {}, { meetingId: 'MTG-D' }),
+    ).rejects.toMatchObject({ status: 409 })
   })
 
   it('OPS-MEET-05B가 이 안건을 마치고 다음 안건을 연다', async () => {
@@ -858,7 +858,7 @@ describe('회의록을 정리하고 마친다', () => {
 
   // **조건이 남았으면 서버가 막는다.** 화면이 세지 않는다 — 세면 조직의 규칙이 화면에 적힌다.
   it('조건이 남은 동안은 마칠 수 없다', async () => {
-    await expect(runMutation('meeting.completeMinutes', {}, params)).rejects.toThrow('(409)')
+    await expect(runMutation('meeting.completeMinutes', {}, params)).rejects.toMatchObject({ status: 409 })
     expect((await progressNow()).canComplete).toBe(false)
   })
 
@@ -917,7 +917,7 @@ describe('회의록을 정리하고 마친다', () => {
 
   // **되풀이는 조용히 넘어가지 않는다**(계약의 repeat: conflict).
   it('이미 마친 회의록을 또 마치면 막힌다', async () => {
-    await expect(runMutation('meeting.completeMinutes', {}, params)).rejects.toThrow('(409)')
+    await expect(runMutation('meeting.completeMinutes', {}, params)).rejects.toMatchObject({ status: 409 })
   })
 
   // **회의의 상태가 아니라 그 사람의 확인 상태다.** 목록 위의 띠가 세는 수가 그 증거다.
@@ -966,7 +966,7 @@ describe('진행 권한을 주고 뺀다', () => {
   it('만든 사람의 진행 권한은 뺄 수 없다', async () => {
     await expect(
       runMutation('meeting.revokeHostRole', {}, { meetingId: 'MTG-A', memberId: 'M-01' }),
-    ).rejects.toThrow('(422)')
+    ).rejects.toMatchObject({ status: 422 })
   })
 })
 
@@ -996,7 +996,7 @@ describe('회의를 취소한다', () => {
   it('이미 취소된 회의는 또 취소할 수 없다', async () => {
     await expect(
       runMutation('meeting.cancel', { cancelReason: '다시' }, params),
-    ).rejects.toThrow('(409)')
+    ).rejects.toMatchObject({ status: 409 })
     await loadSources([{ key: 'meeting.detail', params }])
     expect(readObjectSource('meeting.detail', params).canCancel).toBe(false)
   })

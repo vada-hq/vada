@@ -9,6 +9,8 @@ import { viewerLookup } from '../../../api/src/auth/viewer.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
+import { payloadOf } from '../spec/draft-values'
+import { org02 } from '../spec/screens'
 import { readListSource } from './catalog'
 import { loadSources, useServer } from './server'
 
@@ -33,16 +35,31 @@ let codes = 0
 /** 로그인 층이 어느 제공자로 불렸나. 검사가 그것을 본다. */
 const started: string[] = []
 
-/** ORG-01과 ORG-02가 함께 채운 `orgCreationDraft`. */
-const DRAFT = {
+/**
+ * ORG-01과 ORG-02가 함께 채운 `orgCreationDraft`. **화면이 실제로 들고 있는 꼴이다.**
+ *
+ * 한동안 여기에 `departments: [{ name: '기획부' }]`라고 **계약의 꼴을 손으로 적어**
+ * 두었다. 그래서 이 검사는 늘 초록이었는데 화면은 부서 이름을 줄바꿈으로 이은 글
+ * 하나로 보내고 있었고, 누르면 422가 왔다 — **배포된 것을 사람이 눌러 보고 알았다**
+ * (2026-09-09).
+ *
+ * 초안은 **글의 맵**이다. 사람이 치는 칸이라 전부 글이고, 되풀이되는 묶음은 줄 이름을
+ * 줄바꿈으로 이어 담는다. 계약의 꼴로 옮기는 것은 `payloadOf`가 한다 — 검사가 그
+ * 자리를 건너뛰면 그 자리는 재지지 않은 채 남는다.
+ */
+const DRAFT_VALUES = {
   orgType: 'college',
   repSchool: 'SCH-HYU-ERICA',
   repCollege: 'COL-HYU-ERICA-SW',
   orgName: '제12대 소프트웨어융합대학 학생회',
   operatingYear: '2026',
   setupMode: 'basic',
-  departments: [{ name: '기획부' }, { name: '홍보부' }],
+  departments: ['기획부', '홍보부'].join('\n'),
+  'departments.root': '회장단',
 }
+
+/** 화면이 보내는 몸통. 초안을 계약의 꼴로 옮기는 그 자리를 그대로 지난다. */
+const DRAFT = payloadOf(org02, DRAFT_VALUES)
 
 const CHAIR = 'U-01'
 const NEWCOMER = 'U-02'
