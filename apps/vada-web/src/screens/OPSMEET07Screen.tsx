@@ -12,6 +12,7 @@ import {
   SOFT_BOX_TEXT,
   STATE_CHIP,
 } from '../design/tones'
+import { Built } from '../components/Built'
 import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import type { DataRow, DataValue } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
@@ -240,11 +241,14 @@ export function OPSMEET07Screen({
           myFollowUps.dataSourceKey ?? '',
           resolveParams(myFollowUps.params, { screenParams }),
         )
-  const peopleRows = readListSource(
+  // **읽기를 경계 안에서 한다.** 여기서 읽으면 화면 전체가 그 하나를 기다린다.
+  const readPeople = () =>
+    readListSource(
     people.dataSourceKey ?? '',
     resolveParams(people.params, { screenParams }),
   )
-  const documentRows = readListSource(
+  const readDocuments = () =>
+    readListSource(
     documents.dataSourceKey ?? '',
     resolveParams(documents.params, { screenParams }),
   )
@@ -573,6 +577,8 @@ export function OPSMEET07Screen({
               className="rounded-xl border border-gray-200 bg-white px-5 py-4"
             >
               <h3 className="text-xs font-bold text-gray-800">{people.title}</h3>
+              <Built what={people.title ?? '참가 결과'} read={readPeople}>
+              {(peopleRows) => (
               <ul className="pt-2">
                 {peopleRows.length === 0 ? (
                   <li className="py-2 text-xs text-gray-500">
@@ -595,6 +601,8 @@ export function OPSMEET07Screen({
                   ))
                 )}
               </ul>
+              )}
+              </Built>
             </section>
 
             {/* 관련 자료 20:2317. 안건의 사전 자료와 같은 물건이고, 줄 끝의 그림이
@@ -605,6 +613,8 @@ export function OPSMEET07Screen({
               className="rounded-xl border border-gray-200 bg-white px-5 py-4"
             >
               <h3 className="text-xs font-bold text-gray-800">{documents.title}</h3>
+              <Built what={documents.title ?? '관련 자료'} read={readDocuments}>
+              {(documentRows) => (
               <ul className="pt-2">
                 {documentRows.length === 0 ? (
                   <li className="py-2 text-xs text-gray-500">
@@ -642,6 +652,8 @@ export function OPSMEET07Screen({
                   ))
                 )}
               </ul>
+              )}
+              </Built>
             </section>
           </div>
         </div>

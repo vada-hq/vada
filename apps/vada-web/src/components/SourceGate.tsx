@@ -85,8 +85,13 @@ function Note({
   // 멈추는데, 대신 그리는 자리에서 멈추면 받아 줄 바깥이 없어 화면이 통째로 죽는다 —
   // 실제로 그랬다(2026-09-05, 카나리가 잡았다). 그래서 여기에 자기 그물을 둔다:
   // 셸을 못 그리는 동안은 맨 글이고, 오면 셸 안으로 들어간다.
+  //
+  // **못 오는 것도 있다.** 서버가 통째로 죽으면 셸의 값도 안 오고, 그때 셸은 멈추는
+  // 것이 아니라 던진다 — 멈춤을 받는 그물은 던진 것을 못 받는다. 그러면 이 자리가
+  // 다시 던지고 화면이 '그리지 못했습니다'가 되어, **왜 못 그렸는지를 잃는다**.
+  // 그래서 던진 것도 받아 맨 글로 물러선다.
   return (
-    <Suspense fallback={<Lines messages={messages} kind={kind} />}>
+    <ShellOrBare fallback={<Lines messages={messages} kind={kind} />}>
       <AppShell
         screenId={screenId}
         eyebrow={meta?.eyebrow ?? null}
@@ -95,8 +100,22 @@ function Note({
       >
         <Lines messages={messages} kind={kind} />
       </AppShell>
-    </Suspense>
+    </ShellOrBare>
   )
+}
+
+/** 셸을 그려 보고, 멈추거나 깨지면 맨 글로 물러선다. */
+class ShellOrBare extends Component<{ fallback: ReactNode; children: ReactNode }, { bare: boolean }> {
+  state = { bare: false }
+
+  static getDerivedStateFromError(): { bare: boolean } {
+    return { bare: true }
+  }
+
+  render() {
+    if (this.state.bare) return this.props.fallback
+    return <Suspense fallback={this.props.fallback}>{this.props.children}</Suspense>
+  }
 }
 
 interface GateState {

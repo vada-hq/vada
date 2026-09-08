@@ -106,7 +106,6 @@ import {
 import { ALL_SCREENS } from '../spec/screens'
 import { dataSourceCallsOf, dataSourceKeysOf } from '../spec/screen-sources'
 import { useSourceLoading } from '../data-sources/loading'
-import { AppShell } from '../components/AppShell'
 import { ScreenSkeleton } from '../components/Skeleton'
 import { SourceGate } from '../components/SourceGate'
 import { readScopeDraft } from '../state/scopes'
@@ -171,32 +170,6 @@ export function ScreenRouter(props: ScreenRouterProps) {
   // 두 마디가 같은 것을 그리면 한 번 기다린 것으로 보인다. 글은 `aria-label`로 남는다.
   if (loading.status === 'loading') {
     return <ScreenSkeleton label={loading.messages.join(' · ')} />
-  }
-  // **막힌 것은 고장이 아니다.**
-  //
-  // 한동안 이 둘이 같은 말이었고('불러오지 못했습니다'), 사람은 자기가 못 볼 것을
-  // 본 것인지 서버가 죽은 것인지 알 수 없었다. 무엇이라 말할지는 서버가 정한다 —
-  // 누가 볼 수 있는지는 권한 행렬이 알고 그것은 서버에 있다.
-  //
-  // **셸 안에 그린다.** 통째로 덮으면 왼쪽 메뉴까지 사라져 사람이 그 화면에 갇힌다.
-  if (loading.status === 'forbidden') {
-    return (
-      <AppShell
-        screenId={props.screenId}
-        eyebrow={spec?.meta?.eyebrow ?? null}
-        title={spec?.meta?.title ?? props.screenId}
-        onNavigate={props.onNavigate}
-      >
-        <div
-          role="status"
-          className="flex flex-col items-center gap-1 rounded-lg border border-dashed border-gray-300 bg-gray-50/60 px-6 py-16 text-center text-sm text-gray-600"
-        >
-          {loading.messages.map((message) => (
-            <p key={message}>{message}</p>
-          ))}
-        </div>
-      </AppShell>
-    )
   }
   // **실패는 글이다.** 회색 블록은 '오는 중'이라는 뜻이라 안 오는 것을 그것으로 그리면
   // 사람이 영영 기다린다.

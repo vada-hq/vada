@@ -443,16 +443,19 @@ describe('재정부가 판정하고 요청자가 보완에 답한다(FIN-REV-01 
 describe('증빙을 끝낸다(FIN-EVID-01)', () => {
   it('서류가 다 붙은 요청은 처리 완료가 되고 상세가 그것을 그린다', async () => {
     seeAs(CHAIR)
-    draw('FIN-EVID-01', { requestId: 'PR-21' })
+    const evidence = draw('FIN-EVID-01', { requestId: 'PR-21' })
     await waitFor(() => expect(screen.getByText('한마당 마트')).toBeInTheDocument())
 
     await runMutation('finance.purchaseRequest.completeEvidence', {}, { requestId: 'PR-21' })
     // 이미 끝난 요청을 또 끝낼 수 없다(계약의 repeat: conflict).
     await expect(runMutation('finance.purchaseRequest.completeEvidence', {}, { requestId: 'PR-21' })).rejects.toThrow('409')
 
+    // **앞 화면을 걷고 연다.** 두 화면이 겹쳐 있으면 뒤 화면이 아직 안 왔는데도
+    // 앞 화면의 '처리 완료' 단추가 기다림을 끝내 버린다.
+    evidence.unmount()
     seeAs(MEMBER)
     draw('FIN-REQ-02', { requestId: 'PR-21' })
-    await waitFor(() => expect(screen.getAllByText('처리 완료').length).toBeGreaterThan(0))
+    await waitFor(() => expect(drawn()).toContain('결제 · 한마당 마트'))
     const page = drawn()
     // 정산을 누가 했는지는 표에 없다. 때만 온다.
     expect(page).toContain('결제 · 한마당 마트')

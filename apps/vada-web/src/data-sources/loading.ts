@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { findDataSource } from './catalog'
-import { SourcesFailed, loadSources, servingFromServer, type SourceCall } from './server'
+import { loadSources, servingFromServer, type SourceCall } from './server'
 
 /**
  * 받아 오는 동안과 실패했을 때.
@@ -54,14 +54,6 @@ export function setLoadingBehaviour(next: Partial<LoadingBehaviour>): () => void
 export type LoadingState =
   | { status: 'ready' }
   | { status: 'loading'; messages: string[] }
-  /**
-   * **볼 수 없는 자리다.** 고장이 아니라 벽이라 따로 든다 — 같은 말로 그리면 사람은
-   * 자기가 못 볼 것을 본 것인지 서버가 죽은 것인지 알 수 없다.
-   *
-   * 무엇이라 말할지는 서버가 정한다: 누가 볼 수 있는지는 권한 행렬이 알고 그것은
-   * 서버에 있다(`permissions.ts`의 `refusalNote`).
-   */
-  | { status: 'forbidden'; messages: string[] }
   | { status: 'error'; messages: string[] }
 
 export function messagesOf(keys: readonly string[], which: 'loading' | 'error'): string[] {
@@ -105,50 +97,27 @@ export function useSourceLoading(
   const callsRef = useRef(calls)
   callsRef.current = calls
   const delayMs = behaviour.delayMs
-  const [arrived, setArrived] = useState(() => delayMs === 0 && !fromServer)
-  const [broken, setBroken] = useState<string[]>([])
-  /** 막힌 것이 전부였을 때 서버가 준 말. 비면 막힌 것이 아니다. */
-  const [walls, setWalls] = useState<string[]>([])
-
+  // **서버가 켜져 있으면 기다리지 않는다.** 부르기는 시작하되 그리는 것은 안 막는다.
+  const [arrived, setArrived] = useState(() => delayMs === 0 || fromServer)
   useEffect(() => {
     // **서버가 켜져 있으면 진짜로 받아 온다.** 늦음을 흉내 내는 것과 실제로
     // 늦는 것은 다르다 — 흉내만 있으면 계약이 틀렸을 때 그것이 드러날 자리가 없다.
     if (fromServer) {
-      let live = true
-      setArrived(false)
-      setBroken([])
-      setWalls([])
-      loadSources(callsRef.current)
-        .then(() => {
-          if (live) setArrived(true)
-        })
-        .catch((thrown: unknown) => {
-          if (!live) return
-          // **실패한 것만 실패했다고 말한다.** 부름 전부를 깨진 것으로 적으면
-          // 요청조차 나가지 않은 개발용 응답까지 빨갛게 나오고, 사람은 없는 자리를
-          // 뒤진다. 어느 것이 막혔는지는 `SourcesFailed`가 싣고 온다.
-          // **막힌 것과 죽은 것을 갈라 든다.** 전부 '볼 수 없는 자리'면 그것은
-          // 고장이 아니라 벽이고, 서버가 누가 볼 수 있는지까지 적어 보낸다.
-          // 하나라도 진짜 고장이면 고장으로 든다 — 벽 뒤에 고장을 숨기지 않는다.
-          if (thrown instanceof SourcesFailed && thrown.onlyForbidden) {
-            setWalls(
-              thrown.failures.map(
-                (one) => one.message ?? '이 자리는 지금 신원으로 볼 수 없습니다',
-              ),
-            )
-            return
-          }
-          setBroken(
-            thrown instanceof SourcesFailed
-              ? [...thrown.keys]
-              : // 받아 오다 난 것이 아니면 어느 것 때문인지 알 수 없다. 그때는
-                // 숨기지 않고 기다리던 것을 전부 든다.
-                callsRef.current.map((call) => call.key),
-          )
-        })
-      return () => {
-        live = false
-      }
+      // **부르되 막지 않는다**(사람이 정했다, 2026-09-08).
+      //
+      // 한동안 이 자리가 부름 **전부**가 올 때까지 화면을 통째로 가렸다. 그래서
+      // 홈은 일곱 중 여섯이 와도 하나 때문에 다 가려졌고, 자리마다 두른 경계가
+      // 아무 일도 못 했다 — 두르는 것이 소용없던 까닭이 여기였다(화면 예순여섯).
+      //
+      // **같이 부르는 것은 그대로다.** 여기서 한 번에 부르므로 물길이 끊기지 않고,
+      // 화면이 읽을 때 이미 가는 중인 것에 붙는다(`bring`이 칸마다 하나로 묶는다).
+      // 안 온 자리는 그 자리의 경계가 기다리고, 두르지 않은 화면은 첫 읽기에서
+      // 멈춰 지금처럼 `SourceGate`가 통째로 기다린다 — 나빠지는 자리가 없다.
+      //
+      // 깨진 것도 여기서 안 든다. 읽는 자리가 그 사실을 던지고(`readDataSource`),
+      // 경계가 막힌 것과 죽은 것을 갈라 그린다.
+      void loadSources(callsRef.current).catch(() => {})
+      return
     }
     if (delayMs === 0) {
       setArrived(true)
@@ -162,13 +131,8 @@ export function useSourceLoading(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [signature, delayMs, fromServer])
 
-  if (walls.length > 0) {
-    // 같은 말을 여러 자리가 쓰면 한 번만 그린다.
-    return { status: 'forbidden', messages: [...new Set(walls)] }
-  }
-  if (broken.length > 0) {
-    return { status: 'error', messages: messagesOf(broken, 'error') }
-  }
+  // **깨진 것은 여기서 안 든다.** 서버가 켜져 있으면 읽는 자리가 그 사실을 던지고
+  // 경계가 막힌 것과 죽은 것을 갈라 그린다. 아래는 개발용 응답으로 도는 길이다.
   if (failing.length > 0) {
     return { status: 'error', messages: messagesOf(failing, 'error') }
   }

@@ -3,6 +3,7 @@ import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { NEUTRAL_BORDER, SOFT_BOX, SOFT_BOX_TEXT } from '../design/tones'
+import { Built } from '../components/Built'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt02 } from '../spec/screens'
@@ -107,8 +108,10 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
   const recruitEdit = elementByNodeId(evt02, NODE.recruitEdit).spec as ButtonSpec
   const checklistSpec = elementByNodeId(evt02, NODE.checklist).spec as ItemListSpec
   const changesSpec = elementByNodeId(evt02, NODE.changes).spec as ItemListSpec
-  const checklist = readListSource(checklistSpec.dataSourceKey, argumentsOf(checklistSpec.params))
-  const changes = readListSource(changesSpec.dataSourceKey, argumentsOf(changesSpec.params))
+  // **읽기를 경계 안에서 한다.** 여기서 읽으면 이 화면 전체가 그 하나를 기다린다.
+  const readChecklist = () =>
+    readListSource(checklistSpec.dataSourceKey, argumentsOf(checklistSpec.params))
+  const readChanges = () => readListSource(changesSpec.dataSourceKey, argumentsOf(changesSpec.params))
 
   return (
     <AppShell
@@ -263,6 +266,8 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
             className="rounded-xl border border-gray-200 bg-white p-4"
           >
             <h2 className="text-sm font-semibold text-gray-700">{checklistSpec.title}</h2>
+            <Built what={checklistSpec.title ?? '체크리스트'} read={readChecklist}>
+            {(checklist) => (
             <ul className="pt-2">
               {checklist.map((row) => (
                 <li key={String(row.title)} className="flex items-start gap-3 rounded border border-gray-50 py-2.5">
@@ -315,6 +320,8 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
                 </li>
               ))}
             </ul>
+            )}
+            </Built>
           </section>
 
           <section
@@ -322,14 +329,18 @@ export function EVT02Screen({ screenParams, onNavigate }: EVT02ScreenProps) {
             className="rounded-xl border border-gray-200 bg-white p-4"
           >
             <h2 className="text-sm font-semibold text-gray-700">{changesSpec.title}</h2>
-            <ul className="pt-2">
-              {changes.map((row) => (
-                <li key={String(row.title)} className="flex gap-3 py-1">
-                  <span className="w-20 shrink-0 text-xs text-gray-400">{String(row.at)}</span>
-                  <span className="text-xs text-gray-700">{String(row.title)}</span>
-                </li>
-              ))}
-            </ul>
+            <Built what={changesSpec.title ?? '최근 변경'} read={readChanges}>
+              {(changes) => (
+                <ul className="pt-2">
+                  {changes.map((row) => (
+                    <li key={String(row.title)} className="flex gap-3 py-1">
+                      <span className="w-20 shrink-0 text-xs text-gray-400">{String(row.at)}</span>
+                      <span className="text-xs text-gray-700">{String(row.title)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </Built>
           </section>
         </div>
       </div>
