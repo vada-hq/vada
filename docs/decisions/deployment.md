@@ -121,7 +121,11 @@ Render 무료에는 그 자리가 없다. 그래서 표는 **사람이 한 번 �
    `APP_URL` · `INVITE_LINK_BASE` · 제공자 열쇠. **서버는 이것들 없이 서지 않는다**
    (`config.ts`) — 없는 채로 도는 것이 가장 나쁘기 때문이다.
 5. **`EDGE_SECRET`을 양쪽에 같은 값으로 넣는다**(32자 이상). Cloudflare는
-   `wrangler secret put EDGE_SECRET`, Render는 대시보드다.
+   `wrangler secret put EDGE_SECRET`, Render는 대시보드다. **2026-09-08에 넣었다.**
+
+   닫혔는지 재는 법: api 주소를 곧장 두드리며 주소만 바꿔 서른다섯 번 넣어 본다.
+   한도 600에 틀린 시도의 무게가 20이므로 **서른한 번째에 429가 나야 한다** —
+   안 막히면 두 값이 다르거나 한쪽이 아직 안 올라간 것이다.
 
    이것만 서지 않는 것에 넣지 않았다. **Worker가 '내가 넘겼다'를 증명하는 값**이고,
    api는 그 증거가 맞을 때만 `x-forwarded-for`를 믿는다 — 그 헤더는 보내는 쪽이 쓰는
