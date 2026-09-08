@@ -79,6 +79,14 @@ function readWord(draft: Record<string, unknown>, key: string, label: string): s
   return value.trim()
 }
 
+/** 있으면 그 글, 없으면 없는 것. **비워 둘 수 있는 칸에 쓴다** — 지어내서 채우지 않는다. */
+function readMaybe(draft: Record<string, unknown>, key: string): string | null {
+  const value = draft[key]
+  if (typeof value !== 'string') return null
+  const trimmed = value.trim()
+  return trimmed === '' ? null : trimmed
+}
+
 /** 명세가 든 선택지가 아니면 막는다. `event.saveBasics`가 참가비 유형에 쓰는 것과 같다. */
 function readChoice(
   draft: Record<string, unknown>,
@@ -143,10 +151,13 @@ export interface OrgIds {
  * 홈으로 가는데(ORG-02의 `onSuccess`), 그 홈은 '내가 어느 학생회의 누구인가'로
  * 그려진다 — 구성원 줄이 없으면 방금 만든 학생회가 보이지 않는다.
  *
- * **학적 정보는 넘어오지 않는다.** ONB-01이 이름·학번·학교·학부·학년을 받지만 그것은
- * `onboardingDraft`이고, 이 자리가 싣고 오는 것은 `orgCreationDraft`다(mutations.json의
- * `payloadScope`). 계약의 본문에도 그 칸들이 없다. 그래서 회장 줄의 이름은 **서버가
- * 이미 아는 것**, 곧 로그인한 계정의 이름으로 짓고 학번·학부·학년은 비워 둔다 —
+ * **학적 정보도 함께 온다**(2026-09-08). 만드는 사람도 학생회의 일원이므로 그 사람의
+ * 학번·학부·학년이 회장 줄에 담겨야 한다 — 한동안 ONB-01이 받아 놓고 아무 데도 담지
+ * 않아, 조직도에서 만든 사람만 '학부 미등록'으로 섰다. 흐름 하나에 초안이 둘인데
+ * 보내기는 하나라, 화면이 앞 초안(`onboardingDraft`)을 합쳐 보낸다.
+ *
+ * **이름은 서버가 아는 것을 쓴다.** 초안의 이름을 그대로 믿으면 남의 이름으로 만들 수
+ * 있다 — 초대로 들어오는 길(`joinOrg`)과 같은 규칙이다. 안 온 칸은 비워 둔다:
  * 조직도가 그 자리에 '학부 미등록'을 그린다. 지어내서 채우지 않는다.
  *
  * **초대는 여기서 만들지 않는다.** 명세에 '초대를 처음 만드는' 자리가 없고,
@@ -207,6 +218,11 @@ export async function createOrg(
     orgId,
     userId,
     name: founder,
+    // 앞 화면이 받은 학적. 안 온 칸은 비워 둔다 — 지어내지 않는다.
+    studentNumber: readMaybe(draft, 'studentNumber'),
+    college: readMaybe(draft, 'college'),
+    major: readMaybe(draft, 'department'),
+    grade: readMaybe(draft, 'currentGrade'),
     role: 'chair',
     // **회장이다.** 사람이 그렇게 정했다 — 만든 사람이 그 학생회의 첫 구성원(회장)이다.
     // 조직도가 이 말로 차례와 색을 정한다(`chart.ts`).

@@ -16,6 +16,8 @@ interface ORG02ScreenProps {
   onChangeDraft: (next: ScopeDraft) => void
   onNavigate: (screenId: string) => void
   onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
+  /** 앞 화면(ONB-01)이 담은 학적 정보. 만드는 사람도 학생회의 일원이다. */
+  joining?: ScopeDraft
 }
 
 const LIST_SEPARATOR = '\n'
@@ -42,6 +44,7 @@ export function ORG02Screen({
   onChangeDraft,
   onNavigate,
   onScopeEvent,
+  joining,
 }: ORG02ScreenProps) {
   const submitAction = useSubmitAction()
   const [blockedKeys, setBlockedKeys] = useState<string[]>([])
@@ -125,7 +128,13 @@ export function ORG02Screen({
 
     // payloadScope의 값 전체를 보낸다(계약은 mutations.json이 갖는다).
     await submitAction.run(primaryButton.action as SubmitAction, {
-      payload: effectiveValues,
+      // **앞 화면의 초안도 함께 간다.** 학적 정보(이름·학번·학교·학부·학년)는
+      // ONB-01이 받아 `onboardingDraft`에 담고, 만드는 사람도 학생회의 일원이므로
+      // 그 값이 회장 줄에 담겨야 한다 — 한동안 받아 놓고 버렸다(2026-09-08).
+      //
+      // 흐름 하나에 초안이 둘인데 보내기는 하나다. 계약의 `payloadScope`는 그 둘을
+      // 말할 어휘가 없어 여기서 합친다(백로그에 적었다).
+      payload: { ...(joining?.values ?? {}), ...effectiveValues },
       onNavigate,
       onScopeEvent,
     })

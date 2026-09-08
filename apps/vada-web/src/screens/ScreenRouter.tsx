@@ -749,6 +749,8 @@ function ScreenBody({
   if (screenId === 'ORG-02') {
     return (
       <ORG02Screen
+        // 만드는 사람도 학생회의 일원이라 앞 화면이 담은 학적이 함께 가야 한다.
+        joining={readScopeDraft(scopes, onb01.stateScopeKey)}
         draft={readScopeDraft(scopes, org02.stateScopeKey)}
         onChangeDraft={(next) => onChangeScope(org02.stateScopeKey ?? '', next)}
         onNavigate={onNavigate}

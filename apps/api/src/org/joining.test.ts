@@ -167,6 +167,30 @@ afterAll(async () => {
 })
 
 describe('학생회를 만든다(ORG-01 · ORG-02)', () => {
+  // **만드는 사람도 학생회의 일원이다.** 앞 화면(ONB-01)이 받은 학적이 회장 줄에
+  // 담긴다 — 한동안 받아 놓고 버려서 조직도에서 만든 사람만 '학부 미등록'으로 섰다.
+  it('만든 사람의 학적이 회장 줄에 담긴다', async () => {
+    const res = await create(harness(joining()), {
+      studentNumber: '2022123456',
+      college: 'COL-HYU-ERICA-SW',
+      department: 'DEP-HYU-ERICA-SW-CS',
+      currentGrade: '3',
+    })
+    expect(res.status, await res.text()).toBe(200)
+    const row = (await db.select().from(members))[0]!
+    expect(row.studentNumber).toBe('2022123456')
+    expect(row.major).toBe('DEP-HYU-ERICA-SW-CS')
+    expect(row.grade).toBe('3')
+  })
+
+  // 안 온 칸은 비워 둔다. 조직도가 그 자리에 '학부 미등록'을 그린다.
+  it('학적이 안 오면 비워 둔다 — 지어내지 않는다', async () => {
+    expect((await create(harness(joining()))).status).toBe(200)
+    const row = (await db.select().from(members))[0]!
+    expect(row.studentNumber).toBeNull()
+    expect(row.grade).toBeNull()
+  })
+
   it('만든 사람이 그 학생회의 회장이 된다', async () => {
     const res = await create(harness())
     expect(res.status).toBe(200)

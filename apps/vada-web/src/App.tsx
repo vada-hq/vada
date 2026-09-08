@@ -3,6 +3,7 @@ import { DevScreenPicker } from './components/DevScreenPicker'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScreenRouter } from './screens/ScreenRouter'
 import { FIRST_SCREEN } from './screens/routes'
+import { apiBaseUrl, servingFromServer } from './data-sources/server'
 import type { ScopeDraft, ScopeStore } from './state/scopes'
 
 // 화면의 주소는 screenId다 — 이미 명세가 갖고 있으므로 따로 정하지 않는다.
@@ -24,9 +25,44 @@ function routeFromHash(): { screenId: string; params: Record<string, string> } {
   }
 }
 
+/**
+ * **주소를 안 주고 열었으면 서버에게 어디부터인지 묻는다.**
+ *
+ * 로그인했는지와 이미 어느 학생회에 속했는지는 세션이 정하고 그것은 서버에 있다 —
+ * 화면은 세션을 못 읽으므로 스스로 판정할 수가 없다.
+ *
+ * 한동안 무조건 `ONB-01`(소속 입력)로 갔다. 이미 들어온 사람도 열 때마다 그 화면부터
+ * 봤고, 로그인 화면으로 데려가는 길은 아예 없어 주소를 직접 쳐야 했다
+ * (2026-09-08에 사람이 겪었다).
+ *
+ * **주소가 있으면 건드리지 않는다.** 화면의 주소로 여는 성질이 이 저장소의 규칙이라,
+ * 사람이 가리킨 자리를 서버의 답으로 덮으면 그 규칙이 깨진다.
+ */
+function useStartScreen(go: (route: { screenId: string; params: Record<string, string> }) => void) {
+  useEffect(() => {
+    if (window.location.hash.replace(/^#\/?/, '').trim() !== '') return
+    if (!servingFromServer()) return
+    let live = true
+    void fetch(`${apiBaseUrl()}/api/app/start`)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((said: { screenId?: unknown } | null) => {
+        if (!live || typeof said?.screenId !== 'string') return
+        go({ screenId: said.screenId, params: {} })
+        window.location.hash = `#/${said.screenId}`
+      })
+      .catch(() => {
+        // 못 물었으면 지금까지처럼 첫 화면에 머문다 — 지어내지 않는다.
+      })
+    return () => {
+      live = false
+    }
+  }, [go])
+}
+
 function App() {
   const [route, setRoute] = useState(routeFromHash)
   const { screenId, params: screenParams } = route
+  useStartScreen(setRoute)
   // state-scopes.json의 스코프별 초안. 화면 이동 후 복귀해도 값이 유지되고,
   // ORG-01의 note는 onboardingDraft 스코프를 읽는다(메모리 수준).
   const [scopes, setScopes] = useState<ScopeStore>({})

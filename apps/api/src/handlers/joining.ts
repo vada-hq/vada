@@ -19,6 +19,16 @@ export const joiningHandlers: Handlers = {
   //
   // 한동안 이 셋이 계약 밖에 있었다(`serve.ts`가 따로 매달았다). 로그인 화면에 그림이
   // 없어 명세가 없었고, 명세가 없으니 계약에도 없었다. 그림을 그리자 셋 다 들어왔다.
+  // **앱을 열면 어디부터인가.** 아는 쪽이 답한다 — 로그인했는지와 어느 학생회에
+  // 속했는지는 세션이 정하고 그것은 여기 있다. 화면이 판정하면 세션을 못 읽는다.
+  //
+  // 한동안 앱이 무조건 소속 입력으로 갔다(2026-09-08에 사람이 겪었다). 이미 들어온
+  // 사람도 열 때마다 그 화면부터 봤고, 로그인 화면으로 가는 길은 아예 없었다.
+  'app.start': async (c) => {
+    const sender = c.get('sender')
+    if (sender === null || sender === undefined) return { screenId: 'SIGN-IN' }
+    return { screenId: sender.membership === null ? 'ONB-01' : 'HOME-01K' }
+  },
   'auth.ways': async (_c, d) => d.signIn.open(),
   'auth.signInGoogle': async (_c, d) => d.signIn.start('google'),
   'auth.signInKakao': async (_c, d) => d.signIn.start('kakao'),

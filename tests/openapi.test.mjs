@@ -156,7 +156,7 @@ test('실패가 명세에서 끌어낸 대로 실린다', () => {
       }
     }
   }
-  assert.equal(checkedPublic, 12)
+  assert.equal(checkedPublic, 13)
   assert.equal(checkedConflict, 16)
 })
 
