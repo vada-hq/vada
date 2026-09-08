@@ -114,6 +114,15 @@
   "viewer": {
     "dataSourceKey": "shell.viewer",
     "nameField": "name",
-    "roleField": "role"
+    "roleField": "role",
+    "menu": [
+      {
+        "label": "로그아웃",
+        "mutationKey": "auth.signOut",
+        "onSuccess": {
+          "navigate": "SIGN-IN"
+        }
+      }
+    ]
   }
 }

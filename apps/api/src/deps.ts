@@ -35,6 +35,16 @@ export interface SignIn {
   open: () => { google: boolean; kakao: boolean }
   /** 그 제공자로 가는 주소. 돌아올 자리는 이 층이 붙인다. */
   start: (provider: string) => Promise<{ url: string }>
+  /**
+   * 나간다. 세션을 지우고, **쿠키를 거두라는 헤더를 돌려준다.**
+   *
+   * **누구인지는 이 층이 쿠키에서 읽는다** — 부르는 쪽이 사람을 넘기면 남의 것을
+   * 지우라고 말할 수 있는 자리가 된다.
+   *
+   * 돌려주는 헤더를 버리면 저장소의 세션은 지워지는데 브라우저는 죽은 쿠키를 계속
+   * 들고 다닌다. 그 쿠키로는 아무것도 안 되지만, 거둘 수 있는 것을 안 거두는 것이다.
+   */
+  end: (request: Request) => Promise<Headers>
 }
 
 export interface Deps {

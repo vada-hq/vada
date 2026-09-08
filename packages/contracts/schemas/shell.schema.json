@@ -265,6 +265,58 @@
           "type": "string",
           "minLength": 1,
           "description": "소속과 직책. 예: 운영부 · 부원"
+        },
+        "menu": {
+          "type": "array",
+          "minItems": 1,
+          "description": "그 이름을 눌렀을 때 열리는 것(선택).\n\n**보는 사람 자리는 글이 아니라 문이다.** 어느 화면에 있든 자기 계정으로 가는 길이 여기여야 한다 — 이 자리가 없던 동안 로그아웃할 방법이 앱 어디에도 없었다(2026-09-09, 배포된 것을 쓰던 사람이 물었다).\n\n갈래는 둘이다: 어디로 데려가거나(targetScreenId), 무엇을 보내거나(mutationKey). 화면의 단추와 같은 어휘를 쓰되 셸은 화면이 아니므로 여기 따로 적는다.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "label"
+            ],
+            "properties": {
+              "label": {
+                "type": "string",
+                "minLength": 1
+              },
+              "targetScreenId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "mutationKey": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+                "description": "mutations.json의 key. 보내고 나서 어디로 가는지는 onSuccess가 든다."
+              },
+              "onSuccess": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "navigate"
+                ],
+                "properties": {
+                  "navigate": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            },
+            "anyOf": [
+              {
+                "required": [
+                  "targetScreenId"
+                ]
+              },
+              {
+                "required": [
+                  "mutationKey"
+                ]
+              }
+            ]
+          }
         }
       }
     },

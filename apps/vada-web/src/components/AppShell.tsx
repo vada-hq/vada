@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import shellJson from '../../../../specs/figma/vada-wireframe/shell.json'
 import { readObjectSource } from '../data-sources/catalog'
+import { runMutation } from '../spec/mutations'
 import type { Workspace } from '../spec/workspaces'
 
 // 모든 데스크톱 화면이 공유하는 앱 구조(사이드바 + 헤더).
@@ -20,7 +21,27 @@ interface Shell {
   navigation: ShellNavItem[]
   // 화면 묶음이 나눠 쓰는 머리. spec/workspaces.ts가 읽는다.
   workspaces?: Workspace[]
-  viewer?: { dataSourceKey: string; nameField: string; roleField?: string }
+  viewer?: {
+    dataSourceKey: string
+    nameField: string
+    roleField?: string
+    /** 그 이름을 눌렀을 때 열리는 것. 명세가 든다(`shell.json`). */
+    menu?: ShellMenuItem[]
+  }
+}
+
+/**
+ * 보는 사람 자리에서 열리는 갈래.
+ *
+ * **어느 화면에 있든 자기 계정으로 가는 길이 여기다.** 이 자리가 없던 동안 로그아웃할
+ * 방법이 앱 어디에도 없었다 — 한번 들어온 사람은 브라우저의 쿠키를 직접 지워야
+ * 나갈 수 있었다(2026-09-09, 배포된 것을 쓰던 사람이 물었다).
+ */
+interface ShellMenuItem {
+  label: string
+  targetScreenId?: string
+  mutationKey?: string
+  onSuccess?: { navigate: string }
 }
 
 export const shell = shellJson as Shell
@@ -110,16 +131,16 @@ export function AppShell({
         </div>
 
         {viewer === null || shell.viewer === undefined ? null : (
-          <div className="border-t border-gray-200 px-4 py-3">
-            <span className="block text-sm font-medium text-gray-900">
-              {String(viewer[shell.viewer.nameField])}
-            </span>
-            {shell.viewer.roleField === undefined ? null : (
-              <span className="block text-xs text-gray-500">
-                {String(viewer[shell.viewer.roleField])}
-              </span>
-            )}
-          </div>
+          <ViewerCorner
+            spec={shell.viewer}
+            name={String(viewer[shell.viewer.nameField])}
+            role={
+              shell.viewer.roleField === undefined
+                ? null
+                : String(viewer[shell.viewer.roleField])
+            }
+            onNavigate={onNavigate}
+          />
         )}
       </aside>
 
@@ -146,6 +167,99 @@ export function AppShell({
           )}
         </main>
       </div>
+    </div>
+  )
+}
+
+/**
+ * 사이드바 아래 '보는 사람' 자리.
+ *
+ * **글이 아니라 문이다.** 어느 화면에 있든 자기 계정으로 가는 길이 여기여야 한다 —
+ * 명세가 갈래를 들지 않으면(`shell.viewer.menu`) 예전처럼 글로만 그린다.
+ */
+function ViewerCorner({
+  spec,
+  name,
+  role,
+  onNavigate,
+}: {
+  spec: NonNullable<Shell['viewer']>
+  name: string
+  role: string | null
+  onNavigate: (screenId: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  // **나가지 못한 것을 조용히 넘기지 않는다.** 나간 줄 알고 자리를 뜨면 그 사람은
+  // 로그인 화면을 보면서도 여전히 들어와 있다.
+  const [failed, setFailed] = useState<string | null>(null)
+  const menu = spec.menu ?? []
+
+  async function pick(item: ShellMenuItem) {
+    setOpen(false)
+    setFailed(null)
+    if (item.targetScreenId !== undefined) {
+      onNavigate(item.targetScreenId)
+      return
+    }
+    if (item.mutationKey === undefined) return
+    try {
+      await runMutation(item.mutationKey, {})
+    } catch (thrown) {
+      setFailed(thrown instanceof Error ? thrown.message : '하지 못했습니다')
+      return
+    }
+    if (item.onSuccess !== undefined) onNavigate(item.onSuccess.navigate)
+  }
+
+  const lines = (
+    <>
+      <span className="block text-sm font-medium text-gray-900">{name}</span>
+      {role === null ? null : <span className="block text-xs text-gray-500">{role}</span>}
+    </>
+  )
+
+  if (menu.length === 0) {
+    return <div className="border-t border-gray-200 px-4 py-3">{lines}</div>
+  }
+
+  return (
+    <div
+      className="relative border-t border-gray-200"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setOpen(false)
+      }}
+    >
+      {open && (
+        <div className="absolute bottom-full left-2 z-10 mb-1 w-40 overflow-hidden rounded-md border border-gray-200 bg-white py-1 shadow-md">
+          {menu.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => void pick(item)}
+              className="block w-full px-3 py-2 text-left text-sm text-gray-800 hover:bg-gray-50"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+      <button
+        type="button"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50"
+      >
+        <span className="min-w-0">{lines}</span>
+        <span aria-hidden className="ml-2 shrink-0 text-xs text-gray-400">
+          {open ? '▾' : '▴'}
+        </span>
+      </button>
+      {failed === null ? null : (
+        <p role="alert" className="px-4 pb-2 text-xs text-red-600">
+          {failed}
+        </p>
+      )}
     </div>
   )
 }

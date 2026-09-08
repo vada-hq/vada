@@ -32,6 +32,18 @@ export const joiningHandlers: Handlers = {
   'auth.ways': async (_c, d) => d.signIn.open(),
   'auth.signInGoogle': async (_c, d) => d.signIn.start('google'),
   'auth.signInKakao': async (_c, d) => d.signIn.start('kakao'),
+  // **나가는 길.** 들어오는 길이 셋인데 나가는 길이 없었다 — 한번 들어온 사람은
+  // 브라우저의 쿠키를 직접 지워야 나갈 수 있었다(2026-09-09에 사람이 물었다).
+  //
+  // 돌려주는 값이 없다. 나간 것은 나간 것이고, 화면은 로그인 자리로 간다.
+  'auth.signOut': async (c, d) => {
+    // **쿠키를 거두라는 말을 그대로 넘긴다.** 안 넘기면 저장소의 세션은 지워지는데
+    // 브라우저는 죽은 쿠키를 계속 들고 다닌다.
+    for (const said of (await d.signIn.end(c.req.raw)).getSetCookie()) {
+      c.header('set-cookie', said, { append: true })
+    }
+    return {}
+  },
 
 
   // ── 학교의 편제 (ONB-01 · ORG-01 · INV-01) ─────────────────────────────

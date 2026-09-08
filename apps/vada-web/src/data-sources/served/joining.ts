@@ -24,6 +24,9 @@ export const joining: Served = {
     // 누르면 제공자로 떠나고, 돌아올 자리는 서버가 붙인다.
     'auth.signInGoogle',
     'auth.signInKakao',
+    // **나가는 길.** 들어오는 길만 켜져 있던 동안 한번 들어온 사람은 앱 안에서
+    // 나갈 방법이 없었다(2026-09-09에 사람이 물었다).
+    'auth.signOut',
     'org.create',
     'organization.verifyInviteCode',
     // **여기서 사람이 구성원이 된다.** 확인은 묻기만 하므로 이것이 없으면

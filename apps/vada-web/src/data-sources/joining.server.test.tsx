@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { createApp } from '../../../api/src/app.ts'
 import { freshDb } from '../../../api/src/db/testing.ts'
 import { inMemoryCounter } from '../../../api/src/public/rate-limit.ts'
@@ -34,6 +34,8 @@ let made = 0
 let codes = 0
 /** 로그인 층이 어느 제공자로 불렸나. 검사가 그것을 본다. */
 const started: string[] = []
+/** 나가는 길이 몇 번 불렸나. */
+let signedOut = 0
 
 /**
  * ORG-01과 ORG-02가 함께 채운 `orgCreationDraft`. **화면이 실제로 들고 있는 꼴이다.**
@@ -94,6 +96,11 @@ beforeAll(async () => {
       start: async (provider: string) => {
         started.push(provider)
         return { url: `https://example.test/${provider}` }
+      },
+      // 나가면 그 사실이 여기 남는다 — 검사가 '정말 나갔나'를 이 값으로 본다.
+      end: async () => {
+        signedOut += 1
+        return new Headers({ 'set-cookie': 'vada.session=; Max-Age=0; Path=/' })
       },
     },
     attempts: inMemoryAttempts(),
@@ -215,6 +222,47 @@ describe('만든 학생회를 다른 사람이 초대로 본다', () => {
     signedInAs = CHAIR
     expect((await request('/api/shell/organization')).status).toBe(200)
     expect((await request('/api/shell/viewer')).status).toBe(200)
+  })
+
+  // 계약의 길이 서버까지 닿는가. 아래 단추 검사가 이 길을 지나간다.
+  it('화면이 누르는 길로 나간다', async () => {
+    signedInAs = CHAIR
+    const before = signedOut
+    // 계약이 '돌려주는 값이 없다'고 적었다. 던지지 않은 것이 성공이다.
+    expect(await runMutation('auth.signOut', {})).toEqual({})
+    expect(signedOut).toBe(before + 1)
+  })
+
+  // **나가는 길도 화면에서 눌러 본다.**
+  //
+  // 들어오는 길이 셋인데 나가는 길이 없었다 — 한번 들어온 사람은 브라우저의 쿠키를
+  // 직접 지워야 나갈 수 있었다(2026-09-09에 사람이 물었다). 계약과 서버만 만들고
+  // 단추를 안 달면 그 사람에게는 여전히 나갈 길이 없다.
+  it('사이드바의 이름을 눌러 나간다', async () => {
+    signedInAs = CHAIR
+    const before = signedOut
+    let wentTo: string | null = null
+    const { unmount } = render(
+      <ScreenRouter
+        screenId="HOME-01K"
+        screenParams={{}}
+        scopes={{}}
+        onChangeScope={() => {}}
+        onNavigate={(screenId) => {
+          wentTo = screenId
+        }}
+      />,
+    )
+
+    // 셸이 서버에서 이름을 읽어 올 때까지 기다린다.
+    const corner = await screen.findByRole('button', { expanded: false, name: /김바다/ })
+    fireEvent.click(corner)
+    fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
+
+    // **정말 나갔다.** 서버의 나가는 층이 불렸고, 화면은 로그인 자리로 간다.
+    await waitFor(() => expect(signedOut).toBe(before + 1))
+    await waitFor(() => expect(wentTo).toBe('SIGN-IN'))
+    unmount()
   })
 
   // **초대 코드를 확인하는 길.** 진짜로 보낸다고 목록에 올려 두고 이 길로 보내 본 적이

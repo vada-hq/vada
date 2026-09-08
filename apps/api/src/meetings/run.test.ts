@@ -58,6 +58,7 @@ function harness(who: Viewer | null) {
     signIn: {
       open: () => ({ google: true, kakao: false }),
       start: async (provider: string) => ({ url: `https://example.test/${provider}` }),
+      end: async () => new Headers(),
     },
     attempts: inMemoryAttempts(),
     counter: inMemoryCounter(),

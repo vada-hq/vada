@@ -52,6 +52,7 @@ function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
     signIn: {
       open: () => ({ google: true, kakao: false }),
       start: async (provider: string) => ({ url: `https://example.test/${provider}` }),
+      end: async () => new Headers(),
     },
     attempts: inMemoryAttempts(),
     counter: inMemoryCounter(),
@@ -274,7 +275,7 @@ describe('명세 밖으로 새지 않는다', () => {
     //
     // 교차검토가 짚었다(2026-09-05): '녹색'과 '지금 상태를 정확히 안다'가 갈려
     // 있었다.
-    expect(answered).toBeGreaterThanOrEqual(211)
-    expect(all).toBe(221)
+    expect(answered).toBeGreaterThanOrEqual(212)
+    expect(all).toBe(222)
   })
 })

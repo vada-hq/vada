@@ -22635,6 +22635,49 @@
         },
         "security": []
       }
+    },
+    "/api/sign-out": {
+      "post": {
+        "operationId": "auth.signOut",
+        "summary": "나간다. 서버가 세션을 지우고 쿠키를 거둔다.\n\n**들어오는 길이 있으면 나가는 길도 있어야 한다.** 이 자리가 없던 동안 한번 들어온 사람은 앱 안에서 나갈 방법이 없었고, 다른 계정으로 열어 보려면 브라우저의 쿠키를 직접 지워야 했다.\n\n**실어 갈 값이 없다.** 누구인지는 쿠키가 말한다 — 몸통에 적으면 남의 것을 지우라고 말할 수 있는 자리가 된다.",
+        "x-authorize": {
+          "area": "signedIn"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

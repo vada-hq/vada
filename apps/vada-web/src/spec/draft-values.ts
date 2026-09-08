@@ -170,22 +170,34 @@ export function fieldsOfScreen(screen: ScreenSpec): DraftFields {
  * 계약이 몸통을 만드는 방식과 **같은 자리를 읽는다**(`generate-openapi.mjs`의
  * `fieldsByScope`). 같은 곳에서 나와야 계약과 몸통이 갈리지 않는다.
  */
-const BY_SCOPE = new Map<string, DraftFields>()
-for (const screen of ALL_SPEC_SCREENS) {
-  const scope = screen.stateScopeKey
-  if (typeof scope !== 'string') continue
-  const found = BY_SCOPE.get(scope) ?? { booleans: new Set<string>(), lists: [] }
-  for (const one of booleanFieldsOf(screen)) found.booleans.add(one)
-  for (const one of listsOf(screen)) {
-    if (!found.lists.some((had) => had.fieldKey === one.fieldKey)) found.lists.push(one)
+let byScope: Map<string, DraftFields> | null = null
+
+/**
+ * **처음 쓸 때 짓는다.** 불러올 때 지으면 모듈이 이어진 차례에 걸린다 — 셸이
+ * `mutations`를 부르고 그것이 여기를, 여기가 `screens`를 부르는 고리가 생기자 화면
+ * 명세가 아직 안 채워진 채로 이 자리가 돌았다(2026-09-09).
+ */
+function scopes(): Map<string, DraftFields> {
+  if (byScope !== null) return byScope
+  const built = new Map<string, DraftFields>()
+  for (const screen of ALL_SPEC_SCREENS) {
+    const scope = screen.stateScopeKey
+    if (typeof scope !== 'string') continue
+    const found = built.get(scope) ?? { booleans: new Set<string>(), lists: [] }
+    for (const one of booleanFieldsOf(screen)) found.booleans.add(one)
+    for (const one of listsOf(screen)) {
+      if (!found.lists.some((had) => had.fieldKey === one.fieldKey)) found.lists.push(one)
+    }
+    built.set(scope, found)
   }
-  BY_SCOPE.set(scope, found)
+  byScope = built
+  return built
 }
 
 /** 그 스코프의 칸들. 모르는 스코프면 옮길 것이 없다 — 값은 그대로 나간다. */
 export function fieldsOfScope(scopeKey: string | undefined): DraftFields {
   if (scopeKey === undefined) return { booleans: new Set(), lists: [] }
-  return BY_SCOPE.get(scopeKey) ?? { booleans: new Set(), lists: [] }
+  return scopes().get(scopeKey) ?? { booleans: new Set(), lists: [] }
 }
 
 /**

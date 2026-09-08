@@ -110,6 +110,12 @@ root.route(
         }
         return { url: made.url }
       },
+      // **쿠키를 그대로 넘긴다.** Better Auth가 그 쿠키로 누구의 세션인지 알아내고
+      // 지운다 — 우리가 사람을 골라 넘기면 남의 세션을 지울 수 있는 자리가 된다.
+      async end(request) {
+        const done = await auth.api.signOut({ headers: request.headers, asResponse: true })
+        return done.headers
+      },
     },
     invite: {
       linkBase: config.inviteLinkBase,
