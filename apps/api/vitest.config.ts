@@ -20,6 +20,19 @@ process.env.TZ = 'UTC'
 // 표를 지우고 다시 만들어 지킨다(100ms가 안 된다).
 export default defineConfig({
   test: {
+    // **변환한 것을 다음 실행까지 남긴다.**
+    //
+    // vitest가 스스로 알려 준 값이다 — "transforming modules took 73.34s · 45% of
+    // tracked time, re-done on every run". 검사 파일 하나를 고치고 다시 재는 데
+    // 20.8초가 드는데 그중 실제 테스트는 1.6초였다(2026-09-09에 쟀다). 나머지는
+    // 매번 처음부터 다시 하는 변환이다.
+    //
+    // **위험이 있다.** 캐시가 어긋나면 옛 코드에 초록이 뜬다 — 이 저장소에서 가장
+    // 나쁜 실패 모드다. 그래서 막는 자리를 함께 둔다: 캐시는 `node_modules/.vite`에
+    // 살고 CI는 매번 새 러너에서 `npm ci`로 시작하므로 **원격 게이트는 늘 차갑다.**
+    // 내 기계에서만 초록인 것은 거기서 걸린다. 그 사실을 `tests/gate-cold.test.mjs`가
+    // 지킨다 — 누가 CI에 캐시를 심으면 그 검사가 터진다.
+    fsModuleCache: true,
     pool: 'forks',
     // Vitest 4에서 poolOptions가 없어졌다 — 최상위로 올라왔다. 옛 모양으로 두면
     // **경고만 뜨고 조용히 안 걸린다.**
