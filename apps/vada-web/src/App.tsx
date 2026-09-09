@@ -3,7 +3,7 @@ import { DevScreenPicker } from './components/DevScreenPicker'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScreenRouter } from './screens/ScreenRouter'
 import { FIRST_SCREEN } from './screens/routes'
-import { apiBaseUrl, servingFromServer } from './data-sources/server'
+import { apiBaseUrl, browserFetch, servingFromServer } from './data-sources/server'
 import type { ScopeDraft, ScopeStore } from './state/scopes'
 
 // 화면의 주소는 screenId다 — 이미 명세가 갖고 있으므로 따로 정하지 않는다.
@@ -16,11 +16,18 @@ import type { ScopeDraft, ScopeStore } from './state/scopes'
 // 주소는 `#/<screenId>`이고, 상세 화면은 뒤에 인자가 붙는다(`#/EVT-TASK-02?taskId=T-03`).
 // 인자를 주소에 두는 이유는 화면의 주소로 여는 성질을 지키기 위해서다 — 상세를
 // 열려면 앞 화면을 반드시 거쳐야 한다면 그 화면만 따로 볼 수 없다.
+/**
+ * 주소가 가리키는 화면. **주소가 비었으면 빈 글이다 — 아직 모른다는 뜻이다.**
+ *
+ * 한동안 이 자리에서 곧바로 `ONB-01`을 골랐다. 그러면 서버에게 묻기도 전에 화면이
+ * 하나 그려지고, 답이 온 뒤 다른 화면으로 튄다 — 로그인한 사람이 소속 입력 화면을
+ * 한 번 보고 집으로 가는 모양이었다.
+ */
 function routeFromHash(): { screenId: string; params: Record<string, string> } {
   const hash = window.location.hash.replace(/^#\/?/, '').trim()
   const [id, query] = hash.split('?')
   return {
-    screenId: id === '' ? FIRST_SCREEN : id,
+    screenId: id ?? '',
     params: Object.fromEntries(new URLSearchParams(query ?? '')),
   }
 }
@@ -38,31 +45,45 @@ function routeFromHash(): { screenId: string; params: Record<string, string> } {
  * **주소가 있으면 건드리지 않는다.** 화면의 주소로 여는 성질이 이 저장소의 규칙이라,
  * 사람이 가리킨 자리를 서버의 답으로 덮으면 그 규칙이 깨진다.
  */
-function useStartScreen(go: (route: { screenId: string; params: Record<string, string> }) => void) {
+function useStartScreen(
+  unknown: boolean,
+  go: (route: { screenId: string; params: Record<string, string> }) => void,
+) {
   useEffect(() => {
-    if (window.location.hash.replace(/^#\/?/, '').trim() !== '') return
-    if (!servingFromServer()) return
+    if (!unknown) return
+    // 서버에 안 붙은 빌드(개발용 응답·시나리오 검사)는 물을 곳이 없다. 그때는
+    // 지금까지처럼 첫 화면이다.
+    if (!servingFromServer()) {
+      go({ screenId: FIRST_SCREEN, params: {} })
+      return
+    }
     let live = true
-    void fetch(`${apiBaseUrl()}/api/app/start`)
+    // **부르는 길은 하나다**(`browserFetch`). 맨 `fetch`는 쿠키를 안 싣고, 그러면
+    // 방금 로그인한 사람도 서버에게는 로그인하지 않은 사람으로 보인다 — 웹과 api가
+    // 다른 주소에 있을 때 특히 그렇다.
+    void browserFetch(`${apiBaseUrl()}/api/app/start`)
       .then((res) => (res.ok ? res.json() : null))
       .then((said: { screenId?: unknown } | null) => {
-        if (!live || typeof said?.screenId !== 'string') return
-        go({ screenId: said.screenId, params: {} })
-        window.location.hash = `#/${said.screenId}`
+        if (!live) return
+        // 못 물었으면 지금까지처럼 첫 화면이다 — 갈 곳 없이 세워 두지 않는다.
+        const to = typeof said?.screenId === 'string' ? said.screenId : FIRST_SCREEN
+        go({ screenId: to, params: {} })
+        window.location.hash = `#/${to}`
       })
       .catch(() => {
-        // 못 물었으면 지금까지처럼 첫 화면에 머문다 — 지어내지 않는다.
+        if (live) go({ screenId: FIRST_SCREEN, params: {} })
       })
     return () => {
       live = false
     }
-  }, [go])
+  }, [unknown, go])
 }
 
 function App() {
   const [route, setRoute] = useState(routeFromHash)
   const { screenId, params: screenParams } = route
-  useStartScreen(setRoute)
+  // 주소가 비었으면 아직 모른다. 서버가 답할 때까지 아무 화면도 그리지 않는다.
+  useStartScreen(screenId === '', setRoute)
   // state-scopes.json의 스코프별 초안. 화면 이동 후 복귀해도 값이 유지되고,
   // ORG-01의 note는 onboardingDraft 스코프를 읽는다(메모리 수준).
   const [scopes, setScopes] = useState<ScopeStore>({})
@@ -98,6 +119,19 @@ function App() {
       delete next[scopeKey]
       return next
     })
+  }
+
+  // **모르는 동안은 지어내지 않는다.** 화면 하나를 골라 그리면 답이 온 뒤 튀고,
+  // 사람은 자기와 상관없는 화면을 한 번 본다.
+  if (screenId === '') {
+    return (
+      <div
+        role="status"
+        className="flex min-h-screen items-center justify-center text-sm text-gray-500"
+      >
+        여는 중입니다
+      </div>
+    )
   }
 
   return (

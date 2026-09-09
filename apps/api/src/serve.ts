@@ -33,13 +33,20 @@ const auth = createAuth(db, {
 const viewers = viewerLookup(db)
 
 /**
- * 로그인하고 나서 여는 화면.
+ * 제공자를 다녀와서 돌아올 자리.
  *
- * **명세가 정한 것을 서버가 든다.** SIGN-IN의 단추가 '보내고 나면 어디로 가는지'를
- * 적어 두었고(`screens/SIGN-IN/screen.json`), 제공자에게 돌아올 자리를 붙이는 것은
- * 서버뿐이므로 그 값이 여기 온다. 화면이 스스로 만들면 자기 자신을 넘기는 일이 난다.
+ * **어느 화면인지는 여기서 정하지 않는다.** 앱의 뿌리로 돌려보내고, 어디부터인지는
+ * 돌아온 뒤에 `app.start`가 답한다 — 그 답은 신원에 따라 갈리는데(로그인 화면 ·
+ * 소속 입력 · 집) 여기는 아직 누가 돌아올지 모른다.
+ *
+ * **한동안 `#/ONB-01`을 박아 두었다.** 그래서 이미 소속이 있는 사람도 로그인하면
+ * 소속 입력 화면으로 갔다. `app.start`를 만들어 그 답을 서버에 두었는데도 고쳐지지
+ * 않았다 — 이 상수가 주소의 해시를 **채워 버려서** 앱이 물을 일이 없었기 때문이다.
+ * 어디부터인지를 두 곳이 정하면, 아무것도 모르는 쪽이 이긴다(2026-09-09).
  */
-const FIRST_SCREEN = 'ONB-01'
+function returningTo(appUrl: string): string {
+  return appUrl.replace(/\/$/, '')
+}
 
 const root = new Hono()
 
@@ -103,7 +110,7 @@ root.route(
       open: () => openWays(config as never),
       async start(provider) {
         const made = await auth.api.signInSocial({
-          body: { provider, callbackURL: `${config.appUrl}/#/${FIRST_SCREEN}` },
+          body: { provider, callbackURL: returningTo(config.appUrl) },
         })
         if (typeof made.url !== 'string') {
           throw new Error(`'${provider}'로 가는 주소를 받지 못했습니다.`)
