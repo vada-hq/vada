@@ -254,6 +254,10 @@ const ALLOWED = {
   'MSG-01': { byFrame: 1, byCopy: 0 },
   'MSG-03': { byFrame: 2, byCopy: 0 },
   'MY-01': { byFrame: 3, byCopy: 0 },
+  // byCopy 둘은 카드 머리 아래의 안내 글이다 — '이름은 로그인한 계정에서 온다'와
+  // '소속은 학생회가 정한다'. 값이 아니라 **왜 못 고치는지**를 말하는 글이라
+  // 요소가 아니고, 화면이 그대로 그린다(group.description과 같은 자리).
+  'MY-INFO-01': { byFrame: 3, byCopy: 2 },
   'MY-REQ-01': { byFrame: 1, byCopy: 0 },
   'ONB-01': { byFrame: 3, byCopy: 5 },
   'ONB-02': { byFrame: 3, byCopy: 3 },

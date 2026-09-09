@@ -7,6 +7,15 @@ import type { Served } from './area'
  * 남의 학생회 이름이 보인다.
  */
 export const shell: Served = {
-  reads: ['shell.organization', 'shell.viewer'],
-  writes: [],
+  reads: [
+    'shell.organization',
+    'shell.viewer',
+    // 셸의 이름 자리에서 열리는 화면 하나(MY-INFO-01). 어느 갈피에도 속하지 않아
+    // 여기 둔다 — 온보딩에서 받아 둔 학적을 되돌려 주는 자리다.
+    'my.profile',
+    'my.belonging',
+    'my.colleges',
+    'my.departments',
+  ],
+  writes: ['my.saveProfile'],
 }

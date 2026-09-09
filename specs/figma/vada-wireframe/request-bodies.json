@@ -380,6 +380,41 @@
       "eventItemAmount"
     ]
   },
+  "PUT /api/my/profile": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "이름"
+      },
+      "studentNumber": {
+        "type": "string",
+        "description": "학번"
+      },
+      "schoolName": {
+        "type": "string",
+        "description": "학교"
+      },
+      "college": {
+        "type": "string",
+        "description": "단과대학"
+      },
+      "department": {
+        "type": "string",
+        "description": "학부·학과"
+      },
+      "currentGrade": {
+        "type": "string",
+        "description": "현재 학년"
+      }
+    },
+    "required": [
+      "studentNumber",
+      "college",
+      "department",
+      "currentGrade"
+    ]
+  },
   "POST /api/orgs": {
     "type": "object",
     "properties": {

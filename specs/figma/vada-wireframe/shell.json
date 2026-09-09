@@ -117,6 +117,10 @@
     "roleField": "role",
     "menu": [
       {
+        "label": "내 정보",
+        "targetScreenId": "MY-INFO-01"
+      },
+      {
         "label": "로그아웃",
         "mutationKey": "auth.signOut",
         "onSuccess": {

@@ -16486,6 +16486,281 @@
         "security": []
       }
     },
+    "/api/my/profile": {
+      "get": {
+        "operationId": "my.profile",
+        "summary": "내 학적 정보. MY-INFO-01의 칸을 채운다.\n\n**온보딩에서 받아 둔 것을 되돌려 준다.** 받아 놓고 보여 주는 자리가 없던 동안, 사람은 자기가 무엇을 적었는지 확인할 길이 없었다(2026-09-09에 물었다).\n\n**학교는 이 사람의 것이 아니라 학생회의 것이다.** 한 학생회의 구성원은 모두 그 학교 사람이므로 사람마다 다르지 않고, 그래서 고칠 수도 없다 — 보여 주기만 한다.\n\n**소속은 여기 없다**(`my.belonging`). 이 출처는 화면의 칸을 채우는 것이라 여기 담긴 것은 곧 서버로 되돌아갈 값이다. 못 고치는 것을 섞으면 그 구분이 사라진다.",
+        "x-authorize": {
+          "area": "member"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "이름. 로그인한 계정에서 온다. 예: 김바다"
+                    },
+                    "studentNumber": {
+                      "type": "string",
+                      "description": "학번. 아직 안 적었으면 빈 글이다. 예: 2022123456"
+                    },
+                    "schoolName": {
+                      "type": "string",
+                      "description": "학생회의 대표 학교 이름. 고르는 값이 아니라 보여 주는 글이다. 예: 한양대학교 ERICA"
+                    },
+                    "college": {
+                      "type": "string",
+                      "description": "단과대학의 값. 예: COL-HYU-ERICA-SW"
+                    },
+                    "collegeName": {
+                      "type": "string",
+                      "description": "그 단과대학의 이름표. **서버가 완성된 글을 준다** — 화면이 코드를 그리지 않는다. 예: 소프트웨어융합대학"
+                    },
+                    "department": {
+                      "type": "string",
+                      "description": "학부·학과의 값. 예: DEP-HYU-ERICA-SW-CS"
+                    },
+                    "departmentName": {
+                      "type": "string",
+                      "description": "그 학부·학과의 이름표. 예: ICT융합학부"
+                    },
+                    "currentGrade": {
+                      "type": "string",
+                      "description": "현재 학년의 값. education.currentGrades의 값. 예: 3"
+                    },
+                    "currentGradeName": {
+                      "type": "string",
+                      "description": "그 학년의 이름표. 예: 3학년"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "studentNumber",
+                    "schoolName",
+                    "college",
+                    "collegeName",
+                    "department",
+                    "departmentName",
+                    "currentGrade",
+                    "currentGradeName"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "my.saveProfile",
+        "summary": "내 학적 정보를 고친다(MY-INFO-01).\n\n**남의 것은 못 고친다.** 누구의 것인지는 쿠키가 말한다 — 몸통에 사람을 적으면 남의 학적을 고칠 수 있는 자리가 된다.\n\n**이름과 학교는 오지 않는다.** 이름은 로그인한 계정의 것이고 학교는 학생회의 것이라 이 화면이 정하는 값이 아니다.",
+        "x-authorize": {
+          "area": "member"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "보낸 값이 받을 수 없는 것이다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "이름"
+                  },
+                  "studentNumber": {
+                    "type": "string",
+                    "description": "학번"
+                  },
+                  "schoolName": {
+                    "type": "string",
+                    "description": "학교"
+                  },
+                  "college": {
+                    "type": "string",
+                    "description": "단과대학"
+                  },
+                  "department": {
+                    "type": "string",
+                    "description": "학부·학과"
+                  },
+                  "currentGrade": {
+                    "type": "string",
+                    "description": "현재 학년"
+                  }
+                },
+                "required": [
+                  "studentNumber",
+                  "college",
+                  "department",
+                  "currentGrade"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my/belonging": {
+      "get": {
+        "operationId": "my.belonging",
+        "summary": "내가 이 학생회에서 무엇인가. MY-INFO-01의 아래 카드가 그린다.\n\n**고치는 값이 아니다.** 소속 부서와 직책은 조직도가 정하고(ORG-03B) 이 화면은 그것을 읽기만 한다 — 칸이 아니라 값이라 `my.profile`과 갈라 둔다.",
+        "x-authorize": {
+          "area": "member"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "orgName": {
+                      "type": "string",
+                      "description": "소속 학생회 이름. 예: 제12대 소프트웨어융합대학 학생회"
+                    },
+                    "orgDepartment": {
+                      "type": "string",
+                      "description": "학생회 안에서의 소속 부서. 배정 전이면 그 사실이 온다. 예: 회장단"
+                    },
+                    "executiveTitle": {
+                      "type": "string",
+                      "description": "직책. 없으면 역할의 이름이 온다. 예: 회장"
+                    }
+                  },
+                  "required": [
+                    "orgName",
+                    "orgDepartment",
+                    "executiveTitle"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/education/schools": {
       "get": {
         "operationId": "education.schools.options",
@@ -18378,6 +18653,170 @@
           "area": "finance.manage"
         },
         "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "string",
+                        "description": "고른 값"
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "그려지는 글"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "곁에 붙는 설명(선택)"
+                      },
+                      "disabled": {
+                        "type": "boolean",
+                        "description": "고를 수 없는가(선택)"
+                      }
+                    },
+                    "required": [
+                      "value",
+                      "label"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my/colleges": {
+      "get": {
+        "operationId": "my.colleges.options",
+        "summary": "내 학생회의 학교에 있는 단과대학 목록\n\n**학교를 화면이 넘기지 않는다.** 내 학생회의 대표 학교 아래에서 고르는 것이고, 그 학교는 서버가 안다 — `education.*`와 갈리는 것이 이 한 가지다. 화면이 넘기려면 학교의 코드값을 칸에 들고 있어야 하는데, 그 칸은 사람이 고칠 수 없는 것이라 그리지 않았다.",
+        "x-authorize": {
+          "area": "member"
+        },
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "성공",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "value": {
+                        "type": "string",
+                        "description": "고른 값"
+                      },
+                      "label": {
+                        "type": "string",
+                        "description": "그려지는 글"
+                      },
+                      "description": {
+                        "type": "string",
+                        "description": "곁에 붙는 설명(선택)"
+                      },
+                      "disabled": {
+                        "type": "boolean",
+                        "description": "고를 수 없는가(선택)"
+                      }
+                    },
+                    "required": [
+                      "value",
+                      "label"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "로그인이 필요하다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "이 자리를 열 권한이 없다",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "그 밖의 실패",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/my/departments": {
+      "get": {
+        "operationId": "my.departments.options",
+        "summary": "내 학생회의 학교에서 고른 단과대학의 학부·학과 목록\n\n**학교를 화면이 넘기지 않는다.** 내 학생회의 대표 학교 아래에서 고르는 것이고, 그 학교는 서버가 안다 — `education.*`와 갈리는 것이 이 한 가지다. 화면이 넘기려면 학교의 코드값을 칸에 들고 있어야 하는데, 그 칸은 사람이 고칠 수 없는 것이라 그리지 않았다.",
+        "x-authorize": {
+          "area": "member"
+        },
+        "parameters": [
+          {
+            "name": "collegeId",
+            "in": "query",
+            "required": true,
+            "description": "어느 단과대학의 학부·학과인가",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "성공",

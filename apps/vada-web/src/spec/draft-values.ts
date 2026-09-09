@@ -1,3 +1,4 @@
+import { itemKey, joinRowIds } from './compute'
 import { ALL_SPEC_SCREENS } from './screens'
 import type { ListSpec, ScreenSpec } from './types'
 
@@ -234,4 +235,63 @@ export function shapeBody(
   }
 
   return payload
+}
+
+/** 화면의 초안 한 벌. 값과 이름표가 갈려 있다. */
+export interface Draft {
+  values: Record<string, string | null>
+  labels: Record<string, string>
+}
+
+/**
+ * 서버가 준 한 건을 초안으로 옮긴다(`draftFrom`).
+ *
+ * **고칠 것을 먼저 읽어 온다.** 빈칸에서 시작하면 사람은 자기가 적어 둔 것을 다시
+ * 적는다. 조각 이름이 칸 이름과 같으면 그 값으로 시작하고, 배열인 조각은 되풀이되는
+ * 묶음이라 줄 이름을 붙여 편다.
+ *
+ * ## `<칸>Name`은 이름표다
+ *
+ * 고르는 값은 코드로 온다(`college: 'COL-…'`). 그대로 그리면 화면이 열리는 순간
+ * 사람이 코드를 본다 — **서버가 완성된 글을 준다**는 규칙에 따라 이름이 곁에 함께
+ * 오고, 그것은 값이 아니라 이름표 칸에 담긴다. 값에 담으면 저장할 때 서버가 모르는
+ * 칸이 함께 간다.
+ *
+ * **곁에 그 값이 있어야 이름표다.** 이름이 그냥 값인 칸도 있다(`itemName`·
+ * `sourceName`·`schoolName`). 그것을 이름표로 오해하면 그 칸이 통째로 빈다 —
+ * 실제로 그랬다.
+ *
+ * 네 화면이 같은 것을 각자 들고 있었다(FIN-PLAN-01만 온전했고 나머지 셋은 이름표를
+ * 버렸다). 자리마다 옮기면 자리마다 잊는다 — 보내는 쪽과 같은 까닭으로 여기 하나만 둔다.
+ */
+export function draftFromRow(row: Record<string, unknown>): Draft {
+  const values: Record<string, string | null> = {}
+  const labels: Record<string, string> = {}
+
+  const put = (holder: Record<string, unknown>, key: string, field: string, value: unknown) => {
+    const owner = field.endsWith('Name') ? field.slice(0, -'Name'.length) : ''
+    if (owner !== '' && owner in holder) {
+      labels[key.slice(0, key.length - 'Name'.length)] = String(value)
+      return
+    }
+    values[key] = draftValueOf(value)
+  }
+
+  for (const [key, value] of Object.entries(row)) {
+    if (!Array.isArray(value)) {
+      put(row, key, key, value)
+      continue
+    }
+    const rowIds: string[] = []
+    value.forEach((item, index) => {
+      const rowId = `r${index}`
+      rowIds.push(rowId)
+      for (const [field, fieldValue] of Object.entries(item as Record<string, unknown>)) {
+        put(item as Record<string, unknown>, itemKey(key, rowId, field), field, fieldValue)
+      }
+    })
+    values[key] = joinRowIds(rowIds)
+  }
+
+  return { values, labels }
 }

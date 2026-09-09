@@ -11,8 +11,8 @@ import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
 import { payloadOf } from '../spec/draft-values'
 import { org02 } from '../spec/screens'
-import { readListSource } from './catalog'
-import { loadSources, useServer } from './server'
+import { readListSource, readObjectSource } from './catalog'
+import { forgetSources, loadSources, useServer } from './server'
 
 // **학생회에 들어오는 길을 끝까지 뚫는다.**
 //
@@ -222,6 +222,63 @@ describe('만든 학생회를 다른 사람이 초대로 본다', () => {
     signedInAs = CHAIR
     expect((await request('/api/shell/organization')).status).toBe(200)
     expect((await request('/api/shell/viewer')).status).toBe(200)
+  })
+
+  // **내 정보가 저장소까지 닿는다(MY-INFO-01).**
+  //
+  // 온보딩에서 받아 둔 것을 되돌려 주는 자리다. 받아 놓고 보여 주는 화면이 없던 동안
+  // 사람은 자기가 무엇을 적었는지 확인할 길이 없었다(2026-09-09에 물었다).
+  it('내 정보가 학생회를 만들 때 적은 것을 되돌려 준다', async () => {
+    signedInAs = CHAIR
+    await loadSources([{ key: 'my.profile', params: {} }])
+    const mine = readObjectSource('my.profile', {})
+    // 만든 사람의 이름은 서버가 아는 것이다(구글 계정).
+    expect(mine.name).toBe('김바다')
+    // **학교는 학생회의 것이다.** 사람마다 다르지 않아 고칠 수도 없다.
+    expect(mine.schoolName).toBe('한양대학교 ERICA')
+
+    await loadSources([{ key: 'my.belonging', params: {} }])
+    const belongs = readObjectSource('my.belonging', {})
+    expect(belongs.orgName).toBe('제12대 소프트웨어융합대학 학생회')
+    expect(belongs.executiveTitle).toBe('회장')
+  })
+
+  it('화면이 누르는 길로 내 학적이 고쳐진다', async () => {
+    signedInAs = CHAIR
+    // 고르는 값은 이 학생회의 학교 아래에서 온다 — 화면이 학교를 넘기지 않는다.
+    const colleges = await fetchOptions('my.colleges', {})
+    expect(colleges.map((one) => one.label)).toContain('소프트웨어융합대학')
+    const majors = await fetchOptions('my.departments', { collegeId: 'COL-HYU-ERICA-SW' })
+    expect(majors.length).toBeGreaterThan(0)
+
+    expect(
+      await runMutation('my.saveProfile', {
+        studentNumber: '2022123456',
+        college: 'COL-HYU-ERICA-SW',
+        department: majors[0]!.value,
+        currentGrade: '3',
+      }),
+    ).toEqual({})
+
+    forgetSources()
+    await loadSources([{ key: 'my.profile', params: {} }])
+    const after = readObjectSource('my.profile', {})
+    expect(after.studentNumber).toBe('2022123456')
+    // **서버가 완성된 글을 준다.** 코드만 오면 화면이 여는 순간 사람이 코드를 본다.
+    expect(after.collegeName).toBe('소프트웨어융합대학')
+    expect(after.departmentName).toBe(majors[0]!.label)
+    expect(after.currentGradeName).toBe('3학년')
+  })
+
+  // **남의 학교의 편제는 못 붙인다.** 안 걸면 조직도가 있지도 않은 학부를 그린다.
+  it('이 학생회의 학교가 아닌 편제는 막힌다', async () => {
+    signedInAs = CHAIR
+    await expect(
+      runMutation('my.saveProfile', {
+        studentNumber: '2022123456',
+        college: 'COL-없는-단과대',
+      }),
+    ).rejects.toMatchObject({ status: 422 })
   })
 
   // 계약의 길이 서버까지 닿는가. 아래 단추 검사가 이 길을 지나간다.

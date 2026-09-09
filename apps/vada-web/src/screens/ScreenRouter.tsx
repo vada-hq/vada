@@ -74,6 +74,7 @@ import { ORG04BScreen } from './ORG04BScreen'
 import { ORG07AScreen } from './ORG07AScreen'
 import { ORG07BScreen } from './ORG07BScreen'
 import { ORG07CScreen } from './ORG07CScreen'
+import { MYINFO01Screen } from './MYINFO01Screen'
 import { ORG02Screen } from './ORG02Screen'
 import {
   evt00b,
@@ -99,6 +100,7 @@ import {
   opsMeet06b,
   opsMeetD04,
   org01,
+  myInfo01,
   org02,
   org03b,
   org03d,
@@ -753,6 +755,17 @@ function ScreenBody({
         joining={readScopeDraft(scopes, onb01.stateScopeKey)}
         draft={readScopeDraft(scopes, org02.stateScopeKey)}
         onChangeDraft={(next) => onChangeScope(org02.stateScopeKey ?? '', next)}
+        onNavigate={onNavigate}
+        onScopeEvent={onScopeEvent}
+      />
+    )
+  }
+
+  if (screenId === 'MY-INFO-01') {
+    return (
+      <MYINFO01Screen
+        draft={readScopeDraft(scopes, myInfo01.stateScopeKey)}
+        onChangeDraft={(next) => onChangeScope(myInfo01.stateScopeKey ?? '', next)}
         onNavigate={onNavigate}
         onScopeEvent={onScopeEvent}
       />

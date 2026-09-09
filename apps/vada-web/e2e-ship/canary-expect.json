@@ -424,6 +424,15 @@
       "shell": true,
       "over": null
     },
+    "MY-INFO-01": {
+      "ready": true,
+      "missing": [],
+      "needs": [
+        "collegeId"
+      ],
+      "shell": true,
+      "over": null
+    },
     "MY-REQ-01": {
       "ready": true,
       "missing": [],

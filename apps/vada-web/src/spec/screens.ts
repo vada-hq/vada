@@ -66,6 +66,8 @@ export const onb02 = screenOf('ONB-02')
 export const org01 = screenOf('ORG-01')
 export const org00 = screenOf('ORG-00')
 export const org02 = screenOf('ORG-02')
+// 셸의 이름 자리에서 열린다 — 어느 갈피에도 속하지 않는다.
+export const myInfo01 = screenOf('MY-INFO-01')
 export const org03a = screenOf('ORG-03A')
 export const org03b = screenOf('ORG-03B')
 export const org03c = screenOf('ORG-03C')

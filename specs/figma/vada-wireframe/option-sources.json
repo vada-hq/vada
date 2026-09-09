@@ -1375,6 +1375,60 @@
         "empty": "예산을 배정할 행사가 없습니다",
         "error": "행사를 불러오지 못했습니다"
       }
+    },
+    {
+      "key": "my.colleges",
+      "type": "remote",
+      "description": "내 학생회의 학교에 있는 단과대학 목록\n\n**학교를 화면이 넘기지 않는다.** 내 학생회의 대표 학교 아래에서 고르는 것이고, 그 학교는 서버가 안다 — `education.*`와 갈리는 것이 이 한 가지다. 화면이 넘기려면 학교의 코드값을 칸에 들고 있어야 하는데, 그 칸은 사람이 고칠 수 없는 것이라 그리지 않았다.",
+      "authorize": {
+        "area": "member"
+      },
+      "params": [],
+      "request": {
+        "method": "GET",
+        "path": "/api/my/colleges",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 단과대학 목록을 불러오세요",
+        "loading": "단과대학 목록을 불러오는 중입니다",
+        "empty": "선택할 수 있는 단과대학이 없습니다",
+        "error": "단과대학 목록을 불러오지 못했습니다"
+      }
+    },
+    {
+      "key": "my.departments",
+      "type": "remote",
+      "description": "내 학생회의 학교에서 고른 단과대학의 학부·학과 목록\n\n**학교를 화면이 넘기지 않는다.** 내 학생회의 대표 학교 아래에서 고르는 것이고, 그 학교는 서버가 안다 — `education.*`와 갈리는 것이 이 한 가지다. 화면이 넘기려면 학교의 코드값을 칸에 들고 있어야 하는데, 그 칸은 사람이 고칠 수 없는 것이라 그리지 않았다.",
+      "authorize": {
+        "area": "member"
+      },
+      "params": [
+        {
+          "key": "collegeId",
+          "required": true,
+          "valueType": "string",
+          "description": "어느 단과대학의 학부·학과인가",
+          "secret": false
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "path": "/api/my/departments",
+        "loadOn": "open",
+        "search": {
+          "mode": "client"
+        }
+      },
+      "messages": {
+        "idle": "메뉴를 열어 학부·학과 목록을 불러오세요",
+        "loading": "학부·학과 목록을 불러오는 중입니다",
+        "empty": "선택할 수 있는 학부·학과가 없습니다",
+        "error": "학부·학과 목록을 불러오지 못했습니다"
+      }
     }
   ]
 }

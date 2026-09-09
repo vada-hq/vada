@@ -11,7 +11,7 @@ import { getOptionSource } from '../option-sources/catalog'
 import type { Option } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt05 } from '../spec/screens'
-import { draftValueOf } from '../spec/draft-values'
+import { draftFromRow } from '../spec/draft-values'
 import { targetScreenOf } from '../spec/types'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import { useSubmitAction } from '../spec/useSubmitAction'
@@ -140,16 +140,6 @@ function scalar(row: DataRow, field: string | undefined): string {
 function rowsOf(row: DataRow, field: string): DataRow[] {
   const value = row[field]
   return Array.isArray(value) ? value : []
-}
-
-// 읽어 온 설정을 초안으로 옮긴다(draftFrom). 조각 이름이 칸 이름과 같으면 그
-// 값으로 시작한다.
-function draftFromRow(row: DataRow): ScopeDraft {
-  const values: Record<string, string | null> = {}
-  for (const [key, value] of Object.entries(row)) {
-    values[key] = draftValueOf(value)
-  }
-  return { values, labels: {} }
 }
 
 export function EVT05Screen({

@@ -1209,8 +1209,37 @@ function checkDraftFrom(findings, file, spec, { dataSources, dataSourceByKey, sc
       .filter((key) => typeof key === "string")
   );
 
+  /**
+   * `<칸>Name`은 곁에 있는 `<칸>`의 **이름표**다. 그 자체가 칸이 아니다.
+   *
+   * 고르는 값은 코드로 오는데(`college: 'COL-…'`) 사람에게 보일 것은 이름이다.
+   * 서버가 완성된 글을 준다는 규칙에 따라 둘이 함께 오고, 화면은 코드를 값 칸에,
+   * 이름을 이름표에 담는다(`FINPLAN01Screen`의 `draftFromRow`가 정한 규칙).
+   *
+   * **곁에 그 값이 있어야 이름표다.** 이름이 그냥 값인 칸도 있다 — `schoolName`·
+   * `orgName`이 그렇고, 그것을 이름표로 오해하면 그 칸이 통째로 빈다.
+   */
+  const fieldKeys = new Set(
+    (Array.isArray(source.fields) ? source.fields : [])
+      .map((one) => one?.key)
+      .filter((key) => typeof key === "string")
+  );
+  const isLabelOf = (key) =>
+    key.endsWith("Name") && fieldKeys.has(key.slice(0, -"Name".length));
+
   for (const field of Array.isArray(source.fields) ? source.fields : []) {
     if (typeof field?.key !== "string") {
+      continue;
+    }
+    if (isLabelOf(field.key)) {
+      // 이름표는 그 값을 담는 칸이 화면에 있어야 뜻이 있다.
+      if (!screenFieldKeys.has(field.key.slice(0, -"Name".length))) {
+        findings.push({
+          level: "error",
+          file,
+          message: `초안 출처 '${draftFrom.dataSourceKey}'의 조각 '${field.key}'는 '${field.key.slice(0, -"Name".length)}'의 이름표인데 그 칸이 화면에 없습니다.`
+        });
+      }
       continue;
     }
     if (!screenFieldKeys.has(field.key)) {

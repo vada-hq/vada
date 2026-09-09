@@ -5,12 +5,11 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { TextInput } from '../components/TextInput'
 import { CHOICE_CHIP } from '../design/tones'
 import { readObjectSource } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
 import { getOptionSource } from '../option-sources/catalog'
 import type { Option } from '../option-sources/catalog'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, evt02b } from '../spec/screens'
-import { draftValueOf } from '../spec/draft-values'
+import { draftFromRow } from '../spec/draft-values'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type {
@@ -100,16 +99,6 @@ interface EVT02BScreenProps {
   onChangeDraft: (next: ScopeDraft) => void
   onNavigate: (screenId: string, params?: Record<string, string>) => void
   onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
-}
-
-// 읽어 온 행사를 초안으로 옮긴다(draftFrom). 조각 이름이 칸 이름과 같으면 그
-// 값으로 시작한다. 이 패널에는 되풀이되는 묶음이 없어 한 겹이면 끝이다.
-function draftFromRow(row: DataRow): ScopeDraft {
-  const values: Record<string, string | null> = {}
-  for (const [key, value] of Object.entries(row)) {
-    values[key] = draftValueOf(value)
-  }
-  return { values, labels: {} }
 }
 
 export function EVT02BScreen({

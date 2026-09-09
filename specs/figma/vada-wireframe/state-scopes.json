@@ -198,6 +198,14 @@
         "complete",
         "cancel"
       ]
+    },
+    {
+      "key": "myProfileDraft",
+      "description": "내 학적 정보를 고치는 초안. 읽어 온 값에서 시작한다(MY-INFO-01의 draftFrom).",
+      "lifetime": "flow",
+      "clearOn": [
+        "complete"
+      ]
     }
   ]
 }

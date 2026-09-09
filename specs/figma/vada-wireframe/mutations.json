@@ -1369,6 +1369,27 @@
         "submitting": "예산 편성을 저장하는 중입니다",
         "error": "예산 편성을 저장하지 못했습니다"
       }
+    },
+    {
+      "key": "my.saveProfile",
+      "description": "내 학적 정보를 고친다(MY-INFO-01).\n\n**남의 것은 못 고친다.** 누구의 것인지는 쿠키가 말한다 — 몸통에 사람을 적으면 남의 학적을 고칠 수 있는 자리가 된다.\n\n**이름과 학교는 오지 않는다.** 이름은 로그인한 계정의 것이고 학교는 학생회의 것이라 이 화면이 정하는 값이 아니다.",
+      "authorize": {
+        "area": "member"
+      },
+      "params": [],
+      "request": {
+        "method": "PUT",
+        "path": "/api/my/profile"
+      },
+      "payloadScope": "myProfileDraft",
+      "repeat": {
+        "kind": "overwrite",
+        "why": "같은 값을 다시 보내면 같은 줄이 같은 값이 된다."
+      },
+      "messages": {
+        "submitting": "저장하는 중입니다",
+        "error": "저장하지 못했습니다"
+      }
     }
   ]
 }

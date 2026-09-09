@@ -3011,6 +3011,25 @@ export const DASHBOARD_FIXTURES: Record<string, DataRow | DataRow[]> = {
   'shell.viewer': { name: '박해랑', role: '운영부 · 부원' },
 
   // 내 업무(MY-01).
+  // 내 정보(MY-INFO-01). **고르는 값은 코드와 이름표가 함께 온다** — 코드만 주면
+  // 화면이 열리는 순간 사람이 'COL-…'을 본다.
+  'my.profile': {
+    name: '김바다',
+    studentNumber: '2022123456',
+    schoolName: '한양대학교 ERICA',
+    college: 'COL-HYU-ERICA-SW',
+    collegeName: '소프트웨어융합대학',
+    department: 'DEP-HYU-ERICA-SW-ICT',
+    departmentName: 'ICT융합학부',
+    currentGrade: '3',
+    currentGradeName: '3학년',
+  },
+  // 소속은 고치는 값이 아니라 읽는 값이라 출처가 갈려 있다.
+  'my.belonging': {
+    orgName: '제12대 소프트웨어융합대학 학생회',
+    orgDepartment: '회장단',
+    executiveTitle: '회장',
+  },
   'my.taskAlerts': { delayedCount: 0, todoCount: 2, reviewCount: 2, myWorkNote: '진행 중·검토 필요 4건' },
   // 운영 허브(OPS-00).
   'ops.intro': {

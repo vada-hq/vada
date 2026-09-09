@@ -1,0 +1,210 @@
+{
+  "schemaVersion": 1,
+  "screenId": "MY-INFO-01",
+  "source": {
+    "pageName": "Wireframe",
+    "nodeId": "628:3",
+    "name": "내 정보 · MY-INFO-01 · 내 정보",
+    "figmaType": "FRAME"
+  },
+  "elements": [
+    {
+      "source": {
+        "nodeId": "630:8",
+        "name": "Btn",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "button",
+        "label": "저장",
+        "emphasis": "primary",
+        "initiallyDisabled": false,
+        "action": {
+          "type": "submit",
+          "mutationKey": "my.saveProfile",
+          "executeWhen": {
+            "type": "allRequiredFieldsHaveValue",
+            "scope": "screen"
+          },
+          "onExecutionBlocked": {
+            "type": "showMissingRequiredFields",
+            "focus": "firstMissingField"
+          },
+          "onSuccess": {}
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "631:4",
+        "name": "ReadOnly",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "name",
+        "label": "이름",
+        "placeholder": null,
+        "helperText": "로그인한 계정의 이름입니다.",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "readOnly": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "631:11",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "studentNumber",
+        "label": "학번",
+        "placeholder": "학번을 적어 주세요",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "631:18",
+        "name": "ReadOnly",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "input",
+        "fieldKey": "schoolName",
+        "label": "학교",
+        "placeholder": null,
+        "helperText": "학생회의 대표 학교입니다.",
+        "initialValue": null,
+        "inputType": "text",
+        "valueType": "string",
+        "required": false,
+        "readOnly": true,
+        "validation": []
+      }
+    },
+    {
+      "source": {
+        "nodeId": "631:25",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "college",
+        "label": "단과대학",
+        "placeholder": "단과대학을 선택하세요",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": true,
+        "optionsSource": {
+          "key": "my.colleges"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "631:33",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "department",
+        "label": "학부·학과",
+        "placeholder": "학부·학과를 선택하세요",
+        "disabledPlaceholder": "단과대학을 먼저 선택하세요",
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": true,
+        "searchable": true,
+        "optionsSource": {
+          "key": "my.departments",
+          "params": {
+            "collegeId": {
+              "fieldKey": "college"
+            }
+          }
+        },
+        "enabledWhen": [
+          {
+            "fieldKey": "college",
+            "operator": "hasValue"
+          }
+        ],
+        "resetOnChangeOf": [
+          "college"
+        ]
+      }
+    },
+    {
+      "source": {
+        "nodeId": "631:40",
+        "name": "Input",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "select",
+        "fieldKey": "currentGrade",
+        "label": "현재 학년",
+        "placeholder": null,
+        "initialValue": null,
+        "valueType": "string",
+        "required": true,
+        "initiallyDisabled": false,
+        "searchable": false,
+        "optionsSource": {
+          "key": "education.currentGrades"
+        }
+      }
+    },
+    {
+      "source": {
+        "nodeId": "631:2273",
+        "name": "Card",
+        "figmaType": "FRAME"
+      },
+      "spec": {
+        "type": "summary",
+        "title": "소속",
+        "description": "학생회가 정하는 것이라 여기서 고치지 않습니다.",
+        "dataSourceKey": "my.belonging",
+        "items": [
+          {
+            "label": "학생회",
+            "field": "orgName"
+          },
+          {
+            "label": "부서",
+            "field": "orgDepartment"
+          },
+          {
+            "label": "직책",
+            "field": "executiveTitle"
+          }
+        ]
+      }
+    }
+  ],
+  "stateScopeKey": "myProfileDraft",
+  "meta": {
+    "eyebrow": "내 정보",
+    "title": "내 정보",
+    "description": "온보딩에서 적어 둔 학적 정보입니다. 바뀌었으면 여기서 고칩니다."
+  },
+  "draftFrom": {
+    "dataSourceKey": "my.profile"
+  }
+}
