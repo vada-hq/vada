@@ -9,7 +9,7 @@ import {
   meetings,
   members,
 } from '../db/schema.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { momentOf } from '../time.ts'
 import type { MeetingViewer } from './meetings.ts'
 

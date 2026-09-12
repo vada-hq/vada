@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { departments, members } from '../db/schema.ts'
-import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
+import { AlreadyExists, Blocked, NotFound } from '../errors.ts'
 import { stillHere } from './membership.ts'
 import { recordRoleChange } from './role-change.ts'
 

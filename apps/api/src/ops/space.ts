@@ -2,7 +2,7 @@ import { and, eq, isNull, sql, type SQL } from 'drizzle-orm'
 import type { PgTable } from 'drizzle-orm/pg-core'
 import type { Db } from '../db/client.ts'
 import { events, meetings, members, tasks } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { daysBetween } from '../time.ts'
 // **이번 주가 어디서 시작하는지는 달력이 안다**(OPS-CAL-01의 머리가 '일 월 화 수 목
 // 금 토'다). 여기 한 벌을 더 두면 한쪽만 고쳐지는 날 같은 주가 두 주가 된다.

@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { departments, members, permissionChanges } from '../db/schema.ts'
-import { NotFound, Blocked } from '../routes.ts'
+import { NotFound, Blocked } from '../errors.ts'
 import type { Role } from '../permissions.ts'
 import { stillHere } from './membership.ts'
 

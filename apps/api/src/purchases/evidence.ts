@@ -1,7 +1,7 @@
 import { and, eq, isNull, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { paymentDocuments, payments, purchaseRequests } from '../db/schema.ts'
-import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
+import { AlreadyExists, Blocked, NotFound } from '../errors.ts'
 import { requestOf } from './rows.ts'
 
 // 결제·증빙 정리 끝내기(FIN-EVID-01의 `finance.purchaseRequest.completeEvidence`).

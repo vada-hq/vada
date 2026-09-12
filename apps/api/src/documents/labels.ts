@@ -1,7 +1,7 @@
 import { and, asc, eq, isNotNull } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { documents } from '../db/schema.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { day, moment } from '../time.ts'
 
 // 문서를 보는 다섯 화면이 함께 쓰는 **완성된 글과 색**.

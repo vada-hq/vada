@@ -9,7 +9,7 @@ import {
 } from '../db/schema.ts'
 import { whoCanNote } from '../events/ending.ts'
 import { shortDay } from '../ops/calendar.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { moment } from '../time.ts'
 import { BLANK, won, type PurchaseStage, type Tone } from './labels.ts'
 import { moneyItems, paidRows, plannedGroups, type MoneyItem } from './money.ts'

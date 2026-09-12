@@ -24,7 +24,7 @@ import {
   type ArchiveWriter,
 } from '../records/archive-write.ts'
 import { completedEventAlert, completedEvents } from '../records/completed.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 기록(REC-01 · REC-02 · REC-02A).
 //

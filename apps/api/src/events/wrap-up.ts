@@ -1,5 +1,5 @@
 import type { Db } from '../db/client.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import {
   isOverdue,
   NO_DEPARTMENT,

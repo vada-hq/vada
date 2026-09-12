@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import optionSources from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { departments, events, members } from '../db/schema.ts'
-import { Blocked, NotFound } from '../routes.ts'
+import { Blocked, NotFound } from '../errors.ts'
 import { fieldMoment, momentOf } from '../time.ts'
 
 // 행사 기본정보를 **고치는** 자리(EVT-02B).

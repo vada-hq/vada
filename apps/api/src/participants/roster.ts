@@ -7,7 +7,7 @@ import {
   surveyApplications,
   surveys,
 } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 행사 참가자 명단(EVT-04 · EVT-04B).
 //

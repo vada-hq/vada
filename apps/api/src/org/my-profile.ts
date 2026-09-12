@@ -9,7 +9,7 @@ import {
   members,
   organizations,
 } from '../db/schema.ts'
-import { Blocked, NotFound } from '../routes.ts'
+import { Blocked, NotFound } from '../errors.ts'
 
 // 내 정보(MY-INFO-01).
 //

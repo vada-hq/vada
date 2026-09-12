@@ -1,7 +1,7 @@
 import { and, eq, ilike, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { departments, events, members } from '../db/schema.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { daysBetween, shortStamp, stamp } from '../time.ts'
 
 // 행사(EVT-00A · EVT-02 …)가 읽는 것.

@@ -1,7 +1,7 @@
 import { and, asc, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { meetingAgendas, meetings } from '../db/schema.ts'
-import { AlreadyExists, NotFound } from '../routes.ts'
+import { AlreadyExists, NotFound } from '../errors.ts'
 
 // 회의를 시작하고 끝내고 안건을 넘긴다(OPS-MEET-D01 · D02 · 05B).
 //

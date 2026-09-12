@@ -18,7 +18,7 @@ import {
   type PurchaseStage,
 } from '../finance/labels.ts'
 import { eventExists } from '../finance/mine.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 
 // 행사 재정 — 개요(EVT-FIN-01)의 셋.
 //

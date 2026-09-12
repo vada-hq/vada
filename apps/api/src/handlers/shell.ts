@@ -7,7 +7,7 @@ import {
   myProfile,
   saveMyProfile,
 } from '../org/my-profile.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 셸이 읽는 둘. **화면의 요소가 아니라 화면을 감싼 것의 값이다** — 학생회 이름과
 // 보는 사람은 어느 화면에서나 같은 자리에 그려진다.

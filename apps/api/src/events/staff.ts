@@ -9,7 +9,7 @@ import {
   members,
 } from '../db/schema.ts'
 import { departmentTree } from '../org/chart.ts'
-import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
+import { AlreadyExists, Blocked, NotFound } from '../errors.ts'
 import { stillHere } from '../org/membership.ts'
 
 // 행사 운영 조직(EVT-01 · EVT-03A · EVT-03B)이 읽고 쓰는 것.

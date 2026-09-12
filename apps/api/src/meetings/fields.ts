@@ -1,4 +1,4 @@
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 
 // 화면이 보낸 몸통에서 칸 하나를 읽는다. 회의록과 회의 관리가 나눠 쓴다.
 //

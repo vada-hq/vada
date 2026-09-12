@@ -2,7 +2,7 @@ import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { surveyApplications, surveyQuestions, surveys } from '../db/schema.ts'
-import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
+import { AlreadyExists, Blocked, NotFound } from '../errors.ts'
 
 // 참여 설문 한 건과 그것을 갈아 끼울 때의 여파, 그리고 갈아 끼우기(EVT-05 · EVT-05B).
 //

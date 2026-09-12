@@ -1,7 +1,7 @@
 import { and, asc, count, eq, isNotNull, ne } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { events, students, surveyApplications, surveys } from '../db/schema.ts'
-import { AlreadyExists, Blocked, NotFound } from '../routes.ts'
+import { AlreadyExists, Blocked, NotFound } from '../errors.ts'
 import type { Clock, Ids } from './attendance.ts'
 import { hashToken, looksLikeToken, newToken } from './tokens.ts'
 import { moment } from '../time.ts'

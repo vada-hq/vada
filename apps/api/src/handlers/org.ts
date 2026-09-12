@@ -25,7 +25,7 @@ import {
   rosterPaging,
   rosterScope,
 } from '../org/roster.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 학생회를 보고 고치는 자리들 — 명단·조직도·초대·역할.
 //

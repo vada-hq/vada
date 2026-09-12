@@ -38,7 +38,7 @@ import {
 import { eventSurvey, replaceSurvey, surveyReplaceImpact } from '../events/survey.ts'
 import { wrapUpBanner, wrapUpCounts, wrapUpRemaining } from '../events/wrap-up.ts'
 import { newToken } from '../public/tokens.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 행사 — 목록과 기본정보, 참석 확인 QR, 그리고 행사 공간의 갈피들.
 

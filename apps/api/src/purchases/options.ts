@@ -2,7 +2,7 @@ import { and, asc, eq } from 'drizzle-orm'
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { budgetItems } from '../db/schema.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 
 // 구매 요청이 고르는 것들.
 //
