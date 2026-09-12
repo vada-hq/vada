@@ -136,6 +136,36 @@ Render 무료에는 그 자리가 없다. 그래서 표는 **사람이 한 번 �
    몰아 버리면 행사장에서 줄 서서 찍는 사람들이 다 막힌다. 그래서 **없으면 오늘처럼
    헤더를 믿고, 대신 설 때 소리 내어 말한다.** 넣는 순간 닫힌다.
 
+## API 자동 배포의 범위 (2026-09-12)
+
+화면만 바뀌어도 API가 재배포되던 설정을 `render.yaml`의 `buildFilter.paths`로
+제한한다. 회의 화면 리팩터링 뒤 불필요한 API 배포가 실패하면서 운영 요청에 524가
+발생했고, 해당 배포 실패 후 기존 서버의 응답이 복구됐다. API 이미지에 영향을 주는
+변경만 배포해 이 경로를 줄인다.
+
+- `apps/api/**`: 서버 코드, 의존성, DB 마이그레이션, Dockerfile.
+- `specs/**`: Docker가 복사하는 공용 명세. API도 계약·권한·선택지 명세를 읽는다.
+- `.dockerignore`, `render.yaml`: 이미지 입력 범위와 Render 서비스 설정.
+
+이외의 웹 코드·Worker·웹 의존성·문서만 바뀌면 API 자동 배포를 건너뛴다.
+API 변경이 함께 있으면 배포한다. 공용 명세가 빌드에 필요하므로 `rootDir`을
+`apps/api`로 좁히지 않고 `dockerContext: .`을 유지한다. Docker의 COPY 입력을
+늘리는 변경은 필터도 함께 갱신해야 하며 `tests/deploy-filter.test.mjs`가 이를 검사한다.
+
+**운영 반영은 Render 서비스 설정까지 확인해야 한다.** Blueprint에 연결되어 있고
+자동 동기화가 켜져 있으면 이 파일 변경을 동기화한다. 연결되어 있지 않으면 YAML을
+푸시하는 것만으로 운영 설정이 바뀌지 않는다. 그 경우 `vada-api → Settings →
+Build & Deploy → Build Filters → Edit`에서 위 네 경로를 Included Paths에 넣고
+저장한다. Root Directory는 비워 두며 Ignored Paths에는 API 입력을 넣지 않는다.
+이후 설정 화면에 네 경로가 표시되는지 확인한다.
+
+필터는 커밋에 따른 자동 배포에 적용된다. 수동 배포와 서비스 설정 변경은 별개이며,
+Blueprint YAML 변경 자체도 동기화 대상이므로 이번 설정 적용에서 한 번 배포가
+발생할 수 있다. 배포가 없었다는 사실만으로 적용 완료를 판단하지 않는다.
+
+근거: [Render build filters](https://render.com/docs/monorepo-support#setting-build-filters),
+[Blueprint buildFilter](https://render.com/docs/blueprint-spec#buildfilter).
+
 ## 올리는 명령
 
 ```

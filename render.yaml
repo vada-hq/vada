@@ -15,6 +15,15 @@ services:
     # 빌드 문맥이 저장소 뿌리다 — api가 specs/를 읽으므로 apps/api만으로는 담을 수 없다.
     dockerfilePath: ./apps/api/Dockerfile
     dockerContext: .
+    # API 이미지의 입력이 바뀔 때만 자동 배포한다. 화면·Worker·문서 변경은 제외된다.
+    # specs는 API의 계약·권한·선택지 입력이므로 apps/api와 함께 포함한다.
+    # Docker COPY 입력을 늘리면 이 목록도 늘린다(tests/deploy-filter.test.mjs).
+    buildFilter:
+      paths:
+        - apps/api/**
+        - specs/**
+        - .dockerignore
+        - render.yaml
     # 로그인 길을 묻는 자리다. 아무것도 없어도 200이라 살아 있는지 보기에 알맞다.
     #
     # **이 주소가 계약과 갈리면 배포가 스스로를 죽인다.** 서버는 계약에 없는 자리를
