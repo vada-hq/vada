@@ -1,50 +1,12 @@
 import { useState, type ReactNode } from 'react'
-import shellJson from '../../../../specs/figma/vada-wireframe/shell.json'
 import { readObjectSource } from '../data-sources/catalog'
 import { runMutation } from '../spec/mutations'
-import type { Workspace } from '../spec/workspaces'
+import { shell, type Shell, type ShellMenuItem } from '../spec/shell'
 
 // 모든 데스크톱 화면이 공유하는 앱 구조(사이드바 + 헤더).
 //
 // 화면 하나의 요소가 아니므로 screen.json이 아니라 wireframe 단위 shell.json이
 // 갖는다. 헤더에 무엇을 쓸지는 각 화면의 meta가 정한다 — 셸은 자리만 만든다.
-
-interface ShellNavItem {
-  label: string
-  targetScreenId?: string
-  note?: string
-}
-
-interface Shell {
-  schemaVersion: 1
-  brand: { name: string; dataSourceKey?: string; subtitleField?: string }
-  navigation: ShellNavItem[]
-  // 화면 묶음이 나눠 쓰는 머리. spec/workspaces.ts가 읽는다.
-  workspaces?: Workspace[]
-  viewer?: {
-    dataSourceKey: string
-    nameField: string
-    roleField?: string
-    /** 그 이름을 눌렀을 때 열리는 것. 명세가 든다(`shell.json`). */
-    menu?: ShellMenuItem[]
-  }
-}
-
-/**
- * 보는 사람 자리에서 열리는 갈래.
- *
- * **어느 화면에 있든 자기 계정으로 가는 길이 여기다.** 이 자리가 없던 동안 로그아웃할
- * 방법이 앱 어디에도 없었다 — 한번 들어온 사람은 브라우저의 쿠키를 직접 지워야
- * 나갈 수 있었다(2026-09-09, 배포된 것을 쓰던 사람이 물었다).
- */
-interface ShellMenuItem {
-  label: string
-  targetScreenId?: string
-  mutationKey?: string
-  onSuccess?: { navigate: string }
-}
-
-export const shell = shellJson as Shell
 
 interface AppShellProps {
   screenId: string
