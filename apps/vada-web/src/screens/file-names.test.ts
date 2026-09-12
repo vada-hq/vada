@@ -31,7 +31,7 @@ function trackedNames(): string[] {
 describe('git이 든 이름과 디스크가 같다', () => {
   it('화면 파일 이름이 대소문자까지 맞는다', () => {
     // 화면별 하위 폴더도 포함하고, 파일명뿐 아니라 경로의 대소문자도 맞댄다.
-    const onDisk = readdirSync(here, { recursive: true })
+    const onDisk = readdirSync(here, { recursive: true, encoding: 'utf8' })
       .map((name) => name.replaceAll('\\', '/'))
       .filter((name) => name.endsWith('.tsx') || name.endsWith('.ts'))
       .sort()
