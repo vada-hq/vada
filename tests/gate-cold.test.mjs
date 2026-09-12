@@ -43,3 +43,30 @@ test('원격 게이트가 검사를 실제로 돌린다', () => {
   assert.ok(GATE.includes('npm run test'), '게이트가 검사를 돌리지 않습니다.')
   assert.ok(GATE.includes('npm ci'), '게이트가 새로 설치하지 않습니다.')
 })
+
+// screens 작업은 이미 두 앱을 설치한다. 명령이 존재하는 것뿐 아니라, 올바른
+// 앱에서 조건 없이 실행되고 실패를 무시하지 않는지 확인한다.
+function requiredScreenCheck(command, directory) {
+  const job = GATE.split(/^  screens:\r?\n/m)[1]?.split(/^  [\w-]+:\r?$/m)[0]
+  assert.ok(job, 'screens 작업이 필요합니다')
+  assert.doesNotMatch(job, /^    (?:if|continue-on-error):/m)
+  const steps = job.split(/^      - /m).slice(1)
+  const matches = steps.filter((step) =>
+    step.split(/\r?\n/).some((line) => line.trim() === `run: ${command}`),
+  )
+  assert.equal(matches.length, 1, `${command}를 독립된 필수 단계로 실행해야 합니다`)
+  const step = matches[0]
+  assert.ok(step.split(/\r?\n/).some((line) => line.trim() === `working-directory: ${directory}`))
+  assert.doesNotMatch(step, /^\s*(?:if|continue-on-error):/m)
+}
+
+test('API 전용 타입 검사가 CI의 필수 단계다', () => {
+  requiredScreenCheck('npm run typecheck', 'apps/api')
+})
+
+test('웹 린트가 경고도 실패로 처리하는 CI 필수 단계다', () => {
+  requiredScreenCheck('npm run lint', 'apps/vada-web')
+  const web = JSON.parse(readFileSync(new URL('../apps/vada-web/package.json', import.meta.url), 'utf8'))
+  assert.match(web.scripts.lint, /\boxlint\b/)
+  assert.match(web.scripts.lint, /--max-warnings(?:=|\s+)0(?:\s|$)/)
+})

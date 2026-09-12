@@ -16,13 +16,13 @@ import {
   servingFromServer,
   startServing,
   urlOf,
-  useServer,
+  configureServer,
 } from './server'
 
 // **앱이 진짜로 서버에 붙는가.**
 //
 // 서버를 짓고 배포하고 로그인까지 되는데도 화면이 그리는 값이 전부 개발용 응답인
-// 채로 오래 있었다. `useServer`를 부르는 곳이 검사뿐이었기 때문이다 — 검사 안에서는
+// 채로 오래 있었다. `configureServer`를 부르는 곳이 검사뿐이었기 때문이다 — 검사 안에서는
 // 서버가 켜지고 진짜 브라우저에서는 안 켜졌는데, **화면이 멀쩡히 그려지니 아무도
 // 몰랐다.** 그 자리를 여기서 잰다.
 
@@ -80,7 +80,7 @@ describe('고르는 목록도 서버에서 온다', () => {
   // 표는 진짜인데 고를 것이 가짜면 사람은 없는 학교를 고르고 저장할 때 터진다.
   it('진짜에 오른 목록은 서버가 답한다', async () => {
     const asked: string[] = []
-    back = useServer({
+    back = configureServer({
       baseUrl: 'http://server',
       fetch: async (input) => {
         asked.push(String(input))
@@ -97,7 +97,7 @@ describe('고르는 목록도 서버에서 온다', () => {
 
   it('인자를 주소에 싣는다', async () => {
     const asked: string[] = []
-    back = useServer({
+    back = configureServer({
       baseUrl: '',
       fetch: async (input) => {
         asked.push(String(input))
@@ -111,7 +111,7 @@ describe('고르는 목록도 서버에서 온다', () => {
   // **조용히 돌아가지 않는다.** 서버가 죽었는데 개발용 응답을 그리면 화면은 멀쩡히
   // 목록을 내고 사람은 없는 학교를 고른다.
   it('서버가 실패하면 던진다', async () => {
-    back = useServer({
+    back = configureServer({
       baseUrl: '',
       fetch: async () => new Response('nope', { status: 500 }),
     })
@@ -130,7 +130,7 @@ describe('고르는 목록도 서버에서 온다', () => {
   // 서버를 부르지도 않는다 — 계약에 자리는 있어도 답할 것이 없다.
   it('진짜에 없는 목록은 가짜를 주지 않고 아직 안 지었다고 말한다', async () => {
     let called = false
-    back = useServer({
+    back = configureServer({
       baseUrl: '',
       fetch: async () => {
         called = true
@@ -175,7 +175,7 @@ describe('실패한 것만 실패했다고 말한다', () => {
   // 요청조차 나가지 않은 일곱까지 빨갛게 나왔다 — 사람은 아홉 군데가 고장 난 줄
   // 알고 없는 자리를 뒤진다. 다음 흐름마다 디버깅을 헷갈리게 할 자리다.
   it('받지 못한 부름의 이름만 알린다', async () => {
-    back = useServer({
+    back = configureServer({
       baseUrl: '',
       fetch: async (input) =>
         String(input).includes('/api/shell/viewer')
@@ -197,7 +197,7 @@ describe('실패한 것만 실패했다고 말한다', () => {
   })
 
   it('둘이 막히면 둘 다 말한다', async () => {
-    back = useServer({ baseUrl: '', fetch: async () => new Response('nope', { status: 500 }) })
+    back = configureServer({ baseUrl: '', fetch: async () => new Response('nope', { status: 500 }) })
     const failed = await loadSources([
       { key: 'shell.organization', params: {} },
       { key: 'shell.viewer', params: {} },
@@ -234,14 +234,14 @@ describe('아직 안 붙은 쓰기는 성공한 척하지 않는다', () => {
     )
     // 전부 붙은 날에는 이 검사가 잴 것이 없다. 조용히 통과하지 않고 그 사실을 말한다.
     expect(notYet, '쓰기가 전부 붙었습니다 — 이 검사는 이제 잴 것이 없습니다').toBeDefined()
-    back = useServer({ baseUrl: '', fetch: async () => Response.json({}) })
+    back = configureServer({ baseUrl: '', fetch: async () => Response.json({}) })
     await expect(runMutation(notYet!, {}, keys)).rejects.toBeInstanceOf(NotServedYet)
   })
 
   // **'서버가 고장 난 것'과 '아직 안 붙은 것'은 다른 일이다.** 같은 글로 말하면
   // 남은 흐름 여섯을 붙이는 동안 어느 쪽인지 매번 코드를 읽어야 한다.
   it('고장과 다른 것으로 구분된다', async () => {
-    back = useServer({ baseUrl: '', fetch: async () => new Response('nope', { status: 500 }) })
+    back = configureServer({ baseUrl: '', fetch: async () => new Response('nope', { status: 500 }) })
     const broken = await runMutation('org.create', {}).catch((thrown: unknown) => thrown)
     expect(broken).toBeInstanceOf(Error)
     expect(broken).not.toBeInstanceOf(NotServedYet)
@@ -263,7 +263,7 @@ describe('보는 사람이 바뀌면 담아 둔 것을 놓는다', () => {
   // 않게. 교차검토가 짚었다(2026-09-05).
   it('앞사람의 값이 다음 사람에게 안 남는다', async () => {
     let answers = 0
-    back = useServer({
+    back = configureServer({
       baseUrl: '',
       fetch: async () => {
         answers += 1
@@ -284,7 +284,7 @@ describe('보는 사람이 바뀌면 담아 둔 것을 놓는다', () => {
 
   it('같은 사람이면 다시 묻지 않는다', async () => {
     let answers = 0
-    back = useServer({
+    back = configureServer({
       baseUrl: '',
       fetch: async () => {
         answers += 1

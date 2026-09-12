@@ -20,7 +20,7 @@ import { ScreenRouter } from '../screens/ScreenRouter'
 import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
 import { readObjectSource } from './catalog'
-import { loadSources, useServer } from './server'
+import { loadSources, configureServer } from './server'
 
 // **행사 참여자와 참여 설문을 서버에 붙인다**(EVT-04 · EVT-04B · EVT-05).
 //
@@ -242,7 +242,7 @@ beforeAll(async () => {
     newId: () => `X-${(made += 1)}`,
   })
 
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

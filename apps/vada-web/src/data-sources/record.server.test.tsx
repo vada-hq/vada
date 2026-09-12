@@ -15,7 +15,7 @@ import {
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
-import { forgetSources, loadSources, useServer } from './server'
+import { forgetSources, loadSources, configureServer } from './server'
 import { runMutation } from '../spec/mutations'
 
 // **기록 화면 셋을 끝까지 뚫는다**(REC-01 · REC-02 · REC-02A).
@@ -201,7 +201,7 @@ beforeAll(async () => {
     newId: () => 'X-01',
   })
 
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

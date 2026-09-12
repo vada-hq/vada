@@ -41,6 +41,7 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   // 화면을 옮기면 다시 그려 본다. 오류가 그 화면의 것이었다면 여기서 풀린다.
   componentDidUpdate(previous: ErrorBoundaryProps) {
     if (this.state.error !== null && previous.screenId !== this.props.screenId) {
+      // oxlint-disable-next-line react/no-did-update-set-state -- 화면 ID가 바뀐 오류 상태만 한 번 초기화한다. 복구 동작은 ErrorBoundary.test.tsx에서 검사한다.
       this.setState({ error: null, componentStack: null })
     }
   }
