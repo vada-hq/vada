@@ -1,4 +1,5 @@
-import type { Handlers } from '../deps.ts'
+import type { Context } from 'hono'
+import type { Deps, Handlers } from '../deps.ts'
 import {
   collegeOptions as educationCollegeOptions,
   departmentOptions as educationDepartmentOptions,
@@ -10,6 +11,15 @@ import { createOrg, invitedOrganization, joinOrg, verifyInviteCode } from '../or
 //
 // **여기서는 `orgOf(c)`를 쓰지 않는다.** 아직 어느 학생회의 것도 아닌 사람이 부르는
 // 자리이기 때문이다(계약의 `public`과 `signedIn`). 안쪽(`org.ts`)과 갈리는 점이 그것이다.
+
+async function startSignIn(c: Context, d: Deps, provider: string) {
+  const { url, headers } = await d.signIn.start(provider)
+  // state는 URL만으로 검증할 수 없다. 시작한 브라우저에 검증 쿠키도 전달해야 한다.
+  for (const cookie of headers.getSetCookie()) {
+    c.header('set-cookie', cookie, { append: true })
+  }
+  return { url }
+}
 
 export const joiningHandlers: Handlers = {
   // ── 들어오는 자리 (SIGN-IN) ────────────────────────────────────────────
@@ -30,8 +40,8 @@ export const joiningHandlers: Handlers = {
     return { screenId: sender.membership === null ? 'ONB-01' : 'HOME-01K' }
   },
   'auth.ways': async (_c, d) => d.signIn.open(),
-  'auth.signInGoogle': async (_c, d) => d.signIn.start('google'),
-  'auth.signInKakao': async (_c, d) => d.signIn.start('kakao'),
+  'auth.signInGoogle': async (c, d) => startSignIn(c, d, 'google'),
+  'auth.signInKakao': async (c, d) => startSignIn(c, d, 'kakao'),
   // **나가는 길.** 들어오는 길이 셋인데 나가는 길이 없었다 — 한번 들어온 사람은
   // 브라우저의 쿠키를 직접 지워야 나갈 수 있었다(2026-09-09에 사람이 물었다).
   //

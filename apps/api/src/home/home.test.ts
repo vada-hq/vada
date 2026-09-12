@@ -82,7 +82,7 @@ function harness(who: Viewer = VIEWER) {
     },
     signIn: {
       open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}` }),
+      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
       end: async () => new Headers(),
     },
     attempts: inMemoryAttempts(),

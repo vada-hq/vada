@@ -129,7 +129,7 @@ const api = createApp({
   },
   signIn: {
     open: () => ({ google: true, kakao: false }),
-    start: async (provider: string) => ({ url: `https://example.test/${provider}` }),
+    start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
   },
   attempts: inMemoryAttempts(),
   counter: inMemoryCounter(),

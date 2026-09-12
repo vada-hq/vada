@@ -95,7 +95,7 @@ beforeAll(async () => {
       open: () => ({ google: true, kakao: true }),
       start: async (provider: string) => {
         started.push(provider)
-        return { url: `https://example.test/${provider}` }
+        return { url: `https://example.test/${provider}`, headers: new Headers() }
       },
       // 나가면 그 사실이 여기 남는다 — 검사가 '정말 나갔나'를 이 값으로 본다.
       end: async () => {
