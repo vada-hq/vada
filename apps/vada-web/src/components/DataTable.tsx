@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import type { DataRow, DataValue } from '../data-sources/catalog'
+import type { DataRow, DataValue } from '../data-sources/definitions'
 import { NEUTRAL_CHIP, ROW_TONE, STATE_CHIP } from '../design/tones'
 
 // 한 줄 안에서도 조각마다 무게가 다르다. 이름은 뜻이고, 그 뜻을 어떤 색으로

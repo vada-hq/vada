@@ -1,4 +1,4 @@
-import type { DataRow } from '../data-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
 import type { QueryParams } from './types'
 
 // 조회 인자를 실제 값으로 바꾼다.

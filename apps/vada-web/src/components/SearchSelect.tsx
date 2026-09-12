@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { ChevronDown, Loader2, Search } from 'lucide-react'
-import { fetchOptions, getOptionSource } from '../option-sources/catalog'
-import type { Option } from '../option-sources/catalog'
+import { fetchOptions } from '../option-sources/catalog'
+import { getOptionSource } from '../option-sources/definitions'
+import type { Option } from '../option-sources/definitions'
 
 interface SearchSelectProps {
   id: string

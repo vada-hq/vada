@@ -1,4 +1,4 @@
-import type { DataRow, DataValue } from '../data-sources/catalog'
+import type { DataRow, DataValue } from '../data-sources/definitions'
 
 interface ActivityTimelineProps {
   nodeId?: string

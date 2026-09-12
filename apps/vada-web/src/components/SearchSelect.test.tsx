@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { SearchSelect } from './SearchSelect'
-import type { Option } from '../option-sources/catalog'
+import type { Option } from '../option-sources/definitions'
 
 const FIND_TIMEOUT = { timeout: 4000 }
 

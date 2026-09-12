@@ -1,6 +1,6 @@
 // 개발용 mock 데이터. 실제 데이터의 내용·id 규칙은 명세 번들에 없어 임시로 정했다
 // (docs/pilot-onb01.md 마찰 로그 참조). 응답 형태는 option-sources.json 계약을 따른다.
-import type { Option } from './catalog'
+import type { Option } from './definitions'
 
 export const SCHOOLS: Option[] = [
   { value: 'sch-001', label: '바다대학교' },

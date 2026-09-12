@@ -4,8 +4,8 @@ import { AppShell } from "../components/AppShell";
 import { FigmaAsset } from "../components/FigmaAsset";
 import { NEUTRAL_CHIP, STATUS_CHIP } from "../design/tones";
 import { readListSource, readObjectSource } from "../data-sources/catalog";
-import type { DataRow } from "../data-sources/catalog";
-import { getOptionSource } from "../option-sources/catalog";
+import type { DataRow } from "../data-sources/definitions";
+import { getOptionSource } from "../option-sources/definitions";
 import { elementByNodeId, my01 } from "../spec/screens";
 import type {
   InputSpec,

@@ -2,14 +2,10 @@ import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { MUTED_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
-import {
-  findDataSource,
-  readListSource,
-  readObjectSource,
-  readObjectSourceOrNull,
-} from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
-import { getOptionSource } from '../option-sources/catalog'
+import { readListSource, readObjectSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import type { DataRow } from '../data-sources/definitions'
+import { getOptionSource } from '../option-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, evtTask02 } from '../spec/screens'
 import type { ButtonSpec, ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'

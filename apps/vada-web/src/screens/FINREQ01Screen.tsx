@@ -6,14 +6,14 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { SearchSelect } from '../components/SearchSelect'
 import { TextInput } from '../components/TextInput'
 import { readObjectSource } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
 import {
   evaluateButtonExecution,
   getRequiredFieldCandidates,
   hasFieldValue,
 } from '../../../../packages/contracts/src/button-execution.mjs'
 import { computeNumber, formatComputed, itemKey, joinRowIds, rowIdsOf } from '../spec/compute'
-import { getOptionSource } from '../option-sources/catalog'
+import { getOptionSource } from '../option-sources/definitions'
 import { getMutation } from '../spec/mutations'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import { resolveParams } from '../spec/params'

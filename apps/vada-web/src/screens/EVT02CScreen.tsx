@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Built } from '../components/Built'
-import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, evt02c } from '../spec/screens'
 import type { ButtonSpec, SummarySpec } from '../spec/types'

@@ -1,5 +1,5 @@
-import { findDataSource } from './catalog'
-import { getOptionSource } from '../option-sources/catalog'
+import { findDataSource } from './definitions'
+import { getOptionSource } from '../option-sources/definitions'
 import mutationsJson from '../../../../specs/figma/vada-wireframe/mutations.json'
 import { documents } from './served/documents'
 import { events } from './served/events'

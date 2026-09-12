@@ -6,12 +6,9 @@ import { CautionButton } from '../components/CautionButton'
 import { DataTable } from '../components/DataTable'
 import { ProgressSteps } from '../components/ProgressSteps'
 import { SummaryCard } from '../components/SummaryCard'
-import {
-  findDataSource,
-  readListSource,
-  readObjectSourceOrNull,
-} from '../data-sources/catalog'
-import type { DataRow, DataValue } from '../data-sources/catalog'
+import { readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import type { DataRow, DataValue } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, finReq02, nodeIdOf } from '../spec/screens'
 import type { ElementSpec } from '../spec/types'

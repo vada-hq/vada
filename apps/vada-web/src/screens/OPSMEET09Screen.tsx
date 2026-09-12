@@ -10,8 +10,9 @@ import {
   NEUTRAL_VALUE,
   STATE_CHIP,
 } from '../design/tones'
-import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
-import type { DataRow, DataValue } from '../data-sources/catalog'
+import { readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import type { DataRow, DataValue } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { targetScreenOf, paramsOf } from '../spec/types'
 import { drawnTitleOf, elementByNodeId, opsMeet09 } from '../spec/screens'

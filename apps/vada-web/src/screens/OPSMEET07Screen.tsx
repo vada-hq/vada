@@ -13,8 +13,9 @@ import {
   STATE_CHIP,
 } from '../design/tones'
 import { Built } from '../components/Built'
-import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
-import type { DataRow, DataValue } from '../data-sources/catalog'
+import { readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import type { DataRow, DataValue } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, opsMeet07, opsMeet08 } from '../spec/screens'
 import { useSubmitAction } from '../spec/useSubmitAction'

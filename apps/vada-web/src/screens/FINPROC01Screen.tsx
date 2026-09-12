@@ -5,13 +5,8 @@ import { GroupedDataTable } from '../components/GroupedDataTable'
 import { NoteBox } from '../components/NoteBox'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { SummaryCard } from '../components/SummaryCard'
-import {
-  findDataSource,
-  readListSource,
-  readObjectSourceOrNull,
-  type DataRow,
-  type DataValue,
-} from '../data-sources/catalog'
+import { readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource, type DataRow, type DataValue } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawnNodeIdOf, finProc01 } from '../spec/screens'
 

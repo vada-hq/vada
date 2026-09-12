@@ -5,9 +5,9 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { SearchSelect } from '../components/SearchSelect'
 import { TextInput } from '../components/TextInput'
 import { readObjectSource } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
 import { fetchOptions } from '../option-sources/catalog'
-import type { Option } from '../option-sources/catalog'
+import type { Option } from '../option-sources/definitions'
 import {
   evaluateButtonExecution,
   getRequiredFieldCandidates,

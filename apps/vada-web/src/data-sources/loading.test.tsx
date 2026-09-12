@@ -3,7 +3,7 @@ import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
 import { dataSourceKeysOf } from '../spec/screen-sources'
-import { findDataSource } from './catalog'
+import { findDataSource } from './definitions'
 import { setLoadingBehaviour } from './loading'
 import { SourcesFailed } from './server'
 

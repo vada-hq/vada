@@ -1,4 +1,4 @@
-import type { DataRow, DataValue } from '../data-sources/catalog'
+import type { DataRow, DataValue } from '../data-sources/definitions'
 import { NEUTRAL_CHIP, NEUTRAL_VALUE, STATE_TEXT, TABLE_STATE_CHIP } from '../design/tones'
 import type { ItemListSpec } from '../spec/types'
 

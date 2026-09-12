@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { fetchOptions, getOptionSource } from '../option-sources/catalog'
+import { fetchOptions } from '../option-sources/catalog'
+import { getOptionSource } from '../option-sources/definitions'
 import { NotBuiltYet } from '../data-sources/server'
-import type { Option } from '../option-sources/catalog'
+import type { Option } from '../option-sources/definitions'
 
 interface ChoiceGroupProps {
   id: string

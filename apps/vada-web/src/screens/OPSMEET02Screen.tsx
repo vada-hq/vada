@@ -8,7 +8,7 @@ import { SearchSelect } from '../components/SearchSelect'
 import { TextInput } from '../components/TextInput'
 import { STATE_CHIP } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
 import {
   evaluateButtonExecution,
   getRequiredFieldCandidates,

@@ -12,8 +12,8 @@ import {
   NEUTRAL_CHIP,
 } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
-import { getOptionSource } from '../option-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
+import { getOptionSource } from '../option-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, opsCal01 } from '../spec/screens'
 import { targetScreenOf, paramsOf } from '../spec/types'
