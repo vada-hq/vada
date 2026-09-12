@@ -55,5 +55,6 @@ vada 제품의 wireframe 원본을 제품 코드로 옮길 때 적용하는 **�
 ## 8. 컴포넌트 구조
 
 - 화면은 조립만 한다. 요소 유형(input/select/button)은 `apps/vada-web/src/components/`의 공통 컴포넌트로 구현하고, 첫 화면에서 태어난 컴포넌트가 이후 화면의 기반이 된다.
+- 화면 등록과 초안·주소 인자 전달은 `apps/vada-web/src/screens/routing/`의 업무별 모듈이 맡는다. 새 화면은 해당 모듈의 `screenIds`와 `render`에 연결한다. 같은 컴포넌트가 그리는 변형은 하나의 등록에 함께 둔다. `ScreenRouter.tsx`는 공통 로딩·오류 처리와 등록된 화면 선택을 맡는다. 중복 ID는 등록 시 오류로 알리고, 누락은 명세의 전체 화면 목록과 대조해 검사한다.
 - 공통 컴포넌트의 props 계약은 동작 명세의 스키마 필드(`fieldKey`, `label`, `placeholder`, `required`, `initiallyDisabled`, `searchable`, `enabledWhen`, `resetOnChangeOf`…)에서 출발한다.
 - 버튼 실행 판정은 재구현하지 않고 `packages/contracts/src/button-execution.mjs`를 직접 import해 단일 의미론을 유지한다.

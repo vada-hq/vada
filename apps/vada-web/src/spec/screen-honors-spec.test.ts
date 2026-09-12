@@ -1,8 +1,11 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ALL_SCREENS } from './screens'
 import type { ElementSpec, ScreenSpec } from './types'
+import { SCREEN_RENDERERS } from '../screens/routing'
+import type { ScreenContext } from '../screens/routing/types'
+import type { ScopeDraft } from '../state/scopes'
 
 // 화면이 자기 명세를 지키는가.
 //
@@ -19,9 +22,8 @@ import type { ElementSpec, ScreenSpec } from './types'
 // 보고, 대조기는 누르지 않고, e2e는 사람이 적은 것만 본다. **명세의 한 줄과
 // 화면의 한 줄을 짝지어 보는 자리가 없었다.**
 //
-// 이 검사는 그 자리다. 다만 하는 일은 거칠다 - 화면을 그려 보는 것이 아니라
-// **원문에 그 배선이 있는지**를 본다. 있는데 틀리게 쓴 것은 못 잡는다. 그래도
-// 위의 셋은 전부 '아예 없음'이었고, 없는 것은 이것으로 잡힌다.
+// 제출·이동 처리 등은 원문에 연결이 있는지 확인한다. 초안과 수명 이벤트는
+// 업무별 등록부가 실제로 돌려주는 props와 콜백을 검사한다.
 
 const SRC = join(__dirname, '..')
 
@@ -44,7 +46,23 @@ function sourceOf(screenId: string): string {
   return readFileSync(componentFileOf(screenId), 'utf8')
 }
 
-const ROUTER = readFileSync(join(SRC, 'screens', 'ScreenRouter.tsx'), 'utf8')
+function connectionOf(screenId: string, overrides: Partial<ScreenContext> = {}) {
+  const render = SCREEN_RENDERERS.get(screenId)
+  if (render === undefined) throw new Error(`등록되지 않은 화면: ${screenId}`)
+  return render({
+    screenId,
+    screenParams: {},
+    scopes: {},
+    onChangeScope: () => {},
+    onNavigate: () => {},
+    onScopeEvent: () => {},
+    ...overrides,
+  }).props as {
+    draft?: ScopeDraft
+    onChangeDraft?: (next: ScopeDraft) => void
+    onScopeEvent?: ScreenContext['onScopeEvent']
+  }
+}
 
 /** 최상위 요소와 되풀이되는 묶음 안의 요소를 모두 훑는다(계약의 element-walk와 같은 규칙). */
 function allSpecsOf(screen: ScreenSpec): ElementSpec[] {
@@ -94,17 +112,22 @@ describe('화면이 자기 명세를 지킨다', () => {
 
   // stateScopeKey를 선언한 화면의 초안은 **그 스코프에 산다.** 화면 안의
   // useState에 담으면 떠났다 오는 순간 사라지고, 명세가 말한 flow 수명이
-  // 거짓이 된다. 스코프를 잇는 것은 라우터의 일이므로 라우터에서 확인한다.
+  // 거짓이 된다. 업무별 등록부가 명세의 스코프를 읽고 갱신하는지 확인한다.
   const scoped = ALL_SCREENS.filter((screen) => screen.stateScopeKey !== undefined)
 
   it.each(scoped.map((screen) => screen.screenId))(
     '%s: 상태 스코프를 선언했으면 라우터가 그 초안을 넘긴다',
     (screenId) => {
-      const component = `${screenId.replace(/-/g, '')}Screen`
-      const usage = ROUTER.slice(ROUTER.indexOf(`<${component}`))
-      const element = usage.slice(0, usage.indexOf('/>') + 2)
-      expect(element).toContain('draft=')
-      expect(element).toContain('onChangeDraft=')
+      const scopeKey = scoped.find((screen) => screen.screenId === screenId)!.stateScopeKey!
+      const current: ScopeDraft = { values: { field: '작성 중' }, labels: {} }
+      const next: ScopeDraft = { values: { field: '고친 값' }, labels: {} }
+      const onChangeScope = vi.fn()
+      const props = connectionOf(screenId, { scopes: { [scopeKey]: current }, onChangeScope })
+
+      expect(props.draft).toBe(current)
+      expect(props.onChangeDraft).toBeTypeOf('function')
+      props.onChangeDraft?.(next)
+      expect(onChangeScope).toHaveBeenCalledExactlyOnceWith(scopeKey, next)
     },
   )
 
@@ -125,9 +148,8 @@ describe('화면이 자기 명세를 지킨다', () => {
   it.each(clearing.map((screen) => screen.screenId))(
     '%s: 성공하면 스코프를 비운다고 말했으면 그 손잡이를 받는다',
     (screenId) => {
-      const component = `${screenId.replace(/-/g, '')}Screen`
-      const usage = ROUTER.slice(ROUTER.indexOf(`<${component}`))
-      expect(usage.slice(0, usage.indexOf('/>') + 2)).toContain('onScopeEvent=')
+      const onScopeEvent = vi.fn()
+      expect(connectionOf(screenId, { onScopeEvent }).onScopeEvent).toBe(onScopeEvent)
       expect(sourceOf(screenId)).toContain('onScopeEvent')
     },
   )
