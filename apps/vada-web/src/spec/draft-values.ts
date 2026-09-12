@@ -1,6 +1,9 @@
 import { itemKey, joinRowIds } from './compute'
+import { draftValueOf, ON } from './draft-scalar'
 import { ALL_SPEC_SCREENS } from './screens'
 import type { ListSpec, ScreenSpec } from './types'
+
+export { draftValueOf } from './draft-scalar'
 
 // 초안의 칸은 **글이고** 서버의 값은 아니다.
 //
@@ -27,21 +30,8 @@ import type { ListSpec, ScreenSpec } from './types'
 // **여기를 지나지 않은 몸통은 나가지 못한다** — `mutations.ts`가 나가는 몸통을 계약에
 // 대고 재고, 어긋나면 보내기 전에 던진다.
 
-/** 체크 상자가 켜졌다는 뜻으로 초안에 담기는 글. 화면들이 이미 쓰던 꼴이다. */
-const ON = 'y'
-
 /** 화면이 초안에 줄 이름을 이어 담는 글자. 서버의 `body.ts`가 같은 글자를 안다. */
 const ROW_SEPARATOR = '\n'
-
-/**
- * 서버가 준 값을 초안의 칸에 담는 꼴로.
- *
- * **참거짓만 다르게 다룬다.** 나머지는 글로 그리는 것이라 그대로 옮기면 된다.
- */
-export function draftValueOf(value: unknown): string {
-  if (typeof value === 'boolean') return value ? ON : ''
-  return String(value)
-}
 
 /**
  * 이 화면에서 참거짓을 담는 칸들.
