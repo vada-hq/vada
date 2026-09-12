@@ -10,9 +10,9 @@ import {
   STATE_CHIP,
 } from '../design/tones'
 import { readFieldRows, readObjectSource } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
-import { getOptionSource } from '../option-sources/catalog'
-import type { Option } from '../option-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
+import { getOptionSource } from '../option-sources/definitions'
+import type { Option } from '../option-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt05b } from '../spec/screens'
 import { useFieldDraft } from '../spec/useFieldDraft'

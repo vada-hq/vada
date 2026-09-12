@@ -1,4 +1,4 @@
-import { findDataSource } from './catalog'
+import { findDataSource } from './definitions'
 import { isServed } from './served'
 
 /**

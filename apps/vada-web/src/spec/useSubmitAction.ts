@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { DataRow } from '../data-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
 import { resolveParams } from './params'
 import { NotServedYet, Refused, getMutation, runMutation } from './mutations'
 import type { SubmitAction } from './types'

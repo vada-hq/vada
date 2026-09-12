@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { MobileScreen } from '../components/MobileScreen'
-import { findDataSource, readObjectSourceOrNull } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
+import { readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import type { DataRow } from '../data-sources/definitions'
 import {
   LINK_STATE_ACTION,
   LINK_STATE_CARD,

@@ -1,6 +1,6 @@
 import { readObjectSourceOrNull } from '../data-sources/catalog'
 import { resolveParams } from './params'
-import type { DataRow } from '../data-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
 import type { ScreenElement } from './types'
 
 /**

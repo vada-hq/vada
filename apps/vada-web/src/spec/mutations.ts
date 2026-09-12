@@ -1,5 +1,5 @@
 // specs/figma/vada-wireframe/mutations.json 카탈로그의 소비자.
-import type { DataRow } from '../data-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
 // 계약(경로·payload 스코프·상태 문구)은 카탈로그를 단일 원본으로 읽고,
 // 네트워크만 개발용 mock으로 대체한다(로딩 상태 확인용 인위 지연 포함).
 import catalogJson from '../../../../specs/figma/vada-wireframe/mutations.json'

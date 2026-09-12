@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from './ScreenRouter'
 import { task01 } from '../spec/screens'
 import type { ItemListSpec, SelectSpec } from '../spec/types'
-import { getOptionSource } from '../option-sources/catalog'
+import { getOptionSource } from '../option-sources/definitions'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 
 // TASK-01의 완료 조건. 이 사이클에서 새로 연 자리는 itemList.params의 고정값

@@ -1,6 +1,7 @@
 import { AppShell } from '../components/AppShell'
 import { FigmaAsset } from '../components/FigmaAsset'
-import { findDataSource, readListSource } from '../data-sources/catalog'
+import { readListSource } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
 import { elementByNodeId, msg01, nodeIdOf } from '../spec/screens'
 import { targetScreenOf } from '../spec/types'
 import type { ItemListSpec } from '../spec/types'

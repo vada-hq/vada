@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { findDataSource } from './catalog'
+import { findDataSource } from './definitions'
 import { loadSources, servingFromServer, type SourceCall } from './server'
 
 /**

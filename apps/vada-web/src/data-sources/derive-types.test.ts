@@ -4,7 +4,7 @@ import { expect, it } from 'vitest'
 import { DASHBOARD_FIXTURES, FILTERED_FIXTURES } from './fixtures'
 import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
 import { resolveParams } from '../spec/params'
-import type { DataRow, DataValue } from './catalog'
+import type { DataRow, DataValue } from './definitions'
 
 // 조각 920개의 **값의 종류**를 개발용 응답에서 읽어 낸다.
 //

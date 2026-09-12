@@ -2,7 +2,7 @@
 // 구현 화면과 reference.png를 눈으로 대조할 수 있다. 백엔드가 붙으면
 // catalog.ts의 request.path로 대체된다.
 import permissionsJson from '../../../../specs/figma/vada-wireframe/permissions.json'
-import type { DataRow } from './catalog'
+import type { DataRow } from './definitions'
 
 // **갈피와 단계 말은 서버가 정한다**(`tasks/labels.ts`). 사람이 정했다(2026-09-07):
 // 그림이 '검토 필요'를 '해야 할 업무'에 놓았지만 서버의 규칙을 따른다 — 검토 중인

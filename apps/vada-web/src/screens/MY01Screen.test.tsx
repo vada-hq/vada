@@ -5,7 +5,7 @@ import { ScreenRouter } from './ScreenRouter'
 import { shell } from '../spec/shell'
 import { my01 } from '../spec/screens'
 import type { ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
-import { getOptionSource } from '../option-sources/catalog'
+import { getOptionSource } from '../option-sources/definitions'
 import { readObjectSource } from '../data-sources/catalog'
 
 // MY-01 사이클에서 새로 연 자리(select.optionCounts · itemList.params ·

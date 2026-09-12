@@ -5,15 +5,12 @@ import { NotBuiltYet } from '../data-sources/server'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { BANNER_TEXT, BANNER_TONE, NEUTRAL_BORDER, NEUTRAL_CHIP, NEUTRAL_VALUE, STATE_CHIP } from '../design/tones'
-import {
-  findDataSource,
-  readFieldRows,
-  readListSource,
-  readObjectSourceOrNull,
-} from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
-import { fetchOptions, getOptionSource } from '../option-sources/catalog'
-import type { Option } from '../option-sources/catalog'
+import { readFieldRows, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import type { DataRow } from '../data-sources/definitions'
+import { fetchOptions } from '../option-sources/catalog'
+import { getOptionSource } from '../option-sources/definitions'
+import type { Option } from '../option-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, opsMeet06a, opsMeet06b } from '../spec/screens'
 import { columnFieldOf } from '../spec/types'

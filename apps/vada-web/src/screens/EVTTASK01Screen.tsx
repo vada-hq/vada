@@ -13,8 +13,8 @@ import {
 } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { targetScreenOf, noteOf } from '../spec/types'
-import type { DataRow } from '../data-sources/catalog'
-import { getOptionSource } from '../option-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
+import { getOptionSource } from '../option-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evtTask01 } from '../spec/screens'
 import type {

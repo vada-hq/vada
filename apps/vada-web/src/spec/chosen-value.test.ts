@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import { ALL_SCREENS, exampleParamsOf } from './screens'
 import { dataSourceCallsOf } from './screen-sources'
-import { findDataSource, readDataSource } from '../data-sources/catalog'
-import { getOptionSource } from '../option-sources/catalog'
+import { readDataSource } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import { getOptionSource } from '../option-sources/definitions'
 import type { SelectSpec, ScreenSpec } from './types'
-import type { DataRow } from '../data-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
 
 // **고른 값이 선택지에 있는가.**
 //

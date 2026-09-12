@@ -5,7 +5,7 @@ import { STATUS as TASK_STATUS, statusesOfTab } from '../../../api/src/tasks/lab
 import { STATUS as DOCUMENT_STATUS } from '../../../api/src/documents/labels.ts'
 import { AGENDA_STATUS } from '../../../api/src/meetings/detail.ts'
 import { FILTERED_FIXTURES } from './fixtures'
-import type { DataRow } from './catalog'
+import type { DataRow } from './definitions'
 import { isServed } from './served'
 
 // **개발용 응답이 서버와 다른 말을 하는가.**

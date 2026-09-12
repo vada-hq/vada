@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { asOptionSourcesCatalog, getOptionSource } from './catalog'
+import { asOptionSourcesCatalog, getOptionSource } from './definitions'
 
 describe('asOptionSourcesCatalog', () => {
   it('loadOn search인데 원격 검색 계약이 없으면 거부한다 (F5)', () => {

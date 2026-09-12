@@ -10,13 +10,9 @@ import {
   STATE_CHIP,
   STATE_TEXT,
 } from '../design/tones'
-import {
-  findDataSource,
-  readFieldRows,
-  readListSource,
-  readObjectSourceOrNull,
-} from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
+import { readFieldRows, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import type { DataRow } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, opsMeet06a } from '../spec/screens'
 import { columnFieldOf } from '../spec/types'

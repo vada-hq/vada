@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { FigmaAsset } from './FigmaAsset'
-import { fetchOptions, getOptionSource, type Option } from '../option-sources/catalog'
+import { fetchOptions } from '../option-sources/catalog'
+import { getOptionSource, type Option } from '../option-sources/definitions'
 
 // 목록을 좁히는 작은 드롭다운.
 //

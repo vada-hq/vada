@@ -9,8 +9,9 @@ import {
   NEUTRAL_VALUE,
   STATE_CHIP,
 } from '../design/tones'
-import { findDataSource, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/catalog'
+import { readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
+import type { DataRow } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, opsMeet03a, opsMeet03b, opsMeet03c } from '../spec/screens'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'

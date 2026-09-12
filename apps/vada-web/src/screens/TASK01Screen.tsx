@@ -11,8 +11,8 @@ import {
 } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { targetScreenOf, noteOf } from '../spec/types'
-import type { DataRow } from '../data-sources/catalog'
-import { getOptionSource } from '../option-sources/catalog'
+import type { DataRow } from '../data-sources/definitions'
+import { getOptionSource } from '../option-sources/definitions'
 import { elementByNodeId, task01 } from '../spec/screens'
 import type { ButtonSpec, ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 

@@ -12,7 +12,8 @@ import {
   STATE_CHIP,
   VALUE_TEXT,
 } from '../design/tones'
-import { findDataSource, readListSource, readObjectSource } from '../data-sources/catalog'
+import { readListSource, readObjectSource } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, evt02d } from '../spec/screens'
 import { targetScreenOf, paramsOf } from '../spec/types'

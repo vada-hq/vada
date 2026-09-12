@@ -1,5 +1,5 @@
 import shellJson from '../../../../specs/figma/vada-wireframe/shell.json'
-import { findDataSource } from '../data-sources/catalog'
+import { findDataSource } from '../data-sources/definitions'
 import { resolveParams } from './params'
 import type { QueryParams, ScreenSpec } from './types'
 
