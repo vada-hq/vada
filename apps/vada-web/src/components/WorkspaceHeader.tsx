@@ -3,7 +3,7 @@ import { FigmaAsset } from './FigmaAsset'
 import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readObjectSource } from '../data-sources/catalog'
 import { currentTabOf, workspaceOf } from '../spec/workspaces'
-import type { WorkspaceTabTarget } from '../spec/workspaces'
+import type { WorkspaceTabTarget } from '../spec/shell'
 import type { ScreenSpec } from '../spec/types'
 
 // 작업 공간의 머리 — 갈피 줄과 상태 줄.
