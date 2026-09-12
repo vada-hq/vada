@@ -1,7 +1,7 @@
 import { and, asc, eq, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { meetingAgendas, meetings, tasks } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { orNote, word } from './meetings.ts'
 
 // 회의록(OPS-MEET-06A · 06B · 07이 읽는다). 쓰는 쪽은 `minutes-write.ts`다.

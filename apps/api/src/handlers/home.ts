@@ -9,7 +9,7 @@ import {
   homeOrgAlerts,
   homeSchedules,
 } from '../home/home.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 홈(HOME-01K).
 //

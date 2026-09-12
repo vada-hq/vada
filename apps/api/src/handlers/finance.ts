@@ -16,7 +16,7 @@ import { eventExists, myPurchaseRequests, myPurchaseRequestSummary } from '../fi
 import { purchaseOrderList, purchaseOrderSummary } from '../finance/orders.ts'
 import { orgBreakdown, orgOverview } from '../finance/overview.ts'
 import { reviewItems, reviewSummary } from '../finance/review.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 재정(FIN-00 · FIN-00B · FIN-LEDGER-01 · FIN-PLAN-01 · FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01 · MY-REQ-01).
 //

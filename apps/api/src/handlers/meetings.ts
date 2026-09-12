@@ -42,7 +42,7 @@ import {
   startMeeting,
   startNextAgenda,
 } from '../meetings/run.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 회의(OPS-MEET-*).
 //

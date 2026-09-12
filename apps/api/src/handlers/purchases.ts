@@ -14,7 +14,7 @@ import {
   supplementItems,
   supplementRequest,
 } from '../purchases/supplement.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 구매 요청의 흐름(FIN-REQ-01 · REQ-02 · SUP-01의 읽기와 REQ-01 · SUP-01 · REV-01 · EVID-01의 쓰기).
 //

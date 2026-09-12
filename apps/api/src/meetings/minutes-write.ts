@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { meetingAgendas, meetingParticipants, meetings } from '../db/schema.ts'
-import { AlreadyExists, Blocked, NotFound, NotReady } from '../routes.ts'
+import { AlreadyExists, Blocked, NotFound, NotReady } from '../errors.ts'
 import { readFlag, readWord } from './fields.ts'
 import { word, type MeetingViewer } from './meetings.ts'
 import { agendaRecordsOf, minutesProgress } from './minutes.ts'

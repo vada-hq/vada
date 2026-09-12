@@ -1,6 +1,6 @@
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { UNASSIGNED } from '../tasks/labels.ts'
 import { clock, day, daysBetween, shortStamp, stamp } from '../time.ts'
 import {

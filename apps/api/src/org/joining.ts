@@ -10,7 +10,7 @@ import {
   organizations,
   users,
 } from '../db/schema.ts'
-import { Blocked, NotFound } from '../routes.ts'
+import { Blocked, NotFound } from '../errors.ts'
 import { collegeIn, departmentIn } from './education.ts'
 import { firstInvite } from './invite.ts'
 import { stillHere } from './membership.ts'

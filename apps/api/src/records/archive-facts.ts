@@ -18,7 +18,7 @@ import {
   surveys,
   tasks,
 } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { isOverdue, type TaskStatus } from '../tasks/labels.ts'
 
 // 아카이브가 세는 사실들(REC-02 · REC-02A).

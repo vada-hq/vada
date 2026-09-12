@@ -2,7 +2,7 @@ import { and, eq, inArray, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { events, meetingParticipants, meetings } from '../db/schema.ts'
 import { orNote, STATUS } from '../meetings/meetings.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { day, weekdayStamp } from '../time.ts'
 
 // 행사에 걸린 회의(EVT-MEET-01).

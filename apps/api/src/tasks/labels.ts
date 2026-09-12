@@ -1,7 +1,7 @@
 import { asc, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { departments } from '../db/schema.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { daysBetween, moment } from '../time.ts'
 
 // 업무 넷이 함께 쓰는 **완성된 글과 색**.

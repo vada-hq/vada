@@ -3,7 +3,7 @@ import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sou
 import permissionsJson from '../../../../specs/figma/vada-wireframe/permissions.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { events, tasks } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 행사를 끝내는 두 모달(EVT-02C · EVT-02E)이 읽는 것.
 //

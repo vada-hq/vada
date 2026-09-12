@@ -1,4 +1,4 @@
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { momentOf } from '../time.ts'
 
 // 구매 요청 흐름의 쓰기 여섯이 몸통을 읽는 규칙.

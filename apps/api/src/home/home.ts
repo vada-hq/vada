@@ -14,7 +14,7 @@ import {
   tasks,
 } from '../db/schema.ts'
 import { inThisWeek, labelOf, orgSchedules, shortDay } from '../ops/calendar.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { daysBetween, moment } from '../time.ts'
 
 // 홈(HOME-01K).

@@ -5,7 +5,8 @@ import type { Attempts } from './idempotency.ts'
 import type { InviteSettings } from './org/invite.ts'
 import { can, type Lookups, type Viewer } from './permissions.ts'
 import type { Counter } from './public/rate-limit.ts'
-import { NotFound, type Handler } from './routes.ts'
+import { NotFound } from './errors.ts'
+import type { Handler } from './routes.ts'
 
 // 답을 놓는 자리가 함께 쓰는 것.
 //

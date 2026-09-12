@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import { orgOf, type Handlers } from '../deps.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { eventTaskBoard, opsTaskBoard, taskAlerts } from '../tasks/board.ts'
 import { taskDetail, taskReviewStatus } from '../tasks/detail.ts'
 import { myTaskAlerts, myTaskTabCounts, myTasks } from '../tasks/mine.ts'

@@ -2,7 +2,7 @@ import { and, asc, eq, inArray, ne, notInArray } from 'drizzle-orm'
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { budgetItems, budgetPeriods, budgetSources, departments, events } from '../db/schema.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { won } from './labels.ts'
 
 // 예산 편성(FIN-PLAN-01) — 읽기 하나 · 행사 고르기 하나 · 저장 하나.

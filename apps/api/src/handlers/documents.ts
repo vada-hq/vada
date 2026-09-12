@@ -6,7 +6,7 @@ import {
 } from '../documents/event.ts'
 import { meetingDocuments } from '../documents/meeting.ts'
 import { taskReferenceDocuments, taskWorkDocuments } from '../documents/task.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 문서(EVT-DOC-01 · OPS-MEET-03A/05A/07 · EVT-TASK-02).
 //

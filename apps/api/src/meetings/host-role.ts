@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { departments, meetingParticipants, meetings, members } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { orNote } from './meetings.ts'
 
 // 진행 권한(OPS-MEET-04B의 안내·맨 위 칸과 D03의 확인 글).

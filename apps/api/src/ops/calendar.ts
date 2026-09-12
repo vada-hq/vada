@@ -2,7 +2,7 @@ import { and, eq, isNotNull, ne, notInArray } from 'drizzle-orm'
 import optionSources from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { events, meetings, tasks } from '../db/schema.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { daysBetween, moment, momentOf } from '../time.ts'
 
 // 운영 캘린더(OPS-CAL-01).

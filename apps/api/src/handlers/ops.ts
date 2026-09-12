@@ -7,7 +7,7 @@ import {
   readCalendarType,
 } from '../ops/calendar.ts'
 import { opsIntro, opsSpaceStats } from '../ops/space.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 
 // 운영 공간 그 자체(OPS-00 · OPS-CAL-01).
 //

@@ -1,7 +1,7 @@
 import { asc, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { departments, events } from '../db/schema.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { day } from '../time.ts'
 import { budgetPlanDraft } from './budget-plan.ts'
 import { won } from './labels.ts'

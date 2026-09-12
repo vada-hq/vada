@@ -15,7 +15,7 @@ import {
   tasks,
 } from '../db/schema.ts'
 import { harness, NOW, viewer } from '../events/testing.ts'
-import { Blocked, NotFound } from '../routes.ts'
+import { Blocked, NotFound } from '../errors.ts'
 import { archiveDraft } from './archive.ts'
 import { generateHandoverDraft, saveArchiveDraft } from './archive-write.ts'
 

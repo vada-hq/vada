@@ -1,7 +1,7 @@
 import { and, asc, eq, ne } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { meetings, members, tasks } from '../db/schema.ts'
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { shortStamp } from '../time.ts'
 import type { MeetingViewer } from './meetings.ts'
 

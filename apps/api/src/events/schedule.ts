@@ -3,7 +3,7 @@ import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sou
 import type { Db } from '../db/client.ts'
 import { events, meetings, members, tasks } from '../db/schema.ts'
 import { STATUS as MEETING_STATUS, listed as meetingListed, orNote } from '../meetings/meetings.ts'
-import { Blocked } from '../routes.ts'
+import { Blocked } from '../errors.ts'
 import { isOverdue, NO_DUE, STATUS as TASK_STATUS, type TaskStatus } from '../tasks/labels.ts'
 import { clock, day, daysBetween, dottedStamp, weekdayStamp } from '../time.ts'
 

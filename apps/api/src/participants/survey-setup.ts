@@ -2,7 +2,7 @@ import { and, asc, desc, eq } from 'drizzle-orm'
 import optionSources from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
 import type { Db } from '../db/client.ts'
 import { events, surveyQuestions, surveys } from '../db/schema.ts'
-import { AlreadyExists, NotFound, NotReady } from '../routes.ts'
+import { AlreadyExists, NotFound, NotReady } from '../errors.ts'
 import { fieldMoment } from '../time.ts'
 
 // 참여 설문을 세우고 켜는 자리(EVT-05).

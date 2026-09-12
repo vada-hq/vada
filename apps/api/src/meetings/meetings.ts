@@ -10,7 +10,7 @@ import {
   members,
 } from '../db/schema.ts'
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
-import { NotFound } from '../routes.ts'
+import { NotFound } from '../errors.ts'
 import { dottedStamp, fieldMoment, weekdayStamp } from '../time.ts'
 import { stillHere } from '../org/membership.ts'
 
