@@ -112,7 +112,7 @@ jobs:
   # **막지 않고 알린다**(continue-on-error). 배포가 늦거나 Render가 잠들었을 뿐인데
   # 초록을 빨갛게 만들면 사람이 이 줄을 곧 무시하게 된다 — 판정이 아니라 알림이다.
   # 이것이 두 번 헛되이 울면 그때 기다림을 늘리고, 진짜를 잡으면 그때 막는 자리로 옮긴다.
-  연기:
+  smoke:
     name: 배포된 것 두드리기
     runs-on: ubuntu-latest
     needs: browser

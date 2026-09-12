@@ -33,8 +33,8 @@ declare module 'hono' {
 export interface SignIn {
   /** 어느 길이 열려 있는가. */
   open: () => { google: boolean; kakao: boolean }
-  /** 그 제공자로 가는 주소. 돌아올 자리는 이 층이 붙인다. */
-  start: (provider: string) => Promise<{ url: string }>
+  /** 제공자 URL과 검증 쿠키를 함께 반환한다. headers는 HTTP 응답에만 전달한다. */
+  start: (provider: string) => Promise<{ url: string; headers: Headers }>
   /**
    * 나간다. 세션을 지우고, **쿠키를 거두라는 헤더를 돌려준다.**
    *

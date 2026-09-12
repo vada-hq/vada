@@ -58,7 +58,7 @@ function harness(who: Viewer | null = viewer('chair')) {
     // 검사는 밖으로 나가지 않는다. 열려 있다고만 답하고, 부르면 어디로 갈지 말해 준다.
     signIn: {
       open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}` }),
+      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
       end: async () => new Headers(),
     },
     attempts: inMemoryAttempts(),
