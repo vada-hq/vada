@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { useServer } from '../data-sources/server'
+import { configureServer } from '../data-sources/server'
 import { ScreenRouter } from './ScreenRouter'
 
 // **누르면 브라우저가 떠나는가.**
@@ -26,7 +26,7 @@ afterEach(() => {
 /** 서버 대신 답한다. 길 목록은 GET, 들어가기는 POST다. */
 function serverAnswering(ways: { google: boolean; kakao: boolean }) {
   const sent: string[] = []
-  back = useServer({
+  back = configureServer({
     baseUrl: '',
     fetch: async (input, init) => {
       const url = String(input)

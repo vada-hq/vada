@@ -21,7 +21,7 @@ import { ScreenRouter } from '../screens/ScreenRouter'
 import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
 import { readListSource, readObjectSource } from './catalog'
-import { forgetSources, loadSources, useServer } from './server'
+import { forgetSources, loadSources, configureServer } from './server'
 
 // **구매 요청 한 건을 처음부터 끝까지 끌고 간다** — 쓰고(FIN-REQ-01) → 내고 → 재정부가 판정하고
 // (FIN-REV-01) → 보완에 답해 다시 내고(FIN-SUP-01) → 승인되고 → 증빙을 끝낸다(FIN-EVID-01).
@@ -214,7 +214,7 @@ beforeAll(async () => {
     newId: () => `X-${(made += 1)}`,
   })
 
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

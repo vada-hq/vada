@@ -15,7 +15,7 @@ import {
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
-import { loadSources, useServer } from './server'
+import { loadSources, configureServer } from './server'
 
 // **업무 화면 넷을 끝까지 뚫는다**(TASK-01 · EVT-TASK-01 · EVT-TASK-02 · MY-01).
 //
@@ -202,7 +202,7 @@ beforeAll(async () => {
   })
 
   // **인자를 그대로 넘긴다.** 주소만 넘기면 인자가 통째로 빠진다.
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

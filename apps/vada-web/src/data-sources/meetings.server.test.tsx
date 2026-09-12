@@ -20,7 +20,7 @@ import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
 import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
-import { forgetSources, loadSources, useServer } from './server'
+import { forgetSources, loadSources, configureServer } from './server'
 
 // **회의의 앞자락을 끝까지 뚫는다.**
 //
@@ -353,7 +353,7 @@ beforeAll(async () => {
 
   // **인자를 그대로 넘긴다.** 주소만 넘기면 쓰기가 전부 GET이 되어 '그 자리는
   // 명세에 없다'로 막힌다.
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

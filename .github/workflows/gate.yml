@@ -67,6 +67,12 @@ jobs:
         working-directory: apps/vada-web
       - run: npm ci
         working-directory: apps/api
+      - name: API 타입 검사
+        run: npm run typecheck
+        working-directory: apps/api
+      - name: 웹 린트
+        run: npm run lint
+        working-directory: apps/vada-web
       - name: 화면·계약·서버 검사
         run: npm test
       - name: 빌드

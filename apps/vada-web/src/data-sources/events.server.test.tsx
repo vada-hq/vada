@@ -31,7 +31,7 @@ import { fetchOptions } from '../option-sources/catalog'
 import { draftValueOf, payloadOf } from '../spec/draft-values'
 import { runMutation } from '../spec/mutations'
 import { evt02b } from '../spec/screens'
-import { loadSources, useServer } from './server'
+import { loadSources, configureServer } from './server'
 
 // **행사의 앞자락을 끝까지 뚫는다.**
 //
@@ -362,7 +362,7 @@ beforeAll(async () => {
 
   // **인자를 그대로 넘긴다.** 주소만 넘기면 쓰기가 전부 GET이 되어 '그 자리는
   // 명세에 없다'로 막힌다 — 검사 쪽 그물이 성기면 진짜 결함이 안 보인다.
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

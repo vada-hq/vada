@@ -53,6 +53,13 @@ npm run check     # test + validate + e2e + build
 npm test          # 세 앱의 테스트만
 ```
 
+CI의 `screens` 작업은 테스트·빌드에 앞서 API 전용 타입 검사와 웹 린트를 필수로 실행한다. 웹 린트는 경고도 실패로 처리한다. 같은 검사를 로컬에서 실행하려면:
+
+```powershell
+npm --prefix apps/api run typecheck
+npm --prefix apps/vada-web run lint
+```
+
 ## 커밋 훅
 
 스펙 검증은 pre-commit 훅으로 강제된다(오류 시 커밋 차단). 새로 클론하면 한 번 활성화한다:

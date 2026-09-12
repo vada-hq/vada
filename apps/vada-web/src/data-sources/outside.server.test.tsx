@@ -15,7 +15,7 @@ import { hashToken } from '../../../api/src/public/tokens.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
-import { useServer } from './server'
+import { configureServer } from './server'
 
 // **밖에서 오는 사람의 길을 끝까지 뚫는다.**
 //
@@ -127,7 +127,7 @@ beforeAll(async () => {
   })
   request = async (path, init) => app.request(path, init)
 
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => request(String(input), init),
   })

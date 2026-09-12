@@ -22,7 +22,7 @@ import { fetchOptions } from '../option-sources/catalog'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { runMutation } from '../spec/mutations'
 import { readListSource, readObjectSource } from './catalog'
-import { forgetSources, loadSources, useServer } from './server'
+import { forgetSources, loadSources, configureServer } from './server'
 
 // **재정 화면 여덟을 끝까지 뚫는다**(FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01 · MY-REQ-01 ·
 // FIN-PLAN-01 · FIN-00 · FIN-00B · FIN-LEDGER-01).
@@ -262,7 +262,7 @@ beforeAll(async () => {
   })
 
   // **인자를 그대로 넘긴다.** 주소만 넘기면 인자가 통째로 빠진다.
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

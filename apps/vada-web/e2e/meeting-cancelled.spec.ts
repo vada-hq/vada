@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { missingNoteOf, pendingNoteOf } from './spec'
+import { missingNoteOf } from './spec'
 
 const SHOTS = 'e2e/shots'
 

@@ -48,7 +48,7 @@ function empty(): void {
 }
 
 /** 서버에서 받아 오게 한다. 되돌리는 함수를 준다. */
-export function useServer(next: Server | null): () => void {
+export function configureServer(next: Server | null): () => void {
   const before = server
   server = next
   who = ''
@@ -366,7 +366,7 @@ export function browserFetch(input: RequestInfo | URL, init?: RequestInit): Prom
 /**
  * 이 브라우저를 서버에 붙인다. **앱이 켜질 때 한 번 부른다**(`main.tsx`).
  *
- * 오랫동안 이 자리가 없었다. `useServer`를 부르는 곳이 검사뿐이어서, 서버를 짓고
+ * 오랫동안 이 자리가 없었다. `configureServer`를 부르는 곳이 검사뿐이어서, 서버를 짓고
  * 배포하고 로그인까지 되는데도 **화면이 그리는 값은 전부 개발용 응답이었다** —
  * 서버가 답하는 자리가 늘어도 사람이 보는 것은 그대로였고, 화면이 멀쩡히 그려지니
  * 아무도 몰랐다.
@@ -385,5 +385,5 @@ export function startServing(): () => void {
   // 이 빌드는 `dist-e2e/`로만 나간다(`run-e2e.mjs`). 실서비스가 나가는 `dist/`가
   // 개발용 응답을 물고 배포되는 일이 **구조적으로 생길 수 없게** 자리를 갈라 두었다.
   if (import.meta.env.VITE_FIXTURES === '1') return () => {}
-  return useServer({ baseUrl: apiBaseUrl(), fetch: browserFetch })
+  return configureServer({ baseUrl: apiBaseUrl(), fetch: browserFetch })
 }

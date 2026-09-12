@@ -16,7 +16,7 @@ import {
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
-import { loadSources, useServer } from './server'
+import { loadSources, configureServer } from './server'
 
 // **운영 공간 둘이 서버에 붙었다**(OPS-00 · OPS-CAL-01).
 //
@@ -162,7 +162,7 @@ beforeAll(async () => {
     newId: () => 'X-01',
   })
 
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

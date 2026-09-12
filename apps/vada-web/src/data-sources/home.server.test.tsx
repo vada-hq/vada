@@ -25,7 +25,7 @@ import {
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { readListSource, readObjectSource } from './catalog'
-import { loadSources, useServer } from './server'
+import { loadSources, configureServer } from './server'
 
 // **홈(HOME-01K)의 일곱 자리가 서버에 붙었다.**
 //
@@ -217,7 +217,7 @@ beforeAll(async () => {
     newId: () => 'X-01',
   })
 
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })

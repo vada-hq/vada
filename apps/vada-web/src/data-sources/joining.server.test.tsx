@@ -12,7 +12,7 @@ import { runMutation } from '../spec/mutations'
 import { payloadOf } from '../spec/draft-values'
 import { org02 } from '../spec/screens'
 import { readListSource, readObjectSource } from './catalog'
-import { forgetSources, loadSources, useServer } from './server'
+import { forgetSources, loadSources, configureServer } from './server'
 
 // **학생회에 들어오는 길을 끝까지 뚫는다.**
 //
@@ -122,7 +122,7 @@ beforeAll(async () => {
   signedInAs = CHAIR
   // **인자를 그대로 넘긴다.** 한동안 주소만 넘겼는데, 그러면 쓰기가 전부 GET이 되어
   // '그 자리는 명세에 없다'로 막힌다 — 검사 쪽 그물이 성기면 진짜 결함이 안 보인다.
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => request(String(input), init),
   })

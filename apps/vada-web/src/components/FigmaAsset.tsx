@@ -6,7 +6,7 @@ import { urlByKey } from './figma-asset-urls'
 //
 // 어떤 자리에 어떤 자산이 오는지는 명세가 아니라 design이 갖는다(시각). 그래서
 // 호출부가 nodeId로 지목한다.
-export function assetUrl(screenId: string, nodeId: string): string {
+function assetUrl(screenId: string, nodeId: string): string {
   const key = `${screenId}/${nodeId.replace(/[^a-zA-Z0-9._-]/g, '-')}`
   const url = urlByKey.get(key)
   if (!url) {

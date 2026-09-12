@@ -14,7 +14,7 @@ import {
   users,
 } from '../../../api/src/db/schema.ts'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { SourcesFailed, forgetSources, loadSources, useServer } from './server'
+import { SourcesFailed, forgetSources, loadSources, configureServer } from './server'
 import { readListSource, readObjectSource } from './catalog'
 import { dataSourceCallsOf } from '../spec/screen-sources'
 import { runMutation } from '../spec/mutations'
@@ -118,7 +118,7 @@ beforeAll(async () => {
 
   // **인자를 그대로 넘긴다.** 주소만 넘기면 쓰기가 전부 GET이 되어 '그 자리는 명세에
   // 없다'로 막힌다 — 검사 쪽 그물이 성기면 진짜 결함이 안 보인다. 두 번째 겪는다.
-  restore = useServer({
+  restore = configureServer({
     baseUrl: 'http://server',
     fetch: async (input, init) => app.request(String(input), init),
   })
@@ -156,7 +156,7 @@ describe('ORG-04을 서버에서 그린다', () => {
 
   // 실패하면 카탈로그의 글이 그려진다. 서버가 붙으면 실제로 실패하는 순간이 생긴다.
   it('서버가 실패하면 카탈로그의 글을 그린다', async () => {
-    const back = useServer({
+    const back = configureServer({
       baseUrl: 'http://server',
       fetch: async () => new Response('nope', { status: 500 }),
     })
@@ -365,7 +365,7 @@ describe('조직 보기의 이웃 화면들', () => {
     seenAs = 'member'
     // **담아 둔 것을 비운다.** 한 번 받아 둔 것은 다시 부르지 않으므로, 비우지 않으면
     // 앞 검사가 회장으로 받아 둔 것을 그대로 읽고 벽이 없는 것처럼 보인다.
-    const again = useServer({
+    const again = configureServer({
       baseUrl: 'http://server',
       fetch: async (input, init) => app.request(String(input), init),
     })
