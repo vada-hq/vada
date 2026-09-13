@@ -54,6 +54,25 @@ async function get(path, init) {
   return { status: res.status, text: await res.text(), type: res.headers.get('content-type') ?? '' }
 }
 
+// JS와 그림 모두 한 번에 네 개씩 확인한다. HTML 200 대체 응답도 실패로 본다.
+async function inspectFiles(paths, contentTypeOf, receive) {
+  const missing = []
+  for (let at = 0; at < paths.length; at += 4) {
+    const batch = paths.slice(at, at + 4)
+    const results = await Promise.allSettled(batch.map(src => get(src)))
+    for (const [index, result] of results.entries()) {
+      const path = batch[index]
+      if (result.status !== 'fulfilled' || result.value.status !== 200 ||
+          !result.value.type.includes(contentTypeOf(path)) || result.value.text.length === 0) {
+        missing.push(path)
+      } else {
+        receive?.(result.value.text)
+      }
+    }
+  }
+  return missing
+}
+
 /** 서는 것을 기다린다. 배포가 아직 안 끝났을 수 있다. */
 async function waitForSite() {
   for (let attempt = 1; attempt <= TRIES; attempt += 1) {
@@ -85,6 +104,7 @@ check('HTML이 묶음을 가리킨다', scripts.length > 0, 'script 태그가 �
 // 파일이 나뉘면 HTML의 entry만 봐서는 나머지 화면의 유출·배포 누락을 찾지 못한다.
 // Vite가 만든 실제 출력 목록을 읽고, 현재 HTML과 같은 배포인지 확인한다.
 const paths = new Set(scripts)
+const pictures = new Set()
 try {
   const response = await get('/assets/bundle-manifest.json')
   if (response.status !== 200) throw new Error(`파일 목록 응답 ${response.status}`)
@@ -98,6 +118,12 @@ try {
   }
   for (const chunk of Object.values(manifest)) {
     if (typeof chunk?.file !== 'string') throw new Error('출력 파일 이름이 없습니다')
+    for (const asset of [chunk.file, ...(chunk.assets ?? [])]) {
+      if (typeof asset !== 'string') throw new Error('자산 파일 이름이 없습니다')
+      if (!/\.(svg|png)$/.test(asset)) continue
+      if (!/^assets\/[a-zA-Z0-9_.-]+\.(svg|png)$/.test(asset)) throw new Error('그림 파일 경로가 잘못됐습니다')
+      pictures.add(`/${asset}`)
+    }
     if (!chunk.file.endsWith('.js')) continue
     if (!/^assets\/[a-zA-Z0-9_.-]+\.js$/.test(chunk.file)) throw new Error('출력 파일 경로가 잘못됐습니다')
     for (const dependency of [...(chunk.imports ?? []), ...(chunk.dynamicImports ?? [])]) {
@@ -111,20 +137,10 @@ try {
 }
 let bundle = ''
 const files = [...paths]
-const missingFiles = []
-// 한 번에 네 개씩 확인한다. 화면 수만큼 서버 요청을 동시에 만들지 않는다.
-for (let at = 0; at < files.length; at += 4) {
-  const batch = files.slice(at, at + 4)
-  const results = await Promise.allSettled(batch.map(src => get(src)))
-  for (const [index, result] of results.entries()) {
-    if (result.status !== 'fulfilled' || result.value.status !== 200 || !result.value.type.includes('javascript')) {
-      missingFiles.push(batch[index])
-    } else {
-      bundle += result.value.text
-    }
-  }
-}
+const missingFiles = await inspectFiles(files, () => 'javascript', text => { bundle += text })
 check(`초기·공통·지연 로딩 파일 ${files.length}개가 모두 받아진다`, missingFiles.length === 0, missingFiles.join(', '))
+const missingPictures = await inspectFiles([...pictures], path => path.endsWith('.svg') ? 'image/svg+xml' : 'image/png')
+check(`그림 파일 ${pictures.size}개가 모두 받아진다`, missingPictures.length === 0, missingPictures.join(', '))
 
 // ── 3. 개발용 응답이 안 실렸다
 //

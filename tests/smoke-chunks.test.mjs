@@ -17,6 +17,9 @@ async function smoke(mode) {
     screen: { file: 'assets/screen.js', isDynamicEntry: true, imports: ['shared'] },
   }
   if (mode === 'stale') manifest['index.html'].file = 'assets/old.js'
+  manifest.screen.assets = ['assets/icon.svg', 'assets/mascot.png']
+  manifest.icon = { file: 'assets/icon.svg' }
+  manifest.mascot = { file: 'assets/mascot.png' }
   const requested = []
   const server = createServer((req, res) => {
     requested.push(req.url)
@@ -26,6 +29,14 @@ async function smoke(mode) {
       return res.end('<script type="module" src="/assets/main.js"></script>')
     }
     if (req.url === '/assets/bundle-manifest.json') return res.end(JSON.stringify(manifest))
+    if (req.url === '/assets/icon.svg' && mode !== 'missing-image') {
+      res.setHeader('content-type', mode === 'html-image' ? 'text/html' : 'image/svg+xml')
+      return res.end(mode === 'html-image' ? '<html>그림 대신 받은 앱</html>' : '<svg xmlns="http://www.w3.org/2000/svg"/>')
+    }
+    if (req.url === '/assets/mascot.png') {
+      res.setHeader('content-type', 'image/png')
+      return res.end(Buffer.from('89504e470d0a1a0a', 'hex'))
+    }
     if (req.url.startsWith('/assets/')) res.setHeader('content-type', 'text/javascript')
     if (req.url === '/assets/main.js') return res.end('/*' + 'x'.repeat(51_000) + '*/')
     if (req.url === '/assets/shared.js') return res.end('export const shared = 1')
@@ -74,4 +85,20 @@ test('운영 점검은 HTML과 다른 배포의 파일 목록을 거부한다', 
 
 test('운영 점검은 화면 파일 대신 받은 HTML 200 응답을 거부한다', async () => {
   assert.equal((await smoke('html')).code, 1)
+})
+
+test('운영 점검은 SVG·PNG 그림을 중복 없이 확인한다', async () => {
+  const result = await smoke('clean')
+  assert.equal(result.code, 0, result.stderr)
+  for (const file of ['icon.svg', 'mascot.png']) {
+    assert.equal(result.requested.filter(path => path === `/assets/${file}`).length, 1)
+  }
+})
+
+test('운영 점검은 그림 파일이 없으면 실패한다', async () => {
+  assert.equal((await smoke('missing-image')).code, 1)
+})
+
+test('운영 점검은 그림 대신 받은 HTML 200 응답을 거부한다', async () => {
+  assert.equal((await smoke('html-image')).code, 1)
 })
