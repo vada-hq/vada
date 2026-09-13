@@ -98,7 +98,7 @@ git config core.hooksPath .githooks
 
 모든 명세를 JSON Schema와 교차 참조 규칙(중복 fieldKey, 선택지 출처·인자 매핑, 상태 스코프, 이동 대상 화면, design.json nodeId·자산 존재)으로 검사한다. 오류가 있으면 종료 코드 1을 반환한다.
 
-교차 참조 검사의 진입점은 [`collectSpecFindings`](packages/contracts/src/spec-validation.mjs)다. 권한 검사는 [`collectPermissionFindings`](packages/contracts/src/permission-validation.mjs), Figma 그림 대조는 `design-validation.mjs`가 담당한다. 데이터 출처와 조회 인자, 목록, 선택지는 각각 `source-validation.mjs`, `source-parameters.mjs`, `list-validation.mjs`, `option-validation.mjs`가 검사한다. 입력 상태와 제출 계약은 `form-validation.mjs`와 `mutation-validation.mjs`가 검사한다. 각 모듈은 필요한 명세를 인자로 받고 진입점은 기존 순서대로 결과를 모은다. 공통 값 해석은 `spec-validation-values.mjs`에 둔다.
+교차 참조 검사의 진입점은 [`collectSpecFindings`](packages/contracts/src/spec-validation.mjs)다. 권한 검사는 [`collectPermissionFindings`](packages/contracts/src/permission-validation.mjs), Figma 그림 대조는 `design-validation.mjs`가 담당한다. 데이터 출처와 조회 인자, 목록, 선택지는 각각 `source-validation.mjs`, `source-parameters.mjs`, `list-validation.mjs`, `option-validation.mjs`가 검사한다. 입력 상태와 제출 계약은 `form-validation.mjs`와 `mutation-validation.mjs`, 화면 이동과 셸은 `action-navigation-validation.mjs`와 `shell-validation.mjs`가 검사한다. 각 모듈은 필요한 명세를 인자로 받고 진입점은 기존 순서대로 결과를 모은다. 공통 값 해석은 `spec-validation-values.mjs`에 둔다.
 
 ```powershell
 node apps/spec-service/src/validate-specs.mjs            # specs/figma 전체
