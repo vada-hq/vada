@@ -62,6 +62,8 @@ npm --prefix apps/vada-web run lint
 
 API 테스트의 공통 서버 설정은 [`createTestDeps`](apps/api/src/testing/create-test-deps.ts)로 만든다. DB·사용자·초대 설정(시간 포함)·ID 생성은 각 시나리오가 지정하고, 필요한 로그인·권한·감사 대역을 재정의한다. 기본 중복 요청 기록과 호출 횟수 저장소는 호출마다 새로 생성된다. 업무별 초기 데이터와 DB 정리 방식은 각 영역의 테스트에서 관리한다.
 
+API 타입은 `npm run openapi`로 OpenAPI·요청 스키마와 함께 생성한다. 현재 연결 대상은 `app.start`이며, [`api-type-operations.json`](specs/figma/vada-wireframe/api-type-operations.json)에 목록을 관리한다. 생성한 [`api-types.d.ts`](specs/figma/vada-wireframe/api-types.d.ts)의 `ApiResponse`를 서버 반환과 웹 응답 해석에 함께 사용한다. 계약 검사가 원본 카탈로그에서 다시 생성한 타입과 비교하므로, 명세를 바꾸고 타입 갱신을 빠뜨리면 CI에서 실패한다. 네트워크 응답의 런타임 검사는 계속 수행한다.
+
 ## 커밋 훅
 
 스펙 검증은 pre-commit 훅으로 강제된다(오류 시 커밋 차단). 새로 클론하면 한 번 활성화한다:
