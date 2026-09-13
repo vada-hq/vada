@@ -1,5 +1,12 @@
 [
   "app.start",
   "auth.signInGoogle",
-  "auth.signInKakao"
+  "auth.signInKakao",
+  "home.briefing",
+  "home.briefingNotices",
+  "home.eventCounts",
+  "home.events",
+  "home.schedules",
+  "home.orgAlerts",
+  "home.financeSummary"
 ]

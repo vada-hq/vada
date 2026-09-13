@@ -62,7 +62,9 @@ npm --prefix apps/vada-web run lint
 
 API 테스트의 공통 서버 설정은 [`createTestDeps`](apps/api/src/testing/create-test-deps.ts)로 만든다. DB·사용자·초대 설정(시간 포함)·ID 생성은 각 시나리오가 지정하고, 필요한 로그인·권한·감사 대역을 재정의한다. 기본 중복 요청 기록과 호출 횟수 저장소는 호출마다 새로 생성된다. 업무별 초기 데이터와 DB 정리 방식은 각 영역의 테스트에서 관리한다.
 
-API 타입은 `npm run openapi`로 OpenAPI·요청 스키마와 함께 생성한다. 현재 연결 대상은 `app.start`, `auth.signInGoogle`, `auth.signInKakao`이며, [`api-type-operations.json`](specs/figma/vada-wireframe/api-type-operations.json)에 목록을 관리한다. 생성한 [`api-types.d.ts`](specs/figma/vada-wireframe/api-types.d.ts)의 `ApiResponse`를 서버 반환과 웹 응답 해석에 함께 사용한다. 로그인 응답은 두 제공자 모두 `url`을 필수 문자열로 선언하고, 공통 웹 해석 함수가 두 응답 계약을 모두 만족하도록 검사한다. 검증 쿠키는 기존대로 HTTP 헤더로 전달한다. 계약 검사가 원본 카탈로그에서 다시 생성한 타입과 비교하므로, 명세를 바꾸고 타입 갱신을 빠뜨리면 CI에서 실패한다. 네트워크 응답의 런타임 검사는 계속 수행한다.
+API 타입은 `npm run openapi`로 OpenAPI·요청 스키마와 함께 생성한다. 현재 연결 대상은 `app.start`, `auth.signInGoogle`, `auth.signInKakao`와 홈 조회 7개(`home.*`), 총 10개이며, [`api-type-operations.json`](specs/figma/vada-wireframe/api-type-operations.json)에 목록을 관리한다. 생성한 [`api-types.d.ts`](specs/figma/vada-wireframe/api-types.d.ts)의 `ApiResponse`를 서버 반환과 웹 응답 해석에 함께 사용한다. 계약 검사가 원본 카탈로그에서 다시 생성한 타입과 비교하므로, 명세를 바꾸고 타입 갱신을 빠뜨리면 CI에서 실패한다.
+
+로그인 응답은 두 제공자 모두 `url`을 필수 문자열로 선언하고, 공통 웹 해석 함수가 두 응답 계약을 모두 만족하도록 검사한다. 검증 쿠키는 기존대로 HTTP 헤더로 전달한다. 홈의 서버 응답 타입은 생성 타입을 참조하고, 웹의 `readHomeSource`는 화면 명세의 API 연결을 확인한 뒤 기존 조회·캐시를 사용한다. 응답 필드·자료형·필수 여부의 런타임 검사도 데이터 출처 명세를 읽으므로 별도 필드 목록을 관리하지 않는다. 동적으로 선택하는 표시 필드는 `homeField`로 존재를 확인하고, 고정 필드는 생성 타입으로 검사한다.
 
 ## 운영·개발 데이터 연결
 

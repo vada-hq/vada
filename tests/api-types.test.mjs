@@ -11,6 +11,13 @@ const root = new URL('../specs/figma/vada-wireframe/', import.meta.url)
 const operationIds = JSON.parse(readFileSync(new URL('api-type-operations.json', root), 'utf8'))
 const ts = createRequire(new URL('../apps/spec-service/package.json', import.meta.url))('typescript')
 
+test('홈 조회 API 전체가 생성 타입 대상에 포함된다', () => {
+  const home = Object.values(buildOpenApi().paths).flatMap(item => Object.values(item))
+    .map(operation => operation.operationId).filter(id => id?.startsWith('home.'))
+  assert.equal(home.length, 7)
+  for (const id of home) assert.ok(operationIds.includes(id), `${id}의 타입 연결이 빠졌습니다`)
+})
+
 test('생성 타입이 API와 웹의 증분 검사 입력에 포함된다', () => {
   const generated = resolve(fileURLToPath(new URL('api-types.d.ts', root)))
   for (const file of ['../apps/api/tsconfig.json', '../apps/vada-web/tsconfig.app.json']) {

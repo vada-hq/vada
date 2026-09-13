@@ -5,7 +5,8 @@ import { FigmaAsset } from "../components/FigmaAsset";
 import { NEUTRAL_VALUE, VALUE_TEXT } from "../design/tones";
 import { ProgressBar } from "../components/ProgressBar";
 import { StatTile } from "../components/StatTile";
-import { readListSource, readObjectSource } from "../data-sources/catalog";
+import { readObjectSource } from "../data-sources/catalog";
+import { homeField, readHomeSource } from "../data-sources/home";
 import { Built } from "../components/Built";
 import { elementByNodeId, home01k, nodeIdOf } from "../spec/screens";
 import type { ButtonSpec, ItemListSpec, SummarySpec } from "../spec/types";
@@ -126,8 +127,8 @@ function BriefingCard() {
   const notices = specOf<ItemListSpec>(NODE.briefingNotices);
   const button = specOf<ButtonSpec>(NODE.delayedTasksButton);
 
-  const briefing = readObjectSource(summary.dataSourceKey!);
-  const lines = readListSource(notices.dataSourceKey);
+  const briefing = readHomeSource(summary.dataSourceKey, 'home.briefing');
+  const lines = readHomeSource(notices.dataSourceKey, 'home.briefingNotices');
 
   // 16:85: 배경 #FEF2F2 50%→bg-red-50/50, 테두리 #FFE2E2→red-100,
   // radius 14→rounded-2xl, padding 21/24.5→6/7.
@@ -152,7 +153,7 @@ function BriefingCard() {
           <p className="text-xs font-bold text-red-500">{summary.eyebrow}</p>
         )}
         <h2 className="pt-1 text-base font-bold text-blue-950">
-          {String(briefing[summary.titleField!])}
+          {String(homeField(briefing, summary.titleField))}
         </h2>
         <ul data-node-id={NODE.briefingNotices} className="flex flex-col gap-1 pt-3">
           {lines.map((line) => (
@@ -169,7 +170,7 @@ function BriefingCard() {
 
 function EventCountTiles() {
   const summary = specOf<SummarySpec>(NODE.eventCounts);
-  const counts = readObjectSource(summary.dataSourceKey!);
+  const counts = readHomeSource(summary.dataSourceKey, 'home.eventCounts');
 
   // 16:101은 3열 grid, 간격 14→gap-4.
   return (
@@ -178,7 +179,7 @@ function EventCountTiles() {
         <StatTile
           key={item.label}
           label={item.label!}
-          value={`${counts[item.field!]}개`}
+          value={`${homeField(counts, item.field)}개`}
           valueClass={VALUE_TEXT[COUNT_TILE_TONE[at]] ?? NEUTRAL_VALUE}
           icon={
             <FigmaAsset
@@ -195,7 +196,7 @@ function EventCountTiles() {
 
 function EventList() {
   const spec = specOf<ItemListSpec>(NODE.events);
-  const events = readListSource(spec.dataSourceKey);
+  const events = readHomeSource(spec.dataSourceKey, 'home.events');
 
   return (
     <DashboardSection nodeId={NODE.events} title={spec.title}>
@@ -262,7 +263,7 @@ function EventList() {
 function ScheduleList() {
   const spec = specOf<ItemListSpec>(NODE.schedules);
   const button = specOf<ButtonSpec>(NODE.calendarButton);
-  const schedules = readListSource(spec.dataSourceKey);
+  const schedules = readHomeSource(spec.dataSourceKey, 'home.schedules');
 
   return (
     <DashboardSection
@@ -304,7 +305,7 @@ function alertIconOf(kind: string): string {
 
 function OrgAlertList() {
   const spec = specOf<ItemListSpec>(NODE.orgAlerts);
-  const alerts = readListSource(spec.dataSourceKey);
+  const alerts = readHomeSource(spec.dataSourceKey, 'home.orgAlerts');
 
   return (
     <DashboardSection nodeId={NODE.orgAlerts} title={spec.title}>
@@ -335,7 +336,7 @@ function OrgAlertList() {
 function FinanceSummary() {
   const summary = specOf<SummarySpec>(NODE.finance);
   const button = specOf<ButtonSpec>(NODE.financeButton);
-  const finance = readObjectSource(summary.dataSourceKey!);
+  const finance = readHomeSource(summary.dataSourceKey, 'home.financeSummary');
 
   const [usage, ...tiles] = summary.items!;
 
@@ -352,7 +353,7 @@ function FinanceSummary() {
               '건'을 붙였고, 그래서 편성 전인 학생회가 '0%'를 봤다 — 나눌 바탕이 없는
               것과 하나도 안 쓴 것은 다른 사실이다(2026-09-06). */}
           <span className="text-sm font-bold text-gray-900">
-            {String(finance[usage.field!])}
+            {String(homeField(finance, usage.field))}
           </span>
         </div>
         <div className="pt-2">
@@ -364,7 +365,7 @@ function FinanceSummary() {
             <StatTile
               key={tile.label}
               label={tile.label!}
-              value={String(finance[tile.field!])}
+              value={String(homeField(finance, tile.field))}
               tone="inset"
               valueClass={VALUE_TEXT[FINANCE_TILE_TONE[tile.field!]] ?? NEUTRAL_VALUE}
             />

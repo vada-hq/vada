@@ -1,5 +1,128 @@
 // 자동 생성: npm run api:types. 직접 수정하지 않는다.
 export interface paths {
+    "/api/home/briefing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 홈 브리핑의 인사 제목. 사용자 이름이 들어가므로 서버가 완성해서 준다. */
+        get: operations["home.briefing"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/home/briefing/notices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 브리핑이 짚어 주는 문장들. 짚을 것이 없으면 빈 목록이므로 개수가 데이터에 달렸다. */
+        get: operations["home.briefingNotices"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/home/event-counts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 홈 상단에 나열하는 행사·일정 건수. */
+        get: operations["home.eventCounts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/home/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 진행 중이거나 예정된 행사. */
+        get: operations["home.events"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/home/schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 다가오는 주요 일정. */
+        get: operations["home.schedules"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/home/org-alerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 조직 운영에서 확인이 필요한 항목. 종류가 상황에 따라 달라지므로 개수가 데이터에 달렸다. */
+        get: operations["home.orgAlerts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/home/finance-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 조직 전체의 재정 현황 요약.
+         *
+         *     **세는 말을 서버가 만든다**(2026-09-06). 한동안 네 조각이 전부 수였고 화면이 조각 이름의 끝을 보아 '%'와 '건'을 붙였다 — 규칙이 화면에 있었다. 그리고 수입이 0인 학생회에서는 나눌 바탕이 없는데도 0을 줄 수밖에 없어, '편성 전'과 '하나도 안 썼다'가 같은 값으로 보였다.
+         */
+        get: operations["home.financeSummary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/app/start": {
         parameters: {
             query?: never;
@@ -85,6 +208,388 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "home.briefing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 인사 제목. 예: 박해랑님, 확인이 필요해요 */
+                        title: string;
+                    };
+                };
+            };
+            /** @description 로그인이 필요하다 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 이 자리를 열 권한이 없다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    "home.briefingNotices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 완성된 문장. 예: 지연된 업무가 1건 있습니다. */
+                        message: string;
+                    }[];
+                };
+            };
+            /** @description 로그인이 필요하다 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 이 자리를 열 권한이 없다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    "home.eventCounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 진행 중 행사 수 */
+                        activeEvents: number;
+                        /** @description 예정 행사 수 */
+                        upcomingEvents: number;
+                        /** @description 이번 주 주요 일정 수 */
+                        weeklySchedules: number;
+                    };
+                };
+            };
+            /** @description 로그인이 필요하다 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 이 자리를 열 권한이 없다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    "home.events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 진행 상태. 예: 기획 중 */
+                        status: string;
+                        /** @description 행사 이름 */
+                        title: string;
+                        /** @description 행사 날짜. 정해지지 않았으면 '미정' */
+                        date: string;
+                        /** @description 장소. 정해지지 않았으면 '미정' */
+                        place: string;
+                        /** @description 주관 부서 */
+                        team: string;
+                        /** @description 준비 진행률(0-100) */
+                        progressPercent: number;
+                        /** @description 지연된 업무 수. 없으면 오지 않는다. */
+                        delayedTaskCount?: number;
+                    }[];
+                };
+            };
+            /** @description 로그인이 필요하다 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 이 자리를 열 권한이 없다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    "home.schedules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 월.일. 예: 07.20 */
+                        date: string;
+                        /** @description 일정 이름 */
+                        title: string;
+                        /** @description 일정의 성격. 예: 마감 */
+                        badge: string;
+                    }[];
+                };
+            };
+            /** @description 로그인이 필요하다 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 이 자리를 열 권한이 없다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    "home.orgAlerts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 알림의 종류. 화면은 종류마다 다른 아이콘을 그린다(디자인에 문서형·인원형 둘이 있다). */
+                        kind: string;
+                        /** @description 알림 이름. 예: 증빙 서류 누락 */
+                        label: string;
+                        /** @description 해당 건수 */
+                        count: number;
+                    }[];
+                };
+            };
+            /** @description 로그인이 필요하다 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 이 자리를 열 권한이 없다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    "home.financeSummary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 전체 예산 사용률(0-100). **막대가 쓰는 수다** — 그리는 길이를 정하는 것뿐이고, 사람이 읽는 말은 `budgetUsedNote`가 든다. 편성 전이면 0이다. */
+                        budgetUsedPercent: number;
+                        /** @description 전체 예산 사용률의 완성된 글. '34%'. **편성 전이면 '편성 전'이다** — 나눌 바탕이 없는데 0%를 주면 '다 남았다'로 읽힌다. */
+                        budgetUsedNote: string;
+                        /** @description 사용 가능 예산 비율의 완성된 글. '66%' 또는 '편성 전'. */
+                        availableBudgetNote: string;
+                        /** @description 승인·집행 예정 건수의 완성된 글. '4건'. */
+                        plannedNote: string;
+                        /** @description 증빙 누락 건수의 완성된 글. '5건'. */
+                        missingProofNote: string;
+                    };
+                };
+            };
+            /** @description 로그인이 필요하다 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 이 자리를 열 권한이 없다 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     "app.start": {
         parameters: {
             query?: never;

@@ -1,4 +1,5 @@
 import { and, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
+import type { ApiResponse } from '../../../../specs/figma/vada-wireframe/api-types.d.ts'
 import type { Db } from '../db/client.ts'
 import {
   budgetSources,
@@ -43,9 +44,7 @@ async function nameOf(db: Db, orgId: string, memberId: string): Promise<string> 
   return row.name
 }
 
-export interface BriefingNotice {
-  message: string
-}
+export type BriefingNotice = ApiResponse<'home.briefingNotices'>[number]
 
 /**
  * 브리핑이 짚어 주는 문장들(`home.briefingNotices`).
@@ -87,9 +86,7 @@ export async function homeBriefingNotices(
   return notices
 }
 
-export interface Briefing {
-  title: string
-}
+export type Briefing = ApiResponse<'home.briefing'>
 
 /**
  * 브리핑의 인사 제목(`home.briefing`).
@@ -117,11 +114,7 @@ export async function homeBriefing(
   }
 }
 
-export interface EventCounts {
-  activeEvents: number
-  upcomingEvents: number
-  weeklySchedules: number
-}
+export type EventCounts = ApiResponse<'home.eventCounts'>
 
 /**
  * 홈 머리의 건수(`home.eventCounts`).
@@ -165,15 +158,7 @@ function orNote(value: string | null): string {
   return value === null || value.trim() === '' ? UNDECIDED : value
 }
 
-export interface HomeEvent {
-  status: string
-  title: string
-  date: string
-  place: string
-  team: string
-  progressPercent: number
-  delayedTaskCount?: number
-}
+export type HomeEvent = ApiResponse<'home.events'>[number]
 
 /**
  * 진행 중이거나 예정된 행사(`home.events`).
@@ -261,11 +246,7 @@ async function eventWorkload(
   return found
 }
 
-export interface HomeSchedule {
-  date: string
-  title: string
-  badge: string
-}
+export type HomeSchedule = ApiResponse<'home.schedules'>[number]
 
 /**
  * 다가오는 주요 일정(`home.schedules`).
@@ -284,11 +265,7 @@ export async function homeSchedules(db: Db, orgId: string, now: Date): Promise<H
     .map((one) => ({ date: shortDay(one.at), title: one.title, badge: labelOf(one.type) }))
 }
 
-export interface OrgAlert {
-  kind: string
-  label: string
-  count: number
-}
+export type OrgAlert = ApiResponse<'home.orgAlerts'>[number]
 
 /**
  * 조직 운영에서 확인이 필요한 항목(`home.orgAlerts`).
@@ -331,14 +308,7 @@ async function missingProofCount(db: Db, orgId: string): Promise<number> {
   return Number(rows[0]?.total ?? 0)
 }
 
-export interface FinanceSummary {
-  /** 막대가 쓰는 수. 사람이 읽는 말은 아래의 글이 든다. */
-  budgetUsedPercent: number
-  budgetUsedNote: string
-  availableBudgetNote: string
-  plannedNote: string
-  missingProofNote: string
-}
+export type FinanceSummary = ApiResponse<'home.financeSummary'>
 
 /**
  * 전체 재정 요약(`home.financeSummary`).

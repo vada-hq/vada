@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import type { ApiResponse } from '../../../../specs/figma/vada-wireframe/api-types.d.ts'
 import { orgOf, type Handlers } from '../deps.ts'
 import {
   homeBriefing,
@@ -31,36 +32,36 @@ export const homeHandlers: Handlers = {
   // ── 끼룩이 브리핑 ──────────────────────────────────────────────────────
   //
   // 보는 사람 자신의 이름이 들어가는 문장이다 — 그 사람이 정보주체다.
-  'home.briefing': async (c, d) => {
+  'home.briefing': async (c, d): Promise<ApiResponse<'home.briefing'>> => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'user', id: c.get('sender')!.userId })
     return homeBriefing(d.db, orgId, memberOf(c), d.invite.now())
   },
-  'home.briefingNotices': async (c, d) => {
+  'home.briefingNotices': async (c, d): Promise<ApiResponse<'home.briefingNotices'>> => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeBriefingNotices(d.db, orgId, d.invite.now())
   },
 
   // ── 행사·일정 ──────────────────────────────────────────────────────────
-  'home.eventCounts': async (c, d) => {
+  'home.eventCounts': async (c, d): Promise<ApiResponse<'home.eventCounts'>> => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeEventCounts(d.db, orgId, d.invite.now())
   },
-  'home.events': async (c, d) => {
+  'home.events': async (c, d): Promise<ApiResponse<'home.events'>> => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeEvents(d.db, orgId, d.invite.now())
   },
-  'home.schedules': async (c, d) => {
+  'home.schedules': async (c, d): Promise<ApiResponse<'home.schedules'>> => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeSchedules(d.db, orgId, d.invite.now())
   },
 
   // ── 조직 주요 알림 ─────────────────────────────────────────────────────
-  'home.orgAlerts': async (c, d) => {
+  'home.orgAlerts': async (c, d): Promise<ApiResponse<'home.orgAlerts'>> => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeOrgAlerts(d.db, orgId)
@@ -69,7 +70,7 @@ export const homeHandlers: Handlers = {
   // ── 전체 재정 요약 ─────────────────────────────────────────────────────
   //
   // 학생회 전체를 센다 — 행사 하나의 재정(`event.financeSummary`)과 다른 물건이다.
-  'home.financeSummary': async (c, d) => {
+  'home.financeSummary': async (c, d): Promise<ApiResponse<'home.financeSummary'>> => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeFinanceSummary(d.db, orgId)
