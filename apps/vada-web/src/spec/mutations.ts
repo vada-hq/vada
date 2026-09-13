@@ -1,7 +1,8 @@
 // specs/figma/vada-wireframe/mutations.json 카탈로그의 소비자.
 import type { DataRow } from '../data-sources/definitions'
+import { offlineClient } from '#offline-client'
 // 계약(경로·payload 스코프·상태 문구)은 카탈로그를 단일 원본으로 읽고,
-// 네트워크만 개발용 mock으로 대체한다(로딩 상태 확인용 인위 지연 포함).
+// 서버 연결이 없는 경우의 동작은 빌드에서 선택한 구현이 맡는다.
 import catalogJson from '../../../../specs/figma/vada-wireframe/mutations.json'
 import { currentServer, forgetSources, urlOf } from '../data-sources/server'
 import { isServedMutation } from '../data-sources/served'
@@ -51,26 +52,6 @@ export function getMutation(key: string): Mutation {
     throw new Error(`제출 계약 '${key}'가 카탈로그에 없습니다.`)
   }
   return mutation
-}
-
-// vada-conventions 7번: mock에 인위 지연을 둬 로딩 상태를 실제로 확인한다.
-const MOCK_DELAY_MS = 450
-
-/**
- * 보내고 나면 서버가 답을 준다. **만든 것의 id가 그 답에만 있다.**
- *
- * 개발용 응답은 mutations.json이 아니라 여기 있다 — 카탈로그는 계약(경로·상태
- * 문구)을 갖고, 무엇이 돌아오는지는 서버 대역이 정한다.
- */
-const MUTATION_RESULTS: Record<string, DataRow> = {
-  'message.room.create': { id: 'MR-01' },
-  // **사람마다 다른 영수증.** QR·링크의 토큰으로 결과를 조회하면 같은 것을 쓴
-  // 여러 사람이 서로의 이름과 결과를 본다 — 개발용 응답에서도 그 사실을 지킨다.
-  //
-  // 진짜 서버는 추측할 수 없는 값을 만들고 해시로 저장한다. 여기서는 어느 결과로
-  // 이어지는지가 보여야 하므로 그 결과의 토큰을 붙여 둔다.
-  'attendance.checkIn': { receiptToken: 'RCPT-B3N8P4' },
-  'survey.apply': { receiptToken: 'RCPT-SVY-4f2a91c7' },
 }
 
 /**
@@ -191,10 +172,7 @@ export async function runMutation(
     return sendMutation(mutation, body, params)
   }
 
-  await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS))
-  // 개발 대역: 실제 전송 없이 성공으로 처리한다. 무엇이 진짜로 나가는지는 SERVED_MUTATIONS가 든다.
-  void payload
-  return MUTATION_RESULTS[key] ?? {}
+  return offlineClient.submit(key)
 }
 
 /**

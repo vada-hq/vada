@@ -33,8 +33,8 @@ function textOf(dir, keep) {
 
 // ── 1. 개발용 응답에만 있는 글
 const fixtures =
-  readFileSync(join(WEB, 'data-sources', 'fixtures.ts'), 'utf8') +
-  readFileSync(join(WEB, 'option-sources', 'fixtures.ts'), 'utf8')
+  readFileSync(join(WEB, 'development', 'data-fixtures.ts'), 'utf8') +
+  readFileSync(join(WEB, 'development', 'option-fixtures.ts'), 'utf8')
 // **서버가 짓는 말도 증거가 못 된다.**
 //
 // '일시 미정'·'장소 미정'·'검토 의견이 아직 없습니다.'는 서버가 지어서 보내는 글인데

@@ -13,6 +13,7 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
+    "paths": { "#offline-client": ["./src/data-sources/offline-client.ts"] },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",
