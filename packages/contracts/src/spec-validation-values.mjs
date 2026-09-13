@@ -9,3 +9,9 @@ export function paramKeys(source) {
   const params = Array.isArray(source?.params) ? source.params : [];
   return new Set(params.map((param) => param?.key));
 }
+
+export function elementLabel(element, index) {
+  const spec = element?.spec;
+  const name = spec?.fieldKey ?? spec?.label ?? element?.source?.nodeId;
+  return name ? `elements[${index}](${name})` : `elements[${index}]`;
+}
