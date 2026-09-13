@@ -1,4 +1,5 @@
 import type { Context } from 'hono'
+import type { ApiResponse } from '../../../../specs/figma/vada-wireframe/api-types.d.ts'
 import type { Deps, Handlers } from '../deps.ts'
 import {
   collegeOptions as educationCollegeOptions,
@@ -34,7 +35,7 @@ export const joiningHandlers: Handlers = {
   //
   // 한동안 앱이 무조건 소속 입력으로 갔다(2026-09-08에 사람이 겪었다). 이미 들어온
   // 사람도 열 때마다 그 화면부터 봤고, 로그인 화면으로 가는 길은 아예 없었다.
-  'app.start': async (c) => {
+  'app.start': async (c): Promise<ApiResponse<'app.start'>> => {
     const sender = c.get('sender')
     if (sender === null || sender === undefined) return { screenId: 'SIGN-IN' }
     return { screenId: sender.membership === null ? 'ONB-01' : 'HOME-01K' }

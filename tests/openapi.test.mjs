@@ -24,7 +24,7 @@ test('openapi.json이 카탈로그에서 다시 만든 것과 같다', () => {
     saved,
     built,
     'openapi.json이 카탈로그와 갈렸습니다. ' +
-      'node apps/spec-service/src/generate-openapi.mjs 로 다시 만드세요.',
+      'npm run openapi로 다시 만드세요.',
   )
 })
 
@@ -43,7 +43,7 @@ test('request-bodies.json이 계약에서 다시 뽑은 것과 같다', () => {
     saved,
     built,
     'request-bodies.json이 계약과 갈렸습니다. ' +
-      'node apps/spec-service/src/generate-openapi.mjs 로 다시 만드세요.',
+      'npm run openapi로 다시 만드세요.',
   )
   // **빈 것에 대고 재면 늘 통과한다.** 뽑힌 것이 하나도 없으면 위가 그냥 통과한다.
   assert.ok(Object.keys(saved).length > 0, '요청 몸통이 하나도 뽑히지 않았습니다.')

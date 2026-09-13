@@ -4,6 +4,7 @@ import { ErrorBoundary } from './components/ErrorBoundary'
 import { ScreenRouter } from './screens/ScreenRouter'
 import { FIRST_SCREEN } from './screens/routes'
 import { apiBaseUrl, browserFetch, servingFromServer } from './data-sources/server'
+import { APP_START_PATH, parseAppStartResponse } from './data-sources/app-start'
 import type { ScopeDraft, ScopeStore } from './state/scopes'
 
 // 화면의 주소는 screenId다 — 이미 명세가 갖고 있으므로 따로 정하지 않는다.
@@ -61,12 +62,13 @@ function useStartScreen(
     // **부르는 길은 하나다**(`browserFetch`). 맨 `fetch`는 쿠키를 안 싣고, 그러면
     // 방금 로그인한 사람도 서버에게는 로그인하지 않은 사람으로 보인다 — 웹과 api가
     // 다른 주소에 있을 때 특히 그렇다.
-    void browserFetch(`${apiBaseUrl()}/api/app/start`)
+    void browserFetch(`${apiBaseUrl()}${APP_START_PATH}`)
       .then((res) => (res.ok ? res.json() : null))
-      .then((said: { screenId?: unknown } | null) => {
+      .then((body: unknown) => {
         if (!live) return
+        const said = parseAppStartResponse(body)
         // 못 물었으면 지금까지처럼 첫 화면이다 — 갈 곳 없이 세워 두지 않는다.
-        const to = typeof said?.screenId === 'string' ? said.screenId : FIRST_SCREEN
+        const to = said === null ? FIRST_SCREEN : said.screenId
         go({ screenId: to, params: {} })
         window.location.hash = `#/${to}`
       })
