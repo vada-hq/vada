@@ -1,16 +1,18 @@
-import { FIN00Screen } from '../FIN00Screen'
-import { FINLEDGER01Screen } from '../FINLEDGER01Screen'
-import { FINPLAN01Screen } from '../FINPLAN01Screen'
-import { FINREQ01Screen } from '../FINREQ01Screen'
-import { FINREQ02Screen } from '../FINREQ02Screen'
-import { MYREQ01Screen } from '../MYREQ01Screen'
-import { FINSUP01Screen } from '../FINSUP01Screen'
-import { FINREV01Screen } from '../FINREV01Screen'
-import { FINEVID01Screen } from '../FINEVID01Screen'
-import { FINPROC01Screen } from '../FINPROC01Screen'
+import { lazyScreen } from './lazy-screen'
 import { finPlan01, finReq01, finRev01, finSup01 } from '../../spec/screens'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
+
+const FIN00Screen = lazyScreen(() => import('../FIN00Screen').then((module) => module.FIN00Screen))
+const FINLEDGER01Screen = lazyScreen(() => import('../FINLEDGER01Screen').then((module) => module.FINLEDGER01Screen))
+const FINPLAN01Screen = lazyScreen(() => import('../FINPLAN01Screen').then((module) => module.FINPLAN01Screen))
+const FINREQ01Screen = lazyScreen(() => import('../FINREQ01Screen').then((module) => module.FINREQ01Screen))
+const FINREQ02Screen = lazyScreen(() => import('../FINREQ02Screen').then((module) => module.FINREQ02Screen))
+const MYREQ01Screen = lazyScreen(() => import('../MYREQ01Screen').then((module) => module.MYREQ01Screen))
+const FINSUP01Screen = lazyScreen(() => import('../FINSUP01Screen').then((module) => module.FINSUP01Screen))
+const FINREV01Screen = lazyScreen(() => import('../FINREV01Screen').then((module) => module.FINREV01Screen))
+const FINEVID01Screen = lazyScreen(() => import('../FINEVID01Screen').then((module) => module.FINEVID01Screen))
+const FINPROC01Screen = lazyScreen(() => import('../FINPROC01Screen').then((module) => module.FINPROC01Screen))
 
 export const financeScreens = [
   {

@@ -1,5 +1,6 @@
+import { renderLoaded } from '../test/render-loaded'
 import { describe, expect, it } from 'vitest'
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { cleanup, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { ALL_SCREENS, drawsTitle, exampleParamsOf } from './screens'
@@ -30,7 +31,7 @@ const SCREENS: Array<{ screenId: string; spec: ScreenSpec }> = ALL_SCREENS.map((
 }))
 
 function renderScreen(screenId: string, onNavigate: (to: string) => void = () => {}) {
-  render(
+  return renderLoaded(
     <ScreenRouter
       screenId={screenId}
       screenParams={exampleParamsOf(screenId)}
@@ -310,7 +311,7 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
         action: { targetScreenId: string }
       }
       const went: string[] = []
-      renderScreen(screenId, (to) => went.push(to))
+      await renderScreen(screenId, (to) => went.push(to))
       const found = screen.queryAllByRole('button', { name: labelPattern(button.label) })
       // 그려지지 않는 단추는 다른 검사가 잡는다. 여기서는 눌리는 것만 본다.
       if (found[0] !== undefined) {
@@ -453,8 +454,8 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     }
   })
 
-  it('명세를 지킨다', () => {
-    renderScreen(screenId)
+  it('명세를 지킨다', async () => {
+    await renderScreen(screenId)
     for (const [name, run] of checks) {
       try {
         run()

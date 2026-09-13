@@ -1,5 +1,6 @@
+import { renderLoaded } from '../test/render-loaded'
 import { describe, expect, it } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from './ScreenRouter'
 import { task01 } from '../spec/screens'
@@ -11,7 +12,7 @@ import { readListSource, readObjectSource } from '../data-sources/catalog'
 // (value) 하나뿐이고, 나머지는 MY-01·OPS-00이 연 자리를 그대로 쓴다.
 
 function renderTASK01(onNavigate: (screenId: string) => void = () => {}) {
-  render(
+  return renderLoaded(
     <ScreenRouter
       screenId="TASK-01"
       scopes={{}}
@@ -28,8 +29,8 @@ function columnsOf(): ItemListSpec[] {
 }
 
 describe('TASK-01 스펙 준수', () => {
-  it('열마다 명세가 정한 고정값으로 따로 조회한다', () => {
-    renderTASK01()
+  it('열마다 명세가 정한 고정값으로 따로 조회한다', async () => {
+    await renderTASK01()
     const scope = task01.elements.find((element) => element.spec.type === 'select')
       ?.spec as SelectSpec
 
@@ -54,7 +55,7 @@ describe('TASK-01 스펙 준수', () => {
 
   it('보는 범위를 바꾸면 모든 열이 다시 조회된다', async () => {
     const user = userEvent.setup()
-    renderTASK01()
+    await renderTASK01()
     const scope = task01.elements.find((element) => element.spec.type === 'select')
       ?.spec as SelectSpec
     const source = getOptionSource(scope.optionsSource.key)
@@ -79,8 +80,8 @@ describe('TASK-01 스펙 준수', () => {
     }
   })
 
-  it('상태 칩은 라벨과 단위를 명세에서 읽는다', () => {
-    renderTASK01()
+  it('상태 칩은 라벨과 단위를 명세에서 읽는다', async () => {
+    await renderTASK01()
     const summary = task01.elements.find((element) => element.spec.type === 'summary')
       ?.spec
     if (summary?.type !== 'summary') throw new Error('summary가 없다')
@@ -98,7 +99,7 @@ describe('TASK-01 스펙 준수', () => {
 
   it('카드를 누르면 itemAction이 선언한 대로 동작한다', async () => {
     const user = userEvent.setup()
-    renderTASK01()
+    await renderTASK01()
     const column = columnsOf().find((spec) => spec.itemAction?.type === 'pending')
     if (column?.itemAction?.type !== 'pending') throw new Error('pending 계약이 없다')
 

@@ -6,6 +6,7 @@ import { SourceGate } from '../components/SourceGate'
 import { ALL_SCREENS } from '../spec/screens'
 import { SCREEN_RENDERERS } from './routing'
 import type { ScreenRouterProps } from './routing/types'
+import { ScreenCodeBoundary } from './routing/ScreenCodeBoundary'
 
 // 내비게이션 계약(element-types.md): 스펙의 targetScreenId가 구현에 등록되지
 // 않은 화면이면 조용한 대체 없이 명시적 오류를 표시한다.
@@ -78,7 +79,9 @@ export function ScreenRouter(props: ScreenRouterProps) {
       meta={spec?.meta}
       onNavigate={props.onNavigate}
     >
-      <ScreenBody {...props} />
+      <ScreenCodeBoundary screenId={props.screenId}>
+        <ScreenBody {...props} />
+      </ScreenCodeBoundary>
     </SourceGate>
   )
 }

@@ -1,5 +1,6 @@
+import { renderLoaded } from '../test/render-loaded'
 import { expect, it, describe } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from './ScreenRouter'
 import { shell } from '../spec/shell'
@@ -13,7 +14,7 @@ import { readObjectSource } from '../data-sources/catalog'
 // 읽으므로 명세를 고치면 검사가 따라간다.
 
 function renderMY01(onNavigate: (screenId: string) => void = () => {}) {
-  render(
+  return renderLoaded(
     <ScreenRouter
       screenId="MY-01"
       scopes={{}}
@@ -30,8 +31,8 @@ function specOf<T>(nodeId: string): T {
 }
 
 describe('MY-01 스펙 준수', () => {
-  it('summary의 라벨-값 쌍을 데이터 출처에서 읽어 그린다', () => {
-    renderMY01()
+  it('summary의 라벨-값 쌍을 데이터 출처에서 읽어 그린다', async () => {
+    await renderMY01()
     const summary = specOf<SummarySpec>('16:401')
     const row = readObjectSource(summary.dataSourceKey ?? '')
     // 같은 문구가 사이드바 메뉴와 탭에도 있고, 건수 '2건'은 두 타일에 겹친다.
@@ -47,8 +48,8 @@ describe('MY-01 스펙 준수', () => {
     }
   })
 
-  it('탭은 선택지를 명세에서, 건수를 데이터에서 읽는다', () => {
-    renderMY01()
+  it('탭은 선택지를 명세에서, 건수를 데이터에서 읽는다', async () => {
+    await renderMY01()
     const tab = specOf<SelectSpec>('16:422')
     const source = getOptionSource(tab.optionsSource.key)
     if (source.type !== 'static') throw new Error('static 출처여야 한다')
@@ -70,7 +71,7 @@ describe('MY-01 스펙 준수', () => {
 
   it('탭을 바꾸면 목록을 다시 조회한다', async () => {
     const user = userEvent.setup()
-    renderMY01()
+    await renderMY01()
 
     expect(screen.getByText('행사 안전 안내문 검토')).toBeInTheDocument()
 
@@ -82,7 +83,7 @@ describe('MY-01 스펙 준수', () => {
 
   it('검색어도 조회 인자다 — 걸러진 결과만 남는다', async () => {
     const user = userEvent.setup()
-    renderMY01()
+    await renderMY01()
     const search = my01.elements.find((element) => element.spec.type === 'input')
     if (!search) throw new Error('검색 입력이 없다')
 
@@ -97,7 +98,7 @@ describe('MY-01 스펙 준수', () => {
 
   it('항목을 누르면 itemAction이 선언한 대로 동작한다', async () => {
     const user = userEvent.setup()
-    renderMY01()
+    await renderMY01()
     const tasks = specOf<ItemListSpec>('16:448')
     if (tasks.itemAction?.type !== 'pending') {
       throw new Error('이 검사는 pending 계약을 본다')
@@ -108,8 +109,8 @@ describe('MY-01 스펙 준수', () => {
     expect(screen.getByText(tasks.itemAction.note)).toBeInTheDocument()
   })
 
-  it('셸의 메뉴를 그리고 현재 화면을 표시한다', () => {
-    renderMY01()
+  it('셸의 메뉴를 그리고 현재 화면을 표시한다', async () => {
+    await renderMY01()
     for (const item of shell.navigation) {
       expect(screen.getByRole('button', { name: item.label })).toBeInTheDocument()
     }
@@ -119,8 +120,8 @@ describe('MY-01 스펙 준수', () => {
     )
   })
 
-  it('아직 명세되지 않은 메뉴는 비활성이다', () => {
-    renderMY01()
+  it('아직 명세되지 않은 메뉴는 비활성이다', async () => {
+    await renderMY01()
     for (const item of shell.navigation) {
       const control = screen.getByRole('button', { name: item.label })
       if (item.targetScreenId === undefined) {
@@ -134,7 +135,7 @@ describe('MY-01 스펙 준수', () => {
   it('셸의 메뉴로 다른 화면에 간다', async () => {
     const user = userEvent.setup()
     const visited: string[] = []
-    renderMY01((screenId) => visited.push(screenId))
+    await renderMY01((screenId) => visited.push(screenId))
 
     await user.click(screen.getByRole('button', { name: '홈' }))
     expect(visited).toEqual(['HOME-01K'])

@@ -3,7 +3,8 @@ import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { useState } from 'react'
-import { render, waitFor } from '@testing-library/react'
+import { waitFor } from '@testing-library/react'
+import { renderLoaded } from '../test/render-loaded'
 import { fetchOptions } from '../option-sources/catalog'
 import { getOptionSource } from '../option-sources/definitions'
 import type { Option } from '../option-sources/definitions'
@@ -287,7 +288,7 @@ describe.each(ALL_SCREENS.map((spec) => ({ screenId: spec.screenId, spec })))(
         throw new Error(`design 파일이 없습니다: ${screenId}`)
       }
 
-      render(<ScopedScreen screenId={screenId} spec={spec} design={design} />)
+      await renderLoaded(<ScopedScreen screenId={screenId} spec={spec} design={design} />)
 
       // 원격 선택지는 늦게 온다. 그것을 그리는 화면만 기다린다 — 나머지는
       // 이 자리를 스치고 지나간다.

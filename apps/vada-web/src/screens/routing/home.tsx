@@ -1,9 +1,11 @@
-import { HOME01KScreen } from '../HOME01KScreen'
-import { MY01Screen } from '../MY01Screen'
-import { MYINFO01Screen } from '../MYINFO01Screen'
+import { lazyScreen } from './lazy-screen'
 import { myInfo01 } from '../../spec/screens'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
+
+const HOME01KScreen = lazyScreen(() => import('../HOME01KScreen').then((module) => module.HOME01KScreen))
+const MY01Screen = lazyScreen(() => import('../MY01Screen').then((module) => module.MY01Screen))
+const MYINFO01Screen = lazyScreen(() => import('../MYINFO01Screen').then((module) => module.MYINFO01Screen))
 
 export const homeScreens = [
   {
