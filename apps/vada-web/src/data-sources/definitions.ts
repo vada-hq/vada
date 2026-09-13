@@ -22,6 +22,7 @@ export interface DataSourceField {
   key: string
   description: string
   optional?: boolean
+  valueType?: 'string' | 'number' | 'boolean'
   // 이 조각이 다시 같은 모양의 항목 목록일 때 그 항목의 조각(묶인 목록).
   fields?: DataSourceField[]
 }
