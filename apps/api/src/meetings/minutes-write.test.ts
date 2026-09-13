@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { and, eq } from 'drizzle-orm'
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
@@ -11,10 +12,8 @@ import {
   organizations,
   tasks,
 } from '../db/schema.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import { decided } from './minutes.ts'
 import type { Viewer } from '../permissions.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
 import { meetingLookups } from './lookups.ts'
 
 // 회의록을 쓴다(OPS-MEET-06B의 결정사항·요약 초안·정리 완료, OPS-MEET-08의 요약 확인).
@@ -49,8 +48,7 @@ function viewer(memberId: string, role: 'chair' | 'head' | 'member' = 'member'):
 }
 
 function harness(who: Viewer | null) {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => who,
     lookups: {
@@ -59,16 +57,9 @@ function harness(who: Viewer | null) {
       // 참가자인지를 표에서 읽는다. '늘 참'으로 두면 막는 자리를 아예 안 재게 된다.
       ...meetingLookups(db),
     },
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     newId: () => 'X-01',
-  }
+  })
   return createApp(deps)
 }
 

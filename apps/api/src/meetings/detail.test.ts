@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
@@ -12,9 +13,7 @@ import {
   members,
   organizations,
 } from '../db/schema.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import type { Viewer } from '../permissions.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
 import { meetingLookups } from './lookups.ts'
 
 // 회의 상세와 그 곁의 넷(OPS-MEET-03A·03B·03C · 05A · D01 · D02).
@@ -53,8 +52,7 @@ function viewer(memberId = 'M-01', role: 'chair' | 'head' | 'member' = 'chair'):
 }
 
 function harness(who: Viewer | null = viewer()) {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => who,
     lookups: {
@@ -64,16 +62,9 @@ function harness(who: Viewer | null = viewer()) {
       // 아무도 못 보고, '늘 거짓'으로 두면 시작·종료가 아예 안 열린다.
       ...meetingLookups(db),
     },
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     newId: () => 'X-01',
-  }
+  })
   return createApp(deps)
 }
 

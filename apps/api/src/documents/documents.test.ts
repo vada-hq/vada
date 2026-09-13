@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
@@ -11,9 +12,7 @@ import {
   organizations,
   tasks,
 } from '../db/schema.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import type { Viewer } from '../permissions.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
 
 // 문서(EVT-DOC-01 · OPS-MEET-03A/05A/07 · EVT-TASK-02).
 //
@@ -58,27 +57,12 @@ function viewer(orgId = 'ORG-01', memberId = 'M-01'): Viewer {
 }
 
 function harness(who: Viewer | null = viewer()) {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => who,
-    lookups: {
-      isEventStaff: async () => false,
-      isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
-      isMeetingParticipant: async () => false,
-    },
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     newId: () => 'X-01',
-  }
+  })
   return createApp(deps)
 }
 

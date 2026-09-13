@@ -2,12 +2,11 @@ import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
 import Ajv from 'ajv'
 import openapi from '../../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import { departments, invites, members, organizations, permissionChanges, users } from '../db/schema.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import { routeOf } from '../routes.ts'
 import type { AuditEntry } from '../audit.ts'
 import type { Viewer } from '../permissions.ts'
@@ -33,7 +32,7 @@ function viewer(role: 'chair' | 'head' | 'member'): Viewer {
 
 function harness(who: Viewer | null = viewer('chair')) {
   const written: AuditEntry[] = []
-  const deps: Deps = {
+  const deps = createTestDeps({
     audit: {
       async write(entry) {
         written.push(entry)
@@ -41,28 +40,13 @@ function harness(who: Viewer | null = viewer('chair')) {
     },
     db,
     who: async () => who,
-    lookups: {
-      isEventStaff: async () => false,
-      isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
-      isMeetingParticipant: async () => false,
-    },
-    // 검사는 밖으로 나가지 않는다. 열려 있다고만 답하고, 부르면 어디로 갈지 말해 준다.
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => new Date('2026-07-22T18:30:00+09:00'),
       newCode: () => 'CODE-' + codes++,
     },
     newId: () => 'E-' + codes++,
-  }
+  })
   return { app: createApp(deps), written }
 }
 

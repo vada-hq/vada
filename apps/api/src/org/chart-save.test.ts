@@ -1,12 +1,11 @@
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
 import Ajv from 'ajv'
 import openapi from '../../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import { departments, members, organizations, permissionChanges, users } from '../db/schema.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import { routeOf } from '../routes.ts'
 import type { Viewer } from '../permissions.ts'
 
@@ -33,31 +32,16 @@ function viewer(role: 'chair' | 'head' | 'member', memberId = 'M-01'): Viewer {
 }
 
 function harness(who: Viewer | null = viewer('chair')) {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => who,
-    lookups: {
-      isEventStaff: async () => false,
-      isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
-      isMeetingParticipant: async () => false,
-    },
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => new Date('2026-07-22T18:30:00+09:00'),
       newCode: () => 'CODE-1',
     },
     newId: () => 'E-01',
-  }
+  })
   return createApp(deps)
 }
 

@@ -2,27 +2,18 @@ import { beforeAll, afterAll, describe, expect, it } from 'vitest'
 import Ajv from 'ajv'
 import openapi from '../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
 import { createApp, type Deps } from './app.ts'
+import { createTestDeps } from './testing/create-test-deps.ts'
 import { maskSecrets, type AuditEntry } from './audit.ts'
 import type { Db } from './db/client.ts'
 import { freshDb } from './db/testing.ts'
 import { departments, members, organizations } from './db/schema.ts'
 import { allOperationIds, answeredOperationIds, routeOf } from './routes.ts'
-import { inMemoryCounter } from './public/rate-limit.ts'
-import { inMemoryAttempts } from './idempotency.ts'
 import type { Viewer } from './permissions.ts'
 
 // 서버가 명세대로 답하는가, 그리고 **명세 밖으로 새지 않는가.**
 
 let db: Db
 let close: () => Promise<void>
-
-const NO_LOOKUPS = {
-  isEventStaff: async () => false,
-  isEventStaffManager: async () => false,
-  isMeetingHost: async () => false,
-  isMeetingCreator: async () => false,
-  isMeetingParticipant: async () => false,
-}
 
 function viewer(role: 'chair' | 'head' | 'member' = 'member'): Viewer {
   return {
@@ -39,7 +30,7 @@ function viewer(role: 'chair' | 'head' | 'member' = 'member'): Viewer {
 
 function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
   const written: AuditEntry[] = []
-  const deps: Deps = {
+  const deps = createTestDeps({
     audit: {
       async write(entry) {
         written.push(entry)
@@ -47,15 +38,6 @@ function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
     },
     db,
     who: async () => who,
-    lookups: NO_LOOKUPS,
-    // 검사는 밖으로 나가지 않는다. 열려 있다고만 답하고, 부르면 어디로 갈지 말해 준다.
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => new Date('2026-07-22T18:30:00+09:00'),
@@ -63,7 +45,7 @@ function harness(who: Viewer | null = viewer(), over: Partial<Deps> = {}) {
     },
     newId: () => 'E-01',
     ...over,
-  }
+  })
   return { app: createApp(deps), written }
 }
 
