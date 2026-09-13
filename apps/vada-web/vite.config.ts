@@ -52,10 +52,9 @@ export default defineConfig(({ command }) => ({
     // 내 기계에서만 초록인 것은 거기서 걸린다. 그 사실을 `tests/gate-cold.test.mjs`가
     // 지킨다 — 누가 CI에 캐시를 심으면 그 검사가 터진다.
     fsModuleCache: true,
-    // 자산 주소표만 갈아 끼운다. eager glob이 파일 1,199개를 모듈로 바꾸는데
-    // 워커마다 다시 하므로 앱 검사의 import가 125초였다 - 화면이 늘 때마다
-    // 커지는 자리다. 화면 코드는 그대로이고, 대조는 src가 아니라
-    // data-asset-node-id로 그림을 짚으므로 주소 문자열은 검사의 관심 밖이다.
+    // 단위 검사는 자산 주소표만 대체해 전체 그림 변환을 워커마다 반복하지 않는다.
+    // 화면 대조는 data-asset-node-id를 사용한다. 실제 배포 파일과 이미지 로딩은
+    // e2e-ship/figma-assets.spec.ts가 별도로 확인한다.
     alias: {
       './figma-asset-urls': fileURLToPath(
         new URL('./src/components/figma-asset-urls.test-stub.ts', import.meta.url),
