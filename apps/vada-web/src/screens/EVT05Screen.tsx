@@ -1,123 +1,24 @@
 import { useState } from 'react'
-import type { ReactNode } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
-import { CHOICE_CHIP, MUTED_CHIP, NEUTRAL_CHIP, ROW_TONE, STATE_CHIP } from '../design/tones'
+import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
-import type { DataRow } from '../data-sources/definitions'
-import { getOptionSource } from '../option-sources/definitions'
-import type { Option } from '../option-sources/definitions'
 import { resolveParams } from '../spec/params'
-import { drawnTitleOf, elementByNodeId, evt05 } from '../spec/screens'
-import { draftFromRow } from '../spec/draft-values'
-import { targetScreenOf } from '../spec/types'
-import { useFieldDraft } from '../spec/useFieldDraft'
+import { drawnTitleOf, evt05 } from '../spec/screens'
 import { useSubmitAction } from '../spec/useSubmitAction'
-import type {
-  ButtonSpec,
-  GroupSpec,
-  InputSpec,
-  ItemListSpec,
-  SelectSpec,
-  SubmitAction,
-  SummarySpec,
-} from '../spec/types'
+import type { ButtonSpec, SubmitAction } from '../spec/types'
 import type { ScopeDraft } from '../state/scopes'
+import { ASSET, BREADCRUMB_SEPARATORS, NODE, SCREEN, buttonAt, listAt, summaryAt } from './survey-editor/survey-spec'
+import { scalar } from './survey-editor/survey-values'
+import { useSurveyDraft } from './survey-editor/useSurveyDraft'
+import { SurveyBasics } from './survey-editor/SurveyBasics'
+import { SurveyRecruitment } from './survey-editor/SurveyRecruitment'
+import { SurveyConditions } from './survey-editor/SurveyConditions'
+import { SurveyQuestions } from './survey-editor/SurveyQuestions'
 
-// 참여 설문 생성·관리(EVT-05). 인원 관리 갈피 아래로 한 겹 더 들어간 화면이다.
-//
-// **이 화면에는 저장 단추가 없다.** 모집 설정 칸 여섯을 고치는데 그림 어디에도
-// '저장'이 없고, 카탈로그의 event.survey.saveSettings를 부를 자리가 없다. 지어내지
-// 않고 비워 둔다 - 무엇을 눌러야 저장되는지는 그림이 말해야 한다.
-//
-// **막는 것은 서버다.** '설문 링크 활성화'는 조건 열여섯을 다 채워야 눌리는데,
-// 무엇이 모자란지는 조직의 규칙이라 화면이 셀 수 없다(executeWhen: sourceAllows).
-// 화면이 하는 일은 서버가 준 까닭을 그대로 내놓는 것뿐이다.
-//
-// **명세가 침묵해서 화면이 알고 있는 것이 셋이다.**
-//
-// 1. 조건 줄의 색. 명세는 columns[0].toneField로 '이 칸의 글에 색 이름이 있다'까지
-//    말하는데, 그림은 그 색으로 줄 바탕까지 칠하고 앞머리 그림도 바꾼다.
-//    rowToneField를 쓸 수 없다 - 그것은 바깥 행(묶음)의 조각을 보는데 tone은
-//    묶음 안 항목의 것이다(검증기가 '없는 조각'이라고 잡는다).
-// 2. 문항 줄의 잠김. 응답이 있는 문항은 지울 수 없고(X가 없다) 손잡이 색도 다른데,
-//    itemRemove는 목록 전체에 걸리는 선언이라 '어느 항목에'를 말할 자리가 없다.
-//    그래서 화면이 event.surveyQuestions의 locked를 직접 읽는다.
-// 3. 조각 사이의 '~'와 화살표. 명세는 칸 둘을 말하고 그 사이의 글자는 design의 것이다.
-
-const SCREEN = 'EVT-05'
-
-const NODE = {
-  statusChip: '25:515',
-  preview: '25:517',
-  activate: '25:523',
-  unmetBadge: '25:525',
-  editBasics: '25:570',
-  startEvent: '25:572',
-  basics: '25:578',
-  basicsLink: '25:636',
-  recruitGroup: '25:642',
-  applyStart: '25:646',
-  applyEnd: '25:653',
-  applyMethod: '25:666',
-  waitlist: '25:674',
-  duesCheck: '25:682',
-  duesNote: '25:690',
-  completionNote: '25:695',
-  conditions: '25:700',
-  unmetNote: '25:704',
-  questions: '25:844',
-  questionRow: '25:848',
-  addQuestion: '25:963',
-  questionPanel: '25:976',
-} as const
-
-const ASSET = {
-  workspaceStatus: { startAt: '25:560' } as Record<string, string>,
-  preview: '25:518',
-  basicsInfo: '25:581',
-  basicsFold: '25:588',
-  basicsLink: '25:637',
-  applyEndAlert: '25:655',
-  applyEndNote: '25:661',
-  duesNote: '25:691',
-  // 조건 줄 앞머리. design은 줄마다 다른 노드로 뽑았지만 그림은 두 가지뿐이라
-  // 첫 벌만 지목한다(대조는 같은 그림을 묶어 본다).
-  conditionMet: '25:711',
-  conditionUnmet: '25:754',
-  // 문항 줄의 손잡이. 잠긴 문항의 것이 한 단계 옅다 - 다른 그림이다.
-  questionGripLocked: '25:850',
-  questionGrip: '25:882',
-  questionRemove: '25:896',
-} as const
-
-// 경로 조각 사이의 화살표. 명세는 조각이 무엇인지만 말하고 그 사이의 그림은
-// design이 갖는다(MY-REQ-01과 같은 방식).
-const BREADCRUMB_SEPARATORS = ['25:498', '25:503', '25:508']
-
-// 조건 줄이 톤 이름을 어떤 모습으로 옮기는지. design/tones.ts의 표들과 달리 이
-// 자리에만 있어서 여기 둔다 - 두 번째 화면에서 다시 나오면 그때 올릴 자리다.
-// (ROW_TONE은 줄 바탕만 갖고 있고, 여기서는 글자 색과 앞머리 그림까지 갈린다.)
-const CONDITION_TONE: Record<
-  string,
-  { row: string; label: string; detail: string; icon: string }
-> = {
-  green: {
-    row: '',
-    label: 'text-gray-700',
-    detail: 'text-gray-400',
-    icon: ASSET.conditionMet,
-  },
-  red: {
-    row: ROW_TONE.red,
-    label: 'text-red-700',
-    detail: 'text-red-500',
-    icon: ASSET.conditionUnmet,
-  },
-}
-
+// 참여 설문 생성·관리. 데이터 조회와 초안·제출 처리를 연결하고 화면을 조립한다.
 // 서버가 막았을 때의 으뜸 단추. design이 그 상태만 그렸다(bg-blue-200·text-blue-400).
 const BLOCKED_PRIMARY = 'bg-blue-200 text-blue-400'
 
@@ -127,19 +28,6 @@ interface EVT05ScreenProps {
   draft: ScopeDraft
   onChangeDraft: (next: ScopeDraft) => void
   onNavigate: (screenId: string, params?: Record<string, string>) => void
-}
-
-function scalar(row: DataRow, field: string | undefined): string {
-  const value = row[field ?? '']
-  if (value === undefined || Array.isArray(value)) {
-    return ''
-  }
-  return String(value)
-}
-
-function rowsOf(row: DataRow, field: string): DataRow[] {
-  const value = row[field]
-  return Array.isArray(value) ? value : []
 }
 
 export function EVT05Screen({
@@ -155,24 +43,9 @@ export function EVT05Screen({
   // 말한 전부다(itemList.itemRemove).
   const [removed, setRemoved] = useState<string[]>([])
 
-  const missing = (evt05.params ?? []).filter(
-    (param) => (screenParams[param.key] ?? '') === '',
-  )
-
-  // 인자가 없는데 초안을 읽으러 가면 readObjectSource가 먼저 던진다. 갈고리는
-  // 조건 없이 불러야 하므로 판정을 여기 안에서 한다(EVT-02B와 같은 자리).
-  const [seed] = useState<ScopeDraft>(() =>
-    missing.length > 0
-      ? { values: {}, labels: {} }
-      : draftFromRow(
-          readObjectSource(
-            evt05.draftFrom!.dataSourceKey,
-            resolveParams(evt05.draftFrom!.params, { screenParams }),
-          ),
-        ),
-  )
-  const draft = Object.keys(scopeDraft.values).length === 0 ? seed : scopeDraft
-  const field = useFieldDraft({ elements: evt05.elements, draft, onChangeDraft, screenParams })
+  const { missing, draft, setFieldValue } = useSurveyDraft({
+    screenParams, draft: scopeDraft, onChangeDraft,
+  })
 
   if (missing.length > 0) {
     return (
@@ -192,12 +65,6 @@ export function EVT05Screen({
       </AppShell>
     )
   }
-
-  const buttonAt = (nodeId: string) => elementByNodeId(evt05, nodeId).spec as ButtonSpec
-  const summaryAt = (nodeId: string) => elementByNodeId(evt05, nodeId).spec as SummarySpec
-  const inputAt = (nodeId: string) => elementByNodeId(evt05, nodeId).spec as InputSpec
-  const selectAt = (nodeId: string) => elementByNodeId(evt05, nodeId).spec as SelectSpec
-  const listAt = (nodeId: string) => elementByNodeId(evt05, nodeId).spec as ItemListSpec
 
   // 명세가 navigate라고 말한 자리는 실제로 데려간다. pending이면 그 글을 내놓는다.
   const press = (spec: ButtonSpec) => () => {
@@ -230,19 +97,12 @@ export function EVT05Screen({
     unmetBadge.dataSourceKey,
     resolveParams(unmetBadge.params, { screenParams }),
   )
-  const unmetNote = summaryAt(NODE.unmetNote)
 
   const basics = summaryAt(NODE.basics)
   const basicsRow = readObjectSource(
     basics.dataSourceKey,
     resolveParams(basics.params, { screenParams }),
   )
-
-  const recruit = elementByNodeId(evt05, NODE.recruitGroup).spec as GroupSpec
-  const applyStart = inputAt(NODE.applyStart)
-  const applyEnd = inputAt(NODE.applyEnd)
-  const completionNote = inputAt(NODE.completionNote)
-  const duesNote = summaryAt(NODE.duesNote)
 
   const conditions = listAt(NODE.conditions)
   const conditionGroups = readListSource(
@@ -255,13 +115,8 @@ export function EVT05Screen({
     questions.dataSourceKey,
     resolveParams(questions.params, { screenParams }),
   ).filter((row) => !removed.includes(String(row.id)))
-  const questionCard = questions.itemFields![0].spec as SummarySpec
 
   const panel = summaryAt(NODE.questionPanel)
-
-  const valueOf = (fieldKey: string) => draft.values[fieldKey] ?? ''
-  const setValue = (fieldKey: string, next: string) =>
-    field.setFieldValue(fieldKey, next === '' ? null : next)
 
   function pressActivate() {
     if (activate.action.type !== 'submit') return
@@ -276,87 +131,6 @@ export function EVT05Screen({
       onNavigate,
       paramSources: { screenParams },
     })
-  }
-
-  // 날짜와 시각을 한 칸에서 받는다. ARIA가 이름을 정해 두지 않은 컨트롤이라
-  // 라벨로만 찾힌다(EVT-02B와 같은 자리).
-  function dateTimeInput(spec: InputSpec, invalid: boolean): ReactNode {
-    return (
-      <input
-        id={spec.fieldKey}
-        type={spec.inputType}
-        value={valueOf(spec.fieldKey)}
-        onChange={(event) => setValue(spec.fieldKey, event.target.value)}
-        className={`w-full rounded border px-3 py-1.5 text-xs text-gray-800 ${
-          invalid ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white'
-        }`}
-      />
-    )
-  }
-
-  // 켜고 끄는 칸. 값은 참이냐 거짓이냐다(EVT-02B와 같은 규칙).
-  function checkField(nodeId: string): ReactNode {
-    const spec = inputAt(nodeId)
-    return (
-      <label
-        data-node-id={nodeId}
-        htmlFor={spec.fieldKey}
-        className="flex items-center gap-2 text-xs font-medium text-gray-700"
-      >
-        <input
-          id={spec.fieldKey}
-          type={spec.inputType}
-          // 체크 상자의 value는 기본이 'on'이라 대조기가 그 글을 칸의 내용으로
-          // 읽는다. 켜짐은 checked가 말한다.
-          value=""
-          checked={valueOf(spec.fieldKey) === 'y'}
-          onChange={(event) => field.setFieldValue(spec.fieldKey, event.target.checked ? 'y' : null)}
-          className="size-3 shrink-0 accent-blue-600"
-        />
-        <span>{spec.label}</span>
-      </label>
-    )
-  }
-
-  // 펼친 선택지 묶음(select.presentation choiceGroup). 좁혀 보는 칩과 같은 배합이라
-  // design/tones.ts의 CHOICE_CHIP을 그대로 쓴다.
-  function choiceField(nodeId: string, labelClass: string): ReactNode {
-    const spec = selectAt(nodeId)
-    const source = getOptionSource(spec.optionsSource.key)
-    const options: Option[] = source.type === 'static' ? source.options : []
-    const chosen = draft.values[spec.fieldKey] ?? null
-    return (
-      <>
-        <label id={`${spec.fieldKey}-label`} htmlFor={spec.fieldKey} className={labelClass}>
-          <span>{spec.label}</span>
-          {spec.required && <span className="text-red-500">*</span>}
-        </label>
-        <div
-          id={spec.fieldKey}
-          role="radiogroup"
-          aria-labelledby={`${spec.fieldKey}-label`}
-          className="flex flex-wrap gap-2"
-        >
-          {options.map((option) => {
-            const selected = option.value === chosen
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                onClick={() => field.setFieldValue(spec.fieldKey, option.value, option.label)}
-                className={`rounded border px-3 py-1.5 text-xs font-medium ${
-                  selected ? CHOICE_CHIP.on : CHOICE_CHIP.off
-                }`}
-              >
-                {option.label}
-              </button>
-            )
-          })}
-        </div>
-      </>
-    )
   }
 
   return (
@@ -472,286 +246,23 @@ export function EVT05Screen({
 
       <div className="flex items-start gap-4 pt-5">
         <div className="flex min-w-0 flex-1 flex-col gap-5">
-          {/* 행사 기본정보. 이 화면에서 고치지 않는다 - 고치는 자리는 EVT-02B다. */}
-          <section
-            data-node-id={NODE.basics}
-            className="rounded-md border border-gray-200 bg-white"
-          >
-            <div className="flex items-center justify-between gap-2 px-3.5 py-2.5">
-              <span className="flex items-center gap-2">
-                <FigmaAsset screenId={SCREEN} nodeId={ASSET.basicsInfo} className="size-3" />
-                <span className="text-xs font-semibold text-gray-700">{basics.title}</span>
-                <span className="text-xs text-gray-400">{basics.description}</span>
-              </span>
-              <FigmaAsset screenId={SCREEN} nodeId={ASSET.basicsFold} className="size-3.5" />
-            </div>
+          <SurveyBasics basicsRow={basicsRow} onEdit={press(buttonAt(NODE.basicsLink))} />
 
-            <div className="border-t border-gray-100 px-3.5 py-2.5">
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-2">
-                {(basics.items ?? []).map((item) => (
-                  <div key={item.field} className="flex gap-4">
-                    <dt className="w-14 shrink-0 text-xs text-gray-400">{item.label}</dt>
-                    <dd className="min-w-0 text-xs text-gray-700">
-                      {scalar(basicsRow, item.field)}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
+          <SurveyRecruitment values={draft.values} onChangeValue={setFieldValue} />
 
-              <div className="mt-2.5 flex justify-end border-t border-gray-50 pt-2.5">
-                <button
-                  type="button"
-                  data-node-id={NODE.basicsLink}
-                  onClick={press(buttonAt(NODE.basicsLink))}
-                  className="flex items-center gap-1.5 text-xs font-medium text-blue-600 hover:underline"
-                >
-                  <FigmaAsset screenId={SCREEN} nodeId={ASSET.basicsLink} className="size-2.5" />
-                  {buttonAt(NODE.basicsLink).label}
-                </button>
-              </div>
-            </div>
-          </section>
+          <SurveyConditions
+            conditionGroups={conditionGroups}
+            activationRow={activationRow}
+            screenParams={screenParams}
+            onNavigate={onNavigate}
+          />
 
-          {/* 모집 설정. 명세가 묶음으로 말한 칸 여섯이 여기 산다(group). */}
-          <section
-            data-node-id={NODE.recruitGroup}
-            aria-labelledby="recruit-title"
-            className="flex flex-col gap-3.5 rounded-md border border-gray-200 bg-white px-3.5 py-3.5"
-          >
-            <h3 id="recruit-title" className="text-xs font-semibold text-gray-700">
-              {recruit.title}
-            </h3>
-
-            <div data-node-id={NODE.applyStart} className="flex flex-col gap-1.5">
-              <label
-                htmlFor={applyStart.fieldKey}
-                className="text-xs font-medium text-gray-700"
-              >
-                <span>{applyStart.label}</span>
-                {applyStart.required && <span className="text-red-500">*</span>}
-              </label>
-              <div className="flex items-center gap-2">
-                {dateTimeInput(applyStart, false)}
-                {/* 조각 사이의 글자는 design의 것이다. */}
-                <span className="shrink-0 text-xs text-gray-400">~</span>
-                <div data-node-id={NODE.applyEnd} className="relative w-full">
-                  {/* 라벨이 이 자리에 그려지지 않는 칸이다(labelHidden). 그래도
-                      읽어 주는 이름은 있어야 한다. */}
-                  <label htmlFor={applyEnd.fieldKey} className="sr-only">
-                    {applyEnd.label}
-                  </label>
-                  {dateTimeInput(applyEnd, valueOf(applyEnd.fieldKey) === '')}
-                  <FigmaAsset
-                    screenId={SCREEN}
-                    nodeId={ASSET.applyEndAlert}
-                    className="absolute top-1/2 right-2.5 size-2.5 -translate-y-1/2"
-                  />
-                </div>
-              </div>
-              {/* 명세의 helperText. 늘 그려지는 보조 설명이고, 색은 design이 정했다. */}
-              <p className="flex items-center gap-1.5 text-xs text-red-500">
-                <FigmaAsset
-                  screenId={SCREEN}
-                  nodeId={ASSET.applyEndNote}
-                  className="size-2.5 shrink-0"
-                />
-                {applyEnd.helperText}
-              </p>
-            </div>
-
-            <div data-node-id={NODE.applyMethod} className="flex flex-col gap-1.5">
-              {choiceField(NODE.applyMethod, 'text-xs font-medium text-gray-700')}
-            </div>
-
-            {checkField(NODE.waitlist)}
-
-            <div className="flex flex-col gap-2">
-              {checkField(NODE.duesCheck)}
-              <p
-                data-node-id={NODE.duesNote}
-                className="flex items-start gap-2 rounded border border-blue-100 bg-blue-50 px-3 py-2 text-xs text-blue-700"
-              >
-                <FigmaAsset
-                  screenId={SCREEN}
-                  nodeId={ASSET.duesNote}
-                  className="mt-0.5 size-3 shrink-0"
-                />
-                <span>{duesNote.title}</span>
-              </p>
-            </div>
-
-            <div data-node-id={NODE.completionNote} className="flex flex-col gap-1.5">
-              <label
-                htmlFor={completionNote.fieldKey}
-                className="text-xs font-medium text-gray-700"
-              >
-                {completionNote.label}
-              </label>
-              <textarea
-                id={completionNote.fieldKey}
-                rows={3}
-                value={valueOf(completionNote.fieldKey)}
-                placeholder={completionNote.placeholder ?? undefined}
-                onChange={(event) => setValue(completionNote.fieldKey, event.target.value)}
-                className="w-full rounded border border-gray-300 bg-white px-3 py-2 text-xs text-gray-900 placeholder:text-gray-400"
-              />
-            </div>
-          </section>
-
-          {/* 설문 링크 활성화 조건. 묶음으로 오고, 켤 수 있는지는 서버가 센다. */}
-          <section
-            data-node-id={NODE.conditions}
-            className="rounded-md border border-gray-200 bg-white px-3.5 py-3.5"
-          >
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-xs font-semibold text-gray-700">{conditions.title}</h3>
-              <span
-                data-node-id={NODE.unmetNote}
-                className="rounded border border-red-200 bg-red-50 px-2 py-0.5 text-xs text-red-600"
-              >
-                {scalar(activationRow, (unmetNote.items ?? [])[0]?.field)}
-              </span>
-            </div>
-
-            {conditionGroups.map((group) => (
-              <div key={scalar(group, conditions.group!.headerFields![0].fields![0])}>
-                <p className="pt-3.5 pb-1 text-xs font-semibold text-gray-400">
-                  {scalar(group, conditions.group!.headerFields![0].fields![0])}
-                </p>
-                <ul>
-                  {rowsOf(group, conditions.group!.itemsField).map((row) => {
-                    const columns = conditions.columns ?? []
-                    const tone =
-                      CONDITION_TONE[scalar(row, columns[0]?.toneField)] ?? CONDITION_TONE.green
-                    const label = scalar(row, columns[0]?.fields?.[0])
-                    const detail = scalar(row, columns[1]?.fields?.[0])
-                    const location = scalar(row, columns[2]?.fields?.[0])
-                    const action = conditions.itemAction
-                    const actionLabel =
-                      action?.labelField === undefined ? '' : scalar(row, action.labelField)
-                    return (
-                      <li
-                        key={scalar(row, 'key')}
-                        className={`flex items-start gap-2.5 border-b border-gray-50 px-2.5 py-2 last:border-b-0 ${tone.row}`}
-                      >
-                        <FigmaAsset
-                          screenId={SCREEN}
-                          nodeId={tone.icon}
-                          className="mt-0.5 size-3.5 shrink-0"
-                        />
-                        <span className="min-w-0 flex-1">
-                          <span className={`block text-xs font-medium ${tone.label}`}>
-                            {label}
-                          </span>
-                          {detail === '' ? null : (
-                            <span className={`block pt-0.5 text-xs ${tone.detail}`}>
-                              {detail}
-                            </span>
-                          )}
-                          {location === '' ? null : (
-                            <span className="block pt-0.5 text-xs text-gray-400">{location}</span>
-                          )}
-                        </span>
-                        {/* 채우러 가는 곳은 명세가 든다 - 데이터는 열쇠만 준다. */}
-                        {actionLabel === '' || action === undefined ? null : (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (action.type !== 'navigate') return
-                              const target = targetScreenOf(action, row)
-                              if (target !== null) {
-                                onNavigate(
-                                  target,
-                                  resolveParams(action.params, { screenParams, row }),
-                                )
-                              }
-                            }}
-                            className="shrink-0 rounded border border-blue-200 bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-600 hover:bg-blue-100"
-                          >
-                            {actionLabel}
-                          </button>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            ))}
-          </section>
-
-          {/* 설문 문항. 응답이 있는 문항은 잠긴다 - 그 사실은 데이터가 안다(locked). */}
-          <section data-node-id={NODE.questions} className="flex flex-col gap-2.5">
-            <h3 className="text-xs font-semibold text-gray-700">{questions.title}</h3>
-            {questionRows.map((row, index) => {
-              const locked = scalar(row, 'locked') !== ''
-              return (
-                <div
-                  key={scalar(row, 'id')}
-                  className="rounded-md border border-gray-200 bg-white px-3.5 py-3.5"
-                >
-                  <span
-                    data-node-id={index === 0 ? NODE.questionRow : undefined}
-                    className="flex items-center justify-between gap-2"
-                  >
-                    <span className="flex min-w-0 items-center gap-2">
-                      <FigmaAsset
-                        screenId={SCREEN}
-                        nodeId={locked ? ASSET.questionGripLocked : ASSET.questionGrip}
-                        className="size-3.5 shrink-0"
-                      />
-                      <span className="text-sm font-medium text-gray-800">
-                        {scalar(row, questionCard.titleField)}
-                      </span>
-                      {rowsOf(row, questionCard.statusField ?? '').map((badge) => (
-                        <span
-                          key={String(badge.label)}
-                          data-design-rule="state-chip"
-                          className={`shrink-0 rounded px-2 py-0.5 text-xs font-medium ${
-                            STATE_CHIP[String(badge.tone)] ?? NEUTRAL_CHIP
-                          }`}
-                        >
-                          {String(badge.label)}
-                        </span>
-                      ))}
-                    </span>
-                    <span className="flex shrink-0 items-center gap-2">
-                      <span className={`rounded px-2 py-0.5 text-xs font-medium ${MUTED_CHIP}`}>
-                        {scalar(row, (questionCard.items ?? [])[0]?.field)}
-                      </span>
-                      {/* 잠긴 문항에는 지우는 자리가 그려지지 않는다. */}
-                      {locked ? null : (
-                        <button
-                          type="button"
-                          aria-label={`${scalar(row, questionCard.titleField)} ${
-                            questions.itemRemove?.label ?? ''
-                          }`}
-                          onClick={() =>
-                            setRemoved((previous) => [...previous, scalar(row, 'id')])
-                          }
-                          className="rounded p-0.5 hover:bg-gray-100"
-                        >
-                          <FigmaAsset
-                            screenId={SCREEN}
-                            nodeId={ASSET.questionRemove}
-                            className="size-3"
-                          />
-                        </button>
-                      )}
-                    </span>
-                  </span>
-                </div>
-              )
-            })}
-          </section>
-
-          {/* 질문 추가. 무엇을 더할 수 있는지는 명세가 정한다(event.surveyQuestionTypes).
-              고른 뒤 오른쪽 '질문 설정'에 무엇이 그려지는지는 그림에 없다. */}
-          <div
-            data-node-id={NODE.addQuestion}
-            className="flex items-center justify-center gap-2 rounded-md border-2 border-gray-200 px-3.5 py-3.5"
-          >
-            {choiceField(NODE.addQuestion, 'text-xs font-medium text-gray-400')}
-          </div>
+          <SurveyQuestions
+            questionRows={questionRows}
+            onRemove={(id) => setRemoved((previous) => [...previous, id])}
+            values={draft.values}
+            onChangeValue={setFieldValue}
+          />
         </div>
 
         {/* 질문 설정 칸. design은 제목만 그리고 안을 비워 두었다 - 무엇이 오는지는
