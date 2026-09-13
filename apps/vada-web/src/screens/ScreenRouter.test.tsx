@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { ScreenRouter } from './ScreenRouter'
+import { renderLoaded } from '../test/render-loaded'
 
 describe('ScreenRouter', () => {
-  it('같은 화면의 변형으로 전환해도 화면 안의 검색어를 유지한다', () => {
+  it('같은 화면의 변형으로 전환해도 화면 안의 검색어를 유지한다', async () => {
     const props = { scopes: {}, onChangeScope: () => {}, onNavigate: () => {} }
-    const { rerender } = render(<ScreenRouter {...props} screenId="EVT-00A" />)
+    const { rerender } = await renderLoaded(<ScreenRouter {...props} screenId="EVT-00A" />)
     fireEvent.change(screen.getByRole('searchbox', { name: '행사명 검색' }), {
       target: { value: '유지할 검색어' },
     })
@@ -33,8 +34,8 @@ describe('ScreenRouter', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('등록된 화면은 해당 화면을 렌더한다', () => {
-    render(
+  it('등록된 화면은 해당 화면을 렌더한다', async () => {
+    await renderLoaded(
       <ScreenRouter screenId="ONB-01" scopes={{}} onChangeScope={() => {}} onNavigate={() => {}} />,
     )
 

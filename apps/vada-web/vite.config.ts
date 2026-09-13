@@ -4,6 +4,7 @@ import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { forbidDevelopmentData } from './vite-data-boundary.js'
+import { forbidEagerScreens } from './vite-screen-boundary.js'
 
 // specs/figma의 명세 번들과 packages/contracts를 저장소 루트 기준으로 import한다.
 const repoRoot = fileURLToPath(new URL('../..', import.meta.url))
@@ -28,7 +29,10 @@ export default defineConfig(({ command }) => ({
     react(),
     tailwindcss(),
     forbidDevelopmentData(command === 'build' && process.env.VITE_FIXTURES !== '1'),
+    forbidEagerScreens(),
   ],
+  // 배포 점검이 동적으로 나뉜 파일까지 확인할 수 있도록 실제 출력 목록을 제공한다.
+  build: { manifest: 'assets/bundle-manifest.json' },
   server: {
     fs: {
       allow: [repoRoot],

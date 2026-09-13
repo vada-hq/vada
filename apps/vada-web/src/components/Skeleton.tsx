@@ -51,7 +51,7 @@ export function Skeleton({ label, rows = 3 }: { label: string; rows?: number }) 
  */
 export function ScreenSkeleton({ label }: { label: string }) {
   return (
-    <div role="status" aria-label={label} className="flex min-h-screen bg-gray-50">
+    <div role="status" aria-label={label} aria-busy="true" className="flex min-h-screen bg-gray-50">
       <aside className="flex w-56 shrink-0 flex-col gap-2 border-r border-gray-200 bg-white p-4">
         <div className="h-8 w-8 animate-pulse rounded bg-gray-200" />
         <div className="mt-4 flex flex-col gap-3">

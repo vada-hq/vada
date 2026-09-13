@@ -1,19 +1,21 @@
-import { OPSMEET01AScreen } from '../OPSMEET01AScreen'
-import { OPSMEET02Screen } from '../OPSMEET02Screen'
-import { OPSMEET03AScreen } from '../OPSMEET03AScreen'
-import { OPSMEET04BScreen } from '../OPSMEET04BScreen'
-import { OPSMEET05AScreen } from '../OPSMEET05AScreen'
-import { OPSMEET06AScreen } from '../OPSMEET06AScreen'
-import { OPSMEET06BScreen } from '../OPSMEET06BScreen'
-import { OPSMEET07Screen } from '../OPSMEET07Screen'
-import { OPSMEET09Screen } from '../OPSMEET09Screen'
-import { OPSMEETD01Screen } from '../OPSMEETD01Screen'
-import { OPSMEETD02Screen } from '../OPSMEETD02Screen'
-import { OPSMEETD03Screen } from '../OPSMEETD03Screen'
-import { OPSMEETD04Screen } from '../OPSMEETD04Screen'
+import { lazyScreen } from './lazy-screen'
 import { opsMeet02, opsMeet06b, opsMeetD04 } from '../../spec/screens'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
+
+const OPSMEET01AScreen = lazyScreen(() => import('../OPSMEET01AScreen').then((module) => module.OPSMEET01AScreen))
+const OPSMEET02Screen = lazyScreen(() => import('../OPSMEET02Screen').then((module) => module.OPSMEET02Screen))
+const OPSMEET03AScreen = lazyScreen(() => import('../OPSMEET03AScreen').then((module) => module.OPSMEET03AScreen))
+const OPSMEET04BScreen = lazyScreen(() => import('../OPSMEET04BScreen').then((module) => module.OPSMEET04BScreen))
+const OPSMEET05AScreen = lazyScreen(() => import('../OPSMEET05AScreen').then((module) => module.OPSMEET05AScreen))
+const OPSMEET06AScreen = lazyScreen(() => import('../OPSMEET06AScreen').then((module) => module.OPSMEET06AScreen))
+const OPSMEET06BScreen = lazyScreen(() => import('../OPSMEET06BScreen').then((module) => module.OPSMEET06BScreen))
+const OPSMEET07Screen = lazyScreen(() => import('../OPSMEET07Screen').then((module) => module.OPSMEET07Screen))
+const OPSMEET09Screen = lazyScreen(() => import('../OPSMEET09Screen').then((module) => module.OPSMEET09Screen))
+const OPSMEETD01Screen = lazyScreen(() => import('../OPSMEETD01Screen').then((module) => module.OPSMEETD01Screen))
+const OPSMEETD02Screen = lazyScreen(() => import('../OPSMEETD02Screen').then((module) => module.OPSMEETD02Screen))
+const OPSMEETD03Screen = lazyScreen(() => import('../OPSMEETD03Screen').then((module) => module.OPSMEETD03Screen))
+const OPSMEETD04Screen = lazyScreen(() => import('../OPSMEETD04Screen').then((module) => module.OPSMEETD04Screen))
 
 export const meetingsScreens = [
   {

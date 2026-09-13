@@ -1,5 +1,6 @@
+import { renderLoaded } from '../test/render-loaded'
 import { describe, expect, it } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from './ScreenRouter'
 import { ops00 } from '../spec/screens'
@@ -11,7 +12,7 @@ import { readObjectSource } from '../data-sources/catalog'
 // 완료 조건이다. 기대값을 스펙과 카탈로그에서 읽으므로 명세를 고치면 따라간다.
 
 function renderOPS00(onNavigate: (screenId: string) => void = () => {}) {
-  render(
+  return renderLoaded(
     <ScreenRouter
       screenId="OPS-00"
       scopes={{}}
@@ -28,8 +29,8 @@ function summariesOf(): SummarySpec[] {
 }
 
 describe('OPS-00 스펙 준수', () => {
-  it('descriptionField는 서버가 완성한 문장을 그린다', () => {
-    renderOPS00()
+  it('descriptionField는 서버가 완성한 문장을 그린다', async () => {
+    await renderOPS00()
     for (const spec of summariesOf()) {
       if (spec.descriptionField === undefined || spec.dataSourceKey === undefined) {
         continue
@@ -39,16 +40,16 @@ describe('OPS-00 스펙 준수', () => {
     }
   })
 
-  it('description은 명세에 담긴 문장을 그대로 그린다', () => {
-    renderOPS00()
+  it('description은 명세에 담긴 문장을 그대로 그린다', async () => {
+    await renderOPS00()
     for (const spec of summariesOf()) {
       if (spec.description === undefined) continue
       expect(screen.getByText(spec.description)).toBeInTheDocument()
     }
   })
 
-  it('값 뒤에 명세가 정한 단위를 붙인다', () => {
-    renderOPS00()
+  it('값 뒤에 명세가 정한 단위를 붙인다', async () => {
+    await renderOPS00()
     for (const spec of summariesOf()) {
       if (spec.dataSourceKey === undefined || spec.items === undefined) continue
       const row = readObjectSource(spec.dataSourceKey)
@@ -68,7 +69,7 @@ describe('OPS-00 스펙 준수', () => {
   it('action의 문구를 그리고, 눌리면 선언한 대로 동작한다', async () => {
     const user = userEvent.setup()
     const navigated: string[] = []
-    renderOPS00((screenId) => navigated.push(screenId))
+    await renderOPS00((screenId) => navigated.push(screenId))
     const withAction = summariesOf().filter((spec) => spec.action !== undefined)
     expect(withAction.length).toBeGreaterThan(0)
 
@@ -98,8 +99,8 @@ describe('OPS-00 스펙 준수', () => {
     }
   })
 
-  it('meta.footerNote를 그린다', () => {
-    renderOPS00()
+  it('meta.footerNote를 그린다', async () => {
+    await renderOPS00()
     expect(screen.getByText(ops00.meta?.footerNote ?? '')).toBeInTheDocument()
   })
 })

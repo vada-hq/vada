@@ -1,18 +1,20 @@
-import { ORG00Screen } from '../ORG00Screen'
-import { ORG01Screen } from '../ORG01Screen'
-import { ORG03AScreen } from '../ORG03AScreen'
-import { ORG03BScreen } from '../ORG03BScreen'
-import { ORG03DScreen } from '../ORG03DScreen'
-import { ORG03CScreen } from '../ORG03CScreen'
-import { ORG04Screen } from '../ORG04Screen'
-import { ORG04BScreen } from '../ORG04BScreen'
-import { ORG07AScreen } from '../ORG07AScreen'
-import { ORG07BScreen } from '../ORG07BScreen'
-import { ORG07CScreen } from '../ORG07CScreen'
-import { ORG02Screen } from '../ORG02Screen'
+import { lazyScreen } from './lazy-screen'
 import { org04b, onb01, org01, org02, org03b, org03d } from '../../spec/screens'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
+
+const ORG00Screen = lazyScreen(() => import('../ORG00Screen').then((module) => module.ORG00Screen))
+const ORG01Screen = lazyScreen(() => import('../ORG01Screen').then((module) => module.ORG01Screen))
+const ORG03AScreen = lazyScreen(() => import('../ORG03AScreen').then((module) => module.ORG03AScreen))
+const ORG03BScreen = lazyScreen(() => import('../ORG03BScreen').then((module) => module.ORG03BScreen))
+const ORG03DScreen = lazyScreen(() => import('../ORG03DScreen').then((module) => module.ORG03DScreen))
+const ORG03CScreen = lazyScreen(() => import('../ORG03CScreen').then((module) => module.ORG03CScreen))
+const ORG04Screen = lazyScreen(() => import('../ORG04Screen').then((module) => module.ORG04Screen))
+const ORG04BScreen = lazyScreen(() => import('../ORG04BScreen').then((module) => module.ORG04BScreen))
+const ORG07AScreen = lazyScreen(() => import('../ORG07AScreen').then((module) => module.ORG07AScreen))
+const ORG07BScreen = lazyScreen(() => import('../ORG07BScreen').then((module) => module.ORG07BScreen))
+const ORG07CScreen = lazyScreen(() => import('../ORG07CScreen').then((module) => module.ORG07CScreen))
+const ORG02Screen = lazyScreen(() => import('../ORG02Screen').then((module) => module.ORG02Screen))
 
 export const organizationScreens = [
   {

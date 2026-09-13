@@ -39,6 +39,8 @@ test('FIN-SUP-01: 네 칸을 채우면 재제출하고 요청 상세로 돌아�
 
   const corrections = page.locator('[data-node-id="30:1239"]')
   const inputs = corrections.getByRole('textbox')
+  // count()는 로딩을 기다리지 않는다. 입력 없이 제출하는 검사가 되지 않게 한다.
+  await expect(inputs).toHaveCount(4)
   const count = await inputs.count()
   for (let index = 0; index < count; index += 1) {
     await inputs.nth(index).fill('채움')

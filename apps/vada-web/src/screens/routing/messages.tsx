@@ -1,9 +1,11 @@
-import { MSG01Screen } from '../MSG01Screen'
-import { MSG02Screen } from '../MSG02Screen'
-import { MSG03Screen } from '../MSG03Screen'
+import { lazyScreen } from './lazy-screen'
 import { msg02 } from '../../spec/screens'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
+
+const MSG01Screen = lazyScreen(() => import('../MSG01Screen').then((module) => module.MSG01Screen))
+const MSG02Screen = lazyScreen(() => import('../MSG02Screen').then((module) => module.MSG02Screen))
+const MSG03Screen = lazyScreen(() => import('../MSG03Screen').then((module) => module.MSG03Screen))
 
 export const messagesScreens = [
   {

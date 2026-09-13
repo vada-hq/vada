@@ -82,12 +82,49 @@ check('웹이 HTML을 준다', home.type.includes('text/html'), `content-type: $
 // ── 2. 묶음이 산다
 const scripts = [...home.text.matchAll(/<script[^>]+src="([^"]+)"/g)].map((found) => found[1])
 check('HTML이 묶음을 가리킨다', scripts.length > 0, 'script 태그가 없습니다')
-let bundle = ''
-for (const src of scripts) {
-  const res = await get(src)
-  if (!check(`묶음이 받아진다 (${src})`, res.status === 200, `${res.status}`)) continue
-  bundle += res.text
+// 파일이 나뉘면 HTML의 entry만 봐서는 나머지 화면의 유출·배포 누락을 찾지 못한다.
+// Vite가 만든 실제 출력 목록을 읽고, 현재 HTML과 같은 배포인지 확인한다.
+const paths = new Set(scripts)
+try {
+  const response = await get('/assets/bundle-manifest.json')
+  if (response.status !== 200) throw new Error(`파일 목록 응답 ${response.status}`)
+  const manifest = JSON.parse(response.text)
+  if (manifest === null || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    throw new Error('파일 목록이 객체가 아닙니다')
+  }
+  const entries = Object.values(manifest).filter(chunk => chunk?.isEntry === true)
+  if (entries.length === 0 || !scripts.every(src => entries.some(chunk => `/${chunk.file}` === src))) {
+    throw new Error('HTML과 파일 목록의 진입 파일이 다릅니다')
+  }
+  for (const chunk of Object.values(manifest)) {
+    if (typeof chunk?.file !== 'string') throw new Error('출력 파일 이름이 없습니다')
+    if (!chunk.file.endsWith('.js')) continue
+    if (!/^assets\/[a-zA-Z0-9_.-]+\.js$/.test(chunk.file)) throw new Error('출력 파일 경로가 잘못됐습니다')
+    for (const dependency of [...(chunk.imports ?? []), ...(chunk.dynamicImports ?? [])]) {
+      if (!Object.hasOwn(manifest, dependency)) throw new Error(`의존 파일이 목록에 없습니다: ${dependency}`)
+    }
+    paths.add(`/${chunk.file}`)
+  }
+  check('HTML과 배포 파일 목록이 일치한다', true)
+} catch (error) {
+  check('HTML과 배포 파일 목록이 일치한다', false, String(error))
 }
+let bundle = ''
+const files = [...paths]
+const missingFiles = []
+// 한 번에 네 개씩 확인한다. 화면 수만큼 서버 요청을 동시에 만들지 않는다.
+for (let at = 0; at < files.length; at += 4) {
+  const batch = files.slice(at, at + 4)
+  const results = await Promise.allSettled(batch.map(src => get(src)))
+  for (const [index, result] of results.entries()) {
+    if (result.status !== 'fulfilled' || result.value.status !== 200 || !result.value.type.includes('javascript')) {
+      missingFiles.push(batch[index])
+    } else {
+      bundle += result.value.text
+    }
+  }
+}
+check(`초기·공통·지연 로딩 파일 ${files.length}개가 모두 받아진다`, missingFiles.length === 0, missingFiles.join(', '))
 
 // ── 3. 개발용 응답이 안 실렸다
 //

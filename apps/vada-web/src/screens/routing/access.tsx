@@ -1,11 +1,13 @@
-import { INV00Screen } from '../INV00Screen'
-import { INV01Screen } from '../INV01Screen'
-import { ONB01Screen } from '../ONB01Screen'
-import { SIGNINScreen } from '../SIGNINScreen'
-import { ONB02Screen } from '../ONB02Screen'
+import { lazyScreen } from './lazy-screen'
 import { inv00, inv01, onb01 } from '../../spec/screens'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
+
+const INV00Screen = lazyScreen(() => import('../INV00Screen').then((module) => module.INV00Screen))
+const INV01Screen = lazyScreen(() => import('../INV01Screen').then((module) => module.INV01Screen))
+const ONB01Screen = lazyScreen(() => import('../ONB01Screen').then((module) => module.ONB01Screen))
+const SIGNINScreen = lazyScreen(() => import('../SIGNINScreen').then((module) => module.SIGNINScreen))
+const ONB02Screen = lazyScreen(() => import('../ONB02Screen').then((module) => module.ONB02Screen))
 
 export const accessScreens = [
   {

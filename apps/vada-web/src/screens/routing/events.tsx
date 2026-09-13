@@ -1,26 +1,28 @@
-import { EVT00AScreen } from '../EVT00AScreen'
-import { EVT02Screen } from '../EVT02Screen'
-import { EVT00BScreen } from '../EVT00BScreen'
-import { EVT01Screen } from '../EVT01Screen'
-import { EVT02BScreen } from '../EVT02BScreen'
-import { EVT02CScreen } from '../EVT02CScreen'
-import { EVT02DScreen } from '../EVT02DScreen'
-import { EVT02EScreen } from '../EVT02EScreen'
-import { EVT03AScreen } from '../EVT03AScreen'
-import { EVT03BScreen } from '../EVT03BScreen'
-import { EVT04BScreen } from '../EVT04BScreen'
-import { EVTDOC01Screen } from '../EVTDOC01Screen'
-import { EVTMEET01Screen } from '../EVTMEET01Screen'
-import { EVTSCHED01Screen } from '../EVTSCHED01Screen'
-import { EVT04Screen } from '../EVT04Screen'
-import { EVT05Screen } from '../EVT05Screen'
-import { EVT05BScreen } from '../EVT05BScreen'
-import { EVTFIN01Screen } from '../EVTFIN01Screen'
-import { EVTTASK01Screen } from '../EVTTASK01Screen'
-import { EVTTASK02Screen } from '../EVTTASK02Screen'
+import { lazyScreen } from './lazy-screen'
 import { evt00b, evt05, evt05b, evt01, evt02b, evt03b } from '../../spec/screens'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
+
+const EVT00AScreen = lazyScreen(() => import('../EVT00AScreen').then((module) => module.EVT00AScreen))
+const EVT02Screen = lazyScreen(() => import('../EVT02Screen').then((module) => module.EVT02Screen))
+const EVT00BScreen = lazyScreen(() => import('../EVT00BScreen').then((module) => module.EVT00BScreen))
+const EVT01Screen = lazyScreen(() => import('../EVT01Screen').then((module) => module.EVT01Screen))
+const EVT02BScreen = lazyScreen(() => import('../EVT02BScreen').then((module) => module.EVT02BScreen))
+const EVT02CScreen = lazyScreen(() => import('../EVT02CScreen').then((module) => module.EVT02CScreen))
+const EVT02DScreen = lazyScreen(() => import('../EVT02DScreen').then((module) => module.EVT02DScreen))
+const EVT02EScreen = lazyScreen(() => import('../EVT02EScreen').then((module) => module.EVT02EScreen))
+const EVT03AScreen = lazyScreen(() => import('../EVT03AScreen').then((module) => module.EVT03AScreen))
+const EVT03BScreen = lazyScreen(() => import('../EVT03BScreen').then((module) => module.EVT03BScreen))
+const EVT04BScreen = lazyScreen(() => import('../EVT04BScreen').then((module) => module.EVT04BScreen))
+const EVTDOC01Screen = lazyScreen(() => import('../EVTDOC01Screen').then((module) => module.EVTDOC01Screen))
+const EVTMEET01Screen = lazyScreen(() => import('../EVTMEET01Screen').then((module) => module.EVTMEET01Screen))
+const EVTSCHED01Screen = lazyScreen(() => import('../EVTSCHED01Screen').then((module) => module.EVTSCHED01Screen))
+const EVT04Screen = lazyScreen(() => import('../EVT04Screen').then((module) => module.EVT04Screen))
+const EVT05Screen = lazyScreen(() => import('../EVT05Screen').then((module) => module.EVT05Screen))
+const EVT05BScreen = lazyScreen(() => import('../EVT05BScreen').then((module) => module.EVT05BScreen))
+const EVTFIN01Screen = lazyScreen(() => import('../EVTFIN01Screen').then((module) => module.EVTFIN01Screen))
+const EVTTASK01Screen = lazyScreen(() => import('../EVTTASK01Screen').then((module) => module.EVTTASK01Screen))
+const EVTTASK02Screen = lazyScreen(() => import('../EVTTASK02Screen').then((module) => module.EVTTASK02Screen))
 
 export const eventsScreens = [
   {

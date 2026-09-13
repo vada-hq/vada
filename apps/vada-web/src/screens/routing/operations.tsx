@@ -1,7 +1,9 @@
-import { OPSCAL01Screen } from '../OPSCAL01Screen'
-import { OPS00Screen } from '../OPS00Screen'
-import { TASK01Screen } from '../TASK01Screen'
+import { lazyScreen } from './lazy-screen'
 import type { ScreenRegistration } from './types'
+
+const OPSCAL01Screen = lazyScreen(() => import('../OPSCAL01Screen').then((module) => module.OPSCAL01Screen))
+const OPS00Screen = lazyScreen(() => import('../OPS00Screen').then((module) => module.OPS00Screen))
+const TASK01Screen = lazyScreen(() => import('../TASK01Screen').then((module) => module.TASK01Screen))
 
 export const operationsScreens = [
   {

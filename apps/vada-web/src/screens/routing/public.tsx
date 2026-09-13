@@ -1,11 +1,13 @@
-import { EXT01AScreen } from '../EXT01AScreen'
-import { EXT01BScreen } from '../EXT01BScreen'
-import { EXT02AScreen } from '../EXT02AScreen'
-import { EXT02BScreen } from '../EXT02BScreen'
-import { EXT02CScreen } from '../EXT02CScreen'
+import { lazyScreen } from './lazy-screen'
 import { ext01a, ext02a } from '../../spec/screens'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
+
+const EXT01AScreen = lazyScreen(() => import('../EXT01AScreen').then((module) => module.EXT01AScreen))
+const EXT01BScreen = lazyScreen(() => import('../EXT01BScreen').then((module) => module.EXT01BScreen))
+const EXT02AScreen = lazyScreen(() => import('../EXT02AScreen').then((module) => module.EXT02AScreen))
+const EXT02BScreen = lazyScreen(() => import('../EXT02BScreen').then((module) => module.EXT02BScreen))
+const EXT02CScreen = lazyScreen(() => import('../EXT02CScreen').then((module) => module.EXT02CScreen))
 
 export const publicScreens = [
   {
