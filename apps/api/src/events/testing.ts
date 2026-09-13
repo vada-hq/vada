@@ -1,17 +1,13 @@
 import Ajv from 'ajv'
 import openapi from '../../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import type { Role, Viewer } from '../permissions.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
 import { routeOf } from '../routes.ts'
 
-// 행사 쪽 검사 다섯이 함께 쓰는 발판.
-//
-// **같은 마흔 줄을 다섯 번 적지 않는다.** 앞선 검사들이 저마다 `Deps`를 손으로
-// 세웠는데, 자리를 하나 더할 때마다 그 다섯 벌을 함께 고쳐야 하고 한 벌은 늘
-// 늦게 고쳐진다. 여기 하나만 두면 고칠 자리가 하나다.
+// 행사 테스트의 기본 사용자·시간과 계약 응답 검사를 모은다.
+// 공통 서버 대역은 testing/create-test-deps.ts가 만들고, 여기는 행사 기본값을 전달한다.
 //
 // **여기 있는 것은 검사만 쓴다.** 앱은 `serve.ts`가 세운 진짜 `Deps`로 돈다.
 
@@ -47,32 +43,16 @@ export interface HarnessOptions {
  */
 export function harness(db: Db, options: HarnessOptions = {}) {
   let made = 0
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => (options.who === undefined ? viewer() : options.who),
-    lookups: {
-      isEventStaff: async () => false,
-      isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
-      isMeetingParticipant: async () => false,
-    },
-    // 검사는 밖으로 나가지 않는다. 열려 있다고만 답하고, 부르면 어디로 갈지 말해 준다.
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: {
       linkBase: 'https://vada.app/join',
       now: () => options.now ?? NOW,
       newCode: () => 'CODE',
     },
     newId: options.newId ?? (() => `X-${(made += 1)}`),
-  }
+  })
   return createApp(deps)
 }
 

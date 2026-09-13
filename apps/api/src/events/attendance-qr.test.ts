@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto'
 import { beforeAll, afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
@@ -12,8 +13,6 @@ import {
   organizations,
   students,
 } from '../db/schema.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
 import { hashToken } from '../public/tokens.ts'
 
 // **고리를 닫는 자리다.** 참가자가 찍는 쪽은 이미 있었고 여기는 그 QR을 만드는 쪽이다.
@@ -26,8 +25,7 @@ let made = 1
 const NOW = new Date('2026-08-20T10:00:00+09:00')
 
 function harness(role: 'chair' | 'member' = 'chair') {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => ({
       userId: 'U-01',
@@ -39,52 +37,19 @@ function harness(role: 'chair' | 'member' = 'chair') {
         inFinanceDepartment: false,
       },
     }),
-    lookups: {
-      // 행사 운영 조직 표가 아직 없다. **없다고 답한다** — 있다고 지어내면
-      // 조건부 권한이 전부 열린다.
-      isEventStaff: async () => false,
-      isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
-      isMeetingParticipant: async () => false,
-    },
-    // 검사는 밖으로 나가지 않는다. 열려 있다고만 답하고, 부르면 어디로 갈지 말해 준다.
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     newId: () => 'QR-' + made++,
-  }
+  })
   return createApp(deps)
 }
 
 const outside = () => {
-  const deps: Deps = {
-    // 검사는 밖으로 나가지 않는다. 열려 있다고만 답하고, 부르면 어디로 갈지 말해 준다.
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => null,
-    lookups: {
-      isEventStaff: async () => false,
-      isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
-      isMeetingParticipant: async () => false,
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     newId: () => 'CI-' + made++,
-  }
+  })
   return createApp(deps)
 }
 

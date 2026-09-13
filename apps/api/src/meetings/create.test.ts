@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { eq } from 'drizzle-orm'
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
@@ -12,9 +13,7 @@ import {
   members,
   organizations,
 } from '../db/schema.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import type { Viewer } from '../permissions.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
 
 // 회의를 만들고 임시 저장한다(OPS-MEET-02의 두 단추).
 //
@@ -48,28 +47,13 @@ function viewer(memberId = 'M-01', role: 'chair' | 'head' | 'member' = 'chair'):
 }
 
 function harness(who: Viewer | null = viewer()) {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => who,
-    lookups: {
-      isEventStaff: async () => false,
-      isEventStaffManager: async () => false,
-      isMeetingHost: async () => false,
-      isMeetingCreator: async () => false,
-      isMeetingParticipant: async () => false,
-    },
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     // **부를 때마다 다른 것을 준다.** 하나로 고정하면 둘째 안건이 같은 열쇠로 들어간다.
     newId: () => `X-${(made += 1)}`,
-  }
+  })
   return createApp(deps)
 }
 

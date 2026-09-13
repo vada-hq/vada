@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
@@ -9,9 +10,7 @@ import {
   members,
   organizations,
 } from '../db/schema.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import { can, type Role, type Viewer } from '../permissions.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
 import { eventStaffLookups } from './staff-lookups.ts'
 
 // 행사 운영 조직에 매인 권한 둘을 **표가 답한다**.
@@ -43,8 +42,7 @@ function viewer(memberId: string, role: Role): Viewer {
 }
 
 function harness(who: Viewer) {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => who,
     lookups: {
@@ -54,16 +52,9 @@ function harness(who: Viewer) {
       // 행사 조직 둘은 표가 답한다. '늘 거짓'이면 막는 자리만 재고 여는 자리는 못 잰다.
       ...eventStaffLookups(db),
     },
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     newId: () => 'X-01',
-  }
+  })
   return createApp(deps)
 }
 

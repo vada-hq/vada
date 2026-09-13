@@ -1,7 +1,8 @@
 import Ajv from 'ajv'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import openapi from '../../../specs/figma/vada-wireframe/openapi.json' with { type: 'json' }
-import { createApp, type Deps } from './app.ts'
+import { createApp } from './app.ts'
+import { createTestDeps } from './testing/create-test-deps.ts'
 import type { Db } from './db/client.ts'
 import {
   attendanceQrs,
@@ -24,10 +25,8 @@ import {
 } from './db/schema.ts'
 import { freshDb } from './db/testing.ts'
 import { HANDLERS } from './handlers/index.ts'
-import { inMemoryAttempts } from './idempotency.ts'
 import { meetingLookups } from './meetings/lookups.ts'
 import { hashToken } from './public/tokens.ts'
-import { inMemoryCounter } from './public/rate-limit.ts'
 import { answeredOperationIds } from './routes.ts'
 
 // **답한다고 센 자리마다 계약의 모양을 통과한 증거가 있어야 한다.**
@@ -94,8 +93,7 @@ const INSTEAD: Record<string, Record<string, string>> = {
 }
 
 function harness() {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => ({
       userId: 'U-01',
@@ -112,16 +110,9 @@ function harness() {
       isEventStaffManager: async () => true,
       ...meetingLookups(db),
     },
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     newId: () => `X-${Math.random().toString(36).slice(2, 10)}`,
-  }
+  })
   return createApp(deps)
 }
 

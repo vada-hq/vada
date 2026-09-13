@@ -60,6 +60,8 @@ npm --prefix apps/api run typecheck
 npm --prefix apps/vada-web run lint
 ```
 
+API 테스트의 공통 서버 설정은 [`createTestDeps`](apps/api/src/testing/create-test-deps.ts)로 만든다. DB·사용자·초대 설정(시간 포함)·ID 생성은 각 시나리오가 지정하고, 필요한 로그인·권한·감사 대역을 재정의한다. 기본 중복 요청 기록과 호출 횟수 저장소는 호출마다 새로 생성된다. 업무별 초기 데이터와 DB 정리 방식은 각 영역의 테스트에서 관리한다.
+
 ## 커밋 훅
 
 스펙 검증은 pre-commit 훅으로 강제된다(오류 시 커밋 차단). 새로 클론하면 한 번 활성화한다:

@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { createApp, type Deps } from '../app.ts'
+import { createApp } from '../app.ts'
+import { createTestDeps } from '../testing/create-test-deps.ts'
 import type { Db } from '../db/client.ts'
 import { freshDb } from '../db/testing.ts'
 import {
@@ -10,10 +11,8 @@ import {
   organizations,
   tasks,
 } from '../db/schema.ts'
-import { inMemoryAttempts } from '../idempotency.ts'
 import { meetingLookups } from '../meetings/lookups.ts'
 import type { Viewer } from '../permissions.ts'
-import { inMemoryCounter } from '../public/rate-limit.ts'
 
 // 운영 공간의 첫 화면(OPS-00).
 //
@@ -43,8 +42,7 @@ const VIEWER: Viewer = {
 }
 
 function harness(who: Viewer | null = VIEWER) {
-  const deps: Deps = {
-    audit: { async write() {} },
+  const deps = createTestDeps({
     db,
     who: async () => who,
     lookups: {
@@ -52,16 +50,9 @@ function harness(who: Viewer | null = VIEWER) {
       isEventStaffManager: async () => false,
       ...meetingLookups(db),
     },
-    signIn: {
-      open: () => ({ google: true, kakao: false }),
-      start: async (provider: string) => ({ url: `https://example.test/${provider}`, headers: new Headers() }),
-      end: async () => new Headers(),
-    },
-    attempts: inMemoryAttempts(),
-    counter: inMemoryCounter(),
     invite: { linkBase: 'https://vada.app/join', now: () => NOW, newCode: () => 'CODE' },
     newId: () => 'X-01',
-  }
+  })
   return createApp(deps)
 }
 
