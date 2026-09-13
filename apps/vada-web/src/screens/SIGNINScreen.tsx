@@ -1,4 +1,5 @@
 import { PageCard } from '../components/PageCard'
+import { parseSignInResponse } from '../data-sources/sign-in'
 import { drawsElement } from '../spec/drawn-when'
 import { nodeIdOf, signIn } from '../spec/screens'
 import type { ButtonSpec, SubmitAction } from '../spec/types'
@@ -44,8 +45,8 @@ export function SIGNINScreen() {
                     // **그리고 떠난다.** 이 앱의 화면으로 가는 것이 아니라 제공자에게
                     // 가는 것이라 `onSuccess.navigate`가 담지 못한다. 답을 버리면 아무
                     // 일도 안 일어나고 화면은 조용하다 — 실제로 그랬다(2026-09-02).
-                    const url = answer?.url
-                    if (typeof url === 'string') window.location.href = url
+                    const response = parseSignInResponse(answer)
+                    if (response !== null) window.location.href = response.url
                   })
               }}
               className="flex w-full items-center gap-4 rounded-md border border-gray-200 bg-white p-4 text-left hover:bg-gray-50 focus-visible:ring-2 focus-visible:ring-blue-600/50 focus-visible:outline-none disabled:opacity-60"
