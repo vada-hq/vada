@@ -1,6 +1,10 @@
 // 출처 명세와 타입. 서버 연결과 개발용 응답에 의존하지 않는다.
 import catalogJson from '../../../../specs/figma/vada-wireframe/data-sources.json'
 
+// 인자로 집어 온 한 건이 없을 때. 오류가 아니라 답이다 — 카탈로그의
+// messages.empty가 무엇이라 말할지 이미 갖고 있다.
+export const NOT_FOUND = Symbol('데이터 없음')
+
 export interface DataSourceMessages {
   loading: string
   empty: string

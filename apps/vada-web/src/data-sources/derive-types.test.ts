@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { expect, it } from 'vitest'
-import { DASHBOARD_FIXTURES, FILTERED_FIXTURES } from './fixtures'
+import { DASHBOARD_FIXTURES, FILTERED_FIXTURES } from '../development/data-fixtures'
 import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
 import { resolveParams } from '../spec/params'
 import type { DataRow, DataValue } from './definitions'

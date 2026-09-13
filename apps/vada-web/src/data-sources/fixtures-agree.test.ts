@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { STATUS as TASK_STATUS, statusesOfTab } from '../../../api/src/tasks/labels.ts'
 import { STATUS as DOCUMENT_STATUS } from '../../../api/src/documents/labels.ts'
 import { AGENDA_STATUS } from '../../../api/src/meetings/detail.ts'
-import { FILTERED_FIXTURES } from './fixtures'
+import { FILTERED_FIXTURES } from '../development/data-fixtures'
 import type { DataRow } from './definitions'
 import { isServed } from './served'
 
@@ -25,7 +25,7 @@ import { isServed } from './served'
 // 사람이 서버 쪽으로 정했고, 그림과 남은 차이는 그림 대조의 자리 예외로 옮겼다 —
 // 봐주는 표를 여기 두면 그 표가 자라고, 자란 표는 눈금이 아니라 기록이 된다.
 
-const source = readFileSync(fileURLToPath(new URL('./fixtures.ts', import.meta.url)), 'utf8')
+const source = readFileSync(fileURLToPath(new URL('../development/data-fixtures.ts', import.meta.url)), 'utf8')
 
 /**
  * 개발용 응답의 덩이마다 `status`와 `statusTone` 짝을 뽑는다.

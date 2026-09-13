@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 // 융합대학 체육대회'와 '예산 34%'가 그려졌다 — 전부 `fixtures.ts`에 손으로 적어 둔
 // 값이고, 값을 읽는 화면 일흔넷 중 **마흔**이 그 상태였다.
 //
-// 읽는 자리는 고쳤고(`fromServer`가 던진다) 번들에서도 뺐다(`vite-fixtures-out.ts`).
+// 읽는 자리는 고쳤고(`fromServer`가 던진다) 운영 빌드는 서버 연결을 요구하는 구현만 선택한다(`vite.config.ts`).
 // 그런데 **고쳤다는 말과 고쳐졌다는 사실은 다르다** — 누가 새 자리에서 다시 가져오면
 // 조용히 되돌아온다. 그래서 나가는 것을 직접 열어 본다.
 //
@@ -84,7 +84,7 @@ if (leaked.length > 0) {
   for (const one of leaked) console.error(`  ${one}`)
   console.error(
     '\n사람이 배포된 앱에서 남의 가짜 값을 보게 됩니다.\n' +
-      '`apps/vada-web/vite-fixtures-out.ts`가 그 자리를 비우는지 확인하세요.',
+      '`apps/vada-web/vite.config.ts`의 구현 선택과 `vite-data-boundary.ts`의 의존성 검사를 확인하세요.',
   )
   process.exit(1)
 }

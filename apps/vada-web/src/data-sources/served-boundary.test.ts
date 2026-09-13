@@ -4,10 +4,10 @@ import { expect, it, vi } from 'vitest'
 vi.mock('./server', () => {
   throw new Error('출처 정의 조회가 서버 코드에 의존합니다.')
 })
-vi.mock('./fixtures', () => {
+vi.mock('../development/data-fixtures', () => {
   throw new Error('출처 정의 조회가 데이터 대역에 의존합니다.')
 })
-vi.mock('../option-sources/fixtures', () => {
+vi.mock('../development/option-fixtures', () => {
   throw new Error('출처 정의 조회가 선택지 대역에 의존합니다.')
 })
 

@@ -64,6 +64,14 @@ API 테스트의 공통 서버 설정은 [`createTestDeps`](apps/api/src/testing
 
 API 타입은 `npm run openapi`로 OpenAPI·요청 스키마와 함께 생성한다. 현재 연결 대상은 `app.start`, `auth.signInGoogle`, `auth.signInKakao`이며, [`api-type-operations.json`](specs/figma/vada-wireframe/api-type-operations.json)에 목록을 관리한다. 생성한 [`api-types.d.ts`](specs/figma/vada-wireframe/api-types.d.ts)의 `ApiResponse`를 서버 반환과 웹 응답 해석에 함께 사용한다. 로그인 응답은 두 제공자 모두 `url`을 필수 문자열로 선언하고, 공통 웹 해석 함수가 두 응답 계약을 모두 만족하도록 검사한다. 검증 쿠키는 기존대로 HTTP 헤더로 전달한다. 계약 검사가 원본 카탈로그에서 다시 생성한 타입과 비교하므로, 명세를 바꾸고 타입 갱신을 빠뜨리면 CI에서 실패한다. 네트워크 응답의 런타임 검사는 계속 수행한다.
 
+## 운영·개발 데이터 연결
+
+웹의 조회·선택지·제출 코드는 서버 연결이 있으면 항상 서버를 사용한다. 서버 오류나 미구현 응답을 개발용 데이터로 대체하지 않는다. 서버가 없을 때의 구현은 `vite.config.ts`의 `#offline-client` 별칭으로 선택한다.
+
+- 기본 운영 빌드는 `src/data-sources/offline-client.ts`를 연결하며, 서버 초기화가 빠지면 오류를 낸다. `src/development/`가 운영 모듈 그래프에 들어오면 빌드도 실패한다.
+- 개발 서버·단위 검사와 `VITE_FIXTURES=1` 빌드는 `src/development/client.ts`를 연결한다. 데이터·선택지·제출 대역과 예시 값은 이 디렉터리에서 관리한다. 일반 개발 서버도 앱을 시작하면 실제 서버에 연결하며, `VITE_FIXTURES=1`일 때만 서버 연결을 생략한다.
+- `npm run e2e`는 개발용 빌드를 `dist-e2e/`에 만들고, 기본 `npm run build`는 운영 빌드를 `dist/`에 만든다. 운영 빌드는 소스 코드를 빈 값으로 치환하지 않는다.
+
 ## 커밋 훅
 
 스펙 검증은 pre-commit 훅으로 강제된다(오류 시 커밋 차단). 새로 클론하면 한 번 활성화한다:
