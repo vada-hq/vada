@@ -25,6 +25,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/sign-in/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 구글로 들어온다. 서버가 그 제공자의 주소를 만들어 주고 **브라우저가 그리로 떠난다** — 돌아오는 자리는 서버가 함께 정한다(로그인 화면으로 돌아오면 제자리이므로 첫 화면으로 보낸다).
+         *
+         *     **아직 계정이 없으면 이때 만들어진다.** 들어오는 것과 처음 오는 것을 가르지 않는다 — 사람은 그 둘을 구분해 누르지 않는다.
+         */
+        post: operations["auth.signInGoogle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sign-in/kakao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 카카오로 들어온다. 서버가 그 제공자의 주소를 만들어 주고 **브라우저가 그리로 떠난다** — 돌아오는 자리는 서버가 함께 정한다(로그인 화면으로 돌아오면 제자리이므로 첫 화면으로 보낸다).
+         *
+         *     **아직 계정이 없으면 이때 만들어진다.** 들어오는 것과 처음 오는 것을 가르지 않는다 — 사람은 그 둘을 구분해 누르지 않는다.
+         */
+        post: operations["auth.signInKakao"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -61,6 +103,88 @@ export interface operations {
                     "application/json": {
                         /** @description 여기부터 연다. 로그인 안 했으면 들어오는 자리, 로그인했는데 아직 어느 학생회에도 없으면 소속 입력, 이미 속했으면 홈이다. */
                         screenId: string;
+                    };
+                };
+            };
+            /** @description 너무 자주 눌렀다 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    "auth.signInGoogle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 브라우저가 이동할 구글 로그인 주소. 로그인 검증 쿠키는 응답의 Set-Cookie 헤더로 함께 전달한다. */
+                        url: string;
+                    };
+                };
+            };
+            /** @description 너무 자주 눌렀다 */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description 그 밖의 실패 */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
+    "auth.signInKakao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 성공 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @description 브라우저가 이동할 카카오 로그인 주소. 로그인 검증 쿠키는 응답의 Set-Cookie 헤더로 함께 전달한다. */
+                        url: string;
                     };
                 };
             };

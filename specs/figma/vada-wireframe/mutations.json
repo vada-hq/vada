@@ -1300,6 +1300,13 @@
         "method": "POST",
         "path": "/api/sign-in/google"
       },
+      "result": [
+        {
+          "key": "url",
+          "description": "브라우저가 이동할 구글 로그인 주소. 로그인 검증 쿠키는 응답의 Set-Cookie 헤더로 함께 전달한다.",
+          "valueType": "string"
+        }
+      ],
       "repeat": {
         "kind": "overwrite",
         "why": "묻기만 하는 것이 아니라 들어오는 일이 시작된다. 다만 두 번 눌러도 같은 자리로 갈 뿐이라 되돌릴 것이 없다 — 계정이 둘 생기지 않는다."
@@ -1320,6 +1327,13 @@
         "method": "POST",
         "path": "/api/sign-in/kakao"
       },
+      "result": [
+        {
+          "key": "url",
+          "description": "브라우저가 이동할 카카오 로그인 주소. 로그인 검증 쿠키는 응답의 Set-Cookie 헤더로 함께 전달한다.",
+          "valueType": "string"
+        }
+      ],
       "repeat": {
         "kind": "overwrite",
         "why": "묻기만 하는 것이 아니라 들어오는 일이 시작된다. 다만 두 번 눌러도 같은 자리로 갈 뿐이라 되돌릴 것이 없다 — 계정이 둘 생기지 않는다."

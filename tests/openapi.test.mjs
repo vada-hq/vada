@@ -244,6 +244,16 @@ test('자연 열쇠가 없는 자리는 멱등 키를 요구한다', () => {
 
 // 카탈로그가 result로 말하는데 문서로 이어진 적이 없었다 — 성공 응답이 줄곧 빈 객체였고,
 // 출석 확인이 영수증을 준다는 사실이 문서 어디에도 없었다.
+for (const provider of ['google', 'kakao']) {
+  test(`${provider} 로그인 응답에 필수 URL이 선언된다`, () => {
+    const schema = buildOpenApi().paths[`/api/sign-in/${provider}`].post
+      .responses[200].content['application/json'].schema
+    assert.equal(schema.properties?.url?.type, 'string')
+    assert.deepEqual(schema.required, ['url'])
+    assert.deepEqual(Object.keys(schema.properties), ['url'])
+  })
+}
+
 test('보낸 뒤에 오는 것이 문서에 실린다', () => {
   const built = buildOpenApi()
   const mutations = JSON.parse(

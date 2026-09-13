@@ -23002,7 +23002,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "브라우저가 이동할 구글 로그인 주소. 로그인 검증 쿠키는 응답의 Set-Cookie 헤더로 함께 전달한다."
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ]
                 }
               }
             }
@@ -23046,7 +23055,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "url": {
+                      "type": "string",
+                      "description": "브라우저가 이동할 카카오 로그인 주소. 로그인 검증 쿠키는 응답의 Set-Cookie 헤더로 함께 전달한다."
+                    }
+                  },
+                  "required": [
+                    "url"
+                  ]
                 }
               }
             }

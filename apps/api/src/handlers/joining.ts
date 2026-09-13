@@ -41,8 +41,8 @@ export const joiningHandlers: Handlers = {
     return { screenId: sender.membership === null ? 'ONB-01' : 'HOME-01K' }
   },
   'auth.ways': async (_c, d) => d.signIn.open(),
-  'auth.signInGoogle': async (c, d) => startSignIn(c, d, 'google'),
-  'auth.signInKakao': async (c, d) => startSignIn(c, d, 'kakao'),
+  'auth.signInGoogle': async (c, d): Promise<ApiResponse<'auth.signInGoogle'>> => startSignIn(c, d, 'google'),
+  'auth.signInKakao': async (c, d): Promise<ApiResponse<'auth.signInKakao'>> => startSignIn(c, d, 'kakao'),
   // **나가는 길.** 들어오는 길이 셋인데 나가는 길이 없었다 — 한번 들어온 사람은
   // 브라우저의 쿠키를 직접 지워야 나갈 수 있었다(2026-09-09에 사람이 물었다).
   //
