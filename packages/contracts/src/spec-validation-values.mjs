@@ -15,3 +15,6 @@ export function elementLabel(element, index) {
   const name = spec?.fieldKey ?? spec?.label ?? element?.source?.nodeId;
   return name ? `elements[${index}](${name})` : `elements[${index}]`;
 }
+
+// fieldKey를 갖고 값을 담는 요소. 중복 검사와 참조 해석의 대상이다.
+export const FIELD_ELEMENT_TYPES = new Set(["input", "select", "list"]);

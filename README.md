@@ -98,7 +98,7 @@ git config core.hooksPath .githooks
 
 모든 명세를 JSON Schema와 교차 참조 규칙(중복 fieldKey, 선택지 출처·인자 매핑, 상태 스코프, 이동 대상 화면, design.json nodeId·자산 존재)으로 검사한다. 오류가 있으면 종료 코드 1을 반환한다.
 
-교차 참조 검사의 진입점은 [`collectSpecFindings`](packages/contracts/src/spec-validation.mjs)다. 권한 조건·API 권한 참조·공개 인자의 비밀값 선언·화면 사용자의 접근 가능성은 [`collectPermissionFindings`](packages/contracts/src/permission-validation.mjs)가 담당한다. Figma 그림의 제목·노드·상호작용·자산 대조는 `design-validation.mjs`가 담당한다. 각 모듈은 필요한 명세를 인자로 받고 결과 배열을 반환하며, 진입점은 결과 순서를 정해 모은다. 공통 값 해석은 `spec-validation-values.mjs`에 둔다.
+교차 참조 검사의 진입점은 [`collectSpecFindings`](packages/contracts/src/spec-validation.mjs)다. 권한 검사는 [`collectPermissionFindings`](packages/contracts/src/permission-validation.mjs), Figma 그림 대조는 `design-validation.mjs`가 담당한다. 데이터 출처와 화면의 연결은 `source-validation.mjs`, 조회 인자 규칙은 `source-parameters.mjs`, 목록과 선택지의 출처 검사는 각각 `list-validation.mjs`와 `option-validation.mjs`가 담당한다. 각 모듈은 필요한 명세를 인자로 받고 진입점은 기존 순서대로 결과를 모은다. 공통 값 해석은 `spec-validation-values.mjs`에 둔다.
 
 ```powershell
 node apps/spec-service/src/validate-specs.mjs            # specs/figma 전체
