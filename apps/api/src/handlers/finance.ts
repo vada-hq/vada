@@ -1,4 +1,3 @@
-import type { Context } from 'hono'
 import { orgOf, type Handlers } from '../deps.ts'
 import { budgetEventOptions, budgetPlanDraft, saveBudgetPlan } from '../finance/budget-plan.ts'
 import { paymentEvidences, paymentEvidenceSummary } from '../finance/evidence.ts'
@@ -17,6 +16,7 @@ import { purchaseOrderList, purchaseOrderSummary } from '../finance/orders.ts'
 import { orgBreakdown, orgOverview } from '../finance/overview.ts'
 import { reviewItems, reviewSummary } from '../finance/review.ts'
 import { NotFound } from '../errors.ts'
+import { memberIdOf } from './context.ts'
 
 // 재정(FIN-00 · FIN-00B · FIN-LEDGER-01 · FIN-PLAN-01 · FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01 · MY-REQ-01).
 //
@@ -39,13 +39,6 @@ import { NotFound } from '../errors.ts'
 // 수입원의 합이고, 실제 지출은 결제, 지출 예정은 아직 안 낸 승인액이다 — 검토 화면이
 // 드는 셈과 같은 셈이다(`finance/money.ts` · `finance/overview.ts` · `finance/ledger.ts`).
 // 편성 전인 학생회는 '편성 전'이라 답한다. 0원은 다른 사실이다.
-
-/** 지금 보는 사람이 이 학생회에서 누구인가. **'내 구매 요청'을 이 값이 가른다.** */
-function memberOf(c: Context): string {
-  const memberId = c.get('sender')?.membership?.memberId
-  if (memberId === undefined) throw new NotFound('이 학생회의 구성원이 아닙니다')
-  return memberId
-}
 
 /**
  * 어느 요청인가.
@@ -113,7 +106,7 @@ export const financeHandlers: Handlers = {
     if (!(await eventExists(d.db, orgId, eventId))) {
       throw new NotFound('그 행사를 찾지 못했습니다')
     }
-    return myPurchaseRequests(d.db, orgId, eventId, memberOf(c))
+    return myPurchaseRequests(d.db, orgId, eventId, memberIdOf(c))
   },
   'event.myPurchaseRequestSummary': async (c, d) => {
     const orgId = orgOf(c)
@@ -122,7 +115,7 @@ export const financeHandlers: Handlers = {
     if (!(await eventExists(d.db, orgId, eventId))) {
       throw new NotFound('그 행사를 찾지 못했습니다')
     }
-    return myPurchaseRequestSummary(d.db, orgId, eventId, memberOf(c))
+    return myPurchaseRequestSummary(d.db, orgId, eventId, memberIdOf(c))
   },
 
   // ── 예산 편성 (FIN-PLAN-01) ────────────────────────────────────────────
