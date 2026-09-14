@@ -27,14 +27,13 @@ import { eventSchedule } from '../events/schedule.ts'
 import {
   eventStaffDepartmentTree,
   eventStaffLeaders,
-  saveEventStaff,
-  setupEventStaff,
   staffDeptLeaderCandidates,
   staffLeaderCandidates,
   staffMemberCandidates,
   staffSetupPreview,
   staffUnassignedMembers,
 } from '../events/staff.ts'
+import { saveEventStaff, setupEventStaff } from '../events/staff-write.ts'
 import { eventSurvey, replaceSurvey, surveyReplaceImpact } from '../events/survey.ts'
 import { wrapUpBanner, wrapUpCounts, wrapUpRemaining } from '../events/wrap-up.ts'
 import { newToken } from '../public/tokens.ts'
