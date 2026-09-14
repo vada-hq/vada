@@ -1,20 +1,19 @@
-import { and, asc, eq, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
-import {
-  departments,
-  documents,
-  events,
-  meetingAgendas,
-  meetingParticipants,
-  meetings,
-  members,
-} from '../db/schema.ts'
 import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sources.json' with { type: 'json' }
-import { NotFound } from '../errors.ts'
 import { clock, daysBetween, dottedStamp } from '../time.ts'
 import { cancellableStage } from './manage.ts'
 import { listed, MINUTES, orNote, STATUS, word, type Listed, type MeetingViewer } from './meetings.ts'
 import { endableStage, startableStage } from './run.ts'
+import {
+  agendasOf,
+  cancellerNote,
+  materialCount,
+  meetingDetailRow,
+  participantsOf,
+  personNote,
+} from './detail-records.ts'
+import { attendanceChip, runs, stateBanner, viewerBand, viewerChip } from './detail-view.ts'
+
 
 // 회의 한 건과 그 곁의 넷(OPS-MEET-03A·03B·03C · 05A · D01 · D02가 읽는다).
 //
@@ -57,13 +56,6 @@ const MINUTES_TONE: Record<keyof typeof MINUTES, string> = {
   drafting: 'yellow',
   done: 'green',
 }
-
-/**
- * 이 사람이 이 회의에서 무엇을 할 수 있는가.
- *
- * **막는 검사와 같은 곳에서 온다.** 자리마다 `canDo`가 답하고 그 답이 그대로
- * 화면으로 간다 — 두 곳에서 나오면 단추를 그렸는데 눌리면 막힌다.
- */
 export interface MeetingPowers {
   /** 이 회의를 진행할 수 있는가(meeting.run). 시작·종료를 막는 그 판정이다. */
   canRun: boolean
@@ -138,197 +130,6 @@ function minutesBetween(from: Date, to: Date): number {
   return Math.round((to.getTime() - from.getTime()) / 60_000)
 }
 
-/** 이름과 소속을 이은 한 줄. **화면이 이으면 잇는 방법이 명세의 일이 된다.** */
-function personNote(name: string | null, department: string | null): string | null {
-  if (name === null) return null
-  return department === null || department.trim() === '' ? name : `${name} · ${department}`
-}
-
-/** 이 사람이 이 회의를 진행할 수 있는가. **만든 사람은 기본 진행 권한자다**(ORG-04). */
-export function runs(
-  row: { memberId: string; isHost: boolean },
-  creatorMemberId: string | null,
-): boolean {
-  return row.isHost || row.memberId === creatorMemberId
-}
-
-/**
- * 참석 딱지.
- *
- * **말이 단계마다 다르다** — 회의가 도는 동안은 '참가'이고 끝난 뒤에는 '참석'이다
- * (05A와 07이 같은 사람에게 다른 말을 그렸다). 시작하기 전에는 잴 것이 없어 빈 글이다.
- *
- * **시각이 붙지 않는다.** 그림은 '15:00 참가'라 적었는데 언제 들어왔는지를 담는
- * 열이 `meeting_participants`에 없다 — 지어낸 시각을 붙이는 대신 아는 것만 준다.
- */
-export function attendanceChip(stage: Listed, attendance: string): { label: string; tone: string } {
-  if (stage === 'scheduled' || stage === 'cancelled') return { label: '', tone: '' }
-  if (attendance === 'present') {
-    return { label: stage === 'inProgress' ? '참가' : '참석', tone: 'green' }
-  }
-  // '안 왔다'와 '아직 확인 안 했다'는 다른 사실이라 표가 갈라 두었다. 말도 가른다.
-  return attendance === 'absent'
-    ? { label: '불참', tone: 'gray' }
-    : { label: '미참석', tone: 'gray' }
-}
-
-/** 그 학생회의 그 회의인가. **없는 것은 없다고 말한다.** */
-export async function meetingOf(db: Db, orgId: string, meetingId: string) {
-  const rows = await db
-    .select({
-      id: meetings.id,
-      status: meetings.status,
-      creatorMemberId: meetings.creatorMemberId,
-    })
-    .from(meetings)
-    .where(and(eq(meetings.orgId, orgId), eq(meetings.id, meetingId)))
-    .limit(1)
-  const row = rows[0]
-  if (row === undefined) throw new NotFound('그 회의를 찾지 못했습니다')
-  return row
-}
-
-/** 이 회의의 사람들. 세 자리(상세·안건·참가자)가 같은 것을 본다. */
-export async function participantsOf(db: Db, orgId: string, meetingId: string) {
-  return db
-    .select({
-      memberId: meetingParticipants.memberId,
-      isHost: meetingParticipants.isHost,
-      attendance: meetingParticipants.attendance,
-      name: members.name,
-      department: departments.name,
-    })
-    .from(meetingParticipants)
-    .innerJoin(members, and(eq(meetingParticipants.memberId, members.id), eq(members.orgId, orgId)))
-    .leftJoin(
-      departments,
-      and(eq(members.departmentId, departments.id), eq(departments.orgId, orgId)),
-    )
-    .where(
-      and(eq(meetingParticipants.orgId, orgId), eq(meetingParticipants.meetingId, meetingId)),
-    )
-}
-
-/** 이 회의의 안건들. 차례는 표의 `sortOrder`가 든다. */
-export async function agendasOf(db: Db, orgId: string, meetingId: string) {
-  return db
-    .select({
-      id: meetingAgendas.id,
-      title: meetingAgendas.title,
-      description: meetingAgendas.description,
-      plannedMinutes: meetingAgendas.plannedMinutes,
-      status: meetingAgendas.status,
-      discussionText: meetingAgendas.discussionText,
-      decisionText: meetingAgendas.decisionText,
-    })
-    .from(meetingAgendas)
-    .where(and(eq(meetingAgendas.orgId, orgId), eq(meetingAgendas.meetingId, meetingId)))
-    .orderBy(asc(meetingAgendas.sortOrder), asc(meetingAgendas.id))
-}
-
-/**
- * 이 회의에 등록된 자료가 몇인가.
- *
- * 자료의 **목록**은 다른 자리가 준다(`meeting.documents`). 여기서 세는 까닭은
- * 그 수가 목록이 아니라 회의의 사실이기 때문이다 — 목록이 쪽으로 나뉘어도 수는
- * 변하지 않는다.
- */
-async function materialCount(db: Db, orgId: string, meetingId: string): Promise<number> {
-  const rows = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(documents)
-    .where(and(eq(documents.orgId, orgId), eq(documents.meetingId, meetingId)))
-  return Number(rows[0]?.total ?? 0)
-}
-
-/** 같은 자리라도 **단계가 바뀌면 할 수 있는 일이 바뀐다.** 그림이 단계마다 적었다. */
-const GUEST_NOTE: Record<Listed, string> = {
-  scheduled: '회의 정보를 확인할 수 있지만 회의를 시작하거나 설정을 변경할 수 없습니다.',
-  inProgress: '회의록을 함께 작성할 수 있지만 회의를 끝내거나 안건을 넘길 수 없습니다.',
-  wrapUp: '현재 내용은 진행 권한자가 수정할 수 있습니다.',
-  done: '정리된 회의록을 읽고 받아 갈 수 있습니다.',
-  cancelled: '취소된 회의는 기록으로만 남습니다.',
-}
-
-/**
- * 이 자리에서 무엇을 할 수 있는지 알리는 띠.
- *
- * 제목은 `meeting.attention`의 같은 이름과 **같은 계급**이라고 명세가 적었다. 설명은
- * 그림이 이미 적어 둔 말에서 온다 — 생성자와 진행 권한자의 것은 03B·03C가, 일반
- * 참가자의 것은 단계마다 03A·05A·06A·07·09가 적었다.
- */
-function viewerBand(
-  stage: Listed,
-  seen: { isCreator: boolean; canRun: boolean; joined: boolean },
-): { viewerTitle: string; viewerNote: string } {
-  if (seen.isCreator) {
-    return {
-      viewerTitle: '회의 생성자 화면',
-      viewerNote: '회의 수정·취소와 진행 권한 관리, 회의 시작을 할 수 있습니다.',
-    }
-  }
-  if (seen.canRun) {
-    return {
-      viewerTitle: '진행 권한자 화면',
-      viewerNote:
-        '회의를 시작·종료하고 안건을 진행할 수 있지만 권한이나 회의 정보는 변경할 수 없습니다.',
-    }
-  }
-  if (!seen.joined) {
-    // 회의 목록의 띠가 미참가자에게 하는 말과 같다. 두 벌을 들면 갈린다.
-    return {
-      viewerTitle: '미참가자 화면',
-      viewerNote: '초대되지 않은 회의는 상세만 열람할 수 있습니다.',
-    }
-  }
-  return { viewerTitle: '일반 참가자 화면', viewerNote: GUEST_NOTE[stage] }
-}
-
-/**
- * 상태 띠.
- *
- * **상태와 보는 사람 둘 다에 매인다.** 같은 예정 회의라도 시작할 수 있는 사람에게는
- * '시작 전 확인'이 오고(03B·03C가 그렇게 그렸다) 그럴 수 없는 사람에게는 '아직
- * 시작되지 않았습니다'가 온다(03A).
- *
- * **'시작 전 확인'만 무채색이다.** 그림이 그 자리를 흰 카드로 그렸다 — 띠의 색표에
- * 없는 이름이 오면 화면이 무채색으로 그린다(`BANNER_TONE`의 기본값).
- *
- * 정리 중과 취소의 띠는 **제목과 색까지만** 준다. 본문으로 그려진 글이 그림마다
- * 달라(06A와 09가 서로 다른 문장을 그렸다) 하나를 고르면 그것은 고르는 일이 된다.
- */
-function stateBanner(
-  stage: Listed,
-  canStart: boolean,
-  daysLeft: number | null,
-): { title: string; note: string; tone: string } {
-  if (stage === 'scheduled') {
-    if (!canStart) {
-      return {
-        title: '아직 회의가 시작되지 않았습니다',
-        note: '회의가 시작되면 목록과 이 화면의 버튼이 ‘회의 참가’로 변경됩니다. 이 화면을 확인한 것은 참석으로 기록되지 않습니다.',
-        tone: 'blue',
-      }
-    }
-    // 셀 날이 없으면 남은 날만 빠진다 — 할 일을 이르는 말은 그대로 온다.
-    const left =
-      daysLeft === null || daysLeft <= 0 ? null : `현재 예정 시각까지 ${daysLeft}일 남았습니다.`
-    return {
-      title: '시작 전 확인',
-      note: [left, '안건과 참가자를 확인한 뒤 회의를 시작하세요.']
-        .filter((part): part is string => part !== null)
-        .join(' '),
-      // 띠의 색표에 무채색이 없다 — 이름을 그대로 주면 화면이 흰 카드로 그린다.
-      tone: 'gray',
-    }
-  }
-  if (stage === 'wrapUp') {
-    return { title: '회의가 종료되어 정리 중입니다', note: '', tone: 'yellow' }
-  }
-  if (stage === 'cancelled') return { title: '이 회의는 취소되었습니다', note: '', tone: 'red' }
-  return { title: '', note: '', tone: '' }
-}
-
 /**
  * 회의 한 건(`meeting.detail`).
  *
@@ -343,42 +144,7 @@ export async function meetingDetail(
   allowed: MeetingPowers,
   now: Date,
 ): Promise<MeetingDetail> {
-  const rows = await db
-    .select({
-      id: meetings.id,
-      kind: meetings.kind,
-      eventId: meetings.eventId,
-      title: meetings.title,
-      purpose: meetings.purpose,
-      status: meetings.status,
-      minutesStatus: meetings.minutesStatus,
-      scheduledAt: meetings.scheduledAt,
-      plannedEndAt: meetings.plannedEndAt,
-      place: meetings.place,
-      creatorMemberId: meetings.creatorMemberId,
-      startedAt: meetings.startedAt,
-      endedAt: meetings.endedAt,
-      updatedAt: meetings.updatedAt,
-      cancelReason: meetings.cancelReason,
-      cancelledByMemberId: meetings.cancelledByMemberId,
-      cancelledAt: meetings.cancelledAt,
-      creatorName: members.name,
-      creatorDepartment: departments.name,
-      eventTitle: events.title,
-    })
-    .from(meetings)
-    // **이어 붙인 표도 자기 학생회를 확인한다.** 벽은 두 겹이 낫다.
-    .leftJoin(members, and(eq(meetings.creatorMemberId, members.id), eq(members.orgId, orgId)))
-    .leftJoin(
-      departments,
-      and(eq(members.departmentId, departments.id), eq(departments.orgId, orgId)),
-    )
-    .leftJoin(events, and(eq(meetings.eventId, events.id), eq(events.orgId, orgId)))
-    .where(and(eq(meetings.orgId, orgId), eq(meetings.id, meetingId)))
-    .limit(1)
-  const row = rows[0]
-  // **없는 것은 없다고 말한다.** 남의 학생회의 회의도 여기서는 없는 것이다.
-  if (row === undefined) throw new NotFound('그 회의를 찾지 못했습니다')
+  const row = await meetingDetailRow(db, orgId, meetingId)
 
   // 임시 저장한 회의에 줄 이름을 명세가 주지 않았다. 고치는 화면이 그것을 '예정'으로
   // 그리는 것과 같은 자리에서 같은 답을 준다(`meetingDraft`).
@@ -496,37 +262,5 @@ function plannedSpan(from: Date, to: Date): string {
   return minutes <= 0 ? '' : spanNote(minutes)
 }
 
-/** 취소한 사람. 이름과 소속을 이어 준다. */
-async function cancellerNote(db: Db, orgId: string, memberId: string): Promise<string | null> {
-  const rows = await db
-    .select({ name: members.name, department: departments.name })
-    .from(members)
-    .leftJoin(
-      departments,
-      and(eq(members.departmentId, departments.id), eq(departments.orgId, orgId)),
-    )
-    .where(and(eq(members.orgId, orgId), eq(members.id, memberId)))
-    .limit(1)
-  const row = rows[0]
-  return row === undefined ? null : personNote(row.name, row.department)
-}
-
-/**
- * 보는 사람과 이 회의의 관계 딱지.
- *
- * 예정 회의에는 아직 잴 관계가 없어 **회의가 어떤 회의인지**가 온다(그림이 그 자리에
- * '예정 회의'를 그렸다). 시작한 뒤부터는 이 사람의 참석이 그 자리를 채운다.
- */
-function viewerChip(
-  stage: Listed,
-  mine: { attendance: string } | undefined,
-): { label: string; tone: string } {
-  if (stage === 'scheduled') return { label: '예정 회의', tone: 'gray' }
-  if (mine === undefined) return { label: '', tone: '' }
-  if (stage === 'inProgress' && mine.attendance === 'present') {
-    // 그림은 '참석 처리됨 · 15:07 참가'라 적었다. 들어온 시각을 담는 열이 없어
-    // **아는 절반만** 준다 — 지어낸 시각을 붙이면 그것이 기록이 된다.
-    return { label: '참석 처리됨', tone: 'green' }
-  }
-  return attendanceChip(stage, mine.attendance)
-}
+export { agendasOf, meetingOf, participantsOf } from './detail-records.ts'
+export { attendanceChip, runs } from './detail-view.ts'
