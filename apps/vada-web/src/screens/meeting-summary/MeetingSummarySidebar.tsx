@@ -3,7 +3,7 @@ import { FigmaAsset } from '../../components/FigmaAsset'
 import { findDataSource } from '../../data-sources/definitions'
 import { STATE_CHIP } from '../../design/tones'
 import { MeetingStateChip } from '../meeting-shared/MeetingStateChip'
-import type { MeetingSummaryActions } from './actions'
+import type { MeetingSummaryActions } from './useMeetingSummaryActions'
 import type { MeetingSummaryView } from './data'
 import { ABSENTEE, ASSET, NODE, SCREEN, scalar } from './spec'
 

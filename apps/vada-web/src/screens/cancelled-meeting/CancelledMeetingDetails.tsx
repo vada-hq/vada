@@ -7,8 +7,9 @@ import {
   NEUTRAL_VALUE,
   STATE_CHIP,
 } from '../../design/tones'
-import type { DataRow, DataValue } from '../../data-sources/definitions'
+import type { DataRow } from '../../data-sources/definitions'
 import type { SummarySpec } from '../../spec/types'
+import { cancelledMeetingScalar } from './value'
 
 const SCREEN = 'OPS-MEET-09'
 
@@ -23,14 +24,6 @@ const ASSET = {
   cancelled: '20:2720',
   openReplacement: '20:2779',
 } as const
-
-export function cancelledMeetingScalar(row: DataRow, field: string | undefined): string {
-  const value: DataValue | undefined = field === undefined ? undefined : row[field]
-  if (value === undefined || Array.isArray(value)) {
-    throw new Error(`OPS-MEET-09의 '${field}' 조각은 한 줄의 값이어야 합니다.`)
-  }
-  return String(value)
-}
 
 interface CancelledMeetingDetailsProps {
   detail: DataRow

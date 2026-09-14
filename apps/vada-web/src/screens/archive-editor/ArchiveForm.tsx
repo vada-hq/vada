@@ -1,7 +1,7 @@
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { scalarValue as scalar } from '../../data-sources/values'
 import type { SubmitAction } from '../../spec/types'
-import { FormSection, dropdown, textArea } from './fields'
+import { ArchiveDropdown, ArchiveTextArea, FormSection } from './fields'
 import { ASSET, NODE, SCREEN } from './spec'
 import type { ArchiveEditorModel } from './useArchiveEditor'
 
@@ -37,7 +37,7 @@ export function ArchiveForm({ model }: { model: ArchiveEditorModel }) {
         current
       >
         <div className="px-6 py-4">
-          {textArea(inputAt(NODE.onSite), model.valueOf, model.setValue)}
+          <ArchiveTextArea spec={inputAt(NODE.onSite)} valueOf={model.valueOf} setValue={model.setValue} />
         </div>
       </FormSection>
 
@@ -49,7 +49,7 @@ export function ArchiveForm({ model }: { model: ArchiveEditorModel }) {
           >
             {inputAt(NODE.retroGood).label}
           </label>
-          {textArea(inputAt(NODE.retroGood), model.valueOf, model.setValue)}
+          <ArchiveTextArea spec={inputAt(NODE.retroGood)} valueOf={model.valueOf} setValue={model.setValue} />
         </div>
         <div data-node-id={NODE.retroIssues} className="border-t border-gray-100 px-6 py-4">
           <label
@@ -58,7 +58,7 @@ export function ArchiveForm({ model }: { model: ArchiveEditorModel }) {
           >
             {inputAt(NODE.retroIssues).label}
           </label>
-          {textArea(inputAt(NODE.retroIssues), model.valueOf, model.setValue)}
+          <ArchiveTextArea spec={inputAt(NODE.retroIssues)} valueOf={model.valueOf} setValue={model.setValue} />
         </div>
         <div
           data-node-id={NODE.retroImprovements}
@@ -70,7 +70,7 @@ export function ArchiveForm({ model }: { model: ArchiveEditorModel }) {
           >
             {inputAt(NODE.retroImprovements).label}
           </label>
-          {textArea(inputAt(NODE.retroImprovements), model.valueOf, model.setValue)}
+          <ArchiveTextArea spec={inputAt(NODE.retroImprovements)} valueOf={model.valueOf} setValue={model.setValue} />
           <div data-node-id={NODE.improvementDepartment} className="pt-3">
             <label
               htmlFor={selectAt(NODE.improvementDepartment).fieldKey}
@@ -78,7 +78,7 @@ export function ArchiveForm({ model }: { model: ArchiveEditorModel }) {
             >
               {selectAt(NODE.improvementDepartment).label}
             </label>
-            {dropdown(selectAt(NODE.improvementDepartment), model.field)}
+            <ArchiveDropdown spec={selectAt(NODE.improvementDepartment)} field={model.field} />
           </div>
         </div>
       </FormSection>
@@ -108,7 +108,7 @@ export function ArchiveForm({ model }: { model: ArchiveEditorModel }) {
             </button>
           </div>
           <div data-node-id={NODE.handover} className="pt-3">
-            {textArea(inputAt(NODE.handover), model.valueOf, model.setValue)}
+            <ArchiveTextArea spec={inputAt(NODE.handover)} valueOf={model.valueOf} setValue={model.setValue} />
           </div>
         </div>
         <div data-node-id={NODE.nextOwner} className="border-t border-gray-100 px-6 py-4">

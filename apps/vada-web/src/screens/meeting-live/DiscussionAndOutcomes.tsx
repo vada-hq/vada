@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { findDataSource } from '../../data-sources/definitions'
 import { HostActionButton } from './actions'
-import type { MeetingLiveActions } from './actions'
+import type { MeetingLiveActions } from './useMeetingLiveActions'
 import type { MeetingLiveView } from './data'
 import { ASSET, HOST, NODE, SCREEN, buttonAt, drawnValue, scalar } from './spec'
 

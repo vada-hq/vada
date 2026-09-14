@@ -1,5 +1,4 @@
 import { NEUTRAL_CHIP, STATE_CHIP } from '../../design/tones'
-import { NODE } from './spec'
 import type { EventFinanceModel } from './useEventFinance'
 
 export function EventFinanceColumns({ model }: { model: EventFinanceModel }) {

@@ -22,11 +22,15 @@ export function ReviewCommentBox({
   )
 }
 
-export function textArea(
-  spec: InputSpec,
-  valueOf: (fieldKey: string) => string,
-  setValue: (fieldKey: string, next: string) => void,
-): ReactNode {
+export function ArchiveTextArea({
+  spec,
+  valueOf,
+  setValue,
+}: {
+  spec: InputSpec
+  valueOf: (fieldKey: string) => string
+  setValue: (fieldKey: string, next: string) => void
+}) {
   return (
     <textarea
       id={spec.fieldKey}
@@ -40,7 +44,13 @@ export function textArea(
   )
 }
 
-export function dropdown(spec: SelectSpec, field: ArchiveEditorModel['field']): ReactNode {
+export function ArchiveDropdown({
+  spec,
+  field,
+}: {
+  spec: SelectSpec
+  field: ArchiveEditorModel['field']
+}) {
   return (
     <SearchSelect
       id={spec.fieldKey}

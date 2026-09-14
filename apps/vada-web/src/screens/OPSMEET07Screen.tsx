@@ -7,10 +7,10 @@ import { MeetingSummarySidebar } from './meeting-summary/MeetingSummarySidebar'
 import {
   MeetingSummaryHeaderAction,
   MeetingSummaryNotices,
-  useMeetingSummaryActions,
 } from './meeting-summary/actions'
 import { readMeetingSummaryView } from './meeting-summary/data'
 import { BREADCRUMB_SEPARATORS, SCREEN, scalar } from './meeting-summary/spec'
+import { useMeetingSummaryActions } from './meeting-summary/useMeetingSummaryActions'
 
 interface OPSMEET07ScreenProps {
   screenParams: Record<string, string>

@@ -19,7 +19,7 @@ interface StaffTreeProps {
 /** 책임자와 부서 목록을 조직도 형태로 배치한다. */
 export function StaffTree({
   leaders,
-  departments,
+  departments: _departments,
   leaderRows,
   departmentRows,
   leaderCard,

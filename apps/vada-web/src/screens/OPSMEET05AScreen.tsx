@@ -10,7 +10,6 @@ import { MeetingLiveStatus } from './meeting-live/MeetingLiveStatus'
 import {
   HostActionButton,
   MeetingLiveNotices,
-  useMeetingLiveActions,
 } from './meeting-live/actions'
 import { readMeetingLiveView } from './meeting-live/data'
 import {
@@ -21,6 +20,7 @@ import {
   SCREEN,
   scalar,
 } from './meeting-live/spec'
+import { useMeetingLiveActions } from './meeting-live/useMeetingLiveActions'
 
 interface OPSMEET05AScreenProps {
   screenParams: Record<string, string>

@@ -12,7 +12,6 @@ import { AgendaPicker } from './AgendaPicker'
 import { ASSET, NODE, SCREEN, listAt, summaryAt } from './spec'
 
 interface AgendaEditorProps {
-  screenParams: Record<string, string>
   draft: ScopeDraft
   field: ReturnType<typeof useFieldDraft>
   agendaRows: DataRow[]
@@ -22,7 +21,6 @@ interface AgendaEditorProps {
 
 /** 선택한 안건의 결정과 후속 업무 초안을 편집한다. */
 export function AgendaEditor({
-  screenParams,
   draft,
   field,
   agendaRows,

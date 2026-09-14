@@ -100,7 +100,6 @@ export function MeetingMinutesWorkspace({
         </div>
         <div className="flex flex-col gap-4">
           <AgendaEditor
-            screenParams={screenParams}
             draft={draft}
             field={model.field}
             agendaRows={model.agendaRows}

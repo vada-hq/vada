@@ -9,8 +9,8 @@ import { drawnTitleOf, elementByNodeId, opsMeet09 } from '../spec/screens'
 import type { SummarySpec } from '../spec/types'
 import {
   CancelledMeetingDetails,
-  cancelledMeetingScalar,
 } from './cancelled-meeting/CancelledMeetingDetails'
+import { cancelledMeetingScalar } from './cancelled-meeting/value'
 
 // 취소된 회의 상세(OPS-MEET-09).
 //

@@ -2,7 +2,7 @@ import { Built } from '../../components/Built'
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { findDataSource } from '../../data-sources/definitions'
 import { scalarValue as scalar } from '../../data-sources/values'
-import { ReviewCommentBox, dropdown } from './fields'
+import { ArchiveDropdown, ReviewCommentBox } from './fields'
 import { ASSET, CONDITION_ICON, NODE, SCREEN } from './spec'
 import type { ArchiveEditorModel } from './useArchiveEditor'
 
@@ -52,7 +52,7 @@ export function ArchiveReviewSidebar({ model }: { model: ArchiveEditorModel }) {
           >
             {selectAt(NODE.reviewer).label}
           </label>
-          {dropdown(selectAt(NODE.reviewer), model.field)}
+          <ArchiveDropdown spec={selectAt(NODE.reviewer)} field={model.field} />
         </div>
         <div data-node-id={NODE.reviewComment} className="pt-3">
           <span className="block pb-1.5 text-xs font-medium text-gray-500">
