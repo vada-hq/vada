@@ -1,22 +1,10 @@
 import { Blocked } from '../errors.ts'
+export { readWord } from '../input.ts'
 
 // 화면이 보낸 몸통에서 칸 하나를 읽는다. 회의록과 회의 관리가 나눠 쓴다.
 //
 // **읽지 못하는 값은 막는다.** 조용히 비우거나 거짓으로 읽으면 사람은 적었다고 믿고
 // 저장소에는 없다 — 회의 만들기(`create.ts`)가 같은 자리에서 같은 규칙을 지킨다.
-
-/** 글 칸 하나. **빈 글은 저장하지 않는다** — 지운 것과 안 적은 것을 같게 둔다. */
-export function readWord(
-  draft: Record<string, unknown>,
-  key: string,
-  label: string,
-): string | null {
-  const value = draft[key]
-  if (value === null || value === undefined) return null
-  if (typeof value !== 'string') throw new Blocked(`${label} 칸은 글로 적어 주세요`)
-  const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
-}
 
 /**
  * 켜고 끄는 칸.

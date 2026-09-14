@@ -3,6 +3,7 @@ import optionSources from '../../../../specs/figma/vada-wireframe/option-sources
 import type { Db } from '../db/client.ts'
 import { departments, events, members } from '../db/schema.ts'
 import { Blocked, NotFound } from '../errors.ts'
+import { readWord } from '../input.ts'
 import { fieldMoment, momentOf } from '../time.ts'
 
 // 행사 기본정보를 **고치는** 자리(EVT-02B).
@@ -144,15 +145,6 @@ export async function eventBasicsDraft(
 
 export interface SaveClock {
   now: () => Date
-}
-
-/** 글 칸 하나. **빈 글은 저장하지 않는다** — 지운 것과 안 적은 것을 같게 둔다. */
-function readWord(draft: Record<string, unknown>, key: string, label: string): string | null {
-  const value = draft[key]
-  if (value === null || value === undefined) return null
-  if (typeof value !== 'string') throw new Blocked(`${label} 칸은 글로 적어 주세요`)
-  const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
 }
 
 /**

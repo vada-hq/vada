@@ -10,6 +10,7 @@ import {
   members,
 } from '../db/schema.ts'
 import { Blocked } from '../errors.ts'
+import { readWord } from '../input.ts'
 import { momentOf } from '../time.ts'
 import type { MeetingViewer } from './meetings.ts'
 
@@ -63,15 +64,6 @@ function rowsOf(draft: Record<string, unknown>, listKey: string): Array<Record<s
       }
       return row
     })
-}
-
-/** 글 칸 하나. **빈 글은 저장하지 않는다** — 지운 것과 안 적은 것을 같게 둔다. */
-function readWord(draft: Record<string, unknown>, key: string, label: string): string | null {
-  const value = draft[key]
-  if (value === null || value === undefined) return null
-  if (typeof value !== 'string') throw new Blocked(`${label} 칸은 글로 적어 주세요`)
-  const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
 }
 
 /**

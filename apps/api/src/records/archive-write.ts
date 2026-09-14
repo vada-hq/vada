@@ -12,6 +12,7 @@ import {
 } from '../db/schema.ts'
 import { quantityNote } from '../finance/labels.ts'
 import { AlreadyExists, Blocked } from '../errors.ts'
+import { readWord } from '../input.ts'
 import { archiveOf, type ArchiveRow } from './archive-facts.ts'
 import { entryLine, HANDOVER_GROUPS, headerLine } from './archive-text.ts'
 
@@ -28,15 +29,6 @@ import { entryLine, HANDOVER_GROUPS, headerLine } from './archive-text.ts'
 /** 이 요청을 보낸 구성원. 처음 줄을 만들 때 쓴 사람으로 남는다. */
 export interface ArchiveWriter {
   memberId: string
-}
-
-/** 글 칸 하나. **빈 글은 저장하지 않는다** — 지운 것과 안 적은 것을 같게 둔다. */
-function readWord(draft: Record<string, unknown>, key: string, label: string): string | null {
-  const value = draft[key]
-  if (value === null || value === undefined) return null
-  if (typeof value !== 'string') throw new Blocked(`${label} 칸은 글로 적어 주세요`)
-  const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
 }
 
 /** 이 학생회의 그 부서인가. 못 찾으면 막는다 — 조용히 비우면 고른 줄 알고 지나간다. */

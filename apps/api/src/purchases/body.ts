@@ -1,4 +1,6 @@
 import { Blocked } from '../errors.ts'
+import { readWord } from '../input.ts'
+export { readWord } from '../input.ts'
 import { momentOf } from '../time.ts'
 
 // 구매 요청 흐름의 쓰기 여섯이 몸통을 읽는 규칙.
@@ -59,15 +61,6 @@ export function rowsOf(body: Body, listKey: string, label: string): Body[] {
       }
       return row
     })
-}
-
-/** 글 칸 하나. **빈 글은 없는 것이다** — 지운 것과 안 적은 것을 같게 둔다. */
-export function readWord(body: Body, key: string, label: string): string | null {
-  const value = body[key]
-  if (value === null || value === undefined) return null
-  if (typeof value !== 'string') throw new Blocked(`${label} 칸은 글로 적어 주세요`)
-  const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
 }
 
 /**

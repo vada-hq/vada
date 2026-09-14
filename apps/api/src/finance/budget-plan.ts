@@ -3,6 +3,7 @@ import optionSourcesJson from '../../../../specs/figma/vada-wireframe/option-sou
 import type { Db } from '../db/client.ts'
 import { budgetItems, budgetPeriods, budgetSources, departments, events } from '../db/schema.ts'
 import { Blocked } from '../errors.ts'
+import { readWord } from '../input.ts'
 import { won } from './labels.ts'
 
 // 예산 편성(FIN-PLAN-01) — 읽기 하나 · 행사 고르기 하나 · 저장 하나.
@@ -199,15 +200,6 @@ function rowsOf(draft: Row, listKey: string, label: string): Row[] {
       }
       return row
     })
-}
-
-/** 글 칸 하나. 빈 글은 없는 것이다. */
-function readWord(row: Row, key: string, label: string): string | null {
-  const value = row[key]
-  if (value === null || value === undefined) return null
-  if (typeof value !== 'string') throw new Blocked(`${label} 칸은 글로 적어 주세요`)
-  const trimmed = value.trim()
-  return trimmed === '' ? null : trimmed
 }
 
 function requiredWord(row: Row, key: string, label: string): string {
