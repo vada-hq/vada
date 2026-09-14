@@ -6,6 +6,7 @@ import { INFO_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { findDataSource } from '../data-sources/definitions'
 import type { DataRow } from '../data-sources/definitions'
+import { scalarValue as scalar } from '../data-sources/values'
 import { resolveParams } from '../spec/params'
 import { PendingBox } from '../components/PendingBox'
 import { elementByNodeId, rec01 } from '../spec/screens'
@@ -56,14 +57,6 @@ const ASSET = {
 // 행사 자체의 상태 딱지. 톤 이름을 받지 않는 자리라 design/tones.ts의 표를 쓰지
 // 않는다 — 이 목록의 모든 행사가 완료된 것이라 색이 갈릴 일이 없다.
 const COMPLETED_CHIP = 'border border-gray-200 bg-gray-100 text-gray-500'
-
-function scalar(row: DataRow, field: string | undefined): string {
-  const value = row[field ?? '']
-  if (value === undefined || Array.isArray(value)) {
-    return ''
-  }
-  return String(value)
-}
 
 function rowsOf(row: DataRow, field: string | undefined): DataRow[] {
   const value = row[field ?? '']

@@ -9,6 +9,7 @@ import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { findDataSource } from '../data-sources/definitions'
 import type { DataRow } from '../data-sources/definitions'
+import { scalarValue as scalar } from '../data-sources/values'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, rec02a } from '../spec/screens'
 import { useFieldDraft } from '../spec/useFieldDraft'
@@ -96,14 +97,6 @@ const CONDITION_ICON: Record<string, string> = { orange: ASSET.condition }
 // 지금 어느 절에 있는가. **화면 안의 상태인데 옮길 방법이 없다** — 목차가 절로
 // 데려가는 동작에 어휘가 없기 때문이다. design이 그린 자리를 처음 값으로 둔다.
 const INITIAL_SECTION_KEY = 'onSite'
-
-function scalar(row: DataRow, field: string | undefined): string {
-  const value = row[field ?? '']
-  if (value === undefined || Array.isArray(value)) {
-    return ''
-  }
-  return String(value)
-}
 
 // 읽어 온 초안을 화면의 칸으로 옮긴다(draftFrom). 조각 이름이 칸 이름과 같으면
 // 그 값으로 시작한다.

@@ -5,9 +5,7 @@ import {
   BANNER_TEXT,
   BANNER_TONE,
   NEUTRAL_BORDER,
-  NEUTRAL_CHIP,
   NEUTRAL_VALUE,
-  STATE_CHIP,
 } from '../design/tones'
 import { readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import { findDataSource } from '../data-sources/definitions'
@@ -15,6 +13,7 @@ import type { DataRow } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, opsMeet03a, opsMeet03b, opsMeet03c } from '../spec/screens'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
+import { MeetingStateChip } from './meeting-shared/MeetingStateChip'
 
 // 예정 회의 상세(OPS-MEET-03A).
 //
@@ -181,21 +180,6 @@ function scalar(row: DataRow, field: string | undefined): string {
 
 // 딱지 하나. 글도 색 이름도 데이터가 준다 — 명세는 어느 조각인지만 안다.
 // 와이어프레임은 한 상태만 그리므로 색은 대조에서 뺀다(data-design-state).
-function Chip({ label, tone }: { label: string; tone: string }) {
-  if (label === '') {
-    return null
-  }
-  return (
-    <span
-      data-design-state
-      data-design-rule="state-chip"
-      className={`rounded px-2 py-0.5 text-xs font-medium ${STATE_CHIP[tone] ?? NEUTRAL_CHIP}`}
-    >
-      {label}
-    </span>
-  )
-}
-
 export function OPSMEET03AScreen({
   screenParams,
   screenId = SCREEN,
@@ -363,7 +347,7 @@ export function OPSMEET03AScreen({
           <span className="min-w-0">
             <span className="flex flex-wrap items-center gap-2">
               {(meeting.status ?? []).map((badge) => (
-                <Chip
+                <MeetingStateChip
                   key={badge.field}
                   label={scalar(detail, badge.field)}
                   tone={scalar(detail, badge.toneField)}
@@ -584,7 +568,7 @@ export function OPSMEET03AScreen({
                         {/* 한 사람에 딱지가 여럿일 수 있다 — 생성자는 '회의 생성자'와
                             '진행 권한'을 함께 단다. 개수도 글도 색도 데이터가 준다. */}
                         {chipsOf(person).map((one, index) => (
-                          <Chip
+                          <MeetingStateChip
                             key={`${String(person.memberId)}-${index}`}
                             label={String(one.label ?? '')}
                             tone={String(one.tone ?? '')}

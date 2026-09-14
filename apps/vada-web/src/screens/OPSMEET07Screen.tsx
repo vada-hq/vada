@@ -6,7 +6,6 @@ import {
   BANNER_TEXT,
   BANNER_TONE,
   NEUTRAL_BORDER,
-  NEUTRAL_CHIP,
   NEUTRAL_VALUE,
   SOFT_BOX,
   SOFT_BOX_TEXT,
@@ -20,6 +19,7 @@ import { resolveParams } from '../spec/params'
 import { elementByNodeId, opsMeet07, opsMeet08 } from '../spec/screens'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type { ButtonSpec, ItemListSpec, SubmitAction, SummarySpec } from '../spec/types'
+import { MeetingStateChip } from './meeting-shared/MeetingStateChip'
 
 // 완료된 회의록(OPS-MEET-07).
 //
@@ -113,21 +113,6 @@ function scalar(row: DataRow, field: string | undefined): string {
 
 // 딱지 하나. 글도 색 이름도 데이터가 준다 — 명세는 어느 조각인지만 안다.
 // 조각이 오지 않는 상태에서는 딱지 자체가 없다(catalog의 '없으면 오지 않는다').
-function Chip({ label, tone }: { label: string; tone: string }) {
-  if (label === '') {
-    return null
-  }
-  return (
-    <span
-      data-design-state
-      data-design-rule="state-chip"
-      className={`rounded px-2 py-0.5 text-xs font-medium ${STATE_CHIP[tone] ?? NEUTRAL_CHIP}`}
-    >
-      {label}
-    </span>
-  )
-}
-
 // 개수만 다른 요약 딱지. 상태 딱지와 달리 데이터가 색 이름을 주지 않는다 —
 // 무엇이냐가 아니라 몇이냐를 말하는 자리라 언제나 같은 무채색이다.
 function CountChip({ label }: { label: string }) {
@@ -384,7 +369,7 @@ export function OPSMEET07Screen({
                 {scalar(detail, banner.titleField)}
               </span>
               {(banner.status ?? []).map((chip) => (
-                <Chip
+                <MeetingStateChip
                   key={chip.field}
                   label={scalar(detail, chip.field)}
                   tone={scalar(detail, chip.toneField)}
@@ -594,7 +579,7 @@ export function OPSMEET07Screen({
                       <span className="min-w-0 text-xs text-gray-700">
                         {scalar(person, personField(0))}
                       </span>
-                      <Chip
+                      <MeetingStateChip
                         label={scalar(person, personField(1))}
                         tone={scalar(person, people.columns?.[1]?.toneField)}
                       />

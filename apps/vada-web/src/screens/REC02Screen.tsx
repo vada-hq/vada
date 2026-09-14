@@ -8,6 +8,7 @@ import { NEUTRAL_CHIP, STATE_CHIP, STATE_TEXT } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { findDataSource } from '../data-sources/definitions'
 import type { DataRow } from '../data-sources/definitions'
+import { scalarValue as scalar } from '../data-sources/values'
 import { resolveParams } from '../spec/params'
 import { elementByNodeId, rec02 } from '../spec/screens'
 import { targetScreenOf, paramsOf } from '../spec/types'
@@ -61,14 +62,6 @@ const ASSET = {
 // 지금 어느 절에 있는가. **화면 안의 상태인데 옮길 방법이 없다** — 목차가 절로
 // 데려가는 동작에 어휘가 없기 때문이다. design이 그린 자리를 처음 값으로 둔다.
 const INITIAL_SECTION = 0
-
-function scalar(row: DataRow, field: string | undefined): string {
-  const value = row[field ?? '']
-  if (value === undefined || Array.isArray(value)) {
-    return ''
-  }
-  return String(value)
-}
 
 function rowsOf(row: DataRow, field: string | undefined): DataRow[] {
   const value = row[field ?? '']

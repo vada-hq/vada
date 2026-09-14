@@ -17,6 +17,7 @@ import { getOptionSource } from '../option-sources/definitions'
 import { getMutation } from '../spec/mutations'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import { resolveParams } from '../spec/params'
+import { nextDraftRowId } from '../spec/draft-rows'
 import { drawnTitleOf, elementByNodeId, finReq01 } from '../spec/screens'
 import type {
   ButtonSpec,
@@ -92,16 +93,6 @@ const ASSET = {
 // 항목 하나가 늘 때 붙일 새 이름. 지우기가 없는 화면이라 번호가 겹칠 일은 없지만,
 // 자리(0·1·2)가 아니라 이름으로 가리키는 이유는 가운데를 지워도 나머지 값이 따라
 // 옮겨 다니지 않게 하기 위해서다.
-function nextRowId(rowIds: string[]): string {
-  const used = new Set(rowIds)
-  for (let index = 0; ; index += 1) {
-    const candidate = `r${index}`
-    if (!used.has(candidate)) {
-      return candidate
-    }
-  }
-}
-
 // 읽어 온 요청을 초안으로 옮긴다.
 //
 // 조각 이름이 칸 이름과 같으면 그 값으로 시작한다(draftFrom). 목록의 조각은 다시
@@ -204,7 +195,7 @@ export function FINREQ01Screen({
   }
 
   function addItem() {
-    const rowId = nextRowId(rowIds)
+    const rowId = nextDraftRowId(rowIds)
     setDraft((previous) => {
       const values = { ...previous.values }
       for (const field of itemFields) {

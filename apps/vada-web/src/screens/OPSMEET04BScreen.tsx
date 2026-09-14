@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { FigmaAsset } from '../components/FigmaAsset'
-import { BANNER_TEXT, BANNER_TONE, NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
+import { BANNER_TEXT, BANNER_TONE } from '../design/tones'
 import { readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import { findDataSource } from '../data-sources/definitions'
 import type { DataRow } from '../data-sources/definitions'
@@ -16,6 +16,7 @@ import type {
   PendingSpec,
   SummarySpec,
 } from '../spec/types'
+import { MeetingStateChip } from './meeting-shared/MeetingStateChip'
 
 // 회의 진행 권한 관리(OPS-MEET-04B).
 //
@@ -88,21 +89,6 @@ function scalar(row: DataRow, field: string | undefined): string {
 
 // 딱지 하나. 글도 색 이름도 데이터가 준다 — 명세는 어느 조각인지만 안다.
 // 와이어프레임은 한 상태만 그리므로 색은 대조에서 뺀다(data-design-state).
-function Chip({ label, tone }: { label: string; tone: string }) {
-  if (label === '') {
-    return null
-  }
-  return (
-    <span
-      data-design-state
-      data-design-rule="state-chip"
-      className={`rounded px-2 py-0.5 text-xs font-medium ${STATE_CHIP[tone] ?? NEUTRAL_CHIP}`}
-    >
-      {label}
-    </span>
-  )
-}
-
 export function OPSMEET04BScreen({ screenParams, onNavigate }: OPSMEET04BScreenProps) {
   const done = elementByNodeId(opsMeet04b, NODE.done).spec as ButtonSpec
   const notice = summaryAt(NODE.notice)
@@ -273,7 +259,7 @@ export function OPSMEET04BScreen({ screenParams, onNavigate }: OPSMEET04BScreenP
                   {scalar(ownerRow, owner.titleField)}
                 </span>
                 {ownerChips.map((chip) => (
-                  <Chip
+                  <MeetingStateChip
                     key={String(chip.label)}
                     label={String(chip.label)}
                     tone={String(chip.tone)}
@@ -305,7 +291,7 @@ export function OPSMEET04BScreen({ screenParams, onNavigate }: OPSMEET04BScreenP
             </span>
             <span className="shrink-0">
               {(peopleHeader.status ?? []).map((badge) => (
-                <Chip
+                <MeetingStateChip
                   key={badge.field}
                   label={scalar(permission, badge.field)}
                   tone={scalar(permission, badge.toneField)}
@@ -368,7 +354,7 @@ export function OPSMEET04BScreen({ screenParams, onNavigate }: OPSMEET04BScreenP
                       </span>
                       {/* 한 사람에 딱지가 여럿일 수 있다. 개수도 글도 색도 데이터가 준다. */}
                       {chipsOf(person).map((one, index) => (
-                        <Chip
+                        <MeetingStateChip
                           key={`${String(person.memberId)}-${index}`}
                           label={String(one.label ?? '')}
                           tone={String(one.tone ?? '')}

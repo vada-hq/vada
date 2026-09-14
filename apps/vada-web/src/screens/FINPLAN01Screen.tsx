@@ -17,6 +17,7 @@ import { draftFromRow } from '../spec/draft-values'
 import { computeNumber, formatComputed, itemKey, joinRowIds, rowIdsOf } from '../spec/compute'
 import { getMutation } from '../spec/mutations'
 import { resolveParams } from '../spec/params'
+import { nextDraftRowId } from '../spec/draft-rows'
 import { drawnTitleOf, elementByNodeId, finPlan01 } from '../spec/screens'
 import type {
   ButtonSpec,
@@ -99,16 +100,6 @@ const EVENT_OF_ROW = 'eventItemEvent'
 
 // 줄 하나가 늘 때 붙일 새 이름. 자리(0·1·2)가 아니라 이름으로 가리키는 이유는
 // 가운데를 지워도 나머지 값이 따라 옮겨 다니지 않게 하기 위해서다.
-function nextRowId(rowIds: string[]): string {
-  const used = new Set(rowIds)
-  for (let index = 0; ; index += 1) {
-    const candidate = `r${index}`
-    if (!used.has(candidate)) {
-      return candidate
-    }
-  }
-}
-
 // 읽어 온 편성을 초안으로 옮긴다.
 //
 // 조각 이름이 칸 이름과 같으면 그 값으로 시작한다(draftFrom). 목록의 조각은 다시
@@ -239,7 +230,7 @@ export function FINPLAN01Screen({
 
   /** 줄 하나를 더한다. 그려지는 칸은 명세의 초기값으로, 안 그려지는 칸(`extra`)은 준 값으로. */
   function addRow(list: ListSpec, rowIds: string[], extra: Record<string, string> = {}) {
-    const rowId = nextRowId(rowIds)
+    const rowId = nextDraftRowId(rowIds)
     setDraft((previous) => {
       const values = { ...previous.values }
       for (const field of list.itemFields ?? []) {

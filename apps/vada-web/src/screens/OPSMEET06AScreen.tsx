@@ -5,9 +5,7 @@ import {
   BANNER_TEXT,
   BANNER_TONE,
   NEUTRAL_BORDER,
-  NEUTRAL_CHIP,
   NEUTRAL_VALUE,
-  STATE_CHIP,
   STATE_TEXT,
 } from '../design/tones'
 import { readFieldRows, readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
@@ -17,6 +15,7 @@ import { resolveParams } from '../spec/params'
 import { drawnTitleOf, elementByNodeId, opsMeet06a } from '../spec/screens'
 import { columnFieldOf } from '../spec/types'
 import type { ItemListSpec, SummarySpec } from '../spec/types'
+import { MeetingStateChip } from './meeting-shared/MeetingStateChip'
 
 // 정리 중 회의(OPS-MEET-06A).
 //
@@ -97,21 +96,6 @@ function drawnValue(spec: SummarySpec, at: number): string {
 }
 
 // 딱지 하나. 글도 색 이름도 데이터가 준다 — 명세는 어느 조각인지만 안다.
-function Chip({ label, tone }: { label: string; tone: string }) {
-  if (label === '') {
-    return null
-  }
-  return (
-    <span
-      data-design-state
-      data-design-rule="state-chip"
-      className={`rounded px-2 py-0.5 text-xs font-medium ${STATE_CHIP[tone] ?? NEUTRAL_CHIP}`}
-    >
-      {label}
-    </span>
-  )
-}
-
 export function OPSMEET06AScreen({ screenParams, onNavigate }: OPSMEET06AScreenProps) {
   const viewerChip = summaryAt(NODE.viewerChip)
   const banner = summaryAt(NODE.banner)
@@ -246,7 +230,7 @@ export function OPSMEET06AScreen({ screenParams, onNavigate }: OPSMEET06AScreenP
                 {scalar(detail, banner.titleField)}
               </span>
               {(banner.status ?? []).map((chip) => (
-                <Chip
+                <MeetingStateChip
                   key={chip.field}
                   label={scalar(detail, chip.field)}
                   tone={scalar(detail, chip.toneField)}
@@ -328,7 +312,7 @@ export function OPSMEET06AScreen({ screenParams, onNavigate }: OPSMEET06AScreenP
                     <span className="text-xs font-bold text-gray-800">
                       {scalar(row, agendaField(1))}
                     </span>
-                    <Chip
+                    <MeetingStateChip
                       label={scalar(row, agendaField(2))}
                       tone={scalar(row, agendas.columns?.[2]?.toneField)}
                     />

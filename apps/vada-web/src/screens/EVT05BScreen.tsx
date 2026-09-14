@@ -11,6 +11,7 @@ import {
 } from '../design/tones'
 import { readFieldRows, readObjectSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/definitions'
+import { scalarValue as scalar } from '../data-sources/values'
 import { getOptionSource } from '../option-sources/definitions'
 import type { Option } from '../option-sources/definitions'
 import { resolveParams } from '../spec/params'
@@ -64,14 +65,6 @@ interface EVT05BScreenProps {
   onChangeDraft: (next: ScopeDraft) => void
   onNavigate: (screenId: string, params?: Record<string, string>) => void
   onScopeEvent: (scopeKey: string, event: 'complete' | 'cancel') => void
-}
-
-function scalar(row: DataRow, field: string | undefined): string {
-  const value = row[field ?? '']
-  if (value === undefined || Array.isArray(value)) {
-    return ''
-  }
-  return String(value)
 }
 
 export function EVT05BScreen({
