@@ -1,4 +1,4 @@
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import {
   eventParticipants,
   participantAffiliations,
@@ -11,9 +11,9 @@ import {
   activateSurvey,
   surveyActivation,
   surveyActivationConditions,
-  surveyQuestionList,
-  surveySettingsDraft,
-} from '../participants/survey-setup.ts'
+} from '../participants/survey-activation.ts'
+import { surveyQuestionList } from '../participants/survey-questions.ts'
+import { surveySettingsDraft } from '../participants/survey-setup.ts'
 
 // 행사 참여자와 참여 설문(EVT-04 · 04B · 05).
 //
@@ -25,7 +25,7 @@ import {
 // 설문 쪽은 주소에 박혀 온다(`/events/{eventId}/survey/...`) — 계약이 자리마다
 // 그렇게 적었고 여기는 그대로 따른다.
 
-export const participantHandlers: Handlers = {
+export const participantHandlers = defineHandlers({
   // ── 행사 참가자 명단 (EVT-04 · EVT-04B) ────────────────────────────────
   //
   // **거르는 것도 자르는 것도 서버가 한다.** 검색어·거르개 넷·쪽 번호가 전부 여기까지
@@ -100,11 +100,11 @@ export const participantHandlers: Handlers = {
     c.set('auditSubject', { type: 'event', id: eventId })
     return surveyQuestionList(d.db, orgOf(c), eventId)
   },
-  // **막는 것은 서버다.** 못 채운 조건이 하나라도 있으면 422이고, 그 까닭은 딱지 옆의
+  // **막는 것은 서버다.** 못 채운 조건이 하나라도 있으면 409이고, 그 까닭은 딱지 옆의
   // 글과 같은 셈에서 나온다. 회장단이 아니면 그 행사의 조직원이어야 한다(event.manage).
   'event.survey.activate': async (c, d) => {
     const eventId = c.req.param('eventId')!
     c.set('auditSubject', { type: 'event', id: eventId })
     return activateSurvey(d.db, orgOf(c), eventId)
   },
-}
+})

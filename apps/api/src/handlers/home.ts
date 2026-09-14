@@ -1,6 +1,5 @@
-import type { Context } from 'hono'
 import type { ApiResponse } from '../../../../specs/figma/vada-wireframe/api-types.d.ts'
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, memberIdOf, orgOf } from '../deps.ts'
 import {
   homeBriefing,
   homeBriefingNotices,
@@ -10,7 +9,6 @@ import {
   homeOrgAlerts,
   homeSchedules,
 } from '../home/home.ts'
-import { NotFound } from '../errors.ts'
 
 // 홈(HOME-01K).
 //
@@ -21,21 +19,14 @@ import { NotFound } from '../errors.ts'
 // 없어 그 자리만 화면에서 따로 가려졌는데(`Built`), 예산 편성 화면(FIN-PLAN-01)이
 // 수입원과 배정을 넣게 되어 셀 바탕이 생겼다.
 
-/** 지금 보는 사람이 이 학생회에서 누구인가. **인사에 그 사람의 이름이 들어간다.** */
-function memberOf(c: Context): string {
-  const memberId = c.get('sender')?.membership?.memberId
-  if (memberId === undefined) throw new NotFound('이 학생회의 구성원이 아닙니다')
-  return memberId
-}
-
-export const homeHandlers: Handlers = {
+export const homeHandlers = defineHandlers({
   // ── 끼룩이 브리핑 ──────────────────────────────────────────────────────
   //
   // 보는 사람 자신의 이름이 들어가는 문장이다 — 그 사람이 정보주체다.
   'home.briefing': async (c, d): Promise<ApiResponse<'home.briefing'>> => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'user', id: c.get('sender')!.userId })
-    return homeBriefing(d.db, orgId, memberOf(c), d.invite.now())
+    return homeBriefing(d.db, orgId, memberIdOf(c), d.invite.now())
   },
   'home.briefingNotices': async (c, d): Promise<ApiResponse<'home.briefingNotices'>> => {
     const orgId = orgOf(c)
@@ -75,4 +66,4 @@ export const homeHandlers: Handlers = {
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeFinanceSummary(d.db, orgId)
   },
-}
+})

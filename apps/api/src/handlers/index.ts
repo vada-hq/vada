@@ -23,7 +23,7 @@ import { taskHandlers } from './tasks.ts'
  * 같은 이름을 두 영역이 답하면 나중 것이 앞엣것을 덮는다. 그것을 막는 검사가
  * `handlers/index.test.ts`에 있다 — 덮이는 자리는 조용하기 때문이다.
  */
-export const HANDLERS: Handlers = {
+export const HANDLERS = {
   ...shellHandlers,
   ...orgHandlers,
   ...joiningHandlers,
@@ -38,7 +38,7 @@ export const HANDLERS: Handlers = {
   ...participantHandlers,
   ...homeHandlers,
   ...purchaseHandlers,
-}
+} satisfies Handlers
 
 /** 영역마다 따로. 겹치는 이름이 없는지 재는 검사가 이것을 쓴다. */
 export const BY_AREA: Record<string, Handlers> = {

@@ -1,4 +1,8 @@
 import type { Context } from 'hono'
+import type {
+  ApiResponse,
+  operations,
+} from '../../../specs/figma/vada-wireframe/api-types.d.ts'
 import type { AuditSink } from './audit.ts'
 import type { Db } from './db/client.ts'
 import type { Attempts } from './idempotency.ts'
@@ -90,7 +94,18 @@ export interface Deps {
  *
  * 열쇠는 계약의 `operationId`다 — 계약에 없는 이름을 쓰면 `attach`가 시작할 때 멈춘다.
  */
-export type Handlers = Record<string, Handler<Deps>>
+type OperationHandlers = {
+  [Id in keyof operations]: Handler<Deps, ApiResponse<Id>>
+}
+
+/** 구현된 일부 operation을 키와 성공 응답 계약에 맞춰 선언한다. */
+export type Handlers = Partial<OperationHandlers>
+
+export function defineHandlers<const Id extends keyof operations>(
+  handlers: Pick<OperationHandlers, Id>,
+): Pick<OperationHandlers, Id> {
+  return handlers
+}
 
 /** 이 사람이 어느 학생회의 것을 보고 있는가. 구성원이 아니면 여기까지 오지 않는다. */
 export function orgOf(c: Context): string {
@@ -99,6 +114,13 @@ export function orgOf(c: Context): string {
     throw new NotFound('학생회를 찾지 못했습니다')
   }
   return membership.orgId
+}
+
+/** 현재 조직에서 요청을 보낸 구성원의 식별자를 읽는다. */
+export function memberIdOf(c: Context): string {
+  const memberId = c.get('sender')?.membership?.memberId
+  if (memberId === undefined) throw new NotFound('이 학생회의 구성원이 아닙니다')
+  return memberId
 }
 
 /**

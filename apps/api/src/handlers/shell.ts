@@ -1,4 +1,4 @@
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import { organizationName, viewerLine } from '../org/shell.ts'
 import {
   myBelonging,
@@ -15,7 +15,7 @@ import { NotFound } from '../errors.ts'
 // 그리고 그 자리에서 열리는 화면 하나(MY-INFO-01). 왼쪽 아래 이름을 누르면 나오므로
 // 어느 갈피에도 속하지 않는다 — 셸의 것이라 여기 둔다.
 
-export const shellHandlers: Handlers = {
+export const shellHandlers = defineHandlers({
   // ── 셸 ────────────────────────────────────────────────────────────────
   'shell.organization': async (c, d) => {
     const orgId = orgOf(c)
@@ -65,4 +65,4 @@ export const shellHandlers: Handlers = {
     if (collegeId === undefined) throw new NotFound('단과대학을 먼저 골라 주세요')
     return myDepartments(d.db, orgOf(c), collegeId)
   },
-}
+})

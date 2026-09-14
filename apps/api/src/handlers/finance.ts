@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, memberIdOf, orgOf } from '../deps.ts'
 import { budgetEventOptions, budgetPlanDraft, saveBudgetPlan } from '../finance/budget-plan.ts'
 import { paymentEvidences, paymentEvidenceSummary } from '../finance/evidence.ts'
 import {
@@ -40,13 +40,6 @@ import { NotFound } from '../errors.ts'
 // 드는 셈과 같은 셈이다(`finance/money.ts` · `finance/overview.ts` · `finance/ledger.ts`).
 // 편성 전인 학생회는 '편성 전'이라 답한다. 0원은 다른 사실이다.
 
-/** 지금 보는 사람이 이 학생회에서 누구인가. **'내 구매 요청'을 이 값이 가른다.** */
-function memberOf(c: Context): string {
-  const memberId = c.get('sender')?.membership?.memberId
-  if (memberId === undefined) throw new NotFound('이 학생회의 구성원이 아닙니다')
-  return memberId
-}
-
 /**
  * 어느 요청인가.
  *
@@ -62,7 +55,7 @@ function orMissing<T>(found: T | null): T {
   return found
 }
 
-export const financeHandlers: Handlers = {
+export const financeHandlers = defineHandlers({
   // ── 구매 요청 검토 (FIN-REV-01) ────────────────────────────────────────
   //
   // 재정부가 보는 쪽이다. 요청자가 보는 상세(FIN-REQ-02)와 출처가 다른 까닭은
@@ -113,7 +106,7 @@ export const financeHandlers: Handlers = {
     if (!(await eventExists(d.db, orgId, eventId))) {
       throw new NotFound('그 행사를 찾지 못했습니다')
     }
-    return myPurchaseRequests(d.db, orgId, eventId, memberOf(c))
+    return myPurchaseRequests(d.db, orgId, eventId, memberIdOf(c))
   },
   'event.myPurchaseRequestSummary': async (c, d) => {
     const orgId = orgOf(c)
@@ -122,7 +115,7 @@ export const financeHandlers: Handlers = {
     if (!(await eventExists(d.db, orgId, eventId))) {
       throw new NotFound('그 행사를 찾지 못했습니다')
     }
-    return myPurchaseRequestSummary(d.db, orgId, eventId, memberOf(c))
+    return myPurchaseRequestSummary(d.db, orgId, eventId, memberIdOf(c))
   },
 
   // ── 예산 편성 (FIN-PLAN-01) ────────────────────────────────────────────
@@ -192,7 +185,7 @@ export const financeHandlers: Handlers = {
   'finance.ledgerMonths.options': async (c, d) => ledgerMonthOptions(d.db, orgOf(c)),
   'finance.ledgerEvents.options': async (c, d) => ledgerEventOptions(d.db, orgOf(c)),
   'finance.orgBudgetItems.options': async (c, d) => orgBudgetItemOptions(d.db, orgOf(c)),
-}
+})
 
 /** 장부를 거르는 조건 여섯. 목록과 범위 줄이 **같은 것**을 읽어야 같은 것을 센다. */
 function ledgerFilters(c: Context) {

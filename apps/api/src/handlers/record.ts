@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import {
   archiveDraft,
   archiveGate,
@@ -59,7 +59,7 @@ function writerOf(c: Context): ArchiveWriter {
   return { memberId: membership.memberId }
 }
 
-export const recordHandlers: Handlers = {
+export const recordHandlers = defineHandlers({
   // ── 완료된 행사 (REC-01) ───────────────────────────────────────────────
   //
   // **거르는 것은 서버가 한다.** 화면은 받아온 것을 다시 자르지 않는다.
@@ -134,4 +134,4 @@ export const recordHandlers: Handlers = {
     const draft = (await c.req.json().catch(() => ({}))) as Record<string, unknown>
     return requestArchiveReview(d.db, orgId, eventId, draft, writerOf(c), d.invite.now(), d.newId)
   },
-}
+})

@@ -28,7 +28,7 @@ for (const [path, item] of Object.entries(openapi.paths as Record<string, Record
 }
 
 /** 답을 내는 자리. 계약이 정한 모양을 돌려주면 된다. */
-export type Handler<D> = (c: Context, deps: D) => Promise<unknown>
+export type Handler<D, Result = unknown> = (c: Context, deps: D) => Promise<Result>
 
 /**
  * 계약이 든 자리에 답을 붙인다.

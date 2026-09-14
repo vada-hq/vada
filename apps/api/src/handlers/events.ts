@@ -1,4 +1,4 @@
-import { canDo, orgOf, type Handlers } from '../deps.ts'
+import { canDo, defineHandlers, orgOf } from '../deps.ts'
 import {
   attendanceQr,
   deactivateAttendanceQr,
@@ -27,14 +27,13 @@ import { eventSchedule } from '../events/schedule.ts'
 import {
   eventStaffDepartmentTree,
   eventStaffLeaders,
-  saveEventStaff,
-  setupEventStaff,
   staffDeptLeaderCandidates,
   staffLeaderCandidates,
   staffMemberCandidates,
   staffSetupPreview,
   staffUnassignedMembers,
 } from '../events/staff.ts'
+import { saveEventStaff, setupEventStaff } from '../events/staff-write.ts'
 import { eventSurvey, replaceSurvey, surveyReplaceImpact } from '../events/survey.ts'
 import { wrapUpBanner, wrapUpCounts, wrapUpRemaining } from '../events/wrap-up.ts'
 import { newToken } from '../public/tokens.ts'
@@ -42,7 +41,7 @@ import { NotFound } from '../errors.ts'
 
 // 행사 — 목록과 기본정보, 참석 확인 QR, 그리고 행사 공간의 갈피들.
 
-export const eventHandlers: Handlers = {
+export const eventHandlers = defineHandlers({
   // ── 행사 (EVT-00A · EVT-00B · EVT-02) ──────────────────────────────────
   'event.list': async (c, d) => {
     const orgId = orgOf(c)
@@ -324,4 +323,4 @@ export const eventHandlers: Handlers = {
     c.set('auditSubject', { type: 'event', id: made.id })
     return made
   },
-}
+})

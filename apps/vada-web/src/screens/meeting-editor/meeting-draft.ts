@@ -4,6 +4,7 @@ import { itemKey, joinRowIds, rowIdsOf } from '../../spec/compute'
 import { draftValueOf } from '../../spec/draft-scalar'
 import type { ListSpec } from '../../spec/types'
 import type { ScopeDraft } from '../../state/scopes'
+import { nextDraftRowId } from '../../spec/draft-rows'
 
 // 회의 초안의 변환·편집. 입력으로 받은 초안을 바꾸지 않고 다음 초안을 반환한다.
 const CHIP_SEPARATOR = ';'
@@ -65,16 +66,6 @@ export function draftFromRow(row: DataRow): ScopeDraft {
   return { values, labels: {} }
 }
 
-function nextRowId(rowIds: string[]): string {
-  const used = new Set(rowIds)
-  for (let index = 0; ; index += 1) {
-    const candidate = `r${index}`
-    if (!used.has(candidate)) {
-      return candidate
-    }
-  }
-}
-
 /** 검색 결과 중 아직 선택하지 않은 첫 참가자를 추가한다. 후보가 없으면 null이다. */
 export function addParticipant(
   draft: ScopeDraft,
@@ -89,7 +80,7 @@ export function addParticipant(
     ),
   )
   if (chosen === undefined) return null
-  const rowId = nextRowId(rowIds)
+  const rowId = nextDraftRowId(rowIds)
   return {
     values: {
       ...draft.values,
@@ -118,7 +109,7 @@ export function addAgenda(
   list: Pick<ListSpec, 'fieldKey' | 'itemFields'>,
 ): ScopeDraft {
   const rowIds = rowIdsOf(draft, list.fieldKey)
-  const rowId = nextRowId(rowIds)
+  const rowId = nextDraftRowId(rowIds)
   const values = { ...draft.values }
   for (const { spec } of list.itemFields ?? []) {
     if (spec.type === 'input' || spec.type === 'select') {

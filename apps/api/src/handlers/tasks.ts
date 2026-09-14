@@ -1,5 +1,4 @@
-import type { Context } from 'hono'
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, memberIdOf, orgOf } from '../deps.ts'
 import { NotFound } from '../errors.ts'
 import { eventTaskBoard, opsTaskBoard, taskAlerts } from '../tasks/board.ts'
 import { taskDetail, taskReviewStatus } from '../tasks/detail.ts'
@@ -14,14 +13,7 @@ import { myTaskAlerts, myTaskTabCounts, myTasks } from '../tasks/mine.ts'
 // 두었고, 그것은 '아직 안 정했다'는 뜻이다. 지금 지으면 그 모양을 짓는 것이 아니라
 // **정하는 일**이 된다.
 
-/** 지금 보는 사람이 이 학생회에서 누구인가. **내 업무와 '내 담당'을 이 값이 가른다.** */
-function memberOf(c: Context): string {
-  const memberId = c.get('sender')?.membership?.memberId
-  if (memberId === undefined) throw new NotFound('이 학생회의 구성원이 아닙니다')
-  return memberId
-}
-
-export const taskHandlers: Handlers = {
+export const taskHandlers = defineHandlers({
   // ── 상시 업무 보드 (TASK-01) ───────────────────────────────────────────
   //
   // 열 넷이 같은 자리를 status만 바꿔 네 번 부른다.
@@ -32,7 +24,7 @@ export const taskHandlers: Handlers = {
       d.db,
       orgId,
       { scope: c.req.query('scope'), status: c.req.query('status') },
-      memberOf(c),
+      memberIdOf(c),
       d.invite.now(),
     )
   },
@@ -40,7 +32,7 @@ export const taskHandlers: Handlers = {
   'task.alerts': async (c, d) => {
     const orgId = orgOf(c)
     c.set('auditSubject', { type: 'organization', id: orgId })
-    return taskAlerts(d.db, orgId, null, memberOf(c), d.invite.now())
+    return taskAlerts(d.db, orgId, null, memberIdOf(c), d.invite.now())
   },
 
   // ── 행사 업무 보드 (EVT-TASK-01) ───────────────────────────────────────
@@ -54,14 +46,14 @@ export const taskHandlers: Handlers = {
       orgOf(c),
       eventId,
       { scope: c.req.query('scope'), status: c.req.query('status') },
-      memberOf(c),
+      memberIdOf(c),
       d.invite.now(),
     )
   },
   'event.taskAlerts': async (c, d) => {
     const eventId = c.req.query('eventId')!
     c.set('auditSubject', { type: 'event', id: eventId })
-    return taskAlerts(d.db, orgOf(c), eventId, memberOf(c), d.invite.now())
+    return taskAlerts(d.db, orgOf(c), eventId, memberIdOf(c), d.invite.now())
   },
 
   // ── 업무 상세 (EVT-TASK-02) ────────────────────────────────────────────
@@ -86,7 +78,7 @@ export const taskHandlers: Handlers = {
   // ── 내 업무 (MY-01) ────────────────────────────────────────────────────
   'my.tasks': async (c, d) => {
     const orgId = orgOf(c)
-    const memberId = memberOf(c)
+    const memberId = memberIdOf(c)
     // 이 사람 자신이 담당인 업무를 읽는다.
     c.set('auditSubject', { type: 'member', id: memberId })
     return myTasks(
@@ -98,14 +90,14 @@ export const taskHandlers: Handlers = {
   },
   'my.taskAlerts': async (c, d) => {
     const orgId = orgOf(c)
-    const memberId = memberOf(c)
+    const memberId = memberIdOf(c)
     c.set('auditSubject', { type: 'member', id: memberId })
     return myTaskAlerts(d.db, orgId, memberId, d.invite.now())
   },
   'my.taskTabCounts': async (c, d) => {
     const orgId = orgOf(c)
-    const memberId = memberOf(c)
+    const memberId = memberIdOf(c)
     c.set('auditSubject', { type: 'member', id: memberId })
     return myTaskTabCounts(d.db, orgId, memberId)
   },
-}
+})

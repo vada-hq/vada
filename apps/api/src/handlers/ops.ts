@@ -1,4 +1,4 @@
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import {
   opsCalendarDays,
   opsCalendarMonth,
@@ -17,7 +17,7 @@ import { NotFound } from '../errors.ts'
 // **달력은 원본이 아니라 비친 것이다**(`db/schema.ts` 머리). 표가 없고, 그려지는
 // 것은 행사의 일시·회의의 일시·업무의 기한이다 — 모으는 일을 `ops/calendar.ts`가 한다.
 
-export const opsHandlers: Handlers = {
+export const opsHandlers = defineHandlers({
   // ── 운영 허브 (OPS-00) ────────────────────────────────────────────────
   'ops.intro': async (c, d) => {
     const orgId = orgOf(c)
@@ -59,4 +59,4 @@ export const opsHandlers: Handlers = {
     c.set('auditSubject', { type: 'organization', id: orgId })
     return opsCalendarWeek(d.db, orgId, readCalendarType(c.req.query('type')), d.invite.now())
   },
-}
+})

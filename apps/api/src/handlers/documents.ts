@@ -1,4 +1,4 @@
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import {
   eventDocuments,
   eventDocumentStats,
@@ -20,7 +20,7 @@ import { NotFound } from '../errors.ts'
 // **쓰기가 없다.** 문서를 만들거나 올리는 동작을 명세가 주지 않았고(회의의 '자료
 // 첨부'는 고르는 자리가 안 그려졌다고 적혀 있다), 표도 파일을 담지 않는다.
 
-export const documentHandlers: Handlers = {
+export const documentHandlers = defineHandlers({
   // ── 행사 문서(EVT-DOC-01) ──────────────────────────────────────────────
   //
   // **거르개가 고른 값을 서버가 받는다.** 받아온 것을 화면에서 거르지 않는다.
@@ -75,4 +75,4 @@ export const documentHandlers: Handlers = {
     c.set('auditSubject', { type: 'task', id: taskId })
     return taskWorkDocuments(d.db, orgOf(c), taskId)
   },
-}
+})
