@@ -1,5 +1,9 @@
 const VECTOR_ASSET_TYPES = new Set(["VECTOR", "BOOLEAN_OPERATION"]);
 
+function isFiniteNumber(value) {
+  return typeof value === "number" && Number.isFinite(value);
+}
+
 /**
  * 자산으로 뽑을 노드를 트리에서 모은다.
  *
