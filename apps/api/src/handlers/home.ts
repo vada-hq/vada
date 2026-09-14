@@ -1,5 +1,5 @@
 import type { ApiResponse } from '../../../../specs/figma/vada-wireframe/api-types.d.ts'
-import { defineHandlers, orgOf } from '../deps.ts'
+import { defineHandlers, memberIdOf, orgOf } from '../deps.ts'
 import {
   homeBriefing,
   homeBriefingNotices,
@@ -9,7 +9,6 @@ import {
   homeOrgAlerts,
   homeSchedules,
 } from '../home/home.ts'
-import { memberIdOf } from './context.ts'
 
 // 홈(HOME-01K).
 //

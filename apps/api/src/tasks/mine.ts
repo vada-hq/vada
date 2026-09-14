@@ -8,7 +8,6 @@ import {
   readTab,
   STATUS,
   statusesOfTab,
-  TAB_KEYS,
   type TaskStatus,
 } from './labels.ts'
 
@@ -206,16 +205,15 @@ export async function myTaskTabCounts(
   db: Db,
   orgId: string,
   memberId: string,
-): Promise<Record<string, number>> {
+): Promise<{ todo: number; inProgress: number; done: number }> {
   const rows = await db
     .select({ status: tasks.status })
     .from(tasks)
     .where(mine(orgId, memberId))
 
-  const counts: Record<string, number> = {}
-  for (const tab of TAB_KEYS) {
+  const count = (tab: string) => {
     const statuses = statusesOfTab(tab)
-    counts[tab] = rows.filter((row) => statuses.includes(row.status)).length
+    return rows.filter((row) => statuses.includes(row.status)).length
   }
-  return counts
+  return { todo: count('todo'), inProgress: count('inProgress'), done: count('done') }
 }

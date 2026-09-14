@@ -25,9 +25,9 @@ export function FinanceRequestDetailView({ model }: { model: ReadyFinanceRequest
       />
       <DataTable
         nodeId={model.resultNodeId}
-        title={model.resultListSpec.title}
-        label={model.resultListSpec.title}
-        columns={model.resultListSpec.columns}
+        title={model.resultListTitle}
+        label={model.resultListTitle}
+        columns={model.resultListColumns}
         rows={model.resultRows}
         emptyMessage={model.resultEmptyMessage}
         columnWidths={['18%', '19%', '11%', '18%', '34%']}
@@ -50,7 +50,7 @@ export function FinanceRequestDetailView({ model }: { model: ReadyFinanceRequest
       {model.notice === null ? null : <p role="alert" className="text-sm">{model.notice}</p>}
       <ActivityTimeline
         nodeId={model.historyNodeId}
-        title={model.historySpec.title}
+        title={model.historyTitle}
         rows={model.historyRows}
         titleField={model.historyTitleField}
         noteField={model.historyNoteField}

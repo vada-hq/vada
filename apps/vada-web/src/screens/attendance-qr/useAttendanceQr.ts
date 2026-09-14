@@ -53,10 +53,11 @@ export function useAttendanceQr(
       goBack,
     }
   }
+  const readyQr = qr
 
   function pressDownload() {
     if (download.action.type !== 'download') return
-    setNote(`${download.label}: ${String(qr[download.action.downloadField] ?? '')}`)
+    setNote(`${download.label}: ${String(readyQr[download.action.downloadField] ?? '')}`)
   }
 
   function submit(spec: ButtonSpec) {
@@ -75,7 +76,7 @@ export function useAttendanceQr(
     download,
     regenerate,
     deactivate,
-    qr,
+    qr: readyQr,
     note,
     submitAction,
     goBack,

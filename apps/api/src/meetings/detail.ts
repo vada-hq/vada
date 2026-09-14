@@ -12,7 +12,7 @@ import {
   participantsOf,
   personNote,
 } from './detail-records.ts'
-import { attendanceChip, runs, stateBanner, viewerBand, viewerChip } from './detail-view.ts'
+import { runs, stateBanner, viewerBand, viewerChip } from './detail-view.ts'
 
 
 // 회의 한 건과 그 곁의 넷(OPS-MEET-03A·03B·03C · 05A · D01 · D02가 읽는다).

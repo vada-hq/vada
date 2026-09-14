@@ -50,7 +50,9 @@ export function useRolePermissionEditor({
   if (choose?.type !== 'choose') {
     throw new Error("ORG-04B의 목록이 'choose'가 아닙니다. 고른 사람을 담을 자리가 없습니다.")
   }
-  const [chosenId, setChosenId] = useState<string>(() => initialChosen(org04b)[choose.fieldKey] ?? '')
+  const chooseFieldKey = choose.fieldKey
+  const chooseItemField = choose.itemField
+  const [chosenId, setChosenId] = useState<string>(() => initialChosen(org04b)[chooseFieldKey] ?? '')
   const person = readObjectSource(selected.dataSourceKey, {
     [Object.keys(selected.params!)[0]!]: chosenId,
   })
@@ -72,7 +74,7 @@ export function useRolePermissionEditor({
     })
 
   function chooseMember(row: DataRow) {
-    const next = roleScalar(row, choose.itemField)
+    const next = roleScalar(row, chooseItemField)
     setChosenId(next)
     setRole(roleScalar(row, 'role'))
     setNote(null)

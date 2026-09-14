@@ -116,6 +116,13 @@ export function orgOf(c: Context): string {
   return membership.orgId
 }
 
+/** 현재 조직에서 요청을 보낸 구성원의 식별자를 읽는다. */
+export function memberIdOf(c: Context): string {
+  const memberId = c.get('sender')?.membership?.memberId
+  if (memberId === undefined) throw new NotFound('이 학생회의 구성원이 아닙니다')
+  return memberId
+}
+
 /**
  * 화면에 내려보내는 판정. **막는 검사와 같은 함수에서 나온다** — 두 곳에서 나오면
  * 언젠가 갈리고, 갈리는 쪽은 늘 화면이다(단추를 그렸는데 눌리면 막힌다).

@@ -4934,7 +4934,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description 방금 만든 회의를 가리키는 값. */
+                        id: string;
+                    };
                 };
             };
             /** @description 로그인이 필요하다 */
@@ -5074,7 +5077,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description 방금 만든 행사를 가리키는 값. */
+                        id: string;
+                    };
                 };
             };
             /** @description 로그인이 필요하다 */
@@ -8600,7 +8606,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description 초대가 지금 쓸 수 있는 것인지. 예: 활성 */
+                        stateLabel: string;
+                        /** @description 그 딱지의 색 이름 */
+                        stateTone: string;
+                        /** @description 완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다. */
+                        stateNote: string;
+                        /** @description 마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30 */
+                        regeneratedNote: string;
+                        /** @description 공용 초대 링크 */
+                        url: string;
+                        /** @description 짧은 초대 코드. 예: AB12CD34 */
+                        code: string;
+                    };
                 };
             };
             /** @description 로그인이 필요하다 */
@@ -16012,7 +16031,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description 방금 제출한 구매 요청을 가리키는 값. */
+                        id: string;
+                    };
                 };
             };
             /** @description 로그인이 필요하다 */
@@ -16137,7 +16159,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description 방금 저장한 구매 요청 초안을 가리키는 값. */
+                        id: string;
+                    };
                 };
             };
             /** @description 로그인이 필요하다 */
@@ -16451,7 +16476,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description 초대가 지금 쓸 수 있는 것인지. 예: 활성 */
+                        stateLabel: string;
+                        /** @description 그 딱지의 색 이름 */
+                        stateTone: string;
+                        /** @description 완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다. */
+                        stateNote: string;
+                        /** @description 마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30 */
+                        regeneratedNote: string;
+                        /** @description 공용 초대 링크 */
+                        url: string;
+                        /** @description 짧은 초대 코드. 예: AB12CD34 */
+                        code: string;
+                    };
                 };
             };
             /** @description 로그인이 필요하다 */
@@ -16501,7 +16539,20 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description 초대가 지금 쓸 수 있는 것인지. 예: 활성 */
+                        stateLabel: string;
+                        /** @description 그 딱지의 색 이름 */
+                        stateTone: string;
+                        /** @description 완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다. */
+                        stateNote: string;
+                        /** @description 마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30 */
+                        regeneratedNote: string;
+                        /** @description 공용 초대 링크 */
+                        url: string;
+                        /** @description 짧은 초대 코드. 예: AB12CD34 */
+                        code: string;
+                    };
                 };
             };
             /** @description 로그인이 필요하다 */
@@ -16750,7 +16801,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description 방금 저장한 회의 초안을 가리키는 값. */
+                        id: string;
+                    };
                 };
             };
             /** @description 로그인이 필요하다 */

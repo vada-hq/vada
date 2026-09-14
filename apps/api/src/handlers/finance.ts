@@ -1,4 +1,5 @@
-import { defineHandlers, orgOf } from '../deps.ts'
+import type { Context } from 'hono'
+import { defineHandlers, memberIdOf, orgOf } from '../deps.ts'
 import { budgetEventOptions, budgetPlanDraft, saveBudgetPlan } from '../finance/budget-plan.ts'
 import { paymentEvidences, paymentEvidenceSummary } from '../finance/evidence.ts'
 import {
@@ -16,7 +17,6 @@ import { purchaseOrderList, purchaseOrderSummary } from '../finance/orders.ts'
 import { orgBreakdown, orgOverview } from '../finance/overview.ts'
 import { reviewItems, reviewSummary } from '../finance/review.ts'
 import { NotFound } from '../errors.ts'
-import { memberIdOf } from './context.ts'
 
 // 재정(FIN-00 · FIN-00B · FIN-LEDGER-01 · FIN-PLAN-01 · FIN-REV-01 · FIN-PROC-01 · FIN-EVID-01 · MY-REQ-01).
 //
@@ -185,7 +185,7 @@ export const financeHandlers = defineHandlers({
   'finance.ledgerMonths.options': async (c, d) => ledgerMonthOptions(d.db, orgOf(c)),
   'finance.ledgerEvents.options': async (c, d) => ledgerEventOptions(d.db, orgOf(c)),
   'finance.orgBudgetItems.options': async (c, d) => orgBudgetItemOptions(d.db, orgOf(c)),
-}
+})
 
 /** 장부를 거르는 조건 여섯. 목록과 범위 줄이 **같은 것**을 읽어야 같은 것을 센다. */
 function ledgerFilters(c: Context) {
@@ -197,4 +197,4 @@ function ledgerFilters(c: Context) {
     query: c.req.query('query'),
     stage: c.req.query('stage'),
   }
-})
+}

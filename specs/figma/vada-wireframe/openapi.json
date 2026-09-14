@@ -1544,7 +1544,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "방금 만든 회의를 가리키는 값."
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
                 }
               }
             }
@@ -1894,7 +1903,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "방금 만든 행사를 가리키는 값."
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
                 }
               }
             }
@@ -7379,7 +7397,41 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "stateLabel": {
+                      "type": "string",
+                      "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성"
+                    },
+                    "stateTone": {
+                      "type": "string",
+                      "description": "그 딱지의 색 이름"
+                    },
+                    "stateNote": {
+                      "type": "string",
+                      "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다."
+                    },
+                    "regeneratedNote": {
+                      "type": "string",
+                      "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "공용 초대 링크"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "짧은 초대 코드. 예: AB12CD34"
+                    }
+                  },
+                  "required": [
+                    "stateLabel",
+                    "stateTone",
+                    "stateNote",
+                    "regeneratedNote",
+                    "url",
+                    "code"
+                  ]
                 }
               }
             }
@@ -19043,7 +19095,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "방금 제출한 구매 요청을 가리키는 값."
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
                 }
               }
             }
@@ -19274,7 +19335,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "방금 저장한 구매 요청 초안을 가리키는 값."
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
                 }
               }
             }
@@ -19836,7 +19906,41 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "stateLabel": {
+                      "type": "string",
+                      "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성"
+                    },
+                    "stateTone": {
+                      "type": "string",
+                      "description": "그 딱지의 색 이름"
+                    },
+                    "stateNote": {
+                      "type": "string",
+                      "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다."
+                    },
+                    "regeneratedNote": {
+                      "type": "string",
+                      "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "공용 초대 링크"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "짧은 초대 코드. 예: AB12CD34"
+                    }
+                  },
+                  "required": [
+                    "stateLabel",
+                    "stateTone",
+                    "stateNote",
+                    "regeneratedNote",
+                    "url",
+                    "code"
+                  ]
                 }
               }
             }
@@ -19899,7 +20003,41 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "stateLabel": {
+                      "type": "string",
+                      "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성"
+                    },
+                    "stateTone": {
+                      "type": "string",
+                      "description": "그 딱지의 색 이름"
+                    },
+                    "stateNote": {
+                      "type": "string",
+                      "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다."
+                    },
+                    "regeneratedNote": {
+                      "type": "string",
+                      "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30"
+                    },
+                    "url": {
+                      "type": "string",
+                      "description": "공용 초대 링크"
+                    },
+                    "code": {
+                      "type": "string",
+                      "description": "짧은 초대 코드. 예: AB12CD34"
+                    }
+                  },
+                  "required": [
+                    "stateLabel",
+                    "stateTone",
+                    "stateNote",
+                    "regeneratedNote",
+                    "url",
+                    "code"
+                  ]
                 }
               }
             }
@@ -20137,7 +20275,16 @@
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "description": "보낸 뒤의 답. 이 자리는 돌려주는 값이 없다"
+                  "description": "보낸 뒤의 답",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "방금 저장한 회의 초안을 가리키는 값."
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ]
                 }
               }
             }

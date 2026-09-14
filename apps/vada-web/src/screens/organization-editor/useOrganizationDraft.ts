@@ -3,7 +3,7 @@ import type { DragEvent } from 'react'
 import { readListSource, readObjectSource } from '../../data-sources/catalog'
 import type { DataRow } from '../../data-sources/definitions'
 import { resolveParams } from '../../spec/params'
-import type { ButtonSpec, SubmitAction } from '../../spec/types'
+import { targetScreenOf, type ButtonSpec, type SubmitAction } from '../../spec/types'
 import { useSubmitAction } from '../../spec/useSubmitAction'
 import type { ScopeDraft } from '../../state/scopes'
 import {
@@ -77,7 +77,9 @@ export function useOrganizationDraft({
   function removeMember(memberId: string) {
     const action = specs.panelList.itemRemove?.action
     if (action?.type !== 'navigate') return
-    onNavigate(action.targetScreenId, resolveParams(action.params, { row: people.get(memberId) }))
+    const row = people.get(memberId) ?? {}
+    const target = targetScreenOf(action, row)
+    if (target !== null) onNavigate(target, resolveParams(action.params, { row }))
   }
   function setQuery(next: string) {
     onChangeDraft({ values: { ...values, [specs.search.fieldKey]: next }, labels: scopeDraft.labels })
@@ -88,7 +90,10 @@ export function useOrganizationDraft({
   })
   const pressAction = (spec: ButtonSpec) => () => {
     if (spec.action.type === 'pending') setNote(spec.action.note)
-    if (spec.action.type === 'navigate') onNavigate(spec.action.targetScreenId)
+    if (spec.action.type === 'navigate') {
+      const target = targetScreenOf(spec.action, {})
+      if (target !== null) onNavigate(target)
+    }
   }
   function pressDone() {
     void submitAction.run(specs.done.action as SubmitAction, {

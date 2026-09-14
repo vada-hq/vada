@@ -12,6 +12,7 @@ import {
 import { STATUS, type Status } from './events.ts'
 import {
   capacityNote,
+  deadlineNote,
   must,
   NEEDS_CHECK_REASON,
   unassigned,

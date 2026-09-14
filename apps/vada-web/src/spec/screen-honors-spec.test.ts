@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { dirname, extname, join, resolve, sep } from 'node:path'
+import ts from 'typescript'
 import { describe, expect, it, vi } from 'vitest'
 import { ALL_SCREENS } from './screens'
 import type { ElementSpec, ScreenSpec } from './types'
@@ -26,6 +27,8 @@ import type { ScopeDraft } from '../state/scopes'
 // 업무별 등록부가 실제로 돌려주는 props와 콜백을 검사한다.
 
 const SRC = join(__dirname, '..')
+const SCREENS_ROOT = resolve(SRC, 'screens')
+const SCREENS_PREFIX = `${SCREENS_ROOT}${sep}`
 
 // FIN-REQ-01 -> FINREQ01Screen.tsx
 //
@@ -43,7 +46,49 @@ function componentFileOf(screenId: string): string {
 }
 
 function sourceOf(screenId: string): string {
-  return readFileSync(componentFileOf(screenId), 'utf8')
+  const visited = new Set<string>()
+
+  function collect(file: string): string {
+    const absolute = resolve(file)
+    if (visited.has(absolute)) return ''
+    visited.add(absolute)
+
+    const source = readFileSync(absolute, 'utf8')
+    const syntax = absolute.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS
+    const parsed = ts.createSourceFile(absolute, source, ts.ScriptTarget.Latest, false, syntax)
+    const importedSources: string[] = []
+
+    for (const statement of parsed.statements) {
+      if (!ts.isImportDeclaration(statement) && !ts.isExportDeclaration(statement)) continue
+      const specifier = statement.moduleSpecifier
+      if (specifier === undefined || !ts.isStringLiteral(specifier)) continue
+      const imported = localScreenModuleOf(absolute, specifier.text)
+      if (imported !== undefined) importedSources.push(collect(imported))
+    }
+
+    return [source, ...importedSources].join('\n')
+  }
+
+  return collect(componentFileOf(screenId))
+}
+
+function localScreenModuleOf(fromFile: string, specifier: string): string | undefined {
+  if (!specifier.startsWith('.')) return undefined
+
+  const requested = resolve(dirname(fromFile), specifier)
+  const candidates = extname(requested)
+    ? [requested]
+    : [
+        `${requested}.ts`,
+        `${requested}.tsx`,
+        join(requested, 'index.ts'),
+        join(requested, 'index.tsx'),
+      ]
+
+  return candidates.find((candidate) => {
+    const absolute = resolve(candidate)
+    return absolute.startsWith(SCREENS_PREFIX) && existsSync(absolute)
+  })
 }
 
 function connectionOf(screenId: string, overrides: Partial<ScreenContext> = {}) {
@@ -237,7 +282,9 @@ describe('화면이 자기 명세를 지킨다', () => {
   it.each(underMenu.map((screen) => screen.screenId))(
     '%s: 셸의 어느 메뉴 아래인지를 명세에서 읽는다',
     (screenId) => {
-      expect(sourceOf(screenId)).toMatch(/activeNavigationScreenId=\{/)
+      expect(sourceOf(screenId)).toMatch(
+        /activeNavigationScreenId\s*(?:=\{|:\s*[^,\n]+\.activeNavigationScreenId\b)/,
+      )
       // 값을 코드에 박으면 명세를 고쳐도 화면이 따라오지 않는다.
       expect(sourceOf(screenId)).not.toMatch(/activeNavigationScreenId="/)
     },

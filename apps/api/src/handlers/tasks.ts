@@ -1,9 +1,8 @@
-import { defineHandlers, orgOf } from '../deps.ts'
+import { defineHandlers, memberIdOf, orgOf } from '../deps.ts'
 import { NotFound } from '../errors.ts'
 import { eventTaskBoard, opsTaskBoard, taskAlerts } from '../tasks/board.ts'
 import { taskDetail, taskReviewStatus } from '../tasks/detail.ts'
 import { myTaskAlerts, myTaskTabCounts, myTasks } from '../tasks/mine.ts'
-import { memberIdOf } from './context.ts'
 
 // 업무(TASK-01 · EVT-TASK-01 · EVT-TASK-02 · MY-01).
 //

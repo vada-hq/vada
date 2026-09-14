@@ -57,7 +57,7 @@ function DialogHeader({ model }: { model: Extract<AttendanceQrModel, { state: 'e
 }
 
 function QrContent({ model }: { model: Extract<AttendanceQrModel, { state: 'ready' }> }) {
-  const status = model.status.status?.[0]
+  const status = model.status.items?.[0]
   return (
     <div className="flex flex-col items-center gap-4 px-6 py-6">
       <div data-node-id={NODE.code} className="flex size-40 flex-col items-center justify-center gap-2 rounded border border-gray-200 bg-gray-100">

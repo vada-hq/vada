@@ -48,7 +48,14 @@
       "messages": {
         "submitting": "구매 요청을 제출하는 중입니다",
         "error": "구매 요청을 제출하지 못했습니다"
-      }
+      },
+      "result": [
+        {
+          "key": "id",
+          "description": "방금 제출한 구매 요청을 가리키는 값.",
+          "valueType": "string"
+        }
+      ]
     },
     {
       "key": "finance.purchaseRequest.saveDraft",
@@ -76,7 +83,14 @@
       "messages": {
         "submitting": "임시 저장하는 중입니다",
         "error": "임시 저장하지 못했습니다"
-      }
+      },
+      "result": [
+        {
+          "key": "id",
+          "description": "방금 저장한 구매 요청 초안을 가리키는 값.",
+          "valueType": "string"
+        }
+      ]
     },
     {
       "key": "finance.purchaseRequest.resubmitSupplement",
@@ -231,7 +245,39 @@
       "messages": {
         "submitting": "링크를 다시 만드는 중입니다",
         "error": "링크를 다시 만들지 못했습니다"
-      }
+      },
+      "result": [
+        {
+          "key": "stateLabel",
+          "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성",
+          "valueType": "string"
+        },
+        {
+          "key": "stateTone",
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
+        },
+        {
+          "key": "stateNote",
+          "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다.",
+          "valueType": "string"
+        },
+        {
+          "key": "regeneratedNote",
+          "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30",
+          "valueType": "string"
+        },
+        {
+          "key": "url",
+          "description": "공용 초대 링크",
+          "valueType": "string"
+        },
+        {
+          "key": "code",
+          "description": "짧은 초대 코드. 예: AB12CD34",
+          "valueType": "string"
+        }
+      ]
     },
     {
       "key": "org.regenerateInviteCode",
@@ -254,7 +300,39 @@
       "messages": {
         "submitting": "코드를 다시 만드는 중입니다",
         "error": "코드를 다시 만들지 못했습니다"
-      }
+      },
+      "result": [
+        {
+          "key": "stateLabel",
+          "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성",
+          "valueType": "string"
+        },
+        {
+          "key": "stateTone",
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
+        },
+        {
+          "key": "stateNote",
+          "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다.",
+          "valueType": "string"
+        },
+        {
+          "key": "regeneratedNote",
+          "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30",
+          "valueType": "string"
+        },
+        {
+          "key": "url",
+          "description": "공용 초대 링크",
+          "valueType": "string"
+        },
+        {
+          "key": "code",
+          "description": "짧은 초대 코드. 예: AB12CD34",
+          "valueType": "string"
+        }
+      ]
     },
     {
       "key": "org.regenerateInvite",
@@ -277,7 +355,39 @@
       "messages": {
         "submitting": "초대 정보를 다시 만드는 중입니다",
         "error": "초대 정보를 다시 만들지 못했습니다"
-      }
+      },
+      "result": [
+        {
+          "key": "stateLabel",
+          "description": "초대가 지금 쓸 수 있는 것인지. 예: 활성",
+          "valueType": "string"
+        },
+        {
+          "key": "stateTone",
+          "description": "그 딱지의 색 이름",
+          "valueType": "string"
+        },
+        {
+          "key": "stateNote",
+          "description": "완성된 한 줄. 예: 현재 사용할 수 있는 초대 정보입니다.",
+          "valueType": "string"
+        },
+        {
+          "key": "regeneratedNote",
+          "description": "마지막으로 되살린 때. 예: 마지막 재생성: 2026.07.22 18:30",
+          "valueType": "string"
+        },
+        {
+          "key": "url",
+          "description": "공용 초대 링크",
+          "valueType": "string"
+        },
+        {
+          "key": "code",
+          "description": "짧은 초대 코드. 예: AB12CD34",
+          "valueType": "string"
+        }
+      ]
     },
     {
       "key": "org.changeRole",
@@ -356,7 +466,14 @@
       "messages": {
         "submitting": "회의를 만드는 중입니다",
         "error": "회의를 만들지 못했습니다"
-      }
+      },
+      "result": [
+        {
+          "key": "id",
+          "description": "방금 만든 회의를 가리키는 값.",
+          "valueType": "string"
+        }
+      ]
     },
     {
       "key": "meeting.saveDraft",
@@ -377,7 +494,14 @@
       "messages": {
         "submitting": "임시 저장하는 중입니다",
         "error": "임시 저장하지 못했습니다"
-      }
+      },
+      "result": [
+        {
+          "key": "id",
+          "description": "방금 저장한 회의 초안을 가리키는 값.",
+          "valueType": "string"
+        }
+      ]
     },
     {
       "key": "meeting.start",
@@ -730,7 +854,14 @@
       "messages": {
         "submitting": "행사를 만드는 중입니다",
         "error": "행사를 만들지 못했습니다"
-      }
+      },
+      "result": [
+        {
+          "key": "id",
+          "description": "방금 만든 행사를 가리키는 값.",
+          "valueType": "string"
+        }
+      ]
     },
     {
       "key": "event.saveBasics",
