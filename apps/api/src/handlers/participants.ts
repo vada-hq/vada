@@ -11,9 +11,9 @@ import {
   activateSurvey,
   surveyActivation,
   surveyActivationConditions,
-  surveyQuestionList,
-  surveySettingsDraft,
-} from '../participants/survey-setup.ts'
+} from '../participants/survey-activation.ts'
+import { surveyQuestionList } from '../participants/survey-questions.ts'
+import { surveySettingsDraft } from '../participants/survey-setup.ts'
 
 // 행사 참여자와 참여 설문(EVT-04 · 04B · 05).
 //
@@ -100,7 +100,7 @@ export const participantHandlers = defineHandlers({
     c.set('auditSubject', { type: 'event', id: eventId })
     return surveyQuestionList(d.db, orgOf(c), eventId)
   },
-  // **막는 것은 서버다.** 못 채운 조건이 하나라도 있으면 422이고, 그 까닭은 딱지 옆의
+  // **막는 것은 서버다.** 못 채운 조건이 하나라도 있으면 409이고, 그 까닭은 딱지 옆의
   // 글과 같은 셈에서 나온다. 회장단이 아니면 그 행사의 조직원이어야 한다(event.manage).
   'event.survey.activate': async (c, d) => {
     const eventId = c.req.param('eventId')!
