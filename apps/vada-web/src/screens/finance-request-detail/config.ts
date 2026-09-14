@@ -1,0 +1,9 @@
+export const FINANCE_REQUEST_BREADCRUMB_SEPARATORS = [
+  '30:900',
+  '30:905',
+  '30:910',
+  '30:915',
+  '30:920',
+]
+
+export const FINANCE_REQUEST_COMPLETED_ICON = '30:932'
