@@ -2,7 +2,7 @@ import { and, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { eventStaffDepartments, eventStaffMembers } from '../db/schema.ts'
 import { Blocked } from '../errors.ts'
-import { eventOf } from './staff.ts'
+import { eventOf } from './staff-data.ts'
 import { assertStaffMembers, staffWordOf, type Ids } from './staff-write-shared.ts'
 import { eventStaffDepartmentDrafts, type StaffPlace } from './staff-write-draft.ts'
 

@@ -3,7 +3,8 @@ import type { Db } from '../db/client.ts'
 import { departments, eventStaffDepartments, eventStaffMembers, members } from '../db/schema.ts'
 import { AlreadyExists, Blocked } from '../errors.ts'
 import { stillHere } from '../org/membership.ts'
-import { eventOf, SETUP_MODES } from './staff.ts'
+import { eventOf } from './staff-data.ts'
+import { SETUP_MODES } from './staff-tree.ts'
 import { assertStaffMembers, staffWordOf, type Ids } from './staff-write-shared.ts'
 
 /** 이 행사에 운영 조직이 있는가 — 부서든 사람이든 줄이 하나라도 있으면 세워진 것이다. */
