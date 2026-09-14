@@ -1,6 +1,7 @@
-import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { fixtureText, nonFixtureWebText, textOf } from './canary-source-text.mjs'
 
 // 카나리가 무엇을 기대해야 하는지를 **훑어서 만든다.**
 //
@@ -21,20 +22,8 @@ const WEB = join(ROOT, 'apps', 'vada-web', 'src')
 const WIREFRAME = join(ROOT, 'specs', 'figma', 'vada-wireframe')
 const OUT = join(ROOT, 'apps', 'vada-web', 'e2e-ship', 'canary-expect.json')
 
-function textOf(dir, keep) {
-  let text = ''
-  for (const name of readdirSync(dir)) {
-    const path = join(dir, name)
-    if (statSync(path).isDirectory()) text += textOf(path, keep)
-    else if (keep(name)) text += readFileSync(path, 'utf8')
-  }
-  return text
-}
-
 // ── 1. 개발용 응답에만 있는 글
-const fixtures =
-  readFileSync(join(WEB, 'development', 'data-fixtures.ts'), 'utf8') +
-  readFileSync(join(WEB, 'development', 'option-fixtures.ts'), 'utf8')
+const fixtures = fixtureText(WEB)
 // **서버가 짓는 말도 증거가 못 된다.**
 //
 // '일시 미정'·'장소 미정'·'검토 의견이 아직 없습니다.'는 서버가 지어서 보내는 글인데
@@ -46,7 +35,7 @@ const fixtures =
 const API = join(ROOT, 'apps', 'api', 'src')
 const elsewhere =
   textOf(WIREFRAME, (name) => name.endsWith('.json')) +
-  textOf(WEB, (name) => /\.(ts|tsx)$/.test(name) && !name.includes('fixtures') && !name.includes('.test.')) +
+  nonFixtureWebText(WEB) +
   textOf(API, (name) => /\.ts$/.test(name) && !name.includes('.test.'))
 
 const words = new Set()
