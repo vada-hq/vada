@@ -1,4 +1,4 @@
-import { and, asc, eq, ilike, or, sql } from 'drizzle-orm'
+import { and, asc, eq, sql } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import {
   departments,
@@ -145,7 +145,7 @@ function personNote(name: string | null, department: string | null): string | nu
 }
 
 /** 이 사람이 이 회의를 진행할 수 있는가. **만든 사람은 기본 진행 권한자다**(ORG-04). */
-function runs(
+export function runs(
   row: { memberId: string; isHost: boolean },
   creatorMemberId: string | null,
 ): boolean {
@@ -161,7 +161,7 @@ function runs(
  * **시각이 붙지 않는다.** 그림은 '15:00 참가'라 적었는데 언제 들어왔는지를 담는
  * 열이 `meeting_participants`에 없다 — 지어낸 시각을 붙이는 대신 아는 것만 준다.
  */
-function attendanceChip(stage: Listed, attendance: string): { label: string; tone: string } {
+export function attendanceChip(stage: Listed, attendance: string): { label: string; tone: string } {
   if (stage === 'scheduled' || stage === 'cancelled') return { label: '', tone: '' }
   if (attendance === 'present') {
     return { label: stage === 'inProgress' ? '참가' : '참석', tone: 'green' }
@@ -173,7 +173,7 @@ function attendanceChip(stage: Listed, attendance: string): { label: string; ton
 }
 
 /** 그 학생회의 그 회의인가. **없는 것은 없다고 말한다.** */
-async function meetingOf(db: Db, orgId: string, meetingId: string) {
+export async function meetingOf(db: Db, orgId: string, meetingId: string) {
   const rows = await db
     .select({
       id: meetings.id,
@@ -189,7 +189,7 @@ async function meetingOf(db: Db, orgId: string, meetingId: string) {
 }
 
 /** 이 회의의 사람들. 세 자리(상세·안건·참가자)가 같은 것을 본다. */
-async function participantsOf(db: Db, orgId: string, meetingId: string) {
+export async function participantsOf(db: Db, orgId: string, meetingId: string) {
   return db
     .select({
       memberId: meetingParticipants.memberId,
@@ -210,7 +210,7 @@ async function participantsOf(db: Db, orgId: string, meetingId: string) {
 }
 
 /** 이 회의의 안건들. 차례는 표의 `sortOrder`가 든다. */
-async function agendasOf(db: Db, orgId: string, meetingId: string) {
+export async function agendasOf(db: Db, orgId: string, meetingId: string) {
   return db
     .select({
       id: meetingAgendas.id,
@@ -529,253 +529,4 @@ function viewerChip(
     return { label: '참석 처리됨', tone: 'green' }
   }
   return attendanceChip(stage, mine.attendance)
-}
-
-export interface MeetingAgenda {
-  agendaId: string
-  orderLabel: string
-  title: string
-  description: string
-  durationNote: string
-  status: string
-  statusTone: string
-  isCurrent?: boolean
-  discussionText: string
-  decisionText: string
-  decisionEmptyNote: string
-  summaryLine: string
-  decisionCountNote: string
-  taskCountNote: string
-}
-
-/**
- * 안건 하나가 지금 어느 단계인가. 표의 세 값을 말과 색으로 편다.
- *
- * 색은 05A가 그린 그대로다 — 아직 안 한 것은 노랑, 지금 하는 것은 초록, 마친 것은
- * 회색. 03 계열은 이 딱지를 아예 그리지 않는다.
- */
-export const AGENDA_STATUS: Record<string, { label: string; tone: string }> = {
-  pending: { label: '대기', tone: 'yellow' },
-  current: { label: '진행 중', tone: 'green' },
-  done: { label: '논의 완료', tone: 'gray' },
-}
-
-/** 결정이 아직 없는 자리에 그릴 말. 06B가 그 문장을 그려 두었다. */
-const NO_DECISION =
-  '아직 결정사항이 정리되지 않았습니다. 오른쪽 패널에서 작성하거나 ‘결정사항 없음’을 선택하세요.'
-
-/**
- * 이 회의의 안건들(`meeting.agendas`).
- *
- * **단계마다 갖는 것이 다르다** — 예정일 때는 예상 소요를, 진행 중에는 논의 내용을,
- * 끝난 뒤에는 확정된 결정을 갖는다. 그래도 출처는 하나다.
- *
- * **사전 자료는 여기 없다.** 자료는 `documents` 표에 있고 그것을 주는 자리가 따로다
- * (`meeting.documents`).
- */
-export async function meetingAgendaList(
-  db: Db,
-  orgId: string,
-  meetingId: string,
-): Promise<MeetingAgenda[]> {
-  await meetingOf(db, orgId, meetingId)
-  const rows = await agendasOf(db, orgId, meetingId)
-
-  return rows.map((row, at) => {
-    const isCurrent = row.status === 'current'
-    const drawnStatus = AGENDA_STATUS[row.status]
-    const decision = word(row.decisionText)
-    const drawn: MeetingAgenda = {
-      agendaId: row.id,
-      orderLabel: `안건 ${at + 1}`,
-      title: row.title,
-      description: word(row.description) ?? '',
-      // 지금 하고 있는 안건의 소요만 '예상'이 붙는다 — 그림이 그 자리만 그렇게 그렸다.
-      durationNote:
-        row.plannedMinutes === null ? '' : `${isCurrent ? '예상 ' : ''}${row.plannedMinutes}분`,
-      status: drawnStatus?.label ?? '',
-      statusTone: drawnStatus?.tone ?? '',
-      discussionText: word(row.discussionText) ?? '',
-      decisionText: decision ?? '',
-      // **없다는 말도 서버가 준다.** 무엇을 하라고 이르는 문장이라 조직의 것이다.
-      decisionEmptyNote: decision === null ? NO_DECISION : '',
-      // **한 줄 요약은 아직 없다.** 06A가 그 자리를 그렸는데 논의 내용을 줄인 것과
-      // 다른 글이고(둘을 나란히 그린 화면이 있다) 담을 열도 없다(보고했다).
-      summaryLine: '',
-      // 결정은 안건마다 하나다(표가 한 칸을 갖는다). 그래서 셀 수 있다.
-      decisionCountNote: `결정 ${decision === null ? 0 : 1}`,
-      // **안건마다의 업무 수는 셀 수 없다.** `tasks`는 어느 회의의 것인지는 알아도
-      // (`from_meeting_id`) 어느 **안건**의 것인지는 담지 않는다 — 0으로 채우면
-      // 회의가 만든 업무가 없는 것처럼 보인다(보고했다).
-      taskCountNote: '',
-    }
-    // **없으면 오지 않는다.** 거짓을 실어 보내면 화면이 빈 표시를 그린다.
-    if (isCurrent) drawn.isCurrent = true
-    return drawn
-  })
-}
-
-export interface MeetingPerson {
-  memberId: string
-  name: string
-  department: string
-  departmentNote: string
-  chips: Array<{ label: string; tone: string }>
-  capabilityNote: string
-  attendanceLabel: string
-  attendanceTone: string
-  isPresent?: boolean
-  actionLabel?: string
-  actionEmphasis?: string
-  actionEnabled?: boolean
-}
-
-export interface MeetingPeopleQuery {
-  query?: string
-  excludeHostOwner?: boolean
-}
-
-/**
- * 이 회의의 사람들(`meeting.participants`).
- *
- * **03의 참가자 목록, 05의 참가 현황, 07의 참석 결과, 04B의 권한 관리 목록이 전부
- * 같은 사람들이다** — 명세가 그렇게 합쳤고 표도 하나다.
- *
- * **거르는 것은 조회의 일이다.** 04B가 만든 사람을 위 칸에 따로 그리므로 목록에서
- * 빼 달라고 말한다(`excludeHostOwner`) — 화면이 받아 온 것을 걸러 내면 그 규칙이
- * 화면마다 갈린다.
- */
-export async function meetingPeople(
-  db: Db,
-  orgId: string,
-  meetingId: string,
-  asked: MeetingPeopleQuery,
-  allowed: { canManageHostRole: boolean },
-): Promise<MeetingPerson[]> {
-  const meeting = await meetingOf(db, orgId, meetingId)
-  const stage: Listed = listed(meeting.status) ? meeting.status : 'scheduled'
-  const wanted = (asked.query ?? '').trim()
-
-  const rows = await db
-    .select({
-      memberId: meetingParticipants.memberId,
-      isHost: meetingParticipants.isHost,
-      attendance: meetingParticipants.attendance,
-      name: members.name,
-      department: departments.name,
-    })
-    .from(meetingParticipants)
-    .innerJoin(members, and(eq(meetingParticipants.memberId, members.id), eq(members.orgId, orgId)))
-    .leftJoin(
-      departments,
-      and(eq(members.departmentId, departments.id), eq(departments.orgId, orgId)),
-    )
-    .where(
-      and(
-        eq(meetingParticipants.orgId, orgId),
-        eq(meetingParticipants.meetingId, meetingId),
-        // 04B의 칸 이름이 '이름 또는 부서로 구성원 검색'이다. 둘 다 찾는다.
-        wanted === ''
-          ? undefined
-          : or(ilike(members.name, `%${wanted}%`), ilike(departments.name, `%${wanted}%`)),
-      ),
-    )
-
-  // 만든 사람이 먼저, 그다음 진행 권한자, 그다음 이름순. 그림이 그린 차례다.
-  const order = (row: (typeof rows)[number]) =>
-    `${row.memberId === meeting.creatorMemberId ? 0 : 1}${runs(row, meeting.creatorMemberId) ? 0 : 1}${row.name}`
-
-  // **진행 권한자를 하나는 남긴다**(명세의 '최소 1명 유지'). 세는 자리가 걸러지기
-  // 전이어야 한다 — 검색으로 좁힌 목록이 권한자의 수를 바꾸지는 않는다.
-  const everyone = await participantsOf(db, orgId, meetingId)
-  const runners = everyone.filter((one) => runs(one, meeting.creatorMemberId)).length
-
-  return [...rows]
-    .filter(
-      (row) => !(asked.excludeHostOwner === true && row.memberId === meeting.creatorMemberId),
-    )
-    .sort((left, right) => order(left).localeCompare(order(right)))
-    .map((row) => {
-      const isCreator = row.memberId === meeting.creatorMemberId
-      const isRunner = runs(row, meeting.creatorMemberId)
-      const chips: Array<{ label: string; tone: string }> = []
-      if (isCreator) chips.push({ label: '회의 생성자', tone: 'gray' })
-      if (isRunner) chips.push({ label: '진행 권한', tone: 'blue' })
-
-      const attendance = attendanceChip(stage, row.attendance)
-      const drawn: MeetingPerson = {
-        memberId: row.memberId,
-        name: row.name,
-        department: orNote(row.department, '부서 미배정'),
-        departmentNote: `${orNote(row.department, '부서 미배정')} · 회의 참가자`,
-        chips,
-        capabilityNote: isRunner ? '시작·종료 가능' : '일반 참가자',
-        // 시작하기 전에는 잴 것이 없다. 빈 딱지는 화면이 그리지 않는다.
-        attendanceLabel: attendance.label,
-        attendanceTone: attendance.tone,
-      }
-      // 지금 들어와 있는가는 **회의가 도는 동안만** 물을 수 있다.
-      if (stage === 'inProgress' && row.attendance === 'present') drawn.isPresent = true
-
-      // 만든 사람의 줄에는 단추가 없다 — 자기 권한을 스스로 빼는 그림이 없다.
-      if (allowed.canManageHostRole && !isCreator) {
-        drawn.actionLabel = row.isHost ? '권한 해제' : '진행 권한 부여'
-        drawn.actionEmphasis = row.isHost ? 'secondary' : 'primary'
-        drawn.actionEnabled = row.isHost ? runners > 1 : true
-      }
-      return drawn
-    })
-}
-
-/**
- * 시작해도 되는지 살펴 준 것(OPS-MEET-D01).
- *
- * **며칠 이른지는 서버만 안다.** 그리고 **막지 않는다** — 이른 것이 잘못이라는 뜻이
- * 아니라 잘못 누른 것은 아닌지 묻는 자리다.
- */
-export async function startConfirm(
-  db: Db,
-  orgId: string,
-  meetingId: string,
-  now: Date,
-): Promise<{ warningNote?: string }> {
-  const rows = await db
-    .select({ scheduledAt: meetings.scheduledAt })
-    .from(meetings)
-    .where(and(eq(meetings.orgId, orgId), eq(meetings.id, meetingId)))
-    .limit(1)
-  const row = rows[0]
-  if (row === undefined) throw new NotFound('그 회의를 찾지 못했습니다')
-
-  // 예정 시각에 시작하면 살펴볼 것이 없다 — 명세가 '오지 않을 수 있다'고 적었다.
-  if (row.scheduledAt === null) return {}
-  const days = daysBetween(now, row.scheduledAt)
-  if (days <= 0) return {}
-  return {
-    warningNote: `예정 시간보다 ${days}일 이른 시각입니다. 잘못 시작한 것은 아닌지 확인해 주세요.`,
-  }
-}
-
-/**
- * 종료해도 되는지 살펴 준 것(OPS-MEET-D02).
- *
- * **막지는 않는다.** 미완료 안건이 남아도 종료 단추는 살아 있다 — 알려 줄 뿐이다.
- *
- * '미완료'는 **아직 시작하지 않은 안건**이다. 그림이 마친 것 하나·진행 중 하나·대기
- * 하나를 그려 놓고 '미완료 안건 1개'라 적었다.
- */
-export async function endConfirm(
-  db: Db,
-  orgId: string,
-  meetingId: string,
-): Promise<{ warningNote: string }> {
-  await meetingOf(db, orgId, meetingId)
-  const agendas = await agendasOf(db, orgId, meetingId)
-  const people = await participantsOf(db, orgId, meetingId)
-
-  const waiting = agendas.filter((one) => one.status === 'pending').length
-  const present = people.filter((one) => one.attendance === 'present').length
-  return {
-    warningNote: `미완료 안건 ${waiting}개 · 참석 ${present}명 · 미참가 ${people.length - present}명`,
-  }
 }

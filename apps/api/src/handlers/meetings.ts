@@ -1,14 +1,9 @@
 import type { Context } from 'hono'
 import { canDo, orgOf, type Deps, type Handlers } from '../deps.ts'
 import { createMeeting, saveMeetingDraft } from '../meetings/create.ts'
-import {
-  endConfirm,
-  meetingAgendaList,
-  meetingDetail,
-  meetingPeople,
-  startConfirm,
-  type MeetingPowers,
-} from '../meetings/detail.ts'
+import { meetingAgendaList } from '../meetings/agendas.ts'
+import { endConfirm, startConfirm } from '../meetings/confirmations.ts'
+import { meetingDetail, type MeetingPowers } from '../meetings/detail.ts'
 import { meetingFollowUps, myMeetingFollowUps } from '../meetings/follow-ups.ts'
 import {
   meetingHostGrantConfirm,
@@ -36,6 +31,7 @@ import {
   generateSummary,
   saveMinutes,
 } from '../meetings/minutes-write.ts'
+import { meetingPeople } from '../meetings/people.ts'
 import {
   completeCurrentAgenda,
   endMeeting,
