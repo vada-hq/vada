@@ -47,7 +47,7 @@ function pairsByRecord(): Map<string, Array<{ label: string; tone: string }>> {
   const pair = /status:\s*'([^']*)',\s*\n\s*statusTone:\s*'([^']*)'/
   const lines = source.split('\n')
   for (let at = 0; at < lines.length; at += 1) {
-    const named = /^const ([A-Z][A-Z0-9_]*)\b/.exec(lines[at]!)
+    const named = /^(?:export )?const ([A-Z][A-Z0-9_]*)\b/.exec(lines[at]!)
     if (named !== null) record = named[1]!
     const both = pair.exec(`${lines[at]}\n${lines[at + 1] ?? ''}`)
     if (both !== null) {
