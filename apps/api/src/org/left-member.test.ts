@@ -13,7 +13,7 @@ import type { Db } from '../db/client.ts'
 import { departmentTree, executives, unassignedHint, unassignedMembers } from './chart.ts'
 import { roleAssignmentCount, roleAssignments, roleCounts } from './roles.ts'
 import { roleAssignmentOf } from './role-change.ts'
-import { memberCandidates } from '../meetings/meetings.ts'
+import { memberCandidates } from '../meetings/draft.ts'
 import { eventStaffLeaders, staffLeaderCandidates, staffUnassignedMembers } from '../events/staff.ts'
 import { viewerLookup } from '../auth/viewer.ts'
 
