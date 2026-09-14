@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { orgOf, type Deps, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf, type Deps } from '../deps.ts'
 import {
   chartTitle,
   departmentTree,
@@ -44,7 +44,7 @@ function regenerate(c: Context, d: Deps) {
   return regenerateInvite(d.db, orgId, d.invite)
 }
 
-export const orgHandlers: Handlers = {
+export const orgHandlers = defineHandlers({
   // ── 학생 명단 (ORG-07A · ORG-00) ───────────────────────────────────────
   //
   // **거르는 것도 세는 것도 서버가 한다.** 천 명짜리 명단을 통째로 보내면 화면이
@@ -195,4 +195,4 @@ export const orgHandlers: Handlers = {
     })
     return {}
   },
-}
+})

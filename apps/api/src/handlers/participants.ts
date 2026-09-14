@@ -1,4 +1,4 @@
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import {
   eventParticipants,
   participantAffiliations,
@@ -25,7 +25,7 @@ import {
 // 설문 쪽은 주소에 박혀 온다(`/events/{eventId}/survey/...`) — 계약이 자리마다
 // 그렇게 적었고 여기는 그대로 따른다.
 
-export const participantHandlers: Handlers = {
+export const participantHandlers = defineHandlers({
   // ── 행사 참가자 명단 (EVT-04 · EVT-04B) ────────────────────────────────
   //
   // **거르는 것도 자르는 것도 서버가 한다.** 검색어·거르개 넷·쪽 번호가 전부 여기까지
@@ -107,4 +107,4 @@ export const participantHandlers: Handlers = {
     c.set('auditSubject', { type: 'event', id: eventId })
     return activateSurvey(d.db, orgOf(c), eventId)
   },
-}
+})

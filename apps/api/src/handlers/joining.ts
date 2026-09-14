@@ -1,6 +1,6 @@
 import type { Context } from 'hono'
 import type { ApiResponse } from '../../../../specs/figma/vada-wireframe/api-types.d.ts'
-import type { Deps, Handlers } from '../deps.ts'
+import { defineHandlers, type Deps } from '../deps.ts'
 import {
   collegeOptions as educationCollegeOptions,
   departmentOptions as educationDepartmentOptions,
@@ -22,7 +22,7 @@ async function startSignIn(c: Context, d: Deps, provider: string) {
   return { url }
 }
 
-export const joiningHandlers: Handlers = {
+export const joiningHandlers = defineHandlers({
   // ── 들어오는 자리 (SIGN-IN) ────────────────────────────────────────────
   //
   // **로그인 자리는 로그인이 필요 없다**(계약의 `public`). 아직 아무도 아닌 사람이
@@ -124,4 +124,4 @@ export const joiningHandlers: Handlers = {
     c.header('Cache-Control', 'no-store')
     return found.card
   },
-}
+})

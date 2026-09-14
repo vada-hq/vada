@@ -1,4 +1,4 @@
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import { NotFound } from '../errors.ts'
 import { eventTaskBoard, opsTaskBoard, taskAlerts } from '../tasks/board.ts'
 import { taskDetail, taskReviewStatus } from '../tasks/detail.ts'
@@ -14,7 +14,7 @@ import { memberIdOf } from './context.ts'
 // 두었고, 그것은 '아직 안 정했다'는 뜻이다. 지금 지으면 그 모양을 짓는 것이 아니라
 // **정하는 일**이 된다.
 
-export const taskHandlers: Handlers = {
+export const taskHandlers = defineHandlers({
   // ── 상시 업무 보드 (TASK-01) ───────────────────────────────────────────
   //
   // 열 넷이 같은 자리를 status만 바꿔 네 번 부른다.
@@ -101,4 +101,4 @@ export const taskHandlers: Handlers = {
     c.set('auditSubject', { type: 'member', id: memberId })
     return myTaskTabCounts(d.db, orgId, memberId)
   },
-}
+})

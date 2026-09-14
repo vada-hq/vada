@@ -1,5 +1,5 @@
 import type { ApiResponse } from '../../../../specs/figma/vada-wireframe/api-types.d.ts'
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import {
   homeBriefing,
   homeBriefingNotices,
@@ -20,7 +20,7 @@ import { memberIdOf } from './context.ts'
 // 없어 그 자리만 화면에서 따로 가려졌는데(`Built`), 예산 편성 화면(FIN-PLAN-01)이
 // 수입원과 배정을 넣게 되어 셀 바탕이 생겼다.
 
-export const homeHandlers: Handlers = {
+export const homeHandlers = defineHandlers({
   // ── 끼룩이 브리핑 ──────────────────────────────────────────────────────
   //
   // 보는 사람 자신의 이름이 들어가는 문장이다 — 그 사람이 정보주체다.
@@ -67,4 +67,4 @@ export const homeHandlers: Handlers = {
     c.set('auditSubject', { type: 'organization', id: orgId })
     return homeFinanceSummary(d.db, orgId)
   },
-}
+})

@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { canDo, orgOf, type Deps, type Handlers } from '../deps.ts'
+import { canDo, defineHandlers, orgOf, type Deps } from '../deps.ts'
 import { createMeeting, saveMeetingDraft } from '../meetings/create.ts'
 import { meetingAgendaList } from '../meetings/agendas.ts'
 import { endConfirm, startConfirm } from '../meetings/confirmations.ts'
@@ -102,7 +102,7 @@ async function powersOf(c: Context, d: Deps, meetingId: string): Promise<Meeting
   }
 }
 
-export const meetingHandlers: Handlers = {
+export const meetingHandlers = defineHandlers({
   // ── 회의 목록 (OPS-MEET-01A~01D) ───────────────────────────────────────
   'meeting.groups': async (c, d) => {
     const orgId = orgOf(c)
@@ -262,4 +262,4 @@ export const meetingHandlers: Handlers = {
     completeCurrentAgenda(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
   'meeting.startNextAgenda': async (c, d) =>
     startNextAgenda(d.db, orgOf(c), meetingIdOf(c), d.invite.now()),
-}
+})

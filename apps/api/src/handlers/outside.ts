@@ -1,4 +1,4 @@
-import type { Handlers } from '../deps.ts'
+import { defineHandlers } from '../deps.ts'
 import { checkIn, checkInForm, checkInResult } from '../public/attendance.ts'
 import {
   apply,
@@ -14,7 +14,7 @@ import {
 // **로그인이 없다.** 링크가 실어 온 열쇠 하나가 유일한 벽이고, 그래서 이 파일의
 // 자리들은 하나같이 답을 어디에도 쌓지 못하게 막는다(`Cache-Control: no-store`).
 
-export const outsideHandlers: Handlers = {
+export const outsideHandlers = defineHandlers({
   // ── 밖에서 오는 사람 (EXT-01A · EXT-01B) ───────────────────────────────
   //
   // 로그인이 없다. 어느 QR인지는 주소가, 누가 냈는지는 폼이 말한다.
@@ -69,4 +69,4 @@ export const outsideHandlers: Handlers = {
     collegeOptions(d.db, c.req.query('surveyToken') ?? ''),
   'survey.departments.options': async (c, d) =>
     departmentOptions(d.db, c.req.query('surveyToken') ?? '', c.req.query('collegeId') ?? ''),
-}
+})

@@ -1,4 +1,4 @@
-import { canDo, orgOf, type Handlers } from '../deps.ts'
+import { canDo, defineHandlers, orgOf } from '../deps.ts'
 import {
   attendanceQr,
   deactivateAttendanceQr,
@@ -41,7 +41,7 @@ import { NotFound } from '../errors.ts'
 
 // 행사 — 목록과 기본정보, 참석 확인 QR, 그리고 행사 공간의 갈피들.
 
-export const eventHandlers: Handlers = {
+export const eventHandlers = defineHandlers({
   // ── 행사 (EVT-00A · EVT-00B · EVT-02) ──────────────────────────────────
   'event.list': async (c, d) => {
     const orgId = orgOf(c)
@@ -323,4 +323,4 @@ export const eventHandlers: Handlers = {
     c.set('auditSubject', { type: 'event', id: made.id })
     return made
   },
-}
+})

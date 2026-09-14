@@ -1,5 +1,5 @@
 import type { Context } from 'hono'
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import { purchaseRequestDetail, purchaseRequestHistory, purchaseRequestItemResults } from '../purchases/detail.ts'
 import { purchaseRequestDraft, savePurchaseDraft, submitPurchaseRequest } from '../purchases/draft.ts'
 import { completeEvidence } from '../purchases/evidence.ts'
@@ -72,7 +72,7 @@ async function bodyWithSubject(c: Context): Promise<unknown> {
   return bodyOf(c)
 }
 
-export const purchaseHandlers: Handlers = {
+export const purchaseHandlers = defineHandlers({
   // ── 구매 요청 작성·수정 (FIN-REQ-01) ───────────────────────────────────
   //
   // 초안은 행사에 딸린다. 요청 id가 없으면 새로 쓰는 것이고 그때도 서버가 아는 것(부서)은 채워 온다.
@@ -139,4 +139,4 @@ export const purchaseHandlers: Handlers = {
     c.set('auditSubject', { type: 'purchaseRequest', id: requestId })
     return completeEvidence(d.db, orgOf(c), requestId, d.invite.now())
   },
-}
+})

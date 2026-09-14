@@ -1,4 +1,4 @@
-import { orgOf, type Handlers } from '../deps.ts'
+import { defineHandlers, orgOf } from '../deps.ts'
 import { budgetEventOptions, budgetPlanDraft, saveBudgetPlan } from '../finance/budget-plan.ts'
 import { paymentEvidences, paymentEvidenceSummary } from '../finance/evidence.ts'
 import {
@@ -55,7 +55,7 @@ function orMissing<T>(found: T | null): T {
   return found
 }
 
-export const financeHandlers: Handlers = {
+export const financeHandlers = defineHandlers({
   // ── 구매 요청 검토 (FIN-REV-01) ────────────────────────────────────────
   //
   // 재정부가 보는 쪽이다. 요청자가 보는 상세(FIN-REQ-02)와 출처가 다른 까닭은
@@ -197,4 +197,4 @@ function ledgerFilters(c: Context) {
     query: c.req.query('query'),
     stage: c.req.query('stage'),
   }
-}
+})
