@@ -48,6 +48,12 @@ export function createAuth(db: Db, settings: AuthSettings) {
     secret: settings.secret,
     baseURL: settings.baseUrl,
     trustedOrigins: [settings.appUrl],
+    account: {
+      // 로그인 뒤 제공자 토큰을 표에 원문으로 남기지 않는다. 이 앱은 Google·Kakao API를
+      // 직접 부르지 않지만 Better Auth는 계정 연결을 위해 토큰 칸을 채운다. 저장소가
+      // 새면 그 토큰까지 바로 쓸 수 없도록 세션 비밀로 암호화한다.
+      encryptOAuthTokens: true,
+    },
     // **비밀번호를 다루지 않는다.** 저장할 것이 없으면 샐 것도 없다.
     emailAndPassword: { enabled: false },
     socialProviders: social,
@@ -136,4 +142,3 @@ export function openWays(settings: AuthSettings): OpenWays {
     kakao: settings.kakao !== undefined,
   }
 }
-
