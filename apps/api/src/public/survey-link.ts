@@ -2,6 +2,7 @@ import { and, count, eq } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { events, surveyApplications, surveys } from '../db/schema.ts'
 import { NotFound } from '../errors.ts'
+import { eventFeeLabel } from '../events/participation-labels.ts'
 import { moment } from '../time.ts'
 import type { Clock } from './attendance.ts'
 import { looksLikeToken } from './tokens.ts'
@@ -144,6 +145,9 @@ export async function applyForm(db: Db, token: string, time: Clock): Promise<App
       place: events.place,
       audience: events.audience,
       fee: events.fee,
+      feeType: events.feeType,
+      paidAmount: events.paidAmount,
+      unpaidAmount: events.unpaidAmount,
     })
     .from(events)
     .where(and(eq(events.id, survey.eventId), eq(events.orgId, survey.orgId)))
@@ -157,7 +161,7 @@ export async function applyForm(db: Db, token: string, time: Clock): Promise<App
     startAt: event.startAt === null ? '일시 미정' : moment(event.startAt),
     place: event.place ?? '장소 미정',
     audience: event.audience ?? '대상 미정',
-    fee: event.fee ?? '참가비 안내 없음',
+    fee: eventFeeLabel(event, '참가비 안내 없음'),
   }
 }
 

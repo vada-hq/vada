@@ -3,6 +3,7 @@ import type { Db } from '../db/client.ts'
 import { events } from '../db/schema.ts'
 import { daysBetween, shortStamp, stamp } from '../time.ts'
 import { eventRows, hostLine, orNote, STATUS, type Now } from './event-records.ts'
+import { eventCapacityLabel, eventFeeLabel } from './participation-labels.ts'
 
 export interface EventSummary {
   title: string
@@ -91,8 +92,8 @@ export async function eventBasics(
     startAt: row.startAt === null ? '일시 미정' : stamp(row.startAt),
     place: orNote(row.place, '장소 미정'),
     audience: orNote(row.audience, '대상 미정'),
-    fee: orNote(row.fee, '참가비 미정'),
-    capacity: orNote(row.capacity, '정원 미정'),
+    fee: eventFeeLabel(row, '참가비 미정'),
+    capacity: eventCapacityLabel(row, '정원 미정'),
     contact: orNote(row.contact, '문의처 미정'),
     attendeeCount: '집계 전',
     host: row.hostName ?? '담당 미정',

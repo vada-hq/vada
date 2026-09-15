@@ -526,17 +526,14 @@ export const events = pgTable(
     address: text('address'),
     placeDetail: text('place_detail'),
     audience: text('audience'),
-    // 참가비는 조건까지 문장이다('납부자 무료 / 미납자 500원') — 값 하나로 쪼갤 수
-    // 있는지 그림이 말하지 않으므로 사람이 적은 그대로 둔다.
+    // 이전 데이터의 참가비 한 줄. 새 편집은 아래 구조화된 필드를 기준으로 읽고,
+    // 아직 조합 규칙이 없는 값은 이 줄을 호환용으로 사용한다.
     fee: text('fee'),
     /**
      * 참가비를 **칸으로 쪼갠 것**(EVT-02B). 위의 `fee`와 같은 사실의 다른 모습이다.
      *
-     * 두 벌이 함께 있는 까닭: `fee`는 사람이 적은 **한 줄**이고 EVT-02와 밖의 신청
-     * 폼이 그것을 읽는다. 여기는 **고칠 칸 하나하나**다. 칸에서 한 줄을 만드는 규칙을
-     * 명세가 끝까지 말하지 않는다 — `duesConditional`은 '납부자 무료 / 미납자 5000원'으로
-     * 잇는다고 적혀 있지만 `fixed`가 어느 금액을 쓰는지는 어디에도 없다. 지어내지 않고
-     * 갈라 둔다. **잇는 일은 그 규칙이 명세에 생기는 날 한 자리에서 한다.**
+     * `duesConditional` 등 명세가 정한 조합은 공통 표시 함수가 한 줄로 만든다.
+     * `fixed`가 어느 금액을 쓰는지는 아직 정해지지 않아 위 호환용 한 줄을 유지한다.
      */
     feeType: eventFeeType('fee_type').notNull().default('undecided'),
     paidAmount: integer('paid_amount'),

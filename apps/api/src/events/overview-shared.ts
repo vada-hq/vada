@@ -2,6 +2,7 @@ import type { Db } from '../db/client.ts'
 import { NotFound } from '../errors.ts'
 import { daysBetween } from '../time.ts'
 import { eventFacts, type EventFacts, type OpenTask } from './counts.ts'
+import { eventCapacityLabel } from './participation-labels.ts'
 
 /** 이 학생회의 그 행사. **없으면 404다** — 계약이 이 자리들에 404를 두었다. */
 export async function must(db: Db, orgId: string, eventId: string): Promise<EventFacts> {
@@ -23,11 +24,7 @@ export function deadlineNote(closesAt: Date, now: Date): string {
  * `capacityType`으로 갈라 두었으므로 말도 갈린다.
  */
 export function capacityNote(row: EventFacts): string {
-  if (row.capacityType === 'unlimited') return '정원 제한 없음'
-  if (row.capacityType === 'limited' && row.capacityCount !== null) {
-    return `정원 ${row.capacityCount}명`
-  }
-  return '정원 미정'
+  return eventCapacityLabel({ ...row, capacity: null }, '정원 미정')
 }
 
 /** 확인이 왜 필요한지. **명세가 이 말을 적어 두었다**(event.checklist의 detail). */

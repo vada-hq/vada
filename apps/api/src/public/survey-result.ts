@@ -2,6 +2,7 @@ import { and, eq, ne } from 'drizzle-orm'
 import type { Db } from '../db/client.ts'
 import { events, students, surveyApplications, surveys } from '../db/schema.ts'
 import { NotFound } from '../errors.ts'
+import { eventFeeLabel } from '../events/participation-labels.ts'
 import type { Clock } from './attendance.ts'
 import { hashToken, looksLikeToken } from './tokens.ts'
 
@@ -32,6 +33,9 @@ export async function applyResult(db: Db, receipt: string, time: Clock): Promise
       completionTitle: surveys.completionTitle,
       eventTitle: events.title,
       fee: events.fee,
+      feeType: events.feeType,
+      paidAmount: events.paidAmount,
+      unpaidAmount: events.unpaidAmount,
       contact: events.contact,
     })
     .from(surveyApplications)
@@ -67,15 +71,22 @@ export async function applyResult(db: Db, receipt: string, time: Clock): Promise
  * **금액일 수도 상태일 수도 있다.** 학생회비를 대조하는 행사는 명단에서 그 사람을
  * 찾아야 금액이 정해지고, 찾기 전에는 '관리자 확인 중'이다.
  *
- * 대조가 끝나도 줄이 그대로인 까닭은, **납부자·미납자 금액을 따로 두는 자리가 아직
- * 없기 때문이다**(`events.fee`가 사람이 적은 한 줄이다). 그것을 쪼개는 일은 EVT-02B의
- * 몫이고 여기서 지어내지 않는다.
+ * 대조가 끝나도 이 자리는 행사 참가비 안내 한 줄을 그대로 쓴다. 개인별 금액을
+ * 고르는 규칙은 별도 신청 정책이며 여기서 지어내지 않는다.
  */
 async function feeOf(
   db: Db,
-  row: { orgId: string; duesCheck: boolean; studentNumber: string; fee: string | null },
+  row: {
+    orgId: string
+    duesCheck: boolean
+    studentNumber: string
+    fee: string | null
+    feeType: string | null
+    paidAmount: number | null
+    unpaidAmount: number | null
+  },
 ): Promise<{ feeStatus: string; feeNote?: string }> {
-  const line = row.fee ?? '참가비 안내 없음'
+  const line = eventFeeLabel(row, '참가비 안내 없음')
   if (!row.duesCheck) return { feeStatus: line }
 
   const found = await db
