@@ -30,10 +30,11 @@ jobs:
     # 계약은 빠르고 브라우저가 필요 없다. 따로 두면 실패를 먼저 안다.
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+          package-manager-cache: false
       # **npm도 못 박는다.** 러너에 딸려 오는 npm과 사람의 npm이 다르면 같은 잠금
       # 파일에서 다른 트리가 나오고, `npm ci`는 그것을 "잠금이 package.json과 어긋난다"고
       # 읽는다 — `esbuild@0.28.2`이 잠금에 있는데도 없다고 했다. 잠금은 npm이 쓴 것이므로
@@ -51,10 +52,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: contracts
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+          package-manager-cache: false
       # **npm도 못 박는다.** 러너에 딸려 오는 npm과 사람의 npm이 다르면 같은 잠금
       # 파일에서 다른 트리가 나오고, `npm ci`는 그것을 "잠금이 package.json과 어긋난다"고
       # 읽는다 — `esbuild@0.28.2`이 잠금에 있는데도 없다고 했다. 잠금은 npm이 쓴 것이므로
@@ -84,10 +86,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: contracts
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+          package-manager-cache: false
       # **npm도 못 박는다.** 러너에 딸려 오는 npm과 사람의 npm이 다르면 같은 잠금
       # 파일에서 다른 트리가 나오고, `npm ci`는 그것을 "잠금이 package.json과 어긋난다"고
       # 읽는다 — `esbuild@0.28.2`이 잠금에 있는데도 없다고 했다. 잠금은 npm이 쓴 것이므로
@@ -127,9 +130,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+          package-manager-cache: false
       - name: 배포를 기다렸다 두드린다
         run: npm run smoke

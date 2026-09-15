@@ -37,6 +37,21 @@ test('원격 게이트가 검사 캐시를 물려주지 않는다', () => {
   )
 })
 
+test('원격 게이트가 Node 24 기반 공식 액션을 쓰고 자동 npm 캐시를 끈다', () => {
+  const refs = [...GATE.matchAll(/uses: actions\/(checkout|setup-node)@(v\d+)/g)]
+  assert.ok(refs.length > 0, '공식 checkout/setup-node 액션이 필요합니다')
+  for (const [, action, version] of refs) {
+    assert.equal(version, 'v7', `actions/${action}은 Node 24 기반 v7이어야 합니다`)
+  }
+
+  const setupSteps = GATE.split(/^      - /m)
+    .filter((step) => step.includes('uses: actions/setup-node@'))
+  for (const step of setupSteps) {
+    assert.match(step, /^\s*uses: actions\/setup-node@v7$/m)
+    assert.match(step, /^\s*package-manager-cache: false$/m)
+  }
+})
+
 // **빈 것에 대고 재면 늘 통과한다.** 게이트가 검사를 안 돌리면 위 규칙은 지켜지는데
 // 지킬 것이 없다.
 test('원격 게이트가 검사를 실제로 돌린다', () => {
