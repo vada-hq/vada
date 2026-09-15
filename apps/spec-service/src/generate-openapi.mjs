@@ -14,16 +14,6 @@
 //
 // **없는 것도 적어 둔다.** 인증·오류 코드·쪽 나눔 규약은 명세에 없다. 지어내지
 // 않고 자리만 비워 둔다 — 여기서 지어내면 그 거짓이 서버까지 간다.
-import { readFileSync, readdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-
-const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-
-function read(...parts) {
-  return JSON.parse(readFileSync(join(repoRoot, ...parts), "utf-8"));
-}
-
 /** 경로에 `{이름}`으로 박힌 인자들. 나머지는 조회 인자다. */
 function pathParams(path) {
   return [...path.matchAll(/\{([^}]+)\}/g)].map((match) => match[1]);
@@ -112,19 +102,9 @@ function parametersOf(path, declared) {
 }
 
 /** 상태 스코프에 담기는 칸들. 화면의 명세가 이미 말한다. */
-function fieldsByScope() {
-  const screensDir = join(repoRoot, "specs", "figma", "vada-wireframe", "screens");
+function fieldsByScope(screens) {
   const byScope = new Map();
-  for (const entry of readdirSync(screensDir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    let spec;
-    try {
-      spec = JSON.parse(
-        readFileSync(join(screensDir, entry.name, "screen.json"), "utf-8")
-      );
-    } catch {
-      continue;
-    }
+  for (const spec of screens) {
     const scope = spec.stateScopeKey;
     if (typeof scope !== "string") continue;
     const fields = byScope.get(scope) ?? new Map();
@@ -346,11 +326,16 @@ function idempotencyHeader() {
   };
 }
 
-export function buildOpenApi() {
-  const dataSources = read("specs", "figma", "vada-wireframe", "data-sources.json");
-  const mutations = read("specs", "figma", "vada-wireframe", "mutations.json");
-  const optionSources = read("specs", "figma", "vada-wireframe", "option-sources.json");
-  const byScope = fieldsByScope();
+export function buildOpenApi({
+  dataSources,
+  mutations,
+  optionSources,
+  screens,
+  info,
+  servers,
+  securityScheme
+}) {
+  const byScope = fieldsByScope(screens);
 
   const paths = {};
   const put = (path, method, operation) => {
@@ -466,47 +451,23 @@ export function buildOpenApi() {
 
   return {
     openapi: "3.0.3",
-    info: {
-      title: "vada",
-      version: "0.1.0",
-      description:
-        "학생회 운영 도구의 API. **이 문서는 손으로 쓰지 않는다** — " +
-        "specs/figma/vada-wireframe의 카탈로그에서 만들어진다" +
-        "(apps/spec-service/src/generate-openapi.mjs).\n\n" +
-        "**아직 없는 것**: 인증 규약, 기계가 읽는 오류 코드, 쪽 나눔 규약. " +
-        "명세가 정한 적이 없어 지어내지 않았다."
-    },
-    servers: [
-      {
-        url: "/",
-        description:
-          "**배포 주소는 아직 정하지 않았다.** 같은 호스트에서 잰다는 뜻으로 두었다 — " +
-          "지어낸 도메인을 적으면 그 거짓이 생성된 클라이언트까지 간다."
-      }
-    ],
-    // 사람이 정한 것: 소셜 로그인(구글·카카오)으로 들어오고 세션은 우리 Postgres에
-    // 앉는다(docs/decisions/backend-architecture.md). 그 세션을 실어 나르는 것이
-    // 쿠키다. **/api/public/*은 예외다** — 학생회 밖 사람이 QR과 링크로 여는 자리라
-    // 로그인이 없고, 무엇을 볼 수 있는지는 주소가 실어 온 토큰이 정한다.
-    security: [{ session: [] }],
+    info,
+    servers,
+    security: [{ [securityScheme.key]: [] }],
     paths,
     components: {
       schemas: { Error: ERROR_SCHEMA },
       securitySchemes: {
-        session: {
+        [securityScheme.key]: {
           type: "apiKey",
           in: "cookie",
-          name: "vada.session",
-          description:
-            "로그인한 사람의 세션. Better Auth가 발급하고 우리 Postgres에 앉는다."
+          name: securityScheme.cookieName,
+          description: securityScheme.description
         }
       }
     }
   };
 }
-
-const OUT = join(repoRoot, "specs", "figma", "vada-wireframe", "openapi.json");
-const BODIES = join(repoRoot, "specs", "figma", "vada-wireframe", "request-bodies.json");
 
 /**
  * 계약이 적은 **요청 몸통만** 뽑아 둔 것. `'POST /api/orgs'` -> 스키마.
@@ -518,7 +479,7 @@ const BODIES = join(repoRoot, "specs", "figma", "vada-wireframe", "request-bodie
  * 배열을 요구했다. 어긋남이 **배포된 뒤 사람의 손끝에서** 드러났다(2026-09-09).
  * 계약은 처음부터 배열이라 적고 있었다 — 그 말을 아무도 안 들었을 뿐이다.
  */
-export function requestBodies(document = buildOpenApi()) {
+export function requestBodies(document) {
   const bodies = {};
   for (const [path, operations] of Object.entries(document.paths)) {
     for (const [method, operation] of Object.entries(operations)) {
@@ -529,18 +490,4 @@ export function requestBodies(document = buildOpenApi()) {
     }
   }
   return bodies;
-}
-
-if (process.argv[1] && process.argv[1].endsWith("generate-openapi.mjs")) {
-  const document = buildOpenApi();
-  writeFileSync(OUT, `${JSON.stringify(document, null, 2)}\n`, "utf-8");
-  writeFileSync(BODIES, `${JSON.stringify(requestBodies(document), null, 2)}
-`, "utf-8");
-  const count = Object.values(document.paths).reduce(
-    (sum, item) => sum + Object.keys(item).length,
-    0
-  );
-  process.stdout.write(
-    `openapi.json — 자리 ${Object.keys(document.paths).length}개 · 동작 ${count}개\n`
-  );
 }

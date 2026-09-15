@@ -4,7 +4,7 @@ import { createRequire } from 'node:module'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import test from 'node:test'
-import { buildOpenApi } from '../apps/spec-service/src/generate-openapi.mjs'
+import { buildVadaOpenApi as buildOpenApi } from '../apps/spec-service/src/generate-vada-openapi.mjs'
 import { generateApiTypes } from '../apps/spec-service/src/generate-api-types.mjs'
 
 const root = new URL('../specs/figma/vada-wireframe/', import.meta.url)
