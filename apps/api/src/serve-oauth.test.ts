@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Auth } from './auth/auth.ts'
 import type { Db } from './db/client.ts'
 import { freshDb } from './db/testing.ts'
-import { members, organizations } from './db/schema.ts'
+import { accounts, members, organizations } from './db/schema.ts'
 
 const SITE = 'https://vada.example'
 let db: Db
@@ -117,6 +117,13 @@ describe('배포 서버의 OAuth 왕복', () => {
     const returning = await completeSignIn()
     expect(returning.userId).toBe(first.userId)
     expect(await startScreen(returning.cookies)).toEqual({ screenId: 'HOME-01K' })
+  })
+
+  it('제공자 접근 토큰을 원문으로 저장하지 않는다', async () => {
+    await completeSignIn()
+    const [stored] = await db.select({ accessToken: accounts.accessToken }).from(accounts).limit(1)
+    expect(stored?.accessToken).toEqual(expect.any(String))
+    expect(stored?.accessToken).not.toBe('local-test-token')
   })
 
   it('쿠키가 빠진 콜백은 계속 거부한다', async () => {
