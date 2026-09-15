@@ -30,7 +30,7 @@ import { readListSource, readObjectSource } from './catalog'
 import { fetchOptions } from '../option-sources/catalog'
 import { draftValueOf, payloadOf } from '../spec/draft-values'
 import { runMutation } from '../spec/mutations'
-import { evt02b } from '../spec/screens'
+import { evt02b } from '../spec/screen-specs/evt02b'
 import { loadSources, configureServer } from './server'
 
 // **행사의 앞자락을 끝까지 뚫는다.**

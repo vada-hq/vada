@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { dataSourceCallsOf } from './screen-sources'
-import { org04b } from './screens'
-
+import { org04b } from './screen-specs/org04b'
 // **빈 열쇠로는 묻지 않는다.**
 //
 // 미리 받는 자리가 화면의 인자를 그대로 풀어 부른다. 화면이 아직 아무것도 안 고른

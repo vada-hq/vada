@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { readListSource, readObjectSource } from '../../data-sources/catalog'
 import type { Option } from '../../option-sources/definitions'
 import { resolveParams } from '../../spec/params'
-import { elementByNodeId, finLedger01 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { finLedger01 } from '../../spec/screen-specs/finLedger01'
 import type { InputSpec, ItemListSpec, SelectSpec, SummarySpec } from '../../spec/types'
 import {
   FINANCE_LEDGER_FILTERS as FILTERS,

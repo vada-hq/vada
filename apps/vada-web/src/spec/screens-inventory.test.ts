@@ -2,14 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import notScreensJson from '../../../../specs/figma/vada-wireframe/not-screens.json'
-import {
-  ALL_SCREENS,
-  ALL_SPEC_SCREENS,
-  STATE_ONLY_SCREENS,
-  VARIANT_SCREENS,
-  screenOf,
-} from './screens'
-
+import { ALL_SCREENS, ALL_SPEC_SCREENS, STATE_ONLY_SCREENS, VARIANT_SCREENS, screenOf } from './screen-catalog'
 // **명세에 있는 화면은 빠짐없이 셈에 든다.**
 //
 // 오랫동안 화면 목록이 손으로 적은 여든 줄짜리 배열이었다. 명세는 여든넷인데

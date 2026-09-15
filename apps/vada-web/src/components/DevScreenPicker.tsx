@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import { ALL_SCREENS } from '../spec/screens'
+import { DRAWABLE_SCREEN_RUNTIME } from '../spec/screen-runtime.generated'
 import flowsJson from '../../../../specs/figma/vada-wireframe/flows.json'
 
 // 개발용 화면 목록. 화면 C를 보려고 A·B를 거치지 않게 한다.
 //
-// 화면 목록을 따로 선언하지 않는다 — 이미 등록된 명세(ALL_SCREENS)와 흐름
-// 카탈로그(flows.json)에서 나온다. 제목도 각 화면의 meta가 갖는다.
+// 화면 목록을 따로 선언하지 않는다 — 화면 명세에서 만든 실행 목록과 흐름
+// 카탈로그(flows.json)에서 나온다. 제목도 실행 목록의 meta가 갖는다.
 //
 // 이 컴포넌트는 개발 빌드에만 들어간다(App이 import.meta.env.DEV로 가른다).
 
@@ -67,7 +67,7 @@ export function DevScreenPicker({ screenId, onNavigate }: DevScreenPickerProps) 
         </p>
 
         <ul className="p-2">
-          {ALL_SCREENS.map((screen) => {
+          {DRAWABLE_SCREEN_RUNTIME.map((screen) => {
             const step = stepOf(screen.screenId)
             const current = screen.screenId === screenId
             return (

@@ -1,4 +1,5 @@
-import { elementByNodeId, home01k } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { home01k } from '../../spec/screen-specs/home01k'
 
 export const SCREEN = 'HOME-01K'
 

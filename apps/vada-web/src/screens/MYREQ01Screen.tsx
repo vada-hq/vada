@@ -1,7 +1,8 @@
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
-import { drawnTitleOf, myReq01 } from '../spec/screens'
+import { drawnTitleOf } from '../spec/screens'
+import { myReq01 } from '../spec/screen-specs/myReq01'
 import {
   MY_REQUESTS_ASSET as ASSET,
   MY_REQUESTS_BREADCRUMB_SEPARATORS,

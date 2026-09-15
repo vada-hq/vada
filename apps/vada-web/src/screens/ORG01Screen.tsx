@@ -3,13 +3,8 @@ import { PrimaryButton } from '../components/PrimaryButton'
 import { SecondaryButton } from '../components/SecondaryButton'
 import { renderBody } from '../spec/elements'
 import { useFieldDraft } from '../spec/useFieldDraft'
-import {
-  buttonsByEmphasis,
-  navigateTarget,
-  nodeIdOf,
-  org01,
-  primaryButtonOf,
-} from '../spec/screens'
+import { buttonsByEmphasis, navigateTarget, nodeIdOf, primaryButtonOf } from '../spec/screens'
+import { org01 } from '../spec/screen-specs/org01'
 import type { ButtonSpec } from '../spec/types'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 

@@ -1,6 +1,6 @@
 import { createElement } from 'react'
 import { expect, it, vi } from 'vitest'
-import { ALL_SCREENS } from '../../spec/screens'
+import { ALL_SCREENS } from '../../spec/screen-catalog'
 import { SCREEN_RENDERERS } from './index'
 import { createScreenRegistry } from './registry'
 import type { ScreenContext, ScreenRegistration } from './types'

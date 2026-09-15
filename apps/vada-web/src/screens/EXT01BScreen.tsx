@@ -5,7 +5,8 @@ import { findDataSource } from '../data-sources/definitions'
 import type { DataRow } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { drawsElement } from '../spec/drawn-when'
-import { elementByNodeId, ext01b } from '../spec/screens'
+import { elementByNodeId } from '../spec/screens'
+import { ext01b } from '../spec/screen-specs/ext01b'
 import type { ButtonSpec, SummarySpec } from '../spec/types'
 
 // 참석 확인 결과(EXT-01B). QR로 온 참석자가 마지막으로 보는 화면이다.

@@ -1,4 +1,5 @@
-import { opsMeet03b, opsMeet03c } from '../../spec/screens'
+import { opsMeet03b } from '../../spec/screen-specs/opsMeet03b'
+import { opsMeet03c } from '../../spec/screen-specs/opsMeet03c'
 
 export const SCREEN = 'OPS-MEET-03A'
 

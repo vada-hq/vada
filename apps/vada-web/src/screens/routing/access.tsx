@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { inv00, inv01, onb01 } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -15,9 +15,9 @@ export const accessScreens = [
     render: ({ scopes, onChangeScope, onNavigate }) => {
       return (
         <ONB01Screen
-          draft={readScopeDraft(scopes, onb01.stateScopeKey)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('ONB-01'))}
           scopes={scopes}
-          onChangeDraft={(next) => onChangeScope(onb01.stateScopeKey ?? '', next)}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('ONB-01') ?? '', next)}
           onNavigate={onNavigate}
         />
       )
@@ -29,9 +29,9 @@ export const accessScreens = [
       return (
         <INV01Screen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, inv01.stateScopeKey)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('INV-01'))}
           scopes={scopes}
-          onChangeDraft={(next) => onChangeScope(inv01.stateScopeKey ?? '', next)}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('INV-01') ?? '', next)}
           onNavigate={onNavigate}
           onScopeEvent={onScopeEvent}
         />
@@ -45,9 +45,9 @@ export const accessScreens = [
       // 스코프를 쓰므로 넘어가서도 남는다.
       return (
         <INV00Screen
-          draft={readScopeDraft(scopes, inv00.stateScopeKey)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('INV-00'))}
           scopes={scopes}
-          onChangeDraft={(next) => onChangeScope(inv00.stateScopeKey ?? '', next)}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('INV-00') ?? '', next)}
           onNavigate={onNavigate}
         />
       )

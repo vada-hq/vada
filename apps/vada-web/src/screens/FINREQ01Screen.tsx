@@ -1,5 +1,6 @@
 import { AppShell } from '../components/AppShell'
-import { drawnTitleOf, finReq01 } from '../spec/screens'
+import { drawnTitleOf } from '../spec/screens'
+import { finReq01 } from '../spec/screen-specs/finReq01'
 import type { ScopeDraft } from '../state/scopes'
 import { PurchaseRequestForm } from './purchase-request-editor/PurchaseRequestForm'
 import { PurchaseRequestSidebar } from './purchase-request-editor/PurchaseRequestSidebar'

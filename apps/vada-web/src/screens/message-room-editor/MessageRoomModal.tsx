@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { msg02 } from '../../spec/screens'
+import { msg02 } from '../../spec/screen-specs/msg02'
 import { MSG01Screen } from '../MSG01Screen'
 
 interface MessageRoomModalProps {

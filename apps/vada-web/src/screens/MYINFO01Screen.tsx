@@ -1,5 +1,5 @@
 import { AppShell } from '../components/AppShell'
-import { myInfo01 } from '../spec/screens'
+import { myInfo01 } from '../spec/screen-specs/myInfo01'
 import type { ScopeDraft } from '../state/scopes'
 import { MyInfoForm } from './my-info/MyInfoForm'
 import { useMyInfoForm } from './my-info/useMyInfoForm'

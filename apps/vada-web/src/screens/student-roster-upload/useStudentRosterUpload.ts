@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { readObjectSource } from '../../data-sources/catalog'
-import { elementByNodeId, org07b } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { org07b } from '../../spec/screen-specs/org07b'
 import type { ButtonSpec, InputSpec, StepsSpec, SummarySpec } from '../../spec/types'
 import { STUDENT_ROSTER_UPLOAD_NODE as NODE } from './config'
 

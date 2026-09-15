@@ -1,6 +1,6 @@
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { ACCENT_BAR, CHOICE_CHIP, NEUTRAL_CHIP, STATE_CHIP } from '../../design/tones'
-import { evtDoc01 } from '../../spec/screens'
+import { evtDoc01 } from '../../spec/screen-specs/evtDoc01'
 import {
   EVENT_DOCUMENT_ASSET as ASSET,
   EVENT_DOCUMENT_NODE as NODE,

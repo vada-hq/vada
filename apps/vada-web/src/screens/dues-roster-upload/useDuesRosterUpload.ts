@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { elementByNodeId, org07c } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { org07c } from '../../spec/screen-specs/org07c'
 import type { ButtonSpec, InputSpec, SelectSpec, StepsSpec, SummarySpec } from '../../spec/types'
 import { DUES_ROSTER_NODE as NODE } from './config'
 

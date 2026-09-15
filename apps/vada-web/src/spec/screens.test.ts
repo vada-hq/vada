@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { resolveParams } from './params'
-import { asScreenSpec, drawnTitleOf, evtTask01, onb01, task01 } from './screens'
+import { drawnTitleOf } from './screens'
+import { asScreenSpec } from './screen-guard'
+import { evtTask01 } from './screen-specs/evtTask01'
+import { onb01 } from './screen-specs/onb01'
+import { task01 } from './screen-specs/task01'
 
 describe('asScreenSpec', () => {
   it('형태가 깨진 화면 JSON은 명확히 거부한다 (F5)', () => {

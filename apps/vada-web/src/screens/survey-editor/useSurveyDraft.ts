@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { readObjectSource } from '../../data-sources/catalog'
 import { draftFromRow } from '../../spec/draft-values'
 import { resolveParams } from '../../spec/params'
-import { evt05 } from '../../spec/screens'
+import { evt05 } from '../../spec/screen-specs/evt05'
 import { useFieldDraft } from '../../spec/useFieldDraft'
 import type { ScopeDraft } from '../../state/scopes'
 

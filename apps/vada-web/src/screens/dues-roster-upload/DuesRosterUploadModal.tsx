@@ -1,5 +1,5 @@
 import { SearchSelect } from '../../components/SearchSelect'
-import { org07c } from '../../spec/screens'
+import { org07c } from '../../spec/screen-specs/org07c'
 import { RosterFilePicker } from '../roster-upload/RosterFilePicker'
 import { RosterUploadDialog } from '../roster-upload/RosterUploadDialog'
 import { UploadSteps } from '../roster-upload/UploadSteps'

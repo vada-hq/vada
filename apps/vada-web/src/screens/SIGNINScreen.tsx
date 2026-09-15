@@ -1,7 +1,8 @@
 import { PageCard } from '../components/PageCard'
 import { parseSignInResponse } from '../data-sources/sign-in'
 import { drawsElement } from '../spec/drawn-when'
-import { nodeIdOf, signIn } from '../spec/screens'
+import { nodeIdOf } from '../spec/screens'
+import { signIn } from '../spec/screen-specs/signIn'
 import type { ButtonSpec, SubmitAction } from '../spec/types'
 import { useSubmitAction } from '../spec/useSubmitAction'
 

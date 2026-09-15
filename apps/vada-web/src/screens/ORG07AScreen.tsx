@@ -1,6 +1,6 @@
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
-import { org07a } from '../spec/screens'
+import { org07a } from '../spec/screen-specs/org07a'
 import {
   STUDENT_ROSTER_ASSET as ASSET,
   STUDENT_ROSTER_SCREEN as SCREEN,

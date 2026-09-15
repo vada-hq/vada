@@ -1,5 +1,5 @@
 import { PageCard } from '../components/PageCard'
-import { org02 } from '../spec/screens'
+import { org02 } from '../spec/screen-specs/org02'
 import type { ScopeDraft } from '../state/scopes'
 import { OrganizationSetupForm } from './organization-setup/OrganizationSetupForm'
 import { useOrganizationSetup } from './organization-setup/useOrganizationSetup'

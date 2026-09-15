@@ -2,7 +2,8 @@ import { DataTable } from '../../components/DataTable'
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { SearchSelect } from '../../components/SearchSelect'
 import { findDataSource } from '../../data-sources/definitions'
-import { elementByNodeId, org07a } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { org07a } from '../../spec/screen-specs/org07a'
 import type { ButtonSpec, SelectSpec, SummarySpec } from '../../spec/types'
 import {
   STUDENT_ROSTER_ASSET as ASSET,

@@ -29,8 +29,9 @@ test('로그인은 다른 화면 파일을 받지 않으며 초기 JS 예산을 
   })
   const bytes = files.reduce((total, file) => total + file.bytes, 0)
   const gzipBytes = files.reduce((total, file) => total + file.gzipBytes, 0)
-  // 분리 전에는 479KB였다. 공통 파일과 실제 요청한 로그인 파일을 모두 합쳐 잰다.
-  expect(gzipBytes).toBeLessThan(250_000)
+  // 화면 구현만 분리했을 때는 195.7KB였다. 화면 JSON 88개를 화면별 청크로 옮긴 뒤
+  // 150.4KB가 됐다. 공통 파일과 실제 요청한 로그인 파일을 모두 합쳐 재유입을 막는다.
+  expect(gzipBytes).toBeLessThan(170_000)
   await info.attach('login-script-bytes', { body: JSON.stringify({ bytes, gzipBytes, files }, null, 2), contentType: 'application/json' })
   console.log(`[로그인 JS] ${files.length} files / ${bytes} bytes / gzip ${gzipBytes} bytes`)
 })

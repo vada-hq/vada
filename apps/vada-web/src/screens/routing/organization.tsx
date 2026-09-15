@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { org04b, onb01, org01, org02, org03b, org03d } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -33,8 +33,8 @@ export const organizationScreens = [
       return (
         <ORG03DScreen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, org03d.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(org03d.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('ORG-03D'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('ORG-03D') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -53,8 +53,8 @@ export const organizationScreens = [
     render: ({ scopes, onChangeScope, onNavigate, onScopeEvent }) => {
       return (
         <ORG03BScreen
-          draft={readScopeDraft(scopes, org03b.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(org03b.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('ORG-03B'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('ORG-03B') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -82,8 +82,8 @@ export const organizationScreens = [
       // payloadScope). 누구의 역할인지는 자리가 실어 가므로 초안에 담기지 않는다.
       return (
         <ORG04BScreen
-          draft={readScopeDraft(scopes, org04b.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(org04b.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('ORG-04B'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('ORG-04B') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -114,9 +114,9 @@ export const organizationScreens = [
     render: ({ scopes, onChangeScope, onNavigate }) => {
       return (
         <ORG01Screen
-          draft={readScopeDraft(scopes, org01.stateScopeKey)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('ORG-01'))}
           scopes={scopes}
-          onChangeDraft={(next) => onChangeScope(org01.stateScopeKey ?? '', next)}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('ORG-01') ?? '', next)}
           onNavigate={onNavigate}
         />
       )
@@ -128,9 +128,9 @@ export const organizationScreens = [
       return (
         <ORG02Screen
           // 만드는 사람도 학생회의 일원이라 앞 화면이 담은 학적이 함께 가야 한다.
-          joining={readScopeDraft(scopes, onb01.stateScopeKey)}
-          draft={readScopeDraft(scopes, org02.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(org02.stateScopeKey ?? '', next)}
+          joining={readScopeDraft(scopes, stateScopeKeyOf('ONB-01'))}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('ORG-02'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('ORG-02') ?? '', next)}
           onNavigate={onNavigate}
           onScopeEvent={onScopeEvent}
         />

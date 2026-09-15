@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import bodies from '../../../../specs/figma/vada-wireframe/request-bodies.json'
 import { OffContract, checkBody, takesBody } from './request-shape'
 import { listsOf, payloadOf } from './draft-values'
-import { ALL_SPEC_SCREENS } from './screens'
+import { ALL_SPEC_SCREENS } from './screen-catalog'
 import type { ListSpec, ScreenSpec } from './types'
 
 // **화면이 보내는 몸통이 계약이 적은 꼴인가.**

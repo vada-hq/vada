@@ -2,7 +2,8 @@ import { Field } from '../../components/Field'
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { SearchSelect } from '../../components/SearchSelect'
 import { TextInput } from '../../components/TextInput'
-import { myInfo01, nodeIdOf } from '../../spec/screens'
+import { nodeIdOf } from '../../spec/screens'
+import { myInfo01 } from '../../spec/screen-specs/myInfo01'
 import type { InputSpec, SelectSpec, SubmitAction } from '../../spec/types'
 import {
   MY_INFO_CHEVRON as CHEVRON,

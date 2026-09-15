@@ -1,6 +1,6 @@
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
-import { finLedger01 } from '../spec/screens'
+import { finLedger01 } from '../spec/screen-specs/finLedger01'
 import {
   FINANCE_LEDGER_ASSET as ASSET,
   FINANCE_LEDGER_SCREEN as SCREEN,

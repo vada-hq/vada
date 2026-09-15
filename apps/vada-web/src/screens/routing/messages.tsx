@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { msg02 } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -21,8 +21,8 @@ export const messagesScreens = [
       // 새 메시지 방 만들기 모달이다. 뒤에 MSG-01이 그대로 남는다(명세의 overlay).
       return (
         <MSG02Screen
-          draft={readScopeDraft(scopes, msg02.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(msg02.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('MSG-02'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('MSG-02') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />

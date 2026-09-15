@@ -1,5 +1,6 @@
 import { FigmaAsset } from '../../components/FigmaAsset'
-import { elementByNodeId, evt05 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { evt05 } from '../../spec/screen-specs/evt05'
 import type { GroupSpec } from '../../spec/types'
 import { ASSET, NODE, SCREEN, inputAt, summaryAt } from './survey-spec'
 import { SurveyCheckField, SurveyChoiceField, SurveyDateTimeInput, type SurveyFieldProps } from './SurveyFields'

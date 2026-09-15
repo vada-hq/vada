@@ -4,7 +4,7 @@ import { findDataSource } from '../data-sources/definitions'
 import type { DataRow } from '../data-sources/definitions'
 import { targetScreenOf } from './types'
 import { resolveParams } from './params'
-import { ALL_SCREENS, exampleParamsOf } from './screens'
+import { ALL_SCREENS, exampleParamsOf } from './screen-catalog'
 import type { DisplayAction, ElementSpec, QueryParams, ScreenSpec } from './types'
 
 // 이동은 도착해야 한다.

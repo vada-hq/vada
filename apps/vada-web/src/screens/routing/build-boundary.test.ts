@@ -30,10 +30,36 @@ function bundle(dynamic: boolean, viaShared: boolean) {
   })
 }
 
+function bundleScreenSpec() {
+  const entry = '\0screen-spec-entry'
+  const spec = fileURLToPath(
+    new URL('../../../../../specs/figma/vada-wireframe/screens/FIN-PROC-01/screen.json', import.meta.url),
+  )
+  return build({
+    configFile: false,
+    logLevel: 'silent',
+    plugins: [{
+      name: 'screen-spec-example',
+      resolveId(id) {
+        if (id === entry) return entry
+        if (id === 'screen-spec') return spec
+      },
+      load(id) {
+        if (id === entry) return "import screen from 'screen-spec'; console.log(screen)"
+      },
+    }, forbidEagerScreens()],
+    build: { write: false, rolldownOptions: { input: entry } },
+  })
+}
+
 it.each([false, true])('화면을 정적으로 가져오는 운영 묶음을 거부한다 (공통 모듈 경유: %s)', async (shared) => {
   await expect(bundle(false, shared)).rejects.toThrow('초기 묶음이 화면 구현을 가져옵니다')
 })
 
 it('동적 import로 분리한 화면은 초기 묶음과 구분한다', async () => {
   await expect(bundle(true, true)).resolves.toBeDefined()
+})
+
+it('초기 묶음이 화면 전체 명세를 가져오면 거부한다', async () => {
+  await expect(bundleScreenSpec()).rejects.toThrow('초기 묶음이 화면 전체 명세를 가져옵니다')
 })

@@ -1,4 +1,4 @@
-import { org07b } from '../../spec/screens'
+import { org07b } from '../../spec/screen-specs/org07b'
 import { RosterFilePicker } from '../roster-upload/RosterFilePicker'
 import { RosterUploadDialog } from '../roster-upload/RosterUploadDialog'
 import { UploadSteps } from '../roster-upload/UploadSteps'

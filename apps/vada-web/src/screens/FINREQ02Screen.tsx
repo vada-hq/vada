@@ -1,6 +1,6 @@
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
-import { finReq02 } from '../spec/screens'
+import { finReq02 } from '../spec/screen-specs/finReq02'
 import { FINANCE_REQUEST_BREADCRUMB_SEPARATORS } from './finance-request-detail/config'
 import { FinanceRequestDetailView } from './finance-request-detail/FinanceRequestDetailView'
 import { useFinanceRequestDetail } from './finance-request-detail/useFinanceRequestDetail'

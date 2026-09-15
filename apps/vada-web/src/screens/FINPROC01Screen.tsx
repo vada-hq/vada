@@ -8,7 +8,8 @@ import { SummaryCard } from '../components/SummaryCard'
 import { readListSource, readObjectSourceOrNull } from '../data-sources/catalog'
 import { findDataSource, type DataRow, type DataValue } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
-import { drawnNodeIdOf, finProc01 } from '../spec/screens'
+import { drawnNodeIdOf } from '../spec/screens'
+import { finProc01 } from '../spec/screen-specs/finProc01'
 
 interface FINPROC01ScreenProps {
   screenParams: Record<string, string>

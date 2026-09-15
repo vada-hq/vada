@@ -18,8 +18,7 @@ import { SourcesFailed, forgetSources, loadSources, configureServer } from './se
 import { readListSource, readObjectSource } from './catalog'
 import { dataSourceCallsOf } from '../spec/screen-sources'
 import { runMutation } from '../spec/mutations'
-import { evt02 } from '../spec/screens'
-
+import { evt02 } from '../spec/screen-specs/evt02'
 // **한 화면을 끝까지 뚫는다.**
 
 //

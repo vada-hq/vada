@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { readListSource, readObjectSource } from '../../data-sources/catalog'
 import { resolveParams } from '../../spec/params'
-import { elementByNodeId, org07a } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { org07a } from '../../spec/screen-specs/org07a'
 import type { ButtonSpec, InputSpec, ItemListSpec, SummarySpec } from '../../spec/types'
 import { STUDENT_ROSTER_NODE as NODE } from './config'
 

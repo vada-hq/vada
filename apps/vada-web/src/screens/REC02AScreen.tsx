@@ -1,5 +1,5 @@
 import { AppShell } from '../components/AppShell'
-import { rec02a } from '../spec/screens'
+import { rec02a } from '../spec/screen-specs/rec02a'
 import type { ScopeDraft } from '../state/scopes'
 import { ArchiveEditorWorkspace } from './archive-editor/ArchiveEditorWorkspace'
 

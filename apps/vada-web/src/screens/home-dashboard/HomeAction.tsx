@@ -1,5 +1,6 @@
 import { FigmaAsset } from '../../components/FigmaAsset'
-import { home01k, nodeIdOf } from '../../spec/screens'
+import { nodeIdOf } from '../../spec/screens'
+import { home01k } from '../../spec/screen-specs/home01k'
 import type { ButtonSpec } from '../../spec/types'
 import { SCREEN } from './spec'
 

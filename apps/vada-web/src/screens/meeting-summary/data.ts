@@ -1,7 +1,9 @@
 import { readListSource, readObjectSourceOrNull } from '../../data-sources/catalog'
 import { findDataSource } from '../../data-sources/definitions'
 import { resolveParams } from '../../spec/params'
-import { elementByNodeId, opsMeet07, opsMeet08 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { opsMeet07 } from '../../spec/screen-specs/opsMeet07'
+import { opsMeet08 } from '../../spec/screen-specs/opsMeet08'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../../spec/types'
 import { ABSENTEE, NODE, listAt, summaryAt } from './spec'
 

@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { cleanup, render, screen, waitFor } from '@testing-library/react'
 import { ScreenRouter } from '../screens/ScreenRouter'
-import { ALL_SCREENS, exampleParamsOf } from '../spec/screens'
+import { ALL_SCREENS, exampleParamsOf } from '../spec/screen-catalog'
 import { dataSourceKeysOf } from '../spec/screen-sources'
 import { findDataSource } from './definitions'
 import { setLoadingBehaviour } from './loading'

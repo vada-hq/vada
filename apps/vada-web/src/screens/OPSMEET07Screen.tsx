@@ -1,6 +1,6 @@
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
-import { opsMeet07 } from '../spec/screens'
+import { opsMeet07 } from '../spec/screen-specs/opsMeet07'
 import { MeetingSummaryContent } from './meeting-summary/MeetingSummaryContent'
 import { MeetingSummaryOverview } from './meeting-summary/MeetingSummaryOverview'
 import { MeetingSummarySidebar } from './meeting-summary/MeetingSummarySidebar'

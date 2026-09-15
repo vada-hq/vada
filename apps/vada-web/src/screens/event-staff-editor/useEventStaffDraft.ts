@@ -3,7 +3,7 @@ import { evaluateButtonExecution } from '../../../../../packages/contracts/src/b
 import { readListSource } from '../../data-sources/catalog'
 import type { DataRow } from '../../data-sources/definitions'
 import { resolveParams } from '../../spec/params'
-import { evt03b } from '../../spec/screens'
+import { evt03b } from '../../spec/screen-specs/evt03b'
 import type { ButtonSpec, SubmitAction } from '../../spec/types'
 import { useSubmitAction } from '../../spec/useSubmitAction'
 import type { ScopeDraft } from '../../state/scopes'

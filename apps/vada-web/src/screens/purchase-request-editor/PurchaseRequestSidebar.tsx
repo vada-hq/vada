@@ -1,7 +1,7 @@
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { computeNumber, formatComputed } from '../../spec/compute'
 import { getMutation } from '../../spec/mutations'
-import { finReq01 } from '../../spec/screens'
+import { finReq01 } from '../../spec/screen-specs/finReq01'
 import type { SubmitAction } from '../../spec/types'
 import { ASSET, NODE, SCREEN } from './spec'
 import type { PurchaseRequestDraftModel } from './usePurchaseRequestDraft'

@@ -1,6 +1,6 @@
 import { AppShell } from '../components/AppShell'
 import { Breadcrumbs } from '../components/Breadcrumbs'
-import { rec01 } from '../spec/screens'
+import { rec01 } from '../spec/screen-specs/rec01'
 import {
   RECORDS_ARCHIVE_ASSET as ASSET,
   RECORDS_ARCHIVE_SCREEN as SCREEN,

@@ -1,4 +1,5 @@
-import { elementByNodeId, evt05 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { evt05 } from '../../spec/screen-specs/evt05'
 import type { ButtonSpec, InputSpec, ItemListSpec, SelectSpec, SummarySpec } from '../../spec/types'
 
 // 참여 설문 편집의 명세·디자인 연결. 화면과 하위 컴포넌트가 같은 식별자를 쓴다.

@@ -12,7 +12,8 @@ import {
   NEUTRAL_VALUE,
 } from '../design/tones'
 import { resolveParams } from '../spec/params'
-import { elementByNodeId, ext02c } from '../spec/screens'
+import { elementByNodeId } from '../spec/screens'
+import { ext02c } from '../spec/screen-specs/ext02c'
 import { targetScreenOf, paramsOf } from '../spec/types'
 import type { SummarySpec } from '../spec/types'
 

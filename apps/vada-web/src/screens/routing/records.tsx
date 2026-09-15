@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { rec02, rec02a } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -24,8 +24,8 @@ export const recordsScreens = [
       return (
         <REC02Screen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, rec02.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(rec02.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('REC-02'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('REC-02') ?? '', next)}
           onNavigate={onNavigate}
         />
       )
@@ -38,8 +38,8 @@ export const recordsScreens = [
       return (
         <REC02AScreen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, rec02a.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(rec02a.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('REC-02A'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('REC-02A') ?? '', next)}
           onNavigate={onNavigate}
         />
       )

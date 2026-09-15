@@ -5,7 +5,8 @@ import {
   getRequiredFieldCandidates,
 } from '../../../../../packages/contracts/src/button-execution.mjs'
 import { resolveParams } from '../../spec/params'
-import { elementByNodeId, opsMeet02 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { opsMeet02 } from '../../spec/screen-specs/opsMeet02'
 import { useSubmitAction } from '../../spec/useSubmitAction'
 import type { ButtonSpec, ListSpec, SubmitAction, SummarySpec } from '../../spec/types'
 import type { ScopeDraft } from '../../state/scopes'

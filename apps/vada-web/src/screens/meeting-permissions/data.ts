@@ -1,7 +1,7 @@
 import { readListSource, readObjectSourceOrNull } from '../../data-sources/catalog'
 import { findDataSource } from '../../data-sources/definitions'
 import { resolveParams } from '../../spec/params'
-import { opsMeet04b } from '../../spec/screens'
+import { opsMeet04b } from '../../spec/screen-specs/opsMeet04b'
 import { permissionSpecs } from './spec'
 
 /** 권한 안내와 생성자 정보를 읽고, 회의가 없으면 명시적인 빈 상태를 만든다. */
