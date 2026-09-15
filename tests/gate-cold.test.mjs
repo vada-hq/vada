@@ -40,19 +40,27 @@ test('원격 게이트가 검사 캐시를 물려주지 않는다', () => {
 // **빈 것에 대고 재면 늘 통과한다.** 게이트가 검사를 안 돌리면 위 규칙은 지켜지는데
 // 지킬 것이 없다.
 test('원격 게이트가 검사를 실제로 돌린다', () => {
-  assert.ok(GATE.includes('npm run test'), '게이트가 검사를 돌리지 않습니다.')
+  assert.ok(GATE.includes('npm run test:contracts'), '게이트가 계약 검사를 돌리지 않습니다.')
   assert.ok(GATE.includes('npm ci'), '게이트가 새로 설치하지 않습니다.')
 })
+
+function workflowJob(name) {
+  return GATE.split(new RegExp(`^  ${name}:\\r?$`, 'm'))[1]?.split(/^  [\w-]+:\r?$/m)[0] ?? ''
+}
 
 // screens 작업은 이미 두 앱을 설치한다. 명령이 존재하는 것뿐 아니라, 올바른
 // 앱에서 조건 없이 실행되고 실패를 무시하지 않는지 확인한다.
 function requiredScreenCheck(command, directory) {
-  const job = GATE.split(/^  screens:\r?\n/m)[1]?.split(/^  [\w-]+:\r?$/m)[0]
+  const job = workflowJob('screens')
   assert.ok(job, 'screens 작업이 필요합니다')
   assert.doesNotMatch(job, /^    (?:if|continue-on-error):/m)
   const steps = job.split(/^      - /m).slice(1)
-  const matches = steps.filter((step) =>
-    step.split(/\r?\n/).some((line) => line.trim() === `run: ${command}`),
+  const matches = steps.filter(
+    (step) =>
+      step.split(/\r?\n/).some((line) => line.trim() === `run: ${command}`) &&
+      step
+        .split(/\r?\n/)
+        .some((line) => line.trim() === `working-directory: ${directory}`),
   )
   assert.equal(matches.length, 1, `${command}를 독립된 필수 단계로 실행해야 합니다`)
   const step = matches[0]
@@ -69,4 +77,16 @@ test('웹 린트가 경고도 실패로 처리하는 CI 필수 단계다', () =>
   const web = JSON.parse(readFileSync(new URL('../apps/vada-web/package.json', import.meta.url), 'utf8'))
   assert.match(web.scripts.lint, /\boxlint\b/)
   assert.match(web.scripts.lint, /--max-warnings(?:=|\s+)0(?:\s|$)/)
+})
+
+test('계약 검사는 contracts 작업에서 한 번만 실행한다', () => {
+  const contractRuns = GATE.match(/^\s+run: npm run test:contracts$/gm) ?? []
+  assert.equal(contractRuns.length, 1)
+  assert.match(workflowJob('contracts'), /^\s+run: npm run test:contracts$/m)
+  assert.doesNotMatch(workflowJob('screens'), /^\s+run: npm run test:contracts$/m)
+})
+
+test('후속 게이트가 화면과 서버 테스트만 필수 실행한다', () => {
+  requiredScreenCheck('npm test', 'apps/vada-web')
+  requiredScreenCheck('npm test', 'apps/api')
 })
