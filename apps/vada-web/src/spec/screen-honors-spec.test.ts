@@ -193,8 +193,12 @@ describe('화면이 자기 명세를 지킨다', () => {
   it.each(clearing.map((screen) => screen.screenId))(
     '%s: 성공하면 스코프를 비운다고 말했으면 그 손잡이를 받는다',
     (screenId) => {
+      const scopeKey = clearing.find((screen) => screen.screenId === screenId)!.stateScopeKey!
       const onScopeEvent = vi.fn()
-      expect(connectionOf(screenId, { onScopeEvent }).onScopeEvent).toBe(onScopeEvent)
+      const connected = connectionOf(screenId, { onScopeEvent }).onScopeEvent
+      expect(connected).toBeTypeOf('function')
+      connected?.(scopeKey, 'complete')
+      expect(onScopeEvent).toHaveBeenCalledExactlyOnceWith(scopeKey, 'complete')
       expect(sourceOf(screenId)).toContain('onScopeEvent')
     },
   )

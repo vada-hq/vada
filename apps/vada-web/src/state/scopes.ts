@@ -19,6 +19,22 @@ export function readScopeDraft(store: ScopeStore, scopeKey: string | undefined):
   return (scopeKey && store[scopeKey]) || EMPTY_DRAFT
 }
 
+/** 같은 종류의 초안을 편집 대상별로 분리한다. */
+export function scopeDraftKey(
+  scopeKey: string | undefined,
+  identity: Record<string, string | undefined>,
+): string {
+  if (!scopeKey) return ''
+
+  const query = Object.entries(identity)
+    .filter((entry): entry is [string, string] => Boolean(entry[1]))
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+    .join('&')
+
+  return query === '' ? scopeKey : `${scopeKey}?${query}`
+}
+
 // note.fieldRefs 해석: 값이 없으면 null, 있으면 표시 라벨(없으면 값 자체).
 export function readScopeDisplayValue(
   store: ScopeStore,
