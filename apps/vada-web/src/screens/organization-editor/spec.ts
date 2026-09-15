@@ -1,5 +1,6 @@
 import type { DataRow } from '../../data-sources/definitions'
-import { elementByNodeId, org03b } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { org03b } from '../../spec/screen-specs/org03b'
 import type { ButtonSpec, InputSpec, ItemListSpec, SummarySpec } from '../../spec/types'
 
 export const SCREEN = 'ORG-03B'

@@ -1,5 +1,5 @@
 import { AppShell } from '../components/AppShell'
-import { evt03b } from '../spec/screens'
+import { evt03b } from '../spec/screen-specs/evt03b'
 import type { ScopeDraft } from '../state/scopes'
 import { EventStaffWorkspace } from './event-staff-editor/EventStaffWorkspace'
 

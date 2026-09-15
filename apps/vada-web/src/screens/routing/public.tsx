@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { ext01a, ext02a } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -19,8 +19,8 @@ export const publicScreens = [
       return (
         <EXT01AScreen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, ext01a.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(ext01a.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('EXT-01A'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EXT-01A') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -43,8 +43,8 @@ export const publicScreens = [
       return (
         <EXT02AScreen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, ext02a.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(ext02a.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('EXT-02A'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EXT-02A') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />

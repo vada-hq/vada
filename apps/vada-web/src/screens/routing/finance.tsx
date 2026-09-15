@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { finPlan01, finReq01, finRev01, finSup01 } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -43,8 +43,8 @@ export const financeScreens = [
       return (
         <FINREQ01Screen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, finReq01.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(finReq01.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('FIN-REQ-01'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('FIN-REQ-01') ?? '', next)}
           onNavigate={onNavigate}
           onScopeEvent={onScopeEvent}
         />
@@ -57,8 +57,8 @@ export const financeScreens = [
       // 예산 편성이다. 학생회에 한 벌이라 인자가 없고, 초안은 저장된 편성에서 시작한다.
       return (
         <FINPLAN01Screen
-          draft={readScopeDraft(scopes, finPlan01.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(finPlan01.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('FIN-PLAN-01'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('FIN-PLAN-01') ?? '', next)}
           onNavigate={onNavigate}
           onScopeEvent={onScopeEvent}
         />
@@ -83,8 +83,8 @@ export const financeScreens = [
       return (
           <FINSUP01Screen
             screenParams={screenParams}
-            draft={readScopeDraft(scopes, finSup01.stateScopeKey)}
-            onChangeDraft={(next) => onChangeScope(finSup01.stateScopeKey ?? '', next)}
+            draft={readScopeDraft(scopes, stateScopeKeyOf('FIN-SUP-01'))}
+            onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('FIN-SUP-01') ?? '', next)}
             onScopeEvent={onScopeEvent}
             onNavigate={onNavigate}
           />
@@ -97,8 +97,8 @@ export const financeScreens = [
       return (
           <FINREV01Screen
             screenParams={screenParams}
-            draft={readScopeDraft(scopes, finRev01.stateScopeKey)}
-            onChangeDraft={(next) => onChangeScope(finRev01.stateScopeKey ?? '', next)}
+            draft={readScopeDraft(scopes, stateScopeKeyOf('FIN-REV-01'))}
+            onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('FIN-REV-01') ?? '', next)}
             onScopeEvent={onScopeEvent}
             onNavigate={onNavigate}
           />

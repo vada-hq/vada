@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { DANGER_BUTTON, STATE_CHIP } from '../../design/tones'
 import type { DataRow } from '../../data-sources/definitions'
-import { evt04b } from '../../spec/screens'
+import { evt04b } from '../../spec/screen-specs/evt04b'
 import type { SubmitAction } from '../../spec/types'
 import { EVT04Screen } from '../EVT04Screen'
 import {

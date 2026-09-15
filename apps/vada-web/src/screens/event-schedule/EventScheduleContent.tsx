@@ -1,6 +1,6 @@
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { ACCENT_BAR, CHOICE_CHIP, LEAD_TEXT, NEUTRAL_CHIP, STATE_CHIP } from '../../design/tones'
-import { evtSched01 } from '../../spec/screens'
+import { evtSched01 } from '../../spec/screen-specs/evtSched01'
 import {
   EVENT_SCHEDULE_ASSET as ASSET,
   EVENT_SCHEDULE_NODE as NODE,

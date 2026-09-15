@@ -3,7 +3,7 @@ import { dataSourceCallsOf, dataSourceKeysOf } from '../spec/screen-sources'
 import { useSourceLoading } from '../data-sources/loading'
 import { ScreenSkeleton } from '../components/Skeleton'
 import { SourceGate } from '../components/SourceGate'
-import { ALL_SCREENS } from '../spec/screens'
+import { findScreenRuntime } from '../spec/screen-runtime.generated'
 import { SCREEN_RENDERERS } from './routing'
 import type { ScreenRouterProps } from './routing/types'
 import { ScreenCodeBoundary } from './routing/ScreenCodeBoundary'
@@ -31,7 +31,10 @@ import { ScreenCodeBoundary } from './routing/ScreenCodeBoundary'
  * 그 자리는 아직 서버로 못 부른다(`fromServer`가 터뜨린다).
  */
 export function ScreenRouter(props: ScreenRouterProps) {
-  const spec = ALL_SCREENS.find((entry) => entry.screenId === props.screenId)
+  const found = findScreenRuntime(props.screenId)
+  // 요소가 없는 변형은 원본 화면이 데이터에 따라 그리는 상태라 제 주소가 없다.
+  // 기존 ALL_SCREENS와 같은 경계를 유지한다.
+  const spec = found?.drawable === true ? found : undefined
   const draft = spec?.stateScopeKey === undefined ? undefined : props.scopes[spec.stateScopeKey]
   // 기다리는 동안 그릴 글은 key가 정하고, **어떤 인자로 부를지는 서버를 쓸 때만**
   // 센다 — 개발용 응답으로 도는 동안에는 쓰이지 않는 값이다.

@@ -2,13 +2,8 @@ import { FigmaAsset } from '../components/FigmaAsset'
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { renderField } from '../spec/elements'
-import {
-  buttonsByEmphasis,
-  inv00,
-  navigateTarget,
-  nodeIdOf,
-  primaryButtonOf,
-} from '../spec/screens'
+import { buttonsByEmphasis, navigateTarget, nodeIdOf, primaryButtonOf } from '../spec/screens'
+import { inv00 } from '../spec/screen-specs/inv00'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type { ButtonSpec, FieldSpec, SubmitAction } from '../spec/types'

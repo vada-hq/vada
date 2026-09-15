@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { myInfo01 } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -28,8 +28,8 @@ export const homeScreens = [
     render: ({ scopes, onChangeScope, onNavigate, onScopeEvent }) => {
       return (
         <MYINFO01Screen
-          draft={readScopeDraft(scopes, myInfo01.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(myInfo01.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('MY-INFO-01'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('MY-INFO-01') ?? '', next)}
           onNavigate={onNavigate}
           onScopeEvent={onScopeEvent}
         />

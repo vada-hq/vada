@@ -10,7 +10,8 @@ import {
   NEUTRAL_CHIP,
 } from '../../design/tones'
 import { resolveParams } from '../../spec/params'
-import { elementByNodeId, evtTask01 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { evtTask01 } from '../../spec/screen-specs/evtTask01'
 import { noteOf, targetScreenOf } from '../../spec/types'
 import type { DisplayAction, ItemListSpec } from '../../spec/types'
 import { ASSET, NODE, SCREEN } from './spec'

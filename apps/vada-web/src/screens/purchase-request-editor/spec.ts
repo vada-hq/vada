@@ -1,4 +1,5 @@
-import { elementByNodeId, finReq01 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { finReq01 } from '../../spec/screen-specs/finReq01'
 import type { ButtonSpec, GroupSpec, InputSpec, ListSpec, SelectSpec, SummarySpec } from '../../spec/types'
 
 export const SCREEN = 'FIN-REQ-01'

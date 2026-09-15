@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { opsMeet02, opsMeet06b, opsMeetD04 } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -36,8 +36,8 @@ export const meetingsScreens = [
       return (
         <OPSMEET02Screen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, opsMeet02.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(opsMeet02.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('OPS-MEET-02'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('OPS-MEET-02') ?? '', next)}
           onNavigate={onNavigate}
           onScopeEvent={onScopeEvent}
         />
@@ -113,8 +113,8 @@ export const meetingsScreens = [
       return (
         <OPSMEETD04Screen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, opsMeetD04.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(opsMeetD04.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('OPS-MEET-D04'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('OPS-MEET-D04') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -137,8 +137,8 @@ export const meetingsScreens = [
       return (
         <OPSMEET06BScreen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, opsMeet06b.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(opsMeet06b.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('OPS-MEET-06B'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('OPS-MEET-06B') ?? '', next)}
           onNavigate={onNavigate}
         />
       )

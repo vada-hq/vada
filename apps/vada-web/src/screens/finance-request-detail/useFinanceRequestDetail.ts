@@ -3,7 +3,8 @@ import { readListSource, readObjectSourceOrNull } from '../../data-sources/catal
 import { findDataSource } from '../../data-sources/definitions'
 import type { DataRow, DataValue } from '../../data-sources/definitions'
 import { resolveParams } from '../../spec/params'
-import { drawnTitleOf, finReq02, nodeIdOf } from '../../spec/screens'
+import { drawnTitleOf, nodeIdOf } from '../../spec/screens'
+import { finReq02 } from '../../spec/screen-specs/finReq02'
 import type { ElementSpec } from '../../spec/types'
 
 function specOf<T extends ElementSpec['type']>(

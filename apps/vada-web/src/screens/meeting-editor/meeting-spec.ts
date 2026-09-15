@@ -1,4 +1,5 @@
-import { elementByNodeId, opsMeet02 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { opsMeet02 } from '../../spec/screen-specs/opsMeet02'
 import type { ListSpec } from '../../spec/types'
 
 // 회의 편집 화면의 명세·디자인 연결. UI 컴포넌트들이 같은 노드 식별자를 쓴다.

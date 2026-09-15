@@ -7,7 +7,9 @@ import { readListSource } from '../data-sources/catalog'
 import type { DataRow } from '../data-sources/definitions'
 import { getOptionSource } from '../option-sources/definitions'
 import { PendingBox } from '../components/PendingBox'
-import { elementByNodeId, evt00a, evt00a2 } from '../spec/screens'
+import { elementByNodeId } from '../spec/screens'
+import { evt00a } from '../spec/screen-specs/evt00a'
+import { evt00a2 } from '../spec/screen-specs/evt00a2'
 import type {
   ButtonSpec,
   DisplayAction,

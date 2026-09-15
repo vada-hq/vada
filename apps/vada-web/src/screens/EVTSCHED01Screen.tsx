@@ -1,6 +1,7 @@
 import { AppShell } from '../components/AppShell'
 import { WorkspaceHeader } from '../components/WorkspaceHeader'
-import { drawnTitleOf, evtSched01 } from '../spec/screens'
+import { drawnTitleOf } from '../spec/screens'
+import { evtSched01 } from '../spec/screen-specs/evtSched01'
 import {
   EVENT_SCHEDULE_ASSET as ASSET,
   EVENT_SCHEDULE_SCREEN as SCREEN,

@@ -1,7 +1,7 @@
 import { DataTable } from '../../components/DataTable'
 import { FigmaAsset } from '../../components/FigmaAsset'
 import { NEUTRAL_VALUE, VALUE_TEXT } from '../../design/tones'
-import { myReq01 } from '../../spec/screens'
+import { myReq01 } from '../../spec/screen-specs/myReq01'
 import {
   MY_REQUESTS_ASSET as ASSET,
   MY_REQUESTS_COUNT_TONE as COUNT_TONE,

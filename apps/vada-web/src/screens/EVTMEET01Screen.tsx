@@ -5,7 +5,8 @@ import { WorkspaceHeader } from '../components/WorkspaceHeader'
 import { NEUTRAL_CHIP, STATE_CHIP } from '../design/tones'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { resolveParams } from '../spec/params'
-import { drawnTitleOf, elementByNodeId, evtMeet01 } from '../spec/screens'
+import { drawnTitleOf, elementByNodeId } from '../spec/screens'
+import { evtMeet01 } from '../spec/screen-specs/evtMeet01'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../spec/types'
 
 // 행사 관련 회의(EVT-MEET-01).

@@ -5,7 +5,8 @@ import { readObjectSourceOrNull } from '../data-sources/catalog'
 import { findDataSource } from '../data-sources/definitions'
 import { resolveParams } from '../spec/params'
 import { targetScreenOf, paramsOf } from '../spec/types'
-import { drawnTitleOf, elementByNodeId, opsMeet09 } from '../spec/screens'
+import { drawnTitleOf, elementByNodeId } from '../spec/screens'
+import { opsMeet09 } from '../spec/screen-specs/opsMeet09'
 import type { SummarySpec } from '../spec/types'
 import {
   CancelledMeetingDetails,

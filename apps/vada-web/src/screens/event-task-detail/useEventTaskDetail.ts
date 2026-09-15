@@ -3,7 +3,8 @@ import { readListSource, readObjectSource, readObjectSourceOrNull } from '../../
 import { findDataSource } from '../../data-sources/definitions'
 import { getOptionSource } from '../../option-sources/definitions'
 import { resolveParams } from '../../spec/params'
-import { elementByNodeId, evtTask02 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { evtTask02 } from '../../spec/screen-specs/evtTask02'
 import type { ButtonSpec, ItemListSpec, SelectSpec, SummarySpec } from '../../spec/types'
 import { NODE } from './spec'
 

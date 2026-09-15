@@ -2,7 +2,8 @@ import { readListSource, readObjectSourceOrNull } from '../../data-sources/catal
 import { findDataSource } from '../../data-sources/definitions'
 import type { DataRow } from '../../data-sources/definitions'
 import { resolveParams } from '../../spec/params'
-import { drawnTitleOf, elementByNodeId, opsMeet03a } from '../../spec/screens'
+import { drawnTitleOf, elementByNodeId } from '../../spec/screens'
+import { opsMeet03a } from '../../spec/screen-specs/opsMeet03a'
 import type { ItemListSpec, SummarySpec } from '../../spec/types'
 import { NODE, SCREEN, VARIANTS } from './spec'
 

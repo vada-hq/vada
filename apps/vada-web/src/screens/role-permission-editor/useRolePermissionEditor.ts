@@ -3,7 +3,8 @@ import { readListSource, readObjectSource } from '../../data-sources/catalog'
 import type { DataRow } from '../../data-sources/definitions'
 import { getOptionSource } from '../../option-sources/definitions'
 import { initialChosen } from '../../spec/chosen'
-import { elementByNodeId, org04b } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { org04b } from '../../spec/screen-specs/org04b'
 import { useSubmitAction } from '../../spec/useSubmitAction'
 import type {
   ButtonSpec,

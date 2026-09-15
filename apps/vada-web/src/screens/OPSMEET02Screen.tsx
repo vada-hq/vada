@@ -1,6 +1,7 @@
 import { AppShell } from '../components/AppShell'
 import { ChoiceGroup } from '../components/ChoiceGroup'
-import { drawnTitleOf, opsMeet02 } from '../spec/screens'
+import { drawnTitleOf } from '../spec/screens'
+import { opsMeet02 } from '../spec/screen-specs/opsMeet02'
 import type { SelectSpec } from '../spec/types'
 import { MeetingAgenda } from './meeting-editor/MeetingAgenda'
 import { MeetingEditorActions, MeetingEditorMessages } from './meeting-editor/MeetingEditorActions'

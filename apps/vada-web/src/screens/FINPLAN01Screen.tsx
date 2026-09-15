@@ -1,6 +1,7 @@
 import { AppShell } from '../components/AppShell'
 import { getMutation } from '../spec/mutations'
-import { drawnTitleOf, finPlan01 } from '../spec/screens'
+import { drawnTitleOf } from '../spec/screens'
+import { finPlan01 } from '../spec/screen-specs/finPlan01'
 import type { SubmitAction } from '../spec/types'
 import type { ScopeDraft } from '../state/scopes'
 import { BudgetPlanSections } from './budget-plan-editor/BudgetPlanSections'

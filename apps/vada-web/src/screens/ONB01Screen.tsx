@@ -2,14 +2,8 @@ import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { renderField } from '../spec/elements'
 import { useFieldDraft } from '../spec/useFieldDraft'
-import {
-  findButtonSpec,
-  findInputSpec,
-  findSelectSpec,
-  navigateTarget,
-  nodeIdOf,
-  onb01,
-} from '../spec/screens'
+import { findButtonSpec, findInputSpec, findSelectSpec, navigateTarget, nodeIdOf } from '../spec/screens'
+import { onb01 } from '../spec/screen-specs/onb01'
 import type { ScopeDraft, ScopeStore } from '../state/scopes'
 
 interface ONB01ScreenProps {

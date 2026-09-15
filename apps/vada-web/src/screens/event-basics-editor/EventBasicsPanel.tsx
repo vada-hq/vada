@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { evt02b } from '../../spec/screens'
+import { evt02b } from '../../spec/screen-specs/evt02b'
 import { EVT02Screen } from '../EVT02Screen'
 
 interface EventBasicsPanelProps {

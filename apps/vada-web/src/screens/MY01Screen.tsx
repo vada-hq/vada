@@ -6,7 +6,8 @@ import { NEUTRAL_CHIP, STATUS_CHIP } from "../design/tones";
 import { readListSource, readObjectSource } from "../data-sources/catalog";
 import type { DataRow } from "../data-sources/definitions";
 import { getOptionSource } from "../option-sources/definitions";
-import { elementByNodeId, my01 } from "../spec/screens";
+import { elementByNodeId } from "../spec/screens"
+import { my01 } from "../spec/screen-specs/my01"
 import type {
   InputSpec,
   ItemListSpec,

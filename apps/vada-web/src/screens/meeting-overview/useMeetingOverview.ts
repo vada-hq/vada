@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { readListSource, readObjectSource } from '../../data-sources/catalog'
-import { elementByNodeId, opsMeet01a, opsMeet01c } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { opsMeet01a } from '../../spec/screen-specs/opsMeet01a'
+import { opsMeet01c } from '../../spec/screen-specs/opsMeet01c'
 import type {
   ButtonSpec,
   InputSpec,

@@ -1,7 +1,8 @@
 import { ArrowLeft, ArrowRight, ExternalLink, Plus } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { PageCard } from '../components/PageCard'
-import { buttonsByEmphasis, navigateTarget, nodeIdOf, onb02 } from '../spec/screens'
+import { buttonsByEmphasis, navigateTarget, nodeIdOf } from '../spec/screens'
+import { onb02 } from '../spec/screen-specs/onb02'
 import type { ButtonSpec } from '../spec/types'
 
 interface ONB02ScreenProps {

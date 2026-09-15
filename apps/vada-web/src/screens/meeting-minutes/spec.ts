@@ -1,4 +1,5 @@
-import { elementByNodeId, opsMeet06b } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { opsMeet06b } from '../../spec/screen-specs/opsMeet06b'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../../spec/types'
 
 export const SCREEN = 'OPS-MEET-06B'

@@ -13,8 +13,15 @@ export function forbidEagerScreens(): Plugin {
         const chunk = bundle[name]
         if (chunk?.type !== 'chunk') return
         for (const [id, module] of Object.entries(chunk.modules)) {
-          if (module.renderedLength > 0 && /\/src\/screens\/[^/]+Screen\.tsx$/.test(id.replaceAll('\\', '/'))) {
+          const normalized = id.replaceAll('\\', '/')
+          if (module.renderedLength > 0 && /\/src\/screens\/[^/]+Screen\.tsx$/.test(normalized)) {
             this.error(`초기 묶음이 화면 구현을 가져옵니다: ${id}`)
+          }
+          if (
+            module.renderedLength > 0 &&
+            /\/specs\/figma\/vada-wireframe\/screens\/[^/]+\/screen\.json$/.test(normalized)
+          ) {
+            this.error(`초기 묶음이 화면 전체 명세를 가져옵니다: ${id}`)
           }
         }
         for (const dependency of chunk.imports) visit(dependency)

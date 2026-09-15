@@ -4,7 +4,8 @@ import { DataTable } from '../components/DataTable'
 import { FigmaAsset } from '../components/FigmaAsset'
 import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { findDataSource } from '../data-sources/definitions'
-import { elementByNodeId, org04 } from '../spec/screens'
+import { elementByNodeId } from '../spec/screens'
+import { org04 } from '../spec/screen-specs/org04'
 import type { ItemListSpec, SummarySpec } from '../spec/types'
 
 // 역할 및 권한(ORG-04). 읽기만 하는 화면이다 — 역할을 바꾸는 것은 ORG-04B다.

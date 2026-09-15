@@ -1,13 +1,8 @@
 import { PageCard } from '../components/PageCard'
 import { PrimaryButton } from '../components/PrimaryButton'
 import { renderBody } from '../spec/elements'
-import {
-  buttonsByEmphasis,
-  inv01,
-  navigateTarget,
-  nodeIdOf,
-  primaryButtonOf,
-} from '../spec/screens'
+import { buttonsByEmphasis, navigateTarget, nodeIdOf, primaryButtonOf } from '../spec/screens'
+import { inv01 } from '../spec/screen-specs/inv01'
 import { useFieldDraft } from '../spec/useFieldDraft'
 import { useSubmitAction } from '../spec/useSubmitAction'
 import type { ButtonSpec, SubmitAction } from '../spec/types'

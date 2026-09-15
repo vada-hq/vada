@@ -1,4 +1,4 @@
-import { msg02 } from '../../spec/screens'
+import { msg02 } from '../../spec/screen-specs/msg02'
 import type { SubmitAction } from '../../spec/types'
 import type { MessageRoomDraftModel } from './useMessageRoomDraft'
 import { NODE } from './spec'

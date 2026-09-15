@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { ALL_SCREENS, exampleParamsOf } from './screens'
+import { ALL_SCREENS, exampleParamsOf } from './screen-catalog'
 import { dataSourceCallsOf } from './screen-sources'
 import { readDataSource } from '../data-sources/catalog'
 import { findDataSource } from '../data-sources/definitions'

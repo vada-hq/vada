@@ -13,7 +13,8 @@ import { readListSource, readObjectSource } from '../data-sources/catalog'
 import { targetScreenOf, noteOf } from '../spec/types'
 import type { DataRow } from '../data-sources/definitions'
 import { getOptionSource } from '../option-sources/definitions'
-import { elementByNodeId, task01 } from '../spec/screens'
+import { elementByNodeId } from '../spec/screens'
+import { task01 } from '../spec/screen-specs/task01'
 import type { ButtonSpec, ItemListSpec, SelectSpec, SummarySpec } from '../spec/types'
 
 // 상시 업무 칸반 보드(TASK-01).

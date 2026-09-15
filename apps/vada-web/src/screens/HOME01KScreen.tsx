@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { AppShell } from '../components/AppShell'
 import { Built } from '../components/Built'
-import { home01k } from '../spec/screens'
+import { home01k } from '../spec/screen-specs/home01k'
 import { BriefingCard } from './home-dashboard/BriefingCard'
 import { EventCountTiles, EventList } from './home-dashboard/EventWidgets'
 import { FinanceSummary } from './home-dashboard/FinanceSummary'

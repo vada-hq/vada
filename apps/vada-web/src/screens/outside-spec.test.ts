@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { ALL_SCREENS } from '../spec/screens'
+import { ALL_SCREENS } from '../spec/screen-catalog'
 import { OUTSIDE_SPEC, isOutsideSpec, navigationsOf } from './outside-spec'
 
 // **명세 밖의 화면이 조용히 존재하지 못하게 한다.**

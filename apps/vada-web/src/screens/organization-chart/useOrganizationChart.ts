@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { readListSource } from '../../data-sources/catalog'
-import { drawnTitleOf, elementByNodeId, org03a } from '../../spec/screens'
+import { drawnTitleOf, elementByNodeId } from '../../spec/screens'
+import { org03a } from '../../spec/screen-specs/org03a'
 import type { ButtonSpec, ItemListSpec, SummarySpec } from '../../spec/types'
 import { NODE } from './spec'
 

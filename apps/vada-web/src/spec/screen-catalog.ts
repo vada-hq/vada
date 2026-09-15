@@ -1,20 +1,5 @@
 import type { ScreenSpec } from './types'
-
-// 스펙 JSON 드리프트가 조용한 오동작 대신 명확한 오류로 드러나게 하는 최소
-// 런타임 가드다. 깊은 검증은 파이프라인 검증 CLI(validate-specs)가 담당한다.
-export function asScreenSpec(json: unknown): ScreenSpec {
-  if (json === null || typeof json !== 'object' || Array.isArray(json)) {
-    throw new Error('화면 JSON은 객체여야 합니다.')
-  }
-  const record = json as Record<string, unknown>
-  if (typeof record.screenId !== 'string' || record.screenId.length === 0) {
-    throw new Error('화면 JSON에 screenId가 필요합니다.')
-  }
-  if (!Array.isArray(record.elements)) {
-    throw new Error(`화면 ${record.screenId}의 elements는 배열이어야 합니다.`)
-  }
-  return json as ScreenSpec
-}
+import { asScreenSpec } from './screen-guard'
 
 /**
  * 명세 폴더에 있는 화면 전부. **빌드가 폴더를 걸어 모은다.**
@@ -29,13 +14,10 @@ const SCREEN_JSON = import.meta.glob<{ default: unknown }>(
 
 const BY_ID = new Map<string, ScreenSpec>(
   Object.entries(SCREEN_JSON).map(([path, module]) => {
-    const spec = asScreenSpec(module.default)
     // 폴더 이름과 screenId가 갈리면 어느 쪽이 참인지 알 수 없다. 검증기도 보지만
     // 여기서 먼저 멈춘다 — 이 지도가 틀리면 아래 전부가 틀린다.
     const folder = path.split('/').at(-2)
-    if (folder !== spec.screenId) {
-      throw new Error(`화면 폴더 '${folder}'와 screenId '${spec.screenId}'가 다릅니다.`)
-    }
+    const spec = asScreenSpec(module.default, folder)
     return [spec.screenId, spec]
   }),
 )
@@ -48,92 +30,6 @@ export function screenOf(screenId: string): ScreenSpec {
   }
   return spec
 }
-
-export const signIn = screenOf('SIGN-IN')
-export const onb01 = screenOf('ONB-01')
-export const onb02 = screenOf('ONB-02')
-export const org01 = screenOf('ORG-01')
-export const org00 = screenOf('ORG-00')
-export const org02 = screenOf('ORG-02')
-// 셸의 이름 자리에서 열린다 — 어느 갈피에도 속하지 않는다.
-export const myInfo01 = screenOf('MY-INFO-01')
-export const org03a = screenOf('ORG-03A')
-export const org03b = screenOf('ORG-03B')
-export const org03c = screenOf('ORG-03C')
-export const org03d = screenOf('ORG-03D')
-export const org04 = screenOf('ORG-04')
-export const org04b = screenOf('ORG-04B')
-export const org07a = screenOf('ORG-07A')
-export const org07b = screenOf('ORG-07B')
-export const org07c = screenOf('ORG-07C')
-export const inv00 = screenOf('INV-00')
-export const inv01 = screenOf('INV-01')
-export const opsCal01 = screenOf('OPS-CAL-01')
-export const home01k = screenOf('HOME-01K')
-export const my01 = screenOf('MY-01')
-export const ops00 = screenOf('OPS-00')
-export const task01 = screenOf('TASK-01')
-export const opsMeet01a = screenOf('OPS-MEET-01A')
-export const opsMeet01c = screenOf('OPS-MEET-01C')
-export const opsMeet02 = screenOf('OPS-MEET-02')
-export const opsMeet03a = screenOf('OPS-MEET-03A')
-export const opsMeet03b = screenOf('OPS-MEET-03B')
-export const opsMeet03c = screenOf('OPS-MEET-03C')
-export const opsMeet04b = screenOf('OPS-MEET-04B')
-export const opsMeet05a = screenOf('OPS-MEET-05A')
-export const opsMeet05b = screenOf('OPS-MEET-05B')
-export const opsMeet06a = screenOf('OPS-MEET-06A')
-export const opsMeet06b = screenOf('OPS-MEET-06B')
-export const opsMeet07 = screenOf('OPS-MEET-07')
-export const opsMeet08 = screenOf('OPS-MEET-08')
-export const opsMeet09 = screenOf('OPS-MEET-09')
-export const opsMeetD01 = screenOf('OPS-MEET-D01')
-export const opsMeetD02 = screenOf('OPS-MEET-D02')
-export const opsMeetD03 = screenOf('OPS-MEET-D03')
-export const opsMeetD04 = screenOf('OPS-MEET-D04')
-export const evt00a = screenOf('EVT-00A')
-export const evt00a2 = screenOf('EVT-00A2')
-export const evt02 = screenOf('EVT-02')
-export const evt00b = screenOf('EVT-00B')
-export const evt01 = screenOf('EVT-01')
-export const evt02b = screenOf('EVT-02B')
-export const evt02c = screenOf('EVT-02C')
-export const evt02d = screenOf('EVT-02D')
-export const evt02e = screenOf('EVT-02E')
-export const evt03a = screenOf('EVT-03A')
-export const evt03b = screenOf('EVT-03B')
-export const evt04b = screenOf('EVT-04B')
-export const evtTask01 = screenOf('EVT-TASK-01')
-export const evtTask02 = screenOf('EVT-TASK-02')
-export const evtDoc01 = screenOf('EVT-DOC-01')
-export const evtMeet01 = screenOf('EVT-MEET-01')
-export const evtSched01 = screenOf('EVT-SCHED-01')
-export const evt04 = screenOf('EVT-04')
-export const evt05 = screenOf('EVT-05')
-export const evt05b = screenOf('EVT-05B')
-export const evtFin01 = screenOf('EVT-FIN-01')
-export const finReq01 = screenOf('FIN-REQ-01')
-export const finReq02 = screenOf('FIN-REQ-02')
-export const myReq01 = screenOf('MY-REQ-01')
-export const finSup01 = screenOf('FIN-SUP-01')
-export const finRev01 = screenOf('FIN-REV-01')
-export const finEvid01 = screenOf('FIN-EVID-01')
-export const fin00 = screenOf('FIN-00')
-export const fin00b = screenOf('FIN-00B')
-export const finLedger01 = screenOf('FIN-LEDGER-01')
-export const finPlan01 = screenOf('FIN-PLAN-01')
-export const finProc01 = screenOf('FIN-PROC-01')
-export const msg01 = screenOf('MSG-01')
-export const msg02 = screenOf('MSG-02')
-export const msg03 = screenOf('MSG-03')
-export const rec01 = screenOf('REC-01')
-export const rec02 = screenOf('REC-02')
-export const rec02a = screenOf('REC-02A')
-export const ext01a = screenOf('EXT-01A')
-export const ext01b = screenOf('EXT-01B')
-export const ext02a = screenOf('EXT-02A')
-export const ext02b = screenOf('EXT-02B')
-export const ext02c = screenOf('EXT-02C')
 
 /**
  * **화면 목록을 손으로 적지 않는다.**
@@ -193,4 +89,3 @@ export function exampleParamsOf(screenId: string): Record<string, string> {
       .map((param) => [param.key, param.example as string]),
   )
 }
-

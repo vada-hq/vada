@@ -10,7 +10,7 @@ import { ScreenRouter } from '../screens/ScreenRouter'
 import { fetchOptions } from '../option-sources/catalog'
 import { runMutation } from '../spec/mutations'
 import { payloadOf } from '../spec/draft-values'
-import { org02 } from '../spec/screens'
+import { org02 } from '../spec/screen-specs/org02'
 import { readListSource, readObjectSource } from './catalog'
 import { forgetSources, loadSources, configureServer } from './server'
 

@@ -1,5 +1,6 @@
 import { FigmaAsset } from '../../components/FigmaAsset'
-import { drawnTitleOf, ext02a } from '../../spec/screens'
+import { drawnTitleOf } from '../../spec/screens'
+import { ext02a } from '../../spec/screen-specs/ext02a'
 import type { ExternalSurveyFormModel } from './useExternalSurveyForm'
 import { BRAND, NODE, ROW_ASSET, SCREEN } from './spec'
 

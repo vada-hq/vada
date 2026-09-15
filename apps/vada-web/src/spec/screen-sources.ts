@@ -1,7 +1,35 @@
 import shellJson from '../../../../specs/figma/vada-wireframe/shell.json'
 import { findDataSource } from '../data-sources/definitions'
 import { resolveParams } from './params'
+import type { RuntimeScreenSpec, RuntimeSourceReference } from './screen-runtime.generated'
 import type { QueryParams, ScreenSpec } from './types'
+
+type SourceBearingScreen = ScreenSpec | RuntimeScreenSpec
+
+function sourceReferencesOf(spec: SourceBearingScreen): RuntimeSourceReference[] {
+  if ('sourceReferences' in spec) return [...spec.sourceReferences]
+  const references: RuntimeSourceReference[] = []
+  const walk = (node: unknown) => {
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item)
+      return
+    }
+    if (node === null || typeof node !== 'object') return
+    const holder = node as { dataSourceKey?: unknown; params?: QueryParams }
+    if (typeof holder.dataSourceKey === 'string') {
+      references.push({
+        dataSourceKey: holder.dataSourceKey,
+        ...(holder.params === undefined ? {} : { params: holder.params }),
+      })
+    }
+    for (const [name, value] of Object.entries(node)) {
+      if (name === 'optionsSource' || name === 'params') continue
+      walk(value)
+    }
+  }
+  walk(spec)
+  return references
+}
 
 /**
  * 이 화면이 조회하는 데이터 출처의 key 전부.
@@ -17,26 +45,8 @@ import type { QueryParams, ScreenSpec } from './types'
  * 선택지 출처(`optionsSource.key`)는 세지 않는다 — 그것은 다른 카탈로그이고
  * 이미 제 나름의 늦게 오는 길을 갖는다(`fetchOptions`).
  */
-export function dataSourceKeysOf(spec: ScreenSpec): string[] {
-  const keys = new Set<string>()
-  const walk = (node: unknown) => {
-    if (Array.isArray(node)) {
-      for (const item of node) walk(item)
-      return
-    }
-    if (node === null || typeof node !== 'object') return
-    for (const [name, value] of Object.entries(node)) {
-      if (name === 'dataSourceKey' && typeof value === 'string') {
-        keys.add(value)
-        continue
-      }
-      // 선택지 출처는 다른 카탈로그다. 그 안으로 들어가지 않는다.
-      if (name === 'optionsSource') continue
-      walk(value)
-    }
-  }
-  walk(spec)
-  return [...keys]
+export function dataSourceKeysOf(spec: SourceBearingScreen): string[] {
+  return [...new Set(sourceReferencesOf(spec).map((reference) => reference.dataSourceKey))]
 }
 
 /**
@@ -94,37 +104,23 @@ function needsDrawnRow(params: QueryParams | undefined): boolean {
 }
 
 export function dataSourceCallsOf(
-  spec: ScreenSpec,
+  spec: SourceBearingScreen,
   from: { screenParams?: Record<string, string>; fields?: Record<string, string | null> } = {},
 ): SourceCall[] {
   const calls = new Map<string, SourceCall>()
-  const walk = (node: unknown) => {
-    if (Array.isArray(node)) {
-      for (const item of node) walk(item)
-      return
-    }
-    if (node === null || typeof node !== 'object') return
-    const holder = node as { dataSourceKey?: unknown; params?: QueryParams }
-    if (typeof holder.dataSourceKey === 'string') {
-      if (!needsDrawnRow(holder.params)) {
-        const params = resolveParams(holder.params, {
-          ...(from.screenParams === undefined ? {} : { screenParams: from.screenParams }),
-          ...(from.fields === undefined ? {} : { fields: from.fields }),
-        })
-        if (!missingKey(holder.dataSourceKey, params)) {
-          const call = { key: holder.dataSourceKey, params }
-          const slot = `${call.key}?${Object.keys(params).sort().map((name) => `${name}=${params[name]}`).join('&')}`
-          calls.set(slot, call)
-        }
+  for (const reference of sourceReferencesOf(spec)) {
+    if (!needsDrawnRow(reference.params)) {
+      const params = resolveParams(reference.params, {
+        ...(from.screenParams === undefined ? {} : { screenParams: from.screenParams }),
+        ...(from.fields === undefined ? {} : { fields: from.fields }),
+      })
+      if (!missingKey(reference.dataSourceKey, params)) {
+        const call = { key: reference.dataSourceKey, params }
+        const slot = `${call.key}?${Object.keys(params).sort().map((name) => `${name}=${params[name]}`).join('&')}`
+        calls.set(slot, call)
       }
     }
-    for (const [name, value] of Object.entries(node)) {
-      // 선택지 출처는 다른 카탈로그다. 그 안으로 들어가지 않는다.
-      if (name === 'optionsSource' || name === 'params') continue
-      walk(value)
-    }
   }
-  walk(spec)
   for (const call of shellCallsOf(spec, from.screenParams ?? {})) {
     const slot = `${call.key}?${Object.keys(call.params).sort().map((name) => `${name}=${call.params[name]}`).join('&')}`
     if (!calls.has(slot)) calls.set(slot, call)
@@ -141,7 +137,7 @@ export function dataSourceCallsOf(
  *
  * 셸을 그리지 않는 화면(들어오는 중·바깥 사람)은 이것도 없다.
  */
-function shellCallsOf(spec: ScreenSpec, screenParams: Record<string, string>): SourceCall[] {
+function shellCallsOf(spec: SourceBearingScreen, screenParams: Record<string, string>): SourceCall[] {
   if (spec.viewer === 'joining' || spec.viewer === 'external') return []
   const shell = shellJson as {
     brand?: { dataSourceKey?: string }
@@ -168,4 +164,3 @@ function shellCallsOf(spec: ScreenSpec, screenParams: Record<string, string>): S
   }
   return calls
 }
-

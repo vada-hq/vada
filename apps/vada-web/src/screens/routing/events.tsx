@@ -1,5 +1,5 @@
 import { lazyScreen } from './lazy-screen'
-import { evt00b, evt05, evt05b, evt01, evt02b, evt03b } from '../../spec/screens'
+import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
 import { readScopeDraft } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
@@ -40,8 +40,8 @@ export const eventsScreens = [
       // 행사명은 화면 안이 아니라 eventCreateDraft에 담긴다(event.create의 payloadScope).
       return (
         <EVT00BScreen
-          draft={readScopeDraft(scopes, evt00b.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(evt00b.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('EVT-00B'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EVT-00B') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -56,8 +56,8 @@ export const eventsScreens = [
       return (
         <EVT01Screen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, evt01.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(evt01.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('EVT-01'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EVT-01') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -72,8 +72,8 @@ export const eventsScreens = [
       return (
         <EVT02BScreen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, evt02b.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(evt02b.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('EVT-02B'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EVT-02B') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -120,8 +120,8 @@ export const eventsScreens = [
       return (
         <EVT03BScreen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, evt03b.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(evt03b.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('EVT-03B'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EVT-03B') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />
@@ -172,8 +172,8 @@ export const eventsScreens = [
       return (
         <EVT05Screen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, evt05.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(evt05.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('EVT-05'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EVT-05') ?? '', next)}
           onNavigate={onNavigate}
         />
       )
@@ -187,8 +187,8 @@ export const eventsScreens = [
       return (
         <EVT05BScreen
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, evt05b.stateScopeKey)}
-          onChangeDraft={(next) => onChangeScope(evt05b.stateScopeKey ?? '', next)}
+          draft={readScopeDraft(scopes, stateScopeKeyOf('EVT-05B'))}
+          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EVT-05B') ?? '', next)}
           onScopeEvent={onScopeEvent}
           onNavigate={onNavigate}
         />

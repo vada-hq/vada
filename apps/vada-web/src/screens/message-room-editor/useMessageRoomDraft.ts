@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { readListSource } from '../../data-sources/catalog'
 import { resolveParams } from '../../spec/params'
-import { elementByNodeId, msg02 } from '../../spec/screens'
+import { elementByNodeId } from '../../spec/screens'
+import { msg02 } from '../../spec/screen-specs/msg02'
 import type {
   ButtonSpec,
   InputSpec,
