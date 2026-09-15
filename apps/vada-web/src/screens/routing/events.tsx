@@ -1,6 +1,6 @@
 import { lazyScreen } from './lazy-screen'
 import { stateScopeKeyOf } from '../../spec/screen-runtime.generated'
-import { readScopeDraft } from '../../state/scopes'
+import { readScopeDraft, scopeDraftKey } from '../../state/scopes'
 import type { ScreenRegistration } from './types'
 
 const EVT00AScreen = lazyScreen(() => import('../EVT00AScreen').then((module) => module.EVT00AScreen))
@@ -68,13 +68,17 @@ export const eventsScreens = [
     screenIds: ['EVT-02B'],
     render: ({ screenParams, scopes, onChangeScope, onNavigate, onScopeEvent }) => {
       // 행사 기본정보 편집 패널이다. 뒤에 EVT-02가 그대로 남는다(명세: overlay).
-      // 초안은 화면 안이 아니라 eventBasicsDraft에 산다.
+      // 초안은 화면 안이 아니라 eventBasicsDraft에 살며 행사별로 분리한다.
+      const draftKey = scopeDraftKey(stateScopeKeyOf('EVT-02B'), {
+        eventId: screenParams.eventId,
+      })
       return (
         <EVT02BScreen
+          key={screenParams.eventId}
           screenParams={screenParams}
-          draft={readScopeDraft(scopes, stateScopeKeyOf('EVT-02B'))}
-          onChangeDraft={(next) => onChangeScope(stateScopeKeyOf('EVT-02B') ?? '', next)}
-          onScopeEvent={onScopeEvent}
+          draft={readScopeDraft(scopes, draftKey)}
+          onChangeDraft={(next) => onChangeScope(draftKey, next)}
+          onScopeEvent={(_scopeKey, event) => onScopeEvent(draftKey, event)}
           onNavigate={onNavigate}
         />
       )

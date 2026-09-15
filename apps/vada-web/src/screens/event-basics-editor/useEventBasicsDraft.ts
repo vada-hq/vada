@@ -48,6 +48,9 @@ export function useEventBasicsDraft({
 
   function goBack(spec: ButtonSpec) {
     if (spec.action.type === 'navigate') {
+      if (spec.action.scopeEvent !== undefined) {
+        onScopeEvent(evt02b.stateScopeKey ?? '', spec.action.scopeEvent)
+      }
       onNavigate(spec.action.targetScreenId, resolveParams(spec.action.params, { screenParams }))
     }
   }
