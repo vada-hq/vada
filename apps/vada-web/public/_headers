@@ -7,3 +7,17 @@
   Referrer-Policy: no-referrer
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=31536000
+
+# Vite가 내용 해시를 붙이는 파일은 주소가 바뀔 때만 내용도 바뀐다.
+/assets/*.js
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*.css
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+/assets/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+# 버전 경로를 바꿔야만 갱신되는 자체 호스팅 글꼴이다.
+/fonts/pretendard/1.3.9/*
+  Cache-Control: public, max-age=31536000, immutable
