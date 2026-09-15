@@ -43,7 +43,7 @@ export async function financeOverviewFacts(db: Db, orgId: string): Promise<Finan
       ...draft.eventItems.map((row) => ({
         id: row.id,
         eventId: row.eventItemEvent,
-        departmentId: null,
+        departmentId: row.eventItemDepartment ?? null,
         amount: row.eventItemAmount,
       })),
     ],

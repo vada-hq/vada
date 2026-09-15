@@ -715,8 +715,9 @@ describe('편성하고 나면 총예산 카드가 선다(FIN-00)', () => {
     ])
     expect(readListSource('finance.orgBreakdown', { scope: 'department' })).toEqual([
       { id: 'D-01', name: '운영부', budget: '3,000,000원', spent: '0원', planned: '0원', available: '3,000,000원', executionPercent: 0 },
-      // 행사 항목은 담당 부서가 없고, 씨앗의 품목은 예산 항목을 가리키지 않는다 — 전부 여기 모인다.
-      { id: 'unassigned', name: '부서 미지정', budget: '2,300,000원', spent: '24,500원', planned: '25,000원', available: '2,250,500원', executionPercent: 2 },
+      // 담당 부서를 저장한 행사 항목은 그 부서에, 지정하지 않은 항목만 미지정에 모인다.
+      { id: 'D-02', name: '재정부', budget: '1,500,000원', spent: '0원', planned: '0원', available: '1,500,000원', executionPercent: 0 },
+      { id: 'unassigned', name: '부서 미지정', budget: '800,000원', spent: '24,500원', planned: '25,000원', available: '750,500원', executionPercent: 6 },
     ])
   })
 
