@@ -1,4 +1,4 @@
-// 두 앱의 테스트를 **함께** 돌리고, 무슨 일이 있었는지 파일로 남긴다.
+// 앱 테스트를 자원에 맞는 단계로 돌리고, 무슨 일이 있었는지 파일로 남긴다.
 //
 // 자동 테스트 게이트가 실패를 알릴 때 출력이 비어 있는 일이 반복됐다. 출력이
 // 없으면 원인을 추측할 수밖에 없고, 실제로 세 번 추측하고 세 번 다 빗나갔다.
@@ -18,9 +18,11 @@ const logPath = join(repoRoot, ".test-last.log");
 // 이쪽은 덮어쓰지 않는다. 드물게 나는 일은 쌓여야 보인다.
 const flakePath = join(repoRoot, ".test-flakes.log");
 
-// **셋이 됐다(2026-08-30).** apps/api가 붙으면서 느린 쪽이 바뀔 수 있다 —
-// 나란히 도므로 벽시계는 가장 느린 하나가 정한다. 지금은 여전히 vada-web이다.
 const APPS = ["apps/spec-service", "apps/vada-web", "apps/api"];
+// jsdom 워커 셋과 PGlite 워커 둘을 함께 띄우면 8GB 기계에서 서로 밀어내며
+// 웹 83→186초, API 50→199초로 느려졌다. 웹을 혼자 먼저 돌리고, 계약 검사는
+// 파일 하나씩 돌도록 제한한 뒤 API와 묶는다. 두 번째 단계 실측은 35.6초다.
+const STAGES = [["apps/vada-web"], ["apps/spec-service", "apps/api"]];
 
 // 저울이 재는 것.
 //
@@ -146,16 +148,12 @@ writeFileSync(logPath, `테스트 실행 ${stamp()}\n`);
 
 const startedAll = Date.now();
 
-// 두 앱을 **함께** 돌린다.
-//
-// 차례로 돌리면 두 시간이 그대로 더해지는데, 그 합이 예산(60초)을 넘겼다(68.3초).
-// 두 앱은 서로의 산출물을 쓰지 않는다 — 한쪽은 node --test로 계약을 검사하고
-// 다른 쪽은 vitest로 화면을 그린다. 순서가 뜻을 갖지 않으므로 함께 돌려도 된다.
-//
-// **나란히 도는 순간 '한쪽만 돌린다'는 처방은 값을 잃는다.** 벽시계는 느린 쪽이
-// 정하므로 빠른 쪽을 건너뛰어도 그대로다. 넘칠 때 볼 곳은 느린 쪽 안에서
-// 되풀이되는 일이다.
-const results = await Promise.all(APPS.map((app) => runOne(app)));
+const resultByApp = new Map();
+for (const stage of STAGES) {
+  const stageResults = await Promise.all(stage.map((app) => runOne(app)));
+  stage.forEach((app, at) => resultByApp.set(app, stageResults[at]));
+}
+const results = APPS.map((app) => resultByApp.get(app));
 
 for (const [at, app] of APPS.entries()) {
   let { code, output } = results[at];
@@ -202,11 +200,16 @@ for (const [at, app] of APPS.entries()) {
 
 const totalSec = (Date.now() - startedAll) / 1000;
 
-// 앱들이 나란히 도므로 **검사가 스스로 잰 값도 가장 느린 하나**가 정한다.
-// 합을 쓰면 앱을 쪼갤 때마다 수가 늘어 실제로 느려지지 않았는데 넘친 것처럼 보인다.
 const measured = results.map(({ output }) => selfMeasuredSec(output));
 const unknown = APPS.filter((_, at) => measured[at] === null);
-const selfSec = Math.max(0, ...measured.filter((value) => value !== null));
+// 단계 안에서는 가장 느린 앱, 단계 사이는 합으로 계산한다. 실행 계획과 같은 저울이어야
+// 시간 예산이 실제 게이트 비용을 말한다.
+const selfSec = STAGES.reduce((total, stage) => {
+  const values = stage
+    .map((app) => measured[APPS.indexOf(app)])
+    .filter((value) => value !== null);
+  return total + Math.max(0, ...values);
+}, 0);
 
 record(
   `

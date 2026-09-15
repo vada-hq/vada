@@ -60,7 +60,7 @@ jobs:
       # 읽는다 — `esbuild@0.28.2`이 잠금에 있는데도 없다고 했다. 잠금은 npm이 쓴 것이므로
       # 읽는 npm도 같아야 한다.
       - run: npm i -g npm@11
-      # `npm test`는 앱 셋을 나란히 돌린다. 하나라도 빠지면 그 앱이 통째로 죽는다.
+      # `npm test`는 웹을 먼저 돌리고 계약·API를 함께 돌린다. 하나라도 빠지면 그 앱이 통째로 죽는다.
       - run: npm ci
         working-directory: apps/spec-service
       - run: npm ci

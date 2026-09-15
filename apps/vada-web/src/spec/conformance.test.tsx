@@ -1,6 +1,6 @@
 import { renderLoaded } from '../test/render-loaded'
 import { describe, expect, it } from 'vitest'
-import { cleanup, screen, within } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ScreenRouter } from '../screens/ScreenRouter'
 import { drawsTitle } from './screens'
@@ -306,23 +306,28 @@ describe.each(SCREENS)('$screenId 스펙 준수', ({ screenId, spec }) => {
     })
     if (plain.length === 0) return
 
+    // onNavigate는 주소만 바깥에 알리고 이 화면을 갈아 끼우지 않는다. 같은 화면의
+    // 단추마다 똑같은 ScreenRouter를 다시 그릴 이유가 없다. 화면 84개에서 이동
+    // 단추는 69개이고, 화면별 한 번으로 묶으면 중복 render 23회를 없앤다.
+    const went: string[] = []
+    const user = userEvent.setup()
+    await renderScreen(screenId, (to) => went.push(to))
+
     for (const element of plain) {
       const button = element.spec as {
         label: string
         action: { targetScreenId: string }
       }
-      const went: string[] = []
-      await renderScreen(screenId, (to) => went.push(to))
       const found = screen.queryAllByRole('button', { name: labelPattern(button.label) })
       // 그려지지 않는 단추는 다른 검사가 잡는다. 여기서는 눌리는 것만 본다.
       if (found[0] !== undefined) {
-        await userEvent.click(found[0])
+        const before = went.length
+        await user.click(found[0])
         expect(
-          went,
+          went.slice(before),
           `${screenId}의 '${button.label}'는 ${button.action.targetScreenId}로 가야 합니다`,
         ).toContain(button.action.targetScreenId)
       }
-      cleanup()
     }
   })
 
