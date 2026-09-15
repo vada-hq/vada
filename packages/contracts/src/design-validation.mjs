@@ -1,5 +1,5 @@
 import { allElementsOf } from "./element-walk.mjs";
-import { DRAFT_SIGNALS } from "./screen-draft.mjs";
+import { DRAFT_SIGNALS } from "./screen-draft-signals.mjs";
 import { elementLabel, isObject } from "./spec-validation-values.mjs";
 
 /** 이 그림 어딘가에 그 글이 그려져 있는가. 셸의 메뉴까지 함께 본다 — 제목이 어느
