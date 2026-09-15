@@ -10,7 +10,13 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import test from 'node:test'
-import { buildOpenApi, requestBodies } from '../apps/spec-service/src/generate-openapi.mjs'
+import {
+  buildVadaOpenApi,
+  buildVadaRequestBodies,
+} from '../apps/spec-service/src/generate-vada-openapi.mjs'
+
+const buildOpenApi = buildVadaOpenApi
+const requestBodies = buildVadaRequestBodies
 
 const repoRoot = fileURLToPath(new URL('../', import.meta.url))
 const OUT = join(repoRoot, 'specs', 'figma', 'vada-wireframe', 'openapi.json')
