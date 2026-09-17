@@ -228,6 +228,9 @@ type PurchaseItem = {
   financeOwner?: string;
   priceEvidence?: string;
   supplementReason?: string;
+  // 재정부가 검토 화면에서 지정한 보완 대상 항목(구매 정보 행의 key). 비어 있으면 지정 없이 전체를 연다.
+  // 사유(supplementReason)가 `왜`라면 이 값은 `어디`다. 둘 다 필요해서 대체하지 않는다.
+  supplementFields?: string[];
   rejectionReason?: string;
   requestCancelReason?: string; // 요청자가 품목을 주문 전 취소한 사유
   // 집행 유형(별칙 제7~21조). 재정부가 검토 단계에서 판정하며 증빙 요건·결제 주체·한도를 결정한다.
@@ -1214,8 +1217,11 @@ const STANDING_CONTAINER_ID = "EVT-STANDING-2026-1";
 // 행사 예산 기본값(체육대회). FIN-REV의 예산 초과 판정과 EVT-FIN 예산 현황이 같은 기준을 쓴다.
 // 행사별 배정 예산 항목. allocated는 편성값, actual은 편성 시점의 기존 실지출 보정치(증빙 완료 실지출은 별도 집계).
 type EventBudgetLine = { name: string; allocated: number; actual: number };
+// actual은 VADA를 거치지 않은 지출의 보정치다. 실제 지출액 = actual + 정산 완료된 실행분 합.
+// REQ-009(정산 완료 표본) 210,000원이 행사 운영비에 잡히므로 그만큼 보정치를 줄여 총계를 유지한다.
+// 보정치를 그대로 두면 같은 지출이 두 번 잡힌다.
 const DEFAULT_BUDGET_LINES: EventBudgetLine[] = [
-  { name: "행사 운영비", allocated: 1500000, actual: 520000 },
+  { name: "행사 운영비", allocated: 1500000, actual: 310000 },
   { name: "홍보비", allocated: 800000, actual: 260000 },
   { name: "식비", allocated: 700000, actual: 170000 },
 ];
@@ -1225,7 +1231,7 @@ const DEFAULT_BUDGET_LINES: EventBudgetLine[] = [
 const PURCHASE_TYPE_FIELDS: Record<string, { key: string; label: string }[]> = {
   "일반 구매": [
     { key: "판매처", label: "판매처 또는 쇼핑몰" },
-    { key: "상품URL", label: "상품 URL" },
+    { key: "상품URL", label: "상품 URL(가격 근거 링크)" },   // 작성 폼·필수 목록과 라벨을 맞춘다
     { key: "옵션규격", label: "상품 옵션 또는 규격" },
     { key: "배송요청", label: "배송 요청사항" },
   ],
@@ -1715,6 +1721,63 @@ const DEFAULT_PURCHASE_REQUESTS: PurchaseRequest[] = [
       { date: "2026-03-06 09:00", action: "요청 생성", user: "박해랑" },
       { date: "2026-03-06 09:10", action: "제출", user: "박해랑" },
       { date: "2026-03-07 10:30", action: "반려", user: "김민준" },
+    ]
+  },
+  {
+    // 정산 완료 표본. 실지출 금액까지 확정돼 종결된 요청이라 처리 단계 `완료 > 정산 완료` 표를 채운다.
+    // 실행분에 actualAmount·paymentSource를 명시해야 정산 완료로 잡힌다(파생 실행분에는 두 값이 없다).
+    // 결제 수단 3종을 하나씩 넣어 `금액 확인`의 선택지가 표에서 어떻게 보이는지 함께 확인한다.
+    // 이 요청의 실지출 합(210,000원)만큼 DEFAULT_BUDGET_LINES의 actual 보정치를 줄여 두었다 —
+    // 실제 지출액 총계는 그대로이고 불투명한 보정치가 눈에 보이는 내역으로 바뀐다.
+    id: "REQ-009",
+    eventId: SPORTS_EVENT_ID,
+    title: "체육대회 사전 준비 물품",
+    event: "2026 소프트웨어융합대학 체육대회",
+    dept: "운영부",
+    requester: "박해랑",
+    purpose: "행사 2주 전 미리 준비한 운영 물품. 수령과 실지출 금액까지 모두 확정됐다.",
+    neededDate: "2026-03-05",
+    priority: "보통",
+    totalEstimatedAmount: 205000,
+    status: "승인",
+    items: [
+      {
+        id: 22, name: "운영본부 접이식 테이블", budgetLine: "행사 운영비", purchaseType: "일반 구매",
+        quantity: 2, unit: "개", estimatedUnitPrice: 45000, estimatedTotalPrice: 90000,
+        status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "수령 완료", evidenceStatus: "해당 없음",
+        priceEvidence: "https://www.daisomall.co.kr/goods/1009001",
+        details: { 판매처: "다이소몰", 상품URL: "https://www.daisomall.co.kr/goods/1009001", 옵션규격: "120x60cm / 화이트", 배송요청: "행사 2주 전 도착" },
+        executions: [
+          { id: "22-EX1", itemId: 22, orderStatus: "주문 완료", receiptStatus: "수령 완료", serviceStatus: "해당 없음", evidenceStatus: "해당 없음", actualAmount: 88000, paymentSource: "학생회 카드" },
+        ],
+      },
+      {
+        id: 23, name: "안내 표지판", budgetLine: "행사 운영비", purchaseType: "제작·인쇄",
+        quantity: 5, unit: "개", estimatedUnitPrice: 15000, estimatedTotalPrice: 75000,
+        status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "수령 완료", evidenceStatus: "해당 없음",
+        priceEvidence: "표지판 견적서.pdf",
+        details: { 업체명: "한양인쇄", 업체사이트URL: "https://example-print.co.kr/sign", 담당자연락처: "02-1234-5678", 제작물종류: "안내 표지판", 규격: "A1 / 폼보드", 재질제작조건: "5T 폼보드", 납품희망일: "2026-03-04", 디자인상태: "준비됨" },
+        executions: [
+          { id: "23-EX1", itemId: 23, orderStatus: "주문 완료", receiptStatus: "수령 완료", serviceStatus: "해당 없음", evidenceStatus: "해당 없음", actualAmount: 75000, paymentSource: "계좌 이체" },
+        ],
+      },
+      {
+        id: 24, name: "구급함 보충 용품", budgetLine: "행사 운영비", purchaseType: "일반 구매",
+        quantity: 1, unit: "세트", estimatedUnitPrice: 40000, estimatedTotalPrice: 40000,
+        status: "승인", financeOwner: "김민준", orderStatus: "주문 완료", fulfillmentStatus: "수령 완료", evidenceStatus: "해당 없음",
+        priceEvidence: "https://www.kurly.com/goods/7001234",
+        details: { 판매처: "쿠팡", 상품URL: "https://www.kurly.com/goods/7001234", 옵션규격: "행사용 구급함 리필 세트", 배송요청: "특이사항 없음" },
+        executions: [
+          { id: "24-EX1", itemId: 24, orderStatus: "주문 완료", receiptStatus: "수령 완료", serviceStatus: "해당 없음", evidenceStatus: "해당 없음", actualAmount: 47000, paymentSource: "사비 선지출" },
+        ],
+      },
+    ],
+    history: [
+      { date: "2026-02-26 10:00", action: "요청 생성", user: "박해랑" },
+      { date: "2026-02-27 09:30", action: "승인", user: "김민준" },
+      { date: "2026-03-02 14:00", action: "주문 완료", user: "김민준" },
+      { date: "2026-03-04 11:00", action: "수령 완료 확인", user: "김민준" },
+      { date: "2026-03-05 16:20", action: "실지출 금액 확정 · 3건 210,000원", user: "김민준" },
     ]
   }
 ];
@@ -2326,7 +2389,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "내 구매 요청 → 보완하기",
     functions: [
       { num: "01", element: "보완 요청 안내", description: "재정부가 남긴 보완 사유를 표시한다." },
-      { num: "02", element: "보완 품목 수정", description: "보완 품목의 **구매 유형별 필수 항목**과 첨부 파일을 수정한다. 입력란은 작성 화면과 같은 정의(PURCHASE_TYPE_REQUIRED_FIELDS)에서 파생하며, 각 칸의 placeholder로 기존 입력값을 보여 준다. 저장은 유형별 필드 key로 하므로 작성·검토·발주 화면이 읽는 details와 같은 자리에 들어간다.", constraint: "제작·인쇄용 4종(규격·색상·인쇄 위치·옵션별 수량)으로 고정하지 않는다. 고정하면 일반 구매·대여·용역 품목에서 관계없는 칸을 채워야 재제출된다. 보완 품목이 여러 개면 대표 품목의 유형을 따른다(입력란이 한 벌인 현재 구조의 한계). 필수 항목에는 `*`를 표시하고 미입력 시 차단 사유를 함께 보여 준다" },
+      { num: "02", element: "보완 품목 수정", description: "보완 품목의 **구매 유형별 전체 상세 항목**과 가격 근거(견적서)를 수정한다. 재정부가 보완 대상을 지정했으면(`supplementFields`) **그 항목만 펼쳐** 보여 주고 나머지는 `다른 항목도 수정하기`로 접어 둔다 — 잠그지는 않는다. 함께 고칠 것이 생겼는데 막히면 보완 왕복이 한 번 더 생긴다. 입력란은 작성 화면과 **같은 정의(PURCHASE_TYPE_FIELDS)**에서 파생하고 필수 표시만 `PURCHASE_TYPE_REQUIRED_FIELDS`로 판정하므로, 작성 화면에 있는 칸은 보완에도 전부 있다. 각 칸의 placeholder로 기존 입력값을 보여 주고, **비운 칸은 기존 값을 유지한다**(빈 칸 = 수정 안 함). 저장은 유형별 필드 key로 하므로 작성·검토·발주 화면이 읽는 details와 같은 자리에 들어간다.", constraint: "필수 목록만 쓰지 않는다. 재정부가 선택 항목(인쇄·후가공 조건, 담당자 연락처 등)의 보완을 요구했을 때 고칠 칸이 없어진다 — 샘플 보완 사유가 요구하는 `인쇄 사양`을 실제로 고칠 수 없었다. 가격 근거는 작성 화면과 같은 `QuoteFileField`를 쓰고 일반 구매에는 표시하지 않는다(상품 URL이 가격 근거다). 유형과 무관한 고정 첨부칸(디자인 파일·인쇄 파일·견적서)을 그리지 않는다. 보완 품목이 여러 개면 대표 품목의 유형을 따른다(입력란이 한 벌인 현재 구조의 한계). 필수 항목에는 `*`를 표시하고 미입력 시 차단 사유를 함께 보여 준다. 지정이 있으면 **지정된 항목만 필수로 판정한다** — 지정 밖의 필수가 원래 비어 있으면 재제출이 막힌다" },
       { num: "03", element: "재제출", description: "필수 보완 항목을 모두 입력하면 재검토 대기 상태로 바꾸고 새 처리 이력을 추가한 뒤, 방금 재제출한 그 요청의 진행 상태(FIN-REQ-02)로 이동한다.", constraint: "이동 대상 요청을 지정하지 않으면 직전에 선택돼 있던 다른 요청 상세가 열린다" },
     ],
     exceptions: ["부서장이더라도 해당 구매 요청의 요청자 본인이 아니면 재제출할 수 없다", "재제출 후 기존 검토 이력을 덮어쓰지 않는다", "역할 예시(김민석·REQ-002)는 **화면 목록에서 직접 열었을 때만** 주입한다. `내 구매 요청 → 보완하기`로 들어오면 누른 요청과 그 요청자를 그대로 쓴다(다른 사람의 요청을 열지 않는다)"],
@@ -3230,6 +3293,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "02", element: "집행 유형 판정", description: "품목별 카드에서 별칙 제7~21조의 집행 유형을 재정부가 선택한다. 선택하면 근거 조항·집행 조건·금액 한도·허용 결제 주체·필수 증빙 항목·필요한 소정 양식을 함께 보여주고, 개인정보가 포함되는 유형은 마스킹 필요를 안내한다.", constraint: "요청자는 집행 유형을 고르지 않는다. 시스템은 조건을 표시만 하고 자동 판정하지 않으며 미선택이어도 승인을 막지 않는다" },
       { num: "03", element: "상태 변경", description: "품목별 카드에서 승인, 보완 요청, 반려 중 선택한다. 승인액은 직접 입력하지 않는다." },
       { num: "04", element: "보완 요청 모달", description: "품목별 보완 사유(필수)와 재제출 기한을 입력한다.", constraint: "재제출 기한은 요청 작성의 `필요한 날짜`와 같은 규칙으로 오늘 이전을 막는다. 이미 지난 기한을 보내면 안 된다" },
+      { num: "04B", element: "보완 대상 항목 지정", description: "`보완`을 고른 품목의 구매 정보 각 행 앞에 체크박스를 두어 **어느 항목을 고쳐야 하는지** 지정한다(`PurchaseItem.supplementFields`). 지정하면 요청자의 재제출 화면이 그 항목만 펼쳐 보여 준다. 사유가 `왜`라면 이 값은 `어디`다.", constraint: "**선택 사항이다.** 하나도 고르지 않으면 종전대로 전체 항목이 열린다 — 강제하면 검토가 느려지고 바쁠 때 아무거나 체크하게 된다. 사유 입력을 대체하지 않는다(둘 다 받는다). 체크박스는 재정부 검토 화면에서만 켠다. `PurchaseInfoPanel`은 요청 상세·발주·칸반 팝오버도 함께 쓰므로 기본값은 꺼짐이다" },
       { num: "05", element: "처리 기록(별도 탭)", description: "상태 변화 이력을 시간순으로 표시한다." },
       { num: "06", element: "확정 후 진행", description: "보완·검토 대기 품목 없이 전량 확정되면 승인 품목은 별도 선진행 동의 대기 없이 바로 주문 대기(구매 준비)로 넘어간다. 보완 품목이 함께 남아 있을 때만 승인 품목을 선진행 동의 대기에 두고 구매 진행 동의로 진행한다.", constraint: "선진행 동의 대기는 부분 승인(보완 품목 공존) 상황에서만 발생한다" },
     ],
@@ -3248,7 +3312,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "04", element: "추가 보완 요청", description: "재검토 결과가 보완 요청이면 품목별 사유를 새로 기록하고 요청자에게 돌려보낸다." },
       { num: "05", element: "처리 기록", description: "최초 제출, 보완 요청, 재제출, 재검토 결과와 처리자를 시간순으로 남긴다." },
     ],
-    exceptions: ["재정부 외 사용자는 재검토 결정을 변경할 수 없다", "미검토 품목이나 반려 사유 누락이 있으면 최종 처리할 수 없다", "재제출 전 내용과 첨부자료를 덮어쓰지 않고 제출본 이력으로 보존한다", "예시(REQ-002 재검토 표본)는 **화면 목록에서 직접 열었을 때만** 주입한다. 재정부 보드의 `재검토 대기` 카드에서 상세보기로 들어오면 그 요청을 그대로 재검토한다", "보완 전·후 비교표의 항목은 재제출 시 저장된 유형별 필드를 그대로 따른다(고정 4종이 아니다)"],
+    exceptions: ["재정부 외 사용자는 재검토 결정을 변경할 수 없다", "미검토 품목이나 반려 사유 누락이 있으면 최종 처리할 수 없다", "재제출 전 내용과 첨부자료를 덮어쓰지 않고 제출본 이력으로 보존한다", "첨부 전·후는 실제 값을 남긴다. 같은 값을 양쪽에 넣으면 비교표가 늘 `변경 없음`이 된다", "재제출하면 보완 대상 지정(supplementFields)을 지운다. 남겨 두면 다음 보완 때 낡은 지정이 그대로 적용된다", "예시(REQ-002 재검토 표본)는 **화면 목록에서 직접 열었을 때만** 주입한다. 재정부 보드의 `재검토 대기` 카드에서 상세보기로 들어오면 그 요청을 그대로 재검토한다", "보완 전·후 비교표의 항목은 재제출 시 저장된 유형별 필드를 그대로 따른다(고정 4종이 아니다)"],
     nextScreens: ["FIN-PROC-01 구매·발주 처리", "FIN-SUP-01B 보완 요청 확인·재제출", "EVT-FIN-01B 행사 재정"],
   },
   "EXT-02A": {
@@ -3562,21 +3626,43 @@ function DetailValue({ value }: { value?: string }) {
   );
   return <span className="text-gray-700 break-words">{value}</span>;
 }
-function PurchaseInfoPanel({ item, cols = 2 }: { item: PurchaseItem; cols?: 1 | 2 }) {
+// 가격 근거(견적서)는 details가 아니라 item.priceEvidence에 있다. 보완 지정에서 한 항목으로 다루려고
+// 별도 key를 준다. 보완 화면(FIN-SUP-01B)도 같은 값을 쓴다.
+const SUPPLEMENT_EVIDENCE_KEY = "__priceEvidence";
+// 구매 정보 행 목록 — 표시·보완 지정이 같은 정의를 쓴다.
+function purchaseInfoRows(item: PurchaseItem): { key: string; label: string; value?: string }[] {
   const fields = PURCHASE_TYPE_FIELDS[item.purchaseType] ?? [];
   // 일반 구매는 가격 근거를 상품 URL 링크로 대체하므로 별도 견적서 행을 두지 않는다. 제작·대여·용역만 업체 견적서를 표시한다.
-  const rows: { label: string; value?: string }[] = [
-    ...(item.purchaseType === "일반 구매" ? [] : [{ label: "업체 견적서", value: item.priceEvidence }]),
-    ...fields.map(f => ({ label: f.label, value: item.details?.[f.key] != null ? String(item.details[f.key]) : undefined })),
+  return [
+    ...(item.purchaseType === "일반 구매" ? [] : [{ key: SUPPLEMENT_EVIDENCE_KEY, label: "업체 견적서", value: item.priceEvidence }]),
+    ...fields.map(f => ({ key: f.key, label: f.label, value: item.details?.[f.key] != null ? String(item.details[f.key]) : undefined })),
   ];
+}
+// selectable은 재정부 검토 화면(FIN-REV-01)에서만 켠다. 요청 상세·발주·칸반 팝오버도 같은 컴포넌트를
+// 쓰므로 기본값은 꺼짐이다. 켜면 각 행 앞에 체크박스가 붙어 보완이 필요한 항목을 지정할 수 있다.
+function PurchaseInfoPanel({ item, cols = 2, selectable = false, selected, onToggle }: {
+  item: PurchaseItem; cols?: 1 | 2;
+  selectable?: boolean; selected?: Set<string>; onToggle?: (key: string) => void;
+}) {
+  const rows = purchaseInfoRows(item);
   return (
     <div className={`grid ${cols === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-x-5 gap-y-1.5`}>
-      {rows.map((r, i) => (
-        <div key={i} className="text-[11px] flex gap-1.5 leading-relaxed">
-          <span className="text-gray-400 shrink-0 min-w-[88px]">{r.label}</span>
-          <DetailValue value={r.value} />
-        </div>
-      ))}
+      {rows.map(r => {
+        const checked = selectable && !!selected?.has(r.key);
+        const body = (
+          <>
+            <span className={`shrink-0 min-w-[88px] ${checked ? "text-amber-700 font-semibold" : "text-gray-400"}`}>{r.label}</span>
+            <DetailValue value={r.value} />
+          </>
+        );
+        if (!selectable) return <div key={r.key} className="text-[11px] flex gap-1.5 leading-relaxed">{body}</div>;
+        return (
+          <label key={r.key} className={`text-[11px] flex gap-1.5 leading-relaxed items-start cursor-pointer rounded px-1 -mx-1 ${checked ? "bg-amber-50" : "hover:bg-gray-50"}`}>
+            <input type="checkbox" checked={checked} onChange={() => onToggle?.(r.key)} className="mt-0.5 shrink-0 accent-amber-600" />
+            {body}
+          </label>
+        );
+      })}
     </div>
   );
 }
@@ -13802,6 +13888,49 @@ function EVTFIN01() {
               </div>
             );
           };
+          // `정산 완료`는 처리할 액션이 없는 유일한 종결 열이다. 칸반 카드가 세로로 긴 이유는 액션 버튼까지
+          // 담기 때문인데 여기는 누를 것이 없다. 조회 전용이므로 표로 그린다.
+          // 카드 226px/건 → 행 44px/건으로 줄어 학기 내내 쌓여도 세로가 감당된다. 완료 영역은 2열뿐이라
+          // 남는 가로 폭(1036 중 556px)을 이 표가 쓴다.
+          const renderSettledTable = (stage: FinancePurchaseProgress) => {
+            const rows = areaRows.filter(row => row.financeProgress === stage);
+            return (
+              <div key={stage} className="flex flex-col gap-2 flex-1 min-w-[420px]">
+                <p className="text-[11px] font-semibold px-1 text-gray-600 flex items-center gap-1.5">
+                  {stage}
+                  <span className="text-[10px] font-bold rounded-full px-1.5 bg-gray-100 text-gray-500">{rows.length}</span>
+                </p>
+                <div className="min-h-[400px] rounded-xl border border-dashed border-gray-200 bg-gray-100/50 overflow-hidden">
+                  {rows.length === 0 ? (
+                    <p className="text-[10px] text-gray-300 text-center py-6">없음</p>
+                  ) : (
+                    <table className="w-full bg-white text-[11px]">
+                      <thead>
+                        <tr className="bg-gray-50 text-gray-400 text-[10px]">
+                          <th className="text-left font-medium px-3 py-2">품목</th>
+                          <th className="text-left font-medium px-3 py-2">요청</th>
+                          <th className="text-right font-medium px-3 py-2">실지출</th>
+                          <th className="text-left font-medium px-3 py-2">결제 수단</th>
+                          <th className="text-left font-medium px-3 py-2">확정</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-50">
+                        {rows.map(({ request, item, execution, rowKey, lastChanged }: any) => (
+                          <tr key={rowKey} className="hover:bg-blue-50/40 cursor-pointer" onClick={() => openPurchaseRequest(request)}>
+                            <td className="px-3 py-2 font-semibold text-gray-800 whitespace-nowrap">{item.name}{execution && execSeq(item, execution) && <span className="ml-1 text-[9px] text-slate-500">#{execSeq(item, execution)}</span>}</td>
+                            <td className="px-3 py-2 text-gray-500 whitespace-nowrap"><span className="text-indigo-500 font-semibold">{request.id}</span> · {request.dept}</td>
+                            <td className="px-3 py-2 text-right font-mono font-semibold text-gray-800 whitespace-nowrap">{execution?.actualAmount != null ? `${execution.actualAmount.toLocaleString()}원` : "—"}</td>
+                            <td className="px-3 py-2 text-gray-500 whitespace-nowrap">{execution?.paymentSource ?? "—"}</td>
+                            <td className="px-3 py-2 text-gray-400 whitespace-nowrap">{String(lastChanged ?? "").slice(0, 10)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+              </div>
+            );
+          };
           const renderColumn = (stage: FinancePurchaseProgress, minH: string, tone: "flow" | "exception" = "flow") => {
             const stageRows = areaRows.filter(row => row.financeProgress === stage);
             const isExc = tone === "exception";
@@ -13844,7 +13973,8 @@ function EVTFIN01() {
                   {flowStages.map((stage, i) => (
                     <React.Fragment key={stage}>
                       {i > 0 && <div className="flex items-center justify-center text-gray-300 text-lg font-bold w-5 shrink-0 pt-9">→</div>}
-                      {renderColumn(stage, "min-h-[400px]", "flow")}
+                      {/* 종결 열만 표로. 나머지는 처리 액션이 있어 카드를 유지한다. */}
+                      {stage === "정산 완료" ? renderSettledTable(stage) : renderColumn(stage, "min-h-[400px]", "flow")}
                     </React.Fragment>
                   ))}
                   {excStages.length > 0 && (
@@ -14617,6 +14747,13 @@ function FINREV01() {
     setReviews(prev => ({ ...prev, [id]: { ...prev[id], executionType } }));
 
   const [supplementReasons, setSupplementReasons] = useState<Record<number, string>>({});
+  // 품목별 보완 대상 항목(구매 정보 행 key). 재정부가 검토 화면에서 체크한다. 선택 사항이라 비워도 된다.
+  const [supplementTargets, setSupplementTargets] = useState<Record<number, Set<string>>>({});
+  const toggleSupplementTarget = (itemId: number, key: string) => setSupplementTargets(prev => {
+    const next = new Set(prev[itemId] ?? []);
+    if (next.has(key)) next.delete(key); else next.add(key);
+    return { ...prev, [itemId]: next };
+  });
   // 재제출 기한. 요청 작성의 `필요한 날짜`와 같은 규칙으로 오늘 이전을 막는다(이미 지난 기한을 보내면 안 된다).
   const [supplementDueDate, setSupplementDueDate] = useState("");
   const supplementDueMin = formatDateInput(new Date());
@@ -14693,6 +14830,10 @@ function FINREV01() {
         status: reviews[item.id]?.status ?? item.status,
         rejectionReason: reviews[item.id]?.status === "반려" ? reviews[item.id]?.rejectionReason.trim() : undefined,
         supplementReason: reviews[item.id]?.status === "보완 요청" ? supplementReasons[item.id]?.trim() : undefined,
+        // 지정한 보완 대상 항목. 하나도 안 골랐으면 undefined로 두어 보완 화면이 전체를 연다(지정은 선택 사항).
+        supplementFields: reviews[item.id]?.status === "보완 요청" && supplementTargets[item.id]?.size
+          ? [...supplementTargets[item.id]]
+          : undefined,
         // 집행 유형은 판정한 값이 있으면 보존한다. 반려·보완이어도 재검토 때 다시 고르지 않게 남긴다.
         executionType: reviews[item.id]?.executionType || item.executionType,
       }));
@@ -14931,8 +15072,19 @@ function FINREV01() {
                               <div className="p-4 flex flex-col gap-4">
                                 {/* 구매 정보 (판매처·옵션·링크 등) */}
                                 <div>
-                                  <p className="text-[10px] font-bold text-gray-400 mb-2">구매 정보</p>
-                                  <PurchaseInfoPanel item={item} />
+                                  <div className="flex items-baseline justify-between gap-3 mb-2">
+                                    <p className="text-[10px] font-bold text-gray-400">구매 정보</p>
+                                    {/* 보완을 고른 품목에만 체크박스를 켠다. 승인·반려에는 지정할 것이 없다. */}
+                                    {reviews[item.id]?.status === "보완 요청" && (
+                                      <p className="text-[10px] text-amber-700">보완이 필요한 항목을 체크하세요 · 선택 사항 {supplementTargets[item.id]?.size ? `(${supplementTargets[item.id].size}개 지정)` : "(미지정 시 전체 수정 가능)"}</p>
+                                    )}
+                                  </div>
+                                  <PurchaseInfoPanel
+                                    item={item}
+                                    selectable={reviews[item.id]?.status === "보완 요청"}
+                                    selected={supplementTargets[item.id]}
+                                    onToggle={key => toggleSupplementTarget(item.id, key)}
+                                  />
                                 </div>
                                 {/* 가격 근거·첨부 */}
                                 <div className="border-t border-gray-100 pt-3">
@@ -14959,7 +15111,7 @@ function FINREV01() {
                                 <div className="border-t border-gray-100 pt-3">
                                   <div className="flex items-center gap-2 mb-2">
                                     <p className="text-[10px] font-bold text-gray-400">집행 유형</p>
-                                    <span className="text-[9px] text-gray-400">별칙 제7~21조 · 증빙 요건과 결제 주체를 결정합니다</span>
+                                    <span className="text-[9px] text-gray-400">증빙 요건과 결제 주체를 결정합니다</span>
                                   </div>
                                   {locked ? (
                                     <p className="text-[10px] font-medium text-gray-600">
@@ -16028,15 +16180,38 @@ function FINSUP01() {
   const primarySupplementItem = supplementItems[0] ?? request.items[0];
   const supplementHistory = [...request.history].reverse().find(item => item.action.includes("보완 요청"));
   const canResubmit = request.requester === currentUser.name && canSubmitPurchaseRequest(currentUser);
-  // 보완 입력란은 보완 품목의 구매 유형별 필수 항목에서 파생한다(작성 화면 FIN-REQ-01B와 같은 축).
-  // 제작·인쇄용 4종으로 고정하면 일반 구매·대여·용역 품목에서 관계없는 칸을 채워야 재제출된다.
+  // 보완 입력란은 작성 화면(FIN-REQ-01B)과 **같은 전체 필드 정의**에서 파생한다.
+  // 필수 목록만 쓰면 재정부가 선택 항목(인쇄·후가공 조건, 담당자 연락처 등)의 보완을 요구했을 때
+  // 요청자가 고칠 칸이 없다 — 실제로 샘플 보완 사유가 요구하는 `인쇄 사양`을 고칠 수 없었다.
   // 보완 품목이 여러 개면 대표 품목의 유형을 따른다(입력란이 한 벌뿐인 현재 구조의 한계).
-  const supplementFields = (PURCHASE_TYPE_REQUIRED_FIELDS[primarySupplementItem?.purchaseType ?? ""] ?? [])
-    .filter(rule => !rule.when || rule.when(primarySupplementItem?.details ?? {}));
+  const supplementType = primarySupplementItem?.purchaseType ?? "";
+  const supplementFields = PURCHASE_TYPE_FIELDS[supplementType] ?? [];
   const [supplement, setSupplement] = useState<Record<string, string>>(() => purchaseSupplementDraft?.values ?? {});
   const [draftSaved, setDraftSaved] = useState(false);
+  const [othersOpen, setOthersOpen] = useState(false); // 지정되지 않은 나머지 항목 펼침
   const updateSupplement = (key: string, value: string) => setSupplement((current) => ({ ...current, [key]: value }));
-  const filledAll = supplementFields.every(field => (supplement[field.key] ?? "").trim() !== "");
+  // 재정부가 검토 화면에서 지정한 보완 대상. 지정이 없으면 전체를 보완 대상으로 본다(지정은 선택 사항).
+  const targeted = primarySupplementItem?.supplementFields ?? [];
+  const hasTargets = targeted.length > 0;
+  const targetSet = new Set(targeted);
+  const targetedFields = hasTargets ? supplementFields.filter(f => targetSet.has(f.key)) : supplementFields;
+  const otherFields = hasTargets ? supplementFields.filter(f => !targetSet.has(f.key)) : [];
+  const evidenceTargeted = !hasTargets || targetSet.has(SUPPLEMENT_EVIDENCE_KEY);
+  // 필수 판정은 작성 화면과 같은 규칙(조건부 필수의 when 포함)을 쓴다.
+  // `supplement` 상태를 읽으므로 반드시 useState 뒤에 둔다(앞에 두면 TDZ 오류로 화면이 죽는다).
+  // 지정이 있으면 **지정된 항목만** 필수로 본다. 지정 밖의 필수가 원래 비어 있었다면 재제출이 막히기 때문이다.
+  const supplementRequiredKeys = new Set((PURCHASE_TYPE_REQUIRED_FIELDS[supplementType] ?? [])
+    .filter(rule => !rule.when || rule.when({ ...primarySupplementItem?.details, ...supplement }))
+    .filter(rule => !hasTargets || targetSet.has(rule.key))
+    .map(rule => rule.key));
+  // 가격 근거(견적서)도 보완 대상이다. 재정부가 "견적서를 다시 확인해 주세요"라고 자주 요구한다.
+  const [supplementEvidence, setSupplementEvidence] = useState(() => primarySupplementItem?.priceEvidence ?? "");
+  const evidenceChanged = supplementEvidence !== (primarySupplementItem?.priceEvidence ?? "");
+  // 필수는 required 목록만 본다. 선택 항목은 비워 두어도 재제출할 수 있다.
+  // 지정이 있으면 지정된 항목 중 필수만 본다(위 supplementRequiredKeys에서 이미 걸렀다).
+  const filledAll = supplementFields
+    .filter(field => supplementRequiredKeys.has(field.key))
+    .every(field => (supplement[field.key] ?? "").trim() !== "");
   const saveDraft = () => {
     setPurchaseSupplementDraft({ values: supplement, savedAt: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) });
     setDraftSaved(true);
@@ -16055,19 +16230,22 @@ function FINSUP01() {
         items: item.items
           .filter(purchaseItem => purchaseItem.status === "보완 요청")
           .map(purchaseItem => {
-            const attachment = purchaseItem.priceEvidence ? [purchaseItem.priceEvidence] : [];
+            // 첨부는 실제 전·후를 남긴다. 전에는 같은 값을 양쪽에 넣어 재검토 비교표가 늘 `변경 없음`이었다.
+            const beforeAttachment = purchaseItem.priceEvidence ? [purchaseItem.priceEvidence] : [];
+            const afterAttachment = supplementEvidence ? [supplementEvidence] : [];
             return {
               itemId: purchaseItem.id,
               itemName: purchaseItem.name,
               reason: purchaseItem.supplementReason ?? "보완 요청 내용을 확인해 주세요.",
               // 보완 전·후 비교(FIN-REV-01B)가 읽는 값. 유형별 필드 정의를 그대로 따라 라벨과 key를 맞춘다.
-              fields: supplementFields.map(field => ({
-                label: field.label,
-                before: String(purchaseItem.details?.[field.key] ?? "미입력"),
-                after: (supplement[field.key] ?? "").trim(),
-              })),
-              beforeAttachments: attachment,
-              afterAttachments: attachment,
+              // 비우고 넘어간 선택 항목은 기존 값을 유지한 것이므로 `after`도 기존 값으로 적는다.
+              fields: supplementFields.map(field => {
+                const before = String(purchaseItem.details?.[field.key] ?? "");
+                const typed = (supplement[field.key] ?? "").trim();
+                return { label: field.label, before: before || "미입력", after: typed || before || "미입력" };
+              }),
+              beforeAttachments: beforeAttachment,
+              afterAttachments: afterAttachment,
             };
           }),
       };
@@ -16078,7 +16256,15 @@ function FINSUP01() {
           ...purchaseItem,
           status: "검토 대기",
           // 유형별 필드 key로 저장하므로 작성·검토·발주 화면이 읽는 details와 같은 자리에 들어간다.
-          details: { ...purchaseItem.details, ...Object.fromEntries(supplementFields.map(field => [field.key, (supplement[field.key] ?? "").trim()])) },
+          // 비우고 넘어간 칸은 덮어쓰지 않는다 — 전체 항목을 보여 주므로 빈 칸이 곧 `수정 안 함`이다.
+          details: { ...purchaseItem.details, ...Object.fromEntries(
+            supplementFields
+              .filter(field => (supplement[field.key] ?? "").trim() !== "")
+              .map(field => [field.key, supplement[field.key].trim()])
+          ) },
+          priceEvidence: supplementEvidence || purchaseItem.priceEvidence,
+          // 재제출하면 이번 보완 지시는 끝난다. 지정을 남겨 두면 다음 보완 때 낡은 지정이 그대로 적용된다.
+          supplementFields: undefined,
         } : purchaseItem),
         supplementSubmissions: [...(item.supplementSubmissions ?? []), submission],
         history: [...item.history, { date: submission.submittedAt, action: "보완 내용 재제출", user: currentUser.name }],
@@ -16151,43 +16337,74 @@ function FINSUP01() {
 
             {/* 수정 영역 */}
             <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">수정 내용 입력 <span className="normal-case tracking-normal text-gray-400">· {primarySupplementItem?.purchaseType} 필수 항목</span></p>
-              <div className="grid grid-cols-2 gap-4">
-                {supplementFields.map(field => {
+              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">
+                {hasTargets ? "보완 요청 항목" : "수정 내용 입력"}
+                <span className="normal-case tracking-normal text-gray-400"> · {hasTargets ? `재정부가 지정한 ${targetedFields.length + (targetSet.has(SUPPLEMENT_EVIDENCE_KEY) ? 1 : 0)}개` : `${supplementType} 전체 항목 (작성 화면과 동일)`}</span>
+              </p>
+              {(() => {
+                const renderField = (field: { key: string; label: string }) => {
                   const before = String(primarySupplementItem?.details?.[field.key] ?? "").trim();
+                  const required = supplementRequiredKeys.has(field.key);
                   return (
                     <div key={field.key} className="flex flex-col gap-1">
-                      <label className="text-[11px] font-bold text-gray-600">{field.label}<span className="text-red-500 ml-0.5">*</span></label>
+                      <label className="text-[11px] font-bold text-gray-600">{field.label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
                       <input className="border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 bg-white" value={supplement[field.key] ?? ""} onChange={(event) => updateSupplement(field.key, event.target.value)} placeholder={before ? `기존: ${before}` : `${field.label} 입력`} />
                     </div>
                   );
-                })}
-                {supplementFields.length === 0 && <p className="text-[11px] text-gray-400 col-span-2">이 구매 유형은 별도 필수 입력 항목이 없습니다. 첨부 파일만 보완해 재제출하세요.</p>}
-              </div>
+                };
+                return (
+                  <>
+                    <div className="grid grid-cols-2 gap-4">
+                      {targetedFields.map(renderField)}
+                      {targetedFields.length === 0 && <p className="text-[11px] text-gray-400 col-span-2">{hasTargets ? "지정된 상세 항목이 없습니다. 아래 가격 근거만 보완하면 됩니다." : "이 구매 유형은 별도 상세 입력 항목이 없습니다."}</p>}
+                    </div>
+                    {/* 지정 밖 항목은 잠그지 않고 접어 둔다. 요청자가 함께 고칠 것이 생겨도 길이 막히지 않는다. */}
+                    {otherFields.length > 0 && (
+                      <div className="mt-4 border-t border-gray-100 pt-3">
+                        <button type="button" onClick={() => setOthersOpen(open => !open)} className="text-[11px] font-medium text-gray-500 hover:text-blue-600">
+                          {othersOpen ? "▾" : "▸"} 다른 항목도 수정하기 ({otherFields.length})
+                        </button>
+                        {othersOpen && (
+                          <div className="grid grid-cols-2 gap-4 mt-3">
+                            {otherFields.map(renderField)}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
+                );
+              })()}
               {/* 버튼이 왜 눌리지 않는지 알려 준다. 비활성만 두면 사용자가 이유를 알 수 없다. */}
-              {!filledAll && <p className="text-[11px] text-red-500 mt-3">필수 항목(*)을 모두 입력해야 재제출할 수 있습니다.</p>}
+              {!filledAll && <p className="text-[11px] text-red-500 mt-3">필수 항목(*)을 모두 입력해야 재제출할 수 있습니다. 나머지는 고칠 것만 채우면 됩니다.</p>}
             </div>
 
-            {/* 파일 첨부 */}
-            <div>
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">파일 첨부</p>
-              <div className="grid grid-cols-3 gap-3">
-                {["디자인 파일", "인쇄 파일", "견적서"].map(label => (
-                  <div key={label} className="border-2 border-dashed border-gray-200 rounded-lg p-4 flex flex-col items-center gap-2 text-center">
-                    <Upload className="w-5 h-5 text-gray-300" />
-                    <p className="text-[10px] font-semibold text-gray-400">{label}</p>
-                    <p className="text-[9px] text-gray-300">클릭하여 파일 추가</p>
-                  </div>
-                ))}
+            {/* 가격 근거(견적서) — 작성 화면과 같은 컴포넌트를 쓴다.
+                예전에는 `디자인 파일 / 인쇄 파일 / 견적서` 3칸이 유형과 무관하게 고정으로 그려졌고
+                핸들러가 없어 아무것도 첨부되지 않았다. 일반 구매 보완인데 `인쇄 파일`이 뜨기도 했다. */}
+            {supplementType !== "일반 구매" && evidenceTargeted && (
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">가격 근거{hasTargets && <span className="normal-case tracking-normal text-amber-700"> · 재정부 지정</span>}</p>
+                <div className="bg-blue-50 border border-blue-100 rounded-lg p-4">
+                  <QuoteFileField
+                    inputId="supplement_quote_file"
+                    value={supplementEvidence}
+                    onPick={fileName => setSupplementEvidence(fileName)}
+                    onClear={() => setSupplementEvidence("")}
+                    required={supplementType !== "제작·인쇄"}
+                    hint={supplementType === "제작·인쇄"
+                      ? "견적서 파일 또는 업체 사이트 URL 중 하나면 됩니다. 바꾸지 않으려면 그대로 두세요."
+                      : "대여·용역은 가격 근거로 업체 견적서가 필요합니다. 바꾸지 않으려면 그대로 두세요."}
+                  />
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
         <div className="flex justify-end gap-3">
           {draftSaved && <span className="self-center text-[11px] text-green-600 font-medium">임시 저장되었습니다</span>}
           {/* 아무것도 입력하지 않은 상태를 저장하면 다음 진입에서 `이어서 작성 중` 안내만 잘못 뜬다. */}
-          <button disabled={!supplementFields.some(field => (supplement[field.key] ?? "").trim() !== "")} className="border border-gray-200 text-gray-600 disabled:text-gray-300 disabled:border-gray-100 px-5 py-2.5 rounded-lg text-sm font-medium" onClick={saveDraft}>임시 저장</button>
+          <button disabled={!supplementFields.some(field => (supplement[field.key] ?? "").trim() !== "") && !evidenceChanged} className="border border-gray-200 text-gray-600 disabled:text-gray-300 disabled:border-gray-100 px-5 py-2.5 rounded-lg text-sm font-medium" onClick={saveDraft}>임시 저장</button>
           <button disabled={!canResubmit || !filledAll} onClick={resubmit} className="bg-blue-600 disabled:bg-gray-300 text-white px-6 py-2.5 rounded-lg text-sm font-bold">수정 내용 재제출</button>
         </div>
       </div>

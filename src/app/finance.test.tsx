@@ -5,6 +5,10 @@ import { SCREEN_COMPONENTS, AppContext, EVIDENCE_STAGE_ENABLED, ADVANCE_CLAIM_EN
 
 afterEach(cleanup);
 
+// 결제 수단 라벨은 `금액 확인` 팝오버의 버튼과 `정산 완료` 표의 셀에 모두 나온다(표본 REQ-009 추가 이후).
+// 선택 동작은 버튼을 눌러야 하므로 역할로 좁혀 찾는다.
+const clickSource = (label: string) => fireEvent.click(screen.getByRole("button", { name: label }));
+
 // 재정 도메인 화면들 — 렌더 시 런타임 오류(흰 화면 등)가 없는지 자동 확인
 const FINANCE_SCREENS = [
   "EVT-FIN-01", "EVT-FIN-01B", "EVT-FIN-01C", "EVT-FIN-01C-B", "MY-REQ-01", "FIN-REQ-01B", "FIN-REQ-01C", "FIN-REQ-02",
@@ -140,7 +144,7 @@ describe("금액 확인 — 실지출 확정이 예산 실제 지출액으로 �
   // 표본 REQ-004 배너 거치대: 수령 완료, 승인액 4개 × 20,000원 = 80,000원, 예산 항목 `행사 운영비`.
   const SETTLE_LABEL = "승인액과 동일 · 80,000원";
   // 2026-09-02부터 실지출 확정은 결제 수단 선택이 선행한다. 기본값을 두지 않는 이유는 SettleAmountPanel 주석 참조.
-  const pickCard = () => fireEvent.click(screen.getByText("학생회 카드"));
+  const pickCard = () => clickSource("학생회 카드");
 
   // 기본 컨텍스트의 setter는 no-op이라 상태 전이를 볼 수 없다. 실제 useState를 물려 구매 요청을 살아 있게 한다.
   const Harness = ({ children }: { children: React.ReactNode }) => {
@@ -252,7 +256,7 @@ describe.skipIf(EVIDENCE_STAGE_ENABLED)("FIN-PROC-01도 실지출 금액을 확�
     expect(container.textContent, "실지출 열이 있어야 함").toContain("실지출");
     expect(container.textContent, "확정 전에는 미확정").toContain("미확정");
 
-    fireEvent.click(screen.getByText("사비 선지출"));
+    clickSource("사비 선지출");
     fireEvent.click(screen.getByText("승인액과 동일 · 80,000원"));
 
     expect(container.textContent).toContain("80,000원");
@@ -393,7 +397,7 @@ describe.skipIf(EVIDENCE_STAGE_ENABLED)("금액 확인 — 결제 수단을 함�
   it("세 가지 결제 수단을 고를 수 있다", () => {
     openCard();
     for (const label of ["학생회 카드", "계좌 이체", "사비 선지출"]) {
-      expect(screen.queryByText(label), `${label} 선택지가 있어야 함`).not.toBeNull();
+      expect(screen.queryByRole("button", { name: label }), `${label} 선택지가 있어야 함`).not.toBeNull();
     }
   });
 
@@ -406,7 +410,7 @@ describe.skipIf(EVIDENCE_STAGE_ENABLED)("금액 확인 — 결제 수단을 함�
 
   it("결제 수단을 고르면 확정할 수 있고, 고른 값이 카드에 남는다", () => {
     const { container } = openCard();
-    fireEvent.click(screen.getByText("사비 선지출"));
+    clickSource("사비 선지출");
     expect(settleButton().disabled).toBe(false);
     fireEvent.click(settleButton());
 
@@ -417,13 +421,13 @@ describe.skipIf(EVIDENCE_STAGE_ENABLED)("금액 확인 — 결제 수단을 함�
   // 결제 수단은 기록 전용이다. 여기서 예산·종결이 갈리기 시작하면 AdvanceClaim을 이름만 바꿔 재발명하게 된다.
   it("어떤 결제 수단을 골라도 예산 반영은 같다", () => {
     const view1 = openCard();
-    fireEvent.click(screen.getByText("학생회 카드"));
+    clickSource("학생회 카드");
     fireEvent.click(settleButton());
     const withCard = view1.container.textContent?.includes("1,030,000");
     cleanup();
 
     const view2 = openCard();
-    fireEvent.click(screen.getByText("사비 선지출"));
+    clickSource("사비 선지출");
     fireEvent.click(settleButton());
     expect(view2.container.textContent?.includes("1,030,000")).toBe(withCard);
   });
