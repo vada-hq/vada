@@ -1,0 +1,71 @@
+// @vitest-environment jsdom
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import App from './App'
+
+const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn(), refetch: vi.fn() }))
+vi.mock('./auth/auth-client', () => ({ authClient: { useSession: auth.useSession, signIn: { social: auth.social }, signOut: auth.signOut } }))
+vi.mock('./access/Memberships', () => ({ default: ({ renderOrganization }: { renderOrganization: (organization: { id: string; name: string }) => import('react').ReactNode }) => <>{renderOrganization({ id: 'o1', name: '검증 학생회' })}</> }))
+vi.mock('./events/Events', () => ({ default: ({ organizationId }: { organizationId: string }) => <p>행사 영역: {organizationId}</p> }))
+beforeEach(() => {
+  vi.resetAllMocks()
+  window.history.replaceState(null, '', '/')
+  auth.useSession.mockReturnValue({ data: null, isPending: false, error: null, refetch: auth.refetch })
+})
+afterEach(cleanup)
+
+test('anonymous user starts Google login with same-origin callbacks', async () => {
+  auth.social.mockResolvedValue({ error: null })
+  render(<App />)
+  fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+  await waitFor(() => expect(auth.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/', errorCallbackURL: '/' }))
+})
+
+test('session loading and failures are not presented as logged out', () => {
+  auth.useSession.mockReturnValue({ data: null, isPending: true, error: null })
+  const view = render(<App />)
+  expect(screen.getByRole('status').textContent).toContain('확인 중')
+  expect(screen.queryByRole('button', { name: 'Google로 로그인' })).toBeNull()
+  auth.useSession.mockReturnValue({ data: null, isPending: false, error: { message: 'private error' }, refetch: auth.refetch })
+  view.rerender(<App />)
+  expect(screen.getByRole('alert').textContent).toContain('세션을 확인하지 못했어요')
+  fireEvent.click(screen.getByRole('button', { name: '다시 확인' }))
+  expect(auth.refetch).toHaveBeenCalled()
+})
+
+test('authenticated user can logout and session changes update the screen', async () => {
+  auth.useSession.mockReturnValue({ data: { user: { name: '테스터', email: 'test@example.test' } }, isPending: false, error: null })
+  auth.signOut.mockResolvedValue({ error: null })
+  const view = render(<App />)
+  expect(screen.getByText('test@example.test')).toBeTruthy()
+  expect(screen.getByText('행사 영역: o1')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
+  await waitFor(() => expect(auth.signOut).toHaveBeenCalledOnce())
+  auth.useSession.mockReturnValue({ data: null, isPending: false, error: null })
+  view.rerender(<App />)
+  expect(screen.getByRole('button', { name: 'Google로 로그인' })).toBeTruthy()
+  expect(screen.queryByText('행사 영역: o1')).toBeNull()
+})
+
+test('login failure allows retry without exposing the raw error', async () => {
+  auth.social.mockRejectedValue(new Error('private error'))
+  render(<App />)
+  fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+  await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('로그인을 시작하지 못했어요'))
+  expect(screen.getByRole('button', { name: 'Google로 로그인' }).hasAttribute('disabled')).toBe(false)
+})
+
+test('OAuth callback failure is explained without showing its raw value', () => {
+  window.history.replaceState(null, '', '/?error=access_denied')
+  render(<App />)
+  expect(screen.getByRole('alert').textContent).toContain('로그인이 완료되지 않았어요')
+})
+
+test('logout failure keeps the signed-in state and enables retry', async () => {
+  auth.useSession.mockReturnValue({ data: { user: { name: '테스터', email: 'test@example.test' } }, isPending: false, error: null })
+  auth.signOut.mockResolvedValue({ error: { message: 'private error' } })
+  render(<App />)
+  fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
+  await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('로그아웃하지 못했어요'))
+  expect(screen.getByRole('button', { name: '로그아웃' }).hasAttribute('disabled')).toBe(false)
+})

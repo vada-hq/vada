@@ -1,0 +1,216 @@
+import assert from 'node:assert/strict'
+import { fileURLToPath } from 'node:url'
+import { mkdtempSync, readFileSync, writeFileSync, mkdirSync, copyFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { test } from 'node:test'
+import { PGlite } from '@electric-sql/pglite'
+import { drizzle } from 'drizzle-orm/pglite'
+import { migrate } from 'drizzle-orm/pglite/migrator'
+
+test('event migration upgrades existing data and enforces event constraints', async (t) => {
+  const pg = new PGlite()
+  const previous = mkdtempSync(join(tmpdir(), 'vada-event-migration-'))
+  try {
+    const folder = fileURLToPath(new URL('../../migrations', import.meta.url))
+    const journal = JSON.parse(readFileSync(join(folder, 'meta/_journal.json'), 'utf8'))
+    journal.entries = journal.entries.slice(0, 2)
+    mkdirSync(join(previous, 'meta'))
+    writeFileSync(join(previous, 'meta/_journal.json'), JSON.stringify(journal))
+    for (const entry of journal.entries) copyFileSync(join(folder, `${entry.tag}.sql`), join(previous, `${entry.tag}.sql`))
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u1','Planner','planner@example.test');
+      INSERT INTO organizations (id,name) VALUES ('org1','Council');
+      INSERT INTO departments (id,organization_id,name) VALUES ('d1','org1','Planning'),('d2','org1','Finance');
+      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m1','u1','org1','d1');
+      INSERT INTO accounts (id,user_id,provider_id,account_id) VALUES ('a1','u1','google','test-subject');
+      INSERT INTO sessions (id,user_id,token,expires_at) VALUES ('s1','u1','test-token',now()+interval '1 day');
+      INSERT INTO verifications (id,identifier,value,expires_at) VALUES ('v1','test','test-value',now()+interval '1 day');
+    `)
+    const oldTables = ['users', 'organizations', 'departments', 'memberships', 'accounts', 'sessions', 'verifications']
+    const before = await Promise.all(oldTables.map(table => pg.query(`SELECT * FROM ${table} ORDER BY id`)))
+    await migrate(db, { migrationsFolder: folder })
+    await t.test('all existing rows survive the upgrade', async () => {
+      const after = await Promise.all(oldTables.map(table => pg.query(`SELECT * FROM ${table} ORDER BY id`)))
+      assert.deepEqual(after.map(result => result.rows), before.map(result => result.rows))
+    })
+    const insert = (id: string, name: string | null, org = 'org1', creator = 'u1') => pg.query(
+      'INSERT INTO events (id,organization_id,name,created_by) VALUES ($1,$2,$3,$4)', [id, org, name, creator],
+    )
+    await t.test('valid names including duplicates are accepted', async () => {
+      await insert('e1', '가을 행사')
+      await insert('e2', '가을 행사')
+      const result = await pg.query<{ count: number }>('SELECT count(*)::int AS count FROM events WHERE created_at IS NOT NULL')
+      assert.equal(result.rows[0]?.count, 2)
+    })
+    await t.test('empty and whitespace-only names and null names are rejected', async () => {
+      for (const name of ['', '   ', '\t\r\n']) {
+        await assert.rejects(insert('invalid', name), { code: '23514', constraint: 'events_name_not_blank' })
+      }
+      await assert.rejects(insert('invalid', null), { code: '23502' })
+    })
+    await t.test('missing organization and creator are rejected', async () => {
+      await assert.rejects(insert('invalid', '행사', 'missing'), { code: '23503', constraint: 'events_organization_id_organizations_id_fk' })
+      await assert.rejects(insert('invalid', '행사', 'org1', 'missing'), { code: '23503', constraint: 'events_created_by_users_id_fk' })
+    })
+    await t.test('department change and leaving membership preserve events', async () => {
+      await pg.query("UPDATE memberships SET department_id='d2' WHERE id='m1'")
+      await pg.query("DELETE FROM memberships WHERE id='m1'")
+      const result = await pg.query<{ created_by: string }>('SELECT created_by FROM events ORDER BY id')
+      assert.deepEqual(result.rows, [{ created_by: 'u1' }, { created_by: 'u1' }])
+      await assert.rejects(pg.query("DELETE FROM users WHERE id='u1'"), { code: '23001', constraint: 'events_created_by_users_id_fk' })
+      await pg.query("INSERT INTO organizations (id,name) VALUES ('org2','Second council')")
+      await insert('e3', '별도 행사', 'org2')
+      await assert.rejects(pg.query("DELETE FROM organizations WHERE id='org2'"), { code: '23001', constraint: 'events_organization_id_organizations_id_fk' })
+    })
+    await t.test('reapplying migrations preserves events and does not duplicate history', async () => {
+      await migrate(db, { migrationsFolder: folder })
+      assert.equal((await pg.query('SELECT id FROM events')).rows.length, 3)
+      const currentJournal = JSON.parse(readFileSync(join(folder, 'meta/_journal.json'), 'utf8'))
+      assert.equal((await pg.query('SELECT id FROM drizzle.__drizzle_migrations')).rows.length, currentJournal.entries.length)
+    })
+  } finally {
+    await pg.close()
+    // 이 테스트가 mkdtempSync로 만든 전용 임시 폴더만 정리한다.
+    rmSync(previous, { recursive: true, force: true })
+  }
+})
+
+test('chat migration backfills event rooms and enforces room/message boundaries', async () => {
+  const pg = new PGlite()
+  const previous = mkdtempSync(join(tmpdir(), 'vada-chat-migration-'))
+  try {
+    const folder = fileURLToPath(new URL('../../migrations', import.meta.url))
+    const journal = JSON.parse(readFileSync(join(folder, 'meta/_journal.json'), 'utf8'))
+    journal.entries = journal.entries.slice(0, 3)
+    mkdirSync(join(previous, 'meta'))
+    writeFileSync(join(previous, 'meta/_journal.json'), JSON.stringify(journal))
+    for (const entry of journal.entries) copyFileSync(join(folder, `${entry.tag}.sql`), join(previous, `${entry.tag}.sql`))
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous })
+    await pg.exec(`
+      INSERT INTO users(id,name,email) VALUES ('u','User','u@test.local');
+      INSERT INTO organizations(id,name) VALUES ('o','Council'),('other','Other');
+      INSERT INTO events(id,organization_id,name,created_by) VALUES ('e','o','Event','u');
+    `)
+    const before = (await pg.query('SELECT * FROM events')).rows
+    await migrate(db, { migrationsFolder: folder })
+    assert.deepEqual((await pg.query('SELECT * FROM events')).rows, before)
+    const rooms = await pg.query<{ id: string; organization_id: string; event_id: string }>('SELECT id,organization_id,event_id FROM chat_rooms')
+    assert.equal(rooms.rows.length, 1)
+    assert.equal(rooms.rows[0]?.event_id, 'e')
+    assert.equal(rooms.rows[0]?.organization_id, 'o')
+    await assert.rejects(pg.query("INSERT INTO chat_rooms(id,organization_id,event_id) VALUES ('dup','o','e')"), { code: '23505' })
+    await pg.exec("INSERT INTO events(id,organization_id,name,created_by) VALUES ('other-event','other','Other','u')")
+    await assert.rejects(pg.query("INSERT INTO chat_rooms(id,organization_id,event_id) VALUES ('cross','o','other-event')"), { code: '23503' })
+    await assert.rejects(pg.query("INSERT INTO chat_rooms(id,organization_id) VALUES ('missing','missing')"), { code: '23503' })
+    await pg.exec("INSERT INTO chat_rooms(id,organization_id) VALUES ('r1','o'),('r2','o')")
+    const insert = (content: string, room = 'r1', author = 'u') => pg.query('INSERT INTO messages(id,chat_room_id,author_id,content) VALUES ($1,$2,$3,$4)', ['m', room, author, content])
+    for (const content of ['', ' \t\n', 'a'.repeat(2001)]) await assert.rejects(insert(content), { code: '23514' })
+    await assert.rejects(insert('Hi', 'missing'), { code: '23503' })
+    await assert.rejects(insert('Hi', 'r1', 'missing'), { code: '23503' })
+    await insert('a'.repeat(2000))
+    await assert.rejects(pg.query("DELETE FROM chat_rooms WHERE id='r1'"), { code: '23001' })
+    await assert.rejects(pg.query("DELETE FROM events WHERE id='e'"), { code: '23001' })
+    await migrate(db, { migrationsFolder: folder })
+    assert.equal((await pg.query('SELECT id FROM chat_rooms')).rows.length, 3)
+    assert.equal((await pg.query('SELECT id FROM messages')).rows.length, 1)
+  } finally {
+    await pg.close()
+    // 이 테스트가 만든 전용 임시 폴더만 정리한다.
+    rmSync(previous, { recursive: true, force: true })
+  }
+})
+
+test('generated migrations enforce membership and authentication constraints in PostgreSQL (PGlite)', async (t) => {
+  // 경로나 연결 문자열을 전달하지 않고 테스트 전용 메모리 DB만 사용한다.
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    const config = { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) }
+    await migrate(db, config)
+    await pg.exec(`
+      INSERT INTO users (id, name, email) VALUES ('u1', 'Planner', 'planner@example.test');
+      INSERT INTO organizations (id, name) VALUES ('org1', 'Council 1'), ('org2', 'Council 2');
+      INSERT INTO departments (id, organization_id, name) VALUES
+        ('d1', 'org1', 'Planning'), ('d2', 'org1', 'Finance'), ('d3', 'org2', 'Planning');
+    `)
+
+    await t.test('valid membership is saved', async () => {
+      await pg.query('INSERT INTO memberships (id, user_id, organization_id, department_id) VALUES ($1, $2, $3, $4)', ['m1', 'u1', 'org1', 'd1'])
+      const result = await pg.query<{ department_id: string }>('SELECT department_id FROM memberships WHERE id = $1', ['m1'])
+      assert.equal(result.rows[0]?.department_id, 'd1')
+    })
+
+    await t.test('duplicate membership is rejected even for a different department', async () => {
+      await assert.rejects(
+        pg.query('INSERT INTO memberships (id, user_id, organization_id, department_id) VALUES ($1, $2, $3, $4)', ['m2', 'u1', 'org1', 'd2']),
+        { code: '23505', constraint: 'memberships_organization_user_unique' },
+      )
+    })
+
+    await t.test('department from another organization is rejected', async () => {
+      await assert.rejects(
+        pg.query('INSERT INTO memberships (id, user_id, organization_id, department_id) VALUES ($1, $2, $3, $4)', ['m3', 'u1', 'org2', 'd1']),
+        { code: '23503', constraint: 'memberships_department_same_organization' },
+      )
+    })
+
+    await t.test('the same user can belong to a different organization', async () => {
+      await pg.query('INSERT INTO memberships (id, user_id, organization_id, department_id) VALUES ($1, $2, $3, $4)', ['m4', 'u1', 'org2', 'd3'])
+      const result = await pg.query<{ count: number }>('SELECT count(*)::int AS count FROM memberships')
+      assert.equal(result.rows[0]?.count, 2)
+    })
+
+    await t.test('running migrations again preserves existing data', async () => {
+      await migrate(db, config)
+      const result = await pg.query<{ count: number }>('SELECT count(*)::int AS count FROM memberships')
+      assert.equal(result.rows[0]?.count, 2)
+    })
+
+    await t.test('authentication migrations enforce identity, session and deletion constraints', async () => {
+      await pg.exec(`
+        INSERT INTO users (id, name, email) VALUES ('u2', 'Tester', 'tester@example.test');
+        INSERT INTO accounts (id, user_id, provider_id, account_id) VALUES
+          ('a1', 'u1', 'google', 'google-1'), ('a2', 'u2', 'google', 'google-2');
+        INSERT INTO sessions (id, user_id, token, expires_at) VALUES
+          ('s1', 'u1', 'test-token-1', now() + interval '1 day'),
+          ('s2', 'u2', 'test-token-2', now() + interval '1 day');
+        INSERT INTO verifications (id, identifier, value, expires_at) VALUES
+          ('v1', 'test-identifier', 'value-1', now() + interval '1 day'),
+          ('v2', 'test-identifier', 'value-2', now() + interval '1 day');
+      `)
+      await assert.rejects(
+        pg.query("INSERT INTO accounts (id, user_id, provider_id, account_id) VALUES ('a3', 'u2', 'google', 'google-1')"),
+        { code: '23505', constraint: 'accounts_provider_account_unique' },
+      )
+      await assert.rejects(
+        pg.query("INSERT INTO sessions (id, user_id, token, expires_at) VALUES ('s3', 'u2', 'test-token-1', now())"),
+        { code: '23505', constraint: 'sessions_token_unique' },
+      )
+      await assert.rejects(
+        pg.query("INSERT INTO accounts (id, user_id, provider_id, account_id) VALUES ('a4', 'missing', 'google', 'google-4')"),
+        { code: '23503' },
+      )
+      await assert.rejects(
+        pg.query("INSERT INTO sessions (id, user_id, token, expires_at) VALUES ('s4', 'missing', 'test-token-4', now())"),
+        { code: '23503' },
+      )
+      await assert.rejects(pg.query("DELETE FROM users WHERE id = 'u1'"), {
+        code: '23001', constraint: 'memberships_user_id_users_id_fk',
+      })
+      await pg.query("DELETE FROM users WHERE id = 'u2'")
+      await migrate(db, config)
+      const accounts = await pg.query<{ id: string }>('SELECT id FROM accounts ORDER BY id')
+      const sessions = await pg.query<{ id: string }>('SELECT id FROM sessions ORDER BY id')
+      const verifications = await pg.query<{ count: number }>('SELECT count(*)::int AS count FROM verifications')
+      assert.deepEqual(accounts.rows, [{ id: 'a1' }])
+      assert.deepEqual(sessions.rows, [{ id: 's1' }])
+      assert.equal(verifications.rows[0]?.count, 2)
+    })
+  } finally {
+    await pg.close()
+  }
+})

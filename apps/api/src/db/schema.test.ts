@@ -1,0 +1,107 @@
+import assert from 'node:assert/strict'
+import { test } from 'node:test'
+import { getTableConfig, PgDialect } from 'drizzle-orm/pg-core'
+import { accounts, chatRooms, departments, events, memberships, messages, organizations, sessions, users, verifications } from './schema.js'
+
+test('all entities have primary keys and creation timestamps', () => {
+  for (const table of [users, organizations, departments, memberships, accounts, sessions, verifications, events, chatRooms, messages]) {
+    assert.equal(table.id.primary, true)
+    assert.equal(table.createdAt.notNull, true)
+    assert.equal(table.createdAt.hasDefault, true)
+  }
+  assert.equal(users.email.isUnique, true)
+  assert.equal(users.emailVerified.default, false)
+  assert.equal(departments.handlesFinance.default, false)
+})
+
+test('events belong to an organization and retain a user as creator independently of membership', () => {
+  const config = getTableConfig(events)
+  assert.deepEqual(config.columns.map(column => column.name), ['id', 'organization_id', 'name', 'created_by', 'created_at'])
+  assert.ok(config.columns.every(column => column.notNull))
+  assert.equal(config.foreignKeys.length, 2)
+  for (const [columnName, parent] of [['organization_id', organizations], ['created_by', users]] as const) {
+    const fk = config.foreignKeys.find(key => key.reference().columns[0]?.name === columnName)
+    assert.ok(fk)
+    assert.equal(fk.reference().foreignTable, parent)
+    assert.equal(fk.onDelete, 'restrict')
+  }
+  assert.equal(events.name.isUnique, false)
+  assert.deepEqual(config.uniqueConstraints.map(key => key.columns.map(column => column.name)), [['organization_id', 'id']])
+  const check = config.checks.find(item => item.name === 'events_name_not_blank')
+  assert.ok(check)
+  assert.match(new PgDialect().sqlToQuery(check.value).sql, /\[\^\[:space:\]\]/)
+})
+
+test('rooms optionally reference one event in the same council; messages reference rooms', () => {
+  assert.equal(chatRooms.eventId.notNull, false)
+  assert.equal(chatRooms.eventId.isUnique, true)
+  const fk = getTableConfig(chatRooms).foreignKeys.find(key => key.reference().columns.length === 2)!
+  assert.deepEqual(fk.reference().columns.map(column => column.name), ['organization_id', 'event_id'])
+  assert.equal(fk.reference().foreignTable, events)
+  assert.deepEqual(getTableConfig(messages).columns.map(column => column.name), ['id', 'chat_room_id', 'author_id', 'content', 'created_at'])
+  assert.equal(getTableConfig(messages).foreignKeys.length, 2)
+})
+
+test('provider identities are unique and authentication records belong to users', () => {
+  assert.equal(accounts.accountId.notNull, true)
+  assert.equal(accounts.providerId.notNull, true)
+  assert.ok(getTableConfig(accounts).uniqueConstraints.some(({ columns }) =>
+    columns.map(column => column.name).join(',') === 'provider_id,account_id',
+  ))
+  for (const table of [accounts, sessions]) {
+    assert.equal(table.userId.notNull, true)
+    const fk = getTableConfig(table).foreignKeys[0]
+    assert.ok(fk)
+    assert.equal(fk.reference().foreignTable, users)
+    assert.deepEqual(fk.reference().columns.map(column => column.name), ['user_id'])
+    assert.equal(fk.onDelete, 'cascade')
+    const indexedColumn = getTableConfig(table).indexes[0]?.config.columns[0]
+    assert.ok(indexedColumn && 'name' in indexedColumn)
+    assert.equal(indexedColumn.name, 'user_id')
+  }
+  assert.equal(accounts.password.notNull, false)
+  assert.equal(accounts.accessToken.notNull, false)
+})
+
+test('sessions require unique tokens and expiry; verification identifiers are not unique', () => {
+  assert.equal(sessions.token.notNull, true)
+  assert.equal(sessions.token.isUnique, true)
+  assert.equal(sessions.expiresAt.notNull, true)
+  assert.equal(sessions.ipAddress.notNull, false)
+  assert.equal(sessions.userAgent.notNull, false)
+  assert.equal(verifications.identifier.notNull, true)
+  assert.equal(verifications.identifier.isUnique, false)
+  assert.equal(verifications.value.notNull, true)
+  assert.equal(verifications.expiresAt.notNull, true)
+  const indexedColumn = getTableConfig(verifications).indexes[0]?.config.columns[0]
+  assert.ok(indexedColumn && 'name' in indexedColumn)
+  assert.equal(indexedColumn.name, 'identifier')
+  for (const table of [accounts, sessions, verifications]) {
+    assert.equal(table.updatedAt.notNull, true)
+    assert.equal(table.updatedAt.hasDefault, true)
+    assert.ok(table.updatedAt.onUpdateFn)
+  }
+})
+
+test('a user has at most one membership in each organization', () => {
+  const constraints = getTableConfig(memberships).uniqueConstraints
+  assert.ok(constraints.some(({ columns }) =>
+    columns.length === 2 && columns[0]?.name === 'organization_id' && columns[1]?.name === 'user_id',
+  ))
+  assert.equal(memberships.userId.notNull, true)
+  assert.equal(memberships.organizationId.notNull, true)
+  assert.equal(memberships.departmentId.notNull, true)
+})
+
+test('membership department must belong to the same organization', () => {
+  const fk = getTableConfig(memberships).foreignKeys.find(key => key.reference().columns.length === 2)
+  assert.ok(fk)
+  const reference = fk.reference()
+  assert.deepEqual(reference.columns.map(column => column.name), ['organization_id', 'department_id'])
+  assert.equal(reference.foreignTable, departments)
+  assert.deepEqual(reference.foreignColumns.map(column => column.name), ['organization_id', 'id'])
+  assert.equal(fk.onDelete, 'restrict')
+  assert.ok(getTableConfig(departments).uniqueConstraints.some(({ columns }) =>
+    columns.length === 2 && columns[0]?.name === 'organization_id' && columns[1]?.name === 'id',
+  ))
+})

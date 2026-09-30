@@ -1,0 +1,23 @@
+{
+  "name": "vada-m1",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "scripts": {
+    "dev:web": "npm run dev --workspace @vada/web",
+    "dev:api": "npm run dev --workspace @vada/api",
+    "typecheck": "npm run typecheck --workspaces",
+    "build": "npm run typecheck --workspace @vada/api && npm run build --workspace @vada/web",
+    "start": "npm run start --workspace @vada/api",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.4",
+    "typescript": "7.0.2"
+  }
+}
