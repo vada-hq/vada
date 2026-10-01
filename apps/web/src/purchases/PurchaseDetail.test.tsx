@@ -3,8 +3,9 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import PurchaseDetail from './PurchaseDetail'
 import { draft } from './purchase-test-fixtures'
+import { json, mockApi } from '../test-support/mock-api'
 
-afterEach(cleanup)
+afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 test('a detail loaded in an inactive panel does not steal keyboard focus', () => {
   const control = document.createElement('button')
   document.body.append(control)
@@ -25,4 +26,17 @@ test('detail focuses its heading, separates evidence and delegates navigation', 
   fireEvent.click(screen.getByRole('button', { name: '요청 목록으로' }))
   expect(chat).toHaveBeenCalledOnce()
   expect(back).toHaveBeenCalledOnce()
+})
+test('only an approved request shows purchase processing with delivery status', async () => {
+  const api = mockApi()
+  api.on('GET', '/api/organizations/o/events/e/deliveries', () => json({ nextCursor: null,
+    items: [{ id: 'i', requestId: 'r', productName: '테이블', quantity: 2, shipments: [] }] }))
+  const detail = (status: 'approved' | 'submitted') => <PurchaseDetail request={{ ...draft(), status }} busy={false} stale={false} dirty={false} finance={false}
+    onDirty={() => {}} onSave={() => {}} onDiscard={() => {}} onReload={() => {}} onSubmit={() => {}} onDecide={() => {}} onBack={() => {}} />
+  const view = render(detail('approved'))
+  expect(await screen.findByRole('region', { name: '구매·발주 처리' })).toBeTruthy()
+  view.rerender(detail('submitted'))
+  expect(screen.queryByRole('region', { name: '구매·발주 처리' })).toBeNull()
+  expect(api.calls).toHaveLength(1)
+  api.assertNoUnexpectedRequests()
 })

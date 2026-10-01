@@ -72,6 +72,11 @@ test.each(['approved', 'rejected'] as const)('chat → draft → save → submit
   api.on('GET', `${base}/finance`, () => json({ requests: [submitted], nextCursor: null }))
   api.on('GET', `${base}/finance/r`, () => json({ request: submitted }))
   api.on('POST', `${base}/finance/r/decision`, () => json({ request: decided }))
+  // 승인된 요청서만 배송 정보를 요청한다. 반려 경로에는 등록하지 않아 요청이 없음을 함께 검증한다.
+  if (decision === 'approved') {
+    api.on('GET', base.replace('/purchase-requests', '/deliveries'), () => json({ items: [], nextCursor: null }))
+    api.on('GET', '/api/organizations/o/delivery-carriers', () => json({ carriers: [], nextCursor: null }))
+  }
   const finance = render(workspace(true))
   await enterEvent()
   fireEvent.click(screen.getByRole('tab', { name: '구매요청' }))
@@ -84,6 +89,7 @@ test.each(['approved', 'rejected'] as const)('chat → draft → save → submit
   await screen.findByRole('heading', { name: `구매요청서 · ${label}` })
   expect(api.calls.find(c => c.path.endsWith('/decision'))?.body).toEqual({ version: 3, decision,
     ...(decision === 'rejected' ? { reason: '수량 재확인' } : {}) })
+  if (decision === 'approved') expect(await screen.findByRole('button', { name: '송장 조회' })).toBeTruthy()
   finance.unmount()
 
   api.on('GET', base, () => json({ requests: [decided], nextCursor: null }))
@@ -95,6 +101,10 @@ test.each(['approved', 'rejected'] as const)('chat → draft → save → submit
   expect(await screen.findByRole('heading', { name: `구매요청서 · ${label}` })).toBeTruthy()
   if (decision === 'rejected') expect(within(screen.getByRole('region', { name: '반려 결과' })).getByText('수량 재확인')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '요청 승인' })).toBeNull()
+  if (decision === 'approved') {
+    expect(await screen.findByRole('region', { name: '구매·발주 처리' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '송장 조회' })).toBeNull()
+  } else expect(screen.queryByRole('region', { name: '구매·발주 처리' })).toBeNull()
 })
 
 test('a late draft response after changing events cannot open the old request in the new event', async () => {

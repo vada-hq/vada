@@ -27,6 +27,8 @@ test('provider posts to fixed endpoint, strips private fields and maps status co
 test('carrier pagination passes only safe fields and uses provider cursor', async () => {
   const provider = createDeliveryTracker({ clientId: 'id', clientSecret: 'key', fetch: async (_url, init) => {
     assert.deepEqual(JSON.parse(init?.body as string).variables, { after: 'cursor', search: '쿠팡' })
+    // 헤더가 없으면 택배사 이름이 영어로 온다. 사용자에게 보이는 이름이므로 한국어를 요청한다.
+    assert.equal(new Headers(init?.headers).get('Accept-Language'), 'ko')
     return Response.json({ data: { carriers: { edges: [{ node: { id: 'kr.coupangls', name: '쿠팡', private: 'secret' } }], pageInfo: { hasNextPage: true, endCursor: 'next' } } } })
   } })
   assert.deepEqual(await provider.carriers('cursor', '쿠팡'), { carriers: [{ id: 'kr.coupangls', name: '쿠팡' }], nextCursor: 'next' })

@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { PurchaseDetail as PurchaseRequest, UpdatePurchaseDraftRequest } from '@vada/contracts'
 import DraftForm from './DraftForm'
 import FinanceReview from './FinanceReview'
+import DeliveryPanel from '../deliveries/DeliveryPanel'
 import { analyzeDraft, createDraftValues } from './draft-form-model'
 import { purchaseStatusLabels } from './purchase-status'
 
@@ -32,6 +33,7 @@ export default function PurchaseDetail({ onBack, onReturnToChat, ...props }: Pro
     </header>
     {request.status === 'rejected' && <section className="purchase-card" aria-label="반려 결과"><h3>반려 사유</h3><p>{[...request.history].reverse().find(entry => entry.action === 'rejected')?.reason ?? '사유를 확인할 수 없어요.'}</p></section>}
     {request.warnings.length > 0 && <details className="purchase-card"><summary>초안 생성 시 확인 사항</summary><ul>{request.warnings.map((warning, i) => <li key={i}>{warning}</li>)}</ul></details>}
+    {request.status === 'approved' && <DeliveryPanel request={request} finance={props.finance} />}
     <div className="purchase-detail-grid">
       <div className="purchase-card">
         <DraftForm request={request} busy={busy} stale={props.stale} dirty={props.dirty} readOnly={props.finance}

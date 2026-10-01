@@ -44,6 +44,13 @@ vada-m1/
 │  │  │  │  ├─ CreateEventForm.test.tsx
 │  │  │  │  ├─ useEvents.ts        # 행사 목록 조회·생성
 │  │  │  │  └─ useEvents.test.tsx
+│  │  │  ├─ deliveries/           # 승인된 요청서의 배송 상태·송장 등록(임시 화면)
+│  │  │  │  ├─ DeliveryPanel.tsx   # 품목별 배송 상태 표·새로고침·연결 해제
+│  │  │  │  ├─ DeliveryPanel.test.tsx
+│  │  │  │  ├─ ShipmentForm.tsx    # 재정부 택배사 선택·송장 조회 후 등록
+│  │  │  │  ├─ useDeliveries.ts    # 배송 API 호출·오류 문구
+│  │  │  │  ├─ delivery-status.ts  # 상태 문구·택배사 이름
+│  │  │  │  └─ Deliveries.css
 │  │  │  └─ purchases/
 │  │  │     ├─ Purchases.tsx       # 조회 훅·목록·모달·상세 조합과 이동 보호
 │  │  │     ├─ Purchases.test.tsx

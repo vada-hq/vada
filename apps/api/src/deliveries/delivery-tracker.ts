@@ -18,7 +18,8 @@ export function createDeliveryTracker(options: Options): DeliveryProvider & Trac
     try {
       const response = await request('https://apis.tracker.delivery/graphql', {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(15_000),
-        headers: { Authorization: `TRACKQL-API-KEY ${options.clientId}:${options.clientSecret}`, 'Content-Type': 'application/json' },
+        // Accept-Language가 없으면 택배사 이름이 영어로 온다.
+        headers: { Authorization: `TRACKQL-API-KEY ${options.clientId}:${options.clientSecret}`, 'Content-Type': 'application/json', 'Accept-Language': 'ko' },
         body: JSON.stringify({ query, variables }),
       })
       if (!response.ok) throw new DeliveryError('DELIVERY_PROVIDER_FAILED', 502)

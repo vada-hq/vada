@@ -36,7 +36,9 @@ test('returning after a status change focuses the list when the row is filtered 
   const submitted = { ...draft(), status: 'submitted' as const }
   vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok({ requests: [submitted], nextCursor: null }))
     .mockResolvedValueOnce(ok({ request: submitted }))
-    .mockResolvedValueOnce(ok({ request: { ...submitted, status: 'approved', version: 2 } })))
+    .mockResolvedValueOnce(ok({ request: { ...submitted, status: 'approved', version: 2 } }))
+    // 승인된 요청서는 배송 정보를 요청한다. 이 테스트는 배송 기능이 꺼진 서버(404)를 가정한다.
+    .mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) }))
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   render(<Purchases {...props} finance />)
   fireEvent.change(screen.getByLabelText('상태 필터'), { target: { value: 'submitted' } })
