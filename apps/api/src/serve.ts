@@ -10,10 +10,15 @@ import { createEventRoutes } from './events/events.js'
 import { createChatRoutes } from './chat/chat.js'
 import { createPurchaseRoutes } from './purchases/purchases.js'
 import { createDraftGenerator } from './purchases/generation.js'
+import { createDeliveryRoutes } from './deliveries/routes.js'
+import { createDeliveryTracker } from './deliveries/delivery-tracker.js'
+import { createDeliveryWebhook } from './deliveries/webhook.js'
+import { trackingConfig } from './deliveries/tracking-config.js'
 
 function main() {
   const { env, production, hostname, port } = readRuntime(process.env, process.argv.includes('--production'))
   if (production) process.env.NODE_ENV = 'production'
+  const tracking = trackingConfig(env)
   // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
   const client = postgres(env.DATABASE_URL!, {
     max: 5, ssl: { rejectUnauthorized: true }, connect_timeout: 15, onnotice: () => {},
@@ -33,7 +38,13 @@ function main() {
     reefApiKey: env.REEF_API_KEY,
   })
   const purchases = createPurchaseRoutes(db, (headers) => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!, generate)
-  const app = createApp(auth, access, events, chat, purchases)
+  // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
+  const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,
+    headers => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!,
+    createDeliveryTracker({ clientId: env.DELIVERY_TRACKER_CLIENT_ID, clientSecret: env.DELIVERY_TRACKER_CLIENT_SECRET }),
+  ) : undefined
+  const app = createApp(auth, access, events, chat, purchases, deliveries)
+  if (tracking) app.route('/api', createDeliveryWebhook(db, tracking.address))
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)

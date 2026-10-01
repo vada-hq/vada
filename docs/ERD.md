@@ -151,3 +151,81 @@ erDiagram
 - `purchase_request_history`: `(request_id, version)`은 중복 불가이며 반려 이력에는 공백이 아닌 사유가 필요하다. 구매 관련 외래 키는 부모 삭제를 제한한다.
 - 상태 대응: `draft` 검토 대기 · `discarded` 폐기 · `submitted` 접수 · `approved` 승인 · `rejected` 반려. 생성 중·실패는 요청서 상태가 아니다.
 - DB는 품목·이력이 0개인 요청도 허용한다. 생성 원자성, 제출 필수값, 권한, 상태 전환, 버전 비교·증가, 조회 원본·이력의 수정 금지는 서버 책임이며 이 스키마만으로 보장하지 않는다.
+
+## 배송 추적
+
+배송 상태는 구매요청서의 승인 상태와 독립적이다. 스키마·마이그레이션, [등록·조회 API](delivery-api.md), [자동 갱신 실행기](delivery-worker.md)를 작성했다. Neon 반영, 실제 외부 연결 검증, 화면 연결·배포는 별도 단계다.
+
+```mermaid
+erDiagram
+    organizations ||..o{ shipments : "학생회 배송"
+    users ||..o{ shipments : "등록"
+    shipments ||..o{ shipmentItems : "품목 연결 이력"
+    purchaseRequests ||..o{ shipmentItems : "같은 학생회 요청"
+    purchaseItems ||..o{ shipmentItems : "요청서 내 품목"
+    users ||..o{ shipmentItems : "연결자"
+    users |o..o{ shipmentItems : "해제자"
+    shipments ||..o{ shipmentJobs : "추적 작업"
+    shipments ||..o{ shipmentRegistrations : "등록 재시도 기록"
+    users ||..o{ shipmentRegistrations : "등록 요청자"
+
+    shipments {
+        text id PK
+        text organization_id FK
+        text carrier_id "택배사 선택값"
+        text tracking_number "문자열 송장번호"
+        text status "unknown / pending / in_transit / delivered / exception"
+        text provider_status "원본 상태 코드"
+        timestamptz last_event_at "배송 이벤트 시각"
+        timestamptz last_checked_at "마지막 조회 성공"
+        timestamptz last_attempt_at "마지막 조회 시도"
+        text last_error_code "민감정보 없는 실패 코드"
+        boolean tracking_active
+        integer tracking_version "연결 변경 시 과거 작업 결과 차단"
+        timestamptz webhook_expires_at
+        text created_by FK
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    shipmentItems["shipment_items"] {
+        text id PK "연결별 이력 ID"
+        text organization_id FK "복합 FK"
+        text shipment_id FK
+        text request_id FK "학생회 및 품목 검증용"
+        text purchase_item_id FK
+        text linked_by FK
+        timestamptz linked_at
+        text unlinked_by FK "연결 중이면 null"
+        timestamptz unlinked_at "연결 중이면 null"
+    }
+    shipmentJobs["shipment_jobs"] {
+        text id PK
+        text shipment_id FK
+        text kind "register / refresh / unregister"
+        text status "pending / running / completed / failed"
+        timestamptz run_after
+        integer attempts
+        timestamptz locked_until "running일 때만 필수"
+        text last_error_code
+        timestamptz created_at
+        timestamptz updated_at
+    }
+    shipmentRegistrations["shipment_registrations"] {
+        text id PK
+        text organization_id FK "배송과 복합 FK"
+        text actor_id FK
+        text idempotency_key
+        text input_hash "정규화 입력 SHA256"
+        text shipment_id FK
+        timestamptz created_at
+    }
+```
+
+- `shipments`: `(organization_id, carrier_id, tracking_number)` 중복 불가. 송장번호의 앞자리 0을 보존한다. 택배사·송장번호 공백값을 금지한다. 초기 배송 상태는 `unknown`이다. 조회 실패는 배송 상태가 아니며 마지막 조회 상태를 초기화하지 않는 것은 서버 책임이다.
+- `shipment_items`: `(organization_id, shipment_id)` → 배송, `(organization_id, request_id)` → 요청서, `(request_id, purchase_item_id)` → 품목의 복합 FK로 다른 학생회·요청서 품목 연결을 막는다. 기존 요청서·품목에는 참조용 복합 고유키만 추가하여 기존 컬럼·데이터는 유지한다.
+- 연결 중인 `(shipment_id, purchase_item_id)` 조합만 중복을 금지한다. 해제자·해제 시각은 함께 기록하고 해제 시각은 연결 시각보다 빠를 수 없다. 재연결은 새 ID로 기록한다. 승인 여부·재정부 권한·해제 이력 수정 금지는 서버에서 검증한다.
+- 합배송·분할배송을 표현하지만 배송별 수량 배분은 저장하지 않는다. 연결된 배송이 모두 완료돼도 요청 수량 전체의 도착이나 요청서 전체 완료로 판정하지 않는다. 배송 정보 미등록은 활성 연결이 없는 상태다.
+- `shipment_jobs`: 같은 배송·종류의 대기 작업과 실행 작업을 각각 최대 하나로 제한한다. 실행 중 새 알림은 다음 대기 작업 하나에 병합할 수 있다. `register` 작업은 신규 등록과 만료 갱신에 사용한다. 시도 횟수는 0 이상이며 실행 중에만 잠금 만료 시각을 갖는다.
+- 실행기는 배송 행을 먼저 잠그고 배송당 한 작업을 선점한다. `attempts`와 잠금 기한으로 회수 전 작업자의 결과를 거부하며, `tracking_version`으로 연결 변경 전 조회 결과를 거부한다. 버전은 양수이고 재등록·마지막 연결 해제·배송 완료 시 증가한다. DB 제약만으로 자동 갱신이 실행되지는 않는다. 배송과 작업을 포함한 모든 신규 FK는 부모 삭제를 제한한다.
+- `shipment_registrations`: `(organization_id, actor_id, idempotency_key)` 중복 불가. 등록 결과를 영속 보관하여 연결 해제 뒤 오래된 등록 요청이 재전송되어도 다시 연결하지 않는다. 같은 키에 다른 입력은 거부한다. 연결 해제 API는 품목 ID가 아니라 연결 ID를 받아 재연결 후 옛 해제 요청이 새 연결에 영향을 주지 않도록 한다.
+- 구성원에게 공유하는 응답은 배송 요약으로 한정하며 기존 요청서 근거 대화·이력의 조회 권한은 확장하지 않는다. 재정부 외 구성원의 송장번호는 마지막 네 자리만 표시한다.

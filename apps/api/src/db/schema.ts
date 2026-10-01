@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm'
-import { boolean, check, date, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique } from 'drizzle-orm/pg-core'
+import { boolean, check, date, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core'
 
 // Better Auth의 사용자 필드. 학생회 소속과 권한은 memberships에서 관리한다.
 export const users = pgTable('users', {
@@ -171,6 +171,7 @@ export const purchaseRequests = pgTable('purchase_requests', {
     foreignColumns: [departments.organizationId, departments.id],
   }).onDelete('restrict'),
   unique('purchase_requests_requester_key_unique').on(table.requesterId, table.idempotencyKey),
+  unique('purchase_requests_organization_id_unique').on(table.organizationId, table.id),
   check('purchase_requests_key_not_blank', sql`${table.idempotencyKey} ~ '[^[:space:]]'`),
   check('purchase_requests_status_valid', sql`${table.status} IN ('draft','discarded','submitted','approved','rejected')`),
   check('purchase_requests_version_positive', sql`${table.version} > 0`),
@@ -197,6 +198,7 @@ export const purchaseItems = pgTable('purchase_items', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   unique('purchase_items_request_position_unique').on(table.requestId, table.position),
+  unique('purchase_items_request_id_unique').on(table.requestId, table.id),
   check('purchase_items_position_nonnegative', sql`${table.position} >= 0`),
   check('purchase_items_url_not_blank', sql`${table.productUrl} ~ '[^[:space:]]'`),
   check('purchase_items_quantity_positive', sql`${table.quantity} > 0`),
@@ -234,4 +236,95 @@ export const purchaseRequestHistory = pgTable('purchase_request_history', {
   check('purchase_history_version_positive', sql`${table.version} > 0`),
   check('purchase_history_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
   check('purchase_history_rejection_reason', sql`${table.action} <> 'rejected' OR (${table.reason} IS NOT NULL AND ${table.reason} ~ '[^[:space:]]')`),
+])
+
+// 승인 상태와 독립적인 배송 상태. 외부 조회 성공 시각과 배송 이벤트 시각을 구분한다.
+export const shipments = pgTable('shipments', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull()
+    .references(() => organizations.id, { onDelete: 'restrict' }),
+  carrierId: text('carrier_id').notNull(),
+  trackingNumber: text('tracking_number').notNull(),
+  status: text('status', { enum: ['unknown', 'pending', 'in_transit', 'delivered', 'exception'] }).notNull().default('unknown'),
+  providerStatus: text('provider_status'),
+  lastEventAt: timestamp('last_event_at', { withTimezone: true }),
+  lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
+  lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }),
+  lastErrorCode: text('last_error_code'),
+  trackingActive: boolean('tracking_active').notNull().default(true),
+  trackingVersion: integer('tracking_version').notNull().default(1),
+  webhookExpiresAt: timestamp('webhook_expires_at', { withTimezone: true }),
+  createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, table => [
+  unique('shipments_organization_id_unique').on(table.organizationId, table.id),
+  unique('shipments_organization_carrier_number_unique').on(table.organizationId, table.carrierId, table.trackingNumber),
+  check('shipments_carrier_not_blank', sql`${table.carrierId} ~ '[^[:space:]]'`),
+  check('shipments_number_not_blank', sql`${table.trackingNumber} ~ '[^[:space:]]'`),
+  check('shipments_status_valid', sql`${table.status} IN ('unknown','pending','in_transit','delivered','exception')`),
+  check('shipments_tracking_version_positive', sql`${table.trackingVersion} > 0`),
+  index('shipments_renewal_idx').on(table.webhookExpiresAt, table.id).where(sql`${table.trackingActive} = true`),
+])
+
+// 이력 보존을 위해 연결별 ID를 둔다. 재연결은 기존 행을 덮어쓰지 않고 새 행을 만든다.
+// requestId는 복합 FK용이다. 같은 학생회의 요청서·품목·배송만 연결한다.
+export const shipmentItems = pgTable('shipment_items', {
+  id: text('id').primaryKey(),
+  shipmentId: text('shipment_id').notNull(),
+  purchaseItemId: text('purchase_item_id').notNull(),
+  requestId: text('request_id').notNull(),
+  organizationId: text('organization_id').notNull(),
+  linkedBy: text('linked_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  linkedAt: timestamp('linked_at', { withTimezone: true }).notNull().defaultNow(),
+  unlinkedBy: text('unlinked_by').references(() => users.id, { onDelete: 'restrict' }),
+  unlinkedAt: timestamp('unlinked_at', { withTimezone: true }),
+}, table => [
+  foreignKey({ name: 'shipment_items_shipment_same_organization', columns: [table.organizationId, table.shipmentId], foreignColumns: [shipments.organizationId, shipments.id] }).onDelete('restrict'),
+  foreignKey({ name: 'shipment_items_request_same_organization', columns: [table.organizationId, table.requestId], foreignColumns: [purchaseRequests.organizationId, purchaseRequests.id] }).onDelete('restrict'),
+  foreignKey({ name: 'shipment_items_item_same_request', columns: [table.requestId, table.purchaseItemId], foreignColumns: [purchaseItems.requestId, purchaseItems.id] }).onDelete('restrict'),
+  uniqueIndex('shipment_items_active_pair_unique').on(table.shipmentId, table.purchaseItemId).where(sql`${table.unlinkedAt} IS NULL`),
+  index('shipment_items_request_idx').on(table.requestId, table.purchaseItemId),
+  check('shipment_items_unlink_pair', sql`(${table.unlinkedAt} IS NULL) = (${table.unlinkedBy} IS NULL)`),
+  check('shipment_items_unlink_time', sql`${table.unlinkedAt} >= ${table.linkedAt}`),
+])
+
+// 작업은 DB에 보존한다. worker가 만료 잠금 회수·재시도·중복 알림 병합을 담당한다.
+export const shipmentJobs = pgTable('shipment_jobs', {
+  id: text('id').primaryKey(),
+  shipmentId: text('shipment_id').notNull().references(() => shipments.id, { onDelete: 'restrict' }),
+  kind: text('kind', { enum: ['register', 'refresh', 'unregister'] }).notNull(),
+  status: text('status', { enum: ['pending', 'running', 'completed', 'failed'] }).notNull().default('pending'),
+  runAfter: timestamp('run_after', { withTimezone: true }).notNull().defaultNow(),
+  attempts: integer('attempts').notNull().default(0),
+  lockedUntil: timestamp('locked_until', { withTimezone: true }),
+  lastErrorCode: text('last_error_code'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, table => [
+  check('shipment_jobs_kind_valid', sql`${table.kind} IN ('register','refresh','unregister')`),
+  check('shipment_jobs_status_valid', sql`${table.status} IN ('pending','running','completed','failed')`),
+  check('shipment_jobs_attempts_nonnegative', sql`${table.attempts} >= 0`),
+  check('shipment_jobs_running_lease', sql`(${table.status} = 'running') = (${table.lockedUntil} IS NOT NULL)`),
+  // 실행 중 알림은 다음 대기 작업 하나로 합친다. 진행 중 작업과 대기 작업은 공존 가능하다.
+  uniqueIndex('shipment_jobs_pending_unique').on(table.shipmentId, table.kind).where(sql`${table.status} = 'pending'`),
+  uniqueIndex('shipment_jobs_running_unique').on(table.shipmentId, table.kind).where(sql`${table.status} = 'running'`),
+  index('shipment_jobs_due_idx').on(table.runAfter, table.id).where(sql`${table.status} = 'pending'`),
+  index('shipment_jobs_lease_idx').on(table.lockedUntil, table.id).where(sql`${table.status} = 'running'`),
+])
+
+// 연결 해제 뒤 도착한 과거 등록 재시도가 재연결을 만들지 않도록 결과를 보존한다.
+export const shipmentRegistrations = pgTable('shipment_registrations', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  idempotencyKey: text('idempotency_key').notNull(),
+  inputHash: text('input_hash').notNull(),
+  shipmentId: text('shipment_id').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  unique('shipment_registrations_actor_key_unique').on(table.organizationId, table.actorId, table.idempotencyKey),
+  foreignKey({ name: 'shipment_registrations_same_organization', columns: [table.organizationId, table.shipmentId], foreignColumns: [shipments.organizationId, shipments.id] }).onDelete('restrict'),
+  check('shipment_registrations_key_not_blank', sql`${table.idempotencyKey} ~ '[^[:space:]]'`),
+  check('shipment_registrations_hash_valid', sql`${table.inputHash} ~ '^[a-f0-9]{64}$'`),
 ])

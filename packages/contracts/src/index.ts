@@ -1,6 +1,8 @@
 export interface HealthResponse {
   status: 'ok'
 }
+export type { DeliveryStatus, DeliveryLookupRequest, RegisterShipmentRequest, UnlinkShipmentRequest,
+  DeliveryLookupResponse, DeliveryCarriersResponse, ShipmentRegistrationResponse, DeliverySummary, EventDeliveriesResponse } from './deliveries.js'
 
 export interface MembershipSummary {
   id: string
