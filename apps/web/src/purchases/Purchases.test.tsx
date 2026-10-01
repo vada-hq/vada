@@ -1,20 +1,51 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import type { PurchaseDetail } from '@vada/contracts'
+import { draft, link } from './purchase-test-fixtures'
 import Purchases from './Purchases'
+import './LinkDialog.test-support'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const props = { organizationId: 'o', eventId: 'e' }
-const link = 'https://www.coupang.com/vp/products/1?itemId=2&vendorItemId=3'
-const draft = (): PurchaseDetail => ({ id: 'r', organizationId: 'o', eventId: 'e', requesterId: 'u', departmentId: 'd',
-  purpose: '접수용', neededBy: '2026-10-09', estimatedShippingCost: null, status: 'draft', version: 1,
-  createdAt: '2026-09-29T00:00:00Z', updatedAt: '2026-09-29T00:00:00Z', estimatedTotal: null,
-  warnings: [], sources: [{ id: 'm', content: '테이블 2개 준비', authorId: 'u', createdAt: '2026-09-29T00:00:00Z' }],
-  history: [], items: [{ id: 'i', position: 0, productUrl: link, productName: '테이블', selectedOption: '무광화이트',
-    optionRequired: true, quantity: 2, packagingUnit: null, estimatedUnitPrice: 11590, productSnapshot: { price: 11590 }, productFetchedAt: '2026-09-29T00:00:00Z' }] })
 const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body })
 const list = () => ok({ requests: [], nextCursor: null })
+
+test('list failures offer list-specific recovery and refresh announces loading', async () => {
+  let resolve!: (value: unknown) => void
+  vi.stubGlobal('fetch', vi.fn().mockRejectedValueOnce(new Error('offline'))
+    .mockImplementationOnce(() => new Promise(r => { resolve = r })))
+  render(<Purchases {...props} />)
+  expect((await screen.findByRole('alert')).textContent).toBe('요청 목록을 불러오지 못했어요. 요청 목록 새로고침으로 다시 시도해 주세요.')
+  fireEvent.click(screen.getByRole('button', { name: '요청 목록 새로고침' }))
+  expect(screen.getByText('요청서 불러오는 중…')).toBeTruthy()
+  expect(screen.queryByText('아직 내 요청서가 없어요.')).toBeNull()
+  await act(async () => resolve(list()))
+  expect(await screen.findByText('아직 내 요청서가 없어요.')).toBeTruthy()
+})
+
+test('returning from detail restores focus to the originating list row', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok({ requests: [draft()], nextCursor: null }))
+    .mockResolvedValueOnce(ok({ request: draft() })))
+  render(<Purchases {...props} />)
+  fireEvent.click(await screen.findByRole('button', { name: /접수용/ }))
+  fireEvent.click(await screen.findByRole('button', { name: '요청 목록으로' }))
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: /접수용/ }))
+})
+
+test('returning after a status change focuses the list when the row is filtered out', async () => {
+  const submitted = { ...draft(), status: 'submitted' as const }
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok({ requests: [submitted], nextCursor: null }))
+    .mockResolvedValueOnce(ok({ request: submitted }))
+    .mockResolvedValueOnce(ok({ request: { ...submitted, status: 'approved', version: 2 } })))
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
+  render(<Purchases {...props} finance />)
+  fireEvent.change(screen.getByLabelText('상태 필터'), { target: { value: 'submitted' } })
+  fireEvent.click(await screen.findByRole('button', { name: /접수용/ }))
+  fireEvent.click(await screen.findByRole('button', { name: '요청 승인' }))
+  await screen.findByText('승인했어요.')
+  fireEvent.click(screen.getByRole('button', { name: '요청 목록으로' }))
+  expect(document.activeElement).toBe(screen.getByRole('region', { name: '제출된 요청서' }))
+})
 
 test('finance rejection requires a reason, confirms once and shows the result to the requester', async () => {
   const submitted = { ...draft(), status: 'submitted' as const, version: 2 }
@@ -167,9 +198,11 @@ test('creates from links, shows editable values and sources, saves with version,
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   render(<Purchases {...props} />)
   await screen.findByText('아직 내 요청서가 없어요.')
+  fireEvent.click(screen.getByRole('button', { name: '끼룩이 · 초안 만들기' }))
   fireEvent.change(screen.getByLabelText('쿠팡 상품 링크'), { target: { value: link } })
   fireEvent.click(screen.getByRole('button', { name: '초안 만들기' }))
   expect(await screen.findByDisplayValue('무광화이트')).toBeTruthy()
+  expect(screen.queryByRole('dialog')).toBeNull()
   expect(screen.getByText('테이블 2개 준비')).toBeTruthy()
   expect((screen.getByLabelText('예상 배송비 (원)') as HTMLInputElement).value).toBe('')
   fireEvent.change(screen.getByLabelText('구매 목적'), { target: { value: '수정 용도' } })
@@ -192,12 +225,19 @@ test('generation retry retains idempotency key and blocks double click', async (
   vi.stubGlobal('fetch', fetcher)
   render(<Purchases {...props} />)
   await screen.findByText('아직 내 요청서가 없어요.')
+  fireEvent.click(screen.getByRole('button', { name: '끼룩이 · 초안 만들기' }))
   fireEvent.change(screen.getByLabelText('쿠팡 상품 링크'), { target: { value: link } })
   fireEvent.click(screen.getByRole('button', { name: '초안 만들기' }))
   fireEvent.submit(screen.getByRole('form', { name: '구매 초안 생성' }))
   expect(fetcher).toHaveBeenCalledTimes(2)
+  expect(screen.getByRole('button', { name: '닫기' }).hasAttribute('disabled')).toBe(true)
   await act(async () => resolve({ ok: false, status: 502, json: async () => ({ error: 'GENERATION_FAILED' }) }))
   await screen.findByRole('alert')
+  expect(screen.getByRole('dialog')).toBeTruthy()
+  expect((screen.getByLabelText('쿠팡 상품 링크') as HTMLTextAreaElement).value).toBe(link)
+  fireEvent.click(screen.getByRole('button', { name: '닫기' }))
+  fireEvent.click(screen.getByRole('button', { name: '끼룩이 · 초안 만들기' }))
+  expect((screen.getByLabelText('쿠팡 상품 링크') as HTMLTextAreaElement).value).toBe(link)
   fireEvent.click(screen.getByRole('button', { name: '초안 만들기' }))
   await screen.findByDisplayValue('무광화이트')
   expect(JSON.parse(fetcher.mock.calls[1]![1].body).idempotencyKey).toBe(JSON.parse(fetcher.mock.calls[2]![1].body).idempotencyKey)
@@ -215,6 +255,24 @@ test('conflict keeps edits and requires an explicit reload before retry', async 
   expect((await screen.findByRole('alert')).textContent).toContain('다시 불러')
   expect(screen.getByDisplayValue('내 수정')).toBeTruthy()
   expect(screen.getByRole('button', { name: '초안 저장' }).hasAttribute('disabled')).toBe(true)
+})
+
+test('returning to the list asks before discarding edits and cancellation preserves the form', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok({ requests: [draft()], nextCursor: null }))
+    .mockResolvedValueOnce(ok({ request: draft() })))
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  render(<Purchases {...props} />)
+  fireEvent.change(screen.getByLabelText('상태 필터'), { target: { value: 'draft' } })
+  fireEvent.click(await screen.findByRole('button', { name: /접수용/ }))
+  fireEvent.change(await screen.findByLabelText('구매 목적'), { target: { value: '미저장 목적' } })
+  fireEvent.click(screen.getByRole('button', { name: '요청 목록으로' }))
+  expect(screen.getByDisplayValue('미저장 목적')).toBeTruthy()
+  expect(confirm).toHaveBeenCalledOnce()
+  confirm.mockReturnValue(true)
+  fireEvent.click(screen.getByRole('button', { name: '요청 목록으로' }))
+  expect(screen.queryByRole('form', { name: '초안 수정' })).toBeNull()
+  expect(screen.getByRole('button', { name: /접수용/ })).toBeTruthy()
+  expect((screen.getByLabelText('상태 필터') as HTMLSelectElement).value).toBe('draft')
 })
 
 test('permission loss clears private details and changing event ignores late responses', async () => {

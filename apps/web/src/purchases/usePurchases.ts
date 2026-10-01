@@ -11,6 +11,7 @@ export function usePurchases(organizationId: string, eventId: string, finance = 
   const [revision, setRevision] = useState(0)
   const [cursor, setCursor] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [mutating, setMutating] = useState(false)
   const [loading, setLoading] = useState(true)
   const [denied, setDenied] = useState(false)
   const [stale, setStale] = useState(false)
@@ -21,6 +22,7 @@ export function usePurchases(organizationId: string, eventId: string, finance = 
   const retry = useRef<{ payload: string; key: string } | null>(null)
 
   async function request<T>(url: string, signal: AbortSignal, method = 'GET', body?: unknown): Promise<T> {
+    if (method !== 'GET') setMutating(true)
     const response = await fetch(url, { method, credentials: 'same-origin', cache: 'no-store', signal,
       ...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }) })
     if (!response.ok) {
@@ -36,13 +38,13 @@ export function usePurchases(organizationId: string, eventId: string, finance = 
     setRows(previous => [value, ...previous.filter(row => row.id !== value.id)])
     setStale(false)
   }
-  async function run(action: (signal: AbortSignal) => Promise<void>, changing = false) {
+  async function run(action: (signal: AbortSignal) => Promise<void>, changing = false, readingList = false) {
     const current = controller.current
-    if (!current || current.signal.aborted || lock.current || denied) return
+    if (!current || current.signal.aborted || lock.current || denied) return false
     lock.current = true; setBusy(true); setError(''); setNotice('')
-    try { await action(current.signal) }
+    try { await action(current.signal); return !current.signal.aborted }
     catch (cause) {
-      if (current.signal.aborted) return
+      if (current.signal.aborted) return false
       if (cause instanceof ApiError && [401, 403].includes(cause.status)) {
         setSelected(null); setRows([]); setCursor(null); setDenied(true)
         setError('요청서에 접근할 수 없어요. 로그인·소속을 확인해 주세요.')
@@ -62,13 +64,16 @@ export function usePurchases(organizationId: string, eventId: string, finance = 
         setError('쿠팡 상품 주소와 입력값을 확인해 주세요. 수량은 양의 정수, 금액은 0 이상이어야 해요.')
       } else {
         if (changing) setStale(true)
-        setError(changing ? '처리 결과를 확인하지 못했어요. 다시 시도하기 전에 요청서를 다시 불러와 주세요.' : '처리 결과를 확인하지 못했어요. 목록을 확인하거나 같은 링크로 다시 시도해 주세요.')
+        setError(readingList ? '요청 목록을 불러오지 못했어요. 요청 목록 새로고침으로 다시 시도해 주세요.'
+          : changing ? '처리 결과를 확인하지 못했어요. 다시 시도하기 전에 요청서를 다시 불러와 주세요.' : '처리 결과를 확인하지 못했어요. 목록을 확인하거나 같은 링크로 다시 시도해 주세요.')
       }
+      return false
     } finally {
-      if (!current.signal.aborted) { lock.current = false; setBusy(false); setLoading(false) }
+      if (!current.signal.aborted) { lock.current = false; setBusy(false); setMutating(false); setLoading(false) }
     }
   }
   async function load(signal: AbortSignal, before?: string) {
+    setLoading(true)
     const result = await request<PurchasesResponse>(before ? `${base}?before=${encodeURIComponent(before)}` : base, signal)
     if (!Array.isArray(result.requests)) throw new Error('Invalid response')
     if (signal.aborted) return
@@ -78,21 +83,21 @@ export function usePurchases(organizationId: string, eventId: string, finance = 
   useEffect(() => {
     const current = new AbortController()
     controller.current = current; lock.current = false
-    void run(signal => load(signal))
+    void run(signal => load(signal), false, true)
     return () => { current.abort() }
     // 상위 컴포넌트 key로 행사마다 독립된 상태를 만든다.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {
-    rows, selected, revision, cursor, busy, loading, denied, stale, error, notice,
-    refresh: () => { void run(signal => load(signal)) },
-    older: () => { if (cursor) void run(signal => load(signal, cursor)) },
-    select: (id: string) => { void run(async signal => {
+    rows, selected, revision, cursor, busy, mutating, loading, denied, stale, error, notice,
+    refresh: () => { void run(signal => load(signal), false, true) },
+    older: () => { if (cursor) void run(signal => load(signal, cursor), false, true) },
+    select: (id: string) => run(async signal => {
       const result = await request<PurchaseResponse>(`${base}/${encodeURIComponent(id)}`, signal)
       if (!signal.aborted) accept(result.request)
-    }) },
-    create: (links: string[]) => { if (finance) return; void run(async signal => {
+    }),
+    create: async (links: string[]) => { if (finance) return false; return run(async signal => {
       const payload = JSON.stringify(links)
       if (retry.current?.payload !== payload) retry.current = { payload, key: crypto.randomUUID() }
       const result = await request<PurchaseResponse>(`${base}/drafts`, signal, 'POST', { links, idempotencyKey: retry.current.key })

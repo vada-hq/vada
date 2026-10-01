@@ -9,36 +9,6 @@ const msg = (id: string, content = id): MessageSummary => ({ id, content, chatRo
 const ok = (messages: MessageSummary[], nextCursor: string | null = null) => ({ ok: true, status: 200, json: async () => ({ messages, nextCursor }) })
 const props = { organizationId: 'o1', eventId: 'e1', eventName: '체육대회' }
 
-test('finance entry is role-gated and opens the event finance inbox', async () => {
-  const fetcher = vi.fn().mockResolvedValueOnce(ok([])).mockResolvedValueOnce({
-    ok: true, status: 200, json: async () => ({ requests: [], nextCursor: null }),
-  })
-  vi.stubGlobal('fetch', fetcher)
-  const view = render(<Chat {...props} />)
-  await screen.findByText('아직 대화가 없어요.')
-  expect(screen.queryByRole('button', { name: '재정부 제출 요청 보기' })).toBeNull()
-  view.rerender(<Chat {...props} handlesFinance />)
-  fireEvent.click(screen.getByRole('button', { name: '재정부 제출 요청 보기' }))
-  expect(await screen.findByText('제출된 요청서가 없어요.')).toBeTruthy()
-  expect(fetcher).toHaveBeenLastCalledWith('/api/organizations/o1/events/e1/purchase-requests/finance', expect.anything())
-  view.rerender(<Chat {...props} handlesFinance={false} />)
-  expect(screen.queryByText('재정부 · 제출 요청 조회')).toBeNull()
-})
-
-test('purchase panel loads only when opened and stays scoped to the current event', async () => {
-  const fetchMock = vi.fn().mockResolvedValueOnce(ok([])).mockResolvedValueOnce({
-    ok: true, status: 200, json: async () => ({ requests: [], nextCursor: null }),
-  })
-  vi.stubGlobal('fetch', fetchMock)
-  render(<Chat {...props} />)
-  await screen.findByText('아직 대화가 없어요.')
-  expect(fetchMock).toHaveBeenCalledTimes(1)
-  fireEvent.click(screen.getByRole('button', { name: '끼룩이 · 구매요청서 열기' }))
-  await act(async () => {})
-  expect(screen.getByLabelText('쿠팡 상품 링크')).toBeTruthy()
-  expect(fetchMock).toHaveBeenLastCalledWith('/api/organizations/o1/events/e1/purchase-requests', expect.anything())
-})
-
 test('shows loading, author, plain text, time and older messages without duplicates', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok([msg('new', '<script>hello</script>')], 'new')).mockResolvedValueOnce(ok([msg('old')], null)))
   render(<Chat {...props} />)

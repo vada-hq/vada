@@ -18,11 +18,11 @@ test('empty memberships show unassigned, not a signup form', async () => {
 })
 
 test('renders organization content only for memberships returned by the server', async () => {
-  const renderOrganization = vi.fn(organization => <p>행사 영역: {organization.id}</p>)
+  const renderMemberships = vi.fn(memberships => <p>행사 영역: {memberships[0].organization.id}</p>)
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okMemberships()))
-  render(<Memberships renderOrganization={renderOrganization} />)
+  render(<Memberships renderMemberships={renderMemberships} />)
   expect(await screen.findByText('행사 영역: o1')).toBeTruthy()
-  expect(renderOrganization).toHaveBeenCalledWith({ id: 'o1', name: '검증 학생회' }, false)
+  expect(renderMemberships).toHaveBeenCalledWith([{ id: 'm1', organization: { id: 'o1', name: '검증 학생회' }, department: { id: 'd1', name: '기획부', handlesFinance: false } }])
 })
 
 function okMemberships() {

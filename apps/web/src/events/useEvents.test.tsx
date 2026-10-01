@@ -1,22 +1,28 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import Events from './Events'
+import { useState } from 'react'
+import { useEvents } from './useEvents'
+import EventList from './EventList'
+import CreateEventForm from './CreateEventForm'
 
-vi.mock('../chat/Chat', () => ({ default: ({ eventName }: { eventName: string }) => <p>대화방: {eventName}</p> }))
+function Events({ organizationId }: { organizationId: string }) { return <Harness key={organizationId} organizationId={organizationId} /> }
+function Harness({ organizationId }: { organizationId: string }) {
+  const data = useEvents(organizationId)
+  const [selected, setSelected] = useState('')
+  return <><EventList events={data.events} loading={data.loading} error={data.loadError} saving={data.saving} onRefresh={data.refresh} onSelect={event => setSelected(event.name)} />
+    <p>선택: {selected}</p><CreateEventForm name={data.name} onNameChange={data.setName} saving={data.saving} disabled={data.loading || Boolean(data.loadError)} error={data.createError} onSubmit={event => { void data.create(event) }} /></>
+}
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z' }
 const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body })
 
-test('selects an event and returns to the list', async () => {
+test('selects an event from the list', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok({ events: [event] })))
   render(<Events organizationId="o1" />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
-  expect(screen.getByText('대화방: 체육대회')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: '행사 목록으로' }))
-  expect(screen.queryByText('대화방: 체육대회')).toBeNull()
-  expect(screen.getByRole('button', { name: '체육대회' })).toBeTruthy()
+  expect(screen.getByText('선택: 체육대회')).toBeTruthy()
 })
 
 test('loading, empty list and server order are displayed', async () => {
