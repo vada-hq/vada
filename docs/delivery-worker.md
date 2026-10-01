@@ -39,15 +39,36 @@
 관찰한 공급자 동작(더미 송장·콘솔 Trigger 기준이며 보장된 사양은 아니다):
 
 - 등록 직후 자동 초기 알림은 다섯 번 모두 오지 않았다.
-- Trigger 후 콜백 도착까지 약 1분 30초 ~ 2분 30초 걸렸다.
+- Trigger 후 콜백 도착까지 대체로 약 1분 30초 ~ 2분 30초 걸렸다. 실제 프로세스 검증에서는 등록 후 약 4분 40초 뒤에 도착했다(클릭 시각은 기록하지 않았다).
 - 2XX가 아닌 응답에는 약 7분 30초 뒤 재시도가 한 번 관찰됐다.
 
 이 검증이 확인하지 않은 것:
 
 - 실제 배송 중 송장의 상태 변화로 발생하는 콜백과 상태 전환(더미 송장은 `in_transit` 그대로였고 조회 시각만 갱신됐다).
-- 제품 API 서버(`serve.ts`)에 장착된 경로와 상시 worker(`run-worker.ts`) 프로세스. 스크립트는 같은 webhook·worker·provider 모듈을 직접 조립했다.
-- 구매 승인 → 송장 입력 → 화면 표시까지의 UI 전체 흐름, 배포 환경, `DELIVERY_WEBHOOK_SECRET`·`DELIVERY_PUBLIC_URL` 실제 설정(실험은 메모리상의 임시 비밀키와 ngrok 주소 사용).
+- 구매 승인 → 송장 입력 → 화면 표시까지의 UI 전체 흐름, 배포 환경, 배송 설정 4개(`DELIVERY_ENABLED`, `DELIVERY_TRACKING_ENABLED`, `DELIVERY_WEBHOOK_SECRET`, `DELIVERY_PUBLIC_URL`)의 실제 값. 2026-10-02 기준 루트 `.env`에는 이 4개가 없으며, 실험은 프로세스 환경변수로 임시 값(메모리에서 만든 비밀키, ngrok 주소)을 주입했다.
+- 장시간 상시 실행(48시간 등록의 24시간 전 갱신, 프로세스 재시작 후 잠금 회수)과 실제 로그인 사용자의 배송 등록 API 경로.
 - `projectId` 값의 의미와 검증 필요 여부. 현재는 읽지 않는다.
+
+### 실제 서버·worker 프로세스 검증 (`apps/api/scripts/check-delivery-server-live.ts`)
+
+위 검증은 스크립트가 모듈을 직접 조립했다. 이 검증은 제품 진입점 `src/serve.ts`와 `src/deliveries/run-worker.ts`를 **별도 프로세스로 실행**한다. 2026-10-01T17:24Z 실행 결과는 `LIVE_SERVER_WORKER_DB_UPDATE_OK`이다.
+
+| 단계 | 결과 |
+|---|---|
+| 격리 확인 (프로세스 시작 전) | 성공. `shipments`·`shipment_jobs`는 일회용 스키마, `users`는 `public`으로 해석 |
+| `serve.ts` 시작, `/api/health` | 성공 (로컬 200, 터널 경유 200) |
+| `run-worker.ts` 시작 → 예약 → 외부 등록 | 성공 (`DELIVERY_WORKER_STARTED` 약 3초 뒤 `register` 완료) |
+| 등록 직후 보완 조회 → DB 반영 | 성공 (`in_transit`) |
+| 콘솔 Trigger → 실제 서버의 웹훅 경로 | 성공 (17:28:58Z `POST` 202, 1102ms). 로그인·Origin 검사 없이 통과 |
+| worker 재조회 → DB 반영 | 성공 (17:29:04Z 조회 시각 갱신, `refresh` 완료 2건, 오류 없음) |
+| 정리 | 두 프로세스 종료, 등록 만료, 스키마 삭제. 잔존 스키마 0건, `public.shipments`·`public.shipment_jobs` 0건 그대로 |
+
+방법과 주의:
+
+- 두 프로세스는 `DATABASE_URL`만 받으므로 직접(비풀링) 엔드포인트 URL에 `options=-c search_path=<일회용 스키마>,public`을 붙여 격리한다. **Neon은 시작 매개변수 `search_path=`를 무시한다**(실효 값이 기본값 그대로였고, 격리 확인이 이를 잡아 첫 실행을 등록 전에 중단했다). `options=-c` 방식은 적용된다.
+- 터널에는 서버 전체를 노출하지 않는다. 스크립트의 중계기(8898 → 서버 8899)가 `GET /api/health`와 `POST /api/delivery-webhooks/*`만 전달하고 나머지는 404로 끝낸다. 중계기가 시각·메서드·경로 종류·응답 코드만 기록한다.
+- 자식 프로세스 출력은 고정 상태 문구만 중계하고 그 밖의 출력은 가린다.
+- 실행: ngrok을 8898로 띄운 뒤 `npx tsx scripts/check-delivery-server-live.ts <공개 HTTPS 원점>` (`apps/api`에서).
 
 ## 구성
 
