@@ -135,3 +135,24 @@ test('durable delivery worker and untrusted callbacks', async t => {
     })
   } finally { await pg.close() }
 })
+
+test('an exhausted lease is retired without hiding due work on other shipments', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
+    await pg.exec(`INSERT INTO users(id,name,email) VALUES ('u','U','u@test.local');
+      INSERT INTO organizations(id,name) VALUES ('o','O');
+      INSERT INTO shipments(id,organization_id,carrier_id,tracking_number,created_by) VALUES ('a','o','kr.coupangls','1','u'), ('b','o','kr.coupangls','2','u');
+      INSERT INTO shipment_jobs(id,shipment_id,kind,status,attempts,locked_until,run_after) VALUES
+        ('stuck','a','refresh','running',5,'2026-09-30T00:00:00Z','2026-09-30T00:00:00Z'),
+        ('due','b','refresh','pending',0,NULL,'2026-09-30T00:00:00Z');`)
+    const jobs = createDeliveryJobs(db, () => new Date('2026-10-01T00:00:00Z'))
+    // 예약 실행은 claim이 null이면 큐가 비었다고 보고 끝낸다. 소진 처리만 하고 null을 돌려주면 남은 작업이 다음 실행까지 밀린다.
+    const claim = await jobs.claim()
+    assert.equal(claim?.job.id, 'due')
+    assert.deepEqual((await pg.query("SELECT status,last_error_code FROM shipment_jobs WHERE id='stuck'")).rows, [{ status: 'failed', last_error_code: 'DELIVERY_LEASE_EXHAUSTED' }])
+    await jobs.finish(claim!, { kind: 'skip' })
+    assert.equal(await jobs.claim(), null)
+  } finally { await pg.close() }
+})

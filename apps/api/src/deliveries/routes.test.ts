@@ -128,6 +128,8 @@ test('delivery API limits writes, shares only delivery summaries and persists re
       userId = 'p'; assert.equal((await post(`${root}/shipments/${id}/unlink`, { linkIds })).status, 403)
       userId = 'f'
       assert.equal((await post(`${root}/shipments/${id}/unlink`, { linkIds: ['xi'] })).status, 404)
+      // 앱 서버 시계가 DB보다 느린 상황. 연결 시각은 DB 시계로 기록되므로 등록 직후 해제가 시각 제약을 깨면 안 된다.
+      await pg.exec("UPDATE shipment_items SET linked_at = now() + interval '5 seconds' WHERE unlinked_at IS NULL")
       assert.equal((await post(`${root}/shipments/${id}/unlink`, { linkIds })).status, 200)
       assert.equal((await post(`${root}/shipments/${id}/unlink`, { linkIds })).status, 200)
       assert.equal((await create()).status, 200)

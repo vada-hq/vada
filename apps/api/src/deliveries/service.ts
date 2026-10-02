@@ -132,7 +132,7 @@ export function createDeliveryService(db: DeliveryDatabase, provider: DeliveryPr
         if (!row) throw new DeliveryError('NOT_FOUND', 404)
         const links = await tx.select().from(shipmentItems).where(and(eq(shipmentItems.shipmentId, id), eq(shipmentItems.organizationId, scope.organizationId), inArray(shipmentItems.id, linkIds)))
         if (links.length !== linkIds.length) throw new DeliveryError('NOT_FOUND', 404)
-        await tx.update(shipmentItems).set({ unlinkedBy: scope.userId, unlinkedAt: new Date() }).where(and(eq(shipmentItems.shipmentId, id), inArray(shipmentItems.id, linkIds), isNull(shipmentItems.unlinkedAt)))
+        await tx.update(shipmentItems).set({ unlinkedBy: scope.userId, unlinkedAt: sql`GREATEST(now(), ${shipmentItems.linkedAt})` }).where(and(eq(shipmentItems.shipmentId, id), inArray(shipmentItems.id, linkIds), isNull(shipmentItems.unlinkedAt)))
         const [remaining] = await tx.select({ id: shipmentItems.id }).from(shipmentItems).where(and(eq(shipmentItems.shipmentId, id), isNull(shipmentItems.unlinkedAt))).limit(1)
         if (!remaining) {
           await tx.update(shipments).set({ trackingActive: false, trackingVersion: row.trackingVersion + (row.trackingActive ? 1 : 0), webhookExpiresAt: null }).where(eq(shipments.id, id))

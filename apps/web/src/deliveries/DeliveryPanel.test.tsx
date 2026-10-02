@@ -4,12 +4,13 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { DeliverySummary, PurchaseDetail } from '@vada/contracts'
 import DeliveryPanel from './DeliveryPanel'
 import { draft } from '../purchases/purchase-test-fixtures'
-import { json, mockApi } from '../test-support/mock-api'
+import { deferredResponse, json, mockApi } from '../test-support/mock-api'
+import { carrierCache } from './useDeliveries'
 
 const root = '/api/organizations/o'
 const list = `${root}/events/e/deliveries`
 let api: ReturnType<typeof mockApi>
-beforeEach(() => { api = mockApi() })
+beforeEach(() => { api = mockApi(); carrierCache.clear() })
 afterEach(() => { cleanup(); api.assertNoUnexpectedRequests(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 
 const approved = (): PurchaseDetail => {
@@ -167,4 +168,28 @@ test('every carrier page is loaded and domestic carriers are listed first', asyn
   render(<DeliveryPanel request={approved()} finance />)
   await screen.findByRole('option', { name: '롯데택배' })
   expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['택배사를 선택해 주세요', 'CJ대한통운', '롯데택배', 'DHL', 'UPS'])
+})
+
+test('the carrier list is fetched once and reused when another request is opened', async () => {
+  api.on('GET', list, () => json(deliveries()))
+  api.on('GET', `${root}/delivery-carriers`, () => json(carriers))
+  const first = render(<DeliveryPanel request={approved()} finance />)
+  await screen.findByRole('option', { name: 'CJ대한통운' })
+  first.unmount()
+  render(<DeliveryPanel request={approved()} finance />)
+  await screen.findByRole('option', { name: 'CJ대한통운' })
+  // 외부 조회는 사용자별 분당 횟수 제한이 있다. 요청서를 열 때마다 목록을 다시 받으면 조회·등록이 막힌다.
+  expect(api.calls.filter(call => call.path.startsWith(`${root}/delivery-carriers`))).toHaveLength(1)
+})
+
+test('carrier search waits for the initial list so two external calls never overlap', async () => {
+  const pending = deferredResponse()
+  api.on('GET', list, () => json(deliveries()))
+  api.on('GET', `${root}/delivery-carriers`, () => pending.promise)
+  render(<DeliveryPanel request={approved()} finance />)
+  const search = await screen.findByRole('button', { name: '택배사 검색' })
+  expect(search.hasAttribute('disabled')).toBe(true)
+  pending.resolve(json(carriers))
+  await screen.findByRole('option', { name: 'CJ대한통운' })
+  expect(search.hasAttribute('disabled')).toBe(false)
 })

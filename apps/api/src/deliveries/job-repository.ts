@@ -31,27 +31,32 @@ export function createDeliveryJobs(db: DeliveryDatabase, clock = () => new Date(
     },
     async claim(): Promise<ClaimedJob | null> {
       const now = clock()
-      return db.transaction(async tx => {
-        // 모든 경로는 배송 → 작업 순서로 잠근다. 종류가 달라도 배송당 하나만 실행한다.
-        const [shipment] = await tx.select().from(shipments).where(sql`
-          EXISTS (SELECT 1 FROM shipment_jobs j WHERE j.shipment_id = ${shipments.id} AND
-            ((j.status = 'pending' AND j.run_after <= ${now.toISOString()}::timestamptz) OR (j.status = 'running' AND j.locked_until <= ${now.toISOString()}::timestamptz)))
-          AND NOT EXISTS (SELECT 1 FROM shipment_jobs j WHERE j.shipment_id = ${shipments.id} AND j.status = 'running' AND j.locked_until > ${now.toISOString()}::timestamptz)
-        `).orderBy(asc(shipments.id)).limit(1).for('update', { skipLocked: true })
-        if (!shipment) return null
-        const [job] = await tx.select().from(shipmentJobs).where(and(eq(shipmentJobs.shipmentId, shipment.id), or(
-          and(eq(shipmentJobs.status, 'running'), lte(shipmentJobs.lockedUntil, now)),
-          and(eq(shipmentJobs.status, 'pending'), lte(shipmentJobs.runAfter, now)),
-        ))).orderBy(sql`CASE WHEN ${shipmentJobs.status} = 'running' THEN 0 ELSE 1 END`, asc(shipmentJobs.runAfter), asc(shipmentJobs.id)).limit(1).for('update')
-        if (!job) return null
-        if (job.attempts >= MAX_ATTEMPTS) {
-          await tx.update(shipmentJobs).set({ status: 'failed', lockedUntil: null, lastErrorCode: 'DELIVERY_LEASE_EXHAUSTED', updatedAt: now }).where(eq(shipmentJobs.id, job.id))
-          await tx.update(shipments).set({ lastErrorCode: 'DELIVERY_LEASE_EXHAUSTED', lastAttemptAt: now }).where(eq(shipments.id, shipment.id))
-          return null
-        }
-        const [claimed] = await tx.update(shipmentJobs).set({ status: 'running', attempts: job.attempts + 1, lockedUntil: new Date(now.getTime() + MINUTE), updatedAt: now }).where(eq(shipmentJobs.id, job.id)).returning()
-        return { job: claimed!, shipment }
-      })
+      // 소진된 작업만 정리하고 null을 돌려주면 예약 실행이 큐가 빈 것으로 보고 끝낸다. 다음 대상을 이어서 찾는다.
+      for (let retired = 0; retired < 20; retired++) {
+        const result = await db.transaction(async tx => {
+          // 모든 경로는 배송 → 작업 순서로 잠근다. 종류가 달라도 배송당 하나만 실행한다.
+          const [shipment] = await tx.select().from(shipments).where(sql`
+            EXISTS (SELECT 1 FROM shipment_jobs j WHERE j.shipment_id = ${shipments.id} AND
+              ((j.status = 'pending' AND j.run_after <= ${now.toISOString()}::timestamptz) OR (j.status = 'running' AND j.locked_until <= ${now.toISOString()}::timestamptz)))
+            AND NOT EXISTS (SELECT 1 FROM shipment_jobs j WHERE j.shipment_id = ${shipments.id} AND j.status = 'running' AND j.locked_until > ${now.toISOString()}::timestamptz)
+          `).orderBy(asc(shipments.id)).limit(1).for('update', { skipLocked: true })
+          if (!shipment) return null
+          const [job] = await tx.select().from(shipmentJobs).where(and(eq(shipmentJobs.shipmentId, shipment.id), or(
+            and(eq(shipmentJobs.status, 'running'), lte(shipmentJobs.lockedUntil, now)),
+            and(eq(shipmentJobs.status, 'pending'), lte(shipmentJobs.runAfter, now)),
+          ))).orderBy(sql`CASE WHEN ${shipmentJobs.status} = 'running' THEN 0 ELSE 1 END`, asc(shipmentJobs.runAfter), asc(shipmentJobs.id)).limit(1).for('update')
+          if (!job) return null
+          if (job.attempts >= MAX_ATTEMPTS) {
+            await tx.update(shipmentJobs).set({ status: 'failed', lockedUntil: null, lastErrorCode: 'DELIVERY_LEASE_EXHAUSTED', updatedAt: now }).where(eq(shipmentJobs.id, job.id))
+            await tx.update(shipments).set({ lastErrorCode: 'DELIVERY_LEASE_EXHAUSTED', lastAttemptAt: now }).where(eq(shipments.id, shipment.id))
+            return 'retired' as const
+          }
+          const [claimed] = await tx.update(shipmentJobs).set({ status: 'running', attempts: job.attempts + 1, lockedUntil: new Date(now.getTime() + MINUTE), updatedAt: now }).where(eq(shipmentJobs.id, job.id)).returning()
+          return { job: claimed!, shipment }
+        })
+        if (result !== 'retired') return result
+      }
+      return null
     },
     async finish(claim: ClaimedJob, outcome: Outcome): Promise<boolean> {
       const now = clock()

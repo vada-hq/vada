@@ -58,3 +58,15 @@ test('registration requires true acknowledgement and never exposes upstream erro
     else await assert.rejects(provider.register(input), /DELIVERY_PROVIDER_FAILED/)
   }
 })
+
+test('a missing tracking number reported through GraphQL errors is not-found, not an outage', async () => {
+  // 실측(2026-10-02): 없는 송장은 data.track=null과 errors[].extensions.code=NOT_FOUND가 함께 온다.
+  const notFound = { data: { track: null }, errors: [{ message: 'SECRET', extensions: { code: 'NOT_FOUND' } }] }
+  const provider = createDeliveryTracker({ clientId: 'id', clientSecret: 'key', fetch: async () => Response.json(notFound) })
+  await assert.rejects(provider.lookup({ carrierId: 'kr.coupangls', trackingNumber: '999' }),
+    error => error instanceof Error && error.message === 'DELIVERY_NOT_FOUND' && (error as { status?: number }).status === 404)
+  // 다른 오류 코드와 조회가 아닌 호출은 계속 장애로 본다.
+  const other = createDeliveryTracker({ clientId: 'id', clientSecret: 'key', fetch: async () => Response.json({ data: { track: null }, errors: [{ extensions: { code: 'INTERNAL' } }] }) })
+  await assert.rejects(other.lookup({ carrierId: 'kr.coupangls', trackingNumber: '999' }), /DELIVERY_PROVIDER_FAILED/)
+  await assert.rejects(provider.register({ carrierId: 'kr.coupangls', trackingNumber: '999', callbackUrl: 'https://example.test/x', expirationTime: '2026-10-03T00:00:00Z' }), /DELIVERY_PROVIDER_FAILED/)
+})

@@ -7,6 +7,9 @@ class ApiError extends Error {
 }
 export type DeliveryItem = EventDeliveriesResponse['items'][number]
 type Carrier = DeliveryCarriersResponse['carriers'][number]
+// 택배사 목록은 거의 바뀌지 않는다. 외부 조회는 사용자별 분당 횟수 제한이 있어, 요청서를 열 때마다 다시 받지 않도록 학생회별로 잠시 보관한다.
+export const carrierCache = new Map<string, { at: number; carriers: Carrier[] }>()
+const CARRIER_CACHE_MS = 10 * 60_000
 
 function explain(cause: unknown) {
   if (!(cause instanceof ApiError)) return '처리 결과를 확인하지 못했어요. 배송 상태를 새로고침한 뒤 다시 시도해 주세요.'
@@ -59,6 +62,8 @@ export function useDeliveries(organizationId: string, eventId: string, requestId
     if (!signal.aborted) setItems(found)
   }
   async function loadCarriers(signal: AbortSignal, search = '') {
+    const cached = search ? undefined : carrierCache.get(root)
+    if (cached && Date.now() - cached.at < CARRIER_CACHE_MS) { setCarriers(cached.carriers); return }
     const found: Carrier[] = []
     let after: string | null = null
     // 외부 목록은 한 번에 20개만 온다. 롯데·로젠 등 주요 택배사가 뒤 페이지에 있어 끝까지 받는다.
@@ -74,7 +79,9 @@ export function useDeliveries(organizationId: string, eventId: string, requestId
     }
     // 국내 택배사를 먼저 보여 준다. 그 안의 순서는 외부 목록 순서를 유지한다.
     const domestic = (carrier: Carrier) => carrier.id.startsWith('kr.')
-    if (!signal.aborted) setCarriers([...found.filter(domestic), ...found.filter(carrier => !domestic(carrier))])
+    const sorted = [...found.filter(domestic), ...found.filter(carrier => !domestic(carrier))]
+    if (!search) carrierCache.set(root, { at: Date.now(), carriers: sorted })
+    if (!signal.aborted) setCarriers(sorted)
   }
   async function run<T>(action: (signal: AbortSignal) => Promise<T>): Promise<T | null> {
     const current = controller.current
@@ -92,15 +99,15 @@ export function useDeliveries(organizationId: string, eventId: string, requestId
     const current = new AbortController()
     controller.current = current; lock.current = false
     void (async () => {
-      try {
-        await load(current.signal)
-        if (finance) await loadCarriers(current.signal)
-      } catch (cause) {
+      try { await load(current.signal) } catch (cause) {
         if (current.signal.aborted) return
         // 라우트가 연결되지 않은 서버는 404로 답한다. 기능이 꺼진 것이므로 영역을 숨긴다.
         if (cause instanceof ApiError && cause.status === 404) setAvailable(false)
         else { setItems(previous => previous ?? []); setError(explain(cause)) }
+        return
       }
+      // run으로 감싸 입력을 잠근다. 목록을 받는 동안 검색·조회가 겹치면 외부 호출 동시 1개 제한에 걸린다.
+      if (finance) void run(signal => loadCarriers(signal))
     })()
     return () => { current.abort() }
     // 상위 컴포넌트 key로 요청서마다 독립된 상태를 만든다.
