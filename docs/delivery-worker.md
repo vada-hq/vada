@@ -80,7 +80,7 @@
 | `refresh.ts` | 이벤트 시각 비교 및 배송 상태 갱신 규칙 |
 | `delivery-tracker.ts` | 인증된 GraphQL 조회·등록, 15초 제한, 민감 오류 제거 |
 | `tracking-config.ts` | 명시적 활성화와 필수 설정 검증 |
-| `loop.ts` / `run-worker.ts` | 독립 프로세스 반복 실행·종료 처리 |
+| `loop.ts` / `run-worker.ts` | 독립 프로세스 반복 실행·종료 처리, `--once` 예약 실행(처리 후 종료) |
 | `database.ts` | DB·트랜잭션 공통 타입 |
 
 ## 알림 처리와 신뢰 경계
@@ -116,8 +116,39 @@
 - 동일한 `DELIVERY_TRACKER_CLIENT_ID`, `DELIVERY_TRACKER_CLIENT_SECRET`, `DELIVERY_PUBLIC_URL`(공개 HTTPS 원점), `DELIVERY_WEBHOOK_SECRET`(무작위 32바이트 이상 권장)을 주입한다. 별도의 운영 비밀 관리 경로를 사용하고 채팅에 붙이지 않는다.
 - API는 기존 런타임 구성을 사용한다. 실행기는 **프로세스 환경변수만** 읽으며 환경 파일을 자동으로 읽지 않는다.
 - 대상 DB를 확인하고 미적용 마이그레이션을 먼저 반영한다. API와 worker가 같은 환경·DB·비밀키를 사용하는지 확인한다.
-- 실행: `npm run delivery:worker --workspace @vada/api`. SIGINT/SIGTERM 시 새 작업 선점을 멈추고 진행 중 작업을 정리한다. 강제 종료된 작업은 잠금 만료 후 회수한다.
-- 무료 Render 웹 서비스 내부 타이머에 의존하지 않는다. 무료 서비스는 유휴 시 정지하므로 상시 worker 및 만료 갱신을 보장할 수 없다. 유료 상시 실행기 또는 별도 스케줄 실행 환경 선택은 **미결정**이며 이번 작업에서 비용·배포 변경은 하지 않았다. [Render 무료 서비스 제한](https://render.com/docs/free)
+- 상시 실행: `npm run delivery:worker --workspace @vada/api`. SIGINT/SIGTERM 시 새 작업 선점을 멈추고 진행 중 작업을 정리한다. 강제 종료된 작업은 잠금 만료 후 회수한다.
+- 무료 Render 웹 서비스 내부 타이머에 의존하지 않는다. 무료 서비스는 15분간 요청이 없으면 정지하고 worker·cron용 무료 인스턴스는 없다. [Render 무료 서비스 제한](https://render.com/docs/free)
+- 실행 환경은 **GitHub Actions 예약 실행**으로 정했다(2026-10-02, 초기 개발 단계의 비용 기준). 아래 "예약 실행" 절을 따른다. 아직 켜지 않았다.
+
+## 예약 실행 (GitHub Actions)
+
+상시 프로세스 대신 `.github/workflows/delivery-worker.yml`이 6시간마다 `npm run delivery:worker:once --workspace @vada/api`를 실행한다. `--once`는 갱신 대상을 예약하고 지금 실행 가능한 작업을 비운 뒤 종료한다(작업 200개 또는 4분 상한). DB 등 인프라 오류는 삼키지 않고 실패로 종료해 실행 기록에 드러낸다. 외부 조회·등록 실패는 작업 재시도로 남고 화면에 "최근 확인 실패"로 보이며, 실행 자체는 성공으로 끝난다.
+
+간격이 6시간일 때의 동작:
+
+- 배송 상태 반영은 최대 6시간 늦는다. 등록 시점의 상태는 등록 API가 바로 저장한다. 택배사 추적 등록과 실패 재시도는 다음 실행에서 처리한다.
+- 48시간 등록은 만료 24시간 전부터 갱신하므로 그 사이 네 번 실행된다.
+- 급하면 Actions 화면의 수동 실행(`workflow_dispatch`)으로 바로 한 번 돌린다.
+- 간격은 워크플로 파일의 `cron` 한 줄이며 `main`에 반영돼야 적용된다. 예약 실행은 기본 브랜치의 파일만 돌린다.
+
+실행 시간 한도: `vada-hq`는 GitHub Free 조직이라 비공개 저장소 Actions가 월 2,000분이다. 6시간 간격은 월 120회로, 1회 1~2분이면 120~240분이다(실측 전 추정). 결제 수단이 없으면 한도 소진 시 다음 달까지 실행이 막히고, 있으면 초과분이 과금되므로 예산 한도를 확인한다. [Actions 과금](https://docs.github.com/en/billing/concepts/product-billing/github-actions), [예약 실행 제약](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
+
+켜는 순서(아직 수행하지 않았다. 각 단계는 승인 후 진행):
+
+1. 배포 DB(`m1-preview`)에 마이그레이션 0005~0007 적용.
+2. Render 웹 서비스 환경변수: `DELIVERY_ENABLED=true`, `DELIVERY_TRACKING_ENABLED=true`, `DELIVERY_TRACKER_CLIENT_ID`, `DELIVERY_TRACKER_CLIENT_SECRET`, `DELIVERY_PUBLIC_URL`(서비스의 공개 HTTPS 원점), `DELIVERY_WEBHOOK_SECRET`(무작위 32바이트 이상).
+3. GitHub 저장소 Secrets: `DELIVERY_DATABASE_URL`(배포 DB), `DELIVERY_TRACKER_CLIENT_ID`, `DELIVERY_TRACKER_CLIENT_SECRET`, `DELIVERY_PUBLIC_URL`, `DELIVERY_WEBHOOK_SECRET`. **공개 주소와 비밀키는 2번과 같은 값**이어야 콜백 URL이 일치한다.
+4. 워크플로 파일을 `main`에 반영.
+5. 저장소 변수 `DELIVERY_WORKER_ENABLED=true` 설정 후 수동 실행으로 `DELIVERY_WORKER_DRAINED` 출력과 소요 시간을 확인.
+
+끄기: 저장소 변수 `DELIVERY_WORKER_ENABLED`를 지우거나 `false`로 바꾼다. 작업은 건너뛰며 실행 시간을 쓰지 않는다. 이미 등록된 외부 추적은 최장 48시간 뒤 만료된다.
+
+미검증:
+
+- `--once`의 실제 실행. 반복 함수는 단위 테스트로 검증했으나, 실제 DB·외부 API로 `run-worker.ts --once`를 실행하는 확인은 2026-10-02 작업 PC의 네트워크가 PostgreSQL 포트(5432)를 막아 수행하지 못했다.
+- GitHub 실행 1회의 실제 소요 시간, 예약 지연 정도.
+- Neon 무료 요금제에서 6시간마다 DB를 깨우는 것이 사용량 한도에 미치는 영향.
+- 정지 상태의 무료 웹 서비스로 온 첫 콜백이 공급자 재시도로 복구되는지.
 
 ## 검증과 남은 확인
 
