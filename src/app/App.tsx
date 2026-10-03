@@ -484,7 +484,12 @@ function execSeq(item: PurchaseItem, ex: PurchaseExecution): number | null {
 }
 // 실행분이 담당하는 수량과 금액(수량 미지정이면 품목 전체 수량 기준)
 function execQuantityOf(item: PurchaseItem, ex: PurchaseExecution): number { return ex.quantity ?? item.quantity; }
-function execAmountOf(item: PurchaseItem, ex: PurchaseExecution): number { return execQuantityOf(item, ex) * item.estimatedUnitPrice; }
+// 일반 구매의 배송비는 품목 총액에 포함되므로 실행분 금액에도 수량 비율만큼 나눠 담는다. 빠지면 '승인액과 동일'로 확정할 때 배송비가 예산에서 사라진다.
+function execAmountOf(item: PurchaseItem, ex: PurchaseExecution): number {
+  const quantity = execQuantityOf(item, ex);
+  const shipping = item.purchaseType === "일반 구매" ? Number(item.details?.["배송비"] || 0) : 0;
+  return quantity * item.estimatedUnitPrice + (item.quantity > 0 ? Math.round(shipping * quantity / item.quantity) : 0);
+}
 // 부분 주문: 주문 대기 실행분을 지정 수량만 주문 완료로 전환하고, 남은 수량은 새 주문 대기 실행분으로 분할한다.
 function execOrderQty(setPR: SetPurchaseRequests, requestId: string, item: PurchaseItem, execId: string, orderQty: number) {
   const isService = item.purchaseType === "대여" || item.purchaseType === "용역";
@@ -1239,6 +1244,8 @@ const PURCHASE_TYPE_FIELDS: Record<string, { key: string; label: string }[]> = {
     { key: "상품URL", label: "상품 URL(가격 근거 링크)" },   // 작성 폼·필수 목록과 라벨을 맞춘다
     { key: "옵션규격", label: "상품 옵션 또는 규격" },
     { key: "배송요청", label: "배송 요청사항" },
+    // 배송비는 품목 총액에 더해지는 금액이라 보완 지정·보완 수정이 가능해야 한다(숫자, 원 단위).
+    { key: "배송비", label: "배송비(원)" },
   ],
   "제작·인쇄": [
     // 업체 정보는 대여(대여처)·용역(용역제공자)에는 있는데 제작·인쇄에만 없었다(2026-09-02 추가).
@@ -2465,6 +2472,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "보완 요청 안내", description: "재정부가 남긴 보완 사유를 표시한다." },
       { num: "02", element: "보완 품목 수정", description: "보완 품목의 **구매 유형별 전체 상세 항목**과 가격 근거(견적서)를 수정한다. 재정부가 보완 대상을 지정했으면(`supplementFields`) **그 항목만 펼쳐** 보여 주고 나머지는 `다른 항목도 수정하기`로 접어 둔다 — 잠그지는 않는다. 함께 고칠 것이 생겼는데 막히면 보완 왕복이 한 번 더 생긴다. 입력란은 작성 화면과 **같은 정의(PURCHASE_TYPE_FIELDS)**에서 파생하고 필수 표시만 `PURCHASE_TYPE_REQUIRED_FIELDS`로 판정하므로, 작성 화면에 있는 칸은 보완에도 전부 있다. 각 칸의 placeholder로 기존 입력값을 보여 주고, **비운 칸은 기존 값을 유지한다**(빈 칸 = 수정 안 함). 저장은 유형별 필드 key로 하므로 작성·검토·발주 화면이 읽는 details와 같은 자리에 들어간다.", constraint: "필수 목록만 쓰지 않는다. 재정부가 선택 항목(인쇄·후가공 조건, 담당자 연락처 등)의 보완을 요구했을 때 고칠 칸이 없어진다 — 샘플 보완 사유가 요구하는 `인쇄 사양`을 실제로 고칠 수 없었다. 가격 근거는 작성 화면과 같은 `QuoteFileField`를 쓰고 일반 구매에는 표시하지 않는다(상품 URL이 가격 근거다). 유형과 무관한 고정 첨부칸(디자인 파일·인쇄 파일·견적서)을 그리지 않는다. 보완 품목이 여러 개면 대표 품목의 유형을 따른다(입력란이 한 벌인 현재 구조의 한계). 필수 항목에는 `*`를 표시하고 미입력 시 차단 사유를 함께 보여 준다. 지정이 있으면 **지정된 항목만 필수로 판정한다** — 지정 밖의 필수가 원래 비어 있으면 재제출이 막힌다" },
       { num: "03", element: "재제출", description: "필수 보완 항목을 모두 입력하면 재검토 대기 상태로 바꾸고 새 처리 이력을 추가한 뒤, 방금 재제출한 그 요청의 진행 상태(FIN-REQ-02)로 이동한다.", constraint: "이동 대상 요청을 지정하지 않으면 직전에 선택돼 있던 다른 요청 상세가 열린다" },
+      { num: "07", element: "자동 가격·배송비 보완", description: "일반 구매의 배송비도 보완 지정·수정 대상이다. 쿠팡 자동 가격 품목의 상품 링크나 옵션을 고치면 이전 가격은 근거를 잃으므로 `제출 후 확인`으로 되돌리고 재정부가 다시 확정해야 승인할 수 있다. 고친 칸은 `링크에서 가져옴` 표시를 지우고, 품목·요청 총액을 다시 계산한다." },
     ],
     exceptions: ["부서장이더라도 해당 구매 요청의 요청자 본인이 아니면 재제출할 수 없다", "재제출 후 기존 검토 이력을 덮어쓰지 않는다", "역할 예시(김민석·REQ-002)는 **화면 목록에서 직접 열었을 때만** 주입한다. `내 구매 요청 → 보완하기`로 들어오면 누른 요청과 그 요청자를 그대로 쓴다(다른 사람의 요청을 열지 않는다)"],
     nextScreens: ["FIN-REQ-02 진행 상태"],
@@ -3337,9 +3345,12 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "요청 정보", description: "제목, 구매 목적, 필요일, 우선순위를 입력하고 요청 부서는 작성자 소속으로 고정한다. 우선순위를 긴급으로 선택하면 긴급 사유를 조건부 필수로 입력받는다.", constraint: "긴급 사유가 비어 있으면 제출할 수 없다" },
       { num: "02", element: "품목 추가·삭제", description: "여러 품목을 한 요청에 담을 수 있으며 새 품목은 목록 맨 위에 추가된다." },
       { num: "03", element: "구매 유형별 필드 전환·필수 검증", description: "일반 구매·제작·인쇄·대여·용역에 따라 유형별 상세 입력 필드를 전환한다(details 저장). 재정 스펙 5.1 표의 유형별 필수·조건부 필수 정보를 금액과 무관하게 강제한다(스펙 729·752). 일반 구매=상품 URL(가격 근거 링크)·상품 옵션·규격, 제작·인쇄=제작물 종류·규격·재질·제작 조건·납품 희망일·디자인 파일 상태(미확정이면 사유), 대여=수령·설치 장소·대여/반납 일시·반납 장소·방법·설치·철거 포함 여부, 용역=수행 일시·이행 범위·결과물·완료 기준을 필수로 받는다. 계약서·제안서 등은 선택·조건부다. 제작·인쇄에는 제작 업체·업체 사이트 URL·담당자 연락처를 선택으로 받는다(2026-09-02) — 대여의 대여처, 용역의 용역제공자와 같은 자리이며, 없으면 재정부가 발주 시 요청자에게 업체를 되물어야 한다. 대여에는 `대여처 사이트 URL`, 용역에는 `용역 제공자 사이트 URL`을 선택으로 받는다(2026-09-03) — 업체 이름과 연락처만으로는 재정부가 어느 업체인지 확인할 곳이 없었다. 다만 두 유형은 링크만으로 가격이 확정되지 않으므로 업체 견적서 필수는 그대로다(제작·인쇄만 URL이 견적서를 대신한다).", constraint: "필수 누락 시 항목별 오류를 표시하고 제출을 막는다(PURCHASE_TYPE_REQUIRED_FIELDS). 작성·상세 보기가 같은 유형별 필드 정의(PURCHASE_TYPE_FIELDS)를 공유한다. 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(스펙 708·709·727)" },
-      { num: "04", element: "가격 근거", description: "가격 근거는 `가격 설명·URL·견적서 중 하나 이상`이다(재정 스펙 716). 일반 구매는 상품 URL(구매·가격 확인 링크)을 가격 근거로 필수 입력한다. 대여·용역은 살 수 있는 링크가 없어 업체 견적서를 필수로 등록한다. 제작·인쇄는 업체 사이트에서 사양별 가격이 나오는 경우가 많아 견적서 파일 또는 업체 사이트 URL 중 하나로 충족한다(2026-09-02 완화 — 유형별 표(스펙 725)가 제작·인쇄에 견적서를 못 박지 않는데 구현만 필수로 좁혀 두고 있었다).", constraint: "견적서는 파일 첨부로 받는다. 예전에는 파일명을 손으로 입력하게 해 요청자가 이름을 옮겨 적어야 했다. 백엔드가 없으므로 메시지 첨부와 같은 규칙으로 파일명만 기록하고 실제 업로드·보관은 하지 않는다" },
+      { num: "04", element: "가격 근거", description: "가격 근거는 `가격 설명·URL·견적서 중 하나 이상`이다(재정 스펙 716). 일반 구매는 상품 URL(구매·가격 확인 링크)을 가격 근거로 필수 입력하고, 견적서 확보 상태를 묻지 않는다. 대여·용역은 살 수 있는 링크가 없어 업체 견적서를 필수로 등록한다. 제작·인쇄는 업체 사이트에서 사양별 가격이 나오는 경우가 많아 견적서 파일 또는 업체 사이트 URL 중 하나로 충족한다(2026-09-02 완화 — 유형별 표(스펙 725)가 제작·인쇄에 견적서를 못 박지 않는데 구현만 필수로 좁혀 두고 있었다).", constraint: "견적서는 파일 첨부로 받는다. 예전에는 파일명을 손으로 입력하게 해 요청자가 이름을 옮겨 적어야 했다. 백엔드가 없으므로 메시지 첨부와 같은 규칙으로 파일명만 기록하고 실제 업로드·보관은 하지 않는다" },
       { num: "05", element: "작성 액션", description: "구매 요청 제출(검토 대기 요청 생성) / 임시 저장.", constraint: "작성 화면은 editingRequestId가 없을 때 렌더된다(단일 컴포넌트 2모드)" },
-      { num: "06", element: "예산 항목 선택", description: "품목마다 이 행사에 편성된 예산 항목 중에서 선택한다(재정 스펙 712·757).", constraint: "예산 항목 옵션은 행사 편성 예산(eventBudget)에서 파생하며 고정 목록을 하드코딩하지 않는다" },
+      { num: "06", element: "예산 항목 선택", description: "품목마다 이 행사에 편성된 예산 항목 중에서 선택한다(재정 스펙 712·757). 필수 표시(*)는 직접 채워야 하는 칸에만 붙인다. 기본값이 늘 들어 있는 예산 항목·구매 유형 선택 상자에는 붙이지 않는다.", constraint: "예산 항목 옵션은 행사 편성 예산(eventBudget)에서 파생하며 고정 목록을 하드코딩하지 않는다" },
+      { num: "07", element: "쿠팡 링크 자동 채우기 (일반 구매)", description: "일반 구매는 구매 유형 옆의 상품 링크가 입력의 출발점이다. 링크를 붙이면 판매처를 도메인으로 바로 채운다(알려진 쇼핑몰은 이름, 모르는 도메인은 불러오기 시 주소). 쿠팡 링크를 불러오면 페이지에서 확인되는 품목명·배송비를 채우고, 링크에 옵션이 특정돼 있으면(vendorItemId) 옵션과 단가까지 채운다. 옵션을 골라야 하는 상품은 옵션 칸을 비워 두고 페이지의 옵션 목록을 칩으로 보여 준다. 채운 칸에는 `링크에서 가져옴`을 표시하고 사람이 고치면 표시를 지운다. 이미 사람이 쓴 칸은 덮어쓰지 않는다.", constraint: "쿠팡 외 쇼핑몰·읽기 실패는 링크를 가격 근거로 저장하고 직접 입력으로 넘어간다. 구매 이유·수량·예산 항목은 채우지 않는다. 와이어프레임은 예시 링크 4종(옵션 포함·옵션 미선택·다른 쇼핑몰·읽기 실패)으로 상태를 재현한다" },
+      { num: "08", element: "자동 단가", description: "쿠팡 자동 품목은 작성자가 단가를 입력하지 않는다. 링크·옵션 칩으로 옵션이 정해지면 즉시 `확정`(쿠팡 기준 시각 표시), 옵션이 비어 있으면 `옵션 선택 후 확정`, 직접 쓴 옵션이 쿠팡 옵션과 맞지 않으면 `제출 후 확인`으로 제출을 허용한다. 요청 요약은 확정된 금액만 더하고 가격 확인 대기 품목 수를 따로 보여 준다.", constraint: "수량은 쿠팡 판매 단위 기준임을 안내한다. 링크를 바꾸면 이전에 읽은 가격을 지운다" },
+      { num: "09", element: "배송비", description: "일반 구매에 배송비 칸을 단가와 별도로 둔다. 품목 총액 = 수량 × 단가 + 배송비이며 요청 요약에 배송비 합계를 표시한다. 쿠팡 링크에서는 배송비도 채운다. 발주·칸반·금액 확인의 실행분 금액에도 배송비를 수량 비율만큼 포함해 `승인액과 동일` 확정 시 배송비가 빠지지 않게 한다. 구매 유형을 바꾸면 배송비를 비우고 품목 총액을 다시 계산한다.", constraint: "가격 확인 중인 품목은 요청 총액에서 빠지며, 총액이 보이는 곳(내 구매 요청·행사 재정 목록·상세·검토)에 `+ 가격 확인 중 N개`를 함께 표시한다" },
     ],
     exceptions: ["오늘 이전 필요일은 선택하거나 제출할 수 없다", "필수 요청 정보나 유효한 품목이 없으면 제출하지 않고 항목별 오류를 표시한다", "예산이 편성되지 않은 행사에서는 작성 화면 대신 예산 편성 안내를 표시하고 EVT-FIN-01B로 유도한다"],
     nextScreens: ["MY-REQ-01 내 구매 요청", "EVT-FIN-01 행사 재정", "EVT-FIN-01B 행사 재정 — 재정부"],
@@ -3371,6 +3382,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "04B", element: "보완 대상 항목 지정", description: "`보완`을 고른 품목의 구매 정보 각 행 앞에 체크박스를 두어 **어느 항목을 고쳐야 하는지** 지정한다(`PurchaseItem.supplementFields`). 지정하면 요청자의 재제출 화면이 그 항목만 펼쳐 보여 준다. 사유가 `왜`라면 이 값은 `어디`다.", constraint: "**선택 사항이다.** 하나도 고르지 않으면 종전대로 전체 항목이 열린다 — 강제하면 검토가 느려지고 바쁠 때 아무거나 체크하게 된다. 사유 입력을 대체하지 않는다(둘 다 받는다). 체크박스는 재정부 검토 화면에서만 켠다. `PurchaseInfoPanel`은 요청 상세·발주·칸반 팝오버도 함께 쓰므로 기본값은 꺼짐이다" },
       { num: "05", element: "처리 기록(별도 탭)", description: "상태 변화 이력을 시간순으로 표시한다." },
       { num: "06", element: "확정 후 진행", description: "보완·검토 대기 품목 없이 전량 확정되면 승인 품목은 별도 선진행 동의 대기 없이 바로 주문 대기(구매 준비)로 넘어간다. 보완 품목이 함께 남아 있을 때만 승인 품목을 선진행 동의 대기에 두고 구매 진행 동의로 진행한다.", constraint: "선진행 동의 대기는 부분 승인(보완 품목 공존) 상황에서만 발생한다" },
+      { num: "07", element: "쿠팡 가격 확정", description: "쿠팡 자동 가격이 확정되지 않은 일반 구매 품목(`옵션 선택 후 확정`·`제출 후 확인`)은 금액을 `가격 확인 중`으로 표시하고 승인 버튼을 막는다. 재정부가 링크에서 옵션 가격(필요하면 배송비도)을 확인해 입력하고 `가격 확정`을 누르면 품목·요청 총액을 다시 계산하고 처리 기록에 남긴다.", constraint: "구매 정보 패널에 배송비·가격 출처(쿠팡 기준 시각 또는 재정부 확인)·링크에서 가져온 칸을 보완 지정 대상이 아닌 확인 정보로 표시한다" },
     ],
     exceptions: ["재정부 외 사용자는 검토 결정을 변경할 수 없다", "반려 사유가 없거나 미검토 품목이 있으면 최종 처리할 수 없다", "전량 승인 시 선진행 동의 대기를 거치지 않고 구매 준비로 진행한다"],
     nextScreens: ["FIN-PROC-01 구매·발주 처리", "FIN-SUP-01B 보완 요청 확인·재제출", "EVT-FIN-01 행사 재정"],
@@ -3704,25 +3716,59 @@ function DetailValue({ value }: { value?: string }) {
 // 가격 근거(견적서)는 details가 아니라 item.priceEvidence에 있다. 보완 지정에서 한 항목으로 다루려고
 // 별도 key를 준다. 보완 화면(FIN-SUP-01B)도 같은 값을 쓴다.
 const SUPPLEMENT_EVIDENCE_KEY = "__priceEvidence";
+// 배송비는 숫자(원)로 저장한다. 보완 입력처럼 자유 입력이 들어와도 "3,000원" → "3000"으로 정규화해 총액 계산이 깨지지 않게 한다.
+const normalizeShipping = (text: string) => { const digits = text.replace(/[^\d]/g, ""); return digits === "" ? "" : String(Number(digits)); };
+const formatShipping = (value: unknown) => value == null || value === "" ? "미입력" : Number(value) === 0 ? "무료" : `${Number(value).toLocaleString()}원`;
 // 구매 정보 행 목록 — 표시·보완 지정이 같은 정의를 쓴다.
 function purchaseInfoRows(item: PurchaseItem): { key: string; label: string; value?: string }[] {
   const fields = PURCHASE_TYPE_FIELDS[item.purchaseType] ?? [];
   // 일반 구매는 가격 근거를 상품 URL 링크로 대체하므로 별도 견적서 행을 두지 않는다. 제작·대여·용역만 업체 견적서를 표시한다.
   return [
     ...(item.purchaseType === "일반 구매" ? [] : [{ key: SUPPLEMENT_EVIDENCE_KEY, label: "업체 견적서", value: item.priceEvidence }]),
-    ...fields.map(f => ({ key: f.key, label: f.label, value: item.details?.[f.key] != null ? String(item.details[f.key]) : undefined })),
+    ...fields.map(f => ({ key: f.key, label: f.label, value: item.details?.[f.key] == null || item.details[f.key] === "" ? undefined
+      : f.key === "배송비" ? formatShipping(item.details[f.key])
+      : String(item.details[f.key]) })),
   ];
+}
+// 쿠팡 가격이 아직 확정되지 않은 품목은 0원이 아니라 '가격 확인 중'으로 보인다.
+const isPurchasePricePending = (item: PurchaseItem) => item.purchaseType === "일반 구매" && !!item.details?.["가격상태"] && item.details["가격상태"] !== "확정";
+const purchaseAmountLabel = (item: PurchaseItem, amount = item.estimatedTotalPrice) => isPurchasePricePending(item) ? "가격 확인 중" : `${amount.toLocaleString()}원`;
+// 요청 총액은 확정된 금액만 더한다. 가격 확인 중인 품목이 있으면 총액 옆에 개수를 밝힌다.
+function RequestPendingNote({ items }: { items: PurchaseItem[] }) {
+  const pending = items.filter(isPurchasePricePending).length;
+  return pending > 0 ? <span className="block text-[10px] font-normal text-orange-700">+ 가격 확인 중 {pending}개</span> : null;
+}
+// 일반 구매 링크 자동 채우기의 가격 정보. 검토·발주·상세에서 링크 원문 값과 사람이 고친 값을 구분하게 한다.
+function purchaseLinkInfoRows(item: PurchaseItem, viewer: "finance" | "requester" = "finance"): { label: string; value: string; warn?: boolean }[] {
+  if (item.purchaseType !== "일반 구매") return [];
+  const d = item.details ?? {};
+  const rows: { label: string; value: string; warn?: boolean }[] = [];
+  if (d["가격상태"]) rows.push(d["가격상태"] === "확정"
+    ? { label: "가격 출처", value: String(d["가격출처"] || "확정") }
+    : { label: "가격 상태", value: viewer === "finance" ? `${d["가격상태"]} · 확정 전에는 승인할 수 없어요` : `${d["가격상태"]} · 재정부가 가격을 확인하고 있어요`, warn: true });
+  if (d["배송방식"]) rows.push({ label: "배송 방식", value: String(d["배송방식"]) + (d["배송방식"] === "해외직구" ? " · 도착 지연·관부가세 가능" : ""), warn: d["배송방식"] === "해외직구" });
+  if (d["판매자"]) rows.push({ label: "판매자", value: String(d["판매자"]) });
+  if (d["도착예정일"]) rows.push({ label: "도착 예정(요청 시점)", value: `${formatArrival(String(d["도착예정일"]))} · 학생회 배송지 기준 참고값` });
+  if (d["판매단위"]) rows.push({ label: "판매 단위", value: String(d["판매단위"]) });
+  if (d["할인안내"]) rows.push({ label: "조건부 할인", value: String(d["할인안내"]) });
+  const auto = purchaseAutoKeys(item).map(key => AUTO_KEY_LABELS[key]).filter(Boolean);
+  if (auto.length > 0) rows.push({ label: "링크에서 가져옴", value: auto.join(", ") });
+  if (d["정보기준"]) rows.push({ label: "링크 정보 기준", value: String(d["정보기준"]) });
+  return rows;
 }
 // selectable은 재정부 검토 화면(FIN-REV-01)에서만 켠다. 요청 상세·발주·칸반 팝오버도 같은 컴포넌트를
 // 쓰므로 기본값은 꺼짐이다. 켜면 각 행 앞에 체크박스가 붙어 보완이 필요한 항목을 지정할 수 있다.
-function PurchaseInfoPanel({ item, cols = 2, selectable = false, selected, onToggle }: {
-  item: PurchaseItem; cols?: 1 | 2;
+function PurchaseInfoPanel({ item, cols = 2, selectable = false, selected, onToggle, viewer = "finance" }: {
+  item: PurchaseItem; cols?: 1 | 2; viewer?: "finance" | "requester";
   selectable?: boolean; selected?: Set<string>; onToggle?: (key: string) => void;
 }) {
   const rows = purchaseInfoRows(item);
+  // 일반 구매의 가격 정보(배송비·가격 출처·자동 입력 칸)는 보완 지정 대상이 아니라 확인용이므로 체크박스 없이 따로 보여준다.
+  const priceRows = purchaseLinkInfoRows(item, viewer);
   return (
+    <div className="flex flex-col gap-1.5">
     <div className={`grid ${cols === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-x-5 gap-y-1.5`}>
-      {rows.map(r => {
+      {rows.filter(r => selectable || r.key !== "배송비" || r.value).map(r => {
         const checked = selectable && !!selected?.has(r.key);
         const body = (
           <>
@@ -3739,12 +3785,17 @@ function PurchaseInfoPanel({ item, cols = 2, selectable = false, selected, onTog
         );
       })}
     </div>
+    {priceRows.length > 0 && item.details?.["정보기준"] && <div className="flex items-center gap-2 border-t border-gray-100 pt-1.5"><div className="w-9 h-9 rounded bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0"><ImageIcon className="w-4 h-4 text-gray-400" /></div><span className="text-[10px] text-gray-400">쿠팡 상품 이미지</span></div>}
+    {priceRows.length > 0 && <div className={`grid ${cols === 1 ? "grid-cols-1" : "grid-cols-1 sm:grid-cols-2"} gap-x-5 gap-y-1.5 border-t border-gray-100 pt-1.5`}>{priceRows.map(r => <div key={r.label} className="text-[11px] flex gap-1.5 leading-relaxed"><span className="shrink-0 min-w-[88px] text-gray-400">{r.label}</span><span className={r.warn ? "text-orange-700" : "text-gray-700"}>{r.value}</span></div>)}</div>}
+    </div>
   );
 }
 
-function Input({ label, placeholder, type = "text", required, hint, error, select, selectOptions, value, defaultValue, onChange, disabled, className: extraClass }: {
+// 필수 표시(*)는 사람이 직접 채워야 하는 칸에만 붙인다. 기본값이 늘 들어 있는 선택 상자는 hideEmptyOption으로
+// 빈 '선택' 항목을 없애 비울 수 없게 하고 *를 붙이지 않는다.
+function Input({ label, placeholder, type = "text", required, hint, error, select, selectOptions, hideEmptyOption, value, defaultValue, onChange, disabled, className: extraClass }: {
   label?: string; placeholder?: string; type?: string;
-  required?: boolean; hint?: string; error?: string; select?: boolean; selectOptions?: string[];
+  required?: boolean; hint?: string; error?: string; select?: boolean; selectOptions?: string[]; hideEmptyOption?: boolean;
   value?: string; defaultValue?: string; onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   disabled?: boolean; className?: string;
 }) {
@@ -3764,7 +3815,8 @@ function Input({ label, placeholder, type = "text", required, hint, error, selec
             disabled={disabled}
             className={`w-full border ${borderCls} rounded px-3 py-2 text-sm text-gray-800 bg-white appearance-none pr-8 disabled:bg-gray-50 disabled:text-gray-400 ${extraClass || ""}`}
           >
-            <option value="">{placeholder || "선택"}</option>
+            {/* 값이 목록에 없으면(예: 첫 사용) 기본값이 없는 것이므로 빈 항목을 다시 보여 준다. */}
+            {(!hideEmptyOption || !selectOptions?.includes(String(value ?? ""))) && <option value="">{placeholder || "선택"}</option>}
             {selectOptions?.map(o => <option key={o}>{o}</option>)}
           </select>
           <ChevronDown className="absolute right-2 top-2.5 w-4 h-4 text-gray-400 pointer-events-none" />
@@ -6054,7 +6106,7 @@ function ORG01() {
           <Input label="학생회명" placeholder="예: 제12대 소프트웨어융합대학 학생회" required />
 
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-700">운영 연도<span className="text-red-500">*</span></label>
+            <label className="text-xs font-medium text-gray-700">운영 연도</label>
             <div className="relative">
               <select className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white appearance-none pr-8">
                 <option>2026년</option>
@@ -8015,7 +8067,7 @@ function EVT01() {
         {/* Content */}
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-medium text-gray-700">행사 책임자<span className="text-red-500">*</span></label>
+            <label className="text-xs font-medium text-gray-700">행사 책임자</label>
             <div className="relative w-64">
               <select value={leaderName} onChange={e => setLeaderName(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white appearance-none pr-8">
                 {members.map(member => <option key={member.name} value={member.name}>{member.name}</option>)}
@@ -9661,7 +9713,8 @@ function OPSMEET02() {
                 <Input
                   label="연결 행사"
                   select
-                  required
+                  hideEmptyOption
+                  required={!activeEventOptions.some(record => record.info.name === meetingForm.event)}
                   value={meetingForm.event}
                   selectOptions={activeEventOptions.map(record => record.info.name)}
                   onChange={(event) => setMeetingForm((form) => ({ ...form, event: event.target.value }))}
@@ -9676,7 +9729,7 @@ function OPSMEET02() {
             <div className="grid grid-cols-2 gap-x-6 gap-y-4">
               <Input label="회의명" required value={meetingForm.name} onChange={(event) => setMeetingForm((form) => ({ ...form, name: event.target.value }))} />
               <Input label="주최자" required value={meetingCreator.name} disabled />
-              <Input label="주관 부서" select required value={meetingCreator.dept} selectOptions={["운영부", "기획부", "재정부", "홍보부"]} />
+              <Input label="주관 부서" select hideEmptyOption value={meetingCreator.dept} selectOptions={["운영부", "기획부", "재정부", "홍보부"]} />
               <Input label="회의 상태" value="예정" disabled hint="새 회의는 예정 상태로 생성됩니다." />
             </div>
 
@@ -9697,7 +9750,7 @@ function OPSMEET02() {
               <Input label="회의 날짜" type="date" required value={meetingForm.date} onChange={(event) => setMeetingForm((form) => ({ ...form, date: event.target.value }))} />
               <Input label="시작 예정 시각" type="time" required value={meetingForm.time} onChange={(event) => setMeetingForm((form) => ({ ...form, time: event.target.value }))} />
               <Input label="종료 예정 시각" type="time" required defaultValue="16:30" />
-              <Input label="진행 방식" select required value={meetingMode} selectOptions={["오프라인", "온라인", "혼합"]} onChange={(event) => setMeetingMode(event.target.value as MeetingMode)} />
+              <Input label="진행 방식" select hideEmptyOption value={meetingMode} selectOptions={["오프라인", "온라인", "혼합"]} onChange={(event) => setMeetingMode(event.target.value as MeetingMode)} />
             </div>
             {meetingMode === "혼합" && (
               <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex items-start gap-2">
@@ -10152,7 +10205,7 @@ function CreatedMeetingCleanup({ meetingId, onBack, onCompleted, actor }: { meet
                 {record.taskNone ? <div className="mt-3 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-[11px] text-gray-600">이 안건에는 후속 업무가 없음을 기록했습니다.</div> : (
                   <div className="mt-4 grid grid-cols-2 gap-4">
                     <div className="col-span-2"><Input label="업무명" required value={record.taskName} disabled={Boolean(record.taskCreatedId)} onChange={(event) => updateRecord({ taskName: event.target.value })} /></div>
-                    <Input label="담당자" select required value={record.taskAssignee} disabled={Boolean(record.taskCreatedId)} onChange={(event) => updateRecord({ taskAssignee: event.target.value })} selectOptions={[currentUser.name, ...meeting.participantNames.filter((name) => name !== currentUser.name)]} />
+                    <Input label="담당자" select hideEmptyOption value={record.taskAssignee} disabled={Boolean(record.taskCreatedId)} onChange={(event) => updateRecord({ taskAssignee: event.target.value })} selectOptions={[currentUser.name, ...meeting.participantNames.filter((name) => name !== currentUser.name)]} />
                     <Input label="마감일" type="date" required value={record.taskDue} disabled={Boolean(record.taskCreatedId)} onChange={(event) => updateRecord({ taskDue: event.target.value })} />
                     <div className="col-span-2 flex items-center justify-between border border-blue-100 bg-blue-50 rounded-lg px-4 py-3"><div><p className="text-[11px] font-semibold text-blue-900">{record.taskCreatedId ? "업무 카드가 생성되었습니다" : "상시 업무 카드로 생성"}</p><p className="text-[10px] text-blue-700 mt-1">{record.taskCreatedId ? `${record.taskCreatedId} · 업무 상태 변경은 상시 업무에서 처리합니다.` : "논의와 결정사항을 먼저 입력한 뒤 생성할 수 있습니다."}</p></div>{record.taskCreatedId ? <Chip label="생성 완료" variant="green" /> : <Btn variant="primary" size="sm" disabled={!taskReady} onClick={makeTask}><Plus className="w-3.5 h-3.5" /> 업무 카드 만들기</Btn>}</div>
                   </div>
@@ -12908,7 +12961,7 @@ function EVT03B() {
 
           {/* 행사 책임자 변경 */}
           <div className="flex flex-col gap-1 mb-5 max-w-xs">
-            <label className="text-xs font-medium text-gray-700">행사 책임자<span className="text-red-500">*</span></label>
+            <label className="text-xs font-medium text-gray-700">행사 책임자</label>
             <div className="relative">
               <select value={leaderName} onChange={e => setLeaderName(e.target.value)} className="w-full border border-gray-300 rounded px-3 py-2 text-sm bg-white appearance-none pr-8">
                 {members.map(member => <option key={member.name} value={member.name}>{member.name}</option>)}
@@ -14295,7 +14348,7 @@ function EVTFIN01() {
                           {!opts.inStack && <p className="text-[10px] text-gray-400 mt-1 line-clamp-1"><span className="text-indigo-500 font-semibold">📦 {request.id}</span> · {request.title}</p>}
                           <div className="grid grid-cols-2 gap-2 mt-3 py-2.5 border-y border-gray-50">
                             <div><p className="text-[9px] text-gray-400">수량</p><p className="text-[11px] font-semibold text-gray-700 mt-0.5">{execution ? execQuantityOf(item, execution) : item.quantity}{item.unit}{execution?.quantity != null && execution.quantity !== item.quantity && <span className="ml-1 text-[9px] text-blue-500">/{item.quantity}{item.unit}</span>}</p></div>
-                            <div><p className="text-[9px] text-gray-400">예상 금액</p><p className="text-[11px] font-semibold text-gray-700 mt-0.5">{(execution ? execAmountOf(item, execution) : item.estimatedTotalPrice).toLocaleString()}원</p></div>
+                            <div><p className="text-[9px] text-gray-400">예상 금액</p><p className="text-[11px] font-semibold text-gray-700 mt-0.5">{execution ? `${execAmountOf(item, execution).toLocaleString()}원` : purchaseAmountLabel(item)}</p></div>
                           </div>
                           {!opts.hideStatus && <div className="mt-3 flex items-center justify-between gap-2">
                             <Chip label={generalProgress} variant={progressVariant(generalProgress)} />
@@ -14539,7 +14592,7 @@ function EVTFIN01() {
                          </div>
                       </td>
                       <td className="px-4 py-3 text-gray-600">{req.dept}</td>
-                      <td className="px-4 py-3 font-bold text-gray-900 text-right">{req.totalEstimatedAmount.toLocaleString()}원</td>
+                      <td className="px-4 py-3 font-bold text-gray-900 text-right">{req.totalEstimatedAmount.toLocaleString()}원<RequestPendingNote items={req.items} /></td>
                       <td className="px-4 py-3 text-center"><Chip label={req.status} variant={requestStatusVariant(req.status)} /></td>
                     </tr>
                   ))}
@@ -14587,7 +14640,7 @@ function EVTFIN01() {
                             <tr key={it.id}>
                               <td className="px-4 py-2.5 font-semibold text-gray-800"><span className="text-slate-300 mr-1">▪</span>{it.name}</td>
                               <td className="px-4 py-2.5 text-gray-500">{it.quantity}{it.unit}</td>
-                              <td className="px-4 py-2.5 text-right font-mono text-gray-600">{it.estimatedTotalPrice.toLocaleString()}원</td>
+                              <td className="px-4 py-2.5 text-right font-mono text-gray-600">{purchaseAmountLabel(it)}</td>
                               <td className="px-4 py-2.5"><Chip label={prog} variant={progressVariant(prog)} /></td>
                             </tr>
                           );
@@ -14711,6 +14764,95 @@ function EVTFIN01() {
   );
 }
 
+// ─── 쿠팡 링크 자동 채우기 (일반 구매) ──────────────────────────────────────────
+// 실제 추출 기능은 별도로 구현되어 있다. 와이어프레임은 예시 링크로 상태(전부 채움·옵션 미선택·지원 안 함·읽기 실패)만 재현한다.
+// 규칙: 페이지에서 확인되는 값만 채우고, 옵션처럼 고를 것이 남으면 비워 둔다. 사람이 이미 쓴 칸은 덮어쓰지 않는다.
+// 단가는 작성자가 입력하지 않는다. 링크·옵션으로 확정되면 읽기 전용으로 보이고, 못 하면 제출 후 확인 → 재정부 확인 순으로 넘어간다.
+// 배송비는 단가와 별도 칸이며 품목 총액에 더한다.
+type CoupangOption = { label: string; price: number; soldOut?: boolean };
+// 링크에서 함께 읽는 상품 정보. 요청서 칸을 채우지는 않고 요청자·재정부의 판단 근거로 보여 준다(추출 시각과 함께 기록).
+// 가격은 학생회 계정이 와우 회원이므로 와우 회원가를 쓰고, 쿠폰·카드 할인은 결제 조건이 달라 단가에 넣지 않는다.
+type CoupangMeta = { productId: string; seller: string; delivery: string; saleUnit: string; arrival: string; discountNote?: string };
+type CoupangFetchResult =
+  | { status: "filled"; name: string; option: string; unitPrice: number; shipping: number; meta: CoupangMeta; options: CoupangOption[] }
+  | { status: "partial"; name: string; shipping: number; options: CoupangOption[]; meta: CoupangMeta }
+  | { status: "unsupported" | "failed"; message: string };
+const COUPANG_DEMO_LINKS = [
+  { label: "옵션까지 정해진 링크", url: "https://www.coupang.com/vp/products/778812?itemId=40021&vendorItemId=3001" },
+  { label: "옵션 미선택 링크", url: "https://www.coupang.com/vp/products/778812" },
+  { label: "해외직구 상품", url: "https://www.coupang.com/vp/products/556677?itemId=88001&vendorItemId=9001" },
+  { label: "다른 쇼핑몰", url: "https://www.daisomall.co.kr/goods/1002345" },
+  { label: "읽기 실패", url: "https://www.coupang.com/vp/products/999999" },
+];
+// 도착 예정일은 학생회 쿠팡 계정의 기본 배송지(학교) 기준으로 추출한다고 가정한다. 날짜는 요청 시점 참고값이다.
+const demoArrival = (days: number) => { const d = new Date(); d.setDate(d.getDate() + days); return formatDateInput(d); };
+const COUPANG_DEMO_PRODUCT = {
+  name: "반사띠 형광 안전 조끼",
+  shipping: 0,
+  options: [
+    { label: "형광 그린 / M", price: 6000 },
+    { label: "형광 그린 / L", price: 6000 },
+    { label: "형광 주황 / XL", price: 6500, soldOut: true },
+  ] as CoupangOption[],
+  meta: () => ({ productId: "778812", seller: "쿠팡", delivery: "로켓배송", saleUnit: "1개(단품)", arrival: demoArrival(1), discountNote: "카드 즉시할인 5% 있음 · 단가에 반영하지 않음" }) as CoupangMeta,
+};
+const COUPANG_DEMO_OVERSEAS = {
+  name: "LED 경광봉 12개입",
+  shipping: 2500,
+  option: { label: "레드 / 12개입", price: 18900 },
+  meta: () => ({ productId: "556677", seller: "글로벌셀러 스타라이트", delivery: "해외직구", saleUnit: "1세트(12개입)", arrival: demoArrival(12) }) as CoupangMeta,
+};
+const isCoupangUrl = (url: string) => /^https?:\/\/(www\.)?coupang\.com\//.test(url.trim());
+function simulateCoupangFetch(url: string): CoupangFetchResult {
+  if (!isCoupangUrl(url)) return { status: "unsupported", message: "판매처는 링크 주소로 채웠어요. 품목명·가격은 쿠팡 링크만 자동으로 채우니, 이 링크는 가격 근거로 저장하고 나머지는 직접 입력해 주세요." };
+  if (url.includes("/556677")) {
+    const p = COUPANG_DEMO_OVERSEAS;
+    return { status: "filled", name: p.name, option: p.option.label, unitPrice: p.option.price, shipping: p.shipping, meta: p.meta(), options: [p.option] };
+  }
+  if (!url.includes("/778812")) return { status: "failed", message: "상품 정보를 읽지 못했어요. 접속이 제한된 상품일 수 있어요. 직접 입력해도 제출할 수 있어요." };
+  // 쿠팡 링크에 옵션 식별자(vendorItemId)가 있으면 옵션과 그 가격이 정해진다.
+  if (/vendorItemId=\d+/.test(url)) {
+    const option = COUPANG_DEMO_PRODUCT.options[1];
+    return { status: "filled", name: COUPANG_DEMO_PRODUCT.name, option: option.label, unitPrice: option.price, shipping: COUPANG_DEMO_PRODUCT.shipping, meta: COUPANG_DEMO_PRODUCT.meta(), options: COUPANG_DEMO_PRODUCT.options };
+  }
+  return { status: "partial", name: COUPANG_DEMO_PRODUCT.name, shipping: COUPANG_DEMO_PRODUCT.shipping, options: COUPANG_DEMO_PRODUCT.options, meta: COUPANG_DEMO_PRODUCT.meta() };
+}
+// 판매처는 링크 주소(도메인)만으로 정해진다. 쿠팡 외 쇼핑몰도 링크를 붙이면 바로 채운다.
+const SELLER_BY_DOMAIN: [RegExp, string][] = [
+  [/(^|\.)coupang\.com$/, "쿠팡"],
+  [/(^|\.)daisomall\.co\.kr$/, "다이소몰"],
+  [/(^|\.)kurly\.com$/, "마켓컬리"],
+  [/(^|\.)officedepot\.co\.kr$/, "오피스디포"],
+  [/^smartstore\.naver\.com$|^brand\.naver\.com$|^shopping\.naver\.com$/, "네이버 스마트스토어"],
+  [/(^|\.)11st\.co\.kr$/, "11번가"],
+  [/(^|\.)gmarket\.co\.kr$/, "G마켓"],
+  [/(^|\.)auction\.co\.kr$/, "옥션"],
+  [/(^|\.)ssg\.com$/, "SSG닷컴"],
+  [/(^|\.)aliexpress\.(com|us)$/, "알리익스프레스"],
+];
+// 알려진 쇼핑몰은 이름으로, 모르는 도메인은 불러오기를 누를 때만 주소 그대로(입력 중 깜빡임 방지).
+function sellerFromUrl(url: string, allowHost = false): string | null {
+  try {
+    const host = new URL(url.trim()).hostname.replace(/^www\./, "").replace(/^m\./, "");
+    return SELLER_BY_DOMAIN.find(([pattern]) => pattern.test(host))?.[1] ?? (allowHost && host.includes(".") ? host : null);
+  } catch { return null; }
+}
+const LINK_META_KEYS = ["상품ID", "판매자", "배송방식", "도착예정일", "판매단위", "할인안내", "정보기준"];
+// 쿠팡 상품 ID: 저장된 값이 없으면 링크 주소에서 읽는다(중복 요청 확인용, 화면에는 보이지 않음).
+const coupangProductId = (item: { details?: Record<string, any> }) => String(item.details?.["상품ID"] || (String(item.details?.["상품URL"] ?? "").match(/coupang\.com\/vp\/products\/(\d+)/)?.[1] ?? ""));
+const formatArrival = (iso: string) => { const d = new Date(`${iso}T00:00:00`); return Number.isNaN(d.getTime()) ? iso : `${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}(${"일월화수목금토"[d.getDay()]})`; };
+const normalizeOption = (text: string) => text.replace(/\s+/g, "").toLowerCase();
+// 자동 가격 상태. 값이 없으면 직접 입력(쿠팡 외·대여·용역 등)이다.
+type AutoPriceState = "확정" | "옵션 선택 후 확정" | "제출 후 확인";
+const AUTO_PRICE_HINT: Record<Exclude<AutoPriceState, "확정">, string> = {
+  "옵션 선택 후 확정": "옵션을 정하면 쿠팡 가격으로 확정돼요",
+  "제출 후 확인": "제출 후 쿠팡 가격을 확인해요",
+};
+const purchaseShipping = (item: { purchaseType: string; details?: Record<string, any> }) => item.purchaseType === "일반 구매" ? Number(item.details?.["배송비"] || 0) : 0;
+const purchaseAutoKeys = (item: { details?: Record<string, any> }): string[] => String(item.details?.["자동입력"] ?? "").split(",").filter(Boolean);
+const AUTO_KEY_LABELS: Record<string, string> = { name: "품목명", 판매처: "판매처", 옵션규격: "옵션", estimatedUnitPrice: "단가", 배송비: "배송비" };
+const linkStamp = () => { const d = new Date(); const pad = (n: number) => String(n).padStart(2, "0"); return `${pad(d.getMonth() + 1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+
 function FINREQ01() {
   const { navigateTo, purchaseRequests, setPurchaseRequests, currentUser, purchaseRequestDraft, setPurchaseRequestDraft, setDemoDataMode, eventInfo, selectedEventId, editingRequestId, setEditingRequestId, eventBudget } = React.useContext(AppContext);
   // 수정 모드: editingRequestId가 가리키는 요청을 편집한다(작성 모드면 null).
@@ -14745,7 +14887,13 @@ function FINREQ01() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [draftSaved, setDraftSaved] = useState(false);
 
-  const totalAmount = items.reduce((sum, item) => sum + (item.quantity * item.estimatedUnitPrice), 0);
+  // 품목 총액 = 수량 × 단가 + 배송비. 가격이 아직 확정되지 않은 품목은 0으로 더해지고 요약에 따로 표시한다.
+  const itemTotal = (item: PurchaseDraftItem) => item.quantity * item.estimatedUnitPrice + purchaseShipping(item);
+  const totalAmount = items.reduce((sum, item) => sum + itemTotal(item), 0);
+  const pendingPriceItems = items.filter(item => item.purchaseType === "일반 구매" && item.details?.["가격상태"] && item.details["가격상태"] !== "확정");
+  const shippingTotal = items.reduce((sum, item) => sum + purchaseShipping(item), 0);
+  // 링크 불러오기 상태(화면 표시용). 옵션 목록은 페이지에서 읽은 값이라 저장하지 않는다.
+  const [linkFetch, setLinkFetch] = useState<Record<number, { state: "loading" | "filled" | "partial" | "unsupported" | "failed"; message?: string; options?: CoupangOption[] }>>({});
 
   const addItem = () => setItems([{ id: Date.now(), name: "", budgetLine: budgetLineOptions[0] ?? "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" }, ...items]);
   const removeItem = (id: number) => setItems(items.filter(i => i.id !== id));
@@ -14754,8 +14902,10 @@ function FINREQ01() {
     setItems(items.map(item => {
       if (item.id === id) {
         const updated = { ...item, [field]: value };
+        // 사람이 고친 칸은 더 이상 '링크에서 가져옴'이 아니다.
+        if (purchaseAutoKeys(item).includes(field)) updated.details = { ...item.details, 자동입력: purchaseAutoKeys(item).filter(key => key !== field).join(",") };
         if (field === "quantity" || field === "estimatedUnitPrice") {
-           updated.estimatedTotalPrice = updated.quantity * updated.estimatedUnitPrice;
+           updated.estimatedTotalPrice = updated.quantity * updated.estimatedUnitPrice + purchaseShipping(updated);
         }
         return updated;
       }
@@ -14765,7 +14915,94 @@ function FINREQ01() {
 
   // 유형별 상세 정보는 item.details에 키별로 저장한다. 제출·임시저장 시 items로 함께 보존된다.
   const updateDetail = (id: number, key: string, value: string) => {
-    setItems(items.map(item => item.id === id ? { ...item, details: { ...item.details, [key]: value } } : item));
+    setItems(items.map(item => {
+      if (item.id !== id) return item;
+      const details: Record<string, any> = { ...item.details, [key]: value, 자동입력: purchaseAutoKeys(item).filter(k => k !== key).join(",") };
+      let next = { ...item, details };
+      // 링크를 바꾸면 이전 링크에서 읽은 값(자동 입력 칸·가격)은 근거를 잃는다. 사람이 쓴 칸은 그대로 두고, 다시 불러오거나 직접 입력한다.
+      if (key === "상품URL" && (details["가격상태"] || purchaseAutoKeys(item).length > 0 || details["정보기준"])) {
+        const stale = purchaseAutoKeys(item);
+        stale.forEach(k => { if (k !== "name" && k !== "estimatedUnitPrice") details[k] = ""; });
+        LINK_META_KEYS.forEach(k => { delete details[k]; });
+        delete details["가격상태"]; delete details["가격출처"];
+        details["자동입력"] = "";
+        next = { ...next, details, name: stale.includes("name") ? "" : next.name, estimatedUnitPrice: item.details?.["가격상태"] || stale.includes("estimatedUnitPrice") ? 0 : next.estimatedUnitPrice };
+        setLinkFetch(current => { const { [id]: _, ...rest } = current; return rest; });
+      }
+      // 링크를 붙이면 판매처는 도메인으로 바로 채운다. 사람이 쓴 판매처는 덮어쓰지 않는다.
+      if (key === "상품URL" && item.purchaseType === "일반 구매") {
+        const seller = sellerFromUrl(value);
+        const sellerIsAuto = purchaseAutoKeys(item).includes("판매처") || !String(item.details?.["판매처"] ?? "").trim();
+        if (seller && sellerIsAuto) { details["판매처"] = seller; details["자동입력"] = [...String(details["자동입력"] ?? "").split(",").filter(k => k && k !== "판매처"), "판매처"].join(","); }
+        else if (!seller && purchaseAutoKeys(item).includes("판매처")) { details["판매처"] = ""; details["자동입력"] = String(details["자동입력"] ?? "").split(",").filter(k => k && k !== "판매처").join(","); }
+        next = { ...next, details };
+      }
+      // 옵션을 직접 쓰면 쿠팡 옵션과 맞춰 본다. 맞으면 바로 확정, 아니면 제출 후 확인.
+      if (key === "옵션규격" && details["가격상태"] && details["가격상태"] !== "확정") {
+        const match = linkFetch[id]?.options?.find(option => !option.soldOut && normalizeOption(option.label) === normalizeOption(value));
+        if (match) { details["가격상태"] = "확정"; details["가격출처"] = `쿠팡 ${linkStamp()} 기준 · 와우 회원가`; next = { ...next, estimatedUnitPrice: match.price }; }
+        else details["가격상태"] = value.trim() ? "제출 후 확인" : "옵션 선택 후 확정";
+      }
+      return { ...next, estimatedTotalPrice: next.quantity * next.estimatedUnitPrice + purchaseShipping(next) };
+    }));
+  };
+
+  // 쿠팡 옵션 칩 선택: 사람이 고른 옵션의 가격으로 확정한다.
+  const pickCoupangOption = (id: number, option: CoupangOption) => {
+    setItems(items.map(item => {
+      if (item.id !== id) return item;
+      if (option.soldOut) return item;
+      const next = { ...item, estimatedUnitPrice: option.price, details: { ...item.details, 옵션규격: option.label, 가격상태: "확정", 가격출처: `쿠팡 ${linkStamp()} 기준 · 와우 회원가`, 자동입력: [...purchaseAutoKeys(item).filter(k => k !== "옵션규격"), "estimatedUnitPrice"].join(",") } };
+      return { ...next, estimatedTotalPrice: next.quantity * next.estimatedUnitPrice + purchaseShipping(next) };
+    }));
+  };
+
+  // 링크 불러오기: 빈 칸이거나 이전에 자동으로 채운 칸만 채운다. 사람이 쓴 값은 그대로 둔다.
+  const fetchLink = (id: number) => {
+    const target = items.find(item => item.id === id);
+    const url = String(target?.details?.["상품URL"] ?? "").trim();
+    if (!url) return;
+    setLinkFetch(current => ({ ...current, [id]: { state: "loading" } }));
+    window.setTimeout(() => {
+      const result = simulateCoupangFetch(url);
+      setLinkFetch(current => ({ ...current, [id]: result.status === "unsupported" || result.status === "failed" ? { state: result.status, message: result.message } : { state: result.status, options: result.status === "partial" ? result.options : undefined } }));
+      setItems(current => current.map(item => {
+        if (item.id !== id) return item;
+        const auto = new Set(purchaseAutoKeys(item));
+        const details: Record<string, any> = { ...item.details };
+        if (result.status === "unsupported" || result.status === "failed") {
+          delete details["가격상태"]; delete details["가격출처"];
+          const seller = sellerFromUrl(url, true);
+          if (seller && (auto.has("판매처") || !String(details["판매처"] ?? "").trim())) { details["판매처"] = seller; auto.add("판매처"); details["자동입력"] = Array.from(auto).join(","); }
+          return { ...item, details };
+        }
+        const canFill = (key: string, current: unknown) => auto.has(key) || current === "" || current === undefined || current === null || current === 0;
+        let next: PurchaseDraftItem = { ...item };
+        if (canFill("name", item.name)) { next.name = result.name; auto.add("name"); }
+        if (canFill("판매처", details["판매처"])) { details["판매처"] = "쿠팡"; auto.add("판매처"); }
+        if (canFill("배송비", details["배송비"])) { details["배송비"] = String(result.shipping); auto.add("배송비"); }
+        const stamp = linkStamp();
+        const meta = result.meta;
+        Object.assign(details, { 상품ID: meta.productId, 판매자: meta.seller, 배송방식: meta.delivery, 도착예정일: meta.arrival, 판매단위: meta.saleUnit, 할인안내: meta.discountNote ?? "", 정보기준: `쿠팡 ${stamp} 기준` });
+        if (result.status === "filled") {
+          if (canFill("옵션규격", details["옵션규격"])) { details["옵션규격"] = result.option; auto.add("옵션규격"); }
+          next.estimatedUnitPrice = result.unitPrice; auto.add("estimatedUnitPrice");
+          details["가격상태"] = "확정"; details["가격출처"] = `쿠팡 ${stamp} 기준 · 와우 회원가`;
+        } else {
+          // 옵션을 골라야 하는 상품: 옵션은 비워 두고(이전 자동값만 지움), 가격은 옵션이 정해질 때 확정한다.
+          if (auto.has("옵션규격")) { details["옵션규격"] = ""; auto.delete("옵션규격"); }
+          const typed = String(details["옵션규격"] ?? "").trim();
+          const match = typed ? result.options.find(option => !option.soldOut && normalizeOption(option.label) === normalizeOption(typed)) : undefined;
+          next.estimatedUnitPrice = match?.price ?? 0;
+          auto.delete("estimatedUnitPrice");
+          details["가격상태"] = match ? "확정" : typed ? "제출 후 확인" : "옵션 선택 후 확정";
+          details["가격출처"] = match ? `쿠팡 ${stamp} 기준 · 와우 회원가` : "";
+        }
+        details["자동입력"] = Array.from(auto).join(",");
+        next = { ...next, details };
+        return { ...next, estimatedTotalPrice: next.quantity * next.estimatedUnitPrice + purchaseShipping(next) };
+      }));
+    }, 700);
   };
 
   const handleTypeChange = (id: number, type: any) => {
@@ -14773,12 +15010,14 @@ function FINREQ01() {
     // 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(재정 스펙 708·709·727행).
     setItems(items.map(item => {
       if (item.id !== id) return item;
-      const base = { ...item, purchaseType: type, details: {} };
+      // 상세 정보(배송비·자동 가격 포함)를 비우므로 저장되는 품목 총액도 다시 계산한다. 화면 숫자만 맞고 제출 값이 틀리면 예산 집계가 어긋난다.
+      const base = { ...item, purchaseType: type, details: {}, estimatedTotalPrice: item.quantity * item.estimatedUnitPrice };
       if (type === "용역") return { ...base, quantity: 1, unit: "건", estimatedTotalPrice: item.estimatedUnitPrice };
       return base;
     }));
   };
 
+  const lastErrorsRef = React.useRef<Record<string, string>>({});
   const validate = (submittedNeededDate = neededDate) => {
     const newErrors: Record<string, string> = {};
     if (!title) newErrors.title = "요청 제목을 입력해 주세요.";
@@ -14792,7 +15031,9 @@ function FINREQ01() {
       if (!item.name) newErrors[`item_${item.id}_name`] = "품목명을 입력해 주세요.";
       if (!item.quantity || item.quantity <= 0) newErrors[`item_${item.id}_qty`] = "수량을 입력해 주세요.";
       if (!item.unit) newErrors[`item_${item.id}_unit`] = "단위를 입력해 주세요.";
-      if (!item.estimatedUnitPrice || item.estimatedUnitPrice <= 0) newErrors[`item_${item.id}_price`] = "단가를 입력해 주세요.";
+      // 쿠팡 자동 가격은 작성자가 입력하지 않는다. '제출 후 확인'은 제출을 허용하고, 옵션 미선택은 옵션 칸 오류로 막힌다.
+      const autoPrice = item.purchaseType === "일반 구매" ? item.details?.["가격상태"] as AutoPriceState | undefined : undefined;
+      if (!autoPrice && (!item.estimatedUnitPrice || item.estimatedUnitPrice <= 0)) newErrors[`item_${item.id}_price`] = "단가를 입력해 주세요.";
       // 가격 근거는 `가격 설명·URL·견적서 중 하나 이상`이다(재정 스펙 716행). 유형별 표(725행)도 제작·인쇄에
       // 견적서를 못 박지 않는다. 일반 구매는 상품 URL이 그 역할을 하고(상품URL 필수는 유형별 필수 검사에서 처리),
       // 제작·인쇄는 업체 사이트에서 사양별 가격이 나오는 경우가 많아 업체 사이트 URL로 대체할 수 있게 열어 둔다.
@@ -14811,6 +15052,8 @@ function FINREQ01() {
     });
 
     setErrors(newErrors);
+    // 제출 실패 시 스크롤은 방금 계산한 오류로 한다. state(errors)는 아직 이전 값이다.
+    lastErrorsRef.current = newErrors;
     return Object.keys(newErrors).length === 0;
   };
 
@@ -14864,9 +15107,10 @@ function FINREQ01() {
       // 제출 후 행사 재정 칸반 보드로 이동한다. 제출한 요청이 품목 현황(검토 중)·재정부 처리 단계(요청 검토)에 바로 나타난다.
       navigateTo("EVT-FIN-01");
     } else {
-      // Scroll to first error
-      const firstErrorKey = Object.keys(errors)[0];
-      const el = document.getElementById(firstErrorKey);
+      // 첫 오류 칸으로 스크롤한다. 칸에 id가 없으면(수량·단위·유형별 상세 등) 그 품목 카드로 간다.
+      const firstErrorKey = Object.keys(lastErrorsRef.current)[0];
+      const itemCardId = firstErrorKey?.match(/^item_\d+/)?.[0];
+      const el = (firstErrorKey && document.getElementById(firstErrorKey)) || (itemCardId && document.getElementById(itemCardId)) || null;
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   };
@@ -14975,7 +15219,7 @@ function FINREQ01() {
 
               <div className="flex flex-col gap-4">
                 {items.map((item, idx) => (
-                  <div key={item.id} className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden group">
+                  <div key={item.id} id={`item_${item.id}`} className="border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden group">
                     <div className="bg-gray-50 px-5 py-2.5 border-b border-gray-200 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-500 text-[10px] font-bold flex items-center justify-center">{idx + 1}</span>
@@ -14987,23 +15231,92 @@ function FINREQ01() {
                     </div>
                     
                     <div className="p-5 flex flex-col gap-5">
-                      <div className="grid grid-cols-2 gap-5">
-                        <div id={`item_${item.id}_name`}>
-                          <Input label="품목명" value={item.name} onChange={e => updateItem(item.id, "name", e.target.value)} placeholder="예: 박스테이프" required error={errors[`item_${item.id}_name`]} />
-                        </div>
-                        <Input label="예산 항목" select selectOptions={budgetLineOptions} value={item.budgetLine} onChange={e => updateItem(item.id, "budgetLine", e.target.value)} required />
+                      {(() => {
+                        const isGeneral = item.purchaseType === "일반 구매";
+                        const auto = purchaseAutoKeys(item);
+                        const autoHint = (key: string) => auto.includes(key) ? "링크에서 가져옴" : undefined;
+                        const priceState = isGeneral ? item.details?.["가격상태"] as AutoPriceState | undefined : undefined;
+                        const fetchState = linkFetch[item.id];
+                        const url = String(item.details?.["상품URL"] ?? "");
+                        return <>
+                      {/* 일반 구매는 링크가 입력의 출발점이다. 구매 유형을 먼저 고르고, 링크를 붙이면 나머지를 채운다. */}
+                      <div className="grid grid-cols-4 gap-5">
+                        <Input label="구매 유형" select hideEmptyOption selectOptions={["일반 구매", "제작·인쇄", "대여", "용역"]} value={item.purchaseType} onChange={e => handleTypeChange(item.id, e.target.value)} />
+                        {isGeneral && (
+                          <div id={`item_${item.id}_detail_상품URL`} className="col-span-3 flex flex-col gap-1">
+                            <label className="text-xs font-medium text-gray-700">상품 링크 (가격 근거)<span className="text-red-500 ml-0.5">*</span></label>
+                            <div className="flex gap-2">
+                              <input value={url} onChange={e => updateDetail(item.id, "상품URL", e.target.value)} onKeyDown={e => { if (e.key === "Enter") fetchLink(item.id); }} placeholder="쿠팡 상품 링크를 붙여 넣으세요" className={`flex-1 border ${errors[`item_${item.id}_detail_상품URL`] ? "border-red-400" : "border-gray-300"} rounded px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500`} />
+                              <Btn variant="secondary" size="sm" onClick={() => fetchLink(item.id)}>{fetchState?.state === "loading" ? "불러오는 중…" : "불러오기"}</Btn>
+                            </div>
+                            {errors[`item_${item.id}_detail_상품URL`] && <p className="text-[10px] text-red-500">{errors[`item_${item.id}_detail_상품URL`]}</p>}
+                            {fetchState?.state === "loading" ? <p className="text-[10px] text-gray-500 flex items-center gap-1.5"><KkirukMark expression="think" className="w-4 h-4" />상품 정보를 불러오는 중이에요</p>
+                              : fetchState?.state === "filled" ? <p className="text-[10px] text-blue-700">상품 정보를 채웠어요. 수량과 예산 항목만 정해 주세요.</p>
+                              : fetchState?.state === "partial" ? (priceState === "확정" ? <p className="text-[10px] text-blue-700">고른 옵션의 쿠팡 가격으로 확정했어요. 수량과 예산 항목만 정해 주세요.</p> : priceState === "제출 후 확인" ? <p className="text-[10px] text-orange-700">입력한 옵션을 쿠팡 옵션에서 바로 찾지 못했어요. 제출하면 이 옵션으로 가격을 확인해요.</p> : <p className="text-[10px] text-orange-700">옵션을 골라야 하는 상품이에요. 옵션은 비워 두었어요. 아래에서 고르거나 직접 입력해 주세요.</p>)
+                              : fetchState?.state === "unsupported" || fetchState?.state === "failed" ? <p className="text-[10px] text-orange-700">{fetchState.message}</p>
+                              : <p className="text-[10px] text-gray-400">링크를 붙이면 판매처를 채우고, 쿠팡 링크는 품목명·가격·배송비까지 채워요.</p>}
+                            {item.details?.["정보기준"] && (() => {
+                              const arrival = String(item.details?.["도착예정일"] ?? "");
+                              const late = arrival && neededDate && arrival > neededDate;
+                              const overseas = item.details?.["배송방식"] === "해외직구";
+                              return (
+                                <div className="mt-1 flex items-center gap-3 border border-gray-200 rounded-lg px-3 py-2 bg-white">
+                                  {/* 상품 대표 이미지 자리(와이어프레임은 회색 상자) */}
+                                  <div className="w-10 h-10 rounded bg-gray-100 border border-gray-200 flex items-center justify-center shrink-0"><ImageIcon className="w-4 h-4 text-gray-400" /></div>
+                                  <div className="flex-1 min-w-0 flex flex-col gap-1">
+                                    <div className="flex flex-wrap items-center gap-1.5 text-[10px]">
+                                      <span className={`px-1.5 py-0.5 rounded border ${overseas ? "border-orange-200 bg-orange-50 text-orange-700" : "border-blue-100 bg-blue-50 text-blue-700"}`}>{item.details?.["배송방식"]}</span>
+                                      <span className="text-gray-600">판매자 {item.details?.["판매자"]}</span>
+                                      <span className={late ? "text-orange-700 font-medium" : "text-gray-600"}>도착 예정 {formatArrival(arrival)}{late ? " · 필요일 이후 도착 예상" : ""}</span>
+                                    </div>
+                                    {overseas && <p className="text-[10px] text-orange-700">해외직구 상품이에요. 도착이 오래 걸리고 관부가세가 생길 수 있어요.</p>}
+                                    <p className="text-[10px] text-gray-400">{item.details?.["정보기준"]} · 도착 예정일은 학생회 배송지(학교) 기준 참고값이에요</p>
+                                  </div>
+                                </div>
+                              );
+                            })()}
+                            <div className="flex flex-wrap items-center gap-1.5 mt-0.5"><span className="text-[10px] text-gray-400">검토용 예시 링크</span>{COUPANG_DEMO_LINKS.map(link => <button key={link.label} type="button" onClick={() => updateDetail(item.id, "상품URL", link.url)} className="px-2 py-0.5 rounded border border-gray-200 text-[10px] text-gray-600 hover:border-blue-300 hover:text-blue-700">{link.label}</button>)}</div>
+                          </div>
+                        )}
                       </div>
 
-                      <div className="grid grid-cols-4 gap-5 items-end">
-                        <Input label="구매 유형" select selectOptions={["일반 구매", "제작·인쇄", "대여", "용역"]} value={item.purchaseType} onChange={e => handleTypeChange(item.id, e.target.value)} required />
-                        <div className="grid grid-cols-2 gap-2">
-                           <Input label="수량" type="number" value={String(item.quantity)} onChange={e => updateItem(item.id, "quantity", Number(e.target.value))} required error={errors[`item_${item.id}_qty`]} />
-                           <Input label="단위" placeholder="개" value={item.unit} onChange={e => updateItem(item.id, "unit", e.target.value)} required error={errors[`item_${item.id}_unit`]} />
+                      <div className="grid grid-cols-2 gap-5">
+                        <div id={`item_${item.id}_name`}>
+                          <Input label="품목명" value={item.name} onChange={e => updateItem(item.id, "name", e.target.value)} placeholder="예: 박스테이프" required error={errors[`item_${item.id}_name`]} hint={autoHint("name")} />
                         </div>
-                        <Input label="예상 단가" type="number" value={String(item.estimatedUnitPrice)} onChange={e => updateItem(item.id, "estimatedUnitPrice", Number(e.target.value))} placeholder="0" required error={errors[`item_${item.id}_price`]} />
-                        <div className="bg-blue-50 rounded border border-blue-100 px-3 py-2 h-[38px] flex flex-col justify-center">
-                          <p className="text-[9px] text-blue-500 leading-none mb-1 font-semibold uppercase tracking-wider">품목 총액</p>
-                          <p className="text-sm font-bold text-blue-700 leading-none">{(item.quantity * item.estimatedUnitPrice).toLocaleString()}원</p>
+                        <Input label="예산 항목" select hideEmptyOption selectOptions={budgetLineOptions} value={item.budgetLine} onChange={e => updateItem(item.id, "budgetLine", e.target.value)} />
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-5 items-start">
+                        <div className="flex flex-col gap-1">
+                          <div className="grid grid-cols-2 gap-2">
+                             <Input label="수량" type="number" value={String(item.quantity)} onChange={e => updateItem(item.id, "quantity", Number(e.target.value))} required error={errors[`item_${item.id}_qty`]} />
+                             <Input label="단위" placeholder="개" value={item.unit} onChange={e => updateItem(item.id, "unit", e.target.value)} required error={errors[`item_${item.id}_unit`]} />
+                          </div>
+                          {/* 쿠팡 가격은 판매 단위 기준이다. 20입 한 팩이면 1개 = 한 팩. */}
+                          {priceState && <p className="text-[10px] text-gray-400">{item.details?.["판매단위"] ? `1${item.unit || "개"} = 쿠팡 판매 단위 ${item.details["판매단위"]}` : "수량은 쿠팡 판매 단위 기준이에요"}</p>}
+                        </div>
+                        {priceState ? (
+                          <div id={`item_${item.id}_price`} className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-gray-700">단가 <span className="text-[10px] font-normal text-gray-400">자동</span></label>
+                            <div className="border border-gray-200 bg-gray-50 rounded px-3 h-[38px] flex items-center text-sm">
+                              {priceState === "확정" ? <span className="font-medium text-gray-800">{item.estimatedUnitPrice.toLocaleString()}원</span> : <span className="text-xs text-orange-700">{priceState}</span>}
+                            </div>
+                            <p className="text-[10px] text-gray-400">{priceState === "확정" ? item.details?.["가격출처"] : AUTO_PRICE_HINT[priceState]}</p>
+                            {item.details?.["할인안내"] && <p className="text-[10px] text-gray-500">{item.details["할인안내"]}</p>}
+                          </div>
+                        ) : (
+                          <div id={`item_${item.id}_price`}><Input label="예상 단가" type="number" value={String(item.estimatedUnitPrice)} onChange={e => updateItem(item.id, "estimatedUnitPrice", Number(e.target.value))} placeholder="0" required error={errors[`item_${item.id}_price`]} /></div>
+                        )}
+                        {isGeneral ? (
+                          <Input label="배송비" type="number" placeholder="0" value={String(item.details?.["배송비"] ?? "")} onChange={e => updateDetail(item.id, "배송비", e.target.value)} hint={autoHint("배송비") ?? "무료 배송이면 0"} />
+                        ) : <div />}
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs font-medium text-transparent select-none">총액</span>
+                          <div className="bg-blue-50 rounded border border-blue-100 px-3 py-2 h-[38px] flex flex-col justify-center">
+                            <p className="text-[9px] text-blue-500 leading-none mb-1 font-semibold uppercase tracking-wider">품목 총액{isGeneral ? " · 배송비 포함" : ""}</p>
+                            <p className="text-sm font-bold text-blue-700 leading-none">{priceState && priceState !== "확정" ? "가격 확인 후 계산" : `${itemTotal(item).toLocaleString()}원`}</p>
+                          </div>
                         </div>
                       </div>
 
@@ -15028,11 +15341,17 @@ function FINREQ01() {
                         <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-3">유형별 상세 정보</p>
                         
                         {item.purchaseType === "일반 구매" && (
-                          <div className="grid grid-cols-2 gap-4">
-                            <Input label="판매처 또는 쇼핑몰" placeholder="예: 쿠팡, 네이버쇼핑 등" value={item.details?.["판매처"] ?? ""} onChange={e => updateDetail(item.id, "판매처", e.target.value)} />
-                            <Input label="상품 URL (가격 근거 링크)" required error={errors[`item_${item.id}_detail_상품URL`]} placeholder="https://... (구매·가격 확인 링크)" value={item.details?.["상품URL"] ?? ""} onChange={e => updateDetail(item.id, "상품URL", e.target.value)} />
-                            <Input label="상품 옵션 또는 규격" required error={errors[`item_${item.id}_detail_옵션규격`]} placeholder="예: 검정 / 대형 / 50m" value={item.details?.["옵션규격"] ?? ""} onChange={e => updateDetail(item.id, "옵션규격", e.target.value)} />
-                            <Input label="배송 요청사항" placeholder="특이사항 입력" value={item.details?.["배송요청"] ?? ""} onChange={e => updateDetail(item.id, "배송요청", e.target.value)} />
+                          <div className="flex flex-col gap-3">
+                            <div className="grid grid-cols-3 gap-4">
+                              <Input label="판매처 또는 쇼핑몰" placeholder="예: 쿠팡, 네이버쇼핑 등" value={item.details?.["판매처"] ?? ""} onChange={e => updateDetail(item.id, "판매처", e.target.value)} hint={autoHint("판매처")} />
+                              <div id={`item_${item.id}_detail_옵션규격`}>
+                                <Input label="상품 옵션 또는 규격" required error={errors[`item_${item.id}_detail_옵션규격`]} placeholder={priceState === "옵션 선택 후 확정" ? "직접 선택 필요" : "예: 검정 / 대형 / 50m"} value={item.details?.["옵션규격"] ?? ""} onChange={e => updateDetail(item.id, "옵션규격", e.target.value)} hint={autoHint("옵션규격") ?? (priceState === "옵션 선택 후 확정" ? "쿠팡에서 골라야 하는 옵션이에요" : priceState === "제출 후 확인" ? "쿠팡 옵션과 맞춰 제출 후 가격을 확인해요" : undefined)} />
+                              </div>
+                              <Input label="배송 요청사항" placeholder="특이사항 입력" value={item.details?.["배송요청"] ?? ""} onChange={e => updateDetail(item.id, "배송요청", e.target.value)} />
+                            </div>
+                            {fetchState?.options && priceState !== "확정" && (
+                              <div className="flex flex-wrap items-center gap-1.5"><span className="text-[10px] text-gray-500">쿠팡 옵션</span>{fetchState.options.map(option => <button key={option.label} type="button" disabled={option.soldOut} onClick={() => pickCoupangOption(item.id, option)} className={`px-2 py-1 rounded border text-[10px] ${option.soldOut ? "border-gray-200 bg-gray-50 text-gray-400 line-through cursor-not-allowed" : "border-orange-200 bg-white text-gray-700 hover:border-blue-300"}`}>{option.label} · {option.soldOut ? "품절" : `${option.price.toLocaleString()}원`}</button>)}</div>
+                            )}
                           </div>
                         )}
 
@@ -15144,7 +15463,8 @@ function FINREQ01() {
                           </div>
                         )}
 
-                        <div className="mt-4 pt-4 border-t border-gray-200">
+                        {/* 일반 구매는 상품 링크가 가격 근거라 견적서 확보 상태를 묻지 않는다. */}
+                        {!isGeneral && <div className="mt-4 pt-4 border-t border-gray-200">
                           <div className="flex items-center gap-4">
                             <div className="flex flex-col gap-1 flex-1">
                               <label className="text-[11px] font-medium text-gray-700">견적서 확보 상태</label>
@@ -15167,8 +15487,10 @@ function FINREQ01() {
                               <p className="text-[10px] text-gray-400 flex-[2]">받은 견적서는 위 `업체 견적서`에 첨부해 주세요.</p>
                             )}
                           </div>
-                        </div>
+                        </div>}
                       </div>
+                        </>;
+                      })()}
                     </div>
                   </div>
                 ))}
@@ -15189,6 +15511,8 @@ function FINREQ01() {
                 <div className="flex flex-col gap-1">
                    <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider">전체 예상 금액</p>
                    <p className="text-2xl font-bold text-blue-600">{totalAmount.toLocaleString()}<span className="text-sm font-medium ml-0.5 text-blue-500">원</span></p>
+                   {shippingTotal > 0 && <p className="text-[10px] text-gray-500">배송비 {shippingTotal.toLocaleString()}원 포함</p>}
+                   {pendingPriceItems.length > 0 && <p className="text-[10px] text-orange-700 leading-4">가격 확인 대기 {pendingPriceItems.length}개 품목은 빠져 있어요. 쿠팡 가격이 확정되면 더해집니다.</p>}
                 </div>
                 <div className="border-t border-gray-200 pt-4 flex flex-col gap-2.5">
                    <div className="flex justify-between text-xs">
@@ -15276,6 +15600,26 @@ function FINREV01() {
 
   const setItemStatus = (id: number, status: ItemReview["status"]) =>
     setReviews(prev => ({ ...prev, [id]: { ...prev[id], status } }));
+
+  // 쿠팡 자동 가격이 확정되지 않은 일반 구매 품목은 승인할 수 없다. 재정부가 링크를 열어 확인한 단가로 확정한다.
+  const [priceInputs, setPriceInputs] = useState<Record<number, string>>({});
+  // 배송비도 링크에서 다시 확인해 함께 확정할 수 있다. 비우면 기존 배송비를 유지한다.
+  const [shippingInputs, setShippingInputs] = useState<Record<number, string>>({});
+  const isPricePending = isPurchasePricePending;
+  const confirmItemPrice = (itemId: number) => {
+    const price = Number(priceInputs[itemId]);
+    if (!price || price <= 0) return;
+    setPurchaseRequests(prev => prev.map(r => {
+      if (r.id !== sourceReq.id) return r;
+      const items = r.items.map(it => {
+        if (it.id !== itemId) return it;
+        const shippingText = (shippingInputs[itemId] ?? "").trim();
+        const next = { ...it, estimatedUnitPrice: price, details: { ...it.details, ...(shippingText !== "" ? { 배송비: String(Number(shippingText) || 0) } : {}), 가격상태: "확정", 가격출처: `재정부 확인 ${linkStamp()} · 링크 기준` } };
+        return { ...next, estimatedTotalPrice: next.quantity * price + purchaseShipping(next) };
+      });
+      return { ...r, items, totalEstimatedAmount: items.reduce((sum, it) => sum + it.estimatedTotalPrice, 0), history: [...r.history, { date: historyStamp(), action: `가격 확정 — ${r.items.find(it => it.id === itemId)?.name ?? "품목"} ${price.toLocaleString()}원`, user: "재정부" }] };
+    }));
+  };
 
   const setItemRejectionReason = (id: number, reason: string) =>
     setReviews(prev => ({ ...prev, [id]: { ...prev[id], rejectionReason: reason } }));
@@ -15430,6 +15774,7 @@ function FINREV01() {
                     <div className="text-right border-r border-gray-100 pr-8">
                       <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">전체 요청액</p>
                       <p className="text-xl font-bold text-gray-900">{totalAmount.toLocaleString()}원</p>
+                      <RequestPendingNote items={sourceReq.items} />
                     </div>
                     <div className="text-right">
                       <p className="text-[10px] text-gray-400 font-semibold uppercase tracking-wider mb-0.5">예산 사용 가능액</p>
@@ -15547,7 +15892,7 @@ function FINREV01() {
                             ["요청자", sourceReq.requester],
                             ["필요한 날짜", sourceReq.neededDate],
                             ["우선순위", sourceReq.priority],
-                            ["총 요청액", `${totalAmount.toLocaleString()}원`],
+                            ["총 요청액", `${totalAmount.toLocaleString()}원${sourceReq.items.some(isPurchasePricePending) ? ` + 가격 확인 중 ${sourceReq.items.filter(isPurchasePricePending).length}개` : ""}`],
                           ].map(([label, value]) => (
                             <div key={label} className="border border-gray-100 bg-gray-50 rounded-lg p-3">
                               <p className="text-[10px] text-gray-400">{label}</p>
@@ -15580,8 +15925,8 @@ function FINREV01() {
                                   <p className="text-[10px] text-gray-500 mt-0.5">{item.purchaseType} · {item.budgetLine}</p>
                                 </div>
                                 <div className="text-right shrink-0">
-                                  <p className="text-xs font-bold text-gray-900">{item.estimatedTotalPrice.toLocaleString()}원</p>
-                                  <p className="text-[10px] text-gray-400 mt-0.5">{item.quantity}{item.unit} × {item.estimatedUnitPrice.toLocaleString()}원</p>
+                                  <p className={`text-xs font-bold ${isPurchasePricePending(item) ? "text-orange-700" : "text-gray-900"}`}>{purchaseAmountLabel(item)}</p>
+                                  <p className="text-[10px] text-gray-400 mt-0.5">{item.quantity}{item.unit} × {purchaseAmountLabel(item, item.estimatedUnitPrice)}{purchaseShipping(item) > 0 ? ` + 배송비 ${purchaseShipping(item).toLocaleString()}원` : ""}</p>
                                 </div>
                               </div>
                               <div className="p-4 flex flex-col gap-4">
@@ -15594,6 +15939,15 @@ function FINREV01() {
                                       <p className="text-[10px] text-amber-700">보완이 필요한 항목을 체크하세요 · 선택 사항 {supplementTargets[item.id]?.size ? `(${supplementTargets[item.id].size}개 지정)` : "(미지정 시 전체 수정 가능)"}</p>
                                     )}
                                   </div>
+                                  {(() => {
+                                    // 같은 행사에서 같은 쿠팡 상품을 다른 요청이 이미 담고 있으면 중복 구매 가능성을 알린다(판단은 재정부).
+                                    const productId = item.purchaseType === "일반 구매" ? coupangProductId(item) : "";
+                                    if (!productId) return null;
+                                    const dupes = purchaseRequests
+                                      .filter(r => r.eventId === sourceReq.eventId && r.id !== sourceReq.id && !["반려", "요청 취소"].includes(r.status))
+                                      .flatMap(r => r.items.filter(it => it.purchaseType === "일반 구매" && !["반려", "요청 취소"].includes(it.status ?? "") && coupangProductId(it) === productId).map(it => `${r.id} ${it.name}`));
+                                    return dupes.length > 0 ? <p className="text-[10px] text-orange-800 bg-orange-50 border border-orange-200 rounded px-2 py-1.5 mb-1.5">같은 행사의 다른 요청에 같은 쿠팡 상품이 있어요: {dupes.join(", ")}. 중복 구매인지 확인해 주세요.</p> : null;
+                                  })()}
                                   <PurchaseInfoPanel
                                     item={item}
                                     selectable={reviews[item.id]?.status === "보완 요청"}
@@ -15689,6 +16043,16 @@ function FINREV01() {
                                     </div>
                                   ) : (
                                     <div className="flex flex-col gap-1.5">
+                                      {isPricePending(item) && (
+                                        <div className="bg-orange-50 border border-orange-200 rounded px-3 py-2 flex flex-col gap-1.5">
+                                          <p className="text-[10px] text-orange-800">쿠팡 가격이 아직 확정되지 않았어요({item.details?.["가격상태"]}). 링크에서 옵션 가격을 확인해 단가를 확정해야 승인할 수 있어요.</p>
+                                          <div className="flex items-center gap-2">
+                                            <input type="number" value={priceInputs[item.id] ?? ""} onChange={e => setPriceInputs(prev => ({ ...prev, [item.id]: e.target.value }))} placeholder="확인한 단가" className="border border-orange-200 rounded px-2 py-1 w-32 text-[10px] focus:outline-none focus:ring-1 focus:ring-orange-400" />
+                                            <input type="number" value={shippingInputs[item.id] ?? ""} onChange={e => setShippingInputs(prev => ({ ...prev, [item.id]: e.target.value }))} placeholder={`배송비 (현재 ${purchaseShipping(item).toLocaleString()}원)`} className="border border-orange-200 rounded px-2 py-1 w-40 text-[10px] focus:outline-none focus:ring-1 focus:ring-orange-400" />
+                                            <button type="button" onClick={() => confirmItemPrice(item.id)} className="px-2.5 py-1 rounded border border-orange-300 bg-white text-[10px] font-bold text-orange-800 hover:bg-orange-100">가격 확정</button>
+                                          </div>
+                                        </div>
+                                      )}
                                       <div className="flex gap-1">
                                         {([
                                           { l: "승인", v: "승인" as const, c: "green" },
@@ -15698,7 +16062,9 @@ function FINREV01() {
                                           <button
                                             key={s.l}
                                             onClick={() => setItemStatus(item.id, s.v)}
-                                            className={`px-3 py-1.5 rounded border text-[10px] font-bold transition-all ${review.status === s.v
+                                            disabled={s.v === "승인" && isPricePending(item)}
+                                            title={s.v === "승인" && isPricePending(item) ? "가격을 확정한 뒤 승인할 수 있어요" : undefined}
+                                            className={`px-3 py-1.5 rounded border text-[10px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${review.status === s.v
                                               ? s.c === "green" ? "bg-green-600 text-white border-green-600"
                                                 : s.c === "yellow" ? "bg-yellow-500 text-white border-yellow-500"
                                                 : "bg-red-600 text-white border-red-600"
@@ -16352,7 +16718,7 @@ function MYREQ01() {
                     {/* 제목만으로는 "이게 뭐였지"가 된다. 목적 한 줄을 붙여 목록에서 바로 알아보게 한다. */}
                     {r.purpose && <p className="text-[10px] text-gray-400 mt-0.5 max-w-[22rem] truncate" title={r.purpose}>{r.purpose}</p>}
                   </td>
-                  <td className="px-5 py-3 text-right font-mono text-gray-700 whitespace-nowrap">{r.totalEstimatedAmount.toLocaleString()}원</td>
+                  <td className="px-5 py-3 text-right font-mono text-gray-700 whitespace-nowrap">{r.totalEstimatedAmount.toLocaleString()}원<RequestPendingNote items={r.items} /></td>
                   <td className="px-5 py-3 text-center text-gray-600 whitespace-nowrap">{r.items.length}종</td>
                   <td className="px-5 py-3 text-gray-500 whitespace-nowrap">{r.history[0]?.date.slice(0, 10) ?? "—"}</td>
                   <td className="px-5 py-3 text-gray-500 whitespace-nowrap">{r.neededDate}</td>
@@ -16495,6 +16861,7 @@ function FINREQ02() {
             <div className="text-right">
               <p className="text-[10px] text-gray-400 font-semibold mb-0.5">전체 요청액</p>
               <p className="text-xl font-bold text-gray-900">{request.totalEstimatedAmount.toLocaleString()}원</p>
+              <RequestPendingNote items={request.items} />
             </div>
           </div>
           <div className="grid grid-cols-4 gap-x-8 gap-y-4 border-t border-gray-100 pt-5 text-xs">
@@ -16551,7 +16918,7 @@ function FINREQ02() {
                       </button>
                     </td>
                     <td className="px-6 py-3 text-gray-500">{item.quantity}{item.unit}</td>
-                    <td className="px-6 py-3 text-right font-mono text-gray-600">{item.estimatedTotalPrice.toLocaleString()}원</td>
+                    <td className="px-6 py-3 text-right font-mono text-gray-600">{purchaseAmountLabel(item)}</td>
                     <td className="px-6 py-3"><Chip label={label} variant={variant} /></td>
                     <td className="px-6 py-3 text-gray-500 whitespace-normal">{message}</td>
                     {isRequester && (
@@ -16573,12 +16940,12 @@ function FINREQ02() {
                             <div><span className="text-gray-400">예산 항목 </span><span className="text-gray-700 font-medium">{item.budgetLine}</span></div>
                             <div><span className="text-gray-400">구매 유형 </span><span className="text-gray-700 font-medium">{item.purchaseType}</span></div>
                             <div><span className="text-gray-400">수량 </span><span className="text-gray-700 font-medium">{item.quantity}{item.unit}</span></div>
-                            <div><span className="text-gray-400">예상 단가 </span><span className="text-gray-700 font-medium">{item.estimatedUnitPrice.toLocaleString()}원</span></div>
-                            <div><span className="text-gray-400">예상 합계 </span><span className="text-gray-700 font-medium">{item.estimatedTotalPrice.toLocaleString()}원</span></div>
+                            <div><span className="text-gray-400">예상 단가 </span><span className="text-gray-700 font-medium">{purchaseAmountLabel(item, item.estimatedUnitPrice)}</span></div>
+                            <div><span className="text-gray-400">예상 합계 </span><span className="text-gray-700 font-medium">{purchaseAmountLabel(item)}</span></div>
                           </div>
                           <div>
                             <p className="text-[10px] font-bold text-gray-400 mb-1.5">구매 정보 (판매처·옵션·링크 등)</p>
-                            <PurchaseInfoPanel item={item} />
+                            <PurchaseInfoPanel item={item} viewer={canManageFinance(currentUser) ? "finance" : "requester"} />
                           </div>
                         </div>
                       </td>
@@ -16756,7 +17123,10 @@ function FINSUP01() {
               // 비우고 넘어간 선택 항목은 기존 값을 유지한 것이므로 `after`도 기존 값으로 적는다.
               fields: supplementFields.map(field => {
                 const before = String(purchaseItem.details?.[field.key] ?? "");
-                const typed = (supplement[field.key] ?? "").trim();
+                const typedRaw = (supplement[field.key] ?? "").trim();
+                const typed = field.key === "배송비" ? normalizeShipping(typedRaw) : typedRaw;
+                // 배송비는 비교표에서도 원 단위로 보인다.
+                if (field.key === "배송비") return { label: field.label, before: formatShipping(before), after: formatShipping(typed || before) };
                 return { label: field.label, before: before || "미입력", after: typed || before || "미입력" };
               }),
               beforeAttachments: beforeAttachment,
@@ -16764,26 +17134,36 @@ function FINSUP01() {
             };
           }),
       };
-      return {
+      const updated = {
         ...item,
-        status: "재검토 대기",
-        items: item.items.map(purchaseItem => purchaseItem.status === "보완 요청" ? {
-          ...purchaseItem,
-          status: "검토 대기",
+        status: "재검토 대기" as const,
+        items: item.items.map(purchaseItem => {
+          if (purchaseItem.status !== "보완 요청") return purchaseItem;
           // 유형별 필드 key로 저장하므로 작성·검토·발주 화면이 읽는 details와 같은 자리에 들어간다.
           // 비우고 넘어간 칸은 덮어쓰지 않는다 — 전체 항목을 보여 주므로 빈 칸이 곧 `수정 안 함`이다.
-          details: { ...purchaseItem.details, ...Object.fromEntries(
-            supplementFields
-              .filter(field => (supplement[field.key] ?? "").trim() !== "")
-              .map(field => [field.key, supplement[field.key].trim()])
-          ) },
-          priceEvidence: supplementEvidence || purchaseItem.priceEvidence,
-          // 재제출하면 이번 보완 지시는 끝난다. 지정을 남겨 두면 다음 보완 때 낡은 지정이 그대로 적용된다.
-          supplementFields: undefined,
-        } : purchaseItem),
+          const typedValue = (key: string) => key === "배송비" ? normalizeShipping(supplement[key] ?? "") : (supplement[key] ?? "").trim();
+          const changed = supplementFields.filter(field => typedValue(field.key) !== "" && typedValue(field.key) !== String(purchaseItem.details?.[field.key] ?? ""));
+          const details: Record<string, any> = { ...purchaseItem.details, ...Object.fromEntries(changed.map(field => [field.key, typedValue(field.key)])) };
+          let unitPrice = purchaseItem.estimatedUnitPrice;
+          if (purchaseItem.purchaseType === "일반 구매") {
+            // 사람이 고친 칸은 더 이상 '링크에서 가져옴'이 아니다.
+            details["자동입력"] = purchaseAutoKeys(purchaseItem).filter(key => !changed.some(field => field.key === key)).join(",");
+            // 쿠팡 자동 가격 품목의 링크·옵션이 바뀌면 이전 가격은 근거를 잃는다. 재정부가 다시 확정해야 승인할 수 있다.
+            if (details["가격상태"] && changed.some(field => field.key === "상품URL" || field.key === "옵션규격")) {
+              details["가격상태"] = "제출 후 확인"; details["가격출처"] = ""; unitPrice = 0;
+              details["자동입력"] = String(details["자동입력"]).split(",").filter(key => key && key !== "estimatedUnitPrice").join(",");
+            }
+          }
+          const next = { ...purchaseItem, status: "검토 대기" as const, details, estimatedUnitPrice: unitPrice, priceEvidence: supplementEvidence || purchaseItem.priceEvidence,
+            // 재제출하면 이번 보완 지시는 끝난다. 지정을 남겨 두면 다음 보완 때 낡은 지정이 그대로 적용된다.
+            supplementFields: undefined };
+          return { ...next, estimatedTotalPrice: next.quantity * next.estimatedUnitPrice + purchaseShipping(next) };
+        }),
         supplementSubmissions: [...(item.supplementSubmissions ?? []), submission],
         history: [...item.history, { date: submission.submittedAt, action: "보완 내용 재제출", user: currentUser.name }],
       };
+      // 배송비·자동 가격이 바뀌었을 수 있으므로 요청 총액을 품목 총액에서 다시 계산한다.
+      return { ...updated, totalEstimatedAmount: updated.items.reduce((sum, purchaseItem) => sum + purchaseItem.estimatedTotalPrice, 0) };
     }));
     setPurchaseSupplementDraft(null);
     // 방금 재제출한 요청을 그대로 연다. 지정하지 않으면 직전에 선택돼 있던 다른 요청 상세가 열린다.
@@ -16838,8 +17218,8 @@ function FINSUP01() {
                 {[
                   ["품목명", primarySupplementItem?.name ?? "—"],
                   ["수량", primarySupplementItem ? `${primarySupplementItem.quantity}${primarySupplementItem.unit}` : "—"],
-                  ["단가(추정)", primarySupplementItem ? `${primarySupplementItem.estimatedUnitPrice.toLocaleString()}원` : "—"],
-                  ["합계(추정)", primarySupplementItem ? `${primarySupplementItem.estimatedTotalPrice.toLocaleString()}원` : "—"],
+                  ["단가(추정)", primarySupplementItem ? purchaseAmountLabel(primarySupplementItem, primarySupplementItem.estimatedUnitPrice) : "—"],
+                  ["합계(추정)", primarySupplementItem ? purchaseAmountLabel(primarySupplementItem) : "—"],
                   ["예산 항목", primarySupplementItem?.budgetLine ?? "—"],
                 ].map(([k, v]) => (
                   <div key={k} className="bg-gray-50 rounded-lg p-3">
@@ -16863,7 +17243,7 @@ function FINSUP01() {
                   return (
                     <div key={field.key} className="flex flex-col gap-1">
                       <label className="text-[11px] font-bold text-gray-600">{field.label}{required && <span className="text-red-500 ml-0.5">*</span>}</label>
-                      <input className="border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 bg-white" value={supplement[field.key] ?? ""} onChange={(event) => updateSupplement(field.key, event.target.value)} placeholder={before ? `기존: ${before}` : `${field.label} 입력`} />
+                      <input type={field.key === "배송비" ? "number" : "text"} min={field.key === "배송비" ? 0 : undefined} className="border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 bg-white" value={supplement[field.key] ?? ""} onChange={(event) => updateSupplement(field.key, event.target.value)} placeholder={before ? `기존: ${before}` : `${field.label} 입력`} />
                     </div>
                   );
                 };
