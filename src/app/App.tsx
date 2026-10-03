@@ -25,7 +25,11 @@ const SCREENS: Screen[] = [
   { id: "INV-00", label: "초대 코드 입력", group: "학생회 참여" },
   { id: "INV-01", label: "초대받은 학생회 확인", group: "학생회 참여" },
   { id: "HOME-01", label: "홈 — 학생회 운영 현황", group: "홈" },
-  { id: "HOME-01K", label: "홈 — 끼룩이 브리핑", group: "홈" },
+  { id: "HOME-01K", label: "홈 — 끼룩이 브리핑 · 미채택", group: "홈" },
+  { id: "HOME-01C", label: "홈 — 회장단 시안", group: "홈" },
+  { id: "HOME-01D", label: "홈 — 부서장 시안", group: "홈" },
+  { id: "HOME-01M", label: "홈 — 부원 시안", group: "홈" },
+  { id: "HOME-01F", label: "홈 — 재정부 시안", group: "홈" },
   { id: "MY-01", label: "내 업무", group: "내 업무" },
   { id: "OPS-00", label: "운영 홈 — 업무·회의·행사·캘린더", group: "운영 홈" },
   { id: "OPS-TASK-01", label: "상시 업무 — 칸반 보드", group: "운영 — 상시 업무" },
@@ -691,7 +695,8 @@ type EventInfo = {
 };
 
 type EventLifecycle = "기획 중" | "진행 중" | "후속 정리 중" | "완료" | "취소됨";
-type EventWorkspaceFilter = "unassignedTasks" | "participantReview" | null;
+// assignee:<이름>은 해당 구성원의 미완료 업무만 본다(홈의 마감 몰림에서 진입).
+type EventWorkspaceFilter = "unassignedTasks" | "overdueTasks" | `assignee:${string}` | "participantReview" | null;
 type CalendarFocus = { month: number; day: number; label: string } | null;
 type ArchiveStatus = "미발행" | "초안" | "검토 중" | "발행";
 type ArchiveReviewState = "대기" | "보완 요청" | "승인";
@@ -2268,7 +2273,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     nextScreens: ["FIN-00 전체 재정 현황", "MY-01 내 업무", "EVT-TASK-01 행사 업무", "OPS-CAL-01 통합 캘린더"],
   },
   "HOME-01K": {
-    id: "HOME-01K", name: "홈 — 끼룩이 브리핑", stateChip: "검토안",
+    id: "HOME-01K", name: "홈 — 끼룩이 브리핑 · 미채택", stateChip: "미채택",
     purpose: "HOME-01의 운영 요약 위에 마스코트 끼룩이의 브리핑 배너를 얹어, 지금 확인해야 할 항목을 문장으로 먼저 알려준다.",
     users: "전 구성원",
     entryPath: "사이드바 홈 (HOME-01 대체 검토안)",
@@ -2283,6 +2288,75 @@ const SPEC_DATA: Record<string, SpecDef> = {
     ],
     exceptions: ["연결 데이터가 없으면 임의 수치를 만들지 않고 0건·빈 상태로 표시한다", "홈은 내 업무의 상위 공간이 아니므로 브리핑에서 개인 업무 건수를 말하지 않는다", "권한이 없는 사용자의 관리 전용 바로가기를 노출하지 않는다"],
     nextScreens: ["EVT-TASK-01 행사 업무", "OPS-CAL-01 통합 캘린더", "HOME-01 홈"],
+  },
+  "HOME-01C": {
+    id: "HOME-01C", name: "홈 — 회장단 시안", stateChip: "검토안",
+    purpose: "회장단이 학생회 전체 운영이 어디까지 진행됐고 어디에 확인이나 판단이 필요한지 한 화면에서 파악하게 한다. 2026-09-30 채택한 회장단 정보 구성(D-06)의 시안이며 예시 데이터만 사용한다.",
+    users: "회장단",
+    entryPath: "사이드바 홈 (회장단 역할 홈 검토안)",
+    functions: [
+      { num: "00", element: "끼룩이 정리 표시", description: "헤더에 끼룩이 그림과 `끼룩이가 {기준 시점} 기준으로 정리했어요` 한 줄을 둔다. 상시 브리핑 배너는 두지 않는다.", constraint: "끼룩이가 판단·선별한 것처럼 말하지 않는다. 정렬은 홈 목록 규칙을 따른다" },
+      { num: "00A", element: "인사 카드", description: "본문 첫 카드에 날짜·인사·이 홈에서 확인하는 내용 한 줄을 둔다. 회장단 홈은 전체 행사 현황이 본문이므로 학생회 주요 행사 타일을 두지 않는다.", constraint: "인사 아래에 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게)" },
+      { num: "01", element: "전체 행사 진행 현황", description: "단계별 행사 수와 행사 카드를 표시한다. 카드에는 행사명·단계·날짜·남은 기간·완료/전체 업무 수·마감 지남·미지정·검토 필요 수·다음 마감을 둔다.", constraint: "책임부서·책임자는 표시하지 않는다. 완료 비율을 행사 준비율로 표현하지 않는다" },
+      { num: "02", element: "확인이 필요한 운영 상황", description: "마감 지난 미완료 업무, 담당자 미지정 업무, 검토 필요 업무를 이유와 함께 표시한다. 미배정 구성원이 있으면 조건부 줄로 표시한다.", constraint: "회장단의 직접 처리 업무로 단정하지 않는다. 회장단 직급만으로 검토 권한을 갖지 않는다" },
+      { num: "03", element: "후속 정리 중인 행사", description: "종료된 행사의 남은 정리 항목과 최종 완료 확인 여부를 표시한다.", constraint: "최종 완료는 회장단만 할 수 있다" },
+      { num: "04", element: "가까운 주요 일정", description: "행사일·신청 마감·업무 마감·본인에게 공개된 회의를 날짜순으로 표시하고 마감·회의 종류를 함께 표시한다.", constraint: "비공개 회의는 생성자·초대 여부에 따라 표시한다" },
+      { num: "05", element: "전체 재정 요약", description: "총예산·실제 지출·지출 예정·사용 가능액을 한 줄로 표시한다.", constraint: "열람 전용. 재정부 소속이 아니면 승인·발주·예산 조정 버튼을 제공하지 않는다" },
+    ],
+    exceptions: ["목록 카드는 최대 3건만 표시하고 헤더에 전체 수를 둔다. 3건을 넘으면 전체 보기로 원본 화면에 연결한다", "정상 0건이면 카드를 유지하고 빈 문구를 표시한다. 조건부 줄은 대상이 없으면 숨긴다. 모르는 값은 0 대신 미입력·집계 전으로 표시한다", "본인이 회의 진행 권한자이거나 검토 대상으로 지정된 회의·아카이브 항목은 해당될 때만 추가한다", "구매 승인·발주 대기, 전체 참가자 명단, 모든 구성원의 개별 업무, 근거가 불명확한 종합 점수는 표시하지 않는다", "회장단이면서 재정부 소속이면 헤더에서 운영 보기와 재정 보기를 전환한다"],
+    nextScreens: ["EVT-TASK-01 행사 업무", "OPS-CAL-01 통합 캘린더", "FIN-00 전체 재정 현황", "ORG-00 조직 관리 홈"],
+  },
+  "HOME-01D": {
+    id: "HOME-01D", name: "홈 — 부서장 시안", stateChip: "검토안",
+    purpose: "부서장에게 학생회 주요 행사를 짧게 먼저 보여준 뒤, 소속 부서가 맡은 행사·일정·구매와 조정이 필요한 일을 한 화면에 요약한다. 2026-09-30 채택한 부서장 정보 구성의 시안이며 예시 데이터만 사용한다.",
+    users: "부서장",
+    entryPath: "사이드바 홈 (부서장 역할 홈 검토안)",
+    functions: [
+      { num: "00", element: "끼룩이 정리 표시", description: "헤더에 끼룩이 그림과 `끼룩이가 {기준 시점} 기준으로 정리했어요` 한 줄을 둔다. 상시 브리핑 배너는 두지 않는다.", constraint: "끼룩이가 판단·선별한 것처럼 말하지 않는다. 정렬은 홈 목록 규칙을 따른다" },
+      { num: "00A", element: "인사 카드", description: "본문 첫 카드에 날짜·인사·이 홈에서 확인하는 내용 한 줄을 둔다.", constraint: "인사 아래에 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게)" },
+      { num: "01", element: "학생회 주요 행사", description: "부서 참여 여부와 관계없이 열람 가능한 학생회 행사의 이름·날짜·D-day·단계를 인사 카드 오른쪽 타일로 먼저 보여준다.", constraint: "조직 상황 우선(D-02). 열람 권한이 없는 행사는 표시하지 않는다" },
+      { num: "02", element: "우리 부서 참여 행사", description: "부서가 참여하는 행사별 단계, 부서 업무 완료/전체 수, 다음 마감을 표시한다." },
+      { num: "03", element: "가까운 일정·마감", description: "7일 이내 부서 업무 마감과 초대된 회의를 날짜순으로 표시한다.", constraint: "비공개 회의는 참가자가 아니면 표시하지 않는다" },
+      { num: "04", element: "부서 구매 진행", description: "소속 부서 구성원이 요청한 구매와 본인 요청의 필요일·진행 상태를 표시한다.", constraint: "다른 구성원의 요청은 진행 결과만 열람하며 보완·동의를 대신하지 않는다" },
+      { num: "05", element: "확인이 필요한 일", description: "부서 업무 중 마감 지남·담당자 미지정(회의 후속 업무 포함)과 본인 구매 요청의 보완 필요를 표시한다. 검토 필요 업무는 해당 업무의 검토 권한이 있을 때만 표시한다.", constraint: "부서장 직급만으로 검토·승인 권한을 부여하지 않는다" },
+      { num: "06", element: "마감 몰림 (조건부)", description: "같은 기간에 한 구성원의 미완료 마감이 몰렸을 때만 이름·기간·건수를 한 줄로 표시한다.", constraint: "건수로 과부하·성과를 판단하거나 순위를 매기지 않는다" },
+    ],
+    exceptions: ["목록 카드는 최대 3건만 표시하고 헤더에 전체 수를 둔다. 3건을 넘으면 전체 보기로 원본 화면에 연결한다", "정상 0건이면 카드를 유지하고 빈 문구를 표시한다. 조건부 줄은 대상이 없으면 숨긴다. 모르는 값은 0 대신 미입력·집계 전으로 표시한다", "항목을 누르면 예시 상세 팝업만 열며 실제 데이터는 변경하지 않는다", "연결 데이터가 없으면 임의 수치를 만들지 않고 0건·빈 상태로 표시한다", "부서 독립 예산 잔액, 행사 최종 완료, 구매 승인 행동은 제공하지 않는다"],
+    nextScreens: ["MY-01 내 업무", "EVT-TASK-01 행사 업무", "OPS-CAL-01 통합 캘린더"],
+  },
+  "HOME-01M": {
+    id: "HOME-01M", name: "홈 — 부원 시안", stateChip: "검토안",
+    purpose: "부원이 학생회와 참여 행사가 어떻게 진행되는지, 자신이 알아야 할 일정·결정이 무엇인지 한 화면에서 파악하게 한다. 2026-09-30 채택한 부원 정보 구성의 시안이며 예시 데이터만 사용한다.",
+    users: "부원",
+    entryPath: "사이드바 홈 (부원 역할 홈 검토안)",
+    functions: [
+      { num: "00", element: "끼룩이 정리 표시", description: "헤더에 끼룩이 그림과 `끼룩이가 {기준 시점} 기준으로 정리했어요` 한 줄을 둔다. 상시 브리핑 배너는 두지 않는다.", constraint: "끼룩이가 판단·선별한 것처럼 말하지 않는다. 정렬은 홈 목록 규칙을 따른다" },
+      { num: "00A", element: "인사 카드", description: "본문 첫 카드에 날짜·인사·이 홈에서 확인하는 내용 한 줄을 둔다.", constraint: "인사 아래에 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게)" },
+      { num: "01", element: "학생회 주요 행사", description: "열람 가능한 학생회 행사의 이름·날짜·D-day·단계를 인사 카드 오른쪽 타일로 먼저 보여준다.", constraint: "모든 역할 홈에 공통. 열람 권한이 없는 행사는 표시하지 않는다" },
+      { num: "02", element: "참여 행사 진행", description: "본인이 참여하는 행사의 단계·날짜, 소속 부서 업무 완료/전체 수, 다음 공동 마감을 표시한다." },
+      { num: "03", element: "가까운 일정", description: "초대된 회의·행사일·공동 마감을 날짜순으로 표시하고, 참석 대상 일정과 열람만 가능한 공개 일정을 구분한다.", constraint: "비공개 회의는 참가자가 아니면 표시하지 않는다" },
+      { num: "04", element: "확정된 결정·안내 (조건부)", description: "참여 행사·소속 부서 회의의 정리에서 최근 14일 안에 확정된 결정을 최근 순으로 표시한다. 없으면 카드는 유지하고 빈 문구를 표시한다.", constraint: "확정되지 않은 논의 내용은 표시하지 않는다" },
+      { num: "05", element: "내 업무·메시지 바로가기", description: "내 미완료 업무 수와 가장 가까운 마감, 안 읽은 메시지가 있는 참여 방 수를 표시하고 내 업무·메시지로 이동한다.", constraint: "홈을 개인 칸반이나 전체 메시지 목록으로 만들지 않는다" },
+    ],
+    exceptions: ["목록 카드는 최대 3건만 표시하고 헤더에 전체 수를 둔다. 3건을 넘으면 전체 보기로 원본 화면에 연결한다", "정상 0건이면 카드를 유지하고 빈 문구를 표시한다. 조건부 줄은 대상이 없으면 숨긴다. 모르는 값은 0 대신 미입력·집계 전으로 표시한다", "구매 진행은 표시하지 않고 행사 공간에서 확인한다", "다른 부서의 지연·미배정 목록과 예산은 표시하지 않는다", "변경 기록 데이터가 생기기 전에는 중요한 변경 알림을 표시하지 않는다", "행사 관리자·회의 진행 권한자를 맡으면 해당 행사·회의의 확인 항목만 추가한다"],
+    nextScreens: ["MY-01 내 업무", "MSG-01 메시지", "EVT-TASK-01 행사 업무", "OPS-CAL-01 통합 캘린더"],
+  },
+  "HOME-01F": {
+    id: "HOME-01F", name: "홈 — 재정부 시안", stateChip: "검토안",
+    purpose: "재정부가 행사 일정에 맞춰 구매가 어디까지 왔고 지금 처리할 것이 무엇인지 한 화면에서 파악하게 한다. 2026-09-30 채택한 재정부 정보 구성의 시안이며 예시 데이터만 사용한다.",
+    users: "재정부 소속 구성원",
+    entryPath: "사이드바 홈 (재정부 역할 홈 검토안)",
+    functions: [
+      { num: "00", element: "끼룩이 정리 표시", description: "헤더에 끼룩이 그림과 `끼룩이가 {기준 시점} 기준으로 정리했어요` 한 줄을 둔다. 상시 브리핑 배너는 두지 않는다.", constraint: "끼룩이가 판단·선별한 것처럼 말하지 않는다. 정렬은 홈 목록 규칙을 따른다" },
+      { num: "00A", element: "인사 카드", description: "본문 첫 카드에 날짜·인사·이 홈에서 확인하는 내용 한 줄을 둔다. 재정부 부원은 인사 아래에 내 업무·메시지 바로가기를 둔다.", constraint: "인사 아래에 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게)" },
+      { num: "01", element: "학생회 주요 행사", description: "열람 가능한 학생회 행사의 이름·날짜·D-day·단계를 인사 카드 오른쪽 타일로 먼저 보여준다." },
+      { num: "02", element: "검토할 요청", description: "새 요청과 보완 후 다시 제출된 요청을 구분하고 요청자·필요일·금액을 표시한다. 처리 단계별 건수에서 처리 단계 칸반으로 이동한다.", constraint: "칸반 전체를 홈에 복제하지 않는다" },
+      { num: "03", element: "필요일 임박 준비", description: "필요일이 14일 이내인데 아직 주문하지 않았거나 받지 않은 품목을 필요일 순으로 표시한다.", constraint: "도착을 보장하거나 지연을 예측하지 않는다" },
+      { num: "04", element: "예외·대기 (조건부)", description: "구매 불가 처리 필요를 맨 위에, 금액 확인 대기와 다른 주체의 응답을 기다리는 항목을 그 아래에 표시한다. 해당 사안이 없으면 카드는 유지하고 빈 문구를 표시한다.", constraint: "구매 불가 처리는 FIN-PROC-01에서 한다. 보류된 부분 주문·물품 반환 동작을 연결하지 않는다" },
+      { num: "05", element: "행사별 예산", description: "행사별 예산·실제 지출·지출 예정·사용 가능액을 표시한다.", constraint: "통장 잔액과 구분한다. 계산은 현행 재정 명세를 따른다" },
+    ],
+    exceptions: ["목록 카드는 최대 3건만 표시하고 헤더에 전체 수를 둔다. 3건을 넘으면 전체 보기로 원본 화면에 연결한다", "정상 0건이면 카드를 유지하고 빈 문구를 표시한다. 조건부 줄은 대상이 없으면 숨긴다. 모르는 값은 0 대신 미입력·집계 전으로 표시한다", "증빙·사비 선지출·실제 통장 잔액·평균 처리 시간은 표시하지 않는다", "학생회비 납부 명단은 MVP 포함 여부 확인 전까지 보류한다", "재정부 부서장은 재정부 내부 업무의 마감 지남·담당자 미지정을 예외·대기 영역에 더한다", "회장단이면서 재정부 소속이면 헤더에서 운영 보기와 재정 보기를 전환한다"],
+    nextScreens: ["EVT-FIN-01 처리 단계 칸반", "FIN-REV-01 구매 요청 검토", "FIN-PROC-01 발주 처리", "FIN-00 전체 재정 현황"],
   },
   "MSG-01": {
     id: "MSG-01", name: "메시지 — 방 목록·시작 전", stateChip: "기본",
@@ -2465,6 +2539,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "07", element: "업무 상세 진입", description: "카드를 누르면 선택한 업무의 상세·관련 문서 화면으로 이동한다." },
       { num: "08", element: "업무 추가", description: "업무명·설명·완료 기준, 담당 부서·담당자, 마감일·초기 상태·우선순위, 결과물 유형, 연결 항목과 검토 필요 여부를 입력해 새 업무를 추가한다." },
       { num: "09", element: "개요 경고 필터", description: "개요의 담당자 없는 업무 경고에서 진입하면 해당 업무만 보드에 표시하고, 필터 해제 시 전체 목록으로 돌아간다." },
+      { num: "10", element: "지연·담당자 없음·담당자별 필터", description: "지연·담당자 없음 칩을 누르면 해당 업무만 보고, 다시 누르면 해제한다. 담당자 선택으로 그 구성원의 미완료 업무만 본다. 홈의 행사 카드(마감 지남·미지정)와 마감 몰림 줄에서 각 필터를 적용한 채 진입한다." },
     ],
     exceptions: ["업무가 없으면 첫 업무 추가를 안내하는 빈 상태를 표시한다", "담당자가 없는 업무는 개인 업무 목록에 포함하지 않고 배정 필요로 표시한다"],
     nextScreens: ["EVT-TASK-02 업무 상세"],
@@ -5093,6 +5168,446 @@ function HOME01({ briefing = false }: { briefing?: boolean }) {
 
 function HOME01K() {
   return <HOME01 briefing />;
+}
+
+// ─── 역할별 홈 검토용 프로토타입 공통 (2026-09-30 채택 구성, 예시 데이터) ───────────
+// 목록 규칙(D-11): 카드마다 최대 3건, 헤더 숫자는 전체 수. 정상 0건은 카드를 유지하고 빈 문구, 조건부 줄은 숨김, 모르는 값은 0 대신 미입력.
+// 샘플 `첫 사용` 모드에서는 모든 목록이 비어 빈 상태를 보여준다.
+// 클릭 이동 규칙(D-12): 항목은 상세 팝업을 먼저 열고, 팝업의 버튼으로 권한에 맞는 원본 화면을 연다. 홈에서는 처리하지 않는다.
+// 기존 화면은 대표 샘플 행사 데이터라 시안의 행사명과 다를 수 있다.
+// 디자인: 카드·회색 헤더 바·Chip·진행 막대는 기존 HOME-01·운영 홈과 같은 스타일을 쓴다.
+type HomePrototypeTarget = { screen: string; label: string; filter?: EventWorkspaceFilter; calendar?: CalendarFocus };
+type HomePrototypeListItem = { label: string; sub?: string; detail: NonNullable<HomePrototypeDetail> };
+type HomePrototypeDetail = { title: string; text: string; targets?: HomePrototypeTarget[]; items?: HomePrototypeListItem[] } | null;
+const homePrototypeTo = (screen: string, label: string, extra: Partial<HomePrototypeTarget> = {}): HomePrototypeTarget[] => [{ screen, label, ...extra }];
+// 일정 행: 회의는 회의 상세, 마감·행사일은 캘린더의 해당 날짜로.
+const homePrototypeScheduleTarget = (item: { date: string; name: string; tag?: string; note: string }): HomePrototypeTarget[] => {
+  const [month, day] = item.date.split(".").map(Number);
+  return /회의/.test(item.name) ? homePrototypeTo("OPS-MEET-03A", "회의 상세 열기") : homePrototypeTo("OPS-CAL-01", "캘린더에서 보기", { calendar: { month, day, label: item.name } });
+};
+const HOME_PROTOTYPE_LIMIT = 3;
+const HOME_PROTOTYPE_ORG_EVENTS = [
+  { name: "가을 축제", date: "10.12", dday: "D-12", stage: "기획 중" },
+  { name: "진로 특강", date: "10.20", dday: "D-20", stage: "기획 중" },
+  { name: "체육대회", date: "11.08", dday: "D-39", stage: "준비 전" },
+];
+const homePrototypePanel = "bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden flex flex-col";
+const homePrototypeList = "divide-y divide-gray-100";
+const homePrototypeRow = "w-full text-left px-5 py-2.5 flex items-center gap-3 hover:bg-gray-50 transition-colors";
+
+// 상태 이름 → 기존 Chip 색. 행사 단계는 LIFECYCLE_CHIP_VARIANT와 같은 색, 업무 상태는 내 업무·업무 보드와 같은 색을 쓴다.
+type HomePrototypeTone = "default" | "blue" | "green" | "red" | "yellow" | "orange" | "gray";
+const HOME_PROTOTYPE_TONE: Record<string, HomePrototypeTone> = {
+  "기획 중": "blue", "진행 중": "green", "후속 정리 중": "yellow", "준비 전": "gray",
+  "마감 지남": "red", "구매 불가 처리 필요": "red",
+  "담당자 없음": "orange", "미지정": "orange", "보완 필요": "orange", "다시 제출": "orange",
+  "검토 필요": "yellow", "금액 확인 대기": "yellow",
+  "새 요청": "blue", "검토 중": "blue", "배송 중": "blue",
+  "미주문": "default", "응답 대기": "gray",
+};
+function HomePrototypeTag({ label, tone }: { label: string; tone?: string }) {
+  return <Chip label={label} variant={HOME_PROTOTYPE_TONE[tone ?? label] ?? "default"} />;
+}
+// 일정 종류는 기존 홈의 일정 표시(마감 빨강·회의 보라)를 따른다. 참석 대상과 열람만 가능한 일정을 구분한다.
+const HOME_PROTOTYPE_SCHEDULE_TONE: Record<string, string> = { "마감": "bg-red-50 text-red-600", "회의": "bg-purple-50 text-purple-600", "참석": "bg-blue-50 text-blue-600", "열람만": "bg-gray-100 text-gray-500" };
+function HomePrototypeScheduleTag({ label }: { label: string }) {
+  return <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded shrink-0 ${HOME_PROTOTYPE_SCHEDULE_TONE[label] ?? "bg-gray-100 text-gray-500"}`}>{label}</span>;
+}
+
+// 업무 수 기준 진행 막대. 행사 준비율이 아니므로 `준비 N%`로 표기하지 않는다.
+function HomePrototypeProgress({ label, done, total }: { label: string; done: number; total: number }) {
+  return (
+    <div className="flex items-center gap-2">
+      <div className="w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden"><div className="h-full bg-blue-500 rounded-full" style={{ width: `${done / total * 100}%` }} /></div>
+      <span className="text-[10px] text-gray-500">{label} <strong className="font-semibold text-gray-700">{done}/{total} 완료</strong></span>
+    </div>
+  );
+}
+
+// 기존 홈 카드와 같은 구조: 회색 헤더 바(제목·오른쪽 보조 정보) + 본문 + 조건부 하단 줄.
+function HomePrototypeSection({ title, icon: Icon, right, footer, children }: { title: string; icon: React.ComponentType<{ className?: string }>; right?: React.ReactNode; footer?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <section className={homePrototypePanel}>
+      <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between gap-2">
+        <h2 className="text-xs font-semibold text-gray-700 flex items-center gap-1.5"><Icon className="w-3.5 h-3.5 text-gray-400" />{title}</h2>
+        {right}
+      </div>
+      <div className="flex-1">{children}</div>
+      {footer}
+    </section>
+  );
+}
+
+// 조건부 줄(미배정 구성원·마감 몰림): 해당 사안이 있을 때만 카드 하단에 붙인다.
+function HomePrototypeFootnote({ label, onClick, children }: { label: string; onClick: () => void; children: React.ReactNode }) {
+  return (
+    <button type="button" onClick={onClick} className="w-full text-left px-5 py-2.5 border-t border-gray-100 bg-gray-50/60 flex items-center gap-2 text-[10px] text-gray-700 hover:bg-gray-100 transition-colors">
+      <span className="text-gray-500 shrink-0">{label}</span><span className="flex-1 min-w-0">{children}</span><ChevronRight className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+    </button>
+  );
+}
+
+// 홈 첫 카드: 오늘 날짜·인사와 이 홈에서 보는 내용을 알리고, 열람 가능한 학생회 주요 행사를 함께 둔다(D-02 조직 상황 우선).
+// 끼룩이 표현은 헤더 한 줄만 쓴다(D-13). 인사 아래에는 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게).
+function HomePrototypeWelcome({ name, description, onOpen, empty, showEvents = true, extra }: { name: string; description: string; onOpen: (detail: HomePrototypeDetail) => void; empty?: boolean; showEvents?: boolean; extra?: React.ReactNode }) {
+  const events = empty ? [] : HOME_PROTOTYPE_ORG_EVENTS;
+  return (
+    <section className="bg-white border border-gray-200 rounded-xl shadow-sm px-6 py-4 flex items-center gap-6">
+      <div className="min-w-0 shrink-0">
+        <p className="text-[10px] text-gray-400">9월 30일 수요일</p>
+        <h2 className="text-base font-semibold text-gray-900 mt-0.5">{name}님, 안녕하세요</h2>
+        <p className="text-xs text-gray-500 mt-1">{description}</p>
+        {extra && <div className="mt-1.5">{extra}</div>}
+      </div>
+      {showEvents && <>
+        <div className="w-px self-stretch bg-gray-100 shrink-0" />
+        <div className="flex-1 min-w-0">
+          <p className="text-[10px] text-gray-400 mb-1.5">학생회 주요 행사 {events.length}개</p>
+          {events.length === 0 ? <p className="text-xs text-gray-400 py-2">아직 등록된 학생회 행사가 없어요</p> :
+          <div className="grid grid-cols-3 gap-2">{events.map(ev => (
+            <button type="button" key={ev.name} onClick={() => onOpen({title:"학생회 주요 행사",text:`${events.map(e => `${e.name} ${e.date} · ${e.stage}`).join(" / ")}. 참여 여부와 관계없이 열람 가능한 학생회 행사를 보여주는 예시입니다.`, targets: homePrototypeTo("EVT-02", `${ev.name} 개요 열기`)})} className="text-left border border-gray-200 rounded-lg px-3 py-2 hover:border-blue-300 hover:bg-blue-50/30 transition-colors">
+              <div className="flex items-center gap-2"><span className="text-xs font-bold text-gray-900 truncate">{ev.name}</span><span className="ml-auto"><HomePrototypeTag label={ev.stage} /></span></div>
+              <p className="text-[10px] text-gray-500 mt-1"><span className="font-mono">{ev.date}</span> · {ev.dday}</p>
+            </button>
+          ))}</div>}
+        </div>
+      </>}
+    </section>
+  );
+}
+
+// 정상 0건: 카드는 유지하고 가운데 한 줄 문구. 만들 권한이 있는 역할에게만 action을 넘긴다.
+function HomePrototypeEmpty({ text, action }: { text: string; action?: React.ReactNode }) {
+  return <div className="px-5 py-8 flex flex-col items-center justify-center gap-3 text-center"><p className="text-xs text-gray-400">{text}</p>{action}</div>;
+}
+
+// 헤더 오른쪽 숫자: 전체 수를 보여주고, 3건을 넘으면 전체 보기로 연결한다.
+function HomePrototypeCount({ total, unit = "건", note, onMore }: { total: number; unit?: string; note?: string; onMore: () => void }) {
+  if (total > HOME_PROTOTYPE_LIMIT) return <button type="button" onClick={onMore} className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5">전체 {total}{unit} 보기 <ChevronRight className="w-3 h-3" /></button>;
+  return <span className="text-[10px] text-gray-400">{note ? `${note} · ` : ""}{total}{unit}</span>;
+}
+
+// 상세 팝업. items가 있으면 행사를 넘나드는 '전체 보기' 목록 패널로 쓰고, 줄을 누르면 그 항목의 상세로 바뀐다.
+function HomePrototypeDetailDialog({ detail, onClose, onOpen }: { detail: HomePrototypeDetail; onClose: () => void; onOpen: (detail: HomePrototypeDetail) => void }) {
+  const { navigateTo, setEventWorkspaceFilter, setCalendarFocus } = React.useContext(AppContext);
+  if (!detail) return null;
+  const go = (target: HomePrototypeTarget) => {
+    setEventWorkspaceFilter(target.filter ?? null);
+    if (target.calendar !== undefined) setCalendarFocus(target.calendar);
+    navigateTo(target.screen);
+  };
+  return <div className="fixed inset-0 z-50 bg-black/20 flex items-center justify-center p-6" onClick={onClose}><section role="dialog" aria-modal="true" aria-label={detail.title} className="bg-white border border-gray-200 rounded-xl shadow-xl max-w-md w-full overflow-hidden" onClick={e => e.stopPropagation()} onKeyDown={e => {if(e.key === "Escape") onClose();}}>
+    <div className="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center justify-between gap-4"><h2 className="text-sm font-semibold text-gray-900">{detail.title}</h2><button autoFocus type="button" aria-label="예시 상세 닫기" onClick={onClose} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded"><X className="w-4 h-4" /></button></div>
+    <div className="px-5 py-4">
+      <p className="text-xs text-gray-700 leading-relaxed">{detail.text}</p>
+      {detail.items && <div className="mt-3 max-h-72 overflow-y-auto divide-y divide-gray-100 border border-gray-100 rounded-lg">{detail.items.map(item => <button key={item.label} type="button" onClick={() => onOpen(item.detail)} className="w-full text-left px-3 py-2.5 flex items-center gap-3 hover:bg-gray-50"><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.label}</p>{item.sub && <p className="text-[10px] text-gray-500">{item.sub}</p>}</div><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>)}</div>}
+      {detail.targets && detail.targets.length > 0 && <div className="flex flex-wrap gap-2 mt-4">{detail.targets.map((target, index) => <Btn key={target.label} variant={index === 0 ? "primary" : "secondary"} size="sm" onClick={() => go(target)}>{target.label} <ExternalLink className="w-3 h-3" /></Btn>)}</div>}
+    </div>
+    <p className="px-5 py-2.5 border-t border-gray-100 text-[10px] text-gray-400">검토용 예시 · 이동한 화면은 대표 샘플 행사 데이터를 보여줄 수 있습니다.</p>
+  </section></div>;
+}
+
+// 3건을 넘는 목록의 '전체 보기' 패널을 만든다.
+const homePrototypeAll = (title: string, items: HomePrototypeListItem[]): HomePrototypeDetail => ({ title, text: `전체 ${items.length}건입니다. 홈에는 우선순위가 높은 3건만 표시합니다. 항목을 누르면 상세를 봅니다.`, items });
+
+// 홈 상단: 끼룩이가 홈을 정리해 보여준다는 느낌만 준다(D-13). 판단·선별한 것처럼 말하지 않고 정리 사실과 기준 시점만 말한다.
+function HomePrototypeHeader({ role }: { role: string }) {
+  return <div className="flex items-center gap-3"><span className="flex items-center gap-1.5 text-xs text-gray-600"><KkirukMark expression="hello" className="w-6 h-6" />끼룩이가 09.30 기준으로 정리했어요</span><span className="text-[10px] bg-gray-100 text-gray-500 px-2 py-1 rounded font-medium">{role} 관점 · 예시 데이터</span></div>;
+}
+
+const homePrototypeWon = (n: number) => `${n.toLocaleString("ko-KR")}원`;
+
+// 검토용 프로토타입: 회장단 홈 정보 구성(2026-09-30 채택, D-06). 예시 사용자 김바다(학술체육부 회장단), 예시 데이터만 사용한다.
+// 회장단 홈은 전체 행사 현황이 본문이므로 다른 역할의 학생회 주요 행사 줄을 두지 않는다.
+function HOME01ChairPrototype() {
+  const ctx = React.useContext(AppContext);
+  const firstUse = ctx.demoDataMode === "first-use";
+  const [detail, setDetail] = useState<HomePrototypeDetail>(null);
+  // 행사 카드: 책임부서·책임자는 표시하지 않는다(D-06). 정렬: 진행 중 → 기획 중 → 준비 전, 같은 단계는 날짜순.
+  const events = firstUse ? [] : [
+    { name: "가을 축제", stage: "기획 중", date: "10.12", dday: "D-12", done: 18, total: 30, overdue: 1, unassigned: 0, review: 1, next: "10.02 부스 배치안 확정" },
+    { name: "진로 특강", stage: "기획 중", date: "10.20", dday: "D-20", done: 7, total: 14, overdue: 0, unassigned: 1, review: 0, next: "10.05 홍보 문안 전달" },
+    { name: "체육대회", stage: "준비 전", date: "11.08", dday: "D-39", done: 2, total: 9, overdue: 0, unassigned: 0, review: 0, next: "10.10 종목 확정" },
+  ];
+  // 정렬: 마감 지남 → 본인 응답 필요 → 담당자 미지정 → 검토 필요, 같은 종류는 마감이 가까운 순.
+  const issues = firstUse ? [] : [
+    { title: "체험 부스 구성안", note: "가을 축제 · 09.29 마감", tag: "마감 지남", text: "예시: 마감이 지난 미완료 업무입니다. 회장단이 직접 처리할 업무로 단정하지 않고, 행사 업무에서 상황을 확인합니다." },
+    { title: "현장 운영 순서표", note: "진로 특강 · 회의 후속 업무", tag: "담당자 없음", text: "예시: 담당자가 지정되지 않은 업무입니다. 행사 업무의 미지정 필터로 확인합니다." },
+    { title: "부스 배치안 초안", note: "가을 축제 · 검토자 지정됨", tag: "검토 필요", text: "예시: 검토가 필요한 업무입니다. 지정된 검토자가 처리하며, 회장단 직급만으로 검토 권한을 갖지 않습니다." },
+    { title: "행사 사진 정리", note: "신입생 환영회 · 회의 후속 업무", tag: "담당자 없음", text: "예시: 후속 정리 중인 행사의 담당자 미지정 업무입니다." },
+  ].sort((a, b) => ["마감 지남", "보완 필요", "담당자 없음", "검토 필요"].indexOf(a.tag) - ["마감 지남", "보완 필요", "담당자 없음", "검토 필요"].indexOf(b.tag));
+  const closing = firstUse ? [] : [{ name: "신입생 환영회", ended: "09.20 종료", left: "회의 정리 1 · 금액 확인 1" }];
+  const schedule = firstUse ? [] : [
+    { date: "10.02", name: "부스 배치안 확정", note: "가을 축제 · 업무 마감", tag: "마감" },
+    { date: "10.02", name: "전체 운영회의", note: "18:00 · 초대된 회의", tag: "회의" },
+    { date: "10.05", name: "진로 특강 신청 마감", note: "참가 신청", tag: "마감" },
+  ];
+  // 체육대회 예산은 아직 입력되지 않았다. 0원으로 합산하지 않고 미입력으로 따로 표시한다.
+  const finance = firstUse ? null : { budget: 2100000, spent: 770000, planned: 410000, missing: "체육대회" };
+  const unassignedMembers = firstUse ? 0 : 1;
+  const count = (label: string, n: number) => n > 0 ? { label, n } : null;
+  const issueDetail = (item: typeof issues[number]): NonNullable<HomePrototypeDetail> => ({ title: item.title, text: item.text, targets: homePrototypeTo("EVT-TASK-02", "업무 상세 열기") });
+  const scheduleDetail = (item: typeof schedule[number]): NonNullable<HomePrototypeDetail> => ({ title: item.name, text: `${item.date} · ${item.note}. 비공개 회의는 생성자·초대 여부에 따라 표시합니다.`, targets: homePrototypeScheduleTarget(item) });
+  const closingDetail = (item: typeof closing[number]): NonNullable<HomePrototypeDetail> => ({ title: item.name, text: `${item.ended}. 남은 정리: ${item.left}. 남은 정리가 끝나면 회장단이 최종 완료를 확인합니다. 최종 완료는 회장단만 할 수 있습니다.`, targets: homePrototypeTo("EVT-02D", "후속 정리 개요 열기") });
+  return (
+    <AppContext.Provider value={{ ...ctx, currentUser: { name: "김바다", dept: "학술체육부", role: "회장단" } }}>
+      <DesktopShell activeSidebar="홈" title="홈" actions={<HomePrototypeHeader role="회장단" />}>
+        <div data-testid="chair-home-prototype" className="p-5 flex flex-col gap-4 max-w-6xl mx-auto">
+          <HomePrototypeWelcome name="김바다" description="학생회 전체 행사가 어디까지 진행됐고, 어디에 확인이 필요한지 봅니다." onOpen={setDetail} showEvents={false} />
+          <HomePrototypeSection title="전체 행사 진행 현황" icon={Star} right={events.length > 0 ? <span className="text-[10px] text-gray-400">기획 중 2 · 준비 전 1 · 후속 정리 {closing.length}</span> : <span className="text-[10px] text-gray-400">0개</span>}>
+            {events.length === 0 ? <HomePrototypeEmpty text="아직 등록된 행사가 없어요. 첫 행사를 만들면 진행 현황이 여기에 모입니다." action={<Btn variant="primary" size="sm" onClick={() => ctx.navigateTo("EVT-00B")}>첫 행사 만들기</Btn>} /> :
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-4">{events.slice(0, HOME_PROTOTYPE_LIMIT).map(ev => {
+              const problems = [count("마감 지남", ev.overdue), count("미지정", ev.unassigned), count("검토 필요", ev.review)].filter((p): p is { label: string; n: number } => p !== null);
+              return <button type="button" key={ev.name} onClick={() => setDetail({title:ev.name,text:`${ev.stage} · ${ev.date}(${ev.dday}). 전체 업무 ${ev.total}건 중 ${ev.done}건 완료. ${problems.length ? problems.map(p => `${p.label} ${p.n}`).join(" · ") + "." : "확인이 필요한 업무는 없습니다."} 완료 비율은 업무 수 기준이며 행사 준비율이 아닙니다.`, targets: [
+                ...homePrototypeTo("EVT-02", "행사 개요 열기"),
+                ...(ev.overdue > 0 ? homePrototypeTo("EVT-TASK-01", "마감 지난 업무 보기", { filter: "overdueTasks" }) : []),
+                ...(ev.unassigned > 0 ? homePrototypeTo("EVT-TASK-01", "미지정 업무 보기", { filter: "unassignedTasks" }) : []),
+              ]})} className="text-left border border-gray-200 rounded-lg p-3 hover:border-blue-300 hover:shadow-sm transition-all flex flex-col gap-1.5">
+                <div className="flex items-center gap-2"><HomePrototypeTag label={ev.stage} /><span className="text-xs font-bold text-gray-900 truncate">{ev.name}</span><span className="text-[10px] text-gray-500 ml-auto shrink-0"><span className="font-mono">{ev.date}</span> · {ev.dday}</span></div>
+                <HomePrototypeProgress label="업무" done={ev.done} total={ev.total} />
+                <div className="flex flex-wrap items-center gap-1.5 min-h-[22px]">{problems.length ? problems.map(p => <HomePrototypeTag key={p.label} label={`${p.label} ${p.n}`} tone={p.label} />) : <span className="text-[10px] text-gray-400">확인 필요 없음</span>}</div>
+                <p className="text-[10px] text-gray-500 pt-2 border-t border-gray-100">다음 마감 · <span className="text-gray-700">{ev.next}</span></p>
+              </button>;
+            })}</div>}
+          </HomePrototypeSection>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <HomePrototypeSection title="확인이 필요한 운영 상황" icon={AlertCircle} right={<HomePrototypeCount total={issues.length} onMore={() => setDetail(homePrototypeAll("확인이 필요한 운영 상황", issues.map(item => ({ label: item.title, sub: `${item.note} · ${item.tag}`, detail: issueDetail(item) }))))} />}
+              footer={unassignedMembers > 0 && <HomePrototypeFootnote label="미배정 구성원" onClick={() => setDetail({title:"미배정 구성원",text:"예시: 가입했지만 부서가 배정되지 않은 구성원 1명이 있습니다. 대상이 있을 때만 표시하며, 조직 관리에서 배정합니다.", targets: homePrototypeTo("ORG-03A", "조직 관리 열기")})}>{unassignedMembers}명 · 조직 관리에서 배정</HomePrototypeFootnote>}>
+              {issues.length === 0 ? <HomePrototypeEmpty text="확인이 필요한 운영 상황이 없어요" /> :
+              <div className={homePrototypeList}>{issues.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button key={item.title} type="button" onClick={() => setDetail(issueDetail(item))} className={homePrototypeRow}><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800 truncate">{item.title}</p><p className="text-[10px] text-gray-500 truncate">{item.note}</p></div><HomePrototypeTag label={item.tag} /></button>)}</div>}
+            </HomePrototypeSection>
+            <HomePrototypeSection title="후속 정리 중인 행사" icon={Check} right={<HomePrototypeCount total={closing.length} unit="개" onMore={() => setDetail(homePrototypeAll("후속 정리 중인 행사", closing.map(item => ({ label: item.name, sub: item.ended, detail: closingDetail(item) }))))} />}>
+              {closing.length === 0 ? <HomePrototypeEmpty text="후속 정리 중인 행사가 없어요" /> :
+              <div className={homePrototypeList}>{closing.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button key={item.name} type="button" onClick={() => setDetail(closingDetail(item))} className="w-full text-left px-5 py-2.5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-2"><HomePrototypeTag label="후속 정리 중" /><span className="text-xs font-bold text-gray-900">{item.name}</span><ChevronRight className="w-4 h-4 text-gray-400 ml-auto" /></div>
+                <p className="text-[10px] text-gray-500 mt-2">{item.ended} · 남은 정리 <span className="text-gray-700">{item.left}</span></p>
+                <p className="text-[10px] text-gray-400 mt-1">정리가 끝나면 최종 완료 확인</p>
+              </button>)}</div>}
+            </HomePrototypeSection>
+            <HomePrototypeSection title="가까운 주요 일정" icon={Calendar} right={<HomePrototypeCount total={schedule.length} unit="개" note="7일 이내" onMore={() => setDetail(homePrototypeAll("가까운 주요 일정", schedule.map(item => ({ label: item.name, sub: `${item.date} · ${item.note}`, detail: scheduleDetail(item) }))))} />}>
+              {schedule.length === 0 ? <HomePrototypeEmpty text="7일 안에 예정된 일정이 없어요" /> :
+              <div className={homePrototypeList}>{schedule.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button type="button" key={item.name} onClick={() => setDetail(scheduleDetail(item))} className={homePrototypeRow}><span className="text-xs font-mono font-semibold text-gray-500 w-10 shrink-0">{item.date}</span><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800 truncate">{item.name}</p><p className="text-[10px] text-gray-500 truncate">{item.note}</p></div><HomePrototypeScheduleTag label={item.tag} /></button>)}</div>}
+            </HomePrototypeSection>
+          </div>
+          <button type="button" onClick={() => setDetail({title:"전체 재정 요약",text: finance ? `입력된 예산 기준: 총예산 ${homePrototypeWon(finance.budget)} − 실제 지출 ${homePrototypeWon(finance.spent)} − 지출 예정 ${homePrototypeWon(finance.planned)} = 사용 가능 ${homePrototypeWon(finance.budget - finance.spent - finance.planned)}. ${finance.missing} 예산은 미입력이라 0원으로 합산하지 않았습니다. 재정부 소속이 아니면 승인·발주·예산 조정은 하지 않습니다.` : "아직 입력된 예산이 없습니다. 0원으로 표시하지 않고 미입력으로 표시합니다.", targets: homePrototypeTo("FIN-00", "전체 재정 현황 열기")})} className="bg-white border border-gray-200 rounded-xl shadow-sm px-5 py-3 flex items-center gap-6 text-left hover:border-blue-300 transition-colors">
+            <h2 className="text-xs font-semibold text-gray-700 flex items-center gap-1.5 shrink-0"><BarChart2 className="w-3.5 h-3.5 text-gray-400" />전체 재정 요약</h2>
+            {finance ? <>
+              {[["총예산", finance.budget], ["실제 지출", finance.spent], ["지출 예정", finance.planned], ["사용 가능", finance.budget - finance.spent - finance.planned]].map(([label, value]) => <span key={label} className="flex items-baseline gap-1.5"><span className="text-[10px] text-gray-400">{label}</span><strong className={`text-xs font-bold ${label === "사용 가능" ? "text-blue-600" : "text-gray-900"}`}>{homePrototypeWon(value as number)}</strong></span>)}
+              <span className="text-[10px] text-gray-400">· {finance.missing} 예산 미입력</span>
+            </> : <span className="text-[10px] text-gray-400">예산 미입력</span>}
+            <span className="text-[10px] text-gray-400 ml-auto flex items-center gap-0.5">열람 전용 <ChevronRight className="w-3 h-3" /></span>
+          </button>
+        </div>
+        <HomePrototypeDetailDialog detail={detail} onClose={() => setDetail(null)} onOpen={setDetail} />
+      </DesktopShell>
+    </AppContext.Provider>
+  );
+}
+
+// 부서장·부원 공통: 참여 행사 한 줄(단계·날짜·업무 진행·다음 마감).
+function HomePrototypeEventRow({ name, date, progressLabel, done, total, nextLabel, next, onClick }: { name: string; date: string; progressLabel: string; done: number; total: number; nextLabel: string; next: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="w-full text-left px-5 py-2.5 hover:bg-gray-50 transition-colors flex flex-col gap-1.5">
+      <div className="flex items-center gap-2"><HomePrototypeTag label="기획 중" /><span className="text-xs font-bold text-gray-900">{name}</span><span className="text-[10px] font-mono text-gray-500 ml-auto">{date}</span><ChevronRight className="w-4 h-4 text-gray-400" /></div>
+      <HomePrototypeProgress label={progressLabel} done={done} total={total} />
+      <p className="text-[10px] text-gray-500">{nextLabel} · <span className="text-gray-700">{next}</span></p>
+    </button>
+  );
+}
+
+// 검토용 프로토타입: 부서장 홈 정보 구성(2026-09-30 채택)을 기존 홈 디자인으로 한 화면에 요약한다. 예시 데이터만 사용한다.
+function HOME01DepartmentPrototype() {
+  const { currentUser, demoDataMode, navigateTo } = React.useContext(AppContext);
+  const firstUse = demoDataMode === "first-use";
+  const [detail, setDetail] = useState<HomePrototypeDetail>(null);
+  const events = firstUse ? [] : [
+    { name: "가을 축제", date: "10.12", done: 8, total: 12, next: "10.02 부스 배치안 확정", text: "부서 업무 12건 중 8건 완료. 체험 부스 구성안은 마감이 지났습니다." },
+    { name: "진로 특강", date: "10.20", done: 3, total: 6, next: "10.05 홍보 문안 전달", text: "부서 업무 6건 중 3건 완료. 홍보 문안을 작성 중이며, 회의에서 정한 현장 운영 순서표는 담당자가 아직 없습니다." },
+  ];
+  const schedule = firstUse ? [] : [
+    { date: "10.02", name: "부스 배치안 확정", note: "가을 축제", tag: "마감" },
+    { date: "10.02", name: "전체 운영회의", note: "18:00 · 초대된 회의", tag: "회의" },
+    { date: "10.05", name: "홍보 문안 전달", note: "진로 특강", tag: "마감" },
+  ];
+  // 정렬: 예외 상태 먼저, 그다음 필요일이 가까운 순.
+  const purchases = firstUse ? [] : [
+    { name: "축제 안내 배너", event: "가을 축제", due: "10.09", status: "배송 중", by: "부서 요청 · 정하늘" },
+    { name: "특강 안내 리플릿", event: "진로 특강", due: "10.15", status: "검토 중", by: "내 요청" },
+  ];
+  // 정렬: 마감 지남 → 본인 응답 필요 → 담당자 미지정 → 검토 필요(권한이 있을 때만).
+  const attention = firstUse ? [] : [
+    { title: "체험 부스 구성안", note: "가을 축제 · 09.29 마감", tag: "마감 지남", text: "예시 업무: 체험 부스 구성안이 미완료 상태입니다. 원래 마감일은 9월 29일입니다." },
+    { title: "축제 운영 물품", note: "내 구매 요청 · 멀티탭 수량 확인", tag: "보완 필요", text: "재정부 요청: 운영 부스 수에 맞춰 멀티탭 수량과 산출 이유를 보완해 주세요. 본인이 제출한 요청의 응답 예시입니다." },
+    { title: "현장 운영 순서표", note: "진로 특강 · 09.26 운영부 회의 후속 업무", tag: "담당자 없음", text: "예시 업무: 회의에서 운영부 후속 업무로 정했지만 담당자가 아직 없습니다. 검토 필요 업무는 해당 업무의 검토 권한이 있을 때만 이 목록에 표시합니다." },
+  ];
+  const crowded = firstUse ? null : { name: "정하늘", range: "10.02~10.05", count: 3 };
+  const eventDetail = (ev: typeof events[number]): NonNullable<HomePrototypeDetail> => ({ title: ev.name, text: ev.text, targets: homePrototypeTo("EVT-02", "행사 개요 열기") });
+  const scheduleDetail = (item: typeof schedule[number]): NonNullable<HomePrototypeDetail> => ({ title: item.name, text: `${item.date} · ${item.note} · ${item.tag}`, targets: homePrototypeScheduleTarget(item) });
+  const purchaseDetail = (item: typeof purchases[number]): NonNullable<HomePrototypeDetail> => ({ title: item.name, text: `${item.by} · ${item.event} · 필요일 ${item.due} · ${item.status}. 다른 구성원의 요청은 진행 결과만 열람하는 예시입니다.`, targets: homePrototypeTo("FIN-REQ-02", "요청 상세 열기") });
+  const attentionDetail = (item: typeof attention[number]): NonNullable<HomePrototypeDetail> => ({ title: item.title, text: item.text, targets: item.tag === "보완 필요" ? homePrototypeTo("FIN-SUP-01B", "보완 확인 열기") : homePrototypeTo("EVT-TASK-02", "업무 상세 열기") });
+  const listOf = <T,>(title: string, items: T[], label: (item: T) => string, sub: (item: T) => string, detailOf: (item: T) => NonNullable<HomePrototypeDetail>) => () => setDetail(homePrototypeAll(title, items.map(item => ({ label: label(item), sub: sub(item), detail: detailOf(item) }))));
+  return (
+    <DesktopShell activeSidebar="홈" title="홈" actions={<HomePrototypeHeader role={`${currentUser.dept} · 부서장`} />}>
+      <div data-testid="department-home-prototype" className="p-5 flex flex-col gap-4 max-w-6xl mx-auto">
+        <HomePrototypeWelcome name={currentUser.name} description={`학생회 주요 행사와 ${currentUser.dept}의 행사·일정·구매를 확인합니다.`} onOpen={setDetail} empty={firstUse} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <HomePrototypeSection title="우리 부서 참여 행사" icon={Star} right={<HomePrototypeCount total={events.length} unit="개" onMore={listOf("우리 부서 참여 행사", events, ev => ev.name, ev => ev.date, eventDetail)} />}>
+            {events.length === 0 ? <HomePrototypeEmpty text="우리 부서가 참여하는 행사가 아직 없어요" action={<Btn variant="primary" size="sm" onClick={() => navigateTo("EVT-00B")}>첫 행사 만들기</Btn>} /> :
+            <div className={homePrototypeList}>{events.slice(0, HOME_PROTOTYPE_LIMIT).map(ev => <HomePrototypeEventRow key={ev.name} name={ev.name} date={ev.date} progressLabel="부서 업무" done={ev.done} total={ev.total} nextLabel="다음 마감" next={ev.next} onClick={() => setDetail(eventDetail(ev))} />)}</div>}
+          </HomePrototypeSection>
+          <HomePrototypeSection title="가까운 일정·마감" icon={Calendar} right={<HomePrototypeCount total={schedule.length} unit="개" note="7일 이내" onMore={listOf("가까운 일정·마감", schedule, item => item.name, item => `${item.date} · ${item.note}`, scheduleDetail)} />}>
+            {schedule.length === 0 ? <HomePrototypeEmpty text="7일 안에 예정된 일정이나 마감이 없어요" /> :
+            <div className={homePrototypeList}>{schedule.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button type="button" key={item.name} onClick={() => setDetail(scheduleDetail(item))} className={homePrototypeRow}><span className="text-xs font-mono font-semibold text-gray-500 w-10 shrink-0">{item.date}</span><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.name}</p><p className="text-[10px] text-gray-500">{item.note}</p></div><HomePrototypeScheduleTag label={item.tag} /></button>)}</div>}
+          </HomePrototypeSection>
+          <HomePrototypeSection title="부서 구매 진행" icon={FileText} right={<HomePrototypeCount total={purchases.length} note="부서 요청 · 내 요청" onMore={listOf("부서 구매 진행", purchases, item => item.name, item => `${item.by} · 필요일 ${item.due}`, purchaseDetail)} />}>
+            {purchases.length === 0 ? <HomePrototypeEmpty text="진행 중인 부서 구매가 없어요" /> :
+            <div className={homePrototypeList}>{purchases.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button key={item.name} type="button" onClick={() => setDetail(purchaseDetail(item))} className={homePrototypeRow}><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.name}</p><p className="text-[10px] text-gray-500">{item.by} · {item.event} · 필요일 {item.due}</p></div><HomePrototypeTag label={item.status} /><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>)}</div>}
+          </HomePrototypeSection>
+          <HomePrototypeSection title="확인이 필요한 일" icon={AlertCircle} right={<HomePrototypeCount total={attention.length} onMore={listOf("확인이 필요한 일", attention, item => item.title, item => `${item.note} · ${item.tag}`, attentionDetail)} />}
+            footer={crowded && <HomePrototypeFootnote label="마감 몰림" onClick={() => setDetail({title:"마감이 몰린 구성원",text:`예시: ${crowded.name}님에게 ${crowded.range} 사이 마감인 미완료 업무 ${crowded.count}건이 있습니다. 같은 기간 마감이 몰렸을 때만 표시하며, 건수로 과부하나 성과를 판단하거나 순위를 매기지 않습니다.`, targets: homePrototypeTo("EVT-TASK-01", `${crowded.name}님 업무 보기`, { filter: `assignee:${crowded.name}` })})}>{crowded.name} · {crowded.range} 미완료 {crowded.count}건</HomePrototypeFootnote>}>
+            {attention.length === 0 ? <HomePrototypeEmpty text="확인이 필요한 일이 없어요" /> :
+            <div className={homePrototypeList}>{attention.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button key={item.title} type="button" onClick={() => setDetail(attentionDetail(item))} className={homePrototypeRow}><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.title}</p><p className="text-[10px] text-gray-500">{item.note}</p></div><HomePrototypeTag label={item.tag} /><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>)}</div>}
+          </HomePrototypeSection>
+        </div>
+      </div>
+      <HomePrototypeDetailDialog detail={detail} onClose={() => setDetail(null)} onOpen={setDetail} />
+    </DesktopShell>
+  );
+}
+
+// 검토용 프로토타입: 부원 홈 정보 구성(2026-09-30 채택). 예시 사용자 정하늘(운영부 부원), 예시 데이터만 사용한다.
+function HOME01MemberPrototype() {
+  const ctx = React.useContext(AppContext);
+  const firstUse = ctx.demoDataMode === "first-use";
+  const [detail, setDetail] = useState<HomePrototypeDetail>(null);
+  const events = firstUse ? [] : [
+    { name: "가을 축제", date: "10.12", done: 8, total: 12, next: "10.02 부스 배치안 확정", text: "운영부 업무 12건 중 8건 완료. 다음 공동 마감은 10월 2일 부스 배치안 확정입니다." },
+    { name: "진로 특강", date: "10.20", done: 3, total: 6, next: "10.05 홍보 문안 전달", text: "운영부 업무 6건 중 3건 완료. 다음 공동 마감은 10월 5일 홍보 문안 전달입니다." },
+  ];
+  const schedule = firstUse ? [] : [
+    { date: "10.02", name: "부스 배치안 확정", note: "가을 축제 · 공동 마감", tag: "마감", attend: true },
+    { date: "10.02", name: "전체 운영회의", note: "18:00 · 초대된 회의", tag: "참석", attend: true },
+    { date: "10.06", name: "기획부 아이디어 회의", note: "15:00 · 공개 회의", tag: "열람만", attend: false },
+  ];
+  // 최근 14일 안에 확정된 결정만, 최근 순.
+  const decisions = firstUse ? [] : [
+    { title: "체험 부스는 4개로 운영", source: "09.26 운영부 회의 · 가을 축제", text: "회의 정리에서 확정된 결정입니다. 체험 부스를 4개로 운영하고, 현장 운영 순서표를 후속 업무로 만들었습니다." },
+    { title: "축제 부스 운영 시간 11:00~17:00", source: "09.24 전체 운영회의 · 가을 축제", text: "전체 운영회의 정리에서 확정된 결정입니다. 확정되지 않은 논의 내용은 홈에 표시하지 않습니다." },
+  ];
+  const myTasks = firstUse ? 0 : 3;
+  const unreadRooms = firstUse ? 0 : 2;
+  const eventDetail = (ev: typeof events[number]): NonNullable<HomePrototypeDetail> => ({ title: ev.name, text: ev.text, targets: homePrototypeTo("EVT-02", "행사 개요 열기") });
+  const scheduleDetail = (item: typeof schedule[number]): NonNullable<HomePrototypeDetail> => ({ title: item.name, text: `${item.date} · ${item.note}. ${item.attend ? "참석하거나 함께 마쳐야 하는 일정입니다." : "공개 회의라 열람할 수 있지만 참석 대상은 아닙니다."}`, targets: homePrototypeScheduleTarget(item) });
+  const decisionDetail = (item: typeof decisions[number]): NonNullable<HomePrototypeDetail> => ({ title: item.title, text: item.text, targets: homePrototypeTo("OPS-MEET-07", "회의록 열기") });
+  const listOf = <T,>(title: string, items: T[], label: (item: T) => string, sub: (item: T) => string, detailOf: (item: T) => NonNullable<HomePrototypeDetail>) => () => setDetail(homePrototypeAll(title, items.map(item => ({ label: label(item), sub: sub(item), detail: detailOf(item) }))));
+  return (
+    <AppContext.Provider value={{ ...ctx, currentUser: { name: "정하늘", dept: "운영부", role: "부원" } }}>
+      <DesktopShell activeSidebar="홈" title="홈" actions={<HomePrototypeHeader role="운영부 · 부원" />}>
+        <div data-testid="member-home-prototype" className="p-5 flex flex-col gap-4 max-w-6xl mx-auto">
+          <HomePrototypeWelcome name="정하늘" description="학생회 주요 행사와 내가 참여하는 행사·일정·결정을 확인합니다." onOpen={setDetail} empty={firstUse} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <HomePrototypeSection title="참여 행사 진행" icon={Star} right={<HomePrototypeCount total={events.length} unit="개" onMore={listOf("참여 행사", events, ev => ev.name, ev => ev.date, eventDetail)} />}>
+              {events.length === 0 ? <HomePrototypeEmpty text="참여 중인 행사가 없어요" /> :
+              <div className={homePrototypeList}>{events.slice(0, HOME_PROTOTYPE_LIMIT).map(ev => <HomePrototypeEventRow key={ev.name} name={ev.name} date={ev.date} progressLabel="운영부 업무" done={ev.done} total={ev.total} nextLabel="다음 공동 마감" next={ev.next} onClick={() => setDetail(eventDetail(ev))} />)}</div>}
+            </HomePrototypeSection>
+            <HomePrototypeSection title="가까운 일정" icon={Calendar} right={schedule.length > HOME_PROTOTYPE_LIMIT ? <HomePrototypeCount total={schedule.length} unit="개" onMore={listOf("가까운 일정", schedule, item => item.name, item => `${item.date} · ${item.note}`, scheduleDetail)} /> : <span className="text-[10px] text-gray-400">참석 {schedule.filter(item => item.attend).length} · 열람만 {schedule.filter(item => !item.attend).length}</span>}>
+              {schedule.length === 0 ? <HomePrototypeEmpty text="7일 안에 예정된 일정이 없어요" /> :
+              <div className={homePrototypeList}>{schedule.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button type="button" key={item.name} onClick={() => setDetail(scheduleDetail(item))} className={homePrototypeRow}><span className="text-xs font-mono font-semibold text-gray-500 w-10 shrink-0">{item.date}</span><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.name}</p><p className="text-[10px] text-gray-500">{item.note}</p></div><HomePrototypeScheduleTag label={item.tag} /></button>)}</div>}
+            </HomePrototypeSection>
+            <HomePrototypeSection title="확정된 결정·안내" icon={Info} right={<HomePrototypeCount total={decisions.length} note="최근 14일" onMore={listOf("확정된 결정·안내", decisions, item => item.title, item => item.source, decisionDetail)} />}>
+              {decisions.length === 0 ? <HomePrototypeEmpty text="최근 14일 안에 확정된 결정이 없어요" /> :
+              <div className={homePrototypeList}>{decisions.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button key={item.title} type="button" onClick={() => setDetail(decisionDetail(item))} className={homePrototypeRow}><span className="w-6 h-6 rounded bg-green-50 flex items-center justify-center shrink-0"><Check className="w-3.5 h-3.5 text-green-600" /></span><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.title}</p><p className="text-[10px] text-gray-500">{item.source}</p></div><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>)}</div>}
+            </HomePrototypeSection>
+            <HomePrototypeSection title="내 업무·메시지" icon={Clipboard} right={<span className="text-[10px] text-gray-400">바로가기</span>}>
+              <div className={homePrototypeList}>
+                <button type="button" onClick={() => ctx.navigateTo("MY-01")} className={homePrototypeRow}><span className="w-6 h-6 rounded bg-blue-50 flex items-center justify-center shrink-0"><Clipboard className="w-3.5 h-3.5 text-blue-600" /></span><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">내 미완료 업무 {myTasks}건</p><p className="text-[10px] text-gray-500">{myTasks > 0 ? "가장 가까운 마감 10.02 · 부스 배치안 확정" : "배정된 업무가 없어요"}</p></div><span className="text-[10px] text-blue-600 shrink-0">내 업무</span><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>
+                <button type="button" onClick={() => ctx.navigateTo("MSG-01")} className={homePrototypeRow}><span className="w-6 h-6 rounded bg-purple-50 flex items-center justify-center shrink-0"><MessageSquare className="w-3.5 h-3.5 text-purple-600" /></span><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{unreadRooms > 0 ? `안 읽은 메시지가 있는 방 ${unreadRooms}개` : "안 읽은 메시지 없음"}</p><p className="text-[10px] text-gray-500">참여 중인 방만 집계</p></div><span className="text-[10px] text-blue-600 shrink-0">메시지</span><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>
+              </div>
+            </HomePrototypeSection>
+          </div>
+        </div>
+        <HomePrototypeDetailDialog detail={detail} onClose={() => setDetail(null)} onOpen={setDetail} />
+      </DesktopShell>
+    </AppContext.Provider>
+  );
+}
+
+// 검토용 프로토타입: 재정부 홈 정보 구성(2026-09-30 채택). 예시 사용자 김바다(재정부 부원), 예시 데이터만 사용한다.
+function HOME01FinancePrototype() {
+  const ctx = React.useContext(AppContext);
+  const firstUse = ctx.demoDataMode === "first-use";
+  const [detail, setDetail] = useState<HomePrototypeDetail>(null);
+  // 정렬: 필요일이 가까운 순.
+  const reviews = firstUse ? [] : [
+    { name: "무대 음향 대여", note: "가을 축제 · 이수현 · 필요일 10.10 · 180,000원", tag: "다시 제출", text: "보완 요청 후 다시 제출된 요청입니다. 이전 보완 사유와 함께 검토합니다." },
+    { name: "특강 안내 리플릿", note: "진로 특강 · 박해랑 · 필요일 10.15 · 84,000원", tag: "새 요청", text: "새로 들어온 구매 요청입니다. 검토는 행사 재정의 구매 요청 검토 화면에서 합니다." },
+    { name: "단체 티셔츠", note: "체육대회 · 김민석 · 필요일 10.30 · 960,000원", tag: "새 요청", text: "새로 들어온 구매 요청입니다. 요청 건수와 품목 수는 구분해 셉니다." },
+  ];
+  // 필요일 14일 이내(09.30 기준 10.14까지)의 미주문·미수령 품목, 필요일순.
+  const upcoming = firstUse ? [] : [
+    { name: "부스 테이블보", note: "가을 축제 · 필요일 10.08", tag: "미주문", text: "승인됐지만 아직 주문하지 않은 품목입니다. 발주 처리 화면에서 주문을 기록합니다." },
+    { name: "축제 안내 배너", note: "가을 축제 · 필요일 10.09", tag: "배송 중", text: "주문했지만 아직 받지 않은 품목입니다. 도착 날짜를 예측하지 않고 현재 상태만 표시합니다." },
+    { name: "특강 명찰", note: "진로 특강 · 필요일 10.13", tag: "미주문", text: "승인됐지만 아직 주문하지 않은 품목입니다." },
+  ];
+  // 정렬: 구매 불가 처리 필요 → 금액 확인 대기 → 다른 주체 응답 대기.
+  const exceptions = firstUse ? [] : [
+    { name: "체험 부스 LED 조명", note: "가을 축제 · 판매처 품절", tag: "구매 불가 처리 필요", text: "구매할 수 없게 된 품목입니다. 발주 처리 화면(FIN-PROC-01)에서 구매 불가 처리를 해야 합니다." },
+    { name: "현수막 거치대", note: "가을 축제 · 수령 완료", tag: "금액 확인 대기", text: "수령은 끝났지만 실제 지출 금액과 결제 수단이 확정되지 않았습니다. 금액이 확정되어야 정산 완료가 됩니다." },
+    { name: "축제 운영 물품", note: "가을 축제 · 박해랑 보완 응답 대기", tag: "응답 대기", text: "요청자에게 멀티탭 수량 보완을 요청했고 응답을 기다리는 중입니다. 재정부가 지금 처리할 일은 아닙니다." },
+  ];
+  // 체육대회처럼 예산이 입력되지 않은 행사는 0원 대신 미입력으로 표시한다.
+  const budgets: { event: string; budget: number | null; spent: number; planned: number }[] = firstUse ? [] : [
+    { event: "가을 축제", budget: 1200000, spent: 320000, planned: 410000 },
+    { event: "진로 특강", budget: 400000, spent: 0, planned: 0 },
+    { event: "체육대회", budget: null, spent: 0, planned: 0 },
+  ];
+  const itemDetail = (item: { name: string; text: string; tag: string }, targets: HomePrototypeTarget[]): NonNullable<HomePrototypeDetail> => ({ title: item.name, text: item.text, targets });
+  const reviewDetail = (item: typeof reviews[number]) => itemDetail(item, homePrototypeTo("FIN-REV-01", "구매 요청 검토 열기"));
+  const upcomingDetail = (item: typeof upcoming[number]) => itemDetail(item, homePrototypeTo("FIN-PROC-01", "발주 처리 열기"));
+  const exceptionDetail = (item: typeof exceptions[number]) => itemDetail(item,
+    item.tag === "구매 불가 처리 필요" ? homePrototypeTo("FIN-PROC-01", "발주 처리 열기")
+    : item.tag === "금액 확인 대기" ? homePrototypeTo("EVT-FIN-01B", "처리 단계 칸반 열기")
+    : homePrototypeTo("FIN-REQ-02", "요청 상세 열기"));
+  const listOf = <T,>(title: string, items: T[], label: (item: T) => string, sub: (item: T) => string, detailOf: (item: T) => NonNullable<HomePrototypeDetail>) => () => setDetail(homePrototypeAll(title, items.map(item => ({ label: label(item), sub: sub(item), detail: detailOf(item) }))));
+  // 재정부 부원 겸직 규칙(D-10): 부원 홈의 내 업무·메시지는 바로가기로만 더한다.
+  const shortcuts = <div className="flex items-center gap-3">
+    <button type="button" onClick={() => ctx.navigateTo("MY-01")} className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"><Clipboard className="w-3 h-3" />{firstUse ? "내 업무 0건" : "내 업무 2건"}</button>
+    <button type="button" onClick={() => ctx.navigateTo("MSG-01")} className="text-[10px] text-blue-600 hover:underline flex items-center gap-1"><MessageSquare className="w-3 h-3" />{firstUse ? "안 읽은 메시지 없음" : "메시지 방 1개"}</button>
+  </div>;
+  return (
+    <AppContext.Provider value={{ ...ctx, currentUser: { name: "김바다", dept: "재정부", role: "부원" } }}>
+      <DesktopShell activeSidebar="홈" title="홈" actions={<HomePrototypeHeader role="재정부 · 부원" />}>
+        <div data-testid="finance-home-prototype" className="p-5 flex flex-col gap-4 max-w-6xl mx-auto">
+          <HomePrototypeWelcome name="김바다" description="검토할 구매 요청과 필요일이 가까운 준비 상황을 확인합니다." onOpen={setDetail} empty={firstUse} extra={shortcuts} />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <HomePrototypeSection title="검토할 요청" icon={FileText} right={reviews.length > HOME_PROTOTYPE_LIMIT ? <HomePrototypeCount total={reviews.length} onMore={listOf("검토할 요청", reviews, item => item.name, item => `${item.note} · ${item.tag}`, reviewDetail)} /> : <button type="button" onClick={() => setDetail({title:"처리 단계 칸반",text: firstUse ? "처리 중인 구매가 없습니다." : "검토 대기 3 · 주문 대기 2 · 수령 대기 1 · 금액 확인 1. 단계별 건수만 보여주고, 전체 보드는 행사 재정의 처리 단계 칸반에서 확인합니다.", targets: homePrototypeTo("EVT-FIN-01B", "처리 단계 칸반 열기")})} className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5">{`새 요청 ${reviews.filter(item => item.tag === "새 요청").length} · 다시 제출 ${reviews.filter(item => item.tag === "다시 제출").length} · 칸반`}<ChevronRight className="w-3 h-3" /></button>}>
+              {reviews.length === 0 ? <HomePrototypeEmpty text="검토할 요청이 없어요" /> :
+              <div className={homePrototypeList}>{reviews.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button key={item.name} type="button" onClick={() => setDetail(reviewDetail(item))} className={homePrototypeRow}><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.name}</p><p className="text-[10px] text-gray-500">{item.note}</p></div><HomePrototypeTag label={item.tag} /><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>)}</div>}
+            </HomePrototypeSection>
+            <HomePrototypeSection title="필요일 임박 준비" icon={Clock} right={<HomePrototypeCount total={upcoming.length} note="14일 이내" onMore={listOf("필요일 임박 준비", upcoming, item => item.name, item => `${item.note} · ${item.tag}`, upcomingDetail)} />}>
+              {upcoming.length === 0 ? <HomePrototypeEmpty text="14일 안에 필요한 미주문·미수령 품목이 없어요" /> :
+              <div className={homePrototypeList}>{upcoming.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button key={item.name} type="button" onClick={() => setDetail(upcomingDetail(item))} className={homePrototypeRow}><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.name}</p><p className="text-[10px] text-gray-500">{item.note}</p></div><HomePrototypeTag label={item.tag} /><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>)}</div>}
+            </HomePrototypeSection>
+            <HomePrototypeSection title="예외·대기" icon={AlertCircle} right={<HomePrototypeCount total={exceptions.length} onMore={listOf("예외·대기", exceptions, item => item.name, item => `${item.note} · ${item.tag}`, exceptionDetail)} />}>
+              {exceptions.length === 0 ? <HomePrototypeEmpty text="처리할 예외나 기다리는 항목이 없어요" /> :
+              <div className={homePrototypeList}>{exceptions.slice(0, HOME_PROTOTYPE_LIMIT).map(item => <button key={item.name} type="button" onClick={() => setDetail(exceptionDetail(item))} className={homePrototypeRow}><div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{item.name}</p><p className="text-[10px] text-gray-500">{item.note}</p></div><HomePrototypeTag label={item.tag} /><ChevronRight className="w-4 h-4 text-gray-400 shrink-0" /></button>)}</div>}
+            </HomePrototypeSection>
+            <HomePrototypeSection title="행사별 예산" icon={BarChart2} right={<span className="text-[10px] text-gray-400">통장 잔액과 다름</span>}>
+              {budgets.length === 0 ? <HomePrototypeEmpty text="등록된 행사 예산이 없어요" /> :
+              <div className={homePrototypeList}>{budgets.slice(0, HOME_PROTOTYPE_LIMIT).map(b => b.budget === null ?
+                <button key={b.event} type="button" onClick={() => setDetail({title:`${b.event} 예산`,text:"예산이 아직 입력되지 않았습니다. 0원으로 표시하거나 합산하지 않습니다.", targets: homePrototypeTo("EVT-FIN-01B", "행사 재정 열기")})} className={homePrototypeRow}><span className="text-xs font-bold text-gray-900">{b.event}</span><span className="text-[10px] text-gray-400 ml-auto">예산 미입력</span><ChevronRight className="w-4 h-4 text-gray-400" /></button> :
+                <button key={b.event} type="button" onClick={() => setDetail({title:`${b.event} 예산`,text:`예산 ${homePrototypeWon(b.budget!)} − 실제 지출 ${homePrototypeWon(b.spent)} − 지출 예정 ${homePrototypeWon(b.planned)} = 사용 가능 ${homePrototypeWon(b.budget! - b.spent - b.planned)}. 계산은 현행 재정 명세를 따릅니다.`, targets: homePrototypeTo("EVT-FIN-01B", "행사 재정 열기")})} className="w-full text-left px-5 py-2.5 hover:bg-gray-50 transition-colors">
+                <div className="flex items-center gap-2"><span className="text-xs font-bold text-gray-900">{b.event}</span><span className="text-[10px] text-gray-500 ml-auto">예산 <strong className="text-gray-700">{homePrototypeWon(b.budget)}</strong></span><ChevronRight className="w-4 h-4 text-gray-400" /></div>
+                <div className="flex items-center gap-2 mt-2"><div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden flex"><div className="h-full bg-blue-500" style={{ width: `${b.spent / b.budget * 100}%` }} /><div className="h-full bg-blue-200" style={{ width: `${b.planned / b.budget * 100}%` }} /></div></div>
+                <div className="grid grid-cols-3 gap-2 mt-1.5 text-[10px] text-gray-500"><span>실제 지출 <strong className="text-gray-800">{homePrototypeWon(b.spent)}</strong></span><span>지출 예정 <strong className="text-gray-800">{homePrototypeWon(b.planned)}</strong></span><span className="text-right">사용 가능 <strong className="text-blue-600">{homePrototypeWon(b.budget - b.spent - b.planned)}</strong></span></div>
+              </button>)}</div>}
+            </HomePrototypeSection>
+          </div>
+        </div>
+        <HomePrototypeDetailDialog detail={detail} onClose={() => setDetail(null)} onOpen={setDetail} />
+      </DesktopShell>
+    </AppContext.Provider>
+  );
 }
 
 // ─── OPS-00 운영 홈 ─────────────────────────────────────────────────────────────
@@ -17764,7 +18279,19 @@ function EVTTASK01() {
   const dDayLabel = eventInfo.startAt
     ? `D-${Math.max(0, Math.ceil((new Date(eventInfo.startAt).getTime() - new Date("2026-07-19T00:00:00").getTime()) / 86400000))}`
     : "미정";
-  const contextFilteredTasks = eventWorkspaceFilter === "unassignedTasks" ? tasks.filter(t => t.assignee === "미지정") : tasks;
+  const assigneeFilter = eventWorkspaceFilter?.startsWith("assignee:") ? eventWorkspaceFilter.slice("assignee:".length) : null;
+  const assigneeOptions = Array.from(new Set(tasks.map(t => t.assignee).filter(name => name !== "미지정")));
+  const contextFilteredTasks =
+    eventWorkspaceFilter === "unassignedTasks" ? unassignedTasks
+    : eventWorkspaceFilter === "overdueTasks" ? delayedTasks
+    : assigneeFilter ? tasks.filter(t => t.assignee === assigneeFilter && t.status !== "완료")
+    : tasks;
+  const filterLabel =
+    eventWorkspaceFilter === "unassignedTasks" ? `담당자 없는 업무 ${unassignedTasks.length}건`
+    : eventWorkspaceFilter === "overdueTasks" ? `지연(마감 지남) 업무 ${delayedTasks.length}건`
+    : assigneeFilter ? `${assigneeFilter}님의 미완료 업무 ${contextFilteredTasks.length}건`
+    : null;
+  const toggleFilter = (filter: EventWorkspaceFilter) => setEventWorkspaceFilter(eventWorkspaceFilter === filter ? null : filter);
   const visibleTasks = viewMode === "mine" ? contextFilteredTasks.filter(t => t.assignee === currentUser.name) : contextFilteredTasks;
 
   const columns = ["예정", "진행 중", "검토 필요", "완료"];
@@ -17833,10 +18360,10 @@ function EVTTASK01() {
         {/* 상단 요약 칩 */}
         <div className="flex gap-3">
           {delayedTasks.length > 0 && (
-            <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+            <button type="button" aria-pressed={eventWorkspaceFilter === "overdueTasks"} onClick={() => toggleFilter("overdueTasks")} className={`flex items-center gap-2 bg-red-50 border rounded-lg px-3 py-2 hover:border-red-300 ${eventWorkspaceFilter === "overdueTasks" ? "border-red-400" : "border-red-100"}`}>
               <AlertCircle className="w-3.5 h-3.5 text-red-500" />
               <span className="text-xs font-medium text-red-700">지연 {delayedTasks.length}건</span>
-            </div>
+            </button>
           )}
           {reviewTasks.length > 0 && (
             <div className="flex items-center gap-2 bg-yellow-50 border border-yellow-100 rounded-lg px-3 py-2">
@@ -17848,21 +18375,25 @@ function EVTTASK01() {
             <User className="w-3.5 h-3.5 text-blue-600" />
             <span className="text-xs font-medium text-blue-800">내 담당 {myTasks.length}건</span>
           </div>
-          <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-lg px-3 py-2">
+          <button type="button" aria-pressed={eventWorkspaceFilter === "unassignedTasks"} onClick={() => toggleFilter("unassignedTasks")} className={`flex items-center gap-2 bg-red-50 border rounded-lg px-3 py-2 hover:border-red-300 ${eventWorkspaceFilter === "unassignedTasks" ? "border-red-400" : "border-red-100"}`}>
             <AlertCircle className="w-3.5 h-3.5 text-red-500" />
             <span className="text-xs font-medium text-red-700">담당자 없음 {unassignedTasks.length}건</span>
-          </div>
-          <div className="ml-auto flex bg-gray-100 rounded-lg p-0.5">
+          </button>
+          <select aria-label="담당자별 보기" value={assigneeFilter ?? ""} onChange={e => setEventWorkspaceFilter(e.target.value ? `assignee:${e.target.value}` : null)} className="ml-auto border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-700 bg-white">
+            <option value="">담당자 전체</option>
+            {(assigneeFilter && !assigneeOptions.includes(assigneeFilter) ? [...assigneeOptions, assigneeFilter] : assigneeOptions).map(name => <option key={name} value={name}>{name}</option>)}
+          </select>
+          <div className="flex bg-gray-100 rounded-lg p-0.5">
             {(["all", "mine"] as const).map(mode => (
               <button key={mode} onClick={() => setViewMode(mode)} className={`px-3 py-1.5 rounded-md text-xs font-medium ${viewMode === mode ? "bg-white text-blue-700 shadow-sm" : "text-gray-500"}`}>{mode === "all" ? "전체 업무" : "내 업무"}</button>
             ))}
           </div>
         </div>
 
-        {eventWorkspaceFilter === "unassignedTasks" && (
+        {filterLabel && (
           <div className="bg-red-50 border border-red-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
             <AlertCircle className="w-4 h-4 text-red-600" />
-            <span className="text-xs text-red-800 font-medium">담당자 없는 업무 {unassignedTasks.length}건만 보고 있습니다.</span>
+            <span className="text-xs text-red-800 font-medium">{filterLabel}만 보고 있습니다.</span>
             <button onClick={() => setEventWorkspaceFilter(null)} className="ml-auto text-xs text-red-700 hover:underline">필터 해제</button>
           </div>
         )}
@@ -19200,6 +19731,10 @@ function MSG03() {
 export const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "HOME-01": HOME01,
   "HOME-01K": HOME01K,
+  "HOME-01C": HOME01ChairPrototype,
+  "HOME-01D": HOME01DepartmentPrototype,
+  "HOME-01M": HOME01MemberPrototype,
+  "HOME-01F": HOME01FinancePrototype,
   "FIN-00B": FIN00B,
   "MSG-01": MSG01,
   "MSG-02": MSG02,
