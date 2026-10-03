@@ -118,7 +118,7 @@
 - 대상 DB를 확인하고 미적용 마이그레이션을 먼저 반영한다. API와 worker가 같은 환경·DB·비밀키를 사용하는지 확인한다.
 - 상시 실행: `npm run delivery:worker --workspace @vada/api`. SIGINT/SIGTERM 시 새 작업 선점을 멈추고 진행 중 작업을 정리한다. 강제 종료된 작업은 잠금 만료 후 회수한다.
 - 무료 Render 웹 서비스 내부 타이머에 의존하지 않는다. 무료 서비스는 15분간 요청이 없으면 정지하고 worker·cron용 무료 인스턴스는 없다. [Render 무료 서비스 제한](https://render.com/docs/free)
-- 실행 환경은 **GitHub Actions 예약 실행**으로 정했다(2026-10-02, 초기 개발 단계의 비용 기준). 아래 "예약 실행" 절을 따른다. 아직 켜지 않았다.
+- 실행 환경은 **GitHub Actions 예약 실행**으로 정했다(2026-10-02, 초기 개발 단계의 비용 기준). 아래 "예약 실행" 절을 따른다. 2026-10-03 켰다.
 
 ## 예약 실행 (GitHub Actions)
 
@@ -133,13 +133,20 @@
 
 실행 시간 한도: `vada-hq`는 GitHub Free 조직이라 비공개 저장소 Actions가 월 2,000분이다. 6시간 간격은 월 120회로, 1회 1~2분이면 120~240분이다(실측 전 추정). 결제 수단이 없으면 한도 소진 시 다음 달까지 실행이 막히고, 있으면 초과분이 과금되므로 예산 한도를 확인한다. [Actions 과금](https://docs.github.com/en/billing/concepts/product-billing/github-actions), [예약 실행 제약](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
 
-켜는 순서(아직 수행하지 않았다. 각 단계는 승인 후 진행):
+켜는 순서(2026-10-03 모두 수행):
 
 1. 배포 DB(`m1-preview`)에 마이그레이션 0005~0007 적용.
 2. Render 웹 서비스 환경변수: `DELIVERY_ENABLED=true`, `DELIVERY_TRACKING_ENABLED=true`, `DELIVERY_TRACKER_CLIENT_ID`, `DELIVERY_TRACKER_CLIENT_SECRET`, `DELIVERY_PUBLIC_URL`(서비스의 공개 HTTPS 원점), `DELIVERY_WEBHOOK_SECRET`(무작위 32바이트 이상).
 3. GitHub 저장소 Secrets: `DELIVERY_DATABASE_URL`(배포 DB), `DELIVERY_TRACKER_CLIENT_ID`, `DELIVERY_TRACKER_CLIENT_SECRET`, `DELIVERY_PUBLIC_URL`, `DELIVERY_WEBHOOK_SECRET`. **공개 주소와 비밀키는 2번과 같은 값**이어야 콜백 URL이 일치한다.
 4. 워크플로 파일을 `main`에 반영.
 5. 저장소 변수 `DELIVERY_WORKER_ENABLED=true` 설정 후 수동 실행으로 `DELIVERY_WORKER_DRAINED` 출력과 소요 시간을 확인.
+
+수행 기록(2026-10-03):
+
+- 배포 DB(`m1-preview`)는 구조가 0004와 같았으나 `drizzle.__drizzle_migrations`가 비어 있었다. 저장소와 같은 해시·시각으로 0000~0004 기록 5건을 채운 뒤 표준 마이그레이터로 0005~0007을 적용했다. 적용 전후 기존 14개 테이블의 행 수·내용 해시가 같고, 적용 후 열·제약·인덱스가 개발 DB와 일치함을 확인했다.
+- Render 환경변수 6개와 GitHub Secrets 5개는 사용자가 등록했다. `main` 푸시 후 배포 서비스의 배송 목록 경로가 404에서 401로 바뀌어 새 코드와 `DELIVERY_ENABLED` 적용을 확인했다. 추적 설정이 잘못되면 서버가 시작되지 않으므로 형식 검사는 통과한 것이다.
+- 수동 실행(run 37106064835) 성공: job 18초, `DELIVERY_WORKER_DRAINED processed=0 remaining=none`. 1회 1분 과금 기준 월 120분 내외로 예상한다.
+- 아직 확인하지 않은 것: 배포 서비스에서 로그인 후 배송 화면, 실제 송장 등록 후 예약 실행에 의한 추적 등록·자동 갱신, 정지 상태 웹 서비스로 온 콜백의 재시도 복구.
 
 끄기: 저장소 변수 `DELIVERY_WORKER_ENABLED`를 지우거나 `false`로 바꾼다. 작업은 건너뛰며 실행 시간을 쓰지 않는다. 이미 등록된 외부 추적은 최장 48시간 뒤 만료된다.
 
