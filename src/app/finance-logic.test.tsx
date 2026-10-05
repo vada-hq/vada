@@ -6,6 +6,7 @@ import {
   getRequestListStatus,
   withoutEventData,
   budgetLineOverages,
+  eventBudgetUsage,
   EVIDENCE_STAGE_ENABLED,
 } from "./App";
 
@@ -171,5 +172,24 @@ describe("요청 목록 대표 상태 — 실행분 진행에서 계산한다", 
   });
   it("승인된 품목이 아직 없으면 검토 대기", () => {
     expect(getRequestListStatus(req({ status: "승인", items: [item({ status: "검토 대기" })] }))).toBe("검토 대기");
+  });
+});
+
+describe("예산 항목별 사용 집계 — 행사 재정과 구매 요청 검토가 같은 기준", () => {
+  const line = "행사 운영비";
+  const settledItem = (id: number, estimated: number, actual: number) => ({ id, status: "승인", budgetLine: line, purchaseType: "일반 구매", quantity: 1, estimatedUnitPrice: estimated, estimatedTotalPrice: estimated, executions: [{ id: `${id}-EX1`, itemId: id, orderStatus: "주문 완료", receiptStatus: "수령 완료", serviceStatus: "해당 없음", evidenceStatus: "해당 없음", actualAmount: actual }] } as any);
+  const openItem = (id: number, estimated: number, status = "승인") => ({ id, status, budgetLine: line, purchaseType: "일반 구매", quantity: 1, estimatedUnitPrice: estimated, estimatedTotalPrice: estimated } as any);
+  const requests = [
+    { id: "REQ-A", eventId: "E1", status: "처리 완료", items: [settledItem(1, 90000, 88000), settledItem(2, 40000, 47000)] },
+    // 부분 승인으로 보완 품목이 남아 요청 상태가 `보완 요청`이어도 승인 품목은 예약이다.
+    { id: "REQ-B", eventId: "E1", status: "보완 요청", items: [openItem(3, 30000), openItem(4, 10000, "보완 요청")] },
+    { id: "REQ-C", eventId: "E1", status: "검토 대기", items: [openItem(5, 50000, "검토 대기")] },
+    { id: "REQ-X", eventId: "E2", status: "구매 필요", items: [openItem(6, 99000)] },
+  ] as any[];
+  it.skipIf(EVIDENCE_STAGE_ENABLED)("정산 완료 품목은 확정한 실지출액으로, 미정산 승인 품목은 요청 금액으로 센다", () => {
+    expect(eventBudgetUsage(requests, "E1")(line)).toEqual({ spent: 135000, reserved: 30000 });
+  });
+  it.skipIf(EVIDENCE_STAGE_ENABLED)("검토 중인 요청은 빼고 셀 수 있다", () => {
+    expect(eventBudgetUsage(requests, "E1", "REQ-B")(line)).toEqual({ spent: 135000, reserved: 0 });
   });
 });
