@@ -4,12 +4,14 @@ import { fileURLToPath } from 'node:url'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
+import { z } from 'zod'
 import { createApp } from '../app.js'
 import { createAccessRoutes } from '../access/access.js'
 import { createEventRoutes } from '../events/events.js'
 import { createChatRoutes } from '../chat/chat.js'
 import { createPurchaseRoutes } from '../purchases/purchases.js'
 import { createDeliveryRoutes } from '../deliveries/routes.js'
+import { json } from './validate.js'
 
 // 구매 본문 검사는 ERD 재설계 때 스키마로 다시 만든다. 그때 이 목록을 비운다.
 const schemaPending = new Set([
@@ -58,4 +60,10 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   } finally {
     await pg.close()
   }
+})
+
+test('json()은 모르는 키를 조용히 버리는 스키마를 라우트 생성 시점에 거부한다', () => {
+  assert.throws(() => json(z.object({ title: z.string() })))
+  assert.throws(() => json(z.looseObject({ title: z.string() })))
+  assert.doesNotThrow(() => json(z.strictObject({ title: z.string() })))
 })

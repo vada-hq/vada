@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import fc from 'fast-check'
-import { codePoints, text, token } from './input.js'
+import { z } from 'zod'
+import { codePoints, isStrictObject, text, token } from './input.js'
 import { CreateEventSchema, EVENT_NAME_MAX } from './events.js'
 import { CreateMessageSchema, MESSAGE_CONTENT_MAX } from './chat.js'
 import { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
@@ -68,4 +69,11 @@ test('배송 스키마는 기존 수동 검사와 같은 규칙을 지킨다', (
   assert.equal(RegisterShipmentSchema.safeParse({ ...register, idempotencyKey: 'k'.repeat(129) }).success, false)
   assert.deepEqual(UnlinkShipmentSchema.parse({ linkIds: ['z', 'y'] }), { linkIds: ['y', 'z'] })
   assert.equal(UnlinkShipmentSchema.safeParse({ linkIds: ['y'], extra: 1 }).success, false)
+})
+
+test('isStrictObject: 모르는 키를 거부하는 z.strictObject만 참이다', () => {
+  assert.equal(isStrictObject(z.strictObject({ a: z.string() })), true)
+  for (const schema of [z.object({ a: z.string() }), z.looseObject({ a: z.string() }), z.string(), null, {}]) {
+    assert.equal(isStrictObject(schema), false)
+  }
 })

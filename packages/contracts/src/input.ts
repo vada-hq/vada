@@ -11,6 +11,9 @@ export const text = (max: number) => z.string()
   .trim()
   .refine(value => value.length > 0 && codePoints(value) <= max)
 
+// 요청 본문은 모르는 키를 조용히 버리지 않도록 z.strictObject여야 한다.
+export const isStrictObject = (schema: unknown) => schema instanceof z.ZodObject && schema.def.catchall instanceof z.ZodNever
+
 // 식별자·키·송장번호. 제어 문자를 허용하지 않는다.
 export const token = (max: number) => z.string()
   .max(max)

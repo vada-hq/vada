@@ -1,4 +1,4 @@
-export { codePoints, text, token } from './input.js'
+export { codePoints, isStrictObject, text, token } from './input.js'
 export { EVENT_NAME_MAX, CreateEventSchema, type CreateEventRequest } from './events.js'
 export { MESSAGE_CONTENT_MAX, CreateMessageSchema, type CreateMessageRequest } from './chat.js'
 export { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
