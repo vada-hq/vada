@@ -1,3 +1,6 @@
+export { codePoints, text, token } from './input.js'
+export { EVENT_NAME_MAX, CreateEventSchema, type CreateEventRequest } from './events.js'
+export { MESSAGE_CONTENT_MAX, CreateMessageSchema, type CreateMessageRequest } from './chat.js'
 export interface HealthResponse {
   status: 'ok'
 }
@@ -14,10 +17,6 @@ export interface MembershipsResponse {
   memberships: MembershipSummary[]
 }
 
-export interface CreateEventRequest {
-  name: string
-}
-
 export interface EventSummary {
   id: string
   organizationId: string
@@ -32,10 +31,6 @@ export interface EventResponse {
 
 export interface EventsResponse {
   events: EventSummary[]
-}
-
-export interface CreateMessageRequest {
-  content: string
 }
 
 export interface MessageSummary {
