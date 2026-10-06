@@ -22,7 +22,7 @@ test('event API validates input and shares events only within the authenticated 
     let userId: string | null = null
     const session = async () => userId ? { user: { id: userId } } : null
     const origin = 'http://127.0.0.1:5180'
-    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, access: createAccessRoutes(db, session), events: createEventRoutes(db, session, origin) })
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, access: createAccessRoutes(db, session), events: createEventRoutes(db, session) })
     const path = '/api/organizations/a/events'
     const post = (body: unknown, target = path, requestOrigin = origin) => app.request(target, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Origin: requestOrigin }, body: JSON.stringify(body),

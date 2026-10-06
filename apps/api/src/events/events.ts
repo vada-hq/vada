@@ -11,11 +11,9 @@ import { requireMembership, type MembershipEnv } from '../access/membership.js'
 export function createEventRoutes(
   db: Pick<PgDatabase<PgQueryResultHKT>, 'select' | 'transaction'>,
   getSession: SessionReader,
-  trustedOrigin: string,
 ) {
   const routes = new Hono<MembershipEnv>()
   const path = '/organizations/:organizationId/events'
-  const origin = new URL(trustedOrigin).origin
   const authenticated = requireSession(getSession)
   const member = requireMembership(db)
   const serialize = (event: typeof events.$inferSelect) => ({ ...event, createdAt: event.createdAt.toISOString() })
@@ -26,11 +24,6 @@ export function createEventRoutes(
     return c.json({ events: rows.map(serialize) } satisfies EventsResponse)
   })
   routes.post(path, authenticated, member, async (c) => {
-    // 인증 쿠키를 사용하는 변경 요청은 프런트엔드의 동일 출처만 허용한다.
-    if (c.req.header('Origin') !== origin) return c.json({ error: 'FORBIDDEN' }, 403)
-    if (c.req.header('Content-Type')?.split(';')[0]?.trim().toLowerCase() !== 'application/json') {
-      return c.json({ error: 'UNSUPPORTED_MEDIA_TYPE' }, 415)
-    }
     let body: unknown
     try { body = await c.req.json() } catch { return c.json({ error: 'INVALID_INPUT' }, 400) }
     if (!body || typeof body !== 'object' || !('name' in body) || typeof body.name !== 'string' || !body.name.trim()) {

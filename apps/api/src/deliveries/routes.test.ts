@@ -39,7 +39,7 @@ test('delivery API limits writes, shares only delivery summaries and persists re
     }
     const origin = 'http://127.0.0.1:5180'
     const session = async () => userId ? { user: { id: userId } } : null
-    const routes = createDeliveryRoutes(db, session, origin, provider)
+    const routes = createDeliveryRoutes(db, session, provider)
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, deliveries: routes })
     const root = '/api/organizations/a'
     const input = { carrierId: 'kr.coupangls', trackingNumber: '000123456789', purchaseItemIds: ['i','i2'], idempotencyKey: 'key' }
@@ -52,7 +52,7 @@ test('delivery API limits writes, shares only delivery summaries and persists re
       userId = 'f'; assert.equal((await app.request(`${root}/delivery-carriers`)).status, 200)
       assert.equal((await app.request(`${root}/shipments`, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'text/plain' }, body: '{}' })).status, 415)
       assert.equal((await app.request(`${root}/shipments`, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: '{' })).status, 400)
-      assert.equal((await post(`${root}/shipments`, { extra: 'x'.repeat(17000) })).status, 413)
+      assert.equal((await post(`${root}/shipments`, { extra: 'x'.repeat(33000) })).status, 413)
       userId = null
     })
     await t.test('auth, finance and strict inputs fail before external calls', async () => {

@@ -29,18 +29,18 @@ function main() {
     googleClientId: env.GOOGLE_CLIENT_ID!, googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
   })
   const access = createAccessRoutes(db, (headers) => auth.api.getSession({ headers }))
-  const events = createEventRoutes(db, (headers) => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!)
-  const chat = createChatRoutes(db, (headers) => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!)
+  const events = createEventRoutes(db, (headers) => auth.api.getSession({ headers }))
+  const chat = createChatRoutes(db, (headers) => auth.api.getSession({ headers }))
   // 키는 서버 런타임에서만 사용한다. 브라우저 응답·로그에 포함하지 않는다.
   const generate = createDraftGenerator({
     apiKey: env.OPENAI_API_KEY,
     model: env.OPENAI_MODEL,
     reefApiKey: env.REEF_API_KEY,
   })
-  const purchases = createPurchaseRoutes(db, (headers) => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!, generate)
+  const purchases = createPurchaseRoutes(db, (headers) => auth.api.getSession({ headers }), generate)
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
   const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,
-    headers => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!,
+    headers => auth.api.getSession({ headers }),
     createDeliveryTracker({ clientId: env.DELIVERY_TRACKER_CLIENT_ID, clientSecret: env.DELIVERY_TRACKER_CLIENT_SECRET }),
   ) : undefined
   const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries })

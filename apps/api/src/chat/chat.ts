@@ -19,11 +19,9 @@ const serialize = (row: MessageRow): MessageSummary => ({ ...row, createdAt: row
 export function createChatRoutes(
   db: Pick<PgDatabase<PgQueryResultHKT>, 'select' | 'transaction'>,
   getSession: SessionReader,
-  trustedOrigin: string,
 ) {
   const routes = new Hono<ChatEnv>()
   const path = '/organizations/:organizationId/events/:eventId/messages'
-  const origin = new URL(trustedOrigin).origin
   const authenticated = requireSession(getSession)
   const member = requireMembership(db)
   const room = createMiddleware<ChatEnv>(async (c, next) => {
@@ -59,10 +57,6 @@ export function createChatRoutes(
   })
 
   routes.post(path, authenticated, member, room, async c => {
-    if (c.req.header('Origin') !== origin) return c.json({ error: 'FORBIDDEN' }, 403)
-    if (c.req.header('Content-Type')?.split(';')[0]?.trim().toLowerCase() !== 'application/json') {
-      return c.json({ error: 'UNSUPPORTED_MEDIA_TYPE' }, 415)
-    }
     let body: unknown
     try { body = await c.req.json() } catch { return c.json({ error: 'INVALID_INPUT' }, 400) }
     if (!body || typeof body !== 'object' || !('content' in body) || typeof body.content !== 'string') {

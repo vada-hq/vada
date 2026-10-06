@@ -6,6 +6,7 @@ import type { createChatRoutes } from './chat/chat.js'
 import type { createPurchaseRoutes } from './purchases/purchases.js'
 import type { createDeliveryRoutes } from './deliveries/routes.js'
 import { handleError } from './http/on-error.js'
+import { mutationGuard } from './http/guard.js'
 
 type AuthHandler = { handler: (request: Request) => Promise<Response> }
 export type AppOptions = {
@@ -18,8 +19,9 @@ export type AppOptions = {
   deliveries?: ReturnType<typeof createDeliveryRoutes>
 }
 
-export function createApp({ auth, access, events, chat, purchases, deliveries }: AppOptions) {
+export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries }: AppOptions) {
   const app = new Hono()
+  app.use('/api/organizations/*', mutationGuard(trustedOrigin))
   app.get('/api/health', (c) => c.json({ status: 'ok' } satisfies HealthResponse))
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
   if (events) app.route('/api', events)

@@ -43,3 +43,26 @@ test('예상하지 못한 오류는 원문 없이 분류만 로그에 남긴다'
   assert.ok(!logged[0]!.includes('secret-token'))
   assert.ok(!logged[0]!.includes('org-1'))
 })
+
+test('조직 하위 변경 요청은 출처·형식·크기를 먼저 검사한다', async () => {
+  const app = createApp({ auth: noAuth, trustedOrigin: origin })
+  let reached = 0
+  app.post('/api/organizations/:organizationId/probe', c => { reached++; return c.json({ ok: true }) })
+  app.get('/api/organizations/:organizationId/probe', c => c.json({ ok: true }))
+  const path = '/api/organizations/a/probe'
+  const json = { 'Content-Type': 'application/json' }
+  assert.equal((await app.request(path, { method: 'POST', headers: { ...json, Origin: 'https://evil.test' }, body: '{}' })).status, 403)
+  assert.equal((await app.request(path, { method: 'POST', headers: json, body: '{}' })).status, 403)
+  assert.equal((await app.request(path, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'text/plain' }, body: '{}' })).status, 415)
+  const huge = JSON.stringify({ x: 'a'.repeat(40000) })
+  const tooLarge = await app.request(path, { method: 'POST', headers: { ...json, Origin: origin }, body: huge })
+  assert.equal(tooLarge.status, 413)
+  assert.deepEqual(await tooLarge.json(), { error: 'BODY_TOO_LARGE' })
+  // Content-Length 없이 스트림으로 보내도 막는다.
+  const stream = new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(huge)); controller.close() } })
+  assert.equal((await app.request(path, { method: 'POST', headers: { ...json, Origin: origin }, body: stream, duplex: 'half' } as RequestInit)).status, 413)
+  assert.equal(reached, 0)
+  assert.equal((await app.request(path, { method: 'POST', headers: { ...json, Origin: origin }, body: '{}' })).status, 200)
+  assert.equal((await app.request(path)).status, 200)
+  assert.equal(reached, 1)
+})

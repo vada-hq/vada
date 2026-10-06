@@ -26,7 +26,7 @@ test('event chat respects council boundaries and paginates persisted messages', 
     let userId: string | null = null
     const session = async () => userId ? { user: { id: userId } } : null
     const origin = 'http://127.0.0.1:5180'
-    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, access: createAccessRoutes(db, session), chat: createChatRoutes(db, session, origin) })
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, access: createAccessRoutes(db, session), chat: createChatRoutes(db, session) })
     const path = '/api/organizations/a/events/e1/messages'
     const post = (body: unknown, target = path, requestOrigin = origin) => app.request(target, {
       method: 'POST', headers: { 'Content-Type': 'application/json', Origin: requestOrigin }, body: JSON.stringify(body),
