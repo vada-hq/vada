@@ -85,3 +85,19 @@ test('서버 쪽 실패(5xx)인 ApiError·HTTPException은 코드와 상태만 �
   ])
   assert.ok(!logged.join('').includes('secret-token'))
 })
+
+test('인증 경로도 본문을 읽기 전에 크기를 제한한다', async () => {
+  let calls = 0
+  const app = createApp({ auth: { handler: async () => { calls++; return new Response('ok') } }, trustedOrigin: origin })
+  const path = '/api/auth/sign-in/social'
+  const huge = JSON.stringify({ x: 'a'.repeat(40000) })
+  const json = { 'Content-Type': 'application/json' }
+  const withLength = await app.request(path, { method: 'POST', headers: { ...json, 'Content-Length': String(huge.length) }, body: huge })
+  assert.equal(withLength.status, 413)
+  assert.deepEqual(await withLength.json(), { error: 'BODY_TOO_LARGE' })
+  assert.equal((await app.request(path, { method: 'POST', headers: json, body: huge })).status, 413)
+  assert.equal(calls, 0)
+  assert.equal((await app.request(path, { method: 'POST', headers: json, body: '{}' })).status, 200)
+  assert.equal((await app.request('/api/auth/get-session')).status, 200)
+  assert.equal(calls, 2)
+})

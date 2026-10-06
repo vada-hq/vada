@@ -6,7 +6,7 @@ import type { createChatRoutes } from './chat/chat.js'
 import type { createPurchaseRoutes } from './purchases/purchases.js'
 import type { createDeliveryRoutes } from './deliveries/routes.js'
 import { handleError } from './http/on-error.js'
-import { mutationGuard } from './http/guard.js'
+import { limitBody, mutationGuard } from './http/guard.js'
 
 type AuthHandler = { handler: (request: Request) => Promise<Response> }
 export type AppOptions = {
@@ -23,6 +23,8 @@ export function createApp({ auth, trustedOrigin, access, events, chat, purchases
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
   app.get('/api/health', (c) => c.json({ status: 'ok' } satisfies HealthResponse))
+  // better-auth는 출처 검사 전에 본문 전체를 읽으므로 크기만 먼저 제한한다.
+  app.use('/api/auth/*', limitBody())
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
   if (events) app.route('/api', events)
   if (access) app.route('/api', access)
