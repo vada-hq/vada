@@ -101,3 +101,28 @@ test('인증 경로도 본문을 읽기 전에 크기를 제한한다', async ()
   assert.equal((await app.request('/api/auth/get-session')).status, 200)
   assert.equal(calls, 2)
 })
+
+test('HTTPException은 상태에 맞는 기존 오류 코드로 응답한다', async () => {
+  const app = createApp({ auth: noAuth, trustedOrigin: origin })
+  const expected = [[401, 'UNAUTHENTICATED'], [403, 'FORBIDDEN'], [404, 'NOT_FOUND'], [413, 'BODY_TOO_LARGE'], [415, 'UNSUPPORTED_MEDIA_TYPE'], [418, 'REQUEST_FAILED']] as const
+  for (const [status] of expected) app.get(`/api/status-${status}`, () => { throw new HTTPException(status) })
+  for (const [status, code] of expected) {
+    const response = await app.request(`/api/status-${status}`)
+    assert.equal(response.status, status)
+    assert.deepEqual(await response.json(), { error: code })
+  }
+})
+
+test('로그의 SQLSTATE와 오류 이름은 형식에 맞는 값만 남긴다', async (t) => {
+  const logged: string[] = []
+  t.mock.method(console, 'error', (line: string) => { logged.push(line) })
+  const app = createApp({ auth: noAuth, trustedOrigin: origin })
+  app.get('/api/errno', () => { throw Object.assign(new Error('write EPIPE'), { code: 'EPIPE' }) })
+  app.get('/api/named', () => { const error = new Error('x'); error.name = 'leak secret-token value'; throw error })
+  await app.request('/api/errno')
+  await app.request('/api/named')
+  assert.deepEqual(logged.map(line => JSON.parse(line)), [
+    { event: 'request_failed', method: 'GET', route: '/api/errno', error: 'Error' },
+    { event: 'request_failed', method: 'GET', route: '/api/named', error: 'Error' },
+  ])
+})
