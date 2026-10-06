@@ -13,10 +13,21 @@ function sqlState(error: unknown): string | undefined {
   return undefined
 }
 
+// 오류 메시지·요청 본문·경로 값은 비밀이나 개인정보를 담을 수 있어 남기지 않는다.
+function logFailure(c: Context, fields: Record<string, unknown>) {
+  console.error(JSON.stringify({ event: 'request_failed', method: c.req.method, route: c.req.routePath, ...fields }))
+}
+
 export function handleError(error: Error, c: Context) {
-  if (error instanceof ApiError) return c.json({ error: error.code }, error.status)
-  if (error instanceof HTTPException) return c.json({ error: error.status === 400 ? 'INVALID_INPUT' : 'REQUEST_FAILED' }, error.status)
-  // 오류 메시지·요청 본문·경로 값은 비밀이나 개인정보를 담을 수 있어 남기지 않는다.
-  console.error(JSON.stringify({ event: 'request_failed', method: c.req.method, route: c.req.routePath, error: error.name, sqlState: sqlState(error) }))
+  if (error instanceof ApiError) {
+    // 외부 서비스 장애처럼 서버 쪽 실패는 운영에서 보이도록 코드와 상태를 남긴다.
+    if (error.status >= 500) logFailure(c, { code: error.code, status: error.status })
+    return c.json({ error: error.code }, error.status)
+  }
+  if (error instanceof HTTPException) {
+    if (error.status >= 500) logFailure(c, { status: error.status })
+    return c.json({ error: error.status === 400 ? 'INVALID_INPUT' : 'REQUEST_FAILED' }, error.status)
+  }
+  logFailure(c, { error: error.name, sqlState: sqlState(error) })
   return c.json({ error: 'Internal server error' }, 500)
 }

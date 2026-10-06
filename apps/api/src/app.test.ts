@@ -66,3 +66,22 @@ test('조직 하위 변경 요청은 출처·형식·크기를 먼저 검사한�
   assert.equal((await app.request(path)).status, 200)
   assert.equal(reached, 1)
 })
+
+test('서버 쪽 실패(5xx)인 ApiError·HTTPException은 코드와 상태만 로그에 남기고, 4xx는 남기지 않는다', async (t) => {
+  const logged: string[] = []
+  t.mock.method(console, 'error', (line: string) => { logged.push(line) })
+  const app = createApp({ auth: noAuth, trustedOrigin: origin })
+  app.get('/api/organizations/:organizationId/provider', () => { throw new ApiError('DELIVERY_PROVIDER_FAILED', 502) })
+  app.get('/api/organizations/:organizationId/unavailable', () => { throw new HTTPException(503, { message: 'upstream secret-token' }) })
+  app.get('/api/organizations/:organizationId/conflict', () => { throw new ApiError('VERSION_CONFLICT', 409) })
+  const failed = await app.request('/api/organizations/org-1/provider')
+  assert.equal(failed.status, 502)
+  assert.deepEqual(await failed.json(), { error: 'DELIVERY_PROVIDER_FAILED' })
+  assert.equal((await app.request('/api/organizations/org-1/unavailable')).status, 503)
+  assert.equal((await app.request('/api/organizations/org-1/conflict')).status, 409)
+  assert.deepEqual(logged.map(line => JSON.parse(line)), [
+    { event: 'request_failed', method: 'GET', route: '/api/organizations/:organizationId/provider', code: 'DELIVERY_PROVIDER_FAILED', status: 502 },
+    { event: 'request_failed', method: 'GET', route: '/api/organizations/:organizationId/unavailable', status: 503 },
+  ])
+  assert.ok(!logged.join('').includes('secret-token'))
+})
