@@ -5,12 +5,13 @@ import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { z } from 'zod'
-import { createApp } from '../app.js'
+import { createApp, type AppOptions } from '../app.js'
 import { createAccessRoutes } from '../access/access.js'
 import { createEventRoutes } from '../events/events.js'
 import { createChatRoutes } from '../chat/chat.js'
 import { createPurchaseRoutes } from '../purchases/purchases.js'
 import { createDeliveryRoutes } from '../deliveries/routes.js'
+import { createCallbackAddress, createDeliveryWebhook } from '../deliveries/webhook.js'
 import { json } from './validate.js'
 
 // 구매 본문 검사는 ERD 재설계 때 스키마로 다시 만든다. 그때 이 목록을 비운다.
@@ -22,6 +23,14 @@ const schemaPending = new Set([
   'POST /api/organizations/:organizationId/events/:eventId/purchase-requests/finance/:requestId/decision',
 ])
 
+// 공통 가드(/api/organizations/*) 밖의 변경 라우트. 새 항목은 가드를 대신할 자체 검사가 있어야 한다.
+const outsideGuard = new Map([
+  ['ALL /api/auth/*', '인증 본문 크기 제한 미들웨어'],
+  ['POST /api/auth/*', 'better-auth가 출처를 직접 검사한다'],
+  ['POST /api/delivery-webhooks/:shipmentId/:token', '외부 공급자 호출. URL 토큰·4KB 제한·형식 검사를 직접 하고 모르는 필드는 읽지 않는다'],
+])
+const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
+
 test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 인증 전에 거절한다', async () => {
   const pg = new PGlite()
   try {
@@ -30,31 +39,41 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     const origin = 'http://127.0.0.1:5180'
     let authCalls = 0
     const session = async () => { authCalls++; return null }
-    const app = createApp({
-      auth: { handler: async () => new Response() }, trustedOrigin: origin,
+    // AppOptions에 모듈이 추가되면 여기서 타입 오류가 나므로 이 테스트에서 빠질 수 없다.
+    const modules = {
       access: createAccessRoutes(db, session), events: createEventRoutes(db, session), chat: createChatRoutes(db, session),
       purchases: createPurchaseRoutes(db, session, async () => { throw new Error('unused') }),
       deliveries: createDeliveryRoutes(db, session, {} as never),
-    })
-    const mutating = [...new Set(app.routes
-      .filter(route => ['POST', 'PUT', 'PATCH', 'DELETE'].includes(route.method) && route.path.startsWith('/api/organizations/'))
-      .map(route => `${route.method} ${route.path}`))]
+      webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
+    } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
+    const writes = [...new Set(app.routes.filter(route => !readOnly.has(route.method)).map(route => `${route.method} ${route.path}`))]
+    const pathOf = (key: string) => key.slice(key.indexOf(' ') + 1)
+    for (const key of writes) {
+      assert.ok(pathOf(key).startsWith('/api/organizations/') || outsideGuard.has(key), `${key}: 공통 가드 밖의 변경 라우트는 outsideGuard에 이유와 함께 적는다`)
+    }
+    for (const key of outsideGuard.keys()) assert.ok(writes.includes(key), `${key}: 없는 라우트가 outsideGuard에 남아 있다`)
+    // 미들웨어 등록(/*)은 빼고 실제 라우트만 검사한다.
+    const mutating = writes.filter(key => pathOf(key).startsWith('/api/organizations/') && !key.endsWith('/*'))
+    for (const key of schemaPending) assert.ok(mutating.includes(key), `${key}: 없는 라우트가 schemaPending에 남아 있다`)
     // 목록이 비어 테스트가 저절로 통과하는 일을 막는다.
     assert.ok(mutating.length >= 10, `변경 라우트 ${mutating.length}개`)
     for (const key of mutating) {
-      const [method, pattern] = key.split(' ') as [string, string]
-      const path = pattern.replace(/:[^/]+/g, 'probe')
+      const registered = key.slice(0, key.indexOf(' '))
+      // app.all()로 등록한 라우트는 POST로 확인한다.
+      const method = registered === 'ALL' ? 'POST' : registered
+      const path = pathOf(key).replace(/:[^/]+/g, 'probe')
       const send = (headers: Record<string, string>, body: string) => app.request(path, { method, headers, body })
-      const json = { 'Content-Type': 'application/json', Origin: origin }
-      assert.equal((await send({ ...json, Origin: 'https://evil.test' }, '{}')).status, 403, key)
+      const jsonHeaders = { 'Content-Type': 'application/json', Origin: origin }
+      assert.equal((await send({ ...jsonHeaders, Origin: 'https://evil.test' }, '{}')).status, 403, key)
       assert.equal((await send({ Origin: origin, 'Content-Type': 'text/plain' }, '{}')).status, 415, key)
-      assert.equal((await send(json, JSON.stringify({ x: 'a'.repeat(40000) }))).status, 413, key)
+      assert.equal((await send(jsonHeaders, JSON.stringify({ x: 'a'.repeat(40000) }))).status, 413, key)
       if (schemaPending.has(key)) continue
       const before = authCalls
-      const malformed = await send(json, '{')
+      const malformed = await send(jsonHeaders, '{')
       assert.equal(malformed.status, 400, key)
       assert.deepEqual(await malformed.json(), { error: 'INVALID_INPUT' }, key)
-      assert.equal((await send(json, '{"__probe":1}')).status, 400, key)
+      assert.equal((await send(jsonHeaders, '{"__probe":1}')).status, 400, key)
       assert.equal(authCalls, before, `${key}: 형식 검사가 인증보다 먼저여야 한다`)
     }
   } finally {

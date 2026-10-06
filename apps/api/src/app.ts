@@ -5,6 +5,7 @@ import type { createEventRoutes } from './events/events.js'
 import type { createChatRoutes } from './chat/chat.js'
 import type { createPurchaseRoutes } from './purchases/purchases.js'
 import type { createDeliveryRoutes } from './deliveries/routes.js'
+import type { createDeliveryWebhook } from './deliveries/webhook.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
 
@@ -17,9 +18,10 @@ export type AppOptions = {
   chat?: ReturnType<typeof createChatRoutes>
   purchases?: ReturnType<typeof createPurchaseRoutes>
   deliveries?: ReturnType<typeof createDeliveryRoutes>
+  webhook?: ReturnType<typeof createDeliveryWebhook>
 }
 
-export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries }: AppOptions) {
+export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries, webhook }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
   app.get('/api/health', (c) => c.json({ status: 'ok' } satisfies HealthResponse))
@@ -31,6 +33,8 @@ export function createApp({ auth, trustedOrigin, access, events, chat, purchases
   if (chat) app.route('/api', chat)
   if (purchases) app.route('/api', purchases)
   if (deliveries) app.route('/api', deliveries)
+  // 외부 공급자가 호출하므로 공통 가드 밖에 두고 자체 검사를 한다.
+  if (webhook) app.route('/api', webhook)
   app.onError(handleError)
   return app
 }

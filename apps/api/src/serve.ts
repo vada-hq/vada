@@ -43,8 +43,8 @@ function main() {
     headers => auth.api.getSession({ headers }),
     createDeliveryTracker({ clientId: env.DELIVERY_TRACKER_CLIENT_ID, clientSecret: env.DELIVERY_TRACKER_CLIENT_SECRET }),
   ) : undefined
-  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries })
-  if (tracking) app.route('/api', createDeliveryWebhook(db, tracking.address))
+  const webhook = tracking ? createDeliveryWebhook(db, tracking.address) : undefined
+  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, webhook })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)
