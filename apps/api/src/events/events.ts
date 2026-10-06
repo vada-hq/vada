@@ -2,11 +2,12 @@ import { randomUUID } from 'node:crypto'
 import { Hono } from 'hono'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import type { EventResponse, EventsResponse } from '@vada/contracts'
+import { CreateEventSchema, type EventResponse, type EventsResponse } from '@vada/contracts'
 import { chatRooms, events, memberships } from '../db/schema.js'
 
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
+import { json } from '../http/validate.js'
 
 export function createEventRoutes(
   db: Pick<PgDatabase<PgQueryResultHKT>, 'select' | 'transaction'>,
@@ -23,14 +24,9 @@ export function createEventRoutes(
       .orderBy(desc(events.createdAt), desc(events.id))
     return c.json({ events: rows.map(serialize) } satisfies EventsResponse)
   })
-  routes.post(path, authenticated, member, async (c) => {
-    let body: unknown
-    try { body = await c.req.json() } catch { return c.json({ error: 'INVALID_INPUT' }, 400) }
-    if (!body || typeof body !== 'object' || !('name' in body) || typeof body.name !== 'string' || !body.name.trim()) {
-      return c.json({ error: 'INVALID_INPUT' }, 400)
-    }
+  routes.post(path, json(CreateEventSchema), authenticated, member, async (c) => {
+    const { name } = c.req.valid('json')
     // 저장 시점에도 소속을 확인하며, 클라이언트의 생성자·학생회 필드는 사용하지 않는다.
-    const name = body.name.trim()
     const event = await db.transaction(async tx => {
       const [created] = await tx.insert(events).select(
         tx.select({

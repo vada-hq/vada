@@ -36,17 +36,19 @@ test('event API validates input and shares events only within the authenticated 
     })
     await t.test('invalid input and cross-site mutations do not create events', async () => {
       userId = 'p'
-      for (const body of [null, [], {}, { name: 1 }, { name: '' }, { name: ' \t\n ' }]) {
+      for (const body of [null, [], {}, { name: 1 }, { name: '' }, { name: ' \t\n ' },
+        { name: 'a'.repeat(101) }, { name: '😀'.repeat(101) }, { name: 'a\u0000b' }, { name: '\ud800' }, { name: 'Event', extra: 1 }]) {
         assert.equal((await post(body)).status, 400)
       }
+      assert.deepEqual(await (await post({ name: 'a\u0000b' })).json(), { error: 'INVALID_INPUT' })
       assert.equal((await app.request(path, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: '{' })).status, 400)
       assert.equal((await post({ name: 'Event' }, path, 'https://evil.test')).status, 403)
       assert.equal((await app.request(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"name":"Event"}' })).status, 403)
       assert.equal((await app.request(path, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'text/plain' }, body: '{"name":"Event"}' })).status, 415)
       assert.deepEqual(await (await app.request(path)).json(), { events: [] })
     })
-    await t.test('creation trims names and ignores spoofed identity and council fields', async () => {
-      const response = await post({ name: '  Festival  ', createdBy: 'x', organizationId: 'b' })
+    await t.test('creation trims names and takes identity and council from the session', async () => {
+      const response = await post({ name: '  Festival  ' })
       assert.equal(response.status, 201)
       const { event } = await response.json()
       assert.equal(event.name, 'Festival')
@@ -57,6 +59,7 @@ test('event API validates input and shares events only within the authenticated 
       const rooms = await pg.query('SELECT organization_id, event_id FROM chat_rooms WHERE event_id=$1', [event.id])
       assert.deepEqual(rooms.rows, [{ organization_id: 'a', event_id: event.id }])
       await pg.query("UPDATE events SET created_at='2020-01-01' WHERE id=$1", [event.id])
+      await assert.rejects(pg.query("INSERT INTO events (id,organization_id,name,created_by) VALUES ('long','a',repeat('a',101),'p')"))
     })
     await t.test('finance can create duplicate names and both departments see latest-first events', async () => {
       userId = 'f'
@@ -73,6 +76,7 @@ test('event API validates input and shares events only within the authenticated 
       assert.equal((await app.request('/api/me/memberships')).status, 200)
       assert.equal((await app.request('/api/organizations/b/events')).status, 403)
       assert.equal((await post({ name: 'No' }, '/api/organizations/missing/events')).status, 403)
+      assert.equal((await post({ name: '😀'.repeat(100) })).status, 201)
       userId = 'x'
       assert.deepEqual(await (await app.request('/api/organizations/b/events')).json(), { events: [] })
     })

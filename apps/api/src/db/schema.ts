@@ -79,6 +79,7 @@ export const events = pgTable('events', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   check('events_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
+  check('events_name_length', sql`char_length(${table.name}) <= 100`),
   index('events_organization_id_idx').on(table.organizationId),
   unique('events_organization_id_unique').on(table.organizationId, table.id),
 ])

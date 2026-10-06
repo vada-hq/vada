@@ -3,9 +3,10 @@ import { Hono } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import type { MessageResponse, MessagesResponse, MessageSummary } from '@vada/contracts'
+import { CreateMessageSchema, type MessageResponse, type MessagesResponse, type MessageSummary } from '@vada/contracts'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
+import { json } from '../http/validate.js'
 import { chatRooms, events, memberships, messages, users } from '../db/schema.js'
 
 type ChatEnv = { Variables: MembershipEnv['Variables'] & { chatRoomId: string } }
@@ -56,17 +57,8 @@ export function createChatRoutes(
     return c.json({ messages: page.reverse().map(serialize), nextCursor } satisfies MessagesResponse)
   })
 
-  routes.post(path, authenticated, member, room, async c => {
-    let body: unknown
-    try { body = await c.req.json() } catch { return c.json({ error: 'INVALID_INPUT' }, 400) }
-    if (!body || typeof body !== 'object' || !('content' in body) || typeof body.content !== 'string') {
-      return c.json({ error: 'INVALID_INPUT' }, 400)
-    }
-    const content = body.content.trim()
-    // PostgreSQL char_length와 동일하게 유니코드 코드 포인트를 센다.
-    if (!content || [...content].length > 2000 || /[\u0000\uD800-\uDFFF]/u.test(content)) {
-      return c.json({ error: 'INVALID_INPUT' }, 400)
-    }
+  routes.post(path, json(CreateMessageSchema), authenticated, member, room, async c => {
+    const { content } = c.req.valid('json')
     const saved = await db.transaction(async tx => {
       // 저장 시점에도 소속·행사·방을 함께 검사한다. 요청 본문의 작성자/방/시각은 무시한다.
       const [created] = await tx.insert(messages).select(

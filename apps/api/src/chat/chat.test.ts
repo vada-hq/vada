@@ -55,17 +55,18 @@ test('event chat respects council boundaries and paginates persisted messages', 
       assert.deepEqual(await get(), { messages: [], nextCursor: null })
     })
     await t.test('invalid content and cross-origin requests are rejected without writes', async () => {
-      for (const body of [null, [], {}, { content: 3 }, { content: '' }, { content: ' \t\n ' }, { content: 'a'.repeat(2001) }, { content: '\u0000' }, { content: '\ud800' }]) {
+      for (const body of [null, [], {}, { content: 3 }, { content: '' }, { content: ' \t\n ' }, { content: 'a'.repeat(2001) }, { content: '\u0000' }, { content: '\ud800' }, { content: 'Hi', extra: 1 }]) {
         assert.equal((await post(body)).status, 400)
       }
+      assert.deepEqual(await (await post({ content: '\u0000' })).json(), { error: 'INVALID_INPUT' })
       assert.equal((await app.request(path, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: '{' })).status, 400)
       assert.equal((await post({ content: 'Hello' }, path, 'https://evil.test')).status, 403)
       assert.equal((await app.request(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{"content":"Hi"}' })).status, 403)
       assert.equal((await app.request(path, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'text/plain' }, body: 'Hi' })).status, 415)
       assert.deepEqual(await get(), { messages: [], nextCursor: null })
     })
-    await t.test('session author and resolved room override spoofed fields; finance sees the message', async () => {
-      const response = await post({ content: '  준비물\n확인해 주세요  ', authorId: 'x', chatRoomId: 'r3', createdAt: '2000-01-01' })
+    await t.test('session author and resolved room are used; finance sees the message', async () => {
+      const response = await post({ content: '  준비물\n확인해 주세요  ' })
       assert.equal(response.status, 201)
       const { message } = await response.json() as MessageResponse
       assert.equal(message.content, '준비물\n확인해 주세요')

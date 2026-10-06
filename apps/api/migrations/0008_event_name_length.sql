@@ -1,0 +1,1 @@
+ALTER TABLE "events" ADD CONSTRAINT "events_name_length" CHECK (char_length("events"."name") <= 100);
