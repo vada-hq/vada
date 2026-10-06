@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { CreateMessageSchema, MESSAGE_CONTENT_MAX } from '@vada/contracts'
+import { CreateMessageSchema, MESSAGE_CONTENT_MAX, codePoints } from '@vada/contracts'
 import { useChat } from './useChat'
 import StateMessage from '../shared/ui/StateMessage'
 import './Chat.css'
@@ -12,7 +12,7 @@ export default function Chat(props: Props) {
 function ChatPanel({ organizationId, eventId, eventName }: Props) {
   const chat = useChat(organizationId, eventId)
   const inputId = useId()
-  const length = [...chat.draft.trim()].length
+  const length = codePoints(chat.draft.trim())
   return <section className="chat-panel" aria-label={`${eventName} 대화방`}>
     <div className="chat-history" tabIndex={0} role="region" aria-label="대화 기록">
     <h2>함께 준비하는 공간</h2>
