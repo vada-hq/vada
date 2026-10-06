@@ -17,7 +17,7 @@ test('auth routes use the existing schema without external services', async (t) 
     const db = drizzle(pg)
     await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
     const auth = createAuth(db, { secret, baseURL, googleClientId: 'test-client', googleClientSecret: 'test-secret' })
-    const app = createApp(auth, createAccessRoutes(db, (headers) => auth.api.getSession({ headers })))
+    const app = createApp({ auth, trustedOrigin: 'http://127.0.0.1:5180', access: createAccessRoutes(db, (headers) => auth.api.getSession({ headers })) })
     const request = (path: string, init?: RequestInit) => app.request(`${baseURL}/api/auth/${path}`, init)
 
     await t.test('anonymous session is null', async () => {

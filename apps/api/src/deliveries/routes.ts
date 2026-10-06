@@ -27,7 +27,6 @@ export function createDeliveryRoutes(db: DeliveryDatabase, session: SessionReade
   const body = async (req: { json: () => Promise<unknown> }) => {
     try { return await req.json() } catch { throw new DeliveryError('INVALID_INPUT') }
   }
-  routes.onError((error, c) => error instanceof DeliveryError ? c.json({ error: error.code }, error.status) : c.json({ error: 'Internal server error' }, 500))
   routes.get(`${root}/delivery-carriers`, auth, member, finance, async c => {
     const after = c.req.query('after'), search = c.req.query('search')
     return c.json(await service.carriers(c.get('userId'), after === undefined ? undefined : text(after, 2000), search === undefined ? undefined : text(search, 100)))

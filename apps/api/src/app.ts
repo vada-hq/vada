@@ -5,10 +5,20 @@ import type { createEventRoutes } from './events/events.js'
 import type { createChatRoutes } from './chat/chat.js'
 import type { createPurchaseRoutes } from './purchases/purchases.js'
 import type { createDeliveryRoutes } from './deliveries/routes.js'
+import { handleError } from './http/on-error.js'
 
 type AuthHandler = { handler: (request: Request) => Promise<Response> }
+export type AppOptions = {
+  auth: AuthHandler
+  trustedOrigin: string
+  access?: ReturnType<typeof createAccessRoutes>
+  events?: ReturnType<typeof createEventRoutes>
+  chat?: ReturnType<typeof createChatRoutes>
+  purchases?: ReturnType<typeof createPurchaseRoutes>
+  deliveries?: ReturnType<typeof createDeliveryRoutes>
+}
 
-export function createApp(auth: AuthHandler, access?: ReturnType<typeof createAccessRoutes>, events?: ReturnType<typeof createEventRoutes>, chat?: ReturnType<typeof createChatRoutes>, purchases?: ReturnType<typeof createPurchaseRoutes>, deliveries?: ReturnType<typeof createDeliveryRoutes>) {
+export function createApp({ auth, access, events, chat, purchases, deliveries }: AppOptions) {
   const app = new Hono()
   app.get('/api/health', (c) => c.json({ status: 'ok' } satisfies HealthResponse))
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
@@ -17,6 +27,6 @@ export function createApp(auth: AuthHandler, access?: ReturnType<typeof createAc
   if (chat) app.route('/api', chat)
   if (purchases) app.route('/api', purchases)
   if (deliveries) app.route('/api', deliveries)
-  app.onError((_, c) => c.json({ error: 'Internal server error' }, 500))
+  app.onError(handleError)
   return app
 }

@@ -1,8 +1,8 @@
 import type { CreatePurchaseDraftRequest, DecidePurchaseRequest, PurchaseItemFields, UpdatePurchaseDraftRequest } from '@vada/contracts'
 
-export class PurchaseError extends Error {
-  constructor(readonly code: string, readonly status: 400 | 403 | 404 | 409 | 429 | 502 | 503 = 400) { super(code) }
-}
+import { ApiError } from '../http/errors.js'
+
+export class PurchaseError extends ApiError {}
 export function object(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new PurchaseError('INVALID_INPUT')
   return value as Record<string, unknown>

@@ -45,7 +45,7 @@ test('draft API protects ownership, persists atomically, and rejects stale edits
     }
     const origin = 'http://127.0.0.1:5180'
     const routes = createPurchaseRoutes(db, async () => userId ? { user: { id: userId } } : null, origin, generate)
-    const app = createApp({ handler: async () => new Response() }, undefined, undefined, undefined, routes)
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, purchases: routes })
     const path = '/api/organizations/a/events/e/purchase-requests'
     const mutate = (target: string, body: unknown, method = 'POST', requestOrigin = origin) => app.request(target, {
       method, headers: { Origin: requestOrigin, 'Content-Type': 'application/json' }, body: JSON.stringify(body),

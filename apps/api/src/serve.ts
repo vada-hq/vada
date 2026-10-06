@@ -43,7 +43,7 @@ function main() {
     headers => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!,
     createDeliveryTracker({ clientId: env.DELIVERY_TRACKER_CLIENT_ID, clientSecret: env.DELIVERY_TRACKER_CLIENT_SECRET }),
   ) : undefined
-  const app = createApp(auth, access, events, chat, purchases, deliveries)
+  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries })
   if (tracking) app.route('/api', createDeliveryWebhook(db, tracking.address))
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {

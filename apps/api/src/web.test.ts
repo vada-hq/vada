@@ -13,7 +13,7 @@ test('built web and API share an origin, only web entry and assets are public', 
     writeFileSync(join(root, 'index.html'), '<!doctype html><div>VADA</div>')
     writeFileSync(join(root, 'assets', 'app.js'), 'window.vada = true')
     writeFileSync(join(root, 'private.txt'), 'not-public')
-    const app = createApp({ handler: async () => new Response('auth') })
+    const app = createApp({ auth: { handler: async () => new Response('auth') }, trustedOrigin: 'http://127.0.0.1:5180' })
     attachWeb(app, root)
     const page = await app.request('/')
     assert.equal(page.status, 200)
@@ -33,5 +33,5 @@ test('built web and API share an origin, only web entry and assets are public', 
   } finally { rmSync(root, { recursive: true, force: true }) }
 })
 test('missing built web prevents startup', () => {
-  assert.throws(() => attachWeb(createApp({ handler: async () => new Response() }), 'missing-web-build'))
+  assert.throws(() => attachWeb(createApp({ auth: { handler: async () => new Response() }, trustedOrigin: 'http://127.0.0.1:5180' }), 'missing-web-build'))
 })

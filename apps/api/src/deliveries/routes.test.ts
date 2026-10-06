@@ -40,7 +40,7 @@ test('delivery API limits writes, shares only delivery summaries and persists re
     const origin = 'http://127.0.0.1:5180'
     const session = async () => userId ? { user: { id: userId } } : null
     const routes = createDeliveryRoutes(db, session, origin, provider)
-    const app = createApp({ handler: async () => new Response() }, undefined, undefined, undefined, undefined, routes)
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, deliveries: routes })
     const root = '/api/organizations/a'
     const input = { carrierId: 'kr.coupangls', trackingNumber: '000123456789', purchaseItemIds: ['i','i2'], idempotencyKey: 'key' }
     const post = (path: string, body: unknown, requestOrigin = origin) => app.request(path, { method: 'POST', headers: { Origin: requestOrigin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })

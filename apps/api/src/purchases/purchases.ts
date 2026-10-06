@@ -22,8 +22,6 @@ export function createPurchaseRoutes(db: PurchaseDatabase, session: SessionReade
   })
   const size = bodyLimit({ maxSize: 32768, onError: c => c.json({ error: 'BODY_TOO_LARGE' }, 413) })
   const scope = (userId: string, organizationId: string, eventId: string): PurchaseScope => ({ userId, organizationId, eventId })
-  // 에러 응답에는 입력·외부 응답·키를 포함하지 않는다.
-  routes.onError((error, c) => error instanceof PurchaseError ? c.json({ error: error.code }, error.status) : c.json({ error: 'Internal server error' }, 500))
   const body = async (request: { json: () => Promise<unknown> }) => {
     try { return await request.json() } catch { throw new PurchaseError('INVALID_INPUT') }
   }
