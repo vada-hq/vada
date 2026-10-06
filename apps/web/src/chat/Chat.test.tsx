@@ -65,6 +65,8 @@ test('send trims content, prevents duplicate submission and reloads messages', a
   fireEvent.change(screen.getByLabelText('메시지'), { target: { value: 'a'.repeat(2001) } })
   fireEvent.submit(form)
   expect(fetchMock).toHaveBeenCalledTimes(1)
+  fireEvent.change(screen.getByLabelText('메시지'), { target: { value: 'a\u0000b' } })
+  expect(screen.getByRole('button', { name: '전송' }).hasAttribute('disabled')).toBe(true)
   fireEvent.change(screen.getByLabelText('메시지'), { target: { value: '  준비해요  ' } })
   fireEvent.submit(form)
   fireEvent.submit(form)

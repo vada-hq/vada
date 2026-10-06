@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { CreateMessageSchema, MESSAGE_CONTENT_MAX } from '@vada/contracts'
 import { useChat } from './useChat'
 import StateMessage from '../shared/ui/StateMessage'
 import './Chat.css'
@@ -30,8 +31,8 @@ function ChatPanel({ organizationId, eventId, eventName }: Props) {
       <label htmlFor={inputId}>메시지</label>
       <textarea id={inputId} rows={3} placeholder="행사 준비 이야기를 나눠 주세요" value={chat.draft} disabled={chat.denied} onChange={event => chat.setDraft(event.target.value)} />
       <div className="composer-actions">
-      <p className="hint">{length} / 2,000자 · 줄바꿈은 Enter, 전송은 버튼을 눌러 주세요.</p>
-      <button type="submit" disabled={chat.busy || chat.loading || chat.denied || Boolean(chat.loadError) || length === 0 || length > 2000}>전송</button>
+      <p className="hint">{length} / {MESSAGE_CONTENT_MAX.toLocaleString('ko-KR')}자 · 줄바꿈은 Enter, 전송은 버튼을 눌러 주세요.</p>
+      <button type="submit" disabled={chat.busy || chat.loading || chat.denied || Boolean(chat.loadError) || !CreateMessageSchema.safeParse({ content: chat.draft }).success}>전송</button>
       </div>
       {chat.sendError && <StateMessage kind="error">{chat.sendError}</StateMessage>}
     </form>

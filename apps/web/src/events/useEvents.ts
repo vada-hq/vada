@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react'
-import type { CreateEventRequest, EventResponse, EventSummary, EventsResponse } from '@vada/contracts'
+import { CreateEventSchema, type CreateEventRequest, type EventResponse, type EventSummary, type EventsResponse } from '@vada/contracts'
 // 호출하는 화면을 organizationId로 key 처리해 소속 간 상태를 격리한다.
 export function useEvents(organizationId: string) {
   const url = `/api/organizations/${encodeURIComponent(organizationId)}/events`
@@ -41,13 +41,13 @@ export function useEvents(organizationId: string) {
 
   async function create(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    const trimmed = name.trim()
-    if (!trimmed || pending.current || loading || loadError) return
+    const parsed = CreateEventSchema.safeParse({ name })
+    if (!parsed.success || pending.current || loading || loadError) return
     pending.current = true
     setSaving(true)
     setCreateError('')
     try {
-      const body: CreateEventRequest = { name: trimmed }
+      const body: CreateEventRequest = parsed.data
       const response = await fetch(url, {
         method: 'POST', credentials: 'same-origin',
         headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),

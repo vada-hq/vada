@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import type { CreateMessageRequest, MessageResponse, MessageSummary, MessagesResponse } from '@vada/contracts'
+import { CreateMessageSchema, type CreateMessageRequest, type MessageResponse, type MessageSummary, type MessagesResponse } from '@vada/contracts'
 
 class RequestError extends Error {
   constructor(readonly status: number) { super('Chat request failed') }
@@ -109,12 +109,12 @@ export function useChat(organizationId: string, eventId: string) {
   }
   function send() {
     const signal = controller.current?.signal
-    const content = draft.trim()
-    if (!signal || loading || blocked.current || loadError || !content || [...content].length > 2000 || /[\u0000\uD800-\uDFFF]/u.test(content)) return
+    const parsed = CreateMessageSchema.safeParse({ content: draft })
+    if (!signal || loading || blocked.current || loadError || !parsed.success) return
     void run(signal, async () => {
       setSendError('')
       try {
-        const body: CreateMessageRequest = { content }
+        const body: CreateMessageRequest = parsed.data
         const response = await fetch(url, { method: 'POST', credentials: 'same-origin', signal,
           headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
         if (!response.ok) throw new RequestError(response.status)
