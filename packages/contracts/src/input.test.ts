@@ -47,6 +47,7 @@ test('행사 이름: 이모지도 코드 포인트로 세어 100개까지 통과
 test('채팅 본문: 2000 코드 포인트까지, 줄바꿈은 허용한다', () => {
   assert.equal(CreateMessageSchema.safeParse({ content: '😀'.repeat(MESSAGE_CONTENT_MAX) }).success, true)
   assert.equal(CreateMessageSchema.safeParse({ content: 'a'.repeat(MESSAGE_CONTENT_MAX + 1) }).success, false)
+  assert.equal(CreateMessageSchema.safeParse({ content: '😀'.repeat(MESSAGE_CONTENT_MAX + 1) }).success, false)
   assert.equal(CreateMessageSchema.parse({ content: '첫 줄\n둘째 줄' }).content, '첫 줄\n둘째 줄')
 })
 

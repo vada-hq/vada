@@ -55,7 +55,7 @@ test('event chat respects council boundaries and paginates persisted messages', 
       assert.deepEqual(await get(), { messages: [], nextCursor: null })
     })
     await t.test('invalid content and cross-origin requests are rejected without writes', async () => {
-      for (const body of [null, [], {}, { content: 3 }, { content: '' }, { content: ' \t\n ' }, { content: 'a'.repeat(2001) }, { content: '\u0000' }, { content: '\ud800' }, { content: 'Hi', extra: 1 }]) {
+      for (const body of [null, [], {}, { content: 3 }, { content: '' }, { content: ' \t\n ' }, { content: 'a'.repeat(2001) }, { content: '\u0000' }, { content: '\ud800' }, { content: 'Hi', extra: 1 }, { content: '😀'.repeat(2001) }]) {
         assert.equal((await post(body)).status, 400)
       }
       assert.deepEqual(await (await post({ content: '\u0000' })).json(), { error: 'INVALID_INPUT' })

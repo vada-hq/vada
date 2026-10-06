@@ -59,7 +59,8 @@ test('event API validates input and shares events only within the authenticated 
       const rooms = await pg.query('SELECT organization_id, event_id FROM chat_rooms WHERE event_id=$1', [event.id])
       assert.deepEqual(rooms.rows, [{ organization_id: 'a', event_id: event.id }])
       await pg.query("UPDATE events SET created_at='2020-01-01' WHERE id=$1", [event.id])
-      await assert.rejects(pg.query("INSERT INTO events (id,organization_id,name,created_by) VALUES ('long','a',repeat('a',101),'p')"))
+      await assert.rejects(pg.query("INSERT INTO events (id,organization_id,name,created_by) VALUES ('long','a',repeat('a',101),'p')"),
+        (error: { code?: string; constraint?: string }) => error.code === '23514' && error.constraint === 'events_name_length')
     })
     await t.test('finance can create duplicate names and both departments see latest-first events', async () => {
       userId = 'f'

@@ -61,6 +61,8 @@ test('조직 하위 변경 요청은 출처·형식·크기를 먼저 검사한�
   // Content-Length 없이 스트림으로 보내도 막는다.
   const stream = new ReadableStream({ start(controller) { controller.enqueue(new TextEncoder().encode(huge)); controller.close() } })
   assert.equal((await app.request(path, { method: 'POST', headers: { ...json, Origin: origin }, body: stream, duplex: 'half' } as RequestInit)).status, 413)
+  // Content-Length만 보고도 본문을 읽기 전에 막는다.
+  assert.equal((await app.request(path, { method: 'POST', headers: { ...json, Origin: origin, 'Content-Length': '40000' }, body: '{}' })).status, 413)
   assert.equal(reached, 0)
   assert.equal((await app.request(path, { method: 'POST', headers: { ...json, Origin: origin }, body: '{}' })).status, 200)
   assert.equal((await app.request(path)).status, 200)
