@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { shipments } from '../db/schema.js'
+import { logUnexpectedError } from '../http/on-error.js'
 import type { DeliveryDatabase } from './database.js'
 import { enqueueDeliveryJob } from './job-repository.js'
 
@@ -23,7 +24,11 @@ export type CallbackAddress = ReturnType<typeof createCallbackAddress>
 
 export function createDeliveryWebhook(db: DeliveryDatabase, address: CallbackAddress, clock = () => new Date()) {
   const routes = new Hono()
-  routes.onError((_, c) => c.json({ error: 'DELIVERY_CALLBACK_UNAVAILABLE' }, 503))
+  // 공급자 재시도 계약상 503으로 응답한다. 장애가 운영에서 보이도록 원문 없이 로그만 남긴다.
+  routes.onError((error, c) => {
+    logUnexpectedError(c, error)
+    return c.json({ error: 'DELIVERY_CALLBACK_UNAVAILABLE' }, 503)
+  })
   routes.post('/delivery-webhooks/:shipmentId/:token', bodyLimit({ maxSize: 4096, onError: c => c.body(null, 413) }), async c => {
     c.header('Cache-Control', 'no-store')
     const id = c.req.param('shipmentId')
