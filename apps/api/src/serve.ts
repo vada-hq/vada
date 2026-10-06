@@ -14,10 +14,12 @@ import { createDeliveryRoutes } from './deliveries/routes.js'
 import { createDeliveryTracker } from './deliveries/delivery-tracker.js'
 import { createDeliveryWebhook } from './deliveries/webhook.js'
 import { trackingConfig } from './deliveries/tracking-config.js'
+import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 
 function main() {
   const { env, production, hostname, port } = readRuntime(process.env, process.argv.includes('--production'))
   if (production) process.env.NODE_ENV = 'production'
+  startErrorReporting(env.SENTRY_DSN, production ? 'production' : 'development')
   const tracking = trackingConfig(env)
   // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
   const client = postgres(env.DATABASE_URL!, {
@@ -55,7 +57,7 @@ function main() {
     process.exitCode = 1
   })
   const shutdown = () => {
-    server.close(() => { void client.end({ timeout: 5 }) })
+    server.close(() => { void client.end({ timeout: 5 }); void stopErrorReporting() })
   }
   process.once('SIGTERM', shutdown)
   process.once('SIGINT', shutdown)

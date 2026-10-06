@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { HTTPException } from 'hono/http-exception'
 import { createApp } from './app.js'
 import { ApiError } from './http/errors.js'
+import { setErrorReporter } from './http/on-error.js'
 
 const origin = 'http://127.0.0.1:5180'
 const noAuth = { handler: async () => new Response() }
@@ -127,4 +128,23 @@ test('로그의 SQLSTATE와 오류 이름은 형식에 맞는 값만 남긴다',
     { event: 'request_failed', method: 'GET', route: '/api/errno', error: 'Error' },
     { event: 'request_failed', method: 'GET', route: '/api/named', error: 'Error' },
   ])
+})
+
+test('서버 쪽 실패만 오류 수집기로 보내고, 로그와 같은 정제된 필드를 함께 넘긴다', async (t) => {
+  t.mock.method(console, 'error', () => {})
+  const reported: { error: Error; fields: Record<string, unknown> }[] = []
+  setErrorReporter((error, fields) => { reported.push({ error, fields }) })
+  t.after(() => setErrorReporter(undefined))
+  const app = createApp({ auth: noAuth, trustedOrigin: origin })
+  const crash = new Error('value=secret-token')
+  app.get('/api/organizations/:organizationId/crash', () => { throw crash })
+  app.get('/api/organizations/:organizationId/provider', () => { throw new ApiError('DELIVERY_PROVIDER_FAILED', 502) })
+  app.get('/api/organizations/:organizationId/conflict', () => { throw new ApiError('VERSION_CONFLICT', 409) })
+  await app.request('/api/organizations/org-1/crash')
+  await app.request('/api/organizations/org-1/provider')
+  await app.request('/api/organizations/org-1/conflict')
+  assert.equal(reported.length, 2)
+  assert.equal(reported[0]!.error, crash)
+  assert.deepEqual(reported[0]!.fields, { event: 'request_failed', method: 'GET', route: '/api/organizations/:organizationId/crash', error: 'Error' })
+  assert.deepEqual(reported[1]!.fields, { event: 'request_failed', method: 'GET', route: '/api/organizations/:organizationId/provider', code: 'DELIVERY_PROVIDER_FAILED', status: 502 })
 })
