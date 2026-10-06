@@ -4,6 +4,7 @@ import fc from 'fast-check'
 import { codePoints, text, token } from './input.js'
 import { CreateEventSchema, EVENT_NAME_MAX } from './events.js'
 import { CreateMessageSchema, MESSAGE_CONTENT_MAX } from './chat.js'
+import { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
 
 // 홀로 쓰인 서러게이트까지 만들도록 UTF-16 코드 단위를 직접 뽑는다.
 const anyText = fc.string({ unit: fc.integer({ min: 0, max: 0xffff }).map(n => String.fromCharCode(n)), maxLength: 120 })
@@ -52,4 +53,19 @@ test('모르는 키가 하나라도 있으면 거부한다', () => {
   const key = fc.string({ minLength: 1, maxLength: 20 })
   fc.assert(fc.property(key.filter(k => k !== 'name'), k => !CreateEventSchema.safeParse(JSON.parse(JSON.stringify({ name: 'a', [k]: 1 }))).success))
   fc.assert(fc.property(key.filter(k => k !== 'content'), k => !CreateMessageSchema.safeParse(JSON.parse(JSON.stringify({ content: 'a', [k]: 1 }))).success))
+})
+
+test('배송 스키마는 기존 수동 검사와 같은 규칙을 지킨다', () => {
+  assert.deepEqual(DeliveryLookupSchema.parse({ carrierId: ' kr.cjlogistics ', trackingNumber: '1234-5' }), { carrierId: 'kr.cjlogistics', trackingNumber: '1234-5' })
+  for (const body of [{ carrierId: 'kr cj', trackingNumber: '1' }, { carrierId: 'kr.cj', trackingNumber: '1 2' }, { carrierId: 'kr.cj', trackingNumber: '1', extra: 1 }, { carrierId: 'kr.cj' }]) {
+    assert.equal(DeliveryLookupSchema.safeParse(body).success, false)
+  }
+  const register = { carrierId: 'kr.cj', trackingNumber: '1', purchaseItemIds: ['b', 'a'], idempotencyKey: 'k' }
+  assert.deepEqual(RegisterShipmentSchema.parse(register).purchaseItemIds, ['a', 'b'])
+  for (const ids of [[], ['a', 'a'], Array.from({ length: 51 }, (_, i) => `i${i}`), ['a\u0001']]) {
+    assert.equal(RegisterShipmentSchema.safeParse({ ...register, purchaseItemIds: ids }).success, false)
+  }
+  assert.equal(RegisterShipmentSchema.safeParse({ ...register, idempotencyKey: 'k'.repeat(129) }).success, false)
+  assert.deepEqual(UnlinkShipmentSchema.parse({ linkIds: ['z', 'y'] }), { linkIds: ['y', 'z'] })
+  assert.equal(UnlinkShipmentSchema.safeParse({ linkIds: ['y'], extra: 1 }).success, false)
 })

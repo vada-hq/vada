@@ -59,7 +59,7 @@ test('delivery API limits writes, shares only delivery summaries and persists re
       assert.equal((await create()).status, 401)
       userId = 'x'; assert.equal((await create()).status, 403)
       userId = 'p'; assert.equal((await create()).status, 403)
-      assert.equal((await post(`${root}/delivery-lookups`, input)).status, 403)
+      assert.equal((await post(`${root}/delivery-lookups`, { carrierId: input.carrierId, trackingNumber: input.trackingNumber })).status, 403)
       userId = 'f'
       assert.equal((await post(`${root}/shipments`, input, 'https://evil.test')).status, 403)
       for (const body of [null, {}, { ...input, status: 'delivered' }, { ...input, carrierId: '' }, { ...input, trackingNumber: 123 }, { ...input, purchaseItemIds: ['i','i'] }]) {

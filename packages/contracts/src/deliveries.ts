@@ -1,7 +1,22 @@
+import { z } from 'zod'
+import { token } from './input.js'
+
 export type DeliveryStatus = 'unknown' | 'pending' | 'in_transit' | 'delivered' | 'exception'
-export interface DeliveryLookupRequest { carrierId: string; trackingNumber: string }
-export interface RegisterShipmentRequest extends DeliveryLookupRequest { purchaseItemIds: string[]; idempotencyKey: string }
-export interface UnlinkShipmentRequest { linkIds: string[] }
+// 자릿수로 택배사를 추정하거나 송장번호를 숫자로 변환하지 않는다.
+const shipment = {
+  carrierId: token(100).regex(/^[a-zA-Z0-9._-]+$/),
+  trackingNumber: token(100).regex(/^[a-zA-Z0-9-]+$/),
+}
+const ids = z.array(token(200)).min(1).max(50)
+  .refine(values => new Set(values).size === values.length)
+  .transform(values => [...values].sort())
+
+export const DeliveryLookupSchema = z.strictObject(shipment)
+export const RegisterShipmentSchema = z.strictObject({ ...shipment, purchaseItemIds: ids, idempotencyKey: token(128) })
+export const UnlinkShipmentSchema = z.strictObject({ linkIds: ids })
+export type DeliveryLookupRequest = z.infer<typeof DeliveryLookupSchema>
+export type RegisterShipmentRequest = z.infer<typeof RegisterShipmentSchema>
+export type UnlinkShipmentRequest = z.infer<typeof UnlinkShipmentSchema>
 export interface DeliveryLookupResponse {
   status: DeliveryStatus
   providerStatus: string | null
