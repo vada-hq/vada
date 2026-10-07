@@ -25,7 +25,7 @@ export function startErrorReporting(dsn: string | undefined, environment: string
   }
   Sentry.init({
     dsn: value, environment, maxBreadcrumbs: 0, beforeSend: scrubEvent, defaultIntegrations: false, ...(transport ? { transport } : {}),
-    // 자동 계측용 모듈 로더 후크를 켜지 않는다. tsx 로더와 겹쳐 최신 Node에서 서버 시작이 멈췄다.
+    // 자동 계측용 모듈 로더 후크를 켜지 않는다. 켜면 Render(Linux, Node 22.23)에서 서버 시작이 멈췄다(Windows 22.13에서는 재현 안 됨).
     enableRuntimeChannelInjection: false,
     integrations: [Sentry.onUncaughtExceptionIntegration(), Sentry.onUnhandledRejectionIntegration(), Sentry.linkedErrorsIntegration(), Sentry.contextLinesIntegration()],
   })

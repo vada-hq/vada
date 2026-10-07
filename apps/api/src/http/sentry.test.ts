@@ -47,7 +47,7 @@ test('실제 SDK 경로로 보내도 정제되고, 요청을 실패시킨 오류
   const transport = () => ({ send: async (envelope: unknown) => { sent.push(JSON.stringify(envelope)); return {} }, flush: async () => true })
   t.mock.method(console, 'error', () => {})
   assert.equal(startErrorReporting('https://public@sentry.invalid/1', 'test', transport as never), true)
-  // 자동 계측용 모듈 로더 후크는 tsx 로더와 겹쳐 Render(최신 Node)에서 시작을 멈추게 했다. 켜지 않아야 한다.
+  // 자동 계측용 모듈 로더 후크는 Render(Linux, Node 22.23)에서 서버 시작을 멈추게 했다. 켜지 않아야 한다.
   assert.equal(Sentry.getClient<Sentry.NodeClient>()?.getOptions().enableRuntimeChannelInjection, false)
   t.after(async () => { setErrorReporter(undefined); await stopErrorReporting() })
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: 'http://127.0.0.1:5180' })
