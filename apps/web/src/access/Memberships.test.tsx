@@ -11,10 +11,13 @@ test('shows council and department from the server', async () => {
   expect(await screen.findByText('검증 학생회 · 기획부')).toBeTruthy()
   expect(fetchMock).toHaveBeenCalledWith('/api/me/memberships', expect.objectContaining({ credentials: 'same-origin' }))
 })
-test('empty memberships show unassigned, not a signup form', async () => {
+test('empty memberships show the injected content, or a plain message without it', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ memberships: [] }) }))
+  const view = render(<Memberships renderEmpty={() => <p>코드 입력 자리</p>} />)
+  expect(await screen.findByText('코드 입력 자리')).toBeTruthy()
+  view.unmount()
   render(<Memberships />)
-  expect(await screen.findByText('소속 미지정')).toBeTruthy()
+  expect(await screen.findByText('아직 참여한 학생회가 없어요')).toBeTruthy()
 })
 
 test('renders organization content only for memberships returned by the server', async () => {
@@ -32,9 +35,9 @@ test('fetch failure is distinct from no membership and can be retried', async ()
   vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce({ ok: false }).mockResolvedValueOnce({ ok: true, json: async () => ({ memberships: [] }) }))
   render(<Memberships />)
   expect(await screen.findByRole('alert')).toBeTruthy()
-  expect(screen.queryByText('소속 미지정')).toBeNull()
+  expect(screen.queryByText('아직 참여한 학생회가 없어요')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '소속 다시 확인' }))
-  expect(await screen.findByText('소속 미지정')).toBeTruthy()
+  expect(await screen.findByText('아직 참여한 학생회가 없어요')).toBeTruthy()
 })
 
 test('a member without a department is shown as unassigned', async () => {

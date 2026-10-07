@@ -1,6 +1,8 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { authClient } from './auth/auth-client'
 import Memberships from './access/Memberships'
+import InviteCodeForm from './access/InviteCodeForm'
+import JoinOrganization from './access/JoinOrganization'
 import { inviteCodeFromPath, invitePath } from './access/invite-path'
 import Workspace from './workspace/Workspace'
 import StateMessage from './shared/ui/StateMessage'
@@ -17,10 +19,22 @@ export default function App() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(() => new URLSearchParams(window.location.search).has('error')
     ? '로그인이 완료되지 않았어요. 다시 시도해 주세요.' : '')
-  const [invite] = useState<Invite | null>(() => {
+  const [invite, setInvite] = useState<Invite | null>(() => {
     const code = inviteCodeFromPath(window.location.pathname)
     return code === null ? null : { code, from: 'link' }
   })
+  const [typedCode, setTypedCode] = useState('')
+  const [joinedOrganizationId, setJoinedOrganizationId] = useState<string>()
+
+  function leaveInvite() {
+    window.history.replaceState(null, '', '/')
+    setInvite(null)
+  }
+
+  function finishInvite(organizationId: string) {
+    leaveInvite()
+    setJoinedOrganizationId(organizationId)
+  }
 
   async function login() {
     setBusy(true)
@@ -49,15 +63,23 @@ export default function App() {
     }
   }
 
-  if (!isPending && !error && session) return <>
-    {message && <StateMessage kind="error" className="app-notice">{message}</StateMessage>}
-    <Memberships key={session.user.id}
-      renderMemberships={memberships => <Workspace memberships={memberships} user={session.user} logoutBusy={busy} onLogout={() => { void logout() }} />}
-      renderFallback={content => <main className="auth-card"><p className="eyebrow">학생회를 위한 공간</p><h1>VADA M1</h1><h2>로그인 완료</h2>
-        <p>{session.user.name}</p><p className="email">{session.user.email}</p>{content}
-        <button disabled={busy} onClick={() => { void logout() }}>{busy ? '로그아웃 중…' : '로그아웃'}</button>
-      </main>} />
-  </>
+  if (!isPending && !error && session) {
+    const card = (content: ReactNode) => <main className="auth-card"><p className="eyebrow">학생회를 위한 공간</p><h1>VADA M1</h1><h2>로그인 완료</h2>
+      <p>{session.user.name}</p><p className="email">{session.user.email}</p>{content}
+      <button disabled={busy} onClick={() => { void logout() }}>{busy ? '로그아웃 중…' : '로그아웃'}</button>
+    </main>
+    return <>
+      {message && <StateMessage kind="error" className="app-notice">{message}</StateMessage>}
+      {invite ? card(<JoinOrganization key={invite.code} code={invite.code}
+        leaveLabel={invite.from === 'link' ? 'VADA로 가기' : '다시 입력'} onJoined={finishInvite} onLeave={leaveInvite} />)
+        : <Memberships key={`${session.user.id}:${joinedOrganizationId ?? ''}`}
+          renderMemberships={memberships => <Workspace memberships={memberships} initialOrganizationId={joinedOrganizationId}
+            user={session.user} logoutBusy={busy} onLogout={() => { void logout() }} />}
+          renderEmpty={() => <InviteCodeForm initialCode={typedCode}
+            onSubmit={code => { setTypedCode(code); setInvite({ code, from: 'form' }) }} />}
+          renderFallback={card} />}
+    </>
+  }
 
   return (
     <main className="auth-card">

@@ -152,3 +152,10 @@ test('an unassigned member sees 미배정 and no finance badge', () => {
   expect(screen.getByText('미배정')).toBeTruthy()
   expect(screen.queryByText('재정 담당')).toBeNull()
 })
+
+test('a newly joined council is opened first', async () => {
+  const fetcher = setup()
+  render(<Workspace {...props} memberships={[membership, { ...membership, id: 'm2', organization: { id: 'o2', name: '다른 학생회', inviteCode: 'EFGH6789' } }]} initialOrganizationId="o2" />)
+  expect((screen.getByLabelText('학생회 선택') as HTMLSelectElement).value).toBe('m2')
+  await waitFor(() => expect(fetcher).toHaveBeenCalledWith('/api/organizations/o2/events', expect.anything()))
+})

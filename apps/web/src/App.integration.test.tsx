@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import App from './App'
-import { json, mockApi } from './test-support/mock-api'
+import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { event, eventsPath, membership, messagesPath, purchasesPath, user } from './test-support/workflow-fixtures'
 import './purchases/LinkDialog.test-support'
 
@@ -15,6 +15,7 @@ function session(finance = false) {
   api.on('GET', '/api/me/memberships', () => json({ memberships: [membership(finance)] }))
 }
 beforeEach(() => {
+  window.history.replaceState(null, '', '/')
   vi.resetAllMocks()
   api = mockApi()
   session()
@@ -67,4 +68,92 @@ test.each(['switch', 'logout'])('%s clears the previous account workspace and un
   await screen.findByText('아직 대화가 없어요.')
   expect((screen.getByLabelText('메시지') as HTMLTextAreaElement).value).toBe('')
   expect(screen.queryByText('기획 테스터')).toBeNull()
+})
+
+const preview = (joined = false) => json({ organization: { id: 'o', name: '테스트 학생회' }, joined })
+
+test('code entry joins a council as unassigned and opens its workspace', async () => {
+  api.on('GET', '/api/me/memberships', () => json({ memberships: [] }))
+  api.on('GET', '/api/invites/ABCD2345', () => preview())
+  api.on('POST', '/api/organizations/join', () => {
+    api.on('GET', '/api/me/memberships', () => json({ memberships: [{ ...membership(), department: null }] }))
+    return json({ membership: { ...membership(), department: null } })
+  })
+  render(<App />)
+  const input = await screen.findByLabelText('초대 코드')
+  expect(screen.getByRole('button', { name: '학생회 확인' }).hasAttribute('disabled')).toBe(true)
+  fireEvent.change(input, { target: { value: ' abcd-2345 ' } })
+  fireEvent.click(screen.getByRole('button', { name: '학생회 확인' }))
+  expect(await screen.findByText('테스트 학생회에 참여할까요?')).toBeTruthy()
+  expect(screen.getByText('참여하면 미배정 구성원으로 등록돼요.')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '참여하기' }))
+  expect(await screen.findByRole('button', { name: '체육대회' })).toBeTruthy()
+  expect(screen.getByText('미배정')).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([{ code: 'ABCD2345' }])
+})
+
+test('a wrong code can be corrected from the form', async () => {
+  api.on('GET', '/api/me/memberships', () => json({ memberships: [] }))
+  api.on('GET', '/api/invites/ZZZZ9999', () => json({ error: 'NOT_FOUND' }, 404))
+  render(<App />)
+  fireEvent.change(await screen.findByLabelText('초대 코드'), { target: { value: 'zzzz9999' } })
+  fireEvent.click(screen.getByRole('button', { name: '학생회 확인' }))
+  expect((await screen.findByRole('alert')).textContent).toContain('초대 코드가 올바르지 않아요')
+  fireEvent.click(screen.getByRole('button', { name: '다시 입력' }))
+  expect(((await screen.findByLabelText('초대 코드')) as HTMLInputElement).value).toBe('ZZZZ9999')
+})
+
+test('an existing member opening an invite link goes straight to the workspace', async () => {
+  window.history.replaceState(null, '', '/join/ABCD2345')
+  api.on('GET', '/api/invites/ABCD2345', () => preview(true))
+  render(<App />)
+  expect(await screen.findByRole('button', { name: '체육대회' })).toBeTruthy()
+  expect(window.location.pathname).toBe('/')
+  expect(api.calls.some(call => call.method === 'POST')).toBe(false)
+})
+
+test('a broken invite link explains the problem and returns to VADA', async () => {
+  window.history.replaceState(null, '', '/join/%E0%A4%A')
+  api.on('GET', '/api/invites/%25E0%25A4%25A', () => json({ error: 'NOT_FOUND' }, 404))
+  render(<App />)
+  expect((await screen.findByRole('alert')).textContent).toContain('초대 코드가 올바르지 않아요')
+  fireEvent.click(screen.getByRole('button', { name: 'VADA로 가기' }))
+  expect(await screen.findByRole('button', { name: '체육대회' })).toBeTruthy()
+  expect(window.location.pathname).toBe('/')
+})
+
+test('declining a link invite returns to the normal screen', async () => {
+  window.history.replaceState(null, '', '/join/ABCD2345')
+  api.on('GET', '/api/invites/ABCD2345', () => preview())
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: '참여하지 않기' }))
+  expect(await screen.findByRole('button', { name: '체육대회' })).toBeTruthy()
+  expect(window.location.pathname).toBe('/')
+})
+
+test('invite lookup failure can be retried', async () => {
+  window.history.replaceState(null, '', '/join/ABCD2345')
+  api.on('GET', '/api/invites/ABCD2345', () => json({ error: 'UNAVAILABLE' }, 503))
+  render(<App />)
+  expect((await screen.findByRole('alert')).textContent).toContain('초대를 확인하지 못했어요')
+  api.on('GET', '/api/invites/ABCD2345', () => preview())
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  expect(await screen.findByText('테스트 학생회에 참여할까요?')).toBeTruthy()
+})
+
+test('join is sent once while in flight and a failure can be retried', async () => {
+  window.history.replaceState(null, '', '/join/ABCD2345')
+  api.on('GET', '/api/invites/ABCD2345', () => preview())
+  api.on('POST', '/api/organizations/join', () => json({ error: 'UNAVAILABLE' }, 503))
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: '참여하기' }))
+  expect((await screen.findByRole('alert')).textContent).toContain('참여하지 못했어요')
+  const pending = deferredResponse()
+  api.on('POST', '/api/organizations/join', () => pending.promise)
+  fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
+  expect(screen.getByRole('button', { name: '참여하는 중…' }).hasAttribute('disabled')).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: '참여하는 중…' }))
+  pending.resolve(json({ membership: membership() }))
+  expect(await screen.findByRole('button', { name: '체육대회' })).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(2)
 })

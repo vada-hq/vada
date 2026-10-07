@@ -7,9 +7,11 @@ import { useEvents } from '../events/useEvents'
 import Sidebar, { type AccountProps } from './Sidebar'
 import './Workspace.css'
 
-type Props = AccountProps & { memberships: MembershipSummary[] }
-export default function Workspace(props: Props) {
-  const [membershipId, setMembershipId] = useState(props.memberships[0]?.id)
+type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string }
+export default function Workspace({ initialOrganizationId, ...props }: Props) {
+  // 초대로 방금 참여한 학생회가 있으면 그 학생회를 먼저 연다.
+  const [membershipId, setMembershipId] = useState(() =>
+    (props.memberships.find(item => item.organization.id === initialOrganizationId) ?? props.memberships[0])?.id)
   const membership = props.memberships.find(item => item.id === membershipId) ?? props.memberships[0]
   if (!membership) return null
   return <CouncilWorkspace key={`${membership.id}:${membership.organization.id}`} {...props} membership={membership} onMembershipChange={setMembershipId} />
