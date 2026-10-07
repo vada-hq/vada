@@ -19,6 +19,8 @@ export function startErrorReporting(dsn: string | undefined, environment: string
   if (!dsn?.trim()) return false
   Sentry.init({
     dsn: dsn.trim(), environment, maxBreadcrumbs: 0, beforeSend: scrubEvent, defaultIntegrations: false, ...(transport ? { transport } : {}),
+    // 자동 계측용 모듈 로더 후크를 켜지 않는다. tsx 로더와 겹쳐 최신 Node에서 서버 시작이 멈췄다.
+    enableRuntimeChannelInjection: false,
     integrations: [Sentry.onUncaughtExceptionIntegration(), Sentry.onUnhandledRejectionIntegration(), Sentry.linkedErrorsIntegration(), Sentry.contextLinesIntegration()],
   })
   setErrorReporter((error, fields) => Sentry.withScope(scope => {
