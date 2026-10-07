@@ -151,6 +151,7 @@ test('an unassigned member sees 미배정 and no finance badge', () => {
   render(<Workspace {...props} memberships={[{ ...membership, department: null }]} />)
   expect(screen.getByText('미배정')).toBeTruthy()
   expect(screen.queryByText('재정 담당')).toBeNull()
+  expect(screen.getByRole('button', { name: '초대 링크 복사' })).toBeTruthy()
 })
 
 test('a newly joined council is opened first', async () => {

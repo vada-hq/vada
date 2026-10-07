@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { MembershipSummary } from '@vada/contracts'
+import InviteShare from '../access/InviteShare'
 
 export type AccountProps = { user: { name: string; email: string }; logoutBusy: boolean; onLogout: () => void }
 type Props = AccountProps & { membership: MembershipSummary; memberships: MembershipSummary[]; onMembershipChange: (id: string) => void; children: ReactNode }
@@ -12,6 +13,7 @@ export default function Sidebar({ membership, memberships, onMembershipChange, u
       </select></label> : <h2>{membership.organization.name}</h2>}
       <p>{membership.department?.name ?? '미배정'}</p>
       {membership.department?.handlesFinance && <span className="badge">재정 담당</span>}
+      <InviteShare code={membership.organization.inviteCode} />
     </section>
     <div className="sidebar-events">{children}</div>
     <footer className="sidebar-account"><strong>{user.name}</strong><p className="hint email">{user.email}</p>
