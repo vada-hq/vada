@@ -1,0 +1,44 @@
+import type { ReactNode } from 'react'
+import { LogOut } from 'lucide-react'
+import type { MembershipSummary } from '@vada/contracts'
+import InviteShare from '../access/InviteShare'
+import { Avatar } from '@/components/Avatar'
+import { BrandMark } from '@/components/BrandMark'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { NativeSelect } from '@/components/ui/native-select'
+
+export type AccountProps = { user: { name: string; email: string }; logoutBusy: boolean; onLogout: () => void }
+type Props = AccountProps & { membership: MembershipSummary; memberships: MembershipSummary[]; onMembershipChange: (id: string) => void; children: ReactNode }
+
+// 와이어프레임 사이드바(210px): 위 로고와 학생회 이름, 가운데 행사 메뉴, 아래 사용자.
+// 데스크톱 aside와 휴대폰 옆 메뉴가 같이 쓴다. 위 블록의 오른쪽 여백은 옆 메뉴 닫기 버튼 자리다.
+export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, user, logoutBusy, onLogout, children }: Props) {
+  return <div className="flex h-full min-h-0 flex-col">
+    <div className="flex shrink-0 items-center gap-2 border-b border-gray-100 py-4 pr-10 pl-5">
+      <BrandMark />
+      <div className="min-w-0">
+        <p className="text-sm font-semibold text-gray-900">VADA</p>
+        <h2 className="text-xs font-normal wrap-anywhere text-gray-400">{membership.organization.name}</h2>
+      </div>
+    </div>
+    <section className="flex shrink-0 flex-col gap-2 border-b border-gray-100 px-4 py-3" aria-label="내 소속">
+      {memberships.length > 1 && <Label className="flex flex-col gap-1.5">학생회 선택
+        <NativeSelect value={membership.id} onChange={event => onMembershipChange(event.target.value)}>
+          {memberships.map(item => <option key={item.id} value={item.id}>{item.organization.name} · {item.department?.name ?? '미배정'}</option>)}
+        </NativeSelect></Label>}
+      <InviteShare code={membership.organization.inviteCode} />
+    </section>
+    <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">{children}</div>
+    <footer className="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
+      <Avatar />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-medium text-gray-700">{user.name}</p>
+        <p className="flex flex-wrap items-center gap-1 text-xs text-gray-400">{membership.department?.name ?? '미배정'}
+          {membership.department?.handlesFinance && <Badge tone="info">재정 담당</Badge>}</p>
+      </div>
+      <Button variant="ghost" size="icon" aria-label="로그아웃" disabled={logoutBusy} onClick={onLogout}><LogOut /></Button>
+    </footer>
+  </div>
+}

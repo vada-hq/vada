@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import Workspace from './Workspace'
 import '../purchases/LinkDialog.test-support'
 import { draft } from '../purchases/purchase-test-fixtures'
@@ -159,4 +159,22 @@ test('a newly joined council is opened first', async () => {
   render(<Workspace {...props} memberships={[membership, { ...membership, id: 'm2', organization: { id: 'o2', name: '다른 학생회', inviteCode: 'EFGH6789' } }]} initialOrganizationId="o2" />)
   expect((screen.getByLabelText('학생회 선택') as HTMLSelectElement).value).toBe('m2')
   await waitFor(() => expect(fetcher).toHaveBeenCalledWith('/api/organizations/o2/events', expect.anything()))
+})
+
+test('the header title is the chosen event, or 행사 before one is chosen', async () => {
+  setup()
+  render(<Workspace {...props} />)
+  expect(screen.getByRole('heading', { level: 1, name: '행사' })).toBeTruthy()
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  expect(screen.getByRole('heading', { level: 1, name: '체육대회' })).toBeTruthy()
+})
+
+test('on a narrow screen the menu button opens the sidebar, and choosing an event closes it', async () => {
+  setup()
+  render(<Workspace {...props} />)
+  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  const menu = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
+  fireEvent.click(await within(menu).findByRole('button', { name: '체육대회' }))
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '학생회 작업 공간' })).toBeNull())
+  expect(screen.getByRole('heading', { level: 1, name: '체육대회' })).toBeTruthy()
 })
