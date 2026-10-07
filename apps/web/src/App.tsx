@@ -1,23 +1,34 @@
 import { useState } from 'react'
 import { authClient } from './auth/auth-client'
 import Memberships from './access/Memberships'
+import { inviteCodeFromPath, invitePath } from './access/invite-path'
 import Workspace from './workspace/Workspace'
 import StateMessage from './shared/ui/StateMessage'
+import { isKakaoInAppBrowser } from './shared/in-app-browser'
 import './styles/tokens.css'
 import './styles/base.css'
 import './App.css'
+
+// 초대 링크(/join/코드)로 왔는지, 소속이 없어 코드를 직접 입력했는지에 따라 돌아갈 곳이 다르다.
+type Invite = { code: string; from: 'link' | 'form' }
 
 export default function App() {
   const { data: session, isPending, error, refetch } = authClient.useSession()
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState(() => new URLSearchParams(window.location.search).has('error')
     ? '로그인이 완료되지 않았어요. 다시 시도해 주세요.' : '')
+  const [invite] = useState<Invite | null>(() => {
+    const code = inviteCodeFromPath(window.location.pathname)
+    return code === null ? null : { code, from: 'link' }
+  })
 
   async function login() {
     setBusy(true)
     setMessage('')
     try {
-      const result = await authClient.signIn.social({ provider: 'google', callbackURL: '/', errorCallbackURL: '/' })
+      // 초대 링크로 왔으면 로그인 뒤 같은 초대로 돌아온다.
+      const callbackURL = invite?.from === 'link' ? invitePath(invite.code) : '/'
+      const result = await authClient.signIn.social({ provider: 'google', callbackURL, errorCallbackURL: callbackURL })
       if (result.error) throw new Error('Sign-in failed')
     } catch {
       setMessage('로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.')
@@ -59,6 +70,8 @@ export default function App() {
         </>
       ) : (
         <>
+          {invite?.from === 'link' && <p className="hint">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</p>}
+          {isKakaoInAppBrowser(navigator.userAgent) && <p className="hint">카카오톡 안에서는 Google 로그인이 막혀 있어요. 메뉴에서 '다른 브라우저로 열기'를 눌러 주세요.</p>}
           <p>Google 계정으로 로그인해 주세요.</p>
           <button disabled={busy} onClick={() => { void login() }}>{busy ? 'Google로 이동 중…' : 'Google로 로그인'}</button>
         </>

@@ -26,7 +26,11 @@ test('built web and API share an origin, only web entry and assets are public', 
     assert.equal((await app.request('/', { method: 'HEAD' })).status, 200)
     assert.deepEqual(await (await app.request('/api/health')).json(), { status: 'ok' })
     assert.equal(await (await app.request('/api/auth/get-session')).text(), 'auth')
-    for (const path of ['/api/missing', '/assets/missing.js', '/private.txt', '/.env', '/assets/%2e%2e/private.txt']) {
+    const invite = await app.request('/join/ABCD2345')
+    assert.equal(invite.status, 200)
+    assert.equal(invite.headers.get('Cache-Control'), 'no-cache')
+    assert.match(await invite.text(), /VADA/)
+    for (const path of ['/api/missing', '/assets/missing.js', '/private.txt', '/.env', '/assets/%2e%2e/private.txt', '/join/', '/join/a/b']) {
       assert.equal((await app.request(path)).status, 404)
     }
     assert.equal((await app.request('/', { method: 'POST' })).status, 404)

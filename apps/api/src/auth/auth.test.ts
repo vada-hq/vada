@@ -39,6 +39,13 @@ test('auth routes use the existing schema without external services', async (t) 
       assert.ok(url.searchParams.get('state'))
       assert.ok(response.headers.get('set-cookie'))
     })
+    await t.test('초대 링크로 돌아오는 상대 경로 콜백을 허용한다', async () => {
+      const response = await request('sign-in/social', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', Origin: baseURL },
+        body: JSON.stringify({ provider: 'google', callbackURL: '/join/ABCD2345', errorCallbackURL: '/join/ABCD2345', disableRedirect: true }),
+      })
+      assert.equal(response.status, 200)
+    })
     await t.test('untrusted origin on cookie-bearing requests and untrusted callbacks are rejected', async () => {
       for (const [origin, callbackURL] of [['https://untrusted.example', '/'], [baseURL, 'https://untrusted.example']]) {
         const response = await request('sign-in/social', {

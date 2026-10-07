@@ -69,3 +69,22 @@ test('logout failure keeps the signed-in state and enables retry', async () => {
   await waitFor(() => expect(screen.getByRole('alert').textContent).toContain('로그아웃하지 못했어요'))
   expect(screen.getByRole('button', { name: '로그아웃' }).hasAttribute('disabled')).toBe(false)
 })
+
+test('invite link login returns to the same invite and says why', async () => {
+  window.history.replaceState(null, '', '/join/ABCD2345')
+  auth.social.mockResolvedValue({ error: null })
+  render(<App />)
+  expect(screen.getByText('학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+  await waitFor(() => expect(auth.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/join/ABCD2345', errorCallbackURL: '/join/ABCD2345' }))
+})
+
+test('KakaoTalk in-app browser explains how to open another browser', () => {
+  const agent = vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (Linux; Android 14) KAKAOTALK/10.9.0')
+  try {
+    render(<App />)
+    expect(screen.getByText("카카오톡 안에서는 Google 로그인이 막혀 있어요. 메뉴에서 '다른 브라우저로 열기'를 눌러 주세요.")).toBeTruthy()
+  } finally {
+    agent.mockRestore()
+  }
+})
