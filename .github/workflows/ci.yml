@@ -24,7 +24,8 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build --workspace @vada/web
-      # Render와 같은 명령(npm start)으로 운영 모드를 띄워 본다. 테스트는 통과해도 운영에서만 시작이 멈추는 일을 배포 전에 잡는다.
+      # Render와 같은 명령(npm start)으로 운영 모드를 띄워 health 응답까지 본다. 시작 시 예외·빌드 누락·설정 오류처럼 어디서나 나는 문제를 배포 전에 잡는다.
+      # Render 무료 인스턴스에서만 난 시작 멈춤(2026-10-07)은 여기서 재현되지 않았다. 그런 문제까지 막아 주지는 못한다.
       # 값은 모두 가짜이고, DB에는 연결하지 않으며 SENTRY_DSN은 존재하지 않는 도메인을 가리켜 외부로 아무것도 보내지 않는다.
       - name: Start in production mode
         env:
