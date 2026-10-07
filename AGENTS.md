@@ -21,6 +21,10 @@
 - 서버 쪽 실패(예상하지 못한 500, 5xx)는 `apps/api/src/http/on-error.ts`가 로그와 Sentry(`SENTRY_DSN`이 있을 때)에 함께 보낸다. Sentry를 직접 호출하지 않는다. 보내기 전 정제는 `http/sentry.ts`의 `scrubEvent`가 맡는다.
 - `.env`는 읽거나 출력하지 않는다.
 
+## 실행 환경
+- Node 버전은 저장소 루트 `.node-version` 하나로 정한다. 로컬, CI(`node-version-file`), Render가 모두 이 파일을 따른다. Render 대시보드에 `NODE_VERSION` 변수를 두면 이 파일보다 우선하므로 두지 않는다.
+- `engines`에 위가 열린 범위(`>=22`)를 쓰지 않는다. Render는 열린 범위를 항상 최신 Node로 해석해, 테스트한 버전과 운영 버전이 달라진다.
+
 ## 검사
 - API 테스트: `npm test --workspace @vada/api` (개별 파일은 `apps/api`에서 `npx tsx --test <파일>`)
 - 계약 테스트: `npm test --workspace @vada/contracts`

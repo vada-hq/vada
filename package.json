@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.12.0 <23"
   },
   "scripts": {
     "dev:web": "npm run dev --workspace @vada/web",
