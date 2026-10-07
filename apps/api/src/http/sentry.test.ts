@@ -1,7 +1,10 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import * as Sentry from '@sentry/node'
 import type { ErrorEvent } from '@sentry/node'
-import { scrubEvent, startErrorReporting } from './sentry.js'
+import { createApp } from '../app.js'
+import { setErrorReporter } from './on-error.js'
+import { scrubEvent, startErrorReporting, stopErrorReporting } from './sentry.js'
 
 test('Sentry로 보내기 전에 메시지·요청·사용자·브레드크럼을 지우고 오류 종류·스택·태그만 남긴다', () => {
   const event = {
@@ -25,4 +28,23 @@ test('Sentry로 보내기 전에 메시지·요청·사용자·브레드크럼�
 test('DSN이 없으면 오류 수집을 켜지 않는다', () => {
   assert.equal(startErrorReporting(undefined, 'development'), false)
   assert.equal(startErrorReporting('  ', 'development'), false)
+})
+
+test('실제 SDK 경로로 보내도 정제되고, 요청을 실패시킨 오류는 처리되지 않은 실패로 표시된다', async (t) => {
+  // 소스 코드 줄이 스택 문맥으로 함께 실리므로 검사할 값은 실행 중에 만든다.
+  const secret = ['secret', 'token'].join('-')
+  const organizationId = ['org', 'smoke'].join('-')
+  const sent: string[] = []
+  const transport = () => ({ send: async (envelope: unknown) => { sent.push(JSON.stringify(envelope)); return {} }, flush: async () => true })
+  t.mock.method(console, 'error', () => {})
+  assert.equal(startErrorReporting('https://public@sentry.invalid/1', 'test', transport as never), true)
+  t.after(async () => { setErrorReporter(undefined); await stopErrorReporting() })
+  const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: 'http://127.0.0.1:5180' })
+  app.get('/api/organizations/:organizationId/crash', () => { throw new Error(`value=${secret}`) })
+  assert.equal((await app.request(`/api/organizations/${organizationId}/crash`, { headers: { Cookie: `session=${secret}` } })).status, 500)
+  await Sentry.flush(2000)
+  const payload = sent.join('\n')
+  assert.ok(payload.includes('/api/organizations/:organizationId/crash'), 'route pattern')
+  for (const leaked of [secret, organizationId]) assert.ok(!payload.includes(leaked), leaked)
+  assert.ok(payload.includes('"handled":false'), 'unhandled mechanism')
 })
