@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { InvitePreviewResponse, JoinOrganizationResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
+import { Button } from '@/components/ui/button'
 
 type Props = { code: string; leaveLabel: string; onJoined: (organizationId: string) => void; onLeave: () => void }
 type View = { kind: 'loading' } | { kind: 'invalid' } | { kind: 'failed' }
@@ -53,20 +54,24 @@ export default function JoinOrganization({ code, leaveLabel, onJoined, onLeave }
   }
 
   if (view.kind === 'loading') return <StateMessage kind="loading">초대 확인 중…</StateMessage>
-  if (view.kind === 'invalid') return <section aria-label="학생회 참여">
+  if (view.kind === 'invalid') return <section aria-label="학생회 참여" className="flex flex-col gap-3">
     <StateMessage kind="error">초대 코드가 올바르지 않아요. 다시 확인해 주세요.</StateMessage>
-    <button onClick={onLeave}>{leaveLabel}</button>
+    <Button variant="outline" onClick={onLeave}>{leaveLabel}</Button>
   </section>
-  if (view.kind === 'failed') return <section aria-label="학생회 참여">
+  if (view.kind === 'failed') return <section aria-label="학생회 참여" className="flex flex-col gap-3">
     <StateMessage kind="error">초대를 확인하지 못했어요. 연결을 확인하고 다시 시도해 주세요.</StateMessage>
-    <button onClick={() => setAttempt(value => value + 1)}>다시 시도</button>
-    <button className="button-quiet" onClick={onLeave}>{leaveLabel}</button>
+    <Button onClick={() => setAttempt(value => value + 1)}>다시 시도</Button>
+    <Button variant="ghost" size="sm" onClick={onLeave}>{leaveLabel}</Button>
   </section>
-  return <section aria-label="학생회 참여">
-    <h2>{view.organization.name}에 참여할까요?</h2>
-    <p className="hint">참여하면 미배정 구성원으로 등록돼요.</p>
+  return <section aria-label="학생회 참여" className="flex flex-col gap-4">
+    <div className="rounded-lg border p-6">
+      <h2 className="text-base font-semibold wrap-anywhere">{view.organization.name}에 참여할까요?</h2>
+    </div>
+    <p className="text-xs text-gray-400">참여하면 미배정 구성원으로 등록돼요.</p>
     {joinFailed && <StateMessage kind="error">참여하지 못했어요. 연결을 확인하고 다시 시도해 주세요.</StateMessage>}
-    <button disabled={joining} onClick={() => { void join() }}>{joining ? '참여하는 중…' : joinFailed ? '다시 시도' : '참여하기'}</button>
-    <button className="button-quiet" disabled={joining} onClick={onLeave}>참여하지 않기</button>
+    <div className="flex flex-col gap-2">
+      <Button disabled={joining} onClick={() => { void join() }}>{joining ? '참여하는 중…' : joinFailed ? '다시 시도' : '참여하기'}</Button>
+      <Button variant="ghost" size="sm" disabled={joining} onClick={onLeave}>참여하지 않기</Button>
+    </div>
   </section>
 }

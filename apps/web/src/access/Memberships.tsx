@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type { MembershipSummary, MembershipsResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
+import { Button } from '@/components/ui/button'
 
 type Props = {
   renderMemberships?: (memberships: MembershipSummary[]) => ReactNode
@@ -31,17 +32,20 @@ export default function Memberships({ renderMemberships, renderFallback = conten
     return () => controller.abort()
   }, [attempt])
 
-  if (failed) return renderFallback(<section aria-label="내 소속"><StateMessage kind="error">소속을 확인하지 못했어요. 서버 연결을 확인해 주세요.</StateMessage><button onClick={() => setAttempt(value => value + 1)}>소속 다시 확인</button></section>)
+  if (failed) return renderFallback(<section aria-label="내 소속" className="flex flex-col gap-3">
+    <StateMessage kind="error">소속을 확인하지 못했어요. 서버 연결을 확인해 주세요.</StateMessage>
+    <Button variant="outline" onClick={() => setAttempt(value => value + 1)}>소속 다시 확인</Button>
+  </section>)
   if (!result) return renderFallback(<StateMessage kind="loading">소속 확인 중…</StateMessage>)
   if (result.memberships.length && renderMemberships) return renderMemberships(result.memberships)
   if (!result.memberships.length && renderEmpty) return renderFallback(renderEmpty())
-  return renderFallback(<section aria-label="내 소속">
-    {result.memberships.length === 0 ? <h2>아직 참여한 학생회가 없어요</h2> : (
-      <><h2>내 소속</h2><ul className="membership-list">{result.memberships.map(membership => <li key={membership.id}>
+  return renderFallback(<section aria-label="내 소속" className="flex flex-col gap-3">
+    {result.memberships.length === 0 ? <h2 className="text-lg font-semibold">아직 참여한 학생회가 없어요</h2> : (
+      <><h2 className="text-lg font-semibold">내 소속</h2><ul className="flex flex-col gap-1">{result.memberships.map(membership => <li key={membership.id} className="text-sm wrap-anywhere text-gray-700">
         {membership.organization.name} · {membership.department?.name ?? '미배정'}
-        {membership.department?.handlesFinance && <span className="hint"> (재정 담당)</span>}
+        {membership.department?.handlesFinance && <span className="text-xs text-gray-500"> (재정 담당)</span>}
       </li>)}</ul></>
     )}
-    <button onClick={() => setAttempt(value => value + 1)}>소속 다시 확인</button>
+    <Button variant="outline" onClick={() => setAttempt(value => value + 1)}>소속 다시 확인</Button>
   </section>)
 }
