@@ -22,7 +22,7 @@ export default function InviteCodeForm({ initialCode, onSubmit }: Props) {
     </div>
     <Label className="flex flex-col gap-2">초대 코드
       <Input value={value} onChange={event => setValue(event.target.value)} autoComplete="off" autoCapitalize="characters" spellCheck={false}
-        className="px-4 py-3 text-center font-mono text-xl tracking-widest" />
+        className="px-4 py-3 text-center font-mono text-xl tracking-widest sm:text-xl" />
     </Label>
     <Button type="submit" className="mt-2" disabled={!parsed.success}>학생회 확인</Button>
   </form>

@@ -27,12 +27,12 @@ export default function InviteShare({ code }: { code: string }) {
   return <section className="flex flex-col gap-5" aria-label="학생회 초대">
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={linkId} className="text-gray-600">초대 링크</Label>
-      <Input id={linkId} readOnly value={link} className="font-mono text-xs text-gray-500" onFocus={event => event.currentTarget.select()} />
+      <Input id={linkId} readOnly value={link} className="font-mono text-base text-gray-500 sm:text-xs" onFocus={event => event.currentTarget.select()} />
       <Button variant="outline" size="sm" className="mt-0.5 self-start" onClick={() => { void copy('link') }}><Copy />초대 링크 복사</Button>
     </div>
     <div className="flex flex-col gap-1.5">
       <Label htmlFor={codeId} className="text-gray-600">초대 코드</Label>
-      <Input id={codeId} readOnly value={code} className="font-mono text-xl font-bold tracking-widest" onFocus={event => event.currentTarget.select()} />
+      <Input id={codeId} readOnly value={code} className="font-mono text-xl font-bold tracking-widest sm:text-xl" onFocus={event => event.currentTarget.select()} />
       <Button variant="outline" size="sm" className="mt-0.5 self-start" onClick={() => { void copy('code') }}><Copy />코드 복사</Button>
     </div>
     {copied && <StateMessage kind="notice">{`${copied === 'link' ? '초대 링크를' : '초대 코드를'} 복사했어요`}</StateMessage>}

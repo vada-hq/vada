@@ -41,7 +41,7 @@ export default function Gallery() {
     </Section>
     <Section title="입력">
       <div className="flex w-72 flex-col gap-1.5"><Label htmlFor="g-input">행사 이름</Label><Input id="g-input" placeholder="새 행사 이름" /></div>
-      <div className="flex w-72 flex-col gap-1.5"><Label htmlFor="g-code">초대 코드</Label><Input id="g-code" readOnly value="ABCD2345" className="font-mono text-xl font-bold tracking-widest" /></div>
+      <div className="flex w-72 flex-col gap-1.5"><Label htmlFor="g-code">초대 코드</Label><Input id="g-code" readOnly value="ABCD2345" className="font-mono text-xl font-bold tracking-widest sm:text-xl" /></div>
       <div className="flex w-72 flex-col gap-1.5"><Label htmlFor="g-invalid">송장번호</Label><Input id="g-invalid" aria-invalid defaultValue="잘못된 값" /></div>
       <div className="flex w-72 flex-col gap-1.5"><Label htmlFor="g-select">상태 필터</Label><NativeSelect id="g-select"><option>전체 상태</option><option>승인</option></NativeSelect></div>
       <div className="flex w-72 flex-col gap-1.5"><Label htmlFor="g-textarea">메시지</Label><Textarea id="g-textarea" placeholder="행사 준비 이야기를 나눠 주세요" /></div>
