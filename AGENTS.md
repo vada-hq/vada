@@ -11,6 +11,16 @@
 - 화면은 같은 스키마의 `safeParse`로 버튼 활성화를 판단한다. 길이 숫자를 화면에 다시 적지 않는다.
 - `apps/api/src/http/boundary.test.ts`가 모든 변경 라우트의 경계 검사를 확인한다. 예외 목록(`schemaPending`)에 새 항목을 추가하지 않는다.
 
+## 화면
+- 버튼·입력칸·선택칸·여러 줄 입력·라벨·칩·카드·배너·대화상자·옆 메뉴·메뉴 항목·탭은 `apps/web/src/components/ui`의 부품을 쓴다. 날것의 `<button>`·`<input>`에 직접 모양을 주지 않는다. 체크박스만 브라우저 기본 모양에 `size-4 accent-blue-600`을 준다.
+- 여러 기능이 같이 쓰는 표시용 부품은 `src/components`에 둔다(API 호출 금지). 기능 화면과 데이터 훅은 기능 폴더에 둔다.
+- 모양은 Tailwind 클래스로만 준다. 새 CSS 파일을 만들지 않는다. 토큰과 전역 기본값은 `src/index.css` 하나에 둔다.
+- 색은 테마 토큰(`primary`, `muted-foreground` 등)이나 Tailwind 기본 팔레트 단계만 쓴다. 크기와 간격은 Tailwind 스케일(`p-6`, `max-w-148`처럼 0.25rem 배수)만 쓴다. `bg-[#…]`, `text-[13px]`, `p-[7px]` 같은 임의 값은 쓰지 않는다.
+- 기준 글자 크기가 14px(휴대폰 폭 16px)이라 와이어프레임 값이 표준 클래스로 옮겨진다(사이드바 210px = `w-60`, 본문 12.25px = `text-sm`).
+- 줄바꿈 없는 긴 글(링크, 이름)이 들어갈 수 있는 곳에는 `wrap-anywhere`를 준다.
+- 새 부품이나 변형은 개발용 부품 확인 화면(`/ui.html`, `src/ui-gallery`)에 더한다.
+- 화면을 바꾸면 와이어프레임(Figma `B5OHqrl9bbvXCUkhME4Sfo`)의 같은 화면 노드 스크린샷과 비교한다.
+
 ## 마이그레이션
 - 서버 시작 시 자동으로 적용하지 않는다. 적용 대상은 dev(`.env`의 `DATABASE_URL`, Neon `production` 브랜치)와 배포 DB(`m1-preview`) 두 곳이다.
 - 제약을 추가하는 마이그레이션은 코드 배포 → 두 DB에서 위반 행이 0건인지 조회 → 적용 순서로 한다. 적용 전에 이미 적용된 기록이 로컬 파일과 순서·해시까지 일치하는지 확인한다.
@@ -31,3 +41,4 @@
 - 계약 테스트: `npm test --workspace @vada/contracts`
 - 화면 테스트: `npm test --workspace @vada/web`
 - 타입 검사: `npm run typecheck`
+- 부품 확인 화면: `npm run dev --workspace @vada/web` 후 `http://127.0.0.1:5180/ui.html`
