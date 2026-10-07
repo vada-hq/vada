@@ -64,6 +64,13 @@
       "when": 1791277798346,
       "tag": "0008_event_name_length",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791352598591,
+      "tag": "0009_organization_invite_code",
+      "breakpoints": true
     }
   ]
 }

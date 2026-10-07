@@ -10,6 +10,10 @@ import { migrate } from 'drizzle-orm/pglite/migrator'
 import { getTableConfig } from 'drizzle-orm/pg-core'
 import * as schema from './schema.js'
 
+// 나중 마이그레이션이 더한 칸(예: organizations.invite_code)은 빼고, 원래 있던 칸의 값만 비교한다.
+const sameColumns = (rows: Record<string, unknown>[], before: Record<string, unknown>[]) =>
+  rows.map((row, index) => Object.fromEntries(Object.keys(before[index] ?? row).map(key => [key, row[key]])))
+
 test('purchase schema exports the four approved tables', () => {
   for (const name of ['purchaseRequests', 'purchaseItems', 'purchaseRequestSources', 'purchaseRequestHistory']) {
     assert.ok(name in schema, `Missing table: ${name}`)
@@ -58,10 +62,10 @@ test('purchase migration preserves existing data and enforces purchase constrain
       INSERT INTO messages(id,chat_room_id,author_id,content) VALUES ('message','room','u','테이블 2개');
     `)
     const tables = ['users', 'organizations', 'departments', 'memberships', 'events', 'chat_rooms', 'messages']
-    const before = await Promise.all(tables.map(table => pg.query(`SELECT * FROM ${table} ORDER BY id`)))
+    const before = await Promise.all(tables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
     await migrate(db, { migrationsFolder: folder })
-    const after = await Promise.all(tables.map(table => pg.query(`SELECT * FROM ${table} ORDER BY id`)))
-    assert.deepEqual(after.map(result => result.rows), before.map(result => result.rows))
+    const after = await Promise.all(tables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
+    assert.deepEqual(after.map((result, index) => sameColumns(result.rows, before[index]!.rows)), before.map(result => result.rows))
 
     const request = (id: string, key = id, event = 'e', department = 'd', requester = 'u') => pg.query(
       'INSERT INTO purchase_requests(id,organization_id,event_id,requester_id,department_id,idempotency_key) VALUES ($1,$2,$3,$4,$5,$6)',

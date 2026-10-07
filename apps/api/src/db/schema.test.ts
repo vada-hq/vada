@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { getTableConfig, PgDialect } from 'drizzle-orm/pg-core'
-import { accounts, chatRooms, departments, events, memberships, messages, organizations, sessions, users, verifications } from './schema.js'
+import { accounts, chatRooms, departments, events, memberships, messages, organizations, purchaseRequests, sessions, users, verifications } from './schema.js'
 
 test('all entities have primary keys and creation timestamps', () => {
   for (const table of [users, organizations, departments, memberships, accounts, sessions, verifications, events, chatRooms, messages]) {
@@ -90,7 +90,8 @@ test('a user has at most one membership in each organization', () => {
   ))
   assert.equal(memberships.userId.notNull, true)
   assert.equal(memberships.organizationId.notNull, true)
-  assert.equal(memberships.departmentId.notNull, true)
+  // 초대로 들어온 구성원은 부서 없이 소속만 생긴다(미배정).
+  assert.equal(memberships.departmentId.notNull, false)
 })
 
 test('membership department must belong to the same organization', () => {
@@ -104,4 +105,13 @@ test('membership department must belong to the same organization', () => {
   assert.ok(getTableConfig(departments).uniqueConstraints.some(({ columns }) =>
     columns.length === 2 && columns[0]?.name === 'organization_id' && columns[1]?.name === 'id',
   ))
+})
+
+test('councils keep one invite code each; departments may be unassigned', () => {
+  assert.equal(organizations.inviteCode.notNull, true)
+  assert.equal(organizations.inviteCode.hasDefault, true)
+  const config = getTableConfig(organizations)
+  assert.deepEqual(config.uniqueConstraints.map(key => key.name), ['organizations_invite_code_unique'])
+  assert.ok(config.checks.some(item => item.name === 'organizations_invite_code_format'))
+  assert.equal(purchaseRequests.departmentId.notNull, false)
 })

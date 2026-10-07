@@ -8,6 +8,10 @@ import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 
+// 나중 마이그레이션이 더한 칸(예: organizations.invite_code)은 빼고, 원래 있던 칸의 값만 비교한다.
+const sameColumns = (rows: Record<string, unknown>[], before: Record<string, unknown>[]) =>
+  rows.map((row, index) => Object.fromEntries(Object.keys(before[index] ?? row).map(key => [key, row[key]])))
+
 test('event migration upgrades existing data and enforces event constraints', async (t) => {
   const pg = new PGlite()
   const previous = mkdtempSync(join(tmpdir(), 'vada-event-migration-'))
@@ -30,11 +34,11 @@ test('event migration upgrades existing data and enforces event constraints', as
       INSERT INTO verifications (id,identifier,value,expires_at) VALUES ('v1','test','test-value',now()+interval '1 day');
     `)
     const oldTables = ['users', 'organizations', 'departments', 'memberships', 'accounts', 'sessions', 'verifications']
-    const before = await Promise.all(oldTables.map(table => pg.query(`SELECT * FROM ${table} ORDER BY id`)))
+    const before = await Promise.all(oldTables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
     await migrate(db, { migrationsFolder: folder })
     await t.test('all existing rows survive the upgrade', async () => {
-      const after = await Promise.all(oldTables.map(table => pg.query(`SELECT * FROM ${table} ORDER BY id`)))
-      assert.deepEqual(after.map(result => result.rows), before.map(result => result.rows))
+      const after = await Promise.all(oldTables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
+      assert.deepEqual(after.map((result, index) => sameColumns(result.rows, before[index]!.rows)), before.map(result => result.rows))
     })
     const insert = (id: string, name: string | null, org = 'org1', creator = 'u1') => pg.query(
       'INSERT INTO events (id,organization_id,name,created_by) VALUES ($1,$2,$3,$4)', [id, org, name, creator],
@@ -212,5 +216,65 @@ test('generated migrations enforce membership and authentication constraints in 
     })
   } finally {
     await pg.close()
+  }
+})
+
+test('0009 gives every council an invite code and lets departments be empty', async (t) => {
+  const pg = new PGlite()
+  const previous = mkdtempSync(join(tmpdir(), 'vada-invite-migration-'))
+  try {
+    const folder = fileURLToPath(new URL('../../migrations', import.meta.url))
+    const journal = JSON.parse(readFileSync(join(folder, 'meta/_journal.json'), 'utf8'))
+    const index = journal.entries.findIndex((entry: { tag: string }) => entry.tag === '0009_organization_invite_code')
+    assert.ok(index > 0, '0009 마이그레이션이 있어야 한다')
+    const oldJournal = { ...journal, entries: journal.entries.slice(0, index) }
+    mkdirSync(join(previous, 'meta'))
+    writeFileSync(join(previous, 'meta/_journal.json'), JSON.stringify(oldJournal))
+    for (const entry of oldJournal.entries) copyFileSync(join(folder, `${entry.tag}.sql`), join(previous, `${entry.tag}.sql`))
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u1','Planner','p@example.test'),('u2','New','n@example.test');
+      INSERT INTO organizations (id,name) VALUES ('org1','Council 1'),('org2','Council 2');
+      INSERT INTO departments (id,organization_id,name) VALUES ('d1','org1','Planning'),('d2','org2','Planning');
+      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m1','u1','org1','d1');
+    `)
+    await migrate(db, { migrationsFolder: folder })
+    const codes = (await pg.query<{ invite_code: string }>('SELECT invite_code FROM organizations ORDER BY id')).rows.map(row => row.invite_code)
+
+    await t.test('existing councils get distinct codes in the agreed format', () => {
+      assert.equal(codes.length, 2)
+      for (const code of codes) assert.match(code, /^[2-9A-HJ-NP-Z]{8}$/)
+      assert.notEqual(codes[0], codes[1])
+    })
+    await t.test('existing membership keeps its department', async () => {
+      const result = await pg.query<{ department_id: string }>("SELECT department_id FROM memberships WHERE id = 'm1'")
+      assert.equal(result.rows[0]?.department_id, 'd1')
+    })
+    await t.test('new councils get a code; duplicate and malformed codes are rejected', async () => {
+      await pg.query("INSERT INTO organizations (id,name) VALUES ('org3','Council 3')")
+      const created = await pg.query<{ invite_code: string }>("SELECT invite_code FROM organizations WHERE id = 'org3'")
+      assert.match(created.rows[0]!.invite_code, /^[2-9A-HJ-NP-Z]{8}$/)
+      await assert.rejects(pg.query("INSERT INTO organizations (id,name,invite_code) VALUES ('org4','Council 4',$1)", [codes[0]]),
+        { code: '23505', constraint: 'organizations_invite_code_unique' })
+      for (const bad of ['abcd2345', 'ABCD0123', 'ABCD234', 'ABCD23456']) {
+        await assert.rejects(pg.query("INSERT INTO organizations (id,name,invite_code) VALUES ('org5','Council 5',$1)", [bad]),
+          { code: '23514', constraint: 'organizations_invite_code_format' })
+      }
+    })
+    await t.test('membership and purchase request may have no department, but a set one must match the council', async () => {
+      await pg.query("INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m2','u2','org1',NULL)")
+      await assert.rejects(pg.query("INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m3','u2','org2','d1')"),
+        { code: '23503', constraint: 'memberships_department_same_organization' })
+      await pg.exec(`
+        INSERT INTO events (id,organization_id,name,created_by) VALUES ('e1','org1','Festival','u2');
+        INSERT INTO purchase_requests (id,organization_id,event_id,requester_id,department_id,idempotency_key) VALUES ('r1','org1','e1','u2',NULL,'k1');
+      `)
+      const request = await pg.query<{ department_id: string | null }>("SELECT department_id FROM purchase_requests WHERE id = 'r1'")
+      assert.equal(request.rows[0]?.department_id, null)
+    })
+  } finally {
+    await pg.close()
+    rmSync(previous, { recursive: true, force: true })
   }
 })

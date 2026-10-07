@@ -66,7 +66,12 @@ export const organizations = pgTable('organizations', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-})
+  // 초대 링크(/join/코드)와 직접 입력에 같이 쓰는 8자리 코드. 0009 마이그레이션의 DB 함수가 만든다.
+  inviteCode: text('invite_code').notNull().default(sql`vada_invite_code()`),
+}, (table) => [
+  unique('organizations_invite_code_unique').on(table.inviteCode),
+  check('organizations_invite_code_format', sql`${table.inviteCode} ~ '^[2-9A-HJ-NP-Z]{8}$'`),
+])
 
 // 생성 시 학생회 소속 검사는 서버에서 수행한다. 생성 기록은 소속 변경과 독립적이다.
 export const events = pgTable('events', {
@@ -131,7 +136,8 @@ export const memberships = pgTable('memberships', {
     .references(() => users.id, { onDelete: 'restrict' }),
   organizationId: text('organization_id').notNull()
     .references(() => organizations.id, { onDelete: 'restrict' }),
-  departmentId: text('department_id').notNull(),
+  // 초대로 들어온 구성원은 부서가 없다(미배정). 부서 편성은 ERD 재설계 때 정한다.
+  departmentId: text('department_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   unique('memberships_organization_user_unique').on(table.organizationId, table.userId),
@@ -149,7 +155,8 @@ export const purchaseRequests = pgTable('purchase_requests', {
   eventId: text('event_id').notNull(),
   requesterId: text('requester_id').notNull()
     .references(() => users.id, { onDelete: 'restrict' }),
-  departmentId: text('department_id').notNull(),
+  // 요청자가 미배정이면 비어 있다.
+  departmentId: text('department_id'),
   purpose: text('purpose'),
   neededBy: date('needed_by'),
   estimatedShippingCost: integer('estimated_shipping_cost'),

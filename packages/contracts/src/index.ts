@@ -79,7 +79,8 @@ export interface PurchaseSummary {
   eventId: string
   organizationId: string
   requesterId: string
-  departmentId: string
+  // 요청자가 미배정이면 null이다.
+  departmentId: string | null
   purpose: string | null
   neededBy: string | null
   estimatedShippingCost: number | null
