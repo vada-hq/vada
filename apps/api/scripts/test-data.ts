@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { and, eq } from 'drizzle-orm'
+import { and, eq, isNull } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { accounts, departments, memberships, organizations } from '../src/db/schema.js'
 
@@ -38,6 +38,9 @@ export async function assignDepartment(db: Database, userId: string, department:
     }
     await tx.insert(memberships).values({ id: randomUUID(), userId, organizationId: council.id, departmentId: target.id })
       .onConflictDoNothing({ target: [memberships.organizationId, memberships.userId] })
+    // 초대로 들어와 미배정인 소속에만 부서를 넣는다. 이미 정해진 부서는 바꾸지 않는다.
+    await tx.update(memberships).set({ departmentId: target.id })
+      .where(and(eq(memberships.organizationId, council.id), eq(memberships.userId, userId), isNull(memberships.departmentId)))
     const [membership] = await tx.select().from(memberships)
       .where(and(eq(memberships.organizationId, council.id), eq(memberships.userId, userId)))
     if (membership?.departmentId !== target.id) throw new Error('Existing department assignment cannot be overwritten')
