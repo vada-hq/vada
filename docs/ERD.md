@@ -45,6 +45,7 @@ erDiagram
     organizations {
         text id PK
         text name "학생회 이름"
+        text invite_code UK "초대 코드 8자리"
     }
     departments {
         text id PK
@@ -76,14 +77,15 @@ erDiagram
         text id PK
         text user_id FK
         text organization_id FK
-        text department_id FK
+        text department_id FK "미배정이면 null"
     }
 ```
 
 `PK`: 기본 키 · `FK`: 외래 키 · `UK`: 고유 키. 행사와 채팅방은 DB에서 서로 0~1개 연결을 허용하며, 행사 생성 API가 채팅방 하나를 함께 만든다. 나머지는 부모 1개당 자식 0개 이상이다. `verifications`는 외래 키가 없는 독립 테이블이다.
 
 - `accounts`: `(provider_id, account_id)` 조합은 중복 불가.
-- `memberships`: `(organization_id, user_id)` 조합은 중복 불가. `(organization_id, department_id)`는 `departments`의 고유 조합 `(organization_id, id)`를 참조하여 다른 학생회 부서에 소속되는 것을 막는다.
+- `organizations`: `invite_code`는 학생회마다 하나인 8자리 초대 코드다. 헷갈리는 0·1·I·O를 뺀 대문자·숫자로 이루어진다. DB 함수 `vada_invite_code()`가 기본값을 만들고, CHECK가 형식을 지킨다.
+- `memberships`: `(organization_id, user_id)` 조합은 중복 불가. `(organization_id, department_id)`는 `departments`의 고유 조합 `(organization_id, id)`를 참조하여 다른 학생회 부서에 소속되는 것을 막는다. 부서는 비어 있을 수 있다(초대로 들어온 미배정 구성원). 비어 있으면 복합 외래 키를 검사하지 않는다.
 - `events`: 이름 중복은 허용하되 공백만으로 된 이름은 금지한다. 생성자의 소속 변경은 행사에 영향을 주지 않는다. 생성 당시 소속 검사는 서버 책임이다.
 - `chat_rooms`: 행사 연결은 선택이며 행사당 최대 한 방이다. `(organization_id, event_id)` 복합 외래 키가 다른 학생회 행사 연결을 막는다. 행사·채팅방 생성은 하나의 트랜잭션이다. 행사 미연결 방의 생성·접근 API와 개인 대화 권한은 제공하지 않는다.
 - `messages`: 행사 대신 채팅방을 참조한다. 공백만인 본문과 2,000자를 넘는 본문은 금지하며, 조회 인덱스는 `(chat_room_id, created_at, id)`다. 작성자 소속 변경으로 기존 메시지는 삭제되지 않는다. 쓰기 권한 검사는 서버 책임이다.
@@ -109,7 +111,7 @@ erDiagram
         text organization_id FK "행사 및 부서 복합 FK"
         text event_id FK
         text requester_id FK
-        text department_id FK
+        text department_id FK "미배정 요청자면 null"
         text purpose "미확인 시 null"
         date needed_by "미확인 시 null"
         integer estimated_shipping_cost "원 단위, 미확인 시 null"
@@ -145,7 +147,7 @@ erDiagram
     }
 ```
 
-- `purchase_requests`: 행사·요청 부서는 같은 학생회여야 한다. 요청 부서는 기록된 ID를 유지하며 소속 변경에 따라 바뀌지 않는다. `(requester_id, idempotency_key)`는 중복 불가다.
+- `purchase_requests`: 행사·요청 부서는 같은 학생회여야 한다. 요청 부서는 기록된 ID를 유지하며 소속 변경에 따라 바뀌지 않는다. 요청자가 미배정이면 부서는 비어 있다. `(requester_id, idempotency_key)`는 중복 불가다.
 - `purchase_items`: `(request_id, position)`은 중복 불가다. 주문 수량은 양의 정수, 단가·배송비는 0 이상의 원 단위 정수다. 미확인은 `null`이며 합계는 저장하지 않고 계산한다. 조회 정보와 조회 시각은 함께 저장하며 편집값과 분리한다.
 - `purchase_request_sources`: 같은 요청·메시지 연결은 한 번만 저장한다. 메시지가 같은 행사방에 속하는지는 서버에서 검증해야 한다.
 - `purchase_request_history`: `(request_id, version)`은 중복 불가이며 반려 이력에는 공백이 아닌 사유가 필요하다. 구매 관련 외래 키는 부모 삭제를 제한한다.
