@@ -63,16 +63,15 @@ apps/web/
     index.css            유일한 CSS: Tailwind, 토큰, 기준 글자 크기, 글꼴
     App.tsx              로그인 · 초대 · 소속 분기
     components/
-      ui/                shadcn에서 가져와 통일 규칙대로 고친 부품
-                         (button, input, textarea, label, badge, card,
-                          dialog, sheet, alert, separator, sidebar ...)
+      ui/                기본 부품 (shadcn에서 가져와 통일 규칙대로 고친 것과
+                         같은 규칙으로 만든 것: button, input, textarea, label,
+                         native-select, badge, card, alert, dialog, sheet,
+                         nav-item, tab-button)
       AuthCard.tsx       로그인·가입 가운데 카드
       EmptyState.tsx     빈 화면
       Avatar.tsx         아바타
-      CodeText.tsx       초대 코드 표시
+      BrandMark.tsx      로고 (사이드바·인증 카드)
       StateMessage.tsx   상태 문구 역할 (shared/ui에서 옮김)
-    hooks/
-      use-mobile.ts      휴대폰 폭 감지 (shadcn sidebar가 사용)
     lib/
       utils.ts           cn()
       in-app-browser.ts  카카오톡 감지 (shared에서 옮김)
@@ -138,17 +137,20 @@ shadcn 색 변수를 와이어프레임 값으로 정한다.
 - **카드:** 반경 큰 값에 `shadow-sm`이다. 행사 개요 화면(EVT-02)의 그림자 없는 카드는 쓰지 않는다.
 - **탭:** 페이지 탭 모양 하나만 쓴다. 높이 40px, 글자 굵기 500이다. 비활성은 gray-500, 활성은 blue-700 글자에 blue-600 2px 밑줄이다.
 - **배너:** 모든 종류가 반경 중간 값이다.
-- **대화상자:** 오버레이는 검정 45%, 제목 굵기는 600이다. 아래쪽 버튼 줄은 gray-50 배경에 gray-100 윗선을 둔다. 취소는 테두리 버튼이다.
+- **대화상자:** 오버레이는 검정 45%, 제목 굵기는 600, 안쪽 여백은 21px이다. 버튼 줄은 오른쪽 정렬하고 취소는 테두리 버튼이다. 회색 footer 띠는 쓰지 않는다(와이어프레임의 두 대화상자 모양 중 단순한 쪽).
 - **제목 크기:** 헤더 제목은 14px/600(`text-base`)이다. 본문 영역 제목은 17.5px/700(`text-xl`)이다.
 
 ## 부품
 
-- **shadcn에서 가져와 위 규칙대로 고친다:** button, input, textarea, label, badge, card, dialog, sheet, alert, separator, sidebar
-  - sidebar는 휴대폰에서 자동으로 옆에서 열리는 메뉴로 바뀐다.
+- **shadcn에서 가져와 위 규칙대로 고친다:** button, input, textarea, label, badge, card, alert, dialog, sheet
+- **같은 규칙으로 직접 만드는 기본 부품:** native-select(브라우저 선택칸에 입력칸 모양), nav-item(사이드바 메뉴 항목), tab-button(페이지 탭)
+- **shadcn sidebar는 쓰지 않는다:** 접기, 단축키, 쿠키 저장처럼 쓰지 않는 기능이 많다. 데스크톱은 `aside`, 768px 미만은 sheet로 직접 만든다. 화면 폭 판단은 CSS 중단점으로만 한다.
 - **직접 만든다:**
   - `EmptyState`: blue-50 원 안에 아이콘, 제목, 설명
   - `Avatar`: gray-200 원 안에 사람 아이콘. 와이어프레임에 사진이나 이니셜이 없다.
-  - `CodeText`: 초대 코드 표시. 고정폭, 굵게, 자간을 넓힌다.
+  - `AuthCard`: 로그인·가입 가운데 카드
+  - `BrandMark`: 파란 정사각형 안의 "V". 사이드바와 인증 카드 머리에 같이 쓴다.
+- **체크박스는 브라우저 기본 모양을 쓴다:** 와이어프레임에도 체크박스 디자인이 없다. 크기와 강조색(blue-600)만 준다.
 - **`StateMessage`는 남긴다:** 기존 `StateMessage`는 역할(`status`, `alert`)만 담당하므로 그대로 쓴다. 모양은 Tailwind 클래스로 준다.
 - **탭은 지금 구현을 유지한다:** 행사 탭(대화·구매요청)은 지금의 ARIA 탭 구현을 그대로 쓰고 모양만 바꾼다. 숨기기만 해서 입력 내용과 스크롤을 보존하는 동작을 지키기 위해서다.
 
@@ -171,10 +173,10 @@ shadcn 색 변수를 와이어프레임 값으로 정한다.
   - 가운데 카드로 만든다. 와이어프레임 SIGN-IN·INV-00·INV-01처럼 반경 큰 값, `shadow-sm`, 넓은 안쪽 여백을 쓴다.
   - 로그인 화면의 초대 안내, 카카오톡 안내, 오류 문구도 카드 안에 둔다.
   - 로그인한 뒤의 카드(소속 확인 중, 코드 입력, 학생회 확인)도 같은 카드를 쓴다.
-- **행사 만들기:** 사이드바의 입력칸 대신 대화상자를 쓴다. 제목 "새 행사", 행사 이름 입력칸과 글자 수, [취소]와 [만들기]를 둔다.
+- **행사 만들기:** 사이드바의 입력칸 대신 대화상자를 쓴다. 제목 "새 행사", 행사 이름 입력칸과 글자 수, [취소]와 [행사 만들기](와이어프레임 버튼 문구)를 둔다.
 - **구성원 초대:** 사이드바 복사 버튼 두 개 대신 대화상자를 쓴다(ORG-03C 모양).
-  - "공용 초대 링크"와 [링크 복사], "짧은 초대 코드"(`CodeText`)와 [코드 복사]를 둔다.
-  - 복사 실패 시 직접 복사할 수 있게 보여 주는 동작은 지금과 같다.
+  - 읽기 전용 입력칸 "초대 링크"와 [초대 링크 복사], 고정폭 읽기 전용 입력칸 "초대 코드"와 [코드 복사]를 둔다.
+  - 링크와 코드가 늘 보이므로, 복사에 실패하면 안내 문구만 보여 주고 사용자가 직접 선택해 복사한다.
 - **빈 화면:** 고른 행사가 없으면 `EmptyState`를 보여 준다. 문구는 지금과 같다.
 - **채팅:**
   - 와이어프레임에 말풍선 디자인이 없다. 그래서 같은 디자인 언어로 목록형 메시지를 만든다(아바타, 이름 600, 시간 muted xs, 본문).
