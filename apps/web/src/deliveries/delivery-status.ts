@@ -1,7 +1,12 @@
 import type { DeliveryStatus } from '@vada/contracts'
+import type { Tone } from '@/components/ui/badge'
 
 export const deliveryStatusLabels: Record<DeliveryStatus, string> = {
   unknown: '확인 불가', pending: '배송 예정', in_transit: '배송 중', delivered: '배송 완료', exception: '배송 문제',
+}
+// 배송 중은 정보, 배송 완료는 성공, 배송 문제는 위험, 예정·확인 불가는 중립 색이다.
+export const deliveryStatusTones: Record<DeliveryStatus, Tone> = {
+  unknown: 'neutral', pending: 'neutral', in_transit: 'info', delivered: 'success', exception: 'danger',
 }
 // 택배사 목록 조회는 재정부 전용이다. 다른 구성원에게는 자주 쓰는 택배사만 이름으로 보여 주고 나머지는 ID를 그대로 표시한다.
 const knownCarriers: Record<string, string> = {
