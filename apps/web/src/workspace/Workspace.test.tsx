@@ -207,3 +207,38 @@ test('a new event is created in a dialog that closes on success and on Escape', 
   fireEvent.keyDown(await screen.findByRole('dialog', { name: '새 행사' }), { key: 'Escape' })
   await waitFor(() => expect(screen.queryByRole('dialog', { name: '새 행사' })).toBeNull())
 })
+
+// jsdom의 click은 포커스를 옮기지 않으므로, 실제 클릭·키보드처럼 버튼에 먼저 포커스를 준다.
+test('closing the invite dialog returns focus to the button that opened it', async () => {
+  setup()
+  render(<Workspace {...props} />)
+  const opener = screen.getByRole('button', { name: '구성원 초대' })
+  opener.focus()
+  fireEvent.click(opener)
+  fireEvent.keyDown(await screen.findByRole('dialog', { name: '구성원 초대' }), { key: 'Escape' })
+  await waitFor(() => expect(document.activeElement).toBe(opener))
+})
+
+test('closing the mobile menu returns focus to the menu button', async () => {
+  setup()
+  render(<Workspace {...props} />)
+  const opener = screen.getByRole('button', { name: '메뉴 열기' })
+  opener.focus()
+  fireEvent.click(opener)
+  fireEvent.keyDown(await screen.findByRole('dialog', { name: '학생회 작업 공간' }), { key: 'Escape' })
+  await waitFor(() => expect(document.activeElement).toBe(opener))
+})
+
+test('새 행사 inside the mobile menu opens the dialog and leaves the page usable after closing', async () => {
+  setup()
+  render(<Workspace {...props} />)
+  fireEvent.click(screen.getByRole('button', { name: '메뉴 열기' }))
+  const menu = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
+  await within(menu).findByRole('button', { name: '체육대회' })
+  fireEvent.click(within(menu).getByRole('button', { name: '새 행사' }))
+  fireEvent.keyDown(await screen.findByRole('dialog', { name: '새 행사' }), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  // 겹친 대화상자가 닫힌 뒤 화면이 다시 눌리고 보조 기술에도 보여야 한다.
+  expect(document.body.style.pointerEvents).toBe('')
+  expect(screen.getByRole('button', { name: '메뉴 열기' })).toBeTruthy()
+})
