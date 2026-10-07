@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from 'react'
 import { InviteCodeSchema } from '@vada/contracts'
+import { inviteCodeFromText } from './invite-path'
 
 type Props = { initialCode: string; onSubmit: (code: string) => void }
 
 // 와이어프레임 INV-00. 소속이 없을 때 보이는 첫 화면이다.
 export default function InviteCodeForm({ initialCode, onSubmit }: Props) {
   const [value, setValue] = useState(initialCode)
-  const parsed = InviteCodeSchema.safeParse(value)
+  const parsed = InviteCodeSchema.safeParse(inviteCodeFromText(value))
   function submit(event: FormEvent) {
     event.preventDefault()
     if (parsed.success) onSubmit(parsed.data)

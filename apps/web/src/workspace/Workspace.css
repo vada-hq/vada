@@ -4,7 +4,7 @@
 .sidebar-brand strong { font-size: var(--font-heading); }
 .sidebar-membership { padding: var(--space-5); overflow-wrap: anywhere; }
 .sidebar-membership h2 { font-size: var(--font-base); margin-bottom: var(--space-2); }
-.sidebar-membership p { color: var(--color-muted); margin-bottom: var(--space-2); }
+.sidebar-membership > p { color: var(--color-muted); margin-bottom: var(--space-2); }
 .sidebar-invite { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-3); }
 .sidebar-invite [role="status"], .sidebar-invite [role="alert"], .sidebar-invite label { flex-basis: 100%; margin: 0; }
 .sidebar-events { padding: 0 var(--space-4) var(--space-5); flex: 1; }

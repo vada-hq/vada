@@ -88,3 +88,13 @@ test('KakaoTalk in-app browser explains how to open another browser', () => {
     agent.mockRestore()
   }
 })
+
+test('OAuth failure on an invite link keeps the invite and explains the failure', async () => {
+  window.history.replaceState(null, '', '/join/ABCD2345?error=access_denied')
+  auth.social.mockResolvedValue({ error: null })
+  render(<App />)
+  expect(screen.getByRole('alert').textContent).toContain('로그인이 완료되지 않았어요')
+  expect(screen.getByText('학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+  await waitFor(() => expect(auth.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/join/ABCD2345', errorCallbackURL: '/join/ABCD2345' }))
+})

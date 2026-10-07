@@ -157,3 +157,12 @@ test('join is sent once while in flight and a failure can be retried', async () 
   expect(await screen.findByRole('button', { name: '체육대회' })).toBeTruthy()
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(2)
 })
+
+test('pasting the whole invite link into the code field opens that invite', async () => {
+  api.on('GET', '/api/me/memberships', () => json({ memberships: [] }))
+  api.on('GET', '/api/invites/ABCD2345', () => preview())
+  render(<App />)
+  fireEvent.change(await screen.findByLabelText('초대 코드'), { target: { value: 'https://vada-m1.onrender.com/join/ABCD2345' } })
+  fireEvent.click(screen.getByRole('button', { name: '학생회 확인' }))
+  expect(await screen.findByText('테스트 학생회에 참여할까요?')).toBeTruthy()
+})
