@@ -24,7 +24,7 @@ export default function PurchaseList({ rows, finance, loading, error, disabled, 
     {!loading && !error && rows.length > 0 && !visible.length && <StateMessage kind="notice">불러온 요청서 중 해당 상태가 없어요.</StateMessage>}
     <ul className="flex flex-col gap-2">{visible.map(row => <li key={row.id}>
       <Button variant="outline" className="w-full flex-wrap justify-start gap-3 p-4 text-left whitespace-normal" data-purchase-id={row.id} disabled={disabled} onClick={() => onSelect(row.id)}>
-        <strong className="min-w-0 flex-1 wrap-anywhere">{row.purpose || '구매 목적 확인 필요'}</strong>{' '}
+        <strong className="min-w-0 flex-1 wrap-anywhere max-md:basis-full">{row.purpose || '구매 목적 확인 필요'}</strong>{' '}
         <Badge tone={purchaseStatusTones[row.status]}>{purchaseStatusLabels[row.status]}</Badge>{' '}
         <time className="text-xs font-normal text-gray-400" dateTime={row.createdAt}>{new Date(row.createdAt).toLocaleString('ko-KR')}</time>
       </Button>
