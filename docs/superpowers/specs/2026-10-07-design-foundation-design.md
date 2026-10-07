@@ -48,6 +48,58 @@ Figma `B5OHqrl9bbvXCUkhME4Sfo`를 2026-10-07에 분석했다.
   - 본문은 `Pretendard Variable`(동적 서브셋, 우리 서버에서 제공)이다. Pretendard의 영문 글자는 Inter 기반이라 와이어프레임과 맞는다.
   - 고정폭은 시스템 고정폭 글꼴을 쓴다. 초대 코드 표시에 쓴다.
 
+## 디렉토리 구조
+
+`apps/web`의 바뀐 뒤 구조다. 기능 폴더(access, auth, chat, deliveries, events, purchases, workspace)는 그대로 둔다. 공통 코드만 shadcn 관례대로 `components/`와 `lib/`로 모은다.
+
+```
+apps/web/
+  components.json        shadcn 설정 (별칭 @/ = src/)
+  index.html             앱 진입
+  ui.html                부품 확인 화면 진입 (개발 서버 전용, 운영 빌드 제외)
+  vite.config.ts         Tailwind 플러그인, @/ 별칭
+  src/
+    main.tsx             앱 시작: index.css 불러오기, 카카오톡 전환
+    index.css            유일한 CSS: Tailwind, 토큰, 기준 글자 크기, 글꼴
+    App.tsx              로그인 · 초대 · 소속 분기
+    components/
+      ui/                shadcn에서 가져와 통일 규칙대로 고친 부품
+                         (button, input, textarea, label, badge, card,
+                          dialog, sheet, alert, separator, sidebar ...)
+      AuthCard.tsx       로그인·가입 가운데 카드
+      EmptyState.tsx     빈 화면
+      Avatar.tsx         아바타
+      CodeText.tsx       초대 코드 표시
+      StateMessage.tsx   상태 문구 역할 (shared/ui에서 옮김)
+    hooks/
+      use-mobile.ts      휴대폰 폭 감지 (shadcn sidebar가 사용)
+    lib/
+      utils.ts           cn()
+      in-app-browser.ts  카카오톡 감지 (shared에서 옮김)
+    access/              가입 · 초대 화면과 로직
+    auth/                인증 클라이언트
+    chat/                채팅 화면과 useChat
+    deliveries/          배송 화면과 로직
+    events/              행사 목록 · 행사 만들기 대화상자와 useEvents
+    purchases/           구매 화면과 로직
+    workspace/
+      Workspace.tsx      로그인 후 앱 틀: 선택 상태 관리 + 사이드바 + 헤더 + 본문
+      WorkspaceSidebar.tsx   사이드바 내용 (지금 Sidebar.tsx)
+      WorkspaceHeader.tsx    경로 · 제목 · 휴대폰 메뉴 버튼
+      EventWorkspace.tsx     행사 탭 (대화 · 구매요청)
+    ui-gallery/          부품 확인 화면 (components만 가져오고 API를 부르지 않음)
+    test-support/        테스트 도우미 (지금과 같음)
+```
+
+- **없어지는 것:** `styles/`(tokens.css, base.css), `shared/`(옮김), `App.css`, 그리고 화면별 `.css` 5개(Chat, Workspace, Purchases, Deliveries, App)가 없어진다.
+
+폴더 규칙:
+- **`components/ui/`:** shadcn에서 온 기본 부품이다. API 호출이나 기능 로직을 넣지 않는다. 고칠 때는 통일 규칙을 바꿀 때뿐이다.
+- **`components/`:** 여러 기능이 같이 쓰는 표시용 부품이다. API를 부르지 않는다.
+- **기능 폴더:** 자기 화면, 데이터 훅(`useX`), 상태 계산을 가진다. 다른 기능의 화면은 조립할 수 있다. 예를 들어 workspace가 chat과 purchases를 넣는다. 다른 기능의 내부 도우미는 가져오지 않는다.
+- **새 CSS 파일을 만들지 않는다:** 모양은 클래스로만 준다. `index.css`에는 토큰과 전역 기본값만 둔다.
+- **테스트 위치:** 테스트는 대상 파일 옆(`*.test.tsx`)에 두고, 여러 테스트가 쓰는 도우미는 `test-support/`에 둔다.
+
 ## 토큰
 
 shadcn 색 변수를 와이어프레임 값으로 정한다.
