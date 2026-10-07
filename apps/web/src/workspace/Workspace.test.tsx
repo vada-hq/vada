@@ -66,7 +66,8 @@ test('launches from chat, opens generated detail and restores chat; unsaved purc
   fireEvent.change(screen.getByLabelText('쿠팡 상품 링크'), { target: { value: 'https://www.coupang.com/vp/products/1' } })
   fireEvent.click(screen.getByRole('button', { name: '초안 만들기' }))
   await screen.findByRole('heading', { name: '구매요청서 · 검토 대기' })
-  expect(screen.queryByRole('dialog')).toBeNull()
+  // 대화 상자는 초안 생성 요청이 끝난 다음 차례에 닫힌다. 제목이 먼저 보일 수 있어 닫힐 때까지 기다린다.
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(screen.getByRole('tab', { name: '구매요청' }).getAttribute('aria-selected')).toBe('true')
   fireEvent.change(screen.getByLabelText('구매 목적'), { target: { value: '수정 중인 목적' } })
   fireEvent.click(screen.getByRole('button', { name: '대화로 돌아가기' }))
