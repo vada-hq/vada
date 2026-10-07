@@ -16,9 +16,15 @@ export function scrubEvent(event: ErrorEvent): ErrorEvent {
 
 // SENTRY_DSN이 있을 때만 켠다. 자동 계측은 쓰지 않고, 서버 쪽 실패만 직접 보낸다. transport는 테스트에서만 바꾼다.
 export function startErrorReporting(dsn: string | undefined, environment: string, transport?: NodeOptions['transport']) {
-  if (!dsn?.trim()) return false
+  const value = dsn?.trim()
+  if (!value) return false
+  // OTLP 주소처럼 DSN이 아닌 값이면 SDK가 조용히 꺼지므로, 켜지 않고 원인만 남긴다(값은 남기지 않는다).
+  if (!/^https?:\/\/[^@/\s]+@[^/\s]+\/\d+$/.test(value)) {
+    console.error('SENTRY_DSN 형식이 DSN이 아니라 오류 알림을 켜지 않습니다. Sentry 프로젝트 설정의 Client Keys에서 DSN 값을 넣으세요.')
+    return false
+  }
   Sentry.init({
-    dsn: dsn.trim(), environment, maxBreadcrumbs: 0, beforeSend: scrubEvent, defaultIntegrations: false, ...(transport ? { transport } : {}),
+    dsn: value, environment, maxBreadcrumbs: 0, beforeSend: scrubEvent, defaultIntegrations: false, ...(transport ? { transport } : {}),
     // 자동 계측용 모듈 로더 후크를 켜지 않는다. tsx 로더와 겹쳐 최신 Node에서 서버 시작이 멈췄다.
     enableRuntimeChannelInjection: false,
     integrations: [Sentry.onUncaughtExceptionIntegration(), Sentry.onUnhandledRejectionIntegration(), Sentry.linkedErrorsIntegration(), Sentry.contextLinesIntegration()],

@@ -19,7 +19,7 @@ import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 function main() {
   const { env, production, hostname, port } = readRuntime(process.env, process.argv.includes('--production'))
   if (production) process.env.NODE_ENV = 'production'
-  startErrorReporting(env.SENTRY_DSN, production ? 'production' : 'development')
+  if (startErrorReporting(env.SENTRY_DSN, production ? 'production' : 'development')) console.log('오류 알림 켜짐 (Sentry)')
   const tracking = trackingConfig(env)
   // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
   const client = postgres(env.DATABASE_URL!, {

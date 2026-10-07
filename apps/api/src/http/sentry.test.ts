@@ -30,6 +30,15 @@ test('DSN이 없으면 오류 수집을 켜지 않는다', () => {
   assert.equal(startErrorReporting('  ', 'development'), false)
 })
 
+test('DSN이 아닌 값(OTLP 주소 등)이면 켜지 않고 원인을 로그에 남긴다', (t) => {
+  const logged: string[] = []
+  t.mock.method(console, 'error', (line: string) => { logged.push(line) })
+  assert.equal(startErrorReporting('https://o1.ingest.us.sentry.io/api/2/integration/otlp', 'production'), false)
+  assert.equal(logged.length, 1)
+  assert.ok(logged[0]!.includes('SENTRY_DSN'))
+  assert.ok(!logged[0]!.includes('o1.ingest'))
+})
+
 test('실제 SDK 경로로 보내도 정제되고, 요청을 실패시킨 오류는 처리되지 않은 실패로 표시된다', async (t) => {
   // 소스 코드 줄이 스택 문맥으로 함께 실리므로 검사할 값은 실행 중에 만든다.
   const secret = ['secret', 'token'].join('-')
