@@ -39,10 +39,11 @@ export function useEvents(organizationId: string) {
     return () => controller.abort()
   }, [url, attempt])
 
-  async function create(e: FormEvent<HTMLFormElement>) {
+  // 성공하면 true를 돌려준다. 대화상자는 성공했을 때만 닫는다.
+  async function create(e: FormEvent<HTMLFormElement>): Promise<boolean> {
     e.preventDefault()
     const parsed = CreateEventSchema.safeParse({ name })
-    if (!parsed.success || pending.current || loading || loadError) return
+    if (!parsed.success || pending.current || loading || loadError) return false
     pending.current = true
     setSaving(true)
     setCreateError('')
@@ -59,9 +60,11 @@ export function useEvents(organizationId: string) {
         setEvents(previous => [result.event, ...(previous ?? [])])
         setName('')
       }
+      return true
     } catch {
       // 응답 유실 시 서버에는 저장됐을 수 있으므로 자동으로 재전송하지 않는다.
       if (active.current) setCreateError('생성 결과를 확인하지 못했어요. 다시 만들기 전에 목록을 새로고침해 주세요.')
+      return false
     } finally {
       pending.current = false
       if (active.current) setSaving(false)

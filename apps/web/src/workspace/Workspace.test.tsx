@@ -151,7 +151,7 @@ test('an unassigned member sees 미배정 and no finance badge', () => {
   render(<Workspace {...props} memberships={[{ ...membership, department: null }]} />)
   expect(screen.getByText('미배정')).toBeTruthy()
   expect(screen.queryByText('재정 담당')).toBeNull()
-  expect(screen.getByRole('button', { name: '초대 링크 복사' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: '구성원 초대' })).toBeTruthy()
 })
 
 test('a newly joined council is opened first', async () => {
@@ -177,4 +177,33 @@ test('on a narrow screen the menu button opens the sidebar, and choosing an even
   fireEvent.click(await within(menu).findByRole('button', { name: '체육대회' }))
   await waitFor(() => expect(screen.queryByRole('dialog', { name: '학생회 작업 공간' })).toBeNull())
   expect(screen.getByRole('heading', { level: 1, name: '체육대회' })).toBeTruthy()
+})
+
+test('the invite dialog shows the council link and code', async () => {
+  setup()
+  render(<Workspace {...props} />)
+  fireEvent.click(screen.getByRole('button', { name: '구성원 초대' }))
+  const dialog = await screen.findByRole('dialog', { name: '구성원 초대' })
+  expect((within(dialog).getByLabelText('초대 코드') as HTMLInputElement).value).toBe('ABCD2345')
+  expect((within(dialog).getByLabelText('초대 링크') as HTMLInputElement).value).toBe(`${window.location.origin}/join/ABCD2345`)
+})
+
+test('a new event is created in a dialog that closes on success and on Escape', async () => {
+  const created = { ...event, id: 'e3', name: '가을 축제' }
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => ({ ok: true, status: 200, json: async () =>
+    init?.method === 'POST' ? { event: created }
+      : url.endsWith('/events') ? { events: [event] }
+        : url.endsWith('/messages') ? { messages: [], nextCursor: null } : { requests: [], nextCursor: null } })))
+  render(<Workspace {...props} />)
+  // 목록을 다 불러온 뒤에야 만들기 버튼이 활성화되므로 목록을 먼저 기다린다.
+  await screen.findByRole('button', { name: '체육대회' })
+  fireEvent.click(screen.getByRole('button', { name: '새 행사' }))
+  const dialog = await screen.findByRole('dialog', { name: '새 행사' })
+  fireEvent.change(within(dialog).getByLabelText('행사 이름'), { target: { value: '가을 축제' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '행사 만들기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '새 행사' })).toBeNull())
+  expect(await screen.findByRole('button', { name: '가을 축제' })).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '새 행사' }))
+  fireEvent.keyDown(await screen.findByRole('dialog', { name: '새 행사' }), { key: 'Escape' })
+  await waitFor(() => expect(screen.queryByRole('dialog', { name: '새 행사' })).toBeNull())
 })

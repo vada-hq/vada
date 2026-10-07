@@ -3,6 +3,7 @@ import { CalendarDays } from 'lucide-react'
 import type { EventSummary, MembershipSummary } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
 import { Card } from '@/components/ui/card'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import EventList from '../events/EventList'
 import CreateEventForm from '../events/CreateEventForm'
@@ -27,6 +28,7 @@ function CouncilWorkspace({ membership, onMembershipChange, ...props }: Props & 
   const [leaveRisk, setLeaveRisk] = useState(false)
   // 768px 미만에서 옆 메뉴로 연 사이드바. 행사를 고르면 닫는다.
   const [navOpen, setNavOpen] = useState(false)
+  const [createOpen, setCreateOpen] = useState(false)
   function canLeave() { return !leaveRisk || window.confirm('입력 중이거나 처리 중인 구매요청이 있어요. 이동하면 입력 내용이 사라지고 서버 처리는 계속될 수 있어요. 이동할까요?') }
   useEffect(() => {
     if (!leaveRisk) return
@@ -42,13 +44,20 @@ function CouncilWorkspace({ membership, onMembershipChange, ...props }: Props & 
   const sidebar = <WorkspaceSidebar {...props} onLogout={() => { if (canLeave()) props.onLogout() }} membership={membership}
     onMembershipChange={id => { if (canLeave()) onMembershipChange(id) }}>
     <EventList events={events.events} loading={events.loading} error={events.loadError} saving={events.saving}
-      selectedId={selected?.id} onSelect={select} onRefresh={events.refresh} />
-    <CreateEventForm name={events.name} onNameChange={events.setName} saving={events.saving}
-      disabled={events.loading || Boolean(events.loadError)} error={events.createError} onSubmit={event => { void events.create(event) }} />
+      selectedId={selected?.id} onSelect={select} onRefresh={events.refresh} onCreate={() => { setNavOpen(false); setCreateOpen(true) }} />
   </WorkspaceSidebar>
   return <div className="flex h-dvh">
     <aside className="hidden w-60 shrink-0 border-r bg-white md:flex md:flex-col" aria-label="학생회 작업 공간">{sidebar}</aside>
     <Sheet open={navOpen} onOpenChange={setNavOpen}><SheetContent title="학생회 작업 공간">{sidebar}</SheetContent></Sheet>
+    {/* 저장 중에는 닫지 않는다. 응답을 기다리는 동안 닫으면 결과를 볼 곳이 없다. */}
+    <Dialog open={createOpen} onOpenChange={open => { if (!events.saving) setCreateOpen(open) }}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>새 행사</DialogTitle><DialogDescription>행사를 만들면 대화방이 함께 생겨요.</DialogDescription></DialogHeader>
+        <CreateEventForm name={events.name} onNameChange={events.setName} saving={events.saving}
+          disabled={events.loading || Boolean(events.loadError)} error={events.createError} onCancel={() => setCreateOpen(false)}
+          onSubmit={event => { void events.create(event).then(created => { if (created) setCreateOpen(false) }) }} />
+      </DialogContent>
+    </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
       <WorkspaceHeader councilName={membership.organization.name} title={selected?.name ?? '행사'} onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">

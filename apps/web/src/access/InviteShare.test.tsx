@@ -29,8 +29,14 @@ test('shows the link and code to copy by hand when copying is refused', async ()
   expect((screen.getByLabelText('초대 코드') as HTMLInputElement).value).toBe('ABCD2345')
 })
 
-test('a browser without the clipboard API falls back the same way', async () => {
+test('shows the link and code before any copy so they can be copied by hand', () => {
+  render(<InviteShare code="ABCD2345" />)
+  expect((screen.getByLabelText('초대 링크') as HTMLInputElement).value).toBe(link())
+  expect((screen.getByLabelText('초대 코드') as HTMLInputElement).value).toBe('ABCD2345')
+})
+
+test('a browser without the clipboard API explains how to copy by hand', async () => {
   render(<InviteShare code="ABCD2345" />)
   fireEvent.click(screen.getByRole('button', { name: '코드 복사' }))
-  expect(await screen.findByLabelText('초대 코드')).toBeTruthy()
+  expect((await screen.findByRole('alert')).textContent).toContain('직접 선택해 복사')
 })
