@@ -153,3 +153,23 @@ test('delivery API limits writes, shares only delivery summaries and persists re
     })
   } finally { await pg.close() }
 })
+
+test('미배정 구성원은 재정 전용 배송 기능을 쓰지 못한다', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
+    await pg.exec(`
+      INSERT INTO users(id,name,email) VALUES ('n','New','n@test.local');
+      INSERT INTO organizations(id,name) VALUES ('a','A');
+      INSERT INTO memberships(id,user_id,organization_id,department_id) VALUES ('n','n','a',NULL);
+    `)
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: 'http://127.0.0.1:5180',
+      deliveries: createDeliveryRoutes(db, async () => ({ user: { id: 'n' } }), {} as never) })
+    const response = await app.request('/api/organizations/a/delivery-carriers')
+    assert.equal(response.status, 403)
+    assert.deepEqual(await response.json(), { error: 'FORBIDDEN' })
+  } finally {
+    await pg.close()
+  }
+})

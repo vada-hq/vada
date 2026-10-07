@@ -10,8 +10,9 @@ export type { DeliveryStatus, DeliveryLookupRequest, RegisterShipmentRequest, Un
 
 export interface MembershipSummary {
   id: string
-  organization: { id: string; name: string }
-  department: { id: string; name: string; handlesFinance: boolean }
+  organization: { id: string; name: string; inviteCode: string }
+  // 초대로 들어와 아직 부서가 없으면 null(미배정)이다.
+  department: { id: string; name: string; handlesFinance: boolean } | null
 }
 
 export interface MembershipsResponse {

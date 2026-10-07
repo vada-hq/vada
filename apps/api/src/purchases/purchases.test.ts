@@ -324,3 +324,37 @@ test('draft API protects ownership, persists atomically, and rejects stale edits
     })
   } finally { await pg.close() }
 })
+
+test('미배정 구성원도 구매 요청 초안을 만들고, 재정 기능은 쓰지 못한다', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
+    await pg.exec(`
+      INSERT INTO users(id,name,email) VALUES ('n','New','n@test.local');
+      INSERT INTO organizations(id,name) VALUES ('a','A');
+      INSERT INTO memberships(id,user_id,organization_id,department_id) VALUES ('n','n','a',NULL);
+      INSERT INTO events(id,organization_id,name,created_by) VALUES ('e','a','Festival','n');
+      INSERT INTO chat_rooms(id,organization_id,event_id) VALUES ('room','a','e');
+      INSERT INTO messages(id,chat_room_id,author_id,content) VALUES ('m','room','n','테이블 2개');
+    `)
+    const generate: DraftGenerator = async input => ({
+      purpose: '행사 접수', neededBy: '2026-10-09', sourceMessageIds: ['m'], warnings: [],
+      items: input.links.map(productUrl => ({ productUrl, productName: '테이블', selectedOption: '화이트',
+        optionRequired: true, quantity: 2, packagingUnit: null, estimatedUnitPrice: 11590,
+        productSnapshot: { price: 11590 }, productFetchedAt: new Date('2026-09-29T00:00:00Z') })),
+    })
+    const origin = 'http://127.0.0.1:5180'
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin,
+      purchases: createPurchaseRoutes(db, async () => ({ user: { id: 'n' } }), generate) })
+    const path = '/api/organizations/a/events/e/purchase-requests'
+    const response = await app.request(`${path}/drafts`, { method: 'POST',
+      headers: { Origin: origin, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idempotencyKey: 'unassigned', links: [link] }) })
+    assert.equal(response.status, 201)
+    assert.equal((await response.json()).request.departmentId, null)
+    assert.equal((await app.request(`${path}/finance`)).status, 403)
+  } finally {
+    await pg.close()
+  }
+})

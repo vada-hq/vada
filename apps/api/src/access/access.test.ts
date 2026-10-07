@@ -13,10 +13,10 @@ test('membership access uses authenticated identity and current database members
     const db = drizzle(pg)
     await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
     await pg.exec(`
-      INSERT INTO users (id,name,email) VALUES ('planner','Planner','p@example.test'),('finance','Finance','f@example.test'),('outsider','Outsider','o@example.test');
-      INSERT INTO organizations (id,name) VALUES ('org1','Council 1'),('org2','Council 2');
+      INSERT INTO users (id,name,email) VALUES ('planner','Planner','p@example.test'),('finance','Finance','f@example.test'),('outsider','Outsider','o@example.test'),('newbie','Newbie','n@example.test');
+      INSERT INTO organizations (id,name,invite_code) VALUES ('org1','Council 1','AAAA2222'),('org2','Council 2','BBBB3333');
       INSERT INTO departments (id,organization_id,name,handles_finance) VALUES ('d1','org1','Finance',false),('d2','org1','Operations',true),('d3','org2','Planning',false);
-      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m1','planner','org1','d1'),('m2','finance','org1','d2');
+      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m1','planner','org1','d1'),('m2','finance','org1','d2'),('m3','newbie','org1',NULL);
     `)
     let userId: string | null = null
     const routes = createAccessRoutes(db, async () => userId ? { user: { id: userId } } : null)
@@ -44,7 +44,7 @@ test('membership access uses authenticated identity and current database members
       const response = await routes.request('/me/memberships?userId=finance', { headers: { 'X-User-Id': 'finance' } })
       assert.equal(response.status, 200)
       assert.equal(response.headers.get('Cache-Control'), 'no-store')
-      assert.deepEqual(await response.json(), { memberships: [{ id: 'm1', organization: { id: 'org1', name: 'Council 1' }, department: { id: 'd1', name: 'Finance', handlesFinance: false } }] })
+      assert.deepEqual(await response.json(), { memberships: [{ id: 'm1', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: { id: 'd1', name: 'Finance', handlesFinance: false } }] })
       assert.equal((await routes.request('/organizations/org1/membership')).status, 200)
       assert.equal((await routes.request('/organizations/org2/membership')).status, 403)
       assert.equal((await routes.request('/organizations/missing/membership')).status, 403)
@@ -58,6 +58,13 @@ test('membership access uses authenticated identity and current database members
     await t.test('membership removal takes effect without changing the login session', async () => {
       await pg.query("DELETE FROM memberships WHERE id='m2'")
       assert.equal((await routes.request('/organizations/org1/membership')).status, 403)
+    })
+    await t.test('unassigned member keeps access with a null department', async () => {
+      userId = 'newbie'
+      const response = await routes.request('/organizations/org1/membership')
+      assert.equal(response.status, 200)
+      assert.deepEqual(await response.json(), { membership: { id: 'm3', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: null } })
+      assert.equal((await routes.request('/organizations/org2/membership')).status, 403)
     })
   } finally {
     await pg.close()

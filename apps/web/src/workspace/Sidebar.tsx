@@ -8,10 +8,10 @@ export default function Sidebar({ membership, memberships, onMembershipChange, u
     <header className="sidebar-brand"><strong>VADA</strong><span className="badge">M1</span></header>
     <section className="sidebar-membership" aria-label="내 소속">
       {memberships.length > 1 ? <label>학생회 선택<select value={membership.id} onChange={event => onMembershipChange(event.target.value)}>
-        {memberships.map(item => <option key={item.id} value={item.id}>{item.organization.name} · {item.department.name}</option>)}
+        {memberships.map(item => <option key={item.id} value={item.id}>{item.organization.name} · {item.department?.name ?? '미배정'}</option>)}
       </select></label> : <h2>{membership.organization.name}</h2>}
-      <p>{membership.department.name}</p>
-      {membership.department.handlesFinance && <span className="badge">재정 담당</span>}
+      <p>{membership.department?.name ?? '미배정'}</p>
+      {membership.department?.handlesFinance && <span className="badge">재정 담당</span>}
     </section>
     <div className="sidebar-events">{children}</div>
     <footer className="sidebar-account"><strong>{user.name}</strong><p className="hint email">{user.email}</p>

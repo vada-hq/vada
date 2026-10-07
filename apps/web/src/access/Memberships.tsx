@@ -32,8 +32,8 @@ export default function Memberships({ renderMemberships, renderFallback = conten
   return renderFallback(<section aria-label="내 소속">
     {result.memberships.length === 0 ? <><h2>소속 미지정</h2><p className="hint">테스트 담당자에게 학생회·부서 소속 지정을 요청해 주세요.</p></> : (
       <><h2>내 소속</h2><ul className="membership-list">{result.memberships.map(membership => <li key={membership.id}>
-        {membership.organization.name} · {membership.department.name}
-        {membership.department.handlesFinance && <span className="hint"> (재정 담당)</span>}
+        {membership.organization.name} · {membership.department?.name ?? '미배정'}
+        {membership.department?.handlesFinance && <span className="hint"> (재정 담당)</span>}
       </li>)}</ul></>
     )}
     <button onClick={() => setAttempt(value => value + 1)}>소속 다시 확인</button>

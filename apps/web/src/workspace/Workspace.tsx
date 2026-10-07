@@ -35,7 +35,7 @@ function CouncilWorkspace({ membership, onMembershipChange, ...props }: Props & 
         disabled={events.loading || Boolean(events.loadError)} error={events.createError} onSubmit={event => { void events.create(event) }} />
     </Sidebar>
     <main className="workspace-main">
-      {selected ? <EventWorkspace key={selected.id} event={selected} handlesFinance={membership.department.handlesFinance} onLeaveRiskChange={setLeaveRisk} />
+      {selected ? <EventWorkspace key={selected.id} event={selected} handlesFinance={membership.department?.handlesFinance ?? false} onLeaveRiskChange={setLeaveRisk} />
         : <div className="workspace-welcome"><p className="eyebrow">함께 준비하는 공간</p><h1>행사를 선택해 주세요</h1><p className="hint">왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요.</p></div>}
     </main>
   </div>

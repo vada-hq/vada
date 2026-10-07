@@ -6,7 +6,7 @@ import '../purchases/LinkDialog.test-support'
 import { draft } from '../purchases/purchase-test-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
-const membership = { id: 'm1', organization: { id: 'o1', name: '검증 학생회' }, department: { id: 'd1', name: '기획부', handlesFinance: false } }
+const membership = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false } }
 const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z' }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
 function setup() {
@@ -138,10 +138,17 @@ test('workspace tabs support keyboard navigation and logout delegates to authent
 
 test('switching membership clears the selected event and uses the new council endpoint', async () => {
   const fetcher = setup()
-  render(<Workspace {...props} memberships={[membership, { ...membership, id: 'm2', organization: { id: 'o2', name: '다른 학생회' } }]} />)
+  render(<Workspace {...props} memberships={[membership, { ...membership, id: 'm2', organization: { id: 'o2', name: '다른 학생회', inviteCode: 'EFGH6789' } }]} />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
   await screen.findByText('아직 대화가 없어요.')
   fireEvent.change(screen.getByLabelText('학생회 선택'), { target: { value: 'm2' } })
   expect(screen.queryByRole('tab', { name: '대화' })).toBeNull()
   await waitFor(() => expect(fetcher).toHaveBeenCalledWith('/api/organizations/o2/events', expect.anything()))
+})
+
+test('an unassigned member sees 미배정 and no finance badge', () => {
+  setup()
+  render(<Workspace {...props} memberships={[{ ...membership, department: null }]} />)
+  expect(screen.getByText('미배정')).toBeTruthy()
+  expect(screen.queryByText('재정 담당')).toBeNull()
 })

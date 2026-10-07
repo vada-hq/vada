@@ -11,11 +11,12 @@ export type MembershipEnv = { Variables: SessionEnv['Variables'] & { membership:
 export function queryMemberships(db: MembershipDatabase, userId: string, organizationId?: string) {
   return db.select({
     id: memberships.id,
-    organization: { id: organizations.id, name: organizations.name },
+    organization: { id: organizations.id, name: organizations.name, inviteCode: organizations.inviteCode },
     department: { id: departments.id, name: departments.name, handlesFinance: departments.handlesFinance },
   }).from(memberships)
     .innerJoin(organizations, eq(organizations.id, memberships.organizationId))
-    .innerJoin(departments, and(eq(departments.id, memberships.departmentId), eq(departments.organizationId, memberships.organizationId)))
+    // 초대로 들어온 구성원은 부서가 없다(미배정). 부서가 없어도 소속은 유지한다.
+    .leftJoin(departments, and(eq(departments.id, memberships.departmentId), eq(departments.organizationId, memberships.organizationId)))
     .where(and(eq(memberships.userId, userId), organizationId === undefined ? undefined : eq(memberships.organizationId, organizationId)))
     .orderBy(organizations.id)
 }
