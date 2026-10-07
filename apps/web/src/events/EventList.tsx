@@ -13,7 +13,7 @@ export default function EventList({ events, loading, error, saving, selectedId, 
     <div className="flex items-center gap-1 pl-3">
       <h2 className="mr-auto text-xs font-medium text-gray-400">행사</h2>
       <Button variant="ghost" size="icon" aria-label="목록 새로고침" disabled={loading || saving} onClick={onRefresh}><RefreshCw /></Button>
-      {onCreate && <Button variant="ghost" size="sm" onClick={onCreate}><Plus />새 행사</Button>}
+      {onCreate && <Button variant="ghost" size="sm" disabled={loading || Boolean(error)} onClick={onCreate}><Plus />새 행사</Button>}
     </div>
     {loading ? <StateMessage kind="loading" className="px-3">행사 목록 불러오는 중…</StateMessage> : error ? <StateMessage kind="error" className="px-3">{error}</StateMessage>
       : events?.length ? <ul className="flex flex-col gap-0.5">{events.map(event => <li key={event.id}>

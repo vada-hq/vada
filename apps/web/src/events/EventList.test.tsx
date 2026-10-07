@@ -13,3 +13,13 @@ test('marks the active event and delegates selection without fetching', () => {
   fireEvent.click(button)
   expect(onSelect).toHaveBeenCalledWith(event)
 })
+
+test('the new event button waits for the list and stays off when the list failed', () => {
+  const base = { events: null, saving: false, error: '', onSelect: () => {}, onRefresh: () => {}, onCreate: () => {} }
+  const view = render(<EventList {...base} loading />)
+  expect((screen.getByRole('button', { name: '새 행사' }) as HTMLButtonElement).disabled).toBe(true)
+  view.rerender(<EventList {...base} loading={false} error="행사 목록을 불러오지 못했어요." />)
+  expect((screen.getByRole('button', { name: '새 행사' }) as HTMLButtonElement).disabled).toBe(true)
+  view.rerender(<EventList {...base} loading={false} events={[]} />)
+  expect((screen.getByRole('button', { name: '새 행사' }) as HTMLButtonElement).disabled).toBe(false)
+})
