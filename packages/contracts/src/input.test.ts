@@ -6,6 +6,7 @@ import { codePoints, isStrictObject, text, token } from './input.js'
 import { CreateEventSchema, EVENT_NAME_MAX } from './events.js'
 import { CreateMessageSchema, MESSAGE_CONTENT_MAX } from './chat.js'
 import { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
+import { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema } from './invites.js'
 
 // 홀로 쓰인 서러게이트까지 만들도록 UTF-16 코드 단위를 직접 뽑는다.
 const anyText = fc.string({ unit: fc.integer({ min: 0, max: 0xffff }).map(n => String.fromCharCode(n)), maxLength: 120 })
@@ -77,4 +78,16 @@ test('isStrictObject: 모르는 키를 거부하는 z.strictObject만 참이다'
   for (const schema of [z.object({ a: z.string() }), z.looseObject({ a: z.string() }), z.string(), null, {}]) {
     assert.equal(isStrictObject(schema), false)
   }
+})
+
+test('초대 코드: 공백·하이픈·소문자를 정규화하고, 빈 값·제어 문자·상한 초과는 거부한다', () => {
+  assert.equal(InviteCodeSchema.parse(' abcd-2345 '), 'ABCD2345')
+  assert.equal(InviteCodeSchema.parse('abcd 2345'), 'ABCD2345')
+  for (const value of ['', '   ', '-', 'A'.repeat(INVITE_CODE_MAX + 1), '😀'.repeat(INVITE_CODE_MAX + 1), 'ABCD\u00002345', '\uD800ABCD', 'AB\tCD', 1, null]) {
+    assert.equal(InviteCodeSchema.safeParse(value).success, false, JSON.stringify(value))
+  }
+  assert.deepEqual(JoinOrganizationSchema.parse({ code: 'abcd2345' }), { code: 'ABCD2345' })
+  assert.equal(JoinOrganizationSchema.safeParse({ code: 'ABCD2345', extra: 1 }).success, false)
+  assert.equal(JoinOrganizationSchema.safeParse({}).success, false)
+  assert.equal(isStrictObject(JoinOrganizationSchema), true)
 })

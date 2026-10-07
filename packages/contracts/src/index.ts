@@ -2,6 +2,7 @@ export { codePoints, isStrictObject, text, token } from './input.js'
 export { EVENT_NAME_MAX, CreateEventSchema, type CreateEventRequest } from './events.js'
 export { MESSAGE_CONTENT_MAX, CreateMessageSchema, type CreateMessageRequest } from './chat.js'
 export { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
+export { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema, type JoinOrganizationRequest, type InvitePreviewResponse } from './invites.js'
 export interface HealthResponse {
   status: 'ok'
 }
@@ -17,6 +18,10 @@ export interface MembershipSummary {
 
 export interface MembershipsResponse {
   memberships: MembershipSummary[]
+}
+
+export interface JoinOrganizationResponse {
+  membership: MembershipSummary
 }
 
 export interface EventSummary {
