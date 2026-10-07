@@ -5,6 +5,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -22,3 +23,29 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - run: npm run build --workspace @vada/web
+      # Render와 같은 명령(npm start)으로 운영 모드를 띄워 본다. 테스트는 통과해도 운영에서만 시작이 멈추는 일을 배포 전에 잡는다.
+      # 값은 모두 가짜이고, DB에는 연결하지 않으며 SENTRY_DSN은 존재하지 않는 도메인을 가리켜 외부로 아무것도 보내지 않는다.
+      - name: Start in production mode
+        env:
+          DATABASE_URL: postgres://smoke:smoke@127.0.0.1:1/smoke
+          BETTER_AUTH_SECRET: ci-start-smoke-secret-0123456789abcdef
+          BETTER_AUTH_URL: http://127.0.0.1:8899
+          GOOGLE_CLIENT_ID: ci-start-smoke
+          GOOGLE_CLIENT_SECRET: ci-start-smoke
+          SENTRY_DSN: https://0123456789abcdef0123456789abcdef@sentry.invalid/1
+          DELIVERY_ENABLED: 'true'
+          DELIVERY_TRACKING_ENABLED: 'true'
+          DELIVERY_PUBLIC_URL: https://vada.invalid
+          DELIVERY_WEBHOOK_SECRET: ci-start-smoke-webhook-secret-0123456789
+          DELIVERY_TRACKER_CLIENT_ID: ci-start-smoke
+          DELIVERY_TRACKER_CLIENT_SECRET: ci-start-smoke
+          PORT: '8899'
+          HOST: 127.0.0.1
+        run: |
+          npm start > start.log 2>&1 &
+          for i in $(seq 1 90); do
+            if curl -sf http://127.0.0.1:8899/api/health > /dev/null; then echo "started in ${i}s"; cat start.log; exit 0; fi
+            sleep 1
+          done
+          echo "server did not answer /api/health within 90s"; cat start.log; exit 1
