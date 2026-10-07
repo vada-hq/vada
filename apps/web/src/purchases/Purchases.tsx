@@ -4,7 +4,7 @@ import PurchaseList from './PurchaseList'
 import PurchaseDetail from './PurchaseDetail'
 import LinkDialog from './LinkDialog'
 import StateMessage from '@/components/StateMessage'
-import './Purchases.css'
+import { Button } from '@/components/ui/button'
 
 type Props = {
   organizationId: string; eventId: string; finance?: boolean
@@ -52,12 +52,12 @@ function Panel({ organizationId, eventId, finance = false, dialogOpen = false, o
       setDetailOpen(true); onDetailOpen?.()
     }
   }
-  return <section className="purchases-panel" aria-label="구매요청서">
-    <div className="purchase-toolbar">
-      <h2>{finance ? '재정부 · 제출 요청 조회' : '내 구매요청'}</h2>
-      <div className="purchase-actions">
-        {!finance && <button disabled={data.busy || data.denied} onClick={() => setLocalDialog(true)}>끼룩이 · 초안 만들기</button>}
-        <button className="button-quiet" disabled={data.busy || data.denied} onClick={data.refresh}>요청 목록 새로고침</button>
+  return <section className="flex flex-col gap-4" aria-label="구매요청서">
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <h2 className="text-xl font-bold">{finance ? '재정부 · 제출 요청 조회' : '내 구매요청'}</h2>
+      <div className="flex flex-wrap gap-2">
+        {!finance && <Button disabled={data.busy || data.denied} onClick={() => setLocalDialog(true)}>끼룩이 · 초안 만들기</Button>}
+        <Button variant="outline" disabled={data.busy || data.denied} onClick={data.refresh}>요청 목록 새로고침</Button>
       </div>
     </div>
     {data.error && !modalOpen && <StateMessage kind="error">{data.error}</StateMessage>}
