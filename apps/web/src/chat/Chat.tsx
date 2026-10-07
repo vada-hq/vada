@@ -1,7 +1,7 @@
 import { useId } from 'react'
 import { CreateMessageSchema, MESSAGE_CONTENT_MAX, codePoints } from '@vada/contracts'
 import { useChat } from './useChat'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 import './Chat.css'
 
 type Props = { organizationId: string; eventId: string; eventName: string }

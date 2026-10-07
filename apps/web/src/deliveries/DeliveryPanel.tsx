@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { PurchaseDetail } from '@vada/contracts'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 import ShipmentForm from './ShipmentForm'
 import { carrierName, deliveryStatusLabels } from './delivery-status'
 import { useDeliveries } from './useDeliveries'

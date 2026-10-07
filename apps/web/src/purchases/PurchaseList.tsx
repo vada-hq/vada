@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { PurchaseStatus, PurchaseSummary } from '@vada/contracts'
 import { purchaseStatusLabels } from './purchase-status'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 
 type Props = { rows: PurchaseSummary[]; finance: boolean; loading: boolean; error: string; disabled: boolean; onSelect: (id: string) => void; hasMore: boolean; onOlder: () => void }
 export default function PurchaseList({ rows, finance, loading, error, disabled, onSelect, hasMore, onOlder }: Props) {

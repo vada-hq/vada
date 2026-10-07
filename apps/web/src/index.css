@@ -1,0 +1,64 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'pretendard/dist/web/variable/pretendardvariable-dynamic-subset.css';
+
+/* 와이어프레임(Figma)의 색은 Tailwind v4 기본 팔레트와 같다. shadcn 부품이 쓰는 이름으로 묶는다. */
+:root {
+  --background: #f9fafb;
+  --foreground: #101828;
+  --card: #ffffff;
+  --card-foreground: #101828;
+  --popover: #ffffff;
+  --popover-foreground: #101828;
+  --primary: #155dfc;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #364153;
+  --muted: #f3f4f6;
+  --muted-foreground: #6a7282;
+  --accent: #eff6ff;
+  --accent-foreground: #1447e6;
+  --destructive: #e7000b;
+  --border: #e5e7eb;
+  --input: #d1d5dc;
+  --ring: #155dfc;
+}
+
+@theme inline {
+  --font-sans: 'Pretendard Variable', Pretendard, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  /* 반경 세 단계(기준 14px일 때): 작은 값 3.5px 버튼·입력칸·칩, 중간 값 5.25px 배너, 큰 값 8.75px 카드·대화상자. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.625rem;
+}
+
+/* 와이어프레임 크기는 Tailwind 기본값에 0.875를 곱한 값이다. 기준 글자를 14px로 두면 표준 클래스가 그대로 맞는다. */
+html { font-size: 87.5%; }
+/* 휴대폰 폭에서는 기준을 16px로 키워 모든 크기를 함께 키운다. 미디어 쿼리의 rem은 브라우저 기본값 16px 기준이다. */
+@media (width < 40rem) { html { font-size: 100%; } }
+
+@layer base {
+  /* Tailwind v4의 테두리 기본색은 글자색이다. 부품마다 적지 않도록 와이어프레임 선 색을 기본으로 둔다. */
+  * { @apply border-border; }
+  body { @apply bg-background font-sans text-sm text-foreground antialiased; }
+  h1, h2, h3, h4 { @apply font-semibold text-gray-900; }
+  a { @apply text-blue-500 hover:underline; }
+}

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 
 // 와이어프레임 ORG-03C. 링크와 코드는 같은 초대 권한이다.
 export default function InviteShare({ code }: { code: string }) {

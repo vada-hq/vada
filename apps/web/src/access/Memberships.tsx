@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import type { MembershipSummary, MembershipsResponse } from '@vada/contracts'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 
 type Props = {
   renderMemberships?: (memberships: MembershipSummary[]) => ReactNode

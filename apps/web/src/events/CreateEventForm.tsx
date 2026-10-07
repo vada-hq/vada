@@ -1,6 +1,6 @@
 import { useId, type FormEvent } from 'react'
 import { CreateEventSchema, EVENT_NAME_MAX, codePoints } from '@vada/contracts'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 
 type Props = { name: string; onNameChange: (name: string) => void; saving: boolean; disabled: boolean; error: string; onSubmit: (event: FormEvent<HTMLFormElement>) => void }
 export default function CreateEventForm({ name, onNameChange, saving, disabled, error, onSubmit }: Props) {

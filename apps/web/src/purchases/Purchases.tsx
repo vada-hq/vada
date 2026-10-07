@@ -3,7 +3,7 @@ import { usePurchases } from './usePurchases'
 import PurchaseList from './PurchaseList'
 import PurchaseDetail from './PurchaseDetail'
 import LinkDialog from './LinkDialog'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 import './Purchases.css'
 
 type Props = {

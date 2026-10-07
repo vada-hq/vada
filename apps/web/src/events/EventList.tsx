@@ -1,5 +1,5 @@
 import type { EventSummary } from '@vada/contracts'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 
 type Props = {
   events: EventSummary[] | null; loading: boolean; error: string; saving: boolean

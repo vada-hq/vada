@@ -1,5 +1,5 @@
 import { useId, useState } from 'react'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 
 type Props = {
   busy: boolean; stale: boolean; amountUnknown: boolean

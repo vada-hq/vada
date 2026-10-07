@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 
 type Props = {
   open: boolean; links: string; busy: boolean; disabled: boolean; error: string

@@ -5,10 +5,8 @@ import InviteCodeForm from './access/InviteCodeForm'
 import JoinOrganization from './access/JoinOrganization'
 import { inviteCodeFromPath, invitePath } from './access/invite-path'
 import Workspace from './workspace/Workspace'
-import StateMessage from './shared/ui/StateMessage'
-import { isKakaoInAppBrowser } from './shared/in-app-browser'
-import './styles/tokens.css'
-import './styles/base.css'
+import StateMessage from '@/components/StateMessage'
+import { isKakaoInAppBrowser } from '@/lib/in-app-browser'
 import './App.css'
 
 // 초대 링크(/join/코드)로 왔는지, 소속이 없어 코드를 직접 입력했는지에 따라 돌아갈 곳이 다르다.

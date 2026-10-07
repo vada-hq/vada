@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { InvitePreviewResponse, JoinOrganizationResponse } from '@vada/contracts'
-import StateMessage from '../shared/ui/StateMessage'
+import StateMessage from '@/components/StateMessage'
 
 type Props = { code: string; leaveLabel: string; onJoined: (organizationId: string) => void; onLeave: () => void }
 type View = { kind: 'loading' } | { kind: 'invalid' } | { kind: 'failed' }
