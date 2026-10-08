@@ -38,7 +38,9 @@ test('event migration upgrades existing data and enforces event constraints', as
     await migrate(db, { migrationsFolder: folder })
     await t.test('all existing rows survive the upgrade', async () => {
       const after = await Promise.all(oldTables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
-      assert.deepEqual(after.map((result, index) => sameColumns(result.rows, before[index]!.rows)), before.map(result => result.rows))
+      // 0010은 학생회마다 회장단 행을 새로 만든다. 원래 있던 행만 비교한다.
+      const kept = after.map((result, index) => result.rows.filter(row => before[index]!.rows.some(old => old.id === row.id)))
+      assert.deepEqual(kept.map((rows, index) => sameColumns(rows, before[index]!.rows)), before.map(result => result.rows))
     })
     const insert = (id: string, name: string | null, org = 'org1', creator = 'u1') => pg.query(
       'INSERT INTO events (id,organization_id,name,created_by) VALUES ($1,$2,$3,$4)', [id, org, name, creator],
@@ -272,6 +274,66 @@ test('0009 gives every council an invite code and lets departments be empty', as
       `)
       const request = await pg.query<{ department_id: string | null }>("SELECT department_id FROM purchase_requests WHERE id = 'r1'")
       assert.equal(request.rows[0]?.department_id, null)
+    })
+  } finally {
+    await pg.close()
+    rmSync(previous, { recursive: true, force: true })
+  }
+})
+
+test('0010 gives every council one empty leadership and keeps existing members', async (t) => {
+  const pg = new PGlite()
+  const previous = mkdtempSync(join(tmpdir(), 'vada-organization-migration-'))
+  try {
+    const folder = fileURLToPath(new URL('../../migrations', import.meta.url))
+    const journal = JSON.parse(readFileSync(join(folder, 'meta/_journal.json'), 'utf8'))
+    const index = journal.entries.findIndex((entry: { tag: string }) => entry.tag === '0010_organization_structure')
+    assert.ok(index > 0, '0010 마이그레이션이 있어야 한다')
+    const oldJournal = { ...journal, entries: journal.entries.slice(0, index) }
+    mkdirSync(join(previous, 'meta'))
+    writeFileSync(join(previous, 'meta/_journal.json'), JSON.stringify(oldJournal))
+    for (const entry of oldJournal.entries) copyFileSync(join(folder, `${entry.tag}.sql`), join(previous, `${entry.tag}.sql`))
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u1','Planner','p@example.test'),('u2','Treasurer','t@example.test');
+      INSERT INTO organizations (id,name) VALUES ('org1','Council 1'),('org2','Council 2');
+      INSERT INTO departments (id,organization_id,name,handles_finance) VALUES ('d1','org1','Planning',false),('d2','org1','Finance',true),('d3','org2','Planning',false);
+      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m1','u1','org1','d1'),('m2','u2','org1','d2');
+    `)
+    await migrate(db, { migrationsFolder: folder })
+
+    await t.test('each council gets exactly one empty leadership named 회장단', async () => {
+      const rows = await pg.query(`
+        SELECT d.organization_id, d.name, d.handles_finance, (SELECT count(*)::int FROM memberships m WHERE m.department_id = d.id) AS members
+        FROM departments d WHERE d.is_leadership ORDER BY d.organization_id`)
+      assert.deepEqual(rows.rows, [
+        { organization_id: 'org1', name: '회장단', handles_finance: false, members: 0 },
+        { organization_id: 'org2', name: '회장단', handles_finance: false, members: 0 },
+      ])
+    })
+    await t.test('existing departments and memberships are unchanged', async () => {
+      const departments = await pg.query('SELECT id, is_leadership, handles_finance FROM departments WHERE NOT is_leadership ORDER BY id')
+      assert.deepEqual(departments.rows, [
+        { id: 'd1', is_leadership: false, handles_finance: false },
+        { id: 'd2', is_leadership: false, handles_finance: true },
+        { id: 'd3', is_leadership: false, handles_finance: false },
+      ])
+      const members = await pg.query('SELECT id, department_id, title FROM memberships ORDER BY id')
+      assert.deepEqual(members.rows, [{ id: 'm1', department_id: 'd1', title: null }, { id: 'm2', department_id: 'd2', title: null }])
+    })
+    await t.test('a second leadership and a leadership with the finance flag are rejected', async () => {
+      await assert.rejects(pg.query("INSERT INTO departments (id,organization_id,name,is_leadership) VALUES ('l2','org1','Leaders 2',true)"),
+        { code: '23505', constraint: 'departments_one_leadership' })
+      await assert.rejects(pg.query("UPDATE departments SET handles_finance = true WHERE organization_id = 'org1' AND is_leadership"),
+        { code: '23514', constraint: 'departments_leadership_not_finance' })
+    })
+    await t.test('titles are optional, not blank and at most 20 characters', async () => {
+      await pg.query("UPDATE memberships SET title = '회장' WHERE id = 'm1'")
+      await pg.query("UPDATE memberships SET title = $1 WHERE id = 'm1'", ['😀'.repeat(20)])
+      await pg.query("UPDATE memberships SET title = NULL WHERE id = 'm1'")
+      await assert.rejects(pg.query("UPDATE memberships SET title = '  ' WHERE id = 'm1'"), { code: '23514', constraint: 'memberships_title_not_blank' })
+      await assert.rejects(pg.query("UPDATE memberships SET title = $1 WHERE id = 'm1'", ['가'.repeat(21)]), { code: '23514', constraint: 'memberships_title_length' })
     })
   } finally {
     await pg.close()

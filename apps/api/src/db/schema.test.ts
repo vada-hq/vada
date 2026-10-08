@@ -12,6 +12,9 @@ test('all entities have primary keys and creation timestamps', () => {
   assert.equal(users.email.isUnique, true)
   assert.equal(users.emailVerified.default, false)
   assert.equal(departments.handlesFinance.default, false)
+  assert.equal(departments.isLeadership.default, false)
+  assert.equal(departments.isLeadership.notNull, true)
+  assert.equal(memberships.title.notNull, false)
 })
 
 test('events belong to an organization and retain a user as creator independently of membership', () => {

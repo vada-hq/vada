@@ -124,10 +124,15 @@ export const departments = pgTable('departments', {
     .references(() => organizations.id, { onDelete: 'restrict' }),
   name: text('name').notNull(),
   handlesFinance: boolean('handles_finance').notNull().default(false),
+  // 학생회를 이끄는 자리(회장단). 학생회마다 하나이고, 조직 관리와 구매 승인을 한다.
+  isLeadership: boolean('is_leadership').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   // 소속의 복합 외래 키가 학생회와 부서를 함께 참조한다.
   unique('departments_organization_id_unique').on(table.organizationId, table.id),
+  uniqueIndex('departments_one_leadership').on(table.organizationId).where(sql`${table.isLeadership}`),
+  // 회장단은 늘 구매를 승인하므로 구매 승인 표시를 따로 두지 않는다.
+  check('departments_leadership_not_finance', sql`NOT (${table.isLeadership} AND ${table.handlesFinance})`),
 ])
 
 export const memberships = pgTable('memberships', {
@@ -136,8 +141,10 @@ export const memberships = pgTable('memberships', {
     .references(() => users.id, { onDelete: 'restrict' }),
   organizationId: text('organization_id').notNull()
     .references(() => organizations.id, { onDelete: 'restrict' }),
-  // 초대로 들어온 구성원은 부서가 없다(미배정). 부서 편성은 ERD 재설계 때 정한다.
+  // 초대로 들어온 구성원은 부서가 없다(미배정). 회장단이 배정한다.
   departmentId: text('department_id'),
+  // 표시용 직책(회장, 국장, 총무 등). 권한과 무관하고 부서를 옮기면 지운다.
+  title: text('title'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   unique('memberships_organization_user_unique').on(table.organizationId, table.userId),
@@ -146,6 +153,8 @@ export const memberships = pgTable('memberships', {
     columns: [table.organizationId, table.departmentId],
     foreignColumns: [departments.organizationId, departments.id],
   }).onDelete('restrict'),
+  check('memberships_title_not_blank', sql`${table.title} ~ '[^[:space:]]'`),
+  check('memberships_title_length', sql`char_length(${table.title}) <= 20`),
 ])
 
 // 소속에서 얻은 요청 부서를 기록한다. 권한·상태 전환·제출 필수값 검사는 서버 책임이다.

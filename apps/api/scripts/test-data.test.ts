@@ -14,7 +14,8 @@ test('test data is repeatable and assignment never silently changes a department
     await seedTestCouncil(db)
     await seedTestCouncil(db)
     assert.equal((await pg.query('SELECT * FROM organizations')).rows.length, 1)
-    assert.equal((await pg.query('SELECT * FROM departments')).rows.length, 2)
+    assert.equal((await pg.query('SELECT * FROM departments')).rows.length, 3)
+    assert.deepEqual((await pg.query('SELECT id, name FROM departments WHERE is_leadership')).rows, [{ id: 'm1-test-leadership', name: '회장단' }])
     assert.equal((await pg.query('SELECT * FROM users')).rows.length, 0)
     await assert.rejects(assignDepartment(db, 'missing', 'planning'))
     await pg.exec(`INSERT INTO users (id,name,email) VALUES ('u1','Tester','test@example.test'),('u2','Tester 2','test2@example.test')`)
@@ -47,6 +48,27 @@ test('초대로 들어온 미배정 소속에는 부서를 넣고, 정해진 부
     assert.equal(saved.rows[0]?.department_id, 'm1-test-finance')
     await assert.rejects(assignDepartment(db, 'u3', 'planning'))
     assert.equal((await pg.query('SELECT * FROM memberships')).rows.length, 1)
+  } finally {
+    await pg.close()
+  }
+})
+
+test('0010이 회장단을 먼저 만든 DB에서도 그 회장단을 쓰고, 회장단에 배정한다', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../migrations', import.meta.url)) })
+    await pg.exec(`
+      INSERT INTO organizations (id,name) VALUES ('m1-test-council','M1 검증 학생회');
+      INSERT INTO departments (id,organization_id,name,is_leadership) VALUES ('backfilled','m1-test-council','회장단',true);
+      INSERT INTO users (id,name,email) VALUES ('u4','Leader','leader@example.test');
+      INSERT INTO accounts (id,user_id,provider_id,account_id) VALUES ('a4','u4','google','sub4');
+    `)
+    await seedTestCouncil(db)
+    assert.deepEqual((await pg.query('SELECT id FROM departments WHERE is_leadership')).rows, [{ id: 'backfilled' }])
+    await assignDepartment(db, 'u4', 'leadership')
+    const saved = await pg.query("SELECT department_id FROM memberships WHERE user_id = 'u4'")
+    assert.deepEqual(saved.rows, [{ department_id: 'backfilled' }])
   } finally {
     await pg.close()
   }

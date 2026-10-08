@@ -71,6 +71,13 @@
       "when": 1791352598591,
       "tag": "0009_organization_invite_code",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791452520061,
+      "tag": "0010_organization_structure",
+      "breakpoints": true
     }
   ]
 }

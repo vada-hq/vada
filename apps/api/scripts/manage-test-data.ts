@@ -8,9 +8,9 @@ async function main() {
   const args = process.argv.slice(2)
   const isSeed = args.length === 2 && args[0] === 'seed' && args[1] === '--apply'
   const isAssign = args.length === 4 && args[0] === 'assign' && Boolean(args[1]?.trim())
-    && (args[2] === 'planning' || args[2] === 'finance') && args[3] === '--apply'
+    && (args[2] === 'planning' || args[2] === 'finance' || args[2] === 'leadership') && args[3] === '--apply'
   if (!isSeed && !isAssign) {
-    console.error('사용법: seed --apply 또는 assign <user-id> <planning|finance> --apply')
+    console.error('사용법: seed --apply 또는 assign <user-id> <planning|finance|leadership> --apply')
     process.exitCode = 1
     return
   }
@@ -21,7 +21,7 @@ async function main() {
   try {
     const db = drizzle(client)
     if (isSeed) await seedTestCouncil(db)
-    else await assignDepartment(db, args[1]!, args[2] as 'planning' | 'finance')
+    else await assignDepartment(db, args[1]!, args[2] as 'planning' | 'finance' | 'leadership')
     console.log(isSeed ? '검증 학생회·부서 준비 완료' : '검증 계정 소속 지정 완료')
   } finally { await client.end({ timeout: 5 }) }
 }
