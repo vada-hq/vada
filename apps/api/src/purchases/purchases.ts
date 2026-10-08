@@ -1,11 +1,12 @@
 import { Hono, type Context } from 'hono'
-import { ChangeNeededBySchema, CreatePurchaseDraftsSchema, PurchaseItemVersionSchema, PurchaseReceivedSchema, SubmitPurchaseItemsSchema, token,
-  UpdatePurchaseItemSchema, type EventPurchaseItemsResponse, type PurchaseItemResponse, type PurchaseItemsResponse } from '@vada/contracts'
+import { ChangeNeededBySchema, CreatePurchaseDraftsSchema, DecidePurchaseItemsSchema, PurchasePurchasedSchema, PurchaseItemVersionSchema, PurchaseReceivedSchema, SubmitPurchaseItemsSchema, token,
+  UpdatePurchaseItemSchema, type EventPurchaseItemsResponse, type PurchaseItemResponse, type PurchaseItemsResponse, type PurchaseReviewResponse } from '@vada/contracts'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
 import { json } from '../http/validate.js'
 import type { DraftGenerator } from './generation.js'
 import { createPurchaseService, type PurchaseDatabase, type PurchaseScope } from './service.js'
+import { createReviewService, type ReviewScope } from './review.js'
 import { PurchaseError } from './validation.js'
 
 // 경로의 ID도 본문과 같은 규칙으로 검사한다. 제어 문자나 너무 긴 값은 없는 ID로 본다.
@@ -48,6 +49,18 @@ export function createPurchaseRoutes(db: PurchaseDatabase, session: SessionReade
   routes.post(`${base}/:itemId/received`, json(PurchaseReceivedSchema), auth, member, async c => {
     const { version, received } = c.req.valid('json')
     return c.json(itemsOf(await service.setReceived(scope(c), idOf(c.req.param('itemId')), version, received)))
+  })
+  const review = createReviewService(db)
+  const reviewBase = '/organizations/:organizationId/purchase-review'
+  const reviewScope = (c: Context<MembershipEnv>): ReviewScope => ({ organizationId: c.get('membership').organization.id, userId: c.get('userId') })
+  routes.get(reviewBase, auth, member, async c => c.json(await review.list(reviewScope(c)) satisfies PurchaseReviewResponse))
+  routes.post(`${reviewBase}/decisions`, json(DecidePurchaseItemsSchema), auth, member, async c =>
+    c.json(itemsOf(await review.decide(reviewScope(c), c.req.valid('json')))))
+  routes.post(`${reviewBase}/:itemId/revoke`, json(PurchaseItemVersionSchema), auth, member, async c =>
+    c.json(itemsOf(await review.revoke(reviewScope(c), idOf(c.req.param('itemId')), c.req.valid('json').version))))
+  routes.post(`${reviewBase}/:itemId/purchased`, json(PurchasePurchasedSchema), auth, member, async c => {
+    const { version, purchased } = c.req.valid('json')
+    return c.json(itemsOf(await review.setPurchased(reviewScope(c), idOf(c.req.param('itemId')), version, purchased)))
   })
   return routes
 }
