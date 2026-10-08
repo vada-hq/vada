@@ -215,6 +215,7 @@ test('회장단은 미배정 수와 구매 승인 표시를 본다', async () =>
   expect(await within(screen.getByRole('navigation', { name: '학생회 메뉴' })).findByText('미배정 1')).toBeTruthy()
   expect(screen.getByText('구매 승인')).toBeTruthy()
   expect(screen.getByText('회장단 · 회장')).toBeTruthy()
+  expect(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).getByRole('button', { name: /구매 검토/ })).toBeTruthy()
 })
 
 test('구성원 목록의 본인 정보가 다르면 소속을 다시 불러온다', async () => {
@@ -229,4 +230,26 @@ test('방금 만든 학생회는 구성원 화면부터 연다', async () => {
   setup()
   render(<Workspace {...props} initialOrganizationId="o1" initialView="members" />)
   expect(await screen.findByRole('heading', { name: '구성원 1명' })).toBeTruthy()
+})
+
+test('구매 승인 권한이 있으면 구매 검토 메뉴에 대기 수를 보여 주고, 열면 모든 행사의 검토할 품목을 본다', async () => {
+  const pending = item({ id: 'p1', productName: '박스테이프', status: 'pending', submissionId: 's1', mine: false,
+    requester: { id: 'q', name: '다른 기획' }, departmentName: '홍보부', submittedAt: '2026-10-08T05:00:00Z' })
+  setup(membersBody, { pending: [pending], approved: [], truncated: false })
+  render(<Workspace {...props} memberships={[financeMembership]} />)
+  const nav = screen.getByRole('navigation', { name: '학생회 메뉴' })
+  expect(await within(nav).findByText('대기 1')).toBeTruthy()
+  fireEvent.click(within(nav).getByRole('button', { name: /구매 검토/ }))
+  expect(screen.getByRole('heading', { level: 1, name: '구매 검토' })).toBeTruthy()
+  expect(await screen.findByRole('region', { name: '다른 기획의 제출' })).toBeTruthy()
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  expect(screen.getByRole('heading', { level: 1, name: '체육대회' })).toBeTruthy()
+})
+
+test('구매 승인 권한이 없으면 구매 검토 메뉴가 없고 불러오지도 않는다', async () => {
+  const fetcher = setup()
+  render(<Workspace {...props} />)
+  await screen.findByRole('button', { name: '체육대회' })
+  expect(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).queryByRole('button', { name: /구매 검토/ })).toBeNull()
+  expect(fetcher.mock.calls.some(([url]) => String(url).includes('purchase-review'))).toBe(false)
 })

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import App from './App'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
-import { event, eventsPath, membership, messagesPath, purchasesPath, user } from './test-support/workflow-fixtures'
+import { event, eventsPath, membership, messagesPath, purchaseItemsPath, reviewPath, user } from './test-support/workflow-fixtures'
 import './purchases/LinkDialog.test-support'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn() }))
@@ -21,7 +21,8 @@ beforeEach(() => {
   session()
   api.on('GET', eventsPath, () => json({ events: [event()] }))
   api.on('GET', messagesPath(), () => json({ messages: [], nextCursor: null }))
-  api.on('GET', purchasesPath(), () => json({ requests: [], nextCursor: null }))
+  api.on('GET', purchaseItemsPath(), () => json({ items: [], truncated: false }))
+  api.on('GET', reviewPath, () => json({ pending: [], approved: [], truncated: false }))
 })
 afterEach(() => {
   cleanup()
@@ -33,9 +34,10 @@ test.each([false, true])('session and membership connect the real workspace; fin
   render(<App />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
   await screen.findByText('아직 대화가 없어요.')
-  fireEvent.click(screen.getByRole('tab', { name: '구매요청' }))
-  await screen.findByText('아직 내 요청서가 없어요.')
-  expect(Boolean(screen.queryByRole('button', { name: '재정부 제출 요청 보기' }))).toBe(finance)
+  fireEvent.click(screen.getByRole('tab', { name: '구매' }))
+  await screen.findByText('아직 담은 품목이 없어요')
+  // 구매 승인 권한이 있으면 옆 메뉴에 구매 검토가 생긴다.
+  expect(Boolean(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).queryByRole('button', { name: /구매 검토/ }))).toBe(finance)
 })
 
 test('membership failure can be retried without restarting authentication', async () => {
@@ -214,7 +216,7 @@ function leaderSetup(secondMemberships: () => Response | Promise<Response>) {
 }
 async function saveOwnTitle() {
   render(<App />)
-  fireEvent.click(within(await screen.findByRole('navigation', { name: '학생회 메뉴' })).getByRole('button'))
+  fireEvent.click(within(await screen.findByRole('navigation', { name: '학생회 메뉴' })).getByRole('button', { name: /구성원/ }))
   fireEvent.click(await screen.findByRole('button', { name: '기획 테스터 직책' }))
   fireEvent.change(within(await screen.findByRole('dialog')).getByLabelText('직책'), { target: { value: '회장' } })
   fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '저장' }))

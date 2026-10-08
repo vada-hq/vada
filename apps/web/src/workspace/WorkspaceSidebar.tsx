@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { LogOut, UserPlus, Users } from 'lucide-react'
+import { ClipboardCheck, LogOut, UserPlus, Users } from 'lucide-react'
 import type { MembershipSummary } from '@vada/contracts'
 import InviteShare from '../access/InviteShare'
 import { Avatar } from '@/components/Avatar'
@@ -13,11 +13,12 @@ import { NavItem } from '@/components/ui/nav-item'
 
 export type AccountProps = { user: { name: string; email: string }; logoutBusy: boolean; onLogout: () => void }
 type Props = AccountProps & { membership: MembershipSummary; memberships: MembershipSummary[]; onMembershipChange: (id: string) => void
-  membersActive: boolean; unassignedCount: number | null; onMembers: () => void; children: ReactNode }
+  membersActive: boolean; unassignedCount: number | null; onMembers: () => void
+  reviewActive: boolean; pendingCount: number | null; onReview: (() => void) | null; children: ReactNode }
 
 // 와이어프레임 사이드바(210px): 위 로고와 학생회 이름, 가운데 행사 메뉴, 아래 사용자.
 // 데스크톱 aside와 휴대폰 옆 메뉴가 같이 쓴다. 위 블록의 오른쪽 여백은 옆 메뉴 닫기 버튼 자리다.
-export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, membersActive, unassignedCount, onMembers, user, logoutBusy, onLogout, children }: Props) {
+export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, membersActive, unassignedCount, onMembers, reviewActive, pendingCount, onReview, user, logoutBusy, onLogout, children }: Props) {
   const [inviteOpen, setInviteOpen] = useState(false)
   return <div className="flex h-full min-h-0 flex-col">
     <div className="flex shrink-0 items-center gap-2 border-b border-gray-100 py-4 pr-10 pl-5">
@@ -46,6 +47,10 @@ export default function WorkspaceSidebar({ membership, memberships, onMembership
         <Users aria-hidden className="size-4" />구성원
         {unassignedCount ? <Badge tone="warning" className="ml-auto">미배정 {unassignedCount}</Badge> : null}
       </NavItem>
+      {onReview && <NavItem active={reviewActive} className="flex items-center gap-2" onClick={onReview}>
+        <ClipboardCheck aria-hidden className="size-4" />구매 검토
+        {pendingCount ? <Badge tone="info" className="ml-auto">대기 {pendingCount}</Badge> : null}
+      </NavItem>}
     </nav>
     <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">{children}</div>
     <footer className="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
