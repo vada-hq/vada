@@ -65,7 +65,9 @@ test('purchase migration preserves existing data and enforces purchase constrain
     const before = await Promise.all(tables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
     await migrate(db, { migrationsFolder: folder })
     const after = await Promise.all(tables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
-    assert.deepEqual(after.map((result, index) => sameColumns(result.rows, before[index]!.rows)), before.map(result => result.rows))
+    // 0010은 학생회마다 회장단 행을 새로 만든다. 원래 있던 행만 비교한다.
+    const kept = after.map((result, index) => result.rows.filter(row => before[index]!.rows.some(old => old.id === row.id)))
+    assert.deepEqual(kept.map((rows, index) => sameColumns(rows, before[index]!.rows)), before.map(result => result.rows))
 
     const request = (id: string, key = id, event = 'e', department = 'd', requester = 'u') => pg.query(
       'INSERT INTO purchase_requests(id,organization_id,event_id,requester_id,department_id,idempotency_key) VALUES ($1,$2,$3,$4,$5,$6)',
