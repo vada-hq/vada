@@ -210,6 +210,68 @@ export const purchaseSubmissions = pgTable('purchase_submissions', {
   unique('purchase_submissions_organization_id_unique').on(table.organizationId, table.id),
 ])
 
+// coupang_products.items의 한 옵션. 조회 응답에서 검사를 통과한 값만 저장한다.
+export interface CoupangItem {
+  itemId: string | null
+  vendorItemId: string | null
+  name: string
+  price: number | null
+  listPrice: number | null
+  discountPercent: number | null
+  inStock: boolean | null
+  deliveryEta: string | null
+  imageUrl: string | null
+}
+
+// 쿠팡 상품 정보. 학생회와 무관한 공개 정보라 학생회끼리 같이 쓴다. 상품 ID 하나에 옵션 전체를 저장한다.
+// pending은 조회 대기열이다. 실행기가 locked_until로 잠그고 가져가며, 실패하면 next_attempt_at에 다시 시도한다.
+export const coupangProducts = pgTable('coupang_products', {
+  id: text('id').primaryKey(),
+  status: text('status', { enum: ['pending', 'ready', 'failed'] }).notNull().default('pending'),
+  items: jsonb('items').$type<CoupangItem[]>().notNull().default([]),
+  fetchedAt: timestamp('fetched_at', { withTimezone: true }),
+  attempts: integer('attempts').notNull().default(0),
+  nextAttemptAt: timestamp('next_attempt_at', { withTimezone: true }).notNull().defaultNow(),
+  lockedUntil: timestamp('locked_until', { withTimezone: true }),
+  errorCode: text('error_code'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  check('coupang_products_id_digits', sql`${table.id} ~ '^[0-9]{1,20}$'`),
+  check('coupang_products_status_valid', sql`${table.status} IN ('pending','ready','failed')`),
+  check('coupang_products_items_array', sql`jsonb_typeof(${table.items}) = 'array' AND jsonb_array_length(${table.items}) <= 100`),
+  check('coupang_products_ready_fetched', sql`${table.status} <> 'ready' OR ${table.fetchedAt} IS NOT NULL`),
+  check('coupang_products_attempts_nonnegative', sql`${table.attempts} >= 0`),
+  check('coupang_products_error_code', sql`${table.errorCode} ~ '^[A-Z_]{1,40}$'`),
+  index('coupang_products_due_idx').on(table.nextAttemptAt).where(sql`${table.status} = 'pending'`),
+])
+
+// 행사 대화에 올라온 쿠팡 링크. 같은 상품·판매 옵션은 행사에 하나다. vendor_item_id가 없으면 상품마다 "옵션 미정" 하나다.
+export const purchaseCandidates = pgTable('purchase_candidates', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  eventId: text('event_id').notNull(),
+  productId: text('product_id').notNull().references(() => coupangProducts.id, { onDelete: 'restrict' }),
+  itemId: text('item_id'),
+  vendorItemId: text('vendor_item_id'),
+  url: text('url').notNull(),
+  hiddenBy: text('hidden_by').references(() => users.id, { onDelete: 'restrict' }),
+  hiddenAt: timestamp('hidden_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'purchase_candidates_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  unique('purchase_candidates_organization_id_unique').on(table.organizationId, table.id),
+  unique('purchase_candidates_event_product_vendor_unique').on(table.eventId, table.productId, table.vendorItemId).nullsNotDistinct(),
+  check('purchase_candidates_item_digits', sql`${table.itemId} ~ '^[0-9]{1,20}$'`),
+  check('purchase_candidates_vendor_digits', sql`${table.vendorItemId} ~ '^[0-9]{1,20}$'`),
+  check('purchase_candidates_url', sql`${table.url} LIKE 'https://www.coupang.com/vp/products/%' AND char_length(${table.url}) <= 200`),
+  check('purchase_candidates_hidden_pair', sql`(${table.hiddenAt} IS NULL) = (${table.hiddenBy} IS NULL)`),
+])
+
 // 구매의 진행 단위. 작성 중이면 제출 기록이 없고, 승인·반려하면 결정한 사람이 남는다.
 export const purchaseItems = pgTable('purchase_items', {
   id: text('id').primaryKey(),
@@ -219,6 +281,8 @@ export const purchaseItems = pgTable('purchase_items', {
     .references(() => users.id, { onDelete: 'restrict' }),
   generationId: text('generation_id'),
   submissionId: text('submission_id'),
+  // 후보에서 담은 품목만 있다. 다시 담기로 만든 품목도 원래 후보를 이어 받는다.
+  candidateId: text('candidate_id'),
   status: text('status', { enum: ['draft', 'pending', 'approved', 'rejected', 'cancelled'] }).notNull().default('draft'),
   productUrl: text('product_url').notNull(),
   productName: text('product_name'),
@@ -263,6 +327,11 @@ export const purchaseItems = pgTable('purchase_items', {
     columns: [table.organizationId, table.submissionId],
     foreignColumns: [purchaseSubmissions.organizationId, purchaseSubmissions.id],
   }).onDelete('restrict'),
+  foreignKey({
+    name: 'purchase_items_candidate_same_organization',
+    columns: [table.organizationId, table.candidateId],
+    foreignColumns: [purchaseCandidates.organizationId, purchaseCandidates.id],
+  }).onDelete('restrict'),
   check('purchase_items_url_not_blank', sql`${table.productUrl} ~ '[^[:space:]]'`),
   check('purchase_items_product_name_not_blank', sql`${table.productName} ~ '[^[:space:]]'`),
   check('purchase_items_product_name_length', sql`char_length(${table.productName}) <= 500`),
@@ -291,6 +360,7 @@ export const purchaseItems = pgTable('purchase_items', {
   check('purchase_items_receipt_purchased', sql`${table.receivedAt} IS NULL OR ${table.purchasedAt} IS NOT NULL`),
   index('purchase_items_event_created_idx').on(table.eventId, table.createdAt, table.id),
   index('purchase_items_organization_status_idx').on(table.organizationId, table.status),
+  index('purchase_items_candidate_idx').on(table.organizationId, table.candidateId),
 ])
 
 // 제출 이후의 품목 변화. 고치거나 지우지 않는다. 동작 목록은 contracts의 PURCHASE_ITEM_ACTIONS와 같다.
@@ -330,6 +400,24 @@ export const purchaseItemSources = pgTable('purchase_item_sources', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   primaryKey({ columns: [table.itemId, table.messageId] }),
+])
+
+// 후보를 공유한 메시지. 한 메시지의 링크 순서(0~9)마다 한 줄이다. 같은 행사방인지는 대화 저장이 보장한다.
+export const purchaseCandidateShares = pgTable('purchase_candidate_shares', {
+  organizationId: text('organization_id').notNull(),
+  candidateId: text('candidate_id').notNull(),
+  messageId: text('message_id').notNull().references(() => messages.id, { onDelete: 'restrict' }),
+  position: integer('position').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.messageId, table.position] }),
+  foreignKey({
+    name: 'purchase_candidate_shares_candidate_same_organization',
+    columns: [table.organizationId, table.candidateId],
+    foreignColumns: [purchaseCandidates.organizationId, purchaseCandidates.id],
+  }).onDelete('restrict'),
+  check('purchase_candidate_shares_position', sql`${table.position} >= 0 AND ${table.position} < 10`),
+  index('purchase_candidate_shares_candidate_idx').on(table.candidateId, table.createdAt),
 ])
 
 // 승인 상태와 독립적인 배송 상태. 외부 조회 성공 시각과 배송 이벤트 시각을 구분한다.

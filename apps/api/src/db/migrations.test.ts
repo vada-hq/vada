@@ -533,3 +533,75 @@ test('0013 removes the old request tables and guards item text and shipment link
     previous.remove()
   }
 })
+
+test('0014 adds candidates and product lookups without touching existing items', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0014_purchase_candidates')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u'),('e2','o2','남의 행사','u');
+      INSERT INTO chat_rooms (id,organization_id,event_id) VALUES ('room','o','e');
+      INSERT INTO messages (id,chat_room_id,author_id,content) VALUES ('m','room','u','링크');
+      INSERT INTO purchase_items (id,organization_id,event_id,requester_id,product_url) VALUES ('i','o','e','u','https://www.coupang.com/vp/products/1');
+    `)
+    const before = (await pg.query<Record<string, unknown>>('SELECT * FROM purchase_items')).rows
+    await migrate(db, { migrationsFolder })
+
+    await t.test('existing items keep their values and have no candidate', async () => {
+      const after = (await pg.query<Record<string, unknown>>('SELECT * FROM purchase_items')).rows
+      assert.deepEqual(after.map(row => Object.fromEntries(Object.keys(before[0]!).map(key => [key, row[key]]))), before)
+      assert.equal(after[0]!.candidate_id, null)
+    })
+    await t.test('product rows keep a digit id, a known status and a bounded option list', async () => {
+      await pg.exec("INSERT INTO coupang_products (id) VALUES ('1')")
+      assert.deepEqual((await pg.query("SELECT status, items, attempts, error_code FROM coupang_products WHERE id = '1'")).rows,
+        [{ status: 'pending', items: [], attempts: 0, error_code: null }])
+      const cases: [string, string][] = [
+        ["INSERT INTO coupang_products (id) VALUES ('12a')", 'coupang_products_id_digits'],
+        ["INSERT INTO coupang_products (id, status) VALUES ('2','done')", 'coupang_products_status_valid'],
+        ["INSERT INTO coupang_products (id, status) VALUES ('3','ready')", 'coupang_products_ready_fetched'],
+        ["INSERT INTO coupang_products (id, items) VALUES ('4','{}')", 'coupang_products_items_array'],
+        [`INSERT INTO coupang_products (id, items) VALUES ('5','[${Array(101).fill('{}').join(',')}]')`, 'coupang_products_items_array'],
+        ["INSERT INTO coupang_products (id, error_code) VALUES ('6','boom')", 'coupang_products_error_code'],
+        ["INSERT INTO coupang_products (id, attempts) VALUES ('7',-1)", 'coupang_products_attempts_nonnegative'],
+      ]
+      for (const [statement, constraint] of cases) await assert.rejects(pg.exec(statement), { constraint }, constraint)
+    })
+    await t.test('a product option appears once per event, and an unknown option once per product', async () => {
+      const candidate = (id: string, vendor: string | null, event = 'e', org = 'o') => pg.query(
+        "INSERT INTO purchase_candidates (id,organization_id,event_id,product_id,vendor_item_id,url) VALUES ($1,$2,$3,'1',$4,'https://www.coupang.com/vp/products/1')",
+        [id, org, event, vendor])
+      await candidate('c1', '9'); await candidate('c2', null); await candidate('c3', '8')
+      await assert.rejects(candidate('dup', '9'), { constraint: 'purchase_candidates_event_product_vendor_unique' })
+      await assert.rejects(candidate('dup2', null), { constraint: 'purchase_candidates_event_product_vendor_unique' })
+      await candidate('other', null, 'e2', 'o2')
+      // 고유 제약에 먼저 걸리지 않도록 다른 옵션으로 학생회 경계만 확인한다.
+      await assert.rejects(candidate('cross', '7', 'e2', 'o'), { constraint: 'purchase_candidates_event_same_organization' })
+      const cases: [string, string][] = [
+        ["UPDATE purchase_candidates SET hidden_at = now() WHERE id = 'c1'", 'purchase_candidates_hidden_pair'],
+        ["UPDATE purchase_candidates SET url = 'https://evil.test/x' WHERE id = 'c1'", 'purchase_candidates_url'],
+        ["UPDATE purchase_candidates SET vendor_item_id = 'x' WHERE id = 'c1'", 'purchase_candidates_vendor_digits'],
+        ["UPDATE purchase_candidates SET item_id = '1a' WHERE id = 'c1'", 'purchase_candidates_item_digits'],
+      ]
+      for (const [statement, constraint] of cases) await assert.rejects(pg.exec(statement), { constraint }, constraint)
+    })
+    await t.test('shares keep message order and items point to a candidate of the same council', async () => {
+      const share = (position: number, candidate = 'c1', org = 'o') => pg.query(
+        'INSERT INTO purchase_candidate_shares (organization_id,candidate_id,message_id,position) VALUES ($1,$2,$3,$4)', [org, candidate, 'm', position])
+      await share(0); await share(1, 'c2')
+      await assert.rejects(share(0, 'c3'), { code: '23505' })
+      await assert.rejects(share(10, 'c3'), { constraint: 'purchase_candidate_shares_position' })
+      await assert.rejects(share(2, 'other'), { constraint: 'purchase_candidate_shares_candidate_same_organization' })
+      await pg.exec("UPDATE purchase_items SET candidate_id = 'c1' WHERE id = 'i'")
+      await assert.rejects(pg.exec("UPDATE purchase_items SET candidate_id = 'other' WHERE id = 'i'"), { constraint: 'purchase_items_candidate_same_organization' })
+      await assert.rejects(pg.exec("DELETE FROM purchase_candidates WHERE id = 'c1'"), { code: '23001' })
+    })
+  } finally {
+    await pg.close()
+    previous.remove()
+  }
+})

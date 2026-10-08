@@ -8,7 +8,8 @@ import { getTableConfig } from 'drizzle-orm/pg-core'
 import * as schema from './schema.js'
 
 test('구매 스키마는 품목·제출·생성·기록·근거 표를 내보내고, 모르는 값은 비워 둔다', () => {
-  for (const name of ['purchaseItems', 'purchaseSubmissions', 'purchaseGenerations', 'purchaseItemEvents', 'purchaseItemSources']) {
+  for (const name of ['purchaseItems', 'purchaseSubmissions', 'purchaseGenerations', 'purchaseItemEvents', 'purchaseItemSources',
+    'coupangProducts', 'purchaseCandidates', 'purchaseCandidateShares']) {
     assert.ok(name in schema, `Missing table: ${name}`)
   }
   // 옛 요청서 표와 연결 칸은 0013에서 지웠다.
