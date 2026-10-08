@@ -26,11 +26,11 @@ export default function LinkDialog({ open, links, busy, disabled, error, onLinks
   return createPortal(<dialog ref={dialog} className="inset-x-4 m-auto w-auto max-w-lg rounded-lg border bg-white p-6 text-foreground shadow-2xl backdrop:bg-black/45" aria-labelledby={prefix}
     aria-describedby={`${prefix}-description`} onCancel={event => { event.preventDefault(); if (!busy) onClose() }}>
     <div className="flex items-center justify-between gap-3">
-      <h2 id={prefix} className="text-base font-semibold">끼룩이 · 구매요청서 초안</h2>
+      <h2 id={prefix} className="text-base font-semibold">끼룩이 · 구매 품목 담기</h2>
       <Button variant="ghost" size="sm" disabled={busy} onClick={onClose}>닫기</Button>
     </div>
-    <p id={`${prefix}-description`} className="mt-2 text-sm text-gray-500">상품 링크와 현재 행사방의 최근 대화를 외부 AI로 처리해요. 생성된 초안을 확인·수정한 후 제출해 주세요.</p>
-    <form aria-label="구매 초안 생성" className="mt-6 flex flex-col gap-1.5" onSubmit={event => {
+    <p id={`${prefix}-description`} className="mt-2 text-sm text-gray-500">상품 링크와 행사방의 최근 대화를 외부 AI로 처리해요. 링크마다 작성 중 품목이 생겨요.</p>
+    <form aria-label="구매 품목 담기" className="mt-6 flex flex-col gap-1.5" onSubmit={event => {
       event.preventDefault()
       if (!busy && !disabled && urls.length > 0 && urls.length <= 5) onCreate(urls)
     }}>
@@ -39,8 +39,8 @@ export default function LinkDialog({ open, links, busy, disabled, error, onLinks
         onChange={event => onLinksChange(event.target.value)} placeholder="주소창의 상품 링크를 한 줄에 하나씩, 최대 5개" />
       {urls.length > 5 && <StateMessage kind="error">상품 링크는 최대 5개까지 입력해 주세요.</StateMessage>}
       {error && <StateMessage kind="error">{error}</StateMessage>}
-      {busy && <StateMessage kind="loading">초안 생성 중… 최대 약 75초 걸릴 수 있어요. 완료될 때까지 기다려 주세요.</StateMessage>}
-      <Button className="mt-4 self-end" disabled={busy || disabled || !urls.length || urls.length > 5}>초안 만들기</Button>
+      {busy && <StateMessage kind="loading">담는 중… 최대 약 75초 걸릴 수 있어요. 끝날 때까지 기다려 주세요.</StateMessage>}
+      <Button className="mt-4 self-end" disabled={busy || disabled || !urls.length || urls.length > 5}>담기</Button>
     </form>
   </dialog>, document.body)
 }

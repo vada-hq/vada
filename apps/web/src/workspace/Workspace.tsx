@@ -51,7 +51,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   // 768px 미만에서 옆 메뉴로 연 사이드바. 행사를 고르면 닫는다.
   const [navOpen, setNavOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
-  function canLeave() { return !leaveRisk || window.confirm('입력 중이거나 처리 중인 구매요청이 있어요. 이동하면 입력 내용이 사라지고 서버 처리는 계속될 수 있어요. 이동할까요?') }
+  function canLeave() { return !leaveRisk || window.confirm('끼룩이가 품목을 담는 중이거나 입력한 링크가 있어요. 이동하면 입력한 링크가 사라지고, 담는 중인 품목은 서버에서 계속 만들어질 수 있어요. 이동할까요?') }
   useEffect(() => {
     if (!leaveRisk) return
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
@@ -93,7 +93,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
         title={view === 'members' ? '구성원' : selected?.name ?? '행사'} onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
         {view === 'members' ? <Members inviteCode={membership.organization.inviteCode} state={members} />
-          : selected ? <EventWorkspace key={selected.id} event={selected} handlesFinance={membership.permissions.approvePurchases} onLeaveRiskChange={setLeaveRisk} />
+          : selected ? <EventWorkspace key={selected.id} event={selected} onLeaveRiskChange={setLeaveRisk} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
           </Card></div>}
