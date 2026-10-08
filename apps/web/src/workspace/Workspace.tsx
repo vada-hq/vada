@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { CalendarDays } from 'lucide-react'
 import type { EventSummary, MembershipSummary } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
@@ -38,9 +38,13 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   // 회장단은 사이드바에 미배정 수를 보여 주려고 처음부터 불러온다. 다른 사람은 구성원 화면을 열 때 불러온다.
   const members = useOrganizationMembers(membership.organization.id, membership.permissions.manageOrganization || view === 'members')
   const viewer = members.data?.viewer
+  const refreshedFor = useRef<MembershipSummary | null>(null)
   // 구성원 화면에서 본인 부서가 바뀌면 소속을 다시 불러와 사이드바와 재정 화면이 새 권한을 따르게 한다.
+  // 같은 목록 응답으로는 한 번만 부른다. 다시 불러온 소속이 여전히 다르면 다음 목록 응답을 기다린다.
   useEffect(() => {
-    if (viewer && !sameMembership(viewer, membership)) onMembershipsChanged?.()
+    if (!viewer || viewer === refreshedFor.current || sameMembership(viewer, membership)) return
+    refreshedFor.current = viewer
+    onMembershipsChanged?.()
   }, [viewer, membership, onMembershipsChanged])
   const [selected, setSelected] = useState<EventSummary | null>(null)
   const [leaveRisk, setLeaveRisk] = useState(false)

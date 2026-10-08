@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { StrictMode } from 'react'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { DepartmentSummary, MemberSummary, MembershipSummary, OrganizationMembersResponse } from '@vada/contracts'
 import { json, mockApi } from '../test-support/mock-api'
@@ -185,4 +186,15 @@ test('목록을 못 불러오면 다시 시도할 수 있다', async () => {
   fail = false
   fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
   expect(await screen.findByRole('heading', { name: '구성원 4명' })).toBeTruthy()
+})
+
+test('개발 모드(StrictMode)에서도 변경 뒤 목록이 바뀌고 칸이 다시 켜진다', async () => {
+  api.on('GET', `${base}/members`, () => json(response()))
+  api.on('POST', `${base}/members/m-plan/title`, () => json(response(true, { members: withMember('m-plan', { title: '국장' }) })))
+  render(<StrictMode><Harness /></StrictMode>)
+  fireEvent.click(await screen.findByRole('button', { name: '박민수 직책' }))
+  fireEvent.change(within(await screen.findByRole('dialog')).getByLabelText('직책'), { target: { value: '국장' } })
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(screen.getByText(/박민수/).textContent).toBe('박민수 · 국장'))
+  expect((screen.getByLabelText('정하늘 부서') as HTMLSelectElement).disabled).toBe(false)
 })

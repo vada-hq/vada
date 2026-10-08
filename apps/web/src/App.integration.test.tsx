@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import App from './App'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { event, eventsPath, membership, messagesPath, purchasesPath, user } from './test-support/workflow-fixtures'
@@ -197,4 +197,49 @@ test('만들기를 취소하면 코드 입력으로 돌아간다', async () => {
   fireEvent.click(await screen.findByRole('button', { name: '새 학생회 만들기' }))
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
   expect(await screen.findByLabelText('초대 코드')).toBeTruthy()
+})
+
+// 본인 소속이 바뀌는 흐름. 응답이 늦게 와도 소속을 한 번만 다시 불러와야 한다(리뷰에서 찾은 무한 요청).
+function leaderSetup(secondMemberships: () => Response | Promise<Response>) {
+  const leader = { ...membership(), department: { id: 'lead', name: '회장단', handlesFinance: false, isLeadership: true },
+    permissions: { manageOrganization: true, approvePurchases: true } }
+  const titled = { ...leader, title: '회장' }
+  const list = (viewer: typeof leader) => json({ viewer, departments: [leader.department],
+    members: [{ id: 'mp', name: '기획 테스터', title: viewer.title, departmentId: 'lead' }] })
+  let count = 0
+  api.on('GET', '/api/me/memberships', () => ++count === 1 ? json({ memberships: [leader] }) : secondMemberships())
+  api.on('GET', '/api/organizations/o/members', () => list(leader))
+  api.on('POST', '/api/organizations/o/members/mp/title', () => list(titled))
+  return { leader, titled, count: () => count }
+}
+async function saveOwnTitle() {
+  render(<App />)
+  fireEvent.click(within(await screen.findByRole('navigation', { name: '학생회 메뉴' })).getByRole('button'))
+  fireEvent.click(await screen.findByRole('button', { name: '기획 테스터 직책' }))
+  fireEvent.change(within(await screen.findByRole('dialog')).getByLabelText('직책'), { target: { value: '회장' } })
+  fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '저장' }))
+}
+
+test('본인 직책을 바꾸면 소속을 한 번만 다시 불러오고, 응답이 오면 사이드바가 바뀐다', async () => {
+  const second = deferredResponse()
+  const setup = leaderSetup(() => second.promise)
+  await saveOwnTitle()
+  await waitFor(() => expect(setup.count()).toBe(2))
+  await new Promise(resolve => setTimeout(resolve, 50))
+  expect(setup.count()).toBe(2)
+  // 첫 요청은 이미 응답을 받았으므로 정리할 때 abort돼도 해가 없다. 다시 불러오는 요청은 끊기면 안 된다.
+  expect(api.calls.filter(call => call.path === '/api/me/memberships').slice(1).some(call => call.signal?.aborted)).toBe(false)
+  second.resolve(json({ memberships: [setup.titled] }))
+  expect(await screen.findByText('회장단 · 회장')).toBeTruthy()
+  expect(setup.count()).toBe(2)
+})
+
+test('다시 불러온 소속이 여전히 달라도 되풀이해서 불러오지 않는다', async () => {
+  let stale: unknown
+  const setup = leaderSetup(() => json({ memberships: [stale] }))
+  stale = setup.leader
+  await saveOwnTitle()
+  await waitFor(() => expect(setup.count()).toBe(2))
+  await new Promise(resolve => setTimeout(resolve, 100))
+  expect(setup.count()).toBe(2)
 })

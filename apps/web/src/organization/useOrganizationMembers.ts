@@ -12,7 +12,11 @@ export function useOrganizationMembers(organizationId: string, enabled: boolean)
   const [attempt, setAttempt] = useState(0)
   const [saving, setSaving] = useState(false)
   const active = useRef(true)
-  useEffect(() => () => { active.current = false }, [])
+  // 개발 모드(StrictMode)는 effect를 정리했다 다시 실행한다. 다시 실행될 때 true로 돌려놓는다.
+  useEffect(() => {
+    active.current = true
+    return () => { active.current = false }
+  }, [])
 
   useEffect(() => {
     if (!enabled) return

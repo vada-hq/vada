@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import type { MembershipSummary, MembershipsResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -14,6 +14,8 @@ export default function Memberships({ renderMemberships, renderFallback = conten
   const [result, setResult] = useState<MembershipsResponse | null>(null)
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  // 렌더마다 새 함수를 주면 받는 쪽 effect가 다시 돌아 요청이 되풀이된다. 같은 함수를 준다.
+  const refresh = useCallback(() => setAttempt(value => value + 1), [])
   useEffect(() => {
     const controller = new AbortController()
     setFailed(false)
@@ -37,7 +39,7 @@ export default function Memberships({ renderMemberships, renderFallback = conten
     <Button variant="outline" onClick={() => setAttempt(value => value + 1)}>소속 다시 확인</Button>
   </section>)
   if (!result) return renderFallback(<StateMessage kind="loading">소속 확인 중…</StateMessage>)
-  if (result.memberships.length && renderMemberships) return renderMemberships(result.memberships, () => setAttempt(value => value + 1))
+  if (result.memberships.length && renderMemberships) return renderMemberships(result.memberships, refresh)
   if (!result.memberships.length && renderEmpty) return renderFallback(renderEmpty())
   return renderFallback(<section aria-label="내 소속" className="flex flex-col gap-3">
     {result.memberships.length === 0 ? <h2 className="text-lg font-semibold">아직 참여한 학생회가 없어요</h2> : (
