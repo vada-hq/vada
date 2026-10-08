@@ -9,6 +9,10 @@ import { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } fr
 import { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema } from './invites.js'
 import { CREATE_DEPARTMENTS_MAX, DEPARTMENT_NAME_MAX, MEMBER_TITLE_MAX, ORGANIZATION_NAME_MAX, AssignDepartmentSchema, CreateDepartmentSchema,
   CreateOrganizationSchema, DeleteDepartmentSchema, UpdateDepartmentSchema, UpdateMemberTitleSchema } from './organizations.js'
+import { PURCHASE_BATCH_MAX, PURCHASE_INTEGER_MAX, PURCHASE_LINKS_MAX, PURCHASE_NOTE_MAX, PURCHASE_OPTION_MAX, PURCHASE_PACKAGING_MAX,
+  PURCHASE_PRODUCT_NAME_MAX, PURCHASE_REASON_MAX, ChangeNeededBySchema, CreatePurchaseDraftsSchema, DecidePurchaseItemsSchema,
+  GeneratedPurchaseItemSchema, PurchaseItemVersionSchema, PurchasePurchasedSchema, PurchaseReceivedSchema, SubmitPurchaseItemsSchema,
+  UpdatePurchaseItemSchema } from './purchases.js'
 
 // 홀로 쓰인 서러게이트까지 만들도록 UTF-16 코드 단위를 직접 뽑는다.
 const anyText = fc.string({ unit: fc.integer({ min: 0, max: 0xffff }).map(n => String.fromCharCode(n)), maxLength: 120 })
@@ -134,4 +138,79 @@ test('부서·배정·직책 스키마: 정규화, null 허용 범위, 상한, �
   for (const schema of [CreateDepartmentSchema, UpdateDepartmentSchema, DeleteDepartmentSchema, AssignDepartmentSchema, UpdateMemberTitleSchema]) {
     assert.equal(isStrictObject(schema), true)
   }
+})
+
+test('구매 담기: 키와 링크 1~5개만 받고, 모르는 키·제어 문자는 거부한다', () => {
+  const link = 'https://www.coupang.com/vp/products/1'
+  assert.deepEqual(CreatePurchaseDraftsSchema.parse({ idempotencyKey: ' k ', links: [` ${link} `] }), { idempotencyKey: 'k', links: [link] })
+  for (const body of [{}, { idempotencyKey: 'k' }, { links: [link] }, { idempotencyKey: ' ', links: [link] },
+    { idempotencyKey: 'k'.repeat(129), links: [link] }, { idempotencyKey: 'k', links: [] },
+    { idempotencyKey: 'k', links: Array(PURCHASE_LINKS_MAX + 1).fill(link) }, { idempotencyKey: 'k', links: [`${link}\u0000`] },
+    { idempotencyKey: 'k', links: [link], requesterId: 'f' }]) {
+    assert.equal(CreatePurchaseDraftsSchema.safeParse(body).success, false, JSON.stringify(body))
+  }
+})
+
+test('작성 중 품목 수정: 버전과 바꿀 칸 하나 이상, 칸마다 상한과 정수 범위', () => {
+  assert.deepEqual(UpdatePurchaseItemSchema.parse({ version: 1, note: '  계주 바통  ', selectedOption: null }),
+    { version: 1, note: '계주 바통', selectedOption: null })
+  assert.equal(UpdatePurchaseItemSchema.safeParse({ version: 1, note: '😀'.repeat(PURCHASE_NOTE_MAX) }).success, true)
+  assert.equal(UpdatePurchaseItemSchema.safeParse({ version: 1, estimatedUnitPrice: PURCHASE_INTEGER_MAX }).success, true)
+  for (const body of [{ version: 1 }, { note: 'a' }, { version: 0, note: 'a' }, { version: 1.5, note: 'a' },
+    { version: 1, note: '😀'.repeat(PURCHASE_NOTE_MAX + 1) }, { version: 1, note: '  ' }, { version: 1, note: 'a\u0000' }, { version: 1, note: '\uD800' },
+    { version: 1, productName: 'a'.repeat(PURCHASE_PRODUCT_NAME_MAX + 1) }, { version: 1, selectedOption: 'a'.repeat(PURCHASE_OPTION_MAX + 1) },
+    { version: 1, packagingUnit: 'a'.repeat(PURCHASE_PACKAGING_MAX + 1) }, { version: 1, quantity: 0 }, { version: 1, quantity: 2.5 },
+    { version: 1, estimatedUnitPrice: -1 }, { version: 1, estimatedUnitPrice: PURCHASE_INTEGER_MAX + 1 }, { version: 1, optionRequired: 'yes' },
+    { version: 1, neededBy: '2026-10-10' }, { version: 1, status: 'approved' }]) {
+    assert.equal(UpdatePurchaseItemSchema.safeParse(body).success, false, JSON.stringify(body))
+  }
+})
+
+test('일괄 처리: 1~50개, 같은 품목 두 번 금지, 받을 날짜는 실제 날짜나 null', () => {
+  const ref = (n: number) => ({ id: `item-${n}`, version: 1 })
+  assert.equal(SubmitPurchaseItemsSchema.safeParse({ items: [ref(1), ref(2)] }).success, true)
+  for (const items of [[], Array.from({ length: PURCHASE_BATCH_MAX + 1 }, (_, n) => ref(n)), [ref(1), ref(1)], [{ id: 'item-1' }],
+    [{ ...ref(1), extra: true }], [{ id: 'x'.repeat(65), version: 1 }], [{ id: '\u0001', version: 1 }]]) {
+    assert.equal(SubmitPurchaseItemsSchema.safeParse({ items }).success, false, JSON.stringify(items).slice(0, 60))
+  }
+  for (const neededBy of [null, '2026-10-20', '2028-02-29']) {
+    assert.equal(ChangeNeededBySchema.safeParse({ items: [ref(1)], neededBy }).success, true, String(neededBy))
+  }
+  for (const neededBy of ['2026-02-30', '2027-02-29', '2026-13-01', '0000-01-01', '2026-1-1', '', ' 2026-10-20', undefined]) {
+    assert.equal(ChangeNeededBySchema.safeParse({ items: [ref(1)], neededBy }).success, false, String(neededBy))
+  }
+  assert.equal(PurchaseItemVersionSchema.safeParse({ version: 1, extra: 1 }).success, false)
+  assert.equal(PurchaseReceivedSchema.safeParse({ version: 1, received: true }).success, true)
+  assert.equal(PurchaseReceivedSchema.safeParse({ version: 1, received: 'true' }).success, false)
+  assert.equal(PurchasePurchasedSchema.safeParse({ version: 1 }).success, false)
+})
+
+test('결정: 승인은 사유를 받지 않고, 반려는 500자 이내 사유가 있어야 한다', () => {
+  const parsed = DecidePurchaseItemsSchema.parse({ decisions: [{ id: 'a', version: 1, decision: 'approved' },
+    { id: 'b', version: 2, decision: 'rejected', reason: ' 규격 확인 ' }] })
+  assert.deepEqual(parsed.decisions[1], { id: 'b', version: 2, decision: 'rejected', reason: '규격 확인' })
+  assert.equal(DecidePurchaseItemsSchema.safeParse({ decisions: [{ id: 'b', version: 1, decision: 'rejected',
+    reason: '😀'.repeat(PURCHASE_REASON_MAX) }] }).success, true)
+  for (const decisions of [[], [{ id: 'a', version: 1, decision: 'rejected' }], [{ id: 'a', version: 1, decision: 'rejected', reason: ' ' }],
+    [{ id: 'a', version: 1, decision: 'rejected', reason: '😀'.repeat(PURCHASE_REASON_MAX + 1) }],
+    [{ id: 'a', version: 1, decision: 'approved', reason: 'x' }], [{ id: 'a', version: 1, decision: 'hold' }],
+    [{ id: 'a', version: 1, decision: 'approved' }, { id: 'a', version: 1, decision: 'approved' }],
+    Array.from({ length: PURCHASE_BATCH_MAX + 1 }, (_, n) => ({ id: `i${n}`, version: 1, decision: 'approved' }))]) {
+    assert.equal(DecidePurchaseItemsSchema.safeParse({ decisions }).success, false, JSON.stringify(decisions).slice(0, 80))
+  }
+})
+
+test('끼룩이 출력: 빈 글은 모르는 값으로 바꾸고, 상한과 실제 날짜를 지킨다', () => {
+  const item = { productUrl: 'https://www.coupang.com/vp/products/1', productName: '테이블', selectedOption: ' ', packagingUnit: '',
+    optionRequired: null, quantity: null, note: '부스 설치', neededBy: '2026-10-20', sourceMessageIds: ['m'], warnings: [] }
+  assert.deepEqual(GeneratedPurchaseItemSchema.parse(item), { ...item, selectedOption: null, packagingUnit: null })
+  for (const change of [{ quantity: 0 }, { neededBy: '2026-02-30' }, { note: 'a'.repeat(PURCHASE_NOTE_MAX + 1) },
+    { warnings: Array(11).fill('확인') }, { estimatedUnitPrice: 999 }, { sourceMessageIds: ['\u0000'] }]) {
+    assert.equal(GeneratedPurchaseItemSchema.safeParse({ ...item, ...change }).success, false, JSON.stringify(change))
+  }
+})
+
+test('구매 요청 본문 스키마는 모두 모르는 키를 거부하는 strictObject다', () => {
+  for (const schema of [CreatePurchaseDraftsSchema, UpdatePurchaseItemSchema, PurchaseItemVersionSchema, SubmitPurchaseItemsSchema,
+    ChangeNeededBySchema, PurchaseReceivedSchema, PurchasePurchasedSchema, DecidePurchaseItemsSchema]) assert.equal(isStrictObject(schema), true)
 })
