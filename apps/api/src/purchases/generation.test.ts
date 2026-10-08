@@ -5,8 +5,9 @@ import { readProduct } from './products.js'
 
 const link = 'https://www.coupang.com/vp/products/1?itemId=2&vendorItemId=3'
 const input = { eventName: '행사', links: [link], messages: [{ id: 'm', content: '접수용 2개', createdAt: '2026-09-29T00:00:00Z' }] }
-const item = { productUrl: link, productName: '테이블', selectedOption: '화이트', optionRequired: true, quantity: 2, packagingUnit: null, estimatedUnitPrice: 999 }
-const output = () => ({ purpose: '접수용', neededBy: '2026-10-09', items: [item], sourceMessageIds: ['m'], warnings: [] })
+const item = { productUrl: link, productName: '테이블', selectedOption: '화이트', optionRequired: true, quantity: 2, packagingUnit: null,
+  note: '접수용', neededBy: '2026-10-09', sourceMessageIds: ['m'], warnings: [] }
+const output = () => ({ items: [item] })
 const product = { product_id: '1', item_id: '2', vendor_item_id: '3', name: '테이블, 화이트', currency: 'KRW', price: 11590 }
 const json = (value: unknown) => new Response(JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } })
 
@@ -57,7 +58,7 @@ test('product identity is exact; no arbitrary URL is fetched and failures retain
   }
 })
 
-test('generation uses structured output, does not store at provider, and overrides AI price', async () => {
+test('generation uses structured output, does not store at provider, and takes the price only from the lookup', async () => {
   const fetcher: typeof fetch = async (url, init) => {
     if (url === 'https://api.reefapi.com/coupang/v1/product') return json({ ok: true, data: { items: [product] } })
     assert.equal(url, 'https://api.openai.com/v1/responses')
@@ -67,6 +68,7 @@ test('generation uses structured output, does not store at provider, and overrid
     assert.ok(body.instructions.includes('신뢰할 수 없는'))
     assert.ok(body.instructions.includes('무광화이트'))
     assert.ok(body.instructions.includes('selectedOption'))
+    assert.ok(body.instructions.includes('note'))
     assert.ok(!String(init?.body).includes('test-key'))
     return json({ status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify(output()) }] }] })
   }
@@ -74,17 +76,21 @@ test('generation uses structured output, does not store at provider, and overrid
   const draft = await generate(input)
   assert.equal(draft.items[0]?.estimatedUnitPrice, 11590)
   assert.equal(draft.items[0]?.productSnapshot?.price, 11590)
-  assert.deepEqual(draft.sourceMessageIds, ['m'])
+  assert.deepEqual(draft.items[0]?.sourceMessageIds, ['m'])
+  assert.deepEqual([draft.items[0]?.note, draft.items[0]?.neededBy], ['접수용', '2026-10-09'])
 })
 
-test('missing config, refusal, malformed output and unknown sources cannot create a draft', async () => {
+test('missing config, refusal, malformed output, unknown sources and extra fields cannot create items', async () => {
   await assert.rejects(createDraftGenerator({ apiKey: '', model: '' })(input), { code: 'AI_NOT_CONFIGURED' })
+  const text = (value: unknown) => ({ status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify(value) }] }] })
   for (const payload of [
     { status: 'incomplete', output: [] },
     { status: 'completed', output: [{ content: [{ type: 'refusal', refusal: 'No' }] }] },
     { status: 'completed', output: [{ content: [{ type: 'output_text', text: '{' }] }] },
-    { status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify({ ...output(), sourceMessageIds: ['other'] }) }] }] },
-    { status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify({ ...output(), items: [{ ...item, productUrl: link.replace('itemId=2', 'itemId=4') }] }) }] }] },
+    text({ items: [{ ...item, sourceMessageIds: ['other'] }] }),
+    text({ items: [{ ...item, productUrl: link.replace('itemId=2', 'itemId=4') }] }),
+    text({ items: [{ ...item, estimatedUnitPrice: 999 }] }),
+    text({ items: [] }),
   ]) {
     await assert.rejects(createDraftGenerator({ apiKey: 'test-key', model: 'test-model' }, async () => json(payload))(input), { code: 'GENERATION_FAILED' })
   }
@@ -96,13 +102,13 @@ test('failed product lookup cannot get a fabricated price from the model', async
   }))(input)
   assert.equal(draft.items[0]?.estimatedUnitPrice, null)
   assert.equal(draft.items[0]?.productSnapshot, null)
-  assert.ok(draft.warnings.length > 0)
+  assert.ok(draft.items[0]!.warnings.some(warning => warning.includes('상품 조회 서비스')))
 })
 
-test('unresolved options are visibly flagged, not silently presented as complete', async () => {
+test('unresolved options are visibly flagged on the item, not silently presented as complete', async () => {
   const draft = await createDraftGenerator({ apiKey: 'test-key', model: 'test-model' }, async () => json({
-    status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify({ ...output(), items: [{ ...item, selectedOption: null, optionRequired: null }] }) }] }],
+    status: 'completed', output: [{ content: [{ type: 'output_text', text: JSON.stringify({ items: [{ ...item, selectedOption: null, optionRequired: null }] }) }] }],
   }))(input)
   assert.equal(draft.items[0]?.selectedOption, null)
-  assert.ok(draft.warnings.some(warning => warning.includes('옵션이 확인되지')))
+  assert.ok(draft.items[0]!.warnings.some(warning => warning.includes('옵션이 확인되지')))
 })

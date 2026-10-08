@@ -15,15 +15,6 @@ import { createDeliveryRoutes } from '../deliveries/routes.js'
 import { createCallbackAddress, createDeliveryWebhook } from '../deliveries/webhook.js'
 import { json } from './validate.js'
 
-// 구매 본문 검사는 ERD 재설계 때 스키마로 다시 만든다. 그때 이 목록을 비운다.
-const schemaPending = new Set([
-  'POST /api/organizations/:organizationId/events/:eventId/purchase-requests/drafts',
-  'PATCH /api/organizations/:organizationId/events/:eventId/purchase-requests/:requestId',
-  'POST /api/organizations/:organizationId/events/:eventId/purchase-requests/:requestId/discard',
-  'POST /api/organizations/:organizationId/events/:eventId/purchase-requests/:requestId/submit',
-  'POST /api/organizations/:organizationId/events/:eventId/purchase-requests/finance/:requestId/decision',
-])
-
 // 공통 가드(/api/organizations/*) 밖의 변경 라우트. 새 항목은 가드를 대신할 자체 검사가 있어야 한다.
 const outsideGuard = new Map([
   ['ALL /api/auth/*', '인증 본문 크기 제한 미들웨어'],
@@ -57,7 +48,6 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     for (const key of outsideGuard.keys()) assert.ok(writes.includes(key), `${key}: 없는 라우트가 outsideGuard에 남아 있다`)
     // 미들웨어 등록(/*)은 빼고 실제 라우트만 검사한다.
     const mutating = writes.filter(key => pathOf(key).startsWith('/api/organizations/') && !key.endsWith('/*'))
-    for (const key of schemaPending) assert.ok(mutating.includes(key), `${key}: 없는 라우트가 schemaPending에 남아 있다`)
     // 목록이 비어 테스트가 저절로 통과하는 일을 막는다.
     assert.ok(mutating.length >= 10, `변경 라우트 ${mutating.length}개`)
     for (const key of mutating) {
@@ -70,7 +60,6 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       assert.equal((await send({ ...jsonHeaders, Origin: 'https://evil.test' }, '{}')).status, 403, key)
       assert.equal((await send({ Origin: origin, 'Content-Type': 'text/plain' }, '{}')).status, 415, key)
       assert.equal((await send(jsonHeaders, JSON.stringify({ x: 'a'.repeat(40000) }))).status, 413, key)
-      if (schemaPending.has(key)) continue
       const before = authCalls
       const malformed = await send(jsonHeaders, '{')
       assert.equal(malformed.status, 400, key)

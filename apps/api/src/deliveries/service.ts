@@ -1,13 +1,14 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { and, asc, eq, gt, inArray, isNull, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import type { DeliveryLookupRequest, DeliveryLookupResponse, DeliverySummary, EventDeliveriesResponse, RegisterShipmentRequest } from '@vada/contracts'
+import type { DeliveryLookupRequest, DeliveryLookupResponse, EventDeliveriesResponse, RegisterShipmentRequest } from '@vada/contracts'
 import { departments, events, memberships, purchaseItems, purchaseRequests, shipments, shipmentItems, shipmentJobs, shipmentRegistrations } from '../db/schema.js'
 import { approvesPurchases } from '../access/membership.js'
 import type { DeliveryProvider } from './provider.js'
 import { DeliveryError } from './validation.js'
 import type { DeliveryDatabase } from './database.js'
 import { enqueueDeliveryJob as queue } from './job-repository.js'
+import { deliverySummary } from './summary.js'
 export type { DeliveryDatabase } from './database.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -38,16 +39,6 @@ async function receipt(db: Reader, scope: DeliveryScope, input: RegisterShipment
   const [row] = await db.select().from(shipmentRegistrations).where(and(eq(shipmentRegistrations.organizationId, scope.organizationId), eq(shipmentRegistrations.actorId, scope.userId), eq(shipmentRegistrations.idempotencyKey, input.idempotencyKey)))
   if (row && row.inputHash !== hashInput(input)) throw new DeliveryError('IDEMPOTENCY_CONFLICT', 409)
   return row
-}
-function summary(row: typeof shipments.$inferSelect, finance: boolean, linkId: string): DeliverySummary {
-  return {
-    linkId,
-    id: row.id, carrierId: row.carrierId,
-    trackingNumber: finance ? row.trackingNumber : (row.trackingNumber.length > 4 ? '*'.repeat(row.trackingNumber.length - 4) + row.trackingNumber.slice(-4) : '****'),
-    trackingNumberMasked: !finance, status: row.status, lastEventAt: row.lastEventAt?.toISOString() ?? null,
-    lastCheckedAt: row.lastCheckedAt?.toISOString() ?? null, lastAttemptAt: row.lastAttemptAt?.toISOString() ?? null,
-    refreshFailed: row.lastErrorCode !== null, trackingActive: row.trackingActive, webhookExpiresAt: row.webhookExpiresAt?.toISOString() ?? null,
-  }
 }
 export function createDeliveryService(db: DeliveryDatabase, provider: DeliveryProvider) {
   // 단일 M1 인스턴스에서 사용자별 외부 호출 동시성·연속 호출을 제한한다.
@@ -123,7 +114,7 @@ export function createDeliveryService(db: DeliveryDatabase, provider: DeliveryPr
           .innerJoin(shipments, and(eq(shipments.id, shipmentItems.shipmentId), eq(shipments.organizationId, shipmentItems.organizationId)))
           .where(and(eq(shipmentItems.organizationId, scope.organizationId), inArray(shipmentItems.purchaseItemId, page.map(item => item.id)), isNull(shipmentItems.unlinkedAt)))
           .orderBy(asc(shipments.createdAt), asc(shipments.id)) : []
-        return { items: page.map(item => ({ ...item, shipments: links.filter(link => link.itemId === item.id).map(link => summary(link.shipment, member.finance, link.linkId)) })), nextCursor: rows.length > 50 ? page.at(-1)!.id : null }
+        return { items: page.map(item => ({ ...item, shipments: links.filter(link => link.itemId === item.id).map(link => deliverySummary(link.shipment, member.finance, link.linkId)) })), nextCursor: rows.length > 50 ? page.at(-1)!.id : null }
       })
     },
     async unlink(scope: DeliveryScope, id: string, linkIds: string[]) {
