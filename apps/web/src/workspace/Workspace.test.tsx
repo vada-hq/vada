@@ -9,11 +9,15 @@ import { draft } from '../purchases/purchase-test-fixtures'
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } }
 const financeMembership: MembershipSummary = { ...membership, department: { id: 'd1', name: '기획부', handlesFinance: true, isLeadership: false }, permissions: { manageOrganization: false, approvePurchases: true } }
+const leaderMembership: MembershipSummary = { ...membership, department: { id: 'lead', name: '회장단', handlesFinance: false, isLeadership: true }, title: '회장', permissions: { manageOrganization: true, approvePurchases: true } }
+const membersBody = { viewer: membership, departments: [{ id: 'd1', name: '기획부', isLeadership: false, handlesFinance: false }],
+  members: [{ id: 'm1', name: '테스터', title: null, departmentId: 'd1' }] }
 const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z' }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
-function setup() {
+function setup(members: unknown = membersBody) {
   const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/events')
     ? { events: [event, { ...event, id: 'e2', name: '축제' }] }
+    : url.endsWith('/members') ? members
     : url.endsWith('/messages') ? { messages: [], nextCursor: null } : { requests: [], nextCursor: null } }))
   vi.stubGlobal('fetch', fetcher)
   return fetcher
@@ -152,7 +156,7 @@ test('an unassigned member sees 미배정 and no finance badge', () => {
   setup()
   render(<Workspace {...props} memberships={[{ ...membership, department: null }]} />)
   expect(screen.getByText('미배정')).toBeTruthy()
-  expect(screen.queryByText('재정 담당')).toBeNull()
+  expect(screen.queryByText('구매 승인')).toBeNull()
   expect(screen.getByRole('button', { name: '구성원 초대' })).toBeTruthy()
 })
 
@@ -243,4 +247,45 @@ test('새 행사 inside the mobile menu opens the dialog and leaves the page usa
   // 겹친 대화상자가 닫힌 뒤 화면이 다시 눌리고 보조 기술에도 보여야 한다.
   expect(document.body.style.pointerEvents).toBe('')
   expect(screen.getByRole('button', { name: '메뉴 열기' })).toBeTruthy()
+})
+
+const membersButton = () => within(screen.getByRole('navigation', { name: '학생회 메뉴' })).getByRole('button')
+
+test('구성원 메뉴는 구성원 화면을 열고, 행사를 고르면 행사 화면으로 돌아간다', async () => {
+  const fetcher = setup()
+  render(<Workspace {...props} />)
+  expect(fetcher.mock.calls.some(([url]) => String(url).endsWith('/members'))).toBe(false)
+  fireEvent.click(membersButton())
+  expect(await screen.findByRole('heading', { name: '구성원 1명' })).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 1, name: '구성원' })).toBeTruthy()
+  expect(membersButton().getAttribute('aria-current')).toBe('page')
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  await screen.findByText('아직 대화가 없어요.')
+  expect(screen.getByRole('heading', { level: 1, name: '체육대회' })).toBeTruthy()
+})
+
+test('회장단은 미배정 수와 구매 승인 표시를 보고, 구매요청 검토 보기를 쓴다', async () => {
+  setup({ viewer: leaderMembership, departments: [{ id: 'lead', name: '회장단', isLeadership: true, handlesFinance: false }],
+    members: [{ id: 'm1', name: '테스터', title: '회장', departmentId: 'lead' }, { id: 'm2', name: '새내기', title: null, departmentId: null }] })
+  render(<Workspace {...props} memberships={[leaderMembership]} />)
+  expect(await within(screen.getByRole('navigation', { name: '학생회 메뉴' })).findByText('미배정 1')).toBeTruthy()
+  expect(screen.getByText('구매 승인')).toBeTruthy()
+  expect(screen.getByText('회장단 · 회장')).toBeTruthy()
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  fireEvent.click(screen.getByRole('tab', { name: '구매요청' }))
+  expect(await screen.findByRole('button', { name: '재정부 제출 요청 보기' })).toBeTruthy()
+})
+
+test('구성원 목록의 본인 정보가 다르면 소속을 다시 불러온다', async () => {
+  setup({ ...membersBody, viewer: { ...membership, department: null } })
+  const onMembershipsChanged = vi.fn()
+  render(<Workspace {...props} onMembershipsChanged={onMembershipsChanged} />)
+  fireEvent.click(membersButton())
+  await waitFor(() => expect(onMembershipsChanged).toHaveBeenCalledOnce())
+})
+
+test('방금 만든 학생회는 구성원 화면부터 연다', async () => {
+  setup()
+  render(<Workspace {...props} initialOrganizationId="o1" initialView="members" />)
+  expect(await screen.findByRole('heading', { name: '구성원 1명' })).toBeTruthy()
 })

@@ -8,22 +8,40 @@ import { Sheet, SheetContent } from '@/components/ui/sheet'
 import EventList from '../events/EventList'
 import CreateEventForm from '../events/CreateEventForm'
 import { useEvents } from '../events/useEvents'
+import Members from '../organization/Members'
+import { useOrganizationMembers } from '../organization/useOrganizationMembers'
 import EventWorkspace from './EventWorkspace'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar, { type AccountProps } from './WorkspaceSidebar'
 
-type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string }
-export default function Workspace({ initialOrganizationId, ...props }: Props) {
-  // 초대로 방금 참여한 학생회가 있으면 그 학생회를 먼저 연다.
+type View = 'events' | 'members'
+type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string; initialView?: View; onMembershipsChanged?: () => void }
+export default function Workspace({ initialOrganizationId, initialView, ...props }: Props) {
+  // 초대로 방금 참여했거나 방금 만든 학생회가 있으면 그 학생회를 먼저 연다.
   const [membershipId, setMembershipId] = useState(() =>
     (props.memberships.find(item => item.organization.id === initialOrganizationId) ?? props.memberships[0])?.id)
   const membership = props.memberships.find(item => item.id === membershipId) ?? props.memberships[0]
   if (!membership) return null
-  return <CouncilWorkspace key={`${membership.id}:${membership.organization.id}`} {...props} membership={membership} onMembershipChange={setMembershipId} />
+  return <CouncilWorkspace key={`${membership.id}:${membership.organization.id}`} {...props} membership={membership} onMembershipChange={setMembershipId}
+    initialView={membership.organization.id === initialOrganizationId ? initialView : undefined} />
 }
 
-function CouncilWorkspace({ membership, onMembershipChange, ...props }: Props & { membership: MembershipSummary; onMembershipChange: (id: string) => void }) {
+// 본인 소속이 서버와 다른지 본다. 부서·직책·권한이 바뀌었을 때만 소속을 다시 불러온다.
+function sameMembership(a: MembershipSummary, b: MembershipSummary) {
+  return a.department?.id === b.department?.id && a.department?.name === b.department?.name && a.title === b.title
+    && a.permissions.manageOrganization === b.permissions.manageOrganization && a.permissions.approvePurchases === b.permissions.approvePurchases
+}
+
+function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembershipsChanged, ...props }: Omit<Props, 'initialOrganizationId'> & { membership: MembershipSummary; onMembershipChange: (id: string) => void }) {
   const events = useEvents(membership.organization.id)
+  const [view, setView] = useState<View>(initialView ?? 'events')
+  // 회장단은 사이드바에 미배정 수를 보여 주려고 처음부터 불러온다. 다른 사람은 구성원 화면을 열 때 불러온다.
+  const members = useOrganizationMembers(membership.organization.id, membership.permissions.manageOrganization || view === 'members')
+  const viewer = members.data?.viewer
+  // 구성원 화면에서 본인 부서가 바뀌면 소속을 다시 불러와 사이드바와 재정 화면이 새 권한을 따르게 한다.
+  useEffect(() => {
+    if (viewer && !sameMembership(viewer, membership)) onMembershipsChanged?.()
+  }, [viewer, membership, onMembershipsChanged])
   const [selected, setSelected] = useState<EventSummary | null>(null)
   const [leaveRisk, setLeaveRisk] = useState(false)
   // 768px 미만에서 옆 메뉴로 연 사이드바. 행사를 고르면 닫는다.
@@ -37,14 +55,22 @@ function CouncilWorkspace({ membership, onMembershipChange, ...props }: Props & 
     return () => window.removeEventListener('beforeunload', warn)
   }, [leaveRisk])
   function select(event: EventSummary) {
-    if (event.id !== selected?.id && canLeave()) setSelected(event)
+    // 구성원 화면에서는 입력 중인 구매요청이 없으므로 묻지 않고 행사 화면으로 간다.
+    if (view === 'members') { setSelected(event); setView('events') }
+    else if (event.id !== selected?.id && canLeave()) setSelected(event)
+    setNavOpen(false)
+  }
+  function openMembers() {
+    if (view !== 'members' && canLeave()) { setView('members'); members.refresh() }
     setNavOpen(false)
   }
   // 데스크톱 aside와 휴대폰 옆 메뉴가 같은 내용을 쓴다. 옆 메뉴는 열렸을 때만 그려진다.
+  const unassigned = membership.permissions.manageOrganization && members.data ? members.data.members.filter(member => member.departmentId === null).length : null
   const sidebar = <WorkspaceSidebar {...props} onLogout={() => { if (canLeave()) props.onLogout() }} membership={membership}
-    onMembershipChange={id => { if (canLeave()) onMembershipChange(id) }}>
+    onMembershipChange={id => { if (canLeave()) onMembershipChange(id) }}
+    membersActive={view === 'members'} unassignedCount={unassigned} onMembers={openMembers}>
     <EventList events={events.events} loading={events.loading} error={events.loadError} saving={events.saving}
-      selectedId={selected?.id} onSelect={select} onRefresh={events.refresh} onCreate={() => { setNavOpen(false); setCreateOpen(true) }} />
+      selectedId={view === 'events' ? selected?.id : undefined} onSelect={select} onRefresh={events.refresh} onCreate={() => { setNavOpen(false); setCreateOpen(true) }} />
   </WorkspaceSidebar>
   return <div className="flex h-dvh">
     <aside className="hidden w-60 shrink-0 border-r bg-white md:flex md:flex-col" aria-label="학생회 작업 공간">{sidebar}</aside>
@@ -59,9 +85,11 @@ function CouncilWorkspace({ membership, onMembershipChange, ...props }: Props & 
       </DialogContent>
     </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
-      <WorkspaceHeader councilName={membership.organization.name} title={selected?.name ?? '행사'} onMenu={() => setNavOpen(true)} />
+      <WorkspaceHeader councilName={membership.organization.name} section={view === 'members' ? '구성원' : '행사'}
+        title={view === 'members' ? '구성원' : selected?.name ?? '행사'} onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
-        {selected ? <EventWorkspace key={selected.id} event={selected} handlesFinance={membership.department?.handlesFinance ?? false} onLeaveRiskChange={setLeaveRisk} />
+        {view === 'members' ? <Members inviteCode={membership.organization.inviteCode} state={members} />
+          : selected ? <EventWorkspace key={selected.id} event={selected} handlesFinance={membership.permissions.approvePurchases} onLeaveRiskChange={setLeaveRisk} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
           </Card></div>}
