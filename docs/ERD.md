@@ -94,80 +94,92 @@ erDiagram
 - `messages`: 행사 대신 채팅방을 참조한다. 공백만인 본문과 2,000자를 넘는 본문은 금지하며, 조회 인덱스는 `(chat_room_id, created_at, id)`다. 작성자 소속 변경으로 기존 메시지는 삭제되지 않는다. 쓰기 권한 검사는 서버 책임이다.
 - 사용자 삭제 시 `accounts`·`sessions`는 함께 삭제된다. `memberships`·`departments`·`events`·`chat_rooms`·`messages`가 참조하는 부모의 삭제는 제한된다.
 
-## 구매 요청
+## 구매 품목
 
-위 그림의 `events`·`departments`·`users`·`messages`를 참조한다. 속성은 주요 필드만 표시한다.
+위 그림의 `events`·`departments`·`users`·`messages`를 참조한다. 속성은 주요 필드만 표시한다. 설계는 [구매 품목 단위 전환](superpowers/specs/2026-10-08-purchase-items-design.md)에 있다.
 
 ```mermaid
 erDiagram
-    events ||..o{ purchaseRequests : "행사 요청"
-    departments ||..o{ purchaseRequests : "요청 부서"
-    users ||..o{ purchaseRequests : "작성"
-    purchaseRequests ||..o{ purchaseItems : "구매 품목"
-    purchaseRequests ||--o{ purchaseRequestSources : "근거 연결"
-    messages ||--o{ purchaseRequestSources : "근거 대화"
-    purchaseRequests ||..o{ purchaseRequestHistory : "변경 기록"
-    users ||..o{ purchaseRequestHistory : "처리 주체"
+    events ||..o{ purchaseItems : "행사 품목"
+    users ||..o{ purchaseItems : "요청자"
+    purchaseGenerations |o..o{ purchaseItems : "끼룩이 생성"
+    purchaseSubmissions |o..o{ purchaseItems : "같이 제출한 품목"
+    departments |o..o{ purchaseSubmissions : "제출 당시 부서"
+    purchaseItems ||..o{ purchaseItemEvents : "제출 이후 기록"
+    purchaseItems ||--o{ purchaseItemSources : "근거 연결"
+    messages ||--o{ purchaseItemSources : "근거 대화"
 
-    purchaseRequests["purchase_requests"] {
-        text id PK
-        text organization_id FK "행사 및 부서 복합 FK"
-        text event_id FK
-        text requester_id FK
-        text department_id FK "미배정 요청자면 null"
-        text purpose "미확인 시 null"
-        date needed_by "미확인 시 null"
-        integer estimated_shipping_cost "원 단위, 미확인 시 null"
-        text status "draft / discarded / submitted / approved / rejected"
-        integer version "변경 버전"
-    }
     purchaseItems["purchase_items"] {
         text id PK
-        text request_id FK
+        text organization_id FK "행사·생성·제출 복합 FK"
+        text event_id FK
+        text requester_id FK
+        text generation_id FK "다시 담기로 만들면 null"
+        text submission_id FK "작성 중이면 null"
+        text status "draft / pending / approved / rejected / cancelled"
         text product_url
-        text product_name
-        text selected_option
-        boolean option_required "미확인 시 null"
+        text product_name "미확인 시 null"
         integer quantity "주문 수량"
-        text packaging_unit "예: 40개입"
         integer estimated_unit_price "원 단위, 미확인 시 null"
-        jsonb product_snapshot "조회 정보, 조회 시각 별도 저장"
+        text note "용도, 200자"
+        date needed_by "받을 날짜, null이면 상관없음"
+        jsonb warnings "확인 사항"
+        integer version "변경 버전"
+        timestamptz decided_at "승인·반려 시각"
+        text decision_reason "반려 사유, 500자"
+        timestamptz purchased_at "구매함 표시"
+        timestamptz received_at "수령 확인"
     }
-    purchaseRequestSources["purchase_request_sources"] {
-        text request_id PK, FK
-        text message_id PK, FK
-        timestamptz created_at
-    }
-    purchaseRequestHistory["purchase_request_history"] {
+    purchaseSubmissions["purchase_submissions"] {
         text id PK
-        text request_id FK
+        text organization_id FK
+        text event_id FK
+        text requester_id FK
+        text department_id FK "미배정이면 null"
+        timestamptz submitted_at
+    }
+    purchaseGenerations["purchase_generations"] {
+        text id PK
+        text requester_id FK
+        text idempotency_key "요청자별 고유"
+        jsonb links "보낸 링크"
+    }
+    purchaseItemEvents["purchase_item_events"] {
+        text id PK
+        text item_id FK
         text actor_id FK
-        text action "created / updated / discarded / submitted / approved / rejected"
-        integer version
-        jsonb changes "변경 내용"
-        text reason "반려 시 필수"
-        timestamptz created_at
+        text action "submitted / approved / rejected / cancelled / approval_revoked / needed_by_changed / purchased / purchase_undone / received / receipt_undone / re_added"
+        text reason "반려만"
+        jsonb changes "바뀐 값"
+        text batch_id "한 번에 처리한 묶음"
+    }
+    purchaseItemSources["purchase_item_sources"] {
+        text item_id PK, FK
+        text message_id PK, FK
     }
 ```
 
-- `purchase_requests`: 행사·요청 부서는 같은 학생회여야 한다. 요청 부서는 기록된 ID를 유지하며 소속 변경에 따라 바뀌지 않는다. 요청자가 미배정이면 부서는 비어 있다. `(requester_id, idempotency_key)`는 중복 불가다.
-- `purchase_items`: `(request_id, position)`은 중복 불가다. 주문 수량은 양의 정수, 단가·배송비는 0 이상의 원 단위 정수다. 미확인은 `null`이며 합계는 저장하지 않고 계산한다. 조회 정보와 조회 시각은 함께 저장하며 편집값과 분리한다.
-- `purchase_request_sources`: 같은 요청·메시지 연결은 한 번만 저장한다. 메시지가 같은 행사방에 속하는지는 서버에서 검증해야 한다.
-- `purchase_request_history`: `(request_id, version)`은 중복 불가이며 반려 이력에는 공백이 아닌 사유가 필요하다. 구매 관련 외래 키는 부모 삭제를 제한한다.
-- 상태 대응: `draft` 검토 대기 · `discarded` 폐기 · `submitted` 접수 · `approved` 승인 · `rejected` 반려. 생성 중·실패는 요청서 상태가 아니다.
-- DB는 품목·이력이 0개인 요청도 허용한다. 생성 원자성, 제출 필수값, 권한, 상태 전환, 버전 비교·증가, 조회 원본·이력의 수정 금지는 서버 책임이며 이 스키마만으로 보장하지 않는다.
+- `purchase_items`: 진행 단위다. 행사·생성 기록·제출 기록은 같은 학생회여야 한다.
+  - 상태와 칸이 맞아야 한다. 작성 중이면 제출 기록이 없고, 승인·반려면 결정한 사람과 시각이 있고, 반려면 사유가 있다.
+  - 구매함 표시는 승인 품목에만, 수령 확인은 구매함 표시된 품목에만 붙는다.
+  - 모든 변경은 서버가 버전을 비교하고 올린다.
+- `purchase_submissions`: 상태가 없다. 화면은 품목 상태로 묶음을 보여 준다. 부서는 제출할 때의 요청자 부서이며 소속이 바뀌어도 그대로다.
+- `purchase_generations`: 끼룩이 재시도를 막는다. `(requester_id, idempotency_key)`는 중복 불가다.
+- `purchase_item_events`: 제출 이후의 변화만 기록하고 고치거나 지우지 않는다. 반려 기록만 사유가 있다.
+- `purchase_item_sources`: 메시지가 같은 행사방인지는 서버가 검사한다. 작성 중 품목을 지울 때 서버가 근거 연결을 먼저 지운다.
+- 옛 표 `purchase_requests`·`purchase_request_history`·`purchase_request_sources`와 `purchase_items.request_id`·`position`, `shipment_items.request_id`는 0012가 데이터를 옮긴 뒤 새 코드가 쓰지 않는다. 0013에서 지운다.
+- 권한·보는 범위·제출 필수값은 서버 책임이다. 작성 중 품목은 요청자만 보고, 제출된 품목은 학생회 누구나 본다.
 
 ## 배송 추적
 
-배송 상태는 구매요청서의 승인 상태와 독립적이다. 스키마·마이그레이션, [등록·조회 API](delivery-api.md), [자동 갱신 실행기](delivery-worker.md)를 작성했다. Neon 반영, 실제 외부 연결 검증, 화면 연결·배포는 별도 단계다.
+배송 상태는 품목의 승인 상태와 독립적이다. 송장을 연결하면 구매함 표시가 붙는다. 스키마·마이그레이션, [등록·조회 API](delivery-api.md), [자동 갱신 실행기](delivery-worker.md)를 작성했다. Neon 반영, 실제 외부 연결 검증, 화면 연결·배포는 별도 단계다.
 
 ```mermaid
 erDiagram
     organizations ||..o{ shipments : "학생회 배송"
     users ||..o{ shipments : "등록"
     shipments ||..o{ shipmentItems : "품목 연결 이력"
-    purchaseRequests ||..o{ shipmentItems : "같은 학생회 요청"
-    purchaseItems ||..o{ shipmentItems : "요청서 내 품목"
+    purchaseItems ||..o{ shipmentItems : "승인 품목"
     users ||..o{ shipmentItems : "연결자"
     users |o..o{ shipmentItems : "해제자"
     shipments ||..o{ shipmentJobs : "추적 작업"

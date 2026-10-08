@@ -40,7 +40,3 @@ export interface DeliverySummary {
   // 작업이 저장됐다는 것과 외부 추적 등록 완료는 다르다.
   webhookExpiresAt: string | null
 }
-export interface EventDeliveriesResponse {
-  items: { id: string; requestId: string; productName: string | null; quantity: number | null; shipments: DeliverySummary[] }[]
-  nextCursor: string | null
-}
