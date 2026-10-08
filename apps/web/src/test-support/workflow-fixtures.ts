@@ -5,7 +5,8 @@ export const user = (finance = false) => ({ id: finance ? 'f' : 'u', name: finan
   email: finance ? 'finance@example.test' : 'planning@example.test' })
 export const membership = (finance = false): MembershipSummary => ({ id: finance ? 'mf' : 'mp',
   organization: { id: 'o', name: '테스트 학생회', inviteCode: 'ABCD2345' },
-  department: { id: finance ? 'df' : 'd', name: finance ? '재정부' : '기획부', handlesFinance: finance } })
+  department: { id: finance ? 'df' : 'd', name: finance ? '재정부' : '기획부', handlesFinance: finance, isLeadership: false },
+  title: null, permissions: { manageOrganization: false, approvePurchases: finance } })
 export const event = (id = 'e'): EventSummary => ({ id, organizationId: 'o', name: id === 'e' ? '체육대회' : '축제',
   createdBy: 'u', createdAt: '2026-09-30T00:00:00Z' })
 export const message = (): MessageSummary => ({ id: 'm', chatRoomId: 'room', author: user(),

@@ -358,3 +358,36 @@ test('미배정 구성원도 구매 요청 초안을 만들고, 재정 기능은
     await pg.close()
   }
 })
+
+test('회장단은 구매 승인 부서가 아니어도 제출된 요청을 보고 결정한다', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
+    await pg.exec(`
+      INSERT INTO users(id,name,email) VALUES ('l','Leader','l@test.local'),('r','Requester','r@test.local');
+      INSERT INTO organizations(id,name) VALUES ('a','A');
+      INSERT INTO departments(id,organization_id,name,is_leadership,handles_finance) VALUES ('lead','a','회장단',true,false),('p','a','Planning',false,false);
+      INSERT INTO memberships(id,user_id,organization_id,department_id) VALUES ('l','l','a','lead'),('r','r','a','p');
+      INSERT INTO events(id,organization_id,name,created_by) VALUES ('e','a','Festival','r');
+      INSERT INTO chat_rooms(id,organization_id,event_id) VALUES ('room','a','e');
+      INSERT INTO purchase_requests(id,organization_id,event_id,requester_id,department_id,idempotency_key,status) VALUES ('req','a','e','r','p','k','submitted');
+    `)
+    let userId = 'l'
+    const origin = 'http://127.0.0.1:5180'
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin,
+      purchases: createPurchaseRoutes(db, async () => ({ user: { id: userId } }), async () => { throw new Error('unused') }) })
+    const inbox = '/api/organizations/a/events/e/purchase-requests/finance'
+    const list = await app.request(inbox)
+    assert.equal(list.status, 200)
+    assert.deepEqual((await list.json()).requests.map((request: { id: string }) => request.id), ['req'])
+    const decision = await app.request(`${inbox}/req/decision`, { method: 'POST',
+      headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ version: 1, decision: 'approved' }) })
+    assert.equal(decision.status, 200)
+    assert.equal((await pg.query<{ status: string }>("SELECT status FROM purchase_requests WHERE id = 'req'")).rows[0]?.status, 'approved')
+    userId = 'r'
+    assert.equal((await app.request(inbox)).status, 403)
+  } finally {
+    await pg.close()
+  }
+})

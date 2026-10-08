@@ -12,11 +12,20 @@ export interface HealthResponse {
 export type { DeliveryStatus, DeliveryLookupRequest, RegisterShipmentRequest, UnlinkShipmentRequest,
   DeliveryLookupResponse, DeliveryCarriersResponse, ShipmentRegistrationResponse, DeliverySummary, EventDeliveriesResponse } from './deliveries.js'
 
+export interface MembershipPermissions {
+  manageOrganization: boolean
+  approvePurchases: boolean
+}
+
 export interface MembershipSummary {
   id: string
   organization: { id: string; name: string; inviteCode: string }
-  // 초대로 들어와 아직 부서가 없으면 null(미배정)이다.
-  department: { id: string; name: string; handlesFinance: boolean } | null
+  // 초대로 들어와 아직 부서가 없으면 null(미배정)이다. 회장단도 부서 중 하나다.
+  department: { id: string; name: string; handlesFinance: boolean; isLeadership: boolean } | null
+  // 표시용 직책. 권한과 무관하다.
+  title: string | null
+  // 서버가 부서로 계산한 권한. 화면은 이 값만 보고 메뉴를 보인다.
+  permissions: MembershipPermissions
 }
 
 export interface MembershipsResponse {

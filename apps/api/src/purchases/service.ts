@@ -4,6 +4,7 @@ import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { CreatePurchaseDraftRequest, DecidePurchaseRequest, PurchaseDetail, PurchaseSummary, UpdatePurchaseDraftRequest } from '@vada/contracts'
 import { chatRooms, departments, events, memberships, messages, purchaseItems as items, purchaseRequestHistory as history,
   purchaseRequests as requests, purchaseRequestSources as sources } from '../db/schema.js'
+import { approvesPurchases } from '../access/membership.js'
 import { type DraftGenerator, type DraftInput, validateDraft } from './generation.js'
 import { date, integer, productUrl, PurchaseError, text } from './validation.js'
 
@@ -18,7 +19,7 @@ const whereVisible = (scope: PurchaseScope, finance: boolean) => finance
 async function requireFinance(db: Reader, scope: PurchaseScope) {
   const [member] = await db.select({ id: memberships.id }).from(memberships)
     .innerJoin(departments, and(eq(memberships.departmentId, departments.id), eq(memberships.organizationId, departments.organizationId)))
-    .where(and(eq(memberships.userId, scope.userId), eq(memberships.organizationId, scope.organizationId), eq(departments.handlesFinance, true))).for('share')
+    .where(and(eq(memberships.userId, scope.userId), eq(memberships.organizationId, scope.organizationId), approvesPurchases)).for('share')
   if (!member) throw new PurchaseError('FORBIDDEN', 403)
 }
 const serialize = ({ idempotencyKey: _, ...row }: typeof requests.$inferSelect): PurchaseSummary => ({

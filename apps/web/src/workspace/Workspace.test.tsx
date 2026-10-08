@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import type { MembershipSummary } from '@vada/contracts'
 import Workspace from './Workspace'
 import '../purchases/LinkDialog.test-support'
 import { draft } from '../purchases/purchase-test-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
-const membership = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false } }
+const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } }
+const financeMembership: MembershipSummary = { ...membership, department: { id: 'd1', name: '기획부', handlesFinance: true, isLeadership: false }, permissions: { manageOrganization: false, approvePurchases: true } }
 const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z' }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
 function setup() {
@@ -90,7 +92,7 @@ test('finance inbox is available only to finance membership and uses the selecte
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
   fireEvent.click(screen.getByRole('tab', { name: '구매요청' }))
   expect(screen.queryByRole('button', { name: '재정부 제출 요청 보기' })).toBeNull()
-  view.rerender(<Workspace {...props} memberships={[{ ...membership, department: { ...membership.department, handlesFinance: true } }]} />)
+  view.rerender(<Workspace {...props} memberships={[financeMembership]} />)
   fireEvent.click(screen.getByRole('button', { name: '재정부 제출 요청 보기' }))
   await screen.findByText('제출된 요청서가 없어요.')
   expect(screen.queryByRole('heading', { name: '내 구매요청' })).toBeNull()
@@ -111,7 +113,7 @@ test('switching between own requests and finance review preserves rejection inpu
       : url.endsWith('/messages') ? { messages: [], nextCursor: null }
         : url.endsWith('/finance/r') ? { request }
           : { requests: url.endsWith('/finance') ? [request] : [], nextCursor: null } })))
-  render(<Workspace {...props} memberships={[{ ...membership, department: { ...membership.department, handlesFinance: true } }]} />)
+  render(<Workspace {...props} memberships={[financeMembership]} />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
   fireEvent.click(screen.getByRole('tab', { name: '구매요청' }))
   fireEvent.click(screen.getByRole('button', { name: '재정부 제출 요청 보기' }))

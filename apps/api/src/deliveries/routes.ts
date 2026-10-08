@@ -15,7 +15,7 @@ export function createDeliveryRoutes(db: DeliveryDatabase, session: SessionReade
   const auth = requireSession(session)
   const member = requireMembership(db)
   const finance = createMiddleware<MembershipEnv>(async (c, next) => {
-    if (!c.get('membership').department?.handlesFinance) return c.json({ error: 'FORBIDDEN' }, 403)
+    if (!c.get('membership').permissions.approvePurchases) return c.json({ error: 'FORBIDDEN' }, 403)
     await next()
   })
   routes.get(`${root}/delivery-carriers`, auth, member, finance, async c => {

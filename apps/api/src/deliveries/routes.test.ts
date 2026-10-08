@@ -173,3 +173,28 @@ test('미배정 구성원은 재정 전용 배송 기능을 쓰지 못한다', a
     await pg.close()
   }
 })
+
+test('회장단은 재정 전용 배송 조회를 쓸 수 있다', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
+    await pg.exec(`
+      INSERT INTO users(id,name,email) VALUES ('l','Leader','l@test.local');
+      INSERT INTO organizations(id,name) VALUES ('a','A');
+      INSERT INTO departments(id,organization_id,name,is_leadership) VALUES ('lead','a','회장단',true);
+      INSERT INTO memberships(id,user_id,organization_id,department_id) VALUES ('l','l','a','lead');
+    `)
+    const lookup = { status: 'in_transit' as const, providerStatus: 'IN_TRANSIT', lastEventAt: null, checkedAt: '2026-10-08T00:00:00.000Z' }
+    const provider = { carriers: async () => ({ carriers: [], nextCursor: null }), lookup: async () => lookup }
+    const origin = 'http://127.0.0.1:5180'
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin,
+      deliveries: createDeliveryRoutes(db, async () => ({ user: { id: 'l' } }), provider) })
+    const response = await app.request('/api/organizations/a/delivery-lookups', { method: 'POST',
+      headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ carrierId: 'kr.cjlogistics', trackingNumber: '1234' }) })
+    assert.equal(response.status, 200)
+    assert.deepEqual(await response.json(), lookup)
+  } finally {
+    await pg.close()
+  }
+})

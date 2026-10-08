@@ -46,7 +46,7 @@ test('membership access uses authenticated identity and current database members
       const response = await routes.request('/me/memberships?userId=finance', { headers: { 'X-User-Id': 'finance' } })
       assert.equal(response.status, 200)
       assert.equal(response.headers.get('Cache-Control'), 'no-store')
-      assert.deepEqual(await response.json(), { memberships: [{ id: 'm1', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: { id: 'd1', name: 'Finance', handlesFinance: false } }] })
+      assert.deepEqual(await response.json(), { memberships: [{ id: 'm1', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: { id: 'd1', name: 'Finance', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } }] })
       assert.equal((await routes.request('/organizations/org1/membership')).status, 200)
       assert.equal((await routes.request('/organizations/org2/membership')).status, 403)
       assert.equal((await routes.request('/organizations/missing/membership')).status, 403)
@@ -54,8 +54,9 @@ test('membership access uses authenticated identity and current database members
     await t.test('finance capability comes from the database flag, not the department name', async () => {
       userId = 'finance'
       const response = await routes.request('/organizations/org1/membership')
-      const body = await response.json() as { membership: { department: { handlesFinance: boolean } } }
+      const body = await response.json() as { membership: { department: { handlesFinance: boolean }; permissions: { manageOrganization: boolean; approvePurchases: boolean } } }
       assert.equal(body.membership.department.handlesFinance, true)
+      assert.deepEqual(body.membership.permissions, { manageOrganization: false, approvePurchases: true })
     })
     await t.test('membership removal takes effect without changing the login session', async () => {
       await pg.query("DELETE FROM memberships WHERE id='m2'")
@@ -65,7 +66,7 @@ test('membership access uses authenticated identity and current database members
       userId = 'newbie'
       const response = await routes.request('/organizations/org1/membership')
       assert.equal(response.status, 200)
-      assert.deepEqual(await response.json(), { membership: { id: 'm3', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: null } })
+      assert.deepEqual(await response.json(), { membership: { id: 'm3', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: null, title: null, permissions: { manageOrganization: false, approvePurchases: false } } })
       assert.equal((await routes.request('/organizations/org2/membership')).status, 403)
     })
   } finally {
@@ -132,7 +133,7 @@ test('초대 코드로 미배정 구성원이 되고, 잘못된 입력은 인증
       const response = await join({ code: ' aaaa2222 ' })
       assert.equal(response.status, 200)
       const { membership } = await response.json() as { membership: { id: string } }
-      assert.deepEqual({ ...membership, id: 'x' }, { id: 'x', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: null })
+      assert.deepEqual({ ...membership, id: 'x' }, { id: 'x', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: null, title: null, permissions: { manageOrganization: false, approvePurchases: false } })
       assert.equal((await app.request('/api/organizations/org1/events')).status, 200)
       assert.deepEqual(await (await app.request('/api/invites/AAAA2222')).json(), { organization: { id: 'org1', name: 'Council 1' }, joined: true })
     })
@@ -140,7 +141,7 @@ test('초대 코드로 미배정 구성원이 되고, 잘못된 입력은 인증
       userId = 'member'
       const response = await join({ code: 'AAAA2222' })
       assert.equal(response.status, 200)
-      assert.deepEqual((await response.json()).membership, { id: 'm1', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: { id: 'd1', name: 'Planning', handlesFinance: false } })
+      assert.deepEqual((await response.json()).membership, { id: 'm1', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' }, department: { id: 'd1', name: 'Planning', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } })
       assert.equal(await count('member'), 1)
     })
     await t.test('동시에 두 번 보내도 소속은 하나이고, 다른 학생회 소속은 그대로다', async () => {
@@ -153,6 +154,31 @@ test('초대 코드로 미배정 구성원이 되고, 잘못된 입력은 인증
         "SELECT organization_id, department_id FROM memberships WHERE user_id = 'other' ORDER BY organization_id")
       assert.deepEqual(rows.rows, [{ organization_id: 'org1', department_id: null }, { organization_id: 'org2', department_id: 'd2' }])
     })
+  } finally {
+    await pg.close()
+  }
+})
+
+test('회장단 소속은 조직 관리와 구매 승인 권한을 받고, 직책을 함께 준다', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('leader','Leader','l@example.test'),('treasurer','Treasurer','t@example.test');
+      INSERT INTO organizations (id,name,invite_code) VALUES ('org1','Council 1','AAAA2222');
+      INSERT INTO departments (id,organization_id,name,is_leadership,handles_finance) VALUES ('lead','org1','회장단',true,false),('fin','org1','총무부',false,true);
+      INSERT INTO memberships (id,user_id,organization_id,department_id,title) VALUES ('m1','leader','org1','lead','회장'),('m2','treasurer','org1','fin',NULL);
+    `)
+    let userId = 'leader'
+    const routes = createAccessRoutes(db, async () => ({ user: { id: userId } }))
+    assert.deepEqual(await (await routes.request('/organizations/org1/membership')).json(), { membership: {
+      id: 'm1', organization: { id: 'org1', name: 'Council 1', inviteCode: 'AAAA2222' },
+      department: { id: 'lead', name: '회장단', handlesFinance: false, isLeadership: true }, title: '회장',
+      permissions: { manageOrganization: true, approvePurchases: true } } })
+    userId = 'treasurer'
+    const { membership } = await (await routes.request('/organizations/org1/membership')).json() as { membership: { permissions: unknown } }
+    assert.deepEqual(membership.permissions, { manageOrganization: false, approvePurchases: true })
   } finally {
     await pg.close()
   }

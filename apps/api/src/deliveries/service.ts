@@ -3,6 +3,7 @@ import { and, asc, eq, gt, inArray, isNull, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { DeliveryLookupRequest, DeliveryLookupResponse, DeliverySummary, EventDeliveriesResponse, RegisterShipmentRequest } from '@vada/contracts'
 import { departments, events, memberships, purchaseItems, purchaseRequests, shipments, shipmentItems, shipmentJobs, shipmentRegistrations } from '../db/schema.js'
+import { approvesPurchases } from '../access/membership.js'
 import type { DeliveryProvider } from './provider.js'
 import { DeliveryError } from './validation.js'
 import type { DeliveryDatabase } from './database.js'
@@ -15,7 +16,7 @@ export interface DeliveryScope { userId: string; organizationId: string }
 
 // 짧은 저장 트랜잭션에서 권한 변경을 잠그고 다시 확인한다.
 async function access(db: Reader, scope: DeliveryScope, finance = false, lock = false) {
-  const query = db.select({ finance: departments.handlesFinance }).from(memberships)
+  const query = db.select({ finance: approvesPurchases }).from(memberships)
     .innerJoin(departments, and(eq(memberships.departmentId, departments.id), eq(memberships.organizationId, departments.organizationId)))
     .where(and(eq(memberships.organizationId, scope.organizationId), eq(memberships.userId, scope.userId)))
   const [member] = await (lock ? query.for('share') : query)

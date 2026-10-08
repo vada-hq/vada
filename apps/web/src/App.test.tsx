@@ -5,7 +5,7 @@ import App from './App'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn(), refetch: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({ authClient: { useSession: auth.useSession, signIn: { social: auth.social }, signOut: auth.signOut } }))
-vi.mock('./access/Memberships', () => ({ default: ({ renderMemberships }: { renderMemberships: (memberships: import('@vada/contracts').MembershipSummary[]) => import('react').ReactNode }) => <>{renderMemberships([{ id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false } }])}</> }))
+vi.mock('./access/Memberships', () => ({ default: ({ renderMemberships }: { renderMemberships: (memberships: import('@vada/contracts').MembershipSummary[]) => import('react').ReactNode }) => <>{renderMemberships([{ id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } }])}</> }))
 vi.mock('./workspace/Workspace', () => ({ default: ({ memberships, user, onLogout, logoutBusy }: { memberships: import('@vada/contracts').MembershipSummary[]; user: { email: string }; onLogout: () => void; logoutBusy: boolean }) => <><p>{user.email}</p><p>행사 영역: {memberships[0].organization.id}</p><button disabled={logoutBusy} onClick={onLogout}>로그아웃</button></> }))
 beforeEach(() => {
   vi.resetAllMocks()
