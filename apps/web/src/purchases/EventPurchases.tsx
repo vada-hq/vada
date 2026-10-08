@@ -11,7 +11,7 @@ import DraftEditDialog from './DraftEditDialog'
 import ItemDetailDialog from './ItemDetailDialog'
 import NeededByDialog from './NeededByDialog'
 import PurchaseItemCard from './PurchaseItemCard'
-import { missingFields, pressed, sectionOf, todayInSeoul } from './purchase-view'
+import { missingFields, pressed, priceNotice, sectionOf, todayInSeoul } from './purchase-view'
 import type { EventPurchases as State, PurchaseResult } from './useEventPurchases'
 
 type Props = { state: State; onCreate: () => void; notice?: { id: number; text: string } | null }
@@ -45,11 +45,14 @@ export default function EventPurchases({ state, onCreate, notice = null }: Props
     if (!result.ok) setMessage(result.message)
   }
   // 대화상자 안의 실패는 대화상자에 보여 준다. 성공하면 닫는다.
+  // 먼저 바뀐 품목이면 대화상자가 든 품목이 오래된 것이다. 닫고 위쪽에 안내해 새로 불러온 목록에서 다시 열게 한다.
   async function inDialog(action: () => Promise<PurchaseResult>, close: () => void) {
     setDialogError('')
+    setMessage('')
     if (notice) setSeenNotice(notice.id)
     const result = await action()
     if (result.ok) close()
+    else if (result.stale) { close(); setMessage(result.message) }
     else setDialogError(result.message)
   }
   function openDialog(open: () => void) { setDialogError(''); open() }
@@ -96,6 +99,7 @@ export default function EventPurchases({ state, onCreate, notice = null }: Props
       <Button variant="outline" size="sm" disabled={state.busy || chosen.length === 0} onClick={() => openDialog(() => setDating(chosen))}>받을 날짜 바꾸기</Button>
     </div>
     {blocked && <p className="text-xs text-yellow-700">제출 전에 채울 칸이 있는 품목이 있어요.</p>}
+    <p className="text-xs text-gray-500">{priceNotice}</p>
   </div>
 
   return <div className="flex flex-col gap-4">

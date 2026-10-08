@@ -6,7 +6,7 @@ import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, cardClass } from '@/components/ui/card'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -14,7 +14,7 @@ import ShipmentForm from '../deliveries/ShipmentForm'
 import { useDeliveries } from '../deliveries/useDeliveries'
 import ItemDetailDialog from './ItemDetailDialog'
 import PurchaseItemCard, { productNameOf } from './PurchaseItemCard'
-import { groupBySubmission, pressed, timeText, totalOf, won } from './purchase-view'
+import { groupBySubmission, pressed, priceNotice, timeText, totalOf, won } from './purchase-view'
 import { fetchItemDetail, type PurchaseResult } from './useEventPurchases'
 import type { PurchaseReview as State } from './usePurchaseReview'
 
@@ -27,6 +27,7 @@ export default function PurchaseReview({ organizationId, state }: Props) {
   const [rejecting, setRejecting] = useState<{ id: string; reason: string } | null>(null)
   const [opened, setOpened] = useState<PurchaseItemSummary | null>(null)
   const [shipping, setShipping] = useState(false)
+  const [unlinking, setUnlinking] = useState<{ shipmentId: string; linkId: string } | null>(null)
   const deliveries = useDeliveries(organizationId, true)
   if (!state.data) return <div className="p-4 sm:p-6">{state.loadError
     ? <Card className="flex flex-col gap-3 p-6"><StateMessage kind="error">구매 검토를 불러오지 못했어요.</StateMessage>
@@ -42,8 +43,9 @@ export default function PurchaseReview({ organizationId, state }: Props) {
     return result.ok
   }
   const flags = (item: PurchaseItemSummary, withEvent: boolean) => <>
-    {withEvent && <Badge>{item.event.name}</Badge>}
+    {withEvent && <Badge className="whitespace-normal wrap-anywhere">{item.event.name}</Badge>}
     {item.mine && <Badge tone="warning">내 품목</Badge>}
+    {item.status === 'approved' && item.decidedBy?.id === item.requester.id && <Badge tone="warning">본인 승인</Badge>}
     {item.neededByChanged && <Badge tone="warning">날짜 바뀜</Badge>}
   </>
   function rejectForm(item: PurchaseItemSummary) {
@@ -99,7 +101,7 @@ export default function PurchaseReview({ organizationId, state }: Props) {
       {bought.length === 0 ? <p className="text-sm text-gray-500">산 품목이 없어요</p>
         : <ul className="flex flex-col gap-2">{bought.map(item => <PurchaseItemCard key={item.id} item={item} showRequester badges={flags(item, true)} onOpen={() => setOpened(item)}>
           {deliveries.available && item.shipments.map(shipment => <Button key={shipment.linkId} variant="ghost" size="sm" disabled={deliveries.busy}
-            onClick={() => void deliveries.unlink(shipment.id, shipment.linkId).then(done => { if (done) state.refresh() })}>연결 해제</Button>)}
+            onClick={() => setUnlinking({ shipmentId: shipment.id, linkId: shipment.linkId })}>연결 해제</Button>)}
           {item.shipments.length === 0 && <Button variant="outline" size="sm" disabled={state.busy}
             onClick={() => void run(() => state.setPurchased(item, false))}>구매 표시 취소</Button>}
         </PurchaseItemCard>)}</ul>}
@@ -113,10 +115,22 @@ export default function PurchaseReview({ organizationId, state }: Props) {
       </div>
       {message && <StateMessage kind="error">{message}</StateMessage>}
       {truncated && <StateMessage kind="notice">앞의 300개만 보여요. 처리하면 다음 품목이 보여요.</StateMessage>}
+      {(pending.length > 0 || approved.length > 0) && <p className="text-xs text-gray-500">{priceNotice}</p>}
       {view === 'review' ? reviewView : buyView}
     </div>
     <ItemDetailDialog itemId={opened?.id ?? null} onClose={() => setOpened(null)}
       load={id => fetchItemDetail(organizationId, opened?.event.id ?? '', id)} />
+    <Dialog open={unlinking !== null} onOpenChange={open => { if (!open && !deliveries.busy) setUnlinking(null) }}>
+      <DialogContent>
+        <DialogHeader><DialogTitle>이 송장 연결을 해제할까요?</DialogTitle><DialogDescription>해제한 뒤 올바른 송장을 다시 등록할 수 있어요.</DialogDescription></DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" disabled={deliveries.busy} onClick={() => setUnlinking(null)}>취소</Button>
+          <Button variant="destructive" disabled={deliveries.busy} onClick={() => {
+            if (unlinking) void deliveries.unlink(unlinking.shipmentId, unlinking.linkId).then(done => { setUnlinking(null); if (done) state.refresh() })
+          }}>연결 해제</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     <Dialog open={shipping} onOpenChange={open => { if (!deliveries.busy) setShipping(open) }}>
       <DialogContent>
         <DialogHeader><DialogTitle>송장 등록</DialogTitle><DialogDescription>고른 품목에 송장을 연결해요.</DialogDescription></DialogHeader>

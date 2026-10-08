@@ -3,7 +3,8 @@ import type { ChangeNeededByRequest, EventPurchaseItemsResponse, PurchaseItemDet
   PurchaseItemSummary, UpdatePurchaseItemRequest } from '@vada/contracts'
 import { messageOf, purchaseFailure, staleCodes } from './purchase-view'
 
-export type PurchaseResult = { ok: true; items: PurchaseItemSummary[] } | { ok: false; message: string }
+// stale: 다른 곳에서 먼저 바뀌어 목록을 새로 불러온 실패다.
+export type PurchaseResult = { ok: true; items: PurchaseItemSummary[] } | { ok: false; message: string; stale?: boolean }
 const hasItems = (body: unknown): body is PurchaseItemsResponse =>
   typeof body === 'object' && body !== null && Array.isArray((body as PurchaseItemsResponse).items)
 const ref = (item: PurchaseItemSummary) => ({ id: item.id, version: item.version })
@@ -80,8 +81,9 @@ export function useEventPurchases(organizationId: string, eventId: string, enabl
       if (!response.ok) {
         const code = (result as { error?: unknown } | null)?.error
         // 다른 곳에서 먼저 바뀌었으면 화면이 오래된 것이다. 목록을 새로 불러온다.
-        if (typeof code === 'string' && staleCodes.has(code)) refresh()
-        return { ok: false, message: messageOf(code) }
+        const stale = typeof code === 'string' && staleCodes.has(code)
+        if (stale) refresh()
+        return { ok: false, message: messageOf(code), stale }
       }
       return hasItems(result) ? { ok: true, items: result.items } : { ok: false, message: purchaseFailure }
     } catch {

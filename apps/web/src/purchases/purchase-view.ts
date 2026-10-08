@@ -35,6 +35,8 @@ export function totalOf(items: PurchaseItemSummary[]) {
   return { known: amounts.reduce<number>((sum, value) => sum + (value ?? 0), 0), complete: amounts.every(value => value !== null) }
 }
 export const won = (value: number) => `${value.toLocaleString('ko-KR')}원`
+// 가격은 상품 조회값이라 저장하지 않고 화면에 고정 안내로 둔다.
+export const priceNotice = '조회 가격은 참고값이에요. 옵션·포장 단위와 배송비·최종 결제 금액을 확인해 주세요.'
 
 // 빠른 버튼은 저장할 때 한국 날짜로 바꾼다(2026-10-04 결정).
 export const quickDates = [{ label: '3일 안', days: 3 }, { label: '1주 안', days: 7 }, { label: '2주 안', days: 14 }] as const

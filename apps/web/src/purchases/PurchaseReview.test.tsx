@@ -5,7 +5,7 @@ import type { PurchaseReviewResponse } from '@vada/contracts'
 import { json, mockApi } from '../test-support/mock-api'
 import { carrierCache } from '../deliveries/useDeliveries'
 import PurchaseReview from './PurchaseReview'
-import { item } from './purchase-fixtures'
+import { item, shipment } from './purchase-fixtures'
 import { usePurchaseReview } from './usePurchaseReview'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); carrierCache.clear() })
@@ -99,4 +99,47 @@ test('배송 기능이 꺼진 서버에서는 송장 등록을 숨긴다', async
   await waitFor(() => expect(api.calls.some(call => call.path === '/api/organizations/o/delivery-carriers')).toBe(true))
   await waitFor(() => expect(screen.getByRole('button', { name: '구매 표시 취소' })).toBeTruthy())
   expect(screen.queryByRole('button', { name: '송장 등록' })).toBeNull()
+})
+
+test('요청자가 직접 승인한 품목은 구매·배송 목록에 본인 승인을 표시한다', async () => {
+  const requester = { id: 'q', name: '다른 기획' }
+  const self = item({ id: 'x', productName: '생수', status: 'approved', submissionId: 's1', mine: false, requester, decidedBy: requester })
+  const other = item({ id: 'y', productName: '테이프', status: 'approved', submissionId: 's2', mine: false, requester, decidedBy: { id: 'f', name: '총무' } })
+  setup({ pending: [], approved: [self, other], truncated: false })
+  fireEvent.click(await screen.findByRole('button', { name: '구매·배송 2' }))
+  const [first, second] = within(screen.getByRole('region', { name: '살 품목' })).getAllByRole('listitem')
+  expect(within(first!).getByText('본인 승인')).toBeTruthy()
+  expect(within(second!).queryByText('본인 승인')).toBeNull()
+})
+
+test('긴 행사 이름 칩은 줄을 바꿔 카드 안에 머문다', async () => {
+  const name = '컴퓨터공학과2학기개강총회와신입생환영회부스운영준비물'
+  setup({ pending: [], approved: [item({ id: 'x', status: 'approved', submissionId: 's1', event: { id: 'e', name } })], truncated: false })
+  fireEvent.click(await screen.findByRole('button', { name: '구매·배송 1' }))
+  const chip = within(screen.getByRole('region', { name: '살 품목' })).getByText(name)
+  expect(chip.classList.contains('wrap-anywhere')).toBe(true)
+  expect(chip.classList.contains('whitespace-nowrap')).toBe(false)
+})
+
+test('구매 검토도 가격이 조회한 참고값이라고 안내한다', async () => {
+  setup({ pending: [item({ id: 'a', status: 'pending', submissionId: 's1' })], approved: [], truncated: false })
+  expect(await screen.findByText('조회 가격은 참고값이에요. 옵션·포장 단위와 배송비·최종 결제 금액을 확인해 주세요.')).toBeTruthy()
+})
+
+test('송장 연결 해제는 확인한 뒤에만 보내고 목록을 새로 불러온다', async () => {
+  const bought = item({ id: 'z', productName: '이름표', status: 'approved', submissionId: 's2', version: 4, purchasedAt: '2026-10-08T06:00:00Z', shipments: [shipment()] })
+  const api = setup({ pending: [], approved: [bought], truncated: false })
+  const unlinkPath = '/api/organizations/o/shipments/s1/unlink'
+  api.on('POST', unlinkPath, () => json({ unlinked: 1 }))
+  fireEvent.click(await screen.findByRole('button', { name: '구매·배송 1' }))
+  fireEvent.click(await screen.findByRole('button', { name: '연결 해제' }))
+  const dialog = await screen.findByRole('dialog', { name: '이 송장 연결을 해제할까요?' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(api.calls.some(call => call.path === unlinkPath)).toBe(false)
+  fireEvent.click(screen.getByRole('button', { name: '연결 해제' }))
+  fireEvent.click(within(await screen.findByRole('dialog', { name: '이 송장 연결을 해제할까요?' })).getByRole('button', { name: '연결 해제' }))
+  await waitFor(() => expect(api.calls.find(call => call.path === unlinkPath)?.body).toEqual({ linkIds: ['l1'] }))
+  await waitFor(() => expect(reviewGets(api)).toHaveLength(2))
+  expect(screen.queryByRole('dialog')).toBeNull()
 })

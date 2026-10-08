@@ -29,7 +29,7 @@ export default function PurchaseItemCard({ item, showRequester = false, selectio
   const amount = amountOf(item)
   const missing = item.status === 'draft' ? missingFields(item) : []
   const details = [item.selectedOption, item.packagingUnit, item.quantity === null ? '수량 확인 필요' : `${item.quantity}개`,
-    amount === null ? '금액 확인 필요' : won(amount)].filter(Boolean).join(' · ')
+    amount === null ? '금액 확인 필요' : `예상 ${won(amount)}`].filter(Boolean).join(' · ')
   return <li className={cn('flex gap-3', plain ? 'border-t pt-3 first:border-t-0 first:pt-0' : cn(cardClass, 'p-4'))}>
     {selection && <input type="checkbox" className="mt-1 size-4 shrink-0 accent-blue-600" aria-label={`${name} 고르기`}
       checked={selection.checked} disabled={selection.disabled} onChange={event => selection.onChange(event.target.checked)} />}
