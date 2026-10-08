@@ -46,6 +46,8 @@ test('같이 제출한 품목을 묶어 보여 주고, 모두 승인은 묶음�
 test('반려는 사유를 적어야 보낼 수 있다', async () => {
   const api = setup({ pending: [item({ id: 'a', productName: '박스테이프', status: 'pending', submissionId: 's1', version: 2 })], approved: [], truncated: false })
   fireEvent.click(await screen.findByRole('button', { name: '반려' }))
+  // 반려 사유는 학생회 구성원 모두가 본다(2026-10-09 결정). 쓰기 전에 알린다.
+  expect(screen.getByLabelText('반려 사유').getAttribute('placeholder')).toBe('학생회 구성원 모두에게 보여요.')
   expect(screen.getByRole('button', { name: '반려하기' }).hasAttribute('disabled')).toBe(true)
   fireEvent.change(screen.getByLabelText('반려 사유'), { target: { value: '   ' } })
   expect(screen.getByRole('button', { name: '반려하기' }).hasAttribute('disabled')).toBe(true)

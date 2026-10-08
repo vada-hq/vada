@@ -53,7 +53,7 @@ export default function PurchaseReview({ organizationId, state }: Props) {
     const valid = DecidePurchaseItemsSchema.safeParse({ decisions: [{ id: item.id, version: item.version, decision: 'rejected', reason }] }).success
     return <div className="flex w-full flex-col gap-2">
       <Label className="flex flex-col gap-1.5">반려 사유
-        <Textarea value={reason} rows={2} placeholder="요청자가 보고 고칠 수 있게 적어 주세요."
+        <Textarea value={reason} rows={2} placeholder="학생회 구성원 모두에게 보여요."
           onChange={event => setRejecting({ id: item.id, reason: event.target.value })} /></Label>
       <div className="flex justify-end gap-2">
         <Button variant="outline" size="sm" disabled={state.busy} onClick={() => setRejecting(null)}>취소</Button>
