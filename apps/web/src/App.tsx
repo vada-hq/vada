@@ -5,6 +5,7 @@ import InviteCodeForm from './access/InviteCodeForm'
 import JoinOrganization from './access/JoinOrganization'
 import { inviteCodeFromPath, invitePath } from './access/invite-path'
 import Workspace from './workspace/Workspace'
+import CreateOrganization from './organization/CreateOrganization'
 import StateMessage from '@/components/StateMessage'
 import { AuthCard } from '@/components/AuthCard'
 import { BrandMark } from '@/components/BrandMark'
@@ -14,6 +15,8 @@ import { isKakaoInAppBrowser } from '@/lib/in-app-browser'
 
 // 초대 링크(/join/코드)로 왔는지, 소속이 없어 코드를 직접 입력했는지에 따라 돌아갈 곳이 다르다.
 type Invite = { code: string; from: 'link' | 'form' }
+// 참여나 만들기로 방금 연 학생회. 만든 학생회는 구성원 화면부터 연다.
+type Opened = { organizationId: string; view: 'events' | 'members' }
 
 // 로그인 전후의 가운데 카드 화면. 와이어프레임 SIGN-IN·INV-00과 같은 틀이다.
 function AuthPage({ children }: { children: ReactNode }) {
@@ -39,7 +42,8 @@ export default function App() {
     return code === null ? null : { code, from: 'link' }
   })
   const [typedCode, setTypedCode] = useState('')
-  const [joinedOrganizationId, setJoinedOrganizationId] = useState<string>()
+  const [opened, setOpened] = useState<Opened>()
+  const [creating, setCreating] = useState(false)
 
   function leaveInvite() {
     window.history.replaceState(null, '', '/')
@@ -48,7 +52,7 @@ export default function App() {
 
   function finishInvite(organizationId: string) {
     leaveInvite()
-    setJoinedOrganizationId(organizationId)
+    setOpened({ organizationId, view: 'events' })
   }
 
   async function login() {
@@ -92,11 +96,14 @@ export default function App() {
       {message && <StateMessage kind="error" className="border-b bg-white px-6 py-3">{message}</StateMessage>}
       {invite ? card(<JoinOrganization key={invite.code} code={invite.code}
         leaveLabel={invite.from === 'link' ? 'VADA로 가기' : '다시 입력'} onJoined={finishInvite} onLeave={leaveInvite} />)
-        : <Memberships key={`${session.user.id}:${joinedOrganizationId ?? ''}`}
-          renderMemberships={memberships => <Workspace memberships={memberships} initialOrganizationId={joinedOrganizationId}
-            user={session.user} logoutBusy={busy} onLogout={() => { void logout() }} />}
-          renderEmpty={() => <InviteCodeForm initialCode={typedCode}
-            onSubmit={code => { setTypedCode(code); setInvite({ code, from: 'form' }) }} />}
+        : <Memberships key={`${session.user.id}:${opened?.organizationId ?? ''}`}
+          renderMemberships={(memberships, refresh) => <Workspace memberships={memberships} initialOrganizationId={opened?.organizationId}
+            initialView={opened?.view} onMembershipsChanged={refresh} user={session.user} logoutBusy={busy} onLogout={() => { void logout() }} />}
+          renderEmpty={() => creating
+            ? <CreateOrganization onCancel={() => setCreating(false)}
+              onCreated={organizationId => { setCreating(false); setOpened({ organizationId, view: 'members' }) }} />
+            : <InviteCodeForm initialCode={typedCode} onCreate={() => setCreating(true)}
+              onSubmit={code => { setTypedCode(code); setInvite({ code, from: 'form' }) }} />}
           renderFallback={card} />}
     </>
   }

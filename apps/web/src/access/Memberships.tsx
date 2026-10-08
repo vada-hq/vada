@@ -4,7 +4,8 @@ import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 
 type Props = {
-  renderMemberships?: (memberships: MembershipSummary[]) => ReactNode
+  // refresh는 화면을 그대로 둔 채 소속만 다시 불러온다(본인 부서가 바뀌었을 때).
+  renderMemberships?: (memberships: MembershipSummary[], refresh: () => void) => ReactNode
   renderFallback?: (content: ReactNode) => ReactNode
   // 소속이 없을 때 보여 줄 내용. 앱에서는 초대 코드 입력이다.
   renderEmpty?: () => ReactNode
@@ -15,7 +16,6 @@ export default function Memberships({ renderMemberships, renderFallback = conten
   const [attempt, setAttempt] = useState(0)
   useEffect(() => {
     const controller = new AbortController()
-    setResult(null)
     setFailed(false)
     async function load() {
       try {
@@ -32,18 +32,18 @@ export default function Memberships({ renderMemberships, renderFallback = conten
     return () => controller.abort()
   }, [attempt])
 
-  if (failed) return renderFallback(<section aria-label="내 소속" className="flex flex-col gap-3">
+  if (failed && !result) return renderFallback(<section aria-label="내 소속" className="flex flex-col gap-3">
     <StateMessage kind="error">소속을 확인하지 못했어요. 서버 연결을 확인해 주세요.</StateMessage>
     <Button variant="outline" onClick={() => setAttempt(value => value + 1)}>소속 다시 확인</Button>
   </section>)
   if (!result) return renderFallback(<StateMessage kind="loading">소속 확인 중…</StateMessage>)
-  if (result.memberships.length && renderMemberships) return renderMemberships(result.memberships)
+  if (result.memberships.length && renderMemberships) return renderMemberships(result.memberships, () => setAttempt(value => value + 1))
   if (!result.memberships.length && renderEmpty) return renderFallback(renderEmpty())
   return renderFallback(<section aria-label="내 소속" className="flex flex-col gap-3">
     {result.memberships.length === 0 ? <h2 className="text-lg font-semibold">아직 참여한 학생회가 없어요</h2> : (
       <><h2 className="text-lg font-semibold">내 소속</h2><ul className="flex flex-col gap-1">{result.memberships.map(membership => <li key={membership.id} className="text-sm wrap-anywhere text-gray-700">
         {membership.organization.name} · {membership.department?.name ?? '미배정'}
-        {membership.department?.handlesFinance && <span className="text-xs text-gray-500"> (재정 담당)</span>}
+        {membership.permissions.approvePurchases && <span className="text-xs text-gray-500"> (구매 승인)</span>}
       </li>)}</ul></>
     )}
     <Button variant="outline" onClick={() => setAttempt(value => value + 1)}>소속 다시 확인</Button>

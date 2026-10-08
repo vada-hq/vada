@@ -166,3 +166,35 @@ test('pasting the whole invite link into the code field opens that invite', asyn
   fireEvent.click(screen.getByRole('button', { name: '학생회 확인' }))
   expect(await screen.findByText('테스트 학생회에 참여할까요?')).toBeTruthy()
 })
+
+test('소속이 없으면 학생회를 만들고, 구성원 화면에서 초대를 시작한다', async () => {
+  const leader = { ...membership(), department: { id: 'lead', name: '회장단', handlesFinance: false, isLeadership: true },
+    permissions: { manageOrganization: true, approvePurchases: true } }
+  api.on('GET', '/api/me/memberships', () => json({ memberships: [] }))
+  api.on('POST', '/api/organizations/create', () => {
+    api.on('GET', '/api/me/memberships', () => json({ memberships: [leader] }))
+    return json({ membership: leader }, 201)
+  })
+  api.on('GET', '/api/organizations/o/members', () => json({ viewer: leader,
+    departments: [leader.department, { id: 'fin', name: '총무부', isLeadership: false, handlesFinance: true }],
+    members: [{ id: 'mp', name: '기획 테스터', title: null, departmentId: 'lead' }] }))
+  render(<App />)
+  await screen.findByLabelText('초대 코드')
+  expect(screen.getByText('학생회를 처음 시작하나요?')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '새 학생회 만들기' }))
+  fireEvent.change(screen.getByLabelText('학생회 이름'), { target: { value: '테스트 학생회' } })
+  fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
+  expect(await screen.findByRole('heading', { name: '구성원 1명' })).toBeTruthy()
+  expect(screen.getByText('아직 혼자예요')).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([{ name: '테스트 학생회', departments: [
+    { name: '총무부', handlesFinance: true }, { name: '기획부', handlesFinance: false }, { name: '홍보부', handlesFinance: false },
+    { name: '복지부', handlesFinance: false }] }])
+})
+
+test('만들기를 취소하면 코드 입력으로 돌아간다', async () => {
+  api.on('GET', '/api/me/memberships', () => json({ memberships: [] }))
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: '새 학생회 만들기' }))
+  fireEvent.click(screen.getByRole('button', { name: '취소' }))
+  expect(await screen.findByLabelText('초대 코드')).toBeTruthy()
+})

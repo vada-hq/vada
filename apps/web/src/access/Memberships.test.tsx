@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import Memberships from './Memberships'
 
 const planner = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } }
@@ -27,7 +27,7 @@ test('renders organization content only for memberships returned by the server',
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(okMemberships()))
   render(<Memberships renderMemberships={renderMemberships} />)
   expect(await screen.findByText('행사 영역: o1')).toBeTruthy()
-  expect(renderMemberships).toHaveBeenCalledWith([planner])
+  expect(renderMemberships).toHaveBeenCalledWith([planner], expect.any(Function))
 })
 
 function okMemberships() {
@@ -46,4 +46,15 @@ test('a member without a department is shown as unassigned', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, json: async () => ({ memberships: [{ ...planner, department: null }] }) }))
   render(<Memberships />)
   expect(await screen.findByText('검증 학생회 · 미배정')).toBeTruthy()
+})
+
+test('refresh는 화면을 그대로 둔 채 소속을 다시 불러온다', async () => {
+  const responses = [[planner], [{ ...planner, title: '국장' }]]
+  vi.stubGlobal('fetch', vi.fn().mockImplementation(async () => ({ ok: true, json: async () => ({ memberships: responses.shift() }) })))
+  let refresh = () => {}
+  render(<Memberships renderMemberships={(memberships, reload) => { refresh = reload; return <p>직책: {memberships[0]?.title ?? '없음'}</p> }} />)
+  expect(await screen.findByText('직책: 없음')).toBeTruthy()
+  act(() => refresh())
+  expect(screen.queryByText('소속 확인 중…')).toBeNull()
+  expect(await screen.findByText('직책: 국장')).toBeTruthy()
 })
