@@ -113,3 +113,118 @@ test('목록은 최근 300개까지만 주고 잘렸다고 알린다', async () 
     assert.equal(list.truncated, true)
   } finally { await pg.close() }
 })
+
+test('작성 중 품목 고치기·지우기: 본인 작성 중 품목만, 버전이 맞을 때만', async () => {
+  const { pg, request, ok, drafts, as } = await setupPurchases()
+  try {
+    const [item] = await drafts([link(1)])
+    const path = `${base}/${item!.id}`
+    const updated = (await ok(request('PATCH', path, { version: 1, quantity: 5, note: '  계주 바통  ', selectedOption: null }))).items[0]!
+    assert.deepEqual([updated.quantity, updated.note, updated.selectedOption, updated.version], [5, '계주 바통', null, 2])
+    const stale = await request('PATCH', path, { version: 1, quantity: 6 })
+    assert.equal(stale.status, 409)
+    assert.deepEqual(await stale.json(), { error: 'VERSION_CONFLICT' })
+    for (const body of [{ version: 2 }, { version: 2, status: 'approved' }, { version: 2, note: '😀'.repeat(201) }, { version: 2, note: 'a\u0000' },
+      { version: 2, quantity: 0 }, { version: 2, neededBy: '2026-10-10' }]) {
+      assert.equal((await request('PATCH', path, body)).status, 400, JSON.stringify(body))
+    }
+    as('q')
+    assert.equal((await request('PATCH', path, { version: 2, quantity: 1 })).status, 404)
+    assert.equal((await request('POST', `${path}/delete`, { version: 2 })).status, 404)
+    as('p')
+    assert.deepEqual(await ok(request('POST', `${path}/delete`, { version: 2 })), { items: [] })
+    assert.equal((await pg.query('SELECT id FROM purchase_items')).rows.length, 0)
+    assert.equal((await pg.query('SELECT item_id FROM purchase_item_sources')).rows.length, 0)
+  } finally { await pg.close() }
+})
+
+test('제출: 고른 작성 중 품목을 한 묶음으로 제출하고 부서와 기록을 남긴다', async () => {
+  const { pg, request, ok, drafts, as } = await setupPurchases()
+  try {
+    const [first, second] = await drafts([link(1), link(2)])
+    await ok(request('PATCH', `${base}/${second!.id}`, { version: 1, quantity: null }))
+    const incomplete = await request('POST', `${base}/submit`, { items: [{ id: first!.id, version: 1 }, { id: second!.id, version: 2 }] })
+    assert.equal(incomplete.status, 400)
+    assert.deepEqual(await incomplete.json(), { error: 'SUBMISSION_INCOMPLETE' })
+    assert.deepEqual((await pg.query('SELECT DISTINCT status FROM purchase_items')).rows, [{ status: 'draft' }])
+    await ok(request('PATCH', `${base}/${second!.id}`, { version: 2, quantity: 3 }))
+    const result = (await ok(request('POST', `${base}/submit`, { items: [{ id: first!.id, version: 1 }, { id: second!.id, version: 3 }] }))).items
+    assert.deepEqual(result.map(item => item.status), ['pending', 'pending'])
+    assert.equal(new Set(result.map(item => item.submissionId)).size, 1)
+    assert.ok(result.every(item => item.departmentName === '기획부' && item.submittedAt))
+    const events = (await pg.query<{ action: string; batch_id: string }>('SELECT action, batch_id FROM purchase_item_events')).rows
+    assert.deepEqual(events.map(row => [row.action, row.batch_id]), result.map(item => ['submitted', item.submissionId]))
+    const again = await request('POST', `${base}/submit`, { items: [{ id: first!.id, version: 2 }] })
+    assert.equal(again.status, 409)
+    assert.deepEqual(await again.json(), { error: 'INVALID_STATE' })
+    // 미배정 구성원도 제출한다. 요청 부서는 비어 있다.
+    as('n')
+    const [unassigned] = await drafts([link(3)])
+    const submitted = (await ok(request('POST', `${base}/submit`, { items: [{ id: unassigned!.id, version: 1 }] }))).items[0]!
+    assert.equal(submitted.departmentName, null)
+    // 제출된 품목은 학생회 누구나 본다.
+    as('q')
+    assert.equal((await ok<EventPurchaseItemsResponse>(request('GET', base))).items.length, 3)
+  } finally { await pg.close() }
+})
+
+test('받을 날짜: 작성 중에는 기록 없이, 제출 뒤에는 기록하고 날짜 바뀜을 표시한다', async () => {
+  const { pg, request, ok, drafts, submitted } = await setupPurchases()
+  try {
+    const [draft] = await drafts([link(1)])
+    const changed = (await ok(request('POST', `${base}/needed-by`, { items: [{ id: draft!.id, version: 1 }], neededBy: '2026-10-20' }))).items[0]!
+    assert.deepEqual([changed.neededBy, changed.neededByChanged], ['2026-10-20', false])
+    const [pending] = await submitted([link(2)])
+    const moved = (await ok(request('POST', `${base}/needed-by`, { items: [{ id: pending!.id, version: pending!.version }], neededBy: '2026-10-25' }))).items[0]!
+    assert.deepEqual([moved.neededBy, moved.neededByChanged], ['2026-10-25', true])
+    assert.deepEqual((await pg.query("SELECT changes FROM purchase_item_events WHERE action = 'needed_by_changed'")).rows,
+      [{ changes: { from: null, to: '2026-10-25' } }])
+    await pg.exec(`UPDATE purchase_items SET status = 'approved', decided_by = 'f', decided_at = now(), purchased_by = 'f', purchased_at = now() WHERE id = '${pending!.id}'`)
+    assert.equal((await request('POST', `${base}/needed-by`, { items: [{ id: pending!.id, version: moved.version }], neededBy: '2026-11-01' })).status, 409)
+    for (const neededBy of ['2026-02-30', '2026-1-1']) {
+      assert.equal((await request('POST', `${base}/needed-by`, { items: [{ id: draft!.id, version: 2 }], neededBy })).status, 400, neededBy)
+    }
+  } finally { await pg.close() }
+})
+
+test('요청 취소와 다시 담기: 원래 품목은 남기고 같은 내용의 작성 중 품목을 만든다', async () => {
+  const { pg, request, ok, submitted, as } = await setupPurchases()
+  try {
+    const [item] = await submitted([link(1)])
+    as('q')
+    assert.equal((await request('POST', `${base}/${item!.id}/cancel`, { version: item!.version })).status, 404)
+    as('p')
+    const cancelled = (await ok(request('POST', `${base}/${item!.id}/cancel`, { version: item!.version }))).items[0]!
+    assert.equal(cancelled.status, 'cancelled')
+    assert.equal((await request('POST', `${base}/${item!.id}/cancel`, { version: cancelled.version })).status, 409)
+    await pg.exec(`UPDATE purchase_items SET needed_by = '2020-01-01' WHERE id = '${item!.id}'`)
+    const result = (await ok(request('POST', `${base}/${item!.id}/re-add`, { version: cancelled.version }))).items
+    const original = result.find(row => row.id === item!.id)!
+    const copy = result.find(row => row.id !== item!.id)!
+    assert.deepEqual([original.status, original.version], ['cancelled', cancelled.version + 1])
+    assert.deepEqual([copy.status, copy.productUrl, copy.quantity, copy.note, copy.neededBy, copy.submissionId], ['draft', link(1), 2, '부스 설치', null, null])
+    assert.deepEqual((await pg.query('SELECT message_id FROM purchase_item_sources WHERE item_id = $1', [copy.id])).rows, [{ message_id: 'm' }])
+    assert.deepEqual((await pg.query<{ action: string }>('SELECT action FROM purchase_item_events WHERE item_id = $1 ORDER BY created_at, id', [item!.id])).rows
+      .map(row => row.action), ['submitted', 'cancelled', 're_added'])
+    assert.equal((await request('POST', `${base}/${copy.id}/re-add`, { version: 1 })).status, 409)
+  } finally { await pg.close() }
+})
+
+test('수령 확인: 구매함 표시된 품목에 학생회 누구나 하고, 누가 했는지 남긴다', async () => {
+  const { pg, request, ok, submitted, as } = await setupPurchases()
+  try {
+    const [item] = await submitted([link(1)])
+    const path = `${base}/${item!.id}/received`
+    assert.equal((await request('POST', path, { version: item!.version, received: true })).status, 409)
+    await pg.exec(`UPDATE purchase_items SET status = 'approved', decided_by = 'f', decided_at = now(), purchased_by = 'f', purchased_at = now() WHERE id = '${item!.id}'`)
+    as('q')
+    const received = (await ok(request('POST', path, { version: item!.version, received: true }))).items[0]!
+    assert.deepEqual([received.receivedBy, Boolean(received.receivedAt)], [{ id: 'q', name: '기획2' }, true])
+    assert.equal((await request('POST', path, { version: received.version, received: true })).status, 409)
+    const undone = (await ok(request('POST', path, { version: received.version, received: false }))).items[0]!
+    assert.deepEqual([undone.receivedAt, undone.receivedBy], [null, null])
+    assert.deepEqual((await pg.query("SELECT action, actor_id FROM purchase_item_events WHERE item_id = $1 AND action LIKE 'rec%' ORDER BY created_at, id", [item!.id])).rows,
+      [{ action: 'received', actor_id: 'q' }, { action: 'receipt_undone', actor_id: 'q' }])
+    as('x'); assert.equal((await request('POST', path, { version: undone.version, received: true })).status, 403)
+  } finally { await pg.close() }
+})

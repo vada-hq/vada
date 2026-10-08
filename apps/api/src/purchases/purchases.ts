@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono'
-import { CreatePurchaseDraftsSchema, token, type EventPurchaseItemsResponse, type PurchaseItemResponse,
-  type PurchaseItemsResponse } from '@vada/contracts'
+import { ChangeNeededBySchema, CreatePurchaseDraftsSchema, PurchaseItemVersionSchema, PurchaseReceivedSchema, SubmitPurchaseItemsSchema, token,
+  UpdatePurchaseItemSchema, type EventPurchaseItemsResponse, type PurchaseItemResponse, type PurchaseItemsResponse } from '@vada/contracts'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
 import { json } from '../http/validate.js'
@@ -32,5 +32,22 @@ export function createPurchaseRoutes(db: PurchaseDatabase, session: SessionReade
   })
   routes.get(`${base}/:itemId`, auth, member, async c =>
     c.json({ item: await service.get(scope(c), idOf(c.req.param('itemId'))) } satisfies PurchaseItemResponse))
+  const itemsOf = (items: PurchaseItemsResponse['items']) => ({ items } satisfies PurchaseItemsResponse)
+  routes.post(`${base}/submit`, json(SubmitPurchaseItemsSchema), auth, member, async c =>
+    c.json(itemsOf(await service.submit(scope(c), c.req.valid('json')))))
+  routes.post(`${base}/needed-by`, json(ChangeNeededBySchema), auth, member, async c =>
+    c.json(itemsOf(await service.changeNeededBy(scope(c), c.req.valid('json')))))
+  routes.patch(`${base}/:itemId`, json(UpdatePurchaseItemSchema), auth, member, async c =>
+    c.json(itemsOf(await service.updateDraft(scope(c), idOf(c.req.param('itemId')), c.req.valid('json')))))
+  routes.post(`${base}/:itemId/delete`, json(PurchaseItemVersionSchema), auth, member, async c =>
+    c.json(itemsOf(await service.deleteDraft(scope(c), idOf(c.req.param('itemId')), c.req.valid('json').version))))
+  routes.post(`${base}/:itemId/cancel`, json(PurchaseItemVersionSchema), auth, member, async c =>
+    c.json(itemsOf(await service.cancel(scope(c), idOf(c.req.param('itemId')), c.req.valid('json').version))))
+  routes.post(`${base}/:itemId/re-add`, json(PurchaseItemVersionSchema), auth, member, async c =>
+    c.json(itemsOf(await service.reAdd(scope(c), idOf(c.req.param('itemId')), c.req.valid('json').version))))
+  routes.post(`${base}/:itemId/received`, json(PurchaseReceivedSchema), auth, member, async c => {
+    const { version, received } = c.req.valid('json')
+    return c.json(itemsOf(await service.setReceived(scope(c), idOf(c.req.param('itemId')), version, received)))
+  })
   return routes
 }
