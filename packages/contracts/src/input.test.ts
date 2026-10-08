@@ -11,8 +11,8 @@ import { CREATE_DEPARTMENTS_MAX, DEPARTMENT_NAME_MAX, MEMBER_TITLE_MAX, ORGANIZA
   CreateOrganizationSchema, DeleteDepartmentSchema, UpdateDepartmentSchema, UpdateMemberTitleSchema } from './organizations.js'
 import { PURCHASE_BATCH_MAX, PURCHASE_INTEGER_MAX, PURCHASE_LINKS_MAX, PURCHASE_NOTE_MAX, PURCHASE_OPTION_MAX, PURCHASE_PACKAGING_MAX,
   PURCHASE_PRODUCT_NAME_MAX, PURCHASE_REASON_MAX, ChangeNeededBySchema, CreatePurchaseDraftsSchema, DecidePurchaseItemsSchema,
-  GeneratedPurchaseItemSchema, PurchaseItemVersionSchema, PurchasePurchasedSchema, PurchaseReceivedSchema, SubmitPurchaseItemsSchema,
-  UpdatePurchaseItemSchema } from './purchases.js'
+  GeneratedPurchaseItemSchema, PurchaseCandidateHiddenSchema, PurchaseItemVersionSchema, PurchasePurchasedSchema, PurchaseReceivedSchema,
+  SubmitPurchaseItemsSchema, UpdatePurchaseItemSchema } from './purchases.js'
 
 // 홀로 쓰인 서러게이트까지 만들도록 UTF-16 코드 단위를 직접 뽑는다.
 const anyText = fc.string({ unit: fc.integer({ min: 0, max: 0xffff }).map(n => String.fromCharCode(n)), maxLength: 120 })
@@ -151,6 +151,13 @@ test('구매 담기: 키와 링크 1~5개만 받고, 모르는 키·제어 문�
   }
 })
 
+test('후보 숨김: 참·거짓만 받고 모르는 키는 거부한다', () => {
+  assert.equal(PurchaseCandidateHiddenSchema.safeParse({ hidden: true }).success, true)
+  for (const body of [{}, { hidden: 'true' }, { hidden: null }, { hidden: false, by: 'x' }]) {
+    assert.equal(PurchaseCandidateHiddenSchema.safeParse(body).success, false, JSON.stringify(body))
+  }
+})
+
 test('작성 중 품목 수정: 버전과 바꿀 칸 하나 이상, 칸마다 상한과 정수 범위', () => {
   assert.deepEqual(UpdatePurchaseItemSchema.parse({ version: 1, note: '  계주 바통  ', selectedOption: null }),
     { version: 1, note: '계주 바통', selectedOption: null })
@@ -212,5 +219,5 @@ test('끼룩이 출력: 빈 글은 모르는 값으로 바꾸고, 상한과 실�
 
 test('구매 요청 본문 스키마는 모두 모르는 키를 거부하는 strictObject다', () => {
   for (const schema of [CreatePurchaseDraftsSchema, UpdatePurchaseItemSchema, PurchaseItemVersionSchema, SubmitPurchaseItemsSchema,
-    ChangeNeededBySchema, PurchaseReceivedSchema, PurchasePurchasedSchema, DecidePurchaseItemsSchema]) assert.equal(isStrictObject(schema), true)
+    ChangeNeededBySchema, PurchaseReceivedSchema, PurchasePurchasedSchema, DecidePurchaseItemsSchema, PurchaseCandidateHiddenSchema]) assert.equal(isStrictObject(schema), true)
 })

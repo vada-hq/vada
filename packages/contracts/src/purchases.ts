@@ -3,6 +3,8 @@ import type { DeliverySummary } from './deliveries.js'
 import { text, token } from './input.js'
 
 export const PURCHASE_LINKS_MAX = 5
+// 한 번에 담는 후보 수(2026-10-09 결정).
+export const PURCHASE_CANDIDATES_MAX = 10
 export const PURCHASE_PRODUCT_NAME_MAX = 500
 export const PURCHASE_OPTION_MAX = 200
 export const PURCHASE_PACKAGING_MAX = 50
@@ -50,6 +52,7 @@ export const PurchaseItemVersionSchema = z.strictObject({ version })
 export const SubmitPurchaseItemsSchema = z.strictObject({ items: itemRefs })
 export const ChangeNeededBySchema = z.strictObject({ items: itemRefs, neededBy: purchaseDate.nullable() })
 export const PurchaseReceivedSchema = z.strictObject({ version, received: z.boolean() })
+export const PurchaseCandidateHiddenSchema = z.strictObject({ hidden: z.boolean() })
 export const PurchasePurchasedSchema = z.strictObject({ version, purchased: z.boolean() })
 export const DecidePurchaseItemsSchema = z.strictObject({
   decisions: z.array(z.discriminatedUnion('decision', [
@@ -79,6 +82,7 @@ export type SubmitPurchaseItemsRequest = z.infer<typeof SubmitPurchaseItemsSchem
 export type ChangeNeededByRequest = z.infer<typeof ChangeNeededBySchema>
 export type DecidePurchaseItemsRequest = z.infer<typeof DecidePurchaseItemsSchema>
 export type GeneratedPurchaseItemFields = z.infer<typeof GeneratedPurchaseItemSchema>
+export type PurchaseCandidateHiddenRequest = z.infer<typeof PurchaseCandidateHiddenSchema>
 
 export interface PurchasePerson { id: string; name: string }
 export interface PurchaseItemSummary {
@@ -131,3 +135,41 @@ export interface PurchaseItemsResponse { items: PurchaseItemSummary[] }
 export interface EventPurchaseItemsResponse { items: PurchaseItemSummary[]; truncated: boolean }
 export interface PurchaseItemResponse { item: PurchaseItemDetail }
 export interface PurchaseReviewResponse { pending: PurchaseItemSummary[]; approved: PurchaseItemSummary[]; truncated: boolean }
+
+export type ProductLookupStatus = 'pending' | 'ready' | 'failed'
+export interface PurchaseCandidateProduct {
+  name: string
+  // 옵션을 모르면 가격·정가·할인율·재고·도착 예정은 null이다.
+  price: number | null
+  listPrice: number | null
+  discountPercent: number | null
+  inStock: boolean | null
+  deliveryEta: string | null
+  imageUrl: string | null
+}
+export interface PurchaseCandidateShare { messageId: string; author: PurchasePerson; sharedAt: string }
+export interface PurchaseCandidateRequest { requester: PurchasePerson; quantity: number | null; status: 'pending' | 'approved' }
+export interface PurchaseCandidate {
+  id: string
+  url: string
+  productId: string
+  itemId: string | null
+  vendorItemId: string | null
+  lookup: ProductLookupStatus
+  fetchedAt: string | null
+  // 링크의 옵션을 조회 결과에서 찾았는지. 못 찾으면 "옵션 미정"이다.
+  optionKnown: boolean
+  product: PurchaseCandidateProduct | null
+  // 링크의 판매자가 바뀌었을 수 있을 때의 안내. 없으면 null이다.
+  warning: string | null
+  shareCount: number
+  // 최근 공유 20개. 최신이 앞이다.
+  shares: PurchaseCandidateShare[]
+  hidden: { by: PurchasePerson; at: string } | null
+  // 제출된(대기·승인) 품목. 학생회 누구나 본다.
+  requests: PurchaseCandidateRequest[]
+  // 보는 사람의 작성 중 품목이 있는지. 다른 사람에게는 알리지 않는다.
+  draftedByMe: boolean
+}
+export interface PurchaseCandidatesResponse { candidates: PurchaseCandidate[]; truncated: boolean }
+export interface PurchaseCandidateResponse { candidate: PurchaseCandidate }
