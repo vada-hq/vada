@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { getTableConfig, PgDialect } from 'drizzle-orm/pg-core'
-import { accounts, chatRooms, departments, events, memberships, messages, organizations, purchaseRequests, sessions, users, verifications } from './schema.js'
+import { accounts, chatRooms, departments, events, memberships, messages, organizations, purchaseSubmissions, sessions, users, verifications } from './schema.js'
 
 test('all entities have primary keys and creation timestamps', () => {
   for (const table of [users, organizations, departments, memberships, accounts, sessions, verifications, events, chatRooms, messages]) {
@@ -116,5 +116,5 @@ test('councils keep one invite code each; departments may be unassigned', () => 
   const config = getTableConfig(organizations)
   assert.deepEqual(config.uniqueConstraints.map(key => key.name), ['organizations_invite_code_unique'])
   assert.ok(config.checks.some(item => item.name === 'organizations_invite_code_format'))
-  assert.equal(purchaseRequests.departmentId.notNull, false)
+  assert.equal(purchaseSubmissions.departmentId.notNull, false)
 })

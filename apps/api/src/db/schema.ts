@@ -210,52 +210,9 @@ export const purchaseSubmissions = pgTable('purchase_submissions', {
   unique('purchase_submissions_organization_id_unique').on(table.organizationId, table.id),
 ])
 
-// 소속에서 얻은 요청 부서를 기록한다. 권한·상태 전환·제출 필수값 검사는 서버 책임이다.
-export const purchaseRequests = pgTable('purchase_requests', {
-  id: text('id').primaryKey(),
-  organizationId: text('organization_id').notNull(),
-  eventId: text('event_id').notNull(),
-  requesterId: text('requester_id').notNull()
-    .references(() => users.id, { onDelete: 'restrict' }),
-  // 요청자가 미배정이면 비어 있다.
-  departmentId: text('department_id'),
-  purpose: text('purpose'),
-  neededBy: date('needed_by'),
-  estimatedShippingCost: integer('estimated_shipping_cost'),
-  status: text('status', { enum: ['draft', 'discarded', 'submitted', 'approved', 'rejected'] }).notNull().default('draft'),
-  // 같은 요청자의 재시도 중복 방지. 생성은 요청서·품목·근거·이력을 한 트랜잭션으로 저장한다.
-  idempotencyKey: text('idempotency_key').notNull(),
-  version: integer('version').notNull().default(1),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
-    .$onUpdate(() => new Date()),
-}, (table) => [
-  foreignKey({
-    name: 'purchase_requests_event_same_organization',
-    columns: [table.organizationId, table.eventId],
-    foreignColumns: [events.organizationId, events.id],
-  }).onDelete('restrict'),
-  foreignKey({
-    name: 'purchase_requests_department_same_organization',
-    columns: [table.organizationId, table.departmentId],
-    foreignColumns: [departments.organizationId, departments.id],
-  }).onDelete('restrict'),
-  unique('purchase_requests_requester_key_unique').on(table.requesterId, table.idempotencyKey),
-  unique('purchase_requests_organization_id_unique').on(table.organizationId, table.id),
-  check('purchase_requests_key_not_blank', sql`${table.idempotencyKey} ~ '[^[:space:]]'`),
-  check('purchase_requests_status_valid', sql`${table.status} IN ('draft','discarded','submitted','approved','rejected')`),
-  check('purchase_requests_version_positive', sql`${table.version} > 0`),
-  check('purchase_requests_shipping_nonnegative', sql`${table.estimatedShippingCost} >= 0`),
-  index('purchase_requests_event_created_idx').on(table.eventId, table.createdAt, table.id),
-])
-
 // 구매의 진행 단위. 작성 중이면 제출 기록이 없고, 승인·반려하면 결정한 사람이 남는다.
-// request_id·position은 0012 이전 요청서 연결이다. 새 코드는 쓰지 않고 0013에서 지운다.
 export const purchaseItems = pgTable('purchase_items', {
   id: text('id').primaryKey(),
-  requestId: text('request_id')
-    .references(() => purchaseRequests.id, { onDelete: 'restrict' }),
-  position: integer('position'),
   organizationId: text('organization_id').notNull(),
   eventId: text('event_id').notNull(),
   requesterId: text('requester_id').notNull()
@@ -290,8 +247,6 @@ export const purchaseItems = pgTable('purchase_items', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
     .$onUpdate(() => new Date()),
 }, (table) => [
-  unique('purchase_items_request_position_unique').on(table.requestId, table.position),
-  unique('purchase_items_request_id_unique').on(table.requestId, table.id),
   unique('purchase_items_organization_id_unique').on(table.organizationId, table.id),
   foreignKey({
     name: 'purchase_items_event_same_organization',
@@ -308,8 +263,13 @@ export const purchaseItems = pgTable('purchase_items', {
     columns: [table.organizationId, table.submissionId],
     foreignColumns: [purchaseSubmissions.organizationId, purchaseSubmissions.id],
   }).onDelete('restrict'),
-  check('purchase_items_position_nonnegative', sql`${table.position} >= 0`),
   check('purchase_items_url_not_blank', sql`${table.productUrl} ~ '[^[:space:]]'`),
+  check('purchase_items_product_name_not_blank', sql`${table.productName} ~ '[^[:space:]]'`),
+  check('purchase_items_product_name_length', sql`char_length(${table.productName}) <= 500`),
+  check('purchase_items_selected_option_not_blank', sql`${table.selectedOption} ~ '[^[:space:]]'`),
+  check('purchase_items_selected_option_length', sql`char_length(${table.selectedOption}) <= 200`),
+  check('purchase_items_packaging_unit_not_blank', sql`${table.packagingUnit} ~ '[^[:space:]]'`),
+  check('purchase_items_packaging_unit_length', sql`char_length(${table.packagingUnit}) <= 50`),
   check('purchase_items_quantity_positive', sql`${table.quantity} > 0`),
   check('purchase_items_price_nonnegative', sql`${table.estimatedUnitPrice} >= 0`),
   check('purchase_items_snapshot_object', sql`jsonb_typeof(${table.productSnapshot}) = 'object'`),
@@ -372,37 +332,6 @@ export const purchaseItemSources = pgTable('purchase_item_sources', {
   primaryKey({ columns: [table.itemId, table.messageId] }),
 ])
 
-// 메시지가 요청서와 같은 행사방에 속하는지는 생성 API에서 검증한다.
-export const purchaseRequestSources = pgTable('purchase_request_sources', {
-  requestId: text('request_id').notNull()
-    .references(() => purchaseRequests.id, { onDelete: 'restrict' }),
-  messageId: text('message_id').notNull()
-    .references(() => messages.id, { onDelete: 'restrict' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  primaryKey({ columns: [table.requestId, table.messageId] }),
-])
-
-// 서버는 변경과 이력 추가를 한 트랜잭션으로 처리하고 이력을 수정·삭제하지 않는다.
-export const purchaseRequestHistory = pgTable('purchase_request_history', {
-  id: text('id').primaryKey(),
-  requestId: text('request_id').notNull()
-    .references(() => purchaseRequests.id, { onDelete: 'restrict' }),
-  actorId: text('actor_id').notNull()
-    .references(() => users.id, { onDelete: 'restrict' }),
-  action: text('action', { enum: ['created', 'updated', 'discarded', 'submitted', 'approved', 'rejected'] }).notNull(),
-  version: integer('version').notNull(),
-  changes: jsonb('changes').$type<Record<string, unknown>>().notNull(),
-  reason: text('reason'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  unique('purchase_history_request_version_unique').on(table.requestId, table.version),
-  check('purchase_history_action_valid', sql`${table.action} IN ('created','updated','discarded','submitted','approved','rejected')`),
-  check('purchase_history_version_positive', sql`${table.version} > 0`),
-  check('purchase_history_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
-  check('purchase_history_rejection_reason', sql`${table.action} <> 'rejected' OR (${table.reason} IS NOT NULL AND ${table.reason} ~ '[^[:space:]]')`),
-])
-
 // 승인 상태와 독립적인 배송 상태. 외부 조회 성공 시각과 배송 이벤트 시각을 구분한다.
 export const shipments = pgTable('shipments', {
   id: text('id').primaryKey(),
@@ -433,12 +362,10 @@ export const shipments = pgTable('shipments', {
 ])
 
 // 이력 보존을 위해 연결별 ID를 둔다. 재연결은 기존 행을 덮어쓰지 않고 새 행을 만든다.
-// requestId는 0012 이전 연결의 복합 FK용이다. 새 연결은 비워 두고 0013에서 지운다.
 export const shipmentItems = pgTable('shipment_items', {
   id: text('id').primaryKey(),
   shipmentId: text('shipment_id').notNull(),
   purchaseItemId: text('purchase_item_id').notNull(),
-  requestId: text('request_id'),
   organizationId: text('organization_id').notNull(),
   linkedBy: text('linked_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
   linkedAt: timestamp('linked_at', { withTimezone: true }).notNull().defaultNow(),
@@ -446,10 +373,10 @@ export const shipmentItems = pgTable('shipment_items', {
   unlinkedAt: timestamp('unlinked_at', { withTimezone: true }),
 }, table => [
   foreignKey({ name: 'shipment_items_shipment_same_organization', columns: [table.organizationId, table.shipmentId], foreignColumns: [shipments.organizationId, shipments.id] }).onDelete('restrict'),
-  foreignKey({ name: 'shipment_items_request_same_organization', columns: [table.organizationId, table.requestId], foreignColumns: [purchaseRequests.organizationId, purchaseRequests.id] }).onDelete('restrict'),
-  foreignKey({ name: 'shipment_items_item_same_request', columns: [table.requestId, table.purchaseItemId], foreignColumns: [purchaseItems.requestId, purchaseItems.id] }).onDelete('restrict'),
+  foreignKey({ name: 'shipment_items_item_same_organization', columns: [table.organizationId, table.purchaseItemId], foreignColumns: [purchaseItems.organizationId, purchaseItems.id] }).onDelete('restrict'),
   uniqueIndex('shipment_items_active_pair_unique').on(table.shipmentId, table.purchaseItemId).where(sql`${table.unlinkedAt} IS NULL`),
-  index('shipment_items_request_idx').on(table.requestId, table.purchaseItemId),
+  // 품목별 송장 조회와 위 FK 검사가 같이 쓴다.
+  index('shipment_items_item_idx').on(table.organizationId, table.purchaseItemId),
   check('shipment_items_unlink_pair', sql`(${table.unlinkedAt} IS NULL) = (${table.unlinkedBy} IS NULL)`),
   check('shipment_items_unlink_time', sql`${table.unlinkedAt} >= ${table.linkedAt}`),
 ])

@@ -11,6 +11,9 @@ test('구매 스키마는 품목·제출·생성·기록·근거 표를 내보�
   for (const name of ['purchaseItems', 'purchaseSubmissions', 'purchaseGenerations', 'purchaseItemEvents', 'purchaseItemSources']) {
     assert.ok(name in schema, `Missing table: ${name}`)
   }
+  // 옛 요청서 표와 연결 칸은 0013에서 지웠다.
+  for (const name of ['purchaseRequests', 'purchaseRequestSources', 'purchaseRequestHistory']) assert.ok(!(name in schema), `Old table: ${name}`)
+  assert.ok(!('requestId' in schema.purchaseItems) && !('position' in schema.purchaseItems) && !('requestId' in schema.shipmentItems))
   const items = schema.purchaseItems
   for (const column of [items.productName, items.selectedOption, items.optionRequired, items.quantity, items.packagingUnit,
     items.estimatedUnitPrice, items.note, items.neededBy, items.submissionId, items.decidedAt, items.purchasedAt, items.receivedAt]) {

@@ -7,6 +7,7 @@ import { test } from 'node:test'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
+import { migrationsBefore, migrationsFolder } from './test-migrations.js'
 
 // 나중 마이그레이션이 더한 칸(예: organizations.invite_code)은 빼고, 원래 있던 칸의 값만 비교한다.
 const sameColumns = (rows: Record<string, unknown>[], before: Record<string, unknown>[]) =>
@@ -264,16 +265,11 @@ test('0009 gives every council an invite code and lets departments be empty', as
           { code: '23514', constraint: 'organizations_invite_code_format' })
       }
     })
-    await t.test('membership and purchase request may have no department, but a set one must match the council', async () => {
+    // 0009가 함께 바꾼 옛 요청서 표는 0013에서 지웠다. 제출 기록의 부서 규칙은 db/purchases.test.ts가 확인한다.
+    await t.test('membership may have no department, but a set one must match the council', async () => {
       await pg.query("INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m2','u2','org1',NULL)")
       await assert.rejects(pg.query("INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m3','u2','org2','d1')"),
         { code: '23503', constraint: 'memberships_department_same_organization' })
-      await pg.exec(`
-        INSERT INTO events (id,organization_id,name,created_by) VALUES ('e1','org1','Festival','u2');
-        INSERT INTO purchase_requests (id,organization_id,event_id,requester_id,department_id,idempotency_key) VALUES ('r1','org1','e1','u2',NULL,'k1');
-      `)
-      const request = await pg.query<{ department_id: string | null }>("SELECT department_id FROM purchase_requests WHERE id = 'r1'")
-      assert.equal(request.rows[0]?.department_id, null)
     })
   } finally {
     await pg.close()
@@ -477,5 +473,63 @@ test('0012 moves purchase requests to purchase items with their decisions, sourc
   } finally {
     await pg.close()
     rmSync(previous, { recursive: true, force: true })
+  }
+})
+
+test('0013 removes the old request tables and guards item text and shipment links', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0013_purchase_cleanup')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    // 0012까지 적용된 DB: 옛 요청서에서 옮긴 품목과 새 코드가 만든 품목, 옛 방식·새 방식 송장 연결이 섞여 있다.
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test'),('f','재정','f@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u'),('e2','o2','남의 행사','u');
+      INSERT INTO purchase_requests (id,organization_id,event_id,requester_id,status,idempotency_key) VALUES ('r','o','e','u','approved','k');
+      INSERT INTO purchase_submissions (id,organization_id,event_id,requester_id) VALUES ('s','o','e','u'),('s2','o2','e2','u');
+      INSERT INTO purchase_items (id,request_id,position,organization_id,event_id,requester_id,submission_id,status,decided_by,decided_at,product_url,product_name) VALUES
+        ('old','r',0,'o','e','u','s','approved','f',now(),'https://www.coupang.com/vp/products/1','옛 품목');
+      INSERT INTO purchase_items (id,organization_id,event_id,requester_id,submission_id,status,decided_by,decided_at,product_url,product_name,selected_option,packaging_unit) VALUES
+        ('new','o','e','u','s','approved','f',now(),'https://www.coupang.com/vp/products/2','새 품목','화이트','50개입'),
+        ('other','o2','e2','u','s2','approved','f',now(),'https://www.coupang.com/vp/products/3','남의 품목',NULL,NULL);
+      INSERT INTO shipments (id,organization_id,carrier_id,tracking_number,created_by) VALUES ('ship','o','kr.coupangls','000123','f');
+      INSERT INTO shipment_items (id,shipment_id,purchase_item_id,request_id,organization_id,linked_by) VALUES
+        ('l-old','ship','old','r','o','f'),('l-new','ship','new',NULL,'o','f');
+    `)
+    await migrate(db, { migrationsFolder })
+    const rows = async (query: string) => (await pg.query<Record<string, unknown>>(query)).rows
+
+    await t.test('old request tables and columns are gone; items and links stay', async () => {
+      assert.deepEqual(await rows(`SELECT to_regclass('public.purchase_requests') AS requests, to_regclass('public.purchase_request_sources') AS sources,
+        to_regclass('public.purchase_request_history') AS history`), [{ requests: null, sources: null, history: null }])
+      assert.deepEqual(await rows(`SELECT table_name, column_name FROM information_schema.columns
+        WHERE table_name IN ('purchase_items','shipment_items') AND column_name IN ('request_id','position')`), [])
+      assert.deepEqual(await rows('SELECT id FROM purchase_items ORDER BY id'), [{ id: 'new' }, { id: 'old' }, { id: 'other' }])
+      assert.deepEqual(await rows('SELECT id, purchase_item_id FROM shipment_items ORDER BY id'),
+        [{ id: 'l-new', purchase_item_id: 'new' }, { id: 'l-old', purchase_item_id: 'old' }])
+    })
+    await t.test('item text has the contract limits and cannot be blank', async () => {
+      const update = (column: string, value: string) => pg.query(`UPDATE purchase_items SET ${column} = $1 WHERE id = 'new'`, [value])
+      for (const [column, max] of [['product_name', 500], ['selected_option', 200], ['packaging_unit', 50]] as const) {
+        // 계약처럼 코드 포인트로 센다. 이모지도 한 글자다.
+        await update(column, '😀'.repeat(max))
+        await assert.rejects(update(column, '😀'.repeat(max + 1)), { constraint: `purchase_items_${column}_length` })
+        for (const blank of ['', '   ', '\t\n']) await assert.rejects(update(column, blank), { constraint: `purchase_items_${column}_not_blank` })
+      }
+    })
+    await t.test('a shipment link must point to an item of the same council, found by its index', async () => {
+      const link = (id: string, item: string) => pg.query(
+        "INSERT INTO shipment_items (id,shipment_id,purchase_item_id,organization_id,linked_by) VALUES ($1,'ship',$2,'o','f')", [id, item])
+      await assert.rejects(link('cross', 'other'), { code: '23503', constraint: 'shipment_items_item_same_organization' })
+      await assert.rejects(link('missing', 'nope'), { code: '23503', constraint: 'shipment_items_item_same_organization' })
+      await assert.rejects(pg.exec("DELETE FROM purchase_items WHERE id = 'new'"), { code: '23001' })
+      assert.deepEqual(await rows("SELECT indexdef FROM pg_indexes WHERE indexname = 'shipment_items_item_idx'"),
+        [{ indexdef: 'CREATE INDEX shipment_items_item_idx ON public.shipment_items USING btree (organization_id, purchase_item_id)' }])
+    })
+  } finally {
+    await pg.close()
+    previous.remove()
   }
 })

@@ -8,7 +8,7 @@
     "delivery:worker": "tsx src/deliveries/run-worker.ts",
     "delivery:worker:once": "tsx src/deliveries/run-worker.ts --once",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/app.test.ts src/runtime.test.ts src/web.test.ts src/access/access.test.ts src/organization/organization.test.ts src/events/events.test.ts src/chat/chat.test.ts src/auth/auth.test.ts src/db/schema.test.ts src/db/migrations.test.ts src/db/purchases.test.ts src/db/deliveries.test.ts src/deliveries/routes.test.ts src/deliveries/delivery-tracker.test.ts src/deliveries/worker.test.ts src/deliveries/tracking-config.test.ts src/deliveries/loop.test.ts src/purchases/purchases.test.ts src/purchases/review.test.ts src/purchases/generation.test.ts scripts/test-data.test.ts src/http/boundary.test.ts src/deliveries/webhook.test.ts src/http/sentry.test.ts",
+    "test": "tsx --test src/app.test.ts src/runtime.test.ts src/web.test.ts src/access/access.test.ts src/organization/organization.test.ts src/events/events.test.ts src/chat/chat.test.ts src/auth/auth.test.ts src/db/schema.test.ts src/db/migrations.test.ts src/db/purchases.test.ts src/db/deliveries.test.ts src/deliveries/routes.test.ts src/deliveries/delivery-tracker.test.ts src/deliveries/worker.test.ts src/deliveries/tracking-config.test.ts src/deliveries/loop.test.ts src/purchases/purchases.test.ts src/purchases/review.test.ts src/purchases/pre-cleanup.test.ts src/purchases/generation.test.ts scripts/test-data.test.ts src/http/boundary.test.ts src/deliveries/webhook.test.ts src/http/sentry.test.ts",
     "db:generate": "drizzle-kit generate",
     "test-data": "tsx scripts/manage-test-data.ts",
     "db:migrate": "tsx src/db/migrate.ts"

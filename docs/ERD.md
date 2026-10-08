@@ -163,11 +163,12 @@ erDiagram
   - 상태와 칸이 맞아야 한다. 작성 중이면 제출 기록이 없고, 승인·반려면 결정한 사람과 시각이 있고, 반려면 사유가 있다.
   - 구매함 표시는 승인 품목에만, 수령 확인은 구매함 표시된 품목에만 붙는다.
   - 모든 변경은 서버가 버전을 비교하고 올린다.
+  - 상품명 500자·선택 옵션 200자·포장 단위 50자까지 넣고, 공백만은 넣지 않는다(계약과 같은 코드 포인트 기준).
 - `purchase_submissions`: 상태가 없다. 화면은 품목 상태로 묶음을 보여 준다. 부서는 제출할 때의 요청자 부서이며 소속이 바뀌어도 그대로다.
 - `purchase_generations`: 끼룩이 재시도를 막는다. `(requester_id, idempotency_key)`는 중복 불가다.
 - `purchase_item_events`: 제출 이후의 변화만 기록하고 고치거나 지우지 않는다. 반려 기록만 사유가 있다.
 - `purchase_item_sources`: 메시지가 같은 행사방인지는 서버가 검사한다. 작성 중 품목을 지울 때 서버가 근거 연결을 먼저 지운다.
-- 옛 표 `purchase_requests`·`purchase_request_history`·`purchase_request_sources`와 `purchase_items.request_id`·`position`, `shipment_items.request_id`는 0012가 데이터를 옮긴 뒤 새 코드가 쓰지 않는다. 0013에서 지운다.
+- 옛 요청서 표(`purchase_requests`·`purchase_request_history`·`purchase_request_sources`)와 요청서 연결 칸은 0012가 데이터를 옮긴 뒤 0013에서 지웠다.
 - 권한·보는 범위·제출 필수값은 서버 책임이다. 작성 중 품목은 요청자만 보고, 제출된 품목은 학생회 누구나 본다.
 
 ## 배송 추적
@@ -208,8 +209,7 @@ erDiagram
         text id PK "연결별 이력 ID"
         text organization_id FK "복합 FK"
         text shipment_id FK
-        text request_id FK "학생회 및 품목 검증용"
-        text purchase_item_id FK
+        text purchase_item_id FK "학생회와 함께 복합 FK"
         text linked_by FK
         timestamptz linked_at
         text unlinked_by FK "연결 중이면 null"
@@ -239,10 +239,10 @@ erDiagram
 ```
 
 - `shipments`: `(organization_id, carrier_id, tracking_number)` 중복 불가. 송장번호의 앞자리 0을 보존한다. 택배사·송장번호 공백값을 금지한다. 초기 배송 상태는 `unknown`이다. 조회 실패는 배송 상태가 아니며 마지막 조회 상태를 초기화하지 않는 것은 서버 책임이다.
-- `shipment_items`: `(organization_id, shipment_id)` → 배송, `(organization_id, request_id)` → 요청서, `(request_id, purchase_item_id)` → 품목의 복합 FK로 다른 학생회·요청서 품목 연결을 막는다. 기존 요청서·품목에는 참조용 복합 고유키만 추가하여 기존 컬럼·데이터는 유지한다.
+- `shipment_items`: `(organization_id, shipment_id)` → 배송, `(organization_id, purchase_item_id)` → 품목의 복합 FK로 다른 학생회 품목 연결을 막는다. 행사가 달라도 같은 학생회 품목이면 한 송장에 묶을 수 있다. `(organization_id, purchase_item_id)` 색인을 품목별 송장 조회와 FK 검사가 같이 쓴다.
 - 연결 중인 `(shipment_id, purchase_item_id)` 조합만 중복을 금지한다. 해제자·해제 시각은 함께 기록하고 해제 시각은 연결 시각보다 빠를 수 없다. 재연결은 새 ID로 기록한다. 승인 여부·재정부 권한·해제 이력 수정 금지는 서버에서 검증한다.
-- 합배송·분할배송을 표현하지만 배송별 수량 배분은 저장하지 않는다. 연결된 배송이 모두 완료돼도 요청 수량 전체의 도착이나 요청서 전체 완료로 판정하지 않는다. 배송 정보 미등록은 활성 연결이 없는 상태다.
+- 합배송·분할배송을 표현하지만 배송별 수량 배분은 저장하지 않는다. 연결된 배송이 모두 완료돼도 품목 수량 전체의 도착으로 판정하지 않는다. 배송 정보 미등록은 활성 연결이 없는 상태다.
 - `shipment_jobs`: 같은 배송·종류의 대기 작업과 실행 작업을 각각 최대 하나로 제한한다. 실행 중 새 알림은 다음 대기 작업 하나에 병합할 수 있다. `register` 작업은 신규 등록과 만료 갱신에 사용한다. 시도 횟수는 0 이상이며 실행 중에만 잠금 만료 시각을 갖는다.
 - 실행기는 배송 행을 먼저 잠그고 배송당 한 작업을 선점한다. `attempts`와 잠금 기한으로 회수 전 작업자의 결과를 거부하며, `tracking_version`으로 연결 변경 전 조회 결과를 거부한다. 버전은 양수이고 재등록·마지막 연결 해제·배송 완료 시 증가한다. DB 제약만으로 자동 갱신이 실행되지는 않는다. 배송과 작업을 포함한 모든 신규 FK는 부모 삭제를 제한한다.
 - `shipment_registrations`: `(organization_id, actor_id, idempotency_key)` 중복 불가. 등록 결과를 영속 보관하여 연결 해제 뒤 오래된 등록 요청이 재전송되어도 다시 연결하지 않는다. 같은 키에 다른 입력은 거부한다. 연결 해제 API는 품목 ID가 아니라 연결 ID를 받아 재연결 후 옛 해제 요청이 새 연결에 영향을 주지 않도록 한다.
-- 구성원에게 공유하는 응답은 배송 요약으로 한정하며 기존 요청서 근거 대화·이력의 조회 권한은 확장하지 않는다. 재정부 외 구성원의 송장번호는 마지막 네 자리만 표시한다.
+- 배송 요약은 구매 품목 응답에 담긴다. 재정부 외 구성원의 송장번호는 마지막 네 자리만 표시한다.

@@ -1,9 +1,9 @@
-import { fileURLToPath } from 'node:url'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import type { PurchaseItemSummary, PurchaseItemsResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
+import { migrationsFolder } from '../db/test-migrations.js'
 import type { DraftGenerator, GeneratedItem } from './generation.js'
 import { createPurchaseRoutes } from './purchases.js'
 
@@ -17,10 +17,11 @@ export const generated = (productUrl: string, overrides: Partial<GeneratedItem> 
 export const refs = (items: PurchaseItemSummary[]) => items.map(({ id, version }) => ({ id, version }))
 
 // 학생회 a: 기획부 p·q, 총무부(구매 승인) f, 회장단 l, 미배정 n. 학생회 b: x.
-export async function setupPurchases() {
+// migrations를 주면 그 폴더의 마이그레이션까지만 적용한다(배포 구간 확인용).
+export async function setupPurchases(migrations = migrationsFolder) {
   const pg = new PGlite()
   const db = drizzle(pg)
-  await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
+  await migrate(db, { migrationsFolder: migrations })
   await pg.exec(`
     INSERT INTO users(id,name,email) VALUES ('p','기획','p@test.local'),('q','기획2','q@test.local'),('f','재정','f@test.local'),
       ('l','회장','l@test.local'),('n','새내기','n@test.local'),('x','남','x@test.local');

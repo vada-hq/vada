@@ -29,16 +29,19 @@ test('delivery migration preserves purchases and enforces shipment boundaries', 
       INSERT INTO purchase_items(id,request_id,position,product_url) VALUES ('i','r',0,'https://example.test/1'),('i2','r',1,'https://example.test/2'),('oi','or',0,'https://example.test/3');
       INSERT INTO purchase_request_history(id,request_id,actor_id,action,version,changes) VALUES ('h','r','u','approved',2,'{}'),('oh','or','u','approved',2,'{}');
     `)
-    const before = (await pg.query('SELECT * FROM purchase_items ORDER BY id')).rows
+    const before = (await pg.query<Record<string, unknown>>('SELECT * FROM purchase_items ORDER BY id')).rows
     assert.ok(journal.entries.length > 5, 'delivery migration missing')
     for (const entry of journal.entries.slice(5)) await pg.exec(readFileSync(join(folder, `${entry.tag}.sql`), 'utf8'))
     const after = (await pg.query<Record<string, unknown>>('SELECT * FROM purchase_items ORDER BY id')).rows
-    // 0012가 품목 칸을 더한다. 원래 있던 칸만 비교한다.
-    assert.deepEqual(after.map(row => Object.fromEntries(Object.keys(before[0]!).map(key => [key, row[key]]))), before)
+    // 0012가 품목 칸을 더하고 0013이 요청서 연결 칸을 지운다. 남아 있는 원래 칸만 비교한다.
+    const kept = Object.keys(before[0]!).filter(key => key in after[0]!)
+    assert.deepEqual(kept.filter(key => key === 'request_id' || key === 'position'), [])
+    assert.deepEqual(after.map(row => Object.fromEntries(kept.map(key => [key, row[key]]))),
+      before.map(row => Object.fromEntries(kept.map(key => [key, row[key]]))))
     const shipment = (id: string, number = id, org = 'o') => pg.query(
       'INSERT INTO shipments(id,organization_id,carrier_id,tracking_number,created_by) VALUES ($1,$2,$3,$4,$5)', [id, org, 'kr.coupangls', number, 'u'])
-    const link = (id: string, ship = 's', item = 'i', request = 'r', org = 'o') => pg.query(
-      'INSERT INTO shipment_items(id,shipment_id,purchase_item_id,request_id,organization_id,linked_by) VALUES ($1,$2,$3,$4,$5,$6)', [id, ship, item, request, org, 'u'])
+    const link = (id: string, ship = 's', item = 'i', org = 'o') => pg.query(
+      'INSERT INTO shipment_items(id,shipment_id,purchase_item_id,organization_id,linked_by) VALUES ($1,$2,$3,$4,$5)', [id, ship, item, org, 'u'])
     await shipment('s', '000123')
     await shipment('s2')
     await shipment('os', '000123', 'other')
@@ -54,8 +57,7 @@ test('delivery migration preserves purchases and enforces shipment boundaries', 
       await link('l2', 's', 'i2')
       await link('l3', 's2', 'i')
       await assert.rejects(link('dup'), { code: '23505' })
-      await assert.rejects(link('cross', 's', 'oi', 'or'), { code: '23503' })
-      await assert.rejects(link('wrong-request', 's', 'oi', 'r'), { code: '23503' })
+      await assert.rejects(link('cross', 's', 'oi'), { code: '23503', constraint: 'shipment_items_item_same_organization' })
       await assert.rejects(link('wrong-ship', 'os'), { code: '23503' })
       await assert.rejects(pg.exec("UPDATE shipment_items SET unlinked_at=now() WHERE id='l'"), { code: '23514' })
       await assert.rejects(pg.exec("UPDATE shipment_items SET unlinked_at=linked_at-interval '1 day',unlinked_by='u' WHERE id='l'"), { code: '23514' })
