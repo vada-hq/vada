@@ -3,6 +3,9 @@ export { EVENT_NAME_MAX, CreateEventSchema, type CreateEventRequest } from './ev
 export { MESSAGE_CONTENT_MAX, CreateMessageSchema, type CreateMessageRequest } from './chat.js'
 export { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
 export { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema, type JoinOrganizationRequest, type InvitePreviewResponse } from './invites.js'
+export { ORGANIZATION_NAME_MAX, DEPARTMENT_NAME_MAX, MEMBER_TITLE_MAX, CREATE_DEPARTMENTS_MAX, LEADERSHIP_DEFAULT_NAME,
+  CreateOrganizationSchema, CreateDepartmentSchema, UpdateDepartmentSchema, DeleteDepartmentSchema, AssignDepartmentSchema,
+  UpdateMemberTitleSchema, type CreateOrganizationRequest, type UpdateDepartmentRequest } from './organizations.js'
 export interface HealthResponse {
   status: 'ok'
 }
@@ -22,6 +25,20 @@ export interface MembershipsResponse {
 
 export interface JoinOrganizationResponse {
   membership: MembershipSummary
+}
+
+export interface CreateOrganizationResponse {
+  membership: MembershipSummary
+}
+
+export interface DepartmentSummary { id: string; name: string; isLeadership: boolean; handlesFinance: boolean }
+// 구성원에게는 이름만 보인다. 이메일은 주지 않는다.
+export interface MemberSummary { id: string; name: string; title: string | null; departmentId: string | null }
+// 회장단 전용 변경도 이 응답을 돌려준다. 화면은 받은 값으로 목록을 통째로 바꾼다.
+export interface OrganizationMembersResponse {
+  viewer: MembershipSummary
+  departments: DepartmentSummary[]
+  members: MemberSummary[]
 }
 
 export interface EventSummary {
