@@ -4,7 +4,7 @@ import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { LEADERSHIP_DEFAULT_NAME, type CreateOrganizationRequest, type MembershipSummary, type OrganizationMembersResponse,
   type UpdateDepartmentRequest } from '@vada/contracts'
 import { queryMemberships } from '../access/membership.js'
-import { departments, memberships, organizations, purchaseRequests, users } from '../db/schema.js'
+import { departments, memberships, organizations, purchaseSubmissions, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { sqlState } from '../http/on-error.js'
 
@@ -103,9 +103,9 @@ export function createOrganizationService(db: OrganizationDatabase) {
       if (department.isLeadership) throw new ApiError('LEADERSHIP_FIXED', 409)
       const [member] = await tx.select({ id: memberships.id }).from(memberships).where(eq(memberships.departmentId, departmentId)).limit(1)
       if (member) throw new ApiError('DEPARTMENT_NOT_EMPTY', 409)
-      // 지우면 과거 요청의 부서가 사라지므로, 기록이 있는 부서는 지우지 않는다.
-      const [request] = await tx.select({ id: purchaseRequests.id }).from(purchaseRequests).where(eq(purchaseRequests.departmentId, departmentId)).limit(1)
-      if (request) throw new ApiError('DEPARTMENT_IN_USE', 409)
+      // 지우면 과거 제출의 요청 부서가 사라지므로, 제출 기록이 있는 부서는 지우지 않는다.
+      const [submission] = await tx.select({ id: purchaseSubmissions.id }).from(purchaseSubmissions).where(eq(purchaseSubmissions.departmentId, departmentId)).limit(1)
+      if (submission) throw new ApiError('DEPARTMENT_IN_USE', 409)
       await tx.delete(departments).where(and(eq(departments.organizationId, organizationId), eq(departments.id, departmentId)))
     }),
     assignDepartment: (organizationId: string, userId: string, membershipId: string, departmentId: string | null) =>

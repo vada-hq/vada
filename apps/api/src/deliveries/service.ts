@@ -1,14 +1,13 @@
 import { createHash, randomUUID } from 'node:crypto'
-import { and, asc, eq, gt, inArray, isNull, sql } from 'drizzle-orm'
+import { and, asc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import type { DeliveryLookupRequest, DeliveryLookupResponse, EventDeliveriesResponse, RegisterShipmentRequest } from '@vada/contracts'
-import { departments, events, memberships, purchaseItems, purchaseRequests, shipments, shipmentItems, shipmentJobs, shipmentRegistrations } from '../db/schema.js'
+import type { DeliveryLookupRequest, DeliveryLookupResponse, RegisterShipmentRequest } from '@vada/contracts'
+import { departments, memberships, purchaseItemEvents, purchaseItems, shipments, shipmentItems, shipmentJobs, shipmentRegistrations } from '../db/schema.js'
 import { approvesPurchases } from '../access/membership.js'
 import type { DeliveryProvider } from './provider.js'
 import { DeliveryError } from './validation.js'
 import type { DeliveryDatabase } from './database.js'
 import { enqueueDeliveryJob as queue } from './job-repository.js'
-import { deliverySummary } from './summary.js'
 export type { DeliveryDatabase } from './database.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -25,13 +24,12 @@ async function access(db: Reader, scope: DeliveryScope, finance = false, lock = 
   return member
 }
 async function selectedItems(db: Reader, scope: DeliveryScope, ids: string[], lock = false) {
-  const query = db.select({ id: purchaseItems.id, requestId: purchaseItems.requestId, status: purchaseRequests.status })
-    .from(purchaseItems).innerJoin(purchaseRequests, eq(purchaseItems.requestId, purchaseRequests.id))
-    .where(and(inArray(purchaseItems.id, ids), eq(purchaseRequests.organizationId, scope.organizationId))).orderBy(asc(purchaseItems.id))
-  const rows = await (lock ? query.for('share') : query)
+  const query = db.select({ id: purchaseItems.id, status: purchaseItems.status, purchasedAt: purchaseItems.purchasedAt })
+    .from(purchaseItems).where(and(inArray(purchaseItems.id, ids), eq(purchaseItems.organizationId, scope.organizationId))).orderBy(asc(purchaseItems.id))
+  const rows = await (lock ? query.for('update') : query)
   if (rows.length !== ids.length) throw new DeliveryError('NOT_FOUND', 404)
+  // 승인된 품목이면 행사가 달라도 한 송장에 묶는다. 재정부가 여러 행사 품목을 한 번에 주문하기 때문이다.
   if (rows.some(row => row.status !== 'approved')) throw new DeliveryError('PURCHASE_NOT_APPROVED', 409)
-  if (new Set(rows.map(row => row.requestId)).size !== 1) throw new DeliveryError('ONE_REQUEST_REQUIRED')
   return rows
 }
 const hashInput = (input: RegisterShipmentRequest) => createHash('sha256').update(JSON.stringify({ carrierId: input.carrierId, trackingNumber: input.trackingNumber, purchaseItemIds: [...input.purchaseItemIds].sort() })).digest('hex')
@@ -92,29 +90,21 @@ export function createDeliveryService(db: DeliveryDatabase, provider: DeliveryPr
           trackingActive: status !== 'delivered',
           trackingVersion: row.trackingVersion + 1, webhookExpiresAt: null,
         }).where(eq(shipments.id, row.id))
-        for (const item of items) await tx.insert(shipmentItems).values({ id: randomUUID(), shipmentId: row.id, purchaseItemId: item.id, requestId: item.requestId, organizationId: scope.organizationId, linkedBy: scope.userId }).onConflictDoNothing()
+        for (const item of items) await tx.insert(shipmentItems).values({ id: randomUUID(), shipmentId: row.id, purchaseItemId: item.id, organizationId: scope.organizationId, linkedBy: scope.userId }).onConflictDoNothing()
+        // 송장이 생기면 이미 산 물건이다. 구매함 표시가 없던 품목에 표시를 붙이고 기록한다.
+        const unpurchased = items.filter(item => item.purchasedAt === null).map(item => item.id)
+        if (unpurchased.length) {
+          await tx.update(purchaseItems).set({ purchasedAt: sql`now()`, purchasedBy: scope.userId, version: sql`${purchaseItems.version} + 1` })
+            .where(inArray(purchaseItems.id, unpurchased))
+          await tx.insert(purchaseItemEvents).values(unpurchased.map(itemId => ({ id: randomUUID(), organizationId: scope.organizationId, itemId,
+            actorId: scope.userId, action: 'purchased' as const, changes: { shipmentId: row.id } })))
+        }
         // 상충하는 대기 작업은 취소한다. 실행 중 작업은 worker가 현재 trackingActive를 재검증해야 한다.
         const kind = status === 'delivered' ? 'unregister' : 'register'
         await tx.update(shipmentJobs).set({ status: 'completed' }).where(and(eq(shipmentJobs.shipmentId, row.id), eq(shipmentJobs.status, 'pending'), inArray(shipmentJobs.kind, kind === 'register' ? ['unregister'] : ['register', 'refresh'])))
         await queue(tx, row.id, kind)
         await tx.insert(shipmentRegistrations).values({ id: randomUUID(), organizationId: scope.organizationId, actorId: scope.userId, idempotencyKey: input.idempotencyKey, inputHash: hashInput(input), shipmentId: row.id })
         return { shipmentId: row.id, replayed: false }
-      })
-    },
-    async list(scope: DeliveryScope, eventId: string, after?: string): Promise<EventDeliveriesResponse> {
-      return db.transaction(async tx => {
-        const member = await access(tx, scope, false, true)
-        const [event] = await tx.select({ id: events.id }).from(events).where(and(eq(events.id, eventId), eq(events.organizationId, scope.organizationId)))
-        if (!event) throw new DeliveryError('NOT_FOUND', 404)
-        const rows = await tx.select({ id: purchaseItems.id, requestId: purchaseItems.requestId, productName: purchaseItems.productName, quantity: purchaseItems.quantity }).from(purchaseItems)
-          .innerJoin(purchaseRequests, eq(purchaseItems.requestId, purchaseRequests.id))
-          .where(and(eq(purchaseRequests.organizationId, scope.organizationId), eq(purchaseRequests.eventId, eventId), eq(purchaseRequests.status, 'approved'), after ? gt(purchaseItems.id, after) : undefined)).orderBy(asc(purchaseItems.id)).limit(51)
-        const page = rows.slice(0, 50)
-        const links = page.length ? await tx.select({ linkId: shipmentItems.id, itemId: shipmentItems.purchaseItemId, shipment: shipments }).from(shipmentItems)
-          .innerJoin(shipments, and(eq(shipments.id, shipmentItems.shipmentId), eq(shipments.organizationId, shipmentItems.organizationId)))
-          .where(and(eq(shipmentItems.organizationId, scope.organizationId), inArray(shipmentItems.purchaseItemId, page.map(item => item.id)), isNull(shipmentItems.unlinkedAt)))
-          .orderBy(asc(shipments.createdAt), asc(shipments.id)) : []
-        return { items: page.map(item => ({ ...item, shipments: links.filter(link => link.itemId === item.id).map(link => deliverySummary(link.shipment, member.finance, link.linkId)) })), nextCursor: rows.length > 50 ? page.at(-1)!.id : null }
       })
     },
     async unlink(scope: DeliveryScope, id: string, linkIds: string[]) {

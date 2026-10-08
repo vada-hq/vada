@@ -26,12 +26,13 @@ async function main() {
     priceFromProduct: typeof item?.estimatedUnitPrice === 'number' && item.estimatedUnitPrice === item.productSnapshot?.price,
     quantity: item?.quantity === 2,
     option: !!item?.selectedOption?.includes('무광화이트'),
-    neededBy: draft.neededBy === '2026-10-09',
-    purpose: !!draft.purpose?.includes('접수'),
-    source: draft.sourceMessageIds.includes('live-check-message'),
+    // 용도·받을 날짜·근거는 품목마다 붙는다.
+    neededBy: item?.neededBy === '2026-10-09',
+    note: !!item?.note?.includes('접수'),
+    source: !!item?.sourceMessageIds.includes('live-check-message'),
   }
-  console.log(JSON.stringify({ checks, purpose: draft.purpose, neededBy: draft.neededBy,
-    item: { name: item?.productName, option: item?.selectedOption, quantity: item?.quantity, price: item?.estimatedUnitPrice }, warnings: draft.warnings }))
+  console.log(JSON.stringify({ checks, item: { name: item?.productName, option: item?.selectedOption, quantity: item?.quantity,
+    price: item?.estimatedUnitPrice, note: item?.note, neededBy: item?.neededBy }, warnings: item?.warnings }))
   if (Object.values(checks).some(ok => !ok)) process.exitCode = 1
 }
 

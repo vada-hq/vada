@@ -7,7 +7,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator'
 import { createDeliveryRoutes } from './routes.js'
 import { createApp } from '../app.js'
 
-test('delivery API limits writes, shares only delivery summaries and persists retry receipts', async t => {
+test('delivery API limits writes, links approved items across events and persists retry receipts', async t => {
   const pg = new PGlite()
   try {
     const db = drizzle(pg)
@@ -18,12 +18,11 @@ test('delivery API limits writes, shares only delivery summaries and persists re
       INSERT INTO departments(id,organization_id,name,handles_finance) VALUES ('p','a','Planning',false),('f','a','Finance',true),('x','b','Other',true);
       INSERT INTO memberships(id,user_id,organization_id,department_id) VALUES ('p','p','a','p'),('f','f','a','f'),('x','x','b','x');
       INSERT INTO events(id,organization_id,name,created_by) VALUES ('e','a','Event','p'),('e2','a','Other event','p'),('x','b','Secret','x');
-      INSERT INTO purchase_requests(id,organization_id,event_id,requester_id,department_id,idempotency_key,status,purpose) VALUES
-        ('r','a','e','p','p','r','approved','Private purpose'),('r2','a','e2','p','p','r2','approved','Other'),
-        ('draft','a','e','p','p','draft','draft','Private draft'),('xr','b','x','x','x','xr','approved','Foreign');
-      INSERT INTO purchase_items(id,request_id,position,product_url,product_name,quantity) VALUES
-        ('i','r',0,'https://example.test/1','Tape',2),('i2','r',1,'https://example.test/2','Water',1),
-        ('i3','r2',0,'https://example.test/3','Other',1),('di','draft',0,'https://example.test/4','Secret draft',1),('xi','xr',0,'https://example.test/5','Foreign',1);
+      INSERT INTO purchase_submissions(id,organization_id,event_id,requester_id,department_id) VALUES ('s','a','e','p','p'),('s2','a','e2','p','p'),('sx','b','x','x','x');
+      INSERT INTO purchase_items(id,organization_id,event_id,requester_id,submission_id,status,decided_by,decided_at,product_url,product_name,quantity) VALUES
+        ('i','a','e','p','s','approved','f',now(),'https://example.test/1','Tape',2),('i2','a','e','p','s','approved','f',now(),'https://example.test/2','Water',1),
+        ('i3','a','e2','p','s2','approved','f',now(),'https://example.test/3','Other',1),('xi','b','x','x','sx','approved','x',now(),'https://example.test/5','Foreign',1);
+      INSERT INTO purchase_items(id,organization_id,event_id,requester_id,product_url,product_name,quantity) VALUES ('di','a','e','p','https://example.test/4','Secret draft',1);
     `)
     let userId: string | null = null
     let calls = 0
@@ -67,7 +66,6 @@ test('delivery API limits writes, shares only delivery summaries and persists re
       }
       assert.equal((await create({ ...input, purchaseItemIds: ['xi'] })).status, 404)
       assert.equal((await create({ ...input, purchaseItemIds: ['di'] })).status, 409)
-      assert.equal((await create({ ...input, purchaseItemIds: ['i','i3'] })).status, 400)
       assert.equal(calls, 0)
     })
     await t.test('preview does not persist; provider failures and revocation do not save', async () => {
@@ -83,7 +81,7 @@ test('delivery API limits writes, shares only delivery summaries and persists re
       await pg.exec("UPDATE departments SET handles_finance=true WHERE id='f'")
       mode = 'ok'
     })
-    await t.test('registration saves shipment, links, receipt and pending job atomically', async () => {
+    await t.test('registration saves shipment, links, receipt and pending job atomically and marks the items purchased', async () => {
       const result = await create()
       assert.equal(result.status, 201)
       id = (await result.json()).shipmentId
@@ -91,12 +89,18 @@ test('delivery API limits writes, shares only delivery summaries and persists re
       assert.equal((await pg.query('SELECT id FROM shipments')).rows.length, 1)
       assert.equal((await pg.query('SELECT id FROM shipment_items')).rows.length, 2)
       assert.deepEqual((await pg.query('SELECT kind,status FROM shipment_jobs')).rows, [{ kind: 'register', status: 'pending' }])
+      // 송장이 생기면 산 물건이다. 구매함 표시와 기록이 붙는다.
+      assert.deepEqual((await pg.query("SELECT id, purchased_by, version FROM purchase_items WHERE id IN ('i','i2') ORDER BY id")).rows,
+        [{ id: 'i', purchased_by: 'f', version: 2 }, { id: 'i2', purchased_by: 'f', version: 2 }])
+      assert.deepEqual((await pg.query('SELECT item_id, action FROM purchase_item_events ORDER BY item_id')).rows,
+        [{ item_id: 'i', action: 'purchased' }, { item_id: 'i2', action: 'purchased' }])
       const previousCalls = calls
       assert.equal((await create()).status, 200)
       assert.equal(calls, previousCalls)
       assert.equal((await create({ ...input, trackingNumber: 'another' })).status, 409)
       assert.equal((await create({ ...input, idempotencyKey: 'other-key' })).status, 201)
       assert.equal((await pg.query('SELECT id FROM shipment_items')).rows.length, 2)
+      assert.equal((await pg.query('SELECT id FROM purchase_item_events')).rows.length, 2)
     })
     await t.test('late persistence failure rolls back shipment, links and jobs', async () => {
       await pg.exec(`CREATE FUNCTION reject_receipt() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'TEST_ONLY'; END $$;
@@ -108,20 +112,10 @@ test('delivery API limits writes, shares only delivery summaries and persists re
         assert.equal((await pg.query('SELECT id FROM shipment_jobs')).rows.length, 1)
       } finally { await pg.exec('DROP TRIGGER reject_receipt ON shipment_registrations; DROP FUNCTION reject_receipt();') }
     })
-    await t.test('council members see only approved event items and masked delivery data', async () => {
+    await t.test('the event delivery list is gone; purchase item lists carry shipments instead', async () => {
       userId = 'p'
-      const result = await app.request(`${root}/events/e/deliveries`)
-      assert.equal(result.status, 200)
-      assert.equal(result.headers.get('Cache-Control'), 'no-store')
-      const body = await result.json()
-      assert.deepEqual(body.items.map((i: { id: string }) => i.id), ['i','i2'])
-      assert.equal(body.items[0].shipments[0].trackingNumber, '********6789')
-      const raw = JSON.stringify(body)
-      for (const secret of ['Private purpose','Private draft','Foreign','productSnapshot','000123456789','requesterId','history','sources']) assert.ok(!raw.includes(secret), secret)
-      assert.equal((await app.request(`${root}/events/x/deliveries`)).status, 404)
-      userId = 'x'; assert.equal((await app.request(`${root}/events/e/deliveries`)).status, 403)
+      assert.equal((await app.request(`${root}/events/e/deliveries`)).status, 404)
       userId = 'f'
-      assert.equal((await (await app.request(`${root}/events/e/deliveries`)).json()).items[0].shipments[0].trackingNumber, input.trackingNumber)
     })
     await t.test('unlink is tenant protected, retains history and old retries cannot reconnect', async () => {
       const linkIds = (await pg.query<{ id: string }>('SELECT id FROM shipment_items WHERE unlinked_at IS NULL')).rows.map(row => row.id)
@@ -141,15 +135,13 @@ test('delivery API limits writes, shares only delivery summaries and persists re
       assert.equal((await pg.query('SELECT id FROM shipment_items WHERE unlinked_at IS NULL')).rows.length, 2)
       assert.equal((await pg.query('SELECT id FROM shipment_items WHERE unlinked_at IS NOT NULL')).rows.length, 2)
     })
-    await t.test('split shipments stay separate and do not mutate purchase approval', async () => {
+    await t.test('split shipments stay separate, one shipment can hold items of two events, and approval is unchanged', async () => {
       assert.equal((await create({ ...input, trackingNumber: 'split-2', purchaseItemIds: ['i'], idempotencyKey: 'split' })).status, 201)
-      const result = await (await app.request(`${root}/events/e/deliveries`)).json()
-      assert.equal(result.items[0].shipments.length, 2)
-      assert.equal(result.items[1].shipments.length, 1)
-      assert.deepEqual((await pg.query("SELECT status FROM purchase_requests WHERE id='r'")).rows, [{ status: 'approved' }])
-      const other = await (await app.request(`${root}/events/e2/deliveries`)).json()
-      assert.equal(other.items[0].id, 'i3')
-      assert.deepEqual(other.items[0].shipments, [])
+      assert.deepEqual((await pg.query(`SELECT purchase_item_id, count(*)::int AS n FROM shipment_items WHERE unlinked_at IS NULL
+        GROUP BY purchase_item_id ORDER BY purchase_item_id`)).rows, [{ purchase_item_id: 'i', n: 2 }, { purchase_item_id: 'i2', n: 1 }])
+      assert.equal((await create({ ...input, trackingNumber: 'cross', purchaseItemIds: ['i2', 'i3'], idempotencyKey: 'cross' })).status, 201)
+      assert.deepEqual((await pg.query("SELECT DISTINCT status FROM purchase_items WHERE id IN ('i','i2','i3')")).rows, [{ status: 'approved' }])
+      assert.ok((await pg.query<{ purchased_at: Date | null }>("SELECT purchased_at FROM purchase_items WHERE id = 'i3'")).rows[0]!.purchased_at)
     })
   } finally { await pg.close() }
 })

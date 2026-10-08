@@ -179,7 +179,7 @@ test('회장단은 부서를 추가·변경·삭제하고, 규칙에 어긋나�
     assert.deepEqual(await (await remove('fin1')).json(), { error: 'DEPARTMENT_NOT_EMPTY' })
     await pg.exec(`
       INSERT INTO events (id,organization_id,name,created_by) VALUES ('e1','org1','Festival','lead');
-      INSERT INTO purchase_requests (id,organization_id,event_id,requester_id,department_id,idempotency_key) VALUES ('r1','org1','e1','lead','plan1','k1');
+      INSERT INTO purchase_submissions (id,organization_id,event_id,requester_id,department_id) VALUES ('s1','org1','e1','lead','plan1');
     `)
     const inUse = await remove('plan1')
     assert.equal(inUse.status, 409)

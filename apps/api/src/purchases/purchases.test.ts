@@ -228,3 +228,20 @@ test('수령 확인: 구매함 표시된 품목에 학생회 누구나 하고, �
     as('x'); assert.equal((await request('POST', path, { version: undone.version, received: true })).status, 403)
   } finally { await pg.close() }
 })
+
+test('행사 목록의 송장번호는 재정부에게만 전부 보인다', async () => {
+  const { pg, request, ok, submitted, as } = await setupPurchases()
+  try {
+    const [item] = await submitted([link(1)])
+    await pg.exec(`
+      UPDATE purchase_items SET status = 'approved', decided_by = 'f', decided_at = now(), purchased_by = 'f', purchased_at = now() WHERE id = '${item!.id}';
+      INSERT INTO shipments (id, organization_id, carrier_id, tracking_number, created_by, status) VALUES ('s1', 'a', 'kr.cjlogistics', '000123456789', 'f', 'in_transit');
+      INSERT INTO shipment_items (id, shipment_id, purchase_item_id, organization_id, linked_by) VALUES ('l1', 's1', '${item!.id}', 'a', 'f');
+    `)
+    const seen = async () => (await ok<EventPurchaseItemsResponse>(request('GET', base))).items[0]!.shipments
+    assert.deepEqual((await seen()).map(shipment => [shipment.trackingNumber, shipment.trackingNumberMasked, shipment.status]),
+      [['********6789', true, 'in_transit']])
+    as('f')
+    assert.deepEqual((await seen()).map(shipment => shipment.trackingNumber), ['000123456789'])
+  } finally { await pg.close() }
+})
