@@ -6,6 +6,7 @@ import type { createChatRoutes } from './chat/chat.js'
 import type { createPurchaseRoutes } from './purchases/purchases.js'
 import type { createDeliveryRoutes } from './deliveries/routes.js'
 import type { createDeliveryWebhook } from './deliveries/webhook.js'
+import type { createOrganizationRoutes } from './organization/routes.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
 
@@ -18,10 +19,11 @@ export type AppOptions = {
   chat?: ReturnType<typeof createChatRoutes>
   purchases?: ReturnType<typeof createPurchaseRoutes>
   deliveries?: ReturnType<typeof createDeliveryRoutes>
+  organization?: ReturnType<typeof createOrganizationRoutes>
   webhook?: ReturnType<typeof createDeliveryWebhook>
 }
 
-export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries, webhook }: AppOptions) {
+export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries, organization, webhook }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
   app.get('/api/health', (c) => c.json({ status: 'ok' } satisfies HealthResponse))
@@ -30,6 +32,7 @@ export function createApp({ auth, trustedOrigin, access, events, chat, purchases
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
   if (events) app.route('/api', events)
   if (access) app.route('/api', access)
+  if (organization) app.route('/api', organization)
   if (chat) app.route('/api', chat)
   if (purchases) app.route('/api', purchases)
   if (deliveries) app.route('/api', deliveries)

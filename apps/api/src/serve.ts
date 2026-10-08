@@ -6,6 +6,7 @@ import { drizzle } from 'drizzle-orm/postgres-js'
 import { createApp } from './app.js'
 import { createAuth } from './auth/auth.js'
 import { createAccessRoutes } from './access/access.js'
+import { createOrganizationRoutes } from './organization/routes.js'
 import { createEventRoutes } from './events/events.js'
 import { createChatRoutes } from './chat/chat.js'
 import { createPurchaseRoutes } from './purchases/purchases.js'
@@ -31,6 +32,7 @@ function main() {
     googleClientId: env.GOOGLE_CLIENT_ID!, googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
   })
   const access = createAccessRoutes(db, (headers) => auth.api.getSession({ headers }))
+  const organization = createOrganizationRoutes(db, (headers) => auth.api.getSession({ headers }))
   const events = createEventRoutes(db, (headers) => auth.api.getSession({ headers }))
   const chat = createChatRoutes(db, (headers) => auth.api.getSession({ headers }))
   // 키는 서버 런타임에서만 사용한다. 브라우저 응답·로그에 포함하지 않는다.
@@ -46,7 +48,7 @@ function main() {
     createDeliveryTracker({ clientId: env.DELIVERY_TRACKER_CLIENT_ID, clientSecret: env.DELIVERY_TRACKER_CLIENT_SECRET }),
   ) : undefined
   const webhook = tracking ? createDeliveryWebhook(db, tracking.address) : undefined
-  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, webhook })
+  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, organization, webhook })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)

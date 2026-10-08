@@ -8,7 +8,7 @@ const httpCodes: Partial<Record<number, string>> = {
 }
 
 // DB 오류는 drizzle이 감싸므로 cause를 몇 단계 따라가 SQLSTATE만 꺼낸다. 숫자가 없는 EPIPE 같은 시스템 오류 코드는 제외한다.
-function sqlState(error: unknown): string | undefined {
+export function sqlState(error: unknown): string | undefined {
   let current = error
   for (let depth = 0; current && typeof current === 'object' && depth < 3; depth++) {
     const code = (current as { code?: unknown }).code

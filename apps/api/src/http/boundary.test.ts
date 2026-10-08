@@ -7,6 +7,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator'
 import { z } from 'zod'
 import { createApp, type AppOptions } from '../app.js'
 import { createAccessRoutes } from '../access/access.js'
+import { createOrganizationRoutes } from '../organization/routes.js'
 import { createEventRoutes } from '../events/events.js'
 import { createChatRoutes } from '../chat/chat.js'
 import { createPurchaseRoutes } from '../purchases/purchases.js'
@@ -41,7 +42,8 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     const session = async () => { authCalls++; return null }
     // AppOptions에 모듈이 추가되면 여기서 타입 오류가 나므로 이 테스트에서 빠질 수 없다.
     const modules = {
-      access: createAccessRoutes(db, session), events: createEventRoutes(db, session), chat: createChatRoutes(db, session),
+      access: createAccessRoutes(db, session), organization: createOrganizationRoutes(db, session), events: createEventRoutes(db, session),
+      chat: createChatRoutes(db, session),
       purchases: createPurchaseRoutes(db, session, async () => { throw new Error('unused') }),
       deliveries: createDeliveryRoutes(db, session, {} as never),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
