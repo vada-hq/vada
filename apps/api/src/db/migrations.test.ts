@@ -340,3 +340,40 @@ test('0010 gives every council one empty leadership and keeps existing members',
     rmSync(previous, { recursive: true, force: true })
   }
 })
+
+test('0011 enforces council and department name rules', async (t) => {
+  const pg = new PGlite()
+  const previous = mkdtempSync(join(tmpdir(), 'vada-names-migration-'))
+  try {
+    const folder = fileURLToPath(new URL('../../migrations', import.meta.url))
+    const journal = JSON.parse(readFileSync(join(folder, 'meta/_journal.json'), 'utf8'))
+    const index = journal.entries.findIndex((entry: { tag: string }) => entry.tag === '0011_organization_names')
+    assert.ok(index > 0, '0011 마이그레이션이 있어야 한다')
+    const oldJournal = { ...journal, entries: journal.entries.slice(0, index) }
+    mkdirSync(join(previous, 'meta'))
+    writeFileSync(join(previous, 'meta/_journal.json'), JSON.stringify(oldJournal))
+    for (const entry of oldJournal.entries) copyFileSync(join(folder, `${entry.tag}.sql`), join(previous, `${entry.tag}.sql`))
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous })
+    await pg.exec(`
+      INSERT INTO organizations (id,name) VALUES ('org1','Council 1'),('org2','Council 2');
+      INSERT INTO departments (id,organization_id,name) VALUES ('d1','org1','기획부'),('d2','org2','기획부');
+    `)
+    await migrate(db, { migrationsFolder: folder })
+
+    await t.test('the same department name is allowed only across councils', async () => {
+      await assert.rejects(pg.query("INSERT INTO departments (id,organization_id,name) VALUES ('d3','org1','기획부')"),
+        { code: '23505', constraint: 'departments_organization_name_unique' })
+    })
+    await t.test('blank and too long names are rejected', async () => {
+      await assert.rejects(pg.query("INSERT INTO organizations (id,name) VALUES ('org3','  ')"), { code: '23514', constraint: 'organizations_name_not_blank' })
+      await assert.rejects(pg.query("INSERT INTO organizations (id,name) VALUES ('org3',$1)", ['가'.repeat(51)]), { code: '23514', constraint: 'organizations_name_length' })
+      await assert.rejects(pg.query("INSERT INTO departments (id,organization_id,name) VALUES ('d4','org1',' ')"), { code: '23514', constraint: 'departments_name_not_blank' })
+      await assert.rejects(pg.query("INSERT INTO departments (id,organization_id,name) VALUES ('d4','org1',$1)", ['가'.repeat(21)]), { code: '23514', constraint: 'departments_name_length' })
+      await pg.query("INSERT INTO departments (id,organization_id,name) VALUES ('d4','org1',$1)", ['😀'.repeat(20)])
+    })
+  } finally {
+    await pg.close()
+    rmSync(previous, { recursive: true, force: true })
+  }
+})

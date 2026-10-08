@@ -71,6 +71,8 @@ export const organizations = pgTable('organizations', {
 }, (table) => [
   unique('organizations_invite_code_unique').on(table.inviteCode),
   check('organizations_invite_code_format', sql`${table.inviteCode} ~ '^[2-9A-HJ-NP-Z]{8}$'`),
+  check('organizations_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
+  check('organizations_name_length', sql`char_length(${table.name}) <= 50`),
 ])
 
 // 생성 시 학생회 소속 검사는 서버에서 수행한다. 생성 기록은 소속 변경과 독립적이다.
@@ -133,6 +135,10 @@ export const departments = pgTable('departments', {
   uniqueIndex('departments_one_leadership').on(table.organizationId).where(sql`${table.isLeadership}`),
   // 회장단은 늘 구매를 승인하므로 구매 승인 표시를 따로 두지 않는다.
   check('departments_leadership_not_finance', sql`NOT (${table.isLeadership} AND ${table.handlesFinance})`),
+  // 같은 학생회 안에서 부서 이름이 겹치면 고르는 칸에서 구분할 수 없다.
+  unique('departments_organization_name_unique').on(table.organizationId, table.name),
+  check('departments_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
+  check('departments_name_length', sql`char_length(${table.name}) <= 20`),
 ])
 
 export const memberships = pgTable('memberships', {
