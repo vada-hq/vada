@@ -377,3 +377,105 @@ test('0011 enforces council and department name rules', async (t) => {
     rmSync(previous, { recursive: true, force: true })
   }
 })
+
+test('0012 moves purchase requests to purchase items with their decisions, sources and history', async (t) => {
+  const pg = new PGlite()
+  const previous = mkdtempSync(join(tmpdir(), 'vada-purchase-items-migration-'))
+  try {
+    const folder = fileURLToPath(new URL('../../migrations', import.meta.url))
+    const journal = JSON.parse(readFileSync(join(folder, 'meta/_journal.json'), 'utf8'))
+    const index = journal.entries.findIndex((entry: { tag: string }) => entry.tag === '0012_purchase_items')
+    assert.ok(index > 0, '0012 마이그레이션이 있어야 한다')
+    const oldJournal = { ...journal, entries: journal.entries.slice(0, index) }
+    mkdirSync(join(previous, 'meta'))
+    writeFileSync(join(previous, 'meta/_journal.json'), JSON.stringify(oldJournal))
+    for (const entry of oldJournal.entries) copyFileSync(join(folder, `${entry.tag}.sql`), join(previous, `${entry.tag}.sql`))
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous })
+    const url = (n: number) => `https://www.coupang.com/vp/products/${n}`
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test'),('f','재정','f@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council');
+      INSERT INTO departments (id,organization_id,name) VALUES ('d','o','기획부');
+      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('mu','u','o','d');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u');
+      INSERT INTO chat_rooms (id,organization_id,event_id) VALUES ('room','o','e');
+      INSERT INTO messages (id,chat_room_id,author_id,content) VALUES ('m1','room','u','테이블 2개');
+      INSERT INTO purchase_requests (id,organization_id,event_id,requester_id,department_id,purpose,needed_by,status,idempotency_key,version) VALUES
+        ('r-draft','o','e','u','d','부스','2026-10-20','draft','k1',1),
+        ('r-sub','o','e','u','d',NULL,NULL,'submitted','k2',2),
+        ('r-ok','o','e','u','d','계주','2026-10-21','approved','k3',3),
+        ('r-no','o','e','u',NULL,NULL,NULL,'rejected','k4',3),
+        ('r-gone','o','e','u','d',NULL,NULL,'discarded','k5',2);
+      INSERT INTO purchase_items (id,request_id,position,product_url,product_name,quantity) VALUES
+        ('i1','r-draft',0,'${url(1)}','테이블',2),('i2','r-draft',1,'${url(2)}',NULL,NULL),('i3','r-sub',0,'${url(3)}','의자',1),
+        ('i4','r-ok',0,'${url(4)}','생수',10),('i5','r-no',0,'${url(5)}','이름표',200),('i6','r-gone',0,'${url(6)}','버린 것',1);
+      INSERT INTO purchase_request_history (id,request_id,actor_id,action,version,changes,reason,created_at) VALUES
+        ('h1','r-draft','u','created',1,'{"inputLinks":["${url(1)}","${url(2)}"],"warnings":["품목 1: 옵션 확인"]}',NULL,'2026-10-01T00:00:00Z'),
+        ('h2','r-sub','u','created',1,'{}',NULL,'2026-10-01T00:00:00Z'),
+        ('h3','r-sub','u','submitted',2,'{}',NULL,'2026-10-02T00:00:00Z'),
+        ('h4','r-ok','u','created',1,'{}',NULL,'2026-10-01T00:00:00Z'),
+        ('h5','r-ok','u','submitted',2,'{}',NULL,'2026-10-02T00:00:00Z'),
+        ('h6','r-ok','f','approved',3,'{}',NULL,'2026-10-03T00:00:00Z'),
+        ('h7','r-no','u','created',1,'{}',NULL,'2026-10-01T00:00:00Z'),
+        ('h8','r-no','u','submitted',2,'{}',NULL,'2026-10-02T00:00:00Z'),
+        ('h9','r-no','f','rejected',3,'{}','수량 확인','2026-10-03T00:00:00Z'),
+        ('h10','r-gone','u','created',1,'{}',NULL,'2026-10-01T00:00:00Z'),
+        ('h11','r-gone','u','discarded',2,'{}',NULL,'2026-10-02T00:00:00Z');
+      INSERT INTO purchase_request_sources (request_id,message_id) VALUES ('r-ok','m1');
+    `)
+    await migrate(db, { migrationsFolder: folder })
+    const rows = async (query: string) => (await pg.query<Record<string, unknown>>(query)).rows
+
+    await t.test('requests become generations and submitted ones become submissions', async () => {
+      assert.deepEqual(await rows('SELECT id, links FROM purchase_generations ORDER BY id'), [
+        { id: 'r-draft', links: [url(1), url(2)] }, { id: 'r-no', links: [url(5)] }, { id: 'r-ok', links: [url(4)] }, { id: 'r-sub', links: [url(3)] }])
+      assert.deepEqual(await rows("SELECT id, department_id, to_char(submitted_at AT TIME ZONE 'UTC', 'MM-DD') AS day FROM purchase_submissions ORDER BY id"), [
+        { id: 'r-no', department_id: null, day: '10-02' }, { id: 'r-ok', department_id: 'd', day: '10-02' }, { id: 'r-sub', department_id: 'd', day: '10-02' }])
+    })
+    await t.test('items keep their content and take the request status, decision, note and date', async () => {
+      const common = { organization_id: 'o', event_id: 'e', requester_id: 'u', version: 1 }
+      assert.deepEqual(await rows(`SELECT id, organization_id, event_id, requester_id, generation_id, submission_id, status, note,
+        to_char(needed_by, 'YYYY-MM-DD') AS needed_by, warnings, decided_by, decision_reason, version FROM purchase_items ORDER BY id`), [
+        { id: 'i1', ...common, generation_id: 'r-draft', submission_id: null, status: 'draft', note: '부스', needed_by: '2026-10-20', warnings: ['품목 1: 옵션 확인'], decided_by: null, decision_reason: null },
+        { id: 'i2', ...common, generation_id: 'r-draft', submission_id: null, status: 'draft', note: '부스', needed_by: '2026-10-20', warnings: ['품목 1: 옵션 확인'], decided_by: null, decision_reason: null },
+        { id: 'i3', ...common, generation_id: 'r-sub', submission_id: 'r-sub', status: 'pending', note: null, needed_by: null, warnings: [], decided_by: null, decision_reason: null },
+        { id: 'i4', ...common, generation_id: 'r-ok', submission_id: 'r-ok', status: 'approved', note: '계주', needed_by: '2026-10-21', warnings: [], decided_by: 'f', decision_reason: null },
+        { id: 'i5', ...common, generation_id: 'r-no', submission_id: 'r-no', status: 'rejected', note: null, needed_by: null, warnings: [], decided_by: 'f', decision_reason: '수량 확인' },
+      ])
+    })
+    await t.test('decisions and submissions become item history; sources follow the items; discarded drafts are gone', async () => {
+      assert.deepEqual(await rows('SELECT item_id, actor_id, action, reason, batch_id FROM purchase_item_events ORDER BY item_id, created_at'), [
+        { item_id: 'i3', actor_id: 'u', action: 'submitted', reason: null, batch_id: 'r-sub' },
+        { item_id: 'i4', actor_id: 'u', action: 'submitted', reason: null, batch_id: 'r-ok' },
+        { item_id: 'i4', actor_id: 'f', action: 'approved', reason: null, batch_id: 'r-ok' },
+        { item_id: 'i5', actor_id: 'u', action: 'submitted', reason: null, batch_id: 'r-no' },
+        { item_id: 'i5', actor_id: 'f', action: 'rejected', reason: '수량 확인', batch_id: 'r-no' },
+      ])
+      assert.deepEqual(await rows('SELECT item_id, message_id FROM purchase_item_sources'), [{ item_id: 'i4', message_id: 'm1' }])
+      assert.deepEqual(await rows("SELECT id FROM purchase_items WHERE id = 'i6'"), [])
+    })
+    await t.test('new rules reject inconsistent items and events', async () => {
+      const insert = (values: string) => pg.query(`INSERT INTO purchase_items (id, organization_id, event_id, requester_id, product_url, status,
+        submission_id, decided_by, decided_at, decision_reason, purchased_by, purchased_at, received_by, received_at, note) VALUES ${values}`)
+      await assert.rejects(pg.query("INSERT INTO purchase_items (id, event_id, requester_id, product_url) VALUES ('n1','e','u','x')"), { code: '23502' })
+      const cases: [string, string][] = [
+        [`('n2','o','e','u','x','draft','r-sub',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)`, 'purchase_items_draft_unsubmitted'],
+        [`('n3','o','e','u','x','approved','r-sub',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)`, 'purchase_items_decided_status'],
+        [`('n4','o','e','u','x','rejected','r-sub','f',now(),NULL,NULL,NULL,NULL,NULL,NULL)`, 'purchase_items_rejection_reason'],
+        [`('n5','o','e','u','x','pending','r-sub',NULL,NULL,NULL,'f',now(),NULL,NULL,NULL)`, 'purchase_items_purchase_approved'],
+        [`('n6','o','e','u','x','approved','r-sub','f',now(),NULL,NULL,NULL,'u',now(),NULL)`, 'purchase_items_receipt_purchased'],
+        [`('n7','o','e','u','x','draft',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'${'가'.repeat(201)}')`, 'purchase_items_note_length'],
+        [`('n8','o','e','u','x','cancelled','missing',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL)`, 'purchase_items_submission_same_organization'],
+      ]
+      for (const [values, constraint] of cases) await assert.rejects(insert(values), { constraint }, constraint)
+      await assert.rejects(pg.query("INSERT INTO purchase_item_events (id, organization_id, item_id, actor_id, action) VALUES ('v1','o','i5','f','rejected')"),
+        { constraint: 'purchase_item_events_reason' })
+      await assert.rejects(pg.query("INSERT INTO purchase_item_events (id, organization_id, item_id, actor_id, action) VALUES ('v2','other','i5','f','submitted')"),
+        { code: '23503' })
+    })
+  } finally {
+    await pg.close()
+    rmSync(previous, { recursive: true, force: true })
+  }
+})

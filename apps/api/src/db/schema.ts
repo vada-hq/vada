@@ -163,6 +163,53 @@ export const memberships = pgTable('memberships', {
   check('memberships_title_length', sql`char_length(${table.title}) <= 20`),
 ])
 
+// 끼룩이 한 번의 생성. 같은 키로 다시 보내면 만든 품목을 그대로 돌려준다.
+export const purchaseGenerations = pgTable('purchase_generations', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  eventId: text('event_id').notNull(),
+  requesterId: text('requester_id').notNull()
+    .references(() => users.id, { onDelete: 'restrict' }),
+  idempotencyKey: text('idempotency_key').notNull(),
+  links: jsonb('links').$type<string[]>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'purchase_generations_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  unique('purchase_generations_requester_key_unique').on(table.requesterId, table.idempotencyKey),
+  unique('purchase_generations_organization_id_unique').on(table.organizationId, table.id),
+  check('purchase_generations_key_not_blank', sql`${table.idempotencyKey} ~ '[^[:space:]]'`),
+  check('purchase_generations_key_length', sql`char_length(${table.idempotencyKey}) <= 128`),
+  check('purchase_generations_links_array', sql`jsonb_typeof(${table.links}) = 'array'`),
+])
+
+// 같이 제출한 품목의 묶음. 상태는 없고, 제출할 때의 요청자 부서를 남긴다.
+export const purchaseSubmissions = pgTable('purchase_submissions', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  eventId: text('event_id').notNull(),
+  requesterId: text('requester_id').notNull()
+    .references(() => users.id, { onDelete: 'restrict' }),
+  // 요청자가 미배정이면 비어 있다.
+  departmentId: text('department_id'),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'purchase_submissions_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  foreignKey({
+    name: 'purchase_submissions_department_same_organization',
+    columns: [table.organizationId, table.departmentId],
+    foreignColumns: [departments.organizationId, departments.id],
+  }).onDelete('restrict'),
+  unique('purchase_submissions_organization_id_unique').on(table.organizationId, table.id),
+])
+
 // 소속에서 얻은 요청 부서를 기록한다. 권한·상태 전환·제출 필수값 검사는 서버 책임이다.
 export const purchaseRequests = pgTable('purchase_requests', {
   id: text('id').primaryKey(),
@@ -202,11 +249,20 @@ export const purchaseRequests = pgTable('purchase_requests', {
   index('purchase_requests_event_created_idx').on(table.eventId, table.createdAt, table.id),
 ])
 
+// 구매의 진행 단위. 작성 중이면 제출 기록이 없고, 승인·반려하면 결정한 사람이 남는다.
+// request_id·position은 0012 이전 요청서 연결이다. 새 코드는 쓰지 않고 0013에서 지운다.
 export const purchaseItems = pgTable('purchase_items', {
   id: text('id').primaryKey(),
-  requestId: text('request_id').notNull()
+  requestId: text('request_id')
     .references(() => purchaseRequests.id, { onDelete: 'restrict' }),
-  position: integer('position').notNull(),
+  position: integer('position'),
+  organizationId: text('organization_id').notNull(),
+  eventId: text('event_id').notNull(),
+  requesterId: text('requester_id').notNull()
+    .references(() => users.id, { onDelete: 'restrict' }),
+  generationId: text('generation_id'),
+  submissionId: text('submission_id'),
+  status: text('status', { enum: ['draft', 'pending', 'approved', 'rejected', 'cancelled'] }).notNull().default('draft'),
   productUrl: text('product_url').notNull(),
   productName: text('product_name'),
   selectedOption: text('selected_option'),
@@ -218,16 +274,102 @@ export const purchaseItems = pgTable('purchase_items', {
   // 조회한 상품 정보는 편집값과 분리한다. 원본 보존과 가격 매핑은 서버에서 수행한다.
   productSnapshot: jsonb('product_snapshot').$type<Record<string, unknown>>(),
   productFetchedAt: timestamp('product_fetched_at', { withTimezone: true }),
+  note: text('note'),
+  // 비어 있으면 "상관없음"이다.
+  neededBy: date('needed_by'),
+  warnings: jsonb('warnings').$type<string[]>().notNull().default([]),
+  version: integer('version').notNull().default(1),
+  decidedBy: text('decided_by').references(() => users.id, { onDelete: 'restrict' }),
+  decidedAt: timestamp('decided_at', { withTimezone: true }),
+  decisionReason: text('decision_reason'),
+  purchasedBy: text('purchased_by').references(() => users.id, { onDelete: 'restrict' }),
+  purchasedAt: timestamp('purchased_at', { withTimezone: true }),
+  receivedBy: text('received_by').references(() => users.id, { onDelete: 'restrict' }),
+  receivedAt: timestamp('received_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+    .$onUpdate(() => new Date()),
 }, (table) => [
   unique('purchase_items_request_position_unique').on(table.requestId, table.position),
   unique('purchase_items_request_id_unique').on(table.requestId, table.id),
+  unique('purchase_items_organization_id_unique').on(table.organizationId, table.id),
+  foreignKey({
+    name: 'purchase_items_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  foreignKey({
+    name: 'purchase_items_generation_same_organization',
+    columns: [table.organizationId, table.generationId],
+    foreignColumns: [purchaseGenerations.organizationId, purchaseGenerations.id],
+  }).onDelete('restrict'),
+  foreignKey({
+    name: 'purchase_items_submission_same_organization',
+    columns: [table.organizationId, table.submissionId],
+    foreignColumns: [purchaseSubmissions.organizationId, purchaseSubmissions.id],
+  }).onDelete('restrict'),
   check('purchase_items_position_nonnegative', sql`${table.position} >= 0`),
   check('purchase_items_url_not_blank', sql`${table.productUrl} ~ '[^[:space:]]'`),
   check('purchase_items_quantity_positive', sql`${table.quantity} > 0`),
   check('purchase_items_price_nonnegative', sql`${table.estimatedUnitPrice} >= 0`),
   check('purchase_items_snapshot_object', sql`jsonb_typeof(${table.productSnapshot}) = 'object'`),
   check('purchase_items_snapshot_timestamp_pair', sql`(${table.productSnapshot} IS NULL) = (${table.productFetchedAt} IS NULL)`),
+  check('purchase_items_status_valid', sql`${table.status} IN ('draft','pending','approved','rejected','cancelled')`),
+  check('purchase_items_draft_unsubmitted', sql`(${table.status} = 'draft') = (${table.submissionId} IS NULL)`),
+  check('purchase_items_decision_pair', sql`(${table.decidedAt} IS NULL) = (${table.decidedBy} IS NULL)`),
+  check('purchase_items_decided_status', sql`(${table.status} IN ('approved','rejected')) = (${table.decidedAt} IS NOT NULL)`),
+  check('purchase_items_rejection_reason', sql`(${table.status} = 'rejected') = (${table.decisionReason} IS NOT NULL)`),
+  check('purchase_items_reason_not_blank', sql`${table.decisionReason} ~ '[^[:space:]]'`),
+  check('purchase_items_reason_length', sql`char_length(${table.decisionReason}) <= 500`),
+  check('purchase_items_note_not_blank', sql`${table.note} ~ '[^[:space:]]'`),
+  check('purchase_items_note_length', sql`char_length(${table.note}) <= 200`),
+  check('purchase_items_warnings_array', sql`jsonb_typeof(${table.warnings}) = 'array'`),
+  check('purchase_items_version_positive', sql`${table.version} > 0`),
+  check('purchase_items_purchase_pair', sql`(${table.purchasedAt} IS NULL) = (${table.purchasedBy} IS NULL)`),
+  check('purchase_items_purchase_approved', sql`${table.purchasedAt} IS NULL OR ${table.status} = 'approved'`),
+  check('purchase_items_receipt_pair', sql`(${table.receivedAt} IS NULL) = (${table.receivedBy} IS NULL)`),
+  check('purchase_items_receipt_purchased', sql`${table.receivedAt} IS NULL OR ${table.purchasedAt} IS NOT NULL`),
+  index('purchase_items_event_created_idx').on(table.eventId, table.createdAt, table.id),
+  index('purchase_items_organization_status_idx').on(table.organizationId, table.status),
+])
+
+// 제출 이후의 품목 변화. 고치거나 지우지 않는다. 동작 목록은 contracts의 PURCHASE_ITEM_ACTIONS와 같다.
+export const purchaseItemEvents = pgTable('purchase_item_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  itemId: text('item_id').notNull(),
+  actorId: text('actor_id').notNull()
+    .references(() => users.id, { onDelete: 'restrict' }),
+  action: text('action', { enum: ['submitted', 'approved', 'rejected', 'cancelled', 'approval_revoked', 'needed_by_changed',
+    'purchased', 'purchase_undone', 'received', 'receipt_undone', 're_added'] }).notNull(),
+  reason: text('reason'),
+  changes: jsonb('changes').$type<Record<string, unknown>>().notNull().default({}),
+  // 한 번에 처리한 제출·결정을 묶는다.
+  batchId: text('batch_id'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'purchase_item_events_item_same_organization',
+    columns: [table.organizationId, table.itemId],
+    foreignColumns: [purchaseItems.organizationId, purchaseItems.id],
+  }).onDelete('restrict'),
+  check('purchase_item_events_action_valid', sql`${table.action} IN ('submitted','approved','rejected','cancelled','approval_revoked','needed_by_changed','purchased','purchase_undone','received','receipt_undone','re_added')`),
+  check('purchase_item_events_reason', sql`(${table.action} = 'rejected') = (${table.reason} IS NOT NULL)`),
+  check('purchase_item_events_reason_not_blank', sql`${table.reason} ~ '[^[:space:]]'`),
+  check('purchase_item_events_reason_length', sql`char_length(${table.reason}) <= 500`),
+  check('purchase_item_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
+  index('purchase_item_events_item_idx').on(table.itemId, table.createdAt),
+])
+
+// 끼룩이가 품목을 만들 때 근거로 쓴 대화. 같은 행사방인지는 생성 API가 검사한다.
+export const purchaseItemSources = pgTable('purchase_item_sources', {
+  itemId: text('item_id').notNull()
+    .references(() => purchaseItems.id, { onDelete: 'restrict' }),
+  messageId: text('message_id').notNull()
+    .references(() => messages.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  primaryKey({ columns: [table.itemId, table.messageId] }),
 ])
 
 // 메시지가 요청서와 같은 행사방에 속하는지는 생성 API에서 검증한다.
@@ -291,12 +433,12 @@ export const shipments = pgTable('shipments', {
 ])
 
 // 이력 보존을 위해 연결별 ID를 둔다. 재연결은 기존 행을 덮어쓰지 않고 새 행을 만든다.
-// requestId는 복합 FK용이다. 같은 학생회의 요청서·품목·배송만 연결한다.
+// requestId는 0012 이전 연결의 복합 FK용이다. 새 연결은 비워 두고 0013에서 지운다.
 export const shipmentItems = pgTable('shipment_items', {
   id: text('id').primaryKey(),
   shipmentId: text('shipment_id').notNull(),
   purchaseItemId: text('purchase_item_id').notNull(),
-  requestId: text('request_id').notNull(),
+  requestId: text('request_id'),
   organizationId: text('organization_id').notNull(),
   linkedBy: text('linked_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
   linkedAt: timestamp('linked_at', { withTimezone: true }).notNull().defaultNow(),

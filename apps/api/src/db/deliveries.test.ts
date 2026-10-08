@@ -27,11 +27,14 @@ test('delivery migration preserves purchases and enforces shipment boundaries', 
       INSERT INTO purchase_requests(id,organization_id,event_id,requester_id,department_id,idempotency_key,status)
         VALUES ('r','o','e','u','d','r','approved'),('or','other','oe','u','od','or','approved');
       INSERT INTO purchase_items(id,request_id,position,product_url) VALUES ('i','r',0,'https://example.test/1'),('i2','r',1,'https://example.test/2'),('oi','or',0,'https://example.test/3');
+      INSERT INTO purchase_request_history(id,request_id,actor_id,action,version,changes) VALUES ('h','r','u','approved',2,'{}'),('oh','or','u','approved',2,'{}');
     `)
     const before = (await pg.query('SELECT * FROM purchase_items ORDER BY id')).rows
     assert.ok(journal.entries.length > 5, 'delivery migration missing')
     for (const entry of journal.entries.slice(5)) await pg.exec(readFileSync(join(folder, `${entry.tag}.sql`), 'utf8'))
-    assert.deepEqual((await pg.query('SELECT * FROM purchase_items ORDER BY id')).rows, before)
+    const after = (await pg.query<Record<string, unknown>>('SELECT * FROM purchase_items ORDER BY id')).rows
+    // 0012가 품목 칸을 더한다. 원래 있던 칸만 비교한다.
+    assert.deepEqual(after.map(row => Object.fromEntries(Object.keys(before[0]!).map(key => [key, row[key]]))), before)
     const shipment = (id: string, number = id, org = 'o') => pg.query(
       'INSERT INTO shipments(id,organization_id,carrier_id,tracking_number,created_by) VALUES ($1,$2,$3,$4,$5)', [id, org, 'kr.coupangls', number, 'u'])
     const link = (id: string, ship = 's', item = 'i', request = 'r', org = 'o') => pg.query(
