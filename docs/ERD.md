@@ -108,6 +108,11 @@ erDiagram
     purchaseItems ||..o{ purchaseItemEvents : "제출 이후 기록"
     purchaseItems ||--o{ purchaseItemSources : "근거 연결"
     messages ||--o{ purchaseItemSources : "근거 대화"
+    events ||..o{ purchaseCandidates : "행사 후보"
+    coupangProducts ||..o{ purchaseCandidates : "상품 정보"
+    purchaseCandidates ||..o{ purchaseCandidateShares : "공유"
+    messages ||--o{ purchaseCandidateShares : "공유한 메시지"
+    purchaseCandidates |o..o{ purchaseItems : "후보에서 담음"
 
     purchaseItems["purchase_items"] {
         text id PK
@@ -116,6 +121,7 @@ erDiagram
         text requester_id FK
         text generation_id FK "다시 담기로 만들면 null"
         text submission_id FK "작성 중이면 null"
+        text candidate_id FK "후보에서 담지 않았으면 null"
         text status "draft / pending / approved / rejected / cancelled"
         text product_url
         text product_name "미확인 시 null"
@@ -157,6 +163,34 @@ erDiagram
         text item_id PK, FK
         text message_id PK, FK
     }
+    coupangProducts["coupang_products"] {
+        text id PK "쿠팡 상품 ID"
+        text status "pending / ready / failed"
+        jsonb items "옵션 전체, 최대 100개"
+        timestamptz fetched_at "조회 성공 시각"
+        integer attempts "연속 실패 횟수"
+        timestamptz next_attempt_at "다음 시도 시각"
+        timestamptz locked_until "실행기가 잡은 동안"
+        text error_code "마지막 실패 코드"
+    }
+    purchaseCandidates["purchase_candidates"] {
+        text id PK
+        text organization_id FK "행사 복합 FK"
+        text event_id FK
+        text product_id FK
+        text item_id "옵션 ID, 없으면 null"
+        text vendor_item_id "판매 옵션 ID, 없으면 null"
+        text url "정규화한 링크, 200자"
+        text hidden_by FK "숨긴 사람"
+        timestamptz hidden_at
+    }
+    purchaseCandidateShares["purchase_candidate_shares"] {
+        text message_id PK, FK
+        integer position PK "메시지 안 링크 순서 0~9"
+        text organization_id FK "후보 복합 FK"
+        text candidate_id FK
+        timestamptz created_at
+    }
 ```
 
 - `purchase_items`: 진행 단위다. 행사·생성 기록·제출 기록은 같은 학생회여야 한다.
@@ -168,6 +202,10 @@ erDiagram
 - `purchase_generations`: 끼룩이 재시도를 막는다. `(requester_id, idempotency_key)`는 중복 불가다.
 - `purchase_item_events`: 제출 이후의 변화만 기록하고 고치거나 지우지 않는다. 반려 기록만 사유가 있다.
 - `purchase_item_sources`: 메시지가 같은 행사방인지는 서버가 검사한다. 작성 중 품목을 지울 때 서버가 근거 연결을 먼저 지운다.
+- `coupang_products`: 학생회와 무관한 공개 상품 정보. 상품 ID 하나에 옵션 전체를 저장한다(최대 100개). `pending`은 조회 대기열이고, 웹 서버 안의 실행기가 `locked_until`로 잠가 가져가며 실패하면 1·5·30분 뒤 다시 시도하다 네 번째에 `failed`가 된다. `NOT_FOUND`는 바로 `failed`다.
+- `purchase_candidates`: 같은 행사에서 (상품, `vendor_item_id`)마다 하나다(`NULLS NOT DISTINCT`, 옵션 미정은 상품마다 하나). 숨긴 사람·시각은 같이 있거나 같이 없고, 다시 공유되면 숨김을 푼다.
+- `purchase_candidate_shares`: 메시지 안 링크 순서(0~9)마다 한 줄. 대화 저장과 같은 트랜잭션에서 기록한다.
+- `purchase_items.candidate_id`: 후보에서 담은 품목. 다시 담기 복사본도 이어 받는다.
 - 옛 요청서 표(`purchase_requests`·`purchase_request_history`·`purchase_request_sources`)와 요청서 연결 칸은 0012가 데이터를 옮긴 뒤 0013에서 지웠다.
 - 권한·보는 범위·제출 필수값은 서버 책임이다. 작성 중 품목은 요청자만 보고, 제출된 품목은 학생회 누구나 본다.
 
