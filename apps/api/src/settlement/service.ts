@@ -13,7 +13,7 @@ import type { SettlementSheetData, SheetExpense } from './workbook.js'
 type Db = PgDatabase<PgQueryResultHKT>
 export type SettlementDatabase = Pick<Db, 'select' | 'insert' | 'update' | 'transaction'>
 type Reader = Pick<Db, 'select'>
-type Transaction = Parameters<Parameters<SettlementDatabase['transaction']>[0]>[0]
+export type SettlementTransaction = Parameters<Parameters<SettlementDatabase['transaction']>[0]>[0]
 export interface SettlementScope { organizationId: string; userId: string }
 const LIST_LIMIT = 300
 const settlers = alias(users, 'event_settlers')
@@ -44,27 +44,55 @@ export async function eventOf(db: Reader, scope: SettlementScope, eventId: strin
   return event
 }
 
-// 숫자와 정산 조건을 센다. 지출 예정은 지출에 연결되지 않은 승인 품목이고, 수량·단가를 모르는 품목은 합에서 빼고 따로 센다.
-export async function financeNumbers(db: Reader, scope: SettlementScope, eventId: string) {
-  const [spending] = await db.select({
+export interface FinanceNumbers {
+  spent: number
+  expenseCount: number
+  missingEvidence: number
+  pendingRequests: number
+  unrecordedItems: number
+  planned: number
+  plannedUnknown: number
+}
+const noNumbers: FinanceNumbers = { spent: 0, expenseCount: 0, missingEvidence: 0, pendingRequests: 0, unrecordedItems: 0, planned: 0, plannedUnknown: 0 }
+
+// 행사 여럿의 숫자와 정산 조건을 한 번에 센다. 행사 재정 탭과 예산 화면이 같은 정의를 쓴다.
+// 지출 예정은 지출에 연결되지 않은 승인 품목이고, 수량·단가를 모르는 품목은 합에서 빼고 따로 센다.
+export async function financeNumbersByEvent(db: Reader, scope: SettlementScope, eventIds: string[]) {
+  const numbers = new Map(eventIds.map(id => [id, { ...noNumbers }]))
+  if (!eventIds.length) return numbers
+  const spending = await db.select({
+    eventId: expenses.eventId,
     spent: sql<string>`coalesce(sum(${expenses.amount}), 0)`,
     expenseCount: sql<number>`count(*)::int`,
     // 표 하나만 고르는 select는 sql 안의 열에서 표 이름을 떼므로, 바깥 지출을 가리키는 하위 질의는 질의 빌더로 만든다.
     missingEvidence: sql<number>`(count(*) filter (where ${notExists(db.select({ one: sql`1` }).from(expenseReceipts)
       .where(and(eq(expenseReceipts.expenseId, expenses.id), eq(expenseReceipts.status, 'ready'))))}))::int`,
-  }).from(expenses).where(and(eq(expenses.organizationId, scope.organizationId), eq(expenses.eventId, eventId), isNull(expenses.voidedAt)))
+  }).from(expenses)
+    .where(and(eq(expenses.organizationId, scope.organizationId), inArray(expenses.eventId, eventIds), isNull(expenses.voidedAt)))
+    .groupBy(expenses.eventId)
   const unrecorded = sql`${items.status} = 'approved' and ${expenseItems.purchaseItemId} is null`
-  const [requests] = await db.select({
+  const requests = await db.select({
+    eventId: items.eventId,
     pendingRequests: sql<number>`(count(*) filter (where ${items.status} = 'pending'))::int`,
     unrecordedItems: sql<number>`(count(*) filter (where ${unrecorded}))::int`,
     planned: sql<string>`coalesce(sum(${items.quantity}::bigint * ${items.estimatedUnitPrice}) filter (where ${unrecorded}), 0)`,
     plannedUnknown: sql<number>`(count(*) filter (where ${unrecorded} and (${items.quantity} is null or ${items.estimatedUnitPrice} is null)))::int`,
   }).from(items)
     .leftJoin(expenseItems, and(eq(expenseItems.purchaseItemId, items.id), eq(expenseItems.organizationId, items.organizationId)))
-    .where(and(eq(items.organizationId, scope.organizationId), eq(items.eventId, eventId)))
-  return { spent: Number(spending!.spent), expenseCount: spending!.expenseCount, missingEvidence: spending!.missingEvidence,
-    pendingRequests: requests!.pendingRequests, unrecordedItems: requests!.unrecordedItems, planned: Number(requests!.planned),
-    plannedUnknown: requests!.plannedUnknown }
+    .where(and(eq(items.organizationId, scope.organizationId), inArray(items.eventId, eventIds)))
+    .groupBy(items.eventId)
+  for (const row of spending) {
+    Object.assign(numbers.get(row.eventId!)!, { spent: Number(row.spent), expenseCount: row.expenseCount, missingEvidence: row.missingEvidence })
+  }
+  for (const row of requests) {
+    Object.assign(numbers.get(row.eventId)!, { pendingRequests: row.pendingRequests, unrecordedItems: row.unrecordedItems,
+      planned: Number(row.planned), plannedUnknown: row.plannedUnknown })
+  }
+  return numbers
+}
+
+export async function financeNumbers(db: Reader, scope: SettlementScope, eventId: string) {
+  return (await financeNumbersByEvent(db, scope, [eventId])).get(eventId)!
 }
 
 // 예산·정산 상태와 정산한 사람 이름. 행이 없으면 null(예산 미정·정산 전)이다.
@@ -99,42 +127,51 @@ async function responseOf(db: Reader, scope: SettlementScope, eventId: string): 
   return { finance, expenses: list.slice(0, LIST_LIMIT), truncated: list.length > LIST_LIMIT }
 }
 
+// 행사 행을 FOR NO KEY UPDATE로 잠그고 재정 행의 버전을 본다. 행이 없으면 버전 0이다.
+async function lockFinance(tx: SettlementTransaction, scope: SettlementScope, eventId: string, version: number) {
+  await eventOf(tx, scope, eventId, true)
+  const [row] = await tx.select().from(eventFinances)
+    .where(and(eq(eventFinances.organizationId, scope.organizationId), eq(eventFinances.eventId, eventId)))
+  if ((row?.version ?? 0) !== version) throw new ApiError('VERSION_CONFLICT', 409)
+  return row ?? null
+}
+// 행이 없으면 버전 1로 만들고, 있으면 버전을 올려 바꾼다.
+async function saveFinance(tx: SettlementTransaction, scope: SettlementScope, eventId: string, exists: boolean,
+  values: { budget?: number | null; settledAt?: SQL | null; settledBy?: string | null }) {
+  if (exists) await tx.update(eventFinances).set({ ...values, version: sql`${eventFinances.version} + 1` }).where(eq(eventFinances.eventId, eventId))
+  else await tx.insert(eventFinances).values({ eventId, organizationId: scope.organizationId, ...values })
+}
+async function recordFinance(tx: SettlementTransaction, scope: SettlementScope, eventId: string, action: EventFinanceAction,
+  changes: Record<string, unknown>, reason: string | null = null) {
+  await tx.insert(eventFinanceEvents).values({ id: randomUUID(), organizationId: scope.organizationId, eventId, actorId: scope.userId,
+    action, changes, reason })
+}
+// 행사 예산을 바꾼다. 정산된 행사는 막고, 같은 값이면 버전과 기록을 그대로 둔다.
+// 재정 권한은 부르는 쪽이 먼저 확인한다. 예산 편성(budget/service.ts)도 이 함수로 행사 예산을 바꾼다.
+export async function changeEventBudget(tx: SettlementTransaction, scope: SettlementScope, eventId: string, version: number, budget: number | null) {
+  const row = await lockFinance(tx, scope, eventId, version)
+  if (row?.settledAt) throw new ApiError('EVENT_SETTLED', 409)
+  const from = row?.budget ?? null
+  if (from === budget) return
+  await saveFinance(tx, scope, eventId, row !== null, { budget })
+  await recordFinance(tx, scope, eventId, 'budget_set', { from, to: budget })
+}
+
 export function createSettlementService(db: SettlementDatabase) {
-  // 바꾸기 전에: 재정 권한(부서 변경과 겹치지 않게 잠금), 행사 행 잠금, 버전. 행이 없으면 버전 0이다.
-  async function begin(tx: Transaction, scope: SettlementScope, eventId: string, version: number) {
+  // 바꾸기 전에: 재정 권한(부서 변경과 겹치지 않게 잠금), 행사 행 잠금, 버전.
+  async function begin(tx: SettlementTransaction, scope: SettlementScope, eventId: string, version: number) {
     await requireFinance(tx, scope, true)
-    await eventOf(tx, scope, eventId, true)
-    const [row] = await tx.select().from(eventFinances)
-      .where(and(eq(eventFinances.organizationId, scope.organizationId), eq(eventFinances.eventId, eventId)))
-    if ((row?.version ?? 0) !== version) throw new ApiError('VERSION_CONFLICT', 409)
-    return row ?? null
-  }
-  // 행이 없으면 버전 1로 만들고, 있으면 버전을 올려 바꾼다.
-  async function save(tx: Transaction, scope: SettlementScope, eventId: string, exists: boolean,
-    values: { budget?: number | null; settledAt?: SQL | null; settledBy?: string | null }) {
-    if (exists) await tx.update(eventFinances).set({ ...values, version: sql`${eventFinances.version} + 1` }).where(eq(eventFinances.eventId, eventId))
-    else await tx.insert(eventFinances).values({ eventId, organizationId: scope.organizationId, ...values })
-  }
-  async function record(tx: Transaction, scope: SettlementScope, eventId: string, action: EventFinanceAction,
-    changes: Record<string, unknown>, reason: string | null = null) {
-    await tx.insert(eventFinanceEvents).values({ id: randomUUID(), organizationId: scope.organizationId, eventId, actorId: scope.userId,
-      action, changes, reason })
+    return lockFinance(tx, scope, eventId, version)
   }
   return {
     async get(scope: SettlementScope, eventId: string) {
       await eventOf(db, scope, eventId)
       return responseOf(db, scope, eventId)
     },
-    // 정산 뒤에는 바꾸지 않는다. 같은 값이면 버전과 기록을 그대로 둔다.
     async setBudget(scope: SettlementScope, eventId: string, input: SetEventBudgetRequest) {
       return db.transaction(async tx => {
-        const row = await begin(tx, scope, eventId, input.version)
-        if (row?.settledAt) throw new ApiError('EVENT_SETTLED', 409)
-        const from = row?.budget ?? null
-        if (from !== input.budget) {
-          await save(tx, scope, eventId, row !== null, { budget: input.budget })
-          await record(tx, scope, eventId, 'budget_set', { from, to: input.budget })
-        }
+        await requireFinance(tx, scope, true)
+        await changeEventBudget(tx, scope, eventId, input.version, input.budget)
         return responseOf(tx, scope, eventId)
       })
     },
@@ -145,8 +182,8 @@ export function createSettlementService(db: SettlementDatabase) {
         if (row?.settledAt) throw new ApiError('INVALID_STATE', 409)
         const numbers = await financeNumbers(tx, scope, eventId)
         if (numbers.missingEvidence || numbers.pendingRequests || numbers.unrecordedItems) throw new ApiError('NOT_READY_TO_SETTLE', 409)
-        await save(tx, scope, eventId, row !== null, { settledAt: sql`now()`, settledBy: scope.userId })
-        await record(tx, scope, eventId, 'settled', { budget: row?.budget ?? null, spent: numbers.spent, expenseCount: numbers.expenseCount })
+        await saveFinance(tx, scope, eventId, row !== null, { settledAt: sql`now()`, settledBy: scope.userId })
+        await recordFinance(tx, scope, eventId, 'settled', { budget: row?.budget ?? null, spent: numbers.spent, expenseCount: numbers.expenseCount })
         return responseOf(tx, scope, eventId)
       })
     },
@@ -155,8 +192,8 @@ export function createSettlementService(db: SettlementDatabase) {
       return db.transaction(async tx => {
         const row = await begin(tx, scope, eventId, input.version)
         if (!row?.settledAt) throw new ApiError('INVALID_STATE', 409)
-        await save(tx, scope, eventId, true, { settledAt: null, settledBy: null })
-        await record(tx, scope, eventId, 'reopened', {}, input.reason)
+        await saveFinance(tx, scope, eventId, true, { settledAt: null, settledBy: null })
+        await recordFinance(tx, scope, eventId, 'reopened', {}, input.reason)
         return responseOf(tx, scope, eventId)
       })
     },

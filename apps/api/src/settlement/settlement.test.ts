@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { EventFinanceResponse, ExpenseResponse } from '@vada/contracts'
 import { link, setupPurchases } from '../purchases/test-setup.js'
-import { createSettlementService } from './service.js'
+import { createSettlementService, financeNumbersByEvent } from './service.js'
 
 type Env = Awaited<ReturnType<typeof setupPurchases>>
 const body = (overrides: Record<string, unknown> = {}) => ({ eventId: 'e', vendor: '쿠팡', description: '체육대회 물품', amount: 46000,
@@ -194,5 +194,22 @@ test('엑셀 내려받기: 구성원 누구나 받고, 파일 이름은 행사 �
     await pg.exec(`INSERT INTO expenses (id,organization_id,event_id,vendor,description,amount,paid_on,method,payer_id,recorded_by)
       SELECT 'bulk-' || n, 'a', 'e', '가게', '다과', 1000, DATE '2026-01-01', 'cash', 'f', 'f' FROM generate_series(1, 1001) AS n`)
     await refused(request('GET', '/events/e/finance/export'), 409, 'EXPORT_TOO_LARGE')
+  } finally { await pg.close() }
+})
+
+test('숫자를 행사 여럿 한 번에 센다: 행사마다 따로 세고, 지출이 없는 행사는 0이다', async () => {
+  const env = await setupPurchases()
+  const { pg, db, as } = env
+  try {
+    await env.approved([link(1)])
+    as('f')
+    await create(env, { amount: 50000 })
+    await create(env, { eventId: 'e2', amount: 7000 })
+    const numbers = await financeNumbersByEvent(db, { organizationId: 'a', userId: 'f' }, ['e', 'e2', 'none'])
+    const zero = { spent: 0, expenseCount: 0, missingEvidence: 0, pendingRequests: 0, unrecordedItems: 0, planned: 0, plannedUnknown: 0 }
+    assert.deepEqual([...numbers.keys()], ['e', 'e2', 'none'])
+    assert.deepEqual(numbers.get('e'), { ...zero, spent: 50000, expenseCount: 1, missingEvidence: 1, unrecordedItems: 1, planned: 23180 })
+    assert.deepEqual(numbers.get('e2'), { ...zero, spent: 7000, expenseCount: 1, missingEvidence: 1 })
+    assert.deepEqual(numbers.get('none'), zero)
   } finally { await pg.close() }
 })
