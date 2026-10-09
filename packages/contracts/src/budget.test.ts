@@ -61,3 +61,7 @@ test('편성: 상한+1·중복 이름·중복 ID·중복 행사·잘못된 금�
 test('요청 스키마는 모르는 키를 조용히 버리지 않는다', () => {
   for (const schema of [CreateBudgetPeriodSchema, SaveBudgetPlanSchema]) assert.equal(isStrictObject(schema), true)
 })
+
+test('편성: 행사 줄은 금액을 바꿀 때만 보내고, 보내지 않으면 그대로 둔다', () => {
+  assert.equal(SaveBudgetPlanSchema.safeParse({ ...plan, events: [{ eventId: 'e', version: 2 }] }).success, true)
+})

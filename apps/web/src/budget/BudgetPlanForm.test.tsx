@@ -29,7 +29,7 @@ test('줄을 더하고 지우면 합계 미리 보기가 바뀌고, 보낸 본�
   fireEvent.click(saveButton())
   await waitFor(() => expect(onSave).toHaveBeenCalledWith({ version: 2, name: '2026년 2학기', startsOn: '2026-09-01', endsOn: '2027-02-28',
     incomes: [{ id: 'li', name: '학생회비', amount: 800000 }, { id: null, name: '학교 지원금', amount: 500000 }],
-    operating: [{ id: 'lo', name: '회의비', amount: 100000 }], events: [{ eventId: 'e', version: 1, budget: 300000 }] }))
+    operating: [{ id: 'lo', name: '회의비', amount: 100000 }], events: [{ eventId: 'e', version: 1 }] }))
 })
 
 test('배정이 수입보다 많으면 배정 안 한 돈을 초과로 보여 준다', () => {
@@ -64,7 +64,7 @@ test('행사를 넣고 빼며, 뺀 행사를 다시 넣을 수 있고, 정산된
   fireEvent.change(within(within(events).getByRole('listitem', { name: '축제' })).getByLabelText('예산(원)'), { target: { value: '100000' } })
   fireEvent.click(saveButton())
   await waitFor(() => expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-    events: [{ eventId: 'e3', version: 2, budget: 200000 }, { eventId: 'e2', version: 0, budget: 100000 }] })))
+    events: [{ eventId: 'e3', version: 2 }, { eventId: 'e2', version: 0, budget: 100000 }] })))
 })
 
 test('저장에 실패하면 문구를 보여 주고, 취소하면 부르는 쪽에 알린다', async () => {

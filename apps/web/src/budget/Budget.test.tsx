@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { json, mockApi } from '../test-support/mock-api'
 import Budget from './Budget'
-import { budgetPeriod, budgetPlan } from './budget-fixtures'
+import { budgetEventLine, budgetPeriod, budgetPlan } from './budget-fixtures'
 
 const base = '/api/organizations/o/budget/periods'
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-10T03:00:00Z')) })
@@ -85,4 +85,31 @@ test('새 기간을 만들면 목록을 새로 받기 전에도 새 기간을 �
   fireEvent.click(within(await screen.findByRole('dialog', { name: '회계 기간 만들기' })).getByRole('button', { name: '만들기' }))
   expect(await screen.findByRole('heading', { name: '2027년 1학기' })).toBeTruthy()
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('행사 재정 탭에서 바뀐 행사 때문에 저장이 막히면, 문구를 남기고 그 줄만 새 값으로 바꿔 다시 저장할 수 있다', async () => {
+  const { api } = setup(true, [budgetPeriod()])
+  const bodies: unknown[] = []
+  api.on('POST', `${base}/p1/plan`, call => {
+    bodies.push(call.body)
+    return bodies.length === 1 ? json({ error: 'VERSION_CONFLICT' }, 409)
+      : json(budgetPlan({ events: [budgetEventLine({ budget: 400000, version: 2 })] }))
+  })
+  await screen.findByRole('heading', { name: '2026년 2학기' })
+  fireEvent.click(screen.getByRole('button', { name: '편성 수정' }))
+  const incomes = screen.getByRole('region', { name: '수입 예산' })
+  fireEvent.change(within(within(incomes).getByRole('listitem', { name: '수입 예산 1' })).getByLabelText('금액(원)'), { target: { value: '900,000' } })
+  const amountOf = () => within(screen.getByRole('listitem', { name: '체육대회' })).getByLabelText('예산(원)') as HTMLInputElement
+  fireEvent.change(amountOf(), { target: { value: '350,000' } })
+  // 그사이 행사 재정 탭에서 체육대회 예산이 400,000원(버전 2)으로 바뀌었다.
+  api.on('GET', `${base}/p1`, () => json(budgetPlan({ events: [budgetEventLine({ budget: 400000, version: 2 })] })))
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  expect(await screen.findByText('다른 곳에서 먼저 바뀌었어요. 새로 불러왔어요.')).toBeTruthy()
+  await waitFor(() => expect(amountOf().value).toBe('400,000'))
+  expect((within(within(screen.getByRole('region', { name: '수입 예산' })).getByRole('listitem', { name: '수입 예산 1' }))
+    .getByLabelText('금액(원)') as HTMLInputElement).value).toBe('900,000')
+  fireEvent.click(screen.getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(bodies).toHaveLength(2))
+  expect((bodies[1] as { events: unknown[] }).events).toEqual([{ eventId: 'e', version: 2 }])
+  expect(await screen.findByRole('heading', { name: '2026년 2학기' })).toBeTruthy()
 })

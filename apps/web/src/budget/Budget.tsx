@@ -57,7 +57,7 @@ export default function Budget({ organizationId, finance, onOpenEvent }: Props) 
         ? <Card className="flex flex-col gap-3 p-6"><StateMessage kind="error">편성을 불러오지 못했어요.</StateMessage>
           <Button variant="outline" className="self-start" onClick={plan.refresh}>다시 시도</Button></Card>
         : <StateMessage kind="loading">편성 불러오는 중…</StateMessage>)
-        : editing ? <BudgetPlanForm key={plan.data.period.version} plan={plan.data} onCancel={() => setEditing(false)} onSave={async input => {
+        : editing ? <BudgetPlanForm plan={plan.data} onCancel={() => setEditing(false)} onSave={async input => {
           const result = await plan.save(input)
           if (result.ok) { setEditing(false); periods.refresh() }
           return result

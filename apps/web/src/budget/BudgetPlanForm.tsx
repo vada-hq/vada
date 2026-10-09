@@ -11,7 +11,7 @@ import { NativeSelect } from '@/components/ui/native-select'
 import { cn } from '@/lib/utils'
 import { won } from '../purchases/purchase-view'
 import { budgetText } from '../settlement/settlement-view'
-import { draftOf, draftTotals, eventDraft, newLine, planInput, type DraftLine } from './budget-view'
+import { draftOf, draftTotals, eventDraft, newLine, planInput, rebaseDraft, type DraftLine } from './budget-view'
 import type { BudgetResult } from './useBudget'
 
 type Props = { plan: BudgetPlanResponse; onCancel: () => void; onSave: (input: SaveBudgetPlanRequest) => Promise<BudgetResult> }
@@ -19,6 +19,12 @@ type Props = { plan: BudgetPlanResponse; onCancel: () => void; onSave: (input: S
 // 편성 수정. 기간·수입·행사·운영을 한 번에 고쳐 저장한다. 저장 버튼은 서버와 같은 스키마로 켠다.
 export default function BudgetPlanForm({ plan, onCancel, onSave }: Props) {
   const [draft, setDraft] = useState(() => draftOf(plan))
+  // 저장에 실패하면 부르는 쪽이 편성을 새로 받는다. 그때 입력을 새 편성 위에 다시 얹고, 오류 문구는 그대로 둔다.
+  const [base, setBase] = useState(plan)
+  if (base !== plan) {
+    setBase(plan)
+    setDraft(previous => rebaseDraft(previous, base, plan))
+  }
   const [adding, setAdding] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)

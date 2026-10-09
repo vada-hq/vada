@@ -38,11 +38,27 @@ export function draftOf(plan: BudgetPlanResponse): PlanDraft {
     operating: plan.operating.map(line), events: plan.events.map(eventDraft) }
 }
 // 칸의 글을 본문으로 바꾼다. 형식이 틀린 금액은 NaN·null로 넘겨 같은 스키마가 저장 버튼을 끄게 한다.
-// 정산된 행사는 칸이 없으므로 받은 예산을 그대로 보낸다.
+// 행사 줄은 금액을 바꿨을 때만 보낸다. 보내지 않은 줄은 서버가 버전을 보지 않으므로, 다른 곳에서 바뀐 줄 때문에 막히지 않는다.
+// 정산된 행사는 칸이 없어 보내지 않는다.
 export function planInput(draft: PlanDraft, version: number): SaveBudgetPlanRequest {
   const line = ({ id, name, amount }: DraftLine) => ({ id, name, amount: budgetInput(amount) as number })
+  const event = (entry: DraftEvent) => {
+    const budget = budgetInput(entry.amount)
+    return entry.settled || budget === entry.budget ? { eventId: entry.eventId, version: entry.version } : { eventId: entry.eventId, version: entry.version, budget }
+  }
   return { version, name: draft.name, startsOn: draft.startsOn, endsOn: draft.endsOn, incomes: draft.incomes.map(line), operating: draft.operating.map(line),
-    events: draft.events.map(entry => ({ eventId: entry.eventId, version: entry.version, budget: entry.settled ? entry.budget : budgetInput(entry.amount) })) }
+    events: draft.events.map(event) }
+}
+// 저장에 실패해 편성을 새로 받았을 때 입력을 그 위에 다시 얹는다.
+// 다른 사람이 편성을 저장했으면(기간 버전이 바뀜) 겹쳐 쓰지 않도록 새 편성으로 다시 시작한다.
+// 행사 재정 탭에서 바뀐 행사 줄(행사 재정 버전이 바뀜)은 새 값으로 바꾸고, 나머지 입력은 그대로 둔다.
+export function rebaseDraft(draft: PlanDraft, before: BudgetPlanResponse, after: BudgetPlanResponse): PlanDraft {
+  if (after.period.version !== before.period.version) return draftOf(after)
+  const latest = new Map([...after.candidates, ...after.events].map(entry => [entry.eventId, entry]))
+  return { ...draft, events: draft.events.map(line => {
+    const fresh = latest.get(line.eventId)
+    return fresh && fresh.version !== line.version ? eventDraft(fresh) : line
+  }) }
 }
 // 입력하는 대로 바뀌는 합계. 형식이 맞는 금액만 더한다.
 export function draftTotals(draft: PlanDraft) {

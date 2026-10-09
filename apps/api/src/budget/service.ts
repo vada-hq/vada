@@ -172,7 +172,8 @@ async function applyLines(tx: Transaction, scope: BudgetScope, periodId: string,
 }
 
 // 행사 줄을 보낸 목록대로 맞춘다. 다른 기간에 넣은 행사는 받지 않는다.
-// 예산이 바뀐 행사만 행사 재정의 버전을 보고 바꾼다(M2-2와 같은 잠금·기록). 교착을 피하려고 행사 ID 순으로 잠근다.
+// 금액을 보낸 행사 가운데 예산이 바뀐 것만 행사 재정의 버전을 보고 바꾼다(M2-2와 같은 잠금·기록). 교착을 피하려고 행사 ID 순으로 잠근다.
+// 금액을 보내지 않은 행사는 예산·버전을 보지 않는다. 행사 재정 탭에서 바뀐 줄 때문에 편성 저장이 막히지 않게 하려는 것이다.
 async function applyEvents(tx: Transaction, scope: BudgetScope, periodId: string, existing: Line[], input: SaveBudgetPlanRequest['events']) {
   const current = existing.filter(line => line.kind === 'event')
   const wanted = new Set(input.map(entry => entry.eventId))
@@ -189,22 +190,23 @@ async function applyEvents(tx: Transaction, scope: BudgetScope, periodId: string
   }
   const before = await financeRows(tx, scope, involved)
   const budgetOf = (eventId: string) => before.get(eventId)?.budget ?? null
+  const changing = (entry: SaveBudgetPlanRequest['events'][number]) => entry.budget !== undefined && entry.budget !== budgetOf(entry.eventId)
   const removed = current.filter(line => !wanted.has(line.eventId!))
   if (removed.length) await tx.delete(budgetLines).where(inArray(budgetLines.id, removed.map(line => line.id)))
   for (const entry of [...input].sort((a, b) => (a.eventId < b.eventId ? -1 : 1))) {
-    if (budgetOf(entry.eventId) !== entry.budget) await changeEventBudget(tx, scope, entry.eventId, entry.version, entry.budget)
+    if (changing(entry)) await changeEventBudget(tx, scope, entry.eventId, entry.version, entry.budget!)
   }
   const changes: BudgetChange[] = []
   for (const [position, entry] of input.entries()) {
     const line = current.find(item => item.eventId === entry.eventId)
     if (!line) {
       await tx.insert(budgetLines).values({ id: randomUUID(), organizationId: scope.organizationId, periodId, kind: 'event', eventId: entry.eventId, position })
-      changes.push({ group: 'event', action: 'added', name: nameOf(entry.eventId), to: entry.budget })
+      changes.push({ group: 'event', action: 'added', name: nameOf(entry.eventId), to: entry.budget === undefined ? budgetOf(entry.eventId) : entry.budget })
       continue
     }
     if (line.position !== position) await tx.update(budgetLines).set({ position }).where(eq(budgetLines.id, line.id))
-    if (budgetOf(entry.eventId) !== entry.budget) {
-      changes.push({ group: 'event', action: 'changed', name: nameOf(entry.eventId), from: budgetOf(entry.eventId), to: entry.budget })
+    if (changing(entry)) {
+      changes.push({ group: 'event', action: 'changed', name: nameOf(entry.eventId), from: budgetOf(entry.eventId), to: entry.budget! })
     }
   }
   for (const line of removed) changes.push({ group: 'event', action: 'removed', name: nameOf(line.eventId!), from: budgetOf(line.eventId!) })

@@ -242,3 +242,23 @@ test('상한을 채운 편성 본문도 공통 가드의 크기 안에 들고 �
   assert.equal(SaveBudgetPlanSchema.safeParse(body).success, true)
   assert.ok(Buffer.byteLength(JSON.stringify(body)) <= MAX_BODY_BYTES, `${Buffer.byteLength(JSON.stringify(body))} bytes`)
 })
+
+test('편성 저장: 행사 재정 탭에서 바뀐 행사 줄은 금액을 보내지 않으면 버전을 보지 않고 그대로 둔다', async () => {
+  const env = await setupPurchases()
+  const { pg, ok, request, as } = env
+  try {
+    as('f')
+    let plan = await createPeriod(env)
+    plan = await ok<BudgetPlanResponse>(save(env, plan, { events: [{ eventId: 'e', version: 0, budget: 300000 }, { eventId: 'e2', version: 0 }] }))
+    as('l')
+    await ok(request('POST', '/events/e/finance/budget', { version: 1, budget: 400000 }))
+    as('f')
+    // 처음 받은 편성(e는 버전 1)에 수입 줄만 더한다. 행사 줄은 금액을 보내지 않는다.
+    const saved = await ok<BudgetPlanResponse>(save(env, plan, { incomes: [{ id: null, name: '학생회비', amount: 800000 }],
+      events: [{ eventId: 'e', version: 1 }, { eventId: 'e2', version: 0 }] }))
+    assert.deepEqual(saved.events.map(line => [line.eventId, line.budget, line.version]), [['e', 400000, 2], ['e2', null, 0]])
+    assert.deepEqual(saved.history.at(-1)!.changes, { lines: [{ group: 'income', action: 'added', name: '학생회비', to: 800000 }] })
+    // 그 줄의 금액을 옛 버전으로 바꾸려 하면 막는다.
+    await refused(save(env, saved, { events: [{ eventId: 'e', version: 1, budget: 350000 }, { eventId: 'e2', version: 0 }] }), 409, 'VERSION_CONFLICT')
+  } finally { await pg.close() }
+})

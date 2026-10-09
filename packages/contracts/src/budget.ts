@@ -24,8 +24,9 @@ const distinct = (values: string[]) => new Set(values).size === values.length
 // 수입·운영 줄. id가 null이면 새 줄이다. 이름은 묶음 안에서 겹치지 않는다(text가 앞뒤 공백을 지운 값으로 비교한다).
 const lines = (max: number) => z.array(z.strictObject({ id: id.nullable(), name: text(BUDGET_LINE_NAME_MAX), amount })).max(max)
   .refine(list => distinct(list.map(line => line.name)))
-// 행사 줄. version은 그 행사 재정의 버전이고 행이 없으면 0이다. budget이 null이면 미정이다.
-const eventLines = z.array(z.strictObject({ eventId: id, version: z.number().int().min(0).max(PURCHASE_INTEGER_MAX), budget: amount.nullable() }))
+// 행사 줄. version은 그 행사 재정의 버전이고 행이 없으면 0이다. budget은 금액을 바꿀 때만 보내고 null이면 미정이다.
+// budget을 보내지 않으면 서버는 그 행사의 예산·버전을 보지 않고 그대로 둔다(다른 곳에서 바뀐 줄 때문에 막히지 않게).
+const eventLines = z.array(z.strictObject({ eventId: id, version: z.number().int().min(0).max(PURCHASE_INTEGER_MAX), budget: amount.nullable().optional() }))
   .max(BUDGET_EVENTS_MAX).refine(list => distinct(list.map(line => line.eventId)))
 
 export const CreateBudgetPeriodSchema = z.strictObject(period).refine(ordered)
