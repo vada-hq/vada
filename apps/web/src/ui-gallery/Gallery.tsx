@@ -31,6 +31,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 // 새 부품이나 변형을 더하면 여기에도 더한다(AGENTS.md "화면" 절). 와이어프레임 스크린샷과 나란히 비교하는 화면이다.
 export default function Gallery() {
   const [sheetOpen, setSheetOpen] = useState(false)
+  const [panelOpen, setPanelOpen] = useState(false)
   return <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
     <h1 className="text-xl font-bold">VADA 부품</h1>
     <Section title="버튼">
@@ -84,6 +85,12 @@ export default function Gallery() {
       <Button variant="outline" onClick={() => setSheetOpen(true)}>옆 메뉴 열기</Button>
       <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
         <SheetContent title="예시 메뉴"><div className="flex flex-col gap-0.5 px-2 pt-14"><NavItem active>체육대회</NavItem><NavItem>축제</NavItem></div></SheetContent>
+      </Sheet>
+      <Button variant="outline" onClick={() => setPanelOpen(true)}>오른쪽 패널 열기</Button>
+      <Sheet open={panelOpen} onOpenChange={setPanelOpen}>
+        <SheetContent side="right" title="예시 패널" closeLabel="패널 닫기" className="w-96">
+          <div className="p-6 pt-14 text-sm text-gray-700">대화 링크의 상품 정보 패널</div>
+        </SheetContent>
       </Sheet>
     </Section>
     <Section title="상태 문구">

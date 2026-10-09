@@ -1,4 +1,5 @@
-import type { DeliveryStatus, PurchaseItemAction, PurchaseItemHistoryEntry, PurchaseItemStatus, PurchaseItemSummary } from '@vada/contracts'
+import type { DeliveryStatus, PurchaseCandidate, PurchaseCandidateRequest, PurchaseCandidateShare, PurchaseItemAction, PurchaseItemHistoryEntry,
+  PurchaseItemStatus, PurchaseItemSummary } from '@vada/contracts'
 import type { Tone } from '@/components/ui/badge'
 import { deliveryStatusLabels, deliveryStatusTones } from '../deliveries/delivery-status'
 
@@ -37,6 +38,24 @@ export function totalOf(items: PurchaseItemSummary[]) {
 export const won = (value: number) => `${value.toLocaleString('ko-KR')}원`
 // 가격은 상품 조회값이라 저장하지 않고 화면에 고정 안내로 둔다.
 export const priceNotice = '조회 가격은 참고값이에요. 옵션·포장 단위와 배송비·최종 결제 금액을 확인해 주세요.'
+const seoul = { timeZone: 'Asia/Seoul' } as const
+// 10/9처럼 월/일. 조회 날짜에 쓴다.
+export function shortDay(value: string) {
+  const parts = new Intl.DateTimeFormat('ko-KR', { ...seoul, month: 'numeric', day: 'numeric' }).formatToParts(new Date(value))
+  return `${parts.find(part => part.type === 'month')!.value}/${parts.find(part => part.type === 'day')!.value}`
+}
+export const candidateName = (candidate: PurchaseCandidate) => candidate.product?.name
+  ?? (candidate.lookup === 'failed' ? '상품 정보를 가져오지 못했어요. 쿠팡에서 확인해 주세요.' : '상품 정보를 불러오는 중…')
+export function candidatePrice(candidate: PurchaseCandidate) {
+  const price = candidate.product?.price ?? null
+  return `${price === null ? '금액 확인 필요' : `예상 ${won(price)}`}${candidate.fetchedAt ? ` · ${shortDay(candidate.fetchedAt)} 기준` : ''}`
+}
+export const shareText = (share: PurchaseCandidateShare) => `${share.author.name} · ${new Date(share.sharedAt)
+  .toLocaleString('ko-KR', { ...seoul, month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit' })}에 공유`
+export const hiddenText = (hidden: NonNullable<PurchaseCandidate['hidden']>) =>
+  `${hidden.by.name} · ${new Date(hidden.at).toLocaleDateString('ko-KR', { ...seoul, month: 'long', day: 'numeric' })}에 숨김`
+export const requestText = (request: PurchaseCandidateRequest) =>
+  `요청됨 · ${request.requester.name}${request.quantity === null ? '' : ` · ${request.quantity}개`}`
 
 // 빠른 버튼은 저장할 때 한국 날짜로 바꾼다(2026-10-04 결정).
 export const quickDates = [{ label: '3일 안', days: 3 }, { label: '1주 안', days: 7 }, { label: '2주 안', days: 14 }] as const

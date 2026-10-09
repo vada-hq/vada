@@ -1,7 +1,8 @@
 import { expect, test } from 'vitest'
 import type { PurchaseItemHistoryEntry } from '@vada/contracts'
-import { item, shipment } from './purchase-fixtures'
-import { actionText, addDays, groupBySubmission, missingFields, neededByText, progressOf, sectionOf, todayInSeoul, totalOf } from './purchase-view'
+import { candidate, item, shipment } from './purchase-fixtures'
+import { actionText, addDays, candidateName, candidatePrice, groupBySubmission, hiddenText, missingFields, neededByText, progressOf, requestText,
+  sectionOf, shareText, shortDay, todayInSeoul, totalOf } from './purchase-view'
 
 test('진행 단계는 상태와 구매함·배송·수령 표시로 정한다', () => {
   expect(progressOf(item({ status: 'pending' }))).toEqual({ label: '대기', tone: 'info' })
@@ -46,4 +47,16 @@ test('요청자가 직접 결정한 기록은 본인 승인·본인 반려로 �
   expect(actionText(entry('rejected', 'u'), 'u')).toBe('본인 반려')
   expect(actionText(entry('approved', 'f'), 'u')).toBe('승인')
   expect(actionText(entry('needed_by_changed', 'u'), 'u')).toBe('받을 날짜 변경')
+})
+
+test('후보 문구: 조회 날짜·공유·숨김 시각은 한국 시간으로 쓴다', () => {
+  expect(shortDay('2026-10-08T15:30:00.000Z')).toBe('10/9')
+  expect(shareText({ messageId: 'm', author: { id: 'u', name: '기획' }, sharedAt: '2026-10-09T05:12:00.000Z' })).toBe('기획 · 10월 9일 오후 2:12에 공유')
+  expect(hiddenText({ by: { id: 'u', name: '기획' }, at: '2026-10-09T05:12:00.000Z' })).toBe('기획 · 10월 9일에 숨김')
+  expect(requestText({ requester: { id: 'q', name: '박해랑' }, quantity: 2, status: 'pending' })).toBe('요청됨 · 박해랑 · 2개')
+  expect(requestText({ requester: { id: 'q', name: '박해랑' }, quantity: null, status: 'approved' })).toBe('요청됨 · 박해랑')
+  expect(candidatePrice(candidate())).toBe('예상 9,800원 · 10/9 기준')
+  expect(candidatePrice(candidate({ product: { ...candidate().product!, price: null } }))).toBe('금액 확인 필요 · 10/9 기준')
+  expect(candidateName(candidate({ product: null, lookup: 'pending' }))).toBe('상품 정보를 불러오는 중…')
+  expect(candidateName(candidate({ product: null, lookup: 'failed' }))).toBe('상품 정보를 가져오지 못했어요. 쿠팡에서 확인해 주세요.')
 })

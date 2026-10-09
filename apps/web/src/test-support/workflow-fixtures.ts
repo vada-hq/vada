@@ -13,4 +13,5 @@ export const message = (): MessageSummary => ({ id: 'm', chatRoomId: 'room', aut
 export const eventsPath = '/api/organizations/o/events'
 export const messagesPath = (id = 'e') => `${eventsPath}/${id}/messages`
 export const purchaseItemsPath = (id = 'e') => `${eventsPath}/${id}/purchase-items`
+export const candidatesPath = (id = 'e') => `${eventsPath}/${id}/purchase-candidates`
 export const reviewPath = '/api/organizations/o/purchase-review'
