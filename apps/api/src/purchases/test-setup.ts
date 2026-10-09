@@ -1,9 +1,11 @@
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
-import type { PurchaseItemSummary, PurchaseItemsResponse } from '@vada/contracts'
+import { parseCoupangLinks, type PurchaseItemSummary, type PurchaseItemsResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
+import type { CoupangItem } from '../db/schema.js'
 import { migrationsFolder } from '../db/test-migrations.js'
+import { recordMessageLinks } from './candidates.js'
 import type { DraftGenerator, GeneratedItem } from './generation.js'
 import { createPurchaseRoutes } from './purchases.js'
 
@@ -55,5 +57,20 @@ export async function setupPurchases(migrations = migrationsFolder) {
     const created = await drafts(links, event)
     return (await ok(request('POST', `/events/${event}/purchase-items/submit`, { items: refs(created) }))).items
   }
-  return { pg, db, state, request, ok, drafts, submitted, as: (userId: string | null) => { state.userId = userId } }
+  // 대화에 링크를 올린 것처럼 메시지를 넣고, 대화 저장과 같은 함수로 후보를 기록한다.
+  const rooms: Record<string, [room: string, organizationId: string]> = { e: ['room', 'a'], e2: ['room2', 'a'], ex: ['roomx', 'b'] }
+  async function share(content: string, event = 'e', author = 'p') {
+    const [room, organizationId] = rooms[event]!
+    const messageId = crypto.randomUUID()
+    await pg.query('INSERT INTO messages(id,chat_room_id,author_id,content) VALUES ($1,$2,$3,$4)', [messageId, room, author, content])
+    await db.transaction(tx => recordMessageLinks(tx, { organizationId, eventId: event, messageId }, parseCoupangLinks(content)))
+    return messageId
+  }
+  // 뒤에서 하는 조회가 끝난 것처럼 상품 행을 채운다.
+  async function ready(productId: string, items: CoupangItem[]) {
+    await pg.query("UPDATE coupang_products SET status = 'ready', items = $2, fetched_at = now() WHERE id = $1", [productId, JSON.stringify(items)])
+  }
+  const candidateOf = async (url: string, event = 'e') =>
+    (await pg.query<{ id: string }>('SELECT id FROM purchase_candidates WHERE url = $1 AND event_id = $2', [url, event])).rows[0]!.id
+  return { pg, db, state, request, ok, drafts, submitted, share, ready, candidateOf, as: (userId: string | null) => { state.userId = userId } }
 }

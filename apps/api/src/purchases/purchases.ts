@@ -1,9 +1,10 @@
 import { Hono, type Context } from 'hono'
-import { ChangeNeededBySchema, CreatePurchaseDraftsSchema, DecidePurchaseItemsSchema, PurchasePurchasedSchema, PurchaseItemVersionSchema, PurchaseReceivedSchema, SubmitPurchaseItemsSchema, token,
-  UpdatePurchaseItemSchema, type EventPurchaseItemsResponse, type PurchaseItemResponse, type PurchaseItemsResponse, type PurchaseReviewResponse } from '@vada/contracts'
+import { ChangeNeededBySchema, CreatePurchaseDraftsSchema, DecidePurchaseItemsSchema, PurchaseCandidateHiddenSchema, PurchasePurchasedSchema, PurchaseItemVersionSchema, PurchaseReceivedSchema, SubmitPurchaseItemsSchema, token,
+  UpdatePurchaseItemSchema, type EventPurchaseItemsResponse, type PurchaseCandidateResponse, type PurchaseCandidatesResponse, type PurchaseItemResponse, type PurchaseItemsResponse, type PurchaseReviewResponse } from '@vada/contracts'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
 import { json } from '../http/validate.js'
+import { createCandidateService } from './candidates.js'
 import type { DraftGenerator } from './generation.js'
 import { createPurchaseService, type PurchaseDatabase, type PurchaseScope } from './service.js'
 import { createReviewService, type ReviewScope } from './review.js'
@@ -50,6 +51,11 @@ export function createPurchaseRoutes(db: PurchaseDatabase, session: SessionReade
     const { version, received } = c.req.valid('json')
     return c.json(itemsOf(await service.setReceived(scope(c), idOf(c.req.param('itemId')), version, received)))
   })
+  const candidates = createCandidateService(db)
+  const candidateBase = '/organizations/:organizationId/events/:eventId/purchase-candidates'
+  routes.get(candidateBase, auth, member, async c => c.json(await candidates.list(scope(c)) satisfies PurchaseCandidatesResponse))
+  routes.post(`${candidateBase}/:candidateId/hidden`, json(PurchaseCandidateHiddenSchema), auth, member, async c =>
+    c.json({ candidate: await candidates.setHidden(scope(c), idOf(c.req.param('candidateId')), c.req.valid('json').hidden) } satisfies PurchaseCandidateResponse))
   const review = createReviewService(db)
   const reviewBase = '/organizations/:organizationId/purchase-review'
   const reviewScope = (c: Context<MembershipEnv>): ReviewScope => ({ organizationId: c.get('membership').organization.id, userId: c.get('userId') })

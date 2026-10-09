@@ -11,7 +11,7 @@ import { productUrl, PurchaseError } from './validation.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
 type Reader = Pick<Db, 'select'>
-export type PurchaseDatabase = Pick<Db, 'select' | 'transaction'>
+export type PurchaseDatabase = Pick<Db, 'select' | 'selectDistinct' | 'insert' | 'update' | 'transaction'>
 type Transaction = Parameters<Parameters<PurchaseDatabase['transaction']>[0]>[0]
 export interface PurchaseScope extends Viewer { eventId: string }
 const LIST_LIMIT = 300
