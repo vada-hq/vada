@@ -110,8 +110,6 @@ export const purchaseErrors: Record<string, string> = {
   NOT_FOUND: '품목을 찾을 수 없어요. 목록을 새로 불러왔어요.',
   ALREADY_SHIPPED: '송장이 연결된 품목이에요. 송장 연결을 먼저 해제해 주세요.',
   SUBMISSION_INCOMPLETE: '제출 전에 상품명·수량·옵션을 채워 주세요.',
-  INVALID_PRODUCT_LINK: '쿠팡 상품 링크만 담을 수 있어요. 주소창의 상품 링크를 넣어 주세요.',
-  DUPLICATE_LINK: '같은 링크가 두 번 들어 있어요.',
   GENERATION_IN_PROGRESS: '끼룩이가 이미 담는 중이에요. 잠시 후 다시 시도해 주세요.',
   IDEMPOTENCY_CONFLICT: '입력이 바뀌었어요. 담기를 다시 눌러 주세요.',
   GENERATION_FAILED: '끼룩이가 품목을 만들지 못했어요. 다시 시도해 주세요.',

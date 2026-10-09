@@ -1,23 +1,29 @@
 // @vitest-environment jsdom
+import { useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { PurchaseItemSummary } from '@vada/contracts'
 import { json, mockApi } from '../test-support/mock-api'
-import EventPurchases from './EventPurchases'
-import { item } from './purchase-fixtures'
+import EventPurchases, { type PurchaseView } from './EventPurchases'
+import { candidate, item } from './purchase-fixtures'
 import { addDays, todayInSeoul } from './purchase-view'
+import { useCandidates } from './useCandidates'
 import { useEventPurchases } from './useEventPurchases'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const base = '/api/organizations/o/events/e/purchase-items'
-function Harness() {
+const candidatesBase = '/api/organizations/o/events/e/purchase-candidates'
+function Harness({ initialView = 'mine' }: { initialView?: PurchaseView }) {
   const state = useEventPurchases('o', 'e', true)
-  return <EventPurchases state={state} onCreate={() => {}} />
+  const candidates = useCandidates('o', 'e', true, false)
+  const [view, setView] = useState<PurchaseView>(initialView)
+  return <EventPurchases state={state} candidates={candidates} view={view} onViewChange={setView} onShowMessage={() => {}} />
 }
-function setup(items: PurchaseItemSummary[]) {
+function setup(items: PurchaseItemSummary[], initialView: PurchaseView = 'mine', candidates = [candidate()]) {
   const api = mockApi()
   api.on('GET', base, () => json({ items, truncated: false }))
-  render(<Harness />)
+  api.on('GET', candidatesBase, () => json({ candidates, truncated: false }))
+  render(<Harness initialView={initialView} />)
   return api
 }
 const lastBody = (api: ReturnType<typeof mockApi>) => api.calls.at(-1)?.body
@@ -106,7 +112,7 @@ test('먼저 바뀐 품목이면 안내하고 목록을 새로 불러온다. 다
   api.on('POST', `${base}/p1/cancel`, () => json({ error: 'INVALID_STATE' }, 409))
   fireEvent.click(await screen.findByRole('button', { name: '요청 취소' }))
   expect(await screen.findByText('지금 상태에서는 할 수 없어요. 목록을 새로 불러왔어요.')).toBeTruthy()
-  await waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'GET' && call.path === base)).toHaveLength(2))
   api.on('POST', `${base}/x1/re-add`, () => json({ items: [item({ id: 'x1', productName: '이름표', status: 'cancelled', submissionId: 's1', version: 4 }),
     item({ id: 'n1', productName: '이름표' })] }))
   fireEvent.click(screen.getByRole('button', { name: '다시 담기' }))
@@ -157,4 +163,32 @@ test('작성 중 품목에는 가격이 조회한 참고값이라고 안내하�
   setup([item({ id: 'd1', productName: '유성매직' })])
   expect(await screen.findByText('조회 가격은 참고값이에요. 옵션·포장 단위와 배송비·최종 결제 금액을 확인해 주세요.')).toBeTruthy()
   expect(screen.getByText('12색 · 2개 · 예상 9,800원')).toBeTruthy()
+})
+
+test('후보 보기에서 골라 담으면 내 품목으로 가서 담았다고 알리고 후보를 새로 불러온다', async () => {
+  const api = setup([], 'candidates')
+  api.on('POST', `${base}/drafts`, () => json({ items: [item({ id: 'd1', productName: '유성매직' })] }, 201))
+  fireEvent.click(await screen.findByRole('checkbox', { name: '모닝글로리 유성매직 12색 고르기' }))
+  fireEvent.click(screen.getByRole('button', { name: '선택한 1개 담기' }))
+  expect(await screen.findByText('1개를 담았어요. 확인하고 제출해 주세요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '내 품목' }).getAttribute('aria-pressed')).toBe('true')
+  expect(api.calls.find(call => call.path === `${base}/drafts`)?.body).toEqual({ idempotencyKey: expect.any(String), candidateIds: ['c1'] })
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'GET' && call.path === candidatesBase)).toHaveLength(2))
+})
+
+test('제출 응답에서 가격이 바뀐 품목을 알린다', async () => {
+  const api = setup([item({ id: 'd1', productName: '유성매직' })])
+  fireEvent.click(await screen.findByRole('checkbox', { name: '유성매직 고르기' }))
+  api.on('POST', `${base}/submit`, () => json({ items: [item({ id: 'd1', productName: '유성매직', status: 'pending', version: 2,
+    submissionId: 's1', estimatedUnitPrice: 5200 })] }))
+  fireEvent.click(screen.getByRole('button', { name: '선택한 1개 제출' }))
+  expect(await screen.findByText('가격이 바뀐 품목이 있어 새 가격으로 제출했어요.')).toBeTruthy()
+  expect(screen.getByText('유성매직 4,900원 → 5,200원')).toBeTruthy()
+})
+
+test('담은 품목이 없으면 후보에서 골라 담으라고 안내한다', async () => {
+  setup([])
+  expect(await screen.findByText('아직 담은 품목이 없어요')).toBeTruthy()
+  expect(screen.getByText('후보에서 골라 담아 보세요.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '끼룩이로 담기' })).toBeNull()
 })

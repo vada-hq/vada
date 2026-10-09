@@ -3,8 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { MembershipSummary } from '@vada/contracts'
 import Workspace from './Workspace'
-import '../purchases/LinkDialog.test-support'
-import { item } from '../purchases/purchase-fixtures'
+import { candidate, item } from '../purchases/purchase-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } }
@@ -19,6 +18,7 @@ function setup(members: unknown = membersBody, review: unknown = { pending: [], 
     ? { events: [event, { ...event, id: 'e2', name: '축제' }] }
     : url.endsWith('/members') ? members
     : url.endsWith('/messages') ? { messages: [], nextCursor: null }
+    : url.endsWith('/purchase-candidates') ? { candidates: [], truncated: false }
     : url.endsWith('/purchase-review') ? review
     : url.includes('/delivery-carriers') ? { carriers: [], nextCursor: null }
     : { items: [], truncated: false } }))
@@ -26,7 +26,7 @@ function setup(members: unknown = membersBody, review: unknown = { pending: [], 
   return fetcher
 }
 
-test('sidebar selects events; tabs retain chat draft and purchase link input without mixing events', async () => {
+test('sidebar selects events; tabs retain chat draft without mixing events', async () => {
   const fetcher = setup()
   render(<Workspace {...props} />)
   expect(screen.getByText('기획부')).toBeTruthy()
@@ -37,16 +37,10 @@ test('sidebar selects events; tabs retain chat draft and purchase link input wit
   history.scrollTop = 120
   expect(fetcher.mock.calls.some(([url]) => String(url).includes('purchase-items'))).toBe(false)
   fireEvent.click(screen.getByRole('tab', { name: '구매' }))
-  await screen.findByText('아직 담은 품목이 없어요')
-  fireEvent.click(screen.getByRole('button', { name: '끼룩이로 담기' }))
-  fireEvent.change(screen.getByLabelText('쿠팡 상품 링크'), { target: { value: 'https://www.coupang.com/vp/products/1' } })
-  fireEvent.click(screen.getByRole('button', { name: '닫기' }))
+  await screen.findByText('아직 올라온 쿠팡 링크가 없어요')
   fireEvent.click(screen.getByRole('tab', { name: '대화' }))
   expect((screen.getByLabelText('메시지') as HTMLTextAreaElement).value).toBe('작성 중인 대화')
   expect(screen.getByRole('region', { name: '대화 기록' }).scrollTop).toBe(120)
-  fireEvent.click(screen.getByRole('button', { name: '끼룩이' }))
-  expect((screen.getByLabelText('쿠팡 상품 링크') as HTMLTextAreaElement).value).toContain('/products/1')
-  fireEvent.click(screen.getByRole('button', { name: '닫기' }))
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   fireEvent.click(screen.getByRole('button', { name: '축제' }))
   await screen.findByText('아직 대화가 없어요.')
@@ -55,25 +49,46 @@ test('sidebar selects events; tabs retain chat draft and purchase link input wit
   await waitFor(() => expect(fetcher).toHaveBeenCalledWith('/api/organizations/o1/events/e2/purchase-items', expect.anything()))
 })
 
-test('대화의 끼룩이로 담으면 구매 탭에서 새 품목을 골라 둔 채 보여 준다', async () => {
+test('구매 탭은 후보로 열리고, 후보에서 담으면 내 품목에서 새 품목을 골라 둔 채 보여 준다', async () => {
   const created = item({ id: 'n1', productName: '테이블' })
   vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => ({ ok: true, status: init?.method === 'POST' ? 201 : 200, json: async () =>
     url.endsWith('/events') ? { events: [event, { ...event, id: 'e2', name: '축제' }] }
       : url.endsWith('/messages') ? { messages: [], nextCursor: null }
-        : url.endsWith('/drafts') ? { items: [created] } : { items: [], truncated: false } })))
+        : url.endsWith('/purchase-candidates') ? { candidates: [candidate({ product: { ...candidate().product!, name: '테이블' } })], truncated: false }
+          : url.endsWith('/drafts') ? { items: [created] } : { items: [], truncated: false } })))
   render(<Workspace {...props} />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
   await screen.findByText('아직 대화가 없어요.')
   fireEvent.change(screen.getByLabelText('메시지'), { target: { value: '남겨 둔 대화' } })
-  fireEvent.click(screen.getByRole('button', { name: '끼룩이' }))
-  fireEvent.change(screen.getByLabelText('쿠팡 상품 링크'), { target: { value: 'https://www.coupang.com/vp/products/1' } })
-  fireEvent.click(screen.getByRole('button', { name: '담기' }))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
-  expect(screen.getByRole('tab', { name: '구매' }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(screen.getByRole('tab', { name: '구매' }))
+  fireEvent.click(await screen.findByRole('checkbox', { name: '테이블 고르기' }))
+  fireEvent.click(screen.getByRole('button', { name: '선택한 1개 담기' }))
   expect(await screen.findByText('1개를 담았어요. 확인하고 제출해 주세요.')).toBeTruthy()
   expect((screen.getByRole('checkbox', { name: '테이블 고르기' }) as HTMLInputElement).checked).toBe(true)
   fireEvent.click(screen.getByRole('tab', { name: '대화' }))
   expect((screen.getByLabelText('메시지') as HTMLTextAreaElement).value).toBe('남겨 둔 대화')
+})
+
+test('후보의 공유 표시를 누르면 대화 탭의 그 메시지를 강조하고, 대화의 링크를 누르면 상품 패널을 연다', async () => {
+  const url = 'https://www.coupang.com/vp/products/1?itemId=2&vendorItemId=3'
+  const message = { id: 'm1', chatRoomId: 'r1', author: { id: 'u1', name: '기획 테스터' }, content: `이거 ${url}`, createdAt: '2026-10-09T05:12:00Z' }
+  vi.stubGlobal('fetch', vi.fn(async (path: string) => ({ ok: true, status: 200, json: async () =>
+    path.endsWith('/events') ? { events: [event] } : path.endsWith('/messages') ? { messages: [message], nextCursor: null }
+      : path.endsWith('/purchase-candidates') ? { candidates: [candidate()], truncated: false } : { items: [], truncated: false } })))
+  Element.prototype.scrollIntoView = vi.fn()
+  try {
+    render(<Workspace {...props} />)
+    fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+    fireEvent.click(screen.getByRole('tab', { name: '구매' }))
+    fireEvent.click(await screen.findByRole('button', { name: '기획 테스터 · 10월 9일 오후 2:12에 공유' }))
+    expect(screen.getByRole('tab', { name: '대화' }).getAttribute('aria-selected')).toBe('true')
+    const link = screen.getByRole('button', { name: url })
+    await waitFor(() => expect(link.closest('li')!.className).toContain('bg-yellow-50'))
+    fireEvent.click(link)
+    expect(await screen.findByRole('dialog', { name: '모닝글로리 유성매직 12색' })).toBeTruthy()
+  } finally {
+    Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
+  }
 })
 
 test('workspace tabs support keyboard navigation and logout delegates to authentication', async () => {

@@ -56,7 +56,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   // 768px 미만에서 옆 메뉴로 연 사이드바. 행사를 고르면 닫는다.
   const [navOpen, setNavOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
-  function canLeave() { return !leaveRisk || window.confirm('끼룩이가 품목을 담는 중이거나 입력한 링크가 있어요. 이동하면 입력한 링크가 사라지고, 담는 중인 품목은 서버에서 계속 만들어질 수 있어요. 이동할까요?') }
+  function canLeave() { return !leaveRisk || window.confirm('끼룩이가 품목을 담는 중이에요. 이동해도 담는 중인 품목은 서버에서 계속 만들어질 수 있어요. 이동할까요?') }
   useEffect(() => {
     if (!leaveRisk) return
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }

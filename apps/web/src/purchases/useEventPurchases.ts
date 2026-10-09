@@ -22,7 +22,7 @@ export async function fetchItemDetail(organizationId: string, eventId: string, i
   }
 }
 
-// enabled가 거짓이면 불러오지 않는다. 구매 탭을 처음 열거나 끼룩이를 켤 때 켠다.
+// enabled가 거짓이면 불러오지 않는다. 구매 탭을 처음 열 때 켠다.
 export function useEventPurchases(organizationId: string, eventId: string, enabled: boolean) {
   const base = purchaseItemsBase(organizationId, eventId)
   const [items, setItems] = useState<PurchaseItemSummary[] | null>(null)
@@ -100,13 +100,13 @@ export function useEventPurchases(organizationId: string, eventId: string, enabl
   const detail = useCallback((itemId: string) => fetchItemDetail(organizationId, eventId, itemId), [organizationId, eventId])
   return {
     items, truncated, loadError, busy, generating, selected, setSelected, refresh, detail,
-    async create(links: string[]) {
-      const payload = JSON.stringify(links)
-      // 같은 링크로 다시 시도하면 같은 키를 써서 두 번 만들지 않는다.
+    async create(candidateIds: string[]) {
+      const payload = JSON.stringify(candidateIds)
+      // 같은 후보로 다시 시도하면 같은 키를 써서 두 번 만들지 않는다.
       if (retry.current?.payload !== payload) retry.current = { payload, key: crypto.randomUUID() }
       setGenerating(true)
       try {
-        const result = await apply(send('POST', '/drafts', { idempotencyKey: retry.current.key, links }),
+        const result = await apply(send('POST', '/drafts', { idempotencyKey: retry.current.key, candidateIds }),
           created => setSelected(created.filter(item => item.status === 'draft').map(item => item.id)))
         if (result.ok) retry.current = null
         return result

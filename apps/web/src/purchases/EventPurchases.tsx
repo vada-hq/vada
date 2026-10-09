@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { ShoppingCart, Sparkles } from 'lucide-react'
+import { ShoppingCart } from 'lucide-react'
 import type { PurchaseItemSummary } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
 import StateMessage from '@/components/StateMessage'
@@ -10,27 +10,57 @@ import { Label } from '@/components/ui/label'
 import DraftEditDialog from './DraftEditDialog'
 import ItemDetailDialog from './ItemDetailDialog'
 import NeededByDialog from './NeededByDialog'
-import PurchaseItemCard from './PurchaseItemCard'
-import { missingFields, pressed, priceNotice, sectionOf, todayInSeoul } from './purchase-view'
+import PurchaseCandidates from './PurchaseCandidates'
+import PurchaseItemCard, { productNameOf } from './PurchaseItemCard'
+import { missingFields, pressed, priceNotice, sectionOf, todayInSeoul, won } from './purchase-view'
+import type { Candidates } from './useCandidates'
 import type { EventPurchases as State, PurchaseResult } from './useEventPurchases'
 
-type Props = { state: State; onCreate: () => void; notice?: { id: number; text: string } | null }
+export type PurchaseView = 'candidates' | 'mine' | 'all'
+const views: { value: PurchaseView; label: string }[] = [
+  { value: 'candidates', label: '후보' }, { value: 'mine', label: '내 품목' }, { value: 'all', label: '행사 전체' }]
+type PriceChange = { name: string; from: number | null; to: number }
+type Props = {
+  state: State
+  candidates: Candidates
+  view: PurchaseView
+  onViewChange: (view: PurchaseView) => void
+  // 후보의 공유 표시를 누르면 대화의 그 메시지로 간다.
+  onShowMessage: (messageId: string) => void
+}
 
-// 행사의 구매 탭. 내 품목은 작성 중·진행 중·끝남으로, 행사 전체는 제출된 품목을 진행 중·끝남으로 나눈다.
-export default function EventPurchases({ state, onCreate, notice = null }: Props) {
-  const [view, setView] = useState<'mine' | 'all'>('mine')
+// 행사의 구매 탭. 후보에서 골라 담고, 내 품목은 작성 중·진행 중·끝남으로, 행사 전체는 제출된 품목을 진행 중·끝남으로 나눈다.
+export default function EventPurchases({ state, candidates, view, onViewChange, onShowMessage }: Props) {
   const [message, setMessage] = useState('')
+  const [notice, setNotice] = useState('')
+  const [priceChanges, setPriceChanges] = useState<PriceChange[]>([])
   const [dialogError, setDialogError] = useState('')
   const [editing, setEditing] = useState<PurchaseItemSummary | null>(null)
   const [dating, setDating] = useState<PurchaseItemSummary[] | null>(null)
   const [removing, setRemoving] = useState<PurchaseItemSummary | null>(null)
   const [opened, setOpened] = useState<string | null>(null)
-  // 담기 안내는 다음 동작을 하면 지운다.
-  const [seenNotice, setSeenNotice] = useState<number | null>(null)
-  if (!state.items) return state.loadError
+  function clear() { setMessage(''); setNotice(''); setPriceChanges([]) }
+  // 후보에서 담으면 내 품목으로 가서 새 품목을 골라 둔 채 보여 준다.
+  async function add(ids: string[]) {
+    const result = await state.create(ids)
+    if (result.ok) {
+      clear()
+      setNotice(`${result.items.length}개를 담았어요. 확인하고 제출해 주세요.`)
+      onViewChange('mine')
+      candidates.refresh()
+    }
+    return result
+  }
+  const switcher = <div role="group" aria-label="구매 보기" className="flex flex-wrap gap-2">
+    {views.map(option => <Button key={option.value} variant="outline" size="sm" className={pressed} aria-pressed={view === option.value}
+      onClick={() => onViewChange(option.value)}>{option.label}</Button>)}
+  </div>
+  if (view === 'candidates') return <div className="flex flex-col gap-4">{switcher}
+    <PurchaseCandidates candidates={candidates} generating={state.generating} onAdd={add} onShowMessage={onShowMessage} /></div>
+  if (!state.items) return <div className="flex flex-col gap-4">{switcher}{state.loadError
     ? <Card className="flex flex-col gap-3 p-6"><StateMessage kind="error">구매 품목을 불러오지 못했어요.</StateMessage>
       <Button variant="outline" className="self-start" onClick={state.refresh}>다시 시도</Button></Card>
-    : <StateMessage kind="loading">구매 품목 불러오는 중…</StateMessage>
+    : <StateMessage kind="loading">구매 품목 불러오는 중…</StateMessage>}</div>
   const items = state.items
   const mine = items.filter(item => item.mine)
   const drafts = mine.filter(item => sectionOf(item) === 'draft')
@@ -39,17 +69,27 @@ export default function EventPurchases({ state, onCreate, notice = null }: Props
   const shared = items.filter(item => item.status !== 'draft')
 
   async function run(action: () => Promise<PurchaseResult>) {
-    setMessage('')
-    if (notice) setSeenNotice(notice.id)
+    clear()
     const result = await action()
     if (!result.ok) setMessage(result.message)
+  }
+  // 제출할 때 하루 지난 가격을 서버가 다시 조회한다. 바뀐 품목을 알린다.
+  async function submit() {
+    clear()
+    const before = new Map(chosen.map(item => [item.id, item.estimatedUnitPrice]))
+    const result = await state.submit(chosen)
+    if (!result.ok) { setMessage(result.message); return }
+    setPriceChanges(result.items.flatMap(item => {
+      const from = before.get(item.id)
+      return from !== undefined && item.estimatedUnitPrice !== null && from !== item.estimatedUnitPrice
+        ? [{ name: productNameOf(item), from, to: item.estimatedUnitPrice }] : []
+    }))
   }
   // 대화상자 안의 실패는 대화상자에 보여 준다. 성공하면 닫는다.
   // 먼저 바뀐 품목이면 대화상자가 든 품목이 오래된 것이다. 닫고 위쪽에 안내해 새로 불러온 목록에서 다시 열게 한다.
   async function inDialog(action: () => Promise<PurchaseResult>, close: () => void) {
     setDialogError('')
-    setMessage('')
-    if (notice) setSeenNotice(notice.id)
+    clear()
     const result = await action()
     if (result.ok) close()
     else if (result.stale) { close(); setMessage(result.message) }
@@ -95,7 +135,7 @@ export default function EventPurchases({ state, onCreate, notice = null }: Props
       <input type="checkbox" className="size-4 accent-blue-600" checked={allChosen} disabled={state.busy}
         onChange={event => state.setSelected(event.target.checked ? drafts.map(item => item.id) : [])} />모두 선택</Label>
     <div className="flex flex-wrap gap-2">
-      <Button size="sm" disabled={state.busy || chosen.length === 0 || blocked} onClick={() => void run(() => state.submit(chosen))}>선택한 {chosen.length}개 제출</Button>
+      <Button size="sm" disabled={state.busy || chosen.length === 0 || blocked} onClick={() => void submit()}>선택한 {chosen.length}개 제출</Button>
       <Button variant="outline" size="sm" disabled={state.busy || chosen.length === 0} onClick={() => openDialog(() => setDating(chosen))}>받을 날짜 바꾸기</Button>
     </div>
     {blocked && <p className="text-xs text-yellow-700">제출 전에 채울 칸이 있는 품목이 있어요.</p>}
@@ -103,21 +143,23 @@ export default function EventPurchases({ state, onCreate, notice = null }: Props
   </div>
 
   return <div className="flex flex-col gap-4">
-    <div className="flex flex-wrap items-center justify-between gap-2">
-      <div role="group" aria-label="구매 보기" className="flex gap-2">
-        <Button variant="outline" size="sm" className={pressed} aria-pressed={view === 'mine'} onClick={() => setView('mine')}>내 품목</Button>
-        <Button variant="outline" size="sm" className={pressed} aria-pressed={view === 'all'} onClick={() => setView('all')}>행사 전체</Button>
-      </div>
-      <Button size="sm" disabled={state.generating} onClick={onCreate}><Sparkles />끼룩이로 담기</Button>
-    </div>
-    {notice && notice.id !== seenNotice && <StateMessage kind="notice">{notice.text}</StateMessage>}
+    {switcher}
+    {notice && <StateMessage kind="notice">{notice}</StateMessage>}
+    {priceChanges.length > 0 && <div className="flex flex-col gap-1" role="status">
+      <p className="text-sm text-gray-500">가격이 바뀐 품목이 있어 새 가격으로 제출했어요.</p>
+      <ul className="flex flex-col gap-0.5 text-xs text-gray-700">
+        {priceChanges.slice(0, 3).map((change, index) => <li key={index} className="wrap-anywhere">
+          {change.name} {change.from === null ? '금액 확인 필요' : won(change.from)} → {won(change.to)}</li>)}
+        {priceChanges.length > 3 && <li>외 {priceChanges.length - 3}개</li>}
+      </ul>
+    </div>}
     {message && <StateMessage kind="error">{message}</StateMessage>}
     {state.truncated && <StateMessage kind="notice">최근 300개만 보여요.</StateMessage>}
     {view === 'mine' ? <>
       {section('작성 중', drafts, false, draftTools)}
       {section('진행 중', mine.filter(item => sectionOf(item) === 'active'), false)}
       {section('끝남', mine.filter(item => sectionOf(item) === 'ended'), false)}
-      {mine.length === 0 && <Card><EmptyState icon={ShoppingCart} title="아직 담은 품목이 없어요" description="대화에서 정한 쿠팡 링크를 끼룩이로 담아 보세요." /></Card>}
+      {mine.length === 0 && <Card><EmptyState icon={ShoppingCart} title="아직 담은 품목이 없어요" description="후보에서 골라 담아 보세요." /></Card>}
     </> : <>
       {section('진행 중', shared.filter(item => sectionOf(item) === 'active'), true)}
       {section('끝남', shared.filter(item => sectionOf(item) === 'ended'), true)}

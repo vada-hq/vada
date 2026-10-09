@@ -3,8 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import App from './App'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
-import { event, eventsPath, membership, messagesPath, purchaseItemsPath, reviewPath, user } from './test-support/workflow-fixtures'
-import './purchases/LinkDialog.test-support'
+import { candidatesPath, event, eventsPath, membership, messagesPath, purchaseItemsPath, reviewPath, user } from './test-support/workflow-fixtures'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({ authClient: { useSession: auth.useSession,
@@ -22,6 +21,7 @@ beforeEach(() => {
   api.on('GET', eventsPath, () => json({ events: [event()] }))
   api.on('GET', messagesPath(), () => json({ messages: [], nextCursor: null }))
   api.on('GET', purchaseItemsPath(), () => json({ items: [], truncated: false }))
+  api.on('GET', candidatesPath(), () => json({ candidates: [], truncated: false }))
   api.on('GET', reviewPath, () => json({ pending: [], approved: [], truncated: false }))
 })
 afterEach(() => {
@@ -35,7 +35,7 @@ test.each([false, true])('session and membership connect the real workspace; fin
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
   await screen.findByText('아직 대화가 없어요.')
   fireEvent.click(screen.getByRole('tab', { name: '구매' }))
-  await screen.findByText('아직 담은 품목이 없어요')
+  await screen.findByText('아직 올라온 쿠팡 링크가 없어요')
   // 구매 승인 권한이 있으면 옆 메뉴에 구매 검토가 생긴다.
   expect(Boolean(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).queryByRole('button', { name: /구매 검토/ }))).toBe(finance)
 })
