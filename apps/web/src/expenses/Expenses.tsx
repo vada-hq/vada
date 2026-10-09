@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { Plus, Receipt } from 'lucide-react'
 import type { EventSummary, ExpenseDetail } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
+import { StatGrid } from '@/components/StatGrid'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
-import { Card, cardClass } from '@/components/ui/card'
-import { cn } from '@/lib/utils'
+import { Card } from '@/components/ui/card'
 import { won } from '../purchases/purchase-view'
 import ExpenseCard from './ExpenseCard'
 import ExpenseDetailDialog from './ExpenseDetailDialog'
@@ -24,15 +24,10 @@ export default function Expenses({ organizationId, finance, viewerMembershipId, 
       <Button variant="outline" className="self-start" onClick={state.refresh}>다시 시도</Button></Card>
     : <StateMessage kind="loading">사용 내역 불러오는 중…</StateMessage>}</div>
   const { expenses, totals, truncated } = state.data
-  const stats: [string, string][] = [['이번 달', won(totals.thisMonth)], ['전체', won(totals.total)], ['증빙 누락', `${totals.missingEvidence}건`]]
   return <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
     <div className="mx-auto flex max-w-3xl flex-col gap-4">
-      <section aria-label="지출 요약" className={cn(cardClass, 'grid grid-cols-3 gap-2 p-4')}>
-        {stats.map(([label, value]) => <div key={label} className="flex min-w-0 flex-col gap-0.5">
-          <span className="text-xs text-gray-500">{label}</span>
-          <span className="text-sm font-semibold wrap-anywhere text-gray-900">{value}</span>
-        </div>)}
-      </section>
+      <StatGrid label="지출 요약" className="grid-cols-3" stats={[{ label: '이번 달', value: won(totals.thisMonth) },
+        { label: '전체', value: won(totals.total) }, { label: '증빙 누락', value: `${totals.missingEvidence}건` }]} />
       {finance && <Button className="self-start" onClick={() => setForm({ expense: null })}><Plus />지출 기록</Button>}
       {truncated && <StateMessage kind="notice">최근 300개만 보여요.</StateMessage>}
       {expenses.length === 0

@@ -7,7 +7,7 @@ afterEach(cleanup)
 
 test('부품 확인 화면이 모든 부품 묶음을 보여 준다', () => {
   render(<Gallery />)
-  for (const name of ['버튼', '입력', '칩', '카드·배너', '메뉴·탭', '빈 화면·아바타·로고', '대화상자·옆 메뉴', '상태 문구', '인증 카드', '긴 글', '숨김']) {
+  for (const name of ['버튼', '입력', '칩', '숫자 묶음', '카드·배너', '메뉴·탭', '빈 화면·아바타·로고', '대화상자·옆 메뉴', '상태 문구', '인증 카드', '긴 글', '숨김']) {
     expect(screen.getByRole('heading', { level: 2, name })).toBeTruthy()
   }
 })
@@ -35,4 +35,12 @@ test('오른쪽 패널 예시는 열고 패널 닫기로 닫을 수 있다', asy
   expect(panel.className).toContain('right-0')
   fireEvent.click(within(panel).getByRole('button', { name: '패널 닫기' }))
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('숫자 묶음은 이름 붙은 영역에 숫자·설명·버튼을 두고, 위험 숫자는 빨갛게 보인다', () => {
+  render(<Gallery />)
+  const stats = screen.getByRole('region', { name: '예시 숫자' })
+  expect(within(stats).getByText('금액을 모르는 품목 2개 제외')).toBeTruthy()
+  expect(within(stats).getByText('120,000원 초과').className).toContain('text-destructive')
+  expect(within(stats).getByRole('button', { name: '예산 정하기' })).toBeTruthy()
 })

@@ -4,6 +4,7 @@ import { AuthCard } from '@/components/AuthCard'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
 import { EmptyState } from '@/components/EmptyState'
+import { StatGrid } from '@/components/StatGrid'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -52,6 +53,14 @@ export default function Gallery() {
     <Section title="칩">
       <Badge tone="info">접수</Badge><Badge tone="success">승인</Badge><Badge tone="warning">보완 요청</Badge>
       <Badge tone="danger">반려</Badge><Badge>검토 대기</Badge>
+    </Section>
+    <Section title="숫자 묶음">
+      <StatGrid label="예시 숫자" className="w-96 grid-cols-2 gap-3" stats={[
+        { label: '예산', value: '3,000,000원', action: <Button variant="outline" size="sm" className="mt-1 self-start">예산 정하기</Button> },
+        { label: '실제 지출', value: '950,000원' },
+        { label: '지출 예정', value: '1,100,000원', note: '금액을 모르는 품목 2개 제외' },
+        { label: '남은 예산', value: '120,000원 초과', tone: 'danger' },
+      ]} />
     </Section>
     <Section title="카드·배너">
       <Card className="w-72 p-4"><p className="text-sm font-semibold">카드 제목</p><p className="text-xs text-gray-500">카드 설명</p></Card>
