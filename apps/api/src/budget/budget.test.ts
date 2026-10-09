@@ -301,6 +301,21 @@ test('편성 읽기: 수입 줄마다 실제 수입과 건수, 항목 없는 수
   } finally { await pg.close() }
 })
 
+test('편성 읽기: 수입 내역은 최근 300건만 주고 잘렸다고 알린다. 합계는 잘린 것까지 센다', async () => {
+  const env = await setupPurchases()
+  const { pg, as } = env
+  try {
+    as('f')
+    const plan = await createPeriod(env)
+    await pg.exec(`INSERT INTO incomes (id,organization_id,period_id,description,amount,received_on,recorded_by)
+      SELECT 'bulk-' || lpad(n::text, 3, '0'), 'a', '${plan.period.id}', '입금', 1000, DATE '2026-09-01' + n, 'f' FROM generate_series(1, 301) AS n`)
+    const read = await planOf(env, plan.period.id)
+    assert.deepEqual([read.incomeRecords.length, read.incomeRecordsTruncated, read.totals.received], [300, true, 301000])
+    // 받은 날이 가장 이른 한 건(9/2)이 잘린다.
+    assert.equal(read.incomeRecords.at(-1)!.receivedOn, '2026-09-03')
+  } finally { await pg.close() }
+})
+
 test('편성 저장: 수입이 고른 수입 줄은 지울 수 없고, 수입이 기간 밖으로 나가는 날짜 변경은 막는다. 취소한 수입은 보지 않는다', async () => {
   const env = await setupPurchases()
   const { pg, ok, request, as } = env

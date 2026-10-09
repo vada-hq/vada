@@ -124,9 +124,12 @@ test('수입 취소: 사유를 남기고 다시 고치거나 취소할 수 없�
     as('n')
     const seen = await ok<IncomeResponse>(request('GET', `${path}/${income.id}`))
     assert.equal(seen.income.voided?.reason, '중복 입금')
-    as('x')
-    assert.equal((await request('GET', `${path}/${income.id}`)).status, 403)
-    as(null)
-    assert.equal((await request('GET', `${path}/${income.id}`)).status, 401)
+    // 다른 학생회 사용자와 미인증은 보기·수정·취소 모두 막는다.
+    const calls = [() => request('GET', `${path}/${income.id}`), () => request('PATCH', `${path}/${income.id}`, { version: 2, ...incomeBody() }),
+      () => request('POST', `${path}/${income.id}/void`, { version: 2, reason: '또' })]
+    for (const [user, status] of [['x', 403], [null, 401]] as const) {
+      as(user)
+      for (const call of calls) assert.equal((await call()).status, status, `${user}`)
+    }
   } finally { await pg.close() }
 })
