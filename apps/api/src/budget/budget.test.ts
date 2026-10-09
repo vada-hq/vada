@@ -4,6 +4,8 @@ import type { BudgetPeriodsResponse, BudgetPlanResponse, ExpenseResponse, Income
 import { BUDGET_EVENTS_MAX, BUDGET_INCOME_LINES_MAX, BUDGET_LINE_NAME_MAX, BUDGET_OPERATING_LINES_MAX, BUDGET_PERIOD_NAME_MAX,
   SaveBudgetPlanSchema, type EventFinanceResponse } from '@vada/contracts'
 import { MAX_BODY_BYTES } from '../http/guard.js'
+import { readBook } from '../workbook/read-book.js'
+import { createBudgetService } from './service.js'
 import { setupPurchases } from '../purchases/test-setup.js'
 
 type Env = Awaited<ReturnType<typeof setupPurchases>>
@@ -326,5 +328,78 @@ test('편성 저장: 수입이 고른 수입 줄은 지울 수 없고, 수입이
     await refused(save(env, plan, { startsOn: '2026-09-11' }), 409, 'INCOMES_OUTSIDE_PERIOD', '시작일')
     await refused(save(env, plan, { endsOn: '2027-02-19' }), 409, 'INCOMES_OUTSIDE_PERIOD', '끝일')
     assert.equal((await planOf(env, plan.period.id)).incomeRecords.find(income => income.id === used.id)?.receivedOn, '2026-09-10')
+  } finally { await pg.close() }
+})
+
+test('결산서 자료: 이 기간의 수입과 3a 기준으로 센 지출을 기록 순으로 모으고, 증빙 링크와 취소 건수를 붙인다', async () => {
+  const env = await setupPurchases()
+  const { pg, db, ok, request, as } = env
+  try {
+    as('f')
+    let plan = await createPeriod(env)
+    plan = await ok<BudgetPlanResponse>(save(env, plan, { incomes: [{ id: null, name: '학생회비', amount: 800000 }],
+      operating: [{ id: null, name: '회의비', amount: 100000 }], events: [{ eventId: 'e', version: 0, budget: 300000 }] }))
+    await recordIncome(env, plan.period.id, { budgetLineId: plan.incomes[0]!.id, amount: 750000, receivedOn: '2026-09-05', note: '학교 지급' })
+    const voidedIncome = await recordIncome(env, plan.period.id, { amount: 1000 })
+    await ok(request('POST', `/budget/periods/${plan.period.id}/incomes/${voidedIncome.id}/void`, { version: 1, reason: '중복' }))
+    // 행사 지출은 결제일이 기간 앞이어도 넣는다.
+    const early = await record(env, { eventId: 'e', vendor: '쿠팡', amount: 50000, paidOn: '2026-08-28' })
+    await record(env, { budgetLineId: plan.operating[0]!.id, amount: 12000, paidOn: '2026-10-01' })
+    await record(env, { amount: 3000, paidOn: '2026-10-03', note: '물' })
+    // 기간 밖 상시 운영 지출, 기간에 넣지 않은 행사의 지출, 취소한 지출은 넣지 않는다.
+    await record(env, { amount: 4000, paidOn: '2026-08-31' })
+    await record(env, { eventId: 'e2', amount: 6000 })
+    const voided = await record(env, { amount: 9000 })
+    await ok(request('POST', `/expenses/${voided.id}/void`, { version: 1, reason: '중복' }))
+    await pg.exec(`INSERT INTO expense_receipts (id,organization_id,expense_id,object_key,file_name,content_type,size_bytes,kind,status,uploaded_by,confirmed_at)
+      VALUES ('r1','a','${early.id}','receipts/a/${early.id}/r1','영수증.jpg','image/jpeg',1234,'receipt','ready','f',now()),
+        ('r2','a','${early.id}','receipts/a/${early.id}/r2','올리는 중.jpg','image/jpeg',1234,'receipt','pending','f',NULL)`)
+    const data = await createBudgetService(db).exportData({ organizationId: 'a', userId: 'n' }, plan.period.id, 'https://vada.test')
+    assert.deepEqual([data.organizationName, data.period, data.voided], ['A', { name: '2026년 2학기', startsOn: '2026-09-01', endsOn: '2027-02-28' },
+      { incomes: 1, expenses: 1 }])
+    assert.deepEqual(data.incomes, [{ receivedOn: '2026-09-05', line: '학생회비', description: '학생회비 입금', amount: 750000, note: '학교 지급',
+      recordedBy: '재정' }])
+    assert.deepEqual(data.expenses.map(expense => [expense.paidOn, expense.line, expense.vendor, expense.amount, expense.note]),
+      [['2026-08-28', '체육대회', '쿠팡', 50000, null], ['2026-10-01', '상시 운영 · 회의비', '다이소', 12000, null], ['2026-10-03', '상시 운영', '다이소', 3000, '물']])
+    assert.deepEqual({ ...data.expenses[1]!, receipts: [] }, { paidOn: '2026-10-01', line: '상시 운영 · 회의비', vendor: '다이소', description: '회의 다과',
+      amount: 12000, method: 'council_card', payer: '재정', note: null, recordedBy: '재정', receipts: [] })
+    assert.deepEqual(data.expenses[0]!.receipts.map(receipt => [receipt.kind, receipt.fileName, receipt.uploadedBy, receipt.url]),
+      [['receipt', '영수증.jpg', '재정', `https://vada.test/api/organizations/a/expenses/${early.id}/receipts/r1/file`]])
+    assert.deepEqual([data.totals.received, data.totals.spent, data.totals.balance], [750000, 65000, 685000])
+    assert.deepEqual(data.eventLines.map(line => [line.name, line.budget, line.spent]), [['체육대회', 300000, 50000]])
+    assert.deepEqual([data.incomeLines, data.operatingLines.map(line => [line.name, line.spent]), data.unassigned],
+      [[{ name: '학생회비', amount: 800000, received: 750000 }], [['회의비', 12000]], { spent: 3000, count: 1 }])
+  } finally { await pg.close() }
+})
+
+test('결산서 내려받기: 구성원 누구나 받고 파일 이름은 기간 이름과 한국 날짜다. 다른 학생회·미인증·상한 초과는 거절한다', async () => {
+  const env = await setupPurchases()
+  const { pg, request, as } = env
+  try {
+    as('f')
+    const plan = await createPeriod(env, { name: '2026/2학기' })
+    const path = `/budget/periods/${plan.period.id}/export`
+    as('n')
+    const response = await request('GET', path)
+    assert.equal(response.status, 200)
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+    assert.deepEqual([response.headers.get('Content-Type'), response.headers.get('Content-Disposition'), response.headers.get('Cache-Control')],
+      ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        `attachment; filename="settlement.xlsx"; filename*=UTF-8''${encodeURIComponent(`2026_2학기 결산 ${today}.xlsx`)}`, 'no-store'])
+    assert.deepEqual(readBook(Buffer.from(await response.arrayBuffer())).names, ['요약', '수입 결산', '지출 결산', '수입·지출 내역', '증빙'])
+    as('x')
+    assert.equal((await request('GET', path)).status, 403)
+    as(null)
+    assert.equal((await request('GET', path)).status, 401)
+    as('n')
+    await pg.exec(`INSERT INTO budget_periods (id,organization_id,name,starts_on,ends_on,created_by) VALUES ('pb','b','B 기간','2026-09-01','2027-02-28','x')`)
+    for (const id of ['pb', 'missing']) assert.equal((await request('GET', `/budget/periods/${id}/export`)).status, 404, id)
+    await pg.exec(`INSERT INTO expenses (id,organization_id,event_id,vendor,description,amount,paid_on,method,payer_id,recorded_by)
+      SELECT 'bulk-' || n, 'a', NULL, '가게', '다과', 1000, DATE '2026-10-01', 'cash', 'f', 'f' FROM generate_series(1, 1001) AS n`)
+    await refused(request('GET', path), 409, 'EXPORT_TOO_LARGE', '지출 상한')
+    await pg.exec(`DELETE FROM expenses WHERE id LIKE 'bulk-%'`)
+    await pg.exec(`INSERT INTO incomes (id,organization_id,period_id,description,amount,received_on,recorded_by)
+      SELECT 'bulk-' || n, 'a', '${plan.period.id}', '입금', 1000, DATE '2026-10-01', 'f' FROM generate_series(1, 1001) AS n`)
+    await refused(request('GET', path), 409, 'EXPORT_TOO_LARGE', '수입 상한')
   } finally { await pg.close() }
 })

@@ -71,7 +71,7 @@ export async function setupPurchases(migrations = migrationsFolder, { storage = 
     async input => { state.calls++; return state.generate(input) },
     async (productId, timeoutMs) => { state.lookups++; return state.fetch(productId, timeoutMs) })
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, purchases: routes,
-    expenses: createExpenseRoutes(db, session, storage?.storage), settlement: createSettlementRoutes(db, session, origin), budget: createBudgetRoutes(db, session),
+    expenses: createExpenseRoutes(db, session, storage?.storage), settlement: createSettlementRoutes(db, session, origin), budget: createBudgetRoutes(db, session, origin),
     incomes: createIncomeRoutes(db, session) })
   const request = (method: string, path: string, body?: unknown) => app.request(`/api/organizations/a${path}`, body === undefined
     ? { method } : { method, headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })

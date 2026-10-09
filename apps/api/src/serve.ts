@@ -54,7 +54,7 @@ function main() {
   if (r2) console.log('영수증 저장소 켜짐 (R2)')
   const expenses = createExpenseRoutes(db, (headers) => auth.api.getSession({ headers }), r2 ? createR2Storage(r2) : undefined)
   const settlement = createSettlementRoutes(db, (headers) => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!)
-  const budget = createBudgetRoutes(db, (headers) => auth.api.getSession({ headers }))
+  const budget = createBudgetRoutes(db, (headers) => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!)
   const incomes = createIncomeRoutes(db, (headers) => auth.api.getSession({ headers }))
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
   const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,

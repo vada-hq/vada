@@ -3,11 +3,13 @@ import { and, asc, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, n
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_PERIODS_MAX, INCOME_RECORDS_MAX, type BudgetChange, type BudgetPeriodAction,
   type BudgetPeriodsResponse, type BudgetPlanResponse, type CreateBudgetPeriodRequest, type SaveBudgetPlanRequest } from '@vada/contracts'
-import { budgetLines, budgetPeriodEvents, budgetPeriods, eventFinances, events, expenses, incomes, users } from '../db/schema.js'
+import { budgetLines, budgetPeriodEvents, budgetPeriods, eventFinances, events, expenseReceipts, expenses, incomes, organizations,
+  users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { incomeSummaries } from '../incomes/service.js'
 import { requireFinance } from '../purchases/review.js'
 import { changeEventBudget, financeNumbersByEvent } from '../settlement/service.js'
+import type { PeriodSheetData } from './workbook.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
 export type BudgetDatabase = Pick<Db, 'select' | 'insert' | 'update' | 'delete' | 'transaction'>
@@ -16,6 +18,12 @@ type Transaction = Parameters<Parameters<BudgetDatabase['transaction']>[0]>[0]
 export interface BudgetScope { organizationId: string; userId: string }
 const actors = alias(users, 'budget_actors')
 const sum = (values: number[]) => values.reduce((total, value) => total + value, 0)
+// 결산서 상한. 수입·지출이 각각 이보다 많으면 만들지 않는다(행사 정산서와 같다).
+const EXPORT_LIMIT = 1000
+const exportLines = alias(budgetLines, 'export_lines')
+const exportPayers = alias(users, 'export_payers')
+const exportRecorders = alias(users, 'export_recorders')
+const exportUploaders = alias(users, 'export_uploaders')
 
 // 학생회 하나의 기간·편성 변경을 한 줄로 세운다. 그래서 겹침·이름·행사 중복을 미리 조회해도 다른 요청이 끼어들지 못한다.
 export async function lockBudget(tx: Transaction, organizationId: string) {
@@ -320,6 +328,65 @@ export function createBudgetService(db: BudgetDatabase) {
         }
         return planOf(tx, scope, periodId)
       })
+    },
+    // 결산서 자료. 한 시점의 값이 되도록 읽기 전용 REPEATABLE READ 거래 하나에서 읽는다.
+    // 지출은 3a 기준이다: 이 기간에 넣은 행사의 지출 전부(결제일과 상관없이)와, 결제일이 기간 안인 상시 운영 지출.
+    async exportData(scope: BudgetScope, periodId: string, publicOrigin: string): Promise<PeriodSheetData> {
+      return db.transaction(async tx => {
+        const period = await periodOf(tx, scope, periodId)
+        const numbers = await periodNumbers(tx, scope, period)
+        const incomeRows = await tx.select({ income: incomes, lineName: exportLines.name, recorderName: exportRecorders.name }).from(incomes)
+          .leftJoin(exportLines, and(eq(exportLines.id, incomes.budgetLineId), eq(exportLines.organizationId, incomes.organizationId)))
+          .innerJoin(exportRecorders, eq(exportRecorders.id, incomes.recordedBy))
+          .where(and(eq(incomes.organizationId, scope.organizationId), eq(incomes.periodId, periodId), isNull(incomes.voidedAt)))
+          .orderBy(asc(incomes.receivedOn), asc(incomes.createdAt), asc(incomes.id)).limit(EXPORT_LIMIT + 1)
+        if (incomeRows.length > EXPORT_LIMIT) throw new ApiError('EXPORT_TOO_LARGE', 409)
+        const eventIds = numbers.events.map(line => line.eventId)
+        const counted = or(eventIds.length ? inArray(expenses.eventId, eventIds) : undefined,
+          and(isNull(expenses.eventId), gte(expenses.paidOn, period.startsOn), lte(expenses.paidOn, period.endsOn)))
+        const expenseRows = await tx.select({ expense: expenses, eventName: events.name, lineName: exportLines.name, payerName: exportPayers.name,
+          recorderName: exportRecorders.name }).from(expenses)
+          .leftJoin(events, and(eq(events.id, expenses.eventId), eq(events.organizationId, expenses.organizationId)))
+          .leftJoin(exportLines, and(eq(exportLines.id, expenses.budgetLineId), eq(exportLines.organizationId, expenses.organizationId)))
+          .innerJoin(exportPayers, eq(exportPayers.id, expenses.payerId))
+          .innerJoin(exportRecorders, eq(exportRecorders.id, expenses.recordedBy))
+          .where(and(eq(expenses.organizationId, scope.organizationId), isNull(expenses.voidedAt), counted))
+          .orderBy(asc(expenses.paidOn), asc(expenses.createdAt), asc(expenses.id)).limit(EXPORT_LIMIT + 1)
+        if (expenseRows.length > EXPORT_LIMIT) throw new ApiError('EXPORT_TOO_LARGE', 409)
+        const ids = expenseRows.map(row => row.expense.id)
+        const receipts = ids.length ? await tx.select({ receipt: expenseReceipts, uploaderName: exportUploaders.name }).from(expenseReceipts)
+          .innerJoin(exportUploaders, eq(exportUploaders.id, expenseReceipts.uploadedBy))
+          .where(and(eq(expenseReceipts.organizationId, scope.organizationId), inArray(expenseReceipts.expenseId, ids), eq(expenseReceipts.status, 'ready')))
+          .orderBy(asc(expenseReceipts.createdAt), asc(expenseReceipts.id)) : []
+        const receiptsOf = new Map<string, typeof receipts>()
+        for (const entry of receipts) receiptsOf.set(entry.receipt.expenseId, [...receiptsOf.get(entry.receipt.expenseId) ?? [], entry])
+        const [voidedIncomes] = await tx.select({ count: sql<number>`count(*)::int` }).from(incomes)
+          .where(and(eq(incomes.organizationId, scope.organizationId), eq(incomes.periodId, periodId), isNotNull(incomes.voidedAt)))
+        const [voidedExpenses] = await tx.select({ count: sql<number>`count(*)::int` }).from(expenses)
+          .where(and(eq(expenses.organizationId, scope.organizationId), isNotNull(expenses.voidedAt), counted))
+        const [organization] = await tx.select({ name: organizations.name }).from(organizations).where(eq(organizations.id, scope.organizationId))
+        // 영수증 보기 주소. 로그인한 구성원이면 짧게 사는 서명 주소로 이동해 파일이 열린다(행사 정산서와 같다).
+        const fileUrl = (expenseId: string, receiptId: string) => new URL(`/api/organizations/${encodeURIComponent(scope.organizationId)}/expenses/${
+          encodeURIComponent(expenseId)}/receipts/${encodeURIComponent(receiptId)}/file`, publicOrigin).href
+        const lineOf = (row: typeof expenseRows[number]) => row.expense.eventId ? row.eventName ?? ''
+          : row.lineName ? `상시 운영 · ${row.lineName}` : '상시 운영'
+        return {
+          organizationName: organization?.name ?? '', period: { name: period.name, startsOn: period.startsOn, endsOn: period.endsOn }, exportedAt: new Date(),
+          incomeLines: numbers.incomes.map(({ name, amount, received }) => ({ name, amount, received })),
+          unassignedIncome: numbers.unassignedIncome,
+          eventLines: numbers.events.map(({ name, budget, spent, planned, plannedUnknown, remaining, settled }) =>
+            ({ name, budget, spent, planned, plannedUnknown, remaining, settled })),
+          operatingLines: numbers.operating.map(({ name, amount, spent, remaining }) => ({ name, amount, spent, remaining })),
+          unassigned: numbers.unassigned, totals: numbers.totals,
+          incomes: incomeRows.map(({ income, lineName, recorderName }) => ({ receivedOn: income.receivedOn, line: income.budgetLineId ? lineName : null,
+            description: income.description, amount: income.amount, note: income.note, recordedBy: recorderName })),
+          expenses: expenseRows.map(row => ({ paidOn: row.expense.paidOn, line: lineOf(row), vendor: row.expense.vendor, description: row.expense.description,
+            amount: row.expense.amount, method: row.expense.method, payer: row.payerName, note: row.expense.note, recordedBy: row.recorderName,
+            receipts: (receiptsOf.get(row.expense.id) ?? []).map(({ receipt, uploaderName }) => ({ kind: receipt.kind, fileName: receipt.fileName,
+              uploadedBy: uploaderName, uploadedAt: receipt.confirmedAt ?? receipt.createdAt, url: fileUrl(row.expense.id, receipt.id) })) })),
+          voided: { incomes: voidedIncomes!.count, expenses: voidedExpenses!.count },
+        }
+      }, { isolationLevel: 'repeatable read', accessMode: 'read only' })
     },
   }
 }

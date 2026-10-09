@@ -43,7 +43,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       deliveries: createDeliveryRoutes(db, session, {} as never),
       expenses: createExpenseRoutes(db, session),
       settlement: createSettlementRoutes(db, session, 'https://vada.test'),
-      budget: createBudgetRoutes(db, session),
+      budget: createBudgetRoutes(db, session, 'https://vada.test'),
       incomes: createIncomeRoutes(db, session),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
