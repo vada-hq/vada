@@ -349,6 +349,42 @@ erDiagram
 - 기간 날짜가 겹치지 않는 것과 이름·행사 중복은 학생회 단위 잠금 안에서 서버가 확인한다.
 - 운영 줄은 취소하지 않은 지출이 고르고 있으면 지우지 않는다.
 
+## 수입
+
+회계 기간마다 실제로 들어온 돈을 적고, 결산서로 내려받는다. 설계는 [M2-3b 실제 수입 기록과 결산서](superpowers/specs/2026-10-10-semester-settlement-design.md)에 있다.
+
+```mermaid
+erDiagram
+    budgetPeriods ||..o{ incomes : "기간의 수입"
+    budgetLines |o..o{ incomes : "수입 항목"
+    incomes ||..o{ incomeEvents : "처리 기록"
+    users ||..o{ incomes : "기록한 사람"
+
+    incomes["incomes"] {
+        text id PK
+        text period_id FK "속한 기간"
+        text budget_line_id FK "그 기간의 수입 줄, 비어 있을 수 있음"
+        text description "100자"
+        integer amount "1 이상"
+        date received_on "그 기간 안"
+        text note "200자, 비어 있을 수 있음"
+        integer version
+        timestamptz voided_at "취소, 사유와 함께"
+    }
+    incomeEvents["income_events"] {
+        text id PK
+        text income_id FK
+        text actor_id FK
+        text action "created / updated / voided"
+        jsonb changes
+    }
+```
+
+- 수입은 통장에 들어온 돈 한 건이고 기간 하나에 속한다. 받은 날이 그 기간 안인지, 수입 항목이 그 기간의 수입 줄인지는 서버가 확인한다.
+- 지우지 않고 취소로 남긴다. 취소한 수입은 합계와 결산서에서 빠진다.
+- 수입 줄은 취소하지 않은 수입이 고르고 있으면 지우지 않는다. 기간 날짜를 바꿀 때 이 기간의 수입이 밖으로 나가면 막는다.
+- 남은 돈은 실제 수입 − 실제 지출이다. 결산서는 이 숫자와 수입·지출 내역(잔액 포함)을 시트로 낸다.
+
 ## 배송 추적
 
 배송 상태는 품목의 승인 상태와 독립적이다. 송장을 연결하면 구매함 표시가 붙는다. 스키마·마이그레이션, [등록·조회 API](delivery-api.md), [자동 갱신 실행기](delivery-worker.md)를 작성했다. Neon 반영, 실제 외부 연결 검증, 화면 연결·배포는 별도 단계다.
