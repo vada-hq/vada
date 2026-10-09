@@ -16,6 +16,7 @@ import { createCallbackAddress, createDeliveryWebhook } from '../deliveries/webh
 import { createExpenseRoutes } from '../expenses/routes.js'
 import { createSettlementRoutes } from '../settlement/routes.js'
 import { createBudgetRoutes } from '../budget/routes.js'
+import { createIncomeRoutes } from '../incomes/routes.js'
 import { json } from './validate.js'
 
 // 공통 가드(/api/organizations/*) 밖의 변경 라우트. 새 항목은 가드를 대신할 자체 검사가 있어야 한다.
@@ -43,6 +44,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       expenses: createExpenseRoutes(db, session),
       settlement: createSettlementRoutes(db, session, 'https://vada.test'),
       budget: createBudgetRoutes(db, session),
+      incomes: createIncomeRoutes(db, session),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
