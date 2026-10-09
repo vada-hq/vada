@@ -261,6 +261,49 @@ erDiagram
 - `expense_receipts`: 파일은 비공개 R2 버킷에 있고 서명 주소로만 올리고 연다. 확인(HEAD)을 통과한 ready 파일만 증빙으로 센다.
 - `expense_events`: 기록·수정(바뀐 칸)·취소·증빙 추가·삭제를 남기고 고치지 않는다.
 
+## 행사 재정
+
+행사마다 예산과 정산 상태를 둔다. 설계는 [M2-2 행사 예산·정산·결산 엑셀](superpowers/specs/2026-10-09-event-settlement-design.md)에 있다.
+
+```mermaid
+erDiagram
+    events ||..o| eventFinances : "예산·정산 상태"
+    events ||..o{ eventFinanceEvents : "처리 기록"
+    users |o..o{ eventFinances : "정산한 사람"
+    users ||..o{ eventFinanceEvents : "처리한 사람"
+
+    eventFinances["event_finances"] {
+        text event_id PK, FK
+        text organization_id FK
+        integer budget "null이면 미정"
+        timestamptz settled_at "정산 완료, 처리자와 같이"
+        text settled_by FK
+        integer version
+    }
+    eventFinanceEvents["event_finance_events"] {
+        text id PK
+        text event_id FK
+        text actor_id FK
+        text action "budget_set / settled / reopened"
+        jsonb changes
+        text reason "다시 열 때만, 200자"
+    }
+```
+
+- `event_finances`: 예산을 정하거나 정산할 때 생긴다. 행이 없으면 예산 미정·정산 전이다.
+- 정산 조건: 증빙 누락, 검토 대기 요청, 지출로 기록하지 않은 승인 품목이 모두 0이어야 한다.
+- 정산된 행사에서 막는 것:
+  - 지출 기록·수정·취소
+  - 증빙 삭제
+  - 예산 변경
+  - 구매 요청 제출
+
+  증빙 추가는 된다.
+- `event_finance_events`: 아래를 남기고 고치지 않는다.
+  - 예산 변경(이전·이후)
+  - 정산(그때의 예산·실제 지출·지출 건수)
+  - 다시 열기(사유)
+
 ## 배송 추적
 
 배송 상태는 품목의 승인 상태와 독립적이다. 송장을 연결하면 구매함 표시가 붙는다. 스키마·마이그레이션, [등록·조회 API](delivery-api.md), [자동 갱신 실행기](delivery-worker.md)를 작성했다. Neon 반영, 실제 외부 연결 검증, 화면 연결·배포는 별도 단계다.
