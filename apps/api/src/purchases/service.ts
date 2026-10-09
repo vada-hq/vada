@@ -100,7 +100,9 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
           if (characters + message.content.length > 20000) break
           bounded.push(message); characters += message.content.length
         }
-        const draftInput: DraftInput = { eventName: event.name, links,
+        // Task 6에서 후보의 저장된 조회 결과로 바꾼다.
+        const products = links.map(() => ({ name: null, price: null, snapshot: null, fetchedAt: null, warning: null }))
+        const draftInput: DraftInput = { eventName: event.name, links, products,
           messages: bounded.reverse().map(message => ({ ...message, createdAt: message.createdAt.toISOString() })) }
         let draft: GeneratedDraft
         try { draft = await generate(draftInput); validateDraft(draft, draftInput) }

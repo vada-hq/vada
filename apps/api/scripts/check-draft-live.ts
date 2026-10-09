@@ -1,4 +1,5 @@
 import { createDraftGenerator } from '../src/purchases/generation.js'
+import { createReefFetcher, lookupFor } from '../src/purchases/products.js'
 
 // 명시적으로 실행할 때만 외부 유료 API를 호출한다. DB·실제 사용자 대화는 사용하지 않는다.
 async function main() {
@@ -12,11 +13,15 @@ async function main() {
     console.log(JSON.stringify({ provider: String(url).includes('reefapi.com') ? 'reef' : 'openai', status: response.status }))
     return response
   }
-  const generate = createDraftGenerator({ apiKey: process.env.OPENAI_API_KEY,
-    model: process.env.OPENAI_MODEL, reefApiKey: process.env.REEF_API_KEY }, fetcher)
+  const link = { productId: '7746622155', itemId: '20782129073', vendorItemId: '91657444188' }
+  const fetched = await createReefFetcher(process.env.REEF_API_KEY, fetcher)(link.productId)
+  const product = fetched.ok ? { status: 'ready' as const, items: fetched.items, fetchedAt: new Date(), errorCode: null }
+    : { status: 'failed' as const, items: [], fetchedAt: null, errorCode: fetched.code }
+  const generate = createDraftGenerator({ apiKey: process.env.OPENAI_API_KEY, model: process.env.OPENAI_MODEL }, fetcher)
   const draft = await generate({
     eventName: '구매 초안 연결 검증',
-    links: ['https://www.coupang.com/vp/products/7746622155?itemId=20782129073&vendorItemId=91657444188'],
+    links: [`https://www.coupang.com/vp/products/${link.productId}?itemId=${link.itemId}&vendorItemId=${link.vendorItemId}`],
+    products: [lookupFor(product, link)],
     messages: [{ id: 'live-check-message', createdAt: '2026-09-29T00:00:00.000Z',
       content: '2026년 10월 10일 학생회 행사 접수용으로 오브민 접이식 베드테이블 무광화이트 640 x 320 x 250mm 2개를 구매하자. 2026년 10월 9일까지 필요해.' }],
   })

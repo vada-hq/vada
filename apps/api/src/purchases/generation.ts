@@ -1,10 +1,12 @@
 import { GeneratedPurchaseItemSchema, type GeneratedPurchaseItemFields } from '@vada/contracts'
-import { readProduct } from './products.js'
+import type { ProductLookup } from './products.js'
 import { object, PurchaseError, text } from './validation.js'
 
 export interface DraftInput {
   eventName: string
   links: string[]
+  // links와 같은 순서의 조회 결과. 가격·상품 정보는 이 값만 쓴다.
+  products: ProductLookup[]
   messages: { id: string; content: string; createdAt: string }[]
 }
 // 링크 하나로 만든 작성 중 품목. 가격과 상품 정보는 끼룩이가 아니라 조회값이다.
@@ -37,19 +39,19 @@ const schema = {
 }
 
 export function validateDraft(draft: GeneratedDraft, input: DraftInput) {
-  if (draft.items.length !== input.links.length || draft.items.some((item, index) => item.productUrl !== input.links[index]
+  if (draft.items.length !== input.links.length || input.products.length !== input.links.length || draft.items.some((item, index) => item.productUrl !== input.links[index]
     || new Set(item.sourceMessageIds).size !== item.sourceMessageIds.length
     || item.sourceMessageIds.some(id => !input.messages.some(message => message.id === id)))) throw new PurchaseError('GENERATION_FAILED', 502)
 }
 
 export function createDraftGenerator(
-  config: { apiKey?: string; model?: string; reefApiKey?: string },
+  config: { apiKey?: string; model?: string },
   fetcher: typeof fetch = fetch,
 ): DraftGenerator {
   return async input => {
     if (!config.apiKey?.trim() || !config.model?.trim()) throw new PurchaseError('AI_NOT_CONFIGURED', 503)
     try {
-      const products = await Promise.all(input.links.map(link => readProduct(link, config.reefApiKey, fetcher)))
+      const products = input.products
       const response = await fetcher('https://api.openai.com/v1/responses', {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(60000),
         headers: { Authorization: `Bearer ${config.apiKey}`, 'Content-Type': 'application/json' },

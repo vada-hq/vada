@@ -39,7 +39,6 @@ function main() {
   const generate = createDraftGenerator({
     apiKey: env.OPENAI_API_KEY,
     model: env.OPENAI_MODEL,
-    reefApiKey: env.REEF_API_KEY,
   })
   const purchases = createPurchaseRoutes(db, (headers) => auth.api.getSession({ headers }), generate)
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
