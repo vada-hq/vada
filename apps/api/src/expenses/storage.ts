@@ -43,7 +43,8 @@ export function createR2Storage(config: R2Config, fetcher: typeof fetch = fetch,
     async downloadUrl(key, fileName, contentType) {
       const url = objectUrl(key)
       url.searchParams.set('response-content-type', contentType)
-      url.searchParams.set('response-content-disposition', `inline; filename*=UTF-8''${encodeURIComponent(fileName)}`)
+      // 공백을 넣지 않는다. 주소에서 +로 나가면 저장소가 서명할 때와 다른 값으로 읽을 수 있다.
+      url.searchParams.set('response-content-disposition', `inline;filename*=UTF-8''${encodeURIComponent(fileName)}`)
       return presign('GET', url, DOWNLOAD_SECONDS)
     },
     async head(key) {

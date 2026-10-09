@@ -20,12 +20,15 @@ test('올리기 주소는 버킷 경로·10분 만료·형식 서명을 담고, 
   assert.equal(upload.expiresAt.toISOString(), '2026-10-09T05:10:00.000Z')
   assert.ok(!upload.url.includes('secret-value'))
   const name = '체육대회 영수증 (1).jpg'
-  const download = new URL(await storage.downloadUrl('receipts/a/e1/r1', name, 'image/jpeg'))
+  const signed = await storage.downloadUrl('receipts/a/e1/r1', name, 'image/jpeg')
+  // 공백이 주소에서 +로 나가면 저장소가 서명할 때와 다른 값으로 읽을 수 있다.
+  assert.ok(!signed.includes('+'), signed)
+  const download = new URL(signed)
   assert.equal(download.pathname, '/vada-receipts/receipts/a/e1/r1')
   assert.equal(download.searchParams.get('X-Amz-Expires'), '300')
   assert.equal(download.searchParams.get('X-Amz-SignedHeaders'), 'host')
   assert.equal(download.searchParams.get('response-content-type'), 'image/jpeg')
-  assert.equal(download.searchParams.get('response-content-disposition'), `inline; filename*=UTF-8''${encodeURIComponent(name)}`)
+  assert.equal(download.searchParams.get('response-content-disposition'), `inline;filename*=UTF-8''${encodeURIComponent(name)}`)
 })
 
 test('HEAD는 크기·형식을 읽고 404는 없음으로 본다. DELETE의 404는 지운 것으로 본다', async () => {
