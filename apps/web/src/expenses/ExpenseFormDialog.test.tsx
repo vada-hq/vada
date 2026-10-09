@@ -90,3 +90,16 @@ test('저장하지 못하면 대화상자 안에 알린다', async () => {
   fireEvent.click(within(dialog).getByRole('button', { name: '기록' }))
   expect(await within(dialog).findByText('결제한 사람을 학생회 구성원 중에서 골라 주세요.')).toBeTruthy()
 })
+
+test('행사를 미리 고르면 그 행사의 품목만 보여 준다', async () => {
+  const api = mockApi()
+  api.on('GET', '/api/organizations/o/members', () => json(members))
+  api.on('GET', '/api/organizations/o/purchase-review/linkable-items', () => json({ items: [
+    expenseItem({ id: 'i2', productName: '생수' }), expenseItem({ id: 'i3', productName: '현수막', event: { id: 'e2', name: '축제' } })], truncated: false }))
+  render(<ExpenseFormDialog organizationId="o" viewerMembershipId="mf" events={[event(), event('e2')]} initialEventId="e2" open expense={null}
+    onClose={() => {}} onSubmit={vi.fn()} onSaved={vi.fn()} />)
+  const dialog = await screen.findByRole('dialog', { name: '지출 기록' })
+  expect((within(dialog).getByLabelText('행사') as HTMLSelectElement).value).toBe('e2')
+  expect(await within(dialog).findByText(/^현수막 · /)).toBeTruthy()
+  expect(within(dialog).queryByText(/^생수 · /)).toBeNull()
+})

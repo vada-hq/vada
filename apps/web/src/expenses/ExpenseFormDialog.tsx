@@ -19,6 +19,8 @@ type Props = {
   organizationId: string
   viewerMembershipId: string
   events: EventSummary[]
+  // 행사 재정 탭에서 열면 그 행사를 미리 고른다.
+  initialEventId?: string
   open: boolean
   // 있으면 수정, 없으면 새 기록이다.
   expense: ExpenseDetail | null
@@ -38,8 +40,8 @@ const itemText = (item: ExpenseItem) => [productNameOf(item), item.quantity === 
   ...(item.quantity !== null && item.estimatedUnitPrice !== null ? [`예상 ${won(item.quantity * item.estimatedUnitPrice)}`] : []),
   item.requester.name].join(' · ')
 
-function Form({ organizationId, viewerMembershipId, events, expense, onClose, onSubmit, onSaved }: Omit<Props, 'open'>) {
-  const [eventId, setEventId] = useState(expense?.event?.id ?? '')
+function Form({ organizationId, viewerMembershipId, events, initialEventId, expense, onClose, onSubmit, onSaved }: Omit<Props, 'open'>) {
+  const [eventId, setEventId] = useState(expense?.event?.id ?? initialEventId ?? '')
   const [vendor, setVendor] = useState(expense?.vendor ?? '')
   const [description, setDescription] = useState(expense?.description ?? '')
   const [paidOn, setPaidOn] = useState(expense?.paidOn ?? todayInSeoul())
