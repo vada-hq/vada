@@ -1,12 +1,12 @@
 import { randomUUID } from 'node:crypto'
-import { and, asc, desc, eq, gte, inArray, isNotNull, isNull, lte, ne, notExists, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_PERIODS_MAX, type BudgetPeriodAction, type BudgetPeriodsResponse,
-  type BudgetPlanResponse, type CreateBudgetPeriodRequest } from '@vada/contracts'
+import { BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_PERIODS_MAX, type BudgetChange, type BudgetPeriodAction, type BudgetPeriodsResponse,
+  type BudgetPlanResponse, type CreateBudgetPeriodRequest, type SaveBudgetPlanRequest } from '@vada/contracts'
 import { budgetLines, budgetPeriodEvents, budgetPeriods, eventFinances, events, expenses, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
-import { financeNumbersByEvent } from '../settlement/service.js'
+import { changeEventBudget, financeNumbersByEvent } from '../settlement/service.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
 export type BudgetDatabase = Pick<Db, 'select' | 'insert' | 'update' | 'delete' | 'transaction'>
@@ -130,6 +130,96 @@ export async function planOf(db: Reader, scope: BudgetScope, periodId: string): 
   }
 }
 
+type Line = typeof budgetLines.$inferSelect
+type LineInput = SaveBudgetPlanRequest['incomes'][number]
+
+// 수입·운영 줄을 보낸 목록대로 맞춘다. 보내지 않은 기존 줄은 지운다.
+// 운영 줄은 취소하지 않은 지출이 고른 것이면 지우지 않고, 취소한 지출에 남은 항목 표시는 함께 지운다(기록 시각은 그대로 둔다).
+async function applyLines(tx: Transaction, scope: BudgetScope, periodId: string, kind: 'income' | 'operating', existing: Line[], input: LineInput[]) {
+  const current = existing.filter(line => line.kind === kind)
+  const kept = new Set(input.flatMap(entry => entry.id === null ? [] : [entry.id]))
+  if ([...kept].some(id => !current.some(line => line.id === id))) throw new ApiError('NOT_FOUND', 404)
+  const removed = current.filter(line => !kept.has(line.id))
+  const changes: BudgetChange[] = []
+  if (removed.length) {
+    const ids = removed.map(line => line.id)
+    if (kind === 'operating') {
+      const [used] = await tx.select({ count: sql<number>`count(*)::int` }).from(expenses)
+        .where(and(eq(expenses.organizationId, scope.organizationId), inArray(expenses.budgetLineId, ids), isNull(expenses.voidedAt)))
+      if (used!.count) throw new ApiError('LINE_IN_USE', 409)
+      await tx.update(expenses).set({ budgetLineId: null, updatedAt: sql`${expenses.updatedAt}` })
+        .where(and(eq(expenses.organizationId, scope.organizationId), inArray(expenses.budgetLineId, ids)))
+    }
+    await tx.delete(budgetLines).where(inArray(budgetLines.id, ids))
+  }
+  for (const [position, entry] of input.entries()) {
+    const before = current.find(line => line.id === entry.id)
+    if (!before) {
+      await tx.insert(budgetLines).values({ id: randomUUID(), organizationId: scope.organizationId, periodId, kind, name: entry.name, amount: entry.amount,
+        position })
+      changes.push({ group: kind, action: 'added', name: entry.name, to: entry.amount })
+      continue
+    }
+    const edited = before.name !== entry.name || before.amount !== entry.amount
+    if (edited || before.position !== position) {
+      await tx.update(budgetLines).set({ name: entry.name, amount: entry.amount, position }).where(eq(budgetLines.id, before.id))
+    }
+    if (edited) changes.push({ group: kind, action: 'changed', name: entry.name, ...(before.name === entry.name ? {} : { previousName: before.name! }),
+      from: before.amount, to: entry.amount })
+  }
+  for (const line of removed) changes.push({ group: kind, action: 'removed', name: line.name!, from: line.amount })
+  return changes
+}
+
+// 행사 줄을 보낸 목록대로 맞춘다. 다른 기간에 넣은 행사는 받지 않는다.
+// 예산이 바뀐 행사만 행사 재정의 버전을 보고 바꾼다(M2-2와 같은 잠금·기록). 교착을 피하려고 행사 ID 순으로 잠근다.
+async function applyEvents(tx: Transaction, scope: BudgetScope, periodId: string, existing: Line[], input: SaveBudgetPlanRequest['events']) {
+  const current = existing.filter(line => line.kind === 'event')
+  const wanted = new Set(input.map(entry => entry.eventId))
+  const involved = [...new Set([...wanted, ...current.map(line => line.eventId!)])]
+  const named = involved.length ? await tx.select({ id: events.id, name: events.name }).from(events)
+    .where(and(eq(events.organizationId, scope.organizationId), inArray(events.id, involved))) : []
+  if (named.length !== involved.length) throw new ApiError('NOT_FOUND', 404)
+  const nameOf = (eventId: string) => named.find(row => row.id === eventId)!.name
+  const added = input.filter(entry => !current.some(line => line.eventId === entry.eventId))
+  if (added.length) {
+    const [taken] = await tx.select({ id: budgetLines.id }).from(budgetLines)
+      .where(and(eq(budgetLines.organizationId, scope.organizationId), inArray(budgetLines.eventId, added.map(entry => entry.eventId)))).limit(1)
+    if (taken) throw new ApiError('EVENT_IN_OTHER_PERIOD', 409)
+  }
+  const before = await financeRows(tx, scope, involved)
+  const budgetOf = (eventId: string) => before.get(eventId)?.budget ?? null
+  const removed = current.filter(line => !wanted.has(line.eventId!))
+  if (removed.length) await tx.delete(budgetLines).where(inArray(budgetLines.id, removed.map(line => line.id)))
+  for (const entry of [...input].sort((a, b) => (a.eventId < b.eventId ? -1 : 1))) {
+    if (budgetOf(entry.eventId) !== entry.budget) await changeEventBudget(tx, scope, entry.eventId, entry.version, entry.budget)
+  }
+  const changes: BudgetChange[] = []
+  for (const [position, entry] of input.entries()) {
+    const line = current.find(item => item.eventId === entry.eventId)
+    if (!line) {
+      await tx.insert(budgetLines).values({ id: randomUUID(), organizationId: scope.organizationId, periodId, kind: 'event', eventId: entry.eventId, position })
+      changes.push({ group: 'event', action: 'added', name: nameOf(entry.eventId), to: entry.budget })
+      continue
+    }
+    if (line.position !== position) await tx.update(budgetLines).set({ position }).where(eq(budgetLines.id, line.id))
+    if (budgetOf(entry.eventId) !== entry.budget) {
+      changes.push({ group: 'event', action: 'changed', name: nameOf(entry.eventId), from: budgetOf(entry.eventId), to: entry.budget })
+    }
+  }
+  for (const line of removed) changes.push({ group: 'event', action: 'removed', name: nameOf(line.eventId!), from: budgetOf(line.eventId!) })
+  return changes
+}
+
+// 날짜를 바꿀 때: 이 기간의 운영 항목을 고른 지출(취소하지 않은 것)은 결제일이 새 기간 안이어야 한다.
+async function assertExpensesInside(tx: Transaction, scope: BudgetScope, periodId: string, input: { startsOn: string; endsOn: string }) {
+  const [outside] = await tx.select({ id: expenses.id }).from(expenses)
+    .innerJoin(budgetLines, and(eq(budgetLines.id, expenses.budgetLineId), eq(budgetLines.organizationId, expenses.organizationId)))
+    .where(and(eq(expenses.organizationId, scope.organizationId), eq(budgetLines.periodId, periodId), isNull(expenses.voidedAt),
+      or(lt(expenses.paidOn, input.startsOn), gt(expenses.paidOn, input.endsOn)))).limit(1)
+  if (outside) throw new ApiError('EXPENSES_OUTSIDE_PERIOD', 409)
+}
+
 export function createBudgetService(db: BudgetDatabase) {
   return {
     // 시작일이 늦은 순. 기간마다 운영 줄 이름을 붙인다(지출 대화상자의 운영 항목 고르기).
@@ -154,6 +244,35 @@ export function createBudgetService(db: BudgetDatabase) {
           endsOn: input.endsOn, createdBy: scope.userId })
         await recordPeriod(tx, scope, id, 'created', { name: input.name, startsOn: input.startsOn, endsOn: input.endsOn })
         return planOf(tx, scope, id)
+      })
+    },
+    // 편성 전체를 보낸 대로 맞춘다. 바뀐 것이 없으면 버전과 기록을 그대로 둔다.
+    async savePlan(scope: BudgetScope, periodId: string, input: SaveBudgetPlanRequest): Promise<BudgetPlanResponse> {
+      return db.transaction(async tx => {
+        await requireFinance(tx, scope, true)
+        await lockBudget(tx, scope.organizationId)
+        const period = await periodOf(tx, scope, periodId, true)
+        if (period.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
+        const changes: Record<string, unknown> = {}
+        for (const key of ['name', 'startsOn', 'endsOn'] as const) {
+          if (period[key] !== input[key]) changes[key] = { from: period[key], to: input[key] }
+        }
+        if (Object.keys(changes).length) await assertPeriodFree(tx, scope, input, periodId)
+        const existing = await tx.select().from(budgetLines)
+          .where(and(eq(budgetLines.organizationId, scope.organizationId), eq(budgetLines.periodId, periodId)))
+        const lines = [
+          ...await applyLines(tx, scope, periodId, 'income', existing, input.incomes),
+          ...await applyLines(tx, scope, periodId, 'operating', existing, input.operating),
+          ...await applyEvents(tx, scope, periodId, existing, input.events),
+        ]
+        if (changes.startsOn || changes.endsOn) await assertExpensesInside(tx, scope, periodId, input)
+        if (lines.length) changes.lines = lines
+        if (Object.keys(changes).length) {
+          await tx.update(budgetPeriods).set({ name: input.name, startsOn: input.startsOn, endsOn: input.endsOn,
+            version: sql`${budgetPeriods.version} + 1` }).where(eq(budgetPeriods.id, periodId))
+          await recordPeriod(tx, scope, periodId, 'updated', changes)
+        }
+        return planOf(tx, scope, periodId)
       })
     },
   }
