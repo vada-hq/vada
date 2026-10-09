@@ -16,7 +16,7 @@ export interface ReviewScope { organizationId: string; userId: string }
 const REVIEW_LIMIT = 300
 
 // 재정 권한을 DB에서 다시 확인한다. 변경 중에는 부서 변경과 겹치지 않게 잠근다.
-async function requireFinance(db: Reader, scope: ReviewScope, lock = false) {
+export async function requireFinance(db: Reader, scope: ReviewScope, lock = false) {
   const query = db.select({ id: memberships.id }).from(memberships)
     .innerJoin(departments, and(eq(memberships.departmentId, departments.id), eq(memberships.organizationId, departments.organizationId)))
     .where(and(eq(memberships.userId, scope.userId), eq(memberships.organizationId, scope.organizationId), approvesPurchases))

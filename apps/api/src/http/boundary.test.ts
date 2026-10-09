@@ -13,6 +13,7 @@ import { createChatRoutes } from '../chat/chat.js'
 import { createPurchaseRoutes } from '../purchases/purchases.js'
 import { createDeliveryRoutes } from '../deliveries/routes.js'
 import { createCallbackAddress, createDeliveryWebhook } from '../deliveries/webhook.js'
+import { createExpenseRoutes } from '../expenses/routes.js'
 import { json } from './validate.js'
 
 // 공통 가드(/api/organizations/*) 밖의 변경 라우트. 새 항목은 가드를 대신할 자체 검사가 있어야 한다.
@@ -37,6 +38,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       chat: createChatRoutes(db, session),
       purchases: createPurchaseRoutes(db, session, async () => { throw new Error('unused') }),
       deliveries: createDeliveryRoutes(db, session, {} as never),
+      expenses: createExpenseRoutes(db, session),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })

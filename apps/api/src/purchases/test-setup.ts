@@ -5,6 +5,8 @@ import { parseCoupangLinks, type PurchaseItemSummary, type PurchaseItemsResponse
 import { createApp } from '../app.js'
 import type { CoupangItem } from '../db/schema.js'
 import { migrationsFolder } from '../db/test-migrations.js'
+import { createExpenseRoutes } from '../expenses/routes.js'
+import type { ReceiptStorage, StoredObject } from '../expenses/storage.js'
 import { recordMessageLinks } from './candidates.js'
 import type { DraftGenerator, GeneratedItem } from './generation.js'
 import type { FetchResult, ProductFetcher } from './products.js'
@@ -24,10 +26,25 @@ export const lookedUp = (productId: string, price = 11590): FetchResult => {
     discountPercent: null, inStock: true, deliveryEta: null, imageUrl: null }] }
 }
 export const refs = (items: PurchaseItemSummary[]) => items.map(({ id, version }) => ({ id, version }))
+// 영수증 저장소 가짜. 올라간 파일은 put으로 흉내 내고, 지운 경로를 남긴다.
+export function fakeStorage() {
+  const objects = new Map<string, StoredObject>()
+  const removed: string[] = []
+  const storage: ReceiptStorage = {
+    async uploadUrl(key, contentType) {
+      return { url: `https://r2.test/${key}`, headers: { 'Content-Type': contentType }, expiresAt: new Date(Date.now() + 600_000) }
+    },
+    async downloadUrl(key) { return `https://r2.test/${key}?signed=1` },
+    async head(key) { return objects.get(key) ?? null },
+    async remove(key) { removed.push(key); objects.delete(key) },
+  }
+  return { storage, removed, put: (key: string, size: number, contentType: string) => { objects.set(key, { size, contentType }) } }
+}
+export type FakeStorage = ReturnType<typeof fakeStorage>
 
 // 학생회 a: 기획부 p·q, 총무부(구매 승인) f, 회장단 l, 미배정 n. 학생회 b: x.
 // migrations를 주면 그 폴더의 마이그레이션까지만 적용한다(배포 구간 확인용).
-export async function setupPurchases(migrations = migrationsFolder) {
+export async function setupPurchases(migrations = migrationsFolder, { storage = fakeStorage() }: { storage?: FakeStorage | null } = {}) {
   const pg = new PGlite()
   const db = drizzle(pg)
   await migrate(db, { migrationsFolder: migrations })
@@ -46,10 +63,12 @@ export async function setupPurchases(migrations = migrationsFolder) {
   const state = { userId: 'p' as string | null, calls: 0, lookups: 0,
     generate: (async input => ({ items: input.links.map(url => generated(url)) })) as DraftGenerator,
     fetch: (async productId => lookedUp(productId)) as ProductFetcher }
-  const routes = createPurchaseRoutes(db, async () => state.userId ? { user: { id: state.userId } } : null,
+  const session = async () => state.userId ? { user: { id: state.userId } } : null
+  const routes = createPurchaseRoutes(db, session,
     async input => { state.calls++; return state.generate(input) },
     async (productId, timeoutMs) => { state.lookups++; return state.fetch(productId, timeoutMs) })
-  const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, purchases: routes })
+  const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, purchases: routes,
+    expenses: createExpenseRoutes(db, session, storage?.storage) })
   const request = (method: string, path: string, body?: unknown) => app.request(`/api/organizations/a${path}`, body === undefined
     ? { method } : { method, headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   async function ok<T = PurchaseItemsResponse>(pending: Response | Promise<Response>, status = 200): Promise<T> {
@@ -83,5 +102,5 @@ export async function setupPurchases(migrations = migrationsFolder) {
     const created = await drafts(links, event)
     return (await ok(request('POST', `/events/${event}/purchase-items/submit`, { items: refs(created) }))).items
   }
-  return { pg, db, state, request, ok, drafts, submitted, share, ready, candidateOf, as: (userId: string | null) => { state.userId = userId } }
+  return { pg, db, state, storage, request, ok, drafts, submitted, share, ready, candidateOf, as: (userId: string | null) => { state.userId = userId } }
 }
