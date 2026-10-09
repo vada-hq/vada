@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { ExpenseAction } from '@vada/contracts'
-import { comparisonText, dayText, fitFileName, groupByMonth, historyText } from './expense-view'
+import { comparisonText, dayText, expenseMessage, fitFileName, groupByMonth, historyText } from './expense-view'
 
 test('결제일·달 묶음·승인 금액 비교 문구', () => {
   expect(dayText('2026-10-09')).toBe('10.9')
@@ -28,4 +28,8 @@ test('긴 파일 이름은 확장자를 남기고 줄인다', () => {
   expect(fitFileName(`${'가'.repeat(250)}.jpeg`, 200)).toBe(`${'가'.repeat(195)}.jpeg`)
   expect(fitFileName('😀'.repeat(300), 200)).toBe('😀'.repeat(200))
   expect(fitFileName('   ', 200)).toBe('증빙')
+})
+
+test('정산된 행사의 지출을 바꾸려 하면 다시 열라고 안내한다', () => {
+  expect(expenseMessage('EVENT_SETTLED')).toBe('정산이 끝난 행사라 바꿀 수 없어요. 행사 재정 탭에서 정산을 다시 연 뒤 해 주세요.')
 })

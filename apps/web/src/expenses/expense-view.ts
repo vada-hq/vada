@@ -77,6 +77,7 @@ export const expenseErrors: Record<string, string> = {
   RECEIPT_LIMIT: `증빙은 지출 하나에 ${RECEIPTS_PER_EXPENSE_MAX}개까지 올릴 수 있어요.`,
   UPLOAD_MISMATCH: '파일이 제대로 올라가지 않았어요. 다시 올려 주세요.',
   STORAGE_NOT_CONFIGURED: '영수증 저장소가 아직 준비되지 않았어요.',
+  EVENT_SETTLED: '정산이 끝난 행사라 바꿀 수 없어요. 행사 재정 탭에서 정산을 다시 연 뒤 해 주세요.',
   INVALID_INPUT: '입력값을 확인해 주세요.',
 }
 export const expenseFailure = '처리하지 못했어요. 다시 시도해 주세요.'

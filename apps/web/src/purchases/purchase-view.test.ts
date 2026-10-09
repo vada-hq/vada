@@ -2,7 +2,7 @@ import { expect, test } from 'vitest'
 import type { PurchaseItemHistoryEntry } from '@vada/contracts'
 import { candidate, item, shipment } from './purchase-fixtures'
 import { actionText, addDays, candidateName, candidatePrice, groupBySubmission, hiddenText, missingFields, neededByText, progressOf, requestText,
-  sectionOf, shareText, shortDay, todayInSeoul, totalOf } from './purchase-view'
+  messageOf, sectionOf, shareText, shortDay, todayInSeoul, totalOf } from './purchase-view'
 
 test('진행 단계는 상태와 구매함·배송·수령 표시로 정한다', () => {
   expect(progressOf(item({ status: 'pending' }))).toEqual({ label: '대기', tone: 'info' })
@@ -59,4 +59,8 @@ test('후보 문구: 조회 날짜·공유·숨김 시각은 한국 시간으로
   expect(candidatePrice(candidate({ product: { ...candidate().product!, price: null } }))).toBe('금액 확인 필요 · 10/9 기준')
   expect(candidateName(candidate({ product: null, lookup: 'pending' }))).toBe('상품 정보를 불러오는 중…')
   expect(candidateName(candidate({ product: null, lookup: 'failed' }))).toBe('상품 정보를 가져오지 못했어요. 쿠팡에서 확인해 주세요.')
+})
+
+test('정산된 행사에 구매 요청을 내면 재정부에 다시 열어 달라고 안내한다', () => {
+  expect(messageOf('EVENT_SETTLED')).toBe('정산이 끝난 행사예요. 재정부에 정산을 다시 열어 달라고 해 주세요.')
 })

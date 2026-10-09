@@ -117,6 +117,7 @@ export const purchaseErrors: Record<string, string> = {
   IDEMPOTENCY_CONFLICT: '입력이 바뀌었어요. 담기를 다시 눌러 주세요.',
   GENERATION_FAILED: '끼룩이가 품목을 만들지 못했어요. 다시 시도해 주세요.',
   AI_NOT_CONFIGURED: '끼룩이 설정이 아직 안 됐어요. 관리자에게 알려 주세요.',
+  EVENT_SETTLED: '정산이 끝난 행사예요. 재정부에 정산을 다시 열어 달라고 해 주세요.',
   FORBIDDEN: '권한이 없어요. 소속을 확인해 주세요.',
   INVALID_INPUT: '입력값을 확인해 주세요.',
 }
