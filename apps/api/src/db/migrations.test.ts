@@ -715,7 +715,8 @@ test('0016 adds event finances without touching expenses', async (t) => {
     }
 
     await t.test('existing expenses keep their values', async () => {
-      assert.deepEqual((await pg.query<Record<string, unknown>>('SELECT * FROM expenses')).rows, before)
+      // 0017이 더한 칸(budget_line_id)은 빼고 원래 칸만 비교한다.
+      assert.deepEqual(sameColumns((await pg.query<Record<string, unknown>>('SELECT * FROM expenses')).rows, before), before)
     })
     await t.test('a budget is zero or more, who and when settle together, and the event is in the same council', async () => {
       await finance({ budget: '0', settled_at: 'now()', settled_by: "'u'" })
@@ -748,6 +749,89 @@ test('0016 adds event finances without touching expenses', async (t) => {
       for (const [id, action, reason, constraint] of cases) await assert.rejects(entry(id, action, reason), { constraint }, constraint)
       await assert.rejects(entry('h9', 'settled', 'NULL', "'[]'"), { constraint: 'event_finance_events_changes_object' })
       await assert.rejects(entry('h10', 'settled', 'NULL', "'{}'", 'e2'), { constraint: 'event_finance_events_event_same_organization' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})
+
+test('0017 adds budget plans and an optional operating line on expenses', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0017_budget_plan')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','재정','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u'),('e2','o2','남의 행사','u');
+      INSERT INTO expenses (id,organization_id,event_id,vendor,description,amount,paid_on,method,payer_id,recorded_by)
+        VALUES ('x','o','e','쿠팡','물품',1000,'2026-10-09','council_card','u','u'),('y','o',NULL,'다이소','다과',500,'2026-10-09','cash','u','u');
+    `)
+    const before = (await pg.query<Record<string, unknown>>('SELECT * FROM expenses ORDER BY id')).rows
+    await migrate(db, { migrationsFolder })
+    const insert = (table: string, values: Record<string, string>) =>
+      pg.exec(`INSERT INTO ${table} (${Object.keys(values).join(',')}) VALUES (${Object.values(values).join(',')})`)
+    const period = (id: string, change: Record<string, string> = {}) => insert('budget_periods', { id: `'${id}'`, organization_id: "'o'",
+      name: `'${id} 기간'`, starts_on: "'2026-09-01'", ends_on: "'2027-02-28'", created_by: "'u'", ...change })
+    const line = (id: string, change: Record<string, string> = {}) => insert('budget_lines', { id: `'${id}'`, organization_id: "'o'",
+      period_id: "'p'", kind: "'income'", event_id: 'NULL', name: "'학생회비'", amount: '1000', position: '0', ...change })
+
+    await t.test('existing expenses keep their values and have no operating line', async () => {
+      const after = (await pg.query<Record<string, unknown>>('SELECT * FROM expenses ORDER BY id')).rows
+      assert.deepEqual(sameColumns(after, before), before)
+      assert.deepEqual(after.map(row => row.budget_line_id), [null, null])
+    })
+    await t.test('a period has a short name unique in its council and ordered dates in range', async () => {
+      await period('p')
+      await period('q', { organization_id: "'o2'", name: "'p 기간'" })
+      const cases: [Record<string, string>, string][] = [
+        [{ name: "'p 기간'" }, 'budget_periods_organization_name_unique'],
+        [{ name: "' '" }, 'budget_periods_name_not_blank'],
+        [{ name: `'${'가'.repeat(31)}'` }, 'budget_periods_name_length'],
+        [{ starts_on: "'2027-03-01'" }, 'budget_periods_dates_order'],
+        [{ starts_on: "'1999-12-31'" }, 'budget_periods_dates_range'],
+        [{ ends_on: "'3000-01-01'" }, 'budget_periods_dates_range'],
+        [{ version: '0' }, 'budget_periods_version_positive'],
+      ]
+      for (const [index, [change, constraint]] of cases.entries()) await assert.rejects(period(`bad${index}`, change), { constraint }, constraint)
+    })
+    await t.test('a line is either a named amount or an event, and an event sits in one period of its council', async () => {
+      await line('l1')
+      await line('l2', { kind: "'operating'", name: "'회의비'" })
+      await line('l3', { kind: "'event'", event_id: "'e'", name: 'NULL', amount: 'NULL' })
+      const cases: [Record<string, string>, string][] = [
+        [{ kind: "'other'" }, 'budget_lines_kind_valid'],
+        [{ kind: "'event'", name: 'NULL', amount: 'NULL' }, 'budget_lines_event_kind'],
+        [{ event_id: "'e'" }, 'budget_lines_event_kind'],
+        [{ name: 'NULL' }, 'budget_lines_named_kind'],
+        [{ amount: 'NULL' }, 'budget_lines_amount_kind'],
+        [{ name: "' '" }, 'budget_lines_name_not_blank'],
+        [{ name: `'${'가'.repeat(31)}'` }, 'budget_lines_name_length'],
+        [{ amount: '-1' }, 'budget_lines_amount_nonnegative'],
+        [{ position: '-1' }, 'budget_lines_position_nonnegative'],
+        [{ kind: "'event'", event_id: "'e'", name: 'NULL', amount: 'NULL' }, 'budget_lines_event_unique'],
+        [{ period_id: "'q'" }, 'budget_lines_period_same_organization'],
+        [{ kind: "'event'", event_id: "'e2'", name: 'NULL', amount: 'NULL' }, 'budget_lines_event_same_organization'],
+      ]
+      for (const [index, [change, constraint]] of cases.entries()) await assert.rejects(line(`bad${index}`, change), { constraint }, constraint)
+    })
+    await t.test('only an operating expense of the same council points at a line, and a used line is not deleted', async () => {
+      await pg.exec("UPDATE expenses SET budget_line_id = 'l2' WHERE id = 'y'")
+      await assert.rejects(pg.exec("UPDATE expenses SET budget_line_id = 'l2' WHERE id = 'x'"), { constraint: 'expenses_budget_line_operating_only' })
+      await line('lq', { organization_id: "'o2'", period_id: "'q'", kind: "'operating'", name: "'남의 항목'" })
+      await assert.rejects(pg.exec("UPDATE expenses SET budget_line_id = 'lq' WHERE id = 'y'"), { constraint: 'expenses_budget_line_same_organization' })
+      await assert.rejects(pg.exec("DELETE FROM budget_lines WHERE id = 'l2'"), { constraint: 'expenses_budget_line_same_organization' })
+    })
+    await t.test('history actions are known, changes are objects, and the period is in the same council', async () => {
+      const entry = (id: string, action: string, changes = "'{}'", periodId = 'p') => insert('budget_period_events', { id: `'${id}'`,
+        organization_id: "'o'", period_id: `'${periodId}'`, actor_id: "'u'", action: `'${action}'`, changes })
+      await entry('h1', 'created')
+      await entry('h2', 'updated', `'{"lines":[]}'`)
+      await assert.rejects(entry('h3', 'deleted'), { constraint: 'budget_period_events_action_valid' })
+      await assert.rejects(entry('h4', 'updated', "'[]'"), { constraint: 'budget_period_events_changes_object' })
+      await assert.rejects(entry('h5', 'created', "'{}'", 'q'), { constraint: 'budget_period_events_period_same_organization' })
     })
   } finally {
     previous.remove()

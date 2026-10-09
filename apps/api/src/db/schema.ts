@@ -508,6 +508,88 @@ export const shipmentRegistrations = pgTable('shipment_registrations', {
   check('shipment_registrations_key_not_blank', sql`${table.idempotencyKey} ~ '[^[:space:]]'`),
   check('shipment_registrations_hash_valid', sql`${table.inputHash} ~ '^[a-f0-9]{64}$'`),
 ])
+// 회계 기간. 같은 학생회의 기간은 날짜가 겹치지 않는다. 겹침은 서버가 학생회 단위 잠금 안에서 확인한다.
+// DB 제약(exclusion)은 btree_gist 확장이 있어야 해서 쓰지 않는다.
+export const budgetPeriods = pgTable('budget_periods', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull()
+    .references(() => organizations.id, { onDelete: 'restrict' }),
+  name: text('name').notNull(),
+  startsOn: date('starts_on').notNull(),
+  endsOn: date('ends_on').notNull(),
+  version: integer('version').notNull().default(1),
+  createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  unique('budget_periods_organization_id_unique').on(table.organizationId, table.id),
+  unique('budget_periods_organization_name_unique').on(table.organizationId, table.name),
+  check('budget_periods_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
+  check('budget_periods_name_length', sql`char_length(${table.name}) <= 30`),
+  check('budget_periods_dates_range', sql`${table.startsOn} >= '2000-01-01' AND ${table.endsOn} <= '2999-12-31'`),
+  check('budget_periods_dates_order', sql`${table.startsOn} <= ${table.endsOn}`),
+  check('budget_periods_version_positive', sql`${table.version} >= 1`),
+  index('budget_periods_organization_starts_idx').on(table.organizationId, table.startsOn),
+])
+
+// 편성의 한 줄. 수입·운영 줄은 이름과 금액이 있고, 행사 줄은 행사만 가리킨다. 행사 줄의 금액은 event_finances.budget에 있다.
+export const budgetLines = pgTable('budget_lines', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  periodId: text('period_id').notNull(),
+  kind: text('kind', { enum: ['income', 'event', 'operating'] }).notNull(),
+  eventId: text('event_id'),
+  name: text('name'),
+  amount: integer('amount'),
+  // 묶음(kind) 안 화면 순서
+  position: integer('position').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  foreignKey({
+    name: 'budget_lines_period_same_organization',
+    columns: [table.organizationId, table.periodId],
+    foreignColumns: [budgetPeriods.organizationId, budgetPeriods.id],
+  }).onDelete('restrict'),
+  foreignKey({
+    name: 'budget_lines_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  unique('budget_lines_organization_id_unique').on(table.organizationId, table.id),
+  // 행사는 한 기간에만 들어간다.
+  unique('budget_lines_event_unique').on(table.eventId),
+  check('budget_lines_kind_valid', sql`${table.kind} IN ('income','event','operating')`),
+  check('budget_lines_event_kind', sql`(${table.kind} = 'event') = (${table.eventId} IS NOT NULL)`),
+  check('budget_lines_named_kind', sql`(${table.kind} = 'event') = (${table.name} IS NULL)`),
+  check('budget_lines_amount_kind', sql`(${table.kind} = 'event') = (${table.amount} IS NULL)`),
+  check('budget_lines_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
+  check('budget_lines_name_length', sql`char_length(${table.name}) <= 30`),
+  check('budget_lines_amount_nonnegative', sql`${table.amount} >= 0`),
+  check('budget_lines_position_nonnegative', sql`${table.position} >= 0`),
+  index('budget_lines_period_idx').on(table.periodId, table.kind, table.position),
+])
+
+// 기간·편성 처리 기록. 고치거나 지우지 않는다.
+export const budgetPeriodEvents = pgTable('budget_period_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  periodId: text('period_id').notNull(),
+  actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  action: text('action', { enum: ['created', 'updated'] }).notNull(),
+  changes: jsonb('changes').$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'budget_period_events_period_same_organization',
+    columns: [table.organizationId, table.periodId],
+    foreignColumns: [budgetPeriods.organizationId, budgetPeriods.id],
+  }).onDelete('restrict'),
+  check('budget_period_events_action_valid', sql`${table.action} IN ('created','updated')`),
+  check('budget_period_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
+  index('budget_period_events_period_idx').on(table.periodId, table.createdAt),
+])
+
 // 결제 한 번(영수증 한 장 단위)의 지출. 지우지 않고 취소로 남긴다(2026-10-09 결정).
 export const expenses = pgTable('expenses', {
   id: text('id').primaryKey(),
@@ -515,6 +597,8 @@ export const expenses = pgTable('expenses', {
     .references(() => organizations.id, { onDelete: 'restrict' }),
   // 비어 있으면 상시 운영 지출이다.
   eventId: text('event_id'),
+  // 상시 운영 지출의 운영 항목. 운영 줄인지, 결제일이 그 줄의 기간 안인지는 서버가 확인한다.
+  budgetLineId: text('budget_line_id'),
   vendor: text('vendor').notNull(),
   description: text('description').notNull(),
   amount: integer('amount').notNull(),
@@ -550,6 +634,14 @@ export const expenses = pgTable('expenses', {
   check('expenses_void_reason_not_blank', sql`${table.voidReason} ~ '[^[:space:]]'`),
   check('expenses_void_reason_length', sql`char_length(${table.voidReason}) <= 200`),
   index('expenses_organization_paid_idx').on(table.organizationId, table.paidOn.desc(), table.createdAt.desc()),
+  foreignKey({
+    name: 'expenses_budget_line_same_organization',
+    columns: [table.organizationId, table.budgetLineId],
+    foreignColumns: [budgetLines.organizationId, budgetLines.id],
+  }).onDelete('restrict'),
+  // 행사 지출은 그 행사 줄로 세므로 운영 항목이 없다.
+  check('expenses_budget_line_operating_only', sql`${table.budgetLineId} IS NULL OR ${table.eventId} IS NULL`),
+  index('expenses_budget_line_idx').on(table.organizationId, table.budgetLineId),
 ])
 
 // 지출에 연결한 승인 품목. 품목 하나는 지출 하나에만 연결된다.
