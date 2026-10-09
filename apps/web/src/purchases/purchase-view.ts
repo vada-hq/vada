@@ -44,8 +44,10 @@ export function shortDay(value: string) {
   const parts = new Intl.DateTimeFormat('ko-KR', { ...seoul, month: 'numeric', day: 'numeric' }).formatToParts(new Date(value))
   return `${parts.find(part => part.type === 'month')!.value}/${parts.find(part => part.type === 'day')!.value}`
 }
+export const lookupPendingText = '상품 정보를 불러오는 중…'
+export const lookupFailedText = '상품 정보를 가져오지 못했어요. 쿠팡에서 확인해 주세요.'
 export const candidateName = (candidate: PurchaseCandidate) => candidate.product?.name
-  ?? (candidate.lookup === 'failed' ? '상품 정보를 가져오지 못했어요. 쿠팡에서 확인해 주세요.' : '상품 정보를 불러오는 중…')
+  ?? (candidate.lookup === 'failed' ? lookupFailedText : lookupPendingText)
 export function candidatePrice(candidate: PurchaseCandidate) {
   const price = candidate.product?.price ?? null
   return `${price === null ? '금액 확인 필요' : `예상 ${won(price)}`}${candidate.fetchedAt ? ` · ${shortDay(candidate.fetchedAt)} 기준` : ''}`

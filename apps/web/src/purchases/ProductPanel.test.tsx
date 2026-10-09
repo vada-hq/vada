@@ -8,8 +8,8 @@ import type { Candidates } from './useCandidates'
 
 afterEach(cleanup)
 const link = { ...readCoupangUrl('https://www.coupang.com/vp/products/1?itemId=2&vendorItemId=3')!, start: 0, end: 0 }
-const state = (candidates: PurchaseCandidate[] | null): Candidates =>
-  ({ candidates, truncated: false, loadError: false, busy: false, refresh: vi.fn(), setHidden: vi.fn() })
+const state = (candidates: PurchaseCandidate[] | null, { loads = 0, loadError = false } = {}): Candidates =>
+  ({ candidates, truncated: false, loadError, loads, busy: false, refresh: vi.fn(), setHidden: vi.fn() })
 
 test('링크 패널은 후보의 상품 정보를 오른쪽에 보여 주고 닫을 수 있다', async () => {
   const onClose = vi.fn()
@@ -33,4 +33,15 @@ test('후보를 아직 못 찾았거나, 조회가 실패했거나, 옵션을 �
   view.rerender(<ProductPanel link={link} onClose={() => {}}
     candidates={state([candidate({ optionKnown: false, product: { ...candidate().product!, price: null } })])} />)
   expect(await screen.findByText('옵션 미정')).toBeTruthy()
+})
+
+test('패널을 연 뒤 새로 받은 후보 목록에도 링크가 없거나 목록을 못 불러오면 쿠팡에서 확인하라고 알린다', async () => {
+  const failed = '상품 정보를 가져오지 못했어요. 쿠팡에서 확인해 주세요.'
+  const view = render(<ProductPanel link={link} candidates={state([], { loads: 1 })} onClose={() => {}} />)
+  expect(await screen.findByText('상품 정보를 불러오는 중…')).toBeTruthy()
+  view.rerender(<ProductPanel link={link} candidates={state([], { loads: 2 })} onClose={() => {}} />)
+  expect(await screen.findByText(failed)).toBeTruthy()
+  view.rerender(<ProductPanel link={null} candidates={state([], { loads: 2 })} onClose={() => {}} />)
+  view.rerender(<ProductPanel link={link} candidates={state(null, { loadError: true })} onClose={() => {}} />)
+  expect(await screen.findByText(failed)).toBeTruthy()
 })

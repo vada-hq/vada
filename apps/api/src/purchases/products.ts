@@ -1,7 +1,8 @@
 import type { CoupangItem } from '../db/schema.js'
 
 export type LookupFailure = 'NOT_CONFIGURED' | 'NOT_FOUND' | 'RATE_LIMITED' | 'UPSTREAM' | 'TIMEOUT' | 'INVALID_RESPONSE'
-export type FetchResult = { ok: true; items: CoupangItem[] } | { ok: false; code: LookupFailure; retryable: boolean }
+// status는 서비스가 HTTP 오류로 답했을 때만 둔다. 키·크레딧 문제(401·402·403)를 로그에서 알아보게 한다.
+export type FetchResult = { ok: true; items: CoupangItem[] } | { ok: false; code: LookupFailure; retryable: boolean; status?: number }
 export type ProductFetcher = (productId: string, timeoutMs?: number) => Promise<FetchResult>
 // 품목에 넣는 조회 결과. 가격은 끼룩이가 아니라 이 값만 쓴다.
 export interface ProductLookup {
@@ -78,7 +79,7 @@ export function createReefFetcher(apiKey: string | undefined, fetcher: typeof fe
     const code = typeof payload.error?.code === 'string' ? payload.error.code : ''
     if (code === 'NOT_FOUND' || response.status === 404) return { ok: false, code: 'NOT_FOUND', retryable: false }
     if (code === 'RATE_LIMITED' || response.status === 429) return { ok: false, code: 'RATE_LIMITED', retryable: true }
-    if (!response.ok || payload.ok !== true) return { ok: false, code: 'UPSTREAM', retryable: true }
+    if (!response.ok || payload.ok !== true) return { ok: false, code: 'UPSTREAM', retryable: true, ...(response.ok ? {} : { status: response.status }) }
     const list = payload.data?.items
     if (!Array.isArray(list)) return { ok: false, code: 'INVALID_RESPONSE', retryable: false }
     const items = list.map(raw => readItem(raw, productId)).filter((item): item is CoupangItem => item !== null).slice(0, ITEMS_MAX)

@@ -1,18 +1,18 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { PurchaseCandidate } from '@vada/contracts'
-import { json, mockApi } from '../test-support/mock-api'
+import { deferredResponse, json, mockApi } from '../test-support/mock-api'
 import PurchaseCandidates from './PurchaseCandidates'
 import { candidate } from './purchase-fixtures'
 import { useCandidates } from './useCandidates'
 import type { PurchaseResult } from './useEventPurchases'
 
-afterEach(() => { cleanup(); vi.unstubAllGlobals() })
+afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
 const base = '/api/organizations/o/events/e/purchase-candidates'
-type HarnessProps = { onAdd?: (ids: string[]) => Promise<PurchaseResult>; onShowMessage?: (messageId: string) => void }
-function Harness({ onAdd = async () => ({ ok: true, items: [] }), onShowMessage = () => {} }: HarnessProps) {
-  const state = useCandidates('o', 'e', true, false)
+type HarnessProps = { onAdd?: (ids: string[]) => Promise<PurchaseResult>; onShowMessage?: (messageId: string) => void; live?: boolean }
+function Harness({ onAdd = async () => ({ ok: true, items: [] }), onShowMessage = () => {}, live = false }: HarnessProps) {
+  const state = useCandidates('o', 'e', true, live)
   return <PurchaseCandidates candidates={state} generating={false} onAdd={onAdd} onShowMessage={onShowMessage} />
 }
 function setup(candidates: PurchaseCandidate[], props: HarnessProps = {}) {
@@ -99,4 +99,36 @@ test('긴 상품명·주소·이름은 카드 안에서 줄을 바꾼다', async
   expect((await screen.findByText(long)).className).toContain('wrap-anywhere')
   expect(screen.getByText(/^https:\/\/www\.coupang\.com/).className).toContain('wrap-anywhere')
   expect(screen.getByRole('button', { name: /^이+ · / }).className).toContain('wrap-anywhere')
+})
+
+test('보는 동안만 5초마다 다시 불러오고, 늦은 응답은 끊지 않고 기다린다', async () => {
+  vi.useFakeTimers()
+  let hidden = false
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => hidden ? 'hidden' : 'visible' })
+  try {
+    const slow = deferredResponse()
+    const api = mockApi()
+    const gets = () => api.calls.filter(call => call.method === 'GET')
+    api.on('GET', base, () => gets().length === 3 ? slow.promise : json({ candidates: [candidate()], truncated: false }))
+    render(<Harness live />)
+    await act(async () => {})
+    expect(gets()).toHaveLength(1)
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(gets()).toHaveLength(2)
+    // 다른 탭을 보는 동안은 부르지 않는다.
+    hidden = true
+    await act(async () => { await vi.advanceTimersByTimeAsync(15000) })
+    expect(gets()).toHaveLength(2)
+    hidden = false
+    await act(async () => { await vi.advanceTimersByTimeAsync(5000) })
+    expect(gets()).toHaveLength(3)
+    // 응답이 5초를 넘어도 끊고 새로 부르지 않는다.
+    await act(async () => { await vi.advanceTimersByTimeAsync(15000) })
+    expect(gets()).toHaveLength(3)
+    expect(gets()[2]!.signal!.aborted).toBe(false)
+    await act(async () => { slow.resolve(json({ candidates: [candidate({ product: { ...candidate().product!, name: '늦게 온 상품' } })], truncated: false })) })
+    expect(screen.getByText('늦게 온 상품')).toBeTruthy()
+  } finally {
+    Reflect.deleteProperty(document, 'visibilityState')
+  }
 })

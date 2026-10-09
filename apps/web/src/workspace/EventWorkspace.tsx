@@ -32,6 +32,8 @@ export default function EventWorkspace({ event, onLeaveRiskChange }: { event: Ev
     select(next)
     document.getElementById(`${prefix}-${next}-tab`)?.focus()
   }
+  // 대화의 링크를 열면 후보를 바로 새로 불러온다. 방금 올린 링크도 패널에서 찾는다.
+  function openLink(next: CoupangLink) { setLink(next); candidates.refresh() }
   // 후보의 공유 표시를 누르면 대화 탭으로 가서 그 메시지를 찾는다.
   function showMessage(messageId: string) { setTab('chat'); setFocus({ id: Date.now(), messageId }) }
   // 행사 이름은 WorkspaceHeader의 제목이 보여 준다. 대화 탭은 흰 바탕 전체 화면, 구매 탭은 gray-50 본문에 여백을 둔다.
@@ -43,7 +45,7 @@ export default function EventWorkspace({ event, onLeaveRiskChange }: { event: Ev
     </div>
     {/* 탭은 숨기기만 하여 대화 입력·스크롤과 구매 화면 상태를 보존한다. 행사 이동은 key로 격리한다. */}
     <div className="flex min-h-0 flex-1 flex-col bg-white" role="tabpanel" id={`${prefix}-chat-panel`} aria-labelledby={`${prefix}-chat-tab`} hidden={tab !== 'chat'}>
-      <Chat organizationId={event.organizationId} eventId={event.id} eventName={event.name} onOpenLink={setLink} focus={focus} />
+      <Chat organizationId={event.organizationId} eventId={event.id} eventName={event.name} onOpenLink={openLink} focus={focus} />
     </div>
     <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6" role="tabpanel" id={`${prefix}-purchases-panel`} aria-labelledby={`${prefix}-purchases-tab`} hidden={tab !== 'purchases'}>
       {opened && <div className="mx-auto max-w-3xl"><EventPurchases state={purchases} candidates={candidates} view={view}

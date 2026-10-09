@@ -19,7 +19,12 @@ async function mapLimit<T, R>(values: T[], limit: number, run: (value: T) => Pro
 }
 
 export function createProductCatalog(db: CatalogDatabase, fetchProduct?: ProductFetcher) {
-  const call = (id: string, timeoutMs?: number) => fetchProduct ? fetchProduct(id, timeoutMs) : Promise.resolve(NOT_CONFIGURED)
+  // 실패는 상품 ID·원문 없이 오류 코드(와 HTTP 상태)만 로그에 남긴다.
+  async function call(id: string, timeoutMs?: number) {
+    const result = fetchProduct ? await fetchProduct(id, timeoutMs) : NOT_CONFIGURED
+    if (!result.ok) console.error('PRODUCT_LOOKUP_FAILED', result.code, ...(result.status ? [result.status] : []))
+    return result
+  }
   // 성공이면 옵션 목록을 바꾸고, 실패면 다시 시도 일정을 정하거나 멈춘다.
   async function store(id: string, result: FetchResult, attempts: number) {
     if (result.ok) {

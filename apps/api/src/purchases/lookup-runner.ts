@@ -4,7 +4,7 @@ type Options = { concurrency?: number; onFailure?: () => void }
 
 // 대화에 쿠팡 링크가 올라오면 뒤에서 상품을 조회한다. 서버 한 대에서 동시에 concurrency개까지만 부른다(ReefAPI 키당 초당 약 5회).
 export function createLookupRunner(catalog: Pick<ProductCatalog, 'claim' | 'process'>,
-  { concurrency = 2, onFailure = () => console.error('PRODUCT_LOOKUP_FAILED') }: Options = {}) {
+  { concurrency = 2, onFailure = () => console.error('PRODUCT_LOOKUP_RUNNER_FAILED') }: Options = {}) {
   let running: Promise<void> | null = null
   let again = false
   async function drain() {

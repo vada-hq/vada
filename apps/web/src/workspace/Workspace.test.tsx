@@ -91,6 +91,25 @@ test('후보의 공유 표시를 누르면 대화 탭의 그 메시지를 강조
   }
 })
 
+test('대화의 링크를 열면 후보를 바로 새로 불러오고, 후보에 없는 링크면 쿠팡에서 확인하라고 알린다', async () => {
+  const url = 'https://www.coupang.com/vp/products/9?itemId=8&vendorItemId=7'
+  const message = { id: 'm1', chatRoomId: 'r1', author: { id: 'u1', name: '기획 테스터' }, content: `옛 링크 ${url}`, createdAt: '2026-10-09T05:12:00Z' }
+  const fetcher = vi.fn(async (path: string) => ({ ok: true, status: 200, json: async () =>
+    path.endsWith('/events') ? { events: [event] } : path.endsWith('/messages') ? { messages: [message], nextCursor: null }
+      : path.endsWith('/purchase-candidates') ? { candidates: [candidate()], truncated: false } : { items: [], truncated: false } }))
+  vi.stubGlobal('fetch', fetcher)
+  const candidateCalls = () => fetcher.mock.calls.filter(([path]) => String(path).endsWith('/purchase-candidates')).length
+  render(<Workspace {...props} />)
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  fireEvent.click(screen.getByRole('tab', { name: '구매' }))
+  await screen.findByText('모닝글로리 유성매직 12색')
+  fireEvent.click(screen.getByRole('tab', { name: '대화' }))
+  const before = candidateCalls()
+  fireEvent.click(screen.getByRole('button', { name: url }))
+  await waitFor(() => expect(candidateCalls()).toBe(before + 1), { timeout: 1000 })
+  expect(await screen.findByText('상품 정보를 가져오지 못했어요. 쿠팡에서 확인해 주세요.')).toBeTruthy()
+})
+
 test('workspace tabs support keyboard navigation and logout delegates to authentication', async () => {
   setup()
   render(<Workspace {...props} />)

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { test } from 'node:test'
+import { mock, test } from 'node:test'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
@@ -109,4 +109,20 @@ test('실행기의 DB 오류는 원문 없이 알리고, 다음 kick에서 다�
   await runner.kick()
   await runner.kick()
   assert.deepEqual([failures, claims], [1, 2])
+})
+
+test('조회 실패는 상품 ID 없이 오류 코드와 HTTP 상태만 로그에 남기고, 실행기 오류는 따로 알린다', async () => {
+  const { pg, db } = await setup()
+  const logged = mock.method(console, 'error', () => {})
+  try {
+    const results: FetchResult[] = [{ ok: false, code: 'UPSTREAM', retryable: true, status: 402 }, { ok: false, code: 'TIMEOUT', retryable: true }]
+    const catalog = createProductCatalog(db, async () => results.shift()!)
+    await catalog.refresh(['123456'])
+    // 실행기가 처리하는 길도 같은 로그를 남긴다.
+    await catalog.process((await catalog.read(['123456'])).get('123456')!)
+    await createProductCatalog(db).refresh(['654321'])
+    await createLookupRunner({ claim: async () => { throw new Error('db-secret') }, process: async () => {} }).kick()
+    assert.deepEqual(logged.mock.calls.map(call => call.arguments), [['PRODUCT_LOOKUP_FAILED', 'UPSTREAM', 402],
+      ['PRODUCT_LOOKUP_FAILED', 'TIMEOUT'], ['PRODUCT_LOOKUP_FAILED', 'NOT_CONFIGURED'], ['PRODUCT_LOOKUP_RUNNER_FAILED']])
+  } finally { logged.mock.restore(); await pg.close() }
 })

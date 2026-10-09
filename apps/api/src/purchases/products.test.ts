@@ -44,19 +44,22 @@ test('이상한 응답 값은 버리거나 자르고, 이미지는 쿠팡 이미
 })
 
 test('실패는 다시 시도할 것과 멈출 것으로 나누고, 원문을 남기지 않는다', async () => {
-  const cases: [typeof fetch, string, boolean][] = [
+  // 서비스가 HTTP 오류로 답하면 상태 번호를 같이 둔다. 키·크레딧 문제(401·402·403)를 로그에서 알아보게 한다.
+  const cases: [typeof fetch, string, boolean, number?][] = [
     [async () => json({ ok: false, error: { code: 'NOT_FOUND' } }, 404), 'NOT_FOUND', false],
     [async () => json({ ok: false, error: { code: 'RATE_LIMITED' } }, 429), 'RATE_LIMITED', true],
-    [async () => json({ ok: false, error: { code: 'TARGET_BLOCKED' } }, 502), 'UPSTREAM', true],
-    [async () => new Response('busy', { status: 503 }), 'UPSTREAM', true],
+    [async () => json({ ok: false, error: { code: 'TARGET_BLOCKED' } }, 502), 'UPSTREAM', true, 502],
+    [async () => json({ ok: false, error: { code: 'NO_CREDITS-secret' } }, 402), 'UPSTREAM', true, 402],
+    [async () => new Response('busy', { status: 503 }), 'UPSTREAM', true, 503],
+    [async () => json({ ok: false }), 'UPSTREAM', true],
     [async () => { throw new Error('network-secret') }, 'UPSTREAM', true],
     [async () => { throw new DOMException('slow', 'TimeoutError') }, 'TIMEOUT', true],
     [async () => json({ ok: true, data: {} }), 'INVALID_RESPONSE', false],
     [async () => json({ ok: true, data: { items: [] } }), 'NOT_FOUND', false],
   ]
-  for (const [fetcher, code, retryable] of cases) {
+  for (const [fetcher, code, retryable, status] of cases) {
     const result = await createReefFetcher('test-key', fetcher)('1')
-    assert.deepEqual(result, { ok: false, code, retryable }, code)
+    assert.deepEqual(result, { ok: false, code, retryable, ...(status ? { status } : {}) }, code)
     assert.ok(!JSON.stringify(result).includes('secret'))
   }
   const never: typeof fetch = async () => { throw new Error('must not call') }
