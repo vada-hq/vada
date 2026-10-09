@@ -5,7 +5,9 @@ import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
 import { json } from '../http/validate.js'
 import { createCandidateService } from './candidates.js'
+import { createProductCatalog } from './catalog.js'
 import type { DraftGenerator } from './generation.js'
+import type { ProductFetcher } from './products.js'
 import { createPurchaseService, type PurchaseDatabase, type PurchaseScope } from './service.js'
 import { createReviewService, type ReviewScope } from './review.js'
 import { PurchaseError } from './validation.js'
@@ -18,9 +20,9 @@ function idOf(value: string | undefined) {
   return parsed.data
 }
 
-export function createPurchaseRoutes(db: PurchaseDatabase, session: SessionReader, generate: DraftGenerator) {
+export function createPurchaseRoutes(db: PurchaseDatabase, session: SessionReader, generate: DraftGenerator, fetchProduct?: ProductFetcher) {
   const routes = new Hono<MembershipEnv>()
-  const service = createPurchaseService(db, generate)
+  const service = createPurchaseService(db, generate, createProductCatalog(db, fetchProduct))
   const auth = requireSession(session)
   const member = requireMembership(db)
   const base = '/organizations/:organizationId/events/:eventId/purchase-items'

@@ -3,11 +3,14 @@ import { and, asc, desc, eq, inArray, ne, or, sql, type SQL } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { ChangeNeededByRequest, CreatePurchaseDraftsRequest, EventPurchaseItemsResponse, PurchaseItemAction, PurchaseItemDetail,
   PurchaseItemSummary, SubmitPurchaseItemsRequest, UpdatePurchaseItemRequest } from '@vada/contracts'
-import { chatRooms, events, memberships, messages, purchaseGenerations as generations, purchaseItemEvents as itemEvents,
-  purchaseItems as items, purchaseItemSources as sources, purchaseSubmissions as submissions } from '../db/schema.js'
+import { chatRooms, events, memberships, messages, purchaseCandidates as candidates, purchaseCandidateShares as candidateShares,
+  purchaseGenerations as generations, purchaseItemEvents as itemEvents, purchaseItems as items, purchaseItemSources as sources,
+  purchaseSubmissions as submissions } from '../db/schema.js'
+import type { ProductCatalog } from './catalog.js'
 import { type DraftGenerator, type DraftInput, type GeneratedDraft, validateDraft } from './generation.js'
 import { itemDetail, itemSummaries, type Viewer } from './items.js'
-import { productUrl, PurchaseError } from './validation.js'
+import { lookupFor } from './products.js'
+import { PurchaseError } from './validation.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
 type Reader = Pick<Db, 'select'>
@@ -16,6 +19,7 @@ type Transaction = Parameters<Parameters<PurchaseDatabase['transaction']>[0]>[0]
 export interface PurchaseScope extends Viewer { eventId: string }
 const LIST_LIMIT = 300
 export const DUPLICATE_WARNING = '이미 담은 상품이에요. 같은 물건을 두 번 사지 않는지 확인해 주세요.'
+export const OTHER_REQUEST_WARNING = '다른 구성원이 이미 요청한 상품이에요. 같은 물건을 두 번 사지 않는지 확인해 주세요.'
 const newest = [desc(items.createdAt), desc(items.id)]
 
 // 저장 트랜잭션에서는 소속 행을 잠가 부서 변경과 겹치지 않게 한다.
@@ -46,6 +50,34 @@ async function previous(db: Reader, scope: PurchaseScope, key: string, links: st
   return itemSummaries(db, scope, and(eq(items.generationId, generation.id), eq(items.requesterId, scope.userId)), newest)
 }
 
+// 고른 후보를 요청 순서대로 가져온다. 하나라도 이 행사의 후보가 아니면 404다. 숨긴 후보도 담을 수 있다.
+async function candidatesOf(db: Reader, scope: PurchaseScope, ids: string[]) {
+  const rows = await db.select().from(candidates).where(and(eq(candidates.organizationId, scope.organizationId),
+    eq(candidates.eventId, scope.eventId), inArray(candidates.id, ids)))
+  if (rows.length !== ids.length) throw new PurchaseError('NOT_FOUND', 404)
+  return ids.map(id => rows.find(row => row.id === id)!)
+}
+
+// 끼룩이에게 줄 대화. 후보를 공유한 메시지를 먼저 넣고, 최근 대화로 2만 자까지 채운다. 메시지 중간을 자르지 않는다.
+async function contextOf(db: Reader, roomId: string, candidateIds: string[]) {
+  const columns = { id: messages.id, content: messages.content, createdAt: messages.createdAt }
+  const shared = await db.select(columns).from(candidateShares).innerJoin(messages, eq(messages.id, candidateShares.messageId))
+    .where(and(inArray(candidateShares.candidateId, candidateIds), eq(messages.chatRoomId, roomId)))
+    .orderBy(desc(candidateShares.createdAt)).limit(30)
+  const recent = await db.select(columns).from(messages).where(eq(messages.chatRoomId, roomId))
+    .orderBy(desc(messages.createdAt), desc(messages.id)).limit(100)
+  const chosen = new Map<string, (typeof recent)[number]>()
+  let characters = 0
+  for (const message of [...shared, ...recent]) {
+    if (chosen.has(message.id)) continue
+    if (characters + message.content.length > 20000) break
+    chosen.set(message.id, message)
+    characters += message.content.length
+  }
+  return [...chosen.values()].sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id))
+    .map(message => ({ ...message, createdAt: message.createdAt.toISOString() }))
+}
+
 type Ref = { id: string; version: number }
 // 바꿀 품목을 ID 순서로 잠근다. 하나라도 없거나 버전이 다르면 아무것도 바꾸지 않는다.
 async function lockItems(tx: Transaction, scope: PurchaseScope, refs: Ref[], where: SQL | undefined) {
@@ -67,7 +99,7 @@ async function record(tx: Transaction, scope: PurchaseScope, entries: { itemId: 
 const complete = (row: typeof items.$inferSelect) => Boolean(row.productName) && row.quantity !== null && row.quantity >= 1
   && row.optionRequired !== null && (!row.optionRequired || Boolean(row.selectedOption))
 
-export function createPurchaseService(db: PurchaseDatabase, generate: DraftGenerator) {
+export function createPurchaseService(db: PurchaseDatabase, generate: DraftGenerator, catalog: ProductCatalog) {
   // 단일 M1 서버에서 사용자당 동시 생성 한 건. 최종 중복 저장은 DB 고유 제약으로도 막는다.
   const generating = new Set<string>()
   return {
@@ -82,28 +114,22 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
       return itemDetail(db, scope, row)
     },
     async createDrafts(scope: PurchaseScope, input: CreatePurchaseDraftsRequest): Promise<{ items: PurchaseItemSummary[]; created: boolean }> {
-      const links = input.links.map(productUrl)
-      if (new Set(links).size !== links.length) throw new PurchaseError('DUPLICATE_LINK')
       const event = await eventOf(db, scope)
       await member(db, scope)
+      const chosen = await candidatesOf(db, scope, input.candidateIds)
+      const links = chosen.map(candidate => candidate.url)
       const existing = await previous(db, scope, input.idempotencyKey, links)
       if (existing) return { items: existing, created: false }
       if (generating.has(scope.userId)) throw new PurchaseError('GENERATION_IN_PROGRESS', 409)
       generating.add(scope.userId)
       try {
-        const recent = await db.select({ id: messages.id, content: messages.content, createdAt: messages.createdAt }).from(messages)
-          .where(eq(messages.chatRoomId, event.roomId)).orderBy(desc(messages.createdAt), desc(messages.id)).limit(100)
-        // 최근 100개 중 최신 대화부터 최대 20,000자. 메시지 중간을 자르지 않는다.
-        let characters = 0
-        const bounded = []
-        for (const message of recent) {
-          if (characters + message.content.length > 20000) break
-          bounded.push(message); characters += message.content.length
-        }
-        // Task 6에서 후보의 저장된 조회 결과로 바꾼다.
-        const products = links.map(() => ({ name: null, price: null, snapshot: null, fetchedAt: null, warning: null }))
-        const draftInput: DraftInput = { eventName: event.name, links, products,
-          messages: bounded.reverse().map(message => ({ ...message, createdAt: message.createdAt.toISOString() })) }
+        // 저장된 조회 결과를 쓴다. 아직 조회 전이거나 실패한 상품만 지금 다시 조회한다.
+        const known = await catalog.read(chosen.map(candidate => candidate.productId))
+        const missing = chosen.filter(candidate => known.get(candidate.productId)?.status !== 'ready').map(candidate => candidate.productId)
+        const products = missing.length ? new Map([...known, ...await catalog.refresh(missing)]) : known
+        const draftInput: DraftInput = { eventName: event.name, links,
+          products: chosen.map(candidate => lookupFor(products.get(candidate.productId), candidate)),
+          messages: await contextOf(db, event.roomId, chosen.map(candidate => candidate.id)) }
         let draft: GeneratedDraft
         try { draft = await generate(draftInput); validateDraft(draft, draftInput) }
         catch (error) { if (error instanceof PurchaseError && error.status === 503) throw error; throw new PurchaseError('GENERATION_FAILED', 502) }
@@ -128,12 +154,18 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
           const owned = await tx.select({ productUrl: items.productUrl }).from(items).where(and(eq(items.organizationId, scope.organizationId),
             eq(items.eventId, scope.eventId), eq(items.requesterId, scope.userId), inArray(items.status, ['draft', 'pending', 'approved']),
             inArray(items.productUrl, links)))
+          // 같은 행사에서 다른 구성원이 이미 제출한 상품이면 경고하고 허용한다(2026-10-04 결정).
+          const others = await tx.select({ productUrl: items.productUrl }).from(items).where(and(eq(items.organizationId, scope.organizationId),
+            eq(items.eventId, scope.eventId), ne(items.requesterId, scope.userId), inArray(items.status, ['pending', 'approved']),
+            inArray(items.productUrl, links)))
           const rows = draft.items.map((item, index) => ({
             id: randomUUID(), organizationId: scope.organizationId, eventId: scope.eventId, requesterId: scope.userId, generationId: generation.id,
+            candidateId: chosen[index]!.id,
             productUrl: item.productUrl, productName: item.productName, selectedOption: item.selectedOption, optionRequired: item.optionRequired,
             quantity: item.quantity, packagingUnit: item.packagingUnit, estimatedUnitPrice: item.estimatedUnitPrice,
             productSnapshot: item.productSnapshot, productFetchedAt: item.productFetchedAt, note: item.note, neededBy: item.neededBy,
-            warnings: owned.some(row => row.productUrl === item.productUrl) ? [...item.warnings, DUPLICATE_WARNING] : item.warnings,
+            warnings: [...item.warnings, ...(owned.some(row => row.productUrl === item.productUrl) ? [DUPLICATE_WARNING] : []),
+              ...(others.some(row => row.productUrl === item.productUrl) ? [OTHER_REQUEST_WARNING] : [])],
             // 최신순 목록에서 링크 순서대로 보이도록 같은 생성의 품목 시각을 1ms씩 앞당긴다.
             createdAt: sql`now() - interval '${sql.raw(String(index))} milliseconds'`,
           }))
@@ -214,6 +246,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
         const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
         // 지난 받을 날짜는 의미가 없어 복사하지 않는다.
         await tx.insert(items).values({ id: copyId, organizationId: row!.organizationId, eventId: row!.eventId, requesterId: row!.requesterId,
+          candidateId: row!.candidateId,
           productUrl: row!.productUrl, productName: row!.productName, selectedOption: row!.selectedOption, optionRequired: row!.optionRequired,
           quantity: row!.quantity, packagingUnit: row!.packagingUnit, estimatedUnitPrice: row!.estimatedUnitPrice,
           productSnapshot: row!.productSnapshot, productFetchedAt: row!.productFetchedAt, note: row!.note,

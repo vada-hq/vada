@@ -2,7 +2,6 @@ import { z } from 'zod'
 import type { DeliverySummary } from './deliveries.js'
 import { text, token } from './input.js'
 
-export const PURCHASE_LINKS_MAX = 5
 // 한 번에 담는 후보 수(2026-10-09 결정).
 export const PURCHASE_CANDIDATES_MAX = 10
 export const PURCHASE_PRODUCT_NAME_MAX = 500
@@ -34,8 +33,8 @@ const itemRefs = z.array(z.strictObject({ id, version })).min(1).max(PURCHASE_BA
 
 export const CreatePurchaseDraftsSchema = z.strictObject({
   idempotencyKey: token(128),
-  // 쿠팡 상품 링크인지는 서버가 정규화하며 검사한다.
-  links: z.array(token(4096)).min(1).max(PURCHASE_LINKS_MAX),
+  // 행사의 후보에서 고른다. 같은 후보를 두 번 보내지 않는다.
+  candidateIds: z.array(id).min(1).max(PURCHASE_CANDIDATES_MAX).refine(ids => new Set(ids).size === ids.length),
 })
 // 작성 중 품목의 내용만 고친다. 받을 날짜는 ChangeNeededBySchema로 바꾼다.
 export const UpdatePurchaseItemSchema = z.strictObject({

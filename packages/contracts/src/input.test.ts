@@ -9,7 +9,7 @@ import { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } fr
 import { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema } from './invites.js'
 import { CREATE_DEPARTMENTS_MAX, DEPARTMENT_NAME_MAX, MEMBER_TITLE_MAX, ORGANIZATION_NAME_MAX, AssignDepartmentSchema, CreateDepartmentSchema,
   CreateOrganizationSchema, DeleteDepartmentSchema, UpdateDepartmentSchema, UpdateMemberTitleSchema } from './organizations.js'
-import { PURCHASE_BATCH_MAX, PURCHASE_INTEGER_MAX, PURCHASE_LINKS_MAX, PURCHASE_NOTE_MAX, PURCHASE_OPTION_MAX, PURCHASE_PACKAGING_MAX,
+import { PURCHASE_BATCH_MAX, PURCHASE_CANDIDATES_MAX, PURCHASE_INTEGER_MAX, PURCHASE_NOTE_MAX, PURCHASE_OPTION_MAX, PURCHASE_PACKAGING_MAX,
   PURCHASE_PRODUCT_NAME_MAX, PURCHASE_REASON_MAX, ChangeNeededBySchema, CreatePurchaseDraftsSchema, DecidePurchaseItemsSchema,
   GeneratedPurchaseItemSchema, PurchaseCandidateHiddenSchema, PurchaseItemVersionSchema, PurchasePurchasedSchema, PurchaseReceivedSchema,
   SubmitPurchaseItemsSchema, UpdatePurchaseItemSchema } from './purchases.js'
@@ -140,13 +140,14 @@ test('부서·배정·직책 스키마: 정규화, null 허용 범위, 상한, �
   }
 })
 
-test('구매 담기: 키와 링크 1~5개만 받고, 모르는 키·제어 문자는 거부한다', () => {
-  const link = 'https://www.coupang.com/vp/products/1'
-  assert.deepEqual(CreatePurchaseDraftsSchema.parse({ idempotencyKey: ' k ', links: [` ${link} `] }), { idempotencyKey: 'k', links: [link] })
-  for (const body of [{}, { idempotencyKey: 'k' }, { links: [link] }, { idempotencyKey: ' ', links: [link] },
-    { idempotencyKey: 'k'.repeat(129), links: [link] }, { idempotencyKey: 'k', links: [] },
-    { idempotencyKey: 'k', links: Array(PURCHASE_LINKS_MAX + 1).fill(link) }, { idempotencyKey: 'k', links: [`${link}\u0000`] },
-    { idempotencyKey: 'k', links: [link], requesterId: 'f' }]) {
+test('구매 담기: 키와 후보 1~10개만 받고, 같은 후보 두 번·모르는 키·제어 문자는 거부한다', () => {
+  assert.deepEqual(CreatePurchaseDraftsSchema.parse({ idempotencyKey: ' k ', candidateIds: [' c1 ', 'c2'] }),
+    { idempotencyKey: 'k', candidateIds: ['c1', 'c2'] })
+  for (const body of [{}, { idempotencyKey: 'k' }, { candidateIds: ['c'] }, { idempotencyKey: ' ', candidateIds: ['c'] },
+    { idempotencyKey: 'k'.repeat(129), candidateIds: ['c'] }, { idempotencyKey: 'k', candidateIds: [] },
+    { idempotencyKey: 'k', candidateIds: Array.from({ length: PURCHASE_CANDIDATES_MAX + 1 }, (_, index) => `c${index}`) },
+    { idempotencyKey: 'k', candidateIds: ['c', ' c '] }, { idempotencyKey: 'k', candidateIds: ['c\u0000'] },
+    { idempotencyKey: 'k', candidateIds: ['c'.repeat(65)] }, { idempotencyKey: 'k', candidateIds: ['c'], links: ['x'] }]) {
     assert.equal(CreatePurchaseDraftsSchema.safeParse(body).success, false, JSON.stringify(body))
   }
 })
