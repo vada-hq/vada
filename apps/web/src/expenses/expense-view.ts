@@ -1,10 +1,10 @@
-import { codePoints, RECEIPTS_PER_EXPENSE_MAX, type ExpenseAction, type ExpenseHistoryEntry, type ExpenseMethod, type ExpenseSummary,
-  type ReceiptKind } from '@vada/contracts'
+import { codePoints, EXPENSE_METHOD_LABELS, RECEIPT_KIND_LABELS, RECEIPTS_PER_EXPENSE_MAX, type ExpenseAction, type ExpenseHistoryEntry,
+  type ExpenseMethod, type ExpenseSummary, type ReceiptKind } from '@vada/contracts'
 import { won } from '../purchases/purchase-view'
 
-export const methodLabels: Record<ExpenseMethod, string> = { council_card: '학생회 카드', transfer: '계좌이체', cash: '현금',
-  personal: '개인 결제(환급 필요)' }
-export const kindLabels: Record<ReceiptKind, string> = { receipt: '영수증', statement: '거래명세서', tax_invoice: '세금계산서', other: '기타' }
+// 엑셀과 같은 이름을 쓴다.
+export const methodLabels = EXPENSE_METHOD_LABELS
+export const kindLabels = RECEIPT_KIND_LABELS
 const actionLabels: Record<ExpenseAction, string> = { created: '기록', updated: '수정', voided: '취소', receipt_added: '증빙 추가',
   receipt_removed: '증빙 삭제' }
 const fieldLabels: Record<string, string> = { event: '행사', vendor: '사용처', description: '내용', amount: '금액', paidOn: '결제일',

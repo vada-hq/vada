@@ -17,6 +17,10 @@ export type ExpenseMethod = typeof EXPENSE_METHODS[number]
 export type ReceiptKind = typeof RECEIPT_KINDS[number]
 export type ReceiptContentType = typeof RECEIPT_CONTENT_TYPES[number]
 export type ExpenseAction = 'created' | 'updated' | 'voided' | 'receipt_added' | 'receipt_removed'
+// 화면과 엑셀이 같은 이름을 쓴다.
+export const EXPENSE_METHOD_LABELS: Record<ExpenseMethod, string> = { council_card: '학생회 카드', transfer: '계좌이체', cash: '현금',
+  personal: '개인 결제(환급 필요)' }
+export const RECEIPT_KIND_LABELS: Record<ReceiptKind, string> = { receipt: '영수증', statement: '거래명세서', tax_invoice: '세금계산서', other: '기타' }
 
 const id = token(64)
 const version = z.number().int().min(1).max(PURCHASE_INTEGER_MAX)

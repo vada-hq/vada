@@ -94,8 +94,11 @@ export interface MessagesResponse {
   nextCursor: string | null
 }
 export { EXPENSE_VENDOR_MAX, EXPENSE_DESCRIPTION_MAX, EXPENSE_NOTE_MAX, EXPENSE_VOID_REASON_MAX, EXPENSE_ITEMS_MAX, RECEIPTS_PER_EXPENSE_MAX,
-  RECEIPT_FILE_NAME_MAX, RECEIPT_SIZE_MAX, EXPENSE_METHODS, RECEIPT_KINDS, RECEIPT_CONTENT_TYPES, CreateExpenseSchema, UpdateExpenseSchema,
-  VoidExpenseSchema, CreateReceiptUploadSchema, ReceiptActionSchema } from './expenses.js'
+  RECEIPT_FILE_NAME_MAX, RECEIPT_SIZE_MAX, EXPENSE_METHODS, RECEIPT_KINDS, RECEIPT_CONTENT_TYPES, EXPENSE_METHOD_LABELS, RECEIPT_KIND_LABELS,
+  CreateExpenseSchema, UpdateExpenseSchema, VoidExpenseSchema, CreateReceiptUploadSchema, ReceiptActionSchema } from './expenses.js'
 export type { ExpenseMethod, ReceiptKind, ReceiptContentType, ExpenseAction, CreateExpenseRequest, UpdateExpenseRequest, VoidExpenseRequest,
   CreateReceiptUploadRequest, ExpensePerson, ExpenseItem, ExpenseSummary, ReceiptSummary, ExpenseHistoryEntry, ExpenseDetail,
   ExpensesResponse, ExpenseResponse, ReceiptUploadResponse, LinkableItemsResponse } from './expenses.js'
+export { SETTLEMENT_REASON_MAX, EVENT_FINANCE_HISTORY_MAX, SetEventBudgetSchema, SettleEventSchema, ReopenSettlementSchema } from './settlement.js'
+export type { EventFinanceAction, SetEventBudgetRequest, SettleEventRequest, ReopenSettlementRequest, EventFinanceHistoryEntry, EventFinance,
+  EventFinanceResponse } from './settlement.js'
