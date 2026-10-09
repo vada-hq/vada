@@ -1,10 +1,12 @@
 import { Hono, type Context } from 'hono'
-import { CreateExpenseSchema, token, UpdateExpenseSchema, VoidExpenseSchema, type ExpenseDetail, type ExpenseResponse,
+import { CreateExpenseSchema, CreateReceiptUploadSchema, ReceiptActionSchema, token, UpdateExpenseSchema, VoidExpenseSchema,
+  type ExpenseDetail, type ExpenseResponse, type ReceiptUploadResponse,
   type ExpensesResponse } from '@vada/contracts'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
 import { ApiError } from '../http/errors.js'
 import { json } from '../http/validate.js'
+import { createReceiptService } from './receipts.js'
 import { createExpenseService, type ExpenseDatabase, type ExpenseScope } from './service.js'
 import type { ReceiptStorage } from './storage.js'
 
@@ -16,7 +18,7 @@ function idOf(value: string | undefined) {
   return parsed.data
 }
 
-// 저장소가 없으면 영수증 올리기·보기만 막힌다(Task 5).
+// 저장소가 없으면 영수증 올리기·보기만 막힌다.
 export function createExpenseRoutes(db: ExpenseDatabase, session: SessionReader, storage?: ReceiptStorage) {
   const routes = new Hono<MembershipEnv>()
   const service = createExpenseService(db)
@@ -32,6 +34,19 @@ export function createExpenseRoutes(db: ExpenseDatabase, session: SessionReader,
     c.json(reply(await service.update(scope(c), idOf(c.req.param('expenseId')), c.req.valid('json')))))
   routes.post(`${base}/:expenseId/void`, json(VoidExpenseSchema), auth, member, async c =>
     c.json(reply(await service.void(scope(c), idOf(c.req.param('expenseId')), c.req.valid('json')))))
-  void storage
+  const receipts = createReceiptService(db, storage)
+  const receiptBase = `${base}/:expenseId/receipts`
+  const ids = (c: Context<MembershipEnv>) => [idOf(c.req.param('expenseId')), idOf(c.req.param('receiptId'))] as const
+  routes.post(receiptBase, json(CreateReceiptUploadSchema), auth, member, async c =>
+    c.json(await receipts.createUpload(scope(c), idOf(c.req.param('expenseId')), c.req.valid('json')) satisfies ReceiptUploadResponse, 201))
+  routes.post(`${receiptBase}/:receiptId/confirm`, json(ReceiptActionSchema), auth, member, async c =>
+    c.json(reply(await receipts.confirm(scope(c), ...ids(c)))))
+  routes.post(`${receiptBase}/:receiptId/delete`, json(ReceiptActionSchema), auth, member, async c =>
+    c.json(reply(await receipts.remove(scope(c), ...ids(c)))))
+  routes.get(`${receiptBase}/:receiptId/file`, auth, member, async c => {
+    const url = await receipts.fileUrl(scope(c), ...ids(c))
+    c.header('Cache-Control', 'no-store')
+    return c.redirect(url, 302)
+  })
   return routes
 }
