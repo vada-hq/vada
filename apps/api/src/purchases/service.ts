@@ -6,6 +6,7 @@ import { readCoupangUrl, type ChangeNeededByRequest, type CreatePurchaseDraftsRe
 import { chatRooms, events, memberships, messages, purchaseCandidates as candidates, purchaseCandidateShares as candidateShares,
   purchaseGenerations as generations, purchaseItemEvents as itemEvents, purchaseItems as items, purchaseItemSources as sources,
   purchaseSubmissions as submissions } from '../db/schema.js'
+import { requireOpenEvents } from '../settlement/lock.js'
 import type { ProductCatalog } from './catalog.js'
 import { type DraftGenerator, type DraftInput, type GeneratedDraft, validateDraft } from './generation.js'
 import { itemDetail, itemSummaries, type Viewer } from './items.js'
@@ -229,6 +230,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
       return db.transaction(async tx => {
         const membership = await member(tx, scope, true)
         await eventOf(tx, scope)
+        await requireOpenEvents(tx, scope.organizationId, [scope.eventId])
         const rows = await lockItems(tx, scope, input.items, mine(scope))
         if (rows.some(row => row.status !== 'draft')) throw new PurchaseError('INVALID_STATE', 409)
         if (!rows.every(complete)) throw new PurchaseError('SUBMISSION_INCOMPLETE')

@@ -9,7 +9,7 @@ export function expense(overrides: Partial<ExpenseDetail> = {}): ExpenseDetail {
     id: 'x1', event: { id: 'e', name: '체육대회' }, vendor: '쿠팡', description: '체육대회 물품', amount: 10000, paidOn: '2026-10-09',
     method: 'council_card', payer: { id: 'f', name: '재정 테스터' }, payerMembershipId: 'mf', note: null,
     recordedBy: { id: 'f', name: '재정 테스터' }, items: [expenseItem()], approvedTotal: 9800, receiptCount: 0, evidence: 'missing',
-    voided: null, version: 1, createdAt: '2026-10-09T05:00:00.000Z', updatedAt: '2026-10-09T05:00:00.000Z', receipts: [], history: [],
+    voided: null, settled: false, version: 1, createdAt: '2026-10-09T05:00:00.000Z', updatedAt: '2026-10-09T05:00:00.000Z', receipts: [], history: [],
     ...overrides,
   }
 }

@@ -4,6 +4,7 @@ import { RECEIPTS_PER_EXPENSE_MAX, type CreateReceiptUploadRequest, type Expense
 import { expenseReceipts as receipts } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
+import { requireOpenEvents } from '../settlement/lock.js'
 import { detailOf, lockExpense, recordExpense, type ExpenseDatabase, type ExpenseScope, type ExpenseTransaction } from './service.js'
 import type { ReceiptStorage } from './storage.js'
 
@@ -78,6 +79,8 @@ export function createReceiptService(db: ExpenseDatabase, storage?: ReceiptStora
         await requireFinance(tx, scope, true)
         const expense = await lockExpense(tx, scope, expenseId)
         if (expense.voidedAt) throw new ApiError('INVALID_STATE', 409)
+        // 정산 뒤에는 증빙을 지우지 않는다. 더 붙이는 것은 된다.
+        await requireOpenEvents(tx, scope.organizationId, [expense.eventId])
         const [row] = await tx.delete(receipts).where(and(eq(receipts.organizationId, scope.organizationId), eq(receipts.expenseId, expenseId),
           eq(receipts.id, receiptId), eq(receipts.status, 'ready'))).returning()
         if (!row) throw new ApiError('NOT_FOUND', 404)

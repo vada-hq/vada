@@ -7,6 +7,7 @@ import { events, expenseEvents, expenseItems, expenseReceipts, expenses, members
   users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
+import { requireOpenEvents } from '../settlement/lock.js'
 import { expenseDetail, expenseItemRows, expenseSummaries } from './summaries.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -106,6 +107,7 @@ export function createExpenseService(db: ExpenseDatabase) {
     async create(scope: ExpenseScope, input: CreateExpenseRequest): Promise<ExpenseDetail> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        await requireOpenEvents(tx, scope.organizationId, [input.eventId])
         await eventName(tx, scope, input.eventId)
         const payer = await payerOf(tx, scope, input.payerMembershipId)
         const id = randomUUID()
@@ -122,6 +124,8 @@ export function createExpenseService(db: ExpenseDatabase) {
         const row = await lockExpense(tx, scope, id)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         if (row.voidedAt) throw new ApiError('INVALID_STATE', 409)
+        // 정산된 행사에서 빼거나 정산된 행사로 옮기는 것도 막는다.
+        await requireOpenEvents(tx, scope.organizationId, [row.eventId, input.eventId])
         const nextEvent = await eventName(tx, scope, input.eventId)
         const payer = await payerOf(tx, scope, input.payerMembershipId)
         const changes: Record<string, unknown> = {}
@@ -150,6 +154,7 @@ export function createExpenseService(db: ExpenseDatabase) {
         const row = await lockExpense(tx, scope, id)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         if (row.voidedAt) throw new ApiError('INVALID_STATE', 409)
+        await requireOpenEvents(tx, scope.organizationId, [row.eventId])
         const released = await linkedIds(tx, scope, id)
         await tx.update(expenses).set({ voidedAt: sql`now()`, voidedBy: scope.userId, voidReason: input.reason,
           version: sql`${expenses.version} + 1` }).where(eq(expenses.id, id))

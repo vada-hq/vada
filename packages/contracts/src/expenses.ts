@@ -89,6 +89,8 @@ export interface ExpenseSummary {
   receiptCount: number
   evidence: 'complete' | 'missing'
   voided: { by: ExpensePerson; at: string; reason: string } | null
+  // 행사 정산이 끝났으면 true다. 수정·취소·증빙 삭제를 막는다(증빙 추가는 된다).
+  settled: boolean
   version: number
   createdAt: string
   updatedAt: string

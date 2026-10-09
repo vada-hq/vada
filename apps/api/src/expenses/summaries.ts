@@ -1,7 +1,8 @@
 import { and, asc, desc, eq, inArray, sql, type SQL } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { ExpenseDetail, ExpenseItem, ExpenseSummary, ReceiptContentType } from '@vada/contracts'
-import { events, expenseEvents, expenseItems, expenseReceipts, expenses, memberships, purchaseItems as items, users } from '../db/schema.js'
+import { eventFinances, events, expenseEvents, expenseItems, expenseReceipts, expenses, memberships, purchaseItems as items,
+  users } from '../db/schema.js'
 
 type Reader = Pick<PgDatabase<PgQueryResultHKT>, 'select'>
 const payers = alias(users, 'expense_payers')
@@ -39,11 +40,13 @@ export async function expenseItemRows(db: Reader, organizationId: string, where:
 // 목록·상세·변경 응답이 같은 칸을 쓴다. 증빙은 확인된(ready) 파일만 센다.
 export async function expenseSummaries(db: Reader, organizationId: string, where: SQL | undefined, limit: number): Promise<ExpenseSummary[]> {
   const rows = await db.select({
-    expense: expenses, eventName: events.name, payerName: payers.name, payerMembershipId: payerMemberships.id, recorderName: recorders.name,
-    voiderName: voiders.name,
+    expense: expenses, eventName: events.name, settledAt: eventFinances.settledAt, payerName: payers.name, payerMembershipId: payerMemberships.id,
+    recorderName: recorders.name, voiderName: voiders.name,
     receiptCount: sql<number>`(select count(*)::int from ${expenseReceipts} where ${expenseReceipts.expenseId} = ${expenses.id} and ${expenseReceipts.status} = 'ready')`,
   }).from(expenses)
     .leftJoin(events, and(eq(events.id, expenses.eventId), eq(events.organizationId, expenses.organizationId)))
+    // 정산된 행사의 지출이면 화면이 수정·취소·증빙 삭제를 감춘다.
+    .leftJoin(eventFinances, and(eq(eventFinances.eventId, expenses.eventId), eq(eventFinances.organizationId, expenses.organizationId)))
     .innerJoin(payers, eq(payers.id, expenses.payerId))
     // 학생회를 떠난 사람이면 소속이 없다.
     .leftJoin(payerMemberships, and(eq(payerMemberships.organizationId, expenses.organizationId), eq(payerMemberships.userId, expenses.payerId)))
@@ -62,6 +65,7 @@ export async function expenseSummaries(db: Reader, organizationId: string, where
       items: list, approvedTotal: approvedTotalOf(list), receiptCount: row.receiptCount, evidence: row.receiptCount > 0 ? 'complete' : 'missing',
       voided: expense.voidedAt && expense.voidedBy && expense.voidReason
         ? { by: { id: expense.voidedBy, name: row.voiderName ?? '' }, at: expense.voidedAt.toISOString(), reason: expense.voidReason } : null,
+      settled: row.settledAt !== null,
       version: expense.version, createdAt: expense.createdAt.toISOString(), updatedAt: expense.updatedAt.toISOString(),
     }
   })
