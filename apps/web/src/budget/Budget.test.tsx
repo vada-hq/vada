@@ -63,7 +63,7 @@ test('배정이 수입보다 많으면 경고하고, 재정 권한자에게만 �
 
 test('편성 수정을 저장하면 받은 편성으로 보기로 돌아가고 기간 목록을 새로 받는다', async () => {
   const { api } = setup(true, [budgetPeriod()])
-  api.on('POST', `${base}/p1/plan`, () => json(budgetPlan({ incomes: [{ id: 'li', name: '학생회비', amount: 900000 }],
+  api.on('POST', `${base}/p1/plan`, () => json(budgetPlan({ incomes: [{ id: 'li', name: '학생회비', amount: 900000, received: 0, incomeCount: 0 }],
     totals: { ...budgetPlan().totals, income: 900000 } })))
   // 편성을 받기 전에는 [편성 수정]이 꺼져 있다.
   await screen.findByRole('heading', { name: '2026년 2학기' })

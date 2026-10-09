@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { BudgetPeriodsResponse, BudgetPlanResponse, ExpenseResponse } from '@vada/contracts'
+import type { BudgetPeriodsResponse, BudgetPlanResponse, ExpenseResponse, IncomeResponse } from '@vada/contracts'
 import { BUDGET_EVENTS_MAX, BUDGET_INCOME_LINES_MAX, BUDGET_LINE_NAME_MAX, BUDGET_OPERATING_LINES_MAX, BUDGET_PERIOD_NAME_MAX,
   SaveBudgetPlanSchema, type EventFinanceResponse } from '@vada/contracts'
 import { MAX_BODY_BYTES } from '../http/guard.js'
@@ -80,15 +80,16 @@ test('편성 읽기: 줄·숫자·후보·알림을 준다. 행사 줄은 행사
     await record(env, { eventId: 'e2', amount: 6000 })
     as('p')
     const plan = await planOf(env, period.id)
-    assert.deepEqual(plan.incomes, [{ id: 'li', name: '학생회비', amount: 800000 }])
+    assert.deepEqual(plan.incomes, [{ id: 'li', name: '학생회비', amount: 800000, received: 0, incomeCount: 0 }])
     // 가짜 생성기의 승인 품목은 수량 2, 예상 단가 11,590원이다.
     assert.deepEqual(plan.events, [{ eventId: 'e', name: '체육대회', budget: 300000, spent: 57000, planned: 23180, plannedUnknown: 0,
       remaining: 219820, settled: false, version: 1 }])
     assert.deepEqual(plan.operating, [{ id: 'lo1', name: '회의비', amount: 100000, spent: 12000, remaining: 88000, expenseCount: 1 },
       { id: 'lo2', name: '소모품', amount: 50000, spent: 0, remaining: 50000, expenseCount: 0 }])
     assert.deepEqual(plan.unassigned, { spent: 3000, count: 1 })
-    assert.deepEqual(plan.totals, { income: 800000, budget: 450000, undecided: 0, spent: 72000, planned: 23180, plannedUnknown: 0,
-      remaining: 450000 - 72000 - 23180 })
+    assert.deepEqual(plan.totals, { income: 800000, received: 0, budget: 450000, undecided: 0, spent: 72000, planned: 23180, plannedUnknown: 0,
+      remaining: 450000 - 72000 - 23180, balance: -72000 })
+    assert.deepEqual([plan.unassignedIncome, plan.incomeRecords, plan.incomeRecordsTruncated], [{ received: 0, count: 0 }, [], false])
     assert.deepEqual(plan.candidates, [{ eventId: 'e2', name: '축제', budget: null, version: 0, settled: false, spent: 6000 }])
     assert.deepEqual(plan.notices, { eventsWithSpending: 1, operatingOutside: 1 })
   } finally { await pg.close() }
@@ -260,5 +261,70 @@ test('편성 저장: 행사 재정 탭에서 바뀐 행사 줄은 금액을 보�
     assert.deepEqual(saved.history.at(-1)!.changes, { lines: [{ group: 'income', action: 'added', name: '학생회비', to: 800000 }] })
     // 그 줄의 금액을 옛 버전으로 바꾸려 하면 막는다.
     await refused(save(env, saved, { events: [{ eventId: 'e', version: 1, budget: 350000 }, { eventId: 'e2', version: 0 }] }), 409, 'VERSION_CONFLICT')
+  } finally { await pg.close() }
+})
+
+// 수입 기록 본문. 기본은 수입 항목이 없는 수입이다.
+const incomeBody = (overrides: Record<string, unknown> = {}) => ({ description: '학생회비 입금', amount: 500000, receivedOn: '2026-09-15',
+  budgetLineId: null, note: null, ...overrides })
+const recordIncome = async (env: Env, periodId: string, overrides: Record<string, unknown> = {}) =>
+  (await env.ok<IncomeResponse>(env.request('POST', `/budget/periods/${periodId}/incomes`, incomeBody(overrides)), 201)).income
+
+test('편성 읽기: 수입 줄마다 실제 수입과 건수, 항목 없는 수입, 실제 수입과 남은 돈, 이 기간의 수입 내역을 준다', async () => {
+  const env = await setupPurchases()
+  const { pg, ok, request, as } = env
+  try {
+    as('f')
+    let plan = await createPeriod(env)
+    const spring = await createPeriod(env, { name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31' })
+    plan = await ok<BudgetPlanResponse>(save(env, plan, { incomes: [{ id: null, name: '학생회비', amount: 800000 }, { id: null, name: '지원금', amount: 200000 }] }))
+    const [fees, grant] = plan.incomes
+    await recordIncome(env, plan.period.id, { budgetLineId: fees!.id, receivedOn: '2026-09-02' })
+    await recordIncome(env, plan.period.id, { budgetLineId: fees!.id, amount: 250000, receivedOn: '2026-10-02' })
+    const voided = await recordIncome(env, plan.period.id, { budgetLineId: grant!.id, amount: 200000 })
+    await ok(request('POST', `/budget/periods/${plan.period.id}/incomes/${voided.id}/void`, { version: 1, reason: '잘못 입력' }))
+    await recordIncome(env, plan.period.id, { amount: 30000, description: '후원금', receivedOn: '2026-10-02' })
+    await recordIncome(env, spring.period.id, { amount: 9000, receivedOn: '2027-03-02' })
+    await record(env, { amount: 12000 })
+    as('p')
+    const read = await planOf(env, plan.period.id)
+    assert.deepEqual(read.incomes.map(line => [line.name, line.amount, line.received, line.incomeCount]),
+      [['학생회비', 800000, 750000, 2], ['지원금', 200000, 0, 0]])
+    assert.deepEqual(read.unassignedIncome, { received: 30000, count: 1 })
+    assert.deepEqual([read.totals.received, read.totals.spent, read.totals.balance], [780000, 12000, 768000])
+    // 받은 날 최근 순이고, 같은 날이면 나중에 기록한 것이 먼저다. 취소한 수입도 준다.
+    assert.deepEqual(read.incomeRecords.map(income => [income.description, income.amount, income.voided !== null]),
+      [['후원금', 30000, false], ['학생회비 입금', 250000, false], ['학생회비 입금', 200000, true], ['학생회비 입금', 500000, false]])
+    assert.equal(read.incomeRecordsTruncated, false)
+  } finally { await pg.close() }
+})
+
+test('편성 저장: 수입이 고른 수입 줄은 지울 수 없고, 수입이 기간 밖으로 나가는 날짜 변경은 막는다. 취소한 수입은 보지 않는다', async () => {
+  const env = await setupPurchases()
+  const { pg, ok, request, as } = env
+  try {
+    as('f')
+    let plan = await createPeriod(env)
+    plan = await ok<BudgetPlanResponse>(save(env, plan, { incomes: [{ id: null, name: '학생회비', amount: 800000 }, { id: null, name: '지원금', amount: 200000 }] }))
+    const [fees, grant] = plan.incomes
+    const used = await recordIncome(env, plan.period.id, { budgetLineId: grant!.id, receivedOn: '2026-09-10' })
+    const voided = await recordIncome(env, plan.period.id, { budgetLineId: fees!.id, receivedOn: '2026-09-02' })
+    await ok(request('POST', `/budget/periods/${plan.period.id}/incomes/${voided.id}/void`, { version: 1, reason: '중복' }))
+    await recordIncome(env, plan.period.id, { receivedOn: '2027-02-20' })
+    plan = await planOf(env, plan.period.id)
+    assert.deepEqual(plan.incomes.map(line => [line.name, line.incomeCount]), [['학생회비', 0], ['지원금', 1]])
+    await refused(save(env, plan, { incomes: [{ id: fees!.id, name: '학생회비', amount: 800000 }] }), 409, 'LINE_IN_USE')
+    // 취소한 수입만 고른 줄은 지우고, 그 수입의 항목 표시도 지운다.
+    plan = await ok<BudgetPlanResponse>(save(env, plan, { incomes: [{ id: grant!.id, name: '지원금', amount: 200000 }] }))
+    assert.deepEqual(plan.incomes.map(line => line.name), ['지원금'])
+    const { rows } = await pg.query<{ budget_line_id: string | null }>('SELECT budget_line_id FROM incomes WHERE id = $1', [voided.id])
+    assert.equal(rows[0]!.budget_line_id, null)
+    // 취소한 수입(9/2)만 밖으로 나가면 통과한다.
+    plan = await ok<BudgetPlanResponse>(save(env, plan, { startsOn: '2026-09-03' }))
+    assert.equal(plan.period.startsOn, '2026-09-03')
+    // 항목이 있는 수입(9/10)이나 없는 수입(2/20)이 밖으로 나가면 막는다.
+    await refused(save(env, plan, { startsOn: '2026-09-11' }), 409, 'INCOMES_OUTSIDE_PERIOD', '시작일')
+    await refused(save(env, plan, { endsOn: '2027-02-19' }), 409, 'INCOMES_OUTSIDE_PERIOD', '끝일')
+    assert.equal((await planOf(env, plan.period.id)).incomeRecords.find(income => income.id === used.id)?.receivedOn, '2026-09-10')
   } finally { await pg.close() }
 })

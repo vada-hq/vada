@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { ExpensePerson } from './expenses.js'
+import type { IncomeSummary } from './incomes.js'
 import { text, token } from './input.js'
 import { PURCHASE_INTEGER_MAX, purchaseDate } from './purchases.js'
 
@@ -44,7 +45,8 @@ export type SaveBudgetPlanRequest = z.infer<typeof SaveBudgetPlanSchema>
 export interface BudgetPeriodSummary { id: string; name: string; startsOn: string; endsOn: string; operating: { id: string; name: string }[] }
 // 시작일이 늦은 순. 지출 대화상자가 결제일이 든 기간의 운영 줄을 고를 때도 쓴다.
 export interface BudgetPeriodsResponse { periods: BudgetPeriodSummary[] }
-export interface BudgetIncomeLine { id: string; name: string; amount: number }
+// received: 이 줄을 고른 수입 가운데 취소하지 않은 것의 합, incomeCount: 그 수. 0이 아니면 지울 수 없다.
+export interface BudgetIncomeLine { id: string; name: string; amount: number; received: number; incomeCount: number }
 // 숫자는 행사 재정 탭과 같은 정의다. version은 편성 저장에 다시 보낸다.
 export interface BudgetEventLine {
   eventId: string
@@ -81,6 +83,8 @@ export interface BudgetHistoryEntry {
 export interface BudgetTotals {
   // 수입 줄의 합
   income: number
+  // 이 기간의 취소하지 않은 수입 합(실제 수입)
+  received: number
   // 행사 예산(미정은 0)과 운영 줄의 합. undecided는 예산이 미정인 행사 수다.
   budget: number
   undecided: number
@@ -90,6 +94,8 @@ export interface BudgetTotals {
   plannedUnknown: number
   // 예산 − 실제 지출 − 지출 예정
   remaining: number
+  // 남은 돈: 실제 수입 − 실제 지출. 지출 예정은 빼지 않는다.
+  balance: number
 }
 export interface BudgetPlanResponse {
   period: { id: string; name: string; startsOn: string; endsOn: string; version: number }
@@ -98,6 +104,8 @@ export interface BudgetPlanResponse {
   operating: BudgetOperatingLine[]
   // 결제일이 기간 안인 상시 운영 지출 가운데 운영 항목이 없는 것
   unassigned: { spent: number; count: number }
+  // 이 기간의 취소하지 않은 수입 가운데 수입 항목이 없는 것
+  unassignedIncome: { received: number; count: number }
   totals: BudgetTotals
   // 최근에 만든 순으로 300개까지
   candidates: BudgetCandidate[]
@@ -105,4 +113,7 @@ export interface BudgetPlanResponse {
   notices: { eventsWithSpending: number; operatingOutside: number }
   // 최근 100개, 오래된 순
   history: BudgetHistoryEntry[]
+  // 이 기간의 수입. 취소한 것도 준다. 받은 날 최근 순으로 300건까지이고, 넘으면 incomeRecordsTruncated가 true다.
+  incomeRecords: IncomeSummary[]
+  incomeRecordsTruncated: boolean
 }

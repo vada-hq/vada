@@ -1,10 +1,11 @@
 import { randomUUID } from 'node:crypto'
 import { and, asc, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_PERIODS_MAX, type BudgetChange, type BudgetPeriodAction, type BudgetPeriodsResponse,
-  type BudgetPlanResponse, type CreateBudgetPeriodRequest, type SaveBudgetPlanRequest } from '@vada/contracts'
-import { budgetLines, budgetPeriodEvents, budgetPeriods, eventFinances, events, expenses, users } from '../db/schema.js'
+import { BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_PERIODS_MAX, INCOME_RECORDS_MAX, type BudgetChange, type BudgetPeriodAction,
+  type BudgetPeriodsResponse, type BudgetPlanResponse, type CreateBudgetPeriodRequest, type SaveBudgetPlanRequest } from '@vada/contracts'
+import { budgetLines, budgetPeriodEvents, budgetPeriods, eventFinances, events, expenses, incomes, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
+import { incomeSummaries } from '../incomes/service.js'
 import { requireFinance } from '../purchases/review.js'
 import { changeEventBudget, financeNumbersByEvent } from '../settlement/service.js'
 
@@ -81,9 +82,12 @@ async function historyOf(db: Reader, scope: BudgetScope, periodId: string) {
     changes: entry.changes, createdAt: entry.createdAt.toISOString() }))
 }
 
-// 편성 응답. 바꾸는 요청도 같은 모양으로 돌려준다.
-export async function planOf(db: Reader, scope: BudgetScope, periodId: string): Promise<BudgetPlanResponse> {
-  const period = await periodOf(db, scope, periodId)
+type Period = typeof budgetPeriods.$inferSelect
+export type PeriodNumbers = Pick<BudgetPlanResponse, 'incomes' | 'events' | 'operating' | 'unassigned' | 'unassignedIncome' | 'totals'>
+
+// 기간 하나의 줄과 숫자. 예산 화면과 결산서가 같은 정의를 쓴다.
+export async function periodNumbers(db: Reader, scope: BudgetScope, period: Period): Promise<PeriodNumbers> {
+  const periodId = period.id
   const lines = await db.select({ line: budgetLines, eventName: events.name }).from(budgetLines)
     .leftJoin(events, and(eq(events.id, budgetLines.eventId), eq(events.organizationId, budgetLines.organizationId)))
     .where(and(eq(budgetLines.organizationId, scope.organizationId), eq(budgetLines.periodId, periodId)))
@@ -115,18 +119,42 @@ export async function planOf(db: Reader, scope: BudgetScope, periodId: string): 
   const [unassigned] = await db.select({ spent: sql<string>`coalesce(sum(${expenses.amount}), 0)`, count: sql<number>`count(*)::int` }).from(expenses)
     .where(and(eq(expenses.organizationId, scope.organizationId), isNull(expenses.eventId), isNull(expenses.budgetLineId), isNull(expenses.voidedAt),
       gte(expenses.paidOn, period.startsOn), lte(expenses.paidOn, period.endsOn)))
-  const incomes = ofKind('income').map(({ line }) => ({ id: line.id, name: line.name!, amount: line.amount! }))
+  // 수입 줄: 그 줄을 고른 수입 가운데 취소하지 않은 것. 줄이 없는 묶음이 항목 없는 수입이다.
+  // 고를 때 같은 기간의 줄인지 확인하므로, 이 기간의 수입을 줄별로 묶으면 모든 수입이 한 번씩 들어간다.
+  const received = await db.select({ lineId: incomes.budgetLineId, received: sql<string>`coalesce(sum(${incomes.amount}), 0)`,
+    count: sql<number>`count(*)::int` }).from(incomes)
+    .where(and(eq(incomes.organizationId, scope.organizationId), eq(incomes.periodId, periodId), isNull(incomes.voidedAt)))
+    .groupBy(incomes.budgetLineId)
+  const incomeLines = ofKind('income').map(({ line }) => {
+    const got = received.find(row => row.lineId === line.id)
+    return { id: line.id, name: line.name!, amount: line.amount!, received: Number(got?.received ?? 0), incomeCount: got?.count ?? 0 }
+  })
+  const loose = received.find(row => row.lineId === null)
+  const totalReceived = sum(received.map(row => Number(row.received)))
   const budget = sum(eventLines.map(line => line.budget ?? 0)) + sum(operating.map(line => line.amount))
   const spent = sum(eventLines.map(line => line.spent)) + sum(operating.map(line => line.spent)) + Number(unassigned!.spent)
   const planned = sum(eventLines.map(line => line.planned))
   return {
+    incomes: incomeLines, events: eventLines, operating, unassigned: { spent: Number(unassigned!.spent), count: unassigned!.count },
+    unassignedIncome: { received: Number(loose?.received ?? 0), count: loose?.count ?? 0 },
+    totals: { income: sum(incomeLines.map(line => line.amount)), received: totalReceived, budget,
+      undecided: eventLines.filter(line => line.budget === null).length, spent, planned, plannedUnknown: sum(eventLines.map(line => line.plannedUnknown)),
+      remaining: budget - spent - planned, balance: totalReceived - spent },
+  }
+}
+
+// 편성 응답. 바꾸는 요청도 같은 모양으로 돌려준다.
+export async function planOf(db: Reader, scope: BudgetScope, periodId: string): Promise<BudgetPlanResponse> {
+  const period = await periodOf(db, scope, periodId)
+  const records = await incomeSummaries(db, scope.organizationId, eq(incomes.periodId, periodId), INCOME_RECORDS_MAX + 1)
+  return {
     period: { id: period.id, name: period.name, startsOn: period.startsOn, endsOn: period.endsOn, version: period.version },
-    incomes, events: eventLines, operating, unassigned: { spent: Number(unassigned!.spent), count: unassigned!.count },
-    totals: { income: sum(incomes.map(line => line.amount)), budget, undecided: eventLines.filter(line => line.budget === null).length, spent, planned,
-      plannedUnknown: sum(eventLines.map(line => line.plannedUnknown)), remaining: budget - spent - planned },
+    ...await periodNumbers(db, scope, period),
     candidates: await candidatesOf(db, scope),
     notices: await noticesOf(db, scope),
     history: await historyOf(db, scope, periodId),
+    incomeRecords: records.slice(0, INCOME_RECORDS_MAX),
+    incomeRecordsTruncated: records.length > INCOME_RECORDS_MAX,
   }
 }
 
@@ -134,7 +162,7 @@ type Line = typeof budgetLines.$inferSelect
 type LineInput = SaveBudgetPlanRequest['incomes'][number]
 
 // 수입·운영 줄을 보낸 목록대로 맞춘다. 보내지 않은 기존 줄은 지운다.
-// 운영 줄은 취소하지 않은 지출이 고른 것이면 지우지 않고, 취소한 지출에 남은 항목 표시는 함께 지운다(기록 시각은 그대로 둔다).
+// 취소하지 않은 지출(운영 줄)이나 수입(수입 줄)이 고른 줄은 지우지 않고, 취소한 기록에 남은 항목 표시는 함께 지운다(기록 시각은 그대로 둔다).
 async function applyLines(tx: Transaction, scope: BudgetScope, periodId: string, kind: 'income' | 'operating', existing: Line[], input: LineInput[]) {
   const current = existing.filter(line => line.kind === kind)
   const kept = new Set(input.flatMap(entry => entry.id === null ? [] : [entry.id]))
@@ -149,6 +177,12 @@ async function applyLines(tx: Transaction, scope: BudgetScope, periodId: string,
       if (used!.count) throw new ApiError('LINE_IN_USE', 409)
       await tx.update(expenses).set({ budgetLineId: null, updatedAt: sql`${expenses.updatedAt}` })
         .where(and(eq(expenses.organizationId, scope.organizationId), inArray(expenses.budgetLineId, ids)))
+    } else {
+      const [used] = await tx.select({ count: sql<number>`count(*)::int` }).from(incomes)
+        .where(and(eq(incomes.organizationId, scope.organizationId), inArray(incomes.budgetLineId, ids), isNull(incomes.voidedAt)))
+      if (used!.count) throw new ApiError('LINE_IN_USE', 409)
+      await tx.update(incomes).set({ budgetLineId: null, updatedAt: sql`${incomes.updatedAt}` })
+        .where(and(eq(incomes.organizationId, scope.organizationId), inArray(incomes.budgetLineId, ids)))
     }
     await tx.delete(budgetLines).where(inArray(budgetLines.id, ids))
   }
@@ -221,6 +255,13 @@ async function assertExpensesInside(tx: Transaction, scope: BudgetScope, periodI
       or(lt(expenses.paidOn, input.startsOn), gt(expenses.paidOn, input.endsOn)))).limit(1)
   if (outside) throw new ApiError('EXPENSES_OUTSIDE_PERIOD', 409)
 }
+// 날짜를 바꿀 때: 이 기간의 취소하지 않은 수입은 받은 날이 새 기간 안이어야 한다. 그래서 어느 기간에도 들지 않는 수입은 생기지 않는다.
+async function assertIncomesInside(tx: Transaction, scope: BudgetScope, periodId: string, input: { startsOn: string; endsOn: string }) {
+  const [outside] = await tx.select({ id: incomes.id }).from(incomes)
+    .where(and(eq(incomes.organizationId, scope.organizationId), eq(incomes.periodId, periodId), isNull(incomes.voidedAt),
+      or(lt(incomes.receivedOn, input.startsOn), gt(incomes.receivedOn, input.endsOn)))).limit(1)
+  if (outside) throw new ApiError('INCOMES_OUTSIDE_PERIOD', 409)
+}
 
 export function createBudgetService(db: BudgetDatabase) {
   return {
@@ -267,7 +308,10 @@ export function createBudgetService(db: BudgetDatabase) {
           ...await applyLines(tx, scope, periodId, 'operating', existing, input.operating),
           ...await applyEvents(tx, scope, periodId, existing, input.events),
         ]
-        if (changes.startsOn || changes.endsOn) await assertExpensesInside(tx, scope, periodId, input)
+        if (changes.startsOn || changes.endsOn) {
+          await assertExpensesInside(tx, scope, periodId, input)
+          await assertIncomesInside(tx, scope, periodId, input)
+        }
         if (lines.length) changes.lines = lines
         if (Object.keys(changes).length) {
           await tx.update(budgetPeriods).set({ name: input.name, startsOn: input.startsOn, endsOn: input.endsOn,
