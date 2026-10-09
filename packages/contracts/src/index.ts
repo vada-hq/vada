@@ -107,3 +107,7 @@ export { BUDGET_PERIOD_NAME_MAX, BUDGET_LINE_NAME_MAX, BUDGET_INCOME_LINES_MAX, 
 export type { CreateBudgetPeriodRequest, SaveBudgetPlanRequest, BudgetGroup, BudgetPeriodAction, BudgetPeriodSummary, BudgetPeriodsResponse,
   BudgetIncomeLine, BudgetEventLine, BudgetOperatingLine, BudgetCandidate, BudgetChange, BudgetHistoryEntry, BudgetTotals,
   BudgetPlanResponse } from './budget.js'
+export { INCOME_DESCRIPTION_MAX, INCOME_NOTE_MAX, INCOME_VOID_REASON_MAX, INCOME_RECORDS_MAX, CreateIncomeSchema, UpdateIncomeSchema,
+  VoidIncomeSchema } from './incomes.js'
+export type { IncomeAction, CreateIncomeRequest, UpdateIncomeRequest, VoidIncomeRequest, IncomeSummary, IncomeHistoryEntry, IncomeDetail,
+  IncomeResponse } from './incomes.js'
