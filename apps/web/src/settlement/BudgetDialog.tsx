@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { budgetInput } from './settlement-view'
 import type { FinanceResult } from './useEventFinance'
 
 type Props = { open: boolean; budget: number | null; version: number; onClose: () => void; onSubmit: (input: SetEventBudgetRequest) => Promise<FinanceResult> }
@@ -17,10 +18,10 @@ export default function BudgetDialog({ open, onClose, ...props }: Props) {
 }
 
 function Form({ budget, version, onClose, onSubmit }: Omit<Props, 'open'>) {
-  const [amount, setAmount] = useState(budget === null ? '' : String(budget))
+  const [amount, setAmount] = useState(budget === null ? '' : budget.toLocaleString('ko-KR'))
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
-  const input = { version, budget: amount.trim() === '' ? null : Number(amount) }
+  const input = { version, budget: budgetInput(amount) }
   // 버튼은 서버와 같은 스키마로 켠다.
   const valid = SetEventBudgetSchema.safeParse(input).success
   async function save() {
@@ -34,7 +35,7 @@ function Form({ budget, version, onClose, onSubmit }: Omit<Props, 'open'>) {
   return <>
     <DialogHeader><DialogTitle>예산 정하기</DialogTitle><DialogDescription>비우면 미정이에요.</DialogDescription></DialogHeader>
     <Label className="flex flex-col gap-1.5">예산(원)
-      <Input type="number" inputMode="numeric" min={0} step={1} value={amount} onChange={event => setAmount(event.target.value)} /></Label>
+      <Input inputMode="numeric" value={amount} onChange={event => setAmount(event.target.value)} /></Label>
     {message && <StateMessage kind="error">{message}</StateMessage>}
     <DialogFooter>
       <Button variant="outline" disabled={busy} onClick={onClose}>닫기</Button>

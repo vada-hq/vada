@@ -118,13 +118,18 @@ test('엑셀을 받으면 서버가 준 파일 이름으로 내려받고, 실패
     'Content-Disposition': `attachment; filename="settlement.xlsx"; filename*=UTF-8''${encodeURIComponent(name)}` } }))
   // jsdom에는 파일 주소 만들기가 없다.
   Object.defineProperty(URL, 'createObjectURL', { configurable: true, writable: true, value: vi.fn(() => 'blob:settlement') })
-  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, writable: true, value: vi.fn() })
+  const revoke = vi.fn()
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, writable: true, value: revoke })
+  const timeouts = vi.spyOn(globalThis, 'setTimeout')
   const clicks: { download: string; href: string }[] = []
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
     clicks.push({ download: this.download, href: this.getAttribute('href') ?? '' })
   })
   fireEvent.click(await screen.findByRole('button', { name: '엑셀 내려받기' }))
   await waitFor(() => expect(clicks).toEqual([{ download: name, href: 'blob:settlement' }]))
+  // 아이폰 Safari는 확인 창에서 누를 때 파일을 읽으므로 주소를 바로 풀지 않는다.
+  expect(revoke).not.toHaveBeenCalled()
+  expect(timeouts).toHaveBeenCalledWith(expect.any(Function), 40_000)
   api.on('GET', `${base}/export`, () => json({ error: 'EXPORT_TOO_LARGE' }, 409))
   fireEvent.click(screen.getByRole('button', { name: '엑셀 내려받기' }))
   expect(await screen.findByText('지출이 너무 많아 엑셀로 만들 수 없어요.')).toBeTruthy()
@@ -159,4 +164,22 @@ test('지출이 없으면 안내하고, 불러오지 못하면 다시 시도한�
   fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
   expect(await screen.findByText('이 행사에 기록된 지출이 없어요')).toBeTruthy()
   expect(screen.getByText(new RegExp(`정산 다시 엶: ${reason}$`)).className).toContain('wrap-anywhere')
+})
+
+test('예산 칸은 쉼표를 넣어도 숫자로 저장하고, 숫자가 아닌 글자가 있으면 미정으로 지우지 않고 저장 버튼을 끈다', async () => {
+  const api = setup(financeResponse({ budget: 100000, spent: 50000, remaining: 50000, version: 1 }))
+  api.on('POST', `${base}/budget`, () => json(financeResponse({ budget: 300000, spent: 50000, remaining: 250000, version: 2 })))
+  fireEvent.click(within(await numbers()).getByRole('button', { name: '예산 정하기' }))
+  const dialog = await screen.findByRole('dialog', { name: '예산 정하기' })
+  const input = within(dialog).getByLabelText('예산(원)') as HTMLInputElement
+  expect(input.value).toBe('100,000')
+  const save = within(dialog).getByRole('button', { name: '저장' })
+  for (const value of ['30만', '1e5', '-1', '3.5']) {
+    fireEvent.change(input, { target: { value } })
+    expect(save.hasAttribute('disabled'), value).toBe(true)
+  }
+  fireEvent.change(input, { target: { value: '300,000' } })
+  fireEvent.click(save)
+  expect(await within(await numbers()).findByText('300,000원')).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([{ version: 1, budget: 300000 }])
 })

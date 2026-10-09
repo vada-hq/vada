@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 import type { EventFinanceAction, EventFinanceHistoryEntry } from '@vada/contracts'
-import { budgetText, downloadName, financeHistoryText, readyToSettle, remainingText, requirements, settledDay, settlementMessage } from './settlement-view'
+import { budgetInput, budgetText, downloadName, financeHistoryText, readyToSettle, remainingText, requirements, settledDay,
+  settlementMessage } from './settlement-view'
 import { eventFinance } from './settlement-fixtures'
 
 test('예산·남은 예산: 미정은 미정과 —이고, 0보다 작으면 초과로 적는다', () => {
@@ -36,4 +37,10 @@ test('내려받은 파일 이름은 filename*에서 꺼내고, 없거나 깨졌�
   expect(settlementMessage('NOT_READY_TO_SETTLE')).toBe('아직 정산할 수 없어요. 남은 항목을 확인해 주세요.')
   expect(settlementMessage('EXPORT_TOO_LARGE')).toBe('지출이 너무 많아 엑셀로 만들 수 없어요.')
   expect(settlementMessage('???')).toBe('처리하지 못했어요. 다시 시도해 주세요.')
+})
+
+test('예산 칸의 글: 쉼표·공백·"원"은 지우고, 비우면 미정이며, 숫자가 아닌 글자가 남으면 저장할 수 없는 값이다', () => {
+  expect([budgetInput('300,000'), budgetInput(' 3,000,000원 '), budgetInput('0')]).toEqual([300000, 3000000, 0])
+  expect([budgetInput(''), budgetInput('  ')]).toEqual([null, null])
+  for (const text of ['30만', '1e5', '-1', '3.5', '３００']) expect(Number.isNaN(budgetInput(text)), text).toBe(true)
 })

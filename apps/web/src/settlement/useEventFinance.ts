@@ -61,8 +61,8 @@ export function useEventFinance(organizationId: string, eventId: string, enabled
       document.body.append(anchor)
       anchor.click()
       anchor.remove()
-      // 내려받기가 시작된 뒤에 주소를 푼다.
-      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      // 아이폰 Safari는 내려받기 확인 창에서 누를 때 파일을 읽으므로 넉넉히 기다린 뒤 주소를 푼다.
+      setTimeout(() => URL.revokeObjectURL(url), 40_000)
       return { ok: true }
     } catch {
       return { ok: false, message: settlementFailure }

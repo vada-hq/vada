@@ -2,6 +2,13 @@ import type { EventFinance, EventFinanceHistoryEntry } from '@vada/contracts'
 import { won } from '../purchases/purchase-view'
 
 export const budgetText = (budget: number | null) => budget === null ? '미정' : won(budget)
+// 예산 칸의 글. 쉼표·공백·"원"은 지우고, 비우면 미정(null)이다. 숫자가 아닌 글자가 남으면 NaN이라 같은 스키마가 저장 버튼을 끈다.
+// 숫자 칸(type=number)은 "300,000"처럼 읽지 못하는 글을 빈 값으로 넘겨 미정으로 저장되므로 글 칸으로 받는다.
+export function budgetInput(text: string): number | null {
+  const digits = text.replace(/[,\s원]/g, '')
+  if (digits === '') return null
+  return /^\d+$/.test(digits) ? Number(digits) : Number.NaN
+}
 // 남은 예산. 예산이 미정이면 —, 0보다 작으면 초과로 적는다.
 export const remainingText = (remaining: number | null) => remaining === null ? '—' : remaining < 0 ? `${won(-remaining)} 초과` : won(remaining)
 
