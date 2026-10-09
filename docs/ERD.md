@@ -209,6 +209,58 @@ erDiagram
 - 옛 요청서 표(`purchase_requests`·`purchase_request_history`·`purchase_request_sources`)와 요청서 연결 칸은 0012가 데이터를 옮긴 뒤 0013에서 지웠다.
 - 권한·보는 범위·제출 필수값은 서버 책임이다. 작성 중 품목은 요청자만 보고, 제출된 품목은 학생회 누구나 본다.
 
+## 지출·증빙
+
+결제 한 번(영수증 한 장 단위)을 지출로 기록한다. 설계는 [M2-1 결제·증빙과 사용 내역](superpowers/specs/2026-10-09-expenses-design.md)에 있다.
+
+```mermaid
+erDiagram
+    organizations ||..o{ expenses : "학생회 지출"
+    events |o..o{ expenses : "행사 지출(없으면 상시 운영)"
+    users ||..o{ expenses : "결제한 사람·기록한 사람"
+    expenses ||..o{ expenseItems : "연결 품목"
+    purchaseItems ||--o| expenseItems : "승인 품목"
+    expenses ||..o{ expenseReceipts : "증빙 파일"
+    expenses ||..o{ expenseEvents : "처리 기록"
+
+    expenses {
+        text id PK
+        text organization_id FK
+        text event_id FK "상시 운영이면 null"
+        text vendor "사용처, 100자"
+        text description "내용, 200자"
+        integer amount "실제 결제액"
+        date paid_on "결제일"
+        text method "council_card / transfer / cash / personal"
+        text payer_id FK
+        text recorded_by FK
+        integer version
+        timestamptz voided_at "취소, 사유와 같이"
+    }
+    expenseItems["expense_items"] {
+        text purchase_item_id PK, FK
+        text expense_id FK
+    }
+    expenseReceipts["expense_receipts"] {
+        text id PK
+        text expense_id FK
+        text object_key "R2 경로"
+        text kind "receipt / statement / tax_invoice / other"
+        text status "pending / ready"
+    }
+    expenseEvents["expense_events"] {
+        text id PK
+        text expense_id FK
+        text action "created / updated / voided / receipt_added / receipt_removed"
+        jsonb changes
+    }
+```
+
+- `expenses`: 지우지 않고 취소로 남긴다. 취소하면 합계에서 빠지고 연결 품목이 풀린다.
+- `expense_items`: 품목 하나는 지출 하나에만 연결된다(PK). 같은 행사의 승인 품목만 연결하고, 연결하면 구매함으로 표시한다.
+- `expense_receipts`: 파일은 비공개 R2 버킷에 있고 서명 주소로만 올리고 연다. 확인(HEAD)을 통과한 ready 파일만 증빙으로 센다.
+- `expense_events`: 기록·수정(바뀐 칸)·취소·증빙 추가·삭제를 남기고 고치지 않는다.
+
 ## 배송 추적
 
 배송 상태는 품목의 승인 상태와 독립적이다. 송장을 연결하면 구매함 표시가 붙는다. 스키마·마이그레이션, [등록·조회 API](delivery-api.md), [자동 갱신 실행기](delivery-worker.md)를 작성했다. Neon 반영, 실제 외부 연결 검증, 화면 연결·배포는 별도 단계다.
