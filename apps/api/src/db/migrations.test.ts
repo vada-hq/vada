@@ -693,3 +693,64 @@ test('0015 adds expenses without touching purchase items', async (t) => {
     await pg.close()
   }
 })
+
+test('0016 adds event finances without touching expenses', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0016_event_settlement')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','재정','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u'),('e2','o2','남의 행사','u');
+      INSERT INTO expenses (id,organization_id,event_id,vendor,description,amount,paid_on,method,payer_id,recorded_by)
+        VALUES ('x','o','e','쿠팡','물품',1000,'2026-10-09','council_card','u','u');
+    `)
+    const before = (await pg.query<Record<string, unknown>>('SELECT * FROM expenses')).rows
+    await migrate(db, { migrationsFolder })
+    const finance = (change: Record<string, string> = {}) => {
+      const values: Record<string, string> = { event_id: "'e'", organization_id: "'o'", budget: 'NULL', settled_at: 'NULL', settled_by: 'NULL', ...change }
+      return pg.exec(`INSERT INTO event_finances (${Object.keys(values).join(',')}) VALUES (${Object.values(values).join(',')})`)
+    }
+
+    await t.test('existing expenses keep their values', async () => {
+      assert.deepEqual((await pg.query<Record<string, unknown>>('SELECT * FROM expenses')).rows, before)
+    })
+    await t.test('a budget is zero or more, who and when settle together, and the event is in the same council', async () => {
+      await finance({ budget: '0', settled_at: 'now()', settled_by: "'u'" })
+      await assert.rejects(finance(), { constraint: 'event_finances_pkey' })
+      await pg.exec('DELETE FROM event_finances')
+      await finance()
+      await pg.exec('DELETE FROM event_finances')
+      const cases: [Record<string, string>, string][] = [
+        [{ budget: '-1' }, 'event_finances_budget_nonnegative'],
+        [{ settled_at: 'now()' }, 'event_finances_settled_pair'],
+        [{ settled_by: "'u'" }, 'event_finances_settled_pair'],
+        [{ version: '0' }, 'event_finances_version_positive'],
+        [{ event_id: "'e2'" }, 'event_finances_event_same_organization'],
+      ]
+      for (const [change, constraint] of cases) await assert.rejects(finance(change), { constraint }, constraint)
+    })
+    await t.test('history actions are known, changes are objects, and only reopening has a short reason', async () => {
+      const entry = (id: string, action: string, reason = 'NULL', changes = "'{}'", event = 'e') => pg.exec(
+        `INSERT INTO event_finance_events (id,organization_id,event_id,actor_id,action,changes,reason) VALUES ('${id}','o','${event}','u','${action}',${changes},${reason})`)
+      await entry('h1', 'budget_set', 'NULL', `'{"from":null,"to":1000}'`)
+      await entry('h2', 'settled')
+      await entry('h3', 'reopened', "'영수증 빠짐'")
+      const cases: [string, string, string, string][] = [
+        ['h4', 'closed', 'NULL', 'event_finance_events_action_valid'],
+        ['h5', 'reopened', 'NULL', 'event_finance_events_reason_when_reopened'],
+        ['h6', 'settled', "'사유'", 'event_finance_events_reason_when_reopened'],
+        ['h7', 'reopened', "'  '", 'event_finance_events_reason_not_blank'],
+        ['h8', 'reopened', `'${'가'.repeat(201)}'`, 'event_finance_events_reason_length'],
+      ]
+      for (const [id, action, reason, constraint] of cases) await assert.rejects(entry(id, action, reason), { constraint }, constraint)
+      await assert.rejects(entry('h9', 'settled', 'NULL', "'[]'"), { constraint: 'event_finance_events_changes_object' })
+      await assert.rejects(entry('h10', 'settled', 'NULL', "'{}'", 'e2'), { constraint: 'event_finance_events_event_same_organization' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

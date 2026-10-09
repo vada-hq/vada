@@ -113,6 +113,13 @@
       "when": 1791532973766,
       "tag": "0015_expenses",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791550713418,
+      "tag": "0016_event_settlement",
+      "breakpoints": true
     }
   ]
 }

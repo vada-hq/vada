@@ -621,3 +621,50 @@ export const expenseEvents = pgTable('expense_events', {
   check('expense_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
   index('expense_events_expense_idx').on(table.expenseId, table.createdAt),
 ])
+
+// 행사의 예산과 정산 상태. 예산을 정하거나 정산할 때 생긴다. 행이 없으면 예산 미정·정산 전이다.
+export const eventFinances = pgTable('event_finances', {
+  eventId: text('event_id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  // 비어 있으면 예산 미정이다.
+  budget: integer('budget'),
+  settledAt: timestamp('settled_at', { withTimezone: true }),
+  settledBy: text('settled_by').references(() => users.id, { onDelete: 'restrict' }),
+  version: integer('version').notNull().default(1),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  foreignKey({
+    name: 'event_finances_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  check('event_finances_budget_nonnegative', sql`${table.budget} >= 0`),
+  check('event_finances_settled_pair', sql`(${table.settledAt} IS NULL) = (${table.settledBy} IS NULL)`),
+  check('event_finances_version_positive', sql`${table.version} >= 1`),
+])
+
+// 예산·정산 처리 기록. 고치거나 지우지 않는다.
+export const eventFinanceEvents = pgTable('event_finance_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  eventId: text('event_id').notNull(),
+  actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  action: text('action', { enum: ['budget_set', 'settled', 'reopened'] }).notNull(),
+  changes: jsonb('changes').$type<Record<string, unknown>>().notNull().default({}),
+  // 다시 열 때만 사유가 있다.
+  reason: text('reason'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'event_finance_events_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  check('event_finance_events_action_valid', sql`${table.action} IN ('budget_set','settled','reopened')`),
+  check('event_finance_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
+  check('event_finance_events_reason_when_reopened', sql`(${table.action} = 'reopened') = (${table.reason} IS NOT NULL)`),
+  check('event_finance_events_reason_not_blank', sql`${table.reason} ~ '[^[:space:]]'`),
+  check('event_finance_events_reason_length', sql`char_length(${table.reason}) <= 200`),
+  index('event_finance_events_event_idx').on(table.eventId, table.createdAt),
+])
