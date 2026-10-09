@@ -3,8 +3,8 @@ import { and, asc, eq, inArray, isNull, ne, notExists, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { CreateExpenseRequest, ExpenseAction, ExpenseDetail, ExpensesResponse, LinkableItemsResponse, UpdateExpenseRequest,
   VoidExpenseRequest } from '@vada/contracts'
-import { events, expenseEvents, expenseItems, expenseReceipts, expenses, memberships, purchaseItemEvents, purchaseItems as items,
-  users } from '../db/schema.js'
+import { budgetLines, budgetPeriods, events, expenseEvents, expenseItems, expenseReceipts, expenses, memberships, purchaseItemEvents,
+  purchaseItems as items, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
 import { requireOpenEvents } from '../settlement/lock.js'
@@ -53,6 +53,26 @@ async function userName(db: Reader, userId: string) {
   const [user] = await db.select({ name: users.name }).from(users).where(eq(users.id, userId))
   return user?.name ?? ''
 }
+// 운영 항목. 상시 운영 지출만 고르고(계약이 막는다), 결제일이 든 기간의 운영 줄이어야 한다.
+// 그 기간 행을 FOR SHARE로 잠가 편성 수정(기간 FOR UPDATE)과 겹치지 않게 한다. 행사 행보다 먼저 잠가 잠금 순서(기간 → 행사)를 맞춘다.
+async function budgetLineName(tx: ExpenseTransaction, scope: ExpenseScope, lineId: string | null, paidOn: string) {
+  if (lineId === null) return null
+  const find = () => tx.select({ name: budgetLines.name, kind: budgetLines.kind, periodId: budgetLines.periodId }).from(budgetLines)
+    .where(and(eq(budgetLines.organizationId, scope.organizationId), eq(budgetLines.id, lineId)))
+  const [line] = await find()
+  if (!line || line.kind !== 'operating') throw new ApiError('BUDGET_LINE_INVALID', 409)
+  const [period] = await tx.select({ startsOn: budgetPeriods.startsOn, endsOn: budgetPeriods.endsOn }).from(budgetPeriods)
+    .where(eq(budgetPeriods.id, line.periodId)).for('share')
+  // 잠그기 전에 편성 수정이 줄을 지웠거나 이름을 바꿨을 수 있어 다시 읽는다.
+  const [locked] = await find()
+  if (!period || !locked || paidOn < period.startsOn || paidOn > period.endsOn) throw new ApiError('BUDGET_LINE_INVALID', 409)
+  return locked.name
+}
+async function lineName(db: Reader, lineId: string | null) {
+  if (lineId === null) return null
+  const [line] = await db.select({ name: budgetLines.name }).from(budgetLines).where(eq(budgetLines.id, lineId))
+  return line?.name ?? null
+}
 async function linkedIds(db: Reader, scope: ExpenseScope, expenseId: string) {
   const rows = await db.select({ id: expenseItems.purchaseItemId }).from(expenseItems)
     .where(and(eq(expenseItems.organizationId, scope.organizationId), eq(expenseItems.expenseId, expenseId)))
@@ -79,7 +99,7 @@ async function linkItems(tx: ExpenseTransaction, scope: ExpenseScope, expenseId:
     actorId: scope.userId, action: 'purchased' as const, changes: { expenseId } })))
 }
 const fieldsOf = (input: CreateExpenseRequest, payerId: string) => ({ eventId: input.eventId, vendor: input.vendor, description: input.description,
-  amount: input.amount, paidOn: input.paidOn, method: input.method, payerId, note: input.note })
+  amount: input.amount, paidOn: input.paidOn, method: input.method, payerId, note: input.note, budgetLineId: input.budgetLineId })
 
 export function createExpenseService(db: ExpenseDatabase) {
   return {
@@ -107,6 +127,7 @@ export function createExpenseService(db: ExpenseDatabase) {
     async create(scope: ExpenseScope, input: CreateExpenseRequest): Promise<ExpenseDetail> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        await budgetLineName(tx, scope, input.budgetLineId, input.paidOn)
         await requireOpenEvents(tx, scope.organizationId, [input.eventId])
         await eventName(tx, scope, input.eventId)
         const payer = await payerOf(tx, scope, input.payerMembershipId)
@@ -124,6 +145,7 @@ export function createExpenseService(db: ExpenseDatabase) {
         const row = await lockExpense(tx, scope, id)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         if (row.voidedAt) throw new ApiError('INVALID_STATE', 409)
+        const nextLine = await budgetLineName(tx, scope, input.budgetLineId, input.paidOn)
         // 정산된 행사에서 빼거나 정산된 행사로 옮기는 것도 막는다.
         await requireOpenEvents(tx, scope.organizationId, [row.eventId, input.eventId])
         const nextEvent = await eventName(tx, scope, input.eventId)
@@ -135,6 +157,7 @@ export function createExpenseService(db: ExpenseDatabase) {
           if (row[key] !== plain[key]) changes[key] = { from: row[key], to: plain[key] }
         }
         if (row.payerId !== payer.userId) changes.payer = { from: await userName(tx, row.payerId), to: payer.name }
+        if (row.budgetLineId !== input.budgetLineId) changes.budgetLine = { from: await lineName(tx, row.budgetLineId), to: nextLine }
         const before = await linkedIds(tx, scope, id)
         const added = input.itemIds.filter(itemId => !before.includes(itemId)).length
         const removed = before.filter(itemId => !input.itemIds.includes(itemId)).length

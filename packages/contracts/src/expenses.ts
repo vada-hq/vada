@@ -38,10 +38,13 @@ const fields = {
   payerMembershipId: id,
   note: text(EXPENSE_NOTE_MAX).nullable(),
   itemIds: z.array(id).max(EXPENSE_ITEMS_MAX).refine(ids => new Set(ids).size === ids.length),
+  // 상시 운영 지출의 운영 항목. 행사 지출이면 null이어야 한다.
+  budgetLineId: id.nullable(),
 }
-export const CreateExpenseSchema = z.strictObject(fields)
+const operatingOnly = (value: { eventId: string | null; budgetLineId: string | null }) => value.eventId === null || value.budgetLineId === null
+export const CreateExpenseSchema = z.strictObject(fields).refine(operatingOnly)
 // 수정은 모든 칸을 다시 보낸다. 연결 품목도 바뀐 목록 전체다.
-export const UpdateExpenseSchema = z.strictObject({ version, ...fields })
+export const UpdateExpenseSchema = z.strictObject({ version, ...fields }).refine(operatingOnly)
 export const VoidExpenseSchema = z.strictObject({ version, reason: text(EXPENSE_VOID_REASON_MAX) })
 export const CreateReceiptUploadSchema = z.strictObject({
   fileName: text(RECEIPT_FILE_NAME_MAX),
@@ -72,6 +75,8 @@ export interface ExpenseSummary {
   id: string
   // null이면 상시 운영 지출이다.
   event: { id: string; name: string } | null
+  // 상시 운영 지출의 운영 항목. 없으면 null이다.
+  budgetLine: { id: string; name: string } | null
   vendor: string
   description: string
   amount: number

@@ -8,7 +8,7 @@ const upload = { fileName: '영수증 1.jpg', contentType: 'image/jpeg', size: 1
 async function expense(env: Env) {
   env.as('f')
   return (await env.ok<ExpenseResponse>(env.request('POST', '/expenses', { eventId: null, vendor: '다이소', description: '다과', amount: 12000,
-    paidOn: '2026-10-09', method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [] }), 201)).expense
+    paidOn: '2026-10-09', method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [], budgetLineId: null }), 201)).expense
 }
 const readyReceipts = (expenseId: string, count: number) => `INSERT INTO expense_receipts
   (id,organization_id,expense_id,object_key,file_name,content_type,size_bytes,kind,status,uploaded_by,confirmed_at)

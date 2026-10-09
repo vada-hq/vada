@@ -5,7 +5,7 @@ import { generated, link, setupPurchases } from '../purchases/test-setup.js'
 
 type Env = Awaited<ReturnType<typeof setupPurchases>>
 const body = (overrides: Record<string, unknown> = {}) => ({ eventId: 'e', vendor: '쿠팡', description: '체육대회 물품', amount: 46000,
-  paidOn: '2026-10-09', method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [] as string[], ...overrides })
+  paidOn: '2026-10-09', method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [] as string[], budgetLineId: null, ...overrides })
 // 기획(p)이 담아 제출하고 재정(f)이 승인한 품목. 끝나면 재정으로 남는다.
 async function approved(env: Env, links: string[], event = 'e') {
   // 다른 행사방에는 e의 메시지가 없으므로 근거 없이 만든다.
@@ -204,5 +204,40 @@ test('지출에 연결된 품목은 구매 표시를 취소할 수 없고, 지�
     assert.deepEqual(await undo.json(), { error: 'LINKED_TO_EXPENSE' })
     await ok(request('POST', `/expenses/${expense.id}/void`, { version: expense.version, reason: '잘못 기록' }))
     await ok(request('POST', `/purchase-review/${itemId}/purchased`, { version: await version(), purchased: false }))
+  } finally { await pg.close() }
+})
+
+test('운영 항목: 상시 운영 지출은 결제일이 든 기간의 운영 줄만 고르고, 고친 것은 처리 기록에 남는다', async () => {
+  const env = await setupPurchases()
+  const { pg, ok, request, as } = env
+  try {
+    await pg.exec(`
+      INSERT INTO budget_periods (id,organization_id,name,starts_on,ends_on,created_by) VALUES
+        ('pa','a','2026년 2학기','2026-09-01','2027-02-28','f'),('pb','b','B 기간','2026-09-01','2027-02-28','x');
+      INSERT INTO budget_lines (id,organization_id,period_id,kind,name,amount,position) VALUES
+        ('lm','a','pa','operating','회의비',100000,0),('ls','a','pa','operating','소모품',50000,1),
+        ('li','a','pa','income','학생회비',800000,0),('lb','b','pb','operating','남의 항목',1,0);
+    `)
+    as('f')
+    const operating = (overrides: Record<string, unknown> = {}) => ({ eventId: null, vendor: '다이소', description: '회의 다과', amount: 12000,
+      paidOn: '2026-10-09', method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [] as string[], budgetLineId: 'lm', ...overrides })
+    const expense = (await ok<ExpenseResponse>(request('POST', '/expenses', operating()), 201)).expense
+    assert.deepEqual(expense.budgetLine, { id: 'lm', name: '회의비' })
+    for (const [label, overrides] of [['기간 밖 결제일', { paidOn: '2026-08-31' }], ['수입 줄', { budgetLineId: 'li' }],
+      ['다른 학생회의 줄', { budgetLineId: 'lb' }], ['없는 줄', { budgetLineId: 'missing' }]] as const) {
+      const response = await request('POST', '/expenses', operating(overrides))
+      assert.equal(response.status, 409, label)
+      assert.deepEqual(await response.json(), { error: 'BUDGET_LINE_INVALID' }, label)
+    }
+    assert.equal((await request('POST', '/expenses', operating({ eventId: 'e' }))).status, 400)
+    const patch = (overrides: Record<string, unknown>, version: number) =>
+      request('PATCH', `/expenses/${expense.id}`, { ...operating(overrides), version })
+    const moved = (await ok<ExpenseResponse>(patch({ budgetLineId: 'ls' }, 1))).expense
+    assert.deepEqual([moved.budgetLine, moved.history.at(-1)!.changes], [{ id: 'ls', name: '소모품' }, { budgetLine: { from: '회의비', to: '소모품' } }])
+    // 결제일을 다른 기간으로 옮기면서 옛 항목을 그대로 보내면 막는다.
+    assert.equal((await patch({ budgetLineId: 'ls', paidOn: '2027-03-02' }, 2)).status, 409)
+    const cleared = (await ok<ExpenseResponse>(patch({ budgetLineId: null }, 2))).expense
+    assert.deepEqual([cleared.budgetLine, cleared.history.at(-1)!.changes], [null, { budgetLine: { from: '소모품', to: null } }])
+    assert.equal((await ok<ExpensesResponse>(request('GET', '/expenses'))).expenses[0]!.budgetLine, null)
   } finally { await pg.close() }
 })

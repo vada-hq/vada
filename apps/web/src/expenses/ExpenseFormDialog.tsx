@@ -58,7 +58,7 @@ function Form({ organizationId, viewerMembershipId, events, initialEventId, expe
   const choices = eventId ? [...(expense?.items ?? []), ...(linkable.data?.items ?? [])]
     .filter((item, index, list) => item.event.id === eventId && list.findIndex(other => other.id === item.id) === index) : []
   const input: CreateExpenseRequest = { eventId: eventId || null, vendor, description, amount: amount.trim() === '' ? Number.NaN : Number(amount),
-    paidOn, method, payerMembershipId: payer, note: note.trim() ? note : null, itemIds }
+    paidOn, method, payerMembershipId: payer, note: note.trim() ? note : null, itemIds, budgetLineId: null }
   // 버튼은 서버와 같은 스키마로 켠다. 길이 숫자를 화면에 다시 적지 않는다.
   const valid = expense ? UpdateExpenseSchema.safeParse({ ...input, version: expense.version }).success : CreateExpenseSchema.safeParse(input).success
   const loaded = members.data?.members ?? []

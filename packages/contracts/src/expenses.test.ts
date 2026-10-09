@@ -9,7 +9,7 @@ const nul = String.fromCharCode(0)
 const lone = String.fromCharCode(0xd800)
 const emoji = '😀'
 const valid = { eventId: 'e', vendor: '쿠팡', description: '체육대회 물품', amount: 137500, paidOn: '2026-10-09', method: 'council_card',
-  payerMembershipId: 'mf', note: null, itemIds: ['i1', 'i2'] }
+  payerMembershipId: 'mf', note: null, itemIds: ['i1', 'i2'], budgetLineId: null }
 const without = (key: string) => Object.fromEntries(Object.entries(valid).filter(([name]) => name !== key))
 
 test('지출 칸: 앞뒤 공백을 지우고, 상시 운영(행사 없음)·품목 없음·0원도 받는다', () => {
@@ -21,7 +21,7 @@ test('지출 칸: 앞뒤 공백을 지우고, 상시 운영(행사 없음)·품�
 test('지출 칸: 빠진 값·빈 값·상한+1·제어 문자·범위 밖 값·모르는 키는 거절한다', () => {
   const bodies: unknown[] = [
     without('vendor'), without('description'), without('amount'), without('paidOn'), without('method'), without('payerMembershipId'),
-    without('itemIds'), without('eventId'), without('note'),
+    without('itemIds'), without('eventId'), without('note'), without('budgetLineId'),
     { ...valid, vendor: '' }, { ...valid, vendor: '   ' }, { ...valid, vendor: emoji.repeat(EXPENSE_VENDOR_MAX + 1) },
     { ...valid, vendor: `쿠팡${nul}` }, { ...valid, vendor: `쿠팡${lone}` },
     { ...valid, description: ' ' }, { ...valid, description: emoji.repeat(EXPENSE_DESCRIPTION_MAX + 1) },
@@ -61,4 +61,11 @@ test('영수증 올리기: 형식·크기·종류를 정해진 값으로만 받�
   for (const schema of [CreateExpenseSchema, UpdateExpenseSchema, VoidExpenseSchema, CreateReceiptUploadSchema, ReceiptActionSchema]) {
     assert.equal(isStrictObject(schema), true)
   }
+})
+
+test('운영 항목: 상시 운영 지출만 고를 수 있다', () => {
+  assert.equal(CreateExpenseSchema.safeParse({ ...valid, eventId: null, itemIds: [], budgetLineId: 'l1' }).success, true)
+  assert.equal(CreateExpenseSchema.safeParse({ ...valid, budgetLineId: 'l1' }).success, false)
+  assert.equal(UpdateExpenseSchema.safeParse({ ...valid, version: 1, budgetLineId: 'l1' }).success, false)
+  assert.equal(CreateExpenseSchema.safeParse({ ...valid, eventId: null, itemIds: [], budgetLineId: '' }).success, false)
 })

@@ -41,7 +41,7 @@ test('필수 칸이 맞아야 기록이 켜지고, 상시 운영과 빈 메모�
   fill(dialog, '메모', '   ')
   fireEvent.click(save)
   await waitFor(() => expect(onSubmit).toHaveBeenCalledWith({ eventId: null, vendor: ' 다이소 ', description: '회의 다과', amount: 12000,
-    paidOn: todayInSeoul(), method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [] }))
+    paidOn: todayInSeoul(), method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [], budgetLineId: null }))
   expect(onSaved).toHaveBeenCalledWith(expense())
 })
 

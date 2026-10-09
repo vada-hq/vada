@@ -5,7 +5,7 @@ import { link, refs, setupPurchases } from '../purchases/test-setup.js'
 
 type Env = Awaited<ReturnType<typeof setupPurchases>>
 const body = (overrides: Record<string, unknown> = {}) => ({ eventId: 'e', vendor: '쿠팡', description: '체육대회 물품', amount: 46000,
-  paidOn: '2026-10-09', method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [] as string[], ...overrides })
+  paidOn: '2026-10-09', method: 'council_card', payerMembershipId: 'mf', note: null, itemIds: [] as string[], budgetLineId: null, ...overrides })
 const create = async (env: Env, overrides: Record<string, unknown> = {}) =>
   (await env.ok<ExpenseResponse>(env.request('POST', '/expenses', body(overrides)), 201)).expense
 // 정산 API 없이 정산된 상태를 만든다.
