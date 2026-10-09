@@ -19,6 +19,12 @@ export function useChat(organizationId: string, eventId: string) {
   const [draft, setDraft] = useState('')
   const lock = useRef(false)
   const controller = useRef<AbortController | null>(null)
+  // nextCursor의 최신 값. 이전 페이지를 이어 불러오는 비동기 반복에서 쓴다.
+  const cursor = useRef<string | null>(null)
+  function moveCursor(next: string | null) {
+    cursor.current = next
+    setNextCursor(next)
+  }
 
   function update(next: MessageSummary[]) {
     rows.current = next
@@ -29,7 +35,7 @@ export function useChat(organizationId: string, eventId: string) {
       blocked.current = true
       setDenied(true)
       update([])
-      setNextCursor(null)
+      moveCursor(null)
       setSendError('')
       setLoadError('대화방에 접근할 수 없어요. 로그인·소속을 확인해 주세요.')
     } else {
@@ -59,7 +65,7 @@ export function useChat(organizationId: string, eventId: string) {
     }
     if (signal.aborted) return
     const incomingIds = new Set(incoming.map(message => message.id))
-    if (!known.size) setNextCursor(result.nextCursor)
+    if (!known.size) moveCursor(result.nextCursor)
     update([...rows.current.filter(message => !incomingIds.has(message.id)), ...incoming])
     blocked.current = false
     setDenied(false)
@@ -103,7 +109,7 @@ export function useChat(organizationId: string, eventId: string) {
       if (signal.aborted) return
       const known = new Set(rows.current.map(message => message.id))
       update([...result.messages.filter(message => !known.has(message.id)), ...rows.current])
-      setNextCursor(result.nextCursor)
+      moveCursor(result.nextCursor)
       setLoadError('')
     })
   }
@@ -132,5 +138,26 @@ export function useChat(organizationId: string, eventId: string) {
       await latest(signal)
     })
   }
-  return { messages, nextCursor, loading, busy, denied, loadError, sendError, draft, setDraft, refresh, older, send }
+  // 후보에서 고른 메시지를 찾는다. 다른 불러오기가 끝나기를 기다린 뒤 이전 페이지를 10번까지 더 불러온다.
+  async function reveal(messageId: string) {
+    const signal = controller.current?.signal
+    const has = () => rows.current.some(message => message.id === messageId)
+    const idle = async () => { for (let wait = 0; lock.current && wait < 50; wait++) await new Promise(resolve => setTimeout(resolve, 100)) }
+    await idle()
+    for (let pages = 0; !has() && pages < 10 && cursor.current && signal && !signal.aborted && !blocked.current; pages++) {
+      await idle()
+      const before = cursor.current
+      await run(signal, async () => {
+        const result = await page(signal, before)
+        if (signal.aborted) return
+        const known = new Set(rows.current.map(message => message.id))
+        update([...result.messages.filter(message => !known.has(message.id)), ...rows.current])
+        moveCursor(result.nextCursor)
+        setLoadError('')
+      })
+      if (cursor.current === before) break
+    }
+    return has()
+  }
+  return { messages, nextCursor, loading, busy, denied, loadError, sendError, draft, setDraft, refresh, older, send, reveal }
 }

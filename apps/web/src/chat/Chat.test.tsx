@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, expect, test, vi } from 'vitest'
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import Chat from './Chat'
 import type { MessageSummary } from '@vada/contracts'
 
@@ -134,4 +134,34 @@ test('changing events ignores late responses and clears the draft', async () => 
   await act(async () => resolve(ok([msg('old response')])))
   expect(screen.queryByText('old response')).toBeNull()
   expect((screen.getByLabelText('메시지') as HTMLTextAreaElement).value).toBe('')
+})
+
+test('쿠팡 상품 링크는 버튼으로 그리고, 누르면 그 링크를 넘기며, 다른 글은 그대로 둔다', async () => {
+  const link = 'https://www.coupang.com/vp/products/1?itemId=2&vendorItemId=3'
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok([msg('m1', `이거 어때? ${link} 다른 건 https://example.com`)])))
+  const onOpenLink = vi.fn()
+  render(<Chat {...props} onOpenLink={onOpenLink} />)
+  const button = await screen.findByRole('button', { name: link })
+  expect(button.className).toContain('wrap-anywhere')
+  fireEvent.click(button)
+  expect(onOpenLink).toHaveBeenCalledWith(expect.objectContaining({ productId: '1', vendorItemId: '3', url: link }))
+  expect(screen.getByText(/다른 건 https:\/\/example\.com/)).toBeTruthy()
+})
+
+test('후보에서 고른 메시지가 이전 페이지에 있으면 더 불러와 강조하고, 없으면 알린다', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string) => String(url).includes('before=new') ? ok([msg('target')], null) : ok([msg('new')], 'new')))
+  const scrolled = vi.fn()
+  Element.prototype.scrollIntoView = scrolled
+  try {
+    const view = render(<Chat {...props} focus={null} />)
+    await screen.findByText('new')
+    view.rerender(<Chat {...props} focus={{ id: 1, messageId: 'target' }} />)
+    const target = await screen.findByText('target')
+    await waitFor(() => expect(target.closest('li')!.className).toContain('bg-yellow-50'))
+    expect(scrolled).toHaveBeenCalled()
+    view.rerender(<Chat {...props} focus={{ id: 2, messageId: 'missing' }} />)
+    expect(await screen.findByText('메시지를 찾지 못했어요.')).toBeTruthy()
+  } finally {
+    Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
+  }
 })
