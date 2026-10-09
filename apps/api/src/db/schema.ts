@@ -508,3 +508,116 @@ export const shipmentRegistrations = pgTable('shipment_registrations', {
   check('shipment_registrations_key_not_blank', sql`${table.idempotencyKey} ~ '[^[:space:]]'`),
   check('shipment_registrations_hash_valid', sql`${table.inputHash} ~ '^[a-f0-9]{64}$'`),
 ])
+// 결제 한 번(영수증 한 장 단위)의 지출. 지우지 않고 취소로 남긴다(2026-10-09 결정).
+export const expenses = pgTable('expenses', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull()
+    .references(() => organizations.id, { onDelete: 'restrict' }),
+  // 비어 있으면 상시 운영 지출이다.
+  eventId: text('event_id'),
+  vendor: text('vendor').notNull(),
+  description: text('description').notNull(),
+  amount: integer('amount').notNull(),
+  paidOn: date('paid_on').notNull(),
+  method: text('method', { enum: ['council_card', 'transfer', 'cash', 'personal'] }).notNull(),
+  payerId: text('payer_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  note: text('note'),
+  recordedBy: text('recorded_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  version: integer('version').notNull().default(1),
+  voidedAt: timestamp('voided_at', { withTimezone: true }),
+  voidedBy: text('voided_by').references(() => users.id, { onDelete: 'restrict' }),
+  voidReason: text('void_reason'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  foreignKey({
+    name: 'expenses_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  unique('expenses_organization_id_unique').on(table.organizationId, table.id),
+  check('expenses_vendor_not_blank', sql`${table.vendor} ~ '[^[:space:]]'`),
+  check('expenses_vendor_length', sql`char_length(${table.vendor}) <= 100`),
+  check('expenses_description_not_blank', sql`${table.description} ~ '[^[:space:]]'`),
+  check('expenses_description_length', sql`char_length(${table.description}) <= 200`),
+  check('expenses_amount_nonnegative', sql`${table.amount} >= 0`),
+  check('expenses_paid_on_range', sql`${table.paidOn} BETWEEN '2000-01-01' AND '2999-12-31'`),
+  check('expenses_method_valid', sql`${table.method} IN ('council_card','transfer','cash','personal')`),
+  check('expenses_note_not_blank', sql`${table.note} ~ '[^[:space:]]'`),
+  check('expenses_note_length', sql`char_length(${table.note}) <= 200`),
+  check('expenses_version_positive', sql`${table.version} >= 1`),
+  check('expenses_void_triple', sql`(${table.voidedAt} IS NULL) = (${table.voidedBy} IS NULL) AND (${table.voidedAt} IS NULL) = (${table.voidReason} IS NULL)`),
+  check('expenses_void_reason_not_blank', sql`${table.voidReason} ~ '[^[:space:]]'`),
+  check('expenses_void_reason_length', sql`char_length(${table.voidReason}) <= 200`),
+  index('expenses_organization_paid_idx').on(table.organizationId, table.paidOn.desc(), table.createdAt.desc()),
+])
+
+// 지출에 연결한 승인 품목. 품목 하나는 지출 하나에만 연결된다.
+export const expenseItems = pgTable('expense_items', {
+  purchaseItemId: text('purchase_item_id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  expenseId: text('expense_id').notNull(),
+}, (table) => [
+  foreignKey({
+    name: 'expense_items_expense_same_organization',
+    columns: [table.organizationId, table.expenseId],
+    foreignColumns: [expenses.organizationId, expenses.id],
+  }).onDelete('restrict'),
+  foreignKey({
+    name: 'expense_items_item_same_organization',
+    columns: [table.organizationId, table.purchaseItemId],
+    foreignColumns: [purchaseItems.organizationId, purchaseItems.id],
+  }).onDelete('restrict'),
+  index('expense_items_expense_idx').on(table.organizationId, table.expenseId),
+])
+
+// 증빙 파일. 파일은 R2에 두고 경로만 저장한다. 다 올라가 확인된 파일만 ready다.
+export const expenseReceipts = pgTable('expense_receipts', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  expenseId: text('expense_id').notNull(),
+  objectKey: text('object_key').notNull().unique(),
+  fileName: text('file_name').notNull(),
+  contentType: text('content_type').notNull(),
+  sizeBytes: integer('size_bytes').notNull(),
+  kind: text('kind', { enum: ['receipt', 'statement', 'tax_invoice', 'other'] }).notNull(),
+  status: text('status', { enum: ['pending', 'ready'] }).notNull().default('pending'),
+  uploadedBy: text('uploaded_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+}, (table) => [
+  foreignKey({
+    name: 'expense_receipts_expense_same_organization',
+    columns: [table.organizationId, table.expenseId],
+    foreignColumns: [expenses.organizationId, expenses.id],
+  }).onDelete('restrict'),
+  check('expense_receipts_object_key_length', sql`char_length(${table.objectKey}) <= 300`),
+  check('expense_receipts_file_name_not_blank', sql`${table.fileName} ~ '[^[:space:]]'`),
+  check('expense_receipts_file_name_length', sql`char_length(${table.fileName}) <= 200`),
+  check('expense_receipts_content_type_valid', sql`${table.contentType} IN ('image/jpeg','image/png','image/webp','image/heic','image/heif','application/pdf')`),
+  check('expense_receipts_size_range', sql`${table.sizeBytes} BETWEEN 1 AND 10485760`),
+  check('expense_receipts_kind_valid', sql`${table.kind} IN ('receipt','statement','tax_invoice','other')`),
+  check('expense_receipts_status_valid', sql`${table.status} IN ('pending','ready')`),
+  check('expense_receipts_ready_confirmed', sql`(${table.status} = 'ready') = (${table.confirmedAt} IS NOT NULL)`),
+  index('expense_receipts_expense_idx').on(table.organizationId, table.expenseId),
+])
+
+// 지출 처리 기록. 고치거나 지우지 않는다.
+export const expenseEvents = pgTable('expense_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  expenseId: text('expense_id').notNull(),
+  actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  action: text('action', { enum: ['created', 'updated', 'voided', 'receipt_added', 'receipt_removed'] }).notNull(),
+  changes: jsonb('changes').$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'expense_events_expense_same_organization',
+    columns: [table.organizationId, table.expenseId],
+    foreignColumns: [expenses.organizationId, expenses.id],
+  }).onDelete('restrict'),
+  check('expense_events_action_valid', sql`${table.action} IN ('created','updated','voided','receipt_added','receipt_removed')`),
+  check('expense_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
+  index('expense_events_expense_idx').on(table.expenseId, table.createdAt),
+])

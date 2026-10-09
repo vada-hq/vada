@@ -605,3 +605,91 @@ test('0014 adds candidates and product lookups without touching existing items',
     previous.remove()
   }
 })
+test('0015 adds expenses without touching purchase items', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0015_expenses')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','재정','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u'),('e2','o2','남의 행사','u');
+      INSERT INTO purchase_items (id,organization_id,event_id,requester_id,product_url) VALUES ('i','o','e','u','https://www.coupang.com/vp/products/1');
+    `)
+    const before = (await pg.query<Record<string, unknown>>('SELECT * FROM purchase_items')).rows
+    await migrate(db, { migrationsFolder })
+    const insert = (table: string, id: string, values: Record<string, string>) =>
+      pg.exec(`INSERT INTO ${table} (id,${Object.keys(values).join(',')}) VALUES ('${id}',${Object.values(values).join(',')})`)
+    const expense = (id: string, change: Record<string, string> = {}) => insert('expenses', id, { organization_id: "'o'", event_id: "'e'",
+      vendor: "'쿠팡'", description: "'물품'", amount: '1000', paid_on: "'2026-10-09'", method: "'council_card'", payer_id: "'u'",
+      recorded_by: "'u'", note: 'NULL', voided_at: 'NULL', voided_by: 'NULL', void_reason: 'NULL', ...change })
+
+    await t.test('existing items keep their values', async () => {
+      assert.deepEqual((await pg.query<Record<string, unknown>>('SELECT * FROM purchase_items')).rows, before)
+    })
+    await t.test('expense text, amount, date, method and cancellation fields are checked', async () => {
+      await expense('x1')
+      await expense('x2', { event_id: 'NULL' })
+      const cases: [Record<string, string>, string][] = [
+        [{ vendor: "'  '" }, 'expenses_vendor_not_blank'],
+        [{ vendor: `'${'가'.repeat(101)}'` }, 'expenses_vendor_length'],
+        [{ description: "''" }, 'expenses_description_not_blank'],
+        [{ description: `'${'가'.repeat(201)}'` }, 'expenses_description_length'],
+        [{ amount: '-1' }, 'expenses_amount_nonnegative'],
+        [{ paid_on: "'1999-12-31'" }, 'expenses_paid_on_range'],
+        [{ method: "'card'" }, 'expenses_method_valid'],
+        [{ note: "' '" }, 'expenses_note_not_blank'],
+        [{ note: `'${'가'.repeat(201)}'` }, 'expenses_note_length'],
+        [{ voided_at: 'now()' }, 'expenses_void_triple'],
+        [{ voided_at: 'now()', voided_by: "'u'", void_reason: "' '" }, 'expenses_void_reason_not_blank'],
+        [{ event_id: "'e2'" }, 'expenses_event_same_organization'],
+      ]
+      for (const [change, constraint] of cases) await assert.rejects(expense(`bad-${constraint}`, change), { constraint }, constraint)
+    })
+    await t.test('an item links to one expense of the same council', async () => {
+      const link = (expenseId: string, organizationId = 'o') =>
+        pg.exec(`INSERT INTO expense_items (purchase_item_id,organization_id,expense_id) VALUES ('i','${organizationId}','${expenseId}')`)
+      await link('x1')
+      await assert.rejects(link('x2'), { constraint: 'expense_items_pkey' })
+      await pg.exec('DELETE FROM expense_items')
+      await insert('expenses', 'y', { organization_id: "'o2'", vendor: "'가게'", description: "'다과'", amount: '1', paid_on: "'2026-10-09'",
+        method: "'cash'", payer_id: "'u'", recorded_by: "'u'" })
+      await assert.rejects(link('y'), { constraint: 'expense_items_expense_same_organization' })
+      await assert.rejects(link('y', 'o2'), { constraint: 'expense_items_item_same_organization' })
+    })
+    await t.test('receipts keep a known type, a bounded size and a confirmation time when ready', async () => {
+      const receipt = (id: string, change: Record<string, string> = {}) => insert('expense_receipts', id, { organization_id: "'o'",
+        expense_id: "'x1'", object_key: `'receipts/o/x1/${id}'`, file_name: "'영수증.jpg'", content_type: "'image/jpeg'", size_bytes: '1234',
+        kind: "'receipt'", status: "'pending'", uploaded_by: "'u'", confirmed_at: 'NULL', ...change })
+      await receipt('r1')
+      await receipt('r2', { status: "'ready'", confirmed_at: 'now()' })
+      const cases: [Record<string, string>, string][] = [
+        [{ object_key: "'receipts/o/x1/r1'" }, 'expense_receipts_object_key_unique'],
+        [{ object_key: `'${'k'.repeat(301)}'` }, 'expense_receipts_object_key_length'],
+        [{ file_name: "' '" }, 'expense_receipts_file_name_not_blank'],
+        [{ file_name: `'${'가'.repeat(201)}'` }, 'expense_receipts_file_name_length'],
+        [{ content_type: "'image/gif'" }, 'expense_receipts_content_type_valid'],
+        [{ size_bytes: '0' }, 'expense_receipts_size_range'],
+        [{ size_bytes: '10485761' }, 'expense_receipts_size_range'],
+        [{ kind: "'invoice'" }, 'expense_receipts_kind_valid'],
+        [{ status: "'done'" }, 'expense_receipts_status_valid'],
+        [{ status: "'ready'" }, 'expense_receipts_ready_confirmed'],
+        [{ expense_id: "'y'" }, 'expense_receipts_expense_same_organization'],
+      ]
+      for (const [index, [change, constraint]] of cases.entries()) {
+        await assert.rejects(receipt(`bad-${index}`, change), { constraint }, constraint)
+      }
+    })
+    await t.test('history actions are known and changes are objects', async () => {
+      const entry = (id: string, action: string, changes = "'{}'") => insert('expense_events', id, { organization_id: "'o'",
+        expense_id: "'x1'", actor_id: "'u'", action: `'${action}'`, changes })
+      await entry('h1', 'created')
+      await assert.rejects(entry('h2', 'deleted'), { constraint: 'expense_events_action_valid' })
+      await assert.rejects(entry('h3', 'updated', "'[]'"), { constraint: 'expense_events_changes_object' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})
