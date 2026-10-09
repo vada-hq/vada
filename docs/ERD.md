@@ -260,6 +260,7 @@ erDiagram
 - `expense_items`: 품목 하나는 지출 하나에만 연결된다(PK). 같은 행사의 승인 품목만 연결하고, 연결하면 구매함으로 표시한다.
 - `expense_receipts`: 파일은 비공개 R2 버킷에 있고 서명 주소로만 올리고 연다. 확인(HEAD)을 통과한 ready 파일만 증빙으로 센다.
 - `expense_events`: 기록·수정(바뀐 칸)·취소·증빙 추가·삭제를 남기고 고치지 않는다.
+- `expenses.budget_line_id`: 상시 운영 지출의 운영 항목(M2-3a). 아래 "예산 편성"을 본다.
 
 ## 행사 재정
 
@@ -303,6 +304,50 @@ erDiagram
   - 예산 변경(이전·이후)
   - 정산(그때의 예산·실제 지출·지출 건수)
   - 다시 열기(사유)
+
+## 예산 편성
+
+회계 기간마다 수입·행사·운영 예산을 편성한다. 설계는 [M2-3a 학생회 예산 편성](superpowers/specs/2026-10-10-budget-plan-design.md)에 있다.
+
+```mermaid
+erDiagram
+    organizations ||..o{ budgetPeriods : "회계 기간"
+    budgetPeriods ||..o{ budgetLines : "편성 줄"
+    events |o..o| budgetLines : "행사 줄"
+    budgetLines |o..o{ expenses : "운영 항목"
+    budgetPeriods ||..o{ budgetPeriodEvents : "처리 기록"
+    users ||..o{ budgetPeriodEvents : "처리한 사람"
+
+    budgetPeriods["budget_periods"] {
+        text id PK
+        text organization_id FK
+        text name "30자, 학생회 안에서 유일"
+        date starts_on
+        date ends_on "시작일 이후, 다른 기간과 겹치지 않음"
+        integer version
+    }
+    budgetLines["budget_lines"] {
+        text id PK
+        text period_id FK
+        text kind "income / event / operating"
+        text event_id FK "event만, 행사는 한 기간에만"
+        text name "event가 아닐 때만, 30자"
+        integer amount "event가 아닐 때만"
+        integer position
+    }
+    budgetPeriodEvents["budget_period_events"] {
+        text id PK
+        text period_id FK
+        text actor_id FK
+        text action "created / updated"
+        jsonb changes
+    }
+```
+
+- 행사 줄의 금액은 `event_finances.budget`에 있다. 편성 수정과 행사 재정 탭이 같은 값을 고친다.
+- `expenses.budget_line_id`: 상시 운영 지출만 운영 줄을 고른다. 결제일이 그 줄의 기간 안이어야 한다(서버 확인).
+- 기간 날짜가 겹치지 않는 것과 이름·행사 중복은 학생회 단위 잠금 안에서 서버가 확인한다.
+- 운영 줄은 취소하지 않은 지출이 고르고 있으면 지우지 않는다.
 
 ## 배송 추적
 
