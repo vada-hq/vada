@@ -8,6 +8,7 @@ import { createChatRoutes } from './chat.js'
 import { createApp } from '../app.js'
 import { createAccessRoutes } from '../access/access.js'
 import type { MessagesResponse, MessageResponse } from '@vada/contracts'
+import { migrationsFolder } from '../db/test-migrations.js'
 
 test('event chat respects council boundaries and paginates persisted messages', async (t) => {
   const pg = new PGlite()
@@ -114,4 +115,55 @@ test('event chat respects council boundaries and paginates persisted messages', 
   } finally {
     await pg.close()
   }
+})
+
+test('쿠팡 링크가 있는 메시지는 같은 트랜잭션에서 후보·공유로 기록하고, 저장 뒤 조회를 부른다', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder })
+    await pg.exec(`
+      INSERT INTO users(id,name,email) VALUES ('p','Planner','p@test.local'),('q','Second','q@test.local');
+      INSERT INTO organizations(id,name) VALUES ('a','A');
+      INSERT INTO memberships(id,user_id,organization_id) VALUES ('p','p','a'),('q','q','a');
+      INSERT INTO events(id,organization_id,name,created_by) VALUES ('e1','a','First','p');
+      INSERT INTO chat_rooms(id,organization_id,event_id) VALUES ('r1','a','e1');
+    `)
+    let userId = 'p'
+    let kicks = 0
+    const session = async () => ({ user: { id: userId } })
+    const origin = 'http://127.0.0.1:5180'
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, chat: createChatRoutes(db, session, () => { kicks++ }) })
+    const post = (content: string) => app.request('/api/organizations/a/events/e1/messages', {
+      method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify({ content }) })
+    const link = (vendor: string | null, item = '7') => `https://www.coupang.com/vp/products/1?itemId=${item}${vendor ? `&vendorItemId=${vendor}` : ''}`
+    const candidates = async () => (await pg.query<{ vendor_item_id: string | null; item_id: string | null; shares: number; hidden: boolean }>(
+      `SELECT c.vendor_item_id, c.item_id, count(s.*)::int AS shares, c.hidden_at IS NOT NULL AS hidden FROM purchase_candidates c
+       JOIN purchase_candidate_shares s ON s.candidate_id = c.id GROUP BY c.id ORDER BY c.vendor_item_id NULLS LAST`)).rows
+    const product = async () => (await pg.query<{ status: string; attempts: number }>("SELECT status, attempts FROM coupang_products WHERE id = '1'")).rows[0]
+
+    assert.equal((await post('링크 없는 메시지')).status, 201)
+    assert.equal(kicks, 0)
+    assert.equal((await post(`이거 ${link('11')} 그리고 ${link('12')} 또 ${link('11')}`)).status, 201)
+    assert.equal(kicks, 1)
+    userId = 'q'
+    // 옵션 정보가 없는 링크는 상품마다 "옵션 미정" 후보 하나로 모인다.
+    assert.equal((await post(`나도 ${link('11')} ${link(null)} ${link(null, '8')}`)).status, 201)
+    // 같은 링크를 거의 동시에 올려도 후보는 하나다(Review Focus 1).
+    await Promise.all([post(link('13')), post(link('13'))])
+    assert.deepEqual(await candidates(), [
+      { vendor_item_id: '11', item_id: '7', shares: 3, hidden: false }, { vendor_item_id: '12', item_id: '7', shares: 1, hidden: false },
+      { vendor_item_id: '13', item_id: '7', shares: 2, hidden: false }, { vendor_item_id: null, item_id: '7', shares: 2, hidden: false }])
+    assert.deepEqual(await product(), { status: 'pending', attempts: 0 })
+
+    // 실패했던 상품은 다시 공유되면 다시 조회하고(NOT_FOUND 제외), 숨긴 후보는 숨김을 푼다.
+    await pg.exec(`UPDATE coupang_products SET status = 'failed', error_code = 'TIMEOUT', attempts = 4 WHERE id = '1';
+      UPDATE purchase_candidates SET hidden_by = 'p', hidden_at = now() WHERE vendor_item_id = '12'`)
+    await post(link('12'))
+    assert.deepEqual(await product(), { status: 'pending', attempts: 0 })
+    assert.equal((await candidates())[1]!.hidden, false)
+    await pg.exec("UPDATE coupang_products SET status = 'failed', error_code = 'NOT_FOUND' WHERE id = '1'")
+    await post(link('12'))
+    assert.equal((await product())!.status, 'failed')
+  } finally { await pg.close() }
 })

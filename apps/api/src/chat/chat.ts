@@ -3,11 +3,12 @@ import { Hono } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { CreateMessageSchema, type MessageResponse, type MessagesResponse, type MessageSummary } from '@vada/contracts'
+import { CreateMessageSchema, parseCoupangLinks, type MessageResponse, type MessagesResponse, type MessageSummary } from '@vada/contracts'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
 import { json } from '../http/validate.js'
 import { chatRooms, events, memberships, messages, users } from '../db/schema.js'
+import { recordMessageLinks } from '../purchases/candidates.js'
 
 type ChatEnv = { Variables: MembershipEnv['Variables'] & { chatRoomId: string } }
 const messageFields = {
@@ -20,6 +21,8 @@ const serialize = (row: MessageRow): MessageSummary => ({ ...row, createdAt: row
 export function createChatRoutes(
   db: Pick<PgDatabase<PgQueryResultHKT>, 'select' | 'transaction'>,
   getSession: SessionReader,
+  // 쿠팡 링크가 있는 메시지를 저장한 뒤 부른다. 뒤에서 상품을 조회한다.
+  onLinks?: () => void,
 ) {
   const routes = new Hono<ChatEnv>()
   const path = '/organizations/:organizationId/events/:eventId/messages'
@@ -59,6 +62,7 @@ export function createChatRoutes(
 
   routes.post(path, json(CreateMessageSchema), authenticated, member, room, async c => {
     const { content } = c.req.valid('json')
+    const links = parseCoupangLinks(content)
     const saved = await db.transaction(async tx => {
       // 저장 시점에도 소속·행사·방을 함께 검사한다. 요청 본문의 작성자/방/시각은 무시한다.
       const [created] = await tx.insert(messages).select(
@@ -74,11 +78,15 @@ export function createChatRoutes(
           .where(and(eq(chatRooms.id, c.get('chatRoomId')), eq(events.id, c.req.param('eventId')), eq(events.organizationId, c.req.param('organizationId')))),
       ).returning({ id: messages.id })
       if (!created) return undefined
+      // 메시지의 쿠팡 링크를 같은 트랜잭션에서 후보로 기록한다. 학생회·행사는 위 삽입이 검사했다.
+      await recordMessageLinks(tx, { organizationId: c.req.param('organizationId'), eventId: c.req.param('eventId'), messageId: created.id }, links)
       const [row] = await tx.select(messageFields).from(messages).innerJoin(users, eq(users.id, messages.authorId))
         .where(eq(messages.id, created.id))
       return row
     })
     if (!saved) return c.json({ error: 'FORBIDDEN' }, 403)
+    // 응답은 조회를 기다리지 않는다.
+    if (links.length) onLinks?.()
     return c.json({ message: serialize(saved) } satisfies MessageResponse, 201)
   })
   return routes
