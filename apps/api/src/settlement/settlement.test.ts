@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { EventFinanceResponse, ExpenseResponse } from '@vada/contracts'
 import { link, setupPurchases } from '../purchases/test-setup.js'
+import { createSettlementService } from './service.js'
 
 type Env = Awaited<ReturnType<typeof setupPurchases>>
 const body = (overrides: Record<string, unknown> = {}) => ({ eventId: 'e', vendor: '쿠팡', description: '체육대회 물품', amount: 46000,
@@ -142,5 +143,56 @@ test('재정 탭의 지출은 이 행사 것만 결제일 최근 순으로 300�
     as('n')
     const { finance, expenses, truncated } = await financeOf(env)
     assert.deepEqual([expenses.length, truncated, expenses[0]!.id, finance.spent, finance.expenseCount], [300, true, 'bulk-301', 301000, 301])
+  } finally { await pg.close() }
+})
+
+test('엑셀 자료: 취소한 지출은 빼고 결제일·기록 순으로 모으며, 확인된 증빙과 앱 링크, 연결 품목을 담는다', async () => {
+  const env = await setupPurchases()
+  const { pg, db, request, ok } = env
+  try {
+    const [itemId] = await env.approved([link(1)])
+    const late = await create(env, { paidOn: '2026-10-05', vendor: '쿠팡', itemIds: [itemId] })
+    await create(env, { paidOn: '2026-10-01', vendor: '다이소', amount: 3000, method: 'cash', note: '다과' })
+    const voided = await create(env, { paidOn: '2026-10-02', vendor: '중복' })
+    await ok(request('POST', `/expenses/${voided.id}/void`, { version: 1, reason: '중복' }))
+    await pg.exec(readyReceipt(late.id))
+    await pg.exec(`INSERT INTO expense_receipts (id,organization_id,expense_id,object_key,file_name,content_type,size_bytes,kind,status,uploaded_by)
+      VALUES ('r2','a','${late.id}','receipts/a/${late.id}/r2','올리는 중.jpg','image/jpeg',1234,'receipt','pending','f')`)
+    await ok(request('POST', '/events/e/finance/budget', { version: 0, budget: 100000 }))
+    const data = await createSettlementService(db).exportData({ organizationId: 'a', userId: 'n' }, 'e', 'https://vada.test')
+    assert.deepEqual([data.organizationName, data.eventName, data.settled, data.budget, data.planned, data.voidedCount],
+      ['A', '체육대회', null, 100000, 0, 1])
+    assert.deepEqual(data.expenses.map(expense => expense.vendor), ['다이소', '쿠팡'])
+    assert.deepEqual({ ...data.expenses[0]! }, { paidOn: '2026-10-01', vendor: '다이소', description: '체육대회 물품', amount: 3000, method: 'cash',
+      payer: '재정', note: '다과', recordedBy: '재정', receipts: [], items: [] })
+    assert.deepEqual(data.expenses[1]!.receipts.map(receipt => [receipt.kind, receipt.fileName, receipt.uploadedBy, receipt.url]),
+      [['receipt', '영수증.jpg', '재정', `https://vada.test/api/organizations/a/expenses/${late.id}/receipts/r1/file`]])
+    assert.deepEqual(data.expenses[1]!.items, [{ name: '테이블', quantity: 2, estimatedUnitPrice: 11590, requester: '기획' }])
+  } finally { await pg.close() }
+})
+
+test('엑셀 내려받기: 구성원 누구나 받고, 파일 이름은 행사 이름과 한국 날짜다. 다른 학생회 행사와 1,000건 넘는 행사는 거절한다', async () => {
+  const env = await setupPurchases()
+  const { pg, request, as } = env
+  try {
+    await pg.query("UPDATE events SET name = $1 WHERE id = 'e'", ["체육대회 (1)/'최종'"])
+    as('n')
+    const response = await request('GET', '/events/e/finance/export')
+    assert.equal(response.status, 200)
+    const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+    const encoded = encodeURIComponent(`체육대회 (1)_'최종' 정산 ${today}.xlsx`).replace(/\(/g, '%28').replace(/\)/g, '%29').replace(/'/g, '%27')
+    assert.deepEqual([response.headers.get('Content-Type'), response.headers.get('Content-Disposition'), response.headers.get('Cache-Control')],
+      ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', `attachment; filename="settlement.xlsx"; filename*=UTF-8''${encoded}`, 'no-store'])
+    // xlsx는 zip이다.
+    assert.deepEqual([...new Uint8Array(await response.arrayBuffer()).slice(0, 2)], [0x50, 0x4b])
+    as('x')
+    assert.equal((await request('GET', '/events/e/finance/export')).status, 403)
+    as(null)
+    assert.equal((await request('GET', '/events/e/finance/export')).status, 401)
+    as('n')
+    assert.equal((await request('GET', '/events/ex/finance/export')).status, 404)
+    await pg.exec(`INSERT INTO expenses (id,organization_id,event_id,vendor,description,amount,paid_on,method,payer_id,recorded_by)
+      SELECT 'bulk-' || n, 'a', 'e', '가게', '다과', 1000, DATE '2026-01-01', 'cash', 'f', 'f' FROM generate_series(1, 1001) AS n`)
+    await refused(request('GET', '/events/e/finance/export'), 409, 'EXPORT_TOO_LARGE')
   } finally { await pg.close() }
 })

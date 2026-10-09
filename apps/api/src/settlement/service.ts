@@ -1,12 +1,14 @@
 import { randomUUID } from 'node:crypto'
-import { and, desc, eq, isNull, notExists, sql, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNotNull, isNull, notExists, sql, type SQL } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { EVENT_FINANCE_HISTORY_MAX, type EventFinance, type EventFinanceAction, type EventFinanceResponse, type ReopenSettlementRequest,
-  type SetEventBudgetRequest, type SettleEventRequest } from '@vada/contracts'
-import { eventFinanceEvents, eventFinances, events, expenseItems, expenseReceipts, expenses, purchaseItems as items, users } from '../db/schema.js'
-import { expenseSummaries } from '../expenses/summaries.js'
+import { EVENT_FINANCE_HISTORY_MAX, EXPENSE_ITEMS_MAX, type EventFinance, type EventFinanceAction, type EventFinanceResponse,
+  type ReopenSettlementRequest, type SetEventBudgetRequest, type SettleEventRequest } from '@vada/contracts'
+import { eventFinanceEvents, eventFinances, events, expenseItems, expenseReceipts, expenses, organizations, purchaseItems as items,
+  users } from '../db/schema.js'
+import { expenseItemRows, expenseSummaries } from '../expenses/summaries.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
+import type { SettlementSheetData, SheetExpense } from './workbook.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
 export type SettlementDatabase = Pick<Db, 'select' | 'insert' | 'update' | 'transaction'>
@@ -16,6 +18,22 @@ export interface SettlementScope { organizationId: string; userId: string }
 const LIST_LIMIT = 300
 const settlers = alias(users, 'event_settlers')
 const actors = alias(users, 'event_finance_actors')
+const EXPORT_LIMIT = 1000
+const payers = alias(users, 'export_payers')
+const recorders = alias(users, 'export_recorders')
+const uploaders = alias(users, 'export_uploaders')
+// 지출별로 묶는다. 순서는 받은 순서 그대로다.
+function groupBy<T>(list: T[], key: (entry: T) => string | null) {
+  const groups = new Map<string, T[]>()
+  for (const entry of list) {
+    const id = key(entry)
+    if (id === null) continue
+    const group = groups.get(id)
+    if (group) group.push(entry)
+    else groups.set(id, [entry])
+  }
+  return groups
+}
 
 // 이 학생회의 행사다. 바꿀 때는 행사 행을 FOR NO KEY UPDATE로 잠근다.
 // 지출 변경·증빙 삭제·구매 제출은 같은 행을 FOR SHARE로 잠그므로 정산 확인과 겹치지 않는다. 행사를 참조하는 행 추가(FK 검사)는 막지 않는다.
@@ -141,6 +159,46 @@ export function createSettlementService(db: SettlementDatabase) {
         await record(tx, scope, eventId, 'reopened', {}, input.reason)
         return responseOf(tx, scope, eventId)
       })
+    },
+    // 정산서 자료. 취소하지 않은 지출을 결제일·기록 순으로 모으고, 확인된 증빙과 연결 품목을 붙인다.
+    async exportData(scope: SettlementScope, eventId: string, publicOrigin: string): Promise<SettlementSheetData> {
+      const event = await eventOf(db, scope, eventId)
+      const rows = await db.select({ expense: expenses, payerName: payers.name, recorderName: recorders.name }).from(expenses)
+        .innerJoin(payers, eq(payers.id, expenses.payerId))
+        .innerJoin(recorders, eq(recorders.id, expenses.recordedBy))
+        .where(and(eq(expenses.organizationId, scope.organizationId), eq(expenses.eventId, eventId), isNull(expenses.voidedAt)))
+        .orderBy(asc(expenses.paidOn), asc(expenses.createdAt), asc(expenses.id)).limit(EXPORT_LIMIT + 1)
+      if (rows.length > EXPORT_LIMIT) throw new ApiError('EXPORT_TOO_LARGE', 409)
+      const ids = rows.map(row => row.expense.id)
+      const receipts = ids.length ? await db.select({ receipt: expenseReceipts, uploaderName: uploaders.name }).from(expenseReceipts)
+        .innerJoin(uploaders, eq(uploaders.id, expenseReceipts.uploadedBy))
+        .where(and(eq(expenseReceipts.organizationId, scope.organizationId), inArray(expenseReceipts.expenseId, ids), eq(expenseReceipts.status, 'ready')))
+        .orderBy(asc(expenseReceipts.createdAt), asc(expenseReceipts.id)) : []
+      const linked = ids.length ? await expenseItemRows(db, scope.organizationId, inArray(expenseItems.expenseId, ids), EXPORT_LIMIT * EXPENSE_ITEMS_MAX) : []
+      const receiptsOf = groupBy(receipts, entry => entry.receipt.expenseId)
+      const itemsOf = groupBy(linked, entry => entry.expenseId)
+      const [organization] = await db.select({ name: organizations.name }).from(organizations).where(eq(organizations.id, scope.organizationId))
+      const [voided] = await db.select({ count: sql<number>`count(*)::int` }).from(expenses)
+        .where(and(eq(expenses.organizationId, scope.organizationId), eq(expenses.eventId, eventId), isNotNull(expenses.voidedAt)))
+      const numbers = await financeNumbers(db, scope, eventId)
+      const row = await financeRow(db, scope, eventId)
+      const settledAt = row?.finance.settledAt ?? null
+      // 영수증 보기 주소. 로그인한 구성원이면 짧게 사는 서명 주소로 이동해 파일이 열린다.
+      const fileUrl = (expenseId: string, receiptId: string) => new URL(`/api/organizations/${encodeURIComponent(scope.organizationId)}/expenses/${
+        encodeURIComponent(expenseId)}/receipts/${encodeURIComponent(receiptId)}/file`, publicOrigin).href
+      return {
+        organizationName: organization?.name ?? '', eventName: event.name, exportedAt: new Date(),
+        settled: settledAt ? { by: row?.settlerName ?? '', at: settledAt } : null,
+        budget: row?.finance.budget ?? null, planned: numbers.planned, plannedUnknown: numbers.plannedUnknown, voidedCount: voided!.count,
+        expenses: rows.map(({ expense, payerName, recorderName }): SheetExpense => ({
+          paidOn: expense.paidOn, vendor: expense.vendor, description: expense.description, amount: expense.amount, method: expense.method,
+          payer: payerName, note: expense.note, recordedBy: recorderName,
+          receipts: (receiptsOf.get(expense.id) ?? []).map(({ receipt, uploaderName }) => ({ kind: receipt.kind, fileName: receipt.fileName,
+            uploadedBy: uploaderName, uploadedAt: receipt.confirmedAt ?? receipt.createdAt, url: fileUrl(expense.id, receipt.id) })),
+          items: (itemsOf.get(expense.id) ?? []).map(({ item }) => ({ name: item.productName ?? '상품명 확인 필요', quantity: item.quantity,
+            estimatedUnitPrice: item.estimatedUnitPrice, requester: item.requester.name })),
+        })),
+      }
     },
   }
 }

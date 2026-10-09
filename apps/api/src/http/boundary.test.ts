@@ -40,7 +40,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       purchases: createPurchaseRoutes(db, session, async () => { throw new Error('unused') }),
       deliveries: createDeliveryRoutes(db, session, {} as never),
       expenses: createExpenseRoutes(db, session),
-      settlement: createSettlementRoutes(db, session),
+      settlement: createSettlementRoutes(db, session, 'https://vada.test'),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
