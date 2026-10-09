@@ -21,6 +21,7 @@ import { trackingConfig } from './deliveries/tracking-config.js'
 import { createExpenseRoutes } from './expenses/routes.js'
 import { createR2Storage, r2ConfigFrom } from './expenses/storage.js'
 import { createSettlementRoutes } from './settlement/routes.js'
+import { createBudgetRoutes } from './budget/routes.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 
 function main() {
@@ -52,13 +53,14 @@ function main() {
   if (r2) console.log('영수증 저장소 켜짐 (R2)')
   const expenses = createExpenseRoutes(db, (headers) => auth.api.getSession({ headers }), r2 ? createR2Storage(r2) : undefined)
   const settlement = createSettlementRoutes(db, (headers) => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!)
+  const budget = createBudgetRoutes(db, (headers) => auth.api.getSession({ headers }))
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
   const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,
     headers => auth.api.getSession({ headers }),
     createDeliveryTracker({ clientId: env.DELIVERY_TRACKER_CLIENT_ID, clientSecret: env.DELIVERY_TRACKER_CLIENT_SECRET }),
   ) : undefined
   const webhook = tracking ? createDeliveryWebhook(db, tracking.address) : undefined
-  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, expenses, settlement, organization, webhook })
+  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, expenses, settlement, budget, organization, webhook })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)

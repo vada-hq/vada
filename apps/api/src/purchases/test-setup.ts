@@ -8,6 +8,7 @@ import { migrationsFolder } from '../db/test-migrations.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import type { ReceiptStorage, StoredObject } from '../expenses/storage.js'
 import { createSettlementRoutes } from '../settlement/routes.js'
+import { createBudgetRoutes } from '../budget/routes.js'
 import { recordMessageLinks } from './candidates.js'
 import type { DraftGenerator, GeneratedItem } from './generation.js'
 import type { FetchResult, ProductFetcher } from './products.js'
@@ -69,7 +70,7 @@ export async function setupPurchases(migrations = migrationsFolder, { storage = 
     async input => { state.calls++; return state.generate(input) },
     async (productId, timeoutMs) => { state.lookups++; return state.fetch(productId, timeoutMs) })
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, purchases: routes,
-    expenses: createExpenseRoutes(db, session, storage?.storage), settlement: createSettlementRoutes(db, session, origin) })
+    expenses: createExpenseRoutes(db, session, storage?.storage), settlement: createSettlementRoutes(db, session, origin), budget: createBudgetRoutes(db, session) })
   const request = (method: string, path: string, body?: unknown) => app.request(`/api/organizations/a${path}`, body === undefined
     ? { method } : { method, headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   async function ok<T = PurchaseItemsResponse>(pending: Response | Promise<Response>, status = 200): Promise<T> {

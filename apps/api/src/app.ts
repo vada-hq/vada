@@ -9,6 +9,7 @@ import type { createDeliveryWebhook } from './deliveries/webhook.js'
 import type { createExpenseRoutes } from './expenses/routes.js'
 import type { createOrganizationRoutes } from './organization/routes.js'
 import type { createSettlementRoutes } from './settlement/routes.js'
+import type { createBudgetRoutes } from './budget/routes.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
 
@@ -23,11 +24,12 @@ export type AppOptions = {
   deliveries?: ReturnType<typeof createDeliveryRoutes>
   expenses?: ReturnType<typeof createExpenseRoutes>
   settlement?: ReturnType<typeof createSettlementRoutes>
+  budget?: ReturnType<typeof createBudgetRoutes>
   organization?: ReturnType<typeof createOrganizationRoutes>
   webhook?: ReturnType<typeof createDeliveryWebhook>
 }
 
-export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries, expenses, settlement, organization, webhook }: AppOptions) {
+export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries, expenses, settlement, budget, organization, webhook }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
   app.get('/api/health', (c) => c.json({ status: 'ok' } satisfies HealthResponse))
@@ -42,6 +44,7 @@ export function createApp({ auth, trustedOrigin, access, events, chat, purchases
   if (deliveries) app.route('/api', deliveries)
   if (expenses) app.route('/api', expenses)
   if (settlement) app.route('/api', settlement)
+  if (budget) app.route('/api', budget)
   // 외부 공급자가 호출하므로 공통 가드 밖에 두고 자체 검사를 한다.
   if (webhook) app.route('/api', webhook)
   app.onError(handleError)
