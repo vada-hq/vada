@@ -19,6 +19,7 @@ function setup(members: unknown = membersBody, review: unknown = { pending: [], 
     : url.endsWith('/members') ? members
     : url.endsWith('/messages') ? { messages: [], nextCursor: null }
     : url.endsWith('/purchase-candidates') ? { candidates: [], truncated: false }
+    : url.endsWith('/expenses') ? { expenses: [], truncated: false, totals: { thisMonth: 0, total: 0, missingEvidence: 0 } }
     : url.endsWith('/purchase-review') ? review
     : url.includes('/delivery-carriers') ? { carriers: [], nextCursor: null }
     : { items: [], truncated: false } }))
@@ -227,7 +228,7 @@ test('새 행사 inside the mobile menu opens the dialog and leaves the page usa
   expect(screen.getByRole('button', { name: '메뉴 열기' })).toBeTruthy()
 })
 
-const membersButton = () => within(screen.getByRole('navigation', { name: '학생회 메뉴' })).getByRole('button')
+const membersButton = () => within(screen.getByRole('navigation', { name: '학생회 메뉴' })).getByRole('button', { name: /^구성원/ })
 
 test('구성원 메뉴는 구성원 화면을 열고, 행사를 고르면 행사 화면으로 돌아간다', async () => {
   const fetcher = setup()
@@ -286,4 +287,15 @@ test('구매 승인 권한이 없으면 구매 검토 메뉴가 없고 불러오
   await screen.findByRole('button', { name: '체육대회' })
   expect(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).queryByRole('button', { name: /구매 검토/ })).toBeNull()
   expect(fetcher.mock.calls.some(([url]) => String(url).includes('purchase-review'))).toBe(false)
+})
+test('사용 내역은 구성원 누구나 옆 메뉴에서 열고, 열 때 지출을 불러온다', async () => {
+  const fetcher = setup()
+  render(<Workspace {...props} />)
+  await screen.findByRole('button', { name: '체육대회' })
+  expect(fetcher.mock.calls.some(([url]) => String(url).endsWith('/expenses'))).toBe(false)
+  fireEvent.click(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).getByRole('button', { name: '사용 내역' }))
+  expect(await screen.findByText('아직 기록된 지출이 없어요')).toBeTruthy()
+  expect(screen.getByRole('heading', { name: '사용 내역' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '지출 기록' })).toBeNull()
+  expect(fetcher).toHaveBeenCalledWith('/api/organizations/o1/expenses', expect.anything())
 })

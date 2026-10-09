@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ClipboardCheck } from 'lucide-react'
-import { DecidePurchaseItemsSchema, type PurchaseItemSummary } from '@vada/contracts'
+import { DecidePurchaseItemsSchema, type EventSummary, type PurchaseItemSummary } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
@@ -12,22 +12,28 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import ShipmentForm from '../deliveries/ShipmentForm'
 import { useDeliveries } from '../deliveries/useDeliveries'
+import ExpenseDetailDialog from '../expenses/ExpenseDetailDialog'
+import ExpenseFormDialog from '../expenses/ExpenseFormDialog'
+import { expensesBase, sendExpense } from '../expenses/useExpenses'
 import ItemDetailDialog from './ItemDetailDialog'
 import PurchaseItemCard, { productNameOf } from './PurchaseItemCard'
 import { groupBySubmission, pressed, priceNotice, timeText, totalOf, won } from './purchase-view'
 import { fetchItemDetail, type PurchaseResult } from './useEventPurchases'
 import type { PurchaseReview as State } from './usePurchaseReview'
 
-type Props = { organizationId: string; state: State }
+type Props = { organizationId: string; state: State; events: EventSummary[]; viewerMembershipId: string }
 
 // 재정부 화면. 모든 행사의 대기 품목을 같이 제출한 묶음으로 보여 주고, 승인한 품목을 사고 송장을 연결한다.
-export default function PurchaseReview({ organizationId, state }: Props) {
+export default function PurchaseReview({ organizationId, state, events, viewerMembershipId }: Props) {
   const [view, setView] = useState<'review' | 'buy'>('review')
   const [message, setMessage] = useState('')
   const [rejecting, setRejecting] = useState<{ id: string; reason: string } | null>(null)
   const [opened, setOpened] = useState<PurchaseItemSummary | null>(null)
   const [shipping, setShipping] = useState(false)
   const [unlinking, setUnlinking] = useState<{ shipmentId: string; linkId: string } | null>(null)
+  // 구매·배송에서 지출을 기록하고, 기록하면 상세를 열어 증빙을 바로 올리게 한다.
+  const [recording, setRecording] = useState(false)
+  const [recorded, setRecorded] = useState<string | null>(null)
   const deliveries = useDeliveries(organizationId, true)
   if (!state.data) return <div className="p-4 sm:p-6">{state.loadError
     ? <Card className="flex flex-col gap-3 p-6"><StateMessage kind="error">구매 검토를 불러오지 못했어요.</StateMessage>
@@ -93,8 +99,11 @@ export default function PurchaseReview({ organizationId, state }: Props) {
     <section aria-label="산 품목" className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-gray-900">산 품목 {bought.length}</h3>
-        {deliveries.available && bought.length > 0 && <Button variant="outline" size="sm" disabled={state.busy || deliveries.busy}
-          onClick={() => setShipping(true)}>송장 등록</Button>}
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" disabled={state.busy} onClick={() => setRecording(true)}>지출 기록</Button>
+          {deliveries.available && bought.length > 0 && <Button variant="outline" size="sm" disabled={state.busy || deliveries.busy}
+            onClick={() => setShipping(true)}>송장 등록</Button>}
+        </div>
       </div>
       {deliveries.notice && <StateMessage kind="notice">{deliveries.notice}</StateMessage>}
       {deliveries.error && !shipping && <StateMessage kind="error">{deliveries.error}</StateMessage>}
@@ -144,5 +153,9 @@ export default function PurchaseReview({ organizationId, state }: Props) {
           }} />
       </DialogContent>
     </Dialog>
+    <ExpenseFormDialog organizationId={organizationId} viewerMembershipId={viewerMembershipId} events={events} open={recording} expense={null}
+      onClose={() => setRecording(false)} onSubmit={input => sendExpense(expensesBase(organizationId), 'POST', input)}
+      onSaved={saved => { setRecording(false); state.refresh(); setRecorded(saved.id) }} />
+    <ExpenseDetailDialog organizationId={organizationId} expenseId={recorded} finance onClose={() => setRecorded(null)} onChanged={() => {}} />
   </div>
 }

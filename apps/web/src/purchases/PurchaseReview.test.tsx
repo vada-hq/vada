@@ -4,6 +4,8 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { PurchaseReviewResponse } from '@vada/contracts'
 import { json, mockApi } from '../test-support/mock-api'
 import { carrierCache } from '../deliveries/useDeliveries'
+import { expense } from '../expenses/expense-fixtures'
+import { event, membership } from '../test-support/workflow-fixtures'
 import PurchaseReview from './PurchaseReview'
 import { item, shipment } from './purchase-fixtures'
 import { usePurchaseReview } from './usePurchaseReview'
@@ -12,7 +14,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); carrierCache.clear() })
 const base = '/api/organizations/o/purchase-review'
 function Harness() {
   const state = usePurchaseReview('o', true)
-  return <PurchaseReview organizationId="o" state={state} />
+  return <PurchaseReview organizationId="o" state={state} events={[event()]} viewerMembershipId="mf" />
 }
 function setup(body: PurchaseReviewResponse, deliveries: 'on' | 'off' = 'on') {
   const api = mockApi()
@@ -144,4 +146,31 @@ test('송장 연결 해제는 확인한 뒤에만 보내고 목록을 새로 불
   await waitFor(() => expect(api.calls.find(call => call.path === unlinkPath)?.body).toEqual({ linkIds: ['l1'] }))
   await waitFor(() => expect(reviewGets(api)).toHaveLength(2))
   expect(screen.queryByRole('dialog')).toBeNull()
+})
+test('구매·배송 보기에서 지출을 기록하면 목록을 새로 불러오고 상세를 열어 증빙을 올리게 한다', async () => {
+  const bought = item({ id: 'b1', productName: '생수', status: 'approved', submissionId: 's1', purchasedAt: '2026-10-08T06:00:00Z' })
+  const api = setup({ pending: [], approved: [bought], truncated: false })
+  api.on('GET', '/api/organizations/o/members', () => json({ viewer: membership(true), departments: [],
+    members: [{ id: 'mf', name: '재정 테스터', title: null, departmentId: 'df' }] }))
+  api.on('GET', '/api/organizations/o/purchase-review/linkable-items', () => json({ items: [], truncated: false }))
+  api.on('POST', '/api/organizations/o/expenses', () => json({ expense: expense() }, 201))
+  api.on('GET', '/api/organizations/o/expenses/x1', () => json({ expense: expense() }))
+  fireEvent.click(await screen.findByRole('button', { name: /구매·배송/ }))
+  fireEvent.click(screen.getByRole('button', { name: '지출 기록' }))
+  const form = await screen.findByRole('dialog', { name: '지출 기록' })
+  fireEvent.change(within(form).getByLabelText('사용처'), { target: { value: '쿠팡' } })
+  fireEvent.change(within(form).getByLabelText('내용'), { target: { value: '체육대회 물품' } })
+  fireEvent.change(within(form).getByLabelText('금액(원)'), { target: { value: '10000' } })
+  fireEvent.click(within(form).getByRole('button', { name: '기록' }))
+  expect(await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })).toBeTruthy()
+  await waitFor(() => expect(reviewGets(api)).toHaveLength(2))
+})
+
+test('지출에 연결된 품목의 구매 표시 취소는 지출 연결을 먼저 풀라고 안내한다', async () => {
+  const bought = item({ id: 'b1', productName: '생수', status: 'approved', submissionId: 's1', purchasedAt: '2026-10-08T06:00:00Z', version: 3 })
+  const api = setup({ pending: [], approved: [bought], truncated: false })
+  api.on('POST', `${base}/b1/purchased`, () => json({ error: 'LINKED_TO_EXPENSE' }, 409))
+  fireEvent.click(await screen.findByRole('button', { name: /구매·배송/ }))
+  fireEvent.click(screen.getByRole('button', { name: '구매 표시 취소' }))
+  expect(await screen.findByText('지출에 연결된 품목이에요. 사용 내역에서 지출의 연결을 먼저 풀어 주세요.')).toBeTruthy()
 })

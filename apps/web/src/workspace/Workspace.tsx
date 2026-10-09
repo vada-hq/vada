@@ -6,6 +6,8 @@ import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import EventList from '../events/EventList'
+import Expenses from '../expenses/Expenses'
+import { useExpenses } from '../expenses/useExpenses'
 import CreateEventForm from '../events/CreateEventForm'
 import { useEvents } from '../events/useEvents'
 import Members from '../organization/Members'
@@ -16,7 +18,7 @@ import EventWorkspace from './EventWorkspace'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar, { type AccountProps } from './WorkspaceSidebar'
 
-type View = 'events' | 'members' | 'review'
+type View = 'events' | 'members' | 'review' | 'expenses'
 type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string; initialView?: View; onMembershipsChanged?: () => void }
 export default function Workspace({ initialOrganizationId, initialView, ...props }: Props) {
   // 초대로 방금 참여했거나 방금 만든 학생회가 있으면 그 학생회를 먼저 연다.
@@ -42,6 +44,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   const finance = membership.permissions.approvePurchases
   // 구매 승인 권한이 있으면 옆 메뉴의 대기 수를 세려고 처음부터 불러온다.
   const review = usePurchaseReview(membership.organization.id, finance)
+  const expenses = useExpenses(membership.organization.id, view === 'expenses')
   const viewer = members.data?.viewer
   const refreshedFor = useRef<MembershipSummary | null>(null)
   // 구성원 화면에서 본인 부서가 바뀌면 소속을 다시 불러와 사이드바와 재정 화면이 새 권한을 따르게 한다.
@@ -64,7 +67,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     return () => window.removeEventListener('beforeunload', warn)
   }, [leaveRisk])
   function select(event: EventSummary) {
-    // 구성원·구매 검토 화면에는 입력 중인 구매가 없으므로 묻지 않고 행사 화면으로 간다.
+    // 구성원·구매 검토·사용 내역 화면에는 입력 중인 구매가 없으므로 묻지 않고 행사 화면으로 간다.
     if (view !== 'events') { setSelected(event); setView('events') }
     else if (event.id !== selected?.id && canLeave()) setSelected(event)
     setNavOpen(false)
@@ -77,12 +80,17 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     if (view !== 'review' && canLeave()) { setView('review'); review.refresh() }
     setNavOpen(false)
   }
+  function openExpenses() {
+    if (view !== 'expenses' && canLeave()) { setView('expenses'); expenses.refresh() }
+    setNavOpen(false)
+  }
   // 데스크톱 aside와 휴대폰 옆 메뉴가 같은 내용을 쓴다. 옆 메뉴는 열렸을 때만 그려진다.
   const unassigned = membership.permissions.manageOrganization && members.data ? members.data.members.filter(member => member.departmentId === null).length : null
   const sidebar = <WorkspaceSidebar {...props} onLogout={() => { if (canLeave()) props.onLogout() }} membership={membership}
     onMembershipChange={id => { if (canLeave()) onMembershipChange(id) }}
     membersActive={view === 'members'} unassignedCount={unassigned} onMembers={openMembers}
-    reviewActive={view === 'review'} pendingCount={finance && review.data ? review.data.pending.length : null} onReview={finance ? openReview : null}>
+    reviewActive={view === 'review'} pendingCount={finance && review.data ? review.data.pending.length : null} onReview={finance ? openReview : null}
+    expensesActive={view === 'expenses'} onExpenses={openExpenses}>
     <EventList events={events.events} loading={events.loading} error={events.loadError} saving={events.saving}
       selectedId={view === 'events' ? selected?.id : undefined} onSelect={select} onRefresh={events.refresh} onCreate={() => { setNavOpen(false); setCreateOpen(true) }} />
   </WorkspaceSidebar>
@@ -99,11 +107,16 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
       </DialogContent>
     </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
-      <WorkspaceHeader councilName={membership.organization.name} section={view === 'members' ? '구성원' : view === 'review' ? '구매' : '행사'}
-        title={view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : selected?.name ?? '행사'} onMenu={() => setNavOpen(true)} />
+      <WorkspaceHeader councilName={membership.organization.name}
+        section={view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' ? '재정' : '행사'}
+        title={view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : selected?.name ?? '행사'}
+        onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
         {view === 'members' ? <Members inviteCode={membership.organization.inviteCode} state={members} />
-          : view === 'review' ? <PurchaseReview organizationId={membership.organization.id} state={review} />
+          : view === 'review' ? <PurchaseReview organizationId={membership.organization.id} state={review} events={events.events ?? []}
+            viewerMembershipId={membership.id} />
+          : view === 'expenses' ? <Expenses organizationId={membership.organization.id} finance={finance} viewerMembershipId={membership.id}
+            events={events.events ?? []} state={expenses} />
           : selected ? <EventWorkspace key={selected.id} event={selected} onLeaveRiskChange={setLeaveRisk} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
