@@ -7,6 +7,7 @@ import type { CoupangItem } from '../db/schema.js'
 import { migrationsFolder } from '../db/test-migrations.js'
 import { createExpenseRoutes } from '../expenses/routes.js'
 import type { ReceiptStorage, StoredObject } from '../expenses/storage.js'
+import { createSettlementRoutes } from '../settlement/routes.js'
 import { recordMessageLinks } from './candidates.js'
 import type { DraftGenerator, GeneratedItem } from './generation.js'
 import type { FetchResult, ProductFetcher } from './products.js'
@@ -68,7 +69,7 @@ export async function setupPurchases(migrations = migrationsFolder, { storage = 
     async input => { state.calls++; return state.generate(input) },
     async (productId, timeoutMs) => { state.lookups++; return state.fetch(productId, timeoutMs) })
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, purchases: routes,
-    expenses: createExpenseRoutes(db, session, storage?.storage) })
+    expenses: createExpenseRoutes(db, session, storage?.storage), settlement: createSettlementRoutes(db, session) })
   const request = (method: string, path: string, body?: unknown) => app.request(`/api/organizations/a${path}`, body === undefined
     ? { method } : { method, headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   async function ok<T = PurchaseItemsResponse>(pending: Response | Promise<Response>, status = 200): Promise<T> {
@@ -102,5 +103,15 @@ export async function setupPurchases(migrations = migrationsFolder, { storage = 
     const created = await drafts(links, event)
     return (await ok(request('POST', `/events/${event}/purchase-items/submit`, { items: refs(created) }))).items
   }
-  return { pg, db, state, storage, request, ok, drafts, submitted, share, ready, candidateOf, as: (userId: string | null) => { state.userId = userId } }
+  // 기획(p)이 담아 제출하고 재정(f)이 승인한 품목 ID. 끝나면 재정(f)으로 남는다. 다른 행사방에는 e의 메시지가 없으므로 근거 없이 만든다.
+  async function approved(links = [link(1)], event = 'e') {
+    state.generate = async input => ({ items: input.links.map(url => generated(url, { sourceMessageIds: [] })) })
+    state.userId = 'p'
+    const created = await submitted(links, event)
+    state.userId = 'f'
+    await ok(request('POST', '/purchase-review/decisions', { decisions: created.map(item => ({ id: item.id, version: item.version, decision: 'approved' })) }))
+    return created.map(item => item.id)
+  }
+  return { pg, db, state, storage, request, ok, drafts, submitted, approved, share, ready, candidateOf,
+    as: (userId: string | null) => { state.userId = userId } }
 }
