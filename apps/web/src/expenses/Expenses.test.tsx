@@ -71,3 +71,9 @@ test('긴 사용처·내용은 카드 안에서 줄을 바꾼다', async () => {
   expect((await screen.findByRole('button', { name: vendor })).className).toContain('wrap-anywhere')
   expect(screen.getByText(description).className).toContain('wrap-anywhere')
 })
+test('카드를 누르면 상세를 연다', async () => {
+  const api = setup([expense()])
+  api.on('GET', `${base}/x1`, () => json({ expense: expense() }))
+  fireEvent.click(await screen.findByRole('button', { name: '쿠팡' }))
+  expect(await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })).toBeTruthy()
+})
