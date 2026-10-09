@@ -77,3 +77,10 @@ test('저장에 실패하면 문구를 보여 주고, 취소하면 부르는 쪽
   fireEvent.click(screen.getByRole('button', { name: '취소' }))
   expect(onCancel).toHaveBeenCalled()
 })
+
+test('수입이 고른 수입 줄은 지우기가 꺼지고 이유를 적는다', () => {
+  setup(budgetPlan({ incomes: [{ id: 'li', name: '학생회비', amount: 800000, received: 750000, incomeCount: 2 }] }))
+  const row = within(section('수입 예산')).getByRole('listitem', { name: '수입 예산 1' })
+  expect(within(row).getByRole('button', { name: '지우기' }).hasAttribute('disabled')).toBe(true)
+  expect(within(row).getByText('이 항목을 고른 수입이 있어요')).toBeTruthy()
+})

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { json, mockApi } from '../test-support/mock-api'
 import Budget from './Budget'
-import { budgetEventLine, budgetPeriod, budgetPlan } from './budget-fixtures'
+import { budgetEventLine, budgetPeriod, budgetPlan, incomeDetail, incomeSummary } from './budget-fixtures'
 
 const base = '/api/organizations/o/budget/periods'
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-10T03:00:00Z')) })
@@ -112,4 +112,67 @@ test('행사 재정 탭에서 바뀐 행사 때문에 저장이 막히면, 문�
   await waitFor(() => expect(bodies).toHaveLength(2))
   expect((bodies[1] as { events: unknown[] }).events).toEqual([{ eventId: 'e', version: 2 }])
   expect(await screen.findByRole('heading', { name: '2026년 2학기' })).toBeTruthy()
+})
+
+const incomesPath = `${base}/p1/incomes`
+test('수입 줄의 예산·실제 수입, 항목 없는 수입, 실제 수입·남은 돈, 수입 내역을 보여 주고, 수입을 누르면 상세가 열린다', async () => {
+  const plan = budgetPlan({ incomes: [{ id: 'li', name: '학생회비', amount: 800000, received: 750000, incomeCount: 1 }],
+    unassignedIncome: { received: 30000, count: 1 }, totals: { ...budgetPlan().totals, received: 780000, balance: 711000 },
+    incomeRecords: [incomeSummary(), incomeSummary({ id: 'i2', budgetLine: null, description: '후원금', amount: 30000, receivedOn: '2026-10-02',
+      voided: { by: { id: 'f', name: '재정' }, at: '2026-10-03T00:00:00.000Z', reason: '중복' } })] })
+  const { api } = setup(true, [budgetPeriod()], plan)
+  api.on('GET', `${incomesPath}/i1`, () => json({ income: incomeDetail() }))
+  const incomes = await screen.findByRole('region', { name: '수입' })
+  for (const text of ['예산의 94%', '800,000원', '750,000원', '수입 항목을 고르지 않은 수입 1건 · 30,000원']) expect(within(incomes).getByText(text)).toBeTruthy()
+  expect(screen.getByText('실제 수입 780,000원 · 남은 돈 711,000원')).toBeTruthy()
+  const records = screen.getByRole('region', { name: '수입 내역' })
+  expect(within(records).getByText('취소됨')).toBeTruthy()
+  fireEvent.click(within(records).getByRole('button', { name: '2학기 학생회비' }))
+  expect(await screen.findByRole('dialog', { name: '2학기 학생회비 · 750,000원' })).toBeTruthy()
+})
+
+test('남은 돈이 0보다 작으면 경고하고 재정 권한자에게만 확인 문구를 덧붙이며, 권한이 없으면 수입 기록 버튼이 없다', async () => {
+  setup(true, [budgetPeriod()])
+  expect(await screen.findByText('실제 지출이 실제 수입보다 69,000원 많아요')).toBeTruthy()
+  expect(screen.getByText('빠진 수입 기록이 없는지 확인해 주세요.')).toBeTruthy()
+  expect(within(screen.getByRole('region', { name: '수입 내역' })).getByText('기록한 수입이 없어요')).toBeTruthy()
+  cleanup()
+  setup(false, [budgetPeriod()])
+  expect(await screen.findByText('실제 지출이 실제 수입보다 69,000원 많아요')).toBeTruthy()
+  expect(screen.queryByText('빠진 수입 기록이 없는지 확인해 주세요.')).toBeNull()
+  expect(screen.queryByRole('button', { name: '수입 기록' })).toBeNull()
+  expect(screen.getByRole('button', { name: '결산서 내려받기' })).toBeTruthy()
+})
+
+test('수입을 기록하면 편성을 다시 받고 기록한 수입의 상세를 연다', async () => {
+  const { api } = setup(true, [budgetPeriod()])
+  const bodies: unknown[] = []
+  api.on('POST', incomesPath, call => { bodies.push(call.body); return json({ income: incomeDetail() }, 201) })
+  api.on('GET', `${incomesPath}/i1`, () => json({ income: incomeDetail() }))
+  fireEvent.click(await screen.findByRole('button', { name: '수입 기록' }))
+  const dialog = screen.getByRole('dialog', { name: '수입 기록' })
+  fireEvent.change(within(dialog).getByLabelText('수입 항목'), { target: { value: 'li' } })
+  fireEvent.change(within(dialog).getByLabelText('내용'), { target: { value: '2학기 학생회비' } })
+  fireEvent.change(within(dialog).getByLabelText('금액(원)'), { target: { value: '750000' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '기록' }))
+  expect(await screen.findByRole('dialog', { name: '2학기 학생회비 · 750,000원' })).toBeTruthy()
+  expect(bodies).toEqual([{ description: '2학기 학생회비', amount: 750000, receivedOn: '2026-10-10', budgetLineId: 'li', note: null }])
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'GET' && call.path === `${base}/p1`)).toHaveLength(2))
+})
+
+test('결산서를 내려받으면 서버가 준 이름으로 받고, 실패하면 알린다', async () => {
+  const { api } = setup(false, [budgetPeriod()])
+  const name = '2026년 2학기 결산 2026-10-10.xlsx'
+  // jsdom의 Blob은 Node Response 본문으로 읽히지 않아 문자열로 준다.
+  api.on('GET', `${base}/p1/export`, () => new Response('xlsx', { headers: {
+    'Content-Disposition': `attachment; filename="settlement.xlsx"; filename*=UTF-8''${encodeURIComponent(name)}` } }))
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, writable: true, value: vi.fn(() => 'blob:report') })
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, writable: true, value: vi.fn() })
+  const clicks: string[] = []
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) { clicks.push(this.download) })
+  fireEvent.click(await screen.findByRole('button', { name: '결산서 내려받기' }))
+  await waitFor(() => expect(clicks).toEqual([name]))
+  api.on('GET', `${base}/p1/export`, () => json({ error: 'EXPORT_TOO_LARGE' }, 409))
+  fireEvent.click(screen.getByRole('button', { name: '결산서 내려받기' }))
+  expect(await screen.findByText('기록이 너무 많아 엑셀로 만들 수 없어요.')).toBeTruthy()
 })

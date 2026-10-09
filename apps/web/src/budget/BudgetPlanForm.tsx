@@ -34,6 +34,7 @@ export default function BudgetPlanForm({ plan, onCancel, onSave }: Props) {
   // 원래 이 기간에 있던 행사도 빼면 다시 넣을 수 있다.
   const pool = [...plan.events, ...plan.candidates].filter(entry => !draft.events.some(line => line.eventId === entry.eventId))
   const used = new Map(plan.operating.map(line => [line.id, line.expenseCount]))
+  const received = new Map(plan.incomes.map(line => [line.id, line.incomeCount]))
   async function save() {
     setBusy(true)
     setMessage('')
@@ -58,7 +59,8 @@ export default function BudgetPlanForm({ plan, onCancel, onSave }: Props) {
           <Input type="date" value={draft.endsOn} onChange={event => setDraft({ ...draft, endsOn: event.target.value })} /></Label>
       </div>
     </section>
-    <LinesEditor title="수입 예산" addLabel="수입 추가" lines={draft.incomes} onChange={incomes => setDraft({ ...draft, incomes })} />
+    <LinesEditor title="수입 예산" addLabel="수입 추가" lines={draft.incomes} used={received} usedText="이 항목을 고른 수입이 있어요"
+      onChange={incomes => setDraft({ ...draft, incomes })} />
     <section aria-label="행사 예산" className={cn(cardClass, 'flex flex-col gap-3 p-4')}>
       <h3 className="text-sm font-semibold text-gray-900">행사 예산</h3>
       {draft.events.length > 0 && <ul className="flex flex-col gap-3">{draft.events.map(line => <li key={line.eventId} aria-label={line.name}
@@ -80,7 +82,8 @@ export default function BudgetPlanForm({ plan, onCancel, onSave }: Props) {
         <Button variant="outline" disabled={!adding} onClick={addEvent}>넣기</Button>
       </div>}
     </section>
-    <LinesEditor title="운영 예산" addLabel="항목 추가" lines={draft.operating} used={used} onChange={operating => setDraft({ ...draft, operating })} />
+    <LinesEditor title="운영 예산" addLabel="항목 추가" lines={draft.operating} used={used} usedText="이 항목을 고른 지출이 있어요"
+      onChange={operating => setDraft({ ...draft, operating })} />
     <StatGrid label="합계 미리 보기" className="grid-cols-3 gap-3" stats={[{ label: '수입 예산', value: won(totals.income) }, { label: '예산', value: won(totals.budget) },
       { label: '배정 안 한 돈', value: totals.unallocated < 0 ? `${won(-totals.unallocated)} 초과` : won(totals.unallocated),
         tone: totals.unallocated < 0 ? 'danger' : undefined }]} />
@@ -92,14 +95,16 @@ export default function BudgetPlanForm({ plan, onCancel, onSave }: Props) {
   </section>
 }
 
-type LinesProps = { title: string; addLabel: string; lines: DraftLine[]; used?: Map<string, number>; onChange: (lines: DraftLine[]) => void }
+// used: 줄마다 그 줄을 고른 기록(지출·수입) 수. 0이 아니면 지우지 못하고 usedText로 이유를 적는다.
+type LinesProps = { title: string; addLabel: string; lines: DraftLine[]; used: Map<string, number>; usedText: string
+  onChange: (lines: DraftLine[]) => void }
 // 이름·금액 줄 묶음. 줄마다 "{묶음} {번호}"로 이름을 붙여 칸을 찾기 쉽게 한다.
-function LinesEditor({ title, addLabel, lines, used, onChange }: LinesProps) {
+function LinesEditor({ title, addLabel, lines, used, usedText, onChange }: LinesProps) {
   const update = (key: string, change: Partial<DraftLine>) => onChange(lines.map(line => line.key === key ? { ...line, ...change } : line))
   return <section aria-label={title} className={cn(cardClass, 'flex flex-col gap-3 p-4')}>
     <h3 className="text-sm font-semibold text-gray-900">{title}</h3>
     {lines.length > 0 && <ul className="flex flex-col gap-3">{lines.map((line, index) => {
-      const inUse = line.id !== null && (used?.get(line.id) ?? 0) > 0
+      const inUse = line.id !== null && (used.get(line.id) ?? 0) > 0
       return <li key={line.key} aria-label={`${title} ${index + 1}`} className="flex flex-col gap-2">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
           <Label className="flex min-w-0 flex-1 flex-col gap-1.5">이름<Input value={line.name} onChange={event => update(line.key, { name: event.target.value })} /></Label>
@@ -107,7 +112,7 @@ function LinesEditor({ title, addLabel, lines, used, onChange }: LinesProps) {
             <Input inputMode="numeric" value={line.amount} onChange={event => update(line.key, { amount: event.target.value })} /></Label>
           <Button variant="outline" size="sm" disabled={inUse} onClick={() => onChange(lines.filter(item => item.key !== line.key))}>지우기</Button>
         </div>
-        {inUse && <p className="text-xs text-gray-500">이 항목을 고른 지출이 있어요</p>}
+        {inUse && <p className="text-xs text-gray-500">{usedText}</p>}
       </li>
     })}</ul>}
     <Button variant="outline" size="sm" className="self-start" onClick={() => onChange([...lines, newLine()])}>{addLabel}</Button>

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { IncomeDetail } from '@vada/contracts'
 import { Plus, Wallet } from 'lucide-react'
 import { EmptyState } from '@/components/EmptyState'
 import StateMessage from '@/components/StateMessage'
@@ -6,25 +7,42 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
+import { downloadFile } from '@/lib/download'
 import { todayInSeoul } from '../purchases/purchase-view'
 import BudgetPlanForm from './BudgetPlanForm'
 import BudgetPlanView from './BudgetPlanView'
+import IncomeDetailDialog from './IncomeDetailDialog'
+import IncomeFormDialog from './IncomeFormDialog'
 import PeriodDialog from './PeriodDialog'
-import { currentPeriodId } from './budget-view'
-import { createBudgetPeriod, useBudgetPeriods, useBudgetPlan } from './useBudget'
+import { budgetMessage, currentPeriodId } from './budget-view'
+import { budgetExportUrl, createBudgetPeriod, useBudgetPeriods, useBudgetPlan } from './useBudget'
+import { createIncome, updateIncome } from './useIncomes'
 
 type Props = { organizationId: string; finance: boolean; onOpenEvent: (eventId: string) => void }
 
-// 예산. 구성원 누구나 회계 기간마다 편성과 집행을 본다. 재정 권한자는 기간을 만들고 편성을 고친다.
+// 예산. 구성원 누구나 회계 기간마다 편성과 집행, 수입을 보고 결산서를 내려받는다.
+// 재정 권한자는 기간을 만들고 편성을 고치며 수입을 기록한다.
 export default function Budget({ organizationId, finance, onOpenEvent }: Props) {
   const periods = useBudgetPeriods(organizationId, true)
   const [chosen, setChosen] = useState<string | null>(null)
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState(false)
+  // 수입 기록·수정 대화상자. income이 있으면 수정이다.
+  const [incomeForm, setIncomeForm] = useState<{ income: IncomeDetail | null } | null>(null)
+  const [openedIncome, setOpenedIncome] = useState<string | null>(null)
+  const [downloading, setDownloading] = useState(false)
+  const [downloadMessage, setDownloadMessage] = useState('')
   const list = periods.data?.periods ?? []
   // 방금 만든 기간은 목록을 새로 받기 전에도 연다.
   const periodId = chosen ?? currentPeriodId(list, todayInSeoul())
   const plan = useBudgetPlan(organizationId, periodId)
+  async function download(id: string) {
+    setDownloading(true)
+    setDownloadMessage('')
+    const result = await downloadFile(budgetExportUrl(organizationId, id), '결산.xlsx')
+    setDownloading(false)
+    if (!result.ok) setDownloadMessage(budgetMessage(result.code))
+  }
   if (!periods.data) return <div className="p-4 sm:p-6">{periods.loadError
     ? <Card className="flex flex-col gap-3 p-6"><StateMessage kind="error">예산을 불러오지 못했어요.</StateMessage>
       <Button variant="outline" className="self-start" onClick={periods.refresh}>다시 시도</Button></Card>
@@ -62,8 +80,18 @@ export default function Budget({ organizationId, finance, onOpenEvent }: Props) 
           if (result.ok) { setEditing(false); periods.refresh() }
           return result
         }} />
-        : <BudgetPlanView plan={plan.data} finance={finance} onOpenEvent={onOpenEvent} />}
+        : <BudgetPlanView plan={plan.data} finance={finance} onOpenEvent={onOpenEvent} onOpenIncome={setOpenedIncome}
+          onRecordIncome={() => setIncomeForm({ income: null })} download={{ busy: downloading, message: downloadMessage, start: () => void download(periodId) }} />}
     </div>
     {dialog}
+    {plan.data && <>
+      <IncomeFormDialog open={incomeForm !== null} period={plan.data.period} lines={plan.data.incomes} income={incomeForm?.income ?? null}
+        onClose={() => setIncomeForm(null)}
+        onSubmit={input => incomeForm?.income ? updateIncome(organizationId, periodId, incomeForm.income.id, { ...input, version: incomeForm.income.version })
+          : createIncome(organizationId, periodId, input)}
+        onSaved={saved => { setIncomeForm(null); plan.refresh(); setOpenedIncome(saved.id) }} />
+      <IncomeDetailDialog organizationId={organizationId} periodId={periodId} incomeId={openedIncome} finance={finance}
+        onClose={() => setOpenedIncome(null)} onChanged={plan.refresh} onEdit={income => { setOpenedIncome(null); setIncomeForm({ income }) }} />
+    </>}
   </div>
 }
