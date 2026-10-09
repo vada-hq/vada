@@ -5,6 +5,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import Budget from '../budget/Budget'
 import EventList from '../events/EventList'
 import Expenses from '../expenses/Expenses'
 import { useExpenses } from '../expenses/useExpenses'
@@ -18,7 +19,7 @@ import EventWorkspace from './EventWorkspace'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar, { type AccountProps } from './WorkspaceSidebar'
 
-type View = 'events' | 'members' | 'review' | 'expenses'
+type View = 'events' | 'members' | 'review' | 'expenses' | 'budget'
 type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string; initialView?: View; onMembershipsChanged?: () => void }
 export default function Workspace({ initialOrganizationId, initialView, ...props }: Props) {
   // 초대로 방금 참여했거나 방금 만든 학생회가 있으면 그 학생회를 먼저 연다.
@@ -55,6 +56,8 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     onMembershipsChanged?.()
   }, [viewer, membership, onMembershipsChanged])
   const [selected, setSelected] = useState<EventSummary | null>(null)
+  // 행사 화면이 처음 열 탭. 옆 메뉴로 고르면 대화, 예산 화면에서 열면 재정이다.
+  const [eventTab, setEventTab] = useState<'chat' | 'finance'>('chat')
   const [leaveRisk, setLeaveRisk] = useState(false)
   // 768px 미만에서 옆 메뉴로 연 사이드바. 행사를 고르면 닫는다.
   const [navOpen, setNavOpen] = useState(false)
@@ -68,8 +71,8 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   }, [leaveRisk])
   function select(event: EventSummary) {
     // 구성원·구매 검토·사용 내역 화면에는 입력 중인 구매가 없으므로 묻지 않고 행사 화면으로 간다.
-    if (view !== 'events') { setSelected(event); setView('events') }
-    else if (event.id !== selected?.id && canLeave()) setSelected(event)
+    if (view !== 'events') { setEventTab('chat'); setSelected(event); setView('events') }
+    else if (event.id !== selected?.id && canLeave()) { setEventTab('chat'); setSelected(event) }
     setNavOpen(false)
   }
   function openMembers() {
@@ -79,6 +82,18 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   function openReview() {
     if (view !== 'review' && canLeave()) { setView('review'); review.refresh() }
     setNavOpen(false)
+  }
+  function openBudget() {
+    if (view !== 'budget' && canLeave()) setView('budget')
+    setNavOpen(false)
+  }
+  // 예산 화면에서 행사 이름을 누르면 그 행사의 재정 탭을 연다. 예산 화면에는 입력 중인 구매가 없으므로 묻지 않는다.
+  function openEventFinance(eventId: string) {
+    const target = events.events?.find(item => item.id === eventId)
+    if (!target) return
+    setEventTab('finance')
+    setSelected(target)
+    setView('events')
   }
   function openExpenses() {
     if (view !== 'expenses' && canLeave()) { setView('expenses'); expenses.refresh() }
@@ -90,7 +105,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     onMembershipChange={id => { if (canLeave()) onMembershipChange(id) }}
     membersActive={view === 'members'} unassignedCount={unassigned} onMembers={openMembers}
     reviewActive={view === 'review'} pendingCount={finance && review.data ? review.data.pending.length : null} onReview={finance ? openReview : null}
-    expensesActive={view === 'expenses'} onExpenses={openExpenses}>
+    budgetActive={view === 'budget'} onBudget={openBudget} expensesActive={view === 'expenses'} onExpenses={openExpenses}>
     <EventList events={events.events} loading={events.loading} error={events.loadError} saving={events.saving}
       selectedId={view === 'events' ? selected?.id : undefined} onSelect={select} onRefresh={events.refresh} onCreate={() => { setNavOpen(false); setCreateOpen(true) }} />
   </WorkspaceSidebar>
@@ -108,17 +123,19 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
       <WorkspaceHeader councilName={membership.organization.name}
-        section={view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' ? '재정' : '행사'}
-        title={view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : selected?.name ?? '행사'}
+        section={view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' ? '재정' : '행사'}
+        title={view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
+          : selected?.name ?? '행사'}
         onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
         {view === 'members' ? <Members inviteCode={membership.organization.inviteCode} state={members} />
           : view === 'review' ? <PurchaseReview organizationId={membership.organization.id} state={review} events={events.events ?? []}
             viewerMembershipId={membership.id} />
+          : view === 'budget' ? <Budget organizationId={membership.organization.id} finance={finance} onOpenEvent={openEventFinance} />
           : view === 'expenses' ? <Expenses organizationId={membership.organization.id} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} state={expenses} />
           : selected ? <EventWorkspace key={selected.id} event={selected} finance={finance} viewerMembershipId={membership.id}
-            events={events.events ?? []} onLeaveRiskChange={setLeaveRisk} />
+            events={events.events ?? []} onLeaveRiskChange={setLeaveRisk} initialTab={eventTab} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
           </Card></div>}

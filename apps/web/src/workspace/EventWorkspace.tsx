@@ -12,15 +12,17 @@ import { TabButton } from '@/components/ui/tab-button'
 const tabs = { chat: '대화', purchases: '구매', finance: '재정' } as const
 type Tab = keyof typeof tabs
 const order = Object.keys(tabs) as Tab[]
-type Props = { event: EventSummary; finance: boolean; viewerMembershipId: string; events: EventSummary[]; onLeaveRiskChange: (risk: boolean) => void }
+type Props = { event: EventSummary; finance: boolean; viewerMembershipId: string; events: EventSummary[]; onLeaveRiskChange: (risk: boolean) => void
+  // 예산 화면에서 행사 이름을 누르면 재정 탭으로 연다.
+  initialTab?: 'chat' | 'finance' }
 
-export default function EventWorkspace({ event, finance, viewerMembershipId, events, onLeaveRiskChange }: Props) {
-  const [tab, setTab] = useState<Tab>('chat')
+export default function EventWorkspace({ event, finance, viewerMembershipId, events, onLeaveRiskChange, initialTab }: Props) {
+  const [tab, setTab] = useState<Tab>(initialTab ?? 'chat')
   const [view, setView] = useState<PurchaseView>('candidates')
   // 구매 목록은 구매 탭을 처음 열 때, 후보는 구매 탭이나 링크 패널을 처음 열 때 불러온다.
   const [opened, setOpened] = useState(false)
   // 재정은 재정 탭을 처음 열 때 불러오고, 다른 화면에서 바뀌었을 수 있어 다시 고를 때마다 새로 불러온다.
-  const [financeOpened, setFinanceOpened] = useState(false)
+  const [financeOpened, setFinanceOpened] = useState(initialTab === 'finance')
   const [link, setLink] = useState<CoupangLink | null>(null)
   const [focus, setFocus] = useState<{ id: number; messageId: string } | null>(null)
   const purchases = useEventPurchases(event.organizationId, event.id, opened)

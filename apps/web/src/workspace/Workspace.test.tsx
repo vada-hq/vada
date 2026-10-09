@@ -5,6 +5,7 @@ import type { MembershipSummary } from '@vada/contracts'
 import Workspace from './Workspace'
 import { candidate, item } from '../purchases/purchase-fixtures'
 import { financeResponse } from '../settlement/settlement-fixtures'
+import { budgetEventLine, budgetPeriod, budgetPlan } from '../budget/budget-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } }
@@ -15,7 +16,9 @@ const membersBody = { viewer: membership, departments: [{ id: 'd1', name: '기�
 const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z' }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
 function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }) {
-  const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/events')
+  const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/budget/periods') ? { periods: [budgetPeriod()] }
+    : url.endsWith('/budget/periods/p1') ? budgetPlan({ events: [budgetEventLine({ eventId: 'e1' })] })
+    : url.endsWith('/events')
     ? { events: [event, { ...event, id: 'e2', name: '축제' }] }
     : url.endsWith('/members') ? members
     : url.endsWith('/messages') ? { messages: [], nextCursor: null }
@@ -319,4 +322,18 @@ test('재정 탭은 처음 고를 때 불러오고 다시 고를 때마다 새�
   expect(screen.getByRole('tab', { name: '구매' }).getAttribute('aria-selected')).toBe('true')
   fireEvent.keyDown(screen.getByRole('tab', { name: '구매' }), { key: 'Home' })
   expect(screen.getByRole('tab', { name: '대화' }).getAttribute('aria-selected')).toBe('true')
+})
+
+test('예산은 구성원 누구나 옆 메뉴에서 열고, 행사 이름을 누르면 그 행사의 재정 탭이 열린다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-10T03:00:00Z'))
+  try {
+    const fetcher = setup()
+    render(<Workspace {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: '예산' }))
+    expect(await screen.findByRole('heading', { name: '2026년 2학기' })).toBeTruthy()
+    fireEvent.click(within(screen.getByRole('region', { name: '행사 예산' })).getByRole('button', { name: '체육대회' }))
+    await waitFor(() => expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true'))
+    await waitFor(() => expect(fetcher).toHaveBeenCalledWith('/api/organizations/o1/events/e1/finance', expect.anything()))
+  } finally { vi.useRealTimers() }
 })
