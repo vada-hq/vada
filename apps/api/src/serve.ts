@@ -11,6 +11,9 @@ import { createEventRoutes } from './events/events.js'
 import { createChatRoutes } from './chat/chat.js'
 import { createPurchaseRoutes } from './purchases/purchases.js'
 import { createDraftGenerator } from './purchases/generation.js'
+import { createProductCatalog } from './purchases/catalog.js'
+import { createLookupRunner } from './purchases/lookup-runner.js'
+import { createReefFetcher } from './purchases/products.js'
 import { createDeliveryRoutes } from './deliveries/routes.js'
 import { createDeliveryTracker } from './deliveries/delivery-tracker.js'
 import { createDeliveryWebhook } from './deliveries/webhook.js'
@@ -34,13 +37,13 @@ function main() {
   const access = createAccessRoutes(db, (headers) => auth.api.getSession({ headers }))
   const organization = createOrganizationRoutes(db, (headers) => auth.api.getSession({ headers }))
   const events = createEventRoutes(db, (headers) => auth.api.getSession({ headers }))
-  const chat = createChatRoutes(db, (headers) => auth.api.getSession({ headers }))
   // 키는 서버 런타임에서만 사용한다. 브라우저 응답·로그에 포함하지 않는다.
-  const generate = createDraftGenerator({
-    apiKey: env.OPENAI_API_KEY,
-    model: env.OPENAI_MODEL,
-  })
-  const purchases = createPurchaseRoutes(db, (headers) => auth.api.getSession({ headers }), generate)
+  const fetchProduct = env.REEF_API_KEY?.trim() ? createReefFetcher(env.REEF_API_KEY) : undefined
+  // 대화의 쿠팡 링크는 이 서버 안에서 뒤에서 조회한다. 키가 없으면 켜지 않는다.
+  const lookups = fetchProduct ? createLookupRunner(createProductCatalog(db, fetchProduct)) : undefined
+  const chat = createChatRoutes(db, (headers) => auth.api.getSession({ headers }), lookups ? () => { void lookups.kick() } : undefined)
+  const generate = createDraftGenerator({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL })
+  const purchases = createPurchaseRoutes(db, (headers) => auth.api.getSession({ headers }), generate, fetchProduct)
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
   const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,
     headers => auth.api.getSession({ headers }),
@@ -57,7 +60,9 @@ function main() {
     void client.end({ timeout: 5 })
     process.exitCode = 1
   })
+  const stopLookups = lookups?.start()
   const shutdown = () => {
+    stopLookups?.()
     server.close(() => { void client.end({ timeout: 5 }); void stopErrorReporting() })
   }
   process.once('SIGTERM', shutdown)
