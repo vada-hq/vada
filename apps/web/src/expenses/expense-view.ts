@@ -8,9 +8,10 @@ export const kindLabels = RECEIPT_KIND_LABELS
 const actionLabels: Record<ExpenseAction, string> = { created: '기록', updated: '수정', voided: '취소', receipt_added: '증빙 추가',
   receipt_removed: '증빙 삭제' }
 const fieldLabels: Record<string, string> = { event: '행사', vendor: '사용처', description: '내용', amount: '금액', paidOn: '결제일',
-  method: '결제 수단', payer: '결제한 사람', note: '메모' }
+  method: '결제 수단', payer: '결제한 사람', note: '메모', budgetLine: '운영 항목' }
 
-export const eventText = (expense: Pick<ExpenseSummary, 'event'>) => expense.event?.name ?? '상시 운영'
+export const eventText = (expense: Pick<ExpenseSummary, 'event' | 'budgetLine'>) =>
+  expense.event?.name ?? (expense.budgetLine ? `상시 운영 · ${expense.budgetLine.name}` : '상시 운영')
 // 2026-10-09 → 10.9
 export const dayText = (paidOn: string) => `${Number(paidOn.slice(5, 7))}.${Number(paidOn.slice(8, 10))}`
 export const monthTitle = (paidOn: string) => `${paidOn.slice(0, 4)}년 ${Number(paidOn.slice(5, 7))}월`
@@ -78,6 +79,7 @@ export const expenseErrors: Record<string, string> = {
   UPLOAD_MISMATCH: '파일이 제대로 올라가지 않았어요. 다시 올려 주세요.',
   STORAGE_NOT_CONFIGURED: '영수증 저장소가 아직 준비되지 않았어요.',
   EVENT_SETTLED: '정산이 끝난 행사라 바꿀 수 없어요. 행사 재정 탭에서 정산을 다시 연 뒤 해 주세요.',
+  BUDGET_LINE_INVALID: '운영 항목을 다시 골라 주세요.',
   INVALID_INPUT: '입력값을 확인해 주세요.',
 }
 export const expenseFailure = '처리하지 못했어요. 다시 시도해 주세요.'

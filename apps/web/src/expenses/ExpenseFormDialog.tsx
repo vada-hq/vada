@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
+import { useBudgetPeriods } from '../budget/useBudget'
 import { useOrganizationMembers } from '../organization/useOrganizationMembers'
 import { productNameOf } from '../purchases/PurchaseItemCard'
 import { todayInSeoul, won } from '../purchases/purchase-view'
@@ -50,15 +51,22 @@ function Form({ organizationId, viewerMembershipId, events, initialEventId, expe
   const [amount, setAmount] = useState(expense ? String(expense.amount) : '')
   const [note, setNote] = useState(expense?.note ?? '')
   const [itemIds, setItemIds] = useState<string[]>(expense?.items.map(item => item.id) ?? [])
+  const [budgetLineId, setBudgetLineId] = useState(expense?.budgetLine?.id ?? '')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const members = useOrganizationMembers(organizationId, true)
   const linkable = useLinkableItems(organizationId, true)
+  // 상시 운영일 때만 기간 목록을 불러와 결제일이 든 기간의 운영 줄을 고르게 한다.
+  const periods = useBudgetPeriods(organizationId, eventId === '')
+  const linesOn = (day: string) => periods.data?.periods.find(period => period.startsOn <= day && day <= period.endsOn)?.operating ?? []
+  const lines = eventId === '' ? linesOn(paidOn) : []
+  // 목록을 받기 전에는 고른 값을 그대로 둔다. 받은 뒤에는 그 기간에 있는 항목만 보낸다.
+  const lineId = eventId !== '' ? '' : !periods.data || lines.some(line => line.id === budgetLineId) ? budgetLineId : ''
   // 고른 행사의 품목만 고른다. 수정할 때는 이미 연결한 품목도 목록에 둔다.
   const choices = eventId ? [...(expense?.items ?? []), ...(linkable.data?.items ?? [])]
     .filter((item, index, list) => item.event.id === eventId && list.findIndex(other => other.id === item.id) === index) : []
   const input: CreateExpenseRequest = { eventId: eventId || null, vendor, description, amount: amount.trim() === '' ? Number.NaN : Number(amount),
-    paidOn, method, payerMembershipId: payer, note: note.trim() ? note : null, itemIds, budgetLineId: null }
+    paidOn, method, payerMembershipId: payer, note: note.trim() ? note : null, itemIds, budgetLineId: lineId || null }
   // 버튼은 서버와 같은 스키마로 켠다. 길이 숫자를 화면에 다시 적지 않는다.
   const valid = expense ? UpdateExpenseSchema.safeParse({ ...input, version: expense.version }).success : CreateExpenseSchema.safeParse(input).success
   const loaded = members.data?.members ?? []
@@ -68,6 +76,12 @@ function Form({ organizationId, viewerMembershipId, events, initialEventId, expe
   function chooseEvent(next: string) {
     setEventId(next)
     setItemIds([])
+    setBudgetLineId('')
+  }
+  function choosePaidOn(next: string) {
+    setPaidOn(next)
+    // 다른 기간으로 가면 고른 항목을 지운다.
+    if (periods.data && !linesOn(next).some(line => line.id === budgetLineId)) setBudgetLineId('')
   }
   async function save() {
     setBusy(true)
@@ -88,10 +102,15 @@ function Form({ organizationId, viewerMembershipId, events, initialEventId, expe
           <option value="">상시 운영</option>
           {events.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
         </NativeSelect></Label>
+      {lines.length > 0 && <Label className="flex flex-col gap-1.5">운영 항목
+        <NativeSelect value={lineId} onChange={event => setBudgetLineId(event.target.value)}>
+          <option value="">고르지 않음</option>
+          {lines.map(line => <option key={line.id} value={line.id}>{line.name}</option>)}
+        </NativeSelect></Label>}
       <Label className="flex flex-col gap-1.5">사용처<Input value={vendor} onChange={event => setVendor(event.target.value)} /></Label>
       <Label className="flex flex-col gap-1.5">내용<Input value={description} onChange={event => setDescription(event.target.value)} /></Label>
       <div className="grid grid-cols-2 gap-3">
-        <Label className="flex flex-col gap-1.5">결제일<Input type="date" value={paidOn} onChange={event => setPaidOn(event.target.value)} /></Label>
+        <Label className="flex flex-col gap-1.5">결제일<Input type="date" value={paidOn} onChange={event => choosePaidOn(event.target.value)} /></Label>
         <Label className="flex flex-col gap-1.5">금액(원)
           <Input type="number" inputMode="numeric" min={0} step={1} value={amount} onChange={event => setAmount(event.target.value)} /></Label>
       </div>

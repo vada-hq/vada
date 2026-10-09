@@ -7,6 +7,7 @@ import { event, membership } from '../test-support/workflow-fixtures'
 import { todayInSeoul } from '../purchases/purchase-view'
 import ExpenseFormDialog from './ExpenseFormDialog'
 import { expense, expenseItem } from './expense-fixtures'
+import { budgetPeriod } from '../budget/budget-fixtures'
 import type { ExpenseResult } from './useExpenses'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
@@ -16,6 +17,8 @@ function setup(initial: ExpenseDetail | null = null,
   onSubmit = vi.fn(async (_input: CreateExpenseRequest): Promise<ExpenseResult> => ({ ok: true, expense: expense() }))) {
   const api = mockApi()
   api.on('GET', '/api/organizations/o/members', () => json(members))
+  api.on('GET', '/api/organizations/o/budget/periods', () => json({ periods: [budgetPeriod(), budgetPeriod({ id: 'p2', name: '2027년 1학기',
+    startsOn: '2027-03-01', endsOn: '2027-08-31', operating: [{ id: 'lo2', name: '소모품' }] })] }))
   api.on('GET', '/api/organizations/o/purchase-review/linkable-items', () => json({ items: [
     expenseItem({ id: 'i2', productName: '생수', quantity: 3, estimatedUnitPrice: 1000 }),
     expenseItem({ id: 'i3', productName: '현수막', event: { id: 'e2', name: '축제' } })], truncated: false }))
@@ -102,4 +105,32 @@ test('행사를 미리 고르면 그 행사의 품목만 보여 준다', async (
   expect((within(dialog).getByLabelText('행사') as HTMLSelectElement).value).toBe('e2')
   expect(await within(dialog).findByText(/^현수막 · /)).toBeTruthy()
   expect(within(dialog).queryByText(/^생수 · /)).toBeNull()
+})
+
+test('상시 운영이면 결제일이 든 기간의 운영 항목을 고르고, 결제일이 다른 기간으로 가면 고른 것을 지운다', async () => {
+  const { onSubmit } = setup()
+  const dialog = await screen.findByRole('dialog', { name: '지출 기록' })
+  fill(dialog, '사용처', '다이소')
+  fill(dialog, '내용', '회의 다과')
+  fill(dialog, '금액(원)', '12000')
+  fill(dialog, '결제일', '2026-10-09')
+  const pick = await within(dialog).findByLabelText('운영 항목') as HTMLSelectElement
+  expect([...pick.options].map(option => option.textContent)).toEqual(['고르지 않음', '회의비'])
+  fireEvent.change(pick, { target: { value: 'lo' } })
+  fill(dialog, '결제일', '2027-03-02')
+  expect((within(dialog).getByLabelText('운영 항목') as HTMLSelectElement).value).toBe('')
+  fill(dialog, '결제일', '2026-10-09')
+  fireEvent.change(within(dialog).getByLabelText('운영 항목'), { target: { value: 'lo' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '기록' }))
+  await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(expect.objectContaining({ eventId: null, paidOn: '2026-10-09', budgetLineId: 'lo' })))
+  // 행사를 고르면 운영 항목 칸이 사라지고 null로 보낸다.
+  fireEvent.change(within(dialog).getByLabelText('행사'), { target: { value: 'e' } })
+  expect(within(dialog).queryByLabelText('운영 항목')).toBeNull()
+})
+
+test('기간이 없는 날짜면 운영 항목 칸이 없다', async () => {
+  setup()
+  const dialog = await screen.findByRole('dialog', { name: '지출 기록' })
+  fill(dialog, '결제일', '2025-01-01')
+  await waitFor(() => expect(within(dialog).queryByLabelText('운영 항목')).toBeNull())
 })

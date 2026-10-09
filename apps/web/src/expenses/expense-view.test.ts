@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { ExpenseAction } from '@vada/contracts'
-import { comparisonText, dayText, expenseMessage, fitFileName, groupByMonth, historyText } from './expense-view'
+import { comparisonText, dayText, eventText, expenseMessage, fitFileName, groupByMonth, historyText } from './expense-view'
 
 test('결제일·달 묶음·승인 금액 비교 문구', () => {
   expect(dayText('2026-10-09')).toBe('10.9')
@@ -32,4 +32,12 @@ test('긴 파일 이름은 확장자를 남기고 줄인다', () => {
 
 test('정산된 행사의 지출을 바꾸려 하면 다시 열라고 안내한다', () => {
   expect(expenseMessage('EVENT_SETTLED')).toBe('정산이 끝난 행사라 바꿀 수 없어요. 행사 재정 탭에서 정산을 다시 연 뒤 해 주세요.')
+})
+
+test('상시 운영 지출은 운영 항목을 붙여 보이고, 처리 기록은 운영 항목 변경을 적는다', () => {
+  expect(eventText({ event: null, budgetLine: { id: 'lo', name: '회의비' } })).toBe('상시 운영 · 회의비')
+  expect(eventText({ event: null, budgetLine: null })).toBe('상시 운영')
+  expect(historyText({ id: 'h', action: 'updated', actor: { id: 'f', name: '재정' }, changes: { budgetLine: { from: null, to: '회의비' } },
+    createdAt: '2026-10-10T01:00:00.000Z' })).toBe('수정: 운영 항목 없음 → 회의비')
+  expect(expenseMessage('BUDGET_LINE_INVALID')).toBe('운영 항목을 다시 골라 주세요.')
 })
