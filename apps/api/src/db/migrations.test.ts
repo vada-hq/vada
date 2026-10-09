@@ -838,3 +838,68 @@ test('0017 adds budget plans and an optional operating line on expenses', async 
     await pg.close()
   }
 })
+
+test('0018 adds incomes that belong to a period and optionally an income line', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0018_incomes')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','재정','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO budget_periods (id,organization_id,name,starts_on,ends_on,created_by) VALUES ('p','o','2026년 2학기','2026-09-01','2027-02-28','u'),
+        ('q','o2','남의 기간','2026-09-01','2027-02-28','u');
+      INSERT INTO budget_lines (id,organization_id,period_id,kind,name,amount,position) VALUES ('li','o','p','income','학생회비',800000,0),
+        ('lq','o2','q','income','남의 수입',1000,0);
+    `)
+    const before = (await pg.query<Record<string, unknown>>('SELECT * FROM budget_lines ORDER BY id')).rows
+    await migrate(db, { migrationsFolder })
+    const insert = (table: string, values: Record<string, string>) =>
+      pg.exec(`INSERT INTO ${table} (${Object.keys(values).join(',')}) VALUES (${Object.values(values).join(',')})`)
+    const income = (id: string, change: Record<string, string> = {}) => insert('incomes', { id: `'${id}'`, organization_id: "'o'", period_id: "'p'",
+      budget_line_id: "'li'", description: "'학생회비 입금'", amount: '750000', received_on: "'2026-09-15'", note: 'NULL', recorded_by: "'u'", ...change })
+
+    await t.test('existing budget lines keep their values', async () => {
+      assert.deepEqual((await pg.query<Record<string, unknown>>('SELECT * FROM budget_lines ORDER BY id')).rows, before)
+    })
+    await t.test('an income has short text, a positive amount, a date in range and a complete void', async () => {
+      await income('i1')
+      await income('i2', { budget_line_id: 'NULL', note: "'메모'" })
+      await income('i3', { voided_at: 'now()', voided_by: "'u'", void_reason: "'중복'" })
+      const cases: [Record<string, string>, string][] = [
+        [{ description: "' '" }, 'incomes_description_not_blank'],
+        [{ description: `'${'가'.repeat(101)}'` }, 'incomes_description_length'],
+        [{ amount: '0' }, 'incomes_amount_positive'],
+        [{ received_on: "'1999-12-31'" }, 'incomes_received_on_range'],
+        [{ received_on: "'3000-01-01'" }, 'incomes_received_on_range'],
+        [{ note: "' '" }, 'incomes_note_not_blank'],
+        [{ note: `'${'가'.repeat(201)}'` }, 'incomes_note_length'],
+        [{ version: '0' }, 'incomes_version_positive'],
+        [{ voided_at: 'now()' }, 'incomes_void_triple'],
+        [{ voided_by: "'u'", void_reason: "'중복'" }, 'incomes_void_triple'],
+        [{ voided_at: 'now()', voided_by: "'u'", void_reason: "' '" }, 'incomes_void_reason_not_blank'],
+        [{ voided_at: 'now()', voided_by: "'u'", void_reason: `'${'가'.repeat(201)}'` }, 'incomes_void_reason_length'],
+        [{ period_id: "'q'" }, 'incomes_period_same_organization'],
+        [{ budget_line_id: "'lq'" }, 'incomes_budget_line_same_organization'],
+      ]
+      for (const [index, [change, constraint]] of cases.entries()) await assert.rejects(income(`bad${index}`, change), { constraint }, constraint)
+    })
+    await t.test('a line chosen by an income is not deleted', async () => {
+      await assert.rejects(pg.exec("DELETE FROM budget_lines WHERE id = 'li'"), { constraint: 'incomes_budget_line_same_organization' })
+    })
+    await t.test('history actions are known, changes are objects, and the income is in the same council', async () => {
+      const entry = (id: string, action: string, changes = "'{}'", organization = 'o') => insert('income_events', { id: `'${id}'`,
+        organization_id: `'${organization}'`, income_id: "'i1'", actor_id: "'u'", action: `'${action}'`, changes })
+      await entry('h1', 'created')
+      await entry('h2', 'updated', `'{"amount":{"from":1,"to":2}}'`)
+      await entry('h3', 'voided', `'{"reason":"중복"}'`)
+      await assert.rejects(entry('h4', 'deleted'), { constraint: 'income_events_action_valid' })
+      await assert.rejects(entry('h5', 'updated', "'[]'"), { constraint: 'income_events_changes_object' })
+      await assert.rejects(entry('h6', 'created', "'{}'", 'o2'), { constraint: 'income_events_income_same_organization' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

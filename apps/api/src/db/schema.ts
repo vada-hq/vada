@@ -760,3 +760,68 @@ export const eventFinanceEvents = pgTable('event_finance_events', {
   check('event_finance_events_reason_length', sql`char_length(${table.reason}) <= 200`),
   index('event_finance_events_event_idx').on(table.eventId, table.createdAt),
 ])
+
+// 통장에 들어온 돈 한 건(M2-3b). 기간 하나에 속하고, 받은 날은 그 기간 안이다(서버 확인). 지우지 않고 취소로 남긴다.
+export const incomes = pgTable('incomes', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull()
+    .references(() => organizations.id, { onDelete: 'restrict' }),
+  periodId: text('period_id').notNull(),
+  // 그 기간의 수입 줄. 수입 줄인지, 같은 기간인지는 서버가 확인한다.
+  budgetLineId: text('budget_line_id'),
+  description: text('description').notNull(),
+  amount: integer('amount').notNull(),
+  receivedOn: date('received_on').notNull(),
+  note: text('note'),
+  recordedBy: text('recorded_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  version: integer('version').notNull().default(1),
+  voidedAt: timestamp('voided_at', { withTimezone: true }),
+  voidedBy: text('voided_by').references(() => users.id, { onDelete: 'restrict' }),
+  voidReason: text('void_reason'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  foreignKey({
+    name: 'incomes_period_same_organization',
+    columns: [table.organizationId, table.periodId],
+    foreignColumns: [budgetPeriods.organizationId, budgetPeriods.id],
+  }).onDelete('restrict'),
+  foreignKey({
+    name: 'incomes_budget_line_same_organization',
+    columns: [table.organizationId, table.budgetLineId],
+    foreignColumns: [budgetLines.organizationId, budgetLines.id],
+  }).onDelete('restrict'),
+  unique('incomes_organization_id_unique').on(table.organizationId, table.id),
+  check('incomes_description_not_blank', sql`${table.description} ~ '[^[:space:]]'`),
+  check('incomes_description_length', sql`char_length(${table.description}) <= 100`),
+  check('incomes_amount_positive', sql`${table.amount} >= 1`),
+  check('incomes_received_on_range', sql`${table.receivedOn} BETWEEN '2000-01-01' AND '2999-12-31'`),
+  check('incomes_note_not_blank', sql`${table.note} ~ '[^[:space:]]'`),
+  check('incomes_note_length', sql`char_length(${table.note}) <= 200`),
+  check('incomes_version_positive', sql`${table.version} >= 1`),
+  check('incomes_void_triple', sql`(${table.voidedAt} IS NULL) = (${table.voidedBy} IS NULL) AND (${table.voidedAt} IS NULL) = (${table.voidReason} IS NULL)`),
+  check('incomes_void_reason_not_blank', sql`${table.voidReason} ~ '[^[:space:]]'`),
+  check('incomes_void_reason_length', sql`char_length(${table.voidReason}) <= 200`),
+  index('incomes_period_received_idx').on(table.periodId, table.receivedOn),
+  index('incomes_budget_line_idx').on(table.organizationId, table.budgetLineId),
+])
+
+// 수입 처리 기록. 고치거나 지우지 않는다.
+export const incomeEvents = pgTable('income_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  incomeId: text('income_id').notNull(),
+  actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  action: text('action', { enum: ['created', 'updated', 'voided'] }).notNull(),
+  changes: jsonb('changes').$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'income_events_income_same_organization',
+    columns: [table.organizationId, table.incomeId],
+    foreignColumns: [incomes.organizationId, incomes.id],
+  }).onDelete('restrict'),
+  check('income_events_action_valid', sql`${table.action} IN ('created','updated','voided')`),
+  check('income_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
+  index('income_events_income_idx').on(table.incomeId, table.createdAt),
+])
