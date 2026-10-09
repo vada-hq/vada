@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { ExpenseResponse, ExpensesResponse } from '@vada/contracts'
+import type { ExpenseResponse, ExpensesResponse, LinkableItemsResponse } from '@vada/contracts'
 import { generated, link, setupPurchases } from '../purchases/test-setup.js'
 
 type Env = Awaited<ReturnType<typeof setupPurchases>>
@@ -174,5 +174,35 @@ test('사용 내역은 최근 300개까지 주고 잘렸다고 알린다. 다른
     const list = await ok<ExpensesResponse>(request('GET', '/expenses'))
     assert.deepEqual([list.expenses.length, list.truncated, list.expenses[0]!.id, list.totals.total], [300, true, 'bulk-301', 301000])
     for (const id of ['theirs', 'missing', 'x'.repeat(65)]) assert.equal((await request('GET', `/expenses/${id}`)).status, 404, id)
+  } finally { await pg.close() }
+})
+test('연결할 품목 목록은 재정만 보고, 연결 안 된 승인 품목만 행사·요청자와 함께 준다', async () => {
+  const env = await setupPurchases()
+  const { pg, request, ok, as } = env
+  try {
+    const [first, second] = await approved(env, [link(1), link(2)])
+    await create(env, { itemIds: [first] })
+    const list = await ok<LinkableItemsResponse>(request('GET', '/purchase-review/linkable-items'))
+    assert.deepEqual(list.items.map(item => [item.id, item.event.name, item.requester.name]), [[second, '체육대회', '기획']])
+    assert.equal(list.truncated, false)
+    for (const user of ['p', 'n', 'x']) {
+      as(user)
+      assert.equal((await request('GET', '/purchase-review/linkable-items')).status, 403, user)
+    }
+  } finally { await pg.close() }
+})
+
+test('지출에 연결된 품목은 구매 표시를 취소할 수 없고, 지출을 취소하면 다시 할 수 있다', async () => {
+  const env = await setupPurchases()
+  const { pg, request, ok } = env
+  try {
+    const [itemId] = await approved(env, [link(1)])
+    const expense = await create(env, { itemIds: [itemId] })
+    const version = async () => (await pg.query<{ version: number }>(`SELECT version FROM purchase_items WHERE id = '${itemId}'`)).rows[0]!.version
+    const undo = await request('POST', `/purchase-review/${itemId}/purchased`, { version: await version(), purchased: false })
+    assert.equal(undo.status, 409)
+    assert.deepEqual(await undo.json(), { error: 'LINKED_TO_EXPENSE' })
+    await ok(request('POST', `/expenses/${expense.id}/void`, { version: expense.version, reason: '잘못 기록' }))
+    await ok(request('POST', `/purchase-review/${itemId}/purchased`, { version: await version(), purchased: false }))
   } finally { await pg.close() }
 })

@@ -3,8 +3,8 @@ import { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { DecidePurchaseItemsRequest, PurchaseItemAction, PurchaseItemSummary, PurchaseReviewResponse } from '@vada/contracts'
 import { approvesPurchases } from '../access/membership.js'
-import { departments, memberships, purchaseItemEvents as itemEvents, purchaseItems as items, purchaseSubmissions as submissions,
-  shipmentItems } from '../db/schema.js'
+import { departments, expenseItems, memberships, purchaseItemEvents as itemEvents, purchaseItems as items,
+  purchaseSubmissions as submissions, shipmentItems } from '../db/schema.js'
 import { itemSummaries } from './items.js'
 import { PurchaseError } from './validation.js'
 
@@ -34,6 +34,12 @@ async function lockItems(tx: Transaction, scope: ReviewScope, refs: { id: string
 async function shipped(db: Reader, organizationId: string, itemId: string) {
   const [link] = await db.select({ id: shipmentItems.id }).from(shipmentItems).where(and(eq(shipmentItems.organizationId, organizationId),
     eq(shipmentItems.purchaseItemId, itemId), isNull(shipmentItems.unlinkedAt))).limit(1)
+  return Boolean(link)
+}
+// 지출에 연결된 품목은 산 기록이 지출에 남아 있으므로 구매 표시를 되돌리지 않는다.
+async function linkedToExpense(db: Reader, organizationId: string, itemId: string) {
+  const [link] = await db.select({ id: expenseItems.purchaseItemId }).from(expenseItems)
+    .where(and(eq(expenseItems.organizationId, organizationId), eq(expenseItems.purchaseItemId, itemId))).limit(1)
   return Boolean(link)
 }
 const bump = { version: sql`${items.version} + 1` }
@@ -91,6 +97,7 @@ export function createReviewService(db: ReviewDatabase) {
           throw new PurchaseError('INVALID_STATE', 409)
         }
         if (!purchased && await shipped(tx, scope.organizationId, id)) throw new PurchaseError('ALREADY_SHIPPED', 409)
+        if (!purchased && await linkedToExpense(tx, scope.organizationId, id)) throw new PurchaseError('LINKED_TO_EXPENSE', 409)
         await tx.update(items).set(purchased ? { purchasedAt: sql`now()`, purchasedBy: scope.userId, ...bump }
           : { purchasedAt: null, purchasedBy: null, ...bump }).where(eq(items.id, id))
         await record(tx, scope, id, purchased ? 'purchased' : 'purchase_undone')

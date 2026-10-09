@@ -18,6 +18,8 @@ import { createDeliveryRoutes } from './deliveries/routes.js'
 import { createDeliveryTracker } from './deliveries/delivery-tracker.js'
 import { createDeliveryWebhook } from './deliveries/webhook.js'
 import { trackingConfig } from './deliveries/tracking-config.js'
+import { createExpenseRoutes } from './expenses/routes.js'
+import { createR2Storage, r2ConfigFrom } from './expenses/storage.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 
 function main() {
@@ -44,13 +46,17 @@ function main() {
   const chat = createChatRoutes(db, (headers) => auth.api.getSession({ headers }), lookups ? () => { void lookups.kick() } : undefined)
   const generate = createDraftGenerator({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL })
   const purchases = createPurchaseRoutes(db, (headers) => auth.api.getSession({ headers }), generate, fetchProduct)
+  // 영수증 저장소 키는 서버 런타임에서만 쓴다. 없으면 영수증 올리기·보기만 막힌다.
+  const r2 = r2ConfigFrom(env)
+  if (r2) console.log('영수증 저장소 켜짐 (R2)')
+  const expenses = createExpenseRoutes(db, (headers) => auth.api.getSession({ headers }), r2 ? createR2Storage(r2) : undefined)
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
   const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,
     headers => auth.api.getSession({ headers }),
     createDeliveryTracker({ clientId: env.DELIVERY_TRACKER_CLIENT_ID, clientSecret: env.DELIVERY_TRACKER_CLIENT_SECRET }),
   ) : undefined
   const webhook = tracking ? createDeliveryWebhook(db, tracking.address) : undefined
-  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, organization, webhook })
+  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, expenses, organization, webhook })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)

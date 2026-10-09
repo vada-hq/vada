@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono'
 import { CreateExpenseSchema, CreateReceiptUploadSchema, ReceiptActionSchema, token, UpdateExpenseSchema, VoidExpenseSchema,
-  type ExpenseDetail, type ExpenseResponse, type ReceiptUploadResponse,
+  type ExpenseDetail, type ExpenseResponse, type LinkableItemsResponse, type ReceiptUploadResponse,
   type ExpensesResponse } from '@vada/contracts'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
@@ -27,6 +27,8 @@ export function createExpenseRoutes(db: ExpenseDatabase, session: SessionReader,
   const base = '/organizations/:organizationId/expenses'
   const scope = (c: Context<MembershipEnv>): ExpenseScope => ({ organizationId: c.get('membership').organization.id, userId: c.get('userId') })
   const reply = (expense: ExpenseDetail) => ({ expense }) satisfies ExpenseResponse
+  routes.get('/organizations/:organizationId/purchase-review/linkable-items', auth, member, async c =>
+    c.json(await service.linkableItems(scope(c)) satisfies LinkableItemsResponse))
   routes.get(base, auth, member, async c => c.json(await service.list(scope(c)) satisfies ExpensesResponse))
   routes.post(base, json(CreateExpenseSchema), auth, member, async c => c.json(reply(await service.create(scope(c), c.req.valid('json'))), 201))
   routes.get(`${base}/:expenseId`, auth, member, async c => c.json(reply(await service.get(scope(c), idOf(c.req.param('expenseId'))))))

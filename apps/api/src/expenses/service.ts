@@ -1,12 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import { and, asc, eq, inArray, isNull, ne, notExists, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import type { CreateExpenseRequest, ExpenseAction, ExpenseDetail, ExpensesResponse, UpdateExpenseRequest, VoidExpenseRequest } from '@vada/contracts'
+import type { CreateExpenseRequest, ExpenseAction, ExpenseDetail, ExpensesResponse, LinkableItemsResponse, UpdateExpenseRequest,
+  VoidExpenseRequest } from '@vada/contracts'
 import { events, expenseEvents, expenseItems, expenseReceipts, expenses, memberships, purchaseItemEvents, purchaseItems as items,
   users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
-import { expenseDetail, expenseSummaries } from './summaries.js'
+import { expenseDetail, expenseItemRows, expenseSummaries } from './summaries.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
 export type ExpenseDatabase = Pick<Db, 'select' | 'insert' | 'update' | 'delete' | 'transaction'>
@@ -14,6 +15,7 @@ type Reader = Pick<Db, 'select'>
 export type ExpenseTransaction = Parameters<Parameters<ExpenseDatabase['transaction']>[0]>[0]
 export interface ExpenseScope { organizationId: string; userId: string }
 const LIST_LIMIT = 300
+const LINKABLE_LIMIT = 300
 
 export async function recordExpense(tx: ExpenseTransaction, scope: ExpenseScope, expenseId: string, action: ExpenseAction,
   changes: Record<string, unknown> = {}) {
@@ -95,6 +97,12 @@ export function createExpenseService(db: ExpenseDatabase) {
         totals: { thisMonth: Number(totals!.thisMonth), total: Number(totals!.total), missingEvidence: totals!.missingEvidence } }
     },
     get: (scope: ExpenseScope, id: string) => detailOf(db, scope, id),
+    // 지출 기록 대화상자의 품목 고르기. 연결 안 된 승인 품목만 행사 이름 순으로 준다.
+    async linkableItems(scope: ExpenseScope): Promise<LinkableItemsResponse> {
+      await requireFinance(db, scope)
+      const rows = await expenseItemRows(db, scope.organizationId, and(eq(items.status, 'approved'), isNull(expenseItems.expenseId)), LINKABLE_LIMIT + 1)
+      return { items: rows.slice(0, LINKABLE_LIMIT).map(row => row.item), truncated: rows.length > LINKABLE_LIMIT }
+    },
     async create(scope: ExpenseScope, input: CreateExpenseRequest): Promise<ExpenseDetail> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
