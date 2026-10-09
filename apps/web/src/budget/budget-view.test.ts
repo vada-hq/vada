@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import type { BudgetHistoryEntry } from '@vada/contracts'
-import { budgetHistoryText, budgetMessage, currentPeriodId, defaultNewPeriod, draftOf, draftTotals, planInput, rateText, rebaseDraft,
-  semesterOf } from './budget-view'
+import { budgetHistoryText, budgetMessage, currentPeriodId, defaultNewPeriod, draftOf, draftTotals, periodDayText, planInput, rateText, rebaseDraft,
+  semesterOf, shareText } from './budget-view'
 import { budgetEventLine, budgetPlan } from './budget-fixtures'
 
 test('학기는 3~8월이 1학기, 9월~다음 해 2월 말일이 2학기다', () => {
@@ -72,7 +72,7 @@ test('처리 기록 문구', () => {
 
 test('오류 코드마다 문구가 있고, 모르는 코드는 기본 문구다', () => {
   expect(budgetMessage('PERIOD_OVERLAP')).toBe('다른 회계 기간과 날짜가 겹쳐요.')
-  expect(budgetMessage('LINE_IN_USE')).toBe('지출이 고른 운영 항목은 지울 수 없어요.')
+  expect(budgetMessage('LINE_IN_USE')).toBe('지출이나 수입이 고른 항목은 지울 수 없어요.')
   expect(budgetMessage('WHAT')).toBe('처리하지 못했어요. 다시 시도해 주세요.')
 })
 
@@ -90,4 +90,12 @@ test('저장에 실패해 편성을 새로 받으면: 기간 버전이 바뀌었
   // 다른 사람이 편성을 저장했으면(기간 버전이 바뀜) 겹쳐 쓰지 않도록 새 편성으로 다시 시작한다.
   const saved = budgetPlan({ period: { ...after.period, version: 3 } })
   expect(rebaseDraft(draft, before, saved)).toEqual(draftOf(saved))
+})
+
+test('수입 비율·기간 날짜·결산 오류 문구', () => {
+  expect([shareText(750000, 800000), shareText(0, 800000), shareText(30000, 0)]).toEqual(['예산의 94%', '예산의 0%', null])
+  expect(periodDayText('2026-09-01')).toBe('2026.9.1')
+  expect(budgetMessage('LINE_IN_USE')).toBe('지출이나 수입이 고른 항목은 지울 수 없어요.')
+  expect(budgetMessage('INCOMES_OUTSIDE_PERIOD')).toBe('이 기간의 수입이 기간 밖으로 나가요. 날짜를 확인해 주세요.')
+  expect(budgetMessage('EXPORT_TOO_LARGE')).toBe('기록이 너무 많아 엑셀로 만들 수 없어요.')
 })

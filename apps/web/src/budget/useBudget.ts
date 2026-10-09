@@ -69,3 +69,5 @@ export function useBudgetPlan(organizationId: string, periodId: string | null) {
 export type BudgetPlanState = ReturnType<typeof useBudgetPlan>
 
 export const createBudgetPeriod = (organizationId: string, input: CreateBudgetPeriodRequest) => send(periodsBase(organizationId), input)
+// 결산서 엑셀 주소. 구성원 누구나 받는다.
+export const budgetExportUrl = (organizationId: string, periodId: string) => `${periodsBase(organizationId)}/${encodeURIComponent(periodId)}/export`

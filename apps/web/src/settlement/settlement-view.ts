@@ -49,13 +49,3 @@ export const settlementErrors: Record<string, string> = {
 }
 export const settlementFailure = '처리하지 못했어요. 다시 시도해 주세요.'
 export const settlementMessage = (code: unknown) => typeof code === 'string' ? settlementErrors[code] ?? settlementFailure : settlementFailure
-// 내려받기 머리글의 filename*에서 파일 이름을 꺼낸다. 없거나 깨졌으면 기본 이름이다.
-export function downloadName(disposition: string | null) {
-  const encoded = disposition?.match(/filename\*=UTF-8''([^;]+)/i)?.[1]
-  if (!encoded) return '정산.xlsx'
-  try {
-    return decodeURIComponent(encoded)
-  } catch {
-    return '정산.xlsx'
-  }
-}

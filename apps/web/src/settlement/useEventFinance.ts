@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import type { EventFinanceResponse, ReopenSettlementRequest, SetEventBudgetRequest } from '@vada/contracts'
-import { downloadName, settlementFailure, settlementMessage } from './settlement-view'
+import { downloadFile } from '@/lib/download'
+import { settlementFailure, settlementMessage } from './settlement-view'
 
 export type FinanceResult = { ok: true } | { ok: false; message: string }
 const isFinance = (body: unknown): body is EventFinanceResponse => typeof body === 'object' && body !== null
@@ -46,27 +47,10 @@ export function useEventFinance(organizationId: string, eventId: string, enabled
       return { ok: false, message: settlementFailure }
     }
   }
-  // 파일을 받아 브라우저 내려받기로 넘긴다. 이름은 서버 머리글의 filename*을 쓴다.
+  // 정산서 엑셀을 내려받는다.
   async function download(): Promise<FinanceResult> {
-    try {
-      const response = await fetch(`${base}/export`, { credentials: 'same-origin', cache: 'no-store' })
-      if (!response.ok) {
-        const result = await response.json().catch(() => null) as { error?: unknown } | null
-        return { ok: false, message: settlementMessage(result?.error) }
-      }
-      const url = URL.createObjectURL(await response.blob())
-      const anchor = document.createElement('a')
-      anchor.href = url
-      anchor.download = downloadName(response.headers.get('Content-Disposition'))
-      document.body.append(anchor)
-      anchor.click()
-      anchor.remove()
-      // 아이폰 Safari는 내려받기 확인 창에서 누를 때 파일을 읽으므로 넉넉히 기다린 뒤 주소를 푼다.
-      setTimeout(() => URL.revokeObjectURL(url), 40_000)
-      return { ok: true }
-    } catch {
-      return { ok: false, message: settlementFailure }
-    }
+    const result = await downloadFile(`${base}/export`, '정산.xlsx')
+    return result.ok ? result : { ok: false, message: settlementMessage(result.code) }
   }
   return {
     data, loadError, refresh, download,

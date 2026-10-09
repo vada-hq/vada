@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import type { EventFinanceAction, EventFinanceHistoryEntry } from '@vada/contracts'
-import { budgetInput, budgetText, downloadName, financeHistoryText, readyToSettle, remainingText, requirements, settledDay,
+import { budgetInput, budgetText, financeHistoryText, readyToSettle, remainingText, requirements, settledDay,
   settlementMessage } from './settlement-view'
 import { eventFinance } from './settlement-fixtures'
 
@@ -28,12 +28,7 @@ test('처리 기록 문구와 정산한 날', () => {
   expect(settledDay('2026-10-09T15:30:00.000Z')).toBe('10월 10일')
 })
 
-test('내려받은 파일 이름은 filename*에서 꺼내고, 없거나 깨졌으면 기본 이름이다. 오류는 화면 문구로 바꾼다', () => {
-  expect(downloadName(`attachment; filename="settlement.xlsx"; filename*=UTF-8''${encodeURIComponent('체육대회 정산 2026-10-09.xlsx')}`))
-    .toBe('체육대회 정산 2026-10-09.xlsx')
-  expect(downloadName("attachment; filename*=UTF-8''%28%27%29.xlsx")).toBe("(')" + '.xlsx')
-  expect(downloadName(null)).toBe('정산.xlsx')
-  expect(downloadName("attachment; filename*=UTF-8''%E0%A4%A.xlsx")).toBe('정산.xlsx')
+test('오류는 화면 문구로 바꾼다', () => {
   expect(settlementMessage('NOT_READY_TO_SETTLE')).toBe('아직 정산할 수 없어요. 남은 항목을 확인해 주세요.')
   expect(settlementMessage('EXPORT_TOO_LARGE')).toBe('지출이 너무 많아 엑셀로 만들 수 없어요.')
   expect(settlementMessage('???')).toBe('처리하지 못했어요. 다시 시도해 주세요.')

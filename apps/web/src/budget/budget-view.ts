@@ -23,6 +23,10 @@ export function defaultNewPeriod(periods: { endsOn: string }[], today: string) {
 export const currentPeriodId = (periods: { id: string; startsOn: string; endsOn: string }[], today: string) =>
   (periods.find(period => period.startsOn <= today && today <= period.endsOn) ?? periods[0])?.id ?? null
 export const rateText = (spent: number, budget: number | null) => budget === null || budget === 0 ? null : `집행 ${Math.round((spent / budget) * 100)}%`
+// 수입 줄의 예산 대비 실제 수입. 예산이 0원이면 없다.
+export const shareText = (received: number, amount: number) => amount === 0 ? null : `예산의 ${Math.round((received / amount) * 100)}%`
+// 2026-09-01 → 2026.9.1
+export const periodDayText = (day: string) => `${Number(day.slice(0, 4))}.${Number(day.slice(5, 7))}.${Number(day.slice(8, 10))}`
 
 export type DraftLine = { key: string; id: string | null; name: string; amount: string }
 export type DraftEvent = { eventId: string; name: string; version: number; settled: boolean; budget: number | null; amount: string }
@@ -102,8 +106,10 @@ export const budgetErrors: Record<string, string> = {
   PERIOD_NAME_TAKEN: '같은 이름의 회계 기간이 있어요.',
   EVENT_IN_OTHER_PERIOD: '다른 회계 기간에 넣은 행사예요. 그 기간에서 먼저 빼 주세요.',
   EVENT_SETTLED: '정산이 끝난 행사의 예산은 바꿀 수 없어요.',
-  LINE_IN_USE: '지출이 고른 운영 항목은 지울 수 없어요.',
+  LINE_IN_USE: '지출이나 수입이 고른 항목은 지울 수 없어요.',
   EXPENSES_OUTSIDE_PERIOD: '운영 항목을 고른 지출이 기간 밖으로 나가요. 날짜를 확인해 주세요.',
+  INCOMES_OUTSIDE_PERIOD: '이 기간의 수입이 기간 밖으로 나가요. 날짜를 확인해 주세요.',
+  EXPORT_TOO_LARGE: '기록이 너무 많아 엑셀로 만들 수 없어요.',
   INVALID_INPUT: '입력값을 확인해 주세요.',
 }
 export const budgetFailure = '처리하지 못했어요. 다시 시도해 주세요.'
