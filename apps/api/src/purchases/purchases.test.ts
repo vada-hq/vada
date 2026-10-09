@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { EventPurchaseItemsResponse, PurchaseItemDetail } from '@vada/contracts'
+import type { CoupangItem } from '../db/schema.js'
 import { DUPLICATE_WARNING, OTHER_REQUEST_WARNING } from './service.js'
-import { generated, link, setupPurchases } from './test-setup.js'
+import { generated, link, lookedUp, setupPurchases } from './test-setup.js'
 
 const base = '/events/e/purchase-items'
 
@@ -208,6 +209,29 @@ test('제출: 고른 작성 중 품목을 한 묶음으로 제출하고 부서�
     // 제출된 품목은 학생회 누구나 본다.
     as('q')
     assert.equal((await ok<EventPurchaseItemsResponse>(request('GET', base))).items.length, 3)
+  } finally { await pg.close() }
+})
+
+test('제출: 하루 지난 조회 가격만 다시 조회해 새 가격으로 제출하고, 처리 기록에 이전·이후 가격을 남긴다', async () => {
+  const { pg, request, ok, drafts, state } = await setupPurchases()
+  try {
+    const [stale, fresh, manual, noPrice, failing] = await drafts([link(1), link(2), link(3), link(4), link(5)])
+    // 담을 때의 조회 시각은 가짜 생성기 기본값(2026-09-29)이다. fresh만 방금 조회한 것으로 바꾼다.
+    await pg.query('UPDATE purchase_items SET product_fetched_at = now() WHERE id = $1', [fresh!.id])
+    const edited = (await ok(request('PATCH', `${base}/${manual!.id}`, { version: manual!.version, estimatedUnitPrice: 5000 }))).items[0]!
+    state.lookups = 0
+    state.fetch = async productId => productId === '1005' ? { ok: false, code: 'TIMEOUT', retryable: true }
+      : productId === '1004' ? { ok: true, items: [{ ...(lookedUp(productId) as { ok: true; items: CoupangItem[] }).items[0]!, price: null }] }
+        : lookedUp(productId, 12000)
+    const refs = [stale!, fresh!, edited, noPrice!, failing!].map(item => ({ id: item.id, version: item.version }))
+    const submitted = (await ok(request('POST', `${base}/submit`, { items: refs }))).items
+    const price = (id: string) => submitted.find(item => item.id === id)!.estimatedUnitPrice
+    // 직접 고친 가격과 가격 없는 조회 결과, 실패한 조회는 원래 가격을 지킨다(Review Focus 4).
+    assert.deepEqual([price(stale!.id), price(fresh!.id), price(manual!.id), price(noPrice!.id), price(failing!.id)], [12000, 11590, 5000, 11590, 11590])
+    assert.equal(state.lookups, 3)
+    const events = (await pg.query<{ item_id: string; changes: unknown }>("SELECT item_id, changes FROM purchase_item_events WHERE action = 'submitted'")).rows
+    assert.deepEqual(events.find(row => row.item_id === stale!.id)!.changes, { estimatedUnitPrice: { from: 11590, to: 12000 } })
+    assert.deepEqual(events.find(row => row.item_id === fresh!.id)!.changes, {})
   } finally { await pg.close() }
 })
 

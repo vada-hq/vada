@@ -1,15 +1,15 @@
 import { randomUUID } from 'node:crypto'
 import { and, asc, desc, eq, inArray, ne, or, sql, type SQL } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import type { ChangeNeededByRequest, CreatePurchaseDraftsRequest, EventPurchaseItemsResponse, PurchaseItemAction, PurchaseItemDetail,
-  PurchaseItemSummary, SubmitPurchaseItemsRequest, UpdatePurchaseItemRequest } from '@vada/contracts'
+import { readCoupangUrl, type ChangeNeededByRequest, type CreatePurchaseDraftsRequest, type EventPurchaseItemsResponse, type PurchaseItemAction,
+  type PurchaseItemDetail, type PurchaseItemSummary, type SubmitPurchaseItemsRequest, type UpdatePurchaseItemRequest } from '@vada/contracts'
 import { chatRooms, events, memberships, messages, purchaseCandidates as candidates, purchaseCandidateShares as candidateShares,
   purchaseGenerations as generations, purchaseItemEvents as itemEvents, purchaseItems as items, purchaseItemSources as sources,
   purchaseSubmissions as submissions } from '../db/schema.js'
 import type { ProductCatalog } from './catalog.js'
 import { type DraftGenerator, type DraftInput, type GeneratedDraft, validateDraft } from './generation.js'
 import { itemDetail, itemSummaries, type Viewer } from './items.js'
-import { lookupFor } from './products.js'
+import { lookupFor, type ProductLookup } from './products.js'
 import { PurchaseError } from './validation.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -94,6 +94,15 @@ async function record(tx: Transaction, scope: PurchaseScope, entries: { itemId: 
   if (!entries.length) return
   await tx.insert(itemEvents).values(entries.map(entry => ({ id: randomUUID(), organizationId: scope.organizationId, itemId: entry.itemId,
     actorId: scope.userId, action, changes: entry.changes ?? {}, batchId })))
+}
+// 제출할 때 다시 조회하는 기준(2026-10-09 결정). 학생회 구매는 제출 후 며칠 안에 결제한다.
+const PRICE_TTL_MS = 24 * 60 * 60 * 1000
+const PRICE_TIMEOUT_MS = 8000
+// 요청자가 고치지 않은 가격인지. 조회한 적이 없으면 가격이 비어 있을 때만 조회해서 채운다.
+function lookedUpPrice(row: typeof items.$inferSelect) {
+  const snapshot = row.productSnapshot
+  if (!snapshot) return row.estimatedUnitPrice === null
+  return (typeof snapshot.price === 'number' ? snapshot.price : null) === row.estimatedUnitPrice
 }
 // 서버의 제출 필수값. 화면의 "제출 전 확인"과 같다.
 const complete = (row: typeof items.$inferSelect) => Boolean(row.productName) && row.quantity !== null && row.quantity >= 1
@@ -198,6 +207,25 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
       })
     },
     async submit(scope: PurchaseScope, input: SubmitPurchaseItemsRequest) {
+      // 트랜잭션 밖에서 하루 지난 조회 가격을 다시 조회한다. 그사이 품목이 바뀌면 아래 잠금의 버전 검사에서 409가 된다.
+      const drafts = await db.select().from(items).where(and(eq(items.organizationId, scope.organizationId), eq(items.eventId, scope.eventId),
+        inArray(items.id, input.items.map(ref => ref.id)), mine(scope), eq(items.status, 'draft')))
+      const now = Date.now()
+      const stale = drafts.flatMap(row => {
+        const link = readCoupangUrl(row.productUrl)
+        const fresh = row.productFetchedAt !== null && now - row.productFetchedAt.getTime() < PRICE_TTL_MS
+        return link && !fresh && lookedUpPrice(row) ? [{ row, link }] : []
+      })
+      const prices = new Map<string, ProductLookup>()
+      if (stale.length) {
+        const products = await catalog.refresh(stale.map(entry => entry.link.productId), PRICE_TIMEOUT_MS)
+        for (const { row, link } of stale) {
+          const lookup = lookupFor(products.get(link.productId), link)
+          // 품목보다 새로 받은 가격이 있을 때만 바꾼다. 조회에 실패했거나 가격이 없으면 원래 가격으로 제출한다.
+          if (lookup.snapshot && lookup.price !== null && lookup.fetchedAt
+            && (row.productFetchedAt === null || lookup.fetchedAt > row.productFetchedAt)) prices.set(row.id, lookup)
+        }
+      }
       return db.transaction(async tx => {
         const membership = await member(tx, scope, true)
         await eventOf(tx, scope)
@@ -207,9 +235,17 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
         const submissionId = randomUUID()
         await tx.insert(submissions).values({ id: submissionId, organizationId: scope.organizationId, eventId: scope.eventId,
           requesterId: scope.userId, departmentId: membership.departmentId })
+        const changes = new Map<string, Record<string, unknown>>()
+        for (const row of rows) {
+          const lookup = prices.get(row.id)
+          if (!lookup) continue
+          await tx.update(items).set({ estimatedUnitPrice: lookup.price, productSnapshot: lookup.snapshot, productFetchedAt: lookup.fetchedAt })
+            .where(eq(items.id, row.id))
+          if (lookup.price !== row.estimatedUnitPrice) changes.set(row.id, { estimatedUnitPrice: { from: row.estimatedUnitPrice, to: lookup.price } })
+        }
         const ids = rows.map(row => row.id)
         await tx.update(items).set({ status: 'pending', submissionId, ...bump }).where(inArray(items.id, ids))
-        await record(tx, scope, ids.map(itemId => ({ itemId })), 'submitted', submissionId)
+        await record(tx, scope, ids.map(itemId => ({ itemId, changes: changes.get(itemId) })), 'submitted', submissionId)
         return byIds(tx, scope, ids)
       })
     },
