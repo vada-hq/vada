@@ -93,3 +93,9 @@ export interface MessagesResponse {
   // 이전 50개 조회 시 before에 전달한다. null이면 더 오래된 메시지가 없다.
   nextCursor: string | null
 }
+export { EXPENSE_VENDOR_MAX, EXPENSE_DESCRIPTION_MAX, EXPENSE_NOTE_MAX, EXPENSE_VOID_REASON_MAX, EXPENSE_ITEMS_MAX, RECEIPTS_PER_EXPENSE_MAX,
+  RECEIPT_FILE_NAME_MAX, RECEIPT_SIZE_MAX, EXPENSE_METHODS, RECEIPT_KINDS, RECEIPT_CONTENT_TYPES, CreateExpenseSchema, UpdateExpenseSchema,
+  VoidExpenseSchema, CreateReceiptUploadSchema, ReceiptActionSchema } from './expenses.js'
+export type { ExpenseMethod, ReceiptKind, ReceiptContentType, ExpenseAction, CreateExpenseRequest, UpdateExpenseRequest, VoidExpenseRequest,
+  CreateReceiptUploadRequest, ExpensePerson, ExpenseItem, ExpenseSummary, ReceiptSummary, ExpenseHistoryEntry, ExpenseDetail,
+  ExpensesResponse, ExpenseResponse, ReceiptUploadResponse, LinkableItemsResponse } from './expenses.js'
