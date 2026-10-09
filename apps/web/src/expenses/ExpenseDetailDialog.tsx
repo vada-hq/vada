@@ -39,6 +39,8 @@ function Detail({ organizationId, expenseId, finance, onChanged, onEdit }: Omit<
   const [expense, setExpense] = useState<ExpenseDetail | null | undefined>(undefined)
   const [kind, setKind] = useState<ReceiptKind>('receipt')
   const [voidReason, setVoidReason] = useState<string | null>(null)
+  // 지운 증빙은 되돌릴 수 없으므로 한 번 더 묻는다.
+  const [removing, setRemoving] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const fileInput = useRef<HTMLInputElement>(null)
@@ -100,8 +102,17 @@ function Detail({ organizationId, expenseId, finance, onChanged, onEdit }: Omit<
               : <FileText aria-hidden className="size-6 text-gray-400" />}
             <span>{kindLabels[receipt.kind]} · {receipt.fileName}</span>
           </a>
-          {editable && <Button variant="ghost" size="sm" className="self-start" disabled={busy || uploader.busy}
-            onClick={() => void run(`/receipts/${encodeURIComponent(receipt.id)}/delete`, {})}>삭제</Button>}
+          {editable && (removing === receipt.id
+            ? <div className="flex flex-col gap-1">
+              <p className="text-xs text-gray-500">지우면 되돌릴 수 없어요.</p>
+              <div className="flex flex-wrap gap-1">
+                <Button variant="outline" size="sm" disabled={busy} onClick={() => setRemoving(null)}>그대로 두기</Button>
+                <Button variant="destructive" size="sm" disabled={busy || uploader.busy}
+                  onClick={() => void run(`/receipts/${encodeURIComponent(receipt.id)}/delete`, {}).then(done => { if (done) setRemoving(null) })}>지우기</Button>
+              </div>
+            </div>
+            : <Button variant="ghost" size="sm" className="self-start" disabled={busy || uploader.busy}
+              onClick={() => setRemoving(receipt.id)}>삭제</Button>)}
         </li>
       })}</ul> : <p className="text-sm text-gray-500">올린 증빙이 없어요.</p>}
       {editable && <div className="flex flex-wrap items-end gap-2">

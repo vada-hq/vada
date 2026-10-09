@@ -68,6 +68,7 @@ test('증빙을 지우고, 지출을 취소하면 사유를 보내고 바꾸는 
   const dialog = await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })
   expect(within(dialog).getByRole('link', { name: '영수증 · 명세.pdf' })).toBeTruthy()
   fireEvent.click(within(dialog).getByRole('button', { name: '삭제' }))
+  fireEvent.click(within(dialog).getByRole('button', { name: '지우기' }))
   expect(await within(dialog).findByText('올린 증빙이 없어요.')).toBeTruthy()
   fireEvent.click(within(dialog).getByRole('button', { name: '지출 취소' }))
   expect(within(dialog).getByText('합계에서 빠지고 연결 품목은 풀려요.')).toBeTruthy()
@@ -79,6 +80,17 @@ test('증빙을 지우고, 지출을 취소하면 사유를 보내고 바꾸는 
   expect(api.calls.find(call => call.path === `${detail}/void`)?.body).toEqual({ version: 1, reason: ' 중복 ' })
   expect(within(dialog).queryByRole('button', { name: '증빙 추가' })).toBeNull()
   expect(within(dialog).queryByRole('button', { name: '지출 취소' })).toBeNull()
+})
+
+test('증빙 삭제는 한 번 더 묻고, 그대로 두면 지우지 않는다', async () => {
+  const { api } = setup(expense({ receipts: [receipt()], receiptCount: 1, evidence: 'complete' }))
+  const dialog = await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '삭제' }))
+  expect(within(dialog).getByText('지우면 되돌릴 수 없어요.')).toBeTruthy()
+  fireEvent.click(within(dialog).getByRole('button', { name: '그대로 두기' }))
+  expect(within(dialog).queryByText('지우면 되돌릴 수 없어요.')).toBeNull()
+  expect(within(dialog).getByRole('link', { name: '거래명세서 · 영수증.jpg' })).toBeTruthy()
+  expect(api.calls.some(call => call.path.endsWith('/delete'))).toBe(false)
 })
 
 test('재정 권한이 없으면 보기만 한다', async () => {
