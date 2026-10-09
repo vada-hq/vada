@@ -106,3 +106,10 @@ test('긴 파일 이름과 사유는 대화상자 안에서 줄을 바꾼다', a
   const dialog = await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })
   await waitFor(() => expect(within(dialog).getByRole('link', { name: `거래명세서 · ${name}` }).className).toContain('wrap-anywhere'))
 })
+test('정산된 행사의 지출은 수정·취소·증빙 삭제를 감추고 알리지만, 증빙 추가는 둔다', async () => {
+  setup(expense({ settled: true, receipts: [receipt()], receiptCount: 1, evidence: 'complete' }))
+  const dialog = await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })
+  expect(within(dialog).getByText('정산이 끝난 행사의 지출이라 수정·취소·증빙 삭제를 할 수 없어요.')).toBeTruthy()
+  for (const name of ['삭제', '지출 취소']) expect(within(dialog).queryByRole('button', { name })).toBeNull()
+  expect(within(dialog).getByRole('button', { name: '증빙 추가' })).toBeTruthy()
+})

@@ -117,7 +117,8 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
             viewerMembershipId={membership.id} />
           : view === 'expenses' ? <Expenses organizationId={membership.organization.id} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} state={expenses} />
-          : selected ? <EventWorkspace key={selected.id} event={selected} onLeaveRiskChange={setLeaveRisk} />
+          : selected ? <EventWorkspace key={selected.id} event={selected} finance={finance} viewerMembershipId={membership.id}
+            events={events.events ?? []} onLeaveRiskChange={setLeaveRisk} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
           </Card></div>}

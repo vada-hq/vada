@@ -60,7 +60,9 @@ function Detail({ organizationId, expenseId, finance, onChanged, onEdit }: Omit<
   </>
   const current = expense
   const base = `${expensesBase(organizationId)}/${encodeURIComponent(current.id)}`
-  const editable = finance && !current.voided
+  // 정산된 행사의 지출은 수정·취소·증빙 삭제를 감춘다. 정산 뒤에 받은 증빙은 더 붙일 수 있다.
+  const editable = finance && !current.voided && !current.settled
+  const uploadable = finance && !current.voided
   async function run(path: string, body: unknown) {
     setBusy(true)
     setMessage('')
@@ -81,6 +83,7 @@ function Detail({ organizationId, expenseId, finance, onChanged, onEdit }: Omit<
       <DialogDescription className="wrap-anywhere">{current.description}</DialogDescription>
     </DialogHeader>
     {current.voided && <StateMessage kind="notice">취소됨 · {current.voided.by.name} · {current.voided.reason}</StateMessage>}
+    {finance && current.settled && !current.voided && <StateMessage kind="notice">정산이 끝난 행사의 지출이라 수정·취소·증빙 삭제를 할 수 없어요.</StateMessage>}
     <dl className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-sm">{fields.map(([label, value]) => <div key={label} className="contents">
       <dt className="text-gray-500">{label}</dt><dd className="col-span-2 wrap-anywhere text-gray-900">{value}</dd></div>)}</dl>
     {comparison && <p className="text-xs text-gray-700">{comparison}</p>}
@@ -115,7 +118,7 @@ function Detail({ organizationId, expenseId, finance, onChanged, onEdit }: Omit<
               onClick={() => setRemoving(receipt.id)}>삭제</Button>)}
         </li>
       })}</ul> : <p className="text-sm text-gray-500">올린 증빙이 없어요.</p>}
-      {editable && <div className="flex flex-wrap items-end gap-2">
+      {uploadable && <div className="flex flex-wrap items-end gap-2">
         <Label className="flex flex-col gap-1.5">증빙 종류
           <NativeSelect value={kind} disabled={uploader.busy} onChange={event => setKind(event.target.value as ReceiptKind)}>
             {RECEIPT_KINDS.map(value => <option key={value} value={value}>{kindLabels[value]}</option>)}

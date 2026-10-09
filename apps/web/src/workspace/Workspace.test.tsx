@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import type { MembershipSummary } from '@vada/contracts'
 import Workspace from './Workspace'
 import { candidate, item } from '../purchases/purchase-fixtures'
+import { financeResponse } from '../settlement/settlement-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false } }
@@ -19,6 +20,7 @@ function setup(members: unknown = membersBody, review: unknown = { pending: [], 
     : url.endsWith('/members') ? members
     : url.endsWith('/messages') ? { messages: [], nextCursor: null }
     : url.endsWith('/purchase-candidates') ? { candidates: [], truncated: false }
+    : url.endsWith('/finance') ? financeResponse()
     : url.endsWith('/expenses') ? { expenses: [], truncated: false, totals: { thisMonth: 0, total: 0, missingEvidence: 0 } }
     : url.endsWith('/purchase-review') ? review
     : url.includes('/delivery-carriers') ? { carriers: [], nextCursor: null }
@@ -298,4 +300,23 @@ test('사용 내역은 구성원 누구나 옆 메뉴에서 열고, 열 때 지�
   expect(screen.getByRole('heading', { name: '사용 내역' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: '지출 기록' })).toBeNull()
   expect(fetcher).toHaveBeenCalledWith('/api/organizations/o1/expenses', expect.anything())
+})
+test('재정 탭은 처음 고를 때 불러오고 다시 고를 때마다 새로 불러오며, 키보드로 세 탭을 오간다', async () => {
+  const fetcher = setup()
+  render(<Workspace {...props} />)
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  const financeCalls = () => fetcher.mock.calls.filter(([url]) => String(url) === '/api/organizations/o1/events/e1/finance').length
+  expect(financeCalls()).toBe(0)
+  fireEvent.click(screen.getByRole('tab', { name: '재정' }))
+  expect(await screen.findByText('이 행사에 기록된 지출이 없어요')).toBeTruthy()
+  expect(financeCalls()).toBe(1)
+  fireEvent.keyDown(screen.getByRole('tab', { name: '재정' }), { key: 'ArrowRight' })
+  expect(screen.getByRole('tab', { name: '대화' }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.keyDown(screen.getByRole('tab', { name: '대화' }), { key: 'End' })
+  expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true')
+  await waitFor(() => expect(financeCalls()).toBe(2))
+  fireEvent.keyDown(screen.getByRole('tab', { name: '재정' }), { key: 'ArrowLeft' })
+  expect(screen.getByRole('tab', { name: '구매' }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.keyDown(screen.getByRole('tab', { name: '구매' }), { key: 'Home' })
+  expect(screen.getByRole('tab', { name: '대화' }).getAttribute('aria-selected')).toBe('true')
 })
