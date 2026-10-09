@@ -3,7 +3,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { ExpenseSummary } from '@vada/contracts'
 import { json, mockApi } from '../test-support/mock-api'
-import { event } from '../test-support/workflow-fixtures'
+import { event, membership } from '../test-support/workflow-fixtures'
 import Expenses from './Expenses'
 import { expense } from './expense-fixtures'
 import { useExpenses } from './useExpenses'
@@ -43,12 +43,14 @@ test('합계를 보여 주고, 지출을 결제한 달별로 묶어 증빙 상�
   expect(within(september).getByText('증빙 완료')).toBeTruthy()
   expect(within(september).getByText('취소됨')).toBeTruthy()
   expect(within(september).queryByText('증빙 누락')).toBeNull()
+  expect(screen.getByRole('button', { name: '지출 기록' })).toBeTruthy()
 })
 
 test('지출이 없으면 안내하고, 재정 권한이 있을 때만 기록하라고 덧붙인다', async () => {
   setup([], false)
   expect(await screen.findByText('아직 기록된 지출이 없어요')).toBeTruthy()
   expect(screen.queryByText('결제한 뒤 지출을 기록해 주세요.')).toBeNull()
+  expect(screen.queryByRole('button', { name: '지출 기록' })).toBeNull()
   cleanup()
   setup([], true)
   expect(await screen.findByText('결제한 뒤 지출을 기록해 주세요.')).toBeTruthy()
@@ -76,4 +78,19 @@ test('카드를 누르면 상세를 연다', async () => {
   api.on('GET', `${base}/x1`, () => json({ expense: expense() }))
   fireEvent.click(await screen.findByRole('button', { name: '쿠팡' }))
   expect(await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })).toBeTruthy()
+})
+test('지출을 기록하면 목록을 새로 불러오고 상세를 열어 증빙을 올리게 한다', async () => {
+  const api = setup([])
+  api.on('GET', '/api/organizations/o/members', () => json({ viewer: membership(true), departments: [], members: [{ id: 'mf', name: '재정 테스터', title: null, departmentId: 'df' }] }))
+  api.on('GET', '/api/organizations/o/purchase-review/linkable-items', () => json({ items: [], truncated: false }))
+  api.on('POST', base, () => json({ expense: expense({ event: null, items: [] }) }, 201))
+  api.on('GET', `${base}/x1`, () => json({ expense: expense({ event: null, items: [] }) }))
+  fireEvent.click(await screen.findByRole('button', { name: '지출 기록' }))
+  const form = await screen.findByRole('dialog', { name: '지출 기록' })
+  fireEvent.change(within(form).getByLabelText('사용처'), { target: { value: '쿠팡' } })
+  fireEvent.change(within(form).getByLabelText('내용'), { target: { value: '체육대회 물품' } })
+  fireEvent.change(within(form).getByLabelText('금액(원)'), { target: { value: '10000' } })
+  fireEvent.click(within(form).getByRole('button', { name: '기록' }))
+  expect(await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'GET' && call.path === base)).toHaveLength(2)
 })
