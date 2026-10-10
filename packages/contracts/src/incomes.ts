@@ -43,6 +43,8 @@ export interface IncomeSummary {
   voided: { by: ExpensePerson; at: string; reason: string } | null
   // 이월금이면 넘겨준 기간. 이월금은 수정·취소하지 않는다.
   carriedFrom: { id: string; name: string } | null
+  // 참가비 수입이면 그 행사. 행사 정산이 넣고 다시 열면 취소한다. 수정·취소하지 않는다.
+  event: { id: string; name: string } | null
   version: number
   createdAt: string
   updatedAt: string

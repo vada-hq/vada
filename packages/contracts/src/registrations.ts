@@ -103,6 +103,8 @@ export interface RegistrationResponse {
   account: FeeAccount | null
   // 쓰는 기한이 남은 학생회비 명단. 납부자 목록은 주지 않는다.
   roster: { label: string; useUntil: string } | null
+  // 행사 정산이 끝났으면 true다. 입금 확인·확인 취소·참가비 바꾸기·금액 변경을 할 수 없다.
+  settled: boolean
 }
 export interface PublicRegistrationEvent {
   name: string

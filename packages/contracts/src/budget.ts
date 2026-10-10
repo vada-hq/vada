@@ -66,6 +66,8 @@ export interface BudgetEventLine {
   remaining: number | null
   settled: boolean
   version: number
+  // 취소하지 않은 참가비 수입이 있으면 true다. 기간에서 뺄 수 없다.
+  feeIncome: boolean
 }
 // expenseCount: 이 항목을 고른 지출 가운데 취소하지 않은 것의 수. 0이 아니면 지울 수 없다.
 export interface BudgetOperatingLine { id: string; name: string; amount: number; spent: number; remaining: number; expenseCount: number }
@@ -135,8 +137,8 @@ export interface BudgetPlanResponse {
   totals: BudgetTotals
   // 최근에 만든 순으로 300개까지
   candidates: BudgetCandidate[]
-  // 학생회 전체: 지출이 있는데 기간에 넣지 않은 행사 수, 결제일이 어느 기간에도 들지 않는 상시 운영 지출 수
-  notices: { eventsWithSpending: number; operatingOutside: number }
+  // 학생회 전체: 지출이나 받은 참가비가 있는데 기간에 넣지 않은 행사 수, 결제일이 어느 기간에도 들지 않는 상시 운영 지출 수
+  notices: { eventsWithMoney: number; operatingOutside: number }
   // 최근 100개, 오래된 순
   history: BudgetHistoryEntry[]
   // 이 기간의 수입. 취소한 것도 준다. 받은 날 최근 순으로 300건까지이고, 넘으면 incomeRecordsTruncated가 true다.

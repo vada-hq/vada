@@ -119,7 +119,7 @@ export type { ExpenseMethod, ReceiptKind, ReceiptContentType, ExpenseAction, Cre
   ExpensesResponse, ExpenseResponse, ReceiptUploadResponse, LinkableItemsResponse } from './expenses.js'
 export { SETTLEMENT_REASON_MAX, EVENT_FINANCE_HISTORY_MAX, SetEventBudgetSchema, SettleEventSchema, ReopenSettlementSchema } from './settlement.js'
 export type { EventFinanceAction, SetEventBudgetRequest, SettleEventRequest, ReopenSettlementRequest, EventFinanceHistoryEntry, EventFinance,
-  EventFinanceResponse } from './settlement.js'
+  EventFinanceResponse, EventFees, EventFeeIncome } from './settlement.js'
 export { BUDGET_PERIOD_NAME_MAX, BUDGET_LINE_NAME_MAX, BUDGET_INCOME_LINES_MAX, BUDGET_OPERATING_LINES_MAX, BUDGET_EVENTS_MAX, BUDGET_PERIODS_MAX,
   BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_REOPEN_REASON_MAX, CreateBudgetPeriodSchema, SaveBudgetPlanSchema, ClosePeriodSchema,
   ReopenPeriodSchema } from './budget.js'
