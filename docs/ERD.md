@@ -364,6 +364,7 @@ erDiagram
 erDiagram
     budgetPeriods ||..o{ incomes : "기간의 수입"
     budgetPeriods |o..o{ incomes : "넘긴 이월금"
+    events |o..o{ incomes : "참가비 수입"
     budgetLines |o..o{ incomes : "수입 항목"
     incomes ||..o{ incomeEvents : "처리 기록"
     users ||..o{ incomes : "기록한 사람"
@@ -379,6 +380,7 @@ erDiagram
         integer version
         timestamptz voided_at "취소, 사유와 함께"
         text carried_from_period_id FK "이월금이면 넘겨준 기간"
+        text event_id FK "참가비 수입이면 그 행사"
     }
     incomeEvents["income_events"] {
         text id PK
@@ -515,6 +517,10 @@ erDiagram
 - 명단은 새로 올리면 통째로 바꾸고, 쓰는 기한(오늘부터 366일 안)이 지나면 지운다. 서버가 1시간마다, 그리고 명단을 다루는 요청이 먼저 지운다.
 - `dues_members`의 FK만 CASCADE다. 명단을 지우는 것이 곧 납부자를 지우는 것이다.
 - 신청할 때 학번과 이름(공백 빼고, 영문 대소문자 무시)이 둘 다 맞아야 납부자다.
+- 참가비 수입(M3b-2, [설계](superpowers/specs/2026-10-11-event-fee-income-design.md)): 행사를 정산하면 받은 참가비(입금 확인 금액 합, 취소·지운 신청 포함)가 그 행사가 든 기간의 수입 한 건이 된다(`incomes.event_id`).
+  - 손으로 고치거나 취소하지 않고, 정산을 다시 열면 취소한다. 행사 하나의 취소하지 않은 참가비 수입은 한 건뿐이다(부분 unique 색인).
+  - 이월금이면서 참가비 수입일 수 없다(CHECK). 참가비 수입이 있는 행사는 편성에서 뺄 수 없다.
+  - 받은 참가비가 있으면 행사가 기간에 들어 있어야 정산된다.
 
 ## 배송 추적
 

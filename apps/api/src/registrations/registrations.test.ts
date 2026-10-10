@@ -33,7 +33,7 @@ test('참가 신청 만들기: 부서가 있는 구성원이 행사마다 하나
   const { pg, request, ok } = env
   try {
     await prepare(env)
-    assert.deepEqual(await ok<RegistrationResponse>(request('GET', base)), { form: null, registrations: [], account: null, roster: null })
+    assert.deepEqual(await ok<RegistrationResponse>(request('GET', base)), { form: null, registrations: [], account: null, roster: null, settled: false })
     const { form, registrations } = await create(env)
     assert.match(form!.code, /^[2-9A-HJ-NP-Z]{8}$/)
     assert.deepEqual({ ...form!, id: '', code: '', updatedAt: '' }, { id: '', code: '', accepting: true, opensAt: null, closesAt: '2999-08-19T23:59',
