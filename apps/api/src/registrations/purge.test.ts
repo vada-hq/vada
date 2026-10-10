@@ -113,3 +113,19 @@ test('파기 실행기: 켜면 바로 한 번 돌고, 실패는 알리기만 하
     assert.equal(failures, 1)
   } finally { await pg.close() }
 })
+
+test('파기 실행기: 쓰는 기한이 지난 학생회비 명단도 지운다', async () => {
+  const { pg, db } = await setup()
+  try {
+    await pg.exec(`
+      INSERT INTO organizations (id,name) VALUES ('o2','B');
+      INSERT INTO dues_rosters (organization_id,label,use_until,uploaded_by) VALUES ('o','지난 명단','2024-01-01','u'),('o2','먼 명단','2999-12-31','u');
+      INSERT INTO dues_members (organization_id,student_id,name) VALUES ('o','2022000001','김바다'),('o2','2022000001','김바다');
+    `)
+    await createRegistrationPurger(db).run()
+    const rosters = await pg.query<{ organization_id: string }>('SELECT organization_id FROM dues_rosters ORDER BY organization_id')
+    assert.deepEqual(rosters.rows.map(row => row.organization_id), ['o2'])
+    const members = await pg.query<{ organization_id: string }>('SELECT organization_id FROM dues_members ORDER BY organization_id')
+    assert.deepEqual(members.rows.map(row => row.organization_id), ['o2'])
+  } finally { await pg.close() }
+})

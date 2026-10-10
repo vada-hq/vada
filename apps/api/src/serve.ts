@@ -26,6 +26,7 @@ import { createIncomeRoutes } from './incomes/routes.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 import { createRegistrationPurger } from './registrations/purge.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
+import { createFeeRoutes } from './fees/routes.js'
 
 function main() {
   const { env, production, hostname, port } = readRuntime(process.env, process.argv.includes('--production'))
@@ -59,6 +60,7 @@ function main() {
   const budget = createBudgetRoutes(db, (headers) => auth.api.getSession({ headers }), env.BETTER_AUTH_URL!)
   const incomes = createIncomeRoutes(db, (headers) => auth.api.getSession({ headers }))
   const registrations = createRegistrationRoutes(db, (headers) => auth.api.getSession({ headers }))
+  const fees = createFeeRoutes(db, (headers) => auth.api.getSession({ headers }))
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
   const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,
     headers => auth.api.getSession({ headers }),
@@ -66,7 +68,7 @@ function main() {
   ) : undefined
   const webhook = tracking ? createDeliveryWebhook(db, tracking.address) : undefined
   const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, expenses, settlement, budget, incomes,
-    registrations, organization, webhook })
+    registrations, fees, organization, webhook })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)
@@ -77,7 +79,7 @@ function main() {
     process.exitCode = 1
   })
   const stopLookups = lookups?.start()
-  // 보관 기간이 지난 참가 신청자 정보를 지운다.
+  // 보관 기간이 지난 참가 신청자 정보와 쓰는 기한이 지난 학생회비 명단을 지운다.
   const stopPurger = createRegistrationPurger(db).start()
   const shutdown = () => {
     stopLookups?.()
