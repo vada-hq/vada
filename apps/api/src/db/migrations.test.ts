@@ -1067,3 +1067,118 @@ test('0020 adds event times, registration forms and registrations without touchi
     await pg.close()
   }
 })
+
+test('0021 adds fee accounts, dues rosters, registration fees and payments without touching existing registrations', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0021_event_fees')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','재정','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by,starts_at) VALUES ('e','o','체육대회','u','2026-08-20T10:00+09');
+      INSERT INTO registration_forms (id,organization_id,event_id,closes_at,created_by) VALUES ('f','o','e','2026-08-19T23:59+09','u');
+      INSERT INTO registrations (id,organization_id,form_id,token_hash,name,student_id) VALUES ('r','o','f','${'0'.repeat(64)}','김바다','2022000001');
+    `)
+    const forms = await pg.query<Record<string, unknown>>('SELECT * FROM registration_forms ORDER BY id')
+    const entries = await pg.query<Record<string, unknown>>('SELECT * FROM registrations ORDER BY id')
+    await migrate(db, { migrationsFolder })
+    const insert = (table: string, values: Record<string, string>) =>
+      pg.exec(`INSERT INTO ${table} (${Object.keys(values).join(',')}) VALUES (${Object.values(values).join(',')})`)
+    const update = (table: string, change: string, where: string) => pg.exec(`UPDATE ${table} SET ${change} WHERE ${where}`)
+
+    await t.test('existing forms are free and existing registrations have no dues or payment', async () => {
+      const afterForms = await pg.query<Record<string, unknown>>('SELECT * FROM registration_forms ORDER BY id')
+      assert.deepEqual(sameColumns(afterForms.rows, forms.rows), forms.rows)
+      assert.deepEqual(afterForms.rows.map(row => [row.fee, row.member_fee]), [[0, null]])
+      const afterEntries = await pg.query<Record<string, unknown>>('SELECT * FROM registrations ORDER BY id')
+      assert.deepEqual(sameColumns(afterEntries.rows, entries.rows), entries.rows)
+      assert.deepEqual(afterEntries.rows.map(row => [row.dues_member, row.paid_amount, row.paid_at, row.paid_by]), [[null, null, null, null]])
+    })
+    await t.test('a form fee is 0 to 1,000,000 and the member fee is below it', async () => {
+      const cases: [string, string][] = [
+        ['fee = -1', 'registration_forms_fee_range'],
+        ['fee = 1000001', 'registration_forms_fee_range'],
+        ['fee = 5000, member_fee = 5000', 'registration_forms_member_fee_range'],
+        ['fee = 5000, member_fee = 6000', 'registration_forms_member_fee_range'],
+        ['fee = 5000, member_fee = -1', 'registration_forms_member_fee_range'],
+        ['fee = 0, member_fee = 0', 'registration_forms_member_fee_range'],
+      ]
+      for (const [change, constraint] of cases) await assert.rejects(update('registration_forms', change, "id = 'f'"), { constraint }, change)
+      await update('registration_forms', 'fee = 1000000, member_fee = 0', "id = 'f'")
+    })
+    await t.test('a payment keeps amount, time and confirmer together and survives purging the personal fields', async () => {
+      const cases: [string, string][] = [
+        ['paid_amount = 5000', 'registrations_paid_triple'],
+        ["paid_at = now(), paid_by = 'u'", 'registrations_paid_triple'],
+        ['paid_amount = 5000, paid_at = now()', 'registrations_paid_triple'],
+        ["paid_amount = 0, paid_at = now(), paid_by = 'u'", 'registrations_paid_amount_range'],
+        ["paid_amount = 1000001, paid_at = now(), paid_by = 'u'", 'registrations_paid_amount_range'],
+      ]
+      for (const [change, constraint] of cases) await assert.rejects(update('registrations', change, "id = 'r'"), { constraint }, change)
+      await update('registrations', "dues_member = true, paid_amount = 5000, paid_at = now(), paid_by = 'u'", "id = 'r'")
+      await update('registrations', 'token_hash = NULL, name = NULL, student_id = NULL, phone = NULL, purged_at = now()', "id = 'r'")
+      const { rows: [row] } = await pg.query<{ dues_member: boolean; paid_amount: number }>("SELECT dues_member, paid_amount FROM registrations WHERE id = 'r'")
+      assert.deepEqual([row!.dues_member, row!.paid_amount], [true, 5000])
+    })
+    await t.test('a fee account has a short bank, a hyphenated number of 8 to 20 digits and a short holder', async () => {
+      const account = (change: Record<string, string> = {}) => insert('fee_accounts', { organization_id: "'o'", bank: "'카카오뱅크'",
+        account_number: "'3333-01-1234567'", holder: "'학생회'", updated_by: "'u'", ...change })
+      const cases: [Record<string, string>, string][] = [
+        [{ bank: "' '" }, 'fee_accounts_bank_not_blank'],
+        [{ bank: `'${'가'.repeat(21)}'` }, 'fee_accounts_bank_length'],
+        [{ account_number: "'12345678-'" }, 'fee_accounts_number_format'],
+        [{ account_number: "'1234 5678'" }, 'fee_accounts_number_format'],
+        [{ account_number: "'1234567'" }, 'fee_accounts_number_digits'],
+        [{ account_number: `'${'1'.repeat(21)}'` }, 'fee_accounts_number_digits'],
+        [{ account_number: `'${'1-'.repeat(15)}1'` }, 'fee_accounts_number_length'],
+        [{ holder: "' '" }, 'fee_accounts_holder_not_blank'],
+        [{ holder: `'${'가'.repeat(31)}'` }, 'fee_accounts_holder_length'],
+        [{ version: '0' }, 'fee_accounts_version_positive'],
+      ]
+      for (const [change, constraint] of cases) await assert.rejects(account(change), { constraint }, constraint)
+      await account()
+      await assert.rejects(account(), { constraint: 'fee_accounts_pkey' })
+      await assert.rejects(account({ organization_id: "'missing'" }), { constraint: 'fee_accounts_organization_id_organizations_id_fk' })
+      await insert('fee_account_events', { id: "'h'", organization_id: "'o'", actor_id: "'u'", changes: `'{"from":null}'` })
+      await assert.rejects(insert('fee_account_events', { id: "'h2'", organization_id: "'o'", actor_id: "'u'", changes: "'[]'" }),
+        { constraint: 'fee_account_events_changes_object' })
+      // 계좌가 없는 학생회의 기록은 없다.
+      await assert.rejects(insert('fee_account_events', { id: "'h3'", organization_id: "'o2'", actor_id: "'u'", changes: "'{}'" }),
+        { constraint: 'fee_account_events_account' })
+    })
+    await t.test('a dues roster has a short label and a date; its members have a student id and a short name and go with it', async () => {
+      const roster = (change: Record<string, string> = {}) => insert('dues_rosters', { organization_id: "'o'", label: "'2026년 2학기'",
+        use_until: "'2027-02-28'", uploaded_by: "'u'", ...change })
+      const cases: [Record<string, string>, string][] = [
+        [{ label: "' '" }, 'dues_rosters_label_not_blank'],
+        [{ label: `'${'가'.repeat(31)}'` }, 'dues_rosters_label_length'],
+        [{ use_until: "'1999-12-31'" }, 'dues_rosters_use_until_range'],
+        [{ version: '0' }, 'dues_rosters_version_positive'],
+      ]
+      for (const [change, constraint] of cases) await assert.rejects(roster(change), { constraint }, constraint)
+      await roster()
+      const member = (organization: string, studentId: string, name = "'김바다'") =>
+        insert('dues_members', { organization_id: `'${organization}'`, student_id: `'${studentId}'`, name })
+      await member('o', '2022000001')
+      await member('o', '2022000002', "'Kim Bada'")
+      const memberCases: [() => Promise<unknown>, string][] = [
+        [() => member('o', 'abc'), 'dues_members_student_id_format'],
+        [() => member('o', '12345'), 'dues_members_student_id_format'],
+        [() => member('o', '2022000003', "' '"), 'dues_members_name_not_blank'],
+        [() => member('o', '2022000004', `'${'가'.repeat(31)}'`), 'dues_members_name_length'],
+        [() => member('o', '2022000001'), 'dues_members_pkey'],
+        [() => member('o2', '2022000001'), 'dues_members_roster'],
+      ]
+      for (const [run, constraint] of memberCases) await assert.rejects(run(), { constraint }, constraint)
+      // 명단을 지우면 납부자도 같이 지운다.
+      await pg.exec("DELETE FROM dues_rosters WHERE organization_id = 'o'")
+      const { rows } = await pg.query<{ count: number }>('SELECT count(*)::int AS count FROM dues_members')
+      assert.equal(rows[0]!.count, 0)
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

@@ -872,6 +872,10 @@ export const registrationForms = pgTable('registration_forms', {
   capacity: integer('capacity'),
   notice: text('notice'),
   collectPhone: boolean('collect_phone').notNull().default(false),
+  // 참가비(M3b). 0원이면 무료다.
+  fee: integer('fee').notNull().default(0),
+  // 학생회비 납부자 참가비. 비어 있으면 납부자를 따로 보지 않는다.
+  memberFee: integer('member_fee'),
   version: integer('version').notNull().default(1),
   createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -892,6 +896,8 @@ export const registrationForms = pgTable('registration_forms', {
   check('registration_forms_notice_not_blank', sql`${table.notice} ~ '[^[:space:]]'`),
   check('registration_forms_notice_length', sql`char_length(${table.notice}) <= 1000`),
   check('registration_forms_version_positive', sql`${table.version} >= 1`),
+  check('registration_forms_fee_range', sql`${table.fee} BETWEEN 0 AND 1000000`),
+  check('registration_forms_member_fee_range', sql`${table.memberFee} IS NULL OR (${table.memberFee} >= 0 AND ${table.memberFee} < ${table.fee})`),
 ])
 
 // 참가 신청 한 건. 취소하거나 보관 기간이 지나면 개인 칸을 지우고, 행은 신청 수로 남긴다.
@@ -910,6 +916,12 @@ export const registrations = pgTable('registrations', {
   // 운영진이 취소하면 그 사람이고, 신청자가 스스로 취소하면 비어 있다.
   cancelledBy: text('cancelled_by').references(() => users.id, { onDelete: 'restrict' }),
   purgedAt: timestamp('purged_at', { withTimezone: true }),
+  // 신청할 때 정한 학생회비 납부 구분(M3b). 납부자 참가비가 없으면 비어 있다. 개인 칸을 지워도 남는다.
+  duesMember: boolean('dues_member'),
+  // 입금 확인(M3b). 셋이 함께 있거나 함께 없다. 개인 칸을 지워도 남아 받은 돈으로 센다.
+  paidAmount: integer('paid_amount'),
+  paidAt: timestamp('paid_at', { withTimezone: true }),
+  paidBy: text('paid_by').references(() => users.id, { onDelete: 'restrict' }),
 }, (table) => [
   foreignKey({
     name: 'registrations_form_same_organization',
@@ -930,4 +942,70 @@ export const registrations = pgTable('registrations', {
   // 같은 신청에 살아 있는 같은 학번은 하나다. 지운 행은 학번이 없다.
   uniqueIndex('registrations_form_student_active_unique').on(table.formId, table.studentId).where(sql`${table.purgedAt} IS NULL`),
   index('registrations_form_created_idx').on(table.formId, table.createdAt),
+  check('registrations_paid_triple', sql`(${table.paidAt} IS NULL) = (${table.paidAmount} IS NULL) AND (${table.paidAt} IS NULL) = (${table.paidBy} IS NULL)`),
+  check('registrations_paid_amount_range', sql`${table.paidAmount} BETWEEN 1 AND 1000000`),
+])
+
+// 참가비를 받는 학생회 계좌(M3b). 학생회마다 하나이고 재정 담당자가 정한다. 참가비를 받는 신청이 늘 가리키도록 지우지 않는다.
+export const feeAccounts = pgTable('fee_accounts', {
+  organizationId: text('organization_id').primaryKey().references(() => organizations.id, { onDelete: 'restrict' }),
+  bank: text('bank').notNull(),
+  accountNumber: text('account_number').notNull(),
+  holder: text('holder').notNull(),
+  version: integer('version').notNull().default(1),
+  updatedBy: text('updated_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  check('fee_accounts_bank_not_blank', sql`${table.bank} ~ '[^[:space:]]'`),
+  check('fee_accounts_bank_length', sql`char_length(${table.bank}) <= 20`),
+  check('fee_accounts_number_format', sql`${table.accountNumber} ~ '^[0-9]+(-[0-9]+)*$'`),
+  check('fee_accounts_number_length', sql`char_length(${table.accountNumber}) <= 30`),
+  check('fee_accounts_number_digits', sql`char_length(replace(${table.accountNumber}, '-', '')) BETWEEN 8 AND 20`),
+  check('fee_accounts_holder_not_blank', sql`${table.holder} ~ '[^[:space:]]'`),
+  check('fee_accounts_holder_length', sql`char_length(${table.holder}) <= 30`),
+  check('fee_accounts_version_positive', sql`${table.version} >= 1`),
+])
+
+// 계좌를 정하거나 바꾼 기록. 고치거나 지우지 않는다. changes는 { from, to }다.
+export const feeAccountEvents = pgTable('fee_account_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  changes: jsonb('changes').$type<Record<string, unknown>>().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({ name: 'fee_account_events_account', columns: [table.organizationId], foreignColumns: [feeAccounts.organizationId] }).onDelete('restrict'),
+  check('fee_account_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
+  index('fee_account_events_organization_idx').on(table.organizationId, table.createdAt),
+])
+
+// 지금 쓰는 학생회비 납부 명단(M3b). 학생회마다 하나이고, 새로 올리면 통째로 바꾼다. 쓰는 기한이 지나면 지운다.
+export const duesRosters = pgTable('dues_rosters', {
+  organizationId: text('organization_id').primaryKey().references(() => organizations.id, { onDelete: 'restrict' }),
+  label: text('label').notNull(),
+  // 이 날(한국 날짜)까지 쓰고 그다음 날 지운다.
+  useUntil: date('use_until').notNull(),
+  version: integer('version').notNull().default(1),
+  uploadedBy: text('uploaded_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  check('dues_rosters_label_not_blank', sql`${table.label} ~ '[^[:space:]]'`),
+  check('dues_rosters_label_length', sql`char_length(${table.label}) <= 30`),
+  check('dues_rosters_use_until_range', sql`${table.useUntil} BETWEEN '2000-01-01' AND '2999-12-31'`),
+  check('dues_rosters_version_positive', sql`${table.version} >= 1`),
+])
+
+// 명단의 납부자. 학번과 이름만 둔다.
+// 이 FK만 CASCADE다. 명단을 지우는 것이 곧 납부자를 지우는 것이고, 납부자 행은 명단 없이 뜻이 없다.
+export const duesMembers = pgTable('dues_members', {
+  organizationId: text('organization_id').notNull(),
+  studentId: text('student_id').notNull(),
+  name: text('name').notNull(),
+}, (table) => [
+  primaryKey({ name: 'dues_members_pkey', columns: [table.organizationId, table.studentId] }),
+  foreignKey({ name: 'dues_members_roster', columns: [table.organizationId], foreignColumns: [duesRosters.organizationId] }).onDelete('cascade'),
+  check('dues_members_student_id_format', sql`${table.studentId} ~ '^[0-9]{6,12}$'`),
+  check('dues_members_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
+  check('dues_members_name_length', sql`char_length(${table.name}) <= 30`),
 ])
