@@ -87,7 +87,7 @@ test('조건이 맞으면 한 번 더 물은 뒤 정산하고, 정산 완료 표
   fireEvent.click(reopen)
   expect(await screen.findByRole('region', { name: '정산하려면' })).toBeTruthy()
   expect(api.calls.filter(call => call.method === 'POST').map(call => [call.path, call.body])).toEqual([
-    [`${base}/settle`, { version: 1 }], [`${base}/reopen`, { version: 2, reason: '영수증 빠짐' }]])
+    [`${base}/settle`, { version: 1, feeIncomeLineId: null }], [`${base}/reopen`, { version: 2, reason: '영수증 빠짐' }]])
 })
 
 test('서버가 정산을 거절하면 알리고 새로 불러온다', async () => {
@@ -189,4 +189,88 @@ test('마감한 회계 기간의 행사는 정산 다시 열기 대신 이유를
   const status = await screen.findByRole('region', { name: '정산 상태' })
   expect(within(status).getByText('마감한 회계 기간의 행사라 정산을 다시 열 수 없어요.')).toBeTruthy()
   expect(within(status).queryByRole('button', { name: '정산 다시 열기' })).toBeNull()
+})
+
+const fees = { received: 14000, count: 2, unpaid: 1 }
+const feePeriod = { id: 'p1', name: '2999년 1학기', incomes: [{ id: 'l1', name: '학생회비' }, { id: 'l2', name: '행사 참가비' }] }
+const feeIncome = { id: 'i1', amount: 14000, period: { id: 'p1', name: '2999년 1학기' }, line: { id: 'l2', name: '행사 참가비' } }
+const settledBy = { by: { id: 'f', name: '재정 테스터' }, at: '2026-10-09T09:40:00.000Z' }
+
+test('참가비 묶음: 받은 참가비와 입금 전을 보이고, 정산 전이면 재정 권한자에게 먼저 확인하라고 알린다', async () => {
+  setup(financeResponse({ fees, period: feePeriod }))
+  const section = await screen.findByRole('region', { name: '참가비' })
+  for (const text of ['받은 참가비 14,000원 · 입금 확인 2명', '입금 전 1명', '정산 뒤에는 입금을 확인할 수 없어요. 들어온 돈이면 참가자 탭에서 먼저 확인해 주세요.']) {
+    expect(within(section).getByText(text)).toBeTruthy()
+  }
+})
+
+test('참가비 묶음: 재정 권한이 없으면 안내 없이 숫자만 보고, 참가비가 없는 행사에는 묶음이 없다', async () => {
+  setup(financeResponse({ fees, period: feePeriod }), false)
+  const section = await screen.findByRole('region', { name: '참가비' })
+  expect(within(section).getByText('입금 전 1명')).toBeTruthy()
+  expect(within(section).queryByText(/정산 뒤에는/)).toBeNull()
+  cleanup()
+  setup(financeResponse())
+  await numbers()
+  expect(screen.queryByRole('region', { name: '참가비' })).toBeNull()
+})
+
+test('받은 참가비를 넣을 회계 기간이 없으면 정산 버튼이 꺼지고 해결 방법을 보인다', async () => {
+  setup(financeResponse({ fees }))
+  const checklist = await screen.findByRole('region', { name: '정산하려면' })
+  expect(within(checklist).getByText('참가비를 넣을 회계 기간이 없어요')).toBeTruthy()
+  expect(within(checklist).getByText('예산 화면의 편성 수정에서 이 행사를 회계 기간에 넣어 주세요.')).toBeTruthy()
+  expect(within(checklist).getByRole('button', { name: '정산 완료' }).hasAttribute('disabled')).toBe(true)
+})
+
+test('정산 확인: 참가비가 들어갈 기간과 잠금을 알리고, 고른 수입 항목으로 정산한 뒤 넣은 수입을 보인다', async () => {
+  const api = setup(financeResponse({ fees, period: feePeriod }))
+  api.on('POST', `${base}/settle`, () => json(financeResponse({ version: 1, settled: settledBy, fees, period: feePeriod, feeIncome,
+    history: [{ id: 'h1', action: 'settled', actor: settledBy.by, changes: { budget: null, spent: 0, expenseCount: 0,
+      fee: { amount: 14000, count: 2, period: '2999년 1학기', line: '행사 참가비' } }, reason: null, createdAt: settledBy.at }] })))
+  const checklist = await screen.findByRole('region', { name: '정산하려면' })
+  expect(within(checklist).getByText('참가비를 넣을 회계 기간: 2999년 1학기')).toBeTruthy()
+  fireEvent.click(within(checklist).getByRole('button', { name: '정산 완료' }))
+  for (const text of ['받은 참가비 14,000원은 2999년 1학기 수입으로 들어가요.', '정산 뒤에는 입금 확인과 참가비를 바꿀 수 없어요.']) {
+    expect(within(checklist).getByText(text)).toBeTruthy()
+  }
+  expect((within(checklist).getByLabelText('참가비 수입 항목') as HTMLSelectElement).value).toBe('l2')
+  fireEvent.click(within(checklist).getByRole('button', { name: '정산 완료' }))
+  expect(await screen.findByText('14,000원을 2999년 1학기 수입으로 넣었어요.')).toBeTruthy()
+  expect(screen.getByText('수입 항목: 행사 참가비')).toBeTruthy()
+  expect(screen.getByText(/정산 완료 · 실제 지출 0원 · 참가비 14,000원 → 2999년 1학기 수입$/)).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([{ version: 0, feeIncomeLineId: 'l2' }])
+})
+
+test('정산 확인: 고르지 않음을 고르면 수입 항목 없이 보낸다', async () => {
+  const api = setup(financeResponse({ fees, period: feePeriod }))
+  api.on('POST', `${base}/settle`, () => json({ error: 'BUDGET_LINE_INVALID' }, 409))
+  const checklist = await screen.findByRole('region', { name: '정산하려면' })
+  fireEvent.click(within(checklist).getByRole('button', { name: '정산 완료' }))
+  fireEvent.change(within(checklist).getByLabelText('참가비 수입 항목'), { target: { value: '' } })
+  fireEvent.click(within(checklist).getByRole('button', { name: '정산 완료' }))
+  expect(await screen.findByText('참가비 수입 항목을 다시 골라 주세요.')).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([{ version: 0, feeIncomeLineId: null }])
+})
+
+test('정산 확인: 받은 참가비가 없으면 들어갈 수입과 항목 고르기 없이 잠금만 알린다', async () => {
+  const api = setup(financeResponse({ fees: { received: 0, count: 0, unpaid: 2 }, period: feePeriod }))
+  api.on('POST', `${base}/settle`, () => json(financeResponse({ version: 1, settled: settledBy, fees: { received: 0, count: 0, unpaid: 2 } })))
+  const checklist = await screen.findByRole('region', { name: '정산하려면' })
+  fireEvent.click(within(checklist).getByRole('button', { name: '정산 완료' }))
+  expect(within(checklist).getByText('정산 뒤에는 입금 확인과 참가비를 바꿀 수 없어요.')).toBeTruthy()
+  expect(within(checklist).queryByText(/수입으로 들어가요/)).toBeNull()
+  expect(within(checklist).queryByLabelText('참가비 수입 항목')).toBeNull()
+  fireEvent.click(within(checklist).getByRole('button', { name: '정산 완료' }))
+  expect(await screen.findByRole('region', { name: '정산 상태' })).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([{ version: 0, feeIncomeLineId: null }])
+})
+
+test('참가비 수입을 넣은 정산을 다시 열면 그 수입이 취소된다고 알리고, 정산 뒤에는 입금 전 안내를 하지 않는다', async () => {
+  setup(financeResponse({ version: 1, settled: settledBy, fees, period: feePeriod, feeIncome }))
+  const status = await screen.findByRole('region', { name: '정산 상태' })
+  fireEvent.click(within(status).getByRole('button', { name: '정산 다시 열기' }))
+  expect(within(status).getByText('다시 열면 참가비 수입 14,000원이 취소되고, 지출과 예산을 바꿀 수 있어요.')).toBeTruthy()
+  expect(screen.getByText('입금 전 1명')).toBeTruthy()
+  expect(screen.queryByText(/정산 뒤에는 입금을 확인할 수 없어요/)).toBeNull()
 })

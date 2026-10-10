@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { EventFinanceResponse, ReopenSettlementRequest, SetEventBudgetRequest } from '@vada/contracts'
+import type { EventFinanceResponse, ReopenSettlementRequest, SetEventBudgetRequest, SettleEventRequest } from '@vada/contracts'
 import { downloadFile } from '@/lib/download'
 import { settlementFailure, settlementMessage } from './settlement-view'
 
@@ -55,7 +55,7 @@ export function useEventFinance(organizationId: string, eventId: string, enabled
   return {
     data, loadError, refresh, download,
     setBudget: (input: SetEventBudgetRequest) => send('/budget', input),
-    settle: (version: number) => send('/settle', { version }),
+    settle: (input: SettleEventRequest) => send('/settle', input),
     reopen: (input: ReopenSettlementRequest) => send('/reopen', input),
   }
 }

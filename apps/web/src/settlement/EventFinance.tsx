@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, cardClass } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { NativeSelect } from '@/components/ui/native-select'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
 import ExpenseCard from '../expenses/ExpenseCard'
@@ -16,7 +17,8 @@ import ExpenseFormDialog from '../expenses/ExpenseFormDialog'
 import { expensesBase, sendExpense } from '../expenses/useExpenses'
 import { timeText, won } from '../purchases/purchase-view'
 import BudgetDialog from './BudgetDialog'
-import { budgetText, financeHistoryText, readyToSettle, remainingText, requirements, settledDay } from './settlement-view'
+import EventFees from './EventFees'
+import { budgetText, defaultFeeIncomeLine, financeHistoryText, readyToSettle, remainingText, requirements, settledDay } from './settlement-view'
 import type { EventFinanceState, FinanceResult } from './useEventFinance'
 
 type Props = { organizationId: string; eventId: string; finance: boolean; viewerMembershipId: string; events: EventSummary[]; state: EventFinanceState }
@@ -29,6 +31,8 @@ export default function EventFinance({ organizationId, eventId, finance, viewerM
   const [budgetOpen, setBudgetOpen] = useState(false)
   const [confirming, setConfirming] = useState(false)
   const [reopenReason, setReopenReason] = useState<string | null>(null)
+  // 고른 참가비 수입 항목. 고르기 전에는 null이고 기본값(이름에 "참가비"가 든 첫 줄)을 쓴다.
+  const [feeLineId, setFeeLineId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -56,6 +60,11 @@ export default function EventFinance({ organizationId, eventId, finance, viewerM
     if (!result.ok) setMessage(result.message)
   }
   const reopenValid = ReopenSettlementSchema.safeParse({ version: summary.version, reason: reopenReason ?? '' }).success
+  // 받은 참가비는 정산할 때 행사가 든 기간의 수입이 된다. 새로 받은 목록에 없는 줄이면 고르지 않은 것으로 보낸다(마감과 같다).
+  const received = summary.fees?.received ?? 0
+  const feeLines = summary.period?.incomes ?? []
+  const feeLine = feeLineId ?? defaultFeeIncomeLine(feeLines)
+  const settleInput = { version: summary.version, feeIncomeLineId: received > 0 && feeLines.some(line => line.id === feeLine) ? feeLine : null }
   const stats: Stat[] = [
     { label: '예산', value: budgetText(summary.budget),
       action: manage ? <Button variant="outline" size="sm" className="mt-1 self-start" onClick={() => setBudgetOpen(true)}>예산 정하기</Button> : undefined },
@@ -76,7 +85,8 @@ export default function EventFinance({ organizationId, eventId, finance, viewerM
         : <div className="flex flex-col gap-2">
           <Label className="flex flex-col gap-1.5">다시 여는 사유
             <Textarea rows={2} value={reopenReason} onChange={event => setReopenReason(event.target.value)} /></Label>
-          <p className="text-xs text-gray-500">다시 열면 지출과 예산을 바꿀 수 있어요.</p>
+          <p className="text-xs text-gray-500">{summary.feeIncome
+            ? `다시 열면 참가비 수입 ${won(summary.feeIncome.amount)}이 취소되고, 지출과 예산을 바꿀 수 있어요.` : '다시 열면 지출과 예산을 바꿀 수 있어요.'}</p>
           <div className="flex justify-end gap-2">
             <Button variant="outline" disabled={busy} onClick={() => setReopenReason(null)}>돌아가기</Button>
             <Button disabled={busy || !reopenValid} onClick={() => void run(() => state.reopen({ version: summary.version, reason: reopenReason }))
@@ -85,6 +95,7 @@ export default function EventFinance({ organizationId, eventId, finance, viewerM
         </div>)}
     </section>}
     <StatGrid label="행사 재정" className="grid-cols-2 gap-3 sm:grid-cols-4" stats={stats} />
+    {summary.fees && <EventFees fees={summary.fees} feeIncome={summary.feeIncome} hint={finance && !settled} />}
     {!settled && <section aria-label="정산하려면" className={cn(cardClass, 'flex flex-col gap-2 p-4')}>
       <h3 className="text-sm font-semibold text-gray-900">정산하려면</h3>
       <ul className="flex flex-col gap-1.5">{requirements(summary).map(item => <li key={item.key} className="flex flex-col gap-0.5">
@@ -95,9 +106,17 @@ export default function EventFinance({ organizationId, eventId, finance, viewerM
       {finance && (confirming
         ? <div className="flex flex-col gap-2">
           <p className="text-xs text-gray-500">정산을 마치면 이 행사의 지출·예산·증빙 삭제가 잠겨요.</p>
+          {received > 0 && summary.period && <p className="text-xs wrap-anywhere text-gray-500">
+            {`받은 참가비 ${won(received)}은 ${summary.period.name} 수입으로 들어가요.`}</p>}
+          {summary.fees && <p className="text-xs text-gray-500">정산 뒤에는 입금 확인과 참가비를 바꿀 수 없어요.</p>}
+          {received > 0 && feeLines.length > 0 && <Label className="flex flex-col gap-1.5">참가비 수입 항목
+            <NativeSelect value={feeLine} onChange={event => setFeeLineId(event.target.value)}>
+              <option value="">고르지 않음</option>
+              {feeLines.map(line => <option key={line.id} value={line.id}>{line.name}</option>)}
+            </NativeSelect></Label>}
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" disabled={busy} onClick={() => setConfirming(false)}>그대로 두기</Button>
-            <Button disabled={busy || !readyToSettle(summary)} onClick={() => void run(() => state.settle(summary.version)).then(() => setConfirming(false))}>정산 완료</Button>
+            <Button disabled={busy || !readyToSettle(summary)} onClick={() => void run(() => state.settle(settleInput)).then(() => setConfirming(false))}>정산 완료</Button>
           </div>
         </div>
         : <Button className="self-start" disabled={busy || !readyToSettle(summary)} onClick={() => setConfirming(true)}>정산 완료</Button>)}
