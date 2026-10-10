@@ -1,6 +1,11 @@
 export { codePoints, isStrictObject, text, token } from './input.js'
 export { COUPANG_LINKS_PER_MESSAGE_MAX, normalizeCoupangUrl, parseCoupangLinks, readCoupangUrl, type CoupangLink } from './coupang.js'
-export { EVENT_NAME_MAX, CreateEventSchema, type CreateEventRequest } from './events.js'
+export { EVENT_NAME_MAX, EVENT_PLACE_MAX, CreateEventSchema, UpdateEventSchema, type CreateEventRequest, type UpdateEventRequest } from './events.js'
+export { koreanDateTime, dateFromKorean, koreanOf } from './korean-time.js'
+export { REGISTRATION_NAME_MAX, REGISTRATION_NOTICE_MAX, REGISTRATION_CAPACITY_MAX, REGISTRATION_RETENTION_DAYS, studentIdInput, phoneInput,
+  CreateRegistrationFormSchema, UpdateRegistrationFormSchema, CancelRegistrationSchema, RegisterSchema, RegistrationTokenSchema } from './registrations.js'
+export type { CreateRegistrationFormRequest, UpdateRegistrationFormRequest, RegisterRequest, RegistrationState, RegistrationFormView,
+  RegistrationEntry, RegistrationResponse, PublicRegistrationEvent, PublicRegistrationForm, RegistrationCreated, MyRegistration } from './registrations.js'
 export { MESSAGE_CONTENT_MAX, CreateMessageSchema, type CreateMessageRequest } from './chat.js'
 export { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
 export { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema, type JoinOrganizationRequest, type InvitePreviewResponse } from './invites.js'
@@ -25,6 +30,8 @@ export type { DeliveryStatus, DeliveryLookupRequest, RegisterShipmentRequest, Un
 export interface MembershipPermissions {
   manageOrganization: boolean
   approvePurchases: boolean
+  // 부서가 있는 구성원. 행사 일시·장소와 참가 신청을 관리하고 신청자 명단을 본다.
+  manageEvents: boolean
 }
 
 export interface MembershipSummary {
@@ -66,6 +73,11 @@ export interface EventSummary {
   name: string
   createdBy: string
   createdAt: string
+  // 한국 시각 YYYY-MM-DDTHH:mm. 끝은 시작이 있을 때만 있다.
+  startsAt: string | null
+  endsAt: string | null
+  place: string | null
+  version: number
 }
 
 export interface EventResponse {
