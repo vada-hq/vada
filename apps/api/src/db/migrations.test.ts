@@ -903,3 +903,69 @@ test('0018 adds incomes that belong to a period and optionally an income line', 
     await pg.close()
   }
 })
+
+test('0019 adds period closing, reopen reasons and carried-over incomes without touching existing rows', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0019_period_close')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','재정','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO budget_periods (id,organization_id,name,starts_on,ends_on,created_by) VALUES ('p','o','2025년 2학기','2025-09-01','2026-02-28','u'),
+        ('n','o','2026년 1학기','2026-03-01','2026-08-31','u'),('q','o2','남의 기간','2025-09-01','2026-02-28','u');
+      INSERT INTO incomes (id,organization_id,period_id,description,amount,received_on,recorded_by) VALUES ('i','o','p','학생회비',750000,'2025-09-15','u');
+      INSERT INTO budget_period_events (id,organization_id,period_id,actor_id,action,changes) VALUES ('h','o','p','u','created','{}');
+    `)
+    const tables = ['budget_periods', 'incomes', 'budget_period_events']
+    const before = await Promise.all(tables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
+    await migrate(db, { migrationsFolder })
+    const insert = (table: string, values: Record<string, string>) =>
+      pg.exec(`INSERT INTO ${table} (${Object.keys(values).join(',')}) VALUES (${Object.values(values).join(',')})`)
+
+    await t.test('existing periods, incomes and history keep their values and the new columns are empty', async () => {
+      const after = await Promise.all(tables.map(table => pg.query<Record<string, unknown>>(`SELECT * FROM ${table} ORDER BY id`)))
+      assert.deepEqual(after.map((result, index) => sameColumns(result.rows, before[index]!.rows)), before.map(result => result.rows))
+      assert.deepEqual(after.map(result => result.rows.map(row => [row.closed_at, row.closed_by, row.carried_from_period_id, row.reason]
+        .filter(value => value !== undefined))), [[[null, null], [null, null], [null, null]], [[null]], [[null]]])
+    })
+    await t.test('a period is closed with both the time and the person or neither', async () => {
+      await pg.exec("UPDATE budget_periods SET closed_at = now(), closed_by = 'u' WHERE id = 'p'")
+      await assert.rejects(pg.exec("UPDATE budget_periods SET closed_at = now() WHERE id = 'n'"), { constraint: 'budget_periods_closed_pair' })
+      await assert.rejects(pg.exec("UPDATE budget_periods SET closed_by = 'u' WHERE id = 'n'"), { constraint: 'budget_periods_closed_pair' })
+    })
+    await t.test('history knows closed and reopened, and only reopened keeps a short non-blank reason', async () => {
+      const entry = (id: string, action: string, reason = 'NULL') => insert('budget_period_events', { id: `'${id}'`, organization_id: "'o'",
+        period_id: "'p'", actor_id: "'u'", action: `'${action}'`, changes: `'{"balance":0}'`, reason })
+      await entry('h1', 'closed')
+      await entry('h2', 'reopened', "'영수증 빠짐'")
+      const cases: [string, string, string][] = [
+        ['h3', 'reopened', 'budget_period_events_reason_when_reopened'],
+        ['h4', 'created', 'budget_period_events_reason_when_reopened'],
+        ['h5', 'reopened', 'budget_period_events_reason_not_blank'],
+        ['h6', 'reopened', 'budget_period_events_reason_length'],
+        ['h7', 'deleted', 'budget_period_events_action_valid'],
+      ]
+      const reasons: Record<string, string> = { h3: 'NULL', h4: "'사유'", h5: "' '", h6: `'${'가'.repeat(201)}'`, h7: 'NULL' }
+      for (const [id, action, constraint] of cases) await assert.rejects(entry(id, action, reasons[id]), { constraint }, constraint)
+    })
+    await t.test('a carried-over income comes from another period of the same council, once while not voided', async () => {
+      const income = (id: string, change: Record<string, string> = {}) => insert('incomes', { id: `'${id}'`, organization_id: "'o'", period_id: "'n'",
+        description: "'2025년 2학기 이월금'", amount: '88000', received_on: "'2026-03-01'", recorded_by: "'u'", carried_from_period_id: "'p'", ...change })
+      await income('c1')
+      await assert.rejects(income('c2'), { constraint: 'incomes_carried_from_active_unique' })
+      await assert.rejects(income('c3', { carried_from_period_id: "'n'" }), { constraint: 'incomes_carried_from_other_period' })
+      await assert.rejects(income('c4', { carried_from_period_id: "'q'" }), { constraint: 'incomes_carried_from_same_organization' })
+      await pg.exec("UPDATE incomes SET voided_at = now(), voided_by = 'u', void_reason = '다시 엶' WHERE id = 'c1'")
+      await income('c5')
+      // 이월금만 가리키는 기간도 지울 수 없다.
+      await pg.exec(`INSERT INTO budget_periods (id,organization_id,name,starts_on,ends_on,created_by) VALUES ('r','o','2025년 1학기','2025-03-01','2025-08-31','u')`)
+      await income('c6', { carried_from_period_id: "'r'" })
+      await assert.rejects(pg.exec("DELETE FROM budget_periods WHERE id = 'r'"), { constraint: 'incomes_carried_from_same_organization' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

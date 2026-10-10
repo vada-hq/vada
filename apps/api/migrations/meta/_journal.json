@@ -134,6 +134,13 @@
       "when": 1791569509136,
       "tag": "0018_incomes",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791613396868,
+      "tag": "0019_period_close",
+      "breakpoints": true
     }
   ]
 }

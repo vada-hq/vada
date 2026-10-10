@@ -519,10 +519,14 @@ export const budgetPeriods = pgTable('budget_periods', {
   endsOn: date('ends_on').notNull(),
   version: integer('version').notNull().default(1),
   createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  // 마감한 때와 사람(M2-3c). 둘이 함께 있거나 함께 없다.
+  closedAt: timestamp('closed_at', { withTimezone: true }),
+  closedBy: text('closed_by').references(() => users.id, { onDelete: 'restrict' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [
   unique('budget_periods_organization_id_unique').on(table.organizationId, table.id),
+  check('budget_periods_closed_pair', sql`(${table.closedAt} IS NULL) = (${table.closedBy} IS NULL)`),
   unique('budget_periods_organization_name_unique').on(table.organizationId, table.name),
   check('budget_periods_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
   check('budget_periods_name_length', sql`char_length(${table.name}) <= 30`),
@@ -576,8 +580,10 @@ export const budgetPeriodEvents = pgTable('budget_period_events', {
   organizationId: text('organization_id').notNull(),
   periodId: text('period_id').notNull(),
   actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
-  action: text('action', { enum: ['created', 'updated'] }).notNull(),
+  action: text('action', { enum: ['created', 'updated', 'closed', 'reopened'] }).notNull(),
   changes: jsonb('changes').$type<Record<string, unknown>>().notNull().default({}),
+  // 마감을 다시 열 때만 있다.
+  reason: text('reason'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, (table) => [
   foreignKey({
@@ -585,7 +591,10 @@ export const budgetPeriodEvents = pgTable('budget_period_events', {
     columns: [table.organizationId, table.periodId],
     foreignColumns: [budgetPeriods.organizationId, budgetPeriods.id],
   }).onDelete('restrict'),
-  check('budget_period_events_action_valid', sql`${table.action} IN ('created','updated')`),
+  check('budget_period_events_action_valid', sql`${table.action} IN ('created','updated','closed','reopened')`),
+  check('budget_period_events_reason_when_reopened', sql`(${table.action} = 'reopened') = (${table.reason} IS NOT NULL)`),
+  check('budget_period_events_reason_not_blank', sql`${table.reason} ~ '[^[:space:]]'`),
+  check('budget_period_events_reason_length', sql`char_length(${table.reason}) <= 200`),
   check('budget_period_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
   index('budget_period_events_period_idx').on(table.periodId, table.createdAt),
 ])
@@ -778,9 +787,20 @@ export const incomes = pgTable('incomes', {
   voidedAt: timestamp('voided_at', { withTimezone: true }),
   voidedBy: text('voided_by').references(() => users.id, { onDelete: 'restrict' }),
   voidReason: text('void_reason'),
+  // 이월금이면 넘겨준 기간(M2-3c). 이월금은 손으로 고치거나 취소하지 않는다.
+  carriedFromPeriodId: text('carried_from_period_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [
+  foreignKey({
+    name: 'incomes_carried_from_same_organization',
+    columns: [table.organizationId, table.carriedFromPeriodId],
+    foreignColumns: [budgetPeriods.organizationId, budgetPeriods.id],
+  }).onDelete('restrict'),
+  check('incomes_carried_from_other_period', sql`${table.carriedFromPeriodId} <> ${table.periodId}`),
+  // 기간 하나가 넘기는 이월금은 취소하지 않은 것이 한 건뿐이다.
+  uniqueIndex('incomes_carried_from_active_unique').on(table.carriedFromPeriodId)
+    .where(sql`${table.carriedFromPeriodId} IS NOT NULL AND ${table.voidedAt} IS NULL`),
   foreignKey({
     name: 'incomes_period_same_organization',
     columns: [table.organizationId, table.periodId],
