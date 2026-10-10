@@ -12,8 +12,9 @@ export const BUDGET_EVENTS_MAX = 100
 export const BUDGET_PERIODS_MAX = 100
 export const BUDGET_CANDIDATES_MAX = 300
 export const BUDGET_HISTORY_MAX = 100
+export const BUDGET_REOPEN_REASON_MAX = 200
 export type BudgetGroup = 'income' | 'event' | 'operating'
-export type BudgetPeriodAction = 'created' | 'updated'
+export type BudgetPeriodAction = 'created' | 'updated' | 'closed' | 'reopened'
 
 const id = token(64)
 const amount = z.number().int().min(0).max(PURCHASE_INTEGER_MAX)
@@ -39,10 +40,17 @@ export const SaveBudgetPlanSchema = z.strictObject({
   operating: lines(BUDGET_OPERATING_LINES_MAX),
   events: eventLines,
 }).refine(ordered).refine(value => distinct([...value.incomes, ...value.operating].flatMap(line => line.id === null ? [] : [line.id])))
+const version = z.number().int().min(1).max(PURCHASE_INTEGER_MAX)
+// 기간 마감. 남은 돈이 있으면 다음 기간의 이 수입 줄로 넘긴다. 고르지 않으면 null이다.
+export const ClosePeriodSchema = z.strictObject({ version, carryoverLineId: id.nullable() })
+export const ReopenPeriodSchema = z.strictObject({ version, reason: text(BUDGET_REOPEN_REASON_MAX) })
 export type CreateBudgetPeriodRequest = z.infer<typeof CreateBudgetPeriodSchema>
 export type SaveBudgetPlanRequest = z.infer<typeof SaveBudgetPlanSchema>
+export type ClosePeriodRequest = z.infer<typeof ClosePeriodSchema>
+export type ReopenPeriodRequest = z.infer<typeof ReopenPeriodSchema>
 
-export interface BudgetPeriodSummary { id: string; name: string; startsOn: string; endsOn: string; operating: { id: string; name: string }[] }
+// closed: 마감한 기간이면 true. 지출 대화상자와 기간 고르기가 쓴다.
+export interface BudgetPeriodSummary { id: string; name: string; startsOn: string; endsOn: string; closed: boolean; operating: { id: string; name: string }[] }
 // 시작일이 늦은 순. 지출 대화상자가 결제일이 든 기간의 운영 줄을 고를 때도 쓴다.
 export interface BudgetPeriodsResponse { periods: BudgetPeriodSummary[] }
 // received: 이 줄을 고른 수입 가운데 취소하지 않은 것의 합, incomeCount: 그 수. 0이 아니면 지울 수 없다.
@@ -77,8 +85,24 @@ export interface BudgetHistoryEntry {
   action: BudgetPeriodAction
   actor: ExpensePerson
   // created: { name, startsOn, endsOn }, updated: { name?, startsOn?, endsOn?: { from, to }, lines?: BudgetChange[] }
+  // closed: { received, spent, balance, carryover: { period, amount, line } | null }(period·line은 이름)
   changes: Record<string, unknown>
+  // 다시 열 때만 있다.
+  reason: string | null
   createdAt: string
+}
+// 마감 조건과 마감 뒤 상태. 정산하지 않은 행사와 남은 돈은 events[].settled·totals.balance를 쓴다.
+export interface BudgetClosing {
+  // 한국 날짜로 끝일이 지났는가
+  ended: boolean
+  // 마감하지 않은 앞 기간 가운데 가장 이른 것
+  earlierOpen: { id: string; name: string } | null
+  // 결제일이 이 기간 안인 상시 운영 지출(취소하지 않은 것) 가운데 증빙이 없는 것의 수
+  missingEvidence: number
+  // 시작일이 이 기간 끝일보다 뒤인 가장 이른 기간. 이월금이 들어갈 곳이고, incomes는 그 기간의 수입 줄(편성 순서)이다.
+  next: { id: string; name: string; startsOn: string; closed: boolean; incomes: { id: string; name: string }[] } | null
+  // 이 기간이 넘긴 취소하지 않은 이월금
+  carriedOver: { period: { id: string; name: string }; amount: number } | null
 }
 export interface BudgetTotals {
   // 수입 줄의 합
@@ -98,7 +122,9 @@ export interface BudgetTotals {
   balance: number
 }
 export interface BudgetPlanResponse {
-  period: { id: string; name: string; startsOn: string; endsOn: string; version: number }
+  // closed: 마감한 사람과 때. 열린 기간이면 null이다.
+  period: { id: string; name: string; startsOn: string; endsOn: string; version: number; closed: { by: ExpensePerson; at: string } | null }
+  closing: BudgetClosing
   incomes: BudgetIncomeLine[]
   events: BudgetEventLine[]
   operating: BudgetOperatingLine[]

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { BUDGET_EVENTS_MAX, BUDGET_INCOME_LINES_MAX, BUDGET_LINE_NAME_MAX, BUDGET_OPERATING_LINES_MAX, BUDGET_PERIOD_NAME_MAX,
-  CreateBudgetPeriodSchema, SaveBudgetPlanSchema } from './budget.js'
+  BUDGET_REOPEN_REASON_MAX, ClosePeriodSchema, CreateBudgetPeriodSchema, ReopenPeriodSchema, SaveBudgetPlanSchema } from './budget.js'
 import { isStrictObject } from './input.js'
 
 // 테스트 파일에 제어 문자를 그대로 쓰지 않는다.
@@ -59,7 +59,28 @@ test('편성: 상한+1·중복 이름·중복 ID·중복 행사·잘못된 금�
 })
 
 test('요청 스키마는 모르는 키를 조용히 버리지 않는다', () => {
-  for (const schema of [CreateBudgetPeriodSchema, SaveBudgetPlanSchema]) assert.equal(isStrictObject(schema), true)
+  for (const schema of [CreateBudgetPeriodSchema, SaveBudgetPlanSchema, ClosePeriodSchema, ReopenPeriodSchema]) assert.equal(isStrictObject(schema), true)
+})
+
+test('마감: 버전과 이월금 수입 항목(고르지 않으면 null)을 꼭 받고, 틀린 버전·빠진 항목·빈 ID·긴 ID·모르는 키는 거절한다', () => {
+  for (const body of [{ version: 1, carryoverLineId: null }, { version: 7, carryoverLineId: 'l1' }]) {
+    assert.deepEqual(ClosePeriodSchema.parse(body), body)
+  }
+  for (const body of [{ version: 0, carryoverLineId: null }, { version: 1.5, carryoverLineId: null }, { version: '1', carryoverLineId: null },
+    { carryoverLineId: null }, { version: 1 }, { version: 1, carryoverLineId: '' }, { version: 1, carryoverLineId: 'x'.repeat(65) },
+    { version: 1, carryoverLineId: null, extra: 1 }]) {
+    assert.equal(ClosePeriodSchema.safeParse(body).success, false, JSON.stringify(body))
+  }
+})
+
+test('마감 다시 열기: 사유 앞뒤 공백을 지우고 상한까지 받으며, 빠진 값·빈 사유·상한+1·제어 문자·모르는 키는 거절한다', () => {
+  assert.deepEqual(ReopenPeriodSchema.parse({ version: 3, reason: ' 영수증 빠짐 ' }), { version: 3, reason: '영수증 빠짐' })
+  assert.equal(ReopenPeriodSchema.safeParse({ version: 3, reason: emoji.repeat(BUDGET_REOPEN_REASON_MAX) }).success, true)
+  for (const body of [{ version: 3 }, { reason: '빠짐' }, { version: 3, reason: '' }, { version: 3, reason: '   ' },
+    { version: 3, reason: emoji.repeat(BUDGET_REOPEN_REASON_MAX + 1) }, { version: 3, reason: `빠짐${nul}` }, { version: 3, reason: `빠짐${lone}` },
+    { version: 0, reason: '빠짐' }, { version: 3, reason: '빠짐', extra: 1 }]) {
+    assert.equal(ReopenPeriodSchema.safeParse(body).success, false, JSON.stringify(body))
+  }
 })
 
 test('편성: 행사 줄은 금액을 바꿀 때만 보내고, 보내지 않으면 그대로 둔다', () => {

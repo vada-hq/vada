@@ -41,6 +41,8 @@ export interface IncomeSummary {
   note: string | null
   recordedBy: ExpensePerson
   voided: { by: ExpensePerson; at: string; reason: string } | null
+  // 이월금이면 넘겨준 기간. 이월금은 수정·취소하지 않는다.
+  carriedFrom: { id: string; name: string } | null
   version: number
   createdAt: string
   updatedAt: string

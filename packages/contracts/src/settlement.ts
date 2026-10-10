@@ -45,6 +45,8 @@ export interface EventFinance {
   pendingRequests: number
   unrecordedItems: number
   settled: { by: ExpensePerson; at: string } | null
+  // 행사가 든 회계 기간이 마감됐으면 true다. 정산을 다시 열 수 없다.
+  periodClosed: boolean
   version: number
   // 최근 100개, 오래된 순.
   history: EventFinanceHistoryEntry[]

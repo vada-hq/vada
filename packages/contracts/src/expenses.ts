@@ -96,6 +96,8 @@ export interface ExpenseSummary {
   voided: { by: ExpensePerson; at: string; reason: string } | null
   // 행사 정산이 끝났으면 true다. 수정·취소·증빙 삭제를 막는다(증빙 추가는 된다).
   settled: boolean
+  // 상시 운영 지출의 결제일이 마감한 회계 기간 안이면 true다. 막는 것은 정산과 같다.
+  periodClosed: boolean
   version: number
   createdAt: string
   updatedAt: string

@@ -103,10 +103,11 @@ export { SETTLEMENT_REASON_MAX, EVENT_FINANCE_HISTORY_MAX, SetEventBudgetSchema,
 export type { EventFinanceAction, SetEventBudgetRequest, SettleEventRequest, ReopenSettlementRequest, EventFinanceHistoryEntry, EventFinance,
   EventFinanceResponse } from './settlement.js'
 export { BUDGET_PERIOD_NAME_MAX, BUDGET_LINE_NAME_MAX, BUDGET_INCOME_LINES_MAX, BUDGET_OPERATING_LINES_MAX, BUDGET_EVENTS_MAX, BUDGET_PERIODS_MAX,
-  BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, CreateBudgetPeriodSchema, SaveBudgetPlanSchema } from './budget.js'
-export type { CreateBudgetPeriodRequest, SaveBudgetPlanRequest, BudgetGroup, BudgetPeriodAction, BudgetPeriodSummary, BudgetPeriodsResponse,
-  BudgetIncomeLine, BudgetEventLine, BudgetOperatingLine, BudgetCandidate, BudgetChange, BudgetHistoryEntry, BudgetTotals,
-  BudgetPlanResponse } from './budget.js'
+  BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_REOPEN_REASON_MAX, CreateBudgetPeriodSchema, SaveBudgetPlanSchema, ClosePeriodSchema,
+  ReopenPeriodSchema } from './budget.js'
+export type { CreateBudgetPeriodRequest, SaveBudgetPlanRequest, ClosePeriodRequest, ReopenPeriodRequest, BudgetGroup, BudgetPeriodAction,
+  BudgetPeriodSummary, BudgetPeriodsResponse, BudgetIncomeLine, BudgetEventLine, BudgetOperatingLine, BudgetCandidate, BudgetChange,
+  BudgetHistoryEntry, BudgetClosing, BudgetTotals, BudgetPlanResponse } from './budget.js'
 export { INCOME_DESCRIPTION_MAX, INCOME_NOTE_MAX, INCOME_VOID_REASON_MAX, INCOME_RECORDS_MAX, CreateIncomeSchema, UpdateIncomeSchema,
   VoidIncomeSchema } from './incomes.js'
 export type { IncomeAction, CreateIncomeRequest, UpdateIncomeRequest, VoidIncomeRequest, IncomeSummary, IncomeHistoryEntry, IncomeDetail,
