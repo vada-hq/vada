@@ -18,6 +18,7 @@ import { createSettlementRoutes } from '../settlement/routes.js'
 import { createBudgetRoutes } from '../budget/routes.js'
 import { createIncomeRoutes } from '../incomes/routes.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
+import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
 
 // 공통 가드가 거는 곳: 로그인한 구성원의 경로와 로그인 없이 쓰는 공개 경로
@@ -74,7 +75,10 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       const jsonHeaders = { 'Content-Type': 'application/json', Origin: origin }
       assert.equal((await send({ ...jsonHeaders, Origin: 'https://evil.test' }, '{}')).status, 403, key)
       assert.equal((await send({ Origin: origin, 'Content-Type': 'text/plain' }, '{}')).status, 415, key)
-      assert.equal((await send(jsonHeaders, JSON.stringify({ x: 'a'.repeat(40000) }))).status, 413, key)
+      // 본문 상한은 경로마다 가드가 정한다. 그 상한을 넘으면 413이다.
+      const limit = bodyLimitOf(path)
+      assert.equal((await send(jsonHeaders, JSON.stringify({ x: 'a'.repeat(limit + 8) }))).status, 413, key)
+      if (limit > MAX_BODY_BYTES) assert.notEqual((await send(jsonHeaders, JSON.stringify({ x: 'a'.repeat(MAX_BODY_BYTES + 8) }))).status, 413, key)
       const before = authCalls
       const malformed = await send(jsonHeaders, '{')
       assert.equal(malformed.status, 400, key)
@@ -84,6 +88,14 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     }
   } finally {
     await pg.close()
+  }
+})
+
+test('본문 상한은 가드 한 곳에서 경로마다 정한다: 학생회비 명단만 1 MiB이다', () => {
+  assert.equal(bodyLimitOf('/api/organizations/a/dues-roster'), 1_048_576)
+  for (const path of ['/api/organizations/a/dues-roster/delete', '/api/organizations/a/expenses', '/api/public/registrations/lookup',
+    '/api/organizations/a/b/dues-roster', '/api/organizations//dues-roster']) {
+    assert.equal(bodyLimitOf(path), MAX_BODY_BYTES, path)
   }
 })
 
