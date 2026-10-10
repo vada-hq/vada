@@ -100,9 +100,10 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
       <Button variant="outline" size="sm" onClick={() => { void copy() }}>주소 복사</Button>
       {copied && <StateMessage kind="notice">주소를 복사했어요.</StateMessage>}
     </section>
-    {registration.cancellable
-      ? <Button variant="outline" className="self-start" onClick={() => setConfirming(true)}>신청 취소</Button>
-      : <p className="text-sm text-gray-500">마감 뒤에 취소하려면 학생회에 문의해 주세요.</p>}
+    {registration.cancellable ? <div className="flex flex-col items-start gap-2">
+      <p className="text-sm text-gray-600">{`${formatKoreanTime(registration.closesAt)}까지 취소할 수 있어요.`}</p>
+      <Button variant="outline" onClick={() => setConfirming(true)}>신청 취소</Button>
+    </div> : <p className="text-sm text-gray-500">마감 뒤에 취소하려면 학생회에 문의해 주세요.</p>}
     {error && <StateMessage kind="error">{error}</StateMessage>}
     <Dialog open={confirming} onOpenChange={open => { if (!busy) setConfirming(open) }}>
       <DialogContent>

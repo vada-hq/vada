@@ -14,7 +14,8 @@ const lookupPath = '/api/public/registrations/lookup'
 const cancelPath = '/api/public/registrations/cancel'
 const mine = (overrides: Partial<MyRegistration> = {}): MyRegistration => ({ code: 'ABCD2345', organizationName: '소프트웨어융합대학 학생회',
   event: { name: '2026 체육대회', startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: 'ERICA 체육관' }, name: '김바다',
-  studentId: '2022123456', phone: '01012345678', createdAt: '2026-08-02T14:05', cancelled: false, cancellable: true, ...overrides })
+  studentId: '2022123456', phone: '01012345678', createdAt: '2026-08-02T14:05', closesAt: '2026-08-19T23:59', cancelled: false, cancellable: true,
+  ...overrides })
 function setup(registration: MyRegistration | Response = mine()) {
   const api = mockApi()
   api.on('POST', lookupPath, () => registration instanceof Response ? registration : json(registration))
@@ -31,6 +32,7 @@ test('토큰으로 신청 내용을 보여 주고, 주소를 저장하라고 알
   for (const text of ['2026 체육대회', '8월 20일 (목) 오전 10:00 ~ 오후 6:00', 'ERICA 체육관', '김바다', '2022123456', '010-1234-5678',
     '8월 2일 (일) 오후 2:05', '소프트웨어융합대학 학생회']) expect(screen.getByText(text)).toBeTruthy()
   expect(screen.getByText('이 화면 주소를 저장해 두세요. 신청을 확인하고 취소할 때 필요해요.')).toBeTruthy()
+  expect(screen.getByText('8월 19일 (수) 오후 11:59까지 취소할 수 있어요.')).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '주소 복사' }))
   await waitFor(() => expect(writeText).toHaveBeenCalledWith(window.location.href))
   expect(await screen.findByText('주소를 복사했어요.')).toBeTruthy()

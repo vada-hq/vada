@@ -110,7 +110,7 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
   }
   const myView = ({ registration, form, event, organizationName }: Found): MyRegistration => ({ code: form.code, organizationName,
     event: publicEvent(event), name: registration.name, studentId: registration.studentId, phone: registration.phone,
-    createdAt: koreanOf(registration.createdAt), cancelled: false, cancellable: now() < form.closesAt })
+    createdAt: koreanOf(registration.createdAt), closesAt: koreanOf(form.closesAt), cancelled: false, cancellable: now() < form.closesAt })
   return {
     view: (organizationId: string, eventId: string) => db.transaction(tx => view(tx, organizationId, eventId)),
     // 공개 신청 화면. 다른 신청자에 대해서는 남은 자리 수만 준다.

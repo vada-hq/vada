@@ -107,6 +107,8 @@ export interface MyRegistration {
   studentId: string | null
   phone: string | null
   createdAt: string
+  // 신청 마감(한국 시각). 이때까지 스스로 취소할 수 있다.
+  closesAt: string
   cancelled: boolean
   // 마감 전이면 스스로 취소할 수 있다.
   cancellable: boolean

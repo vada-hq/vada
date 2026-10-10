@@ -35,7 +35,7 @@ function fill({ phone }: { phone?: string } = {}) {
 test('받는 중: 행사 정보·안내·남은 자리·개인정보 고지를 보여 주고, 동의해야 신청 버튼이 켜진다', async () => {
   const { api, onRegistered } = setup()
   await heading()
-  for (const text of ['소프트웨어융합대학 학생회', '8월 20일 (목) 오전 10:00 ~ 오후 6:00', 'ERICA 체육관', '남은 자리 58',
+  for (const text of ['소프트웨어융합대학 학생회', '8월 20일 (목) 오전 10:00 ~ 오후 6:00', 'ERICA 체육관', '남은 자리 58', '신청 마감 8월 19일 (수) 오후 11:59',
     '받는 곳: 소프트웨어융합대학 학생회', '항목: 이름, 학번', '보유 기간: 행사가 끝나고 30일 뒤(2026년 9월 19일) 지워요']) {
     expect(screen.getByText(text)).toBeTruthy()
   }

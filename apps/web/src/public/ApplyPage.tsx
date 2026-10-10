@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { AlertCircle, CalendarDays, MapPin } from 'lucide-react'
+import { AlertCircle, CalendarDays, Clock, MapPin } from 'lucide-react'
 import { dateFromKorean, RegisterSchema, type PublicRegistrationForm, type RegistrationState } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import { PublicLayout } from './PublicLayout'
 import { fetchPublicForm, register } from './public-api'
 import { minePath } from './public-route'
-import { eventTimeText, privacyNotice, registrationFailure, registrationMessage, stateText } from './registration-text'
+import { eventTimeText, formatKoreanTime, privacyNotice, registrationFailure, registrationMessage, stateText } from './registration-text'
 import { savedToken, saveToken } from './saved-tokens'
 
 // 시작 전이면 시작 시각에 다시 불러온다. 기기 시계가 서버보다 빨라 아직 시작 전이라는 답이 오면 잠시 뒤 다시 본다.
@@ -85,6 +85,8 @@ export default function ApplyPage({ code, onRegistered = token => window.locatio
       {time && <p className="flex items-start gap-1.5 text-sm text-gray-600"><CalendarDays aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />{time}</p>}
       {form.event.place && <p className="flex items-start gap-1.5 text-sm wrap-anywhere text-gray-600">
         <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />{form.event.place}</p>}
+      <p className="flex items-start gap-1.5 text-sm text-gray-600"><Clock aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />
+        {`신청 마감 ${formatKoreanTime(form.closesAt)}`}</p>
       {form.state === 'open' && form.remaining !== null && <Badge tone="info" className="self-start">남은 자리 {form.remaining}</Badge>}
       {form.notice && <p className="text-sm whitespace-pre-line wrap-anywhere text-gray-600">{form.notice}</p>}
     </section>
