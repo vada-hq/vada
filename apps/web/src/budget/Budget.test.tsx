@@ -47,11 +47,11 @@ test('오늘이 든 기간을 먼저 열고 숫자·수입 줄·행사·운영 �
 })
 
 test('배정이 수입보다 많으면 경고하고, 재정 권한자에게만 알림을 보여 준다', async () => {
-  const plan = budgetPlan({ totals: { ...budgetPlan().totals, income: 300000 }, notices: { eventsWithSpending: 2, operatingOutside: 1 },
+  const plan = budgetPlan({ totals: { ...budgetPlan().totals, income: 300000 }, notices: { eventsWithMoney: 2, operatingOutside: 1 },
     unassigned: { spent: 3000, count: 1 } })
   setup(true, [budgetPeriod()], plan)
   expect(await screen.findByText('배정이 수입보다 100,000원 많아요')).toBeTruthy()
-  expect(screen.getByText('지출이 있는데 기간에 넣지 않은 행사 2개 — 편성 수정에서 행사를 넣어 주세요.')).toBeTruthy()
+  expect(screen.getByText('지출이나 받은 참가비가 있는데 기간에 넣지 않은 행사 2개 — 편성 수정에서 행사를 넣어 주세요.')).toBeTruthy()
   expect(screen.getByText('어느 기간에도 들지 않는 상시 운영 지출 1건 — 결제일이 들도록 기간 날짜를 확인해 주세요.')).toBeTruthy()
   expect(screen.getByText('운영 항목을 고르지 않은 지출 1건 · 3,000원')).toBeTruthy()
   cleanup()

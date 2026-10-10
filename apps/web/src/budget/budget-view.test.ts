@@ -73,6 +73,7 @@ test('처리 기록 문구', () => {
 test('오류 코드마다 문구가 있고, 모르는 코드는 기본 문구다', () => {
   expect(budgetMessage('PERIOD_OVERLAP')).toBe('다른 회계 기간과 날짜가 겹쳐요.')
   expect(budgetMessage('LINE_IN_USE')).toBe('지출이나 수입이 고른 항목은 지울 수 없어요.')
+  expect(budgetMessage('FEE_INCOME')).toBe('참가비 수입이 들어간 행사는 뺄 수 없어요. 행사 정산을 다시 연 뒤 빼 주세요.')
   expect(budgetMessage('WHAT')).toBe('처리하지 못했어요. 다시 시도해 주세요.')
 })
 

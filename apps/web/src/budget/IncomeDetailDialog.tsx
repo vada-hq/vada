@@ -22,7 +22,7 @@ type Props = {
   onEdit: (income: IncomeDetail) => void
 }
 
-// 수입 상세. 처리 기록을 보여 주고, 재정 권한자는 고치거나 취소한다. 마감한 기간의 수입과 이월금은 고치지 않는다.
+// 수입 상세. 처리 기록을 보여 주고, 재정 권한자는 고치거나 취소한다. 마감한 기간의 수입과 이월금·참가비 수입은 고치지 않는다.
 export default function IncomeDetailDialog({ incomeId, onClose, ...props }: Props) {
   return <Dialog open={incomeId !== null} onOpenChange={open => { if (!open) onClose() }}>
     {incomeId && <DialogContent><Detail key={incomeId} incomeId={incomeId} {...props} /></DialogContent>}
@@ -48,7 +48,9 @@ function Detail({ organizationId, periodId, incomeId, finance, closed, onChanged
     <StateMessage kind="error">수입을 불러오지 못했어요.</StateMessage>
   </>
   const current = income
-  const editable = finance && !current.voided && !closed && current.carriedFrom === null
+  const editable = finance && !current.voided && !closed && current.carriedFrom === null && current.event === null
+  // 앱이 넣은 수입(이월금·참가비 수입)을 바꾸는 방법. 취소된 것이나 마감한 기간의 것에는 붙이지 않는다.
+  const reopenHint = finance && !closed && !current.voided
   const voidValid = VoidIncomeSchema.safeParse({ version: current.version, reason: voidReason ?? '' }).success
   async function cancel() {
     setBusy(true)
@@ -68,7 +70,9 @@ function Detail({ organizationId, periodId, incomeId, finance, closed, onChanged
     </DialogHeader>
     {current.voided && <StateMessage kind="notice">취소됨 · {current.voided.by.name} · {current.voided.reason}</StateMessage>}
     {current.carriedFrom && <StateMessage kind="notice">{`${current.carriedFrom.name} 마감에서 넘어온 이월금이에요.${
-      finance && !closed ? ' 바꾸려면 그 기간 마감을 다시 열어 주세요.' : ''}`}</StateMessage>}
+      reopenHint ? ' 바꾸려면 그 기간 마감을 다시 열어 주세요.' : ''}`}</StateMessage>}
+    {current.event && <StateMessage kind="notice">{`${current.event.name} 정산에서 넣은 참가비예요.${
+      reopenHint ? ' 바꾸려면 그 행사 정산을 다시 열어 주세요.' : ''}`}</StateMessage>}
     {finance && closed && !current.voided && <StateMessage kind="notice">마감한 기간의 수입이라 수정·취소를 할 수 없어요.</StateMessage>}
     <dl className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-sm">{fields.map(([label, value]) => <div key={label} className="contents">
       <dt className="text-gray-500">{label}</dt><dd className="col-span-2 wrap-anywhere text-gray-900">{value}</dd></div>)}</dl>

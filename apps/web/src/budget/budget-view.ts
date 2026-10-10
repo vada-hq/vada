@@ -29,13 +29,14 @@ export const shareText = (received: number, amount: number) => amount === 0 ? nu
 export const periodDayText = (day: string) => `${Number(day.slice(0, 4))}.${Number(day.slice(5, 7))}.${Number(day.slice(8, 10))}`
 
 export type DraftLine = { key: string; id: string | null; name: string; amount: string }
-export type DraftEvent = { eventId: string; name: string; version: number; settled: boolean; budget: number | null; amount: string }
+// feeIncome: 참가비 수입이 들어간 행사. 기간에서 뺄 수 없다(후보에는 없다).
+export type DraftEvent = { eventId: string; name: string; version: number; settled: boolean; budget: number | null; amount: string; feeIncome: boolean }
 export type PlanDraft = { name: string; startsOn: string; endsOn: string; incomes: DraftLine[]; operating: DraftLine[]; events: DraftEvent[] }
 const amountText = (value: number | null) => value === null ? '' : value.toLocaleString('ko-KR')
 let keys = 0
 export const newLine = (): DraftLine => ({ key: `new-${++keys}`, id: null, name: '', amount: '' })
-export const eventDraft = (entry: { eventId: string; name: string; version: number; settled: boolean; budget: number | null }): DraftEvent =>
-  ({ ...entry, amount: amountText(entry.budget) })
+export const eventDraft = (entry: { eventId: string; name: string; version: number; settled: boolean; budget: number | null; feeIncome?: boolean }):
+  DraftEvent => ({ ...entry, feeIncome: entry.feeIncome ?? false, amount: amountText(entry.budget) })
 export function draftOf(plan: BudgetPlanResponse): PlanDraft {
   const line = ({ id, name, amount }: { id: string; name: string; amount: number }): DraftLine => ({ key: id, id, name, amount: amountText(amount) })
   return { name: plan.period.name, startsOn: plan.period.startsOn, endsOn: plan.period.endsOn, incomes: plan.incomes.map(line),
@@ -138,6 +139,7 @@ export const budgetErrors: Record<string, string> = {
   EVENT_IN_OTHER_PERIOD: '다른 회계 기간에 넣은 행사예요. 그 기간에서 먼저 빼 주세요.',
   EVENT_SETTLED: '정산이 끝난 행사의 예산은 바꿀 수 없어요.',
   LINE_IN_USE: '지출이나 수입이 고른 항목은 지울 수 없어요.',
+  FEE_INCOME: '참가비 수입이 들어간 행사는 뺄 수 없어요. 행사 정산을 다시 연 뒤 빼 주세요.',
   EXPENSES_OUTSIDE_PERIOD: '운영 항목을 고른 지출이 기간 밖으로 나가요. 날짜를 확인해 주세요.',
   INCOMES_OUTSIDE_PERIOD: '이 기간의 수입이 기간 밖으로 나가요. 날짜를 확인해 주세요.',
   EXPORT_TOO_LARGE: '기록이 너무 많아 엑셀로 만들 수 없어요.',

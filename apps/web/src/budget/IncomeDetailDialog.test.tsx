@@ -71,3 +71,26 @@ test('이월금은 넘겨준 기간을 알리고 고칠 수 없으며, 재정 �
   const plain = await screen.findByRole('dialog', { name: '2026년 1학기 이월금 · 88,000원' })
   expect(within(plain).getByText('2026년 1학기 마감에서 넘어온 이월금이에요.')).toBeTruthy()
 })
+
+test('참가비 수입은 행사 정산에서 넣었다고 알리고 고칠 수 없으며, 재정 권한자에게는 다시 여는 방법을 덧붙인다', async () => {
+  const fee = incomeDetail({ description: '체육대회 참가비', amount: 14000, note: '입금 확인 2명', event: { id: 'e', name: '체육대회' } })
+  setup(fee)
+  const dialog = await screen.findByRole('dialog', { name: '체육대회 참가비 · 14,000원' })
+  expect(within(dialog).getByText('체육대회 정산에서 넣은 참가비예요. 바꾸려면 그 행사 정산을 다시 열어 주세요.')).toBeTruthy()
+  for (const name of ['수정', '수입 취소']) expect(within(dialog).queryByRole('button', { name })).toBeNull()
+  cleanup()
+  setup(fee, false)
+  const plain = await screen.findByRole('dialog', { name: '체육대회 참가비 · 14,000원' })
+  expect(within(plain).getByText('체육대회 정산에서 넣은 참가비예요.')).toBeTruthy()
+})
+
+test('취소된 참가비 수입과 이월금에는 다시 여는 방법을 덧붙이지 않는다', async () => {
+  const voided = { by: { id: 'f', name: '재정' }, at: '2026-10-10T03:00:00.000Z', reason: '체육대회 정산을 다시 열었어요' }
+  setup(incomeDetail({ description: '체육대회 참가비', amount: 14000, event: { id: 'e', name: '체육대회' }, voided }))
+  const fee = await screen.findByRole('dialog', { name: '체육대회 참가비 · 14,000원' })
+  expect(within(fee).getByText('체육대회 정산에서 넣은 참가비예요.')).toBeTruthy()
+  cleanup()
+  setup(incomeDetail({ description: '2026년 1학기 이월금', amount: 88000, carriedFrom: { id: 'p0', name: '2026년 1학기' }, voided }))
+  const carried = await screen.findByRole('dialog', { name: '2026년 1학기 이월금 · 88,000원' })
+  expect(within(carried).getByText('2026년 1학기 마감에서 넘어온 이월금이에요.')).toBeTruthy()
+})

@@ -64,14 +64,19 @@ export default function BudgetPlanForm({ plan, onCancel, onSave }: Props) {
     <section aria-label="행사 예산" className={cn(cardClass, 'flex flex-col gap-3 p-4')}>
       <h3 className="text-sm font-semibold text-gray-900">행사 예산</h3>
       {draft.events.length > 0 && <ul className="flex flex-col gap-3">{draft.events.map(line => <li key={line.eventId} aria-label={line.name}
-        className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <span className="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">{line.name}</span>
-        {line.settled
-          ? <span className="flex items-center gap-2 text-sm text-gray-700">{budgetText(line.budget)}<Badge tone="success">정산 완료</Badge></span>
-          : <Label className="flex flex-col gap-1.5 sm:w-40">예산(원)
-            <Input inputMode="numeric" value={line.amount} onChange={event => setDraft({ ...draft,
-              events: draft.events.map(item => item.eventId === line.eventId ? { ...item, amount: event.target.value } : item) })} /></Label>}
-        <Button variant="outline" size="sm" onClick={() => setDraft({ ...draft, events: draft.events.filter(item => item.eventId !== line.eventId) })}>빼기</Button>
+        className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <span className="min-w-0 flex-1 text-sm font-medium wrap-anywhere text-gray-900">{line.name}</span>
+          {line.settled
+            ? <span className="flex items-center gap-2 text-sm text-gray-700">{budgetText(line.budget)}<Badge tone="success">정산 완료</Badge></span>
+            : <Label className="flex flex-col gap-1.5 sm:w-40">예산(원)
+              <Input inputMode="numeric" value={line.amount} onChange={event => setDraft({ ...draft,
+                events: draft.events.map(item => item.eventId === line.eventId ? { ...item, amount: event.target.value } : item) })} /></Label>}
+          {/* 참가비 수입이 들어간 행사는 빼지 않는다. 서버도 막는다. */}
+          <Button variant="outline" size="sm" disabled={line.feeIncome}
+            onClick={() => setDraft({ ...draft, events: draft.events.filter(item => item.eventId !== line.eventId) })}>빼기</Button>
+        </div>
+        {line.feeIncome && <p className="text-xs text-gray-500">참가비 수입이 들어간 행사예요. 빼려면 행사 정산을 다시 열어 주세요.</p>}
       </li>)}</ul>}
       {pool.length > 0 && <div className="flex items-end gap-2">
         <Label className="flex min-w-0 flex-1 flex-col gap-1.5">넣을 행사

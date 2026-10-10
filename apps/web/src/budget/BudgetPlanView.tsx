@@ -67,8 +67,8 @@ export default function BudgetPlanView({ plan, finance, onOpenEvent, onOpenIncom
         {finance && <p>빠진 수입 기록이 없는지 확인해 주세요.</p>}
       </Alert>
       : <p className="text-sm text-gray-700">실제 수입 {won(totals.received)} · 남은 돈 {won(totals.balance)}</p>}
-    {finance && (plan.notices.eventsWithSpending > 0 || plan.notices.operatingOutside > 0) && <Alert tone="info" className="flex flex-col gap-1">
-      {plan.notices.eventsWithSpending > 0 && <p>지출이 있는데 기간에 넣지 않은 행사 {plan.notices.eventsWithSpending}개 — 편성 수정에서 행사를 넣어 주세요.</p>}
+    {finance && (plan.notices.eventsWithMoney > 0 || plan.notices.operatingOutside > 0) && <Alert tone="info" className="flex flex-col gap-1">
+      {plan.notices.eventsWithMoney > 0 && <p>지출이나 받은 참가비가 있는데 기간에 넣지 않은 행사 {plan.notices.eventsWithMoney}개 — 편성 수정에서 행사를 넣어 주세요.</p>}
       {plan.notices.operatingOutside > 0 && <p>어느 기간에도 들지 않는 상시 운영 지출 {plan.notices.operatingOutside}건 — 결제일이 들도록 기간 날짜를 확인해 주세요.</p>}
     </Alert>}
     {finance && !plan.period.closed && plan.closing.ended && <ClosingChecklist key={`closing-${plan.period.id}`} plan={plan} onClose={onClosePeriod} />}

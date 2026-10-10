@@ -84,3 +84,14 @@ test('수입이 고른 수입 줄은 지우기가 꺼지고 이유를 적는다'
   expect(within(row).getByRole('button', { name: '지우기' }).hasAttribute('disabled')).toBe(true)
   expect(within(row).getByText('이 항목을 고른 수입이 있어요')).toBeTruthy()
 })
+
+test('참가비 수입이 들어간 행사는 빼기가 꺼지고 다시 여는 방법을 적는다', () => {
+  setup(budgetPlan({ events: [budgetEventLine({ settled: true, feeIncome: true }), budgetEventLine({ eventId: 'e3', name: '개강총회', settled: true })] }))
+  const events = section('행사 예산')
+  const linked = within(events).getByRole('listitem', { name: '체육대회' })
+  expect(within(linked).getByRole('button', { name: '빼기' }).hasAttribute('disabled')).toBe(true)
+  expect(within(linked).getByText('참가비 수입이 들어간 행사예요. 빼려면 행사 정산을 다시 열어 주세요.')).toBeTruthy()
+  const plain = within(events).getByRole('listitem', { name: '개강총회' })
+  expect(within(plain).getByRole('button', { name: '빼기' }).hasAttribute('disabled')).toBe(false)
+  expect(within(plain).queryByText(/참가비 수입이 들어간/)).toBeNull()
+})
