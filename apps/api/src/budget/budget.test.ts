@@ -86,7 +86,7 @@ test('편성 읽기: 줄·숫자·후보·알림을 준다. 행사 줄은 행사
     assert.deepEqual(plan.incomes, [{ id: 'li', name: '학생회비', amount: 800000, received: 0, incomeCount: 0 }])
     // 가짜 생성기의 승인 품목은 수량 2, 예상 단가 11,590원이다.
     assert.deepEqual(plan.events, [{ eventId: 'e', name: '체육대회', budget: 300000, spent: 57000, planned: 23180, plannedUnknown: 0,
-      remaining: 219820, settled: false, version: 1 }])
+      remaining: 219820, settled: false, version: 1, feeIncome: false }])
     assert.deepEqual(plan.operating, [{ id: 'lo1', name: '회의비', amount: 100000, spent: 12000, remaining: 88000, expenseCount: 1 },
       { id: 'lo2', name: '소모품', amount: 50000, spent: 0, remaining: 50000, expenseCount: 0 }])
     assert.deepEqual(plan.unassigned, { spent: 3000, count: 1 })
@@ -94,7 +94,7 @@ test('편성 읽기: 줄·숫자·후보·알림을 준다. 행사 줄은 행사
       remaining: 450000 - 72000 - 23180, balance: -72000 })
     assert.deepEqual([plan.unassignedIncome, plan.incomeRecords, plan.incomeRecordsTruncated], [{ received: 0, count: 0 }, [], false])
     assert.deepEqual(plan.candidates, [{ eventId: 'e2', name: '축제', budget: null, version: 0, settled: false, spent: 6000 }])
-    assert.deepEqual(plan.notices, { eventsWithSpending: 1, operatingOutside: 1 })
+    assert.deepEqual(plan.notices, { eventsWithMoney: 1, operatingOutside: 1 })
   } finally { await pg.close() }
 })
 

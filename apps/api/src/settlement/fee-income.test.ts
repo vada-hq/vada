@@ -153,3 +153,62 @@ test('받은 참가비가 0원이면 기간 없이 정산하고 수입을 만들
     assert.deepEqual([[...income!.description].length, income!.description.endsWith('… 참가비')], [100, true])
   } finally { await env.pg.close() }
 })
+
+test('참가비 수입은 고치거나 취소할 수 없고, 수입 응답에 행사가 붙는다', async () => {
+  const env = await setupPurchases()
+  try {
+    await charged(env)
+    const { spring, feeLine } = await periods(env)
+    const { feeIncome } = (await env.ok<EventFinanceResponse>(settle(env, 0, feeLine.id))).finance
+    const path = `/budget/periods/${spring.period.id}/incomes`
+    const { income } = await env.ok<IncomeResponse>(env.request('GET', `${path}/${feeIncome!.id}`))
+    assert.deepEqual(income.event, { id: 'e', name: '체육대회' })
+    const plain = (await env.ok<IncomeResponse>(env.request('POST', path, { description: '학생회비', amount: 100000, receivedOn: '2999-03-10',
+      budgetLineId: null, note: null }), 201)).income
+    assert.equal(plain.event, null)
+    await refused(env.request('PATCH', `${path}/${income.id}`, { version: income.version, description: income.description, amount: income.amount,
+      receivedOn: income.receivedOn, budgetLineId: feeLine.id, note: income.note }), 409, 'FEE_INCOME')
+    await refused(env.request('POST', `${path}/${income.id}/void`, { version: income.version, reason: '잘못 넣음' }), 409, 'FEE_INCOME')
+  } finally { await env.pg.close() }
+})
+
+test('편성 수정: 참가비 수입이 있는 행사는 빼지 못하고, 고른 수입 줄과 날짜도 지킨다', async () => {
+  const env = await setupPurchases()
+  try {
+    await charged(env)
+    const { spring, feeLine } = await periods(env)
+    const settled = (await env.ok<EventFinanceResponse>(settle(env, 0, feeLine.id))).finance
+    const plan = await env.ok<BudgetPlanResponse>(env.request('GET', `/budget/periods/${spring.period.id}`))
+    assert.deepEqual(plan.events.map(line => [line.eventId, line.feeIncome]), [['e', true]])
+    await refused(save(env, plan, { events: [] }), 409, 'FEE_INCOME')
+    await refused(save(env, plan, { incomes: plan.incomes.filter(line => line.id !== feeLine.id).map(({ id, name, amount }) => ({ id, name, amount })) }),
+      409, 'LINE_IN_USE')
+    // 참가비 수입의 받은 날은 2999-08-10이다.
+    await refused(save(env, plan, { endsOn: '2999-08-09' }), 409, 'INCOMES_OUTSIDE_PERIOD')
+    await env.ok(env.request('POST', '/events/e/finance/reopen', { version: settled.version, reason: '기간 옮김' }))
+    const reopened = await env.ok<BudgetPlanResponse>(env.request('GET', `/budget/periods/${spring.period.id}`))
+    assert.deepEqual(reopened.events.map(line => [line.eventId, line.feeIncome]), [['e', false]])
+    assert.deepEqual((await env.ok<BudgetPlanResponse>(save(env, reopened, { events: [] }))).events, [])
+  } finally { await env.pg.close() }
+})
+
+test('알림: 받은 참가비만 있고 기간에 넣지 않은 행사도 센다', async () => {
+  const env = await setupPurchases()
+  try {
+    await prepare(env)
+    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-21T10:00', endsAt: '2999-08-21T18:00', place: '강당' }))
+    const { form } = await env.ok<RegistrationResponse>(env.request('POST', '/events/e2/registration', formBody({ fee: 5000 })), 201)
+    await apply(env, form!.code, '이윤슬', '2023000003')
+    const [entry] = (await env.ok<RegistrationResponse>(env.request('GET', '/events/e2/registration'))).registrations
+    const payment = `/events/e2/registration/entries/${entry!.id}/payment`
+    await env.ok(env.request('POST', payment, {}))
+    env.as('f')
+    const period = await createPeriod(env, '2999년 1학기', '2999-03-01', '2999-08-31')
+    const noticesOf = async () => (await env.ok<BudgetPlanResponse>(env.request('GET', `/budget/periods/${period.period.id}`))).notices
+    assert.deepEqual(await noticesOf(), { eventsWithMoney: 1, operatingOutside: 0 })
+    env.as('p')
+    await env.ok(env.request('POST', `${payment}/cancel`, {}))
+    env.as('f')
+    assert.deepEqual(await noticesOf(), { eventsWithMoney: 0, operatingOutside: 0 })
+  } finally { await env.pg.close() }
+})

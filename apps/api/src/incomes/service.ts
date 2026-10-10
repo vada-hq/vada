@@ -3,7 +3,7 @@ import { and, asc, desc, eq, isNull, sql, type SQL } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { codePoints, INCOME_DESCRIPTION_MAX, koreanOf, type CreateIncomeRequest, type EventFeeIncome, type IncomeAction, type IncomeDetail,
   type IncomeSummary, type UpdateIncomeRequest, type VoidIncomeRequest } from '@vada/contracts'
-import { budgetLines, budgetPeriods, incomeEvents, incomes, users } from '../db/schema.js'
+import { budgetLines, budgetPeriods, events, incomeEvents, incomes, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
 
@@ -17,15 +17,17 @@ const voiders = alias(users, 'income_voiders')
 const actors = alias(users, 'income_actors')
 const lines = alias(budgetLines, 'income_budget_lines')
 const sources = alias(budgetPeriods, 'income_sources')
+const feeEvents = alias(events, 'income_fee_events')
 
 // 상세·변경 응답과 예산 화면의 수입 내역이 같은 칸을 쓴다. 받은 날·기록이 최근인 순이다.
 export async function incomeSummaries(db: Reader, organizationId: string, where: SQL | undefined, limit: number): Promise<IncomeSummary[]> {
   const rows = await db.select({ income: incomes, lineName: lines.name, recorderName: recorders.name, voiderName: voiders.name,
-    sourceName: sources.name }).from(incomes)
+    sourceName: sources.name, eventName: feeEvents.name }).from(incomes)
     .leftJoin(lines, and(eq(lines.id, incomes.budgetLineId), eq(lines.organizationId, incomes.organizationId)))
     .innerJoin(recorders, eq(recorders.id, incomes.recordedBy))
     .leftJoin(voiders, eq(voiders.id, incomes.voidedBy))
     .leftJoin(sources, and(eq(sources.id, incomes.carriedFromPeriodId), eq(sources.organizationId, incomes.organizationId)))
+    .leftJoin(feeEvents, and(eq(feeEvents.id, incomes.eventId), eq(feeEvents.organizationId, incomes.organizationId)))
     .where(and(eq(incomes.organizationId, organizationId), where))
     .orderBy(desc(incomes.receivedOn), desc(incomes.createdAt), desc(incomes.id)).limit(limit)
   return rows.map(({ income, ...row }) => ({
@@ -35,6 +37,7 @@ export async function incomeSummaries(db: Reader, organizationId: string, where:
     voided: income.voidedAt && income.voidedBy && income.voidReason
       ? { by: { id: income.voidedBy, name: row.voiderName ?? '' }, at: income.voidedAt.toISOString(), reason: income.voidReason } : null,
     carriedFrom: income.carriedFromPeriodId ? { id: income.carriedFromPeriodId, name: row.sourceName ?? '' } : null,
+    event: income.eventId ? { id: income.eventId, name: row.eventName ?? '' } : null,
     version: income.version, createdAt: income.createdAt.toISOString(), updatedAt: income.updatedAt.toISOString(),
   }))
 }
@@ -60,12 +63,13 @@ async function lockPeriod(tx: Transaction, scope: IncomeScope, periodId: string)
   if (period.closedAt) throw new ApiError('PERIOD_CLOSED', 409)
   return period
 }
-// 수입 행을 잠가 버전과 상태를 본다. 이월금은 앞 기간 마감을 다시 열어야만 바뀐다.
+// 수입 행을 잠가 버전과 상태를 본다. 이월금은 앞 기간 마감을, 참가비 수입은 행사 정산을 다시 열어야만 바뀐다.
 async function lockIncome(tx: Transaction, scope: IncomeScope, periodId: string, incomeId: string, version: number) {
   const [row] = await tx.select().from(incomes)
     .where(and(eq(incomes.organizationId, scope.organizationId), eq(incomes.periodId, periodId), eq(incomes.id, incomeId))).for('update')
   if (!row) throw new ApiError('NOT_FOUND', 404)
   if (row.carriedFromPeriodId) throw new ApiError('CARRYOVER_INCOME', 409)
+  if (row.eventId) throw new ApiError('FEE_INCOME', 409)
   if (row.version !== version) throw new ApiError('VERSION_CONFLICT', 409)
   if (row.voidedAt) throw new ApiError('INVALID_STATE', 409)
   return row

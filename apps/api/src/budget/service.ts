@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto'
-import { and, asc, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, exists, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_PERIODS_MAX, INCOME_RECORDS_MAX, type BudgetChange, type BudgetPeriodAction,
   type BudgetPeriodsResponse, type BudgetPlanResponse, type ClosePeriodRequest, type CreateBudgetPeriodRequest, type ReopenPeriodRequest,
   type SaveBudgetPlanRequest } from '@vada/contracts'
 import { budgetLines, budgetPeriodEvents, budgetPeriods, eventFinances, events, expenseReceipts, expenses, incomes, organizations,
-  users } from '../db/schema.js'
+  registrationForms, registrations, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { incomeSummaries, insertCarryover, voidCarryover } from '../incomes/service.js'
 import { requireFinance } from '../purchases/review.js'
@@ -70,17 +70,24 @@ async function candidatesOf(db: Reader, scope: BudgetScope) {
   return rows.map(row => ({ eventId: row.id, name: row.name, budget: row.budget ?? null, version: row.version ?? 0,
     settled: row.settledAt !== null, spent: numbers.get(row.id)!.spent }))
 }
-// 학생회 전체 알림: 지출이 있는데 기간에 넣지 않은 행사 수, 결제일이 어느 기간에도 들지 않는 상시 운영 지출 수.
+// 학생회 전체 알림: 지출이나 받은 참가비가 있는데 기간에 넣지 않은 행사 수, 결제일이 어느 기간에도 들지 않는 상시 운영 지출 수.
+// 정산하지 않고 기간에도 넣지 않은 행사의 돈은 마감 조건에 걸리지 않아 장부에서 빠질 수 있다.
 async function noticesOf(db: Reader, scope: BudgetScope) {
-  const [outsideEvents] = await db.select({ count: sql<number>`count(distinct ${expenses.eventId})::int` }).from(expenses)
-    .leftJoin(budgetLines, eq(budgetLines.eventId, expenses.eventId))
-    .where(and(eq(expenses.organizationId, scope.organizationId), isNotNull(expenses.eventId), isNull(expenses.voidedAt), isNull(budgetLines.id)))
+  // 바깥 행사를 가리키는 하위 질의는 질의 빌더로 만든다.
+  const spending = db.select({ one: sql`1` }).from(expenses)
+    .where(and(eq(expenses.organizationId, events.organizationId), eq(expenses.eventId, events.id), isNull(expenses.voidedAt)))
+  const fees = db.select({ one: sql`1` }).from(registrations)
+    .innerJoin(registrationForms, and(eq(registrationForms.id, registrations.formId), eq(registrationForms.organizationId, registrations.organizationId)))
+    .where(and(eq(registrationForms.organizationId, events.organizationId), eq(registrationForms.eventId, events.id), isNotNull(registrations.paidAt)))
+  const [outsideEvents] = await db.select({ count: sql<number>`count(*)::int` }).from(events)
+    .leftJoin(budgetLines, eq(budgetLines.eventId, events.id))
+    .where(and(eq(events.organizationId, scope.organizationId), isNull(budgetLines.id), or(exists(spending), exists(fees))))
   // 바깥 지출을 가리키는 하위 질의는 질의 빌더로 만든다.
   const [outsideOperating] = await db.select({ count: sql<number>`count(*)::int` }).from(expenses)
     .where(and(eq(expenses.organizationId, scope.organizationId), isNull(expenses.eventId), isNull(expenses.voidedAt),
       notExists(db.select({ one: sql`1` }).from(budgetPeriods).where(and(eq(budgetPeriods.organizationId, expenses.organizationId),
         lte(budgetPeriods.startsOn, expenses.paidOn), gte(budgetPeriods.endsOn, expenses.paidOn))))))
-  return { eventsWithSpending: outsideEvents!.count, operatingOutside: outsideOperating!.count }
+  return { eventsWithMoney: outsideEvents!.count, operatingOutside: outsideOperating!.count }
 }
 async function historyOf(db: Reader, scope: BudgetScope, periodId: string) {
   const rows = await db.select({ entry: budgetPeriodEvents, actorName: actors.name }).from(budgetPeriodEvents)
@@ -113,13 +120,17 @@ export async function periodNumbers(db: Reader, scope: BudgetScope, period: Peri
   const eventIds = ofKind('event').map(({ line }) => line.eventId!)
   const numbers = await financeNumbersByEvent(db, scope, eventIds)
   const finances = await financeRows(db, scope, eventIds)
+  // 참가비 수입(취소하지 않은 것)이 있는 행사는 기간에서 뺄 수 없다.
+  const feeIncomes = eventIds.length ? await db.select({ eventId: incomes.eventId }).from(incomes)
+    .where(and(eq(incomes.organizationId, scope.organizationId), inArray(incomes.eventId, eventIds), isNull(incomes.voidedAt))) : []
+  const withFeeIncome = new Set(feeIncomes.map(row => row.eventId))
   const eventLines = ofKind('event').map(({ line, eventName }) => {
     const finance = finances.get(line.eventId!)
     const counted = numbers.get(line.eventId!)!
     const budget = finance?.budget ?? null
     return { eventId: line.eventId!, name: eventName ?? '', budget, spent: counted.spent, planned: counted.planned,
       plannedUnknown: counted.plannedUnknown, remaining: budget === null ? null : budget - counted.spent - counted.planned,
-      settled: Boolean(finance?.settledAt), version: finance?.version ?? 0 }
+      settled: Boolean(finance?.settledAt), version: finance?.version ?? 0, feeIncome: withFeeIncome.has(line.eventId!) }
   })
   // 운영 줄: 그 항목을 고른 지출 가운데 취소하지 않은 것. 고를 때 결제일이 기간 안인지 확인하므로 날짜로 다시 거르지 않는다.
   const operatingIds = ofKind('operating').map(({ line }) => line.id)
@@ -245,7 +256,13 @@ async function applyEvents(tx: Transaction, scope: BudgetScope, periodId: string
   const budgetOf = (eventId: string) => before.get(eventId)?.budget ?? null
   const changing = (entry: SaveBudgetPlanRequest['events'][number]) => entry.budget !== undefined && entry.budget !== budgetOf(entry.eventId)
   const removed = current.filter(line => !wanted.has(line.eventId!))
-  if (removed.length) await tx.delete(budgetLines).where(inArray(budgetLines.id, removed.map(line => line.id)))
+  if (removed.length) {
+    // 참가비 수입이 있는 행사는 빼지 않는다. 지출은 행사를 따라 기간을 옮기지만 수입은 기간에 붙어 있어 둘이 갈라진다.
+    const [linked] = await tx.select({ id: incomes.id }).from(incomes).where(and(eq(incomes.organizationId, scope.organizationId),
+      inArray(incomes.eventId, removed.map(line => line.eventId!)), isNull(incomes.voidedAt))).limit(1)
+    if (linked) throw new ApiError('FEE_INCOME', 409)
+    await tx.delete(budgetLines).where(inArray(budgetLines.id, removed.map(line => line.id)))
+  }
   for (const entry of [...input].sort((a, b) => (a.eventId < b.eventId ? -1 : 1))) {
     if (changing(entry)) await changeEventBudget(tx, scope, entry.eventId, entry.version, entry.budget!)
   }
