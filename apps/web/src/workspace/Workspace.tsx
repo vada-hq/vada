@@ -56,6 +56,8 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     onMembershipsChanged?.()
   }, [viewer, membership, onMembershipsChanged])
   const [selected, setSelected] = useState<EventSummary | null>(null)
+  // 고른 행사는 목록의 최신 값으로 보여 준다. 참가자 탭에서 일시·장소를 고치면 목록이 바뀐다.
+  const current = selected && (events.events?.find(item => item.id === selected.id) ?? selected)
   // 행사 화면이 처음 열 탭. 옆 메뉴로 고르면 대화, 예산 화면에서 열면 재정이다.
   const [eventTab, setEventTab] = useState<'chat' | 'finance'>('chat')
   const [leaveRisk, setLeaveRisk] = useState(false)
@@ -134,8 +136,9 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
           : view === 'budget' ? <Budget organizationId={membership.organization.id} finance={finance} onOpenEvent={openEventFinance} />
           : view === 'expenses' ? <Expenses organizationId={membership.organization.id} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} state={expenses} />
-          : selected ? <EventWorkspace key={selected.id} event={selected} finance={finance} viewerMembershipId={membership.id}
-            events={events.events ?? []} onLeaveRiskChange={setLeaveRisk} initialTab={eventTab} />
+          : current ? <EventWorkspace key={current.id} event={current} finance={finance} viewerMembershipId={membership.id}
+            events={events.events ?? []} onLeaveRiskChange={setLeaveRisk} manageEvents={membership.permissions.manageEvents}
+            onEventChange={events.replace} onEventStale={events.refresh} initialTab={eventTab} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
           </Card></div>}

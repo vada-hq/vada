@@ -72,5 +72,7 @@ export function useEvents(organizationId: string) {
   }
 
   return { events, loading, loadError, name, setName, saving, createError, create,
-    refresh: () => setAttempt(value => value + 1) }
+    refresh: () => setAttempt(value => value + 1),
+    // 행사 정보를 고친 응답으로 목록의 그 행사를 바꾼다.
+    replace: (event: EventSummary) => setEvents(previous => previous?.map(item => item.id === event.id ? event : item) ?? previous) }
 }

@@ -304,7 +304,7 @@ test('사용 내역은 구성원 누구나 옆 메뉴에서 열고, 열 때 지�
   expect(screen.queryByRole('button', { name: '지출 기록' })).toBeNull()
   expect(fetcher).toHaveBeenCalledWith('/api/organizations/o1/expenses', expect.anything())
 })
-test('재정 탭은 처음 고를 때 불러오고 다시 고를 때마다 새로 불러오며, 키보드로 세 탭을 오간다', async () => {
+test('재정 탭은 처음 고를 때 불러오고 다시 고를 때마다 새로 불러오며, 키보드로 탭을 오간다', async () => {
   const fetcher = setup()
   render(<Workspace {...props} />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
@@ -318,7 +318,10 @@ test('재정 탭은 처음 고를 때 불러오고 다시 고를 때마다 새�
   fireEvent.keyDown(screen.getByRole('tab', { name: '대화' }), { key: 'End' })
   expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true')
   await waitFor(() => expect(financeCalls()).toBe(2))
+  // 참가자 탭이 재정 바로 앞에 있다.
   fireEvent.keyDown(screen.getByRole('tab', { name: '재정' }), { key: 'ArrowLeft' })
+  expect(screen.getByRole('tab', { name: '참가자' }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.keyDown(screen.getByRole('tab', { name: '참가자' }), { key: 'ArrowLeft' })
   expect(screen.getByRole('tab', { name: '구매' }).getAttribute('aria-selected')).toBe('true')
   fireEvent.keyDown(screen.getByRole('tab', { name: '구매' }), { key: 'Home' })
   expect(screen.getByRole('tab', { name: '대화' }).getAttribute('aria-selected')).toBe('true')
@@ -336,4 +339,17 @@ test('예산은 구성원 누구나 옆 메뉴에서 열고, 행사 이름을 �
     await waitFor(() => expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true'))
     await waitFor(() => expect(fetcher).toHaveBeenCalledWith('/api/organizations/o1/events/e1/finance', expect.anything()))
   } finally { vi.useRealTimers() }
+})
+
+test('부서가 있으면 행사 탭에 참가자가 재정 앞에 있고, 미배정이면 참가자 탭이 없다', async () => {
+  setup()
+  render(<Workspace {...props} />)
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['대화', '구매', '참가자', '재정'])
+  cleanup()
+  setup()
+  const unassigned: MembershipSummary = { ...membership, department: null, permissions: { ...membership.permissions, manageEvents: false } }
+  render(<Workspace {...props} memberships={[unassigned]} />)
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['대화', '구매', '재정'])
 })
