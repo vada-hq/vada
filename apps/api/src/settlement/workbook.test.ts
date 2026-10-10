@@ -10,7 +10,7 @@ const uploadedAt = new Date('2026-10-09T09:40:00Z')
 const receiptUrl = 'https://vada.test/api/organizations/a/expenses/x1/receipts/r1/file'
 const data: SettlementSheetData = {
   organizationName: '검증 학생회', eventName: '체육대회', settled: { by: '재정', at: uploadedAt }, exportedAt: new Date('2026-10-10T01:05:00Z'),
-  budget: 100000, planned: 0, plannedUnknown: 0, voidedCount: 1,
+  budget: 100000, planned: 0, plannedUnknown: 0, voidedCount: 1, fees: null, feeIncome: null,
   expenses: [
     { paidOn: '2026-10-01', vendor: '=1+1', description: '물품', amount: 46000, method: 'council_card', payer: '재정', note: null, recordedBy: '재정',
       receipts: [{ kind: 'receipt', fileName: '영수증 (1).jpg', uploadedBy: '재정', uploadedAt, url: receiptUrl },
@@ -35,6 +35,21 @@ test('정산서 요약: 숫자·정산 상태·결제 수단별 합계를 값으
   assert.deepEqual([row('지출 건수'), row('증빙 누락')], [['2'], ['1']])
   assert.deepEqual([row('학생회 카드'), row('계좌이체'), row('현금'), row('개인 결제(환급 필요)')], [['46000'], ['0'], ['0'], ['60000']])
   assert.ok(summary.some(cells => cells[0] === '취소한 지출 1건은 넣지 않았어요.'))
+  // 참가비를 받지 않는 행사에는 참가비 묶음이 없다.
+  assert.equal(summary.some(cells => ['참가비', '받은 참가비', '참가비 수입'].includes(cells[0] ?? '')), false)
+})
+
+test('참가비가 있으면 요약에 받은 참가비와 넣은 수입을 적는다', async () => {
+  const charged = { ...data, fees: { received: 14000, count: 2 }, feeIncome: { period: '2999년 1학기', line: '행사 참가비' } }
+  const summary = readBook(await settlementWorkbook(charged)).rows(0)
+  const row = valuesOf(summary)
+  assert.ok(summary.some(cells => cells.length === 1 && cells[0] === '참가비'))
+  assert.deepEqual([row('받은 참가비'), row('참가비 수입')], [['14000', '입금 확인 2명'], ['2999년 1학기 수입 · 행사 참가비']])
+  // 수입 항목을 고르지 않았으면 기간만 적고, 정산 전(참가비 수입 없음)이면 그 줄이 없다.
+  const plain = valuesOf(readBook(await settlementWorkbook({ ...charged, feeIncome: { period: '2999년 1학기', line: null } })).rows(0))
+  assert.deepEqual(plain('참가비 수입'), ['2999년 1학기 수입'])
+  const before = readBook(await settlementWorkbook({ ...charged, settled: null, feeIncome: null })).rows(0)
+  assert.deepEqual([valuesOf(before)('받은 참가비'), before.some(cells => cells[0] === '참가비 수입')], [['14000', '입금 확인 2명'], false])
 })
 
 test('정산서 시트: 지출은 번호·날짜 칸·문자 칸으로 쓰고 합계를 값으로 둔다. 증빙과 품목은 지출 번호로 잇는다', async () => {

@@ -122,12 +122,16 @@ function paymentOf({ registration, form }: Found, account: FeeAccount | null): M
 
 export function createRegistrationService(db: RegistrationDatabase, now: () => Date) {
   // 운영진 화면이 받는 것. 먼저 보관 기간이 지난 정보를 지운다. 학생회비 명단은 이름과 기한만 준다.
+  // 정산이 끝난 행사면 화면이 입금·참가비 버튼을 감춘다(서버는 EVENT_SETTLED로 막는다).
   async function view(tx: Writer, organizationId: string, eventId: string): Promise<RegistrationResponse> {
     const event = await eventOf(tx, organizationId, eventId)
     const form = await formOf(tx, organizationId, eventId)
     const account = await feeAccountOf(tx, organizationId)
     const roster = await activeRoster(tx, organizationId, koreanToday(now()))
-    if (!form) return { form: null, registrations: [], account, roster }
+    const [finance] = await tx.select({ settledAt: eventFinances.settledAt }).from(eventFinances)
+      .where(and(eq(eventFinances.organizationId, organizationId), eq(eventFinances.eventId, eventId)))
+    const settled = Boolean(finance?.settledAt)
+    if (!form) return { form: null, registrations: [], account, roster, settled }
     await purgeExpired(tx, form.id)
     const rows = await tx.select({ registration: registrations, confirmerName: confirmers.name }).from(registrations)
       .leftJoin(confirmers, eq(confirmers.id, registrations.paidBy))
@@ -139,7 +143,7 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
         createdAt: koreanOf(row.createdAt), duesMember: row.duesMember, fee: owedOf(form, row),
         paid: row.paidAt && row.paidAmount !== null && row.paidBy
           ? { amount: row.paidAmount, at: koreanOf(row.paidAt), by: { id: row.paidBy, name: confirmerName ?? '' } } : null })),
-      account, roster,
+      account, roster, settled,
     }
   }
   // 입금 확인·확인 취소·참가비 바꾸기 앞에 부른다.

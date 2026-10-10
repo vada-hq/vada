@@ -254,6 +254,8 @@ export function createSettlementService(db: SettlementDatabase) {
         .where(and(eq(expenses.organizationId, scope.organizationId), eq(expenses.eventId, eventId), isNotNull(expenses.voidedAt)))
       const numbers = await financeNumbers(db, scope, eventId)
       const row = await financeRow(db, scope, eventId)
+      const fees = await eventFeesOf(db, scope.organizationId, eventId)
+      const feeIncome = await feeIncomeOf(db, scope.organizationId, eventId)
       const settledAt = row?.finance.settledAt ?? null
       // 영수증 보기 주소. 로그인한 구성원이면 짧게 사는 서명 주소로 이동해 파일이 열린다.
       const fileUrl = (expenseId: string, receiptId: string) => new URL(`/api/organizations/${encodeURIComponent(scope.organizationId)}/expenses/${
@@ -262,6 +264,8 @@ export function createSettlementService(db: SettlementDatabase) {
         organizationName: organization?.name ?? '', eventName: event.name, exportedAt: new Date(),
         settled: settledAt ? { by: row?.settlerName ?? '', at: settledAt } : null,
         budget: row?.finance.budget ?? null, planned: numbers.planned, plannedUnknown: numbers.plannedUnknown, voidedCount: voided!.count,
+        fees: fees && { received: fees.received, count: fees.count },
+        feeIncome: feeIncome && { period: feeIncome.period.name, line: feeIncome.line?.name ?? null },
         expenses: rows.map(({ expense, payerName, recorderName }): SheetExpense => ({
           paidOn: expense.paidOn, vendor: expense.vendor, description: expense.description, amount: expense.amount, method: expense.method,
           payer: payerName, note: expense.note, recordedBy: recorderName,

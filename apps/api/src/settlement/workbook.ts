@@ -27,6 +27,10 @@ export interface SettlementSheetData {
   planned: number
   plannedUnknown: number
   voidedCount: number
+  // 받은 참가비와 입금 확인 수. 참가비를 받지 않는 행사는 null이다. 신청자별 입금은 넣지 않는다(금액으로 학생회비 납부 여부를 알 수 있다).
+  fees: { received: number; count: number } | null
+  // 정산이 넣은 참가비 수입의 기간·수입 항목 이름. 정산 전이거나 받은 참가비가 없으면 null이다.
+  feeIncome: { period: string; line: string | null } | null
   // 취소하지 않은 지출, 결제일·기록 순. 이 순서로 1부터 번호(증빙 번호)를 매긴다.
   expenses: SheetExpense[]
 }
@@ -55,10 +59,21 @@ function summarySheet(data: SettlementSheetData): Row[] {
     [text('집행률'), data.budget ? { value: spent / data.budget, type: Number, format: '0.0%' } : text('—')],
     [text('지출 건수'), count(data.expenses.length)],
     [text('증빙 누락'), count(missing)],
+    ...feeRows(data),
     [],
     [bold('결제 수단별 합계')],
     ...EXPENSE_METHODS.map((method): Row => [text(EXPENSE_METHOD_LABELS[method]), money(byMethod(method))]),
     ...(data.voidedCount ? [[], [text(`취소한 지출 ${data.voidedCount}건은 넣지 않았어요.`)]] : []),
+  ]
+}
+// 참가비 묶음. 참가비를 받는 행사만 둔다.
+function feeRows({ fees, feeIncome }: SettlementSheetData): Row[] {
+  if (!fees) return []
+  return [
+    [],
+    [bold('참가비')],
+    [text('받은 참가비'), money(fees.received), text(`입금 확인 ${fees.count}명`)],
+    ...(feeIncome ? [[text('참가비 수입'), text(`${feeIncome.period} 수입${feeIncome.line ? ` · ${feeIncome.line}` : ''}`)]] : []),
   ]
 }
 function expenseSheet(data: SettlementSheetData): Row[] {

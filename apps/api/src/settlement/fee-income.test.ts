@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { BudgetPlanResponse, EventFinanceResponse, IncomeResponse, RegistrationResponse } from '@vada/contracts'
 import { feeIncomeDay, feeIncomeDescription } from '../incomes/service.js'
+import { createSettlementService } from './service.js'
 import { setupPurchases } from '../purchases/test-setup.js'
 import { apply, confirm, create, entries, type Env, formBody, named, prepare, refused, registrationBase } from '../registrations/test-setup.js'
 
@@ -210,5 +211,23 @@ test('알림: 받은 참가비만 있고 기간에 넣지 않은 행사도 센�
     await env.ok(env.request('POST', `${payment}/cancel`, {}))
     env.as('f')
     assert.deepEqual(await noticesOf(), { eventsWithMoney: 0, operatingOutside: 0 })
+  } finally { await env.pg.close() }
+})
+
+test('정산서 자료: 받은 참가비와 넣은 참가비 수입을 담는다', async () => {
+  const env = await setupPurchases()
+  try {
+    await charged(env)
+    const { feeLine } = await periods(env)
+    const service = createSettlementService(env.db)
+    const scope = { organizationId: 'a', userId: 'n' }
+    const before = await service.exportData(scope, 'e', 'https://vada.test')
+    assert.deepEqual([before.fees, before.feeIncome], [{ received: 14000, count: 2 }, null])
+    await env.ok(settle(env, 0, feeLine.id))
+    const after = await service.exportData(scope, 'e', 'https://vada.test')
+    assert.deepEqual([after.fees, after.feeIncome], [{ received: 14000, count: 2 }, { period: '2999년 1학기', line: '행사 참가비' }])
+    // 참가 신청이 없는 행사에는 참가비가 없다.
+    const none = await service.exportData(scope, 'e2', 'https://vada.test')
+    assert.deepEqual([none.fees, none.feeIncome], [null, null])
   } finally { await env.pg.close() }
 })

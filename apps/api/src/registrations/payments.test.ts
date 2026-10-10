@@ -139,6 +139,7 @@ test('정산이 끝난 행사는 입금 확인·확인 취소·참가비 바꾸�
     await apply(env, form!.code, '박해랑', '2023000004')
     const list = await entries(env)
     await env.ok(confirm(env, named(list, '이윤슬').id))
+    assert.equal((await env.ok<RegistrationResponse>(env.request('GET', base))).settled, false)
     // 받은 참가비가 있으면 행사가 회계 기간에 들어 있어야 정산된다.
     env.as('f')
     const period = await env.ok<BudgetPlanResponse>(env.request('POST', '/budget/periods', { name: '2999년 1학기', startsOn: '2999-03-01',
@@ -147,6 +148,9 @@ test('정산이 끝난 행사는 입금 확인·확인 취소·참가비 바꾸�
       startsOn: period.period.startsOn, endsOn: period.period.endsOn, incomes: [], operating: [], events: [{ eventId: 'e', version: 0 }] }))
     await env.ok(env.request('POST', '/events/e/finance/settle', { version: 0, feeIncomeLineId: null }))
     env.as('p')
+    assert.equal((await env.ok<RegistrationResponse>(env.request('GET', base))).settled, true)
+    // 참가 신청을 만들지 않은 행사도 정산 상태를 준다.
+    assert.equal((await env.ok<RegistrationResponse>(env.request('GET', '/events/e2/registration'))).settled, false)
     await refused(confirm(env, named(list, '박해랑').id), 409, 'EVENT_SETTLED')
     await refused(unconfirm(env, named(list, '이윤슬').id), 409, 'EVENT_SETTLED')
     await refused(switchDues(env, named(list, '박해랑').id, { duesMember: true }), 409, 'EVENT_SETTLED')
