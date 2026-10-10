@@ -18,6 +18,8 @@ type Props = RegistrantActions & {
   form: RegistrationFormView
   // 지금 보는 신청. 목록이 새로 오면 같은 ID의 새 값을 넘긴다. 신청이 사라지면 null이다.
   entry: RegistrationEntry | null
+  // 행사 정산이 끝났으면 입금 확인·확인 취소·참가비 바꾸기를 감춘다(서버도 막는다). 신청 취소는 받은 돈을 바꾸지 않아 그대로 둔다.
+  settled: boolean
   onClose: () => void
 }
 
@@ -28,7 +30,7 @@ export default function RegistrantDialog({ entry, onClose, ...props }: Props) {
   </Dialog>
 }
 
-function Body({ form, entry, onClose, onCancel, onConfirmPayment, onCancelPayment, onSetDuesMember }: Omit<Props, 'entry'> & { entry: RegistrationEntry }) {
+function Body({ form, entry, settled, onClose, onCancel, onConfirmPayment, onCancelPayment, onSetDuesMember }: Omit<Props, 'entry'> & { entry: RegistrationEntry }) {
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -71,7 +73,7 @@ function Body({ form, entry, onClose, onCancel, onConfirmPayment, onCancelPaymen
           {won(entry.fee)}
           {entry.duesMember && <Badge tone="info">학생회비 납부</Badge>}
         </dd>
-        {form.memberFee !== null && entry.duesMember !== null && <dd>
+        {!settled && form.memberFee !== null && entry.duesMember !== null && <dd>
           <Button variant="outline" size="sm" disabled={busy || entry.paid !== null}
             onClick={() => void run(() => onSetDuesMember(entry.id, !entry.duesMember))}>
             {entry.duesMember ? '미납자 참가비로 바꾸기' : '납부자 참가비로 바꾸기'}</Button>
@@ -82,13 +84,14 @@ function Body({ form, entry, onClose, onCancel, onConfirmPayment, onCancelPaymen
         <dt className="text-xs text-gray-500">입금</dt>
         {entry.paid ? <>
           <dd className="text-gray-900">입금 확인 · {formatKoreanTime(entry.paid.at)} · {entry.paid.by.name}</dd>
-          <dd><Button variant="outline" size="sm" disabled={busy} onClick={() => void run(() => onCancelPayment(entry.id))}>입금 확인 취소</Button></dd>
+          {!settled && <dd><Button variant="outline" size="sm" disabled={busy} onClick={() => void run(() => onCancelPayment(entry.id))}>입금 확인 취소</Button></dd>}
         </> : <>
           <dd className="text-gray-900">입금 전</dd>
-          <dd><Button size="sm" disabled={busy} onClick={() => void run(() => onConfirmPayment(entry.id))}>입금 확인</Button></dd>
+          {!settled && <dd><Button size="sm" disabled={busy} onClick={() => void run(() => onConfirmPayment(entry.id))}>입금 확인</Button></dd>}
         </>}
       </div>}
     </dl>}
+    {fees && settled && <StateMessage kind="notice">정산이 끝난 행사라 입금과 참가비를 바꿀 수 없어요.</StateMessage>}
     {message && <StateMessage kind="error">{message}</StateMessage>}
     <DialogFooter>
       <Button variant="outline" disabled={busy} onClick={onClose}>닫기</Button>

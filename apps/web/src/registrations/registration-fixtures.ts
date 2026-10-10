@@ -6,7 +6,7 @@ export const registrationForm = (overrides: Partial<RegistrationFormView> = {}):
 export const entry = (id: string, name: string, studentId: string, phone: string | null = null, overrides: Partial<RegistrationEntry> = {}):
   RegistrationEntry => ({ id, name, studentId, phone, createdAt: '2026-08-02T14:05', duesMember: null, fee: 0, paid: null, ...overrides })
 export const registrationResponse = (overrides: Partial<RegistrationResponse> = {}): RegistrationResponse => ({ form: registrationForm(),
-  registrations: [entry('r1', '김바다', '2022123456'), entry('r2', '이수강', '2023222222')], account: null, roster: null, ...overrides })
+  registrations: [entry('r1', '김바다', '2022123456'), entry('r2', '이수강', '2023222222')], account: null, roster: null, settled: false, ...overrides })
 
 // 참가비 7,000원·납부자 0원인 참가 신청. 김바다는 납부자, 이수강은 입금 확인, 박참여는 입금 전이다.
 export const feeAccount = { bank: '카카오뱅크', accountNumber: '3333-01-1234567', holder: '학생회' }

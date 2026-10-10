@@ -282,3 +282,39 @@ test('관리 대화상자: 입금자명과 입금 상태를 보이고, 확인 �
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
   expect(within(await region('신청자')).queryByText('이수강')).toBeNull()
 })
+
+test('정산한 행사: 명단에 입금 확인 버튼이 없고 이유를 적으며, 관리는 그대로 연다', async () => {
+  setup(feeResponse({ settled: true }))
+  const list = await region('신청자')
+  expect(within(list).getByText('정산이 끝난 행사라 입금과 참가비를 바꿀 수 없어요.')).toBeTruthy()
+  expect(within(list).queryByRole('button', { name: '박참여 입금 확인' })).toBeNull()
+  expect(within(list).getByText('7,000원 · 입금 전')).toBeTruthy()
+  expect(within(list).getByRole('button', { name: '박참여 관리' })).toBeTruthy()
+})
+
+test('정산한 행사: 관리 대화상자에 입금·참가비 버튼이 없고 이유를 적으며, 신청 취소는 남는다', async () => {
+  setup(feeResponse({ settled: true }))
+  fireEvent.click(within(await region('신청자')).getByRole('button', { name: '이수강 관리' }))
+  const paid = await screen.findByRole('dialog', { name: '이수강' })
+  expect(within(paid).getByText('정산이 끝난 행사라 입금과 참가비를 바꿀 수 없어요.')).toBeTruthy()
+  for (const name of ['입금 확인 취소', '납부자 참가비로 바꾸기']) expect(within(paid).queryByRole('button', { name })).toBeNull()
+  expect(within(paid).getByText('입금 확인 · 8월 3일 (월) 오전 10:00 · 기획')).toBeTruthy()
+  expect(within(paid).getByRole('button', { name: '신청 취소' })).toBeTruthy()
+  // 아래 닫기 버튼과 머리의 닫기(X)가 있다.
+  fireEvent.click(within(paid).getAllByRole('button', { name: '닫기' })[0]!)
+  fireEvent.click(within(await region('신청자')).getByRole('button', { name: '박참여 관리' }))
+  const unpaid = await screen.findByRole('dialog', { name: '박참여' })
+  expect(within(unpaid).getByText('입금 전')).toBeTruthy()
+  for (const name of ['입금 확인', '납부자 참가비로 바꾸기']) expect(within(unpaid).queryByRole('button', { name })).toBeNull()
+})
+
+test('정산한 행사: 설정 대화상자의 금액 칸을 끄고 이유를 적는다', async () => {
+  setup(feeResponse({ settled: true, form: feeForm({ payments: { count: 0, total: 0 } }) }))
+  fireEvent.click(within(await region('참가 신청')).getByRole('button', { name: '설정 바꾸기' }))
+  const dialog = await screen.findByRole('dialog', { name: '참가 신청 설정' })
+  expect(field(dialog, '참가비(원)').disabled).toBe(true)
+  expect(field(dialog, '학생회비 납부자는 다른 금액').disabled).toBe(true)
+  expect(field(dialog, '납부자 참가비(원)').disabled).toBe(true)
+  expect(within(dialog).getByText('정산이 끝난 행사라 참가비를 바꿀 수 없어요.')).toBeTruthy()
+  expect(within(dialog).queryByText('입금을 확인한 신청이 있어 참가비를 바꿀 수 없어요.')).toBeNull()
+})

@@ -38,7 +38,8 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
       <Button variant="outline" className="self-start" onClick={state.refresh}>다시 시도</Button></Card>
   }
   if (!state.data) return <StateMessage kind="loading">참가 신청을 불러오는 중…</StateMessage>
-  const { form, registrations, account, roster } = state.data
+  // 정산한 행사면 입금·참가비 버튼을 감추고 금액 칸을 끈다(서버도 막는다).
+  const { form, registrations, account, roster, settled } = state.data
   const time = eventTimeText(event.startsAt, event.endsAt)
   async function toggle(current: RegistrationFormView) {
     if (toggling) return
@@ -104,13 +105,13 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
       </>}
       {message && <StateMessage kind="error">{message}</StateMessage>}
     </section>
-    {form && <RegistrantList form={form} registrations={registrations} onCancel={state.cancel} onConfirmPayment={state.confirmPayment}
+    {form && <RegistrantList form={form} registrations={registrations} settled={settled} onCancel={state.cancel} onConfirmPayment={state.confirmPayment}
       onCancelPayment={state.cancelPayment} onSetDuesMember={state.setDuesMember} />}
     <EventInfoDialog open={editingEvent} organizationId={organizationId} event={event} onClose={() => setEditingEvent(false)}
       // 행사 끝이 바뀌면 참가 신청의 지울 날과 상태도 바뀌므로 다시 불러온다.
       onSaved={saved => { setEditingEvent(false); onEventChange(saved); if (form) state.refresh() }} onStale={onEventStale} />
     <RegistrationFormDialog open={editingForm} event={event} form={form} phoneCount={registrations.filter(item => item.phone !== null).length}
-      account={account} roster={roster}
+      account={account} roster={roster} settled={settled}
       onClose={() => setEditingForm(false)}
       onSubmit={input => form ? state.update({ ...input, version: form.version, accepting: form.accepting }) : state.create(input)} />
   </div>

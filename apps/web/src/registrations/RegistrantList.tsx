@@ -11,14 +11,15 @@ import { pressed } from '../purchases/purchase-view'
 import RegistrantDialog, { type RegistrantActions } from './RegistrantDialog'
 import { countText, findRegistrants, hasFees, paymentChip, paymentFilter, type PaymentFilter } from './registration-view'
 
-type Props = RegistrantActions & { form: RegistrationFormView; registrations: RegistrationEntry[] }
+// settled: 행사 정산이 끝났으면 입금 확인 버튼을 감추고 이유를 적는다.
+type Props = RegistrantActions & { form: RegistrationFormView; registrations: RegistrationEntry[]; settled: boolean }
 const filters: { value: PaymentFilter; label: string }[] = [{ value: 'all', label: '전체' }, { value: 'unpaid', label: '입금 전' },
   { value: 'paid', label: '입금 확인' }]
 
 // 와이어프레임 EVT-04의 신청자 명단. 참가비가 있으면 입금 상태 칩과 거르기를 두고, 줄에서 바로 입금을 확인한다.
 // 나머지 일(확인 취소·참가비 바꾸기·신청 취소)은 관리 대화상자에서 한다. 참석 칸은 M3c에서 더한다.
 // 명단 내려받기는 두지 않는다(파일은 앱이 지울 수 없다).
-export default function RegistrantList({ form, registrations, onConfirmPayment, ...actions }: Props) {
+export default function RegistrantList({ form, registrations, settled, onConfirmPayment, ...actions }: Props) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<PaymentFilter>('all')
   const [managing, setManaging] = useState<string | null>(null)
@@ -47,6 +48,7 @@ export default function RegistrantList({ form, registrations, onConfirmPayment, 
           {filters.map(item => <Button key={item.value} variant="outline" size="sm" className={pressed} aria-pressed={filter === item.value}
             onClick={() => setFilter(item.value)}>{`${item.label} ${paymentFilter(registrations, item.value).length}`}</Button>)}
         </div>}
+        {fees && settled && <StateMessage kind="notice">정산이 끝난 행사라 입금과 참가비를 바꿀 수 없어요.</StateMessage>}
         <Input aria-label="이름이나 학번으로 찾기" placeholder="이름이나 학번으로 찾기" value={query} onChange={item => setQuery(item.target.value)} />
         <ol className="flex flex-col divide-y">
           {shown.map(item => {
@@ -63,7 +65,7 @@ export default function RegistrantList({ form, registrations, onConfirmPayment, 
                 {fees && <Badge tone={chip.tone}>{chip.text}</Badge>}
                 {fees && item.duesMember && <Badge tone="info">학생회비 납부</Badge>}
                 <div className="ml-auto flex gap-1">
-                  {fees && item.paid === null && item.fee > 0 && <Button size="sm" aria-label={`${item.name} 입금 확인`}
+                  {fees && !settled && item.paid === null && item.fee > 0 && <Button size="sm" aria-label={`${item.name} 입금 확인`}
                     disabled={confirming !== null} onClick={() => void confirm(item)}>{confirming === item.id ? '확인하는 중…' : '입금 확인'}</Button>}
                   <Button variant="ghost" size="sm" aria-label={`${item.name} 관리`} onClick={() => setManaging(item.id)}>관리</Button>
                 </div>
@@ -74,6 +76,7 @@ export default function RegistrantList({ form, registrations, onConfirmPayment, 
         {shown.length === 0 && <StateMessage kind="empty">찾는 신청자가 없어요.</StateMessage>}
       </>}
     {message && <StateMessage kind="error">{message}</StateMessage>}
-    <RegistrantDialog form={form} entry={managed} onClose={() => setManaging(null)} onConfirmPayment={onConfirmPayment} {...actions} />
+    <RegistrantDialog form={form} entry={managed} settled={settled} onClose={() => setManaging(null)} onConfirmPayment={onConfirmPayment}
+      {...actions} />
   </section>
 }

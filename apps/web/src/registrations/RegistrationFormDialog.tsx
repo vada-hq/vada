@@ -21,6 +21,8 @@ type Props = {
   // 참가비를 받는 학생회 계좌와 기한이 남은 학생회비 명단. 재정 담당자가 정한다.
   account: FeeAccount | null
   roster: RegistrationResponse['roster']
+  // 행사 정산이 끝났으면 금액을 바꿀 수 없다(서버도 막는다).
+  settled: boolean
   onClose: () => void
   onSubmit: (input: CreateRegistrationFormRequest) => Promise<RegistrationResult>
 }
@@ -35,7 +37,7 @@ export default function RegistrationFormDialog({ open, onClose, ...props }: Prop
 // 금액 칸은 글 칸이다. "5,000"처럼 쉼표·"원"을 넣어도 읽고, 비우면 0원이다.
 const amountOf = (text: string) => budgetInput(text) ?? 0
 
-function Form({ event, form, phoneCount, account, roster, onClose, onSubmit }: Omit<Props, 'open'>) {
+function Form({ event, form, phoneCount, account, roster, settled, onClose, onSubmit }: Omit<Props, 'open'>) {
   const [opensAt, setOpensAt] = useState(form?.opensAt ?? '')
   // 처음 만들 때는 행사 시작 때 마감한다.
   const [closesAt, setClosesAt] = useState(form?.closesAt ?? event.startsAt ?? '')
@@ -51,8 +53,8 @@ function Form({ event, form, phoneCount, account, roster, onClose, onSubmit }: O
     notice: notice.trim() ? notice : null, collectPhone, fee: amountOf(fee), memberFee: memberOn ? amountOf(memberFee) : null }
   const end = event.endsAt ?? event.startsAt
   const late = end !== null && closesAt !== '' && closesAt > end
-  // 입금을 확인한 신청이 있으면 금액을 바꿀 수 없다(서버도 막는다).
-  const locked = (form?.payments.count ?? 0) > 0
+  // 정산이 끝났거나 입금을 확인한 신청이 있으면 금액을 바꿀 수 없다(서버도 막는다).
+  const locked = settled || (form?.payments.count ?? 0) > 0
   const needsAccount = input.fee > 0 && account === null
   // 명단은 납부자 참가비를 새로 켤 때만 본다. 이미 켠 뒤에 명단 기한이 지나도 다른 설정은 바꿀 수 있다.
   const needsRoster = memberOn && (form?.memberFee ?? null) === null && roster === null
@@ -102,7 +104,8 @@ function Form({ event, form, phoneCount, account, roster, onClose, onSubmit }: O
         {needsAccount && <p className="text-xs text-destructive">
           학생회 계좌가 없어 참가비를 받을 수 없어요. 재정 담당자에게 '참가비 설정'에서 계좌를 넣어 달라고 해 주세요.</p>}
         {needsRoster && <p className="text-xs text-destructive">쓸 수 있는 학생회비 명단이 없어요. 재정 담당자에게 명단을 올려 달라고 해 주세요.</p>}
-        {locked && <p className="text-xs text-gray-500">입금을 확인한 신청이 있어 참가비를 바꿀 수 없어요.</p>}
+        {locked && <p className="text-xs text-gray-500">{settled ? '정산이 끝난 행사라 참가비를 바꿀 수 없어요.'
+          : '입금을 확인한 신청이 있어 참가비를 바꿀 수 없어요.'}</p>}
       </section>
       <Label className="flex flex-col gap-1.5">안내 문구(선택)
         <Textarea rows={3} value={notice} placeholder="대상, 준비물, 문의처" onChange={item => setNotice(item.target.value)} /></Label>
