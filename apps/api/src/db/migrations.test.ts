@@ -104,7 +104,7 @@ test('chat migration backfills event rooms and enforces room/message boundaries'
     `)
     const before = (await pg.query('SELECT * FROM events')).rows
     await migrate(db, { migrationsFolder: folder })
-    assert.deepEqual((await pg.query('SELECT * FROM events')).rows, before)
+    assert.deepEqual(sameColumns((await pg.query<Record<string, unknown>>('SELECT * FROM events')).rows, before), before)
     const rooms = await pg.query<{ id: string; organization_id: string; event_id: string }>('SELECT id,organization_id,event_id FROM chat_rooms')
     assert.equal(rooms.rows.length, 1)
     assert.equal(rooms.rows[0]?.event_id, 'e')
@@ -963,6 +963,104 @@ test('0019 adds period closing, reopen reasons and carried-over incomes without 
       await pg.exec(`INSERT INTO budget_periods (id,organization_id,name,starts_on,ends_on,created_by) VALUES ('r','o','2025년 1학기','2025-03-01','2025-08-31','u')`)
       await income('c6', { carried_from_period_id: "'r'" })
       await assert.rejects(pg.exec("DELETE FROM budget_periods WHERE id = 'r'"), { constraint: 'incomes_carried_from_same_organization' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})
+
+test('0020 adds event times, registration forms and registrations without touching existing events', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0020_event_registration')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u'),('e2','o2','남의 행사','u'),('e3','o','축제','u');
+    `)
+    const before = await pg.query<Record<string, unknown>>('SELECT * FROM events ORDER BY id')
+    await migrate(db, { migrationsFolder })
+    const insert = (table: string, values: Record<string, string>) =>
+      pg.exec(`INSERT INTO ${table} (${Object.keys(values).join(',')}) VALUES (${Object.values(values).join(',')})`)
+
+    await t.test('existing events keep their values and the new columns are empty', async () => {
+      const after = await pg.query<Record<string, unknown>>('SELECT * FROM events ORDER BY id')
+      assert.deepEqual(sameColumns(after.rows, before.rows), before.rows)
+      assert.deepEqual(after.rows.map(row => [row.starts_at, row.ends_at, row.place, row.version]),
+        [[null, null, null, 1], [null, null, null, 1], [null, null, null, 1]])
+    })
+    await t.test('an event ends after it starts, stays in range and has a short non-blank place', async () => {
+      await pg.exec("UPDATE events SET starts_at = '2026-08-20T10:00+09', ends_at = '2026-08-20T18:00+09', place = '체육관' WHERE id = 'e'")
+      const cases: [string, string][] = [
+        ['starts_at = NULL', 'events_ends_after_start'],
+        ["ends_at = '2026-08-20T10:00+09'", 'events_ends_after_start'],
+        ["ends_at = '2026-08-20T09:00+09'", 'events_ends_after_start'],
+        ["starts_at = '1999-12-31T10:00+09', ends_at = NULL", 'events_time_range'],
+        ["place = ' '", 'events_place_not_blank'],
+        [`place = '${'가'.repeat(101)}'`, 'events_place_length'],
+        ['version = 0', 'events_version_positive'],
+      ]
+      for (const [change, constraint] of cases) await assert.rejects(pg.exec(`UPDATE events SET ${change} WHERE id = 'e'`), { constraint }, change)
+    })
+    const form = (id: string, change: Record<string, string> = {}) => insert('registration_forms', { id: `'${id}'`, organization_id: "'o'",
+      event_id: "'e'", closes_at: "'2026-08-19T23:59+09'", created_by: "'u'", ...change })
+    await t.test('a registration form belongs to one event of the same council with a valid code, window, capacity and notice', async () => {
+      await form('f')
+      const { rows: [row] } = await pg.query<{ code: string; accepting: boolean; collect_phone: boolean; version: number; capacity: number | null }>(
+        "SELECT code, accepting, collect_phone, version, capacity FROM registration_forms WHERE id = 'f'")
+      assert.match(row!.code, /^[2-9A-HJ-NP-Z]{8}$/)
+      assert.deepEqual([row!.accepting, row!.collect_phone, row!.version, row!.capacity], [true, false, 1, null])
+      await assert.rejects(form('f2'), { constraint: 'registration_forms_event_id_unique' })
+      await assert.rejects(form('f3', { event_id: "'e2'" }), { constraint: 'registration_forms_event_same_organization' })
+      const cases: [Record<string, string>, string][] = [
+        [{ opens_at: "'2026-08-19T23:59+09'" }, 'registration_forms_opens_before_closes'],
+        [{ opens_at: "'2026-08-20T00:00+09'" }, 'registration_forms_opens_before_closes'],
+        [{ closes_at: "'1999-12-31T23:59+09'" }, 'registration_forms_time_range'],
+        [{ capacity: '0' }, 'registration_forms_capacity_range'],
+        [{ capacity: '5001' }, 'registration_forms_capacity_range'],
+        [{ notice: "' '" }, 'registration_forms_notice_not_blank'],
+        [{ notice: `'${'가'.repeat(1001)}'` }, 'registration_forms_notice_length'],
+        [{ code: "'abc'" }, 'registration_forms_code_format'],
+        [{ version: '0' }, 'registration_forms_version_positive'],
+      ]
+      for (const [change, constraint] of cases) await assert.rejects(form('f4', { event_id: "'e3'", ...change }), { constraint }, constraint)
+      await form('f5', { event_id: "'e3'", opens_at: "'2026-08-01T10:00+09'", capacity: '5000', notice: `'${'가'.repeat(1000)}'`, collect_phone: 'true' })
+    })
+    await t.test('a registration is live with token, name and student id, or purged with all four empty', async () => {
+      await insert('registration_forms', { id: "'fx'", organization_id: "'o2'", event_id: "'e2'", closes_at: "'2026-08-19T23:59+09'", created_by: "'u'" })
+      const hash = (n: number) => `'${n.toString(16).padStart(64, '0')}'`
+      const live = (id: string, n: number, change: Record<string, string> = {}) => insert('registrations', { id: `'${id}'`, organization_id: "'o'",
+        form_id: "'f'", token_hash: hash(n), name: "'김바다'", student_id: `'${2022000000 + n}'`, ...change })
+      const purged = (id: string, change: Record<string, string> = {}) => insert('registrations', { id: `'${id}'`, organization_id: "'o'",
+        form_id: "'f'", purged_at: 'now()', ...change })
+      await live('r1', 1, { phone: "'01012345678'" })
+      await purged('r2')
+      await purged('r3', { cancelled_at: 'now()', cancelled_by: "'u'" })
+      // 지운 행끼리는 학번이 없으므로 겹치지 않는다.
+      await purged('r4')
+      const cases: [() => Promise<unknown>, string][] = [
+        [() => live('x1', 2, { name: 'NULL' }), 'registrations_purged_state'],
+        [() => live('x2', 3, { purged_at: 'now()' }), 'registrations_purged_state'],
+        [() => purged('x3', { phone: "'01012345678'" }), 'registrations_purged_state'],
+        [() => live('x4', 4, { cancelled_at: 'now()' }), 'registrations_cancel_purges'],
+        [() => purged('x5', { cancelled_by: "'u'" }), 'registrations_cancelled_pair'],
+        [() => live('x6', 5, { token_hash: "'xyz'" }), 'registrations_token_hash_format'],
+        [() => live('x7', 6, { name: "' '" }), 'registrations_name_not_blank'],
+        [() => live('x8', 7, { name: `'${'가'.repeat(31)}'` }), 'registrations_name_length'],
+        [() => live('x9', 8, { student_id: "'abc'" }), 'registrations_student_id_format'],
+        [() => live('x10', 9, { student_id: "'12345'" }), 'registrations_student_id_format'],
+        [() => live('x11', 10, { phone: "'0212345678'" }), 'registrations_phone_format'],
+        [() => live('x12', 11, { student_id: "'2022000001'" }), 'registrations_form_student_active_unique'],
+        [() => live('x13', 1, { student_id: "'2022999999'" }), 'registrations_token_hash_unique'],
+        [() => live('x14', 12, { form_id: "'fx'" }), 'registrations_form_same_organization'],
+      ]
+      for (const [run, constraint] of cases) await assert.rejects(run(), { constraint }, constraint)
+      // 신청이 있는 신청 설정과 행사는 지울 수 없다.
+      await assert.rejects(pg.exec("DELETE FROM registration_forms WHERE id = 'f'"), { constraint: 'registrations_form_same_organization' })
+      await assert.rejects(pg.exec("DELETE FROM events WHERE id = 'e'"), { constraint: 'registration_forms_event_same_organization' })
     })
   } finally {
     previous.remove()

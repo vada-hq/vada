@@ -141,6 +141,13 @@
       "when": 1791613396868,
       "tag": "0019_period_close",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791622061019,
+      "tag": "0020_event_registration",
+      "breakpoints": true
     }
   ]
 }

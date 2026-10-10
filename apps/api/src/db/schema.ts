@@ -84,9 +84,20 @@ export const events = pgTable('events', {
   createdBy: text('created_by').notNull()
     .references(() => users.id, { onDelete: 'restrict' }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  // 한국 시각으로 받은 시작·끝 일시와 장소(M3a). 끝은 시작이 있어야 하고 시작보다 늦다.
+  startsAt: timestamp('starts_at', { withTimezone: true }),
+  endsAt: timestamp('ends_at', { withTimezone: true }),
+  place: text('place'),
+  version: integer('version').notNull().default(1),
 }, (table) => [
   check('events_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
   check('events_name_length', sql`char_length(${table.name}) <= 100`),
+  check('events_ends_after_start', sql`${table.endsAt} IS NULL OR (${table.startsAt} IS NOT NULL AND ${table.endsAt} > ${table.startsAt})`),
+  check('events_time_range', sql`(${table.startsAt} IS NULL OR ${table.startsAt} BETWEEN '2000-01-01T00:00+09:00' AND '2999-12-31T23:59+09:00')
+    AND (${table.endsAt} IS NULL OR ${table.endsAt} BETWEEN '2000-01-01T00:00+09:00' AND '2999-12-31T23:59+09:00')`),
+  check('events_place_not_blank', sql`${table.place} ~ '[^[:space:]]'`),
+  check('events_place_length', sql`char_length(${table.place}) <= 100`),
+  check('events_version_positive', sql`${table.version} >= 1`),
   index('events_organization_id_idx').on(table.organizationId),
   unique('events_organization_id_unique').on(table.organizationId, table.id),
 ])
@@ -844,4 +855,79 @@ export const incomeEvents = pgTable('income_events', {
   check('income_events_action_valid', sql`${table.action} IN ('created','updated','voided')`),
   check('income_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
   index('income_events_income_idx').on(table.incomeId, table.createdAt),
+])
+
+// 행사의 참가 신청 설정(M3a). 행사 하나에 하나이고, 공개 링크 코드는 바뀌지 않는다.
+export const registrationForms = pgTable('registration_forms', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull()
+    .references(() => organizations.id, { onDelete: 'restrict' }),
+  eventId: text('event_id').notNull().unique(),
+  // 공개 링크 /apply/{code}. 초대 코드와 같은 형식을 0009의 DB 함수가 만든다.
+  code: text('code').notNull().default(sql`vada_invite_code()`),
+  // 멈추면 새 신청만 막는다.
+  accepting: boolean('accepting').notNull().default(true),
+  opensAt: timestamp('opens_at', { withTimezone: true }),
+  closesAt: timestamp('closes_at', { withTimezone: true }).notNull(),
+  capacity: integer('capacity'),
+  notice: text('notice'),
+  collectPhone: boolean('collect_phone').notNull().default(false),
+  version: integer('version').notNull().default(1),
+  createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (table) => [
+  foreignKey({
+    name: 'registration_forms_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  unique('registration_forms_code_unique').on(table.code),
+  unique('registration_forms_organization_id_unique').on(table.organizationId, table.id),
+  check('registration_forms_code_format', sql`${table.code} ~ '^[2-9A-HJ-NP-Z]{8}$'`),
+  check('registration_forms_opens_before_closes', sql`${table.opensAt} IS NULL OR ${table.opensAt} < ${table.closesAt}`),
+  check('registration_forms_time_range', sql`(${table.opensAt} IS NULL OR ${table.opensAt} BETWEEN '2000-01-01T00:00+09:00' AND '2999-12-31T23:59+09:00')
+    AND ${table.closesAt} BETWEEN '2000-01-01T00:00+09:00' AND '2999-12-31T23:59+09:00'`),
+  check('registration_forms_capacity_range', sql`${table.capacity} BETWEEN 1 AND 5000`),
+  check('registration_forms_notice_not_blank', sql`${table.notice} ~ '[^[:space:]]'`),
+  check('registration_forms_notice_length', sql`char_length(${table.notice}) <= 1000`),
+  check('registration_forms_version_positive', sql`${table.version} >= 1`),
+])
+
+// 참가 신청 한 건. 취소하거나 보관 기간이 지나면 개인 칸을 지우고, 행은 신청 수로 남긴다.
+export const registrations = pgTable('registrations', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull()
+    .references(() => organizations.id, { onDelete: 'restrict' }),
+  formId: text('form_id').notNull(),
+  // 개인 링크 토큰의 SHA-256. 토큰 자체는 저장하지 않는다.
+  tokenHash: text('token_hash').unique(),
+  name: text('name'),
+  studentId: text('student_id'),
+  phone: text('phone'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+  // 운영진이 취소하면 그 사람이고, 신청자가 스스로 취소하면 비어 있다.
+  cancelledBy: text('cancelled_by').references(() => users.id, { onDelete: 'restrict' }),
+  purgedAt: timestamp('purged_at', { withTimezone: true }),
+}, (table) => [
+  foreignKey({
+    name: 'registrations_form_same_organization',
+    columns: [table.organizationId, table.formId],
+    foreignColumns: [registrationForms.organizationId, registrationForms.id],
+  }).onDelete('restrict'),
+  check('registrations_purged_state', sql`(${table.purgedAt} IS NULL AND ${table.tokenHash} IS NOT NULL AND ${table.name} IS NOT NULL
+    AND ${table.studentId} IS NOT NULL) OR (${table.purgedAt} IS NOT NULL AND ${table.tokenHash} IS NULL AND ${table.name} IS NULL
+    AND ${table.studentId} IS NULL AND ${table.phone} IS NULL)`),
+  // 취소하면 바로 개인 칸을 지운다.
+  check('registrations_cancel_purges', sql`${table.cancelledAt} IS NULL OR ${table.purgedAt} IS NOT NULL`),
+  check('registrations_cancelled_pair', sql`${table.cancelledBy} IS NULL OR ${table.cancelledAt} IS NOT NULL`),
+  check('registrations_token_hash_format', sql`${table.tokenHash} ~ '^[0-9a-f]{64}$'`),
+  check('registrations_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
+  check('registrations_name_length', sql`char_length(${table.name}) <= 30`),
+  check('registrations_student_id_format', sql`${table.studentId} ~ '^[0-9]{6,12}$'`),
+  check('registrations_phone_format', sql`${table.phone} ~ '^01[0-9]{8,9}$'`),
+  // 같은 신청에 살아 있는 같은 학번은 하나다. 지운 행은 학번이 없다.
+  uniqueIndex('registrations_form_student_active_unique').on(table.formId, table.studentId).where(sql`${table.purgedAt} IS NULL`),
+  index('registrations_form_created_idx').on(table.formId, table.createdAt),
 ])
