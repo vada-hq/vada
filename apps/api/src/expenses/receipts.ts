@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { and, eq, sql } from 'drizzle-orm'
 import { RECEIPTS_PER_EXPENSE_MAX, type CreateReceiptUploadRequest, type ExpenseDetail, type ReceiptUploadResponse } from '@vada/contracts'
 import { expenseReceipts as receipts } from '../db/schema.js'
+import { operatingDays, requireOpenDays, shareBudget } from '../budget/lock.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
 import { requireOpenEvents } from '../settlement/lock.js'
@@ -77,9 +78,11 @@ export function createReceiptService(db: ExpenseDatabase, storage?: ReceiptStora
       const bucket = store()
       const removed = await db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        await shareBudget(tx, scope.organizationId)
         const expense = await lockExpense(tx, scope, expenseId)
         if (expense.voidedAt) throw new ApiError('INVALID_STATE', 409)
-        // 정산 뒤에는 증빙을 지우지 않는다. 더 붙이는 것은 된다.
+        // 정산 뒤나 기간 마감 뒤에는 증빙을 지우지 않는다. 더 붙이는 것은 된다.
+        await requireOpenDays(tx, scope.organizationId, operatingDays(expense))
         await requireOpenEvents(tx, scope.organizationId, [expense.eventId])
         const [row] = await tx.delete(receipts).where(and(eq(receipts.organizationId, scope.organizationId), eq(receipts.expenseId, expenseId),
           eq(receipts.id, receiptId), eq(receipts.status, 'ready'))).returning()

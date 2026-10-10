@@ -1,8 +1,8 @@
 import { and, asc, desc, eq, inArray, sql, type SQL } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { ExpenseDetail, ExpenseItem, ExpenseSummary, ReceiptContentType } from '@vada/contracts'
-import { budgetLines, eventFinances, events, expenseEvents, expenseItems, expenseReceipts, expenses, memberships, purchaseItems as items,
-  users } from '../db/schema.js'
+import { budgetLines, budgetPeriods, eventFinances, events, expenseEvents, expenseItems, expenseReceipts, expenses, memberships,
+  purchaseItems as items, users } from '../db/schema.js'
 
 type Reader = Pick<PgDatabase<PgQueryResultHKT>, 'select'>
 const payers = alias(users, 'expense_payers')
@@ -45,6 +45,8 @@ export async function expenseSummaries(db: Reader, organizationId: string, where
     payerMembershipId: payerMemberships.id,
     recorderName: recorders.name, voiderName: voiders.name,
     receiptCount: sql<number>`(select count(*)::int from ${expenseReceipts} where ${expenseReceipts.expenseId} = ${expenses.id} and ${expenseReceipts.status} = 'ready')`,
+    // 상시 운영 지출의 결제일이 마감한 기간 안이면 화면이 수정·취소·증빙 삭제를 감춘다.
+    periodClosed: sql<boolean>`(${expenses.eventId} is null and exists (select 1 from ${budgetPeriods} where ${budgetPeriods.organizationId} = ${expenses.organizationId} and ${budgetPeriods.closedAt} is not null and ${budgetPeriods.startsOn} <= ${expenses.paidOn} and ${budgetPeriods.endsOn} >= ${expenses.paidOn}))`,
   }).from(expenses)
     .leftJoin(events, and(eq(events.id, expenses.eventId), eq(events.organizationId, expenses.organizationId)))
     // 정산된 행사의 지출이면 화면이 수정·취소·증빙 삭제를 감춘다.
@@ -70,6 +72,7 @@ export async function expenseSummaries(db: Reader, organizationId: string, where
       voided: expense.voidedAt && expense.voidedBy && expense.voidReason
         ? { by: { id: expense.voidedBy, name: row.voiderName ?? '' }, at: expense.voidedAt.toISOString(), reason: expense.voidReason } : null,
       settled: row.settledAt !== null,
+      periodClosed: row.periodClosed,
       version: expense.version, createdAt: expense.createdAt.toISOString(), updatedAt: expense.updatedAt.toISOString(),
     }
   })

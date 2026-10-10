@@ -10,7 +10,7 @@ import { ApiError } from '../http/errors.js'
 import { incomeSummaries, insertCarryover, voidCarryover } from '../incomes/service.js'
 import { requireFinance } from '../purchases/review.js'
 import { changeEventBudget, financeNumbersByEvent } from '../settlement/service.js'
-import { closingOf, readyToClose } from './closing.js'
+import { assertAfterClosed, closingOf, readyToClose } from './closing.js'
 import { lockBudget } from './lock.js'
 import type { PeriodSheetData } from './workbook.js'
 
@@ -301,6 +301,7 @@ export function createBudgetService(db: BudgetDatabase) {
         await requireFinance(tx, scope, true)
         await lockBudget(tx, scope.organizationId)
         await assertPeriodFree(tx, scope, input)
+        await assertAfterClosed(tx, scope.organizationId, input)
         const id = randomUUID()
         await tx.insert(budgetPeriods).values({ id, organizationId: scope.organizationId, name: input.name, startsOn: input.startsOn,
           endsOn: input.endsOn, createdBy: scope.userId })
@@ -314,12 +315,15 @@ export function createBudgetService(db: BudgetDatabase) {
         await requireFinance(tx, scope, true)
         await lockBudget(tx, scope.organizationId)
         const period = await periodOf(tx, scope, periodId, true)
+        // 마감한 기간은 버전보다 먼저 본다. 마감으로 버전이 바뀌었을 때 더 알맞은 문구를 보이려는 것이다.
+        if (period.closedAt) throw new ApiError('PERIOD_CLOSED', 409)
         if (period.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         const changes: Record<string, unknown> = {}
         for (const key of ['name', 'startsOn', 'endsOn'] as const) {
           if (period[key] !== input[key]) changes[key] = { from: period[key], to: input[key] }
         }
         if (Object.keys(changes).length) await assertPeriodFree(tx, scope, input, periodId)
+        if (changes.startsOn || changes.endsOn) await assertAfterClosed(tx, scope.organizationId, input, periodId)
         const existing = await tx.select().from(budgetLines)
           .where(and(eq(budgetLines.organizationId, scope.organizationId), eq(budgetLines.periodId, periodId)))
         const lines = [

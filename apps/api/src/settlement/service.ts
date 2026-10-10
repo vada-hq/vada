@@ -3,8 +3,9 @@ import { and, asc, desc, eq, inArray, isNotNull, isNull, notExists, sql, type SQ
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { EVENT_FINANCE_HISTORY_MAX, EXPENSE_ITEMS_MAX, type EventFinance, type EventFinanceAction, type EventFinanceResponse,
   type ReopenSettlementRequest, type SetEventBudgetRequest, type SettleEventRequest } from '@vada/contracts'
-import { eventFinanceEvents, eventFinances, events, expenseItems, expenseReceipts, expenses, organizations, purchaseItems as items,
-  users } from '../db/schema.js'
+import { requireOpenEventPeriod } from '../budget/lock.js'
+import { budgetLines, budgetPeriods, eventFinanceEvents, eventFinances, events, expenseItems, expenseReceipts, expenses, organizations,
+  purchaseItems as items, users } from '../db/schema.js'
 import { expenseItemRows, expenseSummaries } from '../expenses/summaries.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
@@ -114,10 +115,15 @@ async function responseOf(db: Reader, scope: SettlementScope, eventId: string): 
   const budget = row?.finance.budget ?? null
   const settledAt = row?.finance.settledAt ?? null
   const settledBy = row?.finance.settledBy ?? null
+  // 행사가 든 회계 기간이 마감됐으면 화면이 정산 다시 열기를 감춘다.
+  const [period] = await db.select({ closedAt: budgetPeriods.closedAt }).from(budgetLines)
+    .innerJoin(budgetPeriods, and(eq(budgetPeriods.id, budgetLines.periodId), eq(budgetPeriods.organizationId, budgetLines.organizationId)))
+    .where(and(eq(budgetLines.organizationId, scope.organizationId), eq(budgetLines.eventId, eventId)))
   const finance: EventFinance = {
     eventId, budget, ...numbers,
     remaining: budget === null ? null : budget - numbers.spent - numbers.planned,
     settled: settledAt && settledBy ? { by: { id: settledBy, name: row?.settlerName ?? '' }, at: settledAt.toISOString() } : null,
+    periodClosed: Boolean(period?.closedAt),
     version: row?.finance.version ?? 0,
     // 최근 것부터 잘라 온 뒤 오래된 순으로 돌린다.
     history: history.reverse().map(({ entry, actorName }) => ({ id: entry.id, action: entry.action, actor: { id: entry.actorId, name: actorName },
@@ -187,10 +193,13 @@ export function createSettlementService(db: SettlementDatabase) {
         return responseOf(tx, scope, eventId)
       })
     },
-    // 사유를 남기고 잠금을 푼다.
+    // 사유를 남기고 잠금을 푼다. 마감한 회계 기간의 행사는 다시 열지 않는다.
+    // 기간 행을 행사 행보다 먼저 잠가 잠금 순서(기간 → 행사)를 맞춘다.
     async reopen(scope: SettlementScope, eventId: string, input: ReopenSettlementRequest) {
       return db.transaction(async tx => {
-        const row = await begin(tx, scope, eventId, input.version)
+        await requireFinance(tx, scope, true)
+        await requireOpenEventPeriod(tx, scope.organizationId, eventId)
+        const row = await lockFinance(tx, scope, eventId, input.version)
         if (!row?.settledAt) throw new ApiError('INVALID_STATE', 409)
         await saveFinance(tx, scope, eventId, true, { settledAt: null, settledBy: null })
         await recordFinance(tx, scope, eventId, 'reopened', {}, input.reason)

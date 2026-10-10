@@ -5,6 +5,7 @@ import type { CreateExpenseRequest, ExpenseAction, ExpenseDetail, ExpensesRespon
   VoidExpenseRequest } from '@vada/contracts'
 import { budgetLines, budgetPeriods, events, expenseEvents, expenseItems, expenseReceipts, expenses, memberships, purchaseItemEvents,
   purchaseItems as items, users } from '../db/schema.js'
+import { operatingDays, requireOpenDays, shareBudget } from '../budget/lock.js'
 import { ApiError } from '../http/errors.js'
 import { requireFinance } from '../purchases/review.js'
 import { requireOpenEvents } from '../settlement/lock.js'
@@ -127,6 +128,8 @@ export function createExpenseService(db: ExpenseDatabase) {
     async create(scope: ExpenseScope, input: CreateExpenseRequest): Promise<ExpenseDetail> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        // 결제일이 마감한 회계 기간 안인 상시 운영 지출은 기록하지 않는다.
+        await requireOpenDays(tx, scope.organizationId, operatingDays(input))
         await budgetLineName(tx, scope, input.budgetLineId, input.paidOn)
         await requireOpenEvents(tx, scope.organizationId, [input.eventId])
         await eventName(tx, scope, input.eventId)
@@ -142,9 +145,12 @@ export function createExpenseService(db: ExpenseDatabase) {
     async update(scope: ExpenseScope, id: string, input: UpdateExpenseRequest): Promise<ExpenseDetail> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        await shareBudget(tx, scope.organizationId)
         const row = await lockExpense(tx, scope, id)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         if (row.voidedAt) throw new ApiError('INVALID_STATE', 409)
+        // 마감한 회계 기간에서 빼거나 그리로 옮기는 것도 막는다.
+        await requireOpenDays(tx, scope.organizationId, operatingDays(row, input))
         const nextLine = await budgetLineName(tx, scope, input.budgetLineId, input.paidOn)
         // 정산된 행사에서 빼거나 정산된 행사로 옮기는 것도 막는다.
         await requireOpenEvents(tx, scope.organizationId, [row.eventId, input.eventId])
@@ -174,9 +180,11 @@ export function createExpenseService(db: ExpenseDatabase) {
     async void(scope: ExpenseScope, id: string, input: VoidExpenseRequest): Promise<ExpenseDetail> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        await shareBudget(tx, scope.organizationId)
         const row = await lockExpense(tx, scope, id)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         if (row.voidedAt) throw new ApiError('INVALID_STATE', 409)
+        await requireOpenDays(tx, scope.organizationId, operatingDays(row))
         await requireOpenEvents(tx, scope.organizationId, [row.eventId])
         const released = await linkedIds(tx, scope, id)
         await tx.update(expenses).set({ voidedAt: sql`now()`, voidedBy: scope.userId, voidReason: input.reason,

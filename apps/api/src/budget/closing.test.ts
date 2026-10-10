@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { BudgetPeriodsResponse, BudgetPlanResponse, ExpenseResponse, IncomeResponse } from '@vada/contracts'
+import type { BudgetPeriodsResponse, BudgetPlanResponse, EventFinanceResponse, ExpenseResponse, IncomeResponse } from '@vada/contracts'
 import { setupPurchases } from '../purchases/test-setup.js'
 
 // 마감 조건이 오늘(한국 날짜)에 기대므로, 기간은 확실히 지난 날짜나 먼 미래로 만든다.
@@ -218,5 +218,80 @@ test('마감·다시 열기: 본문이 틀리면 400이고, 다른 학생회 기
       await refused(request('POST', `/budget/periods/${id}/close`, { version: 1, carryoverLineId: null }), 404, 'NOT_FOUND', id)
       await refused(request('POST', `/budget/periods/${id}/reopen`, { version: 1, reason: '사유' }), 404, 'NOT_FOUND', id)
     }
+  } finally { await pg.close() }
+})
+
+// 지출 수정 본문. 받은 지출을 그대로 다시 보내고 바꿀 칸만 덮어쓴다.
+const expenseEdit = (expense: ExpenseResponse['expense'], overrides: Record<string, unknown> = {}) => ({ version: expense.version,
+  eventId: expense.event?.id ?? null, vendor: expense.vendor, description: expense.description, amount: expense.amount, paidOn: expense.paidOn,
+  method: expense.method, payerMembershipId: 'mf', note: expense.note, itemIds: [], budgetLineId: null, ...overrides })
+
+test('마감한 기간: 편성·수입·상시 운영 지출·증빙 삭제·행사 정산 다시 열기를 막고, 증빙 추가와 다른 기간·행사의 지출은 둔다', async () => {
+  const env = await setupPurchases()
+  const { pg, request, ok, as } = env
+  try {
+    as('f')
+    let autumn = await create(env, '2025년 2학기', '2025-09-01', '2026-02-28')
+    await create(env, '2026년 1학기', '2026-03-01', '2026-08-31')
+    const fee = await recordIncome(env, autumn.period.id, { receivedOn: '2025-09-15' })
+    const snack = await recordExpense(env)
+    await attachReceipt(env, snack.id, 'r1')
+    const later = await recordExpense(env, { paidOn: '2026-03-05' })
+    autumn = await ok<BudgetPlanResponse>(save(env, await planOf(env, autumn.period.id), { events: [{ eventId: 'e', version: 0 }] }))
+    await ok(request('POST', '/events/e/finance/settle', { version: 0 }))
+    autumn = await ok<BudgetPlanResponse>(close(env, await planOf(env, autumn.period.id)))
+    const incomes = `/budget/periods/${autumn.period.id}/incomes`
+    const blocked: [string, () => Response | Promise<Response>][] = [
+      ['편성 저장', () => save(env, autumn)],
+      ['수입 기록', () => request('POST', incomes, { description: '후원', amount: 1000, receivedOn: '2025-10-02', budgetLineId: null, note: null })],
+      ['수입 수정', () => request('PATCH', `${incomes}/${fee.id}`, { version: 1, description: '고침', amount: 1000, receivedOn: '2025-10-02',
+        budgetLineId: null, note: null })],
+      ['수입 취소', () => request('POST', `${incomes}/${fee.id}/void`, { version: 1, reason: '중복' })],
+      ['지출 기록', () => request('POST', '/expenses', { ...expenseEdit(snack, { paidOn: '2025-11-01' }), version: undefined })],
+      ['지출 수정', () => request('PATCH', `/expenses/${snack.id}`, expenseEdit(snack, { description: '고침' }))],
+      ['지출 취소', () => request('POST', `/expenses/${snack.id}/void`, { version: snack.version, reason: '중복' })],
+      ['증빙 삭제', () => request('POST', `/expenses/${snack.id}/receipts/r1/delete`, {})],
+      ['마감한 기간으로 옮김', () => request('PATCH', `/expenses/${later.id}`, expenseEdit(later, { paidOn: '2025-12-01' }))],
+      ['행사 지출로 바꿈', () => request('PATCH', `/expenses/${snack.id}`, expenseEdit(snack, { eventId: 'e2' }))],
+      ['정산 다시 열기', () => request('POST', '/events/e/finance/reopen', { version: 1, reason: '빠짐' })],
+    ]
+    for (const [label, call] of blocked) await refused(call(), 409, 'PERIOD_CLOSED', label)
+    // 증빙 추가, 열린 기간의 상시 운영 지출, 어느 기간에도 없는 행사의 지출은 결제일이 마감한 기간 안이어도 된다.
+    assert.equal((await request('POST', `/expenses/${snack.id}/receipts`, { fileName: '영수증 2.jpg', contentType: 'image/jpeg', size: 1234,
+      kind: 'receipt' })).status, 201)
+    await recordExpense(env, { paidOn: '2026-03-02' })
+    const festival = await recordExpense(env, { eventId: 'e2', paidOn: '2025-10-15' })
+    const closedOf = async (id: string) => (await ok<ExpenseResponse>(request('GET', `/expenses/${id}`))).expense.periodClosed
+    assert.deepEqual([await closedOf(snack.id), await closedOf(later.id), await closedOf(festival.id)], [true, false, false])
+    const financeOf = async (eventId: string) => (await ok<EventFinanceResponse>(request('GET', `/events/${eventId}/finance`))).finance.periodClosed
+    assert.deepEqual([await financeOf('e'), await financeOf('e2')], [true, false])
+    // 다시 열면 바꿀 수 있다.
+    await ok(reopen(env, autumn))
+    await ok(request('PATCH', `/expenses/${snack.id}`, expenseEdit(snack, { description: '고침' })))
+    await ok(request('POST', '/events/e/finance/reopen', { version: 1, reason: '빠짐' }))
+    assert.equal(await closedOf(snack.id), false)
+  } finally { await pg.close() }
+})
+
+test('기간 순서: 마감한 기간과 이월금을 받은 기간보다 앞서는 기간은 만들거나 옮길 수 없다', async () => {
+  const env = await setupPurchases()
+  const { pg, request, ok, as } = env
+  try {
+    as('f')
+    const autumn = await create(env, '2025년 2학기', '2025-09-01', '2026-02-28')
+    const winter = await create(env, '2026년 2학기', '2026-09-01', '2027-02-28')
+    await recordIncome(env, autumn.period.id, { amount: 1000, receivedOn: '2025-09-15' })
+    const closed = await ok<BudgetPlanResponse>(close(env, await planOf(env, autumn.period.id)))
+    // 마감한 기간 앞이나, 마감한 기간과 이월금을 받은 기간 사이에는 두지 않는다.
+    for (const [name, startsOn, endsOn] of [['2025년 1학기', '2025-03-01', '2025-08-31'], ['2026년 1학기', '2026-03-01', '2026-08-31']]) {
+      await refused(request('POST', '/budget/periods', { name, startsOn, endsOn }), 409, 'PERIOD_BEFORE_CLOSED', name)
+    }
+    const spring27 = await create(env, '2027년 1학기', '2027-03-01', '2027-08-31')
+    await refused(save(env, spring27, { startsOn: '2026-03-01', endsOn: '2026-08-31' }), 409, 'PERIOD_BEFORE_CLOSED', '옮김')
+    // 이월금을 받은 기간 자신은 시작일을 당길 수 있다.
+    await ok(save(env, await planOf(env, winter.period.id), { startsOn: '2026-08-01' }))
+    // 다시 열면 사이에 기간을 둘 수 있다.
+    await ok(reopen(env, closed))
+    await create(env, '2026년 1학기', '2026-03-01', '2026-07-31')
   } finally { await pg.close() }
 })

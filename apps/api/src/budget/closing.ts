@@ -1,7 +1,8 @@
-import { and, asc, eq, gt, gte, isNull, lt, lte, notExists, sql } from 'drizzle-orm'
+import { and, asc, eq, exists, gt, gte, isNotNull, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { BudgetClosing } from '@vada/contracts'
 import { budgetLines, budgetPeriods, expenseReceipts, expenses, incomes } from '../db/schema.js'
+import { ApiError } from '../http/errors.js'
 import type { PeriodNumbers } from './service.js'
 
 type Reader = Pick<PgDatabase<PgQueryResultHKT>, 'select'>
@@ -44,4 +45,15 @@ export function readyToClose(closing: BudgetClosing, numbers: PeriodNumbers) {
   const { balance } = numbers.totals
   return closing.ended && closing.earlierOpen === null && numbers.events.every(line => line.settled) && closing.missingEvidence === 0
     && balance >= 0 && (balance === 0 || closing.next !== null)
+}
+
+// 마감한 기간과 취소하지 않은 이월금을 받은 기간보다 앞서는 기간은 두지 않는다. 고치는 기간 자신은 뺀다.
+// 그 앞이나 사이에 기간이 끼면 마감 순서와 이월 연결이 어긋난다. 겹침 검사 뒤에 부르므로 "뒤에 있다"는 시작일만 보면 된다.
+export async function assertAfterClosed(db: Reader, organizationId: string, input: { endsOn: string }, exceptId?: string) {
+  const carried = db.select({ one: sql`1` }).from(incomes).where(and(eq(incomes.organizationId, budgetPeriods.organizationId),
+    eq(incomes.periodId, budgetPeriods.id), isNotNull(incomes.carriedFromPeriodId), isNull(incomes.voidedAt)))
+  const [later] = await db.select({ id: budgetPeriods.id }).from(budgetPeriods)
+    .where(and(eq(budgetPeriods.organizationId, organizationId), exceptId === undefined ? undefined : ne(budgetPeriods.id, exceptId),
+      gt(budgetPeriods.startsOn, input.endsOn), or(isNotNull(budgetPeriods.closedAt), exists(carried)))).limit(1)
+  if (later) throw new ApiError('PERIOD_BEFORE_CLOSED', 409)
 }

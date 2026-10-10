@@ -51,10 +51,12 @@ async function detailOf(db: Reader, scope: IncomeScope, periodId: string, income
 }
 
 // 기간 행을 FOR SHARE로 잠근다. 편성 수정(FOR UPDATE)의 줄 지우기·날짜 바꾸기 확인과 수입 변경이 겹치지 않게 한다.
+// 마감(FOR UPDATE)과도 겹치지 않으므로, 잠근 뒤 본 마감 여부는 이 거래가 끝날 때까지 그대로다.
 async function lockPeriod(tx: Transaction, scope: IncomeScope, periodId: string) {
-  const [period] = await tx.select({ startsOn: budgetPeriods.startsOn, endsOn: budgetPeriods.endsOn }).from(budgetPeriods)
-    .where(and(eq(budgetPeriods.organizationId, scope.organizationId), eq(budgetPeriods.id, periodId))).for('share')
+  const [period] = await tx.select({ startsOn: budgetPeriods.startsOn, endsOn: budgetPeriods.endsOn, closedAt: budgetPeriods.closedAt })
+    .from(budgetPeriods).where(and(eq(budgetPeriods.organizationId, scope.organizationId), eq(budgetPeriods.id, periodId))).for('share')
   if (!period) throw new ApiError('NOT_FOUND', 404)
+  if (period.closedAt) throw new ApiError('PERIOD_CLOSED', 409)
   return period
 }
 // 수입 행을 잠가 버전과 상태를 본다. 이월금은 앞 기간 마감을 다시 열어야만 바뀐다.
