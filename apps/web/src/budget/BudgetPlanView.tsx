@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Download, Plus } from 'lucide-react'
-import type { BudgetPlanResponse } from '@vada/contracts'
+import type { BudgetPlanResponse, ClosePeriodRequest, ReopenPeriodRequest } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { StatGrid, type Stat } from '@/components/StatGrid'
 import { Alert } from '@/components/ui/alert'
@@ -11,7 +11,9 @@ import { cn } from '@/lib/utils'
 import { timeText, won } from '../purchases/purchase-view'
 import { budgetText, remainingText } from '../settlement/settlement-view'
 import IncomeCard from './IncomeCard'
+import { ClosingChecklist, PeriodStatus } from './PeriodClosing'
 import { budgetHistoryText, periodDayText, rateText, shareText } from './budget-view'
+import type { BudgetResult } from './useBudget'
 
 type Props = {
   plan: BudgetPlanResponse
@@ -21,6 +23,8 @@ type Props = {
   onRecordIncome: () => void
   // 결산서 내려받기. 실패 문구는 버튼 아래에 보인다.
   download: { busy: boolean; message: string; start: () => void }
+  onClosePeriod: (input: ClosePeriodRequest) => Promise<BudgetResult>
+  onReopenPeriod: (input: ReopenPeriodRequest) => Promise<BudgetResult>
 }
 
 // 숫자 한 쌍(이름·값). 카드 안에서 휴대폰은 2열, 넓으면 4열로 놓는다.
@@ -29,8 +33,9 @@ function Figure({ label, value, danger = false }: { label: string; value: ReactN
     <dd className={cn('font-medium wrap-anywhere text-gray-900', danger && 'text-destructive')}>{value}</dd></div>
 }
 
-// 예산 보기. 구성원 누구나 편성과 집행, 수입을 보고 결산서를 내려받는다. 알림과 수입 기록은 재정 권한자에게만 보인다.
-export default function BudgetPlanView({ plan, finance, onOpenEvent, onOpenIncome, onRecordIncome, download }: Props) {
+// 예산 보기. 구성원 누구나 편성과 집행, 수입, 마감 상태를 보고 결산서를 내려받는다.
+// 알림·수입 기록·마감 조건은 재정 권한자에게만 보이고, 마감한 기간에는 수입 기록이 없다.
+export default function BudgetPlanView({ plan, finance, onOpenEvent, onOpenIncome, onRecordIncome, download, onClosePeriod, onReopenPeriod }: Props) {
   const { totals } = plan
   const stats: Stat[] = [
     { label: '예산', value: won(totals.budget), note: totals.undecided ? `예산 미정 행사 ${totals.undecided}개` : undefined },
@@ -49,6 +54,7 @@ export default function BudgetPlanView({ plan, finance, onOpenEvent, onOpenIncom
         <Download />{download.busy ? '내려받는 중…' : '결산서 내려받기'}</Button>
     </div>
     {download.message && <StateMessage kind="error">{download.message}</StateMessage>}
+    <PeriodStatus key={plan.period.id} plan={plan} finance={finance} onReopen={onReopenPeriod} />
     <StatGrid label="예산 요약" className="grid-cols-2 gap-3 sm:grid-cols-4" stats={stats} />
     {unallocated < 0
       ? <Alert tone="warning">배정이 수입보다 {won(-unallocated)} 많아요</Alert>
@@ -64,6 +70,7 @@ export default function BudgetPlanView({ plan, finance, onOpenEvent, onOpenIncom
       {plan.notices.eventsWithSpending > 0 && <p>지출이 있는데 기간에 넣지 않은 행사 {plan.notices.eventsWithSpending}개 — 편성 수정에서 행사를 넣어 주세요.</p>}
       {plan.notices.operatingOutside > 0 && <p>어느 기간에도 들지 않는 상시 운영 지출 {plan.notices.operatingOutside}건 — 결제일이 들도록 기간 날짜를 확인해 주세요.</p>}
     </Alert>}
+    {finance && !plan.period.closed && plan.closing.ended && <ClosingChecklist key={plan.period.id} plan={plan} onClose={onClosePeriod} />}
     <section aria-label="수입" className="flex flex-col gap-2">
       <h3 className="text-sm font-semibold text-gray-900">수입</h3>
       {plan.incomes.length === 0 ? <p className="text-xs text-gray-500">수입 예산이 없어요</p>
@@ -86,7 +93,7 @@ export default function BudgetPlanView({ plan, finance, onOpenEvent, onOpenIncom
     <section aria-label="수입 내역" className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-gray-900">수입 내역</h3>
-        {finance && <Button variant="outline" size="sm" onClick={onRecordIncome}><Plus />수입 기록</Button>}
+        {finance && !plan.period.closed && <Button variant="outline" size="sm" onClick={onRecordIncome}><Plus />수입 기록</Button>}
       </div>
       {plan.incomeRecordsTruncated && <StateMessage kind="notice">최근 300건만 보여요</StateMessage>}
       {plan.incomeRecords.length === 0 ? <p className="text-xs text-gray-500">기록한 수입이 없어요</p>

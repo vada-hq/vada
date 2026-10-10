@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { BudgetPeriodsResponse, BudgetPlanResponse, CreateBudgetPeriodRequest, SaveBudgetPlanRequest } from '@vada/contracts'
+import type { BudgetPeriodsResponse, BudgetPlanResponse, ClosePeriodRequest, CreateBudgetPeriodRequest, ReopenPeriodRequest,
+  SaveBudgetPlanRequest } from '@vada/contracts'
 import { budgetFailure, budgetMessage } from './budget-view'
 
 export type BudgetResult = { ok: true; plan: BudgetPlanResponse } | { ok: false; message: string }
@@ -53,18 +54,19 @@ async function send(url: string, body: unknown): Promise<BudgetResult> {
   }
 }
 
-// 한 기간의 편성. 저장하면 받은 응답으로 바꾸고, 실패하면 새로 불러온다.
+// 한 기간의 편성. 편성 저장·마감·다시 열기는 받은 응답으로 바꾸고, 실패하면 새로 불러온다.
 export function useBudgetPlan(organizationId: string, periodId: string | null) {
   const url = periodId === null ? null : `${periodsBase(organizationId)}/${encodeURIComponent(periodId)}`
   const { data, loadError, refresh, replace } = useLoad(url, isPlan)
-  async function save(input: SaveBudgetPlanRequest): Promise<BudgetResult> {
+  async function act(path: 'plan' | 'close' | 'reopen', input: unknown): Promise<BudgetResult> {
     if (url === null) return { ok: false, message: budgetFailure }
-    const result = await send(`${url}/plan`, input)
+    const result = await send(`${url}/${path}`, input)
     if (result.ok) replace(result.plan)
     else refresh()
     return result
   }
-  return { data, loadError, refresh, save }
+  return { data, loadError, refresh, save: (input: SaveBudgetPlanRequest) => act('plan', input),
+    close: (input: ClosePeriodRequest) => act('close', input), reopen: (input: ReopenPeriodRequest) => act('reopen', input) }
 }
 export type BudgetPlanState = ReturnType<typeof useBudgetPlan>
 

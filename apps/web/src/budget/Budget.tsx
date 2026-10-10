@@ -15,7 +15,7 @@ import IncomeDetailDialog from './IncomeDetailDialog'
 import IncomeFormDialog from './IncomeFormDialog'
 import PeriodDialog from './PeriodDialog'
 import { budgetMessage, currentPeriodId } from './budget-view'
-import { budgetExportUrl, createBudgetPeriod, useBudgetPeriods, useBudgetPlan } from './useBudget'
+import { budgetExportUrl, createBudgetPeriod, useBudgetPeriods, useBudgetPlan, type BudgetResult } from './useBudget'
 import { createIncome, updateIncome } from './useIncomes'
 
 type Props = { organizationId: string; finance: boolean; onOpenEvent: (eventId: string) => void }
@@ -36,6 +36,12 @@ export default function Budget({ organizationId, finance, onOpenEvent }: Props) 
   // 방금 만든 기간은 목록을 새로 받기 전에도 연다.
   const periodId = chosen ?? currentPeriodId(list, todayInSeoul())
   const plan = useBudgetPlan(organizationId, periodId)
+  // 마감·다시 열기가 되면 기간 목록(마감 표시)도 새로 받는다.
+  async function afterPeriodChange(pending: Promise<BudgetResult>) {
+    const result = await pending
+    if (result.ok) periods.refresh()
+    return result
+  }
   async function download(id: string) {
     setDownloading(true)
     setDownloadMessage('')
@@ -64,10 +70,11 @@ export default function Budget({ organizationId, finance, onOpenEvent }: Props) 
       {(list.length > 1 || (finance && !editing)) && <div className="flex flex-wrap items-end gap-2">
         {list.length > 1 && <Label className="flex min-w-0 flex-1 flex-col gap-1.5">회계 기간
           <NativeSelect value={periodId} disabled={editing} onChange={event => setChosen(event.target.value)}>
-            {list.map(period => <option key={period.id} value={period.id}>{period.name}</option>)}
+            {list.map(period => <option key={period.id} value={period.id}>{period.closed ? `${period.name} (마감)` : period.name}</option>)}
           </NativeSelect></Label>}
         {finance && !editing && <div className="flex gap-2">
-          <Button variant="outline" disabled={!plan.data} onClick={() => setEditing(true)}>편성 수정</Button>
+          {/* 마감한 기간은 편성을 고치지 않는다. 서버도 막는다. */}
+          {!plan.data?.period.closed && <Button variant="outline" disabled={!plan.data} onClick={() => setEditing(true)}>편성 수정</Button>}
           <Button variant="outline" onClick={() => setCreating(true)}><Plus />새 기간</Button>
         </div>}
       </div>}
@@ -81,7 +88,8 @@ export default function Budget({ organizationId, finance, onOpenEvent }: Props) 
           return result
         }} />
         : <BudgetPlanView plan={plan.data} finance={finance} onOpenEvent={onOpenEvent} onOpenIncome={setOpenedIncome}
-          onRecordIncome={() => setIncomeForm({ income: null })} download={{ busy: downloading, message: downloadMessage, start: () => void download(periodId) }} />}
+          onRecordIncome={() => setIncomeForm({ income: null })} download={{ busy: downloading, message: downloadMessage, start: () => void download(periodId) }}
+          onClosePeriod={input => afterPeriodChange(plan.close(input))} onReopenPeriod={input => afterPeriodChange(plan.reopen(input))} />}
     </div>
     {dialog}
     {plan.data && <>

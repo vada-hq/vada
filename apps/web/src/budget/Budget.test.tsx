@@ -176,3 +176,53 @@ test('결산서를 내려받으면 서버가 준 이름으로 받고, 실패하�
   fireEvent.click(screen.getByRole('button', { name: '결산서 내려받기' }))
   expect(await screen.findByText('기록이 너무 많아 엑셀로 만들 수 없어요.')).toBeTruthy()
 })
+
+test('끝난 열린 기간에는 재정 권한자에게만 마감하려면을 보이고, 끝나지 않은 기간에는 없다', async () => {
+  const ended = budgetPlan({ closing: { ...budgetPlan().closing, ended: true } })
+  setup(true, [budgetPeriod()], ended)
+  expect(await screen.findByRole('region', { name: '마감하려면' })).toBeTruthy()
+  cleanup()
+  setup(false, [budgetPeriod()], ended)
+  await screen.findByRole('heading', { name: '2026년 2학기' })
+  expect(screen.queryByRole('region', { name: '마감하려면' })).toBeNull()
+  cleanup()
+  setup(true, [budgetPeriod()])
+  await screen.findByRole('heading', { name: '2026년 2학기' })
+  expect(screen.queryByRole('region', { name: '마감하려면' })).toBeNull()
+})
+
+test('마감하면 받은 편성으로 바뀌어 편성 수정·수입 기록이 사라지고, 기간 목록을 새로 받아 기간 고르기에 (마감)을 붙인다', async () => {
+  const ended = budgetPlan({ events: [budgetEventLine({ settled: true })], totals: { ...budgetPlan().totals, balance: 0 },
+    closing: { ...budgetPlan().closing, ended: true } })
+  const closed = { ...ended, period: { ...ended.period, version: 3, closed: { by: { id: 'f', name: '재정' }, at: '2027-03-04T15:30:00.000Z' } } }
+  const spring = budgetPeriod({ id: 'p2', name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31' })
+  const { api } = setup(true, [spring, budgetPeriod()], ended)
+  const bodies: unknown[] = []
+  api.on('POST', `${base}/p1/close`, call => { bodies.push(call.body); return json(closed) })
+  const section = await screen.findByRole('region', { name: '마감하려면' })
+  expect(screen.getByRole('button', { name: '편성 수정' })).toBeTruthy()
+  api.on('GET', base, () => json({ periods: [spring, budgetPeriod({ closed: true })] }))
+  fireEvent.click(within(section).getByRole('button', { name: '기간 마감' }))
+  fireEvent.click(within(section).getByRole('button', { name: '기간 마감' }))
+  expect(await screen.findByRole('region', { name: '마감 상태' })).toBeTruthy()
+  expect(bodies).toEqual([{ version: 2, carryoverLineId: null }])
+  for (const name of ['편성 수정', '수입 기록']) expect(screen.queryByRole('button', { name })).toBeNull()
+  expect(screen.queryByRole('region', { name: '마감하려면' })).toBeNull()
+  expect(await screen.findByRole('option', { name: '2026년 2학기 (마감)' })).toBeTruthy()
+})
+
+test('마감을 다시 열면 받은 편성으로 바뀌어 편성 수정이 다시 보인다', async () => {
+  const closed = budgetPlan({ period: { ...budgetPlan().period, version: 3, closed: { by: { id: 'f', name: '재정' }, at: '2027-03-04T15:30:00.000Z' } },
+    closing: { ...budgetPlan().closing, ended: true } })
+  const { api } = setup(true, [budgetPeriod({ closed: true })], closed)
+  const bodies: unknown[] = []
+  api.on('POST', `${base}/p1/reopen`, call => { bodies.push(call.body); return json(budgetPlan({ period: { ...budgetPlan().period, version: 4 } })) })
+  const status = await screen.findByRole('region', { name: '마감 상태' })
+  expect(screen.queryByRole('button', { name: '편성 수정' })).toBeNull()
+  fireEvent.click(within(status).getByRole('button', { name: '마감 다시 열기' }))
+  fireEvent.change(within(status).getByLabelText('다시 여는 사유'), { target: { value: '정정' } })
+  fireEvent.click(within(status).getByRole('button', { name: '다시 열기' }))
+  expect(await screen.findByRole('button', { name: '편성 수정' })).toBeTruthy()
+  expect(bodies).toEqual([{ version: 3, reason: '정정' }])
+  expect(screen.queryByRole('region', { name: '마감 상태' })).toBeNull()
+})
