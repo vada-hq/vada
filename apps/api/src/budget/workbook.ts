@@ -41,6 +41,10 @@ export interface PeriodSheetData {
   incomes: SheetIncome[]
   expenses: SheetLedgerExpense[]
   voided: { incomes: number; expenses: number }
+  // 마감한 사람과 때. 열린 기간이면 null이다.
+  closed: { by: string; at: Date } | null
+  // 다음 기간으로 넘긴 이월금(취소하지 않은 것)
+  carriedOver: { periodName: string; amount: number } | null
 }
 
 export const INCOME_HEADER = ['수입 항목', '예산', '실제 수입', '비율']
@@ -73,6 +77,7 @@ function summarySheet(data: PeriodSheetData): Row[] {
     [text('회계 기간'), text(data.period.name)],
     [text('기간'), text(`${data.period.startsOn} ~ ${data.period.endsOn}`)],
     [text('내려받은 때'), text(koreanTime(data.exportedAt))],
+    [text('마감'), text(data.closed ? `${koreanTime(data.closed.at)} ${data.closed.by}` : '마감 전')],
     [],
     [bold('수입')],
     [text('수입 예산'), money(totals.income)],
@@ -86,6 +91,7 @@ function summarySheet(data: PeriodSheetData): Row[] {
     [text('남은 예산'), remaining(totals.remaining)],
     [],
     [bold('남은 돈'), money(totals.balance, true), text('실제 수입 − 실제 지출')],
+    ...(data.carriedOver ? [[text('다음 기간으로 넘긴 돈'), money(data.carriedOver.amount), text(data.carriedOver.periodName)]] : []),
     [],
     [text('수입 건수'), count(data.incomes.length)],
     [text('지출 건수'), count(data.expenses.length)],

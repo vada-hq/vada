@@ -2,6 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import type { BudgetPeriodsResponse, BudgetPlanResponse, EventFinanceResponse, ExpenseResponse, IncomeResponse } from '@vada/contracts'
 import { setupPurchases } from '../purchases/test-setup.js'
+import { readBook } from '../workbook/read-book.js'
 
 // 마감 조건이 오늘(한국 날짜)에 기대므로, 기간은 확실히 지난 날짜나 먼 미래로 만든다.
 type Env = Awaited<ReturnType<typeof setupPurchases>>
@@ -293,5 +294,28 @@ test('기간 순서: 마감한 기간과 이월금을 받은 기간보다 앞서
     // 다시 열면 사이에 기간을 둘 수 있다.
     await ok(reopen(env, closed))
     await create(env, '2026년 1학기', '2026-03-01', '2026-07-31')
+  } finally { await pg.close() }
+})
+
+test('결산서: 마감한 기간은 마감한 때·사람과 다음 기간으로 넘긴 돈을 요약에 적는다', async () => {
+  const env = await setupPurchases()
+  const { pg, request, ok, as } = env
+  try {
+    as('f')
+    const autumn = await create(env, '2025년 2학기', '2025-09-01', '2026-02-28')
+    await create(env, '2026년 1학기', '2026-03-01', '2026-08-31')
+    await recordIncome(env, autumn.period.id, { amount: 88000, receivedOn: '2025-09-15' })
+    const summaryOf = async () => {
+      const response = await request('GET', `/budget/periods/${autumn.period.id}/export`)
+      assert.equal(response.status, 200)
+      const rows = readBook(Buffer.from(await response.arrayBuffer())).rows(0)
+      return (label: string) => rows.find(cells => cells[0] === label)?.slice(1)
+    }
+    let row = await summaryOf()
+    assert.deepEqual([row('마감'), row('다음 기간으로 넘긴 돈')], [['마감 전'], undefined])
+    await ok(close(env, await planOf(env, autumn.period.id)))
+    row = await summaryOf()
+    assert.match(row('마감')![0]!, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} 재정$/)
+    assert.deepEqual(row('다음 기간으로 넘긴 돈'), ['88000', '2026년 1학기'])
   } finally { await pg.close() }
 })

@@ -423,6 +423,8 @@ export function createBudgetService(db: BudgetDatabase) {
         const [voidedExpenses] = await tx.select({ count: sql<number>`count(*)::int` }).from(expenses)
           .where(and(eq(expenses.organizationId, scope.organizationId), isNotNull(expenses.voidedAt), counted))
         const [organization] = await tx.select({ name: organizations.name }).from(organizations).where(eq(organizations.id, scope.organizationId))
+        const closed = await closedOf(tx, period)
+        const { carriedOver } = await closingOf(tx, scope.organizationId, period)
         // 영수증 보기 주소. 로그인한 구성원이면 짧게 사는 서명 주소로 이동해 파일이 열린다(행사 정산서와 같다).
         const fileUrl = (expenseId: string, receiptId: string) => new URL(`/api/organizations/${encodeURIComponent(scope.organizationId)}/expenses/${
           encodeURIComponent(expenseId)}/receipts/${encodeURIComponent(receiptId)}/file`, publicOrigin).href
@@ -443,6 +445,8 @@ export function createBudgetService(db: BudgetDatabase) {
             receipts: (receiptsOf.get(row.expense.id) ?? []).map(({ receipt, uploaderName }) => ({ kind: receipt.kind, fileName: receipt.fileName,
               uploadedBy: uploaderName, uploadedAt: receipt.confirmedAt ?? receipt.createdAt, url: fileUrl(row.expense.id, receipt.id) })) })),
           voided: { incomes: voidedIncomes!.count, expenses: voidedExpenses!.count },
+          closed: closed && { by: closed.by.name, at: closed.at },
+          carriedOver: carriedOver && { periodName: carriedOver.period.name, amount: carriedOver.amount },
         }
       }, { isolationLevel: 'repeatable read', accessMode: 'read only' })
     },

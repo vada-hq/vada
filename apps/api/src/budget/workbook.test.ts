@@ -37,6 +37,8 @@ const data: PeriodSheetData = {
       receipts: [] },
   ],
   voided: { incomes: 1, expenses: 2 },
+  closed: null,
+  carriedOver: null,
 }
 
 test('결산서 요약: 수입·지출 숫자, 남은 돈, 건수와 알림 줄을 값으로 적는다', async () => {
@@ -45,8 +47,9 @@ test('결산서 요약: 수입·지출 숫자, 남은 돈, 건수와 알림 줄�
   const summary = book.rows(0)
   const row = valuesOf(summary)
   assert.deepEqual(summary[0], ['결산서'])
-  assert.deepEqual([row('학생회'), row('회계 기간'), row('기간'), row('내려받은 때')],
-    [['검증 학생회'], ['2026년 2학기'], ['2026-09-01 ~ 2027-02-28'], ['2026-10-10 10:05']])
+  assert.deepEqual([row('학생회'), row('회계 기간'), row('기간'), row('내려받은 때'), row('마감')],
+    [['검증 학생회'], ['2026년 2학기'], ['2026-09-01 ~ 2027-02-28'], ['2026-10-10 10:05'], ['마감 전']])
+  assert.equal(row('다음 기간으로 넘긴 돈'), undefined)
   assert.deepEqual([row('수입 예산'), row('실제 수입')], [['800000'], ['780000']])
   assert.deepEqual(row('예산'), ['310000', '예산 미정 행사 1개는 0원으로 셈'])
   assert.deepEqual([row('실제 지출'), row('집행률')], [['78000'], [String(78000 / 310000)]])
@@ -116,4 +119,15 @@ test('빈 기간은 머리글과 합계만 두고, 미정·취소 알림 줄을 
 test('파일 이름은 윈도 금지 글자를 바꾸고 한국 날짜를 붙이며, 빈 이름은 회계 기간으로 쓴다', () => {
   assert.equal(periodFileName('2026/2학기 "최종"', new Date('2026-10-09T15:30:00Z')), '2026_2학기 _최종_ 결산 2026-10-10.xlsx')
   assert.equal(periodFileName('  ', new Date('2026-10-09T15:30:00Z')), '회계 기간 결산 2026-10-10.xlsx')
+})
+
+test('결산서 요약: 마감한 기간이면 마감한 때와 사람, 다음 기간으로 넘긴 돈을 적는다', async () => {
+  const closedAt = new Date('2026-10-10T01:05:00Z')
+  const summary = readBook(await periodWorkbook({ ...data, closed: { by: '재정', at: closedAt }, carriedOver: { periodName: '2027년 1학기', amount: 88000 } }))
+    .rows(0)
+  const row = valuesOf(summary)
+  assert.deepEqual([row('마감'), row('다음 기간으로 넘긴 돈')], [['2026-10-10 10:05 재정'], ['88000', '2027년 1학기']])
+  // 넘긴 돈은 남은 돈 바로 아래에 둔다.
+  const balanceAt = summary.findIndex(cells => cells[0] === '남은 돈')
+  assert.equal(summary[balanceAt + 1]![0], '다음 기간으로 넘긴 돈')
 })
