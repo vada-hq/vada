@@ -166,7 +166,7 @@ test('편성 저장: 행사를 넣고 빼며, 바꾼 행사 예산은 행사 처
       409, 'VERSION_CONFLICT', '행사 예산 버전')
     autumn = await planOf(env, autumn.period.id)
     // 정산된 행사는 예산을 바꿀 수 없고, 그대로 두면 통과한다.
-    await ok(request('POST', '/events/e2/finance/settle', { version: 0 }))
+    await ok(request('POST', '/events/e2/finance/settle', { version: 0, feeIncomeLineId: null }))
     autumn = await planOf(env, autumn.period.id)
     await refused(save(env, autumn, { events: [{ eventId: 'e', version: 2, budget: 400000 }, { eventId: 'e2', version: 1, budget: 1000 }] }),
       409, 'EVENT_SETTLED')

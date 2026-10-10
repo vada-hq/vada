@@ -1,8 +1,9 @@
 import { and, asc, eq, exists, gt, gte, isNotNull, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { BudgetClosing } from '@vada/contracts'
-import { budgetLines, budgetPeriods, expenseReceipts, expenses, incomes } from '../db/schema.js'
+import { budgetPeriods, expenseReceipts, expenses, incomes } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
+import { incomeLinesOf } from '../incomes/service.js'
 import type { PeriodNumbers } from './service.js'
 
 type Reader = Pick<PgDatabase<PgQueryResultHKT>, 'select'>
@@ -24,9 +25,7 @@ export async function closingOf(db: Reader, organizationId: string, period: Peri
   // 다음 기간: 시작일이 이 기간 끝일보다 뒤인 기간 가운데 가장 이른 것. 이월금이 들어갈 곳이다.
   const [next] = await db.select({ id: budgetPeriods.id, name: budgetPeriods.name, startsOn: budgetPeriods.startsOn, closedAt: budgetPeriods.closedAt })
     .from(budgetPeriods).where(and(ofCouncil, gt(budgetPeriods.startsOn, period.endsOn))).orderBy(asc(budgetPeriods.startsOn)).limit(1)
-  const nextIncomes = next ? await db.select({ id: budgetLines.id, name: budgetLines.name }).from(budgetLines)
-    .where(and(eq(budgetLines.organizationId, organizationId), eq(budgetLines.periodId, next.id), eq(budgetLines.kind, 'income')))
-    .orderBy(asc(budgetLines.position), asc(budgetLines.id)) : []
+  const nextIncomes = next ? await incomeLinesOf(db, organizationId, next.id) : []
   const [carried] = await db.select({ amount: incomes.amount, periodId: budgetPeriods.id, periodName: budgetPeriods.name }).from(incomes)
     .innerJoin(budgetPeriods, and(eq(budgetPeriods.id, incomes.periodId), eq(budgetPeriods.organizationId, incomes.organizationId)))
     .where(and(eq(incomes.organizationId, organizationId), eq(incomes.carriedFromPeriodId, period.id), isNull(incomes.voidedAt)))
@@ -35,7 +34,7 @@ export async function closingOf(db: Reader, organizationId: string, period: Peri
     earlierOpen: earlierOpen ?? null,
     missingEvidence: missing!.count,
     next: next ? { id: next.id, name: next.name, startsOn: next.startsOn, closed: next.closedAt !== null,
-      incomes: nextIncomes.map(line => ({ id: line.id, name: line.name! })) } : null,
+      incomes: nextIncomes } : null,
     carriedOver: carried ? { period: { id: carried.periodId, name: carried.periodName }, amount: carried.amount } : null,
   }
 }

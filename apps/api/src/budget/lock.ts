@@ -30,10 +30,12 @@ export async function requireOpenDays(tx: Executor & Reader, organizationId: str
   if (closed) throw new ApiError('PERIOD_CLOSED', 409)
 }
 // 행사가 든 기간이 마감됐으면 막는다. 기간 행을 FOR SHARE로 잠가 마감(FOR UPDATE)과 겹치지 않게 하고, 행사 행보다 먼저 잠근다(기간 → 행사).
+// 잠근 기간을 돌려주고, 기간에 넣지 않은 행사면 null이다. 정산은 이 기간에 참가비 수입을 넣는다.
 export async function requireOpenEventPeriod(tx: Reader, organizationId: string, eventId: string) {
   const [line] = await tx.select({ periodId: budgetLines.periodId }).from(budgetLines)
     .where(and(eq(budgetLines.organizationId, organizationId), eq(budgetLines.eventId, eventId)))
-  if (!line) return
-  const [period] = await tx.select({ closedAt: budgetPeriods.closedAt }).from(budgetPeriods).where(eq(budgetPeriods.id, line.periodId)).for('share')
+  if (!line) return null
+  const [period] = await tx.select().from(budgetPeriods).where(eq(budgetPeriods.id, line.periodId)).for('share')
   if (period?.closedAt) throw new ApiError('PERIOD_CLOSED', 409)
+  return period ?? null
 }

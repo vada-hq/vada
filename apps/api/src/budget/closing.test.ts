@@ -70,7 +70,7 @@ test('마감: 조건이 하나라도 안 맞으면 막고, 맞으면 잠그며 �
     // 넣은 행사가 정산 전이면 마감하지 않는다.
     autumn = await ok<BudgetPlanResponse>(save(env, await planOf(env, autumn.period.id), { events: [{ eventId: 'e', version: 0 }] }))
     await refused(close(env, autumn), 409, 'NOT_READY_TO_CLOSE', '정산 전 행사')
-    await ok(request('POST', '/events/e/finance/settle', { version: 0 }))
+    await ok(request('POST', '/events/e/finance/settle', { version: 0, feeIncomeLineId: null }))
     autumn = await planOf(env, autumn.period.id)
     assert.deepEqual(autumn.closing, { ended: true, earlierOpen: null, missingEvidence: 0, carriedOver: null,
       next: { id: spring.period.id, name: '2026년 1학기', startsOn: '2026-03-01', closed: false, incomes: spring.incomes.map(({ id, name }) => ({ id, name })) } })
@@ -245,7 +245,7 @@ test('마감한 기간: 편성·수입·상시 운영 지출·증빙 삭제·행
     await attachReceipt(env, snack.id, 'r1')
     const later = await recordExpense(env, { paidOn: '2026-03-05' })
     autumn = await ok<BudgetPlanResponse>(save(env, await planOf(env, autumn.period.id), { events: [{ eventId: 'e', version: 0 }] }))
-    await ok(request('POST', '/events/e/finance/settle', { version: 0 }))
+    await ok(request('POST', '/events/e/finance/settle', { version: 0, feeIncomeLineId: null }))
     autumn = await ok<BudgetPlanResponse>(close(env, await planOf(env, autumn.period.id)))
     const incomes = `/budget/periods/${autumn.period.id}/incomes`
     const blocked: [string, () => Response | Promise<Response>][] = [

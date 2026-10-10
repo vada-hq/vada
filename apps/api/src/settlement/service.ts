@@ -8,7 +8,9 @@ import { budgetLines, budgetPeriods, eventFinanceEvents, eventFinances, events, 
   purchaseItems as items, users } from '../db/schema.js'
 import { expenseItemRows, expenseSummaries } from '../expenses/summaries.js'
 import { ApiError } from '../http/errors.js'
+import { feeIncomeOf, incomeLinesOf, insertFeeIncome, voidFeeIncome } from '../incomes/service.js'
 import { requireFinance } from '../purchases/review.js'
+import { eventFeesOf } from '../registrations/fee.js'
 import type { SettlementSheetData, SheetExpense } from './workbook.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -115,15 +117,19 @@ async function responseOf(db: Reader, scope: SettlementScope, eventId: string): 
   const budget = row?.finance.budget ?? null
   const settledAt = row?.finance.settledAt ?? null
   const settledBy = row?.finance.settledBy ?? null
-  // 행사가 든 회계 기간이 마감됐으면 화면이 정산 다시 열기를 감춘다.
-  const [period] = await db.select({ closedAt: budgetPeriods.closedAt }).from(budgetLines)
+  // 행사가 든 회계 기간. 마감됐으면 화면이 정산 다시 열기를 감추고, 정산은 이 기간에 참가비 수입을 넣는다.
+  const [period] = await db.select({ id: budgetPeriods.id, name: budgetPeriods.name, closedAt: budgetPeriods.closedAt }).from(budgetLines)
     .innerJoin(budgetPeriods, and(eq(budgetPeriods.id, budgetLines.periodId), eq(budgetPeriods.organizationId, budgetLines.organizationId)))
     .where(and(eq(budgetLines.organizationId, scope.organizationId), eq(budgetLines.eventId, eventId)))
+  const fees = await eventFeesOf(db, scope.organizationId, eventId)
   const finance: EventFinance = {
     eventId, budget, ...numbers,
     remaining: budget === null ? null : budget - numbers.spent - numbers.planned,
     settled: settledAt && settledBy ? { by: { id: settledBy, name: row?.settlerName ?? '' }, at: settledAt.toISOString() } : null,
     periodClosed: Boolean(period?.closedAt),
+    fees: fees && { received: fees.received, count: fees.count, unpaid: fees.unpaid },
+    period: period ? { id: period.id, name: period.name, incomes: await incomeLinesOf(db, scope.organizationId, period.id) } : null,
+    feeIncome: await feeIncomeOf(db, scope.organizationId, eventId),
     version: row?.finance.version ?? 0,
     // 최근 것부터 잘라 온 뒤 오래된 순으로 돌린다.
     history: history.reverse().map(({ entry, actorName }) => ({ id: entry.id, action: entry.action, actor: { id: entry.actorId, name: actorName },
@@ -164,11 +170,6 @@ export async function changeEventBudget(tx: SettlementTransaction, scope: Settle
 }
 
 export function createSettlementService(db: SettlementDatabase) {
-  // 바꾸기 전에: 재정 권한(부서 변경과 겹치지 않게 잠금), 행사 행 잠금, 버전.
-  async function begin(tx: SettlementTransaction, scope: SettlementScope, eventId: string, version: number) {
-    await requireFinance(tx, scope, true)
-    return lockFinance(tx, scope, eventId, version)
-  }
   return {
     async get(scope: SettlementScope, eventId: string) {
       await eventOf(db, scope, eventId)
@@ -181,15 +182,36 @@ export function createSettlementService(db: SettlementDatabase) {
         return responseOf(tx, scope, eventId)
       })
     },
-    // 증빙 누락·검토 대기 요청·지출로 기록하지 않은 승인 품목이 모두 0일 때만 닫는다. 그때의 예산·실제 지출·지출 건수를 남긴다.
+    // 증빙 누락·검토 대기 요청·지출로 기록하지 않은 승인 품목이 모두 0이고, 받은 참가비가 있으면 행사가 기간에 들어 있을 때만 닫는다.
+    // 받은 참가비는 행사가 든 기간의 수입 한 건으로 넣는다. 그때의 예산·실제 지출·지출 건수·참가비 수입을 남긴다.
     async settle(scope: SettlementScope, eventId: string, input: SettleEventRequest) {
       return db.transaction(async tx => {
-        const row = await begin(tx, scope, eventId, input.version)
+        await requireFinance(tx, scope, true)
+        // 참가비 수입을 넣을 기간이 편성 수정·마감과 엇갈리지 않게 예산 잠금을 같이 잡는다. 잠금 순서는 다시 열기와 같다(학생회 예산 → 기간 행 → 행사 행).
+        await shareBudget(tx, scope.organizationId)
+        const period = await requireOpenEventPeriod(tx, scope.organizationId, eventId)
+        const row = await lockFinance(tx, scope, eventId, input.version)
         if (row?.settledAt) throw new ApiError('INVALID_STATE', 409)
         const numbers = await financeNumbers(tx, scope, eventId)
-        if (numbers.missingEvidence || numbers.pendingRequests || numbers.unrecordedItems) throw new ApiError('NOT_READY_TO_SETTLE', 409)
+        // 행사 행을 잠근 뒤 센다. 입금 확인·확인 취소·금액 변경과 겹치지 않아, 정산이 끝날 때까지 그대로다.
+        const fees = await eventFeesOf(tx, scope.organizationId, eventId)
+        const received = fees?.received ?? 0
+        if (numbers.missingEvidence || numbers.pendingRequests || numbers.unrecordedItems || (received > 0 && !period)) {
+          throw new ApiError('NOT_READY_TO_SETTLE', 409)
+        }
+        let fee: { amount: number; count: number; period: string; line: string | null } | null = null
+        // 받은 참가비가 0원이면 넣지 않고, 보낸 수입 항목도 보지 않는다.
+        if (fees && period && received > 0) {
+          const line = input.feeIncomeLineId === null ? null
+            : (await incomeLinesOf(tx, scope.organizationId, period.id)).find(entry => entry.id === input.feeIncomeLineId)
+          if (line === undefined) throw new ApiError('BUDGET_LINE_INVALID', 409)
+          const event = await eventOf(tx, scope, eventId)
+          await insertFeeIncome(tx, scope, { event: { id: eventId, name: event.name }, period, amount: received, count: fees.count,
+            lastPaidAt: fees.lastPaidAt!, budgetLineId: line?.id ?? null })
+          fee = { amount: received, count: fees.count, period: period.name, line: line?.name ?? null }
+        }
         await saveFinance(tx, scope, eventId, row !== null, { settledAt: sql`now()`, settledBy: scope.userId })
-        await recordFinance(tx, scope, eventId, 'settled', { budget: row?.budget ?? null, spent: numbers.spent, expenseCount: numbers.expenseCount })
+        await recordFinance(tx, scope, eventId, 'settled', { budget: row?.budget ?? null, spent: numbers.spent, expenseCount: numbers.expenseCount, fee })
         return responseOf(tx, scope, eventId)
       })
     },
@@ -203,6 +225,8 @@ export function createSettlementService(db: SettlementDatabase) {
         await requireOpenEventPeriod(tx, scope.organizationId, eventId)
         const row = await lockFinance(tx, scope, eventId, input.version)
         if (!row?.settledAt) throw new ApiError('INVALID_STATE', 409)
+        // 정산에서 넣은 참가비 수입을 취소한다. 다시 정산하면 그때의 받은 참가비로 새로 넣는다.
+        await voidFeeIncome(tx, scope, { id: eventId, name: (await eventOf(tx, scope, eventId)).name })
         await saveFinance(tx, scope, eventId, true, { settledAt: null, settledBy: null })
         await recordFinance(tx, scope, eventId, 'reopened', {}, input.reason)
         return responseOf(tx, scope, eventId)

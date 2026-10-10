@@ -91,7 +91,7 @@ test('정산: 증빙 누락·검토 대기 요청·지출로 기록하지 않은
     const [waiting] = await submitted([link(2)])
     as('f')
     const expense = await create(env, { amount: 50000 })
-    const settle = (version = 0) => request('POST', '/events/e/finance/settle', { version })
+    const settle = (version = 0) => request('POST', '/events/e/finance/settle', { version, feeIncomeLineId: null })
     await refused(settle(), 409, 'NOT_READY_TO_SETTLE', '셋 다 남음')
     await pg.exec(readyReceipt(expense.id))
     await refused(settle(), 409, 'NOT_READY_TO_SETTLE', '대기·미기록 남음')
@@ -105,7 +105,7 @@ test('정산: 증빙 누락·검토 대기 요청·지출로 기록하지 않은
     const settled = (await ok<EventFinanceResponse>(settle())).finance
     assert.deepEqual([settled.settled?.by.name, settled.version, settled.missingEvidence, settled.pendingRequests, settled.unrecordedItems],
       ['재정', 1, 0, 0, 0])
-    assert.deepEqual(settled.history.map(entry => [entry.action, entry.changes]), [['settled', { budget: null, spent: 50000, expenseCount: 1 }]])
+    assert.deepEqual(settled.history.map(entry => [entry.action, entry.changes]), [['settled', { budget: null, spent: 50000, expenseCount: 1, fee: null }]])
     await refused(settle(1), 409, 'INVALID_STATE')
     await refused(request('POST', '/events/e/finance/budget', { version: 1, budget: 1000 }), 409, 'EVENT_SETTLED')
   } finally { await pg.close() }
@@ -117,7 +117,7 @@ test('다시 열기: 재정 권한자가 사유를 적어야 하고, 정산 전�
   try {
     as('f')
     // 지출·품목이 없으면 바로 정산된다.
-    await ok(request('POST', '/events/e/finance/settle', { version: 0 }))
+    await ok(request('POST', '/events/e/finance/settle', { version: 0, feeIncomeLineId: null }))
     const reopen = (payload: unknown) => request('POST', '/events/e/finance/reopen', payload)
     assert.equal((await reopen({ version: 1 })).status, 400)
     assert.equal((await reopen({ version: 1, reason: ' ' })).status, 400)

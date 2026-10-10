@@ -1,53 +1,11 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { MyRegistration, PublicRegistrationForm, RegistrationCreated, RegistrationEntry, RegistrationResponse } from '@vada/contracts'
+import type { BudgetPlanResponse, MyRegistration, PublicRegistrationForm, RegistrationResponse } from '@vada/contracts'
 import { setupPurchases } from '../purchases/test-setup.js'
+import { account, apply, at, confirm, create, entries, type Env, formBody, named, prepare, refused, registrationBase as base, roster, switchDues,
+  unconfirm, update } from './test-setup.js'
 
-type Env = Awaited<ReturnType<typeof setupPurchases>>
-async function refused(pending: Response | Promise<Response>, status: number, error: string, label = error) {
-  const response = await pending
-  assert.equal(response.status, status, label)
-  assert.deepEqual(await response.json(), { error }, label)
-}
-const at = (value: string) => new Date(`${value}:00+09:00`)
 const korean = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
-const base = '/events/e/registration'
-const formBody = (overrides: Record<string, unknown> = {}) => ({ opensAt: null, closesAt: '2999-08-19T23:59', capacity: null, notice: null,
-  collectPhone: false, fee: 0, memberFee: null, ...overrides })
-const account = { version: 0, bank: '카카오뱅크', accountNumber: '3333-01-1234567', holder: '학생회' }
-const roster = { version: 0, label: '2999년 납부자', useUntil: '2999-12-31', members: [{ studentId: '2022000001', name: '김바다' },
-  { studentId: '2022000002', name: 'Kim Bada' }, { studentId: '2022000004', name: '정하늘' }, { studentId: '2022000005', name: '오하늘' },
-  { studentId: '2022000006', name: '윤서진' }] }
-// 시계는 2999년 8월 1일이다. 재정(f)이 계좌와 명단을 넣고, 기획(p)이 행사 e에 일시를 넣는다. 끝나면 기획(p)으로 남는다.
-async function prepare(env: Env, { withAccount = true, withRoster = true } = {}) {
-  env.clock.set(at('2999-08-01T00:00'))
-  env.as('f')
-  if (withAccount) await env.ok(env.request('POST', '/fee-account', account))
-  if (withRoster) await env.ok(env.request('POST', '/dues-roster', roster))
-  env.as('p')
-  await env.ok(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: '2999-08-20T18:00', place: '체육관' }))
-}
-const create = (env: Env, overrides: Record<string, unknown> = {}) => env.ok<RegistrationResponse>(env.request('POST', base, formBody(overrides)), 201)
-// 지금 설정에 바꿀 칸만 바꿔 보낸다.
-async function update(env: Env, overrides: Record<string, unknown> = {}) {
-  const { form } = await env.ok<RegistrationResponse>(env.request('GET', base))
-  return env.request('PATCH', base, { version: form!.version, accepting: form!.accepting, opensAt: form!.opensAt, closesAt: form!.closesAt,
-    capacity: form!.capacity, notice: form!.notice, collectPhone: form!.collectPhone, fee: form!.fee, memberFee: form!.memberFee, ...overrides })
-}
-// 공개 신청으로 넣는다. 로그인은 그대로 둔다.
-async function apply(env: Env, code: string, name: string, studentId: string) {
-  const user = env.state.userId
-  env.as(null)
-  const { token } = await env.ok<RegistrationCreated>(env.publicRequest('POST', `/public/registration-forms/${code}/entries`,
-    { name, studentId, phone: null, agreed: true }), 201)
-  env.as(user)
-  return token
-}
-const entries = async (env: Env) => (await env.ok<RegistrationResponse>(env.request('GET', base))).registrations
-const named = (list: RegistrationEntry[], name: string) => list.find(entry => entry.name === name)!
-const confirm = (env: Env, id: string, body: unknown = {}) => env.request('POST', `${base}/entries/${id}/payment`, body)
-const unconfirm = (env: Env, id: string, body: unknown = {}) => env.request('POST', `${base}/entries/${id}/payment/cancel`, body)
-const switchDues = (env: Env, id: string, body: unknown) => env.request('POST', `${base}/entries/${id}/dues`, body)
 
 test('참가비 설정: 계좌 없이 참가비를, 쓸 수 있는 명단 없이 납부자 참가비를 정할 수 없다', async () => {
   const env = await setupPurchases()
@@ -181,8 +139,13 @@ test('정산이 끝난 행사는 입금 확인·확인 취소·참가비 바꾸�
     await apply(env, form!.code, '박해랑', '2023000004')
     const list = await entries(env)
     await env.ok(confirm(env, named(list, '이윤슬').id))
+    // 받은 참가비가 있으면 행사가 회계 기간에 들어 있어야 정산된다.
     env.as('f')
-    await env.ok(env.request('POST', '/events/e/finance/settle', { version: 0 }))
+    const period = await env.ok<BudgetPlanResponse>(env.request('POST', '/budget/periods', { name: '2999년 1학기', startsOn: '2999-03-01',
+      endsOn: '2999-08-31' }), 201)
+    await env.ok(env.request('POST', `/budget/periods/${period.period.id}/plan`, { version: period.period.version, name: period.period.name,
+      startsOn: period.period.startsOn, endsOn: period.period.endsOn, incomes: [], operating: [], events: [{ eventId: 'e', version: 0 }] }))
+    await env.ok(env.request('POST', '/events/e/finance/settle', { version: 0, feeIncomeLineId: null }))
     env.as('p')
     await refused(confirm(env, named(list, '박해랑').id), 409, 'EVENT_SETTLED')
     await refused(unconfirm(env, named(list, '이윤슬').id), 409, 'EVENT_SETTLED')
