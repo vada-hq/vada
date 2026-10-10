@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { CalendarDays, Copy, Plus } from 'lucide-react'
+import { AccountInfo } from '@/components/AccountInfo'
 import { AuthCard } from '@/components/AuthCard'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
@@ -61,6 +62,9 @@ export default function Gallery() {
         { label: '지출 예정', value: '1,100,000원', note: '금액을 모르는 품목 2개 제외' },
         { label: '남은 예산', value: '120,000원 초과', tone: 'danger' },
       ]} />
+    </Section>
+    <Section title="계좌 상자">
+      <AccountInfo className="w-80" account={{ bank: '카카오뱅크', accountNumber: '3333-01-1234567', holder: '소프트웨어융합대학 컴퓨터학부 학생회 집행부' }} />
     </Section>
     <Section title="카드·배너">
       <Card className="w-72 p-4"><p className="text-sm font-semibold">카드 제목</p><p className="text-xs text-gray-500">카드 설명</p></Card>

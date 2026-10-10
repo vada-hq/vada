@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
 import { CalendarDays, CheckCircle2, MapPin } from 'lucide-react'
-import type { MyRegistration } from '@vada/contracts'
+import type { MyPayment, MyRegistration } from '@vada/contracts'
+import { AccountInfo } from '@/components/AccountInfo'
 import StateMessage from '@/components/StateMessage'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { PublicLayout } from './PublicLayout'
 import { cancelMine, lookup } from './public-api'
-import { eventTimeText, formatKoreanTime, phoneText, registrationFailure, registrationMessage } from './registration-text'
-import { forgetToken } from './saved-tokens'
+import { depositorName, eventTimeText, formatKoreanTime, phoneText, registrationFailure, registrationMessage, won } from './registration-text'
+import { forgetToken, forgetTokenValue } from './saved-tokens'
 
 type Loaded = { kind: 'loading' } | { kind: 'missing' } | { kind: 'failed' } | { kind: 'ready'; registration: MyRegistration }
 const missingText = '신청 정보를 찾을 수 없어요. 취소했거나 보관 기간이 지났을 수 있어요.'
+const paidCancelText = '입금을 확인한 신청은 학생회에 문의해 취소해 주세요.'
 
 function EventSummary({ registration }: { registration: MyRegistration }) {
   const time = eventTimeText(registration.event.startsAt, registration.event.endsAt)
@@ -19,6 +22,43 @@ function EventSummary({ registration }: { registration: MyRegistration }) {
     {time && <p className="flex items-start gap-1.5 text-sm text-gray-600"><CalendarDays aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />{time}</p>}
     {registration.event.place && <p className="flex items-start gap-1.5 text-sm wrap-anywhere text-gray-600">
       <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />{registration.event.place}</p>}
+  </section>
+}
+
+// 내 참가비: 낼 돈과 입금할 계좌·입금자명, 또는 입금 확인. 와이어프레임의 "관리자 확인 중" 대신 신청하자마자 보인다.
+function Payment({ registration, payment }: { registration: MyRegistration; payment: MyPayment }) {
+  const [copied, setCopied] = useState<'done' | 'failed' | null>(null)
+  const depositor = registration.name && registration.studentId ? depositorName(registration.name, registration.studentId) : null
+  async function copy(value: string) {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied('done')
+    } catch {
+      setCopied('failed')
+    }
+  }
+  return <section aria-label="참가비" className="flex flex-col gap-2 rounded-md border p-3">
+    <h2 className="text-sm font-semibold text-gray-900">참가비</h2>
+    {payment.paidAt ? <>
+      <Badge tone="success" className="self-start">입금 확인됨</Badge>
+      <p className="text-sm text-gray-900">{won(payment.fee)} · {formatKoreanTime(payment.paidAt)}</p>
+    </> : payment.fee === 0 ? <p className="text-sm text-gray-700">학생회비 납부자라 참가비가 없어요.</p> : <>
+      <p className="text-lg font-semibold text-gray-900">{won(payment.fee)}</p>
+      {payment.basis === 'nonmember' && <p className="text-xs text-gray-500">
+        학생회비 납부 명단에서 이름과 학번을 찾지 못했어요. 학생회비를 냈다면 학생회에 문의해 주세요.</p>}
+      {payment.account && <AccountInfo account={payment.account} />}
+      {depositor && <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-gray-500">입금자명</span>
+          <span className="font-medium wrap-anywhere text-gray-900 select-all">{depositor}</span>
+          <Button variant="outline" size="sm" aria-label="입금자명 복사" onClick={() => { void copy(depositor) }}>복사</Button>
+        </div>
+        <p className="text-xs text-gray-500">이 이름으로 입금해 주세요. 학생회가 입금을 확인할 때 써요.</p>
+        {copied === 'done' && <StateMessage kind="notice">입금자명을 복사했어요.</StateMessage>}
+        {copied === 'failed' && <StateMessage kind="error">입금자명을 복사하지 못했어요. 길게 눌러 복사해 주세요.</StateMessage>}
+      </div>}
+      <p className="text-xs text-gray-500">입금 확인 전이에요. 학생회가 입금을 확인하면 여기에 '입금 확인됨'이 보여요.</p>
+    </>}
   </section>
 }
 
@@ -35,6 +75,8 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
     let active = true
     void lookup(token).then(result => {
       if (!active) return
+      // 찾을 수 없는 신청(취소·보관 기간 지남)의 토큰은 기기에서 지운다. 신청 화면이 "이미 신청했어요"를 다시 보이지 않게 한다.
+      if (!result.ok && result.missing) forgetTokenValue(token)
       setLoaded(result.ok ? { kind: 'ready', registration: result.registration } : { kind: result.missing ? 'missing' : 'failed' })
     })
     return () => { active = false }
@@ -57,7 +99,7 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
     setBusy(false)
     setConfirming(false)
     if (!result.ok) {
-      setError(result.code === null ? registrationFailure : registrationMessage(result.code))
+      setError(result.code === null ? registrationFailure : registrationMessage(result.code, { PAYMENT_CONFIRMED: paidCancelText }))
       return
     }
     forgetToken(result.registration.code)
@@ -95,6 +137,7 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
         <span className="shrink-0 text-gray-500">{label}</span><span className="text-right wrap-anywhere text-gray-900">{value}</span>
       </div>)}
     </section>
+    {registration.payment && <Payment registration={registration} payment={registration.payment} />}
     <section aria-label="주소 저장" className="flex flex-col items-start gap-2">
       <p className="text-sm text-gray-600">이 화면 주소를 저장해 두세요. 신청을 확인하고 취소할 때 필요해요.</p>
       <Button variant="outline" onClick={() => { void copy() }}>주소 복사</Button>
@@ -103,7 +146,7 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
     {registration.cancellable ? <div className="flex flex-col items-start gap-2">
       <p className="text-sm text-gray-600">{`${formatKoreanTime(registration.closesAt)}까지 취소할 수 있어요.`}</p>
       <Button variant="outline" onClick={() => setConfirming(true)}>신청 취소</Button>
-    </div> : <p className="text-sm text-gray-500">마감 뒤에 취소하려면 학생회에 문의해 주세요.</p>}
+    </div> : <p className="text-sm text-gray-500">{registration.payment?.paidAt ? paidCancelText : '마감 뒤에 취소하려면 학생회에 문의해 주세요.'}</p>}
     {error && <StateMessage kind="error">{error}</StateMessage>}
     <Dialog open={confirming} onOpenChange={open => { if (!busy) setConfirming(open) }}>
       <DialogContent>

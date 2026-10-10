@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { AlertCircle, CalendarDays, Clock, MapPin } from 'lucide-react'
+import { AlertCircle, Banknote, CalendarDays, Clock, MapPin } from 'lucide-react'
 import { dateFromKorean, RegisterSchema, type PublicRegistrationForm, type RegistrationState } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils'
 import { PublicLayout } from './PublicLayout'
 import { fetchPublicForm, register } from './public-api'
 import { minePath } from './public-route'
-import { eventTimeText, formatKoreanTime, privacyNotice, registrationFailure, registrationMessage, stateText } from './registration-text'
+import { eventTimeText, feeLine, formatKoreanTime, privacyNotice, registrationFailure, registrationMessage, stateText } from './registration-text'
 import { savedToken, saveToken } from './saved-tokens'
 
 // 시작 전이면 시작 시각에 다시 불러온다. 기기 시계가 서버보다 빨라 아직 시작 전이라는 답이 오면 잠시 뒤 다시 본다.
@@ -34,7 +34,19 @@ export default function ApplyPage({ code, onRegistered = token => window.locatio
   const [agreed, setAgreed] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
-  const [saved] = useState(() => savedToken(code))
+  const [saved, setSaved] = useState(() => savedToken(code))
+  // 신청한 뒤 내 신청 화면에서 뒤로 돌아오면 브라우저가 이 화면을 그대로 되살린다(bfcache).
+  // 신청 버튼을 다시 켜고, 기기에 저장한 토큰과 신청 정보를 다시 읽는다.
+  useEffect(() => {
+    function restored(event: PageTransitionEvent) {
+      if (!event.persisted) return
+      setBusy(false)
+      setSaved(savedToken(code))
+      setAttempt(value => value + 1)
+    }
+    window.addEventListener('pageshow', restored)
+    return () => window.removeEventListener('pageshow', restored)
+  }, [code])
   useEffect(() => {
     const controller = new AbortController()
     void fetchPublicForm(code, controller.signal).then(result => { if (!controller.signal.aborted) setLoaded(result) })
@@ -79,6 +91,7 @@ export default function ApplyPage({ code, onRegistered = token => window.locatio
   }
   const time = eventTimeText(form.event.startsAt, form.event.endsAt)
   const notice = stateText(form.state, form.opensAt)
+  const fee = feeLine(form.fee, form.memberFee)
   return <PublicLayout organizationName={form.organizationName}>
     <section className="flex flex-col gap-2" aria-label="행사 정보">
       <h1 className="text-lg font-semibold wrap-anywhere text-gray-900">{form.event.name}</h1>
@@ -87,6 +100,7 @@ export default function ApplyPage({ code, onRegistered = token => window.locatio
         <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />{form.event.place}</p>}
       <p className="flex items-start gap-1.5 text-sm text-gray-600"><Clock aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />
         {`신청 마감 ${formatKoreanTime(form.closesAt)}`}</p>
+      {fee && <p className="flex items-start gap-1.5 text-sm text-gray-600"><Banknote aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />{fee}</p>}
       {form.state === 'open' && form.remaining !== null && <Badge tone="info" className="self-start">남은 자리 {form.remaining}</Badge>}
       {form.notice && <p className="text-sm whitespace-pre-line wrap-anywhere text-gray-600">{form.notice}</p>}
     </section>
@@ -108,7 +122,8 @@ export default function ApplyPage({ code, onRegistered = token => window.locatio
       <section aria-label="개인정보 수집·이용 안내" className="flex flex-col gap-1 rounded-md bg-gray-50 p-3 text-xs text-gray-600">
         <h2 className="font-medium text-gray-700">개인정보 수집·이용 안내</h2>
         <ul className="flex flex-col gap-0.5">
-          {privacyNotice({ organizationName: form.organizationName, eventName: form.event.name, collectPhone: form.collectPhone, purgeAfter: form.purgeAfter })
+          {privacyNotice({ organizationName: form.organizationName, eventName: form.event.name, collectPhone: form.collectPhone, purgeAfter: form.purgeAfter,
+            fee: form.fee, memberFee: form.memberFee })
             .map(line => <li key={line} className="wrap-anywhere">{line}</li>)}
         </ul>
       </section>

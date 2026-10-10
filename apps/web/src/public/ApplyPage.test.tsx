@@ -2,7 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { PublicRegistrationForm } from '@vada/contracts'
-import { json, mockApi } from '../test-support/mock-api'
+import { deferredResponse, json, mockApi } from '../test-support/mock-api'
 import ApplyPage from './ApplyPage'
 
 afterEach(() => {
@@ -14,7 +14,7 @@ const token = 'Ab3_-xYz0123456789abcd'
 const publicForm = (overrides: Partial<PublicRegistrationForm> = {}): PublicRegistrationForm => ({ organizationName: '소프트웨어융합대학 학생회',
   event: { name: '2026 체육대회', startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: 'ERICA 체육관' },
   notice: '준비물: 운동화\n문의: 학생회실', collectPhone: false, state: 'open', opensAt: null, closesAt: '2026-08-19T23:59', remaining: 58,
-  purgeAfter: '2026-09-19', ...overrides })
+  purgeAfter: '2026-09-19', fee: 0, memberFee: null, ...overrides })
 function setup(form = publicForm()) {
   const api = mockApi()
   api.on('GET', formPath, () => json(form))
@@ -154,4 +154,36 @@ test('신청 설정이 바뀌었다는 답이면 알리고, 바뀐 설정을 다
   expect(await screen.findByLabelText('휴대폰 번호')).toBeTruthy()
   expect(screen.getByText('신청 설정이 바뀌었어요. 바뀐 내용을 확인하고 다시 신청해 주세요.')).toBeTruthy()
   expect(field('이름').value).toBe('김바다')
+})
+
+test('참가비가 있으면 행사 정보 아래에 적고, 고지에 참가비 확인과 명단 대조를 알린다. 무료면 줄이 없다', async () => {
+  setup(publicForm({ fee: 5000, memberFee: 0 }))
+  await heading()
+  expect(screen.getByText('참가비 5,000원 · 학생회비 납부자 무료')).toBeTruthy()
+  expect(screen.getByText('목적: 2026 체육대회 참가 신청 확인, 참가비 확인과 행사 운영')).toBeTruthy()
+  expect(screen.getByText('학생회비 납부 여부는 이름과 학번을 학생회비 명단과 맞춰 확인해요.')).toBeTruthy()
+  cleanup()
+  setup()
+  await heading()
+  expect(screen.queryByText(/^참가비 /)).toBeNull()
+  expect(screen.getByText('목적: 2026 체육대회 참가 신청 확인과 행사 운영')).toBeTruthy()
+})
+
+test('뒤로 가기로 돌아오면(bfcache) 신청 버튼을 다시 켜고, 기기에 저장한 토큰과 신청 정보를 다시 읽는다', async () => {
+  const { api } = setup()
+  await heading()
+  fill()
+  const pending = deferredResponse()
+  api.on('POST', `${formPath}/entries`, () => pending.promise)
+  fireEvent.click(submit())
+  await waitFor(() => expect(screen.getByRole('button', { name: '신청하는 중…' }).hasAttribute('disabled')).toBe(true))
+  // 신청이 되어 내 신청 화면으로 넘어갔다가 뒤로 돌아왔다. 기기에는 토큰이 있다.
+  localStorage.setItem('vada.registration.ABCD2345', token)
+  const gets = api.calls.filter(call => call.method === 'GET').length
+  const shown = new Event('pageshow')
+  Object.defineProperty(shown, 'persisted', { value: true })
+  window.dispatchEvent(shown)
+  expect(await screen.findByText('이 기기에서 이미 신청했어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '신청하기' }).hasAttribute('disabled')).toBe(false)
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(gets + 1))
 })

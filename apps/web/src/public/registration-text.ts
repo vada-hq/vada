@@ -74,12 +74,21 @@ export const registrationFailure = '연결하지 못했어요. 잠시 뒤 다시
 export const depositorName = (name: string, studentId: string) => `${name}${studentId.slice(-4)}`
 export const won = (value: number) => `${value.toLocaleString('ko-KR')}원`
 
+// 공개 신청 화면의 참가비 줄. 무료면 없다.
+export function feeLine(fee: number, memberFee: number | null) {
+  if (fee === 0 && memberFee === null) return null
+  if (memberFee === null) return `참가비 ${won(fee)}`
+  return `참가비 ${won(fee)} · 학생회비 납부자 ${memberFee === 0 ? '무료' : won(memberFee)}`
+}
+
 // 개인정보 수집·이용 고지(개인정보보호법 제15조 제2항의 네 가지와 받는 곳). 운영진이 고칠 수 없다.
-export const privacyNotice = ({ organizationName, eventName, collectPhone, purgeAfter }: { organizationName: string; eventName: string
-  collectPhone: boolean; purgeAfter: string }) => [
+// 참가비가 있으면 목적에 참가비 확인을 넣고, 납부자 참가비가 있으면 학생회비 명단과 맞춰 본다고 알린다.
+export const privacyNotice = ({ organizationName, eventName, collectPhone, purgeAfter, fee, memberFee }: { organizationName: string; eventName: string
+  collectPhone: boolean; purgeAfter: string; fee: number; memberFee: number | null }) => [
   `받는 곳: ${organizationName}`,
-  `목적: ${eventName} 참가 신청 확인과 행사 운영`,
+  `목적: ${eventName} 참가 신청 확인${fee > 0 || memberFee !== null ? ', 참가비 확인' : ''}과 행사 운영`,
   `항목: 이름, 학번${collectPhone ? ', 휴대폰 번호' : ''}`,
+  ...memberFee === null ? [] : ['학생회비 납부 여부는 이름과 학번을 학생회비 명단과 맞춰 확인해요.'],
   `보유 기간: 행사가 끝나고 30일 뒤(${dayText(purgeAfter)}) 지워요`,
   '동의하지 않을 수 있어요. 다만 동의하지 않으면 신청할 수 없어요.',
 ]

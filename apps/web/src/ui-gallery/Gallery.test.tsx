@@ -7,7 +7,8 @@ afterEach(cleanup)
 
 test('부품 확인 화면이 모든 부품 묶음을 보여 준다', () => {
   render(<Gallery />)
-  for (const name of ['버튼', '입력', '칩', '숫자 묶음', '카드·배너', '메뉴·탭', '빈 화면·아바타·로고', '대화상자·옆 메뉴', '상태 문구', '인증 카드', '긴 글', '숨김']) {
+  for (const name of ['버튼', '입력', '칩', '숫자 묶음', '계좌 상자', '카드·배너', '메뉴·탭', '빈 화면·아바타·로고', '대화상자·옆 메뉴', '상태 문구', '인증 카드',
+    '긴 글', '숨김']) {
     expect(screen.getByRole('heading', { level: 2, name })).toBeTruthy()
   }
 })
@@ -43,4 +44,11 @@ test('숫자 묶음은 이름 붙은 영역에 숫자·설명·버튼을 두고,
   expect(within(stats).getByText('금액을 모르는 품목 2개 제외')).toBeTruthy()
   expect(within(stats).getByText('120,000원 초과').className).toContain('text-destructive')
   expect(within(stats).getByRole('button', { name: '예산 정하기' })).toBeTruthy()
+})
+
+test('계좌 상자는 은행·번호·예금주와 계좌번호 복사 버튼을 보이고, 긴 예금주도 줄을 바꿔 보인다', () => {
+  render(<Gallery />)
+  const section = screen.getByRole('heading', { level: 2, name: '계좌 상자' }).closest('section')!
+  for (const text of ['카카오뱅크', '3333-01-1234567']) expect(within(section).getByText(text)).toBeTruthy()
+  expect(within(section).getByRole('button', { name: '계좌번호 복사' })).toBeTruthy()
 })

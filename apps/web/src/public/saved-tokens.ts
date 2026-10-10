@@ -11,3 +11,10 @@ export function saveToken(code: string, token: string) {
 export function forgetToken(code: string) {
   try { localStorage.removeItem(key(code)) } catch { /* 저장할 수 없는 브라우저 */ }
 }
+// 찾을 수 없는 신청(취소·보관 기간 지남)의 토큰을 지운다. 신청 링크 코드는 모르므로 저장한 값으로 찾는다.
+export function forgetTokenValue(token: string) {
+  try {
+    const keys = Array.from({ length: localStorage.length }, (_, index) => localStorage.key(index))
+    for (const name of keys) if (name?.startsWith(key('')) && localStorage.getItem(name) === token) localStorage.removeItem(name)
+  } catch { /* 저장할 수 없는 브라우저 */ }
+}
