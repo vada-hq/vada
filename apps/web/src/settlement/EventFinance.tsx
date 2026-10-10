@@ -99,8 +99,8 @@ export default function EventFinance({ organizationId, eventId, finance, viewerM
     {!settled && <section aria-label="정산하려면" className={cn(cardClass, 'flex flex-col gap-2 p-4')}>
       <h3 className="text-sm font-semibold text-gray-900">정산하려면</h3>
       <ul className="flex flex-col gap-1.5">{requirements(summary).map(item => <li key={item.key} className="flex flex-col gap-0.5">
-        <span className={cn('flex items-center gap-1 text-sm', item.done ? 'text-gray-500' : 'text-gray-900')}>
-          {item.done && <Check aria-hidden className="size-3.5 text-green-600" />}{item.label}</span>
+        <span className={cn('flex items-center gap-1 text-sm wrap-anywhere', item.done ? 'text-gray-500' : 'text-gray-900')}>
+          {item.done && <Check aria-hidden className="size-3.5 shrink-0 text-green-600" />}{item.label}</span>
         {finance && !item.done && <span className="text-xs text-gray-500">{item.hint}</span>}
       </li>)}</ul>
       {finance && (confirming

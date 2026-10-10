@@ -26,8 +26,8 @@ test('정산·다시 열기: 버전과 참가비 수입 항목이 필요하고, 
   assert.deepEqual(SettleEventSchema.parse({ version: 1, feeIncomeLineId: ' l1 ' }), { version: 1, feeIncomeLineId: 'l1' })
   for (const body of [{}, { version: 0 }, { feeIncomeLineId: null }, { version: -1, feeIncomeLineId: null }, { version: '1', feeIncomeLineId: null },
     { version: 0, feeIncomeLineId: '' }, { version: 0, feeIncomeLineId: ' ' }, { version: 0, feeIncomeLineId: 'x'.repeat(65) },
-    { version: 0, feeIncomeLineId: `a${nul}` }, { version: 0, feeIncomeLineId: `a${String.fromCharCode(7)}` }, { version: 0, feeIncomeLineId: 1 },
-    { version: 1, feeIncomeLineId: null, extra: 1 }]) {
+    { version: 0, feeIncomeLineId: `a${nul}` }, { version: 0, feeIncomeLineId: `a${lone}` }, { version: 0, feeIncomeLineId: `a${String.fromCharCode(7)}` },
+    { version: 0, feeIncomeLineId: 1 }, { version: 1, feeIncomeLineId: null, extra: 1 }]) {
     assert.equal(SettleEventSchema.safeParse(body).success, false, JSON.stringify(body))
   }
   assert.deepEqual(ReopenSettlementSchema.parse({ version: 3, reason: ' 영수증 빠짐 ' }), { version: 3, reason: '영수증 빠짐' })

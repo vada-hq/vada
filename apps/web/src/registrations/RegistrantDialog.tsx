@@ -48,7 +48,9 @@ function Body({ form, entry, settled, onClose, onCancel, onConfirmPayment, onCan
       <DialogHeader>
         <DialogTitle>신청을 취소할까요?</DialogTitle>
         <DialogDescription>{entry.name}({entry.studentId})의 신청을 취소하면 이 사람의 정보를 바로 지워요.
-          {entry.paid && ` 받은 참가비 ${won(entry.paid.amount)}은 그대로 남아요. 돌려줬다면 먼저 입금 확인을 취소해 주세요.`}</DialogDescription>
+          {/* 정산한 행사는 입금 확인을 취소할 수 없어, 돌려줬다면 정산부터 다시 열어야 한다. 취소한 신청은 나중에 입금 확인을 취소할 수 없다. */}
+          {entry.paid && ` 받은 참가비 ${won(entry.paid.amount)}은 그대로 남아요. ${settled
+            ? '돌려줬다면 재정 담당자에게 정산을 다시 열어 달라고 한 뒤 입금 확인을 먼저 취소해 주세요.' : '돌려줬다면 먼저 입금 확인을 취소해 주세요.'}`}</DialogDescription>
       </DialogHeader>
       {message && <StateMessage kind="error">{message}</StateMessage>}
       <DialogFooter>

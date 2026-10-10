@@ -86,9 +86,17 @@ test('정산: 고른 수입 줄로 받은 참가비 한 건을 넣고 처리 기
   try {
     await charged(env)
     const { spring, autumn, feeLine } = await periods(env)
-    for (const lineId of [spring.operating[0]!.id, autumn.incomes[0]!.id, 'missing']) {
+    // 다른 학생회의 수입 줄도 고를 수 없다.
+    await env.pg.exec(`INSERT INTO budget_periods (id,organization_id,name,starts_on,ends_on,created_by) VALUES ('pb','b','남의 기간','2999-03-01','2999-08-31','x');
+      INSERT INTO budget_lines (id,organization_id,period_id,kind,name,amount,position) VALUES ('lb','b','pb','income','남의 참가비',0,0)`)
+    for (const lineId of [spring.operating[0]!.id, autumn.incomes[0]!.id, 'missing', 'lb']) {
       await refused(settle(env, 0, lineId), 409, 'BUDGET_LINE_INVALID', lineId)
     }
+    // 다른 학생회 행사는 없는 행사이고, 로그인하지 않으면 정산하지 못한다.
+    await refused(settle(env, 0, null, 'ex'), 404, 'NOT_FOUND')
+    env.as(null)
+    assert.equal((await settle(env, 0, feeLine.id)).status, 401)
+    env.as('f')
     const { finance } = await env.ok<EventFinanceResponse>(settle(env, 0, feeLine.id))
     assert.deepEqual(finance.feeIncome, { id: finance.feeIncome!.id, amount: 14000, period: { id: spring.period.id, name: '2999년 1학기' },
       line: { id: feeLine.id, name: '행사 참가비' } })
@@ -98,7 +106,8 @@ test('정산: 고른 수입 줄로 받은 참가비 한 건을 넣고 처리 기
     const income = plan.incomeRecords.find(record => record.id === finance.feeIncome!.id)!
     assert.deepEqual([income.description, income.amount, income.receivedOn, income.note, income.recordedBy.name, income.budgetLine, income.carriedFrom],
       ['체육대회 참가비', 14000, '2999-08-10', '입금 확인 2명', '재정', { id: feeLine.id, name: '행사 참가비' }, null])
-    assert.deepEqual([plan.incomes.find(line => line.id === feeLine.id)!.received, plan.totals.received], [14000, 14000])
+    // 행사에 지출이 없으니 남은 돈은 참가비 수입 그대로다.
+    assert.deepEqual([plan.incomes.find(line => line.id === feeLine.id)!.received, plan.totals.received, plan.totals.balance], [14000, 14000, 14000])
   } finally { await env.pg.close() }
 })
 
@@ -229,5 +238,21 @@ test('정산서 자료: 받은 참가비와 넣은 참가비 수입을 담는다
     // 참가 신청이 없는 행사에는 참가비가 없다.
     const none = await service.exportData(scope, 'e2', 'https://vada.test')
     assert.deepEqual([none.fees, none.feeIncome], [null, null])
+  } finally { await env.pg.close() }
+})
+
+test('보관 기간이 지나 정보를 지운 신청: 입금을 확인했으면 받은 참가비에 남고, 입금 전이면 입금 전에서 빠진다', async () => {
+  const env = await setupPurchases()
+  try {
+    await charged(env)
+    // 행사를 과거로 옮겨 참가 신청을 불러올 때 보관 기간이 지난 정보를 지우게 한다.
+    await env.pg.query("UPDATE events SET starts_at = '2024-01-01T10:00+09', ends_at = '2024-01-01T18:00+09' WHERE id = 'e'")
+    assert.deepEqual((await env.ok<RegistrationResponse>(env.request('GET', registrationBase))).registrations, [])
+    env.as('f')
+    assert.deepEqual((await financeOf(env)).finance.fees, { received: 14000, count: 2, unpaid: 0 })
+    const { feeLine } = await periods(env)
+    const { finance } = await env.ok<EventFinanceResponse>(settle(env, 0, feeLine.id))
+    assert.deepEqual([finance.feeIncome?.amount, finance.history.at(-1)!.changes.fee], [14000,
+      { amount: 14000, count: 2, period: '2999년 1학기', line: '행사 참가비' }])
   } finally { await env.pg.close() }
 })

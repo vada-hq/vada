@@ -274,3 +274,9 @@ test('참가비 수입을 넣은 정산을 다시 열면 그 수입이 취소된
   expect(screen.getByText('입금 전 1명')).toBeTruthy()
   expect(screen.queryByText(/정산 뒤에는 입금을 확인할 수 없어요/)).toBeNull()
 })
+
+test('참가비를 넣을 회계 기간 이름이 길면 줄을 바꾼다', async () => {
+  setup(financeResponse({ fees, period: { ...feePeriod, name: 'A'.repeat(30) } }))
+  const checklist = await screen.findByRole('region', { name: '정산하려면' })
+  expect(within(checklist).getByText(`참가비를 넣을 회계 기간: ${'A'.repeat(30)}`).className).toContain('wrap-anywhere')
+})

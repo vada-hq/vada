@@ -318,3 +318,13 @@ test('정산한 행사: 설정 대화상자의 금액 칸을 끄고 이유를 �
   expect(within(dialog).getByText('정산이 끝난 행사라 참가비를 바꿀 수 없어요.')).toBeTruthy()
   expect(within(dialog).queryByText('입금을 확인한 신청이 있어 참가비를 바꿀 수 없어요.')).toBeNull()
 })
+
+test('정산한 행사: 입금을 확인한 신청을 취소할 때는 정산을 다시 열어야 확인을 취소할 수 있다고 알린다', async () => {
+  setup(feeResponse({ settled: true }))
+  fireEvent.click(within(await region('신청자')).getByRole('button', { name: '이수강 관리' }))
+  fireEvent.click(within(await screen.findByRole('dialog', { name: '이수강' })).getByRole('button', { name: '신청 취소' }))
+  const confirm = await screen.findByRole('dialog', { name: '신청을 취소할까요?' })
+  expect(within(confirm).getByText(
+    /받은 참가비 7,000원은 그대로 남아요\. 돌려줬다면 재정 담당자에게 정산을 다시 열어 달라고 한 뒤 입금 확인을 먼저 취소해 주세요\./)).toBeTruthy()
+  expect(within(confirm).queryByText(/돌려줬다면 먼저 입금 확인을 취소해 주세요/)).toBeNull()
+})
