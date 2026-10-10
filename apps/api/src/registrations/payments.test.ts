@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { RegistrationCreated, RegistrationEntry, RegistrationResponse } from '@vada/contracts'
+import type { MyRegistration, PublicRegistrationForm, RegistrationCreated, RegistrationEntry, RegistrationResponse } from '@vada/contracts'
 import { setupPurchases } from '../purchases/test-setup.js'
 
 type Env = Awaited<ReturnType<typeof setupPurchases>>
@@ -247,5 +247,73 @@ test('입금 확인·참가비 바꾸기 권한과 본문: 미배정·다른 학
     }
     const { rows } = await env.pg.query<{ paid_at: Date | null }>('SELECT paid_at FROM registrations')
     assert.deepEqual(rows.map(row => row.paid_at), [null])
+  } finally { await env.pg.close() }
+})
+
+const lookup = (env: Env, token: string) => env.ok<MyRegistration>(env.publicRequest('POST', '/public/registrations/lookup', { token }))
+const accountView = { bank: '카카오뱅크', accountNumber: '3333-01-1234567', holder: '학생회' }
+
+test('공개 화면: 신청 화면에 참가비를 알리고, 내 신청은 구분·낼 돈·계좌·입금 상태를 준다', async () => {
+  const env = await setupPurchases()
+  try {
+    await prepare(env)
+    const { form } = await create(env, { fee: 5000, memberFee: 0 })
+    const view = await env.ok<PublicRegistrationForm>(env.publicRequest('GET', `/public/registration-forms/${form!.code}`))
+    assert.deepEqual([view.fee, view.memberFee], [5000, 0])
+    const memberToken = await apply(env, form!.code, '김바다', '2022000001')
+    const otherToken = await apply(env, form!.code, '이윤슬', '2023000003')
+    assert.deepEqual((await lookup(env, memberToken)).payment, { basis: 'member', fee: 0, paidAt: null, account: null })
+    const before = await lookup(env, otherToken)
+    assert.deepEqual([before.payment, before.cancellable], [{ basis: 'nonmember', fee: 5000, paidAt: null, account: accountView }, true])
+    await env.ok(confirm(env, named(await entries(env), '이윤슬').id))
+    const after = await lookup(env, otherToken)
+    assert.deepEqual([after.payment?.basis, after.payment?.fee, after.payment?.account, after.cancellable], ['nonmember', 5000, null, false])
+    assert.match(after.payment!.paidAt!, korean)
+    // 납부자 참가비가 없으면 모두 같은 참가비다.
+    await env.ok(unconfirm(env, named(await entries(env), '이윤슬').id))
+    await env.ok(update(env, { memberFee: null }))
+    assert.deepEqual((await lookup(env, memberToken)).payment, { basis: 'flat', fee: 5000, paidAt: null, account: accountView })
+  } finally { await env.pg.close() }
+})
+
+test('공개 화면: 참가비가 없는 신청은 내 신청에 참가비가 없고, 무료 신청 화면은 0원이다', async () => {
+  const env = await setupPurchases()
+  try {
+    await prepare(env, { withAccount: false, withRoster: false })
+    const { form } = await create(env)
+    const view = await env.ok<PublicRegistrationForm>(env.publicRequest('GET', `/public/registration-forms/${form!.code}`))
+    assert.deepEqual([view.fee, view.memberFee], [0, null])
+    const token = await apply(env, form!.code, '김바다', '2022000001')
+    assert.equal((await lookup(env, token)).payment, null)
+  } finally { await env.pg.close() }
+})
+
+test('엇갈림: 학생이 조회한 뒤 운영진이 입금을 확인하면, 그 학생의 스스로 취소는 막히고 확인은 그대로 남는다', async () => {
+  const env = await setupPurchases()
+  try {
+    await prepare(env)
+    const { form } = await create(env, { fee: 5000 })
+    const token = await apply(env, form!.code, '이윤슬', '2023000003')
+    assert.equal((await lookup(env, token)).cancellable, true)
+    await env.ok(confirm(env, named(await entries(env), '이윤슬').id))
+    await refused(env.publicRequest('POST', '/public/registrations/cancel', { token }), 409, 'PAYMENT_CONFIRMED')
+    const list = await entries(env)
+    assert.deepEqual([list.length, named(list, '이윤슬').paid?.amount], [1, 5000])
+  } finally { await env.pg.close() }
+})
+
+test('보관 기간이 지나 개인 칸을 지워도 납부 구분과 입금 칸은 남는다', async () => {
+  const env = await setupPurchases()
+  try {
+    await prepare(env)
+    const { form } = await create(env, { fee: 5000, memberFee: 1000 })
+    await apply(env, form!.code, '이윤슬', '2023000003')
+    await env.ok(confirm(env, named(await entries(env), '이윤슬').id))
+    await env.pg.query("UPDATE events SET starts_at = '2024-01-01T10:00+09', ends_at = '2024-01-01T18:00+09' WHERE id = 'e'")
+    const purged = await env.ok<RegistrationResponse>(env.request('GET', base))
+    assert.deepEqual([purged.registrations.length, purged.form!.payments], [0, { count: 1, total: 5000 }])
+    const { rows } = await env.pg.query<{ name: string | null; dues_member: boolean; paid_amount: number; paid_at: Date | null }>(
+      'SELECT name, dues_member, paid_amount, paid_at FROM registrations')
+    assert.deepEqual(rows.map(row => [row.name, row.dues_member, row.paid_amount, row.paid_at instanceof Date]), [[null, false, 5000, true]])
   } finally { await env.pg.close() }
 })

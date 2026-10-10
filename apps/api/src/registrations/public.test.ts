@@ -12,7 +12,7 @@ async function refused(pending: Response | Promise<Response>, status: number, er
 }
 const at = (value: string) => new Date(`${value}:00+09:00`)
 const formBody = (overrides: Record<string, unknown> = {}) => ({ opensAt: null, closesAt: '2999-08-19T23:59', capacity: 2, notice: '문의: 학생회실',
-  collectPhone: false, ...overrides })
+  collectPhone: false, fee: 0, memberFee: null, ...overrides })
 const entryBody = (overrides: Record<string, unknown> = {}) => ({ name: '김바다', studentId: '2022-123456', phone: null, agreed: true, ...overrides })
 // 시계는 2999년 8월 1일이다. 기획(p)이 행사 e에 일시를 넣고 참가 신청을 만든 뒤 로그인을 끊는다.
 async function open(env: Env, overrides: Record<string, unknown> = {}) {
@@ -28,7 +28,7 @@ async function settle(env: Env, change: Record<string, unknown>) {
   env.as('p')
   const { form } = await env.ok<RegistrationResponse>(env.request('GET', '/events/e/registration'))
   const body = { version: form!.version, accepting: form!.accepting, opensAt: form!.opensAt, closesAt: form!.closesAt, capacity: form!.capacity,
-    notice: form!.notice, collectPhone: form!.collectPhone, ...change }
+    notice: form!.notice, collectPhone: form!.collectPhone, fee: form!.fee, memberFee: form!.memberFee, ...change }
   await env.ok(env.request('PATCH', '/events/e/registration', body))
   env.as(null)
 }
@@ -41,7 +41,8 @@ test('공개 신청 화면: 학생회·행사·상태·남은 자리만 주고, 
     const { code } = await open(env)
     const view = await env.ok<PublicRegistrationForm>(env.publicRequest('GET', formPath(code)))
     assert.deepEqual(view, { organizationName: 'A', event: { name: '체육대회', startsAt: '2999-08-20T10:00', endsAt: '2999-08-20T18:00', place: '체육관' },
-      notice: '문의: 학생회실', collectPhone: false, state: 'open', opensAt: null, closesAt: '2999-08-19T23:59', remaining: 2, purgeAfter: '2999-09-19' })
+      notice: '문의: 학생회실', collectPhone: false, state: 'open', opensAt: null, closesAt: '2999-08-19T23:59', remaining: 2, purgeAfter: '2999-09-19',
+      fee: 0, memberFee: null })
     await env.ok(apply(env, code, entryBody()), 201)
     const after = await env.ok<PublicRegistrationForm>(env.publicRequest('GET', formPath(code)))
     assert.equal(after.remaining, 1)
@@ -145,12 +146,13 @@ test('내 신청: 토큰으로 보고, 마감 전에는 멈춤이어도 스스�
     assert.match(mine.createdAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
     assert.deepEqual({ ...mine, createdAt: '' }, { code, organizationName: 'A', event: { name: '체육대회', startsAt: '2999-08-20T10:00',
       endsAt: '2999-08-20T18:00', place: '체육관' }, name: '김바다', studentId: '2022123456', phone: null, createdAt: '', closesAt: '2999-08-19T23:59',
-      cancelled: false, cancellable: true })
+      cancelled: false, cancellable: true, payment: null })
     await refused(lookup('A'.repeat(22)), 404, 'NOT_FOUND')
     for (const bad of ['A'.repeat(21), `${'A'.repeat(20)}+/`]) await refused(lookup(bad), 400, 'INVALID_INPUT', bad)
     await settle(env, { accepting: false })
     const cancelled = await env.ok<MyRegistration>(cancel(token))
-    assert.deepEqual([cancelled.cancelled, cancelled.cancellable, cancelled.name, cancelled.studentId, cancelled.phone], [true, false, null, null, null])
+    assert.deepEqual([cancelled.cancelled, cancelled.cancellable, cancelled.name, cancelled.studentId, cancelled.phone, cancelled.payment],
+      [true, false, null, null, null, null])
     await refused(lookup(token), 404, 'NOT_FOUND')
     await refused(cancel(token), 404, 'NOT_FOUND')
     // 취소하면 같은 학번으로 다시 신청할 수 있다.

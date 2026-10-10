@@ -1,14 +1,14 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { and, asc, count, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { dateFromKorean, koreanOf, type CreateRegistrationFormRequest, type MyRegistration, type PublicRegistrationEvent,
+import { dateFromKorean, koreanOf, type CreateRegistrationFormRequest, type FeeAccount, type MyPayment, type MyRegistration, type PublicRegistrationEvent,
   type PublicRegistrationForm, type RegisterRequest, type RegistrationCreated, type RegistrationFormView, type RegistrationResponse,
   type UpdateRegistrationFormRequest } from '@vada/contracts'
 import { eventFinances, events, organizations, registrationForms, registrations, users } from '../db/schema.js'
 import { activeRoster, feeAccountOf, isDuesMember, koreanToday, rematchDues } from '../fees/roster.js'
 import { ApiError } from '../http/errors.js'
 import { requireOpenEvents } from '../settlement/lock.js'
-import { owedOf } from './fee.js'
+import { basisOf, owedOf } from './fee.js'
 import { purgeExpired } from './purge.js'
 import { eventEnd, purgeAfterOf, stateOf } from './state.js'
 
@@ -111,6 +111,14 @@ async function registrationByToken(db: Reader, token: string, lock = false) {
   return row
 }
 type Found = NonNullable<Awaited<ReturnType<typeof registrationByToken>>>
+// 내 신청의 참가비. 참가비가 0원이고 납부자 참가비도 없고 입금 확인도 없으면 없다.
+// 계좌는 낼 돈이 있고 입금 확인 전일 때만 알린다.
+function paymentOf({ registration, form }: Found, account: FeeAccount | null): MyPayment | null {
+  if (form.fee === 0 && form.memberFee === null && registration.paidAt === null) return null
+  const fee = owedOf(form, registration)
+  return { basis: basisOf(form, registration), fee, paidAt: registration.paidAt && koreanOf(registration.paidAt),
+    account: registration.paidAt === null && fee > 0 ? account : null }
+}
 
 export function createRegistrationService(db: RegistrationDatabase, now: () => Date) {
   // 운영진 화면이 받는 것. 먼저 보관 기간이 지난 정보를 지운다. 학생회비 명단은 이름과 기한만 준다.
@@ -163,9 +171,13 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     if (!current) throw new ApiError('NOT_FOUND', 404)
     return current
   }
-  const myView = ({ registration, form, event, organizationName }: Found): MyRegistration => ({ code: form.code, organizationName,
-    event: publicEvent(event), name: registration.name, studentId: registration.studentId, phone: registration.phone,
-    createdAt: koreanOf(registration.createdAt), closesAt: koreanOf(form.closesAt), cancelled: false, cancellable: now() < form.closesAt })
+  // 마감 전이고 입금을 확인하지 않았으면 스스로 취소할 수 있다.
+  const myView = (found: Found, account: FeeAccount | null): MyRegistration => {
+    const { registration, form, event, organizationName } = found
+    return { code: form.code, organizationName, event: publicEvent(event), name: registration.name, studentId: registration.studentId,
+      phone: registration.phone, createdAt: koreanOf(registration.createdAt), closesAt: koreanOf(form.closesAt), cancelled: false,
+      cancellable: now() < form.closesAt && registration.paidAt === null, payment: paymentOf(found, account) }
+  }
   return {
     view: (organizationId: string, eventId: string) => db.transaction(tx => view(tx, organizationId, eventId)),
     // 공개 신청 화면. 다른 신청자에 대해서는 남은 자리 수만 준다.
@@ -175,7 +187,8 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       const total = await countOf(tx, form.id)
       return { organizationName, event: publicEvent(event), notice: form.notice, collectPhone: form.collectPhone, state: stateOf(form, total, now()),
         opensAt: form.opensAt && koreanOf(form.opensAt), closesAt: koreanOf(form.closesAt),
-        remaining: form.capacity === null ? null : Math.max(0, form.capacity - total), purgeAfter: koreanDay(purgeAfterOf(endOf(event))) }
+        remaining: form.capacity === null ? null : Math.max(0, form.capacity - total), purgeAfter: koreanDay(purgeAfterOf(endOf(event))),
+        fee: form.fee, memberFee: form.memberFee }
     }),
     // 신청. 받는 중이 아니면 막고, 이미 신청한 학번이면 정원이 찼다는 것보다 그것을 먼저 알린다.
     // 받는 중인 신청에는 지울 정보가 없다(마감 ≤ 행사 끝 < 지울 때). 잠금을 쥔 시간을 줄이려고 파기를 부르지 않고 신청 수와 같은 학번을 한 번에 센다.
@@ -199,14 +212,21 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
         name: input.name, studentId: input.studentId, phone: input.phone, duesMember })
       return { token }
     }),
-    lookup: (token: string) => db.transaction(async tx => myView(await mine(tx, token))),
-    // 신청자가 스스로 취소한다. 마감 전까지만 되고, 정보를 바로 지운다.
+    lookup: (token: string) => db.transaction(async tx => {
+      const current = await mine(tx, token)
+      return myView(current, await feeAccountOf(tx, current.form.organizationId))
+    }),
+    // 신청자가 스스로 취소한다. 마감 전이고 입금을 확인하지 않았을 때만 되고, 정보를 바로 지운다.
+    // 입금 확인과 엇갈려도 확인한 신청은 취소하지 않도록 UPDATE에 조건을 건다.
     cancelMine: (token: string) => db.transaction(async (tx): Promise<MyRegistration> => {
       const current = await mine(tx, token, true)
       if (now() >= current.form.closesAt) throw new ApiError('CANCEL_CLOSED', 409)
-      await tx.update(registrations).set({ tokenHash: null, name: null, studentId: null, phone: null, cancelledAt: sql`now()`, purgedAt: sql`now()` })
-        .where(eq(registrations.id, current.registration.id))
-      return { ...myView(current), name: null, studentId: null, phone: null, cancelled: true, cancellable: false }
+      if (current.registration.paidAt) throw new ApiError('PAYMENT_CONFIRMED', 409)
+      const [cancelled] = await tx.update(registrations)
+        .set({ tokenHash: null, name: null, studentId: null, phone: null, cancelledAt: sql`now()`, purgedAt: sql`now()` })
+        .where(and(eq(registrations.id, current.registration.id), isNull(registrations.paidAt))).returning({ id: registrations.id })
+      if (!cancelled) throw new ApiError('PAYMENT_CONFIRMED', 409)
+      return { ...myView(current, null), name: null, studentId: null, phone: null, cancelled: true, cancellable: false, payment: null }
     }),
     // 행사 행을 잠가 행사 일시 수정과 엇갈리지 않게 한다.
     create: (scope: RegistrationScope, eventId: string, input: CreateRegistrationFormRequest) => db.transaction(async tx => {
