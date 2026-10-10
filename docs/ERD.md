@@ -435,6 +435,8 @@ erDiagram
         integer capacity "1~5000, 선택"
         text notice "1000자, 선택"
         boolean collect_phone
+        integer fee "참가비 0~1,000,000"
+        integer member_fee "학생회비 납부자 참가비, 참가비보다 적음, 선택"
         integer version
         text created_by FK
     }
@@ -450,6 +452,10 @@ erDiagram
         timestamptz cancelled_at
         text cancelled_by FK "운영진이 취소했을 때"
         timestamptz purged_at "개인 칸을 지운 때"
+        boolean dues_member "납부자 참가비가 있을 때 정한 구분"
+        integer paid_amount "입금 확인 금액"
+        timestamptz paid_at "입금 확인한 때"
+        text paid_by FK "입금 확인한 운영진"
     }
 ```
 
@@ -458,6 +464,57 @@ erDiagram
 - 행사 끝에서 30일이 지나면 개인 칸을 지운다. 서버가 시작할 때와 1시간마다 지우고, 참가 신청 하나를 다루는 요청도 먼저 지운다.
 - 같은 참가 신청에 지우지 않은 같은 학번은 하나다(부분 unique 색인). 정원은 참가 신청 행을 잠근 뒤 세고 넣는다.
 - 신청자 정보는 부서가 있는 구성원(`manageEvents`)만 본다. 공개 화면에는 남은 자리 수만 나간다.
+- 참가비(M3b): 신청에는 납부 구분(`dues_member`)만 남고, 낼 돈은 참가 신청의 금액으로 계산한다. 입금을 확인하면 그때 금액을 `paid_amount`에 남긴다. 세 입금 칸은 함께 있거나 함께 없다.
+- 입금을 확인한 신청이 하나라도 있으면(취소·지운 행 포함) 참가비 금액을 바꿀 수 없다. 개인 칸을 지워도 납부 구분과 입금 칸은 남는다.
+
+## 참가비
+
+참가비를 받는 학생회 계좌와 학생회비 납부 명단이다. 설계는 [M3b-1 행사 참가비와 입금 확인](superpowers/specs/2026-10-10-event-fees-design.md)에 있다.
+
+```mermaid
+erDiagram
+    organizations ||..o| feeAccounts : "받는 계좌"
+    feeAccounts ||..o{ feeAccountEvents : "바꾼 기록"
+    organizations ||..o| duesRosters : "지금 쓰는 명단"
+    duesRosters ||..o{ duesMembers : "납부자(CASCADE)"
+    users ||..o{ feeAccountEvents : "바꾼 사람"
+    users ||..o{ duesRosters : "올린 사람"
+
+    feeAccounts["fee_accounts"] {
+        text organization_id PK, FK
+        text bank "20자"
+        text account_number "숫자와 하이픈, 숫자 8~20자리"
+        text holder "30자"
+        integer version
+        text updated_by FK
+    }
+    feeAccountEvents["fee_account_events"] {
+        text id PK
+        text organization_id FK
+        text actor_id FK
+        jsonb changes "from, to"
+        timestamptz created_at
+    }
+    duesRosters["dues_rosters"] {
+        text organization_id PK, FK
+        text label "30자"
+        date use_until "이 날까지 쓰고 다음 날 지움"
+        integer version
+        text uploaded_by FK
+        timestamptz uploaded_at
+    }
+    duesMembers["dues_members"] {
+        text organization_id PK, FK "명단과 CASCADE"
+        text student_id PK "숫자 6~12자리"
+        text name "30자"
+    }
+```
+
+- 계좌와 명단은 학생회마다 하나다. 재정 권한자(재정 부서·회장단)만 바꾸고, 학생회 참가비 잠금(advisory lock)으로 한 줄로 세운다.
+- 계좌는 지우지 않는다. 바꿀 때마다 바꾸기 전과 뒤를 기록에 남긴다.
+- 명단은 새로 올리면 통째로 바꾸고, 쓰는 기한(오늘부터 366일 안)이 지나면 지운다. 서버가 1시간마다, 그리고 명단을 다루는 요청이 먼저 지운다.
+- `dues_members`의 FK만 CASCADE다. 명단을 지우는 것이 곧 납부자를 지우는 것이다.
+- 신청할 때 학번과 이름(공백 빼고, 영문 대소문자 무시)이 둘 다 맞아야 납부자다.
 
 ## 배송 추적
 
