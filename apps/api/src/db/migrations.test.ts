@@ -1224,3 +1224,42 @@ test('0022 adds fee incomes tied to one event of the same council without touchi
     await pg.close()
   }
 })
+
+test('0023 adds attendance to registrations without touching existing registrations', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0023_event_attendance')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council');
+      INSERT INTO events (id,organization_id,name,created_by,starts_at) VALUES ('e','o','체육대회','u','2026-08-20T10:00+09');
+      INSERT INTO registration_forms (id,organization_id,event_id,closes_at,created_by) VALUES ('f','o','e','2026-08-19T23:59+09','u');
+      INSERT INTO registrations (id,organization_id,form_id,token_hash,name,student_id) VALUES ('r','o','f','${'0'.repeat(64)}','김바다','2022000001');
+      INSERT INTO registrations (id,organization_id,form_id,cancelled_at,cancelled_by,purged_at) VALUES ('c','o','f',now(),'u',now());
+    `)
+    const before = await pg.query<Record<string, unknown>>('SELECT * FROM registrations ORDER BY id')
+    await migrate(db, { migrationsFolder })
+    const update = (change: string, id: string) => pg.exec(`UPDATE registrations SET ${change} WHERE id = '${id}'`)
+
+    await t.test('existing registrations keep their values and are not checked in', async () => {
+      const after = await pg.query<Record<string, unknown>>('SELECT * FROM registrations ORDER BY id')
+      assert.deepEqual(sameColumns(after.rows, before.rows), before.rows)
+      assert.deepEqual(after.rows.map(row => [row.checked_in_at, row.checked_in_by]), [[null, null], [null, null]])
+    })
+    await t.test('attendance time and staff come together, a cancelled registration has none, and the staff must exist', async () => {
+      await assert.rejects(update('checked_in_at = now()', 'r'), { constraint: 'registrations_checked_in_pair' })
+      await assert.rejects(update("checked_in_by = 'u'", 'r'), { constraint: 'registrations_checked_in_pair' })
+      await assert.rejects(update("checked_in_at = now(), checked_in_by = 'nobody'", 'r'), { constraint: 'registrations_checked_in_by_users_id_fk' })
+      await assert.rejects(update("checked_in_at = now(), checked_in_by = 'u'", 'c'), { constraint: 'registrations_cancelled_not_checked_in' })
+      await update("checked_in_at = now(), checked_in_by = 'u'", 'r')
+      // 보관 기간이 지나 개인 칸을 지워도 참석 칸은 남는다.
+      await update('token_hash = NULL, name = NULL, student_id = NULL, purged_at = now()', 'r')
+      await assert.rejects(update('cancelled_at = now()', 'r'), { constraint: 'registrations_cancelled_not_checked_in' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

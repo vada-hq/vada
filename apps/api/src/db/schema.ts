@@ -933,6 +933,9 @@ export const registrations = pgTable('registrations', {
   paidAmount: integer('paid_amount'),
   paidAt: timestamp('paid_at', { withTimezone: true }),
   paidBy: text('paid_by').references(() => users.id, { onDelete: 'restrict' }),
+  // 참석 확인(M3c). 둘이 함께 있거나 함께 없다. 개인 칸을 지워도 남아 참석 수로 센다. 취소한 신청에는 없다.
+  checkedInAt: timestamp('checked_in_at', { withTimezone: true }),
+  checkedInBy: text('checked_in_by').references(() => users.id, { onDelete: 'restrict' }),
 }, (table) => [
   foreignKey({
     name: 'registrations_form_same_organization',
@@ -955,6 +958,8 @@ export const registrations = pgTable('registrations', {
   index('registrations_form_created_idx').on(table.formId, table.createdAt),
   check('registrations_paid_triple', sql`(${table.paidAt} IS NULL) = (${table.paidAmount} IS NULL) AND (${table.paidAt} IS NULL) = (${table.paidBy} IS NULL)`),
   check('registrations_paid_amount_range', sql`${table.paidAmount} BETWEEN 1 AND 1000000`),
+  check('registrations_checked_in_pair', sql`(${table.checkedInAt} IS NULL) = (${table.checkedInBy} IS NULL)`),
+  check('registrations_cancelled_not_checked_in', sql`${table.cancelledAt} IS NULL OR ${table.checkedInAt} IS NULL`),
 ])
 
 // 참가비를 받는 학생회 계좌(M3b). 학생회마다 하나이고 재정 담당자가 정한다. 참가비를 받는 신청이 늘 가리키도록 지우지 않는다.

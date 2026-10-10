@@ -162,6 +162,13 @@
       "when": 1791645873274,
       "tag": "0022_event_fee_income",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791653656719,
+      "tag": "0023_event_attendance",
+      "breakpoints": true
     }
   ]
 }
