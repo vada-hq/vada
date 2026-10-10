@@ -3,7 +3,7 @@ import { and, asc, desc, eq, inArray, isNotNull, isNull, notExists, sql, type SQ
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { EVENT_FINANCE_HISTORY_MAX, EXPENSE_ITEMS_MAX, type EventFinance, type EventFinanceAction, type EventFinanceResponse,
   type ReopenSettlementRequest, type SetEventBudgetRequest, type SettleEventRequest } from '@vada/contracts'
-import { requireOpenEventPeriod } from '../budget/lock.js'
+import { requireOpenEventPeriod, shareBudget } from '../budget/lock.js'
 import { budgetLines, budgetPeriods, eventFinanceEvents, eventFinances, events, expenseItems, expenseReceipts, expenses, organizations,
   purchaseItems as items, users } from '../db/schema.js'
 import { expenseItemRows, expenseSummaries } from '../expenses/summaries.js'
@@ -194,10 +194,12 @@ export function createSettlementService(db: SettlementDatabase) {
       })
     },
     // 사유를 남기고 잠금을 푼다. 마감한 회계 기간의 행사는 다시 열지 않는다.
-    // 기간 행을 행사 행보다 먼저 잠가 잠금 순서(기간 → 행사)를 맞춘다.
+    // 학생회 예산 잠금을 같이 잡아, 기간에 없는 행사를 다시 여는 사이에 그 행사를 기간에 넣고 마감하는 요청이 끼어들지 못하게 한다.
+    // 잠금 순서는 학생회 예산 → 기간 행 → 행사 행이다.
     async reopen(scope: SettlementScope, eventId: string, input: ReopenSettlementRequest) {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        await shareBudget(tx, scope.organizationId)
         await requireOpenEventPeriod(tx, scope.organizationId, eventId)
         const row = await lockFinance(tx, scope, eventId, input.version)
         if (!row?.settledAt) throw new ApiError('INVALID_STATE', 409)

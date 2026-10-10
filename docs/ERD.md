@@ -326,6 +326,7 @@ erDiagram
         date ends_on "시작일 이후, 다른 기간과 겹치지 않음"
         integer version
         timestamptz closed_at "마감한 때, 마감한 사람과 함께"
+        text closed_by FK "마감한 사람"
     }
     budgetLines["budget_lines"] {
         text id PK
@@ -358,6 +359,7 @@ erDiagram
 ```mermaid
 erDiagram
     budgetPeriods ||..o{ incomes : "기간의 수입"
+    budgetPeriods |o..o{ incomes : "넘긴 이월금"
     budgetLines |o..o{ incomes : "수입 항목"
     incomes ||..o{ incomeEvents : "처리 기록"
     users ||..o{ incomes : "기록한 사람"

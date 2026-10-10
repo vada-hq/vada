@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import type { BudgetPeriodsResponse, BudgetPlanResponse, EventFinanceResponse, ExpenseResponse, IncomeResponse } from '@vada/contracts'
+import type { BudgetPeriodsResponse, BudgetPlanResponse, EventFinanceResponse, ExpenseResponse, IncomeResponse,
+  ReceiptUploadResponse } from '@vada/contracts'
+import { PGlite } from '@electric-sql/pglite'
+import { drizzle } from 'drizzle-orm/pglite'
+import { migrate } from 'drizzle-orm/pglite/migrator'
+import { migrationsFolder } from '../db/test-migrations.js'
 import { setupPurchases } from '../purchases/test-setup.js'
+import { createSettlementService } from '../settlement/service.js'
 import { readBook } from '../workbook/read-book.js'
 
 // 마감 조건이 오늘(한국 날짜)에 기대므로, 기간은 확실히 지난 날짜나 먼 미래로 만든다.
@@ -233,7 +239,7 @@ test('마감한 기간: 편성·수입·상시 운영 지출·증빙 삭제·행
   try {
     as('f')
     let autumn = await create(env, '2025년 2학기', '2025-09-01', '2026-02-28')
-    await create(env, '2026년 1학기', '2026-03-01', '2026-08-31')
+    const spring = await create(env, '2026년 1학기', '2026-03-01', '2026-08-31')
     const fee = await recordIncome(env, autumn.period.id, { receivedOn: '2025-09-15' })
     const snack = await recordExpense(env)
     await attachReceipt(env, snack.id, 'r1')
@@ -258,10 +264,18 @@ test('마감한 기간: 편성·수입·상시 운영 지출·증빙 삭제·행
     ]
     for (const [label, call] of blocked) await refused(call(), 409, 'PERIOD_CLOSED', label)
     // 증빙 추가, 열린 기간의 상시 운영 지출, 어느 기간에도 없는 행사의 지출은 결제일이 마감한 기간 안이어도 된다.
-    assert.equal((await request('POST', `/expenses/${snack.id}/receipts`, { fileName: '영수증 2.jpg', contentType: 'image/jpeg', size: 1234,
-      kind: 'receipt' })).status, 201)
+    const started = await ok<ReceiptUploadResponse>(request('POST', `/expenses/${snack.id}/receipts`, { fileName: '영수증 2.jpg',
+      contentType: 'image/jpeg', size: 1234, kind: 'receipt' }), 201)
+    env.storage!.put(`receipts/a/${snack.id}/${started.receiptId}`, 1234, 'image/jpeg')
+    const confirmed = await ok<ExpenseResponse>(request('POST', `/expenses/${snack.id}/receipts/${started.receiptId}/confirm`, {}))
+    assert.equal(confirmed.expense.receiptCount, 2)
     await recordExpense(env, { paidOn: '2026-03-02' })
     const festival = await recordExpense(env, { eventId: 'e2', paidOn: '2025-10-15' })
+    // 행사 지출을 결제일이 마감한 기간 안인 상시 운영 지출로 바꾸는 것도 막는다.
+    await refused(request('PATCH', `/expenses/${festival.id}`, expenseEdit(festival, { eventId: null })), 409, 'PERIOD_CLOSED', '상시 운영으로 바꿈')
+    // 열린 기간에 넣은 행사의 지출은 결제일이 마감한 기간 안이어도 된다.
+    await ok(save(env, await planOf(env, spring.period.id), { events: [{ eventId: 'e2', version: 0 }] }))
+    await recordExpense(env, { eventId: 'e2', paidOn: '2025-10-20' })
     const closedOf = async (id: string) => (await ok<ExpenseResponse>(request('GET', `/expenses/${id}`))).expense.periodClosed
     assert.deepEqual([await closedOf(snack.id), await closedOf(later.id), await closedOf(festival.id)], [true, false, false])
     const financeOf = async (eventId: string) => (await ok<EventFinanceResponse>(request('GET', `/events/${eventId}/finance`))).finance.periodClosed
@@ -317,5 +331,31 @@ test('결산서: 마감한 기간은 마감한 때·사람과 다음 기간으�
     row = await summaryOf()
     assert.match(row('마감')![0]!, /^\d{4}-\d{2}-\d{2} \d{2}:\d{2} 재정$/)
     assert.deepEqual(row('다음 기간으로 넘긴 돈'), ['88000', '2026년 1학기'])
+  } finally { await pg.close() }
+})
+
+test('정산 다시 열기는 학생회 예산 잠금을 같이 잡은 뒤 행사의 기간을 본다', async () => {
+  // PGlite는 연결이 하나라 경쟁을 직접 재현할 수 없어, 실제로 나가는 SQL의 순서로 잠금을 확인한다.
+  // 잠금이 없으면 기간에 없는 행사를 다시 여는 사이에 그 행사를 기간에 넣고 마감하는 요청이 끼어들 수 있다.
+  const pg = new PGlite()
+  const queries: string[] = []
+  const db = drizzle(pg, { logger: { logQuery: query => { queries.push(query) } } })
+  try {
+    await migrate(db, { migrationsFolder })
+    await pg.exec(`
+      INSERT INTO users(id,name,email) VALUES ('f','재정','f@test.local');
+      INSERT INTO organizations(id,name) VALUES ('a','A');
+      INSERT INTO departments(id,organization_id,name,handles_finance,is_leadership) VALUES ('df','a','총무부',true,false);
+      INSERT INTO memberships(id,user_id,organization_id,department_id) VALUES ('mf','f','a','df');
+      INSERT INTO events(id,organization_id,name,created_by) VALUES ('e','a','체육대회','f');
+      INSERT INTO event_finances(event_id,organization_id,settled_at,settled_by) VALUES ('e','a',now(),'f');
+    `)
+    queries.length = 0
+    const reopened = await createSettlementService(db).reopen({ organizationId: 'a', userId: 'f' }, 'e', { version: 1, reason: '빠짐' })
+    assert.equal(reopened.finance.settled, null)
+    const shared = queries.findIndex(query => query.includes('pg_advisory_xact_lock_shared'))
+    const periodLookup = queries.findIndex(query => query.includes('from "budget_lines"'))
+    assert.ok(shared >= 0, '학생회 예산 잠금을 같이 잡는다')
+    assert.ok(periodLookup > shared, '잠근 뒤에 행사의 기간을 본다')
   } finally { await pg.close() }
 })
