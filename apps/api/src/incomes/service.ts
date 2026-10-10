@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { and, asc, desc, eq, sql, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, isNull, sql, type SQL } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { CreateIncomeRequest, IncomeAction, IncomeDetail, IncomeSummary, UpdateIncomeRequest, VoidIncomeRequest } from '@vada/contracts'
 import { budgetLines, budgetPeriods, incomeEvents, incomes, users } from '../db/schema.js'
@@ -15,13 +15,16 @@ const recorders = alias(users, 'income_recorders')
 const voiders = alias(users, 'income_voiders')
 const actors = alias(users, 'income_actors')
 const lines = alias(budgetLines, 'income_budget_lines')
+const sources = alias(budgetPeriods, 'income_sources')
 
 // 상세·변경 응답과 예산 화면의 수입 내역이 같은 칸을 쓴다. 받은 날·기록이 최근인 순이다.
 export async function incomeSummaries(db: Reader, organizationId: string, where: SQL | undefined, limit: number): Promise<IncomeSummary[]> {
-  const rows = await db.select({ income: incomes, lineName: lines.name, recorderName: recorders.name, voiderName: voiders.name }).from(incomes)
+  const rows = await db.select({ income: incomes, lineName: lines.name, recorderName: recorders.name, voiderName: voiders.name,
+    sourceName: sources.name }).from(incomes)
     .leftJoin(lines, and(eq(lines.id, incomes.budgetLineId), eq(lines.organizationId, incomes.organizationId)))
     .innerJoin(recorders, eq(recorders.id, incomes.recordedBy))
     .leftJoin(voiders, eq(voiders.id, incomes.voidedBy))
+    .leftJoin(sources, and(eq(sources.id, incomes.carriedFromPeriodId), eq(sources.organizationId, incomes.organizationId)))
     .where(and(eq(incomes.organizationId, organizationId), where))
     .orderBy(desc(incomes.receivedOn), desc(incomes.createdAt), desc(incomes.id)).limit(limit)
   return rows.map(({ income, ...row }) => ({
@@ -30,6 +33,7 @@ export async function incomeSummaries(db: Reader, organizationId: string, where:
     recordedBy: { id: income.recordedBy, name: row.recorderName },
     voided: income.voidedAt && income.voidedBy && income.voidReason
       ? { by: { id: income.voidedBy, name: row.voiderName ?? '' }, at: income.voidedAt.toISOString(), reason: income.voidReason } : null,
+    carriedFrom: income.carriedFromPeriodId ? { id: income.carriedFromPeriodId, name: row.sourceName ?? '' } : null,
     version: income.version, createdAt: income.createdAt.toISOString(), updatedAt: income.updatedAt.toISOString(),
   }))
 }
@@ -53,11 +57,12 @@ async function lockPeriod(tx: Transaction, scope: IncomeScope, periodId: string)
   if (!period) throw new ApiError('NOT_FOUND', 404)
   return period
 }
-// 수입 행을 잠가 버전과 상태를 본다.
+// 수입 행을 잠가 버전과 상태를 본다. 이월금은 앞 기간 마감을 다시 열어야만 바뀐다.
 async function lockIncome(tx: Transaction, scope: IncomeScope, periodId: string, incomeId: string, version: number) {
   const [row] = await tx.select().from(incomes)
     .where(and(eq(incomes.organizationId, scope.organizationId), eq(incomes.periodId, periodId), eq(incomes.id, incomeId))).for('update')
   if (!row) throw new ApiError('NOT_FOUND', 404)
+  if (row.carriedFromPeriodId) throw new ApiError('CARRYOVER_INCOME', 409)
   if (row.version !== version) throw new ApiError('VERSION_CONFLICT', 409)
   if (row.voidedAt) throw new ApiError('INVALID_STATE', 409)
   return row
@@ -82,6 +87,24 @@ async function record(tx: Transaction, scope: IncomeScope, incomeId: string, act
 }
 const fieldsOf = (input: CreateIncomeRequest) => ({ description: input.description, amount: input.amount, receivedOn: input.receivedOn,
   budgetLineId: input.budgetLineId, note: input.note })
+
+// 마감한 기간의 남은 돈을 다음 기간 시작일의 수입 한 건으로 넘긴다. 수입 항목이 다음 기간의 수입 줄인지는 부르는 쪽이 확인한다.
+export async function insertCarryover(tx: Transaction, scope: IncomeScope, input: { from: { id: string; name: string };
+  to: { id: string; startsOn: string }; amount: number; budgetLineId: string | null }) {
+  const id = randomUUID()
+  await tx.insert(incomes).values({ id, organizationId: scope.organizationId, periodId: input.to.id, budgetLineId: input.budgetLineId,
+    description: `${input.from.name} 이월금`, amount: input.amount, receivedOn: input.to.startsOn, note: null, recordedBy: scope.userId,
+    carriedFromPeriodId: input.from.id })
+  await record(tx, scope, id, 'created')
+}
+// 마감을 다시 열면 그 기간이 넘긴 이월금을 취소한다.
+export async function voidCarryover(tx: Transaction, scope: IncomeScope, from: { id: string; name: string }) {
+  const reason = `${from.name} 마감을 다시 열었어요`
+  const voided = await tx.update(incomes).set({ voidedAt: sql`now()`, voidedBy: scope.userId, voidReason: reason, version: sql`${incomes.version} + 1` })
+    .where(and(eq(incomes.organizationId, scope.organizationId), eq(incomes.carriedFromPeriodId, from.id), isNull(incomes.voidedAt)))
+    .returning({ id: incomes.id })
+  for (const row of voided) await record(tx, scope, row.id, 'voided', { reason })
+}
 
 // 실제 수입. 기록·수정·취소는 재정 권한자만 하고, 수입은 기간 하나에 속한다.
 export function createIncomeService(db: IncomeDatabase) {

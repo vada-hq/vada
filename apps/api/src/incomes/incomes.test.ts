@@ -41,7 +41,7 @@ test('수입 기록: 재정 권한자만 기록하고, 받은 날은 기간 안�
     const { income } = await ok<IncomeResponse>(request('POST', path, incomeBody({ budgetLineId: fees!.id, note: '학교 지급' })), 201)
     assert.deepEqual({ ...income, id: '', createdAt: '', updatedAt: '', history: [] }, { id: '', budgetLine: { id: fees!.id, name: '학생회비' },
       description: '2학기 학생회비', amount: 750000, receivedOn: '2026-09-15', note: '학교 지급', recordedBy: { id: 'l', name: '회장' }, voided: null,
-      version: 1, createdAt: '', updatedAt: '', history: [] })
+      carriedFrom: null, version: 1, createdAt: '', updatedAt: '', history: [] })
     assert.deepEqual(income.history.map(entry => [entry.action, entry.actor.name, entry.changes]), [['created', '회장', {}]])
     // 항목 없이도 기록하고, 기간 첫날과 끝날도 받는다.
     for (const receivedOn of ['2026-09-01', '2027-02-28']) await ok(request('POST', path, incomeBody({ receivedOn })), 201)

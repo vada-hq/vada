@@ -36,7 +36,8 @@ test('기간 만들기: 재정 권한자만 만들고, 날짜가 겹치거나 �
     assert.equal((await request('POST', '/budget/periods', periodBody())).status, 401)
     as('f')
     const autumn = await createPeriod(env)
-    assert.deepEqual(autumn.period, { id: autumn.period.id, name: '2026년 2학기', startsOn: '2026-09-01', endsOn: '2027-02-28', version: 1 })
+    assert.deepEqual(autumn.period, { id: autumn.period.id, name: '2026년 2학기', startsOn: '2026-09-01', endsOn: '2027-02-28', version: 1,
+      closed: null })
     assert.deepEqual(autumn.history.map(entry => [entry.action, entry.actor.name, entry.changes]),
       [['created', '재정', { name: '2026년 2학기', startsOn: '2026-09-01', endsOn: '2027-02-28' }]])
     as('l')

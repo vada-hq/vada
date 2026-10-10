@@ -2,13 +2,16 @@ import { randomUUID } from 'node:crypto'
 import { and, asc, desc, eq, gt, gte, inArray, isNotNull, isNull, lt, lte, ne, notExists, or, sql } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { BUDGET_CANDIDATES_MAX, BUDGET_HISTORY_MAX, BUDGET_PERIODS_MAX, INCOME_RECORDS_MAX, type BudgetChange, type BudgetPeriodAction,
-  type BudgetPeriodsResponse, type BudgetPlanResponse, type CreateBudgetPeriodRequest, type SaveBudgetPlanRequest } from '@vada/contracts'
+  type BudgetPeriodsResponse, type BudgetPlanResponse, type ClosePeriodRequest, type CreateBudgetPeriodRequest, type ReopenPeriodRequest,
+  type SaveBudgetPlanRequest } from '@vada/contracts'
 import { budgetLines, budgetPeriodEvents, budgetPeriods, eventFinances, events, expenseReceipts, expenses, incomes, organizations,
   users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
-import { incomeSummaries } from '../incomes/service.js'
+import { incomeSummaries, insertCarryover, voidCarryover } from '../incomes/service.js'
 import { requireFinance } from '../purchases/review.js'
 import { changeEventBudget, financeNumbersByEvent } from '../settlement/service.js'
+import { closingOf, readyToClose } from './closing.js'
+import { lockBudget } from './lock.js'
 import type { PeriodSheetData } from './workbook.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -25,10 +28,6 @@ const exportPayers = alias(users, 'export_payers')
 const exportRecorders = alias(users, 'export_recorders')
 const exportUploaders = alias(users, 'export_uploaders')
 
-// 학생회 하나의 기간·편성 변경을 한 줄로 세운다. 그래서 겹침·이름·행사 중복을 미리 조회해도 다른 요청이 끼어들지 못한다.
-export async function lockBudget(tx: Transaction, organizationId: string) {
-  await tx.execute(sql`SELECT pg_advisory_xact_lock(hashtextextended(${JSON.stringify(['budget', organizationId])}, 0))`)
-}
 // 이 학생회의 기간. 편성을 바꿀 때는 FOR UPDATE로 잠근다. 운영 항목을 고르는 지출은 같은 행을 FOR SHARE로 잠근다.
 export async function periodOf(db: Reader, scope: BudgetScope, periodId: string, lock = false) {
   const query = db.select().from(budgetPeriods).where(and(eq(budgetPeriods.organizationId, scope.organizationId), eq(budgetPeriods.id, periodId)))
@@ -45,8 +44,11 @@ export async function assertPeriodFree(db: Reader, scope: BudgetScope, input: { 
   const [named] = await db.select({ id: budgetPeriods.id }).from(budgetPeriods).where(and(others, eq(budgetPeriods.name, input.name))).limit(1)
   if (named) throw new ApiError('PERIOD_NAME_TAKEN', 409)
 }
-export async function recordPeriod(tx: Transaction, scope: BudgetScope, periodId: string, action: BudgetPeriodAction, changes: Record<string, unknown>) {
-  await tx.insert(budgetPeriodEvents).values({ id: randomUUID(), organizationId: scope.organizationId, periodId, actorId: scope.userId, action, changes })
+// 사유는 마감을 다시 열 때만 있다.
+export async function recordPeriod(tx: Transaction, scope: BudgetScope, periodId: string, action: BudgetPeriodAction, changes: Record<string, unknown>,
+  reason: string | null = null) {
+  await tx.insert(budgetPeriodEvents).values({ id: randomUUID(), organizationId: scope.organizationId, periodId, actorId: scope.userId, action, changes,
+    reason })
 }
 // 행사의 예산·버전·정산 여부. 행이 없으면 Map에 없다(예산 미정, 버전 0, 정산 전).
 export async function financeRows(db: Reader, scope: BudgetScope, eventIds: string[]) {
@@ -87,10 +89,16 @@ async function historyOf(db: Reader, scope: BudgetScope, periodId: string) {
     .orderBy(desc(budgetPeriodEvents.createdAt), desc(budgetPeriodEvents.id)).limit(BUDGET_HISTORY_MAX)
   // 최근 것부터 잘라 온 뒤 오래된 순으로 돌린다.
   return rows.reverse().map(({ entry, actorName }) => ({ id: entry.id, action: entry.action, actor: { id: entry.actorId, name: actorName },
-    changes: entry.changes, createdAt: entry.createdAt.toISOString() }))
+    changes: entry.changes, reason: entry.reason, createdAt: entry.createdAt.toISOString() }))
 }
 
 type Period = typeof budgetPeriods.$inferSelect
+// 마감한 사람과 때. 열린 기간이면 null이다.
+async function closedOf(db: Reader, period: Period) {
+  if (!period.closedAt || !period.closedBy) return null
+  const [closer] = await db.select({ name: users.name }).from(users).where(eq(users.id, period.closedBy))
+  return { by: { id: period.closedBy, name: closer?.name ?? '' }, at: period.closedAt }
+}
 export type PeriodNumbers = Pick<BudgetPlanResponse, 'incomes' | 'events' | 'operating' | 'unassigned' | 'unassignedIncome' | 'totals'>
 
 // 기간 하나의 줄과 숫자. 예산 화면과 결산서가 같은 정의를 쓴다.
@@ -155,9 +163,12 @@ export async function periodNumbers(db: Reader, scope: BudgetScope, period: Peri
 export async function planOf(db: Reader, scope: BudgetScope, periodId: string): Promise<BudgetPlanResponse> {
   const period = await periodOf(db, scope, periodId)
   const records = await incomeSummaries(db, scope.organizationId, eq(incomes.periodId, periodId), INCOME_RECORDS_MAX + 1)
+  const closed = await closedOf(db, period)
   return {
-    period: { id: period.id, name: period.name, startsOn: period.startsOn, endsOn: period.endsOn, version: period.version },
+    period: { id: period.id, name: period.name, startsOn: period.startsOn, endsOn: period.endsOn, version: period.version,
+      closed: closed && { by: closed.by, at: closed.at.toISOString() } },
     ...await periodNumbers(db, scope, period),
+    closing: await closingOf(db, scope.organizationId, period),
     candidates: await candidatesOf(db, scope),
     notices: await noticesOf(db, scope),
     history: await historyOf(db, scope, periodId),
@@ -281,7 +292,7 @@ export function createBudgetService(db: BudgetDatabase) {
       const lines = ids.length ? await db.select({ id: budgetLines.id, name: budgetLines.name, periodId: budgetLines.periodId }).from(budgetLines)
         .where(and(eq(budgetLines.organizationId, scope.organizationId), inArray(budgetLines.periodId, ids), eq(budgetLines.kind, 'operating')))
         .orderBy(asc(budgetLines.position), asc(budgetLines.id)) : []
-      return { periods: rows.map(row => ({ id: row.id, name: row.name, startsOn: row.startsOn, endsOn: row.endsOn,
+      return { periods: rows.map(row => ({ id: row.id, name: row.name, startsOn: row.startsOn, endsOn: row.endsOn, closed: row.closedAt !== null,
         operating: lines.filter(line => line.periodId === row.id).map(line => ({ id: line.id, name: line.name! })) })) }
     },
     plan: (scope: BudgetScope, periodId: string) => planOf(db, scope, periodId),
@@ -326,6 +337,49 @@ export function createBudgetService(db: BudgetDatabase) {
             version: sql`${budgetPeriods.version} + 1` }).where(eq(budgetPeriods.id, periodId))
           await recordPeriod(tx, scope, periodId, 'updated', changes)
         }
+        return planOf(tx, scope, periodId)
+      })
+    },
+    // 기간을 마감한다. 조건이 모두 맞아야 하고, 남은 돈은 다음 기간 시작일의 수입 한 건으로 넘긴다.
+    async close(scope: BudgetScope, periodId: string, input: ClosePeriodRequest): Promise<BudgetPlanResponse> {
+      return db.transaction(async tx => {
+        await requireFinance(tx, scope, true)
+        await lockBudget(tx, scope.organizationId)
+        const period = await periodOf(tx, scope, periodId, true)
+        if (period.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
+        if (period.closedAt) throw new ApiError('INVALID_STATE', 409)
+        const numbers = await periodNumbers(tx, scope, period)
+        const closing = await closingOf(tx, scope.organizationId, period)
+        if (!readyToClose(closing, numbers)) throw new ApiError('NOT_READY_TO_CLOSE', 409)
+        const { received, spent, balance } = numbers.totals
+        let carryover: { period: string; amount: number; line: string | null } | null = null
+        // 남은 돈이 0원이면 넘기지 않고, 보낸 수입 항목도 보지 않는다.
+        if (balance > 0) {
+          const next = closing.next!
+          const line = input.carryoverLineId === null ? null : next.incomes.find(entry => entry.id === input.carryoverLineId)
+          if (line === undefined) throw new ApiError('BUDGET_LINE_INVALID', 409)
+          await insertCarryover(tx, scope, { from: period, to: next, amount: balance, budgetLineId: line?.id ?? null })
+          carryover = { period: next.name, amount: balance, line: line?.name ?? null }
+        }
+        await tx.update(budgetPeriods).set({ closedAt: sql`now()`, closedBy: scope.userId, version: sql`${budgetPeriods.version} + 1` })
+          .where(eq(budgetPeriods.id, periodId))
+        await recordPeriod(tx, scope, periodId, 'closed', { received, spent, balance, carryover })
+        return planOf(tx, scope, periodId)
+      })
+    },
+    // 마감을 다시 연다. 다음 기간이 마감돼 있으면 막고(마감은 앞에서부터 차례로 된다), 넘긴 이월금은 취소한다.
+    async reopen(scope: BudgetScope, periodId: string, input: ReopenPeriodRequest): Promise<BudgetPlanResponse> {
+      return db.transaction(async tx => {
+        await requireFinance(tx, scope, true)
+        await lockBudget(tx, scope.organizationId)
+        const period = await periodOf(tx, scope, periodId, true)
+        if (period.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
+        if (!period.closedAt) throw new ApiError('INVALID_STATE', 409)
+        if ((await closingOf(tx, scope.organizationId, period)).next?.closed) throw new ApiError('LATER_PERIOD_CLOSED', 409)
+        await voidCarryover(tx, scope, period)
+        await tx.update(budgetPeriods).set({ closedAt: null, closedBy: null, version: sql`${budgetPeriods.version} + 1` })
+          .where(eq(budgetPeriods.id, periodId))
+        await recordPeriod(tx, scope, periodId, 'reopened', {}, input.reason)
         return planOf(tx, scope, periodId)
       })
     },

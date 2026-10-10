@@ -1,5 +1,6 @@
 import { Hono, type Context } from 'hono'
-import { CreateBudgetPeriodSchema, SaveBudgetPlanSchema, token, type BudgetPeriodsResponse, type BudgetPlanResponse } from '@vada/contracts'
+import { ClosePeriodSchema, CreateBudgetPeriodSchema, ReopenPeriodSchema, SaveBudgetPlanSchema, token, type BudgetPeriodsResponse,
+  type BudgetPlanResponse } from '@vada/contracts'
 import { requireMembership, type MembershipEnv } from '../access/membership.js'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
@@ -32,6 +33,11 @@ export function createBudgetRoutes(db: BudgetDatabase, session: SessionReader, p
     c.json(await service.plan(scope(c), idOf(c.req.param('periodId'))) satisfies BudgetPlanResponse))
   routes.post(`${base}/:periodId/plan`, json(SaveBudgetPlanSchema), auth, member, async c =>
     c.json(await service.savePlan(scope(c), idOf(c.req.param('periodId')), c.req.valid('json')) satisfies BudgetPlanResponse))
+  // 기간 마감과 다시 열기. 재정 권한자만 한다.
+  routes.post(`${base}/:periodId/close`, json(ClosePeriodSchema), auth, member, async c =>
+    c.json(await service.close(scope(c), idOf(c.req.param('periodId')), c.req.valid('json')) satisfies BudgetPlanResponse))
+  routes.post(`${base}/:periodId/reopen`, json(ReopenPeriodSchema), auth, member, async c =>
+    c.json(await service.reopen(scope(c), idOf(c.req.param('periodId')), c.req.valid('json')) satisfies BudgetPlanResponse))
   // 결산서 엑셀. 구성원 누구나 내려받는다.
   routes.get(`${base}/:periodId/export`, auth, member, async c => {
     const data = await service.exportData(scope(c), idOf(c.req.param('periodId')), publicOrigin)

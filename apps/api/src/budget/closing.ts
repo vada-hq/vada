@@ -1,0 +1,47 @@
+import { and, asc, eq, gt, gte, isNull, lt, lte, notExists, sql } from 'drizzle-orm'
+import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
+import type { BudgetClosing } from '@vada/contracts'
+import { budgetLines, budgetPeriods, expenseReceipts, expenses, incomes } from '../db/schema.js'
+import type { PeriodNumbers } from './service.js'
+
+type Reader = Pick<PgDatabase<PgQueryResultHKT>, 'select'>
+type Period = typeof budgetPeriods.$inferSelect
+
+// 마감 조건과 마감 뒤 상태. 편성 응답과 마감·다시 열기가 같은 정의를 쓴다.
+export async function closingOf(db: Reader, organizationId: string, period: Period): Promise<BudgetClosing> {
+  const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' })
+  const ofCouncil = eq(budgetPeriods.organizationId, organizationId)
+  const [earlierOpen] = await db.select({ id: budgetPeriods.id, name: budgetPeriods.name }).from(budgetPeriods)
+    .where(and(ofCouncil, lt(budgetPeriods.startsOn, period.startsOn), isNull(budgetPeriods.closedAt)))
+    .orderBy(asc(budgetPeriods.startsOn)).limit(1)
+  // 표 하나만 고르는 select는 sql 안의 열에서 표 이름을 떼므로, 바깥 지출을 가리키는 하위 질의는 질의 빌더로 만든다.
+  const [missing] = await db.select({ count: sql<number>`count(*)::int` }).from(expenses)
+    .where(and(eq(expenses.organizationId, organizationId), isNull(expenses.eventId), isNull(expenses.voidedAt),
+      gte(expenses.paidOn, period.startsOn), lte(expenses.paidOn, period.endsOn),
+      notExists(db.select({ one: sql`1` }).from(expenseReceipts)
+        .where(and(eq(expenseReceipts.expenseId, expenses.id), eq(expenseReceipts.status, 'ready'))))))
+  // 다음 기간: 시작일이 이 기간 끝일보다 뒤인 기간 가운데 가장 이른 것. 이월금이 들어갈 곳이다.
+  const [next] = await db.select({ id: budgetPeriods.id, name: budgetPeriods.name, startsOn: budgetPeriods.startsOn, closedAt: budgetPeriods.closedAt })
+    .from(budgetPeriods).where(and(ofCouncil, gt(budgetPeriods.startsOn, period.endsOn))).orderBy(asc(budgetPeriods.startsOn)).limit(1)
+  const nextIncomes = next ? await db.select({ id: budgetLines.id, name: budgetLines.name }).from(budgetLines)
+    .where(and(eq(budgetLines.organizationId, organizationId), eq(budgetLines.periodId, next.id), eq(budgetLines.kind, 'income')))
+    .orderBy(asc(budgetLines.position), asc(budgetLines.id)) : []
+  const [carried] = await db.select({ amount: incomes.amount, periodId: budgetPeriods.id, periodName: budgetPeriods.name }).from(incomes)
+    .innerJoin(budgetPeriods, and(eq(budgetPeriods.id, incomes.periodId), eq(budgetPeriods.organizationId, incomes.organizationId)))
+    .where(and(eq(incomes.organizationId, organizationId), eq(incomes.carriedFromPeriodId, period.id), isNull(incomes.voidedAt)))
+  return {
+    ended: today > period.endsOn,
+    earlierOpen: earlierOpen ?? null,
+    missingEvidence: missing!.count,
+    next: next ? { id: next.id, name: next.name, startsOn: next.startsOn, closed: next.closedAt !== null,
+      incomes: nextIncomes.map(line => ({ id: line.id, name: line.name! })) } : null,
+    carriedOver: carried ? { period: { id: carried.periodId, name: carried.periodName }, amount: carried.amount } : null,
+  }
+}
+
+// 마감 조건(spec 정책 1)이 모두 맞는가. 남은 돈이 있으면 넘길 다음 기간이 있어야 한다.
+export function readyToClose(closing: BudgetClosing, numbers: PeriodNumbers) {
+  const { balance } = numbers.totals
+  return closing.ended && closing.earlierOpen === null && numbers.events.every(line => line.settled) && closing.missingEvidence === 0
+    && balance >= 0 && (balance === 0 || closing.next !== null)
+}
