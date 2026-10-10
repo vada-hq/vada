@@ -19,6 +19,9 @@ export function dayText(date: string) {
   const [year, month, day] = numbers(date)
   return `${year}년 ${month}월 ${day}일`
 }
+// "01012345678" → "010-1234-5678"
+export const phoneText = (phone: string) => phone.length === 11
+  ? `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}` : `${phone.slice(0, 3)}-${phone.slice(3, 6)}-${phone.slice(6)}`
 // 같은 날 끝나면 끝 시각만 적는다.
 export function eventTimeText(startsAt: string | null, endsAt: string | null) {
   if (!startsAt) return null

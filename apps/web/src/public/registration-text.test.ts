@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { dayText, eventTimeText, formatKoreanTime, privacyNotice, registrationFailure, registrationMessage, stateLabel, stateText } from './registration-text'
+import { dayText, eventTimeText, formatKoreanTime, phoneText, privacyNotice, registrationFailure, registrationMessage, stateLabel, stateText } from './registration-text'
 
 test('한국 시각을 요일·오전 오후로 읽는다. 기기 시간대와 상관없다', () => {
   expect(formatKoreanTime('2026-08-20T10:00')).toBe('8월 20일 (목) 오전 10:00')
@@ -40,4 +40,9 @@ test('개인정보 고지: 받는 곳·목적·항목·보유 기간·거부권�
   expect(lines).toEqual(['받는 곳: 소프트웨어융합대학 학생회', '목적: 체육대회 참가 신청 확인과 행사 운영', '항목: 이름, 학번',
     '보유 기간: 행사가 끝나고 30일 뒤(2026년 9월 19일) 지워요', '동의하지 않을 수 있어요. 다만 동의하지 않으면 신청할 수 없어요.'])
   expect(privacyNotice({ organizationName: 'A', eventName: 'B', collectPhone: true, purgeAfter: '2026-09-19' })[2]).toBe('항목: 이름, 학번, 휴대폰 번호')
+})
+
+test('휴대폰 번호: 11자리는 3-4-4, 10자리는 3-3-4로 끊는다', () => {
+  expect(phoneText('01012345678')).toBe('010-1234-5678')
+  expect(phoneText('0112345678')).toBe('011-234-5678')
 })
