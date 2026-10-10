@@ -1182,3 +1182,45 @@ test('0021 adds fee accounts, dues rosters, registration fees and payments witho
     await pg.close()
   }
 })
+
+test('0022 adds fee incomes tied to one event of the same council without touching existing incomes', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0022_event_fee_income')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','재정','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u'),('e2','o','축제','u'),('x','o2','남의 행사','u');
+      INSERT INTO budget_periods (id,organization_id,name,starts_on,ends_on,created_by) VALUES ('p','o','2026년 2학기','2026-09-01','2027-02-28','u'),
+        ('q','o','2026년 1학기','2026-03-01','2026-08-31','u');
+      INSERT INTO incomes (id,organization_id,period_id,description,amount,received_on,recorded_by) VALUES ('i','o','p','학생회비',750000,'2026-09-15','u');
+    `)
+    const before = await pg.query<Record<string, unknown>>('SELECT * FROM incomes ORDER BY id')
+    await migrate(db, { migrationsFolder })
+    const insert = (values: Record<string, string>) =>
+      pg.exec(`INSERT INTO incomes (${Object.keys(values).join(',')}) VALUES (${Object.values(values).join(',')})`)
+    const income = (id: string, change: Record<string, string> = {}) => insert({ id: `'${id}'`, organization_id: "'o'", period_id: "'p'",
+      description: "'체육대회 참가비'", amount: '35000', received_on: "'2026-10-05'", recorded_by: "'u'", event_id: "'e'", ...change })
+
+    await t.test('existing incomes keep their values and are not fee incomes', async () => {
+      const after = await pg.query<Record<string, unknown>>('SELECT * FROM incomes ORDER BY id')
+      assert.deepEqual(sameColumns(after.rows, before.rows), before.rows)
+      assert.deepEqual(after.rows.map(row => row.event_id), [null])
+    })
+    await t.test('an event has one fee income while not voided, of the same council, and it is not also a carryover', async () => {
+      await income('f1')
+      await assert.rejects(income('f2'), { constraint: 'incomes_event_active_unique' })
+      await assert.rejects(income('f3', { event_id: "'x'" }), { constraint: 'incomes_event_same_organization' })
+      await assert.rejects(income('f4', { event_id: "'e2'", carried_from_period_id: "'q'" }), { constraint: 'incomes_single_source' })
+      await pg.exec("UPDATE incomes SET voided_at = now(), voided_by = 'u', void_reason = '정산 다시 엶' WHERE id = 'f1'")
+      await income('f5')
+      // 참가비 수입이 가리키는 행사는 지울 수 없다.
+      await assert.rejects(pg.exec("DELETE FROM events WHERE id = 'e'"), { constraint: 'incomes_event_same_organization' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

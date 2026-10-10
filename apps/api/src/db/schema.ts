@@ -800,9 +800,20 @@ export const incomes = pgTable('incomes', {
   voidReason: text('void_reason'),
   // 이월금이면 넘겨준 기간(M2-3c). 이월금은 손으로 고치거나 취소하지 않는다.
   carriedFromPeriodId: text('carried_from_period_id'),
+  // 참가비 수입이면 그 행사(M3b-2). 행사 정산이 만들고 다시 열면 취소한다. 손으로 고치거나 취소하지 않는다.
+  eventId: text('event_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 }, (table) => [
+  foreignKey({
+    name: 'incomes_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  // 이월금이면서 참가비 수입일 수 없다.
+  check('incomes_single_source', sql`${table.carriedFromPeriodId} IS NULL OR ${table.eventId} IS NULL`),
+  // 행사 하나의 취소하지 않은 참가비 수입은 한 건뿐이다.
+  uniqueIndex('incomes_event_active_unique').on(table.eventId).where(sql`${table.eventId} IS NOT NULL AND ${table.voidedAt} IS NULL`),
   foreignKey({
     name: 'incomes_carried_from_same_organization',
     columns: [table.organizationId, table.carriedFromPeriodId],
