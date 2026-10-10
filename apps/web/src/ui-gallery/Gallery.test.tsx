@@ -7,7 +7,7 @@ afterEach(cleanup)
 
 test('부품 확인 화면이 모든 부품 묶음을 보여 준다', () => {
   render(<Gallery />)
-  for (const name of ['버튼', '입력', '칩', '숫자 묶음', '계좌 상자', '카드·배너', '메뉴·탭', '빈 화면·아바타·로고', '대화상자·옆 메뉴', '상태 문구', '인증 카드',
+  for (const name of ['버튼', '입력', '칩', '숫자 묶음', '계좌 상자', 'QR', '카드·배너', '메뉴·탭', '빈 화면·아바타·로고', '대화상자·옆 메뉴', '상태 문구', '인증 카드',
     '긴 글', '숨김']) {
     expect(screen.getByRole('heading', { level: 2, name })).toBeTruthy()
   }

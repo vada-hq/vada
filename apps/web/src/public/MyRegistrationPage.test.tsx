@@ -15,7 +15,7 @@ const cancelPath = '/api/public/registrations/cancel'
 const mine = (overrides: Partial<MyRegistration> = {}): MyRegistration => ({ code: 'ABCD2345', organizationName: '소프트웨어융합대학 학생회',
   event: { name: '2026 체육대회', startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: 'ERICA 체육관' }, name: '김바다',
   studentId: '2022123456', phone: '01012345678', createdAt: '2026-08-02T14:05', closesAt: '2026-08-19T23:59', cancelled: false, cancellable: true,
-  payment: null, ...overrides })
+  payment: null, checkInCode: '0123456789abcdef'.repeat(4), checkedInAt: null, ...overrides })
 const account = { bank: '카카오뱅크', accountNumber: '3333-01-1234567', holder: '컴퓨터학부 학생회' }
 function setup(registration: MyRegistration | Response = mine()) {
   const api = mockApi()

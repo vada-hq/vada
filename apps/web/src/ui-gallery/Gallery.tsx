@@ -1,10 +1,12 @@
 import { useState, type ReactNode } from 'react'
 import { CalendarDays, Copy, Plus } from 'lucide-react'
+import { checkInQrText } from '@vada/contracts'
 import { AccountInfo } from '@/components/AccountInfo'
 import { AuthCard } from '@/components/AuthCard'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
 import { EmptyState } from '@/components/EmptyState'
+import { QrCode } from '@/components/QrCode'
 import { StatGrid } from '@/components/StatGrid'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
@@ -65,6 +67,9 @@ export default function Gallery() {
     </Section>
     <Section title="계좌 상자">
       <AccountInfo className="w-80" account={{ bank: '카카오뱅크', accountNumber: '3333-01-1234567', holder: '소프트웨어융합대학 컴퓨터학부 학생회 집행부' }} />
+    </Section>
+    <Section title="QR">
+      <QrCode className="size-48" value={checkInQrText('0123456789abcdef'.repeat(4))} label="참석 확인 QR 예시" />
     </Section>
     <Section title="카드·배너">
       <Card className="w-72 p-4"><p className="text-sm font-semibold">카드 제목</p><p className="text-xs text-gray-500">카드 설명</p></Card>
