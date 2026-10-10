@@ -4,10 +4,10 @@ export { EVENT_NAME_MAX, EVENT_PLACE_MAX, CreateEventSchema, UpdateEventSchema, 
 export { koreanDateTime, dateFromKorean, koreanOf } from './korean-time.js'
 export { REGISTRATION_NAME_MAX, REGISTRATION_NOTICE_MAX, REGISTRATION_CAPACITY_MAX, REGISTRATION_RETENTION_DAYS, REGISTRATION_FEE_MAX, studentIdInput,
   phoneInput, CreateRegistrationFormSchema, UpdateRegistrationFormSchema, CancelRegistrationSchema, RegisterSchema, RegistrationTokenSchema,
-  PaymentActionSchema, SetDuesMemberSchema } from './registrations.js'
+  PaymentActionSchema, SetDuesMemberSchema, CheckInScanSchema, CheckInActionSchema, checkInQrText, checkInCodeOf } from './registrations.js'
 export type { CreateRegistrationFormRequest, UpdateRegistrationFormRequest, RegisterRequest, SetDuesMemberRequest, RegistrationState,
   RegistrationFormView, RegistrationEntry, RegistrationResponse, PublicRegistrationEvent, PublicRegistrationForm, RegistrationCreated, PaymentBasis,
-  MyPayment, MyRegistration } from './registrations.js'
+  MyPayment, MyRegistration, CheckInScanRequest, CheckInScanResponse } from './registrations.js'
 export { FEE_BANK_MAX, FEE_HOLDER_MAX, FEE_ACCOUNT_NUMBER_MAX, FEE_ACCOUNT_HISTORY_MAX, DUES_ROSTER_LABEL_MAX, DUES_ROSTER_MEMBERS_MAX,
   DUES_ROSTER_USE_DAYS_MAX, accountNumberInput, SetFeeAccountSchema, DuesMemberSchema, ReplaceDuesRosterSchema, DeleteDuesRosterSchema } from './fees.js'
 export type { SetFeeAccountRequest, ReplaceDuesRosterRequest, DeleteDuesRosterRequest, FeeAccount, FeeAccountView, FeeAccountChange, DuesMember,

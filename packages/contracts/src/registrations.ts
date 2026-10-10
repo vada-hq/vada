@@ -50,10 +50,24 @@ export const RegisterSchema = z.strictObject({
 })
 // 개인 링크 토큰: 무작위 16바이트의 base64url
 export const RegistrationTokenSchema = z.strictObject({ token: token(22).refine(value => /^[A-Za-z0-9_-]{22}$/.test(value)) })
+// 참석 확인(M3c). 코드는 개인 링크 토큰의 SHA-256(소문자 16진 64자)이고 DB의 token_hash와 같다.
+// 해시라서 QR이 새도 내 신청을 보거나 취소할 수 없다(토큰이 있어야 한다).
+const checkInCode = /^[0-9a-f]{64}$/
+export const CheckInScanSchema = z.strictObject({ code: token(64).refine(value => checkInCode.test(value)) })
+// 이름으로 찾아 참석 확인과 확인 취소에는 본문이 없다.
+export const CheckInActionSchema = z.strictObject({})
+// QR에는 앞에 VADA:를 붙이고 대문자로 담는다. 대문자는 QR 영숫자 모드라 작게 그려진다(버전 4).
+export const checkInQrText = (code: string) => `VADA:${code.toUpperCase()}`
+// 스캐너가 읽은 글자에서 코드를 꺼낸다. 참가 신청 QR이 아니면 null이다.
+export function checkInCodeOf(text: string): string | null {
+  const match = /^VADA:([0-9A-F]{64})$/i.exec(text.trim())
+  return match ? match[1]!.toLowerCase() : null
+}
 export type CreateRegistrationFormRequest = z.infer<typeof CreateRegistrationFormSchema>
 export type UpdateRegistrationFormRequest = z.infer<typeof UpdateRegistrationFormSchema>
 export type RegisterRequest = z.infer<typeof RegisterSchema>
 export type SetDuesMemberRequest = z.infer<typeof SetDuesMemberSchema>
+export type CheckInScanRequest = z.infer<typeof CheckInScanSchema>
 
 // 위에서부터 먼저 맞는 것이다: 마감 → 멈춤 → 시작 전 → 정원 참 → 받는 중
 export type RegistrationState = 'open' | 'paused' | 'upcoming' | 'full' | 'closed'
@@ -80,6 +94,8 @@ export interface RegistrationFormView {
   memberFee: number | null
   // 입금을 확인한 신청의 수와 확인 금액 합. 취소했거나 정보를 지운 신청도 센다.
   payments: { count: number; total: number }
+  // 참석을 확인한 신청 수. 보관 기간이 지나 정보를 지운 신청도 센다.
+  checkedIn: number
 }
 export interface RegistrationEntry {
   id: string
@@ -94,6 +110,8 @@ export interface RegistrationEntry {
   fee: number
   // 입금 확인(한국 시각과 확인한 사람). 확인 전이면 null이다.
   paid: { amount: number; at: string; by: ExpensePerson } | null
+  // 참석 확인(한국 시각과 확인한 사람). 확인 전이면 null이다.
+  checkedIn: { at: string; by: ExpensePerson } | null
 }
 export interface RegistrationResponse {
   form: RegistrationFormView | null
@@ -105,6 +123,10 @@ export interface RegistrationResponse {
   roster: { label: string; useUntil: string } | null
   // 행사 정산이 끝났으면 true다. 입금 확인·확인 취소·참가비 바꾸기·금액 변경을 할 수 없다.
   settled: boolean
+}
+// QR로 참석 확인한 응답. already는 찍기 전에 이미 참석이었는지다.
+export interface CheckInScanResponse extends RegistrationResponse {
+  checkIn: { registrationId: string; already: boolean }
 }
 export interface PublicRegistrationEvent {
   name: string
@@ -153,8 +175,12 @@ export interface MyRegistration {
   // 신청 마감(한국 시각). 이때까지 스스로 취소할 수 있다.
   closesAt: string
   cancelled: boolean
-  // 마감 전이고 입금을 확인하지 않았으면 스스로 취소할 수 있다.
+  // 마감 전이고 입금·참석을 확인하지 않았으면 스스로 취소할 수 있다.
   cancellable: boolean
   // 참가비가 없는 신청(참가비 0원이고 납부자 참가비 없음)이나 취소 응답이면 null이다.
   payment: MyPayment | null
+  // 참석 확인 QR의 코드. 취소 응답이면 null이다.
+  checkInCode: string | null
+  // 참석을 확인한 한국 시각
+  checkedInAt: string | null
 }

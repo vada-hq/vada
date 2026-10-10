@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import { UpdateEventSchema } from './events.js'
 import { isStrictObject } from './input.js'
 import { dateFromKorean, koreanDateTime, koreanOf } from './korean-time.js'
-import { CancelRegistrationSchema, CreateRegistrationFormSchema, PaymentActionSchema, RegisterSchema, REGISTRATION_CAPACITY_MAX, REGISTRATION_FEE_MAX,
+import { CancelRegistrationSchema, CheckInActionSchema, CheckInScanSchema, checkInCodeOf, checkInQrText, CreateRegistrationFormSchema, PaymentActionSchema, RegisterSchema, REGISTRATION_CAPACITY_MAX, REGISTRATION_FEE_MAX,
   REGISTRATION_NAME_MAX, REGISTRATION_NOTICE_MAX, RegistrationTokenSchema, SetDuesMemberSchema, UpdateRegistrationFormSchema } from './registrations.js'
 
 // 테스트 파일에 제어 문자를 그대로 쓰지 않는다.
@@ -101,4 +101,26 @@ test('토큰: base64url 22자만 받는다', () => {
   const token = 'Ab3_-xYz0123456789abcd'
   accepts(RegistrationTokenSchema, [{ token }])
   rejects(RegistrationTokenSchema, [{ token: token.slice(1) }, { token: `${token}e` }, { token: `${token.slice(2)}+/` }, { token: '' }, {}, { token, extra: 1 }])
+})
+
+const code = 'a'.repeat(32) + '0123456789abcdef'.repeat(2)
+test('참석 확인 스캔: 소문자 16진 64자 코드만 받는다', () => {
+  assert.equal(isStrictObject(CheckInScanSchema), true)
+  assert.equal(isStrictObject(CheckInActionSchema), true)
+  // token()은 앞뒤 공백을 빼기 전에 길이를 잰다. 화면은 checkInCodeOf로 정리한 코드만 보낸다.
+  assert.deepEqual(CheckInScanSchema.parse({ code }), { code })
+  rejects(CheckInScanSchema, [{}, { code: '' }, { code: '   ' }, { code: code.slice(1) }, { code: `${code}0` }, { code: code.toUpperCase() },
+    { code: `${code.slice(1)}g` }, { code: `${code.slice(2)}${emoji}` }, { code: `${code.slice(1)}${nul}` }, { code: `${code.slice(1)}${lone}` },
+    { code, extra: 1 }, { code: 1 }, { code: ` ${code} ` }])
+  accepts(CheckInActionSchema, [{}])
+  rejects(CheckInActionSchema, [{ code }, { extra: 1 }])
+})
+
+test('참석 확인 QR 글자: VADA:와 대문자 코드이고, 읽을 때 앞뒤 공백과 대소문자를 가리지 않는다', () => {
+  assert.equal(checkInQrText(code), `VADA:${code.toUpperCase()}`)
+  assert.equal(checkInCodeOf(checkInQrText(code)), code)
+  assert.equal(checkInCodeOf(`  vada:${code}
+`), code)
+  for (const text of ['', code, `VADA:${code.slice(1)}`, `VADA:${code}0`, `VADA:${code.slice(1)}G`, `VADB:${code}`, `VADA: ${code}`,
+    `https://vada-m1.onrender.com/r#${code}`, `VADA:${code}VADA:${code}`]) assert.equal(checkInCodeOf(text), null, text)
 })
