@@ -74,8 +74,8 @@ export default function ApplyPage({ code, onRegistered = token => window.locatio
     }
     setBusy(false)
     setError(result.code === null ? registrationFailure : registrationMessage(result.code))
-    // 정원이 찼거나 받지 않게 됐으면 바뀐 상태를 다시 받아 안내로 바꾼다.
-    if (result.code === 'REGISTRATION_FULL' || result.code === 'REGISTRATION_NOT_OPEN') setAttempt(value => value + 1)
+    // 정원이 찼거나, 받지 않게 됐거나, 운영진이 설정을 바꿨으면 바뀐 내용을 다시 받아 화면을 맞춘다.
+    if (result.code === 'REGISTRATION_FULL' || result.code === 'REGISTRATION_NOT_OPEN' || result.code === 'FORM_CHANGED') setAttempt(value => value + 1)
   }
   const time = eventTimeText(form.event.startsAt, form.event.endsAt)
   const notice = stateText(form.state, form.opensAt)

@@ -47,6 +47,7 @@ const messages: Record<string, string> = {
   ALREADY_REGISTERED: '이미 신청한 학번이에요. 신청한 기기에서 내 신청을 확인해 주세요.',
   REGISTRATION_FULL: '정원이 다 찼어요.',
   REGISTRATION_NOT_OPEN: '지금은 신청할 수 없어요.',
+  FORM_CHANGED: '신청 설정이 바뀌었어요. 바뀐 내용을 확인하고 다시 신청해 주세요.',
   NOT_FOUND: '신청 정보를 찾을 수 없어요.',
   CANCEL_CLOSED: '마감 뒤에는 취소할 수 없어요. 학생회에 문의해 주세요.',
   VERSION_CONFLICT: '다른 사람이 먼저 바꿨어요. 새로 불러온 내용을 확인해 주세요.',

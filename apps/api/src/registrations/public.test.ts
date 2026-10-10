@@ -76,17 +76,21 @@ test('신청: 학번을 정리해 저장하고 토큰은 해시만 남기며, �
   } finally { await env.pg.close() }
 })
 
-test('휴대폰 번호: 받는 신청에는 꼭 넣고, 받지 않는 신청에는 넣을 수 없다', async () => {
+test('휴대폰 번호: 설정과 다르게 보낸 신청은 설정이 바뀌었다고 알리고, 받지 않는 상태를 먼저 알린다', async () => {
   const env = await setupPurchases()
   const { pg } = env
   try {
     const { code } = await open(env, { capacity: null })
-    await refused(apply(env, code, entryBody({ phone: '010-1234-5678' })), 400, 'INVALID_INPUT')
+    // 운영진이 휴대폰 받기를 바꾸기 전에 연 화면에서 보낸 신청이다. 화면이 설정을 다시 받게 한다.
+    await refused(apply(env, code, entryBody({ phone: '010-1234-5678' })), 409, 'FORM_CHANGED')
     await settle(env, { collectPhone: true })
-    await refused(apply(env, code, entryBody({ phone: null })), 400, 'INVALID_INPUT')
+    await refused(apply(env, code, entryBody({ phone: null })), 409, 'FORM_CHANGED')
     await env.ok(apply(env, code, entryBody({ phone: '010-1234-5678' })), 201)
     const { rows } = await pg.query<{ phone: string }>('SELECT phone FROM registrations')
     assert.deepEqual(rows.map(row => row.phone), ['01012345678'])
+    // 마감이면 휴대폰 번호가 맞지 않아도 마감을 먼저 알린다.
+    env.clock.set(at('2999-08-19T23:59'))
+    await refused(apply(env, code, entryBody({ studentId: '2022999999', phone: null })), 409, 'REGISTRATION_NOT_OPEN')
   } finally { await env.pg.close() }
 })
 

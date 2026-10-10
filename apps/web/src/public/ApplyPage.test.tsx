@@ -143,3 +143,15 @@ test('브라우저 저장소를 쓸 수 없어도 화면과 신청은 그대로 
   fireEvent.click(submit())
   await waitFor(() => expect(onRegistered).toHaveBeenCalledWith(token))
 })
+
+test('신청 설정이 바뀌었다는 답이면 알리고, 바뀐 설정을 다시 불러와 입력 칸을 맞춘다', async () => {
+  const { api } = setup()
+  await heading()
+  fill()
+  api.on('POST', `${formPath}/entries`, () => json({ error: 'FORM_CHANGED' }, 409))
+  api.on('GET', formPath, () => json(publicForm({ collectPhone: true })))
+  fireEvent.click(submit())
+  expect(await screen.findByLabelText('휴대폰 번호')).toBeTruthy()
+  expect(screen.getByText('신청 설정이 바뀌었어요. 바뀐 내용을 확인하고 다시 신청해 주세요.')).toBeTruthy()
+  expect(field('이름').value).toBe('김바다')
+})

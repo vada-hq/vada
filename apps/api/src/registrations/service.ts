@@ -123,17 +123,19 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
         remaining: form.capacity === null ? null : Math.max(0, form.capacity - total), purgeAfter: koreanDay(purgeAfterOf(endOf(event))) }
     }),
     // 신청. 받는 중이 아니면 막고, 이미 신청한 학번이면 정원이 찼다는 것보다 그것을 먼저 알린다.
+    // 받는 중인 신청에는 지울 정보가 없다(마감 ≤ 행사 끝 < 지울 때). 잠금을 쥔 시간을 줄이려고 파기를 부르지 않고 신청 수와 같은 학번을 한 번에 센다.
     register: (code: string, input: RegisterRequest) => db.transaction(async (tx): Promise<RegistrationCreated> => {
       const { form } = await formByCode(tx, code, true)
-      // 휴대폰 번호는 받는 신청에서만 받는다.
-      if (form.collectPhone !== (input.phone !== null)) throw new ApiError('INVALID_INPUT', 400)
-      await purgeExpired(tx, form.id)
-      const state = stateOf(form, await countOf(tx, form.id), now())
+      const [tally] = await tx.select({
+        total: sql<number>`(count(*) FILTER (WHERE ${registrations.cancelledAt} IS NULL))::int`,
+        same: sql<number>`(count(*) FILTER (WHERE ${registrations.studentId} = ${input.studentId} AND ${registrations.purgedAt} IS NULL))::int`,
+      }).from(registrations).where(eq(registrations.formId, form.id))
+      const state = stateOf(form, tally?.total ?? 0, now())
       if (state !== 'open' && state !== 'full') throw new ApiError('REGISTRATION_NOT_OPEN', 409)
-      const [same] = await tx.select({ id: registrations.id }).from(registrations)
-        .where(and(eq(registrations.formId, form.id), eq(registrations.studentId, input.studentId), isNull(registrations.purgedAt)))
-      if (same) throw new ApiError('ALREADY_REGISTERED', 409)
+      if ((tally?.same ?? 0) > 0) throw new ApiError('ALREADY_REGISTERED', 409)
       if (state === 'full') throw new ApiError('REGISTRATION_FULL', 409)
+      // 휴대폰 번호는 받는 신청에서만 받는다. 다르면 운영진이 설정을 바꾸기 전에 연 화면이므로 화면이 설정을 다시 받게 한다.
+      if (form.collectPhone !== (input.phone !== null)) throw new ApiError('FORM_CHANGED', 409)
       const token = randomBytes(16).toString('base64url')
       await tx.insert(registrations).values({ id: randomUUID(), organizationId: form.organizationId, formId: form.id, tokenHash: hashOf(token),
         name: input.name, studentId: input.studentId, phone: input.phone })
