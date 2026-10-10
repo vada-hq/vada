@@ -31,6 +31,8 @@ export const incomeErrors: Record<string, string> = {
   INVALID_STATE: '취소된 수입은 바꿀 수 없어요.',
   DATE_OUTSIDE_PERIOD: '받은 날이 이 회계 기간 밖이에요.',
   BUDGET_LINE_INVALID: '수입 항목을 다시 골라 주세요.',
+  PERIOD_CLOSED: '마감한 기간이라 수입을 바꿀 수 없어요.',
+  CARRYOVER_INCOME: '앞 기간에서 넘어온 이월금은 바꿀 수 없어요.',
   INVALID_INPUT: '입력값을 확인해 주세요.',
 }
 export const incomeFailure = '처리하지 못했어요. 다시 시도해 주세요.'

@@ -89,6 +89,11 @@ function changeText(change: BudgetChange) {
 export function budgetHistoryText(entry: BudgetHistoryEntry) {
   const changes = entry.changes
   if (entry.action === 'created') return `기간 만듦: ${String(changes.name)} (${String(changes.startsOn)} ~ ${String(changes.endsOn)})`
+  if (entry.action === 'closed') {
+    const { balance, carryover } = changes as { balance: number; carryover: { period: string } | null }
+    return `기간 마감: 남은 돈 ${won(balance)}${carryover ? ` → ${carryover.period} 수입으로 넘김` : ''}`
+  }
+  if (entry.action === 'reopened') return `마감 다시 엶: ${entry.reason ?? ''}`
   const labels = { name: '이름', startsOn: '시작일', endsOn: '끝일' } as const
   const parts = (Object.keys(labels) as (keyof typeof labels)[]).flatMap(key => {
     const change = changes[key] as { from: string; to: string } | undefined
@@ -97,6 +102,32 @@ export function budgetHistoryText(entry: BudgetHistoryEntry) {
   for (const change of (changes.lines as BudgetChange[] | undefined) ?? []) parts.push(changeText(change))
   return `편성 수정: ${parts.join(' · ')}`
 }
+
+export type ClosingRequirement = { key: 'earlier' | 'events' | 'evidence' | 'balance' | 'next'; label: string; hint: string; done: boolean }
+// 마감하려면 모두 맞아야 한다. 끝일은 이 목록을 보이는 조건이라 넣지 않는다. 해결 방법은 안 맞을 때만 보인다.
+export function closingRequirements(plan: BudgetPlanResponse): ClosingRequirement[] {
+  const { closing } = plan
+  const { balance } = plan.totals
+  const unsettled = plan.events.filter(line => !line.settled)
+  return [
+    { key: 'earlier', label: closing.earlierOpen ? `마감하지 않은 앞 기간: ${closing.earlierOpen.name}` : '앞 기간이 모두 마감됐어요',
+      hint: '앞 기간부터 마감해 주세요.', done: closing.earlierOpen === null },
+    { key: 'events', label: unsettled.length ? `정산하지 않은 행사 ${unsettled.length}개: ${unsettled.map(line => line.name).join(', ')}`
+      : '넣은 행사가 모두 정산됐어요', hint: '행사 재정 탭에서 정산해 주세요.', done: unsettled.length === 0 },
+    { key: 'evidence', label: closing.missingEvidence ? `증빙이 없는 상시 운영 지출 ${closing.missingEvidence}건` : '상시 운영 지출의 증빙이 모두 있어요',
+      hint: '사용 내역에서 증빙을 올려 주세요.', done: closing.missingEvidence === 0 },
+    { key: 'balance', label: balance < 0 ? `실제 지출이 실제 수입보다 ${won(-balance)} 많아요` : `남은 돈 ${won(balance)}`,
+      hint: '빠진 수입 기록이 없는지 확인해 주세요.', done: balance >= 0 },
+    // 남은 돈이 있을 때만 넘길 기간이 필요하다.
+    ...(balance > 0 ? [{ key: 'next' as const, label: closing.next ? `남은 돈을 넘길 기간: ${closing.next.name}` : '남은 돈을 넘길 다음 기간이 없어요',
+      hint: '새 기간을 먼저 만들어 주세요.', done: closing.next !== null }] : []),
+  ]
+}
+export const readyToClose = (plan: BudgetPlanResponse) => plan.closing.ended && closingRequirements(plan).every(item => item.done)
+// 이월금 수입 항목의 기본값. 이름에 "이월"이 든 첫 줄이고, 없으면 고르지 않는다('').
+export const defaultCarryoverLine = (lines: { id: string; name: string }[]) => lines.find(line => line.name.includes('이월'))?.id ?? ''
+// 마감한 날(한국 날짜). 예: 2027.3.5
+export const closedDay = (at: string) => periodDayText(new Date(at).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' }))
 
 export const budgetErrors: Record<string, string> = {
   FORBIDDEN: '권한이 없어요. 재정 부서나 회장단만 할 수 있어요.',
@@ -110,6 +141,12 @@ export const budgetErrors: Record<string, string> = {
   EXPENSES_OUTSIDE_PERIOD: '운영 항목을 고른 지출이 기간 밖으로 나가요. 날짜를 확인해 주세요.',
   INCOMES_OUTSIDE_PERIOD: '이 기간의 수입이 기간 밖으로 나가요. 날짜를 확인해 주세요.',
   EXPORT_TOO_LARGE: '기록이 너무 많아 엑셀로 만들 수 없어요.',
+  NOT_READY_TO_CLOSE: '아직 마감할 수 없어요. 남은 항목을 확인해 주세요.',
+  INVALID_STATE: '지금 상태에서는 할 수 없어요. 새로 불러왔어요.',
+  LATER_PERIOD_CLOSED: '다음 기간이 마감돼 있어 다시 열 수 없어요.',
+  PERIOD_CLOSED: '마감한 기간이라 바꿀 수 없어요.',
+  PERIOD_BEFORE_CLOSED: '마감한 기간이나 이월금을 받은 기간보다 앞선 날짜예요.',
+  BUDGET_LINE_INVALID: '이월금 수입 항목을 다시 골라 주세요.',
   INVALID_INPUT: '입력값을 확인해 주세요.',
 }
 export const budgetFailure = '처리하지 못했어요. 다시 시도해 주세요.'

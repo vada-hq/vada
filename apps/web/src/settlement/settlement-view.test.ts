@@ -31,6 +31,7 @@ test('처리 기록 문구와 정산한 날', () => {
 test('오류는 화면 문구로 바꾼다', () => {
   expect(settlementMessage('NOT_READY_TO_SETTLE')).toBe('아직 정산할 수 없어요. 남은 항목을 확인해 주세요.')
   expect(settlementMessage('EXPORT_TOO_LARGE')).toBe('지출이 너무 많아 엑셀로 만들 수 없어요.')
+  expect(settlementMessage('PERIOD_CLOSED')).toBe('마감한 회계 기간의 행사라 정산을 다시 열 수 없어요.')
   expect(settlementMessage('???')).toBe('처리하지 못했어요. 다시 시도해 주세요.')
 })
 

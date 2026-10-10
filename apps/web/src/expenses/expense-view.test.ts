@@ -40,4 +40,5 @@ test('상시 운영 지출은 운영 항목을 붙여 보이고, 처리 기록�
   expect(historyText({ id: 'h', action: 'updated', actor: { id: 'f', name: '재정' }, changes: { budgetLine: { from: null, to: '회의비' } },
     createdAt: '2026-10-10T01:00:00.000Z' })).toBe('수정: 운영 항목 없음 → 회의비')
   expect(expenseMessage('BUDGET_LINE_INVALID')).toBe('운영 항목을 다시 골라 주세요.')
+  expect(expenseMessage('PERIOD_CLOSED')).toBe('마감한 회계 기간의 지출이라 바꿀 수 없어요. 예산 화면에서 마감을 다시 연 뒤 해 주세요.')
 })

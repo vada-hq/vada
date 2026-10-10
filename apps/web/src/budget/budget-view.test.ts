@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
-import type { BudgetHistoryEntry } from '@vada/contracts'
-import { budgetHistoryText, budgetMessage, currentPeriodId, defaultNewPeriod, draftOf, draftTotals, periodDayText, planInput, rateText, rebaseDraft,
-  semesterOf, shareText } from './budget-view'
+import type { BudgetHistoryEntry, BudgetPlanResponse } from '@vada/contracts'
+import { budgetHistoryText, budgetMessage, closedDay, closingRequirements, currentPeriodId, defaultCarryoverLine, defaultNewPeriod, draftOf,
+  draftTotals, periodDayText, planInput, rateText, readyToClose, rebaseDraft, semesterOf, shareText } from './budget-view'
 import { budgetEventLine, budgetPlan } from './budget-fixtures'
 
 test('학기는 3~8월이 1학기, 9월~다음 해 2월 말일이 2학기다', () => {
@@ -56,7 +56,7 @@ test('합계 미리 보기: 형식이 맞는 금액만 더하고, 배정 안 한
 
 test('처리 기록 문구', () => {
   const entry = (changes: Record<string, unknown>, action: BudgetHistoryEntry['action'] = 'updated'): BudgetHistoryEntry =>
-    ({ id: 'h', action, actor: { id: 'f', name: '재정' }, changes, createdAt: '2026-10-10T01:00:00.000Z' })
+    ({ id: 'h', action, actor: { id: 'f', name: '재정' }, changes, reason: null, createdAt: '2026-10-10T01:00:00.000Z' })
   expect(budgetHistoryText(entry({ name: '2026년 2학기', startsOn: '2026-09-01', endsOn: '2027-02-28' }, 'created')))
     .toBe('기간 만듦: 2026년 2학기 (2026-09-01 ~ 2027-02-28)')
   expect(budgetHistoryText(entry({ name: { from: '가을', to: '2학기' }, endsOn: { from: '2027-02-28', to: '2027-01-31' }, lines: [
@@ -98,4 +98,53 @@ test('수입 비율·기간 날짜·결산 오류 문구', () => {
   expect(budgetMessage('LINE_IN_USE')).toBe('지출이나 수입이 고른 항목은 지울 수 없어요.')
   expect(budgetMessage('INCOMES_OUTSIDE_PERIOD')).toBe('이 기간의 수입이 기간 밖으로 나가요. 날짜를 확인해 주세요.')
   expect(budgetMessage('EXPORT_TOO_LARGE')).toBe('기록이 너무 많아 엑셀로 만들 수 없어요.')
+})
+
+test('마감 조건: 앞 기간·행사 정산·증빙·남은 돈을 보고, 남은 돈이 있을 때만 넘길 기간을 본다. 끝일이 지나야 마감할 수 있다', () => {
+  const closing = (overrides: Partial<BudgetPlanResponse['closing']> = {}) => ({ ...budgetPlan().closing, ended: true, ...overrides })
+  const ready = budgetPlan({ events: [budgetEventLine({ settled: true })], totals: { ...budgetPlan().totals, balance: 0 }, closing: closing() })
+  expect(closingRequirements(ready).map(item => [item.key, item.label, item.done])).toEqual([
+    ['earlier', '앞 기간이 모두 마감됐어요', true], ['events', '넣은 행사가 모두 정산됐어요', true],
+    ['evidence', '상시 운영 지출의 증빙이 모두 있어요', true], ['balance', '남은 돈 0원', true]])
+  expect(readyToClose(ready)).toBe(true)
+  expect(readyToClose({ ...ready, closing: closing({ ended: false }) })).toBe(false)
+  const blocked = budgetPlan({ events: [budgetEventLine(), budgetEventLine({ eventId: 'e2', name: '축제' })],
+    totals: { ...budgetPlan().totals, balance: -69000 }, closing: closing({ earlierOpen: { id: 'p0', name: '2026년 1학기' }, missingEvidence: 2 }) })
+  expect(closingRequirements(blocked).map(item => [item.label, item.hint, item.done])).toEqual([
+    ['마감하지 않은 앞 기간: 2026년 1학기', '앞 기간부터 마감해 주세요.', false],
+    ['정산하지 않은 행사 2개: 체육대회, 축제', '행사 재정 탭에서 정산해 주세요.', false],
+    ['증빙이 없는 상시 운영 지출 2건', '사용 내역에서 증빙을 올려 주세요.', false],
+    ['실제 지출이 실제 수입보다 69,000원 많아요', '빠진 수입 기록이 없는지 확인해 주세요.', false]])
+  expect(readyToClose(blocked)).toBe(false)
+  const leftover = { ...ready, totals: { ...ready.totals, balance: 88000 } }
+  expect(closingRequirements(leftover).at(-1)).toEqual({ key: 'next', label: '남은 돈을 넘길 다음 기간이 없어요', hint: '새 기간을 먼저 만들어 주세요.',
+    done: false })
+  expect(readyToClose(leftover)).toBe(false)
+  const next = { id: 'p2', name: '2027년 1학기', startsOn: '2027-03-01', closed: false, incomes: [] }
+  const carried = { ...leftover, closing: closing({ next }) }
+  expect(closingRequirements(carried).map(item => item.label)).toContain('남은 돈 88,000원')
+  expect(closingRequirements(carried).at(-1)).toMatchObject({ label: '남은 돈을 넘길 기간: 2027년 1학기', done: true })
+  expect(readyToClose(carried)).toBe(true)
+})
+
+test('이월금 수입 항목은 이름에 "이월"이 든 첫 줄을 먼저 고르고, 없으면 고르지 않는다', () => {
+  expect(defaultCarryoverLine([{ id: 'l1', name: '학생회비' }, { id: 'l2', name: '전기 이월금' }, { id: 'l3', name: '이월' }])).toBe('l2')
+  expect(defaultCarryoverLine([{ id: 'l1', name: '학생회비' }])).toBe('')
+})
+
+test('마감한 날은 한국 날짜로 적는다', () => {
+  expect(closedDay('2027-03-04T15:30:00.000Z')).toBe('2027.3.5')
+})
+
+test('마감·다시 열기 처리 기록과 오류 문구', () => {
+  const entry = (action: BudgetHistoryEntry['action'], changes: Record<string, unknown>, reason: string | null = null): BudgetHistoryEntry =>
+    ({ id: 'h', action, actor: { id: 'f', name: '재정' }, changes, reason, createdAt: '2026-10-10T01:00:00.000Z' })
+  expect(budgetHistoryText(entry('closed', { received: 100000, spent: 12000, balance: 88000,
+    carryover: { period: '2026년 1학기', amount: 88000, line: null } }))).toBe('기간 마감: 남은 돈 88,000원 → 2026년 1학기 수입으로 넘김')
+  expect(budgetHistoryText(entry('closed', { received: 0, spent: 0, balance: 0, carryover: null }))).toBe('기간 마감: 남은 돈 0원')
+  expect(budgetHistoryText(entry('reopened', {}, '영수증 빠짐'))).toBe('마감 다시 엶: 영수증 빠짐')
+  expect([budgetMessage('NOT_READY_TO_CLOSE'), budgetMessage('INVALID_STATE'), budgetMessage('LATER_PERIOD_CLOSED'), budgetMessage('PERIOD_CLOSED'),
+    budgetMessage('PERIOD_BEFORE_CLOSED'), budgetMessage('BUDGET_LINE_INVALID')]).toEqual(['아직 마감할 수 없어요. 남은 항목을 확인해 주세요.',
+    '지금 상태에서는 할 수 없어요. 새로 불러왔어요.', '다음 기간이 마감돼 있어 다시 열 수 없어요.', '마감한 기간이라 바꿀 수 없어요.',
+    '마감한 기간이나 이월금을 받은 기간보다 앞선 날짜예요.', '이월금 수입 항목을 다시 골라 주세요.'])
 })

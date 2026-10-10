@@ -24,4 +24,6 @@ test('오류 코드는 화면 문구로 바꾸고, 모르는 코드는 기본 �
   expect(incomeMessage('BUDGET_LINE_INVALID')).toBe('수입 항목을 다시 골라 주세요.')
   expect(incomeMessage('INVALID_STATE')).toBe('취소된 수입은 바꿀 수 없어요.')
   expect(incomeMessage(undefined)).toBe('처리하지 못했어요. 다시 시도해 주세요.')
+  expect(incomeMessage('PERIOD_CLOSED')).toBe('마감한 기간이라 수입을 바꿀 수 없어요.')
+  expect(incomeMessage('CARRYOVER_INCOME')).toBe('앞 기간에서 넘어온 이월금은 바꿀 수 없어요.')
 })

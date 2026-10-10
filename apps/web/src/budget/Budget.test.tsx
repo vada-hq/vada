@@ -13,7 +13,7 @@ function setup(finance = true, periods = [budgetPeriod({ id: 'p2', name: '2027�
   const api = mockApi()
   api.on('GET', base, () => json({ periods }))
   api.on('GET', `${base}/p1`, () => json(plan))
-  api.on('GET', `${base}/p2`, () => json(budgetPlan({ period: { id: 'p2', name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31', version: 1 },
+  api.on('GET', `${base}/p2`, () => json(budgetPlan({ period: { id: 'p2', name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31', version: 1, closed: null },
     incomes: [], events: [], operating: [] })))
   const onOpenEvent = vi.fn()
   render(<Budget organizationId="o" finance={finance} onOpenEvent={onOpenEvent} />)
@@ -77,7 +77,7 @@ test('편성 수정을 저장하면 받은 편성으로 보기로 돌아가고 �
 
 test('새 기간을 만들면 목록을 새로 받기 전에도 새 기간을 연다', async () => {
   const { api } = setup(true, [budgetPeriod()])
-  const created = budgetPlan({ period: { id: 'p3', name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31', version: 1 }, incomes: [], events: [],
+  const created = budgetPlan({ period: { id: 'p3', name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31', version: 1, closed: null }, incomes: [], events: [],
     operating: [] })
   api.on('POST', base, () => json(created, 201))
   api.on('GET', `${base}/p3`, () => json(created))

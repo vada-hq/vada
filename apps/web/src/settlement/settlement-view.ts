@@ -44,6 +44,7 @@ export const settlementErrors: Record<string, string> = {
   INVALID_STATE: '지금 상태에서는 할 수 없어요. 새로 불러왔어요.',
   NOT_READY_TO_SETTLE: '아직 정산할 수 없어요. 남은 항목을 확인해 주세요.',
   EVENT_SETTLED: '정산이 끝난 행사라 바꿀 수 없어요.',
+  PERIOD_CLOSED: '마감한 회계 기간의 행사라 정산을 다시 열 수 없어요.',
   EXPORT_TOO_LARGE: '지출이 너무 많아 엑셀로 만들 수 없어요.',
   INVALID_INPUT: '입력값을 확인해 주세요.',
 }

@@ -79,6 +79,7 @@ export const expenseErrors: Record<string, string> = {
   UPLOAD_MISMATCH: '파일이 제대로 올라가지 않았어요. 다시 올려 주세요.',
   STORAGE_NOT_CONFIGURED: '영수증 저장소가 아직 준비되지 않았어요.',
   EVENT_SETTLED: '정산이 끝난 행사라 바꿀 수 없어요. 행사 재정 탭에서 정산을 다시 연 뒤 해 주세요.',
+  PERIOD_CLOSED: '마감한 회계 기간의 지출이라 바꿀 수 없어요. 예산 화면에서 마감을 다시 연 뒤 해 주세요.',
   BUDGET_LINE_INVALID: '운영 항목을 다시 골라 주세요.',
   INVALID_INPUT: '입력값을 확인해 주세요.',
 }
