@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { createHash } from 'node:crypto'
 import type { RegistrationCreated, RegistrationEntry, RegistrationResponse } from '@vada/contracts'
 import type { setupPurchases } from '../purchases/test-setup.js'
 
@@ -47,3 +48,8 @@ export const named = (list: RegistrationEntry[], name: string) => list.find(entr
 export const confirm = (env: Env, id: string, body: unknown = {}) => env.request('POST', `${registrationBase}/entries/${id}/payment`, body)
 export const unconfirm = (env: Env, id: string, body: unknown = {}) => env.request('POST', `${registrationBase}/entries/${id}/payment/cancel`, body)
 export const switchDues = (env: Env, id: string, body: unknown) => env.request('POST', `${registrationBase}/entries/${id}/dues`, body)
+export const checkIn = (env: Env, id: string, body: unknown = {}) => env.request('POST', `${registrationBase}/entries/${id}/check-in`, body)
+export const uncheck = (env: Env, id: string, body: unknown = {}) => env.request('POST', `${registrationBase}/entries/${id}/check-in/cancel`, body)
+export const scan = (env: Env, body: unknown) => env.request('POST', `${registrationBase}/check-in`, body)
+// 내 신청이 주는 참석 확인 코드: 토큰의 SHA-256
+export const codeOf = (token: string) => createHash('sha256').update(token).digest('hex')

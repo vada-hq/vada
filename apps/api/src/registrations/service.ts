@@ -1,7 +1,7 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
-import { and, asc, count, eq, isNotNull, isNull, sql } from 'drizzle-orm'
+import { and, asc, count, eq, isNotNull, isNull, sql, type SQL } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { dateFromKorean, koreanOf, type CreateRegistrationFormRequest, type FeeAccount, type MyPayment, type MyRegistration, type PublicRegistrationEvent,
+import { dateFromKorean, koreanOf, type CheckInScanResponse, type CreateRegistrationFormRequest, type FeeAccount, type MyPayment, type MyRegistration, type PublicRegistrationEvent,
   type PublicRegistrationForm, type RegisterRequest, type RegistrationCreated, type RegistrationFormView, type RegistrationResponse,
   type UpdateRegistrationFormRequest } from '@vada/contracts'
 import { eventFinances, events, organizations, registrationForms, registrations, users } from '../db/schema.js'
@@ -21,6 +21,7 @@ type Event = typeof events.$inferSelect
 type Form = typeof registrationForms.$inferSelect
 type FeeSetting = { fee: number; memberFee: number | null }
 const confirmers = alias(users, 'payment_confirmers')
+const checkers = alias(users, 'check_in_staff')
 
 // 바꿀 때는 행사 행을 FOR NO KEY UPDATE로 잠근다(저장소 관례). 행사를 참조하는 행 추가와는 부딪히지 않고,
 // 입금 확인(FOR SHARE)과 M2-2 정산(FOR NO KEY UPDATE)과는 겹치지 않는다.
@@ -47,6 +48,12 @@ async function paymentsOf(db: Reader, formId: string) {
   const [row] = await db.select({ count: count(), total: sql<string>`coalesce(sum(${registrations.paidAmount}), 0)` }).from(registrations)
     .where(and(eq(registrations.formId, formId), isNotNull(registrations.paidAt)))
   return { count: row?.count ?? 0, total: Number(row?.total ?? 0) }
+}
+// 참석을 확인한 신청 수. 보관 기간이 지나 정보를 지운 신청도 센다. 취소한 신청에는 참석 기록이 없다(CHECK).
+async function checkedInOf(db: Reader, formId: string) {
+  const [row] = await db.select({ value: count() }).from(registrations)
+    .where(and(eq(registrations.formId, formId), isNotNull(registrations.checkedInAt)))
+  return row?.value ?? 0
 }
 // 금액이 바뀔 때만 본다. 정산 → 입금 확인 → 계좌 → 명단 순서다.
 // 명단은 납부자 참가비를 새로 켤 때만 본다. 이미 켠 뒤에 명단 기한이 지나도 다른 설정을 막지 않는다.
@@ -75,13 +82,14 @@ function assertDeadline(event: Event, closesAt: Date) {
 export const koreanDay = (date: Date) => koreanOf(date).slice(0, 10)
 const timeOf = (value: string | null) => value === null ? null : dateFromKorean(value)
 
-function formView(form: Form, event: Event, total: number, payments: RegistrationFormView['payments'], now: Date): RegistrationFormView {
+function formView(form: Form, event: Event, total: number, payments: RegistrationFormView['payments'], checkedIn: number, now: Date):
+  RegistrationFormView {
   const purgeAfter = purgeAfterOf(endOf(event))
   return {
     id: form.id, code: form.code, accepting: form.accepting, opensAt: form.opensAt && koreanOf(form.opensAt), closesAt: koreanOf(form.closesAt),
     capacity: form.capacity, notice: form.notice, collectPhone: form.collectPhone, version: form.version, state: stateOf(form, total, now),
     count: total, purgeAfter: koreanDay(purgeAfter), purged: purgeAfter <= now, updatedAt: form.updatedAt.toISOString(),
-    fee: form.fee, memberFee: form.memberFee, payments,
+    fee: form.fee, memberFee: form.memberFee, payments, checkedIn,
   }
 }
 
@@ -133,16 +141,19 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     const settled = Boolean(finance?.settledAt)
     if (!form) return { form: null, registrations: [], account, roster, settled }
     await purgeExpired(tx, form.id)
-    const rows = await tx.select({ registration: registrations, confirmerName: confirmers.name }).from(registrations)
+    const rows = await tx.select({ registration: registrations, confirmerName: confirmers.name, checkerName: checkers.name }).from(registrations)
       .leftJoin(confirmers, eq(confirmers.id, registrations.paidBy))
+      .leftJoin(checkers, eq(checkers.id, registrations.checkedInBy))
       .where(and(eq(registrations.formId, form.id), isNull(registrations.purgedAt)))
       .orderBy(asc(registrations.createdAt), asc(registrations.id))
     return {
-      form: formView(form, event, await countOf(tx, form.id), await paymentsOf(tx, form.id), now()),
-      registrations: rows.map(({ registration: row, confirmerName }) => ({ id: row.id, name: row.name!, studentId: row.studentId!, phone: row.phone,
-        createdAt: koreanOf(row.createdAt), duesMember: row.duesMember, fee: owedOf(form, row),
+      form: formView(form, event, await countOf(tx, form.id), await paymentsOf(tx, form.id), await checkedInOf(tx, form.id), now()),
+      registrations: rows.map(({ registration: row, confirmerName, checkerName }) => ({ id: row.id, name: row.name!, studentId: row.studentId!,
+        phone: row.phone, createdAt: koreanOf(row.createdAt), duesMember: row.duesMember, fee: owedOf(form, row),
         paid: row.paidAt && row.paidAmount !== null && row.paidBy
-          ? { amount: row.paidAmount, at: koreanOf(row.paidAt), by: { id: row.paidBy, name: confirmerName ?? '' } } : null })),
+          ? { amount: row.paidAmount, at: koreanOf(row.paidAt), by: { id: row.paidBy, name: confirmerName ?? '' } } : null,
+        checkedIn: row.checkedInAt && row.checkedInBy
+          ? { at: koreanOf(row.checkedInAt), by: { id: row.checkedInBy, name: checkerName ?? '' } } : null })),
       account, roster, settled,
     }
   }
@@ -166,6 +177,25 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     if (!current || current.purgedAt) throw new ApiError('NOT_FOUND', 404)
     throw new ApiError(current.paidAt ? 'PAYMENT_CONFIRMED' : 'PAYMENT_NOT_CONFIRMED', 409)
   }
+  // 참석 확인 앞에 부른다. 참석은 정산과 관계없어 행사 행을 잠그지 않는다. 지울 정보를 먼저 지우고 지우지 않은 신청을 찾는다.
+  async function attendeeOf(tx: Writer, scope: RegistrationScope, eventId: string, match: SQL) {
+    const form = await formOf(tx, scope.organizationId, eventId)
+    if (!form) throw new ApiError('NOT_FOUND', 404)
+    await purgeExpired(tx, form.id)
+    const [row] = await tx.select().from(registrations).where(and(eq(registrations.formId, form.id), match, isNull(registrations.purgedAt)))
+    if (!row) throw new ApiError('NOT_FOUND', 404)
+    return row
+  }
+  // 참석으로 남긴다. 그사이 남이 먼저 확인했으면 false다. 그사이 지워졌으면 NOT_FOUND다.
+  async function markCheckedIn(tx: Writer, userId: string, registrationId: string) {
+    const [updated] = await tx.update(registrations).set({ checkedInAt: sql`now()`, checkedInBy: userId })
+      .where(and(eq(registrations.id, registrationId), isNull(registrations.checkedInAt), isNull(registrations.purgedAt)))
+      .returning({ id: registrations.id })
+    if (updated) return true
+    const [current] = await tx.select({ purgedAt: registrations.purgedAt }).from(registrations).where(eq(registrations.id, registrationId))
+    if (!current || current.purgedAt) throw new ApiError('NOT_FOUND', 404)
+    return false
+  }
   // 먼저 그 신청의 지울 정보를 지운 뒤 다시 찾는다. 보관 기간이 지났으면 찾을 수 없다.
   async function mine(tx: Writer, token: string, lock = false) {
     const found = await registrationByToken(tx, token, lock)
@@ -175,12 +205,13 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     if (!current) throw new ApiError('NOT_FOUND', 404)
     return current
   }
-  // 마감 전이고 입금을 확인하지 않았으면 스스로 취소할 수 있다.
+  // 마감 전이고 입금·참석을 확인하지 않았으면 스스로 취소할 수 있다. 참석 확인 QR의 코드는 토큰의 해시다.
   const myView = (found: Found, account: FeeAccount | null): MyRegistration => {
     const { registration, form, event, organizationName } = found
     return { code: form.code, organizationName, event: publicEvent(event), name: registration.name, studentId: registration.studentId,
       phone: registration.phone, createdAt: koreanOf(registration.createdAt), closesAt: koreanOf(form.closesAt), cancelled: false,
-      cancellable: now() < form.closesAt && registration.paidAt === null, payment: paymentOf(found, account) }
+      cancellable: now() < form.closesAt && registration.paidAt === null && registration.checkedInAt === null, payment: paymentOf(found, account),
+      checkInCode: registration.tokenHash, checkedInAt: registration.checkedInAt && koreanOf(registration.checkedInAt) }
   }
   return {
     view: (organizationId: string, eventId: string) => db.transaction(tx => view(tx, organizationId, eventId)),
@@ -220,17 +251,23 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       const current = await mine(tx, token)
       return myView(current, await feeAccountOf(tx, current.form.organizationId))
     }),
-    // 신청자가 스스로 취소한다. 마감 전이고 입금을 확인하지 않았을 때만 되고, 정보를 바로 지운다.
-    // 입금 확인과 엇갈려도 확인한 신청은 취소하지 않도록 UPDATE에 조건을 건다.
+    // 신청자가 스스로 취소한다. 마감 전이고 입금·참석을 확인하지 않았을 때만 되고, 정보를 바로 지운다.
+    // 입금 확인·참석 확인과 엇갈려도 확인한 신청은 취소하지 않도록 UPDATE에 조건을 건다.
     cancelMine: (token: string) => db.transaction(async (tx): Promise<MyRegistration> => {
       const current = await mine(tx, token, true)
       if (now() >= current.form.closesAt) throw new ApiError('CANCEL_CLOSED', 409)
       if (current.registration.paidAt) throw new ApiError('PAYMENT_CONFIRMED', 409)
+      if (current.registration.checkedInAt) throw new ApiError('CHECKED_IN', 409)
       const [cancelled] = await tx.update(registrations)
         .set({ tokenHash: null, name: null, studentId: null, phone: null, cancelledAt: sql`now()`, purgedAt: sql`now()` })
-        .where(and(eq(registrations.id, current.registration.id), isNull(registrations.paidAt))).returning({ id: registrations.id })
-      if (!cancelled) throw new ApiError('PAYMENT_CONFIRMED', 409)
-      return { ...myView(current, null), name: null, studentId: null, phone: null, cancelled: true, cancellable: false, payment: null }
+        .where(and(eq(registrations.id, current.registration.id), isNull(registrations.paidAt), isNull(registrations.checkedInAt)))
+        .returning({ id: registrations.id })
+      if (!cancelled) {
+        const [row] = await tx.select({ paidAt: registrations.paidAt }).from(registrations).where(eq(registrations.id, current.registration.id))
+        throw new ApiError(row?.paidAt ? 'PAYMENT_CONFIRMED' : 'CHECKED_IN', 409)
+      }
+      return { ...myView(current, null), name: null, studentId: null, phone: null, cancelled: true, cancellable: false, payment: null,
+        checkInCode: null, checkedInAt: null }
     }),
     // 행사 행을 잠가 행사 일시 수정과 엇갈리지 않게 한다.
     create: (scope: RegistrationScope, eventId: string, input: CreateRegistrationFormRequest) => db.transaction(async tx => {
@@ -266,16 +303,20 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       }
       return view(tx, scope.organizationId, eventId)
     }),
-    // 운영진 취소. 그 사람의 정보를 바로 지우고, 취소한 사람을 남긴다.
+    // 운영진 취소. 그 사람의 정보를 바로 지우고, 취소한 사람을 남긴다. 참석을 확인한 신청은 먼저 참석 확인을 취소해야 한다.
     cancel: (scope: RegistrationScope, eventId: string, registrationId: string) => db.transaction(async tx => {
       const form = await formOf(tx, scope.organizationId, eventId, true)
       if (!form) throw new ApiError('NOT_FOUND', 404)
       await purgeExpired(tx, form.id)
+      const target = and(eq(registrations.formId, form.id), eq(registrations.id, registrationId), isNull(registrations.purgedAt))
       const [row] = await tx.update(registrations).set({ tokenHash: null, name: null, studentId: null, phone: null, cancelledAt: sql`now()`,
         cancelledBy: scope.userId, purgedAt: sql`now()` })
-        .where(and(eq(registrations.formId, form.id), eq(registrations.id, registrationId), isNull(registrations.purgedAt)))
+        .where(and(target, isNull(registrations.checkedInAt)))
         .returning({ id: registrations.id })
-      if (!row) throw new ApiError('NOT_FOUND', 404)
+      if (!row) {
+        const [current] = await tx.select({ checkedInAt: registrations.checkedInAt }).from(registrations).where(target)
+        throw current?.checkedInAt ? new ApiError('CHECKED_IN', 409) : new ApiError('NOT_FOUND', 404)
+      }
       return view(tx, scope.organizationId, eventId)
     }),
     // 입금 확인. 낼 돈이 있는 신청만 확인하고, 그때의 낼 돈을 확인 금액으로 남긴다.
@@ -307,6 +348,31 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
         const [updated] = await tx.update(registrations).set({ duesMember })
           .where(and(eq(registrations.id, row.id), isNull(registrations.paidAt), isNull(registrations.purgedAt))).returning({ id: registrations.id })
         if (!updated) await changed(tx, row.id)
+      }
+      return view(tx, scope.organizationId, eventId)
+    }),
+    // QR로 참석 확인. 코드는 개인 링크 토큰의 해시다. 이미 참석이면 바꾸지 않고 already로 알린다.
+    checkInByCode: (scope: RegistrationScope, eventId: string, code: string) => db.transaction(async (tx): Promise<CheckInScanResponse> => {
+      const row = await attendeeOf(tx, scope, eventId, eq(registrations.tokenHash, code))
+      const already = row.checkedInAt !== null || !await markCheckedIn(tx, scope.userId, row.id)
+      return { ...await view(tx, scope.organizationId, eventId), checkIn: { registrationId: row.id, already } }
+    }),
+    // 이름으로 찾아 참석 확인. QR을 못 꺼내는 사람을 위한 것이다.
+    checkIn: (scope: RegistrationScope, eventId: string, registrationId: string) => db.transaction(async tx => {
+      const row = await attendeeOf(tx, scope, eventId, eq(registrations.id, registrationId))
+      if (row.checkedInAt || !await markCheckedIn(tx, scope.userId, row.id)) throw new ApiError('CHECKED_IN', 409)
+      return view(tx, scope.organizationId, eventId)
+    }),
+    // 참석 확인 취소. 잘못 찍거나 눌렀을 때 쓴다.
+    cancelCheckIn: (scope: RegistrationScope, eventId: string, registrationId: string) => db.transaction(async tx => {
+      const row = await attendeeOf(tx, scope, eventId, eq(registrations.id, registrationId))
+      if (!row.checkedInAt) throw new ApiError('NOT_CHECKED_IN', 409)
+      const [updated] = await tx.update(registrations).set({ checkedInAt: null, checkedInBy: null })
+        .where(and(eq(registrations.id, row.id), isNotNull(registrations.checkedInAt), isNull(registrations.purgedAt)))
+        .returning({ id: registrations.id })
+      if (!updated) {
+        const [current] = await tx.select({ purgedAt: registrations.purgedAt }).from(registrations).where(eq(registrations.id, row.id))
+        throw !current || current.purgedAt ? new ApiError('NOT_FOUND', 404) : new ApiError('NOT_CHECKED_IN', 409)
       }
       return view(tx, scope.organizationId, eventId)
     }),

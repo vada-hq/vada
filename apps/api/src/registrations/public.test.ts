@@ -146,13 +146,13 @@ test('내 신청: 토큰으로 보고, 마감 전에는 멈춤이어도 스스�
     assert.match(mine.createdAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/)
     assert.deepEqual({ ...mine, createdAt: '' }, { code, organizationName: 'A', event: { name: '체육대회', startsAt: '2999-08-20T10:00',
       endsAt: '2999-08-20T18:00', place: '체육관' }, name: '김바다', studentId: '2022123456', phone: null, createdAt: '', closesAt: '2999-08-19T23:59',
-      cancelled: false, cancellable: true, payment: null })
+      cancelled: false, cancellable: true, payment: null, checkInCode: createHash('sha256').update(token).digest('hex'), checkedInAt: null })
     await refused(lookup('A'.repeat(22)), 404, 'NOT_FOUND')
     for (const bad of ['A'.repeat(21), `${'A'.repeat(20)}+/`]) await refused(lookup(bad), 400, 'INVALID_INPUT', bad)
     await settle(env, { accepting: false })
     const cancelled = await env.ok<MyRegistration>(cancel(token))
-    assert.deepEqual([cancelled.cancelled, cancelled.cancellable, cancelled.name, cancelled.studentId, cancelled.phone, cancelled.payment],
-      [true, false, null, null, null, null])
+    assert.deepEqual([cancelled.cancelled, cancelled.cancellable, cancelled.name, cancelled.studentId, cancelled.phone, cancelled.payment,
+      cancelled.checkInCode, cancelled.checkedInAt], [true, false, null, null, null, null, null, null])
     await refused(lookup(token), 404, 'NOT_FOUND')
     await refused(cancel(token), 404, 'NOT_FOUND')
     // 취소하면 같은 학번으로 다시 신청할 수 있다.

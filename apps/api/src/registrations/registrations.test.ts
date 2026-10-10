@@ -38,7 +38,7 @@ test('참가 신청 만들기: 부서가 있는 구성원이 행사마다 하나
     assert.match(form!.code, /^[2-9A-HJ-NP-Z]{8}$/)
     assert.deepEqual({ ...form!, id: '', code: '', updatedAt: '' }, { id: '', code: '', accepting: true, opensAt: null, closesAt: '2999-08-19T23:59',
       capacity: 2, notice: '문의: 학생회실', collectPhone: false, version: 1, state: 'open', count: 0, purgeAfter: '2999-09-19', purged: false, updatedAt: '',
-      fee: 0, memberFee: null, payments: { count: 0, total: 0 } })
+      fee: 0, memberFee: null, payments: { count: 0, total: 0 }, checkedIn: 0 })
     assert.deepEqual(registrations, [])
     await refused(request('POST', base, formBody()), 409, 'REGISTRATION_EXISTS')
     // 행사 시작이 없으면 만들 수 없고, 마감은 행사 끝(끝이 없으면 시작)보다 늦을 수 없다.
@@ -152,7 +152,7 @@ test('운영진 취소: 그 사람의 정보를 바로 지우고 신청 수에�
     const listed = await ok<RegistrationResponse>(request('GET', base))
     assert.deepEqual(listed.registrations.map(entry => entry.id), ['r1', 'r2', 'r3'])
     assert.deepEqual({ ...listed.registrations[0]!, createdAt: '' }, { id: 'r1', name: '신청자1', studentId: '2022000001', phone: null, createdAt: '',
-      duesMember: null, fee: 0, paid: null })
+      duesMember: null, fee: 0, paid: null, checkedIn: null })
     assert.match(listed.registrations[0]!.createdAt, korean)
     assert.equal(listed.form!.count, 3)
     const after = await ok<RegistrationResponse>(request('POST', `${base}/entries/r2/cancel`, {}))
