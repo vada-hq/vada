@@ -3,8 +3,8 @@ import { test } from 'node:test'
 import { UpdateEventSchema } from './events.js'
 import { isStrictObject } from './input.js'
 import { dateFromKorean, koreanDateTime, koreanOf } from './korean-time.js'
-import { CancelRegistrationSchema, CreateRegistrationFormSchema, RegisterSchema, REGISTRATION_CAPACITY_MAX, REGISTRATION_NAME_MAX,
-  REGISTRATION_NOTICE_MAX, RegistrationTokenSchema, UpdateRegistrationFormSchema } from './registrations.js'
+import { CancelRegistrationSchema, CreateRegistrationFormSchema, PaymentActionSchema, RegisterSchema, REGISTRATION_CAPACITY_MAX, REGISTRATION_FEE_MAX,
+  REGISTRATION_NAME_MAX, REGISTRATION_NOTICE_MAX, RegistrationTokenSchema, SetDuesMemberSchema, UpdateRegistrationFormSchema } from './registrations.js'
 
 // 테스트 파일에 제어 문자를 그대로 쓰지 않는다.
 const nul = String.fromCharCode(0)
@@ -44,7 +44,7 @@ test('행사 정보: 끝은 시작이 있어야 하고 시작보다 늦으며, �
     { ...eventInfo, name: '이름' }])
 })
 
-const form = { opensAt: null, closesAt: '2026-08-19T23:59', capacity: 200, notice: '문의: 학생회실', collectPhone: false }
+const form = { opensAt: null, closesAt: '2026-08-19T23:59', capacity: 200, notice: '문의: 학생회실', collectPhone: false, fee: 0, memberFee: null }
 test('신청 설정: 마감은 꼭 있고 시작은 마감보다 앞이며, 정원·안내는 비울 수 있다', () => {
   assert.equal(isStrictObject(CreateRegistrationFormSchema), true)
   assert.equal(isStrictObject(UpdateRegistrationFormSchema), true)
@@ -63,6 +63,24 @@ test('신청 설정 수정: 버전과 신청 받기를 꼭 보낸다', () => {
     { ...form, version: 1, accepting: true, opensAt: form.closesAt }, { ...form, version: 1, accepting: 'yes' }])
   accepts(CancelRegistrationSchema, [{}])
   rejects(CancelRegistrationSchema, [{ reason: '중복' }, null])
+})
+
+test('참가비: 0~1,000,000원이고, 납부자 참가비는 비우거나 참가비보다 적다', () => {
+  accepts(CreateRegistrationFormSchema, [{ ...form, fee: REGISTRATION_FEE_MAX }, { ...form, fee: 5000, memberFee: 0 }, { ...form, fee: 5000, memberFee: 4999 }])
+  rejects(CreateRegistrationFormSchema, [{ ...form, fee: REGISTRATION_FEE_MAX + 1 }, { ...form, fee: -1 }, { ...form, fee: 1.5 }, { ...form, fee: '5000' },
+    { ...form, fee: undefined }, { ...form, memberFee: undefined }, { ...form, fee: 5000, memberFee: 5000 }, { ...form, fee: 5000, memberFee: 6000 },
+    { ...form, fee: 5000, memberFee: -1 }, { ...form, fee: 5000, memberFee: 0.5 }, { ...form, fee: 0, memberFee: 0 }])
+  accepts(UpdateRegistrationFormSchema, [{ ...form, version: 1, accepting: true, fee: 5000, memberFee: 0 }])
+  rejects(UpdateRegistrationFormSchema, [{ ...form, version: 1, accepting: true, fee: 5000, memberFee: 5000 }])
+})
+
+test('입금 확인은 빈 본문, 참가비 바꾸기는 납부 구분 불리언만 받는다', () => {
+  assert.equal(isStrictObject(PaymentActionSchema), true)
+  assert.equal(isStrictObject(SetDuesMemberSchema), true)
+  accepts(PaymentActionSchema, [{}])
+  rejects(PaymentActionSchema, [{ amount: 5000 }, null])
+  accepts(SetDuesMemberSchema, [{ duesMember: true }, { duesMember: false }])
+  rejects(SetDuesMemberSchema, [{}, { duesMember: 'yes' }, { duesMember: null }, { duesMember: true, extra: 1 }])
 })
 
 const entry = { name: '김바다', studentId: '2022123456', phone: null, agreed: true }

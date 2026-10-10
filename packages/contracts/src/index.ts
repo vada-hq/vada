@@ -2,10 +2,16 @@ export { codePoints, isStrictObject, text, token } from './input.js'
 export { COUPANG_LINKS_PER_MESSAGE_MAX, normalizeCoupangUrl, parseCoupangLinks, readCoupangUrl, type CoupangLink } from './coupang.js'
 export { EVENT_NAME_MAX, EVENT_PLACE_MAX, CreateEventSchema, UpdateEventSchema, type CreateEventRequest, type UpdateEventRequest } from './events.js'
 export { koreanDateTime, dateFromKorean, koreanOf } from './korean-time.js'
-export { REGISTRATION_NAME_MAX, REGISTRATION_NOTICE_MAX, REGISTRATION_CAPACITY_MAX, REGISTRATION_RETENTION_DAYS, studentIdInput, phoneInput,
-  CreateRegistrationFormSchema, UpdateRegistrationFormSchema, CancelRegistrationSchema, RegisterSchema, RegistrationTokenSchema } from './registrations.js'
-export type { CreateRegistrationFormRequest, UpdateRegistrationFormRequest, RegisterRequest, RegistrationState, RegistrationFormView,
-  RegistrationEntry, RegistrationResponse, PublicRegistrationEvent, PublicRegistrationForm, RegistrationCreated, MyRegistration } from './registrations.js'
+export { REGISTRATION_NAME_MAX, REGISTRATION_NOTICE_MAX, REGISTRATION_CAPACITY_MAX, REGISTRATION_RETENTION_DAYS, REGISTRATION_FEE_MAX, studentIdInput,
+  phoneInput, CreateRegistrationFormSchema, UpdateRegistrationFormSchema, CancelRegistrationSchema, RegisterSchema, RegistrationTokenSchema,
+  PaymentActionSchema, SetDuesMemberSchema } from './registrations.js'
+export type { CreateRegistrationFormRequest, UpdateRegistrationFormRequest, RegisterRequest, SetDuesMemberRequest, RegistrationState,
+  RegistrationFormView, RegistrationEntry, RegistrationResponse, PublicRegistrationEvent, PublicRegistrationForm, RegistrationCreated, PaymentBasis,
+  MyPayment, MyRegistration } from './registrations.js'
+export { FEE_BANK_MAX, FEE_HOLDER_MAX, FEE_ACCOUNT_NUMBER_MAX, FEE_ACCOUNT_HISTORY_MAX, DUES_ROSTER_LABEL_MAX, DUES_ROSTER_MEMBERS_MAX,
+  DUES_ROSTER_USE_DAYS_MAX, accountNumberInput, SetFeeAccountSchema, DuesMemberSchema, ReplaceDuesRosterSchema, DeleteDuesRosterSchema } from './fees.js'
+export type { SetFeeAccountRequest, ReplaceDuesRosterRequest, DeleteDuesRosterRequest, FeeAccount, FeeAccountView, FeeAccountChange, DuesMember,
+  DuesRosterView, FeeSettingsResponse } from './fees.js'
 export { MESSAGE_CONTENT_MAX, CreateMessageSchema, type CreateMessageRequest } from './chat.js'
 export { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
 export { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema, type JoinOrganizationRequest, type InvitePreviewResponse } from './invites.js'
