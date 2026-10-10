@@ -10,6 +10,8 @@ import type { ReceiptStorage, StoredObject } from '../expenses/storage.js'
 import { createSettlementRoutes } from '../settlement/routes.js'
 import { createBudgetRoutes } from '../budget/routes.js'
 import { createIncomeRoutes } from '../incomes/routes.js'
+import { createEventRoutes } from '../events/events.js'
+import { createRegistrationRoutes } from '../registrations/routes.js'
 import { recordMessageLinks } from './candidates.js'
 import type { DraftGenerator, GeneratedItem } from './generation.js'
 import type { FetchResult, ProductFetcher } from './products.js'
@@ -63,7 +65,8 @@ export async function setupPurchases(migrations = migrationsFolder, { storage = 
     INSERT INTO chat_rooms(id,organization_id,event_id) VALUES ('room','a','e'),('room2','a','e2'),('roomx','b','ex');
     INSERT INTO messages(id,chat_room_id,author_id,content) VALUES ('m','room','p','테이블 2개'),('m2','room2','p','다른 행사'),('mx','roomx','x','남의 대화');
   `)
-  const state = { userId: 'p' as string | null, calls: 0, lookups: 0,
+  // now가 null이면 참가 신청은 실제 시각을 쓴다.
+  const state = { userId: 'p' as string | null, calls: 0, lookups: 0, now: null as Date | null,
     generate: (async input => ({ items: input.links.map(url => generated(url)) })) as DraftGenerator,
     fetch: (async productId => lookedUp(productId)) as ProductFetcher }
   const session = async () => state.userId ? { user: { id: state.userId } } : null
@@ -72,8 +75,12 @@ export async function setupPurchases(migrations = migrationsFolder, { storage = 
     async (productId, timeoutMs) => { state.lookups++; return state.fetch(productId, timeoutMs) })
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, purchases: routes,
     expenses: createExpenseRoutes(db, session, storage?.storage), settlement: createSettlementRoutes(db, session, origin), budget: createBudgetRoutes(db, session, origin),
-    incomes: createIncomeRoutes(db, session) })
+    incomes: createIncomeRoutes(db, session), events: createEventRoutes(db, session),
+    registrations: createRegistrationRoutes(db, session, { now: () => state.now ?? new Date() }) })
   const request = (method: string, path: string, body?: unknown) => app.request(`/api/organizations/a${path}`, body === undefined
+    ? { method } : { method, headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  // 로그인 없이 쓰는 공개 경로. 같은 출처의 화면이 보내는 것처럼 보낸다.
+  const publicRequest = (method: string, path: string, body?: unknown) => app.request(`/api${path}`, body === undefined
     ? { method } : { method, headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   async function ok<T = PurchaseItemsResponse>(pending: Response | Promise<Response>, status = 200): Promise<T> {
     const response = await pending
@@ -115,6 +122,6 @@ export async function setupPurchases(migrations = migrationsFolder, { storage = 
     await ok(request('POST', '/purchase-review/decisions', { decisions: created.map(item => ({ id: item.id, version: item.version, decision: 'approved' })) }))
     return created.map(item => item.id)
   }
-  return { pg, db, state, storage, request, ok, drafts, submitted, approved, share, ready, candidateOf,
-    as: (userId: string | null) => { state.userId = userId } }
+  return { pg, db, state, storage, request, publicRequest, ok, drafts, submitted, approved, share, ready, candidateOf,
+    as: (userId: string | null) => { state.userId = userId }, clock: { set: (date: Date | null) => { state.now = date } } }
 }

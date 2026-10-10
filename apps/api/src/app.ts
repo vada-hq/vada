@@ -11,6 +11,7 @@ import type { createOrganizationRoutes } from './organization/routes.js'
 import type { createSettlementRoutes } from './settlement/routes.js'
 import type { createBudgetRoutes } from './budget/routes.js'
 import type { createIncomeRoutes } from './incomes/routes.js'
+import type { createRegistrationRoutes } from './registrations/routes.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
 
@@ -27,13 +28,17 @@ export type AppOptions = {
   settlement?: ReturnType<typeof createSettlementRoutes>
   budget?: ReturnType<typeof createBudgetRoutes>
   incomes?: ReturnType<typeof createIncomeRoutes>
+  registrations?: ReturnType<typeof createRegistrationRoutes>
   organization?: ReturnType<typeof createOrganizationRoutes>
   webhook?: ReturnType<typeof createDeliveryWebhook>
 }
 
-export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries, expenses, settlement, budget, incomes, organization, webhook }: AppOptions) {
+export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries, expenses, settlement, budget, incomes, registrations, organization,
+  webhook }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
+  // 로그인 없이 쓰는 공개 경로(참가 신청)도 같은 화면에서만 보내므로 같은 가드를 건다.
+  app.use('/api/public/*', mutationGuard(trustedOrigin))
   app.get('/api/health', (c) => c.json({ status: 'ok' } satisfies HealthResponse))
   // better-auth는 출처 검사 전에 본문 전체를 읽으므로 크기만 먼저 제한한다.
   app.use('/api/auth/*', limitBody())
@@ -48,6 +53,7 @@ export function createApp({ auth, trustedOrigin, access, events, chat, purchases
   if (settlement) app.route('/api', settlement)
   if (budget) app.route('/api', budget)
   if (incomes) app.route('/api', incomes)
+  if (registrations) app.route('/api', registrations)
   // 외부 공급자가 호출하므로 공통 가드 밖에 두고 자체 검사를 한다.
   if (webhook) app.route('/api', webhook)
   app.onError(handleError)

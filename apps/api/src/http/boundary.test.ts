@@ -17,9 +17,13 @@ import { createExpenseRoutes } from '../expenses/routes.js'
 import { createSettlementRoutes } from '../settlement/routes.js'
 import { createBudgetRoutes } from '../budget/routes.js'
 import { createIncomeRoutes } from '../incomes/routes.js'
+import { createRegistrationRoutes } from '../registrations/routes.js'
 import { json } from './validate.js'
 
-// 공통 가드(/api/organizations/*) 밖의 변경 라우트. 새 항목은 가드를 대신할 자체 검사가 있어야 한다.
+// 공통 가드가 거는 곳: 로그인한 구성원의 경로와 로그인 없이 쓰는 공개 경로
+const guarded = ['/api/organizations/', '/api/public/']
+const isGuarded = (path: string) => guarded.some(prefix => path.startsWith(prefix))
+// 공통 가드 밖의 변경 라우트. 새 항목은 가드를 대신할 자체 검사가 있어야 한다.
 const outsideGuard = new Map([
   ['ALL /api/auth/*', '인증 본문 크기 제한 미들웨어'],
   ['POST /api/auth/*', 'better-auth가 출처를 직접 검사한다'],
@@ -45,17 +49,18 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       settlement: createSettlementRoutes(db, session, 'https://vada.test'),
       budget: createBudgetRoutes(db, session, 'https://vada.test'),
       incomes: createIncomeRoutes(db, session),
+      registrations: createRegistrationRoutes(db, session),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
     const writes = [...new Set(app.routes.filter(route => !readOnly.has(route.method)).map(route => `${route.method} ${route.path}`))]
     const pathOf = (key: string) => key.slice(key.indexOf(' ') + 1)
     for (const key of writes) {
-      assert.ok(pathOf(key).startsWith('/api/organizations/') || outsideGuard.has(key), `${key}: 공통 가드 밖의 변경 라우트는 outsideGuard에 이유와 함께 적는다`)
+      assert.ok(isGuarded(pathOf(key)) || outsideGuard.has(key), `${key}: 공통 가드 밖의 변경 라우트는 outsideGuard에 이유와 함께 적는다`)
     }
     for (const key of outsideGuard.keys()) assert.ok(writes.includes(key), `${key}: 없는 라우트가 outsideGuard에 남아 있다`)
     // 미들웨어 등록(/*)은 빼고 실제 라우트만 검사한다.
-    const mutating = writes.filter(key => pathOf(key).startsWith('/api/organizations/') && !key.endsWith('/*'))
+    const mutating = writes.filter(key => isGuarded(pathOf(key)) && !key.endsWith('/*'))
     // 목록이 비어 테스트가 저절로 통과하는 일을 막는다.
     assert.ok(mutating.length >= 10, `변경 라우트 ${mutating.length}개`)
     for (const key of mutating) {
