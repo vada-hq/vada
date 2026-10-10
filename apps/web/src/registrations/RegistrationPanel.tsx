@@ -82,6 +82,7 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
         <dl className="flex flex-col gap-1.5 text-sm">
           <div className="flex gap-3"><dt className="w-14 shrink-0 text-gray-500">기간</dt><dd className="text-gray-700">{periodText(form)}</dd></div>
           <div className="flex gap-3"><dt className="w-14 shrink-0 text-gray-500">신청</dt><dd className="text-gray-700">{countText(form.count, form.capacity)}</dd></div>
+          <div className="flex gap-3"><dt className="w-14 shrink-0 text-gray-500">참석</dt><dd className="text-gray-700">{form.checkedIn}명</dd></div>
           <div className="flex gap-3"><dt className="w-14 shrink-0 text-gray-500">휴대폰</dt>
             <dd className="text-gray-700">{form.collectPhone ? '휴대폰 번호도 받아요.' : '휴대폰 번호는 받지 않아요.'}</dd></div>
           {form.notice && <div className="flex gap-3"><dt className="w-14 shrink-0 text-gray-500">안내</dt>
@@ -106,7 +107,7 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
       {message && <StateMessage kind="error">{message}</StateMessage>}
     </section>
     {form && <RegistrantList form={form} registrations={registrations} settled={settled} onCancel={state.cancel} onConfirmPayment={state.confirmPayment}
-      onCancelPayment={state.cancelPayment} onSetDuesMember={state.setDuesMember} />}
+      onCancelPayment={state.cancelPayment} onSetDuesMember={state.setDuesMember} onCheckIn={state.checkIn} onCancelCheckIn={state.cancelCheckIn} />}
     <EventInfoDialog open={editingEvent} organizationId={organizationId} event={event} onClose={() => setEditingEvent(false)}
       // 행사 끝이 바뀌면 참가 신청의 지울 날과 상태도 바뀌므로 다시 불러온다.
       onSaved={saved => { setEditingEvent(false); onEventChange(saved); if (form) state.refresh() }} onStale={onEventStale} />

@@ -1,12 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import type { CreateRegistrationFormRequest, EventResponse, EventSummary, RegistrationResponse, UpdateEventRequest,
+import type { CheckInScanResponse, CreateRegistrationFormRequest, EventResponse, EventSummary, RegistrationResponse, UpdateEventRequest,
   UpdateRegistrationFormRequest } from '@vada/contracts'
 import { registrationFailure, registrationMessage } from '../public/registration-text'
 import { registrationBase } from './registration-view'
 
 export type RegistrationResult = { ok: true } | { ok: false; message: string }
+// QR로 참석 확인한 결과. missing이면 이 행사 신청에서 찾을 수 없는 QR이다.
+export type ScanResult = { ok: true; registrationId: string; already: boolean } | { ok: false; missing: boolean; message: string }
 const isRegistration = (body: unknown): body is RegistrationResponse => typeof body === 'object' && body !== null && 'form' in body
   && Array.isArray((body as RegistrationResponse).registrations)
+const isScan = (body: unknown): body is CheckInScanResponse => isRegistration(body)
+  && typeof (body as Partial<CheckInScanResponse>).checkIn?.registrationId === 'string'
 const errorOf = (body: unknown) => (body as { error?: unknown } | null)?.error
 
 // 참가자 탭을 열 때 불러온다. 바꾸는 요청은 받은 응답으로 화면을 바꾸고, 실패하면 새로 불러온다.
@@ -47,8 +51,25 @@ export function useRegistration(organizationId: string, eventId: string, enabled
       return { ok: false, message: registrationFailure }
     }
   }
+  // QR로 참석 확인. 찾을 수 없으면(404) 새로 불러오지 않는다. 명단은 그대로이고, 스캐너가 이름으로 찾으라고 알린다.
+  async function scan(code: string): Promise<ScanResult> {
+    try {
+      const response = await fetch(`${base}/check-in`, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code }) })
+      const result: unknown = await response.json().catch(() => null)
+      if (response.ok && isScan(result)) {
+        setData(result)
+        return { ok: true, registrationId: result.checkIn.registrationId, already: result.checkIn.already }
+      }
+      if (response.status === 404) return { ok: false, missing: true, message: '' }
+      refresh()
+      return { ok: false, missing: false, message: registrationMessage(errorOf(result)) }
+    } catch {
+      return { ok: false, missing: false, message: registrationFailure }
+    }
+  }
   return {
-    data, loadError, refresh,
+    data, loadError, refresh, scan,
     create: (input: CreateRegistrationFormRequest) => send('POST', '', input),
     update: (input: UpdateRegistrationFormRequest) => send('PATCH', '', input),
     cancel: (registrationId: string) => send('POST', `/entries/${encodeURIComponent(registrationId)}/cancel`, {}),
@@ -56,6 +77,8 @@ export function useRegistration(organizationId: string, eventId: string, enabled
     cancelPayment: (registrationId: string) => send('POST', `/entries/${encodeURIComponent(registrationId)}/payment/cancel`, {}),
     setDuesMember: (registrationId: string, duesMember: boolean) =>
       send('POST', `/entries/${encodeURIComponent(registrationId)}/dues`, { duesMember }),
+    checkIn: (registrationId: string) => send('POST', `/entries/${encodeURIComponent(registrationId)}/check-in`, {}),
+    cancelCheckIn: (registrationId: string) => send('POST', `/entries/${encodeURIComponent(registrationId)}/check-in/cancel`, {}),
   }
 }
 export type RegistrationHook = ReturnType<typeof useRegistration>

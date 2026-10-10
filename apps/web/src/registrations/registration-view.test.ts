@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
-import { entry, feeEntries, feeForm, registrationForm } from './registration-fixtures'
-import { applyUrl, countText, feeText, findRegistrants, hasFees, paymentChip, paymentFilter, stateTone } from './registration-view'
+import { checkedBy, entry, feeEntries, feeForm, registrationForm } from './registration-fixtures'
+import { applyUrl, countText, feeText, filterRegistrants, findRegistrants, hasFees, paymentChip, stateTone } from './registration-view'
 
 test('공개 링크는 이 사이트 주소에 코드를 붙인다', () => {
   expect(applyUrl('ABCD2345', 'https://vada-m1.onrender.com')).toBe('https://vada-m1.onrender.com/apply/ABCD2345')
@@ -36,11 +36,14 @@ test('참가비를 다루는 참가 신청: 참가비나 납부자 참가비가 
   expect(hasFees(registrationForm({ payments: { count: 1, total: 5000 } }))).toBe(true)
 })
 
-test('입금 거르기와 칩: 입금 전은 낼 돈이 있고 확인 전인 신청이고, 참가비가 없으면 회색 칩이다', () => {
-  const list = feeEntries()
-  expect(paymentFilter(list, 'all').map(item => item.id)).toEqual(['r1', 'r2', 'r3'])
-  expect(paymentFilter(list, 'unpaid').map(item => item.id)).toEqual(['r3'])
-  expect(paymentFilter(list, 'paid').map(item => item.id)).toEqual(['r2'])
+test('명단 거르기와 칩: 입금 전은 낼 돈이 있고 확인 전인 신청, 참석 전은 참석을 확인하지 않은 신청이고, 참가비가 없으면 회색 칩이다', () => {
+  const list = feeEntries({ r1: { checkedIn: checkedBy } })
+  const ids = (filter: Parameters<typeof filterRegistrants>[1]) => filterRegistrants(list, filter).map(item => item.id)
+  expect(ids('all')).toEqual(['r1', 'r2', 'r3'])
+  expect(ids('unpaid')).toEqual(['r3'])
+  expect(ids('paid')).toEqual(['r2'])
+  expect(ids('checkedIn')).toEqual(['r1'])
+  expect(ids('notCheckedIn')).toEqual(['r2', 'r3'])
   expect(list.map(paymentChip)).toEqual([{ text: '참가비 없음', tone: 'neutral' }, { text: '7,000원 · 입금 확인', tone: 'success' },
     { text: '7,000원 · 입금 전', tone: 'warning' }])
   expect(feeForm().fee).toBe(7000)

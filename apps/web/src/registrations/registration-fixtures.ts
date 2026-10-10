@@ -12,6 +12,8 @@ export const registrationResponse = (overrides: Partial<RegistrationResponse> = 
 export const feeAccount = { bank: '카카오뱅크', accountNumber: '3333-01-1234567', holder: '학생회' }
 export const activeRoster = { label: '2026년 2학기 납부자', useUntil: '2027-02-28' }
 export const paidBy = { amount: 7000, at: '2026-08-03T10:00', by: { id: 'p', name: '기획' } }
+// 행사 날 오전 10시 2분에 기획이 참석을 확인했다.
+export const checkedBy = { at: '2026-08-20T10:02', by: { id: 'p', name: '기획' } }
 export const feeForm = (overrides: Partial<RegistrationFormView> = {}) =>
   registrationForm({ fee: 7000, memberFee: 0, count: 3, payments: { count: 1, total: 7000 }, ...overrides })
 export const feeEntries = (overrides: Partial<Record<'r1' | 'r2' | 'r3', Partial<RegistrationEntry>>> = {}) => [

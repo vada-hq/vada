@@ -27,11 +27,13 @@ export function feeText(form: Pick<RegistrationFormView, 'fee' | 'memberFee'>) {
 // 참가비를 다루는 참가 신청이면 명단에 입금 거르기와 칩을 둔다. 무료로 바꿨어도 받은 참가비가 있으면 둔다.
 export const hasFees = (form: Pick<RegistrationFormView, 'fee' | 'memberFee' | 'payments'>) =>
   form.fee > 0 || form.memberFee !== null || form.payments.count > 0
-export type PaymentFilter = 'all' | 'unpaid' | 'paid'
-// 입금 전: 낼 돈이 있고 확인 전인 신청. 입금 확인: 확인한 신청.
-export function paymentFilter(list: RegistrationEntry[], filter: PaymentFilter) {
+export type RegistrantFilter = 'all' | 'unpaid' | 'paid' | 'checkedIn' | 'notCheckedIn'
+// 입금 전: 낼 돈이 있고 확인 전인 신청. 입금 확인: 확인한 신청. 참석·참석 전: 참석을 확인했는지.
+export function filterRegistrants(list: RegistrationEntry[], filter: RegistrantFilter) {
   if (filter === 'unpaid') return list.filter(item => item.fee > 0 && item.paid === null)
   if (filter === 'paid') return list.filter(item => item.paid !== null)
+  if (filter === 'checkedIn') return list.filter(item => item.checkedIn !== null)
+  if (filter === 'notCheckedIn') return list.filter(item => item.checkedIn === null)
   return list
 }
 export function paymentChip(item: RegistrationEntry): { text: string; tone: Tone } {

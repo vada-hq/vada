@@ -13,6 +13,8 @@ export type RegistrantActions = {
   onConfirmPayment: (registrationId: string) => Promise<RegistrationResult>
   onCancelPayment: (registrationId: string) => Promise<RegistrationResult>
   onSetDuesMember: (registrationId: string, duesMember: boolean) => Promise<RegistrationResult>
+  onCheckIn: (registrationId: string) => Promise<RegistrationResult>
+  onCancelCheckIn: (registrationId: string) => Promise<RegistrationResult>
 }
 type Props = RegistrantActions & {
   form: RegistrationFormView
@@ -23,14 +25,16 @@ type Props = RegistrantActions & {
   onClose: () => void
 }
 
-// 신청자 한 명의 관리: 입금 확인·확인 취소, 참가비 바꾸기(학생 문의 때), 신청 취소. 취소는 같은 자리에서 한 번 더 묻는다.
+// 신청자 한 명의 관리: 입금 확인·확인 취소, 참가비 바꾸기(학생 문의 때), 참석 확인·확인 취소, 신청 취소. 취소는 같은 자리에서 한 번 더 묻는다.
+// 참석을 확인한 신청은 참석 확인을 먼저 취소해야 신청을 취소한다(서버도 막는다).
 export default function RegistrantDialog({ entry, onClose, ...props }: Props) {
   return <Dialog open={entry !== null} onOpenChange={open => { if (!open) onClose() }}>
     {entry && <DialogContent><Body key={entry.id} entry={entry} onClose={onClose} {...props} /></DialogContent>}
   </Dialog>
 }
 
-function Body({ form, entry, settled, onClose, onCancel, onConfirmPayment, onCancelPayment, onSetDuesMember }: Omit<Props, 'entry'> & { entry: RegistrationEntry }) {
+function Body({ form, entry, settled, onClose, onCancel, onConfirmPayment, onCancelPayment, onSetDuesMember, onCheckIn, onCancelCheckIn }:
+  Omit<Props, 'entry'> & { entry: RegistrationEntry }) {
   const [confirming, setConfirming] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
@@ -64,8 +68,8 @@ function Body({ form, entry, settled, onClose, onCancel, onConfirmPayment, onCan
       <DialogTitle className="wrap-anywhere">{entry.name}</DialogTitle>
       <DialogDescription>학번 {entry.studentId}</DialogDescription>
     </DialogHeader>
-    {fees && <dl className="flex flex-col gap-3 text-sm">
-      <div className="flex flex-col gap-1">
+    <dl className="flex flex-col gap-3 text-sm">
+      {fees && <><div className="flex flex-col gap-1">
         <dt className="text-xs text-gray-500">입금자명</dt>
         <dd className="wrap-anywhere text-gray-900">{depositorName(entry.name, entry.studentId)}</dd>
       </div>
@@ -91,13 +95,24 @@ function Body({ form, entry, settled, onClose, onCancel, onConfirmPayment, onCan
           <dd className="text-gray-900">입금 전</dd>
           {!settled && <dd><Button size="sm" disabled={busy} onClick={() => void run(() => onConfirmPayment(entry.id))}>입금 확인</Button></dd>}
         </>}
-      </div>}
-    </dl>}
+      </div>}</>}
+      <div className="flex flex-col gap-1.5">
+        <dt className="text-xs text-gray-500">참석</dt>
+        {entry.checkedIn ? <>
+          <dd className="text-gray-900">참석 확인 · {formatKoreanTime(entry.checkedIn.at)} · {entry.checkedIn.by.name}</dd>
+          <dd><Button variant="outline" size="sm" disabled={busy} onClick={() => void run(() => onCancelCheckIn(entry.id))}>참석 확인 취소</Button></dd>
+        </> : <>
+          <dd className="text-gray-900">참석 전</dd>
+          <dd><Button size="sm" disabled={busy} onClick={() => void run(() => onCheckIn(entry.id))}>참석 확인</Button></dd>
+        </>}
+      </div>
+    </dl>
     {fees && settled && <StateMessage kind="notice">정산이 끝난 행사라 입금과 참가비를 바꿀 수 없어요.</StateMessage>}
+    {entry.checkedIn && <StateMessage kind="notice">참석을 확인한 신청은 먼저 참석 확인을 취소해 주세요.</StateMessage>}
     {message && <StateMessage kind="error">{message}</StateMessage>}
     <DialogFooter>
       <Button variant="outline" disabled={busy} onClick={onClose}>닫기</Button>
-      <Button variant="destructive" disabled={busy} onClick={() => { setMessage(''); setConfirming(true) }}>신청 취소</Button>
+      <Button variant="destructive" disabled={busy || entry.checkedIn !== null} onClick={() => { setMessage(''); setConfirming(true) }}>신청 취소</Button>
     </DialogFooter>
   </>
 }

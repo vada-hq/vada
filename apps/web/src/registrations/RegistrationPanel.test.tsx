@@ -5,7 +5,8 @@ import type { EventSummary, RegistrationResponse } from '@vada/contracts'
 import { deferredResponse, json, mockApi } from '../test-support/mock-api'
 import { event as eventFixture } from '../test-support/workflow-fixtures'
 import RegistrationPanel from './RegistrationPanel'
-import { activeRoster, entry, feeAccount, feeEntries, feeForm, feeResponse, paidBy, registrationForm, registrationResponse } from './registration-fixtures'
+import { activeRoster, checkedBy, entry, feeAccount, feeEntries, feeForm, feeResponse, paidBy, registrationForm, registrationResponse }
+  from './registration-fixtures'
 import { useRegistration } from './useRegistration'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
@@ -130,8 +131,9 @@ test('명단: 순번·이름·학번·휴대폰·신청 시각을 보여 주고,
 })
 
 test('보관 기간이 지나면 지웠다고 알리고, 신청이 없으면 비어 있다고 알린다', async () => {
-  setup(registrationResponse({ form: registrationForm({ purged: true, count: 2, state: 'closed' }), registrations: [] }))
-  expect(await screen.findByText('보관 기간이 지나 신청자 정보를 지웠어요(신청 2명).')).toBeTruthy()
+  setup(registrationResponse({ form: registrationForm({ purged: true, count: 2, state: 'closed', checkedIn: 1 }), registrations: [] }))
+  expect(await screen.findByText('보관 기간이 지나 신청자 정보를 지웠어요(신청 2명 · 참석 1명).')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'QR로 참석 확인' })).toBeNull()
   cleanup()
   setup(registrationResponse({ form: registrationForm({ count: 0 }), registrations: [] }))
   expect(await screen.findByText('아직 신청한 사람이 없어요.')).toBeTruthy()
@@ -327,4 +329,67 @@ test('정산한 행사: 입금을 확인한 신청을 취소할 때는 정산을
   expect(within(confirm).getByText(
     /받은 참가비 7,000원은 그대로 남아요\. 돌려줬다면 재정 담당자에게 정산을 다시 열어 달라고 한 뒤 입금 확인을 먼저 취소해 주세요\./)).toBeTruthy()
   expect(within(confirm).queryByText(/돌려줬다면 먼저 입금 확인을 취소해 주세요/)).toBeNull()
+})
+
+// 김바다는 참석했고 이수강은 참석 전이다.
+const attended = (both = false) => registrationResponse({ form: registrationForm({ checkedIn: both ? 2 : 1 }),
+  registrations: [entry('r1', '김바다', '2022123456', null, { checkedIn: checkedBy }), entry('r2', '이수강', '2023222222', null,
+    { checkedIn: both ? checkedBy : null })] })
+
+test('참석: 참가 신청 카드에 참석 수를 보이고, 줄의 참석은 바로 확인하며, 참석한 줄은 칩만 보인다', async () => {
+  const { api } = setup(attended())
+  const card = await region('참가 신청')
+  expect(within(card).getByText('참석')).toBeTruthy()
+  expect(within(card).getByText('1명')).toBeTruthy()
+  const list = await region('신청자')
+  // 참석 전인 줄의 [참석] 버튼과 글자가 같아 칩만 고른다.
+  const chips = () => within(list).queryAllByText('참석', { selector: '[data-slot="badge"]' })
+  expect(chips()).toHaveLength(1)
+  expect(within(list).queryByRole('button', { name: '김바다 참석 확인' })).toBeNull()
+  api.on('POST', `${base}/entries/r2/check-in`, () => json(attended(true)))
+  fireEvent.click(within(list).getByRole('button', { name: '이수강 참석 확인' }))
+  await waitFor(() => expect(api.calls.at(-1)).toMatchObject({ method: 'POST', path: `${base}/entries/r2/check-in`, body: {} }))
+  await waitFor(() => expect(chips()).toHaveLength(2))
+  expect(within(await region('참가 신청')).getByText('2명')).toBeTruthy()
+})
+
+test('참석 거르기: 참가비가 없어도 참석·참석 전으로 거른다', async () => {
+  setup(attended())
+  const list = await region('신청자')
+  expect(within(list).queryByRole('button', { name: /입금 전/ })).toBeNull()
+  fireEvent.click(within(list).getByRole('button', { name: '참석 1' }))
+  expect(within(list).queryByText('이수강')).toBeNull()
+  expect(within(list).getByText('김바다')).toBeTruthy()
+  fireEvent.click(within(list).getByRole('button', { name: '참석 전 1' }))
+  expect(within(list).queryByText('김바다')).toBeNull()
+  expect(within(list).getByText('이수강')).toBeTruthy()
+  fireEvent.click(within(list).getByRole('button', { name: '전체 2' }))
+  expect(within(list).getByText('김바다')).toBeTruthy()
+})
+
+test('관리 대화상자: 참석을 확인하고 취소하며, 참석한 신청은 신청 취소를 끄고 이유를 적는다', async () => {
+  const { api } = setup(attended())
+  fireEvent.click(within(await region('신청자')).getByRole('button', { name: '이수강 관리' }))
+  const dialog = await screen.findByRole('dialog', { name: '이수강' })
+  expect(within(dialog).getByText('참석 전')).toBeTruthy()
+  expect(within(dialog).getByRole('button', { name: '신청 취소' }).hasAttribute('disabled')).toBe(false)
+  api.on('POST', `${base}/entries/r2/check-in`, () => json(attended(true)))
+  fireEvent.click(within(dialog).getByRole('button', { name: '참석 확인' }))
+  expect(await within(dialog).findByText('참석 확인 · 8월 20일 (목) 오전 10:02 · 기획')).toBeTruthy()
+  expect(within(dialog).getByRole('button', { name: '신청 취소' }).hasAttribute('disabled')).toBe(true)
+  expect(within(dialog).getByText('참석을 확인한 신청은 먼저 참석 확인을 취소해 주세요.')).toBeTruthy()
+  api.on('POST', `${base}/entries/r2/check-in/cancel`, () => json(attended()))
+  fireEvent.click(within(dialog).getByRole('button', { name: '참석 확인 취소' }))
+  expect(await within(dialog).findByText('참석 전')).toBeTruthy()
+  expect(api.calls.at(-1)).toMatchObject({ method: 'POST', path: `${base}/entries/r2/check-in/cancel`, body: {} })
+  expect(within(dialog).getByRole('button', { name: '신청 취소' }).hasAttribute('disabled')).toBe(false)
+})
+
+test('참석 확인이 엇갈리면 알리고 다시 불러온다', async () => {
+  const { api } = setup(attended())
+  api.on('POST', `${base}/entries/r2/check-in`, () => json({ error: 'CHECKED_IN' }, 409))
+  const list = await region('신청자')
+  fireEvent.click(within(list).getByRole('button', { name: '이수강 참석 확인' }))
+  expect(await within(list).findByText('이미 참석을 확인한 신청이에요. 새로 불러왔어요.')).toBeTruthy()
+  await waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
 })
