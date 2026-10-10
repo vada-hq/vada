@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { ClipboardCheck, LogOut, Receipt, UserPlus, Users, Wallet } from 'lucide-react'
+import { ClipboardCheck, Landmark, LogOut, Receipt, UserPlus, Users, Wallet } from 'lucide-react'
 import type { MembershipSummary } from '@vada/contracts'
 import InviteShare from '../access/InviteShare'
 import { Avatar } from '@/components/Avatar'
@@ -16,11 +16,13 @@ type Props = AccountProps & { membership: MembershipSummary; memberships: Member
   membersActive: boolean; unassignedCount: number | null; onMembers: () => void
   reviewActive: boolean; pendingCount: number | null; onReview: (() => void) | null; budgetActive: boolean; onBudget: () => void
   expensesActive: boolean; onExpenses: () => void
+  // 참가비 설정(학생회 계좌·학생회비 명단). 재정 권한이 없으면 null이다.
+  feesActive: boolean; onFees: (() => void) | null
   children: ReactNode }
 
 // 와이어프레임 사이드바(210px): 위 로고와 학생회 이름, 가운데 행사 메뉴, 아래 사용자.
 // 데스크톱 aside와 휴대폰 옆 메뉴가 같이 쓴다. 위 블록의 오른쪽 여백은 옆 메뉴 닫기 버튼 자리다.
-export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, membersActive, unassignedCount, onMembers, reviewActive, pendingCount, onReview, budgetActive, onBudget, expensesActive, onExpenses, user, logoutBusy, onLogout, children }: Props) {
+export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, membersActive, unassignedCount, onMembers, reviewActive, pendingCount, onReview, budgetActive, onBudget, expensesActive, onExpenses, feesActive, onFees, user, logoutBusy, onLogout, children }: Props) {
   const [inviteOpen, setInviteOpen] = useState(false)
   return <div className="flex h-full min-h-0 flex-col">
     <div className="flex shrink-0 items-center gap-2 border-b border-gray-100 py-4 pr-10 pl-5">
@@ -59,6 +61,9 @@ export default function WorkspaceSidebar({ membership, memberships, onMembership
       <NavItem active={expensesActive} className="flex items-center gap-2" onClick={onExpenses}>
         <Receipt aria-hidden className="size-4" />사용 내역
       </NavItem>
+      {onFees && <NavItem active={feesActive} className="flex items-center gap-2" onClick={onFees}>
+        <Landmark aria-hidden className="size-4" />참가비 설정
+      </NavItem>}
     </nav>
     <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">{children}</div>
     <footer className="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">

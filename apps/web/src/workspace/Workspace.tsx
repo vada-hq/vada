@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import Budget from '../budget/Budget'
+import FeeSettings from '../fees/FeeSettings'
 import EventList from '../events/EventList'
 import Expenses from '../expenses/Expenses'
 import { useExpenses } from '../expenses/useExpenses'
@@ -19,7 +20,7 @@ import EventWorkspace from './EventWorkspace'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar, { type AccountProps } from './WorkspaceSidebar'
 
-type View = 'events' | 'members' | 'review' | 'expenses' | 'budget'
+type View = 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees'
 type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string; initialView?: View; onMembershipsChanged?: () => void }
 export default function Workspace({ initialOrganizationId, initialView, ...props }: Props) {
   // 초대로 방금 참여했거나 방금 만든 학생회가 있으면 그 학생회를 먼저 연다.
@@ -101,13 +102,19 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     if (view !== 'expenses' && canLeave()) { setView('expenses'); expenses.refresh() }
     setNavOpen(false)
   }
+  // 참가비 설정은 열 때마다 새로 불러온다(화면이 새로 그려진다).
+  function openFees() {
+    if (view !== 'fees' && canLeave()) setView('fees')
+    setNavOpen(false)
+  }
   // 데스크톱 aside와 휴대폰 옆 메뉴가 같은 내용을 쓴다. 옆 메뉴는 열렸을 때만 그려진다.
   const unassigned = membership.permissions.manageOrganization && members.data ? members.data.members.filter(member => member.departmentId === null).length : null
   const sidebar = <WorkspaceSidebar {...props} onLogout={() => { if (canLeave()) props.onLogout() }} membership={membership}
     onMembershipChange={id => { if (canLeave()) onMembershipChange(id) }}
     membersActive={view === 'members'} unassignedCount={unassigned} onMembers={openMembers}
     reviewActive={view === 'review'} pendingCount={finance && review.data ? review.data.pending.length : null} onReview={finance ? openReview : null}
-    budgetActive={view === 'budget'} onBudget={openBudget} expensesActive={view === 'expenses'} onExpenses={openExpenses}>
+    budgetActive={view === 'budget'} onBudget={openBudget} expensesActive={view === 'expenses'} onExpenses={openExpenses}
+    feesActive={view === 'fees'} onFees={finance ? openFees : null}>
     <EventList events={events.events} loading={events.loading} error={events.loadError} saving={events.saving}
       selectedId={view === 'events' ? selected?.id : undefined} onSelect={select} onRefresh={events.refresh} onCreate={() => { setNavOpen(false); setCreateOpen(true) }} />
   </WorkspaceSidebar>
@@ -125,15 +132,16 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
       <WorkspaceHeader councilName={membership.organization.name}
-        section={view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' ? '재정' : '행사'}
+        section={view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정' : '행사'}
         title={view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
-          : selected?.name ?? '행사'}
+          : view === 'fees' ? '참가비 설정' : selected?.name ?? '행사'}
         onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
         {view === 'members' ? <Members inviteCode={membership.organization.inviteCode} state={members} />
           : view === 'review' ? <PurchaseReview organizationId={membership.organization.id} state={review} events={events.events ?? []}
             viewerMembershipId={membership.id} />
           : view === 'budget' ? <Budget organizationId={membership.organization.id} finance={finance} onOpenEvent={openEventFinance} />
+          : view === 'fees' ? <FeeSettings organizationId={membership.organization.id} />
           : view === 'expenses' ? <Expenses organizationId={membership.organization.id} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} state={expenses} />
           : current ? <EventWorkspace key={current.id} event={current} finance={finance} viewerMembershipId={membership.id}

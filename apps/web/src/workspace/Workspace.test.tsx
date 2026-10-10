@@ -6,6 +6,7 @@ import Workspace from './Workspace'
 import { candidate, item } from '../purchases/purchase-fixtures'
 import { financeResponse } from '../settlement/settlement-fixtures'
 import { budgetEventLine, budgetPeriod, budgetPlan } from '../budget/budget-fixtures'
+import { feeSettings } from '../fees/fee-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false, manageEvents: true } }
@@ -26,6 +27,7 @@ function setup(members: unknown = membersBody, review: unknown = { pending: [], 
     : url.endsWith('/finance') ? financeResponse()
     : url.endsWith('/expenses') ? { expenses: [], truncated: false, totals: { thisMonth: 0, total: 0, missingEvidence: 0 } }
     : url.endsWith('/purchase-review') ? review
+    : url.endsWith('/fee-settings') ? feeSettings()
     : url.includes('/delivery-carriers') ? { carriers: [], nextCursor: null }
     : { items: [], truncated: false } }))
   vi.stubGlobal('fetch', fetcher)
@@ -293,6 +295,20 @@ test('구매 승인 권한이 없으면 구매 검토 메뉴가 없고 불러오
   expect(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).queryByRole('button', { name: /구매 검토/ })).toBeNull()
   expect(fetcher.mock.calls.some(([url]) => String(url).includes('purchase-review'))).toBe(false)
 })
+test('참가비 설정은 재정 권한자에게만 메뉴가 있고, 열면 계좌와 학생회비 명단을 불러온다', async () => {
+  const fetcher = setup()
+  render(<Workspace {...props} />)
+  await screen.findByRole('button', { name: '체육대회' })
+  expect(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).queryByRole('button', { name: '참가비 설정' })).toBeNull()
+  expect(fetcher.mock.calls.some(([url]) => String(url).includes('fee-settings'))).toBe(false)
+  cleanup()
+  setup()
+  render(<Workspace {...props} memberships={[financeMembership]} />)
+  fireEvent.click(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).getByRole('button', { name: '참가비 설정' }))
+  expect(screen.getByRole('heading', { level: 1, name: '참가비 설정' })).toBeTruthy()
+  expect(await screen.findByRole('region', { name: '받는 계좌' })).toBeTruthy()
+})
+
 test('사용 내역은 구성원 누구나 옆 메뉴에서 열고, 열 때 지출을 불러온다', async () => {
   const fetcher = setup()
   render(<Workspace {...props} />)
