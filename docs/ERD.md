@@ -325,6 +325,7 @@ erDiagram
         date starts_on
         date ends_on "시작일 이후, 다른 기간과 겹치지 않음"
         integer version
+        timestamptz closed_at "마감한 때, 마감한 사람과 함께"
     }
     budgetLines["budget_lines"] {
         text id PK
@@ -339,8 +340,9 @@ erDiagram
         text id PK
         text period_id FK
         text actor_id FK
-        text action "created / updated"
+        text action "created / updated / closed / reopened"
         jsonb changes
+        text reason "reopened만, 200자"
     }
 ```
 
@@ -370,6 +372,7 @@ erDiagram
         text note "200자, 비어 있을 수 있음"
         integer version
         timestamptz voided_at "취소, 사유와 함께"
+        text carried_from_period_id FK "이월금이면 넘겨준 기간"
     }
     incomeEvents["income_events"] {
         text id PK
@@ -384,6 +387,25 @@ erDiagram
 - 지우지 않고 취소로 남긴다. 취소한 수입은 합계와 결산서에서 빠진다.
 - 수입 줄은 취소하지 않은 수입이 고르고 있으면 지우지 않는다. 기간 날짜를 바꿀 때 이 기간의 수입이 밖으로 나가면 막는다.
 - 남은 돈은 실제 수입 − 실제 지출이다. 결산서는 이 숫자와 수입·지출 내역(잔액 포함)을 시트로 낸다.
+
+## 기간 마감
+
+결산을 마친 기간을 잠그고 남은 돈을 다음 기간으로 넘긴다. 설계는 [M2-3c 회계 기간 마감과 이월](superpowers/specs/2026-10-10-period-close-design.md)에 있다.
+
+- 마감은 `budget_periods.closed_at`·`closed_by`로 남는다. 조건은 서버가 본다.
+  - 끝일이 지났다(한국 날짜).
+  - 앞 기간이 모두 마감됐다.
+  - 넣은 행사가 모두 정산됐다.
+  - 결제일이 기간 안인 상시 운영 지출에 증빙 누락이 없다.
+  - 남은 돈이 0원 이상이고, 0원보다 크면 다음 기간이 있다.
+- 마감한 기간에서 막는 것:
+  - 편성, 수입
+  - 결제일이 그 기간인 상시 운영 지출의 기록·수정·취소·증빙 삭제(증빙 추가는 된다)
+  - 그 기간 행사의 정산 다시 열기
+- 이월금: 남은 돈은 다음 기간 시작일의 수입 한 건이다(`incomes.carried_from_period_id`). 손으로 고치거나 취소하지 않는다. 기간 하나가 넘긴 취소하지 않은 이월금은 한 건뿐이다(부분 unique 색인).
+- 다시 열기: 사유를 `budget_period_events.reason`에 남기고, 다음 기간이 열려 있을 때만 된다. 넘긴 이월금은 취소한다.
+- 마감한 기간과 이월금을 받은 기간보다 앞서는 기간은 만들거나 옮길 수 없다. 그래서 마감한 기간은 늘 시간순으로 맨 앞에 몰려 있다.
+- 마감·다시 열기와 기간 만들기·편성 수정은 학생회 예산 잠금(advisory lock)을 혼자 잡는다. 지출 변경은 같은 잠금을 같이 잡는다.
 
 ## 배송 추적
 
