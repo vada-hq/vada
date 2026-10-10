@@ -30,7 +30,15 @@ test('built web and API share an origin, only web entry and assets are public', 
     assert.equal(invite.status, 200)
     assert.equal(invite.headers.get('Cache-Control'), 'no-cache')
     assert.match(await invite.text(), /VADA/)
-    for (const path of ['/api/missing', '/assets/missing.js', '/private.txt', '/.env', '/assets/%2e%2e/private.txt', '/join/', '/join/a/b']) {
+    // 공개 참가 신청(/apply/코드)과 내 신청(/r#토큰)도 화면 진입점이다. 토큰은 # 뒤라 서버에 오지 않는다.
+    for (const path of ['/apply/ABCD2345', '/r']) {
+      const entry = await app.request(path)
+      assert.equal(entry.status, 200, path)
+      assert.equal(entry.headers.get('Cache-Control'), 'no-cache', path)
+      assert.match(await entry.text(), /VADA/, path)
+    }
+    for (const path of ['/api/missing', '/assets/missing.js', '/private.txt', '/.env', '/assets/%2e%2e/private.txt', '/join/', '/join/a/b',
+      '/apply/', '/apply/a/b', '/r/x']) {
       assert.equal((await app.request(path)).status, 404)
     }
     assert.equal((await app.request('/', { method: 'POST' })).status, 404)
