@@ -160,3 +160,33 @@ test('찾을 수 없는 신청이면 이 기기에 저장한 그 토큰만 지�
   expect(localStorage.getItem('vada.registration.ABCD2345')).toBeNull()
   expect(localStorage.getItem('vada.registration.EFGH2345')).toBe('Zz9_-xYz0123456789abcd')
 })
+
+test('참석 확인: 참석 전에는 내 QR과 안내를 보이고, 이름·학번은 다시 적지 않는다', async () => {
+  setup()
+  const section = await screen.findByRole('region', { name: '참석 확인' })
+  expect(within(section).getByRole('img', { name: '참석 확인 QR' })).toBeTruthy()
+  expect(within(section).getByText('행사장에서 이 QR을 보여 주세요. 학생회가 찍어 참석을 확인해요.')).toBeTruthy()
+  expect(within(section).queryByText('김바다')).toBeNull()
+  expect(within(section).queryByText('참석 확인됨')).toBeNull()
+})
+
+test('참석 확인: 확인한 뒤에는 QR 대신 확인 시각을 보이고, 취소 대신 문의를 안내한다', async () => {
+  setup(mine({ checkedInAt: '2026-08-20T10:02', cancellable: false }))
+  const section = await screen.findByRole('region', { name: '참석 확인' })
+  expect(within(section).getByText('참석 확인됨')).toBeTruthy()
+  expect(within(section).getByText('8월 20일 (목) 오전 10:02')).toBeTruthy()
+  expect(within(section).queryByRole('img', { name: '참석 확인 QR' })).toBeNull()
+  expect(screen.getByText('참석을 확인한 신청은 학생회에 문의해 취소해 주세요.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '신청 취소' })).toBeNull()
+})
+
+test('참석 확인: 화면을 연 사이 참석을 확인해 취소가 막히면 다시 불러와 참석 확인됨을 보인다', async () => {
+  const api = setup()
+  await screen.findByRole('heading', { name: '참가 신청이 완료됐어요' })
+  api.on('POST', cancelPath, () => json({ error: 'CHECKED_IN' }, 409))
+  api.on('POST', lookupPath, () => json(mine({ checkedInAt: '2026-08-20T10:02', cancellable: false })))
+  fireEvent.click(screen.getByRole('button', { name: '신청 취소' }))
+  fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: '취소하기' }))
+  expect(await screen.findByText('참석 확인됨')).toBeTruthy()
+  expect(api.calls.filter(call => call.path === lookupPath)).toHaveLength(2)
+})

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { CalendarDays, CheckCircle2, MapPin } from 'lucide-react'
-import type { MyPayment, MyRegistration } from '@vada/contracts'
+import { checkInQrText, type MyPayment, type MyRegistration } from '@vada/contracts'
 import { AccountInfo } from '@/components/AccountInfo'
+import { QrCode } from '@/components/QrCode'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -14,6 +15,7 @@ import { forgetToken, forgetTokenValue } from './saved-tokens'
 type Loaded = { kind: 'loading' } | { kind: 'missing' } | { kind: 'failed' } | { kind: 'ready'; registration: MyRegistration }
 const missingText = '신청 정보를 찾을 수 없어요. 취소했거나 보관 기간이 지났을 수 있어요.'
 const paidCancelText = '입금을 확인한 신청은 학생회에 문의해 취소해 주세요.'
+const checkedInCancelText = '참석을 확인한 신청은 학생회에 문의해 취소해 주세요.'
 
 function EventSummary({ registration }: { registration: MyRegistration }) {
   const time = eventTimeText(registration.event.startsAt, registration.event.endsAt)
@@ -22,6 +24,20 @@ function EventSummary({ registration }: { registration: MyRegistration }) {
     {time && <p className="flex items-start gap-1.5 text-sm text-gray-600"><CalendarDays aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />{time}</p>}
     {registration.event.place && <p className="flex items-start gap-1.5 text-sm wrap-anywhere text-gray-600">
       <MapPin aria-hidden className="mt-0.5 size-4 shrink-0 text-gray-400" />{registration.event.place}</p>}
+  </section>
+}
+
+// 참석 확인: 행사장에서 운영진이 찍을 QR. 참석을 확인하면 QR 대신 확인 시각을 보인다.
+function CheckIn({ registration }: { registration: MyRegistration }) {
+  return <section aria-label="참석 확인" className="flex flex-col items-center gap-2 rounded-md border p-4 text-center">
+    <h2 className="self-start text-sm font-semibold text-gray-900">참석 확인</h2>
+    {registration.checkedInAt ? <>
+      <Badge tone="success">참석 확인됨</Badge>
+      <p className="text-sm text-gray-900">{formatKoreanTime(registration.checkedInAt)}</p>
+    </> : registration.checkInCode && <>
+      <QrCode value={checkInQrText(registration.checkInCode)} label="참석 확인 QR" className="size-60 max-w-full" />
+      <p className="text-sm text-gray-600">행사장에서 이 QR을 보여 주세요. 학생회가 찍어 참석을 확인해요.</p>
+    </>}
   </section>
 }
 
@@ -98,8 +114,8 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
     const result = await cancelMine(token)
     setBusy(false)
     setConfirming(false)
-    // 화면을 연 뒤 학생회가 입금을 확인했으면 다시 불러온다. 바뀐 화면이 입금 확인과 문의 안내를 보인다.
-    if (!result.ok && result.code === 'PAYMENT_CONFIRMED') {
+    // 화면을 연 뒤 학생회가 입금이나 참석을 확인했으면 다시 불러온다. 바뀐 화면이 확인 상태와 문의 안내를 보인다.
+    if (!result.ok && (result.code === 'PAYMENT_CONFIRMED' || result.code === 'CHECKED_IN')) {
       setAttempt(value => value + 1)
       return
     }
@@ -137,6 +153,7 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
       <h1 className="text-lg font-semibold text-gray-900">참가 신청이 완료됐어요</h1>
     </div>
     <EventSummary registration={registration} />
+    <CheckIn registration={registration} />
     <section aria-label="신청한 내용" className="flex flex-col gap-1.5 rounded-md bg-gray-50 p-3 text-sm">
       {rows.filter((row): row is [string, string] => row[1] !== null).map(([label, value]) => <div key={label} className="flex justify-between gap-3">
         <span className="shrink-0 text-gray-500">{label}</span><span className="text-right wrap-anywhere text-gray-900">{value}</span>
@@ -151,7 +168,8 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
     {registration.cancellable ? <div className="flex flex-col items-start gap-2">
       <p className="text-sm text-gray-600">{`${formatKoreanTime(registration.closesAt)}까지 취소할 수 있어요.`}</p>
       <Button variant="outline" onClick={() => setConfirming(true)}>신청 취소</Button>
-    </div> : <p className="text-sm text-gray-500">{registration.payment?.paidAt ? paidCancelText : '마감 뒤에 취소하려면 학생회에 문의해 주세요.'}</p>}
+    </div> : <p className="text-sm text-gray-500">{registration.checkedInAt ? checkedInCancelText
+      : registration.payment?.paidAt ? paidCancelText : '마감 뒤에 취소하려면 학생회에 문의해 주세요.'}</p>}
     {error && <StateMessage kind="error">{error}</StateMessage>}
     <Dialog open={confirming} onOpenChange={open => { if (!busy) setConfirming(open) }}>
       <DialogContent>

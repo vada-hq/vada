@@ -39,7 +39,7 @@ test('오류 문구: 코드마다 할 일을 알려 주고, 모르는 코드는 
 test('개인정보 고지: 받는 곳·목적·항목·보유 기간·거부권을 적고, 휴대폰 번호는 받을 때만 항목에 넣는다', () => {
   const lines = privacyNotice({ organizationName: '소프트웨어융합대학 학생회', eventName: '체육대회', collectPhone: false, purgeAfter: '2026-09-19',
     fee: 0, memberFee: null })
-  expect(lines).toEqual(['받는 곳: 소프트웨어융합대학 학생회', '목적: 체육대회 참가 신청 확인과 행사 운영', '항목: 이름, 학번',
+  expect(lines).toEqual(['받는 곳: 소프트웨어융합대학 학생회', '목적: 체육대회 참가 신청 확인, 참석 확인과 행사 운영', '항목: 이름, 학번',
     '보유 기간: 행사가 끝나고 30일 뒤(2026년 9월 19일) 지워요', '동의하지 않을 수 있어요. 다만 동의하지 않으면 신청할 수 없어요.'])
   expect(privacyNotice({ organizationName: 'A', eventName: 'B', collectPhone: true, purgeAfter: '2026-09-19', fee: 0, memberFee: null })[2])
     .toBe('항목: 이름, 학번, 휴대폰 번호')
@@ -54,10 +54,10 @@ test('개인정보 고지: 참가비가 있으면 목적에 참가비 확인을 
   const base = { organizationName: 'A', eventName: '체육대회', collectPhone: false, purgeAfter: '2026-09-19' }
   const dues = '학생회비 납부 여부는 이름과 학번을 학생회비 명단과 맞춰 확인해요.'
   const member = privacyNotice({ ...base, fee: 5000, memberFee: 0 })
-  expect(member[1]).toBe('목적: 체육대회 참가 신청 확인, 참가비 확인과 행사 운영')
+  expect(member[1]).toBe('목적: 체육대회 참가 신청 확인, 참가비 확인, 참석 확인과 행사 운영')
   expect(member[3]).toBe(dues)
   const flat = privacyNotice({ ...base, fee: 5000, memberFee: null })
-  expect(flat[1]).toBe('목적: 체육대회 참가 신청 확인, 참가비 확인과 행사 운영')
+  expect(flat[1]).toBe('목적: 체육대회 참가 신청 확인, 참가비 확인, 참석 확인과 행사 운영')
   expect(flat).not.toContain(dues)
 })
 

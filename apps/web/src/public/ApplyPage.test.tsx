@@ -160,13 +160,13 @@ test('참가비가 있으면 행사 정보 아래에 적고, 고지에 참가비
   setup(publicForm({ fee: 5000, memberFee: 0 }))
   await heading()
   expect(screen.getByText('참가비 5,000원 · 학생회비 납부자 무료')).toBeTruthy()
-  expect(screen.getByText('목적: 2026 체육대회 참가 신청 확인, 참가비 확인과 행사 운영')).toBeTruthy()
+  expect(screen.getByText('목적: 2026 체육대회 참가 신청 확인, 참가비 확인, 참석 확인과 행사 운영')).toBeTruthy()
   expect(screen.getByText('학생회비 납부 여부는 이름과 학번을 학생회비 명단과 맞춰 확인해요.')).toBeTruthy()
   cleanup()
   setup()
   await heading()
   expect(screen.queryByText(/^참가비 /)).toBeNull()
-  expect(screen.getByText('목적: 2026 체육대회 참가 신청 확인과 행사 운영')).toBeTruthy()
+  expect(screen.getByText('목적: 2026 체육대회 참가 신청 확인, 참석 확인과 행사 운영')).toBeTruthy()
 })
 
 test('뒤로 가기로 돌아오면(bfcache) 신청 버튼을 다시 켜고, 기기에 저장한 토큰과 신청 정보를 다시 읽는다', async () => {

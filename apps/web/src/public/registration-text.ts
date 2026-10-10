@@ -64,6 +64,8 @@ const messages: Record<string, string> = {
   PAYMENT_CONFIRMED: '입금을 확인한 신청이라 바꿀 수 없어요. 먼저 입금 확인을 취소해 주세요.',
   PAYMENT_NOT_CONFIRMED: '입금 확인이 이미 취소됐어요. 새로 불러왔어요.',
   INVALID_STATE: '지금 상태에서는 할 수 없어요. 새로 불러왔어요.',
+  CHECKED_IN: '이미 참석을 확인한 신청이에요. 새로 불러왔어요.',
+  NOT_CHECKED_IN: '참석 확인이 이미 취소됐어요. 새로 불러왔어요.',
 }
 // 같은 오류라도 화면마다 알맞은 문구가 다르면 overrides로 바꾼다(예: 공개 화면의 PAYMENT_CONFIRMED).
 export const registrationMessage = (code: unknown, overrides: Record<string, string> = {}) =>
@@ -82,11 +84,11 @@ export function feeLine(fee: number, memberFee: number | null) {
 }
 
 // 개인정보 수집·이용 고지(개인정보보호법 제15조 제2항의 네 가지와 받는 곳). 운영진이 고칠 수 없다.
-// 참가비가 있으면 목적에 참가비 확인을 넣고, 납부자 참가비가 있으면 학생회비 명단과 맞춰 본다고 알린다.
+// 참가비가 있으면 목적에 참가비 확인을 넣고, 납부자 참가비가 있으면 학생회비 명단과 맞춰 본다고 알린다. 행사장 참석 확인(QR)도 목적에 넣는다.
 export const privacyNotice = ({ organizationName, eventName, collectPhone, purgeAfter, fee, memberFee }: { organizationName: string; eventName: string
   collectPhone: boolean; purgeAfter: string; fee: number; memberFee: number | null }) => [
   `받는 곳: ${organizationName}`,
-  `목적: ${eventName} 참가 신청 확인${fee > 0 || memberFee !== null ? ', 참가비 확인' : ''}과 행사 운영`,
+  `목적: ${eventName} 참가 신청 확인${fee > 0 || memberFee !== null ? ', 참가비 확인' : ''}, 참석 확인과 행사 운영`,
   `항목: 이름, 학번${collectPhone ? ', 휴대폰 번호' : ''}`,
   ...memberFee === null ? [] : ['학생회비 납부 여부는 이름과 학번을 학생회비 명단과 맞춰 확인해요.'],
   `보유 기간: 행사가 끝나고 30일 뒤(${dayText(purgeAfter)}) 지워요`,
