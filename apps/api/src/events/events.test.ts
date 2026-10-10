@@ -134,7 +134,8 @@ test('행사 정보 수정: 부서가 있는 구성원이 일시·장소를 고�
     assert.deepEqual(listed.events.map(event => [event.startsAt, event.endsAt, event.place, event.version]), [[null, null, null, 1]])
     // 본문이 틀리면 인증 전에 거절한다.
     userId = null
-    for (const body of [{}, { ...info, startsAt: null }, { ...info, place: 'a'.repeat(101) }, { ...info, place: `a${String.fromCharCode(0)}b` },
+    for (const body of [{}, { ...info, startsAt: null }, { ...info, place: 'a'.repeat(101) }, { ...info, place: '😀'.repeat(101) },
+      { ...info, place: '   ' }, { ...info, place: `a${String.fromCharCode(0)}b` }, { ...info, place: `a${String.fromCharCode(0xd800)}` },
       { ...info, endsAt: '2026-08-20T09:00' }, { ...info, extra: 1 }]) await refused(patch(body), 400, 'INVALID_INPUT')
     assert.equal((await patch(info)).status, 401)
     // 미배정 구성원과 다른 학생회 사용자는 고치지 못한다.

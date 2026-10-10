@@ -70,7 +70,9 @@ test('신청: 학번을 정리해 저장하고 토큰은 해시만 남기며, �
       await refused(apply(env, code, entryBody({ studentId, name: '다른 이름' })), 409, 'ALREADY_REGISTERED', studentId)
     }
     // 동의하지 않았거나 형식이 틀리면 400이다.
-    for (const body of [entryBody({ agreed: false }), entryBody({ studentId: '12345' }), { ...entryBody(), agreed: undefined }, entryBody({ extra: 1 })]) {
+    for (const body of [entryBody({ agreed: false }), entryBody({ studentId: '12345' }), { ...entryBody(), agreed: undefined }, entryBody({ extra: 1 }),
+      { ...entryBody(), name: undefined }, entryBody({ name: '   ' }), entryBody({ name: '😀'.repeat(31) }),
+      entryBody({ name: `김${String.fromCharCode(0)}` }), entryBody({ name: `김${String.fromCharCode(0xd800)}` })]) {
       await refused(apply(env, code, body), 400, 'INVALID_INPUT', JSON.stringify(body))
     }
   } finally { await env.pg.close() }
