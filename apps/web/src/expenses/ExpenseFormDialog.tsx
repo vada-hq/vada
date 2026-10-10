@@ -58,8 +58,12 @@ function Form({ organizationId, viewerMembershipId, events, initialEventId, expe
   const linkable = useLinkableItems(organizationId, true)
   // 상시 운영일 때만 기간 목록을 불러와 결제일이 든 기간의 운영 줄을 고르게 한다.
   const periods = useBudgetPeriods(organizationId, eventId === '')
-  const linesOn = (day: string) => periods.data?.periods.find(period => period.startsOn <= day && day <= period.endsOn)?.operating ?? []
+  const periodOn = (day: string) => periods.data?.periods.find(period => period.startsOn <= day && day <= period.endsOn)
+  const linesOn = (day: string) => periodOn(day)?.operating ?? []
   const lines = eventId === '' ? linesOn(paidOn) : []
+  // 결제일이 마감한 기간 안인 상시 운영 지출은 저장하지 않는다(서버도 막는다). 행사 지출은 행사 정산이 막는다.
+  const closedPeriod = eventId === '' ? periodOn(paidOn) : undefined
+  const closedName = closedPeriod?.closed ? closedPeriod.name : null
   // 목록을 받기 전에는 고른 값을 그대로 둔다. 받은 뒤에는 그 기간에 있는 항목만 보낸다.
   const lineId = eventId !== '' ? '' : !periods.data || lines.some(line => line.id === budgetLineId) ? budgetLineId : ''
   // 고른 행사의 품목만 고른다. 수정할 때는 이미 연결한 품목도 목록에 둔다.
@@ -135,11 +139,12 @@ function Form({ organizationId, viewerMembershipId, events, initialEventId, expe
             <span className="min-w-0 text-sm wrap-anywhere">{itemText(item)}</span>
           </Label>)}
       </section>}
+      {closedName && <StateMessage kind="notice">결제일이 마감한 회계 기간({closedName}) 안이에요.</StateMessage>}
       {message && <StateMessage kind="error">{message}</StateMessage>}
     </div>
     <DialogFooter>
       <Button variant="outline" disabled={busy} onClick={onClose}>닫기</Button>
-      <Button disabled={busy || !valid} onClick={() => void save()}>{expense ? '저장' : '기록'}</Button>
+      <Button disabled={busy || !valid || closedName !== null} onClick={() => void save()}>{expense ? '저장' : '기록'}</Button>
     </DialogFooter>
   </>
 }

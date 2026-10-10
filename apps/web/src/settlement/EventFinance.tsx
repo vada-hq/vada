@@ -69,7 +69,9 @@ export default function EventFinance({ organizationId, eventId, finance, viewerM
         <Badge tone="success">정산 완료</Badge>
         <span className="text-sm wrap-anywhere text-gray-700">{settledDay(settled.at)} · {settled.by.name}</span>
       </div>
-      {finance && (reopenReason === null
+      {/* 마감한 회계 기간의 행사는 정산을 다시 열 수 없다. 서버도 막는다. */}
+      {finance && summary.periodClosed && <p className="text-xs text-gray-500">마감한 회계 기간의 행사라 정산을 다시 열 수 없어요.</p>}
+      {finance && !summary.periodClosed && (reopenReason === null
         ? <Button variant="outline" size="sm" className="self-start" disabled={busy} onClick={() => setReopenReason('')}>정산 다시 열기</Button>
         : <div className="flex flex-col gap-2">
           <Label className="flex flex-col gap-1.5">다시 여는 사유

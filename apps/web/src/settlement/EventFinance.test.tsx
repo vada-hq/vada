@@ -183,3 +183,10 @@ test('예산 칸은 쉼표를 넣어도 숫자로 저장하고, 숫자가 아닌
   expect(await within(await numbers()).findByText('300,000원')).toBeTruthy()
   expect(api.calls.filter(call => call.method === 'POST').map(call => call.body)).toEqual([{ version: 1, budget: 300000 }])
 })
+
+test('마감한 회계 기간의 행사는 정산 다시 열기 대신 이유를 적는다', async () => {
+  setup(financeResponse({ settled: { by: { id: 'f', name: '재정 테스터' }, at: '2026-10-09T05:00:00.000Z' }, version: 2, periodClosed: true }))
+  const status = await screen.findByRole('region', { name: '정산 상태' })
+  expect(within(status).getByText('마감한 회계 기간의 행사라 정산을 다시 열 수 없어요.')).toBeTruthy()
+  expect(within(status).queryByRole('button', { name: '정산 다시 열기' })).toBeNull()
+})

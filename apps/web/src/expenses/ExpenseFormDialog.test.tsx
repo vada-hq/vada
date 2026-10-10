@@ -14,11 +14,12 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const members = { viewer: membership(true), departments: [], members: [{ id: 'mf', name: '재정 테스터', title: null, departmentId: 'df' },
   { id: 'mp', name: '기획 테스터', title: null, departmentId: 'd' }] }
 function setup(initial: ExpenseDetail | null = null,
-  onSubmit = vi.fn(async (_input: CreateExpenseRequest): Promise<ExpenseResult> => ({ ok: true, expense: expense() }))) {
+  onSubmit = vi.fn(async (_input: CreateExpenseRequest): Promise<ExpenseResult> => ({ ok: true, expense: expense() })),
+  periods = [budgetPeriod(), budgetPeriod({ id: 'p2', name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31',
+    operating: [{ id: 'lo2', name: '소모품' }] })]) {
   const api = mockApi()
   api.on('GET', '/api/organizations/o/members', () => json(members))
-  api.on('GET', '/api/organizations/o/budget/periods', () => json({ periods: [budgetPeriod(), budgetPeriod({ id: 'p2', name: '2027년 1학기',
-    startsOn: '2027-03-01', endsOn: '2027-08-31', operating: [{ id: 'lo2', name: '소모품' }] })] }))
+  api.on('GET', '/api/organizations/o/budget/periods', () => json({ periods }))
   api.on('GET', '/api/organizations/o/purchase-review/linkable-items', () => json({ items: [
     expenseItem({ id: 'i2', productName: '생수', quantity: 3, estimatedUnitPrice: 1000 }),
     expenseItem({ id: 'i3', productName: '현수막', event: { id: 'e2', name: '축제' } })], truncated: false }))
@@ -133,4 +134,23 @@ test('기간이 없는 날짜면 운영 항목 칸이 없다', async () => {
   const dialog = await screen.findByRole('dialog', { name: '지출 기록' })
   fill(dialog, '결제일', '2025-01-01')
   await waitFor(() => expect(within(dialog).queryByLabelText('운영 항목')).toBeNull())
+})
+
+test('상시 운영이고 결제일이 마감한 기간 안이면 알리고 저장을 끄며, 열린 기간 날짜나 행사 지출이면 막지 않는다', async () => {
+  setup(null, undefined, [budgetPeriod({ closed: true }), budgetPeriod({ id: 'p2', name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31' })])
+  const dialog = await screen.findByRole('dialog', { name: '지출 기록' })
+  fill(dialog, '사용처', '다이소')
+  fill(dialog, '내용', '회의 다과')
+  fill(dialog, '금액(원)', '12000')
+  fill(dialog, '결제일', '2026-10-09')
+  expect(await within(dialog).findByText('결제일이 마감한 회계 기간(2026년 2학기) 안이에요.')).toBeTruthy()
+  expect(within(dialog).getByRole('button', { name: '기록' }).hasAttribute('disabled')).toBe(true)
+  fill(dialog, '결제일', '2027-03-02')
+  expect(within(dialog).queryByText(/마감한 회계 기간/)).toBeNull()
+  expect(within(dialog).getByRole('button', { name: '기록' }).hasAttribute('disabled')).toBe(false)
+  // 행사 지출은 날짜가 아니라 행사 정산이 막는다.
+  fill(dialog, '결제일', '2026-10-09')
+  fill(dialog, '행사', 'e')
+  expect(within(dialog).queryByText(/마감한 회계 기간/)).toBeNull()
+  expect(within(dialog).getByRole('button', { name: '기록' }).hasAttribute('disabled')).toBe(false)
 })

@@ -8,12 +8,13 @@ import { incomeDetail } from './budget-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const detail = '/api/organizations/o/budget/periods/p1/incomes/i1'
-function setup(initial: IncomeDetail = incomeDetail(), finance = true) {
+function setup(initial: IncomeDetail = incomeDetail(), finance = true, closed = false) {
   const api = mockApi()
   api.on('GET', detail, () => json({ income: initial }))
   const onChanged = vi.fn()
   const onEdit = vi.fn()
-  render(<IncomeDetailDialog organizationId="o" periodId="p1" incomeId="i1" finance={finance} onClose={() => {}} onChanged={onChanged} onEdit={onEdit} />)
+  render(<IncomeDetailDialog organizationId="o" periodId="p1" incomeId="i1" finance={finance} closed={closed} onClose={() => {}} onChanged={onChanged}
+    onEdit={onEdit} />)
   return { api, onChanged, onEdit }
 }
 
@@ -50,4 +51,23 @@ test('재정 권한이 없으면 수정·취소 버튼이 없다', async () => {
   const dialog = await screen.findByRole('dialog', { name: '2학기 학생회비 · 750,000원' })
   expect(within(dialog).queryByRole('button', { name: '수정' })).toBeNull()
   expect(within(dialog).queryByRole('button', { name: '수입 취소' })).toBeNull()
+})
+
+test('마감한 기간의 수입은 재정 권한자에게도 수정·취소가 없고 이유를 적는다', async () => {
+  setup(incomeDetail(), true, true)
+  const dialog = await screen.findByRole('dialog', { name: '2학기 학생회비 · 750,000원' })
+  expect(within(dialog).getByText('마감한 기간의 수입이라 수정·취소를 할 수 없어요.')).toBeTruthy()
+  for (const name of ['수정', '수입 취소']) expect(within(dialog).queryByRole('button', { name })).toBeNull()
+})
+
+test('이월금은 넘겨준 기간을 알리고 고칠 수 없으며, 재정 권한자에게는 다시 여는 방법을 덧붙인다', async () => {
+  const carried = incomeDetail({ description: '2026년 1학기 이월금', amount: 88000, budgetLine: null, carriedFrom: { id: 'p0', name: '2026년 1학기' } })
+  setup(carried)
+  const dialog = await screen.findByRole('dialog', { name: '2026년 1학기 이월금 · 88,000원' })
+  expect(within(dialog).getByText('2026년 1학기 마감에서 넘어온 이월금이에요. 바꾸려면 그 기간 마감을 다시 열어 주세요.')).toBeTruthy()
+  for (const name of ['수정', '수입 취소']) expect(within(dialog).queryByRole('button', { name })).toBeNull()
+  cleanup()
+  setup(carried, false)
+  const plain = await screen.findByRole('dialog', { name: '2026년 1학기 이월금 · 88,000원' })
+  expect(within(plain).getByText('2026년 1학기 마감에서 넘어온 이월금이에요.')).toBeTruthy()
 })

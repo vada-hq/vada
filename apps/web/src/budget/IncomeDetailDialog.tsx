@@ -14,20 +14,22 @@ type Props = {
   periodId: string
   incomeId: string | null
   finance: boolean
+  // 마감한 기간이면 수정·취소를 감춘다. 서버도 막는다.
+  closed: boolean
   onClose: () => void
   // 취소로 수입이 바뀌면 편성을 새로 불러오게 알린다.
   onChanged: () => void
   onEdit: (income: IncomeDetail) => void
 }
 
-// 수입 상세. 처리 기록을 보여 주고, 재정 권한자는 고치거나 취소한다.
+// 수입 상세. 처리 기록을 보여 주고, 재정 권한자는 고치거나 취소한다. 마감한 기간의 수입과 이월금은 고치지 않는다.
 export default function IncomeDetailDialog({ incomeId, onClose, ...props }: Props) {
   return <Dialog open={incomeId !== null} onOpenChange={open => { if (!open) onClose() }}>
     {incomeId && <DialogContent><Detail key={incomeId} incomeId={incomeId} {...props} /></DialogContent>}
   </Dialog>
 }
 
-function Detail({ organizationId, periodId, incomeId, finance, onChanged, onEdit }: Omit<Props, 'incomeId' | 'onClose'> & { incomeId: string }) {
+function Detail({ organizationId, periodId, incomeId, finance, closed, onChanged, onEdit }: Omit<Props, 'incomeId' | 'onClose'> & { incomeId: string }) {
   const [income, setIncome] = useState<IncomeDetail | null | undefined>(undefined)
   const [voidReason, setVoidReason] = useState<string | null>(null)
   const [message, setMessage] = useState('')
@@ -46,7 +48,7 @@ function Detail({ organizationId, periodId, incomeId, finance, onChanged, onEdit
     <StateMessage kind="error">수입을 불러오지 못했어요.</StateMessage>
   </>
   const current = income
-  const editable = finance && !current.voided
+  const editable = finance && !current.voided && !closed && current.carriedFrom === null
   const voidValid = VoidIncomeSchema.safeParse({ version: current.version, reason: voidReason ?? '' }).success
   async function cancel() {
     setBusy(true)
@@ -65,6 +67,9 @@ function Detail({ organizationId, periodId, incomeId, finance, onChanged, onEdit
       <DialogDescription>받은 날 {current.receivedOn}</DialogDescription>
     </DialogHeader>
     {current.voided && <StateMessage kind="notice">취소됨 · {current.voided.by.name} · {current.voided.reason}</StateMessage>}
+    {current.carriedFrom && <StateMessage kind="notice">{`${current.carriedFrom.name} 마감에서 넘어온 이월금이에요.${
+      finance && !closed ? ' 바꾸려면 그 기간 마감을 다시 열어 주세요.' : ''}`}</StateMessage>}
+    {finance && closed && !current.voided && <StateMessage kind="notice">마감한 기간의 수입이라 수정·취소를 할 수 없어요.</StateMessage>}
     <dl className="grid grid-cols-3 gap-x-3 gap-y-1.5 text-sm">{fields.map(([label, value]) => <div key={label} className="contents">
       <dt className="text-gray-500">{label}</dt><dd className="col-span-2 wrap-anywhere text-gray-900">{value}</dd></div>)}</dl>
     {current.history.length > 0 && <section aria-label="처리 기록" className="flex flex-col gap-1">

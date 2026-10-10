@@ -99,6 +99,7 @@ export default function Budget({ organizationId, finance, onOpenEvent }: Props) 
           : createIncome(organizationId, periodId, input)}
         onSaved={saved => { setIncomeForm(null); plan.refresh(); setOpenedIncome(saved.id) }} />
       <IncomeDetailDialog organizationId={organizationId} periodId={periodId} incomeId={openedIncome} finance={finance}
+        closed={plan.data.period.closed !== null}
         onClose={() => setOpenedIncome(null)} onChanged={plan.refresh} onEdit={income => { setOpenedIncome(null); setIncomeForm({ income }) }} />
     </>}
   </div>

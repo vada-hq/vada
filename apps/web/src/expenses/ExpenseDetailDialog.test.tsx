@@ -113,3 +113,11 @@ test('정산된 행사의 지출은 수정·취소·증빙 삭제를 감추고 �
   for (const name of ['삭제', '지출 취소']) expect(within(dialog).queryByRole('button', { name })).toBeNull()
   expect(within(dialog).getByRole('button', { name: '증빙 추가' })).toBeTruthy()
 })
+
+test('마감한 회계 기간의 상시 운영 지출은 수정·취소·증빙 삭제를 감추고 알리지만, 증빙 추가는 둔다', async () => {
+  setup(expense({ event: null, items: [], approvedTotal: null, periodClosed: true, receipts: [receipt()], receiptCount: 1, evidence: 'complete' }))
+  const dialog = await screen.findByRole('dialog', { name: '쿠팡 · 10,000원' })
+  expect(within(dialog).getByText('마감한 회계 기간의 지출이라 수정·취소·증빙 삭제를 할 수 없어요.')).toBeTruthy()
+  for (const name of ['수정', '삭제', '지출 취소']) expect(within(dialog).queryByRole('button', { name })).toBeNull()
+  expect(within(dialog).getByRole('button', { name: '증빙 추가' })).toBeTruthy()
+})
