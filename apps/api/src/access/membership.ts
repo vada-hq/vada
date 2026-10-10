@@ -13,6 +13,8 @@ export function permissionsOf(department: { isLeadership: boolean; handlesFinanc
   return {
     manageOrganization: department?.isLeadership ?? false,
     approvePurchases: Boolean(department?.isLeadership || department?.handlesFinance),
+    // 부서가 있는 구성원은 행사 일시·장소와 참가 신청을 관리한다. 초대 코드만으로 들어온 미배정은 신청자 정보를 보지 않는다.
+    manageEvents: department !== null,
   }
 }
 // 구매·배송의 재정 검사가 같은 규칙을 SQL로 쓴다. departments를 소속과 조인한 쿼리에 넣는다.
@@ -44,6 +46,14 @@ export function requireMembership(db: MembershipDatabase) {
     // 학생회의 존재 여부도 소속이 없는 사용자에게 공개하지 않는다.
     if (!membership) return c.json({ error: 'FORBIDDEN' }, 403)
     c.set('membership', membership)
+    await next()
+  })
+}
+
+// requireMembership 다음에 둔다. 행사 정보와 참가 신청을 다루는 경로에 쓴다.
+export function requireEventManager() {
+  return createMiddleware<MembershipEnv>(async (c, next) => {
+    if (!c.get('membership').permissions.manageEvents) return c.json({ error: 'FORBIDDEN' }, 403)
     await next()
   })
 }

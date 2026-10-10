@@ -5,9 +5,9 @@ export const user = (finance = false) => ({ id: finance ? 'f' : 'u', name: finan
 export const membership = (finance = false): MembershipSummary => ({ id: finance ? 'mf' : 'mp',
   organization: { id: 'o', name: '테스트 학생회', inviteCode: 'ABCD2345' },
   department: { id: finance ? 'df' : 'd', name: finance ? '재정부' : '기획부', handlesFinance: finance, isLeadership: false },
-  title: null, permissions: { manageOrganization: false, approvePurchases: finance } })
+  title: null, permissions: { manageOrganization: false, approvePurchases: finance, manageEvents: true } })
 export const event = (id = 'e'): EventSummary => ({ id, organizationId: 'o', name: id === 'e' ? '체육대회' : '축제',
-  createdBy: 'u', createdAt: '2026-09-30T00:00:00Z' })
+  createdBy: 'u', createdAt: '2026-09-30T00:00:00Z', startsAt: null, endsAt: null, place: null, version: 1 })
 export const message = (): MessageSummary => ({ id: 'm', chatRoomId: 'room', author: user(),
   content: '테이블 2개 준비', createdAt: event().createdAt })
 export const eventsPath = '/api/organizations/o/events'

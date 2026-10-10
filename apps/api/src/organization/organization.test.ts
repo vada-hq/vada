@@ -46,7 +46,7 @@ test('학생회를 만들면 만든 사람이 회장단이 되고, 고른 부서
     assert.match(membership.organization.inviteCode, /^[2-9A-HJ-NP-Z]{8}$/)
     assert.deepEqual({ ...membership.department, id: 'x' }, { id: 'x', name: '회장단', isLeadership: true, handlesFinance: false })
     assert.equal(membership.title, null)
-    assert.deepEqual(membership.permissions, { manageOrganization: true, approvePurchases: true })
+    assert.deepEqual(membership.permissions, { manageOrganization: true, approvePurchases: true, manageEvents: true })
     const rows = await pg.query('SELECT name, is_leadership, handles_finance FROM departments WHERE organization_id = $1 ORDER BY name', [membership.organization.id])
     assert.deepEqual(rows.rows, [
       { name: '기획부', is_leadership: false, handles_finance: false },
@@ -110,7 +110,7 @@ test('구성원 목록은 같은 학생회 소속만 보고, 이메일은 없다
     const text = await response.text()
     assert.equal(text.includes('@example.test'), false)
     const body = JSON.parse(text)
-    assert.deepEqual(body.viewer.permissions, { manageOrganization: false, approvePurchases: false })
+    assert.deepEqual(body.viewer.permissions, { manageOrganization: false, approvePurchases: false, manageEvents: false })
     assert.deepEqual(body.departments.map((department: { id: string }) => department.id), ['fin1', 'lead1', 'plan1'])
     assert.deepEqual(body.members, [
       { id: 'm-lead', name: '김바다', title: '회장', departmentId: 'lead1' },
@@ -153,7 +153,7 @@ test('회장단은 부서를 추가·변경·삭제하고, 규칙에 어긋나�
     const addedBody = await added.json()
     const promo = addedBody.departments.find((department: { name: string }) => department.name === '홍보부')
     assert.deepEqual({ ...promo, id: 'x' }, { id: 'x', name: '홍보부', isLeadership: false, handlesFinance: false })
-    assert.deepEqual(addedBody.viewer.permissions, { manageOrganization: true, approvePurchases: true })
+    assert.deepEqual(addedBody.viewer.permissions, { manageOrganization: true, approvePurchases: true, manageEvents: true })
     for (const name of ['기획부', ' 기획부 ', '회장단']) {
       const response = await send('POST', '/organizations/org1/departments', { name })
       assert.equal(response.status, 409, name)
@@ -216,7 +216,7 @@ test('배정은 직책을 지우고, 마지막 회장단은 옮길 수 없으며
     const handover = await assign('m-lead', 'plan1')
     assert.equal(handover.status, 200)
     const body = await handover.json()
-    assert.deepEqual(body.viewer.permissions, { manageOrganization: false, approvePurchases: false })
+    assert.deepEqual(body.viewer.permissions, { manageOrganization: false, approvePurchases: false, manageEvents: true })
     assert.equal(body.viewer.department.id, 'plan1')
     assert.equal((await send('POST', '/organizations/org1/departments', { name: '홍보부' })).status, 403)
     const leaders = await pg.query<{ n: number }>("SELECT count(*)::int AS n FROM memberships WHERE department_id = 'lead1'")

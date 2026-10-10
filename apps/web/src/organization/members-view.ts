@@ -22,7 +22,8 @@ export function groupMembers(departments: DepartmentSummary[], members: MemberSu
 
 // 확인 대화상자를 띄울지 정할 때만 쓴다. 실제 권한은 서버가 정한다.
 function permissionsOf(department: DepartmentSummary | null): MembershipPermissions {
-  return { manageOrganization: department?.isLeadership ?? false, approvePurchases: Boolean(department?.isLeadership || department?.handlesFinance) }
+  return { manageOrganization: department?.isLeadership ?? false, approvePurchases: Boolean(department?.isLeadership || department?.handlesFinance),
+    manageEvents: department !== null }
 }
 
 // 마지막 글자에 받침이 있으면 앞의 조사를 붙인다. '으로'는 ㄹ 받침 뒤에서도 '로'를 쓴다.
@@ -33,6 +34,7 @@ function withParticle(word: string, afterBatchim: string, otherwise: string, rie
 }
 
 // 권한이 바뀌는 이동만 확인한다. 권한은 없음 < 구매 승인 < 조직 관리·구매 승인 순서라, 얻거나 잃는 쪽 하나만 생긴다.
+// 행사 운영(부서가 있으면 생김)은 묻지 않는다. 미배정을 부서에 넣는 일은 늘 하는 일이고, 부서 배정 자체가 권한을 주는 결정이다.
 export function moveWarning(member: MemberSummary, from: DepartmentSummary | null, to: DepartmentSummary | null): string | null {
   const before = permissionsOf(from)
   const after = permissionsOf(to)

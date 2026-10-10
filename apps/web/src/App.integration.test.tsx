@@ -171,7 +171,7 @@ test('pasting the whole invite link into the code field opens that invite', asyn
 
 test('소속이 없으면 학생회를 만들고, 구성원 화면에서 초대를 시작한다', async () => {
   const leader = { ...membership(), department: { id: 'lead', name: '회장단', handlesFinance: false, isLeadership: true },
-    permissions: { manageOrganization: true, approvePurchases: true } }
+    permissions: { manageOrganization: true, approvePurchases: true, manageEvents: true } }
   api.on('GET', '/api/me/memberships', () => json({ memberships: [] }))
   api.on('POST', '/api/organizations/create', () => {
     api.on('GET', '/api/me/memberships', () => json({ memberships: [leader] }))
@@ -204,7 +204,7 @@ test('만들기를 취소하면 코드 입력으로 돌아간다', async () => {
 // 본인 소속이 바뀌는 흐름. 응답이 늦게 와도 소속을 한 번만 다시 불러와야 한다(리뷰에서 찾은 무한 요청).
 function leaderSetup(secondMemberships: () => Response | Promise<Response>) {
   const leader = { ...membership(), department: { id: 'lead', name: '회장단', handlesFinance: false, isLeadership: true },
-    permissions: { manageOrganization: true, approvePurchases: true } }
+    permissions: { manageOrganization: true, approvePurchases: true, manageEvents: true } }
   const titled = { ...leader, title: '회장' }
   const list = (viewer: typeof leader) => json({ viewer, departments: [leader.department],
     members: [{ id: 'mp', name: '기획 테스터', title: viewer.title, departmentId: 'lead' }] })

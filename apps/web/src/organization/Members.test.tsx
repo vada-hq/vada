@@ -22,7 +22,7 @@ const members: MemberSummary[] = [
 const viewer = (manage: boolean): MembershipSummary => ({ id: manage ? 'm-lead' : 'm-plan',
   organization: { id: 'o', name: '테스트 학생회', inviteCode: 'ABCD2345' },
   department: manage ? { id: 'lead', name: '회장단', handlesFinance: false, isLeadership: true } : { id: 'plan', name: '기획부', handlesFinance: false, isLeadership: false },
-  title: manage ? '회장' : null, permissions: { manageOrganization: manage, approvePurchases: manage } })
+  title: manage ? '회장' : null, permissions: { manageOrganization: manage, approvePurchases: manage, manageEvents: true } })
 const response = (manage = true, overrides: Partial<OrganizationMembersResponse> = {}): OrganizationMembersResponse =>
   ({ viewer: viewer(manage), departments, members, ...overrides })
 const withMember = (id: string, change: Partial<MemberSummary>) => members.map(member => member.id === id ? { ...member, ...change } : member)

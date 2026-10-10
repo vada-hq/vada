@@ -102,7 +102,7 @@ test('chat migration backfills event rooms and enforces room/message boundaries'
       INSERT INTO organizations(id,name) VALUES ('o','Council'),('other','Other');
       INSERT INTO events(id,organization_id,name,created_by) VALUES ('e','o','Event','u');
     `)
-    const before = (await pg.query('SELECT * FROM events')).rows
+    const before = (await pg.query<Record<string, unknown>>('SELECT * FROM events')).rows
     await migrate(db, { migrationsFolder: folder })
     assert.deepEqual(sameColumns((await pg.query<Record<string, unknown>>('SELECT * FROM events')).rows, before), before)
     const rooms = await pg.query<{ id: string; organization_id: string; event_id: string }>('SELECT id,organization_id,event_id FROM chat_rooms')

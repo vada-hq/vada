@@ -7,6 +7,7 @@ import { migrate } from 'drizzle-orm/pglite/migrator'
 import { createEventRoutes } from './events.js'
 import { createAccessRoutes } from '../access/access.js'
 import { createApp } from '../app.js'
+import type { EventResponse, EventsResponse } from '@vada/contracts'
 
 test('event API validates input and shares events only within the authenticated council', async (t) => {
   const pg = new PGlite()
@@ -99,6 +100,65 @@ test('event API validates input and shares events only within the authenticated 
       assert.equal((await app.request(path)).status, 403)
       assert.equal((await post({ name: 'No' })).status, 403)
     })
+  } finally {
+    await pg.close()
+  }
+})
+
+test('행사 정보 수정: 부서가 있는 구성원이 일시·장소를 고치고, 참가 신청이 있으면 시작을 비우거나 마감보다 일찍 끝낼 수 없다', async () => {
+  const pg = new PGlite()
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('p','Planner','p@test.local'),('n','New','n@test.local'),('x','Other','x@test.local');
+      INSERT INTO organizations (id,name) VALUES ('a','A'),('b','B');
+      INSERT INTO departments (id,organization_id,name) VALUES ('p','a','Planning'),('x','b','Other');
+      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('p','p','a','p'),('n','n','a',NULL),('x','x','b','x');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','a','체육대회','p'),('ex','b','남의 행사','x');
+    `)
+    let userId: string | null = 'p'
+    const session = async () => userId ? { user: { id: userId } } : null
+    const origin = 'http://127.0.0.1:5180'
+    const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, events: createEventRoutes(db, session) })
+    const patch = (body: unknown, event = 'e') => app.request(`/api/organizations/a/events/${event}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body) })
+    const refused = async (pending: Response | Promise<Response>, status: number, error: string) => {
+      const response = await pending
+      assert.equal(response.status, status, error)
+      assert.deepEqual(await response.json(), { error }, error)
+    }
+    const info = { version: 1, startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: '  체육관 ' }
+
+    const listed = await (await app.request('/api/organizations/a/events')).json() as EventsResponse
+    assert.deepEqual(listed.events.map(event => [event.startsAt, event.endsAt, event.place, event.version]), [[null, null, null, 1]])
+    // 본문이 틀리면 인증 전에 거절한다.
+    userId = null
+    for (const body of [{}, { ...info, startsAt: null }, { ...info, place: 'a'.repeat(101) }, { ...info, place: `a${String.fromCharCode(0)}b` },
+      { ...info, endsAt: '2026-08-20T09:00' }, { ...info, extra: 1 }]) await refused(patch(body), 400, 'INVALID_INPUT')
+    assert.equal((await patch(info)).status, 401)
+    // 미배정 구성원과 다른 학생회 사용자는 고치지 못한다.
+    for (const user of ['n', 'x']) { userId = user; await refused(patch(info), 403, 'FORBIDDEN') }
+    userId = 'p'
+    for (const event of ['ex', 'missing']) await refused(patch(info, event), 404, 'NOT_FOUND')
+
+    const response = await patch(info)
+    assert.equal(response.status, 200)
+    const { event } = await response.json() as EventResponse
+    assert.deepEqual([event.startsAt, event.endsAt, event.place, event.version], ['2026-08-20T10:00', '2026-08-20T18:00', '체육관', 2])
+    const { rows } = await pg.query<{ starts_at: Date }>("SELECT starts_at FROM events WHERE id = 'e'")
+    assert.equal(rows[0]!.starts_at.toISOString(), '2026-08-20T01:00:00.000Z')
+    await refused(patch(info), 409, 'VERSION_CONFLICT')
+
+    // 참가 신청이 있으면 시작을 비울 수 없고, 마감보다 일찍 끝낼 수 없다.
+    await pg.exec("INSERT INTO registration_forms (id,organization_id,event_id,closes_at,created_by) VALUES ('f','a','e','2026-08-20T18:00+09','p')")
+    await refused(patch({ version: 2, startsAt: null, endsAt: null, place: null }), 409, 'EVENT_TIME_REQUIRED')
+    await refused(patch({ ...info, version: 2, endsAt: '2026-08-20T17:00' }), 409, 'DEADLINE_AFTER_EVENT')
+    await refused(patch({ ...info, version: 2, startsAt: '2026-08-20T17:00', endsAt: null }), 409, 'DEADLINE_AFTER_EVENT')
+    // 끝이 없으면 시작이 행사 끝이다. 마감과 같아도 된다.
+    const moved = await patch({ version: 2, startsAt: '2026-08-20T18:00', endsAt: null, place: null })
+    assert.equal(moved.status, 200)
+    assert.deepEqual(((await moved.json()) as EventResponse).event.place, null)
   } finally {
     await pg.close()
   }
