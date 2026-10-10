@@ -24,6 +24,7 @@ import { createSettlementRoutes } from './settlement/routes.js'
 import { createBudgetRoutes } from './budget/routes.js'
 import { createIncomeRoutes } from './incomes/routes.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
+import { createRegistrationPurger } from './registrations/purge.js'
 
 function main() {
   const { env, production, hostname, port } = readRuntime(process.env, process.argv.includes('--production'))
@@ -73,8 +74,11 @@ function main() {
     process.exitCode = 1
   })
   const stopLookups = lookups?.start()
+  // 보관 기간이 지난 참가 신청자 정보를 지운다.
+  const stopPurger = createRegistrationPurger(db).start()
   const shutdown = () => {
     stopLookups?.()
+    stopPurger()
     server.close(() => { void client.end({ timeout: 5 }); void stopErrorReporting() })
   }
   process.once('SIGTERM', shutdown)
