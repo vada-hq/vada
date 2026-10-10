@@ -129,14 +129,19 @@ test('참가비: 입금을 확인했으면 확인 표시와 금액·시각을 �
   expect(screen.queryByRole('button', { name: '신청 취소' })).toBeNull()
   expect(screen.getByText('입금을 확인한 신청은 학생회에 문의해 취소해 주세요.')).toBeTruthy()
   expect(screen.queryByText('마감 뒤에 취소하려면 학생회에 문의해 주세요.')).toBeNull()
-  // 화면을 연 뒤 학생회가 입금을 확인했으면, 취소를 눌러도 막히고 같은 안내를 한다.
+  // 화면을 연 뒤 학생회가 입금을 확인했으면, 취소가 막히고 화면을 다시 불러와 입금 확인과 문의 안내를 보인다.
   cleanup()
   const stale = setup(mine({ payment: { basis: 'nonmember', fee: 5000, paidAt: null, account } }))
   await screen.findByRole('heading', { name: '참가 신청이 완료됐어요' })
   stale.on('POST', cancelPath, () => json({ error: 'PAYMENT_CONFIRMED' }, 409))
+  stale.on('POST', lookupPath, () => json(mine({ cancellable: false, payment: { basis: 'nonmember', fee: 5000, paidAt: '2026-08-03T10:00', account: null } })))
   fireEvent.click(screen.getByRole('button', { name: '신청 취소' }))
   fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: '취소하기' }))
-  expect(await screen.findByText('입금을 확인한 신청은 학생회에 문의해 취소해 주세요.')).toBeTruthy()
+  expect(await screen.findByText('입금 확인됨')).toBeTruthy()
+  expect(screen.getByText('입금을 확인한 신청은 학생회에 문의해 취소해 주세요.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '신청 취소' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '계좌번호 복사' })).toBeNull()
+  expect(stale.calls.filter(call => call.path === lookupPath)).toHaveLength(2)
 })
 
 test('계좌번호를 복사하지 못하면 길게 눌러 복사하라고 알린다', async () => {

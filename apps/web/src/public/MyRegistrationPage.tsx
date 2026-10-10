@@ -98,8 +98,13 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
     const result = await cancelMine(token)
     setBusy(false)
     setConfirming(false)
+    // 화면을 연 뒤 학생회가 입금을 확인했으면 다시 불러온다. 바뀐 화면이 입금 확인과 문의 안내를 보인다.
+    if (!result.ok && result.code === 'PAYMENT_CONFIRMED') {
+      setAttempt(value => value + 1)
+      return
+    }
     if (!result.ok) {
-      setError(result.code === null ? registrationFailure : registrationMessage(result.code, { PAYMENT_CONFIRMED: paidCancelText }))
+      setError(result.code === null ? registrationFailure : registrationMessage(result.code))
       return
     }
     forgetToken(result.registration.code)
