@@ -1,5 +1,6 @@
 import { Hono, type Context } from 'hono'
-import { CancelRegistrationSchema, CreateRegistrationFormSchema, token, UpdateRegistrationFormSchema, type RegistrationResponse } from '@vada/contracts'
+import { CancelRegistrationSchema, CreateRegistrationFormSchema, RegisterSchema, RegistrationTokenSchema, token, UpdateRegistrationFormSchema,
+  type RegistrationResponse } from '@vada/contracts'
 import { requireEventManager, requireMembership, type MembershipEnv } from '../access/membership.js'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
@@ -14,7 +15,14 @@ function idOf(value: string | undefined) {
   return parsed.data
 }
 
+// 공개 링크 코드는 초대 코드와 같은 형식이다. 형식이 틀린 코드와 없는 코드를 구분하지 않는다.
+function codeOf(value: string | undefined) {
+  if (!value || !/^[2-9A-HJ-NP-Z]{8}$/.test(value)) throw new ApiError('NOT_FOUND', 404)
+  return value
+}
+
 // 행사 참가 신청. 신청자 정보가 있으므로 부서가 있는 구성원만 설정을 바꾸고 명단을 본다.
+// 공개 경로(/public/...)는 로그인 없이 쓴다. 개인 링크 토큰은 경로가 아니라 본문으로 받아 접속 기록에 남지 않게 한다.
 export function createRegistrationRoutes(db: RegistrationDatabase, session: SessionReader, { now = () => new Date() }: { now?: () => Date } = {}) {
   const routes = new Hono<MembershipEnv>()
   const service = createRegistrationService(db, now)
@@ -32,5 +40,10 @@ export function createRegistrationRoutes(db: RegistrationDatabase, session: Sess
     c.json(reply(await service.update(scope(c), eventId(c), c.req.valid('json')))))
   routes.post(`${base}/entries/:registrationId/cancel`, json(CancelRegistrationSchema), auth, member, manager, async c =>
     c.json(reply(await service.cancel(scope(c), eventId(c), idOf(c.req.param('registrationId'))))))
+  routes.get('/public/registration-forms/:code', async c => c.json(await service.publicForm(codeOf(c.req.param('code')))))
+  routes.post('/public/registration-forms/:code/entries', json(RegisterSchema), async c =>
+    c.json(await service.register(codeOf(c.req.param('code')), c.req.valid('json')), 201))
+  routes.post('/public/registrations/lookup', json(RegistrationTokenSchema), async c => c.json(await service.lookup(c.req.valid('json').token)))
+  routes.post('/public/registrations/cancel', json(RegistrationTokenSchema), async c => c.json(await service.cancelMine(c.req.valid('json').token)))
   return routes
 }

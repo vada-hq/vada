@@ -63,6 +63,8 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
     const mutating = writes.filter(key => isGuarded(pathOf(key)) && !key.endsWith('/*'))
     // 목록이 비어 테스트가 저절로 통과하는 일을 막는다.
     assert.ok(mutating.length >= 10, `변경 라우트 ${mutating.length}개`)
+    // 공개 경로(참가 신청)도 같은 검사를 받는다.
+    assert.ok(mutating.filter(key => pathOf(key).startsWith('/api/public/')).length >= 3, '공개 변경 라우트')
     for (const key of mutating) {
       const registered = key.slice(0, key.indexOf(' '))
       // app.all()로 등록한 라우트는 POST로 확인한다.

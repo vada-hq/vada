@@ -1,9 +1,10 @@
-import { randomUUID } from 'node:crypto'
+import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { and, asc, count, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { dateFromKorean, koreanOf, type CreateRegistrationFormRequest, type RegistrationFormView, type RegistrationResponse,
+import { dateFromKorean, koreanOf, type CreateRegistrationFormRequest, type MyRegistration, type PublicRegistrationEvent,
+  type PublicRegistrationForm, type RegisterRequest, type RegistrationCreated, type RegistrationFormView, type RegistrationResponse,
   type UpdateRegistrationFormRequest } from '@vada/contracts'
-import { events, registrationForms, registrations } from '../db/schema.js'
+import { events, organizations, registrationForms, registrations } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { purgeExpired } from './purge.js'
 import { eventEnd, purgeAfterOf, stateOf } from './state.js'
@@ -56,6 +57,33 @@ function formView(form: Form, event: Event, total: number, now: Date): Registrat
   }
 }
 
+// 개인 링크 토큰은 해시만 저장한다.
+const hashOf = (token: string) => createHash('sha256').update(token).digest('hex')
+const publicEvent = (event: Event): PublicRegistrationEvent => ({ name: event.name, startsAt: event.startsAt && koreanOf(event.startsAt),
+  endsAt: event.endsAt && koreanOf(event.endsAt), place: event.place })
+// 공개 링크 코드로 찾는다. 신청을 넣거나 빼는 요청은 참가 신청 행을 잠가 정원을 지킨다.
+async function formByCode(db: Reader, code: string, lock = false) {
+  const query = db.select({ form: registrationForms, event: events, organizationName: organizations.name }).from(registrationForms)
+    .innerJoin(events, and(eq(events.organizationId, registrationForms.organizationId), eq(events.id, registrationForms.eventId)))
+    .innerJoin(organizations, eq(organizations.id, registrationForms.organizationId))
+    .where(eq(registrationForms.code, code))
+  const [row] = lock ? await query.for('update', { of: registrationForms }) : await query
+  if (!row) throw new ApiError('NOT_FOUND', 404)
+  return row
+}
+// 개인 링크 토큰으로 찾는다. 취소했거나 보관 기간이 지나 지운 신청은 토큰이 없어 찾을 수 없다.
+async function registrationByToken(db: Reader, token: string, lock = false) {
+  const query = db.select({ registration: registrations, form: registrationForms, event: events, organizationName: organizations.name })
+    .from(registrations)
+    .innerJoin(registrationForms, and(eq(registrationForms.organizationId, registrations.organizationId), eq(registrationForms.id, registrations.formId)))
+    .innerJoin(events, and(eq(events.organizationId, registrationForms.organizationId), eq(events.id, registrationForms.eventId)))
+    .innerJoin(organizations, eq(organizations.id, registrations.organizationId))
+    .where(eq(registrations.tokenHash, hashOf(token)))
+  const [row] = lock ? await query.for('update', { of: registrationForms }) : await query
+  return row
+}
+type Found = NonNullable<Awaited<ReturnType<typeof registrationByToken>>>
+
 export function createRegistrationService(db: RegistrationDatabase, now: () => Date) {
   // 운영진 화면이 받는 것. 먼저 보관 기간이 지난 정보를 지운다.
   async function view(tx: Writer, organizationId: string, eventId: string): Promise<RegistrationResponse> {
@@ -71,8 +99,55 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       registrations: rows.map(row => ({ id: row.id, name: row.name!, studentId: row.studentId!, phone: row.phone, createdAt: koreanOf(row.createdAt) })),
     }
   }
+  // 먼저 그 신청의 지울 정보를 지운 뒤 다시 찾는다. 보관 기간이 지났으면 찾을 수 없다.
+  async function mine(tx: Writer, token: string, lock = false) {
+    const found = await registrationByToken(tx, token, lock)
+    if (!found) throw new ApiError('NOT_FOUND', 404)
+    await purgeExpired(tx, found.form.id)
+    const current = await registrationByToken(tx, token)
+    if (!current) throw new ApiError('NOT_FOUND', 404)
+    return current
+  }
+  const myView = ({ registration, form, event, organizationName }: Found): MyRegistration => ({ code: form.code, organizationName,
+    event: publicEvent(event), name: registration.name, studentId: registration.studentId, phone: registration.phone,
+    createdAt: koreanOf(registration.createdAt), cancelled: false, cancellable: now() < form.closesAt })
   return {
     view: (organizationId: string, eventId: string) => db.transaction(tx => view(tx, organizationId, eventId)),
+    // 공개 신청 화면. 다른 신청자에 대해서는 남은 자리 수만 준다.
+    publicForm: (code: string) => db.transaction(async (tx): Promise<PublicRegistrationForm> => {
+      const { form, event, organizationName } = await formByCode(tx, code)
+      await purgeExpired(tx, form.id)
+      const total = await countOf(tx, form.id)
+      return { organizationName, event: publicEvent(event), notice: form.notice, collectPhone: form.collectPhone, state: stateOf(form, total, now()),
+        opensAt: form.opensAt && koreanOf(form.opensAt), closesAt: koreanOf(form.closesAt),
+        remaining: form.capacity === null ? null : Math.max(0, form.capacity - total), purgeAfter: koreanDay(purgeAfterOf(endOf(event))) }
+    }),
+    // 신청. 받는 중이 아니면 막고, 이미 신청한 학번이면 정원이 찼다는 것보다 그것을 먼저 알린다.
+    register: (code: string, input: RegisterRequest) => db.transaction(async (tx): Promise<RegistrationCreated> => {
+      const { form } = await formByCode(tx, code, true)
+      // 휴대폰 번호는 받는 신청에서만 받는다.
+      if (form.collectPhone !== (input.phone !== null)) throw new ApiError('INVALID_INPUT', 400)
+      await purgeExpired(tx, form.id)
+      const state = stateOf(form, await countOf(tx, form.id), now())
+      if (state !== 'open' && state !== 'full') throw new ApiError('REGISTRATION_NOT_OPEN', 409)
+      const [same] = await tx.select({ id: registrations.id }).from(registrations)
+        .where(and(eq(registrations.formId, form.id), eq(registrations.studentId, input.studentId), isNull(registrations.purgedAt)))
+      if (same) throw new ApiError('ALREADY_REGISTERED', 409)
+      if (state === 'full') throw new ApiError('REGISTRATION_FULL', 409)
+      const token = randomBytes(16).toString('base64url')
+      await tx.insert(registrations).values({ id: randomUUID(), organizationId: form.organizationId, formId: form.id, tokenHash: hashOf(token),
+        name: input.name, studentId: input.studentId, phone: input.phone })
+      return { token }
+    }),
+    lookup: (token: string) => db.transaction(async tx => myView(await mine(tx, token))),
+    // 신청자가 스스로 취소한다. 마감 전까지만 되고, 정보를 바로 지운다.
+    cancelMine: (token: string) => db.transaction(async (tx): Promise<MyRegistration> => {
+      const current = await mine(tx, token, true)
+      if (now() >= current.form.closesAt) throw new ApiError('CANCEL_CLOSED', 409)
+      await tx.update(registrations).set({ tokenHash: null, name: null, studentId: null, phone: null, cancelledAt: sql`now()`, purgedAt: sql`now()` })
+        .where(eq(registrations.id, current.registration.id))
+      return { ...myView(current), name: null, studentId: null, phone: null, cancelled: true, cancellable: false }
+    }),
     // 행사 행을 잠가 행사 일시 수정과 엇갈리지 않게 한다.
     create: (scope: RegistrationScope, eventId: string, input: CreateRegistrationFormRequest) => db.transaction(async tx => {
       const event = await eventOf(tx, scope.organizationId, eventId, true)
