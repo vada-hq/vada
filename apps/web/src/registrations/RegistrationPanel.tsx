@@ -94,7 +94,8 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
     </section>
     {form && <RegistrantList form={form} registrations={registrations} onCancel={state.cancel} />}
     <EventInfoDialog open={editingEvent} organizationId={organizationId} event={event} onClose={() => setEditingEvent(false)}
-      onSaved={saved => { setEditingEvent(false); onEventChange(saved) }} onStale={onEventStale} />
+      // 행사 끝이 바뀌면 참가 신청의 지울 날과 상태도 바뀌므로 다시 불러온다.
+      onSaved={saved => { setEditingEvent(false); onEventChange(saved); if (form) state.refresh() }} onStale={onEventStale} />
     <RegistrationFormDialog open={editingForm} event={event} form={form} phoneCount={registrations.filter(item => item.phone !== null).length}
       onClose={() => setEditingForm(false)}
       onSubmit={input => form ? state.update({ ...input, version: form.version, accepting: form.accepting }) : state.create(input)} />

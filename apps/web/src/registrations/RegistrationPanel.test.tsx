@@ -131,3 +131,19 @@ test('보관 기간이 지나면 지웠다고 알리고, 신청이 없으면 비
   setup(registrationResponse({ form: registrationForm({ count: 0 }), registrations: [] }))
   expect(await screen.findByText('아직 신청한 사람이 없어요.')).toBeTruthy()
 })
+
+test('참가 신청이 있을 때 행사 정보를 고치면 참가 신청도 다시 불러와 지울 날을 맞춘다', async () => {
+  const { api, onEventChange } = setup()
+  const info = await region('행사 정보')
+  const gets = () => api.calls.filter(call => call.method === 'GET').length
+  const before = gets()
+  fireEvent.click(within(info).getByRole('button', { name: '행사 정보 수정' }))
+  const dialog = await screen.findByRole('dialog', { name: '행사 정보' })
+  api.on('PATCH', '/api/organizations/o/events/e', () => json({ event: timed({ endsAt: '2026-08-21T18:00', version: 2 }) }))
+  api.on('GET', base, () => json(registrationResponse({ form: registrationForm({ purgeAfter: '2026-09-20' }) })))
+  fireEvent.change(field(dialog, '끝(선택)'), { target: { value: '2026-08-21T18:00' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(onEventChange).toHaveBeenCalled())
+  expect(await screen.findByText('행사가 끝나고 30일 뒤(2026년 9월 20일) 신청자 정보를 지워요.')).toBeTruthy()
+  expect(gets()).toBe(before + 1)
+})
