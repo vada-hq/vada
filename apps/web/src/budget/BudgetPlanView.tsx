@@ -54,7 +54,8 @@ export default function BudgetPlanView({ plan, finance, onOpenEvent, onOpenIncom
         <Download />{download.busy ? '내려받는 중…' : '결산서 내려받기'}</Button>
     </div>
     {download.message && <StateMessage kind="error">{download.message}</StateMessage>}
-    <PeriodStatus key={plan.period.id} plan={plan} finance={finance} onReopen={onReopenPeriod} />
+    {/* 두 묶음은 형제라 key가 겹치면 안 된다. 기간이 바뀌면 입력 중인 사유·확인 상태를 새로 시작한다. */}
+    <PeriodStatus key={`status-${plan.period.id}`} plan={plan} finance={finance} onReopen={onReopenPeriod} />
     <StatGrid label="예산 요약" className="grid-cols-2 gap-3 sm:grid-cols-4" stats={stats} />
     {unallocated < 0
       ? <Alert tone="warning">배정이 수입보다 {won(-unallocated)} 많아요</Alert>
@@ -70,7 +71,7 @@ export default function BudgetPlanView({ plan, finance, onOpenEvent, onOpenIncom
       {plan.notices.eventsWithSpending > 0 && <p>지출이 있는데 기간에 넣지 않은 행사 {plan.notices.eventsWithSpending}개 — 편성 수정에서 행사를 넣어 주세요.</p>}
       {plan.notices.operatingOutside > 0 && <p>어느 기간에도 들지 않는 상시 운영 지출 {plan.notices.operatingOutside}건 — 결제일이 들도록 기간 날짜를 확인해 주세요.</p>}
     </Alert>}
-    {finance && !plan.period.closed && plan.closing.ended && <ClosingChecklist key={plan.period.id} plan={plan} onClose={onClosePeriod} />}
+    {finance && !plan.period.closed && plan.closing.ended && <ClosingChecklist key={`closing-${plan.period.id}`} plan={plan} onClose={onClosePeriod} />}
     <section aria-label="수입" className="flex flex-col gap-2">
       <h3 className="text-sm font-semibold text-gray-900">수입</h3>
       {plan.incomes.length === 0 ? <p className="text-xs text-gray-500">수입 예산이 없어요</p>
