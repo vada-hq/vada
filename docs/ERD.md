@@ -60,6 +60,10 @@ erDiagram
         text name "행사 이름"
         text created_by FK "생성자"
         timestamptz created_at "생성 시각"
+        timestamptz starts_at "시작 일시, 선택"
+        timestamptz ends_at "끝 일시, 시작이 있을 때만"
+        text place "장소 100자, 선택"
+        integer version
     }
     chatRooms["chat_rooms"] {
         text id PK
@@ -408,6 +412,52 @@ erDiagram
 - 다시 열기: 사유를 `budget_period_events.reason`에 남기고, 다음 기간이 열려 있을 때만 된다. 넘긴 이월금은 취소한다.
 - 마감한 기간과 이월금을 받은 기간보다 앞서는 기간은 만들거나 옮길 수 없다. 그래서 마감한 기간은 늘 시간순으로 맨 앞에 몰려 있다.
 - 마감·다시 열기와 기간 만들기·편성 수정은 학생회 예산 잠금(advisory lock)을 혼자 잡는다. 지출 변경은 같은 잠금을 같이 잡는다.
+
+## 참가 신청
+
+행사마다 공개 링크로 로그인 없이 참가 신청을 받는다. 설계는 [M3a 행사 참가 신청](superpowers/specs/2026-10-10-event-registration-design.md)에 있다.
+
+```mermaid
+erDiagram
+    events ||..o| registrationForms : "참가 신청 설정"
+    registrationForms ||..o{ registrations : "신청"
+    users ||..o{ registrationForms : "만든 사람"
+    users |o..o{ registrations : "운영진 취소"
+
+    registrationForms["registration_forms"] {
+        text id PK
+        text organization_id FK
+        text event_id FK, UK "행사와 복합 FK"
+        text code UK "공개 링크 코드 8자리"
+        boolean accepting "멈추면 새 신청만 막음"
+        timestamptz opens_at "선택"
+        timestamptz closes_at "행사 끝 이전"
+        integer capacity "1~5000, 선택"
+        text notice "1000자, 선택"
+        boolean collect_phone
+        integer version
+        text created_by FK
+    }
+    registrations {
+        text id PK
+        text organization_id FK
+        text form_id FK "참가 신청과 복합 FK"
+        text token_hash UK "개인 링크 토큰의 SHA-256"
+        text name "30자"
+        text student_id "숫자 6~12자리"
+        text phone "받을 때만"
+        timestamptz created_at
+        timestamptz cancelled_at
+        text cancelled_by FK "운영진이 취소했을 때"
+        timestamptz purged_at "개인 칸을 지운 때"
+    }
+```
+
+- 행사 하나에 참가 신청 하나다. 만들려면 행사 시작 일시가 있어야 하고, 마감은 행사 끝(끝 일시, 없으면 시작 일시) 이전이다. 참가 신청이 있는 행사는 시작 일시를 비우거나 마감보다 일찍 끝낼 수 없다.
+- 신청의 개인 칸(토큰 해시·이름·학번·휴대폰)은 모두 있거나(`purged_at` 없음) 모두 비어 있다(`purged_at` 있음). 취소하면 바로 지운다. 행은 신청 수로 남는다.
+- 행사 끝에서 30일이 지나면 개인 칸을 지운다. 서버가 시작할 때와 1시간마다 지우고, 참가 신청 하나를 다루는 요청도 먼저 지운다.
+- 같은 참가 신청에 지우지 않은 같은 학번은 하나다(부분 unique 색인). 정원은 참가 신청 행을 잠근 뒤 세고 넣는다.
+- 신청자 정보는 부서가 있는 구성원(`manageEvents`)만 본다. 공개 화면에는 남은 자리 수만 나간다.
 
 ## 배송 추적
 
