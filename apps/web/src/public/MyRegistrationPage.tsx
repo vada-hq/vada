@@ -97,7 +97,7 @@ export default function MyRegistrationPage({ token }: { token: string | null }) 
     </section>
     <section aria-label="주소 저장" className="flex flex-col items-start gap-2">
       <p className="text-sm text-gray-600">이 화면 주소를 저장해 두세요. 신청을 확인하고 취소할 때 필요해요.</p>
-      <Button variant="outline" size="sm" onClick={() => { void copy() }}>주소 복사</Button>
+      <Button variant="outline" onClick={() => { void copy() }}>주소 복사</Button>
       {copied && <StateMessage kind="notice">주소를 복사했어요.</StateMessage>}
     </section>
     {registration.cancellable ? <div className="flex flex-col items-start gap-2">
