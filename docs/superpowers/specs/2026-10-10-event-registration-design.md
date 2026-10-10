@@ -344,3 +344,4 @@ M3a에서는 행사에 일시와 장소를 넣는다. 운영진은 행사마다 
     - Render는 `X-Forwarded-For`를 덧붙이기만 해서 IP를 꾸밀 수 있다([Render 요청](https://feedback.render.com/features/p/send-the-correct-xforwardedfor)).
   - 생기면 운영진이 취소하고, Cloudflare Turnstile을 더한다.
 - **학생회의 개인정보 처리방침:** 앱은 신청 화면에서 고지를 한다. 처리방침 공개(위탁 등)는 학생회가 한다.
+- **학번으로 신청 여부를 떠볼 수 있다:** 같은 학번이면 `ALREADY_REGISTERED`가 나오므로, 남의 학번을 아는 사람은 그 사람이 신청했는지 알 수 있다. 행사 참가 여부는 민감도가 낮고, 막으려면 이미 신청한 사람에게 신청됐다고 알려 줄 수 없어 그대로 둔다.
