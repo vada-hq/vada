@@ -56,10 +56,23 @@ const messages: Record<string, string> = {
   REGISTRATION_EXISTS: '이미 참가 신청을 만들었어요. 새로 불러온 내용을 확인해 주세요.',
   FORBIDDEN: '부서가 있는 구성원만 참가 신청을 관리할 수 있어요.',
   INVALID_INPUT: '입력한 내용을 다시 확인해 주세요.',
+  FEE_LOCKED: '입금을 확인한 신청이 있어 참가비를 바꿀 수 없어요.',
+  FEE_ACCOUNT_REQUIRED: '학생회 계좌가 없어 참가비를 받을 수 없어요. 재정 담당자에게 계좌를 넣어 달라고 해 주세요.',
+  DUES_ROSTER_REQUIRED: '쓸 수 있는 학생회비 명단이 없어요. 재정 담당자에게 명단을 올려 달라고 해 주세요.',
+  EVENT_SETTLED: '정산이 끝난 행사라 참가비와 입금을 바꿀 수 없어요.',
+  NO_FEE: '낼 참가비가 없는 신청이에요.',
+  PAYMENT_CONFIRMED: '입금을 확인한 신청이라 바꿀 수 없어요. 먼저 입금 확인을 취소해 주세요.',
+  PAYMENT_NOT_CONFIRMED: '입금 확인이 이미 취소됐어요. 새로 불러왔어요.',
+  INVALID_STATE: '지금 상태에서는 할 수 없어요. 새로 불러왔어요.',
 }
-export const registrationMessage = (code: unknown) =>
-  (typeof code === 'string' && messages[code]) || '처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'
+// 같은 오류라도 화면마다 알맞은 문구가 다르면 overrides로 바꾼다(예: 공개 화면의 PAYMENT_CONFIRMED).
+export const registrationMessage = (code: unknown, overrides: Record<string, string> = {}) =>
+  (typeof code === 'string' && (overrides[code] ?? messages[code])) || '처리하지 못했어요. 잠시 뒤 다시 시도해 주세요.'
 export const registrationFailure = '연결하지 못했어요. 잠시 뒤 다시 시도해 주세요.'
+
+// 입금자명: 이름 + 학번 뒤 4자리. 은행이 입금자명을 자르므로 짧게 정하고, 운영진은 이름이나 학번 일부로 명단을 찾는다.
+export const depositorName = (name: string, studentId: string) => `${name}${studentId.slice(-4)}`
+export const won = (value: number) => `${value.toLocaleString('ko-KR')}원`
 
 // 개인정보 수집·이용 고지(개인정보보호법 제15조 제2항의 네 가지와 받는 곳). 운영진이 고칠 수 없다.
 export const privacyNotice = ({ organizationName, eventName, collectPhone, purgeAfter }: { organizationName: string; eventName: string

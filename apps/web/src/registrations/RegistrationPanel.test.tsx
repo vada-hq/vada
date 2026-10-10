@@ -2,10 +2,10 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { EventSummary, RegistrationResponse } from '@vada/contracts'
-import { json, mockApi } from '../test-support/mock-api'
+import { deferredResponse, json, mockApi } from '../test-support/mock-api'
 import { event as eventFixture } from '../test-support/workflow-fixtures'
 import RegistrationPanel from './RegistrationPanel'
-import { entry, registrationForm, registrationResponse } from './registration-fixtures'
+import { activeRoster, entry, feeAccount, feeEntries, feeForm, feeResponse, paidBy, registrationForm, registrationResponse } from './registration-fixtures'
 import { useRegistration } from './useRegistration'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
@@ -27,7 +27,7 @@ const region = (name: string) => screen.findByRole('region', { name })
 const field = (container: HTMLElement, label: string) => within(container).getByLabelText(label) as HTMLInputElement
 
 test('행사 정보: 일시가 없으면 넣으라고 알리고, 고치면 PATCH 본문을 보내고 바뀐 행사를 넘긴다', async () => {
-  const { api, onEventChange } = setup({ form: null, registrations: [] }, timed({ startsAt: null, endsAt: null, place: null }))
+  const { api, onEventChange } = setup(registrationResponse({ form: null, registrations: [] }), timed({ startsAt: null, endsAt: null, place: null }))
   const info = await region('행사 정보')
   expect(within(info).getByText('일시를 넣어 주세요.')).toBeTruthy()
   const start = within(await region('참가 신청')).getByRole('button', { name: '참가 신청 받기' })
@@ -49,7 +49,7 @@ test('행사 정보: 일시가 없으면 넣으라고 알리고, 고치면 PATCH
 })
 
 test('참가 신청 받기: 기본 마감은 행사 시작이고, 만들면 POST 본문을 보내고 받은 응답을 그린다', async () => {
-  const { api } = setup({ form: null, registrations: [] })
+  const { api } = setup(registrationResponse({ form: null, registrations: [] }))
   fireEvent.click(within(await region('참가 신청')).getByRole('button', { name: '참가 신청 받기' }))
   const dialog = await screen.findByRole('dialog', { name: '참가 신청 설정' })
   expect(field(dialog, '신청 마감').value).toBe('2026-08-20T10:00')
@@ -60,7 +60,7 @@ test('참가 신청 받기: 기본 마감은 행사 시작이고, 만들면 POST
   api.on('POST', base, () => json(registrationResponse({ registrations: [] }), 201))
   fireEvent.click(within(dialog).getByRole('button', { name: '만들기' }))
   await waitFor(() => expect(api.calls.at(-1)!.body).toEqual({ opensAt: null, closesAt: '2026-08-20T10:00', capacity: 200, notice: '문의: 학생회실',
-    collectPhone: false }))
+    collectPhone: false, fee: 0, memberFee: null }))
   expect(await screen.findByText(`${window.location.origin}/apply/ABCD2345`)).toBeTruthy()
 })
 
@@ -83,7 +83,7 @@ test('멈추기·다시 받기: 받기 여부만 바꿔 보내고, 남이 먼저
   fireEvent.click(within(card).getByRole('button', { name: '신청 받기 멈추기' }))
   await waitFor(() => expect(within(card).getByText('멈춤')).toBeTruthy())
   expect(api.calls.at(-1)!.body).toEqual({ version: 1, accepting: false, opensAt: null, closesAt: '2026-08-19T23:59', capacity: 200,
-    notice: '문의: 학생회실', collectPhone: false })
+    notice: '문의: 학생회실', collectPhone: false, fee: 0, memberFee: null })
   api.on('PATCH', base, () => json({ error: 'VERSION_CONFLICT' }, 409))
   const reloads = api.calls.filter(call => call.method === 'GET').length
   fireEvent.click(within(card).getByRole('button', { name: '다시 받기' }))
@@ -114,7 +114,11 @@ test('명단: 순번·이름·학번·휴대폰·신청 시각을 보여 주고,
   fireEvent.change(search, { target: { value: '2023' } })
   expect(within(list).queryByText('김바다')).toBeNull()
   fireEvent.change(search, { target: { value: '' } })
-  fireEvent.click(within(list).getByRole('button', { name: '김바다 신청 취소' }))
+  // 참가비가 없는 참가 신청이면 거르기와 참가비 칩이 없다.
+  expect(within(list).queryByRole('button', { name: /입금 전/ })).toBeNull()
+  expect(within(list).queryByText('참가비 없음')).toBeNull()
+  fireEvent.click(within(list).getByRole('button', { name: '김바다 관리' }))
+  fireEvent.click(within(await screen.findByRole('dialog', { name: '김바다' })).getByRole('button', { name: '신청 취소' }))
   const dialog = await screen.findByRole('dialog', { name: '신청을 취소할까요?' })
   expect(within(dialog).getByText('김바다(2022123456)의 신청을 취소하면 이 사람의 정보를 바로 지워요.')).toBeTruthy()
   api.on('POST', `${base}/entries/r1/cancel`, () => json(registrationResponse({ form: registrationForm({ count: 1 }),
@@ -122,6 +126,7 @@ test('명단: 순번·이름·학번·휴대폰·신청 시각을 보여 주고,
   fireEvent.click(within(dialog).getByRole('button', { name: '취소하기' }))
   await waitFor(() => expect(within(list).queryByText('김바다')).toBeNull())
   expect(api.calls.at(-1)).toMatchObject({ method: 'POST', body: {} })
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })
 
 test('보관 기간이 지나면 지웠다고 알리고, 신청이 없으면 비어 있다고 알린다', async () => {
@@ -146,4 +151,134 @@ test('참가 신청이 있을 때 행사 정보를 고치면 참가 신청도 �
   await waitFor(() => expect(onEventChange).toHaveBeenCalled())
   expect(await screen.findByText('행사가 끝나고 30일 뒤(2026년 9월 20일) 신청자 정보를 지워요.')).toBeTruthy()
   expect(gets()).toBe(before + 1)
+})
+
+test('참가 신청 카드: 참가비·계좌·받은 참가비를 보이고, 납부자 참가비인데 명단이 없으면 경고하며, 무료면 없음이다', async () => {
+  setup(feeResponse())
+  const card = await region('참가 신청')
+  for (const text of ['7,000원 · 학생회비 납부자 0원', '카카오뱅크 3333-01-1234567 (학생회)', '받은 참가비 7,000원 · 1명']) {
+    expect(within(card).getByText(text)).toBeTruthy()
+  }
+  expect(within(card).queryByText(/학생회비 명단이 없어/)).toBeNull()
+  cleanup()
+  setup(feeResponse({ roster: null }))
+  expect(await screen.findByText('학생회비 명단이 없어 지금 신청하는 사람은 모두 미납자 참가비가 돼요. 재정 담당자에게 명단을 올려 달라고 해 주세요.'))
+    .toBeTruthy()
+  cleanup()
+  setup()
+  expect(within(await region('참가 신청')).getByText('없음')).toBeTruthy()
+})
+
+test('신청 받기 멈추기는 누르는 동안 꺼진다', async () => {
+  const { api } = setup()
+  const card = await region('참가 신청')
+  const pending = deferredResponse()
+  api.on('PATCH', base, () => pending.promise)
+  const button = within(card).getByRole('button', { name: '신청 받기 멈추기' })
+  fireEvent.click(button)
+  await waitFor(() => expect(button.hasAttribute('disabled')).toBe(true))
+  pending.resolve(json(registrationResponse({ form: registrationForm({ accepting: false, state: 'paused', version: 2 }) })))
+  await waitFor(() => expect(within(card).getByRole('button', { name: '다시 받기' }).hasAttribute('disabled')).toBe(false))
+})
+
+test('설정 대화상자: 참가비를 넣고, 계좌나 명단이 없거나 금액이 맞지 않으면 이유를 적고 저장을 끈다', async () => {
+  setup(registrationResponse({ account: null, roster: null }))
+  fireEvent.click(within(await region('참가 신청')).getByRole('button', { name: '설정 바꾸기' }))
+  let dialog = await screen.findByRole('dialog', { name: '참가 신청 설정' })
+  expect(field(dialog, '참가비(원)').value).toBe('0')
+  expect(within(dialog).getByText('0이면 무료예요.')).toBeTruthy()
+  fireEvent.change(field(dialog, '참가비(원)'), { target: { value: '5,000' } })
+  expect(within(dialog).getByText("학생회 계좌가 없어 참가비를 받을 수 없어요. 재정 담당자에게 '참가비 설정'에서 계좌를 넣어 달라고 해 주세요.")).toBeTruthy()
+  expect(within(dialog).getByRole('button', { name: '저장' }).hasAttribute('disabled')).toBe(true)
+  cleanup()
+  setup(registrationResponse({ account: feeAccount, roster: null }))
+  fireEvent.click(within(await region('참가 신청')).getByRole('button', { name: '설정 바꾸기' }))
+  dialog = await screen.findByRole('dialog', { name: '참가 신청 설정' })
+  fireEvent.change(field(dialog, '참가비(원)'), { target: { value: '5000' } })
+  expect(within(dialog).getByText('카카오뱅크 3333-01-1234567 (학생회)')).toBeTruthy()
+  expect(within(dialog).getByRole('button', { name: '저장' }).hasAttribute('disabled')).toBe(false)
+  fireEvent.click(field(dialog, '학생회비 납부자는 다른 금액'))
+  expect(within(dialog).getByText('쓸 수 있는 학생회비 명단이 없어요. 재정 담당자에게 명단을 올려 달라고 해 주세요.')).toBeTruthy()
+  expect(within(dialog).getByRole('button', { name: '저장' }).hasAttribute('disabled')).toBe(true)
+})
+
+test('설정 대화상자: 납부자 참가비는 참가비보다 적어야 저장하고, 보낸 본문에 두 금액이 있으며, 입금 확인이 있으면 금액을 잠근다', async () => {
+  const { api } = setup(registrationResponse({ account: feeAccount, roster: activeRoster }))
+  fireEvent.click(within(await region('참가 신청')).getByRole('button', { name: '설정 바꾸기' }))
+  const dialog = await screen.findByRole('dialog', { name: '참가 신청 설정' })
+  fireEvent.change(field(dialog, '참가비(원)'), { target: { value: '5000' } })
+  fireEvent.click(field(dialog, '학생회비 납부자는 다른 금액'))
+  fireEvent.change(field(dialog, '납부자 참가비(원)'), { target: { value: '5000' } })
+  expect(within(dialog).getByText('납부자 참가비는 참가비보다 적어야 해요.')).toBeTruthy()
+  const save = within(dialog).getByRole('button', { name: '저장' })
+  expect(save.hasAttribute('disabled')).toBe(true)
+  fireEvent.change(field(dialog, '납부자 참가비(원)'), { target: { value: '0' } })
+  expect(save.hasAttribute('disabled')).toBe(false)
+  api.on('PATCH', base, () => json({ error: 'EVENT_SETTLED' }, 409))
+  fireEvent.click(save)
+  expect(await within(dialog).findByText('정산이 끝난 행사라 참가비와 입금을 바꿀 수 없어요.')).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'PATCH').at(-1)!.body).toMatchObject({ version: 1, fee: 5000, memberFee: 0 })
+  cleanup()
+  setup(feeResponse())
+  fireEvent.click(within(await region('참가 신청')).getByRole('button', { name: '설정 바꾸기' }))
+  const locked = await screen.findByRole('dialog', { name: '참가 신청 설정' })
+  expect(field(locked, '참가비(원)').disabled).toBe(true)
+  expect(field(locked, '납부자 참가비(원)').disabled).toBe(true)
+  expect(within(locked).getByText('입금을 확인한 신청이 있어 참가비를 바꿀 수 없어요.')).toBeTruthy()
+})
+
+test('신청자 명단: 참가비 칩과 거르기를 보이고, 줄의 입금 확인은 바로 확인하며 실패하면 알린다', async () => {
+  const { api } = setup(feeResponse())
+  const list = await region('신청자')
+  for (const text of ['참가비 없음', '7,000원 · 입금 확인', '7,000원 · 입금 전', '학생회비 납부']) expect(within(list).getByText(text)).toBeTruthy()
+  fireEvent.click(within(list).getByRole('button', { name: '입금 전 1' }))
+  expect(within(list).queryByText('김바다')).toBeNull()
+  expect(within(list).getByText('박참여')).toBeTruthy()
+  fireEvent.click(within(list).getByRole('button', { name: '입금 확인 1' }))
+  expect(within(list).queryByText('박참여')).toBeNull()
+  expect(within(list).getByText('이수강')).toBeTruthy()
+  fireEvent.click(within(list).getByRole('button', { name: '전체 3' }))
+  api.on('POST', `${base}/entries/r3/payment`, () => json(feeResponse({ form: feeForm({ payments: { count: 2, total: 14000 } }),
+    registrations: feeEntries({ r3: { paid: { ...paidBy, at: '2026-08-04T09:00' } } }) })))
+  fireEvent.click(within(list).getByRole('button', { name: '박참여 입금 확인' }))
+  await waitFor(() => expect(api.calls.at(-1)).toMatchObject({ method: 'POST', path: `${base}/entries/r3/payment`, body: {} }))
+  await waitFor(() => expect(within(list).getAllByText('7,000원 · 입금 확인')).toHaveLength(2))
+  expect(within(await region('참가 신청')).getByText('받은 참가비 14,000원 · 2명')).toBeTruthy()
+  // 다른 운영진이 먼저 확인했으면 알리고 다시 불러온다.
+  cleanup()
+  const second = setup(feeResponse())
+  second.api.on('POST', `${base}/entries/r3/payment`, () => json({ error: 'PAYMENT_CONFIRMED' }, 409))
+  const fresh = await region('신청자')
+  fireEvent.click(within(fresh).getByRole('button', { name: '박참여 입금 확인' }))
+  expect(await within(fresh).findByText('입금을 확인한 신청이라 바꿀 수 없어요. 먼저 입금 확인을 취소해 주세요.')).toBeTruthy()
+  await waitFor(() => expect(second.api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
+})
+
+test('관리 대화상자: 입금자명과 입금 상태를 보이고, 확인 취소·참가비 바꾸기·신청 취소를 한다', async () => {
+  const { api } = setup(feeResponse())
+  fireEvent.click(within(await region('신청자')).getByRole('button', { name: '이수강 관리' }))
+  const dialog = await screen.findByRole('dialog', { name: '이수강' })
+  expect(within(dialog).getByText('이수강2222')).toBeTruthy()
+  expect(within(dialog).getByText('입금 확인 · 8월 3일 (월) 오전 10:00 · 기획')).toBeTruthy()
+  expect(within(dialog).getByRole('button', { name: '납부자 참가비로 바꾸기' }).hasAttribute('disabled')).toBe(true)
+  api.on('POST', `${base}/entries/r2/payment/cancel`, () => json(feeResponse({ form: feeForm({ payments: { count: 0, total: 0 } }),
+    registrations: feeEntries({ r2: { paid: null } }) })))
+  fireEvent.click(within(dialog).getByRole('button', { name: '입금 확인 취소' }))
+  expect(await within(dialog).findByRole('button', { name: '입금 확인' })).toBeTruthy()
+  expect(within(dialog).getByText('입금 전')).toBeTruthy()
+  api.on('POST', `${base}/entries/r2/dues`, () => json(feeResponse({ form: feeForm({ payments: { count: 0, total: 0 } }),
+    registrations: feeEntries({ r2: { paid: null, duesMember: true, fee: 0 } }) })))
+  fireEvent.click(within(dialog).getByRole('button', { name: '납부자 참가비로 바꾸기' }))
+  expect(await within(dialog).findByRole('button', { name: '미납자 참가비로 바꾸기' })).toBeTruthy()
+  expect(api.calls.at(-1)).toMatchObject({ method: 'POST', path: `${base}/entries/r2/dues`, body: { duesMember: true } })
+  cleanup()
+  const second = setup(feeResponse())
+  fireEvent.click(within(await region('신청자')).getByRole('button', { name: '이수강 관리' }))
+  fireEvent.click(within(await screen.findByRole('dialog', { name: '이수강' })).getByRole('button', { name: '신청 취소' }))
+  const confirm = await screen.findByRole('dialog', { name: '신청을 취소할까요?' })
+  expect(within(confirm).getByText(/받은 참가비 7,000원은 그대로 남아요\. 돌려줬다면 먼저 입금 확인을 취소해 주세요\./)).toBeTruthy()
+  second.api.on('POST', `${base}/entries/r2/cancel`, () => json(feeResponse({ registrations: feeEntries().filter(item => item.id !== 'r2') })))
+  fireEvent.click(within(confirm).getByRole('button', { name: '취소하기' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  expect(within(await region('신청자')).queryByText('이수강')).toBeNull()
 })

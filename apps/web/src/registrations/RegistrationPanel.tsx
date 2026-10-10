@@ -1,15 +1,16 @@
 import { useState } from 'react'
 import type { EventSummary, RegistrationFormView } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
+import { Alert } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, cardClass } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
-import { dayText, eventTimeText, formatKoreanTime, stateLabel } from '../public/registration-text'
+import { dayText, eventTimeText, formatKoreanTime, stateLabel, won } from '../public/registration-text'
 import EventInfoDialog from './EventInfoDialog'
 import RegistrantList from './RegistrantList'
 import RegistrationFormDialog from './RegistrationFormDialog'
-import { applyUrl, countText, stateTone } from './registration-view'
+import { applyUrl, countText, feeText, stateTone } from './registration-view'
 import type { RegistrationHook } from './useRegistration'
 
 type Props = {
@@ -30,17 +31,22 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
   const [editingForm, setEditingForm] = useState(false)
   const [message, setMessage] = useState('')
   const [copied, setCopied] = useState(false)
+  // 멈추기·다시 받기를 누르는 동안 버튼을 끈다.
+  const [toggling, setToggling] = useState(false)
   if (state.loadError) {
     return <Card className="flex flex-col gap-3 p-6"><StateMessage kind="error">참가 신청을 불러오지 못했어요.</StateMessage>
       <Button variant="outline" className="self-start" onClick={state.refresh}>다시 시도</Button></Card>
   }
   if (!state.data) return <StateMessage kind="loading">참가 신청을 불러오는 중…</StateMessage>
-  const { form, registrations } = state.data
+  const { form, registrations, account, roster } = state.data
   const time = eventTimeText(event.startsAt, event.endsAt)
   async function toggle(current: RegistrationFormView) {
+    if (toggling) return
+    setToggling(true)
     setMessage('')
     const result = await state.update({ version: current.version, accepting: !current.accepting, opensAt: current.opensAt, closesAt: current.closesAt,
-      capacity: current.capacity, notice: current.notice, collectPhone: current.collectPhone })
+      capacity: current.capacity, notice: current.notice, collectPhone: current.collectPhone, fee: current.fee, memberFee: current.memberFee })
+    setToggling(false)
     if (!result.ok) setMessage(result.message)
   }
   async function copy(code: string) {
@@ -79,11 +85,17 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
             <dd className="text-gray-700">{form.collectPhone ? '휴대폰 번호도 받아요.' : '휴대폰 번호는 받지 않아요.'}</dd></div>
           {form.notice && <div className="flex gap-3"><dt className="w-14 shrink-0 text-gray-500">안내</dt>
             <dd className="min-w-0 whitespace-pre-line wrap-anywhere text-gray-700">{form.notice}</dd></div>}
+          <div className="flex gap-3"><dt className="w-14 shrink-0 text-gray-500">참가비</dt><dd className="text-gray-700">{feeText(form)}</dd></div>
+          {form.fee > 0 && account && <div className="flex gap-3"><dt className="w-14 shrink-0 text-gray-500">계좌</dt>
+            <dd className="min-w-0 wrap-anywhere text-gray-700">{account.bank} {account.accountNumber} ({account.holder})</dd></div>}
         </dl>
+        {form.payments.count > 0 && <p className="text-sm text-gray-700">받은 참가비 {won(form.payments.total)} · {form.payments.count}명</p>}
+        {form.memberFee !== null && roster === null && <Alert tone="warning">
+          학생회비 명단이 없어 지금 신청하는 사람은 모두 미납자 참가비가 돼요. 재정 담당자에게 명단을 올려 달라고 해 주세요.</Alert>}
         <p className="text-xs text-gray-500">행사가 끝나고 30일 뒤({dayText(form.purgeAfter)}) 신청자 정보를 지워요.</p>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => setEditingForm(true)}>설정 바꾸기</Button>
-          <Button variant="outline" size="sm" onClick={() => void toggle(form)}>{form.accepting ? '신청 받기 멈추기' : '다시 받기'}</Button>
+          <Button variant="outline" size="sm" disabled={toggling} onClick={() => void toggle(form)}>{form.accepting ? '신청 받기 멈추기' : '다시 받기'}</Button>
         </div>
       </> : <>
         <p className="text-sm text-gray-500">아직 참가 신청을 받지 않아요. 신청 링크를 만들면 학생들이 로그인 없이 휴대폰으로 신청해요.</p>
@@ -92,11 +104,13 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
       </>}
       {message && <StateMessage kind="error">{message}</StateMessage>}
     </section>
-    {form && <RegistrantList form={form} registrations={registrations} onCancel={state.cancel} />}
+    {form && <RegistrantList form={form} registrations={registrations} onCancel={state.cancel} onConfirmPayment={state.confirmPayment}
+      onCancelPayment={state.cancelPayment} onSetDuesMember={state.setDuesMember} />}
     <EventInfoDialog open={editingEvent} organizationId={organizationId} event={event} onClose={() => setEditingEvent(false)}
       // 행사 끝이 바뀌면 참가 신청의 지울 날과 상태도 바뀌므로 다시 불러온다.
       onSaved={saved => { setEditingEvent(false); onEventChange(saved); if (form) state.refresh() }} onStale={onEventStale} />
     <RegistrationFormDialog open={editingForm} event={event} form={form} phoneCount={registrations.filter(item => item.phone !== null).length}
+      account={account} roster={roster}
       onClose={() => setEditingForm(false)}
       onSubmit={input => form ? state.update({ ...input, version: form.version, accepting: form.accepting }) : state.create(input)} />
   </div>

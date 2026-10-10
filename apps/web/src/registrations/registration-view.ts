@@ -1,6 +1,7 @@
-import type { RegistrationEntry, RegistrationState } from '@vada/contracts'
+import type { RegistrationEntry, RegistrationFormView, RegistrationState } from '@vada/contracts'
 import type { Tone } from '@/components/ui/badge'
 import { applyPath } from '../public/public-route'
+import { won } from '../public/registration-text'
 
 export const registrationBase = (organizationId: string, eventId: string) =>
   `/api/organizations/${encodeURIComponent(organizationId)}/events/${encodeURIComponent(eventId)}/registration`
@@ -17,3 +18,24 @@ export function findRegistrants(list: RegistrationEntry[], query: string) {
 }
 const tones: Record<RegistrationState, Tone> = { open: 'success', upcoming: 'info', full: 'warning', paused: 'danger', closed: 'neutral' }
 export const stateTone = (state: RegistrationState) => tones[state]
+
+// 참가 신청 카드의 참가비 줄
+export function feeText(form: Pick<RegistrationFormView, 'fee' | 'memberFee'>) {
+  if (form.fee === 0 && form.memberFee === null) return '없음'
+  return form.memberFee === null ? won(form.fee) : `${won(form.fee)} · 학생회비 납부자 ${won(form.memberFee)}`
+}
+// 참가비를 다루는 참가 신청이면 명단에 입금 거르기와 칩을 둔다. 무료로 바꿨어도 받은 참가비가 있으면 둔다.
+export const hasFees = (form: Pick<RegistrationFormView, 'fee' | 'memberFee' | 'payments'>) =>
+  form.fee > 0 || form.memberFee !== null || form.payments.count > 0
+export type PaymentFilter = 'all' | 'unpaid' | 'paid'
+// 입금 전: 낼 돈이 있고 확인 전인 신청. 입금 확인: 확인한 신청.
+export function paymentFilter(list: RegistrationEntry[], filter: PaymentFilter) {
+  if (filter === 'unpaid') return list.filter(item => item.fee > 0 && item.paid === null)
+  if (filter === 'paid') return list.filter(item => item.paid !== null)
+  return list
+}
+export function paymentChip(item: RegistrationEntry): { text: string; tone: Tone } {
+  if (item.paid) return { text: `${won(item.paid.amount)} · 입금 확인`, tone: 'success' }
+  if (item.fee === 0) return { text: '참가비 없음', tone: 'neutral' }
+  return { text: `${won(item.fee)} · 입금 전`, tone: 'warning' }
+}

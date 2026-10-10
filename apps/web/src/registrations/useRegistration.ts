@@ -52,6 +52,10 @@ export function useRegistration(organizationId: string, eventId: string, enabled
     create: (input: CreateRegistrationFormRequest) => send('POST', '', input),
     update: (input: UpdateRegistrationFormRequest) => send('PATCH', '', input),
     cancel: (registrationId: string) => send('POST', `/entries/${encodeURIComponent(registrationId)}/cancel`, {}),
+    confirmPayment: (registrationId: string) => send('POST', `/entries/${encodeURIComponent(registrationId)}/payment`, {}),
+    cancelPayment: (registrationId: string) => send('POST', `/entries/${encodeURIComponent(registrationId)}/payment/cancel`, {}),
+    setDuesMember: (registrationId: string, duesMember: boolean) =>
+      send('POST', `/entries/${encodeURIComponent(registrationId)}/dues`, { duesMember }),
   }
 }
 export type RegistrationHook = ReturnType<typeof useRegistration>
