@@ -141,7 +141,8 @@ test('행사 정보 수정: 부서가 있는 구성원이 일시·장소를 고�
     // 미배정 구성원과 다른 학생회 사용자는 고치지 못한다.
     for (const user of ['n', 'x']) { userId = user; await refused(patch(info), 403, 'FORBIDDEN') }
     userId = 'p'
-    for (const event of ['ex', 'missing']) await refused(patch(info, event), 404, 'NOT_FOUND')
+    // 다른 학생회 행사, 없는 행사, 제어 문자나 너무 긴 ID는 모두 찾을 수 없다.
+    for (const event of ['ex', 'missing', '%00', 'a'.repeat(65)]) await refused(patch(info, event), 404, 'NOT_FOUND')
 
     const response = await patch(info)
     assert.equal(response.status, 200)

@@ -1,11 +1,14 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import { and, asc, count, eq, isNotNull, isNull, sql } from 'drizzle-orm'
-import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
+import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { dateFromKorean, koreanOf, type CreateRegistrationFormRequest, type MyRegistration, type PublicRegistrationEvent,
   type PublicRegistrationForm, type RegisterRequest, type RegistrationCreated, type RegistrationFormView, type RegistrationResponse,
   type UpdateRegistrationFormRequest } from '@vada/contracts'
-import { events, organizations, registrationForms, registrations } from '../db/schema.js'
+import { eventFinances, events, organizations, registrationForms, registrations, users } from '../db/schema.js'
+import { activeRoster, feeAccountOf, isDuesMember, koreanToday, rematchDues } from '../fees/roster.js'
 import { ApiError } from '../http/errors.js'
+import { requireOpenEvents } from '../settlement/lock.js'
+import { owedOf } from './fee.js'
 import { purgeExpired } from './purge.js'
 import { eventEnd, purgeAfterOf, stateOf } from './state.js'
 
@@ -16,10 +19,14 @@ type Writer = Pick<Db, 'select' | 'update'>
 export interface RegistrationScope { organizationId: string; userId: string }
 type Event = typeof events.$inferSelect
 type Form = typeof registrationForms.$inferSelect
+type FeeSetting = { fee: number; memberFee: number | null }
+const confirmers = alias(users, 'payment_confirmers')
 
+// 바꿀 때는 행사 행을 FOR NO KEY UPDATE로 잠근다(저장소 관례). 행사를 참조하는 행 추가와는 부딪히지 않고,
+// 입금 확인(FOR SHARE)과 M2-2 정산(FOR NO KEY UPDATE)과는 겹치지 않는다.
 export async function eventOf(db: Reader, organizationId: string, eventId: string, lock = false) {
   const query = db.select().from(events).where(and(eq(events.organizationId, organizationId), eq(events.id, eventId)))
-  const [event] = lock ? await query.for('update') : await query
+  const [event] = lock ? await query.for('no key update') : await query
   if (!event) throw new ApiError('NOT_FOUND', 404)
   return event
 }
@@ -35,6 +42,26 @@ export async function countOf(db: Reader, formId: string) {
     .where(and(eq(registrations.formId, formId), isNull(registrations.cancelledAt)))
   return row?.value ?? 0
 }
+// 입금을 확인한 신청의 수와 확인 금액 합. 취소했거나 정보를 지운 신청도 받은 돈으로 센다.
+async function paymentsOf(db: Reader, formId: string) {
+  const [row] = await db.select({ count: count(), total: sql<string>`coalesce(sum(${registrations.paidAmount}), 0)` }).from(registrations)
+    .where(and(eq(registrations.formId, formId), isNotNull(registrations.paidAt)))
+  return { count: row?.count ?? 0, total: Number(row?.total ?? 0) }
+}
+// 금액이 바뀔 때만 본다. 정산 → 입금 확인 → 계좌 → 명단 순서다.
+// 명단은 납부자 참가비를 새로 켤 때만 본다. 이미 켠 뒤에 명단 기한이 지나도 다른 설정을 막지 않는다.
+async function checkFees(tx: Reader, organizationId: string, eventId: string, today: string, current: FeeSetting, input: FeeSetting,
+  formId: string | null) {
+  if (current.fee === input.fee && current.memberFee === input.memberFee) return
+  const [finance] = await tx.select({ settledAt: eventFinances.settledAt }).from(eventFinances)
+    .where(and(eq(eventFinances.organizationId, organizationId), eq(eventFinances.eventId, eventId)))
+  if (finance?.settledAt) throw new ApiError('EVENT_SETTLED', 409)
+  if (formId !== null && (await paymentsOf(tx, formId)).count > 0) throw new ApiError('FEE_LOCKED', 409)
+  if (input.fee > 0 && !await feeAccountOf(tx, organizationId)) throw new ApiError('FEE_ACCOUNT_REQUIRED', 409)
+  if (current.memberFee === null && input.memberFee !== null && !await activeRoster(tx, organizationId, today)) {
+    throw new ApiError('DUES_ROSTER_REQUIRED', 409)
+  }
+}
 // 행사 끝: 참가 신청이 있는 행사는 늘 시작 일시가 있다.
 export function endOf(event: Pick<Event, 'startsAt' | 'endsAt'>) {
   const end = eventEnd(event)
@@ -48,12 +75,13 @@ function assertDeadline(event: Event, closesAt: Date) {
 export const koreanDay = (date: Date) => koreanOf(date).slice(0, 10)
 const timeOf = (value: string | null) => value === null ? null : dateFromKorean(value)
 
-function formView(form: Form, event: Event, total: number, now: Date): RegistrationFormView {
+function formView(form: Form, event: Event, total: number, payments: RegistrationFormView['payments'], now: Date): RegistrationFormView {
   const purgeAfter = purgeAfterOf(endOf(event))
   return {
     id: form.id, code: form.code, accepting: form.accepting, opensAt: form.opensAt && koreanOf(form.opensAt), closesAt: koreanOf(form.closesAt),
     capacity: form.capacity, notice: form.notice, collectPhone: form.collectPhone, version: form.version, state: stateOf(form, total, now),
     count: total, purgeAfter: koreanDay(purgeAfter), purged: purgeAfter <= now, updatedAt: form.updatedAt.toISOString(),
+    fee: form.fee, memberFee: form.memberFee, payments,
   }
 }
 
@@ -85,19 +113,46 @@ async function registrationByToken(db: Reader, token: string, lock = false) {
 type Found = NonNullable<Awaited<ReturnType<typeof registrationByToken>>>
 
 export function createRegistrationService(db: RegistrationDatabase, now: () => Date) {
-  // 운영진 화면이 받는 것. 먼저 보관 기간이 지난 정보를 지운다.
+  // 운영진 화면이 받는 것. 먼저 보관 기간이 지난 정보를 지운다. 학생회비 명단은 이름과 기한만 준다.
   async function view(tx: Writer, organizationId: string, eventId: string): Promise<RegistrationResponse> {
     const event = await eventOf(tx, organizationId, eventId)
     const form = await formOf(tx, organizationId, eventId)
-    if (!form) return { form: null, registrations: [] }
+    const account = await feeAccountOf(tx, organizationId)
+    const roster = await activeRoster(tx, organizationId, koreanToday(now()))
+    if (!form) return { form: null, registrations: [], account, roster }
     await purgeExpired(tx, form.id)
-    const rows = await tx.select().from(registrations)
+    const rows = await tx.select({ registration: registrations, confirmerName: confirmers.name }).from(registrations)
+      .leftJoin(confirmers, eq(confirmers.id, registrations.paidBy))
       .where(and(eq(registrations.formId, form.id), isNull(registrations.purgedAt)))
       .orderBy(asc(registrations.createdAt), asc(registrations.id))
     return {
-      form: formView(form, event, await countOf(tx, form.id), now()),
-      registrations: rows.map(row => ({ id: row.id, name: row.name!, studentId: row.studentId!, phone: row.phone, createdAt: koreanOf(row.createdAt) })),
+      form: formView(form, event, await countOf(tx, form.id), await paymentsOf(tx, form.id), now()),
+      registrations: rows.map(({ registration: row, confirmerName }) => ({ id: row.id, name: row.name!, studentId: row.studentId!, phone: row.phone,
+        createdAt: koreanOf(row.createdAt), duesMember: row.duesMember, fee: owedOf(form, row),
+        paid: row.paidAt && row.paidAmount !== null && row.paidBy
+          ? { amount: row.paidAmount, at: koreanOf(row.paidAt), by: { id: row.paidBy, name: confirmerName ?? '' } } : null })),
+      account, roster,
     }
+  }
+  // 입금 확인·확인 취소·참가비 바꾸기 앞에 부른다.
+  // 행사 행을 FOR SHARE로 잠그고 정산 여부를 본다. 그래서 M2-2 정산과 금액 변경(FOR NO KEY UPDATE)과 겹치지 않는다.
+  // 그다음 지울 정보를 지우고, 지우지 않은 신청을 찾는다.
+  async function entryOf(tx: Writer, scope: RegistrationScope, eventId: string, registrationId: string) {
+    await requireOpenEvents(tx, scope.organizationId, [eventId])
+    const form = await formOf(tx, scope.organizationId, eventId)
+    if (!form) throw new ApiError('NOT_FOUND', 404)
+    await purgeExpired(tx, form.id)
+    const [row] = await tx.select().from(registrations)
+      .where(and(eq(registrations.formId, form.id), eq(registrations.id, registrationId), isNull(registrations.purgedAt)))
+    if (!row) throw new ApiError('NOT_FOUND', 404)
+    return { form, row }
+  }
+  // 조건을 건 UPDATE가 0행이면 그사이 다른 요청이 바꾼 것이다. 지금 상태로 알맞은 오류를 낸다.
+  async function changed(tx: Reader, registrationId: string): Promise<never> {
+    const [current] = await tx.select({ paidAt: registrations.paidAt, purgedAt: registrations.purgedAt }).from(registrations)
+      .where(eq(registrations.id, registrationId))
+    if (!current || current.purgedAt) throw new ApiError('NOT_FOUND', 404)
+    throw new ApiError(current.paidAt ? 'PAYMENT_CONFIRMED' : 'PAYMENT_NOT_CONFIRMED', 409)
   }
   // 먼저 그 신청의 지울 정보를 지운 뒤 다시 찾는다. 보관 기간이 지났으면 찾을 수 없다.
   async function mine(tx: Writer, token: string, lock = false) {
@@ -136,9 +191,12 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       if (state === 'full') throw new ApiError('REGISTRATION_FULL', 409)
       // 휴대폰 번호는 받는 신청에서만 받는다. 다르면 운영진이 설정을 바꾸기 전에 연 화면이므로 화면이 설정을 다시 받게 한다.
       if (form.collectPhone !== (input.phone !== null)) throw new ApiError('FORM_CHANGED', 409)
+      // 납부자 참가비가 있으면 학번과 이름이 둘 다 맞는 납부자인지 정해 둔다. 명단을 나중에 바꿔도 그대로다.
+      const duesMember = form.memberFee === null ? null
+        : await isDuesMember(tx, form.organizationId, input.studentId, input.name, koreanToday(now()))
       const token = randomBytes(16).toString('base64url')
       await tx.insert(registrations).values({ id: randomUUID(), organizationId: form.organizationId, formId: form.id, tokenHash: hashOf(token),
-        name: input.name, studentId: input.studentId, phone: input.phone })
+        name: input.name, studentId: input.studentId, phone: input.phone, duesMember })
       return { token }
     }),
     lookup: (token: string) => db.transaction(async tx => myView(await mine(tx, token))),
@@ -156,8 +214,9 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       if (await formOf(tx, scope.organizationId, eventId)) throw new ApiError('REGISTRATION_EXISTS', 409)
       const closesAt = dateFromKorean(input.closesAt)
       assertDeadline(event, closesAt)
+      await checkFees(tx, scope.organizationId, eventId, koreanToday(now()), { fee: 0, memberFee: null }, input, null)
       await tx.insert(registrationForms).values({ id: randomUUID(), organizationId: scope.organizationId, eventId, opensAt: timeOf(input.opensAt), closesAt,
-        capacity: input.capacity, notice: input.notice, collectPhone: input.collectPhone, createdBy: scope.userId })
+        capacity: input.capacity, notice: input.notice, collectPhone: input.collectPhone, fee: input.fee, memberFee: input.memberFee, createdBy: scope.userId })
       return view(tx, scope.organizationId, eventId)
     }),
     update: (scope: RegistrationScope, eventId: string, input: UpdateRegistrationFormRequest) => db.transaction(async tx => {
@@ -167,11 +226,19 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       if (form.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
       const closesAt = dateFromKorean(input.closesAt)
       assertDeadline(event, closesAt)
+      const today = koreanToday(now())
+      await checkFees(tx, scope.organizationId, eventId, today, form, input, form.id)
       await tx.update(registrationForms).set({ accepting: input.accepting, opensAt: timeOf(input.opensAt), closesAt, capacity: input.capacity,
-        notice: input.notice, collectPhone: input.collectPhone, version: form.version + 1 }).where(eq(registrationForms.id, form.id))
+        notice: input.notice, collectPhone: input.collectPhone, fee: input.fee, memberFee: input.memberFee, version: form.version + 1 })
+        .where(eq(registrationForms.id, form.id))
       // 더는 휴대폰 번호를 받지 않으면 받아 둔 번호도 지운다(최소 수집).
       if (form.collectPhone && !input.collectPhone) {
         await tx.update(registrations).set({ phone: null }).where(and(eq(registrations.formId, form.id), isNotNull(registrations.phone)))
+      }
+      // 납부자 참가비를 켜면 지금 신청을 명단과 다시 맞추고, 끄면 납부 구분을 지운다.
+      if (form.memberFee === null && input.memberFee !== null) await rematchDues(tx, scope.organizationId, form.id, today)
+      if (form.memberFee !== null && input.memberFee === null) {
+        await tx.update(registrations).set({ duesMember: null }).where(eq(registrations.formId, form.id))
       }
       return view(tx, scope.organizationId, eventId)
     }),
@@ -185,6 +252,38 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
         .where(and(eq(registrations.formId, form.id), eq(registrations.id, registrationId), isNull(registrations.purgedAt)))
         .returning({ id: registrations.id })
       if (!row) throw new ApiError('NOT_FOUND', 404)
+      return view(tx, scope.organizationId, eventId)
+    }),
+    // 입금 확인. 낼 돈이 있는 신청만 확인하고, 그때의 낼 돈을 확인 금액으로 남긴다.
+    confirmPayment: (scope: RegistrationScope, eventId: string, registrationId: string) => db.transaction(async tx => {
+      const { form, row } = await entryOf(tx, scope, eventId, registrationId)
+      if (row.paidAt) throw new ApiError('PAYMENT_CONFIRMED', 409)
+      const amount = owedOf(form, row)
+      if (amount <= 0) throw new ApiError('NO_FEE', 409)
+      const [updated] = await tx.update(registrations).set({ paidAmount: amount, paidAt: sql`now()`, paidBy: scope.userId })
+        .where(and(eq(registrations.id, row.id), isNull(registrations.paidAt), isNull(registrations.purgedAt))).returning({ id: registrations.id })
+      if (!updated) await changed(tx, row.id)
+      return view(tx, scope.organizationId, eventId)
+    }),
+    // 확인 취소. 돌려줬거나 잘못 눌렀을 때 쓴다.
+    cancelPayment: (scope: RegistrationScope, eventId: string, registrationId: string) => db.transaction(async tx => {
+      const { row } = await entryOf(tx, scope, eventId, registrationId)
+      if (!row.paidAt) throw new ApiError('PAYMENT_NOT_CONFIRMED', 409)
+      const [updated] = await tx.update(registrations).set({ paidAmount: null, paidAt: null, paidBy: null })
+        .where(and(eq(registrations.id, row.id), isNotNull(registrations.paidAt), isNull(registrations.purgedAt))).returning({ id: registrations.id })
+      if (!updated) await changed(tx, row.id)
+      return view(tx, scope.organizationId, eventId)
+    }),
+    // 참가비 바꾸기: 학생 문의에 따라 납부 구분을 바꾼다. 납부자 참가비가 있고 입금 확인 전일 때만 된다.
+    setDuesMember: (scope: RegistrationScope, eventId: string, registrationId: string, duesMember: boolean) => db.transaction(async tx => {
+      const { form, row } = await entryOf(tx, scope, eventId, registrationId)
+      if (form.memberFee === null) throw new ApiError('INVALID_STATE', 409)
+      if (row.paidAt) throw new ApiError('PAYMENT_CONFIRMED', 409)
+      if (row.duesMember !== duesMember) {
+        const [updated] = await tx.update(registrations).set({ duesMember })
+          .where(and(eq(registrations.id, row.id), isNull(registrations.paidAt), isNull(registrations.purgedAt))).returning({ id: registrations.id })
+        if (!updated) await changed(tx, row.id)
+      }
       return view(tx, scope.organizationId, eventId)
     }),
   }

@@ -2,7 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { Hono } from 'hono'
 import { and, desc, eq, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { CreateEventSchema, UpdateEventSchema, dateFromKorean, koreanOf, type EventResponse, type EventSummary,
+import { CreateEventSchema, UpdateEventSchema, dateFromKorean, koreanOf, token, type EventResponse, type EventSummary,
   type EventsResponse } from '@vada/contracts'
 import { chatRooms, events, memberships, registrationForms } from '../db/schema.js'
 
@@ -10,6 +10,14 @@ import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireEventManager, requireMembership, type MembershipEnv } from '../access/membership.js'
 import { ApiError } from '../http/errors.js'
 import { json } from '../http/validate.js'
+
+// 경로의 ID도 본문과 같은 규칙으로 검사한다. 제어 문자나 너무 긴 값은 없는 행사로 본다.
+const pathId = token(64)
+function idOf(value: string | undefined) {
+  const parsed = pathId.safeParse(value)
+  if (!parsed.success) throw new ApiError('NOT_FOUND', 404)
+  return parsed.data
+}
 
 // 일시는 한국 시각 문자열로 준다.
 export const serializeEvent = (event: typeof events.$inferSelect): EventSummary => ({
@@ -64,10 +72,11 @@ export function createEventRoutes(
   routes.patch(`${path}/:eventId`, json(UpdateEventSchema), authenticated, member, manager, async (c) => {
     const input = c.req.valid('json')
     const organizationId = c.req.param('organizationId')
-    const eventId = c.req.param('eventId')
+    const eventId = idOf(c.req.param('eventId'))
     const event = await db.transaction(async tx => {
+      // 행사 행은 FOR NO KEY UPDATE로 잠근다(저장소 관례). 참가 신청 설정 변경·입금 확인과 겹치지 않는다.
       const [current] = await tx.select().from(events)
-        .where(and(eq(events.organizationId, organizationId), eq(events.id, eventId))).for('update')
+        .where(and(eq(events.organizationId, organizationId), eq(events.id, eventId))).for('no key update')
       if (!current) throw new ApiError('NOT_FOUND', 404)
       if (current.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
       const startsAt = input.startsAt === null ? null : dateFromKorean(input.startsAt)

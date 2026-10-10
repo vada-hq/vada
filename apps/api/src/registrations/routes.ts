@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono'
-import { CancelRegistrationSchema, CreateRegistrationFormSchema, RegisterSchema, RegistrationTokenSchema, token, UpdateRegistrationFormSchema,
-  type RegistrationResponse } from '@vada/contracts'
+import { CancelRegistrationSchema, CreateRegistrationFormSchema, PaymentActionSchema, RegisterSchema, RegistrationTokenSchema, SetDuesMemberSchema, token,
+  UpdateRegistrationFormSchema, type RegistrationResponse } from '@vada/contracts'
 import { requireEventManager, requireMembership, type MembershipEnv } from '../access/membership.js'
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
@@ -40,6 +40,13 @@ export function createRegistrationRoutes(db: RegistrationDatabase, session: Sess
     c.json(reply(await service.update(scope(c), eventId(c), c.req.valid('json')))))
   routes.post(`${base}/entries/:registrationId/cancel`, json(CancelRegistrationSchema), auth, member, manager, async c =>
     c.json(reply(await service.cancel(scope(c), eventId(c), idOf(c.req.param('registrationId'))))))
+  // 입금 확인·확인 취소·참가비 바꾸기
+  routes.post(`${base}/entries/:registrationId/payment`, json(PaymentActionSchema), auth, member, manager, async c =>
+    c.json(reply(await service.confirmPayment(scope(c), eventId(c), idOf(c.req.param('registrationId'))))))
+  routes.post(`${base}/entries/:registrationId/payment/cancel`, json(PaymentActionSchema), auth, member, manager, async c =>
+    c.json(reply(await service.cancelPayment(scope(c), eventId(c), idOf(c.req.param('registrationId'))))))
+  routes.post(`${base}/entries/:registrationId/dues`, json(SetDuesMemberSchema), auth, member, manager, async c =>
+    c.json(reply(await service.setDuesMember(scope(c), eventId(c), idOf(c.req.param('registrationId')), c.req.valid('json').duesMember))))
   routes.get('/public/registration-forms/:code', async c => c.json(await service.publicForm(codeOf(c.req.param('code')))))
   routes.post('/public/registration-forms/:code/entries', json(RegisterSchema), async c =>
     c.json(await service.register(codeOf(c.req.param('code')), c.req.valid('json')), 201))
