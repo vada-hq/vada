@@ -7,6 +7,7 @@ import { coupangProducts, events, messages, purchaseCandidates as candidates, pu
 import { matchItem } from './products.js'
 import type { PurchaseScope } from './service.js'
 import { PurchaseError } from './validation.js'
+import { requireActiveEvents } from '../events/lock.js'
 
 type Writer = Pick<PgDatabase<PgQueryResultHKT>, 'insert'>
 
@@ -27,7 +28,7 @@ export async function recordMessageLinks(tx: Writer, scope: { organizationId: st
   }
 }
 
-type Reader = Pick<PgDatabase<PgQueryResultHKT>, 'select' | 'selectDistinct' | 'update'>
+type Reader = Pick<PgDatabase<PgQueryResultHKT>, 'select' | 'selectDistinct' | 'update' | 'transaction'>
 const LIST_LIMIT = 300
 const SHARES_SHOWN = 20
 const hiders = alias(users, 'candidate_hiders')
@@ -101,10 +102,14 @@ export function createCandidateService(db: Reader) {
     },
     async setHidden(scope: PurchaseScope, id: string, hidden: boolean): Promise<PurchaseCandidate> {
       await event(scope)
-      // 이미 그 상태면 그대로 둔다. 처음 숨긴 사람·시각을 덮어쓰지 않는다.
-      await db.update(candidates).set(hidden ? { hiddenBy: scope.userId, hiddenAt: sql`now()` } : { hiddenBy: null, hiddenAt: null })
-        .where(and(eq(candidates.id, id), eq(candidates.organizationId, scope.organizationId), eq(candidates.eventId, scope.eventId),
-          hidden ? isNull(candidates.hiddenAt) : isNotNull(candidates.hiddenAt)))
+      // 완료한 행사(M5a)의 후보는 바꾸지 않는다. 행사 행을 FOR SHARE로 잠근 채 바꾼다.
+      await db.transaction(async tx => {
+        await requireActiveEvents(tx, scope.organizationId, [scope.eventId])
+        // 이미 그 상태면 그대로 둔다. 처음 숨긴 사람·시각을 덮어쓰지 않는다.
+        await tx.update(candidates).set(hidden ? { hiddenBy: scope.userId, hiddenAt: sql`now()` } : { hiddenBy: null, hiddenAt: null })
+          .where(and(eq(candidates.id, id), eq(candidates.organizationId, scope.organizationId), eq(candidates.eventId, scope.eventId),
+            hidden ? isNull(candidates.hiddenAt) : isNotNull(candidates.hiddenAt)))
+      })
       const [found] = (await summaries(scope, id)).candidates
       if (!found) throw new PurchaseError('NOT_FOUND', 404)
       return found

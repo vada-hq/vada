@@ -10,6 +10,7 @@ import { ApiError } from '../http/errors.js'
 import { requireOpenEvents } from '../settlement/lock.js'
 import { basisOf, owedOf } from './fee.js'
 import { purgeExpired } from './purge.js'
+import { lockActiveEvent, requireActiveEvents, shareEvent } from '../events/lock.js'
 import { eventEnd, purgeAfterOf, stateOf } from './state.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -23,11 +24,9 @@ type FeeSetting = { fee: number; memberFee: number | null }
 const confirmers = alias(users, 'payment_confirmers')
 const checkers = alias(users, 'check_in_staff')
 
-// 바꿀 때는 행사 행을 FOR NO KEY UPDATE로 잠근다(저장소 관례). 행사를 참조하는 행 추가와는 부딪히지 않고,
-// 입금 확인(FOR SHARE)과 M2-2 정산(FOR NO KEY UPDATE)과는 겹치지 않는다.
-export async function eventOf(db: Reader, organizationId: string, eventId: string, lock = false) {
-  const query = db.select().from(events).where(and(eq(events.organizationId, organizationId), eq(events.id, eventId)))
-  const [event] = lock ? await query.for('no key update') : await query
+// 이 학생회의 행사다. 바꿀 때는 events/lock.ts로 행사 행을 잠근다(완료한 행사는 막는다, M5a).
+export async function eventOf(db: Reader, organizationId: string, eventId: string) {
+  const [event] = await db.select().from(events).where(and(eq(events.organizationId, organizationId), eq(events.id, eventId)))
   if (!event) throw new ApiError('NOT_FOUND', 404)
   return event
 }
@@ -177,8 +176,9 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     if (!current || current.purgedAt) throw new ApiError('NOT_FOUND', 404)
     throw new ApiError(current.paidAt ? 'PAYMENT_CONFIRMED' : 'PAYMENT_NOT_CONFIRMED', 409)
   }
-  // 참석 확인 앞에 부른다. 참석은 정산과 관계없어 행사 행을 잠그지 않는다. 지울 정보를 먼저 지우고 지우지 않은 신청을 찾는다.
+  // 참석 확인 앞에 부른다. 참석은 정산과 관계없지만 완료한 행사(M5a)는 막는다(행사 행 FOR SHARE). 지울 정보를 먼저 지우고 지우지 않은 신청을 찾는다.
   async function attendeeOf(tx: Writer, scope: RegistrationScope, eventId: string, match: SQL) {
+    await requireActiveEvents(tx, scope.organizationId, [eventId])
     const form = await formOf(tx, scope.organizationId, eventId)
     if (!form) throw new ApiError('NOT_FOUND', 404)
     await purgeExpired(tx, form.id)
@@ -228,12 +228,15 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     // 신청. 받는 중이 아니면 막고, 이미 신청한 학번이면 정원이 찼다는 것보다 그것을 먼저 알린다.
     // 받는 중인 신청에는 지울 정보가 없다(마감 ≤ 행사 끝 < 지울 때). 잠금을 쥔 시간을 줄이려고 파기를 부르지 않고 신청 수와 같은 학번을 한 번에 센다.
     register: (code: string, input: RegisterRequest) => db.transaction(async (tx): Promise<RegistrationCreated> => {
+      // 행사 행을 먼저 FOR SHARE로 잠가 완료(M5a)와 엇갈리지 않게 한다. 잠금 순서는 행사 → 신청서다.
+      const { form: found } = await formByCode(tx, code)
+      const event = await shareEvent(tx, found.organizationId, found.eventId)
       const { form } = await formByCode(tx, code, true)
       const [tally] = await tx.select({
         total: sql<number>`(count(*) FILTER (WHERE ${registrations.cancelledAt} IS NULL))::int`,
         same: sql<number>`(count(*) FILTER (WHERE ${registrations.studentId} = ${input.studentId} AND ${registrations.purgedAt} IS NULL))::int`,
       }).from(registrations).where(eq(registrations.formId, form.id))
-      const state = stateOf(form, tally?.total ?? 0, now())
+      const state = stateOf(form, tally?.total ?? 0, now(), event.completedAt !== null)
       if (state !== 'open' && state !== 'full') throw new ApiError('REGISTRATION_NOT_OPEN', 409)
       if ((tally?.same ?? 0) > 0) throw new ApiError('ALREADY_REGISTERED', 409)
       if (state === 'full') throw new ApiError('REGISTRATION_FULL', 409)
@@ -254,8 +257,12 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     // 신청자가 스스로 취소한다. 마감 전이고 입금·참석을 확인하지 않았을 때만 되고, 정보를 바로 지운다.
     // 입금 확인·참석 확인과 엇갈려도 확인한 신청은 취소하지 않도록 UPDATE에 조건을 건다.
     cancelMine: (token: string) => db.transaction(async (tx): Promise<MyRegistration> => {
+      // 행사 행을 먼저 잠근다(행사 → 신청서). 완료한 행사(M5a)는 취소 기간이 끝난 것으로 알린다.
+      const found = await registrationByToken(tx, token)
+      if (!found) throw new ApiError('NOT_FOUND', 404)
+      const event = await shareEvent(tx, found.form.organizationId, found.form.eventId)
       const current = await mine(tx, token, true)
-      if (now() >= current.form.closesAt) throw new ApiError('CANCEL_CLOSED', 409)
+      if (event.completedAt || now() >= current.form.closesAt) throw new ApiError('CANCEL_CLOSED', 409)
       if (current.registration.paidAt) throw new ApiError('PAYMENT_CONFIRMED', 409)
       if (current.registration.checkedInAt) throw new ApiError('CHECKED_IN', 409)
       const [cancelled] = await tx.update(registrations)
@@ -271,7 +278,7 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     }),
     // 행사 행을 잠가 행사 일시 수정과 엇갈리지 않게 한다.
     create: (scope: RegistrationScope, eventId: string, input: CreateRegistrationFormRequest) => db.transaction(async tx => {
-      const event = await eventOf(tx, scope.organizationId, eventId, true)
+      const event = await lockActiveEvent(tx, scope.organizationId, eventId)
       if (await formOf(tx, scope.organizationId, eventId)) throw new ApiError('REGISTRATION_EXISTS', 409)
       const closesAt = dateFromKorean(input.closesAt)
       assertDeadline(event, closesAt)
@@ -281,7 +288,7 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       return view(tx, scope.organizationId, eventId)
     }),
     update: (scope: RegistrationScope, eventId: string, input: UpdateRegistrationFormRequest) => db.transaction(async tx => {
-      const event = await eventOf(tx, scope.organizationId, eventId, true)
+      const event = await lockActiveEvent(tx, scope.organizationId, eventId)
       const form = await formOf(tx, scope.organizationId, eventId, true)
       if (!form) throw new ApiError('NOT_FOUND', 404)
       if (form.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
@@ -305,6 +312,7 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     }),
     // 운영진 취소. 그 사람의 정보를 바로 지우고, 취소한 사람을 남긴다. 참석을 확인한 신청은 먼저 참석 확인을 취소해야 한다.
     cancel: (scope: RegistrationScope, eventId: string, registrationId: string) => db.transaction(async tx => {
+      await requireActiveEvents(tx, scope.organizationId, [eventId])
       const form = await formOf(tx, scope.organizationId, eventId, true)
       if (!form) throw new ApiError('NOT_FOUND', 404)
       await purgeExpired(tx, form.id)

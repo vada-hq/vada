@@ -12,6 +12,7 @@
 - 테스트에는 성공 케이스와 함께 다음을 넣는다: 필수값 누락, 빈 문자열·공백만, 상한+1(이모지 포함), NUL·홀로 쓰인 서러게이트, 모르는 키, 다른 학생회 사용자, 미인증.
 - 화면은 같은 스키마의 `safeParse`로 버튼 활성화를 판단한다. 길이 숫자를 화면에 다시 적지 않는다.
 - `apps/api/src/http/boundary.test.ts`가 모든 변경 라우트의 경계 검사를 예외 없이 확인한다. 검사를 건너뛰는 목록을 다시 만들지 않는다.
+- 행사 기록을 바꾸는 라우트는 `/events/:eventId/` 아래에 두고, 거래 맨 앞에서 `apps/api/src/events/lock.ts`로 완료한 행사를 막는다(행사 행을 바꾸거나 잠근 채 세면 `lockActiveEvent`, 아니면 `requireActiveEvents`). `events/completion-lock.test.ts`가 그 아래 모든 변경 라우트를 확인한다. 다른 경로에서 행사 기록을 바꾸면 그 테스트의 "그 밖의 경로" 표에 더한다.
 
 ## 화면
 - 버튼·입력칸·선택칸·여러 줄 입력·라벨·칩·카드·배너·대화상자·옆 메뉴·메뉴 항목·탭은 `apps/web/src/components/ui`의 부품을 쓴다. 날것의 `<button>`·`<input>`에 직접 모양을 주지 않는다. 체크박스만 브라우저 기본 모양에 `size-4 accent-blue-600`을 준다.

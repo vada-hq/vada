@@ -69,3 +69,11 @@ export async function itemDetail(db: Reader, viewer: Viewer, summary: PurchaseIt
     history: history.map(({ actorId, actorName, ...entry }) => ({ ...entry, actor: { id: actorId, name: actorName }, createdAt: entry.createdAt.toISOString() })),
   }
 }
+
+// 품목들의 행사. 품목의 행사는 바뀌지 않으므로 잠그지 않고 읽은 뒤 행사 행부터 잠근다(잠금 순서: 행사 → 품목, M5a).
+export async function eventIdsOfItems(db: Reader, organizationId: string, itemIds: string[]) {
+  if (!itemIds.length) return []
+  const rows = await db.select({ eventId: items.eventId }).from(items)
+    .where(and(eq(items.organizationId, organizationId), inArray(items.id, itemIds)))
+  return [...new Set(rows.map(row => row.eventId))]
+}

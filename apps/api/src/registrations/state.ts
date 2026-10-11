@@ -1,9 +1,9 @@
 import { REGISTRATION_RETENTION_DAYS, type RegistrationState } from '@vada/contracts'
 
 type FormTimes = { accepting: boolean; opensAt: Date | null; closesAt: Date; capacity: number | null }
-// 위에서부터 먼저 맞는 것이다. 마감이 지나면 멈춤이어도 마감이고, 시작 전이면 정원이 차 있어도 시작 전이다.
-export function stateOf(form: FormTimes, count: number, now: Date): RegistrationState {
-  if (now >= form.closesAt) return 'closed'
+// 위에서부터 먼저 맞는 것이다. 완료한 행사(M5a)와 마감이 지난 신청은 멈춤이어도 마감이고, 시작 전이면 정원이 차 있어도 시작 전이다.
+export function stateOf(form: FormTimes, count: number, now: Date, completed = false): RegistrationState {
+  if (completed || now >= form.closesAt) return 'closed'
   if (!form.accepting) return 'paused'
   if (form.opensAt && now < form.opensAt) return 'upcoming'
   if (form.capacity !== null && count >= form.capacity) return 'full'

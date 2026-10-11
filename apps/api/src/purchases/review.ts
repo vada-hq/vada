@@ -5,7 +5,8 @@ import type { DecidePurchaseItemsRequest, PurchaseItemAction, PurchaseItemSummar
 import { approvesPurchases } from '../access/membership.js'
 import { departments, expenseItems, memberships, purchaseItemEvents as itemEvents, purchaseItems as items,
   purchaseSubmissions as submissions, shipmentItems } from '../db/schema.js'
-import { itemSummaries } from './items.js'
+import { eventIdsOfItems, itemSummaries } from './items.js'
+import { requireActiveEvents } from '../events/lock.js'
 import { PurchaseError } from './validation.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -65,6 +66,8 @@ export function createReviewService(db: ReviewDatabase) {
     async decide(scope: ReviewScope, input: DecidePurchaseItemsRequest): Promise<PurchaseItemSummary[]> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        // 완료한 행사(M5a)의 품목은 바꾸지 않는다. 행사 행을 품목보다 먼저 잠근다.
+        await requireActiveEvents(tx, scope.organizationId, await eventIdsOfItems(tx, scope.organizationId, input.decisions.map(decision => decision.id)))
         const rows = await lockItems(tx, scope, input.decisions)
         if (rows.some(row => row.status !== 'pending')) throw new PurchaseError('INVALID_STATE', 409)
         const batchId = randomUUID()
@@ -80,6 +83,7 @@ export function createReviewService(db: ReviewDatabase) {
     async revoke(scope: ReviewScope, id: string, version: number): Promise<PurchaseItemSummary[]> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        await requireActiveEvents(tx, scope.organizationId, await eventIdsOfItems(tx, scope.organizationId, [id]))
         const [row] = await lockItems(tx, scope, [{ id, version }])
         // 구매함 표시 뒤에는 이미 산 물건이라 승인을 되돌리지 않는다.
         if (row!.status !== 'approved' || row!.purchasedAt !== null) throw new PurchaseError('INVALID_STATE', 409)
@@ -92,6 +96,7 @@ export function createReviewService(db: ReviewDatabase) {
     async setPurchased(scope: ReviewScope, id: string, version: number, purchased: boolean): Promise<PurchaseItemSummary[]> {
       return db.transaction(async tx => {
         await requireFinance(tx, scope, true)
+        await requireActiveEvents(tx, scope.organizationId, await eventIdsOfItems(tx, scope.organizationId, [id]))
         const [row] = await lockItems(tx, scope, [{ id, version }])
         if (row!.status !== 'approved' || (row!.purchasedAt !== null) === purchased || (!purchased && row!.receivedAt !== null)) {
           throw new PurchaseError('INVALID_STATE', 409)

@@ -9,6 +9,7 @@ import { requireMembership, type MembershipEnv } from '../access/membership.js'
 import { json } from '../http/validate.js'
 import { chatRooms, events, memberships, messages, users } from '../db/schema.js'
 import { recordMessageLinks } from '../purchases/candidates.js'
+import { requireActiveEvents } from '../events/lock.js'
 
 type ChatEnv = { Variables: MembershipEnv['Variables'] & { chatRoomId: string } }
 const messageFields = {
@@ -64,6 +65,8 @@ export function createChatRoutes(
     const { content } = c.req.valid('json')
     const links = parseCoupangLinks(content)
     const saved = await db.transaction(async tx => {
+      // 완료한 행사(M5a)에는 보내지 않는다. 행사 행을 FOR SHARE로 잠가 완료와 엇갈리지 않게 한다.
+      await requireActiveEvents(tx, c.req.param('organizationId'), [c.req.param('eventId')])
       // 저장 시점에도 소속·행사·방을 함께 검사한다. 요청 본문의 작성자/방/시각은 무시한다.
       const [created] = await tx.insert(messages).select(
         tx.select({

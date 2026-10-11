@@ -6,6 +6,7 @@ import { koreanOf, MY_TASKS_DONE_LIMIT, MY_TASKS_OPEN_LIMIT, TASKS_PER_EVENT_MAX
   type UpdateTaskRequest } from '@vada/contracts'
 import { departments, events, memberships, registrationForms, taskEvents, tasks, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
+import { lockActiveEvent, requireActiveEvents } from '../events/lock.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
 export type TaskDatabase = Pick<Db, 'select' | 'insert' | 'update' | 'delete' | 'transaction'>
@@ -107,10 +108,8 @@ export function createTaskService(db: TaskDatabase) {
     },
     async create(scope: TaskScope, eventId: string, input: CreateTaskRequest): Promise<TaskDetail> {
       return db.transaction(async tx => {
-        // 행사 행을 잠그고 센다. 같은 행사에 동시에 더해도 상한을 넘지 않는다.
-        const [event] = await tx.select({ id: events.id }).from(events)
-          .where(and(eq(events.organizationId, scope.organizationId), eq(events.id, eventId))).for('no key update')
-        if (!event) throw new ApiError('NOT_FOUND', 404)
+        // 행사 행을 잠그고 센다. 같은 행사에 동시에 더해도 상한을 넘지 않는다. 완료한 행사(M5a)는 막는다.
+        await lockActiveEvent(tx, scope.organizationId, eventId)
         const department = await lockDepartment(tx, scope, input.departmentId)
         if (!department.found) throw new ApiError('TASK_DEPARTMENT_INVALID', 409)
         const assignee = await lockAssignee(tx, scope, input.assigneeMembershipId, null)
@@ -126,6 +125,7 @@ export function createTaskService(db: TaskDatabase) {
     // 모든 칸을 받는다. 바뀐 칸만 이전·이후로 남기고, 부서·담당자는 그때의 이름으로 남긴다.
     async update(scope: TaskScope, eventId: string, taskId: string, input: UpdateTaskRequest): Promise<TaskDetail> {
       return db.transaction(async tx => {
+        await requireActiveEvents(tx, scope.organizationId, [eventId])
         const department = await lockDepartment(tx, scope, input.departmentId)
         const row = await lockTask(tx, scope, eventId, taskId)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
@@ -147,6 +147,7 @@ export function createTaskService(db: TaskDatabase) {
     },
     async changeStatus(scope: TaskScope, eventId: string, taskId: string, input: ChangeTaskStatusRequest): Promise<TaskDetail> {
       return db.transaction(async tx => {
+        await requireActiveEvents(tx, scope.organizationId, [eventId])
         const row = await lockTask(tx, scope, eventId, taskId)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         if (row.status === input.status) return detailOf(tx, scope, eventId, taskId)
@@ -159,6 +160,7 @@ export function createTaskService(db: TaskDatabase) {
     // 업무와 처리 기록을 함께 지우고 남은 목록을 준다.
     async remove(scope: TaskScope, eventId: string, taskId: string, input: DeleteTaskRequest): Promise<EventTasksResponse> {
       await db.transaction(async tx => {
+        await requireActiveEvents(tx, scope.organizationId, [eventId])
         const row = await lockTask(tx, scope, eventId, taskId)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         await tx.delete(taskEvents).where(and(eq(taskEvents.organizationId, scope.organizationId), eq(taskEvents.taskId, taskId)))

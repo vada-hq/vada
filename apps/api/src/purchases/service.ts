@@ -7,6 +7,7 @@ import { chatRooms, events, memberships, messages, purchaseCandidates as candida
   purchaseGenerations as generations, purchaseItemEvents as itemEvents, purchaseItems as items, purchaseItemSources as sources,
   purchaseSubmissions as submissions } from '../db/schema.js'
 import { requireOpenEvents } from '../settlement/lock.js'
+import { checkActiveEvents, requireActiveEvents } from '../events/lock.js'
 import type { ProductCatalog } from './catalog.js'
 import { type DraftGenerator, type DraftInput, type GeneratedDraft, validateDraft } from './generation.js'
 import { itemDetail, itemSummaries, type Viewer } from './items.js'
@@ -125,6 +126,8 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
     },
     async createDrafts(scope: PurchaseScope, input: CreatePurchaseDraftsRequest): Promise<{ items: PurchaseItemSummary[]; created: boolean }> {
       const event = await eventOf(db, scope)
+      // 완료한 행사(M5a)면 상품 조회·끼룩이를 부르기 전에 막는다. 저장 거래에서 다시 잠그고 본다.
+      await checkActiveEvents(db, scope.organizationId, [scope.eventId])
       await member(db, scope)
       const chosen = await candidatesOf(db, scope, input.candidateIds)
       const links = chosen.map(candidate => candidate.url)
@@ -145,6 +148,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
         catch (error) { if (error instanceof PurchaseError && error.status === 503) throw error; throw new PurchaseError('GENERATION_FAILED', 502) }
         return await db.transaction(async tx => {
           await member(tx, scope, true)
+          await requireActiveEvents(tx, scope.organizationId, [scope.eventId])
           const current = await eventOf(tx, scope)
           const sourceIds = [...new Set(draft.items.flatMap(item => item.sourceMessageIds))]
           if (sourceIds.length) {
@@ -191,6 +195,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
       const { version, ...fields } = input
       return db.transaction(async tx => {
         await member(tx, scope, true)
+        await requireActiveEvents(tx, scope.organizationId, [scope.eventId])
         const [row] = await lockItems(tx, scope, [{ id, version }], mine(scope))
         if (row!.status !== 'draft') throw new PurchaseError('INVALID_STATE', 409)
         await tx.update(items).set({ ...fields, ...bump }).where(eq(items.id, id))
@@ -200,6 +205,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
     async deleteDraft(scope: PurchaseScope, id: string, version: number): Promise<PurchaseItemSummary[]> {
       return db.transaction(async tx => {
         await member(tx, scope, true)
+        await requireActiveEvents(tx, scope.organizationId, [scope.eventId])
         const [row] = await lockItems(tx, scope, [{ id, version }], mine(scope))
         if (row!.status !== 'draft') throw new PurchaseError('INVALID_STATE', 409)
         await tx.delete(sources).where(eq(sources.itemId, id))
@@ -254,6 +260,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
     async changeNeededBy(scope: PurchaseScope, input: ChangeNeededByRequest) {
       return db.transaction(async tx => {
         await member(tx, scope, true)
+        await requireActiveEvents(tx, scope.organizationId, [scope.eventId])
         const rows = await lockItems(tx, scope, input.items, mine(scope))
         // 구매함 표시 뒤에는 이미 산 물건이라 날짜를 바꾸지 않는다.
         if (rows.some(row => !['draft', 'pending', 'approved'].includes(row.status) || row.purchasedAt !== null)) throw new PurchaseError('INVALID_STATE', 409)
@@ -268,6 +275,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
     async cancel(scope: PurchaseScope, id: string, version: number) {
       return db.transaction(async tx => {
         await member(tx, scope, true)
+        await requireActiveEvents(tx, scope.organizationId, [scope.eventId])
         const [row] = await lockItems(tx, scope, [{ id, version }], mine(scope))
         if (row!.status !== 'pending') throw new PurchaseError('INVALID_STATE', 409)
         await tx.update(items).set({ status: 'cancelled', ...bump }).where(eq(items.id, id))
@@ -278,6 +286,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
     async reAdd(scope: PurchaseScope, id: string, version: number) {
       return db.transaction(async tx => {
         await member(tx, scope, true)
+        await requireActiveEvents(tx, scope.organizationId, [scope.eventId])
         const [row] = await lockItems(tx, scope, [{ id, version }], mine(scope))
         if (row!.status !== 'rejected' && row!.status !== 'cancelled') throw new PurchaseError('INVALID_STATE', 409)
         const copyId = randomUUID()
@@ -299,6 +308,7 @@ export function createPurchaseService(db: PurchaseDatabase, generate: DraftGener
     async setReceived(scope: PurchaseScope, id: string, version: number, received: boolean) {
       return db.transaction(async tx => {
         await member(tx, scope, true)
+        await requireActiveEvents(tx, scope.organizationId, [scope.eventId])
         // 남의 작성 중 품목은 없는 것으로 본다. 수령 확인은 학생회 누구나 한다(2026-10-07 결정).
         const [row] = await lockItems(tx, scope, [{ id, version }], ne(items.status, 'draft'))
         if (row!.status !== 'approved' || row!.purchasedAt === null || (row!.receivedAt !== null) === received) throw new PurchaseError('INVALID_STATE', 409)

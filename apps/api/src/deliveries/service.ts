@@ -8,6 +8,8 @@ import type { DeliveryProvider } from './provider.js'
 import { DeliveryError } from './validation.js'
 import type { DeliveryDatabase } from './database.js'
 import { enqueueDeliveryJob as queue } from './job-repository.js'
+import { checkActiveEvents, requireActiveEvents } from '../events/lock.js'
+import { eventIdsOfItems } from '../purchases/items.js'
 export type { DeliveryDatabase } from './database.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
@@ -68,6 +70,8 @@ export function createDeliveryService(db: DeliveryDatabase, provider: DeliveryPr
       const existing = await receipt(db, scope, input)
       if (existing) return { shipmentId: existing.shipmentId, replayed: true }
       await selectedItems(db, scope, input.purchaseItemIds)
+      // 완료한 행사(M5a)의 품목이면 배송 조회를 부르기 전에 막는다. 저장 거래에서 다시 잠그고 본다.
+      await checkActiveEvents(db, scope.organizationId, await eventIdsOfItems(db, scope.organizationId, input.purchaseItemIds))
       const snapshot: DeliveryLookupResponse = await external(scope, () => provider.lookup(input))
       return db.transaction(async tx => {
         // 같은 사용자·학생회의 멱등키 등록을 직렬화한다. 외부 조회 중에는 잠그지 않는다.
@@ -75,6 +79,7 @@ export function createDeliveryService(db: DeliveryDatabase, provider: DeliveryPr
         await access(tx, scope, true, true)
         const replay = await receipt(tx, scope, input)
         if (replay) return { shipmentId: replay.shipmentId, replayed: true }
+        await requireActiveEvents(tx, scope.organizationId, await eventIdsOfItems(tx, scope.organizationId, input.purchaseItemIds))
         const items = await selectedItems(tx, scope, input.purchaseItemIds, true)
         await tx.insert(shipments).values({ id: randomUUID(), organizationId: scope.organizationId, carrierId: input.carrierId, trackingNumber: input.trackingNumber, createdBy: scope.userId }).onConflictDoNothing()
         const [row] = await tx.select().from(shipments).where(and(eq(shipments.organizationId, scope.organizationId), eq(shipments.carrierId, input.carrierId), eq(shipments.trackingNumber, input.trackingNumber))).for('update')
@@ -110,6 +115,10 @@ export function createDeliveryService(db: DeliveryDatabase, provider: DeliveryPr
     async unlink(scope: DeliveryScope, id: string, linkIds: string[]) {
       return db.transaction(async tx => {
         await access(tx, scope, true, true)
+        // 끊을 연결의 품목이 완료한 행사(M5a)면 막는다. 잠금 순서는 행사 → 송장이다.
+        const linked = await tx.select({ itemId: shipmentItems.purchaseItemId }).from(shipmentItems)
+          .where(and(eq(shipmentItems.shipmentId, id), eq(shipmentItems.organizationId, scope.organizationId), inArray(shipmentItems.id, linkIds)))
+        await requireActiveEvents(tx, scope.organizationId, await eventIdsOfItems(tx, scope.organizationId, linked.map(row => row.itemId)))
         const [row] = await tx.select().from(shipments).where(and(eq(shipments.id, id), eq(shipments.organizationId, scope.organizationId))).for('update')
         if (!row) throw new DeliveryError('NOT_FOUND', 404)
         const links = await tx.select().from(shipmentItems).where(and(eq(shipmentItems.shipmentId, id), eq(shipmentItems.organizationId, scope.organizationId), inArray(shipmentItems.id, linkIds)))
