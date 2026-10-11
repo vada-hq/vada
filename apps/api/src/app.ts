@@ -14,6 +14,7 @@ import type { createIncomeRoutes } from './incomes/routes.js'
 import type { createRegistrationRoutes } from './registrations/routes.js'
 import type { createFeeRoutes } from './fees/routes.js'
 import type { createTaskRoutes } from './tasks/routes.js'
+import type { createReportRoutes } from './reports/routes.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
 
@@ -33,12 +34,14 @@ export type AppOptions = {
   registrations?: ReturnType<typeof createRegistrationRoutes>
   fees?: ReturnType<typeof createFeeRoutes>
   tasks?: ReturnType<typeof createTaskRoutes>
+  // 기록과 결과보고서(M5b)
+  reports?: ReturnType<typeof createReportRoutes>
   organization?: ReturnType<typeof createOrganizationRoutes>
   webhook?: ReturnType<typeof createDeliveryWebhook>
 }
 
 export function createApp({ auth, trustedOrigin, access, events, chat, purchases, deliveries, expenses, settlement, budget, incomes, registrations, fees,
-  tasks, organization, webhook }: AppOptions) {
+  tasks, reports, organization, webhook }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
   // 로그인 없이 쓰는 공개 경로(참가 신청)도 같은 화면에서만 보내므로 같은 가드를 건다.
@@ -60,6 +63,7 @@ export function createApp({ auth, trustedOrigin, access, events, chat, purchases
   if (registrations) app.route('/api', registrations)
   if (fees) app.route('/api', fees)
   if (tasks) app.route('/api', tasks)
+  if (reports) app.route('/api', reports)
   // 외부 공급자가 호출하므로 공통 가드 밖에 두고 자체 검사를 한다.
   if (webhook) app.route('/api', webhook)
   app.onError(handleError)

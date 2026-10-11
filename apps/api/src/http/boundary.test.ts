@@ -20,6 +20,7 @@ import { createIncomeRoutes } from '../incomes/routes.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
 import { createFeeRoutes } from '../fees/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
+import { createReportRoutes } from '../reports/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
 
@@ -55,6 +56,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       registrations: createRegistrationRoutes(db, session),
       fees: createFeeRoutes(db, session),
       tasks: createTaskRoutes(db, session),
+      reports: createReportRoutes(db, session),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })

@@ -16,6 +16,7 @@ import { fakeStorage, link, origin, setupPurchases } from '../purchases/test-set
 import { createRegistrationRoutes } from '../registrations/routes.js'
 import { createSettlementRoutes } from '../settlement/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
+import { createReportRoutes } from '../reports/routes.js'
 import { createEventRoutes } from './events.js'
 
 const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
@@ -66,6 +67,7 @@ test('완료한 행사는 행사 아래 모든 변경 라우트와 행사 기록
       expenses: createExpenseRoutes(db, session, fakeStorage().storage),
       settlement: createSettlementRoutes(db, session, origin), budget: createBudgetRoutes(db, session, origin), incomes: createIncomeRoutes(db, session),
       registrations: createRegistrationRoutes(db, session), fees: createFeeRoutes(db, session), tasks: createTaskRoutes(db, session),
+      reports: createReportRoutes(db, session),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })

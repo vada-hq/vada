@@ -146,3 +146,7 @@ export { INCOME_DESCRIPTION_MAX, INCOME_NOTE_MAX, INCOME_VOID_REASON_MAX, INCOME
   VoidIncomeSchema } from './incomes.js'
 export type { IncomeAction, CreateIncomeRequest, UpdateIncomeRequest, VoidIncomeRequest, IncomeSummary, IncomeHistoryEntry, IncomeDetail,
   IncomeResponse } from './incomes.js'
+export { REPORT_SECTION_MAX, REPORT_SECTIONS, REPORT_SECTION_LABELS, SaveEventReportSchema, PublishEventReportSchema,
+  UnpublishEventReportSchema } from './reports.js'
+export type { ReportSection, ReportStatus, SaveEventReportRequest, PublishEventReportRequest, EventReportFacts, ReportPerson, EventReportView,
+  EventReportResponse, EventRecord, RecordsResponse } from './reports.js'

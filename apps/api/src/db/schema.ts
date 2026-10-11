@@ -1,5 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { boolean, check, date, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core'
+import type { EventReportFacts } from '@vada/contracts'
 
 // Better Auth의 사용자 필드. 학생회 소속과 권한은 memberships에서 관리한다.
 export const users = pgTable('users', {
@@ -1124,7 +1125,7 @@ export const eventReports = pgTable('event_reports', {
   shortfalls: text('shortfalls'),
   improvements: text('improvements'),
   handover: text('handover'),
-  facts: jsonb('facts').$type<Record<string, unknown>>(),
+  facts: jsonb('facts').$type<EventReportFacts>(),
   publishedAt: timestamp('published_at', { withTimezone: true }),
   publishedBy: text('published_by').references(() => users.id, { onDelete: 'restrict' }),
   version: integer('version').notNull().default(1),

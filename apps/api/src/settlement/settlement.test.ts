@@ -205,7 +205,7 @@ test('숫자를 행사 여럿 한 번에 센다: 행사마다 따로 세고, 지
     as('f')
     await create(env, { amount: 50000 })
     await create(env, { eventId: 'e2', amount: 7000 })
-    const numbers = await financeNumbersByEvent(db, { organizationId: 'a', userId: 'f' }, ['e', 'e2', 'none'])
+    const numbers = await financeNumbersByEvent(db, { organizationId: 'a' }, ['e', 'e2', 'none'])
     const zero = { spent: 0, expenseCount: 0, missingEvidence: 0, pendingRequests: 0, unrecordedItems: 0, planned: 0, plannedUnknown: 0 }
     assert.deepEqual([...numbers.keys()], ['e', 'e2', 'none'])
     assert.deepEqual(numbers.get('e'), { ...zero, spent: 50000, expenseCount: 1, missingEvidence: 1, unrecordedItems: 1, planned: 23180 })

@@ -58,9 +58,9 @@ export interface FinanceNumbers {
 }
 const noNumbers: FinanceNumbers = { spent: 0, expenseCount: 0, missingEvidence: 0, pendingRequests: 0, unrecordedItems: 0, planned: 0, plannedUnknown: 0 }
 
-// 행사 여럿의 숫자와 정산 조건을 한 번에 센다. 행사 재정 탭과 예산 화면이 같은 정의를 쓴다.
+// 행사 여럿의 숫자와 정산 조건을 한 번에 센다. 행사 재정 탭과 예산 화면이 같은 정의를 쓰고, 결과보고서(M5b)도 집행을 이 정의로 센다.
 // 지출 예정은 지출에 연결되지 않은 승인 품목이고, 수량·단가를 모르는 품목은 합에서 빼고 따로 센다.
-export async function financeNumbersByEvent(db: Reader, scope: SettlementScope, eventIds: string[]) {
+export async function financeNumbersByEvent(db: Reader, scope: Pick<SettlementScope, 'organizationId'>, eventIds: string[]) {
   const numbers = new Map(eventIds.map(id => [id, { ...noNumbers }]))
   if (!eventIds.length) return numbers
   const spending = await db.select({
