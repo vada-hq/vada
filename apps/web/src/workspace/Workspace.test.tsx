@@ -14,7 +14,8 @@ const financeMembership: MembershipSummary = { ...membership, department: { id: 
 const leaderMembership: MembershipSummary = { ...membership, department: { id: 'lead', name: '회장단', handlesFinance: false, isLeadership: true }, title: '회장', permissions: { manageOrganization: true, approvePurchases: true, manageEvents: true } }
 const membersBody = { viewer: membership, departments: [{ id: 'd1', name: '기획부', isLeadership: false, handlesFinance: false }],
   members: [{ id: 'm1', name: '테스터', title: null, departmentId: 'd1' }] }
-const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z' }
+const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z', startsAt: null, endsAt: null, place: null,
+  version: 1 }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
 function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }) {
   const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/budget/periods') ? { periods: [budgetPeriod()] }
@@ -22,6 +23,7 @@ function setup(members: unknown = membersBody, review: unknown = { pending: [], 
     : url.endsWith('/events')
     ? { events: [event, { ...event, id: 'e2', name: '축제' }] }
     : url.endsWith('/members') ? members
+    : url.endsWith('/tasks') ? { tasks: [], registrationClosesAt: null }
     : url.endsWith('/messages') ? { messages: [], nextCursor: null }
     : url.endsWith('/purchase-candidates') ? { candidates: [], truncated: false }
     : url.endsWith('/finance') ? financeResponse()
@@ -123,7 +125,7 @@ test('workspace tabs support keyboard navigation and logout delegates to authent
   render(<Workspace {...props} />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
   fireEvent.keyDown(screen.getByRole('tab', { name: '대화' }), { key: 'ArrowRight' })
-  expect(screen.getByRole('tab', { name: '구매' }).getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('tab', { name: '업무' }).getAttribute('aria-selected')).toBe('true')
   fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
   expect(props.onLogout).toHaveBeenCalled()
 })
@@ -357,15 +359,29 @@ test('예산은 구성원 누구나 옆 메뉴에서 열고, 행사 이름을 �
   } finally { vi.useRealTimers() }
 })
 
-test('부서가 있으면 행사 탭에 참가자가 재정 앞에 있고, 미배정이면 참가자 탭이 없다', async () => {
+test('부서가 있으면 행사 탭에 업무가 대화 다음, 참가자가 재정 앞에 있고, 미배정이면 참가자 탭이 없다', async () => {
   setup()
   render(<Workspace {...props} />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
-  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['대화', '구매', '참가자', '재정'])
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['대화', '업무', '구매', '참가자', '재정'])
   cleanup()
   setup()
   const unassigned: MembershipSummary = { ...membership, department: null, permissions: { ...membership.permissions, manageEvents: false } }
   render(<Workspace {...props} memberships={[unassigned]} />)
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
-  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['대화', '구매', '재정'])
+  expect(screen.getAllByRole('tab').map(tab => tab.textContent)).toEqual(['대화', '업무', '구매', '재정'])
+})
+
+test('업무 탭은 처음 고를 때 불러오고 다시 고를 때마다 새로 불러온다', async () => {
+  const fetcher = setup()
+  render(<Workspace {...props} />)
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  const taskCalls = () => fetcher.mock.calls.filter(([url]) => String(url) === '/api/organizations/o1/events/e1/tasks').length
+  expect(taskCalls()).toBe(0)
+  fireEvent.click(screen.getByRole('tab', { name: '업무' }))
+  expect(await screen.findByText('아직 업무가 없어요')).toBeTruthy()
+  expect(taskCalls()).toBe(1)
+  fireEvent.click(screen.getByRole('tab', { name: '대화' }))
+  fireEvent.click(screen.getByRole('tab', { name: '업무' }))
+  await waitFor(() => expect(taskCalls()).toBe(2))
 })
