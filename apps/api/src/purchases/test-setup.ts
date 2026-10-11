@@ -13,6 +13,7 @@ import { createIncomeRoutes } from '../incomes/routes.js'
 import { createEventRoutes } from '../events/events.js'
 import { createRegistrationRoutes } from '../registrations/routes.js'
 import { createFeeRoutes } from '../fees/routes.js'
+import { createTaskRoutes } from '../tasks/routes.js'
 import { recordMessageLinks } from './candidates.js'
 import type { DraftGenerator, GeneratedItem } from './generation.js'
 import type { FetchResult, ProductFetcher } from './products.js'
@@ -78,7 +79,7 @@ export async function setupPurchases(migrations = migrationsFolder, { storage = 
     expenses: createExpenseRoutes(db, session, storage?.storage), settlement: createSettlementRoutes(db, session, origin), budget: createBudgetRoutes(db, session, origin),
     incomes: createIncomeRoutes(db, session), events: createEventRoutes(db, session),
     registrations: createRegistrationRoutes(db, session, { now: () => state.now ?? new Date() }),
-    fees: createFeeRoutes(db, session, { now: () => state.now ?? new Date() }) })
+    fees: createFeeRoutes(db, session, { now: () => state.now ?? new Date() }), tasks: createTaskRoutes(db, session) })
   const request = (method: string, path: string, body?: unknown) => app.request(`/api/organizations/a${path}`, body === undefined
     ? { method } : { method, headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
   // 로그인 없이 쓰는 공개 경로. 같은 출처의 화면이 보내는 것처럼 보낸다.
