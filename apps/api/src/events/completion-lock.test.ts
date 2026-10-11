@@ -22,8 +22,9 @@ import { createEventRoutes } from './events.js'
 const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 const eventRoot = '/api/organizations/:organizationId/events/:eventId'
 const isEventWrite = (path: string) => path === eventRoot || path.startsWith(`${eventRoot}/`)
-// 완료를 바꾸는 두 경로. 완료한 행사에서도 되어야 한다(완료 취소).
-const completionRoutes = new Set([`POST ${eventRoot}/completion`, `POST ${eventRoot}/completion/cancel`])
+// 완료한 행사에서 하는 일: 완료·완료 취소(M5a)와 결과보고서(M5b). 결과보고서는 반대로 완료한 행사에서만 쓴다(reports.test.ts).
+const completedOnly = new Set([`POST ${eventRoot}/completion`, `POST ${eventRoot}/completion/cancel`,
+  `POST ${eventRoot}/report`, `POST ${eventRoot}/report/publish`, `POST ${eventRoot}/report/unpublish`])
 const taskBody = { title: '정리', description: null, departmentId: null, assigneeMembershipId: null, dueOn: null }
 const formFields = { opensAt: null, closesAt: '2999-08-19T23:59', capacity: null, notice: null, collectPhone: false, fee: 0, memberFee: null }
 const expenseBody = { eventId: 'e', vendor: '쿠팡', description: '체육대회 물품', amount: 46000, paidOn: '2026-10-09', method: 'council_card',
@@ -107,7 +108,7 @@ test('완료한 행사는 행사 아래 모든 변경 라우트와 행사 기록
       [`POST ${eventRoot}/tasks/:taskId/delete`]: [at(`/tasks/${taskId}/delete`), { version: 1 }],
     }
     const writes = [...new Set(app.routes.filter(route => !readOnly.has(route.method) && isEventWrite(route.path))
-      .map(route => `${route.method} ${route.path}`))].filter(key => !completionRoutes.has(key))
+      .map(route => `${route.method} ${route.path}`))].filter(key => !completedOnly.has(key))
     assert.deepEqual(writes.sort(), Object.keys(probes).sort(), '행사 아래 변경 라우트는 모두 이 표에 본문을 두고 완료 잠금을 확인한다')
     for (const [key, [path, body]] of Object.entries(probes)) {
       const response = await send(key.slice(0, key.indexOf(' ')), path, body)
@@ -134,6 +135,10 @@ test('완료한 행사는 행사 아래 모든 변경 라우트와 행사 기록
       assert.equal(response.status, 409, `${method} ${path}: ${await response.clone().text()}`)
       assert.deepEqual(await response.json(), { error }, `${method} ${path}`)
     }
+
+    // 완료한 행사에서도 결과보고서는 쓴다.
+    assert.equal((await send('POST', at('/report'), { version: 0, operations: '진행', wentWell: null, shortfalls: null, improvements: null,
+      handover: null })).status, 200)
 
     // 완료를 취소하면 같은 쓰기가 다시 된다.
     assert.equal((await send('POST', at('/completion/cancel'), { version: 2 })).status, 200)
