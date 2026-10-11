@@ -3,9 +3,14 @@ import wasmUrl from 'zxing-wasm/reader/zxing_reader.wasm?url'
 
 // 참석 확인 QR만 읽는다. 휴대폰 화면의 QR은 반사·기울기가 있어 tryHarder를 켠다.
 export const readerOptions: ReaderOptions = { formats: ['QRCode'], tryHarder: true, maxNumberOfSymbols: 1 }
-// 프레임을 이 크기(긴 변)까지 줄여 읽는다. 휴대폰에서도 한 번에 수십 ms 안이다.
+// 보이는 정사각형을 이 크기(한 변)까지 줄여 읽는다. 휴대폰에서도 한 번에 수십 ms 안이다.
 const longSide = 640
 export type QrReader = { read: (video: HTMLVideoElement) => Promise<string | null> }
+// 카메라 화면(정사각형, object-cover)에 보이는 가운데 정사각형. 화면에 보이지 않는 옆 사람·뒷사람의 QR은 읽지 않는다.
+export function visibleSquare(width: number, height: number) {
+  const side = Math.min(width, height)
+  return { x: Math.round((width - side) / 2), y: Math.round((height - side) / 2), side }
+}
 
 let module: Promise<typeof import('zxing-wasm/reader')> | null = null
 // 판독기(zxing-wasm)는 스캐너를 처음 열 때만 받는다. wasm은 빌드가 /assets/에 내보낸 우리 파일이다(외부 CDN을 쓰지 않는다).
@@ -31,11 +36,12 @@ export async function loadQrReader(): Promise<QrReader> {
     async read(video) {
       const { videoWidth: width, videoHeight: height } = video
       if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA || !width || !height) return null
-      const scale = Math.min(1, longSide / Math.max(width, height))
-      canvas.width = Math.round(width * scale)
-      canvas.height = Math.round(height * scale)
-      context.drawImage(video, 0, 0, canvas.width, canvas.height)
-      const [result] = await readBarcodes(context.getImageData(0, 0, canvas.width, canvas.height), readerOptions)
+      const { x, y, side } = visibleSquare(width, height)
+      const size = Math.min(side, longSide)
+      canvas.width = size
+      canvas.height = size
+      context.drawImage(video, x, y, side, side, 0, 0, size, size)
+      const [result] = await readBarcodes(context.getImageData(0, 0, size, size), readerOptions)
       return result?.isValid ? result.text : null
     },
   }

@@ -39,7 +39,8 @@ const problemText: Record<CameraProblem | 'reader', string> = {
   denied: '카메라를 쓸 수 없어요. 브라우저 설정에서 이 사이트의 카메라 사용을 허용해 주세요.',
   unsupported: '이 브라우저에서는 카메라를 쓸 수 없어요.',
   failed: '카메라를 켜지 못했어요.',
-  reader: 'QR 판독기를 불러오지 못했어요.',
+  // 앱을 연 뒤 새로 배포했으면 옛 판독기 파일이 없어 다시 시도해도 안 된다. 새로 고치면 새 파일을 받는다.
+  reader: 'QR 판독기를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 열어 주세요.',
 }
 
 // 와이어프레임 EVT-04B의 공용 QR 대신 신청자마다의 QR을 운영진이 휴대폰 카메라로 찍는다(대리 참석 막기, spec M3c).
@@ -52,8 +53,10 @@ export default function CheckInScanner({ open, onClose, ...props }: Props) {
 
 function Scanner({ form, registrations, settled, onScan, onCancelCheckIn, onConfirmPayment, onClose }: Omit<Props, 'open'>) {
   const video = useRef<HTMLVideoElement>(null)
-  // 결과를 보이는 동안과 요청 중에는 판독을 멈춘다.
+  // 결과를 보이는 동안과 요청 중에는 판독을 멈춘다. [다음]을 눌러야 다시 읽는다.
   const paused = useRef(false)
+  // 대화상자가 열려 있는 동안 true다. 화면이 숨어 카메라를 끈 사이에 온 스캔 결과도 그리고, 닫은 뒤에 온 결과는 그리지 않는다.
+  const alive = useRef(true)
   const scan = useRef(onScan)
   const [camera, setCamera] = useState<Camera>('starting')
   const [attempt, setAttempt] = useState(0)
@@ -62,6 +65,10 @@ function Scanner({ form, registrations, settled, onScan, onCancelCheckIn, onConf
   const [outcome, setOutcome] = useState<Outcome | null>(null)
   const [hint, setHint] = useState(false)
   useEffect(() => { scan.current = onScan })
+  useEffect(() => {
+    alive.current = true
+    return () => { alive.current = false }
+  }, [])
   // 화면이 숨으면 카메라를 끄고, 다시 보이면 켠다.
   useEffect(() => {
     const update = () => setHidden(document.visibilityState === 'hidden')
@@ -88,8 +95,7 @@ function Scanner({ form, registrations, settled, onScan, onCancelCheckIn, onConf
       setHint(false)
       setChecking(true)
       const result = await scan.current(code)
-      // 응답 전에 닫았거나 화면이 숨었으면 아무것도 그리지 않는다.
-      if (stopped) return
+      if (!alive.current) return
       setChecking(false)
       setOutcome(result.ok ? { kind: result.already ? 'already' : 'checked', registrationId: result.registrationId }
         : result.missing ? { kind: 'missing' } : { kind: 'failed', offline: result.message === registrationFailure, message: result.message })
@@ -126,6 +132,9 @@ function Scanner({ form, registrations, settled, onScan, onCancelCheckIn, onConf
       try {
         reader = await loadQrReader()
       } catch {
+        // 읽을 수 없으면 카메라도 끈다.
+        stopCamera(stream)
+        if (element) element.srcObject = null
         if (!stopped) setCamera('reader')
         return
       }
@@ -133,11 +142,12 @@ function Scanner({ form, registrations, settled, onScan, onCancelCheckIn, onConf
       setCamera('ready')
       void tick(reader)
     })()
+    // 요청 중이면 확인 중 표시와 판독 멈춤을 그대로 둔다. 응답이 오면 결과를 그리고, [다음]이 다시 읽게 한다.
     return () => {
       stopped = true
       clearTimeout(timer)
       clearTimeout(hintTimer)
-      setChecking(false)
+      setHint(false)
       if (stream) stopCamera(stream)
       if (element) element.srcObject = null
     }
@@ -156,19 +166,22 @@ function Scanner({ form, registrations, settled, onScan, onCancelCheckIn, onConf
     <div className={cn('relative aspect-square w-full overflow-hidden rounded-md bg-gray-900', problem && 'hidden')}>
       <video ref={video} playsInline muted autoPlay aria-label="카메라 화면" className="size-full object-cover" />
       <div aria-hidden className="absolute inset-1/5 rounded-md border-2 border-white/80" />
+      {/* 결과는 카메라 화면 위에 겹친다. 판독을 멈춘 동안이라 가려도 되고, 작은 휴대폰에서도 [다음]이 화면 아래로 밀리지 않는다. */}
+      {outcome && <div className="absolute inset-3 flex flex-col justify-end">
+        <Result key={'registrationId' in outcome ? `${outcome.kind}-${outcome.registrationId}` : outcome.kind} outcome={outcome}
+          entry={'registrationId' in outcome ? registrations.find(item => item.id === outcome.registrationId) ?? null : null} form={form}
+          settled={settled} onConfirmPayment={onConfirmPayment} onUndo={async id => {
+            const result = await onCancelCheckIn(id)
+            if (result.ok) setOutcome({ kind: 'undone', registrationId: id })
+            return result
+          }} onNext={next} />
+      </div>}
     </div>
     {problem && <div className="flex flex-col items-start gap-2">
       <Alert tone="warning">{problemText[problem]}</Alert>
       <Button variant="outline" size="sm" onClick={() => setAttempt(value => value + 1)}>다시 시도</Button>
     </div>}
     {hint && <p className="text-sm text-yellow-700">참가 신청 QR이 아니에요.</p>}
-    {outcome && <Result key={'registrationId' in outcome ? `${outcome.kind}-${outcome.registrationId}` : outcome.kind} outcome={outcome}
-      entry={'registrationId' in outcome ? registrations.find(item => item.id === outcome.registrationId) ?? null : null} form={form} settled={settled}
-      onConfirmPayment={onConfirmPayment} onUndo={async id => {
-        const result = await onCancelCheckIn(id)
-        if (result.ok) setOutcome({ kind: 'undone', registrationId: id })
-        return result
-      }} onNext={next} />}
     <DialogFooter>
       <Button variant="outline" onClick={onClose}>닫기</Button>
     </DialogFooter>
@@ -218,12 +231,13 @@ function Result({ outcome, entry, form, settled, onConfirmPayment, onUndo, onNex
     setBusy(false)
     if (!result.ok) setMessage(result.message)
   }
-  return <section aria-label="찍은 결과" className="flex flex-col gap-3 rounded-md border p-4">
+  // 결과가 바뀌면 보조기술이 읽는다(status). 카드가 카메라 화면보다 크면 카드 안에서 스크롤한다.
+  return <section role="status" aria-label="찍은 결과" className="flex max-h-full flex-col gap-3 overflow-y-auto rounded-md border bg-white p-4 shadow-lg">
     <div className="flex items-center gap-2">
       <Icon aria-hidden className={cn('size-5 shrink-0', look.color)} />
       <p className="text-sm font-semibold text-gray-900">{look.title}</p>
     </div>
-    {look.description && <p className="text-sm text-gray-600">{look.description}</p>}
+    {look.description && <p className="text-sm wrap-anywhere text-gray-600">{look.description}</p>}
     {shown && <div className="flex flex-col items-start gap-1">
       <p className="text-lg font-semibold wrap-anywhere text-gray-900">{shown.name}</p>
       <p className="text-sm text-gray-600">학번 {shown.studentId}</p>

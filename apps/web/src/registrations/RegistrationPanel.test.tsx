@@ -375,7 +375,7 @@ test('관리 대화상자: 참석을 확인하고 취소하며, 참석한 신청
   expect(within(dialog).getByRole('button', { name: '신청 취소' }).hasAttribute('disabled')).toBe(false)
   api.on('POST', `${base}/entries/r2/check-in`, () => json(attended(true)))
   fireEvent.click(within(dialog).getByRole('button', { name: '참석 확인' }))
-  expect(await within(dialog).findByText('참석 확인 · 8월 20일 (목) 오전 10:02 · 기획')).toBeTruthy()
+  expect((await within(dialog).findByText('참석 확인 · 8월 20일 (목) 오전 10:02 · 기획')).className).toContain('wrap-anywhere')
   expect(within(dialog).getByRole('button', { name: '신청 취소' }).hasAttribute('disabled')).toBe(true)
   expect(within(dialog).getByText('참석을 확인한 신청은 먼저 참석 확인을 취소해 주세요.')).toBeTruthy()
   api.on('POST', `${base}/entries/r2/check-in/cancel`, () => json(attended()))

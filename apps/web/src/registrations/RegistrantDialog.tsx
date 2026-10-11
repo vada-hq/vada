@@ -89,7 +89,7 @@ function Body({ form, entry, settled, onClose, onCancel, onConfirmPayment, onCan
       {(entry.paid || entry.fee > 0) && <div className="flex flex-col gap-1.5">
         <dt className="text-xs text-gray-500">입금</dt>
         {entry.paid ? <>
-          <dd className="text-gray-900">입금 확인 · {formatKoreanTime(entry.paid.at)} · {entry.paid.by.name}</dd>
+          <dd className="wrap-anywhere text-gray-900">입금 확인 · {formatKoreanTime(entry.paid.at)} · {entry.paid.by.name}</dd>
           {!settled && <dd><Button variant="outline" size="sm" disabled={busy} onClick={() => void run(() => onCancelPayment(entry.id))}>입금 확인 취소</Button></dd>}
         </> : <>
           <dd className="text-gray-900">입금 전</dd>
@@ -99,7 +99,7 @@ function Body({ form, entry, settled, onClose, onCancel, onConfirmPayment, onCan
       <div className="flex flex-col gap-1.5">
         <dt className="text-xs text-gray-500">참석</dt>
         {entry.checkedIn ? <>
-          <dd className="text-gray-900">참석 확인 · {formatKoreanTime(entry.checkedIn.at)} · {entry.checkedIn.by.name}</dd>
+          <dd className="wrap-anywhere text-gray-900">참석 확인 · {formatKoreanTime(entry.checkedIn.at)} · {entry.checkedIn.by.name}</dd>
           <dd><Button variant="outline" size="sm" disabled={busy} onClick={() => void run(() => onCancelCheckIn(entry.id))}>참석 확인 취소</Button></dd>
         </> : <>
           <dd className="text-gray-900">참석 전</dd>

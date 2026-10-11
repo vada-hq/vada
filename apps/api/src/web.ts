@@ -12,5 +12,10 @@ export function attachWeb(app: Hono, root = fileURLToPath(new URL('../../web/dis
     context.header('Cache-Control', 'no-cache')
     return entry(context, next)
   })
-  app.on(['GET', 'HEAD'], '/assets/*', serveStatic({ root }))
+  // 빌드가 내용 해시를 파일 이름에 넣으므로 같은 이름의 내용은 바뀌지 않는다. 오래 캐시해 다시 받지 않게 한다(스캐너 판독기 wasm 약 1MB 포함).
+  // 없는 파일의 404는 캐시하지 않는다.
+  app.on(['GET', 'HEAD'], '/assets/*', async (context, next) => {
+    await next()
+    if (context.res.status === 200) context.res.headers.set('Cache-Control', 'public, max-age=31536000, immutable')
+  }, serveStatic({ root }))
 }

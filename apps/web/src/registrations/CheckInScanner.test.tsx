@@ -45,6 +45,16 @@ const lee = (overrides: Partial<RegistrationResponse> = {}) => registrationRespo
   registrations: [entry('r1', '김바다', '2022123456'), entry('r2', '이수강', '2023222222', null, { checkedIn: checkedBy })], ...overrides })
 const ready = '참가자의 QR을 네모 안에 맞춰 주세요.'
 const closeButton = (dialog: HTMLElement) => within(dialog).getAllByRole('button', { name: '닫기' })[0]!
+// 문서가 숨었다 보이는 것을 흉내 낸다. 끝나면 restore로 되돌린다.
+function hideable() {
+  let state: DocumentVisibilityState = 'visible'
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state })
+  const set = (next: DocumentVisibilityState) => {
+    state = next
+    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+  }
+  return { hide: () => set('hidden'), show: () => set('visible'), restore: () => { delete (document as { visibilityState?: unknown }).visibilityState } }
+}
 async function open(body: RegistrationResponse = registrationResponse()) {
   const api = mockApi()
   api.on('GET', base, () => json(body))
@@ -63,6 +73,9 @@ test('QR을 찍으면 바로 참석으로 남기고, [다음]을 누르기 전�
   expect(within(dialog).getByText('이수강')).toBeTruthy()
   expect(within(dialog).getByText('학번 2023222222')).toBeTruthy()
   expect(api.calls.at(-1)).toMatchObject({ method: 'POST', path: `${base}/check-in`, body: { code } })
+  // 결과는 보조기술이 읽고, 카메라 화면 위에 겹친다. 작은 휴대폰에서도 [다음]이 화면 아래로 밀리지 않는다.
+  const result = within(dialog).getByRole('status', { name: '찍은 결과' })
+  expect(within(dialog).getByLabelText('카메라 화면').parentElement!.contains(result)).toBe(true)
   const reads = reader.read.mock.calls.length
   await new Promise(resolve => setTimeout(resolve, scanInterval * 3))
   expect(reader.read.mock.calls.length).toBe(reads)
@@ -70,7 +83,7 @@ test('QR을 찍으면 바로 참석으로 남기고, [다음]을 누르기 전�
   queue.push(checkInQrText(code))
   fireEvent.click(within(dialog).getByRole('button', { name: '다음' }))
   expect(await within(dialog).findByText('이미 참석했어요')).toBeTruthy()
-  expect(within(dialog).getByText('참석 확인 · 8월 20일 (목) 오전 10:02 · 기획')).toBeTruthy()
+  expect(within(dialog).getByText('참석 확인 · 8월 20일 (목) 오전 10:02 · 기획').className).toContain('wrap-anywhere')
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(2)
 })
 
@@ -148,14 +161,17 @@ test('카메라 권한이 없으면 까닭과 다른 방법을 알리고, 다시
   expect(openCamera).toHaveBeenCalledTimes(2)
 })
 
-test('카메라를 지원하지 않거나 판독기를 받지 못하면 알린다', async () => {
+test('카메라를 지원하지 않으면 알리고, 판독기를 받지 못하면 새로 고침을 안내하며 카메라를 끈다', async () => {
   vi.mocked(openCamera).mockRejectedValueOnce(new CameraError('unsupported'))
   const first = await open()
   expect(await within(first.dialog).findByText('이 브라우저에서는 카메라를 쓸 수 없어요.')).toBeTruthy()
   cleanup()
+  const { stream, track } = fakeStream()
+  vi.mocked(openCamera).mockResolvedValue(stream)
   vi.mocked(loadQrReader).mockRejectedValueOnce(new Error('wasm'))
   const second = await open()
-  expect(await within(second.dialog).findByText('QR 판독기를 불러오지 못했어요.')).toBeTruthy()
+  expect(await within(second.dialog).findByText('QR 판독기를 불러오지 못했어요. 페이지를 새로 고친 뒤 다시 열어 주세요.')).toBeTruthy()
+  expect(track.stop).toHaveBeenCalled()
 })
 
 test('닫으면 카메라를 끈다', async () => {
@@ -187,22 +203,44 @@ test('응답을 기다리는 사이 닫으면 결과를 그리지 않고 카메�
   expect(openCamera).toHaveBeenCalledTimes(1)
 })
 
-test('화면이 숨으면 카메라를 끄고, 다시 보이면 켠다', async () => {
+test('화면이 숨으면 카메라를 끄고, 다시 보이면 켜서 다시 읽으며, 숨기 전의 안내는 남기지 않는다', async () => {
   const first = fakeStream()
   const second = fakeStream()
   vi.mocked(openCamera).mockResolvedValueOnce(first.stream).mockResolvedValueOnce(second.stream)
-  const { dialog } = await open()
+  const { api, dialog } = await open()
+  api.on('POST', `${base}/check-in`, () => json(scanned(lee(), 'r2')))
   await within(dialog).findByText(ready)
-  let state: DocumentVisibilityState = 'hidden'
-  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state })
+  queue.push('https://example.com')
+  await within(dialog).findByText('참가 신청 QR이 아니에요.')
+  const visibility = hideable()
   try {
-    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+    visibility.hide()
     await waitFor(() => expect(first.track.stop).toHaveBeenCalled())
-    state = 'visible'
-    act(() => { document.dispatchEvent(new Event('visibilitychange')) })
+    visibility.show()
     await waitFor(() => expect(openCamera).toHaveBeenCalledTimes(2))
     expect(await within(dialog).findByText(ready)).toBeTruthy()
-  } finally {
-    delete (document as { visibilityState?: unknown }).visibilityState
-  }
+    expect(within(dialog).queryByText('참가 신청 QR이 아니에요.')).toBeNull()
+    queue.push(checkInQrText(code))
+    expect(await within(dialog).findByText('참석을 확인했어요')).toBeTruthy()
+  } finally { visibility.restore() }
+})
+
+test('스캔 요청 중 화면이 숨었다가 돌아와도 결과를 보이고, [다음] 뒤 다시 읽는다', async () => {
+  const pending = deferredResponse()
+  const { api, dialog } = await open()
+  api.on('POST', `${base}/check-in`, () => pending.promise)
+  await within(dialog).findByText(ready)
+  queue.push(checkInQrText(code))
+  await waitFor(() => expect(api.calls.some(call => call.method === 'POST')).toBe(true))
+  const visibility = hideable()
+  try {
+    visibility.hide()
+    await act(async () => { pending.resolve(json(scanned(lee(), 'r2'))) })
+    visibility.show()
+    expect(await within(dialog).findByText('참석을 확인했어요')).toBeTruthy()
+    api.on('POST', `${base}/check-in`, () => json(scanned(lee(), 'r2', true)))
+    queue.push(checkInQrText(code))
+    fireEvent.click(within(dialog).getByRole('button', { name: '다음' }))
+    expect(await within(dialog).findByText('이미 참석했어요')).toBeTruthy()
+  } finally { visibility.restore() }
 })

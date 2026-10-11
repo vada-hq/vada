@@ -51,9 +51,12 @@ test('QR로 참석 확인: 모르는 코드, 취소한 신청, 다른 행사·�
     const otherToken = await apply(env, other.form!.code, '이윤슬', '2023000003')
     await refused(scan(env, { code: codeOf(otherToken) }), 404, 'NOT_FOUND')
     await refused(env.request('POST', '/events/e2/registration/check-in', { code: codeOf(token) }), 404, 'NOT_FOUND')
-    // 다른 학생회의 운영진은 자기 행사 경로로도 e의 신청을 찾지 못한다.
+    // 다른 학생회의 운영진은 자기 행사(ex)에 참가 신청을 열어도 e의 신청을 찾지 못한다.
     env.as('x')
-    await refused(env.publicRequest('POST', '/organizations/b/events/ex/registration/check-in', { code: codeOf(token) }), 404, 'NOT_FOUND')
+    const theirs = (method: string, path: string, body?: unknown) => env.publicRequest(method, `/organizations/b${path}`, body)
+    await env.ok(theirs('PATCH', '/events/ex', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null }))
+    await env.ok(theirs('POST', '/events/ex/registration', formBody({ closesAt: '2999-08-20T10:00' })), 201)
+    await refused(theirs('POST', '/events/ex/registration/check-in', { code: codeOf(token) }), 404, 'NOT_FOUND')
     assert.deepEqual((await attendance(env)).map(row => row.checked_in_at), [null, null, null])
   } finally { await env.pg.close() }
 })

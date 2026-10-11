@@ -59,7 +59,9 @@ test('계좌가 있으면 번호·예금주와 바꾼 기록을 보여 주고, �
   api.on('POST', `${base}/fee-account`, () => json({ error: 'VERSION_CONFLICT' }, 409))
   fireEvent.click(within(dialog).getByRole('button', { name: '저장' }))
   expect(await within(dialog).findByText('다른 사람이 먼저 바꿨어요. 새로 불러온 내용을 확인해 주세요.')).toBeTruthy()
-  expect(api.calls.at(-2)!.body).toEqual({ version: 1, bank: '국민은행', accountNumber: '3333-01-1234567', holder: '컴퓨터학부 학생회' })
+  // 다시 불러오기(GET)가 나가는 때는 부하에 따라 다르다. 순서에 기대지 않고 저장 요청을 찾는다.
+  expect(api.calls.find(call => call.method === 'POST' && call.path === `${base}/fee-account`)!.body)
+    .toEqual({ version: 1, bank: '국민은행', accountNumber: '3333-01-1234567', holder: '컴퓨터학부 학생회' })
   await waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
 })
 
