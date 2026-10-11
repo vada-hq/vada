@@ -38,7 +38,8 @@ export default function EventReport({ organizationId, eventId, onEvent, ...props
         : <StateMessage kind="loading">결과보고서 불러오는 중…</StateMessage>}
     </div></div>
   }
-  // 받을 때마다 새로 그려 입력 칸을 받은 글로 맞춘다. 실패한 저장은 받지 않으므로 쓴 글이 남는다.
+  // 불러오기·새로 불러오기·발행·발행 취소 때만 새로 그려 입력 칸을 받은 글로 맞춘다.
+  // 저장은 새로 그리지 않는다. 저장 중에 친 글과 스크롤이 남고, 실패한 저장도 쓴 글을 그대로 둔다.
   return <Loaded key={state.revision} data={state.data} state={state} {...props} />
 }
 
@@ -73,6 +74,11 @@ function Loaded({ data, state, canWrite, canPublish, onOpenEvent, onDirtyChange 
     setBusy(false)
     setConfirming(null)
     if (!result.ok) setMessage({ text: result.message, stale: result.code === 'UNKNOWN' || (result.code !== null && staleReportCodes.has(result.code)) })
+  }
+  // 새로 불러오면 저장하지 않은 글이 사라지므로 먼저 묻는다.
+  function reload() {
+    if (dirty && !window.confirm('저장하지 않은 글이 사라져요. 새로 불러올까요?')) return
+    state.refresh()
   }
   const status = dirty ? '저장하지 않은 글이 있어요.' : published ? '발행했어요.' : `다섯 칸 중 ${written}칸을 썼어요.`
   const time = [eventTimeText(facts.event.startsAt, facts.event.endsAt) ?? '날짜 미정', facts.event.place].filter(Boolean).join(' · ')
@@ -113,7 +119,7 @@ function Loaded({ data, state, canWrite, canPublish, onOpenEvent, onDirtyChange 
     {(editable || (canPublish && published)) && <footer className="shrink-0 border-t bg-white px-4 py-3 sm:px-6">
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         {message && <div className="flex flex-wrap items-center gap-2"><StateMessage kind="error">{message.text}</StateMessage>
-          {message.stale && <Button variant="outline" size="sm" onClick={state.refresh}>새로 불러오기</Button>}</div>}
+          {message.stale && <Button variant="outline" size="sm" onClick={reload}>새로 불러오기</Button>}</div>}
         <div className="flex flex-wrap items-center gap-2">
           <p className="min-w-0 flex-1 text-xs text-gray-600">{status}</p>
           {editable && <Button variant={canPublish ? 'outline' : 'default'} disabled={busy || !dirty || !valid}

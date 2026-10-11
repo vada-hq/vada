@@ -95,8 +95,9 @@ test('기록 목록: 완료한 행사만 최근 완료 순으로, 담당과 수�
     assert.deepEqual(records.map(record => record.report), [null, null])
     assert.deepEqual(records[1]!.facts.owner, { department: '기획부', person: '기획2' })
     assert.deepEqual(records[1]!.event.ownerDepartment, { id: 'dp', name: '기획부' })
-    // 완료하지 않은 행사와 다른 학생회 행사는 없다.
-    await env.pg.exec(`UPDATE events SET completed_at = NULL, completed_by = NULL WHERE id = 'e'`)
+    // 완료하지 않은 행사와 다른 학생회 행사는 없다. 학생회 b의 행사도 완료해 두고 거르는지 본다.
+    await env.pg.exec(`UPDATE events SET completed_at = NULL, completed_by = NULL WHERE id = 'e';
+      UPDATE events SET completed_at = now(), completed_by = 'x' WHERE id = 'ex'`)
     assert.deepEqual((await env.ok<RecordsResponse>(send('GET', '/records'))).records.map(record => record.event.id), ['e2'])
     env.as('x')
     await refused(send('GET', '/records'), 403, 'FORBIDDEN')
@@ -134,10 +135,30 @@ test('결과보고서 저장: 부서가 있는 구성원이 완료한 행사에�
     env.as('p')
     await refused(send('POST', '/events/ex/report', { version: 0, ...draft }), 404, 'NOT_FOUND')
     await refused(send('POST', '/events/nope/report', { version: 0, ...draft }), 404, 'NOT_FOUND')
-    // 처음 쓰는 두 사람이 겹치면 둘째는 버전 충돌이다(500이 아니다).
+    // 이미 있는 보고서를 버전 0으로 저장하면 버전 충돌이다.
     await complete(env, 'e2')
     await env.pg.exec(`INSERT INTO event_reports(event_id, organization_id, operations, created_by, updated_by) VALUES ('e2','a','먼저 씀','q','q')`)
     await refused(send('POST', '/events/e2/report', { version: 0, ...draft }), 409, 'VERSION_CONFLICT')
+  } finally { await env.pg.close() }
+})
+
+test('처음 쓰는 두 사람이 겹치면 둘째는 500이 아니라 버전 충돌이다', async () => {
+  const env = await setupPurchases()
+  try {
+    const send = reportsOf(env)
+    await complete(env)
+    // 첫째의 저장을 트리거로 흉내 낸다. 둘째가 보고서가 없는 것을 본 뒤, 넣기 직전에 같은 행사의 보고서가 생긴다.
+    await env.pg.exec(`CREATE FUNCTION first_writer() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN IF pg_trigger_depth() = 1 THEN
+          INSERT INTO event_reports(event_id, organization_id, operations, created_by, updated_by) VALUES (NEW.event_id, NEW.organization_id, '먼저 씀', 'q', 'q');
+        END IF; RETURN NEW; END $$;
+      CREATE TRIGGER first_writer BEFORE INSERT ON event_reports FOR EACH ROW EXECUTE FUNCTION first_writer();`)
+    env.as('p')
+    await refused(send('POST', '/events/e/report', { version: 0, ...draft }), 409, 'VERSION_CONFLICT')
+    await env.pg.exec('DROP TRIGGER first_writer ON event_reports; DROP FUNCTION first_writer();')
+    // 실패한 저장은 아무것도 남기지 않는다(흉내 낸 첫째의 행도 같은 거래라 함께 되돌려진다). 그 뒤에는 처음부터 다시 쓴다.
+    assert.equal((await env.ok<EventReportResponse>(send('GET', '/events/e/report'))).report, null)
+    assert.equal((await env.ok<EventReportResponse>(send('POST', '/events/e/report', { version: 0, ...draft }))).report?.version, 1)
   } finally { await env.pg.close() }
 })
 
@@ -175,8 +196,13 @@ test('발행: 회장단이 다섯 칸을 다 쓴 보고서를 발행하면 수�
     env.as('l')
     await refused(send('POST', '/events/e/report/publish', { version: 1 }), 409, 'REPORT_INCOMPLETE')
     await env.ok(send('POST', '/events/e/report', { version: 1, ...full }))
-    env.as('p')
-    await refused(send('POST', '/events/e/report/publish', { version: 2 }), 403, 'FORBIDDEN')
+    // 회장단이 아니거나 다른 학생회 사용자면 거절하고, 미인증은 401이다.
+    for (const user of ['p', 'n', 'x']) {
+      env.as(user)
+      await refused(send('POST', '/events/e/report/publish', { version: 2 }), 403, 'FORBIDDEN', user)
+    }
+    env.as(null)
+    assert.equal((await send('POST', '/events/e/report/publish', { version: 2 })).status, 401)
     env.as('l')
     await refused(send('POST', '/events/e/report/publish', { version: 1 }), 409, 'VERSION_CONFLICT')
     await refused(send('POST', '/events/e/report/unpublish', { version: 2 }), 409, 'INVALID_STATE')
@@ -191,8 +217,12 @@ test('발행: 회장단이 다섯 칸을 다 쓴 보고서를 발행하면 수�
     assert.equal((await env.ok<EventReportResponse>(send('GET', '/events/e/report'))).facts.owner.department, '기획부')
     const records = (await env.ok<RecordsResponse>(send('GET', '/records'))).records
     assert.deepEqual([records[0]!.facts.owner.department, records[0]!.report?.status], ['기획부', 'published'])
-    env.as('p')
-    await refused(send('POST', '/events/e/report/unpublish', { version: 3 }), 403, 'FORBIDDEN')
+    for (const user of ['p', 'n', 'x']) {
+      env.as(user)
+      await refused(send('POST', '/events/e/report/unpublish', { version: 3 }), 403, 'FORBIDDEN', user)
+    }
+    env.as(null)
+    assert.equal((await send('POST', '/events/e/report/unpublish', { version: 3 })).status, 401)
     env.as('l')
     const back = await env.ok<EventReportResponse>(send('POST', '/events/e/report/unpublish', { version: 3 }))
     assert.deepEqual([back.report?.status, back.report?.version, back.report?.published, back.report?.handover, back.facts.owner.department],

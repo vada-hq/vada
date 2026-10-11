@@ -2,7 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { EventReportResponse } from '@vada/contracts'
-import { json, mockApi } from '../test-support/mock-api'
+import { deferredResponse, json, mockApi } from '../test-support/mock-api'
 import EventReport from './EventReport'
 import { completedEvent, full, reportResponse, reportView } from './record-fixtures'
 
@@ -121,8 +121,46 @@ test('남이 먼저 발행했으면 쓴 글을 지우지 않고 이유와 새로
   fireEvent.click(button('저장'))
   expect(await screen.findByText('이미 발행한 결과보고서예요. 고치려면 회장단이 발행을 취소해야 해요.')).toBeTruthy()
   expect(field('잘된 점').value).toBe('내가 쓴 글')
+  vi.spyOn(window, 'confirm').mockReturnValue(true)
   fireEvent.click(button('새로 불러오기'))
   await vi.waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
+})
+
+test('저장하지 않은 글이 있으면 새로 불러오기 전에 묻고, 취소하면 글을 둔다', async () => {
+  const { api } = setup(reportResponse())
+  api.on('POST', path, () => json({ error: 'VERSION_CONFLICT' }, 409))
+  fireEvent.change(await screen.findByRole('textbox', { name: '잘된 점' }), { target: { value: '내가 쓴 글' } })
+  fireEvent.click(button('저장'))
+  expect(await screen.findByText('다른 사람이 먼저 저장했어요. 쓴 글을 복사해 두고 새로 불러와 주세요.')).toBeTruthy()
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  fireEvent.click(button('새로 불러오기'))
+  expect(confirm).toHaveBeenCalledWith('저장하지 않은 글이 사라져요. 새로 불러올까요?')
+  expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(1)
+  expect(field('잘된 점').value).toBe('내가 쓴 글')
+  confirm.mockReturnValue(true)
+  fireEvent.click(button('새로 불러오기'))
+  await vi.waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
+})
+
+test('저장 중에 계속 친 글은 남고, 저장해도 입력 칸을 새로 그리지 않는다', async () => {
+  const { api } = setup(reportResponse())
+  const pending = deferredResponse()
+  api.on('POST', path, () => pending.promise)
+  const operations = await screen.findByRole('textbox', { name: '현장 운영' })
+  fireEvent.change(field('잘된 점'), { target: { value: '조를 미리 정했다' } })
+  fireEvent.click(button('저장'))
+  fireEvent.change(field('잘된 점'), { target: { value: '조를 미리 정했다. 그리고' } })
+  pending.resolve(json(reportResponse({ report: reportView({ wentWell: '조를 미리 정했다', version: 2 }) })))
+  await vi.waitFor(() => expect(screen.getByRole('button', { name: '저장' })).toBeTruthy())
+  expect(field('잘된 점').value).toBe('조를 미리 정했다. 그리고')
+  expect(screen.getByText('저장하지 않은 글이 있어요.')).toBeTruthy()
+  expect(screen.getByRole('textbox', { name: '현장 운영' })).toBe(operations)
+  // 다음 저장은 받은 버전으로 보낸다.
+  api.on('POST', path, () => json(reportResponse({ report: reportView({ wentWell: '조를 미리 정했다. 그리고', version: 3 }) })))
+  fireEvent.click(button('저장'))
+  await vi.waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(2))
+  expect(api.calls.filter(call => call.method === 'POST')[1]!.body).toMatchObject({ version: 2, wentWell: '조를 미리 정했다. 그리고' })
+  expect(await screen.findByText('다섯 칸 중 2칸을 썼어요.')).toBeTruthy()
 })
 
 test('행사 기록 보기를 누르면 행사 화면을 연다. 완료를 취소한 행사면 안내하고 읽기만 한다', async () => {
