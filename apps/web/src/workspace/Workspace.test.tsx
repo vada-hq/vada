@@ -17,11 +17,12 @@ const membersBody = { viewer: membership, departments: [{ id: 'd1', name: '기�
 const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z', startsAt: null, endsAt: null, place: null,
   version: 1, completedAt: null as string | null }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
-function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }, myTasks: unknown = { open: [], done: [], truncated: false }) {
+function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }, myTasks: unknown = { open: [], done: [], truncated: false },
+  eventList: unknown[] = [event, { ...event, id: 'e2', name: '축제' }]) {
   const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/budget/periods') ? { periods: [budgetPeriod()] }
     : url.endsWith('/budget/periods/p1') ? budgetPlan({ events: [budgetEventLine({ eventId: 'e1' })] })
     : url.endsWith('/events')
-    ? { events: [event, { ...event, id: 'e2', name: '축제' }] }
+    ? { events: eventList }
     : url.endsWith('/my-tasks') ? myTasks
     : url.endsWith('/members') ? members
     : url.endsWith('/tasks') ? { tasks: [], registrationClosesAt: null }
@@ -417,4 +418,18 @@ test('미배정 구성원도 내 업무를 보지만 맡을 수 없어 비어 �
   setup()
   render(<Workspace {...props} memberships={[{ ...membership, department: null, permissions: { ...membership.permissions, manageEvents: false } }]} />)
   expect(await screen.findByText('맡은 업무가 없어요')).toBeTruthy()
+})
+
+test('회장단은 행사 화면 머리에서 완료하기를 보고, 다른 구성원은 단계 칩만 본다', async () => {
+  setup(membersBody, undefined, undefined, [event])
+  const { unmount } = render(<Workspace {...props} memberships={[leaderMembership]} />)
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  expect(await screen.findByRole('button', { name: '완료하기' })).toBeTruthy()
+  expect(within(screen.getByRole('banner')).getByText('기획 중')).toBeTruthy()
+  unmount()
+  setup(membersBody, undefined, undefined, [event])
+  render(<Workspace {...props} />)
+  fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
+  expect(await within(screen.getByRole('banner')).findByText('기획 중')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '완료하기' })).toBeNull()
 })

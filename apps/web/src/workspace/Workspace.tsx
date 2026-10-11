@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { CalendarDays } from 'lucide-react'
-import type { EventSummary, MembershipSummary } from '@vada/contracts'
+import { koreanOf, type EventSummary, type MembershipSummary } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
+import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
@@ -11,6 +12,8 @@ import EventList from '../events/EventList'
 import Expenses from '../expenses/Expenses'
 import { useExpenses } from '../expenses/useExpenses'
 import CreateEventForm from '../events/CreateEventForm'
+import EventCompletionControl from '../events/EventCompletionControl'
+import { eventPhaseOf, phaseLabels, phaseTones } from '../events/event-phase'
 import { useEvents } from '../events/useEvents'
 import Members from '../organization/Members'
 import { useOrganizationMembers } from '../organization/useOrganizationMembers'
@@ -66,6 +69,8 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   const [selected, setSelected] = useState<EventSummary | null>(null)
   // 고른 행사는 목록의 최신 값으로 보여 준다. 참가자 탭에서 일시·장소를 고치면 목록이 바뀐다.
   const current = selected && (events.events?.find(item => item.id === selected.id) ?? selected)
+  // 행사 화면 머리의 단계 칩(M5a). 날짜로 계산하고, 그릴 때의 시각을 쓴다.
+  const phase = view === 'events' && current ? eventPhaseOf(current, koreanOf(new Date())) : null
   // 행사 화면이 처음 열 탭. 옆 메뉴로 고르면 대화, 예산 화면에서 열면 재정, 내 업무에서 열면 업무다.
   const [eventTab, setEventTab] = useState<'chat' | 'tasks' | 'finance'>('chat')
   const [leaveRisk, setLeaveRisk] = useState(false)
@@ -152,7 +157,13 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
       <WorkspaceHeader councilName={membership.organization.name}
-        section={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정' : '행사'}
+        section={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정'
+          : current?.completedAt ? '기록' : '행사'}
+        badge={phase && <Badge tone={phaseTones[phase]}>{phaseLabels[phase]}</Badge>}
+        // 회장단만 완료하고 되돌린다. 완료하면 내 업무에서 그 행사의 업무가 빠지므로 새로 불러온다.
+        actions={phase && current && membership.permissions.manageOrganization
+          ? <EventCompletionControl event={current} onChanged={event => { events.replace(event); myTasks.refresh() }} onStale={events.refresh} />
+          : undefined}
         title={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
           : view === 'fees' ? '참가비 설정' : selected?.name ?? '행사'}
         onMenu={() => setNavOpen(true)} />
