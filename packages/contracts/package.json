@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "exports": { ".": "./src/index.ts" },
-  "scripts": { "typecheck": "tsc --noEmit", "test": "tsx --test src/input.test.ts src/coupang.test.ts src/expenses.test.ts src/settlement.test.ts src/budget.test.ts src/incomes.test.ts src/registrations.test.ts src/fees.test.ts" },
+  "scripts": { "typecheck": "tsc --noEmit", "test": "tsx --test src/input.test.ts src/coupang.test.ts src/expenses.test.ts src/settlement.test.ts src/budget.test.ts src/incomes.test.ts src/registrations.test.ts src/fees.test.ts src/tasks.test.ts" },
   "dependencies": { "zod": "4.6.5" },
   "devDependencies": { "fast-check": "4.10.2", "tsx": "4.23.15" }
 }

@@ -12,6 +12,10 @@ export { FEE_BANK_MAX, FEE_HOLDER_MAX, FEE_ACCOUNT_NUMBER_MAX, FEE_ACCOUNT_HISTO
   DUES_ROSTER_USE_DAYS_MAX, accountNumberInput, SetFeeAccountSchema, DuesMemberSchema, ReplaceDuesRosterSchema, DeleteDuesRosterSchema } from './fees.js'
 export type { SetFeeAccountRequest, ReplaceDuesRosterRequest, DeleteDuesRosterRequest, FeeAccount, FeeAccountView, FeeAccountChange, DuesMember,
   DuesRosterView, FeeSettingsResponse } from './fees.js'
+export { TASK_TITLE_MAX, TASK_DESCRIPTION_MAX, TASKS_PER_EVENT_MAX, MY_TASKS_OPEN_LIMIT, MY_TASKS_DONE_LIMIT, TASK_STATUSES, TASK_STATUS_LABELS,
+  CreateTaskSchema, UpdateTaskSchema, ChangeTaskStatusSchema, DeleteTaskSchema } from './tasks.js'
+export type { TaskStatus, TaskAction, CreateTaskRequest, UpdateTaskRequest, ChangeTaskStatusRequest, DeleteTaskRequest, TaskPerson, TaskSummary,
+  TaskHistoryEntry, TaskDetail, TaskResponse, EventTasksResponse, MyTasksResponse } from './tasks.js'
 export { MESSAGE_CONTENT_MAX, CreateMessageSchema, type CreateMessageRequest } from './chat.js'
 export { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
 export { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema, type JoinOrganizationRequest, type InvitePreviewResponse } from './invites.js'
