@@ -182,3 +182,20 @@ test('내 업무: 이 학생회에서 내가 맡은 업무를 모든 행사에�
     assert.deepEqual(mine.open[0]?.event, { id: 'e2', name: '축제' })
   } finally { await env.pg.close() }
 })
+
+test('내 업무는 완료한 행사의 업무를 빼고, 완료를 취소하면 다시 보인다', async () => {
+  const env = await setupPurchases()
+  try {
+    const kept = await create(env, { title: '대관', assigneeMembershipId: 'mq' })
+    const other = await create(env, { title: '후기', assigneeMembershipId: 'mq' }, '/events/e2/tasks')
+    await env.pg.exec(`INSERT INTO event_finances(event_id, organization_id, settled_at, settled_by) VALUES ('e','a', now(), 'f')`)
+    env.as('l')
+    await env.ok(env.request('POST', '/events/e/completion', { version: 1 }))
+    env.as('q')
+    assert.deepEqual((await env.ok<MyTasksResponse>(env.request('GET', '/my-tasks'))).open.map(task => task.id), [other.id])
+    env.as('l')
+    await env.ok(env.request('POST', '/events/e/completion/cancel', { version: 2 }))
+    env.as('q')
+    assert.deepEqual((await env.ok<MyTasksResponse>(env.request('GET', '/my-tasks'))).open.map(task => task.id).sort(), [kept.id, other.id].sort())
+  } finally { await env.pg.close() }
+})

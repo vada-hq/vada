@@ -178,3 +178,17 @@ test('보관 기간이 지난 신청은 토큰으로도 찾을 수 없다', asyn
     await refused(env.publicRequest('POST', '/public/registrations/cancel', { token }), 404, 'NOT_FOUND')
   } finally { await env.pg.close() }
 })
+
+test('완료한 행사의 신청 화면은 마감이고, 내 신청은 취소할 수 없다. 운영진 화면도 마감이다', async () => {
+  const env = await setupPurchases()
+  try {
+    const form = await open(env)
+    const { token } = await env.ok<RegistrationCreated>(env.publicRequest('POST', `/public/registration-forms/${form.code}/entries`, entryBody()), 201)
+    await env.pg.exec(`INSERT INTO event_finances(event_id, organization_id, settled_at, settled_by) VALUES ('e','a', now(), 'f');
+      UPDATE events SET completed_at = now(), completed_by = 'l' WHERE id = 'e';`)
+    assert.equal((await env.ok<PublicRegistrationForm>(env.publicRequest('GET', `/public/registration-forms/${form.code}`))).state, 'closed')
+    assert.equal((await env.ok<MyRegistration>(env.publicRequest('POST', '/public/registrations/lookup', { token }))).cancellable, false)
+    env.as('p')
+    assert.equal((await env.ok<RegistrationResponse>(env.request('GET', '/events/e/registration'))).form!.state, 'closed')
+  } finally { await env.pg.close() }
+})

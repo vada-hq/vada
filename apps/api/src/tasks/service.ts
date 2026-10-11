@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto'
-import { and, asc, count, desc, eq, ne, sql, type SQL } from 'drizzle-orm'
+import { and, asc, count, desc, eq, isNull, ne, sql, type SQL } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { koreanOf, MY_TASKS_DONE_LIMIT, MY_TASKS_OPEN_LIMIT, TASKS_PER_EVENT_MAX, type ChangeTaskStatusRequest, type CreateTaskRequest,
   type DeleteTaskRequest, type EventTasksResponse, type MyTasksResponse, type TaskAction, type TaskDetail, type TaskSummary,
@@ -99,9 +99,9 @@ export function createTaskService(db: TaskDatabase) {
   return {
     list,
     get: (scope: TaskScope, eventId: string, taskId: string) => detailOf(db, scope, eventId, taskId),
-    // 이 학생회에서 내가 맡은 업무. 할 일은 마감일 순, 완료는 최근 순이다.
+    // 이 학생회에서 내가 맡은 업무. 완료한 행사(M5a)의 업무는 기록이라 뺀다. 할 일은 마감일 순, 완료는 최근 순이다.
     async mine(scope: TaskScope): Promise<MyTasksResponse> {
-      const mine = and(inOrganization(scope), eq(tasks.assigneeId, scope.userId))
+      const mine = and(inOrganization(scope), eq(tasks.assigneeId, scope.userId), isNull(events.completedAt))
       const open = await summaries(db, and(mine, ne(tasks.status, 'done')), byDue, MY_TASKS_OPEN_LIMIT + 1)
       const done = await summaries(db, and(mine, eq(tasks.status, 'done')), [desc(tasks.completedAt), desc(tasks.id)], MY_TASKS_DONE_LIMIT)
       return { open: open.slice(0, MY_TASKS_OPEN_LIMIT), done, truncated: open.length > MY_TASKS_OPEN_LIMIT }

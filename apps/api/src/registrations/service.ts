@@ -86,7 +86,8 @@ function formView(form: Form, event: Event, total: number, payments: Registratio
   const purgeAfter = purgeAfterOf(endOf(event))
   return {
     id: form.id, code: form.code, accepting: form.accepting, opensAt: form.opensAt && koreanOf(form.opensAt), closesAt: koreanOf(form.closesAt),
-    capacity: form.capacity, notice: form.notice, collectPhone: form.collectPhone, version: form.version, state: stateOf(form, total, now),
+    capacity: form.capacity, notice: form.notice, collectPhone: form.collectPhone, version: form.version,
+    state: stateOf(form, total, now, event.completedAt !== null),
     count: total, purgeAfter: koreanDay(purgeAfter), purged: purgeAfter <= now, updatedAt: form.updatedAt.toISOString(),
     fee: form.fee, memberFee: form.memberFee, payments, checkedIn,
   }
@@ -205,12 +206,13 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
     if (!current) throw new ApiError('NOT_FOUND', 404)
     return current
   }
-  // 마감 전이고 입금·참석을 확인하지 않았으면 스스로 취소할 수 있다. 참석 확인 QR의 코드는 토큰의 해시다.
+  // 완료하지 않은 행사(M5a)에서 마감 전이고 입금·참석을 확인하지 않았으면 스스로 취소할 수 있다. 참석 확인 QR의 코드는 토큰의 해시다.
   const myView = (found: Found, account: FeeAccount | null): MyRegistration => {
     const { registration, form, event, organizationName } = found
     return { code: form.code, organizationName, event: publicEvent(event), name: registration.name, studentId: registration.studentId,
       phone: registration.phone, createdAt: koreanOf(registration.createdAt), closesAt: koreanOf(form.closesAt), cancelled: false,
-      cancellable: now() < form.closesAt && registration.paidAt === null && registration.checkedInAt === null, payment: paymentOf(found, account),
+      cancellable: event.completedAt === null && now() < form.closesAt && registration.paidAt === null && registration.checkedInAt === null,
+      payment: paymentOf(found, account),
       checkInCode: registration.tokenHash, checkedInAt: registration.checkedInAt && koreanOf(registration.checkedInAt) }
   }
   return {
@@ -220,7 +222,8 @@ export function createRegistrationService(db: RegistrationDatabase, now: () => D
       const { form, event, organizationName } = await formByCode(tx, code)
       await purgeExpired(tx, form.id)
       const total = await countOf(tx, form.id)
-      return { organizationName, event: publicEvent(event), notice: form.notice, collectPhone: form.collectPhone, state: stateOf(form, total, now()),
+      return { organizationName, event: publicEvent(event), notice: form.notice, collectPhone: form.collectPhone,
+        state: stateOf(form, total, now(), event.completedAt !== null),
         opensAt: form.opensAt && koreanOf(form.opensAt), closesAt: koreanOf(form.closesAt),
         remaining: form.capacity === null ? null : Math.max(0, form.capacity - total), purgeAfter: koreanDay(purgeAfterOf(endOf(event))),
         fee: form.fee, memberFee: form.memberFee }

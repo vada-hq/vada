@@ -3,7 +3,7 @@ import { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { DecidePurchaseItemsRequest, PurchaseItemAction, PurchaseItemSummary, PurchaseReviewResponse } from '@vada/contracts'
 import { approvesPurchases } from '../access/membership.js'
-import { departments, expenseItems, memberships, purchaseItemEvents as itemEvents, purchaseItems as items,
+import { departments, events, expenseItems, memberships, purchaseItemEvents as itemEvents, purchaseItems as items,
   purchaseSubmissions as submissions, shipmentItems } from '../db/schema.js'
 import { eventIdsOfItems, itemSummaries } from './items.js'
 import { requireActiveEvents } from '../events/lock.js'
@@ -54,11 +54,13 @@ export function createReviewService(db: ReviewDatabase) {
   return {
     async list(scope: ReviewScope): Promise<PurchaseReviewResponse> {
       await requireFinance(db, scope)
+      // 완료한 행사(M5a)의 품목은 기록이라 뺀다. 정산이 대기를 막으므로 남는 것은 받기 전 승인 품목이다.
+      const active = isNull(events.completedAt)
       // 대기는 오래된 제출부터, 같은 제출 안에서는 담은 순서다.
-      const pending = await itemSummaries(db, viewer(scope), eq(items.status, 'pending'),
+      const pending = await itemSummaries(db, viewer(scope), and(eq(items.status, 'pending'), active),
         [asc(submissions.submittedAt), asc(items.submissionId), desc(items.createdAt), asc(items.id)], REVIEW_LIMIT + 1)
       // 살 품목은 받을 날짜가 이른 순서이고, "상관없음"은 뒤다.
-      const approved = await itemSummaries(db, viewer(scope), and(eq(items.status, 'approved'), isNull(items.receivedAt)),
+      const approved = await itemSummaries(db, viewer(scope), and(eq(items.status, 'approved'), isNull(items.receivedAt), active),
         [sql`${items.neededBy} asc nulls last`, asc(submissions.submittedAt), asc(items.id)], REVIEW_LIMIT + 1)
       return { pending: pending.slice(0, REVIEW_LIMIT), approved: approved.slice(0, REVIEW_LIMIT),
         truncated: pending.length > REVIEW_LIMIT || approved.length > REVIEW_LIMIT }

@@ -102,3 +102,18 @@ test('승인 취소와 구매함 표시: 구매 전에만 승인을 취소하고
     assert.equal((await request('POST', `${review}/${one.id}/revoke`, { version: revoked.version })).status, 403)
   } finally { await pg.close() }
 })
+
+test('구매 검토의 대기·살 품목은 완료한 행사의 품목을 뺀다', async () => {
+  const env = await setupPurchases()
+  try {
+    const [approvedId] = await env.approved([link(1)])
+    env.as('p')
+    await env.submitted([link(2)], 'e2')
+    await env.pg.exec(`INSERT INTO event_finances(event_id, organization_id, settled_at, settled_by) VALUES ('e','a', now(), 'f');
+      UPDATE events SET completed_at = now(), completed_by = 'l' WHERE id = 'e';`)
+    env.as('f')
+    const list = await env.ok<PurchaseReviewResponse>(env.request('GET', review))
+    assert.ok(!list.approved.some(item => item.id === approvedId))
+    assert.deepEqual(list.pending.map(item => item.event.id), ['e2'])
+  } finally { await env.pg.close() }
+})
