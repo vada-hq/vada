@@ -67,7 +67,7 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
         <h3 className="text-sm font-semibold text-gray-900">행사 정보</h3>
         {!readOnly && <Button variant="outline" size="sm" aria-label="행사 정보 수정" onClick={() => setEditingEvent(true)}>수정</Button>}
       </div>
-      {time ? <p className="text-sm text-gray-700">{time}</p> : <p className="text-sm text-gray-500">일시를 넣어 주세요.</p>}
+      {time ? <p className="text-sm text-gray-700">{time}</p> : <p className="text-sm text-gray-500">{readOnly ? '일시 미정' : '일시를 넣어 주세요.'}</p>}
       {event.place && <p className="text-sm wrap-anywhere text-gray-700">{event.place}</p>}
     </section>
     <section aria-label="참가 신청" className={cn(cardClass, 'flex flex-col gap-3 p-4')}>

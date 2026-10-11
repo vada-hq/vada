@@ -412,3 +412,10 @@ test('완료한 행사에 신청서가 없으면 만들 단추 없이 안내만 
   const registration = await region('참가 신청')
   expect(within(registration).queryByRole('button', { name: '참가 신청 받기' })).toBeNull()
 })
+
+test('완료한 행사에 일시가 없으면 넣으라고 하지 않고 미정이라고만 보인다', async () => {
+  setup(registrationResponse({ form: null, registrations: [] }), timed({ startsAt: null, endsAt: null, place: null, completedAt: '2026-10-12T01:00:00.000Z' }), true)
+  const info = await region('행사 정보')
+  expect(within(info).getByText('일시 미정')).toBeTruthy()
+  expect(within(info).queryByText('일시를 넣어 주세요.')).toBeNull()
+})
