@@ -4,12 +4,13 @@ import { fileURLToPath } from 'node:url'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
-import type { BudgetPlanResponse, EventFinanceResponse, EventsResponse, RegistrationResponse } from '@vada/contracts'
+import type { BudgetPlanResponse, EventFinanceResponse, EventsResponse, MyTasksResponse, RegistrationResponse } from '@vada/contracts'
 import { createApp } from '../src/app.js'
 import { createBudgetRoutes } from '../src/budget/routes.js'
 import { createEventRoutes } from '../src/events/events.js'
 import { createRegistrationRoutes } from '../src/registrations/routes.js'
 import { createSettlementRoutes } from '../src/settlement/routes.js'
+import { createTaskRoutes } from '../src/tasks/routes.js'
 import { fakeStorage } from '../src/purchases/test-setup.js'
 import { DEMO_ORGANIZATION_ID, DEMO_ORGANIZATION_NAME, demoCalendar, receiptPdf, resetDemo, seedDemo } from './demo-data.js'
 
@@ -40,7 +41,7 @@ function viewer(db: TestDb) {
   const origin = 'http://127.0.0.1:5180'
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, events: createEventRoutes(db, session),
     budget: createBudgetRoutes(db, session, origin), settlement: createSettlementRoutes(db, session, origin),
-    registrations: createRegistrationRoutes(db, session) })
+    registrations: createRegistrationRoutes(db, session), tasks: createTaskRoutes(db, session) })
   return async <T>(path: string): Promise<T> => {
     const response = await app.request(`/api/organizations/${DEMO_ORGANIZATION_ID}${path}`)
     assert.equal(response.status, 200, path)
@@ -107,12 +108,29 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
       'income_events.created_at', 'event_finances.updated_at', 'event_finances.settled_at', 'event_finance_events.created_at', 'budget_periods.updated_at',
       'budget_periods.closed_at', 'budget_period_events.created_at', 'fee_accounts.updated_at', 'fee_account_events.created_at', 'dues_rosters.uploaded_at',
       'purchase_candidate_shares.created_at', 'purchase_candidates.created_at', 'coupang_products.fetched_at', 'purchase_items.product_fetched_at',
-      'purchase_generations.created_at', 'purchase_submissions.submitted_at']
+      'purchase_generations.created_at', 'purchase_submissions.submitted_at', 'tasks.created_at', 'tasks.completed_at', 'task_events.created_at']
     for (const column of columns) {
       const [table, field] = column.split('.')
       const latest = (await pg.query<{ latest: Date | null }>(`SELECT max(${field}) AS latest FROM ${table}`)).rows[0]!.latest
       assert.ok(!latest || latest.getTime() <= noon.getTime(), `${column} ${latest?.toISOString()}`)
     }
+
+    // 업무: 정산한 체육대회는 모두 완료했고, 학술제에는 지연과 담당자 없음이 섞여 있다. 처리 기록은 업무보다 늦지 않다.
+    const taskRows = await pg.query<{ event: string; status: string; overdue: boolean; unassigned: boolean }>(`SELECT e.name AS event, t.status,
+      (t.status <> 'done' AND t.due_on < $1::date) AS overdue, t.assignee_id IS NULL AS unassigned FROM tasks t JOIN events e ON e.id = t.event_id
+      WHERE t.organization_id = $2`, [today, DEMO_ORGANIZATION_ID])
+    const tasksOf = (name: string) => taskRows.rows.filter(row => row.event === name)
+    assert.ok(tasksOf('소프트웨어학부 학술제').length >= 7)
+    assert.ok(tasksOf('소프트웨어학부 학술제').some(row => row.overdue))
+    assert.ok(tasksOf('소프트웨어학부 학술제').some(row => row.unassigned))
+    assert.ok(tasksOf('소프트웨어학부 체육대회').length > 0 && tasksOf('소프트웨어학부 체육대회').every(row => row.status === 'done'))
+    assert.ok(tasksOf('중간고사 간식 나눔').length > 0)
+    assert.equal(await count(pg, `SELECT count(*)::int AS n FROM task_events ev JOIN tasks t ON t.id = ev.task_id WHERE ev.created_at < t.created_at
+      OR (t.completed_at IS NOT NULL AND t.completed_at < t.created_at)`), 0)
+    // 로그인 회장단 계정(u1)의 내 업무가 비어 있지 않고, 지연이 하나 있다.
+    const mine = await view<MyTasksResponse>('/my-tasks')
+    assert.ok(mine.open.length >= 2)
+    assert.equal(mine.open.filter(task => task.dueOn !== null && task.dueOn < today).length, 1)
 
     // 정산 셋, 정산하지 않은 행사 둘. 학술제 예산은 미정이다.
     const finances: Record<string, EventFinanceResponse['finance']> = Object.fromEntries(await Promise.all(events.map(async event =>
@@ -144,5 +162,6 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
     assert.equal(await count(pg, `SELECT count(*)::int AS n FROM users WHERE id LIKE 'demo-member-%'`), 8)
     assert.equal(await count(pg, `SELECT count(*)::int AS n FROM expense_receipts`), 9)
     assert.equal(await count(pg, `SELECT count(*)::int AS n FROM memberships WHERE id IN ('m1','m2','m3')`), 3)
+    assert.equal(await count(pg, `SELECT count(*)::int AS n FROM tasks`), taskRows.rows.length)
   } finally { await pg.close() }
 })

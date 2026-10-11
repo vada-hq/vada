@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { and, asc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { BudgetPlanResponse, EventFinanceResponse, EventPurchaseItemsResponse, EventResponse, ExpenseResponse, PurchaseCandidatesResponse,
-  ReceiptUploadResponse, RegistrationCreated, RegistrationResponse } from '@vada/contracts'
+  ReceiptUploadResponse, RegistrationCreated, RegistrationResponse, TaskResponse, TaskStatus } from '@vada/contracts'
 import { createApp } from '../src/app.js'
 import { createAccessRoutes } from '../src/access/access.js'
 import { createBudgetRoutes } from '../src/budget/routes.js'
@@ -23,6 +23,7 @@ import type { ProductFetcher } from '../src/purchases/products.js'
 import { createPurchaseRoutes } from '../src/purchases/purchases.js'
 import { createRegistrationRoutes } from '../src/registrations/routes.js'
 import { createSettlementRoutes } from '../src/settlement/routes.js'
+import { createTaskRoutes } from '../src/tasks/routes.js'
 
 // 기획자 시연용 데이터. 배포 DB의 검증 학생회(로그인 계정 셋이 소속)를 "소프트웨어학부 학생회 (시연)"으로 바꾸고,
 // 그 안의 내용을 모두 지운 뒤 한 학기 반의 활동을 실제 서버 코드(라우트·서비스·입력 검사)로 다시 넣는다.
@@ -163,6 +164,9 @@ export async function resetDemo(db: Db) {
     .map(item => item.key)
   await db.transaction(async tx => {
     const run = (statement: ReturnType<typeof sql>) => tx.execute(statement)
+    // 업무는 행사·가상 구성원·홍보부를 가리키므로 먼저 지운다.
+    await run(sql`DELETE FROM task_events WHERE organization_id = ${org}`)
+    await run(sql`DELETE FROM tasks WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM income_events WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM incomes WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM expense_events WHERE organization_id = ${org}`)
@@ -216,7 +220,8 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     chat: createChatRoutes(db, session, () => { void lookups.kick() }),
     purchases: createPurchaseRoutes(db, session, generateDraft, fetchProduct), expenses: createExpenseRoutes(db, session, storage),
     settlement: createSettlementRoutes(db, session, ORIGIN), budget: createBudgetRoutes(db, session, ORIGIN), incomes: createIncomeRoutes(db, session),
-    registrations: createRegistrationRoutes(db, session, { now: () => state.now }), fees: createFeeRoutes(db, session, { now: () => state.now }) })
+    registrations: createRegistrationRoutes(db, session, { now: () => state.now }), fees: createFeeRoutes(db, session, { now: () => state.now }),
+    tasks: createTaskRoutes(db, session) })
   // 실패하면 단계와 상태·오류 코드만 남긴다(응답 본문에는 개인 칸이 없고 오류 코드만 있다). 200을 기대하면 201도 받는다.
   // 원격 DB 연결이 잠깐 끊겨 생긴 5xx는 거래가 되돌려진 것이므로 잠시 뒤 두 번까지 다시 보낸다.
   async function call<T>(user: PersonKey | null, method: string, path: string, body?: unknown, status = 200): Promise<T> {
@@ -537,6 +542,46 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
   await call('treasurer', 'POST', orgPath(`/budget/periods/${previous.period.id}/close`), { version: closing.period.version,
     carryoverLineId: lineId(currentPlan, 'incomes', '이월금') })
   await shapeClosing(db, calendar, eventIds)
+
+  // 13. 행사 업무. 정산한 체육대회는 모두 끝났고, 다가오는 행사에는 지연·담당자 없음이 섞여 있다.
+  // 로그인 회장단 계정(소속 ID 순 첫째)에게도 둘을 맡겨 내 업무가 비지 않게 한다. 없으면 그 둘은 넣지 않는다.
+  log('업무')
+  const [loginLeader] = await db.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.organizationId, org),
+    eq(memberships.departmentId, departmentIds.leadership), sql`${memberships.userId} NOT LIKE ${`${DEMO_USER_PREFIX}%`}`))
+    .orderBy(asc(memberships.id)).limit(1)
+  const taskPlan: { event: EventKey; title: string; description?: string; department: DepartmentKey; assignee: PersonKey | 'login' | null;
+    due: string; status: TaskStatus }[] = [
+    { event: 'sports', title: '경기장 대관 신청', department: 'leadership', assignee: 'vice', due: addDays(calendar.sports, -20), status: 'done' },
+    { event: 'sports', title: '팀 조끼·호루라기 준비', department: 'planning', assignee: 'planner', due: addDays(calendar.sports, -3), status: 'done' },
+    { event: 'sports', title: '경기 결과 공지', department: 'promotion', assignee: 'promoter', due: addDays(calendar.sports, 1), status: 'done' },
+    { event: 'snack', title: '간식 수량 확정', description: '신청 인원 기준 1인 1세트, 여유분 10%', department: 'finance', assignee: 'treasurer',
+      due: addDays(calendar.today, -3), status: 'done' },
+    { event: 'snack', title: '배부 장소 섭외', description: '공학관 1층 로비 사용 신청서 내기', department: 'planning', assignee: 'planner',
+      due: addDays(calendar.today, 2), status: 'doing' },
+    { event: 'snack', title: '학생처 공문 보내기', department: 'leadership', assignee: 'login', due: addDays(calendar.today, -1), status: 'doing' },
+    { event: 'snack', title: '현장 인력 배치', department: 'planning', assignee: null, due: addDays(calendar.snack, -1), status: 'todo' },
+    { event: 'snack', title: '배부 후기 공유', department: 'promotion', assignee: 'promoter', due: addDays(calendar.snack, 3), status: 'todo' },
+    { event: 'festival', title: '장소 대관 신청', department: 'leadership', assignee: 'vice', due: addDays(calendar.today, -10), status: 'done' },
+    { event: 'festival', title: '발표팀 모집 공지', description: '학년별 단톡방과 인스타그램에 올리기', department: 'promotion', assignee: 'promoter',
+      due: addDays(calendar.today, -5), status: 'done' },
+    { event: 'festival', title: '포스터 디자인', description: '시안 두 개를 만들어 회의에서 고르기', department: 'promotion', assignee: 'promoter',
+      due: addDays(calendar.today, 5), status: 'doing' },
+    { event: 'festival', title: '심사위원 섭외', description: '교수님 두 분, 졸업생 한 분', department: 'planning', assignee: 'planner',
+      due: addDays(calendar.today, -2), status: 'doing' },
+    { event: 'festival', title: '학교 행사 승인 신청', department: 'leadership', assignee: 'login', due: addDays(calendar.today, 3), status: 'todo' },
+    { event: 'festival', title: '시상품 구매 요청', department: 'planning', assignee: 'planner2', due: addDays(calendar.today, 10), status: 'todo' },
+    { event: 'festival', title: '발표 순서표 확정', department: 'planning', assignee: null, due: addDays(calendar.festival, -7), status: 'todo' },
+    { event: 'festival', title: '리허설 진행', department: 'planning', assignee: 'planner3', due: addDays(calendar.festival, -1), status: 'todo' },
+    { event: 'festival', title: '결과 보고서 작성', department: 'planning', assignee: null, due: addDays(calendar.festival, 7), status: 'todo' },
+  ]
+  for (const item of taskPlan) {
+    if (item.assignee === 'login' && !loginLeader) continue
+    const assigneeMembershipId = item.assignee === null ? null : item.assignee === 'login' ? loginLeader!.id : `${userIdOf(item.assignee)}-membership`
+    const { task } = await call<TaskResponse>('planner', 'POST', eventPath(item.event, '/tasks'), { title: item.title, description: item.description ?? null,
+      departmentId: departmentIds[item.department], assigneeMembershipId, dueOn: item.due }, 201)
+    if (item.status !== 'todo') await call('planner', 'POST', eventPath(item.event, `/tasks/${task.id}/status`), { version: task.version, status: item.status })
+  }
+  await shapeTasks(db, calendar)
   log('완료')
   return { eventIds, periods: { previous: previous.period.id, current: current.period.id } }
 }
@@ -674,3 +719,17 @@ async function shapeClosing(db: Db, calendar: Calendar, eventIds: Record<string,
 
 // 내 신청 화면의 참석 확인 코드와 같은 값(토큰의 SHA-256). 시연 안내에 쓴다.
 export const checkInCodeOf = (token: string) => createHash('sha256').update(token).digest('hex')
+
+// 업무의 만든 때·완료한 때·처리 기록을 시나리오 시각으로 옮긴다. 만든 때는 행사를 만든 한 시간 뒤다.
+// 완료한 때는 마감일 17시이고, 시연 기준 날짜 9시보다 늦지 않다. 진행 중으로 바꾼 때는 만든 다음 날이다.
+async function shapeTasks(db: Db, calendar: Calendar) {
+  const org = DEMO_ORGANIZATION_ID
+  const morning = kst(calendar.today, '09:00').toISOString()
+  await db.execute(sql`UPDATE tasks t SET created_at = e.created_at + interval '1 hour' FROM events e WHERE e.id = t.event_id AND t.organization_id = ${org}`)
+  await db.execute(sql`UPDATE tasks SET completed_at = greatest(created_at + interval '1 hour',
+    least((due_on::timestamp + interval '17 hours') AT TIME ZONE 'Asia/Seoul', ${morning}::timestamptz))
+    WHERE organization_id = ${org} AND status = 'done'`)
+  await db.execute(sql`UPDATE task_events ev SET created_at = CASE WHEN ev.action = 'created' THEN t.created_at
+    WHEN ev.changes -> 'status' ->> 'to' = 'done' THEN t.completed_at ELSE least(t.created_at + interval '1 day', ${morning}::timestamptz) END
+    FROM tasks t WHERE t.id = ev.task_id AND ev.organization_id = ${org}`)
+}
