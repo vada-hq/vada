@@ -46,7 +46,7 @@ test('QR로 참석 확인: 모르는 코드, 취소한 신청, 다른 행사·�
     await refused(scan(env, { code: 'f'.repeat(64) }), 404, 'NOT_FOUND')
     await refused(scan(env, { code: codeOf(cancelled) }), 404, 'NOT_FOUND')
     // 같은 학생회의 다른 행사(e2) 신청은 e에서, e의 신청은 e2에서 찾을 수 없다.
-    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null }))
+    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null }))
     const other = await env.ok<RegistrationResponse>(env.request('POST', '/events/e2/registration', formBody({ closesAt: '2999-08-20T10:00' })), 201)
     const otherToken = await apply(env, other.form!.code, '이윤슬', '2023000003')
     await refused(scan(env, { code: codeOf(otherToken) }), 404, 'NOT_FOUND')
@@ -54,7 +54,7 @@ test('QR로 참석 확인: 모르는 코드, 취소한 신청, 다른 행사·�
     // 다른 학생회의 운영진은 자기 행사(ex)에 참가 신청을 열어도 e의 신청을 찾지 못한다.
     env.as('x')
     const theirs = (method: string, path: string, body?: unknown) => env.publicRequest(method, `/organizations/b${path}`, body)
-    await env.ok(theirs('PATCH', '/events/ex', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null }))
+    await env.ok(theirs('PATCH', '/events/ex', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null }))
     await env.ok(theirs('POST', '/events/ex/registration', formBody({ closesAt: '2999-08-20T10:00' })), 201)
     await refused(theirs('POST', '/events/ex/registration/check-in', { code: codeOf(token) }), 404, 'NOT_FOUND')
     assert.deepEqual((await attendance(env)).map(row => row.checked_in_at), [null, null, null])

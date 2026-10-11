@@ -294,7 +294,7 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     const { event } = await call<EventResponse>(item.creator, 'POST', orgPath('/events'), { name: item.name }, 201)
     eventIds[item.key] = event.id
     await call(item.creator, 'PATCH', orgPath(`/events/${event.id}`), { version: event.version, startsAt: koreanTime(future, item.start),
-      endsAt: koreanTime(future, item.end), place: item.place })
+      endsAt: koreanTime(future, item.end), place: item.place, ownerDepartmentId: null, ownerMembershipId: null })
   }
   const eventPath = (key: EventKey, path = '') => orgPath(`/events/${eventIds[key]}${path}`)
 

@@ -104,14 +104,14 @@ test('완료한 행사는 행사 정보를 바꿀 수 없고, 정산 잠금도 �
     env.as('l')
     await env.ok(complete(env))
     env.as('p')
-    await refused(env.request('PATCH', '/events/e', { version: 2, startsAt: '2999-08-20T10:00', endsAt: null, place: null }), 409, 'EVENT_COMPLETED')
+    await refused(env.request('PATCH', '/events/e', { version: 2, startsAt: '2999-08-20T10:00', endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null }), 409, 'EVENT_COMPLETED')
     env.as('f')
     await refused(env.request('POST', '/expenses', expense), 409, 'EVENT_COMPLETED')
     await refused(env.request('POST', '/events/e/finance/reopen', { version: 1, reason: '다시 확인' }), 409, 'EVENT_COMPLETED')
     env.as('l')
     await env.ok(cancel(env, 2))
     env.as('p')
-    const updated = (await env.ok<EventResponse>(env.request('PATCH', '/events/e', { version: 3, startsAt: '2999-08-20T10:00', endsAt: null, place: null }))).event
+    const updated = (await env.ok<EventResponse>(env.request('PATCH', '/events/e', { version: 3, startsAt: '2999-08-20T10:00', endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null }))).event
     assert.equal(updated.startsAt, '2999-08-20T10:00')
     env.as('f')
     await refused(env.request('POST', '/expenses', expense), 409, 'EVENT_SETTLED')

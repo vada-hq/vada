@@ -25,7 +25,7 @@ export async function prepare(env: Env, { withAccount = true, withRoster = true 
   if (withAccount) await env.ok(env.request('POST', '/fee-account', account))
   if (withRoster) await env.ok(env.request('POST', '/dues-roster', roster))
   env.as('p')
-  await env.ok(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: '2999-08-20T18:00', place: '체육관' }))
+  await env.ok(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: '2999-08-20T18:00', place: '체육관', ownerDepartmentId: null, ownerMembershipId: null }))
 }
 export const create = (env: Env, overrides: Record<string, unknown> = {}) => env.ok<RegistrationResponse>(env.request('POST', registrationBase, formBody(overrides)), 201)
 // 지금 설정에 바꿀 칸만 바꿔 보낸다.

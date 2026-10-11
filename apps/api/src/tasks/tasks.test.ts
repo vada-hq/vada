@@ -46,7 +46,7 @@ test('보드는 마감일 순이고 마감일 없는 업무는 뒤에 온다. �
     const late = await create(env, { title: '정산', dueOn: '2999-09-01' })
     const none = await create(env, { title: '후기', dueOn: null })
     const early = await create(env, { title: '대관', dueOn: '2999-07-01' })
-    await env.ok(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null }))
+    await env.ok(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null }))
     await env.ok(env.request('POST', '/events/e/registration', { opensAt: null, closesAt: '2999-08-19T23:59', capacity: null, notice: null,
       collectPhone: false, fee: 0, memberFee: null }), 201)
     const list = await env.ok<EventTasksResponse>(env.request('GET', base))

@@ -184,6 +184,23 @@ test('회장단은 부서를 추가·변경·삭제하고, 규칙에 어긋나�
     const inUse = await remove('plan1')
     assert.equal(inUse.status, 409)
     assert.deepEqual(await inUse.json(), { error: 'DEPARTMENT_IN_USE' })
+    // 행사의 담당 부서(M5b)도 지우지 않는다. 담당을 바꾸면 지운다.
+    const festival = (await (await send('POST', '/organizations/org1/departments', { name: '축제부' })).json()).departments
+      .find((department: { name: string }) => department.name === '축제부')
+    await pg.exec(`UPDATE events SET owner_department_id = '${festival.id}' WHERE id = 'e1'`)
+    const owned = await remove(festival.id)
+    assert.equal(owned.status, 409)
+    assert.deepEqual(await owned.json(), { error: 'DEPARTMENT_IN_USE' })
+    await pg.exec("UPDATE events SET owner_department_id = NULL WHERE id = 'e1'")
+    // 미리 본 뒤 지우기 전에 다른 요청이 담당으로 정한 경우: RESTRICT FK 위반(23001)도 같은 오류다(500이 아니다).
+    await pg.exec(`CREATE FUNCTION claim_department() RETURNS trigger LANGUAGE plpgsql AS $$
+        BEGIN UPDATE events SET owner_department_id = OLD.id WHERE id = 'e1'; RETURN OLD; END $$;
+      CREATE TRIGGER claim_department BEFORE DELETE ON departments FOR EACH ROW EXECUTE FUNCTION claim_department();`)
+    const raced = await remove(festival.id)
+    assert.equal(raced.status, 409)
+    assert.deepEqual(await raced.json(), { error: 'DEPARTMENT_IN_USE' })
+    await pg.exec('DROP TRIGGER claim_department ON departments; DROP FUNCTION claim_department();')
+    assert.equal((await remove(festival.id)).status, 200)
     const deleted = await remove(promo.id)
     assert.equal(deleted.status, 200)
     assert.equal((await deleted.json()).departments.some((department: { id: string }) => department.id === promo.id), false)

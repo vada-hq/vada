@@ -17,7 +17,7 @@ const korean = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
 async function prepare(env: Env) {
   env.clock.set(new Date('2999-08-01T00:00+09:00'))
   env.as('p')
-  await env.ok<EventResponse>(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: '2999-08-20T18:00', place: '체육관' }))
+  await env.ok<EventResponse>(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: '2999-08-20T18:00', place: '체육관', ownerDepartmentId: null, ownerMembershipId: null }))
 }
 const create = (env: Env, overrides: Record<string, unknown> = {}) =>
   env.ok<RegistrationResponse>(env.request('POST', base, formBody(overrides)), 201)
@@ -43,7 +43,7 @@ test('참가 신청 만들기: 부서가 있는 구성원이 행사마다 하나
     await refused(request('POST', base, formBody()), 409, 'REGISTRATION_EXISTS')
     // 행사 시작이 없으면 만들 수 없고, 마감은 행사 끝(끝이 없으면 시작)보다 늦을 수 없다.
     await refused(request('POST', '/events/e2/registration', formBody()), 409, 'EVENT_TIME_REQUIRED')
-    await ok(request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null }))
+    await ok(request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null }))
     await refused(request('POST', '/events/e2/registration', formBody({ closesAt: '2999-08-20T10:01' })), 409, 'DEADLINE_AFTER_EVENT')
     const sameMinute = await ok<RegistrationResponse>(request('POST', '/events/e2/registration', formBody({ closesAt: '2999-08-20T10:00' })), 201)
     assert.equal(sameMinute.form!.purgeAfter, '2999-09-19')
@@ -164,7 +164,7 @@ test('운영진 취소: 그 사람의 정보를 바로 지우고 신청 수에�
     await refused(request('POST', `${base}/entries/r2/cancel`, {}), 404, 'NOT_FOUND')
     await refused(request('POST', `${base}/entries/missing/cancel`, {}), 404, 'NOT_FOUND')
     // 다른 행사의 신청은 이 경로로 취소할 수 없다.
-    await ok(request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null }))
+    await ok(request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null }))
     const other = await ok<RegistrationResponse>(request('POST', '/events/e2/registration', formBody({ closesAt: '2999-08-20T10:00' })), 201)
     await register(env, other.form!.id, 9)
     await refused(request('POST', `${base}/entries/r9/cancel`, {}), 404, 'NOT_FOUND')

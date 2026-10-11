@@ -8,6 +8,8 @@ import { createEventRoutes } from './events.js'
 import { createAccessRoutes } from '../access/access.js'
 import { createApp } from '../app.js'
 import type { EventResponse, EventsResponse } from '@vada/contracts'
+import { setupPurchases } from '../purchases/test-setup.js'
+import { refused as refusedWith } from '../registrations/test-setup.js'
 
 test('event API validates input and shares events only within the authenticated council', async (t) => {
   const pg = new PGlite()
@@ -130,7 +132,8 @@ test('행사 정보 수정: 부서가 있는 구성원이 일시·장소를 고�
       assert.equal(response.status, status, error)
       assert.deepEqual(await response.json(), { error }, error)
     }
-    const info = { version: 1, startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: '  체육관 ' }
+    const info = { version: 1, startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: '  체육관 ', ownerDepartmentId: null,
+      ownerMembershipId: null }
 
     const listed = await (await app.request('/api/organizations/a/events')).json() as EventsResponse
     assert.deepEqual(listed.events.map(event => [event.startsAt, event.endsAt, event.place, event.version, event.completedAt]), [[null, null, null, 1, null]])
@@ -156,14 +159,46 @@ test('행사 정보 수정: 부서가 있는 구성원이 일시·장소를 고�
 
     // 참가 신청이 있으면 시작을 비울 수 없고, 마감보다 일찍 끝낼 수 없다.
     await pg.exec("INSERT INTO registration_forms (id,organization_id,event_id,closes_at,created_by) VALUES ('f','a','e','2026-08-20T18:00+09','p')")
-    await refused(patch({ version: 2, startsAt: null, endsAt: null, place: null }), 409, 'EVENT_TIME_REQUIRED')
+    await refused(patch({ ...info, version: 2, startsAt: null, endsAt: null, place: null }), 409, 'EVENT_TIME_REQUIRED')
     await refused(patch({ ...info, version: 2, endsAt: '2026-08-20T17:00' }), 409, 'DEADLINE_AFTER_EVENT')
     await refused(patch({ ...info, version: 2, startsAt: '2026-08-20T17:00', endsAt: null }), 409, 'DEADLINE_AFTER_EVENT')
     // 끝이 없으면 시작이 행사 끝이다. 마감과 같아도 된다.
-    const moved = await patch({ version: 2, startsAt: '2026-08-20T18:00', endsAt: null, place: null })
+    const moved = await patch({ ...info, version: 2, startsAt: '2026-08-20T18:00', endsAt: null, place: null })
     assert.equal(moved.status, 200)
     assert.deepEqual(((await moved.json()) as EventResponse).event.place, null)
   } finally {
     await pg.close()
   }
+})
+
+test('행사 담당: 부서가 있는 구성원이 담당 부서·책임자를 정하고 비운다. 다른 학생회·없는·미배정은 고를 수 없다', async () => {
+  const env = await setupPurchases()
+  try {
+    const info = (version: number, ownerDepartmentId: string | null, ownerMembershipId: string | null) =>
+      ({ version, startsAt: null, endsAt: null, place: null, ownerDepartmentId, ownerMembershipId })
+    const patch = (body: unknown) => env.request('PATCH', '/events/e', body)
+    env.as('p')
+    for (const id of ['dx', 'nope']) await refusedWith(patch(info(1, id, null)), 409, 'EVENT_DEPARTMENT_INVALID', id)
+    for (const id of ['mn', 'mx', 'nope']) await refusedWith(patch(info(1, null, id)), 409, 'EVENT_OWNER_INVALID', id)
+    const { event } = await env.ok<EventResponse>(patch(info(1, 'dp', 'mq')))
+    assert.deepEqual([event.ownerDepartment, event.owner, event.version], [{ id: 'dp', name: '기획부' }, { membershipId: 'mq', name: '기획2' }, 2])
+    const listed = (await env.ok<EventsResponse>(env.request('GET', '/events'))).events
+    assert.deepEqual([listed.find(item => item.id === 'e')?.ownerDepartment, listed.find(item => item.id === 'e')?.owner], [event.ownerDepartment, event.owner])
+    assert.deepEqual([listed.find(item => item.id === 'e2')?.ownerDepartment, listed.find(item => item.id === 'e2')?.owner], [null, null])
+    // 책임자가 미배정이 되어도 그대로 둘 수 있고, 다른 미배정은 새로 고를 수 없다.
+    await env.pg.exec("UPDATE memberships SET department_id = NULL WHERE id = 'mq'")
+    assert.equal((await env.ok<EventResponse>(patch(info(2, 'dp', 'mq')))).event.owner?.membershipId, 'mq')
+    await refusedWith(patch(info(3, null, 'mn')), 409, 'EVENT_OWNER_INVALID')
+    const cleared = (await env.ok<EventResponse>(patch(info(3, null, null)))).event
+    assert.deepEqual([cleared.ownerDepartment, cleared.owner], [null, null])
+    // 본문 경계: 키 누락, 빈 ID, 제어 문자, 너무 긴 ID, 숫자
+    for (const body of [{ version: 4, startsAt: null, endsAt: null, place: null }, info(4, '', null), info(4, null, 'a\u0000'),
+      info(4, 'a'.repeat(65), null), { ...info(4, null, null), ownerMembershipId: 1 }]) {
+      await refusedWith(patch(body), 400, 'INVALID_INPUT', JSON.stringify(body))
+    }
+    // 완료한 행사는 담당도 바꾸지 않는다(M5a 잠금).
+    await env.pg.exec(`INSERT INTO event_finances(event_id, organization_id, settled_at, settled_by) VALUES ('e','a', now(), 'f');
+      UPDATE events SET completed_at = now(), completed_by = 'l' WHERE id = 'e'`)
+    await refusedWith(patch(info(4, 'dp', null)), 409, 'EVENT_COMPLETED')
+  } finally { await env.pg.close() }
 })

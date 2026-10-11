@@ -34,7 +34,7 @@ test('완료한 행사는 행사 아래 모든 변경 라우트와 행사 기록
   const env = await setupPurchases()
   try {
     // 완료 전에 행사 e에 기록을 만든다: 일시, 신청서와 신청 하나, 업무, 작성 중·대기·승인 품목, 지출, 배송.
-    await env.ok(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null }))
+    await env.ok(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null }))
     const form = (await env.ok<RegistrationResponse>(env.request('POST', '/events/e/registration', formFields), 201)).form!
     const { token } = await env.ok<RegistrationCreated>(env.publicRequest('POST', `/public/registration-forms/${form.code}/entries`,
       { name: '김학생', studentId: '20260001', phone: null, agreed: true }), 201)
@@ -75,7 +75,8 @@ test('완료한 행사는 행사 아래 모든 변경 라우트와 행사 기록
 
     // 행사 아래 변경 라우트마다 본문을 둔다. 잠금이 먼저라 대상 ID·버전은 상관없다.
     const probes: Record<string, [path: string, body: unknown]> = {
-      [`PATCH ${eventRoot}`]: [at(), { version: 2, startsAt: '2999-08-20T10:00', endsAt: null, place: '체육관' }],
+      [`PATCH ${eventRoot}`]: [at(), { version: 2, startsAt: '2999-08-20T10:00', endsAt: null, place: '체육관', ownerDepartmentId: null,
+        ownerMembershipId: null }],
       [`POST ${eventRoot}/finance/budget`]: [at('/finance/budget'), { version: 1, budget: 1000 }],
       [`POST ${eventRoot}/finance/reopen`]: [at('/finance/reopen'), { version: 1, reason: '다시 확인' }],
       [`POST ${eventRoot}/finance/settle`]: [at('/finance/settle'), { version: 1, feeIncomeLineId: null }],

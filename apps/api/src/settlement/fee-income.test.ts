@@ -74,7 +74,7 @@ test('재정 탭: 받은 참가비·입금 확인 수·입금 전을 세고, 기
     // 참가 신청이 없거나, 무료이고 입금 확인이 없는 신청에는 참가비 숫자가 없다.
     assert.equal((await financeOf(env, 'e2')).finance.fees, null)
     env.as('p')
-    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-21T10:00', endsAt: '2999-08-21T18:00', place: '강당' }))
+    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-21T10:00', endsAt: '2999-08-21T18:00', place: '강당', ownerDepartmentId: null, ownerMembershipId: null }))
     await env.ok(env.request('POST', '/events/e2/registration', formBody()), 201)
     env.as('f')
     assert.equal((await financeOf(env, 'e2')).finance.fees, null)
@@ -150,7 +150,7 @@ test('받은 참가비가 0원이면 기간 없이 정산하고 수입을 만들
 
     await env.pg.query("UPDATE events SET name = $1 WHERE id = 'e2'", ['가'.repeat(100)])
     env.as('p')
-    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-21T10:00', endsAt: '2999-08-21T18:00', place: '강당' }))
+    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-21T10:00', endsAt: '2999-08-21T18:00', place: '강당', ownerDepartmentId: null, ownerMembershipId: null }))
     const { form: other } = await env.ok<RegistrationResponse>(env.request('POST', '/events/e2/registration', formBody({ fee: 5000 })), 201)
     await apply(env, other!.code, '박해랑', '2023000004')
     const [entry] = (await env.ok<RegistrationResponse>(env.request('GET', '/events/e2/registration'))).registrations
@@ -206,7 +206,7 @@ test('알림: 받은 참가비만 있고 기간에 넣지 않은 행사도 센�
   const env = await setupPurchases()
   try {
     await prepare(env)
-    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-21T10:00', endsAt: '2999-08-21T18:00', place: '강당' }))
+    await env.ok(env.request('PATCH', '/events/e2', { version: 1, startsAt: '2999-08-21T10:00', endsAt: '2999-08-21T18:00', place: '강당', ownerDepartmentId: null, ownerMembershipId: null }))
     const { form } = await env.ok<RegistrationResponse>(env.request('POST', '/events/e2/registration', formBody({ fee: 5000 })), 201)
     await apply(env, form!.code, '이윤슬', '2023000003')
     const [entry] = (await env.ok<RegistrationResponse>(env.request('GET', '/events/e2/registration'))).registrations

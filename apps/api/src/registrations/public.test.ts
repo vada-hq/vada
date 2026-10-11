@@ -18,7 +18,7 @@ const entryBody = (overrides: Record<string, unknown> = {}) => ({ name: '김바�
 async function open(env: Env, overrides: Record<string, unknown> = {}) {
   env.clock.set(at('2999-08-01T00:00'))
   env.as('p')
-  await env.ok<EventResponse>(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: '2999-08-20T18:00', place: '체육관' }))
+  await env.ok<EventResponse>(env.request('PATCH', '/events/e', { version: 1, startsAt: '2999-08-20T10:00', endsAt: '2999-08-20T18:00', place: '체육관', ownerDepartmentId: null, ownerMembershipId: null }))
   const { form } = await env.ok<RegistrationResponse>(env.request('POST', '/events/e/registration', formBody(overrides)), 201)
   env.as(null)
   return form!

@@ -91,6 +91,9 @@ export interface EventSummary {
   version: number
   // 행사를 완료한 시각(ISO, M5a). 완료하지 않았으면 null이다.
   completedAt: string | null
+  // 행사 담당 부서와 책임자(M5b). 정하지 않았으면 null이다. 책임자는 소속 ID와 이름이다.
+  ownerDepartment: { id: string; name: string } | null
+  owner: { membershipId: string; name: string } | null
 }
 
 export interface EventResponse {

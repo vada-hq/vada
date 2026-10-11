@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto'
 import { Hono } from 'hono'
 import { and, count, desc, eq, ne, sql } from 'drizzle-orm'
-import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
+import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { CancelEventCompletionSchema, CompleteEventSchema, CreateEventSchema, UpdateEventSchema, dateFromKorean, koreanOf, token,
   type EventCompletionResponse, type EventResponse, type EventSummary, type EventsResponse } from '@vada/contracts'
-import { chatRooms, eventFinances, events, memberships, registrationForms, tasks } from '../db/schema.js'
+import { chatRooms, departments, eventFinances, events, memberships, registrationForms, tasks, users } from '../db/schema.js'
 
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireEventManager, requireMembership, requireOrganizationManager, type MembershipEnv } from '../access/membership.js'
@@ -20,12 +20,37 @@ function idOf(value: string | undefined) {
   return parsed.data
 }
 
-// 일시는 한국 시각 문자열로 준다.
-export const serializeEvent = (event: typeof events.$inferSelect): EventSummary => ({
+type Reader = Pick<PgDatabase<PgQueryResultHKT>, 'select'>
+const ownerMemberships = alias(memberships, 'event_owner_memberships')
+const ownerUsers = alias(users, 'event_owner_users')
+type OwnerNames = { departmentName: string | null; ownerMembershipId: string | null; ownerName: string | null }
+const noOwner: OwnerNames = { departmentName: null, ownerMembershipId: null, ownerName: null }
+
+// 일시는 한국 시각 문자열로 준다. 담당 부서·책임자(M5b)는 이름과 함께 준다.
+export const serializeEvent = (event: typeof events.$inferSelect, owner: OwnerNames): EventSummary => ({
   id: event.id, organizationId: event.organizationId, name: event.name, createdBy: event.createdBy, createdAt: event.createdAt.toISOString(),
   startsAt: event.startsAt && koreanOf(event.startsAt), endsAt: event.endsAt && koreanOf(event.endsAt), place: event.place, version: event.version,
   completedAt: event.completedAt?.toISOString() ?? null,
+  ownerDepartment: event.ownerDepartmentId && owner.departmentName !== null ? { id: event.ownerDepartmentId, name: owner.departmentName } : null,
+  owner: owner.ownerMembershipId !== null && owner.ownerName !== null ? { membershipId: owner.ownerMembershipId, name: owner.ownerName } : null,
 })
+// 행사 목록(만든 순 역순)과 바꾼 뒤의 응답, 결과보고서가 같이 쓴다. eventId를 주면 그 행사 하나다.
+export async function eventSummaries(db: Reader, organizationId: string, eventId?: string): Promise<EventSummary[]> {
+  const rows = await db.select({ event: events, departmentName: departments.name, ownerMembershipId: ownerMemberships.id, ownerName: ownerUsers.name })
+    .from(events)
+    .leftJoin(departments, and(eq(departments.organizationId, events.organizationId), eq(departments.id, events.ownerDepartmentId)))
+    .leftJoin(ownerMemberships, and(eq(ownerMemberships.organizationId, events.organizationId), eq(ownerMemberships.userId, events.ownerId)))
+    .leftJoin(ownerUsers, eq(ownerUsers.id, events.ownerId))
+    .where(and(eq(events.organizationId, organizationId), eventId === undefined ? undefined : eq(events.id, eventId)))
+    .orderBy(desc(events.createdAt), desc(events.id))
+  return rows.map(({ event, ...owner }) => serializeEvent(event, owner))
+}
+// 다른 학생회의 행사나 없는 행사는 NOT_FOUND다.
+export async function eventSummary(db: Reader, organizationId: string, eventId: string) {
+  const [summary] = await eventSummaries(db, organizationId, eventId)
+  if (!summary) throw new ApiError('NOT_FOUND', 404)
+  return summary
+}
 
 export function createEventRoutes(
   db: Pick<PgDatabase<PgQueryResultHKT>, 'select' | 'transaction'>,
@@ -36,16 +61,12 @@ export function createEventRoutes(
   const authenticated = requireSession(getSession)
   const member = requireMembership(db)
   const manager = requireEventManager()
-  routes.get(path, authenticated, member, async (c) => {
-    const rows = await db.select().from(events)
-      .where(eq(events.organizationId, c.req.param('organizationId')))
-      .orderBy(desc(events.createdAt), desc(events.id))
-    return c.json({ events: rows.map(serializeEvent) } satisfies EventsResponse)
-  })
+  routes.get(path, authenticated, member, async (c) =>
+    c.json({ events: await eventSummaries(db, c.req.param('organizationId')) } satisfies EventsResponse))
   routes.post(path, json(CreateEventSchema), authenticated, member, async (c) => {
     const { name } = c.req.valid('json')
     // 저장 시점에도 소속을 확인하며, 클라이언트의 생성자·학생회 필드는 사용하지 않는다.
-    // INSERT … SELECT는 표의 모든 칸을 순서대로 골라야 하므로, 일시·장소(M3a)와 완료(M5a)는 빈 값, 버전은 1로 채운다.
+    // INSERT … SELECT는 표의 모든 칸을 순서대로 골라야 하므로, 일시·장소(M3a)·완료(M5a)·담당(M5b)은 빈 값, 버전은 1로 채운다.
     const event = await db.transaction(async tx => {
       const [created] = await tx.insert(events).select(
         tx.select({
@@ -60,6 +81,8 @@ export function createEventRoutes(
           version: sql<number>`1`.as('version'),
           completedAt: sql<Date | null>`null::timestamptz`.as('completed_at'),
           completedBy: sql<string | null>`null::text`.as('completed_by'),
+          ownerDepartmentId: sql<string | null>`null::text`.as('owner_department_id'),
+          ownerId: sql<string | null>`null::text`.as('owner_id'),
         }).from(memberships).where(and(
           eq(memberships.userId, c.get('userId')),
           eq(memberships.organizationId, c.req.param('organizationId')),
@@ -70,9 +93,9 @@ export function createEventRoutes(
       return created
     })
     if (!event) return c.json({ error: 'FORBIDDEN' }, 403)
-    return c.json({ event: serializeEvent(event) } satisfies EventResponse, 201)
+    return c.json({ event: serializeEvent(event, noOwner) } satisfies EventResponse, 201)
   })
-  // 행사 일시·장소 수정. 참가 신청의 마감과 보관 기간이 행사 끝에 기대므로, 신청이 있으면 시작을 비우거나 마감보다 일찍 끝낼 수 없다.
+  // 행사 정보(일시·장소·담당) 수정. 참가 신청의 마감과 보관 기간이 행사 끝에 기대므로, 신청이 있으면 시작을 비우거나 마감보다 일찍 끝낼 수 없다.
   routes.patch(`${path}/:eventId`, json(UpdateEventSchema), authenticated, member, manager, async (c) => {
     const input = c.req.valid('json')
     const organizationId = c.req.param('organizationId')
@@ -89,11 +112,25 @@ export function createEventRoutes(
         if (!startsAt) throw new ApiError('EVENT_TIME_REQUIRED', 409)
         if (form.closesAt > (endsAt ?? startsAt)) throw new ApiError('DEADLINE_AFTER_EVENT', 409)
       }
-      const [updated] = await tx.update(events).set({ startsAt, endsAt, place: input.place, version: current.version + 1 })
-        .where(and(eq(events.organizationId, organizationId), eq(events.id, eventId))).returning()
-      return updated!
+      // 담당 부서·책임자(M5b). 업무 추가와 같은 순서로 부서(FOR KEY SHARE) → 소속(FOR SHARE)을 잠근다(행사 → 부서 → 소속).
+      if (input.ownerDepartmentId !== null) {
+        const [department] = await tx.select({ id: departments.id }).from(departments)
+          .where(and(eq(departments.organizationId, organizationId), eq(departments.id, input.ownerDepartmentId))).for('key share')
+        if (!department) throw new ApiError('EVENT_DEPARTMENT_INVALID', 409)
+      }
+      let ownerId: string | null = null
+      if (input.ownerMembershipId !== null) {
+        const [owner] = await tx.select({ userId: memberships.userId, departmentId: memberships.departmentId }).from(memberships)
+          .where(and(eq(memberships.organizationId, organizationId), eq(memberships.id, input.ownerMembershipId))).for('share')
+        // 이미 책임자인 사람은 그 뒤 미배정이 되었어도 그대로 둘 수 있다.
+        if (!owner || (owner.departmentId === null && owner.userId !== current.ownerId)) throw new ApiError('EVENT_OWNER_INVALID', 409)
+        ownerId = owner.userId
+      }
+      await tx.update(events).set({ startsAt, endsAt, place: input.place, ownerDepartmentId: input.ownerDepartmentId, ownerId,
+        version: current.version + 1 }).where(and(eq(events.organizationId, organizationId), eq(events.id, eventId)))
+      return eventSummary(tx, organizationId, eventId)
     })
-    return c.json({ event: serializeEvent(event) } satisfies EventResponse)
+    return c.json({ event } satisfies EventResponse)
   })
   const leader = requireOrganizationManager()
   // 완료·완료 취소가 잠근다. 완료 여부와 상관없이 잠가야 하므로 lockActiveEvent를 쓰지 않는다.
@@ -128,11 +165,11 @@ export function createEventRoutes(
       const [finance] = await tx.select({ settledAt: eventFinances.settledAt }).from(eventFinances)
         .where(and(eq(eventFinances.organizationId, organizationId), eq(eventFinances.eventId, eventId)))
       if (!finance?.settledAt) throw new ApiError('EVENT_NOT_SETTLED', 409)
-      const [updated] = await tx.update(events).set({ completedAt: sql`now()`, completedBy: c.get('userId'), version: current.version + 1 })
-        .where(and(eq(events.organizationId, organizationId), eq(events.id, eventId))).returning()
-      return updated!
+      await tx.update(events).set({ completedAt: sql`now()`, completedBy: c.get('userId'), version: current.version + 1 })
+        .where(and(eq(events.organizationId, organizationId), eq(events.id, eventId)))
+      return eventSummary(tx, organizationId, eventId)
     })
-    return c.json({ event: serializeEvent(event) } satisfies EventResponse)
+    return c.json({ event } satisfies EventResponse)
   })
   // 완료 취소: 실수로 완료했을 때 되돌린다. 정산은 그대로 두고, 돈이 바뀌지 않아 기록을 남기지 않는다.
   routes.post(`${path}/:eventId/completion/cancel`, json(CancelEventCompletionSchema), authenticated, member, leader, async (c) => {
@@ -143,11 +180,11 @@ export function createEventRoutes(
       const current = await lockEvent(tx, organizationId, eventId)
       if (current.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
       if (!current.completedAt) throw new ApiError('INVALID_STATE', 409)
-      const [updated] = await tx.update(events).set({ completedAt: null, completedBy: null, version: current.version + 1 })
-        .where(and(eq(events.organizationId, organizationId), eq(events.id, eventId))).returning()
-      return updated!
+      await tx.update(events).set({ completedAt: null, completedBy: null, version: current.version + 1 })
+        .where(and(eq(events.organizationId, organizationId), eq(events.id, eventId)))
+      return eventSummary(tx, organizationId, eventId)
     })
-    return c.json({ event: serializeEvent(event) } satisfies EventResponse)
+    return c.json({ event } satisfies EventResponse)
   })
   return routes
 }

@@ -5,7 +5,8 @@ import EventList from './EventList'
 
 afterEach(cleanup)
 test('marks the active event and delegates selection without fetching', () => {
-  const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z', startsAt: null, endsAt: null, place: null, version: 1, completedAt: null }
+  const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z', startsAt: null, endsAt: null, place: null, version: 1, completedAt: null,
+    ownerDepartment: null, owner: null }
   const onSelect = vi.fn()
   render(<EventList events={[event]} loading={false} saving={false} error="" selectedId="e1" onSelect={onSelect} onRefresh={() => {}} />)
   const button = screen.getByRole('button', { name: '체육대회' })

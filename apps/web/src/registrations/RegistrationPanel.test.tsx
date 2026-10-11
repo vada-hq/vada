@@ -45,7 +45,8 @@ test('행사 정보: 일시가 없으면 넣으라고 알리고, 고치면 PATCH
   api.on('PATCH', '/api/organizations/o/events/e', () => json({ event: saved }))
   fireEvent.click(within(dialog).getByRole('button', { name: '저장' }))
   await waitFor(() => expect(onEventChange).toHaveBeenCalledWith(saved))
-  expect(api.calls.at(-1)!.body).toEqual({ version: 1, startsAt: '2026-08-20T10:00', endsAt: null, place: ' 체육관 ' })
+  expect(api.calls.at(-1)!.body).toEqual({ version: 1, startsAt: '2026-08-20T10:00', endsAt: null, place: ' 체육관 ', ownerDepartmentId: null,
+    ownerMembershipId: null })
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })
 

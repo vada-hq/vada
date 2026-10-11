@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import fc from 'fast-check'
 import { z } from 'zod'
 import { codePoints, isStrictObject, text, token } from './input.js'
-import { CancelEventCompletionSchema, CompleteEventSchema, CreateEventSchema, EVENT_NAME_MAX } from './events.js'
+import { CancelEventCompletionSchema, CompleteEventSchema, CreateEventSchema, EVENT_NAME_MAX, UpdateEventSchema } from './events.js'
 import { CreateMessageSchema, MESSAGE_CONTENT_MAX } from './chat.js'
 import { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
 import { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema } from './invites.js'
@@ -229,5 +229,14 @@ test('행사 완료 본문은 버전 하나만 받는다', () => {
     for (const body of [{}, { version: 0 }, { version: 1.5 }, { version: '1' }, { version: -1 }, { version: 1, extra: true }, null]) {
       assert.equal(schema.safeParse(body).success, false, JSON.stringify(body))
     }
+  }
+})
+
+test('행사 정보는 담당 부서·책임자를 ID나 null로 꼭 받는다', () => {
+  const base = { version: 1, startsAt: null, endsAt: null, place: null }
+  assert.equal(UpdateEventSchema.safeParse({ ...base, ownerDepartmentId: 'd', ownerMembershipId: null }).success, true)
+  for (const body of [base, { ...base, ownerDepartmentId: null }, { ...base, ownerDepartmentId: '', ownerMembershipId: null },
+    { ...base, ownerDepartmentId: null, ownerMembershipId: 'a'.repeat(65) }]) {
+    assert.equal(UpdateEventSchema.safeParse(body).success, false, JSON.stringify(body))
   }
 })

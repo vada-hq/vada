@@ -4,7 +4,7 @@ import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { LEADERSHIP_DEFAULT_NAME, type CreateOrganizationRequest, type MembershipSummary, type OrganizationMembersResponse,
   type UpdateDepartmentRequest } from '@vada/contracts'
 import { queryMemberships } from '../access/membership.js'
-import { departments, memberships, organizations, purchaseSubmissions, tasks, users } from '../db/schema.js'
+import { departments, events, memberships, organizations, purchaseSubmissions, tasks, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { sqlState } from '../http/on-error.js'
 
@@ -61,9 +61,10 @@ export function createOrganizationService(db: OrganizationDatabase) {
     } catch (error) {
       if (error instanceof ApiError) throw error
       // 미리 조회한 뒤 다른 요청과 겹쳐 생긴 제약 위반은 같은 오류 코드로 바꾼다.
+      // 부서를 가리키는 외래 키는 모두 ON DELETE RESTRICT라 지우기 위반은 23001(restrict_violation)이다.
       const state = sqlState(error)
       if (state === '23505') throw new ApiError('DEPARTMENT_NAME_TAKEN', 409)
-      if (state === '23503') throw new ApiError('DEPARTMENT_IN_USE', 409)
+      if (state === '23503' || state === '23001') throw new ApiError('DEPARTMENT_IN_USE', 409)
       throw error
     }
   }
@@ -106,6 +107,11 @@ export function createOrganizationService(db: OrganizationDatabase) {
       // 지우면 과거 제출의 요청 부서가 사라지므로, 제출 기록이 있는 부서는 지우지 않는다.
       const [submission] = await tx.select({ id: purchaseSubmissions.id }).from(purchaseSubmissions).where(eq(purchaseSubmissions.departmentId, departmentId)).limit(1)
       if (submission) throw new ApiError('DEPARTMENT_IN_USE', 409)
+      // 행사의 담당 부서(M5b)도 지우지 않는다. 완료한 행사는 바꿀 수 없어 비울 수 없고, 비우려면 행사 행을 잠가야 해
+      // 업무 추가(행사 → 부서)와 잠금 순서가 엇갈린다. 그사이 담당으로 정해지면 아래 지우기의 FK 위반이 같은 오류가 된다.
+      const [owned] = await tx.select({ id: events.id }).from(events)
+        .where(and(eq(events.organizationId, organizationId), eq(events.ownerDepartmentId, departmentId))).limit(1)
+      if (owned) throw new ApiError('DEPARTMENT_IN_USE', 409)
       // 지울 부서 행을 먼저 잠근다. 그사이 업무에 이 부서를 정하려는 요청은 지우기가 끝난 뒤 TASK_DEPARTMENT_INVALID를 받는다.
       await tx.select({ id: departments.id }).from(departments)
         .where(and(eq(departments.organizationId, organizationId), eq(departments.id, departmentId))).for('update')

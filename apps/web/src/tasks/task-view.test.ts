@@ -4,7 +4,8 @@ import { dDayText, dueText, groupByDate, isOverdue, matchesFilter, scheduleOf, s
 import { taskSummary } from './task-fixtures'
 
 const event = (overrides: Partial<EventSummary> = {}): EventSummary => ({ id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1',
-  createdAt: '2026-09-01T00:00:00Z', startsAt: '2026-10-20T10:00', endsAt: '2026-10-20T18:00', place: null, version: 1, completedAt: null, ...overrides })
+  createdAt: '2026-09-01T00:00:00Z', startsAt: '2026-10-20T10:00', endsAt: '2026-10-20T18:00', place: null, version: 1, completedAt: null, ownerDepartment: null, owner: null,
+  ...overrides })
 
 test('지연은 완료가 아니고 마감일이 오늘보다 앞일 때다. 마감일 당일은 지연이 아니다', () => {
   expect(isOverdue(taskSummary({ dueOn: '2026-10-10' }), '2026-10-11')).toBe(true)

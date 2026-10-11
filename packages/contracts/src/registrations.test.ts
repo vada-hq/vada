@@ -32,11 +32,13 @@ test('한국 시각: 기기 시간대와 상관없이 같은 순간으로 바꾸
   assert.equal(koreanOf(new Date('2026-08-20T15:00:00Z')), '2026-08-21T00:00')
 })
 
-const eventInfo = { version: 1, startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: '체육관' }
+const eventInfo = { version: 1, startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: '체육관', ownerDepartmentId: null,
+  ownerMembershipId: null }
 test('행사 정보: 끝은 시작이 있어야 하고 시작보다 늦으며, 장소 앞뒤 공백을 지운다', () => {
   assert.equal(isStrictObject(UpdateEventSchema), true)
   assert.deepEqual(UpdateEventSchema.parse({ ...eventInfo, place: '  체육관 ' }), eventInfo)
-  accepts(UpdateEventSchema, [{ version: 1, startsAt: null, endsAt: null, place: null }, { ...eventInfo, endsAt: null },
+  accepts(UpdateEventSchema, [{ version: 1, startsAt: null, endsAt: null, place: null, ownerDepartmentId: null, ownerMembershipId: null },
+    { ...eventInfo, endsAt: null },
     { ...eventInfo, place: emoji.repeat(100) }, { ...eventInfo, endsAt: '2026-08-21T09:00' }])
   rejects(UpdateEventSchema, [{ ...eventInfo, startsAt: null }, { ...eventInfo, endsAt: '2026-08-20T10:00' }, { ...eventInfo, endsAt: '2026-08-20T09:59' },
     { ...eventInfo, place: emoji.repeat(101) }, { ...eventInfo, place: '   ' }, { ...eventInfo, place: `체육관${nul}` }, { ...eventInfo, place: `체육관${lone}` },

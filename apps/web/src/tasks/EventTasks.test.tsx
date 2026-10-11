@@ -10,7 +10,7 @@ import { useEventTasks } from './useTasks'
 beforeEach(() => { vi.useFakeTimers({ toFake: ['Date'] }); vi.setSystemTime(new Date('2026-10-11T03:00:00Z')) })
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.useRealTimers() })
 const event: EventSummary = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-01T00:00:00Z',
-  startsAt: '2026-10-20T10:00', endsAt: '2026-10-20T18:00', place: null, version: 1, completedAt: null }
+  startsAt: '2026-10-20T10:00', endsAt: '2026-10-20T18:00', place: null, version: 1, completedAt: null, ownerDepartment: null, owner: null }
 const path = '/api/organizations/o1/events/e1/tasks'
 const list: EventTasksResponse = { registrationClosesAt: '2026-10-18T23:59', tasks: [
   taskSummary({ id: 't1', title: '대관 신청', dueOn: '2026-10-05' }),

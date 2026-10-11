@@ -30,7 +30,8 @@ function Form({ organizationId, event, onClose, onSaved, onStale }: Omit<Props, 
   const [place, setPlace] = useState(event.place ?? '')
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
-  const input: UpdateEventRequest = { version: event.version, startsAt: startsAt || null, endsAt: endsAt || null, place: place.trim() ? place : null }
+  const input: UpdateEventRequest = { version: event.version, startsAt: startsAt || null, endsAt: endsAt || null, place: place.trim() ? place : null,
+    ownerDepartmentId: event.ownerDepartment?.id ?? null, ownerMembershipId: event.owner?.membershipId ?? null }
   // 버튼은 서버와 같은 스키마로 켠다.
   const valid = UpdateEventSchema.safeParse(input).success
   async function save() {
