@@ -57,3 +57,14 @@ test('지연이면 마감일에 지연을 붙인다', async () => {
   const dialog = await screen.findByRole('dialog', { name: '현수막 디자인' })
   expect(within(dialog).getByText('10.20 · 지연')).toBeTruthy()
 })
+
+test('완료한 업무의 설명은 완료한 때만 적고 "완료"를 두 번 쓰지 않는다', async () => {
+  const api = mockApi()
+  api.on('GET', path, () => json({ task: taskDetail({ status: 'done', completedAt: '2026-10-05T00:00:00Z' }) }))
+  render(<TaskDetailDialog organizationId="o1" target={{ eventId: 'e1', taskId: 't1' }} manageEvents onClose={() => {}} onChanged={() => {}}
+    onDeleted={() => {}} onEdit={() => {}} />)
+  const dialog = await screen.findByRole('dialog', { name: '현수막 디자인' })
+  const description = document.getElementById(dialog.getAttribute('aria-describedby')!)!.textContent!
+  expect(description).toMatch(/ 완료$/)
+  expect(description).not.toMatch(/^완료/)
+})

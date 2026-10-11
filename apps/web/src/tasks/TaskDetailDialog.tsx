@@ -73,7 +73,8 @@ function Detail({ organizationId, target, manageEvents, onChanged, onDeleted, on
   return <>
     <DialogHeader>
       <DialogTitle className="wrap-anywhere">{current.title}</DialogTitle>
-      <DialogDescription>{statusLabels[current.status]}{current.completedAt ? ` · ${timeText(current.completedAt)} 완료` : ''}</DialogDescription>
+      {/* 완료 시각은 완료일 때만 있다. 그때는 "완료"를 한 번만 쓴다. */}
+      <DialogDescription>{current.completedAt ? `${timeText(current.completedAt)} 완료` : statusLabels[current.status]}</DialogDescription>
     </DialogHeader>
     {manageEvents && <div role="group" aria-label="상태" className="flex flex-wrap gap-2">
       {TASK_STATUSES.map(status => <Button key={status} variant="outline" size="sm" className={pressed} aria-pressed={current.status === status}

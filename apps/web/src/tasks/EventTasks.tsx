@@ -94,7 +94,9 @@ export default function EventTasks({ organizationId, event, manageEvents, viewer
       {dday && <p className="text-xl font-bold text-primary">{dday}</p>}
       <div className="flex items-center gap-2">
         <p className="text-sm font-semibold text-gray-900">완료 {counts.done}/{counts.total}</p>
-        {counts.total > 0 && <progress className="h-2 w-32 accent-blue-600" value={counts.done} max={counts.total} aria-label="완료한 업무" />}
+        {/* Windows Chrome은 progress에 accent-color를 쓰지 않아 막대·채움 색을 직접 준다(WebKit·Blink와 Firefox 둘 다). */}
+        {counts.total > 0 && <progress className="h-2 w-32 appearance-none overflow-hidden rounded-full bg-gray-100 [&::-moz-progress-bar]:bg-primary
+          [&::-webkit-progress-bar]:bg-gray-100 [&::-webkit-progress-value]:bg-primary" value={counts.done} max={counts.total} aria-label="완료한 업무" />}
       </div>
       <div role="group" aria-label="업무 거르기" className="flex flex-wrap gap-2">
         {filters.map(value => <Button key={value} variant="outline" size="sm"
