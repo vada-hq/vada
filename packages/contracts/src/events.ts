@@ -15,3 +15,7 @@ export const UpdateEventSchema = z.strictObject({
   place: text(EVENT_PLACE_MAX).nullable(),
 }).refine(value => value.endsAt === null || (value.startsAt !== null && value.endsAt > value.startsAt))
 export type UpdateEventRequest = z.infer<typeof UpdateEventSchema>
+// 행사 완료·완료 취소(M5a). 화면이 본 행사 버전을 보낸다.
+export const CompleteEventSchema = z.strictObject({ version: z.number().int().min(1).max(PURCHASE_INTEGER_MAX) })
+export const CancelEventCompletionSchema = CompleteEventSchema
+export type CompleteEventRequest = z.infer<typeof CompleteEventSchema>

@@ -15,7 +15,7 @@ function Harness({ organizationId }: { organizationId: string }) {
 }
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
-const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z', startsAt: null, endsAt: null, place: null, version: 1 }
+const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z', startsAt: null, endsAt: null, place: null, version: 1, completedAt: null }
 const ok = (body: unknown) => ({ ok: true, status: 200, json: async () => body })
 
 test('selects an event from the list', async () => {

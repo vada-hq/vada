@@ -19,11 +19,12 @@ test('all entities have primary keys and creation timestamps', () => {
 
 test('events belong to an organization and retain a user as creator independently of membership', () => {
   const config = getTableConfig(events)
-  assert.deepEqual(config.columns.map(column => column.name), ['id', 'organization_id', 'name', 'created_by', 'created_at', 'starts_at', 'ends_at', 'place', 'version'])
-  // 일시·장소(M3a)만 비울 수 있다.
-  assert.deepEqual(config.columns.filter(column => !column.notNull).map(column => column.name), ['starts_at', 'ends_at', 'place'])
-  assert.equal(config.foreignKeys.length, 2)
-  for (const [columnName, parent] of [['organization_id', organizations], ['created_by', users]] as const) {
+  assert.deepEqual(config.columns.map(column => column.name), ['id', 'organization_id', 'name', 'created_by', 'created_at', 'starts_at', 'ends_at', 'place',
+    'version', 'completed_at', 'completed_by'])
+  // 일시·장소(M3a)와 완료(M5a)만 비울 수 있다.
+  assert.deepEqual(config.columns.filter(column => !column.notNull).map(column => column.name), ['starts_at', 'ends_at', 'place', 'completed_at', 'completed_by'])
+  assert.equal(config.foreignKeys.length, 3)
+  for (const [columnName, parent] of [['organization_id', organizations], ['created_by', users], ['completed_by', users]] as const) {
     const fk = config.foreignKeys.find(key => key.reference().columns[0]?.name === columnName)
     assert.ok(fk)
     assert.equal(fk.reference().foreignTable, parent)

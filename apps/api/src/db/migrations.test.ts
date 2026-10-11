@@ -1331,3 +1331,32 @@ test('0024 adds tasks and their history tied to one event, department and member
     await pg.close()
   }
 })
+
+test('0025 adds event completion without touching existing events', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0025_event_completion')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council');
+      INSERT INTO events (id,organization_id,name,created_by,version) VALUES ('e','o','체육대회','u',3);
+    `)
+    await migrate(db, { migrationsFolder })
+    await t.test('existing events are not completed and keep their version', async () => {
+      const { rows } = await pg.query<Record<string, unknown>>("SELECT version, completed_at, completed_by FROM events WHERE id = 'e'")
+      assert.deepEqual(rows[0], { version: 3, completed_at: null, completed_by: null })
+    })
+    await t.test('completion time and person come together', async () => {
+      await assert.rejects(pg.exec("UPDATE events SET completed_at = now() WHERE id = 'e'"), { constraint: 'events_completed_pair' })
+      await assert.rejects(pg.exec("UPDATE events SET completed_by = 'u' WHERE id = 'e'"), { constraint: 'events_completed_pair' })
+      await assert.rejects(pg.exec("UPDATE events SET completed_at = now(), completed_by = 'nobody' WHERE id = 'e'"),
+        { constraint: 'events_completed_by_users_id_fk' })
+      await pg.exec("UPDATE events SET completed_at = now(), completed_by = 'u' WHERE id = 'e'")
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

@@ -89,6 +89,9 @@ export const events = pgTable('events', {
   endsAt: timestamp('ends_at', { withTimezone: true }),
   place: text('place'),
   version: integer('version').notNull().default(1),
+  // 행사를 완료한 시각과 사람(M5a). 완료하지 않았으면 둘 다 없다. 완료한 행사는 기록을 바꾸지 않는다(events/lock.ts).
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  completedBy: text('completed_by').references(() => users.id, { onDelete: 'restrict' }),
 }, (table) => [
   check('events_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
   check('events_name_length', sql`char_length(${table.name}) <= 100`),
@@ -98,6 +101,7 @@ export const events = pgTable('events', {
   check('events_place_not_blank', sql`${table.place} ~ '[^[:space:]]'`),
   check('events_place_length', sql`char_length(${table.place}) <= 100`),
   check('events_version_positive', sql`${table.version} >= 1`),
+  check('events_completed_pair', sql`(${table.completedAt} IS NULL) = (${table.completedBy} IS NULL)`),
   index('events_organization_id_idx').on(table.organizationId),
   unique('events_organization_id_unique').on(table.organizationId, table.id),
 ])

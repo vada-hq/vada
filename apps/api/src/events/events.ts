@@ -23,6 +23,7 @@ function idOf(value: string | undefined) {
 export const serializeEvent = (event: typeof events.$inferSelect): EventSummary => ({
   id: event.id, organizationId: event.organizationId, name: event.name, createdBy: event.createdBy, createdAt: event.createdAt.toISOString(),
   startsAt: event.startsAt && koreanOf(event.startsAt), endsAt: event.endsAt && koreanOf(event.endsAt), place: event.place, version: event.version,
+  completedAt: event.completedAt?.toISOString() ?? null,
 })
 
 export function createEventRoutes(
@@ -43,7 +44,7 @@ export function createEventRoutes(
   routes.post(path, json(CreateEventSchema), authenticated, member, async (c) => {
     const { name } = c.req.valid('json')
     // 저장 시점에도 소속을 확인하며, 클라이언트의 생성자·학생회 필드는 사용하지 않는다.
-    // INSERT … SELECT는 표의 모든 칸을 순서대로 골라야 하므로, 일시·장소(M3a)는 빈 값과 첫 버전으로 채운다.
+    // INSERT … SELECT는 표의 모든 칸을 순서대로 골라야 하므로, 일시·장소(M3a)와 완료(M5a)는 빈 값, 버전은 1로 채운다.
     const event = await db.transaction(async tx => {
       const [created] = await tx.insert(events).select(
         tx.select({
@@ -56,6 +57,8 @@ export function createEventRoutes(
           endsAt: sql<Date | null>`null::timestamptz`.as('ends_at'),
           place: sql<string | null>`null::text`.as('place'),
           version: sql<number>`1`.as('version'),
+          completedAt: sql<Date | null>`null::timestamptz`.as('completed_at'),
+          completedBy: sql<string | null>`null::text`.as('completed_by'),
         }).from(memberships).where(and(
           eq(memberships.userId, c.get('userId')),
           eq(memberships.organizationId, c.req.param('organizationId')),

@@ -1,6 +1,7 @@
 export { codePoints, isStrictObject, text, token } from './input.js'
 export { COUPANG_LINKS_PER_MESSAGE_MAX, normalizeCoupangUrl, parseCoupangLinks, readCoupangUrl, type CoupangLink } from './coupang.js'
-export { EVENT_NAME_MAX, EVENT_PLACE_MAX, CreateEventSchema, UpdateEventSchema, type CreateEventRequest, type UpdateEventRequest } from './events.js'
+export { EVENT_NAME_MAX, EVENT_PLACE_MAX, CreateEventSchema, UpdateEventSchema, CompleteEventSchema, CancelEventCompletionSchema, type CreateEventRequest,
+  type UpdateEventRequest, type CompleteEventRequest } from './events.js'
 export { koreanDateTime, dateFromKorean, koreanOf } from './korean-time.js'
 export { REGISTRATION_NAME_MAX, REGISTRATION_NOTICE_MAX, REGISTRATION_CAPACITY_MAX, REGISTRATION_RETENTION_DAYS, REGISTRATION_FEE_MAX, studentIdInput,
   phoneInput, CreateRegistrationFormSchema, UpdateRegistrationFormSchema, CancelRegistrationSchema, RegisterSchema, RegistrationTokenSchema,
@@ -88,6 +89,8 @@ export interface EventSummary {
   endsAt: string | null
   place: string | null
   version: number
+  // 행사를 완료한 시각(ISO, M5a). 완료하지 않았으면 null이다.
+  completedAt: string | null
 }
 
 export interface EventResponse {
@@ -96,6 +99,12 @@ export interface EventResponse {
 
 export interface EventsResponse {
   events: EventSummary[]
+}
+
+// 완료 확인 대화상자(M5a). 정산해야 완료할 수 있고, 끝나지 않은 업무(예정·진행 중)는 알리기만 한다.
+export interface EventCompletionResponse {
+  settled: boolean
+  openTasks: number
 }
 
 export interface MessageSummary {

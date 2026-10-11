@@ -3,7 +3,7 @@ import { test } from 'node:test'
 import fc from 'fast-check'
 import { z } from 'zod'
 import { codePoints, isStrictObject, text, token } from './input.js'
-import { CreateEventSchema, EVENT_NAME_MAX } from './events.js'
+import { CancelEventCompletionSchema, CompleteEventSchema, CreateEventSchema, EVENT_NAME_MAX } from './events.js'
 import { CreateMessageSchema, MESSAGE_CONTENT_MAX } from './chat.js'
 import { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
 import { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema } from './invites.js'
@@ -221,4 +221,13 @@ test('끼룩이 출력: 빈 글은 모르는 값으로 바꾸고, 상한과 실�
 test('구매 요청 본문 스키마는 모두 모르는 키를 거부하는 strictObject다', () => {
   for (const schema of [CreatePurchaseDraftsSchema, UpdatePurchaseItemSchema, PurchaseItemVersionSchema, SubmitPurchaseItemsSchema,
     ChangeNeededBySchema, PurchaseReceivedSchema, PurchasePurchasedSchema, DecidePurchaseItemsSchema, PurchaseCandidateHiddenSchema]) assert.equal(isStrictObject(schema), true)
+})
+
+test('행사 완료 본문은 버전 하나만 받는다', () => {
+  for (const schema of [CompleteEventSchema, CancelEventCompletionSchema]) {
+    assert.equal(schema.safeParse({ version: 1 }).success, true)
+    for (const body of [{}, { version: 0 }, { version: 1.5 }, { version: '1' }, { version: -1 }, { version: 1, extra: true }, null]) {
+      assert.equal(schema.safeParse(body).success, false, JSON.stringify(body))
+    }
+  }
 })

@@ -55,6 +55,8 @@ test('event API validates input and shares events only within the authenticated 
       assert.equal(event.name, 'Festival')
       assert.equal(event.createdBy, 'p')
       assert.equal(event.organizationId, 'a')
+      // 새 행사는 완료하지 않았다(M5a).
+      assert.equal(event.completedAt, null)
       assert.ok(event.id)
       assert.ok(Number.isFinite(Date.parse(event.createdAt)))
       const rooms = await pg.query('SELECT organization_id, event_id FROM chat_rooms WHERE event_id=$1', [event.id])
@@ -131,7 +133,7 @@ test('행사 정보 수정: 부서가 있는 구성원이 일시·장소를 고�
     const info = { version: 1, startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: '  체육관 ' }
 
     const listed = await (await app.request('/api/organizations/a/events')).json() as EventsResponse
-    assert.deepEqual(listed.events.map(event => [event.startsAt, event.endsAt, event.place, event.version]), [[null, null, null, 1]])
+    assert.deepEqual(listed.events.map(event => [event.startsAt, event.endsAt, event.place, event.version, event.completedAt]), [[null, null, null, 1, null]])
     // 본문이 틀리면 인증 전에 거절한다.
     userId = null
     for (const body of [{}, { ...info, startsAt: null }, { ...info, place: 'a'.repeat(101) }, { ...info, place: '😀'.repeat(101) },

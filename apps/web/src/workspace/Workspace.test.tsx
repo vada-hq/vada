@@ -15,7 +15,7 @@ const leaderMembership: MembershipSummary = { ...membership, department: { id: '
 const membersBody = { viewer: membership, departments: [{ id: 'd1', name: '기획부', isLeadership: false, handlesFinance: false }],
   members: [{ id: 'm1', name: '테스터', title: null, departmentId: 'd1' }] }
 const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z', startsAt: null, endsAt: null, place: null,
-  version: 1 }
+  version: 1, completedAt: null as string | null }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
 function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }, myTasks: unknown = { open: [], done: [], truncated: false }) {
   const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/budget/periods') ? { periods: [budgetPeriod()] }
