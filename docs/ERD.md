@@ -425,6 +425,7 @@ erDiagram
     registrationForms ||..o{ registrations : "신청"
     users ||..o{ registrationForms : "만든 사람"
     users |o..o{ registrations : "운영진 취소"
+    users |o..o{ registrations : "참석 확인"
 
     registrationForms["registration_forms"] {
         text id PK
@@ -458,6 +459,8 @@ erDiagram
         integer paid_amount "입금 확인 금액"
         timestamptz paid_at "입금 확인한 때"
         text paid_by FK "입금 확인한 운영진"
+        timestamptz checked_in_at "참석 확인한 때"
+        text checked_in_by FK "참석 확인한 운영진"
     }
 ```
 
@@ -468,6 +471,8 @@ erDiagram
 - 신청자 정보는 부서가 있는 구성원(`manageEvents`)만 본다. 공개 화면에는 남은 자리 수만 나간다.
 - 참가비(M3b): 신청에는 납부 구분(`dues_member`)만 남고, 낼 돈은 참가 신청의 금액으로 계산한다. 입금을 확인하면 그때 금액을 `paid_amount`에 남긴다. 세 입금 칸은 함께 있거나 함께 없다.
 - 입금을 확인한 신청이 하나라도 있으면(취소·지운 행 포함) 참가비 금액을 바꿀 수 없다. 개인 칸을 지워도 납부 구분과 입금 칸은 남는다.
+- 참석 확인(M3c, [설계](superpowers/specs/2026-10-11-event-attendance-design.md)): 두 참석 칸은 함께 있거나 함께 없고, 취소한 신청에는 없다(CHECK). 개인 칸을 지워도 남아 참석 수로 센다.
+  - 참석 확인 QR은 개인 링크 토큰의 해시(`token_hash`)를 담는다. 운영진 스캐너가 그 값으로 이 행사의 신청을 찾는다.
 
 ## 참가비
 
