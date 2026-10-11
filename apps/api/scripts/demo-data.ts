@@ -218,10 +218,17 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     settlement: createSettlementRoutes(db, session, ORIGIN), budget: createBudgetRoutes(db, session, ORIGIN), incomes: createIncomeRoutes(db, session),
     registrations: createRegistrationRoutes(db, session, { now: () => state.now }), fees: createFeeRoutes(db, session, { now: () => state.now }) })
   // 실패하면 단계와 상태·오류 코드만 남긴다(응답 본문에는 개인 칸이 없고 오류 코드만 있다). 200을 기대하면 201도 받는다.
+  // 원격 DB 연결이 잠깐 끊겨 생긴 5xx는 거래가 되돌려진 것이므로 잠시 뒤 두 번까지 다시 보낸다.
   async function call<T>(user: PersonKey | null, method: string, path: string, body?: unknown, status = 200): Promise<T> {
     state.userId = user === null ? null : userIdOf(user)
-    const response = await app.request(`/api${path}`, body === undefined ? { method }
+    const send = () => app.request(`/api${path}`, body === undefined ? { method }
       : { method, headers: { Origin: ORIGIN, 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    let response = await send()
+    for (let attempt = 1; attempt <= 2 && response.status >= 500; attempt++) {
+      log(`다시 시도 ${attempt}: ${method} ${path.replace(/[0-9a-f-]{36}/g, ':id')}`)
+      await new Promise(resolve => setTimeout(resolve, 1500 * attempt))
+      response = await send()
+    }
     if (response.status !== status && !(status === 200 && response.status === 201)) {
       throw new Error(`DEMO_STEP ${method} ${path.replace(/[0-9a-f-]{36}/g, ':id')} → ${response.status} ${(await response.text()).slice(0, 120)}`)
     }
