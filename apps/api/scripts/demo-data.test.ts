@@ -109,7 +109,7 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
       'budget_periods.closed_at', 'budget_period_events.created_at', 'fee_accounts.updated_at', 'fee_account_events.created_at', 'dues_rosters.uploaded_at',
       'purchase_candidate_shares.created_at', 'purchase_candidates.created_at', 'coupang_products.fetched_at', 'purchase_items.product_fetched_at',
       'purchase_generations.created_at', 'purchase_submissions.submitted_at', 'tasks.created_at', 'tasks.completed_at', 'task_events.created_at',
-      'events.completed_at']
+      'events.completed_at', 'event_reports.created_at', 'event_reports.updated_at', 'event_reports.published_at']
     for (const column of columns) {
       const [table, field] = column.split('.')
       const latest = (await pg.query<{ latest: Date | null }>(`SELECT max(${field}) AS latest FROM ${table}`)).rows[0]!.latest
@@ -145,6 +145,21 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
     const completed = await pg.query<{ name: string }>(`SELECT name FROM events WHERE organization_id = $1 AND completed_at IS NOT NULL ORDER BY name`,
       [DEMO_ORGANIZATION_ID])
     assert.deepEqual(completed.rows.map(row => row.name), ['2026 새내기 배움터', '2학기 개강총회'])
+    // 다섯 행사 모두 담당 부서와 책임자가 있다(M5b).
+    assert.equal(await count(pg, `SELECT count(*)::int AS n FROM events WHERE organization_id = '${DEMO_ORGANIZATION_ID}'
+      AND owner_department_id IS NOT NULL AND owner_id IS NOT NULL`), 5)
+    // 결과보고서: 새내기 배움터는 발행, 개강총회는 세 칸만 쓴 작성 중이다. 발행한 보고서는 신청·참석과 업무 지연을 고정했다.
+    const reports = await pg.query<{ name: string; status: string; facts: { registrations: unknown; tasks: { total: number; late: number } } | null;
+      written: number }>(`SELECT e.name, r.status, r.facts, ((r.operations IS NOT NULL)::int + (r.went_well IS NOT NULL)::int
+        + (r.shortfalls IS NOT NULL)::int + (r.improvements IS NOT NULL)::int + (r.handover IS NOT NULL)::int) AS written
+      FROM event_reports r JOIN events e ON e.id = r.event_id ORDER BY e.name`)
+    assert.deepEqual(reports.rows.map(row => [row.name, row.status, row.written]), [['2026 새내기 배움터', 'published', 5], ['2학기 개강총회', 'draft', 3]])
+    assert.deepEqual(reports.rows[0]!.facts?.registrations, { registered: 42, attended: 39 })
+    assert.deepEqual([reports.rows[0]!.facts?.tasks.total, reports.rows[0]!.facts?.tasks.late], [4, 1])
+    // 발행은 완료 뒤, 쓴 때는 발행 전이다.
+    const order = await pg.query<{ ok: boolean }>(`SELECT bool_and(r.created_at > e.completed_at AND (r.published_at IS NULL OR r.published_at > r.updated_at)) AS ok
+      FROM event_reports r JOIN events e ON e.id = r.event_id`)
+    assert.equal(order.rows[0]!.ok, true)
 
     // 1학기는 마감했고 남은 돈은 2학기 이월금이다. 참가비 수입은 각 학기에 들어간다.
     const periods = await pg.query<{ id: string; name: string; closed_at: Date | null }>(`SELECT id, name, closed_at FROM budget_periods ORDER BY starts_on`)

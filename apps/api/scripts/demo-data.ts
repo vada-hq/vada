@@ -1,13 +1,14 @@
 import { createHash, randomUUID } from 'node:crypto'
 import { and, asc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import type { BudgetPlanResponse, EventFinanceResponse, EventPurchaseItemsResponse, EventResponse, ExpenseResponse, PurchaseCandidatesResponse,
-  ReceiptUploadResponse, RegistrationCreated, RegistrationResponse, TaskResponse, TaskStatus, EventsResponse } from '@vada/contracts'
+import type { BudgetPlanResponse, EventFinanceResponse, EventPurchaseItemsResponse, EventReportResponse, EventResponse, ExpenseResponse,
+  PurchaseCandidatesResponse, ReceiptUploadResponse, RegistrationCreated, RegistrationResponse, TaskResponse, TaskStatus, EventsResponse } from '@vada/contracts'
 import { createApp } from '../src/app.js'
 import { createAccessRoutes } from '../src/access/access.js'
 import { createBudgetRoutes } from '../src/budget/routes.js'
 import { createChatRoutes } from '../src/chat/chat.js'
-import { budgetPeriodEvents, budgetPeriods, chatRooms, coupangProducts, departments, eventFinanceEvents, eventFinances, events, expenseEvents, expenseReceipts,
+import { budgetPeriodEvents, budgetPeriods, chatRooms, coupangProducts, departments, eventFinanceEvents, eventFinances, eventReports, events, expenseEvents,
+  expenseReceipts,
   feeAccountEvents, incomeEvents, incomes, memberships, messages, organizations, purchaseItemEvents, purchaseItems, registrationForms, registrations,
   users } from '../src/db/schema.js'
 import { createEventRoutes } from '../src/events/events.js'
@@ -24,6 +25,7 @@ import { createPurchaseRoutes } from '../src/purchases/purchases.js'
 import { createRegistrationRoutes } from '../src/registrations/routes.js'
 import { createSettlementRoutes } from '../src/settlement/routes.js'
 import { createTaskRoutes } from '../src/tasks/routes.js'
+import { createReportRoutes } from '../src/reports/routes.js'
 
 // 기획자 시연용 데이터. 배포 DB의 검증 학생회(로그인 계정 셋이 소속)를 "소프트웨어학부 학생회 (시연)"으로 바꾸고,
 // 그 안의 내용을 모두 지운 뒤 한 학기 반의 활동을 실제 서버 코드(라우트·서비스·입력 검사)로 다시 넣는다.
@@ -196,6 +198,7 @@ export async function resetDemo(db: Db) {
     await run(sql`DELETE FROM budget_periods WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM messages WHERE chat_room_id IN (SELECT id FROM chat_rooms WHERE organization_id = ${org})`)
     await run(sql`DELETE FROM chat_rooms WHERE organization_id = ${org}`)
+    await run(sql`DELETE FROM event_reports WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM events WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM memberships WHERE organization_id = ${org} AND user_id LIKE ${`${DEMO_USER_PREFIX}%`}`)
     await run(sql`DELETE FROM users WHERE id LIKE ${`${DEMO_USER_PREFIX}%`}`)
@@ -221,7 +224,7 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     purchases: createPurchaseRoutes(db, session, generateDraft, fetchProduct), expenses: createExpenseRoutes(db, session, storage),
     settlement: createSettlementRoutes(db, session, ORIGIN), budget: createBudgetRoutes(db, session, ORIGIN), incomes: createIncomeRoutes(db, session),
     registrations: createRegistrationRoutes(db, session, { now: () => state.now }), fees: createFeeRoutes(db, session, { now: () => state.now }),
-    tasks: createTaskRoutes(db, session) })
+    tasks: createTaskRoutes(db, session), reports: createReportRoutes(db, session) })
   // 실패하면 단계와 상태·오류 코드만 남긴다(응답 본문에는 개인 칸이 없고 오류 코드만 있다). 200을 기대하면 201도 받는다.
   // 원격 DB 연결이 잠깐 끊겨 생긴 5xx는 거래가 되돌려진 것이므로 잠시 뒤 두 번까지 다시 보낸다.
   async function call<T>(user: PersonKey | null, method: string, path: string, body?: unknown, status = 200): Promise<T> {
@@ -279,14 +282,18 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
   // 4. 행사 다섯 개. 참가 신청을 다루는 동안에는 보관 기간 파기에 걸리지 않게 날짜를 잠시 미래로 두고, 끝에 시나리오 날짜로 옮긴다.
   log('행사')
   const future = addDays(new Date().toISOString().slice(0, 10), 90)
+  // owner: 행사 담당 부서와 책임자(M5b)
   const plan = [
     { key: 'orientation', name: `${calendar.previous.startsOn.slice(0, 4)} 새내기 배움터`, creator: 'vice', day: calendar.orientation, start: '10:00',
-      endDay: addDays(calendar.orientation, 1), end: '15:00', place: '가평 청소년수련원' },
-    { key: 'opening', name: '2학기 개강총회', creator: 'planner', day: calendar.opening, start: '18:00', endDay: calendar.opening, end: '20:30', place: '학생회관 대강당' },
-    { key: 'sports', name: '소프트웨어학부 체육대회', creator: 'planner', day: calendar.sports, start: '10:00', endDay: calendar.sports, end: '17:00', place: '대운동장' },
-    { key: 'snack', name: '중간고사 간식 나눔', creator: 'planner2', day: calendar.snack, start: '12:00', endDay: calendar.snack, end: '14:00', place: '공학관 1층 로비' },
+      endDay: addDays(calendar.orientation, 1), end: '15:00', place: '가평 청소년수련원', owner: ['leadership', 'vice'] },
+    { key: 'opening', name: '2학기 개강총회', creator: 'planner', day: calendar.opening, start: '18:00', endDay: calendar.opening, end: '20:30', place: '학생회관 대강당',
+      owner: ['planning', 'planner'] },
+    { key: 'sports', name: '소프트웨어학부 체육대회', creator: 'planner', day: calendar.sports, start: '10:00', endDay: calendar.sports, end: '17:00', place: '대운동장',
+      owner: ['planning', 'planner2'] },
+    { key: 'snack', name: '중간고사 간식 나눔', creator: 'planner2', day: calendar.snack, start: '12:00', endDay: calendar.snack, end: '14:00', place: '공학관 1층 로비',
+      owner: ['planning', 'planner2'] },
     { key: 'festival', name: '소프트웨어학부 학술제', creator: 'promoter', day: calendar.festival, start: '13:00', endDay: calendar.festival, end: '18:00',
-      place: '공학관 대강의실' },
+      place: '공학관 대강의실', owner: ['promotion', 'promoter'] },
   ] as const
   type EventKey = typeof plan[number]['key']
   const eventIds = {} as Record<EventKey, string>
@@ -294,7 +301,8 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     const { event } = await call<EventResponse>(item.creator, 'POST', orgPath('/events'), { name: item.name }, 201)
     eventIds[item.key] = event.id
     await call(item.creator, 'PATCH', orgPath(`/events/${event.id}`), { version: event.version, startsAt: koreanTime(future, item.start),
-      endsAt: koreanTime(future, item.end), place: item.place, ownerDepartmentId: null, ownerMembershipId: null })
+      endsAt: koreanTime(future, item.end), place: item.place, ownerDepartmentId: departmentIds[item.owner[0]],
+      ownerMembershipId: `${userIdOf(item.owner[1])}-membership` })
   }
   const eventPath = (key: EventKey, path = '') => orgPath(`/events/${eventIds[key]}${path}`)
 
@@ -550,8 +558,17 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
   const loginLeaders = await db.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.organizationId, org),
     eq(memberships.departmentId, departmentIds.leadership), sql`${memberships.userId} NOT LIKE ${`${DEMO_USER_PREFIX}%`}`))
     .orderBy(asc(memberships.id))
+  // late: 마감일보다 며칠 늦게 끝냈는지(결과보고서의 지연, M5b)
   const taskPlan: { event: EventKey; title: string; description?: string; department: DepartmentKey; assignee: PersonKey | 'login' | null;
-    due: string; status: TaskStatus }[] = [
+    due: string; status: TaskStatus; late?: number }[] = [
+    { event: 'orientation', title: '숙소·버스 예약', department: 'leadership', assignee: 'vice', due: addDays(calendar.orientation, -21), status: 'done' },
+    { event: 'orientation', title: '참가 신청 공지', department: 'promotion', assignee: 'promoter', due: addDays(calendar.orientation, -16), status: 'done' },
+    { event: 'orientation', title: '조 편성표 만들기', department: 'planning', assignee: 'planner', due: addDays(calendar.orientation, -4), status: 'done',
+      late: 2 },
+    { event: 'orientation', title: '진행 대본 쓰기', department: 'planning', assignee: 'planner2', due: addDays(calendar.orientation, -2), status: 'done' },
+    { event: 'opening', title: '대강당 대관', department: 'leadership', assignee: 'vice', due: addDays(calendar.opening, -10), status: 'done' },
+    { event: 'opening', title: '다과 구매 요청', department: 'planning', assignee: 'planner', due: addDays(calendar.opening, -7), status: 'done' },
+    { event: 'opening', title: '개강총회 안내 게시', department: 'promotion', assignee: 'promoter', due: addDays(calendar.opening, -5), status: 'done' },
     { event: 'sports', title: '경기장 대관 신청', department: 'leadership', assignee: 'vice', due: addDays(calendar.sports, -20), status: 'done' },
     { event: 'sports', title: '팀 조끼·호루라기 준비', department: 'planning', assignee: 'planner', due: addDays(calendar.sports, -3), status: 'done' },
     { event: 'sports', title: '경기 결과 공지', department: 'promotion', assignee: 'promoter', due: addDays(calendar.sports, 1), status: 'done' },
@@ -585,6 +602,13 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     if (item.status !== 'todo') await call('planner', 'POST', eventPath(item.event, `/tasks/${task.id}/status`), { version: task.version, status: item.status })
   }
   await shapeTasks(db, calendar)
+  // 늦게 끝낸 업무: 마감일보다 late일 뒤 17시에 끝냈다. 처리 기록의 완료도 같이 옮긴다.
+  for (const item of taskPlan.filter(task => task.late)) {
+    const doneAt = kst(addDays(item.due, item.late!), '17:00').toISOString()
+    await db.execute(sql`UPDATE tasks SET completed_at = ${doneAt}::timestamptz WHERE organization_id = ${org} AND title = ${item.title}`)
+    await db.execute(sql`UPDATE task_events ev SET created_at = t.completed_at FROM tasks t WHERE t.id = ev.task_id AND t.organization_id = ${org}
+      AND t.title = ${item.title} AND ev.changes -> 'status' ->> 'to' = 'done'`)
+  }
 
   // 14. 행사 완료(M5a). 정산한 지난 행사 둘을 회장단(부회장)이 완료한다. 체육대회는 시연에서 완료해 보도록 남긴다.
   log('행사 완료')
@@ -594,6 +618,27 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     await call('vice', 'POST', eventPath(key, '/completion'), { version: target.version })
   }
   await shapeCompletion(db, calendar, eventIds)
+
+  // 15. 결과보고서(M5b). 새내기 배움터는 기획부장이 다섯 칸을 쓰고 부회장이 발행했다. 개강총회는 세 칸만 쓴 작성 중이다.
+  // 체육대회는 정산만 했다. 기획자가 완료하고 결과보고서를 써 볼 수 있다.
+  log('결과보고서')
+  const orientationReport = await call<EventReportResponse>('planner', 'POST', eventPath('orientation', '/report'), { version: 0,
+    operations: '10:00 공학관 앞 버스 출발 → 11:30 수련원 도착·방 배정 → 13:00 조별 레크리에이션 → 18:00 저녁·학과 소개 → 20:00 선배와의 대화.\n'
+      + '둘째 날 10:00 정리 → 12:00 출발.\n운영진 12명: 조장 8명, 진행 2명, 안전·물품 2명.',
+    wentWell: '조장을 미리 정하고 조별 단톡방을 열어 두어 첫날 어색함이 적었다.\n숙박비·버스비를 행사 사흘 전에 보내 현장에서 돈 문제가 없었다.',
+    shortfalls: '버스 한 대가 30분 늦었다 — 원인: 출발 시각만 알리고 기사님 연락처를 받아 두지 않았다.\n'
+      + '신청자 42명 가운데 3명이 오지 않았다 — 원인: 전날 확인 연락을 하지 않았다.\n'
+      + '조 편성표가 이틀 늦게 나왔다 — 원인: 신청 마감 뒤 명단 정리를 한 사람이 맡았다.',
+    improvements: '버스 업체에 기사님 연락처를 받아 출발 1시간 전에 위치를 확인한다.\n출발 전날 참가자에게 확인 문자를 보낸다.\n'
+      + '조 편성은 신청 마감 다음 날까지 둘이 나눠 끝낸다.',
+    handover: '숙소: 가평 청소년수련원(행사 6주 전 예약, 계약금 30%).\n버스: 한빛관광버스 45인승 2대, 왕복 110만 원.\n'
+      + '조 편성표·진행 대본은 학생회 드라이브 "새내기 배움터" 폴더에 있다.\n주의: 수련원은 22시 뒤 소음 금지.' })
+  await call('vice', 'POST', eventPath('orientation', '/report/publish'), { version: orientationReport.report!.version })
+  await call('planner2', 'POST', eventPath('opening', '/report'), { version: 0,
+    operations: '18:00 개회 → 학생회 소개 → 2학기 행사 일정 안내 → 19:30 다과·자유 교류 → 20:30 정리.',
+    wentWell: '다과를 미리 나눠 담아 두어 줄이 길지 않았다.',
+    shortfalls: '마이크 하나가 끊겨 진행이 5분 멈췄다 — 원인: 리허설 때 예비 마이크를 확인하지 않았다.', improvements: null, handover: null })
+  await shapeReports(db, calendar, eventIds)
   log('완료')
   return { eventIds, periods: { previous: previous.period.id, current: current.period.id } }
 }
@@ -729,12 +774,26 @@ async function shapeClosing(db: Db, calendar: Calendar, eventIds: Record<string,
     db.select({ id: incomes.id }).from(incomes).where(and(eq(incomes.organizationId, DEMO_ORGANIZATION_ID), isNotNull(incomes.carriedFromPeriodId)))))
 }
 
-// 완료 시각: 정산 다음 날 10시다(정산은 새내기 배움터가 행사 나흘 뒤, 개강총회가 사흘 뒤 15시).
+// 완료한 날: 정산 다음 날이다(정산은 새내기 배움터가 행사 나흘 뒤, 개강총회가 사흘 뒤 15시).
+const completedOnOf = (calendar: Calendar): Record<string, string> =>
+  ({ orientation: addDays(calendar.orientation, 5), opening: addDays(calendar.opening, 4) })
+
+// 완료 시각: 완료한 날 10시다.
 async function shapeCompletion(db: Db, calendar: Calendar, eventIds: Record<string, string>) {
-  const completedOn: Record<string, string> = { orientation: addDays(calendar.orientation, 5), opening: addDays(calendar.opening, 4) }
-  for (const [key, day] of Object.entries(completedOn)) {
+  for (const [key, day] of Object.entries(completedOnOf(calendar))) {
     await db.update(events).set({ completedAt: kst(day, '10:00') }).where(eq(events.id, eventIds[key]!))
   }
+}
+
+// 결과보고서 시각: 완료 다음 날 14시에 쓰고, 새내기 배움터는 완료 이틀 뒤 10시에 발행했다. 발행 때 고정한 수치는 그대로다.
+async function shapeReports(db: Db, calendar: Calendar, eventIds: Record<string, string>) {
+  const completedOn = completedOnOf(calendar)
+  for (const [key, day] of Object.entries(completedOn)) {
+    const written = kst(addDays(day, 1), '14:00')
+    await db.update(eventReports).set({ createdAt: written, updatedAt: written }).where(eq(eventReports.eventId, eventIds[key]!))
+  }
+  await db.update(eventReports).set({ publishedAt: kst(addDays(completedOn.orientation!, 2), '10:00') })
+    .where(eq(eventReports.eventId, eventIds.orientation!))
 }
 
 // 내 신청 화면의 참석 확인 코드와 같은 값(토큰의 SHA-256). 시연 안내에 쓴다.
