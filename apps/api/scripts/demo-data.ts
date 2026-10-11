@@ -2,7 +2,7 @@ import { createHash, randomUUID } from 'node:crypto'
 import { and, asc, eq, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import type { BudgetPlanResponse, EventFinanceResponse, EventPurchaseItemsResponse, EventResponse, ExpenseResponse, PurchaseCandidatesResponse,
-  ReceiptUploadResponse, RegistrationCreated, RegistrationResponse, TaskResponse, TaskStatus } from '@vada/contracts'
+  ReceiptUploadResponse, RegistrationCreated, RegistrationResponse, TaskResponse, TaskStatus, EventsResponse } from '@vada/contracts'
 import { createApp } from '../src/app.js'
 import { createAccessRoutes } from '../src/access/access.js'
 import { createBudgetRoutes } from '../src/budget/routes.js'
@@ -585,6 +585,15 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     if (item.status !== 'todo') await call('planner', 'POST', eventPath(item.event, `/tasks/${task.id}/status`), { version: task.version, status: item.status })
   }
   await shapeTasks(db, calendar)
+
+  // 14. 행사 완료(M5a). 정산한 지난 행사 둘을 회장단(부회장)이 완료한다. 체육대회는 시연에서 완료해 보도록 남긴다.
+  log('행사 완료')
+  const { events: listed } = await call<EventsResponse>('vice', 'GET', orgPath('/events'))
+  for (const key of ['orientation', 'opening'] as const) {
+    const target = listed.find(item => item.id === eventIds[key])!
+    await call('vice', 'POST', eventPath(key, '/completion'), { version: target.version })
+  }
+  await shapeCompletion(db, calendar, eventIds)
   log('완료')
   return { eventIds, periods: { previous: previous.period.id, current: current.period.id } }
 }
@@ -718,6 +727,14 @@ async function shapeClosing(db: Db, calendar: Calendar, eventIds: Record<string,
     eq(budgetPeriodEvents.action, 'closed')))
   await db.update(incomeEvents).set({ createdAt: closedAt }).where(inArray(incomeEvents.incomeId,
     db.select({ id: incomes.id }).from(incomes).where(and(eq(incomes.organizationId, DEMO_ORGANIZATION_ID), isNotNull(incomes.carriedFromPeriodId)))))
+}
+
+// 완료 시각: 정산 다음 날 10시다(정산은 새내기 배움터가 행사 나흘 뒤, 개강총회가 사흘 뒤 15시).
+async function shapeCompletion(db: Db, calendar: Calendar, eventIds: Record<string, string>) {
+  const completedOn: Record<string, string> = { orientation: addDays(calendar.orientation, 5), opening: addDays(calendar.opening, 4) }
+  for (const [key, day] of Object.entries(completedOn)) {
+    await db.update(events).set({ completedAt: kst(day, '10:00') }).where(eq(events.id, eventIds[key]!))
+  }
 }
 
 // 내 신청 화면의 참석 확인 코드와 같은 값(토큰의 SHA-256). 시연 안내에 쓴다.

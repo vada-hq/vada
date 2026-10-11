@@ -108,7 +108,8 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
       'income_events.created_at', 'event_finances.updated_at', 'event_finances.settled_at', 'event_finance_events.created_at', 'budget_periods.updated_at',
       'budget_periods.closed_at', 'budget_period_events.created_at', 'fee_accounts.updated_at', 'fee_account_events.created_at', 'dues_rosters.uploaded_at',
       'purchase_candidate_shares.created_at', 'purchase_candidates.created_at', 'coupang_products.fetched_at', 'purchase_items.product_fetched_at',
-      'purchase_generations.created_at', 'purchase_submissions.submitted_at', 'tasks.created_at', 'tasks.completed_at', 'task_events.created_at']
+      'purchase_generations.created_at', 'purchase_submissions.submitted_at', 'tasks.created_at', 'tasks.completed_at', 'task_events.created_at',
+      'events.completed_at']
     for (const column of columns) {
       const [table, field] = column.split('.')
       const latest = (await pg.query<{ latest: Date | null }>(`SELECT max(${field}) AS latest FROM ${table}`)).rows[0]!.latest
@@ -140,6 +141,10 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
       ['2026 새내기 배움터', '2학기 개강총회', '소프트웨어학부 체육대회'].sort())
     assert.deepEqual([finances['중간고사 간식 나눔']!.pendingRequests, finances['중간고사 간식 나눔']!.unrecordedItems, finances['소프트웨어학부 학술제']!.budget],
       [1, 2, null])
+    // 새내기 배움터·개강총회는 완료해 기록에 있고, 체육대회는 정산만 해 회장단이 완료해 볼 수 있다(M5a).
+    const completed = await pg.query<{ name: string }>(`SELECT name FROM events WHERE organization_id = $1 AND completed_at IS NOT NULL ORDER BY name`,
+      [DEMO_ORGANIZATION_ID])
+    assert.deepEqual(completed.rows.map(row => row.name), ['2026 새내기 배움터', '2학기 개강총회'])
 
     // 1학기는 마감했고 남은 돈은 2학기 이월금이다. 참가비 수입은 각 학기에 들어간다.
     const periods = await pg.query<{ id: string; name: string; closed_at: Date | null }>(`SELECT id, name, closed_at FROM budget_periods ORDER BY starts_on`)
