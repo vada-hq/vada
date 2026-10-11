@@ -7,6 +7,7 @@ import { candidate, item } from '../purchases/purchase-fixtures'
 import { financeResponse } from '../settlement/settlement-fixtures'
 import { budgetEventLine, budgetPeriod, budgetPlan } from '../budget/budget-fixtures'
 import { feeSettings } from '../fees/fee-fixtures'
+import { facts, reportResponse } from '../records/record-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false, manageEvents: true } }
@@ -18,8 +19,10 @@ const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy:
   version: 1, completedAt: null as string | null, ownerDepartment: null, owner: null }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
 function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }, myTasks: unknown = { open: [], done: [], truncated: false },
-  eventList: unknown[] = [event, { ...event, id: 'e2', name: '축제' }]) {
-  const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/budget/periods') ? { periods: [budgetPeriod()] }
+  eventList: unknown[] = [event, { ...event, id: 'e2', name: '축제' }], recordList: unknown[] = [], reportBody: unknown = null) {
+  const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/records') ? { records: recordList }
+    : url.endsWith('/report') ? reportBody
+    : url.endsWith('/budget/periods') ? { periods: [budgetPeriod()] }
     : url.endsWith('/budget/periods/p1') ? budgetPlan({ events: [budgetEventLine({ eventId: 'e1' })] })
     : url.endsWith('/events')
     ? { events: eventList }
@@ -436,8 +439,10 @@ test('회장단은 행사 화면 머리에서 완료하기를 보고, 다른 구
 
 const done = { ...event, id: 'e3', name: '새내기 배움터', version: 2, completedAt: '2026-10-01T06:00:00.000Z' }
 
-test('완료한 행사는 옆 메뉴 행사 목록에 없고, 기록에서 열면 볼 수만 있고 경로가 기록이다', async () => {
-  setup(membersBody, undefined, undefined, [event, done])
+const doneReport = () => reportResponse({ event: done, facts: facts({ event: { ...facts().event, name: '새내기 배움터' } }) })
+
+test('완료한 행사는 옆 메뉴 행사 목록에 없고, 기록에서 결과보고서를 열고 행사 기록 보기로 볼 수만 있는 행사 화면에 간다', async () => {
+  setup(membersBody, undefined, undefined, [event, done], [{ event: done, report: null, facts: doneReport().facts }], doneReport())
   render(<Workspace {...props} />)
   const list = await screen.findByRole('navigation', { name: '행사 목록' })
   await within(list).findByRole('button', { name: '체육대회' })
@@ -446,11 +451,37 @@ test('완료한 행사는 옆 메뉴 행사 목록에 없고, 기록에서 열�
   const records = await screen.findByRole('list', { name: '완료한 행사' })
   expect(within(records).getByText(/완료 2026\. 10\. 1\./)).toBeTruthy()
   fireEvent.click(within(records).getByRole('button', { name: '새내기 배움터' }))
+  expect(await screen.findByRole('region', { name: '결과보고서 요약' })).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 1, name: '새내기 배움터' })).toBeTruthy()
+  expect(within(screen.getByRole('banner')).getByText('기록')).toBeTruthy()
+  const nav = screen.getByRole('navigation', { name: '학생회 메뉴' })
+  expect(within(nav).getByRole('button', { name: /기록/ }).getAttribute('aria-current')).toBe('page')
+  fireEvent.click(screen.getByRole('button', { name: '행사 기록 보기' }))
   expect(await screen.findByText('완료한 행사라 볼 수만 있어요.')).toBeTruthy()
   const banner = screen.getByRole('banner')
   expect(within(banner).getByText('완료')).toBeTruthy()
   expect(within(banner).getByText('기록')).toBeTruthy()
   expect(screen.queryByLabelText('메시지')).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '결과보고서' }))
+  expect(await screen.findByRole('region', { name: '결과보고서 요약' })).toBeTruthy()
+})
+
+test('저장하지 않은 결과보고서가 있으면 다른 메뉴로 갈 때 묻고, 취소하면 남는다', async () => {
+  setup(membersBody, undefined, undefined, [event, done], [{ event: done, report: null, facts: doneReport().facts }], doneReport())
+  render(<Workspace {...props} />)
+  fireEvent.click(screen.getByRole('button', { name: '기록' }))
+  fireEvent.click(within(await screen.findByRole('list', { name: '완료한 행사' })).getByRole('button', { name: '새내기 배움터' }))
+  fireEvent.change(await screen.findByRole('textbox', { name: '잘된 점' }), { target: { value: '쓰는 중' } })
+  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
+  const nav = screen.getByRole('navigation', { name: '학생회 메뉴' })
+  fireEvent.click(within(nav).getByRole('button', { name: /내 업무/ }))
+  expect(confirm).toHaveBeenCalledWith('저장하지 않은 결과보고서가 있어요. 이동하면 쓴 글이 사라져요. 이동할까요?')
+  expect((screen.getByRole('textbox', { name: '잘된 점' }) as HTMLTextAreaElement).value).toBe('쓰는 중')
+  fireEvent.click(within(screen.getByRole('navigation', { name: '행사 목록' })).getByRole('button', { name: '체육대회' }))
+  expect((screen.getByRole('textbox', { name: '잘된 점' }) as HTMLTextAreaElement).value).toBe('쓰는 중')
+  confirm.mockReturnValue(true)
+  fireEvent.click(within(nav).getByRole('button', { name: /내 업무/ }))
+  expect(await screen.findByRole('heading', { level: 1, name: '내 업무' })).toBeTruthy()
 })
 
 test('완료한 행사가 없으면 기록은 빈 상태를 보인다', async () => {

@@ -9,7 +9,8 @@ import { Sheet, SheetContent } from '@/components/ui/sheet'
 import Budget from '../budget/Budget'
 import FeeSettings from '../fees/FeeSettings'
 import EventList from '../events/EventList'
-import Records from '../events/Records'
+import EventReport from '../records/EventReport'
+import Records from '../records/Records'
 import Expenses from '../expenses/Expenses'
 import { useExpenses } from '../expenses/useExpenses'
 import CreateEventForm from '../events/CreateEventForm'
@@ -28,7 +29,7 @@ import EventWorkspace from './EventWorkspace'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar, { type AccountProps } from './WorkspaceSidebar'
 
-type View = 'tasks' | 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees' | 'records'
+type View = 'tasks' | 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees' | 'records' | 'report'
 type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string; initialView?: View; onMembershipsChanged?: () => void }
 export default function Workspace({ initialOrganizationId, initialView, ...props }: Props) {
   // 초대로 방금 참여했거나 방금 만든 학생회가 있으면 그 학생회를 먼저 연다.
@@ -70,9 +71,13 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   const [selected, setSelected] = useState<EventSummary | null>(null)
   // 고른 행사는 목록의 최신 값으로 보여 준다. 참가자 탭에서 일시·장소를 고치면 목록이 바뀐다.
   const current = selected && (events.events?.find(item => item.id === selected.id) ?? selected)
-  // 완료한 행사(M5a)는 옆 메뉴 행사 목록에서 빼고 "기록"에 최근 완료 순으로 둔다.
+  // 완료한 행사(M5a)는 옆 메뉴 행사 목록에서 빼고 "기록"에 둔다. 기록 화면은 결과보고서 상태·숫자와 함께 따로 불러온다(M5b).
   const activeEvents = events.events?.filter(item => !item.completedAt) ?? null
-  const completedEvents = events.events?.filter(item => item.completedAt).sort((a, b) => b.completedAt!.localeCompare(a.completedAt!)) ?? null
+  // 결과보고서 화면(M5b)이 보는 행사. 행사 목록의 최신 값으로 보여 준다.
+  const [reportEvent, setReportEvent] = useState<EventSummary | null>(null)
+  const reportCurrent = reportEvent && (events.events?.find(item => item.id === reportEvent.id) ?? reportEvent)
+  // 결과보고서에 저장하지 않은 글이 있는지. 다른 화면으로 갈 때 묻는다.
+  const [reportDirty, setReportDirty] = useState(false)
   // 행사 화면 머리의 단계 칩(M5a). 날짜로 계산하고, 그릴 때의 시각을 쓴다.
   const phase = view === 'events' && current ? eventPhaseOf(current, koreanOf(new Date())) : null
   // 행사 화면이 처음 열 탭. 옆 메뉴로 고르면 대화, 예산 화면에서 열면 재정, 내 업무에서 열면 업무다.
@@ -81,17 +86,26 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   // 768px 미만에서 옆 메뉴로 연 사이드바. 행사를 고르면 닫는다.
   const [navOpen, setNavOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
-  function canLeave() { return !leaveRisk || window.confirm('끼룩이가 품목을 담는 중이에요. 이동해도 담는 중인 품목은 서버에서 계속 만들어질 수 있어요. 이동할까요?') }
+  function canLeave() {
+    if (leaveRisk && !window.confirm('끼룩이가 품목을 담는 중이에요. 이동해도 담는 중인 품목은 서버에서 계속 만들어질 수 있어요. 이동할까요?')) return false
+    // 결과보고서(M5b)에 저장하지 않은 글이 있으면 묻는다.
+    return !reportDirty || window.confirm('저장하지 않은 결과보고서가 있어요. 이동하면 쓴 글이 사라져요. 이동할까요?')
+  }
   useEffect(() => {
-    if (!leaveRisk) return
+    if (!leaveRisk && !reportDirty) return
     const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
     window.addEventListener('beforeunload', warn)
     return () => window.removeEventListener('beforeunload', warn)
-  }, [leaveRisk])
+  }, [leaveRisk, reportDirty])
   function select(event: EventSummary) {
-    // 구성원·구매 검토·사용 내역 화면에는 입력 중인 구매가 없으므로 묻지 않고 행사 화면으로 간다. 기록에서 고른 행사도 같다.
-    if (view !== 'events') { setEventTab('chat'); setSelected(event); setView('events') }
+    // 다른 화면에서 오면 그 화면에 남은 것(결과보고서의 저장하지 않은 글)을 묻고 행사 화면으로 간다. 기록에서 고른 행사도 같다.
+    if (view !== 'events') { if (canLeave()) { setEventTab('chat'); setSelected(event); setView('events') } }
     else if (event.id !== selected?.id && canLeave()) { setEventTab('chat'); setSelected(event) }
+    setNavOpen(false)
+  }
+  // 완료한 행사의 결과보고서를 연다(M5b). 기록 목록과 볼 수만 있는 행사 화면에서 온다.
+  function openReport(event: EventSummary) {
+    if ((view !== 'report' || reportEvent?.id !== event.id) && canLeave()) { setReportEvent(event); setView('report') }
     setNavOpen(false)
   }
   function openTasks() {
@@ -148,7 +162,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     reviewActive={view === 'review'} pendingCount={finance && review.data ? review.data.pending.length : null} onReview={finance ? openReview : null}
     budgetActive={view === 'budget'} onBudget={openBudget} expensesActive={view === 'expenses'} onExpenses={openExpenses}
     feesActive={view === 'fees'} onFees={finance ? openFees : null}
-    recordsActive={view === 'records' || (view === 'events' && Boolean(current?.completedAt))} onRecords={openRecords}>
+    recordsActive={view === 'records' || view === 'report' || (view === 'events' && Boolean(current?.completedAt))} onRecords={openRecords}>
     <EventList events={activeEvents} loading={events.loading} error={events.loadError} saving={events.saving}
       selectedId={view === 'events' ? selected?.id : undefined} onSelect={select} onRefresh={events.refresh} onCreate={() => { setNavOpen(false); setCreateOpen(true) }} />
   </WorkspaceSidebar>
@@ -167,14 +181,14 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     <div className="flex min-w-0 flex-1 flex-col">
       <WorkspaceHeader councilName={membership.organization.name}
         section={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정'
-          : view === 'records' || current?.completedAt ? '기록' : '행사'}
+          : view === 'records' || view === 'report' || current?.completedAt ? '기록' : '행사'}
         badge={phase && <Badge tone={phaseTones[phase]}>{phaseLabels[phase]}</Badge>}
         // 회장단만 완료하고 되돌린다. 완료하면 내 업무에서 그 행사의 업무가 빠지므로 새로 불러온다.
         actions={phase && current && membership.permissions.manageOrganization
           ? <EventCompletionControl event={current} onChanged={event => { events.replace(event); myTasks.refresh() }} onStale={events.refresh} />
           : undefined}
         title={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
-          : view === 'fees' ? '참가비 설정' : view === 'records' ? '기록' : selected?.name ?? '행사'}
+          : view === 'fees' ? '참가비 설정' : view === 'records' ? '기록' : view === 'report' ? reportCurrent?.name ?? '결과보고서' : selected?.name ?? '행사'}
         onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
         {view === 'tasks' ? <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><div className="mx-auto max-w-3xl">
@@ -185,13 +199,16 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
             viewerMembershipId={membership.id} />
           : view === 'budget' ? <Budget organizationId={membership.organization.id} finance={finance} onOpenEvent={openEventFinance} />
           : view === 'fees' ? <FeeSettings organizationId={membership.organization.id} />
-          : view === 'records' ? <Records events={completedEvents} loading={events.loading} error={events.loadError} onOpen={select} onRefresh={events.refresh} />
+          : view === 'records' ? <Records organizationId={membership.organization.id} onOpen={openReport} />
+          : view === 'report' && reportCurrent ? <EventReport key={reportCurrent.id} organizationId={membership.organization.id} eventId={reportCurrent.id}
+            canWrite={membership.permissions.manageEvents} canPublish={membership.permissions.manageOrganization}
+            onOpenEvent={() => select(reportCurrent)} onDirtyChange={setReportDirty} onEvent={events.replace} />
           : view === 'expenses' ? <Expenses organizationId={membership.organization.id} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} state={expenses} />
           : current ? <EventWorkspace key={current.id} event={current} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} onLeaveRiskChange={setLeaveRisk} manageEvents={membership.permissions.manageEvents}
             onEventChange={events.replace} onEventStale={events.refresh} onTasksChanged={myTasks.refresh} initialTab={eventTab}
-            readOnly={Boolean(current.completedAt)} />
+            readOnly={Boolean(current.completedAt)} onOpenReport={current.completedAt ? () => openReport(current) : undefined} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
           </Card></div>}

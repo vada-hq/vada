@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { CreateEventSchema, type CreateEventRequest, type EventResponse, type EventSummary, type EventsResponse } from '@vada/contracts'
 // 호출하는 화면을 organizationId로 key 처리해 소속 간 상태를 격리한다.
 export function useEvents(organizationId: string) {
@@ -71,8 +71,9 @@ export function useEvents(organizationId: string) {
     }
   }
 
+  // 행사 정보를 고친 응답이나 결과보고서가 받은 행사로 목록의 그 행사를 바꾼다. 결과보고서 화면이 효과의 의존성으로 쓰므로 같은 함수를 유지한다.
+  const replace = useCallback((event: EventSummary) => setEvents(previous => previous?.map(item => item.id === event.id ? event : item) ?? previous), [])
+
   return { events, loading, loadError, name, setName, saving, createError, create,
-    refresh: () => setAttempt(value => value + 1),
-    // 행사 정보를 고친 응답으로 목록의 그 행사를 바꾼다.
-    replace: (event: EventSummary) => setEvents(previous => previous?.map(item => item.id === event.id ? event : item) ?? previous) }
+    refresh: () => setAttempt(value => value + 1), replace }
 }

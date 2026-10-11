@@ -120,3 +120,20 @@ test('다른 회장단이 먼저 완료를 취소했으면 완료하기로 바�
   expect(within(current).queryByRole('button', { name: '완료하기' })).toBeNull()
   expect(within(current).queryByRole('button', { name: '완료 취소' })).toBeNull()
 })
+
+test('발행한 결과보고서가 있으면 완료 취소의 이유를 보이고 행사 목록을 새로 받지 않는다', async () => {
+  const target = { ...ended(), version: 2, completedAt: '2026-10-12T01:00:00.000Z' }
+  const { api, onStale } = setup(target)
+  api.on('POST', `${path}/cancel`, () => json({ error: 'REPORT_PUBLISHED' }, 409))
+  const dialog = await openDialog('완료 취소', '완료를 취소할까요?')
+  fireEvent.click(within(dialog).getByRole('button', { name: '완료 취소' }))
+  expect(await within(dialog).findByText('결과보고서를 발행한 행사예요. 결과보고서에서 먼저 발행을 취소해 주세요.')).toBeTruthy()
+  expect(onStale).not.toHaveBeenCalled()
+})
+
+test('완료 대화상자는 기록에서 결과보고서를 쓴다고 알린다', async () => {
+  const { api } = setup(ended())
+  api.on('GET', path, () => json({ settled: true, openTasks: 0 }))
+  const dialog = await openDialog('완료하기', '행사를 완료할까요?')
+  expect(within(dialog).getByText(/기록에서 결과보고서를 써요\./)).toBeTruthy()
+})

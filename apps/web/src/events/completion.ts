@@ -8,6 +8,8 @@ export const completionErrors: Record<string, string> = {
   INVALID_STATE: '이미 바뀌었어요. 행사 목록을 새로 불러왔어요.',
   FORBIDDEN: '회장단만 할 수 있어요.',
   NOT_FOUND: '행사를 찾을 수 없어요.',
+  // 완료 취소: 발행한 결과보고서(M5b)가 있다. 행사 목록이 오래된 것은 아니다.
+  REPORT_PUBLISHED: '결과보고서를 발행한 행사예요. 결과보고서에서 먼저 발행을 취소해 주세요.',
 }
 const failure = '처리하지 못했어요. 다시 시도해 주세요.'
 // 행사 목록이 오래된 경우다. 목록을 새로 받는다. 응답을 못 받았을 때(UNKNOWN)도 서버가 바꿨을 수 있어 새로 받는다.

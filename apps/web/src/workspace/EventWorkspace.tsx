@@ -11,6 +11,7 @@ import EventFinance from '../settlement/EventFinance'
 import { useEventFinance } from '../settlement/useEventFinance'
 import EventTasks from '../tasks/EventTasks'
 import { useEventTasks } from '../tasks/useTasks'
+import { Button } from '@/components/ui/button'
 import { TabButton } from '@/components/ui/tab-button'
 
 // 와이어프레임 탭 순서처럼 업무를 앞쪽(대화 다음)에, 인원 관리(참가자)를 재정 바로 앞에 둔다. 참가자는 부서가 있는 구성원에게만 보인다.
@@ -26,10 +27,12 @@ type Props = { event: EventSummary; finance: boolean; viewerMembershipId: string
   // 예산 화면에서 행사 이름을 누르면 재정 탭으로, 내 업무에서 행사로 가면 업무 탭으로 연다.
   initialTab?: 'chat' | 'tasks' | 'finance'
   // 완료한 행사(M5a)는 볼 수만 있다. 탭마다 바꾸는 단추를 감추고, 서버도 막는다.
-  readOnly?: boolean }
+  readOnly?: boolean
+  // 완료한 행사의 결과보고서를 연다(M5b).
+  onOpenReport?: () => void }
 
 export default function EventWorkspace({ event, finance, viewerMembershipId, events, onLeaveRiskChange, manageEvents, onEventChange, onEventStale,
-  onTasksChanged = () => {}, initialTab, readOnly = false }: Props) {
+  onTasksChanged = () => {}, initialTab, readOnly = false, onOpenReport }: Props) {
   const order = (Object.keys(tabs) as Tab[]).filter(value => value !== 'registrations' || manageEvents)
   const [tab, setTab] = useState<Tab>(initialTab ?? 'chat')
   const [view, setView] = useState<PurchaseView>('candidates')
@@ -89,7 +92,10 @@ export default function EventWorkspace({ event, finance, viewerMembershipId, eve
         aria-selected={tab === value} aria-controls={`${prefix}-${value}-panel`} tabIndex={tab === value ? 0 : -1}
         onClick={() => select(value)} onKeyDown={navigate}>{tabs[value]}</TabButton>)}
     </div>
-    {readOnly && <p className="shrink-0 border-b bg-gray-50 px-4 py-2 text-xs text-gray-600 sm:px-6">완료한 행사라 볼 수만 있어요.</p>}
+    {readOnly && <div className="flex shrink-0 items-center gap-2 border-b bg-gray-50 px-4 py-2 sm:px-6">
+      <p className="min-w-0 flex-1 text-xs text-gray-600">완료한 행사라 볼 수만 있어요.</p>
+      {onOpenReport && <Button variant="link" size="sm" className="h-auto p-0" onClick={onOpenReport}>결과보고서</Button>}
+    </div>}
     {/* 탭은 숨기기만 하여 대화 입력·스크롤과 구매·재정 화면 상태를 보존한다. 행사 이동은 key로 격리한다. */}
     <div className="flex min-h-0 flex-1 flex-col bg-white" role="tabpanel" id={`${prefix}-chat-panel`} aria-labelledby={`${prefix}-chat-tab`} hidden={tab !== 'chat'}>
       <Chat organizationId={event.organizationId} eventId={event.id} eventName={event.name} onOpenLink={openLink} focus={focus} readOnly={readOnly} />
