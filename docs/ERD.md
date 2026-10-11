@@ -15,6 +15,8 @@ erDiagram
     organizations ||..o{ events : "행사 소유"
     users ||..o{ events : "행사 생성 기록"
     users |o..o{ events : "행사 완료 기록"
+    departments |o..o{ events : "행사 담당 부서"
+    memberships |o..o{ events : "행사 책임자(같은 학생회)"
     organizations ||..o{ chatRooms : "채팅방 소유"
     events |o..o| chatRooms : "행사 연결"
     chatRooms ||..o{ messages : "대화 기록"
@@ -67,6 +69,8 @@ erDiagram
         integer version
         timestamptz completed_at "완료 시각, 선택"
         text completed_by FK "완료한 사람, 완료 시각과 함께"
+        text owner_department_id FK "담당 부서, 선택"
+        text owner_id FK "책임자 사용자 ID, 선택"
     }
     chatRooms["chat_rooms"] {
         text id PK
@@ -94,9 +98,9 @@ erDiagram
 
 - `accounts`: `(provider_id, account_id)` 조합은 중복 불가.
 - `organizations`: `invite_code`는 학생회마다 하나인 8자리 초대 코드다. 헷갈리는 0·1·I·O를 뺀 대문자·숫자로 이루어진다. DB 함수 `vada_invite_code()`가 기본값을 만들고, CHECK가 형식을 지킨다. 재발급 화면은 아직 없다. 코드가 새어 바꿔야 하면 승인을 받고 `UPDATE organizations SET invite_code = vada_invite_code() WHERE id = '<학생회 id>'`를 실행한다. 이 함수는 drizzle-kit이 모르는 직접 작성한 객체이므로, 마이그레이션을 합치거나 새로 만들 때 함께 옮긴다.
-- `departments`: 학생회마다 회장단(`is_leadership`)이 정확히 하나다(부분 고유 색인 `departments_one_leadership`). 회장단은 구매 승인 표시(`handles_finance`)를 갖지 않는다(CHECK). 권한은 부서로 계산한다. 회장단은 조직 관리와 구매 승인, `handles_finance` 부서는 구매 승인을 한다(`access/membership.ts`). 회장단은 지울 수 없고 이름은 바꿀 수 있다. 구성원이나 구매요청 기록이 있는 부서는 지우지 않는다(서버). 학생회·부서 이름은 공백만이거나 상한(50·20자)을 넘을 수 없고, 같은 학생회 안에서 부서 이름이 겹치지 않는다(0011).
+- `departments`: 학생회마다 회장단(`is_leadership`)이 정확히 하나다(부분 고유 색인 `departments_one_leadership`). 회장단은 구매 승인 표시(`handles_finance`)를 갖지 않는다(CHECK). 권한은 부서로 계산한다. 회장단은 조직 관리와 구매 승인, `handles_finance` 부서는 구매 승인을 한다(`access/membership.ts`). 회장단은 지울 수 없고 이름은 바꿀 수 있다. 구성원이나 구매요청 기록이 있거나 행사의 담당 부서(M5b)인 부서는 지우지 않는다(서버). 학생회·부서 이름은 공백만이거나 상한(50·20자)을 넘을 수 없고, 같은 학생회 안에서 부서 이름이 겹치지 않는다(0011).
 - `memberships`: `(organization_id, user_id)` 조합은 중복 불가. `(organization_id, department_id)`는 `departments`의 고유 조합 `(organization_id, id)`를 참조하여 다른 학생회 부서에 소속되는 것을 막는다. 부서는 비어 있을 수 있다(초대로 들어온 미배정 구성원). 비어 있으면 복합 외래 키를 검사하지 않는다. 직책(`title`)은 표시용 글이다. 공백만인 값과 20자 초과를 금지한다. 부서를 옮기면 서버가 지운다. 마지막 회장단은 다른 곳으로 옮길 수 없다(서버).
-- `events`: 이름 중복은 허용하되 공백만으로 된 이름은 금지한다. 생성자의 소속 변경은 행사에 영향을 주지 않는다. 생성 당시 소속 검사는 서버 책임이다. 완료(M5a)한 행사는 기록을 바꾸지 않는다(`events/lock.ts`). 완료 시각과 완료한 사람은 함께 있거나 함께 없다(CHECK).
+- `events`: 이름 중복은 허용하되 공백만으로 된 이름은 금지한다. 생성자의 소속 변경은 행사에 영향을 주지 않는다. 생성 당시 소속 검사는 서버 책임이다. 완료(M5a)한 행사는 기록을 바꾸지 않는다(`events/lock.ts`). 완료 시각과 완료한 사람은 함께 있거나 함께 없다(CHECK). 담당 부서·책임자(M5b)는 `(organization_id, owner_department_id)` → `departments`, `(organization_id, owner_id)` → `memberships (organization_id, user_id)`로 같은 학생회만 가리킨다. 부서가 있는 구성원만 새로 맡는 조건은 서버가 지킨다. 담당 부서인 부서는 지우지 않는다(서버, FK도 막는다).
 - `chat_rooms`: 행사 연결은 선택이며 행사당 최대 한 방이다. `(organization_id, event_id)` 복합 외래 키가 다른 학생회 행사 연결을 막는다. 행사·채팅방 생성은 하나의 트랜잭션이다. 행사 미연결 방의 생성·접근 API와 개인 대화 권한은 제공하지 않는다.
 - `messages`: 행사 대신 채팅방을 참조한다. 공백만인 본문과 2,000자를 넘는 본문은 금지하며, 조회 인덱스는 `(chat_room_id, created_at, id)`다. 작성자 소속 변경으로 기존 메시지는 삭제되지 않는다. 쓰기 권한 검사는 서버 책임이다.
 - 사용자 삭제 시 `accounts`·`sessions`는 함께 삭제된다. `memberships`·`departments`·`events`·`chat_rooms`·`messages`가 참조하는 부모의 삭제는 제한된다.
@@ -569,6 +573,35 @@ erDiagram
 
 - `tasks`: 담당자는 `(organization_id, assignee_id)` → `memberships (organization_id, user_id)`로 같은 학생회 소속만 받는다. 부서가 있는 구성원만 맡는 조건과 행사마다 300개 상한은 서버가 지킨다. 부서를 지우면 서버가 먼저 그 부서 업무의 담당 부서를 비우고 버전을 올린다. 완료 시각은 완료일 때만 있다(CHECK).
 - `task_events`: 업무를 지울 때만 서버가 함께 지운다. 그 밖에는 고치거나 지우지 않는다. 부서·담당자는 그때의 이름으로 남겨 부서를 지우거나 이름이 바뀌어도 읽힌다.
+
+## 결과보고서
+
+완료한 행사(`events`)와 사용자(`users`)를 참조한다. 설계는 [결과보고서](superpowers/specs/2026-10-12-event-report-design.md)에 있다.
+
+```mermaid
+erDiagram
+    events ||..o| eventReports : "결과보고서"
+    users ||..o{ eventReports : "처음 쓴 사람·마지막 저장·발행"
+
+    eventReports["event_reports"] {
+        text event_id PK "행사와 복합 FK"
+        text organization_id FK
+        text status "draft / published"
+        text operations "현장 운영 2,000자, 선택"
+        text went_well "잘된 점 2,000자, 선택"
+        text shortfalls "아쉬운 점과 원인 2,000자, 선택"
+        text improvements "다음 행사 개선안 2,000자, 선택"
+        text handover "인수인계 2,000자, 선택"
+        jsonb facts "발행 때 고정한 자동 수치·이름, 발행일 때만"
+        timestamptz published_at "발행일 때만"
+        text published_by FK "발행일 때만"
+        integer version
+        text created_by FK
+        text updated_by FK "마지막으로 글을 저장한 사람"
+    }
+```
+
+- `event_reports`: 행사마다 하나다. 완료한 행사에서만 쓰고 발행한다(서버, `events/lock.ts`의 `requireCompletedEvent`). 발행이면 발행한 때·사람·고정 수치가 모두 있고 다섯 칸이 모두 있다(CHECK). 발행하면 그때의 신청→참석, 예산→집행, 업무 완료·지연, 구매 건수와 행사·담당 이름을 `facts`에 고정한다. 발행한 보고서가 있으면 행사 완료를 취소하지 않는다(서버). 처리 기록 표는 두지 않는다.
 
 ## 배송 추적
 

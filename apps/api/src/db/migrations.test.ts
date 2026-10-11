@@ -1360,3 +1360,47 @@ test('0025 adds event completion without touching existing events', async (t) =>
     await pg.close()
   }
 })
+
+test('0026 adds event owners and reports without touching existing events', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0026_event_reports')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test'),('x','남','x@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO departments (id,organization_id,name) VALUES ('d','o','기획부'),('d2','o2','남의 부서'),('d3','o','축제부');
+      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m','u','o','d'),('mx','x','o2','d2');
+      INSERT INTO events (id,organization_id,name,created_by,version) VALUES ('e','o','체육대회','u',3),('e2','o','축제','u',1);
+    `)
+    await migrate(db, { migrationsFolder })
+    await t.test('existing events have no owner and keep their version', async () => {
+      const { rows } = await pg.query<Record<string, unknown>>("SELECT version, owner_department_id, owner_id FROM events WHERE id = 'e'")
+      assert.deepEqual(rows[0], { version: 3, owner_department_id: null, owner_id: null })
+    })
+    await t.test('owners belong to the same council and an owner department is not deleted', async () => {
+      await assert.rejects(pg.exec("UPDATE events SET owner_department_id = 'd2' WHERE id = 'e'"), { constraint: 'events_owner_department_same_organization' })
+      await assert.rejects(pg.exec("UPDATE events SET owner_id = 'x' WHERE id = 'e'"), { constraint: 'events_owner_same_organization' })
+      // 축제부(d3)는 구성원이 없어 담당 FK만 지우기를 막는다.
+      await pg.exec("UPDATE events SET owner_department_id = 'd3', owner_id = 'u' WHERE id = 'e'")
+      await assert.rejects(pg.exec("DELETE FROM departments WHERE id = 'd3'"), { constraint: 'events_owner_department_same_organization' })
+    })
+    await t.test('a report is published only with every section and frozen facts', async () => {
+      await pg.exec("INSERT INTO event_reports (event_id, organization_id, operations, created_by, updated_by) VALUES ('e','o','진행','u','u')")
+      const publish = (facts: string) => pg.exec(`UPDATE event_reports SET status = 'published', published_at = now(), published_by = 'u', facts = ${facts}`)
+      await assert.rejects(publish("'{}'"), { constraint: 'event_reports_published_complete' })
+      await pg.exec("UPDATE event_reports SET went_well = '좋음', shortfalls = '아쉬움', improvements = '개선', handover = '인수'")
+      await assert.rejects(publish('NULL'), { constraint: 'event_reports_published_state' })
+      await assert.rejects(publish("'[]'"), { constraint: 'event_reports_facts_object' })
+      await publish("'{}'")
+      await assert.rejects(pg.exec("UPDATE event_reports SET handover = '   '"), { constraint: 'event_reports_handover_not_blank' })
+      await assert.rejects(pg.exec("UPDATE event_reports SET handover = repeat('가', 2001)"), { constraint: 'event_reports_handover_length' })
+      await assert.rejects(pg.exec("INSERT INTO event_reports (event_id, organization_id, created_by, updated_by) VALUES ('e2','o2','u','u')"),
+        { constraint: 'event_reports_event_same_organization' })
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

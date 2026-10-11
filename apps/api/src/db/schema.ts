@@ -92,6 +92,9 @@ export const events = pgTable('events', {
   // 행사를 완료한 시각과 사람(M5a). 완료하지 않았으면 둘 다 없다. 완료한 행사는 기록을 바꾸지 않는다(events/lock.ts).
   completedAt: timestamp('completed_at', { withTimezone: true }),
   completedBy: text('completed_by').references(() => users.id, { onDelete: 'restrict' }),
+  // 행사 담당 부서와 책임자(M5b). 둘 다 고르지 않아도 된다. 책임자는 사용자 ID이고 같은 학생회 소속만 받는다(업무 담당자와 같다).
+  ownerDepartmentId: text('owner_department_id'),
+  ownerId: text('owner_id'),
 }, (table) => [
   check('events_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
   check('events_name_length', sql`char_length(${table.name}) <= 100`),
@@ -102,6 +105,18 @@ export const events = pgTable('events', {
   check('events_place_length', sql`char_length(${table.place}) <= 100`),
   check('events_version_positive', sql`${table.version} >= 1`),
   check('events_completed_pair', sql`(${table.completedAt} IS NULL) = (${table.completedBy} IS NULL)`),
+  // 담당 부서인 부서는 지우지 않는다(organization/service.ts). 완료한 행사는 바꿀 수 없어 비울 수 없다.
+  // 부서·소속 표는 아래에 있지만 이 목록은 나중에 만들어지므로 그대로 가리킨다.
+  foreignKey({
+    name: 'events_owner_department_same_organization',
+    columns: [table.organizationId, table.ownerDepartmentId],
+    foreignColumns: [departments.organizationId, departments.id],
+  }).onDelete('restrict'),
+  foreignKey({
+    name: 'events_owner_same_organization',
+    columns: [table.organizationId, table.ownerId],
+    foreignColumns: [memberships.organizationId, memberships.userId],
+  }).onDelete('restrict'),
   index('events_organization_id_idx').on(table.organizationId),
   unique('events_organization_id_unique').on(table.organizationId, table.id),
 ])
@@ -1095,4 +1110,51 @@ export const taskEvents = pgTable('task_events', {
   check('task_events_action_valid', sql`${table.action} IN ('created','updated','status_changed')`),
   check('task_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
   index('task_events_task_idx').on(table.taskId, table.createdAt),
+])
+
+// 완료한 행사의 결과보고서(M5b). 행사마다 하나다. 쓰기는 완료한 행사에서만 하고(events/lock.ts의 requireCompletedEvent),
+// 발행하면 그때의 자동 수치와 이름을 facts에 고정한다. updated_*는 마지막으로 글을 저장한 사람·때이고 발행은 따로 남긴다.
+export const eventReports = pgTable('event_reports', {
+  eventId: text('event_id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  status: text('status', { enum: ['draft', 'published'] }).notNull().default('draft'),
+  // 현장 운영, 잘된 점, 아쉬운 점과 원인, 다음 행사 개선안, 인수인계. 쓰지 않은 칸은 비어 있다.
+  operations: text('operations'),
+  wentWell: text('went_well'),
+  shortfalls: text('shortfalls'),
+  improvements: text('improvements'),
+  handover: text('handover'),
+  facts: jsonb('facts').$type<Record<string, unknown>>(),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  publishedBy: text('published_by').references(() => users.id, { onDelete: 'restrict' }),
+  version: integer('version').notNull().default(1),
+  createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedBy: text('updated_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'event_reports_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  check('event_reports_status_valid', sql`${table.status} IN ('draft','published')`),
+  // 발행이면 발행한 때·사람·고정 수치가 모두 있고, 작성 중이면 모두 없다.
+  check('event_reports_published_state', sql`(${table.status} = 'published') = (${table.publishedAt} IS NOT NULL)
+    AND (${table.publishedAt} IS NULL) = (${table.publishedBy} IS NULL) AND (${table.publishedAt} IS NULL) = (${table.facts} IS NULL)`),
+  // 발행하려면 다섯 칸을 모두 써야 한다.
+  check('event_reports_published_complete', sql`${table.status} <> 'published' OR (${table.operations} IS NOT NULL AND ${table.wentWell} IS NOT NULL
+    AND ${table.shortfalls} IS NOT NULL AND ${table.improvements} IS NOT NULL AND ${table.handover} IS NOT NULL)`),
+  check('event_reports_operations_not_blank', sql`${table.operations} ~ '[^[:space:]]'`),
+  check('event_reports_operations_length', sql`char_length(${table.operations}) <= 2000`),
+  check('event_reports_went_well_not_blank', sql`${table.wentWell} ~ '[^[:space:]]'`),
+  check('event_reports_went_well_length', sql`char_length(${table.wentWell}) <= 2000`),
+  check('event_reports_shortfalls_not_blank', sql`${table.shortfalls} ~ '[^[:space:]]'`),
+  check('event_reports_shortfalls_length', sql`char_length(${table.shortfalls}) <= 2000`),
+  check('event_reports_improvements_not_blank', sql`${table.improvements} ~ '[^[:space:]]'`),
+  check('event_reports_improvements_length', sql`char_length(${table.improvements}) <= 2000`),
+  check('event_reports_handover_not_blank', sql`${table.handover} ~ '[^[:space:]]'`),
+  check('event_reports_handover_length', sql`char_length(${table.handover}) <= 2000`),
+  check('event_reports_facts_object', sql`jsonb_typeof(${table.facts}) = 'object'`),
+  check('event_reports_version_positive', sql`${table.version} >= 1`),
 ])

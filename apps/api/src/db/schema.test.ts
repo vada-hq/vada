@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { getTableConfig, PgDialect } from 'drizzle-orm/pg-core'
-import { accounts, chatRooms, departments, events, memberships, messages, organizations, purchaseSubmissions, sessions, users, verifications } from './schema.js'
+import { accounts, chatRooms, departments, eventReports, events, memberships, messages, organizations, purchaseSubmissions, sessions, users,
+  verifications } from './schema.js'
 
 test('all entities have primary keys and creation timestamps', () => {
   for (const table of [users, organizations, departments, memberships, accounts, sessions, verifications, events, chatRooms, messages]) {
@@ -20,12 +21,14 @@ test('all entities have primary keys and creation timestamps', () => {
 test('events belong to an organization and retain a user as creator independently of membership', () => {
   const config = getTableConfig(events)
   assert.deepEqual(config.columns.map(column => column.name), ['id', 'organization_id', 'name', 'created_by', 'created_at', 'starts_at', 'ends_at', 'place',
-    'version', 'completed_at', 'completed_by'])
-  // 일시·장소(M3a)와 완료(M5a)만 비울 수 있다.
-  assert.deepEqual(config.columns.filter(column => !column.notNull).map(column => column.name), ['starts_at', 'ends_at', 'place', 'completed_at', 'completed_by'])
-  assert.equal(config.foreignKeys.length, 3)
+    'version', 'completed_at', 'completed_by', 'owner_department_id', 'owner_id'])
+  // 일시·장소(M3a), 완료(M5a), 담당(M5b)만 비울 수 있다.
+  assert.deepEqual(config.columns.filter(column => !column.notNull).map(column => column.name), ['starts_at', 'ends_at', 'place', 'completed_at',
+    'completed_by', 'owner_department_id', 'owner_id'])
+  assert.equal(config.foreignKeys.length, 5)
+  // 담당 FK 둘은 복합 키라 첫 칸이 organization_id다. 한 칸짜리 FK만 본다.
   for (const [columnName, parent] of [['organization_id', organizations], ['created_by', users], ['completed_by', users]] as const) {
-    const fk = config.foreignKeys.find(key => key.reference().columns[0]?.name === columnName)
+    const fk = config.foreignKeys.find(key => key.reference().columns.length === 1 && key.reference().columns[0]?.name === columnName)
     assert.ok(fk)
     assert.equal(fk.reference().foreignTable, parent)
     assert.equal(fk.onDelete, 'restrict')
@@ -119,4 +122,29 @@ test('councils keep one invite code each; departments may be unassigned', () => 
   assert.deepEqual(config.uniqueConstraints.map(key => key.name), ['organizations_invite_code_unique'])
   assert.ok(config.checks.some(item => item.name === 'organizations_invite_code_format'))
   assert.equal(purchaseSubmissions.departmentId.notNull, false)
+})
+
+test('결과보고서는 행사마다 하나이고, 같은 학생회 행사와 사용자를 가리킨다', () => {
+  const config = getTableConfig(eventReports)
+  assert.deepEqual(config.columns.map(column => column.name), ['event_id', 'organization_id', 'status', 'operations', 'went_well', 'shortfalls',
+    'improvements', 'handover', 'facts', 'published_at', 'published_by', 'version', 'created_by', 'created_at', 'updated_by', 'updated_at'])
+  assert.equal(eventReports.eventId.primary, true)
+  const event = config.foreignKeys.find(key => key.getName() === 'event_reports_event_same_organization')
+  assert.ok(event)
+  assert.deepEqual(event.reference().columns.map(column => column.name), ['organization_id', 'event_id'])
+  assert.equal(event.onDelete, 'restrict')
+  for (const name of ['event_reports_status_valid', 'event_reports_published_state', 'event_reports_published_complete', 'event_reports_facts_object',
+    'event_reports_operations_length', 'event_reports_handover_not_blank']) assert.ok(config.checks.some(check => check.name === name), name)
+})
+
+test('행사 담당은 같은 학생회의 부서와 소속을 가리킨다', () => {
+  const config = getTableConfig(events)
+  const department = config.foreignKeys.find(key => key.getName() === 'events_owner_department_same_organization')
+  const owner = config.foreignKeys.find(key => key.getName() === 'events_owner_same_organization')
+  assert.deepEqual(department?.reference().foreignColumns.map(column => column.name), ['organization_id', 'id'])
+  assert.equal(department?.reference().foreignTable, departments)
+  assert.equal(department?.onDelete, 'restrict')
+  assert.deepEqual(owner?.reference().foreignColumns.map(column => column.name), ['organization_id', 'user_id'])
+  assert.equal(owner?.reference().foreignTable, memberships)
+  assert.equal(owner?.onDelete, 'restrict')
 })
