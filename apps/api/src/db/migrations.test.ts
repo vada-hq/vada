@@ -1263,3 +1263,71 @@ test('0023 adds attendance to registrations without touching existing registrati
     await pg.close()
   }
 })
+
+test('0024 adds tasks and their history tied to one event, department and member of the same council', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0024_event_tasks')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test'),('v','홍보','v@example.test'),('w','남','w@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO departments (id,organization_id,name) VALUES ('d','o','기획부'),('d2','o2','기획부'),('d3','o','홍보부');
+      INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('mu','u','o','d'),('mv','v','o',NULL),('mw','w','o2','d2');
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e','o','체육대회','u'),('x','o2','남의 행사','w');
+    `)
+    await migrate(db, { migrationsFolder })
+    const insert = (table: string, values: Record<string, string>) =>
+      pg.exec(`INSERT INTO ${table} (${Object.keys(values).join(',')}) VALUES (${Object.values(values).join(',')})`)
+    const task = (id: string, change: Record<string, string> = {}) =>
+      insert('tasks', { id: `'${id}'`, organization_id: "'o'", event_id: "'e'", title: "'현수막'", created_by: "'u'", ...change })
+    const entry = (id: string, change: Record<string, string> = {}) =>
+      insert('task_events', { id: `'${id}'`, organization_id: "'o'", task_id: "'t1'", actor_id: "'u'", action: "'created'", ...change })
+
+    await t.test('a new task is todo, version 1, with optional fields empty', async () => {
+      await task('t1')
+      const { rows } = await pg.query<Record<string, unknown>>(
+        "SELECT status, version, description, department_id, assignee_id, due_on, completed_at FROM tasks WHERE id = 't1'")
+      assert.deepEqual(rows[0], { status: 'todo', version: 1, description: null, department_id: null, assignee_id: null, due_on: null, completed_at: null })
+    })
+    await t.test('title and description are not blank and within length', async () => {
+      await task('t2', { title: `'${'😀'.repeat(100)}'`, description: `'${'😀'.repeat(1000)}'` })
+      await assert.rejects(task('b1', { title: "'   '" }), { constraint: 'tasks_title_not_blank' })
+      await assert.rejects(task('b2', { title: `'${'😀'.repeat(101)}'` }), { constraint: 'tasks_title_length' })
+      await assert.rejects(task('b3', { description: "' '" }), { constraint: 'tasks_description_not_blank' })
+      await assert.rejects(task('b4', { description: `'${'😀'.repeat(1001)}'` }), { constraint: 'tasks_description_length' })
+    })
+    await t.test('status is one of three, completion time exists only when done, due date is in range', async () => {
+      await task('t3', { status: "'done'", completed_at: 'now()' })
+      await assert.rejects(task('b5', { status: "'review'" }), { constraint: 'tasks_status_valid' })
+      await assert.rejects(task('b6', { status: "'done'" }), { constraint: 'tasks_completed_state' })
+      await assert.rejects(task('b7', { status: "'doing'", completed_at: 'now()' }), { constraint: 'tasks_completed_state' })
+      await assert.rejects(task('b8', { due_on: "'1999-12-31'" }), { constraint: 'tasks_due_on_range' })
+      await assert.rejects(task('b9', { version: '0' }), { constraint: 'tasks_version_positive' })
+    })
+    await t.test('event, department and assignee must belong to the same council', async () => {
+      await task('t4', { department_id: "'d'", assignee_id: "'u'" })
+      // 미배정 구성원도 DB에서는 담당자가 될 수 있다. 부서 조건은 서버가 본다.
+      await task('t5', { assignee_id: "'v'" })
+      await assert.rejects(task('b10', { event_id: "'x'" }), { constraint: 'tasks_event_same_organization' })
+      await assert.rejects(task('b11', { department_id: "'d2'" }), { constraint: 'tasks_department_same_organization' })
+      await assert.rejects(task('b12', { assignee_id: "'w'" }), { constraint: 'tasks_assignee_same_organization' })
+      // 구성원이 없는 부서도 업무가 가리키면 지울 수 없다. 서버가 먼저 비운다.
+      await task('t6', { department_id: "'d3'" })
+      await assert.rejects(pg.exec("DELETE FROM departments WHERE id = 'd3'"), { constraint: 'tasks_department_same_organization' })
+    })
+    await t.test('history belongs to a task of the same council and blocks deleting the task alone', async () => {
+      await entry('h1')
+      await entry('h2', { action: "'status_changed'", changes: `'{"status":{"from":"todo","to":"doing"}}'` })
+      await assert.rejects(entry('h3', { action: "'deleted'" }), { constraint: 'task_events_action_valid' })
+      await assert.rejects(entry('h4', { changes: "'[]'" }), { constraint: 'task_events_changes_object' })
+      await assert.rejects(entry('h5', { organization_id: "'o2'" }), { constraint: 'task_events_task_same_organization' })
+      await assert.rejects(pg.exec("DELETE FROM tasks WHERE id = 't1'"), { constraint: 'task_events_task_same_organization' })
+      await pg.exec("DELETE FROM task_events WHERE task_id = 't1'; DELETE FROM tasks WHERE id = 't1'")
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

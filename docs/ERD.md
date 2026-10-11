@@ -527,6 +527,46 @@ erDiagram
   - 이월금이면서 참가비 수입일 수 없다(CHECK). 참가비 수입이 있는 행사는 편성에서 뺄 수 없다.
   - 받은 참가비가 있으면 행사가 기간에 들어 있어야 정산된다.
 
+## 업무
+
+행사(`events`)·부서(`departments`)·소속(`memberships`)·사용자(`users`)를 참조한다. 설계는 [행사 업무·일정](superpowers/specs/2026-10-11-event-tasks-design.md)에 있다.
+
+```mermaid
+erDiagram
+    events ||..o{ tasks : "행사 업무"
+    departments |o..o{ tasks : "담당 부서"
+    memberships |o..o{ tasks : "담당자(같은 학생회)"
+    users ||..o{ tasks : "만든 사람"
+    tasks ||..o{ taskEvents : "처리 기록"
+    users ||..o{ taskEvents : "한 사람"
+
+    tasks {
+        text id PK
+        text organization_id FK "행사·부서·소속 복합 FK"
+        text event_id FK
+        text title "100자"
+        text description "1,000자, 선택"
+        text status "todo / doing / done"
+        text department_id FK "선택"
+        text assignee_id FK "사용자 ID, 선택"
+        date due_on "선택"
+        timestamptz completed_at "완료일 때만"
+        text created_by FK
+        integer version
+    }
+    taskEvents["task_events"] {
+        text id PK
+        text organization_id FK
+        text task_id FK
+        text actor_id FK
+        text action "created / updated / status_changed"
+        jsonb changes "바뀐 칸 이전·이후, 부서·담당자는 이름"
+    }
+```
+
+- `tasks`: 담당자는 `(organization_id, assignee_id)` → `memberships (organization_id, user_id)`로 같은 학생회 소속만 받는다. 부서가 있는 구성원만 맡는 조건과 행사마다 300개 상한은 서버가 지킨다. 부서를 지우면 서버가 먼저 그 부서 업무의 담당 부서를 비우고 버전을 올린다. 완료 시각은 완료일 때만 있다(CHECK).
+- `task_events`: 업무를 지울 때만 서버가 함께 지운다. 그 밖에는 고치거나 지우지 않는다. 부서·담당자는 그때의 이름으로 남겨 부서를 지우거나 이름이 바뀌어도 읽힌다.
+
 ## 배송 추적
 
 배송 상태는 품목의 승인 상태와 독립적이다. 송장을 연결하면 구매함 표시가 붙는다. 스키마·마이그레이션, [등록·조회 API](delivery-api.md), [자동 갱신 실행기](delivery-worker.md)를 작성했다. Neon 반영, 실제 외부 연결 검증, 화면 연결·배포는 별도 단계다.

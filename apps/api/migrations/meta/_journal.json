@@ -169,6 +169,13 @@
       "when": 1791653656719,
       "tag": "0023_event_attendance",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791704028415,
+      "tag": "0024_event_tasks",
+      "breakpoints": true
     }
   ]
 }

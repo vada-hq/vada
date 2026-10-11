@@ -1025,3 +1025,70 @@ export const duesMembers = pgTable('dues_members', {
   check('dues_members_name_not_blank', sql`${table.name} ~ '[^[:space:]]'`),
   check('dues_members_name_length', sql`char_length(${table.name}) <= 30`),
 ])
+
+// 행사 업무(M4). 담당 부서·담당자·마감일은 비어 있을 수 있다. 담당자는 사용자 ID이고 같은 학생회 소속만 받는다.
+export const tasks = pgTable('tasks', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  eventId: text('event_id').notNull(),
+  title: text('title').notNull(),
+  description: text('description'),
+  status: text('status', { enum: ['todo', 'doing', 'done'] }).notNull().default('todo'),
+  departmentId: text('department_id'),
+  assigneeId: text('assignee_id'),
+  // 한국 날짜
+  dueOn: date('due_on'),
+  // 완료일 때만 있다. 완료에서 다른 상태로 돌리면 지운다.
+  completedAt: timestamp('completed_at', { withTimezone: true }),
+  createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  version: integer('version').notNull().default(1),
+}, (table) => [
+  foreignKey({
+    name: 'tasks_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  // 부서를 지우는 서버가 먼저 업무의 담당 부서를 비운다. 이 키는 그 순서를 지키게 한다.
+  foreignKey({
+    name: 'tasks_department_same_organization',
+    columns: [table.organizationId, table.departmentId],
+    foreignColumns: [departments.organizationId, departments.id],
+  }).onDelete('restrict'),
+  foreignKey({
+    name: 'tasks_assignee_same_organization',
+    columns: [table.organizationId, table.assigneeId],
+    foreignColumns: [memberships.organizationId, memberships.userId],
+  }).onDelete('restrict'),
+  unique('tasks_organization_id_unique').on(table.organizationId, table.id),
+  check('tasks_title_not_blank', sql`${table.title} ~ '[^[:space:]]'`),
+  check('tasks_title_length', sql`char_length(${table.title}) <= 100`),
+  check('tasks_description_not_blank', sql`${table.description} ~ '[^[:space:]]'`),
+  check('tasks_description_length', sql`char_length(${table.description}) <= 1000`),
+  check('tasks_status_valid', sql`${table.status} IN ('todo','doing','done')`),
+  check('tasks_due_on_range', sql`${table.dueOn} BETWEEN '2000-01-01' AND '2999-12-31'`),
+  check('tasks_completed_state', sql`(${table.status} = 'done') = (${table.completedAt} IS NOT NULL)`),
+  check('tasks_version_positive', sql`${table.version} >= 1`),
+  index('tasks_event_idx').on(table.organizationId, table.eventId),
+  index('tasks_assignee_idx').on(table.organizationId, table.assigneeId),
+])
+
+// 업무 처리 기록. 고치지 않는다. 업무를 지울 때만 서버가 먼저 함께 지운다.
+export const taskEvents = pgTable('task_events', {
+  id: text('id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  taskId: text('task_id').notNull(),
+  actorId: text('actor_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  action: text('action', { enum: ['created', 'updated', 'status_changed'] }).notNull(),
+  changes: jsonb('changes').$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  foreignKey({
+    name: 'task_events_task_same_organization',
+    columns: [table.organizationId, table.taskId],
+    foreignColumns: [tasks.organizationId, tasks.id],
+  }).onDelete('restrict'),
+  check('task_events_action_valid', sql`${table.action} IN ('created','updated','status_changed')`),
+  check('task_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
+  index('task_events_task_idx').on(table.taskId, table.createdAt),
+])
