@@ -17,11 +17,12 @@ const membersBody = { viewer: membership, departments: [{ id: 'd1', name: '기�
 const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy: 'u1', createdAt: '2026-09-29T00:00:00Z', startsAt: null, endsAt: null, place: null,
   version: 1 }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
-function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }) {
+function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }, myTasks: unknown = { open: [], done: [], truncated: false }) {
   const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/budget/periods') ? { periods: [budgetPeriod()] }
     : url.endsWith('/budget/periods/p1') ? budgetPlan({ events: [budgetEventLine({ eventId: 'e1' })] })
     : url.endsWith('/events')
     ? { events: [event, { ...event, id: 'e2', name: '축제' }] }
+    : url.endsWith('/my-tasks') ? myTasks
     : url.endsWith('/members') ? members
     : url.endsWith('/tasks') ? { tasks: [], registrationClosesAt: null }
     : url.endsWith('/messages') ? { messages: [], nextCursor: null }
@@ -155,10 +156,10 @@ test('a newly joined council is opened first', async () => {
   await waitFor(() => expect(fetcher).toHaveBeenCalledWith('/api/organizations/o2/events', expect.anything()))
 })
 
-test('the header title is the chosen event, or 행사 before one is chosen', async () => {
+test('the header title is 내 업무 at first, then the chosen event', async () => {
   setup()
   render(<Workspace {...props} />)
-  expect(screen.getByRole('heading', { level: 1, name: '행사' })).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 1, name: '내 업무' })).toBeTruthy()
   fireEvent.click(await screen.findByRole('button', { name: '체육대회' }))
   expect(screen.getByRole('heading', { level: 1, name: '체육대회' })).toBeTruthy()
 })
@@ -384,4 +385,36 @@ test('업무 탭은 처음 고를 때 불러오고 다시 고를 때마다 새�
   fireEvent.click(screen.getByRole('tab', { name: '대화' }))
   fireEvent.click(screen.getByRole('tab', { name: '업무' }))
   await waitFor(() => expect(taskCalls()).toBe(2))
+})
+
+const overdueTask = { id: 't1', event: { id: 'e1', name: '체육대회' }, title: '대관 신청', description: null, status: 'todo', department: null,
+  assignee: { membershipId: 'm1', name: '테스터' }, dueOn: '2026-10-01', completedAt: null, createdBy: { id: 'u1', name: '테스터' },
+  createdAt: '2026-09-01T00:00:00Z', version: 1 }
+test('학생회를 열면 내 업무가 먼저 보이고 옆 메뉴에 지연 수를 보인다. 상세에서 행사로 가면 그 행사의 업무 탭이 열린다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-11T03:00:00Z'))
+  try {
+    const fetcher = setup(membersBody, undefined, { open: [overdueTask], done: [], truncated: false })
+    const base = fetcher.getMockImplementation()!
+    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.endsWith('/events/e1/tasks/t1')
+      ? { ok: true, status: 200, json: async () => ({ task: { ...overdueTask, history: [] } }) } : base(url, init))
+    render(<Workspace {...props} />)
+    expect(screen.getByRole('heading', { level: 1, name: '내 업무' })).toBeTruthy()
+    const nav = screen.getByRole('navigation', { name: '학생회 메뉴' })
+    expect(within(nav).getByRole('button', { name: /내 업무/ }).getAttribute('aria-current')).toBe('page')
+    expect(await within(nav).findByText('지연 1')).toBeTruthy()
+    fireEvent.click(await screen.findByRole('button', { name: '대관 신청' }))
+    fireEvent.click(await screen.findByRole('button', { name: '행사로 가기' }))
+    await waitFor(() => expect(screen.getByRole('tab', { name: '업무' }).getAttribute('aria-selected')).toBe('true'))
+    expect(screen.getByRole('heading', { level: 1, name: '체육대회' })).toBeTruthy()
+    await waitFor(() => expect(fetcher).toHaveBeenCalledWith('/api/organizations/o1/events/e1/tasks', expect.anything()))
+    fireEvent.click(within(nav).getByRole('button', { name: /내 업무/ }))
+    expect(screen.getByRole('heading', { level: 1, name: '내 업무' })).toBeTruthy()
+  } finally { vi.useRealTimers() }
+})
+
+test('미배정 구성원도 내 업무를 보지만 맡을 수 없어 비어 있다', async () => {
+  setup()
+  render(<Workspace {...props} memberships={[{ ...membership, department: null, permissions: { ...membership.permissions, manageEvents: false } }]} />)
+  expect(await screen.findByText('맡은 업무가 없어요')).toBeTruthy()
 })

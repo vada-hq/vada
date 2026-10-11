@@ -1,4 +1,4 @@
-import { TASK_STATUS_LABELS, type EventSummary, type TaskHistoryEntry, type TaskStatus, type TaskSummary } from '@vada/contracts'
+import { TASK_STATUS_LABELS, type EventSummary, type MyTasksResponse, type TaskHistoryEntry, type TaskStatus, type TaskSummary } from '@vada/contracts'
 
 export const statusLabels = TASK_STATUS_LABELS
 // 카드의 빠른 버튼. 완료한 업무에는 없다.
@@ -29,6 +29,12 @@ export function matchesFilter(task: TaskSummary, filter: TaskFilter | null, toda
   if (filter === 'overdue') return isOverdue(task, today)
   if (filter === 'unassigned') return task.assignee === null
   return task.assignee?.membershipId === viewerMembershipId
+}
+// 옆 메뉴 "내 업무"의 수. 지연이 있으면 지연 수(빨강), 없으면 할 일 수, 할 일이 없으면 없다.
+export function taskBadge(data: Pick<MyTasksResponse, 'open'> | null, today: string): { tone: 'danger' | 'info'; text: string } | null {
+  if (!data || data.open.length === 0) return null
+  const overdue = data.open.filter(task => isOverdue(task, today)).length
+  return overdue ? { tone: 'danger', text: `지연 ${overdue}` } : { tone: 'info', text: String(data.open.length) }
 }
 export function taskCounts(tasks: TaskSummary[], today: string, viewerMembershipId: string) {
   const count = (filter: TaskFilter) => tasks.filter(task => matchesFilter(task, filter, today, viewerMembershipId)).length

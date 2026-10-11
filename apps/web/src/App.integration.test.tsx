@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import App from './App'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
-import { candidatesPath, event, eventsPath, membership, messagesPath, purchaseItemsPath, reviewPath, user } from './test-support/workflow-fixtures'
+import { candidatesPath, event, eventsPath, membership, messagesPath, myTasksPath, purchaseItemsPath, reviewPath, user } from './test-support/workflow-fixtures'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({ authClient: { useSession: auth.useSession,
@@ -23,6 +23,7 @@ beforeEach(() => {
   api.on('GET', purchaseItemsPath(), () => json({ items: [], truncated: false }))
   api.on('GET', candidatesPath(), () => json({ candidates: [], truncated: false }))
   api.on('GET', reviewPath, () => json({ pending: [], approved: [], truncated: false }))
+  api.on('GET', myTasksPath, () => json({ open: [], done: [], truncated: false }))
 })
 afterEach(() => {
   cleanup()

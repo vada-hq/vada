@@ -3,7 +3,7 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import Workspace from './Workspace'
 import { json, mockApi } from '../test-support/mock-api'
-import { candidatesPath, event, eventsPath, membership, messagesPath, purchaseItemsPath, reviewPath, user } from '../test-support/workflow-fixtures'
+import { candidatesPath, event, eventsPath, membership, messagesPath, myTasksPath, purchaseItemsPath, reviewPath, user } from '../test-support/workflow-fixtures'
 import { candidate, item } from '../purchases/purchase-fixtures'
 
 let api: ReturnType<typeof mockApi>
@@ -12,6 +12,7 @@ beforeEach(() => {
   api = mockApi()
   vi.spyOn(window, 'confirm').mockReturnValue(true)
   api.on('GET', eventsPath, () => json({ events: [event(), event('e2')] }))
+  api.on('GET', myTasksPath, () => json({ open: [], done: [], truncated: false }))
   for (const id of ['e', 'e2']) {
     api.on('GET', messagesPath(id), () => json({ messages: [], nextCursor: null }))
     api.on('GET', purchaseItemsPath(id), () => json({ items: [], truncated: false }))

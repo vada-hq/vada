@@ -15,3 +15,4 @@ export const messagesPath = (id = 'e') => `${eventsPath}/${id}/messages`
 export const purchaseItemsPath = (id = 'e') => `${eventsPath}/${id}/purchase-items`
 export const candidatesPath = (id = 'e') => `${eventsPath}/${id}/purchase-candidates`
 export const reviewPath = '/api/organizations/o/purchase-review'
+export const myTasksPath = '/api/organizations/o/my-tasks'

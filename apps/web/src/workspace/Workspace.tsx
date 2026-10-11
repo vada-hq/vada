@@ -15,12 +15,16 @@ import { useEvents } from '../events/useEvents'
 import Members from '../organization/Members'
 import { useOrganizationMembers } from '../organization/useOrganizationMembers'
 import PurchaseReview from '../purchases/PurchaseReview'
+import { todayInSeoul } from '../purchases/purchase-view'
 import { usePurchaseReview } from '../purchases/usePurchaseReview'
+import MyTasks from '../tasks/MyTasks'
+import { taskBadge } from '../tasks/task-view'
+import { useMyTasks } from '../tasks/useTasks'
 import EventWorkspace from './EventWorkspace'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar, { type AccountProps } from './WorkspaceSidebar'
 
-type View = 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees'
+type View = 'tasks' | 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees'
 type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string; initialView?: View; onMembershipsChanged?: () => void }
 export default function Workspace({ initialOrganizationId, initialView, ...props }: Props) {
   // 초대로 방금 참여했거나 방금 만든 학생회가 있으면 그 학생회를 먼저 연다.
@@ -40,7 +44,10 @@ function sameMembership(a: MembershipSummary, b: MembershipSummary) {
 
 function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembershipsChanged, ...props }: Omit<Props, 'initialOrganizationId'> & { membership: MembershipSummary; onMembershipChange: (id: string) => void }) {
   const events = useEvents(membership.organization.id)
-  const [view, setView] = useState<View>(initialView ?? 'events')
+  // 학생회를 열면 내 업무가 먼저 보인다. 알림 대신 맡은 업무가 눈에 띄게 한다.
+  const [view, setView] = useState<View>(initialView ?? 'tasks')
+  // 옆 메뉴의 남은 수와 내 업무 화면이 같이 쓴다.
+  const myTasks = useMyTasks(membership.organization.id)
   // 회장단은 사이드바에 미배정 수를 보여 주려고 처음부터 불러온다. 다른 사람은 구성원 화면을 열 때 불러온다.
   const members = useOrganizationMembers(membership.organization.id, membership.permissions.manageOrganization || view === 'members')
   const finance = membership.permissions.approvePurchases
@@ -59,8 +66,8 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   const [selected, setSelected] = useState<EventSummary | null>(null)
   // 고른 행사는 목록의 최신 값으로 보여 준다. 참가자 탭에서 일시·장소를 고치면 목록이 바뀐다.
   const current = selected && (events.events?.find(item => item.id === selected.id) ?? selected)
-  // 행사 화면이 처음 열 탭. 옆 메뉴로 고르면 대화, 예산 화면에서 열면 재정이다.
-  const [eventTab, setEventTab] = useState<'chat' | 'finance'>('chat')
+  // 행사 화면이 처음 열 탭. 옆 메뉴로 고르면 대화, 예산 화면에서 열면 재정, 내 업무에서 열면 업무다.
+  const [eventTab, setEventTab] = useState<'chat' | 'tasks' | 'finance'>('chat')
   const [leaveRisk, setLeaveRisk] = useState(false)
   // 768px 미만에서 옆 메뉴로 연 사이드바. 행사를 고르면 닫는다.
   const [navOpen, setNavOpen] = useState(false)
@@ -77,6 +84,18 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     if (view !== 'events') { setEventTab('chat'); setSelected(event); setView('events') }
     else if (event.id !== selected?.id && canLeave()) { setEventTab('chat'); setSelected(event) }
     setNavOpen(false)
+  }
+  function openTasks() {
+    if (view !== 'tasks' && canLeave()) { setView('tasks'); myTasks.refresh() }
+    setNavOpen(false)
+  }
+  // 내 업무에서 행사로 가면 그 행사의 업무 탭을 연다. 내 업무에는 입력 중인 구매가 없으므로 묻지 않는다.
+  function openEventTasks(eventId: string) {
+    const target = events.events?.find(item => item.id === eventId)
+    if (!target) return
+    setEventTab('tasks')
+    setSelected(target)
+    setView('events')
   }
   function openMembers() {
     if (view !== 'members' && canLeave()) { setView('members'); members.refresh() }
@@ -111,6 +130,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   const unassigned = membership.permissions.manageOrganization && members.data ? members.data.members.filter(member => member.departmentId === null).length : null
   const sidebar = <WorkspaceSidebar {...props} onLogout={() => { if (canLeave()) props.onLogout() }} membership={membership}
     onMembershipChange={id => { if (canLeave()) onMembershipChange(id) }}
+    tasksActive={view === 'tasks'} tasksBadge={taskBadge(myTasks.data, todayInSeoul())} onTasks={openTasks}
     membersActive={view === 'members'} unassignedCount={unassigned} onMembers={openMembers}
     reviewActive={view === 'review'} pendingCount={finance && review.data ? review.data.pending.length : null} onReview={finance ? openReview : null}
     budgetActive={view === 'budget'} onBudget={openBudget} expensesActive={view === 'expenses'} onExpenses={openExpenses}
@@ -132,12 +152,15 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
       <WorkspaceHeader councilName={membership.organization.name}
-        section={view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정' : '행사'}
-        title={view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
+        section={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정' : '행사'}
+        title={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
           : view === 'fees' ? '참가비 설정' : selected?.name ?? '행사'}
         onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
-        {view === 'members' ? <Members inviteCode={membership.organization.inviteCode} state={members} />
+        {view === 'tasks' ? <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><div className="mx-auto max-w-3xl">
+          <MyTasks organizationId={membership.organization.id} manageEvents={membership.permissions.manageEvents} state={myTasks}
+            onOpenEvent={openEventTasks} /></div></div>
+          : view === 'members' ? <Members inviteCode={membership.organization.inviteCode} state={members} />
           : view === 'review' ? <PurchaseReview organizationId={membership.organization.id} state={review} events={events.events ?? []}
             viewerMembershipId={membership.id} />
           : view === 'budget' ? <Budget organizationId={membership.organization.id} finance={finance} onOpenEvent={openEventFinance} />
@@ -146,7 +169,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
             events={events.events ?? []} state={expenses} />
           : current ? <EventWorkspace key={current.id} event={current} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} onLeaveRiskChange={setLeaveRisk} manageEvents={membership.permissions.manageEvents}
-            onEventChange={events.replace} onEventStale={events.refresh} initialTab={eventTab} />
+            onEventChange={events.replace} onEventStale={events.refresh} onTasksChanged={myTasks.refresh} initialTab={eventTab} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
           </Card></div>}

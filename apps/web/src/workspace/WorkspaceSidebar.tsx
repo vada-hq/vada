@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { ClipboardCheck, Landmark, LogOut, Receipt, UserPlus, Users, Wallet } from 'lucide-react'
+import { ClipboardCheck, Landmark, ListChecks, LogOut, Receipt, UserPlus, Users, Wallet } from 'lucide-react'
 import type { MembershipSummary } from '@vada/contracts'
 import InviteShare from '../access/InviteShare'
 import { Avatar } from '@/components/Avatar'
@@ -13,6 +13,8 @@ import { NavItem } from '@/components/ui/nav-item'
 
 export type AccountProps = { user: { name: string; email: string }; logoutBusy: boolean; onLogout: () => void }
 type Props = AccountProps & { membership: MembershipSummary; memberships: MembershipSummary[]; onMembershipChange: (id: string) => void
+  // 내 업무(첫 화면). 남은 할 일 수나 지연 수를 붙인다.
+  tasksActive: boolean; tasksBadge: { tone: 'danger' | 'info'; text: string } | null; onTasks: () => void
   membersActive: boolean; unassignedCount: number | null; onMembers: () => void
   reviewActive: boolean; pendingCount: number | null; onReview: (() => void) | null; budgetActive: boolean; onBudget: () => void
   expensesActive: boolean; onExpenses: () => void
@@ -22,7 +24,7 @@ type Props = AccountProps & { membership: MembershipSummary; memberships: Member
 
 // 와이어프레임 사이드바(210px): 위 로고와 학생회 이름, 가운데 행사 메뉴, 아래 사용자.
 // 데스크톱 aside와 휴대폰 옆 메뉴가 같이 쓴다. 위 블록의 오른쪽 여백은 옆 메뉴 닫기 버튼 자리다.
-export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, membersActive, unassignedCount, onMembers, reviewActive, pendingCount, onReview, budgetActive, onBudget, expensesActive, onExpenses, feesActive, onFees, user, logoutBusy, onLogout, children }: Props) {
+export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, tasksActive, tasksBadge, onTasks, membersActive, unassignedCount, onMembers, reviewActive, pendingCount, onReview, budgetActive, onBudget, expensesActive, onExpenses, feesActive, onFees, user, logoutBusy, onLogout, children }: Props) {
   const [inviteOpen, setInviteOpen] = useState(false)
   return <div className="flex h-full min-h-0 flex-col">
     <div className="flex shrink-0 items-center gap-2 border-b border-gray-100 py-4 pr-10 pl-5">
@@ -47,6 +49,10 @@ export default function WorkspaceSidebar({ membership, memberships, onMembership
       </Dialog>
     </section>
     <nav aria-label="학생회 메뉴" className="shrink-0 border-b border-gray-100 px-2 py-2">
+      <NavItem active={tasksActive} className="flex items-center gap-2" onClick={onTasks}>
+        <ListChecks aria-hidden className="size-4" />내 업무
+        {tasksBadge && <Badge tone={tasksBadge.tone} className="ml-auto">{tasksBadge.text}</Badge>}
+      </NavItem>
       <NavItem active={membersActive} className="flex items-center gap-2" onClick={onMembers}>
         <Users aria-hidden className="size-4" />구성원
         {unassignedCount ? <Badge tone="warning" className="ml-auto">미배정 {unassignedCount}</Badge> : null}

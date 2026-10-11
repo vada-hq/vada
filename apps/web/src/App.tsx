@@ -15,8 +15,8 @@ import { isKakaoInAppBrowser } from '@/lib/in-app-browser'
 
 // 초대 링크(/join/코드)로 왔는지, 소속이 없어 코드를 직접 입력했는지에 따라 돌아갈 곳이 다르다.
 type Invite = { code: string; from: 'link' | 'form' }
-// 참여나 만들기로 방금 연 학생회. 만든 학생회는 구성원 화면부터 연다.
-type Opened = { organizationId: string; view: 'events' | 'members' }
+// 참여나 만들기로 방금 연 학생회. 참여하면 내 업무, 만든 학생회는 구성원 화면부터 연다.
+type Opened = { organizationId: string; view: 'tasks' | 'members' }
 
 // 로그인 전후의 가운데 카드 화면. 와이어프레임 SIGN-IN·INV-00과 같은 틀이다.
 function AuthPage({ children }: { children: ReactNode }) {
@@ -52,7 +52,7 @@ export default function App() {
 
   function finishInvite(organizationId: string) {
     leaveInvite()
-    setOpened({ organizationId, view: 'events' })
+    setOpened({ organizationId, view: 'tasks' })
   }
 
   async function login() {
