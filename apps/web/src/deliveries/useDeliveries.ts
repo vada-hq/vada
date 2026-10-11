@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { DeliveryCarriersResponse, DeliveryLookupRequest, DeliveryLookupResponse, RegisterShipmentRequest, UnlinkShipmentRequest } from '@vada/contracts'
+import { completedEventMessage } from '../events/event-phase'
 
 class ApiError extends Error {
   constructor(readonly status: number, readonly code: string) { super(code) }
@@ -18,6 +19,8 @@ function explain(cause: unknown) {
   if (cause.status === 503) return '서버의 배송 조회 설정을 확인해 주세요.'
   if (cause.code === 'PURCHASE_NOT_APPROVED') return '승인된 품목만 등록할 수 있어요. 목록을 새로 불러와 주세요.'
   if (cause.code === 'IDEMPOTENCY_CONFLICT') return '입력이 바뀌었어요. 송장을 다시 조회한 뒤 등록해 주세요.'
+  // 품목의 행사가 완료됐다(M5a). 저장되지 않았으니 다시 시도하라고 하지 않는다.
+  if (cause.code === 'EVENT_COMPLETED') return completedEventMessage
   if (cause.status === 400) return '택배사와 송장번호를 확인해 주세요. 송장번호는 영문·숫자·하이픈만 쓸 수 있어요.'
   if (cause.status === 404) return '대상을 찾을 수 없어요. 목록을 새로 불러와 주세요.'
   return '처리 결과를 확인하지 못했어요. 목록을 새로 불러온 뒤 다시 시도해 주세요.'

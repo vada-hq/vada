@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import type { EventSummary } from '@vada/contracts'
@@ -81,4 +82,41 @@ test('남이 먼저 바꿨으면 이유를 보이고 행사 목록을 새로 받
   expect(await within(dialog).findByText('다른 곳에서 행사가 먼저 바뀌었어요. 행사 목록을 새로 불러왔어요.')).toBeTruthy()
   expect(onStale).toHaveBeenCalled()
   expect(onChanged).not.toHaveBeenCalled()
+})
+
+// 행사 목록을 다시 받는 것처럼 onStale이 행사를 새 값으로 바꾼다(Workspace와 같다).
+function Stateful({ initial, refreshed }: { initial: EventSummary; refreshed: EventSummary }) {
+  const [current, setCurrent] = useState(initial)
+  return <EventCompletionControl event={current} onChanged={setCurrent} onStale={() => setCurrent(refreshed)} />
+}
+
+test('다른 회장단이 먼저 완료했으면 대화상자가 완료 취소로 바뀌지 않고 이미 완료했다고 알린다', async () => {
+  const target = ended()
+  const api = mockApi()
+  api.on('GET', path, () => json({ settled: true, openTasks: 0 }))
+  api.on('POST', path, () => json({ error: 'VERSION_CONFLICT' }, 409))
+  render(<Stateful initial={target} refreshed={{ ...target, version: 2, completedAt: '2026-10-12T01:00:00.000Z' }} />)
+  const dialog = await openDialog('완료하기', '행사를 완료할까요?')
+  const confirm = within(dialog).getByRole('button', { name: '완료하기' }) as HTMLButtonElement
+  await vi.waitFor(() => expect(confirm.disabled).toBe(false))
+  fireEvent.click(confirm)
+  const current = await screen.findByRole('dialog', { name: '행사를 완료할까요?' })
+  expect(await within(current).findByText('다른 회장단이 이미 완료했어요.')).toBeTruthy()
+  expect(within(current).queryByRole('button', { name: '완료 취소' })).toBeNull()
+  expect(within(current).queryByRole('button', { name: '완료하기' })).toBeNull()
+  // 대화상자 위의 닫기(X)와 아래 [닫기] 둘이다.
+  expect(within(current).getAllByRole('button', { name: '닫기' }).length).toBeGreaterThan(0)
+})
+
+test('다른 회장단이 먼저 완료를 취소했으면 완료하기로 바뀌지 않고 이미 취소했다고 알린다', async () => {
+  const target = { ...ended(), version: 2, completedAt: '2026-10-12T01:00:00.000Z' }
+  const api = mockApi()
+  api.on('POST', `${path}/cancel`, () => json({ error: 'VERSION_CONFLICT' }, 409))
+  render(<Stateful initial={target} refreshed={{ ...target, version: 3, completedAt: null }} />)
+  const dialog = await openDialog('완료 취소', '완료를 취소할까요?')
+  fireEvent.click(within(dialog).getByRole('button', { name: '완료 취소' }))
+  const current = await screen.findByRole('dialog', { name: '완료를 취소할까요?' })
+  expect(await within(current).findByText('다른 회장단이 이미 완료를 취소했어요.')).toBeTruthy()
+  expect(within(current).queryByRole('button', { name: '완료하기' })).toBeNull()
+  expect(within(current).queryByRole('button', { name: '완료 취소' })).toBeNull()
 })
