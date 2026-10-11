@@ -1,5 +1,6 @@
 import type { BudgetChange, BudgetHistoryEntry, BudgetPlanResponse, SaveBudgetPlanRequest } from '@vada/contracts'
 import { won } from '../purchases/purchase-view'
+import { completedEventMessage } from '../events/event-phase'
 import { budgetInput, budgetText } from '../settlement/settlement-view'
 
 // 학기와 바로 뒤 방학을 한 기간으로 둔다. 3/1~8/31은 1학기, 9/1~다음 해 2월 말일은 2학기다.
@@ -138,6 +139,7 @@ export const budgetErrors: Record<string, string> = {
   PERIOD_NAME_TAKEN: '같은 이름의 회계 기간이 있어요.',
   EVENT_IN_OTHER_PERIOD: '다른 회계 기간에 넣은 행사예요. 그 기간에서 먼저 빼 주세요.',
   EVENT_SETTLED: '정산이 끝난 행사의 예산은 바꿀 수 없어요.',
+  EVENT_COMPLETED: completedEventMessage,
   LINE_IN_USE: '지출이나 수입이 고른 항목은 지울 수 없어요.',
   FEE_INCOME: '참가비 수입이 들어간 행사는 뺄 수 없어요. 행사 정산을 다시 연 뒤 빼 주세요.',
   EXPENSES_OUTSIDE_PERIOD: '운영 항목을 고른 지출이 기간 밖으로 나가요. 날짜를 확인해 주세요.',

@@ -20,13 +20,15 @@ type Props = {
   onEventChange: (event: EventSummary) => void
   // 남이 행사 정보를 먼저 바꿨으면 행사 목록을 다시 받는다.
   onEventStale?: () => void
+  // 완료한 행사(M5a)는 볼 수만 있다. 행사 정보·신청 설정·신청자 단추가 없다.
+  readOnly?: boolean
 }
 
 const periodText = (form: RegistrationFormView) =>
   `${form.opensAt ? `${formatKoreanTime(form.opensAt)} ` : ''}~ ${formatKoreanTime(form.closesAt)}`
 
 // 행사의 참가자 탭: 행사 일시·장소, 참가 신청 설정, 신청자 명단. 부서가 있는 구성원만 본다.
-export default function RegistrationPanel({ organizationId, event, state, onEventChange, onEventStale = () => {} }: Props) {
+export default function RegistrationPanel({ organizationId, event, state, onEventChange, onEventStale = () => {}, readOnly = false }: Props) {
   const [editingEvent, setEditingEvent] = useState(false)
   const [editingForm, setEditingForm] = useState(false)
   const [message, setMessage] = useState('')
@@ -63,7 +65,7 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
     <section aria-label="행사 정보" className={cn(cardClass, 'flex flex-col gap-2 p-4')}>
       <div className="flex items-center justify-between gap-2">
         <h3 className="text-sm font-semibold text-gray-900">행사 정보</h3>
-        <Button variant="outline" size="sm" aria-label="행사 정보 수정" onClick={() => setEditingEvent(true)}>수정</Button>
+        {!readOnly && <Button variant="outline" size="sm" aria-label="행사 정보 수정" onClick={() => setEditingEvent(true)}>수정</Button>}
       </div>
       {time ? <p className="text-sm text-gray-700">{time}</p> : <p className="text-sm text-gray-500">일시를 넣어 주세요.</p>}
       {event.place && <p className="text-sm wrap-anywhere text-gray-700">{event.place}</p>}
@@ -95,18 +97,20 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
         {form.memberFee !== null && roster === null && <Alert tone="warning">
           학생회비 명단이 없어 지금 신청하는 사람은 모두 미납자 참가비가 돼요. 재정 담당자에게 명단을 올려 달라고 해 주세요.</Alert>}
         <p className="text-xs text-gray-500">행사가 끝나고 30일 뒤({dayText(form.purgeAfter)}) 신청자 정보를 지워요.</p>
-        <div className="flex flex-wrap gap-2">
+        {!readOnly && <div className="flex flex-wrap gap-2">
           <Button variant="outline" size="sm" onClick={() => setEditingForm(true)}>설정 바꾸기</Button>
           <Button variant="outline" size="sm" disabled={toggling} onClick={() => void toggle(form)}>{form.accepting ? '신청 받기 멈추기' : '다시 받기'}</Button>
-        </div>
+        </div>}
       </> : <>
-        <p className="text-sm text-gray-500">아직 참가 신청을 받지 않아요. 신청 링크를 만들면 학생들이 로그인 없이 휴대폰으로 신청해요.</p>
-        <Button className="self-start" disabled={!event.startsAt} onClick={() => setEditingForm(true)}>참가 신청 받기</Button>
-        {!event.startsAt && <p className="text-xs text-gray-500">행사 일시를 먼저 넣어야 신청을 받을 수 있어요.</p>}
+        {readOnly ? <p className="text-sm text-gray-500">참가 신청을 받지 않은 행사예요.</p> : <>
+          <p className="text-sm text-gray-500">아직 참가 신청을 받지 않아요. 신청 링크를 만들면 학생들이 로그인 없이 휴대폰으로 신청해요.</p>
+          <Button className="self-start" disabled={!event.startsAt} onClick={() => setEditingForm(true)}>참가 신청 받기</Button>
+          {!event.startsAt && <p className="text-xs text-gray-500">행사 일시를 먼저 넣어야 신청을 받을 수 있어요.</p>}
+        </>}
       </>}
       {message && <StateMessage kind="error">{message}</StateMessage>}
     </section>
-    {form && <RegistrantList form={form} registrations={registrations} settled={settled} onCancel={state.cancel} onConfirmPayment={state.confirmPayment}
+    {form && <RegistrantList form={form} registrations={registrations} settled={settled} readOnly={readOnly} onCancel={state.cancel} onConfirmPayment={state.confirmPayment}
       onCancelPayment={state.cancelPayment} onSetDuesMember={state.setDuesMember} onCheckIn={state.checkIn} onCancelCheckIn={state.cancelCheckIn}
       onScan={state.scan} />}
     <EventInfoDialog open={editingEvent} organizationId={organizationId} event={event} onClose={() => setEditingEvent(false)}

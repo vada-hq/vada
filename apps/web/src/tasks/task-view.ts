@@ -1,4 +1,5 @@
 import { TASK_STATUS_LABELS, type EventSummary, type MyTasksResponse, type TaskHistoryEntry, type TaskStatus, type TaskSummary } from '@vada/contracts'
+import { completedEventMessage } from '../events/event-phase'
 
 export const statusLabels = TASK_STATUS_LABELS
 // 카드의 빠른 버튼. 완료한 업무에는 없다.
@@ -94,6 +95,7 @@ export const taskErrors: Record<string, string> = {
   FORBIDDEN: '권한이 없어요. 부서가 있는 구성원만 업무를 바꿀 수 있어요.',
   NOT_FOUND: '업무를 찾을 수 없어요. 새로 불러와 주세요.',
   VERSION_CONFLICT: '다른 곳에서 먼저 바뀌었어요. 새로 불러와 주세요.',
+  EVENT_COMPLETED: completedEventMessage,
   TASK_DEPARTMENT_INVALID: '담당 부서가 바뀌었어요. 다시 골라 주세요.',
   TASK_ASSIGNEE_INVALID: '담당자로 정할 수 없는 사람이에요. 부서가 있는 구성원을 골라 주세요.',
   TASKS_FULL: '이 행사의 업무가 너무 많아요. 끝난 업무를 지운 뒤 더해 주세요.',

@@ -17,13 +17,15 @@ type Props = {
   onOpenLink?: (link: CoupangLink) => void
   // 후보에서 고른 메시지. id가 바뀔 때마다 그 메시지를 찾아 강조한다.
   focus?: { id: number; messageId: string } | null
+  // 완료한 행사(M5a)는 볼 수만 있다.
+  readOnly?: boolean
 }
 export default function Chat(props: Props) {
   return <ChatPanel key={JSON.stringify([props.organizationId, props.eventId])} {...props} />
 }
 
 // 와이어프레임에 말풍선 디자인이 없어 같은 디자인 언어(아바타, 이름 600, 시간 회색 작은 글)로 목록형 메시지를 그린다.
-function ChatPanel({ organizationId, eventId, eventName, onOpenLink, focus }: Props) {
+function ChatPanel({ organizationId, eventId, eventName, onOpenLink, focus, readOnly = false }: Props) {
   const chat = useChat(organizationId, eventId)
   const inputId = useId()
   const length = codePoints(chat.draft.trim())
@@ -77,7 +79,8 @@ function ChatPanel({ organizationId, eventId, eventName, onOpenLink, focus }: Pr
         <Button variant="ghost" size="sm" className="self-start" disabled={chat.busy} onClick={chat.refresh}>대화 다시 불러오기</Button>
       </div>
     </div>
-    <form className="shrink-0 border-t px-4 py-3 sm:px-6" aria-label="메시지 보내기" onSubmit={event => { event.preventDefault(); chat.send() }}>
+    {readOnly ? <p className="shrink-0 border-t px-4 py-3 text-center text-sm text-gray-500 sm:px-6">완료한 행사라 대화를 보낼 수 없어요.</p>
+      : <form className="shrink-0 border-t px-4 py-3 sm:px-6" aria-label="메시지 보내기" onSubmit={event => { event.preventDefault(); chat.send() }}>
       <div className="mx-auto flex max-w-3xl flex-col gap-2">
         <Label htmlFor={inputId} className="sr-only">메시지</Label>
         <Textarea id={inputId} rows={3} className="max-h-40" placeholder="행사 준비 이야기를 나눠 주세요" value={chat.draft} disabled={chat.denied} onChange={event => chat.setDraft(event.target.value)} />
@@ -87,6 +90,6 @@ function ChatPanel({ organizationId, eventId, eventName, onOpenLink, focus }: Pr
         </div>
         {chat.sendError && <StateMessage kind="error">{chat.sendError}</StateMessage>}
       </div>
-    </form>
+    </form>}
   </section>
 }

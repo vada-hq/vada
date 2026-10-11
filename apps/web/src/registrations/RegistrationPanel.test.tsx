@@ -13,15 +13,15 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const base = '/api/organizations/o/events/e/registration'
 const timed = (overrides: Partial<EventSummary> = {}): EventSummary =>
   ({ ...eventFixture(), startsAt: '2026-08-20T10:00', endsAt: '2026-08-20T18:00', place: 'ERICA 체육관', ...overrides })
-function Harness({ event, onEventChange }: { event: EventSummary; onEventChange: (event: EventSummary) => void }) {
+function Harness({ event, onEventChange, readOnly }: { event: EventSummary; onEventChange: (event: EventSummary) => void; readOnly?: boolean }) {
   const state = useRegistration('o', 'e', true)
-  return <RegistrationPanel organizationId="o" event={event} state={state} onEventChange={onEventChange} />
+  return <RegistrationPanel organizationId="o" event={event} state={state} onEventChange={onEventChange} readOnly={readOnly} />
 }
-function setup(body: RegistrationResponse = registrationResponse(), event = timed()) {
+function setup(body: RegistrationResponse = registrationResponse(), event = timed(), readOnly = false) {
   const api = mockApi()
   api.on('GET', base, () => json(body))
   const onEventChange = vi.fn()
-  render(<Harness event={event} onEventChange={onEventChange} />)
+  render(<Harness event={event} onEventChange={onEventChange} readOnly={readOnly} />)
   return { api, onEventChange }
 }
 const region = (name: string) => screen.findByRole('region', { name })
@@ -392,4 +392,23 @@ test('참석 확인이 엇갈리면 알리고 다시 불러온다', async () => 
   fireEvent.click(within(list).getByRole('button', { name: '이수강 참석 확인' }))
   expect(await within(list).findByText('이미 참석을 확인한 신청이에요. 새로 불러왔어요.')).toBeTruthy()
   await waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
+})
+
+test('완료한 행사의 참가자 탭은 보기만 한다: 행사 정보·설정·신청자 단추가 없고 링크 복사는 된다', async () => {
+  setup(registrationResponse(), timed({ completedAt: '2026-10-12T01:00:00.000Z' }), true)
+  const registration = await region('참가 신청')
+  expect(within(registration).getByRole('button', { name: '링크 복사' })).toBeTruthy()
+  for (const name of ['설정 바꾸기', '신청 받기 멈추기', '다시 받기']) expect(within(registration).queryByRole('button', { name })).toBeNull()
+  expect(within(await region('행사 정보')).queryByRole('button', { name: '행사 정보 수정' })).toBeNull()
+  const registrants = await region('신청자')
+  expect(within(registrants).getByText('김바다')).toBeTruthy()
+  for (const name of ['QR로 참석 확인', '김바다 참석 확인', '김바다 관리', '김바다 입금 확인']) {
+    expect(within(registrants).queryByRole('button', { name })).toBeNull()
+  }
+})
+
+test('완료한 행사에 신청서가 없으면 만들 단추 없이 안내만 보인다', async () => {
+  setup(registrationResponse({ form: null, registrations: [] }), timed({ completedAt: '2026-10-12T01:00:00.000Z' }), true)
+  const registration = await region('참가 신청')
+  expect(within(registration).queryByRole('button', { name: '참가 신청 받기' })).toBeNull()
 })

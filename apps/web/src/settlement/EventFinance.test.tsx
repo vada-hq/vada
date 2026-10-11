@@ -10,14 +10,15 @@ import { useEventFinance } from './useEventFinance'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const base = '/api/organizations/o/events/e/finance'
-function Harness({ finance }: { finance: boolean }) {
+function Harness({ finance, readOnly }: { finance: boolean; readOnly?: boolean }) {
   const state = useEventFinance('o', 'e', true)
-  return <EventFinance organizationId="o" eventId="e" finance={finance} viewerMembershipId="mf" events={[event(), event('e2')]} state={state} />
+  return <EventFinance organizationId="o" eventId="e" finance={finance} viewerMembershipId="mf" events={[event(), event('e2')]} state={state}
+    readOnly={readOnly} />
 }
-function setup(body = financeResponse(), finance = true) {
+function setup(body = financeResponse(), finance = true, readOnly = false) {
   const api = mockApi()
   api.on('GET', base, () => json(body))
-  render(<Harness finance={finance} />)
+  render(<Harness finance={finance} readOnly={readOnly} />)
   return api
 }
 const numbers = () => screen.findByRole('region', { name: '행사 재정' })
@@ -279,4 +280,12 @@ test('참가비를 넣을 회계 기간 이름이 길면 줄을 바꾼다', asyn
   setup(financeResponse({ fees, period: { ...feePeriod, name: 'A'.repeat(30) } }))
   const checklist = await screen.findByRole('region', { name: '정산하려면' })
   expect(within(checklist).getByText(`참가비를 넣을 회계 기간: ${'A'.repeat(30)}`).className).toContain('wrap-anywhere')
+})
+
+test('완료한 행사는 정산 다시 열기 대신 완료 취소가 먼저라고 적고, 엑셀은 내려받는다', async () => {
+  setup(financeResponse({ settled: { by: { id: 'f', name: '재정 테스터' }, at: '2026-10-09T05:00:00.000Z' }, version: 2 }), true, true)
+  const status = await screen.findByRole('region', { name: '정산 상태' })
+  expect(within(status).queryByRole('button', { name: '정산 다시 열기' })).toBeNull()
+  expect(within(status).getByText('완료한 행사라 정산을 다시 열 수 없어요. 회장단이 완료를 먼저 취소해야 해요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '엑셀 내려받기' })).toBeTruthy()
 })

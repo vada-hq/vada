@@ -165,3 +165,21 @@ test('후보에서 고른 메시지가 이전 페이지에 있으면 더 불러�
     Reflect.deleteProperty(Element.prototype, 'scrollIntoView')
   }
 })
+
+test('완료한 행사는 대화 입력 대신 안내를 보인다', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(ok([msg('old')])))
+  render(<Chat {...props} readOnly />)
+  expect(await screen.findByText('old')).toBeTruthy()
+  expect(screen.queryByLabelText('메시지')).toBeNull()
+  expect(screen.getByText('완료한 행사라 대화를 보낼 수 없어요.')).toBeTruthy()
+})
+
+test('보내는 사이 행사가 완료되면 다시 보내라고 하지 않고 완료를 알린다', async () => {
+  vi.stubGlobal('fetch', vi.fn(async (_url: string, init?: RequestInit) => init?.method === 'POST'
+    ? { ok: false, status: 409, json: async () => ({ error: 'EVENT_COMPLETED' }) } : ok([])))
+  render(<Chat {...props} />)
+  await screen.findByText('아직 대화가 없어요.')
+  fireEvent.change(screen.getByLabelText('메시지'), { target: { value: '안녕' } })
+  fireEvent.click(screen.getByRole('button', { name: '전송' }))
+  expect(await screen.findByText('완료한 행사라 대화를 보낼 수 없어요.')).toBeTruthy()
+})

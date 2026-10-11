@@ -24,10 +24,12 @@ type Props = { event: EventSummary; finance: boolean; viewerMembershipId: string
   // 업무가 바뀌면 내 업무(옆 메뉴 수)를 새로 불러오게 알린다.
   onTasksChanged?: () => void
   // 예산 화면에서 행사 이름을 누르면 재정 탭으로, 내 업무에서 행사로 가면 업무 탭으로 연다.
-  initialTab?: 'chat' | 'tasks' | 'finance' }
+  initialTab?: 'chat' | 'tasks' | 'finance'
+  // 완료한 행사(M5a)는 볼 수만 있다. 탭마다 바꾸는 단추를 감추고, 서버도 막는다.
+  readOnly?: boolean }
 
 export default function EventWorkspace({ event, finance, viewerMembershipId, events, onLeaveRiskChange, manageEvents, onEventChange, onEventStale,
-  onTasksChanged = () => {}, initialTab }: Props) {
+  onTasksChanged = () => {}, initialTab, readOnly = false }: Props) {
   const order = (Object.keys(tabs) as Tab[]).filter(value => value !== 'registrations' || manageEvents)
   const [tab, setTab] = useState<Tab>(initialTab ?? 'chat')
   const [view, setView] = useState<PurchaseView>('candidates')
@@ -87,26 +89,27 @@ export default function EventWorkspace({ event, finance, viewerMembershipId, eve
         aria-selected={tab === value} aria-controls={`${prefix}-${value}-panel`} tabIndex={tab === value ? 0 : -1}
         onClick={() => select(value)} onKeyDown={navigate}>{tabs[value]}</TabButton>)}
     </div>
+    {readOnly && <p className="shrink-0 border-b bg-gray-50 px-4 py-2 text-xs text-gray-600 sm:px-6">완료한 행사라 볼 수만 있어요.</p>}
     {/* 탭은 숨기기만 하여 대화 입력·스크롤과 구매·재정 화면 상태를 보존한다. 행사 이동은 key로 격리한다. */}
     <div className="flex min-h-0 flex-1 flex-col bg-white" role="tabpanel" id={`${prefix}-chat-panel`} aria-labelledby={`${prefix}-chat-tab`} hidden={tab !== 'chat'}>
-      <Chat organizationId={event.organizationId} eventId={event.id} eventName={event.name} onOpenLink={openLink} focus={focus} />
+      <Chat organizationId={event.organizationId} eventId={event.id} eventName={event.name} onOpenLink={openLink} focus={focus} readOnly={readOnly} />
     </div>
     <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6" role="tabpanel" id={`${prefix}-tasks-panel`} aria-labelledby={`${prefix}-tasks-tab`} hidden={tab !== 'tasks'}>
       {tasksOpened && <div className="mx-auto max-w-5xl"><EventTasks organizationId={event.organizationId} event={event} manageEvents={manageEvents}
-        viewerMembershipId={viewerMembershipId} state={taskState} onChanged={onTasksChanged} /></div>}
+        viewerMembershipId={viewerMembershipId} state={taskState} onChanged={onTasksChanged} readOnly={readOnly} /></div>}
     </div>
     <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6" role="tabpanel" id={`${prefix}-purchases-panel`} aria-labelledby={`${prefix}-purchases-tab`} hidden={tab !== 'purchases'}>
       {opened && <div className="mx-auto max-w-3xl"><EventPurchases state={purchases} candidates={candidates} view={view}
-        onViewChange={setView} onShowMessage={showMessage} /></div>}
+        onViewChange={setView} onShowMessage={showMessage} readOnly={readOnly} /></div>}
     </div>
     {manageEvents && <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6" role="tabpanel" id={`${prefix}-registrations-panel`}
       aria-labelledby={`${prefix}-registrations-tab`} hidden={tab !== 'registrations'}>
       {registrationsOpened && <div className="mx-auto max-w-3xl"><RegistrationPanel organizationId={event.organizationId} event={event}
-        state={registrationState} onEventChange={onEventChange} onEventStale={onEventStale} /></div>}
+        state={registrationState} onEventChange={onEventChange} onEventStale={onEventStale} readOnly={readOnly} /></div>}
     </div>}
     <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6" role="tabpanel" id={`${prefix}-finance-panel`} aria-labelledby={`${prefix}-finance-tab`} hidden={tab !== 'finance'}>
       {financeOpened && <div className="mx-auto max-w-3xl"><EventFinance organizationId={event.organizationId} eventId={event.id} finance={finance}
-        viewerMembershipId={viewerMembershipId} events={events} state={financeState} /></div>}
+        viewerMembershipId={viewerMembershipId} events={events} state={financeState} readOnly={readOnly} /></div>}
     </div>
     <ProductPanel link={link} candidates={candidates} onClose={() => setLink(null)} />
   </>

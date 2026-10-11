@@ -21,11 +21,13 @@ import EventFees from './EventFees'
 import { budgetText, defaultFeeIncomeLine, financeHistoryText, readyToSettle, remainingText, requirements, settledDay } from './settlement-view'
 import type { EventFinanceState, FinanceResult } from './useEventFinance'
 
-type Props = { organizationId: string; eventId: string; finance: boolean; viewerMembershipId: string; events: EventSummary[]; state: EventFinanceState }
+type Props = { organizationId: string; eventId: string; finance: boolean; viewerMembershipId: string; events: EventSummary[]; state: EventFinanceState
+  // 완료한 행사(M5a)는 정산을 다시 열지 않는다. 완료한 행사는 정산돼 있어 예산·지출 기록 단추는 이미 없다.
+  readOnly?: boolean }
 
 // 행사 재정 탭. 구성원 누구나 숫자·정산 조건·지출·처리 기록을 보고 엑셀을 내려받는다.
 // 재정 권한자는 예산을 정하고, 지출을 기록하고, 정산을 닫거나 다시 연다.
-export default function EventFinance({ organizationId, eventId, finance, viewerMembershipId, events, state }: Props) {
+export default function EventFinance({ organizationId, eventId, finance, viewerMembershipId, events, state, readOnly = false }: Props) {
   const [opened, setOpened] = useState<string | null>(null)
   const [form, setForm] = useState<{ expense: ExpenseDetail | null } | null>(null)
   const [budgetOpen, setBudgetOpen] = useState(false)
@@ -80,7 +82,9 @@ export default function EventFinance({ organizationId, eventId, finance, viewerM
       </div>
       {/* 마감한 회계 기간의 행사는 정산을 다시 열 수 없다. 서버도 막는다. */}
       {finance && summary.periodClosed && <p className="text-xs text-gray-500">마감한 회계 기간의 행사라 정산을 다시 열 수 없어요.</p>}
-      {finance && !summary.periodClosed && (reopenReason === null
+      {finance && !summary.periodClosed && readOnly
+        && <p className="text-xs text-gray-500">완료한 행사라 정산을 다시 열 수 없어요. 회장단이 완료를 먼저 취소해야 해요.</p>}
+      {finance && !summary.periodClosed && !readOnly && (reopenReason === null
         ? <Button variant="outline" size="sm" className="self-start" disabled={busy} onClick={() => setReopenReason('')}>정산 다시 열기</Button>
         : <div className="flex flex-col gap-2">
           <Label className="flex flex-col gap-1.5">다시 여는 사유

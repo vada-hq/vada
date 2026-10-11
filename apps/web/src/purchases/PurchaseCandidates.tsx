@@ -15,10 +15,12 @@ type Props = {
   generating: boolean
   onAdd: (ids: string[]) => Promise<PurchaseResult>
   onShowMessage: (messageId: string) => void
+  // 완료한 행사(M5a)는 볼 수만 있다. 고르기·숨기기·담기가 없다.
+  readOnly?: boolean
 }
 
 // 행사 대화에 올라온 쿠팡 링크. 고르기는 사람마다 따로고, 숨김·요청됨은 모두에게 보인다(2026-10-04 결정).
-export default function PurchaseCandidates({ candidates: state, generating, onAdd, onShowMessage }: Props) {
+export default function PurchaseCandidates({ candidates: state, generating, onAdd, onShowMessage, readOnly = false }: Props) {
   const [selected, setSelected] = useState<string[]>([])
   const [message, setMessage] = useState('')
   const [undo, setUndo] = useState<PurchaseCandidate | null>(null)
@@ -57,19 +59,19 @@ export default function PurchaseCandidates({ candidates: state, generating, onAd
     {all.length === 0 && <Card><EmptyState icon={Link2} title="아직 올라온 쿠팡 링크가 없어요" description="대화에 쿠팡 상품 링크를 올리면 여기에 모여요." /></Card>}
     {visible.length > 0 && <>
       <ul className="flex flex-col gap-2" aria-label="후보 목록">{visible.map(candidate => <CandidateCard key={candidate.id} candidate={candidate}
-        onShowMessage={onShowMessage} selection={{ checked: chosen.includes(candidate.id), disabled: generating,
+        onShowMessage={onShowMessage} selection={readOnly ? undefined : { checked: chosen.includes(candidate.id), disabled: generating,
           onChange: checked => setSelected(previous => checked ? [...previous, candidate.id] : previous.filter(id => id !== candidate.id)) }}>
-        <Button variant="ghost" size="sm" disabled={state.busy || generating} onClick={() => void setHidden(candidate, true)}>숨기기</Button>
+        {!readOnly && <Button variant="ghost" size="sm" disabled={state.busy || generating} onClick={() => void setHidden(candidate, true)}>숨기기</Button>}
       </CandidateCard>)}</ul>
-      <div className="flex flex-col gap-2">
+      {!readOnly && <div className="flex flex-col gap-2">
         <Button className="self-start" disabled={generating || !valid} onClick={() => void add()}>선택한 {chosen.length}개 담기</Button>
         {generating && <StateMessage kind="loading">담는 중… 최대 약 75초 걸릴 수 있어요. 끝날 때까지 기다려 주세요.</StateMessage>}
-      </div>
+      </div>}
     </>}
     {hidden.length > 0 && <section aria-label="숨긴 후보" className="flex flex-col gap-2">
       <Button variant="ghost" size="sm" className="self-start" aria-expanded={showHidden} onClick={() => setShowHidden(value => !value)}>숨긴 후보 {hidden.length}</Button>
       {showHidden && <ul className="flex flex-col gap-2">{hidden.map(candidate => <CandidateCard key={candidate.id} candidate={candidate} onShowMessage={onShowMessage}>
-        <Button variant="outline" size="sm" disabled={state.busy} onClick={() => void setHidden(candidate, false)}>다시 보이기</Button>
+        {!readOnly && <Button variant="outline" size="sm" disabled={state.busy} onClick={() => void setHidden(candidate, false)}>다시 보이기</Button>}
       </CandidateCard>)}</ul>}
     </section>}
   </div>

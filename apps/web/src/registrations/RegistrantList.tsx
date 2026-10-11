@@ -14,8 +14,8 @@ import RegistrantDialog, { type RegistrantActions } from './RegistrantDialog'
 import { countText, filterRegistrants, findRegistrants, hasFees, paymentChip, type RegistrantFilter } from './registration-view'
 import type { ScanResult } from './useRegistration'
 
-// settled: 행사 정산이 끝났으면 입금 확인 버튼을 감추고 이유를 적는다.
-type Props = RegistrantActions & { form: RegistrationFormView; registrations: RegistrationEntry[]; settled: boolean
+// settled: 행사 정산이 끝났으면 입금 확인 버튼을 감추고 이유를 적는다. readOnly: 완료한 행사(M5a)는 명단을 보기만 한다.
+type Props = RegistrantActions & { form: RegistrationFormView; registrations: RegistrationEntry[]; settled: boolean; readOnly?: boolean
   onScan: (code: string) => Promise<ScanResult> }
 type FilterOption = { value: RegistrantFilter; label: string }
 const paymentFilters: FilterOption[] = [{ value: 'unpaid', label: '입금 전' }, { value: 'paid', label: '입금 확인' }]
@@ -25,7 +25,7 @@ const attendanceFilters: FilterOption[] = [{ value: 'checkedIn', label: '참석'
 // 참석은 칩과 거르기를 늘 두고, 참석 전인 줄에서 바로 확인한다(QR을 못 꺼내는 사람을 이름으로 찾아 확인).
 // 나머지 일(확인 취소·참가비 바꾸기·신청 취소)은 관리 대화상자에서 한다.
 // 명단 내려받기는 두지 않는다(파일은 앱이 지울 수 없다).
-export default function RegistrantList({ form, registrations, settled, onConfirmPayment, onCheckIn, onScan, ...actions }: Props) {
+export default function RegistrantList({ form, registrations, settled, readOnly = false, onConfirmPayment, onCheckIn, onScan, ...actions }: Props) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<RegistrantFilter>('all')
   const [managing, setManaging] = useState<string | null>(null)
@@ -53,7 +53,7 @@ export default function RegistrantList({ form, registrations, settled, onConfirm
   return <section aria-label="신청자" className={cn(cardClass, 'flex flex-col gap-3 p-4')}>
     <div className="flex flex-wrap items-center justify-between gap-2">
       <h3 className="text-sm font-semibold text-gray-900">신청자 <span className="font-normal text-gray-500">{countText(form.count, form.capacity)}</span></h3>
-      {!form.purged && registrations.length > 0 && <Button size="sm" onClick={() => setScanning(true)}><ScanLine aria-hidden />QR로 참석 확인</Button>}
+      {!readOnly && !form.purged && registrations.length > 0 && <Button size="sm" onClick={() => setScanning(true)}><ScanLine aria-hidden />QR로 참석 확인</Button>}
     </div>
     {form.purged ? <StateMessage kind="notice">보관 기간이 지나 신청자 정보를 지웠어요(신청 {form.count}명 · 참석 {form.checkedIn}명).</StateMessage>
       : registrations.length === 0 ? <StateMessage kind="empty">아직 신청한 사람이 없어요.</StateMessage>
@@ -79,14 +79,14 @@ export default function RegistrantList({ form, registrations, settled, onConfirm
                 {fees && <Badge tone={chip.tone}>{chip.text}</Badge>}
                 {fees && item.duesMember && <Badge tone="info">학생회비 납부</Badge>}
                 {item.checkedIn && <Badge tone="success">참석</Badge>}
-                <div className="ml-auto flex gap-1">
+                {!readOnly && <div className="ml-auto flex gap-1">
                   {item.checkedIn === null && <Button variant="outline" size="sm" aria-label={`${item.name} 참석 확인`} disabled={pending !== null}
                     onClick={() => void run(item, 'checkIn')}>{pending?.id === item.id && pending.action === 'checkIn' ? '확인하는 중…' : '참석'}</Button>}
                   {fees && !settled && item.paid === null && item.fee > 0 && <Button size="sm" aria-label={`${item.name} 입금 확인`}
                     disabled={pending !== null} onClick={() => void run(item, 'payment')}>
                     {pending?.id === item.id && pending.action === 'payment' ? '확인하는 중…' : '입금 확인'}</Button>}
                   <Button variant="ghost" size="sm" aria-label={`${item.name} 관리`} onClick={() => setManaging(item.id)}>관리</Button>
-                </div>
+                </div>}
               </div>
             </li>
           })}

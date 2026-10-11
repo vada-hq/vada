@@ -1,5 +1,6 @@
 import type { EventFinance, EventFinanceHistoryEntry } from '@vada/contracts'
 import { won } from '../purchases/purchase-view'
+import { completedEventMessage } from '../events/event-phase'
 
 export const budgetText = (budget: number | null) => budget === null ? '미정' : won(budget)
 // 예산 칸의 글. 쉼표·공백·"원"은 지우고, 비우면 미정(null)이다. 숫자가 아닌 글자가 남으면 NaN이라 같은 스키마가 저장 버튼을 끈다.
@@ -54,6 +55,7 @@ export const settlementErrors: Record<string, string> = {
   INVALID_STATE: '지금 상태에서는 할 수 없어요. 새로 불러왔어요.',
   NOT_READY_TO_SETTLE: '아직 정산할 수 없어요. 남은 항목을 확인해 주세요.',
   EVENT_SETTLED: '정산이 끝난 행사라 바꿀 수 없어요.',
+  EVENT_COMPLETED: completedEventMessage,
   PERIOD_CLOSED: '마감한 회계 기간의 행사라 정산을 다시 열 수 없어요.',
   EXPORT_TOO_LARGE: '지출이 너무 많아 엑셀로 만들 수 없어요.',
   BUDGET_LINE_INVALID: '참가비 수입 항목을 다시 골라 주세요.',

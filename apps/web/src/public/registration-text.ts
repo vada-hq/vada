@@ -1,4 +1,5 @@
 import type { RegistrationState } from '@vada/contracts'
+import { completedEventMessage } from '../events/event-phase'
 
 // 참가 신청 화면(공개·운영진)이 같이 쓰는 표시용 문구. API를 부르지 않는다.
 const weekdays = ['일', '월', '화', '수', '목', '금', '토']
@@ -60,6 +61,7 @@ const messages: Record<string, string> = {
   FEE_ACCOUNT_REQUIRED: '학생회 계좌가 없어 참가비를 받을 수 없어요. 재정 담당자에게 계좌를 넣어 달라고 해 주세요.',
   DUES_ROSTER_REQUIRED: '쓸 수 있는 학생회비 명단이 없어요. 재정 담당자에게 명단을 올려 달라고 해 주세요.',
   EVENT_SETTLED: '정산이 끝난 행사라 참가비와 입금을 바꿀 수 없어요.',
+  EVENT_COMPLETED: completedEventMessage,
   NO_FEE: '낼 참가비가 없는 신청이에요.',
   PAYMENT_CONFIRMED: '입금을 확인한 신청이라 바꿀 수 없어요. 먼저 입금 확인을 취소해 주세요.',
   PAYMENT_NOT_CONFIRMED: '입금 확인이 이미 취소됐어요. 새로 불러왔어요.',

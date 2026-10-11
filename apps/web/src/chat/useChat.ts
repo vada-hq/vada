@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { CreateMessageSchema, type CreateMessageRequest, type MessageResponse, type MessageSummary, type MessagesResponse } from '@vada/contracts'
 
 class RequestError extends Error {
-  constructor(readonly status: number) { super('Chat request failed') }
+  constructor(readonly status: number, readonly code: unknown = null) { super('Chat request failed') }
 }
 
 export function useChat(organizationId: string, eventId: string) {
@@ -123,7 +123,7 @@ export function useChat(organizationId: string, eventId: string) {
         const body: CreateMessageRequest = parsed.data
         const response = await fetch(url, { method: 'POST', credentials: 'same-origin', signal,
           headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
-        if (!response.ok) throw new RequestError(response.status)
+        if (!response.ok) throw new RequestError(response.status, (await response.json().catch(() => null) as { error?: unknown } | null)?.error)
         const result = await response.json() as MessageResponse
         if (!result.message?.id) throw new Error('Invalid response')
         if (signal.aborted) return
@@ -131,6 +131,8 @@ export function useChat(organizationId: string, eventId: string) {
       } catch (error) {
         if (signal.aborted) return
         if (error instanceof RequestError && [401, 403, 404].includes(error.status)) { fail(error); return }
+        // 행사가 완료됐다(M5a). 저장되지 않았으니 다시 보내라고 하지 않는다.
+        if (error instanceof RequestError && error.code === 'EVENT_COMPLETED') { setSendError('완료한 행사라 대화를 보낼 수 없어요.'); return }
         // 응답이 유실돼도 저장됐을 수 있으므로 자동 재전송하지 않는다.
         setSendError('전송 결과를 확인하지 못했어요. 다시 보내기 전에 대화를 다시 불러와 확인해 주세요.')
         return

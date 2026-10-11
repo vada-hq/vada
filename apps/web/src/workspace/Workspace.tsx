@@ -180,7 +180,8 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
             events={events.events ?? []} state={expenses} />
           : current ? <EventWorkspace key={current.id} event={current} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} onLeaveRiskChange={setLeaveRisk} manageEvents={membership.permissions.manageEvents}
-            onEventChange={events.replace} onEventStale={events.refresh} onTasksChanged={myTasks.refresh} initialTab={eventTab} />
+            onEventChange={events.replace} onEventStale={events.refresh} onTasksChanged={myTasks.refresh} initialTab={eventTab}
+            readOnly={Boolean(current.completedAt)} />
           : <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><Card>
             <EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." />
           </Card></div>}

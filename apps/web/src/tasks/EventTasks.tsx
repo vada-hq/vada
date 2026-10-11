@@ -24,13 +24,17 @@ type Props = {
   state: State
   // 업무가 바뀌면 내 업무(옆 메뉴 수)를 새로 불러오게 알린다.
   onChanged: () => void
+  // 완료한 행사(M5a)는 볼 수만 있다.
+  readOnly?: boolean
 }
 const filters: TaskFilter[] = ['overdue', 'unassigned', 'mine']
 const columns: TaskStatus[] = ['todo', 'doing', 'done']
 const views = [{ value: 'board', label: '보드' }, { value: 'schedule', label: '일정' }] as const
 
 // 행사 업무 탭. 위에 요약과 거르기, 아래에 보드(상태별) 또는 일정(날짜순).
-export default function EventTasks({ organizationId, event, manageEvents, viewerMembershipId, state, onChanged }: Props) {
+export default function EventTasks({ organizationId, event, manageEvents, viewerMembershipId, state, onChanged, readOnly = false }: Props) {
+  // 추가·상태·수정·지우기 단추를 보이는지. 부서가 있는 구성원이고 완료하지 않은 행사여야 한다.
+  const editable = manageEvents && !readOnly
   const [view, setView] = useState<'board' | 'schedule'>('board')
   const [filter, setFilter] = useState<TaskFilter | null>(null)
   const [opened, setOpened] = useState<string | null>(null)
@@ -84,7 +88,7 @@ export default function EventTasks({ organizationId, event, manageEvents, viewer
       {done && items.length > 0 && <Button variant="ghost" size="sm" className="lg:hidden" aria-expanded={showDone}
         onClick={() => setShowDone(value => !value)}>{showDone ? '접기' : `완료 ${items.length}개 보기`}</Button>}
       <div className={cn('flex flex-col gap-2', done && !showDone && 'hidden lg:flex')}>
-        {items.map(task => <TaskCard key={task.id} task={task} today={today} manageEvents={manageEvents} busy={busyId === task.id}
+        {items.map(task => <TaskCard key={task.id} task={task} today={today} manageEvents={editable} busy={busyId === task.id}
           onOpen={() => setOpened(task.id)} onAdvance={() => void advance(task)} />)}
       </div>
     </section>
@@ -110,7 +114,7 @@ export default function EventTasks({ organizationId, event, manageEvents, viewer
         {views.map(option => <Button key={option.value} variant="outline" size="sm" className={pressed} aria-pressed={view === option.value}
           onClick={() => setView(option.value)}>{option.label}</Button>)}
       </div>
-      {manageEvents && <Button size="sm" className="ml-auto" onClick={() => edit('new')}><Plus />업무 추가</Button>}
+      {editable && <Button size="sm" className="ml-auto" onClick={() => edit('new')}><Plus />업무 추가</Button>}
     </div>
     {message && <StateMessage kind="error">{message}</StateMessage>}
     {view === 'schedule'
@@ -119,10 +123,11 @@ export default function EventTasks({ organizationId, event, manageEvents, viewer
         : scheduleOf(visible, { name: event.name, startsAt: null, endsAt: null }, null)} today={today} expandPast={filter !== null}
         onOpen={task => setOpened(task.id)} />
       : tasks.length === 0 ? <Card><EmptyState icon={ListChecks} title="아직 업무가 없어요"
-        description={manageEvents ? '업무를 추가해 담당 부서와 담당자, 마감일을 정해 주세요.' : '부서가 있는 구성원이 업무를 추가해요.'} /></Card>
+        description={readOnly ? '완료한 행사라 업무를 더할 수 없어요.' : manageEvents ? '업무를 추가해 담당 부서와 담당자, 마감일을 정해 주세요.'
+          : '부서가 있는 구성원이 업무를 추가해요.'} /></Card>
       // 옆 메뉴(210px)가 보이는 768px에서는 카드가 너무 좁아, 세 열은 1024px부터다.
       : <div className="grid gap-3 lg:grid-cols-3">{columns.map(column)}</div>}
-    <TaskDetailDialog organizationId={organizationId} target={opened ? { eventId: event.id, taskId: opened } : null} manageEvents={manageEvents}
+    <TaskDetailDialog organizationId={organizationId} target={opened ? { eventId: event.id, taskId: opened } : null} manageEvents={editable}
       onClose={() => setOpened(null)} onChanged={task => { state.replace(task); onChanged() }}
       onDeleted={list => { state.setList(list); setOpened(null); onChanged() }}
       onEdit={task => { setOpened(null); edit(task) }} />

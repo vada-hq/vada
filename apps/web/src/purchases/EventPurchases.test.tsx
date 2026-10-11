@@ -13,17 +13,17 @@ import { useEventPurchases } from './useEventPurchases'
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 const base = '/api/organizations/o/events/e/purchase-items'
 const candidatesBase = '/api/organizations/o/events/e/purchase-candidates'
-function Harness({ initialView = 'mine' }: { initialView?: PurchaseView }) {
+function Harness({ initialView = 'mine', readOnly }: { initialView?: PurchaseView; readOnly?: boolean }) {
   const state = useEventPurchases('o', 'e', true)
   const candidates = useCandidates('o', 'e', true, false)
   const [view, setView] = useState<PurchaseView>(initialView)
-  return <EventPurchases state={state} candidates={candidates} view={view} onViewChange={setView} onShowMessage={() => {}} />
+  return <EventPurchases state={state} candidates={candidates} view={view} onViewChange={setView} onShowMessage={() => {}} readOnly={readOnly} />
 }
-function setup(items: PurchaseItemSummary[], initialView: PurchaseView = 'mine', candidates = [candidate()]) {
+function setup(items: PurchaseItemSummary[], initialView: PurchaseView = 'mine', candidates = [candidate()], readOnly = false) {
   const api = mockApi()
   api.on('GET', base, () => json({ items, truncated: false }))
   api.on('GET', candidatesBase, () => json({ candidates, truncated: false }))
-  render(<Harness initialView={initialView} />)
+  render(<Harness initialView={initialView} readOnly={readOnly} />)
   return api
 }
 const lastBody = (api: ReturnType<typeof mockApi>) => api.calls.at(-1)?.body
@@ -191,4 +191,18 @@ test('담은 품목이 없으면 후보에서 골라 담으라고 안내한다',
   expect(await screen.findByText('아직 담은 품목이 없어요')).toBeTruthy()
   expect(screen.getByText('후보에서 골라 담아 보세요.')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '끼룩이로 담기' })).toBeNull()
+})
+
+test('완료한 행사의 구매는 보기만 한다: 고르기·제출·품목 단추가 없다', async () => {
+  setup([
+    item({ id: 'd1', productName: '유성매직' }),
+    item({ id: 'p1', productName: '박스테이프', status: 'pending', submissionId: 's1' }),
+    item({ id: 'x1', productName: '이름표', status: 'rejected', submissionId: 's1', decisionReason: '규격 확인 필요' }),
+    item({ id: 'a1', productName: '생수', status: 'approved', submissionId: 's2', purchasedAt: '2026-10-08T06:00:00Z' }),
+  ], 'mine', [candidate()], true)
+  expect(within(await screen.findByRole('region', { name: '작성 중' })).getByText('유성매직')).toBeTruthy()
+  expect(screen.queryAllByRole('checkbox')).toEqual([])
+  for (const name of ['수정', '지우기', '요청 취소', '다시 담기', '받았어요', '날짜', /제출/, '받을 날짜 바꾸기']) {
+    expect(screen.queryByRole('button', { name })).toBeNull()
+  }
 })

@@ -27,10 +27,12 @@ type Props = {
   onViewChange: (view: PurchaseView) => void
   // 후보의 공유 표시를 누르면 대화의 그 메시지로 간다.
   onShowMessage: (messageId: string) => void
+  // 완료한 행사(M5a)는 볼 수만 있다. 담기·제출·품목 단추가 없다.
+  readOnly?: boolean
 }
 
 // 행사의 구매 탭. 후보에서 골라 담고, 내 품목은 작성 중·진행 중·끝남으로, 행사 전체는 제출된 품목을 진행 중·끝남으로 나눈다.
-export default function EventPurchases({ state, candidates, view, onViewChange, onShowMessage }: Props) {
+export default function EventPurchases({ state, candidates, view, onViewChange, onShowMessage, readOnly = false }: Props) {
   const [message, setMessage] = useState('')
   const [notice, setNotice] = useState('')
   const [priceChanges, setPriceChanges] = useState<PriceChange[]>([])
@@ -56,7 +58,7 @@ export default function EventPurchases({ state, candidates, view, onViewChange, 
       onClick={() => onViewChange(option.value)}>{option.label}</Button>)}
   </div>
   if (view === 'candidates') return <div className="flex flex-col gap-4">{switcher}
-    <PurchaseCandidates candidates={candidates} generating={state.generating} onAdd={add} onShowMessage={onShowMessage} /></div>
+    <PurchaseCandidates candidates={candidates} generating={state.generating} onAdd={add} onShowMessage={onShowMessage} readOnly={readOnly} /></div>
   if (!state.items) return <div className="flex flex-col gap-4">{switcher}{state.loadError
     ? <Card className="flex flex-col gap-3 p-6"><StateMessage kind="error">구매 품목을 불러오지 못했어요.</StateMessage>
       <Button variant="outline" className="self-start" onClick={state.refresh}>다시 시도</Button></Card>
@@ -101,6 +103,7 @@ export default function EventPurchases({ state, candidates, view, onViewChange, 
   }
 
   const actionsOf = (item: PurchaseItemSummary): ReactNode => {
+    if (readOnly) return null
     const disabled = state.busy
     if (item.status === 'draft') return <>
       <Button variant="ghost" size="sm" disabled={disabled} onClick={() => openDialog(() => setRemoving(item))}>지우기</Button>
@@ -119,7 +122,7 @@ export default function EventPurchases({ state, candidates, view, onViewChange, 
     </>
   }
   const card = (item: PurchaseItemSummary, showRequester: boolean) => <PurchaseItemCard key={item.id} item={item} showRequester={showRequester}
-    onOpen={() => setOpened(item.id)} selection={item.status === 'draft' && item.mine
+    onOpen={() => setOpened(item.id)} selection={!readOnly && item.status === 'draft' && item.mine
       ? { checked: state.selected.includes(item.id), disabled: state.busy, onChange: checked => choose(item, checked) } : undefined}>
     {actionsOf(item)}
   </PurchaseItemCard>
@@ -156,7 +159,7 @@ export default function EventPurchases({ state, candidates, view, onViewChange, 
     {message && <StateMessage kind="error">{message}</StateMessage>}
     {state.truncated && <StateMessage kind="notice">최근 300개만 보여요.</StateMessage>}
     {view === 'mine' ? <>
-      {section('작성 중', drafts, false, draftTools)}
+      {section('작성 중', drafts, false, readOnly ? undefined : draftTools)}
       {section('진행 중', mine.filter(item => sectionOf(item) === 'active'), false)}
       {section('끝남', mine.filter(item => sectionOf(item) === 'ended'), false)}
       {mine.length === 0 && <Card><EmptyState icon={ShoppingCart} title="아직 담은 품목이 없어요" description="후보에서 골라 담아 보세요." /></Card>}

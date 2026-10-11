@@ -10,10 +10,10 @@ import type { PurchaseResult } from './useEventPurchases'
 
 afterEach(() => { cleanup(); vi.useRealTimers(); vi.unstubAllGlobals() })
 const base = '/api/organizations/o/events/e/purchase-candidates'
-type HarnessProps = { onAdd?: (ids: string[]) => Promise<PurchaseResult>; onShowMessage?: (messageId: string) => void; live?: boolean }
-function Harness({ onAdd = async () => ({ ok: true, items: [] }), onShowMessage = () => {}, live = false }: HarnessProps) {
+type HarnessProps = { onAdd?: (ids: string[]) => Promise<PurchaseResult>; onShowMessage?: (messageId: string) => void; live?: boolean; readOnly?: boolean }
+function Harness({ onAdd = async () => ({ ok: true, items: [] }), onShowMessage = () => {}, live = false, readOnly }: HarnessProps) {
   const state = useCandidates('o', 'e', true, live)
-  return <PurchaseCandidates candidates={state} generating={false} onAdd={onAdd} onShowMessage={onShowMessage} />
+  return <PurchaseCandidates candidates={state} generating={false} onAdd={onAdd} onShowMessage={onShowMessage} readOnly={readOnly} />
 }
 function setup(candidates: PurchaseCandidate[], props: HarnessProps = {}) {
   const api = mockApi()
@@ -131,4 +131,14 @@ test('보는 동안만 5초마다 다시 불러오고, 늦은 응답은 끊지 �
   } finally {
     Reflect.deleteProperty(document, 'visibilityState')
   }
+})
+
+test('완료한 행사의 후보는 보기만 한다: 고르기·숨기기·담기가 없다', async () => {
+  setup([candidate({ id: 'c1' }), candidate({ id: 'c2', hidden: { by: { id: 'u', name: '기획 테스터' }, at: '2026-10-09T05:12:00.000Z' } })], { readOnly: true })
+  expect(await screen.findByRole('list', { name: '후보 목록' })).toBeTruthy()
+  expect(screen.queryAllByRole('checkbox')).toEqual([])
+  expect(screen.queryByRole('button', { name: '숨기기' })).toBeNull()
+  expect(screen.queryByRole('button', { name: /담기/ })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '숨긴 후보 1' }))
+  expect(screen.queryByRole('button', { name: '다시 보이기' })).toBeNull()
 })

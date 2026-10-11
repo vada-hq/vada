@@ -18,14 +18,15 @@ const list: EventTasksResponse = { registrationClosesAt: '2026-10-18T23:59', tas
   taskSummary({ id: 't3', title: '참가자 명단 확정', assignee: null, department: null, dueOn: null }),
   taskSummary({ id: 't4', title: '포스터', status: 'done', completedAt: '2026-10-03T00:00:00Z', dueOn: '2026-10-03' })] }
 const onChanged = vi.fn()
-function Harness({ manageEvents }: { manageEvents: boolean }) {
+function Harness({ manageEvents, readOnly }: { manageEvents: boolean; readOnly?: boolean }) {
   const state = useEventTasks('o1', 'e1', true)
-  return <EventTasks organizationId="o1" event={event} manageEvents={manageEvents} viewerMembershipId="m1" state={state} onChanged={onChanged} />
+  return <EventTasks organizationId="o1" event={event} manageEvents={manageEvents} viewerMembershipId="m1" state={state} onChanged={onChanged}
+    readOnly={readOnly} />
 }
-function setup(manageEvents = true) {
+function setup(manageEvents = true, readOnly = false) {
   const api = mockApi()
   api.on('GET', path, () => json(list))
-  render(<Harness manageEvents={manageEvents} />)
+  render(<Harness manageEvents={manageEvents} readOnly={readOnly} />)
   return api
 }
 const titles = (scope: HTMLElement) => within(scope).queryAllByRole('heading', { level: 3 }).map(item => item.textContent)
@@ -110,4 +111,21 @@ test('일정 보기에서 거르면 지난 날짜의 업무도 펼쳐 보인다'
   fireEvent.click(await screen.findByRole('button', { name: '일정' }))
   fireEvent.click(screen.getByRole('button', { name: '지연 1' }))
   expect(within(screen.getByRole('region', { name: '지난 일정' })).getByRole('button', { name: '대관 신청' })).toBeTruthy()
+})
+
+test('완료한 행사는 업무를 보기만 한다: 추가·카드 단추가 없다', async () => {
+  setup(true, true)
+  const todo = await screen.findByRole('region', { name: '예정' })
+  expect(titles(todo)).toEqual(['대관 신청', '참가자 명단 확정'])
+  expect(screen.queryByRole('button', { name: '업무 추가' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '시작' })).toBeNull()
+  expect(screen.queryByRole('button', { name: '완료' })).toBeNull()
+})
+
+test('그사이 행사가 완료됐으면 상태 바꾸기가 완료를 알린다', async () => {
+  const api = setup()
+  api.on('POST', `${path}/t1/status`, () => json({ error: 'EVENT_COMPLETED' }, 409))
+  const todo = await screen.findByRole('region', { name: '예정' })
+  fireEvent.click(within(todo).getAllByRole('button', { name: '시작' })[0]!)
+  expect(await screen.findByText('완료한 행사라 바꿀 수 없어요. 바꾸려면 회장단이 완료를 취소해야 해요.')).toBeTruthy()
 })
