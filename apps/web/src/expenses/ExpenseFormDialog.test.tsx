@@ -16,7 +16,7 @@ const members = { viewer: membership(true), departments: [], members: [{ id: 'mf
 function setup(initial: ExpenseDetail | null = null,
   onSubmit = vi.fn(async (_input: CreateExpenseRequest): Promise<ExpenseResult> => ({ ok: true, expense: expense() })),
   periods = [budgetPeriod(), budgetPeriod({ id: 'p2', name: '2027년 1학기', startsOn: '2027-03-01', endsOn: '2027-08-31',
-    operating: [{ id: 'lo2', name: '소모품' }] })]) {
+    operating: [{ id: 'lo2', name: '소모품' }] })], events = [event(), event('e2')]) {
   const api = mockApi()
   api.on('GET', '/api/organizations/o/members', () => json(members))
   api.on('GET', '/api/organizations/o/budget/periods', () => json({ periods }))
@@ -24,7 +24,7 @@ function setup(initial: ExpenseDetail | null = null,
     expenseItem({ id: 'i2', productName: '생수', quantity: 3, estimatedUnitPrice: 1000 }),
     expenseItem({ id: 'i3', productName: '현수막', event: { id: 'e2', name: '축제' } })], truncated: false }))
   const onSaved = vi.fn()
-  render(<ExpenseFormDialog organizationId="o" viewerMembershipId="mf" events={[event(), event('e2')]} open expense={initial}
+  render(<ExpenseFormDialog organizationId="o" viewerMembershipId="mf" events={events} open expense={initial}
     onClose={() => {}} onSubmit={onSubmit} onSaved={onSaved} />)
   return { onSubmit, onSaved }
 }
@@ -153,4 +153,18 @@ test('상시 운영이고 결제일이 마감한 기간 안이면 알리고 저�
   fill(dialog, '행사', 'e')
   expect(within(dialog).queryByText(/마감한 회계 기간/)).toBeNull()
   expect(within(dialog).getByRole('button', { name: '기록' }).hasAttribute('disabled')).toBe(false)
+})
+
+test('행사 고르기는 완료한 행사를 빼고, 이미 그 행사에 기록한 지출을 고칠 때는 그 행사를 남긴다', async () => {
+  const done = { ...event('e2'), completedAt: '2026-10-12T01:00:00.000Z' }
+  setup(null, undefined, undefined, [event(), done])
+  const dialog = await screen.findByRole('dialog', { name: '지출 기록' })
+  const options = within(within(dialog).getByLabelText('행사')).getAllByRole('option').map(option => option.textContent)
+  expect(options).toEqual(['상시 운영', '체육대회'])
+  cleanup()
+  setup(expense({ event: { id: 'e2', name: '축제' } }), undefined, undefined, [event(), done])
+  const edit = await screen.findByRole('dialog', { name: '지출 수정' })
+  const select = within(edit).getByLabelText('행사') as HTMLSelectElement
+  expect(select.value).toBe('e2')
+  expect(within(select).getAllByRole('option').map(option => option.textContent)).toEqual(['상시 운영', '체육대회', '축제'])
 })

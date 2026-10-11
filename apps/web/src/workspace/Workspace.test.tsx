@@ -433,3 +433,43 @@ test('회장단은 행사 화면 머리에서 완료하기를 보고, 다른 구
   expect(await within(screen.getByRole('banner')).findByText('기획 중')).toBeTruthy()
   expect(screen.queryByRole('button', { name: '완료하기' })).toBeNull()
 })
+
+const done = { ...event, id: 'e3', name: '새내기 배움터', version: 2, completedAt: '2026-10-01T06:00:00.000Z' }
+
+test('완료한 행사는 옆 메뉴 행사 목록에 없고, 기록에서 열면 볼 수만 있고 경로가 기록이다', async () => {
+  setup(membersBody, undefined, undefined, [event, done])
+  render(<Workspace {...props} />)
+  const list = await screen.findByRole('navigation', { name: '행사 목록' })
+  await within(list).findByRole('button', { name: '체육대회' })
+  expect(within(list).queryByRole('button', { name: '새내기 배움터' })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: '기록' }))
+  const records = await screen.findByRole('list', { name: '완료한 행사' })
+  expect(within(records).getByText(/완료 2026\. 10\. 1\./)).toBeTruthy()
+  fireEvent.click(within(records).getByRole('button', { name: '새내기 배움터' }))
+  expect(await screen.findByText('완료한 행사라 볼 수만 있어요.')).toBeTruthy()
+  const banner = screen.getByRole('banner')
+  expect(within(banner).getByText('완료')).toBeTruthy()
+  expect(within(banner).getByText('기록')).toBeTruthy()
+  expect(screen.queryByLabelText('메시지')).toBeNull()
+})
+
+test('완료한 행사가 없으면 기록은 빈 상태를 보인다', async () => {
+  setup(membersBody, undefined, undefined, [event])
+  render(<Workspace {...props} />)
+  fireEvent.click(screen.getByRole('button', { name: '기록' }))
+  expect(await screen.findByText('완료한 행사가 아직 없어요')).toBeTruthy()
+})
+
+test('예산에서 완료한 행사 이름을 누르면 볼 수만 있는 재정 탭이 열린다', async () => {
+  vi.useFakeTimers({ toFake: ['Date'] })
+  vi.setSystemTime(new Date('2026-10-10T03:00:00Z'))
+  try {
+    setup(membersBody, undefined, undefined, [{ ...event, completedAt: '2026-10-01T06:00:00.000Z' }])
+    render(<Workspace {...props} />)
+    fireEvent.click(screen.getByRole('button', { name: '예산' }))
+    expect(await screen.findByRole('heading', { name: '2026년 2학기' })).toBeTruthy()
+    fireEvent.click(within(screen.getByRole('region', { name: '행사 예산' })).getByRole('button', { name: '체육대회' }))
+    expect(await screen.findByText('완료한 행사라 볼 수만 있어요.')).toBeTruthy()
+    await waitFor(() => expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true'))
+  } finally { vi.useRealTimers() }
+})

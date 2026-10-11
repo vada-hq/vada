@@ -9,6 +9,7 @@ import { Sheet, SheetContent } from '@/components/ui/sheet'
 import Budget from '../budget/Budget'
 import FeeSettings from '../fees/FeeSettings'
 import EventList from '../events/EventList'
+import Records from '../events/Records'
 import Expenses from '../expenses/Expenses'
 import { useExpenses } from '../expenses/useExpenses'
 import CreateEventForm from '../events/CreateEventForm'
@@ -27,7 +28,7 @@ import EventWorkspace from './EventWorkspace'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar, { type AccountProps } from './WorkspaceSidebar'
 
-type View = 'tasks' | 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees'
+type View = 'tasks' | 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees' | 'records'
 type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string; initialView?: View; onMembershipsChanged?: () => void }
 export default function Workspace({ initialOrganizationId, initialView, ...props }: Props) {
   // 초대로 방금 참여했거나 방금 만든 학생회가 있으면 그 학생회를 먼저 연다.
@@ -69,6 +70,9 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   const [selected, setSelected] = useState<EventSummary | null>(null)
   // 고른 행사는 목록의 최신 값으로 보여 준다. 참가자 탭에서 일시·장소를 고치면 목록이 바뀐다.
   const current = selected && (events.events?.find(item => item.id === selected.id) ?? selected)
+  // 완료한 행사(M5a)는 옆 메뉴 행사 목록에서 빼고 "기록"에 최근 완료 순으로 둔다.
+  const activeEvents = events.events?.filter(item => !item.completedAt) ?? null
+  const completedEvents = events.events?.filter(item => item.completedAt).sort((a, b) => b.completedAt!.localeCompare(a.completedAt!)) ?? null
   // 행사 화면 머리의 단계 칩(M5a). 날짜로 계산하고, 그릴 때의 시각을 쓴다.
   const phase = view === 'events' && current ? eventPhaseOf(current, koreanOf(new Date())) : null
   // 행사 화면이 처음 열 탭. 옆 메뉴로 고르면 대화, 예산 화면에서 열면 재정, 내 업무에서 열면 업무다.
@@ -85,7 +89,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     return () => window.removeEventListener('beforeunload', warn)
   }, [leaveRisk])
   function select(event: EventSummary) {
-    // 구성원·구매 검토·사용 내역 화면에는 입력 중인 구매가 없으므로 묻지 않고 행사 화면으로 간다.
+    // 구성원·구매 검토·사용 내역 화면에는 입력 중인 구매가 없으므로 묻지 않고 행사 화면으로 간다. 기록에서 고른 행사도 같다.
     if (view !== 'events') { setEventTab('chat'); setSelected(event); setView('events') }
     else if (event.id !== selected?.id && canLeave()) { setEventTab('chat'); setSelected(event) }
     setNavOpen(false)
@@ -126,6 +130,10 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     if (view !== 'expenses' && canLeave()) { setView('expenses'); expenses.refresh() }
     setNavOpen(false)
   }
+  function openRecords() {
+    if (view !== 'records' && canLeave()) setView('records')
+    setNavOpen(false)
+  }
   // 참가비 설정은 열 때마다 새로 불러온다(화면이 새로 그려진다).
   function openFees() {
     if (view !== 'fees' && canLeave()) setView('fees')
@@ -139,8 +147,9 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     membersActive={view === 'members'} unassignedCount={unassigned} onMembers={openMembers}
     reviewActive={view === 'review'} pendingCount={finance && review.data ? review.data.pending.length : null} onReview={finance ? openReview : null}
     budgetActive={view === 'budget'} onBudget={openBudget} expensesActive={view === 'expenses'} onExpenses={openExpenses}
-    feesActive={view === 'fees'} onFees={finance ? openFees : null}>
-    <EventList events={events.events} loading={events.loading} error={events.loadError} saving={events.saving}
+    feesActive={view === 'fees'} onFees={finance ? openFees : null}
+    recordsActive={view === 'records' || (view === 'events' && Boolean(current?.completedAt))} onRecords={openRecords}>
+    <EventList events={activeEvents} loading={events.loading} error={events.loadError} saving={events.saving}
       selectedId={view === 'events' ? selected?.id : undefined} onSelect={select} onRefresh={events.refresh} onCreate={() => { setNavOpen(false); setCreateOpen(true) }} />
   </WorkspaceSidebar>
   return <div className="flex h-dvh">
@@ -158,14 +167,14 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     <div className="flex min-w-0 flex-1 flex-col">
       <WorkspaceHeader councilName={membership.organization.name}
         section={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정'
-          : current?.completedAt ? '기록' : '행사'}
+          : view === 'records' || current?.completedAt ? '기록' : '행사'}
         badge={phase && <Badge tone={phaseTones[phase]}>{phaseLabels[phase]}</Badge>}
         // 회장단만 완료하고 되돌린다. 완료하면 내 업무에서 그 행사의 업무가 빠지므로 새로 불러온다.
         actions={phase && current && membership.permissions.manageOrganization
           ? <EventCompletionControl event={current} onChanged={event => { events.replace(event); myTasks.refresh() }} onStale={events.refresh} />
           : undefined}
         title={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
-          : view === 'fees' ? '참가비 설정' : selected?.name ?? '행사'}
+          : view === 'fees' ? '참가비 설정' : view === 'records' ? '기록' : selected?.name ?? '행사'}
         onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
         {view === 'tasks' ? <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><div className="mx-auto max-w-3xl">
@@ -176,6 +185,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
             viewerMembershipId={membership.id} />
           : view === 'budget' ? <Budget organizationId={membership.organization.id} finance={finance} onOpenEvent={openEventFinance} />
           : view === 'fees' ? <FeeSettings organizationId={membership.organization.id} />
+          : view === 'records' ? <Records events={completedEvents} loading={events.loading} error={events.loadError} onOpen={select} onRefresh={events.refresh} />
           : view === 'expenses' ? <Expenses organizationId={membership.organization.id} finance={finance} viewerMembershipId={membership.id}
             events={events.events ?? []} state={expenses} />
           : current ? <EventWorkspace key={current.id} event={current} finance={finance} viewerMembershipId={membership.id}

@@ -43,6 +43,8 @@ const itemText = (item: ExpenseItem) => [productNameOf(item), item.quantity === 
 
 function Form({ organizationId, viewerMembershipId, events, initialEventId, expense, onClose, onSubmit, onSaved }: Omit<Props, 'open'>) {
   const [eventId, setEventId] = useState(expense?.event?.id ?? initialEventId ?? '')
+  // 완료한 행사(M5a)에는 지출을 기록하지 않는다. 이미 그 행사에 기록한 지출을 고칠 때는 그 행사를 남긴다.
+  const eventChoices = events.filter(item => !item.completedAt || item.id === (expense?.event?.id ?? initialEventId))
   const [vendor, setVendor] = useState(expense?.vendor ?? '')
   const [description, setDescription] = useState(expense?.description ?? '')
   const [paidOn, setPaidOn] = useState(expense?.paidOn ?? todayInSeoul())
@@ -104,7 +106,7 @@ function Form({ organizationId, viewerMembershipId, events, initialEventId, expe
       <Label className="flex flex-col gap-1.5">행사
         <NativeSelect value={eventId} onChange={event => chooseEvent(event.target.value)}>
           <option value="">상시 운영</option>
-          {events.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+          {eventChoices.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
         </NativeSelect></Label>
       {lines.length > 0 && <Label className="flex flex-col gap-1.5">운영 항목
         <NativeSelect value={lineId} onChange={event => setBudgetLineId(event.target.value)}>
