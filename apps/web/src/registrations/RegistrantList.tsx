@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { ScanLine } from 'lucide-react'
 import type { RegistrationEntry, RegistrationFormView } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
@@ -8,11 +9,14 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { formatKoreanTime, phoneText } from '../public/registration-text'
 import { pressed } from '../purchases/purchase-view'
+import CheckInScanner from './CheckInScanner'
 import RegistrantDialog, { type RegistrantActions } from './RegistrantDialog'
 import { countText, filterRegistrants, findRegistrants, hasFees, paymentChip, type RegistrantFilter } from './registration-view'
+import type { ScanResult } from './useRegistration'
 
 // settled: 행사 정산이 끝났으면 입금 확인 버튼을 감추고 이유를 적는다.
-type Props = RegistrantActions & { form: RegistrationFormView; registrations: RegistrationEntry[]; settled: boolean }
+type Props = RegistrantActions & { form: RegistrationFormView; registrations: RegistrationEntry[]; settled: boolean
+  onScan: (code: string) => Promise<ScanResult> }
 type FilterOption = { value: RegistrantFilter; label: string }
 const paymentFilters: FilterOption[] = [{ value: 'unpaid', label: '입금 전' }, { value: 'paid', label: '입금 확인' }]
 const attendanceFilters: FilterOption[] = [{ value: 'checkedIn', label: '참석' }, { value: 'notCheckedIn', label: '참석 전' }]
@@ -21,10 +25,11 @@ const attendanceFilters: FilterOption[] = [{ value: 'checkedIn', label: '참석'
 // 참석은 칩과 거르기를 늘 두고, 참석 전인 줄에서 바로 확인한다(QR을 못 꺼내는 사람을 이름으로 찾아 확인).
 // 나머지 일(확인 취소·참가비 바꾸기·신청 취소)은 관리 대화상자에서 한다.
 // 명단 내려받기는 두지 않는다(파일은 앱이 지울 수 없다).
-export default function RegistrantList({ form, registrations, settled, onConfirmPayment, onCheckIn, ...actions }: Props) {
+export default function RegistrantList({ form, registrations, settled, onConfirmPayment, onCheckIn, onScan, ...actions }: Props) {
   const [query, setQuery] = useState('')
   const [filter, setFilter] = useState<RegistrantFilter>('all')
   const [managing, setManaging] = useState<string | null>(null)
+  const [scanning, setScanning] = useState(false)
   // 줄에서 누른 입금 확인·참석 확인. 응답이 올 때까지 줄 버튼을 끈다.
   const [pending, setPending] = useState<{ id: string; action: 'payment' | 'checkIn' } | null>(null)
   const [message, setMessage] = useState('')
@@ -46,7 +51,10 @@ export default function RegistrantList({ form, registrations, settled, onConfirm
     if (!result.ok) setMessage(result.message)
   }
   return <section aria-label="신청자" className={cn(cardClass, 'flex flex-col gap-3 p-4')}>
-    <h3 className="text-sm font-semibold text-gray-900">신청자 <span className="font-normal text-gray-500">{countText(form.count, form.capacity)}</span></h3>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h3 className="text-sm font-semibold text-gray-900">신청자 <span className="font-normal text-gray-500">{countText(form.count, form.capacity)}</span></h3>
+      {!form.purged && registrations.length > 0 && <Button size="sm" onClick={() => setScanning(true)}><ScanLine aria-hidden />QR로 참석 확인</Button>}
+    </div>
     {form.purged ? <StateMessage kind="notice">보관 기간이 지나 신청자 정보를 지웠어요(신청 {form.count}명 · 참석 {form.checkedIn}명).</StateMessage>
       : registrations.length === 0 ? <StateMessage kind="empty">아직 신청한 사람이 없어요.</StateMessage>
       : <>
@@ -88,5 +96,7 @@ export default function RegistrantList({ form, registrations, settled, onConfirm
     {message && <StateMessage kind="error">{message}</StateMessage>}
     <RegistrantDialog form={form} entry={managed} settled={settled} onClose={() => setManaging(null)} onConfirmPayment={onConfirmPayment}
       onCheckIn={onCheckIn} {...actions} />
+    <CheckInScanner open={scanning} form={form} registrations={registrations} settled={settled} onScan={onScan} onCancelCheckIn={actions.onCancelCheckIn}
+      onConfirmPayment={onConfirmPayment} onClose={() => setScanning(false)} />
   </section>
 }
