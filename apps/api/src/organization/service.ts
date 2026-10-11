@@ -1,10 +1,10 @@
 import { randomUUID } from 'node:crypto'
-import { and, asc, count, eq, ne } from 'drizzle-orm'
+import { and, asc, count, eq, ne, sql } from 'drizzle-orm'
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { LEADERSHIP_DEFAULT_NAME, type CreateOrganizationRequest, type MembershipSummary, type OrganizationMembersResponse,
   type UpdateDepartmentRequest } from '@vada/contracts'
 import { queryMemberships } from '../access/membership.js'
-import { departments, memberships, organizations, purchaseSubmissions, users } from '../db/schema.js'
+import { departments, memberships, organizations, purchaseSubmissions, tasks, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { sqlState } from '../http/on-error.js'
 
@@ -106,6 +106,12 @@ export function createOrganizationService(db: OrganizationDatabase) {
       // 지우면 과거 제출의 요청 부서가 사라지므로, 제출 기록이 있는 부서는 지우지 않는다.
       const [submission] = await tx.select({ id: purchaseSubmissions.id }).from(purchaseSubmissions).where(eq(purchaseSubmissions.departmentId, departmentId)).limit(1)
       if (submission) throw new ApiError('DEPARTMENT_IN_USE', 409)
+      // 지울 부서 행을 먼저 잠근다. 그사이 업무에 이 부서를 정하려는 요청은 지우기가 끝난 뒤 TASK_DEPARTMENT_INVALID를 받는다.
+      await tx.select({ id: departments.id }).from(departments)
+        .where(and(eq(departments.organizationId, organizationId), eq(departments.id, departmentId))).for('update')
+      // 업무는 담당 부서만 비운다. 업무가 한 번이라도 있던 부서도 지울 수 있게 한다. 열어 둔 수정 화면은 버전으로 막는다.
+      await tx.update(tasks).set({ departmentId: null, version: sql`${tasks.version} + 1` })
+        .where(and(eq(tasks.organizationId, organizationId), eq(tasks.departmentId, departmentId)))
       await tx.delete(departments).where(and(eq(departments.organizationId, organizationId), eq(departments.id, departmentId)))
     }),
     assignDepartment: (organizationId: string, userId: string, membershipId: string, departmentId: string | null) =>

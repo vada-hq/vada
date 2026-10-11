@@ -225,3 +225,18 @@ test('배정은 직책을 지우고, 마지막 회장단은 옮길 수 없으며
     await pg.close()
   }
 })
+
+test('부서를 지우면 그 부서가 담당인 업무의 담당 부서를 비우고 버전을 올린다', async () => {
+  const { pg, send } = await setup()
+  try {
+    await pg.exec(`
+      INSERT INTO events (id,organization_id,name,created_by) VALUES ('e1','org1','체육대회','lead');
+      INSERT INTO tasks (id,organization_id,event_id,title,department_id,created_by) VALUES ('t1','org1','e1','현수막','plan1','lead'),
+        ('t2','org1','e1','정산','fin1','lead');
+    `)
+    assert.equal((await send('POST', '/organizations/org1/departments/plan1/delete', {})).status, 200)
+    const { rows } = await pg.query<{ id: string; department_id: string | null; version: number }>('SELECT id, department_id, version FROM tasks ORDER BY id')
+    assert.deepEqual(rows, [{ id: 't1', department_id: null, version: 2 }, { id: 't2', department_id: 'fin1', version: 1 }])
+    assert.equal((await pg.query('SELECT 1 FROM task_events')).rows.length, 0)
+  } finally { await pg.close() }
+})
