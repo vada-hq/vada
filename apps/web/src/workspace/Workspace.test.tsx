@@ -396,8 +396,8 @@ test('학생회를 열면 내 업무가 먼저 보이고 옆 메뉴에 지연 �
   try {
     const fetcher = setup(membersBody, undefined, { open: [overdueTask], done: [], truncated: false })
     const base = fetcher.getMockImplementation()!
-    fetcher.mockImplementation(async (url: string, init?: RequestInit) => url.endsWith('/events/e1/tasks/t1')
-      ? { ok: true, status: 200, json: async () => ({ task: { ...overdueTask, history: [] } }) } : base(url, init))
+    fetcher.mockImplementation(async (url: string) => url.endsWith('/events/e1/tasks/t1')
+      ? { ok: true, status: 200, json: async () => ({ task: { ...overdueTask, history: [] } }) } : base(url))
     render(<Workspace {...props} />)
     expect(screen.getByRole('heading', { level: 1, name: '내 업무' })).toBeTruthy()
     const nav = screen.getByRole('navigation', { name: '학생회 메뉴' })
