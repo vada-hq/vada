@@ -152,7 +152,7 @@ test('회장단은 부서를 추가·편집하고, 지울 수 없는 부서는 �
   await waitFor(() => expect(within(screen.getByRole('region', { name: '홍보부' })).getByText('구매 승인')).toBeTruthy())
   fireEvent.click(screen.getByRole('button', { name: '홍보부 편집' }))
   fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: '부서 삭제' }))
-  expect(await within(screen.getByRole('dialog')).findByText('구매요청 기록이 있어 지울 수 없어요. 이름을 바꿔 쓰세요.')).toBeTruthy()
+  expect(await within(screen.getByRole('dialog')).findByText('구매 요청 기록이 있거나 행사를 맡은 부서는 지울 수 없어요. 이름을 바꿔 쓰세요.')).toBeTruthy()
   expect(api.calls.filter(call => call.method !== 'GET').map(call => [call.method, call.path, call.body])).toEqual([
     ['POST', `${base}/departments`, { name: '기획부' }], ['POST', `${base}/departments`, { name: '홍보부' }],
     ['PATCH', `${base}/departments/promo`, { name: '홍보부', handlesFinance: true }], ['POST', `${base}/departments/promo/delete`, {}],

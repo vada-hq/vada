@@ -26,6 +26,9 @@ type Props = {
 
 const periodText = (form: RegistrationFormView) =>
   `${form.opensAt ? `${formatKoreanTime(form.opensAt)} ` : ''}~ ${formatKoreanTime(form.closesAt)}`
+// "담당 기획부 · 책임자 정민재"(M5b). 정한 것만 적는다.
+const ownerText = (event: EventSummary) => [event.ownerDepartment && `담당 ${event.ownerDepartment.name}`, event.owner && `책임자 ${event.owner.name}`]
+  .filter(Boolean).join(' · ')
 
 // 행사의 참가자 탭: 행사 일시·장소, 참가 신청 설정, 신청자 명단. 부서가 있는 구성원만 본다.
 export default function RegistrationPanel({ organizationId, event, state, onEventChange, onEventStale = () => {}, readOnly = false }: Props) {
@@ -69,6 +72,7 @@ export default function RegistrationPanel({ organizationId, event, state, onEven
       </div>
       {time ? <p className="text-sm text-gray-700">{time}</p> : <p className="text-sm text-gray-500">{readOnly ? '일시 미정' : '일시를 넣어 주세요.'}</p>}
       {event.place && <p className="text-sm wrap-anywhere text-gray-700">{event.place}</p>}
+      {(event.ownerDepartment || event.owner) && <p className="text-sm wrap-anywhere text-gray-700">{ownerText(event)}</p>}
     </section>
     <section aria-label="참가 신청" className={cn(cardClass, 'flex flex-col gap-3 p-4')}>
       <div className="flex items-center gap-2">

@@ -20,6 +20,8 @@ function Harness({ event, onEventChange, readOnly }: { event: EventSummary; onEv
 function setup(body: RegistrationResponse = registrationResponse(), event = timed(), readOnly = false) {
   const api = mockApi()
   api.on('GET', base, () => json(body))
+  // 행사 정보 대화상자가 담당 부서·책임자를 고르려고 불러온다(M5b).
+  api.on('GET', '/api/organizations/o/members', () => json({ viewer: null, departments: [], members: [] }))
   const onEventChange = vi.fn()
   render(<Harness event={event} onEventChange={onEventChange} readOnly={readOnly} />)
   return { api, onEventChange }
@@ -48,6 +50,17 @@ test('행사 정보: 일시가 없으면 넣으라고 알리고, 고치면 PATCH
   expect(api.calls.at(-1)!.body).toEqual({ version: 1, startsAt: '2026-08-20T10:00', endsAt: null, place: ' 체육관 ', ownerDepartmentId: null,
     ownerMembershipId: null })
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+})
+
+test('행사 정보: 담당 부서·책임자를 정했으면 보이고, 없으면 그 줄이 없다', async () => {
+  setup(registrationResponse(), timed({ ownerDepartment: { id: 'dp', name: '기획부' }, owner: { membershipId: 'mp', name: '정민재' } }))
+  expect(within(await region('행사 정보')).getByText('담당 기획부 · 책임자 정민재')).toBeTruthy()
+  cleanup()
+  setup(registrationResponse(), timed({ owner: { membershipId: 'mp', name: '정민재' } }))
+  expect(within(await region('행사 정보')).getByText('책임자 정민재')).toBeTruthy()
+  cleanup()
+  setup()
+  expect(within(await region('행사 정보')).queryByText(/담당|책임자/)).toBeNull()
 })
 
 test('참가 신청 받기: 기본 마감은 행사 시작이고, 만들면 POST 본문을 보내고 받은 응답을 그린다', async () => {
@@ -143,7 +156,8 @@ test('보관 기간이 지나면 지웠다고 알리고, 신청이 없으면 비
 test('참가 신청이 있을 때 행사 정보를 고치면 참가 신청도 다시 불러와 지울 날을 맞춘다', async () => {
   const { api, onEventChange } = setup()
   const info = await region('행사 정보')
-  const gets = () => api.calls.filter(call => call.method === 'GET').length
+  // 참가 신청 GET만 센다. 행사 정보 대화상자는 담당을 고르려고 구성원 목록도 불러온다.
+  const gets = () => api.calls.filter(call => call.method === 'GET' && call.path === base).length
   const before = gets()
   fireEvent.click(within(info).getByRole('button', { name: '행사 정보 수정' }))
   const dialog = await screen.findByRole('dialog', { name: '행사 정보' })

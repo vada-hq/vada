@@ -53,6 +53,8 @@ const messages: Record<string, string> = {
   CANCEL_CLOSED: '마감 뒤에는 취소할 수 없어요. 학생회에 문의해 주세요.',
   VERSION_CONFLICT: '다른 사람이 먼저 바꿨어요. 새로 불러온 내용을 확인해 주세요.',
   EVENT_TIME_REQUIRED: '행사 시작 일시를 먼저 넣어 주세요.',
+  EVENT_DEPARTMENT_INVALID: '없는 부서예요. 목록을 새로 불러와 다시 골라 주세요.',
+  EVENT_OWNER_INVALID: '부서가 있는 구성원만 책임자로 정할 수 있어요. 목록을 새로 불러와 다시 골라 주세요.',
   DEADLINE_AFTER_EVENT: '신청 마감은 행사가 끝나기 전이어야 해요.',
   REGISTRATION_EXISTS: '이미 참가 신청을 만들었어요. 새로 불러온 내용을 확인해 주세요.',
   FORBIDDEN: '부서가 있는 구성원만 참가 신청을 관리할 수 있어요.',

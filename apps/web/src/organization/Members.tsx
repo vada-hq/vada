@@ -21,7 +21,7 @@ const messages: Record<string, string> = {
   LAST_LEADER: '회장단은 최소 한 명 있어야 해요. 다른 사람을 먼저 회장단으로 옮겨 주세요.',
   DEPARTMENT_NAME_TAKEN: '같은 이름의 부서가 있어요.',
   DEPARTMENT_NOT_EMPTY: '구성원이 있는 부서는 지울 수 없어요. 먼저 다른 부서로 옮겨 주세요.',
-  DEPARTMENT_IN_USE: '구매요청 기록이 있어 지울 수 없어요. 이름을 바꿔 쓰세요.',
+  DEPARTMENT_IN_USE: '구매 요청 기록이 있거나 행사를 맡은 부서는 지울 수 없어요. 이름을 바꿔 쓰세요.',
   FORBIDDEN: '회장단만 바꿀 수 있어요.',
   NOT_FOUND: '이미 바뀌었어요. 목록을 새로 불러왔어요.',
 }
