@@ -7,6 +7,7 @@ import { requireOpenEventPeriod, shareBudget } from '../budget/lock.js'
 import { budgetLines, budgetPeriods, eventFinanceEvents, eventFinances, events, expenseItems, expenseReceipts, expenses, organizations,
   purchaseItems as items, users } from '../db/schema.js'
 import { expenseItemRows, expenseSummaries } from '../expenses/summaries.js'
+import { lockActiveEvent } from '../events/lock.js'
 import { ApiError } from '../http/errors.js'
 import { feeIncomeOf, incomeLinesOf, insertFeeIncome, voidFeeIncome } from '../incomes/service.js'
 import { requireFinance } from '../purchases/review.js'
@@ -38,11 +39,10 @@ function groupBy<T>(list: T[], key: (entry: T) => string | null) {
   return groups
 }
 
-// 이 학생회의 행사다. 바꿀 때는 행사 행을 FOR NO KEY UPDATE로 잠근다.
+// 이 학생회의 행사다. 바꿀 때는 lockFinance가 행사 행을 FOR NO KEY UPDATE로 잠근다(완료한 행사는 막는다, M5a).
 // 지출 변경·증빙 삭제·구매 제출은 같은 행을 FOR SHARE로 잠그므로 정산 확인과 겹치지 않는다. 행사를 참조하는 행 추가(FK 검사)는 막지 않는다.
-export async function eventOf(db: Reader, scope: SettlementScope, eventId: string, lock = false) {
-  const query = db.select({ name: events.name }).from(events).where(and(eq(events.organizationId, scope.organizationId), eq(events.id, eventId)))
-  const [event] = await (lock ? query.for('no key update') : query)
+export async function eventOf(db: Reader, scope: SettlementScope, eventId: string) {
+  const [event] = await db.select({ name: events.name }).from(events).where(and(eq(events.organizationId, scope.organizationId), eq(events.id, eventId)))
   if (!event) throw new ApiError('NOT_FOUND', 404)
   return event
 }
@@ -140,8 +140,9 @@ async function responseOf(db: Reader, scope: SettlementScope, eventId: string): 
 }
 
 // 행사 행을 FOR NO KEY UPDATE로 잠그고 재정 행의 버전을 본다. 행이 없으면 버전 0이다.
+// 완료한 행사(M5a)는 예산·정산·다시 열기를 막는다. 정산을 다시 열려면 먼저 완료를 취소한다.
 async function lockFinance(tx: SettlementTransaction, scope: SettlementScope, eventId: string, version: number) {
-  await eventOf(tx, scope, eventId, true)
+  await lockActiveEvent(tx, scope.organizationId, eventId)
   const [row] = await tx.select().from(eventFinances)
     .where(and(eq(eventFinances.organizationId, scope.organizationId), eq(eventFinances.eventId, eventId)))
   if ((row?.version ?? 0) !== version) throw new ApiError('VERSION_CONFLICT', 409)

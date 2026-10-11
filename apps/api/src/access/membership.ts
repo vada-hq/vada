@@ -57,3 +57,11 @@ export function requireEventManager() {
     await next()
   })
 }
+
+// requireMembership 다음에 둔다. 회장단만 하는 일(행사 완료·완료 취소)에 쓴다.
+export function requireOrganizationManager() {
+  return createMiddleware<MembershipEnv>(async (c, next) => {
+    if (!c.get('membership').permissions.manageOrganization) return c.json({ error: 'FORBIDDEN' }, 403)
+    await next()
+  })
+}
