@@ -127,10 +127,11 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
     assert.ok(tasksOf('중간고사 간식 나눔').length > 0)
     assert.equal(await count(pg, `SELECT count(*)::int AS n FROM task_events ev JOIN tasks t ON t.id = ev.task_id WHERE ev.created_at < t.created_at
       OR (t.completed_at IS NOT NULL AND t.completed_at < t.created_at)`), 0)
-    // 로그인 회장단 계정(u1)의 내 업무가 비어 있지 않고, 지연이 하나 있다.
+    // 로그인 회장단 계정 둘(u1, u2) 모두 내 업무가 비어 있지 않다. u1에게는 지연이 하나 있다.
     const mine = await view<MyTasksResponse>('/my-tasks')
-    assert.ok(mine.open.length >= 2)
+    assert.ok(mine.open.length >= 1)
     assert.equal(mine.open.filter(task => task.dueOn !== null && task.dueOn < today).length, 1)
+    assert.ok(await count(pg, `SELECT count(*)::int AS n FROM tasks WHERE assignee_id = 'u2' AND status <> 'done'`) >= 1)
 
     // 정산 셋, 정산하지 않은 행사 둘. 학술제 예산은 미정이다.
     const finances: Record<string, EventFinanceResponse['finance']> = Object.fromEntries(await Promise.all(events.map(async event =>

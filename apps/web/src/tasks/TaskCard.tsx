@@ -28,7 +28,7 @@ export default function TaskCard({ task, today, showEvent = false, manageEvents,
     {showEvent && <p className="text-xs wrap-anywhere text-gray-500">{task.event.name}</p>}
     <div className="flex flex-wrap items-center gap-1.5 text-xs">
       {showEvent && <Badge tone={task.status === 'done' ? 'success' : task.status === 'doing' ? 'info' : 'neutral'}>{statusLabels[task.status]}</Badge>}
-      {task.department && <Badge>{task.department.name}</Badge>}
+      {task.department && <Badge className="whitespace-normal wrap-anywhere">{task.department.name}</Badge>}
       {task.assignee ? <span className="wrap-anywhere text-gray-600">{task.assignee.name}</span>
         : task.status !== 'done' && <span className="font-medium text-destructive">담당자 없음</span>}
     </div>

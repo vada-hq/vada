@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { MyTasksResponse } from '@vada/contracts'
 import { json, mockApi } from '../test-support/mock-api'
 import MyTasks from './MyTasks'
@@ -62,4 +62,26 @@ test('옆 메뉴 수: 지연이 있으면 지연 수, 없으면 할 일 수, 할
   expect(taskBadge({ ...mine, open: mine.open.slice(1) }, '2026-10-11')).toEqual({ tone: 'info', text: '1' })
   expect(taskBadge({ ...mine, open: [] }, '2026-10-11')).toBeNull()
   expect(taskBadge(null, '2026-10-11')).toBeNull()
+})
+
+test('상세의 수정은 그 자리에서 수정 화면을 열고, 저장하면 내 업무를 새로 불러온다', async () => {
+  onOpenEvent.mockClear()
+  const api = mockApi()
+  let calls = 0
+  api.on('GET', '/api/organizations/o1/my-tasks', () => { calls++; return json(mine) })
+  const detail = taskDetail({ id: 't1', title: '심사위원 섭외', event: { id: 'e2', name: '학술제' } })
+  api.on('GET', '/api/organizations/o1/events/e2/tasks/t1', () => json({ task: detail }))
+  api.on('GET', '/api/organizations/o1/members', () => json({ viewer: {}, departments: [{ id: 'd1', name: '기획부', isLeadership: false, handlesFinance: false }],
+    members: [{ id: 'm2', name: '윤태민', title: null, departmentId: 'd1' }] }))
+  api.on('PATCH', '/api/organizations/o1/events/e2/tasks/t1', () => json({ task: { ...detail, title: '심사위원 두 분 섭외', version: 2 } }))
+  render(<Harness />)
+  fireEvent.click(within(await screen.findByRole('region', { name: '할 일' })).getByRole('button', { name: '심사위원 섭외' }))
+  fireEvent.click(await screen.findByRole('button', { name: '수정' }))
+  const form = await screen.findByRole('dialog', { name: '업무 수정' })
+  fireEvent.change(within(form).getByLabelText('제목'), { target: { value: '심사위원 두 분 섭외' } })
+  fireEvent.click(within(form).getByRole('button', { name: '저장' }))
+  await waitFor(() => expect(calls).toBe(2))
+  expect(api.calls.find(call => call.method === 'PATCH')?.body).toMatchObject({ version: 1, title: '심사위원 두 분 섭외' })
+  expect(screen.queryByRole('dialog', { name: '업무 수정' })).toBeNull()
+  expect(onOpenEvent).not.toHaveBeenCalled()
 })

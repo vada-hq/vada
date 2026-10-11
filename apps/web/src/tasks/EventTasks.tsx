@@ -80,10 +80,10 @@ export default function EventTasks({ organizationId, event, manageEvents, viewer
     return <section key={status} aria-label={statusLabels[status]} className="flex min-w-0 flex-col gap-2 rounded-lg bg-gray-100 p-3">
       <h2 className="flex items-center justify-between text-sm font-semibold text-gray-700">{statusLabels[status]}
         <span className="text-xs font-normal text-gray-500">{items.length}</span></h2>
-      {/* 휴대폰에서는 완료 업무를 접어 둔다. 넓은 화면에서는 늘 보인다. */}
-      {done && items.length > 0 && <Button variant="ghost" size="sm" className="md:hidden" aria-expanded={showDone}
+      {/* 열이 쌓이는 폭(1024px 미만)에서는 완료 업무를 접어 둔다. 세 열일 때는 늘 보인다. */}
+      {done && items.length > 0 && <Button variant="ghost" size="sm" className="lg:hidden" aria-expanded={showDone}
         onClick={() => setShowDone(value => !value)}>{showDone ? '접기' : `완료 ${items.length}개 보기`}</Button>}
-      <div className={cn('flex flex-col gap-2', done && !showDone && 'hidden md:flex')}>
+      <div className={cn('flex flex-col gap-2', done && !showDone && 'hidden lg:flex')}>
         {items.map(task => <TaskCard key={task.id} task={task} today={today} manageEvents={manageEvents} busy={busyId === task.id}
           onOpen={() => setOpened(task.id)} onAdvance={() => void advance(task)} />)}
       </div>
@@ -92,7 +92,10 @@ export default function EventTasks({ organizationId, event, manageEvents, viewer
   return <div className="flex flex-col gap-4">
     <section aria-label="업무 요약" className={cn(cardClass, 'flex flex-wrap items-center gap-x-6 gap-y-3 p-4')}>
       {dday && <p className="text-xl font-bold text-primary">{dday}</p>}
-      <p className="text-sm font-semibold text-gray-900">완료 {counts.done}/{counts.total}</p>
+      <div className="flex items-center gap-2">
+        <p className="text-sm font-semibold text-gray-900">완료 {counts.done}/{counts.total}</p>
+        {counts.total > 0 && <progress className="h-2 w-32 accent-blue-600" value={counts.done} max={counts.total} aria-label="완료한 업무" />}
+      </div>
       <div role="group" aria-label="업무 거르기" className="flex flex-wrap gap-2">
         {filters.map(value => <Button key={value} variant="outline" size="sm"
           className={cn(pressed, value === 'overdue' && counts.overdue > 0 && 'text-destructive')} aria-pressed={filter === value}
@@ -111,10 +114,12 @@ export default function EventTasks({ organizationId, event, manageEvents, viewer
     {view === 'schedule'
       // 거르는 중에는 걸린 업무만 보인다. 행사·신청 마감 줄은 거르지 않을 때만 넣는다.
       ? <TaskSchedule items={filter === null ? scheduleOf(visible, event, state.data.registrationClosesAt)
-        : scheduleOf(visible, { name: event.name, startsAt: null, endsAt: null }, null)} today={today} onOpen={task => setOpened(task.id)} />
+        : scheduleOf(visible, { name: event.name, startsAt: null, endsAt: null }, null)} today={today} expandPast={filter !== null}
+        onOpen={task => setOpened(task.id)} />
       : tasks.length === 0 ? <Card><EmptyState icon={ListChecks} title="아직 업무가 없어요"
         description={manageEvents ? '업무를 추가해 담당 부서와 담당자, 마감일을 정해 주세요.' : '부서가 있는 구성원이 업무를 추가해요.'} /></Card>
-      : <div className="grid gap-3 md:grid-cols-3">{columns.map(column)}</div>}
+      // 옆 메뉴(210px)가 보이는 768px에서는 카드가 너무 좁아, 세 열은 1024px부터다.
+      : <div className="grid gap-3 lg:grid-cols-3">{columns.map(column)}</div>}
     <TaskDetailDialog organizationId={organizationId} target={opened ? { eventId: event.id, taskId: opened } : null} manageEvents={manageEvents}
       onClose={() => setOpened(null)} onChanged={task => { state.replace(task); onChanged() }}
       onDeleted={list => { state.setList(list); setOpened(null); onChanged() }}

@@ -63,3 +63,11 @@ test('구성원 목록을 못 받으면 부서·담당자 고르기 대신 안�
   render(<TaskFormDialog open organizationId="o1" eventId="e1" task={null} directory={null} directoryError onClose={() => {}} onSaved={() => {}} />)
   expect(screen.getByText('구성원 목록을 불러오지 못해 담당 부서와 담당자는 고를 수 없어요.')).toBeTruthy()
 })
+
+test('구성원 목록을 불러오는 동안에는 지금 담당자를 미배정으로 표시하지 않는다', () => {
+  mockApi()
+  render(<TaskFormDialog open organizationId="o1" eventId="e1" task={taskDetail()} directory={null} directoryError={false} onClose={() => {}} onSaved={() => {}} />)
+  const dialog = screen.getByRole('dialog', { name: '업무 수정' })
+  expect(within(dialog).queryByRole('option', { name: '윤태민 (미배정)' })).toBeNull()
+  expect((within(dialog).getByLabelText('담당자') as HTMLSelectElement).disabled).toBe(true)
+})

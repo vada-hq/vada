@@ -90,3 +90,24 @@ test('업무가 없으면 빈 상태를 보인다', async () => {
   render(<Harness manageEvents />)
   expect(await screen.findByText('아직 업무가 없어요')).toBeTruthy()
 })
+
+test('요약에 완료 비율 막대를 보인다', async () => {
+  setup()
+  const bar = await screen.findByRole('progressbar', { name: '완료한 업무' })
+  expect([bar.getAttribute('value'), bar.getAttribute('max')]).toEqual(['1', '4'])
+})
+
+test('긴 부서 이름도 카드 안에서 줄을 바꾸고, 보드는 넓은 화면(lg)부터 세 열이다', async () => {
+  setup()
+  const todo = await screen.findByRole('region', { name: '예정' })
+  expect(within(todo).getAllByText('기획부')[0]!.className).toContain('wrap-anywhere')
+  expect(todo.parentElement!.className).toContain('lg:grid-cols-3')
+  expect(todo.parentElement!.className).not.toContain('md:grid-cols-3')
+})
+
+test('일정 보기에서 거르면 지난 날짜의 업무도 펼쳐 보인다', async () => {
+  setup()
+  fireEvent.click(await screen.findByRole('button', { name: '일정' }))
+  fireEvent.click(screen.getByRole('button', { name: '지연 1' }))
+  expect(within(screen.getByRole('region', { name: '지난 일정' })).getByRole('button', { name: '대관 신청' })).toBeTruthy()
+})

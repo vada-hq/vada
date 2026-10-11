@@ -42,8 +42,8 @@ function Form({ organizationId, eventId, task, directory, directoryError, onClos
   // 버튼은 서버와 같은 스키마로 켠다. 길이 숫자를 화면에 다시 적지 않는다.
   const valid = task ? UpdateTaskSchema.safeParse({ ...input, version: task.version }).success : CreateTaskSchema.safeParse(input).success
   const staff = directory?.members.filter(member => member.departmentId !== null) ?? []
-  // 맡긴 뒤 미배정이 된 지금 담당자는 목록에 없으므로 따로 넣어 고른 채로 둔다.
-  const keptAssignee = task?.assignee && !staff.some(member => member.id === task.assignee?.membershipId) ? task.assignee : null
+  // 맡긴 뒤 미배정이 된 지금 담당자는 목록에 없으므로 따로 넣어 고른 채로 둔다. 목록을 불러오는 동안에는 알 수 없으므로 넣지 않는다.
+  const keptAssignee = directory && task?.assignee && !staff.some(member => member.id === task.assignee?.membershipId) ? task.assignee : null
   function chooseAssignee(value: string) {
     setAssigneeId(value)
     const department = staff.find(member => member.id === value)?.departmentId

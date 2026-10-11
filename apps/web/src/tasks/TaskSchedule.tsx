@@ -12,7 +12,9 @@ const kindLabels = { event: '행사', deadline: '마감', task: '업무' }
 const kindTones = { event: 'success', deadline: 'warning', task: 'neutral' } as const
 
 // 일정 보기. 오늘부터는 다가오는 일정, 지난 날짜는 접은 지난 일정이다. 업무 줄을 누르면 상세를 연다.
-export default function TaskSchedule({ items, today, onOpen }: { items: ScheduleItem[]; today: string; onOpen: (task: TaskSummary) => void }) {
+// 거르는 중(expandPast)에는 걸린 업무가 지난 날짜에 있어도 바로 보이게 지난 일정을 펼친다.
+export default function TaskSchedule({ items, today, expandPast = false, onOpen }: { items: ScheduleItem[]; today: string; expandPast?: boolean
+  onOpen: (task: TaskSummary) => void }) {
   const [showPast, setShowPast] = useState(false)
   const upcoming = items.filter(item => item.date >= today)
   const past = items.filter(item => item.date < today)
@@ -37,7 +39,7 @@ export default function TaskSchedule({ items, today, onOpen }: { items: Schedule
   </section>
   return <div className="flex flex-col gap-3">
     {upcoming.length ? list('다가오는 일정', upcoming) : <p className="text-sm text-gray-500">다가오는 일정이 없어요.</p>}
-    {past.length > 0 && (showPast ? list('지난 일정', past)
+    {past.length > 0 && (showPast || expandPast ? list('지난 일정', past)
       : <Button variant="outline" size="sm" className="self-start" onClick={() => setShowPast(true)}>지난 일정 {past.length}개 보기</Button>)}
   </div>
 }

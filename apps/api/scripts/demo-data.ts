@@ -544,11 +544,12 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
   await shapeClosing(db, calendar, eventIds)
 
   // 13. 행사 업무. 정산한 체육대회는 모두 끝났고, 다가오는 행사에는 지연·담당자 없음이 섞여 있다.
-  // 로그인 회장단 계정(소속 ID 순 첫째)에게도 둘을 맡겨 내 업무가 비지 않게 한다. 없으면 그 둘은 넣지 않는다.
+  // 로그인 회장단 계정들에게도 소속 ID 순으로 돌아가며 맡겨 누구로 들어와도 내 업무가 비지 않게 한다. 첫째에게는 지연이 하나 간다.
+  // 로그인 회장단이 없으면 그 업무는 넣지 않는다.
   log('업무')
-  const [loginLeader] = await db.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.organizationId, org),
+  const loginLeaders = await db.select({ id: memberships.id }).from(memberships).where(and(eq(memberships.organizationId, org),
     eq(memberships.departmentId, departmentIds.leadership), sql`${memberships.userId} NOT LIKE ${`${DEMO_USER_PREFIX}%`}`))
-    .orderBy(asc(memberships.id)).limit(1)
+    .orderBy(asc(memberships.id))
   const taskPlan: { event: EventKey; title: string; description?: string; department: DepartmentKey; assignee: PersonKey | 'login' | null;
     due: string; status: TaskStatus }[] = [
     { event: 'sports', title: '경기장 대관 신청', department: 'leadership', assignee: 'vice', due: addDays(calendar.sports, -20), status: 'done' },
@@ -574,9 +575,11 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     { event: 'festival', title: '리허설 진행', department: 'planning', assignee: 'planner3', due: addDays(calendar.festival, -1), status: 'todo' },
     { event: 'festival', title: '결과 보고서 작성', department: 'planning', assignee: null, due: addDays(calendar.festival, 7), status: 'todo' },
   ]
+  let loginTurn = 0
   for (const item of taskPlan) {
-    if (item.assignee === 'login' && !loginLeader) continue
-    const assigneeMembershipId = item.assignee === null ? null : item.assignee === 'login' ? loginLeader!.id : `${userIdOf(item.assignee)}-membership`
+    if (item.assignee === 'login' && !loginLeaders.length) continue
+    const assigneeMembershipId = item.assignee === null ? null
+      : item.assignee === 'login' ? loginLeaders[loginTurn++ % loginLeaders.length]!.id : `${userIdOf(item.assignee)}-membership`
     const { task } = await call<TaskResponse>('planner', 'POST', eventPath(item.event, '/tasks'), { title: item.title, description: item.description ?? null,
       departmentId: departmentIds[item.department], assigneeMembershipId, dueOn: item.due }, 201)
     if (item.status !== 'todo') await call('planner', 'POST', eventPath(item.event, `/tasks/${task.id}/status`), { version: task.version, status: item.status })
