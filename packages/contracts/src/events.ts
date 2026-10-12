@@ -23,3 +23,13 @@ export type UpdateEventRequest = z.infer<typeof UpdateEventSchema>
 export const CompleteEventSchema = z.strictObject({ version: z.number().int().min(1).max(PURCHASE_INTEGER_MAX) })
 export const CancelEventCompletionSchema = CompleteEventSchema
 export type CompleteEventRequest = z.infer<typeof CompleteEventSchema>
+
+// 행사 단계(M5a). 저장하지 않고 날짜로 계산한다. now와 행사 일시는 한국 시각 "YYYY-MM-DDTHH:mm"이라 글자로 비교한다.
+// 끝 일시가 없으면 시작한 날(한국 날짜)이 끝날 때까지 진행 중이다. 화면의 단계 칩과 운영 현황(M6) 서버가 같이 쓴다.
+export type EventPhase = 'planning' | 'ongoing' | 'wrapping' | 'completed'
+export function eventPhaseOf(event: { startsAt: string | null; endsAt: string | null; completedAt: string | null }, now: string): EventPhase {
+  if (event.completedAt) return 'completed'
+  if (!event.startsAt || now < event.startsAt) return 'planning'
+  if (event.endsAt) return now < event.endsAt ? 'ongoing' : 'wrapping'
+  return now.slice(0, 10) === event.startsAt.slice(0, 10) ? 'ongoing' : 'wrapping'
+}

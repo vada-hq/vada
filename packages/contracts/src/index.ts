@@ -1,7 +1,7 @@
 export { codePoints, isStrictObject, text, token } from './input.js'
 export { COUPANG_LINKS_PER_MESSAGE_MAX, normalizeCoupangUrl, parseCoupangLinks, readCoupangUrl, type CoupangLink } from './coupang.js'
 export { EVENT_NAME_MAX, EVENT_PLACE_MAX, CreateEventSchema, UpdateEventSchema, CompleteEventSchema, CancelEventCompletionSchema, type CreateEventRequest,
-  type UpdateEventRequest, type CompleteEventRequest } from './events.js'
+  type UpdateEventRequest, type CompleteEventRequest, eventPhaseOf, type EventPhase } from './events.js'
 export { koreanDateTime, dateFromKorean, koreanOf } from './korean-time.js'
 export { REGISTRATION_NAME_MAX, REGISTRATION_NOTICE_MAX, REGISTRATION_CAPACITY_MAX, REGISTRATION_RETENTION_DAYS, REGISTRATION_FEE_MAX, studentIdInput,
   phoneInput, CreateRegistrationFormSchema, UpdateRegistrationFormSchema, CancelRegistrationSchema, RegisterSchema, RegistrationTokenSchema,
@@ -152,3 +152,5 @@ export { RETRO_TEXT_MAX, RETRO_ANSWER_MAX, RETRO_ITEMS_MAX, RETRO_GENERATED_MAX,
 export type { RetroSection, GenerateRetrospectiveRequest, SaveRetrospectiveRequest, ConfirmRetrospectiveRequest, RecordTab, RecordEntryKind,
   RecordEntry, RetrospectiveSource, RetrospectiveItemView, RetrospectiveQuestionView, RetrospectiveView, RetrospectiveState, RetrospectiveItem,
   RetrospectiveQuestion, RetrospectiveContent } from './reports.js'
+export { HOME_TASKS_MAX, HOME_EXPENSES_MAX, HOME_ITEM_KINDS } from './home.js'
+export type { HomeItemKind, HomeTaskCounts, HomeEvent, HomeItem, HomeDepartment, HomeResponse } from './home.js'
