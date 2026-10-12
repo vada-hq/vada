@@ -4,7 +4,6 @@ import fc from 'fast-check'
 import { z } from 'zod'
 import { codePoints, isStrictObject, text, token } from './input.js'
 import { CancelEventCompletionSchema, CompleteEventSchema, CreateEventSchema, EVENT_NAME_MAX, UpdateEventSchema } from './events.js'
-import { PublishEventReportSchema, REPORT_SECTION_MAX, SaveEventReportSchema } from './reports.js'
 import { CreateMessageSchema, MESSAGE_CONTENT_MAX } from './chat.js'
 import { DeliveryLookupSchema, RegisterShipmentSchema, UnlinkShipmentSchema } from './deliveries.js'
 import { INVITE_CODE_MAX, InviteCodeSchema, JoinOrganizationSchema } from './invites.js'
@@ -240,16 +239,4 @@ test('행사 정보는 담당 부서·책임자를 ID나 null로 꼭 받는다',
     { ...base, ownerDepartmentId: null, ownerMembershipId: 'a'.repeat(65) }]) {
     assert.equal(UpdateEventSchema.safeParse(body).success, false, JSON.stringify(body))
   }
-})
-
-test('결과보고서는 다섯 칸을 모두 보내고, 빈 칸은 null이다', () => {
-  const body = { version: 0, operations: null, wentWell: null, shortfalls: null, improvements: null, handover: null }
-  assert.equal(SaveEventReportSchema.safeParse(body).success, true)
-  assert.equal(SaveEventReportSchema.safeParse({ ...body, handover: '가'.repeat(REPORT_SECTION_MAX) }).success, true)
-  for (const invalid of [{ ...body, handover: undefined }, { ...body, handover: '' }, { ...body, handover: '가'.repeat(REPORT_SECTION_MAX + 1) },
-    { ...body, extra: 1 }, { ...body, version: -1 }]) {
-    assert.equal(SaveEventReportSchema.safeParse(invalid).success, false, JSON.stringify(invalid).slice(0, 40))
-  }
-  assert.equal(PublishEventReportSchema.safeParse({ version: 0 }).success, false)
-  assert.equal(PublishEventReportSchema.safeParse({ version: 1 }).success, true)
 })

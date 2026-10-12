@@ -3,27 +3,7 @@ import type { EventSummary } from './index.js'
 import { text, token } from './input.js'
 import { PURCHASE_INTEGER_MAX } from './purchases.js'
 
-// 결과보고서 칸의 상한(M5b). DB CHECK(0026)와 같은 값이다.
-export const REPORT_SECTION_MAX = 2000
-// 사람이 쓰는 다섯 칸. 화면 순서다.
-export const REPORT_SECTIONS = ['operations', 'wentWell', 'shortfalls', 'improvements', 'handover'] as const
-export type ReportSection = typeof REPORT_SECTIONS[number]
-export const REPORT_SECTION_LABELS: Record<ReportSection, string> = { operations: '현장 운영', wentWell: '잘된 점', shortfalls: '아쉬운 점과 원인',
-  improvements: '다음 행사 개선안', handover: '인수인계' }
-export type ReportStatus = 'draft' | 'published'
-
-const section = text(REPORT_SECTION_MAX).nullable()
-// 다섯 칸을 한 번에 저장한다. 빈 칸은 null이다. 보고서가 없으면 버전 0이다.
-export const SaveEventReportSchema = z.strictObject({ version: z.number().int().min(0).max(PURCHASE_INTEGER_MAX), operations: section,
-  wentWell: section, shortfalls: section, improvements: section, handover: section })
-// 발행·발행 취소. 화면이 본 보고서 버전을 보낸다.
-export const PublishEventReportSchema = z.strictObject({ version: z.number().int().min(1).max(PURCHASE_INTEGER_MAX) })
-export const UnpublishEventReportSchema = PublishEventReportSchema
-export type SaveEventReportRequest = z.infer<typeof SaveEventReportSchema>
-export type PublishEventReportRequest = z.infer<typeof PublishEventReportSchema>
-
 // 결과보고서의 숫자와 이름(M5b). 열 때마다 행사 기록에서 센다(완료한 행사는 바뀌지 않는다). 이름은 지금 이름이다.
-// 발행한 보고서에 그대로 저장되므로, 칸을 더하면 옛 보고서에는 그 칸이 없을 수 있다.
 export interface EventReportFacts {
   event: { name: string; startsAt: string | null; endsAt: string | null; place: string | null }
   // 담당 부서·책임자 이름. 정하지 않았으면 null이다.
@@ -38,19 +18,6 @@ export interface EventReportFacts {
   purchases: { requested: number; approved: number }
 }
 export interface ReportPerson { id: string; name: string }
-export interface EventReportView {
-  status: ReportStatus
-  operations: string | null
-  wentWell: string | null
-  shortfalls: string | null
-  improvements: string | null
-  handover: string | null
-  version: number
-  created: { by: ReportPerson; at: string }
-  // 마지막으로 글을 저장한 사람과 때
-  updated: { by: ReportPerson; at: string }
-  published: { by: ReportPerson; at: string } | null
-}
 // 완료한 행사, 최근 완료 순
 export interface RecordsResponse { records: EventRecord[] }
 

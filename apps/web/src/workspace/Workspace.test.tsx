@@ -7,7 +7,7 @@ import { candidate, item } from '../purchases/purchase-fixtures'
 import { financeResponse } from '../settlement/settlement-fixtures'
 import { budgetEventLine, budgetPeriod, budgetPlan } from '../budget/budget-fixtures'
 import { feeSettings } from '../fees/fee-fixtures'
-import { facts, reportResponse } from '../records/record-fixtures'
+import { facts, reportResponse, retrospectiveView } from '../records/record-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false, manageEvents: true } }
@@ -442,7 +442,7 @@ const done = { ...event, id: 'e3', name: '새내기 배움터', version: 2, comp
 const doneReport = () => reportResponse({ event: done, facts: facts({ event: { ...facts().event, name: '새내기 배움터' } }) })
 
 test('완료한 행사는 옆 메뉴 행사 목록에 없고, 기록에서 결과보고서를 열고 행사 기록 보기로 볼 수만 있는 행사 화면에 간다', async () => {
-  setup(membersBody, undefined, undefined, [event, done], [{ event: done, report: null, facts: doneReport().facts }], doneReport())
+  setup(membersBody, undefined, undefined, [event, done], [{ event: done, retrospective: null, facts: doneReport().facts }], doneReport())
   render(<Workspace {...props} />)
   const list = await screen.findByRole('navigation', { name: '행사 목록' })
   await within(list).findByRole('button', { name: '체육대회' })
@@ -466,22 +466,46 @@ test('완료한 행사는 옆 메뉴 행사 목록에 없고, 기록에서 결�
   expect(await screen.findByRole('region', { name: '결과보고서 요약' })).toBeTruthy()
 })
 
-test('저장하지 않은 결과보고서가 있으면 다른 메뉴로 갈 때 묻고, 취소하면 남는다', async () => {
-  setup(membersBody, undefined, undefined, [event, done], [{ event: done, report: null, facts: doneReport().facts }], doneReport())
+const draftReport = () => reportResponse({ ...doneReport(), retrospective: retrospectiveView() })
+async function openDraftReport() {
+  const report = draftReport()
+  setup(membersBody, undefined, undefined, [event, done], [{ event: done, retrospective: 'draft', facts: report.facts }], report)
   render(<Workspace {...props} />)
   fireEvent.click(screen.getByRole('button', { name: '기록' }))
   fireEvent.click(within(await screen.findByRole('list', { name: '완료한 행사' })).getByRole('button', { name: '새내기 배움터' }))
-  fireEvent.change(await screen.findByRole('textbox', { name: '잘된 점' }), { target: { value: '쓰는 중' } })
+}
+
+test('고치는 중인 회고가 있으면 다른 메뉴·행사로 갈 때 묻고, 취소하면 남는다', async () => {
+  await openDraftReport()
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.change(screen.getByRole('textbox', { name: '잘된 점 1' }), { target: { value: '고치는 중' } })
   const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
   const nav = screen.getByRole('navigation', { name: '학생회 메뉴' })
   fireEvent.click(within(nav).getByRole('button', { name: /내 업무/ }))
-  expect(confirm).toHaveBeenCalledWith('저장하지 않은 결과보고서가 있어요. 이동하면 쓴 글이 사라져요. 이동할까요?')
-  expect((screen.getByRole('textbox', { name: '잘된 점' }) as HTMLTextAreaElement).value).toBe('쓰는 중')
+  expect(confirm).toHaveBeenCalledWith('저장하지 않은 회고가 있어요. 이동하면 고친 내용이 사라져요. 이동할까요?')
+  expect((screen.getByRole('textbox', { name: '잘된 점 1' }) as HTMLTextAreaElement).value).toBe('고치는 중')
   fireEvent.click(within(screen.getByRole('navigation', { name: '행사 목록' })).getByRole('button', { name: '체육대회' }))
-  expect((screen.getByRole('textbox', { name: '잘된 점' }) as HTMLTextAreaElement).value).toBe('쓰는 중')
+  expect((screen.getByRole('textbox', { name: '잘된 점 1' }) as HTMLTextAreaElement).value).toBe('고치는 중')
   confirm.mockReturnValue(true)
   fireEvent.click(within(nav).getByRole('button', { name: /내 업무/ }))
   expect(await screen.findByRole('heading', { level: 1, name: '내 업무' })).toBeTruthy()
+})
+
+test('결과보고서의 준비 과정 줄과 대화 근거를 누르면 볼 수만 있는 행사 화면의 그 탭으로 간다', async () => {
+  await openDraftReport()
+  const steps = () => screen.findByRole('region', { name: '준비 과정' })
+  fireEvent.click(within(await steps()).getByRole('button', { name: /업무 완료: 현수막/ }))
+  expect((await screen.findByRole('tab', { name: '업무' })).getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: '결과보고서' }))
+  fireEvent.click(within(await steps()).getByRole('button', { name: /구매 요청 2건/ }))
+  expect((await screen.findByRole('tab', { name: '구매' })).getAttribute('aria-selected')).toBe('true')
+  expect(screen.getByRole('button', { name: '행사 전체' }).getAttribute('aria-pressed')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: '결과보고서' }))
+  fireEvent.click(within(await steps()).getByRole('button', { name: /지출 46,000원/ }))
+  expect((await screen.findByRole('tab', { name: '재정' })).getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(screen.getByRole('button', { name: '결과보고서' }))
+  fireEvent.click(await screen.findByRole('button', { name: '“조 편성 끝났어요” · 9월 20일' }))
+  expect((await screen.findByRole('tab', { name: '대화' })).getAttribute('aria-selected')).toBe('true')
 })
 
 test('완료한 행사가 없으면 기록은 빈 상태를 보인다', async () => {

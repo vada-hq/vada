@@ -17,6 +17,7 @@ import { TabButton } from '@/components/ui/tab-button'
 // 와이어프레임 탭 순서처럼 업무를 앞쪽(대화 다음)에, 인원 관리(참가자)를 재정 바로 앞에 둔다. 참가자는 부서가 있는 구성원에게만 보인다.
 const tabs = { chat: '대화', tasks: '업무', purchases: '구매', registrations: '참가자', finance: '재정' } as const
 type Tab = keyof typeof tabs
+export type EventTab = Tab
 type Props = { event: EventSummary; finance: boolean; viewerMembershipId: string; events: EventSummary[]; onLeaveRiskChange: (risk: boolean) => void
   // 행사 일시·장소와 참가 신청을 관리하는지(부서가 있는 구성원)
   manageEvents: boolean
@@ -24,28 +25,31 @@ type Props = { event: EventSummary; finance: boolean; viewerMembershipId: string
   onEventChange: (event: EventSummary) => void; onEventStale: () => void
   // 업무가 바뀌면 내 업무(옆 메뉴 수)를 새로 불러오게 알린다.
   onTasksChanged?: () => void
-  // 예산 화면에서 행사 이름을 누르면 재정 탭으로, 내 업무에서 행사로 가면 업무 탭으로 연다.
-  initialTab?: 'chat' | 'tasks' | 'finance'
+  // 예산 화면에서 행사 이름을 누르면 재정 탭으로, 내 업무에서 행사로 가면 업무 탭으로, 결과보고서에서는 그 기록의 탭으로 연다.
+  initialTab?: Tab
+  // 결과보고서의 대화 근거를 누르면 그 메시지를 찾는다.
+  initialMessageId?: string
   // 완료한 행사(M5a)는 볼 수만 있다. 탭마다 바꾸는 단추를 감추고, 서버도 막는다.
   readOnly?: boolean
   // 완료한 행사의 결과보고서를 연다(M5b).
   onOpenReport?: () => void }
 
 export default function EventWorkspace({ event, finance, viewerMembershipId, events, onLeaveRiskChange, manageEvents, onEventChange, onEventStale,
-  onTasksChanged = () => {}, initialTab, readOnly = false, onOpenReport }: Props) {
+  onTasksChanged = () => {}, initialTab, initialMessageId, readOnly = false, onOpenReport }: Props) {
   const order = (Object.keys(tabs) as Tab[]).filter(value => value !== 'registrations' || manageEvents)
-  const [tab, setTab] = useState<Tab>(initialTab ?? 'chat')
-  const [view, setView] = useState<PurchaseView>('candidates')
+  const [tab, setTab] = useState<Tab>(initialTab === 'registrations' && !manageEvents ? 'chat' : initialTab ?? 'chat')
+  // 결과보고서에서 구매로 오면 제출된 품목(행사 전체)을 연다.
+  const [view, setView] = useState<PurchaseView>(initialTab === 'purchases' ? 'all' : 'candidates')
   // 구매 목록은 구매 탭을 처음 열 때, 후보는 구매 탭이나 링크 패널을 처음 열 때 불러온다.
-  const [opened, setOpened] = useState(false)
+  const [opened, setOpened] = useState(initialTab === 'purchases')
   // 재정은 재정 탭을 처음 열 때 불러오고, 다른 화면에서 바뀌었을 수 있어 다시 고를 때마다 새로 불러온다.
   const [financeOpened, setFinanceOpened] = useState(initialTab === 'finance')
   // 참가자는 처음 열 때 불러오고, 공개 신청으로 바뀌었을 수 있어 다시 고를 때마다 새로 불러온다.
-  const [registrationsOpened, setRegistrationsOpened] = useState(false)
+  const [registrationsOpened, setRegistrationsOpened] = useState(initialTab === 'registrations' && manageEvents)
   // 업무도 처음 열 때 불러오고, 다른 사람이 바꿨을 수 있어 다시 고를 때마다 새로 불러온다.
   const [tasksOpened, setTasksOpened] = useState(initialTab === 'tasks')
   const [link, setLink] = useState<CoupangLink | null>(null)
-  const [focus, setFocus] = useState<{ id: number; messageId: string } | null>(null)
+  const [focus, setFocus] = useState<{ id: number; messageId: string } | null>(initialMessageId ? { id: 0, messageId: initialMessageId } : null)
   const purchases = useEventPurchases(event.organizationId, event.id, opened)
   const candidates = useCandidates(event.organizationId, event.id, opened || link !== null,
     (tab === 'purchases' && view === 'candidates') || link !== null)

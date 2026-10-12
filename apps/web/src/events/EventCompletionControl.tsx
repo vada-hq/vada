@@ -69,7 +69,7 @@ function Body({ action, event, busy, onBusy, onClose, onChanged, onStale }: Body
   const ended = eventPhaseOf(event, koreanOf(new Date())) === 'wrapping'
   return <>
     <DialogHeader><DialogTitle>{title}</DialogTitle>
-      <DialogDescription>완료하면 대화·업무·구매·참가자·재정을 바꿀 수 없고, 행사가 "기록"으로 옮겨져요. 기록에서 결과보고서를 써요.
+      <DialogDescription>완료하면 대화·업무·구매·참가자·재정을 바꿀 수 없고, 행사가 "기록"으로 옮겨져요. 결과보고서는 행사 기록으로 저절로 채워져요.
         회장단은 완료를 취소할 수 있어요.</DialogDescription></DialogHeader>
     {check === 'loading' ? <StateMessage kind="loading">완료할 수 있는지 확인하는 중…</StateMessage>
       : check === 'error' ? <div className="flex flex-wrap items-center gap-2">
