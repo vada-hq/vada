@@ -38,8 +38,9 @@ export async function expenseItemRows(db: Reader, organizationId: string, where:
     purchasedAt: row.purchasedAt?.toISOString() ?? null } satisfies ExpenseItem }))
 }
 
-// 목록·상세·변경 응답이 같은 칸을 쓴다. 증빙은 확인된(ready) 파일만 센다.
-export async function expenseSummaries(db: Reader, organizationId: string, where: SQL | undefined, limit: number): Promise<ExpenseSummary[]> {
+// 목록·상세·변경 응답이 같은 칸을 쓴다. 증빙은 확인된(ready) 파일만 센다. 운영 현황(M6)은 오래된 결제부터 자른다.
+export async function expenseSummaries(db: Reader, organizationId: string, where: SQL | undefined, limit: number,
+  order: 'newest' | 'oldest' = 'newest'): Promise<ExpenseSummary[]> {
   const rows = await db.select({
     expense: expenses, eventName: events.name, settledAt: eventFinances.settledAt, lineName: lines.name, payerName: payers.name,
     payerMembershipId: payerMemberships.id,
@@ -58,7 +59,8 @@ export async function expenseSummaries(db: Reader, organizationId: string, where
     .innerJoin(recorders, eq(recorders.id, expenses.recordedBy))
     .leftJoin(voiders, eq(voiders.id, expenses.voidedBy))
     .where(and(eq(expenses.organizationId, organizationId), where))
-    .orderBy(desc(expenses.paidOn), desc(expenses.createdAt), desc(expenses.id)).limit(limit)
+    .orderBy(...(order === 'newest' ? [desc(expenses.paidOn), desc(expenses.createdAt), desc(expenses.id)]
+      : [asc(expenses.paidOn), asc(expenses.createdAt), asc(expenses.id)])).limit(limit)
   const ids = rows.map(row => row.expense.id)
   const linked = ids.length ? await expenseItemRows(db, organizationId, inArray(expenseItems.expenseId, ids)) : []
   return rows.map(({ expense, ...row }): ExpenseSummary => {
