@@ -90,6 +90,8 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   // 768px 미만에서 옆 메뉴로 연 사이드바. 행사를 고르면 닫는다.
   const [navOpen, setNavOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
+  // 새 행사를 만들면 운영 현황을 다시 불러온다(홈의 빈 화면에서 만들어도 카드가 바로 보이게).
+  const [homeReload, setHomeReload] = useState(0)
   function canLeave() {
     if (leaveRisk && !window.confirm('끼룩이가 품목을 담는 중이에요. 이동해도 담는 중인 품목은 서버에서 계속 만들어질 수 있어요. 이동할까요?')) return false
     // 결과보고서(M5b)에 저장하지 않은 글이 있으면 묻는다.
@@ -125,9 +127,12 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     setNavOpen(false)
   }
   // 내 업무·예산·운영 현황에서 행사를 그 탭으로 연다. 세 화면에는 입력 중인 것이 없으므로 묻지 않는다.
-  function openEventAt(eventId: string, tab: EventTab = 'chat') {
-    const target = events.events?.find(item => item.id === eventId)
+  // 운영 현황은 행사 요약(fallback)을 같이 넘긴다. 옆 메뉴 목록에 아직 없으면(다른 사람이 방금 만든 행사) 그 요약으로 열고 목록을 새로 불러온다.
+  function openEventAt(eventId: string, tab: EventTab = 'chat', fallback?: EventSummary) {
+    const listed = events.events?.find(item => item.id === eventId)
+    const target = listed ?? fallback
     if (!target) return
+    if (!listed) events.refresh()
     setEventTab(tab)
     setEventMessage(null)
     setSelected(target)
@@ -185,7 +190,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
         <DialogHeader><DialogTitle>새 행사</DialogTitle><DialogDescription>행사를 만들면 대화방이 함께 생겨요.</DialogDescription></DialogHeader>
         <CreateEventForm name={events.name} onNameChange={events.setName} saving={events.saving}
           disabled={events.loading || Boolean(events.loadError)} error={events.createError} onCancel={() => setCreateOpen(false)}
-          onSubmit={event => { void events.create(event).then(created => { if (created) setCreateOpen(false) }) }} />
+          onSubmit={event => { void events.create(event).then(created => { if (created) { setCreateOpen(false); setHomeReload(value => value + 1) } }) }} />
       </DialogContent>
     </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
@@ -201,8 +206,9 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
           : view === 'fees' ? '참가비 설정' : view === 'records' ? '기록' : view === 'report' ? reportCurrent?.name ?? '결과보고서' : selected?.name ?? '행사'}
         onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
-        {view === 'home' ? <Home organizationId={membership.organization.id} permissions={membership.permissions} onOpenEvent={openEventAt}
-          onOpenReview={openReview} onCreateEvent={() => setCreateOpen(true)} onTasksChanged={myTasks.refresh} />
+        {view === 'home' ? <Home organizationId={membership.organization.id} permissions={membership.permissions}
+          onOpenEvent={(event, tab) => openEventAt(event.id, tab, event)} onOpenReview={openReview} onCreateEvent={() => setCreateOpen(true)}
+          onTasksChanged={myTasks.refresh} reloadKey={homeReload} />
           : view === 'tasks' ? <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><div className="mx-auto max-w-3xl">
           <MyTasks organizationId={membership.organization.id} manageEvents={membership.permissions.manageEvents} state={myTasks}
             onOpenEvent={eventId => openEventAt(eventId, 'tasks')} /></div></div>

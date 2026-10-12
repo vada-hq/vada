@@ -69,9 +69,9 @@ export function rowOf(item: HomeItem, view: HomeView, data: Data): { title: stri
       detail: line(won(item.expense.amount), `${item.expense.payer.name} 결제`, dueText(item.expense.paidOn)) }
     case 'fees_unconfirmed': return { title: `입금 확인 전 ${item.count}명`, detail: line() }
     case 'settlement_pending': {
-      const { missingEvidence, pendingRequests, unrecordedItems } = item.blockers
+      const { missingEvidence, pendingRequests, unrecordedItems, feePeriodMissing } = item.blockers
       const blocking = [missingEvidence ? `증빙 없는 지출 ${missingEvidence}` : '', pendingRequests ? `승인 대기 ${pendingRequests}` : '',
-        unrecordedItems ? `지출 기록 전 품목 ${unrecordedItems}` : ''].filter(Boolean)
+        unrecordedItems ? `지출 기록 전 품목 ${unrecordedItems}` : '', feePeriodMissing ? '참가비를 넣을 회계 기간 없음' : ''].filter(Boolean)
       return { title: ago(item.endedOn, '정산 전 · 오늘 끝남', days => `정산 전 · 끝난 지 ${days}일`),
         detail: line(...(blocking.length ? blocking : ['정산할 수 있어요'])) }
     }

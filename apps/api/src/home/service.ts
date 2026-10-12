@@ -2,8 +2,8 @@ import { and, asc, desc, eq, inArray, isNull, lt, ne, notExists, or, sql } from 
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { eventPhaseOf, HOME_EXPENSES_MAX, HOME_TASKS_MAX, koreanOf, type HomeEvent, type HomeItem, type HomeResponse,
   type HomeTaskCounts } from '@vada/contracts'
-import { departments, eventFinances, expenseReceipts, expenses, purchaseItems, purchaseSubmissions, registrationForms, registrations,
-  tasks } from '../db/schema.js'
+import { budgetLines, departments, eventFinances, expenseReceipts, expenses, purchaseItems, purchaseSubmissions, registrationForms,
+  registrations, tasks } from '../db/schema.js'
 import { eventSummaries } from '../events/events.js'
 import { expenseSummaries } from '../expenses/summaries.js'
 import { owedSql } from '../registrations/fee.js'
@@ -86,12 +86,18 @@ export async function homeOf(db: HomeDatabase, organizationId: string, now: Date
   const forms = await db.select({ eventId: registrationForms.eventId, capacity: registrationForms.capacity, closesAt: registrationForms.closesAt,
     accepting: registrationForms.accepting,
     registered: sql<number>`(count(${registrations.id}) filter (where ${registrations.cancelledAt} is null))::int`,
+    // 받은 참가비: 취소했거나 정보를 지운 신청의 확인 금액도 센다(eventFeesOf와 같다).
+    received: sql<string>`coalesce(sum(${registrations.paidAmount}), 0)`,
     unconfirmed: sql<number>`(count(*) filter (where ${registrations.id} is not null and ${registrations.purgedAt} is null
       and ${registrations.paidAt} is null and ${owedSql} > 0))::int` }).from(registrationForms)
     .leftJoin(registrations, eq(registrations.formId, registrationForms.id))
     .where(and(eq(registrationForms.organizationId, organizationId), inArray(registrationForms.eventId, ids)))
     .groupBy(registrationForms.id)
   const formOf = new Map(forms.map(row => [row.eventId, row]))
+  // 받은 참가비가 있으면 정산이 그 행사가 든 회계 기간에 참가비 수입을 넣는다. 기간에 없으면 정산이 막힌다(M3b-2).
+  const waiting = ended.filter(event => !settled.has(event.id)).map(event => event.id)
+  const planned = new Set((await db.select({ eventId: budgetLines.eventId }).from(budgetLines)
+    .where(and(eq(budgetLines.organizationId, organizationId), inArray(budgetLines.eventId, waiting)))).map(row => row.eventId))
   const fees = forms.filter(row => !settled.has(row.eventId) && row.unconfirmed > 0).sort(byEvent)
 
   const work = new Map(perEvent.map(row => [row.eventId, row]))
@@ -111,8 +117,10 @@ export async function homeOf(db: HomeDatabase, organizationId: string, now: Date
   }
   for (const event of ended.filter(entry => !settled.has(entry.id))) {
     const numbers = blockers.get(event.id)!
+    const received = Number(formOf.get(event.id)?.received ?? 0)
     items.push({ kind: 'settlement_pending', eventId: event.id, endedOn: endedOn(event),
-      blockers: { missingEvidence: numbers.missingEvidence, pendingRequests: numbers.pendingRequests, unrecordedItems: numbers.unrecordedItems } })
+      blockers: { missingEvidence: numbers.missingEvidence, pendingRequests: numbers.pendingRequests, unrecordedItems: numbers.unrecordedItems,
+        feePeriodMissing: received > 0 && !planned.has(event.id) } })
   }
   for (const task of overdue.slice(0, HOME_TASKS_MAX)) items.push({ kind: 'task_overdue', eventId: task.event.id, task })
   // 행사 순서, 같은 행사에서는 부서 이름 순(담당 부서 없음은 뒤)

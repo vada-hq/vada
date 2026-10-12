@@ -56,18 +56,18 @@ test('줄을 누르면: 업무는 상세를 열고, 구매는 구매 검토로, 
   fireEvent.click(screen.getByRole('button', { name: /구매 승인 대기 3건/ }))
   expect(callbacks.onOpenReview).toHaveBeenCalledOnce()
   fireEvent.click(screen.getByRole('button', { name: /입금 확인 전 5명/ }))
-  expect(callbacks.onOpenEvent).toHaveBeenLastCalledWith('e', 'registrations')
+  expect(callbacks.onOpenEvent).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'e' }), 'registrations')
   fireEvent.click(screen.getByRole('button', { name: '체육대회' }))
-  expect(callbacks.onOpenEvent).toHaveBeenLastCalledWith('e')
+  expect(callbacks.onOpenEvent).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'e' }))
 })
 
 test('미배정은 입금 확인 전을 누르면 재정 탭으로, 구매는 행사 구매 탭으로 간다', async () => {
   serve(busy)
   const callbacks = show(unassigned)
   fireEvent.click(await screen.findByRole('button', { name: /입금 확인 전 5명/ }))
-  expect(callbacks.onOpenEvent).toHaveBeenLastCalledWith('e', 'finance')
+  expect(callbacks.onOpenEvent).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'e' }), 'finance')
   fireEvent.click(screen.getByRole('button', { name: /구매 승인 대기 3건/ }))
-  expect(callbacks.onOpenEvent).toHaveBeenLastCalledWith('e', 'purchases')
+  expect(callbacks.onOpenEvent).toHaveBeenLastCalledWith(expect.objectContaining({ id: 'e' }), 'purchases')
   expect(callbacks.onOpenReview).not.toHaveBeenCalled()
 })
 

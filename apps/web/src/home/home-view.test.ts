@@ -53,10 +53,12 @@ test('줄 글: 행사별은 할 차례, 부서별은 행사 이름을 앞에 둔
   expect(rowOf(noEvidence, 'events', data)).toEqual({ title: '증빙 없음 · 사무용품', detail: '총무부 · 8,000원 · 박재정 결제 · 10.3' })
   expect(rowOf(noEvidence, 'departments', data).detail).toBe('상시 운영 지출 · 8,000원 · 박재정 결제 · 10.3')
   expect(rowOf({ kind: 'fees_unconfirmed', eventId: 'e', count: 5 }, 'events', data)).toEqual({ title: '입금 확인 전 5명', detail: '총무부' })
-  expect(rowOf({ kind: 'settlement_pending', eventId: 'e', endedOn: '2026-09-27', blockers: { missingEvidence: 1, pendingRequests: 0, unrecordedItems: 2 } },
+  expect(rowOf({ kind: 'settlement_pending', eventId: 'e', endedOn: '2026-09-27', blockers: { missingEvidence: 1, pendingRequests: 0, unrecordedItems: 2, feePeriodMissing: false } },
     'events', data)).toEqual({ title: '정산 전 · 끝난 지 15일', detail: '총무부 · 증빙 없는 지출 1 · 지출 기록 전 품목 2' })
-  expect(rowOf({ kind: 'settlement_pending', eventId: 'e', endedOn: '2026-10-12', blockers: { missingEvidence: 0, pendingRequests: 0, unrecordedItems: 0 } },
+  expect(rowOf({ kind: 'settlement_pending', eventId: 'e', endedOn: '2026-10-12', blockers: { missingEvidence: 0, pendingRequests: 0, unrecordedItems: 0, feePeriodMissing: false } },
     'events', data)).toEqual({ title: '정산 전 · 오늘 끝남', detail: '총무부 · 정산할 수 있어요' })
+  expect(rowOf({ kind: 'settlement_pending', eventId: 'e', endedOn: '2026-10-12', blockers: { missingEvidence: 0, pendingRequests: 0, unrecordedItems: 0,
+    feePeriodMissing: true } }, 'events', data).detail).toBe('총무부 · 참가비를 넣을 회계 기간 없음')
   expect(rowOf({ kind: 'completion_pending', eventId: 'e', endedOn: '2026-09-27' }, 'events', data))
     .toEqual({ title: '정산 끝, 완료 전', detail: '회장단 · 끝난 지 15일' })
 })

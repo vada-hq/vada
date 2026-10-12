@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { CalendarDays, ChevronRight } from 'lucide-react'
-import { koreanOf, type HomeItem, type MembershipPermissions } from '@vada/contracts'
+import { koreanOf, type EventSummary, type HomeItem, type MembershipPermissions } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
 import StateMessage from '@/components/StateMessage'
 import { Badge } from '@/components/ui/badge'
@@ -18,19 +18,21 @@ import { useHome } from './useHome'
 type Props = {
   organizationId: string
   permissions: MembershipPermissions
-  // 탭이 없으면 행사의 첫 탭(대화)으로 연다.
-  onOpenEvent: (eventId: string, tab?: HomeTab) => void
+  // 탭이 없으면 행사의 첫 탭(대화)으로 연다. 옆 메뉴 목록에 아직 없는 행사도 열 수 있게 행사 요약을 넘긴다.
+  onOpenEvent: (event: EventSummary, tab?: HomeTab) => void
   onOpenReview: () => void
   onCreateEvent: () => void
   // 업무가 바뀌면 옆 메뉴 내 업무 수를 새로 불러오게 알린다.
   onTasksChanged: () => void
+  // 바뀌면 다시 불러온다(새 행사를 만들었을 때).
+  reloadKey?: number
 }
 const frame = (children: ReactNode) => <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
   <div className="mx-auto flex max-w-3xl flex-col gap-4">{children}</div></div>
 
 // 운영 현황(M6). 끝나지 않은 행사의 멈춘 일과 할 차례를 행사별·부서별로 본다. 회장단이 학생회를 열면 첫 화면이다.
-export default function Home({ organizationId, permissions, onOpenEvent, onOpenReview, onCreateEvent, onTasksChanged }: Props) {
-  const { data, loadError, refresh } = useHome(organizationId)
+export default function Home({ organizationId, permissions, onOpenEvent, onOpenReview, onCreateEvent, onTasksChanged, reloadKey }: Props) {
+  const { data, loadError, refresh } = useHome(organizationId, reloadKey)
   const [view, setView] = useState<HomeView>('events')
   const [task, setTask] = useState<{ eventId: string; taskId: string } | null>(null)
   const [expenseId, setExpenseId] = useState<string | null>(null)
@@ -38,9 +40,14 @@ export default function Home({ organizationId, permissions, onOpenEvent, onOpenR
     <StateMessage kind="error">운영 현황을 불러오지 못했어요.</StateMessage>
     <Button variant="outline" size="sm" onClick={refresh}>다시 불러오기</Button>
   </div> : <StateMessage kind="loading">운영 현황을 불러오는 중…</StateMessage>)
+  // 끝나지 않은 행사만 열 수 있다. 그사이 완료한 행사면 아무 일도 하지 않는다.
+  function openEvent(eventId: string, tab?: HomeTab) {
+    const event = data?.events.find(home => home.event.id === eventId)?.event
+    if (event) onOpenEvent(event, tab)
+  }
   const dialogs = <>
     <TaskDialogs organizationId={organizationId} manageEvents={permissions.manageEvents} target={task} onClose={() => setTask(null)}
-      onChanged={() => { refresh(); onTasksChanged() }} onOpenEvent={eventId => onOpenEvent(eventId, 'tasks')} />
+      onChanged={() => { refresh(); onTasksChanged() }} onOpenEvent={eventId => openEvent(eventId, 'tasks')} />
     <ExpenseDetailDialog organizationId={organizationId} expenseId={expenseId} finance={permissions.approvePurchases}
       onClose={() => setExpenseId(null)} onChanged={refresh} />
   </>
@@ -55,7 +62,7 @@ export default function Home({ organizationId, permissions, onOpenEvent, onOpenR
     if (target.type === 'task') setTask({ eventId: target.eventId, taskId: target.taskId })
     else if (target.type === 'expense') setExpenseId(target.expenseId)
     else if (target.type === 'review') onOpenReview()
-    else onOpenEvent(target.eventId, target.tab)
+    else openEvent(target.eventId, target.tab)
   }
   const rows = (items: HomeItem[]) => <ul className="flex flex-col border-t border-gray-100" aria-label="멈춘 일">{items.map(item => {
     const row = rowOf(item, view, data)
@@ -90,7 +97,7 @@ export default function Home({ organizationId, permissions, onOpenEvent, onOpenR
               <Badge tone={phaseTones[group.home.phase]}>{phaseLabels[group.home.phase]}</Badge>
               <h2 className="min-w-0 text-sm">
                 <Button variant="link" className="h-auto justify-start p-0 text-left text-sm font-semibold whitespace-normal wrap-anywhere text-gray-900"
-                  onClick={() => onOpenEvent(group.home!.event.id)}>{name}</Button>
+                  onClick={() => onOpenEvent(group.home!.event)}>{name}</Button>
               </h2>
             </div>
             <p className="text-xs wrap-anywhere text-gray-500">{eventLineOf(group.home, data.today)}</p>

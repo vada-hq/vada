@@ -5,7 +5,8 @@ const isHome = (body: unknown): body is HomeResponse => typeof body === 'object'
   && Array.isArray((body as HomeResponse).events) && Array.isArray((body as HomeResponse).items)
 
 // 운영 현황(M6). 화면을 열 때마다 불러온다(다른 사람이 바꿨을 수 있다). 다시 불러오는 동안 지난 값을 그대로 보인다.
-export function useHome(organizationId: string) {
+// reloadKey가 바뀌면 다시 불러온다(작업 공간에서 새 행사를 만들었을 때).
+export function useHome(organizationId: string, reloadKey = 0) {
   const url = `/api/organizations/${encodeURIComponent(organizationId)}/home`
   const [data, setData] = useState<HomeResponse | null>(null)
   const [loadError, setLoadError] = useState(false)
@@ -24,6 +25,6 @@ export function useHome(organizationId: string) {
       }
     })()
     return () => controller.abort()
-  }, [url, attempt])
+  }, [url, attempt, reloadKey])
   return { data, loadError, refresh: () => setAttempt(value => value + 1) }
 }

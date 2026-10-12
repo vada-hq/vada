@@ -192,9 +192,30 @@ test('끝난 행사: 정산 전이면 막는 수와 함께, 정산했으면 완�
     `)
     const home = await env.ok<HomeResponse>(homeApp(env)())
     assert.deepEqual(kinds(home, 'settlement_pending'), [{ kind: 'settlement_pending', eventId: 'e', endedOn: '2026-10-01',
-      blockers: { missingEvidence: 1, pendingRequests: 1, unrecordedItems: 0 } }])
+      blockers: { missingEvidence: 1, pendingRequests: 1, unrecordedItems: 0, feePeriodMissing: false } }])
     assert.deepEqual(kinds(home, 'completion_pending'), [{ kind: 'completion_pending', eventId: 'e2', endedOn: '2026-10-11' }])
     assert.deepEqual([home.counts.settlement_pending, home.counts.completion_pending], [1, 1])
     assert.deepEqual(home.items.slice(0, 2).map(item => item.kind), ['completion_pending', 'settlement_pending'])
+  } finally { await env.pg.close() }
+})
+
+test('참가비를 받았는데 회계 기간에 넣지 않은 행사는 정산을 막는다고 알린다(재정 탭의 정산 조건과 같다)', async () => {
+  const env = await setupPurchases()
+  try {
+    await env.pg.exec(`
+      UPDATE events SET starts_at = '2026-10-01T10:00+09', ends_at = '2026-10-01T18:00+09' WHERE id = 'e';
+      INSERT INTO registration_forms(id, organization_id, event_id, closes_at, fee, created_by) VALUES ('form','a','e','2026-09-30T23:59+09',5000,'p');
+      INSERT INTO registrations(id, organization_id, form_id, token_hash, name, student_id, paid_amount, paid_at, paid_by) VALUES
+        ('g1','a','form','${'a'.repeat(64)}','가학생','20260001',5000,now(),'f');
+    `)
+    const blocked = kinds(await env.ok<HomeResponse>(homeApp(env)()), 'settlement_pending')
+    assert.deepEqual(blocked.map(item => item.kind === 'settlement_pending' && item.blockers),
+      [{ missingEvidence: 0, pendingRequests: 0, unrecordedItems: 0, feePeriodMissing: true }])
+    await env.pg.exec(`
+      INSERT INTO budget_periods(id, organization_id, name, starts_on, ends_on, created_by) VALUES ('p1','a','2026년 2학기','2026-09-01','2027-02-28','l');
+      INSERT INTO budget_lines(id, organization_id, period_id, kind, event_id, position) VALUES ('l1','a','p1','event','e',0);
+    `)
+    const ready = kinds(await env.ok<HomeResponse>(homeApp(env)()), 'settlement_pending')
+    assert.equal(ready[0]!.kind === 'settlement_pending' && ready[0]!.blockers.feePeriodMissing, false)
   } finally { await env.pg.close() }
 })

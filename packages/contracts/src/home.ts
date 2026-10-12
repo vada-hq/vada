@@ -31,9 +31,10 @@ export type HomeItem =
   // 상시 운영 지출이면 eventId가 null이다.
   | { kind: 'expense_no_evidence'; eventId: string | null; expense: ExpenseSummary }
   | { kind: 'fees_unconfirmed'; eventId: string; count: number }
-  // endedOn은 행사가 끝난 한국 날짜다. blockers는 정산을 막는 수(정산 조건과 같다)다.
+  // endedOn은 행사가 끝난 한국 날짜다. blockers는 정산을 막는 것(정산 조건과 같다)이다.
+  // feePeriodMissing은 받은 참가비가 있는데 행사가 회계 기간에 없다는 뜻이다(참가비 수입을 넣을 곳이 없다).
   | { kind: 'settlement_pending'; eventId: string; endedOn: string
-      blockers: { missingEvidence: number; pendingRequests: number; unrecordedItems: number } }
+      blockers: { missingEvidence: number; pendingRequests: number; unrecordedItems: number; feePeriodMissing: boolean } }
   | { kind: 'completion_pending'; eventId: string; endedOn: string }
 export interface HomeDepartment { id: string; name: string; isLeadership: boolean; handlesFinance: boolean; tasks: HomeTaskCounts }
 export interface HomeResponse {

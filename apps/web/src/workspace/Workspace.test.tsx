@@ -556,3 +556,33 @@ test('부원은 내 업무가 먼저 보이고 옆 메뉴 홈으로 운영 현�
   expect(await screen.findByRole('heading', { level: 1, name: '운영 현황' })).toBeTruthy()
   expect(await screen.findByText('진행 중인 행사가 없어요')).toBeTruthy()
 })
+
+test('옆 메뉴 목록에 아직 없는 행사(다른 사람이 방금 만든 행사)도 운영 현황에서 누르면 열린다', async () => {
+  const fresh = { ...event, id: 'e9', name: '새로 만든 행사' }
+  setup(membersBody, undefined, undefined, [event], [], null, homeResponse({ events: [homeEvent({ event: fresh })] }))
+  render(<Workspace {...props} memberships={[leaderMembership]} />)
+  await within(screen.getByRole('complementary', { name: '학생회 작업 공간' })).findByRole('button', { name: '체육대회' })
+  fireEvent.click(await screen.findByRole('button', { name: '새로 만든 행사' }))
+  expect(screen.getByRole('heading', { level: 1, name: '새로 만든 행사' })).toBeTruthy()
+})
+
+test('운영 현황에서 새 행사를 만들면 운영 현황을 다시 불러와 그 행사가 보인다', async () => {
+  const created = { ...event, id: 'e3', name: '가을 축제' }
+  let homeCalls = 0
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => ({ ok: true, status: init?.method === 'POST' ? 201 : 200, json: async () =>
+    init?.method === 'POST' ? { event: created }
+      : url.endsWith('/home') ? (++homeCalls === 1 ? homeResponse() : homeResponse({ events: [homeEvent({ event: created })] }))
+        : url.endsWith('/events') ? { events: [] }
+          : url.endsWith('/my-tasks') ? { open: [], done: [], truncated: false }
+            : url.endsWith('/members') ? membersBody
+              : url.endsWith('/purchase-review') ? { pending: [], approved: [], truncated: false } : { items: [], truncated: false } })))
+  render(<Workspace {...props} memberships={[leaderMembership]} />)
+  const main = screen.getByRole('main')
+  fireEvent.click(await within(main).findByRole('button', { name: '새 행사' }))
+  const dialog = await screen.findByRole('dialog', { name: '새 행사' })
+  fireEvent.change(within(dialog).getByLabelText('행사 이름'), { target: { value: '가을 축제' } })
+  await waitFor(() => expect((within(dialog).getByRole('button', { name: '행사 만들기' }) as HTMLButtonElement).disabled).toBe(false))
+  fireEvent.click(within(dialog).getByRole('button', { name: '행사 만들기' }))
+  expect(await within(main).findByRole('article', { name: '가을 축제' })).toBeTruthy()
+  expect(homeCalls).toBe(2)
+})
