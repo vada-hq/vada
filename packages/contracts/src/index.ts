@@ -150,3 +150,8 @@ export { REPORT_SECTION_MAX, REPORT_SECTIONS, REPORT_SECTION_LABELS, SaveEventRe
   UnpublishEventReportSchema } from './reports.js'
 export type { ReportSection, ReportStatus, SaveEventReportRequest, PublishEventReportRequest, EventReportFacts, ReportPerson, EventReportView,
   EventReportResponse, EventRecord, RecordsResponse } from './reports.js'
+export { RETRO_TEXT_MAX, RETRO_ANSWER_MAX, RETRO_ITEMS_MAX, RETRO_GENERATED_MAX, RETRO_QUESTIONS_MAX, RETRO_SOURCES_MAX, RETRO_SECTIONS,
+  RETRO_SECTION_LABELS, GenerateRetrospectiveSchema, SaveRetrospectiveSchema, ConfirmRetrospectiveSchema, dDayOf } from './reports.js'
+export type { RetroSection, GenerateRetrospectiveRequest, SaveRetrospectiveRequest, ConfirmRetrospectiveRequest, RecordTab, RecordEntryKind,
+  RecordEntry, RetrospectiveSource, RetrospectiveItemView, RetrospectiveQuestionView, RetrospectiveView, RetrospectiveState, RetrospectiveItem,
+  RetrospectiveQuestion, RetrospectiveContent } from './reports.js'
