@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { Archive, ClipboardCheck, Landmark, ListChecks, LogOut, Receipt, UserPlus, Users, Wallet } from 'lucide-react'
+import { Archive, ClipboardCheck, House, Landmark, ListChecks, LogOut, Receipt, UserPlus, Users, Wallet } from 'lucide-react'
 import type { MembershipSummary } from '@vada/contracts'
 import InviteShare from '../access/InviteShare'
 import { Avatar } from '@/components/Avatar'
@@ -13,6 +13,8 @@ import { NavItem } from '@/components/ui/nav-item'
 
 export type AccountProps = { user: { name: string; email: string }; logoutBusy: boolean; onLogout: () => void }
 type Props = AccountProps & { membership: MembershipSummary; memberships: MembershipSummary[]; onMembershipChange: (id: string) => void
+  // 운영 현황(M6). 회장단이 학생회를 열면 첫 화면이다. 수는 달지 않는다.
+  homeActive: boolean; onHome: () => void
   // 내 업무(첫 화면). 남은 할 일 수나 지연 수를 붙인다.
   tasksActive: boolean; tasksBadge: { tone: 'danger' | 'info'; text: string } | null; onTasks: () => void
   membersActive: boolean; unassignedCount: number | null; onMembers: () => void
@@ -26,7 +28,7 @@ type Props = AccountProps & { membership: MembershipSummary; memberships: Member
 
 // 와이어프레임 사이드바(210px): 위 로고와 학생회 이름, 가운데 행사 메뉴, 아래 사용자.
 // 데스크톱 aside와 휴대폰 옆 메뉴가 같이 쓴다. 위 블록의 오른쪽 여백은 옆 메뉴 닫기 버튼 자리다.
-export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, tasksActive, tasksBadge, onTasks, membersActive, unassignedCount, onMembers, reviewActive, pendingCount, onReview, budgetActive, onBudget, expensesActive, onExpenses, feesActive, onFees, recordsActive, onRecords, user, logoutBusy, onLogout, children }: Props) {
+export default function WorkspaceSidebar({ membership, memberships, onMembershipChange, homeActive, onHome, tasksActive, tasksBadge, onTasks, membersActive, unassignedCount, onMembers, reviewActive, pendingCount, onReview, budgetActive, onBudget, expensesActive, onExpenses, feesActive, onFees, recordsActive, onRecords, user, logoutBusy, onLogout, children }: Props) {
   const [inviteOpen, setInviteOpen] = useState(false)
   return <div className="flex h-full min-h-0 flex-col">
     <div className="flex shrink-0 items-center gap-2 border-b border-gray-100 py-4 pr-10 pl-5">
@@ -51,6 +53,9 @@ export default function WorkspaceSidebar({ membership, memberships, onMembership
       </Dialog>
     </section>
     <nav aria-label="학생회 메뉴" className="shrink-0 border-b border-gray-100 px-2 py-2">
+      <NavItem active={homeActive} className="flex items-center gap-2" onClick={onHome}>
+        <House aria-hidden className="size-4" />홈
+      </NavItem>
       <NavItem active={tasksActive} className="flex items-center gap-2" onClick={onTasks}>
         <ListChecks aria-hidden className="size-4" />내 업무
         {tasksBadge && <Badge tone={tasksBadge.tone} className="ml-auto">{tasksBadge.text}</Badge>}

@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import Budget from '../budget/Budget'
 import FeeSettings from '../fees/FeeSettings'
+import Home from '../home/Home'
 import EventList from '../events/EventList'
 import EventReport from '../records/EventReport'
 import type { OpenTarget } from '../records/Retrospective'
@@ -30,7 +31,7 @@ import EventWorkspace, { type EventTab } from './EventWorkspace'
 import WorkspaceHeader from './WorkspaceHeader'
 import WorkspaceSidebar, { type AccountProps } from './WorkspaceSidebar'
 
-type View = 'tasks' | 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees' | 'records' | 'report'
+type View = 'home' | 'tasks' | 'events' | 'members' | 'review' | 'expenses' | 'budget' | 'fees' | 'records' | 'report'
 type Props = AccountProps & { memberships: MembershipSummary[]; initialOrganizationId?: string; initialView?: View; onMembershipsChanged?: () => void }
 export default function Workspace({ initialOrganizationId, initialView, ...props }: Props) {
   // 초대로 방금 참여했거나 방금 만든 학생회가 있으면 그 학생회를 먼저 연다.
@@ -50,8 +51,8 @@ function sameMembership(a: MembershipSummary, b: MembershipSummary) {
 
 function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembershipsChanged, ...props }: Omit<Props, 'initialOrganizationId'> & { membership: MembershipSummary; onMembershipChange: (id: string) => void }) {
   const events = useEvents(membership.organization.id)
-  // 학생회를 열면 내 업무가 먼저 보인다. 알림 대신 맡은 업무가 눈에 띄게 한다.
-  const [view, setView] = useState<View>(initialView ?? 'tasks')
+  // 회장단은 학생회를 열면 운영 현황(M6)이, 다른 구성원은 내 업무가 먼저 보인다. 알림 대신 할 일이 눈에 띄게 한다.
+  const [view, setView] = useState<View>(initialView ?? (membership.permissions.manageOrganization ? 'home' : 'tasks'))
   // 옆 메뉴의 남은 수와 내 업무 화면이 같이 쓴다.
   const myTasks = useMyTasks(membership.organization.id)
   // 회장단은 사이드바에 미배정 수를 보여 주려고 처음부터 불러온다. 다른 사람은 구성원 화면을 열 때 불러온다.
@@ -123,14 +124,18 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     if (view !== 'tasks' && canLeave()) { setView('tasks'); myTasks.refresh() }
     setNavOpen(false)
   }
-  // 내 업무에서 행사로 가면 그 행사의 업무 탭을 연다. 내 업무에는 입력 중인 구매가 없으므로 묻지 않는다.
-  function openEventTasks(eventId: string) {
+  // 내 업무·예산·운영 현황에서 행사를 그 탭으로 연다. 세 화면에는 입력 중인 것이 없으므로 묻지 않는다.
+  function openEventAt(eventId: string, tab: EventTab = 'chat') {
     const target = events.events?.find(item => item.id === eventId)
     if (!target) return
-    setEventTab('tasks')
+    setEventTab(tab)
     setEventMessage(null)
     setSelected(target)
     setView('events')
+  }
+  function openHome() {
+    if (view !== 'home' && canLeave()) setView('home')
+    setNavOpen(false)
   }
   function openMembers() {
     if (view !== 'members' && canLeave()) { setView('members'); members.refresh() }
@@ -143,15 +148,6 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   function openBudget() {
     if (view !== 'budget' && canLeave()) setView('budget')
     setNavOpen(false)
-  }
-  // 예산 화면에서 행사 이름을 누르면 그 행사의 재정 탭을 연다. 예산 화면에는 입력 중인 구매가 없으므로 묻지 않는다.
-  function openEventFinance(eventId: string) {
-    const target = events.events?.find(item => item.id === eventId)
-    if (!target) return
-    setEventTab('finance')
-    setEventMessage(null)
-    setSelected(target)
-    setView('events')
   }
   function openExpenses() {
     if (view !== 'expenses' && canLeave()) { setView('expenses'); expenses.refresh() }
@@ -170,6 +166,7 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
   const unassigned = membership.permissions.manageOrganization && members.data ? members.data.members.filter(member => member.departmentId === null).length : null
   const sidebar = <WorkspaceSidebar {...props} onLogout={() => { if (canLeave()) props.onLogout() }} membership={membership}
     onMembershipChange={id => { if (canLeave()) onMembershipChange(id) }}
+    homeActive={view === 'home'} onHome={openHome}
     tasksActive={view === 'tasks'} tasksBadge={taskBadge(myTasks.data, todayInSeoul())} onTasks={openTasks}
     membersActive={view === 'members'} unassignedCount={unassigned} onMembers={openMembers}
     reviewActive={view === 'review'} pendingCount={finance && review.data ? review.data.pending.length : null} onReview={finance ? openReview : null}
@@ -193,24 +190,26 @@ function CouncilWorkspace({ membership, onMembershipChange, initialView, onMembe
     </Dialog>
     <div className="flex min-w-0 flex-1 flex-col">
       <WorkspaceHeader councilName={membership.organization.name}
-        section={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정'
+        section={view === 'home' ? '홈' : view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매' : view === 'expenses' || view === 'budget' || view === 'fees' ? '재정'
           : view === 'records' || view === 'report' || current?.completedAt ? '기록' : '행사'}
         badge={phase && <Badge tone={phaseTones[phase]}>{phaseLabels[phase]}</Badge>}
         // 회장단만 완료하고 되돌린다. 완료하면 내 업무에서 그 행사의 업무가 빠지므로 새로 불러온다.
         actions={phase && current && membership.permissions.manageOrganization
           ? <EventCompletionControl event={current} onChanged={event => { events.replace(event); myTasks.refresh() }} onStale={events.refresh} />
           : undefined}
-        title={view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
+        title={view === 'home' ? '운영 현황' : view === 'tasks' ? '내 업무' : view === 'members' ? '구성원' : view === 'review' ? '구매 검토' : view === 'expenses' ? '사용 내역' : view === 'budget' ? '예산'
           : view === 'fees' ? '참가비 설정' : view === 'records' ? '기록' : view === 'report' ? reportCurrent?.name ?? '결과보고서' : selected?.name ?? '행사'}
         onMenu={() => setNavOpen(true)} />
       <main className="flex min-h-0 flex-1 flex-col">
-        {view === 'tasks' ? <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><div className="mx-auto max-w-3xl">
+        {view === 'home' ? <Home organizationId={membership.organization.id} permissions={membership.permissions} onOpenEvent={openEventAt}
+          onOpenReview={openReview} onCreateEvent={() => setCreateOpen(true)} onTasksChanged={myTasks.refresh} />
+          : view === 'tasks' ? <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6"><div className="mx-auto max-w-3xl">
           <MyTasks organizationId={membership.organization.id} manageEvents={membership.permissions.manageEvents} state={myTasks}
-            onOpenEvent={openEventTasks} /></div></div>
+            onOpenEvent={eventId => openEventAt(eventId, 'tasks')} /></div></div>
           : view === 'members' ? <Members inviteCode={membership.organization.inviteCode} state={members} />
           : view === 'review' ? <PurchaseReview organizationId={membership.organization.id} state={review} events={events.events ?? []}
             viewerMembershipId={membership.id} />
-          : view === 'budget' ? <Budget organizationId={membership.organization.id} finance={finance} onOpenEvent={openEventFinance} />
+          : view === 'budget' ? <Budget organizationId={membership.organization.id} finance={finance} onOpenEvent={eventId => openEventAt(eventId, 'finance')} />
           : view === 'fees' ? <FeeSettings organizationId={membership.organization.id} />
           : view === 'records' ? <Records organizationId={membership.organization.id} onOpen={openReport} />
           : view === 'report' && reportCurrent ? <EventReport key={reportCurrent.id} organizationId={membership.organization.id} eventId={reportCurrent.id}

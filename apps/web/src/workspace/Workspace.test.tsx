@@ -8,6 +8,7 @@ import { financeResponse } from '../settlement/settlement-fixtures'
 import { budgetEventLine, budgetPeriod, budgetPlan } from '../budget/budget-fixtures'
 import { feeSettings } from '../fees/fee-fixtures'
 import { facts, reportResponse, retrospectiveView } from '../records/record-fixtures'
+import { homeEvent, homeResponse, noCounts } from '../home/home-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const membership: MembershipSummary = { id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false, manageEvents: true } }
@@ -19,8 +20,9 @@ const event = { id: 'e1', organizationId: 'o1', name: '체육대회', createdBy:
   version: 1, completedAt: null as string | null, ownerDepartment: null, owner: null }
 const props = { memberships: [membership], user: { name: '테스터', email: 'test@example.test' }, logoutBusy: false, onLogout: vi.fn() }
 function setup(members: unknown = membersBody, review: unknown = { pending: [], approved: [], truncated: false }, myTasks: unknown = { open: [], done: [], truncated: false },
-  eventList: unknown[] = [event, { ...event, id: 'e2', name: '축제' }], recordList: unknown[] = [], reportBody: unknown = null) {
-  const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/records') ? { records: recordList }
+  eventList: unknown[] = [event, { ...event, id: 'e2', name: '축제' }], recordList: unknown[] = [], reportBody: unknown = null, homeBody: unknown = homeResponse()) {
+  const fetcher = vi.fn(async (url: string) => ({ ok: true, status: 200, json: async () => url.endsWith('/home') ? homeBody
+    : url.endsWith('/records') ? { records: recordList }
     : url.endsWith('/report') ? reportBody
     : url.endsWith('/budget/periods') ? { periods: [budgetPeriod()] }
     : url.endsWith('/budget/periods/p1') ? budgetPlan({ events: [budgetEventLine({ eventId: 'e1' })] })
@@ -527,4 +529,30 @@ test('예산에서 완료한 행사 이름을 누르면 볼 수만 있는 재정
     expect(await screen.findByText('완료한 행사라 볼 수만 있어요.')).toBeTruthy()
     await waitFor(() => expect(screen.getByRole('tab', { name: '재정' }).getAttribute('aria-selected')).toBe('true'))
   } finally { vi.useRealTimers() }
+})
+
+test('회장단은 학생회를 열면 운영 현황이 먼저 보이고, 줄을 누르면 그 행사의 탭이 열린다', async () => {
+  const body = homeResponse({ events: [homeEvent({ event: event })], counts: { ...noCounts(), tasks_unassigned: 2 },
+    items: [{ kind: 'tasks_unassigned', eventId: 'e1', department: null, count: 2 }] })
+  setup(membersBody, undefined, undefined, [event], [], null, body)
+  render(<Workspace {...props} memberships={[leaderMembership]} />)
+  expect(screen.getByRole('heading', { level: 1, name: '운영 현황' })).toBeTruthy()
+  const nav = screen.getByRole('navigation', { name: '학생회 메뉴' })
+  expect(within(nav).getByRole('button', { name: '홈' }).getAttribute('aria-current')).toBe('page')
+  // 행사 목록을 받아야 줄을 눌러 행사를 열 수 있다.
+  await within(screen.getByRole('complementary', { name: '학생회 작업 공간' })).findByRole('button', { name: '체육대회' })
+  fireEvent.click(await screen.findByRole('button', { name: /담당자 없는 업무 2건/ }))
+  expect(screen.getByRole('heading', { level: 1, name: '체육대회' })).toBeTruthy()
+  expect(screen.getByRole('tab', { name: '업무' }).getAttribute('aria-selected')).toBe('true')
+  fireEvent.click(within(nav).getByRole('button', { name: '홈' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '운영 현황' })).toBeTruthy()
+})
+
+test('부원은 내 업무가 먼저 보이고 옆 메뉴 홈으로 운영 현황을 본다', async () => {
+  setup()
+  render(<Workspace {...props} />)
+  expect(screen.getByRole('heading', { level: 1, name: '내 업무' })).toBeTruthy()
+  fireEvent.click(within(screen.getByRole('navigation', { name: '학생회 메뉴' })).getByRole('button', { name: '홈' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '운영 현황' })).toBeTruthy()
+  expect(await screen.findByText('진행 중인 행사가 없어요')).toBeTruthy()
 })

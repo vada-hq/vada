@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import App from './App'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { candidatesPath, event, eventsPath, membership, messagesPath, myTasksPath, purchaseItemsPath, reviewPath, user } from './test-support/workflow-fixtures'
+import { homeResponse } from './home/home-fixtures'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({ authClient: { useSession: auth.useSession,
@@ -213,6 +214,8 @@ function leaderSetup(secondMemberships: () => Response | Promise<Response>) {
   api.on('GET', '/api/me/memberships', () => ++count === 1 ? json({ memberships: [leader] }) : secondMemberships())
   api.on('GET', '/api/organizations/o/members', () => list(leader))
   api.on('POST', '/api/organizations/o/members/mp/title', () => list(titled))
+  // 회장단은 학생회를 열면 운영 현황(M6)을 먼저 불러온다.
+  api.on('GET', '/api/organizations/o/home', () => json(homeResponse()))
   return { leader, titled, count: () => count }
 }
 async function saveOwnTitle() {
