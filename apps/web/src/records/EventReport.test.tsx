@@ -4,177 +4,181 @@ import { cleanup, fireEvent, render, screen, within } from '@testing-library/rea
 import type { EventReportResponse } from '@vada/contracts'
 import { deferredResponse, json, mockApi } from '../test-support/mock-api'
 import EventReport from './EventReport'
-import { completedEvent, full, reportResponse, reportView } from './record-fixtures'
+import { completedEvent, reportResponse, retrospectiveView } from './record-fixtures'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.restoreAllMocks() })
 const path = '/api/organizations/o/events/e/report'
-function setup(body: EventReportResponse, rights: { canWrite?: boolean; canPublish?: boolean } = {}) {
+const retro = `${path}/retrospective`
+function setup(body: EventReportResponse, canWrite = true) {
   const api = mockApi()
   api.on('GET', path, () => json(body))
   const onOpenEvent = vi.fn()
   const onDirtyChange = vi.fn()
   const onEvent = vi.fn()
-  render(<EventReport organizationId="o" eventId="e" canWrite={rights.canWrite ?? true} canPublish={rights.canPublish ?? false}
-    onOpenEvent={onOpenEvent} onDirtyChange={onDirtyChange} onEvent={onEvent} />)
+  render(<EventReport organizationId="o" eventId="e" canWrite={canWrite} onOpenEvent={onOpenEvent} onDirtyChange={onDirtyChange} onEvent={onEvent} />)
   return { api, onOpenEvent, onDirtyChange, onEvent }
 }
-const field = (label: string) => screen.getByRole('textbox', { name: label }) as HTMLTextAreaElement
-const button = (name: string) => screen.getByRole('button', { name }) as HTMLButtonElement
+const button = (name: string | RegExp) => screen.getByRole('button', { name }) as HTMLButtonElement
+const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
+const confirmedBy = (name: string) => ({ by: { id: 'u2', name }, at: '2026-10-02T01:00:00.000Z' })
 
-test('쓰는 사람은 다섯 칸을 쓰고 저장한다. 고친 글이 있으면 알리고, 저장하면 서버 응답으로 바뀐다', async () => {
-  const { api, onDirtyChange, onEvent } = setup(reportResponse())
-  api.on('POST', path, call => json(reportResponse({ report: reportView({ ...(call.body as object), version: 2 }) })))
-  expect(await screen.findByRole('textbox', { name: '현장 운영' })).toBeTruthy()
+test('결과보고서는 머리·숫자·회고·준비 과정을 한 단으로 보이고, 준비 과정은 행사일 기준 D-n으로 묶는다', async () => {
+  const { onEvent, onOpenEvent } = setup(reportResponse())
+  expect(await screen.findByText('26명 → 22명')).toBeTruthy()
   expect(onEvent).toHaveBeenCalledWith(expect.objectContaining({ id: 'e' }))
-  expect(screen.getByText('26명 → 22명')).toBeTruthy()
-  expect(screen.getByText('담당 기획부 · 책임자 정민재')).toBeTruthy()
-  expect(button('저장').disabled).toBe(true)
-  fireEvent.change(field('잘된 점'), { target: { value: '조를 미리 정했다' } })
-  expect(screen.getByText('저장하지 않은 글이 있어요.')).toBeTruthy()
+  const summary = screen.getByRole('region', { name: '결과보고서 요약' })
+  expect(within(summary).getByText('담당 기획부 · 책임자 정민재')).toBeTruthy()
+  expect(within(summary).getByText('완료 2026. 9. 30.')).toBeTruthy()
+  fireEvent.click(within(summary).getByRole('button', { name: '행사 기록 보기' }))
+  expect(onOpenEvent).toHaveBeenLastCalledWith()
+  const steps = screen.getByRole('region', { name: '준비 과정' })
+  expect(within(steps).getByText('D-25 · 9월 1일')).toBeTruthy()
+  expect(within(steps).getByText('D-day · 9월 26일')).toBeTruthy()
+  expect(within(steps).getByText('홍보부 · 마감 9월 22일 · 2일 늦음')).toBeTruthy()
+  // 읽는 사람이 교훈을 먼저 보도록 회고가 준비 과정보다 앞에 있다.
+  const lessons = screen.getByRole('region', { name: '회고' })
+  expect(lessons.compareDocumentPosition(steps) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+test('준비 과정 줄을 누르면 그 탭으로 간다. 참가자 탭을 못 보는 사람은 신청 줄을 누를 수 없고, 행사 줄은 누르지 않는다', async () => {
+  const { onOpenEvent } = setup(reportResponse())
+  fireEvent.click(await screen.findByRole('button', { name: /업무 완료: 현수막/ }))
+  expect(onOpenEvent).toHaveBeenLastCalledWith({ tab: 'tasks' })
+  fireEvent.click(button(/지출 46,000원: 쿠팡/))
+  expect(onOpenEvent).toHaveBeenLastCalledWith({ tab: 'finance' })
+  fireEvent.click(button(/구매 요청 2건/))
+  expect(onOpenEvent).toHaveBeenLastCalledWith({ tab: 'purchases' })
+  fireEvent.click(button(/참가 신청 시작/))
+  expect(onOpenEvent).toHaveBeenLastCalledWith({ tab: 'registrations' })
+  expect(screen.queryByRole('button', { name: /행사 만듦/ })).toBeNull()
+  cleanup()
+  setup(reportResponse(), false)
+  expect(await screen.findByText('참가 신청 시작')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /참가 신청 시작/ })).toBeNull()
+  expect(button(/업무 완료: 현수막/)).toBeTruthy()
+})
+
+test('회고가 없으면 쓰는 사람은 끼룩이 안내와 단추를, 보는 사람은 "아직 회고가 없어요"를 본다. 만들면 초안이 보인다', async () => {
+  const { api } = setup(reportResponse())
+  const generated = deferredResponse()
+  api.on('POST', `${retro}/generate`, () => generated.promise)
+  expect(await screen.findByText('대화와 기록은 OpenAI로 보내요. 신청자 정보는 보내지 않아요.')).toBeTruthy()
+  fireEvent.click(button('회고 초안 만들기'))
+  expect(await screen.findByText('끼룩이가 정리하는 중… 1분쯤 걸릴 수 있어요.')).toBeTruthy()
+  expect(posts(api)[0]?.body).toEqual({ version: 0 })
+  generated.resolve(json(reportResponse({ retrospective: retrospectiveView() })))
+  expect(await screen.findByText('조를 미리 정했다.')).toBeTruthy()
+  const card = screen.getByRole('region', { name: '회고' })
+  expect(within(card).getByText('초안')).toBeTruthy()
+  expect(within(card).getByText('끼룩이가 10월 1일에 만든 초안이에요. 확인하기 전까지 초안으로 보여요.')).toBeTruthy()
+  for (const title of ['잘된 점', '아쉬운 점', '다음 행사에서', '확인 필요']) expect(within(card).getByText(title)).toBeTruthy()
+  expect(within(card).getByText('아직 답이 없어요.')).toBeTruthy()
+  cleanup()
+  setup(reportResponse(), false)
+  expect(await screen.findByText('아직 회고가 없어요.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '회고 초안 만들기' })).toBeNull()
+})
+
+test('근거를 누르면 대화는 그 메시지로, 기록 줄은 그 탭으로 간다. 숫자와 바뀐 기록은 누를 수 없다', async () => {
+  const { onOpenEvent } = setup(reportResponse({ retrospective: retrospectiveView() }))
+  fireEvent.click(await screen.findByRole('button', { name: '“조 편성 끝났어요” · 9월 20일' }))
+  expect(onOpenEvent).toHaveBeenLastCalledWith({ tab: 'chat', messageId: 'm1' })
+  const card = screen.getByRole('region', { name: '회고' })
+  fireEvent.click(within(card).getByRole('button', { name: '업무 완료: 현수막' }))
+  expect(onOpenEvent).toHaveBeenLastCalledWith({ tab: 'tasks' })
+  expect(within(card).getByText('업무 3건 중 3건 완료 · 지연 1건')).toBeTruthy()
+  expect(within(card).queryByRole('button', { name: '업무 3건 중 3건 완료 · 지연 1건' })).toBeNull()
+  expect(within(card).getByText('바뀐 기록')).toBeTruthy()
+})
+
+test('확인하면 확인함과 확인한 사람이 보이고 [확인]은 사라진다', async () => {
+  const { api } = setup(reportResponse({ retrospective: retrospectiveView() }))
+  api.on('POST', `${retro}/confirm`, () => json(reportResponse({ retrospective: retrospectiveView({ version: 2, confirmed: confirmedBy('한지우') }) })))
+  fireEvent.click(await screen.findByRole('button', { name: '확인' }))
+  expect(await screen.findByText('한지우 님이 10월 2일에 확인했어요.')).toBeTruthy()
+  expect(posts(api)[0]?.body).toEqual({ version: 1 })
+  expect(screen.getByText('확인함')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '확인' })).toBeNull()
+})
+
+test('고치기: 문장을 고치고 지우고 더하고 확인 필요에 답한 뒤 [저장하고 확인]으로 보낸다. 고치는 동안 저장하지 않은 글을 알린다', async () => {
+  const { api, onDirtyChange } = setup(reportResponse({ retrospective: retrospectiveView() }))
+  api.on('POST', retro, () => json(reportResponse({ retrospective: retrospectiveView({ version: 2, confirmed: confirmedBy('정민재'),
+    wentWell: [{ id: 'w1', text: '조를 일찍 정했다.', sources: [] }] }) })))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  const first = screen.getByRole('textbox', { name: '잘된 점 1' }) as HTMLTextAreaElement
+  expect(first.value).toBe('조를 미리 정했다.')
+  fireEvent.change(first, { target: { value: '조를 일찍 정했다.' } })
   expect(onDirtyChange).toHaveBeenLastCalledWith(true)
-  fireEvent.click(button('저장'))
-  expect(await screen.findByText('다섯 칸 중 2칸을 썼어요.')).toBeTruthy()
+  fireEvent.click(button('아쉬운 점 1 지우기'))
+  fireEvent.click(within(screen.getByRole('group', { name: '다음 행사에서' })).getByRole('button', { name: '문장 더하기' }))
+  fireEvent.change(screen.getByRole('textbox', { name: '다음 행사에서 2' }), { target: { value: '현수막 업체를 미리 정하자.' } })
+  // 빈 새 문장은 저장할 때 뺀다.
+  fireEvent.click(within(screen.getByRole('group', { name: '잘된 점' })).getByRole('button', { name: '문장 더하기' }))
+  fireEvent.change(screen.getByRole('textbox', { name: '답: 참석이 4명 적은 이유가 있었나요?' }), { target: { value: '비가 왔다.' } })
+  fireEvent.click(button('저장하고 확인'))
+  expect(await screen.findByText('정민재 님이 10월 2일에 확인했어요.')).toBeTruthy()
+  expect(posts(api)[0]?.body).toEqual({ version: 1, wentWell: [{ id: 'w1', text: '조를 일찍 정했다.' }], shortfalls: [],
+    nextTime: [{ id: 'n1', text: '현수막은 D-10에 맡기자.' }, { id: null, text: '현수막 업체를 미리 정하자.' }],
+    questions: [{ id: 'q1', answer: '비가 왔다.' }] })
+  expect(screen.queryByRole('textbox', { name: '잘된 점 1' })).toBeNull()
   expect(onDirtyChange).toHaveBeenLastCalledWith(false)
-  expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ version: 1, operations: '10:00 시작', wentWell: '조를 미리 정했다',
-    shortfalls: null, improvements: null, handover: null })
-  expect(field('잘된 점').value).toBe('조를 미리 정했다')
 })
 
-test('앞뒤 공백만 바꾸거나 칸을 비우면 빈 칸(null)으로 보낸다', async () => {
-  const { api } = setup(reportResponse())
-  api.on('POST', path, () => json(reportResponse({ report: reportView({ operations: null, version: 2 }) })))
-  fireEvent.change(await screen.findByRole('textbox', { name: '현장 운영' }), { target: { value: '10:00 시작  ' } })
-  expect(button('저장').disabled).toBe(true)
-  fireEvent.change(field('현장 운영'), { target: { value: '   ' } })
-  fireEvent.click(button('저장'))
-  await vi.waitFor(() => expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ version: 1, operations: null, wentWell: null,
-    shortfalls: null, improvements: null, handover: null }))
-})
-
-test('칸이 너무 길면 그 칸에 알리고 저장을 끈다', async () => {
-  setup(reportResponse())
-  fireEvent.change(await screen.findByRole('textbox', { name: '인수인계' }), { target: { value: '가'.repeat(2001) } })
+test('너무 긴 문장은 그 칸에 알리고 저장을 끈다. [취소]하면 고친 내용을 버린다', async () => {
+  setup(reportResponse({ retrospective: retrospectiveView() }))
+  fireEvent.click(await screen.findByRole('button', { name: '고치기' }))
+  fireEvent.change(screen.getByRole('textbox', { name: '잘된 점 1' }), { target: { value: '가'.repeat(201) } })
   expect(screen.getByText('글이 너무 길어요. 줄여 주세요.')).toBeTruthy()
-  expect(button('저장').disabled).toBe(true)
+  expect(button('저장하고 확인').disabled).toBe(true)
+  fireEvent.click(button('취소'))
+  expect(screen.getByText('조를 미리 정했다.')).toBeTruthy()
 })
 
-test('처음 쓰는 보고서는 버전 0으로 저장한다', async () => {
-  const { api } = setup(reportResponse({ report: null }))
-  api.on('POST', path, () => json(reportResponse({ report: reportView({ operations: '진행', version: 1 }) })))
-  expect(await screen.findByText('다섯 칸 중 0칸을 썼어요.')).toBeTruthy()
-  expect(screen.getByText('작성 전')).toBeTruthy()
-  fireEvent.change(field('현장 운영'), { target: { value: '진행' } })
-  fireEvent.click(button('저장'))
-  await vi.waitFor(() => expect(api.calls.find(call => call.method === 'POST')?.body).toMatchObject({ version: 0, operations: '진행' }))
+test('다시 만들기는 확인을 묻고 지금 버전으로 보낸다', async () => {
+  const { api } = setup(reportResponse({ retrospective: retrospectiveView({ version: 3, confirmed: confirmedBy('정민재') }) }))
+  api.on('POST', `${retro}/generate`, () => json(reportResponse({ retrospective: retrospectiveView({ version: 4,
+    wentWell: [{ id: 'w9', text: '새 초안 문장.', sources: [] }] }) })))
+  fireEvent.click(await screen.findByRole('button', { name: '다시 만들기' }))
+  const dialog = await screen.findByRole('dialog', { name: '다시 만들까요?' })
+  expect(within(dialog).getByText('지금 회고(고친 문장·답·확인)는 지워지고 새 초안이 돼요.')).toBeTruthy()
+  fireEvent.click(within(dialog).getByRole('button', { name: '다시 만들기' }))
+  expect(await screen.findByText('새 초안 문장.')).toBeTruthy()
+  expect(posts(api)[0]?.body).toEqual({ version: 3 })
+  expect(screen.getByText('초안')).toBeTruthy()
 })
 
-test('회장단은 다섯 칸을 다 쓰고 저장한 보고서만 발행하고, 발행을 확인한다', async () => {
-  const { api } = setup(reportResponse({ report: reportView({ ...full, version: 3 }) }), { canPublish: true })
-  api.on('POST', `${path}/publish`, () => json(reportResponse({ report: reportView({ ...full, version: 4, status: 'published',
-    published: { by: { id: 'l', name: '이서연' }, at: '2026-10-12T01:00:00.000Z' } }) })))
-  const publish = await screen.findByRole('button', { name: '발행' }) as HTMLButtonElement
-  expect(publish.disabled).toBe(false)
-  fireEvent.change(field('인수인계'), { target: { value: '바꾸는 중' } })
-  expect(publish.disabled).toBe(true)
-  fireEvent.change(field('인수인계'), { target: { value: full.handover } })
-  expect(publish.disabled).toBe(false)
-  fireEvent.click(publish)
-  const dialog = await screen.findByRole('dialog', { name: '결과보고서를 발행할까요?' })
-  fireEvent.click(within(dialog).getByRole('button', { name: '발행' }))
-  expect(await screen.findByRole('button', { name: '발행 취소' })).toBeTruthy()
-  expect(api.calls.find(call => call.path.endsWith('/publish'))?.body).toEqual({ version: 3 })
-  expect(screen.queryByRole('textbox')).toBeNull()
-  expect(screen.getByText('조를 미리 정했다')).toBeTruthy()
-  expect(screen.getByText(/발행할 때 센 숫자예요\./)).toBeTruthy()
-  expect(screen.getByText(/발행 2026\. 10\. 12\. · 이서연/)).toBeTruthy()
-})
-
-test('회장단이 발행을 취소하면 다시 쓰는 화면이 된다', async () => {
-  const published = reportView({ ...full, version: 4, status: 'published', published: { by: { id: 'l', name: '이서연' }, at: '2026-10-12T01:00:00.000Z' } })
-  const { api } = setup(reportResponse({ report: published }), { canPublish: true })
-  api.on('POST', `${path}/unpublish`, () => json(reportResponse({ report: reportView({ ...full, version: 5 }) })))
-  fireEvent.click(await screen.findByRole('button', { name: '발행 취소' }))
-  const dialog = await screen.findByRole('dialog', { name: '발행을 취소할까요?' })
-  fireEvent.click(within(dialog).getByRole('button', { name: '발행 취소' }))
-  expect(await screen.findByRole('textbox', { name: '현장 운영' })).toBeTruthy()
-  expect(api.calls.find(call => call.path.endsWith('/unpublish'))?.body).toEqual({ version: 4 })
-})
-
-test('빈 칸이 있으면 발행을 끈다', async () => {
-  setup(reportResponse(), { canPublish: true })
-  expect((await screen.findByRole('button', { name: '발행' }) as HTMLButtonElement).disabled).toBe(true)
-  expect(screen.getByText('다섯 칸 중 1칸을 썼어요.')).toBeTruthy()
-})
-
-test('미배정은 읽기만 한다. 쓰지 않은 칸은 아직 쓰지 않았다고 보인다', async () => {
-  setup(reportResponse(), { canWrite: false })
-  expect(await screen.findByText('10:00 시작')).toBeTruthy()
-  expect(screen.queryByRole('textbox')).toBeNull()
-  expect(screen.getAllByText('아직 쓰지 않았어요.')).toHaveLength(4)
-  expect(screen.queryByRole('button', { name: '저장' })).toBeNull()
-})
-
-test('남이 먼저 발행했으면 쓴 글을 지우지 않고 이유와 새로 불러오기를 보인다', async () => {
-  const { api } = setup(reportResponse())
-  api.on('POST', path, () => json({ error: 'REPORT_PUBLISHED' }, 409))
-  fireEvent.change(await screen.findByRole('textbox', { name: '잘된 점' }), { target: { value: '내가 쓴 글' } })
-  fireEvent.click(button('저장'))
-  expect(await screen.findByText('이미 발행한 결과보고서예요. 고치려면 회장단이 발행을 취소해야 해요.')).toBeTruthy()
-  expect(field('잘된 점').value).toBe('내가 쓴 글')
-  vi.spyOn(window, 'confirm').mockReturnValue(true)
+test('오류: 남이 먼저 바꿨거나 응답을 못 받으면 [새로 불러오기]를, 끼룩이 실패·설정 없음은 이유를 보인다', async () => {
+  const { api } = setup(reportResponse({ retrospective: retrospectiveView() }))
+  api.on('POST', `${retro}/confirm`, () => json({ error: 'VERSION_CONFLICT' }, 409))
+  fireEvent.click(await screen.findByRole('button', { name: '확인' }))
+  expect(await screen.findByText('다른 사람이 먼저 바꿨어요. 새로 불러와 주세요.')).toBeTruthy()
   fireEvent.click(button('새로 불러오기'))
   await vi.waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
+  cleanup()
+  const second = setup(reportResponse())
+  second.api.on('POST', `${retro}/generate`, () => { throw new TypeError('Failed to fetch') })
+  fireEvent.click(await screen.findByRole('button', { name: '회고 초안 만들기' }))
+  expect(await screen.findByText('결과를 확인하지 못했어요. 새로 불러와 주세요.')).toBeTruthy()
+  expect(button('새로 불러오기')).toBeTruthy()
+  for (const [code, status, text] of [['GENERATION_FAILED', 502, '끼룩이가 초안을 만들지 못했어요. 잠시 뒤 다시 시도해 주세요.'],
+    ['AI_NOT_CONFIGURED', 503, '지금은 끼룩이를 쓸 수 없어요.']] as const) {
+    second.api.on('POST', `${retro}/generate`, () => json({ error: code }, status))
+    fireEvent.click(button('회고 초안 만들기'))
+    expect(await screen.findByText(text)).toBeTruthy()
+    expect(screen.queryByRole('button', { name: '새로 불러오기' })).toBeNull()
+  }
 })
 
-test('저장하지 않은 글이 있으면 새로 불러오기 전에 묻고, 취소하면 글을 둔다', async () => {
-  const { api } = setup(reportResponse())
-  api.on('POST', path, () => json({ error: 'VERSION_CONFLICT' }, 409))
-  fireEvent.change(await screen.findByRole('textbox', { name: '잘된 점' }), { target: { value: '내가 쓴 글' } })
-  fireEvent.click(button('저장'))
-  expect(await screen.findByText('다른 사람이 먼저 저장했어요. 쓴 글을 복사해 두고 새로 불러와 주세요.')).toBeTruthy()
-  const confirm = vi.spyOn(window, 'confirm').mockReturnValue(false)
-  fireEvent.click(button('새로 불러오기'))
-  expect(confirm).toHaveBeenCalledWith('저장하지 않은 글이 사라져요. 새로 불러올까요?')
-  expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(1)
-  expect(field('잘된 점').value).toBe('내가 쓴 글')
-  confirm.mockReturnValue(true)
-  fireEvent.click(button('새로 불러오기'))
-  await vi.waitFor(() => expect(api.calls.filter(call => call.method === 'GET')).toHaveLength(2))
-})
-
-test('저장 중에 계속 친 글은 남고, 저장해도 입력 칸을 새로 그리지 않는다', async () => {
-  const { api } = setup(reportResponse())
-  const pending = deferredResponse()
-  api.on('POST', path, () => pending.promise)
-  const operations = await screen.findByRole('textbox', { name: '현장 운영' })
-  fireEvent.change(field('잘된 점'), { target: { value: '조를 미리 정했다' } })
-  fireEvent.click(button('저장'))
-  fireEvent.change(field('잘된 점'), { target: { value: '조를 미리 정했다. 그리고' } })
-  pending.resolve(json(reportResponse({ report: reportView({ wentWell: '조를 미리 정했다', version: 2 }) })))
-  await vi.waitFor(() => expect(screen.getByRole('button', { name: '저장' })).toBeTruthy())
-  expect(field('잘된 점').value).toBe('조를 미리 정했다. 그리고')
-  expect(screen.getByText('저장하지 않은 글이 있어요.')).toBeTruthy()
-  expect(screen.getByRole('textbox', { name: '현장 운영' })).toBe(operations)
-  // 다음 저장은 받은 버전으로 보낸다.
-  api.on('POST', path, () => json(reportResponse({ report: reportView({ wentWell: '조를 미리 정했다. 그리고', version: 3 }) })))
-  fireEvent.click(button('저장'))
-  await vi.waitFor(() => expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(2))
-  expect(api.calls.filter(call => call.method === 'POST')[1]!.body).toMatchObject({ version: 2, wentWell: '조를 미리 정했다. 그리고' })
-  expect(await screen.findByText('다섯 칸 중 2칸을 썼어요.')).toBeTruthy()
-})
-
-test('행사 기록 보기를 누르면 행사 화면을 연다. 완료를 취소한 행사면 안내하고 읽기만 한다', async () => {
-  const { onOpenEvent } = setup(reportResponse({ event: { ...completedEvent(), completedAt: null } }))
-  expect(await screen.findByText('완료를 취소한 행사예요. 다시 완료하면 이어서 쓸 수 있어요.')).toBeTruthy()
-  expect(screen.queryByRole('textbox')).toBeNull()
-  fireEvent.click(button('행사 기록 보기'))
-  expect(onOpenEvent).toHaveBeenCalled()
-})
-
-test('못 불러오면 다시 불러오기를 보인다', async () => {
-  const api = mockApi()
-  api.on('GET', path, () => json({ error: 'FORBIDDEN' }, 403))
-  render(<EventReport organizationId="o" eventId="e" canWrite canPublish={false} onOpenEvent={vi.fn()} onDirtyChange={vi.fn()} onEvent={vi.fn()} />)
-  expect(await screen.findByText('결과보고서를 불러오지 못했어요.')).toBeTruthy()
-  expect(button('다시 불러오기')).toBeTruthy()
+test('보는 사람은 단추가 없고, 완료를 취소한 행사는 안내만 보인다. 낡은 초안과 빈 초안을 알린다', async () => {
+  setup(reportResponse({ retrospective: retrospectiveView({ stale: true }) }), false)
+  expect(await screen.findByText('초안을 만든 뒤 완료를 다시 했어요. 행사 기록이 바뀌었을 수 있어요.')).toBeTruthy()
+  for (const name of ['확인', '고치기', '다시 만들기']) expect(screen.queryByRole('button', { name })).toBeNull()
+  cleanup()
+  setup(reportResponse({ event: { ...completedEvent(), completedAt: null }, retrospective: retrospectiveView() }))
+  expect(await screen.findByText('완료를 취소한 행사예요. 다시 완료하면 회고를 만들거나 고칠 수 있어요.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '고치기' })).toBeNull()
+  cleanup()
+  setup(reportResponse({ retrospective: retrospectiveView({ wentWell: [], shortfalls: [], nextTime: [], questions: [] }) }))
+  expect(await screen.findByText('끼룩이가 근거로 정리할 내용을 찾지 못했어요.')).toBeTruthy()
 })

@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { eventDayText, factStats, ownerText, recordChips } from './record-view'
+import { dayHeading, eventDayText, factStats, koreanDay, monthDay, ownerText, recordChips } from './record-view'
 import { facts } from './record-fixtures'
 
 test('숫자 넷을 읽는 글로 바꾼다. 비율은 반올림한다', () => {
@@ -28,4 +28,13 @@ test('기록 목록 칩과 담당·날짜 글', () => {
   // 한국 시각 자정 직후도 그날이다(기기 시간대와 상관없다).
   expect(eventDayText('2026-03-06T00:30')).toBe('2026. 3. 6.')
   expect(eventDayText(null)).toBe('날짜 미정')
+})
+
+test('준비 과정 날짜 묶음은 행사 시작일 기준 D-n과 짧은 날짜다', () => {
+  expect(dayHeading('2026-02-14', '2026-03-06')).toBe('D-20 · 2월 14일')
+  expect(dayHeading('2026-03-06', '2026-03-06')).toBe('D-day · 3월 6일')
+  expect(dayHeading('2026-03-09', null)).toBe('3월 9일')
+  expect(monthDay('2026-11-01')).toBe('11월 1일')
+  // 한국 시각 자정 뒤는 다음 날이다(기기 시간대와 상관없다).
+  expect(koreanDay('2026-02-13T15:30:00.000Z')).toBe('2026-02-14')
 })
