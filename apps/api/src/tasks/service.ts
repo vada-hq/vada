@@ -38,6 +38,8 @@ async function summaries(db: Reader, where: SQL | undefined, orderBy: SQL[], lim
     createdAt: task.createdAt.toISOString(), version: task.version,
   }))
 }
+// 운영 현황(M6)의 지연 업무 줄이 같은 꼴과 순서를 쓴다.
+export { summaries as taskSummaries, byDue as tasksByDue }
 const inOrganization = (scope: TaskScope) => eq(tasks.organizationId, scope.organizationId)
 
 async function detailOf(db: Reader, scope: TaskScope, eventId: string, taskId: string): Promise<TaskDetail> {
