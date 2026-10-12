@@ -182,6 +182,8 @@ export default function Retrospective({ retrospective, state, canWrite, canOpenR
       <DialogContent>
         <DialogHeader><DialogTitle>다시 만들까요?</DialogTitle>
           <DialogDescription>지금 회고(고친 문장·답·확인)는 지워지고 새 초안이 돼요.</DialogDescription></DialogHeader>
+        {/* 다시 만드는 사람은 처음 만든 사람과 다를 수 있어 AI 처리 사실을 다시 알린다. */}
+        <p className="text-xs text-gray-500">대화와 기록은 OpenAI로 보내요. 신청자 정보는 보내지 않아요.</p>
         <DialogFooter><Button variant="outline" onClick={() => setRegenerating(false)}>닫기</Button>
           <Button onClick={() => void run('generate', () => state.generate(version))}>다시 만들기</Button></DialogFooter>
       </DialogContent>

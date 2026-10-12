@@ -217,7 +217,13 @@ test('완료를 취소해도 회고는 남고 낡은 초안이 된다. 완료 �
     await refused(send('POST', generatePath, { version: 1 }), 409, 'EVENT_NOT_COMPLETED')
     await env.pg.exec(`UPDATE events SET completed_at = now(), completed_by = 'l', version = version + 1 WHERE id = 'e'`)
     assert.equal((await env.ok<EventReportResponse>(send('GET', '/events/e/report'))).retrospective?.stale, true)
-    assert.equal((await env.ok<EventReportResponse>(send('POST', confirmPath, { version: 1 }))).retrospective?.confirmed?.by.id, 'p')
+    // 사람이 지금 기록을 보고 확인하면 더는 낡은 초안이 아니다.
+    const confirmed = (await env.ok<EventReportResponse>(send('POST', confirmPath, { version: 1 }))).retrospective!
+    assert.deepEqual([confirmed.confirmed?.by.id, confirmed.stale], ['p', false])
+    // 다시 완료한 뒤 고쳐 저장해도 같다.
+    await env.pg.exec(`UPDATE events SET completed_at = completed_at + interval '1 second' WHERE id = 'e'`)
+    assert.equal((await env.ok<EventReportResponse>(send('GET', '/events/e/report'))).retrospective?.stale, true)
+    assert.equal((await env.ok<EventReportResponse>(send('POST', savePath, bodyOf(confirmed)))).retrospective?.stale, false)
   } finally { await env.pg.close() }
 })
 

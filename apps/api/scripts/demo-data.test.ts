@@ -159,6 +159,8 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
     const { content } = retros.rows[0]!
     assert.deepEqual([content.wentWell.length, content.shortfalls.length, content.nextTime.length, content.questions.length], [2, 1, 1, 1])
     assert.ok(content.questions[0]!.answer)
+    // 확인 필요는 담당자에게 묻는 한 문장의 질문이다(끼룩이 지시문과 같다).
+    assert.match(content.questions[0]!.text, /\?$/)
     // 화면에서 보는 결과보고서: 근거를 모두 찾고(바뀐 기록 없음), 아쉬운 점은 늦게 끝낸 업무 줄을 가리킨다.
     const report = await view<EventReportResponse>(`/events/${retros.rows[0]!.id}/report`)
     const retro = report.retrospective!

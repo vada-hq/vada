@@ -210,27 +210,28 @@ export function createReportService(db: ReportDatabase, generate: RetrospectiveG
         })
       } finally { generating.delete(eventId) }
     },
-    // 고쳐 저장한다. 저장한 사람이 확인한 것이다.
+    // 고쳐 저장한다. 저장한 사람이 확인한 것이다. 사람은 지금 기록을 보고 확인하므로 낡은 초안 표시도 지금 완료 시각으로 맞춘다.
     async save(scope: ReportScope, eventId: string, input: SaveRetrospectiveRequest): Promise<EventReportResponse> {
       return db.transaction(async tx => {
-        await requireCompletedEvent(tx, scope.organizationId, eventId)
+        const completedAt = await requireCompletedEvent(tx, scope.organizationId, eventId)
         const row = await lockRetrospective(tx, scope.organizationId, eventId)
         if (!row) throw new ApiError('INVALID_STATE', 409)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
-        await tx.update(eventRetrospectives).set({ content: editedContent(row.content, input), confirmedBy: scope.userId, confirmedAt: sql`now()`,
-          version: row.version + 1 }).where(where(scope.organizationId, eventId))
+        await tx.update(eventRetrospectives).set({ content: editedContent(row.content, input), basedOnCompletedAt: completedAt, confirmedBy: scope.userId,
+          confirmedAt: sql`now()`, version: row.version + 1 }).where(where(scope.organizationId, eventId))
         return reportResponse(tx, scope.organizationId, eventId)
       })
     },
-    // 고치지 않고 확인한다.
+    // 고치지 않고 확인한다. 저장과 같이 낡은 초안 표시를 지금 완료 시각으로 맞춘다.
     async confirm(scope: ReportScope, eventId: string, input: ConfirmRetrospectiveRequest): Promise<EventReportResponse> {
       return db.transaction(async tx => {
-        await requireCompletedEvent(tx, scope.organizationId, eventId)
+        const completedAt = await requireCompletedEvent(tx, scope.organizationId, eventId)
         const row = await lockRetrospective(tx, scope.organizationId, eventId)
         if (!row) throw new ApiError('INVALID_STATE', 409)
         if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
         if (row.confirmedAt) throw new ApiError('INVALID_STATE', 409)
-        await tx.update(eventRetrospectives).set({ confirmedBy: scope.userId, confirmedAt: sql`now()`, version: row.version + 1 })
+        await tx.update(eventRetrospectives).set({ basedOnCompletedAt: completedAt, confirmedBy: scope.userId, confirmedAt: sql`now()`,
+          version: row.version + 1 })
           .where(where(scope.organizationId, eventId))
         return reportResponse(tx, scope.organizationId, eventId)
       })

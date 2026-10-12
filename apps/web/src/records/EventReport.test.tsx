@@ -142,6 +142,8 @@ test('다시 만들기는 확인을 묻고 지금 버전으로 보낸다', async
   fireEvent.click(await screen.findByRole('button', { name: '다시 만들기' }))
   const dialog = await screen.findByRole('dialog', { name: '다시 만들까요?' })
   expect(within(dialog).getByText('지금 회고(고친 문장·답·확인)는 지워지고 새 초안이 돼요.')).toBeTruthy()
+  // 다시 만드는 사람에게도 AI 처리 사실을 알린다(처음 만든 사람과 다를 수 있다).
+  expect(within(dialog).getByText('대화와 기록은 OpenAI로 보내요. 신청자 정보는 보내지 않아요.')).toBeTruthy()
   fireEvent.click(within(dialog).getByRole('button', { name: '다시 만들기' }))
   expect(await screen.findByText('새 초안 문장.')).toBeTruthy()
   expect(posts(api)[0]?.body).toEqual({ version: 3 })

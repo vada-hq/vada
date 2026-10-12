@@ -798,7 +798,7 @@ const retrospectiveDraft: RetrospectiveGenerator = async input => {
     shortfalls: [{ text: '조 편성표가 마감보다 이틀 늦게 나왔다.', sources: sources(record('조 편성표 만들기')) }],
     nextTime: [{ text: '숙소는 행사 6주 전에 예약하고, 조 편성은 신청 마감 다음 날까지 둘이 나눠 끝내자.',
       sources: sources(message('가평 청소년수련원'), record('조 편성표 만들기')) }],
-    questions: [{ text: '신청 42명 가운데 3명이 오지 않았다. 이유가 기록에 없다.', sources: ['fact:registrations'] }],
+    questions: [{ text: '신청 42명 가운데 3명이 오지 않은 이유가 있었나요?', sources: ['fact:registrations'] }],
   }
 }
 
