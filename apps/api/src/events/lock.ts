@@ -36,8 +36,10 @@ export async function checkActiveEvents(db: Reader, organizationId: string, even
     .where(and(eq(events.organizationId, organizationId), inArray(events.id, eventIds), isNotNull(events.completedAt))).limit(1)
   if (completed) throw new ApiError('EVENT_COMPLETED', 409)
 }
-// 결과보고서(M5b)는 반대로 완료한 행사에서만 쓴다. FOR SHARE라 완료 취소(FOR NO KEY UPDATE)와 하나씩 진행되고,
-// 완료 취소는 그 뒤 발행한 보고서를 보고 멈춘다.
-export async function requireCompletedEvent(tx: Reader, organizationId: string, eventId: string) {
-  if (!(await shareEvent(tx, organizationId, eventId)).completedAt) throw new ApiError('EVENT_NOT_COMPLETED', 409)
+// 결과보고서의 회고(M5c)는 반대로 완료한 행사에서만 만들고 고친다. 행사 행을 FOR SHARE로 잡고 완료 시각을 돌려준다.
+// FOR SHARE라 완료 취소(FOR NO KEY UPDATE)와 하나씩 진행된다.
+export async function requireCompletedEvent(tx: Reader, organizationId: string, eventId: string): Promise<Date> {
+  const { completedAt } = await shareEvent(tx, organizationId, eventId)
+  if (!completedAt) throw new ApiError('EVENT_NOT_COMPLETED', 409)
+  return completedAt
 }

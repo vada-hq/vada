@@ -5,10 +5,10 @@ import type { MiddlewareHandler } from 'hono'
 export const MAX_BODY_BYTES = 32768
 const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 // 본문이 큰 경로. 상한은 여기 한 곳에서 정하고 라우트에서 다시 다루지 않는다.
-// 학생회비 명단은 학번·이름 수천 줄을 한 번에 받는다. 결과보고서 저장(M5b)은 2000자 다섯 칸이고, 제어 문자는 JSON에서 6바이트가 된다.
+// 학생회비 명단은 학번·이름 수천 줄을 한 번에 받는다. 회고 저장(M5c)은 200자 30문장까지이고, 제어 문자는 JSON에서 6바이트가 된다.
 const largeBodies: { pattern: RegExp; max: number }[] = [
   { pattern: /^\/api\/organizations\/[^/]+\/dues-roster$/, max: 1_048_576 },
-  { pattern: /^\/api\/organizations\/[^/]+\/events\/[^/]+\/report$/, max: 65_536 },
+  { pattern: /^\/api\/organizations\/[^/]+\/events\/[^/]+\/report\/retrospective$/, max: 65_536 },
 ]
 export const bodyLimitOf = (path: string) => largeBodies.find(entry => entry.pattern.test(path))?.max ?? MAX_BODY_BYTES
 

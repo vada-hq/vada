@@ -1,124 +1,237 @@
-import { and, eq, inArray, sql } from 'drizzle-orm'
+import { randomUUID } from 'node:crypto'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
-import { REPORT_SECTIONS, type EventRecord, type EventReportResponse, type EventReportView, type PublishEventReportRequest, type RecordsResponse,
-  type SaveEventReportRequest } from '@vada/contracts'
-import { eventReports, users } from '../db/schema.js'
+import { dDayOf, RETRO_SECTIONS, type ConfirmRetrospectiveRequest, type EventRecord, type EventReportFacts, type EventReportResponse,
+  type EventSummary, type GenerateRetrospectiveRequest, type RecordEntry, type RecordsResponse, type RetrospectiveContent,
+  type RetrospectiveItem, type RetrospectiveSource, type RetrospectiveView, type SaveRetrospectiveRequest } from '@vada/contracts'
+import { chatRooms, departments, eventRetrospectives, memberships, messages, users } from '../db/schema.js'
 import { eventSummaries, eventSummary } from '../events/events.js'
 import { requireCompletedEvent } from '../events/lock.js'
 import { ApiError } from '../http/errors.js'
 import { factsByEvent } from './facts.js'
+import { contentOf, type RetrospectiveGenerator, type RetrospectiveInput } from './generation.js'
+import { kstDay, timelineOf, won } from './timeline.js'
 
 type Db = PgDatabase<PgQueryResultHKT>
 export type ReportDatabase = Pick<Db, 'select' | 'insert' | 'update' | 'transaction'>
 type Reader = Pick<Db, 'select'>
+type Transaction = Parameters<Parameters<ReportDatabase['transaction']>[0]>[0]
+type Row = typeof eventRetrospectives.$inferSelect
 export interface ReportScope { organizationId: string; userId: string }
-const creators = alias(users, 'report_creators')
-const updaters = alias(users, 'report_updaters')
-const publishers = alias(users, 'report_publishers')
+const generators = alias(users, 'retrospective_generators')
+const confirmers = alias(users, 'retrospective_confirmers')
+// 끼룩이에 보내는 대화는 최근 것부터 400개·40,000자까지다. 근거의 대화는 80자만 보인다.
+const MESSAGE_LIMIT = 400
+const MESSAGE_CHARACTERS = 40_000
+const EXCERPT = 80
 
-async function reportOf(db: Reader, organizationId: string, eventId: string): Promise<EventReportView | null> {
-  const [row] = await db.select({ report: eventReports, creatorName: creators.name, updaterName: updaters.name, publisherName: publishers.name })
-    .from(eventReports)
-    .innerJoin(creators, eq(creators.id, eventReports.createdBy))
-    .innerJoin(updaters, eq(updaters.id, eventReports.updatedBy))
-    .leftJoin(publishers, eq(publishers.id, eventReports.publishedBy))
-    .where(and(eq(eventReports.organizationId, organizationId), eq(eventReports.eventId, eventId)))
-  if (!row) return null
-  const { report } = row
-  return { status: report.status, operations: report.operations, wentWell: report.wentWell, shortfalls: report.shortfalls,
-    improvements: report.improvements, handover: report.handover, version: report.version,
-    created: { by: { id: report.createdBy, name: row.creatorName }, at: report.createdAt.toISOString() },
-    updated: { by: { id: report.updatedBy, name: row.updaterName }, at: report.updatedAt.toISOString() },
-    published: report.publishedAt && report.publishedBy
-      ? { by: { id: report.publishedBy, name: row.publisherName ?? '' }, at: report.publishedAt.toISOString() } : null }
+// 숫자 근거. 끼룩이에 보내는 글과 화면의 근거 칩이 같은 글이다.
+function numbersOf(facts: EventReportFacts) {
+  const numbers = [
+    { id: 'fact:finance', text: facts.finance.budget === null ? `예산 미정 · 집행 ${won(facts.finance.spent)}`
+      : `예산 ${won(facts.finance.budget)} → 집행 ${won(facts.finance.spent)}` },
+    { id: 'fact:tasks', text: `업무 ${facts.tasks.total}건 중 ${facts.tasks.done}건 완료 · 지연 ${facts.tasks.late}건` },
+    { id: 'fact:purchases', text: `구매 요청 ${facts.purchases.requested}건 · 승인 ${facts.purchases.approved}건` },
+  ]
+  return facts.registrations
+    ? [{ id: 'fact:registrations', text: `신청 ${facts.registrations.registered}명 → 참석 ${facts.registrations.attended}명` }, ...numbers]
+    : numbers
+}
+const excerptOf = (content: string) => [...content].length > EXCERPT ? `${[...content].slice(0, EXCERPT).join('')}…` : content
+
+// 행사 대화: 최근 것부터 정한 만큼, 보낸 사람의 부서 이름과 함께. 사람 이름은 고르지 않는다.
+async function conversationOf(db: Reader, organizationId: string, eventId: string) {
+  const rows = await db.select({ id: messages.id, content: messages.content, createdAt: messages.createdAt, department: departments.name })
+    .from(messages).innerJoin(chatRooms, eq(chatRooms.id, messages.chatRoomId))
+    .leftJoin(memberships, and(eq(memberships.organizationId, chatRooms.organizationId), eq(memberships.userId, messages.authorId)))
+    .leftJoin(departments, and(eq(departments.organizationId, memberships.organizationId), eq(departments.id, memberships.departmentId)))
+    .where(and(eq(chatRooms.organizationId, organizationId), eq(chatRooms.eventId, eventId)))
+    .orderBy(desc(messages.createdAt), desc(messages.id)).limit(MESSAGE_LIMIT)
+  const chosen: typeof rows = []
+  let characters = 0
+  for (const row of rows) {
+    if (characters + row.content.length > MESSAGE_CHARACTERS) break
+    chosen.push(row)
+    characters += row.content.length
+  }
+  return chosen.reverse()
 }
 
-type Transaction = Parameters<Parameters<ReportDatabase['transaction']>[0]>[0]
-// 보고서 행을 잠근다. 잠금 순서는 행사(requireCompletedEvent) → 보고서다.
-async function lockReport(tx: Transaction, scope: ReportScope, eventId: string) {
-  const [row] = await tx.select().from(eventReports)
-    .where(and(eq(eventReports.organizationId, scope.organizationId), eq(eventReports.eventId, eventId))).for('update')
+async function inputOf(db: Reader, organizationId: string, event: EventSummary, facts: EventReportFacts, timeline: RecordEntry[]):
+  Promise<RetrospectiveInput> {
+  const eventDay = event.startsAt?.slice(0, 10) ?? null
+  const dDay = (day: string) => eventDay ? dDayOf(day, eventDay) : null
+  const talk = await conversationOf(db, organizationId, event.id)
+  return {
+    event: { name: event.name, startsOn: eventDay, endsOn: event.endsAt?.slice(0, 10) ?? null, place: event.place,
+      department: event.ownerDepartment?.name ?? null },
+    numbers: numbersOf(facts),
+    records: timeline.map(entry => ({ id: entry.id, day: entry.day, dDay: dDay(entry.day), text: entry.text, note: entry.note })),
+    messages: talk.map(row => {
+      const day = kstDay(row.createdAt)
+      return { id: `message:${row.id}`, day, dDay: dDay(day), department: row.department ?? null, content: row.content }
+    }),
+  }
+}
+
+// 회고를 화면 꼴로 바꾼다. 근거는 지금의 대화·준비 과정·숫자에서 찾고, 없으면 missing이다.
+async function viewOf(db: Reader, organizationId: string, event: EventSummary, facts: EventReportFacts, timeline: RecordEntry[],
+  row: { retro: Row; generatorName: string; confirmerName: string | null }): Promise<RetrospectiveView> {
+  const { retro } = row
+  const content = retro.content
+  const items = [...RETRO_SECTIONS.flatMap(key => content[key]), ...content.questions]
+  const messageIds = [...new Set(items.flatMap(item => item.sources).filter(id => id.startsWith('message:')).map(id => id.slice('message:'.length)))]
+  const found = messageIds.length ? await db.select({ id: messages.id, content: messages.content, createdAt: messages.createdAt }).from(messages)
+    .innerJoin(chatRooms, eq(chatRooms.id, messages.chatRoomId))
+    .where(and(eq(chatRooms.organizationId, organizationId), eq(chatRooms.eventId, event.id), inArray(messages.id, messageIds))) : []
+  const byMessage = new Map(found.map(message => [message.id, message]))
+  const byEntry = new Map(timeline.map(entry => [entry.id, entry]))
+  const byFact = new Map(numbersOf(facts).map(number => [number.id, number]))
+  const source = (id: string): RetrospectiveSource => {
+    if (id.startsWith('message:')) {
+      const message = byMessage.get(id.slice('message:'.length))
+      return message ? { kind: 'message', messageId: message.id, excerpt: excerptOf(message.content), at: message.createdAt.toISOString() }
+        : { kind: 'missing' }
+    }
+    const fact = byFact.get(id)
+    if (fact) return { kind: 'fact', id, text: fact.text }
+    const entry = byEntry.get(id)
+    return entry ? { kind: 'entry', id, text: entry.text, tab: entry.tab } : { kind: 'missing' }
+  }
+  const view = (item: RetrospectiveItem) => ({ id: item.id, text: item.text, sources: item.sources.map(source) })
+  return {
+    wentWell: content.wentWell.map(view), shortfalls: content.shortfalls.map(view), nextTime: content.nextTime.map(view),
+    questions: content.questions.map(question => ({ ...view(question), answer: question.answer })),
+    version: retro.version,
+    generated: { by: { id: retro.generatedBy, name: row.generatorName }, at: retro.generatedAt.toISOString() },
+    confirmed: retro.confirmedAt && retro.confirmedBy
+      ? { by: { id: retro.confirmedBy, name: row.confirmerName ?? '' }, at: retro.confirmedAt.toISOString() } : null,
+    stale: event.completedAt === null || retro.basedOnCompletedAt.toISOString() !== event.completedAt,
+  }
+}
+
+// 응답 하나로 행사·숫자·준비 과정·회고를 준다. 바꾸는 요청도 같은 모양으로 돌려준다.
+export async function reportResponse(db: Reader, organizationId: string, eventId: string): Promise<EventReportResponse> {
+  const event = await eventSummary(db, organizationId, eventId)
+  const facts = (await factsByEvent(db, organizationId, [event], new Date())).get(eventId)!
+  const timeline = await timelineOf(db, organizationId, eventId)
+  const [row] = await db.select({ retro: eventRetrospectives, generatorName: generators.name, confirmerName: confirmers.name })
+    .from(eventRetrospectives)
+    .innerJoin(generators, eq(generators.id, eventRetrospectives.generatedBy))
+    .leftJoin(confirmers, eq(confirmers.id, eventRetrospectives.confirmedBy))
+    .where(and(eq(eventRetrospectives.organizationId, organizationId), eq(eventRetrospectives.eventId, eventId)))
+  return { event, facts, timeline, retrospective: row ? await viewOf(db, organizationId, event, facts, timeline, row) : null }
+}
+
+const where = (organizationId: string, eventId: string) =>
+  and(eq(eventRetrospectives.organizationId, organizationId), eq(eventRetrospectives.eventId, eventId))
+// 회고 행을 잠근다. 잠금 순서는 행사(requireCompletedEvent) → 회고다.
+async function lockRetrospective(tx: Transaction, organizationId: string, eventId: string) {
+  const [row] = await tx.select().from(eventRetrospectives).where(where(organizationId, eventId)).for('update')
   return row ?? null
 }
 
-// 응답 하나로 행사·보고서·수치를 준다. 바꾸는 요청도 같은 모양으로 돌려준다. 발행했으면 고정한 수치다.
-export async function reportResponse(db: Reader, organizationId: string, eventId: string): Promise<EventReportResponse> {
-  const event = await eventSummary(db, organizationId, eventId)
-  const report = await reportOf(db, organizationId, eventId)
-  if (report?.published) {
-    const [frozen] = await db.select({ facts: eventReports.facts }).from(eventReports)
-      .where(and(eq(eventReports.organizationId, organizationId), eq(eventReports.eventId, eventId)))
-    if (frozen?.facts) return { event, report, facts: frozen.facts, factsAt: report.published.at }
+// 고친 회고(spec 정책 9). 있던 문장은 ID로 찾아 근거를 잇고, 새 문장은 근거가 없다. 확인 필요는 더할 수 없고 지우거나 답한다.
+function editedContent(current: RetrospectiveContent, input: SaveRetrospectiveRequest): RetrospectiveContent {
+  const sentences = new Map(RETRO_SECTIONS.flatMap(key => current[key]).map(item => [item.id, item]))
+  const questions = new Map(current.questions.map(question => [question.id, question]))
+  const seen = new Set<string>()
+  const use = (id: string) => {
+    if (seen.has(id)) throw new ApiError('INVALID_INPUT', 400)
+    seen.add(id)
   }
-  const now = new Date()
-  return { event, report, facts: (await factsByEvent(db, organizationId, [event], now)).get(eventId)!, factsAt: now.toISOString() }
+  const section = (list: SaveRetrospectiveRequest['wentWell']) => list.map(item => {
+    if (item.id === null) return { id: randomUUID(), text: item.text, sources: [] }
+    const before = sentences.get(item.id)
+    if (!before) throw new ApiError('INVALID_INPUT', 400)
+    use(item.id)
+    return { id: item.id, text: item.text, sources: before.sources }
+  })
+  return {
+    wentWell: section(input.wentWell), shortfalls: section(input.shortfalls), nextTime: section(input.nextTime),
+    questions: input.questions.map(item => {
+      const before = questions.get(item.id)
+      if (!before) throw new ApiError('INVALID_INPUT', 400)
+      use(item.id)
+      return { ...before, answer: item.answer }
+    }),
+  }
 }
 
-export function createReportService(db: ReportDatabase) {
+export function createReportService(db: ReportDatabase, generate: RetrospectiveGenerator) {
+  // 한 행사에서 한 번에 하나만 만든다(서버 하나 기준). 겹친 요청은 기다리지 않고 거절한다.
+  const generating = new Set<string>()
   return {
     get: (scope: ReportScope, eventId: string) => reportResponse(db, scope.organizationId, eventId),
-    // 완료한 행사, 최근 완료 순. 발행한 보고서는 고정한 수치를, 나머지는 지금 센 수치를 준다.
+    // 완료한 행사, 최근 완료 순. 숫자는 지금 센 값이다.
     async records(scope: ReportScope): Promise<RecordsResponse> {
       const completed = (await eventSummaries(db, scope.organizationId)).filter(event => event.completedAt !== null)
         .sort((a, b) => b.completedAt!.localeCompare(a.completedAt!) || b.id.localeCompare(a.id))
       if (!completed.length) return { records: [] }
-      const reports = await db.select({ eventId: eventReports.eventId, status: eventReports.status, publishedAt: eventReports.publishedAt,
-        facts: eventReports.facts }).from(eventReports)
-        .where(and(eq(eventReports.organizationId, scope.organizationId), inArray(eventReports.eventId, completed.map(event => event.id))))
-      const byEvent = new Map(reports.map(row => [row.eventId, row]))
-      const live = await factsByEvent(db, scope.organizationId, completed, new Date())
-      return { records: completed.map((event): EventRecord => {
-        const report = byEvent.get(event.id)
-        return { event, report: report ? { status: report.status, publishedAt: report.publishedAt?.toISOString() ?? null } : null,
-          facts: report?.status === 'published' && report.facts ? report.facts : live.get(event.id)! }
-      }) }
+      const rows = await db.select({ eventId: eventRetrospectives.eventId, confirmedAt: eventRetrospectives.confirmedAt }).from(eventRetrospectives)
+        .where(and(eq(eventRetrospectives.organizationId, scope.organizationId), inArray(eventRetrospectives.eventId, completed.map(event => event.id))))
+      const states = new Map(rows.map(row => [row.eventId, row.confirmedAt ? 'confirmed' as const : 'draft' as const]))
+      const facts = await factsByEvent(db, scope.organizationId, completed, new Date())
+      return { records: completed.map((event): EventRecord => ({ event, facts: facts.get(event.id)!, retrospective: states.get(event.id) ?? null })) }
     },
-    // 다섯 칸을 한 번에 저장한다. 처음 쓰면(버전 0) 보고서를 만들고, 겹쳐 만들면 버전 충돌이다. 발행한 보고서는 고치지 않는다.
-    async save(scope: ReportScope, eventId: string, input: SaveEventReportRequest): Promise<EventReportResponse> {
-      return db.transaction(async tx => {
-        await requireCompletedEvent(tx, scope.organizationId, eventId)
-        const current = await lockReport(tx, scope, eventId)
-        if (current?.status === 'published') throw new ApiError('REPORT_PUBLISHED', 409)
-        if ((current?.version ?? 0) !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
-        const texts = { operations: input.operations, wentWell: input.wentWell, shortfalls: input.shortfalls, improvements: input.improvements,
-          handover: input.handover }
-        if (current) {
-          await tx.update(eventReports).set({ ...texts, version: current.version + 1, updatedBy: scope.userId, updatedAt: sql`now()` })
-            .where(and(eq(eventReports.organizationId, scope.organizationId), eq(eventReports.eventId, eventId)))
-        } else {
-          const inserted = await tx.insert(eventReports).values({ eventId, organizationId: scope.organizationId, ...texts, createdBy: scope.userId,
-            updatedBy: scope.userId }).onConflictDoNothing().returning({ eventId: eventReports.eventId })
-          if (!inserted.length) throw new ApiError('VERSION_CONFLICT', 409)
+    // 끼룩이 초안을 만든다(처음이면 버전 0). 부르기 전과 저장할 때 완료 시각·버전을 보고, 그사이 바뀌었으면 결과를 버린다.
+    async generate(scope: ReportScope, eventId: string, input: GenerateRetrospectiveRequest): Promise<EventReportResponse> {
+      const event = await eventSummary(db, scope.organizationId, eventId)
+      if (!event.completedAt) throw new ApiError('EVENT_NOT_COMPLETED', 409)
+      const [current] = await db.select({ version: eventRetrospectives.version }).from(eventRetrospectives).where(where(scope.organizationId, eventId))
+      if ((current?.version ?? 0) !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
+      if (generating.has(eventId)) throw new ApiError('GENERATION_IN_PROGRESS', 409)
+      generating.add(eventId)
+      try {
+        const facts = (await factsByEvent(db, scope.organizationId, [event], new Date())).get(eventId)!
+        const timeline = await timelineOf(db, scope.organizationId, eventId)
+        const request = await inputOf(db, scope.organizationId, event, facts, timeline)
+        let content: RetrospectiveContent
+        try { content = contentOf(await generate(request), request) }
+        catch (error) {
+          if (error instanceof ApiError && error.status === 503) throw error
+          throw new ApiError('GENERATION_FAILED', 502)
         }
+        return await db.transaction(async tx => {
+          const completedAt = await requireCompletedEvent(tx, scope.organizationId, eventId)
+          if (completedAt.toISOString() !== event.completedAt) throw new ApiError('VERSION_CONFLICT', 409)
+          const row = await lockRetrospective(tx, scope.organizationId, eventId)
+          if ((row?.version ?? 0) !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
+          const values = { content, basedOnCompletedAt: completedAt, generatedBy: scope.userId, generatedAt: sql`now()`, confirmedBy: null,
+            confirmedAt: null }
+          if (row) {
+            await tx.update(eventRetrospectives).set({ ...values, version: row.version + 1 }).where(where(scope.organizationId, eventId))
+          } else {
+            const inserted = await tx.insert(eventRetrospectives).values({ eventId, organizationId: scope.organizationId, ...values })
+              .onConflictDoNothing().returning({ eventId: eventRetrospectives.eventId })
+            if (!inserted.length) throw new ApiError('VERSION_CONFLICT', 409)
+          }
+          return reportResponse(tx, scope.organizationId, eventId)
+        })
+      } finally { generating.delete(eventId) }
+    },
+    // 고쳐 저장한다. 저장한 사람이 확인한 것이다.
+    async save(scope: ReportScope, eventId: string, input: SaveRetrospectiveRequest): Promise<EventReportResponse> {
+      return db.transaction(async tx => {
+        await requireCompletedEvent(tx, scope.organizationId, eventId)
+        const row = await lockRetrospective(tx, scope.organizationId, eventId)
+        if (!row) throw new ApiError('INVALID_STATE', 409)
+        if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
+        await tx.update(eventRetrospectives).set({ content: editedContent(row.content, input), confirmedBy: scope.userId, confirmedAt: sql`now()`,
+          version: row.version + 1 }).where(where(scope.organizationId, eventId))
         return reportResponse(tx, scope.organizationId, eventId)
       })
     },
-    // 발행: 다섯 칸을 다 쓴 작성 중 보고서에 지금 수치와 이름을 고정한다.
-    async publish(scope: ReportScope, eventId: string, input: PublishEventReportRequest): Promise<EventReportResponse> {
+    // 고치지 않고 확인한다.
+    async confirm(scope: ReportScope, eventId: string, input: ConfirmRetrospectiveRequest): Promise<EventReportResponse> {
       return db.transaction(async tx => {
         await requireCompletedEvent(tx, scope.organizationId, eventId)
-        const current = await lockReport(tx, scope, eventId)
-        if (!current) throw new ApiError('REPORT_INCOMPLETE', 409)
-        if (current.status === 'published') throw new ApiError('INVALID_STATE', 409)
-        if (current.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
-        if (REPORT_SECTIONS.some(key => current[key] === null)) throw new ApiError('REPORT_INCOMPLETE', 409)
-        const event = await eventSummary(tx, scope.organizationId, eventId)
-        const at = new Date()
-        const facts = (await factsByEvent(tx, scope.organizationId, [event], at)).get(eventId)!
-        await tx.update(eventReports).set({ status: 'published', facts, publishedAt: at, publishedBy: scope.userId, version: current.version + 1 })
-          .where(and(eq(eventReports.organizationId, scope.organizationId), eq(eventReports.eventId, eventId)))
-        return reportResponse(tx, scope.organizationId, eventId)
-      })
-    },
-    // 발행 취소: 작성 중으로 되돌린다. 글은 두고 고정한 수치는 지운다(다시 발행할 때 다시 센다).
-    async unpublish(scope: ReportScope, eventId: string, input: PublishEventReportRequest): Promise<EventReportResponse> {
-      return db.transaction(async tx => {
-        await requireCompletedEvent(tx, scope.organizationId, eventId)
-        const current = await lockReport(tx, scope, eventId)
-        if (current?.status !== 'published') throw new ApiError('INVALID_STATE', 409)
-        if (current.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
-        await tx.update(eventReports).set({ status: 'draft', facts: null, publishedAt: null, publishedBy: null, version: current.version + 1 })
-          .where(and(eq(eventReports.organizationId, scope.organizationId), eq(eventReports.eventId, eventId)))
+        const row = await lockRetrospective(tx, scope.organizationId, eventId)
+        if (!row) throw new ApiError('INVALID_STATE', 409)
+        if (row.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
+        if (row.confirmedAt) throw new ApiError('INVALID_STATE', 409)
+        await tx.update(eventRetrospectives).set({ confirmedBy: scope.userId, confirmedAt: sql`now()`, version: row.version + 1 })
+          .where(where(scope.organizationId, eventId))
         return reportResponse(tx, scope.organizationId, eventId)
       })
     },

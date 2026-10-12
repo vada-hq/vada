@@ -22,9 +22,9 @@ import { createEventRoutes } from './events.js'
 const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
 const eventRoot = '/api/organizations/:organizationId/events/:eventId'
 const isEventWrite = (path: string) => path === eventRoot || path.startsWith(`${eventRoot}/`)
-// 완료한 행사에서 하는 일: 완료·완료 취소(M5a)와 결과보고서(M5b). 결과보고서는 반대로 완료한 행사에서만 쓴다(reports.test.ts).
+// 완료한 행사에서 하는 일: 완료·완료 취소(M5a)와 결과보고서 회고(M5c). 회고는 반대로 완료한 행사에서만 만들고 고친다(reports.test.ts).
 const completedOnly = new Set([`POST ${eventRoot}/completion`, `POST ${eventRoot}/completion/cancel`,
-  `POST ${eventRoot}/report`, `POST ${eventRoot}/report/publish`, `POST ${eventRoot}/report/unpublish`])
+  `POST ${eventRoot}/report/retrospective/generate`, `POST ${eventRoot}/report/retrospective`, `POST ${eventRoot}/report/retrospective/confirm`])
 const taskBody = { title: '정리', description: null, departmentId: null, assigneeMembershipId: null, dueOn: null }
 const formFields = { opensAt: null, closesAt: '2999-08-19T23:59', capacity: null, notice: null, collectPhone: false, fee: 0, memberFee: null }
 const expenseBody = { eventId: 'e', vendor: '쿠팡', description: '체육대회 물품', amount: 46000, paidOn: '2026-10-09', method: 'council_card',
@@ -68,7 +68,7 @@ test('완료한 행사는 행사 아래 모든 변경 라우트와 행사 기록
       expenses: createExpenseRoutes(db, session, fakeStorage().storage),
       settlement: createSettlementRoutes(db, session, origin), budget: createBudgetRoutes(db, session, origin), incomes: createIncomeRoutes(db, session),
       registrations: createRegistrationRoutes(db, session), fees: createFeeRoutes(db, session), tasks: createTaskRoutes(db, session),
-      reports: createReportRoutes(db, session),
+      reports: createReportRoutes(db, session, async () => ({ wentWell: [], shortfalls: [], nextTime: [], questions: [] })),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
@@ -136,9 +136,8 @@ test('완료한 행사는 행사 아래 모든 변경 라우트와 행사 기록
       assert.deepEqual(await response.json(), { error }, `${method} ${path}`)
     }
 
-    // 완료한 행사에서도 결과보고서는 쓴다.
-    assert.equal((await send('POST', at('/report'), { version: 0, operations: '진행', wentWell: null, shortfalls: null, improvements: null,
-      handover: null })).status, 200)
+    // 완료한 행사에서도 결과보고서의 회고는 만든다.
+    assert.equal((await send('POST', at('/report/retrospective/generate'), { version: 0 })).status, 200)
 
     // 완료를 취소하면 같은 쓰기가 다시 된다.
     assert.equal((await send('POST', at('/completion/cancel'), { version: 2 })).status, 200)

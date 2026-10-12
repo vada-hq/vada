@@ -4,7 +4,7 @@ import { and, count, desc, eq, ne, sql } from 'drizzle-orm'
 import { alias, type PgDatabase, type PgQueryResultHKT } from 'drizzle-orm/pg-core'
 import { CancelEventCompletionSchema, CompleteEventSchema, CreateEventSchema, UpdateEventSchema, dateFromKorean, koreanOf, token,
   type EventCompletionResponse, type EventResponse, type EventSummary, type EventsResponse } from '@vada/contracts'
-import { chatRooms, departments, eventFinances, eventReports, events, memberships, registrationForms, tasks, users } from '../db/schema.js'
+import { chatRooms, departments, eventFinances, events, memberships, registrationForms, tasks, users } from '../db/schema.js'
 
 import { requireSession, type SessionReader } from '../auth/require-session.js'
 import { requireEventManager, requireMembership, requireOrganizationManager, type MembershipEnv } from '../access/membership.js'
@@ -180,10 +180,6 @@ export function createEventRoutes(
       const current = await lockEvent(tx, organizationId, eventId)
       if (current.version !== input.version) throw new ApiError('VERSION_CONFLICT', 409)
       if (!current.completedAt) throw new ApiError('INVALID_STATE', 409)
-      // 발행한 결과보고서(M5b)가 있으면 먼저 발행을 취소한다. 발행·발행 취소는 이 행사 행을 FOR SHARE로 잡으므로 그사이 바뀌지 않는다.
-      const [report] = await tx.select({ status: eventReports.status }).from(eventReports)
-        .where(and(eq(eventReports.organizationId, organizationId), eq(eventReports.eventId, eventId)))
-      if (report?.status === 'published') throw new ApiError('REPORT_PUBLISHED', 409)
       await tx.update(events).set({ completedAt: null, completedBy: null, version: current.version + 1 })
         .where(and(eq(events.organizationId, organizationId), eq(events.id, eventId)))
       return eventSummary(tx, organizationId, eventId)

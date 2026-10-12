@@ -28,6 +28,7 @@ import { createRegistrationPurger } from './registrations/purge.js'
 import { createRegistrationRoutes } from './registrations/routes.js'
 import { createFeeRoutes } from './fees/routes.js'
 import { createTaskRoutes } from './tasks/routes.js'
+import { createRetrospectiveGenerator } from './reports/generation.js'
 import { createReportRoutes } from './reports/routes.js'
 
 function main() {
@@ -64,7 +65,9 @@ function main() {
   const registrations = createRegistrationRoutes(db, (headers) => auth.api.getSession({ headers }))
   const fees = createFeeRoutes(db, (headers) => auth.api.getSession({ headers }))
   const tasks = createTaskRoutes(db, (headers) => auth.api.getSession({ headers }))
-  const reports = createReportRoutes(db, (headers) => auth.api.getSession({ headers }))
+  // 회고 초안(M5c)도 구매 초안과 같은 OpenAI 설정을 쓴다.
+  const reports = createReportRoutes(db, (headers) => auth.api.getSession({ headers }),
+    createRetrospectiveGenerator({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL }))
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
   const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,
     headers => auth.api.getSession({ headers }),
