@@ -4,11 +4,13 @@ import { fileURLToPath } from 'node:url'
 import { PGlite } from '@electric-sql/pglite'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
-import type { BudgetPlanResponse, EventFinanceResponse, EventsResponse, MyTasksResponse, RegistrationResponse } from '@vada/contracts'
+import type { BudgetPlanResponse, EventFinanceResponse, EventReportResponse, EventsResponse, MyTasksResponse, RegistrationResponse,
+  RetrospectiveContent } from '@vada/contracts'
 import { createApp } from '../src/app.js'
 import { createBudgetRoutes } from '../src/budget/routes.js'
 import { createEventRoutes } from '../src/events/events.js'
 import { createRegistrationRoutes } from '../src/registrations/routes.js'
+import { createReportRoutes } from '../src/reports/routes.js'
 import { createSettlementRoutes } from '../src/settlement/routes.js'
 import { createTaskRoutes } from '../src/tasks/routes.js'
 import { fakeStorage } from '../src/purchases/test-setup.js'
@@ -41,7 +43,8 @@ function viewer(db: TestDb) {
   const origin = 'http://127.0.0.1:5180'
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, events: createEventRoutes(db, session),
     budget: createBudgetRoutes(db, session, origin), settlement: createSettlementRoutes(db, session, origin),
-    registrations: createRegistrationRoutes(db, session), tasks: createTaskRoutes(db, session) })
+    registrations: createRegistrationRoutes(db, session), tasks: createTaskRoutes(db, session),
+    reports: createReportRoutes(db, session, async () => { throw new Error('시연 확인은 끼룩이를 부르지 않는다') }) })
   return async <T>(path: string): Promise<T> => {
     const response = await app.request(`/api/organizations/${DEMO_ORGANIZATION_ID}${path}`)
     assert.equal(response.status, 200, path)
@@ -109,7 +112,7 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
       'budget_periods.closed_at', 'budget_period_events.created_at', 'fee_accounts.updated_at', 'fee_account_events.created_at', 'dues_rosters.uploaded_at',
       'purchase_candidate_shares.created_at', 'purchase_candidates.created_at', 'coupang_products.fetched_at', 'purchase_items.product_fetched_at',
       'purchase_generations.created_at', 'purchase_submissions.submitted_at', 'tasks.created_at', 'tasks.completed_at', 'task_events.created_at',
-      'events.completed_at', 'event_reports.created_at', 'event_reports.updated_at', 'event_reports.published_at']
+      'events.completed_at', 'event_retrospectives.generated_at', 'event_retrospectives.confirmed_at']
     for (const column of columns) {
       const [table, field] = column.split('.')
       const latest = (await pg.query<{ latest: Date | null }>(`SELECT max(${field}) AS latest FROM ${table}`)).rows[0]!.latest
@@ -148,18 +151,22 @@ test('시연 데이터: 테스트 데이터를 지우고 한 학기 반의 활�
     // 다섯 행사 모두 담당 부서와 책임자가 있다(M5b).
     assert.equal(await count(pg, `SELECT count(*)::int AS n FROM events WHERE organization_id = '${DEMO_ORGANIZATION_ID}'
       AND owner_department_id IS NOT NULL AND owner_id IS NOT NULL`), 5)
-    // 결과보고서: 새내기 배움터는 발행, 개강총회는 세 칸만 쓴 작성 중이다. 발행한 보고서는 신청·참석과 업무 지연을 고정했다.
-    const reports = await pg.query<{ name: string; status: string; facts: { registrations: unknown; tasks: { total: number; late: number } } | null;
-      written: number }>(`SELECT e.name, r.status, r.facts, ((r.operations IS NOT NULL)::int + (r.went_well IS NOT NULL)::int
-        + (r.shortfalls IS NOT NULL)::int + (r.improvements IS NOT NULL)::int + (r.handover IS NOT NULL)::int) AS written
-      FROM event_reports r JOIN events e ON e.id = r.event_id ORDER BY e.name`)
-    assert.deepEqual(reports.rows.map(row => [row.name, row.status, row.written]), [['2026 새내기 배움터', 'published', 5], ['2학기 개강총회', 'draft', 3]])
-    assert.deepEqual(reports.rows[0]!.facts?.registrations, { registered: 42, attended: 39 })
-    assert.deepEqual([reports.rows[0]!.facts?.tasks.total, reports.rows[0]!.facts?.tasks.late], [4, 1])
-    // 발행은 완료 뒤, 쓴 때는 발행 전이다.
-    const order = await pg.query<{ ok: boolean }>(`SELECT bool_and(r.created_at > e.completed_at AND (r.published_at IS NULL OR r.published_at > r.updated_at)) AS ok
-      FROM event_reports r JOIN events e ON e.id = r.event_id`)
-    assert.equal(order.rows[0]!.ok, true)
+    // 결과보고서 회고(M5c): 새내기 배움터는 부회장이 확인 필요에 답해 확인했고, 개강총회는 회고가 없다. 만든 때는 완료 뒤, 확인은 만든 뒤다.
+    const retros = await pg.query<{ id: string; name: string; content: RetrospectiveContent; ordered: boolean }>(`SELECT e.id, e.name, r.content,
+      (r.generated_at > e.completed_at AND r.confirmed_at > r.generated_at) AS ordered
+      FROM event_retrospectives r JOIN events e ON e.id = r.event_id ORDER BY e.name`)
+    assert.deepEqual(retros.rows.map(row => [row.name, row.ordered]), [['2026 새내기 배움터', true]])
+    const { content } = retros.rows[0]!
+    assert.deepEqual([content.wentWell.length, content.shortfalls.length, content.nextTime.length, content.questions.length], [2, 1, 1, 1])
+    assert.ok(content.questions[0]!.answer)
+    // 화면에서 보는 결과보고서: 근거를 모두 찾고(바뀐 기록 없음), 아쉬운 점은 늦게 끝낸 업무 줄을 가리킨다.
+    const report = await view<EventReportResponse>(`/events/${retros.rows[0]!.id}/report`)
+    const retro = report.retrospective!
+    const sources = [...retro.wentWell, ...retro.shortfalls, ...retro.nextTime].flatMap(item => item.sources)
+    assert.ok(sources.length > 0 && sources.every(source => source.kind !== 'missing'))
+    assert.deepEqual(retro.shortfalls[0]!.sources.map(source => source.kind === 'entry' ? source.text : source.kind), ['업무 완료: 조 편성표 만들기'])
+    assert.ok(retro.confirmed && !retro.stale)
+    assert.ok(report.timeline.some(entry => entry.id === 'event:completed'))
 
     // 1학기는 마감했고 남은 돈은 2학기 이월금이다. 참가비 수입은 각 학기에 들어간다.
     const periods = await pg.query<{ id: string; name: string; closed_at: Date | null }>(`SELECT id, name, closed_at FROM budget_periods ORDER BY starts_on`)

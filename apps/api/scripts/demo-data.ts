@@ -7,7 +7,7 @@ import { createApp } from '../src/app.js'
 import { createAccessRoutes } from '../src/access/access.js'
 import { createBudgetRoutes } from '../src/budget/routes.js'
 import { createChatRoutes } from '../src/chat/chat.js'
-import { budgetPeriodEvents, budgetPeriods, chatRooms, coupangProducts, departments, eventFinanceEvents, eventFinances, eventReports, events, expenseEvents,
+import { budgetPeriodEvents, budgetPeriods, chatRooms, coupangProducts, departments, eventFinanceEvents, eventFinances, eventRetrospectives, events, expenseEvents,
   expenseReceipts,
   feeAccountEvents, incomeEvents, incomes, memberships, messages, organizations, purchaseItemEvents, purchaseItems, registrationForms, registrations,
   users } from '../src/db/schema.js'
@@ -25,6 +25,7 @@ import { createPurchaseRoutes } from '../src/purchases/purchases.js'
 import { createRegistrationRoutes } from '../src/registrations/routes.js'
 import { createSettlementRoutes } from '../src/settlement/routes.js'
 import { createTaskRoutes } from '../src/tasks/routes.js'
+import type { RetrospectiveGenerator } from '../src/reports/generation.js'
 import { createReportRoutes } from '../src/reports/routes.js'
 
 // 기획자 시연용 데이터. 배포 DB의 검증 학생회(로그인 계정 셋이 소속)를 "소프트웨어학부 학생회 (시연)"으로 바꾸고,
@@ -198,6 +199,7 @@ export async function resetDemo(db: Db) {
     await run(sql`DELETE FROM budget_periods WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM messages WHERE chat_room_id IN (SELECT id FROM chat_rooms WHERE organization_id = ${org})`)
     await run(sql`DELETE FROM chat_rooms WHERE organization_id = ${org}`)
+    await run(sql`DELETE FROM event_retrospectives WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM event_reports WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM events WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM memberships WHERE organization_id = ${org} AND user_id LIKE ${`${DEMO_USER_PREFIX}%`}`)
@@ -224,7 +226,7 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
     purchases: createPurchaseRoutes(db, session, generateDraft, fetchProduct), expenses: createExpenseRoutes(db, session, storage),
     settlement: createSettlementRoutes(db, session, ORIGIN), budget: createBudgetRoutes(db, session, ORIGIN), incomes: createIncomeRoutes(db, session),
     registrations: createRegistrationRoutes(db, session, { now: () => state.now }), fees: createFeeRoutes(db, session, { now: () => state.now }),
-    tasks: createTaskRoutes(db, session), reports: createReportRoutes(db, session) })
+    tasks: createTaskRoutes(db, session), reports: createReportRoutes(db, session, retrospectiveDraft) })
   // 실패하면 단계와 상태·오류 코드만 남긴다(응답 본문에는 개인 칸이 없고 오류 코드만 있다). 200을 기대하면 201도 받는다.
   // 원격 DB 연결이 잠깐 끊겨 생긴 5xx는 거래가 되돌려진 것이므로 잠시 뒤 두 번까지 다시 보낸다.
   async function call<T>(user: PersonKey | null, method: string, path: string, body?: unknown, status = 200): Promise<T> {
@@ -619,26 +621,16 @@ export async function seedDemo({ db, storage, upload, today, log = () => {} }: D
   }
   await shapeCompletion(db, calendar, eventIds)
 
-  // 15. 결과보고서(M5b). 새내기 배움터는 기획부장이 다섯 칸을 쓰고 부회장이 발행했다. 개강총회는 세 칸만 쓴 작성 중이다.
-  // 체육대회는 정산만 했다. 기획자가 완료하고 결과보고서를 써 볼 수 있다.
-  log('결과보고서')
-  const orientationReport = await call<EventReportResponse>('planner', 'POST', eventPath('orientation', '/report'), { version: 0,
-    operations: '10:00 공학관 앞 버스 출발 → 11:30 수련원 도착·방 배정 → 13:00 조별 레크리에이션 → 18:00 저녁·학과 소개 → 20:00 선배와의 대화.\n'
-      + '둘째 날 10:00 정리 → 12:00 출발.\n운영진 12명: 조장 8명, 진행 2명, 안전·물품 2명.',
-    wentWell: '조장을 미리 정하고 조별 단톡방을 열어 두어 첫날 어색함이 적었다.\n숙박비·버스비를 행사 사흘 전에 보내 현장에서 돈 문제가 없었다.',
-    shortfalls: '버스 한 대가 30분 늦었다 — 원인: 출발 시각만 알리고 기사님 연락처를 받아 두지 않았다.\n'
-      + '신청자 42명 가운데 3명이 오지 않았다 — 원인: 전날 확인 연락을 하지 않았다.\n'
-      + '조 편성표가 이틀 늦게 나왔다 — 원인: 신청 마감 뒤 명단 정리를 한 사람이 맡았다.',
-    improvements: '버스 업체에 기사님 연락처를 받아 출발 1시간 전에 위치를 확인한다.\n출발 전날 참가자에게 확인 문자를 보낸다.\n'
-      + '조 편성은 신청 마감 다음 날까지 둘이 나눠 끝낸다.',
-    handover: '숙소: 가평 청소년수련원(행사 6주 전 예약, 계약금 30%).\n버스: 한빛관광버스 45인승 2대, 왕복 110만 원.\n'
-      + '조 편성표·진행 대본은 학생회 드라이브 "새내기 배움터" 폴더에 있다.\n주의: 수련원은 22시 뒤 소음 금지.' })
-  await call('vice', 'POST', eventPath('orientation', '/report/publish'), { version: orientationReport.report!.version })
-  await call('planner2', 'POST', eventPath('opening', '/report'), { version: 0,
-    operations: '18:00 개회 → 학생회 소개 → 2학기 행사 일정 안내 → 19:30 다과·자유 교류 → 20:30 정리.',
-    wentWell: '다과를 미리 나눠 담아 두어 줄이 길지 않았다.',
-    shortfalls: '마이크 하나가 끊겨 진행이 5분 멈췄다 — 원인: 리허설 때 예비 마이크를 확인하지 않았다.', improvements: null, handover: null })
-  await shapeReports(db, calendar, eventIds)
+  // 15. 결과보고서 회고(M5c). 새내기 배움터는 기획부장이 끼룩이 초안을 만들고, 부회장이 확인 필요에 답해 확인했다.
+  // 개강총회는 회고가 없다. 운영 서버에 끼룩이 키가 있으면 기획자가 [회고 초안 만들기]를 눌러 볼 수 있다.
+  log('결과보고서 회고')
+  const orientationRetro = (await call<EventReportResponse>('planner', 'POST', eventPath('orientation', '/report/retrospective/generate'),
+    { version: 0 })).retrospective!
+  const sentences = (list: { id: string; text: string }[]) => list.map(({ id, text }) => ({ id, text }))
+  await call('vice', 'POST', eventPath('orientation', '/report/retrospective'), { version: orientationRetro.version,
+    wentWell: sentences(orientationRetro.wentWell), shortfalls: sentences(orientationRetro.shortfalls), nextTime: sentences(orientationRetro.nextTime),
+    questions: orientationRetro.questions.map(({ id }) => ({ id, answer: '출발 전날 확인 연락을 하지 않았다. 다음에는 전날 저녁에 문자를 보낸다.' })) })
+  await shapeRetrospectives(db, calendar, eventIds)
   log('완료')
   return { eventIds, periods: { previous: previous.period.id, current: current.period.id } }
 }
@@ -785,15 +777,29 @@ async function shapeCompletion(db: Db, calendar: Calendar, eventIds: Record<stri
   }
 }
 
-// 결과보고서 시각: 완료 다음 날 14시에 쓰고, 새내기 배움터는 완료 이틀 뒤 10시에 발행했다. 발행 때 고정한 수치는 그대로다.
-async function shapeReports(db: Db, calendar: Calendar, eventIds: Record<string, string>) {
-  const completedOn = completedOnOf(calendar)
-  for (const [key, day] of Object.entries(completedOn)) {
-    const written = kst(addDays(day, 1), '14:00')
-    await db.update(eventReports).set({ createdAt: written, updatedAt: written }).where(eq(eventReports.eventId, eventIds[key]!))
+// 회고 시각: 새내기 배움터는 완료 다음 날 14시에 만들고, 완료 이틀 뒤 10시에 확인했다.
+async function shapeRetrospectives(db: Db, calendar: Calendar, eventIds: Record<string, string>) {
+  const day = completedOnOf(calendar).orientation!
+  await db.update(eventRetrospectives).set({ generatedAt: kst(addDays(day, 1), '14:00'), confirmedAt: kst(addDays(day, 2), '10:00') })
+    .where(eq(eventRetrospectives.eventId, eventIds.orientation!))
+}
+
+// 시연용 끼룩이(M5c): 실제 모델을 부르지 않는다. 받은 대화·준비 과정에서 근거를 찾아 정해 둔 회고를 만든다.
+// 근거를 못 찾은 문장은 근거 없이 넘어가 서버가 버리므로, 시연 테스트가 문장 수로 확인한다.
+const retrospectiveDraft: RetrospectiveGenerator = async input => {
+  const message = (text: string) => input.messages.find(item => item.content.includes(text))?.id
+  const record = (text: string) => input.records.find(item => item.text.includes(text))?.id
+  const sources = (...ids: (string | undefined)[]) => ids.filter((id): id is string => id !== undefined)
+  return {
+    wentWell: [
+      { text: '숙소와 버스를 행사 20일 전에 정해 두어 참가 신청을 바로 열 수 있었다.', sources: sources(message('가평 청소년수련원'), message('참가비는 3만 원')) },
+      { text: '숙박비 입금일을 미리 정해 현장에서 돈 문제가 없었다.', sources: sources(message('숙박비 견적서')) },
+    ],
+    shortfalls: [{ text: '조 편성표가 마감보다 이틀 늦게 나왔다.', sources: sources(record('조 편성표 만들기')) }],
+    nextTime: [{ text: '숙소는 행사 6주 전에 예약하고, 조 편성은 신청 마감 다음 날까지 둘이 나눠 끝내자.',
+      sources: sources(message('가평 청소년수련원'), record('조 편성표 만들기')) }],
+    questions: [{ text: '신청 42명 가운데 3명이 오지 않았다. 이유가 기록에 없다.', sources: ['fact:registrations'] }],
   }
-  await db.update(eventReports).set({ publishedAt: kst(addDays(completedOn.orientation!, 2), '10:00') })
-    .where(eq(eventReports.eventId, eventIds.orientation!))
 }
 
 // 내 신청 화면의 참석 확인 코드와 같은 값(토큰의 SHA-256). 시연 안내에 쓴다.
