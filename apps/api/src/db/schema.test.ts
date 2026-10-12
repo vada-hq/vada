@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { getTableConfig, PgDialect } from 'drizzle-orm/pg-core'
-import { accounts, chatRooms, departments, eventReports, eventRetrospectives, events, memberships, messages, organizations, purchaseSubmissions, sessions, users,
+import { accounts, chatRooms, departments, eventRetrospectives, events, memberships, messages, organizations, purchaseSubmissions, sessions, users,
   verifications } from './schema.js'
 
 test('all entities have primary keys and creation timestamps', () => {
@@ -122,19 +122,6 @@ test('councils keep one invite code each; departments may be unassigned', () => 
   assert.deepEqual(config.uniqueConstraints.map(key => key.name), ['organizations_invite_code_unique'])
   assert.ok(config.checks.some(item => item.name === 'organizations_invite_code_format'))
   assert.equal(purchaseSubmissions.departmentId.notNull, false)
-})
-
-test('결과보고서는 행사마다 하나이고, 같은 학생회 행사와 사용자를 가리킨다', () => {
-  const config = getTableConfig(eventReports)
-  assert.deepEqual(config.columns.map(column => column.name), ['event_id', 'organization_id', 'status', 'operations', 'went_well', 'shortfalls',
-    'improvements', 'handover', 'facts', 'published_at', 'published_by', 'version', 'created_by', 'created_at', 'updated_by', 'updated_at'])
-  assert.equal(eventReports.eventId.primary, true)
-  const event = config.foreignKeys.find(key => key.getName() === 'event_reports_event_same_organization')
-  assert.ok(event)
-  assert.deepEqual(event.reference().columns.map(column => column.name), ['organization_id', 'event_id'])
-  assert.equal(event.onDelete, 'restrict')
-  for (const name of ['event_reports_status_valid', 'event_reports_published_state', 'event_reports_published_complete', 'event_reports_facts_object',
-    'event_reports_operations_length', 'event_reports_handover_not_blank']) assert.ok(config.checks.some(check => check.name === name), name)
 })
 
 test('행사 담당은 같은 학생회의 부서와 소속을 가리킨다', () => {

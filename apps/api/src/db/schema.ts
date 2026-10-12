@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { boolean, check, date, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core'
-import type { EventReportFacts, RetrospectiveContent } from '@vada/contracts'
+import type { RetrospectiveContent } from '@vada/contracts'
 
 // Better Auth의 사용자 필드. 학생회 소속과 권한은 memberships에서 관리한다.
 export const users = pgTable('users', {
@@ -1111,54 +1111,6 @@ export const taskEvents = pgTable('task_events', {
   check('task_events_action_valid', sql`${table.action} IN ('created','updated','status_changed')`),
   check('task_events_changes_object', sql`jsonb_typeof(${table.changes}) = 'object'`),
   index('task_events_task_idx').on(table.taskId, table.createdAt),
-])
-
-// 완료한 행사의 결과보고서(M5b). 행사마다 하나다. 쓰기는 완료한 행사에서만 하고(events/lock.ts의 requireCompletedEvent),
-// 발행하면 그때의 자동 수치와 이름을 facts에 고정한다. updated_*는 마지막으로 글을 저장한 사람·때이고 발행은 따로 남긴다.
-// M5c부터 쓰지 않는다. 배포 뒤 0028에서 지운다.
-export const eventReports = pgTable('event_reports', {
-  eventId: text('event_id').primaryKey(),
-  organizationId: text('organization_id').notNull(),
-  status: text('status', { enum: ['draft', 'published'] }).notNull().default('draft'),
-  // 현장 운영, 잘된 점, 아쉬운 점과 원인, 다음 행사 개선안, 인수인계. 쓰지 않은 칸은 비어 있다.
-  operations: text('operations'),
-  wentWell: text('went_well'),
-  shortfalls: text('shortfalls'),
-  improvements: text('improvements'),
-  handover: text('handover'),
-  facts: jsonb('facts').$type<EventReportFacts>(),
-  publishedAt: timestamp('published_at', { withTimezone: true }),
-  publishedBy: text('published_by').references(() => users.id, { onDelete: 'restrict' }),
-  version: integer('version').notNull().default(1),
-  createdBy: text('created_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedBy: text('updated_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-}, (table) => [
-  foreignKey({
-    name: 'event_reports_event_same_organization',
-    columns: [table.organizationId, table.eventId],
-    foreignColumns: [events.organizationId, events.id],
-  }).onDelete('restrict'),
-  check('event_reports_status_valid', sql`${table.status} IN ('draft','published')`),
-  // 발행이면 발행한 때·사람·고정 수치가 모두 있고, 작성 중이면 모두 없다.
-  check('event_reports_published_state', sql`(${table.status} = 'published') = (${table.publishedAt} IS NOT NULL)
-    AND (${table.publishedAt} IS NULL) = (${table.publishedBy} IS NULL) AND (${table.publishedAt} IS NULL) = (${table.facts} IS NULL)`),
-  // 발행하려면 다섯 칸을 모두 써야 한다.
-  check('event_reports_published_complete', sql`${table.status} <> 'published' OR (${table.operations} IS NOT NULL AND ${table.wentWell} IS NOT NULL
-    AND ${table.shortfalls} IS NOT NULL AND ${table.improvements} IS NOT NULL AND ${table.handover} IS NOT NULL)`),
-  check('event_reports_operations_not_blank', sql`${table.operations} ~ '[^[:space:]]'`),
-  check('event_reports_operations_length', sql`char_length(${table.operations}) <= 2000`),
-  check('event_reports_went_well_not_blank', sql`${table.wentWell} ~ '[^[:space:]]'`),
-  check('event_reports_went_well_length', sql`char_length(${table.wentWell}) <= 2000`),
-  check('event_reports_shortfalls_not_blank', sql`${table.shortfalls} ~ '[^[:space:]]'`),
-  check('event_reports_shortfalls_length', sql`char_length(${table.shortfalls}) <= 2000`),
-  check('event_reports_improvements_not_blank', sql`${table.improvements} ~ '[^[:space:]]'`),
-  check('event_reports_improvements_length', sql`char_length(${table.improvements}) <= 2000`),
-  check('event_reports_handover_not_blank', sql`${table.handover} ~ '[^[:space:]]'`),
-  check('event_reports_handover_length', sql`char_length(${table.handover}) <= 2000`),
-  check('event_reports_facts_object', sql`jsonb_typeof(${table.facts}) = 'object'`),
-  check('event_reports_version_positive', sql`${table.version} >= 1`),
 ])
 
 // 결과보고서의 회고(M5c). 행사마다 하나다. 끼룩이가 만든 초안이고, 사람이 확인하거나 고쳐 저장하면 확인한 것이다.

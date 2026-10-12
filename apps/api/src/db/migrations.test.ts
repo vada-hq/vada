@@ -1364,6 +1364,8 @@ test('0025 adds event completion without touching existing events', async (t) =>
 test('0026 adds event owners and reports without touching existing events', async (t) => {
   const pg = new PGlite()
   const previous = migrationsBefore('0026_event_reports')
+  // 그 뒤 마이그레이션(0028이 event_reports를 지운다) 전까지만 올린다.
+  const through0026 = migrationsBefore('0027_event_retrospectives')
   try {
     const db = drizzle(pg)
     await migrate(db, { migrationsFolder: previous.folder })
@@ -1374,7 +1376,7 @@ test('0026 adds event owners and reports without touching existing events', asyn
       INSERT INTO memberships (id,user_id,organization_id,department_id) VALUES ('m','u','o','d'),('mx','x','o2','d2');
       INSERT INTO events (id,organization_id,name,created_by,version) VALUES ('e','o','체육대회','u',3),('e2','o','축제','u',1);
     `)
-    await migrate(db, { migrationsFolder })
+    await migrate(db, { migrationsFolder: through0026.folder })
     await t.test('existing events have no owner and keep their version', async () => {
       const { rows } = await pg.query<Record<string, unknown>>("SELECT version, owner_department_id, owner_id FROM events WHERE id = 'e'")
       assert.deepEqual(rows[0], { version: 3, owner_department_id: null, owner_id: null })
@@ -1401,6 +1403,7 @@ test('0026 adds event owners and reports without touching existing events', asyn
     })
   } finally {
     previous.remove()
+    through0026.remove()
     await pg.close()
   }
 })
@@ -1408,6 +1411,8 @@ test('0026 adds event owners and reports without touching existing events', asyn
 test('0027 adds event retrospectives and leaves reports until 0028', async (t) => {
   const pg = new PGlite()
   const previous = migrationsBefore('0027_event_retrospectives')
+  // 그 뒤 마이그레이션(0028이 event_reports를 지운다) 전까지만 올린다.
+  const through0027 = migrationsBefore('0028_drop_event_reports')
   try {
     const db = drizzle(pg)
     await migrate(db, { migrationsFolder: previous.folder })
@@ -1417,7 +1422,7 @@ test('0027 adds event retrospectives and leaves reports until 0028', async (t) =
       INSERT INTO events (id,organization_id,name,created_by,completed_at,completed_by) VALUES ('e','o','체육대회','u',now(),'u');
       INSERT INTO event_reports (event_id, organization_id, operations, created_by, updated_by) VALUES ('e','o','진행','u','u');
     `)
-    await migrate(db, { migrationsFolder })
+    await migrate(db, { migrationsFolder: through0027.folder })
     await t.test('existing reports stay until 0028', async () => {
       const { rows } = await pg.query<{ n: number }>('SELECT count(*)::int AS n FROM event_reports')
       assert.equal(rows[0]!.n, 1)
@@ -1433,6 +1438,30 @@ test('0027 adds event retrospectives and leaves reports until 0028', async (t) =
       await assert.rejects(pg.exec('UPDATE event_retrospectives SET version = 0'), { constraint: 'event_retrospectives_version_positive' })
       await pg.exec(`UPDATE event_retrospectives SET confirmed_by = 'u', confirmed_at = now()`)
     })
+  } finally {
+    previous.remove()
+    through0027.remove()
+    await pg.close()
+  }
+})
+
+test('0028 drops the unused event_reports table and keeps retrospectives', async () => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0028_drop_event_reports')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council');
+      INSERT INTO events (id,organization_id,name,created_by,completed_at,completed_by) VALUES ('e','o','체육대회','u',now(),'u');
+      INSERT INTO event_reports (event_id, organization_id, operations, created_by, updated_by) VALUES ('e','o','진행','u','u');
+      INSERT INTO event_retrospectives (event_id, organization_id, content, based_on_completed_at, generated_by) VALUES ('e','o','{}',now(),'u');
+    `)
+    await migrate(db, { migrationsFolder })
+    const { rows } = await pg.query<{ reports: string | null; retrospectives: number }>(`SELECT to_regclass('public.event_reports')::text AS reports,
+      (SELECT count(*)::int FROM event_retrospectives) AS retrospectives`)
+    assert.deepEqual(rows[0], { reports: null, retrospectives: 1 })
   } finally {
     previous.remove()
     await pg.close()

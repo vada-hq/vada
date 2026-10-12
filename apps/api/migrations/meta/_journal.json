@@ -197,6 +197,13 @@
       "when": 1791774255391,
       "tag": "0027_event_retrospectives",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791780319973,
+      "tag": "0028_drop_event_reports",
+      "breakpoints": true
     }
   ]
 }

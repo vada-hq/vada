@@ -576,31 +576,12 @@ erDiagram
 
 ## 결과보고서
 
-완료한 행사(`events`)와 사용자(`users`)를 참조한다. 설계는 [결과보고서](superpowers/specs/2026-10-12-event-report-design.md)(M5b)와 [결과보고서 다시 설계](superpowers/specs/2026-10-12-event-report-redesign-design.md)(M5c)에 있다. M5c부터 숫자·준비 과정은 저장하지 않고 열 때마다 세며, 회고만 `event_retrospectives`에 저장한다.
+완료한 행사(`events`)와 사용자(`users`)를 참조한다. 설계는 [결과보고서](superpowers/specs/2026-10-12-event-report-design.md)(M5b)와 [결과보고서 다시 설계](superpowers/specs/2026-10-12-event-report-redesign-design.md)(M5c)에 있다. M5c부터 숫자·준비 과정은 저장하지 않고 열 때마다 세며, 회고만 `event_retrospectives`에 저장한다. M5b의 `event_reports`는 0028에서 지웠다.
 
 ```mermaid
 erDiagram
-    events ||..o| eventReports : "결과보고서(M5b, 쓰지 않음)"
     events ||..o| eventRetrospectives : "회고(M5c)"
-    users ||..o{ eventReports : "처음 쓴 사람·마지막 저장·발행"
     users ||..o{ eventRetrospectives : "초안을 만든 사람·확인한 사람"
-
-    eventReports["event_reports"] {
-        text event_id PK "행사와 복합 FK"
-        text organization_id FK
-        text status "draft / published"
-        text operations "현장 운영 2,000자, 선택"
-        text went_well "잘된 점 2,000자, 선택"
-        text shortfalls "아쉬운 점과 원인 2,000자, 선택"
-        text improvements "다음 행사 개선안 2,000자, 선택"
-        text handover "인수인계 2,000자, 선택"
-        jsonb facts "발행 때 고정한 자동 수치·이름, 발행일 때만"
-        timestamptz published_at "발행일 때만"
-        text published_by FK "발행일 때만"
-        integer version
-        text created_by FK
-        text updated_by FK "마지막으로 글을 저장한 사람"
-    }
 
     eventRetrospectives["event_retrospectives"] {
         text event_id PK "행사와 복합 FK"
@@ -615,7 +596,6 @@ erDiagram
     }
 ```
 
-- `event_reports`: M5c부터 쓰지 않는다. 배포 뒤 0028에서 지운다. 행사마다 하나다. 완료한 행사에서만 쓰고 발행한다(서버, `events/lock.ts`의 `requireCompletedEvent`). 발행이면 발행한 때·사람·고정 수치가 모두 있고 다섯 칸이 모두 있다(CHECK). 발행하면 그때의 신청→참석, 예산→집행, 업무 완료·지연, 구매 건수와 행사·담당 이름을 `facts`에 고정한다. 발행한 보고서가 있으면 행사 완료를 취소하지 않는다(서버). 처리 기록 표는 두지 않는다.
 - `event_retrospectives`: 행사마다 하나다. 끼룩이가 만든 초안이고, 확인하거나 고쳐 저장하면 확인한 사람·때가 생긴다(둘 다 있거나 둘 다 없다, CHECK). 완료한 행사에서만 만들고 고친다(서버, `requireCompletedEvent`). 문장 수·길이와 근거는 서버가 보고, DB는 객체인지와 전체 크기(128KiB)만 본다(CHECK). 완료를 취소해도 지우지 않고, 완료 시각이 달라지면 낡은 초안으로 보인다.
 
 ## 배송 추적

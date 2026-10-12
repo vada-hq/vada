@@ -200,7 +200,6 @@ export async function resetDemo(db: Db) {
     await run(sql`DELETE FROM messages WHERE chat_room_id IN (SELECT id FROM chat_rooms WHERE organization_id = ${org})`)
     await run(sql`DELETE FROM chat_rooms WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM event_retrospectives WHERE organization_id = ${org}`)
-    await run(sql`DELETE FROM event_reports WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM events WHERE organization_id = ${org}`)
     await run(sql`DELETE FROM memberships WHERE organization_id = ${org} AND user_id LIKE ${`${DEMO_USER_PREFIX}%`}`)
     await run(sql`DELETE FROM users WHERE id LIKE ${`${DEMO_USER_PREFIX}%`}`)
