@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { getTableConfig, PgDialect } from 'drizzle-orm/pg-core'
-import { accounts, chatRooms, departments, eventReports, events, memberships, messages, organizations, purchaseSubmissions, sessions, users,
+import { accounts, chatRooms, departments, eventReports, eventRetrospectives, events, memberships, messages, organizations, purchaseSubmissions, sessions, users,
   verifications } from './schema.js'
 
 test('all entities have primary keys and creation timestamps', () => {
@@ -147,4 +147,19 @@ test('행사 담당은 같은 학생회의 부서와 소속을 가리킨다', ()
   assert.deepEqual(owner?.reference().foreignColumns.map(column => column.name), ['organization_id', 'user_id'])
   assert.equal(owner?.reference().foreignTable, memberships)
   assert.equal(owner?.onDelete, 'restrict')
+})
+
+test('회고는 행사마다 하나이고, 같은 학생회 행사와 사용자를 가리킨다', () => {
+  const config = getTableConfig(eventRetrospectives)
+  assert.deepEqual(config.columns.map(column => column.name), ['event_id', 'organization_id', 'content', 'based_on_completed_at', 'generated_by',
+    'generated_at', 'confirmed_by', 'confirmed_at', 'version'])
+  assert.equal(eventRetrospectives.eventId.primary, true)
+  // 확인 전에는 확인한 사람·때가 없다.
+  assert.deepEqual(config.columns.filter(column => !column.notNull).map(column => column.name), ['confirmed_by', 'confirmed_at'])
+  const event = config.foreignKeys.find(key => key.getName() === 'event_retrospectives_event_same_organization')
+  assert.deepEqual(event?.reference().columns.map(column => column.name), ['organization_id', 'event_id'])
+  assert.deepEqual(event?.reference().foreignColumns.map(column => column.name), ['organization_id', 'id'])
+  assert.equal(event?.onDelete, 'restrict')
+  for (const name of ['event_retrospectives_content_object', 'event_retrospectives_content_size', 'event_retrospectives_confirmed_pair',
+    'event_retrospectives_version_positive']) assert.ok(config.checks.some(check => check.name === name), name)
 })

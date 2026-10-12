@@ -67,3 +67,13 @@ export interface EventRecord {
 }
 // 완료한 행사, 최근 완료 순
 export interface RecordsResponse { records: EventRecord[] }
+
+// 회고(M5c)를 저장하는 꼴. sources는 근거 ID다: 'message:…'(행사 대화), 준비 과정 줄 ID('task:…' 등), 'fact:…'(숫자).
+export interface RetrospectiveItem { id: string; text: string; sources: string[] }
+export interface RetrospectiveQuestion { id: string; text: string; sources: string[]; answer: string | null }
+export interface RetrospectiveContent {
+  wentWell: RetrospectiveItem[]
+  shortfalls: RetrospectiveItem[]
+  nextTime: RetrospectiveItem[]
+  questions: RetrospectiveQuestion[]
+}

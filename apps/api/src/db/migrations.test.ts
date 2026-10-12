@@ -1404,3 +1404,37 @@ test('0026 adds event owners and reports without touching existing events', asyn
     await pg.close()
   }
 })
+
+test('0027 adds event retrospectives and leaves reports until 0028', async (t) => {
+  const pg = new PGlite()
+  const previous = migrationsBefore('0027_event_retrospectives')
+  try {
+    const db = drizzle(pg)
+    await migrate(db, { migrationsFolder: previous.folder })
+    await pg.exec(`
+      INSERT INTO users (id,name,email) VALUES ('u','기획','u@example.test');
+      INSERT INTO organizations (id,name) VALUES ('o','Council'),('o2','Other');
+      INSERT INTO events (id,organization_id,name,created_by,completed_at,completed_by) VALUES ('e','o','체육대회','u',now(),'u');
+      INSERT INTO event_reports (event_id, organization_id, operations, created_by, updated_by) VALUES ('e','o','진행','u','u');
+    `)
+    await migrate(db, { migrationsFolder })
+    await t.test('existing reports stay until 0028', async () => {
+      const { rows } = await pg.query<{ n: number }>('SELECT count(*)::int AS n FROM event_reports')
+      assert.equal(rows[0]!.n, 1)
+    })
+    await t.test('a retrospective belongs to an event of the same council and keeps its shape', async () => {
+      const insert = (values: string) => pg.exec(`INSERT INTO event_retrospectives (event_id, organization_id, content, based_on_completed_at,
+        generated_by) VALUES ${values}`)
+      await assert.rejects(insert(`('e','o2','{}',now(),'u')`), { constraint: 'event_retrospectives_event_same_organization' })
+      await assert.rejects(insert(`('e','o','[]',now(),'u')`), { constraint: 'event_retrospectives_content_object' })
+      await assert.rejects(insert(`('e','o',jsonb_build_object('t', repeat('가', 50000)),now(),'u')`), { constraint: 'event_retrospectives_content_size' })
+      await insert(`('e','o','{}',now(),'u')`)
+      await assert.rejects(pg.exec(`UPDATE event_retrospectives SET confirmed_by = 'u'`), { constraint: 'event_retrospectives_confirmed_pair' })
+      await assert.rejects(pg.exec('UPDATE event_retrospectives SET version = 0'), { constraint: 'event_retrospectives_version_positive' })
+      await pg.exec(`UPDATE event_retrospectives SET confirmed_by = 'u', confirmed_at = now()`)
+    })
+  } finally {
+    previous.remove()
+    await pg.close()
+  }
+})

@@ -1,6 +1,6 @@
 import { sql } from 'drizzle-orm'
 import { boolean, check, date, foreignKey, index, integer, jsonb, pgTable, primaryKey, text, timestamp, unique, uniqueIndex } from 'drizzle-orm/pg-core'
-import type { EventReportFacts } from '@vada/contracts'
+import type { EventReportFacts, RetrospectiveContent } from '@vada/contracts'
 
 // Better Auth의 사용자 필드. 학생회 소속과 권한은 memberships에서 관리한다.
 export const users = pgTable('users', {
@@ -1115,6 +1115,7 @@ export const taskEvents = pgTable('task_events', {
 
 // 완료한 행사의 결과보고서(M5b). 행사마다 하나다. 쓰기는 완료한 행사에서만 하고(events/lock.ts의 requireCompletedEvent),
 // 발행하면 그때의 자동 수치와 이름을 facts에 고정한다. updated_*는 마지막으로 글을 저장한 사람·때이고 발행은 따로 남긴다.
+// M5c부터 쓰지 않는다. 배포 뒤 0028에서 지운다.
 export const eventReports = pgTable('event_reports', {
   eventId: text('event_id').primaryKey(),
   organizationId: text('organization_id').notNull(),
@@ -1158,4 +1159,30 @@ export const eventReports = pgTable('event_reports', {
   check('event_reports_handover_length', sql`char_length(${table.handover}) <= 2000`),
   check('event_reports_facts_object', sql`jsonb_typeof(${table.facts}) = 'object'`),
   check('event_reports_version_positive', sql`${table.version} >= 1`),
+])
+
+// 결과보고서의 회고(M5c). 행사마다 하나다. 끼룩이가 만든 초안이고, 사람이 확인하거나 고쳐 저장하면 확인한 것이다.
+// 숫자·준비 과정은 저장하지 않고 열 때마다 센다(reports/). 쓰기는 완료한 행사에서만 한다(events/lock.ts의 requireCompletedEvent).
+// 문장 수·길이는 jsonb 안이라 서버가 보고, DB는 객체인지와 전체 크기만 본다.
+export const eventRetrospectives = pgTable('event_retrospectives', {
+  eventId: text('event_id').primaryKey(),
+  organizationId: text('organization_id').notNull(),
+  content: jsonb('content').$type<RetrospectiveContent>().notNull(),
+  // 초안을 만들 때 행사의 완료 시각. 그 뒤 완료를 취소했다가 다시 완료하면 달라진다(낡은 초안).
+  basedOnCompletedAt: timestamp('based_on_completed_at', { withTimezone: true }).notNull(),
+  generatedBy: text('generated_by').notNull().references(() => users.id, { onDelete: 'restrict' }),
+  generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+  confirmedBy: text('confirmed_by').references(() => users.id, { onDelete: 'restrict' }),
+  confirmedAt: timestamp('confirmed_at', { withTimezone: true }),
+  version: integer('version').notNull().default(1),
+}, (table) => [
+  foreignKey({
+    name: 'event_retrospectives_event_same_organization',
+    columns: [table.organizationId, table.eventId],
+    foreignColumns: [events.organizationId, events.id],
+  }).onDelete('restrict'),
+  check('event_retrospectives_content_object', sql`jsonb_typeof(${table.content}) = 'object'`),
+  check('event_retrospectives_content_size', sql`octet_length(${table.content}::text) <= 131072`),
+  check('event_retrospectives_confirmed_pair', sql`(${table.confirmedBy} IS NULL) = (${table.confirmedAt} IS NULL)`),
+  check('event_retrospectives_version_positive', sql`${table.version} > 0`),
 ])
