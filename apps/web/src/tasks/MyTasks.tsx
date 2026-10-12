@@ -1,15 +1,13 @@
 import { useState } from 'react'
 import { ListChecks } from 'lucide-react'
-import type { TaskDetail, TaskSummary } from '@vada/contracts'
+import type { TaskSummary } from '@vada/contracts'
 import { EmptyState } from '@/components/EmptyState'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { useOrganizationMembers } from '../organization/useOrganizationMembers'
 import { pressed, todayInSeoul } from '../purchases/purchase-view'
 import TaskCard from './TaskCard'
-import TaskDetailDialog from './TaskDetailDialog'
-import TaskFormDialog from './TaskFormDialog'
+import TaskDialogs from './TaskDialogs'
 import { nextStatus } from './task-view'
 import { changeTaskStatus, type MyTasks as State } from './useTasks'
 
@@ -26,11 +24,8 @@ type Props = {
 export default function MyTasks({ organizationId, manageEvents, state, onOpenEvent }: Props) {
   const [tab, setTab] = useState<'open' | 'done'>('open')
   const [opened, setOpened] = useState<TaskSummary | null>(null)
-  const [editing, setEditing] = useState<TaskDetail | null>(null)
   const [busyId, setBusyId] = useState<string | null>(null)
   const [message, setMessage] = useState('')
-  // 수정을 열 때 구성원 목록을 불러온다(부서·담당자 고르기).
-  const directory = useOrganizationMembers(organizationId, editing !== null)
   const today = todayInSeoul()
   if (!state.data) return state.loadError ? <div className="flex flex-col items-start gap-2">
     <StateMessage kind="error">내 업무를 불러오지 못했어요.</StateMessage>
@@ -48,10 +43,6 @@ export default function MyTasks({ organizationId, manageEvents, state, onOpenEve
     if (!result.ok) setMessage(result.message)
     state.refresh()
   }
-  function goToEvent(eventId: string) {
-    setOpened(null)
-    onOpenEvent(eventId)
-  }
   return <div className="flex flex-col gap-4">
     <p className="text-sm text-gray-500">여러 행사에서 내가 맡은 업무예요.</p>
     <div role="group" aria-label="내 업무 보기" className="flex gap-2">
@@ -66,10 +57,7 @@ export default function MyTasks({ organizationId, manageEvents, state, onOpenEve
         {list.map(task => <TaskCard key={task.id} task={task} today={today} showEvent manageEvents={manageEvents} busy={busyId === task.id}
           onOpen={() => setOpened(task)} onAdvance={() => void advance(task)} />)}
       </section>}
-    <TaskDetailDialog organizationId={organizationId} target={opened ? { eventId: opened.event.id, taskId: opened.id } : null} manageEvents={manageEvents}
-      onClose={() => setOpened(null)} onChanged={state.refresh} onDeleted={() => { setOpened(null); state.refresh() }}
-      onEdit={task => { setOpened(null); setEditing(task); directory.refresh() }} onOpenEvent={goToEvent} />
-    <TaskFormDialog open={editing !== null} organizationId={organizationId} eventId={editing?.event.id ?? ''} task={editing} directory={directory.data}
-      directoryError={directory.loadError} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); state.refresh() }} />
+    <TaskDialogs organizationId={organizationId} manageEvents={manageEvents} target={opened ? { eventId: opened.event.id, taskId: opened.id } : null}
+      onClose={() => setOpened(null)} onChanged={state.refresh} onOpenEvent={onOpenEvent} />
   </div>
 }
