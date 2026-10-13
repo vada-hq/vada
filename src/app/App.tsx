@@ -31,24 +31,25 @@ const SCREENS: Screen[] = [
   { id: "HOME-01M", label: "홈 — 부원 시안", group: "홈" },
   { id: "HOME-01F", label: "홈 — 재정부 시안", group: "홈" },
   { id: "MY-01", label: "내 업무", group: "내 업무" },
-  { id: "OPS-00", label: "운영 홈 — 업무·회의·행사·캘린더", group: "운영 홈" },
-  { id: "OPS-TASK-01", label: "상시 업무 — 칸반 보드", group: "운영 — 상시 업무" },
-  { id: "OPS-MEET-01A", label: "전체 회의 — 일반 참가자", group: "운영 — 회의" },
-  { id: "OPS-MEET-01B", label: "전체 회의 — 진행 권한자", group: "운영 — 회의" },
-  { id: "OPS-MEET-01C", label: "전체 회의 — 회의 생성 가능", group: "운영 — 회의" },
-  { id: "OPS-MEET-01D", label: "전체 회의 — 미참가자", group: "운영 — 회의" },
-  { id: "OPS-MEET-02", label: "회의 생성·수정", group: "운영 — 회의" },
-  { id: "OPS-MEET-03A", label: "예정 회의 상세 — 일반 참가자", group: "운영 — 회의" },
-  { id: "OPS-MEET-03B", label: "예정 회의 관리 — 생성자", group: "운영 — 회의" },
-  { id: "OPS-MEET-03C", label: "예정 회의 상세 — 진행 권한자", group: "운영 — 회의" },
-  { id: "OPS-MEET-04B", label: "진행 권한 관리 — 회의 생성자", group: "운영 — 회의" },
-  { id: "OPS-MEET-05A", label: "진행 중 회의 — 일반 참가자", group: "운영 — 회의" },
-  { id: "OPS-MEET-05B", label: "진행 중 회의 — 진행 권한자", group: "운영 — 회의" },
-  { id: "OPS-MEET-06A", label: "정리 중 회의 — 일반 참가자", group: "운영 — 회의" },
-  { id: "OPS-MEET-06B", label: "회의록 정리 — 진행 권한자", group: "운영 — 회의" },
-  { id: "OPS-MEET-07", label: "완료 회의록 — 참석자", group: "운영 — 회의" },
-  { id: "OPS-MEET-08", label: "회의 요약 확인 — 불참자", group: "운영 — 회의" },
-  { id: "OPS-MEET-09", label: "취소된 회의 상세", group: "운영 — 회의" },
+  { id: "OPS-00", label: "운영 홈 — v6.2 사이드바에서 제외", group: "운영 홈 (메뉴 v6.2에서 제외)" },
+  { id: "US-MSG-01", label: "우리 학생회 — 메시지", group: "우리 학생회 (구 상시 업무)" },
+  { id: "OPS-TASK-01", label: "우리 학생회 — 업무 칸반", group: "우리 학생회 (구 상시 업무)" },
+  { id: "OPS-MEET-01A", label: "전체 회의 — 일반 참가자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-01B", label: "전체 회의 — 진행 권한자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-01C", label: "전체 회의 — 회의 생성 가능", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-01D", label: "전체 회의 — 미참가자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-02", label: "회의 생성·수정", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-03A", label: "예정 회의 상세 — 일반 참가자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-03B", label: "예정 회의 관리 — 생성자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-03C", label: "예정 회의 상세 — 진행 권한자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-04B", label: "진행 권한 관리 — 회의 생성자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-05A", label: "진행 중 회의 — 일반 참가자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-05B", label: "진행 중 회의 — 진행 권한자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-06A", label: "정리 중 회의 — 일반 참가자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-06B", label: "회의록 정리 — 진행 권한자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-07", label: "완료 회의록 — 참석자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-08", label: "회의 요약 확인 — 불참자", group: "회의 (우리 학생회·내 회의)" },
+  { id: "OPS-MEET-09", label: "취소된 회의 상세", group: "회의 (우리 학생회·내 회의)" },
   { id: "OPS-MEET-D01", label: "회의 시작 확인", group: "운영 — 회의 · 확인 모달" },
   { id: "OPS-MEET-D02", label: "회의 종료 확인", group: "운영 — 회의 · 확인 모달" },
   { id: "OPS-MEET-D03", label: "진행 권한 부여 확인", group: "운영 — 회의 · 확인 모달" },
@@ -64,7 +65,8 @@ const SCREENS: Screen[] = [
   { id: "EVT-TASK-01", label: "행사 업무 — 칸반 보드", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
   { id: "EVT-TASK-02", label: "업무 상세 — 관련 문서·결과물", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
   { id: "EVT-DOC-01", label: "행사 문서", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
-  { id: "EVT-MEET-01", label: "행사 관련 회의", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
+  { id: "EVT-MSG-01", label: "행사 메시지", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
+  { id: "EVT-MEET-01", label: "행사 회의", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
   { id: "EVT-SCHED-01", label: "행사 일정", group: "운영 — 행사 · 협업(업무·문서·회의·일정)" },
   { id: "EVT-03C", label: "운영 조직 — 빈 상태", group: "운영 — 행사 · 인원·설문" },
   { id: "EVT-01", label: "행사 운영 조직 설정", group: "운영 — 행사 · 인원·설문" },
@@ -93,7 +95,7 @@ const SCREENS: Screen[] = [
   { id: "FIN-EVID-01", label: "결제·증빙 정리", group: "운영 — 행사 · 재정(MVP 제외·보류)" },
   { id: "FIN-ADV-01", label: "사비 선지출·환급", group: "운영 — 행사 · 재정(MVP 제외·보류)" },
   { id: "FIN-ADV-01B", label: "사비 선지출·환급 — 재정부", group: "운영 — 행사 · 재정(MVP 제외·보류)" },
-  { id: "OPS-CAL-01", label: "캘린더 — 월간 일정", group: "운영 — 캘린더" },
+  { id: "OPS-CAL-01", label: "캘린더 — 월간 일정", group: "캘린더" },
   { id: "FIN-00", label: "전체 재정 현황", group: "재정 (전체)" },
   { id: "FIN-00B", label: "전체 재정 현황 — 재정부", group: "재정 (전체)" },
   { id: "FIN-LEDGER-01", label: "사용 내역", group: "재정 (전체)" },
@@ -109,9 +111,10 @@ const SCREENS: Screen[] = [
   { id: "ORG-07C", label: "학생회비 납부 명단 업로드 모달", group: "조직 관리" },
   { id: "ORG-04", label: "역할 및 권한", group: "조직 관리" },
   { id: "ORG-04B", label: "역할 및 권한 관리 — 회장단", group: "조직 관리" },
-  { id: "MSG-01", label: "메시지 — 방 목록·시작 전", group: "메시지" },
-  { id: "MSG-02", label: "새 메시지 방 만들기", group: "메시지" },
-  { id: "MSG-03", label: "대화 화면", group: "메시지" },
+  { id: "MSG-01", label: "메시지 — 방 목록·시작 전", group: "메시지 (홈 메시지함·사이드챗)" },
+  { id: "MSG-02", label: "새 메시지 방 만들기", group: "메시지 (홈 메시지함·사이드챗)" },
+  { id: "MSG-03", label: "대화 화면", group: "메시지 (홈 메시지함·사이드챗)" },
+  { id: "MSG-04", label: "대화 — 사이드챗 시안", group: "메시지 (홈 메시지함·사이드챗)" },
   { id: "EXT-02A", label: "외부 참여 설문", group: "외부 참여", mobile: true },
   { id: "EXT-02B", label: "참여 신청 완료", group: "외부 참여", mobile: true },
   { id: "EXT-02C", label: "설문 예외·종료 상태", group: "외부 참여", mobile: true },
@@ -707,6 +710,9 @@ type ArchiveStatus = "미발행" | "초안" | "검토 중" | "발행";
 type ArchiveReviewState = "대기" | "보완 요청" | "승인";
 
 type ArchiveDraft = {
+  // 끼룩이(AI) 인수인계 초안 줄과, 그중 작성자가 그대로 두고 확인한 줄. 고친 줄은 사람이 검토한 것으로 본다(K-07).
+  handoverAiLines?: string[];
+  handoverConfirmed?: string[];
   operation: string;
   good: string;
   bad: string;
@@ -1214,6 +1220,13 @@ type AppContextType = {
   demoDataMode: DemoDataMode;
   setDemoDataMode: React.Dispatch<React.SetStateAction<DemoDataMode>>;
   navigateTo: (screenId: string) => void;
+  // 지금 보이는 화면 id. 사이드바(메뉴 v6.2)가 어느 메뉴·공간에 있는지 판단할 때 쓴다.
+  activeScreenId?: string;
+  // 전역 사이드챗(1:1·부서 간, M-11~M-15)
+  sideChat: SideChatState;
+  setSideChat: React.Dispatch<React.SetStateAction<SideChatState>>;
+  openSideChat: (target: SideChatTarget, carry?: string) => void;
+  closeSideChat: () => void;
   currentUser: { name: string; dept: string; role: string; eventRole?: EventContextRole };
   activeSidebar?: string;
 };
@@ -1962,6 +1975,10 @@ export const AppContext = React.createContext<AppContextType>({
   demoDataMode: "default",
   setDemoDataMode: () => {},
   navigateTo: () => {},
+  sideChat: { target: null, threads: {}, drafts: {}, unread: {}, recent: [], assigned: {} },
+  setSideChat: () => {},
+  openSideChat: () => {},
+  closeSideChat: () => {},
   currentUser: { name: "김바다", dept: "재정부", role: "부원" },
   activeSidebar: undefined,
 });
@@ -2169,6 +2186,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "진행 권한자",
     entryPath: "회의 종료 → 회의록 정리 / 회의 목록(정리 중)",
     functions: [
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: AI 전체 요약은 `끼룩이에게 요약 초안 맡기기`로 시작하고 생성 중 `생각 중` 표정, 결과는 `끼룩이 초안 · 검토 필요`로 표시한다. 최종 확인 후에는 끼룩이를 작성자로 남기지 않는다. 후속 업무 카드를 만들면 `끼룩이가 ○○님의 내 업무와 캘린더에 올렸어요`를 표시한다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "안건별 결정 정리", description: "오른쪽 패널에서 안건을 선택해 결정과 후속 업무를 확정한다.", constraint: "없으면 '결정사항 없음'·'후속 업무 없음'을 명시" },
       { num: "02", element: "AI 전체 요약", description: "버튼으로 초안 생성 → 'AI 생성 초안·검토 필요' → 원본 변경 시 오래됨 경고(다시 생성/직접 검토) → 최종 확인(검토자·시각 기록).", constraint: "최종 승인 기능. 기록에 없는 결정·담당자·기한을 만들지 않음. 실패 시 수동 작성. 요약 미작성은 정리 완료를 막지 않음" },
       { num: "03", element: "정리 완료 조건", description: "논의 내용, 결정사항 또는 없음, 후속 업무 또는 없음, 참가 결과의 필수 4개 조건과 선택 조건인 전체 요약을 분리해 표시한다." },
@@ -2197,6 +2215,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "불참자",
     entryPath: "회의 목록 → 회의 요약 확인",
     functions: [
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 상단 안내에 `놓친 회의를 끼룩이가 정리해 두었어요 · ○○ 최종 확인`을 두어 사람이 확정한 요약임을 함께 밝힌다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "전체 요약", description: "정리 단계에서 확정된 회의 전체 요약을 표시한다." },
       { num: "02", element: "결정·후속 확인", description: "안건별 결정사항과 실제 생성된 후속 업무를 확인한다." },
       { num: "03", element: "내 후속 업무 열기", description: "현재 사용자에게 배정된 미완료 후속 업무만 모아 표시하고, 선택하면 상시 업무 보드의 원래 카드와 상세 패널을 연다." },
@@ -2302,6 +2321,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "회장단",
     entryPath: "사이드바 홈 (회장단 역할 홈 검토안)",
     functions: [
+      { num: "M", element: "메시지함", description: "네 역할 홈의 같은 자리(맨 위 한 줄)에 안 읽은 방 상위 3개와 `전체 보기`를 둔다. 사이드바 `홈` 옆에는 전체 안 읽은 수 배지를 둔다(메뉴 v6.2 M-07)." },
       { num: "00", element: "끼룩이 정리 표시", description: "헤더에 끼룩이 그림과 `끼룩이가 {기준 시점} 기준으로 정리했어요` 한 줄을 둔다. 상시 브리핑 배너는 두지 않는다.", constraint: "끼룩이가 판단·선별한 것처럼 말하지 않는다. 정렬은 홈 목록 규칙을 따른다" },
       { num: "00A", element: "인사 카드", description: "본문 첫 카드에 날짜·인사·이 홈에서 확인하는 내용 한 줄을 둔다. 회장단 홈은 전체 행사 현황이 본문이므로 학생회 주요 행사 타일을 두지 않는다.", constraint: "인사 아래에 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게)" },
       { num: "01", element: "전체 행사 진행 현황", description: "단계별 행사 수와 행사 카드를 표시한다. 카드에는 행사명·단계·날짜·남은 기간·완료/전체 업무 수·마감 지남·미지정·검토 필요 수·다음 마감을 둔다.", constraint: "책임부서·책임자는 표시하지 않는다. 완료 비율을 행사 준비율로 표현하지 않는다" },
@@ -2319,6 +2339,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "부서장",
     entryPath: "사이드바 홈 (부서장 역할 홈 검토안)",
     functions: [
+      { num: "M", element: "메시지함", description: "네 역할 홈의 같은 자리(맨 위 한 줄)에 안 읽은 방 상위 3개와 `전체 보기`를 둔다. 사이드바 `홈` 옆에는 전체 안 읽은 수 배지를 둔다(메뉴 v6.2 M-07)." },
       { num: "00", element: "끼룩이 정리 표시", description: "헤더에 끼룩이 그림과 `끼룩이가 {기준 시점} 기준으로 정리했어요` 한 줄을 둔다. 상시 브리핑 배너는 두지 않는다.", constraint: "끼룩이가 판단·선별한 것처럼 말하지 않는다. 정렬은 홈 목록 규칙을 따른다" },
       { num: "00A", element: "인사 카드", description: "본문 첫 카드에 날짜·인사·이 홈에서 확인하는 내용 한 줄을 둔다.", constraint: "인사 아래에 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게)" },
       { num: "01", element: "학생회 주요 행사", description: "부서 참여 여부와 관계없이 열람 가능한 학생회 행사의 이름·날짜·D-day·단계를 인사 카드 오른쪽 타일로 먼저 보여준다.", constraint: "조직 상황 우선(D-02). 열람 권한이 없는 행사는 표시하지 않는다" },
@@ -2337,6 +2358,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "부원",
     entryPath: "사이드바 홈 (부원 역할 홈 검토안)",
     functions: [
+      { num: "M", element: "메시지함", description: "네 역할 홈의 같은 자리(맨 위 한 줄)에 안 읽은 방 상위 3개와 `전체 보기`를 둔다. 사이드바 `홈` 옆에는 전체 안 읽은 수 배지를 둔다(메뉴 v6.2 M-07)." },
       { num: "00", element: "끼룩이 정리 표시", description: "헤더에 끼룩이 그림과 `끼룩이가 {기준 시점} 기준으로 정리했어요` 한 줄을 둔다. 상시 브리핑 배너는 두지 않는다.", constraint: "끼룩이가 판단·선별한 것처럼 말하지 않는다. 정렬은 홈 목록 규칙을 따른다" },
       { num: "00A", element: "인사 카드", description: "본문 첫 카드에 날짜·인사·이 홈에서 확인하는 내용 한 줄을 둔다.", constraint: "인사 아래에 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게)" },
       { num: "01", element: "학생회 주요 행사", description: "열람 가능한 학생회 행사의 이름·날짜·D-day·단계를 인사 카드 오른쪽 타일로 먼저 보여준다.", constraint: "모든 역할 홈에 공통. 열람 권한이 없는 행사는 표시하지 않는다" },
@@ -2354,6 +2376,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "재정부 소속 구성원",
     entryPath: "사이드바 홈 (재정부 역할 홈 검토안)",
     functions: [
+      { num: "M", element: "메시지함", description: "네 역할 홈의 같은 자리(맨 위 한 줄)에 안 읽은 방 상위 3개와 `전체 보기`를 둔다. 사이드바 `홈` 옆에는 전체 안 읽은 수 배지를 둔다(메뉴 v6.2 M-07)." },
       { num: "00", element: "끼룩이 정리 표시", description: "헤더에 끼룩이 그림과 `끼룩이가 {기준 시점} 기준으로 정리했어요` 한 줄을 둔다. 상시 브리핑 배너는 두지 않는다.", constraint: "끼룩이가 판단·선별한 것처럼 말하지 않는다. 정렬은 홈 목록 규칙을 따른다" },
       { num: "00A", element: "인사 카드", description: "본문 첫 카드에 날짜·인사·이 홈에서 확인하는 내용 한 줄을 둔다. 재정부 부원은 인사 아래에 내 업무·메시지 바로가기를 둔다.", constraint: "인사 아래에 처리할 건수를 붙이지 않는다(조직 문제를 본인 일로 오해하지 않게)" },
       { num: "01", element: "학생회 주요 행사", description: "열람 가능한 학생회 행사의 이름·날짜·D-day·단계를 인사 카드 오른쪽 타일로 먼저 보여준다." },
@@ -2371,6 +2394,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "전 구성원",
     entryPath: "사이드바 메시지",
     functions: [
+      { num: "V6", element: "전체 방 목록", description: "메뉴 v6.2에서 사이드바 메시지 메뉴는 없다. 홈 메시지함의 `전체 보기`로 이 화면에 온다(M-07). 공간 방(자동 연결)과 그룹·개인 방이 함께 보인다." },
       { num: "01", element: "빈 상태", description: "방이 하나도 없으면 목록 대신 안내와 `새 메시지 방 만들기`만 표시한다.", constraint: "임의의 예시 방을 만들어 두지 않는다" },
       { num: "02", element: "방 목록", description: "방이 있으면 분류(일반·행사별)로 묶어 표시한다. 방마다 이름, 참여 대상 칩, 참여 인원 수, 만든 사람과 만든 날짜를 보여준다." },
       { num: "03", element: "참여 대상 표시", description: "부서 단위 선택은 `○○부 전체` 칩으로, 개별 선택은 이름 칩으로 구분해 표시한다." },
@@ -2378,6 +2402,48 @@ const SPEC_DATA: Record<string, SpecDef> = {
     ],
     exceptions: ["연결 데이터가 없으면 임의 목록을 만들지 않고 빈 상태로 표시한다", "방을 누르면 MSG-03 대화 화면을 연다"],
     nextScreens: ["MSG-02 새 메시지 방 만들기", "MSG-03 대화 화면"],
+  },
+  "EVT-MSG-01": {
+    id: "EVT-MSG-01", name: "행사 메시지", stateChip: "기본",
+    purpose: "행사 공간의 대화방. 행사를 만들면 대화방이 미리 연결되어 있고, 행사 구성원이 자동으로 참여한다(메뉴 v6.2 M-03·M-09).",
+    users: "행사 구성원",
+    entryPath: "사이드바 공간 목록·전체 행사 목록에서 행사 누르기(행사 공간의 첫 화면, 탭 맨 왼쪽) / 홈 메시지함 / 전체 방 목록(MSG-01)",
+    functions: [
+      { num: "01", element: "미리 연결된 방", description: "사용자가 방을 만들지 않는다. 대화가 없으면 `아직 나눈 대화가 없어요`를 보여 주고, 첫 메시지를 보내면 전체 방 목록에도 나타난다." },
+      { num: "02", element: "안 읽은 배지", description: "행사 탭의 `메시지` 옆에 이 방의 안 읽은 수를 표시한다. 사이드바 공간 목록에는 배지를 두지 않는다(M-08)." },
+      { num: "03", element: "1:1·부서 간", description: "`/이름`·이름 누르기로 오른쪽 사이드챗을 연다(MSG-04 시안, M-11~M-15)." },
+    ],
+    exceptions: ["구매 후보 자동 수집(대화 → 구매 후보 기획 P-01)은 이 화면에 아직 구현하지 않았다"],
+    nextScreens: ["MSG-04 사이드챗 시안", "MSG-01 전체 방 목록"],
+  },
+  "US-MSG-01": {
+    id: "US-MSG-01", name: "우리 학생회 — 메시지", stateChip: "기본",
+    purpose: "우리 학생회(구 상시 업무, M-01) 공간의 대화방. 학생회 전체가 미리 연결되어 있다.",
+    users: "전 구성원",
+    entryPath: "사이드바 공간 목록 `우리 학생회` 누르기(공간의 첫 화면, 탭 맨 왼쪽) / 홈 메시지함 / 전체 방 목록(MSG-01)",
+    functions: [
+      { num: "01", element: "우리 학생회 탭", description: "메시지 · 업무(OPS-TASK-01) · 회의(OPS-MEET-01A) · 일정(OPS-CAL-01) · 재정(상시 지출 컨테이너의 EVT-FIN-01) 탭으로 공간을 오간다(M-06)." },
+      { num: "02", element: "미리 연결된 방", description: "행사 메시지(EVT-MSG-01)와 같은 방식이다. 첫 메시지를 보내면 전체 방 목록에도 나타난다." },
+    ],
+    exceptions: ["일정 탭은 아직 통합 캘린더로 연결되며 우리 학생회 일정만 거르는 보기는 후속이다"],
+    nextScreens: ["OPS-TASK-01 업무", "OPS-MEET-01A 회의", "EVT-FIN-01 재정(상시 지출)"],
+  },
+  "MSG-04": {
+    id: "MSG-04", name: "대화 — 사이드챗 시안", stateChip: "검토안",
+    purpose: "대화방을 미리 연결해 두고(내 부서 방·부서 간 방·1:1), 메시지 기본 화면인 내 부서 방에서 `/이름`이나 이름 누르기로 오른쪽 사이드챗(1:1·부서 간)을 연다. 2026-10-13 채택(.scratch/messaging M-09~M-15) 시안이며 예시 데이터만 쓴다.",
+    users: "전 구성원",
+    entryPath: "홈 메시지함 · 공간 메시지 탭 · 모든 화면의 사람 이름",
+    functions: [
+      { num: "01", element: "내 부서 방(기본)", description: "메시지를 열면 내 부서 방이 기본으로 보인다(회장단은 회장단 방). 부서원은 자동으로 참여한다.", constraint: "대화방은 사용자가 만들지 않는다. 같은 상대 조합에는 방이 하나다" },
+      { num: "02", element: "`/` 자동완성", description: "입력창에서 `/`를 치면 사람(이름·부서·역할·담당 업무), 부서(`부서 전체에 묻기` → 내 부서 ↔ 그 부서 방), 직책(`/홍보부장`, `/회장`)을 찾는다. Enter는 첫 결과를 연다.", constraint: "`/이름` 뒤에 친 글은 사이드챗 입력창으로 옮겨 두고 자동으로 보내지 않는다" },
+      { num: "03", element: "이름 누르기", description: "메인 방에서 보낸 사람 이름을 누르거나 다른 화면의 이름(점선 밑줄)을 누르면 같은 사이드챗이 열린다. 적용 화면: 업무 칸반·업무 상세(우리 학생회·행사), 회의 후속 업무, 구매 요청 상세·재정 검토의 요청자, 공간 메시지·대화 화면의 보낸 사람.", constraint: "나 자신과 구성원 명단에 없는 이름(미지정 등)은 누를 수 없다. 카드 안의 이름을 눌러도 카드 상세는 열리지 않는다" },
+      { num: "03B", element: "모든 화면에서 열기", description: "사이드챗은 공통 화면 틀 오른쪽에 붙어 어느 화면에서든 열리고, 다른 화면으로 이동해도 열린 대화·쓰던 글·최근 1:1이 유지된다. 공간 메시지(US-MSG-01·EVT-MSG-01)와 대화 화면(MSG-03) 입력창에서도 `/`로 연다.", constraint: "홈 메시지함의 1:1 안 읽음 칩은 대화 화면이 아니라 사이드챗으로 연다. 사이드바 `홈` 배지는 방과 1:1·부서 간 안 읽은 수를 합친다" },
+      { num: "04", element: "사이드챗", description: "오른쪽에 1:1 또는 부서 간 대화를 하나만 연다. 위쪽 `최근 1:1` 칩 3개로 전환하고 안 읽은 표시를 단다. 닫아도(Esc) 쓰던 글은 남는다.", constraint: "열리면 커서가 사이드챗으로 이동한다. 색·제목·보내기 문구(`○○님에게 보내기`)를 메인 방과 다르게 해 오발송을 막는다" },
+      { num: "05", element: "부서 간 방", description: "다른 부서를 고르면 `내 부서 ↔ 그 부서` 방이 사이드챗으로 열린다.", constraint: "다른 부서의 내부 방은 보이지 않는다. 회장단에게도 1:1·부서 간 대화를 공개하지 않는다" },
+      { num: "06", element: "구매 후보 담기", description: "1:1·부서 간 방은 공간 방이 아니므로 쿠팡 링크에 `구매 후보로 담을 공간 선택`을 두고, 고르면 `끼룩이가 ○○ 구매 후보에 담았어요`를 표시한다." },
+    ],
+    exceptions: ["3명 이상 대화는 사이드챗에서 지원하지 않고 공간 방(우리 학생회·행사)에서 한다", "모바일에서는 사이드챗이 전체 화면으로 열리고 뒤로 가면 원래 방으로 돌아간다", "이 화면의 내 부서 방 대화는 예시 데이터이며 기존 메시지 방 데이터를 바꾸지 않는다. 1:1·부서 간 대화는 전 화면 공통 사이드챗 상태에 저장한다(새로고침하면 초기화)"],
+    nextScreens: ["MSG-03 대화 화면", "MSG-01 메시지"],
   },
   "MSG-03": {
     id: "MSG-03", name: "대화 화면", stateChip: "기본",
@@ -2421,6 +2487,8 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "전 구성원 (본인 업무)",
     entryPath: "사이드바 내 업무",
     functions: [
+      { num: "V6", element: "내 회의", description: "우리 학생회와 행사 회의 중 내가 참여·진행·회의록 정리·요약 확인할 회의를 모은다(M-04). 각 줄은 해당 회의 화면으로 이동한다(예시 데이터)." },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 헤더에 `끼룩이가 행사·상시 업무에서 내 업무를 모아 왔어요` 한 줄을 둔다(상시 헤더는 홈·내 업무 두 곳까지만).", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "개인 업무 집계", description: "행사 업무와 상시 업무 중 현재 사용자에게 배정된 카드만 상태별로 합쳐 표시한다. 업무 생성, 담당자 배정, 상태 변경 결과는 즉시 반영된다." },
       { num: "02", element: "요약 칩", description: "배정된 업무를 기준으로 지연, 해야 할 업무, 검토 필요 건수를 아이콘 칩으로 표시한다." },
       { num: "03", element: "상태 탭", description: "해야 할 업무 / 진행 중인 업무 / 완료된 업무 3분류로 전환한다.", constraint: "메뉴 구조 v5 기준 (2026-07-19 재편)" },
@@ -2689,6 +2757,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "재정부 · 부서장",
     entryPath: "사이드바 운영",
     functions: [
+      { num: "V6", element: "메뉴 v6.2", description: "사이드바 `운영` 메뉴를 없앴다(M-02). 상시 업무는 우리 학생회, 행사는 사이드바 공간 목록, 캘린더는 사이드바, 운영 지표는 역할별 홈으로 옮겼다. 이 화면은 와이어프레임에 남겨 두되 메뉴에서 들어오지 않는다." },
       { num: "01", element: "상시 업무", description: "행사에 속하지 않는 반복·조직 운영 업무 칸반(OPS-TASK-01)으로 이동한다." },
       { num: "02", element: "회의", description: "현재 사용자의 회의 관계에 맞는 회의 목록으로 이동한다. 기본 진입은 일반 참가자 목록(OPS-MEET-01A)이다." },
       { num: "03", element: "행사", description: "진행 중·기획 중 행사를 확인하는 행사 목록(EVT-00A)으로 이동한다." },
@@ -2704,6 +2773,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "전 구성원 (열람·업무 추가)",
     entryPath: "사이드바 운영 → 상시 업무",
     functions: [
+      { num: "V6", element: "우리 학생회 — 업무", description: "메뉴 v6.2에서 상시 업무는 `우리 학생회` 공간의 업무 탭이다(M-01). 위쪽 탭으로 메시지·회의·일정·재정을 오간다." },
       { num: "01", element: "요약 칩", description: "지연, 검토 필요, 내 담당 건수를 표시한다." },
       { num: "02", element: "칸반 보드", description: "예정 → 진행 중 → 검토 필요 → 완료 4열로 업무를 표시한다.", constraint: "행사 업무 칸반(EVT-TASK-01)과 동일한 열 구조" },
       { num: "03", element: "반복 주기 뱃지", description: "매주, 매월, 상시 주기를 카드에 표시한다." },
@@ -2866,6 +2936,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "가입한 모든 사용자",
     entryPath: "ORG-01 → 조직 구조 설정",
     functions: [
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 기본 조직 선택지에 `끼룩이가 일반적인 학생회 조직을 만들어 둘게요`를 둔다. 사용자가 끼룩이를 처음 만나는 자리다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "진행 단계", description: "`조직 구조 설정 2 / 2`를 표시한다." },
       { num: "02", element: "시작 방식", description: "`기본 조직`과 `빈 조직` 두 가지를 설명과 함께 카드로 제시하고 하나를 선택한다. 기본 조직은 `일반적인 학생회 조직을 생성합니다`, 빈 조직은 `회장단만 생성하고 필요한 부서를 직접 추가합니다`로 안내한다.", constraint: "템플릿 선택지는 제공하지 않는다" },
       { num: "02B", element: "빈 조직 상태", description: "빈 조직을 선택하면 부서 카드를 두지 않고 부서 추가 카드만 남긴다. 안내 문구도 부서를 직접 만들도록 바꾼다.", constraint: "회장단 카드 자체는 두 방식 모두에서 항상 표시한다. 두 방식의 차이는 기본 부서의 유무뿐이다" },
@@ -3143,6 +3214,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "기록 > 완료된 행사 → 상세 보기",
     preconditions: "아카이브가 검토 중 또는 발행 상태",
     functions: [
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 개요·성과·타임라인·근거 자료(자동 집계 영역)에만 `끼룩이가 모은 기록`을 표시한다. 현장 운영·회고·인수인계 등 사람이 확정한 내용에는 붙이지 않는다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "문서 헤더", description: "행사명, 기간, 담당 부서·책임자, 상태 배지, 발행 버전·발행일·작성자·검토자를 표시한다.", constraint: "기록 신뢰성 정보를 항상 함께 노출" },
       { num: "02", element: "좌측 목차", description: "문서 옆에 고정되어 따라다니며, 대목을 누르면 본문의 해당 위치로 이동한다. 현재 읽는 대목을 강조한다.", constraint: "회고는 잘된 점·미흡했던 점·개선안을 하위 항목으로 펼친다" },
       { num: "03", element: "개요", description: "목표, 참여 대상, 일정·장소, 책임 부서·책임자, 행사 규모를 표시한다." },
@@ -3164,6 +3236,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "REC-01 미발행·초안 행사 → 아카이브 작성 / REC-02 → 아카이브 수정",
     preconditions: "행사가 완료 상태",
     functions: [
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 자동 채움 영역에 `끼룩이가 행사 기록에서 모았어요 · 기준 시점`, 인수인계 AI 초안에 `끼룩이 초안 · 검토 필요`를 표시한다. 초안 중 그대로 둔 줄은 근거를 보고 하나씩 `확인`해야 하며(고친 줄은 확인한 것으로 봄) `끼룩이 초안 항목 확인`이 발행 조건에 추가된다. 회고는 끼룩이가 쓰지 않는다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "자동 채움 영역", description: "개요·성과·타임라인·근거 자료는 현재 선택된 행사 기록에서 자동으로 채우며 편집하지 않는다.", constraint: "다른 행사의 값을 섞지 않는다. 참석·예산 등 연결 데이터가 없으면 임의 수치 대신 `집계 전`·`연결 데이터 없음`으로 표시한다" },
       { num: "02", element: "현장 운영 작성", description: "실제 진행 순서, 인력 배치, 돌발 상황과 대응을 입력한다." },
       { num: "03", element: "회고 작성", description: "잘된 점, 미흡했던 점과 원인, 다음 행사 개선안을 각각 입력한다.", constraint: "개선안은 다음 담당 부서를 함께 지정한다" },
@@ -3184,6 +3257,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "행사 운영 조직 관리자 · 회장단",
     entryPath: "EVT-02 개요 대시보드 → 정보 입력·수정",
     functions: [
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 패널 머리에 `저장하면 끼룩이가 일정·참여 설문에도 함께 반영해요`를 둔다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "행사 정보 영역", description: "행사명, 행사 소개, 행사 목적·주요 내용을 입력한다. 행사명은 행사 생성 시 입력한 값으로 미리 채운다.", constraint: "행사 기본정보에서 관리" },
       { num: "02", element: "일시 영역", description: "시작 일자·시간, 종료 일자·시간을 입력한다. 종료 시간이 미정인 경우 '종료 시간 미정' 선택 가능.", constraint: "행사 기본정보에서 관리 / 일정·참여 설문에 자동 반영" },
       { num: "03", element: "장소 영역", description: "장소명, 주소, 상세 위치·집합 장소를 입력한다. 미정이면 빈칸으로 저장 가능. 조회 화면에서 미정으로 표시.", constraint: "행사 기본정보에서 관리 / 일정·참여 설문·공지에 자동 반영" },
@@ -3342,6 +3416,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "부서장·재정부 (작성자)",
     entryPath: "EVT-FIN-01 → 새 구매 요청",
     functions: [
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 쿠팡 정보를 불러오는 중에는 `생각 중` 표정, 불러온 뒤에는 `끼룩이가 쿠팡에서 옵션 N개를 불러왔어요` 한 줄을 링크 아래에 둔다. 읽기 실패는 `끼룩이가 이 링크는 읽지 못했어요`로 안내하고 직접 입력을 막지 않는다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "요청 정보", description: "제목, 구매 목적, 필요일, 우선순위를 입력하고 요청 부서는 작성자 소속으로 고정한다. 우선순위를 긴급으로 선택하면 긴급 사유를 조건부 필수로 입력받는다.", constraint: "긴급 사유가 비어 있으면 제출할 수 없다" },
       { num: "02", element: "품목 추가·삭제", description: "여러 품목을 한 요청에 담을 수 있으며 새 품목은 목록 맨 위에 추가된다." },
       { num: "03", element: "구매 유형별 필드 전환·필수 검증", description: "일반 구매·제작·인쇄·대여·용역에 따라 유형별 상세 입력 필드를 전환한다(details 저장). 재정 스펙 5.1 표의 유형별 필수·조건부 필수 정보를 금액과 무관하게 강제한다(스펙 729·752). 일반 구매=상품 URL(가격 근거 링크)·상품 옵션·규격, 제작·인쇄=제작물 종류·규격·재질·제작 조건·납품 희망일·디자인 파일 상태(미확정이면 사유), 대여=수령·설치 장소·대여/반납 일시·반납 장소·방법·설치·철거 포함 여부, 용역=수행 일시·이행 범위·결과물·완료 기준을 필수로 받는다. 계약서·제안서 등은 선택·조건부다. 제작·인쇄에는 제작 업체·업체 사이트 URL·담당자 연락처를 선택으로 받는다(2026-09-02) — 대여의 대여처, 용역의 용역제공자와 같은 자리이며, 없으면 재정부가 발주 시 요청자에게 업체를 되물어야 한다. 대여에는 `대여처 사이트 URL`, 용역에는 `용역 제공자 사이트 URL`을 선택으로 받는다(2026-09-03) — 업체 이름과 연락처만으로는 재정부가 어느 업체인지 확인할 곳이 없었다. 다만 두 유형은 링크만으로 가격이 확정되지 않으므로 업체 견적서 필수는 그대로다(제작·인쇄만 URL이 견적서를 대신한다).", constraint: "필수 누락 시 항목별 오류를 표시하고 제출을 막는다(PURCHASE_TYPE_REQUIRED_FIELDS). 작성·상세 보기가 같은 유형별 필드 정의(PURCHASE_TYPE_FIELDS)를 공유한다. 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(스펙 708·709·727)" },
@@ -4003,20 +4078,46 @@ function DesktopShell({
   tabScreens?: Partial<Record<string, string>>;
 }) {
   const navItems = [
-    { icon: Home, label: "홈", screen: "HOME-01" },
+    // 메뉴 v6.2: 운영·메시지 메뉴를 없애고 캘린더를 올린다. 메시지는 홈 메시지함과 공간의 메시지 탭으로 연다(M-02·M-07).
+    { icon: Home, label: "홈", screen: "HOME" },
     { icon: Clipboard, label: "내 업무", screen: "MY-01" },
-    { icon: Settings, label: "운영", screen: "OPS-00" },
+    { icon: Calendar, label: "캘린더", screen: "OPS-CAL-01" },
     { icon: BarChart2, label: "재정", screen: "FIN-00" },
     { icon: FileText, label: "기록", screen: "REC-01" },
     { icon: Users, label: "조직 관리", screen: "ORG-00" },
-    { icon: MessageSquare, label: "메시지", screen: "MSG-01" },
   ];
-  const { navigateTo, currentUser, activeSidebar: ctxSidebar, eventRecords, selectedEventId } = React.useContext(AppContext);
+  const { navigateTo, currentUser, activeSidebar: ctxSidebar, eventRecords, selectedEventId, setSelectedEventId, activeScreenId, messageRooms } = React.useContext(AppContext);
 
   const sidebarToUse = ctxSidebar || activeSidebar;
-  // 상시 지출 컨테이너는 행사 탭 중 개요·재정만 쓴다. 호출부마다 tabs를 바꾸지 않고 여기서 한 번에 거른다.
-  const isStanding = eventRecords?.find(record => record.id === selectedEventId)?.kind === "상시";
-  const effectiveTabs = tabs === EVENT_TABS && isStanding ? STANDING_TABS : tabs;
+  const selectedRecord = eventRecords?.find(record => record.id === selectedEventId);
+  const isStanding = selectedRecord?.kind === "상시";
+  const standingRecord = eventRecords?.find(record => record.kind === "상시");
+  const screenId = activeScreenId ?? "";
+  // 우리 학생회 공간: 상시 업무·회의 목록·우리 학생회 메시지, 그리고 상시 지출 재정(행사 탭으로 열린 상시 지출 컨테이너).
+  const inOurCouncil = OUR_COUNCIL_SCREENS.includes(screenId) || (tabs === EVENT_TABS && isStanding);
+  const effectiveTabs = inOurCouncil ? OUR_COUNCIL_TABS : tabs;
+  const effectiveActiveTab = !inOurCouncil ? activeTab
+    : screenId === "US-MSG-01" ? "메시지" : screenId === "OPS-TASK-01" ? "업무" : screenId.startsWith("OPS-MEET-01") ? "회의" : "재정";
+  const { sideChat } = React.useContext(AppContext);
+  // 홈 배지는 방과 1:1·부서 간 대화의 안 읽은 수를 합친다.
+  const unreadTotal = (messageRooms ?? []).reduce((sum, room) => sum + (room.unreadCount ?? 0), 0) + Object.values(sideChat?.unread ?? {}).reduce((sum, n) => sum + n, 0);
+  const spaceRoomUnread = (scope: string) => (messageRooms ?? []).filter(room => room.scope === scope && room.createdBy === SPACE_ROOM_CREATOR).reduce((sum, room) => sum + room.unreadCount, 0);
+  const activeEvents = (eventRecords ?? [])
+    .filter(record => record.kind !== "상시" && ACTIVE_EVENT_ORDER.includes(record.lifecycle))
+    .sort((a, b) => ACTIVE_EVENT_ORDER.indexOf(a.lifecycle) - ACTIVE_EVENT_ORDER.indexOf(b.lifecycle));
+  // 지금 화면이 어느 메뉴·공간에 속하는지(화면 id 기준). 판단할 수 없으면 화면이 넘긴 activeSidebar를 쓴다.
+  const sideKey = (() => {
+    if (screenId.startsWith("HOME") || screenId.startsWith("MSG")) return "홈";
+    if (screenId === "MY-01") return "내 업무";
+    if (screenId === "OPS-CAL-01") return "캘린더";
+    if (["FIN-00", "FIN-00B", "FIN-LEDGER-01", "FIN-TERM-01", "FIN-BOOK-01"].includes(screenId)) return "재정";
+    if (screenId.startsWith("REC")) return "기록";
+    if (screenId.startsWith("ORG")) return "조직 관리";
+    if (inOurCouncil) return "space:our";
+    if (screenId.startsWith("EVT") || screenId.startsWith("FIN") || screenId.startsWith("MY-REQ")) return selectedRecord ? `space:${selectedRecord.id}` : "";
+    return sidebarToUse ?? "";
+  })();
+  const openEventSpace = (id: string) => { setSelectedEventId(id); navigateTo("EVT-MSG-01"); };
 
   return (
     <div className="flex h-full bg-background">
@@ -4033,17 +4134,33 @@ function DesktopShell({
             </div>
           </div>
         </div>
-        <nav className="flex-1 py-3 px-2">
+        <nav className="flex-1 py-3 px-2 overflow-y-auto">
           {navItems.map(({ icon: Icon, label, screen }) => (
             <div
               key={label}
-              onClick={() => screen && navigateTo(screen)}
-              className={`flex items-center gap-3 px-3 py-2 rounded text-sm cursor-pointer mb-0.5 ${label === sidebarToUse ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-50"}`}
+              onClick={() => navigateTo(screen === "HOME" ? roleHomeScreen(currentUser) : screen)}
+              className={`flex items-center gap-3 px-3 py-2 rounded text-sm cursor-pointer mb-0.5 ${label === sideKey ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-50"}`}
             >
               <Icon className="w-4 h-4" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {/* 홈 메시지함의 안 읽은 수를 어느 화면에서나 보이게 한다(M-07 조건 1). */}
+              {screen === "HOME" && unreadTotal > 0 && <span className="text-[10px] font-bold bg-red-500 text-white rounded-full px-1.5 py-0.5">{unreadTotal}</span>}
             </div>
           ))}
+          {/* 공간 목록: 우리 학생회를 맨 위에 고정하고 활성 행사를 나열한다(M-03). 공간 목록에는 안 읽은 배지를 두지 않는다(M-08). */}
+          <p className="px-3 pt-4 pb-1.5 text-[10px] font-semibold text-gray-400">공간</p>
+          <div onClick={() => navigateTo("US-MSG-01")} className={`flex items-center gap-3 px-3 py-2 rounded text-sm cursor-pointer mb-0.5 ${sideKey === "space:our" ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-50"}`}>
+            <Settings className="w-4 h-4" /><span>우리 학생회</span>
+          </div>
+          {activeEvents.map(record => (
+            <div key={record.id} onClick={() => openEventSpace(record.id)} className={`flex items-center gap-2 px-3 py-2 rounded cursor-pointer mb-0.5 ${sideKey === `space:${record.id}` ? "bg-blue-50 text-blue-700 font-medium" : "text-gray-600 hover:bg-gray-50"}`}>
+              <span className="w-4 h-4 rounded bg-gray-100 text-[9px] font-bold text-gray-500 flex items-center justify-center shrink-0">{record.info.name.replace(/^\d{4}(학년도)?\s*/, "").slice(0, 1)}</span>
+              <span className="text-sm truncate flex-1" title={record.info.name}>{record.info.name}</span>
+              <span className="text-[9px] text-gray-400 shrink-0">{record.lifecycle}</span>
+            </div>
+          ))}
+          <div onClick={() => navigateTo(canCreateEventSpace(currentUser) ? "EVT-00A2" : "EVT-00A")} className="px-3 py-1.5 text-[11px] text-gray-500 hover:text-blue-700 cursor-pointer">전체 행사 보기</div>
+          {canCreateEventSpace(currentUser) && <div onClick={() => navigateTo("EVT-00B")} className="px-3 py-1.5 text-[11px] text-blue-600 hover:text-blue-800 cursor-pointer flex items-center gap-1"><Plus className="w-3 h-3" /> 새 행사</div>}
         </nav>
         <div className="px-4 py-3 border-t border-gray-100">
           <div className="flex items-center gap-2">
@@ -4082,27 +4199,37 @@ function DesktopShell({
         {effectiveTabs && (
           <div className="bg-white border-b border-gray-200 px-6 flex gap-0 shrink-0">
             {effectiveTabs.map(tab => {
-              const tabScreen = tabScreens?.[tab] ?? (tabs === EVENT_TABS ? EVENT_TAB_SCREENS[tab] : undefined);
+              const tabScreen = inOurCouncil ? OUR_COUNCIL_TAB_SCREENS[tab] : tabScreens?.[tab] ?? (tabs === EVENT_TABS ? EVENT_TAB_SCREENS[tab] : undefined);
+              // 우리 학생회 재정 탭은 상시 지출 컨테이너의 행사 재정을 연다(M-06).
+              const openTab = () => {
+                if (!tabScreen) return;
+                if (inOurCouncil && tab === "재정" && standingRecord) setSelectedEventId(standingRecord.id);
+                navigateTo(tabScreen);
+              };
+              // 공간 메시지 탭 옆에 그 방의 안 읽은 수(M-08).
+              const unread = tab === "메시지" ? spaceRoomUnread(inOurCouncil ? MESSAGE_SCOPE_GENERAL : selectedRecord?.info.name ?? "") : 0;
               return (
                 <button
                   key={tab}
-                  onClick={() => tabScreen && navigateTo(tabScreen)}
-                  className={`px-4 py-3 text-sm border-b-2 -mb-px ${tabScreen ? "cursor-pointer" : "cursor-default"} ${tab === activeTab ? "border-blue-600 text-blue-700 font-medium" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                  onClick={openTab}
+                  className={`px-4 py-3 text-sm border-b-2 -mb-px ${tabScreen ? "cursor-pointer" : "cursor-default"} ${tab === effectiveActiveTab ? "border-blue-600 text-blue-700 font-medium" : "border-transparent text-gray-500 hover:text-gray-700"}`}
                 >
-                  {tab}
+                  {tab}{unread > 0 && <span className="ml-1.5 text-[10px] font-bold bg-red-500 text-white rounded-full px-1.5 py-0.5">{unread}</span>}
                 </button>
               );
             })}
           </div>
         )}
 
-        {tabs === EVENT_TABS && <EventWorkspaceHeader />}
+        {tabs === EVENT_TABS && !inOurCouncil && <EventWorkspaceHeader />}
 
         {/* Content */}
         <main className="flex-1 overflow-auto">
           {children}
         </main>
       </div>
+      {/* 전역 사이드챗: 어느 화면에서든 오른쪽에 열린다(M-12 A). */}
+      <SideChatPanel />
     </div>
   );
 }
@@ -4714,6 +4841,16 @@ const KKIRUK_ALT: Record<KkirukExpression, string> = {
 
 function KkirukMark({ expression = "hello", className = "" }: { expression?: KkirukExpression; className?: string }) {
   return <img src={KKIRUK_IMAGES[expression]} alt={KKIRUK_ALT[expression]} className={`${className} object-contain`} />;
+}
+
+// 끼룩이 표현 원칙(.scratch/kkiruk-presence, K-01~K-07): 끼룩이는 별도 AI 비서가 아니라 VADA가 자동으로 해 준 일을 보여 주는 표시다.
+// - 실제 자동화에만, 행동이 일어난 자리에 한 줄로 붙인다. '해 줬다'(불러왔어요·모았어요·올렸어요)만 말하고 판단하지 않는다.
+// - 경고·차단·재정 판정에는 쓰지 않는다. AI 초안은 `끼룩이 초안 · 검토 필요`로 표시하고, 사람이 확정한 결과물에는 끼룩이를 작성자로 남기지 않는다.
+function KkirukDone({ children, thinking = false, className = "" }: { children: React.ReactNode; thinking?: boolean; className?: string }) {
+  return <p className={`flex items-center gap-1.5 text-[11px] text-gray-600 ${className}`}><KkirukMark expression={thinking ? "think" : "hello"} className="w-5 h-5 shrink-0" /><span>{children}</span></p>;
+}
+function KkirukDraftBadge({ label = "끼룩이 초안 · 검토 필요" }: { label?: string }) {
+  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full border border-yellow-200 bg-yellow-50 text-[10px] font-semibold text-yellow-800"><KkirukMark expression="hello" className="w-4 h-4" />{label}</span>;
 }
 
 function buildKkirukBriefing(input: {
@@ -5338,8 +5475,12 @@ function HomePrototypeWelcome({ name, description, onOpen, empty, showEvents = t
         <p className="text-[10px] text-gray-400">9월 30일 수요일</p>
         <h2 className="text-base font-semibold text-gray-900 mt-0.5">{name}님, 안녕하세요</h2>
         <p className="text-xs text-gray-500 mt-1">{description}</p>
+        {/* 홈 메시지함(메뉴 v6.2 M-07): 네 역할 홈의 같은 자리(인사 카드 안)에 둔다. 따로 줄을 만들지 않아 한 화면 원칙을 지킨다.
+            행사 목록이 없는 인사 카드(회장단)는 카드 오른쪽에 두어 높이를 늘리지 않는다. */}
+        {showEvents && <div className="mt-1.5"><HomeMessageBox /></div>}
         {extra && <div className="mt-1.5">{extra}</div>}
       </div>
+      {!showEvents && <div className="ml-auto shrink-0"><HomeMessageBox /></div>}
       {showEvents && <>
         <div className="w-px self-stretch bg-gray-100 shrink-0" />
         <div className="flex-1 min-w-0">
@@ -6168,7 +6309,7 @@ function ORG02() {
   const isEmptyStructure = structureMode === "빈 조직";
   const depts = isEmptyStructure ? [] : ["기획부", "홍보부", "디자인부"];
   const structureOptions = [
-    { key: "기본 조직" as const, desc: "일반적인 학생회 조직을 생성합니다" },
+    { key: "기본 조직" as const, desc: "끼룩이가 일반적인 학생회 조직을 만들어 둘게요" },
     { key: "빈 조직" as const, desc: "회장단만 생성하고 필요한 부서를 직접 추가합니다" },
   ];
   return (
@@ -7747,7 +7888,7 @@ function EventListScreen({ manager = false }: { manager?: boolean }) {
   const openEvent = (id: string) => {
     // 카드를 열기 전에 반드시 해당 행사를 선택해 워크스페이스가 같은 행사로 전환되게 한다.
     setSelectedEventId(id);
-    navigateTo("EVT-02");
+    navigateTo("EVT-MSG-01");
   };
 
   const handleCreateEvent = (name: string) => {
@@ -8170,15 +8311,27 @@ function EVT01() {
   );
 }
 
-const EVENT_TABS = ["개요", "업무", "문서", "관련 회의", "일정", "인원 관리", "재정"];
+// 메뉴 v6.2(.scratch/messaging M-01~M-08): 행사 탭에 메시지를 더하고 `관련 회의`를 `회의`로 바꾼다.
+// 행사 공간은 메시지 탭이 첫 화면이다(행사를 누르면 대화부터 보인다).
+const EVENT_TABS = ["메시지", "개요", "업무", "회의", "일정", "문서", "재정", "인원 관리"];
 // 상시 지출 컨테이너는 업무·문서·회의·일정·인원 관리를 쓰지 않는다. 재정 귀속 단위로만 존재하므로
 // 개요와 재정만 남긴다. 탭 필터는 DesktopShell 한 곳에서 처리해 20여 개 호출부를 건드리지 않는다.
 const STANDING_TABS = ["개요", "재정"];
+// 우리 학생회(구 상시 업무, M-01) 공간 탭. 상시 지출 재정은 이 공간의 재정 탭이다(M-06).
+const OUR_COUNCIL_TABS = ["메시지", "업무", "회의", "일정", "재정"];
+const OUR_COUNCIL_TAB_SCREENS: Record<string, string> = { 메시지: "US-MSG-01", 업무: "OPS-TASK-01", 회의: "OPS-MEET-01A", 일정: "OPS-CAL-01", 재정: "EVT-FIN-01" };
+const OUR_COUNCIL_SCREENS = ["US-MSG-01", "OPS-TASK-01", "OPS-MEET-01A", "OPS-MEET-01B", "OPS-MEET-01C", "OPS-MEET-01D"];
+const ACTIVE_EVENT_ORDER: EventLifecycle[] = ["진행 중", "기획 중", "후속 정리 중"];
+// 사이드바 홈은 역할별 홈으로 간다(D-06~D-09 시안). 재정부 소속은 직급보다 재정부 홈을 우선한다(D-10).
+const roleHomeScreen = (user: { dept: string; role: string }) =>
+  user.role === "회장단" ? "HOME-01C" : user.dept === "재정부" ? "HOME-01F" : user.role === "부서장" ? "HOME-01D" : "HOME-01M";
+const canCreateEventSpace = (user: { role: string }) => user.role === "회장단" || user.role === "부서장";
 const EVENT_TAB_SCREENS: Record<string, string> = {
   "개요": "EVT-02",
   "업무": "EVT-TASK-01",
   "재정": "EVT-FIN-01",
-  "관련 회의": "EVT-MEET-01",
+  "메시지": "EVT-MSG-01",
+  "회의": "EVT-MEET-01",
   "일정": "EVT-SCHED-01",
   "인원 관리": "EVT-03A",
   "문서": "EVT-DOC-01",
@@ -8406,7 +8559,7 @@ function EVT02() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name]}
+      breadcrumb={["행사", eventInfo.name]}
       title={eventInfo.name}
       actions={canManage ? <Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-02B")}><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn> : undefined}
       tabs={EVENT_TABS}
@@ -8488,7 +8641,7 @@ function EVT02B() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", draft.name]}
+      breadcrumb={["행사", draft.name]}
       title={draft.name}
       actions={<></>}
       tabs={EVENT_TABS}
@@ -8506,7 +8659,7 @@ function EVT02B() {
           <div className="px-5 py-3.5 border-b border-gray-100 flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-900">행사 기본정보 수정</p>
-              <p className="text-[10px] text-gray-400 mt-0.5">저장하면 일정·참여 설문에 자동 반영됩니다</p>
+              <KkirukDone className="mt-0.5 text-[10px] text-gray-500">저장하면 끼룩이가 일정·참여 설문에도 함께 반영해요</KkirukDone>
             </div>
             <button onClick={() => navigateTo("EVT-02")} className="text-gray-400 hover:text-gray-600"><X className="w-4 h-4" /></button>
           </div>
@@ -8691,7 +8844,7 @@ function EVT02C() {
     <div className="relative h-full">
       <DesktopShell
         activeSidebar="운영"
-        breadcrumb={["운영", "행사", eventInfo.name]}
+        breadcrumb={["행사", eventInfo.name]}
         title={eventInfo.name}
         actions={isEventManager(currentUser) ? <Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-02B")}><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn> : undefined}
         tabs={EVENT_TABS}
@@ -8751,7 +8904,7 @@ function EVT02D() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name]}
+      breadcrumb={["행사", eventInfo.name]}
       title={eventInfo.name}
       actions={isEventManager(currentUser) ? <Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-02B")}><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn> : undefined}
       tabs={EVENT_TABS}
@@ -8913,7 +9066,7 @@ function EVT02E({ hasRemaining = true }: { hasRemaining?: boolean }) {
     <div className="relative h-full">
       <DesktopShell
         activeSidebar="운영"
-        breadcrumb={["운영", "행사", eventInfo.name]}
+        breadcrumb={["행사", eventInfo.name]}
         title={eventInfo.name}
         actions={isEventManager(currentUser) ? <Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-02B")}><Settings className="w-3.5 h-3.5" /> 행사 설정</Btn> : undefined}
         tabs={EVENT_TABS}
@@ -8980,7 +9133,7 @@ function EventWorkspaceShell({
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, activeTab]}
+      breadcrumb={["행사", eventInfo.name, activeTab]}
       title={eventInfo.name}
       tabs={EVENT_TABS}
       activeTab={activeTab}
@@ -9014,7 +9167,7 @@ function EVTMEET01() {
   const meetings = [...baseMeetings, ...createdEventMeetings];
   const countByStatus = (status: string) => meetings.filter((meeting) => meeting.status === status).length;
   return (
-    <EventWorkspaceShell activeTab="관련 회의">
+    <EventWorkspaceShell activeTab="회의">
       <div className="p-6 flex flex-col gap-5 max-w-5xl">
         <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex items-start gap-3">
           <Users className="w-4 h-4 text-blue-600 mt-0.5" />
@@ -9374,7 +9527,7 @@ function MeetingListScreen({ view = "participant" }: { view?: MeetingListView })
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의"]}
+      breadcrumb={["우리 학생회", "회의"]}
       title="회의"
       actions={canCreateMeeting ? <Btn variant="primary" size="sm" onClick={() => navigateTo("OPS-MEET-02")}><Plus className="w-3.5 h-3.5" /> 새 회의 만들기</Btn> : undefined}
     >
@@ -9685,7 +9838,7 @@ function OPSMEET02() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", "새 회의 만들기"]}
+      breadcrumb={["우리 학생회", "회의", "새 회의 만들기"]}
       title="새 회의 만들기"
     >
       <div className="h-full overflow-auto bg-gray-50">
@@ -10169,7 +10322,7 @@ function CreatedMeetingCleanup({ meetingId, onBack, onCompleted, actor }: { meet
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", meeting.name, "회의록 정리"]}
+      breadcrumb={["우리 학생회", "회의", meeting.name, "회의록 정리"]}
       title="회의록 정리"
       actions={<><Btn variant="secondary" size="sm" onClick={onBack}><ArrowLeft className="w-3.5 h-3.5" /> 회의 상세로</Btn>{!canComplete && <span className="text-[10px] text-orange-600">안건 {incompleteAgendaIndexes.length}개를 더 정리해 주세요</span>}<Btn variant="primary" size="sm" disabled={!canComplete} onClick={() => setCompleteConfirmOpen(true)}><Check className="w-3.5 h-3.5" /> 정리 완료</Btn></>}
     >
@@ -10236,7 +10389,7 @@ function CreatedMeetingCleanup({ meetingId, onBack, onCompleted, actor }: { meet
                     <div className="col-span-2"><Input label="업무명" required value={record.taskName} disabled={Boolean(record.taskCreatedId)} onChange={(event) => updateRecord({ taskName: event.target.value })} /></div>
                     <Input label="담당자" select hideEmptyOption value={record.taskAssignee} disabled={Boolean(record.taskCreatedId)} onChange={(event) => updateRecord({ taskAssignee: event.target.value })} selectOptions={[currentUser.name, ...meeting.participantNames.filter((name) => name !== currentUser.name)]} />
                     <Input label="마감일" type="date" required value={record.taskDue} disabled={Boolean(record.taskCreatedId)} onChange={(event) => updateRecord({ taskDue: event.target.value })} />
-                    <div className="col-span-2 flex items-center justify-between border border-blue-100 bg-blue-50 rounded-lg px-4 py-3"><div><p className="text-[11px] font-semibold text-blue-900">{record.taskCreatedId ? "업무 카드가 생성되었습니다" : "상시 업무 카드로 생성"}</p><p className="text-[10px] text-blue-700 mt-1">{record.taskCreatedId ? `${record.taskCreatedId} · 업무 상태 변경은 상시 업무에서 처리합니다.` : "논의와 결정사항을 먼저 입력한 뒤 생성할 수 있습니다."}</p></div>{record.taskCreatedId ? <Chip label="생성 완료" variant="green" /> : <Btn variant="primary" size="sm" disabled={!taskReady} onClick={makeTask}><Plus className="w-3.5 h-3.5" /> 업무 카드 만들기</Btn>}</div>
+                    <div className="col-span-2 flex items-center justify-between border border-blue-100 bg-blue-50 rounded-lg px-4 py-3"><div><p className="text-[11px] font-semibold text-blue-900">{record.taskCreatedId ? "업무 카드가 생성되었습니다" : "상시 업무 카드로 생성"}</p>{record.taskCreatedId ? <KkirukDone className="mt-1 text-[10px] text-blue-700">끼룩이가 {record.taskAssignee}님의 내 업무와 캘린더에 올렸어요 · {record.taskCreatedId}</KkirukDone> : <p className="text-[10px] text-blue-700 mt-1">논의와 결정사항을 먼저 입력한 뒤 생성할 수 있습니다.</p>}</div>{record.taskCreatedId ? <Chip label="생성 완료" variant="green" /> : <Btn variant="primary" size="sm" disabled={!taskReady} onClick={makeTask}><Plus className="w-3.5 h-3.5" /> 업무 카드 만들기</Btn>}</div>
                   </div>
                 )}
               </section>
@@ -10261,12 +10414,12 @@ function CreatedMeetingCompletedMinutes({ meetingId, viewer }: { meetingId: stri
   const openTask = (taskId: string) => { setSelectedRecurringTaskId(taskId); navigateTo("OPS-TASK-01"); };
   const statusVariant = (status: EventTaskStatus) => status === "완료" ? "green" : status === "검토 필요" ? "yellow" : status === "예정" ? "gray" : "blue";
   return (
-    <DesktopShell activeSidebar="운영" breadcrumb={["운영", "회의", meeting.name, "완료 회의록"]} title="완료된 회의록" actions={<Btn variant="secondary" size="sm" onClick={() => navigateTo("OPS-MEET-01C")}><ArrowLeft className="w-3.5 h-3.5" /> 회의 목록으로</Btn>}>
+    <DesktopShell activeSidebar="운영" breadcrumb={["우리 학생회", "회의", meeting.name, "완료 회의록"]} title="완료된 회의록" actions={<Btn variant="secondary" size="sm" onClick={() => navigateTo("OPS-MEET-01C")}><ArrowLeft className="w-3.5 h-3.5" /> 회의 목록으로</Btn>}>
       <div className="bg-gray-50 min-h-full"><div className="max-w-6xl mx-auto p-6 pb-16 flex flex-col gap-5">
         <section className="bg-green-50 border border-green-200 rounded-xl p-5 flex items-start gap-3"><Check className="w-4 h-4 text-green-600 mt-0.5" /><div><div className="flex items-center gap-2"><p className="text-xs font-bold text-green-900">회의록 정리가 완료되었습니다</p><Chip label="완료" variant="green" /></div><p className="text-[11px] text-green-800 mt-1">{meeting.completedAt}에 완료 처리되었습니다. 안건별 기록과 후속 업무는 읽기 전용으로 제공됩니다.</p></div></section>
         {currentUserAbsent && <section className="bg-orange-50 border border-orange-200 rounded-xl p-4 flex items-center justify-between gap-4"><div><p className="text-xs font-bold text-orange-900">불참자 요약 확인이 필요합니다</p><p className="text-[11px] text-orange-800 mt-1">회의 핵심 기록과 나에게 배정된 후속 업무를 확인하세요. 확인해도 참석 기록은 바뀌지 않습니다.</p></div>{meeting.attendance[meetingViewer.name]?.summaryConfirmedAt ? <Chip label={`${meeting.attendance[meetingViewer.name].summaryConfirmedAt} 확인`} variant="green" /> : <Btn variant="primary" size="sm" onClick={confirmSummary}><Check className="w-3.5 h-3.5" /> 요약 확인 완료</Btn>}</section>}
         <section className="bg-white border border-gray-200 rounded-xl p-6"><div className="flex items-start justify-between gap-6"><div><div className="flex items-center gap-2 mb-2"><Chip label="완료" variant="green" /><Chip label={meeting.group === "정기·상시 회의" ? "정기·상시 회의" : "행사 관련 회의"} variant="gray" /></div><h1 className="text-lg font-bold text-gray-900">{meeting.name}</h1><p className="text-xs text-gray-500 mt-2">{meeting.time} · {meeting.place}</p></div><div className="text-right"><p className="text-[10px] text-gray-400">후속 업무</p><p className="text-sm font-bold text-gray-800 mt-1">{followupTasks.filter((task) => task.status === "완료").length}/{followupTasks.length} 완료</p></div></div></section>
-        <div className="grid grid-cols-[1fr_300px] gap-5 items-start"><div className="flex flex-col gap-4">{meeting.agendaRecords.map((agenda, index) => { const agendaTasks = followupTasks.filter((task) => task.related.includes(`안건 ${index + 1} · ${agenda.title}`)); return <section key={agenda.title} className="bg-white border border-gray-200 rounded-xl p-5"><div className="flex items-center gap-2 mb-3"><span className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-[10px] font-bold flex items-center justify-center">{index + 1}</span><h2 className="text-xs font-bold text-gray-800">{agenda.title}</h2></div><div className="text-xs text-gray-600 leading-6 whitespace-pre-wrap">{agenda.discussion}</div><div className="mt-3 bg-green-50 border border-green-100 rounded-lg p-3"><p className="text-[10px] font-semibold text-green-700 mb-1">{agenda.decisionNone ? "결정사항 없음" : "확정된 결정"}</p>{!agenda.decisionNone && <p className="text-xs text-green-900">{agenda.decision}</p>}</div>{agenda.taskNone ? <p className="mt-3 text-[11px] text-gray-500">후속 업무 없음</p> : <div className="mt-3"><p className="text-[10px] font-semibold text-blue-700 mb-2">생성된 후속 업무</p>{agendaTasks.map((task) => <button key={task.id} type="button" onClick={() => openTask(task.id)} className="w-full flex items-center gap-2 text-left border border-blue-100 hover:border-blue-300 rounded-lg px-3 py-2"><div className="min-w-0 flex-1"><p className="text-[11px] font-semibold text-gray-800 truncate">{task.name}</p><p className="text-[10px] text-gray-500 mt-0.5">{task.assignee} · {task.due.replaceAll("-", ".").slice(5)}까지</p></div><Chip label={task.status} variant={statusVariant(task.status)} /><ExternalLink className="w-3 h-3 text-blue-500" /></button>)}</div>}</section>; })}</div><aside className="bg-white border border-gray-200 rounded-xl p-5"><h2 className="text-xs font-bold text-gray-800">참석 결과</h2><div className="mt-4 flex flex-col gap-3 text-[11px]">{meeting.participantNames.map((name) => <div key={name} className="flex items-center justify-between gap-2"><span className="text-gray-700">{name}</span><Chip label={meeting.attendance[name]?.joinedAt ? `${meeting.attendance[name].joinedAt} 참석` : meeting.attendance[name]?.summaryConfirmedAt ? "불참 · 요약 확인" : "불참"} variant={meeting.attendance[name]?.joinedAt ? "green" : meeting.attendance[name]?.summaryConfirmedAt ? "yellow" : "gray"} /></div>)}</div><div className="mt-5 pt-4 border-t border-gray-100 text-[11px]"><p className="text-gray-400">정리 완료</p><p className="text-gray-700 mt-1">{meeting.completedAt}</p></div></aside></div>
+        <div className="grid grid-cols-[1fr_300px] gap-5 items-start"><div className="flex flex-col gap-4">{meeting.agendaRecords.map((agenda, index) => { const agendaTasks = followupTasks.filter((task) => task.related.includes(`안건 ${index + 1} · ${agenda.title}`)); return <section key={agenda.title} className="bg-white border border-gray-200 rounded-xl p-5"><div className="flex items-center gap-2 mb-3"><span className="w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-[10px] font-bold flex items-center justify-center">{index + 1}</span><h2 className="text-xs font-bold text-gray-800">{agenda.title}</h2></div><div className="text-xs text-gray-600 leading-6 whitespace-pre-wrap">{agenda.discussion}</div><div className="mt-3 bg-green-50 border border-green-100 rounded-lg p-3"><p className="text-[10px] font-semibold text-green-700 mb-1">{agenda.decisionNone ? "결정사항 없음" : "확정된 결정"}</p>{!agenda.decisionNone && <p className="text-xs text-green-900">{agenda.decision}</p>}</div>{agenda.taskNone ? <p className="mt-3 text-[11px] text-gray-500">후속 업무 없음</p> : <div className="mt-3"><p className="text-[10px] font-semibold text-blue-700 mb-2">생성된 후속 업무</p>{agendaTasks.map((task) => <button key={task.id} type="button" onClick={() => openTask(task.id)} className="w-full flex items-center gap-2 text-left border border-blue-100 hover:border-blue-300 rounded-lg px-3 py-2"><div className="min-w-0 flex-1"><p className="text-[11px] font-semibold text-gray-800 truncate">{task.name}</p><p className="text-[10px] text-gray-500 mt-0.5"><PersonName name={task.assignee} /> · {task.due.replaceAll("-", ".").slice(5)}까지</p></div><Chip label={task.status} variant={statusVariant(task.status)} /><ExternalLink className="w-3 h-3 text-blue-500" /></button>)}</div>}</section>; })}</div><aside className="bg-white border border-gray-200 rounded-xl p-5"><h2 className="text-xs font-bold text-gray-800">참석 결과</h2><div className="mt-4 flex flex-col gap-3 text-[11px]">{meeting.participantNames.map((name) => <div key={name} className="flex items-center justify-between gap-2"><span className="text-gray-700">{name}</span><Chip label={meeting.attendance[name]?.joinedAt ? `${meeting.attendance[name].joinedAt} 참석` : meeting.attendance[name]?.summaryConfirmedAt ? "불참 · 요약 확인" : "불참"} variant={meeting.attendance[name]?.joinedAt ? "green" : meeting.attendance[name]?.summaryConfirmedAt ? "yellow" : "gray"} /></div>)}</div><div className="mt-5 pt-4 border-t border-gray-100 text-[11px]"><p className="text-gray-400">정리 완료</p><p className="text-gray-700 mt-1">{meeting.completedAt}</p></div></aside></div>
       </div></div>
     </DesktopShell>
   );
@@ -10320,7 +10473,7 @@ function MeetingScheduledDetail({ role }: { role: "participant" | "owner" | "fac
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", meetingName]}
+      breadcrumb={["우리 학생회", "회의", meetingName]}
       title={meetingName}
       actions={
         createdMeeting ? (
@@ -10466,7 +10619,7 @@ function MeetingPermissionScreen({ readOnly = false }: { readOnly?: boolean }) {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", "체육대회 안전 관리 최종 회의", readOnly ? "진행 권한 현황" : "진행 권한 관리"]}
+      breadcrumb={["우리 학생회", "회의", "체육대회 안전 관리 최종 회의", readOnly ? "진행 권한 현황" : "진행 권한 관리"]}
       title={readOnly ? "회의 진행 권한 현황" : "회의 진행 권한 관리"}
       actions={
         <Btn
@@ -10602,7 +10755,7 @@ function MeetingLiveScreen({ facilitator = false }: { facilitator?: boolean }) {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", "체육대회 안전 관리 최종 회의"]}
+      breadcrumb={["우리 학생회", "회의", "체육대회 안전 관리 최종 회의"]}
       title="체육대회 안전 관리 최종 회의"
       actions={
         facilitator ? (
@@ -10805,7 +10958,7 @@ function OPSMEET06A() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", "신입생 환영 행사 기획회의"]}
+      breadcrumb={["우리 학생회", "회의", "신입생 환영 행사 기획회의"]}
       title="신입생 환영 행사 기획회의"
       actions={<Btn variant="secondary" size="sm"><Eye className="w-3.5 h-3.5" /> 읽기 전용</Btn>}
     >
@@ -11007,7 +11160,7 @@ function OPSMEET06B() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", "체육대회 안전 관리 최종 회의", "회의록 정리"]}
+      breadcrumb={["우리 학생회", "회의", "체육대회 안전 관리 최종 회의", "회의록 정리"]}
       title="회의록 정리"
       actions={
         <div className="flex items-center gap-3">
@@ -11053,7 +11206,7 @@ function OPSMEET06B() {
                     <h2 className="text-sm font-bold text-gray-900">회의 전체 요약</h2>
                     <p className="text-[10px] text-gray-400 mt-1">안건별 기록을 바탕으로 불참자에게 제공할 요약을 작성합니다.</p>
                   </div>
-                  {summaryStatus === "review" && summarySource === "ai" && <Chip label="AI 생성 초안 · 검토 필요" variant="yellow" />}
+                  {summaryStatus === "review" && summarySource === "ai" && <KkirukDraftBadge />}
                   {summaryStatus === "review" && summarySource === "manual" && <Chip label="직접 작성 중" variant="blue" />}
                   {summaryStatus === "failed" && <Chip label="AI 생성 실패" variant="red" />}
                   {summaryStatus === "stale" && <Chip label="원본 변경됨 · 다시 확인 필요" variant="red" />}
@@ -11064,11 +11217,11 @@ function OPSMEET06B() {
                   <div className="border border-dashed border-gray-300 rounded-lg p-6 text-center">
                     <p className="text-xs font-semibold text-gray-700">아직 작성된 전체 요약이 없습니다</p>
                     <p className="text-[10px] text-gray-400 mt-1.5 leading-5">
-                      AI 초안은 안건별 논의·결정 기록만 재구성하며, 기록에 없는 결정·담당자·기한을 새로 만들지 않습니다.
+                      끼룩이 초안(AI)은 안건별 논의·결정 기록만 재구성하며, 기록에 없는 결정·담당자·기한을 새로 만들지 않습니다.
                       <br />요약이 없어도 정리 완료가 막히지는 않습니다.
                     </p>
                     <div className="flex items-center justify-center gap-3 mt-4">
-                      <Btn variant="primary" size="sm" onClick={generateSummary}><Sparkles className="w-3.5 h-3.5" /> AI로 전체 요약 만들기</Btn>
+                      <Btn variant="primary" size="sm" onClick={generateSummary}><KkirukMark expression="hello" className="w-4 h-4" /> 끼룩이에게 요약 초안 맡기기</Btn>
                       <Btn variant="text" size="sm" onClick={() => { setSummarySource("manual"); setSummaryStatus("review"); }}>직접 작성</Btn>
                       <Btn variant="text" size="sm" onClick={() => setSummaryStatus("failed")}><AlertCircle className="w-3.5 h-3.5" /> 실패 상태 미리보기</Btn>
                     </div>
@@ -11076,9 +11229,8 @@ function OPSMEET06B() {
                 )}
 
                 {summaryStatus === "generating" && (
-                  <div className="border border-blue-200 bg-blue-50 rounded-lg p-6 flex items-center justify-center gap-2.5">
-                    <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
-                    <p className="text-xs font-medium text-blue-700">안건 1–3의 논의·결정 기록을 재구성하는 중…</p>
+                  <div className="border border-blue-200 bg-blue-50 rounded-lg p-6 flex items-center justify-center">
+                    <KkirukDone thinking className="text-xs font-medium text-blue-700">끼룩이가 안건 1–3의 논의·결정 기록을 정리하는 중이에요…</KkirukDone>
                   </div>
                 )}
 
@@ -11086,7 +11238,7 @@ function OPSMEET06B() {
                   <div className="border border-red-200 bg-red-50 rounded-lg p-5 flex items-start gap-3">
                     <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 shrink-0" />
                     <div className="flex-1">
-                      <p className="text-xs font-bold text-red-900">AI 요약을 만들지 못했습니다</p>
+                      <p className="text-xs font-bold text-red-900">끼룩이가 요약 초안을 만들지 못했어요</p>
                       <p className="text-[10px] text-red-700 mt-1 leading-5">안건별 원본 기록은 그대로 보존되어 있습니다. 다시 시도하거나 전체 요약을 직접 작성할 수 있으며, 요약 실패는 회의록 정리 완료를 막지 않습니다.</p>
                       <div className="flex items-center gap-2 mt-3">
                         <Btn variant="secondary" size="sm" onClick={generateSummary}><RefreshCw className="w-3 h-3" /> 다시 시도</Btn>
@@ -11289,7 +11441,10 @@ function OPSMEET06B() {
                           </div>
                         </div>
                         {selectedCleanup.taskCreatedId ? (
-                          <Btn variant="text" size="sm" className="mt-3" onClick={() => openCreatedTask(selectedCleanup.taskCreatedId!)}>생성된 업무 열기 <ExternalLink className="w-3 h-3" /></Btn>
+                          <>
+                            <KkirukDone className="mt-3">끼룩이가 {selectedCleanup.taskAssignee}님의 내 업무와 캘린더에 올렸어요 · 마감 {selectedCleanup.taskDue}</KkirukDone>
+                            <Btn variant="text" size="sm" className="mt-1" onClick={() => openCreatedTask(selectedCleanup.taskCreatedId!)}>생성된 업무 열기 <ExternalLink className="w-3 h-3" /></Btn>
+                          </>
                         ) : (
                           <Btn variant="primary" size="sm" className="mt-3" disabled={!selectedCleanup.taskName.trim() || !selectedCleanup.taskAssignee || !selectedCleanup.taskDue} onClick={() => createFollowupTask(selectedAgenda)}><Clipboard className="w-3.5 h-3.5" /> 업무 카드 만들기</Btn>
                         )}
@@ -11376,7 +11531,7 @@ function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", "체육대회 안전 관리 최종 회의"]}
+      breadcrumb={["우리 학생회", "회의", "체육대회 안전 관리 최종 회의"]}
       title={absent ? "회의 요약 확인" : "완료된 회의록"}
       actions={absent ? (
         <Btn variant={summaryConfirmedAt ? "secondary" : "primary"} size="sm" disabled={Boolean(summaryConfirmedAt)} onClick={() => setSummaryConfirmedAt(new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }))}>
@@ -11396,6 +11551,8 @@ function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
                   {summaryConfirmedAt && <Chip label="확인 완료" variant="green" />}
                 </div>
                 <p className={`text-[11px] mt-1 ${summaryConfirmedAt ? "text-green-800" : "text-orange-800"}`}>{absentDesc}</p>
+                {/* 사람이 최종 확인한 요약임을 함께 밝힌다(원칙 6: 확정본의 책임자는 사람). */}
+                <KkirukDone className="mt-2">놓친 회의를 끼룩이가 정리해 두었어요 · 박해랑 최종 확인</KkirukDone>
               </div>
             </div>
           ) : (
@@ -11459,7 +11616,7 @@ function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
                             <button key={task.id} type="button" onClick={() => openTask(task.id)} className="w-full flex items-center gap-2 text-left bg-white border border-blue-100 hover:border-blue-300 rounded-md px-2.5 py-2 transition-colors">
                               <div className="min-w-0 flex-1">
                                 <p className="text-[11px] font-semibold text-gray-800 truncate">{task.name}</p>
-                                <p className="text-[10px] text-gray-500 mt-0.5">{task.assignee} · {task.due.replaceAll("-", ".").slice(5)}까지</p>
+                                <p className="text-[10px] text-gray-500 mt-0.5"><PersonName name={task.assignee} /> · {task.due.replaceAll("-", ".").slice(5)}까지</p>
                               </div>
                               <Chip label={task.status} variant={taskStatusVariant(task.status)} />
                               <ExternalLink className="w-3 h-3 text-blue-500 shrink-0" />
@@ -11491,7 +11648,7 @@ function MeetingCompletedMinutes({ absent = false }: { absent?: boolean }) {
                         <div className="flex items-start gap-2">
                           <div className="min-w-0 flex-1">
                             <p className="text-[11px] font-semibold text-gray-800 truncate">{task.name}</p>
-                            <p className="text-[10px] text-gray-500 mt-1">{task.assignee} · {task.due.replaceAll("-", ".").slice(5)}까지</p>
+                            <p className="text-[10px] text-gray-500 mt-1"><PersonName name={task.assignee} /> · {task.due.replaceAll("-", ".").slice(5)}까지</p>
                           </div>
                           <Chip label={task.assignee === "미지정" ? "미배정" : task.delayed ? "지연" : task.status} variant={task.assignee === "미지정" || task.delayed ? "red" : taskStatusVariant(task.status)} />
                         </div>
@@ -11575,7 +11732,7 @@ function OPSMEET09() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "회의", "가을 축제 1차 준비회의"]}
+      breadcrumb={["우리 학생회", "회의", "가을 축제 1차 준비회의"]}
       title="가을 축제 1차 준비회의"
     >
       <div className="bg-gray-50 min-h-full">
@@ -12054,8 +12211,10 @@ function REC02() {
                 id={`archive-${section.id}`}
                 className={`bg-white border rounded-xl overflow-hidden ${activeSection === section.id ? "border-blue-300 ring-2 ring-blue-100" : "border-gray-200"}`}
               >
-                <div className="px-6 py-3.5 border-b border-gray-100 bg-gray-50">
+                <div className="px-6 py-3.5 border-b border-gray-100 bg-gray-50 flex items-center justify-between gap-3">
                   <h3 className="text-sm font-bold text-gray-900">{section.title}</h3>
+                  {/* 자동 집계 영역에만 표시한다. 회고·인수인계 등 사람이 확정한 내용에는 붙이지 않는다(원칙 6). */}
+                  {["overview", "performance", "timeline", "source"].includes(section.id) && <KkirukDone className="text-[10px] text-gray-400">끼룩이가 모은 기록</KkirukDone>}
                 </div>
                 <div className="px-6 py-5 flex flex-col gap-4">
                   {section.rows && section.rows.map(([label, value]) => (
@@ -12212,6 +12371,13 @@ function REC02AContent() {
   const setImprove = (value: string) => updateDraft({ improve: value });
   const setImproveOwner = (value: string) => updateDraft({ improveOwner: value });
   const setHandover = (value: string) => updateDraft({ handover: value });
+  // 끼룩이 초안 중 그대로 남아 있고 아직 확인하지 않은 줄. 이 줄이 남아 있으면 발행할 수 없다.
+  const handoverLines = handover.split("\n").map(line => line.trim()).filter(Boolean);
+  const aiLines = archive.draft.handoverAiLines ?? [];
+  const confirmedLines = archive.draft.handoverConfirmed ?? [];
+  const pendingAiLines = aiLines.filter(line => handoverLines.includes(line) && !confirmedLines.includes(line));
+  const confirmAiLine = (line: string) => updateDraft({ handoverConfirmed: [...confirmedLines, line] });
+  const handoverSourceOf = (line: string) => line.startsWith("[재사용 자산]") ? "업무·문서 기록" : line.startsWith("[협력처") ? "구매·정산 기록" : line.startsWith("[부서별") ? "운영 조직 기록" : "회의 기록";
   const setNextOwner = (value: string) => updateDraft({ nextOwner: value });
   const setReviewer = (value: string) => updateDraft({ reviewer: value });
   const setReviewNote = (value: string) => updateDraft({ reviewNote: value });
@@ -12230,12 +12396,13 @@ function REC02AContent() {
   const generateHandoverDraft = () => {
     setHandoverAi("generating");
     window.setTimeout(() => {
-      setHandover([
+      const lines = [
         `[재사용 자산] ${perf.tasks} 관련 산출물 — 원본 문서에서 확인해 목록화하세요`,
         `[협력처·담당자] 연결 데이터 없음 — 실제 협력처와 연락처를 직접 입력하세요`,
         `[부서별 확인 항목] ${archive.manager} 인수인계 항목을 검토해 채우세요`,
         `[주의사항] 발행 전 원본 기록과 대조가 필요합니다`,
-      ].join("\n"));
+      ];
+      updateDraft({ handover: lines.join("\n"), handoverAiLines: lines, handoverConfirmed: [] });
       setHandoverAi("drafted");
     }, 900);
   };
@@ -12246,6 +12413,7 @@ function REC02AContent() {
     ["회고 · 미흡했던 점과 원인", bad.trim().length > 0],
     ["회고 · 다음 행사 개선안", improve.trim().length > 0],
     ["인수인계 내용", handover.trim().length > 0],
+    ...(aiLines.length > 0 ? [[`끼룩이 초안 항목 확인 (${aiLines.length - pendingAiLines.length}/${aiLines.length})`, pendingAiLines.length === 0] as [string, boolean]] : []),
     ["다음 담당자 지정", nextOwner.trim().length > 0],
   ];
   const doneCount = conditions.filter(([, ok]) => ok).length;
@@ -12351,8 +12519,8 @@ function REC02AContent() {
             {/* 01 자동 채움 영역 */}
             <section id="archive-editor-overview" className="bg-gray-50 border border-gray-200 rounded-xl overflow-hidden scroll-mt-5">
               <div className="px-6 py-3.5 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-700">자동 채움 영역</h3>
-                <span className="text-[10px] text-gray-400">행사 데이터 기준 · 편집 불가</span>
+                <div><h3 className="text-sm font-bold text-gray-700">자동 채움 영역</h3><KkirukDone className="mt-1 text-[10px] text-gray-500">끼룩이가 행사 기록에서 모았어요 · {archive.completedAt} 기준</KkirukDone></div>
+                <span className="text-[10px] text-gray-400">편집 불가</span>
               </div>
               <div className="px-6 py-4 flex flex-col gap-3">
                 {autoSections.map(s => (
@@ -12409,33 +12577,44 @@ function REC02AContent() {
 
             {/* 04 인수인계 */}
             <section id="archive-editor-handover" className={`bg-white border rounded-xl overflow-hidden scroll-mt-5 ${activeSection === "handover" ? "border-blue-300 ring-2 ring-blue-100" : "border-gray-200"}`}>
-              <div className="px-6 py-3.5 border-b border-gray-100 bg-gray-50">
-                <h3 className="text-sm font-bold text-gray-900">인수인계</h3>
-                <p className="text-[10px] text-gray-400 mt-0.5">재사용 자산, 협력처·담당자, 부서별 체크리스트, 주의사항</p>
+              <div className="px-6 py-3.5 border-b border-gray-100 bg-gray-50 flex items-start justify-between gap-3">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">인수인계</h3>
+                  <p className="text-[10px] text-gray-400 mt-0.5">재사용 자산, 협력처·담당자, 부서별 체크리스트, 주의사항</p>
+                </div>
+                {pendingAiLines.length > 0 && <KkirukDraftBadge />}
               </div>
               <div className="px-6 py-5 flex flex-col gap-4">
                 {handoverAi === "generating" ? (
-                  <div className="border border-blue-200 bg-blue-50 rounded-lg p-4 flex items-center justify-center gap-2.5">
-                    <RefreshCw className="w-4 h-4 text-blue-500 animate-spin" />
-                    <p className="text-xs font-medium text-blue-700">행사 기록을 바탕으로 인수인계 초안을 작성하는 중…</p>
+                  <div className="border border-blue-200 bg-blue-50 rounded-lg p-4 flex items-center justify-center">
+                    <KkirukDone thinking className="text-xs font-medium text-blue-700">끼룩이가 행사 기록을 바탕으로 인수인계 초안을 정리하는 중이에요…</KkirukDone>
                   </div>
                 ) : (
                   <div className="flex items-start justify-between gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
                     <p className="text-[10px] text-gray-500 leading-5 flex-1">
-                      AI 초안은 이 행사의 업무·회의·문서·정산 기록만 재구성하며, 기록에 없는 자산·연락처·담당자를 새로 만들지 않습니다. 생성 후 반드시 검토·수정해 확정하세요.
+                      끼룩이 초안(AI)은 이 행사의 업무·회의·문서·정산 기록만 재구성하며, 기록에 없는 자산·연락처·담당자를 새로 만들지 않습니다. 그대로 둔 항목은 하나씩 확인해야 발행할 수 있어요.
                     </p>
-                    <Btn variant="secondary" size="sm" onClick={generateHandoverDraft}><Sparkles className="w-3.5 h-3.5" /> {handover.trim() ? "AI 초안 다시 생성" : "AI 초안 생성"}</Btn>
+                    <Btn variant="secondary" size="sm" onClick={generateHandoverDraft}><KkirukMark expression="hello" className="w-4 h-4" /> {handover.trim() ? "끼룩이 초안 다시 받기" : "끼룩이에게 초안 맡기기"}</Btn>
                   </div>
-                )}
-                {handoverAi === "drafted" && (
-                  <span className="flex items-center gap-1.5 text-[10px] text-yellow-700"><AlertCircle className="w-3 h-3" /> AI 초안입니다. 기록에 없는 내용이 없는지 검토하고 수정한 뒤 확정하세요.</span>
                 )}
                 <textarea
                   value={handover}
-                  onChange={e => { setHandover(e.target.value); if (handoverAi === "drafted") setHandoverAi("none"); }}
+                  onChange={e => setHandover(e.target.value)}
                   placeholder="예) 안내 포스터 원본 파일 재사용 가능 / 다과 납품: 새봄상사 031-111-1111 / 강당 사용은 2주 전 승인 필요"
                   className="w-full h-24 border border-gray-300 rounded-lg p-3 text-xs leading-5 resize-none focus:outline-none focus:ring-1 focus:ring-blue-400"
                 />
+                {pendingAiLines.length > 0 && (
+                  // 과의존 방지(K-07): 초안을 통째로 승인하지 않도록 그대로 둔 줄은 근거를 보고 하나씩 확인한다. 고친 줄은 여기서 빠진다.
+                  <div className="border border-yellow-200 bg-yellow-50/60 rounded-lg p-3 flex flex-col gap-2">
+                    <p className="text-[10px] font-semibold text-yellow-800">끼룩이 초안에서 그대로 둔 항목 {pendingAiLines.length}개 · 근거를 확인하고 눌러 주세요 (고친 항목은 확인한 것으로 봅니다)</p>
+                    {pendingAiLines.map(line => (
+                      <div key={line} className="flex items-start gap-2 bg-white border border-yellow-100 rounded px-2.5 py-2">
+                        <div className="flex-1 min-w-0"><p className="text-[11px] text-gray-700 leading-4">{line}</p><p className="text-[10px] text-gray-400 mt-0.5">근거: {handoverSourceOf(line)}</p></div>
+                        <button type="button" onClick={() => confirmAiLine(line)} className="shrink-0 px-2 py-1 rounded border border-yellow-300 text-[10px] font-semibold text-yellow-800 hover:bg-yellow-100">확인</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="border-t border-gray-100 pt-4">
                   <Input label="다음 담당자" placeholder="예: 기획부 부서장" value={nextOwner} onChange={e => setNextOwner(e.target.value)} />
                 </div>
@@ -12624,7 +12803,7 @@ function EVT03C() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "인원 관리"]}
+      breadcrumb={["행사", eventInfo.name, "인원 관리"]}
       title={eventInfo.name}
       tabs={EVENT_TABS}
       activeTab="인원 관리"
@@ -12684,7 +12863,7 @@ function EVTFINDEMO() {
   ];
   const flowLabel = steps.map(([title]) => title).join("→");
   return (
-    <DesktopShell activeSidebar="운영" breadcrumb={["운영", "행사", "재정 시연"]} title="재정 시연 — 빈 행사에서 실제 흐름">
+    <DesktopShell activeSidebar="운영" breadcrumb={["행사", "재정 시연"]} title="재정 시연 — 빈 행사에서 실제 흐름">
       <div className="p-6 overflow-auto h-full">
         <div className="max-w-2xl mx-auto flex flex-col gap-6">
           <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
@@ -12732,7 +12911,7 @@ function EVT04C() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "인원 관리"]}
+      breadcrumb={["행사", eventInfo.name, "인원 관리"]}
       title={eventInfo.name}
       tabs={EVENT_TABS}
       activeTab="인원 관리"
@@ -12775,7 +12954,7 @@ function EVT03A() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "인원 관리"]}
+      breadcrumb={["행사", eventInfo.name, "인원 관리"]}
       title={eventInfo.name}
       actions={canManage && hasOrganization ? <><Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-03B")}>수정</Btn></> : undefined}
       tabs={EVENT_TABS}
@@ -12974,7 +13153,7 @@ function EVT03B() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "인원 관리"]}
+      breadcrumb={["행사", eventInfo.name, "인원 관리"]}
       title={eventInfo.name}
       actions={<><Btn variant="secondary" size="sm" onClick={handleCancel}>취소</Btn><Btn variant="primary" size="sm" onClick={handleComplete}>완료</Btn></>}
       tabs={EVENT_TABS}
@@ -13070,7 +13249,7 @@ function EVT04({ onOpenQR }: { onOpenQR?: () => void }) {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "인원 관리"]}
+      breadcrumb={["행사", eventInfo.name, "인원 관리"]}
       title={eventInfo.name}
       actions={canManage && hasParticipants ? <>
         <Btn variant="secondary" size="sm">참여 희망 조사 생성</Btn>
@@ -13336,7 +13515,7 @@ function EVT05() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "참여 설문"]}
+      breadcrumb={["행사", eventInfo.name, "참여 설문"]}
       title="참여 설문 생성·관리"
       actions={<>
         <Chip label={surveySettings.status} variant={surveySettings.status === "활성" ? "green" : "gray"} />
@@ -13556,7 +13735,7 @@ function EVT05B() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "참여 설문"]}
+      breadcrumb={["행사", eventInfo.name, "참여 설문"]}
       title="참여 설문 생성·관리"
       actions={<><Chip label="활성" variant="green" /></>}
       tabs={EVENT_TABS}
@@ -13838,7 +14017,7 @@ function FINLEDGER01() {
                       <tr className="bg-gray-50/70">
                         <td colSpan={8} className="px-5 py-4">
                           <div className="grid grid-cols-4 gap-4 text-[11px]">
-                            <div><p className="text-[9px] text-gray-400 mb-0.5">구매 요청</p><p className="font-medium text-gray-700">{row.requestId} · {row.requester}</p></div>
+                            <div><p className="text-[9px] text-gray-400 mb-0.5">구매 요청</p><p className="font-medium text-gray-700">{row.requestId} · <PersonName name={row.requester} /></p></div>
                             <div><p className="text-[9px] text-gray-400 mb-0.5">실행분</p><p className="font-medium text-gray-700 font-mono">{row.execId}</p></div>
                             <div><p className="text-[9px] text-gray-400 mb-0.5">집행 유형</p><p className="font-medium text-gray-700">{findExecutionType(row.executionType)?.label ?? "미판정"}</p></div>
                             <div><p className="text-[9px] text-gray-400 mb-0.5">계정과목 후보</p><p className="font-medium text-gray-700">{accountCandidate(row.budgetLine) ?? `확인 필요 · 예산 항목 "${row.budgetLine}"`}</p></div>
@@ -14832,7 +15011,7 @@ function simulateCoupangFetch(url: string): CoupangFetchResult {
     const p = COUPANG_DEMO_OVERSEAS;
     return { status: "loaded", name: p.name, shipping: p.shipping, meta: p.meta(), options: [], singlePrice: p.price };
   }
-  if (!url.includes("/778812")) return { status: "failed", message: "상품 정보를 읽지 못했어요. 접속이 제한된 상품일 수 있어요. 직접 입력해도 제출할 수 있어요." };
+  if (!url.includes("/778812")) return { status: "failed", message: "끼룩이가 이 링크는 읽지 못했어요. 접속이 제한된 상품일 수 있어요. 직접 입력해도 제출할 수 있어요." };
   return { status: "loaded", name: COUPANG_DEMO_PRODUCT.name, shipping: COUPANG_DEMO_PRODUCT.shipping, options: COUPANG_DEMO_PRODUCT.options, meta: COUPANG_DEMO_PRODUCT.meta() };
 }
 // 판매처는 링크 주소(도메인)만으로 정해진다. 쿠팡 외 쇼핑몰도 링크를 붙이면 바로 채운다.
@@ -15150,15 +15329,15 @@ function FINREQ01() {
   };
 
   if (!canSubmitPurchaseRequest(currentUser)) {
-    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["운영", "행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">구매 요청 작성 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청 작성과 보완 재제출은 부서장 또는 재정부만 할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01")}>행사 재정으로 돌아가기</Btn></div></div></DesktopShell>;
+    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">구매 요청 작성 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청 작성과 보완 재제출은 부서장 또는 재정부만 할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01")}>행사 재정으로 돌아가기</Btn></div></div></DesktopShell>;
   }
   // 예산 미편성 행사에서는 작성 폼 대신 편성을 유도한다(스펙 712: 편성된 예산 항목에서만 선택).
   if (!isEdit && budgetLineOptions.length === 0) {
-    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["운영", "행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">아직 예산이 편성되지 않았습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청은 이 행사에 편성된 예산 항목 중에서 선택해 작성합니다. 재정부가 먼저 예산을 편성해 주세요.</p><Btn variant="primary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01B")}>예산 편성하러 가기</Btn></div></div></DesktopShell>;
+    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">아직 예산이 편성되지 않았습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청은 이 행사에 편성된 예산 항목 중에서 선택해 작성합니다. 재정부가 먼저 예산을 편성해 주세요.</p><Btn variant="primary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01B")}>예산 편성하러 가기</Btn></div></div></DesktopShell>;
   }
 
   return (
-    <DesktopShell activeSidebar="운영" title={isEdit ? "구매 요청 수정" : "구매 요청 작성"} breadcrumb={["운영", "행사", eventInfo.name, "재정", isEdit ? "구매 요청 수정" : "구매 요청 작성"]}>
+    <DesktopShell activeSidebar="운영" title={isEdit ? "구매 요청 수정" : "구매 요청 작성"} breadcrumb={["행사", eventInfo.name, "재정", isEdit ? "구매 요청 수정" : "구매 요청 작성"]}>
       <div className="flex h-full bg-gray-50 overflow-hidden">
         <div className="flex-1 overflow-auto p-8">
           <div className="max-w-4xl mx-auto flex flex-col gap-8 pb-20">
@@ -15281,9 +15460,9 @@ function FINREQ01() {
                               <Btn variant="secondary" size="sm" onClick={() => fetchLink(item.id)}>{fetchState?.state === "loading" ? "불러오는 중…" : "불러오기"}</Btn>
                             </div>
                             {errors[`item_${item.id}_detail_상품URL`] && <p className="text-[10px] text-red-500">{errors[`item_${item.id}_detail_상품URL`]}</p>}
-                            {fetchState?.state === "loading" ? <p className="text-[10px] text-gray-500 flex items-center gap-1.5"><KkirukMark expression="think" className="w-4 h-4" />상품 정보를 불러오는 중이에요</p>
-                              : fetchState?.state === "loaded" && coupangOptions.length === 0 ? <p className="text-[10px] text-blue-700">옵션이 없는 상품이라 가격까지 채웠어요. 수량과 예산 항목만 정해 주세요.</p>
-                              : fetchState?.state === "loaded" ? (coupangOptions.some(o => o.label === item.details?.["옵션규격"]) ? <p className="text-[10px] text-blue-700">고른 옵션의 쿠팡 가격으로 확정했어요. 수량과 예산 항목만 정해 주세요.</p> : <p className="text-[10px] text-orange-700">옵션 {coupangOptions.length}개를 불러왔어요. {priceState === "확정" ? "고를 수 있는 옵션의 가격이 같아 단가를 먼저 채웠어요. " : "옵션별 가격 범위를 보여 드려요. "}아래 상세 정보에서 옵션을 골라 주세요.</p>)
+                            {fetchState?.state === "loading" ? <KkirukDone thinking className="text-[10px] text-gray-500">끼룩이가 쿠팡에서 상품 정보를 불러오는 중이에요</KkirukDone>
+                              : fetchState?.state === "loaded" && coupangOptions.length === 0 ? <KkirukDone className="text-[10px] text-blue-700">끼룩이가 쿠팡에서 상품 정보와 가격을 불러왔어요. 수량과 예산 항목만 정해 주세요.</KkirukDone>
+                              : fetchState?.state === "loaded" ? (coupangOptions.some(o => o.label === item.details?.["옵션규격"]) ? <p className="text-[10px] text-blue-700">고른 옵션의 쿠팡 가격으로 확정했어요. 수량과 예산 항목만 정해 주세요.</p> : <KkirukDone className="text-[10px] text-orange-700">끼룩이가 쿠팡에서 옵션 {coupangOptions.length}개를 불러왔어요. {priceState === "확정" ? "고를 수 있는 옵션의 가격이 같아 단가를 먼저 채웠어요. " : "옵션별 가격 범위를 보여 드려요. "}아래 상세 정보에서 옵션을 골라 주세요.</KkirukDone>)
                               : fetchState?.state === "unsupported" || fetchState?.state === "failed" ? <p className="text-[10px] text-orange-700">{fetchState.message}</p>
                               : <p className="text-[10px] text-gray-400">링크를 붙이면 판매처를 채우고, 쿠팡 링크는 품목명·가격·배송비까지 채워요.</p>}
                             {item.details?.["정보기준"] && (() => {
@@ -15797,7 +15976,7 @@ function FINREV01() {
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
       activeSidebar: "운영"
     }}>
-      <DesktopShell title={isRecheck ? "구매 요청 재검토" : "구매 요청 검토"} breadcrumb={["운영", "행사", eventInfo.name, "재정", isRecheck ? "구매 요청 재검토" : "구매 요청 검토"]}>
+      <DesktopShell title={isRecheck ? "구매 요청 재검토" : "구매 요청 검토"} breadcrumb={["행사", eventInfo.name, "재정", isRecheck ? "구매 요청 재검토" : "구매 요청 검토"]}>
         <div className="flex h-full bg-gray-50 overflow-hidden">
           <div className="flex-1 overflow-auto p-8">
             <div className="max-w-5xl mx-auto flex flex-col gap-6 pb-20">
@@ -16583,11 +16762,34 @@ function MY01() {
   };
 
   return (
-    <DesktopShell activeSidebar="내 업무" breadcrumb={["내 업무"]} title="내 업무">
+    <DesktopShell activeSidebar="내 업무" breadcrumb={["내 업무"]} title="내 업무" actions={<KkirukDone className="text-xs text-gray-700">끼룩이가 행사·상시 업무에서 내 업무를 모아 왔어요</KkirukDone>}>
       <div className="p-6 flex flex-col gap-4 max-w-5xl mx-auto pb-12">
 
         {/* 설명 */}
         <p className="text-sm text-gray-500">여러 행사와 조직 활동에서 내가 처리할 업무를 확인합니다.</p>
+
+        {/* 내 회의(메뉴 v6.2 M-04): 공간에 흩어진 회의 중 내가 참여·진행·정리·확인할 것만 모은다. 예시 데이터. */}
+        <section className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="px-5 py-3 border-b border-gray-100 flex items-center justify-between">
+            <div><h2 className="text-sm font-semibold text-gray-800">내 회의</h2><p className="text-[10px] text-gray-400 mt-0.5">우리 학생회와 행사 회의 중 내가 할 일이 있는 회의</p></div>
+            <button type="button" onClick={() => navigateTo("OPS-MEET-01A")} className="text-[11px] text-blue-700 hover:underline">우리 학생회 회의 전체</button>
+          </div>
+          <div className="divide-y divide-gray-100">
+            {[
+              { name: "체육대회 운영 점검 회의", space: "체육대회", when: "07.18 10:00", todo: "진행 중 · 진행 권한", screen: "OPS-MEET-05B", tone: "text-blue-700" },
+              { name: "신입생 환영 행사 기획회의", space: "신입생 환영 행사", when: "07.15 16:00", todo: "회의록 정리 필요", screen: "OPS-MEET-06B", tone: "text-orange-700" },
+              { name: "학생회 정기 운영회의", space: "우리 학생회", when: "07.22 18:00", todo: "참석 예정", screen: "OPS-MEET-03A", tone: "text-gray-600" },
+              { name: "안전 관리 최종 회의", space: "체육대회", when: "07.25 15:00", todo: "참석 예정", screen: "OPS-MEET-03A", tone: "text-gray-600" },
+            ].map(meeting => (
+              <button key={meeting.name} type="button" onClick={() => navigateTo(meeting.screen)} className="w-full text-left px-5 py-2.5 flex items-center gap-3 hover:bg-gray-50">
+                <span className="text-xs font-mono text-gray-500 w-20 shrink-0">{meeting.when}</span>
+                <div className="flex-1 min-w-0"><p className="text-xs font-medium text-gray-800">{meeting.name}</p><p className="text-[10px] text-gray-400">{meeting.space}</p></div>
+                <span className={`text-[11px] shrink-0 ${meeting.tone}`}>{meeting.todo}</span>
+                <ChevronRight className="w-4 h-4 text-gray-300 shrink-0" />
+              </button>
+            ))}
+          </div>
+        </section>
 
         {/* 요약 칩 */}
         <div className="flex gap-3">
@@ -16714,7 +16916,7 @@ function MYREQ01() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청"]}
+      breadcrumb={["행사", eventInfo.name, "재정", "내 구매 요청"]}
       title={eventInfo.name}
       tabs={EVENT_TABS}
       activeTab="재정"
@@ -16851,7 +17053,7 @@ function FINREQ02() {
   const startEdit = () => { setEditingRequestId(request.id); navigateTo("FIN-REQ-01C"); };
 
   return (
-    <DesktopShell activeSidebar="운영" title="구매 요청 상세·진행 상태" breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청", request.id]}
+    <DesktopShell activeSidebar="운영" title="구매 요청 상세·진행 상태" breadcrumb={["행사", eventInfo.name, "재정", "내 구매 요청", request.id]}
       actions={canEditRequest ? <Btn variant="primary" size="sm" onClick={startEdit}>수정하기</Btn> : undefined}>
       <div className="p-8 flex flex-col gap-6 max-w-6xl mx-auto pb-20">
         {request.edited && (
@@ -17242,10 +17444,10 @@ function FINSUP01() {
     navigateTo("FIN-REQ-02");
   };
   if (!canResubmit) {
-    return <DesktopShell activeSidebar="운영" title="보완 요청 확인" breadcrumb={["운영", "행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">보완 재제출 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">요청자 본인이면서 부서장 또는 재정부인 경우에만 보완 내용을 수정·재제출할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("FIN-REQ-02")}>요청 상태 확인</Btn></div></div></DesktopShell>;
+    return <DesktopShell activeSidebar="운영" title="보완 요청 확인" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">보완 재제출 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">요청자 본인이면서 부서장 또는 재정부인 경우에만 보완 내용을 수정·재제출할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("FIN-REQ-02")}>요청 상태 확인</Btn></div></div></DesktopShell>;
   }
   return (
-    <DesktopShell activeSidebar="운영" title="보완 요청 확인·재제출" breadcrumb={["운영", "행사", eventInfo.name, "재정", "내 구매 요청", request.id, "보완 재제출"]}>
+    <DesktopShell activeSidebar="운영" title="보완 요청 확인·재제출" breadcrumb={["행사", eventInfo.name, "재정", "내 구매 요청", request.id, "보완 재제출"]}>
       <div className="p-8 flex flex-col gap-6 max-w-4xl mx-auto pb-20">
         {/* 보완 요청 배너 */}
         <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-5 flex items-start gap-4">
@@ -17543,7 +17745,7 @@ function FINPROC01() {
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
       activeSidebar: "운영"
     }}>
-      <DesktopShell title="구매·발주 처리" breadcrumb={["운영", "행사", eventInfo.name, "재정", "구매·발주 처리"]}>
+      <DesktopShell title="구매·발주 처리" breadcrumb={["행사", eventInfo.name, "재정", "구매·발주 처리"]}>
         <div className="p-8 flex flex-col gap-6 max-w-6xl mx-auto pb-20">
           {/* 요약 */}
           <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
@@ -17554,7 +17756,7 @@ function FINPROC01() {
                   <Chip label="구매 진행 중" variant="blue" />
                 </div>
                 <h2 className="text-lg font-bold text-gray-900">{request.title}</h2>
-                <p className="text-xs text-gray-500 mt-1">{request.dept} · {request.requester} · 필요한 날짜 {request.neededDate}</p>
+                <p className="text-xs text-gray-500 mt-1">{request.dept} · <PersonName name={request.requester} /> · 필요한 날짜 {request.neededDate}</p>
               </div>
               <div className="text-right">
                 <p className="text-[10px] text-gray-400 font-semibold mb-0.5">승인된 전체 금액</p>
@@ -18053,7 +18255,7 @@ function FINEVID01() {
       currentUser: { name: "김민준", dept: "재정부", role: "부서장" },
       activeSidebar: "운영"
     }}>
-      <DesktopShell title="결제·증빙 정리" breadcrumb={["운영", "행사", eventInfo.name, "재정", "결제·증빙 정리"]}>
+      <DesktopShell title="결제·증빙 정리" breadcrumb={["행사", eventInfo.name, "재정", "결제·증빙 정리"]}>
         <div className="p-8 flex flex-col gap-6 max-w-6xl mx-auto pb-20">
           <DeferredNotice reason="증빙 묶음 정리는 재정부원 인터뷰에서 파일 정리 부담이 크지 않다는 결과가 나와 제외됐습니다. 구매 종결은 실지출 금액 확정 하나로 처리합니다." />
           <div className="bg-blue-50 border border-blue-100 rounded-xl px-5 py-4">
@@ -18316,7 +18518,7 @@ function OPSCAL01() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "캘린더"]}
+      breadcrumb={["캘린더"]}
       title="캘린더"
     >
       <div className="p-6 flex flex-col gap-5">
@@ -18497,8 +18699,8 @@ function OPSTASK01() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "상시 업무"]}
-      title="상시 업무"
+      breadcrumb={["우리 학생회", "업무"]}
+      title="우리 학생회"
       actions={<Btn variant="primary" size="sm" onClick={() => setShowCreate(true)}><Plus className="w-3.5 h-3.5" /> 업무 추가</Btn>}
     >
       <div className="p-6 flex flex-col gap-5">
@@ -18566,7 +18768,7 @@ function OPSTASK01() {
                       <span className="text-[9px] bg-blue-50 text-blue-600 border border-blue-100 px-1.5 py-0.5 rounded font-medium">{t.cycle}</span>
                       {t.delayed && <Chip label="지연" variant="red" />}
                       {t.status === "검토 필요" && <Chip label="검토 필요" variant="yellow" />}
-                      <span className={`text-[10px] ${t.assignee === "미지정" ? "text-red-600 font-semibold" : "text-gray-400"}`}>{t.assignee === "미지정" ? "담당자 없음 · 배정 필요" : t.assignee}</span>
+                      <span className={`text-[10px] ${t.assignee === "미지정" ? "text-red-600 font-semibold" : "text-gray-400"}`}>{t.assignee === "미지정" ? "담당자 없음 · 배정 필요" : <PersonName name={t.assignee} />}</span>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                       <div className={`flex items-center gap-1.5 text-[10px] ${t.delayed ? "text-red-500 font-semibold" : "text-gray-400"}`}>
@@ -18616,7 +18818,7 @@ function OPSTASK01() {
                 <section className="grid grid-cols-2 gap-px border border-gray-200 rounded-lg overflow-hidden bg-gray-200">
                   <div className="bg-white p-3">
                     <p className="text-[10px] text-gray-400 mb-1">담당자</p>
-                    <p className={`text-xs font-semibold ${selectedTask.assignee === "미지정" ? "text-red-600" : "text-gray-800"}`}>{selectedTask.assignee === "미지정" ? "미지정 · 배정 필요" : selectedTask.assignee}</p>
+                    <p className={`text-xs font-semibold ${selectedTask.assignee === "미지정" ? "text-red-600" : "text-gray-800"}`}>{selectedTask.assignee === "미지정" ? "미지정 · 배정 필요" : <PersonName name={selectedTask.assignee} />}</p>
                   </div>
                   <div className="bg-white p-3">
                     <p className="text-[10px] text-gray-400 mb-1">마감일</p>
@@ -18788,7 +18990,7 @@ function EVTTASK01() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "업무"]}
+      breadcrumb={["행사", eventInfo.name, "업무"]}
       title={eventInfo.name}
       tabs={EVENT_TABS}
       activeTab="업무"
@@ -18883,7 +19085,7 @@ function EVTTASK01() {
                         <DepartmentChip dept={t.dept} />
                         {t.delayed && <Chip label="지연" variant="red" />}
                         {t.status === "검토 필요" && <Chip label="검토 필요" variant="yellow" />}
-                        <span className={`text-[10px] ${t.assignee === "미지정" ? "text-red-600 font-semibold" : "text-gray-400"}`}>{t.assignee === "미지정" ? "담당자 없음 · 배정 필요" : t.assignee}</span>
+                        <span className={`text-[10px] ${t.assignee === "미지정" ? "text-red-600 font-semibold" : "text-gray-400"}`}>{t.assignee === "미지정" ? "담당자 없음 · 배정 필요" : <PersonName name={t.assignee} />}</span>
                       </div>
                       <div className="flex items-center justify-between pt-3 border-t border-gray-50">
                         <div className={`flex items-center gap-1.5 text-[10px] ${t.delayed ? "text-red-600 font-semibold" : "text-gray-400"}`}>
@@ -18951,7 +19153,7 @@ function EVTTASK02() {
     return (
       <DesktopShell
         activeSidebar="운영"
-        breadcrumb={["운영", "행사", eventInfo.name, "업무", "업무 상세"]}
+        breadcrumb={["행사", eventInfo.name, "업무", "업무 상세"]}
         title={eventInfo.name}
         tabs={EVENT_TABS}
         activeTab="업무"
@@ -18996,7 +19198,7 @@ function EVTTASK02() {
   return (
     <DesktopShell
       activeSidebar="운영"
-      breadcrumb={["운영", "행사", eventInfo.name, "업무", "업무 상세"]}
+      breadcrumb={["행사", eventInfo.name, "업무", "업무 상세"]}
       title="업무 상세 — 관련 문서·결과물"
       actions={<><Btn variant="secondary" size="sm" onClick={() => navigateTo("EVT-TASK-01")}><ArrowLeft className="w-3.5 h-3.5" /> 업무 보드로</Btn><Btn variant="primary" size="sm" onClick={() => setShowStatusDialog(true)}><RefreshCw className="w-3.5 h-3.5" /> 상태 변경</Btn></>}
     >
@@ -19859,14 +20061,381 @@ function MessageRoomsScreen({ initialModalOpen = false }: { initialModalOpen?: b
   );
 }
 
+// ─── 공간 메시지(우리 학생회·행사) — 메뉴 v6.2 ─────────────────────────────────
+// 공간의 대화방은 미리 연결되어 있다(M-09). 첫 메시지를 보내는 순간 방이 목록에 나타나며, 사용자가 방을 만들지 않는다.
+// 같은 방이 홈 메시지함·전체 방 목록(MSG-01)에도 보인다.
+const SPACE_ROOM_CREATOR = "자동 연결";
+// 공간 방 예시 대화(와이어프레임 검토용). 우리 학생회 방과 활성 행사 방에 미리 넣어 둔다.
+const spaceRoom = (scope: string, name: string, depts: string[], unreadCount: number, lines: [string, string, string][]): MessageRoom => ({
+  id: `space-${scope}`, name, scope, depts, members: [], createdBy: SPACE_ROOM_CREATOR, createdAt: "2026-03-02", unreadCount,
+  messages: lines.map(([sender, at, text], index) => ({ id: `${scope}-${index}`, sender, at, text })),
+});
+const ALL_DEPTS = Array.from(new Set(DEFAULT_ORGANIZATION_MEMBER_ROLES.map(m => m.dept)));
+const DEFAULT_SPACE_ROOMS: MessageRoom[] = [
+  spaceRoom(DEFAULT_EVENT_INFO.name, DEFAULT_EVENT_INFO.name, ALL_DEPTS, 3, [
+    ["이수현", "09:02", "체육대회 종목 확정본 문서 탭에 올렸어요. 피구·계주·줄다리기 세 종목입니다."],
+    ["박해랑", "09:10", "운영부는 종목별 진행 요원 6명 배치할게요. 업무 탭에 카드 만들어 둘게요."],
+    ["김민석", "09:31", "포스터 시안 두 개 중에 오늘 안에 골라 주세요. 내일 인쇄 넘겨야 해요."],
+    ["김민준", "10:05", "상품 구매 요청은 이번 주 금요일까지 올려 주세요. 다음 주에 일괄 발주합니다."],
+    ["정하늘", "10:12", "운동장 대여 신청 완료했어요. 당일 08:00부터 사용 가능해요."],
+  ]),
+  spaceRoom("2026 신입생 환영 행사", "2026 신입생 환영 행사", ["기획부", "홍보부", "운영부"], 0, [
+    ["이수현", "어제", "환영 행사 날짜 후보 3개 일정 탭에 올렸어요. 다음 회의에서 정해요."],
+    ["이윤슬", "어제", "신입생 단톡방 공지 문구 초안 문서 탭에 있어요. 확인 부탁드려요."],
+    ["박민수", "09:40", "장소는 대강당 우선으로 알아보고 있어요."],
+  ]),
+  spaceRoom("봄 축제 학생회 부스", "봄 축제 학생회 부스", ["대외협력부", "재정부", "운영부"], 0, [
+    ["김민준", "06.03", "부스 정산 마무리 중이에요. 남은 영수증 있으면 이번 주까지 주세요."],
+    ["박해랑", "06.03", "대여 물품 반납 완료했습니다."],
+  ]),
+  spaceRoom(MESSAGE_SCOPE_GENERAL, "우리 학생회", ALL_DEPTS, 2, [
+    ["김바다", "08:50", "이번 주 정기 회의는 목요일 18:00 학생회실입니다. 안건은 회의 탭에 올려 주세요."],
+    ["김민준", "09:15", "2학기 상시 지출 예산 배정표 재정 탭에 올렸어요. 부서별로 확인 부탁드립니다."],
+    ["이윤슬", "09:48", "학생회 인스타 계정 비밀번호 바뀌었어요. 홍보부장님께 따로 받아 주세요."],
+    ["이수현", "10:20", "학생회실 비품 점검표 업무 탭에 올렸어요. 금요일까지 부서별로 체크해 주세요."],
+  ]),
+];
+
+function SpaceMessages({ scope, title }: { scope: string; title: string }) {
+  const { messageRooms, setMessageRooms, currentUser, navigateTo, openSideChat } = React.useContext(AppContext);
+  const room = messageRooms.find(item => item.scope === scope && item.createdBy === SPACE_ROOM_CREATOR);
+  const [draft, setDraft] = useState("");
+  const slashState = useSlashSuggestions(draft);
+  const slashEnter = useSlashEnter();
+  React.useEffect(() => {
+    if (room && room.unreadCount > 0) setMessageRooms(prev => prev.map(item => item.id === room.id ? { ...item, unreadCount: 0 } : item));
+  }, [room?.id]);
+  const send = () => {
+    const text = draft.trim();
+    if (!text || text.startsWith("/")) return;
+    const message: ChatMessage = { id: `m${Date.now()}`, sender: currentUser.name, text, at: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) };
+    setMessageRooms(prev => room
+      ? prev.map(item => item.id === room.id ? { ...item, messages: [...item.messages, message] } : item)
+      : [...prev, { id: `space-${scope}`, name: title, scope, depts: [], members: [], createdBy: SPACE_ROOM_CREATOR, createdAt: new Date().toISOString().slice(0, 10), messages: [message], unreadCount: 0 }]);
+    setDraft("");
+  };
+  return (
+    <div className="h-full flex flex-col min-h-0 bg-gray-50">
+      <div className="px-6 py-3 border-b border-gray-200 bg-white shrink-0 flex items-center justify-between gap-4">
+        <div><p className="text-sm font-bold text-gray-900">{title} 대화방</p><p className="text-[10px] text-gray-400 mt-0.5">미리 연결된 방 · 공간 구성원은 자동으로 참여합니다</p></div>
+        <span className="text-[10px] text-gray-400">이름을 누르거나 <b>/</b>를 치면 1:1 사이드챗이 열려요</span>
+      </div>
+      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 min-h-0">
+        {!room || room.messages.length === 0
+          ? <div className="m-auto text-center"><p className="text-sm font-semibold text-gray-700">아직 나눈 대화가 없어요</p><p className="text-xs text-gray-400 mt-1.5">방은 이미 연결되어 있어요. 첫 메시지를 보내면 대화가 시작됩니다.</p></div>
+          : room.messages.map(message => {
+            const mine = message.sender === currentUser.name;
+            return (
+              <div key={message.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                {!mine && <span className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-500 text-[10px] font-bold flex items-center justify-center shrink-0">{message.sender.slice(0, 1)}</span>}
+                <div className={`max-w-[60%] flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
+                  {!mine && <PersonName name={message.sender} className="text-[10px] text-gray-500" />}
+                  <div className={`rounded-2xl px-3.5 py-2 text-xs leading-5 ${mine ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>{message.text}</div>
+                  <span className="text-[9px] text-gray-400">{message.at}</span>
+                </div>
+              </div>
+            );
+          })}
+      </div>
+      <div className="relative px-6 py-3 border-t border-gray-200 bg-white shrink-0 flex items-end gap-2">
+        <div className="absolute left-6 right-6 bottom-full"><div className="relative"><SlashSuggestList draft={draft} onPick={(target, rest) => { openSideChat(target, rest); setDraft(""); }} /></div></div>
+        <textarea value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Escape" && draft.startsWith("/")) setDraft(""); if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!slashEnter(draft, slashState.suggestions, slashState.remainder, () => setDraft(""))) send(); } }} placeholder="메시지 입력 · @ 부르기 · / 1:1 대화" className="flex-1 h-10 border border-gray-300 rounded-lg px-3 py-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-blue-500" />
+        <Btn variant="primary" size="sm" onClick={send}>{title} 방에 보내기</Btn>
+      </div>
+    </div>
+  );
+}
+function EVTMSG01() {
+  const { eventInfo } = React.useContext(AppContext);
+  return <EventWorkspaceShell activeTab="메시지"><SpaceMessages scope={eventInfo.name} title={eventInfo.name} /></EventWorkspaceShell>;
+}
+function USMSG01() {
+  return <DesktopShell activeSidebar="운영" breadcrumb={["우리 학생회", "메시지"]} title="우리 학생회"><SpaceMessages scope={MESSAGE_SCOPE_GENERAL} title="우리 학생회" /></DesktopShell>;
+}
+
+// 홈 메시지함(M-07): 안 읽은 방 상위 3개 + 전체 보기. 네 역할 홈의 같은 자리에 둔다.
+function HomeMessageBox() {
+  const { messageRooms, navigateTo, setSelectedMessageRoomId, sideChat, openSideChat, organizationMemberRoles } = React.useContext(AppContext);
+  // 1:1·부서 간 대화는 어디서 열어도 사이드챗으로 연다(M-14 E).
+  const unreadDirect = Object.entries(sideChat.unread).filter(([, n]) => n > 0).flatMap(([key]): SideChatTarget[] => {
+    const [kind, value] = key.split(":");
+    if (kind === "dept") return [{ kind: "dept", dept: value }];
+    const member = organizationMemberRoles.find(m => m.name === value);
+    return member ? [{ kind: "person", name: member.name, dept: member.dept, role: member.role }] : [];
+  }).slice(0, 3);
+  const unreadRooms = [...messageRooms].filter(room => room.unreadCount > 0).sort((a, b) => b.unreadCount - a.unreadCount).slice(0, Math.max(0, 3 - unreadDirect.length));
+  return (
+    <div className="flex items-center gap-2 text-[10px]">
+      <span className="flex items-center gap-1 text-gray-500 shrink-0"><MessageSquare className="w-3.5 h-3.5" />메시지함</span>
+      {unreadDirect.map(t => <button key={sideChatKey(t)} type="button" onClick={() => openSideChat(t)} className="px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50 text-[10px] text-amber-900 hover:border-amber-400">{t.kind === "person" ? `${t.name} · 1:1` : t.dept} <span className="font-bold text-red-600">{sideChat.unread[sideChatKey(t)]}</span></button>)}
+      {unreadRooms.length + unreadDirect.length === 0
+        ? <span className="text-gray-400">새 메시지가 없어요</span>
+        : unreadRooms.map(room => <button key={room.id} type="button" onClick={() => { setSelectedMessageRoomId(room.id); navigateTo("MSG-03"); }} className="px-2 py-0.5 rounded-full border border-gray-200 bg-white text-[10px] text-gray-700 hover:border-blue-300">{room.name} <span className="font-bold text-red-600">{room.unreadCount}</span></button>)}
+      <button type="button" onClick={() => navigateTo("MSG-01")} className="text-[10px] text-blue-700 hover:underline ml-1">전체 보기</button>
+    </div>
+  );
+}
+
+// ─── 사이드챗(전역) — .scratch/messaging M-11~M-15 ─────────────────────────────
+// 모든 화면 오른쪽에서 열리는 1:1·부서 간 대화. 상태는 앱 전체가 공유한다(AppContext.sideChat).
+// 여는 법: 입력창 `/`, 사람 이름 누르기(PersonName), 사이드챗의 최근 1:1 칩. 동시에 하나만 연다.
+type SideChatState = {
+  target: SideChatTarget | null;
+  threads: Record<string, SideChatMessage[]>;
+  drafts: Record<string, string>;
+  unread: Record<string, number>;
+  recent: SideChatTarget[];
+  assigned: Record<string, string>;
+};
+const INITIAL_SIDE_CHAT: SideChatState = {
+  target: null,
+  threads: {
+    "person:정하늘": [
+      { id: "p1", sender: "정하늘", text: "테이블 몇 개 빌려요?", at: "09:30" },
+      { id: "p2", sender: "박해랑", text: "8개요. 대여처 견적은 내일 받아요.", at: "09:31" },
+    ],
+    "person:김민준": [
+      { id: "k1", sender: "김민준", text: "현수막 거치대 링크 보내 주세요", at: "10:02" },
+      { id: "k2", sender: "박해랑", text: "https://www.coupang.com/vp/products/778812", at: "10:05" },
+    ],
+  },
+  drafts: {},
+  unread: { "person:김민준": 1 },
+  recent: [
+    { kind: "person", name: "정하늘", dept: "운영부", role: "부원" },
+    { kind: "person", name: "김민준", dept: "재정부", role: "부서장" },
+  ],
+  assigned: {},
+};
+
+// `/` 자동완성: 사람(이름·부서·역할·담당), 부서(부서 전체에 묻기 → 내 부서 ↔ 그 부서), 직책(○○부장, 회장).
+function useSlashSuggestions(draft: string) {
+  const { organizationMemberRoles, currentUser } = React.useContext(AppContext);
+  const slash = draft.startsWith("/") ? draft.slice(1).split(/\s/)[0] : null;
+  const remainder = draft.startsWith("/") ? draft.slice(1 + (slash?.length ?? 0)).trimStart() : "";
+  const others = organizationMemberRoles.filter(member => member.name !== currentUser.name);
+  const depts = Array.from(new Set(others.map(m => m.dept))).filter(d => d !== currentUser.dept);
+  const titleOf = (m: { dept: string; role: string }) => m.role === "부서장" ? `${m.dept}장` : m.role === "회장단" ? "회장" : "";
+  const suggestions: { key: string; label: string; sub: string; target: SideChatTarget }[] = slash === null ? [] : [
+    ...depts.filter(d => d.includes(slash)).map(d => ({ key: `dept:${d}`, label: `${d} 전체에 묻기`, sub: `${currentUser.dept} ↔ ${d} 방`, target: { kind: "dept", dept: d } as SideChatTarget })),
+    ...others.filter(m => !slash || m.name.includes(slash) || m.dept.includes(slash) || (titleOf(m) && titleOf(m).includes(slash)))
+      .map(m => ({ key: `person:${m.name}`, label: m.name, sub: `${m.dept} · ${titleOf(m) || m.role}${SIDE_CHAT_DUTIES[m.name] ? ` · ${SIDE_CHAT_DUTIES[m.name]}` : ""}`, target: { kind: "person", name: m.name, dept: m.dept, role: m.role } as SideChatTarget })),
+  ].slice(0, 8);
+  return { slash, remainder, suggestions };
+}
+function SlashSuggestList({ draft, onPick }: { draft: string; onPick: (target: SideChatTarget, remainder: string) => void }) {
+  const { slash, remainder, suggestions } = useSlashSuggestions(draft);
+  if (slash === null) return null;
+  return (
+    <div className="absolute left-0 right-0 bottom-full mb-2 z-30 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden">
+      <p className="px-3 py-2 text-[10px] text-gray-400 border-b border-gray-100">1:1 사이드챗 · 사람·부서·직책으로 찾기 {remainder && <span className="text-gray-500">· 입력한 글은 사이드챗 입력창으로 옮겨 두고 보내지 않아요</span>}</p>
+      {suggestions.length === 0 ? <p className="px-3 py-3 text-[11px] text-gray-500">일치하는 사람이나 부서가 없어요</p> : suggestions.map(s => (
+        <button key={s.key} type="button" onClick={() => onPick(s.target, remainder)} className="w-full text-left px-3 py-2 flex items-center gap-2.5 hover:bg-amber-50">
+          <span className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0 ${s.target.kind === "dept" ? "bg-amber-100 text-amber-800" : "bg-gray-100 text-gray-600"}`}>{s.target.kind === "dept" ? "부" : s.label.slice(0, 1)}</span>
+          <span className="text-xs font-medium text-gray-800">{s.label}</span>
+          <span className="text-[10px] text-gray-400 truncate">{s.sub}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+// 입력창 Enter 처리: `/`로 시작하면 첫 결과로 사이드챗을 연다. 처리했으면 true.
+function useSlashEnter() {
+  const { openSideChat } = React.useContext(AppContext);
+  return (draft: string, suggestions: { target: SideChatTarget }[], remainder: string, clear: () => void) => {
+    if (!draft.startsWith("/")) return false;
+    if (suggestions[0]) { openSideChat(suggestions[0].target, remainder); clear(); }
+    return true;
+  };
+}
+
+// 사람 이름: 누르면 그 사람과 1:1 사이드챗을 연다. 카드 안에서도 쓰므로 버튼을 겹치지 않게 span으로 그린다.
+function PersonName({ name, className = "" }: { name: string; className?: string }) {
+  const { organizationMemberRoles, openSideChat, currentUser } = React.useContext(AppContext);
+  const member = organizationMemberRoles.find(m => m.name === name);
+  if (!member || name === currentUser.name) return <span className={className}>{name}</span>;
+  const open = (event: React.SyntheticEvent) => { event.stopPropagation(); openSideChat({ kind: "person", name: member.name, dept: member.dept, role: member.role }); };
+  return <span role="button" tabIndex={0} title={`${name}님과 1:1 대화`} onClick={open} onKeyDown={event => { if (event.key === "Enter") open(event); }} className={`${className} cursor-pointer underline decoration-dotted underline-offset-2 hover:text-amber-700`}>{name}</span>;
+}
+
+function SideChatPanel() {
+  const { sideChat, setSideChat, openSideChat, closeSideChat, currentUser } = React.useContext(AppContext);
+  const inputRef = React.useRef<HTMLTextAreaElement>(null);
+  const side = sideChat.target;
+  const [pickFor, setPickFor] = useState<string | null>(null);
+  const key = side ? sideChatKey(side) : "";
+  // 열리면 커서를 사이드챗으로 옮긴다(오발송 방지, M-15).
+  React.useEffect(() => { if (side) inputRef.current?.focus(); }, [key]);
+  if (!side) return null;
+  const title = side.kind === "person" ? `${side.name}님과 1:1` : `${currentUser.dept} ↔ ${side.dept}`;
+  const sendLabel = side.kind === "person" ? `${side.name}님에게 보내기` : `${side.dept}에 보내기`;
+  const draft = sideChat.drafts[key] ?? "";
+  const thread = sideChat.threads[key] ?? [];
+  const send = () => {
+    const text = draft.trim();
+    if (!text) return;
+    const message = { id: `s${Date.now()}`, sender: currentUser.name, text, at: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) };
+    setSideChat(prev => ({ ...prev, threads: { ...prev.threads, [key]: [...(prev.threads[key] ?? []), message] }, drafts: { ...prev.drafts, [key]: "" } }));
+  };
+  const spaces = ["우리 학생회 (상시 지출)", "가을 축제", "진로 특강"];
+  return (
+    <aside className="w-[340px] shrink-0 border-l-2 border-amber-300 bg-amber-50/60 flex flex-col min-h-0" onKeyDown={event => { if (event.key === "Escape") closeSideChat(); }}>
+      <div className="px-4 pt-3 pb-2 border-b border-amber-200 bg-amber-50 shrink-0">
+        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+          <span className="text-[10px] text-amber-700 mr-1">최근 1:1</span>
+          {sideChat.recent.map(t => {
+            const k = sideChatKey(t);
+            return <button key={k} type="button" onClick={() => openSideChat(t)} className={`px-2 py-0.5 rounded-full border text-[10px] ${k === key ? "border-amber-500 bg-white text-amber-900 font-semibold" : "border-amber-200 bg-white/70 text-amber-800 hover:border-amber-400"}`}>{t.kind === "person" ? t.name : t.dept}{(sideChat.unread[k] ?? 0) > 0 && <span className="ml-1 text-red-600">●</span>}</button>;
+          })}
+        </div>
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-sm font-bold text-amber-950">{title}</p>
+            <p className="text-[10px] text-amber-800 mt-0.5">{side.kind === "person" ? `${side.dept} · ${side.role}${SIDE_CHAT_DUTIES[side.name] ? ` · ${SIDE_CHAT_DUTIES[side.name]}` : ""}` : `미리 연결된 부서 간 방 · ${side.dept} 내부 방은 보이지 않아요`}</p>
+          </div>
+          <button type="button" onClick={closeSideChat} aria-label="사이드챗 닫기 (Esc)" title="닫기 (Esc) · 쓰던 글은 남아요" className="p-1 text-amber-700 hover:bg-amber-100 rounded"><X className="w-4 h-4" /></button>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col gap-2.5 min-h-0">
+        {thread.length === 0 && <p className="text-[11px] text-amber-800/70 text-center py-6">아직 나눈 대화가 없어요. 이미 연결된 대화라 바로 보내면 됩니다.</p>}
+        {thread.map(message => {
+          const mine = message.sender === currentUser.name;
+          const isCoupang = /coupang\.com\/vp\/products\//.test(message.text);
+          return (
+            <div key={message.id} className={`flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
+              <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-5 break-all ${mine ? "bg-amber-500 text-white" : "bg-white border border-amber-200 text-gray-800"}`}>{message.text}</div>
+              {/* 1:1은 공간 방이 아니므로 쿠팡 링크는 담을 공간을 골라 구매 후보에 넣는다(v6.1 규칙). */}
+              {isCoupang && (sideChat.assigned[message.id]
+                ? <KkirukDone className="text-[10px] text-amber-900">끼룩이가 {sideChat.assigned[message.id]} 구매 후보에 담았어요</KkirukDone>
+                : pickFor === message.id
+                  ? <div className="flex flex-wrap gap-1">{spaces.map(space => <button key={space} type="button" onClick={() => { setSideChat(prev => ({ ...prev, assigned: { ...prev.assigned, [message.id]: space } })); setPickFor(null); }} className="px-2 py-0.5 rounded border border-amber-300 bg-white text-[10px] text-amber-900 hover:bg-amber-100">{space}</button>)}</div>
+                  : <button type="button" onClick={() => setPickFor(message.id)} className="text-[10px] font-semibold text-amber-800 hover:underline">구매 후보로 담을 공간 선택</button>)}
+              <span className="text-[9px] text-amber-700/70">{message.at}</span>
+            </div>
+          );
+        })}
+      </div>
+      <div className="px-4 py-3 border-t border-amber-200 bg-amber-50 shrink-0 flex flex-col gap-2">
+        <textarea
+          ref={inputRef}
+          value={draft}
+          onChange={event => { const value = event.target.value; setSideChat(prev => ({ ...prev, drafts: { ...prev.drafts, [key]: value } })); }}
+          onKeyDown={event => { if (event.key === "Enter" && !event.shiftKey) { event.preventDefault(); send(); } }}
+          placeholder={`${side.kind === "person" ? side.name + "님에게만" : side.dept + "와(과)만"} 보내는 메시지`}
+          className="w-full h-16 border border-amber-300 bg-white rounded-lg px-3 py-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-amber-500"
+        />
+        <button type="button" onClick={send} className="self-end px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white text-xs font-semibold">{sendLabel}</button>
+      </div>
+    </aside>
+  );
+}
+
+// ─── MSG-04 대화 — 사이드챗 시안 (2026-10-13, .scratch/messaging M-09~M-15) ───────
+// 대화방은 미리 연결되어 있다(내 부서 방, 부서 간 방, 1:1). 메시지 기본 화면은 내 부서 방이고,
+// 입력창의 `/이름`·보낸 사람 이름·다른 화면의 사람 이름으로 오른쪽 사이드챗(1:1 또는 부서 간)을 연다.
+// 예시 데이터만 쓰며 기존 메시지 방(messageRooms)을 바꾸지 않는다.
+type SideChatTarget = { kind: "person"; name: string; dept: string; role: string } | { kind: "dept"; dept: string };
+type SideChatMessage = { id: string; sender: string; text: string; at: string };
+const SIDE_CHAT_DUTIES: Record<string, string> = {
+  정하늘: "가을 축제 · 부스 배치안", 이윤슬: "포스터·SNS", 김민석: "홍보부 총괄", 김민준: "구매 검토·발주",
+  이수현: "기획 총괄", 박민수: "행사 진행표", 김바다: "학생회장",
+};
+const sideChatKey = (target: SideChatTarget) => target.kind === "person" ? `person:${target.name}` : `dept:${target.dept}`;
+
+function MSG04() {
+  const { organizationMemberRoles, currentUser, sideChat, openSideChat } = React.useContext(AppContext);
+  const me = currentUser;
+  const personTarget = (name: string): SideChatTarget | null => {
+    const member = organizationMemberRoles.find(m => m.name === name);
+    return member ? { kind: "person", name: member.name, dept: member.dept, role: member.role } : null;
+  };
+  const [roomMessages, setRoomMessages] = useState<SideChatMessage[]>([
+    { id: "r1", sender: "정하늘", text: "부스 배치안 초안 올렸어요. 테이블 수는 아직 미정이에요.", at: "09:12" },
+    { id: "r2", sender: "박해랑", text: "확인할게요. 오늘 안에 확정합시다.", at: "09:20" },
+    { id: "r3", sender: "정하늘", text: "넵! 홍보부랑 현수막 위치도 맞춰야 할 것 같아요.", at: "09:24" },
+  ]);
+  const [draft, setDraft] = useState("");
+  const { remainder, suggestions } = useSlashSuggestions(draft);
+  const slashEnter = useSlashEnter();
+  const sendRoom = () => {
+    if (!draft.trim() || draft.startsWith("/")) return;
+    setRoomMessages(prev => [...prev, { id: `r${Date.now()}`, sender: me.name, text: draft.trim(), at: "지금" }]);
+    setDraft("");
+  };
+  return (
+    <DesktopShell activeSidebar="메시지" breadcrumb={["메시지", "사이드챗 시안"]} title="대화 — 사이드챗 시안">
+      <div className="h-full flex min-h-0">
+        {/* 메인: 내 부서 방(메시지 기본 화면). 사이드챗은 공통 화면 틀(DesktopShell) 오른쪽에 열린다. */}
+        <div className="flex-1 flex flex-col min-w-0 min-h-0 bg-gray-50">
+          <div className="px-5 py-3 border-b border-gray-200 bg-white shrink-0 flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2"><p className="text-sm font-bold text-gray-900">{me.dept}</p><Chip label="내 부서 방" variant="blue" /></div>
+              <p className="text-[10px] text-gray-400 mt-1">미리 연결된 방 · 부서원은 자동으로 참여합니다</p>
+            </div>
+            <div className="flex items-center gap-2 border border-dashed border-gray-300 rounded-lg px-3 py-1.5 bg-gray-50">
+              <span className="text-[10px] text-gray-400">예시 · 업무 카드</span>
+              <span className="text-[11px] text-gray-700">가을 축제 · 부스 배치안 확정 — 담당</span>
+              <PersonName name="정하늘" className="text-[11px] font-semibold text-blue-700" />
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto px-5 py-4 flex flex-col gap-3 min-h-0">
+            {roomMessages.map(message => {
+              const mine = message.sender === me.name;
+              return (
+                <div key={message.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                  {!mine && <span className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-500 text-[10px] font-bold flex items-center justify-center shrink-0">{message.sender.slice(0, 1)}</span>}
+                  <div className={`max-w-[60%] flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
+                    {!mine && <PersonName name={message.sender} className="text-[10px] text-gray-500" />}
+                    <div className={`rounded-2xl px-3.5 py-2 text-xs leading-5 ${mine ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>{message.text}</div>
+                    <span className="text-[9px] text-gray-400">{message.at}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="px-5 py-3 border-t border-gray-200 bg-white shrink-0">
+            <div className="relative flex items-end gap-2">
+              <SlashSuggestList draft={draft} onPick={(target, rest) => { openSideChat(target, rest); setDraft(""); }} />
+              <textarea
+                value={draft}
+                onChange={e => setDraft(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === "Escape" && draft.startsWith("/")) setDraft("");
+                  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!slashEnter(draft, suggestions, remainder, () => setDraft(""))) sendRoom(); }
+                }}
+                placeholder="메시지 입력 · @ 부르기 · / 1:1 대화"
+                className="flex-1 h-10 border border-gray-300 rounded-lg px-3 py-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+              />
+              <Btn variant="primary" size="sm" onClick={sendRoom}>{me.dept} 방에 보내기</Btn>
+            </div>
+          </div>
+        </div>
+        {!sideChat.target && (
+          <aside className="w-[260px] shrink-0 border-l border-gray-200 bg-white p-4 flex flex-col gap-3">
+            <p className="text-xs font-semibold text-gray-800">1:1 사이드챗</p>
+            <p className="text-[11px] text-gray-500 leading-5">입력창에 <b>/</b>를 치거나 이름을 누르면 오른쪽에 1:1 대화가 열려요. 부서를 고르면 <b>{me.dept} ↔ 그 부서</b> 방이 열려요. 다른 화면에서도 사람 이름을 누르면 같은 사이드챗이 열립니다.</p>
+            <div className="flex flex-col gap-1.5">
+              <span className="text-[10px] text-gray-400">최근 1:1</span>
+              {sideChat.recent.map(t => <button key={sideChatKey(t)} type="button" onClick={() => openSideChat(t)} className="text-left px-2.5 py-1.5 rounded-lg border border-gray-200 hover:border-amber-300 text-[11px] text-gray-700">{t.kind === "person" ? t.name : `${me.dept} ↔ ${t.dept}`}{(sideChat.unread[sideChatKey(t)] ?? 0) > 0 && <span className="ml-1.5 text-[10px] font-bold bg-red-500 text-white rounded-full px-1.5">{sideChat.unread[sideChatKey(t)]}</span>}</button>)}
+            </div>
+            <p className="text-[10px] text-gray-400 mt-auto leading-4">검토용 시안 · 예시 대화이며 실제 메시지 방에 저장하지 않아요.</p>
+          </aside>
+        )}
+      </div>
+    </DesktopShell>
+  );
+}
+
 function MSG01() { return <MessageRoomsScreen />; }
 function MSG02() { return <MessageRoomsScreen initialModalOpen />; }
 
 // ─── MSG-03 대화 화면 ─────────────────────────────────────────────────────────
 
 function MSG03() {
-  const { messageRooms, setMessageRooms, organizationMemberRoles, currentUser, navigateTo, selectedMessageRoomId, setSelectedMessageRoomId } = React.useContext(AppContext);
+  const { messageRooms, setMessageRooms, organizationMemberRoles, currentUser, navigateTo, selectedMessageRoomId, setSelectedMessageRoomId, openSideChat } = React.useContext(AppContext);
   const [draft, setDraft] = useState("");
+  const slashState = useSlashSuggestions(draft);
+  const slashEnter = useSlashEnter();
   const [pendingFiles, setPendingFiles] = useState<ChatAttachment[]>([]);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [invitePanelOpen, setInvitePanelOpen] = useState(false);
@@ -20078,7 +20647,7 @@ function MSG03() {
                       </span>
                     )}
                     <div className={`max-w-[60%] ${mine ? "items-end" : "items-start"} flex flex-col gap-1`}>
-                      {!mine && <p className="text-[10px] text-gray-500">{message.sender}</p>}
+                      {!mine && <PersonName name={message.sender} className="text-[10px] text-gray-500" />}
                       {message.text && (
                         <div className={`rounded-2xl px-3.5 py-2 text-xs leading-5 ${mine ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>
                           {message.text}
@@ -20136,7 +20705,8 @@ function MSG03() {
                   ))}
                 </div>
               )}
-              <div className="flex items-center gap-2">
+              <div className="relative flex items-center gap-2">
+                <SlashSuggestList draft={draft} onPick={(target, rest) => { openSideChat(target, rest); setDraft(""); }} />
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -20155,8 +20725,11 @@ function MSG03() {
                 <input
                   value={draft}
                   onChange={event => setDraft(event.target.value)}
-                  onKeyDown={event => { if (event.key === "Enter") send(); }}
-                  placeholder="메시지를 입력하세요"
+                  onKeyDown={event => {
+                    if (event.key === "Escape" && draft.startsWith("/")) setDraft("");
+                    if (event.key === "Enter" && !slashEnter(draft, slashState.suggestions, slashState.remainder, () => setDraft(""))) send();
+                  }}
+                  placeholder="메시지 입력 · @ 부르기 · / 1:1 대화"
                   className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm placeholder-gray-400"
                 />
                 <Btn variant="primary" disabled={!draft.trim() && pendingFiles.length === 0} onClick={send}>보내기</Btn>
@@ -20200,6 +20773,9 @@ export const SCREEN_COMPONENTS: Record<string, React.ComponentType> = {
   "MSG-01": MSG01,
   "MSG-02": MSG02,
   "MSG-03": MSG03,
+  "MSG-04": MSG04,
+  "EVT-MSG-01": EVTMSG01,
+  "US-MSG-01": USMSG01,
   "OPS-00": OPS00,
   "ORG-00": ORG00,
   "ONB-01": ONB01,
@@ -20351,7 +20927,20 @@ export default function App() {
   const [purchaseSupplementDraft, setPurchaseSupplementDraft] = useState<PurchaseSupplementDraft | null>(() => loadDraft<PurchaseSupplementDraft>(DRAFT_STORAGE_KEYS.purchaseSupplement));
   const [organizationMemberRoles, setOrganizationMemberRoles] = useState<OrganizationMemberRole[]>(DEFAULT_ORGANIZATION_MEMBER_ROLES);
   const [demoDataMode, setDemoDataMode] = useState<DemoDataMode>("default");
-  const [messageRooms, setMessageRooms] = useState<MessageRoom[]>([]);
+  const [messageRooms, setMessageRooms] = useState<MessageRoom[]>(DEFAULT_SPACE_ROOMS);
+  const [sideChat, setSideChat] = useState<SideChatState>(INITIAL_SIDE_CHAT);
+  // 사이드챗은 하나만 연다(M-12 B). `/이름` 뒤에 친 글은 입력창으로 옮겨 두고 보내지 않는다(M-13 C).
+  const openSideChat = (target: SideChatTarget, carry = "") => setSideChat(prev => {
+    const key = sideChatKey(target);
+    return {
+      ...prev,
+      target,
+      drafts: carry ? { ...prev.drafts, [key]: [prev.drafts[key], carry].filter(Boolean).join(" ") } : prev.drafts,
+      recent: [target, ...prev.recent.filter(t => sideChatKey(t) !== key)].slice(0, 3),
+      unread: { ...prev.unread, [key]: 0 },
+    };
+  });
+  const closeSideChat = () => setSideChat(prev => ({ ...prev, target: null }));
   const [selectedMessageRoomId, setSelectedMessageRoomId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -20408,6 +20997,8 @@ export default function App() {
       selectedMessageRoomId, setSelectedMessageRoomId,
       demoDataMode, setDemoDataMode,
       navigateTo: setActiveScreen,
+      activeScreenId: activeScreen,
+      sideChat, setSideChat, openSideChat, closeSideChat,
       currentUser: { name: "박해랑", dept: "운영부", role: organizationMemberRoles.find(member => member.name === "박해랑")?.role ?? "부원", eventRole: reviewEventRole === "none" ? undefined : reviewEventRole },
       activeSidebar: undefined
     }}>
