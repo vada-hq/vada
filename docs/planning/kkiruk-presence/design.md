@@ -2,7 +2,7 @@
 
 작성: 2026-10-05
 상태: 방향·원칙·적용 위치·과의존 방지 모두 채택(K-01~K-07) / 1단계(기존 화면) 적용 완료, 2단계(신규 요소) 대기
-관련: [홈 기획 D-13](../home-planning/design.md), [인계 문서](../../docs/VADA_HANDOFF.md), [MVP 기준서](../../docs/VADA_MVP_SPEC.md) §4-F·§5, [행사 아카이브 정의](../../docs/VADA_EVENT_ARCHIVE_SPEC.md)
+관련: [홈 기획 D-13](../home-planning/design.md), [인계 문서](../../VADA_HANDOFF.md), [MVP 기준서](../../VADA_MVP_SPEC.md) §4-F·§5, [행사 아카이브 정의](../../VADA_EVENT_ARCHIVE_SPEC.md)
 
 ## 1. 문서의 역할
 

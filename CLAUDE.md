@@ -34,16 +34,28 @@ http://localhost:5173/
 
 ```bash
 pnpm run build
+pnpm run test
 ```
 
 ## 핵심 파일
 
 - `src/app/App.tsx`: 화면 목록, 공통 컴포넌트와 주요 와이어프레임
 - `src/styles/index.css`: 공통 스타일과 Tailwind 진입점
-- `docs/VADA_HANDOFF.md`: 확정된 서비스 구조와 회의 흐름
-- `docs/VADA_ROADMAP.md`: 마일스톤(M0~M5)과 제품화 대상 42화면 목록
+- `docs/VADA_HANDOFF.md`: 현재 와이어프레임 구조와 확정 원칙 요약, 다음 작업(먼저 읽는다)
+- `docs/VADA_MENU_STRUCTURE.md`: 메뉴·화면 위치(맨 위 v9 절이 현재 기준, 메뉴 v6.2)
+- `docs/VADA_PERMISSION_MATRIX.md`: 역할별 버튼 노출의 단일 기준
+- `docs/VADA_MVP_SPEC.md`: MVP 범위(§6.1 재정 범위)
+- `docs/VADA_FINANCE_SPEC.md`: 재정 도메인·상태·권한·예산의 단일 기준
+- `docs/VADA_ROADMAP.md`: 마일스톤(M0~M5)과 제품화 대상 화면 목록
+- `docs/planning/<주제>/design.md`: 진행 중인 기획의 채택 결정 기록(홈·메시지·구매 후보·끼룩이)
 
 현재 별도 백엔드는 없다. 버튼과 일부 화면 전환, 안건 선택은 와이어프레임 검증용 로컬 상태다.
+
+## 기획 문서 규칙
+
+- 기획 결정은 사용자가 채택한 것만 `docs/planning/<주제>/design.md`에 날짜·근거(사용자 발언)와 함께 남긴다. 미확정 제안은 문서에 미리 저장하지 않는다. 이 저장소에서는 전역 지침의 `.scratch/<feature-slug>/` 대신 이 위치를 쓴다.
+- 기획을 와이어프레임에 반영하면 `docs/VADA_HANDOFF.md`와 관련 기준 문서(메뉴 구조·권한 매트릭스·재정 명세)도 같은 작업에서 고친다.
+- 화면을 더하거나 지우면 `SCREENS`·`SPEC_DATA`·`SCREEN_COMPONENTS` 수를 맞추고, `VADA_HANDOFF.md` 2장·`VADA_MENU_STRUCTURE.md`·`VADA_PERMISSION_MATRIX.md`의 화면 수를 함께 고친다.
 
 ## 필수 주의사항
 

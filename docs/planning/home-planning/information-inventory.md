@@ -256,10 +256,10 @@
 
 ## 5. 근거와 다음 논의
 
-- [App.tsx](../../src/app/App.tsx): 전체 `SPEC_DATA` 화면 기능, 위 표에 적은 타입·화면 컴포넌트.
-- [메뉴 구조](../../docs/VADA_MENU_STRUCTURE.md): 전체 영역·화면 매핑.
-- [권한 매트릭스](../../docs/VADA_PERMISSION_MATRIX.md): 회장단과 재정부·맥락 역할 구분.
-- [인계 문서](../../docs/VADA_HANDOFF.md): 실제 연결 범위·샘플·빈 상태·홈 원칙.
-- [MVP 기준서](../../docs/VADA_MVP_SPEC.md), [로드맵](../../docs/VADA_ROADMAP.md), [재정 보류 범위](../../docs/VADA_FINANCE_DEFERRED.md): 구현 자산과 제품화 범위 구분.
+- [App.tsx](../../../src/app/App.tsx): 전체 `SPEC_DATA` 화면 기능, 위 표에 적은 타입·화면 컴포넌트.
+- [메뉴 구조](../../VADA_MENU_STRUCTURE.md): 전체 영역·화면 매핑.
+- [권한 매트릭스](../../VADA_PERMISSION_MATRIX.md): 회장단과 재정부·맥락 역할 구분.
+- [인계 문서](../../VADA_HANDOFF.md): 실제 연결 범위·샘플·빈 상태·홈 원칙.
+- [MVP 기준서](../../VADA_MVP_SPEC.md), [로드맵](../../VADA_ROADMAP.md), [재정 보류 범위](../../VADA_FINANCE_DEFERRED.md): 구현 자산과 제품화 범위 구분.
 
 **다음 논의**: 부서장·부원·재정부의 정보를 대화에서 선별한다. 사용자 확정 후에만 문서에 저장한다. 회장단의 구체적인 배치·카드 수·글자 크기·집계 세칙은 후속 설계 대상이다.

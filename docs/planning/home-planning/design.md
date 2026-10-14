@@ -34,7 +34,7 @@
 - `HOME-01K`의 정식 채택은 아직 결정되지 않았다.
 - 증빙 묶음 등 재정 보류 기능을 홈 기획만으로 MVP에 다시 포함하지 않는다.
 
-근거: [인계 문서](../../docs/VADA_HANDOFF.md), [MVP 기준서](../../docs/VADA_MVP_SPEC.md), [재정 보류 범위](../../docs/VADA_FINANCE_DEFERRED.md).
+근거: [인계 문서](../../VADA_HANDOFF.md), [MVP 기준서](../../VADA_MVP_SPEC.md), [재정 보류 범위](../../VADA_FINANCE_DEFERRED.md).
 
 ### 사용자에게 직접 확인된 요구
 

@@ -2,7 +2,7 @@
 
 작성: 2026-10-13
 상태: 메뉴 v6.2·메시지 연결 방식·사이드챗 결정 채택(M-01~M-15) / 사이드챗 시안 `MSG-04` 작성 / 메뉴 v6.2 와이어프레임 1차 반영 / 사이드챗 모든 화면 적용(2026-10-13)
-관련: [메뉴 구조도 FigJam(v5·v6·v6.1·v6.2)](https://www.figma.com/board/2YbtzmuXdGJISSKINXtVCC), [대화 → 구매 후보 기획](../chat-purchase/design.md), [끼룩이 표현 기획](../kkiruk-presence/design.md), [홈 기획](../home-planning/design.md), 현행 [메뉴 구조도 v8 문서](../../docs/VADA_MENU_STRUCTURE.md)
+관련: [메뉴 구조도 FigJam(v5·v6·v6.1·v6.2)](https://www.figma.com/board/2YbtzmuXdGJISSKINXtVCC), [대화 → 구매 후보 기획](../chat-purchase/design.md), [끼룩이 표현 기획](../kkiruk-presence/design.md), [홈 기획](../home-planning/design.md), 현행 [메뉴 구조도 v8 문서](../../VADA_MENU_STRUCTURE.md)
 
 다른 기획 문서와 같은 규칙: **사용자가 확정한 것만 `채택`**.
 
@@ -50,7 +50,7 @@ v6.2 사이드바: 홈(배지) · 내 업무 · 캘린더 · 재정 · 기록 ·
 
 1. 3명 이상 임의 조합 연결(여러 명 선택) — 이번에는 사이드챗에서 지원하지 않음(F). 다른 입구로 둘지는 미정
 2. 회장단을 부서처럼 하나의 연결 단위로 둘지(회장단 방, 회장단 ↔ 부서 방) — 시안은 그렇게 가정
-3. 메뉴 v6.2를 와이어프레임·메뉴 구조도 문서에 반영하는 범위와 순서
+3. ~~메뉴 v6.2를 와이어프레임·메뉴 구조도 문서에 반영하는 범위와 순서~~ → 2026-10-13 반영(§6 논의 이력)
 
 ## 5. 와이어프레임
 

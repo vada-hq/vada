@@ -2202,7 +2202,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "진행 권한자",
     entryPath: "회의 종료 → 회의록 정리 / 회의 목록(정리 중)",
     functions: [
-      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: AI 전체 요약은 `끼룩이에게 요약 초안 맡기기`로 시작하고 생성 중 `생각 중` 표정, 결과는 `끼룩이 초안 · 검토 필요`로 표시한다. 최종 확인 후에는 끼룩이를 작성자로 남기지 않는다. 후속 업무 카드를 만들면 `끼룩이가 ○○님의 내 업무와 캘린더에 올렸어요`를 표시한다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: AI 전체 요약은 `끼룩이에게 요약 초안 맡기기`로 시작하고 생성 중 `생각 중` 표정, 결과는 `끼룩이 초안 · 검토 필요`로 표시한다. 최종 확인 후에는 끼룩이를 작성자로 남기지 않는다. 후속 업무 카드를 만들면 `끼룩이가 ○○님의 내 업무와 캘린더에 올렸어요`를 표시한다.", constraint: "끼룩이 표현 원칙(docs/planning/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "안건별 결정 정리", description: "오른쪽 패널에서 안건을 선택해 결정과 후속 업무를 확정한다.", constraint: "없으면 '결정사항 없음'·'후속 업무 없음'을 명시" },
       { num: "02", element: "AI 전체 요약", description: "버튼으로 초안 생성 → 'AI 생성 초안·검토 필요' → 원본 변경 시 오래됨 경고(다시 생성/직접 검토) → 최종 확인(검토자·시각 기록).", constraint: "최종 승인 기능. 기록에 없는 결정·담당자·기한을 만들지 않음. 실패 시 수동 작성. 요약 미작성은 정리 완료를 막지 않음" },
       { num: "03", element: "정리 완료 조건", description: "논의 내용, 결정사항 또는 없음, 후속 업무 또는 없음, 참가 결과의 필수 4개 조건과 선택 조건인 전체 요약을 분리해 표시한다." },
@@ -2231,7 +2231,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "불참자",
     entryPath: "회의 목록 → 회의 요약 확인",
     functions: [
-      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 상단 안내에 `놓친 회의를 끼룩이가 정리해 두었어요 · ○○ 최종 확인`을 두어 사람이 확정한 요약임을 함께 밝힌다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 상단 안내에 `놓친 회의를 끼룩이가 정리해 두었어요 · ○○ 최종 확인`을 두어 사람이 확정한 요약임을 함께 밝힌다.", constraint: "끼룩이 표현 원칙(docs/planning/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "전체 요약", description: "정리 단계에서 확정된 회의 전체 요약을 표시한다." },
       { num: "02", element: "결정·후속 확인", description: "안건별 결정사항과 실제 생성된 후속 업무를 확인한다." },
       { num: "03", element: "내 후속 업무 열기", description: "현재 사용자에게 배정된 미완료 후속 업무만 모아 표시하고, 선택하면 상시 업무 보드의 원래 카드와 상세 패널을 연다." },
@@ -2453,7 +2453,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
   },
   "MSG-04": {
     id: "MSG-04", name: "대화 — 사이드챗 시안", stateChip: "검토안",
-    purpose: "대화방을 미리 연결해 두고(내 부서 방·부서 간 방·1:1), 메시지 기본 화면인 내 부서 방에서 `/이름`이나 이름 누르기로 오른쪽 사이드챗(1:1·부서 간)을 연다. 2026-10-13 채택(.scratch/messaging M-09~M-15) 시안이며 예시 데이터만 쓴다.",
+    purpose: "대화방을 미리 연결해 두고(내 부서 방·부서 간 방·1:1), 메시지 기본 화면인 내 부서 방에서 `/이름`이나 이름 누르기로 오른쪽 사이드챗(1:1·부서 간)을 연다. 2026-10-13 채택(docs/planning/messaging M-09~M-15) 시안이며 예시 데이터만 쓴다.",
     users: "전 구성원",
     entryPath: "홈 메시지함 · 공간 메시지 탭 · 모든 화면의 사람 이름",
     functions: [
@@ -2511,7 +2511,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "사이드바 내 업무",
     functions: [
       { num: "V6", element: "내 회의", description: "우리 학생회와 행사 회의 중 내가 참여·진행·회의록 정리·요약 확인할 회의를 모은다(M-04). 각 줄은 해당 회의 화면으로 이동한다(예시 데이터)." },
-      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 헤더에 `끼룩이가 행사·상시 업무에서 내 업무를 모아 왔어요` 한 줄을 둔다(상시 헤더는 홈·내 업무 두 곳까지만).", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 헤더에 `끼룩이가 행사·상시 업무에서 내 업무를 모아 왔어요` 한 줄을 둔다(상시 헤더는 홈·내 업무 두 곳까지만).", constraint: "끼룩이 표현 원칙(docs/planning/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "개인 업무 집계", description: "행사 업무와 상시 업무 중 현재 사용자에게 배정된 카드만 상태별로 합쳐 표시한다. 업무 생성, 담당자 배정, 상태 변경 결과는 즉시 반영된다." },
       { num: "02", element: "요약 칩", description: "배정된 업무를 기준으로 지연, 해야 할 업무, 검토 필요 건수를 아이콘 칩으로 표시한다." },
       { num: "03", element: "상태 탭", description: "해야 할 업무 / 진행 중인 업무 / 완료된 업무 3분류로 전환한다.", constraint: "메뉴 구조 v5 기준 (2026-07-19 재편)" },
@@ -2533,7 +2533,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "01", element: "상태 요약 카드", description: "현재 사용자가 제출한 요청을 기준으로 검토 대기, 보완 필요, 승인 완료, 구매 진행, 처리 완료 건수를 표시한다. 요청 상태가 아니라 승인 품목의 실행분 진행에서 계산한다(`getRequestListStatus`). 주문 전이면 승인 완료, 주문 이후는 구매 진행, 모든 실행분이 종결되면 처리 완료다.", constraint: "요청자 화면이므로 요청자 축(getGeneralProgressForExecution)을 쓴다. 금액 확인 같은 재정부 내부 단계를 노출하지 않는다. 요청 상태만 보면 이미 수령한 요청이 승인 완료에 남는다" },
       { num: "02", element: "요청 목록", description: "요청 번호, 제목, 구매 목적, 요청액, 품목 수, 요청일, 필요한 날짜, 상태를 표시한다. 구매 목적은 제목 아래 한 줄로 줄여 보여 주고 잘리면 마우스를 올려 전문을 확인한다. 새로 제출한 요청도 즉시 목록에 반영한다.", constraint: "제목만으로는 어떤 요청인지 구분되지 않아 목적을 함께 노출한다" },
       { num: "03", element: "보완하기", description: "보완 필요 요청은 FIN-SUP-01B 재제출로 이동한다. 누른 요청과 그 요청자를 그대로 넘긴다.", constraint: "상단 요약 카드는 반려·요청 취소를 포함해 합계가 아래 목록 건수와 맞아야 한다" },
-      { num: "04", element: "새 구매 요청", description: "FIN-REQ-01B 작성으로 이동한다.", constraint: "재정부·부서장에게만 노출" },
+      { num: "04", element: "새 구매 요청", description: "FIN-REQ-01B 작성으로 이동한다.", constraint: "재정부·부서장·회장단에게만 노출" },
     ],
     exceptions: ["내가 요청한 항목이 없으면 빈 상태로 표시한다", "다른 요청자의 구매 요청과 보완 내용을 노출하지 않는다"],
     nextScreens: ["FIN-SUP-01B 보완 재제출", "FIN-REQ-01B 구매 요청 작성", "EVT-FIN-01 행사 재정"],
@@ -2673,7 +2673,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "06", element: "기록 · 승인 묶음 (재정부 전용)", description: "선진행 동의된 승인 품목을 요청별 묶음(📦)으로 보여준다. 각 묶음 안에 개별 품목(▪)과 진행 상태가 들어간다. 요청 취소·미동의 품목은 묶음에서 자동 제외된다. 파생 표시이며 별도 저장하지 않는다.", constraint: "재정부 전용" },
       { num: "07", element: "기록 · 증빙 묶음 (재정부 전용·증빙 스위치)", description: "제품화 제외 기능이라 EVIDENCE_STAGE_ENABLED가 켜져 있을 때만 탭을 노출한다. 완료되어 저장된 증빙 묶음(📦)을 행사 기준으로 열람한다. 구매처·결제·영수증·실제 지출과 담긴 개별 실행분(▪)을 보여준다. 서로 다른 요청·승인 묶음의 실행분도 같은 거래면 한 묶음에 담긴다.", constraint: "재정부 전용(기준 문서: 증빙 아카이브 원본은 재정부 열람). 증빙 묶음은 완료 시 레코드로 저장되어 다시 열람할 수 있다" },
       { num: "08", element: "내 구매 요청", description: "MY-REQ-01로 이동한다 (2026-07-19 위치 확정)." },
-      { num: "09", element: "새 구매 요청", description: "재정부·부서장에게만 FIN-REQ-01B 작성 진입점을 표시한다." },
+      { num: "09", element: "새 구매 요청", description: "재정부·부서장·회장단에게만 FIN-REQ-01B 작성 진입점을 표시한다." },
     ],
     exceptions: ["구매 요청이 없으면 품목·요청 목록과 단계별 건수에 빈 상태를 표시한다", "보완 상태는 요청자에게 ‘보완 필요’, 다른 구성원에게 ‘보완 중’으로 표시한다", "주문 완료를 수령 완료로 간주하지 않으며 배송 완료 후에도 재정부의 수령 확인이 필요하다"],
     nextScreens: ["MY-REQ-01 내 구매 요청", "FIN-REQ-01B 작성", "FIN-REV-01 검토"],
@@ -2959,7 +2959,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "가입한 모든 사용자",
     entryPath: "ORG-01 → 조직 구조 설정",
     functions: [
-      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 기본 조직 선택지에 `끼룩이가 일반적인 학생회 조직을 만들어 둘게요`를 둔다. 사용자가 끼룩이를 처음 만나는 자리다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 기본 조직 선택지에 `끼룩이가 일반적인 학생회 조직을 만들어 둘게요`를 둔다. 사용자가 끼룩이를 처음 만나는 자리다.", constraint: "끼룩이 표현 원칙(docs/planning/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "진행 단계", description: "`조직 구조 설정 2 / 2`를 표시한다." },
       { num: "02", element: "시작 방식", description: "`기본 조직`과 `빈 조직` 두 가지를 설명과 함께 카드로 제시하고 하나를 선택한다. 기본 조직은 `일반적인 학생회 조직을 생성합니다`, 빈 조직은 `회장단만 생성하고 필요한 부서를 직접 추가합니다`로 안내한다.", constraint: "템플릿 선택지는 제공하지 않는다" },
       { num: "02B", element: "빈 조직 상태", description: "빈 조직을 선택하면 부서 카드를 두지 않고 부서 추가 카드만 남긴다. 안내 문구도 부서를 직접 만들도록 바꾼다.", constraint: "회장단 카드 자체는 두 방식 모두에서 항상 표시한다. 두 방식의 차이는 기본 부서의 유무뿐이다" },
@@ -3237,7 +3237,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "기록 > 완료된 행사 → 상세 보기",
     preconditions: "아카이브가 검토 중 또는 발행 상태",
     functions: [
-      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 개요·성과·타임라인·근거 자료(자동 집계 영역)에만 `끼룩이가 모은 기록`을 표시한다. 현장 운영·회고·인수인계 등 사람이 확정한 내용에는 붙이지 않는다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 개요·성과·타임라인·근거 자료(자동 집계 영역)에만 `끼룩이가 모은 기록`을 표시한다. 현장 운영·회고·인수인계 등 사람이 확정한 내용에는 붙이지 않는다.", constraint: "끼룩이 표현 원칙(docs/planning/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "문서 헤더", description: "행사명, 기간, 담당 부서·책임자, 상태 배지, 발행 버전·발행일·작성자·검토자를 표시한다.", constraint: "기록 신뢰성 정보를 항상 함께 노출" },
       { num: "02", element: "좌측 목차", description: "문서 옆에 고정되어 따라다니며, 대목을 누르면 본문의 해당 위치로 이동한다. 현재 읽는 대목을 강조한다.", constraint: "회고는 잘된 점·미흡했던 점·개선안을 하위 항목으로 펼친다" },
       { num: "03", element: "개요", description: "목표, 참여 대상, 일정·장소, 책임 부서·책임자, 행사 규모를 표시한다." },
@@ -3259,7 +3259,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     entryPath: "REC-01 미발행·초안 행사 → 아카이브 작성 / REC-02 → 아카이브 수정",
     preconditions: "행사가 완료 상태",
     functions: [
-      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 자동 채움 영역에 `끼룩이가 행사 기록에서 모았어요 · 기준 시점`, 인수인계 AI 초안에 `끼룩이 초안 · 검토 필요`를 표시한다. 초안 중 그대로 둔 줄은 근거를 보고 하나씩 `확인`해야 하며(고친 줄은 확인한 것으로 봄) `끼룩이 초안 항목 확인`이 발행 조건에 추가된다. 회고는 끼룩이가 쓰지 않는다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 자동 채움 영역에 `끼룩이가 행사 기록에서 모았어요 · 기준 시점`, 인수인계 AI 초안에 `끼룩이 초안 · 검토 필요`를 표시한다. 초안 중 그대로 둔 줄은 근거를 보고 하나씩 `확인`해야 하며(고친 줄은 확인한 것으로 봄) `끼룩이 초안 항목 확인`이 발행 조건에 추가된다. 회고는 끼룩이가 쓰지 않는다.", constraint: "끼룩이 표현 원칙(docs/planning/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "자동 채움 영역", description: "개요·성과·타임라인·근거 자료는 현재 선택된 행사 기록에서 자동으로 채우며 편집하지 않는다.", constraint: "다른 행사의 값을 섞지 않는다. 참석·예산 등 연결 데이터가 없으면 임의 수치 대신 `집계 전`·`연결 데이터 없음`으로 표시한다" },
       { num: "02", element: "현장 운영 작성", description: "실제 진행 순서, 인력 배치, 돌발 상황과 대응을 입력한다." },
       { num: "03", element: "회고 작성", description: "잘된 점, 미흡했던 점과 원인, 다음 행사 개선안을 각각 입력한다.", constraint: "개선안은 다음 담당 부서를 함께 지정한다" },
@@ -3280,7 +3280,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "행사 운영 조직 관리자 · 회장단",
     entryPath: "EVT-02 개요 대시보드 → 정보 입력·수정",
     functions: [
-      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 패널 머리에 `저장하면 끼룩이가 일정·참여 설문에도 함께 반영해요`를 둔다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 패널 머리에 `저장하면 끼룩이가 일정·참여 설문에도 함께 반영해요`를 둔다.", constraint: "끼룩이 표현 원칙(docs/planning/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "행사 정보 영역", description: "행사명, 행사 소개, 행사 목적·주요 내용을 입력한다. 행사명은 행사 생성 시 입력한 값으로 미리 채운다.", constraint: "행사 기본정보에서 관리" },
       { num: "02", element: "일시 영역", description: "시작 일자·시간, 종료 일자·시간을 입력한다. 종료 시간이 미정인 경우 '종료 시간 미정' 선택 가능.", constraint: "행사 기본정보에서 관리 / 일정·참여 설문에 자동 반영" },
       { num: "03", element: "장소 영역", description: "장소명, 주소, 상세 위치·집합 장소를 입력한다. 미정이면 빈칸으로 저장 가능. 조회 화면에서 미정으로 표시.", constraint: "행사 기본정보에서 관리 / 일정·참여 설문·공지에 자동 반영" },
@@ -3435,11 +3435,11 @@ const SPEC_DATA: Record<string, SpecDef> = {
   },
   "FIN-REQ-01B": {
     id: "FIN-REQ-01B", name: "구매 요청 작성", stateChip: "작성",
-    purpose: "부서장·재정부가 행사에 필요한 물품·용역의 새 구매 요청을 작성한다.",
-    users: "부서장·재정부 (작성자)",
+    purpose: "부서장·재정부·회장단이 행사에 필요한 물품·용역의 새 구매 요청을 작성한다.",
+    users: "부서장·재정부·회장단 (작성자)",
     entryPath: "EVT-FIN-01 → 새 구매 요청",
     functions: [
-      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 쿠팡 정보를 불러오는 중에는 `생각 중` 표정, 불러온 뒤에는 `끼룩이가 쿠팡에서 옵션 N개를 불러왔어요` 한 줄을 링크 아래에 둔다. 읽기 실패는 `끼룩이가 이 링크는 읽지 못했어요`로 안내하고 직접 입력을 막지 않는다.", constraint: "끼룩이 표현 원칙(.scratch/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
+      { num: "K", element: "끼룩이 표시", description: "끼룩이 표시: 쿠팡 정보를 불러오는 중에는 `생각 중` 표정, 불러온 뒤에는 `끼룩이가 쿠팡에서 옵션 N개를 불러왔어요` 한 줄을 링크 아래에 둔다. 읽기 실패는 `끼룩이가 이 링크는 읽지 못했어요`로 안내하고 직접 입력을 막지 않는다.", constraint: "끼룩이 표현 원칙(docs/planning/kkiruk-presence): 해 준 일만 말하고 판단하지 않으며, 경고·차단·재정 판정에는 쓰지 않는다" },
       { num: "01", element: "요청 정보", description: "제목, 구매 목적, 필요일, 우선순위를 입력하고 요청 부서는 작성자 소속으로 고정한다. 우선순위를 긴급으로 선택하면 긴급 사유를 조건부 필수로 입력받는다.", constraint: "긴급 사유가 비어 있으면 제출할 수 없다" },
       { num: "02", element: "품목 추가·삭제", description: "여러 품목을 한 요청에 담을 수 있으며 새 품목은 목록 맨 위에 추가된다." },
       { num: "03", element: "구매 유형별 필드 전환·필수 검증", description: "일반 구매·제작·인쇄·대여·용역에 따라 유형별 상세 입력 필드를 전환한다(details 저장). 재정 스펙 5.1 표의 유형별 필수·조건부 필수 정보를 금액과 무관하게 강제한다(스펙 729·752). 일반 구매=상품 URL(가격 근거 링크)·상품 옵션·규격, 제작·인쇄=제작물 종류·규격·재질·제작 조건·납품 희망일·디자인 파일 상태(미확정이면 사유), 대여=수령·설치 장소·대여/반납 일시·반납 장소·방법·설치·철거 포함 여부, 용역=수행 일시·이행 범위·결과물·완료 기준을 필수로 받는다. 계약서·제안서 등은 선택·조건부다. 제작·인쇄에는 제작 업체·업체 사이트 URL·담당자 연락처를 선택으로 받는다(2026-09-02) — 대여의 대여처, 용역의 용역제공자와 같은 자리이며, 없으면 재정부가 발주 시 요청자에게 업체를 되물어야 한다. 대여에는 `대여처 사이트 URL`, 용역에는 `용역 제공자 사이트 URL`을 선택으로 받는다(2026-09-03) — 업체 이름과 연락처만으로는 재정부가 어느 업체인지 확인할 곳이 없었다. 다만 두 유형은 링크만으로 가격이 확정되지 않으므로 업체 견적서 필수는 그대로다(제작·인쇄만 URL이 견적서를 대신한다).", constraint: "필수 누락 시 항목별 오류를 표시하고 제출을 막는다(PURCHASE_TYPE_REQUIRED_FIELDS). 작성·상세 보기가 같은 유형별 필드 정의(PURCHASE_TYPE_FIELDS)를 공유한다. 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(스펙 708·709·727)" },
@@ -4871,7 +4871,7 @@ function KkirukMark({ expression = "hello", className = "" }: { expression?: Kki
   return <img src={KKIRUK_IMAGES[expression]} alt={KKIRUK_ALT[expression]} className={`${className} object-contain`} />;
 }
 
-// 끼룩이 표현 원칙(.scratch/kkiruk-presence, K-01~K-07): 끼룩이는 별도 AI 비서가 아니라 VADA가 자동으로 해 준 일을 보여 주는 표시다.
+// 끼룩이 표현 원칙(docs/planning/kkiruk-presence, K-01~K-07): 끼룩이는 별도 AI 비서가 아니라 VADA가 자동으로 해 준 일을 보여 주는 표시다.
 // - 실제 자동화에만, 행동이 일어난 자리에 한 줄로 붙인다. '해 줬다'(불러왔어요·모았어요·올렸어요)만 말하고 판단하지 않는다.
 // - 경고·차단·재정 판정에는 쓰지 않는다. AI 초안은 `끼룩이 초안 · 검토 필요`로 표시하고, 사람이 확정한 결과물에는 끼룩이를 작성자로 남기지 않는다.
 function KkirukDone({ children, thinking = false, className = "" }: { children: React.ReactNode; thinking?: boolean; className?: string }) {
@@ -8339,7 +8339,7 @@ function EVT01() {
   );
 }
 
-// 메뉴 v6.2(.scratch/messaging M-01~M-08): 행사 탭에 메시지를 더하고 `관련 회의`를 `회의`로 바꾼다.
+// 메뉴 v6.2(docs/planning/messaging M-01~M-08): 행사 탭에 메시지를 더하고 `관련 회의`를 `회의`로 바꾼다.
 // 행사 공간은 메시지 탭이 첫 화면이다(행사를 누르면 대화부터 보인다).
 const EVENT_TABS = ["메시지", "개요", "업무", "회의", "일정", "문서", "재정", "인원 관리"];
 // 상시 지출 컨테이너는 업무·문서·회의·일정·인원 관리를 쓰지 않는다. 재정 귀속 단위로만 존재하므로
@@ -15357,7 +15357,7 @@ function FINREQ01() {
   };
 
   if (!canSubmitPurchaseRequest(currentUser)) {
-    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">구매 요청 작성 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청 작성과 보완 재제출은 부서장 또는 재정부만 할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01")}>행사 재정으로 돌아가기</Btn></div></div></DesktopShell>;
+    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">구매 요청 작성 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청 작성과 보완 재제출은 부서장·재정부·회장단만 할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01")}>행사 재정으로 돌아가기</Btn></div></div></DesktopShell>;
   }
   // 예산 미편성 행사에서는 작성 폼 대신 편성을 유도한다(스펙 712: 편성된 예산 항목에서만 선택).
   if (!isEdit && budgetLineOptions.length === 0) {
@@ -17487,7 +17487,7 @@ function FINSUP01() {
     navigateTo("FIN-REQ-02");
   };
   if (!canResubmit) {
-    return <DesktopShell activeSidebar="운영" title="보완 요청 확인" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">보완 재제출 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">요청자 본인이면서 부서장 또는 재정부인 경우에만 보완 내용을 수정·재제출할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("FIN-REQ-02")}>요청 상태 확인</Btn></div></div></DesktopShell>;
+    return <DesktopShell activeSidebar="운영" title="보완 요청 확인" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">보완 재제출 권한이 없습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">요청자 본인이면서 부서장·재정부·회장단인 경우에만 보완 내용을 수정·재제출할 수 있습니다.</p><Btn variant="secondary" className="mt-5" onClick={() => navigateTo("FIN-REQ-02")}>요청 상태 확인</Btn></div></div></DesktopShell>;
   }
   return (
     <DesktopShell activeSidebar="운영" title="보완 요청 확인·재제출" breadcrumb={["행사", eventInfo.name, "재정", "내 구매 요청", request.id, "보완 재제출"]}>
@@ -20108,7 +20108,7 @@ function MessageRoomsScreen({ initialModalOpen = false }: { initialModalOpen?: b
 // 공간의 대화방은 미리 연결되어 있다(M-09). 첫 메시지를 보내는 순간 방이 목록에 나타나며, 사용자가 방을 만들지 않는다.
 // 같은 방이 홈 메시지함·전체 방 목록(MSG-01)에도 보인다.
 const SPACE_ROOM_CREATOR = "자동 연결";
-// ─── 공간 메시지: 공지방 · 부서방 · 구매 후보 — .scratch/chat-purchase P-11~P-19 ─────────────
+// ─── 공간 메시지: 공지방 · 부서방 · 구매 후보 — docs/planning/chat-purchase P-11~P-19 ─────────────
 // 행사·우리 학생회의 메시지 탭은 공지방(공간 전체)과 부서방(공간 안의 내 부서)으로 나뉜다. 탭을 열면 부서방부터 보인다.
 // 부서방에 올라온 쇼핑 링크는 그 부서의 구매 후보로 자동으로 담긴다. 공지방·사이드챗 링크는 `부서방으로 옮기기`만 둔다.
 type SpaceRoomKind = "공지" | "부서";
@@ -20568,7 +20568,7 @@ function HomeMessageBox() {
   );
 }
 
-// ─── 사이드챗(전역) — .scratch/messaging M-11~M-15 ─────────────────────────────
+// ─── 사이드챗(전역) — docs/planning/messaging M-11~M-15 ─────────────────────────────
 // 모든 화면 오른쪽에서 열리는 1:1·부서 간 대화. 상태는 앱 전체가 공유한다(AppContext.sideChat).
 // 여는 법: 입력창 `/`, 사람 이름 누르기(PersonName), 사이드챗의 최근 1:1 칩. 동시에 하나만 연다.
 type SideChatState = {
@@ -20733,7 +20733,7 @@ function SideChatPanel() {
   );
 }
 
-// ─── MSG-04 대화 — 사이드챗 시안 (2026-10-13, .scratch/messaging M-09~M-15) ───────
+// ─── MSG-04 대화 — 사이드챗 시안 (2026-10-13, docs/planning/messaging M-09~M-15) ───────
 // 대화방은 미리 연결되어 있다(내 부서 방, 부서 간 방, 1:1). 메시지 기본 화면은 내 부서 방이고,
 // 입력창의 `/이름`·보낸 사람 이름·다른 화면의 사람 이름으로 오른쪽 사이드챗(1:1 또는 부서 간)을 연다.
 // 예시 데이터만 쓰며 기존 메시지 방(messageRooms)을 바꾸지 않는다.

@@ -231,7 +231,7 @@ flowchart LR
 꺼낼 때 반드시 확인한다.
 
 - `SCREENS` = `SPEC_DATA` = `SCREEN_COMPONENTS` 개수 일치
-- `docs/VADA_SCREEN_QA.md` 해당 화면 QA 항목 — `FIN-EVID-01-03`은 **치명적 등급**이라 화면만 고치고 QA를 안 고치면 막힌다
+- 화면 QA 항목 — `VADA_SCREEN_QA.md`는 메뉴 v6.2 이전 기준이라 2026-10-14 삭제했다. 화면을 다시 점검하며 QA 문서를 새로 만들 때 `FIN-EVID-01-03`(증빙 화면)은 치명적 등급으로 넣는다
 - `src/app/finance.test.tsx` · `finance-logic.test.tsx` — 상태 계산이 바뀌면 여기서 잡힌다
 - 예산 집계 음수 여부
 - **처리 단계의 종결과 예산의 실지출 전환이 같은 축을 보는가** — 스위치를 켜면 `itemFullySettled`가 `증빙 완료`로 돌아가야 한다. 한쪽만 바꾸면 칸반은 종결이라 하고 예산은 집행 예정으로 잡는 모순이 다시 생긴다(2026-09-01에 고친 버그)
