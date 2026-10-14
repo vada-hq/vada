@@ -7,6 +7,8 @@
 
 ## 실행
 
+준비물: Node.js 20 이상과 pnpm(`npm install -g pnpm` 또는 `corepack enable`).
+
 ```bash
 pnpm install
 pnpm run dev     # http://localhost:5173/
