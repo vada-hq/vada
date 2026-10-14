@@ -931,6 +931,7 @@ type ChatMessage = {
   text: string;
   at: string;
   attachments?: ChatAttachment[];
+  movedFrom?: string;  // 공지방·사이드챗에서 부서방으로 옮긴 원래 메시지 id(화면에는 표시하지 않음)
 };
 
 type MessageRoom = {
@@ -943,6 +944,8 @@ type MessageRoom = {
   createdAt: string;
   messages: ChatMessage[];
   unreadCount: number;
+  spaceId?: string;              // 공간 방(행사·우리 학생회)이면 그 공간 id
+  spaceKind?: "공지" | "부서";    // 공지방(공간 전체) / 부서방(공간 안의 한 부서)
 };
 
 const DEFAULT_ORGANIZATION_MEMBER_ROLES: OrganizationMemberRole[] = [
@@ -1227,6 +1230,13 @@ type AppContextType = {
   setSideChat: React.Dispatch<React.SetStateAction<SideChatState>>;
   openSideChat: (target: SideChatTarget, carry?: string) => void;
   closeSideChat: () => void;
+  // 구매 후보(chat-purchase P-11~P-19)와 상품 정보 패널, 공간 메시지 탭에서 처음 보여 줄 방
+  purchaseCandidates: PurchaseCandidate[];
+  setPurchaseCandidates: React.Dispatch<React.SetStateAction<PurchaseCandidate[]>>;
+  productPanelUrl: string | null;
+  setProductPanelUrl: (url: string | null) => void;
+  spaceViewRequest: "공지" | "부서" | "후보" | null;
+  setSpaceViewRequest: (view: "공지" | "부서" | "후보" | null) => void;
   currentUser: { name: string; dept: string; role: string; eventRole?: EventContextRole };
   activeSidebar?: string;
 };
@@ -1979,6 +1989,12 @@ export const AppContext = React.createContext<AppContextType>({
   setSideChat: () => {},
   openSideChat: () => {},
   closeSideChat: () => {},
+  purchaseCandidates: [],
+  setPurchaseCandidates: () => {},
+  productPanelUrl: null,
+  setProductPanelUrl: () => {},
+  spaceViewRequest: null,
+  setSpaceViewRequest: () => {},
   currentUser: { name: "김바다", dept: "재정부", role: "부원" },
   activeSidebar: undefined,
 });
@@ -2405,25 +2421,32 @@ const SPEC_DATA: Record<string, SpecDef> = {
   },
   "EVT-MSG-01": {
     id: "EVT-MSG-01", name: "행사 메시지", stateChip: "기본",
-    purpose: "행사 공간의 대화방. 행사를 만들면 대화방이 미리 연결되어 있고, 행사 구성원이 자동으로 참여한다(메뉴 v6.2 M-03·M-09).",
+    purpose: "행사 공간의 대화. 미리 연결된 `공지방`(행사 구성원 전체)과 `부서방`(행사 안의 내 부서), 부서방의 쇼핑 링크를 모은 `구매 후보`가 있다. 구매 후보 카드를 체크하면 그 자리에서 구매 요청 카드로 펼쳐져 바로 요청한다(메뉴 v6.2 M-03·M-09, chat-purchase P-11~P-19).",
     users: "행사 구성원",
     entryPath: "사이드바 공간 목록·전체 행사 목록에서 행사 누르기(행사 공간의 첫 화면, 탭 맨 왼쪽) / 홈 메시지함 / 전체 방 목록(MSG-01)",
     functions: [
-      { num: "01", element: "미리 연결된 방", description: "사용자가 방을 만들지 않는다. 대화가 없으면 `아직 나눈 대화가 없어요`를 보여 주고, 첫 메시지를 보내면 전체 방 목록에도 나타난다." },
-      { num: "02", element: "안 읽은 배지", description: "행사 탭의 `메시지` 옆에 이 방의 안 읽은 수를 표시한다. 사이드바 공간 목록에는 배지를 두지 않는다(M-08)." },
-      { num: "03", element: "1:1·부서 간", description: "`/이름`·이름 누르기로 오른쪽 사이드챗을 연다(MSG-04 시안, M-11~M-15)." },
+      { num: "01", element: "공지방 · 부서방 · 구매 후보", description: "메시지 탭 아래 한 줄로 `공지방 · ○○부 방 · 구매 후보 N`을 둔다. 메시지 탭을 열면 부서방부터 보인다. 이 탭에서는 행사 요약 줄(상태·주요 지연·담당·날짜)을 빼고 방 전환을 둔다(다른 탭은 유지).", constraint: "다른 부서의 부서방은 보이지 않는다. 방은 사용자가 만들지 않는다" },
+      { num: "02", element: "안 읽은 배지", description: "방 전환의 공지방·부서방 옆에 각 방의 안 읽은 수, 행사 탭 `메시지` 옆에는 두 방의 합. 사이드바 공간 목록에는 배지를 두지 않는다(M-08)." },
+      { num: "03", element: "링크와 상품 정보 패널", description: "링크는 파란 글자로 보인다. 쇼핑 링크를 누르면 오른쪽에 `상품 정보`(사진·이름·옵션·가격·배송·쇼핑몰에서 보기)가 열린다. 사이드챗이 열려 있으면 그 위에 덮고, 닫으면 사이드챗으로 돌아간다." },
+      { num: "04", element: "자동 담기(부서방)", description: "부서방의 쇼핑 링크(쿠팡 외 쇼핑몰 포함)는 모두 구매 후보로 담기고 메시지 아래에 `끼룩이가 구매 후보에 담았어요`를 붙인다. 한 메시지에 링크가 여럿이면 후보도 여럿, 같은 링크가 다시 오면 하나로 합쳐 `외 N번`. 요청하면 `요청 완료 · REQ-xxx`.", constraint: "쇼핑이 아닌 링크와 링크 없는 말은 담지 않는다" },
+      { num: "05", element: "부서방으로 옮기기", description: "공지방의 쇼핑 링크에는 `○○부 방으로 옮기기`만 둔다. 누르면 옮긴 사람 이름으로 부서방에 다시 올리고(옮겨 옴 표시 없음) 그 순간 후보로 담긴다." },
+      { num: "06", element: "구매 후보 카드", description: "좌상단 체크박스·사진·품목명·옵션(쿠팡에서 불러온 옵션 목록에서 바로 고르고 가격 확정)·가격·수량 −/+·올린 사람·시각. 옵션·수량은 모두가 같이 보는 값이다.", constraint: "후보 빼기(X)는 올린 사람과 부서장(§4 제안 유지)" },
+      { num: "07", element: "체크해서 요청 카드로 펼치기", description: "체크하면 그 자리에서 구매 요청 카드로 펼쳐진다. 요청 제목·구매 목적은 대화와 상품명으로 끼룩이가 채운 초안(`끼룩이 초안 · 검토 필요`, 목적은 `확인했어요` 또는 고쳐야 요청 가능), 필요한 날짜·우선순위(긴급이면 사유)는 사용자가 입력, 아래에 판매처·상품 정보·단가·배송비·배송 정보·금액. 예산 항목·구매 유형은 보이지 않는다(일반 구매, 예산 항목은 재정부가 검토 시 지정).", constraint: "쿠팡 외·읽기 실패 링크는 품목명·단가를 직접 적는다" },
+      { num: "08", element: "묶어서 요청", description: "둘 이상 체크하면 위로 모아 묶음(요청 1건)으로 보여 준다. 제목·구매 목적·필요한 날짜·우선순위는 묶음 맨 위에 한 번만 두고 끼룩이가 묶인 상품명과 대화로 다시 쓴다. 묶음 안 카드는 상품 정보만 펼친다. 아래 `구매 요청하기` 옆에 선택 품목 합계(가격 미정은 제외 표시)." },
+      { num: "09", element: "권한·제출", description: "후보 보기·옵션·수량·체크해서 펼치기는 모든 구성원. `구매 요청하기`는 부서장·재정부(부원 포함)·회장단만 보이며, 그 밖에는 `구매 요청은 부서장·재정부·회장단이 해요`. 제출하면 그 공간의 재정 칸반(EVT-FIN-01, 검토 중)에 들어가고 후보 칸에 `요청 완료 · REQ-xxx`와 `재정 칸반에서 보기`가 남는다.", constraint: "제출 권한이 없는 사람이 펼친 카드에 적은 값은 저장하지 않는다" },
+      { num: "10", element: "1:1·부서 간", description: "`/이름`·이름 누르기로 오른쪽 사이드챗을 연다(MSG-04 시안, M-11~M-15)." },
     ],
-    exceptions: ["구매 후보 자동 수집(대화 → 구매 후보 기획 P-01)은 이 화면에 아직 구현하지 않았다"],
-    nextScreens: ["MSG-04 사이드챗 시안", "MSG-01 전체 방 목록"],
+    exceptions: ["대여·용역의 대화 연결은 보류(chat-purchase 2026-10-14). 이번에는 일반 구매(상품 링크)만 다룬다", "행사 완료 후 남은 후보 처리는 미결정"],
+    nextScreens: ["EVT-FIN-01 재정 칸반", "MSG-04 사이드챗 시안", "MSG-01 전체 방 목록"],
   },
   "US-MSG-01": {
     id: "US-MSG-01", name: "우리 학생회 — 메시지", stateChip: "기본",
-    purpose: "우리 학생회(구 상시 업무, M-01) 공간의 대화방. 학생회 전체가 미리 연결되어 있다.",
+    purpose: "우리 학생회(구 상시 업무, M-01) 공간의 대화. 행사 메시지(EVT-MSG-01)와 같은 구조로 `공지방`(학생회 전체)·`부서방`(내 부서)·`구매 후보`가 있고, 요청하면 상시 지출 재정 칸반으로 간다.",
     users: "전 구성원",
     entryPath: "사이드바 공간 목록 `우리 학생회` 누르기(공간의 첫 화면, 탭 맨 왼쪽) / 홈 메시지함 / 전체 방 목록(MSG-01)",
     functions: [
       { num: "01", element: "우리 학생회 탭", description: "메시지 · 업무(OPS-TASK-01) · 회의(OPS-MEET-01A) · 일정(OPS-CAL-01) · 재정(상시 지출 컨테이너의 EVT-FIN-01) 탭으로 공간을 오간다(M-06)." },
-      { num: "02", element: "미리 연결된 방", description: "행사 메시지(EVT-MSG-01)와 같은 방식이다. 첫 메시지를 보내면 전체 방 목록에도 나타난다." },
+      { num: "02", element: "공지방·부서방·구매 후보", description: "EVT-MSG-01의 01~09와 같다. 메시지 탭을 열면 부서방부터 보인다. 부서방 쇼핑 링크는 상시 지출의 구매 후보로 담기고, 요청은 상시 지출 컨테이너의 재정 칸반으로 간다." },
     ],
     exceptions: ["일정 탭은 아직 통합 캘린더로 연결되며 우리 학생회 일정만 거르는 보기는 후속이다"],
     nextScreens: ["OPS-TASK-01 업무", "OPS-MEET-01A 회의", "EVT-FIN-01 재정(상시 지출)"],
@@ -2440,7 +2463,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "03B", element: "모든 화면에서 열기", description: "사이드챗은 공통 화면 틀 오른쪽에 붙어 어느 화면에서든 열리고, 다른 화면으로 이동해도 열린 대화·쓰던 글·최근 1:1이 유지된다. 공간 메시지(US-MSG-01·EVT-MSG-01)와 대화 화면(MSG-03) 입력창에서도 `/`로 연다.", constraint: "홈 메시지함의 1:1 안 읽음 칩은 대화 화면이 아니라 사이드챗으로 연다. 사이드바 `홈` 배지는 방과 1:1·부서 간 안 읽은 수를 합친다" },
       { num: "04", element: "사이드챗", description: "오른쪽에 1:1 또는 부서 간 대화를 하나만 연다. 위쪽 `최근 1:1` 칩 3개로 전환하고 안 읽은 표시를 단다. 닫아도(Esc) 쓰던 글은 남는다.", constraint: "열리면 커서가 사이드챗으로 이동한다. 색·제목·보내기 문구(`○○님에게 보내기`)를 메인 방과 다르게 해 오발송을 막는다" },
       { num: "05", element: "부서 간 방", description: "다른 부서를 고르면 `내 부서 ↔ 그 부서` 방이 사이드챗으로 열린다.", constraint: "다른 부서의 내부 방은 보이지 않는다. 회장단에게도 1:1·부서 간 대화를 공개하지 않는다" },
-      { num: "06", element: "구매 후보 담기", description: "1:1·부서 간 방은 공간 방이 아니므로 쿠팡 링크에 `구매 후보로 담을 공간 선택`을 두고, 고르면 `끼룩이가 ○○ 구매 후보에 담았어요`를 표시한다." },
+      { num: "06", element: "부서방으로 옮기기", description: "사이드챗의 쇼핑 링크는 구매 후보로 담지 않는다. `○○부 방으로 옮기기`를 누르고 공간(우리 학생회·활성 행사)을 고르면 그 공간의 내 부서방에 옮긴 사람 이름으로 다시 올리고, 거기서 구매 후보로 담긴다(chat-purchase P-14)." },
     ],
     exceptions: ["3명 이상 대화는 사이드챗에서 지원하지 않고 공간 방(우리 학생회·행사)에서 한다", "모바일에서는 사이드챗이 전체 화면으로 열리고 뒤로 가면 원래 방으로 돌아간다", "이 화면의 내 부서 방 대화는 예시 데이터이며 기존 메시지 방 데이터를 바꾸지 않는다. 1:1·부서 간 대화는 전 화면 공통 사이드챗 상태에 저장한다(새로고침하면 초기화)"],
     nextScreens: ["MSG-03 대화 화면", "MSG-01 메시지"],
@@ -3422,7 +3445,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
       { num: "03", element: "구매 유형별 필드 전환·필수 검증", description: "일반 구매·제작·인쇄·대여·용역에 따라 유형별 상세 입력 필드를 전환한다(details 저장). 재정 스펙 5.1 표의 유형별 필수·조건부 필수 정보를 금액과 무관하게 강제한다(스펙 729·752). 일반 구매=상품 URL(가격 근거 링크)·상품 옵션·규격, 제작·인쇄=제작물 종류·규격·재질·제작 조건·납품 희망일·디자인 파일 상태(미확정이면 사유), 대여=수령·설치 장소·대여/반납 일시·반납 장소·방법·설치·철거 포함 여부, 용역=수행 일시·이행 범위·결과물·완료 기준을 필수로 받는다. 계약서·제안서 등은 선택·조건부다. 제작·인쇄에는 제작 업체·업체 사이트 URL·담당자 연락처를 선택으로 받는다(2026-09-02) — 대여의 대여처, 용역의 용역제공자와 같은 자리이며, 없으면 재정부가 발주 시 요청자에게 업체를 되물어야 한다. 대여에는 `대여처 사이트 URL`, 용역에는 `용역 제공자 사이트 URL`을 선택으로 받는다(2026-09-03) — 업체 이름과 연락처만으로는 재정부가 어느 업체인지 확인할 곳이 없었다. 다만 두 유형은 링크만으로 가격이 확정되지 않으므로 업체 견적서 필수는 그대로다(제작·인쇄만 URL이 견적서를 대신한다).", constraint: "필수 누락 시 항목별 오류를 표시하고 제출을 막는다(PURCHASE_TYPE_REQUIRED_FIELDS). 작성·상세 보기가 같은 유형별 필드 정의(PURCHASE_TYPE_FIELDS)를 공유한다. 용역은 시스템이 수량 1·단위 '건'을 기본 설정한다(스펙 708·709·727)" },
       { num: "04", element: "가격 근거", description: "가격 근거는 `가격 설명·URL·견적서 중 하나 이상`이다(재정 스펙 716). 일반 구매는 상품 URL(구매·가격 확인 링크)을 가격 근거로 필수 입력하고, 견적서 확보 상태를 묻지 않는다. 대여·용역은 살 수 있는 링크가 없어 업체 견적서를 필수로 등록한다. 제작·인쇄는 업체 사이트에서 사양별 가격이 나오는 경우가 많아 견적서 파일 또는 업체 사이트 URL 중 하나로 충족한다(2026-09-02 완화 — 유형별 표(스펙 725)가 제작·인쇄에 견적서를 못 박지 않는데 구현만 필수로 좁혀 두고 있었다).", constraint: "견적서는 파일 첨부로 받는다. 예전에는 파일명을 손으로 입력하게 해 요청자가 이름을 옮겨 적어야 했다. 백엔드가 없으므로 메시지 첨부와 같은 규칙으로 파일명만 기록하고 실제 업로드·보관은 하지 않는다" },
       { num: "05", element: "작성 액션", description: "구매 요청 제출(검토 대기 요청 생성) / 임시 저장.", constraint: "작성 화면은 editingRequestId가 없을 때 렌더된다(단일 컴포넌트 2모드)" },
-      { num: "06", element: "예산 항목 선택", description: "품목마다 이 행사에 편성된 예산 항목 중에서 선택한다(재정 스펙 712·757). 필수 표시(*)는 직접 채워야 하는 칸에만 붙인다. 기본값이 늘 들어 있는 예산 항목·구매 유형 선택 상자에는 붙이지 않는다.", constraint: "예산 항목 옵션은 행사 편성 예산(eventBudget)에서 파생하며 고정 목록을 하드코딩하지 않는다" },
+      { num: "06", element: "예산 항목(재정부 지정)", description: "요청자는 예산 항목을 고르지 않는다. 품목 카드의 예산 항목 칸은 `재정부가 검토할 때 정해요`로 표시하고, 재정부가 검토(FIN-REV-01)에서 고른다(chat-purchase P-19, 2026-10-14). 필수 표시(*)는 직접 채워야 하는 칸에만 붙이며 구매 유형 선택 상자에는 붙이지 않는다.", constraint: "구매 유형은 요청자가 그대로 고른다. 예산 미편성 행사는 지금처럼 작성 대신 편성을 유도한다" },
       { num: "07", element: "쿠팡 링크 자동 채우기 (일반 구매)", description: "일반 구매는 구매 유형 옆의 상품 링크가 입력의 출발점이다. 링크를 붙이면 판매처를 도메인으로 바로 채운다(알려진 쇼핑몰은 이름, 모르는 도메인은 불러오기 시 주소). 쿠팡 상품 링크를 불러오면 품목명·배송비를 채우고, 페이지에 있는 옵션을 전부 불러와 옵션 칸을 선택 상자로 바꾼다. 사용자가 그중에서 고르면 그 옵션의 가격으로 단가를 확정하고, 옵션이 없는 단일 상품은 `단일 상품 (옵션 없음)`과 그 가격으로 바로 확정한다. 불러온 옵션 목록은 품목에 함께 저장해 수정·임시 저장·보완에서도 다시 고를 수 있다. 채운 칸에는 `링크에서 가져옴`을 표시하고 사람이 고치면 표시를 지운다. 불러오기는 그 링크의 상품으로 채우는 명시적 행동이므로 품목명·판매처·배송비는 이미 적힌 값이 있어도 링크 값으로 바꾼다(작성자가 품목명을 따로 쓰지 않아도 된다). 함께 읽은 상품 정보(대표 이미지·배송 방식·판매자·도착 예정일·판매 단위·조건부 할인)는 칸을 채우지 않고 링크 아래 요약으로 보여 준다. 도착 예정일이 필요일보다 늦으면 `필요일 이후 도착 예상`, 해외직구는 도착 지연·관부가세 가능을 경고한다. 품절 옵션은 칩에서 고를 수 없다. 모든 값에 추출 시각(`쿠팡 ○○ 기준`)을 남긴다.", constraint: "쿠팡 외 쇼핑몰·읽기 실패는 링크를 가격 근거로 저장하고 직접 입력으로 넘어간다. 구매 이유·수량·예산 항목은 채우지 않는다. 와이어프레임은 예시 링크 4종(옵션 있는 상품·해외직구 단일 상품·다른 쇼핑몰·읽기 실패)으로 상태를 재현한다" },
       { num: "08", element: "자동 단가", description: "쿠팡 자동 품목은 작성자가 단가를 입력하지 않는다. 학생회 계정이 와우 회원이므로 와우 회원가를 단가로 쓰고, 쿠폰·카드 할인은 반영하지 않고 안내만 한다. 불러온 옵션을 고르면 즉시 `확정`(쿠팡 기준 시각 표시)한다. 고르기 전에는 단가·품목 총액에 품절이 아닌 옵션의 가격 범위를 보여 주고, 고를 수 있는 옵션의 가격이 모두 같으면 그 가격으로 먼저 확정한다. 요청 요약은 옵션을 고르지 않은 품목 수를 따로 보여 준다. 요청 요약은 확정된 금액만 더하고 가격 확인 대기 품목 수를 따로 보여 준다.", constraint: "수량은 쿠팡 판매 단위 기준임을 안내한다. 링크를 바꾸면 이전에 읽은 가격을 지운다" },
       { num: "09", element: "배송비", description: "일반 구매에 배송비 칸을 단가와 별도로 둔다. 품목 총액 = 수량 × 단가 + 배송비이며 요청 요약에 배송비 합계를 표시한다. 쿠팡 링크에서는 배송비도 채운다. 발주·칸반·금액 확인의 실행분 금액에도 배송비를 수량 비율만큼 포함해 `승인액과 동일` 확정 시 배송비가 빠지지 않게 한다. 구매 유형을 바꾸면 배송비를 비우고 품목 총액을 다시 계산한다.", constraint: "가격 확인 중인 품목은 요청 총액에서 빠지며, 총액이 보이는 곳(내 구매 요청·행사 재정 목록·상세·검토)에 `+ 가격 확인 중 N개`를 함께 표시한다" },
@@ -3450,6 +3473,7 @@ const SPEC_DATA: Record<string, SpecDef> = {
     users: "재정부",
     entryPath: "EVT-FIN-01 → 요청 선택",
     functions: [
+      { num: "01B", element: "예산 항목 지정", description: "품목 카드 머리에서 이 행사에 편성된 예산 항목을 재정부가 고른다. 고르지 않은 품목은 `승인`을 누를 수 없고, 승인한 품목에 예산 항목이 비어 있으면 최종 처리를 막는다. 항목별 초과 판정은 재정부가 고른 항목으로 계산하며, 처리하면 품목의 예산 항목으로 저장된다.", constraint: "요청자는 예산 항목을 고르지 않는다(chat-purchase P-19). 예산 미편성 행사는 `예산 미편성`으로 표시하고 지정 없이 처리할 수 있다. 기존 표본 요청에 들어 있던 예산 항목은 초기값으로 보여 준다" },
       { num: "01", element: "검토 탭 (요청 개요·품목별 검토·첨부 통합)", description: "요청 정보·품목 검토·첨부를 '검토' 한 탭으로 묶고 섹션으로 구분한다. 품목마다 구매 정보(판매처·옵션·배송 등)를 라벨별로 표시하고, 상품 URL 등 http(s) 값은 클릭 가능한 하이퍼링크로 연다. 처리 기록은 별도 탭이다.", constraint: "구매 정보 표시는 공용 컴포넌트(PurchaseInfoPanel)로 검토·주문(FIN-PROC-01)·상세(FIN-REQ-02)가 공유한다" },
       { num: "02", element: "집행 유형 판정", description: "품목별 카드에서 별칙 제7~21조의 집행 유형을 재정부가 선택한다. 선택하면 근거 조항·집행 조건·금액 한도·허용 결제 주체·필수 증빙 항목·필요한 소정 양식을 함께 보여주고, 개인정보가 포함되는 유형은 마스킹 필요를 안내한다.", constraint: "요청자는 집행 유형을 고르지 않는다. 시스템은 조건을 표시만 하고 자동 판정하지 않으며 미선택이어도 승인을 막지 않는다" },
       { num: "03", element: "상태 변경", description: "품목별 카드에서 승인, 보완 요청, 반려 중 선택한다. 승인액은 직접 입력하지 않는다." },
@@ -4100,8 +4124,11 @@ function DesktopShell({
     : screenId === "US-MSG-01" ? "메시지" : screenId === "OPS-TASK-01" ? "업무" : screenId.startsWith("OPS-MEET-01") ? "회의" : "재정";
   const { sideChat } = React.useContext(AppContext);
   // 홈 배지는 방과 1:1·부서 간 대화의 안 읽은 수를 합친다.
-  const unreadTotal = (messageRooms ?? []).reduce((sum, room) => sum + (room.unreadCount ?? 0), 0) + Object.values(sideChat?.unread ?? {}).reduce((sum, n) => sum + n, 0);
-  const spaceRoomUnread = (scope: string) => (messageRooms ?? []).filter(room => room.scope === scope && room.createdBy === SPACE_ROOM_CREATOR).reduce((sum, room) => sum + room.unreadCount, 0);
+  const { productPanelUrl } = React.useContext(AppContext);
+  const visibleRooms = (messageRooms ?? []).filter(room => roomVisibleTo(room, currentUser));
+  const unreadTotal = visibleRooms.reduce((sum, room) => sum + (room.unreadCount ?? 0), 0) + Object.values(sideChat?.unread ?? {}).reduce((sum, n) => sum + n, 0);
+  // 공간 메시지 탭 배지 = 공지방 + 내 부서방의 안 읽은 수(P-11).
+  const spaceRoomUnread = (spaceId: string) => visibleRooms.filter(room => room.spaceId === spaceId).reduce((sum, room) => sum + room.unreadCount, 0);
   const activeEvents = (eventRecords ?? [])
     .filter(record => record.kind !== "상시" && ACTIVE_EVENT_ORDER.includes(record.lifecycle))
     .sort((a, b) => ACTIVE_EVENT_ORDER.indexOf(a.lifecycle) - ACTIVE_EVENT_ORDER.indexOf(b.lifecycle));
@@ -4207,7 +4234,7 @@ function DesktopShell({
                 navigateTo(tabScreen);
               };
               // 공간 메시지 탭 옆에 그 방의 안 읽은 수(M-08).
-              const unread = tab === "메시지" ? spaceRoomUnread(inOurCouncil ? MESSAGE_SCOPE_GENERAL : selectedRecord?.info.name ?? "") : 0;
+              const unread = tab === "메시지" ? spaceRoomUnread(inOurCouncil ? STANDING_CONTAINER_ID : selectedRecord?.id ?? "") : 0;
               return (
                 <button
                   key={tab}
@@ -4221,15 +4248,16 @@ function DesktopShell({
           </div>
         )}
 
-        {tabs === EVENT_TABS && !inOurCouncil && <EventWorkspaceHeader />}
+        {/* 메시지 탭에서는 행사 요약 줄을 빼고 방 전환(공지방·부서방·구매 후보)을 둔다(P-11). */}
+        {tabs === EVENT_TABS && !inOurCouncil && effectiveActiveTab !== "메시지" && <EventWorkspaceHeader />}
 
         {/* Content */}
         <main className="flex-1 overflow-auto">
           {children}
         </main>
       </div>
-      {/* 전역 사이드챗: 어느 화면에서든 오른쪽에 열린다(M-12 A). */}
-      <SideChatPanel />
+      {/* 전역 사이드챗: 어느 화면에서든 오른쪽에 열린다(M-12 A). 상품 정보 패널이 열리면 그 위에 덮고, 닫으면 사이드챗으로 돌아간다(P-15). */}
+      {productPanelUrl ? <ProductInfoPanel /> : <SideChatPanel />}
     </div>
   );
 }
@@ -4255,9 +4283,9 @@ const canCompleteEvent = (user: { role: string }) => user.role === "회장단";
 // 예산 편성·구매 승인·구매 발주·증빙 처리: 재정부만
 const canManageFinance = (user: { dept: string; role: string }) => user.dept === "재정부";
 
-// 구매 요청 작성·보완 재제출: 부서장과 재정부. 일반 부원은 현황과 본인 요청을 조회만 한다.
+// 구매 요청 작성·보완 재제출: 부서장, 재정부(부원 포함), 회장단(chat-purchase P-16 권한, 2026-10-14). 일반 부원은 현황과 본인 요청을 조회만 한다.
 const canSubmitPurchaseRequest = (user: { dept: string; role: string }) =>
-  user.dept === "재정부" || user.role === "부서장";
+  user.dept === "재정부" || user.role === "부서장" || user.role === "회장단";
 
 // 조직 구조 수정: 회장단
 const canEditOrganization = (user: { role: string }) => user.role === "회장단";
@@ -15076,7 +15104,7 @@ function FINREQ01() {
   const [priority, setPriority] = useState<"보통" | "긴급">(activeDraft?.priority ?? editingRequest?.priority ?? "보통");
   const [urgentReason, setUrgentReason] = useState(activeDraft?.urgentReason ?? editingRequest?.urgentReason ?? "");
   const [items, setItems] = useState<PurchaseDraftItem[]>(activeDraft?.items ?? (editingRequest ? requestItemsToDraft(editingRequest) : (isDemoEmpty ? [
-    { id: 1, name: "", budgetLine: budgetLineOptions[0] ?? "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" },
+    { id: 1, name: "", budgetLine: "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" },
   ] : [
     { id: 1, name: "박스테이프", budgetLine: "행사 운영비", purchaseType: "일반 구매", quantity: 5, unit: "개", estimatedUnitPrice: 2000, estimatedTotalPrice: 10000, details: { 판매처: "다이소몰", 상품URL: "https://www.daisomall.co.kr/goods/1002345", 옵션규격: "50mm 투명" }, quoteStatus: "미요청" },
     { id: 2, name: "생수 500ml", budgetLine: "식비", purchaseType: "일반 구매", quantity: 10, unit: "박스", estimatedUnitPrice: 5000, estimatedTotalPrice: 50000, details: { 판매처: "마켓컬리 B2B", 상품URL: "https://www.kurly.com/goods/5009912", 옵션규격: "500ml x 20입" }, quoteStatus: "미요청" },
@@ -15097,7 +15125,7 @@ function FINREQ01() {
   // 링크 불러오기 상태(화면 표시용). 옵션 목록은 페이지에서 읽은 값이라 저장하지 않는다.
   const [linkFetch, setLinkFetch] = useState<Record<number, { state: "loading" | "loaded" | "unsupported" | "failed"; message?: string }>>({});
 
-  const addItem = () => setItems([{ id: Date.now(), name: "", budgetLine: budgetLineOptions[0] ?? "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" }, ...items]);
+  const addItem = () => setItems([{ id: Date.now(), name: "", budgetLine: "", purchaseType: "일반 구매", quantity: 1, unit: "개", estimatedUnitPrice: 0, estimatedTotalPrice: 0, details: {}, quoteStatus: "미요청" }, ...items]);
   const removeItem = (id: number) => setItems(items.filter(i => i.id !== id));
   
   const updateItem = (id: number, field: string, value: any) => {
@@ -15333,7 +15361,7 @@ function FINREQ01() {
   }
   // 예산 미편성 행사에서는 작성 폼 대신 편성을 유도한다(스펙 712: 편성된 예산 항목에서만 선택).
   if (!isEdit && budgetLineOptions.length === 0) {
-    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">아직 예산이 편성되지 않았습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청은 이 행사에 편성된 예산 항목 중에서 선택해 작성합니다. 재정부가 먼저 예산을 편성해 주세요.</p><Btn variant="primary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01B")}>예산 편성하러 가기</Btn></div></div></DesktopShell>;
+    return <DesktopShell activeSidebar="운영" title="구매 요청 작성" breadcrumb={["행사", eventInfo.name, "재정"]}><div className="h-full flex items-center justify-center p-8"><div className="max-w-md bg-white border border-gray-200 rounded-xl p-8 text-center shadow-sm"><p className="text-sm font-bold text-gray-800">아직 예산이 편성되지 않았습니다</p><p className="text-xs text-gray-500 mt-2 leading-5">구매 요청은 재정부가 이 행사의 예산을 편성한 뒤 받을 수 있어요. 예산 항목은 재정부가 검토할 때 정합니다. 재정부가 먼저 예산을 편성해 주세요.</p><Btn variant="primary" className="mt-5" onClick={() => navigateTo("EVT-FIN-01B")}>예산 편성하러 가기</Btn></div></div></DesktopShell>;
   }
 
   return (
@@ -15494,7 +15522,8 @@ function FINREQ01() {
                         <div id={`item_${item.id}_name`}>
                           <Input label="품목명" value={item.name} onChange={e => updateItem(item.id, "name", e.target.value)} placeholder="예: 박스테이프" required error={errors[`item_${item.id}_name`]} hint={autoHint("name")} />
                         </div>
-                        <Input label="예산 항목" select hideEmptyOption selectOptions={budgetLineOptions} value={item.budgetLine} onChange={e => updateItem(item.id, "budgetLine", e.target.value)} />
+                        {/* 예산 항목은 요청자가 고르지 않고 재정부가 검토할 때 고른다(chat-purchase P-19). */}
+                        <div className="flex flex-col gap-1"><span className="text-xs font-medium text-gray-700">예산 항목</span><p className="border border-dashed border-gray-200 rounded px-3 py-2 text-xs text-gray-500 bg-gray-50">{item.budgetLine || "재정부가 검토할 때 정해요"}</p></div>
                       </div>
 
                       <div className="grid grid-cols-4 gap-5 items-start">
@@ -15830,6 +15859,8 @@ function FINREV01() {
 
   const setItemStatus = (id: number, status: ItemReview["status"]) =>
     setReviews(prev => ({ ...prev, [id]: { ...prev[id], status } }));
+  // 예산 항목은 요청자가 아니라 재정부가 검토하면서 고른다(chat-purchase P-19). 고르지 않은 품목은 승인할 수 없다.
+  const [budgetPicks, setBudgetPicks] = useState<Record<number, string>>(() => Object.fromEntries(sourceReq.items.map(item => [item.id, item.budgetLine ?? ""])));
 
   // 쿠팡 자동 가격이 확정되지 않은 일반 구매 품목은 승인할 수 없다. 재정부가 링크를 열어 확인한 단가로 확정한다.
   const [priceInputs, setPriceInputs] = useState<Record<number, string>>({});
@@ -15882,11 +15913,13 @@ function FINREV01() {
   // 다른 요청이 이미 쓴 금액(정산 실지출 + 예약). 배정·기존 실지출(line.actual)은 budgetLineOverages가 뺀다.
   const otherReservedByLine = (lineName: string) => reviewUsage(lineName).spent + reviewUsage(lineName).reserved;
   const approvingByLine = (lineName: string) => sourceReq.items
-    .filter(i => (reviews[i.id]?.status ?? "검토 대기") === "승인" && i.budgetLine === lineName)
+    .filter(i => (reviews[i.id]?.status ?? "검토 대기") === "승인" && budgetPicks[i.id] === lineName)
     .reduce((sum, i) => sum + i.estimatedTotalPrice, 0);
   const budgetOverages = budgetLineOverages(reviewEventBudget, otherReservedByLine, approvingByLine);
   const budgetExceeded = reviewEventBudget.length > 0 && budgetOverages.length > 0;
   const allRejectionReasonsProvided = rejectedItems.every(item => reviews[item.id]?.rejectionReason.trim());
+  const needsBudgetPick = (itemId: number) => reviewEventBudget.length > 0 && !budgetPicks[itemId];
+  const missingBudgetLine = sourceReq.items.some(item => reviews[item.id]?.status === "승인" && needsBudgetPick(item.id));
 
   const getSubmitBtnLabel = () => {
     if (overallStatus === "최종 처리 불가") return "최종 처리";
@@ -15915,6 +15948,7 @@ function FINREV01() {
       const reviewed = r.items.map(item => ({
         ...item,
         status: reviews[item.id]?.status ?? item.status,
+        budgetLine: budgetPicks[item.id] || item.budgetLine,
         rejectionReason: reviews[item.id]?.status === "반려" ? reviews[item.id]?.rejectionReason.trim() : undefined,
         supplementReason: reviews[item.id]?.status === "보완 요청" ? supplementReasons[item.id]?.trim() : undefined,
         // 지정한 보완 대상 항목. 하나도 안 골랐으면 undefined로 두어 보완 화면이 전체를 연다(지정은 선택 사항).
@@ -16150,7 +16184,15 @@ function FINREV01() {
                               <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-start justify-between gap-4">
                                 <div>
                                   <p className="text-xs font-bold text-gray-900">{item.name}</p>
-                                  <p className="text-[10px] text-gray-500 mt-0.5">{item.purchaseType} · {item.budgetLine}</p>
+                                  <div className="flex items-center gap-1.5 mt-1">
+                                    <span className="text-[10px] text-gray-500">{item.purchaseType} ·</span>
+                                    {reviewEventBudget.length > 0
+                                      ? <select value={budgetPicks[item.id] ?? ""} disabled={locked} onChange={e => setBudgetPicks(prev => ({ ...prev, [item.id]: e.target.value }))} aria-label={`${item.name} 예산 항목`} className={`border rounded px-1.5 py-0.5 text-[10px] bg-white ${budgetPicks[item.id] ? "border-gray-200 text-gray-700" : "border-orange-300 text-orange-700"}`}>
+                                          <option value="" disabled>예산 항목 고르기</option>
+                                          {reviewEventBudget.map(line => <option key={line.name} value={line.name}>{line.name}</option>)}
+                                        </select>
+                                      : <span className="text-[10px] text-gray-400">예산 미편성</span>}
+                                  </div>
                                 </div>
                                 <div className="text-right shrink-0">
                                   <p className={`text-xs font-bold ${isPurchasePricePending(item) ? "text-orange-700" : "text-gray-900"}`}>{purchaseAmountLabel(item)}</p>
@@ -16290,8 +16332,8 @@ function FINREV01() {
                                           <button
                                             key={s.l}
                                             onClick={() => setItemStatus(item.id, s.v)}
-                                            disabled={s.v === "승인" && isPricePending(item)}
-                                            title={s.v === "승인" && isPricePending(item) ? "가격을 확정한 뒤 승인할 수 있어요" : undefined}
+                                            disabled={s.v === "승인" && (isPricePending(item) || needsBudgetPick(item.id))}
+                                            title={s.v === "승인" && isPricePending(item) ? "가격을 확정한 뒤 승인할 수 있어요" : s.v === "승인" && needsBudgetPick(item.id) ? "예산 항목을 고른 뒤 승인할 수 있어요" : undefined}
                                             className={`px-3 py-1.5 rounded border text-[10px] font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed ${review.status === s.v
                                               ? s.c === "green" ? "bg-green-600 text-white border-green-600"
                                                 : s.c === "yellow" ? "bg-yellow-500 text-white border-yellow-500"
@@ -16349,10 +16391,11 @@ function FINREV01() {
                   {unreviewedCount === 0 && !allRejectionReasonsProvided && (
                     <span className="text-xs text-red-600 font-medium">반려한 품목의 사유를 모두 입력해야 처리할 수 있습니다.</span>
                   )}
+                  {missingBudgetLine && <span className="text-xs text-orange-600 font-medium">승인한 품목의 예산 항목을 골라 주세요.</span>}
                   <Btn
                     variant="primary"
                     size="md"
-                    disabled={unreviewedCount > 0 || !allRejectionReasonsProvided || budgetExceeded}
+                    disabled={unreviewedCount > 0 || !allRejectionReasonsProvided || budgetExceeded || missingBudgetLine}
                     onClick={handleFinalAction}
                     className={`px-8 ${getSubmitBtnColor()}`}
                   >
@@ -17188,7 +17231,7 @@ function FINREQ02() {
                         <div className="flex flex-col gap-3">
                           <p className="text-[10px] font-bold text-gray-400">제출한 요청 정보 (작성 화면과 동일)</p>
                           <div className="grid grid-cols-3 gap-x-6 gap-y-2 text-[11px]">
-                            <div><span className="text-gray-400">예산 항목 </span><span className="text-gray-700 font-medium">{item.budgetLine}</span></div>
+                            <div><span className="text-gray-400">예산 항목 </span><span className="text-gray-700 font-medium">{item.budgetLine || "재정부 검토 시 지정"}</span></div>
                             <div><span className="text-gray-400">구매 유형 </span><span className="text-gray-700 font-medium">{item.purchaseType}</span></div>
                             <div><span className="text-gray-400">수량 </span><span className="text-gray-700 font-medium">{item.quantity}{item.unit}</span></div>
                             <div><span className="text-gray-400">예상 단가 </span><span className="text-gray-700 font-medium">{purchaseAmountLabel(item, item.estimatedUnitPrice)}</span></div>
@@ -17493,7 +17536,7 @@ function FINSUP01() {
                   ["수량", primarySupplementItem ? `${primarySupplementItem.quantity}${primarySupplementItem.unit}` : "—"],
                   ["단가(추정)", primarySupplementItem ? purchaseAmountLabel(primarySupplementItem, primarySupplementItem.estimatedUnitPrice) : "—"],
                   ["합계(추정)", primarySupplementItem ? purchaseAmountLabel(primarySupplementItem) : "—"],
-                  ["예산 항목", primarySupplementItem?.budgetLine ?? "—"],
+                  ["예산 항목", primarySupplementItem?.budgetLine || "재정부 검토 시 지정"],
                 ].map(([k, v]) => (
                   <div key={k} className="bg-gray-50 rounded-lg p-3">
                     <p className="text-[10px] text-gray-400 mb-0.5">{k}</p>
@@ -20001,7 +20044,7 @@ function MessageRoomsScreen({ initialModalOpen = false }: { initialModalOpen?: b
           ) : (
             <div className="flex flex-col gap-6">
               {scopes.map(scope => {
-                const rooms = messageRooms.filter(room => room.scope === scope);
+                const rooms = messageRooms.filter(room => room.scope === scope && roomVisibleTo(room, currentUser));
                 if (rooms.length === 0) return null;
                 return (
                   <div key={scope} className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
@@ -20065,97 +20108,446 @@ function MessageRoomsScreen({ initialModalOpen = false }: { initialModalOpen?: b
 // 공간의 대화방은 미리 연결되어 있다(M-09). 첫 메시지를 보내는 순간 방이 목록에 나타나며, 사용자가 방을 만들지 않는다.
 // 같은 방이 홈 메시지함·전체 방 목록(MSG-01)에도 보인다.
 const SPACE_ROOM_CREATOR = "자동 연결";
-// 공간 방 예시 대화(와이어프레임 검토용). 우리 학생회 방과 활성 행사 방에 미리 넣어 둔다.
-const spaceRoom = (scope: string, name: string, depts: string[], unreadCount: number, lines: [string, string, string][]): MessageRoom => ({
-  id: `space-${scope}`, name, scope, depts, members: [], createdBy: SPACE_ROOM_CREATOR, createdAt: "2026-03-02", unreadCount,
-  messages: lines.map(([sender, at, text], index) => ({ id: `${scope}-${index}`, sender, at, text })),
-});
+// ─── 공간 메시지: 공지방 · 부서방 · 구매 후보 — .scratch/chat-purchase P-11~P-19 ─────────────
+// 행사·우리 학생회의 메시지 탭은 공지방(공간 전체)과 부서방(공간 안의 내 부서)으로 나뉜다. 탭을 열면 부서방부터 보인다.
+// 부서방에 올라온 쇼핑 링크는 그 부서의 구매 후보로 자동으로 담긴다. 공지방·사이드챗 링크는 `부서방으로 옮기기`만 둔다.
+type SpaceRoomKind = "공지" | "부서";
+const spaceRoomId = (spaceId: string, kind: SpaceRoomKind, dept = "") => kind === "공지" ? `space-${spaceId}-notice` : `space-${spaceId}-${dept}`;
+// 다른 부서의 부서방은 보이지 않는다.
+const roomVisibleTo = (room: MessageRoom, user: { dept: string }) => room.spaceKind !== "부서" || room.depts.includes(user.dept);
+const linksIn = (text: string) => text.match(/https?:\/\/\S+/g) ?? [];
+// 알려진 쇼핑몰 주소만 쇼핑 링크로 본다(쇼핑이 아닌 링크는 담지 않는다).
+const isShoppingUrl = (url: string) => sellerFromUrl(url) !== null;
+const nowClock = () => new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+
+const spaceRoom = (spaceId: string, scope: string, title: string, kind: SpaceRoomKind, dept: string, unreadCount: number, lines: [string, string, string][]): MessageRoom => {
+  const id = spaceRoomId(spaceId, kind, dept);
+  return {
+    id, name: kind === "공지" ? `${title} 공지방` : `${title} · ${dept}`, scope, spaceId, spaceKind: kind,
+    depts: kind === "공지" ? ALL_DEPTS : [dept], members: [], createdBy: SPACE_ROOM_CREATOR, createdAt: "2026-03-02", unreadCount,
+    messages: lines.map(([sender, at, text], index) => ({ id: `${id}-${index}`, sender, at, text })),
+  };
+};
 const ALL_DEPTS = Array.from(new Set(DEFAULT_ORGANIZATION_MEMBER_ROLES.map(m => m.dept)));
+const SPORTS_NAME = DEFAULT_EVENT_INFO.name;
 const DEFAULT_SPACE_ROOMS: MessageRoom[] = [
-  spaceRoom(DEFAULT_EVENT_INFO.name, DEFAULT_EVENT_INFO.name, ALL_DEPTS, 3, [
+  spaceRoom(SPORTS_EVENT_ID, SPORTS_NAME, SPORTS_NAME, "공지", "", 2, [
     ["이수현", "09:02", "체육대회 종목 확정본 문서 탭에 올렸어요. 피구·계주·줄다리기 세 종목입니다."],
-    ["박해랑", "09:10", "운영부는 종목별 진행 요원 6명 배치할게요. 업무 탭에 카드 만들어 둘게요."],
     ["김민석", "09:31", "포스터 시안 두 개 중에 오늘 안에 골라 주세요. 내일 인쇄 넘겨야 해요."],
     ["김민준", "10:05", "상품 구매 요청은 이번 주 금요일까지 올려 주세요. 다음 주에 일괄 발주합니다."],
-    ["정하늘", "10:12", "운동장 대여 신청 완료했어요. 당일 08:00부터 사용 가능해요."],
+    ["이윤슬", "10:15", "본부석 명찰은 이걸로 하면 될 것 같아요 https://www.coupang.com/vp/products/778812?vendorItemId=7788121"],
   ]),
-  spaceRoom("2026 신입생 환영 행사", "2026 신입생 환영 행사", ["기획부", "홍보부", "운영부"], 0, [
+  spaceRoom(SPORTS_EVENT_ID, SPORTS_NAME, SPORTS_NAME, "부서", "운영부", 3, [
+    ["박해랑", "09:10", "운영부는 종목별 진행 요원 6명 배치할게요. 업무 탭에 카드 만들어 둘게요."],
+    ["정하늘", "10:12", "운동장 대여 신청 완료했어요. 당일 08:00부터 사용 가능해요."],
+    ["정하늘", "10:20", "진행 요원 6명이 입을 조끼가 필요해요. 이걸로 어때요? https://www.coupang.com/vp/products/778812"],
+    ["박해랑", "10:31", "계주 출발선이랑 야간 동선 안내에 경광봉도 필요하고, 박스테이프는 다이소몰이 싸요 https://www.coupang.com/vp/products/556677 https://www.daisomall.co.kr/goods/1002345"],
+    ["정하늘", "10:40", "조끼 링크 다시 올려요 https://www.coupang.com/vp/products/778812"],
+    ["박민수", "10:52", "본부석 인원은 L 사이즈로 골라 둔 링크예요 https://www.coupang.com/vp/products/778812?vendorItemId=7788122"],
+  ]),
+  spaceRoom("EVT-WELCOME", "2026 신입생 환영 행사", "2026 신입생 환영 행사", "공지", "", 0, [
     ["이수현", "어제", "환영 행사 날짜 후보 3개 일정 탭에 올렸어요. 다음 회의에서 정해요."],
     ["이윤슬", "어제", "신입생 단톡방 공지 문구 초안 문서 탭에 있어요. 확인 부탁드려요."],
-    ["박민수", "09:40", "장소는 대강당 우선으로 알아보고 있어요."],
   ]),
-  spaceRoom("봄 축제 학생회 부스", "봄 축제 학생회 부스", ["대외협력부", "재정부", "운영부"], 0, [
+  spaceRoom("EVT-SPRING", "봄 축제 학생회 부스", "봄 축제 학생회 부스", "공지", "", 0, [
     ["김민준", "06.03", "부스 정산 마무리 중이에요. 남은 영수증 있으면 이번 주까지 주세요."],
     ["박해랑", "06.03", "대여 물품 반납 완료했습니다."],
   ]),
-  spaceRoom(MESSAGE_SCOPE_GENERAL, "우리 학생회", ALL_DEPTS, 2, [
+  spaceRoom(STANDING_CONTAINER_ID, MESSAGE_SCOPE_GENERAL, "우리 학생회", "공지", "", 2, [
     ["김바다", "08:50", "이번 주 정기 회의는 목요일 18:00 학생회실입니다. 안건은 회의 탭에 올려 주세요."],
     ["김민준", "09:15", "2학기 상시 지출 예산 배정표 재정 탭에 올렸어요. 부서별로 확인 부탁드립니다."],
-    ["이윤슬", "09:48", "학생회 인스타 계정 비밀번호 바뀌었어요. 홍보부장님께 따로 받아 주세요."],
     ["이수현", "10:20", "학생회실 비품 점검표 업무 탭에 올렸어요. 금요일까지 부서별로 체크해 주세요."],
+  ]),
+  spaceRoom(STANDING_CONTAINER_ID, MESSAGE_SCOPE_GENERAL, "우리 학생회", "부서", "운영부", 1, [
+    ["박해랑", "09:30", "학생회실 물품 정리는 이번 주 금요일에 해요."],
+    ["정하늘", "10:35", "회의실 프린터 토너가 다 떨어졌어요. 같은 모델이에요 https://www.coupang.com/vp/products/999999"],
   ]),
 ];
 
-function SpaceMessages({ scope, title }: { scope: string; title: string }) {
-  const { messageRooms, setMessageRooms, currentUser, navigateTo, openSideChat } = React.useContext(AppContext);
-  const room = messageRooms.find(item => item.scope === scope && item.createdBy === SPACE_ROOM_CREATOR);
+// ─── 구매 후보 ───────────────────────────────────────────────────────────────
+// 후보 카드는 구매 요청 카드를 미리 만들어 둔 것이다(P-05·P-16). 옵션·수량은 모두가 같이 보는 값이다.
+type PurchaseCandidate = {
+  id: string;
+  spaceId: string;
+  dept: string;
+  key: string;                       // 같은 상품 합치기(쿠팡: 상품ID+옵션ID, 그 밖: 주소)
+  url: string;
+  readState: "loaded" | "unsupported" | "failed";
+  name: string;
+  seller: string;
+  options: CoupangOption[];
+  optionLabel: string;               // 고른 옵션(단일 상품은 SINGLE_OPTION_LABEL, 미정은 "")
+  unitPrice: number | null;          // 쿠팡은 옵션을 고르면 확정, 그 밖은 직접 입력
+  shipping: number;
+  meta?: CoupangMeta;
+  quantity: number;
+  postedBy: string;
+  postedAt: string;
+  repeats: number;                   // 같은 링크가 더 올라온 횟수(`외 N번`)
+  messageIds: string[];
+  reasons: string[];                 // 링크와 함께 쓴 말(제목·구매 목적 끼룩이 초안의 근거)
+  requestId?: string;
+};
+const COUPANG_DEMO_VENDOR_ITEMS: Record<string, string> = { "7788121": "형광 그린 / M", "7788122": "형광 그린 / L" };
+function candidateFromLink(url: string, spaceId: string, dept: string, poster: string, at: string, messageId: string, text: string): PurchaseCandidate {
+  const productId = url.match(/coupang\.com\/vp\/products\/(\d+)/)?.[1];
+  const vendorItemId = url.match(/[?&]vendorItemId=(\d+)/)?.[1] ?? "";
+  const reason = text.replace(/https?:\/\/\S+/g, "").trim();
+  const key = productId ? `cp:${productId}:${vendorItemId}` : url.replace(/[?#].*$/, "");
+  const base = {
+    id: `cand-${messageId}-${key}`, spaceId, dept, key, url,
+    quantity: 1, postedBy: poster, postedAt: at, repeats: 0, messageIds: [messageId], reasons: reason ? [reason] : [], options: [] as CoupangOption[], optionLabel: "", shipping: 0,
+  };
+  const result = simulateCoupangFetch(url);
+  if (result.status === "unsupported") return { ...base, readState: "unsupported", name: "", seller: sellerFromUrl(url, true) ?? "쇼핑몰", unitPrice: null };
+  if (result.status === "failed") return { ...base, readState: "failed", name: "", seller: "쿠팡", unitPrice: null };
+  if (result.options.length === 0 && result.singlePrice != null) return { ...base, readState: "loaded", name: result.name, seller: "쿠팡", meta: result.meta, shipping: result.shipping, optionLabel: SINGLE_OPTION_LABEL, unitPrice: result.singlePrice };
+  const preset = result.options.find(o => !o.soldOut && o.label === COUPANG_DEMO_VENDOR_ITEMS[vendorItemId]);
+  const range = coupangPriceRange(result.options);
+  return { ...base, readState: "loaded", name: result.name, seller: "쿠팡", meta: result.meta, shipping: result.shipping, options: result.options, optionLabel: preset?.label ?? "", unitPrice: preset?.price ?? (range && range.min === range.max ? range.min : null) };
+}
+// 같은 부서방에 같은 링크가 다시 오면 하나로 합친다. 이미 요청한 후보와는 합치지 않는다.
+function mergeCandidate(list: PurchaseCandidate[], next: PurchaseCandidate): PurchaseCandidate[] {
+  const same = list.find(c => c.spaceId === next.spaceId && c.dept === next.dept && c.key === next.key && !c.requestId);
+  if (!same) return [...list, next];
+  return list.map(c => c !== same ? c : { ...c, repeats: c.repeats + 1, messageIds: [...c.messageIds, ...next.messageIds], reasons: [...c.reasons, ...next.reasons] });
+}
+// 부서방 메시지의 쇼핑 링크를 모두 후보로 담는다(한 메시지에 여럿이면 여럿).
+const collectCandidates = (list: PurchaseCandidate[], room: MessageRoom, message: ChatMessage) =>
+  room.spaceKind !== "부서" || !room.spaceId ? list
+    : linksIn(message.text).filter(isShoppingUrl).reduce((acc, url) => mergeCandidate(acc, candidateFromLink(url, room.spaceId!, room.depts[0], message.sender, message.at, message.id, message.text)), list);
+const seedCandidates = (rooms: MessageRoom[]) => rooms.reduce<PurchaseCandidate[]>((list, room) => room.messages.reduce((acc, message) => collectCandidates(acc, room, message), list), []);
+const candidatePriceRange = (c: PurchaseCandidate) => coupangPriceRange(c.options);
+const candidateTotal = (c: PurchaseCandidate) => c.unitPrice == null ? null : c.unitPrice * c.quantity + c.shipping;
+const candidateDisplayName = (c: PurchaseCandidate) => c.name || (c.readState === "failed" ? "쿠팡 상품 (정보를 읽지 못했어요)" : `${c.seller} 상품`);
+
+// 상품 정보 패널(P-15): 대화의 쇼핑 링크를 누르면 오른쪽에 열린다. 사이드챗이 열려 있으면 그 위에 덮고, 닫으면 사이드챗으로 돌아간다.
+function ProductInfoPanel() {
+  const { productPanelUrl, setProductPanelUrl } = React.useContext(AppContext);
+  if (!productPanelUrl) return null;
+  const preview = candidateFromLink(productPanelUrl, "", "", "", "", "preview", "");
+  const range = candidatePriceRange(preview);
+  return (
+    <aside className="w-[340px] shrink-0 border-l border-gray-200 bg-white flex flex-col min-h-0">
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <p className="text-sm font-bold text-gray-900">상품 정보</p>
+        <button type="button" onClick={() => setProductPanelUrl(null)} aria-label="상품 정보 닫기" className="p-1 text-gray-400 hover:bg-gray-100 rounded"><X className="w-4 h-4" /></button>
+      </div>
+      <div className="p-4 flex flex-col gap-2 overflow-y-auto">
+        <div className="h-44 rounded-xl bg-blue-50" />
+        <p className="text-sm font-semibold text-gray-900 mt-2">{candidateDisplayName(preview)}</p>
+        <p className="text-xs text-gray-500">{preview.optionLabel ? `옵션: ${preview.optionLabel}` : preview.options.length > 0 ? `옵션 ${preview.options.length}개 · 옵션 미정` : preview.seller}</p>
+        <p className="text-base font-bold text-gray-900">{preview.unitPrice != null ? `${preview.unitPrice.toLocaleString()}원` : range ? `${range.min.toLocaleString()}~${range.max.toLocaleString()}원` : "가격은 링크에서 확인"}</p>
+        {preview.meta && <p className="text-[11px] text-gray-500">{preview.meta.delivery} · 도착 예정 {formatArrival(preview.meta.arrival)} · {preview.meta.saleUnit}{preview.shipping ? ` · 배송비 ${preview.shipping.toLocaleString()}원` : ""}</p>}
+        <a href={productPanelUrl} target="_blank" rel="noreferrer" className="text-xs text-blue-700 hover:underline mt-1">{preview.seller}에서 보기 ↗</a>
+      </div>
+    </aside>
+  );
+}
+
+// 메시지 본문: 링크는 파란 글자로 보이고, 쇼핑 링크를 누르면 상품 정보 패널이 열린다.
+function MessageText({ text, mine }: { text: string; mine: boolean }) {
+  const { setProductPanelUrl } = React.useContext(AppContext);
+  const parts = text.split(/(https?:\/\/\S+)/g);
+  return (
+    <>
+      {parts.map((part, index) => /^https?:\/\//.test(part)
+        ? <button key={index} type="button" onClick={() => isShoppingUrl(part) && setProductPanelUrl(part)} className={`block text-left text-xs break-all underline-offset-2 hover:underline ${mine ? "text-blue-100" : "text-blue-600"} ${isShoppingUrl(part) ? "" : "cursor-default"}`}>{part}</button>
+        : <span key={index}>{part}</span>)}
+    </>
+  );
+}
+
+function SpaceMessageArea({ spaceId, scope, title }: { spaceId: string; scope: string; title: string }) {
+  const { messageRooms, setMessageRooms, currentUser, openSideChat, purchaseCandidates, setPurchaseCandidates, spaceViewRequest, setSpaceViewRequest } = React.useContext(AppContext);
+  const [view, setView] = useState<"공지" | "부서" | "후보">(() => spaceViewRequest ?? "부서");
+  React.useEffect(() => { if (spaceViewRequest) setSpaceViewRequest(null); }, []);
+  const dept = currentUser.dept;
+  const noticeId = spaceRoomId(spaceId, "공지");
+  const deptId = spaceRoomId(spaceId, "부서", dept);
+  const noticeRoom = messageRooms.find(room => room.id === noticeId);
+  const deptRoom = messageRooms.find(room => room.id === deptId);
+  const room = view === "공지" ? noticeRoom : view === "부서" ? deptRoom : undefined;
+  const openCandidates = purchaseCandidates.filter(c => c.spaceId === spaceId && c.dept === dept && !c.requestId);
   const [draft, setDraft] = useState("");
   const slashState = useSlashSuggestions(draft);
   const slashEnter = useSlashEnter();
   React.useEffect(() => {
     if (room && room.unreadCount > 0) setMessageRooms(prev => prev.map(item => item.id === room.id ? { ...item, unreadCount: 0 } : item));
-  }, [room?.id]);
+  }, [room?.id, room?.unreadCount]);
+  const ensureRoom = (prev: MessageRoom[], kind: SpaceRoomKind) => prev.some(r => r.id === spaceRoomId(spaceId, kind, dept)) ? prev : [...prev, spaceRoom(spaceId, scope, title, kind, dept, 0, [])];
+  // 메시지를 방에 올린다. 부서방이면 쇼핑 링크를 후보로 담는다(P-13).
+  const post = (kind: SpaceRoomKind, text: string, movedFrom?: string) => {
+    const message: ChatMessage = { id: `m${Date.now()}`, sender: currentUser.name, text, at: nowClock(), movedFrom };
+    const targetId = spaceRoomId(spaceId, kind, dept);
+    setMessageRooms(prev => ensureRoom(prev, kind).map(item => item.id === targetId ? { ...item, messages: [...item.messages, message] } : item));
+    if (kind === "부서") setPurchaseCandidates(prev => collectCandidates(prev, spaceRoom(spaceId, scope, title, "부서", dept, 0, []), message));
+  };
   const send = () => {
     const text = draft.trim();
-    if (!text || text.startsWith("/")) return;
-    const message: ChatMessage = { id: `m${Date.now()}`, sender: currentUser.name, text, at: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) };
-    setMessageRooms(prev => room
-      ? prev.map(item => item.id === room.id ? { ...item, messages: [...item.messages, message] } : item)
-      : [...prev, { id: `space-${scope}`, name: title, scope, depts: [], members: [], createdBy: SPACE_ROOM_CREATOR, createdAt: new Date().toISOString().slice(0, 10), messages: [message], unreadCount: 0 }]);
+    if (!text || text.startsWith("/") || view === "후보") return;
+    post(view, text);
     setDraft("");
   };
+  const movedIds = new Set((deptRoom?.messages ?? []).map(m => m.movedFrom).filter(Boolean));
+  const candidatesOf = (messageId: string) => purchaseCandidates.filter(c => c.spaceId === spaceId && c.dept === dept && c.messageIds.includes(messageId));
+  const unreadOf = (r?: MessageRoom) => r?.unreadCount ?? 0;
+  const tabs: { key: "공지" | "부서" | "후보"; label: string; count?: number; badge?: number }[] = [
+    { key: "공지", label: "공지방", badge: unreadOf(noticeRoom) },
+    { key: "부서", label: `${dept} 방`, badge: unreadOf(deptRoom) },
+    { key: "후보", label: "구매 후보", count: openCandidates.length },
+  ];
   return (
     <div className="h-full flex flex-col min-h-0 bg-gray-50">
-      <div className="px-6 py-3 border-b border-gray-200 bg-white shrink-0 flex items-center justify-between gap-4">
-        <div><p className="text-sm font-bold text-gray-900">{title} 대화방</p><p className="text-[10px] text-gray-400 mt-0.5">미리 연결된 방 · 공간 구성원은 자동으로 참여합니다</p></div>
-        <span className="text-[10px] text-gray-400">이름을 누르거나 <b>/</b>를 치면 1:1 사이드챗이 열려요</span>
+      <div className="px-6 bg-white border-b border-gray-200 shrink-0 flex items-center justify-between gap-4">
+        <div className="flex">
+          {tabs.map(tab => (
+            <button key={tab.key} type="button" onClick={() => setView(tab.key)} className={`px-3 py-2.5 text-xs border-b-2 -mb-px ${view === tab.key ? "border-blue-600 text-blue-700 font-semibold" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+              {tab.label}{tab.count != null && <span className="ml-1">{tab.count}</span>}{(tab.badge ?? 0) > 0 && <span className="ml-1.5 text-[10px] font-bold bg-red-500 text-white rounded-full px-1.5 py-0.5">{tab.badge}</span>}
+            </button>
+          ))}
+        </div>
+        <span className="text-[10px] text-gray-400">{view === "공지" ? `${title} 구성원 모두가 보는 방` : view === "부서" ? `${title} · ${dept}만 보는 방 · 쇼핑 링크는 구매 후보로 담겨요` : `${dept} 방에 올라온 쇼핑 링크`}</span>
       </div>
-      <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 min-h-0">
-        {!room || room.messages.length === 0
-          ? <div className="m-auto text-center"><p className="text-sm font-semibold text-gray-700">아직 나눈 대화가 없어요</p><p className="text-xs text-gray-400 mt-1.5">방은 이미 연결되어 있어요. 첫 메시지를 보내면 대화가 시작됩니다.</p></div>
-          : room.messages.map(message => {
-            const mine = message.sender === currentUser.name;
-            return (
-              <div key={message.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
-                {!mine && <span className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-500 text-[10px] font-bold flex items-center justify-center shrink-0">{message.sender.slice(0, 1)}</span>}
-                <div className={`max-w-[60%] flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
-                  {!mine && <PersonName name={message.sender} className="text-[10px] text-gray-500" />}
-                  <div className={`rounded-2xl px-3.5 py-2 text-xs leading-5 ${mine ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}>{message.text}</div>
-                  <span className="text-[9px] text-gray-400">{message.at}</span>
-                </div>
-              </div>
-            );
-          })}
-      </div>
-      <div className="relative px-6 py-3 border-t border-gray-200 bg-white shrink-0 flex items-end gap-2">
-        <div className="absolute left-6 right-6 bottom-full"><div className="relative"><SlashSuggestList draft={draft} onPick={(target, rest) => { openSideChat(target, rest); setDraft(""); }} /></div></div>
-        <textarea value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Escape" && draft.startsWith("/")) setDraft(""); if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!slashEnter(draft, slashState.suggestions, slashState.remainder, () => setDraft(""))) send(); } }} placeholder="메시지 입력 · @ 부르기 · / 1:1 대화" className="flex-1 h-10 border border-gray-300 rounded-lg px-3 py-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-blue-500" />
-        <Btn variant="primary" size="sm" onClick={send}>{title} 방에 보내기</Btn>
-      </div>
+      {view === "후보" ? <PurchaseCandidateBoard spaceId={spaceId} title={title} /> : (
+        <>
+          <div className="flex-1 overflow-y-auto px-6 py-4 flex flex-col gap-3 min-h-0">
+            {!room || room.messages.length === 0
+              ? <div className="m-auto text-center"><p className="text-sm font-semibold text-gray-700">아직 나눈 대화가 없어요</p><p className="text-xs text-gray-400 mt-1.5">방은 이미 연결되어 있어요. 첫 메시지를 보내면 대화가 시작됩니다.</p></div>
+              : room.messages.map(message => {
+                const mine = message.sender === currentUser.name;
+                const shopping = linksIn(message.text).filter(isShoppingUrl);
+                const collected = view === "부서" ? candidatesOf(message.id) : [];
+                const requested = collected.filter(c => c.requestId);
+                return (
+                  <div key={message.id} className={`flex items-end gap-2 ${mine ? "justify-end" : "justify-start"}`}>
+                    {!mine && <span className="w-7 h-7 rounded-full bg-white border border-gray-200 text-gray-500 text-[10px] font-bold flex items-center justify-center shrink-0">{message.sender.slice(0, 1)}</span>}
+                    <div className={`max-w-[60%] flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
+                      {!mine && <PersonName name={message.sender} className="text-[10px] text-gray-500" />}
+                      <div className={`rounded-2xl px-3.5 py-2 text-xs leading-5 ${mine ? "bg-blue-600 text-white" : "bg-white border border-gray-200 text-gray-800"}`}><MessageText text={message.text} mine={mine} /></div>
+                      {shopping.length > 0 && view === "부서" && (requested.length > 0
+                        ? <p className="text-[10px] text-gray-500">요청 완료 · {Array.from(new Set(requested.map(c => c.requestId))).join(", ")}</p>
+                        : <KkirukDone className="text-[10px] text-blue-700">끼룩이가 구매 후보에 담았어요{shopping.length > 1 ? ` (${shopping.length}개)` : ""}</KkirukDone>)}
+                      {shopping.length > 0 && view === "공지" && (movedIds.has(message.id)
+                        ? <p className="text-[10px] text-gray-500">{dept} 방으로 옮겼어요</p>
+                        : <button type="button" onClick={() => post("부서", message.text, message.id)} className="text-[10px] font-semibold text-blue-700 hover:underline">{dept} 방으로 옮기기</button>)}
+                      <span className="text-[9px] text-gray-400">{message.at}</span>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+          <div className="relative px-6 py-3 border-t border-gray-200 bg-white shrink-0 flex items-end gap-2">
+            <div className="absolute left-6 right-6 bottom-full"><div className="relative"><SlashSuggestList draft={draft} onPick={(target, rest) => { openSideChat(target, rest); setDraft(""); }} /></div></div>
+            <textarea value={draft} onChange={e => setDraft(e.target.value)} onKeyDown={e => { if (e.key === "Escape" && draft.startsWith("/")) setDraft(""); if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); if (!slashEnter(draft, slashState.suggestions, slashState.remainder, () => setDraft(""))) send(); } }} placeholder="메시지 입력 · @ 부르기 · / 1:1 대화" className="flex-1 h-10 border border-gray-300 rounded-lg px-3 py-2 text-xs resize-none focus:outline-none focus:ring-1 focus:ring-blue-500" />
+            <Btn variant="primary" size="sm" onClick={send}>{view === "공지" ? "공지방에 보내기" : `${dept} 방에 보내기`}</Btn>
+          </div>
+        </>
+      )}
     </div>
   );
 }
+
+// 구매 후보 보드(P-16~P-18): 카드 좌상단 체크박스를 누르면 그 자리에서 구매 요청 카드로 펼쳐진다.
+// 둘 이상 체크하면 위로 모아 묶음(요청 1건)으로 만들고, 제목·구매 목적·필요한 날짜·우선순위는 묶음에서 한 번만 받는다.
+// 예산 항목은 요청자가 고르지 않고 재정부가 검토할 때 고른다(P-19). 구매 유형은 일반 구매.
+function PurchaseCandidateBoard({ spaceId, title }: { spaceId: string; title: string }) {
+  const { purchaseCandidates, setPurchaseCandidates, currentUser, purchaseRequests, setPurchaseRequests, navigateTo, setSelectedEventId, setProductPanelUrl } = React.useContext(AppContext);
+  const dept = currentUser.dept;
+  const mine = purchaseCandidates.filter(c => c.spaceId === spaceId && c.dept === dept);
+  const open = mine.filter(c => !c.requestId);
+  const doneIds = Array.from(new Set(mine.filter(c => c.requestId).map(c => c.requestId!)));
+  const [checked, setChecked] = useState<string[]>([]);
+  const checkedList = open.filter(c => checked.includes(c.id));
+  const grouped = checkedList.length >= 2;
+  const canSubmit = canSubmitPurchaseRequest(currentUser);
+  const today = formatDateInput(new Date());
+  const spaceShort = title.replace(/^\d{4}(학년도)?\s*/, "");
+  // 제목·구매 목적 끼룩이 초안: 상품명과 링크와 함께 쓴 말만 쓴다. 대화에 없는 이유는 만들지 않는다(P-06).
+  const autoTitle = (list: PurchaseCandidate[]) => list.length === 0 ? "" : `${spaceShort} ${candidateDisplayName(list[0])}${list.length > 1 ? ` 외 ${list.length - 1}건` : ""} 구매`;
+  const autoPurpose = (list: PurchaseCandidate[]) => {
+    const lines = list.filter(c => c.reasons.length > 0).map(c => `- ${candidateDisplayName(c)}: ${Array.from(new Set(c.reasons)).join(" / ")}`);
+    return lines.length > 0 ? `${dept} 방에서 이야기한 품목입니다.\n${lines.join("\n")}` : "";
+  };
+  const selectionKey = checkedList.map(c => c.id).join(",");
+  const [form, setForm] = useState({ title: "", purpose: "", purposeDraft: true, neededDate: "", priority: "보통" as "보통" | "긴급", urgentReason: "" });
+  const [errors, setErrors] = useState<string[]>([]);
+  React.useEffect(() => {
+    setForm(f => ({ ...f, title: autoTitle(checkedList), purpose: autoPurpose(checkedList), purposeDraft: true }));
+    setErrors([]);
+  }, [selectionKey]);
+  const toggle = (id: string) => setChecked(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const update = (id: string, patch: Partial<PurchaseCandidate>) => setPurchaseCandidates(prev => prev.map(c => c.id === id ? { ...c, ...patch } : c));
+  const pickOption = (c: PurchaseCandidate, label: string) => { const option = c.options.find(o => o.label === label); update(c.id, { optionLabel: label, unitPrice: option ? option.price : null }); };
+  const canRemove = (c: PurchaseCandidate) => c.postedBy === currentUser.name || currentUser.role === "부서장";
+  const priced = checkedList.filter(c => c.unitPrice != null);
+  const total = priced.reduce((sum, c) => sum + (candidateTotal(c) ?? 0), 0);
+
+  const submit = () => {
+    const problems: string[] = [];
+    if (!form.neededDate) problems.push("필요한 날짜를 골라 주세요");
+    else if (form.neededDate < today) problems.push("오늘 이후 날짜를 골라 주세요");
+    if (form.priority === "긴급" && !form.urgentReason.trim()) problems.push("긴급 사유를 적어 주세요");
+    if (!form.title.trim()) problems.push("요청 제목을 적어 주세요");
+    if (!form.purpose.trim()) problems.push("구매 목적을 적어 주세요");
+    else if (form.purposeDraft) problems.push("구매 목적 끼룩이 초안을 확인해 주세요");
+    checkedList.forEach(c => {
+      if (!c.name.trim()) problems.push(`품목명을 적어 주세요(${c.seller})`);
+      if (c.options.length > 0 && !c.optionLabel) problems.push(`옵션을 골라 주세요(${candidateDisplayName(c)})`);
+      else if (c.unitPrice == null || c.unitPrice <= 0) problems.push(`단가를 적어 주세요(${candidateDisplayName(c)})`);
+    });
+    setErrors(problems);
+    if (problems.length > 0) return;
+    const requestNumber = `REQ-${String(purchaseRequests.length + 1).padStart(3, "0")}`;
+    const stamp = linkStamp();
+    const items: PurchaseItem[] = checkedList.map((c, index) => ({
+      id: index + 1, name: c.name.trim(), budgetLine: "", purchaseType: "일반 구매", quantity: c.quantity, unit: "개",
+      estimatedUnitPrice: c.unitPrice ?? 0, estimatedTotalPrice: candidateTotal(c) ?? 0, status: "검토 대기",
+      details: {
+        판매처: c.seller, 상품URL: c.url, 옵션규격: c.optionLabel, 배송비: String(c.shipping),
+        ...(c.meta ? { 상품ID: c.meta.productId, 판매자: c.meta.seller, 배송방식: c.meta.delivery, 도착예정일: c.meta.arrival, 판매단위: c.meta.saleUnit, 할인안내: c.meta.discountNote ?? "", 정보기준: `쿠팡 ${stamp} 기준`, 옵션목록: JSON.stringify(c.options), 가격상태: "확정", 가격출처: `쿠팡 ${stamp} 기준 · 와우 회원가`, 자동입력: "name,판매처,옵션규격,estimatedUnitPrice,배송비" } : {}),
+      },
+    }));
+    setPurchaseRequests(prev => [{
+      id: requestNumber, eventId: spaceId, title: form.title.trim(), event: title, dept, requester: currentUser.name, purpose: form.purpose.trim(),
+      neededDate: form.neededDate, priority: form.priority, urgentReason: form.priority === "긴급" ? form.urgentReason.trim() : undefined,
+      totalEstimatedAmount: items.reduce((sum, item) => sum + item.estimatedTotalPrice, 0), status: "검토 대기", items,
+      history: [
+        { date: historyStamp(), action: `요청 생성 (${dept} 방 구매 후보 ${items.length}건)`, user: currentUser.name },
+        { date: historyStamp(), action: "검토 요청 제출", user: currentUser.name },
+      ],
+    }, ...prev]);
+    setPurchaseCandidates(prev => prev.map(c => checked.includes(c.id) && !c.requestId ? { ...c, requestId: requestNumber } : c));
+    setChecked([]);
+    setForm(f => ({ ...f, neededDate: "", priority: "보통", urgentReason: "" }));
+  };
+
+  const fieldLabel = "text-[10px] font-medium text-gray-500";
+  const inputCls = "w-full border border-gray-300 rounded px-2.5 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500";
+  // 요청 정보(제목·구매 목적·필요한 날짜·우선순위). 단일 카드에서는 카드 안, 묶음에서는 묶음 맨 위에 한 번.
+  const renderRequestFields = () => (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-2"><KkirukDraftBadge /><span className="text-[10px] text-gray-400">끼룩이가 대화와 상품명으로 제목·구매 목적을 채웠어요</span></div>
+      <div className="flex flex-col gap-1"><label className={fieldLabel}>요청 제목</label><input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} className={inputCls} /></div>
+      <div className="flex flex-col gap-1">
+        <div className="flex items-center gap-2"><label className={fieldLabel}>구매 목적</label>{form.purposeDraft && form.purpose && <button type="button" onClick={() => setForm(f => ({ ...f, purposeDraft: false }))} className="text-[10px] font-semibold text-blue-700 hover:underline">확인했어요</button>}{!form.purposeDraft && form.purpose && <span className="text-[10px] text-green-700">확인함</span>}</div>
+        <textarea value={form.purpose} onChange={e => setForm(f => ({ ...f, purpose: e.target.value, purposeDraft: false }))} className={`${inputCls} h-20 resize-none`} placeholder="대화에서 구매 이유를 찾지 못해 비워 두었어요. 직접 적어 주세요." />
+        {form.purposeDraft && form.purpose && <p className="text-[10px] text-gray-400">링크와 함께 쓴 말만 모았어요. 확인하거나 고쳐야 요청할 수 있어요.</p>}
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div className="flex flex-col gap-1"><label className={fieldLabel}>필요한 날짜</label><input type="date" min={today} value={form.neededDate} onChange={e => setForm(f => ({ ...f, neededDate: e.target.value }))} className={inputCls} /></div>
+        <div className="flex flex-col gap-1"><label className={fieldLabel}>우선순위</label><select value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value as "보통" | "긴급" }))} className={`${inputCls} bg-white`}><option>보통</option><option>긴급</option></select></div>
+      </div>
+      {form.priority === "긴급" && <div className="flex flex-col gap-1"><label className={fieldLabel}>긴급 사유</label><input value={form.urgentReason} onChange={e => setForm(f => ({ ...f, urgentReason: e.target.value }))} className={inputCls} placeholder="언제까지 왜 필요한지" /></div>}
+    </div>
+  );
+  // 품목 정보: 구매 요청 작성 카드의 쿠팡 불러오기 결과를 그대로 보여 준다. 쿠팡 외·읽기 실패는 품목명·단가를 직접 적는다.
+  const renderItemDetails = (c: PurchaseCandidate) => (
+    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-[11px]">
+      {!c.name && <div className="col-span-2 flex flex-col gap-1"><label className={fieldLabel}>품목명</label><input value={c.name} onChange={e => update(c.id, { name: e.target.value })} className={inputCls} placeholder="링크에서 읽지 못했어요. 직접 적어 주세요." /></div>}
+      <div><span className="text-gray-400">판매처 </span><span className="text-gray-800">{c.seller}</span></div>
+      <div className="truncate"><span className="text-gray-400">상품 링크 </span><button type="button" onClick={() => setProductPanelUrl(c.url)} className="text-blue-700 hover:underline">상품 정보 보기</button></div>
+      {c.readState === "loaded"
+        ? <div><span className="text-gray-400">단가 </span><span className="text-gray-800">{c.unitPrice != null ? `${c.unitPrice.toLocaleString()}원 · 쿠팡 와우 회원가` : "옵션을 고르면 확정돼요"}</span></div>
+        : <div className="flex items-center gap-1.5"><span className="text-gray-400">단가</span><input type="number" min={0} value={c.unitPrice ?? ""} onChange={e => update(c.id, { unitPrice: e.target.value ? Number(e.target.value) : null })} className="w-24 border border-gray-300 rounded px-2 py-1 text-[11px]" placeholder="직접 입력" /><span className="text-gray-400">원</span></div>}
+      <div><span className="text-gray-400">배송비 </span><span className="text-gray-800">{c.shipping ? `${c.shipping.toLocaleString()}원` : c.readState === "loaded" ? "무료" : "—"}</span></div>
+      {c.meta && <div className="col-span-2 text-gray-500">{c.meta.delivery} · 도착 예정 {formatArrival(c.meta.arrival)} · {c.meta.saleUnit}{c.meta.discountNote ? ` · ${c.meta.discountNote}` : ""}</div>}
+      <div className="col-span-2 flex items-center justify-between border-t border-gray-100 pt-2"><span className="text-gray-400">예산 항목은 재정부가 검토할 때 정해요</span><span className="font-semibold text-gray-900">{candidateTotal(c) != null ? `${candidateTotal(c)!.toLocaleString()}원` : "금액 미정"}</span></div>
+    </div>
+  );
+  const renderCard = (c: PurchaseCandidate, expand: "none" | "full" | "item") => {
+    const range = candidatePriceRange(c);
+    return (
+      <div key={c.id} className={`bg-white border rounded-xl p-4 ${checked.includes(c.id) ? "border-blue-400" : "border-gray-200"}`}>
+        <div className="flex gap-3">
+          <input type="checkbox" checked={checked.includes(c.id)} onChange={() => toggle(c.id)} className="mt-0.5 w-4 h-4 accent-blue-600 shrink-0" aria-label={`${candidateDisplayName(c)} 선택`} />
+          <div className="w-16 h-16 rounded-lg bg-blue-50 shrink-0" />
+          <div className="flex-1 min-w-0 flex flex-col gap-1">
+            <p className="text-xs font-semibold text-gray-900 truncate">{candidateDisplayName(c)}</p>
+            {c.options.length > 0
+              ? <select value={c.optionLabel} onChange={e => pickOption(c, e.target.value)} className={`self-start border rounded px-2 py-0.5 text-[11px] bg-white ${c.optionLabel ? "border-gray-200 text-gray-600" : "border-orange-300 text-orange-700"}`}>
+                  <option value="" disabled>옵션 미정 · {c.options.length}개 중 고르기</option>
+                  {c.options.map(o => <option key={o.label} value={o.label} disabled={o.soldOut}>{o.label} · {o.soldOut ? "품절" : `${o.price.toLocaleString()}원`}</option>)}
+                </select>
+              : <p className="text-[11px] text-gray-500">{c.optionLabel === SINGLE_OPTION_LABEL ? "단일 상품" : c.readState === "loaded" ? "옵션 없음" : "옵션은 링크에서 확인"}</p>}
+            <p className="text-sm font-bold text-gray-900">{c.unitPrice != null ? `${c.unitPrice.toLocaleString()}원` : range ? `${range.min.toLocaleString()}~${range.max.toLocaleString()}원` : "—"}</p>
+            <div className="flex items-center gap-3">
+              <div className="flex items-center border border-gray-200 rounded-lg">
+                <button type="button" disabled={c.quantity <= 1} onClick={() => update(c.id, { quantity: c.quantity - 1 })} className="px-2.5 py-1 text-gray-600 disabled:text-gray-300">−</button>
+                <span className="w-8 text-center text-xs">{c.quantity}</span>
+                <button type="button" onClick={() => update(c.id, { quantity: c.quantity + 1 })} className="px-2.5 py-1 text-gray-600">+</button>
+              </div>
+              <span className="text-[10px] text-gray-400"><PersonName name={c.postedBy} /> · {c.postedAt}{c.repeats > 0 ? ` 외 ${c.repeats}번` : ""}</span>
+            </div>
+          </div>
+          {canRemove(c) && <button type="button" title="후보에서 빼기 (올린 사람·부서장)" onClick={() => { setPurchaseCandidates(prev => prev.filter(x => x.id !== c.id)); setChecked(prev => prev.filter(x => x !== c.id)); }} className="self-start p-1 text-gray-300 hover:text-gray-600"><X className="w-4 h-4" /></button>}
+        </div>
+        {expand !== "none" && (
+          <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col gap-4">
+            {expand === "full" && renderRequestFields()}
+            {renderItemDetails(c)}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+        <div className="max-w-3xl flex flex-col gap-3">
+          {doneIds.map(id => {
+            const items = mine.filter(c => c.requestId === id);
+            return (
+              <div key={id} className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between gap-4">
+                <p className="text-xs text-green-900"><b>요청 완료 · {id}</b> · {candidateDisplayName(items[0])}{items.length > 1 ? ` 외 ${items.length - 1}건` : ""} · 재정부 검토를 기다려요</p>
+                <Btn variant="secondary" size="sm" onClick={() => { setSelectedEventId(spaceId); navigateTo("EVT-FIN-01"); }}>재정 칸반에서 보기</Btn>
+              </div>
+            );
+          })}
+          {grouped && (
+            <div className="border-2 border-blue-300 rounded-2xl p-4 bg-blue-50/40 flex flex-col gap-3">
+              <p className="text-xs font-bold text-blue-900">묶어서 요청 · 품목 {checkedList.length}개</p>
+              <div className="bg-white border border-gray-200 rounded-xl p-4">{renderRequestFields()}</div>
+              {checkedList.map(c => renderCard(c, "item"))}
+            </div>
+          )}
+          {open.length === 0 && doneIds.length === 0 && <p className="text-xs text-gray-500 py-8 text-center">아직 구매 후보가 없어요. {dept} 방에 쇼핑 링크를 올리면 끼룩이가 여기에 담아요.</p>}
+          {open.filter(c => !(grouped && checked.includes(c.id))).map(c => renderCard(c, !grouped && checked.includes(c.id) ? "full" : "none"))}
+        </div>
+      </div>
+      <div className="px-6 py-3 border-t border-gray-200 bg-white shrink-0 flex items-center justify-end gap-4">
+        {errors.length > 0 && <p className="flex-1 text-[11px] text-red-600 truncate" title={errors.join(" · ")}>{errors.join(" · ")}</p>}
+        {checkedList.length > 0 && <p className="text-xs text-gray-600">선택 {checkedList.length}개 · 합계 <b className="text-gray-900">{total.toLocaleString()}원</b>{priced.length < checkedList.length ? <span className="text-gray-400"> · 가격 미정 {checkedList.length - priced.length}개 제외</span> : ""}</p>}
+        {canSubmit
+          ? <Btn variant="primary" size="md" disabled={checkedList.length === 0} onClick={submit}>{checkedList.length === 0 ? "품목을 선택해 주세요" : "구매 요청하기"}</Btn>
+          : <span className="text-[11px] text-gray-500">구매 요청은 부서장·재정부·회장단이 해요</span>}
+      </div>
+    </>
+  );
+}
+
 function EVTMSG01() {
-  const { eventInfo } = React.useContext(AppContext);
-  return <EventWorkspaceShell activeTab="메시지"><SpaceMessages scope={eventInfo.name} title={eventInfo.name} /></EventWorkspaceShell>;
+  const { eventInfo, selectedEventId } = React.useContext(AppContext);
+  return <EventWorkspaceShell activeTab="메시지"><SpaceMessageArea spaceId={selectedEventId} scope={eventInfo.name} title={eventInfo.name} /></EventWorkspaceShell>;
 }
 function USMSG01() {
-  return <DesktopShell activeSidebar="운영" breadcrumb={["우리 학생회", "메시지"]} title="우리 학생회"><SpaceMessages scope={MESSAGE_SCOPE_GENERAL} title="우리 학생회" /></DesktopShell>;
+  return <DesktopShell activeSidebar="운영" breadcrumb={["우리 학생회", "메시지"]} title="우리 학생회"><SpaceMessageArea spaceId={STANDING_CONTAINER_ID} scope={MESSAGE_SCOPE_GENERAL} title="우리 학생회" /></DesktopShell>;
 }
 
 // 홈 메시지함(M-07): 안 읽은 방 상위 3개 + 전체 보기. 네 역할 홈의 같은 자리에 둔다.
 function HomeMessageBox() {
-  const { messageRooms, navigateTo, setSelectedMessageRoomId, sideChat, openSideChat, organizationMemberRoles } = React.useContext(AppContext);
+  const { messageRooms, navigateTo, setSelectedMessageRoomId, sideChat, openSideChat, organizationMemberRoles, currentUser, setSelectedEventId, setSpaceViewRequest } = React.useContext(AppContext);
+  // 공간 방은 그 공간의 메시지 탭에서 연다.
+  const openRoom = (room: MessageRoom) => {
+    if (room.spaceId && room.spaceKind) {
+      setSpaceViewRequest(room.spaceKind);
+      if (room.spaceId === STANDING_CONTAINER_ID) navigateTo("US-MSG-01");
+      else { setSelectedEventId(room.spaceId); navigateTo("EVT-MSG-01"); }
+      return;
+    }
+    setSelectedMessageRoomId(room.id); navigateTo("MSG-03");
+  };
   // 1:1·부서 간 대화는 어디서 열어도 사이드챗으로 연다(M-14 E).
   const unreadDirect = Object.entries(sideChat.unread).filter(([, n]) => n > 0).flatMap(([key]): SideChatTarget[] => {
     const [kind, value] = key.split(":");
@@ -20163,14 +20555,14 @@ function HomeMessageBox() {
     const member = organizationMemberRoles.find(m => m.name === value);
     return member ? [{ kind: "person", name: member.name, dept: member.dept, role: member.role }] : [];
   }).slice(0, 3);
-  const unreadRooms = [...messageRooms].filter(room => room.unreadCount > 0).sort((a, b) => b.unreadCount - a.unreadCount).slice(0, Math.max(0, 3 - unreadDirect.length));
+  const unreadRooms = [...messageRooms].filter(room => room.unreadCount > 0).sort((a, b) => b.unreadCount - a.unreadCount).filter(room => roomVisibleTo(room, currentUser)).slice(0, Math.max(0, 3 - unreadDirect.length));
   return (
     <div className="flex items-center gap-2 text-[10px]">
       <span className="flex items-center gap-1 text-gray-500 shrink-0"><MessageSquare className="w-3.5 h-3.5" />메시지함</span>
       {unreadDirect.map(t => <button key={sideChatKey(t)} type="button" onClick={() => openSideChat(t)} className="px-2 py-0.5 rounded-full border border-amber-200 bg-amber-50 text-[10px] text-amber-900 hover:border-amber-400">{t.kind === "person" ? `${t.name} · 1:1` : t.dept} <span className="font-bold text-red-600">{sideChat.unread[sideChatKey(t)]}</span></button>)}
       {unreadRooms.length + unreadDirect.length === 0
         ? <span className="text-gray-400">새 메시지가 없어요</span>
-        : unreadRooms.map(room => <button key={room.id} type="button" onClick={() => { setSelectedMessageRoomId(room.id); navigateTo("MSG-03"); }} className="px-2 py-0.5 rounded-full border border-gray-200 bg-white text-[10px] text-gray-700 hover:border-blue-300">{room.name} <span className="font-bold text-red-600">{room.unreadCount}</span></button>)}
+        : unreadRooms.map(room => <button key={room.id} type="button" onClick={() => openRoom(room)} className="px-2 py-0.5 rounded-full border border-gray-200 bg-white text-[10px] text-gray-700 hover:border-blue-300">{room.name} <span className="font-bold text-red-600">{room.unreadCount}</span></button>)}
       <button type="button" onClick={() => navigateTo("MSG-01")} className="text-[10px] text-blue-700 hover:underline ml-1">전체 보기</button>
     </div>
   );
@@ -20259,7 +20651,7 @@ function PersonName({ name, className = "" }: { name: string; className?: string
 }
 
 function SideChatPanel() {
-  const { sideChat, setSideChat, openSideChat, closeSideChat, currentUser } = React.useContext(AppContext);
+  const { sideChat, setSideChat, openSideChat, closeSideChat, currentUser, eventRecords, setMessageRooms, setPurchaseCandidates } = React.useContext(AppContext);
   const inputRef = React.useRef<HTMLTextAreaElement>(null);
   const side = sideChat.target;
   const [pickFor, setPickFor] = useState<string | null>(null);
@@ -20277,7 +20669,18 @@ function SideChatPanel() {
     const message = { id: `s${Date.now()}`, sender: currentUser.name, text, at: new Date().toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false }) };
     setSideChat(prev => ({ ...prev, threads: { ...prev.threads, [key]: [...(prev.threads[key] ?? []), message] }, drafts: { ...prev.drafts, [key]: "" } }));
   };
-  const spaces = ["우리 학생회 (상시 지출)", "가을 축제", "진로 특강"];
+  // 사이드챗 링크는 구매 후보로 담지 않고, 고른 공간의 내 부서방으로 옮긴다(chat-purchase P-14). 옮긴 사람 이름으로 올리고 표시는 붙이지 않는다.
+  const spaces = [{ id: STANDING_CONTAINER_ID, scope: MESSAGE_SCOPE_GENERAL, title: "우리 학생회" }, ...eventRecords.filter(record => record.kind !== "상시" && ACTIVE_EVENT_ORDER.includes(record.lifecycle)).map(record => ({ id: record.id, scope: record.info.name, title: record.info.name }))];
+  const moveToDeptRoom = (message: SideChatMessage, space: { id: string; scope: string; title: string }) => {
+    const dept = currentUser.dept;
+    const roomId = spaceRoomId(space.id, "부서", dept);
+    const moved: ChatMessage = { id: `m${Date.now()}`, sender: currentUser.name, text: message.text, at: nowClock(), movedFrom: message.id };
+    const template = spaceRoom(space.id, space.scope, space.title, "부서", dept, 0, []);
+    setMessageRooms(prev => (prev.some(r => r.id === roomId) ? prev : [...prev, template]).map(r => r.id === roomId ? { ...r, messages: [...r.messages, moved] } : r));
+    setPurchaseCandidates(prev => collectCandidates(prev, template, moved));
+    setSideChat(prev => ({ ...prev, assigned: { ...prev.assigned, [message.id]: space.title } }));
+    setPickFor(null);
+  };
   return (
     <aside className="w-[340px] shrink-0 border-l-2 border-amber-300 bg-amber-50/60 flex flex-col min-h-0" onKeyDown={event => { if (event.key === "Escape") closeSideChat(); }}>
       <div className="px-4 pt-3 pb-2 border-b border-amber-200 bg-amber-50 shrink-0">
@@ -20300,16 +20703,16 @@ function SideChatPanel() {
         {thread.length === 0 && <p className="text-[11px] text-amber-800/70 text-center py-6">아직 나눈 대화가 없어요. 이미 연결된 대화라 바로 보내면 됩니다.</p>}
         {thread.map(message => {
           const mine = message.sender === currentUser.name;
-          const isCoupang = /coupang\.com\/vp\/products\//.test(message.text);
+          const isShopping = linksIn(message.text).some(isShoppingUrl);
           return (
             <div key={message.id} className={`flex flex-col gap-1 ${mine ? "items-end" : "items-start"}`}>
               <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-xs leading-5 break-all ${mine ? "bg-amber-500 text-white" : "bg-white border border-amber-200 text-gray-800"}`}>{message.text}</div>
-              {/* 1:1은 공간 방이 아니므로 쿠팡 링크는 담을 공간을 골라 구매 후보에 넣는다(v6.1 규칙). */}
-              {isCoupang && (sideChat.assigned[message.id]
-                ? <KkirukDone className="text-[10px] text-amber-900">끼룩이가 {sideChat.assigned[message.id]} 구매 후보에 담았어요</KkirukDone>
+              {/* 사이드챗의 쇼핑 링크는 후보로 담지 않는다. 공간을 골라 내 부서방으로 옮기면 거기서 후보로 담긴다(chat-purchase P-14). */}
+              {isShopping && (sideChat.assigned[message.id]
+                ? <p className="text-[10px] text-amber-900">{sideChat.assigned[message.id]} · {currentUser.dept} 방으로 옮겼어요</p>
                 : pickFor === message.id
-                  ? <div className="flex flex-wrap gap-1">{spaces.map(space => <button key={space} type="button" onClick={() => { setSideChat(prev => ({ ...prev, assigned: { ...prev.assigned, [message.id]: space } })); setPickFor(null); }} className="px-2 py-0.5 rounded border border-amber-300 bg-white text-[10px] text-amber-900 hover:bg-amber-100">{space}</button>)}</div>
-                  : <button type="button" onClick={() => setPickFor(message.id)} className="text-[10px] font-semibold text-amber-800 hover:underline">구매 후보로 담을 공간 선택</button>)}
+                  ? <div className="flex flex-wrap gap-1">{spaces.map(space => <button key={space.id} type="button" onClick={() => moveToDeptRoom(message, space)} className="px-2 py-0.5 rounded border border-amber-300 bg-white text-[10px] text-amber-900 hover:bg-amber-100">{space.title}</button>)}</div>
+                  : <button type="button" onClick={() => setPickFor(message.id)} className="text-[10px] font-semibold text-amber-800 hover:underline">{currentUser.dept} 방으로 옮기기</button>)}
               <span className="text-[9px] text-amber-700/70">{message.at}</span>
             </div>
           );
@@ -20542,7 +20945,7 @@ function MSG03() {
             <button type="button" onClick={() => navigateTo("MSG-01")} className="text-[10px] text-gray-400 hover:text-blue-600">전체 보기</button>
           </div>
           <div className="flex-1 overflow-y-auto divide-y divide-gray-100">
-            {messageRooms.map(room => {
+            {messageRooms.filter(room => roomVisibleTo(room, currentUser)).map(room => {
               const lastMessage = room.messages[room.messages.length - 1];
               const active = room.id === activeRoomId;
               return (
@@ -20929,6 +21332,9 @@ export default function App() {
   const [demoDataMode, setDemoDataMode] = useState<DemoDataMode>("default");
   const [messageRooms, setMessageRooms] = useState<MessageRoom[]>(DEFAULT_SPACE_ROOMS);
   const [sideChat, setSideChat] = useState<SideChatState>(INITIAL_SIDE_CHAT);
+  const [purchaseCandidates, setPurchaseCandidates] = useState<PurchaseCandidate[]>(() => seedCandidates(DEFAULT_SPACE_ROOMS));
+  const [productPanelUrl, setProductPanelUrl] = useState<string | null>(null);
+  const [spaceViewRequest, setSpaceViewRequest] = useState<"공지" | "부서" | "후보" | null>(null);
   // 사이드챗은 하나만 연다(M-12 B). `/이름` 뒤에 친 글은 입력창으로 옮겨 두고 보내지 않는다(M-13 C).
   const openSideChat = (target: SideChatTarget, carry = "") => setSideChat(prev => {
     const key = sideChatKey(target);
@@ -20999,6 +21405,7 @@ export default function App() {
       navigateTo: setActiveScreen,
       activeScreenId: activeScreen,
       sideChat, setSideChat, openSideChat, closeSideChat,
+      purchaseCandidates, setPurchaseCandidates, productPanelUrl, setProductPanelUrl, spaceViewRequest, setSpaceViewRequest,
       currentUser: { name: "박해랑", dept: "운영부", role: organizationMemberRoles.find(member => member.name === "박해랑")?.role ?? "부원", eventRole: reviewEventRole === "none" ? undefined : reviewEventRole },
       activeSidebar: undefined
     }}>
