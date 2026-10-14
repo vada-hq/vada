@@ -6,3 +6,7 @@ dist/
 .env.*
 !.env.example
 .claude/settings.local.json
+
+# 개인 로컬 설정
+.claude/
+.openai/
