@@ -28,12 +28,10 @@ import {
   updateDepartment,
 } from './service.js'
 
-// 미리 본 뒤 다른 요청이나 다른 기록과 겹쳐 생긴 제약 위반을 같은 오류 코드로 바꾼다.
-// 부서 이름이 겹치면 23505, 다른 기록이 부서를 가리키면 23503이다.
-const departmentConflicts: Readonly<Record<string, string>> = {
-  '23505': 'DEPARTMENT_NAME_TAKEN',
-  '23503': 'DEPARTMENT_IN_USE',
-}
+// 미리 본 뒤 다른 요청이나 다른 기록과 겹쳐 생긴 제약 위반을 같은 오류 코드로 바꾼다. 길마다 낼 수 있는 위반만 넘긴다. 그 밖의 위반은 500이다.
+// 만들기와 이름 바꾸기는 부서 이름이 겹치면 23505, 없애기는 다른 기록이 부서를 가리키면 23503이다.
+const nameConflicts: Readonly<Record<string, string>> = { '23505': 'DEPARTMENT_NAME_TAKEN' }
+const removeConflicts: Readonly<Record<string, string>> = { '23503': 'DEPARTMENT_IN_USE' }
 
 // 운영진: 목록(모든 운영진)과 편성(회장단, 회장 넘기기는 회장), 부서(회장단). 변경도 목록 전체를 돌려준다.
 export function createTeamRoutes(
@@ -118,7 +116,7 @@ export function createTeamRoutes(
       c,
       'department.manage',
       (tx, actor) => createDepartment(tx, actor, c.req.valid('json').name),
-      departmentConflicts,
+      nameConflicts,
     ),
   )
   routes.post(`${root}/departments/:departmentId`, json(UpdateDepartmentSchema), auth, c => {
@@ -127,7 +125,7 @@ export function createTeamRoutes(
       c,
       'department.manage',
       (tx, actor) => updateDepartment(tx, actor, departmentId, c.req.valid('json')),
-      departmentConflicts,
+      nameConflicts,
     )
   })
   routes.post(`${root}/departments/:departmentId/delete`, json(EmptyRequestSchema), auth, c => {
@@ -136,7 +134,7 @@ export function createTeamRoutes(
       c,
       'department.manage',
       (tx, actor) => deleteDepartment(tx, actor, departmentId),
-      departmentConflicts,
+      removeConflicts,
     )
   })
   return routes

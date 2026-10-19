@@ -6,7 +6,7 @@ import {
 } from '@vada/contracts'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
-import { sqlState } from '../http/on-error.js'
+import { logUnexpectedError, sqlState } from '../http/on-error.js'
 import { json } from '../http/validate.js'
 import { isKnownPushService } from './endpoint.js'
 import type { PushMessage, PushSender } from './sender.js'
@@ -51,6 +51,8 @@ export function createPushRoutes(
         console.warn(
           JSON.stringify({ event: 'push_device_forget_failed', sqlState: sqlState(error) }),
         )
+        // 응답은 그대로여도 DB 쓰기 실패는 서버 쪽 실패라 오류 수집기(Sentry)에도 보낸다. 오류 메시지는 수집기로 가기 전에 지워진다(scrubEvent).
+        logUnexpectedError(c, error instanceof Error ? error : new Error('Device forget failed'))
       }
     }
     return c.json({ result } satisfies PushTestResponse)

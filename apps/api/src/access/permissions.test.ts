@@ -94,6 +94,17 @@ test('직무 분리: 요청한 사람은 자기 요청을 승인하지 않는다
   )
 })
 
+test('직무 분리 칸은 요청한 사람을 모르면 막는다(기본 거부): requestedBy가 없으면 누구도 승인하지 못한다', () => {
+  const byHead = { who: ['department_head'] as const, notOwnRequest: true }
+  const byFinance = { who: ['finance'] as const, notOwnRequest: true }
+  assert.equal(allows(planningHead, byHead, { departmentId: 'planning' }), false)
+  assert.equal(allows(president, byHead), false)
+  assert.equal(allows(financeMember, byFinance), false)
+  assert.equal(allows(financeMember, byFinance, {}), false)
+  // 직무 분리를 두지 않은 칸은 requestedBy 없이도 된다.
+  assert.equal(allows(financeMember, { who: ['finance'] as const }), true)
+})
+
 test('직무 분리: 재정부를 겸한 부장은 부장 칸에서, 재정부를 겸한 부회장은 회장단 칸에서 자기 요청을 승인하지 못한다', () => {
   const inFinance = { departmentId: 'finance', role: 'finance' as const, rank: null }
   const financeHead = actor('financeHead', null, [

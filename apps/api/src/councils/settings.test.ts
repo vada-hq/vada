@@ -100,6 +100,47 @@ test('지금 기수의 이름과 기간은 회장단이 고친다. 기간이 오
   }
 })
 
+test('기수를 같은 값으로 다시 저장하면 판을 만들지 않고, 바뀐 값만 새 판을 만든다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base } = await setup(testDb)
+    const same = { name: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' }
+    const cohortId = ((await (await api.get(base, 'u1')).json()) as CouncilView).cohort.id
+    const versions = async () =>
+      (
+        await testDb.pg.query<{ count: number }>(
+          'SELECT count(*)::int AS count FROM record_version WHERE record_id = $1',
+          [cohortId],
+        )
+      ).rows[0]?.count
+    assert.equal(await versions(), 1)
+    assert.equal((await api.post(`${base}/cohort`, same, 'u1')).status, 200)
+    assert.equal(await versions(), 1)
+    const changed = { ...same, name: '제38대' }
+    assert.equal((await api.post(`${base}/cohort`, changed, 'u1')).status, 200)
+    assert.equal(await versions(), 2)
+    assert.equal((await api.post(`${base}/cohort`, changed, 'u1')).status, 200)
+    assert.equal(await versions(), 2)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('권한이 없으면 기간이 어긋난 본문이어도 409보다 403이 먼저다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base } = await setup(testDb)
+    const outside = { name: '제39대', startsOn: '2027-03-01', endsOn: '2028-02-29' }
+    // u2는 운영진이지만 회장단이 아니고, u3은 다른 학생회의 회장이다.
+    for (const user of ['u2', 'u3'])
+      assert.equal((await api.post(`${base}/cohort`, outside, user)).status, 403, user)
+    assert.equal((await api.post(`${base}/cohort`, outside)).status, 401)
+    assert.equal((await api.post(`${base}/cohort`, outside, 'u1')).status, 409)
+  } finally {
+    await testDb.close()
+  }
+})
+
 test('설정과 기수는 회장단만 바꾼다. 형식이 틀리면 400, 로그인하지 않으면 401이다', async () => {
   const testDb = await createTestDb()
   try {

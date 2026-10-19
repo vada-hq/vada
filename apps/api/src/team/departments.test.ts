@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { randomUUID } from 'node:crypto'
 import { test } from 'node:test'
 import type { CreateCouncilResponse, InviteCodeResponse, TeamResponse } from '@vada/contracts'
 import { actorOf } from '../access/actor.js'
@@ -109,6 +110,52 @@ test('같은 이름의 부서는 409 DEPARTMENT_NAME_TAKEN이다', async () => {
   }
 })
 
+// 거래가 끝날 때 제약 위반(SQLSTATE)이 난 것처럼 던지는 DB. 라우트가 어떤 위반을 어떤 오류로 바꾸는지만 본다.
+const violating = (db: TestDb['db'], code: string): TestDb['db'] =>
+  new Proxy(db, {
+    get(target, property) {
+      if (property === 'transaction')
+        return () => Promise.reject(new Error('제약 위반', { cause: { code } }))
+      return Reflect.get(target, property, target) as unknown
+    },
+  })
+
+test('부서 길은 자기가 낼 수 있는 제약 위반만 409로 바꾸고, 다른 위반은 500이다', async t => {
+  t.mock.method(console, 'error', () => {})
+  const testDb = await createTestDb()
+  try {
+    const base = `/api/organizations/${randomUUID()}`
+    const department = randomUUID()
+    const nameRoutes = [
+      [`${base}/departments`, { name: '홍보부' }],
+      [`${base}/departments/${department}`, { name: '홍보국', role: null }],
+    ] as const
+    const deleteRoute = [`${base}/departments/${department}/delete`, {}] as const
+    const apiOf = (code: string) =>
+      caller(
+        createApp({
+          auth: { handler: async () => new Response() },
+          trustedOrigin: ORIGIN,
+          team: createTeamRoutes(violating(testDb.db, code), testSession),
+        }),
+      )
+    // 이름이 겹치면 23505, 다른 기록이 부서를 가리키면 23503이다.
+    for (const [path, payload] of nameRoutes) {
+      const response = await apiOf('23505').post(path, payload, 'u1')
+      assert.equal(response.status, 409, path)
+      assert.deepEqual(await response.json(), { error: 'DEPARTMENT_NAME_TAKEN' })
+      assert.equal((await apiOf('23503').post(path, payload, 'u1')).status, 500, path)
+    }
+    const [path, payload] = deleteRoute
+    const response = await apiOf('23503').post(path, payload, 'u1')
+    assert.equal(response.status, 409)
+    assert.deepEqual(await response.json(), { error: 'DEPARTMENT_IN_USE' })
+    assert.equal((await apiOf('23505').post(path, payload, 'u1')).status, 500)
+  } finally {
+    await testDb.close()
+  }
+})
+
 test('쓰인 적 없는 부서만 없앤다: 판, 하위 행, 기록 행을 함께 지우고, 한 번이라도 쓰인 부서는 409 DEPARTMENT_IN_USE다', async () => {
   const testDb = await createTestDb()
   const { pg } = testDb
@@ -155,10 +202,19 @@ test('쓰인 적 없는 부서만 없앤다: 판, 하위 행, 기록 행을 함�
     const referenced = await api.post(`${base}/departments/${tasked}/delete`, {}, 'u1')
     assert.equal(referenced.status, 409)
     assert.deepEqual(await referenced.json(), { error: 'DEPARTMENT_IN_USE' })
-    assert.equal(
-      (await pg.query('SELECT 1 FROM department WHERE id = $1', [tasked])).rows.length,
-      1,
-    )
+    // 외래 키가 막은 것은 마지막 단계(부서 행)다. 그 앞에서 지운 판과 기록 행도 거래째 되돌아와야 한다.
+    for (const table of ['department', 'record', 'record_version']) {
+      assert.equal(
+        (
+          await pg.query(
+            `SELECT 1 FROM ${table} WHERE ${table === 'record_version' ? 'record_id' : 'id'} = $1`,
+            [tasked],
+          )
+        ).rows.length,
+        1,
+        table,
+      )
+    }
   } finally {
     await testDb.close()
   }

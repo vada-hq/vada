@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { createApp } from '../app.js'
+import { setErrorReporter } from '../http/on-error.js'
 import { createPushRoutes, TEST_DELAY_MS, TEST_MESSAGE } from './routes.js'
 import type { PushSender } from './sender.js'
 
@@ -126,11 +127,20 @@ test('보내지 못한 시험 알림은 결과 종류에 상태 번호나 연결
   assert.deepEqual(logged, [])
 })
 
-test('끝난 구독의 기기 지우기가 실패해도 시험 알림 결과는 그대로 돌려주고, 실패는 구독 주소 없이 로그에 남긴다', async t => {
+test('끝난 구독의 기기 지우기가 실패해도 시험 알림 결과는 그대로 돌려주고, 실패는 구독 주소 없이 로그와 오류 수집기에 남긴다', async t => {
   const logged: string[] = []
   t.mock.method(console, 'warn', (line: string) => {
     logged.push(line)
   })
+  const errored: string[] = []
+  t.mock.method(console, 'error', (line: string) => {
+    errored.push(line)
+  })
+  const reported: { error: Error; fields: Record<string, unknown> }[] = []
+  setErrorReporter((error, fields) => {
+    reported.push({ error, fields })
+  })
+  t.after(() => setErrorReporter(undefined))
   // 드라이버 오류는 메시지에 질의 값(구독 주소)을 담고, SQLSTATE는 cause에 있다.
   const failure = Object.assign(
     new Error(`delete from push_device where endpoint = ${subscription.endpoint}`),
@@ -165,7 +175,22 @@ test('끝난 구독의 기기 지우기가 실패해도 시험 알림 결과는 
       { event: 'push_device_forget_failed', sqlState: '57P01' },
     ],
   )
-  assert.ok(logged.every(line => !line.includes(subscription.endpoint)))
+  // 서버 쪽 실패라 오류 수집기(Sentry)에도 간다. 같은 정제된 필드만 넘기고 구독 주소는 어디에도 없다.
+  assert.equal(reported.length, 1)
+  assert.equal(reported[0]!.error, failure)
+  assert.deepEqual(reported[0]!.fields, {
+    event: 'request_failed',
+    method: 'POST',
+    route: '/api/me/push/test',
+    error: 'Error',
+    sqlState: '57P01',
+  })
+  assert.equal(errored.length, 1)
+  assert.ok(
+    [...logged, ...errored, JSON.stringify(reported[0]!.fields)].every(
+      line => !line.includes(subscription.endpoint),
+    ),
+  )
 })
 
 test('모르는 알림 서버면 기다리지도 보내지도 않고 400이다', async () => {
