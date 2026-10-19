@@ -7,6 +7,7 @@ import { createApp } from './app.js'
 import { createAuth } from './auth/auth.js'
 import { createCouncilRoutes } from './councils/routes.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
+import { createInviteRoutes } from './invites/routes.js'
 import { pushConfigFrom } from './push/config.js'
 import { createPushRoutes } from './push/routes.js'
 import { createPushSender } from './push/sender.js'
@@ -26,13 +27,14 @@ function main() {
   })
   const session = (headers: Headers) => auth.api.getSession({ headers })
   const councils = createCouncilRoutes(db, session)
+  const invites = createInviteRoutes(db, session)
   // 휴대폰 알림 열쇠는 서버에서만 쓴다. 없으면 알림 경로를 만들지 않는다.
   const pushConfig = pushConfigFrom(env)
   if (pushConfig) console.log('휴대폰 알림 켜짐 (Web Push)')
   const push = pushConfig
     ? createPushRoutes(session, pushConfig.publicKey, createPushSender(pushConfig))
     : undefined
-  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, councils, push })
+  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, councils, invites, push })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)

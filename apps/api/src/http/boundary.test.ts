@@ -3,6 +3,7 @@ import { test } from 'node:test'
 import { z } from 'zod'
 import { createApp, type AppOptions } from '../app.js'
 import { createCouncilRoutes } from '../councils/routes.js'
+import { createInviteRoutes } from '../invites/routes.js'
 import { createPushRoutes } from '../push/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
@@ -27,6 +28,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   // AppOptions에 모듈이 추가되면 여기서 타입 오류가 나므로 이 테스트에서 빠질 수 없다.
   const modules = {
     councils: createCouncilRoutes(db, session),
+    invites: createInviteRoutes(db, session),
     push: createPushRoutes(session, 'PUBLIC', async () => ({ result: 'sent' }), async () => {}),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
@@ -39,7 +41,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   // 미들웨어 등록(/*)은 빼고 실제 라우트만 검사한다.
   const mutating = writes.filter(key => isGuarded(pathOf(key)) && !key.endsWith('/*'))
   // 목록이 비어 테스트가 저절로 통과하는 일을 막는다. 변경 라우트를 더하면 이 수도 올린다.
-  assert.ok(mutating.length >= 2, `변경 라우트 ${mutating.length}개`)
+  assert.ok(mutating.length >= 4, `변경 라우트 ${mutating.length}개`)
   for (const key of mutating) {
     const registered = key.slice(0, key.indexOf(' '))
     // app.all()로 등록한 라우트는 POST로 확인한다.

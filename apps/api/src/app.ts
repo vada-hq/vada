@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { HealthResponse } from '@vada/contracts'
 import type { createCouncilRoutes } from './councils/routes.js'
+import type { createInviteRoutes } from './invites/routes.js'
 import type { createPushRoutes } from './push/routes.js'
 import { handleError } from './http/on-error.js'
 import { limitBody, mutationGuard } from './http/guard.js'
@@ -11,11 +12,13 @@ export type AppOptions = {
   trustedOrigin: string
   // 학생회: 내 학생회 목록, 만들기, 보기, 설정, 기수
   councils?: ReturnType<typeof createCouncilRoutes>
+  // 초대: 초대 확인, 들어오기, 초대 코드 보기와 바꾸기
+  invites?: ReturnType<typeof createInviteRoutes>
   // 휴대폰 알림. 알림 열쇠(VAPID)가 없으면 만들지 않는다.
   push?: ReturnType<typeof createPushRoutes>
 }
 
-export function createApp({ auth, trustedOrigin, councils, push }: AppOptions) {
+export function createApp({ auth, trustedOrigin, councils, invites, push }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
   // 로그인한 사람 자신의 것(휴대폰 알림)도 같은 가드를 건다.
@@ -27,6 +30,7 @@ export function createApp({ auth, trustedOrigin, councils, push }: AppOptions) {
   app.use('/api/auth/*', limitBody())
   app.on(['GET', 'POST'], '/api/auth/*', (c) => auth.handler(c.req.raw))
   if (councils) app.route('/api', councils)
+  if (invites) app.route('/api', invites)
   if (push) app.route('/api', push)
   app.onError(handleError)
   return app
