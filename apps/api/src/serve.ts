@@ -5,6 +5,7 @@ import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { createApp } from './app.js'
 import { createAuth } from './auth/auth.js'
+import { createCouncilRoutes } from './councils/routes.js'
 import { startErrorReporting, stopErrorReporting } from './http/sentry.js'
 import { pushConfigFrom } from './push/config.js'
 import { createPushRoutes } from './push/routes.js'
@@ -23,13 +24,15 @@ function main() {
     secret: env.BETTER_AUTH_SECRET!, baseURL: env.BETTER_AUTH_URL!,
     googleClientId: env.GOOGLE_CLIENT_ID!, googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
   })
+  const session = (headers: Headers) => auth.api.getSession({ headers })
+  const councils = createCouncilRoutes(db, session)
   // 휴대폰 알림 열쇠는 서버에서만 쓴다. 없으면 알림 경로를 만들지 않는다.
   const pushConfig = pushConfigFrom(env)
   if (pushConfig) console.log('휴대폰 알림 켜짐 (Web Push)')
   const push = pushConfig
-    ? createPushRoutes((headers) => auth.api.getSession({ headers }), pushConfig.publicKey, createPushSender(pushConfig))
+    ? createPushRoutes(session, pushConfig.publicKey, createPushSender(pushConfig))
     : undefined
-  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, push })
+  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, councils, push })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)

@@ -2,9 +2,11 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import { z } from 'zod'
 import { createApp, type AppOptions } from '../app.js'
+import { createCouncilRoutes } from '../councils/routes.js'
 import { createPushRoutes } from '../push/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
+import type { Db } from '../records/records.js'
 
 // 공통 가드가 거는 곳: 로그인한 구성원의 경로, 로그인한 사람 자신의 경로(휴대폰 알림), 로그인 없이 쓰는 공개 경로
 const guarded = ['/api/organizations/', '/api/me/', '/api/public/']
@@ -20,8 +22,11 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   const origin = 'http://127.0.0.1:5180'
   let authCalls = 0
   const session = async () => { authCalls++; return null }
+  // 경계 검사는 DB에 닿기 전에 끝난다. 라우트가 DB를 건드리면 500이 나 아래 상태 검사가 실패한다.
+  const db = {} as Db
   // AppOptions에 모듈이 추가되면 여기서 타입 오류가 나므로 이 테스트에서 빠질 수 없다.
   const modules = {
+    councils: createCouncilRoutes(db, session),
     push: createPushRoutes(session, 'PUBLIC', async () => ({ result: 'sent' }), async () => {}),
   } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
@@ -34,7 +39,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
   // 미들웨어 등록(/*)은 빼고 실제 라우트만 검사한다.
   const mutating = writes.filter(key => isGuarded(pathOf(key)) && !key.endsWith('/*'))
   // 목록이 비어 테스트가 저절로 통과하는 일을 막는다. 변경 라우트를 더하면 이 수도 올린다.
-  assert.ok(mutating.length >= 1, `변경 라우트 ${mutating.length}개`)
+  assert.ok(mutating.length >= 2, `변경 라우트 ${mutating.length}개`)
   for (const key of mutating) {
     const registered = key.slice(0, key.indexOf(' '))
     // app.all()로 등록한 라우트는 POST로 확인한다.
