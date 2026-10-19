@@ -21,6 +21,7 @@ import { NavItem } from '@/components/ui/nav-item'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { TabButton } from '@/components/ui/tab-button'
 import { Textarea } from '@/components/ui/textarea'
+import PushPanel from '@/push/PushPanel'
 
 const longName = '2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름'.repeat(2)
 const unbroken = `https://www.coupang.com/vp/products/${'1234567890'.repeat(12)}`
@@ -114,6 +115,11 @@ export default function Gallery() {
     <Section title="상태 문구">
       <StateMessage kind="loading">불러오는 중…</StateMessage><StateMessage kind="notice">저장했어요.</StateMessage>
       <StateMessage kind="empty">아직 대화가 없어요.</StateMessage><StateMessage kind="error">연결을 확인해 주세요.</StateMessage>
+    </Section>
+    <Section title="휴대폰 알림">
+      {(['needs-home-screen', 'ask', 'on', 'denied'] as const).map(state =>
+        <Card key={state} className="w-96 p-4"><PushPanel state={state} device="ios" enableFailed={false}
+          test={state === 'on' ? { kind: 'result', result: 'sent' } : { kind: 'idle' }} onEnable={() => {}} onTest={() => {}} onRetry={() => {}} /></Card>)}
     </Section>
     <Section title="인증 카드">
       <AuthCard>

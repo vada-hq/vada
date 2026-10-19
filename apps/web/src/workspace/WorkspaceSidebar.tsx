@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { Archive, ClipboardCheck, House, Landmark, ListChecks, LogOut, Receipt, UserPlus, Users, Wallet } from 'lucide-react'
 import type { MembershipSummary } from '@vada/contracts'
 import InviteShare from '../access/InviteShare'
+import PushSettingsButton from '../push/PushSettings'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
 import { Badge } from '@/components/ui/badge'
@@ -89,6 +90,7 @@ export default function WorkspaceSidebar({ membership, memberships, onMembership
         <p className="flex flex-wrap items-center gap-1 text-xs text-gray-400">{membership.department?.name ?? '미배정'}{membership.title && ` · ${membership.title}`}
           {membership.permissions.approvePurchases && <Badge tone="info">구매 승인</Badge>}</p>
       </div>
+      <PushSettingsButton />
       <Button variant="ghost" size="icon" aria-label="로그아웃" disabled={logoutBusy} onClick={onLogout}><LogOut /></Button>
     </footer>
   </div>
