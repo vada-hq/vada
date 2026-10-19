@@ -11,12 +11,12 @@ const subscription = {
   keys: { p256dh: 'p'.repeat(87), auth: 'a'.repeat(22) },
 }
 
-function setup(result: Awaited<ReturnType<PushSender>> = 'sent') {
+function setup(outcome: Awaited<ReturnType<PushSender>> = { result: 'sent' }) {
   let userId: string | null = 'u1'
   const sent: Parameters<PushSender>[] = []
   const waits: number[] = []
   const push = createPushRoutes(async () => userId ? { user: { id: userId } } : null, 'PUBLIC',
-    async (...args) => { sent.push(args); return result }, async ms => { waits.push(ms) })
+    async (...args) => { sent.push(args); return outcome }, async ms => { waits.push(ms) })
   const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, push })
   const post = (body: unknown) => app.request('/api/me/push/test', {
     method: 'POST', headers: { 'Content-Type': 'application/json', Origin: origin }, body: JSON.stringify(body),
@@ -43,11 +43,45 @@ test('시험 알림은 5초 기다린 뒤 정한 문구로 그 구독에만 보�
   assert.deepEqual(sent, [[{ endpoint: subscription.endpoint, keys: subscription.keys }, TEST_MESSAGE]])
 })
 
-test('보내기 결과 expired·rejected를 그대로 돌려준다', async () => {
+test('보내기 결과 expired·rejected를 그대로 돌려준다', async (t) => {
+  t.mock.method(console, 'warn', () => {})
   for (const result of ['expired', 'rejected'] as const) {
-    const { post } = setup(result)
+    const { post } = setup({ result })
     assert.deepEqual(await (await post(subscription)).json(), { result })
   }
+})
+
+test('알림 서버가 거절하면 상태 번호를 로그에 남기고, 구독 주소는 로그와 응답에 넣지 않는다', async (t) => {
+  const logged: string[] = []
+  t.mock.method(console, 'warn', (line: string) => { logged.push(line) })
+  const { post } = setup({ result: 'rejected', status: 403 })
+  const response = await post(subscription)
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), { result: 'rejected' })
+  assert.equal(logged.length, 1)
+  assert.ok(logged[0]!.includes('"status":403'))
+  assert.ok(!logged[0]!.includes(subscription.endpoint))
+  assert.deepEqual(JSON.parse(logged[0]!), { event: 'push_test_failed', result: 'rejected', status: 403 })
+})
+
+test('보내지 못한 시험 알림은 결과 종류에 상태 번호나 연결 오류 코드가 있을 때만 더해 한 줄 남기고, 보냈으면 남기지 않는다', async (t) => {
+  const logged: string[] = []
+  t.mock.method(console, 'warn', (line: string) => { logged.push(line) })
+  const cases = [
+    [{ result: 'expired', status: 410 }, { event: 'push_test_failed', result: 'expired', status: 410 }],
+    [{ result: 'rejected', code: 'ECONNRESET' }, { event: 'push_test_failed', result: 'rejected', code: 'ECONNRESET' }],
+    [{ result: 'rejected' }, { event: 'push_test_failed', result: 'rejected' }],
+  ] as const
+  for (const [outcome, line] of cases) {
+    logged.length = 0
+    const response = await setup(outcome).post(subscription)
+    assert.deepEqual(await response.json(), { result: outcome.result })
+    assert.equal(logged.length, 1)
+    assert.deepEqual(JSON.parse(logged[0]!), line)
+  }
+  logged.length = 0
+  assert.deepEqual(await (await setup({ result: 'sent' }).post(subscription)).json(), { result: 'sent' })
+  assert.deepEqual(logged, [])
 })
 
 test('모르는 알림 서버면 기다리지도 보내지도 않고 400이다', async () => {

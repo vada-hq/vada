@@ -60,7 +60,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       tasks: createTaskRoutes(db, session),
       reports: createReportRoutes(db, session, async () => ({ wentWell: [], shortfalls: [], nextTime: [], questions: [] })),
       home: createHomeRoutes(db, session),
-      push: createPushRoutes(session, 'PUBLIC', async () => 'sent', async () => {}),
+      push: createPushRoutes(session, 'PUBLIC', async () => ({ result: 'sent' }), async () => {}),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })

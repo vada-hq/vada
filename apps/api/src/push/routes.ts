@@ -20,9 +20,9 @@ export function createPushRoutes(getSession: SessionReader, publicKey: string, s
     const { endpoint, keys } = c.req.valid('json')
     if (!isKnownPushService(endpoint)) throw new ApiError('PUSH_SERVICE_UNSUPPORTED', 400)
     await wait(TEST_DELAY_MS)
-    const result = await send({ endpoint, keys }, TEST_MESSAGE)
-    // 구독 주소는 기기를 가리키는 비밀 주소라 남기지 않는다. 결과의 종류만 남긴다.
-    if (result !== 'sent') console.warn(JSON.stringify({ event: 'push_test_failed', result }))
+    const { result, status, code } = await send({ endpoint, keys }, TEST_MESSAGE)
+    // 구독 주소는 기기를 가리키는 비밀 주소라 남기지 않는다. 결과의 종류와, 있으면 알림 서버의 상태 번호나 연결 오류 코드만 남긴다.
+    if (result !== 'sent') console.warn(JSON.stringify({ event: 'push_test_failed', result, status, code }))
     return c.json({ result } satisfies PushTestResponse)
   })
   return routes
