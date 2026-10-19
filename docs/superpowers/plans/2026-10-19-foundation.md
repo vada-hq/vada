@@ -3016,6 +3016,7 @@ test('합치기: 여러 기준 중 하나라도 맞으면 된다', () => {
   assert.equal(allows(planningHead, rule), false)
 })
 
+// 0836eaa에서 바뀜: 재정부 예외를 없앴다. 구매 결재 칸에만 직무 분리를 두지 않는다(DEC-41). 아래 시험과 allows는 옛 모양이다.
 test('직무 분리: 요청한 사람은 자기 요청을 승인하지 않는다. 재정부는 예외다(DEC-41)', () => {
   const byHead = { who: ['department_head'] as const, notOwnRequest: true }
   assert.equal(allows(planningHead, byHead, { departmentId: 'planning', requestedBy: 'head' }), false)
@@ -3207,6 +3208,7 @@ function meets(actor: Actor, criterion: Criterion, context: Context) {
 
 export function allows(actor: Actor, rule: Rule, context: Context = {}) {
   if (!rule.who.some(criterion => meets(actor, criterion, context))) return false
+  // 0836eaa에서 바뀜: 재정 예외 없이 `!(rule.notOwnRequest && context.requestedBy === actor.memberId)`다. 이 줄을 베끼지 않는다.
   // 직무 분리: 요청한 사람은 자기 요청을 승인하지 않는다. 재정 역할 부서는 예외다(DEC-41).
   return !(rule.notOwnRequest && context.requestedBy === actor.memberId && !meets(actor, 'finance', context))
 }
@@ -9172,7 +9174,7 @@ import { checkTarget, describeTarget, localMigrations, readTargetState, targetSo
 
 const migrationsFolder = fileURLToPath(new URL('../../migrations', import.meta.url))
 
-// 사용법: npm run db:migrate --workspace @vada/api [-- --dry-run] [-- --from-shell]
+// 사용법(3e092f7 이후): npm run db:migrate --workspace @vada/api -- [--apply] [--dry-run] [--from-shell]. 기본은 미리 보기다
 // 대상은 이 프로젝트의 .env다. 다른 DB(배포)는 셸에 DATABASE_URL을 주고 --from-shell을 붙일 때만 쓴다.
 // 셸에 DATABASE_URL이 있는데 --from-shell이 없으면 멈춘다. 남은 셸 주소로 모르게 배포 DB에 적용하지 않는다.
 // 적용 전에 대상을 점검한다: 기록이 없으면 빈 DB여야 하고, 기록이 있으면 로컬 파일과 순서·해시가 같아야 한다.
@@ -9466,7 +9468,7 @@ Expected: `ok`(목록의 시험 파일이 모두 있고, 목록 밖 시험 파�
 - 표를 바꿀 때는 vada-docs의 `physical-model.md`를 먼저 고친다. 그다음 `npm run db:generate --workspace @vada/api`(`drizzle-kit generate --custom`)로 빈 마이그레이션을 만들어 SQL을 쓰고, 조회용 정의 `apps/api/src/db/schema.ts`를 같이 고친다. CI의 맞춤 시험(`src/db/schema-match.test.ts`)이 정의와 마이그레이션 DB를, 로컬의 `npm run check:design --workspace @vada/api`가 마이그레이션 DB와 설계를 맞댄다.
 - 첫 마이그레이션 `0000_baseline.sql`은 `apps/api/scripts/baseline-from-design.ts`가 physical-model.md에서 만든 파일이다. 손으로 고치거나 다시 만들지 않는다.
 - 서버 시작 시 자동으로 적용하지 않는다. 적용 대상은 Neon 프로젝트 `vada`의 `dev` 가지(개발, 로컬 `.env`의 `DATABASE_URL`)와 `production` 가지(배포) 두 곳이다.
-- 적용은 사람이 `npm run db:migrate --workspace @vada/api`로 한다. 먼저 `-- --dry-run`으로 대상(호스트와 DB 이름)과 적용할 개수를 본다. 대상은 `.env`의 DB가 기본이다. 배포 DB에는 셸에 `DATABASE_URL`을 주고 `-- --from-shell`을 붙인다. 셸에 `DATABASE_URL`이 있는데 `--from-shell`이 없으면 아무것도 하지 않고 멈춘다. 적용 기록이 없거나 기록 표가 비었는데 표가 있으면, 또는 이미 적용된 기록이 로컬 파일과 순서·해시까지 같지 않으면 적용하지 않는다.
+- 적용은 사람이 `npm run db:migrate --workspace @vada/api -- --apply`로 한다(3e092f7). `--apply`가 없으면 미리 보기라 쓰지 않는다. 모르는 인자나 `--` 없이 준 `--dry-run`은 연결하기 전에 멈춘다. 먼저 `--apply` 없이 돌려 대상(호스트와 DB 이름)과 적용할 개수를 본다. 대상은 `.env`의 DB가 기본이다. 배포 DB에는 셸에 `DATABASE_URL`을 주고 `-- --from-shell`을 붙인다(적용은 `-- --from-shell --apply`). 셸에 `DATABASE_URL`이 있는데 `--from-shell`이 없으면 아무것도 하지 않고 멈춘다. 적용 기록이 없거나 기록 표가 비었는데 표가 있으면, 또는 이미 적용된 기록이 로컬 파일과 순서·해시까지 같지 않으면 적용하지 않는다.
 - 제약을 추가하는 마이그레이션은 코드 배포 → 두 DB에서 위반 행이 0건인지 조회 → 적용 순서로 한다.
 - 새 컬럼을 읽는 코드는 반대로, 두 DB에 마이그레이션을 먼저 적용한 뒤 배포한다. 코드가 먼저 나가면 없는 컬럼을 읽다가 해당 요청이 모두 실패한다. 새 컬럼에 거는 제약은 위반 행이 생길 수 없으므로 이 순서를 따르고, 기존 컬럼에 거는 제약과는 한 마이그레이션에 섞지 않는다.
 - 칸·표를 지우는 마이그레이션은 그것을 읽지 않는 코드를 먼저 배포한 뒤 적용한다. 적용 스크립트가 남은 마이그레이션을 모두 적용하므로, 지우는 마이그레이션 파일은 배포 뒤에 만든다.
@@ -9560,9 +9562,9 @@ Task 1~14와 리뷰가 끝난 뒤, 사용자가 아래 차례로 한다(spec '�
 1. **개발 DB 바꾸기:** 로컬 `.env`의 `DATABASE_URL`을 `vada`의 `dev` 가지 주소로 바꾼다. 이제부터 개발은 이 DB를 쓴다. 셸에 `DATABASE_URL`이 남아 있으면 지운다(남아 있으면 `db:migrate`가 멈춘다, P30).
 2. **개발 DB에 적용하고 화면 보기**
    1. `npm run db:migrate --workspace @vada/api -- --dry-run`
-      - 보이는 것: `대상: <dev 가지 호스트>/<DB 이름> (.env)`, `public 표 0개, 적용 기록 없음, 로컬 마이그레이션 1개`, `적용할 마이그레이션 1개. --dry-run이라 바꾸지 않았다.`
+      - 보이는 것: `대상: <dev 가지 호스트>/<DB 이름> (.env)`, `public 표 0개, 적용 기록 없음, 로컬 마이그레이션 1개`, `적용할 마이그레이션 1개. 미리 보기라 바꾸지 않았다. 실제로 적용하려면 --apply를 붙인다.`
       - 대상이 `dev` 가지가 아니거나 "…적용하지 않는다"나 "…아무것도 하지 않았다"로 끝나는 줄이 나오면 멈춘다. 옛 DB를 가리키면 옛 적용 기록 29개가 로컬과 달라 "이미 적용된 기록이 로컬 마이그레이션과 순서나 해시가 다르다"가 나온다.
-   2. `npm run db:migrate --workspace @vada/api` → `마이그레이션 적용 완료(1개)`. 다시 `-- --dry-run`을 하면 `public 표 52개, 적용 기록 1, 로컬 마이그레이션 1개`, `적용할 마이그레이션 0개`다.
+   2. `npm run db:migrate --workspace @vada/api -- --apply` → `마이그레이션 적용 완료(1개)`. 다시 `-- --dry-run`을 하면 `public 표 52개, 적용 기록 1, 로컬 마이그레이션 1개`, `적용할 마이그레이션 0개`다.
    3. `npm run dev:api`와 `npm run dev:web`을 켜고 `http://127.0.0.1:5180`에서 Google로 로그인한다. 같은 브라우저로 `http://127.0.0.1:5180/api/auth/get-session`을 열어 `user`의 `id`를 본다.
    4. `npm run test-data --workspace @vada/api -- seed <user-id> --apply` → `시험 학생회 준비 완료(초대 코드 TESTDATA)`. 다른 Google 계정은 `/join/TESTDATA`로 들어오거나, 로그인을 한 번 한 뒤 `-- assign <user-id> planning --apply`로 기획부에 넣는다.
    5. 휴대폰 폭(390px)과 데스크톱 폭에서 본다: 학생회 없음(시험 학생회에 들지 않은 계정), 학생회 만들기, 초대 링크, 운영진 > 사람(초대 링크, ⋯ 메뉴, 확인 대화상자), 운영진 > 부서, 설정 > 학생회 정보, 휴대폰 알림 켜기. 기준은 vada-docs의 navigation.md와 screens.md이고, Figma(M1 와이어프레임)는 같은 화면이 있을 때만 맞댄다(P36). 고칠 것이 나오면 이 계획의 화면 작업처럼 시험부터 고친다.
@@ -9571,7 +9573,7 @@ Task 1~14와 리뷰가 끝난 뒤, 사용자가 아래 차례로 한다(spec '�
    - Git Bash: `read -rs DATABASE_URL && export DATABASE_URL` 뒤 `production` 가지 주소를 붙여 넣는다.
    - PowerShell: `$env:DATABASE_URL = Read-Host '배포 DB 주소'`
    1. `npm run db:migrate --workspace @vada/api -- --from-shell --dry-run` → `대상: <production 가지 호스트>/<DB 이름> (셸의 DATABASE_URL)`, `public 표 0개, 적용 기록 없음`이어야 한다. 표가 있거나 "…적용하지 않는다"가 나오면 멈추고 무엇이 들어 있는지 본다.
-   2. 사용자가 승인하면 `npm run db:migrate --workspace @vada/api -- --from-shell` → `마이그레이션 적용 완료(1개)`
+   2. 사용자가 승인하면 `npm run db:migrate --workspace @vada/api -- --from-shell --apply` → `마이그레이션 적용 완료(1개)`
    3. 셸에서 주소를 지운다: Git Bash `unset DATABASE_URL`, PowerShell `Remove-Item Env:DATABASE_URL`
 4. **main에 합치고 올리기:** 사용자가 반영하라고 하면 바탕 커밋을 main에 합치고 push한다. push하면 Render가 새 코드를 배포한다. 다음 단계까지 몇 분은 화면이 깨진다(새 코드가 옛 DB를 본다). 받아들이기로 했다.
 5. **Render 바꾸기:** Render 대시보드의 vada-m1 → Environment에서 `DATABASE_URL`을 `production` 가지 주소로 바꾸고 저장한다(다시 배포된다). 세션이 옛 DB에 있으므로 모두 다시 로그인한다.
