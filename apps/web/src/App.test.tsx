@@ -79,11 +79,13 @@ test('invite link login returns to the same invite and says why', async () => {
   await waitFor(() => expect(auth.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/join/ABCD2345', errorCallbackURL: '/join/ABCD2345' }))
 })
 
-test('KakaoTalk in-app browser explains how to open another browser', () => {
+test('KakaoTalk in-app browser offers the outside browser instead of Google login', () => {
   const agent = vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (Linux; Android 14) KAKAOTALK/10.9.0')
   try {
     render(<App />)
-    expect(screen.getByText("카카오톡 안에서는 Google 로그인이 막혀 있어요. 메뉴에서 '다른 브라우저로 열기'를 눌러 주세요.")).toBeTruthy()
+    expect(screen.getByText('카카오톡 안에서는 Google 로그인이 막혀 있어요. 바깥 브라우저로 열어 주세요.')).toBeTruthy()
+    expect(screen.getByRole('button', { name: '바깥 브라우저로 열기' })).toBeTruthy()
+    expect(screen.queryByRole('button', { name: 'Google로 로그인' })).toBeNull()
   } finally {
     agent.mockRestore()
   }

@@ -12,6 +12,7 @@ import { BrandMark } from '@/components/BrandMark'
 import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { isKakaoInAppBrowser } from '@/lib/in-app-browser'
+import LoginPanel from './auth/LoginPanel'
 
 // 초대 링크(/join/코드)로 왔는지, 소속이 없어 코드를 직접 입력했는지에 따라 돌아갈 곳이 다르다.
 type Invite = { code: string; from: 'link' | 'form' }
@@ -114,9 +115,7 @@ export default function App() {
       <Button onClick={() => { void refetch() }}>다시 확인</Button>
     </div> : <div className="flex flex-col gap-3">
       {invite?.from === 'link' && <Alert tone="info">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</Alert>}
-      {isKakaoInAppBrowser(navigator.userAgent) && <Alert tone="warning">카카오톡 안에서는 Google 로그인이 막혀 있어요. 메뉴에서 '다른 브라우저로 열기'를 눌러 주세요.</Alert>}
-      <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
-      <Button disabled={busy} onClick={() => { void login() }}>{busy ? 'Google로 이동 중…' : 'Google로 로그인'}</Button>
+      <LoginPanel kakao={isKakaoInAppBrowser(navigator.userAgent)} busy={busy} onLogin={() => { void login() }} />
     </div>}
     {message && <StateMessage kind="error">{message}</StateMessage>}
   </AuthPage>
