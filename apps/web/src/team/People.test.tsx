@@ -13,6 +13,7 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import People from './People'
 import { useTeam } from './useTeam'
 import { asElement } from '@/test-support/elements'
+import { settle } from '@/test-support/settle'
 
 afterEach(() => {
   cleanup()
@@ -752,6 +753,7 @@ test('메뉴 항목으로 연 대화상자를 닫으면 포커스가 그 운영�
   await waitFor(() =>
     expect(document.activeElement).toBe(screen.getByRole('button', { name: '이재정 동작' })),
   )
-  await new Promise(done => setTimeout(done, 50))
+  // 대화상자를 닫을 때 Radix가 거는 지연 작업이 끝난 뒤에도 포커스가 그대로다.
+  await settle()
   expect(document.activeElement).toBe(screen.getByRole('button', { name: '이재정 동작' }))
 })

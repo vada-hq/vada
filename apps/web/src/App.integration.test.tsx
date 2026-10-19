@@ -7,6 +7,7 @@ import App from './App'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
 import { asElement } from '@/test-support/elements'
+import { settle } from '@/test-support/settle'
 
 const auth = vi.hoisted(() => ({
   useSession: vi.fn(),
@@ -404,8 +405,9 @@ test('학생회를 바꾸면 키보드 포커스가 새 작업 공간의 학생�
   fireEvent.click(await screen.findByRole('menuitem', { name: '경영학부 학생회' }))
   const next = await screen.findByRole('button', { name: '학생회 메뉴: 경영학부 학생회' })
   await waitFor(() => expect(document.activeElement).toBe(next))
-  // 메뉴를 닫을 때 Radix가 거는 지연 작업이 포커스를 도로 가져가지 않는다.
-  await new Promise(done => setTimeout(done, 50))
+  // 메뉴를 닫을 때 Radix가 거는 지연 작업이 포커스를 도로 가져가지 않는다. 메뉴가 닫히고 그 작업이 끝난 뒤에 본다.
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+  await settle()
   expect(document.activeElement).toBe(next)
 })
 
@@ -425,7 +427,8 @@ test('휴대폰 폭의 옆 메뉴(시트)에서 학생회를 바꾸면 포커스
   await waitFor(() =>
     expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴 열기' })),
   )
-  await new Promise(done => setTimeout(done, 50))
+  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
+  await settle()
   expect(document.activeElement).toBe(screen.getByRole('button', { name: '메뉴 열기' }))
 })
 

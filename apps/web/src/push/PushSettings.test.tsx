@@ -6,6 +6,7 @@ import type { BrowserPushManager, BrowserSubscription, PushBrowser } from './pus
 import PushSettingsButton, { PushSettingsBody } from './PushSettings'
 import type { PushEnvironment } from './usePush'
 import { asElement } from '@/test-support/elements'
+import { settle } from '@/test-support/settle'
 
 afterEach(() => {
   cleanup()
@@ -283,7 +284,9 @@ test('저장 응답을 기다리는 중에 대화상자를 닫으면 구독을 �
   )
   unmount()
   pending.resolve(json({ error: 'Internal server error' }, 500))
-  await new Promise(resolve => setTimeout(resolve, 20))
+  // 응답이 오고 그 뒤의 await 연결이 모두 끝난 다음에 본다.
+  await pending.promise
+  await settle()
   expect(existing.unsubscribe).not.toHaveBeenCalled()
   expect(api.calls.map(call => call.path)).toEqual(['/api/me/push', '/api/me/push/devices'])
 })
@@ -307,7 +310,8 @@ test('구독을 읽는 중에 대화상자를 닫으면 옛 구독 지우기도 
   await waitFor(() => expect(getSubscription).toHaveBeenCalledTimes(1))
   unmount()
   finishReading(old)
-  await new Promise(resolve => setTimeout(resolve, 20))
+  await reading
+  await settle()
   expect(old.unsubscribe).not.toHaveBeenCalled()
   expect(api.calls.map(call => call.path)).toEqual(['/api/me/push'])
 })
