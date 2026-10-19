@@ -20,3 +20,7 @@ export const PUSH_TEST_RESULTS = ['sent', 'expired', 'rejected'] as const
 export type PushTestResult = typeof PUSH_TEST_RESULTS[number]
 export type PushKeyResponse = { publicKey: string }
 export type PushTestResponse = { result: PushTestResult }
+
+// 알림 받을 기기 지우기(바탕 spec G10). 지금 로그인한 계정의 기기만 지운다.
+export const RemovePushDeviceSchema = z.strictObject({ endpoint: PushSubscriptionSchema.shape.endpoint })
+export type RemovePushDeviceRequest = z.infer<typeof RemovePushDeviceSchema>

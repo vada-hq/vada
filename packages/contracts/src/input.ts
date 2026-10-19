@@ -20,3 +20,6 @@ export const token = (max: number) => z.string()
   .refine(value => !control.test(value))
   .trim()
   .min(1)
+
+// 본문에 받을 값이 없는 변경(코드 바꾸기, 내보내기, 없애기)도 빈 strictObject를 받는다. 공통 가드의 경계 검사가 모든 변경 라우트에 걸린다.
+export const EmptyRequestSchema = z.strictObject({})

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { PUSH_ENDPOINT_MAX, PushSubscriptionSchema } from './push.js'
+import { PUSH_ENDPOINT_MAX, PushSubscriptionSchema, RemovePushDeviceSchema } from './push.js'
 
 const valid = {
   endpoint: 'https://fcm.googleapis.com/fcm/send/abc',
@@ -42,4 +42,12 @@ test('PushSubscriptionSchema: 빠진 값, 빈 값, 상한+1, 제어 문자, 모�
     { ...valid, expirationTime: '1' },
   ]
   for (const value of bad) assert.equal(PushSubscriptionSchema.safeParse(value).success, false, JSON.stringify(value))
+})
+
+test('RemovePushDeviceSchema: 구독 주소 하나만 받는다', () => {
+  assert.equal(RemovePushDeviceSchema.safeParse({ endpoint: valid.endpoint }).success, true)
+  for (const value of [{}, { endpoint: '' }, { endpoint: 'http://fcm.googleapis.com/x' }, { endpoint: valid.endpoint, keys: valid.keys },
+    { endpoint: `https://fcm.googleapis.com/${'a'.repeat(PUSH_ENDPOINT_MAX)}` }]) {
+    assert.equal(RemovePushDeviceSchema.safeParse(value).success, false, JSON.stringify(value).slice(0, 80))
+  }
 })
