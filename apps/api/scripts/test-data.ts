@@ -13,6 +13,23 @@ export const TEST_INVITE_CODE = 'TESTDATA'
 export const TEST_DEPARTMENTS = { finance: '재정부', planning: '기획부' } as const
 export type TestDepartment = keyof typeof TEST_DEPARTMENTS
 
+// 명령 인자. --apply가 없으면 미리 보기(대상만 보여 주고 아무것도 쓰지 않는다)다. 오타, 모르는 인자, 개수 틀림은 null이다.
+export type TestDataCommand =
+  | { command: 'seed'; userId: string; apply: boolean }
+  | { command: 'assign'; userId: string; department: TestDepartment; apply: boolean }
+export function parseTestDataArgs(args: readonly string[]): TestDataCommand | null {
+  const apply = args.at(-1) === '--apply'
+  const rest = apply ? args.slice(0, -1) : args
+  const [command, userId, department, ...extra] = rest
+  // 계정 번호 자리에 플래그가 들어오면(seed --apply) 계정 번호가 빠진 것이다.
+  if (extra.length > 0 || !userId?.trim() || userId.startsWith('-')) return null
+  if (command === 'seed' && department === undefined) return { command, userId, apply }
+  if (command === 'assign' && department !== undefined && Object.hasOwn(TEST_DEPARTMENTS, department)) {
+    return { command, userId, department: department as TestDepartment, apply }
+  }
+  return null
+}
+
 async function requireGoogleUser(tx: Tx, userId: string) {
   const [account] = await tx.select({ id: accounts.id }).from(accounts)
     .where(and(eq(accounts.userId, userId), eq(accounts.providerId, 'google'))).limit(1)
