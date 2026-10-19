@@ -58,3 +58,16 @@ test('401이면 로그인이 풀렸다고 등록된 처리기에 알리고, 다�
   expect(await getJson('/api/a')).toEqual({ ok: false, status: 401, code: 'UNAUTHENTICATED' })
   expect(unauthorized).toHaveBeenCalledTimes(2)
 })
+
+test('getJson은 받은 취소 신호를 fetch에 그대로 넘기고, 없으면 신호 칸을 넣지 않는다', async () => {
+  const fetchMock = vi.fn(async (_input: RequestInfo | URL, _init?: RequestInit) =>
+    json({ ok: true }),
+  )
+  vi.stubGlobal('fetch', fetchMock)
+  const controller = new AbortController()
+  await getJson('/api/a', controller.signal)
+  await getJson('/api/b')
+  const [withSignal, withoutSignal] = fetchMock.mock.calls.map(call => call[1])
+  expect(withSignal?.signal).toBe(controller.signal)
+  expect(withoutSignal).not.toHaveProperty('signal')
+})

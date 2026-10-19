@@ -32,7 +32,7 @@ export function councilView(
     name?: string
     councilRank?: CouncilRank | null
     permissions?: Action[]
-    memberId?: string
+    memberId?: string | undefined
   } = {},
 ): CouncilView {
   const councilRank = options.councilRank === undefined ? 'president' : options.councilRank

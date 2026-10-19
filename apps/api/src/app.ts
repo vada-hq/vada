@@ -19,7 +19,7 @@ export type AppOptions = {
   // 운영진: 목록, 부서 배정과 빼기, 직급, 회장 넘기기, 내보내기, 부서
   team?: ReturnType<typeof createTeamRoutes>
   // 휴대폰 알림. 알림 열쇠(VAPID)가 없으면 만들지 않는다.
-  push?: ReturnType<typeof createPushRoutes>
+  push?: ReturnType<typeof createPushRoutes> | undefined
   // 알림 받을 기기 저장과 지우기
   pushDevices?: ReturnType<typeof createPushDeviceRoutes>
 }

@@ -5,7 +5,7 @@ export const AUTH_CHANNEL = 'vada-auth'
 export const AUTH_DONE_PATH = '/auth-done'
 
 type Opened = { location: { href: string }; close: () => void } | null
-type SignIn = () => Promise<{ data?: { url?: string } | null; error?: unknown }>
+type SignIn = () => Promise<{ data?: { url?: string | undefined } | null; error?: unknown }>
 
 export async function startPopupLogin(
   open: () => Opened,

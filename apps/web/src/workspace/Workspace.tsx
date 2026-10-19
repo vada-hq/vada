@@ -14,7 +14,7 @@ import WorkspaceSidebar, { type Page } from './WorkspaceSidebar'
 
 type Props = {
   councils: MyCouncil[]
-  initialCouncilId?: string
+  initialCouncilId?: string | undefined
   user: { name: string }
   logoutBusy: boolean
   onLogout: () => void

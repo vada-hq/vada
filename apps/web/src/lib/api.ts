@@ -26,7 +26,8 @@ async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {
   }
 }
 
-export const getJson = <T>(path: string, signal?: AbortSignal) => call<T>(path, { signal })
+export const getJson = <T>(path: string, signal?: AbortSignal) =>
+  call<T>(path, signal ? { signal } : {})
 export const postJson = <T>(path: string, body: unknown) =>
   call<T>(path, {
     method: 'POST',

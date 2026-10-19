@@ -25,7 +25,7 @@ type Props = {
   onSelect: (councilId: string) => void
   onPage: (page: Page) => void
   // 학생회 이름 버튼. 학생회를 바꾼 뒤 포커스를 돌려놓을 때 쓴다.
-  menuRef?: Ref<HTMLButtonElement>
+  menuRef?: Ref<HTMLButtonElement> | undefined
   user: { name: string }
   logoutBusy: boolean
   onLogout: () => void

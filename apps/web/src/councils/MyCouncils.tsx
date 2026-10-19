@@ -9,7 +9,7 @@ import { useMyCouncils } from './useMyCouncils'
 type Props = {
   user: { name: string }
   // 방금 들어온 학생회. 있으면 그 학생회를 먼저 연다.
-  initialCouncilId?: string
+  initialCouncilId?: string | undefined
   // 가운데 카드 화면(로그인한 사람의 이름, 휴대폰 알림, 로그아웃이 함께 있다). App이 그린다.
   card: (content: ReactNode) => ReactNode
   onEnterCode: (code: string) => void
