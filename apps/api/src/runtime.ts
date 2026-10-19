@@ -1,9 +1,8 @@
-import { readFileSync } from 'node:fs'
-import { parseEnv } from 'node:util'
+import { readLocalEnv } from './local-env.js'
 
 function readLocalEnvironment(): NodeJS.ProcessEnv {
   try {
-    return parseEnv(readFileSync(new URL('../../../.env', import.meta.url), 'utf8'))
+    return readLocalEnv()
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return {}
     throw new Error('로컬 환경설정을 읽을 수 없습니다.')

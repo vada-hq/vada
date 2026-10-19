@@ -1,6 +1,7 @@
 import type { PGlite } from '@electric-sql/pglite'
 import { memberLogin } from '../db/schema.js'
-import { clockNow, createRecord, updateRecord, type Db } from '../records/records.js'
+import { clockNow, createRecord, updateRecord } from '../records/records.js'
+import type { Db } from '../db/types.js'
 
 export type Person = { userId: string; memberId: string }
 

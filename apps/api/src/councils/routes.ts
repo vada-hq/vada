@@ -9,10 +9,10 @@ import {
   type MyCouncilsResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { authorize, authorizeChange, councilIdOf } from '../access/authorize.js'
+import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { json } from '../http/validate.js'
-import type { Db, Tx } from '../records/records.js'
+import type { Db, Tx } from '../db/types.js'
 import { councilView, myCouncils } from './queries.js'
 import { createCouncil, updateCohort, updateSettings } from './service.js'
 
@@ -31,14 +31,18 @@ export function createCouncilRoutes(
     action: Action,
     run: (tx: Tx, actor: Actor, now: Date) => Promise<void>,
   ) {
-    const councilId = councilIdOf(c.req.param('councilId'))
-    const userId = c.get('userId')
     const now = clock()
-    const view = await db.transaction(async tx => {
-      const actor = await authorizeChange(tx, userId, councilId, action, now)
-      await run(tx, actor, now)
-      return councilView(tx, actor)
-    })
+    const view = await inCouncilChange(
+      db,
+      c.get('userId'),
+      c.req.param('councilId'),
+      action,
+      now,
+      async (tx, actor) => {
+        await run(tx, actor, now)
+        return councilView(tx, actor)
+      },
+    )
     return c.json(view satisfies CouncilView)
   }
 

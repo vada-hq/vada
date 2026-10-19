@@ -1,7 +1,8 @@
 import { eq } from 'drizzle-orm'
 import { member, memberLogin, users } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
-import { createRecord, type Tx } from '../records/records.js'
+import { createRecord } from '../records/records.js'
+import type { Tx } from '../db/types.js'
 
 // 로그인 잇기(바탕 spec G1): 로그인 계정(users)과 운영진(member)을 하나씩 잇고 운영진 번호를 돌려준다.
 // 이메일은 식별자가 아니다(OpenID Connect 5.7). 이어진 뒤에는 이메일이 바뀌어도 같은 Google 계정이면 같은 사람이다.

@@ -4,11 +4,13 @@ import type {
   UpdateCohortRequest,
   UpdateCouncilSettingsRequest,
 } from '@vada/contracts'
-import { koreanDate, type Actor } from '../access/actor.js'
+import type { Actor } from '../access/actor.js'
+import { periodIsCurrent } from '../access/current-cohort.js'
 import { cohort, council, inviteCode } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { freshInviteCode } from '../invites/code.js'
-import { clockNow, createRecord, updateRecord, type Tx } from '../records/records.js'
+import { clockNow, createRecord, updateRecord } from '../records/records.js'
+import type { Tx } from '../db/types.js'
 import { linkMember } from './link.js'
 
 // 학생회를 만들면 함께 생기는 재정 역할 부서(DEC-16). 이름은 나중에 바꿀 수 있다.
@@ -16,9 +18,7 @@ export const FINANCE_DEPARTMENT_NAME = '재정부'
 
 // 기수의 기간이 오늘(한국 날짜)을 담아야 운영진에게 지금 소속이 생긴다. 담지 않으면 아무도 학생회를 열 수 없다.
 export function assertCurrentPeriod(period: { startsOn: string; endsOn: string }, now: Date) {
-  const today = koreanDate(now)
-  if (period.startsOn > today || period.endsOn < today)
-    throw new ApiError('COHORT_NOT_CURRENT', 409)
+  if (!periodIsCurrent(period, now)) throw new ApiError('COHORT_NOT_CURRENT', 409)
 }
 
 // 학생회 만들기는 한 거래다(바탕 spec G6): 운영진(없으면)과 로그인 잇기, 학생회, 첫 기수, 회장 소속, 재정부, 초대 코드.

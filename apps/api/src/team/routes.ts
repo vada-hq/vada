@@ -10,12 +10,12 @@ import {
   type TeamResponse,
 } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
-import { authorize, authorizeChange, councilIdOf, recordIdOf } from '../access/authorize.js'
+import { authorize, councilIdOf, inCouncilChange, recordIdOf } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { ApiError } from '../http/errors.js'
 import { sqlState } from '../http/on-error.js'
 import { json } from '../http/validate.js'
-import type { Db, Tx } from '../records/records.js'
+import type { Db, Tx } from '../db/types.js'
 import { teamOf } from './queries.js'
 import {
   assignDepartment,
@@ -50,15 +50,18 @@ export function createTeamRoutes(
     run: (tx: Tx, actor: Actor) => Promise<void>,
     conflicts: Readonly<Record<string, string>> = {},
   ) {
-    const councilId = councilIdOf(c.req.param('councilId'))
-    const userId = c.get('userId')
-    const now = clock()
     try {
-      const team = await db.transaction(async tx => {
-        const actor = await authorizeChange(tx, userId, councilId, action, now)
-        await run(tx, actor)
-        return teamOf(tx, actor)
-      })
+      const team = await inCouncilChange(
+        db,
+        c.get('userId'),
+        c.req.param('councilId'),
+        action,
+        clock(),
+        async (tx, actor) => {
+          await run(tx, actor)
+          return teamOf(tx, actor)
+        },
+      )
       return c.json(team satisfies TeamResponse)
     } catch (error) {
       const code = conflicts[sqlState(error) ?? '']

@@ -1,5 +1,7 @@
-import { and, eq, gte, isNull, lte } from 'drizzle-orm'
-import { actorOf, koreanDate } from '../src/access/actor.js'
+import { and, eq } from 'drizzle-orm'
+import { koreanDateOf } from '@vada/contracts'
+import { actorOf } from '../src/access/actor.js'
+import { currentCouncilMembership } from '../src/access/current-cohort.js'
 import { createCouncil } from '../src/councils/service.js'
 import {
   accounts,
@@ -11,7 +13,7 @@ import {
   memberLogin,
 } from '../src/db/schema.js'
 import { joinCouncil } from '../src/invites/service.js'
-import type { Db, Tx } from '../src/records/records.js'
+import type { Db, Tx } from '../src/db/types.js'
 import { assignDepartment, createDepartment } from '../src/team/service.js'
 
 // 개발 DB의 시험 학생회. 학교 이름으로 찾고, 초대 코드는 늘 TESTDATA다(/join/TESTDATA로 들어온다).
@@ -62,7 +64,6 @@ async function testCouncilId(tx: Tx) {
 
 // 지금 기수의 회장이 쓰는 로그인 계정
 async function presidentUserOf(tx: Tx, councilId: string, now: Date) {
-  const today = koreanDate(now)
   const [row] = await tx
     .select({ userId: memberLogin.userId })
     .from(councilMembership)
@@ -71,10 +72,8 @@ async function presidentUserOf(tx: Tx, councilId: string, now: Date) {
     .where(
       and(
         eq(cohort.councilId, councilId),
-        lte(cohort.startsOn, today),
-        gte(cohort.endsOn, today),
         eq(councilMembership.councilRank, 'president'),
-        isNull(councilMembership.endsAt),
+        currentCouncilMembership(now),
       ),
     )
   return row?.userId
@@ -86,7 +85,7 @@ export async function seedTestCouncil(db: Db, userId: string, now: Date): Promis
     await requireGoogleUser(tx, userId)
     let councilId = await testCouncilId(tx)
     if (!councilId) {
-      const year = koreanDate(now).slice(0, 4)
+      const year = koreanDateOf(now).slice(0, 4)
       councilId = await createCouncil(
         tx,
         userId,

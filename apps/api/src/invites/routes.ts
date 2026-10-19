@@ -9,13 +9,14 @@ import {
   type JoinCouncilResponse,
 } from '@vada/contracts'
 import { actorOf } from '../access/actor.js'
-import { authorize, authorizeChange, councilIdOf } from '../access/authorize.js'
+import { authorize, councilIdOf, inCouncilChange } from '../access/authorize.js'
 import { requireSession, type SessionEnv, type SessionReader } from '../auth/require-session.js'
 import { myCouncils } from '../councils/queries.js'
 import { inviteCode } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { json } from '../http/validate.js'
-import { clockNow, type Db } from '../records/records.js'
+import { clockNow } from '../records/records.js'
+import type { Db } from '../db/types.js'
 import { freshInviteCode } from './code.js'
 import { invitedCouncil, joinCouncil } from './service.js'
 
@@ -62,18 +63,21 @@ export function createInviteRoutes(
     json(EmptyRequestSchema),
     auth,
     async c => {
-      const councilId = councilIdOf(c.req.param('councilId'))
-      const userId = c.get('userId')
-      const now = clock()
-      const code = await db.transaction(async tx => {
-        const actor = await authorizeChange(tx, userId, councilId, 'invite.manage', now)
-        const next = await freshInviteCode(tx)
-        await tx
-          .update(inviteCode)
-          .set({ code: next, createdBy: actor.memberId, createdAt: clockNow })
-          .where(eq(inviteCode.councilId, councilId))
-        return next
-      })
+      const code = await inCouncilChange(
+        db,
+        c.get('userId'),
+        c.req.param('councilId'),
+        'invite.manage',
+        clock(),
+        async (tx, actor) => {
+          const next = await freshInviteCode(tx)
+          await tx
+            .update(inviteCode)
+            .set({ code: next, createdBy: actor.memberId, createdAt: clockNow })
+            .where(eq(inviteCode.councilId, actor.councilId))
+          return next
+        },
+      )
       return c.json({ code } satisfies InviteCodeResponse)
     },
   )

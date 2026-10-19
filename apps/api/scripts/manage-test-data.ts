@@ -1,8 +1,7 @@
-import { readFileSync } from 'node:fs'
-import { parseEnv } from 'node:util'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { describeTarget } from '../src/db/migrate-check.js'
+import { readLocalEnv } from '../src/local-env.js'
 import {
   assignTestMember,
   parseTestDataArgs,
@@ -24,7 +23,7 @@ async function main() {
     process.exitCode = 1
     return
   }
-  const env = parseEnv(readFileSync(new URL('../../../.env', import.meta.url), 'utf8'))
+  const env = readLocalEnv()
   if (!env.DATABASE_URL) throw new Error('Missing configuration')
   console.log(`대상: ${describeTarget(env.DATABASE_URL)} (.env)`)
   const plan =

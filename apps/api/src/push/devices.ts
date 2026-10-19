@@ -5,7 +5,7 @@ import { requireSession, type SessionEnv, type SessionReader } from '../auth/req
 import { pushDevice } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { json } from '../http/validate.js'
-import type { Db } from '../records/records.js'
+import type { Db } from '../db/types.js'
 import { isKnownPushService } from './endpoint.js'
 
 // JavaScript Date가 나타낼 수 있는 가장 늦은 시각(밀리초). 이보다 큰 만료 시각은 잘못된 값이다.

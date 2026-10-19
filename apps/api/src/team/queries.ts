@@ -2,7 +2,7 @@ import { and, asc, eq, isNull } from 'drizzle-orm'
 import type { TeamResponse } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { councilMembership, department, departmentMembership, member } from '../db/schema.js'
-import type { Db } from '../records/records.js'
+import type { Db } from '../db/types.js'
 
 // 운영진과 부서 목록. 지금 기수의 끝나지 않은 소속만 보인다. 들어온 순서대로 놓고, 이메일은 넣지 않는다(바탕 spec G12).
 export async function teamOf(db: Pick<Db, 'select'>, actor: Actor): Promise<TeamResponse> {

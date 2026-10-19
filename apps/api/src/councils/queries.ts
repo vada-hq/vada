@@ -1,6 +1,7 @@
 import { and, asc, eq, inArray, isNull } from 'drizzle-orm'
 import type { CouncilView, MyCouncil } from '@vada/contracts'
-import { currentCouncilMembership, type Actor } from '../access/actor.js'
+import type { Actor } from '../access/actor.js'
+import { currentCouncilMembership } from '../access/current-cohort.js'
 import { permissionsOf } from '../access/permissions.js'
 import {
   cohort,
@@ -11,7 +12,7 @@ import {
   member,
   memberLogin,
 } from '../db/schema.js'
-import type { Db } from '../records/records.js'
+import type { Db } from '../db/types.js'
 
 type Reader = Pick<Db, 'select'>
 

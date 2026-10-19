@@ -5,7 +5,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { createTestDb } from '../db/test-db.js'
 import { clockNow, createRecord, updateRecord } from '../records/records.js'
 import { addUser, seedCouncil } from '../test-support/council.js'
-import { actorOf, koreanDate } from './actor.js'
+import { actorOf } from './actor.js'
 import { authorize, authorizeChange, councilIdOf, recordIdOf } from './authorize.js'
 
 const inside = new Date('2026-06-01T03:00:00Z')
@@ -160,7 +160,6 @@ test('기간이 지난 기수의 사람은 막힌다. 날짜는 서버 시간대
     const { people, councilId } = await seedCouncil(db, pg)
     const user = people.plain.userId
     // 2026-01-01 00:00 KST는 2025-12-31 15:00 UTC다.
-    assert.equal(koreanDate(new Date('2025-12-31T15:00:00Z')), '2026-01-01')
     assert.equal(await actorOf(db, user, councilId, new Date('2025-12-31T14:59:59Z')), null)
     assert.notEqual(await actorOf(db, user, councilId, new Date('2025-12-31T15:00:00Z')), null)
     assert.notEqual(await actorOf(db, user, councilId, new Date('2026-12-31T14:59:59Z')), null)

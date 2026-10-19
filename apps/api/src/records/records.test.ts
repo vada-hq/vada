@@ -9,8 +9,8 @@ import {
   updateRecord,
   updateRecords,
   type AnyRecordChange,
-  type Tx,
 } from './records.js'
+import type { Tx } from '../db/types.js'
 
 type Version = {
   version_no: number

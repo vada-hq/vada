@@ -1,9 +1,8 @@
-import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-import { parseEnv } from 'node:util'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { migrate } from 'drizzle-orm/postgres-js/migrator'
+import { readLocalEnv } from '../local-env.js'
 import { localMigrations } from './migrate-check.js'
 import { runMigration } from './migrate-run.js'
 
@@ -17,8 +16,7 @@ process.exitCode = await runMigration({
   args: process.argv.slice(2),
   env: process.env,
   shellUrl: process.env.DATABASE_URL,
-  readEnvUrl: () =>
-    parseEnv(readFileSync(new URL('../../../../.env', import.meta.url), 'utf8')).DATABASE_URL,
+  readEnvUrl: () => readLocalEnv().DATABASE_URL,
   readLocal: () => localMigrations(migrationsFolder),
   connect: url => {
     const client = postgres(url, {

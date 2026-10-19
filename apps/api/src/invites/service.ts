@@ -1,5 +1,5 @@
-import { and, eq, gte, isNull, lte } from 'drizzle-orm'
-import { koreanDate } from '../access/actor.js'
+import { and, eq, isNull } from 'drizzle-orm'
+import { cohortIsCurrent } from '../access/current-cohort.js'
 import { lockCouncil } from '../access/authorize.js'
 import { linkMember } from '../councils/link.js'
 import {
@@ -10,14 +10,8 @@ import {
   inviteCode,
 } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
-import {
-  clockNow,
-  createRecord,
-  updateRecords,
-  type AnyRecordChange,
-  type Db,
-  type Tx,
-} from '../records/records.js'
+import { clockNow, createRecord, updateRecords, type AnyRecordChange } from '../records/records.js'
+import type { Db, Tx } from '../db/types.js'
 
 // 초대 코드로 학생회를 찾는다. 형식이 틀린 코드와 없는 코드를 구분하지 않는다. 둘 다 404다.
 export async function invitedCouncil(db: Pick<Db, 'select'>, code: string) {
@@ -47,13 +41,10 @@ export async function joinCouncil(
     .from(inviteCode)
     .where(and(eq(inviteCode.councilId, councilId), eq(inviteCode.code, code)))
   if (!still) throw new ApiError('NOT_FOUND', 404)
-  const today = koreanDate(now)
   const [current] = await tx
     .select({ id: cohort.id })
     .from(cohort)
-    .where(
-      and(eq(cohort.councilId, councilId), lte(cohort.startsOn, today), gte(cohort.endsOn, today)),
-    )
+    .where(and(eq(cohort.councilId, councilId), cohortIsCurrent(now)))
   if (!current) throw new ApiError('NO_CURRENT_COHORT', 409)
   const memberId = await linkMember(tx, userId)
   const [membership] = await tx

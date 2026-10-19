@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto'
 import { eq } from 'drizzle-orm'
 import { inviteCode } from '../db/schema.js'
-import type { Db } from '../records/records.js'
+import type { Db } from '../db/types.js'
 
 // 초대 코드 8자. 헷갈리는 0·1·I·O를 뺀 32글자에서 뽑는다(DB CHECK ^[2-9A-HJ-NP-Z]{8}$, 지금 vada와 같다).
 export const INVITE_ALPHABET = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'

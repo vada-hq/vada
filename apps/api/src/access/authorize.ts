@@ -1,22 +1,20 @@
 import { eq } from 'drizzle-orm'
-import type { Action } from '@vada/contracts'
+import { isUuid, type Action } from '@vada/contracts'
 import { council } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
-import type { Db, Tx } from '../records/records.js'
+import type { Db, Tx } from '../db/types.js'
 import { actorOf, type Actor } from './actor.js'
 import { can } from './permissions.js'
 
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
-
 // 경로의 학생회 번호. 형식이 틀리면 그 학생회의 운영진일 수 없으므로 403이다(학생회가 있는지 드러내지 않는다).
 export function councilIdOf(value: string | undefined) {
-  if (!value || !uuid.test(value)) throw new ApiError('FORBIDDEN', 403)
+  if (!value || !isUuid(value)) throw new ApiError('FORBIDDEN', 403)
   return value.toLowerCase()
 }
 
 // 경로의 운영진·부서 번호. 형식이 틀리면 없는 번호로 본다.
 export function recordIdOf(value: string | undefined) {
-  if (!value || !uuid.test(value)) throw new ApiError('NOT_FOUND', 404)
+  if (!value || !isUuid(value)) throw new ApiError('NOT_FOUND', 404)
   return value.toLowerCase()
 }
 
@@ -56,4 +54,18 @@ export async function authorizeChange(
 ): Promise<Actor> {
   await lockCouncil(tx, councilId)
   return authorize(tx, userId, councilId, action, now)
+}
+
+// 학생회 하나를 바꾸는 요청의 거래 하나: 학생회 행을 잠그고(authorizeChange), 권한을 다시 본 뒤, run이 바꾸고 응답에 쓸 값까지 만든다.
+// 응답 값도 같은 거래 안에서 만들어야 커밋한 뒤에 읽다가 실패하는 일이 없다. 번호 형식이 틀리면 거래를 열기 전에 403이다.
+export async function inCouncilChange<T>(
+  db: Db,
+  userId: string,
+  councilId: string | undefined,
+  action: Action,
+  now: Date,
+  run: (tx: Tx, actor: Actor) => Promise<T>,
+): Promise<T> {
+  const id = councilIdOf(councilId)
+  return db.transaction(async tx => run(tx, await authorizeChange(tx, userId, id, action, now)))
 }

@@ -9,7 +9,7 @@ import { createPushRoutes } from '../push/routes.js'
 import { createTeamRoutes } from '../team/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
-import type { Db } from '../records/records.js'
+import type { Db } from '../db/types.js'
 
 // 공통 가드가 거는 곳: 로그인한 구성원의 경로, 로그인한 사람 자신의 경로(휴대폰 알림), 로그인 없이 쓰는 공개 경로
 const guarded = ['/api/organizations/', '/api/me/', '/api/public/']

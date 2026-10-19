@@ -1,10 +1,5 @@
 import { and, eq, sql } from 'drizzle-orm'
-import type {
-  PgDatabase,
-  PgInsertValue,
-  PgQueryResultHKT,
-  PgUpdateSetSource,
-} from 'drizzle-orm/pg-core'
+import type { PgInsertValue, PgUpdateSetSource } from 'drizzle-orm/pg-core'
 import {
   cohort,
   council,
@@ -15,14 +10,12 @@ import {
   record,
   recordVersion,
 } from '../db/schema.js'
+import type { Tx } from '../db/types.js'
 import { ApiError } from '../http/errors.js'
 
 // 기록과 판(DEC-33, DEC-34, DEC-46). 모든 쓰기는 이 모듈을 거친다(바탕 spec '기록 모듈').
 // 지금 상태도 판이다. 만들 때 판 1을 열고, 바꿀 때 지금 판을 닫고 새 판을 연다. 판에는 하위 행의 칸 값 전체를 담는다.
 // 시각은 clock_timestamp()로 적어, 한 거래에서 두 번 바꿔도 판이 겹치거나 비지 않는다.
-
-export type Db = PgDatabase<PgQueryResultHKT>
-export type Tx = Parameters<Parameters<Db['transaction']>[0]>[0]
 
 // 바탕이 다루는 종류와 하위 표. 다음 덩어리가 자기 종류를 여기에 더한다.
 const tables = {
