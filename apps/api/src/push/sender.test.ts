@@ -26,3 +26,11 @@ test('404·410은 expired, 그 밖의 실패는 rejected다', async () => {
   const offline = createPushSender(config, async () => { throw new Error('ECONNRESET') })
   assert.equal(await offline(target, message), 'rejected')
 })
+
+test('알려지지 않은 서버는 rejected를 돌려주고 send를 호출하지 않는다', async () => {
+  const calls: unknown[][] = []
+  const send = createPushSender(config, async (...args) => { calls.push(args) })
+  const unknownTarget = { endpoint: 'https://127.0.0.1/x', keys: { p256dh: 'p', auth: 'a' } }
+  assert.equal(await send(unknownTarget, message), 'rejected')
+  assert.deepEqual(calls, [])
+})

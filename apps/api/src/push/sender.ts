@@ -1,6 +1,7 @@
 import webpush, { type RequestOptions } from 'web-push'
 import type { PushTestResult } from '@vada/contracts'
 import type { PushConfig } from './config.js'
+import { isKnownPushService } from './endpoint.js'
 
 export type PushMessage = { title: string; body: string; url: string }
 export type PushTarget = { endpoint: string; keys: { p256dh: string; auth: string } }
@@ -17,6 +18,7 @@ export function createPushSender(config: PushConfig, send: Send = sendWithLibrar
     TTL: 60, urgency: 'high', timeout: 10_000,
   }
   return async (target, message) => {
+    if (!isKnownPushService(target.endpoint)) return 'rejected'
     try {
       await send(target, JSON.stringify(message), options)
       return 'sent'

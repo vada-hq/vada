@@ -4,6 +4,8 @@ const exactHosts = new Set(['fcm.googleapis.com', 'web.push.apple.com', 'updates
 const hostSuffixes = ['.notify.windows.com']
 
 export function isKnownPushService(endpoint: string) {
+  // 검사와 실제 연결에 쓰는 URL 파서가 다르지 않도록, 호스트 부분을 엄격히 제한한다(web-push의 url.parse와 WHATWG 일치).
+  if (!/^https:\/\/[A-Za-z0-9.-]+(?::443)?(?:[\/?#]|$)/.test(endpoint)) return false
   let url: URL
   try { url = new URL(endpoint) } catch { return false }
   if (url.protocol !== 'https:' || url.username || url.password || url.port) return false
