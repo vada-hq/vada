@@ -2,12 +2,7 @@ import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { describeTarget } from '../src/db/migrate-check.js'
 import { readLocalEnv } from '../src/local-env.js'
-import {
-  assignTestMember,
-  parseTestDataArgs,
-  seedTestCouncil,
-  TEST_DEPARTMENTS,
-} from './test-data.js'
+import { assignTestMember, parseTestDataArgs, seedTestCouncil, stepOf } from './test-data.js'
 
 // 사용법(저장소 맨 위에서, 플래그 앞의 --를 빠뜨리지 않는다):
 //   npm run test-data --workspace @vada/api -- seed <user-id> [--apply]                        시험 학생회를 두고 그 계정을 회장으로 둔다
@@ -25,13 +20,16 @@ async function main() {
   }
   const env = readLocalEnv()
   if (!env.DATABASE_URL) throw new Error('Missing configuration')
-  console.log(`대상: ${describeTarget(env.DATABASE_URL)} (.env)`)
-  const plan =
-    parsed.command === 'seed'
-      ? '시험 학생회를 두고 그 계정을 회장으로 둔다'
-      : `그 계정을 시험 학생회의 ${TEST_DEPARTMENTS[parsed.department]}에 넣는다`
-  if (!parsed.apply) {
-    console.log(`${plan}. 미리 보기라 바꾸지 않았다. 실제로 하려면 --apply를 붙인다.`)
+  const target = describeTarget(env.DATABASE_URL)
+  console.log(`대상: ${target} (.env)`)
+  const step = stepOf(parsed, target)
+  if (step.step === 'preview') {
+    console.log(step.message)
+    return
+  }
+  if (step.step === 'stop') {
+    console.error(step.message)
+    process.exitCode = 1
     return
   }
   const client = postgres(env.DATABASE_URL, {

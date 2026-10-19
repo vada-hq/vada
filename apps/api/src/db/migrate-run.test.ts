@@ -82,6 +82,12 @@ test('멈추는 길은 .env를 읽지도 연결하지도 않는다', async () =>
       { args: ['--apply'], env: { npm_config_dry_run: 'true' } },
       /--를 붙인다/,
     ],
+    // 이미 --를 줬는데도 삼켰다면 .npmrc나 환경 변수가 dry-run을 켠 것이다.
+    [
+      '삼킨 원인이 설정일 때의 안내',
+      { args: ['--apply'], env: { npm_config_dry_run: 'true' } },
+      /\.npmrc.*NPM_CONFIG_DRY_RUN/,
+    ],
     ['플래그 없이 셸에 주소', { shellUrl: URL_WITH_PASSWORD }, /--from-shell을 붙이고/],
     ['셸 주소 없이 플래그', { args: ['--from-shell'] }, /셸에 DATABASE_URL이 없다/],
     ['셸 주소가 공백뿐', { args: ['--from-shell'], shellUrl: '   ' }, /셸에 DATABASE_URL이 없다/],
@@ -119,7 +125,9 @@ test('미리 보기는 기본이다: 대상과 점검만 보여 주고 아무것
       assert.ok(
         lines.some(
           line =>
-            line.includes(`적용할 마이그레이션 ${real.length}개`) && line.includes('미리 보기'),
+            line.includes(`적용할 마이그레이션 ${real.length}개`) &&
+            line.includes('미리 보기') &&
+            line.includes('-- --apply'),
         ),
         lines.join(' | '),
       )
@@ -216,6 +224,75 @@ test('적용 호출이 아무것도 적용하지 않았으면 0개로 찍는다(
     assert.equal(await run(), 0)
     assert.equal(calls.apply, 1)
     assert.ok(lines.includes('마이그레이션 적용 완료(0개)'), lines.join(' | '))
+  } finally {
+    await pg.close()
+  }
+})
+
+test('적용 뒤 기록을 다시 읽다 실패하면 "마이그레이션 실패"가 아니라 적용은 끝났다고 따로 알리고 1로 끝난다', async () => {
+  const pg = await PGlite.create({ extensions: { btree_gist } })
+  try {
+    let applied = false
+    const { calls, lines, run } = harness(pg, {
+      args: ['--apply'],
+      apply: async () => {
+        await migrate(drizzle(pg), { migrationsFolder })
+        applied = true
+      },
+      query: async text => {
+        if (applied)
+          throw Object.assign(new Error(`secret ${URL_WITH_PASSWORD}`), { code: 'ECONNRESET' })
+        return rowsOf(pg)(text)
+      },
+    })
+    assert.equal(await run(), 1)
+    assert.deepEqual([calls.apply, calls.end], [1, 1])
+    assert.ok(
+      lines.some(
+        line => line.includes('적용은 끝났고 확인 읽기에 실패했다') && line.includes('미리 보기'),
+      ),
+      lines.join(' | '),
+    )
+    assert.ok(
+      lines.some(line => line.includes('ECONNRESET')),
+      lines.join(' | '),
+    )
+    assert.ok(
+      lines.every(line => !line.includes('마이그레이션 실패') && !line.includes('적용 완료')),
+    )
+    noSecret(lines)
+  } finally {
+    await pg.close()
+  }
+})
+
+test('--apply는 대상을 보여 줄 수 없으면 연결하기 전에 멈추고, 미리 보기는 그대로 보여 준다', async () => {
+  const pg = await PGlite.create()
+  try {
+    // 비밀번호의 ?에서 주소가 잘려 호스트가 ss로 읽힌다.
+    const unreadable = 'postgres://u:p@ss?word@host/db'
+    const apply = harness(pg, { args: ['--apply'], readEnvUrl: () => unreadable })
+    assert.equal(await apply.run(), 1)
+    assert.deepEqual([apply.calls.readEnvUrl, apply.calls.connect, apply.calls.apply], [1, 0, 0])
+    assert.ok(apply.lines.includes('대상: (주소를 읽지 못했다) (.env)'), apply.lines.join(' | '))
+    assert.ok(
+      apply.lines.some(line => line.includes('대상을 보여 줄 수 없어 적용하지 않는다')),
+      apply.lines.join(' | '),
+    )
+    noSecret(apply.lines)
+    assert.ok(apply.lines.every(line => !line.includes('ss') && !line.includes('word')))
+    // 셸 주소도 같다.
+    const shell = harness(pg, { args: ['--from-shell', '--apply'], shellUrl: unreadable })
+    assert.equal(await shell.run(), 1)
+    assert.deepEqual([shell.calls.connect, shell.calls.apply], [0, 0])
+    // 미리 보기는 아무것도 바꾸지 않으므로 계속한다.
+    const preview = harness(pg, { readEnvUrl: () => unreadable })
+    assert.equal(await preview.run(), 0)
+    assert.ok(
+      preview.lines.includes('대상: (주소를 읽지 못했다) (.env)'),
+      preview.lines.join(' | '),
+    )
+    assert.deepEqual([preview.calls.connect, preview.calls.apply], [1, 0])
   } finally {
     await pg.close()
   }

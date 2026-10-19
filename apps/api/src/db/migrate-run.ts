@@ -4,6 +4,8 @@ import {
   parseMigrateArgs,
   readTargetState,
   targetSourceOf,
+  UNREADABLE_TARGET,
+  UNSHOWN_TARGET_MESSAGE,
   type LocalMigration,
   type MigrateArgs,
   type TargetSource,
@@ -33,7 +35,7 @@ const STOP_MESSAGES: Record<Extract<MigrateArgs | TargetSource, { stop: string }
       '알 수 없는 인자가 있다. 쓸 수 있는 것은 --apply, --dry-run, --from-shell뿐이다. 아무것도 하지 않았다.',
     APPLY_WITH_DRY_RUN: '--apply와 --dry-run은 같이 줄 수 없다. 아무것도 하지 않았다.',
     NPM_SWALLOWED_DRY_RUN:
-      'npm이 --dry-run을 자기 옵션으로 받았다. 플래그 앞에 --를 붙인다(npm run db:migrate --workspace @vada/api -- --dry-run). 아무것도 하지 않았다.',
+      'npm이 --dry-run을 자기 옵션으로 받았다. 플래그 앞에 --를 붙인다(npm run db:migrate --workspace @vada/api -- --dry-run). 이미 --를 줬다면 .npmrc의 dry-run 줄이나 NPM_CONFIG_DRY_RUN 환경 변수를 지운다. 아무것도 하지 않았다.',
     SHELL_URL_WITHOUT_FLAG:
       '셸에 DATABASE_URL이 있다. 그 DB에 적용하려면 --from-shell을 붙이고, .env의 DB에 적용하려면 셸의 DATABASE_URL을 지운다. 아무것도 하지 않았다.',
     FLAG_WITHOUT_SHELL_URL: '--from-shell을 줬지만 셸에 DATABASE_URL이 없다. 아무것도 하지 않았다.',
@@ -45,8 +47,14 @@ const CHECK_MESSAGES = {
   LOCAL_ORDER: '로컬 마이그레이션 파일의 시각이 커지는 순서가 아니다. 적용하지 않는다.',
 } as const
 
+// 오류에서 SQLSTATE나 시스템 오류 코드처럼 대문자·숫자로 된 코드만 꺼낸다. 오류 원문은 주소와 비밀번호를 담을 수 있어 쓰지 않는다.
+function codeOf(error: unknown) {
+  const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : ''
+  return /^[A-Z0-9_]+$/.test(code) ? code : ''
+}
+
 // 종료 코드를 돌려준다(0이 성공). 인자와 대상이 어긋나면 .env를 읽지도 연결하지도 않고 멈춘다.
-// 기본은 미리 보기다: 대상과 점검 결과만 찍는다. --apply를 줄 때만, 점검을 통과한 뒤에 적용한다.
+// 기본은 미리 보기다: 대상과 점검 결과만 찍는다. --apply를 줄 때만, 대상을 보여 줄 수 있고 점검을 통과했을 때 적용한다.
 // 화면에는 호스트와 DB 이름, 개수, 오류 코드만 찍는다. 주소, 비밀번호, 오류 원문은 찍지 않는다.
 export async function runMigration(run: MigrationRun): Promise<number> {
   const options = parseMigrateArgs(run.args, run.env)
@@ -63,9 +71,12 @@ export async function runMigration(run: MigrationRun): Promise<number> {
   try {
     const url = target.source === 'shell' ? target.url : run.readEnvUrl()
     if (!url) throw new Error('DATABASE_URL is missing')
-    run.log.info(
-      `대상: ${describeTarget(url)} (${target.source === 'shell' ? '셸의 DATABASE_URL' : '.env'})`,
-    )
+    const shown = describeTarget(url)
+    run.log.info(`대상: ${shown} (${target.source === 'shell' ? '셸의 DATABASE_URL' : '.env'})`)
+    if (options.apply && shown === UNREADABLE_TARGET) {
+      run.log.error(UNSHOWN_TARGET_MESSAGE)
+      return 1
+    }
     const local = run.readLocal()
     connection = run.connect(url)
     const state = await readTargetState(connection.query)
@@ -79,21 +90,29 @@ export async function runMigration(run: MigrationRun): Promise<number> {
     }
     if (!options.apply) {
       run.log.info(
-        `적용할 마이그레이션 ${check.pending}개. 미리 보기라 바꾸지 않았다. 실제로 적용하려면 --apply를 붙인다.`,
+        `적용할 마이그레이션 ${check.pending}개. 미리 보기라 바꾸지 않았다. 실제로 적용하려면 -- --apply를 붙인다.`,
       )
       return 0
     }
     await connection.apply()
     // 적용 호출이 돌아왔다는 것과 기록이 늘었다는 것은 다르다. 기록을 다시 읽어 실제로 적용된 개수를 찍는다.
-    const after = await readTargetState(connection.query)
+    let after: Awaited<ReturnType<typeof readTargetState>>
+    try {
+      after = await readTargetState(connection.query)
+    } catch (error) {
+      // 적용은 이미 끝났다. "마이그레이션 실패"로 알리면 적용되지 않은 줄 알고 다시 하려 들 수 있어 따로 알린다.
+      run.log.error(
+        `적용은 끝났고 확인 읽기에 실패했다 — 미리 보기로 다시 확인한다(npm run db:migrate --workspace @vada/api). 연결 문자열과 오류 원문은 출력하지 않습니다. ${codeOf(error)}`.trim(),
+      )
+      return 1
+    }
     run.log.info(
       `마이그레이션 적용 완료(${(after.applied?.length ?? 0) - (state.applied?.length ?? 0)}개)`,
     )
     return 0
   } catch (error) {
-    const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : ''
     run.log.error(
-      `마이그레이션 실패. 연결 문자열과 오류 원문은 출력하지 않습니다. ${/^[A-Z0-9_]+$/.test(code) ? code : ''}`.trim(),
+      `마이그레이션 실패. 연결 문자열과 오류 원문은 출력하지 않습니다. ${codeOf(error)}`.trim(),
     )
     return 1
   } finally {

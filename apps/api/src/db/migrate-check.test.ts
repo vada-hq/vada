@@ -214,15 +214,23 @@ test('주소를 제대로 읽지 못하면 어느 조각도 찍지 않는다', (
     'postgres://vada:12?x=1@host/db',
     'postgres://host/db?x=1@y',
     'postgres://vada:12345/p@ss@host/db',
+    // 사용자 이름이 읽혀도 비밀번호의 ?나 #에서 주소가 잘려 @가 쿼리나 해시로 밀린다. 호스트로 읽힌 ss는 비밀번호 조각이다.
+    'postgres://u:p@ss?word@host/db',
+    'postgres://u:p@ss#word@host/db',
+    'postgres://u:pa@ss?x=1&y@z@host/db',
   ]) {
     const shown = describeTarget(url)
     assert.equal(shown, '(주소를 읽지 못했다)', url)
-    for (const part of ['vada', '1234', 'rest', 'ss'])
+    for (const part of ['vada', '1234', 'rest', 'ss', 'word'])
       assert.ok(!shown.includes(part), `${url} -> ${shown}`)
   }
-  // 비밀번호에 @가 있어도 읽히는 주소는 호스트와 DB 이름만 나온다.
+  // 비밀번호에 @가 있어도 읽히는 주소는 호스트와 DB 이름만 나온다. 쿼리에 @가 없으면 그대로 읽는다.
   assert.equal(describeTarget('postgres://u:pa@ss@host.example/db'), 'host.example/db')
   assert.equal(describeTarget('postgres://host.example:5432/db'), 'host.example/db')
+  assert.equal(
+    describeTarget('postgres://u:pw@host.example/db?sslmode=require#x'),
+    'host.example/db',
+  )
 })
 
 // 빈 PGlite 위에서 읽기 상태와 점검을 이어 본다. drizzle의 적용 기록 표는 실제 모양(id, hash, created_at)으로 직접 만든다.

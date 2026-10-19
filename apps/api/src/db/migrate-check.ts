@@ -82,15 +82,24 @@ export async function readTargetState(
 }
 
 // 화면에 찍을 대상: 호스트와 DB 이름만. 사용자 이름과 비밀번호, 쿼리는 찍지 않는다.
-// 비밀번호에 /나 ?가 섞여 주소가 다르게 읽히면(사용자 이름이 비고 @가 경로나 쿼리로 밀린다) 호스트로 읽힌 조각에 비밀번호가 들어 있을 수 있어 아무것도 찍지 않는다.
-const UNREADABLE_TARGET = '(주소를 읽지 못했다)'
+// 비밀번호에 /, ?, #이 섞여 주소가 다르게 읽히면(사용자 이름이 비거나, @가 경로·쿼리·해시로 밀린다) 호스트로 읽힌 조각에 비밀번호가 들어 있을 수 있어 아무것도 찍지 않는다.
+export const UNREADABLE_TARGET = '(주소를 읽지 못했다)'
 export function describeTarget(url: string) {
   try {
     const parsed = new URL(url)
-    if ((!parsed.username && url.includes('@')) || parsed.pathname.includes('@'))
+    if (
+      (!parsed.username && url.includes('@')) ||
+      parsed.pathname.includes('@') ||
+      parsed.search.includes('@') ||
+      parsed.hash.includes('@')
+    )
       return UNREADABLE_TARGET
     return `${parsed.hostname}${parsed.pathname}`
   } catch {
     return UNREADABLE_TARGET
   }
 }
+
+// 실제로 쓰는 일(--apply)은 대상을 화면에 보여 줄 수 있을 때만 한다. 보여 주지 못하면 사람이 어느 DB에 쓰는지 확인할 수 없다.
+export const UNSHOWN_TARGET_MESSAGE =
+  '대상을 보여 줄 수 없어 적용하지 않는다. 비밀번호에 / ? # @ 가 있으면 %2F %3F %23 %40 로 바꿔 적는다. 아무것도 하지 않았다.'

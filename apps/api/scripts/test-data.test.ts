@@ -6,8 +6,10 @@ import {
   assignTestMember,
   parseTestDataArgs,
   seedTestCouncil,
+  stepOf,
   TEST_INVITE_CODE,
 } from './test-data.js'
+import { UNREADABLE_TARGET, UNSHOWN_TARGET_MESSAGE } from '../src/db/migrate-check.js'
 
 const now = new Date('2026-10-19T03:00:00Z')
 
@@ -146,4 +148,21 @@ test('시험 데이터 인자: --apply 없이는 미리 보기이고, 오타와 
     ['apply', 'u1', '--apply'],
   ]
   for (const args of rejected) assert.equal(parseTestDataArgs(args), null, JSON.stringify(args))
+})
+
+test('시험 데이터는 --apply가 없으면 미리 보기로 -- --apply를 안내하고, 대상을 보여 줄 수 없으면 적용하지 않는다', () => {
+  const seed = { command: 'seed', userId: 'u1', apply: false } as const
+  const assign = { command: 'assign', userId: 'u2', department: 'planning', apply: false } as const
+  const preview = stepOf(seed, 'host/db')
+  assert.equal(preview.step, 'preview')
+  assert.ok('message' in preview && preview.message.includes('-- --apply'), JSON.stringify(preview))
+  const assignPreview = stepOf(assign, UNREADABLE_TARGET)
+  assert.equal(assignPreview.step, 'preview')
+  assert.ok('message' in assignPreview && assignPreview.message.includes('기획부'))
+  assert.deepEqual(stepOf({ ...seed, apply: true }, 'host/db'), { step: 'apply' })
+  assert.deepEqual(stepOf({ ...assign, apply: true }, 'host/db'), { step: 'apply' })
+  assert.deepEqual(stepOf({ ...seed, apply: true }, UNREADABLE_TARGET), {
+    step: 'stop',
+    message: UNSHOWN_TARGET_MESSAGE,
+  })
 })
