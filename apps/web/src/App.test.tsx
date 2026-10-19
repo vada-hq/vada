@@ -137,3 +137,34 @@ test('iOS home-screen app rechecks the session when the login window reports bac
     delete (navigator as { standalone?: boolean }).standalone
   }
 })
+
+test('iOS home-screen app rechecks the session when it becomes visible again, and stops listening once signed in', () => {
+  Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
+  let visibility: DocumentVisibilityState = 'visible'
+  Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => visibility })
+  const changeTo = (next: DocumentVisibilityState) => {
+    visibility = next
+    document.dispatchEvent(new Event('visibilitychange'))
+  }
+  const closed = vi.fn()
+  vi.stubGlobal('BroadcastChannel', class {
+    postMessage() {}
+    close() { closed() }
+  })
+  try {
+    const view = render(<App />)
+    changeTo('hidden')
+    expect(auth.refetch).not.toHaveBeenCalled()
+    changeTo('visible')
+    expect(auth.refetch).toHaveBeenCalledTimes(1)
+    auth.useSession.mockReturnValue({ data: { user: { name: '테스터', email: 'test@example.test' } }, isPending: false, error: null, refetch: auth.refetch })
+    view.rerender(<App />)
+    expect(closed).toHaveBeenCalled()
+    changeTo('visible')
+    expect(auth.refetch).toHaveBeenCalledTimes(1)
+  } finally {
+    vi.unstubAllGlobals()
+    delete (document as { visibilityState?: unknown }).visibilityState
+    delete (navigator as { standalone?: boolean }).standalone
+  }
+})
