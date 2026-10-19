@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ['*']
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    # 판 올리기 PR은 받지 않고 보안 PR만 받는다(GitHub 문서의 open-pull-requests-limit: 0 방법).
+    open-pull-requests-limit: 0

@@ -7,7 +7,7 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/input.test.ts src/push.test.ts src/councils.test.ts src/invites.test.ts src/team.test.ts"
+    "test": "tsx --test \"src/**/*.test.ts\""
   },
   "dependencies": {
     "zod": "4.6.5"
