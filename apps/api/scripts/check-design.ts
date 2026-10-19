@@ -11,20 +11,29 @@ import { catalogDifferences, describeDatabase } from './catalog.js'
 import { designBlock, NOT_IN_DESIGN } from './design-sql.js'
 
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url))
-const designPath = process.argv[2] ? resolve(process.argv[2]) : resolve(repoRoot, '../vada-docs/physical-model.md')
+const designPath = process.argv[2]
+  ? resolve(process.argv[2])
+  : resolve(repoRoot, '../vada-docs/physical-model.md')
 const design = await PGlite.create({ extensions: { btree_gist } })
 const migrated = await createTestDb()
 try {
   await design.exec(designBlock(readFileSync(designPath, 'utf8')))
   const expected = await describeDatabase(design, NOT_IN_DESIGN)
-  const { onlyInDesign, onlyInMigration } = catalogDifferences(expected, await describeDatabase(migrated.pg, NOT_IN_DESIGN))
+  const { onlyInDesign, onlyInMigration } = catalogDifferences(
+    expected,
+    await describeDatabase(migrated.pg, NOT_IN_DESIGN),
+  )
   for (const line of onlyInDesign) console.log(`설계에만 있다: ${line}`)
   for (const line of onlyInMigration) console.log(`마이그레이션에만 있다: ${line}`)
   if (onlyInDesign.length || onlyInMigration.length) {
-    console.log('설계와 마이그레이션이 다르다. physical-model.md를 먼저 고쳤는지, 새 마이그레이션이 같은 SQL인지 확인한다.')
+    console.log(
+      '설계와 마이그레이션이 다르다. physical-model.md를 먼저 고쳤는지, 새 마이그레이션이 같은 SQL인지 확인한다.',
+    )
     process.exitCode = 1
   } else {
-    console.log(`설계와 같다: ${expected.filter(line => line.startsWith('표 ')).length}개 표 (${designPath})`)
+    console.log(
+      `설계와 같다: ${expected.filter(line => line.startsWith('표 ')).length}개 표 (${designPath})`,
+    )
   }
 } finally {
   await design.close()

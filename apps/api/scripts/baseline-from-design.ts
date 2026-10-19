@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url'
 import { baselineOf } from './design-sql.js'
 
 const repoRoot = fileURLToPath(new URL('../../../', import.meta.url))
-const designPath = process.argv[2] ? resolve(process.argv[2]) : resolve(repoRoot, '../vada-docs/physical-model.md')
+const designPath = process.argv[2]
+  ? resolve(process.argv[2])
+  : resolve(repoRoot, '../vada-docs/physical-model.md')
 const output = fileURLToPath(new URL('../migrations/0000_baseline.sql', import.meta.url))
 writeFileSync(output, baselineOf(readFileSync(designPath, 'utf8')))
 console.log(`0000_baseline.sql을 만들었다: ${designPath}`)

@@ -3,7 +3,12 @@ import { parseEnv } from 'node:util'
 import postgres from 'postgres'
 import { drizzle } from 'drizzle-orm/postgres-js'
 import { describeTarget } from '../src/db/migrate-check.js'
-import { assignTestMember, parseTestDataArgs, seedTestCouncil, TEST_DEPARTMENTS } from './test-data.js'
+import {
+  assignTestMember,
+  parseTestDataArgs,
+  seedTestCouncil,
+  TEST_DEPARTMENTS,
+} from './test-data.js'
 
 // 사용법(저장소 맨 위에서, 플래그 앞의 --를 빠뜨리지 않는다):
 //   npm run test-data --workspace @vada/api -- seed <user-id> [--apply]                        시험 학생회를 두고 그 계정을 회장으로 둔다
@@ -13,32 +18,46 @@ import { assignTestMember, parseTestDataArgs, seedTestCouncil, TEST_DEPARTMENTS 
 async function main() {
   const parsed = parseTestDataArgs(process.argv.slice(2))
   if (!parsed) {
-    console.error('사용법: seed <user-id> [--apply] 또는 assign <user-id> <planning|finance> [--apply]. 아무것도 하지 않았다.')
+    console.error(
+      '사용법: seed <user-id> [--apply] 또는 assign <user-id> <planning|finance> [--apply]. 아무것도 하지 않았다.',
+    )
     process.exitCode = 1
     return
   }
   const env = parseEnv(readFileSync(new URL('../../../.env', import.meta.url), 'utf8'))
   if (!env.DATABASE_URL) throw new Error('Missing configuration')
   console.log(`대상: ${describeTarget(env.DATABASE_URL)} (.env)`)
-  const plan = parsed.command === 'seed'
-    ? '시험 학생회를 두고 그 계정을 회장으로 둔다'
-    : `그 계정을 시험 학생회의 ${TEST_DEPARTMENTS[parsed.department]}에 넣는다`
+  const plan =
+    parsed.command === 'seed'
+      ? '시험 학생회를 두고 그 계정을 회장으로 둔다'
+      : `그 계정을 시험 학생회의 ${TEST_DEPARTMENTS[parsed.department]}에 넣는다`
   if (!parsed.apply) {
     console.log(`${plan}. 미리 보기라 바꾸지 않았다. 실제로 하려면 --apply를 붙인다.`)
     return
   }
-  const client = postgres(env.DATABASE_URL, { max: 1, ssl: { rejectUnauthorized: true }, connect_timeout: 15, onnotice: () => {} })
+  const client = postgres(env.DATABASE_URL, {
+    max: 1,
+    ssl: { rejectUnauthorized: true },
+    connect_timeout: 15,
+    onnotice: () => {},
+  })
   try {
     const db = drizzle(client)
     if (parsed.command === 'seed') await seedTestCouncil(db, parsed.userId, new Date())
     else await assignTestMember(db, parsed.userId, parsed.department, new Date())
-    console.log(parsed.command === 'seed' ? '시험 학생회 준비 완료(초대 코드 TESTDATA)' : '시험 학생회 부서 배정 완료')
+    console.log(
+      parsed.command === 'seed'
+        ? '시험 학생회 준비 완료(초대 코드 TESTDATA)'
+        : '시험 학생회 부서 배정 완료',
+    )
   } finally {
     await client.end({ timeout: 5 })
   }
 }
 
 main().catch(() => {
-  console.error('처리 실패. DB 연결, 기존 Google 계정, 시험 학생회의 회장과 부서를 확인하세요. 오류 원문은 출력하지 않습니다.')
+  console.error(
+    '처리 실패. DB 연결, 기존 Google 계정, 시험 학생회의 회장과 부서를 확인하세요. 오류 원문은 출력하지 않습니다.',
+  )
   process.exitCode = 1
 })

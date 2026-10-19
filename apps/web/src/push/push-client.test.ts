@@ -1,7 +1,9 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { base64UrlToBytes, sameKey, withTimeout, type BrowserSubscription } from './push-client'
 
-afterEach(() => { vi.useRealTimers() })
+afterEach(() => {
+  vi.useRealTimers()
+})
 
 test('URL용 base64 열쇠를 바이트로 바꾼다', () => {
   expect([...base64UrlToBytes('AQID')]).toEqual([1, 2, 3])
@@ -25,7 +27,10 @@ test('구독의 열쇠가 서버 열쇠와 같은지 본다', () => {
 
 test('끝나지 않는 기다림은 시간이 지나면 실패한다', async () => {
   vi.useFakeTimers()
-  const outcome = withTimeout(new Promise(() => {}), 10_000).then(() => 'resolved', () => 'timed out')
+  const outcome = withTimeout(new Promise(() => {}), 10_000).then(
+    () => 'resolved',
+    () => 'timed out',
+  )
   await vi.advanceTimersByTimeAsync(10_000)
   expect(await outcome).toBe('timed out')
   vi.useRealTimers()

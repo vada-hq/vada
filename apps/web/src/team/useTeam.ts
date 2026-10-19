@@ -12,11 +12,15 @@ export function useTeam(councilId: string, onForbidden: () => void) {
   const active = useRef(true)
   // 부르는 쪽이 매번 새 함수를 넘겨도 다시 불러오지 않도록 마지막 함수만 기억한다.
   const forbidden = useRef(onForbidden)
-  useEffect(() => { forbidden.current = onForbidden })
+  useEffect(() => {
+    forbidden.current = onForbidden
+  })
   // 개발 모드(StrictMode)는 effect를 정리했다 다시 실행한다. 다시 실행될 때 true로 돌려놓는다.
   useEffect(() => {
     active.current = true
-    return () => { active.current = false }
+    return () => {
+      active.current = false
+    }
   }, [])
   useEffect(() => {
     const controller = new AbortController()

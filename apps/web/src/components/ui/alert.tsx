@@ -15,6 +15,10 @@ const alertVariants = cva('rounded-md border p-3 text-xs wrap-anywhere', {
   defaultVariants: { tone: 'info' },
 })
 
-export function Alert({ className, tone, ...props }: ComponentProps<'div'> & VariantProps<typeof alertVariants>) {
+export function Alert({
+  className,
+  tone,
+  ...props
+}: ComponentProps<'div'> & VariantProps<typeof alertVariants>) {
   return <div data-slot="alert" className={cn(alertVariants({ tone }), className)} {...props} />
 }

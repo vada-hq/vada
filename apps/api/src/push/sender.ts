@@ -10,7 +10,8 @@ export type PushOutcome = { result: PushTestResult; status?: number; code?: stri
 export type PushSender = (target: PushTarget, message: PushMessage) => Promise<PushOutcome>
 type Send = (target: PushTarget, payload: string, options: RequestOptions) => Promise<unknown>
 
-const sendWithLibrary: Send = (target, payload, options) => webpush.sendNotification(target, payload, options)
+const sendWithLibrary: Send = (target, payload, options) =>
+  webpush.sendNotification(target, payload, options)
 
 // 실패에서 꺼내는 것은 숫자 상태 번호, 없으면 ECONNRESET 같은 시스템 오류 코드뿐이다.
 // 구독 주소, 본문, 열쇠, 오류 메시지는 비밀이거나 값이 들어 있을 수 있어 꺼내지 않는다. 던진 것이 객체가 아니어도(null 등) 던지지 않는다.
@@ -26,8 +27,14 @@ function diagnosisOf(error: unknown): Pick<PushOutcome, 'status' | 'code'> {
 // 예상한 실패라 던지지 않고 결과로 돌려준다.
 export function createPushSender(config: PushConfig, send: Send = sendWithLibrary): PushSender {
   const options: RequestOptions = {
-    vapidDetails: { subject: config.subject, publicKey: config.publicKey, privateKey: config.privateKey },
-    TTL: 60, urgency: 'high', timeout: 10_000,
+    vapidDetails: {
+      subject: config.subject,
+      publicKey: config.publicKey,
+      privateKey: config.privateKey,
+    },
+    TTL: 60,
+    urgency: 'high',
+    timeout: 10_000,
   }
   return async (target, message) => {
     if (!isKnownPushService(target.endpoint)) return { result: 'rejected' }
@@ -36,7 +43,10 @@ export function createPushSender(config: PushConfig, send: Send = sendWithLibrar
       return { result: 'sent' }
     } catch (error) {
       const diagnosis = diagnosisOf(error)
-      return { result: diagnosis.status === 404 || diagnosis.status === 410 ? 'expired' : 'rejected', ...diagnosis }
+      return {
+        result: diagnosis.status === 404 || diagnosis.status === 410 ? 'expired' : 'rejected',
+        ...diagnosis,
+      }
     }
   }
 }

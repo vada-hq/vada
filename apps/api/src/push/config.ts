@@ -1,9 +1,14 @@
 // 휴대폰 알림(웹 푸시)의 서버 열쇠(VAPID). 셋이 모두 있어야 켠다.
 // 일부만 있으면 설정 실수이므로 서버를 시작하지 않는다. 오류에 값을 넣지 않는다.
-export interface PushConfig { publicKey: string; privateKey: string; subject: string }
+export interface PushConfig {
+  publicKey: string
+  privateKey: string
+  subject: string
+}
 
 // URL용 base64(패딩 없음)만 받는다.
-const bytesOf = (value: string) => /^[A-Za-z0-9_-]+$/.test(value) ? Buffer.from(value, 'base64url') : null
+const bytesOf = (value: string) =>
+  /^[A-Za-z0-9_-]+$/.test(value) ? Buffer.from(value, 'base64url') : null
 
 export function pushConfigFrom(env: NodeJS.ProcessEnv): PushConfig | null {
   const publicKey = env.VAPID_PUBLIC_KEY?.trim() ?? ''
@@ -17,6 +22,7 @@ export function pushConfigFrom(env: NodeJS.ProcessEnv): PushConfig | null {
   if (!point || point.length !== 65 || point[0] !== 4 || bytesOf(privateKey)?.length !== 32) {
     throw new Error('알림 열쇠(VAPID) 형식을 확인하세요.')
   }
-  if (!/^(mailto:[^\s@]+@[^\s@]+|https:\/\/\S+)$/.test(subject)) throw new Error('VAPID_SUBJECT는 mailto: 또는 https: 주소여야 합니다.')
+  if (!/^(mailto:[^\s@]+@[^\s@]+|https:\/\/\S+)$/.test(subject))
+    throw new Error('VAPID_SUBJECT는 mailto: 또는 https: 주소여야 합니다.')
   return { publicKey, privateKey, subject }
 }

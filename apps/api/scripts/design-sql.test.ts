@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { AUTH_STATEMENTS, BREAKPOINT, NOT_IN_DESIGN, OUTSIDE_STATEMENTS, baselineOf, designBlock, joinStatements, splitStatements } from './design-sql.js'
+import {
+  AUTH_STATEMENTS,
+  BREAKPOINT,
+  NOT_IN_DESIGN,
+  OUTSIDE_STATEMENTS,
+  baselineOf,
+  designBlock,
+  joinStatements,
+  splitStatements,
+} from './design-sql.js'
 
 const markdown = [
   '# physical-model.md',
@@ -14,7 +23,7 @@ const markdown = [
   '  id uuid PRIMARY KEY,  -- 설명',
   '  kind text NOT NULL',
   ');',
-  'CREATE UNIQUE INDEX ON a (id) WHERE kind = \'x\';  -- 끝에 붙은 주석',
+  "CREATE UNIQUE INDEX ON a (id) WHERE kind = 'x';  -- 끝에 붙은 주석",
   '-- 주석 줄의 ;은 문장의 끝이 아니다;',
   'CREATE INDEX ON a (kind);',
   '```',
@@ -39,11 +48,13 @@ test('splitStatements는 줄 끝 ;에서 나누고, 끝에 붙은 주석과 앞�
   assert.deepEqual(statements, [
     'CREATE EXTENSION IF NOT EXISTS btree_gist;',
     '-- 공통 ----\n\nCREATE TABLE a (\n  id uuid PRIMARY KEY,  -- 설명\n  kind text NOT NULL\n);',
-    'CREATE UNIQUE INDEX ON a (id) WHERE kind = \'x\';  -- 끝에 붙은 주석',
+    "CREATE UNIQUE INDEX ON a (id) WHERE kind = 'x';  -- 끝에 붙은 주석",
     '-- 주석 줄의 ;은 문장의 끝이 아니다;\nCREATE INDEX ON a (kind);',
   ])
   assert.throws(() => splitStatements('CREATE TABLE a (id int)'))
-  assert.deepEqual(splitStatements('CREATE TABLE a (id int);\n-- 끝의 주석만 남으면 버린다\n'), ['CREATE TABLE a (id int);'])
+  assert.deepEqual(splitStatements('CREATE TABLE a (id int);\n-- 끝의 주석만 남으면 버린다\n'), [
+    'CREATE TABLE a (id int);',
+  ])
 })
 
 test('baselineOf는 로그인 표, 설계 블록, 설계 밖 표 순서로 문장 사이에만 표시를 넣는다', () => {
@@ -59,5 +70,13 @@ test('baselineOf는 로그인 표, 설계 블록, 설계 밖 표 순서로 문�
 })
 
 test('설계 검사에서 빼는 표는 로그인 표 4개와 설계 밖 표 3개다', () => {
-  assert.deepEqual([...NOT_IN_DESIGN].sort(), ['accounts', 'invite_code', 'member_login', 'push_device', 'sessions', 'users', 'verifications'])
+  assert.deepEqual([...NOT_IN_DESIGN].sort(), [
+    'accounts',
+    'invite_code',
+    'member_login',
+    'push_device',
+    'sessions',
+    'users',
+    'verifications',
+  ])
 })

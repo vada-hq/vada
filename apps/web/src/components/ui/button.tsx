@@ -11,7 +11,8 @@ export const buttonVariants = cva(
         default: 'border-transparent bg-primary text-primary-foreground hover:bg-blue-700',
         outline: 'border-input bg-white text-gray-700 hover:bg-gray-50',
         secondary: 'border-transparent bg-secondary text-secondary-foreground hover:bg-gray-200',
-        ghost: 'border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700',
+        ghost:
+          'border-transparent bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700',
         destructive: 'border-transparent bg-destructive text-white hover:bg-red-700',
         link: 'border-transparent bg-transparent text-blue-500 underline-offset-4 hover:underline',
       },
@@ -26,6 +27,17 @@ export const buttonVariants = cva(
 )
 
 // type을 따로 정하지 않는다. form 안의 버튼은 브라우저 기본값(submit)을 그대로 쓴다.
-export function Button({ className, variant, size, ...props }: ComponentProps<'button'> & VariantProps<typeof buttonVariants>) {
-  return <button data-slot="button" className={cn(buttonVariants({ variant, size }), className)} {...props} />
+export function Button({
+  className,
+  variant,
+  size,
+  ...props
+}: ComponentProps<'button'> & VariantProps<typeof buttonVariants>) {
+  return (
+    <button
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
+  )
 }

@@ -6,8 +6,16 @@ const popupOf = () => ({ location: { href: 'about:blank' }, close: vi.fn() })
 test('누른 순간 앱 안 창을 먼저 열고, 받은 Google 주소로 그 창을 보낸다', async () => {
   const order: string[] = []
   const popup = popupOf()
-  const result = await startPopupLogin(() => { order.push('open'); return popup },
-    async () => { order.push('sign-in'); return { data: { url: 'https://accounts.google.com/o/oauth2/auth?x=1' }, error: null } })
+  const result = await startPopupLogin(
+    () => {
+      order.push('open')
+      return popup
+    },
+    async () => {
+      order.push('sign-in')
+      return { data: { url: 'https://accounts.google.com/o/oauth2/auth?x=1' }, error: null }
+    },
+  )
   expect(order).toEqual(['open', 'sign-in'])
   expect(result).toBe('opened')
   expect(popup.location.href).toBe('https://accounts.google.com/o/oauth2/auth?x=1')
@@ -23,7 +31,9 @@ test('Google 주소를 받지 못하면 연 창을 닫는다', async () => {
   for (const signIn of [
     async () => ({ data: null, error: { status: 500 } }),
     async () => ({ data: {}, error: null }),
-    async () => { throw new Error('network') },
+    async () => {
+      throw new Error('network')
+    },
   ]) {
     const popup = popupOf()
     expect(await startPopupLogin(() => popup, signIn)).toBe('failed')

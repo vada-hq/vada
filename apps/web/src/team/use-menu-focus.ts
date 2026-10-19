@@ -12,7 +12,9 @@ export function useMenuFocus() {
       else triggers.current.delete(id)
     },
     // 메뉴 항목으로 대화상자를 열 때 어느 줄에서 열었는지 기억한다.
-    remember: (id: string) => { opener.current = id },
+    remember: (id: string) => {
+      opener.current = id
+    },
     // 대화상자의 onCloseAutoFocus에 넘긴다. 줄이 없어졌으면(내보냄) 기본 동작에 맡긴다.
     onCloseAutoFocus: (event: Event) => {
       const trigger = opener.current === null ? undefined : triggers.current.get(opener.current)

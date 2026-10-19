@@ -1,7 +1,15 @@
 import { and, eq, gte, isNull, lte } from 'drizzle-orm'
 import { actorOf, koreanDate } from '../src/access/actor.js'
 import { createCouncil } from '../src/councils/service.js'
-import { accounts, cohort, council, councilMembership, department, inviteCode, memberLogin } from '../src/db/schema.js'
+import {
+  accounts,
+  cohort,
+  council,
+  councilMembership,
+  department,
+  inviteCode,
+  memberLogin,
+} from '../src/db/schema.js'
 import { joinCouncil } from '../src/invites/service.js'
 import type { Db, Tx } from '../src/records/records.js'
 import { assignDepartment, createDepartment } from '../src/team/service.js'
@@ -24,20 +32,30 @@ export function parseTestDataArgs(args: readonly string[]): TestDataCommand | nu
   // 계정 번호 자리에 플래그가 들어오면(seed --apply) 계정 번호가 빠진 것이다.
   if (extra.length > 0 || !userId?.trim() || userId.startsWith('-')) return null
   if (command === 'seed' && department === undefined) return { command, userId, apply }
-  if (command === 'assign' && department !== undefined && Object.hasOwn(TEST_DEPARTMENTS, department)) {
+  if (
+    command === 'assign' &&
+    department !== undefined &&
+    Object.hasOwn(TEST_DEPARTMENTS, department)
+  ) {
     return { command, userId, department: department as TestDepartment, apply }
   }
   return null
 }
 
 async function requireGoogleUser(tx: Tx, userId: string) {
-  const [account] = await tx.select({ id: accounts.id }).from(accounts)
-    .where(and(eq(accounts.userId, userId), eq(accounts.providerId, 'google'))).limit(1)
+  const [account] = await tx
+    .select({ id: accounts.id })
+    .from(accounts)
+    .where(and(eq(accounts.userId, userId), eq(accounts.providerId, 'google')))
+    .limit(1)
   if (!account) throw new Error('An existing Google user is required')
 }
 
 async function testCouncilId(tx: Tx) {
-  const found = await tx.select({ id: council.id }).from(council).where(eq(council.schoolName, TEST_SCHOOL_NAME))
+  const found = await tx
+    .select({ id: council.id })
+    .from(council)
+    .where(eq(council.schoolName, TEST_SCHOOL_NAME))
   if (found.length > 1) throw new Error('More than one test council')
   return found[0]?.id
 }
@@ -45,11 +63,20 @@ async function testCouncilId(tx: Tx) {
 // 지금 기수의 회장이 쓰는 로그인 계정
 async function presidentUserOf(tx: Tx, councilId: string, now: Date) {
   const today = koreanDate(now)
-  const [row] = await tx.select({ userId: memberLogin.userId }).from(councilMembership)
+  const [row] = await tx
+    .select({ userId: memberLogin.userId })
+    .from(councilMembership)
     .innerJoin(cohort, eq(cohort.id, councilMembership.cohortId))
     .innerJoin(memberLogin, eq(memberLogin.memberId, councilMembership.memberId))
-    .where(and(eq(cohort.councilId, councilId), lte(cohort.startsOn, today), gte(cohort.endsOn, today),
-      eq(councilMembership.councilRank, 'president'), isNull(councilMembership.endsAt)))
+    .where(
+      and(
+        eq(cohort.councilId, councilId),
+        lte(cohort.startsOn, today),
+        gte(cohort.endsOn, today),
+        eq(councilMembership.councilRank, 'president'),
+        isNull(councilMembership.endsAt),
+      ),
+    )
   return row?.userId
 }
 
@@ -60,16 +87,34 @@ export async function seedTestCouncil(db: Db, userId: string, now: Date): Promis
     let councilId = await testCouncilId(tx)
     if (!councilId) {
       const year = koreanDate(now).slice(0, 4)
-      councilId = await createCouncil(tx, userId, { name: 'VADA 시험 학생회', unit: 'department', schoolName: TEST_SCHOOL_NAME,
-        cohortName: year, startsOn: `${year}-01-01`, endsOn: `${year}-12-31` }, now)
-    } else if (await presidentUserOf(tx, councilId, now) !== userId) {
+      councilId = await createCouncil(
+        tx,
+        userId,
+        {
+          name: 'VADA 시험 학생회',
+          unit: 'department',
+          schoolName: TEST_SCHOOL_NAME,
+          cohortName: year,
+          startsOn: `${year}-01-01`,
+          endsOn: `${year}-12-31`,
+        },
+        now,
+      )
+    } else if ((await presidentUserOf(tx, councilId, now)) !== userId) {
       throw new Error('Test council has another president')
     }
-    await tx.update(inviteCode).set({ code: TEST_INVITE_CODE }).where(eq(inviteCode.councilId, councilId))
+    await tx
+      .update(inviteCode)
+      .set({ code: TEST_INVITE_CODE })
+      .where(eq(inviteCode.councilId, councilId))
     const actor = await actorOf(tx, userId, councilId, now)
     if (!actor) throw new Error('Test council has no current cohort')
-    const [planning] = await tx.select({ id: department.id }).from(department)
-      .where(and(eq(department.councilId, councilId), eq(department.name, TEST_DEPARTMENTS.planning)))
+    const [planning] = await tx
+      .select({ id: department.id })
+      .from(department)
+      .where(
+        and(eq(department.councilId, councilId), eq(department.name, TEST_DEPARTMENTS.planning)),
+      )
     if (!planning) await createDepartment(tx, actor, TEST_DEPARTMENTS.planning)
     return councilId
   })
@@ -87,10 +132,15 @@ export async function assignTestMember(db: Db, userId: string, target: TestDepar
     const president = await actorOf(tx, presidentUser, councilId, now)
     const member = await actorOf(tx, userId, councilId, now)
     if (!president || !member) throw new Error('Test council has no current cohort')
-    const [wanted] = await tx.select({ id: department.id }).from(department)
-      .where(and(eq(department.councilId, councilId), eq(department.name, TEST_DEPARTMENTS[target])))
+    const [wanted] = await tx
+      .select({ id: department.id })
+      .from(department)
+      .where(
+        and(eq(department.councilId, councilId), eq(department.name, TEST_DEPARTMENTS[target])),
+      )
     if (!wanted) throw new Error('Seed the test council first')
-    if (member.departments.some(item => item.departmentId !== wanted.id)) throw new Error('Existing department assignment cannot be overwritten')
+    if (member.departments.some(item => item.departmentId !== wanted.id))
+      throw new Error('Existing department assignment cannot be overwritten')
     await assignDepartment(tx, president, member.memberId, wanted.id, null)
   })
 }

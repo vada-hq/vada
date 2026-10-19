@@ -12,7 +12,10 @@ test('PushSubscriptionSchema: 브라우저 구독(toJSON) 모양을 받는다', 
   assert.equal(PushSubscriptionSchema.safeParse(valid).success, true)
   const { expirationTime: _, ...withoutExpiration } = valid
   assert.equal(PushSubscriptionSchema.safeParse(withoutExpiration).success, true)
-  assert.equal(PushSubscriptionSchema.safeParse({ ...valid, expirationTime: 1_760_000_000_000 }).success, true)
+  assert.equal(
+    PushSubscriptionSchema.safeParse({ ...valid, expirationTime: 1_760_000_000_000 }).success,
+    true,
+  )
 })
 
 test('PushSubscriptionSchema: 빠진 값, 빈 값, 상한+1, 제어 문자, 모르는 키, https가 아닌 주소를 거절한다', () => {
@@ -41,13 +44,23 @@ test('PushSubscriptionSchema: 빠진 값, 빈 값, 상한+1, 제어 문자, 모�
     { ...valid, expirationTime: 1.5 },
     { ...valid, expirationTime: '1' },
   ]
-  for (const value of bad) assert.equal(PushSubscriptionSchema.safeParse(value).success, false, JSON.stringify(value))
+  for (const value of bad)
+    assert.equal(PushSubscriptionSchema.safeParse(value).success, false, JSON.stringify(value))
 })
 
 test('RemovePushDeviceSchema: 구독 주소 하나만 받는다', () => {
   assert.equal(RemovePushDeviceSchema.safeParse({ endpoint: valid.endpoint }).success, true)
-  for (const value of [{}, { endpoint: '' }, { endpoint: 'http://fcm.googleapis.com/x' }, { endpoint: valid.endpoint, keys: valid.keys },
-    { endpoint: `https://fcm.googleapis.com/${'a'.repeat(PUSH_ENDPOINT_MAX)}` }]) {
-    assert.equal(RemovePushDeviceSchema.safeParse(value).success, false, JSON.stringify(value).slice(0, 80))
+  for (const value of [
+    {},
+    { endpoint: '' },
+    { endpoint: 'http://fcm.googleapis.com/x' },
+    { endpoint: valid.endpoint, keys: valid.keys },
+    { endpoint: `https://fcm.googleapis.com/${'a'.repeat(PUSH_ENDPOINT_MAX)}` },
+  ]) {
+    assert.equal(
+      RemovePushDeviceSchema.safeParse(value).success,
+      false,
+      JSON.stringify(value).slice(0, 80),
+    )
   }
 })

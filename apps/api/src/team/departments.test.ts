@@ -11,23 +11,46 @@ import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { createTeamRoutes } from './routes.js'
 import { deleteDepartment } from './service.js'
 
-const body = { name: '컴퓨터학부 학생회', unit: 'department', schoolName: '한양대학교 ERICA', cohortName: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' }
+const body = {
+  name: '컴퓨터학부 학생회',
+  unit: 'department',
+  schoolName: '한양대학교 ERICA',
+  cohortName: '2026',
+  startsOn: '2026-01-01',
+  endsOn: '2026-12-31',
+}
 
 // 회장 u1의 학생회에 u2가 들어온다. u3은 다른 학생회의 회장이다.
 async function setup(testDb: TestDb) {
   const clock = () => new Date('2026-10-19T03:00:00Z')
-  const api = caller(createApp({ auth: { handler: async () => new Response() }, trustedOrigin: ORIGIN,
-    councils: createCouncilRoutes(testDb.db, testSession, clock), invites: createInviteRoutes(testDb.db, testSession, clock),
-    team: createTeamRoutes(testDb.db, testSession, clock) }))
+  const api = caller(
+    createApp({
+      auth: { handler: async () => new Response() },
+      trustedOrigin: ORIGIN,
+      councils: createCouncilRoutes(testDb.db, testSession, clock),
+      invites: createInviteRoutes(testDb.db, testSession, clock),
+      team: createTeamRoutes(testDb.db, testSession, clock),
+    }),
+  )
   for (const user of ['u1', 'u2', 'u3']) await addUser(testDb.pg, user, `이름 ${user}`)
-  const { council } = await (await api.post('/api/organizations/create', body, 'u1')).json() as CreateCouncilResponse
-  const { code } = await (await api.get(`/api/organizations/${council.id}/invite`, 'u1')).json() as InviteCodeResponse
+  const { council } = (await (
+    await api.post('/api/organizations/create', body, 'u1')
+  ).json()) as CreateCouncilResponse
+  const { code } = (await (
+    await api.get(`/api/organizations/${council.id}/invite`, 'u1')
+  ).json()) as InviteCodeResponse
   await api.post('/api/organizations/join', { code }, 'u2')
-  const { council: other } = await (await api.post('/api/organizations/create', { ...body, name: '경영학부 학생회' }, 'u3')).json() as CreateCouncilResponse
-  const otherTeam = await (await api.get(`/api/organizations/${other.id}/members`, 'u3')).json() as TeamResponse
+  const { council: other } = (await (
+    await api.post('/api/organizations/create', { ...body, name: '경영학부 학생회' }, 'u3')
+  ).json()) as CreateCouncilResponse
+  const otherTeam = (await (
+    await api.get(`/api/organizations/${other.id}/members`, 'u3')
+  ).json()) as TeamResponse
   const base = `/api/organizations/${council.id}`
-  const create = async (name: string) => (await (await api.post(`${base}/departments`, { name }, 'u1')).json() as TeamResponse)
-    .departments.find(item => item.name === name)!.id
+  const create = async (name: string) =>
+    (
+      (await (await api.post(`${base}/departments`, { name }, 'u1')).json()) as TeamResponse
+    ).departments.find(item => item.name === name)!.id
   return { api, base, council, create, otherDepartment: otherTeam.departments[0]!.id }
 }
 
@@ -36,14 +59,34 @@ test('부서 만들기, 이름 바꾸기, 재정 역할 주고 거두기는 회�
   try {
     const { api, base, create } = await setup(testDb)
     const planning = await create('기획부')
-    let team = await (await api.post(`${base}/departments/${planning}`, { name: '기획국', role: 'finance' }, 'u1')).json() as TeamResponse
-    assert.deepEqual(team.departments.map(item => [item.name, item.role, item.memberCount]), [['재정부', 'finance', 0], ['기획국', 'finance', 0]])
-    team = await (await api.post(`${base}/departments/${planning}`, { name: '기획국', role: null }, 'u1')).json() as TeamResponse
+    let team = (await (
+      await api.post(`${base}/departments/${planning}`, { name: '기획국', role: 'finance' }, 'u1')
+    ).json()) as TeamResponse
+    assert.deepEqual(
+      team.departments.map(item => [item.name, item.role, item.memberCount]),
+      [
+        ['재정부', 'finance', 0],
+        ['기획국', 'finance', 0],
+      ],
+    )
+    team = (await (
+      await api.post(`${base}/departments/${planning}`, { name: '기획국', role: null }, 'u1')
+    ).json()) as TeamResponse
     assert.equal(team.departments.find(item => item.id === planning)!.role, null)
-    assert.equal((await api.post(`${base}/departments/${planning}`, { name: '기획국', role: null }, 'u1')).status, 200)
+    assert.equal(
+      (await api.post(`${base}/departments/${planning}`, { name: '기획국', role: null }, 'u1'))
+        .status,
+      200,
+    )
     const versions = await testDb.pg.query<{ name: string; role: string | null }>(
-      "SELECT data->>'name' AS name, data->>'role' AS role FROM record_version WHERE record_id = $1 ORDER BY version_no", [planning])
-    assert.deepEqual(versions.rows, [{ name: '기획부', role: null }, { name: '기획국', role: 'finance' }, { name: '기획국', role: null }])
+      "SELECT data->>'name' AS name, data->>'role' AS role FROM record_version WHERE record_id = $1 ORDER BY version_no",
+      [planning],
+    )
+    assert.deepEqual(versions.rows, [
+      { name: '기획부', role: null },
+      { name: '기획국', role: 'finance' },
+      { name: '기획국', role: null },
+    ])
   } finally {
     await testDb.close()
   }
@@ -54,8 +97,10 @@ test('같은 이름의 부서는 409 DEPARTMENT_NAME_TAKEN이다', async () => {
   try {
     const { api, base, create } = await setup(testDb)
     const planning = await create('기획부')
-    for (const response of [await api.post(`${base}/departments`, { name: '재정부' }, 'u1'),
-      await api.post(`${base}/departments/${planning}`, { name: '재정부', role: null }, 'u1')]) {
+    for (const response of [
+      await api.post(`${base}/departments`, { name: '재정부' }, 'u1'),
+      await api.post(`${base}/departments/${planning}`, { name: '재정부', role: null }, 'u1'),
+    ]) {
       assert.equal(response.status, 409)
       assert.deepEqual(await response.json(), { error: 'DEPARTMENT_NAME_TAKEN' })
     }
@@ -71,10 +116,21 @@ test('쓰인 적 없는 부서만 없앤다: 판, 하위 행, 기록 행을 함�
     const { api, base, council, create } = await setup(testDb)
     const unused = await create('홍보부')
     await api.post(`${base}/departments/${unused}`, { name: '홍보국', role: null }, 'u1')
-    const team = await (await api.post(`${base}/departments/${unused}/delete`, {}, 'u1')).json() as TeamResponse
+    const team = (await (
+      await api.post(`${base}/departments/${unused}/delete`, {}, 'u1')
+    ).json()) as TeamResponse
     assert.ok(!team.departments.some(item => item.id === unused))
     for (const table of ['department', 'record', 'record_version']) {
-      assert.equal((await pg.query(`SELECT 1 FROM ${table} WHERE ${table === 'record_version' ? 'record_id' : 'id'} = $1`, [unused])).rows.length, 0, table)
+      assert.equal(
+        (
+          await pg.query(
+            `SELECT 1 FROM ${table} WHERE ${table === 'record_version' ? 'record_id' : 'id'} = $1`,
+            [unused],
+          )
+        ).rows.length,
+        0,
+        table,
+      )
     }
     // 부서원이 들어왔다가 빠진 부서
     const used = await create('복지부')
@@ -86,12 +142,23 @@ test('쓰인 적 없는 부서만 없앤다: 판, 하위 행, 기록 행을 함�
     assert.deepEqual(await blocked.json(), { error: 'DEPARTMENT_IN_USE' })
     // 다른 기록(업무)이 가리키는 부서는 외래 키가 막는다.
     const tasked = await create('체육부')
-    const [{ id: taskId }] = (await pg.query<{ id: string }>("INSERT INTO record (kind, council_id) VALUES ('task', $1) RETURNING id", [council.id])).rows as [{ id: string }]
-    await pg.query("INSERT INTO task (id, title, status, department_id) VALUES ($1, '현수막', 'open', $2)", [taskId, tasked])
+    const [{ id: taskId }] = (
+      await pg.query<{ id: string }>(
+        "INSERT INTO record (kind, council_id) VALUES ('task', $1) RETURNING id",
+        [council.id],
+      )
+    ).rows as [{ id: string }]
+    await pg.query(
+      "INSERT INTO task (id, title, status, department_id) VALUES ($1, '현수막', 'open', $2)",
+      [taskId, tasked],
+    )
     const referenced = await api.post(`${base}/departments/${tasked}/delete`, {}, 'u1')
     assert.equal(referenced.status, 409)
     assert.deepEqual(await referenced.json(), { error: 'DEPARTMENT_IN_USE' })
-    assert.equal((await pg.query('SELECT 1 FROM department WHERE id = $1', [tasked])).rows.length, 1)
+    assert.equal(
+      (await pg.query('SELECT 1 FROM department WHERE id = $1', [tasked])).rows.length,
+      1,
+    )
   } finally {
     await testDb.close()
   }
@@ -104,11 +171,26 @@ test('확정한 부서 기록은 쓰인 적 없어도 없애지 않는다(physic
     const { council, create } = await setup(testDb)
     const confirmed = await create('홍보부')
     const actor = (await actorOf(db, 'u1', council.id, new Date('2026-10-19T03:00:00Z')))!
-    await pg.query('UPDATE record SET confirmed_by = $1, confirmed_at = now() WHERE id = $2', [actor.memberId, confirmed])
+    await pg.query('UPDATE record SET confirmed_by = $1, confirmed_at = now() WHERE id = $2', [
+      actor.memberId,
+      confirmed,
+    ])
     // 바탕에는 부서를 확정하는 길이 없어 모듈을 바로 부른다.
-    await assert.rejects(db.transaction(tx => deleteDepartment(tx, actor, confirmed)), { code: 'RECORD_CONFIRMED', status: 409 })
-    for (const table of ['department', 'record']) assert.equal((await pg.query(`SELECT 1 FROM ${table} WHERE id = $1`, [confirmed])).rows.length, 1, table)
-    assert.equal((await pg.query('SELECT 1 FROM record_version WHERE record_id = $1', [confirmed])).rows.length, 1)
+    await assert.rejects(
+      db.transaction(tx => deleteDepartment(tx, actor, confirmed)),
+      { code: 'RECORD_CONFIRMED', status: 409 },
+    )
+    for (const table of ['department', 'record'])
+      assert.equal(
+        (await pg.query(`SELECT 1 FROM ${table} WHERE id = $1`, [confirmed])).rows.length,
+        1,
+        table,
+      )
+    assert.equal(
+      (await pg.query('SELECT 1 FROM record_version WHERE record_id = $1', [confirmed])).rows
+        .length,
+      1,
+    )
   } finally {
     await testDb.close()
   }
@@ -119,21 +201,56 @@ test('부서 편성은 회장단만 한다. 다른 학생회의 부서는 404, �
   try {
     const { api, base, create, otherDepartment } = await setup(testDb)
     const planning = await create('기획부')
-    const attempts = [[`${base}/departments`, { name: '홍보부' }], [`${base}/departments/${planning}`, { name: '기획국', role: null }],
-      [`${base}/departments/${planning}/delete`, {}]] as const
+    const attempts = [
+      [`${base}/departments`, { name: '홍보부' }],
+      [`${base}/departments/${planning}`, { name: '기획국', role: null }],
+      [`${base}/departments/${planning}/delete`, {}],
+    ] as const
     for (const [path, payload] of attempts) {
       assert.equal((await api.post(path, payload, 'u2')).status, 403, path)
       assert.equal((await api.post(path, payload, 'u3')).status, 403, path)
       assert.equal((await api.post(path, payload)).status, 401, path)
     }
-    assert.equal((await api.post(`${base}/departments/${otherDepartment}`, { name: '빼앗기', role: null }, 'u1')).status, 404)
-    assert.equal((await api.post(`${base}/departments/${otherDepartment}/delete`, {}, 'u1')).status, 404)
+    assert.equal(
+      (
+        await api.post(
+          `${base}/departments/${otherDepartment}`,
+          { name: '빼앗기', role: null },
+          'u1',
+        )
+      ).status,
+      404,
+    )
+    assert.equal(
+      (await api.post(`${base}/departments/${otherDepartment}/delete`, {}, 'u1')).status,
+      404,
+    )
     assert.equal((await api.post(`${base}/departments/not-a-uuid/delete`, {}, 'u1')).status, 404)
-    for (const payload of [{}, { name: '' }, { name: '   ' }, { name: '😀'.repeat(21) }, { name: '부\u0000' }, { name: '\uD800' }, { name: '홍보부', extra: 1 }]) {
-      assert.equal((await api.post(`${base}/departments`, payload, 'u1')).status, 400, JSON.stringify(payload))
+    for (const payload of [
+      {},
+      { name: '' },
+      { name: '   ' },
+      { name: '😀'.repeat(21) },
+      { name: '부\u0000' },
+      { name: '\uD800' },
+      { name: '홍보부', extra: 1 },
+    ]) {
+      assert.equal(
+        (await api.post(`${base}/departments`, payload, 'u1')).status,
+        400,
+        JSON.stringify(payload),
+      )
     }
-    for (const payload of [{ name: '기획국' }, { name: '기획국', role: 'leadership' }, { name: '기획국', role: null, extra: 1 }]) {
-      assert.equal((await api.post(`${base}/departments/${planning}`, payload, 'u1')).status, 400, JSON.stringify(payload))
+    for (const payload of [
+      { name: '기획국' },
+      { name: '기획국', role: 'leadership' },
+      { name: '기획국', role: null, extra: 1 },
+    ]) {
+      assert.equal(
+        (await api.post(`${base}/departments/${planning}`, payload, 'u1')).status,
+        400,
+        JSON.stringify(payload),
+      )
     }
   } finally {
     await testDb.close()

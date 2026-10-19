@@ -21,7 +21,13 @@ const loadErrors = { forbidden: notices.forbidden.text, failed: '초대 링크�
 
 // 초대 링크(회장단): 링크 복사와 코드 바꾸기. 바꾸면 옛 코드는 막히고 만료는 없다(바탕 spec G2).
 // 403이면 권한이 바뀐 것이라 onForbidden으로 학생회를 다시 읽게 한다. 불러오기가 실패하면 다시 시도할 수 있다.
-export default function InviteCard({ councilId, onForbidden }: { councilId: string; onForbidden: () => void }) {
+export default function InviteCard({
+  councilId,
+  onForbidden,
+}: {
+  councilId: string
+  onForbidden: () => void
+}) {
   const base = `/api/organizations/${encodeURIComponent(councilId)}/invite`
   const linkId = useId()
   const [code, setCode] = useState<string | null>(null)
@@ -31,7 +37,9 @@ export default function InviteCard({ councilId, onForbidden }: { councilId: stri
   const [notice, setNotice] = useState<Notice>(null)
   // 부르는 쪽이 매번 새 함수를 넘겨도 다시 불러오지 않도록 마지막 함수만 기억한다.
   const forbidden = useRef(onForbidden)
-  useEffect(() => { forbidden.current = onForbidden })
+  useEffect(() => {
+    forbidden.current = onForbidden
+  })
   useEffect(() => {
     const controller = new AbortController()
     setLoadError(null)
@@ -67,23 +75,65 @@ export default function InviteCard({ councilId, onForbidden }: { councilId: stri
     setNotice('rotated')
   }
 
-  if (!code) return loadError ? <Card className="flex flex-col gap-3 p-4">
-    <StateMessage kind="error">{loadErrors[loadError]}</StateMessage>
-    <Button variant="outline" size="sm" className="self-start" onClick={() => setAttempt(value => value + 1)}>다시 시도</Button>
-  </Card> : null
+  if (!code)
+    return loadError ? (
+      <Card className="flex flex-col gap-3 p-4">
+        <StateMessage kind="error">{loadErrors[loadError]}</StateMessage>
+        <Button
+          variant="outline"
+          size="sm"
+          className="self-start"
+          onClick={() => setAttempt(value => value + 1)}
+        >
+          다시 시도
+        </Button>
+      </Card>
+    ) : null
   const link = inviteLink(code)
-  return <Card className="flex flex-col gap-3 p-4">
-    <section aria-label="초대 링크" className="flex flex-col gap-3">
-      <div className="flex flex-col gap-1">
-        <Label htmlFor={linkId} className="text-sm font-semibold text-gray-900">초대 링크</Label>
-        <p className="text-xs text-gray-500">단톡방에 올리면 누른 사람이 바로 운영진으로 들어와요. 잘못 들어온 사람은 내보내고 코드를 바꿔 주세요.</p>
-      </div>
-      <Input id={linkId} readOnly value={link} className="font-mono text-base text-gray-500 sm:text-xs" onFocus={event => event.currentTarget.select()} />
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" onClick={() => { void copy(link) }}><Copy />링크 복사</Button>
-        <Button variant="outline" size="sm" disabled={rotating} onClick={() => { void rotate() }}><RefreshCw />{rotating ? '바꾸는 중…' : '코드 바꾸기'}</Button>
-      </div>
-      {notice && <StateMessage kind={notices[notice].kind}>{notices[notice].text}</StateMessage>}
-    </section>
-  </Card>
+  return (
+    <Card className="flex flex-col gap-3 p-4">
+      <section aria-label="초대 링크" className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <Label htmlFor={linkId} className="text-sm font-semibold text-gray-900">
+            초대 링크
+          </Label>
+          <p className="text-xs text-gray-500">
+            단톡방에 올리면 누른 사람이 바로 운영진으로 들어와요. 잘못 들어온 사람은 내보내고 코드를
+            바꿔 주세요.
+          </p>
+        </div>
+        <Input
+          id={linkId}
+          readOnly
+          value={link}
+          className="font-mono text-base text-gray-500 sm:text-xs"
+          onFocus={event => event.currentTarget.select()}
+        />
+        <div className="flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              void copy(link)
+            }}
+          >
+            <Copy />
+            링크 복사
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={rotating}
+            onClick={() => {
+              void rotate()
+            }}
+          >
+            <RefreshCw />
+            {rotating ? '바꾸는 중…' : '코드 바꾸기'}
+          </Button>
+        </div>
+        {notice && <StateMessage kind={notices[notice].kind}>{notices[notice].text}</StateMessage>}
+      </section>
+    </Card>
+  )
 }

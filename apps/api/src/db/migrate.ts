@@ -17,12 +17,18 @@ process.exitCode = await runMigration({
   args: process.argv.slice(2),
   env: process.env,
   shellUrl: process.env.DATABASE_URL,
-  readEnvUrl: () => parseEnv(readFileSync(new URL('../../../../.env', import.meta.url), 'utf8')).DATABASE_URL,
+  readEnvUrl: () =>
+    parseEnv(readFileSync(new URL('../../../../.env', import.meta.url), 'utf8')).DATABASE_URL,
   readLocal: () => localMigrations(migrationsFolder),
   connect: url => {
-    const client = postgres(url, { max: 1, ssl: { rejectUnauthorized: true }, connect_timeout: 15, onnotice: () => {} })
+    const client = postgres(url, {
+      max: 1,
+      ssl: { rejectUnauthorized: true },
+      connect_timeout: 15,
+      onnotice: () => {},
+    })
     return {
-      query: async text => [...await client.unsafe(text)],
+      query: async text => [...(await client.unsafe(text))],
       apply: () => migrate(drizzle(client), { migrationsFolder }),
       end: () => client.end({ timeout: 5 }),
     }

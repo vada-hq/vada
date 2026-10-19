@@ -11,11 +11,14 @@ export function downloadName(disposition: string | null, fallback: string) {
 
 // 파일을 받아 브라우저 내려받기로 넘긴다. 이름은 서버 머리글의 filename*을 쓴다.
 // 실패하면 서버가 준 오류 코드를 돌려준다. 네트워크 실패나 코드가 없으면 null이다.
-export async function downloadFile(url: string, fallbackName: string): Promise<{ ok: true } | { ok: false; code: unknown }> {
+export async function downloadFile(
+  url: string,
+  fallbackName: string,
+): Promise<{ ok: true } | { ok: false; code: unknown }> {
   try {
     const response = await fetch(url, { credentials: 'same-origin', cache: 'no-store' })
     if (!response.ok) {
-      const result = await response.json().catch(() => null) as { error?: unknown } | null
+      const result = (await response.json().catch(() => null)) as { error?: unknown } | null
       return { ok: false, code: result?.error ?? null }
     }
     const href = URL.createObjectURL(await response.blob())

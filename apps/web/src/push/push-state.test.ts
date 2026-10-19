@@ -1,7 +1,14 @@
 import { expect, test } from 'vitest'
 import { pushStateOf, type PushFacts } from './push-state'
 
-const base: PushFacts = { device: 'android', homeScreenApp: false, supported: true, server: 'ready', permission: 'default', subscribed: false }
+const base: PushFacts = {
+  device: 'android',
+  homeScreenApp: false,
+  supported: true,
+  server: 'ready',
+  permission: 'default',
+  subscribed: false,
+}
 
 test('기기, 브라우저, 서버, 허락, 구독으로 한 가지 상태를 정한다', () => {
   expect(pushStateOf({ ...base, device: 'ios' })).toBe('needs-home-screen')

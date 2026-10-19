@@ -10,10 +10,12 @@ const largeBodies: { pattern: RegExp; max: number }[] = [
   { pattern: /^\/api\/organizations\/[^/]+\/dues-roster$/, max: 1_048_576 },
   { pattern: /^\/api\/organizations\/[^/]+\/events\/[^/]+\/report\/retrospective$/, max: 65_536 },
 ]
-export const bodyLimitOf = (path: string) => largeBodies.find(entry => entry.pattern.test(path))?.max ?? MAX_BODY_BYTES
+export const bodyLimitOf = (path: string) =>
+  largeBodies.find(entry => entry.pattern.test(path))?.max ?? MAX_BODY_BYTES
 
 // 본문을 끝까지 버퍼링하기 전에 크기를 제한한다. 출처 검사를 따로 하는 인증 경로에도 쓴다.
-export const limitBody = (maxSize = MAX_BODY_BYTES) => bodyLimit({ maxSize, onError: c => c.json({ error: 'BODY_TOO_LARGE' }, 413) })
+export const limitBody = (maxSize = MAX_BODY_BYTES) =>
+  bodyLimit({ maxSize, onError: c => c.json({ error: 'BODY_TOO_LARGE' }, 413) })
 
 // 인증·DB 조회보다 먼저 실행한다. 새 라우트도 /api/organizations 아래면 자동 적용된다.
 export function mutationGuard(trustedOrigin: string) {
@@ -22,7 +24,7 @@ export function mutationGuard(trustedOrigin: string) {
   const limiters = new Map<number, MiddlewareHandler>()
   const limiterOf = (max: number) => {
     let limiter = limiters.get(max)
-    if (!limiter) limiters.set(max, limiter = limitBody(max))
+    if (!limiter) limiters.set(max, (limiter = limitBody(max)))
     return limiter
   }
   return createMiddleware(async (c, next) => {

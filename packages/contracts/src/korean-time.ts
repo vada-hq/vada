@@ -6,9 +6,16 @@ const pattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
 export const koreanDateTime = token(16).refine(value => {
   if (!pattern.test(value)) return false
   const parsed = new Date(`${value}:00Z`)
-  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 16) === value
-    && value >= '2000-01-01T00:00' && value <= '2999-12-31T23:59'
+  return (
+    !Number.isNaN(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 16) === value &&
+    value >= '2000-01-01T00:00' &&
+    value <= '2999-12-31T23:59'
+  )
 })
 export const dateFromKorean = (value: string) => new Date(`${value}:00+09:00`)
 export const koreanOf = (date: Date) =>
-  date.toLocaleString('sv-SE', { timeZone: 'Asia/Seoul', hourCycle: 'h23' }).slice(0, 16).replace(' ', 'T')
+  date
+    .toLocaleString('sv-SE', { timeZone: 'Asia/Seoul', hourCycle: 'h23' })
+    .slice(0, 16)
+    .replace(' ', 'T')

@@ -13,7 +13,9 @@ const DATE_MAX_MS = 8_640_000_000_000_000
 
 // 그 사람의 기기 하나를 지운다. 없으면 아무것도 하지 않는다. 지우기 경로와 끝난 시험 알림(push/routes.ts)이 같이 쓴다.
 export async function forgetPushDevice(db: Db, userId: string, endpoint: string) {
-  await db.delete(pushDevice).where(and(eq(pushDevice.endpoint, endpoint), eq(pushDevice.userId, userId)))
+  await db
+    .delete(pushDevice)
+    .where(and(eq(pushDevice.endpoint, endpoint), eq(pushDevice.userId, userId)))
 }
 
 // 알림 받을 기기(바탕 spec G10). 기기는 로그인 계정에 붙어, 학생회에 들어오기 전에도 알림을 켤 수 있다.
@@ -25,9 +27,18 @@ export function createPushDeviceRoutes(db: Db, getSession: SessionReader) {
   routes.post('/me/push/devices', json(PushSubscriptionSchema), auth, async c => {
     const { endpoint, keys, expirationTime } = c.req.valid('json')
     if (!isKnownPushService(endpoint)) throw new ApiError('PUSH_SERVICE_UNSUPPORTED', 400)
-    if (expirationTime != null && expirationTime > DATE_MAX_MS) throw new ApiError('INVALID_INPUT', 400)
-    const values = { userId: c.get('userId'), p256dh: keys.p256dh, auth: keys.auth, expirationTime: expirationTime == null ? null : new Date(expirationTime) }
-    await db.insert(pushDevice).values({ endpoint, ...values }).onConflictDoUpdate({ target: pushDevice.endpoint, set: values })
+    if (expirationTime != null && expirationTime > DATE_MAX_MS)
+      throw new ApiError('INVALID_INPUT', 400)
+    const values = {
+      userId: c.get('userId'),
+      p256dh: keys.p256dh,
+      auth: keys.auth,
+      expirationTime: expirationTime == null ? null : new Date(expirationTime),
+    }
+    await db
+      .insert(pushDevice)
+      .values({ endpoint, ...values })
+      .onConflictDoUpdate({ target: pushDevice.endpoint, set: values })
     return c.body(null, 204)
   })
   // 지금 로그인한 계정의 기기만 지운다. 없으면 아무것도 하지 않는다.

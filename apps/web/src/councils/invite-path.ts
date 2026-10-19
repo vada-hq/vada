@@ -1,6 +1,12 @@
 // 초대 링크 형식은 {origin}/join/{code}다. 코드가 맞는지는 서버가 판단한다(지금 vada와 같다).
 const pattern = /^\/join\/([^/]+)$/
-const decode = (segment: string) => { try { return decodeURIComponent(segment) } catch { return segment } }
+const decode = (segment: string) => {
+  try {
+    return decodeURIComponent(segment)
+  } catch {
+    return segment
+  }
+}
 
 export function inviteCodeFromPath(pathname: string) {
   const segment = pattern.exec(pathname)?.[1]
@@ -14,4 +20,5 @@ export function inviteCodeFromText(text: string) {
 }
 
 export const invitePath = (code: string) => `/join/${encodeURIComponent(code)}`
-export const inviteLink = (code: string, origin = window.location.origin) => `${origin}${invitePath(code)}`
+export const inviteLink = (code: string, origin = window.location.origin) =>
+  `${origin}${invitePath(code)}`

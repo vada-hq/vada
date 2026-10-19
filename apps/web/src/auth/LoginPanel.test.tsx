@@ -19,7 +19,9 @@ test('바깥 브라우저에서는 Google 로그인을 부르고, 로그인 중�
   expect(props.onLogin).toHaveBeenCalledTimes(1)
   expect(screen.queryByRole('button', { name: '다른 방법으로 로그인' })).toBeNull()
   view.rerender(<LoginPanel kakao={false} homeScreenApp={false} busy {...props} />)
-  expect((screen.getByRole('button', { name: 'Google로 이동 중…' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(
+    (screen.getByRole('button', { name: 'Google로 이동 중…' }) as HTMLButtonElement).disabled,
+  ).toBe(true)
 })
 
 test('아이폰 홈 화면 앱은 앱 안 창 로그인을 기본으로, 지금 방식을 둘째로 둔다', () => {
@@ -29,5 +31,9 @@ test('아이폰 홈 화면 앱은 앱 안 창 로그인을 기본으로, 지금 
   expect(props.onLoginInApp).toHaveBeenCalledTimes(1)
   fireEvent.click(screen.getByRole('button', { name: '다른 방법으로 로그인' }))
   expect(props.onLogin).toHaveBeenCalledTimes(1)
-  expect(screen.getByText('로그인이 안 되면 사파리에서 VADA에 로그인한 뒤, 홈 화면의 VADA를 지우고 다시 추가해 주세요.')).toBeTruthy()
+  expect(
+    screen.getByText(
+      '로그인이 안 되면 사파리에서 VADA에 로그인한 뒤, 홈 화면의 VADA를 지우고 다시 추가해 주세요.',
+    ),
+  ).toBeTruthy()
 })

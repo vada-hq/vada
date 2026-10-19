@@ -14,9 +14,12 @@ export function caller(app: App) {
   const as = (userId?: string): Record<string, string> => (userId ? { 'x-test-user': userId } : {})
   return {
     get: (path: string, userId?: string) => app.request(path, { headers: as(userId) }),
-    post: (path: string, body: unknown, userId?: string) => app.request(path, {
-      method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json', Origin: ORIGIN, ...as(userId) },
-    }),
+    post: (path: string, body: unknown, userId?: string) =>
+      app.request(path, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json', Origin: ORIGIN, ...as(userId) },
+      }),
   }
 }
 
@@ -24,7 +27,10 @@ export function caller(app: App) {
 export function withoutReadsOutsideTransaction<T extends object>(db: T): T {
   return new Proxy(db, {
     get(target, property) {
-      if (property === 'select') return () => { throw new Error('거래 밖에서 읽었다') }
+      if (property === 'select')
+        return () => {
+          throw new Error('거래 밖에서 읽었다')
+        }
       const value = Reflect.get(target, property, target)
       return typeof value === 'function' ? value.bind(target) : value
     },

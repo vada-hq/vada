@@ -4,7 +4,9 @@ export type ApiResult<T> = { ok: true; data: T } | { ok: false; status: number; 
 
 // 로그인이 풀리면(쿠키 만료) 어느 API든 401을 준다. 화면이 "서버 연결을 확인해 주세요"로 보이지 않도록, 앱이 등록한 처리기가 세션을 다시 읽어 로그인 화면으로 돌려보낸다.
 let onUnauthorized: (() => void) | null = null
-export function setUnauthorizedHandler(handler: (() => void) | null) { onUnauthorized = handler }
+export function setUnauthorizedHandler(handler: (() => void) | null) {
+  onUnauthorized = handler
+}
 
 async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {
   try {
@@ -14,7 +16,11 @@ async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {
     const body: unknown = await response.json().catch(() => null)
     if (response.ok && body !== null) return { ok: true, data: body as T }
     const code = (body as { error?: unknown } | null)?.error
-    return { ok: false, status: response.status, code: response.status < 500 && typeof code === 'string' ? code : 'FAILED' }
+    return {
+      ok: false,
+      status: response.status,
+      code: response.status < 500 && typeof code === 'string' ? code : 'FAILED',
+    }
   } catch {
     return { ok: false, status: 0, code: 'FAILED' }
   }
@@ -22,4 +28,8 @@ async function call<T>(path: string, init: RequestInit): Promise<ApiResult<T>> {
 
 export const getJson = <T>(path: string, signal?: AbortSignal) => call<T>(path, { signal })
 export const postJson = <T>(path: string, body: unknown) =>
-  call<T>(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  call<T>(path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })

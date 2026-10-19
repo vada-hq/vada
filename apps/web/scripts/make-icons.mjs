@@ -39,7 +39,9 @@ function inV(u, v, scale) {
   const at = (x, y) => [0.5 + (x - 0.5) * scale, 0.5 + (y - 0.5) * scale]
   const bottom = at(0.5, 0.7)
   const half = 0.065 * scale
-  return distance(u, v, at(0.3, 0.3), bottom) <= half || distance(u, v, at(0.7, 0.3), bottom) <= half
+  return (
+    distance(u, v, at(0.3, 0.3), bottom) <= half || distance(u, v, at(0.7, 0.3), bottom) <= half
+  )
 }
 
 function icon(size, scale) {
@@ -50,11 +52,13 @@ function icon(size, scale) {
       let hits = 0
       for (let sy = 0; sy < SAMPLES; sy++) {
         for (let sx = 0; sx < SAMPLES; sx++) {
-          if (inV((x + (sx + 0.5) / SAMPLES) / size, (y + (sy + 0.5) / SAMPLES) / size, scale)) hits++
+          if (inV((x + (sx + 0.5) / SAMPLES) / size, (y + (sy + 0.5) / SAMPLES) / size, scale))
+            hits++
         }
       }
       const cover = hits / (SAMPLES * SAMPLES)
-      for (let c = 0; c < 3; c++) raw[y * row + 1 + x * 3 + c] = Math.round(BLUE[c] + (WHITE[c] - BLUE[c]) * cover)
+      for (let c = 0; c < 3; c++)
+        raw[y * row + 1 + x * 3 + c] = Math.round(BLUE[c] + (WHITE[c] - BLUE[c]) * cover)
     }
   }
   const header = Buffer.alloc(13)
@@ -62,14 +66,22 @@ function icon(size, scale) {
   header.writeUInt32BE(size, 4)
   header[8] = 8 // 채널당 8비트
   header[9] = 2 // RGB
-  return Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-    chunk('IHDR', header), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))])
+  return Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
+    chunk('IHDR', header),
+    chunk('IDAT', deflateSync(raw)),
+    chunk('IEND', Buffer.alloc(0)),
+  ])
 }
 
 const publicDir = new URL('../public/', import.meta.url)
 mkdirSync(new URL('icons/', publicDir), { recursive: true })
-for (const [path, size, scale] of [['icons/icon-192.png', 192, 1], ['icons/icon-512.png', 512, 1],
-  ['icons/maskable-512.png', 512, 0.8], ['apple-touch-icon.png', 180, 1]]) {
+for (const [path, size, scale] of [
+  ['icons/icon-192.png', 192, 1],
+  ['icons/icon-512.png', 512, 1],
+  ['icons/maskable-512.png', 512, 0.8],
+  ['apple-touch-icon.png', 180, 1],
+]) {
   writeFileSync(new URL(path, publicDir), icon(size, scale))
   console.log(`${path} ${size}px`)
 }

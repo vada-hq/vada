@@ -10,7 +10,11 @@ const keyWarnings: string[] = []
 const consoleError = console.error.bind(console)
 console.error = (...args: unknown[]) => {
   const message = String(args[0])
-  if (message.includes('Encountered two children with the same key') || message.includes('should have a unique "key" prop')) keyWarnings.push(message)
+  if (
+    message.includes('Encountered two children with the same key') ||
+    message.includes('should have a unique "key" prop')
+  )
+    keyWarnings.push(message)
   consoleError(...args)
 }
 afterEach(() => {

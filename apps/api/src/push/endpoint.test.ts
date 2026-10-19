@@ -11,7 +11,8 @@ test('알려진 브라우저 알림 서버로만 보낸다', () => {
     'https://FCM.googleapis.com/fcm/send/abc',
     'https://fcm.googleapis.com:443/fcm/send/abc',
     'https://db5p.notify.windows.com/?token=abc',
-  ]) assert.equal(isKnownPushService(known), true, known)
+  ])
+    assert.equal(isKnownPushService(known), true, known)
   for (const unknown of [
     'http://fcm.googleapis.com/fcm/send/abc',
     'https://fcm.googleapis.com.evil.test/x',
@@ -34,5 +35,6 @@ test('알려진 브라우저 알림 서버로만 보낸다', () => {
     'https:/fcm.googleapis.com/fcm/send/abc',
     'https://.notify.windows.com/x',
     'https://fcm.googleapis.com./x',
-  ]) assert.equal(isKnownPushService(unknown), false, unknown)
+  ])
+    assert.equal(isKnownPushService(unknown), false, unknown)
 })

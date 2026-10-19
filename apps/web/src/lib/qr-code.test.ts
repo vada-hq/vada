@@ -13,16 +13,24 @@ const checkInText = `VADA:${'0123456789ABCDEF'.repeat(4)}`
 function imageOf(matrix: boolean[][], scale = 4) {
   const size = matrix.length * scale
   const data = new Uint8ClampedArray(size * size * 4)
-  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
-    const value = matrix[Math.floor(y / scale)]![Math.floor(x / scale)] ? 0 : 255
-    data.set([value, value, value, 255], (y * size + x) * 4)
-  }
+  for (let y = 0; y < size; y++)
+    for (let x = 0; x < size; x++) {
+      const value = matrix[Math.floor(y / scale)]![Math.floor(x / scale)] ? 0 : 255
+      data.set([value, value, value, 255], (y * size + x) * 4)
+    }
   return { data, width: size, height: size, colorSpace: 'srgb' as const }
 }
 
 test('QrCode가 그리는 칸을 스캐너의 판독기로 읽으면 같은 글자가 나온다', async () => {
-  const wasm = readFileSync(createRequire(import.meta.url).resolve('zxing-wasm/reader/zxing_reader.wasm'))
-  await prepareZXingModule({ overrides: { wasmBinary: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength) }, fireImmediately: true })
+  const wasm = readFileSync(
+    createRequire(import.meta.url).resolve('zxing-wasm/reader/zxing_reader.wasm'),
+  )
+  await prepareZXingModule({
+    overrides: {
+      wasmBinary: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength),
+    },
+    fireImmediately: true,
+  })
   const text = checkInText
   const matrix = qrMatrix(text)
   // 대문자라 영숫자 모드: 버전 4(33칸) + 여백 2칸씩

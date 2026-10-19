@@ -6,8 +6,17 @@ const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 
 test('홈 화면 설정은 VADA를 앱처럼 연다', () => {
   const manifest = JSON.parse(readFileSync(publicFile('manifest.webmanifest'), 'utf8'))
-  expect(manifest).toMatchObject({ id: '/', name: 'VADA', short_name: 'VADA', lang: 'ko', start_url: '/', scope: '/',
-    display: 'standalone', theme_color: '#155dfc', background_color: '#ffffff' })
+  expect(manifest).toMatchObject({
+    id: '/',
+    name: 'VADA',
+    short_name: 'VADA',
+    lang: 'ko',
+    start_url: '/',
+    scope: '/',
+    display: 'standalone',
+    theme_color: '#155dfc',
+    background_color: '#ffffff',
+  })
   expect(manifest.icons).toEqual([
     { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
     { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
@@ -16,8 +25,12 @@ test('홈 화면 설정은 VADA를 앱처럼 연다', () => {
 })
 
 test('아이콘 파일은 PNG이고 적힌 크기와 같다', () => {
-  for (const [path, size] of [['icons/icon-192.png', 192], ['icons/icon-512.png', 512], ['icons/maskable-512.png', 512],
-    ['apple-touch-icon.png', 180]] as const) {
+  for (const [path, size] of [
+    ['icons/icon-192.png', 192],
+    ['icons/icon-512.png', 512],
+    ['icons/maskable-512.png', 512],
+    ['apple-touch-icon.png', 180],
+  ] as const) {
     const bytes = readFileSync(publicFile(path))
     expect(bytes.subarray(0, 8)).toEqual(PNG)
     expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([size, size])
@@ -26,8 +39,13 @@ test('아이콘 파일은 PNG이고 적힌 크기와 같다', () => {
 
 test('페이지가 홈 화면 설정과 아이콘을 잇는다', () => {
   const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8')
-  for (const tag of ['<link rel="manifest" href="/manifest.webmanifest" />', '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
-    '<meta name="theme-color" content="#155dfc" />', '<meta name="apple-mobile-web-app-title" content="VADA" />', '<title>VADA</title>']) {
+  for (const tag of [
+    '<link rel="manifest" href="/manifest.webmanifest" />',
+    '<link rel="apple-touch-icon" href="/apple-touch-icon.png" />',
+    '<meta name="theme-color" content="#155dfc" />',
+    '<meta name="apple-mobile-web-app-title" content="VADA" />',
+    '<title>VADA</title>',
+  ]) {
     expect(html).toContain(tag)
   }
 })

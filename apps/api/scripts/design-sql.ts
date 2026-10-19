@@ -117,12 +117,14 @@ export function splitStatements(sql: string): string[] {
       current = []
     }
   }
-  if (current.some(line => line.trim() && !comment.test(line))) throw new Error('마지막 문장이 ;로 끝나지 않는다')
+  if (current.some(line => line.trim() && !comment.test(line)))
+    throw new Error('마지막 문장이 ;로 끝나지 않는다')
   return statements
 }
 
 // 문장 사이에만 표시를 넣는다. 마지막 문장 뒤에는 넣지 않는다(빈 조각을 실행하지 않게).
-export const joinStatements = (statements: readonly string[]) => statements.join(`\n${BREAKPOINT}\n`)
+export const joinStatements = (statements: readonly string[]) =>
+  statements.join(`\n${BREAKPOINT}\n`)
 
 // 0000_baseline.sql의 내용: 로그인 표 4개 → 설계 SQL 블록 → 설계 밖 표 3개. 줄바꿈은 LF다.
 export function baselineOf(designMarkdown: string): string {
@@ -130,6 +132,10 @@ export function baselineOf(designMarkdown: string): string {
     '-- 0000_baseline: 첫 마이그레이션. apps/api/scripts/baseline-from-design.ts가 만든다. 손으로 고치지 않는다.',
     '-- 로그인 표 4개(지금 정의 그대로) → vada-docs physical-model.md의 SQL 블록 → 설계 밖 표 3개(바탕 spec).',
   ].join('\n')
-  const statements = [...AUTH_STATEMENTS, ...splitStatements(designBlock(designMarkdown)), ...OUTSIDE_STATEMENTS]
+  const statements = [
+    ...AUTH_STATEMENTS,
+    ...splitStatements(designBlock(designMarkdown)),
+    ...OUTSIDE_STATEMENTS,
+  ]
   return `${header}\n${joinStatements(statements)}\n`
 }

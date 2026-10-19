@@ -7,7 +7,10 @@ export type BrowserSubscription = {
 }
 export type BrowserPushManager = {
   getSubscription: () => Promise<BrowserSubscription | null>
-  subscribe: (options: { userVisibleOnly: true; applicationServerKey: Uint8Array }) => Promise<BrowserSubscription>
+  subscribe: (options: {
+    userVisibleOnly: true
+    applicationServerKey: Uint8Array
+  }) => Promise<BrowserSubscription>
 }
 export type PushBrowser = {
   supported: boolean
@@ -21,13 +24,25 @@ export const READY_TIMEOUT_MS = 10_000
 export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => reject(new Error('Timed out')), ms)
-    promise.then(value => { clearTimeout(timer); resolve(value) }, error => { clearTimeout(timer); reject(error) })
+    promise.then(
+      value => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      error => {
+        clearTimeout(timer)
+        reject(error)
+      },
+    )
   })
 }
 
 export function browserPush(): PushBrowser {
-  const supported = typeof navigator !== 'undefined' && 'serviceWorker' in navigator
-    && typeof PushManager !== 'undefined' && typeof Notification !== 'undefined'
+  const supported =
+    typeof navigator !== 'undefined' &&
+    'serviceWorker' in navigator &&
+    typeof PushManager !== 'undefined' &&
+    typeof Notification !== 'undefined'
   return {
     supported,
     permission: () => Notification.permission,
@@ -42,7 +57,7 @@ export function browserPush(): PushBrowser {
 // 서버 열쇠(VAPID 공개 열쇠)는 URL용 base64다. subscribe는 바이트를 받는다.
 export function base64UrlToBytes(value: string) {
   const base64 = value.replace(/-/g, '+').replace(/_/g, '/')
-  const padded = base64 + '='.repeat((4 - base64.length % 4) % 4)
+  const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4)
   return Uint8Array.from(atob(padded), char => char.charCodeAt(0))
 }
 

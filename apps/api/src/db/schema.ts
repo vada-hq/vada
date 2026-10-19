@@ -1,5 +1,20 @@
 import { sql } from 'drizzle-orm'
-import { bigint, boolean, customType, date, index, integer, jsonb, numeric, pgTable, primaryKey, text, timestamp, unique, uuid } from 'drizzle-orm/pg-core'
+import {
+  bigint,
+  boolean,
+  customType,
+  date,
+  index,
+  integer,
+  jsonb,
+  numeric,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  unique,
+  uuid,
+} from 'drizzle-orm/pg-core'
 
 // 조회용 표 정의다. 표는 마이그레이션(SQL)이 만들고, 이 파일로 표를 만들지 않는다(다시 만들기 설계서).
 // 표와 칸, 타입, NULL 여부만 맞춘다. 외래 키, UNIQUE, CHECK, EXCLUDE, 부분 유일 인덱스는 SQL에만 있다.
@@ -19,62 +34,82 @@ export const users = pgTable('users', {
   emailVerified: boolean('email_verified').notNull().default(false),
   image: text('image'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
     .$onUpdate(() => new Date()),
 })
 
-export const accounts = pgTable('accounts', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  accountId: text('account_id').notNull(),
-  providerId: text('provider_id').notNull(),
-  accessToken: text('access_token'),
-  refreshToken: text('refresh_token'),
-  idToken: text('id_token'),
-  accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
-  refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
-  scope: text('scope'),
-  // Better Auth 기본 스키마 호환 필드이며, 비밀번호 로그인을 활성화하지 않는다.
-  password: text('password'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
-    .$onUpdate(() => new Date()),
-}, (table) => [
-  unique('accounts_provider_account_unique').on(table.providerId, table.accountId),
-  index('accounts_user_id_idx').on(table.userId),
-])
+export const accounts = pgTable(
+  'accounts',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    accountId: text('account_id').notNull(),
+    providerId: text('provider_id').notNull(),
+    accessToken: text('access_token'),
+    refreshToken: text('refresh_token'),
+    idToken: text('id_token'),
+    accessTokenExpiresAt: timestamp('access_token_expires_at', { withTimezone: true }),
+    refreshTokenExpiresAt: timestamp('refresh_token_expires_at', { withTimezone: true }),
+    scope: text('scope'),
+    // Better Auth 기본 스키마 호환 필드이며, 비밀번호 로그인을 활성화하지 않는다.
+    password: text('password'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  table => [
+    unique('accounts_provider_account_unique').on(table.providerId, table.accountId),
+    index('accounts_user_id_idx').on(table.userId),
+  ],
+)
 
-export const sessions = pgTable('sessions', {
-  id: text('id').primaryKey(),
-  userId: text('user_id').notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  token: text('token').notNull().unique(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  ipAddress: text('ip_address'),
-  userAgent: text('user_agent'),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
-    .$onUpdate(() => new Date()),
-}, (table) => [
-  index('sessions_user_id_idx').on(table.userId),
-])
+export const sessions = pgTable(
+  'sessions',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    token: text('token').notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    ipAddress: text('ip_address'),
+    userAgent: text('user_agent'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  table => [index('sessions_user_id_idx').on(table.userId)],
+)
 
-export const verifications = pgTable('verifications', {
-  id: text('id').primaryKey(),
-  identifier: text('identifier').notNull(),
-  value: text('value').notNull(),
-  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow()
-    .$onUpdate(() => new Date()),
-}, (table) => [
-  index('verifications_identifier_idx').on(table.identifier),
-])
+export const verifications = pgTable(
+  'verifications',
+  {
+    id: text('id').primaryKey(),
+    identifier: text('identifier').notNull(),
+    value: text('value').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
+  },
+  table => [index('verifications_identifier_idx').on(table.identifier)],
+)
 
 // 공통(physical-model.md)
 export const record = pgTable('record', {
-  id: uuid('id').primaryKey().default(sql`uuidv7()`),
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuidv7()`),
   kind: text('kind').notNull(),
   councilId: uuid('council_id'),
   createdBy: uuid('created_by'),
@@ -83,14 +118,18 @@ export const record = pgTable('record', {
   confirmedAt: at('confirmed_at'),
 })
 
-export const recordVersion = pgTable('record_version', {
-  recordId: uuid('record_id').notNull(),
-  versionNo: integer('version_no').notNull(),
-  valid: tstzrange('valid').notNull(),
-  data: jsonb('data').notNull(),
-  changedBy: uuid('changed_by'),
-  reason: text('reason'),
-}, (table) => [primaryKey({ columns: [table.recordId, table.versionNo] })])
+export const recordVersion = pgTable(
+  'record_version',
+  {
+    recordId: uuid('record_id').notNull(),
+    versionNo: integer('version_no').notNull(),
+    valid: tstzrange('valid').notNull(),
+    data: jsonb('data').notNull(),
+    changedBy: uuid('changed_by'),
+    reason: text('reason'),
+  },
+  table => [primaryKey({ columns: [table.recordId, table.versionNo] })],
+)
 
 // 조직
 export const council = pgTable('council', {
@@ -411,12 +450,16 @@ export const chatRoom = pgTable('chat_room', {
   departmentId: uuid('department_id'),
 })
 
-export const roomMembership = pgTable('room_membership', {
-  roomId: uuid('room_id').notNull(),
-  memberId: uuid('member_id').notNull(),
-  joinedAt: at('joined_at').notNull(),
-  lastReadAt: at('last_read_at'),
-}, (table) => [primaryKey({ columns: [table.roomId, table.memberId] })])
+export const roomMembership = pgTable(
+  'room_membership',
+  {
+    roomId: uuid('room_id').notNull(),
+    memberId: uuid('member_id').notNull(),
+    joinedAt: at('joined_at').notNull(),
+    lastReadAt: at('last_read_at'),
+  },
+  table => [primaryKey({ columns: [table.roomId, table.memberId] })],
+)
 
 export const message = pgTable('message', {
   id: uuid('id').primaryKey(),
@@ -460,10 +503,14 @@ export const decision = pgTable('decision', {
   originKind: text('origin_kind'),
 })
 
-export const evidenceLink = pgTable('evidence_link', {
-  recordId: uuid('record_id').notNull(),
-  messageId: uuid('message_id').notNull(),
-}, (table) => [primaryKey({ columns: [table.recordId, table.messageId] })])
+export const evidenceLink = pgTable(
+  'evidence_link',
+  {
+    recordId: uuid('record_id').notNull(),
+    messageId: uuid('message_id').notNull(),
+  },
+  table => [primaryKey({ columns: [table.recordId, table.messageId] })],
+)
 
 export const document = pgTable('document', {
   id: uuid('id').primaryKey(),
@@ -473,10 +520,14 @@ export const document = pgTable('document', {
   body: text('body'),
 })
 
-export const documentLink = pgTable('document_link', {
-  documentId: uuid('document_id').notNull(),
-  recordId: uuid('record_id').notNull(),
-}, (table) => [primaryKey({ columns: [table.documentId, table.recordId] })])
+export const documentLink = pgTable(
+  'document_link',
+  {
+    documentId: uuid('document_id').notNull(),
+    recordId: uuid('record_id').notNull(),
+  },
+  table => [primaryKey({ columns: [table.documentId, table.recordId] })],
+)
 
 export const draftItem = pgTable('draft_item', {
   id: uuid('id').primaryKey(),
@@ -521,7 +572,9 @@ export const inviteCode = pgTable('invite_code', {
 })
 
 export const pushDevice = pgTable('push_device', {
-  id: uuid('id').primaryKey().default(sql`uuidv7()`),
+  id: uuid('id')
+    .primaryKey()
+    .default(sql`uuidv7()`),
   userId: text('user_id').notNull(),
   endpoint: text('endpoint').notNull(),
   p256dh: text('p256dh').notNull(),

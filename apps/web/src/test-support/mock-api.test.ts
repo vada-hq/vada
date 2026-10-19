@@ -6,9 +6,16 @@ afterEach(() => vi.unstubAllGlobals())
 test('matches method and exact path and records request bodies', async () => {
   const api = mockApi()
   api.on('PATCH', '/api/request', () => json({ saved: true }))
-  const response = await fetch('/api/request', { method: 'PATCH', body: JSON.stringify({ version: 2 }) })
+  const response = await fetch('/api/request', {
+    method: 'PATCH',
+    body: JSON.stringify({ version: 2 }),
+  })
   expect(await response.json()).toEqual({ saved: true })
-  expect(api.calls[0]).toMatchObject({ method: 'PATCH', path: '/api/request', body: { version: 2 } })
+  expect(api.calls[0]).toMatchObject({
+    method: 'PATCH',
+    path: '/api/request',
+    body: { version: 2 },
+  })
   api.assertNoUnexpectedRequests()
 })
 

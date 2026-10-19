@@ -11,7 +11,11 @@ test('loading and notices use a polite status without owning async state', () =>
   expect(screen.getByRole('status').textContent).toBe('저장했어요.')
 })
 test('errors are alerts and accept layout classes without losing their role', () => {
-  render(<StateMessage kind="error" className="app-notice">연결 실패</StateMessage>)
+  render(
+    <StateMessage kind="error" className="app-notice">
+      연결 실패
+    </StateMessage>,
+  )
   expect(screen.getByRole('alert').classList.contains('app-notice')).toBe(true)
 })
 test('empty states are ordinary text, not errors or loading announcements', () => {

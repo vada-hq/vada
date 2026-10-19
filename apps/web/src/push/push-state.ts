@@ -1,7 +1,15 @@
 import type { Device } from '@/lib/platform'
 
 // 휴대폰 알림 대화상자가 보여 줄 상태(휴대폰 길 spec의 표). 위에서부터 먼저 맞는 것을 고른다.
-export type PushState = 'needs-home-screen' | 'unsupported' | 'loading' | 'failed' | 'server-off' | 'denied' | 'on' | 'ask'
+export type PushState =
+  | 'needs-home-screen'
+  | 'unsupported'
+  | 'loading'
+  | 'failed'
+  | 'server-off'
+  | 'denied'
+  | 'on'
+  | 'ask'
 export type PushFacts = {
   device: Device
   homeScreenApp: boolean

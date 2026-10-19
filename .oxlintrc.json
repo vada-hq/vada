@@ -4,7 +4,13 @@
   "categories": { "correctness": "error" },
   "options": { "typeAware": true },
   "env": { "builtin": true, "es2024": true },
-  "ignorePatterns": ["**/dist/**", "**/coverage/**", ".superpowers/**", "docs/**", "apps/api/migrations/**"],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/coverage/**",
+    ".superpowers/**",
+    "docs/**",
+    "apps/api/migrations/**"
+  ],
   "rules": {
     "typescript/ban-ts-comment": "error",
     "no-array-constructor": "error",
@@ -61,17 +67,33 @@
     {
       "files": ["apps/web/src/components/**"],
       "rules": {
-        "no-restricted-imports": ["error", { "patterns": [
-          { "group": ["@/lib/api", "**/lib/api", "**/auth-client", "**/push-client"], "message": "src/components는 표시용 부품이다. API 호출은 기능 폴더에 둔다(AGENTS.md 화면)." }
-        ] }]
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["@/lib/api", "**/lib/api", "**/auth-client", "**/push-client"],
+                "message": "src/components는 표시용 부품이다. API 호출은 기능 폴더에 둔다(AGENTS.md 화면)."
+              }
+            ]
+          }
+        ]
       }
     },
     {
       "files": ["apps/api/**"],
       "rules": {
-        "no-restricted-imports": ["error", { "paths": [
-          { "name": "@sentry/node", "message": "Sentry는 http/on-error.ts와 http/sentry.ts만 쓴다(AGENTS.md 로그·비밀)." }
-        ] }]
+        "no-restricted-imports": [
+          "error",
+          {
+            "paths": [
+              {
+                "name": "@sentry/node",
+                "message": "Sentry는 http/on-error.ts와 http/sentry.ts만 쓴다(AGENTS.md 로그·비밀)."
+              }
+            ]
+          }
+        ]
       }
     },
     {

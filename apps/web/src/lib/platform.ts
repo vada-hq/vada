@@ -10,4 +10,5 @@ export function deviceOf(userAgent: string, maxTouchPoints = 0): Device {
 }
 
 // iOS 홈 화면 앱에서만 참이다. 사파리 탭에서는 false이고, 다른 기기에는 이 값이 없다.
-export const isIosHomeScreenApp = (navigator: { standalone?: boolean }) => navigator.standalone === true
+export const isIosHomeScreenApp = (navigator: { standalone?: boolean }) =>
+  navigator.standalone === true

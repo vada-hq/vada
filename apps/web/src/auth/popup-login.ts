@@ -7,7 +7,10 @@ export const AUTH_DONE_PATH = '/auth-done'
 type Opened = { location: { href: string }; close: () => void } | null
 type SignIn = () => Promise<{ data?: { url?: string } | null; error?: unknown }>
 
-export async function startPopupLogin(open: () => Opened, signIn: SignIn): Promise<'opened' | 'blocked' | 'failed'> {
+export async function startPopupLogin(
+  open: () => Opened,
+  signIn: SignIn,
+): Promise<'opened' | 'blocked' | 'failed'> {
   // 기다리기 전에 연다. 기다린 뒤에 열면 누른 동작이 아니어서 막힌다.
   const popup = open()
   if (!popup) return 'blocked'
@@ -24,7 +27,10 @@ export async function startPopupLogin(open: () => Opened, signIn: SignIn): Promi
 }
 
 // 로그인이 끝난 창(/auth-done)이 본 창에 알리고 스스로 닫는다.
-export function finishPopupLogin(channel: { postMessage: (message: string) => void; close: () => void } | null, closeWindow: () => void) {
+export function finishPopupLogin(
+  channel: { postMessage: (message: string) => void; close: () => void } | null,
+  closeWindow: () => void,
+) {
   channel?.postMessage('signed-in')
   channel?.close()
   closeWindow()

@@ -11,7 +11,14 @@ export const JoinCouncilSchema = z.strictObject({ code: InviteCodeSchema })
 export type JoinCouncilRequest = z.infer<typeof JoinCouncilSchema>
 
 // 초대 확인: 코드만 아는 사람에게는 학생회 이름까지만 보여 준다. joined는 이미 지금 기수에 들어왔는지다.
-export interface InvitePreviewResponse { council: { id: string; name: string }; joined: boolean }
-export interface JoinCouncilResponse { council: MyCouncil }
+export interface InvitePreviewResponse {
+  council: { id: string; name: string }
+  joined: boolean
+}
+export interface JoinCouncilResponse {
+  council: MyCouncil
+}
 // 초대 코드 보기와 바꾸기(회장단)
-export interface InviteCodeResponse { code: string }
+export interface InviteCodeResponse {
+  code: string
+}

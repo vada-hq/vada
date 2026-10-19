@@ -15,17 +15,26 @@ import { createPushSender } from './push/sender.js'
 import { createTeamRoutes } from './team/routes.js'
 
 function main() {
-  const { env, production, hostname, port } = readRuntime(process.env, process.argv.includes('--production'))
+  const { env, production, hostname, port } = readRuntime(
+    process.env,
+    process.argv.includes('--production'),
+  )
   if (production) process.env.NODE_ENV = 'production'
-  if (startErrorReporting(env.SENTRY_DSN, production ? 'production' : 'development')) console.log('오류 알림 켜짐 (Sentry)')
+  if (startErrorReporting(env.SENTRY_DSN, production ? 'production' : 'development'))
+    console.log('오류 알림 켜짐 (Sentry)')
   // DB 마이그레이션은 서버 시작 시 자동 실행하지 않는다.
   const client = postgres(env.DATABASE_URL!, {
-    max: 5, ssl: { rejectUnauthorized: true }, connect_timeout: 15, onnotice: () => {},
+    max: 5,
+    ssl: { rejectUnauthorized: true },
+    connect_timeout: 15,
+    onnotice: () => {},
   })
   const db = drizzle(client)
   const auth = createAuth(db, {
-    secret: env.BETTER_AUTH_SECRET!, baseURL: env.BETTER_AUTH_URL!,
-    googleClientId: env.GOOGLE_CLIENT_ID!, googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
+    secret: env.BETTER_AUTH_SECRET!,
+    baseURL: env.BETTER_AUTH_URL!,
+    googleClientId: env.GOOGLE_CLIENT_ID!,
+    googleClientSecret: env.GOOGLE_CLIENT_SECRET!,
   })
   const session = (headers: Headers) => auth.api.getSession({ headers })
   const councils = createCouncilRoutes(db, session)
@@ -36,9 +45,23 @@ function main() {
   const pushConfig = pushConfigFrom(env)
   if (pushConfig) console.log('휴대폰 알림 켜짐 (Web Push)')
   const push = pushConfig
-    ? createPushRoutes(session, pushConfig.publicKey, createPushSender(pushConfig), undefined, (userId, endpoint) => forgetPushDevice(db, userId, endpoint))
+    ? createPushRoutes(
+        session,
+        pushConfig.publicKey,
+        createPushSender(pushConfig),
+        undefined,
+        (userId, endpoint) => forgetPushDevice(db, userId, endpoint),
+      )
     : undefined
-  const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, councils, invites, team, push, pushDevices })
+  const app = createApp({
+    auth,
+    trustedOrigin: env.BETTER_AUTH_URL!,
+    councils,
+    invites,
+    team,
+    push,
+    pushDevices,
+  })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)
@@ -49,7 +72,10 @@ function main() {
     process.exitCode = 1
   })
   const shutdown = () => {
-    server.close(() => { void client.end({ timeout: 5 }); void stopErrorReporting() })
+    server.close(() => {
+      void client.end({ timeout: 5 })
+      void stopErrorReporting()
+    })
   }
   process.once('SIGTERM', shutdown)
   process.once('SIGINT', shutdown)

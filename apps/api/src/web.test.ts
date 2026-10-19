@@ -19,7 +19,10 @@ test('built web and API share an origin, only web entry and assets are public', 
     writeFileSync(join(root, 'manifest.webmanifest'), '{"name":"VADA"}')
     writeFileSync(join(root, 'icons', 'icon-192.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
     writeFileSync(join(root, 'apple-touch-icon.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]))
-    const app = createApp({ auth: { handler: async () => new Response('auth') }, trustedOrigin: 'http://127.0.0.1:5180' })
+    const app = createApp({
+      auth: { handler: async () => new Response('auth') },
+      trustedOrigin: 'http://127.0.0.1:5180',
+    })
     attachWeb(app, root)
     const page = await app.request('/')
     assert.equal(page.status, 200)
@@ -68,13 +71,37 @@ test('built web and API share an origin, only web entry and assets are public', 
       assert.equal(entry.headers.get('Cache-Control'), 'no-cache', path)
       assert.match(await entry.text(), /VADA/, path)
     }
-    for (const path of ['/api/missing', '/assets/missing.js', '/private.txt', '/.env', '/assets/%2e%2e/private.txt', '/join/', '/join/a/b',
-      '/apply/', '/apply/a/b', '/r/x', '/icons/', '/icons/a/b', '/icons/missing.png', '/sw.js/x']) {
+    for (const path of [
+      '/api/missing',
+      '/assets/missing.js',
+      '/private.txt',
+      '/.env',
+      '/assets/%2e%2e/private.txt',
+      '/join/',
+      '/join/a/b',
+      '/apply/',
+      '/apply/a/b',
+      '/r/x',
+      '/icons/',
+      '/icons/a/b',
+      '/icons/missing.png',
+      '/sw.js/x',
+    ]) {
       assert.equal((await app.request(path)).status, 404)
     }
     assert.equal((await app.request('/', { method: 'POST' })).status, 404)
-  } finally { rmSync(root, { recursive: true, force: true }) }
+  } finally {
+    rmSync(root, { recursive: true, force: true })
+  }
 })
 test('missing built web prevents startup', () => {
-  assert.throws(() => attachWeb(createApp({ auth: { handler: async () => new Response() }, trustedOrigin: 'http://127.0.0.1:5180' }), 'missing-web-build'))
+  assert.throws(() =>
+    attachWeb(
+      createApp({
+        auth: { handler: async () => new Response() },
+        trustedOrigin: 'http://127.0.0.1:5180',
+      }),
+      'missing-web-build',
+    ),
+  )
 })
