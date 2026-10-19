@@ -12,6 +12,7 @@ import {
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import Departments from './Departments'
 import { useTeam } from './useTeam'
+import { asElement } from '@/test-support/elements'
 
 afterEach(() => {
   cleanup()
@@ -103,7 +104,7 @@ test('회장단은 부서를 만든다. 이름이 맞을 때만 버튼이 켜지
   fireEvent.click(submit)
   expect(await screen.findByText('부서 3개')).toBeTruthy()
   expect(api.calls.find(call => call.method === 'POST')?.body).toEqual({ name: '홍보부' })
-  expect((within(form).getByLabelText('새 부서 이름') as HTMLInputElement).value).toBe('')
+  expect(asElement(within(form).getByLabelText('새 부서 이름'), HTMLInputElement).value).toBe('')
   taken = true
   fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '재정부' } })
   fireEvent.click(submit)
@@ -226,7 +227,7 @@ test('이름 바꾸기는 이름을 비우면 버튼이 꺼지고, 대화상자�
   const dialog = await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
   fireEvent.change(within(dialog).getByLabelText('부서 이름'), { target: { value: '  ' } })
   expect(
-    (within(dialog).getByRole('button', { name: '바꾸기' }) as HTMLButtonElement).disabled,
+    asElement(within(dialog).getByRole('button', { name: '바꾸기' }), HTMLButtonElement).disabled,
   ).toBe(true)
   fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
   await noDialog()

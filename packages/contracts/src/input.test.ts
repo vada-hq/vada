@@ -15,7 +15,10 @@ test('text: 앞뒤 공백 제거 후 1..max 코드 포인트, NUL·홀로 쓰인
     fc.property(anyText, value => {
       const trimmed = value.trim()
       const expected =
-        trimmed.length > 0 && codePoints(trimmed) <= 50 && !/[\u0000\uD800-\uDFFF]/u.test(value)
+        trimmed.length > 0 &&
+        codePoints(trimmed) <= 50 &&
+        // oxlint-disable-next-line no-control-regex -- 구현과 따로 쓴 기대값이라 NUL 식을 그대로 둔다
+        !/[\u0000\uD800-\uDFFF]/u.test(value)
       const result = schema.safeParse(value)
       assert.equal(result.success, expected)
       if (result.success) assert.equal(result.data, trimmed)
@@ -29,6 +32,7 @@ test('token: 원문 max 이하, 제어 문자 없음, 공백 제거 후 1자 이
     fc.property(anyText, value => {
       const expected =
         value.length <= 40 &&
+        // oxlint-disable-next-line no-control-regex -- 구현과 따로 쓴 기대값이라 제어 문자 식을 그대로 둔다
         !/[\u0000-\u001f\u007f\uD800-\uDFFF]/u.test(value) &&
         value.trim().length > 0
       const result = schema.safeParse(value)

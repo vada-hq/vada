@@ -22,19 +22,11 @@ export const READY_TIMEOUT_MS = 10_000
 
 // 서비스 워커가 준비되지 않으면(사생활 보호 모드, 등록 실패) ready가 끝나지 않는다. 기다림에 상한을 둔다.
 export function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('Timed out')), ms)
-    promise.then(
-      value => {
-        clearTimeout(timer)
-        resolve(value)
-      },
-      error => {
-        clearTimeout(timer)
-        reject(error)
-      },
-    )
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error('Timed out')), ms)
   })
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer))
 }
 
 export function browserPush(): PushBrowser {

@@ -3,9 +3,9 @@ import type { SessionReader } from '../auth/require-session.js'
 export const ORIGIN = 'http://127.0.0.1:5180'
 
 // 시험용 세션: 요청 머리 x-test-user가 로그인한 계정이다. 없으면 로그인하지 않은 요청이다.
-export const testSession: SessionReader = async headers => {
+export const testSession: SessionReader = headers => {
   const userId = headers.get('x-test-user')
-  return userId ? { user: { id: userId } } : null
+  return Promise.resolve(userId ? { user: { id: userId } } : null)
 }
 
 type App = { request: (input: string, init?: RequestInit) => Response | Promise<Response> }
@@ -31,8 +31,10 @@ export function withoutReadsOutsideTransaction<T extends object>(db: T): T {
         return () => {
           throw new Error('거래 밖에서 읽었다')
         }
-      const value = Reflect.get(target, property, target)
-      return typeof value === 'function' ? value.bind(target) : value
+      const value: unknown = Reflect.get(target, property, target)
+      return typeof value === 'function'
+        ? (value as (...args: unknown[]) => unknown).bind(target)
+        : value
     },
   })
 }

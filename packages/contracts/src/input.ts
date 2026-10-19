@@ -1,8 +1,10 @@
 import { z } from 'zod'
 
 // PostgreSQL char_length와 같은 기준(유니코드 코드 포인트)으로 센다.
-export const codePoints = (value: string) => [...value].length
+export const codePoints = (value: string) => Array.from(value).length
+// oxlint-disable-next-line no-control-regex -- 입력에서 NUL을 거르는 것이 이 식의 목적이다
 const nulOrLoneSurrogate = /[\u0000\uD800-\uDFFF]/u
+// oxlint-disable-next-line no-control-regex -- 입력에서 제어 문자를 거르는 것이 이 식의 목적이다
 const control = /[\u0000-\u001f\u007f\uD800-\uDFFF]/u
 
 // 사람이 쓰는 글. 줄바꿈은 허용하고 DB가 거부하는 NUL과 깨진 문자는 막는다.

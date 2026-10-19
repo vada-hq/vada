@@ -8,6 +8,7 @@ import {
 } from '@/test-support/council-fixtures'
 import { json, mockApi } from '@/test-support/mock-api'
 import CouncilSettings from './CouncilSettings'
+import { asElement } from '@/test-support/elements'
 
 afterEach(() => {
   cleanup()
@@ -55,7 +56,8 @@ test('직급 표시 이름을 비우면 저장 버튼이 꺼진다', () => {
   const form = screen.getByRole('form', { name: '학생회 정보' })
   fireEvent.change(within(form).getByLabelText('부부장'), { target: { value: '  ' } })
   expect(
-    (within(form).getByRole('button', { name: '학생회 정보 저장' }) as HTMLButtonElement).disabled,
+    asElement(within(form).getByRole('button', { name: '학생회 정보 저장' }), HTMLButtonElement)
+      .disabled,
   ).toBe(true)
 })
 
@@ -91,9 +93,9 @@ test('직급 없는 운영진은 보기만 하고 저장 버튼이 없다', () =
     />,
   )
   expect(screen.getByText('회장단만 고칠 수 있어요.')).toBeTruthy()
-  expect((screen.getByLabelText('학생회 이름') as HTMLInputElement).readOnly).toBe(true)
-  expect((screen.getByLabelText('단위') as HTMLSelectElement).disabled).toBe(true)
-  expect((screen.getByLabelText('기수 이름') as HTMLInputElement).readOnly).toBe(true)
+  expect(asElement(screen.getByLabelText('학생회 이름'), HTMLInputElement).readOnly).toBe(true)
+  expect(asElement(screen.getByLabelText('단위'), HTMLSelectElement).disabled).toBe(true)
+  expect(asElement(screen.getByLabelText('기수 이름'), HTMLInputElement).readOnly).toBe(true)
   expect(screen.queryByRole('button')).toBeNull()
   expect(api.calls).toEqual([])
 })
@@ -113,7 +115,7 @@ test('열린 채 학생회가 바뀌면 바뀐 쪽의 입력칸을 서버 값으
       onForbidden={() => {}}
     />,
   )
-  expect((screen.getByLabelText('학교') as HTMLInputElement).value).toBe('고치던 학교')
+  expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('고치던 학교')
   // 학생회 정보만 바뀌면 그 쪽만 서버 값으로 채우고, 기수 쪽에서 고치던 값은 그대로 둔다.
   view.rerender(
     <CouncilSettings
@@ -122,17 +124,17 @@ test('열린 채 학생회가 바뀌면 바뀐 쪽의 입력칸을 서버 값으
       onForbidden={() => {}}
     />,
   )
-  expect((screen.getByLabelText('학생회 이름') as HTMLInputElement).value).toBe(
+  expect(asElement(screen.getByLabelText('학생회 이름'), HTMLInputElement).value).toBe(
     '소프트웨어학부 학생회',
   )
-  expect((screen.getByLabelText('학교') as HTMLInputElement).value).toBe('한양대학교 ERICA')
-  expect((screen.getByLabelText('기수 이름') as HTMLInputElement).value).toBe('2027')
+  expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('한양대학교 ERICA')
+  expect(asElement(screen.getByLabelText('기수 이름'), HTMLInputElement).value).toBe('2027')
   // 기수가 바뀌면 기수 쪽을 채운다.
   const next = councilView('c1', { permissions: LEADER_PERMISSIONS, name: '소프트웨어학부 학생회' })
   next.cohort = { ...next.cohort, name: '2028', startsOn: '2028-01-01', endsOn: '2028-12-31' }
   view.rerender(<CouncilSettings view={next} onSaved={() => {}} onForbidden={() => {}} />)
-  expect((screen.getByLabelText('기수 이름') as HTMLInputElement).value).toBe('2028')
-  expect((screen.getByLabelText('임기 시작') as HTMLInputElement).value).toBe('2028-01-01')
+  expect(asElement(screen.getByLabelText('기수 이름'), HTMLInputElement).value).toBe('2028')
+  expect(asElement(screen.getByLabelText('임기 시작'), HTMLInputElement).value).toBe('2028-01-01')
 })
 
 test('저장했어요 문구는 다시 고치는 순간 사라진다', async () => {

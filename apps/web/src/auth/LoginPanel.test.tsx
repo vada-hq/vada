@@ -2,6 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import LoginPanel from './LoginPanel'
+import { asElement } from '@/test-support/elements'
 
 afterEach(cleanup)
 const handlers = () => ({ onLogin: vi.fn(), onLoginInApp: vi.fn() })
@@ -20,7 +21,8 @@ test('바깥 브라우저에서는 Google 로그인을 부르고, 로그인 중�
   expect(screen.queryByRole('button', { name: '다른 방법으로 로그인' })).toBeNull()
   view.rerender(<LoginPanel kakao={false} homeScreenApp={false} busy {...props} />)
   expect(
-    (screen.getByRole('button', { name: 'Google로 이동 중…' }) as HTMLButtonElement).disabled,
+    asElement(screen.getByRole('button', { name: 'Google로 이동 중…' }), HTMLButtonElement)
+      .disabled,
   ).toBe(true)
 })
 

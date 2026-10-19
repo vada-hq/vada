@@ -53,7 +53,7 @@ export function startErrorReporting(
         'request_failed',
         String(fields.route),
         String(fields.code ?? fields.error ?? fields.status),
-        String(fields.sqlState ?? ''),
+        typeof fields.sqlState === 'string' ? fields.sqlState : '',
       ])
       scope.setTransactionName(String(fields.route))
       // 요청을 실패시킨 오류다. 처리되지 않음으로 표시해야 체험·유료 플랜에서도 높은 우선순위로 알림이 온다.

@@ -159,7 +159,7 @@ test('끝난 구독의 기기 지우기가 실패해도 시험 알림 결과는 
   assert.deepEqual(await response.json(), { result: 'expired' })
   // 시험 알림 결과를 먼저 남기고, 지우기 실패는 그다음에 SQLSTATE만 남긴다.
   assert.deepEqual(
-    logged.map(line => JSON.parse(line)),
+    logged.map((line): unknown => JSON.parse(line)),
     [
       { event: 'push_test_failed', result: 'expired', status: 410 },
       { event: 'push_device_forget_failed', sqlState: '57P01' },

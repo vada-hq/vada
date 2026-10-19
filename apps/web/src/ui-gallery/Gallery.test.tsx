@@ -2,6 +2,7 @@
 import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import Gallery from './Gallery'
+import { asElement } from '@/test-support/elements'
 
 afterEach(() => {
   cleanup()
@@ -135,11 +136,11 @@ test('확인 대화상자의 보내는 중 모양은 두 버튼이 꺼지고 Esc
   fireEvent.click(screen.getByRole('button', { name: '보내는 중 확인 대화상자 열기' }))
   const dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
   expect(
-    (within(dialog).getByRole('button', { name: '내보내기' }) as HTMLButtonElement).disabled,
+    asElement(within(dialog).getByRole('button', { name: '내보내기' }), HTMLButtonElement).disabled,
   ).toBe(true)
-  expect((within(dialog).getByRole('button', { name: '취소' }) as HTMLButtonElement).disabled).toBe(
-    true,
-  )
+  expect(
+    asElement(within(dialog).getByRole('button', { name: '취소' }), HTMLButtonElement).disabled,
+  ).toBe(true)
   fireEvent.keyDown(dialog, { key: 'Escape' })
   expect(screen.getByRole('dialog', { name: '박새내님을 내보낼까요?' })).toBeTruthy()
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull(), { timeout: 4_000 })

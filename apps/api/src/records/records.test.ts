@@ -193,7 +193,7 @@ test('지금 판의 시작이 시계보다 뒤여도 판은 1마이크로초 이
     )
     const [first, second] = await versionsOf(pg, council)
     assert.equal(first!.upper, second!.lower)
-    assert.ok(first!.lower < first!.upper!, '판의 기간이 비지 않는다')
+    assert.ok(first!.lower < first!.upper, '판의 기간이 비지 않는다')
     assert.equal(second!.upper, null)
     assert.deepEqual(
       (
@@ -357,7 +357,7 @@ test('회장이 없어지는 변경은 막고, 한 번에 거두고 주는 회�
         db.transaction(tx =>
           updateRecord(tx, {
             kind: 'council_membership',
-            id: president!,
+            id: president,
             actor: kim,
             reason: null,
             changes,
@@ -370,14 +370,14 @@ test('회장이 없어지는 변경은 막고, 한 번에 거두고 주는 회�
       updateRecords(tx, [
         {
           kind: 'council_membership',
-          id: president!,
+          id: president,
           actor: kim,
           reason: null,
           changes: { councilRank: null },
         },
         {
           kind: 'council_membership',
-          id: member!,
+          id: member,
           actor: kim,
           reason: null,
           changes: { councilRank: 'president' },
@@ -393,11 +393,11 @@ test('회장이 없어지는 변경은 막고, 한 번에 거두고 주는 회�
       [{ member_id: lee }],
     )
     assert.deepEqual(
-      (await versionsOf(pg, president!)).map(version => version.data.council_rank),
+      (await versionsOf(pg, president)).map(version => version.data.council_rank),
       ['president', null],
     )
     assert.deepEqual(
-      (await versionsOf(pg, member!)).map(version => version.data.council_rank),
+      (await versionsOf(pg, member)).map(version => version.data.council_rank),
       [null, 'president'],
     )
   } finally {
@@ -429,14 +429,14 @@ test('회장 넘기기는 거두기를 먼저 넘겨야 한다: 주기를 먼저
         updateRecords(tx, [
           {
             kind: 'council_membership',
-            id: member!,
+            id: member,
             actor: kim,
             reason: null,
             changes: { councilRank: 'president' },
           },
           {
             kind: 'council_membership',
-            id: president!,
+            id: president,
             actor: kim,
             reason: null,
             changes: { councilRank: null },
@@ -453,7 +453,7 @@ test('회장 넘기기는 거두기를 먼저 넘겨야 한다: 주기를 먼저
       ).rows,
       [{ member_id: kim }],
     )
-    for (const id of [president!, member!]) assert.equal((await versionsOf(pg, id)).length, 1)
+    for (const id of [president, member]) assert.equal((await versionsOf(pg, id)).length, 1)
   } finally {
     await close()
   }

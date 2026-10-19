@@ -36,3 +36,13 @@ test('끝나지 않는 기다림은 시간이 지나면 실패한다', async () 
   vi.useRealTimers()
   expect(await withTimeout(Promise.resolve('ok'), 10_000)).toBe('ok')
 })
+
+test('기다리던 쪽이 실패하면 그 사유를 그대로 전하고 타이머를 남기지 않는다', async () => {
+  vi.useFakeTimers()
+  const reason = new Error('subscribe failed')
+  await expect(withTimeout(Promise.reject(reason), 10_000)).rejects.toBe(reason)
+  expect(vi.getTimerCount()).toBe(0)
+  await expect(withTimeout(Promise.resolve('ok'), 10_000)).resolves.toBe('ok')
+  expect(vi.getTimerCount()).toBe(0)
+  vi.useRealTimers()
+})

@@ -5,7 +5,9 @@ const publicFile = (path: string) => new URL(`../public/${path}`, import.meta.ur
 const PNG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
 
 test('홈 화면 설정은 VADA를 앱처럼 연다', () => {
-  const manifest = JSON.parse(readFileSync(publicFile('manifest.webmanifest'), 'utf8'))
+  const manifest = JSON.parse(readFileSync(publicFile('manifest.webmanifest'), 'utf8')) as {
+    icons: unknown
+  }
   expect(manifest).toMatchObject({
     id: '/',
     name: 'VADA',

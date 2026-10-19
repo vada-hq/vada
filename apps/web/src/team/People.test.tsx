@@ -12,6 +12,7 @@ import {
 import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import People from './People'
 import { useTeam } from './useTeam'
+import { asElement } from '@/test-support/elements'
 
 afterEach(() => {
   cleanup()
@@ -145,18 +146,19 @@ test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () =
     await screen.findByText('운영진 3명')
     // 초대 링크는 코드를 받아 온 뒤에야 나타난다. 있어야 하는 경우에는 기다린 뒤에 확인한다.
     if (invite) await screen.findByRole('region', { name: '초대 링크' })
-    expect(!!screen.queryByRole('region', { name: '초대 링크' }), `초대 링크 ${permissions}`).toBe(
-      invite,
-    )
+    expect(
+      !!screen.queryByRole('region', { name: '초대 링크' }),
+      `초대 링크 ${permissions.join(',')}`,
+    ).toBe(invite)
     expect(
       api.calls.some(call => call.path.endsWith('/invite')),
-      `초대 코드 요청 ${permissions}`,
+      `초대 코드 요청 ${permissions.join(',')}`,
     ).toBe(invite)
     for (const [name, items] of Object.entries(menus)) {
       if (items.length === 0) {
         expect(
           screen.queryByRole('button', { name: `${name} 동작` }),
-          `${name} ${permissions}`,
+          `${name} ${permissions.join(',')}`,
         ).toBeNull()
         continue
       }
@@ -165,7 +167,7 @@ test('권한 하나만 있을 때 그 권한의 동작만 보인다', async () =
         within(menu)
           .getAllByRole('menuitem')
           .map(item => item.textContent),
-        `${name} ${permissions}`,
+        `${name} ${permissions.join(',')}`,
       ).toEqual(items)
       fireEvent.keyDown(menu, { key: 'Escape' })
       await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
@@ -183,7 +185,7 @@ test('회장단은 초대 링크를 복사하고 코드를 바꾼다. 바꾸면 
   Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true })
   render(<Harness permissions={LEADER_PERMISSIONS} />)
   const card = await screen.findByRole('region', { name: '초대 링크' })
-  expect((within(card).getByLabelText('초대 링크') as HTMLInputElement).value).toBe(
+  expect(asElement(within(card).getByLabelText('초대 링크'), HTMLInputElement).value).toBe(
     `${window.location.origin}/join/ABCD2345`,
   )
   fireEvent.click(within(card).getByRole('button', { name: '링크 복사' }))
@@ -195,7 +197,7 @@ test('회장단은 초대 링크를 복사하고 코드를 바꾼다. 바꾸면 
   expect(
     await within(card).findByText('코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.'),
   ).toBeTruthy()
-  expect((within(card).getByLabelText('초대 링크') as HTMLInputElement).value).toBe(
+  expect(asElement(within(card).getByLabelText('초대 링크'), HTMLInputElement).value).toBe(
     `${window.location.origin}/join/WXYZ6789`,
   )
 })
@@ -220,7 +222,7 @@ test('초대 링크를 불러올 때 403이면 학생회를 다시 읽게 하고
   expect(changed).toHaveBeenCalledTimes(1)
   fireEvent.click(screen.getByRole('button', { name: '다시 시도' }))
   const card = await screen.findByRole('region', { name: '초대 링크' })
-  expect((within(card).getByLabelText('초대 링크') as HTMLInputElement).value).toBe(
+  expect(asElement(within(card).getByLabelText('초대 링크'), HTMLInputElement).value).toBe(
     `${window.location.origin}/join/ABCD2345`,
   )
   expect(invites).toBe(3)
@@ -326,7 +328,7 @@ test('직급이 붙은 사람은 member.manage와 rank.manage가 둘 다 있어�
         within(menu)
           .getAllByRole('menuitem')
           .map(item => item.textContent),
-        `${name} ${permissions}`,
+        `${name} ${permissions.join(',')}`,
       ).toEqual(items)
       fireEvent.keyDown(menu, { key: 'Escape' })
       await waitFor(() => expect(screen.queryByRole('menu')).toBeNull())
@@ -367,27 +369,34 @@ test('부서 직급 선택칸과 직급이 붙은 소속 빼기는 rank.manage�
   const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
   fireEvent.click(within(await openMenu('이재정')).getByRole('menuitem', { name: '부서 배정' }))
   let dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
-  expect((within(dialog).getByLabelText('재정부 부서 직급') as HTMLSelectElement).disabled).toBe(
+  expect(
+    asElement(within(dialog).getByLabelText('재정부 부서 직급'), HTMLSelectElement).disabled,
+  ).toBe(false)
+  expect(asElement(within(dialog).getByLabelText('부서 직급'), HTMLSelectElement).disabled).toBe(
     false,
   )
-  expect((within(dialog).getByLabelText('부서 직급') as HTMLSelectElement).disabled).toBe(false)
   expect(
-    (within(dialog).getByRole('button', { name: '재정부에서 빼기' }) as HTMLButtonElement).disabled,
+    asElement(within(dialog).getByRole('button', { name: '재정부에서 빼기' }), HTMLButtonElement)
+      .disabled,
   ).toBe(false)
   view.rerender(
     <Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />,
   )
   dialog = await screen.findByRole('dialog', { name: '이재정의 부서' })
-  expect((within(dialog).getByLabelText('재정부 부서 직급') as HTMLSelectElement).disabled).toBe(
+  expect(
+    asElement(within(dialog).getByLabelText('재정부 부서 직급'), HTMLSelectElement).disabled,
+  ).toBe(true)
+  expect(asElement(within(dialog).getByLabelText('부서 직급'), HTMLSelectElement).disabled).toBe(
     true,
   )
-  expect((within(dialog).getByLabelText('부서 직급') as HTMLSelectElement).disabled).toBe(true)
   // 부서에 직급 없이 넣는 일은 member.manage만으로 된다. 직급이 붙은 소속은 빼지 못한다.
   expect(
-    (within(dialog).getByRole('button', { name: '부서에 넣기' }) as HTMLButtonElement).disabled,
+    asElement(within(dialog).getByRole('button', { name: '부서에 넣기' }), HTMLButtonElement)
+      .disabled,
   ).toBe(false)
   expect(
-    (within(dialog).getByRole('button', { name: '재정부에서 빼기' }) as HTMLButtonElement).disabled,
+    asElement(within(dialog).getByRole('button', { name: '재정부에서 빼기' }), HTMLButtonElement)
+      .disabled,
   ).toBe(true)
 })
 
@@ -418,12 +427,16 @@ test('부서 직급을 골라 둔 채 rank.manage를 잃으면 부서에 넣어�
   fireEvent.click(within(await openMenu('박새내')).getByRole('menuitem', { name: '부서 배정' }))
   let dialog = await screen.findByRole('dialog', { name: '박새내의 부서' })
   fireEvent.change(within(dialog).getByLabelText('부서 직급'), { target: { value: 'vice_head' } })
-  expect((within(dialog).getByLabelText('부서 직급') as HTMLSelectElement).value).toBe('vice_head')
+  expect(asElement(within(dialog).getByLabelText('부서 직급'), HTMLSelectElement).value).toBe(
+    'vice_head',
+  )
   view.rerender(
     <Harness permissions={LEADER_PERMISSIONS.filter(action => action !== 'rank.manage')} />,
   )
   dialog = await screen.findByRole('dialog', { name: '박새내의 부서' })
-  expect((within(dialog).getByLabelText('부서 직급') as HTMLSelectElement).disabled).toBe(true)
+  expect(asElement(within(dialog).getByLabelText('부서 직급'), HTMLSelectElement).disabled).toBe(
+    true,
+  )
   fireEvent.click(within(dialog).getByRole('button', { name: '부서에 넣기' }))
   await waitFor(() => expect(posts(api)).toHaveLength(1))
   expect(posts(api)[0]!.body).toEqual({ departmentId: 'd1', rank: null })
@@ -487,9 +500,9 @@ test('확인 대화상자는 보내는 동안 두 버튼이 꺼져, 연달아 �
   const confirm = within(dialog).getByRole('button', { name: '내보내기' }) as HTMLButtonElement
   fireEvent.click(confirm)
   await waitFor(() => expect(confirm.disabled).toBe(true))
-  expect((within(dialog).getByRole('button', { name: '취소' }) as HTMLButtonElement).disabled).toBe(
-    true,
-  )
+  expect(
+    asElement(within(dialog).getByRole('button', { name: '취소' }), HTMLButtonElement).disabled,
+  ).toBe(true)
   fireEvent.click(confirm)
   fireEvent.click(confirm)
   // 보내는 동안에는 Escape로도 닫히지 않는다.

@@ -6,6 +6,7 @@ import type { MyCouncil } from '@vada/contracts'
 import App from './App'
 import { councilView, myCouncil, teamResponse } from './test-support/council-fixtures'
 import { deferredResponse, json, mockApi } from './test-support/mock-api'
+import { asElement } from '@/test-support/elements'
 
 const auth = vi.hoisted(() => ({
   useSession: vi.fn(),
@@ -63,7 +64,8 @@ test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 
   render(<App />)
   expect(await screen.findByRole('heading', { name: '아직 들어간 학생회가 없어요' })).toBeTruthy()
   expect(
-    (screen.getByRole('button', { name: '초대 코드로 들어가기' }) as HTMLButtonElement).disabled,
+    asElement(screen.getByRole('button', { name: '초대 코드로 들어가기' }), HTMLButtonElement)
+      .disabled,
   ).toBe(true)
   fireEvent.click(screen.getByRole('button', { name: '학생회 만들기' }))
   const form = screen.getByRole('form', { name: '학생회 만들기' })
@@ -210,9 +212,9 @@ test('지금 기수가 없는 학생회에는 들어가지 못한 까닭을 보�
     await screen.findByText('지금 들어갈 수 있는 기수가 없어요. 학생회 회장단에게 알려 주세요.'),
   ).toBeTruthy()
   // 들어가지 못했어도 화면은 그대로이고, 다시 눌러 볼 수 있다.
-  expect((screen.getByRole('button', { name: '들어가기' }) as HTMLButtonElement).disabled).toBe(
-    false,
-  )
+  expect(
+    asElement(screen.getByRole('button', { name: '들어가기' }), HTMLButtonElement).disabled,
+  ).toBe(false)
   expect(screen.getByRole('heading', { name: '컴퓨터학부 학생회에 들어갈까요?' })).toBeTruthy()
 })
 
@@ -270,7 +272,7 @@ test('옆 메뉴로 운영진 > 부서를 열고, 학생회 이름 메뉴의 설
   })
   fireEvent.click(await screen.findByRole('menuitem', { name: '설정' }))
   expect(await screen.findByRole('heading', { level: 1, name: '학생회 정보' })).toBeTruthy()
-  expect((screen.getByLabelText('학교') as HTMLInputElement).value).toBe('한양대학교 ERICA')
+  expect(asElement(screen.getByLabelText('학교'), HTMLInputElement).value).toBe('한양대학교 ERICA')
 })
 
 // 학생회를 잃은 뒤 내 학생회 목록을 다시 읽다 실패해도(500) 그 학생회는 목록에서 빠지고, 남은 학생회나 안내로 간다.
@@ -470,7 +472,7 @@ test('설정에서 학생회 이름을 바꾸면 옆 메뉴의 학생회 이름�
   expect(screen.queryByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })).toBeNull()
   expect(within(screen.getByRole('banner')).getByText('소프트웨어학부 학생회')).toBeTruthy()
   // 저장 뒤에도 보던 쪽과 입력칸은 그대로다.
-  expect((within(form).getByLabelText('학생회 이름') as HTMLInputElement).value).toBe(
+  expect(asElement(within(form).getByLabelText('학생회 이름'), HTMLInputElement).value).toBe(
     '소프트웨어학부 학생회',
   )
 })

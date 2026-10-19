@@ -141,7 +141,7 @@ test('끝난 부서 소속과 다른 기수의 부서 소속은 부서 직급도
         values: {
           memberId: people.plain.memberId,
           departmentId: departments.planning,
-          cohortId: plain!.cohortId,
+          cohortId: plain.cohortId,
           startsAt: clockNow,
         },
       }),

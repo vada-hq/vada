@@ -163,7 +163,7 @@ test('서버 쪽 실패(5xx)인 ApiError·HTTPException은 코드와 상태만 �
   assert.equal((await app.request('/api/organizations/org-1/unavailable')).status, 503)
   assert.equal((await app.request('/api/organizations/org-1/conflict')).status, 409)
   assert.deepEqual(
-    logged.map(line => JSON.parse(line)),
+    logged.map((line): unknown => JSON.parse(line)),
     [
       {
         event: 'request_failed',
@@ -249,7 +249,7 @@ test('로그의 SQLSTATE와 오류 이름은 형식에 맞는 값만 남긴다',
   await app.request('/api/errno')
   await app.request('/api/named')
   assert.deepEqual(
-    logged.map(line => JSON.parse(line)),
+    logged.map((line): unknown => JSON.parse(line)),
     [
       { event: 'request_failed', method: 'GET', route: '/api/errno', error: 'Error' },
       { event: 'request_failed', method: 'GET', route: '/api/named', error: 'Error' },

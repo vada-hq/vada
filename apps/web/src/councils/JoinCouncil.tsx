@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { InvitePreviewResponse, JoinCouncilResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
@@ -26,6 +26,11 @@ export default function JoinCouncil({ code, leaveLabel, onJoined, onLeave }: Pro
   const [attempt, setAttempt] = useState(0)
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState('')
+  // 부르는 쪽이 매번 새 함수를 넘겨도 다시 불러오지 않도록 마지막 함수만 기억한다.
+  const joined = useRef(onJoined)
+  useEffect(() => {
+    joined.current = onJoined
+  })
   useEffect(() => {
     const controller = new AbortController()
     setView({ kind: 'loading' })
@@ -35,11 +40,10 @@ export default function JoinCouncil({ code, leaveLabel, onJoined, onLeave }: Pro
     ).then(result => {
       if (controller.signal.aborted) return
       if (!result.ok) return setView({ kind: result.status === 404 ? 'invalid' : 'failed' })
-      if (result.data.joined) onJoined(result.data.council.id)
+      if (result.data.joined) joined.current(result.data.council.id)
       else setView({ kind: 'ready', council: result.data.council })
     })
     return () => controller.abort()
-    // onJoined는 화면을 옮기는 일이라 다시 불러올 까닭이 아니다.
   }, [code, attempt])
 
   async function join() {

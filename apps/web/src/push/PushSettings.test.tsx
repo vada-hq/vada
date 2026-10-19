@@ -5,6 +5,7 @@ import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import type { BrowserPushManager, BrowserSubscription, PushBrowser } from './push-client'
 import PushSettingsButton, { PushSettingsBody } from './PushSettings'
 import type { PushEnvironment } from './usePush'
+import { asElement } from '@/test-support/elements'
 
 afterEach(() => {
   cleanup()
@@ -324,7 +325,7 @@ test('시험 알림은 구독을 보내고, 보내는 동안 버튼을 막아 �
     await screen.findByText('5초 뒤에 알림이 와요. 화면을 끄거나 홈으로 나가 기다려 보세요.'),
   ).toBeTruthy()
   expect(
-    (screen.getByRole('button', { name: '시험 알림 보내기' }) as HTMLButtonElement).disabled,
+    asElement(screen.getByRole('button', { name: '시험 알림 보내기' }), HTMLButtonElement).disabled,
   ).toBe(true)
   pending.resolve(json({ result: 'sent' }))
   expect(await screen.findByText('보냈어요. 알림이 왔는지 확인해 주세요.')).toBeTruthy()

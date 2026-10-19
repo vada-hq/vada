@@ -325,7 +325,7 @@ test('회장단 둘이 동시에 코드를 바꾸면 둘 다 200이고, 나중 �
     // PGlite는 거래를 하나씩 돌려 잠금이 없어도 이 시험은 통과한다. 실제 PostgreSQL의 동시 처리는 바꾸는 날 두 기기로 본다.
     const responses = await Promise.all(
       ['u1', 'u2'].map(user =>
-        api.post(`/api/organizations/${council.id}/invite/rotate`, {}, user),
+        Promise.resolve(api.post(`/api/organizations/${council.id}/invite/rotate`, {}, user)),
       ),
     )
     assert.deepEqual(

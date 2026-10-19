@@ -97,7 +97,7 @@ export async function createRecord<K extends RecordKind>(
 ): Promise<string> {
   if (withoutCouncil.has(kind) !== (councilId === null))
     throw new Error(`${kind}: 학생회 번호 규칙에 어긋난다`)
-  await assertSameCouncil(tx, kind, councilId, values as Record<string, unknown>)
+  await assertSameCouncil(tx, kind, councilId, values)
   const [created] = await tx
     .insert(record)
     .values({ kind, councilId, createdBy: actor, createdAt: clockNow })
@@ -176,10 +176,7 @@ export async function updateRecords(tx: Tx, changes: readonly AnyRecordChange[])
       .from(recordVersion)
       .where(and(eq(recordVersion.recordId, change.id), sql`upper_inf(${recordVersion.valid})`))
     if (!openVersion) throw new Error(`${change.kind}: 지금 판이 없어 새 판을 열지 못했다`)
-    await tx
-      .update(table)
-      .set(change.changes as PgUpdateSetSource<Table<RecordKind>>)
-      .where(eq(table.id, change.id))
+    await tx.update(table).set(change.changes).where(eq(table.id, change.id))
     // 지금 판의 끝과 새 판의 시작을 같은 시각으로 잇는다. 시계가 같거나 뒤로 가도 판이 비지 않게 1마이크로초를 둔다.
     const opened = await tx.execute(sql`WITH closed AS (
         UPDATE record_version SET valid = tstzrange(lower(valid), GREATEST(clock_timestamp(), lower(valid) + interval '1 microsecond'))
