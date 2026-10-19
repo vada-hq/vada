@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { HealthResponse } from '@vada/contracts'
 import type { createCouncilRoutes } from './councils/routes.js'
 import type { createInviteRoutes } from './invites/routes.js'
+import type { createPushDeviceRoutes } from './push/devices.js'
 import type { createPushRoutes } from './push/routes.js'
 import type { createTeamRoutes } from './team/routes.js'
 import { handleError } from './http/on-error.js'
@@ -19,9 +20,11 @@ export type AppOptions = {
   team?: ReturnType<typeof createTeamRoutes>
   // 휴대폰 알림. 알림 열쇠(VAPID)가 없으면 만들지 않는다.
   push?: ReturnType<typeof createPushRoutes>
+  // 알림 받을 기기 저장과 지우기
+  pushDevices?: ReturnType<typeof createPushDeviceRoutes>
 }
 
-export function createApp({ auth, trustedOrigin, councils, invites, team, push }: AppOptions) {
+export function createApp({ auth, trustedOrigin, councils, invites, team, push, pushDevices }: AppOptions) {
   const app = new Hono()
   app.use('/api/organizations/*', mutationGuard(trustedOrigin))
   // 로그인한 사람 자신의 것(휴대폰 알림)도 같은 가드를 건다.
@@ -36,6 +39,7 @@ export function createApp({ auth, trustedOrigin, councils, invites, team, push }
   if (invites) app.route('/api', invites)
   if (team) app.route('/api', team)
   if (push) app.route('/api', push)
+  if (pushDevices) app.route('/api', pushDevices)
   app.onError(handleError)
   return app
 }

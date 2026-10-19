@@ -10,8 +10,13 @@ export const TEST_MESSAGE: PushMessage = { title: 'VADA', body: '시험 알림�
 export const TEST_DELAY_MS = 5_000
 const sleep = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms))
 
-// 휴대폰 알림. 이번에는 기기를 저장하지 않고, 시험 알림을 보낼 때만 구독을 받아 쓰고 버린다(휴대폰 길 spec).
-export function createPushRoutes(getSession: SessionReader, publicKey: string, send: PushSender, wait: (ms: number) => Promise<void> = sleep) {
+// 끝난 구독의 저장된 기기를 지운다(바탕 spec G10). 기기는 devices.ts가 맡아, 이 모듈은 DB를 모른다.
+export type ForgetDevice = (userId: string, endpoint: string) => Promise<void>
+
+// 휴대폰 알림. 시험 알림은 저장한 기기와 상관없이 받은 구독으로 보낸다(휴대폰 길 spec). 기기 저장은 devices.ts가 맡는다.
+// 끝난(expired) 구독이면 보낸 사람의 그 기기 줄도 지운다. 화면의 지우기 요청이 실패해도 줄이 남지 않는다.
+export function createPushRoutes(getSession: SessionReader, publicKey: string, send: PushSender, wait: (ms: number) => Promise<void> = sleep,
+  forget: ForgetDevice = async () => {}) {
   const routes = new Hono<SessionEnv>()
   const authenticated = requireSession(getSession)
   routes.get('/me/push', authenticated, c => c.json({ publicKey } satisfies PushKeyResponse))
@@ -21,6 +26,7 @@ export function createPushRoutes(getSession: SessionReader, publicKey: string, s
     if (!isKnownPushService(endpoint)) throw new ApiError('PUSH_SERVICE_UNSUPPORTED', 400)
     await wait(TEST_DELAY_MS)
     const { result, status, code } = await send({ endpoint, keys }, TEST_MESSAGE)
+    if (result === 'expired') await forget(c.get('userId'), endpoint)
     // 구독 주소는 기기를 가리키는 비밀 주소라 남기지 않는다. 결과의 종류와, 있으면 알림 서버의 상태 번호나 연결 오류 코드만 남긴다.
     if (result !== 'sent') console.warn(JSON.stringify({ event: 'push_test_failed', result, status, code }))
     return c.json({ result } satisfies PushTestResponse)

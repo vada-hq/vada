@@ -41,9 +41,13 @@ function environment(options: Options = {}) {
   return { env, subscribe }
 }
 
+// 열쇠를 주고 기기 저장·지우기를 받는다. 대화상자를 열 때 이미 켜진 구독은 저장되고 옛 구독은 지워진다(바탕 Task 10).
+// 저장 실패를 보는 시험은 이 경로를 다시 등록한다.
 function serverWithKey() {
   const api = mockApi()
   api.on('GET', '/api/me/push', () => json({ publicKey: KEY }))
+  api.on('POST', '/api/me/push/devices', () => new Response(null, { status: 204 }))
+  api.on('POST', '/api/me/push/devices/remove', () => new Response(null, { status: 204 }))
   return api
 }
 
@@ -80,14 +84,29 @@ test('서비스 워커가 준비되지 않으면 불러오지 못했다고 알�
   await waitFor(() => expect(attempts).toBe(2))
 })
 
-test('알림 켜기는 누른 동작 안에서 기다림 없이 구독하고, 켜지면 시험 알림 버튼을 보여 준다', async () => {
-  serverWithKey()
+test('알림 켜기는 누른 동작 안에서 기다림 없이 구독하고, 기기를 저장한 뒤 시험 알림 버튼을 보여 준다', async () => {
+  const api = serverWithKey()
   const { env, subscribe } = environment()
   render(<PushSettingsBody environment={env} />)
   fireEvent.click(await screen.findByRole('button', { name: '알림 켜기' }))
   expect(subscribe).toHaveBeenCalledTimes(1)
   expect(subscribe).toHaveBeenCalledWith({ userVisibleOnly: true, applicationServerKey: keyBytes })
   expect(await screen.findByText('이 기기에서 알림을 받아요.')).toBeTruthy()
+  const saved = api.calls.filter(call => call.method === 'POST' && call.path === '/api/me/push/devices')
+  expect(saved.map(call => call.body)).toEqual([subscriptionOf(keyBytes).toJSON()])
+  api.assertNoUnexpectedRequests()
+})
+
+test('기기를 저장하지 못하면 구독을 지우고 다시 누르게 한다', async () => {
+  const api = serverWithKey()
+  api.on('POST', '/api/me/push/devices', () => json({ error: 'Internal server error' }, 500))
+  const created = subscriptionOf(keyBytes)
+  const { env } = environment({ subscribe: async () => created })
+  render(<PushSettingsBody environment={env} />)
+  fireEvent.click(await screen.findByRole('button', { name: '알림 켜기' }))
+  expect(await screen.findByText('알림을 켜지 못했어요. 다시 눌러 주세요.')).toBeTruthy()
+  expect(created.unsubscribe).toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: '알림 켜기' })).toBeTruthy()
 })
 
 test('허락 창을 닫아 구독이 실패하면 다시 누를 수 있게 알린다', async () => {
@@ -118,20 +137,25 @@ test('허락 창에서 거절해 구독이 실패하면 다시 누르게 두지 
   expect(screen.queryByText('알림을 켜지 못했어요. 다시 눌러 주세요.')).toBeNull()
 })
 
-test('서버 열쇠가 바뀐 옛 구독은 열 때 지우고, 켜기는 누른 동작 안에서 새 열쇠로 바로 구독한다', async () => {
-  serverWithKey()
-  const old = subscriptionOf(Uint8Array.from([4, 9, 9, 9]))
+test('서버 열쇠가 바뀐 옛 구독은 열 때 지우고 서버에서도 지우며, 켜기는 누른 동작 안에서 새 열쇠로 바로 구독한 뒤 기기를 저장한다', async () => {
+  const api = serverWithKey()
+  const old = subscriptionOf(Uint8Array.from([4, 9, 9, 9]), 'https://fcm.googleapis.com/fcm/send/old')
   const { env, subscribe } = environment({ permission: 'granted', existing: old })
   render(<PushSettingsBody environment={env} />)
   const enable = await screen.findByRole('button', { name: '알림 켜기' })
   expect(old.unsubscribe).toHaveBeenCalledTimes(1)
   expect(subscribe).not.toHaveBeenCalled()
+  // 옛 구독은 서버에서도 지운다.
+  await waitFor(() => expect(api.calls.filter(call => call.path === '/api/me/push/devices/remove').map(call => call.body))
+    .toEqual([{ endpoint: 'https://fcm.googleapis.com/fcm/send/old' }]))
   fireEvent.click(enable)
   // 아이폰은 누른 동작 안에서만 허락을 묻는다. 기다리지 않고 누른 바로 뒤에 확인한다.
   expect(subscribe).toHaveBeenCalledTimes(1)
   expect(subscribe).toHaveBeenCalledWith({ userVisibleOnly: true, applicationServerKey: keyBytes })
   expect(old.unsubscribe).toHaveBeenCalledTimes(1)
   expect(await screen.findByText('이 기기에서 알림을 받아요.')).toBeTruthy()
+  expect(api.calls.filter(call => call.path === '/api/me/push/devices').map(call => call.body)).toEqual([subscriptionOf(keyBytes).toJSON()])
+  api.assertNoUnexpectedRequests()
 })
 
 test('옛 구독을 지우지 못해도 켜기 전으로 보여 주고, 켜기는 바로 구독한다', async () => {
@@ -143,6 +167,27 @@ test('옛 구독을 지우지 못해도 켜기 전으로 보여 주고, 켜기�
   fireEvent.click(await screen.findByRole('button', { name: '알림 켜기' }))
   expect(subscribe).toHaveBeenCalledTimes(1)
   expect(await screen.findByText('이 기기에서 알림을 받아요.')).toBeTruthy()
+})
+
+test('이미 켜진 구독은 열 때 서버에 기기를 저장한다(덩어리 1에서 켠 기기도 이 계정의 기기가 된다)', async () => {
+  const api = serverWithKey()
+  const existing = subscriptionOf(keyBytes)
+  render(<PushSettingsBody environment={environment({ permission: 'granted', existing }).env} />)
+  expect(await screen.findByText('이 기기에서 알림을 받아요.')).toBeTruthy()
+  expect(api.calls.filter(call => call.method === 'POST' && call.path === '/api/me/push/devices').map(call => call.body)).toEqual([existing.toJSON()])
+  expect(existing.unsubscribe).not.toHaveBeenCalled()
+  api.assertNoUnexpectedRequests()
+})
+
+test('이미 켜진 구독을 열 때 저장하지 못하면 켜기에 실패한 것처럼 구독을 지우고 다시 누르게 한다', async () => {
+  const api = serverWithKey()
+  api.on('POST', '/api/me/push/devices', () => json({ error: 'Internal server error' }, 500))
+  const existing = subscriptionOf(keyBytes)
+  render(<PushSettingsBody environment={environment({ permission: 'granted', existing }).env} />)
+  expect(await screen.findByText('알림을 켜지 못했어요. 다시 눌러 주세요.')).toBeTruthy()
+  expect(existing.unsubscribe).toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: '알림 켜기' })).toBeTruthy()
+  expect(screen.queryByText('이 기기에서 알림을 받아요.')).toBeNull()
 })
 
 test('시험 알림은 구독을 보내고, 보내는 동안 버튼을 막아 한 번만 보낸다', async () => {
@@ -158,7 +203,7 @@ test('시험 알림은 구독을 보내고, 보내는 동안 버튼을 막아 �
   expect((screen.getByRole('button', { name: '시험 알림 보내기' }) as HTMLButtonElement).disabled).toBe(true)
   pending.resolve(json({ result: 'sent' }))
   expect(await screen.findByText('보냈어요. 알림이 왔는지 확인해 주세요.')).toBeTruthy()
-  const posts = api.calls.filter(call => call.method === 'POST')
+  const posts = api.calls.filter(call => call.path === '/api/me/push/test')
   expect(posts).toHaveLength(1)
   expect(posts[0]!.body).toEqual(existing.toJSON())
 })
@@ -172,6 +217,9 @@ test('구독이 끝났으면 지우고 다시 켜게 한다', async () => {
   expect(await screen.findByText('이 기기의 알림 등록이 끝났어요. 알림을 다시 켜 주세요.')).toBeTruthy()
   expect(existing.unsubscribe).toHaveBeenCalled()
   expect(screen.getByRole('button', { name: '알림 켜기' })).toBeTruthy()
+  // 끝난 구독은 서버에서도 지운다.
+  await waitFor(() => expect(api.calls.filter(call => call.path === '/api/me/push/devices/remove').map(call => call.body))
+    .toEqual([{ endpoint: existing.endpoint }]))
 })
 
 test('끝난 구독을 다시 켜면 끝났다는 안내가 사라진다', async () => {
