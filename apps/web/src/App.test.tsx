@@ -100,3 +100,40 @@ test('OAuth failure on an invite link keeps the invite and explains the failure'
   fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
   await waitFor(() => expect(auth.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/join/ABCD2345', errorCallbackURL: '/join/ABCD2345' }))
 })
+
+test('iOS home-screen app opens an in-app window before asking for the Google URL', async () => {
+  Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
+  const popup = { location: { href: 'about:blank' }, close: vi.fn() }
+  const open = vi.spyOn(window, 'open').mockReturnValue(popup as unknown as Window)
+  auth.social.mockResolvedValue({ data: { url: 'https://accounts.google.com/x', redirect: false }, error: null })
+  try {
+    render(<App />)
+    fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
+    expect(open).toHaveBeenCalledWith('about:blank', '_blank')
+    await waitFor(() => expect(popup.location.href).toBe('https://accounts.google.com/x'))
+    expect(auth.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/auth-done', errorCallbackURL: '/auth-done?error=1', disableRedirect: true })
+    expect(screen.getByRole('button', { name: '다른 방법으로 로그인' })).toBeTruthy()
+  } finally {
+    open.mockRestore()
+    delete (navigator as { standalone?: boolean }).standalone
+  }
+})
+
+test('iOS home-screen app rechecks the session when the login window reports back', () => {
+  Object.defineProperty(navigator, 'standalone', { value: true, configurable: true })
+  const listeners: (() => void)[] = []
+  vi.stubGlobal('BroadcastChannel', class {
+    set onmessage(listener: () => void) { listeners.push(listener) }
+    postMessage() {}
+    close() {}
+  })
+  try {
+    render(<App />)
+    expect(listeners).toHaveLength(1)
+    listeners[0]!()
+    expect(auth.refetch).toHaveBeenCalled()
+  } finally {
+    vi.unstubAllGlobals()
+    delete (navigator as { standalone?: boolean }).standalone
+  }
+})

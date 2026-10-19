@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { authClient } from './auth/auth-client'
 import Memberships from './access/Memberships'
 import InviteCodeForm from './access/InviteCodeForm'
@@ -13,6 +13,8 @@ import { Alert } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { isKakaoInAppBrowser } from '@/lib/in-app-browser'
 import LoginPanel from './auth/LoginPanel'
+import { AUTH_CHANNEL, AUTH_DONE_PATH, startPopupLogin } from './auth/popup-login'
+import { isIosHomeScreenApp } from '@/lib/platform'
 
 // 초대 링크(/join/코드)로 왔는지, 소속이 없어 코드를 직접 입력했는지에 따라 돌아갈 곳이 다르다.
 type Invite = { code: string; from: 'link' | 'form' }
@@ -45,6 +47,17 @@ export default function App() {
   const [typedCode, setTypedCode] = useState('')
   const [opened, setOpened] = useState<Opened>()
   const [creating, setCreating] = useState(false)
+  const [homeScreenApp] = useState(() => isIosHomeScreenApp(navigator as { standalone?: boolean }))
+  // iOS 홈 화면 앱: 로그인 창이 알리거나 앱이 다시 보이면 세션을 다시 읽는다.
+  useEffect(() => {
+    if (!homeScreenApp || session) return
+    const recheck = () => { void refetch() }
+    const channel = typeof BroadcastChannel === 'undefined' ? null : new BroadcastChannel(AUTH_CHANNEL)
+    if (channel) channel.onmessage = recheck
+    const onVisible = () => { if (document.visibilityState === 'visible') recheck() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => { channel?.close(); document.removeEventListener('visibilitychange', onVisible) }
+  }, [homeScreenApp, session, refetch])
 
   function leaveInvite() {
     window.history.replaceState(null, '', '/')
@@ -68,6 +81,17 @@ export default function App() {
       setMessage('로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.')
       setBusy(false)
     }
+  }
+
+  // iOS 홈 화면 앱: 누른 순간 앱 안 창을 열고 그 창에서 Google 로그인을 한다(휴대폰 길 spec 길 B).
+  async function loginInApp() {
+    setBusy(true)
+    setMessage('')
+    const result = await startPopupLogin(() => window.open('about:blank', '_blank'),
+      () => authClient.signIn.social({ provider: 'google', callbackURL: AUTH_DONE_PATH, errorCallbackURL: `${AUTH_DONE_PATH}?error=1`, disableRedirect: true }))
+    setBusy(false)
+    if (result === 'blocked') setMessage('로그인 창을 열지 못했어요. 다른 방법으로 로그인해 주세요.')
+    if (result === 'failed') setMessage('로그인을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.')
   }
 
   async function logout() {
@@ -115,7 +139,8 @@ export default function App() {
       <Button onClick={() => { void refetch() }}>다시 확인</Button>
     </div> : <div className="flex flex-col gap-3">
       {invite?.from === 'link' && <Alert tone="info">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</Alert>}
-      <LoginPanel kakao={isKakaoInAppBrowser(navigator.userAgent)} busy={busy} onLogin={() => { void login() }} />
+      <LoginPanel kakao={isKakaoInAppBrowser(navigator.userAgent)} homeScreenApp={homeScreenApp} busy={busy}
+        onLogin={() => { void login() }} onLoginInApp={() => { void loginInApp() }} />
     </div>}
     {message && <StateMessage kind="error">{message}</StateMessage>}
   </AuthPage>
