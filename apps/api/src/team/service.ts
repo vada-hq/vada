@@ -2,7 +2,7 @@ import { and, eq, isNull } from 'drizzle-orm'
 import type { DepartmentRank } from '@vada/contracts'
 import type { Actor } from '../access/actor.js'
 import { can } from '../access/permissions.js'
-import { councilMembership, department, departmentMembership } from '../db/schema.js'
+import { councilMembership, department, departmentMembership, record, recordVersion } from '../db/schema.js'
 import { ApiError } from '../http/errors.js'
 import { clockNow, createRecord, updateRecord, updateRecords, type AnyRecordChange, type Tx } from '../records/records.js'
 
@@ -89,4 +89,37 @@ export async function removeMember(tx: Tx, actor: Actor, memberId: string) {
     { kind: 'council_membership', id: target.id, actor: actor.memberId, reason: null, changes: { endsAt: clockNow } },
   ]
   await updateRecords(tx, changes)
+}
+
+async function assertNameFree(tx: Tx, actor: Actor, name: string) {
+  const [taken] = await tx.select({ id: department.id }).from(department).where(and(eq(department.councilId, actor.councilId), eq(department.name, name)))
+  if (taken) throw new ApiError('DEPARTMENT_NAME_TAKEN', 409)
+}
+
+// 부서 만들기. 역할 없이 만든다.
+export async function createDepartment(tx: Tx, actor: Actor, name: string) {
+  await assertNameFree(tx, actor, name)
+  await createRecord(tx, { kind: 'department', councilId: actor.councilId, actor: actor.memberId, values: { name } })
+}
+
+// 이름 바꾸기와 재정 역할 주고 거두기. 바뀐 것이 없으면 판을 만들지 않는다.
+export async function updateDepartment(tx: Tx, actor: Actor, departmentId: string, input: { name: string; role: 'finance' | null }) {
+  const current = await departmentOf(tx, actor, departmentId)
+  if (current.name === input.name && current.role === input.role) return
+  if (current.name !== input.name) await assertNameFree(tx, actor, input.name)
+  await updateRecord(tx, { kind: 'department', id: departmentId, actor: actor.memberId, reason: null, changes: { name: input.name, role: input.role } })
+}
+
+// 쓰인 적 없는 부서만 없앤다(바탕 spec G8). 지우기는 기록 모듈의 일이 아니라서 여기서 판, 하위 행, 기록 행을 한 거래로 지운다.
+// 부서 소속이 한 번이라도 있었으면(끝난 소속 포함) 409다. 다른 기록이 이 부서를 가리키면 외래 키가 막고, 라우트가 409로 바꾼다.
+// 확정한 기록은 지우지 않는다(physical-model.md, DEC-27 기준 6). 바탕에는 부서를 확정하는 길이 없지만 여기서 지킨다.
+export async function deleteDepartment(tx: Tx, actor: Actor, departmentId: string) {
+  await departmentOf(tx, actor, departmentId)
+  const [meta] = await tx.select({ confirmedAt: record.confirmedAt }).from(record).where(eq(record.id, departmentId))
+  if (meta?.confirmedAt) throw new ApiError('RECORD_CONFIRMED', 409)
+  const [used] = await tx.select({ id: departmentMembership.id }).from(departmentMembership).where(eq(departmentMembership.departmentId, departmentId)).limit(1)
+  if (used) throw new ApiError('DEPARTMENT_IN_USE', 409)
+  await tx.delete(recordVersion).where(eq(recordVersion.recordId, departmentId))
+  await tx.delete(department).where(eq(department.id, departmentId))
+  await tx.delete(record).where(eq(record.id, departmentId))
 }
