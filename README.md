@@ -4,22 +4,33 @@ vada-m1/
 ├─ .github/workflows/         # CI
 ├─ apps/
 │  ├─ api/                    # API 서버(Hono, better-auth, drizzle)
-│  │  ├─ migrations/          # 마이그레이션(.sql은 LF)
+│  │  ├─ migrations/          # 마이그레이션. 0000_baseline은 vada-docs physical-model.md에서 만든다(.sql은 LF)
+│  │  ├─ scripts/             # 첫 마이그레이션 만들기, 설계 검사(check:design), 시험 데이터
 │  │  └─ src/
+│  │     ├─ access/           # 지금 소속(actorOf)과 권한표(can)
 │  │     ├─ auth/             # Google 로그인과 세션 확인
-│  │     ├─ db/               # 조회용 표 정의, 마이그레이션 적용
+│  │     ├─ councils/         # 로그인 잇기, 학생회 만들기·보기·설정
+│  │     ├─ db/               # 조회용 표 정의, 시험 DB, 마이그레이션 적용
 │  │     ├─ http/             # 공통 가드, 입력 검사, 오류 처리, Sentry
-│  │     ├─ push/             # 휴대폰 알림(웹 푸시)
-│  │     └─ storage/          # 영수증 저장소(R2). 쓰는 기능은 구매와 지출 덩어리가 다시 만든다
+│  │     ├─ invites/          # 초대 코드와 들어오기
+│  │     ├─ push/             # 휴대폰 알림과 알림 받을 기기
+│  │     ├─ records/          # 기록과 판. 모든 쓰기가 거친다
+│  │     ├─ storage/          # 영수증 저장소(R2). 쓰는 기능은 구매와 지출 덩어리가 다시 만든다
+│  │     ├─ team/             # 운영진과 부서 편성
+│  │     └─ test-support/     # 시험용 학생회와 요청
 │  └─ web/                    # 화면(React, Vite, Tailwind)
 │     ├─ public/              # 홈 화면 설정, 아이콘, 서비스 워커
 │     └─ src/
 │        ├─ auth/             # 로그인 화면
 │        ├─ components/       # 화면 부품(ui/는 기본 부품)
+│        ├─ councils/         # 학생회 없음, 만들기, 초대 링크, 내 학생회 목록
 │        ├─ lib/
 │        ├─ push/             # 휴대폰 알림 대화상자
+│        ├─ settings/         # 설정 > 학생회 정보
+│        ├─ team/             # 운영진 > 사람·부서
 │        ├─ test-support/
-│        └─ ui-gallery/       # 부품 확인 화면(/ui.html)
+│        ├─ ui-gallery/       # 부품 확인 화면(/ui.html)
+│        └─ workspace/        # 작업 공간 틀
 ├─ docs/
 │  ├─ device-checks.md        # 실제 기기 확인 기록
 │  └─ superpowers/            # 설계서(specs)와 구현 계획(plans)

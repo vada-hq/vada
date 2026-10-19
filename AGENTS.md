@@ -35,11 +35,15 @@
 - 화면을 바꾸면 와이어프레임(Figma `B5OHqrl9bbvXCUkhME4Sfo`)의 같은 화면 노드 스크린샷과 비교한다.
 
 ## 마이그레이션
-- 서버 시작 시 자동으로 적용하지 않는다. 적용 대상은 dev(`.env`의 `DATABASE_URL`, Neon `production` 브랜치)와 배포 DB(`m1-preview`) 두 곳이다.
-- 제약을 추가하는 마이그레이션은 코드 배포 → 두 DB에서 위반 행이 0건인지 조회 → 적용 순서로 한다. 적용 전에 이미 적용된 기록이 로컬 파일과 순서·해시까지 일치하는지 확인한다.
+- 표를 바꿀 때는 vada-docs의 `physical-model.md`를 먼저 고친다. 그다음 `npm run db:generate --workspace @vada/api`(`drizzle-kit generate --custom`)로 빈 마이그레이션을 만들어 SQL을 쓰고, 조회용 정의 `apps/api/src/db/schema.ts`를 같이 고친다. CI의 맞춤 시험(`src/db/schema-match.test.ts`)이 정의와 마이그레이션 DB를, 로컬의 `npm run check:design --workspace @vada/api`가 마이그레이션 DB와 설계를 맞댄다.
+- 첫 마이그레이션 `0000_baseline.sql`은 `apps/api/scripts/baseline-from-design.ts`가 physical-model.md에서 만든 파일이다. 손으로 고치거나 다시 만들지 않는다.
+- 서버 시작 시 자동으로 적용하지 않는다. 적용 대상은 Neon 프로젝트 `vada`의 `dev` 가지(개발, 로컬 `.env`의 `DATABASE_URL`)와 `production` 가지(배포) 두 곳이다.
+- 적용은 사람이 `npm run db:migrate --workspace @vada/api`로 한다. 먼저 `-- --dry-run`으로 대상(호스트와 DB 이름)과 적용할 개수를 본다. 대상은 `.env`의 DB가 기본이다. 배포 DB에는 셸에 `DATABASE_URL`을 주고 `-- --from-shell`을 붙인다. 셸에 `DATABASE_URL`이 있는데 `--from-shell`이 없으면 아무것도 하지 않고 멈춘다. 적용 기록이 없거나 기록 표가 비었는데 표가 있으면, 또는 이미 적용된 기록이 로컬 파일과 순서·해시까지 같지 않으면 적용하지 않는다.
+- 제약을 추가하는 마이그레이션은 코드 배포 → 두 DB에서 위반 행이 0건인지 조회 → 적용 순서로 한다.
 - 새 컬럼을 읽는 코드는 반대로, 두 DB에 마이그레이션을 먼저 적용한 뒤 배포한다. 코드가 먼저 나가면 없는 컬럼을 읽다가 해당 요청이 모두 실패한다. 새 컬럼에 거는 제약은 위반 행이 생길 수 없으므로 이 순서를 따르고, 기존 컬럼에 거는 제약과는 한 마이그레이션에 섞지 않는다.
 - 칸·표를 지우는 마이그레이션은 그것을 읽지 않는 코드를 먼저 배포한 뒤 적용한다. 적용 스크립트가 남은 마이그레이션을 모두 적용하므로, 지우는 마이그레이션 파일은 배포 뒤에 만든다.
 - `.sql` 파일은 `.gitattributes`로 LF로 고정한다. drizzle이 남기는 적용 기록의 해시가 파일 내용 기준이라, 줄바꿈이 바뀌면 기록과 어긋나 보인다.
+- 개발 DB의 시험 학생회는 사람이 `npm run test-data --workspace @vada/api -- seed <user-id> --apply`로 둔다(초대 코드 `TESTDATA`). 부서원은 `-- assign <user-id> <planning|finance> --apply`로 넣는다.
 
 ## 로그·비밀
 - 로그와 응답에 요청 본문, 오류 메시지 원문, DB 값, 비밀 값을 넣지 않는다.
@@ -56,4 +60,5 @@
 - 계약 테스트: `npm test --workspace @vada/contracts`
 - 화면 테스트: `npm test --workspace @vada/web`
 - 타입 검사: `npm run typecheck`
+- 설계 검사(로컬, 옆 폴더 `../vada-docs` 필요): `npm run check:design --workspace @vada/api`
 - 부품 확인 화면: `npm run dev --workspace @vada/web` 후 `http://127.0.0.1:5180/ui.html`

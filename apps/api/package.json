@@ -6,10 +6,11 @@
     "dev": "tsx watch src/serve.ts",
     "start": "tsx src/serve.ts --production",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/app.test.ts src/runtime.test.ts src/web.test.ts src/auth/auth.test.ts src/http/boundary.test.ts src/http/sentry.test.ts src/storage/storage.test.ts src/push/config.test.ts src/push/endpoint.test.ts src/push/sender.test.ts src/push/routes.test.ts src/db/baseline.test.ts scripts/design-sql.test.ts src/db/schema-match.test.ts scripts/catalog.test.ts src/records/records.test.ts src/access/permissions.test.ts src/access/actor.test.ts src/councils/link.test.ts src/councils/councils.test.ts src/invites/invites.test.ts src/team/team.test.ts src/team/flow.test.ts src/team/departments.test.ts src/councils/settings.test.ts src/push/devices.test.ts",
+    "test": "tsx --test src/app.test.ts src/runtime.test.ts src/web.test.ts src/auth/auth.test.ts src/http/boundary.test.ts src/http/sentry.test.ts src/storage/storage.test.ts src/push/config.test.ts src/push/endpoint.test.ts src/push/sender.test.ts src/push/routes.test.ts src/db/baseline.test.ts scripts/design-sql.test.ts src/db/schema-match.test.ts scripts/catalog.test.ts src/records/records.test.ts src/access/permissions.test.ts src/access/actor.test.ts src/councils/link.test.ts src/councils/councils.test.ts src/invites/invites.test.ts src/team/team.test.ts src/team/flow.test.ts src/team/departments.test.ts src/councils/settings.test.ts src/push/devices.test.ts src/db/migrate-check.test.ts scripts/test-data.test.ts",
     "db:generate": "drizzle-kit generate --custom",
     "check:design": "tsx scripts/check-design.ts",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate.ts",
+    "test-data": "tsx scripts/manage-test-data.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.6",
