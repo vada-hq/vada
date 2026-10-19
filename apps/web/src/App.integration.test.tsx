@@ -146,3 +146,17 @@ test('옆 메뉴 아래 사용자 줄에 이름, 직급, 휴대폰 알림, 로�
   const sheet = await screen.findByRole('dialog', { name: '학생회 작업 공간' })
   expect(within(sheet).getByRole('button', { name: '로그아웃' })).toBeTruthy()
 })
+
+test('옆 메뉴로 운영진 > 부서를 열고, 학생회 이름 메뉴의 설정으로 학생회 정보를 연다', async () => {
+  councilsInSequence([myCouncil()])
+  openCouncil()
+  render(<App />)
+  const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
+  fireEvent.click(within(aside).getByRole('button', { name: '부서' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '부서' })).toBeTruthy()
+  expect(await screen.findByText('부서 2개')).toBeTruthy()
+  fireEvent.keyDown(within(aside).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '설정' }))
+  expect(await screen.findByRole('heading', { level: 1, name: '학생회 정보' })).toBeTruthy()
+  expect((screen.getByLabelText('학교') as HTMLInputElement).value).toBe('한양대학교 ERICA')
+})

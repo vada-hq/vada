@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { MyCouncil } from '@vada/contracts'
+import CouncilSettings from '../settings/CouncilSettings'
+import Departments from '../team/Departments'
 import People from '../team/People'
 import { useTeam } from '../team/useTeam'
 import StateMessage from '@/components/StateMessage'
@@ -19,7 +21,11 @@ type Props = {
   // 학생회를 잃었을 때(내보내졌거나 기수가 끝남) 내 학생회 목록을 다시 읽게 한다.
   onCouncilsChanged: () => void
 }
-const titles: Record<Page, { section: string; title: string }> = { people: { section: '운영진', title: '사람' } }
+const titles: Record<Page, { section: string; title: string }> = {
+  people: { section: '운영진', title: '사람' },
+  departments: { section: '운영진', title: '부서' },
+  settings: { section: '설정', title: '학생회 정보' },
+}
 
 // 작업 공간 틀. 방금 만들었거나 들어온 학생회가 있으면 그 학생회를 먼저 연다.
 export default function Workspace({ councils, initialCouncilId, ...props }: Props) {
@@ -31,7 +37,7 @@ export default function Workspace({ councils, initialCouncilId, ...props }: Prop
 
 function CouncilWorkspace({ council, councils, onSelect, user, logoutBusy, onLogout, onCouncilsChanged }:
   Omit<Props, 'initialCouncilId'> & { council: MyCouncil; onSelect: (councilId: string) => void }) {
-  const { state, reload } = useCouncilView(council.id)
+  const { state, reload, replace } = useCouncilView(council.id)
   const team = useTeam(council.id, reload)
   const [page, setPage] = useState<Page>('people')
   // 768px 미만에서 옆 메뉴로 연 시트. 메뉴를 고르면 닫는다.
@@ -52,7 +58,10 @@ function CouncilWorkspace({ council, councils, onSelect, user, logoutBusy, onLog
             <Button variant="outline" className="self-start" onClick={reload}>다시 시도</Button>
           </Card>
           : !view ? <StateMessage kind="loading">학생회 불러오는 중…</StateMessage>
-          : <People view={view} team={team} onCouncilChanged={reload} />}
+          : page === 'people' ? <People view={view} team={team} onCouncilChanged={reload} />
+          : page === 'departments' ? <Departments view={view} team={team} />
+          // 학생회 이름이 바뀌면 옆 메뉴와 학생회 고르기의 이름도 바뀌도록 내 학생회 목록을 다시 읽는다.
+          : <CouncilSettings view={view} onForbidden={reload} onSaved={next => { replace(next); onCouncilsChanged() }} />}
       </main>
     </div>
   </div>

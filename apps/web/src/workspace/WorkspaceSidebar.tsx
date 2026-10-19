@@ -1,14 +1,14 @@
-import { Check, ChevronsUpDown, LogOut, Users } from 'lucide-react'
+import { Check, ChevronsUpDown, LogOut, Network, Settings, Users } from 'lucide-react'
 import type { CouncilView, MyCouncil } from '@vada/contracts'
 import PushSettingsButton from '../push/PushSettings'
 import { councilRankLabel, placementsText } from '../team/team-view'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
 import { Button } from '@/components/ui/button'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '@/components/ui/menu'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from '@/components/ui/menu'
 import { NavItem } from '@/components/ui/nav-item'
 
-export type Page = 'people'
+export type Page = 'people' | 'departments' | 'settings'
 type Props = {
   council: MyCouncil
   councils: MyCouncil[]
@@ -40,6 +40,8 @@ export default function WorkspaceSidebar({ council, councils, view, page, onSele
           {councils.map(item => <MenuItem key={item.id} onSelect={() => onSelect(item.id)}>
             {item.id === council.id ? <Check aria-hidden /> : <span aria-hidden className="size-4 shrink-0" />}{item.name}
           </MenuItem>)}
+          <MenuSeparator />
+          <MenuItem onSelect={() => onPage('settings')}><Settings aria-hidden />설정</MenuItem>
         </MenuContent>
       </Menu>
     </div>
@@ -47,6 +49,9 @@ export default function WorkspaceSidebar({ council, councils, view, page, onSele
       <p className="px-3 pb-1 text-xs font-medium text-gray-400">운영진</p>
       <NavItem active={page === 'people'} className="flex items-center gap-2" onClick={() => onPage('people')}>
         <Users aria-hidden className="size-4" />사람
+      </NavItem>
+      <NavItem active={page === 'departments'} className="flex items-center gap-2" onClick={() => onPage('departments')}>
+        <Network aria-hidden className="size-4" />부서
       </NavItem>
     </nav>
     <footer className="flex shrink-0 items-center gap-2 border-t border-gray-100 px-4 py-3">
