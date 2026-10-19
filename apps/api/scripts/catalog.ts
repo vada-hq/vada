@@ -44,6 +44,14 @@ export async function describeDatabase(
   ].sort()
 }
 
+// DB에 있는 표 중 exclude에 든 이름을 이름순으로 돌려준다. 설계 SQL이 설계 밖 표의 이름을 쓰면 비교에서 조용히 빠지므로, 설계 쪽 DB에서 이것이 비어 있어야 한다.
+export async function excludedTablesIn(pg: PGlite, exclude: ReadonlySet<string>) {
+  const { rows } = await pg.query<{ name: string }>(
+    "SELECT tablename AS name FROM pg_tables WHERE schemaname = 'public' ORDER BY tablename",
+  )
+  return rows.map(row => row.name).filter(name => exclude.has(name))
+}
+
 // 한쪽에만 있는 줄을 돌려준다. 둘 다 비면 같은 DB다.
 export function catalogDifferences(design: readonly string[], migrated: readonly string[]) {
   const inMigrated = new Set(migrated)

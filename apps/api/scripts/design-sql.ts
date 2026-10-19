@@ -92,13 +92,14 @@ CREATE TABLE push_device (
   'CREATE INDEX ON push_device (user_id);',
 ]
 
-// physical-model.md의 첫 SQL 블록(```sql … ```)을 꺼낸다.
+// physical-model.md의 SQL 블록(```sql … ```)을 꺼낸다. 설계는 블록 하나다. 둘 이상이면 어느 쪽이 설계인지 알 수 없어 멈춘다(첫 블록만 쓰면 뒤 블록의 표가 조용히 빠진다).
 export function designBlock(markdown: string): string {
   const text = markdown.replace(/\r\n/g, '\n')
   const start = text.indexOf('```sql\n')
   if (start < 0) throw new Error('physical-model.md에 SQL 블록이 없다')
   const end = text.indexOf('\n```', start + '```sql\n'.length)
   if (end < 0) throw new Error('SQL 블록이 닫히지 않았다')
+  if (text.includes('```sql\n', end)) throw new Error('physical-model.md에 SQL 블록이 둘 이상이다')
   return text.slice(start + '```sql\n'.length, end)
 }
 
