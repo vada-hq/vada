@@ -1,0 +1,22 @@
+import { z } from 'zod'
+import { token } from './input.js'
+
+// 휴대폰 알림(웹 푸시). 브라우저 PushSubscription.toJSON()의 모양이다.
+// 구독 주소는 기기를 가리키는 비밀 주소라 로그와 응답에 넣지 않는다.
+export const PUSH_ENDPOINT_MAX = 1024
+const isHttpsUrl = (value: string) => {
+  try { return new URL(value).protocol === 'https:' } catch { return false }
+}
+
+export const PushSubscriptionSchema = z.strictObject({
+  endpoint: token(PUSH_ENDPOINT_MAX).refine(isHttpsUrl),
+  // 브라우저는 대개 null을 보낸다.
+  expirationTime: z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER).nullable().optional(),
+  keys: z.strictObject({ p256dh: token(200), auth: token(100) }),
+})
+export type PushSubscriptionRequest = z.infer<typeof PushSubscriptionSchema>
+
+export const PUSH_TEST_RESULTS = ['sent', 'expired', 'rejected'] as const
+export type PushTestResult = typeof PUSH_TEST_RESULTS[number]
+export type PushKeyResponse = { publicKey: string }
+export type PushTestResponse = { result: PushTestResult }
