@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { CalendarDays, Copy, Plus } from 'lucide-react'
+import { CalendarDays, Check, Copy, Ellipsis, Plus, Settings } from 'lucide-react'
 import { AuthCard } from '@/components/AuthCard'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
@@ -12,6 +12,7 @@ import { Card } from '@/components/ui/card'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from '@/components/ui/menu'
 import { NativeSelect } from '@/components/ui/native-select'
 import { NavItem } from '@/components/ui/nav-item'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
@@ -72,10 +73,30 @@ export default function Gallery() {
         <TabButton aria-selected>대화</TabButton><TabButton aria-selected={false}>구매요청</TabButton>
       </div>
     </Section>
+    <Section title="동작 메뉴">
+      <Menu>
+        <MenuTrigger asChild><Button variant="outline">학생회 메뉴 열기</Button></MenuTrigger>
+        <MenuContent align="start">
+          <MenuLabel>학생회 고르기</MenuLabel>
+          <MenuItem><Check aria-hidden />컴퓨터학부 학생회</MenuItem>
+          <MenuItem><span aria-hidden className="size-4 shrink-0" />{longName}</MenuItem>
+          <MenuSeparator />
+          <MenuItem><Settings aria-hidden />설정</MenuItem>
+        </MenuContent>
+      </Menu>
+      <Menu>
+        <MenuTrigger asChild><Button variant="ghost" size="icon" aria-label="운영진 동작 예시"><Ellipsis /></Button></MenuTrigger>
+        <MenuContent>
+          <MenuItem>부서 배정</MenuItem>
+          <MenuItem>부회장으로 두기</MenuItem>
+          <MenuItem destructive>내보내기</MenuItem>
+        </MenuContent>
+      </Menu>
+    </Section>
     <Section title="빈 화면·아바타·로고">
       <Card className="w-96"><EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." /></Card>
       <div className="flex items-center gap-2"><Avatar /><span className="text-xs font-medium text-gray-700">박해랑</span></div>
-      <div className="flex items-center gap-2"><BrandMark /><span className="text-base font-semibold">VADA M1</span></div>
+      <div className="flex items-center gap-2"><BrandMark /><span className="text-base font-semibold">VADA</span></div>
     </Section>
     <Section title="대화상자·옆 메뉴">
       <Dialog>
@@ -108,7 +129,7 @@ export default function Gallery() {
     </Section>
     <Section title="인증 카드">
       <AuthCard>
-        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA M1</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
+        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
         <div className="flex flex-col gap-3">
           <Alert tone="info">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</Alert>
           <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
@@ -118,7 +139,7 @@ export default function Gallery() {
     </Section>
     <Section title="카톡 안 로그인">
       <AuthCard>
-        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA M1</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
+        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
         <KakaoBlock userAgent={kakaoUserAgent} location={{ href: 'https://vada.example/join/ABCD2345' }} clipboard={{ writeText: async () => {} }} />
       </AuthCard>
     </Section>
