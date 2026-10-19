@@ -2,10 +2,12 @@
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { expect, test } from 'vitest'
-import { prepareZXingModule, readBarcodes } from 'zxing-wasm/reader'
-import { checkInQrText } from '@vada/contracts'
-import { readerOptions } from '../registrations/qr-reader'
+import { prepareZXingModule, readBarcodes, type ReaderOptions } from 'zxing-wasm/reader'
 import { qrMatrix } from './qr-code'
+
+// 참석 확인 QR을 읽던 스캐너의 설정과 글자 모양이다(참가 신청은 덩어리 7에서 다시 만든다).
+const readerOptions: ReaderOptions = { formats: ['QRCode'], tryHarder: true, maxNumberOfSymbols: 1 }
+const checkInText = `VADA:${'0123456789ABCDEF'.repeat(4)}`
 
 // 칸 하나를 scale 픽셀로 그린 흑백 그림(RGBA). 스캐너가 캔버스에서 꺼내는 그림과 같은 모양이다.
 function imageOf(matrix: boolean[][], scale = 4) {
@@ -21,7 +23,7 @@ function imageOf(matrix: boolean[][], scale = 4) {
 test('QrCode가 그리는 칸을 스캐너의 판독기로 읽으면 같은 글자가 나온다', async () => {
   const wasm = readFileSync(createRequire(import.meta.url).resolve('zxing-wasm/reader/zxing_reader.wasm'))
   await prepareZXingModule({ overrides: { wasmBinary: wasm.buffer.slice(wasm.byteOffset, wasm.byteOffset + wasm.byteLength) }, fireImmediately: true })
-  const text = checkInQrText('0123456789abcdef'.repeat(4))
+  const text = checkInText
   const matrix = qrMatrix(text)
   // 대문자라 영숫자 모드: 버전 4(33칸) + 여백 2칸씩
   expect(matrix.length).toBe(37)

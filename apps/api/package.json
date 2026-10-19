@@ -5,14 +5,10 @@
   "scripts": {
     "dev": "tsx watch src/serve.ts",
     "start": "tsx src/serve.ts --production",
-    "delivery:worker": "tsx src/deliveries/run-worker.ts",
-    "delivery:worker:once": "tsx src/deliveries/run-worker.ts --once",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/app.test.ts src/runtime.test.ts src/web.test.ts src/access/access.test.ts src/organization/organization.test.ts src/events/events.test.ts src/events/completion.test.ts src/events/completion-lock.test.ts src/reports/reports.test.ts src/reports/timeline.test.ts src/reports/generation.test.ts src/chat/chat.test.ts src/auth/auth.test.ts src/db/schema.test.ts src/db/migrations.test.ts src/db/purchases.test.ts src/db/deliveries.test.ts src/deliveries/routes.test.ts src/deliveries/delivery-tracker.test.ts src/deliveries/worker.test.ts src/deliveries/tracking-config.test.ts src/deliveries/loop.test.ts src/purchases/purchases.test.ts src/purchases/review.test.ts src/purchases/candidates.test.ts src/purchases/products.test.ts src/purchases/catalog.test.ts src/purchases/generation.test.ts scripts/test-data.test.ts scripts/demo-data.test.ts src/expenses/storage.test.ts src/expenses/expenses.test.ts src/expenses/receipts.test.ts src/settlement/lock.test.ts src/settlement/settlement.test.ts src/settlement/workbook.test.ts src/settlement/fee-income.test.ts src/budget/budget.test.ts src/budget/closing.test.ts src/budget/workbook.test.ts src/incomes/incomes.test.ts src/registrations/purge.test.ts src/registrations/registrations.test.ts src/registrations/public.test.ts src/registrations/payments.test.ts src/registrations/attendance.test.ts src/tasks/tasks.test.ts src/home/home.test.ts src/fees/fees.test.ts src/http/boundary.test.ts src/deliveries/webhook.test.ts src/http/sentry.test.ts src/push/config.test.ts src/push/endpoint.test.ts src/push/sender.test.ts src/push/routes.test.ts",
+    "test": "tsx --test src/app.test.ts src/runtime.test.ts src/web.test.ts src/auth/auth.test.ts src/http/boundary.test.ts src/http/sentry.test.ts src/storage/storage.test.ts src/push/config.test.ts src/push/endpoint.test.ts src/push/sender.test.ts src/push/routes.test.ts",
     "db:generate": "drizzle-kit generate",
-    "test-data": "tsx scripts/manage-test-data.ts",
-    "db:migrate": "tsx src/db/migrate.ts",
-    "demo-data": "tsx scripts/manage-demo-data.ts"
+    "db:migrate": "tsx src/db/migrate.ts"
   },
   "dependencies": {
     "@better-auth/drizzle-adapter": "1.7.6",

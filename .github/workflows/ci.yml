@@ -35,12 +35,6 @@ jobs:
           GOOGLE_CLIENT_ID: ci-start-smoke
           GOOGLE_CLIENT_SECRET: ci-start-smoke
           SENTRY_DSN: https://0123456789abcdef0123456789abcdef@sentry.invalid/1
-          DELIVERY_ENABLED: 'true'
-          DELIVERY_TRACKING_ENABLED: 'true'
-          DELIVERY_PUBLIC_URL: https://vada.invalid
-          DELIVERY_WEBHOOK_SECRET: ci-start-smoke-webhook-secret-0123456789
-          DELIVERY_TRACKER_CLIENT_ID: ci-start-smoke
-          DELIVERY_TRACKER_CLIENT_SECRET: ci-start-smoke
           PORT: '8899'
           HOST: 127.0.0.1
         run: |

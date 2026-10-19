@@ -6,7 +6,7 @@ import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { makeSignature } from 'better-auth/crypto'
 import { createApp } from '../app.js'
-import { createAccessRoutes } from '../access/access.js'
+import { createPushRoutes } from '../push/routes.js'
 import { createAuth } from './auth.js'
 
 test('auth routes use the existing schema without external services', async (t) => {
@@ -17,14 +17,16 @@ test('auth routes use the existing schema without external services', async (t) 
     const db = drizzle(pg)
     await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
     const auth = createAuth(db, { secret, baseURL, googleClientId: 'test-client', googleClientSecret: 'test-secret' })
-    const app = createApp({ auth, trustedOrigin: 'http://127.0.0.1:5180', access: createAccessRoutes(db, (headers) => auth.api.getSession({ headers })) })
+    // 로그인한 사람만 쓰는 경로(휴대폰 알림 열쇠)로 세션 확인을 본다.
+    const push = createPushRoutes((headers) => auth.api.getSession({ headers }), 'PUBLIC', async () => ({ result: 'sent' }), async () => {})
+    const app = createApp({ auth, trustedOrigin: 'http://127.0.0.1:5180', push })
     const request = (path: string, init?: RequestInit) => app.request(`${baseURL}/api/auth/${path}`, init)
 
     await t.test('anonymous session is null', async () => {
       const response = await request('get-session')
       assert.equal(response.status, 200)
       assert.equal(await response.json(), null)
-      assert.equal((await app.request(`${baseURL}/api/me/memberships`)).status, 401)
+      assert.equal((await app.request(`${baseURL}/api/me/push`)).status, 401)
     })
     await t.test('Google login creates OAuth state and uses the configured callback', async () => {
       const response = await request('sign-in/social', {
@@ -77,9 +79,9 @@ test('auth routes use the existing schema without external services', async (t) 
       assert.equal(response.status, 200)
       const body = await response.json() as { user: { id: string } }
       assert.equal(body.user.id, user.id)
-      const memberships = await app.request(`${baseURL}/api/me/memberships`, { headers: { Cookie: await cookie('active-token') } })
-      assert.equal(memberships.status, 200)
-      assert.deepEqual(await memberships.json(), { memberships: [] })
+      const key = await app.request(`${baseURL}/api/me/push`, { headers: { Cookie: await cookie('active-token') } })
+      assert.equal(key.status, 200)
+      assert.deepEqual(await key.json(), { publicKey: 'PUBLIC' })
       for (const value of [await cookie('expired-token'), `${context.authCookies.sessionToken.name}=tampered`]) {
         const invalid = await request('get-session', { headers: { Cookie: value } })
         assert.equal(await invalid.json(), null)
@@ -92,7 +94,7 @@ test('auth routes use the existing schema without external services', async (t) 
       assert.match(response.headers.get('set-cookie') ?? '', /Max-Age=0/i)
       const session = await request('get-session', { headers })
       assert.equal(await session.json(), null)
-      assert.equal((await app.request(`${baseURL}/api/me/memberships`, { headers })).status, 401)
+      assert.equal((await app.request(`${baseURL}/api/me/push`, { headers })).status, 401)
       const rows = await pg.query("SELECT id FROM sessions WHERE id = 'active'")
       assert.equal(rows.rows.length, 0)
     })

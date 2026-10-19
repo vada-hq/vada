@@ -5,8 +5,6 @@ import App from './App'
 
 const auth = vi.hoisted(() => ({ useSession: vi.fn(), social: vi.fn(), signOut: vi.fn(), refetch: vi.fn() }))
 vi.mock('./auth/auth-client', () => ({ authClient: { useSession: auth.useSession, signIn: { social: auth.social }, signOut: auth.signOut } }))
-vi.mock('./access/Memberships', () => ({ default: ({ renderMemberships }: { renderMemberships: (memberships: import('@vada/contracts').MembershipSummary[]) => import('react').ReactNode }) => <>{renderMemberships([{ id: 'm1', organization: { id: 'o1', name: '검증 학생회', inviteCode: 'ABCD2345' }, department: { id: 'd1', name: '기획부', handlesFinance: false, isLeadership: false }, title: null, permissions: { manageOrganization: false, approvePurchases: false, manageEvents: true } }])}</> }))
-vi.mock('./workspace/Workspace', () => ({ default: ({ memberships, user, onLogout, logoutBusy }: { memberships: import('@vada/contracts').MembershipSummary[]; user: { email: string }; onLogout: () => void; logoutBusy: boolean }) => <><p>{user.email}</p><p>행사 영역: {memberships[0].organization.id}</p><button disabled={logoutBusy} onClick={onLogout}>로그아웃</button></> }))
 beforeEach(() => {
   vi.resetAllMocks()
   window.history.replaceState(null, '', '/')
@@ -33,18 +31,18 @@ test('session loading and failures are not presented as logged out', () => {
   expect(auth.refetch).toHaveBeenCalled()
 })
 
-test('authenticated user can logout and session changes update the screen', async () => {
+test('로그인한 사람은 학생회가 없다는 안내와 휴대폰 알림 버튼을 보고, 로그아웃하면 로그인 화면으로 돌아간다', async () => {
   auth.useSession.mockReturnValue({ data: { user: { name: '테스터', email: 'test@example.test' } }, isPending: false, error: null })
   auth.signOut.mockResolvedValue({ error: null })
   const view = render(<App />)
   expect(screen.getByText('test@example.test')).toBeTruthy()
-  expect(screen.getByText('행사 영역: o1')).toBeTruthy()
+  expect(screen.getByText('아직 들어간 학생회가 없어요.')).toBeTruthy()
+  expect(screen.getByRole('button', { name: '휴대폰 알림' })).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: '로그아웃' }))
   await waitFor(() => expect(auth.signOut).toHaveBeenCalledOnce())
   auth.useSession.mockReturnValue({ data: null, isPending: false, error: null })
   view.rerender(<App />)
   expect(screen.getByRole('button', { name: 'Google로 로그인' })).toBeTruthy()
-  expect(screen.queryByText('행사 영역: o1')).toBeNull()
 })
 
 test('login failure allows retry without exposing the raw error', async () => {
@@ -70,15 +68,6 @@ test('logout failure keeps the signed-in state and enables retry', async () => {
   expect(screen.getByRole('button', { name: '로그아웃' }).hasAttribute('disabled')).toBe(false)
 })
 
-test('invite link login returns to the same invite and says why', async () => {
-  window.history.replaceState(null, '', '/join/ABCD2345')
-  auth.social.mockResolvedValue({ error: null })
-  render(<App />)
-  expect(screen.getByText('학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
-  await waitFor(() => expect(auth.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/join/ABCD2345', errorCallbackURL: '/join/ABCD2345' }))
-})
-
 test('KakaoTalk in-app browser offers the outside browser instead of Google login', () => {
   const agent = vi.spyOn(navigator, 'userAgent', 'get').mockReturnValue('Mozilla/5.0 (Linux; Android 14) KAKAOTALK/10.9.0')
   try {
@@ -89,16 +78,6 @@ test('KakaoTalk in-app browser offers the outside browser instead of Google logi
   } finally {
     agent.mockRestore()
   }
-})
-
-test('OAuth failure on an invite link keeps the invite and explains the failure', async () => {
-  window.history.replaceState(null, '', '/join/ABCD2345?error=access_denied')
-  auth.social.mockResolvedValue({ error: null })
-  render(<App />)
-  expect(screen.getByRole('alert').textContent).toContain('로그인이 완료되지 않았어요')
-  expect(screen.getByText('학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.')).toBeTruthy()
-  fireEvent.click(screen.getByRole('button', { name: 'Google로 로그인' }))
-  await waitFor(() => expect(auth.social).toHaveBeenCalledWith({ provider: 'google', callbackURL: '/join/ABCD2345', errorCallbackURL: '/join/ABCD2345' }))
 })
 
 test('iOS home-screen app opens an in-app window before asking for the Google URL', async () => {
