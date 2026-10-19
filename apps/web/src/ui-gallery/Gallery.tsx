@@ -21,10 +21,13 @@ import { NavItem } from '@/components/ui/nav-item'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 import { TabButton } from '@/components/ui/tab-button'
 import { Textarea } from '@/components/ui/textarea'
+import KakaoBlock from '@/auth/KakaoBlock'
 import PushPanel from '@/push/PushPanel'
 
 const longName = '2026 소프트웨어융합대학 체육대회 준비와 참가자 명단 확인 그리고 물품 구매 요청 정리를 위한 아주 긴 행사 이름'.repeat(2)
 const unbroken = `https://www.coupang.com/vp/products/${'1234567890'.repeat(12)}`
+// 카톡 안 로그인 예시용 사용자 에이전트. KakaoBlock에 가짜 주소·가짜 복사와 함께 끼워 넣어, 버튼을 눌러도 이 화면이 넘어가거나 클립보드를 건드리지 않는다.
+const kakaoUserAgent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 KAKAOTALK 10.9.0'
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return <section className="flex flex-col gap-3 border-b py-6">
@@ -129,6 +132,12 @@ export default function Gallery() {
           <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
           <Button>Google로 로그인</Button>
         </div>
+      </AuthCard>
+    </Section>
+    <Section title="카톡 안 로그인">
+      <AuthCard>
+        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA M1</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
+        <KakaoBlock userAgent={kakaoUserAgent} location={{ href: 'https://vada.example/join/ABCD2345' }} clipboard={{ writeText: async () => {} }} />
       </AuthCard>
     </Section>
     <Section title="긴 글">

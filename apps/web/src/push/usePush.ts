@@ -41,11 +41,18 @@ export function usePush({ browser, device, homeScreenApp }: PushEnvironment) {
         }
         if (!response.ok) throw new Error('Push key failed')
         const { publicKey } = await response.json() as PushKeyResponse
+        const key = base64UrlToBytes(publicKey)
         const manager = await browser.pushManager()
-        const existing = await manager.getSubscription()
+        let existing = await manager.getSubscription()
+        // 열쇠가 바뀐 옛 구독은 여기서 지운다. 못 지워도 넘어가고, 구독이 없는 것으로 본다.
+        // 그래야 '알림 켜기'를 누른 동작 안에서 기다림 없이 구독할 수 있다.
+        if (existing && !sameKey(existing, key)) {
+          await existing.unsubscribe().catch(() => false)
+          existing = null
+        }
         if (cancelled) return
         setSubscription(existing)
-        setServer({ kind: 'ready', key: base64UrlToBytes(publicKey), manager })
+        setServer({ kind: 'ready', key, manager })
       } catch {
         if (!cancelled) setServer({ kind: 'failed' })
       }
@@ -58,15 +65,12 @@ export function usePush({ browser, device, homeScreenApp }: PushEnvironment) {
   const subscribed = Boolean(subscription && ready && sameKey(subscription, ready.key))
   const state = pushStateOf({ device, homeScreenApp, supported: browser.supported, server: server.kind, permission, subscribed })
 
-  // 열쇠가 바뀐 옛 구독은 지우고 다시 만든다. 옛 구독이 있었다면 이미 허락했으므로 다시 묻지 않는다.
+  // 누른 동작 안에서 바로 구독한다. 열쇠가 바뀐 옛 구독은 대화상자를 열 때 이미 지웠으므로 여기서 기다릴 일이 없다.
   function enable() {
     if (!ready) return
     setEnableFailed(false)
     setTest({ kind: 'idle' })
-    const options = { userVisibleOnly: true as const, applicationServerKey: ready.key }
-    const stale = subscription && !sameKey(subscription, ready.key) ? subscription : null
-    const subscribing = stale ? stale.unsubscribe().then(() => ready.manager.subscribe(options)) : ready.manager.subscribe(options)
-    subscribing.then(next => {
+    ready.manager.subscribe({ userVisibleOnly: true, applicationServerKey: ready.key }).then(next => {
       setSubscription(next)
       setPermission(browser.permission())
     }, () => {

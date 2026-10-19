@@ -20,15 +20,21 @@ function subscriptionOf(key: Uint8Array, endpoint = 'https://fcm.googleapis.com/
   } satisfies BrowserSubscription
 }
 
+// 가짜 브라우저의 바뀔 수 있는 상태. subscribe가 이것을 받아, 허락 창의 결과대로 알림 허락을 바꿀 수 있다.
+type FakeBrowserState = { permission: NotificationPermission }
 type Options = { device?: PushEnvironment['device']; homeScreenApp?: boolean; supported?: boolean; permission?: NotificationPermission
-  existing?: BrowserSubscription | null; subscribe?: () => Promise<BrowserSubscription>; manager?: () => Promise<BrowserPushManager> }
+  existing?: BrowserSubscription | null; subscribe?: (state: FakeBrowserState) => Promise<BrowserSubscription>; manager?: () => Promise<BrowserPushManager> }
 
 function environment(options: Options = {}) {
-  let permission = options.permission ?? 'default'
-  const subscribe = vi.fn(options.subscribe ?? (async () => { permission = 'granted'; return subscriptionOf(keyBytes) }))
+  const state: FakeBrowserState = { permission: options.permission ?? 'default' }
+  const subscribe = vi.fn(async () => {
+    if (options.subscribe) return options.subscribe(state)
+    state.permission = 'granted'
+    return subscriptionOf(keyBytes)
+  })
   const browser: PushBrowser = {
     supported: options.supported ?? true,
-    permission: () => permission,
+    permission: () => state.permission,
     pushManager: options.manager ?? (async () => ({ getSubscription: async () => options.existing ?? null, subscribe })),
   }
   const env: PushEnvironment = { browser, device: options.device ?? 'android', homeScreenApp: options.homeScreenApp ?? false }
@@ -49,10 +55,11 @@ test('아이폰 사파리에서는 홈 화면에 추가하는 법을 보여 주�
   expect(api.calls).toEqual([])
 })
 
-test('알림 API가 없는 브라우저는 받을 수 없다고 알린다', () => {
-  mockApi()
+test('알림 API가 없는 브라우저는 받을 수 없다고 알리고 서버를 부르지 않는다', () => {
+  const api = mockApi()
   render(<PushSettingsBody environment={environment({ supported: false }).env} />)
   expect(screen.getByText('이 브라우저는 알림을 받을 수 없어요. Chrome이나 삼성 인터넷으로 열어 주세요.')).toBeTruthy()
+  expect(api.calls).toEqual([])
 })
 
 test('서버에 알림 열쇠가 없으면 아직 쓸 수 없다고 알린다', async () => {
@@ -98,14 +105,43 @@ test('거절했으면 기기별로 다시 켜는 곳을 알려 준다', async ()
   expect(await screen.findByText('알림이 꺼져 있어요. 설정 → 알림 → VADA에서 켜 주세요.')).toBeTruthy()
 })
 
-test('서버 열쇠가 바뀐 옛 구독은 켜기 전으로 보고, 켜면 지운 뒤 다시 구독한다', async () => {
+test('허락 창에서 거절해 구독이 실패하면 다시 누르게 두지 않고 꺼짐 안내로 바뀐다', async () => {
+  serverWithKey()
+  const { env } = environment({ device: 'ios', homeScreenApp: true, subscribe: async state => {
+    state.permission = 'denied'
+    throw new DOMException('denied', 'NotAllowedError')
+  } })
+  render(<PushSettingsBody environment={env} />)
+  fireEvent.click(await screen.findByRole('button', { name: '알림 켜기' }))
+  expect(await screen.findByText('알림이 꺼져 있어요. 설정 → 알림 → VADA에서 켜 주세요.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '알림 켜기' })).toBeNull()
+  expect(screen.queryByText('알림을 켜지 못했어요. 다시 눌러 주세요.')).toBeNull()
+})
+
+test('서버 열쇠가 바뀐 옛 구독은 열 때 지우고, 켜기는 누른 동작 안에서 새 열쇠로 바로 구독한다', async () => {
   serverWithKey()
   const old = subscriptionOf(Uint8Array.from([4, 9, 9, 9]))
   const { env, subscribe } = environment({ permission: 'granted', existing: old })
   render(<PushSettingsBody environment={env} />)
+  const enable = await screen.findByRole('button', { name: '알림 켜기' })
+  expect(old.unsubscribe).toHaveBeenCalledTimes(1)
+  expect(subscribe).not.toHaveBeenCalled()
+  fireEvent.click(enable)
+  // 아이폰은 누른 동작 안에서만 허락을 묻는다. 기다리지 않고 누른 바로 뒤에 확인한다.
+  expect(subscribe).toHaveBeenCalledTimes(1)
+  expect(subscribe).toHaveBeenCalledWith({ userVisibleOnly: true, applicationServerKey: keyBytes })
+  expect(old.unsubscribe).toHaveBeenCalledTimes(1)
+  expect(await screen.findByText('이 기기에서 알림을 받아요.')).toBeTruthy()
+})
+
+test('옛 구독을 지우지 못해도 켜기 전으로 보여 주고, 켜기는 바로 구독한다', async () => {
+  serverWithKey()
+  const old = subscriptionOf(Uint8Array.from([4, 9, 9, 9]))
+  old.unsubscribe.mockRejectedValue(new DOMException('failed', 'InvalidStateError'))
+  const { env, subscribe } = environment({ permission: 'granted', existing: old })
+  render(<PushSettingsBody environment={env} />)
   fireEvent.click(await screen.findByRole('button', { name: '알림 켜기' }))
-  await waitFor(() => expect(subscribe).toHaveBeenCalledTimes(1))
-  expect(old.unsubscribe).toHaveBeenCalled()
+  expect(subscribe).toHaveBeenCalledTimes(1)
   expect(await screen.findByText('이 기기에서 알림을 받아요.')).toBeTruthy()
 })
 
@@ -136,6 +172,17 @@ test('구독이 끝났으면 지우고 다시 켜게 한다', async () => {
   expect(await screen.findByText('이 기기의 알림 등록이 끝났어요. 알림을 다시 켜 주세요.')).toBeTruthy()
   expect(existing.unsubscribe).toHaveBeenCalled()
   expect(screen.getByRole('button', { name: '알림 켜기' })).toBeTruthy()
+})
+
+test('끝난 구독을 다시 켜면 끝났다는 안내가 사라진다', async () => {
+  const api = serverWithKey()
+  api.on('POST', '/api/me/push/test', () => json({ result: 'expired' }))
+  render(<PushSettingsBody environment={environment({ permission: 'granted', existing: subscriptionOf(keyBytes) }).env} />)
+  fireEvent.click(await screen.findByRole('button', { name: '시험 알림 보내기' }))
+  expect(await screen.findByText('이 기기의 알림 등록이 끝났어요. 알림을 다시 켜 주세요.')).toBeTruthy()
+  fireEvent.click(screen.getByRole('button', { name: '알림 켜기' }))
+  expect(screen.queryByText('이 기기의 알림 등록이 끝났어요. 알림을 다시 켜 주세요.')).toBeNull()
+  expect(await screen.findByText('이 기기에서 알림을 받아요.')).toBeTruthy()
 })
 
 test('알림 서버가 받지 않으면 그렇게 알린다', async () => {
