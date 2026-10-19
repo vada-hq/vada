@@ -52,7 +52,7 @@ function CouncilWorkspace({ council, councils, onSelect, user, logoutBusy, onLog
             <Button variant="outline" className="self-start" onClick={reload}>다시 시도</Button>
           </Card>
           : !view ? <StateMessage kind="loading">학생회 불러오는 중…</StateMessage>
-          : <People view={view} team={team} />}
+          : <People view={view} team={team} onCouncilChanged={reload} />}
       </main>
     </div>
   </div>

@@ -3,6 +3,7 @@ import { CalendarDays, Check, Copy, Ellipsis, Plus, Settings } from 'lucide-reac
 import { AuthCard } from '@/components/AuthCard'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
@@ -37,6 +38,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export default function Gallery() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [panelOpen, setPanelOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   return <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
     <h1 className="text-xl font-bold">VADA 부품</h1>
     <Section title="버튼">
@@ -117,6 +119,12 @@ export default function Gallery() {
           <div className="p-6 pt-14 text-sm text-gray-700">대화 링크의 상품 정보 패널</div>
         </SheetContent>
       </Sheet>
+    </Section>
+    <Section title="확인 대화상자">
+      <Button variant="outline" onClick={() => setConfirmOpen(true)}>확인 대화상자 열기</Button>
+      <ConfirmDialog open={confirmOpen} destructive title="박새내님을 내보낼까요?" error="저장하지 못했어요. 다시 시도해 주세요."
+        description="학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요."
+        confirmLabel="내보내기" onCancel={() => setConfirmOpen(false)} onConfirm={() => setConfirmOpen(false)} />
     </Section>
     <Section title="상태 문구">
       <StateMessage kind="loading">불러오는 중…</StateMessage><StateMessage kind="notice">저장했어요.</StateMessage>

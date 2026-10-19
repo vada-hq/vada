@@ -7,7 +7,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
 test('부품 확인 화면이 모든 부품 묶음을 보여 준다', () => {
   render(<Gallery />)
-  for (const name of ['버튼', '입력', '칩', '카드·배너', '메뉴·탭', '동작 메뉴', '빈 화면·아바타·로고', '대화상자·옆 메뉴', '상태 문구', '휴대폰 알림', '인증 카드',
+  for (const name of ['버튼', '입력', '칩', '카드·배너', '메뉴·탭', '동작 메뉴', '빈 화면·아바타·로고', '대화상자·옆 메뉴', '확인 대화상자', '상태 문구', '휴대폰 알림', '인증 카드',
     '카톡 안 로그인', '긴 글', '숨김']) {
     expect(screen.getByRole('heading', { level: 2, name })).toBeTruthy()
   }
@@ -66,4 +66,14 @@ test('동작 메뉴 예시는 키보드로 열고, 위험한 항목은 빨갛게
   const menu = await screen.findByRole('menu')
   expect(within(menu).getAllByRole('menuitem').map(item => item.textContent)).toEqual(['부서 배정', '부회장으로 두기', '내보내기'])
   expect(within(menu).getByRole('menuitem', { name: '내보내기' }).className).toContain('text-destructive')
+})
+
+test('확인 대화상자 예시는 빨간 확인 버튼과 오류 문구를 보이고, 취소로 닫는다', async () => {
+  render(<Gallery />)
+  fireEvent.click(screen.getByRole('button', { name: '확인 대화상자 열기' }))
+  const dialog = await screen.findByRole('dialog', { name: '박새내님을 내보낼까요?' })
+  expect(within(dialog).getByRole('button', { name: '내보내기' }).className).toContain('bg-destructive')
+  expect(within(dialog).getByRole('alert').textContent).toBe('저장하지 못했어요. 다시 시도해 주세요.')
+  fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 })

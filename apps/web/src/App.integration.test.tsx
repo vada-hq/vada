@@ -28,6 +28,8 @@ function councilsInSequence(...lists: MyCouncil[][]) {
 function openCouncil(id = 'c1', name = '컴퓨터학부 학생회') {
   api.on('GET', `/api/organizations/${id}`, () => json(councilView(id, { name })))
   api.on('GET', `/api/organizations/${id}/members`, () => json(teamResponse()))
+  // 회장단에게는 운영진 > 사람 위에 초대 링크가 보인다.
+  api.on('GET', `/api/organizations/${id}/invite`, () => json({ code: 'ABCD2345' }))
 }
 
 test('학생회가 없으면 초대 코드와 학생회 만들기를 보이고, 만들면 운영진 > 사람으로 간다', async () => {
