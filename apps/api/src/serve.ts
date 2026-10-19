@@ -31,6 +31,9 @@ import { createTaskRoutes } from './tasks/routes.js'
 import { createRetrospectiveGenerator } from './reports/generation.js'
 import { createReportRoutes } from './reports/routes.js'
 import { createHomeRoutes } from './home/routes.js'
+import { pushConfigFrom } from './push/config.js'
+import { createPushRoutes } from './push/routes.js'
+import { createPushSender } from './push/sender.js'
 
 function main() {
   const { env, production, hostname, port } = readRuntime(process.env, process.argv.includes('--production'))
@@ -71,6 +74,12 @@ function main() {
     createRetrospectiveGenerator({ apiKey: env.OPENAI_API_KEY, model: env.OPENAI_MODEL }))
   // 운영 현황(M6). 읽기만 한다.
   const home = createHomeRoutes(db, (headers) => auth.api.getSession({ headers }))
+  // 휴대폰 알림 열쇠는 서버에서만 쓴다. 없으면 알림 경로를 만들지 않는다.
+  const pushConfig = pushConfigFrom(env)
+  if (pushConfig) console.log('휴대폰 알림 켜짐 (Web Push)')
+  const push = pushConfig
+    ? createPushRoutes((headers) => auth.api.getSession({ headers }), pushConfig.publicKey, createPushSender(pushConfig))
+    : undefined
   // 마이그레이션·추적 실행기 준비 전에는 기존 서비스에 노출하지 않는다.
   const deliveries = env.DELIVERY_ENABLED === 'true' ? createDeliveryRoutes(db,
     headers => auth.api.getSession({ headers }),
@@ -78,7 +87,7 @@ function main() {
   ) : undefined
   const webhook = tracking ? createDeliveryWebhook(db, tracking.address) : undefined
   const app = createApp({ auth, trustedOrigin: env.BETTER_AUTH_URL!, access, events, chat, purchases, deliveries, expenses, settlement, budget, incomes,
-    registrations, fees, tasks, reports, home, organization, webhook })
+    registrations, fees, tasks, reports, home, push, organization, webhook })
   if (production) attachWeb(app)
   const server = serve({ fetch: app.fetch, hostname, port }, () => {
     console.log(`VADA ${production ? '웹 + API' : 'API'} 서버 시작 (port ${port})`)

@@ -10,7 +10,7 @@
 ## 새 API를 만들 때
 - 요청 본문 스키마는 `packages/contracts`에 zod `z.strictObject`로 정의한다. 문자열은 `text(max)`(사람이 쓰는 글) 또는 `token(max)`(식별자·키)로만 만들고, 모든 문자열·배열·숫자에 상한을 둔다.
 - 라우트에서는 `json(Schema)`(`apps/api/src/http/validate.ts`)를 인증 미들웨어보다 앞에 두고 `c.req.valid('json')`만 사용한다. `c.req.json()`을 직접 호출하지 않는다. `json()`은 `z.strictObject`가 아니면 서버 시작 시 실패한다.
-- 변경 라우트는 `/api/organizations/` 아래에 둔다. 출처·형식·크기 검사는 공통 가드(`apps/api/src/http/guard.ts`)가 맡으므로 라우트에서 다시 구현하지 않는다. 그 밖에 둘 수밖에 없는 라우트(외부 webhook 등)는 자체 검사를 두고 `boundary.test.ts`의 `outsideGuard`에 이유와 함께 적는다.
+- 변경 라우트는 `/api/organizations/` 아래에 둔다. 로그인한 사람 자신의 것(휴대폰 알림)은 `/api/me/` 아래에 둔다. 출처·형식·크기 검사는 두 곳 모두 공통 가드(`apps/api/src/http/guard.ts`)가 맡으므로 라우트에서 다시 구현하지 않는다. 그 밖에 둘 수밖에 없는 라우트(외부 webhook 등)는 자체 검사를 두고 `boundary.test.ts`의 `outsideGuard`에 이유와 함께 적는다.
 - 로그인 없이 쓰는 공개 변경 라우트(참가 신청)는 `/api/public/` 아래에 둔다. 공통 가드가 같이 걸리고 `boundary.test.ts`가 같이 검사한다. 개인 링크 토큰은 경로에 넣지 않고 본문으로 받으며, 화면 주소에서는 `#` 뒤에 둔다.
 - 본문이 32KB보다 큰 경로(학생회비 명단)는 `guard.ts`의 `bodyLimitOf`에 더한다. 라우트에서 크기를 따로 다루지 않는다.
 - 새 라우트 모듈은 `createApp`의 `AppOptions`로만 연결한다. 그래야 경계 테스트가 빠짐없이 검사한다.
@@ -41,6 +41,7 @@
 ## 로그·비밀
 - 로그와 응답에 요청 본문, 오류 메시지 원문, DB 값, 비밀 값을 넣지 않는다.
 - 서버 쪽 실패(예상하지 못한 500, 5xx)는 `apps/api/src/http/on-error.ts`가 로그와 Sentry(`SENTRY_DSN`이 있을 때)에 함께 보낸다. Sentry를 직접 호출하지 않는다. 보내기 전 정제는 `http/sentry.ts`의 `scrubEvent`가 맡는다.
+- 휴대폰 알림의 구독 주소(endpoint)는 기기를 가리키는 비밀 주소다. 로그와 응답에 넣지 않는다.
 - `.env`는 읽거나 출력하지 않는다.
 
 ## 실행 환경

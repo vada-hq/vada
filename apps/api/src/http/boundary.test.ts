@@ -22,11 +22,12 @@ import { createFeeRoutes } from '../fees/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
 import { createReportRoutes } from '../reports/routes.js'
 import { createHomeRoutes } from '../home/routes.js'
+import { createPushRoutes } from '../push/routes.js'
 import { bodyLimitOf, MAX_BODY_BYTES } from './guard.js'
 import { json } from './validate.js'
 
-// 공통 가드가 거는 곳: 로그인한 구성원의 경로와 로그인 없이 쓰는 공개 경로
-const guarded = ['/api/organizations/', '/api/public/']
+// 공통 가드가 거는 곳: 로그인한 구성원의 경로, 로그인한 사람 자신의 경로(휴대폰 알림), 로그인 없이 쓰는 공개 경로
+const guarded = ['/api/organizations/', '/api/me/', '/api/public/']
 const isGuarded = (path: string) => guarded.some(prefix => path.startsWith(prefix))
 // 공통 가드 밖의 변경 라우트. 새 항목은 가드를 대신할 자체 검사가 있어야 한다.
 const outsideGuard = new Map([
@@ -59,6 +60,7 @@ test('모든 변경 라우트는 출처·형식·크기·JSON·모르는 키를 
       tasks: createTaskRoutes(db, session),
       reports: createReportRoutes(db, session, async () => ({ wentWell: [], shortfalls: [], nextTime: [], questions: [] })),
       home: createHomeRoutes(db, session),
+      push: createPushRoutes(session, 'PUBLIC', async () => 'sent', async () => {}),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })

@@ -18,6 +18,7 @@ import { createSettlementRoutes } from '../settlement/routes.js'
 import { createTaskRoutes } from '../tasks/routes.js'
 import { createReportRoutes } from '../reports/routes.js'
 import { createHomeRoutes } from '../home/routes.js'
+import { createPushRoutes } from '../push/routes.js'
 import { createEventRoutes } from './events.js'
 
 const readOnly = new Set(['GET', 'HEAD', 'OPTIONS'])
@@ -71,6 +72,7 @@ test('완료한 행사는 행사 아래 모든 변경 라우트와 행사 기록
       registrations: createRegistrationRoutes(db, session), fees: createFeeRoutes(db, session), tasks: createTaskRoutes(db, session),
       reports: createReportRoutes(db, session, async () => ({ wentWell: [], shortfalls: [], nextTime: [], questions: [] })),
       home: createHomeRoutes(db, session),
+      push: createPushRoutes(session, 'PUBLIC', async () => 'sent', async () => {}),
       webhook: createDeliveryWebhook(db, createCallbackAddress('https://vada.test', 'k'.repeat(32))),
     } satisfies Required<Omit<AppOptions, 'auth' | 'trustedOrigin'>>
     const app = createApp({ auth: { handler: async () => new Response() }, trustedOrigin: origin, ...modules })
