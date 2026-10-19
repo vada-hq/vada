@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 import fc from 'fast-check'
 import { z } from 'zod'
-import { codePoints, isStrictObject, text, token } from './input.js'
+import { codePoints, isStrictObject, isUuid, text, token } from './input.js'
 // 홀로 쓰인 서러게이트까지 만들도록 UTF-16 코드 단위를 직접 뽑는다.
 const anyText = fc.string({
   unit: fc.integer({ min: 0, max: 0xffff }).map(n => String.fromCharCode(n)),
@@ -60,4 +60,20 @@ test('isStrictObject: 모르는 키를 거부하는 z.strictObject만 참이다'
   ]) {
     assert.equal(isStrictObject(schema), false)
   }
+})
+
+test('isUuid: 8-4-4-4-12 자리 16진수만 통과하고, 대소문자는 가리지 않는다', () => {
+  assert.equal(isUuid('0199f2a0-1b2c-7d3e-8f40-0123456789ab'), true)
+  assert.equal(isUuid('0199F2A0-1B2C-7D3E-8F40-0123456789AB'), true)
+  for (const value of [
+    '',
+    'not-a-uuid',
+    '0199f2a0-1b2c-7d3e-8f40-0123456789a',
+    '0199f2a0-1b2c-7d3e-8f40-0123456789abc',
+    '0199f2a01b2c7d3e8f400123456789ab',
+    '0199f2a0-1b2c-7d3e-8f40-0123456789ag',
+    ' 0199f2a0-1b2c-7d3e-8f40-0123456789ab',
+    '0199f2a0-1b2c-7d3e-8f40-0123456789ab\n',
+  ])
+    assert.equal(isUuid(value), false, JSON.stringify(value))
 })

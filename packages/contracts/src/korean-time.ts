@@ -19,3 +19,5 @@ export const koreanOf = (date: Date) =>
     .toLocaleString('sv-SE', { timeZone: 'Asia/Seoul', hourCycle: 'h23' })
     .slice(0, 16)
     .replace(' ', 'T')
+// 한국 날짜(YYYY-MM-DD). 서버 시간대(Render는 UTC)와 기기의 시간대와 상관없이 같은 날을 쓴다.
+export const koreanDateOf = (date: Date) => koreanOf(date).slice(0, 10)

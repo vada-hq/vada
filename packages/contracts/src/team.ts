@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { text, token } from './input.js'
+import { isUuid, text, token } from './input.js'
 import {
   DEPARTMENT_RANKS,
   DEPARTMENT_ROLES,
@@ -9,9 +9,8 @@ import {
 } from './permissions.js'
 
 // 본문으로 받는 기록 번호(부서, 넘겨받을 운영진). uuid가 아니면 400이다. 소문자로 맞춘다.
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 export const recordIdInput = token(36)
-  .refine(value => uuid.test(value))
+  .refine(isUuid)
   .transform(value => value.toLowerCase())
 
 // 운영진 목록의 한 줄. 들어온 순서와 시각을 보인다(DEC-47). 이메일은 보이지 않는다(바탕 spec G12).

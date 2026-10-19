@@ -7,6 +7,10 @@ const nulOrLoneSurrogate = /[\u0000\uD800-\uDFFF]/u
 // oxlint-disable-next-line no-control-regex -- 입력에서 제어 문자를 거르는 것이 이 식의 목적이다
 const control = /[\u0000-\u001f\u007f\uD800-\uDFFF]/u
 
+// 기록 번호(uuid) 형식. 서버의 경로 번호 검사와 본문 번호 검사가 같이 쓴다.
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+export const isUuid = (value: string) => uuid.test(value)
+
 // 사람이 쓰는 글. 줄바꿈은 허용하고 DB가 거부하는 NUL과 깨진 문자는 막는다.
 export const text = (max: number) =>
   z
