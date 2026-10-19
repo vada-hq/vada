@@ -42,6 +42,28 @@ test('내용을 못 읽어도 알림은 띄우고, 다른 사이트 주소는 �
   expect(calls.map(call => (call[1] as { data: { url: string } }).data.url)).toEqual(['/', '/', '/', '/'])
 })
 
+test('본문이 객체가 아니어도(null·숫자·글자) 알림은 띄운다', async () => {
+  const { self, fire } = load()
+  for (const payload of [null, 7, 'text']) await fire('push', { data: { json: () => payload } })
+  const calls = self.registration.showNotification.mock.calls
+  expect(calls.map(call => call[0])).toEqual(['VADA', 'VADA', 'VADA'])
+  expect(calls.map(call => (call[1] as { data: { url: string } }).data.url)).toEqual(['/', '/', '/'])
+})
+
+test('역슬래시로 다른 사이트를 가리키는 주소도 맨 앞 화면으로 바꾼다', async () => {
+  const { self, fire } = load()
+  await fire('push', { data: { json: () => ({ title: 'x', body: 'y', url: '/\\evil.test/x' }) } })
+  expect(self.registration.showNotification).toHaveBeenCalledWith('x',
+    { body: 'y', data: { url: '/' }, icon: '/icons/icon-192.png', lang: 'ko' })
+})
+
+test('점 경로를 앞세워 //로 시작하게 만든 주소도 맨 앞 화면으로 바꾼다', async () => {
+  const { self, fire } = load()
+  await fire('push', { data: { json: () => ({ title: 'x', body: 'y', url: '/.//evil.test/x' }) } })
+  expect(self.registration.showNotification).toHaveBeenCalledWith('x',
+    { body: 'y', data: { url: '/' }, icon: '/icons/icon-192.png', lang: 'ko' })
+})
+
 test('알림을 누르면 열린 VADA 창을 앞으로 가져와 그 주소로 보낸다', async () => {
   const window: Client = { url: 'https://vada.test/', focus: vi.fn(async () => window), navigate: vi.fn(async () => window) }
   const { self, fire } = load([window])
@@ -56,6 +78,20 @@ test('알림을 누르면 열린 VADA 창을 앞으로 가져와 그 주소로 �
 test('열린 창이 없으면 새로 연다', async () => {
   const { self, fire } = load()
   await fire('notificationclick', { notification: { close: vi.fn(), data: { url: '/' } } })
+  expect(self.clients.openWindow).toHaveBeenCalledWith('https://vada.test/')
+})
+
+test('알림에 다른 사이트로 풀리는 주소가 들어 있어도 눌렀을 때 VADA 맨 앞 화면을 연다', async () => {
+  const { self, fire } = load()
+  await fire('notificationclick', { notification: { close: vi.fn(), data: { url: '/\\evil.test/x' } } })
+  expect(self.clients.openWindow).toHaveBeenCalledTimes(1)
+  expect(self.clients.openWindow).toHaveBeenCalledWith('https://vada.test/')
+})
+
+test('알림에 점 경로로 //를 만든 주소가 들어 있어도 눌렀을 때 VADA 맨 앞 화면을 연다', async () => {
+  const { self, fire } = load()
+  await fire('notificationclick', { notification: { close: vi.fn(), data: { url: '/.//evil.test/x' } } })
+  expect(self.clients.openWindow).toHaveBeenCalledTimes(1)
   expect(self.clients.openWindow).toHaveBeenCalledWith('https://vada.test/')
 })
 
