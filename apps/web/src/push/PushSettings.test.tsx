@@ -184,3 +184,25 @@ test('종 버튼을 눌러야 대화상자를 열고, 그 전에는 서버를 �
   expect(await screen.findByRole('dialog', { name: '휴대폰 알림' })).toBeTruthy()
   api.assertNoUnexpectedRequests()
 })
+
+// jsdom에는 알림 API가 없어 위 테스트의 훅은 열든 닫든 서버를 부르지 않는다. browserPush()가 보는 세 가지를 갖춰 알림이 가능한 브라우저로 꾸민다.
+test('알림이 가능한 브라우저에서도 열기 전에는 서버를 부르지 않고, 열면 한 번 부른다', async () => {
+  const api = mockApi()
+  api.on('GET', '/api/me/push', () => json({ error: 'NOT_FOUND' }, 404))
+  Object.defineProperty(navigator, 'serviceWorker', { value: {}, configurable: true })
+  vi.stubGlobal('PushManager', class {})
+  vi.stubGlobal('Notification', { permission: 'default' })
+  try {
+    // 사이드바는 데스크톱 aside와 휴대폰 옆 메뉴에서 두 번 그려진다.
+    render(<PushSettingsButton />)
+    render(<PushSettingsButton />)
+    expect(api.calls).toEqual([])
+    fireEvent.click(screen.getAllByRole('button', { name: '휴대폰 알림' })[0]!)
+    expect(await screen.findByText('아직 알림을 쓸 수 없어요.')).toBeTruthy()
+    expect(api.calls.map(call => `${call.method} ${call.path}`)).toEqual(['GET /api/me/push'])
+    api.assertNoUnexpectedRequests()
+  } finally {
+    // defineProperty로 단 것은 vi.unstubAllGlobals()가 돌려놓지 못한다.
+    delete (navigator as unknown as Record<string, unknown>).serviceWorker
+  }
+})
