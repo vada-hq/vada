@@ -15,13 +15,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { postJson } from '@/lib/api'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 
 type Form = 'council' | 'cohort'
 type Message = { form: Form; kind: 'notice' | 'error'; text: string }
 const errors: Record<string, string> = {
   COHORT_NOT_CURRENT:
     '기간에 오늘이 들어 있어야 해요. 그렇지 않으면 모든 운영진이 학생회를 열 수 없어요.',
-  FORBIDDEN: '권한이 바뀌었어요. 화면을 새로 불러왔어요.',
+  FORBIDDEN: PERMISSION_CHANGED,
 }
 const failure = '저장하지 못했어요. 다시 시도해 주세요.'
 const titleFields = [

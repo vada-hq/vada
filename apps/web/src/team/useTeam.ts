@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { TeamResponse } from '@vada/contracts'
 import { getJson, postJson } from '@/lib/api'
+import { useLatest } from '@/lib/use-latest'
 
 // 운영진과 부서 목록(운영진 > 사람, 부서가 같이 쓴다). onForbidden은 권한이나 소속이 바뀌었을 때 학생회를 다시 읽게 한다.
 export function useTeam(councilId: string, onForbidden: () => void) {
@@ -10,11 +11,7 @@ export function useTeam(councilId: string, onForbidden: () => void) {
   const [attempt, setAttempt] = useState(0)
   const [saving, setSaving] = useState(false)
   const active = useRef(true)
-  // 부르는 쪽이 매번 새 함수를 넘겨도 다시 불러오지 않도록 마지막 함수만 기억한다.
-  const forbidden = useRef(onForbidden)
-  useEffect(() => {
-    forbidden.current = onForbidden
-  })
+  const forbidden = useLatest(onForbidden)
   // 개발 모드(StrictMode)는 effect를 정리했다 다시 실행한다. 다시 실행될 때 true로 돌려놓는다.
   useEffect(() => {
     active.current = true
@@ -32,7 +29,7 @@ export function useTeam(councilId: string, onForbidden: () => void) {
       setLoadFailed(true)
     })
     return () => controller.abort()
-  }, [base, attempt])
+  }, [base, attempt, forbidden])
 
   // 회장단의 변경은 목록 전체를 돌려준다. 성공하면 null을, 실패하면 오류 코드를 돌려준다.
   // 권한이 바뀌었으면(403) 학생회를 다시 읽고, 화면이 오래됐으면(403, 404) 목록도 다시 읽는다.

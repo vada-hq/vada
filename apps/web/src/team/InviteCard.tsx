@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Copy, RefreshCw } from 'lucide-react'
 import type { InviteCodeResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
@@ -7,6 +7,8 @@ import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { getJson, postJson } from '@/lib/api'
+import { PERMISSION_CHANGED } from '@/lib/messages'
+import { useLatest } from '@/lib/use-latest'
 import { inviteLink } from '../councils/invite-path'
 
 type Notice = 'copied' | 'copy-failed' | 'rotated' | 'failed' | 'forbidden' | null
@@ -15,7 +17,7 @@ const notices: Record<Exclude<Notice, null>, { kind: 'notice' | 'error'; text: s
   'copy-failed': { kind: 'error', text: '복사하지 못했어요. 링크를 직접 선택해 복사해 주세요.' },
   rotated: { kind: 'notice', text: '코드를 바꿨어요. 옛 링크로는 이제 들어올 수 없어요.' },
   failed: { kind: 'error', text: '코드를 바꾸지 못했어요. 다시 시도해 주세요.' },
-  forbidden: { kind: 'error', text: '권한이 바뀌었어요. 화면을 새로 불러왔어요.' },
+  forbidden: { kind: 'error', text: PERMISSION_CHANGED },
 }
 const loadErrors = { forbidden: notices.forbidden.text, failed: '초대 링크를 불러오지 못했어요.' }
 
@@ -35,11 +37,7 @@ export default function InviteCard({
   const [attempt, setAttempt] = useState(0)
   const [rotating, setRotating] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
-  // 부르는 쪽이 매번 새 함수를 넘겨도 다시 불러오지 않도록 마지막 함수만 기억한다.
-  const forbidden = useRef(onForbidden)
-  useEffect(() => {
-    forbidden.current = onForbidden
-  })
+  const forbidden = useLatest(onForbidden)
   useEffect(() => {
     const controller = new AbortController()
     setLoadError(null)
@@ -50,7 +48,7 @@ export default function InviteCard({
       setLoadError(result.status === 403 ? 'forbidden' : 'failed')
     })
     return () => controller.abort()
-  }, [base, attempt])
+  }, [base, attempt, forbidden])
 
   async function copy(link: string) {
     try {

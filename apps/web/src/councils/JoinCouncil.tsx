@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { InvitePreviewResponse, JoinCouncilResponse } from '@vada/contracts'
 import StateMessage from '@/components/StateMessage'
 import { Button } from '@/components/ui/button'
 import { getJson, postJson } from '@/lib/api'
+import { EMAIL_IN_USE } from '@/lib/messages'
+import { useLatest } from '@/lib/use-latest'
 
 type Props = {
   code: string
@@ -17,7 +19,7 @@ type View =
   | { kind: 'ready'; council: InvitePreviewResponse['council'] }
 const errors: Record<string, string> = {
   NO_CURRENT_COHORT: '지금 들어갈 수 있는 기수가 없어요. 학생회 회장단에게 알려 주세요.',
-  EMAIL_IN_USE: '이 Google 계정의 이메일을 다른 계정이 쓰고 있어요. 다른 계정으로 로그인해 주세요.',
+  EMAIL_IN_USE,
 }
 
 // 초대 링크(/join/코드): "OOO에 들어갈까요?" [들어가기]. 이미 들어왔으면 묻지 않고 그 학생회를 연다(바탕 spec '화면').
@@ -26,11 +28,7 @@ export default function JoinCouncil({ code, leaveLabel, onJoined, onLeave }: Pro
   const [attempt, setAttempt] = useState(0)
   const [joining, setJoining] = useState(false)
   const [error, setError] = useState('')
-  // 부르는 쪽이 매번 새 함수를 넘겨도 다시 불러오지 않도록 마지막 함수만 기억한다.
-  const joined = useRef(onJoined)
-  useEffect(() => {
-    joined.current = onJoined
-  })
+  const joined = useLatest(onJoined)
   useEffect(() => {
     const controller = new AbortController()
     setView({ kind: 'loading' })
@@ -44,7 +42,7 @@ export default function JoinCouncil({ code, leaveLabel, onJoined, onLeave }: Pro
       else setView({ kind: 'ready', council: result.data.council })
     })
     return () => controller.abort()
-  }, [code, attempt])
+  }, [code, attempt, joined])
 
   async function join() {
     setJoining(true)

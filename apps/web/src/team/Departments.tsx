@@ -21,6 +21,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 import { useReveal } from '@/lib/use-reveal'
 import { useMenuFocus } from './use-menu-focus'
 import type { Team } from './useTeam'
@@ -28,7 +29,7 @@ import type { Team } from './useTeam'
 const errors: Record<string, string> = {
   DEPARTMENT_NAME_TAKEN: '같은 이름의 부서가 있어요.',
   DEPARTMENT_IN_USE: '부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.',
-  FORBIDDEN: '권한이 바뀌었어요. 화면을 새로 불러왔어요.',
+  FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: '이미 바뀌었어요. 목록을 새로 불러왔어요.',
 }
 const failure = '저장하지 못했어요. 다시 시도해 주세요.'

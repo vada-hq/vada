@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { postJson } from '@/lib/api'
+import { EMAIL_IN_USE } from '@/lib/messages'
 import { endsBeforeStart, TERM_ORDER_MESSAGE } from './term'
 
 export const unitLabels: Record<CouncilUnit, string> = {
@@ -22,7 +23,7 @@ export const unitLabels: Record<CouncilUnit, string> = {
 }
 const errors: Record<string, string> = {
   COHORT_NOT_CURRENT: '임기에 오늘이 들어 있어야 해요. 기간을 확인해 주세요.',
-  EMAIL_IN_USE: '이 Google 계정의 이메일을 다른 계정이 쓰고 있어요. 다른 계정으로 로그인해 주세요.',
+  EMAIL_IN_USE,
 }
 
 type Props = { onCreated: (council: MyCouncil) => void; onCancel: () => void }

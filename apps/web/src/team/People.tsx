@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '@/components/ui/menu'
+import { PERMISSION_CHANGED } from '@/lib/messages'
 import { useReveal } from '@/lib/use-reveal'
 import InviteCard from './InviteCard'
 import MemberDepartmentsDialog from './MemberDepartmentsDialog'
@@ -20,7 +21,7 @@ const errors: Record<string, string> = {
   CANNOT_REMOVE_SELF: '나를 내보낼 수는 없어요.',
   PRESIDENT_REQUIRED: '회장의 직급은 회장 넘기기로만 바꿀 수 있어요.',
   ALREADY_PRESIDENT: '이미 회장이에요.',
-  FORBIDDEN: '권한이 바뀌었어요. 화면을 새로 불러왔어요.',
+  FORBIDDEN: PERMISSION_CHANGED,
   NOT_FOUND: '이미 바뀌었어요. 목록을 새로 불러왔어요.',
 }
 const failure = '저장하지 못했어요. 다시 시도해 주세요.'
