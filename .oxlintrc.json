@@ -1,0 +1,82 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "unicorn", "oxc", "react"],
+  "categories": { "correctness": "error" },
+  "options": { "typeAware": true },
+  "env": { "builtin": true, "es2024": true },
+  "ignorePatterns": ["**/dist/**", "**/coverage/**", ".superpowers/**", "docs/**", "apps/api/migrations/**"],
+  "rules": {
+    "typescript/ban-ts-comment": "error",
+    "no-array-constructor": "error",
+    "typescript/no-duplicate-enum-values": "error",
+    "typescript/no-empty-object-type": "error",
+    "typescript/no-explicit-any": "error",
+    "typescript/no-extra-non-null-assertion": "error",
+    "typescript/no-misused-new": "error",
+    "typescript/no-namespace": "error",
+    "typescript/no-non-null-asserted-optional-chain": "error",
+    "typescript/no-require-imports": "error",
+    "typescript/no-this-alias": "error",
+    "typescript/no-unnecessary-type-constraint": "error",
+    "typescript/no-unsafe-declaration-merging": "error",
+    "typescript/no-unsafe-function-type": "error",
+    "no-unused-expressions": "error",
+    "no-unused-vars": "error",
+    "typescript/no-wrapper-object-types": "error",
+    "typescript/prefer-as-const": "error",
+    "typescript/prefer-namespace-keyword": "error",
+    "typescript/triple-slash-reference": "error",
+    "react/rules-of-hooks": "error",
+    "react/exhaustive-deps": "error"
+  },
+  "overrides": [
+    {
+      "files": ["**/*.ts", "**/*.tsx"],
+      "rules": {
+        "typescript/await-thenable": "error",
+        "typescript/no-array-delete": "error",
+        "typescript/no-base-to-string": "error",
+        "typescript/no-duplicate-type-constituents": "error",
+        "typescript/no-floating-promises": "error",
+        "typescript/no-for-in-array": "error",
+        "typescript/no-implied-eval": "error",
+        "typescript/no-misused-promises": "error",
+        "typescript/no-redundant-type-constituents": "error",
+        "typescript/no-unnecessary-type-assertion": "error",
+        "typescript/no-unsafe-argument": "error",
+        "typescript/no-unsafe-assignment": "error",
+        "typescript/no-unsafe-call": "error",
+        "typescript/no-unsafe-enum-comparison": "error",
+        "typescript/no-unsafe-member-access": "error",
+        "typescript/no-unsafe-return": "error",
+        "typescript/no-unsafe-unary-minus": "error",
+        "typescript/only-throw-error": "error",
+        "typescript/prefer-promise-reject-errors": "error",
+        "typescript/require-await": "error",
+        "typescript/restrict-plus-operands": "error",
+        "typescript/restrict-template-expressions": "error",
+        "typescript/unbound-method": "error"
+      }
+    },
+    {
+      "files": ["apps/web/src/components/**"],
+      "rules": {
+        "no-restricted-imports": ["error", { "patterns": [
+          { "group": ["@/lib/api", "**/lib/api", "**/auth-client", "**/push-client"], "message": "src/components는 표시용 부품이다. API 호출은 기능 폴더에 둔다(AGENTS.md 화면)." }
+        ] }]
+      }
+    },
+    {
+      "files": ["apps/api/**"],
+      "rules": {
+        "no-restricted-imports": ["error", { "paths": [
+          { "name": "@sentry/node", "message": "Sentry는 http/on-error.ts와 http/sentry.ts만 쓴다(AGENTS.md 로그·비밀)." }
+        ] }]
+      }
+    },
+    {
+      "files": ["apps/api/src/http/sentry.ts", "apps/api/src/http/sentry.test.ts"],
+      "rules": { "no-restricted-imports": "off" }
+    }
+  ]
+}
