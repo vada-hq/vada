@@ -1,21 +1,16 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { fileURLToPath } from 'node:url'
-import { PGlite } from '@electric-sql/pglite'
-import { drizzle } from 'drizzle-orm/pglite'
-import { migrate } from 'drizzle-orm/pglite/migrator'
 import { makeSignature } from 'better-auth/crypto'
 import { createApp } from '../app.js'
+import { createTestDb } from '../db/test-db.js'
 import { createPushRoutes } from '../push/routes.js'
 import { createAuth } from './auth.js'
 
 test('auth routes use the existing schema without external services', async (t) => {
-  const pg = new PGlite()
+  const { pg, db, close } = await createTestDb()
   const secret = 'local-test-only-secret-0123456789-ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const baseURL = 'http://127.0.0.1:5180'
   try {
-    const db = drizzle(pg)
-    await migrate(db, { migrationsFolder: fileURLToPath(new URL('../../migrations', import.meta.url)) })
     const auth = createAuth(db, { secret, baseURL, googleClientId: 'test-client', googleClientSecret: 'test-secret' })
     // 로그인한 사람만 쓰는 경로(휴대폰 알림 열쇠)로 세션 확인을 본다.
     const push = createPushRoutes((headers) => auth.api.getSession({ headers }), 'PUBLIC', async () => ({ result: 'sent' }), async () => {})
@@ -108,6 +103,6 @@ test('auth routes use the existing schema without external services', async (t) 
       assert.equal(rows.rows.length, 0)
     })
   } finally {
-    await pg.close()
+    await close()
   }
 })

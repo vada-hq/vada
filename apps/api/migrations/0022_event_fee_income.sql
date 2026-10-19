@@ -1,4 +1,0 @@
-ALTER TABLE "incomes" ADD COLUMN "event_id" text;--> statement-breakpoint
-ALTER TABLE "incomes" ADD CONSTRAINT "incomes_event_same_organization" FOREIGN KEY ("organization_id","event_id") REFERENCES "public"."events"("organization_id","id") ON DELETE restrict ON UPDATE no action;--> statement-breakpoint
-CREATE UNIQUE INDEX "incomes_event_active_unique" ON "incomes" USING btree ("event_id") WHERE "incomes"."event_id" IS NOT NULL AND "incomes"."voided_at" IS NULL;--> statement-breakpoint
-ALTER TABLE "incomes" ADD CONSTRAINT "incomes_single_source" CHECK ("incomes"."carried_from_period_id" IS NULL OR "incomes"."event_id" IS NULL);

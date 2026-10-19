@@ -1,1 +1,0 @@
-DROP TABLE "event_reports" CASCADE;

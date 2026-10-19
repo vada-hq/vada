@@ -1,2 +1,0 @@
-ALTER TABLE "shipments" ADD COLUMN "tracking_version" integer DEFAULT 1 NOT NULL;--> statement-breakpoint
-ALTER TABLE "shipments" ADD CONSTRAINT "shipments_tracking_version_positive" CHECK ("shipments"."tracking_version" > 0);
