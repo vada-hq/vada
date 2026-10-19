@@ -1,8 +1,9 @@
-import { useState, type ReactNode } from 'react'
-import { CalendarDays, Copy, Plus } from 'lucide-react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { CalendarDays, Check, Copy, Ellipsis, Plus, Settings } from 'lucide-react'
 import { AuthCard } from '@/components/AuthCard'
 import { Avatar } from '@/components/Avatar'
 import { BrandMark } from '@/components/BrandMark'
+import { ConfirmDialog } from '@/components/ConfirmDialog'
 import { EmptyState } from '@/components/EmptyState'
 import StateMessage from '@/components/StateMessage'
 import { Alert } from '@/components/ui/alert'
@@ -12,6 +13,7 @@ import { Card } from '@/components/ui/card'
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from '@/components/ui/menu'
 import { NativeSelect } from '@/components/ui/native-select'
 import { NavItem } from '@/components/ui/nav-item'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
@@ -36,6 +38,15 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 export default function Gallery() {
   const [sheetOpen, setSheetOpen] = useState(false)
   const [panelOpen, setPanelOpen] = useState(false)
+  // 확인 대화상자의 세 모양: 위험한 동작(빨간 확인 버튼과 오류 문구), 일반 동작(파란 확인 버튼), 보내는 중(두 버튼이 꺼지고 닫히지 않음).
+  const [confirmKind, setConfirmKind] = useState<'destructive' | 'normal' | 'busy' | null>(null)
+  // 보내는 중 예시는 닫히지 않으므로 실제 응답이 오듯 잠시 뒤 저절로 닫는다.
+  useEffect(() => {
+    if (confirmKind !== 'busy') return
+    const timer = setTimeout(() => setConfirmKind(null), 1500)
+    return () => clearTimeout(timer)
+  }, [confirmKind])
+  const closeConfirm = () => setConfirmKind(null)
   return <main className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
     <h1 className="text-xl font-bold">VADA 부품</h1>
     <Section title="버튼">
@@ -72,10 +83,30 @@ export default function Gallery() {
         <TabButton aria-selected>대화</TabButton><TabButton aria-selected={false}>구매요청</TabButton>
       </div>
     </Section>
+    <Section title="동작 메뉴">
+      <Menu>
+        <MenuTrigger asChild><Button variant="outline">학생회 메뉴 열기</Button></MenuTrigger>
+        <MenuContent align="start">
+          <MenuLabel>학생회 고르기</MenuLabel>
+          <MenuItem><Check aria-hidden />컴퓨터학부 학생회</MenuItem>
+          <MenuItem><span aria-hidden className="size-4 shrink-0" />{longName}</MenuItem>
+          <MenuSeparator />
+          <MenuItem><Settings aria-hidden />설정</MenuItem>
+        </MenuContent>
+      </Menu>
+      <Menu>
+        <MenuTrigger asChild><Button variant="ghost" size="icon" aria-label="운영진 동작 예시"><Ellipsis /></Button></MenuTrigger>
+        <MenuContent>
+          <MenuItem>부서 배정</MenuItem>
+          <MenuItem>부회장으로 두기</MenuItem>
+          <MenuItem destructive>내보내기</MenuItem>
+        </MenuContent>
+      </Menu>
+    </Section>
     <Section title="빈 화면·아바타·로고">
       <Card className="w-96"><EmptyState icon={CalendarDays} title="행사를 선택해 주세요" description="왼쪽에서 행사를 선택하거나 새 행사를 만들어 대화를 시작하세요." /></Card>
       <div className="flex items-center gap-2"><Avatar /><span className="text-xs font-medium text-gray-700">박해랑</span></div>
-      <div className="flex items-center gap-2"><BrandMark /><span className="text-base font-semibold">VADA M1</span></div>
+      <div className="flex items-center gap-2"><BrandMark /><span className="text-base font-semibold">VADA</span></div>
     </Section>
     <Section title="대화상자·옆 메뉴">
       <Dialog>
@@ -97,6 +128,20 @@ export default function Gallery() {
         </SheetContent>
       </Sheet>
     </Section>
+    <Section title="확인 대화상자">
+      <Button variant="outline" onClick={() => setConfirmKind('destructive')}>확인 대화상자 열기</Button>
+      <Button variant="outline" onClick={() => setConfirmKind('normal')}>일반 확인 대화상자 열기</Button>
+      <Button variant="outline" onClick={() => setConfirmKind('busy')}>보내는 중 확인 대화상자 열기</Button>
+      <ConfirmDialog open={confirmKind === 'destructive'} destructive title="박새내님을 내보낼까요?" error="저장하지 못했어요. 다시 시도해 주세요."
+        description="학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요."
+        confirmLabel="내보내기" onCancel={closeConfirm} onConfirm={closeConfirm} />
+      <ConfirmDialog open={confirmKind === 'normal'} title="이재정님에게 회장 직급을 넘길까요?"
+        description="넘기면 나는 직급이 없어지고, 회장만 하던 일은 넘겨받은 사람이 해요."
+        confirmLabel="넘기기" onCancel={closeConfirm} onConfirm={closeConfirm} />
+      <ConfirmDialog open={confirmKind === 'busy'} destructive busy title="박새내님을 내보낼까요?"
+        description="학생회 소속과 부서 소속이 함께 끝나요. 초대 링크로 다시 들어올 수 있지만, 부서와 직급은 다시 정해야 해요."
+        confirmLabel="내보내기" onCancel={closeConfirm} onConfirm={closeConfirm} />
+    </Section>
     <Section title="상태 문구">
       <StateMessage kind="loading">불러오는 중…</StateMessage><StateMessage kind="notice">저장했어요.</StateMessage>
       <StateMessage kind="empty">아직 대화가 없어요.</StateMessage><StateMessage kind="error">연결을 확인해 주세요.</StateMessage>
@@ -108,7 +153,7 @@ export default function Gallery() {
     </Section>
     <Section title="인증 카드">
       <AuthCard>
-        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA M1</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
+        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
         <div className="flex flex-col gap-3">
           <Alert tone="info">학생회 초대 링크로 들어왔어요. 로그인하면 참여할 수 있어요.</Alert>
           <p className="text-sm text-gray-500">Google 계정으로 로그인해 주세요.</p>
@@ -118,7 +163,7 @@ export default function Gallery() {
     </Section>
     <Section title="카톡 안 로그인">
       <AuthCard>
-        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA M1</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
+        <div className="flex flex-wrap items-center gap-2"><BrandMark /><p className="text-base font-semibold">VADA</p><p className="ml-auto text-xs text-gray-400">학생회를 위한 공간</p></div>
         <KakaoBlock userAgent={kakaoUserAgent} location={{ href: 'https://vada.example/join/ABCD2345' }} clipboard={{ writeText: async () => {} }} />
       </AuthCard>
     </Section>
