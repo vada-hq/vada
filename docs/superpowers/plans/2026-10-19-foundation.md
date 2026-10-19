@@ -9560,22 +9560,27 @@ git commit -m "바꾸는 날 적용 점검과 시험 데이터 다시 쓰기"
 Task 1~14와 리뷰가 끝난 뒤, 사용자가 아래 차례로 한다(spec '바꾸는 날', 다시 만들기 설계서 '바꾸는 날'). 에이전트는 이 절의 명령을 실행하지 않고, push하지 않는다. Neon 프로젝트 `vada`(PostgreSQL 18, 지금 DB와 같은 지역, 기본 가지 `production`과 거기서 딴 `dev` 가지)는 바탕 전에 만들어 둔다.
 
 1. **개발 DB 바꾸기:** 로컬 `.env`의 `DATABASE_URL`을 `vada`의 `dev` 가지 주소로 바꾼다. 이제부터 개발은 이 DB를 쓴다. 셸에 `DATABASE_URL`이 남아 있으면 지운다(남아 있으면 `db:migrate`가 멈춘다, P30).
+   - **주소 형식:** Neon 콘솔의 Connect에서 연결 풀러를 끄고 직접(호스트에 `-pooler`가 없는) 주소를 받는다. 마이그레이션은 직접 주소로 한다. 오늘 동작하는 주소(지금 `.env`와 Render의 옛 DB 주소)의 쿼리 부분과 같은 형식으로 맞춘다. 미리 보기가 `마이그레이션 실패 … 42704`로 끝나면 주소에서 `channel_binding=require`를 지운다(postgres.js는 모르는 쿼리 값을 서버 시작 매개변수로 보내고 Neon이 그것을 거절한다). Render의 `DATABASE_URL`(5단계)도 같은 형식으로 둔다.
 2. **개발 DB에 적용하고 화면 보기**
    1. `npm run db:migrate --workspace @vada/api -- --dry-run`
-      - 보이는 것: `대상: <dev 가지 호스트>/<DB 이름> (.env)`, `public 표 0개, 적용 기록 없음, 로컬 마이그레이션 1개`, `적용할 마이그레이션 1개. 미리 보기라 바꾸지 않았다. 실제로 적용하려면 --apply를 붙인다.`
+      - 보이는 것: `대상: <dev 가지 호스트>/<DB 이름> (.env)`, `public 표 0개, 적용 기록 없음, 로컬 마이그레이션 1개`, `적용할 마이그레이션 1개. 미리 보기라 바꾸지 않았다. 실제로 적용하려면 -- --apply를 붙인다.`
       - 대상이 `dev` 가지가 아니거나 "…적용하지 않는다"나 "…아무것도 하지 않았다"로 끝나는 줄이 나오면 멈춘다. 옛 DB를 가리키면 옛 적용 기록 29개가 로컬과 달라 "이미 적용된 기록이 로컬 마이그레이션과 순서나 해시가 다르다"가 나온다.
-   2. `npm run db:migrate --workspace @vada/api -- --apply` → `마이그레이션 적용 완료(1개)`. 다시 `-- --dry-run`을 하면 `public 표 52개, 적용 기록 1, 로컬 마이그레이션 1개`, `적용할 마이그레이션 0개`다.
-   3. `npm run dev:api`와 `npm run dev:web`을 켜고 `http://127.0.0.1:5180`에서 Google로 로그인한다. 같은 브라우저로 `http://127.0.0.1:5180/api/auth/get-session`을 열어 `user`의 `id`를 본다.
-   4. `npm run test-data --workspace @vada/api -- seed <user-id> --apply` → `시험 학생회 준비 완료(초대 코드 TESTDATA)`. 다른 Google 계정은 `/join/TESTDATA`로 들어오거나, 로그인을 한 번 한 뒤 `-- assign <user-id> planning --apply`로 기획부에 넣는다.
-   5. 휴대폰 폭(390px)과 데스크톱 폭에서 본다: 학생회 없음(시험 학생회에 들지 않은 계정), 학생회 만들기, 초대 링크, 운영진 > 사람(초대 링크, ⋯ 메뉴, 확인 대화상자), 운영진 > 부서, 설정 > 학생회 정보, 휴대폰 알림 켜기. 기준은 vada-docs의 navigation.md와 screens.md이고, Figma(M1 와이어프레임)는 같은 화면이 있을 때만 맞댄다(P36). 고칠 것이 나오면 이 계획의 화면 작업처럼 시험부터 고친다.
-   6. 동시 처리를 실제 PostgreSQL에서 본다(PGlite 시험은 거래를 하나씩 돌려 보지 못한다): 두 브라우저(또는 두 기기)에서 같은 계정으로 `/join/TESTDATA`의 [들어가기]를 거의 동시에 누른다. 둘 다 그 학생회가 열리고, 운영진 > 사람에 그 사람이 한 번만 보여야 한다.
+   2. **적용하기 전에 DB 설정을 본다.** Neon 콘솔의 SQL 편집기에서 `dev` 가지에 `SHOW server_version;`을 실행해 `18.`로 시작하는지, `SHOW default_transaction_isolation;`이 `read committed`인지 본다. 코드의 권한 다시 보기가 READ COMMITTED에 기대고(`access/authorize.ts`), 표의 기본값 `uuidv7()`이 PostgreSQL 18에 있다. 하나라도 다르면 적용하지 않는다.
+   3. `npm run db:migrate --workspace @vada/api -- --apply` → `마이그레이션 적용 완료(1개)`. 다시 `-- --dry-run`을 하면 `public 표 52개, 적용 기록 1, 로컬 마이그레이션 1개`, `적용할 마이그레이션 0개`다.
+   4. `npm run dev:api`와 `npm run dev:web`을 켜고 `http://127.0.0.1:5180`에서 Google로 로그인한다. 같은 브라우저로 `http://127.0.0.1:5180/api/auth/get-session`을 열어 `user`의 `id`를 본다.
+   5. `npm run test-data --workspace @vada/api -- seed <user-id> --apply` → `시험 학생회 준비 완료(초대 코드 TESTDATA)`. 다른 Google 계정은 `/join/TESTDATA`로 들어오거나, 로그인을 한 번 한 뒤 `-- assign <user-id> planning --apply`로 기획부에 넣는다.
+   6. **실제 쓰기를 한 번 한다.** 시험은 PGlite로만 돌았으므로, 운영 드라이버(postgres.js)로 판을 남기는 쓰기가 되는지 화면에서 한 번 본다: 운영진 > 사람에서 부서 배정, 운영진 > 부서에서 이름 바꾸기, 설정 > 학생회 정보 저장 중 하나를 하고 오류 없이 반영되는지 본다. 실패하면 서버 로그의 `request_failed` 줄과 `sqlState`를 보고 멈춘다.
+   7. 휴대폰 폭(390px)과 데스크톱 폭에서 본다: 학생회 없음(시험 학생회에 들지 않은 계정), 학생회 만들기, 초대 링크, 운영진 > 사람(초대 링크, ⋯ 메뉴, 확인 대화상자), 운영진 > 부서, 설정 > 학생회 정보, 휴대폰 알림 켜기. 기준은 vada-docs의 navigation.md와 screens.md이고, Figma(M1 와이어프레임)는 같은 화면이 있을 때만 맞댄다(P36). 고칠 것이 나오면 이 계획의 화면 작업처럼 시험부터 고친다.
+   8. 동시 처리를 실제 PostgreSQL에서 본다(PGlite 시험은 거래를 하나씩 돌려 보지 못한다): 두 브라우저(또는 두 기기)에서 같은 계정으로 `/join/TESTDATA`의 [들어가기]를 거의 동시에 누른다. 둘 다 그 학생회가 열리고, 운영진 > 사람에 그 사람이 한 번만 보여야 한다.
 3. **배포 DB에 적용(사용자 승인):** 주소가 셸 기록에 남지 않게 입력으로 받는다. 셸의 주소는 `--from-shell`을 붙일 때만 쓰인다(P30).
    - Git Bash: `read -rs DATABASE_URL && export DATABASE_URL` 뒤 `production` 가지 주소를 붙여 넣는다.
-   - PowerShell: `$env:DATABASE_URL = Read-Host '배포 DB 주소'`
-   1. `npm run db:migrate --workspace @vada/api -- --from-shell --dry-run` → `대상: <production 가지 호스트>/<DB 이름> (셸의 DATABASE_URL)`, `public 표 0개, 적용 기록 없음`이어야 한다. 표가 있거나 "…적용하지 않는다"가 나오면 멈추고 무엇이 들어 있는지 본다.
-   2. 사용자가 승인하면 `npm run db:migrate --workspace @vada/api -- --from-shell --apply` → `마이그레이션 적용 완료(1개)`
-   3. 셸에서 주소를 지운다: Git Bash `unset DATABASE_URL`, PowerShell `Remove-Item Env:DATABASE_URL`
+   - PowerShell(7.1 이상): `$env:DATABASE_URL = Read-Host -MaskInput '배포 DB 주소'`. `-MaskInput` 없는 `Read-Host`는 주소(비밀번호 포함)를 화면에 그대로 보이므로 쓰지 않는다. PowerShell이 7.1보다 낮으면 Git Bash의 `read -rs`를 쓴다.
+   - 주소는 1단계의 형식 그대로다: 직접(`-pooler` 없는) 주소, 오늘 동작하는 주소와 같은 쿼리 형식.
+   1. `npm run db:migrate --workspace @vada/api -- --from-shell --dry-run` → `대상: <production 가지 호스트>/<DB 이름> (셸의 DATABASE_URL)`, `public 표 0개, 적용 기록 없음`이어야 한다. 표가 있거나 "…적용하지 않는다"가 나오면 멈추고 무엇이 들어 있는지 본다. `마이그레이션 실패 … 42704`로 끝나면 1단계의 주소 형식(`channel_binding`)을 본다.
+   2. **적용하기 전에 DB 설정을 본다.** Neon 콘솔의 SQL 편집기에서 `production` 가지에 `SHOW server_version;`(`18.`로 시작)과 `SHOW default_transaction_isolation;`(`read committed`)을 실행한다. `dev` 가지와 같아야 하고, 다르면 적용하지 않는다.
+   3. 사용자가 승인하면 `npm run db:migrate --workspace @vada/api -- --from-shell --apply` → `마이그레이션 적용 완료(1개)`. `적용은 끝났고 확인 읽기에 실패했다`가 나오면 적용은 된 것이다. 다시 `-- --from-shell --dry-run`으로 `적용할 마이그레이션 0개`인지 확인한다.
+   4. 셸에서 주소를 지운다: Git Bash `unset DATABASE_URL`, PowerShell `Remove-Item Env:DATABASE_URL`
 4. **main에 합치고 올리기:** 사용자가 반영하라고 하면 바탕 커밋을 main에 합치고 push한다. push하면 Render가 새 코드를 배포한다. 다음 단계까지 몇 분은 화면이 깨진다(새 코드가 옛 DB를 본다). 받아들이기로 했다.
-5. **Render 바꾸기:** Render 대시보드의 vada-m1 → Environment에서 `DATABASE_URL`을 `production` 가지 주소로 바꾸고 저장한다(다시 배포된다). 세션이 옛 DB에 있으므로 모두 다시 로그인한다.
+5. **Render 바꾸기:** Render 대시보드의 vada-m1 → Environment에서 `DATABASE_URL`을 `production` 가지 주소로 바꾸고 저장한다(다시 배포된다). 주소 형식은 1단계와 같다(직접 주소, 오늘 동작하는 주소와 같은 쿼리 형식, `channel_binding` 없음). 세션이 옛 DB에 있으므로 모두 다시 로그인한다.
 6. **vada-m1에서 확인:** 휴대폰과 데스크톱에서 로그인, 학생회 만들기, 다른 계정으로 초대 링크 들어오기, 휴대폰 알림 켜기와 시험 알림을 한다. 덩어리 1에서 알림을 켠 휴대폰은 다시 켜지 않아도 된다. 휴대폰 알림 대화상자를 연 뒤 Neon SQL 편집기(`production` 가지)에서 `SELECT count(*) FROM push_device;`로 기기가 저장됐는지 본다(대화상자를 열 때 이미 켜진 구독을 저장한다, P23). 두 기기로 같은 초대 링크를 거의 동시에 눌러 한 번씩만 들어가는지도 본다. 결과는 `docs/device-checks.md`에 남긴다.
 7. **막히면 되돌리기:** Render의 `DATABASE_URL`을 옛 주소로 돌리고, Render의 배포 기록에서 바탕 전 배포를 골라 Rollback한다. 옛 DB(`vada-m1-dev`)는 시범 운영이 시작할 때까지 지우지 않는다.
