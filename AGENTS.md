@@ -24,6 +24,15 @@
 - 화면은 같은 스키마의 `safeParse`로 버튼 활성화를 판단한다. 길이 숫자를 화면에 다시 적지 않는다.
 - `apps/api/src/http/boundary.test.ts`가 모든 변경 라우트의 경계 검사를 예외 없이 확인한다. 검사를 건너뛰는 목록을 다시 만들지 않는다.
 
+## 코드
+- 모듈 하나는 한 가지 일만 한다. 파일 이름으로 하는 일을 말할 수 없으면 나눈다.
+- 같은 규칙이나 계산이 두 번째로 필요해지면 복사하지 않고 공유 도우미로 옮긴다. 요청 모양은 `packages/contracts`, 서버 공통은 `apps/api/src/http`, 화면 공통은 `src/lib`·`src/components`에 둔다.
+- 진입점(`serve.ts`, `main.tsx`, 각 `routes.ts`)은 읽고 연결만 한다. 판단과 계산은 시험이 있는 모듈(`service.ts`, `queries.ts`, `lib/`)에 둔다.
+- 린트와 타입 검사를 통째로 끄지 않는다. 꼭 필요하면 한 줄, 한 규칙만 `// oxlint-disable-next-line 규칙 -- 이유`로 끈다. `@ts-ignore`는 쓰지 않고 `@ts-expect-error 이유`를 쓴다. 쓸모없어진 끄기는 린트가 실패시킨다.
+- 프로미스는 `await`한다. 일부러 기다리지 않을 때만 `void`를 붙인다.
+- 주석은 코드가 무엇을 하는지가 아니라 왜 그런지를 적는다.
+- 의존성은 `^` 없이 정확한 버전으로 넣는다(`.npmrc`의 `save-exact`).
+
 ## 화면
 - 버튼·입력칸·선택칸·여러 줄 입력·라벨·칩·카드·배너·대화상자·옆 메뉴·메뉴 항목·탭은 `apps/web/src/components/ui`의 부품을 쓴다. 날것의 `<button>`·`<input>`에 직접 모양을 주지 않는다. 체크박스만 브라우저 기본 모양에 `size-4 accent-blue-600`을 준다.
 - 여러 기능이 같이 쓰는 표시용 부품은 `src/components`에 둔다(API 호출 금지). 기능 화면과 데이터 훅은 기능 폴더에 둔다.
@@ -58,6 +67,10 @@
 - `engines`에 위가 열린 범위(`>=22`)를 쓰지 않는다. Render는 열린 범위를 항상 최신 Node로 해석해, 테스트한 버전과 운영 버전이 달라진다.
 
 ## 검사
+- 커밋 전 정적 검사: `npm run check` (형식 확인, 린트, 타입 검사). 시험은 아래처럼 영향받는 것만 돌린다
+- 형식: `npm run format`. 형식은 Prettier가 정한다. 손으로 맞추거나 검토에서 지적하지 않는다
+- 린트: `npm run lint` (Oxlint, 타입 정보 사용. 규칙은 typescript-eslint recommended-type-checked와 같다)
+- blame에서 형식 커밋 빼기(한 번): `git config blame.ignoreRevsFile .git-blame-ignore-revs`
 - API 테스트: `npm test --workspace @vada/api` (개별 파일은 `apps/api`에서 `npx tsx --test <파일>`)
 - 계약 테스트: `npm test --workspace @vada/contracts`
 - 화면 테스트: `npm test --workspace @vada/web`
