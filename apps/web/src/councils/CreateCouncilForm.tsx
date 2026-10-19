@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NativeSelect } from '@/components/ui/native-select'
 import { postJson } from '@/lib/api'
+import { endsBeforeStart, TERM_ORDER_MESSAGE } from './term'
 
 export const unitLabels: Record<CouncilUnit, string> = { department: '학과', college: '단과대', university: '총학생회' }
 const errors: Record<string, string> = {
@@ -64,6 +65,7 @@ export default function CreateCouncilForm({ onCreated, onCancel }: Props) {
         <Input type="date" value={form.endsOn} onChange={set('endsOn')} />
       </Label>
     </div>
+    {endsBeforeStart(form) && <StateMessage kind="error">{TERM_ORDER_MESSAGE}</StateMessage>}
     {error && <StateMessage kind="error">{error}</StateMessage>}
     <div className="flex gap-2">
       <Button type="button" variant="outline" disabled={saving} onClick={onCancel}>취소</Button>

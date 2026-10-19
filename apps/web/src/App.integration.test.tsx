@@ -78,6 +78,25 @@ test('학생회 만들기는 보내는 동안 버튼이 꺼져, 두 번 눌러�
   expect(api.calls.filter(call => call.method === 'POST')).toHaveLength(1)
 })
 
+test('학생회 만들기에서 임기 끝이 시작보다 뒤가 아니면 버튼을 끄고 까닭을 보인다', async () => {
+  councilsInSequence([])
+  render(<App />)
+  fireEvent.click(await screen.findByRole('button', { name: '학생회 만들기' }))
+  const form = screen.getByRole('form', { name: '학생회 만들기' })
+  fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '컴퓨터학부 학생회' } })
+  fireEvent.change(within(form).getByLabelText('학교'), { target: { value: '한양대학교 ERICA' } })
+  const submit = within(form).getByRole('button', { name: '학생회 만들기' }) as HTMLButtonElement
+  expect(submit.disabled).toBe(false)
+  expect(within(form).queryByText('임기 끝은 시작보다 뒤여야 해요.')).toBeNull()
+  fireEvent.change(within(form).getByLabelText('임기 시작'), { target: { value: '2026-06-01' } })
+  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-05-01' } })
+  expect(within(form).getByText('임기 끝은 시작보다 뒤여야 해요.')).toBeTruthy()
+  expect(submit.disabled).toBe(true)
+  fireEvent.change(within(form).getByLabelText('임기 끝'), { target: { value: '2026-12-31' } })
+  expect(within(form).queryByText('임기 끝은 시작보다 뒤여야 해요.')).toBeNull()
+  expect(submit.disabled).toBe(false)
+})
+
 test('임기에 오늘이 없으면 만들지 못한 까닭을 보여 준다', async () => {
   councilsInSequence([])
   api.on('POST', '/api/organizations/create', () => json({ error: 'COHORT_NOT_CURRENT' }, 409))
@@ -313,4 +332,23 @@ test('로그아웃에 실패해도 알림 줄은 화면 높이 안의 같은 열
   expect(workspace.className).toContain('flex-1')
   expect(workspace.className).toContain('min-h-0')
   expect(workspace.className).not.toContain('h-dvh')
+})
+
+test('설정에서 학생회 이름을 바꾸면 옆 메뉴의 학생회 이름과 헤더 경로도 바뀐다', async () => {
+  councilsInSequence([myCouncil()], [myCouncil('c1', '소프트웨어학부 학생회')])
+  openCouncil()
+  api.on('POST', '/api/organizations/c1/settings', () => json(councilView('c1', { name: '소프트웨어학부 학생회' })))
+  render(<App />)
+  const aside = await screen.findByRole('complementary', { name: '학생회 작업 공간' })
+  fireEvent.keyDown(within(aside).getByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' }), { key: 'Enter' })
+  fireEvent.click(await screen.findByRole('menuitem', { name: '설정' }))
+  const form = await screen.findByRole('form', { name: '학생회 정보' })
+  fireEvent.change(within(form).getByLabelText('학생회 이름'), { target: { value: '소프트웨어학부 학생회' } })
+  fireEvent.click(within(form).getByRole('button', { name: '학생회 정보 저장' }))
+  expect(await within(form).findByText('저장했어요.')).toBeTruthy()
+  expect(await within(aside).findByRole('button', { name: '학생회 메뉴: 소프트웨어학부 학생회' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: '학생회 메뉴: 컴퓨터학부 학생회' })).toBeNull()
+  expect(within(screen.getByRole('banner')).getByText('소프트웨어학부 학생회')).toBeTruthy()
+  // 저장 뒤에도 보던 쪽과 입력칸은 그대로다.
+  expect((within(form).getByLabelText('학생회 이름') as HTMLInputElement).value).toBe('소프트웨어학부 학생회')
 })

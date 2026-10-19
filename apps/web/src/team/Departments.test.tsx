@@ -3,15 +3,19 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { Action, TeamResponse } from '@vada/contracts'
 import { councilView, LEADER_PERMISSIONS, MEMBER_PERMISSIONS, teamResponse } from '@/test-support/council-fixtures'
-import { json, mockApi } from '@/test-support/mock-api'
+import { deferredResponse, json, mockApi } from '@/test-support/mock-api'
 import Departments from './Departments'
 import { useTeam } from './useTeam'
 
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 
+// "목록 다시 읽기"는 다른 곳에서 부서가 바뀐 뒤 화면이 목록을 다시 읽는 일(404·403 뒤의 다시 읽기)을 대신한다.
 function Harness({ permissions }: { permissions: Action[] }) {
   const team = useTeam('c1', () => {})
-  return <Departments view={councilView('c1', { permissions })} team={team} />
+  return <>
+    <Departments view={councilView('c1', { permissions })} team={team} />
+    <button type="button" onClick={team.reload}>목록 다시 읽기</button>
+  </>
 }
 function serve() {
   const api = mockApi()
@@ -23,6 +27,8 @@ async function openMenu(name: string) {
   fireEvent.keyDown(await screen.findByRole('button', { name: `${name} 동작` }), { key: 'Enter' })
   return screen.findByRole('menu')
 }
+const posts = (api: ReturnType<typeof mockApi>) => api.calls.filter(call => call.method === 'POST')
+const noDialog = () => waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
 
 test('부서 목록은 이름, 재정 역할, 부서원 수를 보이고, 직급 없는 운영진에게는 동작이 없다', async () => {
   serve()
@@ -34,7 +40,16 @@ test('부서 목록은 이름, 재정 역할, 부서원 수를 보이고, 직급
   expect(screen.queryByRole('button', { name: /동작$/ })).toBeNull()
 })
 
-test('회장단은 부서를 만든다. 이름이 맞을 때만 버튼이 켜지고, 같은 이름이면 까닭을 보인다', async () => {
+test('부서를 불러오지 못하면 다시 시도할 수 있다', async () => {
+  const api = mockApi()
+  let calls = 0
+  api.on('GET', '/api/organizations/c1/members', () => calls++ === 0 ? json({ error: 'Internal server error' }, 500) : json(teamResponse()))
+  render(<Harness permissions={MEMBER_PERMISSIONS} />)
+  fireEvent.click(await screen.findByRole('button', { name: '다시 시도' }))
+  expect(await screen.findByText('부서 2개')).toBeTruthy()
+})
+
+test('회장단은 부서를 만든다. 이름이 맞을 때만 버튼이 켜지고, 같은 이름이면 까닭을 만들기 칸 옆에 보인다', async () => {
   const api = serve()
   let taken = false
   api.on('POST', '/api/organizations/c1/departments', () => taken
@@ -53,7 +68,14 @@ test('회장단은 부서를 만든다. 이름이 맞을 때만 버튼이 켜지
   taken = true
   fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '재정부' } })
   fireEvent.click(submit)
-  expect(await screen.findByText('같은 이름의 부서가 있어요.')).toBeTruthy()
+  const reason = await screen.findByText('같은 이름의 부서가 있어요.')
+  // 쪽 위가 아니라 만들기 칸과 같은 묶음 안, 칸 바로 아래에 보인다. 이름을 고치면 사라진다.
+  expect(form.parentElement!.contains(reason)).toBe(true)
+  expect(form.compareDocumentPosition(reason) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(screen.getAllByText('같은 이름의 부서가 있어요.')).toHaveLength(1)
+  expect(within(form).getByLabelText('새 부서 이름').getAttribute('aria-invalid')).toBe('true')
+  fireEvent.change(within(form).getByLabelText('새 부서 이름'), { target: { value: '재정국' } })
+  expect(screen.queryByText('같은 이름의 부서가 있어요.')).toBeNull()
 })
 
 test('회장단은 줄마다 이름 바꾸기, 재정 역할 주고 거두기, 없애기를 한다. 쓰인 부서는 없애지 못한 까닭을 보인다', async () => {
@@ -66,12 +88,155 @@ test('회장단은 줄마다 이름 바꾸기, 재정 역할 주고 거두기, �
   const dialog = await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
   fireEvent.change(within(dialog).getByLabelText('부서 이름'), { target: { value: '기획국' } })
   fireEvent.click(within(dialog).getByRole('button', { name: '바꾸기' }))
-  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull())
+  await noDialog()
   expect(api.calls.find(call => call.path.endsWith('/departments/d2'))?.body).toEqual({ name: '기획국', role: null })
   const finance = await openMenu('재정부')
   expect(within(finance).getByRole('menuitem', { name: '재정 역할 거두기' })).toBeTruthy()
+  // 없애기는 되돌리기 어려워 한 번 묻는다. 취소하면 아무것도 보내지 않는다.
+  const before = posts(api).length
   fireEvent.click(within(finance).getByRole('menuitem', { name: '없애기' }))
+  let confirm = await screen.findByRole('dialog', { name: '재정부 부서를 없앨까요?' })
+  fireEvent.click(within(confirm).getByRole('button', { name: '취소' }))
+  await noDialog()
+  expect(posts(api)).toHaveLength(before)
+  fireEvent.click(within(await openMenu('재정부')).getByRole('menuitem', { name: '없애기' }))
+  confirm = await screen.findByRole('dialog', { name: '재정부 부서를 없앨까요?' })
+  fireEvent.click(within(confirm).getByRole('button', { name: '없애기' }))
+  // 쓰인 부서는 다시 눌러도 같으므로 대화상자를 닫고 까닭을 쪽에 보인다.
   expect(await screen.findByText('부서원이 있었던 부서는 없앨 수 없어요. 이름을 바꿔 쓰세요.')).toBeTruthy()
+  await noDialog()
   fireEvent.click(within(await openMenu('기획국')).getByRole('menuitem', { name: '없애기' }))
+  confirm = await screen.findByRole('dialog', { name: '기획국 부서를 없앨까요?' })
+  fireEvent.click(within(confirm).getByRole('button', { name: '없애기' }))
   expect(await screen.findByText('부서 1개')).toBeTruthy()
+  await noDialog()
+  expect(posts(api).filter(call => call.path.endsWith('/delete')).map(call => call.path)).toEqual([
+    '/api/organizations/c1/departments/d1/delete', '/api/organizations/c1/departments/d2/delete'])
+})
+
+test('재정 역할을 주면 이름과 함께 role finance를, 거두면 role null을 보낸다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/departments/d2', () => withDepartments(team => { team.departments[1] = { id: 'd2', name: '기획부', role: 'finance', memberCount: 0 } }))
+  api.on('POST', '/api/organizations/c1/departments/d1', () => withDepartments(team => {
+    team.departments[0] = { id: 'd1', name: '재정부', role: null, memberCount: 1 }
+    team.departments[1] = { id: 'd2', name: '기획부', role: 'finance', memberCount: 0 }
+  }))
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '재정 역할 주기' }))
+  await waitFor(() => expect(within(screen.getByRole('list', { name: '부서' })).getAllByText('재정')).toHaveLength(2))
+  fireEvent.click(within(await openMenu('재정부')).getByRole('menuitem', { name: '재정 역할 거두기' }))
+  await waitFor(() => expect(within(screen.getByRole('list', { name: '부서' })).getAllByText('재정')).toHaveLength(1))
+  expect(posts(api).map(call => [call.path, call.body])).toEqual([
+    ['/api/organizations/c1/departments/d2', { name: '기획부', role: 'finance' }],
+    ['/api/organizations/c1/departments/d1', { name: '재정부', role: null }],
+  ])
+})
+
+test('이름 바꾸기는 이름을 비우면 버튼이 꺼지고, 대화상자를 닫으면 포커스가 그 줄의 ⋯ 버튼으로 돌아간다', async () => {
+  const api = serve()
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '이름 바꾸기' }))
+  const dialog = await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
+  fireEvent.change(within(dialog).getByLabelText('부서 이름'), { target: { value: '  ' } })
+  expect((within(dialog).getByRole('button', { name: '바꾸기' }) as HTMLButtonElement).disabled).toBe(true)
+  fireEvent.click(within(dialog).getByRole('button', { name: '취소' }))
+  await noDialog()
+  await waitFor(() => expect(document.activeElement).toBe(screen.getByRole('button', { name: '기획부 동작' })))
+  expect(posts(api)).toEqual([])
+})
+
+// 검토 지적: 이름 바꾸기 대화상자는 권한을 잃으면 열려 있지도, 다시 보내지도 못한다.
+test('이름을 바꾸다 403이면 대화상자를 닫고 까닭을 쪽에 보이며, 같은 요청을 다시 보내지 않는다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/departments/d2', () => json({ error: 'FORBIDDEN' }, 403))
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '이름 바꾸기' }))
+  const dialog = await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
+  fireEvent.change(within(dialog).getByLabelText('부서 이름'), { target: { value: '기획국' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '바꾸기' }))
+  await noDialog()
+  expect(screen.getByText('권한이 바뀌었어요. 화면을 새로 불러왔어요.')).toBeTruthy()
+  expect(posts(api)).toHaveLength(1)
+})
+
+test('이름 바꾸기 대화상자가 열린 채 권한을 잃으면 닫힌다', async () => {
+  const api = serve()
+  const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '이름 바꾸기' }))
+  await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
+  view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
+  await noDialog()
+  expect(screen.queryByRole('button', { name: /동작$/ })).toBeNull()
+  expect(posts(api)).toEqual([])
+})
+
+test('이름 바꾸기 대화상자는 목록을 다시 읽으면 새 부서의 역할로 보낸다', async () => {
+  const api = mockApi()
+  let reads = 0
+  api.on('GET', '/api/organizations/c1/members', () => reads++ === 0 ? json(teamResponse())
+    : withDepartments(team => { team.departments[1] = { id: 'd2', name: '기획부', role: 'finance', memberCount: 0 } }))
+  api.on('POST', '/api/organizations/c1/departments/d2', () => withDepartments(() => {}))
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '이름 바꾸기' }))
+  const dialog = await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
+  fireEvent.click(screen.getByText('목록 다시 읽기'))
+  await waitFor(() => expect(reads).toBe(2))
+  fireEvent.change(within(dialog).getByLabelText('부서 이름'), { target: { value: '기획국' } })
+  fireEvent.click(within(dialog).getByRole('button', { name: '바꾸기' }))
+  await waitFor(() => expect(posts(api)).toHaveLength(1))
+  expect(posts(api)[0]!.body).toEqual({ name: '기획국', role: 'finance' })
+})
+
+test('이름 바꾸기 대화상자가 열린 채 그 부서가 목록에서 사라지면 닫힌다', async () => {
+  const api = mockApi()
+  let reads = 0
+  api.on('GET', '/api/organizations/c1/members', () => reads++ === 0 ? json(teamResponse()) : withDepartments(team => { team.departments = team.departments.slice(0, 1) }))
+  render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '이름 바꾸기' }))
+  await screen.findByRole('dialog', { name: '부서 이름 바꾸기' })
+  fireEvent.click(screen.getByText('목록 다시 읽기'))
+  await noDialog()
+  expect(screen.getByText('부서 1개')).toBeTruthy()
+  expect(posts(api)).toEqual([])
+})
+
+test('없애기 확인 대화상자는 보내는 동안 꺼져 한 번만 보내고, 권한을 잃거나 부서가 사라지면 닫힌다', async () => {
+  const api = serve()
+  const pending = deferredResponse()
+  api.on('POST', '/api/organizations/c1/departments/d2/delete', () => pending.promise)
+  const view = render(<Harness permissions={LEADER_PERMISSIONS} />)
+  fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '없애기' }))
+  const dialog = await screen.findByRole('dialog', { name: '기획부 부서를 없앨까요?' })
+  const confirm = within(dialog).getByRole('button', { name: '없애기' }) as HTMLButtonElement
+  fireEvent.click(confirm)
+  await waitFor(() => expect(confirm.disabled).toBe(true))
+  fireEvent.click(confirm)
+  expect(posts(api)).toHaveLength(1)
+  pending.resolve(withDepartments(team => { team.departments = team.departments.slice(0, 1) }))
+  expect(await screen.findByText('부서 1개')).toBeTruthy()
+  await noDialog()
+  // 권한을 잃으면 열려 있던 확인 대화상자도 닫힌다.
+  fireEvent.click(within(await openMenu('재정부')).getByRole('menuitem', { name: '없애기' }))
+  await screen.findByRole('dialog', { name: '재정부 부서를 없앨까요?' })
+  view.rerender(<Harness permissions={MEMBER_PERMISSIONS} />)
+  await noDialog()
+  expect(posts(api)).toHaveLength(1)
+})
+
+test('줄에서 한 동작이 실패하면 휴대폰 화면에서도 보이도록 쪽의 오류 문구를 화면 안으로 스크롤한다', async () => {
+  const api = serve()
+  api.on('POST', '/api/organizations/c1/departments/d2', () => json({ error: 'Internal server error' }, 500))
+  const scrollIntoView = vi.fn()
+  Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { value: scrollIntoView, configurable: true, writable: true })
+  try {
+    render(<Harness permissions={LEADER_PERMISSIONS} />)
+    fireEvent.click(within(await openMenu('기획부')).getByRole('menuitem', { name: '재정 역할 주기' }))
+    const alert = await screen.findByRole('alert')
+    expect(alert.textContent).toBe('저장하지 못했어요. 다시 시도해 주세요.')
+    await waitFor(() => expect(scrollIntoView).toHaveBeenCalledTimes(1))
+    expect(scrollIntoView).toHaveBeenCalledWith({ block: 'nearest' })
+    expect((scrollIntoView.mock.contexts[0] as HTMLElement).contains(alert)).toBe(true)
+  } finally {
+    delete (HTMLElement.prototype as unknown as Record<string, unknown>).scrollIntoView
+  }
 })
