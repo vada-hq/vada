@@ -27,9 +27,15 @@ export function createTeamRoutes(db: Db, getSession: SessionReader, clock: () =>
     return c.json(team satisfies TeamResponse)
   }
 
+  // 읽기는 한 시점의 모습이다. 권한 확인과 세 조회를 읽기 전용 REPEATABLE READ 거래 하나에서 해서(PostgreSQL은 이 수준에서 거래 전체에 스냅샷 하나를 준다)
+  // 조회 사이에 다른 요청이 소속을 바꿔도 목록이 서로 어긋나지 않는다. 바꾸기는 기본 수준(READ COMMITTED)을 쓴다.
   routes.get(`${root}/members`, auth, async c => {
-    const actor = await authorize(db, c.get('userId'), councilIdOf(c.req.param('councilId')), 'council.view', clock())
-    return c.json(await teamOf(db, actor) satisfies TeamResponse)
+    const councilId = councilIdOf(c.req.param('councilId'))
+    const userId = c.get('userId')
+    const now = clock()
+    const team = await db.transaction(async tx => teamOf(tx, await authorize(tx, userId, councilId, 'council.view', now)),
+      { isolationLevel: 'repeatable read', accessMode: 'read only' })
+    return c.json(team satisfies TeamResponse)
   })
   routes.post(`${root}/members/:memberId/departments`, json(AssignDepartmentSchema), auth, c => {
     const { departmentId, rank } = c.req.valid('json')

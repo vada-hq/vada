@@ -48,10 +48,12 @@ export async function assignDepartment(tx: Tx, actor: Actor, memberId: string, d
 }
 
 // 부서에서 빼기. 소속을 지우지 않고 끝 시각을 적는다(DEC-27 기준 6).
+// 부서 직급이 붙은 소속을 끝내는 것은 그 직급을 거두는 일이기도 해서 직급 칸도 본다(최소 권한, DEC-28).
 export async function removeFromDepartment(tx: Tx, actor: Actor, memberId: string, departmentId: string) {
   await currentMembership(tx, actor, memberId)
   const [placement] = await placementOf(tx, actor, memberId, departmentId)
   if (!placement || placement.endsAt !== null) throw new ApiError('NOT_FOUND', 404)
+  if (placement.rank !== null && !can(actor, 'rank.manage')) throw new ApiError('FORBIDDEN', 403)
   await updateRecord(tx, { kind: 'department_membership', id: placement.id, actor: actor.memberId, reason: null, changes: { endsAt: clockNow } })
 }
 
@@ -74,12 +76,14 @@ export async function transferPresident(tx: Tx, actor: Actor, memberId: string) 
 }
 
 // 내보내기: 학생회 소속과 그 기수의 부서 소속을 함께 끝낸다(바탕 spec G4). 회장은 넘긴 뒤에만, 스스로 나가기는 없다.
+// 학생회 직급이나 부서 직급이 붙은 소속이 있으면 그 직급을 거두는 일이기도 해서 직급 칸도 본다.
 export async function removeMember(tx: Tx, actor: Actor, memberId: string) {
   const target = await currentMembership(tx, actor, memberId)
   if (target.councilRank === 'president') throw new ApiError('PRESIDENT_CANNOT_LEAVE', 409)
   if (memberId === actor.memberId) throw new ApiError('CANNOT_REMOVE_SELF', 409)
-  const placements = await tx.select({ id: departmentMembership.id }).from(departmentMembership)
+  const placements = await tx.select({ id: departmentMembership.id, rank: departmentMembership.departmentRank }).from(departmentMembership)
     .where(and(eq(departmentMembership.memberId, memberId), eq(departmentMembership.cohortId, actor.cohortId), isNull(departmentMembership.endsAt)))
+  if ((target.councilRank !== null || placements.some(item => item.rank !== null)) && !can(actor, 'rank.manage')) throw new ApiError('FORBIDDEN', 403)
   const changes: AnyRecordChange[] = [
     ...placements.map(item => ({ kind: 'department_membership' as const, id: item.id, actor: actor.memberId, reason: null, changes: { endsAt: clockNow } })),
     { kind: 'council_membership', id: target.id, actor: actor.memberId, reason: null, changes: { endsAt: clockNow } },

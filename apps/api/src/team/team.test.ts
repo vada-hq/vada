@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
+import { drizzle } from 'drizzle-orm/pglite'
 import type { CreateCouncilResponse, InviteCodeResponse, TeamResponse } from '@vada/contracts'
 import { createApp } from '../app.js'
 import { createCouncilRoutes } from '../councils/routes.js'
 import { createTestDb, type TestDb } from '../db/test-db.js'
 import { createInviteRoutes } from '../invites/routes.js'
+import { PERMISSIONS, type Rule } from '../access/permissions.js'
 import { addUser } from '../test-support/council.js'
 import { caller, ORIGIN, testSession } from '../test-support/http.js'
 import { createTeamRoutes } from './routes.js'
@@ -12,11 +14,11 @@ import { createTeamRoutes } from './routes.js'
 const noon = new Date('2026-10-19T03:00:00Z')
 const body = { name: '컴퓨터학부 학생회', unit: 'department', schoolName: '한양대학교 ERICA', cohortName: '2026', startsOn: '2026-01-01', endsOn: '2026-12-31' }
 
-function appOf(testDb: TestDb) {
+function appOf(testDb: TestDb, db: TestDb['db'] = testDb.db) {
   const clock = () => noon
   return caller(createApp({ auth: { handler: async () => new Response() }, trustedOrigin: ORIGIN,
-    councils: createCouncilRoutes(testDb.db, testSession, clock), invites: createInviteRoutes(testDb.db, testSession, clock),
-    team: createTeamRoutes(testDb.db, testSession, clock) }))
+    councils: createCouncilRoutes(db, testSession, clock), invites: createInviteRoutes(db, testSession, clock),
+    team: createTeamRoutes(db, testSession, clock) }))
 }
 
 // 회장 u1이 학생회를 만들고 u2·u3·u4가 초대로 들어온다. u5는 다른 학생회의 회장이다.
@@ -42,6 +44,27 @@ const presidentsOf = async (testDb: TestDb, councilId: string) => (await testDb.
 
 const versionsOf = async (testDb: TestDb, recordId: string) => (await testDb.pg.query<{ version_no: number }>(
   'SELECT version_no FROM record_version WHERE record_id = $1', [recordId])).rows.length
+
+// 한 사람(x)이 두 학생회 A와 B에 모두 들어 있다. 각 학생회의 회장이 x를 자기 재정부에 부장으로 넣는다. B에서는 부회장 직급도 준다.
+async function twoCouncils(testDb: TestDb) {
+  for (const user of ['a', 'b', 'x']) await addUser(testDb.pg, user, `이름 ${user}`, `${user}@example.test`)
+  const api = appOf(testDb)
+  const make = async (user: string, name: string) => {
+    const { council } = await (await api.post('/api/organizations/create', { ...body, name }, user)).json() as CreateCouncilResponse
+    const { code } = await (await api.get(`/api/organizations/${council.id}/invite`, user)).json() as InviteCodeResponse
+    assert.equal((await api.post('/api/organizations/join', { code }, 'x')).status, 200)
+    const base = `/api/organizations/${council.id}`
+    const team = await (await api.get(`${base}/members`, user)).json() as TeamResponse
+    return { base, finance: team.departments[0]!.id, xId: team.members.find(item => item.name === '이름 x')!.id, president: user }
+  }
+  const a = await make('a', 'A 학생회')
+  const b = await make('b', 'B 학생회')
+  for (const council of [a, b]) {
+    assert.equal((await api.post(`${council.base}/members/${council.xId}/departments`, { departmentId: council.finance, rank: 'head' }, council.president)).status, 200)
+  }
+  assert.equal((await api.post(`${b.base}/members/${b.xId}/rank`, { rank: 'vice_president' }, 'b')).status, 200)
+  return { api, a, b }
+}
 
 test('운영진 목록: 모든 운영진이 들어온 순서대로 이름, 직급, 부서, 들어온 시각을 보고 이메일은 없다', async () => {
   const testDb = await createTestDb()
@@ -197,6 +220,173 @@ test('회장 넘기기와 내보내기가 겹쳐도 회장은 늘 한 명이고,
     assert.equal(presidents.length, 1)
     const removed = (await testDb.pg.query('SELECT 1 FROM council_membership WHERE member_id = $1 AND ends_at IS NOT NULL', [member.u4])).rows.length === 1
     assert.equal(presidents[0], removed ? member.u1 : member.u4)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('두 학생회에 든 사람: A에서 내보내도 B의 부서 소속과 직급은 그대로이고, A의 목록에는 B의 부서와 직급이 보이지 않는다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, a, b } = await twoCouncils(testDb)
+    const xIn = async (council: typeof a) => (await (await api.get(`${council.base}/members`, council.president)).json() as TeamResponse)
+      .members.find(item => item.id === council.xId)!
+    // A의 목록: A의 재정부 부장이고 직급 없음. B의 부서와 부회장 직급은 보이지 않는다.
+    const inA = await xIn(a)
+    assert.deepEqual({ ...inA, joinedAt: undefined }, { id: a.xId, name: '이름 x', councilRank: null, joinedAt: undefined, departments: [{ id: a.finance, rank: 'head' }] })
+    const inB = await xIn(b)
+    assert.deepEqual(inB.departments, [{ id: b.finance, rank: 'head' }])
+    assert.equal(inB.councilRank, 'vice_president')
+    // A에서 내보낸다. B의 소속은 그대로다.
+    assert.equal((await api.post(`${a.base}/members/${a.xId}/remove`, {}, 'a')).status, 200)
+    const placements = (await testDb.pg.query<{ department_id: string; ended: boolean }>(
+      'SELECT department_id, ends_at IS NOT NULL AS ended FROM department_membership WHERE member_id = $1', [a.xId])).rows
+    assert.equal(placements.length, 2)
+    assert.equal(placements.find(row => row.department_id === a.finance)?.ended, true)
+    assert.equal(placements.find(row => row.department_id === b.finance)?.ended, false)
+    const afterB = await xIn(b)
+    assert.deepEqual(afterB.departments, [{ id: b.finance, rank: 'head' }])
+    assert.equal(afterB.councilRank, 'vice_president')
+    assert.equal((await api.get(b.base, 'x')).status, 200)
+    assert.equal((await api.get(a.base, 'x')).status, 403)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('이미 부서에서 뺀 소속은 학생회에서 내보낼 때 다시 끝내지 않는다. 같은 직급으로 바꾸는 요청도 판을 만들지 않는다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base, member, finance } = await setup(testDb)
+    assert.equal((await api.post(`${base}/members/${member.u2}/departments`, { departmentId: finance, rank: 'head' }, 'u1')).status, 200)
+    const [{ id: placement }] = (await testDb.pg.query<{ id: string }>('SELECT id FROM department_membership')).rows as [{ id: string }]
+    assert.equal((await api.post(`${base}/members/${member.u2}/departments/${finance}/remove`, {}, 'u1')).status, 200)
+    const endedAt = async () => (await testDb.pg.query<{ ends_at: string }>('SELECT ends_at::text FROM department_membership WHERE id = $1', [placement])).rows[0]!.ends_at
+    const firstEnd = await endedAt()
+    assert.equal(await versionsOf(testDb, placement), 2)
+    assert.equal((await api.post(`${base}/members/${member.u2}/remove`, {}, 'u1')).status, 200)
+    assert.equal(await endedAt(), firstEnd)
+    assert.equal(await versionsOf(testDb, placement), 2)
+    // 같은 직급으로 바꾸는 요청: 직급 없는 사람의 직급을 비우거나 부회장에게 부회장을 다시 줘도 판은 늘지 않는다.
+    const [{ id: membership }] = (await testDb.pg.query<{ id: string }>('SELECT id FROM council_membership WHERE member_id = $1', [member.u3])).rows as [{ id: string }]
+    assert.equal(await versionsOf(testDb, membership), 1)
+    assert.equal((await api.post(`${base}/members/${member.u3}/rank`, { rank: null }, 'u1')).status, 200)
+    assert.equal(await versionsOf(testDb, membership), 1)
+    assert.equal((await api.post(`${base}/members/${member.u3}/rank`, { rank: 'vice_president' }, 'u1')).status, 200)
+    assert.equal(await versionsOf(testDb, membership), 2)
+    assert.equal((await api.post(`${base}/members/${member.u3}/rank`, { rank: 'vice_president' }, 'u1')).status, 200)
+    assert.equal(await versionsOf(testDb, membership), 2)
+  } finally {
+    await testDb.close()
+  }
+})
+
+// 지금 권한표는 부서에서 빼기·내보내기(member.manage)와 직급 칸(rank.manage)이 같은 사람(회장단)이라 둘의 차이가 드러나지 않는다.
+// 직급이 붙은 소속을 끝내는 일은 직급을 거두는 일이기도 하므로 두 칸을 함께 본다. 시험에서만 직급 칸을 회장으로 좁혀 그 차이를 본다.
+async function withRankManageForPresidentOnly(run: () => Promise<void>) {
+  const table = PERMISSIONS as { -readonly [A in keyof typeof PERMISSIONS]: Rule }
+  const original = table['rank.manage']
+  table['rank.manage'] = { who: ['president'] }
+  try {
+    await run()
+  } finally {
+    table['rank.manage'] = original
+  }
+}
+
+test('직급이 붙은 소속을 끝내려면 직급 칸도 필요하다: 부서에서 빼기와 내보내기는 직급이 있을 때만 직급 칸을 함께 본다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base, member, finance } = await setup(testDb)
+    // 부회장 u2, 재정부 부장 u3, 재정부원(직급 없음) u4. 직급 칸을 좁히기 전에 만들어 둔다.
+    assert.equal((await api.post(`${base}/members/${member.u2}/rank`, { rank: 'vice_president' }, 'u1')).status, 200)
+    assert.equal((await api.post(`${base}/members/${member.u3}/departments`, { departmentId: finance, rank: 'head' }, 'u1')).status, 200)
+    assert.equal((await api.post(`${base}/members/${member.u4}/departments`, { departmentId: finance, rank: null }, 'u1')).status, 200)
+    await withRankManageForPresidentOnly(async () => {
+      // 부회장은 member.manage는 있지만 rank.manage는 없다.
+      const asVice = (path: string) => api.post(path, {}, 'u2')
+      assert.equal((await asVice(`${base}/members/${member.u3}/departments/${finance}/remove`)).status, 403)
+      assert.equal((await asVice(`${base}/members/${member.u3}/remove`)).status, 403)
+      // 직급이 없는 소속은 member.manage만으로 끝낼 수 있다.
+      assert.equal((await asVice(`${base}/members/${member.u4}/departments/${finance}/remove`)).status, 200)
+      // 아무것도 바뀌지 않았다: u3의 부서 직급과 소속
+      assert.deepEqual((await testDb.pg.query('SELECT department_rank, ends_at IS NULL AS open FROM department_membership WHERE member_id = $1', [member.u3])).rows,
+        [{ department_rank: 'head', open: true }])
+      assert.equal((await testDb.pg.query('SELECT 1 FROM council_membership WHERE member_id = $1 AND ends_at IS NOT NULL', [member.u3])).rows.length, 0)
+      // 회장은 둘 다 있다.
+      assert.equal((await api.post(`${base}/members/${member.u3}/departments/${finance}/remove`, {}, 'u1')).status, 200)
+    })
+    // 부회장 직급이 붙은 소속은 부회장이 내보내지 못하고, 직급도 부서도 없는 소속은 내보낸다.
+    assert.equal((await api.post(`${base}/members/${member.u3}/departments`, { departmentId: finance, rank: null }, 'u1')).status, 200)
+    assert.equal((await api.post(`${base}/members/${member.u4}/rank`, { rank: 'vice_president' }, 'u1')).status, 200)
+    await withRankManageForPresidentOnly(async () => {
+      assert.equal((await api.post(`${base}/members/${member.u4}/remove`, {}, 'u2')).status, 403)
+      assert.equal((await api.post(`${base}/members/${member.u3}/remove`, {}, 'u2')).status, 200)
+      assert.equal((await api.post(`${base}/members/${member.u4}/remove`, {}, 'u1')).status, 200)
+    })
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('운영진 목록은 한 시점의 모습이다: 읽기 전용 REPEATABLE READ 거래 하나에서 권한 확인과 세 조회를 하고, 바꾸기는 기본 격리 수준을 쓴다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { base } = await setup(testDb)
+    const queries: string[] = []
+    const logged = drizzle(testDb.pg, { logger: { logQuery: query => { queries.push(query) } } })
+    const api = appOf(testDb, logged)
+    assert.equal((await api.get(`${base}/members`, 'u1')).status, 200)
+    assert.equal(queries[0], 'set transaction isolation level repeatable read read only')
+    const reads = queries.slice(1)
+    // 지금 소속 2(학생회, 부서), 운영진, 부서 소속, 부서
+    assert.equal(reads.length, 5, JSON.stringify(reads))
+    assert.ok(reads.every(query => query.startsWith('select ')), JSON.stringify(reads))
+    assert.match(reads[0]!, /"member_login"/)
+    // 거절도 같은 거래 안에서 나온다.
+    queries.length = 0
+    assert.equal((await api.get(`${base}/members`, 'u5')).status, 403)
+    assert.equal(queries[0], 'set transaction isolation level repeatable read read only')
+    // 바꾸기는 격리 수준을 올리지 않는다(잠근 뒤 다시 보기는 READ COMMITTED에 기댄다).
+    queries.length = 0
+    assert.equal((await api.post(`${base}/members/${'01900000-0000-7000-8000-000000000000'}/remove`, {}, 'u1')).status, 404)
+    assert.ok(queries.length > 0)
+    assert.ok(!queries.some(query => query.startsWith('set transaction')), JSON.stringify(queries))
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('회장이 스스로 내보내면 PRESIDENT_CANNOT_LEAVE(먼저 넘겨야 한다)이고, 부회장이 스스로 내보내면 CANNOT_REMOVE_SELF다. 아무것도 바뀌지 않는다', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base, council, member } = await setup(testDb)
+    await api.post(`${base}/members/${member.u2}/rank`, { rank: 'vice_president' }, 'u1')
+    const president = await api.post(`${base}/members/${member.u1}/remove`, {}, 'u1')
+    assert.equal(president.status, 409)
+    assert.deepEqual(await president.json(), { error: 'PRESIDENT_CANNOT_LEAVE' })
+    const vice = await api.post(`${base}/members/${member.u2}/remove`, {}, 'u2')
+    assert.equal(vice.status, 409)
+    assert.deepEqual(await vice.json(), { error: 'CANNOT_REMOVE_SELF' })
+    assert.deepEqual(await presidentsOf(testDb, council.id), [member.u1])
+    assert.equal((await testDb.pg.query('SELECT 1 FROM council_membership WHERE ends_at IS NOT NULL')).rows.length, 0)
+    // 회장을 넘긴 뒤의 이전 회장은 직급 없는 운영진이라 회장단 요청 자체가 403이다.
+    assert.equal((await api.post(`${base}/president/transfer`, { memberId: member.u3 }, 'u1')).status, 200)
+    assert.equal((await api.post(`${base}/members/${member.u1}/remove`, {}, 'u1')).status, 403)
+  } finally {
+    await testDb.close()
+  }
+})
+
+test('경로의 부서 번호나 운영진 번호가 uuid가 아니면 404다: 부서에서 빼기, 부서 배정, 직급 바꾸기', async () => {
+  const testDb = await createTestDb()
+  try {
+    const { api, base, member, finance } = await setup(testDb)
+    assert.equal((await api.post(`${base}/members/${member.u2}/departments/not-a-uuid/remove`, {}, 'u1')).status, 404)
+    assert.equal((await api.post(`${base}/members/not-a-uuid/departments/${finance}/remove`, {}, 'u1')).status, 404)
+    assert.equal((await api.post(`${base}/members/not-a-uuid/departments`, { departmentId: finance, rank: null }, 'u1')).status, 404)
+    assert.equal((await api.post(`${base}/members/not-a-uuid/rank`, { rank: null }, 'u1')).status, 404)
+    assert.equal((await api.post(`${base}/members/%00/rank`, { rank: null }, 'u1')).status, 404)
   } finally {
     await testDb.close()
   }
